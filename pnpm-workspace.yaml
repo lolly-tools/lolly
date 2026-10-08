@@ -3,6 +3,7 @@ packages:
   - packages/node-shell
   - packages/docs-render
   - packages/audio-dock
+  - packages/rondo
   - engine
   - shells/web
   - shells/cli

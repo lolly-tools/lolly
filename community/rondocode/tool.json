@@ -1,0 +1,97 @@
+{
+  "id": "rondocode",
+  "name": "Rondocode",
+  "description": "Write music as code and hear it as you type: synths, patterns and a mix in rondocode's live editor. Export the song as audio, stems or MIDI with Content Credentials that record it, or keep its source.",
+  "version": "1.0.0",
+  "engineVersion": "^1.246.0",
+  "status": "community",
+  "singleInstance": true,
+  "category": "utility",
+  "privacy": "on-device",
+  "tags": [
+    "music",
+    "audio",
+    "code",
+    "live coding",
+    "synth",
+    "pattern",
+    "song",
+    "rondo",
+    "rondocode",
+    "sequencer",
+    "wav",
+    "offline"
+  ],
+  "a11yLabel": "Rondocode editor: {{name}}",
+  "render": {
+    "width": 1280,
+    "height": 800,
+    "formats": [
+      "png",
+      "html",
+      "wav",
+      "mp3",
+      "m4a",
+      "opus",
+      "json"
+    ],
+    "export": false,
+    "sidebar": false,
+    "layout": "canvas",
+    "actions": [
+      "save",
+      "share"
+    ]
+  },
+  "hooks": {
+    "onInit": true,
+    "onInput": true,
+    "exportFile": true,
+    "exportStill": true
+  },
+  "inputs": [
+    {
+      "id": "code",
+      "type": "longtext",
+      "label": "Song",
+      "default": "# rondo, the terse live-coding language.\n# a synth is a pipeline: one stage per\n# line, each feeding the next.\n# `name = …` lines are modulation.\n\nsynth acid\n  # a saw + a sub-octave square\n  saw + square note/2\n  # filter; its input is the line above\n  ladder cutoff * env^2 res:.85\n  # the VCA\n  * env\n  env    = adsr .003 .2 .3 .1\n  cutoff = knob 800 80..8000 log\n\nplay acid\n  0 0 3 5 0 0 7 5  scale:a-min\n  # sweep the filter (turns the knob)\n  cutoff: sine 200..2400 slow:4\n  # every 4th cycle, backwards\n  every 4: rev\n\ncps .6\n",
+      "help": "The song's code, in rondo or rondocode's JavaScript. It runs in the editor's private frame and, for exports, in an isolated runner."
+    },
+    {
+      "id": "language",
+      "type": "select",
+      "label": "Language",
+      "default": "rondo",
+      "options": [
+        {
+          "value": "rondo",
+          "label": "rondo"
+        },
+        {
+          "value": "js",
+          "label": "JavaScript"
+        },
+        {
+          "value": "auto",
+          "label": "Detect"
+        }
+      ]
+    },
+    {
+      "id": "name",
+      "type": "text",
+      "label": "Name",
+      "default": "Acid"
+    },
+    {
+      "id": "length",
+      "type": "number",
+      "label": "Export length (seconds)",
+      "default": 0,
+      "min": 0,
+      "max": 120,
+      "step": 1,
+      "help": "0 exports the song's own arrangement, or 8 cycles when it has none."
+    }
+  ]
+}

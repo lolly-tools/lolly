@@ -28,6 +28,12 @@ export interface RecordedWarning {
   message: string;
   /** 'usage' → exit 2 under --strict; 'gate' → exit 4 (a protective check softened). */
   kind: 'usage' | 'gate';
+  /**
+   * Facts a machine reader needs beside the sentence, carried as extra keys on the
+   * envelope's warning (additive, per the envelope policy): a song's silent part
+   * keeps its stable finding code, the parts and the execution class it ran in.
+   */
+  extra?: Record<string, unknown>;
 }
 
 const warnings: RecordedWarning[] = [];
@@ -60,8 +66,8 @@ export function note(message: string): void {
  * into a failure afterwards - the message is still shown first, because a strict run
  * that only prints an exit code teaches nobody anything.
  */
-export function warn(code: string, message: string, kind: 'usage' | 'gate' = 'usage'): void {
-  warnings.push({ code, message, kind });
+export function warn(code: string, message: string, kind: 'usage' | 'gate' = 'usage', extra?: Record<string, unknown>): void {
+  warnings.push({ code, message, kind, ...(extra ? { extra } : {}) });
   if (!quiet) process.stderr.write(`Warning: ${message}\n`);
 }
 

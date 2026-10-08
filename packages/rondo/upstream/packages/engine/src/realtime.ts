@@ -1,0 +1,1722 @@
+import { BLOCK } from './compile'
+import { VoicePool } from './voice'
+import type { VoiceOpts } from './voice'
+import { PostChain } from './post'
+import type { GraphSpec } from './graph'
+import type { DspContext } from './dsp/types'
+import { SampleBank } from './samples'
+import { LooperKernel } from './dsp/looper'
+import { WavetableBank } from './dsp/wavetable'
+import { DdspModelBank, parseDdspModel } from './dsp/ddsp'
+import { gainReductionDb, smoothCoeff } from './dsp/compress'
+import { clamp, DEFAULT_CPS, softClipTanh } from './dsp/util'
+import { StereoStage } from './dsp/midside'
+import type { EngineEvent, EngineMessage } from './protocol'
+
+/* ------------------------------------------------------------------------- *
+ * Realtime engine core: the message-driven layer an AudioWorklet processor
+ * wraps in ~30 lines (port.onmessage → handleMessage, process() per render
+ * quantum). Pure TS, no Web Audio.
+ *
+ * Control plane vs audio plane:
+ * - handleMessage() allocates freely (it runs between blocks). It validates
+ *   every message shape itself and NEVER throws — problems come back as
+ *   { kind: 'error' } events via onEvent.
+ * - process() is THE audio callback: allocation-free in steady state. The
+ *   future-event queue is a sorted array consumed by an advancing head index
+ *   (no shift()); fully drained → length reset (no allocation); fired
+ *   entries are compacted lazily by the next enqueue (control plane). The
+ *   only allocations on the audio path are error-event objects on rare,
+ *   rate-limited failure paths (NaN scrub, process-body crash), documented
+ *   below.
+ *
+ * Signal flow per block:
+ *   each synth: VoicePool → channel strip (gain × equal-power pan, both
+ *   ramped over one block on change) → master bus sum → master gain (ramped
+ *   over one block) → soft knee above CLIP_THRESHOLD → non-finite scrub → out.
+ *
+ * Channel pan is a stereo BALANCE: outL += busL·gain·cos(pan·π/2),
+ * outR += busR·gain·sin(pan·π/2). Center costs the usual −3dB per leg; hard
+ * left keeps only the L leg (the R leg's content is discarded, not folded) —
+ * fine for v1's mono-source voices, documented as such.
+ * ------------------------------------------------------------------------- */
+
+/** Hard cap on queued (future-timestamped) note events; beyond it new events
+ *  are dropped with an error event. */
+export const MAX_PENDING_EVENTS = 4096
+/** Total voice budget across all synths. defineSynth clamps its maxVoices to
+ *  whatever is left (and fails with an error event when nothing is). 128 gives
+ *  a rich multi-synth patch room to breathe — a full track can easily run a
+ *  dozen synths, and per-synth `voices` lets patches right-size within it. */
+export const MAX_TOTAL_VOICES = 128
+
+/** One synth's share of the budget, given what the others already hold.
+ *
+ *  THE rule, in one place: defineSynth applies it to a single synth as it
+ *  arrives, and {@link planVoiceBudget} walks a whole project through it so the
+ *  host can say what WILL happen before sending anything. Two copies of this
+ *  arithmetic would drift, and the symptom of drift is a warning that
+ *  contradicts the engine. */
+export function allocVoices(requested: number, used: number): { voices: number; rejected: boolean } {
+  const free = MAX_TOTAL_VOICES - used
+  if (free < 1) return { voices: 0, rejected: true }
+  const want = Math.floor(requested)
+  return { voices: Math.floor(clamp(want, 1, free)), rejected: false }
+}
+
+/**
+ * What the engine will do with a project's synths, in DEFINITION ORDER.
+ *
+ * The budget is first come, first served, so order decides who loses: the
+ * synth written last is the one that gets nothing. Returns every synth with
+ * what it asked for and what it will actually get, so a host can report the
+ * whole picture rather than one synth's failure.
+ */
+export function planVoiceBudget(
+  synths: readonly { name: string; voices?: number | undefined }[],
+): { name: string; asked: number; got: number; rejected: boolean }[] {
+  const out: { name: string; asked: number; got: number; rejected: boolean }[] = []
+  let used = 0
+  for (const s of synths) {
+    const asked = s.voices === undefined ? DEFAULT_VOICES : Math.floor(s.voices)
+    const { voices, rejected } = allocVoices(asked, used)
+    used += voices
+    out.push({ name: s.name, asked, got: voices, rejected })
+  }
+  return out
+}
+/** Cap on retired-but-still-ringing voice pools kept across same-name
+ *  redefines. A redefine no longer cuts playing voices — the old pool rings
+ *  out while new notes use the new graph — but the backlog is bounded so rapid
+ *  live edits can't accumulate pools; the oldest is hard-stopped past this. */
+export const MAX_RETIRING = 6
+/** Points in a channel's scope trace: one SIGNED PEAK per processed block, in
+ *  a ring. At 128-sample blocks that is ~2.7ms a point, so 64 covers ~170ms —
+ *  long enough to read an attack, a gate length and a pump, short enough that
+ *  the trace moves with the music.
+ *
+ *  A peak per BLOCK rather than raw samples: this is an envelope with polarity,
+ *  which is what a scope this size can actually show. Individual cycles of a
+ *  high note are not resolvable at 64 points and pretending otherwise would
+ *  cost 60x the bandwidth to draw the same picture. */
+export const SCOPE_POINTS = 64
+/** |sample| level where the master soft knee engages (see masterSafety). */
+export const CLIP_THRESHOLD = 0.95
+
+const DEFAULT_MAX_SYNTHS = 16
+/** Upper bound on the constructor's maxSynths option — a sanity rail on the
+ *  registry size, independent of the voice budget (which is what actually
+ *  limits polyphony: 64 synths would run 1 voice each). */
+const MAX_SYNTHS_LIMIT = 64
+/** Voices a synth gets when it does not ask for a number. Exported so the host
+ *  can predict the engine's allocation without hard-coding it. */
+export const DEFAULT_VOICES = 8
+const DEFAULT_CHANNEL_GAIN = 0.8
+const DEFAULT_PAN = 0.5
+/** The engine's output level before any project sets one. EXPORTED because
+ *  the app needs the same number to turn a project's masterGain(db) into the
+ *  absolute gain `setMaster` expects, and a second copy of it in the app is
+ *  exactly how this codebase's worst bugs start. */
+export const DEFAULT_MASTER_GAIN = 0.8
+const MAX_GAIN = 2
+const MAX_RAMP_MS = 10000
+/** setCps rails: wide enough for any real transport (0.001 cps is one cycle
+ *  every ~17 minutes, 100 cps is absurdly fast) and narrow enough that no
+ *  synced kernel ever divides by something pathological. */
+const MIN_CPS = 0.001
+const MAX_CPS = 100
+const HALF_PI = Math.PI / 2
+/** Same-frame ordering: noteOff, then param, then noteOn. The middle one is
+ *  what makes patterned automation land on the note it belongs to: the value
+ *  is in place before the gate opens.
+ *
+ *  These numbers MIRROR render.ts's `rank` deliberately (noteOff 0, param 1,
+ *  noteOn 2). Live and offline reordering the same events differently is the
+ *  bug class this whole file is careful about. */
+const RANK_OFF = 0
+const RANK_PARAM = 1
+const RANK_ON = 2
+
+/** Master bus per-sample safety stage, exported for direct unit testing (an
+ *  honest in-graph NaN source doesn't exist — every kernel guards or flushes
+ *  — so the scrub is verified at unit level and the knee via integration):
+ *  non-finite → 0, then slope-matched tanh knee above CLIP_THRESHOLD.
+ *  Output is always finite and within ±1. */
+export const masterSafety = (v: number): number =>
+  Number.isFinite(v) ? softClipTanh(v, CLIP_THRESHOLD) : 0
+
+/** Sidechain duck bounds.
+ *
+ *  The defaults are EXPORTED because they are copied twice more — the DSL
+ *  layer applies them when `sidechain('kick')` names no options, and the
+ *  editor's duck-curve widget draws the shape they make. Those copies had
+ *  drifted (0.7 / 0.2 against this 0.6 / 180 ms), so the widget drew a deeper,
+ *  slower pump than the one you were hearing, and nothing noticed because each
+ *  copy was only ever compared against itself. */
+export const DEFAULT_DUCK_DEPTH = 0.6
+export const DEFAULT_DUCK_RELEASE_MS = 180
+const MIN_DUCK_RELEASE_MS = 1
+const MAX_DUCK_RELEASE_MS = 5000
+
+/** One-pole release coefficient for the sidechain duck: per sample the level
+ *  advances `level += (1 - level) * coeff` toward 1. `releaseMs` is clamped to
+ *  [1, 5000] here so the LIVE engine and the OFFLINE render (which both call
+ *  this) derive the SAME coefficient from the same inputs — the single source
+ *  of live==offline parity. */
+export const duckReleaseCoeff = (releaseMs: number, sampleRate: number): number => {
+  const ms = clamp(releaseMs, MIN_DUCK_RELEASE_MS, MAX_DUCK_RELEASE_MS)
+  return 1 - Math.exp(-1 / ((ms / 1000) * sampleRate))
+}
+
+interface QueuedNote {
+  frame: number
+  rank: number // RANK_OFF | RANK_PARAM | RANK_ON
+  synth: string
+  note: number
+  velocity: number // unused for noteOff
+  /** RANK_ON only: the note's sample slice (see protocol noteOn). */
+  begin: number
+  end: number
+  /** RANK_PARAM only: what to set when this fires. Kept in its own field
+   *  rather than borrowed from `note`/`velocity`, so a queue dump reads as
+   *  what it is. */
+  param?: { name: string; value: number; rampMs: number }
+}
+
+interface ParamState {
+  min: number
+  max: number
+  /** Last value handed to the pool (spec default until first setParam). */
+  value: number
+  /** True when this param lives in the POST chain (shared per-synth), so sets
+   *  route to ch.post.setParam instead of the voice pool. */
+  post?: boolean
+}
+
+interface Ramp {
+  name: string
+  param: ParamState
+  from: number
+  to: number
+  startFrame: number
+  endFrame: number
+}
+
+interface Channel {
+  name: string
+  pool: VoicePool
+  /** Per-synth FX post-chain over the SUMMED voices (undefined = no post).
+   *  Runs between the voice sum and the channel strip; its reverb/delay state
+   *  is shared across all voices of this synth (one tail, not one per note). */
+  post: PostChain | undefined
+  voices: number
+  /** Strip targets; *Prev is the value at the end of the last block — the
+   *  pair ramps linearly across one block after a setChannel. */
+  gain: number
+  pan: number
+  gainPrev: number
+  panPrev: number
+  /** Block-scoped ramp endpoints, refreshed at every block start. */
+  g0: number
+  g1: number
+  p0: number
+  p1: number
+  params: Map<string, ParamState>
+  ramps: Ramp[]
+  /** Sum of squares (both legs, post strip) of the last block — meters. */
+  sumSq: number
+  /** Signed peak of the CURRENT block (mid, post strip), and a ring of the
+   *  last SCOPE_POINTS of them — the inline scope trace. */
+  peak: number
+  scope: Float32Array
+  scopeHead: number
+  /** How much this channel responds to the sidechain duck, [0, 1]. 1 = full
+   *  duck (down to 1 - depth); 0 = ignore the duck. Effective per-sample
+   *  multiplier is 1 - scAmount·(1 - duckLevel). The source channel is never
+   *  ducked regardless of this. */
+  scAmount: number
+  /** Per-synth send amounts into shared buses (busName -> 0..1). Tapped
+   *  pre-strip/pre-duck (raw post-FX), so a reverb send does not pump. */
+  sends: Map<string, number>
+  /** Hardware output routing, 0-based: 0/1 = the master pair (the default).
+   *  outLo === outHi routes MONO (both strip legs summed into one channel).
+   *  Channels >= 2 index the host's extra output buffers; when the host
+   *  provides no buffer for them (device has too few outputs) the strip
+   *  folds back into the master pair rather than going silent. */
+  outLo: number
+  outHi: number
+}
+
+/** A shared send bus: an FX chain (like a synth post-chain) fed by the summed
+ *  per-synth sends, its output mixed into the master before the master stage. */
+interface Bus {
+  name: string
+  post: PostChain
+  gain: number
+  /** Per-block send accumulators (BLOCK long), zeroed each block start. */
+  accumL: Float32Array
+  accumR: Float32Array
+  sumSq: number
+}
+
+const MAX_BUSES = 8
+
+/** Hard cap on addressable hardware output channels (0-based indices stay
+ *  below this). 32 covers any interface this engine will realistically meet;
+ *  the host also caps its worklet output at the same number. */
+export const MAX_OUT_CHANNELS = 32
+
+/** Live input slots: slot 0 is the default capture (what a bare `mic()`
+ *  reads), slots 1.. carry device-named captures (`mic device:x`). Fixed so
+ *  the worklet wiring and the shared blocks are allocated exactly once. */
+export const MAX_MIC_INPUTS = 4
+
+const isObj = (m: unknown): m is Record<string, unknown> => typeof m === 'object' && m !== null
+const fin = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v)
+
+const rampValue = (r: Ramp, frame: number): number => {
+  if (frame >= r.endFrame) return r.to
+  if (frame <= r.startFrame) return r.from
+  return r.from + (r.to - r.from) * ((frame - r.startFrame) / (r.endFrame - r.startFrame))
+}
+
+export class RealtimeEngine {
+  /** Engine → host event sink (errors, meters). Exceptions thrown by the
+   *  callback are swallowed — a broken host listener must not kill audio. */
+  onEvent?: (ev: EngineEvent) => void
+
+  private readonly ctx: DspContext
+  private readonly maxSynths: number
+  private readonly byName = new Map<string, Channel>()
+  /** Old channels from same-name redefines, kept alive so their in-flight
+   *  voices ring out instead of being cut (new notes go to the new channel).
+   *  Reaped each block once fully silent; bounded by MAX_RETIRING. */
+  private retiring: Channel[] = []
+  /** Dense mirror of byName.values() + retiring for allocation-free iteration
+   *  in process(); rebuilt on define/remove/reap (control plane). */
+  private list: Channel[] = []
+  /** Value-probe targets: synth name → its probed voice-graph node ids (see
+   *  setProbes / collectProbes). Empty (the common case) → no probe events. */
+  private readonly probes = new Map<string, number[]>()
+  /** Future note events, sorted by (frame, rank), consumed via qHead. */
+  private queue: QueuedNote[] = []
+  private qHead = 0
+  private frames = 0
+  /** False until the first FINITE startFrame adopts the host's timeline. */
+  private originAdopted = false
+  private masterGain = DEFAULT_MASTER_GAIN
+  /** Master-bus mid/side. Idle by default, and skipped entirely when idle so
+   *  a project that never asks for it stays sample-identical. */
+  private readonly stereo = new StereoStage()
+  private masterPrev = DEFAULT_MASTER_GAIN
+  private masterSumSq = 0
+  /** Master-bus glue compressor (stereo-linked), off until setMasterComp.
+   *  atk/rel are per-sample smoothing coeffs; makeupLin is linear. */
+  private masterComp:
+    | { threshold: number; ratio: number; knee: number; atk: number; rel: number; makeupLin: number }
+    | undefined
+  /** Current master-comp gain reduction in dB (>= 0), smoothed across blocks. */
+  private masterCompGr = 0
+  private lastNanErrorFrame = -Infinity
+  private lastProcErrorFrame = -Infinity
+  /** Queue-overflow drops accumulated since the last coalesced report. */
+  private queueDropped = 0
+  private lastQueueErrorFrame = -Infinity
+  /** Correlation id of the message currently being dispatched; echoed onto
+   *  any error events it provokes (undefined outside handleMessage). */
+  private msgId: string | undefined
+  /** Per-channel scratch bus reused across channels and segments. */
+  private readonly busL = new Float32Array(BLOCK)
+  private readonly busR = new Float32Array(BLOCK)
+  /** Shared send buses (name -> Bus) + a dense mirror for allocation-free
+   *  iteration in render(), rebuilt on define/remove (control plane). */
+  private readonly busByName = new Map<string, Bus>()
+  private busList: Bus[] = []
+  /** Sidechain duck. scSource undefined = no ducking. duckLevel is the running
+   *  envelope (1 = no duck), snapped to 1 - scDepth on each source noteOn and
+   *  recovering toward 1 via scReleaseCoeff per sample; it advances continuously
+   *  across blocks. `duck` is a preallocated per-sample scratch of the envelope
+   *  for the current block — filled ONCE per output sample (not per channel) so
+   *  channel count never changes the recovery rate. */
+  private scSource: string | undefined
+  private scDepth = DEFAULT_DUCK_DEPTH
+  private scReleaseCoeff: number
+  private duckLevel = 1
+  private readonly duck = new Float32Array(BLOCK)
+
+  /** Shared sample store; also exposed on ctx.samples so compiled
+   *  SampleKernels resolve names against it (and see later loads). */
+  private readonly samples: SampleBank
+  /** named looper kernels (see ctx.loopers / bounceLoop). */
+  private readonly loopers: Map<string, object>
+  /** Custom wavetable store; also exposed on ctx.wavetables so compiled
+   *  WavetableKernels resolve custom names against it (and see re-loads —
+   *  they re-resolve per block, same contract as samples). */
+  private readonly wavetables: WavetableBank
+  /** Trained DDSP model store; also exposed on ctx.ddsp so compiled
+   *  DdspKernels resolve model names against it (and see later loads —
+   *  they re-resolve per block, same contract as samples). */
+  private readonly ddspModels: DdspModelBank
+  /** the shared live-input blocks, slot-indexed; [0] aliases ctx.mic (see
+   *  the constructor) and slots 1.. feed device-named mics via ctx.micMap. */
+  private readonly micBlocks: Float32Array[]
+  private readonly micQuiet: boolean[]
+
+  constructor(ctx: DspContext, opts?: { maxSynths?: number }) {
+    // Adopt any bank the host supplied on the ctx, else create one and publish
+    // it back onto the ctx so voice graphs compiled with this ctx can read it.
+    this.samples = (ctx.samples as SampleBank | undefined) ?? new SampleBank()
+    ctx.samples = this.samples
+    // Custom wavetables: same adopt-or-publish as the sample bank, so every
+    // voice graph compiled with this ctx resolves custom table names against
+    // ONE store that loadWavetable messages fill.
+    this.wavetables = (ctx.wavetables as WavetableBank | undefined) ?? new WavetableBank()
+    ctx.wavetables = this.wavetables
+    // DDSP models: same adopt-or-publish as the sample bank.
+    this.ddspModels = (ctx.ddsp as DdspModelBank | undefined) ?? new DdspModelBank()
+    ctx.ddsp = this.ddspModels
+    // Named loopers: same adopt-or-publish — every looper kernel compiled
+    // with this ctx that carries a `name` config registers itself here, so
+    // bounceLoop can find the pedal to copy.
+    this.loopers = (ctx.loopers as Map<string, object> | undefined) ?? new Map()
+    ctx.loopers = this.loopers
+    // LIVE INPUTS: adopt any slot-0 block the host already put on the ctx,
+    // else create one and publish it back (same pattern as the sample bank).
+    // Every graph's BARE mic aliases that one buffer, so writeMic() is one
+    // copy per quantum and zero per-graph work; device-named mics read the
+    // slot array through ctx.micMap per block (see dsp/micin.ts). All blocks
+    // stay zeroed until fed.
+    const mic0 = ctx.mic ?? new Float32Array(BLOCK)
+    ctx.mic = mic0
+    this.micBlocks = [mic0]
+    for (let i = 1; i < MAX_MIC_INPUTS; i++) this.micBlocks.push(new Float32Array(BLOCK))
+    ctx.mics = this.micBlocks
+    ctx.micMap = ctx.micMap ?? {}
+    this.micQuiet = new Array(MAX_MIC_INPUTS).fill(true) as boolean[]
+    // TEMPO: publish a concrete tempo onto the shared ctx so it is never
+    // absent for a synced kernel; setCps rewrites this same field in place.
+    ctx.cps = ctx.cps ?? DEFAULT_CPS
+    this.ctx = ctx
+    this.maxSynths = Math.floor(clamp(opts?.maxSynths ?? DEFAULT_MAX_SYNTHS, 1, MAX_SYNTHS_LIMIT))
+    this.scReleaseCoeff = duckReleaseCoeff(DEFAULT_DUCK_RELEASE_MS, ctx.sampleRate)
+  }
+
+  /** The engine's current frame on the HOST's timeline: the first process()
+   *  call adopts its startFrame as the origin (see process), and the counter
+   *  advances by BLOCK per process() call, unconditionally — the timeline
+   *  never stalls, even on errors. Before the first process() this is 0, and
+   *  atFrame semantics are undefined-but-safe: any future-looking atFrame is
+   *  queued and lands correctly once the origin is known. */
+  get currentFrame(): number {
+    return this.frames
+  }
+
+  /** Consume one host → engine message. Never throws: malformed or
+   *  out-of-policy messages emit an error event instead. Wire this to the
+   *  worklet's port.onmessage. */
+  handleMessage(msg: EngineMessage): void {
+    const raw = msg as unknown
+    this.msgId = isObj(raw) && typeof raw['id'] === 'string' ? raw['id'] : undefined
+    try {
+      this.dispatch(raw)
+    } catch (e) {
+      // Backstop — dispatch validates explicitly, but nothing past this line
+      // may ever escape to the caller.
+      this.error(e instanceof Error ? e.message : String(e), 'handleMessage')
+    } finally {
+      this.msgId = undefined
+    }
+  }
+
+  /** RMS meters of the LAST processed block: per synth (post channel strip)
+   *  and master (post everything), stamped with the engine's current frame
+   *  (the scheduler's "now"). On-request, control plane (allocates the event
+   *  object). Prototype-less record so a synth named '__proto__' meters like
+   *  any other; channel RMS is measured PRE-scrub, so a NaN-emitting patch
+   *  is reported as 0 here rather than poisoning the host's UI. */
+  collectMeters(): EngineEvent {
+    const channels = Object.create(null) as Record<string, number>
+    for (const ch of this.list) {
+      const v = Math.sqrt(ch.sumSq / (2 * BLOCK))
+      channels[ch.name] = Number.isFinite(v) ? v : 0
+    }
+    const master = Math.sqrt(this.masterSumSq / (2 * BLOCK))
+    const ev: Extract<EngineEvent, { kind: 'meters' }> = {
+      kind: 'meters',
+      frame: this.frames,
+      master: Number.isFinite(master) ? master : 0,
+      channels,
+    }
+    /* The scope trace, unrolled oldest-first so the host can draw it left to
+     * right without knowing about the ring. A channel that has never produced
+     * a block is all zeros, which draws as a flat line — correct, not missing. */
+    const scopes = Object.create(null) as Record<string, Float32Array>
+    for (const ch of this.list) {
+      const out = new Float32Array(SCOPE_POINTS)
+      for (let i = 0; i < SCOPE_POINTS; i++) {
+        const v = ch.scope[(ch.scopeHead + i) % SCOPE_POINTS]!
+        out[i] = Number.isFinite(v) ? v : 0
+      }
+      scopes[ch.name] = out
+    }
+    ev.scopes = scopes
+    if (this.busList.length > 0) {
+      const buses = Object.create(null) as Record<string, number>
+      for (const bus of this.busList) {
+        const v = Math.sqrt(bus.sumSq / (2 * BLOCK))
+        buses[bus.name] = Number.isFinite(v) ? v : 0
+      }
+      ev.buses = buses
+    }
+    // The duck envelope as APPLIED, not as inferred. A visualizer reading bass
+    // energy gets a different shape from the multiplier actually in the path.
+    if (this.scSource !== undefined) ev.duck = Number.isFinite(this.duckLevel) ? this.duckLevel : 1
+    // Live-input RMS: the loudest slot — one meter, however many captures.
+    let micRms: number | undefined
+    for (let k = 0; k < this.micBlocks.length; k++) {
+      if (this.micQuiet[k]) continue
+      const b = this.micBlocks[k]!
+      let s = 0
+      for (let i = 0; i < BLOCK; i++) s += b[i]! * b[i]!
+      const m = Math.sqrt(s / BLOCK)
+      if (Number.isFinite(m) && (micRms === undefined || m > micRms)) micRms = m
+    }
+    if (micRms !== undefined) ev.mic = micRms
+    return ev
+  }
+
+  /** Sample every probed node's current value from its (active) voice — the
+   *  editor's live readouts. Returns null when no probes are set (the common
+   *  case) so the worklet emits nothing. Control-plane rate (meter cadence),
+   *  allocates its result object; the per-node read is a cheap step scan. */
+  collectProbes(): EngineEvent | null {
+    if (this.probes.size === 0) return null
+    const values = Object.create(null) as Record<string, Record<number, number>>
+    for (const [name, nodes] of this.probes) {
+      const ch = this.byName.get(name)
+      if (ch === undefined) continue
+      const perNode = Object.create(null) as Record<number, number>
+      for (let i = 0; i < nodes.length; i++) perNode[nodes[i]!] = ch.pool.readNode(nodes[i]!)
+      values[name] = perNode
+    }
+    return { kind: 'probe', frame: this.frames, values }
+  }
+
+  /** Render exactly BLOCK frames into outL/outR (their previous contents are
+   *  overwritten). `startFrame` is the absolute frame index of outL[0] in the
+   *  timeline that noteOn/noteOff `atFrame` values refer to — pass the
+   *  worklet's running frame counter.
+   *
+   *  TIMELINE ORIGIN: the first process() call with a FINITE startFrame
+   *  adopts it as the engine's internal frame counter, so currentFrame,
+   *  meters.frame, atFrame, and startFrame all live on ONE timeline even
+   *  when the worklet spins up mid-context (context frame N > 0). A
+   *  scheduler can therefore stamp atFrame = meters.frame + delta safely.
+   *  Non-finite calls do not latch the origin — a host that sends garbage
+   *  first and real frames later still gets a unified timeline.
+   *
+   *  A non-finite startFrame falls back to the internal counter WITH a
+   *  rate-limited error event — a host bug worth hearing about, not worth
+   *  stopping audio for. The whole body is wrapped in one try/catch (never
+   *  per-sample): a crash zeroes the block and emits a rate-limited error
+   *  event. */
+  /** Feed one live-input block before process(). `slot` 0 (the default) is
+   *  the bare-mic capture; 1..MAX_MIC_INPUTS-1 carry device-named captures
+   *  (ctx.micMap says which name reads which slot). Pass null/short blocks to
+   *  go silent — zeroing is skipped once already quiet, so an unconnected
+   *  input costs nothing per quantum. */
+  writeMic(block: Float32Array | null, slot = 0): void {
+    if (!Number.isInteger(slot) || slot < 0 || slot >= MAX_MIC_INPUTS) return
+    const buf = this.micBlocks[slot]!
+    if (block === null || block.length < BLOCK) {
+      if (!this.micQuiet[slot]) {
+        buf.fill(0)
+        this.micQuiet[slot] = true
+      }
+      return
+    }
+    buf.set(block.subarray(0, BLOCK))
+    this.micQuiet[slot] = false
+  }
+
+  process(
+    outL: Float32Array,
+    outR: Float32Array,
+    startFrame: number,
+    /** EXTRA hardware output channels beyond the master pair: extra[k] is
+     *  absolute channel k+2 (a worklet passes outputs[0].slice-of 2..N).
+     *  Optional and sparse-tolerant — a missing/wrong-length buffer simply
+     *  folds any strip routed to it back into the master pair. */
+    extra?: readonly (Float32Array | undefined)[] | null,
+  ): void {
+    if (!this.originAdopted && Number.isFinite(startFrame)) {
+      this.originAdopted = true
+      this.frames = startFrame
+    }
+    const outs = extra ?? null
+    let start = startFrame
+    if (!Number.isFinite(start)) {
+      start = this.frames
+      this.rateLimited('lastProcErrorFrame', start, `process: non-finite startFrame (${startFrame}), using internal frame counter`)
+    }
+    try {
+      if (outL.length !== BLOCK || outR.length !== BLOCK) {
+        outL.fill(0)
+        outR.fill(0)
+        this.zeroExtra(outs)
+        this.rateLimited(
+          'lastProcErrorFrame',
+          start,
+          `process: buffers must be exactly BLOCK (${BLOCK}) frames, got ${outL.length}/${outR.length}`,
+        )
+      } else {
+        this.render(outL, outR, start, outs)
+      }
+    } catch (e) {
+      outL.fill(0)
+      outR.fill(0)
+      this.zeroExtra(outs)
+      this.rateLimited('lastProcErrorFrame', start, `process: ${e instanceof Error ? e.message : String(e)}`)
+    }
+    this.frames += BLOCK
+  }
+
+  /** Silence every usable extra output buffer (error paths). */
+  private zeroExtra(extra: readonly (Float32Array | undefined)[] | null): void {
+    if (extra === null) return
+    for (const b of extra) if (b !== undefined && b.length === BLOCK) b.fill(0)
+  }
+
+  /* ----------------------------- audio plane ----------------------------- */
+
+  private render(
+    outL: Float32Array,
+    outR: Float32Array,
+    start: number,
+    extra: readonly (Float32Array | undefined)[] | null,
+  ): void {
+    outL.fill(0)
+    outR.fill(0)
+    this.zeroExtra(extra)
+    // Reap retired pools that have gone fully silent (control-plane rate: only
+    // when one actually drains, so process() stays scan-free otherwise).
+    if (this.retiring.length > 0) {
+      let reaped = false
+      for (let i = this.retiring.length - 1; i >= 0; i--) {
+        if (!this.poolActive(this.retiring[i]!.pool)) {
+          this.retiring.splice(i, 1)
+          reaped = true
+        }
+      }
+      if (reaped) this.rebuildList()
+    }
+    const list = this.list
+
+    // Block start: advance param ramps (block-rate granularity), latch the
+    // strip ramp endpoints, reset the meters.
+    for (let c = 0; c < list.length; c++) {
+      const ch = list[c]!
+      this.advanceRamps(ch, start)
+      ch.g0 = ch.gainPrev
+      ch.g1 = ch.gain
+      ch.gainPrev = ch.gain
+      ch.p0 = ch.panPrev
+      ch.p1 = ch.pan
+      ch.panPrev = ch.pan
+      // the peak just finished belongs to the block that ended
+      ch.scope[ch.scopeHead] = ch.peak
+      ch.scopeHead = (ch.scopeHead + 1) % SCOPE_POINTS
+      ch.peak = 0
+      ch.sumSq = 0
+    }
+    // Zero the shared-bus send accumulators for this block (mixChannel taps
+    // into them pre-strip/pre-duck; the buses are summed after the segment walk).
+    for (let b = 0; b < this.busList.length; b++) {
+      const bus = this.busList[b]!
+      bus.accumL.fill(0)
+      bus.accumR.fill(0)
+      bus.sumSq = 0
+    }
+
+    // Walk the block, splitting at queued-event frames so each event applies
+    // on its exact sample (VoicePool.process accepts any n <= BLOCK). fire()
+    // may snap duckLevel down when a source noteOn lands, so the duck envelope
+    // is filled per SEGMENT (after the fires), once per output sample.
+    const duckActive = this.scSource !== undefined
+    const q = this.queue
+    let cursor = 0
+    while (cursor < BLOCK) {
+      while (this.qHead < q.length && q[this.qHead]!.frame - start <= cursor) {
+        this.fire(q[this.qHead]!)
+        this.qHead++
+      }
+      let end = BLOCK
+      if (this.qHead < q.length) {
+        const off = q[this.qHead]!.frame - start
+        if (off < end) end = off
+      }
+      const n = end - cursor
+      if (duckActive) {
+        // Once per sample, independent of channel count.
+        const coeff = this.scReleaseCoeff
+        let lvl = this.duckLevel
+        for (let i = cursor; i < end; i++) {
+          this.duck[i] = lvl
+          lvl += (1 - lvl) * coeff
+        }
+        this.duckLevel = lvl
+      }
+      for (let c = 0; c < list.length; c++) {
+        const ch = list[c]!
+        // A channel with scAmount 0 opts out entirely (treat as no duck).
+        const ducked = duckActive && ch.name !== this.scSource && ch.scAmount > 0 ? this.duck : null
+        this.mixChannel(ch, outL, outR, cursor, n, ducked, ch.scAmount, extra)
+      }
+      cursor = end
+    }
+    if (this.qHead > 0 && this.qHead >= q.length) {
+      q.length = 0 // fully drained: reset in place, no allocation
+      this.qHead = 0
+    }
+
+    // Shared send buses: each bus's FX chain processes the whole block of
+    // summed sends, then its output is mixed into the master PRE gain/comp (so
+    // a bus reverb sits inside the master glue, and — being fed pre-duck — does
+    // not pump with the sidechain).
+    for (let b = 0; b < this.busList.length; b++) {
+      const bus = this.busList[b]!
+      const aL = bus.accumL
+      const aR = bus.accumR
+      bus.post.processStereo(aL, aR, BLOCK)
+      const g = bus.gain
+      let ss = 0
+      for (let i = 0; i < BLOCK; i++) {
+        const l = aL[i]! * g
+        const r = aR[i]! * g
+        outL[i] = outL[i]! + l
+        outR[i] = outR[i]! + r
+        ss += l * l + r * r
+      }
+      bus.sumSq = ss
+    }
+
+    /* Master stage: gain (one-block ramp), optional glue compressor, soft
+     * knee, non-finite scrub. The compressor runs AFTER master gain and
+     * BEFORE the safety stage; it's stereo-linked (one gain from max|L|,|R|)
+     * so the image never shifts, and its reduction state carries across
+     * blocks.
+     *
+     * That safety stage is `masterSafety`, and it is a tanh SOFT CLIP at
+     * CLIP_THRESHOLD — this comment used to call it a limiter, which it is
+     * not. It holds the output inside ±1 by bending the waveform, which is
+     * the right last resort and the wrong tool for holding a ceiling. For
+     * that there is a real look-ahead brickwall in dsp/limiter.ts, which
+     * turns down instead of distorting; put it in a post chain when the
+     * ceiling matters (a PA feed, a bounce). It is deliberately NOT wired in
+     * here: it costs latency, and changing the master path would change the
+     * output of every project that already exists. */
+    const m0 = this.masterPrev
+    const m1 = this.masterGain
+    const mc = this.masterComp
+    let gr = this.masterCompGr
+    let nan = 0
+    let ss = 0
+    for (let i = 0; i < BLOCK; i++) {
+      const g = m0 + (m1 - m0) * ((i + 1) / BLOCK)
+      let l = outL[i]! * g
+      let r = outR[i]! * g
+      if (!this.stereo.idle) {
+        const ms = this.stereo.step(l, r)
+        l = ms[0]!
+        r = ms[1]!
+      }
+      if (mc !== undefined) {
+        const peak = Math.max(Math.abs(l), Math.abs(r))
+        const db = peak > 0 ? 20 * Math.log10(peak) : -120
+        const target = clamp(gainReductionDb(db, mc.threshold, mc.ratio, mc.knee), 0, 60)
+        gr += (target - gr) * (target > gr ? mc.atk : mc.rel)
+        const cg = Math.pow(10, -gr / 20) * mc.makeupLin
+        l *= cg
+        r *= cg
+      }
+      if (!Number.isFinite(l)) nan++
+      if (!Number.isFinite(r)) nan++
+      l = masterSafety(l)
+      r = masterSafety(r)
+      outL[i] = l
+      outR[i] = r
+      ss += l * l + r * r
+    }
+    this.masterPrev = m1
+    this.masterCompGr = Number.isFinite(gr) ? gr : 0
+    this.masterSumSq = ss
+    if (nan > 0) {
+      this.rateLimited('lastNanErrorFrame', start, `master: scrubbed ${nan} non-finite sample(s) this block`)
+    }
+    /* Routed (extra) outputs: independent feeds, so they skip the master
+     * stage above — but never the safety net. Same tanh soft clip and
+     * non-finite scrub the master pair gets, per channel. */
+    if (extra !== null) {
+      let nanX = 0
+      for (let k = 0; k < extra.length; k++) {
+        const b = extra[k]
+        if (b === undefined || b.length !== BLOCK) continue
+        for (let i = 0; i < BLOCK; i++) {
+          const v = b[i]!
+          if (Number.isFinite(v)) {
+            b[i] = masterSafety(v)
+          } else {
+            b[i] = 0
+            nanX++
+          }
+        }
+      }
+      if (nanX > 0) {
+        this.rateLimited('lastNanErrorFrame', start, `out: scrubbed ${nanX} non-finite sample(s) on routed channels`)
+      }
+    }
+  }
+
+  /** Evaluate ch's active param ramps at the block start and push the values
+   *  to the pool; completed ramps are swap-popped (allocation-free). */
+  private advanceRamps(ch: Channel, start: number): void {
+    const ramps = ch.ramps
+    for (let i = ramps.length - 1; i >= 0; i--) {
+      const r = ramps[i]!
+      const v = rampValue(r, start)
+      r.param.value = v
+      if (r.param.post) ch.post?.setParam(r.name, v)
+      else ch.pool.setParam(r.name, v)
+      if (start >= r.endFrame) {
+        ramps[i] = ramps[ramps.length - 1]!
+        ramps.pop()
+      }
+    }
+  }
+
+  /** Render n frames of ch into its scratch bus, then mix into the master at
+   *  [cursor, cursor+n) through the channel strip. Strip ramps interpolate
+   *  across the WHOLE block (t indexes cursor+i), so segment splits don't
+   *  distort them; the constant path skips the per-sample trig. */
+  private mixChannel(
+    ch: Channel,
+    outL: Float32Array,
+    outR: Float32Array,
+    cursor: number,
+    n: number,
+    duck: Float32Array | null,
+    scAmount: number,
+    extra: readonly (Float32Array | undefined)[] | null,
+  ): void {
+    const bufL = this.busL
+    const bufR = this.busR
+    /* DESTINATION: the master pair by default; a routed strip writes into the
+     * host's extra output buffers instead. A route whose buffers the host did
+     * not provide (device has too few outputs) FOLDS BACK to the master pair
+     * — a monitor feed on the wrong laptop must be audible somewhere, never
+     * silently gone. `mono` sums both strip legs into the one channel. */
+    let dL = outL
+    let dR = outR
+    let mono = false
+    if (ch.outLo >= 2) {
+      const bl = extra?.[ch.outLo - 2]
+      const bh = extra?.[ch.outHi - 2]
+      if (bl !== undefined && bl.length === BLOCK && bh !== undefined && bh.length === BLOCK) {
+        dL = bl
+        dR = bh
+        mono = ch.outLo === ch.outHi
+      }
+    } else if (ch.outLo === ch.outHi) {
+      // mono into one side of the master pair (`out lead 1` / `out lead 2`)
+      dL = ch.outLo === 0 ? outL : outR
+      dR = dL
+      mono = true
+    }
+    bufL.fill(0, 0, n)
+    bufR.fill(0, 0, n)
+    ch.pool.process(bufL, bufR, n)
+    // Per-synth FX post-chain: process the SUMMED voices once (shared reverb
+    // tail etc.), in place, BEFORE the channel strip + sidechain duck.
+    if (ch.post !== undefined) ch.post.processStereo(bufL, bufR, n)
+    // Shared-bus sends: tap the raw post-FX (pre-strip, pre-duck) into each
+    // target bus's block accumulator. Pre-duck so a reverb send doesn't pump.
+    if (ch.sends.size > 0) {
+      for (const [busName, amt] of ch.sends) {
+        const bus = this.busByName.get(busName)
+        if (bus === undefined) continue
+        const aL = bus.accumL
+        const aR = bus.accumR
+        for (let i = 0; i < n; i++) {
+          aL[cursor + i] = aL[cursor + i]! + bufL[i]! * amt
+          aR[cursor + i] = aR[cursor + i]! + bufR[i]! * amt
+        }
+      }
+    }
+    // Effective duck multiplier for this channel: 1 - amount·(1 - duckLevel).
+    // amount 1 → the raw duck envelope; amount 0 → 1 (never entered here,
+    // duck is null then). Shared with the offline mirror in render-runner.
+    let ss = ch.sumSq
+    /* Signed peak of the block, carried across segments like sumSq. Signed so
+     * the trace reads as a waveform rather than a rectified blob. */
+    let pk = ch.peak
+    let pkMag = pk < 0 ? -pk : pk
+    if (ch.g0 === ch.g1 && ch.p0 === ch.p1) {
+      const gl = ch.g1 * Math.cos(ch.p1 * HALF_PI)
+      const gr = ch.g1 * Math.sin(ch.p1 * HALF_PI)
+      for (let i = 0; i < n; i++) {
+        const d = duck === null ? 1 : 1 - scAmount * (1 - duck[cursor + i]!)
+        const l = bufL[i]! * gl * d
+        const r = bufR[i]! * gr * d
+        if (mono) {
+          dL[cursor + i] = dL[cursor + i]! + l + r
+        } else {
+          dL[cursor + i] = dL[cursor + i]! + l
+          dR[cursor + i] = dR[cursor + i]! + r
+        }
+        ss += l * l + r * r
+        const mid = (l + r) * 0.5
+        const mag = mid < 0 ? -mid : mid
+        if (mag > pkMag) {
+          pkMag = mag
+          pk = mid
+        }
+      }
+    } else {
+      for (let i = 0; i < n; i++) {
+        const t = (cursor + i + 1) / BLOCK // reaches the target by block end
+        const g = ch.g0 + (ch.g1 - ch.g0) * t
+        const p = ch.p0 + (ch.p1 - ch.p0) * t
+        const d = duck === null ? 1 : 1 - scAmount * (1 - duck[cursor + i]!)
+        const l = bufL[i]! * g * Math.cos(p * HALF_PI) * d
+        const r = bufR[i]! * g * Math.sin(p * HALF_PI) * d
+        if (mono) {
+          dL[cursor + i] = dL[cursor + i]! + l + r
+        } else {
+          dL[cursor + i] = dL[cursor + i]! + l
+          dR[cursor + i] = dR[cursor + i]! + r
+        }
+        ss += l * l + r * r
+        const mid = (l + r) * 0.5
+        const mag = mid < 0 ? -mid : mid
+        if (mag > pkMag) {
+          pkMag = mag
+          pk = mid
+        }
+      }
+    }
+    ch.sumSq = ss
+    ch.peak = pk
+  }
+
+  private fire(ev: QueuedNote): void {
+    const ch = this.byName.get(ev.synth)
+    if (!ch) return // removeSynth purges its pending events; purely defensive
+    if (ev.rank === RANK_PARAM) {
+      const p = ev.param
+      if (p === undefined) return
+      // validated when it was queued; the param can still have vanished under
+      // a redefine, which applyParam tolerates
+      this.applyParam(ch, p.name, p.value, p.rampMs, ev.frame)
+      return
+    }
+    if (ev.rank === RANK_ON) {
+      ch.pool.noteOn(ev.note, ev.velocity, ev.begin, ev.end)
+      // Sidechain trigger, sample-accurate: the walk splits the block at this
+      // event's frame, so resetting duckLevel here snaps the duck exactly at
+      // the source noteOn's sample.
+      if (ev.synth === this.scSource) this.duckLevel = 1 - this.scDepth
+    } else {
+      ch.pool.noteOff(ev.note)
+      this.releaseRetiring(ev.synth, ev.note)
+    }
+  }
+
+  /** Release `note` on any retired pool of `name` still holding it — otherwise
+   *  a note gated on an old (retired) pool never gets its note-off and sustains
+   *  forever (never reaped). A no-op where the note isn't present. Both the
+   *  queued (fire) and immediate (msgNote) note-off paths call this. */
+  private releaseRetiring(name: string, note: number): void {
+    for (let i = 0; i < this.retiring.length; i++) {
+      if (this.retiring[i]!.name === name) this.retiring[i]!.pool.noteOff(note)
+    }
+  }
+
+  /* ---------------------------- control plane ---------------------------- */
+
+  private dispatch(m: unknown): void {
+    if (!isObj(m) || typeof m['kind'] !== 'string') {
+      this.error(`malformed message (expected an object with a string 'kind')`, 'message')
+      return
+    }
+    switch (m['kind']) {
+      case 'defineSynth':
+        return this.msgDefineSynth(m)
+      case 'patchConstants':
+        return this.msgPatchConstants(m)
+      case 'setProbes':
+        return this.msgSetProbes(m)
+      case 'removeSynth':
+        return this.msgRemoveSynth(m)
+      case 'noteOn':
+        return this.msgNote(m, RANK_ON)
+      case 'noteOff':
+        return this.msgNote(m, RANK_OFF)
+      case 'allNotesOff':
+        return this.msgAllNotesOff()
+      case 'silenceAll':
+        return this.msgSilenceAll()
+      case 'setParam':
+        return this.msgSetParam(m)
+      case 'setChannel':
+        return this.msgSetChannel(m)
+      case 'setMicMap':
+        return this.msgSetMicMap(m)
+      case 'setMaster':
+        return this.msgSetMaster(m)
+      case 'setStereo':
+        return this.msgSetStereo(m)
+      case 'setCps':
+        return this.msgSetCps(m)
+      case 'setSidechain':
+        return this.msgSetSidechain(m)
+      case 'clearSidechain':
+        return this.msgClearSidechain()
+      case 'loadSample':
+        return this.msgLoadSample(m)
+      case 'clearSample':
+        return this.msgClearSample(m)
+      case 'bounceLoop':
+        return this.msgBounceLoop(m)
+      case 'loadWavetable':
+        return this.msgLoadWavetable(m)
+      case 'clearWavetable':
+        return this.msgClearWavetable(m)
+      case 'loadDdspModel':
+        return this.msgLoadDdspModel(m)
+      case 'clearDdspModel':
+        return this.msgClearDdspModel(m)
+      case 'setMasterComp':
+        return this.msgSetMasterComp(m)
+      case 'clearMasterComp':
+        return this.msgClearMasterComp()
+      case 'defineBus':
+        return this.msgDefineBus(m)
+      case 'removeBus':
+        return this.msgRemoveBus(m)
+      case 'setSend':
+        return this.msgSetSend(m)
+      default:
+        this.error(`unknown message kind '${m['kind']}'`, 'message')
+    }
+  }
+
+  private msgDefineSynth(m: Record<string, unknown>): void {
+    const name = m['name']
+    if (typeof name !== 'string' || name.length === 0) {
+      return this.error(`'name' must be a non-empty string`, 'defineSynth')
+    }
+    if (!isObj(m['graph'])) {
+      return this.error(`'graph' must be a GraphSpec object`, `defineSynth '${name}'`)
+    }
+    const existing = this.byName.get(name)
+    if (!existing && this.byName.size >= this.maxSynths) {
+      return this.error(`synth limit reached (${this.maxSynths})`, `defineSynth '${name}'`)
+    }
+    let requested = DEFAULT_VOICES
+    if (m['maxVoices'] !== undefined) {
+      if (!fin(m['maxVoices'])) return this.error(`'maxVoices' must be a finite number`, `defineSynth '${name}'`)
+      requested = Math.floor(m['maxVoices'])
+    }
+    // Voice budget: clamp to what the OTHER synths leave free (a same-name
+    // replacement releases its own voices first). Same rule the host uses to
+    // pre-flight a project — see allocVoices.
+    let others = 0
+    for (const ch of this.list) if (ch !== existing) others += ch.voices
+    const alloc = allocVoices(requested, others)
+    if (alloc.rejected) {
+      return this.error(
+        `voice budget exhausted (${MAX_TOTAL_VOICES} total, ${others} already allocated): `
+        + `'${name}' cannot be created. Lower \`voices:\` on the largest synths.`,
+        `defineSynth '${name}'`,
+      )
+    }
+    if (alloc.voices < requested) {
+      /* SAY SO. A synth that asked for 32 and quietly got 4 is a patch that
+       * drops notes for no visible reason. */
+      this.error(
+        `'${name}' asked for ${requested} voices and got ${alloc.voices} — `
+        + `the ${MAX_TOTAL_VOICES}-voice budget is nearly spent (${others} allocated).`,
+        `defineSynth '${name}'`,
+      )
+    }
+    const voices = alloc.voices
+    const graph = m['graph'] as unknown as GraphSpec
+    const postGraph = isObj(m['post']) ? (m['post'] as unknown as GraphSpec) : undefined
+    // voiceOpts (mono/glide/unison/...) is normalized host-side; the pool clamps
+    // defensively, so a plain wire object is safe to pass straight through.
+    const voiceOpts = isObj(m['voiceOpts']) ? (m['voiceOpts'] as unknown as VoiceOpts) : undefined
+    let pool: VoicePool
+    let post: PostChain | undefined
+    try {
+      // Compiles (validates + allocates) BEFORE touching the registry: a bad
+      // graph (or post graph) leaves any existing synth of this name untouched.
+      pool = new VoicePool(graph, this.ctx, voices, voiceOpts)
+      post = postGraph !== undefined ? new PostChain(postGraph, this.ctx) : undefined
+    } catch (e) {
+      return this.error(
+        `defineSynth '${name}' rejected: ${e instanceof Error ? e.message : String(e)}`,
+        `defineSynth '${name}'`,
+      )
+    }
+    const params = new Map<string, ParamState>()
+    if (Array.isArray(graph.params)) {
+      for (const p of graph.params) params.set(p.name, { min: p.min, max: p.max, value: p.default })
+    }
+    // POST-chain params are driveable too (via .ctrl()), sharing one value
+    // across the summed voices. Voice params win a name collision.
+    if (postGraph !== undefined && Array.isArray(postGraph.params)) {
+      for (const p of postGraph.params) {
+        if (!params.has(p.name)) params.set(p.name, { min: p.min, max: p.max, value: p.default, post: true })
+      }
+    }
+    // Replacement keeps the channel strip (a live coder's fader shouldn't
+    // jump on redefine) but resets params to the new graph's defaults and
+    // drops in-flight ramps (the param set may have changed).
+    const gain = existing?.gain ?? DEFAULT_CHANNEL_GAIN
+    const pan = existing?.pan ?? DEFAULT_PAN
+    // Don't cut ringing voices on a same-name redefine: retire the old channel
+    // so its in-flight voices finish naturally (new notes use the new pool).
+    // Bound the backlog — hard-stop the oldest retired pool past the cap.
+    if (existing !== undefined && this.poolActive(existing.pool)) {
+      while (this.retiring.length >= MAX_RETIRING) this.retiring.shift()!.pool.allNotesOff()
+      this.retiring.push(existing)
+    }
+    this.byName.set(name, {
+      name,
+      pool,
+      post,
+      voices,
+      gain,
+      pan,
+      gainPrev: existing?.gainPrev ?? gain,
+      panPrev: existing?.panPrev ?? pan,
+      g0: gain,
+      g1: gain,
+      p0: pan,
+      p1: pan,
+      params,
+      ramps: [],
+      sumSq: 0,
+      peak: 0,
+      // Preserve the trace across a redefine, so a live edit does not blank
+      // the scope for the length of the ring.
+      scope: existing?.scope ?? new Float32Array(SCOPE_POINTS),
+      scopeHead: existing?.scopeHead ?? 0,
+      // Preserve the sidechain response across a redefine (like the strip).
+      scAmount: existing?.scAmount ?? 1,
+      // Preserve send amounts too: a redefine shouldn't drop the synth's
+      // routing into shared buses.
+      sends: existing?.sends ?? new Map(),
+      // Preserve the hardware output route (like the strip): a live redefine
+      // must not yank a monitor feed back onto the master pair.
+      outLo: existing?.outLo ?? 0,
+      outHi: existing?.outHi ?? 1,
+    })
+    this.rebuildList()
+  }
+
+  private msgPatchConstants(m: Record<string, unknown>): void {
+    const name = m['name']
+    if (typeof name !== 'string') return this.error(`'name' must be a string`, 'patchConstants')
+    const ch = this.byName.get(name)
+    if (!ch) return this.error(`unknown synth '${name}'`, 'patchConstants')
+    const patches = m['patches']
+    if (!Array.isArray(patches)) return this.error(`'patches' must be an array`, `patchConstants '${name}'`)
+    const clean: { node: number; port: string; value: number }[] = []
+    for (const p of patches) {
+      if (isObj(p) && typeof p['node'] === 'number' && typeof p['port'] === 'string' && fin(p['value'])) {
+        clean.push({ node: p['node'], port: p['port'], value: p['value'] })
+      }
+    }
+    ch.pool.patchConstants(clean)
+  }
+
+  /** Set (or clear) which of a synth's voice-graph nodes are value-probed. The
+   *  node ids are validated lazily at read time (an unknown/stale id just reads
+   *  NaN), so a probe set that races a redefine is harmless. */
+  private msgSetProbes(m: Record<string, unknown>): void {
+    const synth = m['synth']
+    if (typeof synth !== 'string') return this.error(`'synth' must be a string`, 'setProbes')
+    const nodes = m['nodes']
+    if (!Array.isArray(nodes)) return this.error(`'nodes' must be an array`, `setProbes '${synth}'`)
+    const clean = nodes.filter((n): n is number => typeof n === 'number' && Number.isInteger(n))
+    if (clean.length === 0) this.probes.delete(synth)
+    else this.probes.set(synth, clean)
+  }
+
+  private msgRemoveSynth(m: Record<string, unknown>): void {
+    const name = m['name']
+    if (typeof name !== 'string') return this.error(`'name' must be a string`, 'removeSynth')
+    if (!this.byName.delete(name)) {
+      return this.error(`unknown synth '${name}'`, 'removeSynth')
+    }
+    // removeSynth is a hard stop — drop any retired pools of this name too.
+    for (let i = this.retiring.length - 1; i >= 0; i--) {
+      if (this.retiring[i]!.name === name) {
+        this.retiring[i]!.pool.allNotesOff()
+        this.retiring.splice(i, 1)
+      }
+    }
+    this.rebuildList()
+    // Purge queued events for the dropped synth so nothing fires (or errors)
+    // later — including against a future same-name redefine.
+    if (this.qHead > 0) {
+      this.queue.splice(0, this.qHead)
+      this.qHead = 0
+    }
+    this.queue = this.queue.filter((e) => e.synth !== name)
+  }
+
+  private msgDefineBus(m: Record<string, unknown>): void {
+    const name = m['name']
+    if (typeof name !== 'string' || name.length === 0) {
+      return this.error(`'name' must be a non-empty string`, 'defineBus')
+    }
+    if (!isObj(m['graph'])) {
+      return this.error(`'graph' must be a GraphSpec object`, `defineBus '${name}'`)
+    }
+    const existing = this.busByName.get(name)
+    if (existing === undefined && this.busByName.size >= MAX_BUSES) {
+      return this.error(`bus limit reached (${MAX_BUSES})`, `defineBus '${name}'`)
+    }
+    let gain = 1
+    if (m['gain'] !== undefined) {
+      if (!fin(m['gain'])) return this.error(`'gain' must be a finite number`, `defineBus '${name}'`)
+      gain = m['gain'] as number
+    }
+    const graph = m['graph'] as unknown as GraphSpec
+    let post: PostChain
+    try {
+      // Compile BEFORE touching the registry: a bad graph leaves any existing
+      // bus of this name untouched (mirrors defineSynth's last-good guarantee).
+      post = new PostChain(graph, this.ctx)
+    } catch (e) {
+      return this.error(
+        `defineBus '${name}' rejected: ${e instanceof Error ? e.message : String(e)}`,
+        `defineBus '${name}'`,
+      )
+    }
+    // Reuse the old accumulators on redefine (they're just scratch), else fresh.
+    this.busByName.set(name, {
+      name,
+      post,
+      gain,
+      accumL: existing?.accumL ?? new Float32Array(BLOCK),
+      accumR: existing?.accumR ?? new Float32Array(BLOCK),
+      sumSq: 0,
+    })
+    this.rebuildBusList()
+  }
+
+  private msgRemoveBus(m: Record<string, unknown>): void {
+    const name = m['name']
+    if (typeof name !== 'string') return this.error(`'name' must be a string`, 'removeBus')
+    if (!this.busByName.delete(name)) {
+      return this.error(`unknown bus '${name}'`, 'removeBus')
+    }
+    // Drop dangling sends into the removed bus (keeps the per-channel maps
+    // tight); a send left pointing at a gone bus would be a no-op anyway.
+    for (const ch of this.byName.values()) ch.sends.delete(name)
+    this.rebuildBusList()
+  }
+
+  private msgSetSend(m: Record<string, unknown>): void {
+    const synth = m['synth']
+    const bus = m['bus']
+    if (typeof synth !== 'string') return this.error(`'synth' must be a string`, 'setSend')
+    if (typeof bus !== 'string') return this.error(`'bus' must be a string`, 'setSend')
+    const ch = this.byName.get(synth)
+    if (!ch) return this.error(`unknown synth '${synth}'`, `setSend '${synth}'->'${bus}'`)
+    if (!this.busByName.has(bus)) return this.error(`unknown bus '${bus}'`, `setSend '${synth}'->'${bus}'`)
+    if (!fin(m['amount'])) return this.error(`'amount' must be a finite number`, `setSend '${synth}'->'${bus}'`)
+    const amount = clamp(m['amount'] as number, 0, 1)
+    // Amount 0 removes the send so the audio-path tap loop stays minimal.
+    if (amount === 0) ch.sends.delete(bus)
+    else ch.sends.set(bus, amount)
+  }
+
+  private rebuildBusList(): void {
+    this.busList = [...this.busByName.values()]
+  }
+
+  private msgNote(m: Record<string, unknown>, rank: number): void {
+    const what = rank === RANK_ON ? 'noteOn' : 'noteOff'
+    const ch = this.lookup(m, what)
+    if (!ch) return
+    const note = m['note']
+    if (!fin(note)) return this.error(`'note' must be a finite number`, `${what} '${ch.name}'`)
+    let velocity = 1
+    if (m['velocity'] !== undefined) {
+      if (!fin(m['velocity'])) return this.error(`'velocity' must be a finite number`, `${what} '${ch.name}'`)
+      velocity = clamp(m['velocity'], 0, 1)
+    }
+    // the note's sample slice: fractions, clamped; anything else is the default
+    const frac = (v: unknown, dflt: number): number => (fin(v) ? clamp(v as number, 0, 1) : dflt)
+    const begin = rank === RANK_ON ? frac(m['begin'], 0) : 0
+    const end = rank === RANK_ON ? frac(m['end'], 1) : 1
+    const at = m['atFrame']
+    if (at !== undefined && !fin(at)) {
+      return this.error(`'atFrame' must be a finite number`, `${what} '${ch.name}'`)
+    }
+    if (at !== undefined && at > this.frames) {
+      this.enqueue(Math.floor(at), rank, ch.name, note, velocity, undefined, begin, end)
+    } else if (rank === RANK_ON) {
+      ch.pool.noteOn(note, velocity, begin, end)
+      // Immediate (unqueued) source noteOn: snap the duck at the next block
+      // start (offset 0) — this runs on the control plane between blocks.
+      if (ch.name === this.scSource) this.duckLevel = 1 - this.scDepth
+    } else {
+      ch.pool.noteOff(note)
+      this.releaseRetiring(ch.name, note)
+    }
+  }
+
+  private msgAllNotesOff(): void {
+    this.queue.length = 0
+    this.qHead = 0
+    for (const ch of this.list) ch.pool.allNotesOff()
+  }
+
+  private msgSilenceAll(): void {
+    this.queue.length = 0
+    this.qHead = 0
+    for (const ch of this.list) {
+      ch.pool.silenceAll()
+      // The post chain is NOT a voice: its reverb/delay state is shared across
+      // the synth's voices, so silencing every voice still left the tail
+      // ringing — forever for a high-feedback delay, since nothing else ever
+      // resets it and a re-eval reuses the channel. Reported as "notes that
+      // never got released play forever, only reload gets rid of them".
+      ch.post?.reset()
+    }
+    // same for the shared send buses, which are post chains by another name
+    for (const bus of this.busList) bus.post.reset()
+  }
+
+  private msgSetParam(m: Record<string, unknown>): void {
+    const ch = this.lookup(m, 'setParam')
+    if (!ch) return
+    const name = m['name']
+    if (typeof name !== 'string') return this.error(`'name' must be a string`, `setParam '${ch.name}'`)
+    if (!fin(m['value'])) return this.error(`'value' must be a finite number`, `setParam '${ch.name}'`)
+    // Unlike Voice.setParam (typo-tolerant by design — it runs on the audio
+    // path), the engine has the spec at hand and tells the host about typos.
+    const p = ch.params.get(name)
+    if (!p) return this.error(`unknown param '${name}'`, `setParam '${ch.name}'`)
+    let rampMs = 0
+    if (m['rampMs'] !== undefined) {
+      if (!fin(m['rampMs'])) return this.error(`'rampMs' must be a finite number`, `setParam '${ch.name}'`)
+      rampMs = clamp(m['rampMs'], 0, MAX_RAMP_MS)
+    }
+    const target = clamp(m['value'], p.min, p.max)
+    /* SCHEDULED, like noteOn. Without this a patterned param applied the
+     * moment its message arrived, which is up to one scheduler lookahead
+     * (~100ms) before the note it belongs to — measured at a consistent 75ms.
+     * Since a param is synth-wide and reaches every voice, the change landed
+     * on whatever was still ringing: automation was heard on the PREVIOUS
+     * note. Offline render has always applied params on their exact sample,
+     * so the same program bounced differently from how it sounded. */
+    const at = m['atFrame']
+    if (at !== undefined && !fin(at)) {
+      return this.error(`'atFrame' must be a finite number`, `setParam '${ch.name}'`)
+    }
+    if (at !== undefined && at > this.frames) {
+      this.enqueue(Math.floor(at), RANK_PARAM, ch.name, 0, 0, { name, value: target, rampMs })
+      return
+    }
+    this.applyParam(ch, name, target, rampMs, this.frames)
+  }
+
+  /**
+   * Set a param NOW, at `frame` on the engine timeline.
+   *
+   * Shared by the immediate path and by a queued param firing mid-block, so
+   * the two cannot drift. `frame` is the event's own frame rather than the
+   * block start, which is what lets a ramp queued for later start from where
+   * it was actually scheduled.
+   */
+  private applyParam(
+    ch: Channel,
+    name: string,
+    target: number,
+    rampMs: number,
+    frame: number,
+  ): void {
+    const p = ch.params.get(name)
+    if (p === undefined) return // redefined out from under a queued event
+    // A new set replaces any in-flight ramp on the same param, starting from
+    // the ramp's current value (evaluated at the present frame).
+    const ramps = ch.ramps
+    for (let i = ramps.length - 1; i >= 0; i--) {
+      if (ramps[i]!.name === name) {
+        p.value = rampValue(ramps[i]!, frame)
+        ramps[i] = ramps[ramps.length - 1]!
+        ramps.pop()
+      }
+    }
+    const durFrames = Math.round((rampMs / 1000) * this.ctx.sampleRate)
+    if (durFrames < 1) {
+      p.value = target
+      if (p.post) ch.post?.setParam(name, target)
+      else ch.pool.setParam(name, target)
+    } else {
+      ramps.push({
+        name,
+        param: p,
+        from: p.value,
+        to: target,
+        startFrame: frame,
+        endFrame: frame + durFrames,
+      })
+    }
+  }
+
+  private msgSetChannel(m: Record<string, unknown>): void {
+    const ch = this.lookup(m, 'setChannel')
+    if (!ch) return
+    const gain = m['gain']
+    const pan = m['pan']
+    const sidechain = m['sidechain']
+    // Validate EVERYTHING before mutating ANYTHING: one message is one
+    // atomic effect — {gain: 0, pan: 'x'} must not half-apply.
+    if (gain !== undefined && !fin(gain)) {
+      return this.error(`'gain' must be a finite number`, `setChannel '${ch.name}'`)
+    }
+    if (pan !== undefined && !fin(pan)) {
+      return this.error(`'pan' must be a finite number`, `setChannel '${ch.name}'`)
+    }
+    if (sidechain !== undefined && !fin(sidechain)) {
+      return this.error(`'sidechain' must be a finite number`, `setChannel '${ch.name}'`)
+    }
+    const out = m['out']
+    let outLo: number | undefined
+    let outHi: number | undefined
+    if (out !== undefined) {
+      if (!isObj(out) || !fin(out['lo']) || !fin(out['hi'])) {
+        return this.error(`'out' must be { lo, hi } with finite numbers`, `setChannel '${ch.name}'`)
+      }
+      const lo = out['lo'] as number
+      const hi = out['hi'] as number
+      if (!Number.isInteger(lo) || !Number.isInteger(hi) || lo < 0 || hi < lo || hi > lo + 1 || hi >= MAX_OUT_CHANNELS) {
+        return this.error(
+          `'out' channels must be whole numbers in 0..${MAX_OUT_CHANNELS - 1}: one alone, or an adjacent pair`,
+          `setChannel '${ch.name}'`,
+        )
+      }
+      outLo = lo
+      outHi = hi
+    }
+    if (gain !== undefined) ch.gain = clamp(gain, 0, MAX_GAIN)
+    if (pan !== undefined) ch.pan = clamp(pan, 0, 1)
+    if (sidechain !== undefined) ch.scAmount = clamp(sidechain, 0, 1)
+    if (outLo !== undefined && outHi !== undefined) {
+      ch.outLo = outLo
+      ch.outHi = outHi
+    }
+  }
+
+  /** Replace the device→slot map IN PLACE: compiled device-named mic kernels
+   *  hold the same object and re-read it per block (the setCps contract), so
+   *  a remap is heard on the next block without recompiling anything.
+   *  Validated whole-or-nothing like setChannel. */
+  private msgSetMicMap(m: Record<string, unknown>): void {
+    const map = m['map']
+    if (!isObj(map)) return this.error(`'map' must be an object of device → slot`, 'setMicMap')
+    for (const [k, v] of Object.entries(map)) {
+      if (!fin(v) || !Number.isInteger(v) || v < 0 || v >= MAX_MIC_INPUTS) {
+        return this.error(`'${k}' must map to a whole slot in 0..${MAX_MIC_INPUTS - 1}`, 'setMicMap')
+      }
+    }
+    const live = this.ctx.micMap!
+    for (const k of Object.keys(live)) delete live[k]
+    for (const [k, v] of Object.entries(map)) live[k] = v as number
+  }
+
+  /** Master mid/side. Non-finite values are rejected with an error rather
+   *  than silently clamped: a NaN width would collapse the mix to silence and
+   *  look like a broken synth. */
+  private msgSetStereo(m: Record<string, unknown>): void {
+    const cfg: { width?: number; monoBelow?: number } = {}
+    for (const k of ['width', 'monoBelow'] as const) {
+      if (m[k] === undefined) continue
+      if (!fin(m[k])) return this.error(`'${k}' must be a finite number`, 'setStereo')
+      cfg[k] = m[k] as number
+    }
+    this.stereo.set(cfg, this.ctx.sampleRate)
+  }
+
+  private msgSetMaster(m: Record<string, unknown>): void {
+    if (!fin(m['gain'])) return this.error(`'gain' must be a finite number`, 'setMaster')
+    this.masterGain = clamp(m['gain'], 0, MAX_GAIN)
+  }
+
+  /** Tempo, written straight into the SHARED ctx every compiled kernel holds —
+   *  that is the whole plumbing: synced lfo/delay kernels re-read ctx.cps on
+   *  their next block, so the change is live without touching the graph. */
+  private msgSetCps(m: Record<string, unknown>): void {
+    if (!fin(m['cps'])) return this.error(`'cps' must be a finite number`, 'setCps')
+    this.ctx.cps = clamp(m['cps'], MIN_CPS, MAX_CPS)
+  }
+
+  private msgSetSidechain(m: Record<string, unknown>): void {
+    const source = m['source']
+    if (typeof source !== 'string' || source.length === 0) {
+      return this.error(`'source' must be a non-empty string`, 'setSidechain')
+    }
+    // Validate EVERYTHING before mutating ANYTHING (atomic, like setChannel).
+    let depth = DEFAULT_DUCK_DEPTH
+    if (m['depth'] !== undefined) {
+      if (!fin(m['depth'])) return this.error(`'depth' must be a finite number`, `setSidechain '${source}'`)
+      depth = clamp(m['depth'], 0, 1)
+    }
+    let releaseMs = DEFAULT_DUCK_RELEASE_MS
+    if (m['releaseMs'] !== undefined) {
+      if (!fin(m['releaseMs'])) return this.error(`'releaseMs' must be a finite number`, `setSidechain '${source}'`)
+      releaseMs = m['releaseMs']
+    }
+    this.scSource = source
+    this.scDepth = depth
+    this.scReleaseCoeff = duckReleaseCoeff(releaseMs, this.ctx.sampleRate)
+  }
+
+  private msgClearSidechain(): void {
+    this.scSource = undefined
+    this.duckLevel = 1
+  }
+
+  private msgLoadSample(m: Record<string, unknown>): void {
+    const name = m['name']
+    if (typeof name !== 'string' || name.length === 0) {
+      return this.error(`'name' must be a non-empty string`, 'loadSample')
+    }
+    const data = m['data']
+    if (!(data instanceof Float32Array)) {
+      return this.error(`'data' must be a Float32Array`, `loadSample '${name}'`)
+    }
+    const sr = m['sampleRate']
+    if (!fin(sr) || sr <= 0) {
+      return this.error(`'sampleRate' must be a positive number`, `loadSample '${name}'`)
+    }
+    this.samples.set(name, data, sr)
+  }
+
+  private msgBounceLoop(m: Record<string, unknown>): void {
+    const looper = m['looper']
+    if (typeof looper !== 'string' || looper.length === 0) {
+      return this.error(`'looper' must be a non-empty string`, 'bounceLoop')
+    }
+    const k = this.loopers.get(looper)
+    if (!(k instanceof LooperKernel)) {
+      return this.error(`no looper named '${looper}' — name one: looper(..., { name: '${looper}' })`, 'bounceLoop')
+    }
+    const data = k.snapshot()
+    if (data === null) {
+      return this.error(`looper '${looper}' is empty — record a loop first`, 'bounceLoop')
+    }
+    const sample = typeof m['sample'] === 'string' && m['sample'].length > 0 ? m['sample'] : looper
+    this.emit({ kind: 'loopBounced', looper, sample, data, sampleRate: this.ctx.sampleRate, frames: data.length })
+  }
+
+  private msgClearSample(m: Record<string, unknown>): void {
+    const name = m['name']
+    if (typeof name !== 'string' || name.length === 0) {
+      return this.error(`'name' must be a non-empty string`, 'clearSample')
+    }
+    this.samples.delete(name)
+  }
+
+  private msgLoadWavetable(m: Record<string, unknown>): void {
+    const name = m['name']
+    if (typeof name !== 'string' || name.length === 0) {
+      return this.error(`'name' must be a non-empty string`, 'loadWavetable')
+    }
+    // WavetableBank.set validates the name (word, no built-in shadowing) and
+    // the frames spec (1..64 frames x 1..32 finite partials) and synthesizes
+    // the mipmapped bank; a bad spec throws and becomes an error event.
+    try {
+      this.wavetables.set(name, m['frames'] as number[][])
+    } catch (e) {
+      this.error(e instanceof Error ? e.message : String(e), `loadWavetable '${name}'`)
+    }
+  }
+
+  private msgClearWavetable(m: Record<string, unknown>): void {
+    const name = m['name']
+    if (typeof name !== 'string' || name.length === 0) {
+      return this.error(`'name' must be a non-empty string`, 'clearWavetable')
+    }
+    this.wavetables.delete(name)
+  }
+
+  private msgLoadDdspModel(m: Record<string, unknown>): void {
+    const name = m['name']
+    if (typeof name !== 'string' || name.length === 0) {
+      return this.error(`'name' must be a non-empty string`, 'loadDdspModel')
+    }
+    const data = m['data']
+    if (!(data instanceof Uint8Array)) {
+      return this.error(`'data' must be a Uint8Array`, `loadDdspModel '${name}'`)
+    }
+    // parseDdspModel validates magic/version/header ranges/tensor shapes and
+    // throws on anything malformed; that becomes an error event here.
+    try {
+      this.ddspModels.set(name, parseDdspModel(data))
+    } catch (e) {
+      this.error(e instanceof Error ? e.message : String(e), `loadDdspModel '${name}'`)
+    }
+  }
+
+  private msgClearDdspModel(m: Record<string, unknown>): void {
+    const name = m['name']
+    if (typeof name !== 'string' || name.length === 0) {
+      return this.error(`'name' must be a non-empty string`, 'clearDdspModel')
+    }
+    this.ddspModels.delete(name)
+  }
+
+  private msgSetMasterComp(m: Record<string, unknown>): void {
+    // Validate every provided field before mutating (atomic, like setSidechain).
+    const numOr = (key: string, def: number): number | undefined => {
+      if (m[key] === undefined) return def
+      if (!fin(m[key])) {
+        this.error(`'${key}' must be a finite number`, 'setMasterComp')
+        return undefined
+      }
+      return m[key] as number
+    }
+    const threshold = numOr('threshold', -18)
+    const ratio = numOr('ratio', 4)
+    const attack = numOr('attack', 10)
+    const release = numOr('release', 120)
+    const knee = numOr('knee', 6)
+    const makeup = numOr('makeup', 0)
+    if (
+      threshold === undefined || ratio === undefined || attack === undefined ||
+      release === undefined || knee === undefined || makeup === undefined
+    ) return // an error was already emitted
+    const sr = this.ctx.sampleRate
+    this.masterComp = {
+      threshold,
+      ratio: clamp(ratio, 1, 60),
+      knee: Math.max(0, knee),
+      atk: smoothCoeff(clamp(attack, 0.05, 500), sr),
+      rel: smoothCoeff(clamp(release, 1, 3000), sr),
+      makeupLin: Math.pow(10, makeup / 20),
+    }
+  }
+
+  private msgClearMasterComp(): void {
+    this.masterComp = undefined
+    this.masterCompGr = 0
+  }
+
+  /** Resolve m['synth'] to a channel; emits an error and returns null when
+   *  the field is malformed or names no live synth. */
+  private lookup(m: Record<string, unknown>, what: string): Channel | null {
+    const synth = m['synth']
+    if (typeof synth !== 'string') {
+      this.error(`'synth' must be a string`, what)
+      return null
+    }
+    const ch = this.byName.get(synth)
+    if (!ch) {
+      this.error(`unknown synth '${synth}'`, what)
+      return null
+    }
+    return ch
+  }
+
+  /** Sorted insertion by (frame, rank), stable for equal keys. Runs on the
+   *  control plane — the splices are fine here and keep process() scan-free. */
+  private enqueue(
+    frame: number,
+    rank: number,
+    synthName: string,
+    note: number,
+    velocity: number,
+    param?: { name: string; value: number; rampMs: number },
+    begin = 0,
+    end = 1,
+  ): void {
+    const q = this.queue
+    if (this.qHead > 0) {
+      q.splice(0, this.qHead) // compact fired entries before measuring size
+      this.qHead = 0
+    }
+    if (q.length >= MAX_PENDING_EVENTS) {
+      // Coalesced like the audio-path errors: a flood of scheduled events
+      // must not turn into a flood of error events. At most one report per
+      // second (in engine frames); it carries the drop count accumulated
+      // since the last one. Drops between reports stay silent until the NEXT
+      // drop past the rate window (accepted: overflow is a sustained
+      // condition, not a one-shot).
+      this.queueDropped++
+      if (this.frames - this.lastQueueErrorFrame >= this.ctx.sampleRate) {
+        this.lastQueueErrorFrame = this.frames
+        this.error(
+          `event queue full (${MAX_PENDING_EVENTS} pending): dropped ${this.queueDropped} event(s) since last report`,
+          'noteQueue',
+        )
+        this.queueDropped = 0
+      }
+      return
+    }
+    let lo = 0
+    let hi = q.length
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1
+      const e = q[mid]!
+      if (e.frame < frame || (e.frame === frame && e.rank <= rank)) lo = mid + 1
+      else hi = mid
+    }
+    q.splice(lo, 0, param === undefined
+      ? { frame, rank, synth: synthName, note, velocity, begin, end }
+      : { frame, rank, synth: synthName, note, velocity, begin, end, param })
+  }
+
+  private rebuildList(): void {
+    this.list = this.retiring.length === 0 ? [...this.byName.values()] : [...this.byName.values(), ...this.retiring]
+  }
+
+  /** True if any voice in the pool is still sounding (or in its release tail). */
+  private poolActive(pool: VoicePool): boolean {
+    const vs = pool.voices
+    for (let i = 0; i < vs.length; i++) if (vs[i]!.active) return true
+    return false
+  }
+
+  /** Emit at most one error per second (in engine frames) for high-frequency
+   *  audio-path failure modes. `key` names the per-source timestamp field. */
+  private rateLimited(key: 'lastNanErrorFrame' | 'lastProcErrorFrame', frame: number, message: string): void {
+    if (frame - this[key] < this.ctx.sampleRate) return
+    this[key] = frame
+    this.error(message, 'process')
+  }
+
+  private error(message: string, context?: string): void {
+    const ev: { kind: 'error'; message: string; context?: string; id?: string } = { kind: 'error', message }
+    if (context !== undefined) ev.context = context
+    if (this.msgId !== undefined) ev.id = this.msgId
+    this.emit(ev)
+  }
+
+  private emit(ev: EngineEvent): void {
+    const cb = this.onEvent
+    if (!cb) return
+    try {
+      cb(ev)
+    } catch {
+      // a throwing host listener must never take down the engine
+    }
+  }
+}

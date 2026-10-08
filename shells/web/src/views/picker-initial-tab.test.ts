@@ -509,6 +509,12 @@ test('editor media collection keeps adding compatible assets without offering se
     assert.equal(p.tab('tools'), null);
     assert.equal(p.panel.querySelector('[data-asset-id="font/one"]'), null);
     for (const id of ['video/one', 'audio/one']) {
+      // Audio has a library section of its own (plan 301), closed at first like
+      // every section but the first, so it is opened the way a person opens one.
+      if (id === 'audio/one') {
+        p.panel.querySelector<HTMLElement>('[data-group-toggle="other-audio"]')!.click();
+        await settle();
+      }
       p.panel.querySelector<HTMLElement>(`[data-asset-id="${id}"]`)!.click();
       await settle();
       assert.equal(p.panel.isConnected, true);

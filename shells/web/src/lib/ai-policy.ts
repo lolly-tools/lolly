@@ -13,6 +13,9 @@ export const AI_CAPABILITIES = [
   'ai-detect',
   'embedding',
   'watermark',
+  // Rondocode's sing() (plan 301 phase F): a managed policy must name it before
+  // the singing models download or reach a tool.
+  'sing',
 ] as const;
 export type AiCapability = (typeof AI_CAPABILITIES)[number];
 type AiScope = AiCapability | 'unclassified';
@@ -149,6 +152,7 @@ export function aiOfflinePartAllowed(part: string): boolean {
     'ai-detect': 'ai-detect',
     verify: 'watermark',
     durable: 'watermark',
+    sing: 'sing',
   };
   const scope = scopes[part];
   return !scope || aiAllowed(scope);
@@ -265,6 +269,7 @@ export function modelCapability(path: string): AiCapability | null {
     embed: 'embedding',
     trustmark: 'watermark',
     contentseal: 'watermark',
+    sing: 'sing',
   };
   return known[dir ?? ''] ?? null;
 }

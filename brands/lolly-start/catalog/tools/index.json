@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-10-07T21:03:38.940Z",
+  "generatedAt": "2026-10-08T09:27:17.060Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -14757,6 +14757,43 @@
           "description": "Turn SVG artwork and 3D models into coordinated images, alone or arranged together in one scene. Shape materials, lighting, focus and transparent shadows with guided or expert controls."
         }
       }
+    },
+    {
+      "id": "rondocode",
+      "name": "Rondocode",
+      "description": "Write music as code and hear it as you type: synths, patterns and a mix in rondocode's live editor. Export the song as audio, stems or MIDI with Content Credentials that record it, or keep its source.",
+      "version": "1.0.0",
+      "status": "community",
+      "category": "utility",
+      "privacy": "on-device",
+      "tags": [
+        "music",
+        "audio",
+        "code",
+        "live coding",
+        "synth",
+        "pattern",
+        "song",
+        "rondo",
+        "rondocode",
+        "sequencer",
+        "wav",
+        "offline"
+      ],
+      "formats": [
+        "png",
+        "html",
+        "wav",
+        "mp3",
+        "m4a",
+        "opus",
+        "json"
+      ],
+      "width": 1280,
+      "height": 800,
+      "exportable": false,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><title>Rondocode</title><path d=\"M7 6 3 12l4 6\"/><path d=\"M17 6l4 6-4 6\"/><path d=\"M13 16.5V8l3 1\"/><circle cx=\"11.2\" cy=\"16.6\" r=\"1.8\"/></svg>",
+      "preview": "/catalog/previews/rondocode.svg"
     }
   ]
 }

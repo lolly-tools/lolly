@@ -230,6 +230,37 @@ test('section 18.28 - a disclosure round-trips into the reader\'s report.aiDiscl
   assert.equal(report.aiDisclosures, undefined);
 });
 
+test('section 18.28 - a list of disclosures writes one assertion per model, instance-suffixed, and all of them read back', async () => {
+  const models = [
+    { modelType: 'c2pa.types.model.onnx', modelName: 'Supertonic-3', modelIdentifier: 'https://huggingface.co/Supertone/supertonic' },
+    { modelType: 'c2pa.types.model.onnx', modelName: 'wav2vec 2.0 phoneme aligner', modelIdentifier: 'https://huggingface.co/facebook/wav2vec2-xlsr-53-espeak-cv-ft' },
+    { modelType: 'c2pa.types.model.onnx', modelName: 'RVC voice kizuna' },
+  ];
+  const page = utf8(pageHtml());
+  const store = await buildExternalC2paStore(page, { title: 'Sung', claimGenerator: 'Lolly lolly.tools', aiDisclosure: models });
+  // section 6.2.3: the first instance carries the bare label, each later one `__n`.
+  const labels = parseC2paStore(store).assertions.map((a) => a.label).filter((l) => l.startsWith(AI_DISCLOSURE_ASSERTION));
+  assert.deepEqual(labels, [AI_DISCLOSURE_ASSERTION, `${AI_DISCLOSURE_ASSERTION}__1`, `${AI_DISCLOSURE_ASSERTION}__2`]);
+  // Every one is a created assertion with a hashed URI that checks out.
+  const created = claimOf(store).get('created_assertions') as Array<Map<string, unknown>>;
+  for (const label of labels) {
+    const ref = created.find((r) => r.get('url') === `self#jumbf=c2pa.assertions/${label}`);
+    assert.ok(ref, `${label} is referenced from created_assertions`);
+    assert.equal(hex(ref.get('hash') as Uint8Array), hex(await sha256(assertionOf(store, label).payload)));
+  }
+  const report = await verifyC2pa(page, { externalManifest: store });
+  assert.equal(report.state, 'valid');
+  assert.deepEqual(report.aiDisclosures?.map((d) => d.modelName), models.map((m) => m.modelName));
+  assert.equal(report.aiDisclosure?.modelName, 'Supertonic-3');
+});
+
+test('section 18.28 - a single disclosure and a list of one write the same bytes as before lists existed', async () => {
+  const base = { title: 'Masthead', claimGenerator: 'Lolly lolly.tools', assetHash: { exclusions: [{ start: 0, length: 4 }], hash: new Uint8Array(32).fill(2) }, ...fixedSigning };
+  const one = await buildC2paManifest({ ...base, aiDisclosure: DISCLOSURE });
+  const listOfOne = await buildC2paManifest({ ...base, aiDisclosure: [DISCLOSURE] });
+  assert.equal(hex(listOfOne), hex(one));
+});
+
 test('section 18.28 - malformed enums are refused at write time, not silently written', async () => {
   const base = { assetHash: { exclusions: [{ start: 0, length: 1 }], hash: new Uint8Array(32) } };
   await assert.rejects(

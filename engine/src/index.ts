@@ -319,6 +319,22 @@ export { generatedSongSpec } from './zzfx-compose.ts';
 // an asset id has to recognise it, and they must not each invent the rule.
 export { ZZFXM_SCHEME, isZzfxmRef, parseZzfxmRef, formatZzfxmRef } from './zzfxm-ref.ts';
 export type { ZzfxmRef } from './zzfxm-ref.ts';
+// A rondocode song as an asset: its file forms, its share links and canonical
+// bytes. Reading only; rendering is a shell's, through packages/rondo (vm class).
+export {
+  RONDO_ASSET_FORMAT, RONDO_FILE_SUFFIX, RONDO_MAX_SOURCE_BYTES, RONDO_SOURCE_SCHEMA_VERSION,
+  RondoSourceError, isRondoFileName, isRondoShareLink, rondoFileName, rondoFromBytes,
+  rondoFromFile, rondoFromShareLink, rondoSourceBytes,
+} from './rondo-source.ts';
+export type { RondoLang, RondoSourceV1 } from './rondo-source.ts';
+// What a file made from a song says about itself: the source ingredient and,
+// when the file holds synthesised singing, the AI declaration (Andy, 2026-10-08).
+export {
+  RONDOCODE_URL, RONDO_SINGING_MODELS, isRondoSongIngredient, rondoCreatedAction, rondoDeclaration,
+  rondoDigitalSourceType, rondoRecordedSentence, rondoRenderFacts, rondoSilentParts, rondoSongIngredient,
+  rondoSourceId, uniqueRondoIngredients,
+} from './rondo-provenance.ts';
+export type { RondoRenderFacts } from './rondo-provenance.ts';
 export type { SongSpec, Archetype, PresetName, ScaleName } from './zzfx-compose.ts';
 // Versioned design systems (plans/97 section 6a) - here for the same reason as the two
 // id schemes above: the head/version asset-id scheme, the discovery-exclusion
@@ -505,7 +521,7 @@ export {
 export type {
   PdfXOutputIntentOptions, PdfXOutputIntentSpec, PdfXProfileFacts, PdfXXmpOptions,
 } from './pdfx.ts';
-export { buildC2paManifest, embedC2paInPdf, embedC2pa, attachC2paStore, exportActionSteps, collectAiIngredientDeclarations, C2PA_FORMATS, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, SCREEN_SOURCE_TYPE, GENERATED_SOURCE_TYPE, COMPOSITE_SOURCE_TYPE } from './c2pa.ts';
+export { buildC2paManifest, embedC2paInPdf, embedC2pa, attachC2paStore, exportActionSteps, collectAiIngredientDeclarations, C2PA_FORMATS, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, SCREEN_SOURCE_TYPE, GENERATED_SOURCE_TYPE, COMPOSITE_SOURCE_TYPE, ALGORITHMIC_SOURCE_TYPE } from './c2pa.ts';
 export type { C2paActionInput, C2paCredentialedIngredient, C2paSourceIngredient, C2paRightsRecord, C2paIngredientInput } from './c2pa.ts';
 export { LOLLY_RIGHTS_ASSERTION } from './c2pa.ts';
 export { verifyC2pa, extractC2paFromPdf, prepareC2paIngredient, prepareC2paIngredientFromStore, collectIngredients, collectIngredientRecords, extractC2paStore, parseCertificate, signedBy } from './c2pa-verify.ts';

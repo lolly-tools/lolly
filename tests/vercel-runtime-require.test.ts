@@ -27,7 +27,9 @@ import { resolve } from 'node:path';
 
 const ROOT = resolve(new URL('..', import.meta.url).pathname);
 const VERCEL_NODE_FLAGS = ['--no-experimental-require-module', '--no-experimental-detect-module'];
-const FUNCTION_MANIFESTS = ['services/mcp/package.json', 'packages/node-shell/package.json'];
+// packages/rondo's runtime dependencies (QuickJS) load in the song renderer's
+// Worker, which the MCP function carries as api/mcp/_rondo-worker.js (plan 301).
+const FUNCTION_MANIFESTS = ['services/mcp/package.json', 'packages/node-shell/package.json', 'packages/rondo/package.json'];
 
 /** Workspace packages resolve to TypeScript sources here, not to what Vercel traces. */
 const WORKSPACE_PREFIXES = ['@lolly/', '@lolly-tools/'];

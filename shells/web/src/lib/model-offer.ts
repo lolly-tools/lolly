@@ -31,13 +31,17 @@ import { mountModal, type ModalHandle } from '../components/modal.ts';
 import { fmtBytes } from './format.ts';
 import { beginOfflineRun } from './offline-run.ts';
 import type { DownloadProgress, OnProgress } from './offline-manager.ts';
-import { downloadModelPart, modelPartInfo, modelPrecache, type ModelPartId, type ModelPartInfo } from './model-parts.ts';
+import { downloadModelPart, modelPartInfo, modelPartNote, modelPrecache, type ModelPartId, type ModelPartInfo } from './model-parts.ts';
 import { showUndoToast } from './undo-toast.ts';
 
 export interface EnsureModelOpts {
   /** What needs the model, as a short noun phrase shown after "needed for:"
    *  ("Reading text in slide pictures"). Without one the sheet states the size. */
   reason?: string;
+  /** Also told the download's progress (the job toast always is), for a caller
+   *  with a progress display of its own, such as host.models feeding the Rondocode
+   *  editor frame. Only the call that opened the sheet is told. */
+  onProgress?: OnProgress;
 }
 
 interface OfferDeps {
@@ -127,10 +131,12 @@ export function offerSentence(info: Pick<ModelPartInfo, 'bytes'>, reason?: strin
 function offer(part: ModelPartId, info: ModelPartInfo, opts: EnsureModelOpts): Promise<boolean> {
   return new Promise<boolean>((resolve) => {
     let started = false;
+    const note = modelPartNote(part);
     const content = `
       <h2 class="modal-title">${escapeHtml(info.label)}</h2>
       <p class="modal-msg">${escapeHtml(offerSentence(info, opts.reason))}</p>
       <p class="mo-note">${escapeHtml(t('The model stays on this device. What you give it never leaves.'))}</p>
+      ${note ? `<p class="mo-note">${escapeHtml(note)}</p>` : ''}
       <p class="mo-error" data-error role="alert" hidden></p>
       <div class="modal-actions">
         <button type="button" class="btn modal-cancel" data-act="later">${escapeHtml(t('Not now'))}</button>
@@ -163,7 +169,10 @@ function offer(part: ModelPartId, info: ModelPartInfo, opts: EnsureModelOpts): P
         try {
           await deps.download(part, {
             signal: run.signal,
-            onProgress: (p: DownloadProgress) => run.report({ label: info.label, loaded: p.loaded, total: p.total, unit: 'bytes' }),
+            onProgress: (p: DownloadProgress) => {
+              run.report({ label: info.label, loaded: p.loaded, total: p.total, unit: 'bytes' });
+              opts.onProgress?.(p);
+            },
           });
         } catch {
           run.end(run.cancelled ? undefined : t('The download did not finish. Check your connection and try again.'));

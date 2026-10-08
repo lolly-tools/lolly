@@ -121,7 +121,7 @@ Observed effects must be recorded when the recording policy permits (R3). Attemp
 
 An execution class is the trust and enforcement context code runs in. The class a run used must be recorded in its receipt (R15), because a portable API contract is not proof of isolation (plan section 12.2, `docs/constraints.md`).
 
-![The five execution classes of the document model and what each one enforces, from trusted in-realm injection to the reserved interpreter class.](/info/diagrams/document-model/execution-classes.svg)
+![The five execution classes of the document model and what each one enforces, from trusted in-realm injection to the interpreter in WebAssembly.](/info/diagrams/document-model/execution-classes.svg)
 
 | Class | What it is today | What it enforces |
 |---|---|---|
@@ -129,11 +129,26 @@ An execution class is the trust and enforcement context code runs in. The class 
 | `isolated-worker` | A tool with `isolate: true`, run through the Worker executor with in-realm fallback (`shells/web/src/bridge/hook-worker.ts`). | A separate realm, a proxied host and the seeded feature detects of `engine/src/hook-worker-core.ts`. Fallback keeps compatibility, so the claim is weaker. |
 | `strict-worker` | Sideloaded and remote tools, with fallback disabled (`docs/constraints.md`). | The same worker policy plus global lockdown, with refusal of the mount when the worker cannot start. `STRICT_AMBIENT_GLOBALS` in `engine/src/hook-worker-core.ts` lists what is removed before the hooks compile. |
 | `node-worker` | The CLI executor under `worker_threads` (`packages/node-shell/src/hook-worker.ts`). | The same protocol and host proxy on Node, with no DOM at all. |
-| `vm` | Reserved. An interpreter in WebAssembly or a hardened compartment. | Nothing yet. It is named so a future class does not arrive without a contract. |
+| `vm` | An interpreter in WebAssembly. Its first use is a rondocode song (plan 301), whose code runs in QuickJS (`packages/rondo/src/vm.ts`): inside a Worker on the web, and inside a `worker_threads` Worker on the CLI and the MCP server. | No host: the context holds plain ECMAScript and nothing else, so there is no fetch, storage, DOM, timer or module loader to reach. No clock and no entropy. A memory limit, a stack limit and a deadline per phase. Refusal when the interpreter cannot start, never a fallback into a realm. Data out only, inspected by a trusted step before anything reads the data. |
 
 Two rules hold across all five (R3, plan section 12.2). Trusted compatibility execution must be classified as trusted and must never inherit a strict claim, whatever the tool's manifest says. A strict class must enforce the powers it claims and must refuse an unsafe fallback rather than downgrade quietly.
 
 A tool does not assert its own class. `isolate: true` is written from evidence by `scripts/tool-isolation.ts`, which requires hooks free of realm-bound globals and a byte-identical render in-realm against the worker before it sets the flag (R3). A manifest claim with no such evidence is a declaration, not a classification.
+
+### The `vm` class
+
+The `vm` class is for code that arrives inside a document or an asset, written by someone other than the person who runs the code. A rondocode song is the first case: its audio is computed by its own source, and that source reaches Lolly from uploads, shared links and packages. The class has these rules (`packages/rondo/src/vm.ts`):
+
+- **No host.** The interpreter's context holds plain ECMAScript and the code it was given. Nothing is offered and then refused; there is nothing to call. This is the `strictHostShape` rule of the strict worker taken to its end: absence is the policy.
+- **No clock and no entropy.** `Date.now()` and `performance.now()` return 0, and `Math.random()` is a generator with a fixed seed that a receipt can state. The same code gives the same bytes on every host and every run.
+- **Budgets.** A memory limit, a native stack limit and a deadline for each phase of the run (`packages/rondo/src/limits.ts`). A breach ends the run with a named error: `rondo.vm.timeout`, `rondo.vm.memory` or `rondo.vm.stack`.
+- **One runtime per run.** Nothing one run leaves behind reaches the next.
+- **Refusal, never fallback.** When the interpreter cannot start, the operation fails. Nothing runs the code in the caller's realm instead.
+- **Data out, inspected.** The only thing that leaves the interpreter is a string. The code shared a realm with whatever serialised that string and could have rewritten the serialiser, so a trusted step reads the string as a stranger's work: unknown keys are refused, numbers must be finite and in range, and every count a later step would allocate for or loop over is capped (`packages/rondo/src/staged.ts`). Only after that does a fixed interpreter of data run. For rondocode that is upstream's DSP, which reads graphs and events and runs no song code.
+
+The surrounding Worker belongs to the trusted step, not the class. The interpreter stops runaway song code itself, but the DSP render that follows is synchronous and cannot be pre-empted in its realm, so the shell runs both inside a Worker it can terminate on a wall-clock limit.
+
+The evidence behind the class is in `packages/rondo/test/rondo.test.ts`. Every upstream example, 39 songs in two languages, renders byte-identical to upstream's own render without the interpreter (78 of 78 at the pinned commit). A song that reaches for the network, the process or a module loader fails to evaluate. A loop at the top level and a loop inside a pattern each stop at their own deadline. A runaway allocation and a runaway recursion end with their named errors. A song that rewrites `JSON.stringify` to forge its own output is caught by the inspection step.
 
 ## Invalidation and layout
 

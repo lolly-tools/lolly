@@ -76,7 +76,8 @@ import {
 import { createNodeTextAPI } from '@lolly-tools/node-shell/text';
 // host.audio (WAV/ZzFXM decode + the engine's frame analysis). RELATIVE for the same
 // MCP-bundle reason; it pulls no codec and no WASM, so attaching it is free.
-import { createNodeAudioAPI } from '@lolly-tools/node-shell/audio';
+import { createNodeAudioAPI, type ComputedAudioFailure, type ComputedAudioRun, type RondoBudget, type RondoCaps } from '@lolly-tools/node-shell/audio';
+import { RONDO_ASSET_FORMAT, isRondoShareLink, rondoFromBytes, rondoFromShareLink, rondoSourceBytes, type RondoSourceV1 } from '@lolly/engine';
 // url-shot page capture (scoped Chromium). RELATIVE for the MCP bundle; its browser is
 // lazy-loaded, so importing it costs nothing until a capture actually runs.
 import { captureUrl } from '@lolly-tools/node-shell/url-capture';
@@ -113,6 +114,7 @@ import { activeNodeDesignSystem, readActiveDesignSystemTokens } from '@lolly-too
 // fonts through host.text's headless registry, not the web shell's fetching one.
 import { familyStack, numericWeight, outlineSvgText } from './svg-outline.ts';
 import { unavailableHere } from './exit-codes.ts';
+import { cliAudioFailureReporter, cliAudioRunReporter } from './song-report.ts';
 const REPO_ROOT = repoRoot();
 
 /**
@@ -209,6 +211,8 @@ function urlAssetKind(mime: string, id: string): { type: 'vector' | 'raster' | '
   if (['jxl', 'png', 'jpg', 'jpeg', 'webp', 'gif', 'avif'].includes(ext)) return { type: 'raster', format: ext.replace('jpeg', 'jpg') };
   if (['mp4', 'webm', 'mov'].includes(ext)) return { type: 'video', format: ext };
   if (['mp3', 'wav', 'ogg', 'm4a'].includes(ext)) return { type: 'audio', format: ext };
+  // A rondocode song file (plan 301): audio computed from its code, rendered by host.audio.
+  if (/\.rondo(?:\.json)?(?:[?#]|$)/i.test(id)) return { type: 'audio', format: 'rondo' };
   return null;
 }
 
@@ -273,12 +277,53 @@ interface CliBridgeOpts {
    * resolves links in the system the document was lowered against.
    */
   tokensDocument?: Record<string, unknown> | null;
+  /**
+   * The limits a rondocode song renders under (plan 301). Default: the local caps.
+   * The MCP server passes tighter ones on a public deployment.
+   */
+  rondo?: RondoCaps;
+  /**
+   * Told about every song render: what ran it (the `vm` execution class) and which
+   * parts were silent. Default: a stderr note plus one recorded warning per silent
+   * part, so `--strict` and the `--json` envelope see them. The MCP server and the
+   * TUI pass their own, because their stderr is not the person's channel.
+   */
+  onAudioRun?: (run: ComputedAudioRun) => void;
+  /** Told about a song that did not render. Default: a recorded warning. */
+  onAudioRunFailed?: (failure: ComputedAudioFailure) => void;
+  /**
+   * Song-render time already spent, shared with other hosts built for the same
+   * request (the MCP server builds one per render pass). Default: this host's own.
+   */
+  rondoBudget?: RondoBudget;
   /** Omit for the default (portable WASM kernels, or the identical TypeScript reference if they cannot load); set to select one explicitly and strictly. */
   geometryBackend?: import('@lolly-tools/node-shell/geometry-host').GeometryBackend;
 }
 
+/** A song as an audio asset: its canonical bytes inline, nothing of it run. */
+function rondoAssetRef(source: AssetRef['source'], id: string, song: RondoSourceV1): AssetRef {
+  const bytes = rondoSourceBytes(song);
+  return {
+    source, id, type: 'audio', format: RONDO_ASSET_FORMAT,
+    url: `data:application/json;base64,${Buffer.from(bytes).toString('base64')}`,
+    meta: { name: song.name, lang: song.lang },
+  };
+}
+
+/** The canonical song record, recognised by content (`format: "rondocode"`). */
+function rondoRecordOf(bytes: Uint8Array): RondoSourceV1 | null {
+  const lead = Buffer.from(bytes.subarray(0, 64)).toString('utf8').trimStart();
+  if (!lead.startsWith('{')) return null;
+  try {
+    const o = JSON.parse(Buffer.from(bytes).toString('utf8')) as { format?: unknown };
+    return o && o.format === 'rondocode' ? rondoFromBytes(bytes) : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function createCliBridge(
-  { profile = {}, dom, networkAllowlist, designVersion, tokenSelection, capturePublicOnly = false, aiEnabled = true, tokensDocument = null, geometryBackend }: CliBridgeOpts = {} as CliBridgeOpts,
+  { profile = {}, dom, networkAllowlist, designVersion, tokenSelection, capturePublicOnly = false, aiEnabled = true, tokensDocument = null, rondo, onAudioRun, onAudioRunFailed, rondoBudget, geometryBackend }: CliBridgeOpts = {} as CliBridgeOpts,
 ): Promise<HostV1> {
   const w = dom.window;
   // Pre-load the asset catalog so query/get can be synchronous-ish. Merged, not the
@@ -592,7 +637,16 @@ export async function createCliBridge(
   // songs, with no shelling out to ffmpeg, so a headless render never silently
   // depends on whatever binary is on PATH. Anything needing a platform codec (mp3,
   // aac, opus) rejects by name - see packages/node-shell/src/audio.ts.
-  host.audio = createNodeAudioAPI({ repoRoot: REPO_ROOT });
+  // v1.246 adds `decode` and rondocode songs: a song's code runs in the `vm` class
+  // inside a Worker with a wall clock (packages/node-shell/src/rondo.ts), and each
+  // render is reported to `onAudioRun`.
+  host.audio = createNodeAudioAPI({
+    repoRoot: REPO_ROOT,
+    ...(rondo ? { rondo } : {}),
+    ...(rondoBudget ? { budget: rondoBudget } : {}),
+    onRun: onAudioRun ?? cliAudioRunReporter(),
+    onRunFailed: onAudioRunFailed ?? cliAudioFailureReporter(),
+  });
 
   // host.speech (v1.96 synthesis, v1.99 transcription) - the SAME Kokoro and Whisper
   // models the web shell runs, over transformers.js on the onnxruntime-node backend
@@ -692,6 +746,16 @@ export async function createCliBridge(
           meta: { name: 'Generated music', generated: true, seed: ref.seed, ...(ref.style ? { style: ref.style } : {}) },
         };
       }
+      // A rondocode share link (plan 301): the song travels inside the link, so it
+      // resolves to its own canonical bytes and nothing is fetched. Nothing of the
+      // song runs here; host.audio renders it in the vm class when a hook asks.
+      if (isRondoShareLink(id)) {
+        try {
+          return rondoAssetRef('remote', id, rondoFromShareLink(id));
+        } catch (e) {
+          throw new Error(`Rondocode link could not be read: ${e instanceof Error ? e.message : String(e)}`);
+        }
+      }
       // A DIRECT URL as the asset id (same contract as the web bridge, Andy
       // 2026-08-28): `data:` inline bytes pass through as-is (jsdom reads a
       // data: img src natively); an http(s) file is fetched and inlined to a
@@ -716,6 +780,8 @@ export async function createCliBridge(
       if (/^data:/i.test(id)) {
         const mime = /^data:([^;,]+)/i.exec(id)?.[1] ?? '';
         const bytes = new Uint8Array(await (await fetch(id)).arrayBuffer());
+        const song = urlAssetKind(mime, id) ? null : rondoRecordOf(bytes);
+        if (song) return rondoAssetRef('remote', id, song);
         const kind = isJxl(bytes) ? { type: 'raster' as const, format: 'jxl' } : urlAssetKind(mime, id);
         if (!kind) throw new Error(`Unsupported data: asset type: ${mime || 'unknown'}`);
         return prepareJxlAsset({ source: 'remote', id, type: kind.type, format: kind.format, url: id }, bytes);
@@ -1364,6 +1430,22 @@ function rootSvgOf(node: Element | null): Element | null {
   host.c2pa = {
     async sign(bytes: Uint8Array, format: string, opts: C2paSignOpts = {}): Promise<Uint8Array> {
       if (!C2PA_FORMATS.includes(format)) throw new Error(`no C2PA container for '${format}'`);
+      // A render of a rondocode song (plan 301): the engine words and writes its
+      // credential (engine/src/rondo-sign.ts), so a song exported here says what
+      // the same export says in the web shell. Same signer rule as below.
+      if (opts.rondo) {
+        const { signRondoFile } = await import('../../../engine/src/rondo-sign.ts');
+        const { song, name, ...facts } = opts.rondo;
+        let id: { signer: unknown; notBefore: Date; notAfter: Date } | null = null;
+        try {
+          const { resolveSigningIdentity } = await import('@lolly-tools/node-shell/signing-identity');
+          id = await resolveSigningIdentity({});
+        } catch { /* no identity configured - ephemeral */ }
+        return signRondoFile(bytes, format, {
+          song, name, facts, generator: 'Lolly',
+          ...(id ? { signer: id.signer as never, dates: { notBefore: id.notBefore, notAfter: id.notAfter } } : {}),
+        });
+      }
       const imported = opts.action === 'imported'
         || (opts.action == null && (opts.author != null || opts.rights != null || (opts.ingredients?.length ?? 0) > 0));
       // Explicit artist-asserted author/rights win; else the profile identity, gated by
@@ -1603,6 +1685,8 @@ function mimeFor(format: string): string {
     case 'exr': return 'image/x-exr';
     case 'hdr': return 'image/vnd.radiance';
     case 'json': return 'application/json';
+    // A rondocode song's canonical record is JSON (engine/src/rondo-source.ts).
+    case 'rondo': return 'application/json';
     default: return 'application/octet-stream';
   }
 }

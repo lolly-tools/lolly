@@ -63,6 +63,7 @@ import { MODELS_BASE } from './models-base.ts';
 import { UPSCALE_MODEL_STORE, UPSCALE_MODEL_CACHE_VERSION } from './upscale-models.ts';
 import { MATTE_MODEL_STORE, MATTE_MODEL_CACHE_VERSION } from './matte-models.ts';
 import { OCR_MODEL_STORE, OCR_MODEL_CACHE_VERSION } from './ocr-models.ts';
+import { SING_MODEL_STORE, SING_MODEL_CACHE_VERSION, SING_PART_FILES } from './sing-models.ts';
 import {
   DURABLE_ENCODER_BYTES, DURABLE_ENCODER_CACHE_VERSION, DURABLE_ENCODER_FILE, DURABLE_ENCODER_PATH,
   DURABLE_MODEL_STORE,
@@ -120,6 +121,10 @@ export interface PrecacheManifest {
     /** The Ask embedding model (plans/103 M1) - transformers-cache path keys,
      *  like speech and reword. Empty on builds where the model is not staged. */
     embed?: ManifestFile[];
+    /** The singing models behind rondocode's sing() (plan 301 phase F). Size
+     *  metadata only, like upscale/matte: the bytes go to the `sing-models` IDB
+     *  store, and the fp32 fallbacks in this group are not part of the download. */
+    sing?: ManifestFile[];
   };
 }
 
@@ -131,7 +136,7 @@ export interface InfoManifest {
   groups: { en: ManifestFile[]; shots: ManifestFile[]; locales: Record<string, ManifestFile[]> };
 }
 
-export type OfflinePartId = 'app' | 'docs' | 'verify' | 'catalog' | 'speech' | 'upscale' | 'matte' | 'ocr' | 'reword' | 'ask' | 'ai-detect' | 'durable';
+export type OfflinePartId = 'app' | 'docs' | 'verify' | 'catalog' | 'speech' | 'upscale' | 'matte' | 'ocr' | 'reword' | 'ask' | 'ai-detect' | 'durable' | 'sing';
 
 /** What one downloaded part records. `version` is the manifest watermark the
  *  download completed against; resyncOfflineParts re-downloads the delta when
@@ -909,6 +914,27 @@ export async function downloadOcr(opts: { signal?: AbortSignal; onProgress?: OnP
   return rec;
 }
 
+/** Download the singing-voices part (plan 301 phase F) - the int8 path and all
+ *  three voices into the `sing-models` IDB store host.models reads. Opt-in only:
+ *  no sweep calls this (lib/sing-models.ts). */
+export async function downloadSing(opts: { signal?: AbortSignal; onProgress?: OnProgress } = {}): Promise<PartRecord> {
+  assertAiAllowed('sing');
+  const { prefetchSingModels } = await import('./model-prefetch.ts');
+  const res = await prefetchSingModels(opts);
+  opts.signal?.throwIfAborted();
+  if (!res.ok) throw new Error('offline download: a singing model download was incomplete');
+  // The fetcher's store write is best-effort, so check the keys before recording:
+  // a part is never recorded as downloaded when the browser kept less than all of
+  // its files (the large files are why: lib/ort.ts storableModelBytes).
+  const db = await openDB();
+  const kept = new Set((await db.getAllKeys(SING_MODEL_STORE)).map(String));
+  const lost = SING_PART_FILES.filter(f => !kept.has(f));
+  if (lost.length) throw new Error(`offline download: the browser did not keep ${lost.length} singing model file(s) (first: ${lost[0]})`);
+  const rec: PartRecord = { at: new Date().toISOString(), version: String(SING_MODEL_CACHE_VERSION), bytes: res.bytes, files: res.files };
+  await recordPart('sing', rec);
+  return rec;
+}
+
 /** Record a completed catalog download's scope + measured size. The BYTES went
  *  through catalog/sync.ts's prefetch (threaded in by the view); this record is
  *  what keeps them protected + refreshed at every boot (sync.ts reads it back
@@ -951,7 +977,7 @@ export async function removePart(id: OfflinePartId): Promise<void> {
     if (id === 'ask') await clearAskCaches({ keepOrtHf: others });
     if (id === 'ai-detect') await clearAiDetectCaches({ keepOrtHf: others });
   }
-  if (id === 'verify' || id === 'upscale' || id === 'matte' || id === 'ocr' || id === 'durable') {
+  if (id === 'verify' || id === 'upscale' || id === 'matte' || id === 'ocr' || id === 'durable' || id === 'sing') {
     try {
       const db = await openDB();
       if (id === 'verify') {
@@ -964,7 +990,8 @@ export async function removePart(id: OfflinePartId): Promise<void> {
       } else if (id === 'durable') {
         await db.delete(DURABLE_MODEL_STORE, DURABLE_ENCODER_FILE).catch(() => {});
       } else {
-        const store = id === 'upscale' ? UPSCALE_MODEL_STORE : id === 'matte' ? MATTE_MODEL_STORE : OCR_MODEL_STORE;
+        const store = id === 'upscale' ? UPSCALE_MODEL_STORE : id === 'matte' ? MATTE_MODEL_STORE
+          : id === 'sing' ? SING_MODEL_STORE : OCR_MODEL_STORE;
         await db.clear(store).catch(() => {});
       }
     } catch { /* stores absent - nothing to clear */ }

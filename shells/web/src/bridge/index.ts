@@ -11,6 +11,7 @@ import { aiAllowed, callAiApi } from '../lib/ai-policy.ts';
 import { setHostRef } from '../lib/host-ref.ts';
 import { pendingAssetSync } from '../lib/asset-sync.ts';
 import type { HostV1, AssetRef, AssetPickerOpts, RecorderAPI } from '@lolly-tools/core/host-v1';
+import type { PickerHost } from '../views/picker.ts';
 // Deep engine imports, NOT the `@lolly/engine` barrel: this module is on the
 // boot path, and engine/src/index.ts is one shared facade whose retained export
 // set is the UNION over every importer - touching it here drags createRuntime
@@ -514,6 +515,9 @@ export async function createBridge(): Promise<WebHost> {
         || typeof (window as { webkitOfflineAudioContext?: unknown }).webkitOfflineAudioContext === 'function'),
     analyse: async (src, opts) => (await loadAudio()).analyse(src, opts),
     clean: async (src, opts) => (await loadAudio()).clean(src, opts),
+    // v1.246: PCM for any playable source, a rondocode song rendered in the `vm`
+    // class included. Listed here because a facade drops any method it forgets.
+    decode: async (src, opts) => (await loadAudio()).decode(src, opts),
   } satisfies Required<NonNullable<WebHost['audio']>>;
 
   // Lazy speech facade (v1.96; transcription v1.99) - on-device Kokoro TTS and
@@ -660,6 +664,13 @@ export async function createBridge(): Promise<WebHost> {
     run: async (f, o) => callAiApi('ocr', loadOcr, (api, signal) => api.run(f, { ...o, signal: o?.signal ? AbortSignal.any([o.signal, signal]) : signal })),
   };
 
+  // Model files a tool may read (v1.246, plan 301 phase F): the singing models
+  // for the Rondocode editor frame. Lazy, so the offer sheet and the model fetcher
+  // stay off the boot chunk; `files` is the whole surface of bridge/models.ts.
+  host.models = {
+    files: async (family, paths, opts) => (await import('./models.ts')).modelFiles(family, paths, opts),
+  } satisfies Required<NonNullable<WebHost['models']>>;
+
   // Content Credentials signing (v1.85; widened v1.104). A lazy facade for the
   // same reason export is: the signer lives inside the 90 KB export bridge, and
   // nothing reaches it before an explicit user opt-in. `readIngredients` reads the
@@ -667,6 +678,16 @@ export async function createBridge(): Promise<WebHost> {
   // fresh authorship claim preserves them rather than orphaning them.
   host.c2pa = {
     sign: async (bytes, format, opts) => {
+      // A render of a rondocode song (plan 301): the engine words and writes its
+      // credential (engine/src/rondo-sign.ts), signed like a generated voice clip -
+      // the device identity when one is enrolled, else the ephemeral signer.
+      if (opts?.rondo) {
+        const { signRondoFile } = await import('../../../../engine/src/rondo-sign.ts');
+        const { song, name, ...facts } = opts.rondo;
+        let signer: unknown = null;
+        try { signer = await host.identity.signer(); } catch { /* the ephemeral signer below */ }
+        return signRondoFile(bytes, format, { song, name, facts, ...(signer ? { signer: signer as never } : {}) });
+      }
       const { signFreshC2pa } = await import('./export.ts');
       return signFreshC2pa(host, bytes, format, opts);
     },
@@ -678,12 +699,20 @@ export async function createBridge(): Promise<WebHost> {
     },
   };
 
-  // pick is a bridge-level concern: it needs the full host (logging, assets.get,
-  // assets._uploadUserAsset). Defined here after all sub-APIs are wired so the
-  // closure over `host` is complete by the time pick() is actually called.
+  // pick and add are bridge-level concerns: they need the full host (logging,
+  // assets.get, assets._uploadUserAsset). Defined here after all sub-APIs are wired
+  // so the closure over `host` is complete by the time either is actually called.
+  const pickerHost = (): PickerHost => host as unknown as PickerHost;
   host.assets.pick = async (opts: AssetPickerOpts): Promise<AssetRef | null> => {
     const { openPicker } = await import('../views/picker.ts');
-    return openPicker(host as unknown as Parameters<typeof openPicker>[0], opts) as Promise<AssetRef | null>;
+    return openPicker(pickerHost(), opts) as Promise<AssetRef | null>;
+  };
+  // host.assets.add (v1.246): a tool saves a file the person made into Assets,
+  // through the upload ingest. Loaded lazily, so boot carries none of this code.
+  host.assets.add = async (file) => {
+    const [{ addToAssets }, { storeUserUpload }] = await Promise.all([import('./assets-add.ts'), import('../views/picker.ts')]);
+    const ph = pickerHost();
+    return addToAssets(ph.assets, file, (f) => storeUserUpload(ph, f, { sourceHint: 'tool' }));
   };
 
   // The host is reachable to modules that run before any export (lib/host-ref.ts).

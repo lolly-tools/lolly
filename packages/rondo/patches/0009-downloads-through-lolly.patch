@@ -1,0 +1,75 @@
+Lolly patch 0009: files the editor makes are saved by Lolly.
+
+Why: an anchor download from a sandboxed frame does not reach the desktop
+app, and Lolly saves files through its own export path. The export popover's
+WAV, stems, MIDI and recording, and the library's project export, hand their
+bytes to the utility instead (with the names of any sung parts in the file
+and their voices), which signs what it can before it saves.
+
+Applied by scripts/vendor-rondocode.ts with git apply --directory=packages/rondo/upstream.
+
+diff --git a/packages/app/src/editor/export.ts b/packages/app/src/editor/export.ts
+index 2f6d18f6bd5999c0405cc09ba74e2319cfa8b37e..4d8b2b3f7fd5ee6433ef652fcab42b50393e7bc5 100644
+--- a/packages/app/src/editor/export.ts
++++ b/packages/app/src/editor/export.ts
+@@ -9,6 +9,8 @@ import { anchorPopover } from '../ui/viewport'
+ import { capturePatternNotes, stageCode } from '../../../server/src/render-runner'
+ import { renderStagedMix } from './resample'
+ import { buildZip } from './zip'
++import { lolly } from '../lolly/host'
++import { bakedSingParts, bakedSingVoices } from '../sing/singMgr'
+ 
+ /* Export the current tune five ways:
+  *   - bounce wav: render N cycles offline (deterministic, uses the render path)
+@@ -29,6 +31,12 @@ const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, text?:
+ }
+ 
+ function download(bytes: Uint8Array, name: string, type = 'audio/wav'): void {
++  // Lolly: the file goes to the utility, which saves it the way Lolly saves
++  // files (a frame download does not reach the desktop app)
++  if (lolly) {
++    lolly.download(bytes, name, type, { sung: bakedSingParts(), voices: bakedSingVoices() })
++    return
++  }
+   const blob = new Blob([bytes as BlobPart], { type })
+   const url = URL.createObjectURL(blob)
+   const a = document.createElement('a')
+diff --git a/packages/app/src/editor/library.ts b/packages/app/src/editor/library.ts
+index 9631bf8e4d5b7b295bcd3fc5d8f0e2a0b2e84a82..de6d5e19e48b63db3b465c0c154f5de5f6116e1b 100644
+--- a/packages/app/src/editor/library.ts
++++ b/packages/app/src/editor/library.ts
+@@ -707,7 +707,16 @@ export async function mountLibrary(editor: EditorHandle): Promise<LibraryHandle>
+     const exportBtn = el('button', 'lib-mini', 'export')
+     exportBtn.type = 'button'
+     exportBtn.addEventListener('click', () => {
+-      const blob = new Blob([JSON.stringify({ name: current.name, code: current.code }, null, 2)], {
++      const json = JSON.stringify({ name: current.name, code: current.code }, null, 2)
++      const fileName = `${current.name.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '') || 'project'}.rondo.json`
++      // Lolly: the utility saves the file, as it saves every file this app makes
++      if (lolly) {
++        lolly.download(new TextEncoder().encode(json), fileName, 'application/json')
++        exportBtn.textContent = 'exported'
++        setTimeout(() => (exportBtn.textContent = 'export'), 1800)
++        return
++      }
++      const blob = new Blob([json], {
+         type: 'application/json',
+       })
+       const url = URL.createObjectURL(blob)
+diff --git a/packages/app/src/lolly/host.ts b/packages/app/src/lolly/host.ts
+index 3697ccf9a492f3540dca6777514fc60e2aa2645c..41703dc5b6182043e71a6e9a4bae981a8a52e6f7 100644
+--- a/packages/app/src/lolly/host.ts
++++ b/packages/app/src/lolly/host.ts
+@@ -55,8 +55,10 @@ export interface LollyHost {
+   publishDoc(song: Required<LollySong>): void
+   /** The utility replaced the song (undo, a pasted link, a collaborator). */
+   onSong(fn: (song: LollySong) => void): void
+-  /** Hand a finished file to Lolly, which saves it the way the app saves files. */
+-  download(bytes: Uint8Array, name: string, type: string): void
++  /** Hand a finished file to Lolly, which saves it the way the app saves files.
++   *  `sung` lists the parts whose generated singing is in the file, so Lolly
++   *  can tell the person the file holds AI-generated vocals. */
++  download(bytes: Uint8Array, name: string, type: string, about?: { sung?: string[]; voices?: string[] }): void
+   /** Mount Lolly's chrome: transport, song, visualiser, export, menus. */
+   mountChrome(handles: LollyChromeHandles): void
+   /** Show a plain notice in the editor. `key` keeps one notice per subject. */

@@ -1,0 +1,120 @@
+Lolly patch 0010: no analytics tag.
+
+Why: upstream's HTML pages (the editor, the docs, cookbook, reference and
+troubleshooting pages) load Google Analytics. Lolly ships no trackers
+(docs/privacy.md, tests/no-trackers.test.ts). Lolly's editor build does not
+use these pages, but the vendored tree should not carry the tag either, so
+each block is replaced by a one-line comment.
+
+Applied by scripts/vendor-rondocode.ts with git apply --directory=packages/rondo/upstream.
+
+diff --git a/packages/app/cookbook.html b/packages/app/cookbook.html
+index ac365bb9f02022073b3ab48e818848706f0a0ab4..ae5d6ec9003aaf8c787706289f52242fbefd2593 100644
+--- a/packages/app/cookbook.html
++++ b/packages/app/cookbook.html
+@@ -1,16 +1,7 @@
+ <!doctype html>
+ <html lang="en">
+   <head>
+-    <!-- Google tag (gtag.js) -->
+-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LEDJP5EFLD"></script>
+-    <script>
+-      window.dataLayer = window.dataLayer || [];
+-      function gtag() {
+-        dataLayer.push(arguments);
+-      }
+-      gtag('js', new Date());
+-      gtag('config', 'G-LEDJP5EFLD');
+-    </script>
++    <!-- Lolly: upstream's Google Analytics tag removed; Lolly ships no trackers. -->
+     <meta charset="UTF-8" />
+     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+     <meta name="theme-color" content="#050807" />
+diff --git a/packages/app/docs.html b/packages/app/docs.html
+index 5bf0a12c00f2dc3c69640329ec784f436b4762ba..9176e681dd45742a6c44945bac453eb8807cc275 100644
+--- a/packages/app/docs.html
++++ b/packages/app/docs.html
+@@ -1,16 +1,7 @@
+ <!doctype html>
+ <html lang="en">
+   <head>
+-    <!-- Google tag (gtag.js) -->
+-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LEDJP5EFLD"></script>
+-    <script>
+-      window.dataLayer = window.dataLayer || [];
+-      function gtag() {
+-        dataLayer.push(arguments);
+-      }
+-      gtag('js', new Date());
+-      gtag('config', 'G-LEDJP5EFLD');
+-    </script>
++    <!-- Lolly: upstream's Google Analytics tag removed; Lolly ships no trackers. -->
+     <meta charset="UTF-8" />
+     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+     <meta name="theme-color" content="#050807" />
+diff --git a/packages/app/index.html b/packages/app/index.html
+index ca9daf8bbeb606ee690567cfb62981f87d1c0cbe..b0f224b08b8ddd23f6367d6377779214be7edddc 100644
+--- a/packages/app/index.html
++++ b/packages/app/index.html
+@@ -1,16 +1,7 @@
+ <!doctype html>
+ <html lang="en">
+   <head>
+-    <!-- Google tag (gtag.js) -->
+-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LEDJP5EFLD"></script>
+-    <script>
+-      window.dataLayer = window.dataLayer || [];
+-      function gtag() {
+-        dataLayer.push(arguments);
+-      }
+-      gtag('js', new Date());
+-      gtag('config', 'G-LEDJP5EFLD');
+-    </script>
++    <!-- Lolly: upstream's Google Analytics tag removed; Lolly ships no trackers. -->
+     <meta charset="UTF-8" />
+     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+     <meta name="theme-color" content="#050807" />
+diff --git a/packages/app/reference.html b/packages/app/reference.html
+index 7b43788cda4f8db559dd95626fb1ecf8dc75b61c..a8b600287eda81b30d61730639d85f4c5add4b3f 100644
+--- a/packages/app/reference.html
++++ b/packages/app/reference.html
+@@ -1,16 +1,7 @@
+ <!doctype html>
+ <html lang="en">
+   <head>
+-    <!-- Google tag (gtag.js) -->
+-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LEDJP5EFLD"></script>
+-    <script>
+-      window.dataLayer = window.dataLayer || [];
+-      function gtag() {
+-        dataLayer.push(arguments);
+-      }
+-      gtag('js', new Date());
+-      gtag('config', 'G-LEDJP5EFLD');
+-    </script>
++    <!-- Lolly: upstream's Google Analytics tag removed; Lolly ships no trackers. -->
+     <meta charset="UTF-8" />
+     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+     <meta name="theme-color" content="#050807" />
+diff --git a/packages/app/troubleshooting.html b/packages/app/troubleshooting.html
+index 4b09bc586665d9e19fc24d66df92dde1c4366e0f..ec031f45cfa460fd79c8b5eb4452e7a8e7a1b787 100644
+--- a/packages/app/troubleshooting.html
++++ b/packages/app/troubleshooting.html
+@@ -1,16 +1,7 @@
+ <!doctype html>
+ <html lang="en">
+   <head>
+-    <!-- Google tag (gtag.js) -->
+-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LEDJP5EFLD"></script>
+-    <script>
+-      window.dataLayer = window.dataLayer || [];
+-      function gtag() {
+-        dataLayer.push(arguments);
+-      }
+-      gtag('js', new Date());
+-      gtag('config', 'G-LEDJP5EFLD');
+-    </script>
++    <!-- Lolly: upstream's Google Analytics tag removed; Lolly ships no trackers. -->
+     <meta charset="UTF-8" />
+     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+     <meta name="theme-color" content="#050807" />

@@ -122,6 +122,8 @@ import {
   createClipAudio,
   type ClipAudio,
 } from './sequence-providers.ts';
+// Types only: a song's record is built lazily by lib/rondo-provenance.ts (plan 301).
+import type { RondoRendered, RondoSong } from '../lib/rondo-render.ts';
 // WP-3 (plan 154): the deep float HDR encode source + its flag/capability gates. Pure,
 // node-testable; nothing here runs unless hdrDeep (hdrActive && flag && probe) is true.
 import {
@@ -1137,6 +1139,11 @@ async function mixSequenceAudio(
   const spans: { from: number; to: number }[] = [];
   const xfade = audioCrossfades(layers);
   const pushed: { L: SeqLayer; mixClip: MixClip; placedSec: number; fadeInSec: number; fadeOutSec: number; fadeInPower: boolean; fadeOutPower: boolean }[] = [];
+  // The rondocode songs whose sound reaches this mix (plan 301). Recorded only when
+  // the export is stamped: each becomes one C2PA source ingredient, through the sink
+  // renderFormat merges after the render returns.
+  const songSink = opts.c2pa ? opts._sourceIngredientSink : undefined;
+  const songsHeard: { song: RondoSong; render: Pick<RondoRendered, 'run' | 'findings'> }[] = [];
 
   for (const L of layers) {
     if (L.kind !== 'video' && L.kind !== 'audio') continue;
@@ -1152,7 +1159,14 @@ async function mixSequenceAudio(
     }
     let clip: ClipAudio | null = null;
     try {
-      clip = await createClipAudio(url, { log });
+      // `notice` reaches the export card: a rondocode song lists there the parts
+      // the render could not play, not only in the console. `onSong` hears each
+      // song that rendered into a clip, for its Content Credentials record below.
+      clip = await createClipAudio(url, {
+        log,
+        notice: (m) => host?.notice?.(m),
+        ...(songSink ? { onSong: (song, render) => { songsHeard.push({ song, render }); } } : {}),
+      });
     } catch (err) {
       log('warn', `sequence audio: ${toCodedError(err).message} - clip will be silent`);
       continue;
@@ -1340,6 +1354,18 @@ async function mixSequenceAudio(
       }
     } catch (err) {
       log('warn', `Music bed unavailable (${(err as { message?: string })?.message ?? err}); exporting without it.`);
+    }
+  }
+
+  // One source ingredient per song this mix played. Never fatal: a song whose
+  // record could not be built is still in the film, and the readback after the
+  // export says what the file really records.
+  if (songSink && songsHeard.length) {
+    try {
+      const { songIngredient, addSongIngredients } = await import('../lib/rondo-provenance.ts');
+      addSongIngredients(songSink, await Promise.all(songsHeard.map(({ song, render }) => songIngredient(song, render))));
+    } catch (err) {
+      log('warn', `sequence audio: the song record for Content Credentials could not be built (${(err as { message?: string })?.message ?? err}).`);
     }
   }
 

@@ -22,7 +22,7 @@ import type { PinRecord } from '../../lib/offline-pins.ts';
 import { catalogDownloadSummary, catalogScopeSize, downloadCatalogScope, prefetchAssetsById } from '../../catalog/sync.ts';
 import { docsFileList, downloadApp, downloadDocs, fetchInfoManifest, fetchPrecacheManifest, partRecords, persistenceState, recordCatalogDownload, removePart, storageHeadroom } from '../../lib/offline-manager.ts';
 import type { DownloadProgress, OfflinePartId, PartState } from '../../lib/offline-manager.ts';
-import { downloadModelPart, isModelPart, MODEL_PART_IDS, modelPartsInfo } from '../../lib/model-parts.ts';
+import { downloadModelPart, isModelPart, MODEL_PART_IDS, modelPartNote, modelPartsInfo } from '../../lib/model-parts.ts';
 import type { ModelPartId, ModelPartInfo } from '../../lib/model-parts.ts';
 import { partRowState } from './offline-rows.ts';
 import { beginOfflineRun, cancelOfflineRun, offlineRunActive, offlineRunLine, subscribeOfflineRun } from '../../lib/offline-run.ts';
@@ -109,7 +109,7 @@ export async function loadOffline(pv: ProfileViewCtx) {
   // version to go stale against - resyncOfflineParts never touches them.
   const liveVersion = (id: OfflinePartId): string | null =>
     id === 'docs' ? (infoManifest?.version ?? null)
-    : (id === 'upscale' || id === 'matte' || id === 'ocr' || id === 'durable') ? null
+    : (id === 'upscale' || id === 'matte' || id === 'ocr' || id === 'durable' || id === 'sing') ? null
     : (precache?.version ?? null);
 
   // One plain sentence per row. The size is printed on the row's own line
@@ -125,6 +125,7 @@ export async function loadOffline(pv: ProfileViewCtx) {
     reword: t('Rewrites, summarises and explains text on this device, for Humanize and the text actions.'),
     ask: t('Helps Ask Lolly match your question to the right guide.'),
     'ai-detect': t('Runs the deeper AI text check on Verify and in Assets.'),
+    sing: t('Lets songs in Rondocode sing. Download everything leaves these out.'),
   };
   // Model rows carry the large-download tag slot; syncPartRow shows it only when
   // there is something left to download and it is big (isHeavy).
@@ -132,7 +133,7 @@ export async function loadOffline(pv: ProfileViewCtx) {
     { id: 'app', name: t('The app'), desc: t('Every view, editor and font, so the whole app opens with no connection.') },
     { id: 'catalog', name: t('Catalogue'), desc: t('Logos, art and music your tools can use, all of it or by tag.') },
     { id: 'docs', name: t('Guides & docs'), desc: t('The full documentation site in your language, screenshots included.') },
-    ...(['speech', 'upscale', 'matte', 'ocr', 'verify', 'durable', 'reword', 'ask', 'ai-detect'] as const).map((id): PartDef => ({
+    ...(['speech', 'upscale', 'matte', 'ocr', 'verify', 'durable', 'reword', 'ask', 'ai-detect', 'sing'] as const).map((id): PartDef => ({
       id, name: modelInfo[id].label, desc: modelDescs[id], model: true,
     })),
   ];
@@ -141,6 +142,7 @@ export async function loadOffline(pv: ProfileViewCtx) {
   const PART_GLYPHS: Record<OfflinePartId, IconName> = {
     app: 'monitor', catalog: 'photos', docs: 'document', speech: 'speech', upscale: 'resize', matte: 'scissors',
     ocr: 'font', verify: 'shieldCheck', durable: 'seal', reword: 'pen', ask: 'messageCircle', 'ai-detect': 'aiSpark',
+    sing: 'mic',
   };
   // One part: its glyph and name, then its size or state on the row (syncPartRow
   // fills [data-part-value]); the body holds the description, the catalogue's tag
@@ -150,6 +152,7 @@ export async function loadOffline(pv: ProfileViewCtx) {
         ${rowSummaryRow(`<span class="profile-mark" aria-hidden="true">${icon(PART_GLYPHS[p.id])}</span>`, escapeText(p.name), `<span class="profile-row-value" data-part-value="${p.id}"></span>`)}
         <div class="profile-row-body">
           <p class="profile-row-desc">${escapeText(p.desc)}</p>
+          ${isModelPart(p.id) && modelPartNote(p.id) ? `<p class="profile-row-desc odl-part-note">${escapeText(modelPartNote(p.id)!)}</p>` : ''}
           ${p.id === 'catalog' && catSummary?.tags.length ? `
           <details class="odl-tagscope">
             <summary>${t('Choose by tag')}</summary>
@@ -474,6 +477,8 @@ export async function loadOffline(pv: ProfileViewCtx) {
   // sweep (hiding a multi-GB download inside one button misleads) - but the opt-in
   // checkbox below folds them in, with their combined size stated up front so it stays
   // honest. availableModelParts() filters to what THIS server actually offers.
+  // 'sing' is deliberately absent: the singing models download only from their own
+  // row or the in-place offer, never in a sweep (Andy, 2026-10-07; lib/sing-models.ts).
   const MODEL_PARTS = ['speech', 'upscale', 'matte', 'ocr', 'reword', 'ask', 'ai-detect', 'verify', 'durable'] as const;
   const inclModels = (): boolean => !!body.querySelector<HTMLInputElement>('#odl-incl-models')?.checked;
   const availableModelParts = (): OfflinePartId[] => MODEL_PARTS.filter(id => partAvailable[id] && aiOfflinePartAllowed(id));
@@ -496,7 +501,7 @@ export async function loadOffline(pv: ProfileViewCtx) {
       modelsSizeEl.textContent = modelsRemaining ? t('about {size}', { size: fmtBytes(modelsRemaining) })
         : modelIds.length ? t('all saved') : '';
     }
-    for (const id of ['app', 'docs', 'speech', 'upscale', 'matte', 'ocr', 'reword', 'ask', 'ai-detect', 'verify', 'durable', 'catalog'] as const) syncPartRow(id);
+    for (const id of ['app', 'docs', 'speech', 'upscale', 'matte', 'ocr', 'reword', 'ask', 'ai-detect', 'verify', 'durable', 'sing', 'catalog'] as const) syncPartRow(id);
     syncPartGroups();
     // A live run owns row enablement: syncPartRow reads storage state, so it
     // would re-enable rows the run just froze. This fires from async

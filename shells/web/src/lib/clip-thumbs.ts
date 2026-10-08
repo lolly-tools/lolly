@@ -387,7 +387,13 @@ export function createLru<T>(limit: number, dispose?: (value: T) => void): Lru<T
 
 /** A decoded track's full-length peak envelope plus the duration it spans, so any
  *  trim window can be re-derived without decoding the file again. */
-export interface MasterPeaks { peaks: Float32Array; durationSec: number }
+export interface MasterPeaks {
+  peaks: Float32Array;
+  durationSec: number;
+  /** Rendered to fit rather than decoded from a file (a rondocode song), so a longer
+   *  window than this one may need a new render. A `zzfxm:` bed is recognised by its url. */
+  composed?: boolean;
+}
 
 type CacheEntry = ImageBitmap[] | Float32Array | MasterPeaks;
 
@@ -2019,9 +2025,36 @@ async function computePeaksZzfxm(url: string, wantedSec: number | undefined, sig
   }
 }
 
+/** A rondocode share link (lib/media-source.ts RONDO_LINK_RE, written here as a string
+ *  test for the same zero-static-import reason as `isZzfxmUrl`). */
+const isRondoLinkUrl = (url: string): boolean => /^https:\/\/(?:www\.)?rondocode\.com\/[^#\s]*#/.test(url);
+
+/**
+ * Peaks for a RONDOCODE SONG (plan 301): code that computes audio, rendered by
+ * lib/rondo-render.ts in the `vm` execution class. `bytes` is the stored song when
+ * the url was fetched, or null for a share link, which is decoded in place.
+ * The song is rendered to the window's end on the client's half-second grid, the
+ * same render the preview and the export mix ask for, so the waveform drawn is the
+ * audio that plays.
+ */
+async function computePeaksRondo(url: string, bytes: Uint8Array | null, wantedSec: number | undefined, signal: AbortSignal): Promise<MasterPeaks | null> {
+  try {
+    const r = await import('./rondo-render.ts');
+    const song = bytes ? r.songFromBytes(bytes) : await r.songFromUrl(url);
+    if (!song || signal.aborted) return null;
+    const out = await r.renderRondoSong(song, wantedSec !== undefined && wantedSec > 0 ? { seconds: r.rondoTargetSec(wantedSec) } : {});
+    if (signal.aborted || !out.left.length || !out.sampleRate) return null;
+    return { peaks: bucketPeaks([out.left, out.right], MASTER_BUCKETS), durationSec: out.left.length / out.sampleRate, composed: true };
+  } catch {
+    return null;   // a song that will not render degrades to the plain bar, like any undecodable file
+  }
+}
+
 async function computePeaks(url: string, signal: AbortSignal, wantedSec?: number): Promise<MasterPeaks | null> {
   // Composed, not fetched - see computePeaksZzfxm.
   if (isZzfxmUrl(url)) return computePeaksZzfxm(url, wantedSec, signal);
+  // A song inside a link: decoded, never fetched - see computePeaksRondo.
+  if (isRondoLinkUrl(url)) return computePeaksRondo(url, null, wantedSec, signal);
   // The AudioBufferSink path first: it decodes incrementally, so it has no size ceiling
   // and it reads a video's soundtrack. Only when it declines (no WebCodecs audio, no
   // audio track, an undecodable codec, or a mediabunny error) do we fall back to the
@@ -2042,6 +2075,10 @@ async function computePeaks(url: string, signal: AbortSignal, wantedSec?: number
     const buf = await readBounded(res, MAX_AUDIO_DECODE_BYTES, signal);
     if (!buf || signal.aborted) return null;
     if (!withinDecodeBudget(buf.byteLength)) return null;
+    // A stored rondocode song (canonical JSON behind a blob: url) is code, not an
+    // encoded stream, and its bytes show that before decodeAudioData detaches them.
+    const { sniffRondoSource } = await import('./media-source.ts');
+    if (sniffRondoSource(buf)) return computePeaksRondo(url, new Uint8Array(buf), wantedSec, signal);
     const audio = await decode(ctx, buf);
     if (signal.aborted) return null;
     const channels: Float32Array[] = [audio.getChannelData(0)];
@@ -2085,7 +2122,7 @@ export function peaks(
     // A procedural bed is COMPOSED to a length rather than decoded from a file, so a
     // cached master can genuinely be shorter than the window now asked for (the box
     // was dragged longer). Fall through and re-compose; files keep the plain hit.
-    if (!isZzfxmUrl(url) || hit.durationSec >= (win?.toSec ?? 0)) return Promise.resolve(shape(hit));
+    if (!(isZzfxmUrl(url) || hit.composed) || hit.durationSec >= (win?.toSec ?? 0)) return Promise.resolve(shape(hit));
   }
 
   return share<Float32Array>(

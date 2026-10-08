@@ -32,13 +32,72 @@ export interface AudioAPI {
    * by name rather than silently bypassing a requested operation.
    */
   clean?(src: AudioSource, opts?: AudioCleanOpts): Promise<AudioCleanResult>;
+
+  /**
+   * Decode `src` to PCM, or render it when the audio is computed rather than
+   * recorded: a rondocode song (an asset of format `rondo`, its `.rondo.json`
+   * bytes or a rondocode share link), a ZzFXM song or a tracker module. v1.246.
+   *
+   * A computed source's code never runs in the caller's realm. A rondocode song
+   * is evaluated in the `vm` execution class (packages/rondo), and `run` records
+   * that, so a tool can put it in a credit or a receipt. What the shell cannot
+   * play is listed in `findings` by name rather than returned as silence that
+   * looks like a render (a sung part without the voice models, a live
+   * microphone, a sample that was loaded into the editor and not saved with the
+   * song). Rejects with a named error when the source cannot be read at all.
+   */
+  decode?(src: AudioSource, opts?: AudioDecodeOpts): Promise<AudioDecoded>;
+}
+
+export interface AudioDecodeOpts {
+  /**
+   * Length in seconds for a computed source. A rondocode song renders exactly
+   * this long; omitted, it renders its own arrangement, or 8 cycles when it has
+   * none. Recorded audio ignores it and returns the whole file.
+   */
+  seconds?: number;
+}
+
+/** One part of a computed source the shell could not play, and why. */
+export interface AudioFinding {
+  /** Stable code, for example `rondo.part.sing` or `rondo.part.mic`. */
+  code: string;
+  /** One plain sentence for a person. */
+  message: string;
+  /** The synths, samples or models it concerns. */
+  parts: string[];
+}
+
+export interface AudioDecoded {
+  sampleRate: number;
+  /** One array per channel. */
+  channels: Float32Array[];
+  seconds: number;
+  /** Empty when everything played. */
+  findings: AudioFinding[];
+  /** How a computed source ran. Absent for recorded audio. */
+  run?: {
+    /** The document model's execution class: `vm` for a rondocode song. */
+    executionClass: string;
+    /** What produced the audio, for example `rondocode`. */
+    source: string;
+    /** The renderer's version, for example the pinned upstream commit and adapter revision. */
+    version: string;
+    /** The fixed seed behind any randomness the source asked for. */
+    seed?: number;
+  };
 }
 
 export interface AudioCleanOpts {
   denoise?: 'off' | 'light' | 'strong';
   normalize?: 'off' | -16 | -14 | -23;
   trimSilence?: boolean;
-  output?: 'wav' | 'mp3' | 'm4a' | 'opus';
+  /**
+   * `opus` is Opus in WebM; `ogg` (v1.246) is Opus in an Ogg file, the `.opus`
+   * file; `flac` (v1.246) is lossless. A shell without an encoder for a format
+   * rejects by name.
+   */
+  output?: 'wav' | 'mp3' | 'm4a' | 'opus' | 'ogg' | 'flac';
   /** Hints needed when raw bytes came from a file input. */
   sourceName?: string;
   sourceMime?: string;
@@ -47,7 +106,7 @@ export interface AudioCleanOpts {
 export interface AudioCleanResult {
   bytes: Uint8Array;
   mime: string;
-  format: 'wav' | 'mp3' | 'm4a' | 'opus';
+  format: 'wav' | 'mp3' | 'm4a' | 'opus' | 'ogg' | 'flac';
   durationBefore: number;
   durationAfter: number;
   secondsTrimmed: number;

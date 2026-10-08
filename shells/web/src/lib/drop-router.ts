@@ -78,7 +78,11 @@ const DESIGN_EXT_RE = /\.(fig|penpot|idml|indd|svg|zip)$/i;
 // gunzip step in parseDesignFile).
 // Reusable binary assets own their containers; a 3MF/MOGRT ZIP is not a design document.
 const LIBRARY_ASSET_EXT_RE = /\.(mogrt|3mf|glb|stl|ttf|otf|woff2?)$/i;
-const MEDIA_EXT_RE = /\.(png|apng|jpe?g|webp|gif|avif|jxl|heic|heif|svg|svgz|bmp|ico|cur|mp4|webm|mov|mp3|wav|ogg|oga|opus|m4a|aac|flac|mid|midi|mod|xm|it|s3m|stm|mtm|json|lottie)$/i;
+const MEDIA_EXT_RE = /\.(png|apng|jpe?g|webp|gif|avif|jxl|heic|heif|svg|svgz|bmp|ico|cur|mp4|webm|mov|mp3|wav|ogg|oga|opus|m4a|aac|flac|mid|midi|mod|xm|it|s3m|stm|mtm|rondo|json|lottie)$/i;
+// A rondocode song (plan 301): `.rondo` is rondo-language text and `.rondo.json` a
+// project file. Both are audio for the library, and the `.json` one must not be
+// read as a Lottie or offered as a token document on the strength of its suffix.
+const RONDO_EXT_RE = /\.rondo(?:\.json)?$/i;
 // Plain archives the shell can explode into member assets. EXCLUDES the design
 // bundles (.penpot/.fig/.idml/.indd) and the OOXML/OCF packages (.xlsx/.docx/.pptx/
 // .epub/.odt) - those are zips too but route to their own readers. This is a cheap
@@ -455,11 +459,12 @@ export async function sniffFile(file: File, deep: boolean, picker: Pick<PickerMo
   const backup = !libraryAsset && deep && zipMagic && !lolly && !pdf && !pptx && !docx && !layers && !data
     && !PURE_DESIGN_EXT_RE.test(file.name) && !CONTAINER_DOC_EXT_RE.test(file.name)
     && !!(await (await import('./lolly-intake.ts')).peekBackupZip(file));
+  const rondo = RONDO_EXT_RE.test(file.name);
   let animation = /\.lottie$/i.test(file.name) || file.type === 'application/zip+dotlottie';
   if (!libraryAsset && !animation && !backup && deep && zipMagic && file.size <= 64 * 1024 * 1024) {
     animation = (await import('./zip-classify.ts')).classifyZipBytes(new Uint8Array(await file.arrayBuffer())) === 'lottie';
   }
-  if (!animation && deep && /\.json$/i.test(file.name) && file.size <= 32 * 1024 * 1024) {
+  if (!animation && !rondo && deep && /\.json$/i.test(file.name) && file.size <= 32 * 1024 * 1024) {
     try { const raw = JSON.parse(await file.text()); animation = Array.isArray(raw.layers) && typeof raw.fr === 'number' && typeof raw.op === 'number'; } catch { /* another JSON document */ }
   }
   const design = !libraryAsset && !animation && !backup && !lolly && !pdf && !pptx && !docx && !layers && !data && (DESIGN_EXT_RE.test(file.name) || zipMagic || svgText);
@@ -472,7 +477,7 @@ export async function sniffFile(file: File, deep: boolean, picker: Pick<PickerMo
   // (single-file) path - the route is a single-file journey, and every flag
   // above is computed exactly as it was before this one existed. A .penpot is
   // one by extension; a zip needs its parts named; a .json has to parse.
-  const designSystem = !libraryAsset && !lolly && !backup && deep && !pdf && !pptx && !docx && !layers
+  const designSystem = !libraryAsset && !lolly && !backup && !rondo && deep && !pdf && !pptx && !docx && !layers
     && (PENPOT_EXT_RE.test(file.name)
       ? true
       : zipMagic || /\.zip$/i.test(file.name)

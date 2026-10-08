@@ -282,9 +282,12 @@ interface BuildC2paManifestOptions {
    * CBOR assertion and referenced from `created_assertions` (section 2776 - created
    * assertions are the ones attributed to the signer, which is exactly what a
    * disclosure is). Absent → no assertion and byte-identical output, so nothing
-   * that never asks for it changes.
+   * that never asks for it changes. A list (v1.246) writes one assertion per
+   * model, labelled `c2pa.ai-disclosure`, then `__1`, `__2` (section 6.2.3's
+   * instance suffixes), for content that passed through several models; a
+   * single object writes exactly what it always wrote.
    */
-  aiDisclosure?: C2paAiDisclosureInput;
+  aiDisclosure?: C2paAiDisclosureInput | readonly C2paAiDisclosureInput[];
   /**
    * The C2PA specification version this manifest declares it was produced to
    * (SemVer). C2PA 2.4 moved the field OUT of the claim and INTO
@@ -329,9 +332,10 @@ export interface EmbedOptions {
    * both embedders. An EMBEDDED store is the only place a component that ships
    * as its own file (a signed docs masthead, an inline logo) can disclose the
    * model that made it, so the option has to survive the container path, not
-   * just the external-store one. Absent → byte-identical output.
+   * just the external-store one. Absent → byte-identical output. A list writes
+   * one assertion per model (see {@link buildC2paManifest}).
    */
-  aiDisclosure?: C2paAiDisclosureInput;
+  aiDisclosure?: C2paAiDisclosureInput | readonly C2paAiDisclosureInput[];
   /** `claim_generator_info.specVersion` (SemVer) - see {@link C2PA_SPEC_VERSION}. */
   specVersion?: string;
   dates?: Dates;
@@ -542,6 +546,13 @@ export const GENERATED_SOURCE_TYPE = 'http://cv.iptc.org/newscodes/digitalsource
 // on-device AI-upscaled asset. The read side already maps the slug to 'composite'
 // (c2pa-extract aiKind), so the AI flag surfaces on /verify without further wiring.
 export const COMPOSITE_SOURCE_TYPE = 'http://cv.iptc.org/newscodes/digitalsourcetype/compositeWithTrainedAlgorithmicMedia';
+
+// IPTC DigitalSourceType for media computed by an algorithm from no sampled or
+// trained data - the honest mark for a rondocode song's synths, which are DSP
+// running the song's own code. It is NOT an AI flag: the read side's aiKind maps
+// only the two trained-model slugs above, so this one surfaces as plain digital
+// media. A song with synthesised singing is the composite case instead.
+export const ALGORITHMIC_SOURCE_TYPE = 'http://cv.iptc.org/newscodes/digitalsourcetype/algorithmicMedia';
 
 // Output formats that are a genuine re-encode/render of the authored design
 // (so a c2pa.converted step is honest) vs vector-native / text serialisations
@@ -1183,11 +1194,18 @@ export async function buildC2paManifest({
   // section 18.28: the AI transparency statement, a CBOR assertion like the actions and
   // hash ones. Written for BOTH claim versions - the label is version-neutral
   // and a v1 store's `assertions` array references it the same way.
-  let aiBox: Uint8Array | null = null;
-  if (aiDisclosure) {
-    aiBox = jumbfSuperbox(UUID_CBOR_CONTENT, AI_DISCLOSURE_ASSERTION, isoBox('cbor', encodeCbor(aiDisclosureMap(aiDisclosure))));
-    storeBoxes.push(aiBox);
-  }
+  // One assertion per disclosed model: the first under the bare label, each
+  // later one with section 6.2.3's instance suffix (`__1`, `__2`, ...), which is
+  // how a manifest carries several assertions of one kind. A single object is
+  // a list of one, so it writes the bytes it always wrote.
+  const aiBoxes: { label: string; box: Uint8Array }[] = [];
+  const disclosures = aiDisclosure == null ? [] : Array.isArray(aiDisclosure) ? aiDisclosure : [aiDisclosure as C2paAiDisclosureInput];
+  disclosures.forEach((d, i) => {
+    const label = i === 0 ? AI_DISCLOSURE_ASSERTION : `${AI_DISCLOSURE_ASSERTION}__${i}`;
+    const box = jumbfSuperbox(UUID_CBOR_CONTENT, label, isoBox('cbor', encodeCbor(aiDisclosureMap(d))));
+    aiBoxes.push({ label, box });
+    storeBoxes.push(box);
+  });
   // The ingredient assertions were built up-front (their hashes feed the opened
   // and placed actions' parameters.ingredients); add them to the assertion store
   // here so they sit after the standard assertions.
@@ -1210,7 +1228,7 @@ export async function buildC2paManifest({
     ...(exportBox ? [{ url: `self#jumbf=c2pa.assertions/${LOLLY_EXPORT_ASSERTION}`, hash: await sha256(exportBox.subarray(8)) }] : []),
     ...(authorBox ? [{ url: `self#jumbf=c2pa.assertions/${CREATIVE_WORK_ASSERTION}`, hash: await sha256(authorBox.subarray(8)) }] : []),
     ...(metadataBox ? [{ url: `self#jumbf=c2pa.assertions/${METADATA_ASSERTION}`, hash: await sha256(metadataBox.subarray(8)) }] : []),
-    ...(aiBox ? [{ url: `self#jumbf=c2pa.assertions/${AI_DISCLOSURE_ASSERTION}`, hash: await sha256(aiBox.subarray(8)) }] : []),
+    ...(await Promise.all(aiBoxes.map(async (a) => ({ url: `self#jumbf=c2pa.assertions/${a.label}`, hash: await sha256(a.box.subarray(8)) })))),
     ...ingredientRefs,
     ...(rightsBox ? [{ url: `self#jumbf=c2pa.assertions/${LOLLY_RIGHTS_ASSERTION}`, hash: await sha256(rightsBox.subarray(8)) }] : []),
   ];
@@ -1255,8 +1273,8 @@ export async function buildC2paManifest({
 /** {@link buildExternalC2paStore}'s options: everything {@link embedC2pa} takes,
  *  plus the two 2.4 writer additions and the hash assertion's display name. */
 export interface ExternalC2paStoreOptions extends EmbedOptions {
-  /** section 18.28 AI transparency statement - see {@link C2paAiDisclosureInput}. */
-  aiDisclosure?: C2paAiDisclosureInput;
+  /** section 18.28 AI transparency statement(s) - see {@link C2paAiDisclosureInput}. */
+  aiDisclosure?: C2paAiDisclosureInput | readonly C2paAiDisclosureInput[];
   /** SemVer spec version declared in claim_generator_info (section 10.2.3). */
   specVersion?: string;
   /**

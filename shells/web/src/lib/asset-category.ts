@@ -18,7 +18,13 @@ import type { AssetRef, HostV1, Profile } from '@lolly-tools/core/host-v1';
  *  collapsible sections). Currently unused - headshots are a top-level group - but
  *  kept as a general mechanism for future nested sections. */
 export interface LibSubGroup { key: string; label: string; tag: string; }
-export interface LibGroup { key: string; label: string; sub?: LibSubGroup[]; }
+export interface LibGroup {
+  key: string;
+  label: string;
+  sub?: LibSubGroup[];
+  /** Set on the groups audio belongs in; the rest are for pictures. `other` takes either. */
+  audio?: true;
+}
 
 // Library sections, in display order. A candidate is bucketed into exactly one:
 // 'background' wins over 'themable' so a two-colour background pattern lands under
@@ -32,8 +38,40 @@ export const LIB_GROUPS: LibGroup[] = [
   { key: 'headshots',     label: 'Headshots' },
   { key: 'icons',         label: 'Icons' },
   { key: 'illustrations', label: 'Illustrations' },
+  { key: 'music',         label: 'Music',         audio: true },
+  { key: 'sound-effects', label: 'Sound effects', audio: true },
+  { key: 'voice',         label: 'Voice',         audio: true },
+  { key: 'other-audio',   label: 'Other audio',   audio: true },
   { key: 'other',         label: 'More' },
 ];
+
+// Audio is grouped by what it is FOR, the split an editor's sound panel uses. Tags
+// decide first; then the format, because a computed song (ZzFXM, a tracker module,
+// a MIDI import, a rondocode song) is music whatever it is tagged. Audio whose role
+// nothing states (a plain recording, a sound pulled out of a video) is Other audio,
+// never guessed into Music.
+const VOICE_TAGS = ['voice', 'voiceover', 'tts', 'speech', 'narration', 'podcast', 'recording', 'dictation', 'interview'];
+const SFX_TAGS = ['sfx', 'sound-effect', 'sound-effects', 'effect', 'foley', 'ui-sound', 'whoosh'];
+const MUSIC_TAGS = ['music', 'song', 'loop', 'module', 'tracker', 'midi', 'rondocode', 'soundtrack', 'bed', 'jingle'];
+const MUSIC_FORMATS = new Set(['zzfxm', 'rondo', 'mid', 'midi', 'mod', 'xm', 'it', 's3m', 'stm', 'mtm']);
+
+/** Whether an asset is audio: its type says so, or its tags do. */
+export function isAudioAsset(ref: AssetRef | undefined): boolean {
+  return ref?.type === 'audio' || ((ref?.meta?.tags as string[] | undefined) ?? []).includes('audio');
+}
+
+/** The groups an asset may be moved into: audio groups for audio, picture groups otherwise, More for both. */
+export function groupsFor(ref: AssetRef | undefined): LibGroup[] {
+  const audio = isAudioAsset(ref);
+  return LIB_GROUPS.filter((g) => g.key === 'other' || Boolean(g.audio) === audio);
+}
+
+function audioCategory(tags: Set<string>, format: string | undefined): string {
+  if (VOICE_TAGS.some((x) => tags.has(x))) return 'voice';
+  if (SFX_TAGS.some((x) => tags.has(x))) return 'sound-effects';
+  if (MUSIC_TAGS.some((x) => tags.has(x)) || (format !== undefined && MUSIC_FORMATS.has(format))) return 'music';
+  return 'other-audio';
+}
 
 /** Human label for a group key (falls back to the key itself). */
 export function categoryLabel(key: string): string {
@@ -49,6 +87,8 @@ export function libCategory(ref: AssetRef | undefined, overrides?: Record<string
   const over = overrides?.[base];
   if (over && LIB_GROUPS.some(g => g.key === over)) return over;
   const t = new Set((ref?.meta?.tags as string[] | undefined) || []);
+  // Audio first, so a "background music" tag never files a track under Backgrounds.
+  if (isAudioAsset(ref)) return audioCategory(t, ref?.format?.toLowerCase());
   if (t.has('campaign'))   return 'campaign';   // campaign photos are their own group, checked before 'photo'
   if (t.has('background')) return 'backgrounds';
   if (t.has('logo'))       return 'logos';

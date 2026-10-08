@@ -28,17 +28,17 @@
       "typeEscapes": 19
     },
     "shells/web/src/bridge/export.ts": {
-      "lines": 4466,
+      "lines": 4464,
       "largestFunctionLines": 647,
       "importFanIn": 27,
-      "importFanOut": 65,
+      "importFanOut": 66,
       "typeEscapes": 60
     },
     "shells/web/src/bridge/sequence-render.ts": {
-      "lines": 1730,
+      "lines": 1745,
       "largestFunctionLines": 1018,
       "importFanIn": 6,
-      "importFanOut": 33,
+      "importFanOut": 34,
       "typeEscapes": 13
     },
     "shells/web/src/lib/rebrand/controller.ts": {
@@ -84,10 +84,10 @@
       "typeEscapes": 8
     },
     "shells/web/src/views/picker.ts": {
-      "lines": 2352,
-      "largestFunctionLines": 2037,
-      "importFanIn": 31,
-      "importFanOut": 67,
+      "lines": 2396,
+      "largestFunctionLines": 2050,
+      "importFanIn": 33,
+      "importFanOut": 68,
       "typeEscapes": 3
     },
     "shells/web/src/views/projects.ts": {

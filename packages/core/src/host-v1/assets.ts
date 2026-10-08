@@ -66,6 +66,29 @@ export interface AssetsAPI {
    * it, and the runtime simply skips ingredient preservation.
    */
   credential?(id: string): Promise<{ store: Uint8Array; format: string } | null>;
+  /**
+   * Save a file the person made with this tool into their Assets (v1.246). The
+   * file takes the same ingest as an upload: the extension decides the format, a
+   * duplicate of something already in the library is offered back rather than
+   * stored twice, and the result is an ordinary user asset the rest of the app
+   * can place. Resolves the stored AssetRef.
+   *
+   * Only for a save the person asked for. A shell refuses, by name, a call that
+   * does not follow their action, and limits how many saves a tool can make in a
+   * short time, so a tool can never fill someone's library on its own. The shell
+   * says what was saved, with an Undo. Optional: a shell with no asset library
+   * leaves it out and a tool keeps its download.
+   */
+  add?(file: AssetAddInput): Promise<AssetRef>;
+}
+
+/** A file a tool hands to {@link AssetsAPI.add}. */
+export interface AssetAddInput {
+  /** File name with its extension, for example `acid.rondo.json` or `acid.wav`. The extension decides the format. */
+  name: string;
+  bytes: Uint8Array;
+  /** IANA media type, when the extension alone is ambiguous. */
+  mime?: string;
 }
 
 /**

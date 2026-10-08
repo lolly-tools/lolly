@@ -672,7 +672,8 @@ var init_tool_schema = __esm({
               "geom",
               "connectors",
               "c2pa",
-              "emoji"
+              "emoji",
+              "models"
             ]
           },
           description: "Optional HostV1 APIs (`host.text`, `host.pdf`, \u2026) this tool calls WITHOUT feature-detecting them. The runtime refuses to mount the tool on a shell that lacks one, before any hook runs, and the gallery greys it out there. An API the hooks guard (`if (host.text)`, `host.text?.`) is NOT required and must not be listed. `scripts/tool-requires.ts` computes this from hooks.js and can rewrite it (`--write`); `validate:catalog` warns when the two disagree. Distinct from `capabilities`, which names device abilities (camera, microphone, screen, \u2026) rather than bridge APIs."
@@ -3923,7 +3924,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.246.0";
+    ENGINE_VERSION = "1.247.0";
   }
 });
 
@@ -7919,7 +7920,8 @@ var init_apis = __esm({
       "prepare",
       "compare",
       "textTools",
-      "emoji"
+      "emoji",
+      "models"
     ];
   }
 });
@@ -8067,6 +8069,13 @@ var init_matte = __esm({
 // packages/core/src/host-v1/media.ts
 var init_media = __esm({
   "packages/core/src/host-v1/media.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/models.ts
+var init_models = __esm({
+  "packages/core/src/host-v1/models.ts"() {
     "use strict";
   }
 });
@@ -8220,6 +8229,7 @@ var init_host_v1 = __esm({
     init_lift();
     init_matte();
     init_media();
+    init_models();
     init_net();
     init_ocr();
     init_pdf();
@@ -8540,7 +8550,7 @@ function finish(layers, artboards, findings, opts, looseLayerIds = []) {
   void opts.width;
   void opts.height;
   const errors = findings.filter((item2) => item2.severity === "error").length;
-  const warnings = findings.filter((item2) => item2.severity === "warn").length;
+  const warnings2 = findings.filter((item2) => item2.severity === "warn").length;
   return {
     version: DESIGN_DOCUMENT_VERSION,
     valid: errors === 0,
@@ -8551,7 +8561,7 @@ function finish(layers, artboards, findings, opts, looseLayerIds = []) {
       timedLayers: layers.filter((layer) => layer.timing).length,
       duration: layers.reduce((max, layer) => Math.max(max, layer.timing?.end ?? 0), 0),
       errors,
-      warnings
+      warnings: warnings2
     },
     artboards,
     layers,
@@ -8970,13 +8980,13 @@ function resolveTokenSelection(doc, opts = {}) {
       issue2("A theme has no id or name.");
       continue;
     }
-    const list3 = groups.get(group) ?? [];
-    if (list3.some((o) => o.id === id2)) {
+    const list4 = groups.get(group) ?? [];
+    if (list4.some((o) => o.id === id2)) {
       issue2(`Duplicate theme id ${id2} in ${group || "Themes"}.`);
       continue;
     }
-    list3.push({ id: id2, name: typeof t.name === "string" ? t.name : id2, raw: t });
-    groups.set(group, list3);
+    list4.push({ id: id2, name: typeof t.name === "string" ? t.name : id2, raw: t });
+    groups.set(group, list4);
   }
   const stored = record(meta.activeThemeSelection) ? meta.activeThemeSelection : void 0;
   const requested = opts.selection ?? (opts.theme ? void 0 : stored);
@@ -34138,8 +34148,8 @@ function normalize(source, viewBox, parseXml, authoredPaint = false) {
     if (!childrenAllowed) throw new Error("Unsupported SVG child structure.");
     if (!hidden4.value) return { tag: tag2, attributes, children };
     changes.add("Omitted elements hidden by display none.");
-    const kept = children.filter((child) => referenceOnly.has(child.tag));
-    return kept.length ? { tag: "defs", attributes: {}, children: kept } : null;
+    const kept2 = children.filter((child) => referenceOnly.has(child.tag));
+    return kept2.length ? { tag: "defs", attributes: {}, children: kept2 } : null;
   }
   for (const child of Array.from(doc.childNodes)) if (child !== doc.documentElement && child.nodeType !== 8 && (child.nodeType !== 3 || child.textContent?.trim())) throw new Error("Unsupported SVG document node.");
   const tree = walk2(doc.documentElement, 0);
@@ -35567,8 +35577,8 @@ function changeWords(use) {
   return [...new Set(use.operations.filter((op) => !NOT_A_CHANGE.has(op)))].sort(byString);
 }
 function changesFor(use, detail) {
-  const recorded = (detail?.modifications ?? []).map((text8) => text8.trim()).filter(Boolean);
-  return recorded.length ? [...new Set(recorded)] : changeWords(use);
+  const recorded2 = (detail?.modifications ?? []).map((text8) => text8.trim()).filter(Boolean);
+  return recorded2.length ? [...new Set(recorded2)] : changeWords(use);
 }
 function workLicence(work, use, extra) {
   const records = work.rights.filter((ev) => ev.status !== "not-applicable" && ev.status !== "missing" && Boolean((ev.expression ?? ev.declaration).trim()));
@@ -36219,8 +36229,8 @@ function checkAttributionReadback(expected, report4, outputHash, fingerprint) {
       continue;
     }
     observed.push(notice.work);
-    const recorded = found.rights?.license ?? "";
-    if (notice.licence && recorded !== notice.licence) licenceGaps.push(`${notice.work}: recorded as ${recorded || "nothing"}`);
+    const recorded2 = found.rights?.license ?? "";
+    if (notice.licence && recorded2 !== notice.licence) licenceGaps.push(`${notice.work}: recorded as ${recorded2 || "nothing"}`);
   }
   const remaining = missing.map((notice) => ({
     code: "credential.ingredient-missing",
@@ -39933,9 +39943,9 @@ async function applyEmojiToSvgText(root2, style, packs, io, text8, options2 = {}
         if (curveText) {
           const href = line.getAttribute("href") || line.getAttribute("xlink:href") || "";
           if (!/^#[A-Za-z_][\w.-]*$/.test(href)) throw new Error("SVG text paths need a local path.");
-          let scope = source;
-          while (scope.parentElement && scope.tagName.toLowerCase() !== "svg") scope = scope.parentElement;
-          const path = Array.from(scope.querySelectorAll("path")).find((item2) => item2.getAttribute("id") === href.slice(1));
+          let scope2 = source;
+          while (scope2.parentElement && scope2.tagName.toLowerCase() !== "svg") scope2 = scope2.parentElement;
+          const path = Array.from(scope2.querySelectorAll("path")).find((item2) => item2.getAttribute("id") === href.slice(1));
           if (!path || path.getAttribute("transform") || path.getAttribute("pathLength")) throw new Error("SVG text path transforms need explicit outlines.");
           const curve = emojiTextPath(path.getAttribute("d") || "");
           const offset = line.getAttribute("startOffset") || "0";
@@ -40739,8 +40749,8 @@ __export(emoji_dom_exports, {
   emojiTextTrigger: () => emojiTextTrigger,
   revertEmojiDom: () => revertEmojiDom
 });
-function placementPrefix(scope, item2, chunk6) {
-  const base = SCOPE_PATTERN.test(scope) ? scope : "e";
+function placementPrefix(scope2, item2, chunk6) {
+  const base = SCOPE_PATTERN.test(scope2) ? scope2 : "e";
   return chunk6 === 0 ? `${base}${item2}` : `${base}${item2}c${chunk6}`;
 }
 function documentFor(node) {
@@ -40837,7 +40847,7 @@ async function applyEmojiToDom(root2, style, packs, io, options2 = {}) {
   let replaced = 0, unresolved = 0;
   if (!doc) return { replaced, unresolved, census };
   const work = collect(root2, options2);
-  const scope = options2.idScope ?? "e";
+  const scope2 = options2.idScope ?? "e";
   for (let at = 0; at < work.length; at++) {
     const item2 = work[at];
     const parent = item2.node.parentNode;
@@ -40846,7 +40856,7 @@ async function applyEmojiToDom(root2, style, packs, io, options2 = {}) {
     const chunks = chunkText(item2.text);
     for (let chunk6 = 0; chunk6 < chunks.length; chunk6++) {
       let prepared3;
-      const prefix = placementPrefix(scope, at, chunk6);
+      const prefix = placementPrefix(scope2, at, chunk6);
       try {
         prepared3 = await prepareEmojiText(chunks[chunk6], style, packs, io, { cache: options2.cache, prefix });
       } catch {
@@ -41918,10 +41928,10 @@ function insertJpegSegments(bytes, newSegments, opts = {}) {
     const wanted = new Set(prepared3.map((p) => `${p.marker}\0${p.appId ?? ""}`));
     const removals = opts.replace ? head2.filter((s) => wanted.has(`${s.marker}\0${s.appId ?? ""}`)) : [];
     const removed = new Set(removals);
-    const kept = head2.filter((s) => !removed.has(s));
+    const kept2 = head2.filter((s) => !removed.has(s));
     const offsetFor = (rank) => {
       let at = 2;
-      for (const s of kept) {
+      for (const s of kept2) {
         if (jpegSegmentRank(s.marker, s.appId) <= rank) at = s.end;
       }
       return at;
@@ -42604,9 +42614,9 @@ function placeOgg(ogg, manifest) {
   if (loc.pageCount !== 1) throw new Error("C2PA embed: multi-page Opus comment header not supported");
   const tags3 = parseOpusTags(loc.packet);
   if (!tags3) throw new Error("C2PA embed: malformed OpusTags comment header");
-  const kept = tags3.comments.filter((c) => commentKey(c) !== OGG_C2PA_KEY);
+  const kept2 = tags3.comments.filter((c) => commentKey(c) !== OGG_C2PA_KEY);
   const field2 = concatBytes([te4.encode(`${OGG_C2PA_KEY}=`), te4.encode(btoa(bytesToBin(manifest)))]);
-  const page3 = buildOggPage(loc.first22, buildOpusTags(tags3.vendor, [...kept, field2]));
+  const page3 = buildOggPage(loc.first22, buildOpusTags(tags3.vendor, [...kept2, field2]));
   return {
     out: concatBytes([ogg.subarray(0, loc.commentStart), page3, ogg.subarray(loc.commentEnd)]),
     exclusions: [{ start: loc.commentStart, length: page3.length }]
@@ -42865,7 +42875,7 @@ function placeMp3(mp3, manifest) {
   }
   let ver = 4;
   let audioStart = 0;
-  let kept = new Uint8Array(0);
+  let kept2 = new Uint8Array(0);
   if (hasTag) {
     ver = mp3[3];
     if (ver !== 3 && ver !== 4) throw new Error(`C2PA embed: unsupported ID3v2.${ver} tag`);
@@ -42876,10 +42886,10 @@ function placeMp3(mp3, manifest) {
     audioStart = 10 + size + (flags & 16 ? 10 : 0);
     if (audioStart > mp3.length) throw new Error("C2PA embed: truncated ID3v2 tag");
     const frames = walkId3Frames(mp3, 10, 10 + size, ver === 4);
-    kept = concatBytes(frames.filter((f) => !f.c2pa).map((f) => mp3.subarray(f.start, f.end)));
+    kept2 = concatBytes(frames.filter((f) => !f.c2pa).map((f) => mp3.subarray(f.start, f.end)));
   }
   const geob = mp3GeobFrame(manifest, ver === 4);
-  const content2 = concatBytes([geob, kept]);
+  const content2 = concatBytes([geob, kept2]);
   if (content2.length >= 1 << 28) throw new Error("C2PA embed: ID3v2 tag too large");
   const tag2 = concatBytes([asciiBytes("ID3"), Uint8Array.of(ver, 0, 0), syncsafe(content2.length), content2]);
   return {
@@ -43120,7 +43130,7 @@ async function embedC2pa(bytes, format, opts = {}) {
     } else manifestLen = m2.length;
   }
   if (!layout2) throw new Error("C2PA embed: manifest layout did not converge");
-  const digestOf = async (out) => {
+  const digestOf2 = async (out) => {
     if (isBmff) return bmffDigest(out);
     const spans = [];
     let at = 0;
@@ -43132,7 +43142,7 @@ async function embedC2pa(bytes, format, opts = {}) {
     return sha256(concatBytes(spans));
   };
   const staged = container.place(bytes, placeholder);
-  const digest2 = await digestOf(staged.out);
+  const digest2 = await digestOf2(staged.out);
   let manifest = await build2(digest2, layout2.exclusions, pad);
   if (manifest.length !== manifestLen) {
     const padLen = pad.length + (manifestLen - manifest.length);
@@ -43141,7 +43151,7 @@ async function embedC2pa(bytes, format, opts = {}) {
     if (manifest.length !== manifestLen) throw new Error("C2PA embed: manifest length is not deterministic");
   }
   const final = container.place(bytes, manifest);
-  const check = await digestOf(final.out);
+  const check = await digestOf2(final.out);
   for (let i = 0; i < 32; i++) {
     if (check[i] !== digest2[i]) throw new Error("C2PA embed: container placement is not content-independent");
   }
@@ -43313,6 +43323,7 @@ __export(c2pa_exports, {
   AI_DISCLOSURE_ASSERTION: () => AI_DISCLOSURE_ASSERTION,
   AI_MODEL_TYPES: () => AI_MODEL_TYPES,
   AI_MODEL_TYPE_GENERIC: () => AI_MODEL_TYPE_GENERIC,
+  ALGORITHMIC_SOURCE_TYPE: () => ALGORITHMIC_SOURCE_TYPE,
   BMFF_HASH_LABEL: () => BMFF_HASH_LABEL,
   C2PA_ATTACHMENT_MIME: () => C2PA_ATTACHMENT_MIME,
   C2PA_BMFF_UUID: () => C2PA_BMFF_UUID,
@@ -43749,11 +43760,14 @@ async function buildC2paManifest({
     metadataBox = jumbfSuperbox(UUID_JSON_CONTENT, METADATA_ASSERTION, isoBox("json", te5.encode(JSON.stringify(metaLd))));
     storeBoxes.push(metadataBox);
   }
-  let aiBox = null;
-  if (aiDisclosure) {
-    aiBox = jumbfSuperbox(UUID_CBOR_CONTENT, AI_DISCLOSURE_ASSERTION, isoBox("cbor", encodeCbor(aiDisclosureMap(aiDisclosure))));
-    storeBoxes.push(aiBox);
-  }
+  const aiBoxes = [];
+  const disclosures = aiDisclosure == null ? [] : Array.isArray(aiDisclosure) ? aiDisclosure : [aiDisclosure];
+  disclosures.forEach((d, i) => {
+    const label4 = i === 0 ? AI_DISCLOSURE_ASSERTION : `${AI_DISCLOSURE_ASSERTION}__${i}`;
+    const box4 = jumbfSuperbox(UUID_CBOR_CONTENT, label4, isoBox("cbor", encodeCbor(aiDisclosureMap(d))));
+    aiBoxes.push({ label: label4, box: box4 });
+    storeBoxes.push(box4);
+  });
   for (const box4 of ingredientBoxes) storeBoxes.push(box4);
   let rightsBox = null;
   if (rightsSources.length) {
@@ -43767,7 +43781,7 @@ async function buildC2paManifest({
     ...exportBox ? [{ url: `self#jumbf=c2pa.assertions/${LOLLY_EXPORT_ASSERTION}`, hash: await sha256(exportBox.subarray(8)) }] : [],
     ...authorBox ? [{ url: `self#jumbf=c2pa.assertions/${CREATIVE_WORK_ASSERTION}`, hash: await sha256(authorBox.subarray(8)) }] : [],
     ...metadataBox ? [{ url: `self#jumbf=c2pa.assertions/${METADATA_ASSERTION}`, hash: await sha256(metadataBox.subarray(8)) }] : [],
-    ...aiBox ? [{ url: `self#jumbf=c2pa.assertions/${AI_DISCLOSURE_ASSERTION}`, hash: await sha256(aiBox.subarray(8)) }] : [],
+    ...await Promise.all(aiBoxes.map(async (a) => ({ url: `self#jumbf=c2pa.assertions/${a.label}`, hash: await sha256(a.box.subarray(8)) }))),
     ...ingredientRefs,
     ...rightsBox ? [{ url: `self#jumbf=c2pa.assertions/${LOLLY_RIGHTS_ASSERTION}`, hash: await sha256(rightsBox.subarray(8)) }] : []
   ];
@@ -43806,7 +43820,7 @@ async function buildExternalC2paStore(bytes, opts = {}) {
     assetHash: { exclusions: [], name: hashName || "whole document", hash: await sha256(bytes) }
   });
 }
-var isSourceIngredient, HTTP_URL_MAX, boundedText, SHA256_TEXT, te5, subtle3, CborTag, JUMBF_UUID_SUFFIX, boxUuid, UUID_C2PA_STORE, UUID_MANIFEST, UUID_ASSERTION_STORE, UUID_CLAIM, UUID_SIGNATURE, UUID_CBOR_CONTENT, UUID_JSON_CONTENT, COSE_HEADER_ALG, COSE_HEADER_X5CHAIN, isoSeconds, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, SCREEN_SOURCE_TYPE, GENERATED_SOURCE_TYPE, COMPOSITE_SOURCE_TYPE, RASTER_OUTPUTS, VIDEO_OUTPUTS, INGREDIENT_MIME, LOLLY_EXPORT_ASSERTION, LOLLY_RIGHTS_ASSERTION, BMFF_HASH_LABEL, CREATIVE_WORK_ASSERTION, METADATA_ASSERTION, DC_CONTEXT, AI_DISCLOSURE_ASSERTION, AI_MODEL_TYPE_GENERIC, AI_MODEL_TYPES, NAMESPACED_LABEL_RE, HUMAN_OVERSIGHT_LEVELS, SCIENTIFIC_DOMAIN_RE, SEMVER_RE, C2PA_SPEC_VERSION;
+var isSourceIngredient, HTTP_URL_MAX, boundedText, SHA256_TEXT, te5, subtle3, CborTag, JUMBF_UUID_SUFFIX, boxUuid, UUID_C2PA_STORE, UUID_MANIFEST, UUID_ASSERTION_STORE, UUID_CLAIM, UUID_SIGNATURE, UUID_CBOR_CONTENT, UUID_JSON_CONTENT, COSE_HEADER_ALG, COSE_HEADER_X5CHAIN, isoSeconds, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, SCREEN_SOURCE_TYPE, GENERATED_SOURCE_TYPE, COMPOSITE_SOURCE_TYPE, ALGORITHMIC_SOURCE_TYPE, RASTER_OUTPUTS, VIDEO_OUTPUTS, INGREDIENT_MIME, LOLLY_EXPORT_ASSERTION, LOLLY_RIGHTS_ASSERTION, BMFF_HASH_LABEL, CREATIVE_WORK_ASSERTION, METADATA_ASSERTION, DC_CONTEXT, AI_DISCLOSURE_ASSERTION, AI_MODEL_TYPE_GENERIC, AI_MODEL_TYPES, NAMESPACED_LABEL_RE, HUMAN_OVERSIGHT_LEVELS, SCIENTIFIC_DOMAIN_RE, SEMVER_RE, C2PA_SPEC_VERSION;
 var init_c2pa2 = __esm({
   "engine/src/c2pa.ts"() {
     "use strict";
@@ -43849,6 +43863,7 @@ var init_c2pa2 = __esm({
     SCREEN_SOURCE_TYPE = "http://cv.iptc.org/newscodes/digitalsourcetype/screenCapture";
     GENERATED_SOURCE_TYPE = "http://cv.iptc.org/newscodes/digitalsourcetype/trainedAlgorithmicMedia";
     COMPOSITE_SOURCE_TYPE = "http://cv.iptc.org/newscodes/digitalsourcetype/compositeWithTrainedAlgorithmicMedia";
+    ALGORITHMIC_SOURCE_TYPE = "http://cv.iptc.org/newscodes/digitalsourcetype/algorithmicMedia";
     RASTER_OUTPUTS = /* @__PURE__ */ new Set(["png", "apng", "jpg", "jpeg", "webp", "webp-anim", "tiff", "cmyk-tiff", "gif", "ico"]);
     VIDEO_OUTPUTS = /* @__PURE__ */ new Set(["mp4", "m4v", "mov", "webm"]);
     INGREDIENT_MIME = {
@@ -46122,7 +46137,7 @@ function readHtml(bytes) {
     };
   }
   const ref = chosen[0];
-  const note = ref.inHead ? {} : { detail: "the C2PA element is outside <head> (section A.7.1.1 places it in the head)" };
+  const note2 = ref.inHead ? {} : { detail: "the C2PA element is outside <head> (section A.7.1.1 places it in the head)" };
   if (ref.kind === "link") {
     const url = safeExternalUrl(ref.href ?? "");
     if (!url) {
@@ -46133,7 +46148,7 @@ function readHtml(bytes) {
         detail: `<link rel="c2pa-manifest"> href is not an http(s) URL or a relative reference`
       };
     }
-    return { store: null, externalUrl: url, exclusions: [], ...note };
+    return { store: null, externalUrl: url, exclusions: [], ...note2 };
   }
   if (ref.unterminated) {
     return {
@@ -46144,12 +46159,12 @@ function readHtml(bytes) {
   }
   const exclusions = [{ start: ref.start, length: ref.end - ref.start }];
   const b64 = (ref.base64 ?? "").replace(/\s+/g, "");
-  if (!b64) return { store: null, exclusions, ...note };
+  if (!b64) return { store: null, exclusions, ...note2 };
   if (!BASE64_ONLY.test(b64)) {
     return { store: null, exclusions, status: C2PA_TEXT_STATUS.malformedBase64, fatal: "HTML inline C2PA manifest is not valid base64" };
   }
   try {
-    return { store: base64ToBytes(b64), exclusions, ...note };
+    return { store: base64ToBytes(b64), exclusions, ...note2 };
   } catch {
     return { store: null, exclusions, status: C2PA_TEXT_STATUS.malformedBase64, fatal: "HTML inline C2PA manifest is not valid base64" };
   }
@@ -47096,7 +47111,7 @@ function htmlCodeExclusionConformance(binding, advisory, alternates, declared) {
   const readings = [want, ...(alternates ?? []).map((a) => [...a].sort((x, y) => x.start - y.start))];
   if (readings.some((r5) => sameRanges(r5, declared))) return null;
   const inside2 = declared.every((d) => readings.some((r5) => r5.some((w) => d.start >= w.start && d.start + d.length <= w.start + w.length)));
-  const shown = (list3) => list3.length ? list3.map((e) => `${e.start}+${e.length}`).join(", ") : "none";
+  const shown = (list4) => list4.length ? list4.map((e) => `${e.start}+${e.length}`).join(", ") : "none";
   const where = binding.kind === "html" ? 'the <script type="application/c2pa"> element (section A.7.1.3)' : "the -----BEGIN/END C2PA MANIFEST----- block (section A.9.4)";
   return inside2 ? {
     kind: "narrower",
@@ -48126,9 +48141,9 @@ function pickLogo(base, surface, table) {
   const { rule, set } = table.logos;
   const mono = isMonoLogo(base, table);
   if (rule) {
-    const list3 = surface === "photo" ? rule.photo : surface === "dark" ? rule.dark : rule.light;
-    if (list3.length) {
-      const oriented = list3.filter((id2) => sameOrientation(id2, base, table));
+    const list4 = surface === "photo" ? rule.photo : surface === "dark" ? rule.dark : rule.light;
+    if (list4.length) {
+      const oriented = list4.filter((id2) => sameOrientation(id2, base, table));
       if (mono) {
         const monoHit = oriented.find((id2) => isMonoLogo(id2, table));
         if (monoHit) return monoHit;
@@ -48168,8 +48183,8 @@ function applySurfaceRuleToLogoSet(logos, table) {
     const current = logos[slot];
     const reference3 = current ?? logos.onLight ?? logos.onDark ?? logos.monoOnLight ?? logos.monoOnDark;
     if (!reference3) return;
-    const list3 = surface === "dark" ? rule.dark : rule.light;
-    const oriented = list3.filter((id2) => sameOrientation(id2, reference3, table));
+    const list4 = surface === "dark" ? rule.dark : rule.light;
+    const oriented = list4.filter((id2) => sameOrientation(id2, reference3, table));
     const hit = mono ? oriented.find((id2) => isMonoLogo(id2, table)) : oriented[0];
     if (hit && (current !== void 0 || !mono)) out[slot] = hit;
   };
@@ -49555,18 +49570,18 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       let ingredients;
       if (!isOnDevice && meta !== void 0 && host.assets?.credential) {
         const ids2 = /* @__PURE__ */ new Set();
-        const note = (v) => {
+        const note2 = (v) => {
           if (v && typeof v === "object") {
             const { id: id2, source } = v;
             if (typeof id2 === "string" && (source === "user" || source === "library")) ids2.add(id2);
           }
         };
         for (const input of model2) {
-          if (input.type === "asset") note(input.value);
+          if (input.type === "asset") note2(input.value);
           else if (input.type === "blocks" && Array.isArray(input.value)) {
             const assetFields = (input.fields ?? []).filter((f) => f.type === "asset").map((f) => f.id);
             for (const item2 of input.value) {
-              if (item2 && typeof item2 === "object") for (const fid of assetFields) note(item2[fid]);
+              if (item2 && typeof item2 === "object") for (const fid of assetFields) note2(item2[fid]);
             }
           }
         }
@@ -49743,15 +49758,15 @@ function inputNeedsAssetResolve(input) {
   return false;
 }
 function liveTokenScope(base, current) {
-  const live = {};
+  const live2 = {};
   for (const key of Object.keys(base)) {
     if (typeof base[key] === "function") {
-      live[key] = (...args) => current()[key](...args);
+      live2[key] = (...args) => current()[key](...args);
     } else {
-      Object.defineProperty(live, key, { enumerable: true, get: () => current()[key] });
+      Object.defineProperty(live2, key, { enumerable: true, get: () => current()[key] });
     }
   }
-  return live;
+  return live2;
 }
 function surfaceImageField(input) {
   const canvas = input.canvas;
@@ -50718,13 +50733,13 @@ var init_preflight2 = __esm({
       if (DEPTH_FORMATS.has(c.fmt)) return;
       const offered = c.job?.manifest?.render?.formats;
       if (!Array.isArray(offered) || offered.length === 0 || !c.fmt) return;
-      const list3 = offered.map(lower).filter(Boolean);
-      if (list3.includes(c.fmt)) return;
+      const list4 = offered.map(lower).filter(Boolean);
+      if (list4.includes(c.fmt)) return;
       c.add({
         id: "settings.format-not-offered",
         severity: "error",
-        message: `This tool does not offer ${c.fmt}. It offers: ${list3.join(", ")}.`,
-        evidence: { format: c.fmt, offered: list3.join(",") }
+        message: `This tool does not offer ${c.fmt}. It offers: ${list4.join(", ")}.`,
+        evidence: { format: c.fmt, offered: list4.join(",") }
       });
     };
     bleedIsSet = (c) => {
@@ -54764,8 +54779,8 @@ function detectProducer(handlerNotes, encoder5, hasVideo) {
   const dated = handlerNotes.find((n7) => GOOGLE_NOTE_DATED.test(n7));
   if (dated) return { vendor: "Google", signature: "reencode", hint: "a YouTube-style server re-encode", markers: [dated] };
   const markers = [];
-  const note = handlerNotes.find((n7) => GOOGLE_NOTE.test(n7));
-  if (note) markers.push(note);
+  const note2 = handlerNotes.find((n7) => GOOGLE_NOTE.test(n7));
+  if (note2) markers.push(note2);
   if (encoder5 === "Google") markers.push("encoder tag \u201CGoogle\u201D");
   if (!markers.length) return void 0;
   return {
@@ -54852,8 +54867,8 @@ function readBmff(bytes, out) {
       let kind = "";
       if (hdlr && hdlr.end - hdlr.payload >= 12) {
         kind = String.fromCharCode(bytes[hdlr.payload + 8], bytes[hdlr.payload + 9], bytes[hdlr.payload + 10], bytes[hdlr.payload + 11]);
-        const note = hdlr.end - hdlr.payload > 24 ? bmffString(bytes, hdlr.payload + 24, hdlr.end) : "";
-        if (note && !handlerNotes.includes(note)) handlerNotes.push(note);
+        const note2 = hdlr.end - hdlr.payload > 24 ? bmffString(bytes, hdlr.payload + 24, hdlr.end) : "";
+        if (note2 && !handlerNotes.includes(note2)) handlerNotes.push(note2);
       }
       const minf = mkids.find((b) => b.type === "minf");
       const stbl = minf ? bmffChildren(bytes, minf.payload, minf.end).find((b) => b.type === "stbl") : void 0;
@@ -54912,8 +54927,8 @@ function readBmff(bytes, out) {
       if (dur && out.fields.length < MAX_FIELDS) out.fields.push({ label: "Duration", value: dur, group: "technical" });
     }
   }
-  for (const note of handlerNotes) {
-    if (out.fields.length < MAX_FIELDS) out.fields.push({ label: "Handler description", value: note, group: "software" });
+  for (const note2 of handlerNotes) {
+    if (out.fields.length < MAX_FIELDS) out.fields.push({ label: "Handler description", value: note2, group: "software" });
   }
   for (const row of trackRows) {
     if (out.fields.length < MAX_FIELDS) out.fields.push(row);
@@ -55392,32 +55407,32 @@ function stripJpeg(bytes) {
   if (!segs) return bytes;
   const mpf = readMpfIndex(bytes);
   const cut = mpf ? mpf.trailerStart : bytes.length;
-  const keep = [bytes.subarray(0, 2)];
+  const keep2 = [bytes.subarray(0, 2)];
   for (const s of segs) {
     if (s.sos) {
-      keep.push(bytes.subarray(s.start, Math.max(cut, s.start)));
+      keep2.push(bytes.subarray(s.start, Math.max(cut, s.start)));
       continue;
     }
     const isApp = s.marker >= 224 && s.marker <= 239;
     const isCom = s.marker === 254;
     if (isApp && s.marker !== 224 || isCom) continue;
-    keep.push(bytes.subarray(s.start, s.end));
+    keep2.push(bytes.subarray(s.start, s.end));
   }
-  return concatBytes(keep);
+  return concatBytes(keep2);
 }
 function stripPng(bytes) {
-  const keep = [bytes.subarray(0, 8)];
+  const keep2 = [bytes.subarray(0, 8)];
   let p = 8;
   while (p + 8 <= bytes.length) {
     const len2 = (bytes[p] << 24 | bytes[p + 1] << 16 | bytes[p + 2] << 8 | bytes[p + 3]) >>> 0;
     const type = String.fromCharCode(bytes[p + 4], bytes[p + 5], bytes[p + 6], bytes[p + 7]);
     const end = p + 12 + len2;
     if (end > bytes.length) break;
-    if (!PNG_STRIP.has(type)) keep.push(bytes.subarray(p, end));
+    if (!PNG_STRIP.has(type)) keep2.push(bytes.subarray(p, end));
     p = end;
     if (type === "IEND") break;
   }
-  return concatBytes(keep);
+  return concatBytes(keep2);
 }
 function prefixOf(name) {
   const c = name.indexOf(":");
@@ -55553,17 +55568,17 @@ function cleanEmbeddedRaster(value, budget3) {
   return `data:image/${image.format === "png" ? "png" : "jpeg"};base64,${btoa(binary)}`;
 }
 function rebuildTag(tk) {
-  const kept = [];
+  const kept2 = [];
   for (const a of tk.attrs) {
     if (shouldDropAttr(a.name)) continue;
     if (a.value == null) {
-      kept.push(a.name);
+      kept2.push(a.name);
       continue;
     }
     const quote = a.value.includes('"') ? "'" : '"';
-    kept.push(`${a.name}=${quote}${a.value}${quote}`);
+    kept2.push(`${a.name}=${quote}${a.value}${quote}`);
   }
-  const body = tk.name + (kept.length ? " " + kept.join(" ") : "");
+  const body = tk.name + (kept2.length ? " " + kept2.join(" ") : "");
   return tk.t === "self" ? `<${body}/>` : `<${body}>`;
 }
 function cleanSvgTokens(toks) {
@@ -55708,10 +55723,10 @@ async function compileDocument(tool, inputs, opts) {
   const runtime = await createRuntime(tool, opts.host, inputs);
   try {
     const model2 = runtime.getModel();
-    const warnings = [...runtime.hookErrors.map((e) => `${e.hook}: ${e.message}`), ...runtime.droppedAssets.map((a) => `asset ${a.id} for ${a.inputId} was not resolved`)];
+    const warnings2 = [...runtime.hookErrors.map((e) => `${e.hook}: ${e.message}`), ...runtime.droppedAssets.map((a) => `asset ${a.id} for ${a.inputId} was not resolved`)];
     const tokens3 = tokenValuesFromModel(model2);
     const document2 = { apiVersion: DOCUMENT_API_VERSION, toolId: tool.manifest.id, toolVersion: tool.manifest.version, ...opts.designVersion ? { designVersion: opts.designVersion } : {}, manifest: tool.manifest, model: model2, values: modelToValues(model2), ...Object.keys(tokens3).length ? { tokens: tokens3 } : {}, hydrated: runtime.getHydrated(), styles: runtime.styles };
-    return { document: document2, model: model2, warnings, ...opts.designVersion ? { designVersion: opts.designVersion } : {} };
+    return { document: document2, model: model2, warnings: warnings2, ...opts.designVersion ? { designVersion: opts.designVersion } : {} };
   } finally {
     runtime.destroy();
   }
@@ -56522,9 +56537,9 @@ function twinNode(search, swap, c1, t1lo, t1hi, t2lo, t2hi, tol) {
   }
   return true;
 }
-function dedupe(list3, tol) {
+function dedupe(list4, tol) {
   const out = [];
-  for (const i of list3) {
+  for (const i of list4) {
     if (!out.some((o) => hypot(o.x - i.x, o.y - i.y) <= tol * 8 && Math.abs(o.t1 - i.t1) <= 1e-6 + tol && Math.abs(o.t2 - i.t2) <= 1e-6 + tol)) out.push(i);
   }
   return out.sort((a, b) => a.t1 - b.t1);
@@ -56690,16 +56705,16 @@ function scanStalled(c1, c2, stalled, tol, out) {
     if (at) touches.push(at);
   }
   touches.sort((p, q) => p.t - q.t);
-  let kept = null;
+  let kept2 = null;
   for (const at of touches) {
-    if (kept && oneTouch(scan2, kept, at)) {
-      if (Math.abs(at.g) < Math.abs(kept.g)) kept = at;
+    if (kept2 && oneTouch(scan2, kept2, at)) {
+      if (Math.abs(at.g) < Math.abs(kept2.g)) kept2 = at;
       continue;
     }
-    if (kept) report(scan2, kept);
-    kept = at;
+    if (kept2) report(scan2, kept2);
+    kept2 = at;
   }
-  if (kept) report(scan2, kept);
+  if (kept2) report(scan2, kept2);
 }
 function report(scan2, at) {
   if (scan2.out.length > MAX_HITS) return;
@@ -56744,8 +56759,8 @@ function stretches(r5) {
   const groups = /* @__PURE__ */ new Map();
   for (const i of order) {
     const g2 = root2(i);
-    const list3 = groups.get(g2);
-    if (list3) list3.push(i);
+    const list4 = groups.get(g2);
+    if (list4) list4.push(i);
     else groups.set(g2, [i]);
   }
   return [...groups.values()];
@@ -57435,13 +57450,13 @@ function booleanPath(a, b, op, opts = {}) {
       const inA = j < nA;
       if (inA !== ofA) continue;
       const ci = inA ? srcA[j] : srcB[j - nA], range = inA ? rangesA[j] : rangesB[j - nA];
-      const list3 = map.get(ci);
-      if (list3) list3.push(range);
+      const list4 = map.get(ci);
+      if (list4) list4.push(range);
       else map.set(ci, [range]);
     }
     return map.size ? map : null;
   };
-  const kept = [];
+  const kept2 = [];
   for (let i = 0; i < edges.length; i++) {
     const e = edges[i];
     const tm = decideAt(e);
@@ -57452,10 +57467,10 @@ function booleanPath(a, b, op, opts = {}) {
     const left = combine(wa.left !== 0, wb.left !== 0, op);
     const right = combine(wa.right !== 0, wb.right !== 0, op);
     if (left === right) continue;
-    kept.push(left ? e : reverseCubic(e));
+    kept2.push(left ? e : reverseCubic(e));
   }
   if (budget3.work <= 0) return abandon(A, B, op, "the work budget ran out mid-classification");
-  return compactPath(walkLoops(dedupeEdges(kept, weld, budget3), weld));
+  return compactPath(walkLoops(dedupeEdges(kept2, weld, budget3), weld));
 }
 function unionPath(a, b, opts) {
   return booleanPath(a, b, "union", opts);
@@ -57493,7 +57508,7 @@ function selfUnion(p, opts = {}) {
     const w = sideWindings(idx, m2.x, m2.y, ref.x, ref.y, near, budget3);
     return [filled(w.left, rule) ? only : reverseContour(only)];
   }
-  const kept = [];
+  const kept2 = [];
   const src = [];
   const ranges = [];
   const pieces = splitIntoEdges(idx.curves, splits, weld, src, ranges);
@@ -57507,18 +57522,18 @@ function selfUnion(p, opts = {}) {
     if (twins[i].length) {
       bundle = /* @__PURE__ */ new Map();
       for (const j of twins[i]) {
-        const list3 = bundle.get(src[j]);
-        if (list3) list3.push(ranges[j]);
+        const list4 = bundle.get(src[j]);
+        if (list4) list4.push(ranges[j]);
         else bundle.set(src[j], [ranges[j]]);
       }
     }
     const w = sideWindings(idx, m2.x, m2.y, ref.x, ref.y, near, budget3, bundle);
     const left = filled(w.left, rule), right = filled(w.right, rule);
     if (left === right) continue;
-    kept.push(left ? c : reverseCubic(c));
+    kept2.push(left ? c : reverseCubic(c));
   }
   if (budget3.work <= 0) return path;
-  return compactPath(walkLoops(dedupeEdges(kept, weld, budget3), weld));
+  return compactPath(walkLoops(dedupeEdges(kept2, weld, budget3), weld));
 }
 function windingNumber(p, x, y) {
   if (!Number.isFinite(x) || !Number.isFinite(y)) return 0;
@@ -57656,12 +57671,12 @@ function decideAt(c) {
   return bestT;
 }
 function sweepPairs(a, b, self, budget3, visit) {
-  const byStart = (list3) => list3.map((_, i) => i).sort((p, q) => list3[p].box.x0 - list3[q].box.x0);
-  const prune = (active, list3, x) => {
+  const byStart = (list4) => list4.map((_, i) => i).sort((p, q) => list4[p].box.x0 - list4[q].box.x0);
+  const prune = (active, list4, x) => {
     let w = 0;
     for (let r5 = 0; r5 < active.length; r5++) {
       const i = active[r5];
-      if (list3[i].box.x1 >= x) active[w++] = i;
+      if (list4[i].box.x1 >= x) active[w++] = i;
     }
     active.length = w;
   };
@@ -59482,10 +59497,10 @@ function outwardSign(area2) {
 function resolveLoops(raw, src, distance4, wantCcw, operations) {
   const resolved2 = compactPath(selfUnion(raw, { operations }));
   const probes = regionProber(resolved2);
-  const kept = resolved2.filter((c) => probes(c).some(
+  const kept2 = resolved2.filter((c) => probes(c).some(
     (p) => isOffsetMaterial(src, p.left, distance4)
   ));
-  return matchOrientation(kept, wantCcw);
+  return matchOrientation(kept2, wantCcw);
 }
 function isOffsetMaterial(src, p, distance4) {
   const slack = Math.max(Math.abs(distance4), 1) * 1e-9;
@@ -61518,11 +61533,11 @@ function makeGeomApi(dependencies = {}) {
       });
     },
     encodeAuthored: (path) => {
-      const list3 = Array.isArray(path) ? path : [path];
-      if (!list3.length) return fail2("invalid-argument", "geom: expected at least one authored path");
+      const list4 = Array.isArray(path) ? path : [path];
+      if (!list4.length) return fail2("invalid-argument", "geom: expected at least one authored path");
       const built = [];
       let total = 0;
-      for (const entry2 of list3) {
+      for (const entry2 of list4) {
         const src = entry2;
         if (!src || typeof src !== "object") return fail2("invalid-argument", "geom: expected an authored path");
         if (!Array.isArray(src.nodes) || !src.nodes.length) {
@@ -62293,14 +62308,14 @@ function lockAmbientProperty(receiver, name) {
   }
   return locked;
 }
-function lockDownAmbientCapabilities(scope, extra = []) {
+function lockDownAmbientCapabilities(scope2, extra = []) {
   const names = [...STRICT_AMBIENT_GLOBALS, ...extra];
-  const live = names.filter((name) => !lockAmbientProperty(scope, name));
-  const navigator = scope.navigator;
+  const live2 = names.filter((name) => !lockAmbientProperty(scope2, name));
+  const navigator = scope2.navigator;
   const liveNavigator = navigator && typeof navigator === "object" ? STRICT_NAVIGATOR_PROPERTIES.filter((name) => !lockAmbientProperty(navigator, name)) : [];
-  if (live.length || liveNavigator.length) {
+  if (live2.length || liveNavigator.length) {
     throw new Error(`strict hook worker could not disable ambient capabilities: ${[
-      ...live,
+      ...live2,
       ...liveNavigator.map((name) => `navigator.${name}`)
     ].join(", ")}`);
   }
@@ -62384,9 +62399,9 @@ function createHookWorkerCore(port, opts = {}) {
       resolve: async (ref, o = {}) => ensure(o).resolve(ref),
       themes: async () => ensure().themes(),
       colors: async (o = {}) => {
-        const list3 = ensure(o).colors();
-        if (!excl.size) return list3;
-        return list3.filter((c) => {
+        const list4 = ensure(o).colors();
+        if (!excl.size) return list4;
+        return list4.filter((c) => {
           const p = aliasPath(c.ref) ?? c.ref;
           return !excl.has(p) && !excl.has(p.startsWith("color.") ? p : `color.${p}`);
         });
@@ -62782,12 +62797,12 @@ function item(c, type, depth) {
     case "VlLs": {
       const n7 = c.u32();
       if (n7 > MAX_LIST) throw new Stop();
-      const list3 = [];
+      const list4 = [];
       for (let i = 0; i < n7; i++) {
         c.count();
-        list3.push(item(c, c.ascii(4), depth + 1));
+        list4.push(item(c, c.ascii(4), depth + 1));
       }
-      return list3;
+      return list4;
     }
     case "doub":
       return c.f64();
@@ -62798,9 +62813,9 @@ function item(c, type, depth) {
       c.skip(4);
       const n7 = c.u32();
       if (n7 > MAX_LIST) throw new Stop();
-      const list3 = [];
-      for (let i = 0; i < n7; i++) list3.push(c.f64());
-      return list3;
+      const list4 = [];
+      for (let i = 0; i < n7; i++) list4.push(c.f64());
+      return list4;
     }
     case "TEXT":
       return c.unicode();
@@ -64068,9 +64083,9 @@ function isPsd(bytes) {
   return version === 1 || version === 2;
 }
 function readPsd(bytes, opts = {}) {
-  const warnings = [];
-  const warn = (code, detail) => {
-    warnings.push(code);
+  const warnings2 = [];
+  const warn2 = (code, detail) => {
+    warnings2.push(code);
     opts.onWarn?.(code, detail);
   };
   const budgetMax = opts.maxDecodedBytes ?? DEFAULT_DECODE_BUDGET;
@@ -64081,7 +64096,7 @@ function readPsd(bytes, opts = {}) {
     if (budgetUsed + n7 > budgetMax) {
       if (!budgetWarned) {
         budgetWarned = true;
-        warn("decode.budget.exhausted", `${budgetMax} bytes`);
+        warn2("decode.budget.exhausted", `${budgetMax} bytes`);
       }
       return false;
     }
@@ -64121,7 +64136,7 @@ function readPsd(bytes, opts = {}) {
   for (let nRes = 0; c.p + 12 <= resEnd && nRes < MAX_RESOURCE_BLOCKS; nRes++) {
     const sig = c.ascii(4);
     if (sig !== "8BIM") {
-      warn("resource.bad", `signature ${JSON.stringify(sig)}`);
+      warn2("resource.bad", `signature ${JSON.stringify(sig)}`);
       break;
     }
     const id2 = c.u16();
@@ -64131,7 +64146,7 @@ function readPsd(bytes, opts = {}) {
     const size = c.u32();
     const dataEnd = c.p + size;
     if (dataEnd > resEnd) {
-      warn("resource.bad", `resource ${id2} overruns section`);
+      warn2("resource.bad", `resource ${id2} overruns section`);
       break;
     }
     if (id2 === 1039 && size > 0) icc = bytes.slice(c.p, dataEnd);
@@ -64154,9 +64169,9 @@ function readPsd(bytes, opts = {}) {
       if (count4 > MAX_LAYERS) throw new PsdUnsupportedError("bounds", `${count4} layers (cap ${MAX_LAYERS})`);
       const semanticBudget = { left: MAX_SEMANTIC_BYTES };
       for (let i = 0; i < count4; i++) {
-        const rec2 = readLayerRecord(c, liEnd, psb, warn, semanticBudget);
+        const rec2 = readLayerRecord(c, liEnd, psb, warn2, semanticBudget);
         if (!rec2) {
-          warn("layer.bad", `record ${i} unreadable - remaining layers dropped`);
+          warn2("layer.bad", `record ${i} unreadable - remaining layers dropped`);
           break;
         }
         records.push(rec2);
@@ -64170,9 +64185,9 @@ function readPsd(bytes, opts = {}) {
   c.p = afterLmi;
   let composite2;
   if (c.need(2)) {
-    composite2 = readComposite(c, width, height, depth, headerChannels, colorMode, mergedHasAlpha, icc, reserve, warn, opts.inflate);
+    composite2 = readComposite(c, width, height, depth, headerChannels, colorMode, mergedHasAlpha, icc, reserve, warn2, opts.inflate);
   } else {
-    warn("composite.bad", "missing image data section");
+    warn2("composite.bad", "missing image data section");
   }
   const layers = [];
   if (!opts.compositeOnly && records.length) {
@@ -64186,7 +64201,7 @@ function readPsd(bytes, opts = {}) {
         continue;
       }
       const blend2 = psdBlendToCss(rec2.blendKey);
-      if (!blend2.known) warn("blend.unknown", rec2.blendKey);
+      if (!blend2.known) warn2("blend.unknown", rec2.blendKey);
       const isGroup = rec2.section === 1 || rec2.section === 2;
       const layer = {
         name: rec2.name,
@@ -64208,11 +64223,11 @@ function readPsd(bytes, opts = {}) {
         const semantics = readLayerSemantics(rec2.blocks, { x: layer.x, y: layer.y, w: layer.width, h: layer.height }, { w: width, h: height });
         if (semantics) layer.psd = semantics;
         if (semantics?.adjustment) {
-          semantics.adjustmentMask = rec2.blocks.has("vmsk") || rec2.blocks.has("vsms") ? "partial" : adjustmentMask(c, rec2, depth, psb, { w: width, h: height }, reserve, warn, opts);
+          semantics.adjustmentMask = rec2.blocks.has("vmsk") || rec2.blocks.has("vsms") ? "partial" : adjustmentMask(c, rec2, depth, psb, { w: width, h: height }, reserve, warn2, opts);
         }
       }
       if (!isGroup) {
-        const px3 = decodeLayerPixels(c, rec2, depth, colorMode, psb, icc, reserve, warn, opts);
+        const px3 = decodeLayerPixels(c, rec2, depth, colorMode, psb, icc, reserve, warn2, opts);
         if (px3) layer.pixels = px3;
       }
       out.push(layer);
@@ -64237,10 +64252,10 @@ function readPsd(bytes, opts = {}) {
     layers,
     ...composite2 ? { composite: composite2 } : {},
     ...icc ? { icc } : {},
-    warnings
+    warnings: warnings2
   };
 }
-function readLayerRecord(c, end, psb, warn, semanticBudget) {
+function readLayerRecord(c, end, psb, warn2, semanticBudget) {
   if (c.p + 18 > end) return null;
   const top = c.i32();
   const left = c.i32();
@@ -64319,7 +64334,7 @@ function readLayerRecord(c, end, psb, warn, semanticBudget) {
     } else if (key === "lsct" && c.p + 4 <= blockEnd) {
       section = c.u32();
       if (section < 0 || section > 3) {
-        warn("layer.bad", `lsct type ${section}`);
+        warn2("layer.bad", `lsct type ${section}`);
         section = 0;
       }
     } else if (SEMANTIC_BLOCK_KEYS.has(key) && blockEnd >= c.p) {
@@ -64330,7 +64345,7 @@ function readLayerRecord(c, end, psb, warn, semanticBudget) {
         keptHere += n8;
         semanticBudget.left -= n8;
       } else {
-        warn("layer.semantics", `${key} block too large to read`);
+        warn2("layer.semantics", `${key} block too large to read`);
       }
     }
     c.p = blockEnd + len2 % 2;
@@ -64342,11 +64357,11 @@ function readLayerRecord(c, end, psb, warn, semanticBudget) {
   c.p = extraEnd;
   return { top, left, bottom, right, channels, blendKey, opacity, clipping, hidden: (flags & 2) !== 0, name, section, mask, dataAt: 0, ...blocks ? { blocks } : {} };
 }
-function decodePlane(bytes, at, chLen, rows2, cols, depth, psb, inflate, reserve, warn) {
+function decodePlane(bytes, at, chLen, rows2, cols, depth, psb, inflate, reserve, warn2) {
   if (rows2 <= 0 || cols <= 0) return new Uint8Array(0);
   const end = Math.min(at + chLen, bytes.length);
   if (at + 2 > end) {
-    warn("channel.bad", "truncated channel header");
+    warn2("channel.bad", "truncated channel header");
     return null;
   }
   const v = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
@@ -64358,14 +64373,14 @@ function decodePlane(bytes, at, chLen, rows2, cols, depth, psb, inflate, reserve
   const raw = new Uint8Array(rows2 * rowBytes);
   if (comp2 === 0) {
     if (p + rows2 * rowBytes > end) {
-      warn("channel.bad", "raw channel truncated");
+      warn2("channel.bad", "raw channel truncated");
       return null;
     }
     raw.set(bytes.subarray(p, p + rows2 * rowBytes));
   } else if (comp2 === 1) {
     const entry2 = psb ? 4 : 2;
     if (p + rows2 * entry2 > end) {
-      warn("channel.bad", "RLE row table truncated");
+      warn2("channel.bad", "RLE row table truncated");
       return null;
     }
     const lens = new Array(rows2);
@@ -64376,35 +64391,35 @@ function decodePlane(bytes, at, chLen, rows2, cols, depth, psb, inflate, reserve
     for (let y = 0; y < rows2; y++) {
       const rl = lens[y];
       if (p + rl > end) {
-        warn("channel.bad", `RLE row ${y} truncated`);
+        warn2("channel.bad", `RLE row ${y} truncated`);
         return null;
       }
       if (packBitsDecode(bytes, p, p + rl, raw, y * rowBytes, rowBytes) < 0) {
-        warn("channel.bad", `RLE row ${y} malformed`);
+        warn2("channel.bad", `RLE row ${y} malformed`);
         return null;
       }
       p += rl;
     }
   } else if (comp2 === 2 || comp2 === 3) {
     if (!inflate) {
-      warn("channel.zip.skipped", "no inflate injected");
+      warn2("channel.zip.skipped", "no inflate injected");
       return null;
     }
     let inflated2;
     try {
       inflated2 = inflate(bytes.subarray(p, end), raw.length);
     } catch {
-      warn("channel.bad", "zip channel failed to inflate");
+      warn2("channel.bad", "zip channel failed to inflate");
       return null;
     }
     if (inflated2.length < raw.length) {
-      warn("channel.bad", "zip channel short");
+      warn2("channel.bad", "zip channel short");
       return null;
     }
     raw.set(inflated2.subarray(0, raw.length));
     if (comp2 === 3) undoPrediction(raw, rows2, cols, depth);
   } else {
-    warn("channel.bad", `unknown compression ${comp2}`);
+    warn2("channel.bad", `unknown compression ${comp2}`);
     return null;
   }
   if (depth === 8) return raw;
@@ -64435,7 +64450,7 @@ function undoPrediction(raw, rows2, cols, depth) {
     }
   }
 }
-function decodeLayerPixels(c, rec2, depth, colorMode, psb, icc, reserve, warn, opts) {
+function decodeLayerPixels(c, rec2, depth, colorMode, psb, icc, reserve, warn2, opts) {
   const w = Math.max(0, rec2.right - rec2.left);
   const h = Math.max(0, rec2.bottom - rec2.top);
   if (w === 0 || h === 0) return null;
@@ -64446,17 +64461,17 @@ function decodeLayerPixels(c, rec2, depth, colorMode, psb, icc, reserve, warn, o
     const rows2 = isMask && rec2.mask ? Math.max(0, rec2.mask.bottom - rec2.mask.top) : h;
     const cols = isMask && rec2.mask ? Math.max(0, rec2.mask.right - rec2.mask.left) : w;
     if (ch.id >= -1 || isMask && rec2.mask && opts.applyLayerMasks !== false) {
-      const plane = decodePlane(c.b, at, ch.length, rows2, cols, depth, psb, opts.inflate, reserve, warn);
+      const plane = decodePlane(c.b, at, ch.length, rows2, cols, depth, psb, opts.inflate, reserve, warn2);
       if (plane) planes.set(ch.id, plane);
       else if (ch.id >= 0) {
-        warn("layer.skipped", rec2.name);
+        warn2("layer.skipped", rec2.name);
         return null;
       }
     }
     at += ch.length;
   }
   if (!reserve(w * h * 4)) {
-    warn("layer.skipped", `${rec2.name} (budget)`);
+    warn2("layer.skipped", `${rec2.name} (budget)`);
     return null;
   }
   const out = new Uint8Array(w * h * 4);
@@ -64465,7 +64480,7 @@ function decodeLayerPixels(c, rec2, depth, colorMode, psb, icc, reserve, warn, o
   if (colorMode === "gray") {
     const g2 = planes.get(0);
     if (!g2) {
-      warn("layer.skipped", rec2.name);
+      warn2("layer.skipped", rec2.name);
       return null;
     }
     for (let i = 0; i < n7; i++) {
@@ -64478,7 +64493,7 @@ function decodeLayerPixels(c, rec2, depth, colorMode, psb, icc, reserve, warn, o
     const g2 = planes.get(1);
     const b = planes.get(2);
     if (!r5 || !g2 || !b) {
-      warn("layer.skipped", rec2.name);
+      warn2("layer.skipped", rec2.name);
       return null;
     }
     for (let i = 0; i < n7; i++) {
@@ -64494,10 +64509,10 @@ function decodeLayerPixels(c, rec2, depth, colorMode, psb, icc, reserve, warn, o
     const yel = planes.get(2);
     const key = planes.get(3);
     if (!cyan || !mag || !yel || !key) {
-      warn("layer.skipped", rec2.name);
+      warn2("layer.skipped", rec2.name);
       return null;
     }
-    cmykPlanesToRgba(cyan, mag, yel, key, alpha ?? null, n7, out, icc, warn);
+    cmykPlanesToRgba(cyan, mag, yel, key, alpha ?? null, n7, out, icc, warn2);
   }
   if (rec2.mask && opts.applyLayerMasks !== false && !rec2.mask.disabled) {
     const mPlane = planes.get(-2) ?? planes.get(-3);
@@ -64505,7 +64520,7 @@ function decodeLayerPixels(c, rec2, depth, colorMode, psb, icc, reserve, warn, o
   }
   return out;
 }
-function adjustmentMask(c, rec2, depth, psb, canvas, reserve, warn, opts) {
+function adjustmentMask(c, rec2, depth, psb, canvas, reserve, warn2, opts) {
   const m2 = rec2.mask;
   if (!m2 || m2.disabled) return "none";
   const tone = (v) => m2.inverted ? 255 - v : v;
@@ -64517,7 +64532,7 @@ function adjustmentMask(c, rec2, depth, psb, canvas, reserve, warn, opts) {
   let at = rec2.dataAt;
   for (const ch of rec2.channels) {
     if (ch.id === -2 || ch.id === -3) {
-      const plane = decodePlane(c.b, at, ch.length, mh, mw, depth, psb, opts.inflate, reserve, warn);
+      const plane = decodePlane(c.b, at, ch.length, mh, mw, depth, psb, opts.inflate, reserve, warn2);
       if (!plane) return "partial";
       let white = true, black = true;
       for (let i = 0; i < plane.length && (white || black); i++) {
@@ -64550,11 +64565,11 @@ function applyMask(out, w, h, rec2, mPlane) {
     }
   }
 }
-function cmykPlanesToRgba(cy3, ma, ye, ke, alpha, n7, out, icc, warn) {
+function cmykPlanesToRgba(cy3, ma, ye, ke, alpha, n7, out, icc, warn2) {
   const profile = icc ? parseIccProfile(icc) : null;
-  const lut = profile && profile.dataColourSpace === "CMYK" ? buildCmykLut(profile, cy3, ma, ye, ke, n7, warn) : null;
-  if (!lut && icc) warn("cmyk.no-profile", "embedded profile unusable - naive conversion");
-  if (!lut && !icc) warn("cmyk.no-profile", "no embedded profile - naive conversion");
+  const lut = profile && profile.dataColourSpace === "CMYK" ? buildCmykLut(profile, cy3, ma, ye, ke, n7, warn2) : null;
+  if (!lut && icc) warn2("cmyk.no-profile", "embedded profile unusable - naive conversion");
+  if (!lut && !icc) warn2("cmyk.no-profile", "no embedded profile - naive conversion");
   for (let i = 0; i < n7; i++) {
     const o = i * 4;
     const key = (cy3[i] << 8 | ma[i]) * 65536 + (ye[i] << 8 | ke[i]);
@@ -64572,13 +64587,13 @@ function cmykPlanesToRgba(cy3, ma, ye, ke, alpha, n7, out, icc, warn) {
     out[o + 3] = alpha ? alpha[i] : 255;
   }
 }
-function buildCmykLut(profile, cy3, ma, ye, ke, n7, warn) {
+function buildCmykLut(profile, cy3, ma, ye, ke, n7, warn2) {
   const unique3 = /* @__PURE__ */ new Map();
   for (let i = 0; i < n7; i++) {
     const key = (cy3[i] << 8 | ma[i]) * 65536 + (ye[i] << 8 | ke[i]);
     if (!unique3.has(key)) {
       if (unique3.size >= MAX_CMYK_CACHE) {
-        warn("cmyk.cache.full", "remaining pixels use naive conversion");
+        warn2("cmyk.cache.full", "remaining pixels use naive conversion");
         break;
       }
       unique3.set(key, unique3.size);
@@ -64622,7 +64637,7 @@ function buildCmykLut(profile, cy3, ma, ye, ke, n7, warn) {
   }
   return lut;
 }
-function readComposite(c, width, height, depth, headerChannels, colorMode, mergedHasAlpha, icc, reserve, warn, inflate) {
+function readComposite(c, width, height, depth, headerChannels, colorMode, mergedHasAlpha, icc, reserve, warn2, inflate) {
   const comp2 = c.u16();
   const bytesPerSample = depth === 16 ? 2 : 1;
   const rowBytes = width * bytesPerSample;
@@ -64637,7 +64652,7 @@ function readComposite(c, width, height, depth, headerChannels, colorMode, merge
     for (let ch = 0; ch < nCh; ch++) {
       const at = p + ch * height * rowBytes;
       if (at + height * rowBytes > end) {
-        warn("composite.bad", "raw composite truncated");
+        warn2("composite.bad", "raw composite truncated");
         return void 0;
       }
       planes.push(foldPlane(c.b, at, height, width, depth));
@@ -64647,7 +64662,7 @@ function readComposite(c, width, height, depth, headerChannels, colorMode, merge
     const entry2 = psb ? 4 : 2;
     const tableLen = headerChannels * height * entry2;
     if (p + tableLen > end) {
-      warn("composite.bad", "composite RLE table truncated");
+      warn2("composite.bad", "composite RLE table truncated");
       return void 0;
     }
     const lens = new Array(headerChannels * height);
@@ -64661,11 +64676,11 @@ function readComposite(c, width, height, depth, headerChannels, colorMode, merge
       for (let y = 0; y < height; y++) {
         const rl = lens[ch * height + y];
         if (rowAt2 + rl > end) {
-          warn("composite.bad", `composite row ${ch}:${y} truncated`);
+          warn2("composite.bad", `composite row ${ch}:${y} truncated`);
           return void 0;
         }
         if (raw && packBitsDecode(c.b, rowAt2, rowAt2 + rl, raw, y * rowBytes, rowBytes) < 0) {
-          warn("composite.bad", `composite row ${ch}:${y} malformed`);
+          warn2("composite.bad", `composite row ${ch}:${y} malformed`);
           return void 0;
         }
         rowAt2 += rl;
@@ -64674,13 +64689,13 @@ function readComposite(c, width, height, depth, headerChannels, colorMode, merge
     }
   } else if (comp2 === 2 || comp2 === 3) {
     if (!inflate) {
-      warn("composite.bad", `compression ${comp2} needs inflate`);
+      warn2("composite.bad", `compression ${comp2} needs inflate`);
       return void 0;
     }
-    warn("composite.bad", `compression ${comp2} unsupported for the merged image`);
+    warn2("composite.bad", `compression ${comp2} unsupported for the merged image`);
     return void 0;
   } else {
-    warn("composite.bad", `unknown compression ${comp2}`);
+    warn2("composite.bad", `unknown compression ${comp2}`);
     return void 0;
   }
   const n7 = width * height;
@@ -64705,7 +64720,7 @@ function readComposite(c, width, height, depth, headerChannels, colorMode, merge
     }
   } else {
     if (planes.length < 4) return void 0;
-    cmykPlanesToRgba(planes[0], planes[1], planes[2], planes[3], alpha, n7, out, icc, warn);
+    cmykPlanesToRgba(planes[0], planes[1], planes[2], planes[3], alpha, n7, out, icc, warn2);
   }
   return { width, height, pixels: out };
 }
@@ -65092,9 +65107,9 @@ function parseVersion2(bytes) {
   return m2 ? Number(m2[1]) : null;
 }
 function readXcf(bytes, opts = {}) {
-  const warnings = [];
-  const warn = (code, detail) => {
-    warnings.push(code);
+  const warnings2 = [];
+  const warn2 = (code, detail) => {
+    warnings2.push(code);
     opts.onWarn?.(code, detail);
   };
   const budgetMax = opts.maxDecodedBytes ?? DEFAULT_DECODE_BUDGET2;
@@ -65105,7 +65120,7 @@ function readXcf(bytes, opts = {}) {
     if (budgetUsed + n8 > budgetMax) {
       if (!budgetWarned) {
         budgetWarned = true;
-        warn("decode.budget.exhausted", `${budgetMax} bytes`);
+        warn2("decode.budget.exhausted", `${budgetMax} bytes`);
       }
       return false;
     }
@@ -65114,7 +65129,7 @@ function readXcf(bytes, opts = {}) {
   };
   const version = parseVersion2(bytes);
   if (version === null) throw new XcfUnsupportedError("not-xcf", "not an XCF file (missing gimp xcf magic)");
-  if (version > 11) warn("version.newer", `v${String(version).padStart(3, "0")} parsed with the v011 layout`);
+  if (version > 11) warn2("version.newer", `v${String(version).padStart(3, "0")} parsed with the v011 layout`);
   const wide = version >= 11;
   const v = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const u326 = (p2) => v.getUint32(p2);
@@ -65151,7 +65166,7 @@ function readXcf(bytes, opts = {}) {
   });
   if (p < 0) throw new XcfUnsupportedError("not-xcf", "unreadable image property list");
   if (compression > 2) {
-    warn("compression.unknown", String(compression));
+    warn2("compression.unknown", String(compression));
     compression = 1;
   }
   const layerPtrs = [];
@@ -65160,7 +65175,7 @@ function readXcf(bytes, opts = {}) {
     p += PTR;
     if (ptr === 0) break;
     if (!okPtr(ptr)) {
-      warn("layer.bad", "pointer outside file");
+      warn2("layer.bad", "pointer outside file");
       break;
     }
     if (layerPtrs.length >= MAX_LAYERS2) throw new XcfUnsupportedError("bounds", `more than ${MAX_LAYERS2} layers`);
@@ -65181,7 +65196,7 @@ function readXcf(bytes, opts = {}) {
       inflate: opts.inflate,
       applyMasks: opts.applyLayerMasks !== false,
       reserve,
-      warn
+      warn: warn2
     });
     if (l) topDown.push(l);
   }
@@ -65213,7 +65228,7 @@ function readXcf(bytes, opts = {}) {
     depth: sampleBytes === 2 ? 16 : 8,
     colorMode: baseType === 1 ? "gray" : "rgb",
     layers,
-    warnings
+    warnings: warnings2
   };
 }
 function readProps(bytes, v, p, maxProps, visit) {
@@ -65231,25 +65246,25 @@ function readProps(bytes, v, p, maxProps, visit) {
   return -1;
 }
 function readLayer(bytes, v, at, ctx) {
-  const { u32: u326, warn } = ctx;
+  const { u32: u326, warn: warn2 } = ctx;
   if (at + 12 > bytes.length) {
-    warn("layer.bad", "truncated layer header");
+    warn2("layer.bad", "truncated layer header");
     return null;
   }
   const w = u326(at);
   const h = u326(at + 4);
   const type = u326(at + 8);
   if (type > 5) {
-    warn("layer.bad", `unknown layer type ${type}`);
+    warn2("layer.bad", `unknown layer type ${type}`);
     return null;
   }
   if (w > MAX_DIM2 || h > MAX_DIM2) {
-    warn("layer.bad", `layer ${w}x${h} oversized`);
+    warn2("layer.bad", `layer ${w}x${h} oversized`);
     return null;
   }
   let p = at + 12;
   if (p + 4 > bytes.length) {
-    warn("layer.bad", "truncated at name");
+    warn2("layer.bad", "truncated at name");
     return null;
   }
   const nameLen = u326(p);
@@ -65265,7 +65280,7 @@ function readLayer(bytes, v, at, ctx) {
       }
     }
     if (nameLen > bytes.length - p) {
-      warn("layer.bad", "name overruns file");
+      warn2("layer.bad", "name overruns file");
       return null;
     }
     p += nameLen;
@@ -65298,11 +65313,11 @@ function readLayer(bytes, v, at, ctx) {
     }
   });
   if (p < 0) {
-    warn("layer.bad", `"${name}" unreadable property list`);
+    warn2("layer.bad", `"${name}" unreadable property list`);
     return null;
   }
   const blend2 = xcfModeToCss(mode2);
-  if (!blend2.known) warn("blend.unknown", `xcf mode ${mode2}`);
+  if (!blend2.known) warn2("blend.unknown", `xcf mode ${mode2}`);
   const layer = {
     name,
     x: offX,
@@ -65331,7 +65346,7 @@ function readLayer(bytes, v, at, ctx) {
         }
       }
     } else if (hierPtr !== 0) {
-      warn("layer.bad", `"${name}" hierarchy pointer invalid`);
+      warn2("layer.bad", `"${name}" hierarchy pointer invalid`);
     }
   }
   return { layer, itemPath };
@@ -65342,9 +65357,9 @@ function bppFor(type, sampleBytes) {
   return channels * sampleBytes;
 }
 function readHierarchy(bytes, v, at, w, h, type, ctx) {
-  const { u32: u326, warn } = ctx;
+  const { u32: u326, warn: warn2 } = ctx;
   if (at + 12 + ctx.PTR > bytes.length) {
-    warn("layer.bad", "truncated hierarchy");
+    warn2("layer.bad", "truncated hierarchy");
     return null;
   }
   const hw = u326(at);
@@ -65352,20 +65367,20 @@ function readHierarchy(bytes, v, at, w, h, type, ctx) {
   const bpp = u326(at + 8);
   const expectBpp = bppFor(type, ctx.sampleBytes);
   if (hw !== w || hh !== h) {
-    warn("layer.bad", `hierarchy ${hw}x${hh} != layer ${w}x${h}`);
+    warn2("layer.bad", `hierarchy ${hw}x${hh} != layer ${w}x${h}`);
     return null;
   }
   if (bpp !== expectBpp) {
-    warn("layer.bad", `bpp ${bpp} != expected ${expectBpp}`);
+    warn2("layer.bad", `bpp ${bpp} != expected ${expectBpp}`);
     return null;
   }
   const levelPtr = ctx.ptrAt(at + 12);
   if (!ctx.okPtr(levelPtr)) {
-    warn("layer.bad", "level pointer invalid");
+    warn2("layer.bad", "level pointer invalid");
     return null;
   }
   if (!ctx.reserve(w * h * bpp + w * h * 4)) {
-    warn("layer.skipped", "budget");
+    warn2("layer.skipped", "budget");
     return null;
   }
   const raw = new Uint8Array(w * h * bpp);
@@ -65373,15 +65388,15 @@ function readHierarchy(bytes, v, at, w, h, type, ctx) {
   return rawToRgba(raw, w, h, type, ctx);
 }
 function readLevel(bytes, v, at, w, h, bpp, raw, ctx) {
-  const { u32: u326, warn } = ctx;
+  const { u32: u326, warn: warn2 } = ctx;
   if (at + 8 > bytes.length) {
-    warn("layer.bad", "truncated level");
+    warn2("layer.bad", "truncated level");
     return false;
   }
   const lw = u326(at);
   const lh = u326(at + 4);
   if (lw !== w || lh !== h) {
-    warn("layer.bad", "level size mismatch");
+    warn2("layer.bad", "level size mismatch");
     return false;
   }
   const tilesX = Math.ceil(w / TILE);
@@ -65391,13 +65406,13 @@ function readLevel(bytes, v, at, w, h, bpp, raw, ctx) {
   const ptrs = new Array(nTiles);
   for (let i = 0; i < nTiles; i++) {
     if (p + ctx.PTR > bytes.length) {
-      warn("layer.bad", "tile table truncated");
+      warn2("layer.bad", "tile table truncated");
       return false;
     }
     const ptr = ctx.ptrAt(p);
     p += ctx.PTR;
     if (!ctx.okPtr(ptr)) {
-      warn("tile.bad", `tile ${i} pointer invalid`);
+      warn2("tile.bad", `tile ${i} pointer invalid`);
       ptrs[i] = 0;
       continue;
     }
@@ -65414,7 +65429,7 @@ function readLevel(bytes, v, at, w, h, bpp, raw, ctx) {
       const next2 = i + 1 < nTiles && ptrs[i + 1] > ptr ? ptrs[i + 1] : Math.min(ptr + tileCap, bytes.length);
       const tile = decodeTile(bytes, ptr, next2, tw, th, bpp, ctx);
       if (!tile) {
-        warn("tile.bad", `tile ${i}`);
+        warn2("tile.bad", `tile ${i}`);
         continue;
       }
       for (let y = 0; y < th; y++) {
@@ -65533,43 +65548,43 @@ function rawToRgba(raw, w, h, type, ctx) {
   return out;
 }
 function applyLayerMask(bytes, v, at, rgba2, w, h, ctx) {
-  const { u32: u326, warn } = ctx;
+  const { u32: u326, warn: warn2 } = ctx;
   if (at + 8 > bytes.length) {
-    warn("mask.bad", "truncated mask channel");
+    warn2("mask.bad", "truncated mask channel");
     return;
   }
   const mw = u326(at);
   const mh = u326(at + 4);
   if (mw !== w || mh !== h) {
-    warn("mask.bad", `mask ${mw}x${mh} != layer ${w}x${h}`);
+    warn2("mask.bad", `mask ${mw}x${mh} != layer ${w}x${h}`);
     return;
   }
   let p = at + 8;
   if (p + 4 > bytes.length) {
-    warn("mask.bad", "truncated mask name");
+    warn2("mask.bad", "truncated mask name");
     return;
   }
   const nameLen = u326(p);
   p += 4;
   if (nameLen > bytes.length - p) {
-    warn("mask.bad", "mask name overruns");
+    warn2("mask.bad", "mask name overruns");
     return;
   }
   p += nameLen;
   p = readProps(bytes, v, p, MAX_PROPS, () => {
   });
   if (p < 0 || p + ctx.PTR > bytes.length) {
-    warn("mask.bad", "unreadable mask properties");
+    warn2("mask.bad", "unreadable mask properties");
     return;
   }
   const hierPtr = ctx.ptrAt(p);
   if (!ctx.okPtr(hierPtr)) {
-    warn("mask.bad", "mask hierarchy pointer invalid");
+    warn2("mask.bad", "mask hierarchy pointer invalid");
     return;
   }
   const px3 = readHierarchy(bytes, v, hierPtr, w, h, 2, ctx);
   if (!px3) {
-    warn("mask.bad", "mask tiles undecodable");
+    warn2("mask.bad", "mask tiles undecodable");
     return;
   }
   for (let i = 0; i < w * h; i++) {
@@ -69307,18 +69322,18 @@ function descendInto(tags3, c, onSplit) {
   return null;
 }
 function enumerateSvgLayers(markup, opts = {}) {
-  const warnings = [];
+  const warnings2 = [];
   try {
-    return enumerate(markup, opts, warnings);
+    return enumerate(markup, opts, warnings2);
   } catch {
-    warnings.push("could not read this SVG");
-    return { layers: [], warnings, viewBox: null };
+    warnings2.push("could not read this SVG");
+    return { layers: [], warnings: warnings2, viewBox: null };
   }
 }
-function enumerate(markup, opts, warnings) {
+function enumerate(markup, opts, warnings2) {
   const empty2 = (why, viewBox = null) => {
-    warnings.push(why);
-    return { layers: [], warnings, viewBox };
+    warnings2.push(why);
+    return { layers: [], warnings: warnings2, viewBox };
   };
   if (typeof markup !== "string" || markup.length === 0) return empty2("no SVG markup");
   if (markup.length > SVG_LAYERS_MAX_CHARS) {
@@ -69352,7 +69367,7 @@ function enumerate(markup, opts, warnings) {
     if (only.tag.name !== "g" || only.tag.kind !== "open") break;
     const unit2 = unitCompositing(only.tag.attrs);
     if (unit2) {
-      warnings.push(`kept the outer group whole - its \`${unit2}\` applies to all of it at once`);
+      warnings2.push(`kept the outer group whole - its \`${unit2}\` applies to all of it at once`);
       break;
     }
     const kids2 = directChildren(tags3, only.ti);
@@ -69376,7 +69391,7 @@ function enumerate(markup, opts, warnings) {
   if (candidateNodes.length > SVG_LAYERS_MAX_CANDIDATES) {
     overflow = candidateNodes.slice(SVG_LAYERS_MAX_CANDIDATES - 1);
     candidateNodes = candidateNodes.slice(0, SVG_LAYERS_MAX_CANDIDATES - 1);
-    warnings.push(
+    warnings2.push(
       `this SVG has more than ${SVG_LAYERS_MAX_CANDIDATES} shapes at its root; everything past the first ${SVG_LAYERS_MAX_CANDIDATES - 1} is one layer`
     );
   }
@@ -69390,7 +69405,7 @@ function enumerate(markup, opts, warnings) {
   const onSplit = () => {
     if (splitWarned) return;
     splitWarned = true;
-    warnings.push("split a cluster that another layer paints through, to keep the stacking order");
+    warnings2.push("split a cluster that another layer paints through, to keep the stacking order");
   };
   const candidates2 = buildLevel(tags3, candidateNodes, wrapperMat, wrappers, false, 0, onSplit);
   if (overflow.length) {
@@ -69423,7 +69438,7 @@ function enumerate(markup, opts, warnings) {
       if (candidates2.length - 1 + sub.candidates.length > cap) break;
       candidates2.splice(at, 1, ...sub.candidates);
       carry.push(...sub.carry);
-      warnings.push(
+      warnings2.push(
         `one layer held ${Math.round(most / total2 * 100)}% of this artwork, so it was opened up into ${sub.candidates.length}`
       );
     }
@@ -69440,7 +69455,7 @@ function enumerate(markup, opts, warnings) {
       measured: false,
       ink: tail.reduce((a, c) => a + c.ink, 0)
     }];
-    warnings.push(`found ${candidates2.length} layers; the last ${tail.length} were merged into one (the limit is ${cap})`);
+    warnings2.push(`found ${candidates2.length} layers; the last ${tail.length} were merged into one (the limit is ${cap})`);
   }
   const drops = dropSpans(tags3);
   const carryMarkup = carry.map((c) => sliceKeeping(markup, drops, c.start, c.end)).join("");
@@ -69476,7 +69491,7 @@ function enumerate(markup, opts, warnings) {
         tags3,
         markup,
         drops,
-        warnings,
+        warnings2,
         i + 1
       );
     }
@@ -69494,11 +69509,11 @@ function enumerate(markup, opts, warnings) {
   });
   const total = layers.reduce((sum, l) => sum + l.markup.length, 0);
   if (total > SVG_LAYERS_HEAVY_BYTES && total > markup.length * 2) {
-    warnings.push(
+    warnings2.push(
       `each of these ${layers.length} layers repeats this file's shared definitions, so together they are ${(total / 1e6).toFixed(1)} MB from a ${(markup.length / 1e6).toFixed(1)} MB file`
     );
   }
-  return { layers, warnings, viewBox: srcViewBox };
+  return { layers, warnings: warnings2, viewBox: srcViewBox };
 }
 function rootAttributes(attrs, crop) {
   let out = attrOf(attrs, "xmlns") != null ? attrs : ` xmlns="http://www.w3.org/2000/svg"${attrs}`;
@@ -69710,7 +69725,7 @@ function sliceKeeping(markup, drops, from, to) {
   }
   return at < to ? out + markup.slice(at, to) : out;
 }
-function borrowedDefs(wanted, resolvable, first, tags3, markup, drops, warnings, layerNo) {
+function borrowedDefs(wanted, resolvable, first, tags3, markup, drops, warnings2, layerNo) {
   const out = [];
   for (const id2 of wanted.ids) {
     if (resolvable(id2)) continue;
@@ -69721,10 +69736,10 @@ function borrowedDefs(wanted, resolvable, first, tags3, markup, drops, warnings,
     out.push(sliceKeeping(markup, drops, tags3[at].start, tags3[after - 1].end));
   }
   if (wanted.more) {
-    warnings.push(`layer ${layerNo}: more than ${SVG_LAYERS_MAX_REFS} shared references - the rest were left unrepaired`);
+    warnings2.push(`layer ${layerNo}: more than ${SVG_LAYERS_MAX_REFS} shared references - the rest were left unrepaired`);
   }
   if (!out.length) return "";
-  warnings.push(`layer ${layerNo}: copied ${out.length} referenced ${out.length === 1 ? "element" : "elements"} it shares with another layer`);
+  warnings2.push(`layer ${layerNo}: copied ${out.length} referenced ${out.length === 1 ? "element" : "elements"} it shares with another layer`);
   return `<defs>${out.join("")}</defs>`;
 }
 function escapeRe(s) {
@@ -69875,8 +69890,8 @@ function assertZzfxmBudgets(instruments, patterns, sequence, bpm = 125) {
         budgetError(`pattern ${pi} channel ${ci} has invalid panning`);
       }
       for (let ni = 2; ni < row.length; ni++) {
-        const note = row[ni];
-        if (typeof note !== "number" || !Number.isFinite(note) || Math.abs(note) > ZZFXM_MAX_NOTE) {
+        const note2 = row[ni];
+        if (typeof note2 !== "number" || !Number.isFinite(note2) || Math.abs(note2) > ZZFXM_MAX_NOTE) {
           budgetError(`pattern ${pi} channel ${ci} has an invalid note`);
         }
       }
@@ -69900,9 +69915,9 @@ function assertZzfxmBudgets(instruments, patterns, sequence, bpm = 125) {
     for (const row of pattern) {
       const instrument = row[0];
       for (let ni = 2; ni < row.length; ni++) {
-        const note = row[ni] | 0;
-        if (note <= 0) continue;
-        const key = `${instrument},${note}`;
+        const note2 = row[ni] | 0;
+        if (note2 <= 0) continue;
+        const key = `${instrument},${note2}`;
         if (sounds.has(key)) continue;
         sounds.add(key);
         cacheSamples += synthSamples[instrument];
@@ -69992,7 +70007,7 @@ function zzfxMUnchecked(instruments, patterns, sequence, BPM = 125) {
   let i = 0;
   let j = 0;
   let k = 0;
-  let note = 0;
+  let note2 = 0;
   let sample = 0;
   let patternChannel = [];
   let notFirstBeat = 0;
@@ -70021,8 +70036,8 @@ function zzfxMUnchecked(instruments, patterns, sequence, BPM = 125) {
       nextSampleOffset = outSampleOffset + (pattern[0].length - 2 - (notFirstBeat ? 0 : 1)) * beatLength;
       isSequenceEnd = sequenceIndex2 === sequence.length - 1 ? 1 : 0;
       for (i = 2, k = outSampleOffset; i < patternChannel.length + isSequenceEnd; notFirstBeat = ++i) {
-        note = patternChannel[i] ?? 0;
-        stop = i === patternChannel.length + isSequenceEnd - 1 && isSequenceEnd || (instrument !== (patternChannel[0] || 0) ? 1 : 0) | note | 0;
+        note2 = patternChannel[i] ?? 0;
+        stop = i === patternChannel.length + isSequenceEnd - 1 && isSequenceEnd || (instrument !== (patternChannel[0] || 0) ? 1 : 0) | note2 | 0;
         for (
           j = 0;
           j < beatLength && notFirstBeat;
@@ -70033,15 +70048,15 @@ function zzfxMUnchecked(instruments, patterns, sequence, BPM = 125) {
           leftChannelBuffer[k] = (leftChannelBuffer[k] || 0) - sample * panning + sample;
           rightChannelBuffer[k] = (rightChannelBuffer[k++] || 0) + sample * panning + sample;
         }
-        if (note) {
-          attenuation = note % 1;
+        if (note2) {
+          attenuation = note2 % 1;
           panning = patternChannel[1] || 0;
-          if (note |= 0) {
+          if (note2 |= 0) {
             instrument = patternChannel[sampleOffset = 0] || 0;
-            const cacheKey2 = instrument + "," + note;
+            const cacheKey2 = instrument + "," + note2;
             sampleBuffer = sampleCache[cacheKey2] || // add sample to cache
-            (sampleCache[cacheKey2] = (instrumentParameters = [...instruments[instrument]], instrumentParameters[2] = instrumentParameters[2] * 2 ** ((note - 12) / 12), // allow negative values to stop notes
-            note > 0 ? genG(...instrumentParameters) : []));
+            (sampleCache[cacheKey2] = (instrumentParameters = [...instruments[instrument]], instrumentParameters[2] = instrumentParameters[2] * 2 ** ((note2 - 12) / 12), // allow negative values to stop notes
+            note2 > 0 ? genG(...instrumentParameters) : []));
           }
         }
       }
@@ -70626,7 +70641,7 @@ function createLoudnessMeter(rate3 = LOUDNESS_RATE) {
     integrated() {
       const abs = blocks.filter((b) => b > -70);
       if (!abs.length) return null;
-      const meanEnergy = (list3) => list3.reduce((a, b) => a + 10 ** ((b + 0.691) / 10), 0) / list3.length;
+      const meanEnergy = (list4) => list4.reduce((a, b) => a + 10 ** ((b + 0.691) / 10), 0) / list4.length;
       const relGate = -0.691 + 10 * Math.log10(meanEnergy(abs)) - 10;
       const rel = abs.filter((b) => b > relGate);
       if (!rel.length) return null;
@@ -71809,14 +71824,14 @@ function quotedAt(text8, index2, length2) {
   if (lineEnd < 0) lineEnd = text8.length;
   return /["“”«»]/.test(text8.slice(lineStart, index2)) && /["“”«»]/.test(text8.slice(index2 + length2, lineEnd));
 }
-function collectTells(tells, text8, keep) {
+function collectTells(tells, text8, keep2) {
   const spans = [];
   const labels = [];
   let hits2 = 0;
   for (const tell of tells) {
     tell.re.lastIndex = 0;
     for (let m2 = tell.re.exec(text8); m2 !== null; m2 = tell.re.exec(text8)) {
-      if (!keep || keep(m2.index, m2[0].length)) {
+      if (!keep2 || keep2(m2.index, m2[0].length)) {
         hits2++;
         spans.push({ index: m2.index, length: m2[0].length });
         if (!labels.includes(tell.label)) labels.push(tell.label);
@@ -72711,15 +72726,15 @@ function suggestRewrites(text8) {
     }
   }
   found.sort((a, b) => a.index - b.index || b.length - a.length);
-  const kept = [];
+  const kept2 = [];
   let end = -1;
   for (const s of found) {
     if (s.index >= end) {
-      kept.push(s);
+      kept2.push(s);
       end = s.index + s.length;
     }
   }
-  return kept;
+  return kept2;
 }
 function applySuggestion(text8, s) {
   return text8.slice(0, s.index) + s.replacement + text8.slice(s.index + s.length);
@@ -72829,9 +72844,9 @@ function rewordGate(original, candidate) {
   const oWords = contentWords(o);
   if (oWords.size >= 4) {
     const cWords = contentWords(c);
-    let kept = 0;
-    for (const w of oWords) if (cWords.has(w)) kept++;
-    if (kept / oWords.size < 0.25) reasons.push("off-topic");
+    let kept2 = 0;
+    for (const w of oWords) if (cWords.has(w)) kept2++;
+    if (kept2 / oWords.size < 0.25) reasons.push("off-topic");
   }
   if (!multisetEqual(numbersOf(o), numbersOf(c)) || !multisetEqual(urlsOf(o), urlsOf(c)) || !multisetEqual(emailsOf(o), emailsOf(c))) reasons.push("facts-changed");
   const oNames = nameTokens(o);
@@ -73499,13 +73514,13 @@ function parseMidi(bytes) {
       } else {
         const hi = sb & 240, ch = sb & 15;
         if (hi === 144 || hi === 128) {
-          const note = bytes[p++] ?? 0, vel = bytes[p++] ?? 0;
-          const key = ch << 8 | note;
+          const note2 = bytes[p++] ?? 0, vel = bytes[p++] ?? 0;
+          const key = ch << 8 | note2;
           if (hi === 144 && vel > 0) {
             (active.get(key) ?? active.set(key, []).get(key)).push(tick);
           } else {
             const stack = active.get(key);
-            if (stack && stack.length) notes.push({ start: stack.shift(), end: tick, midi: note });
+            if (stack && stack.length) notes.push({ start: stack.shift(), end: tick, midi: note2 });
           }
         } else if (hi === 192 || hi === 208) {
           p += 1;
@@ -73590,9 +73605,9 @@ function patternSeconds(bpm) {
 function channel2(inst, pan, notes) {
   return [inst, pan, ...notes];
 }
-function hits(steps, note = 12) {
+function hits(steps, note2 = 12) {
   const a = new Array(STEPS).fill(R);
-  for (const s of steps) if (s >= 0 && s < STEPS) a[s] = note;
+  for (const s of steps) if (s >= 0 && s < STEPS) a[s] = note2;
   return a;
 }
 function placed(entries) {
@@ -74013,6 +74028,255 @@ var init_zzfxm_ref = __esm({
   }
 });
 
+// engine/src/rondo-share-dict.ts
+var RONDO_SHARE_DICTIONARY_TEXT;
+var init_rondo_share_dict = __esm({
+  "engine/src/rondo-share-dict.ts"() {
+    "use strict";
+    RONDO_SHARE_DICTIONARY_TEXT = "arrange([8, full], [4, intro], [8, full], [4, breakdown])stack(intro, build, drop).struct(mini('~ t ~ t ~ t ~ t')).scale('a minor').scale('g# minor')n('0 3 5 7')wavetable(note.freq, ladder(saw(f), env.pow(2).range(, { res: 0.62 })square(f.mul(0.5))shape(input, reverb(input, { roomSize: 0.85, damp: 0.4 })chorus(input, { rate: 0.4, depth: 0.delay(input, 0.28, 0.35))bitcrush(dirty, { bits: 10, downsample: 1 })onepole(compress(svf(noise(), 8800, { mode: 'hp' }).mul(adsr(gate, { a: 0.001, d: 0.0saw(f).add(saw(f.mul(1.006))).add(saw(f.mul(0.994))).mul(0.4)const f = note.freqvisual(fn render(uv: vec2f) -> vec4f {let p = (uv * 2.0 - 1.0) * vec2f(res.x / res.y, 1.0);let r = length(p);spectrum(fract(smoothstep(0.05, 0.0, abs(r - hit_kick hit_lead hit_stabvec3f(0.return vec4f(min(col, vec3f(1.0)), 1.0);} * exp(-r * 3.sidechain('kick', { depth: 0.9, release: 160, duck: { sub: 0.9, pad: 0.5, stab: 0.5, lead: 0.4 } })masterCompress({ threshold: -6, ratio: 2, attack: 25, release: 150, makeup: 1 })setCps(0.5const kick = synth(({ note, gate, param, adsr, sine, saw, square, tri, noise, svf, ladder, lfo }) => {  const env = adsr(gate, { a: 0.001, d: 0.09, s: 0, r: 0.05 })  const amp = adsr(gate, { a: 0.001, d: 0.})}, ({ input }) => input, { voices:  }, { mono: true, glide: 0. }).mul(env).tanh().mul(0..add(.mix(, 0..range(, .pow(2)note.freq.mul(0.5)note('c1*4').sound('kick').gain(1.0)chord('<Am F C G>').sound('pad').gain(0.5).dur(0.9').sound('').gain(0.').dur(0.9).struct(mini('p('song', stack(setCps(0.5)";
+  }
+});
+
+// engine/src/rondo-source.ts
+import { inflateSync } from "fflate";
+function isRondoFileName(fileName) {
+  return RONDO_FILE.test(fileName.trim());
+}
+function isRondoShareLink(url) {
+  return /^https:\/\/(?:www\.)?rondocode\.com\/[^#\s]*#(?:[^#\s]*&)?s=[A-Za-z0-9_-]/.test(url.trim());
+}
+function decodeText(bytes) {
+  if (bytes.length > RONDO_MAX_SOURCE_BYTES * 2) throw new RondoSourceError(`A song file must be under ${RONDO_MAX_SOURCE_BYTES / 1024} KB.`);
+  try {
+    return new TextDecoder("utf-8", { fatal: true, ignoreBOM: false }).decode(bytes);
+  } catch {
+    throw new RondoSourceError("The song file is not UTF-8 text.");
+  }
+}
+function checkCode(code) {
+  if (code.trim() === "") throw new RondoSourceError("The song has no code.");
+  if (new TextEncoder().encode(code).length > RONDO_MAX_SOURCE_BYTES) {
+    throw new RondoSourceError(`A song must be under ${RONDO_MAX_SOURCE_BYTES / 1024} KB of code.`);
+  }
+  return code;
+}
+function fromJsonObject(obj3, fallbackName) {
+  if (!obj3 || typeof obj3 !== "object" || Array.isArray(obj3)) throw new RondoSourceError("The song file is not a rondocode project.");
+  const o = obj3;
+  if (o.schemaVersion !== void 0 && o.schemaVersion !== RONDO_SOURCE_SCHEMA_VERSION) {
+    throw new RondoSourceError(`This song file uses schema version ${String(o.schemaVersion)}, which this version of Lolly cannot read.`);
+  }
+  if (typeof o.code !== "string") throw new RondoSourceError("The song file has no code.");
+  return {
+    schemaVersion: 1,
+    format: "rondocode",
+    name: cleanName(o.name, fallbackName),
+    lang: langOf(o.lang),
+    code: checkCode(o.code)
+  };
+}
+function rondoFromFile(bytes, fileName) {
+  const text8 = decodeText(bytes);
+  if (/\.rondo$/i.test(fileName.trim())) {
+    return { schemaVersion: 1, format: "rondocode", name: cleanName(stemOf(fileName), "Untitled song"), lang: "rondo", code: checkCode(text8) };
+  }
+  let obj3;
+  try {
+    obj3 = JSON.parse(text8);
+  } catch {
+    throw new RondoSourceError("The song file is not valid JSON.");
+  }
+  return fromJsonObject(obj3, stemOf(fileName));
+}
+function rondoFromBytes(bytes) {
+  return rondoFromFile(bytes, "song.rondo.json");
+}
+function rondoSourceBytes(src) {
+  const canonical3 = {
+    schemaVersion: RONDO_SOURCE_SCHEMA_VERSION,
+    format: "rondocode",
+    name: cleanName(src.name, "Untitled song"),
+    lang: langOf(src.lang),
+    code: checkCode(src.code)
+  };
+  return new TextEncoder().encode(`${JSON.stringify(canonical3, null, 2)}
+`);
+}
+function rondoFileName(src) {
+  const slug4 = src.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60);
+  return `${slug4 || "song"}${RONDO_FILE_SUFFIX}`;
+}
+function fromBase64Url(s) {
+  if (!/^[A-Za-z0-9_-]*$/.test(s)) throw new RondoSourceError("The share link is malformed.");
+  const b64 = s.replace(/-/g, "+").replace(/_/g, "/");
+  const bin = atob(b64 + "=".repeat((4 - b64.length % 4) % 4));
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+function inflateBounded(bytes, dict) {
+  const out = new Uint8Array(RONDO_MAX_SOURCE_BYTES * 2 + 1024);
+  let inflated2;
+  try {
+    inflated2 = inflateSync(bytes, dict ? { out, dictionary: dict } : { out });
+  } catch {
+    throw new RondoSourceError("The share link could not be decoded.");
+  }
+  if (inflated2.length >= out.length) throw new RondoSourceError("The song in the share link is too large.");
+  return inflated2;
+}
+function rondoFromShareLink(url) {
+  const hash = url.trim().split("#")[1] ?? "";
+  const m2 = /(?:^|&)s=([^&]+)/.exec(hash);
+  if (!m2?.[1]) throw new RondoSourceError("That link does not carry a rondocode song.");
+  const payload = m2[1];
+  if (payload.length > MAX_LINK_CHARS) throw new RondoSourceError("The share link is too long.");
+  const scheme = payload[0];
+  const body = fromBase64Url(payload.slice(1));
+  let json;
+  if (scheme === "p") {
+    dictionary ??= new TextEncoder().encode(RONDO_SHARE_DICTIONARY_TEXT);
+    json = inflateBounded(body, dictionary);
+  } else if (scheme === "d") json = inflateBounded(body, void 0);
+  else if (scheme === "u") json = body;
+  else throw new RondoSourceError("The share link uses an encoding this version of Lolly cannot read.");
+  let obj3;
+  try {
+    obj3 = JSON.parse(decodeText(json));
+  } catch (e) {
+    if (e instanceof RondoSourceError) throw e;
+    throw new RondoSourceError("The share link does not hold a song.");
+  }
+  const o = obj3 && typeof obj3 === "object" ? obj3 : {};
+  return fromJsonObject({ name: o.n, code: o.c, lang: o.l }, "Shared song");
+}
+var RONDO_SOURCE_SCHEMA_VERSION, RONDO_ASSET_FORMAT, RONDO_FILE_SUFFIX, RONDO_MAX_SOURCE_BYTES, MAX_LINK_CHARS, RondoSourceError, RONDO_FILE, stemOf, isControl, cleanName, langOf, dictionary;
+var init_rondo_source = __esm({
+  "engine/src/rondo-source.ts"() {
+    "use strict";
+    init_rondo_share_dict();
+    RONDO_SOURCE_SCHEMA_VERSION = 1;
+    RONDO_ASSET_FORMAT = "rondo";
+    RONDO_FILE_SUFFIX = ".rondo.json";
+    RONDO_MAX_SOURCE_BYTES = 256 * 1024;
+    MAX_LINK_CHARS = 512 * 1024;
+    RondoSourceError = class extends Error {
+      name = "RondoSourceError";
+    };
+    RONDO_FILE = /\.rondo(?:\.json)?$/i;
+    stemOf = (fileName) => fileName.trim().replace(/^.*[\\/]/, "").replace(RONDO_FILE, "") || "Untitled song";
+    isControl = (code) => code < 32 || code === 127;
+    cleanName = (v, fallback) => {
+      const s = typeof v === "string" ? Array.from(v, (ch) => isControl(ch.charCodeAt(0)) ? " " : ch).join("").trim() : "";
+      return (s || fallback).slice(0, 200);
+    };
+    langOf = (v) => {
+      if (v === "rondo") return "rondo";
+      if (v === "js" || v === "rondocode") return "js";
+      return "auto";
+    };
+    dictionary = null;
+  }
+});
+
+// engine/src/rondo-provenance.ts
+function rondoDigitalSourceType(facts2) {
+  return sung(facts2) ? COMPOSITE_SOURCE_TYPE : ALGORITHMIC_SOURCE_TYPE;
+}
+function rondoDeclaration(facts2) {
+  const base = `Music computed on the device from the code of a rondocode song (${facts2.executionClass} execution class, rondocode ${facts2.version})`;
+  if (!sung(facts2)) return `${base}, with no trained model.`;
+  const voices = facts2.voices?.length ? `, voice ${list(facts2.voices)}` : "";
+  return `${base}. The singing is AI-generated (${RONDO_SINGING_MODELS}${voices}): ${list(facts2.sungParts ?? [])}.`;
+}
+function rondoCreatedAction(facts2) {
+  return {
+    action: "c2pa.created",
+    digitalSourceType: rondoDigitalSourceType(facts2),
+    description: rondoDeclaration(facts2),
+    parameters: {
+      source: "rondocode",
+      version: facts2.version,
+      executionClass: facts2.executionClass,
+      ...facts2.seed !== void 0 ? { seed: facts2.seed } : {},
+      ...sung(facts2) ? { sungParts: [...facts2.sungParts ?? []], models: RONDO_SINGING_MODELS } : {},
+      ...facts2.voices?.length ? { voices: [...facts2.voices] } : {},
+      ...facts2.silentParts?.length ? { silentParts: [...facts2.silentParts] } : {}
+    }
+  };
+}
+function rondoSourceId(hash) {
+  if (!(hash instanceof Uint8Array) || hash.length !== 32) throw new Error("rondo provenance: the song hash must be a 32-byte SHA-256 digest");
+  let hex3 = "";
+  for (const b of hash) hex3 += b.toString(16).padStart(2, "0");
+  return `sha256:${hex3}`;
+}
+function rondoSilentParts(findings) {
+  const out = [];
+  for (const f of findings) {
+    if (!f.code.startsWith("rondo.part.")) continue;
+    for (const p of f.parts) if (p && !out.includes(p)) out.push(p);
+  }
+  return out;
+}
+function rondoRenderFacts(run3, findings) {
+  const silentParts = rondoSilentParts(findings);
+  return {
+    executionClass: run3.executionClass,
+    version: run3.version,
+    ...run3.seed !== void 0 ? { seed: run3.seed } : {},
+    ...silentParts.length ? { silentParts } : {}
+  };
+}
+function rondoSongIngredient(args) {
+  const { facts: facts2 } = args;
+  const seed = facts2.seed !== void 0 ? `, seed ${facts2.seed}` : "";
+  const silent = facts2.silentParts?.length ? ` Not played in this render: ${list(facts2.silentParts)}.` : "";
+  const voice = sung(facts2) ? ` Its singing is AI-generated (${RONDO_SINGING_MODELS}).` : "";
+  const description = `A rondocode song (source code), rendered on the device in the ${facts2.executionClass} execution class by rondocode ${facts2.version}${seed}.${voice}${silent}`;
+  return {
+    credential: "none",
+    title: (args.name.trim() || "Untitled song").slice(0, 200),
+    format: "application/json",
+    relationship: "componentOf",
+    instanceId: rondoSourceId(args.hash),
+    description: description.length > MAX_DESCRIPTION ? `${description.slice(0, MAX_DESCRIPTION - 1)}\u2026` : description,
+    informationalUri: RONDOCODE_URL,
+    digitalSourceType: rondoDigitalSourceType(facts2)
+  };
+}
+function isRondoSongIngredient(record38) {
+  return record38.informationalUri === RONDOCODE_URL && /^sha256:[0-9a-f]{64}$/.test(record38.instanceId ?? "") && (record38.description ?? "").startsWith("A rondocode song");
+}
+function uniqueRondoIngredients(ingredients) {
+  const seen = /* @__PURE__ */ new Set();
+  const out = [];
+  for (const ing of ingredients) {
+    const key = ing.instanceId ?? "";
+    if (key && seen.has(key)) continue;
+    if (key) seen.add(key);
+    out.push(ing);
+  }
+  return out;
+}
+function rondoRecordedSentence(names) {
+  const quoted2 = names.map((n7) => `"${n7}"`);
+  const which = quoted2.length === 1 ? `the song ${quoted2[0]}` : `the songs ${list(quoted2)}`;
+  return `Content Credentials in this file record ${which}, rendered in Lolly's sandbox (the vm execution class), as a source.`;
+}
+var RONDOCODE_URL, RONDO_SINGING_MODELS, list, sung, MAX_DESCRIPTION;
+var init_rondo_provenance = __esm({
+  "engine/src/rondo-provenance.ts"() {
+    "use strict";
+    init_c2pa2();
+    RONDOCODE_URL = "https://github.com/vijaypemmaraju/rondocode";
+    RONDO_SINGING_MODELS = "Supertonic-3 text to speech, a wav2vec 2.0 phoneme aligner and RVC voice conversion";
+    list = (xs) => xs.slice(0, 12).join(", ") + (xs.length > 12 ? ` and ${xs.length - 12} more` : "");
+    sung = (f) => (f.sungParts?.length ?? 0) > 0;
+    MAX_DESCRIPTION = 4096;
+  }
+});
+
 // engine/src/brand-resources.ts
 function mapBrandResourceIds(doc, map) {
   if (!record6(doc) || !record6(doc.$extensions)) return doc;
@@ -74068,8 +74332,8 @@ function readEntry(v) {
     date: str3(v.date) ?? "",
     checksum: str3(v.checksum) ?? ""
   };
-  const note = str3(v.note);
-  if (note) entry2.note = note;
+  const note2 = str3(v.note);
+  if (note2) entry2.note = note2;
   const assets = readPinnedAssets(v.assets);
   if (assets) entry2.assets = assets;
   return entry2;
@@ -74203,8 +74467,8 @@ function collectFontFamilies(doc) {
   const seen = /* @__PURE__ */ new Set();
   walkLeaves(doc, (leaf) => {
     if (leaf.$type !== "fontFamily") return;
-    const list3 = Array.isArray(leaf.$value) ? leaf.$value : [leaf.$value];
-    for (const raw of list3) {
+    const list4 = Array.isArray(leaf.$value) ? leaf.$value : [leaf.$value];
+    for (const raw of list4) {
       const family2 = str3(raw)?.replace(/^['"]|['"]$/g, "").trim();
       if (!family2 || family2.startsWith("{")) continue;
       const key = family2.toLowerCase();
@@ -79367,10 +79631,10 @@ __export(pptx_read_exports, {
   readingOrder: () => readingOrder
 });
 function makeWarnSink() {
-  const list3 = [];
+  const list4 = [];
   const byKey = /* @__PURE__ */ new Map();
   return {
-    list: list3,
+    list: list4,
     add(code, message, slideIndex) {
       const key = `${code}|${slideIndex ?? ""}|${message}`;
       const hit = byKey.get(key);
@@ -79381,16 +79645,16 @@ function makeWarnSink() {
       const entry2 = { code, message, count: 1 };
       if (slideIndex !== void 0) entry2.slideIndex = slideIndex;
       byKey.set(key, entry2);
-      if (list3.length < MAX_WARNINGS - 1) {
-        list3.push(entry2);
+      if (list4.length < MAX_WARNINGS - 1) {
+        list4.push(entry2);
         return;
       }
-      const over = list3[MAX_WARNINGS - 1];
+      const over = list4[MAX_WARNINGS - 1];
       if (over && over.message === WARNINGS_OVERFLOWED) {
         over.count = (over.count ?? 1) + 1;
         return;
       }
-      list3.push({ code: "nodes-truncated", message: WARNINGS_OVERFLOWED, count: 1 });
+      list4.push({ code: "nodes-truncated", message: WARNINGS_OVERFLOWED, count: 1 });
     }
   };
 }
@@ -82493,13 +82757,13 @@ function htmlInlines(nodes, depth) {
   return out;
 }
 function htmlList(items2, ordered) {
-  const list3 = (Array.isArray(items2) ? items2 : []).filter((i2) => i2 && typeof i2 === "object");
+  const list4 = (Array.isArray(items2) ? items2 : []).filter((i2) => i2 && typeof i2 === "object");
   const tag2 = ordered ? "ol" : "ul";
   let i = 0;
   const walk2 = (level2) => {
     const lis = [];
-    while (i < list3.length) {
-      const item2 = list3[i];
+    while (i < list4.length) {
+      const item2 = list4[i];
       const lvl = clampListLevel(item2.level);
       if (lvl < level2) break;
       if (lvl > level2) {
@@ -83153,14 +83417,14 @@ function walkBody(el, ctx, depth) {
 function collectNotes(ctx, path, local, kind, into) {
   const doc = parsePart2(ctx.store, path, ctx.parseXml);
   if (!doc?.documentElement) return;
-  for (const note of childrenByLocal2(doc.documentElement, local)) {
-    const type = (attrByLocal2(note, "type") || "").toLowerCase();
+  for (const note2 of childrenByLocal2(doc.documentElement, local)) {
+    const type = (attrByLocal2(note2, "type") || "").toLowerCase();
     if (type && type !== "normal") continue;
-    const id2 = attrByLocal2(note, "id");
+    const id2 = attrByLocal2(note2, "id");
     if (id2 == null) continue;
     const n7 = Number.parseInt(id2, 10);
     if (!Number.isFinite(n7) || n7 <= 0) continue;
-    into.set(`${kind}${n7}`, note);
+    into.set(`${kind}${n7}`, note2);
     if (into.size > MAX_FOOTNOTES) return;
   }
 }
@@ -83486,8 +83750,8 @@ function sourceFrom(record38) {
 }
 function rightsReportFromC2pa(report4) {
   const ingredients = report4.ingredients ?? [];
-  const recorded = ingredients.map(sourceFrom);
-  const credentialed = recorded.filter((source) => source.carried.credentialed).length;
+  const recorded2 = ingredients.map(sourceFrom);
+  const credentialed = recorded2.filter((source) => source.carried.credentialed).length;
   const limits = [];
   if (!report4.found) limits.push("This file carries no Content Credential, so no source list was read from it.");
   else if (report4.state !== "valid") limits.push("The credential did not verify, so every rights statement in it is an unchecked assertion.");
@@ -83495,25 +83759,25 @@ function rightsReportFromC2pa(report4) {
     limits.push("This list is what the signer declared. It is not a check that every work in the pixels was identified.");
     limits.push("Whether a readable credit travels beside this file was not inspected.");
   }
-  const unnamed = recorded.filter((source) => !source.creator || !source.licence).length;
-  if (unnamed) limits.push(`${unnamed} of ${recorded.length} recorded sources are missing a creator or a licence.`);
+  const unnamed = recorded2.filter((source) => !source.creator || !source.licence).length;
+  if (unnamed) limits.push(`${unnamed} of ${recorded2.length} recorded sources are missing a creator or a licence.`);
   return {
-    summary: summaryFor2(report4, recorded, credentialed),
-    recorded,
-    carried: { ingredients: ingredients.length, credentialed, recorded: recorded.length - credentialed, limits },
+    summary: summaryFor2(report4, recorded2, credentialed),
+    recorded: recorded2,
+    carried: { ingredients: ingredients.length, credentialed, recorded: recorded2.length - credentialed, limits },
     reuse: null,
     ownRights: report4.rights ?? null
   };
 }
-function summaryFor2(report4, recorded, credentialed) {
+function summaryFor2(report4, recorded2, credentialed) {
   const parts = [];
   if (!report4.found) parts.push("No Content Credential was found in this file.");
   else if (report4.state === "valid") parts.push("Credential intact.");
   else parts.push("The credential did not verify.");
-  if (!recorded.length) {
+  if (!recorded2.length) {
     parts.push("It records no creative sources.");
   } else {
-    const count4 = recorded.length;
+    const count4 = recorded2.length;
     const word = count4 === 1 ? "source" : "sources";
     parts.push(`It records ${count4} ${word}.`);
     const exporter = count4 - credentialed;
@@ -87066,9 +87330,9 @@ function embedWavInfo(wav, tags3) {
     i = end;
   }
   const payload = concatBytes([fourccBytes("INFO"), ...fields.map(([id2, v]) => infoSub(id2, v))]);
-  const list3 = concatBytes([fourccBytes("LIST"), u32le2(payload.length), payload]);
+  const list4 = concatBytes([fourccBytes("LIST"), u32le2(payload.length), payload]);
   const cleaned = drop ? concatBytes([wav.subarray(0, drop.start), wav.subarray(drop.end)]) : wav;
-  const out = concatBytes([cleaned, list3]);
+  const out = concatBytes([cleaned, list4]);
   new DataView(out.buffer, out.byteOffset).setUint32(4, out.length - 8, true);
   return out;
 }
@@ -88140,9 +88404,9 @@ function nodeToBox(node, opts) {
 }
 function finalizeBoxes(nodes, opts) {
   const prefix = opts && opts.prefix != null ? String(opts.prefix) : "n";
-  const list3 = Array.isArray(nodes) ? nodes : [];
+  const list4 = Array.isArray(nodes) ? nodes : [];
   const out = [];
-  for (const node of list3) {
+  for (const node of list4) {
     if (node == null) continue;
     const kind = node.kind === "text" ? "text" : node.kind === "image" ? "image" : "box";
     if (kind !== "text" && num6(node.w, 0) < 1 && num6(node.h, 0) < 1) continue;
@@ -88397,9 +88661,9 @@ function strokeLen(st, key) {
   return isFinite(n7) && n7 >= 0 ? n7 : void 0;
 }
 function topPenpotStroke(sh) {
-  const list3 = Array.isArray(sh.strokes) ? sh.strokes : [];
-  for (let i = list3.length - 1; i >= 0; i--) {
-    const st = list3[i];
+  const list4 = Array.isArray(sh.strokes) ? sh.strokes : [];
+  for (let i = list4.length - 1; i >= 0; i--) {
+    const st = list4[i];
     if (!st || typeof st !== "object") continue;
     const style = strokeStyleOf(st);
     if (style === "none") continue;
@@ -88464,8 +88728,8 @@ function penpotGradientSvgDef(g2, id2, fillOpacity) {
   return `<linearGradient id="${id2}" gradientUnits="objectBoundingBox" x1="${sx}" y1="${sy}" x2="${ex}" y2="${ey}">${stopEls.join("")}</linearGradient>`;
 }
 function hasVisibleShadow(sh) {
-  const list3 = Array.isArray(sh.shadow) ? sh.shadow : [];
-  return list3.some((e) => e && typeof e === "object" && get(e, "hidden") !== true);
+  const list4 = Array.isArray(sh.shadow) ? sh.shadow : [];
+  return list4.some((e) => e && typeof e === "object" && get(e, "hidden") !== true);
 }
 function penpotGroupToSvg(group, lookup4) {
   if (!group || typeof group !== "object") return "";
@@ -88739,11 +89003,11 @@ function penpotShapeToNode(shape) {
   return node;
 }
 function applyPenpotStroke(sh, node) {
-  const list3 = Array.isArray(sh.strokes) ? sh.strokes : [];
+  const list4 = Array.isArray(sh.strokes) ? sh.strokes : [];
   let st = null;
   let style = "solid";
-  for (let i = list3.length - 1; i >= 0; i--) {
-    const cand = list3[i];
+  for (let i = list4.length - 1; i >= 0; i--) {
+    const cand = list4[i];
     if (!cand || typeof cand !== "object") continue;
     const s = strokeStyleOf(cand);
     if (s === "none") continue;
@@ -88783,8 +89047,8 @@ function hexLong(c) {
   return "#" + m2[1].split("").map((ch) => ch + ch).join("");
 }
 function applyPenpotShadow(sh, node) {
-  const list3 = Array.isArray(sh.shadow) ? sh.shadow : [];
-  const s = list3.find((e) => e && typeof e === "object" && String(get(e, "style") || "drop-shadow") === "drop-shadow" && get(e, "hidden") !== true);
+  const list4 = Array.isArray(sh.shadow) ? sh.shadow : [];
+  const s = list4.find((e) => e && typeof e === "object" && String(get(e, "style") || "drop-shadow") === "drop-shadow" && get(e, "hidden") !== true);
   if (!s) return;
   const x = Math.round(num6(s.offsetX, 0)), y = Math.round(num6(s.offsetY, 0)), blur2 = Math.round(num6(s.blur, 0));
   if (!x && !y && !blur2) return;
@@ -88898,9 +89162,9 @@ function penpotFlowOrder(boardIds, shapesById, page3) {
   const edges = /* @__PURE__ */ new Map();
   let edgeCount = 0;
   for (const [sid, bid] of owner2) {
-    const list3 = get(shapesById[sid], "interactions");
-    if (!Array.isArray(list3)) continue;
-    for (const it of list3) {
+    const list4 = get(shapesById[sid], "interactions");
+    if (!Array.isArray(list4)) continue;
+    for (const it of list4) {
       const action = String(get(it, "actionType") ?? "").toLowerCase();
       if (action !== "navigate" && action !== "navigate-to") continue;
       const dest = get(it, "destination");
@@ -89115,17 +89379,17 @@ function figmaNode(node, abs, blobs) {
   return dn;
 }
 function figmaNodesToNodes(nodeChanges, blobs) {
-  const list3 = Array.isArray(nodeChanges) ? nodeChanges : [];
+  const list4 = Array.isArray(nodeChanges) ? nodeChanges : [];
   const key = (g2) => g2 ? String(g2.sessionID) + ":" + String(g2.localID) : "";
   const kids2 = {};
-  for (const n7 of list3) {
+  for (const n7 of list4) {
     if (n7 && n7.parentIndex && n7.parentIndex.guid) {
       const p = key(n7.parentIndex.guid);
       (kids2[p] || (kids2[p] = [])).push(n7);
     }
   }
-  const canvases = list3.filter((n7) => n7 && n7.type === "CANVAS" && !n7.internalOnly && n7.name !== "Internal Only Canvas");
-  const page3 = canvases[0] || list3.find((n7) => n7 && n7.type === "CANVAS");
+  const canvases = list4.filter((n7) => n7 && n7.type === "CANVAS" && !n7.internalOnly && n7.name !== "Internal Only Canvas");
+  const page3 = canvases[0] || list4.find((n7) => n7 && n7.type === "CANVAS");
   if (!page3) return [];
   const out = [];
   const visit = (node, pabs) => {
@@ -89177,16 +89441,16 @@ function readingOrder2(items2, rect) {
   return rows2.flatMap((row) => row.sort((a, b) => rect(a).x - rect(b).x));
 }
 function figmaNodesToScenes(nodeChanges, blobs) {
-  const list3 = Array.isArray(nodeChanges) ? nodeChanges : [];
+  const list4 = Array.isArray(nodeChanges) ? nodeChanges : [];
   const key = (g2) => g2 ? String(g2.sessionID) + ":" + String(g2.localID) : "";
   const kids2 = {};
-  for (const n7 of list3) {
+  for (const n7 of list4) {
     if (n7 && n7.parentIndex && n7.parentIndex.guid) {
       const p = key(n7.parentIndex.guid);
       (kids2[p] || (kids2[p] = [])).push(n7);
     }
   }
-  const canvases = list3.filter((n7) => n7 && n7.type === "CANVAS" && !n7.internalOnly && n7.name !== "Internal Only Canvas");
+  const canvases = list4.filter((n7) => n7 && n7.type === "CANVAS" && !n7.internalOnly && n7.name !== "Internal Only Canvas");
   const scenes = [];
   for (const page3 of canvases) {
     const pageAbs = figMatrix(page3);
@@ -89331,7 +89595,7 @@ function variantProps(v) {
 }
 function collectPenpotComponents(componentJsons, shapesByPage, opts = {}) {
   const pages = pageMap(shapesByPage);
-  const warnings = [];
+  const warnings2 = [];
   const records = Array.isArray(componentJsons) ? componentJsons.filter(isRec4) : [];
   const findMaster = (rootShapeId, declaredPage) => {
     if (!rootShapeId) return null;
@@ -89353,7 +89617,7 @@ function collectPenpotComponents(componentJsons, shapesByPage, opts = {}) {
     const declaredPage = str5(rec2.mainInstancePage);
     const master = findMaster(rootShapeId, declaredPage);
     if (!master) {
-      warnings.push(`component ${JSON.stringify(name)} (${id2 || "no id"}): master shape ${rootShapeId || "(none)"} not found`);
+      warnings2.push(`component ${JSON.stringify(name)} (${id2 || "no id"}): master shape ${rootShapeId || "(none)"} not found`);
       continue;
     }
     if (!inferredFileId) inferredFileId = str5(master.shape.componentFile);
@@ -89412,14 +89676,14 @@ function collectPenpotComponents(componentJsons, shapesByPage, opts = {}) {
       }
     }
   } else if (records.length) {
-    warnings.push("external-library census skipped: no local file id (pass opts.fileId)");
+    warnings2.push("external-library census skipped: no local file id (pass opts.fileId)");
   }
   const externals = {
     instances,
     files: [...files].sort(),
     components: [...byComponent.values()].sort((a, b) => a.name.localeCompare(b.name) || a.componentId.localeCompare(b.componentId))
   };
-  return { components, externals, localFileId, warnings };
+  return { components, externals, localFileId, warnings: warnings2 };
 }
 function slotFor(sh) {
   const label4 = str5(sh.name);
@@ -91086,9 +91350,9 @@ function nodeFlat(n7) {
   const v = n7.fill || (n7._vectorFill && n7._vectorFill !== "none" ? n7._vectorFill : "") || n7._gradient?.flat || "";
   return hexRgb2(v) ? v : "";
 }
-function meanNodeColor(list3) {
+function meanNodeColor(list4) {
   let r5 = 0, g2 = 0, b = 0, wsum = 0;
-  for (const n7 of list3) {
+  for (const n7 of list4) {
     const c = hexRgb2(nodeFlat(n7));
     if (!c) continue;
     const a = Math.max(0, n7.w) * Math.max(0, n7.h) * (clamp(typeof n7.opacity === "number" ? n7.opacity : 100, 0, 100) / 100);
@@ -91801,30 +92065,30 @@ function pdfNodeExtent(n7) {
   }
 }
 function cullPdfNodes(nodes, win) {
-  const list3 = Array.isArray(nodes) ? nodes : [];
-  const total = list3.length;
+  const list4 = Array.isArray(nodes) ? nodes : [];
+  const total = list4.length;
   if (total > PDF_SVG_MAX_NODES) {
-    return { nodes: list3, total, dropped: 0, unbounded: total };
+    return { nodes: list4, total, dropped: 0, unbounded: total };
   }
   if (!win || !finite2(win.x) || !finite2(win.y) || !finite2(win.width) || !finite2(win.height) || !(win.width > 0) || !(win.height > 0)) {
-    return { nodes: list3, total, dropped: 0, unbounded: 0 };
+    return { nodes: list4, total, dropped: 0, unbounded: 0 };
   }
   const pad = finite2(win.pad) ? Math.max(0, win.pad) : CULL_PAD_PT;
   const wx = win.x - pad, wy = win.y - pad;
   const wx2 = win.x + win.width + pad, wy2 = win.y + win.height + pad;
   const out = [];
   let unbounded = 0;
-  for (const n7 of list3) {
-    let keep = true;
+  for (const n7 of list4) {
+    let keep2 = true;
     try {
       const e = pdfNodeExtent(n7);
       if (e === null) unbounded++;
-      else keep = e.w > 0 && e.h > 0 && e.x < wx2 && e.x + e.w > wx && e.y < wy2 && e.y + e.h > wy;
+      else keep2 = e.w > 0 && e.h > 0 && e.x < wx2 && e.x + e.w > wx && e.y < wy2 && e.y + e.h > wy;
     } catch {
       unbounded++;
-      keep = true;
+      keep2 = true;
     }
-    if (keep) out.push(n7);
+    if (keep2) out.push(n7);
   }
   return { nodes: out, total, dropped: total - out.length, unbounded };
 }
@@ -91948,16 +92212,16 @@ function cluster(items2) {
     for (const [root2, c] of clusters) {
       if (!c.group) continue;
       if (c.plain) continue;
-      const list3 = byGroup.get(c.group);
-      if (list3) list3.push([root2, c.rect]);
+      const list4 = byGroup.get(c.group);
+      if (list4) list4.push([root2, c.rect]);
       else byGroup.set(c.group, [[root2, c.rect]]);
     }
     let merged = false;
-    for (const list3 of byGroup.values()) {
-      for (let a = 0; a < list3.length; a++) {
-        for (let b = a + 1; b < list3.length; b++) {
-          const [ra, rectA] = list3[a];
-          const [rb, rectB] = list3[b];
+    for (const list4 of byGroup.values()) {
+      for (let a = 0; a < list4.length; a++) {
+        for (let b = a + 1; b < list4.length; b++) {
+          const [ra, rectA] = list4[a];
+          const [rb, rectB] = list4[b];
           if (find(ra) === find(rb)) continue;
           const reach2 = Math.min(diagonal(rectA), diagonal(rectB)) * GROUP_REACH;
           if (gapBetween(rectA, rectB) <= Math.max(gap, reach2)) {
@@ -92109,15 +92373,15 @@ function findHiddenText(nodes, opts = {}) {
     }
     if (!hits2.length) continue;
     hits2.sort((a, b) => b.rect.w * b.rect.h - a.rect.w * a.rect.h);
-    const kept = hits2.slice(0, PDF_REDACTION_MAX_COVERS);
-    const coverage = Math.min(1, unionArea(kept.map((h) => h.rect)) / area2);
+    const kept2 = hits2.slice(0, PDF_REDACTION_MAX_COVERS);
+    const coverage = Math.min(1, unionArea(kept2.map((h) => h.rect)) / area2);
     if (coverage < minCoverage) continue;
     out.push({
       text: nodes[i].text.slice(0, PDF_REDACTION_MAX_TEXT_CHARS).replace(/\s+/g, " ").trim(),
       rect: tr,
       coverage,
       fullyHidden: coverage >= FULLY_HIDDEN,
-      fill: kept[0].fill
+      fill: kept2[0].fill
     });
   }
   return out;
@@ -92489,7 +92753,7 @@ function readRegion(items2, depth, sweep) {
   const toSingle = (from, to) => {
     for (let k = from; k < to; k++) single.push(...slabs[k]);
   };
-  let failed = null;
+  let failed2 = null;
   const nextStart = (from, end) => {
     let next2 = from + 1;
     while (next2 < end && !opensGutter(open3[next2 - 1], open3[next2], sweep.minGap)) next2++;
@@ -92512,14 +92776,14 @@ function readRegion(items2, depth, sweep) {
       if (!next2.openings.length || next2.moved) break;
       clear = next2.openings;
       path.push(clear);
-      if (failed && j > failed.start && j < failed.end && sameOpenings(clear, failed.path[j - failed.start], sweep.bodySize)) {
+      if (failed2 && j > failed2.start && j < failed2.end && sameOpenings(clear, failed2.path[j - failed2.start], sweep.bodySize)) {
         rejoined = true;
         break;
       }
       j++;
     }
-    if (rejoined && failed) {
-      const next2 = nextStart(i, failed.end);
+    if (rejoined && failed2) {
+      const next2 = nextStart(i, failed2.end);
       toSingle(i, next2);
       i = next2;
       continue;
@@ -92540,7 +92804,7 @@ function readRegion(items2, depth, sweep) {
       return { items: rowItems, cols: splitSection(rowItems, gutters, rows2.length > 1, sweep) };
     });
     if (!read.some((r5) => r5.cols)) {
-      if (j > i + 1) failed = { start: i, end: j, path };
+      if (j > i + 1) failed2 = { start: i, end: j, path };
       const next2 = nextStart(i, j);
       toSingle(i, next2);
       i = next2;
@@ -93645,18 +93909,18 @@ function chromaKeyAlpha(rgba2, width, height, opts) {
     const r5 = out[i], g2 = out[i + 1], b = out[i + 2];
     const [L, a, bb] = rgbToOklab(r5, g2, b);
     const d = Math.hypot(L - kL, a - ka, bb - kbb);
-    let keep;
-    if (d <= tol) keep = 0;
-    else if (d >= tol + soft) keep = 1;
-    else keep = (d - tol) / soft;
-    if (sp > 0 && keep > 0 && keep < 1) {
+    let keep2;
+    if (d <= tol) keep2 = 0;
+    else if (d >= tol + soft) keep2 = 1;
+    else keep2 = (d - tol) / soft;
+    if (sp > 0 && keep2 > 0 && keep2 < 1) {
       const y = 0.299 * r5 + 0.587 * g2 + 0.114 * b;
-      const f = (1 - keep) * sp;
+      const f = (1 - keep2) * sp;
       out[i] = r5 + (y - r5) * f;
       out[i + 1] = g2 + (y - g2) * f;
       out[i + 2] = b + (y - b) * f;
     }
-    out[i + 3] = Math.round(out[i + 3] * keep);
+    out[i + 3] = Math.round(out[i + 3] * keep2);
   }
   return out;
 }
@@ -95332,7 +95596,7 @@ function coerceTokensDoc(json) {
   return { doc: json, warnings: [], source: studio ? "tokens-studio" : "dtcg" };
 }
 function assembleTokenSetFiles(files) {
-  const warnings = [];
+  const warnings2 = [];
   let paths;
   try {
     paths = Object.keys(files);
@@ -95354,39 +95618,39 @@ function assembleTokenSetFiles(files) {
     try {
       body = files[path];
     } catch {
-      warnings.push(`${path}: body could not be read safely - ignored`);
+      warnings2.push(`${path}: body could not be read safely - ignored`);
       continue;
     }
     if (path === "$metadata.json") {
       if (isRecord2(body)) {
         const issue3 = structureIssue(body, structure);
-        if (issue3) return { doc: null, warnings: [...warnings, `${path}: ${issue3}`], source: "token-set-files" };
+        if (issue3) return { doc: null, warnings: [...warnings2, `${path}: ${issue3}`], source: "token-set-files" };
         doc.$metadata = body;
-      } else warnings.push(`$metadata.json is not an object - ignored`);
+      } else warnings2.push(`$metadata.json is not an object - ignored`);
       continue;
     }
     if (path === "$themes.json") {
       if (Array.isArray(body)) {
         const issue3 = structureIssue(body, structure);
-        if (issue3) return { doc: null, warnings: [...warnings, `${path}: ${issue3}`], source: "token-set-files" };
+        if (issue3) return { doc: null, warnings: [...warnings2, `${path}: ${issue3}`], source: "token-set-files" };
         doc.$themes = body;
-      } else warnings.push(`$themes.json is not an array - ignored`);
+      } else warnings2.push(`$themes.json is not an array - ignored`);
       continue;
     }
     if (!path.endsWith(".json")) {
-      warnings.push(`${path}: not a .json file - ignored`);
+      warnings2.push(`${path}: not a .json file - ignored`);
       continue;
     }
     if (!isRecord2(body)) {
-      warnings.push(`${path}: set body is not an object - ignored`);
+      warnings2.push(`${path}: set body is not an object - ignored`);
       continue;
     }
     const issue2 = structureIssue(body, structure);
-    if (issue2) return { doc: null, warnings: [...warnings, `${path}: ${issue2}`], source: "token-set-files" };
+    if (issue2) return { doc: null, warnings: [...warnings2, `${path}: ${issue2}`], source: "token-set-files" };
     if (setCount >= BRAND_IMPORT_MAX_TOKEN_SETS) {
       return {
         doc: null,
-        warnings: [...warnings, `token export carries more than ${BRAND_IMPORT_MAX_TOKEN_SETS.toLocaleString("en")} sets`],
+        warnings: [...warnings2, `token export carries more than ${BRAND_IMPORT_MAX_TOKEN_SETS.toLocaleString("en")} sets`],
         source: "token-set-files"
       };
     }
@@ -95394,23 +95658,23 @@ function assembleTokenSetFiles(files) {
     setCount++;
   }
   if (!setCount) {
-    warnings.push("no token set files found");
-    return { doc: null, warnings, source: "token-set-files" };
+    warnings2.push("no token set files found");
+    return { doc: null, warnings: warnings2, source: "token-set-files" };
   }
-  return { doc, warnings, source: "token-set-files" };
+  return { doc, warnings: warnings2, source: "token-set-files" };
 }
-function parseEntry(entries, path, warnings, budget3) {
+function parseEntry(entries, path, warnings2, budget3) {
   const raw = entries[path];
   if (raw === void 0) return void 0;
   const units2 = raw.length;
   const partLimit = typeof raw === "string" ? BRAND_IMPORT_MAX_PART_CHARS : BRAND_IMPORT_MAX_PART_BYTES;
   if (units2 > partLimit) {
-    warnings.push(`${path}: JSON part exceeds ${partLimit.toLocaleString("en")} ${typeof raw === "string" ? "characters" : "bytes"}`);
+    warnings2.push(`${path}: JSON part exceeds ${partLimit.toLocaleString("en")} ${typeof raw === "string" ? "characters" : "bytes"}`);
     budget3.refused = true;
     return void 0;
   }
   if (budget3.units + units2 > BRAND_IMPORT_MAX_JSON_UNITS) {
-    warnings.push(`${path}: project JSON exceeds the ${BRAND_IMPORT_MAX_JSON_UNITS.toLocaleString("en")} unit aggregate limit`);
+    warnings2.push(`${path}: project JSON exceeds the ${BRAND_IMPORT_MAX_JSON_UNITS.toLocaleString("en")} unit aggregate limit`);
     budget3.refused = true;
     return void 0;
   }
@@ -95419,44 +95683,44 @@ function parseEntry(entries, path, warnings, budget3) {
     const parsed = JSON.parse(asText2(raw));
     const issue2 = structureIssue(parsed, budget3.structure);
     if (issue2) {
-      warnings.push(`${path}: ${issue2}`);
+      warnings2.push(`${path}: ${issue2}`);
       budget3.refused = true;
       return void 0;
     }
     return parsed;
   } catch (e) {
-    warnings.push(`${path}: ${e instanceof Error ? e.message : "unparseable JSON"}`);
+    warnings2.push(`${path}: ${e instanceof Error ? e.message : "unparseable JSON"}`);
     return void 0;
   }
 }
-function penpotEntryPaths(entries, warnings, budget3) {
+function penpotEntryPaths(entries, warnings2, budget3) {
   try {
     const paths = Object.keys(entries);
     if (paths.length > BRAND_IMPORT_MAX_ENTRIES) {
-      warnings.push(`project carries more than ${BRAND_IMPORT_MAX_ENTRIES.toLocaleString("en")} archive entries`);
+      warnings2.push(`project carries more than ${BRAND_IMPORT_MAX_ENTRIES.toLocaleString("en")} archive entries`);
       budget3.refused = true;
       return [];
     }
     return paths;
   } catch {
-    warnings.push("project entry list could not be inspected safely");
+    warnings2.push("project entry list could not be inspected safely");
     budget3.refused = true;
     return [];
   }
 }
 function extractPenpotProject(entries) {
-  const warnings = [];
+  const warnings2 = [];
   const budget3 = newParseBudget();
-  const entryPaths = penpotEntryPaths(entries, warnings, budget3);
-  if (budget3.refused) return { doc: null, warnings, source: "penpot-project" };
+  const entryPaths = penpotEntryPaths(entries, warnings2, budget3);
+  if (budget3.refused) return { doc: null, warnings: warnings2, source: "penpot-project" };
   let tokenPaths = [];
-  const manifest = parseEntry(entries, "manifest.json", warnings, budget3);
-  if (budget3.refused) return { doc: null, warnings, source: "penpot-project" };
+  const manifest = parseEntry(entries, "manifest.json", warnings2, budget3);
+  if (budget3.refused) return { doc: null, warnings: warnings2, source: "penpot-project" };
   const manifestFiles = isRecord2(manifest) && Array.isArray(manifest.files) ? manifest.files : null;
   if (manifestFiles) {
     if (manifestFiles.length > BRAND_IMPORT_MAX_ENTRIES) {
-      warnings.push(`manifest carries more than ${BRAND_IMPORT_MAX_ENTRIES.toLocaleString("en")} file records`);
-      return { doc: null, warnings, source: "penpot-project" };
+      warnings2.push(`manifest carries more than ${BRAND_IMPORT_MAX_ENTRIES.toLocaleString("en")} file records`);
+      return { doc: null, warnings: warnings2, source: "penpot-project" };
     }
     const seen = /* @__PURE__ */ new Set();
     for (const f of manifestFiles) {
@@ -95466,27 +95730,27 @@ function extractPenpotProject(entries) {
         tokenPaths.push(p);
         seen.add(p);
       } else if (Array.isArray(f.features) && f.features.includes("design-tokens/v1")) {
-        warnings.push(`${p}: declared design-tokens/v1 but has no tokens.json`);
+        warnings2.push(`${p}: declared design-tokens/v1 but has no tokens.json`);
       }
     }
   } else {
-    warnings.push(
+    warnings2.push(
       manifest === void 0 ? "manifest.json missing or unparseable - scanning for files/*/tokens.json" : "manifest.json is not a penpot/export-files manifest - scanning for files/*/tokens.json"
     );
     tokenPaths = entryPaths.filter((p) => /^files\/[^/]+\/tokens\.json$/.test(p)).sort();
   }
   if (tokenPaths.length > BRAND_IMPORT_MAX_TOKEN_DOCS) {
-    warnings.push(`project carries more than ${BRAND_IMPORT_MAX_TOKEN_DOCS.toLocaleString("en")} token documents`);
-    return { doc: null, warnings, source: "penpot-project" };
+    warnings2.push(`project carries more than ${BRAND_IMPORT_MAX_TOKEN_DOCS.toLocaleString("en")} token documents`);
+    return { doc: null, warnings: warnings2, source: "penpot-project" };
   }
   let doc = null;
   const setNames = /* @__PURE__ */ new Set();
   for (const path of tokenPaths) {
-    const parsed = parseEntry(entries, path, warnings, budget3);
-    if (budget3.refused) return { doc: null, warnings, source: "penpot-project" };
+    const parsed = parseEntry(entries, path, warnings2, budget3);
+    if (budget3.refused) return { doc: null, warnings: warnings2, source: "penpot-project" };
     if (parsed === void 0) continue;
     if (!isRecord2(parsed)) {
-      warnings.push(`${path}: token document is not an object - ignored`);
+      warnings2.push(`${path}: token document is not an object - ignored`);
       continue;
     }
     if (!doc) doc = /* @__PURE__ */ Object.create(null);
@@ -95495,28 +95759,28 @@ function extractPenpotProject(entries) {
         const meaningful3 = (v) => key === "$themes" ? Array.isArray(v) && v.length > 0 : isRecord2(v) && Object.keys(v).length > 0;
         if (!meaningful3(doc[key])) doc[key] = value;
         else if (meaningful3(value) && stableStringify2(doc[key]) !== stableStringify2(value)) {
-          warnings.push(`${path}: ${key} differs from an earlier file's - keeping the first`);
+          warnings2.push(`${path}: ${key} differs from an earlier file's - keeping the first`);
         }
         continue;
       }
       if (!setNames.has(key)) {
         if (setNames.size >= BRAND_IMPORT_MAX_TOKEN_SETS) {
-          warnings.push(`project carries more than ${BRAND_IMPORT_MAX_TOKEN_SETS.toLocaleString("en")} distinct token sets`);
-          return { doc: null, warnings, source: "penpot-project" };
+          warnings2.push(`project carries more than ${BRAND_IMPORT_MAX_TOKEN_SETS.toLocaleString("en")} distinct token sets`);
+          return { doc: null, warnings: warnings2, source: "penpot-project" };
         }
         setNames.add(key);
       }
       if (Object.hasOwn(doc, key) && stableStringify2(doc[key]) !== stableStringify2(value)) {
-        warnings.push(`${path}: set "${key}" collides with an earlier file's - later file wins`);
+        warnings2.push(`${path}: set "${key}" collides with an earlier file's - later file wins`);
       }
       doc[key] = value;
     }
   }
   if (!doc) {
-    warnings.push("no tokens.json found in the project");
-    return { doc: null, warnings, source: "penpot-project" };
+    warnings2.push("no tokens.json found in the project");
+    return { doc: null, warnings: warnings2, source: "penpot-project" };
   }
-  return { doc, warnings, source: "penpot-project" };
+  return { doc, warnings: warnings2, source: "penpot-project" };
 }
 function pv(o, camel) {
   if (!isRecord2(o)) return void 0;
@@ -95526,10 +95790,10 @@ function pv(o, camel) {
   if (o[`:${kb}`] !== void 0) return o[`:${kb}`];
   return void 0;
 }
-function penpotPagePaths(entries, warnings, budget3) {
-  const entryPaths = penpotEntryPaths(entries, warnings, budget3);
+function penpotPagePaths(entries, warnings2, budget3) {
+  const entryPaths = penpotEntryPaths(entries, warnings2, budget3);
   if (budget3.refused) return [];
-  const manifest = parseEntry(entries, "manifest.json", warnings, budget3);
+  const manifest = parseEntry(entries, "manifest.json", warnings2, budget3);
   if (budget3.refused) return [];
   const manifestFiles = isRecord2(manifest) && Array.isArray(manifest.files) ? manifest.files : null;
   const pagePathRe = /^files\/([^/]+)\/pages\/[^/]+\/[^/]+\.json$/;
@@ -95538,7 +95802,7 @@ function penpotPagePaths(entries, warnings, budget3) {
     const match = pagePathRe.exec(path);
     if (!match) continue;
     if (candidates2.length >= BRAND_IMPORT_MAX_PAGE_PARTS) {
-      warnings.push(`project carries more than ${BRAND_IMPORT_MAX_PAGE_PARTS.toLocaleString("en")} page-shape parts`);
+      warnings2.push(`project carries more than ${BRAND_IMPORT_MAX_PAGE_PARTS.toLocaleString("en")} page-shape parts`);
       budget3.refused = true;
       return [];
     }
@@ -95548,7 +95812,7 @@ function penpotPagePaths(entries, warnings, budget3) {
     return candidates2.map((entry2) => entry2.path).sort();
   }
   if (manifestFiles.length > BRAND_IMPORT_MAX_ENTRIES) {
-    warnings.push(`manifest carries more than ${BRAND_IMPORT_MAX_ENTRIES.toLocaleString("en")} file records`);
+    warnings2.push(`manifest carries more than ${BRAND_IMPORT_MAX_ENTRIES.toLocaleString("en")} file records`);
     budget3.refused = true;
     return [];
   }
@@ -95559,9 +95823,9 @@ function penpotPagePaths(entries, warnings, budget3) {
   return candidates2.filter((entry2) => fileOrder.has(entry2.fileId)).sort((a, b) => fileOrder.get(a.fileId) - fileOrder.get(b.fileId) || a.path.localeCompare(b.path)).map((entry2) => entry2.path);
 }
 function scanPenpotUsage(entries) {
-  const warnings = [];
+  const warnings2 = [];
   const budget3 = newParseBudget();
-  const pagePaths = penpotPagePaths(entries, warnings, budget3);
+  const pagePaths = penpotPagePaths(entries, warnings2, budget3);
   if (budget3.refused) return { colors: [], gradients: [], fonts: [] };
   const colors = /* @__PURE__ */ new Map();
   const bump2 = (hex3, key) => {
@@ -95606,9 +95870,9 @@ function scanPenpotUsage(entries) {
     v.count++;
     v.angles.set(angle, (v.angles.get(angle) ?? 0) + 1);
   };
-  const seePaints = (list3, colorKey, gradKey, tally2) => {
-    if (!Array.isArray(list3)) return;
-    for (const p of list3) {
+  const seePaints = (list4, colorKey, gradKey, tally2) => {
+    if (!Array.isArray(list4)) return;
+    for (const p of list4) {
       if (!isRecord2(p)) continue;
       bump2(normHex3(pv(p, colorKey)), tally2);
       seeGradient(pv(p, gradKey));
@@ -95627,7 +95891,7 @@ function scanPenpotUsage(entries) {
     walkText(pv(n7, "children"));
   };
   for (const path of pagePaths) {
-    const shape = parseEntry(entries, path, warnings, budget3);
+    const shape = parseEntry(entries, path, warnings2, budget3);
     if (budget3.refused) return { colors: [], gradients: [], fonts: [] };
     if (!isRecord2(shape)) continue;
     seePaints(pv(shape, "fills"), "fillColor", "fillColorGradient", "fills");
@@ -95669,7 +95933,7 @@ function camelOf(k) {
   return k.replace(/^:/, "").replace(/-([a-z])/g, (_, c) => c.toUpperCase());
 }
 function scanPenpotAppliedTokens(entries) {
-  const warnings = [];
+  const warnings2 = [];
   const budget3 = newParseBudget();
   const rows2 = /* @__PURE__ */ new Map();
   const bump2 = (name, cls) => {
@@ -95680,8 +95944,8 @@ function scanPenpotAppliedTokens(entries) {
     }
     r5[cls]++;
   };
-  for (const path of penpotPagePaths(entries, warnings, budget3)) {
-    const shape = parseEntry(entries, path, warnings, budget3);
+  for (const path of penpotPagePaths(entries, warnings2, budget3)) {
+    const shape = parseEntry(entries, path, warnings2, budget3);
     if (budget3.refused) return [];
     if (!isRecord2(shape)) continue;
     const applied = pv(shape, "appliedTokens");
@@ -95784,27 +96048,27 @@ function isSafeTokenPath(p) {
   }
   return true;
 }
-function sanitizeAppliedTokens(penpotShapeType, applied, index2, warn) {
+function sanitizeAppliedTokens(penpotShapeType, applied, index2, warn2) {
   if (!isRec5(applied)) return void 0;
   const out = {};
-  let kept = 0;
+  let kept2 = 0;
   for (const [prop4, val] of Object.entries(applied)) {
     const spec = PENPOT_BINDABLE[prop4];
     if (!spec) {
-      warn?.(`applied token '${prop4}' is not a bindable property; dropped`);
+      warn2?.(`applied token '${prop4}' is not a bindable property; dropped`);
       continue;
     }
     if (!spec.shapes.has(penpotShapeType)) {
-      warn?.(`applied token '${prop4}' does not apply to a ${penpotShapeType}; dropped`);
+      warn2?.(`applied token '${prop4}' does not apply to a ${penpotShapeType}; dropped`);
       continue;
     }
     if (!isSafeTokenPath(val)) {
-      warn?.(`applied token '${prop4}' names an unusable token path; dropped`);
+      warn2?.(`applied token '${prop4}' names an unusable token path; dropped`);
       continue;
     }
     const types = index2.get(val);
     if (!types?.size) {
-      warn?.(`applied token '${prop4}' \u2192 {${val}} resolves to no surviving token; dropped`);
+      warn2?.(`applied token '${prop4}' \u2192 {${val}} resolves to no surviving token; dropped`);
       continue;
     }
     let compat = false;
@@ -95813,13 +96077,13 @@ function sanitizeAppliedTokens(penpotShapeType, applied, index2, warn) {
       break;
     }
     if (!compat) {
-      warn?.(`applied token '${prop4}' \u2192 {${val}} is ${[...types].join("/")}, not one ${prop4} can carry; dropped`);
+      warn2?.(`applied token '${prop4}' \u2192 {${val}} is ${[...types].join("/")}, not one ${prop4} can carry; dropped`);
       continue;
     }
     out[prop4] = val;
-    kept++;
+    kept2++;
   }
-  return kept ? out : void 0;
+  return kept2 ? out : void 0;
 }
 function penpotTokenClosure(filtered) {
   const dangling = [];
@@ -96143,12 +96407,12 @@ function fontVariantId(weight, italic) {
   if (w === 400) return italic ? "italic" : "regular";
   return `${w}${italic ? "italic" : ""}`;
 }
-function fillRecord(f, media, warn) {
+function fillRecord(f, media, warn2) {
   const op = f.opacity == null ? 1 : clamp(fin2(f.opacity, 1), 0, 1);
   if (f.media) {
     const m2 = media.get(f.media);
     if (!m2) {
-      warn(`fill names unknown media ${f.media}`);
+      warn2(`fill names unknown media ${f.media}`);
       return null;
     }
     return {
@@ -96220,7 +96484,7 @@ function radii(r5, w, h) {
   const v = one(r5);
   return [v, v, v, v];
 }
-function baseRecord(id2, type, sh, parentId, frameId, pageId, media, uuid, warn, fallbackName) {
+function baseRecord(id2, type, sh, parentId, frameId, pageId, media, uuid, warn2, fallbackName) {
   const rec2 = {
     id: id2,
     name: sh.name && String(sh.name).trim() || fallbackName,
@@ -96233,7 +96497,7 @@ function baseRecord(id2, type, sh, parentId, frameId, pageId, media, uuid, warn,
     flipY: sh.flipY === true ? true : null,
     proportionLock: false,
     proportion: r4(fin2(sh.h) > 0 ? fin2(sh.w) / fin2(sh.h) : 1) || 1,
-    fills: (sh.fills ?? []).map((f) => fillRecord(f, media, warn)).filter((f) => !!f),
+    fills: (sh.fills ?? []).map((f) => fillRecord(f, media, warn2)).filter((f) => !!f),
     strokes: (sh.strokes ?? []).map(strokeRecord).filter((s) => !!s)
   };
   if (sh.opacity != null && fin2(sh.opacity, 1) < 1) rec2.opacity = r4(clamp(fin2(sh.opacity, 1), 0, 1));
@@ -96308,9 +96572,9 @@ function buildPenpotEntries(doc, opts = {}) {
   const now2 = opts.now ?? (() => (/* @__PURE__ */ new Date()).toISOString());
   let keySeq = 0;
   const nextKey = () => `lolly${(++keySeq).toString(36)}`;
-  const warnings = [];
-  const warn = (s) => {
-    if (warnings.length < 200) warnings.push(s);
+  const warnings2 = [];
+  const warn2 = (s) => {
+    if (warnings2.length < 200) warnings2.push(s);
   };
   const entries = {};
   const put = (path, obj3) => {
@@ -96325,15 +96589,15 @@ function buildPenpotEntries(doc, opts = {}) {
   const media = /* @__PURE__ */ new Map();
   for (const m2 of doc.media ?? []) {
     if (!m2 || !m2.id || !(m2.bytes instanceof Uint8Array) || !m2.bytes.length) {
-      warn("media entry without bytes skipped");
+      warn2("media entry without bytes skipped");
       continue;
     }
     if (!MTYPE_EXT[m2.mtype]) {
-      warn(`media ${m2.name} has unsupported type ${m2.mtype}; skipped`);
+      warn2(`media ${m2.name} has unsupported type ${m2.mtype}; skipped`);
       continue;
     }
     if (!(m2.width > 0 && m2.height > 0)) {
-      warn(`media ${m2.name} has no size; skipped`);
+      warn2(`media ${m2.name} has no size; skipped`);
       continue;
     }
     media.set(m2.id, m2);
@@ -96368,11 +96632,11 @@ function buildPenpotEntries(doc, opts = {}) {
     const topIds = [];
     const emit = (sh, parentId, frameId, depth) => {
       if (shapeCount >= MAX_SHAPES) {
-        warn("shape ceiling reached; remaining shapes dropped");
+        warn2("shape ceiling reached; remaining shapes dropped");
         return null;
       }
       if (depth > 64) {
-        warn("nesting ceiling reached; shape dropped");
+        warn2("nesting ceiling reached; shape dropped");
         return null;
       }
       const id2 = uuid();
@@ -96380,7 +96644,7 @@ function buildPenpotEntries(doc, opts = {}) {
       let rec2;
       switch (sh.type) {
         case "board": {
-          rec2 = baseRecord(id2, "frame", sh, parentId, frameId, pageId, media, uuid, warn, nameOf4("Board"));
+          rec2 = baseRecord(id2, "frame", sh, parentId, frameId, pageId, media, uuid, warn2, nameOf4("Board"));
           const [r12, r26, r32, r4v] = radii(sh.radius, fin2(sh.w), fin2(sh.h));
           Object.assign(rec2, { r1: r12, r2: r26, r3: r32, r4: r4v, hideFillOnExport: false, growType: "fixed" });
           if (sh.showContent) rec2.showContent = true;
@@ -96396,7 +96660,7 @@ function buildPenpotEntries(doc, opts = {}) {
         case "group": {
           const kids2 = sh.children.filter(Boolean);
           if (!kids2.length) return null;
-          rec2 = baseRecord(id2, "group", sh, parentId, frameId, pageId, media, uuid, warn, nameOf4("Group"));
+          rec2 = baseRecord(id2, "group", sh, parentId, frameId, pageId, media, uuid, warn2, nameOf4("Group"));
           rec2.fills = [];
           rec2.strokes = [];
           if (sh.masked) rec2.maskedGroup = true;
@@ -96414,7 +96678,7 @@ function buildPenpotEntries(doc, opts = {}) {
           break;
         }
         case "rect": {
-          rec2 = baseRecord(id2, "rect", sh, parentId, frameId, pageId, media, uuid, warn, nameOf4("Rectangle"));
+          rec2 = baseRecord(id2, "rect", sh, parentId, frameId, pageId, media, uuid, warn2, nameOf4("Rectangle"));
           const [r12, r26, r32, r4v] = radii(sh.radius, fin2(sh.w), fin2(sh.h));
           Object.assign(rec2, { r1: r12, r2: r26, r3: r32, r4: r4v });
           shapeCount++;
@@ -96423,25 +96687,25 @@ function buildPenpotEntries(doc, opts = {}) {
         case "image": {
           const m2 = media.get(sh.media);
           if (!m2) {
-            warn(`image shape names unknown media ${sh.media}; dropped`);
+            warn2(`image shape names unknown media ${sh.media}; dropped`);
             return null;
           }
           const fills = [{ media: sh.media, keepAspectRatio: sh.keepAspectRatio !== false, opacity: 1 }];
-          rec2 = baseRecord(id2, "rect", { ...sh, fills }, parentId, frameId, pageId, media, uuid, warn, nameOf4(m2.name || "Image"));
+          rec2 = baseRecord(id2, "rect", { ...sh, fills }, parentId, frameId, pageId, media, uuid, warn2, nameOf4(m2.name || "Image"));
           const [r12, r26, r32, r4v] = radii(sh.radius, fin2(sh.w), fin2(sh.h));
           Object.assign(rec2, { r1: r12, r2: r26, r3: r32, r4: r4v });
           shapeCount++;
           break;
         }
         case "circle": {
-          rec2 = baseRecord(id2, "circle", sh, parentId, frameId, pageId, media, uuid, warn, nameOf4("Ellipse"));
+          rec2 = baseRecord(id2, "circle", sh, parentId, frameId, pageId, media, uuid, warn2, nameOf4("Ellipse"));
           shapeCount++;
           break;
         }
         case "path": {
           const d = typeof sh.d === "string" ? sh.d.trim() : "";
           if (!d) return null;
-          rec2 = baseRecord(id2, "path", sh, parentId, frameId, pageId, media, uuid, warn, nameOf4("Path"));
+          rec2 = baseRecord(id2, "path", sh, parentId, frameId, pageId, media, uuid, warn2, nameOf4("Path"));
           rec2.content = d;
           shapeCount++;
           break;
@@ -96449,7 +96713,7 @@ function buildPenpotEntries(doc, opts = {}) {
         case "text": {
           const content2 = textContentRecord(sh, google, nextKey);
           if (!content2) return null;
-          rec2 = baseRecord(id2, "text", { ...sh, fills: [] }, parentId, frameId, pageId, media, uuid, warn, nameOf4("Text"));
+          rec2 = baseRecord(id2, "text", { ...sh, fills: [] }, parentId, frameId, pageId, media, uuid, warn2, nameOf4("Text"));
           rec2.content = content2;
           rec2.growType = sh.growType ?? "fixed";
           shapeCount++;
@@ -96459,7 +96723,7 @@ function buildPenpotEntries(doc, opts = {}) {
           return null;
       }
       if (sh.appliedTokens) {
-        const at = sanitizeAppliedTokens(String(rec2.type), sh.appliedTokens, tokenIndex, warn);
+        const at = sanitizeAppliedTokens(String(rec2.type), sh.appliedTokens, tokenIndex, warn2);
         if (at) rec2.appliedTokens = at;
       }
       if (sh.type === "board" && sh.component) {
@@ -96478,7 +96742,7 @@ function buildPenpotEntries(doc, opts = {}) {
             mainInstancePage: pageId
           });
         } else {
-          warn("component marker on a non-top-level board ignored (Penpot main instances are page-root frames)");
+          warn2("component marker on a non-top-level board ignored (Penpot main instances are page-root frames)");
         }
       }
       put(`files/${fileId}/pages/${pageId}/${id2}.json`, rec2);
@@ -96540,7 +96804,7 @@ function buildPenpotEntries(doc, opts = {}) {
     put(`files/${fileId}/typographies/${id2}.json`, rec2);
   }
   if (filteredTokens) put(`files/${fileId}/tokens.json`, filteredTokens);
-  else if (doc.tokens != null) warn("token document carried nothing Penpot can read; tokens.json omitted");
+  else if (doc.tokens != null) warn2("token document carried nothing Penpot can read; tokens.json omitted");
   put(`files/${fileId}.json`, {
     id: fileId,
     name: fileName,
@@ -96563,7 +96827,7 @@ function buildPenpotEntries(doc, opts = {}) {
     files: [{ id: fileId, name: fileName, features: [...PENPOT_FEATURES] }],
     relations: []
   });
-  return { entries, fileId, pageIds, shapeCount, mediaCount: media.size, warnings };
+  return { entries, fileId, pageIds, shapeCount, mediaCount: media.size, warnings: warnings2 };
 }
 function penpotTokensJson(doc, selection) {
   if (!isRec6(doc)) return null;
@@ -96572,7 +96836,7 @@ function penpotTokensJson(doc, selection) {
   const reserved = /* @__PURE__ */ new Set(["$themes", "$metadata", "$description", "$extensions", "$type", "$schema"]);
   const convert = (node, inherited2) => {
     const out2 = /* @__PURE__ */ Object.create(null);
-    let kept = 0;
+    let kept2 = 0;
     for (const [k, v] of Object.entries(node)) {
       if (k.startsWith("$")) continue;
       if (isTokenLeaf(v)) {
@@ -96583,17 +96847,17 @@ function penpotTokensJson(doc, selection) {
         const desc = v.$description ?? v.description;
         if (typeof desc === "string" && desc) leaf.$description = desc;
         out2[k] = leaf;
-        kept++;
+        kept2++;
       } else if (isRec6(v)) {
         const groupType = typeof v.$type === "string" ? v.$type : inherited2;
         const sub = convert(v, groupType);
         if (sub) {
           out2[k] = sub;
-          kept++;
+          kept2++;
         }
       }
     }
-    return kept ? out2 : null;
+    return kept2 ? out2 : null;
   };
   const hasSets = "$themes" in doc || "$metadata" in doc;
   if (hasSets) {
@@ -96771,8 +97035,8 @@ function boxesToPenpotDoc(boxesIn, o) {
     const s = str6(v).trim();
     if (!s) return null;
     if (/var\(/i.test(s) || s.startsWith("{")) {
-      const live = o.resolveColor?.(s) ?? null;
-      const lp = live ? parsePenpotColor(live) : null;
+      const live2 = o.resolveColor?.(s) ?? null;
+      const lp = live2 ? parsePenpotColor(live2) : null;
       if (lp) return hexOf8(lp);
     }
     const p = parsePenpotColor(s);
@@ -97228,7 +97492,7 @@ function svgToPenpotDoc(svgText, o) {
   if (typeof svgText !== "string" || !svgText.trim() || svgText.length > MAX_SVG_LEN) return null;
   const src = svgText.replace(/<!--[\s\S]*?-->/g, "").replace(/<!\[CDATA\[[\s\S]*?\]\]>/g, "").replace(/<\?[\s\S]*?\?>/g, "").replace(/<!DOCTYPE[^>]*>/gi, "");
   const notes = [];
-  const note = (s) => {
+  const note2 = (s) => {
     if (notes.length < 100) notes.push(s);
     if (o.notes && o.notes.length < 100) o.notes.push(s);
   };
@@ -97239,7 +97503,7 @@ function svgToPenpotDoc(svgText, o) {
     if (tags3.length > MAX_SVG_TAGS) return null;
     const name = m2[2].toLowerCase().replace(/^svg:/, "");
     if (BAIL_TAGS2.has(name)) {
-      note(`<${name}> is not expressible; kept as a picture`);
+      note2(`<${name}> is not expressible; kept as a picture`);
       return null;
     }
     tags3.push({ name, attrs: parseAttrs2(m2[3] ?? ""), selfClosing: m2[4] === "/", closing: m2[1] === "/", start: m2.index, end: m2.index + m2[0].length });
@@ -97307,7 +97571,7 @@ function svgToPenpotDoc(svgText, o) {
         const st = parseStyle2(s.attrs.style);
         const col = parsePenpotColor(st["stop-color"] ?? s.attrs["stop-color"] ?? "#000000");
         if (!col) {
-          note("gradient stop with an unreadable colour");
+          note2("gradient stop with an unreadable colour");
           return null;
         }
         const so = s.attrs["stop-opacity"] ?? st["stop-opacity"];
@@ -97346,7 +97610,7 @@ function svgToPenpotDoc(svgText, o) {
     const get3 = (k) => st[k] ?? a[k];
     const local = parseTransform3(a.transform);
     if (local === null) {
-      note("unreadable transform");
+      note2("unreadable transform");
       return null;
     }
     const f = { ...parent, m: mul2(parent.m, local) };
@@ -97358,7 +97622,7 @@ function svgToPenpotDoc(svgText, o) {
       else if (parsePenpotColor(v)) f.fill = v;
       else if (/^currentcolor$/i.test(v)) f.fill = "#000000";
       else {
-        note(`unreadable fill ${v}`);
+        note2(`unreadable fill ${v}`);
         return null;
       }
     }
@@ -97371,10 +97635,10 @@ function svgToPenpotDoc(svgText, o) {
       else if (parsePenpotColor(v)) f.stroke = v;
       else if (/^currentcolor$/i.test(v)) f.stroke = "#000000";
       else if (/^url\(/i.test(v)) {
-        note("gradient stroke is not expressible");
+        note2("gradient stroke is not expressible");
         return null;
       } else {
-        note(`unreadable stroke ${v}`);
+        note2(`unreadable stroke ${v}`);
         return null;
       }
     }
@@ -97406,7 +97670,7 @@ function svgToPenpotDoc(svgText, o) {
     const vis = get3("visibility"), disp = get3("display");
     if (vis && /hidden|collapse/i.test(vis) || disp && /none/i.test(disp)) f.visible = false;
     if (get3("filter") || get3("mask") || get3("clip-path")) {
-      note("filter/mask/clip-path is not expressible");
+      note2("filter/mask/clip-path is not expressible");
       return null;
     }
     return f;
@@ -97415,12 +97679,12 @@ function svgToPenpotDoc(svgText, o) {
     const id2 = /^url\(\s*['"]?#([^'")]+)['"]?\s*\)/i.exec(paint2)?.[1];
     const g2 = id2 ? grads.get(id2) : void 0;
     if (!g2 || !g2.stops.length) {
-      note("paint references something that is not a gradient");
+      note2("paint references something that is not a gradient");
       return null;
     }
     const gm = g2.transform ? parseTransform3(g2.transform) : { ...IDENT };
     if (!gm) {
-      note("unreadable gradientTransform");
+      note2("unreadable gradientTransform");
       return null;
     }
     const obb = g2.units === "objectBoundingBox";
@@ -97432,7 +97696,7 @@ function svgToPenpotDoc(svgText, o) {
     };
     if (g2.type === "radial") {
       if (Math.abs(gm.b) > 1e-9 || Math.abs(gm.c) > 1e-9) {
-        note("a rotated or skewed radial gradientTransform is not expressible");
+        note2("a rotated or skewed radial gradientTransform is not expressible");
         return null;
       }
       const [cx2, cy3] = toUnit2(g2.cx, g2.cy);
@@ -97522,7 +97786,7 @@ function svgToPenpotDoc(svgText, o) {
   const MAX_WALK_DEPTH = 512;
   const walk2 = (from, to, parent, out, depth = 0) => {
     if (depth > MAX_WALK_DEPTH) {
-      note("nesting ceiling reached");
+      note2("nesting ceiling reached");
       return false;
     }
     let i = from;
@@ -97559,7 +97823,7 @@ function svgToPenpotDoc(svgText, o) {
         continue;
       }
       if (--shapeBudget < 0) {
-        note("shape ceiling reached");
+        note2("shape ceiling reached");
         return false;
       }
       const name = t.attrs.id ?? "";
@@ -97649,7 +97913,7 @@ function svgToPenpotDoc(svgText, o) {
           try {
             subs = parseSvgPath(d);
           } catch {
-            note("unreadable path data");
+            note2("unreadable path data");
             return false;
           }
           if (!subs.length) break;
@@ -97663,7 +97927,7 @@ function svgToPenpotDoc(svgText, o) {
           const x = parseLen(a.x), y = parseLen(a.y), w = parseLen(a.width), h = parseLen(a.height);
           if (!href || !(w > 0 && h > 0)) break;
           if (!isAxisAligned(f.m)) {
-            note("a rotated <image> is not expressible");
+            note2("a rotated <image> is not expressible");
             return false;
           }
           const box4 = boxOf5(f, x, y, w, h);
@@ -97672,7 +97936,7 @@ function svgToPenpotDoc(svgText, o) {
           const fname = name || "image";
           if (data) {
             if (!MTYPE_EXT[data.mtype]) {
-              note(`embedded ${data.mtype} image is not a Penpot media type`);
+              note2(`embedded ${data.mtype} image is not a Penpot media type`);
               return false;
             }
             const dim = imageDimensions(data.bytes, data.mtype) ?? { w: Math.round(box4.w), h: Math.round(box4.h) };
@@ -97686,7 +97950,7 @@ function svgToPenpotDoc(svgText, o) {
         }
         case "text": {
           if (!isAxisAligned(f.m) && Math.abs(f.m.a * f.m.d - f.m.b * f.m.c) <= 0) {
-            note("degenerate text transform");
+            note2("degenerate text transform");
             return false;
           }
           let hasPositionedSpan = false;
@@ -97694,17 +97958,17 @@ function svgToPenpotDoc(svgText, o) {
             const u = tags3[j];
             if (u.closing) continue;
             if (u.name !== "tspan") {
-              note(`<${u.name}> inside <text> is not expressible`);
+              note2(`<${u.name}> inside <text> is not expressible`);
               return false;
             }
             if (u.attrs.x != null || u.attrs.y != null || u.attrs.dx != null || u.attrs.dy != null || u.attrs.rotate != null) hasPositionedSpan = true;
           }
           if (hasPositionedSpan) {
-            note("positioned <tspan> is not expressible");
+            note2("positioned <tspan> is not expressible");
             return false;
           }
           if (a.textlength != null || a.rotate != null || a.dx != null || a.dy != null) {
-            note("text with textLength/rotate/dx/dy is not expressible");
+            note2("text with textLength/rotate/dx/dy is not expressible");
             return false;
           }
           const bodyStart = tags3[i].end, bodyEnd = tags3[close].start;
@@ -97725,7 +97989,7 @@ function svgToPenpotDoc(svgText, o) {
           const fillFrame = f.fill === void 0 ? "#000000" : f.fill;
           const col = fillFrame && !/^url\(/i.test(fillFrame) ? parsePenpotColor(fillFrame) : null;
           if (fillFrame && /^url\(/i.test(fillFrame)) {
-            note("gradient text is not expressible");
+            note2("gradient text is not expressible");
             return false;
           }
           if (!col) break;
@@ -98883,17 +99147,17 @@ function normaliseTrack(keys2, onWarn) {
 }
 function parseKf(s, opts) {
   if (typeof s !== "string" || s === "") return EMPTY_TRACK;
-  const warn = opts?.onWarn;
+  const warn2 = opts?.onWarn;
   let src = s;
   if (src.length > KF_MAX_CHARS) {
-    warn?.(`kf: value is ${src.length} chars; reading the first ${KF_MAX_CHARS}`);
+    warn2?.(`kf: value is ${src.length} chars; reading the first ${KF_MAX_CHARS}`);
     src = src.slice(0, KF_MAX_CHARS);
   }
   const keys2 = [];
   for (const seg4 of src.split("*")) {
     if (seg4 === "") continue;
     if (keys2.length >= KF_MAX_KEYS) {
-      warn?.(`kf: more than ${KF_MAX_KEYS} keyframes; the excess is ignored`);
+      warn2?.(`kf: more than ${KF_MAX_KEYS} keyframes; the excess is ignored`);
       break;
     }
     const toks = seg4.split("_").filter((x) => x !== "");
@@ -98901,7 +99165,7 @@ function parseKf(s, opts) {
     if (head2 === void 0) continue;
     const tm = T_RE.exec(head2);
     if (!tm) {
-      warn?.(`kf: keyframe "${snip(seg4)}" does not start with t<ms>; skipped`);
+      warn2?.(`kf: keyframe "${snip(seg4)}" does not start with t<ms>; skipped`);
       continue;
     }
     const tRaw = num7(tm[1] ?? "");
@@ -98926,11 +99190,11 @@ function parseKf(s, opts) {
         matched = true;
         break;
       }
-      if (!matched) warn?.(`kf: junk token "${snip(tok)}" skipped`);
+      if (!matched) warn2?.(`kf: junk token "${snip(tok)}" skipped`);
     }
     keys2.push({ t: tRaw, ease, v });
   }
-  return normaliseTrack(keys2, warn);
+  return normaliseTrack(keys2, warn2);
 }
 function keyToWire(k) {
   const parts = [`t${fmt(k.t)}`];
@@ -98956,8 +99220,8 @@ function channelIndex(track) {
     if (!k) continue;
     for (const ch of KF_CHANNELS) {
       if (!Object.hasOwn(k.v, ch)) continue;
-      const list3 = m2.get(ch);
-      if (list3) list3.push(i);
+      const list4 = m2.get(ch);
+      if (list4) list4.push(i);
       else m2.set(ch, [i]);
     }
   }
@@ -99976,7 +100240,7 @@ var init_prepare_text = __esm({
 
 // engine/src/prepare-document.ts
 import { isMap, isSeq, isScalar, isAlias as isAlias2, parseAllDocuments } from "yaml";
-function decodeText(bytes) {
+function decodeText2(bytes) {
   if (bytes.length > PREPARE_MAX_TEXT) return void 0;
   try {
     const text8 = decoder5.decode(bytes);
@@ -99991,7 +100255,7 @@ function decodeText(bytes) {
 }
 function base64Text(value) {
   try {
-    return decodeText(Uint8Array.from(atob(value), (c) => c.charCodeAt(0)));
+    return decodeText2(Uint8Array.from(atob(value), (c) => c.charCodeAt(0)));
   } catch {
     return void 0;
   }
@@ -100116,41 +100380,41 @@ function textDocument(doc, bytes, text8, structured, json, rules, budget3) {
 }
 function openPreparationDocument(bytes, name, sourceId, id2, rules, budget3, depth = 0, counted = false) {
   const ext = name.split(".").pop()?.toLowerCase() ?? "";
-  const scope = { id: id2, sourceId, path: name, format: "unknown", status: "uninspected", limitations: [] };
-  const doc = { scope, children: [], units: [], write: () => bytes };
+  const scope2 = { id: id2, sourceId, path: name, format: "unknown", status: "uninspected", limitations: [] };
+  const doc = { scope: scope2, children: [], units: [], write: () => bytes };
   if (!counted && ++budget3.scopes > PREPARE_MAX_SCOPES) {
-    scope.limitations.push("The 300-member inspection limit was reached.");
+    scope2.limitations.push("The 300-member inspection limit was reached.");
     return doc;
   }
   if (bytes.length > PREPARE_MAX_BYTES) {
-    scope.limitations.push("This file exceeds the 32 MiB preparation limit.");
+    scope2.limitations.push("This file exceeds the 32 MiB preparation limit.");
     return doc;
   }
   const zip = bytes[0] === 80 && bytes[1] === 75 && (ext === "zip" || ext === "");
   if (zip) {
-    scope.format = "zip";
+    scope2.format = "zip";
     if (depth >= 3) {
-      scope.limitations.push("Archives deeper than three levels are retained without inspection.");
+      scope2.limitations.push("Archives deeper than three levels are retained without inspection.");
       return doc;
     }
     let members;
     try {
       members = readZipMembers(bytes, { maxInputBytes: PREPARE_MAX_BYTES, maxEntries: PREPARE_MAX_SCOPES, maxEntryBytes: PREPARE_MAX_TOTAL, maxTotalBytes: PREPARE_MAX_TOTAL });
     } catch {
-      scope.limitations.push("This archive is malformed, unsupported or exceeds the expansion limits. Its original bytes are available unchanged.");
+      scope2.limitations.push("This archive is malformed, unsupported or exceeds the expansion limits. Its original bytes are available unchanged.");
       return doc;
     }
     if (new Set(members.map((m2) => m2.name)).size !== members.length) {
-      scope.limitations.push("Duplicate archive member names prevent a reliable selective rewrite.");
+      scope2.limitations.push("Duplicate archive member names prevent a reliable selective rewrite.");
       return doc;
     }
     if (budget3.scopes + members.length > PREPARE_MAX_SCOPES) {
-      scope.limitations.push("The global 300-member inspection limit was reached. This archive is retained without member inspection.");
+      scope2.limitations.push("The global 300-member inspection limit was reached. This archive is retained without member inspection.");
       return doc;
     }
     budget3.scopes += members.length;
-    scope.status = "partial";
-    scope.limitations.push("Member names and archive comments are not inspected. Rebuilding removes archive comments and empty directory records.");
+    scope2.status = "partial";
+    scope2.limitations.push("Member names and archive comments are not inspected. Rebuilding removes archive comments and empty directory records.");
     for (const [index2, member] of members.entries()) {
       const childId = `${id2}:m${index2}`;
       budget3.expanded += member.size;
@@ -100166,7 +100430,7 @@ function openPreparationDocument(bytes, name, sourceId, id2, rules, budget3, dep
     }
     doc.write = (values, remove) => {
       let changed = false;
-      const kept = [];
+      const kept2 = [];
       doc.children.forEach((child, i) => {
         const member = members[i];
         if (remove.has(child.scope.id)) {
@@ -100175,34 +100439,34 @@ function openPreparationDocument(bytes, name, sourceId, id2, rules, budget3, dep
         }
         const affected = [...values.keys(), ...remove].some((key) => key.startsWith(`${child.scope.id}:`));
         if (!affected) {
-          kept.push(member);
+          kept2.push(member);
           return;
         }
         const output = child.write(values, remove);
-        kept.push(readZipMembers(storeZip([{ name: member.name, bytes: output }]))[0]);
+        kept2.push(readZipMembers(storeZip([{ name: member.name, bytes: output }]))[0]);
         changed = true;
       });
-      return changed ? storeZipMembers(kept) : bytes;
+      return changed ? storeZipMembers(kept2) : bytes;
     };
     return doc;
   }
   if (["pdf", "png", "jpg", "jpeg", "svg", "webp", "docx", "pptx", "xlsx", "mp3", "wav", "mp4"].includes(ext)) {
-    scope.format = ext;
-    scope.limitations.push(["pdf", "png", "jpg", "jpeg", "svg"].includes(ext) ? "Use Strip Hidden Data for metadata or Redact for visible content. This file is retained until you choose that operation." : "This binary format is not inspected here; its bytes are retained unchanged.");
+    scope2.format = ext;
+    scope2.limitations.push(["pdf", "png", "jpg", "jpeg", "svg"].includes(ext) ? "Use Strip Hidden Data for metadata or Redact for visible content. This file is retained until you choose that operation." : "This binary format is not inspected here; its bytes are retained unchanged.");
     return doc;
   }
-  const text8 = decodeText(bytes);
+  const text8 = decodeText2(bytes);
   if (text8 === void 0) {
-    scope.limitations.push("Binary, non-UTF-8 or larger than 1 MiB: retained without text inspection.");
+    scope2.limitations.push("Binary, non-UTF-8 or larger than 1 MiB: retained without text inspection.");
     return doc;
   }
-  scope.status = "inspected";
+  scope2.status = "inspected";
   const json = ["json", "har", "jsonl", "ndjson"].includes(ext);
   const structured = json || ["yml", "yaml"].includes(ext);
-  scope.format = json ? ext : structured ? "yaml" : "text";
+  scope2.format = json ? ext : structured ? "yaml" : "text";
   if (budget3.units >= 2e4) {
-    scope.status = "uninspected";
-    scope.limitations.push("The structured value budget was reached.");
+    scope2.status = "uninspected";
+    scope2.limitations.push("The structured value budget was reached.");
     return doc;
   }
   try {
@@ -100210,10 +100474,10 @@ function openPreparationDocument(bytes, name, sourceId, id2, rules, budget3, dep
   } catch {
     doc.units = [];
     doc.write = () => bytes;
-    scope.status = "uninspected";
-    scope.limitations.push("Structured text could not be parsed reliably. Keep the original or inspect a plain-text copy.");
+    scope2.status = "uninspected";
+    scope2.limitations.push("Structured text could not be parsed reliably. Keep the original or inspect a plain-text copy.");
   }
-  if (doc.scope.status === "partial") scope.limitations = [.../* @__PURE__ */ new Set([...scope.limitations, "Some structured content was not inspected."])];
+  if (doc.scope.status === "partial") scope2.limitations = [.../* @__PURE__ */ new Set([...scope2.limitations, "Some structured content was not inspected."])];
   return doc;
 }
 function preparationDocuments(roots2) {
@@ -100305,8 +100569,8 @@ async function scan(sources, rules, options2 = {}) {
   }
   options2.signal?.throwIfAborted();
   inspection.groups = [...groups.values()];
-  inspection.scopes.forEach((scope) => {
-    scope.limitations = [...new Set(scope.limitations)];
+  inspection.scopes.forEach((scope2) => {
+    scope2.limitations = [...new Set(scope2.limitations)];
   });
   return { inspection, roots: roots2, spans };
 }
@@ -100353,7 +100617,7 @@ async function applyPreparation(sources, inspection, choices2, removeScopes = []
     replaced.set(finding3.scopeId, (replaced.get(finding3.scopeId) ?? 0) + 1);
   }
   const values = new Map([...byUnit].map(([id2, { unit: unit2, edits }]) => [id2, replacePrivateSpans(unit2.text, edits)]));
-  const outputs = [], failed = /* @__PURE__ */ new Set();
+  const outputs = [], failed2 = /* @__PURE__ */ new Set();
   for (const [index2, root2] of fresh.roots.entries()) {
     options2.signal?.throwIfAborted();
     const source = sources[index2];
@@ -100362,7 +100626,7 @@ async function applyPreparation(sources, inspection, choices2, removeScopes = []
       if (bytes.length > PREPARE_MAX_BYTES) throw new Error("The result would exceed the size limit.");
       outputs.push({ ...source, bytes: bytes.slice() });
     } catch {
-      failed.add(source.id);
+      failed2.add(source.id);
       outputs.push({ ...source, bytes: source.bytes.slice() });
     }
   }
@@ -100373,25 +100637,25 @@ async function applyPreparation(sources, inspection, choices2, removeScopes = []
     execution: "device",
     sources: fresh.inspection.sources.map(({ id: id2, sha256: sha2563, size }) => ({ id: id2, sha256: sha2563, size })),
     outputs: after.sources.map((s) => ({ id: s.id, sha256: s.sha256, size: s.size, changed: s.sha256 !== fresh.inspection.sources.find((x) => x.id === s.id)?.sha256 })),
-    scopes: fresh.inspection.scopes.map((scope) => {
-      const failedSource = failed.has(scope.sourceId);
-      const currentId = failedSource ? scope.id : outputScopeId(scope.id, remove);
+    scopes: fresh.inspection.scopes.map((scope2) => {
+      const failedSource = failed2.has(scope2.sourceId);
+      const currentId = failedSource ? scope2.id : outputScopeId(scope2.id, remove);
       const current = currentId === void 0 ? void 0 : after.scopes.find((s) => s.id === currentId);
-      const deleted = !failedSource && [...remove].some((id2) => scope.id === id2 || scope.id.startsWith(`${id2}:`));
+      const deleted = !failedSource && [...remove].some((id2) => scope2.id === id2 || scope2.id.startsWith(`${id2}:`));
       return {
-        id: scope.id,
-        status: current?.status ?? scope.status,
-        format: scope.format,
-        findings: inspection.findings.filter((f) => f.scopeId === scope.id).length,
-        replaced: failedSource ? 0 : deleted ? inspection.findings.filter((f) => f.scopeId === scope.id).length : replaced.get(scope.id) ?? 0,
+        id: scope2.id,
+        status: current?.status ?? scope2.status,
+        format: scope2.format,
+        findings: inspection.findings.filter((f) => f.scopeId === scope2.id).length,
+        replaced: failedSource ? 0 : deleted ? inspection.findings.filter((f) => f.scopeId === scope2.id).length : replaced.get(scope2.id) ?? 0,
         remaining: current ? after.findings.filter((f) => f.scopeId === current.id).length : 0,
-        limitations: failedSource ? ["Selected changes could not be applied to this file. The original was retained; adjust the choices or retry."] : deleted ? ["Member removed by your choice."] : current?.limitations ?? scope.limitations
+        limitations: failedSource ? ["Selected changes could not be applied to this file. The original was retained; adjust the choices or retry."] : deleted ? ["Member removed by your choice."] : current?.limitations ?? scope2.limitations
       };
     }),
     replaced: 0,
     remaining: after.findings.length,
     limitations: GENERAL_LIMITS,
-    ...failed.size ? { stages: [...failed].map((sourceId) => ({ sourceId, operation: "replace-values", status: "failed", inputSha256: fresh.inspection.sources.find((s) => s.id === sourceId).sha256, outputSha256: after.sources.find((s) => s.id === sourceId).sha256, limitations: ["Selected changes failed. Original retained."] })) } : {}
+    ...failed2.size ? { stages: [...failed2].map((sourceId) => ({ sourceId, operation: "replace-values", status: "failed", inputSha256: fresh.inspection.sources.find((s) => s.id === sourceId).sha256, outputSha256: after.sources.find((s) => s.id === sourceId).sha256, limitations: ["Selected changes failed. Original retained."] })) } : {}
   };
   report4.replaced = report4.scopes.reduce((n7, s) => n7 + s.replaced, 0);
   return { outputs, report: report4, inspection: after };
@@ -100457,10 +100721,10 @@ async function applyPreparationMetadata(input, ids2, pdf, options2 = {}) {
       inspected.size = bytes.length;
       const limitations = ["Metadata was re-inspected after removal; structural file fields may remain.", "Visible content, attachments, scripts and unrecognized data are not certified removed by this metadata operation.", "Metadata removal can invalidate signatures, remove colour profiles or discard JPEG HDR gain maps."];
       result.report.stages.push({ sourceId: id2, operation: "strip-hidden-data", status: "completed", inputSha256: originalHash, outputSha256: sha2563, before, after, limitations });
-      const scope = result.report.scopes.find((s) => s.id === id2);
-      if (scope) {
-        scope.status = "partial";
-        scope.limitations = limitations;
+      const scope2 = result.report.scopes.find((s) => s.id === id2);
+      if (scope2) {
+        scope2.status = "partial";
+        scope2.limitations = limitations;
       }
       const privateScope = result.inspection.scopes.find((s) => s.id === id2);
       if (privateScope) {
@@ -104119,11 +104383,11 @@ function studioLookOf(values) {
   return look2;
 }
 function studioApplyLook(values, look2, overrides = []) {
-  const kept = new Set(overrides.map(studioKeyInput));
+  const kept2 = new Set(overrides.map(studioKeyInput));
   const next2 = { ...values };
   for (const key of STUDIO_LOOK_KEYS) {
     const id2 = studioKeyInput(key);
-    if (kept.has(id2)) continue;
+    if (kept2.has(id2)) continue;
     const field2 = studioKeyField(key);
     if (field2 === null) {
       if (look2[id2] !== void 0) next2[id2] = clone4(look2[id2]);
@@ -104325,13 +104589,13 @@ function summarizeBrandStyles(mode2, rows2, sampled = 0, truncated = false) {
     if (previous2) previous2.count = Math.min(2400, previous2.count + count4);
     else values.set(key, { property: property4, value, count: count4 });
   }
-  const kept = [...values.values()].sort((a, b) => a.property < b.property ? -1 : a.property > b.property ? 1 : b.count - a.count || (a.value < b.value ? -1 : a.value > b.value ? 1 : 0));
-  const limited2 = BRAND_STYLE_PROPERTIES.flatMap((property4) => kept.filter((v) => v.property === property4).slice(0, 12));
+  const kept2 = [...values.values()].sort((a, b) => a.property < b.property ? -1 : a.property > b.property ? 1 : b.count - a.count || (a.value < b.value ? -1 : a.value > b.value ? 1 : 0));
+  const limited2 = BRAND_STYLE_PROPERTIES.flatMap((property4) => kept2.filter((v) => v.property === property4).slice(0, 12));
   return {
     version: 1,
     mode: mode2,
     sampled: Number.isFinite(sampled) ? Math.min(1e5, Math.max(0, Math.floor(sampled))) : 0,
-    truncated: truncated || entries.length > 2400 || limited2.length < kept.length,
+    truncated: truncated || entries.length > 2400 || limited2.length < kept2.length,
     values: limited2,
     missing: BRAND_STYLE_PROPERTIES.filter((property4) => !limited2.some((v) => v.property === property4))
   };
@@ -105623,8 +105887,8 @@ function collapseDrafts(drafts) {
   const order = [];
   for (const draft of drafts) {
     const key = [draft.klass, draft.exemplar.row.proposal, draft.exemplar.object?.kind ?? "unknown"].join(":");
-    const list3 = byKey.get(key);
-    if (list3) list3.push(draft);
+    const list4 = byKey.get(key);
+    if (list4) list4.push(draft);
     else {
       byKey.set(key, [draft]);
       order.push(key);
@@ -105632,14 +105896,14 @@ function collapseDrafts(drafts) {
   }
   const out = [];
   for (const key of order) {
-    const list3 = byKey.get(key) ?? [];
-    if (list3.length === 1) {
-      out.push(list3[0]);
+    const list4 = byKey.get(key) ?? [];
+    if (list4.length === 1) {
+      out.push(list4[0]);
       continue;
     }
-    const members = list3.flatMap((draft) => draft.members).sort(byRowOrder);
-    const grouped = list3.filter((draft) => draft.groupId !== void 0).sort((a, b) => b.members.length - a.members.length || compareCodeUnits(a.id, b.id));
-    const lead = grouped[0] ?? list3[0];
+    const members = list4.flatMap((draft) => draft.members).sort(byRowOrder);
+    const grouped = list4.filter((draft) => draft.groupId !== void 0).sort((a, b) => b.members.length - a.members.length || compareCodeUnits(a.id, b.id));
+    const lead = grouped[0] ?? list4[0];
     const slides = new Set(members.map((member) => member.slideId)).size;
     const merged = {
       id: grouped[0]?.id ?? `kind:${key}`,
@@ -105674,9 +105938,9 @@ function slideItems(plan, index2, opts) {
     if (dense && match?.band !== "clear" && slide.arrangement === void 0) diagrams.push(slide);
     if (!match || match.band === "none" || slide.layoutSource !== "proposed") continue;
     const key = match.structure;
-    const list3 = groups.get(key) ?? [];
-    list3.push(slide);
-    groups.set(key, list3);
+    const list4 = groups.get(key) ?? [];
+    list4.push(slide);
+    groups.set(key, list4);
   }
   const out = [];
   for (const key of [...groups.keys()].sort(compareCodeUnits)) {
@@ -105768,9 +106032,9 @@ function reviewQueue(plan, census, source, opts = {}) {
     if (claimed.has(info.row.id)) continue;
     if (REPEATING_CLASSES.has(info.row.class) || repeatsByEvidence(info.row)) {
       const key = [info.row.class, info.row.proposal, evidenceKind(info.row), info.object?.kind ?? "unknown"].join(":");
-      const list3 = buckets.get(key) ?? [];
-      list3.push(info);
-      buckets.set(key, list3);
+      const list4 = buckets.get(key) ?? [];
+      list4.push(info);
+      buckets.set(key, list4);
     } else {
       singles.push(info);
     }
@@ -105789,9 +106053,9 @@ function reviewQueue(plan, census, source, opts = {}) {
   const byKind = /* @__PURE__ */ new Map();
   for (const info of singles) {
     const key = [info.row.class, info.row.proposal, info.object?.kind ?? "unknown"].join(":");
-    const list3 = byKind.get(key) ?? [];
-    list3.push(info);
-    byKind.set(key, list3);
+    const list4 = byKind.get(key) ?? [];
+    list4.push(info);
+    byKind.set(key, list4);
   }
   for (const key of [...byKind.keys()].sort(compareCodeUnits)) {
     const members = (byKind.get(key) ?? []).sort(byRowOrder);
@@ -106939,10 +107203,10 @@ function censusDeck(source, opts = {}) {
   const contrastPairs = [];
   const flattenedSlideIds = [];
   const fontRoles = /* @__PURE__ */ new Map();
-  const warnings = [...source.warnings];
+  const warnings2 = [...source.warnings];
   for (const frame of frames) {
     const { slide } = frame;
-    warnings.push(...slide.warnings);
+    warnings2.push(...slide.warnings);
     const slideArea = frame.width * frame.height;
     const sizes = [...new Set(slide.objects.filter((object4) => textOf5(object4).trim().length > 0).map((object4) => maxRunPt(object4) ?? 0))].sort((a, b) => b - a);
     const context = slideContext(frame);
@@ -107093,7 +107357,7 @@ function censusDeck(source, opts = {}) {
     fonts,
     layouts,
     flattenedSlideIds: [...new Set(flattenedSlideIds)].sort(compareCodeUnits),
-    warnings
+    warnings: warnings2
   };
 }
 function sideBySide(a, b) {
@@ -107317,9 +107581,9 @@ function slideContext(frame) {
   for (const object4 of slide.objects) {
     const key = groupKeyOf(object4);
     if (!key) continue;
-    const list3 = members.get(key) ?? [];
-    list3.push(object4);
-    members.set(key, list3);
+    const list4 = members.get(key) ?? [];
+    list4.push(object4);
+    members.set(key, list4);
   }
   const fillKey = (object4) => object4.fill?.hex?.toUpperCase() ?? object4.fill?.scheme;
   return {
@@ -107734,9 +107998,9 @@ function layoutUnitsOf(frame, hypotheses) {
     if (object4.origin === "raster-region" && object4.groupPath && object4.groupPath.length > 0) {
       const key = object4.groupPath[0];
       if (key !== object4.id) {
-        const list3 = rebuilt.get(key) ?? [];
-        list3.push(object4);
-        rebuilt.set(key, list3);
+        const list4 = rebuilt.get(key) ?? [];
+        list4.push(object4);
+        rebuilt.set(key, list4);
       }
     }
     if (klass === "decoration") {
@@ -108209,9 +108473,9 @@ function repairFurniture(out, grounds, colors, field2, need) {
       const pieces = new Map(out.furniture.map((one) => [one.id, one]));
       const backdrop = backdropAt(archetype, pieces, colors, ground, furnitureCentre(piece.box), at);
       const target = need(piece, archetype, backdrop, current) ?? current;
-      const list3 = byTarget.get(target) ?? [];
-      list3.push(archetype);
-      byTarget.set(target, list3);
+      const list4 = byTarget.get(target) ?? [];
+      list4.push(archetype);
+      byTarget.set(target, list4);
     }
     if (byTarget.size === 0 || byTarget.size === 1 && byTarget.has(current)) continue;
     const set = (one, target) => {
@@ -108803,12 +109067,12 @@ function checkDesignHouseRules(boxes, rules, doc, opts = {}) {
         if (!inTarget(row)) continue;
         const weights = weightsOf(row);
         if (!allowed.includes(weights.own)) {
-          add(row, "weight", weights.own, list(allowed), `This text is set at weight ${weights.own}${row.weight === void 0 ? " (the Design default)" : ""}; allowed: ${list(allowed)}.`);
+          add(row, "weight", weights.own, list2(allowed), `This text is set at weight ${weights.own}${row.weight === void 0 ? " (the Design default)" : ""}; allowed: ${list2(allowed)}.`);
           continue;
         }
         const off = weights.runs.filter((w) => !allowed.includes(w));
         if (off.length) {
-          add(row, "text", off.join(", "), list(allowed), `${weights.bold ? "Bold runs" : "Runs"} in this text paint at weight ${list(off)}; allowed: ${list(allowed)}. State an allowed weight on the run instead, such as {w${allowed[allowed.length - 1]}|...}.`);
+          add(row, "text", off.join(", "), list2(allowed), `${weights.bold ? "Bold runs" : "Runs"} in this text paint at weight ${list2(off)}; allowed: ${list2(allowed)}. State an allowed weight on the run instead, such as {w${allowed[allowed.length - 1]}|...}.`);
         }
       }
     } else if (rule.kind === "text-case") {
@@ -108869,8 +109133,8 @@ function checkDesignHouseRules(boxes, rules, doc, opts = {}) {
             row,
             "fg",
             colour.raw,
-            list(policy.text),
-            `${fg} text on ${label(policy.name)} is not an approved pairing${graphicOnly ? " (approved for graphics only)" : ""}. Text colours approved on ${label(policy.name)}: ${list(policy.text.map(label))}.`
+            list2(policy.text),
+            `${fg} text on ${label(policy.name)} is not an approved pairing${graphicOnly ? " (approved for graphics only)" : ""}. Text colours approved on ${label(policy.name)}: ${list2(policy.text.map(label))}.`
           );
         }
       }
@@ -108897,7 +109161,7 @@ function checkDesignHouseRules(boxes, rules, doc, opts = {}) {
             row,
             "stroke",
             valueText2(row.stroke),
-            neutral.size ? list(strings2(p.neutral)) : void 0,
+            neutral.size ? list2(strings2(p.neutral)) : void 0,
             `This rounded shape has a ${valueText2(row.stroke)} border. Carry an accent with a tinted fill${neutral.size ? ", or use a neutral hairline" : ""}.`
           );
         }
@@ -108967,7 +109231,7 @@ function checkDesignHouseRules(boxes, rules, doc, opts = {}) {
         }
         const allowed = kind === "photo" ? photo : kind === "dark" ? dark : light;
         if (allowed.length && !allowed.includes(id2)) {
-          add(row, "image", id2, list(allowed), `The logo ${id2} sits on a ${kind === "photo" ? "photograph" : `${kind} surface`}; use ${list(allowed)}.`);
+          add(row, "image", id2, list2(allowed), `The logo ${id2} sits on a ${kind === "photo" ? "photograph" : `${kind} surface`}; use ${list2(allowed)}.`);
         }
       }
     }
@@ -108977,7 +109241,7 @@ function checkDesignHouseRules(boxes, rules, doc, opts = {}) {
 function designHouseRules(rules) {
   return (rules ?? []).filter((r5) => DESIGN_HOUSE_RULE_KINDS.includes(r5.kind));
 }
-var DESIGN_HOUSE_RULE_KINDS, record20, strings2, num9, valueText2, isHidden, textOf6, HEADLINE_ROLES, HEADLINE_SCALE2, HEADLINE_MIN_PX, ROUNDED_SHAPES, DESIGN_DEFAULT_WEIGHT, DESIGN_DEFAULT_ALIGN, matches2, NUMERIC_TEXT, artboardOf, label, list;
+var DESIGN_HOUSE_RULE_KINDS, record20, strings2, num9, valueText2, isHidden, textOf6, HEADLINE_ROLES, HEADLINE_SCALE2, HEADLINE_MIN_PX, ROUNDED_SHAPES, DESIGN_DEFAULT_WEIGHT, DESIGN_DEFAULT_ALIGN, matches2, NUMERIC_TEXT, artboardOf, label, list2;
 var init_design_house_rules = __esm({
   "engine/src/design-house-rules.ts"() {
     "use strict";
@@ -109016,7 +109280,7 @@ var init_design_house_rules = __esm({
     NUMERIC_TEXT = /^[\s\d.,:;%+\-/#()x×]+$/i;
     artboardOf = (row) => typeof row.frame === "string" && row.frame ? row.frame : row.kind === "frame" && typeof row.id === "string" ? row.id : void 0;
     label = (name) => name.charAt(0).toUpperCase() + name.slice(1);
-    list = (values) => values.join(", ");
+    list2 = (values) => values.join(", ");
   }
 });
 
@@ -109211,12 +109475,12 @@ function iconSection(doc, catalog, assets, themes) {
   const icons = assets.filter((a) => tagsOf(a).includes("icon")).map((a) => ({ id: a.id, ...a.name ? { name: a.name } : {}, themable: tagsOf(a).includes("themable") }));
   const declared = parseIconThemesDoc(record21(catalog.iconThemes) ? catalog.iconThemes : null);
   let from = declared.length ? "declared" : "unavailable";
-  let list3 = declared;
-  if (!list3.length) {
+  let list4 = declared;
+  if (!list4.length) {
     try {
       const derived = deriveIconThemesDoc(doc).themes;
       if (derived.length) {
-        list3 = derived;
+        list4 = derived;
         from = "derived";
       }
     } catch {
@@ -109231,7 +109495,7 @@ function iconSection(doc, catalog, assets, themes) {
     autoNote: "An icon written as <id>?theme=auto takes the first theme whose surfaces include the surface under it; a photograph counts as dark.",
     themesFrom: from,
     surfaceTest: { light, dark, note: "Without a declared list: light when the base colour (c2) reaches 3:1 on the light surface, dark when the accent (c1) reaches 3:1 on the dark surface." },
-    themes: list3.map((t) => {
+    themes: list4.map((t) => {
       const { surfaces, from: surfacesFrom } = iconThemeSurfaces(t, { light, dark });
       return {
         id: t.id,
@@ -109605,20 +109869,20 @@ function designForensicPages(boxes, opts = {}) {
         lines.push(forensic);
       }
     }
-    const kept = [];
+    const kept2 = [];
     let length2 = 0;
     for (const line of lines) {
-      const add = line.text.length + (kept.length ? 1 : 0);
-      if (kept.length >= LINE_LIMIT || length2 + add > TEXT_LIMIT) {
+      const add = line.text.length + (kept2.length ? 1 : 0);
+      if (kept2.length >= LINE_LIMIT || length2 + add > TEXT_LIMIT) {
         complete = false;
         notes.push("lines");
         break;
       }
       length2 += add;
-      line.index = kept.length;
-      kept.push(line);
+      line.index = kept2.length;
+      kept2.push(line);
     }
-    const text8 = kept.map((l) => l.text).join("\n");
+    const text8 = kept2.map((l) => l.text).join("\n");
     const shapes3 = [];
     const panels = [];
     const strips = [];
@@ -109665,7 +109929,7 @@ function designForensicPages(boxes, opts = {}) {
       text: text8,
       source: "digital",
       complete,
-      lines: kept,
+      lines: kept2,
       shapes: shapes3,
       layoutMethod: "source-geometry"
     };
@@ -110592,8 +110856,8 @@ function indexWords(lineWords) {
   const index2 = /* @__PURE__ */ new Map();
   lineWords.forEach((words3, i) => {
     for (const w of new Set(words3)) {
-      const list3 = index2.get(w);
-      if (list3) list3.push(i);
+      const list4 = index2.get(w);
+      if (list4) list4.push(i);
       else index2.set(w, [i]);
     }
   });
@@ -110651,8 +110915,8 @@ function makeArtboard(id2, name, lines, notes) {
     starts.push(at);
     startLines.push(i);
     for (const w of words3) {
-      const list3 = wordAt.get(w);
-      if (list3) list3.push(at);
+      const list4 = wordAt.get(w);
+      if (list4) list4.push(at);
       else wordAt.set(w, [at]);
       at += w.length + 1;
     }
@@ -110694,14 +110958,14 @@ function resultArtboards(boxes, textDocument2) {
       (a, b) => reading(a.row) - reading(b.row) || finite4(a.row.y) - finite4(b.row.y) || finite4(a.row.x) - finite4(b.row.x) || a.index - b.index
     ).flatMap((m2) => drawnText(m2.row, stories)).map(normaliseFidelityText).filter(Boolean);
     total += lines.length;
-    const kept = [];
+    const kept2 = [];
     for (const line of lines) {
       if (budget3 <= 0 || line.length > chars) break;
-      kept.push(line);
+      kept2.push(line);
       budget3 -= 1;
       chars -= line.length;
     }
-    return kept;
+    return kept2;
   };
   if (!frames.length) {
     const lines = textOf11(indexed.filter((r5) => r5.row.kind !== "frame"));
@@ -110711,8 +110975,8 @@ function resultArtboards(boxes, textDocument2) {
   for (const r5 of indexed) {
     if (r5.row.kind === "frame") continue;
     const frame = str8(r5.row.frame);
-    const list3 = members.get(frame);
-    if (list3) list3.push(r5);
+    const list4 = members.get(frame);
+    if (list4) list4.push(r5);
     else members.set(frame, [r5]);
   }
   const boards = frames.map(
@@ -110926,13 +111190,13 @@ function matchElsewhere(s, boards, own3, work) {
   return { state: "missing" };
 }
 function parseFidelityEdits(value) {
-  const list3 = Array.isArray(value) ? value : record24(value) && Array.isArray(value.edits) ? value.edits : null;
-  if (!list3)
+  const list4 = Array.isArray(value) ? value : record24(value) && Array.isArray(value.edits) ? value.edits : null;
+  if (!list4)
     return { edits: [], problems: ['Edits are a JSON array of { "source", "result", "reason" }, or an object with that array under "edits".'] };
   const problems = [];
-  if (list3.length > FIDELITY_MAX_EDITS) problems.push(`There are ${list3.length} edits; one check takes up to ${FIDELITY_MAX_EDITS}.`);
+  if (list4.length > FIDELITY_MAX_EDITS) problems.push(`There are ${list4.length} edits; one check takes up to ${FIDELITY_MAX_EDITS}.`);
   const edits = [];
-  list3.slice(0, FIDELITY_MAX_EDITS).forEach((item2, i) => {
+  list4.slice(0, FIDELITY_MAX_EDITS).forEach((item2, i) => {
     const where = `Edit ${i + 1}`;
     if (!record24(item2)) {
       problems.push(`${where} is not an object.`);
@@ -110975,9 +111239,9 @@ function checkFidelity(inventory2, boxes, opts = {}) {
   const slideStrings = inventory2.slides.map((slide) => {
     const all = sourceStrings(slide);
     sourceTotal += all.length;
-    const kept = all.slice(0, Math.max(0, sourceBudget));
-    sourceBudget -= kept.length;
-    return kept;
+    const kept2 = all.slice(0, Math.max(0, sourceBudget));
+    sourceBudget -= kept2.length;
+    return kept2;
   });
   const work = { left: MAX_MATCH_WORK };
   const targets = inventory2.slides.map((_slide, slideIndex) => {
@@ -111681,9 +111945,9 @@ async function measureCore(spec, shaper, draw) {
       const brk = last ? p === paragraphs2.length - 1 ? "end" : "forced" : span.anywhere ? "anywhere" : HANGING.test(drawn[span.end - 1] ?? "") ? "space" : "opportunity";
       let fallback = false;
       for (let k = span.start; k < span.end && !fallback; k++) fallback = missingAt.has(k);
-      const dictionary2 = DICTIONARY_SCRIPT.test(drawn.slice(span.start, span.end));
-      if (dictionary2) dictionaryLines++;
-      const nearEdge = brk !== "anywhere" && slack < margin || span.miss !== void 0 && span.miss < margin || span.fragile === true || fallback || dictionary2;
+      const dictionary3 = DICTIONARY_SCRIPT.test(drawn.slice(span.start, span.end));
+      if (dictionary3) dictionaryLines++;
+      const nearEdge = brk !== "anywhere" && slack < margin || span.miss !== void 0 && span.miss < margin || span.fragile === true || fallback || dictionary3;
       lines.push({
         index: lines.length,
         paragraph: p,
@@ -111748,8 +112012,8 @@ async function measureCore(spec, shaper, draw) {
   }
   const uncoveredChars = [...new Set([...uncovered.values()].flatMap((set) => [...set]))];
   for (const [family2, set] of uncovered) {
-    const list3 = [...set].slice(0, 8).map((c) => `"${c}" (U+${c.codePointAt(0).toString(16).toUpperCase().padStart(4, "0")})`).join(", ");
-    notes.push(`${family2} has no glyph for ${set.size} character${set.size === 1 ? "" : "s"} (${list3}${set.size > 8 ? ", ..." : ""}). The canvas draws them in a fallback font, so the lines that hold them may break and stand taller than measured here; they are marked near the edge.`);
+    const list4 = [...set].slice(0, 8).map((c) => `"${c}" (U+${c.codePointAt(0).toString(16).toUpperCase().padStart(4, "0")})`).join(", ");
+    notes.push(`${family2} has no glyph for ${set.size} character${set.size === 1 ? "" : "s"} (${list4}${set.size > 8 ? ", ..." : ""}). The canvas draws them in a fallback font, so the lines that hold them may break and stand taller than measured here; they are marked near the edge.`);
   }
   if (dictionaryLines)
     notes.push("Thai, Lao, Khmer and Myanmar text breaks between words by dictionary in the browser; here it breaks only at spaces or anywhere, so the lines that hold it are marked near the edge.");
@@ -111947,7 +112211,7 @@ function createHostTextShaper(deps) {
   const resolved2 = /* @__PURE__ */ new Map();
   const coverage = /* @__PURE__ */ new Map();
   const noted = /* @__PURE__ */ new Set();
-  const note = (text8) => {
+  const note2 = (text8) => {
     if (noted.has(text8)) return;
     noted.add(text8);
     deps.onNote?.(text8);
@@ -111962,7 +112226,7 @@ function createHostTextShaper(deps) {
         if (italic) {
           const upright = await deps.face(family2, weight, false, text8);
           if (upright) {
-            note(`${family2} has no italic face here, so italic text was measured in the upright face, as a browser slants it.`);
+            note2(`${family2} has no italic face here, so italic text was measured in the upright face, as a browser slants it.`);
             return upright;
           }
         }
@@ -111993,7 +112257,7 @@ function createHostTextShaper(deps) {
     if ((shaped.notdef ?? 0) > 0 && deps.characters) {
       let cover = coverage.get(face.url);
       if (!cover) {
-        cover = deps.characters(face.url).then((list3) => new Set(list3));
+        cover = deps.characters(face.url).then((list4) => new Set(list4));
         coverage.set(face.url, cover);
         cover.catch(() => coverage.delete(face.url));
       }
@@ -112014,10 +112278,10 @@ var init_text_shaper_host = __esm({
     "use strict";
     init_design_text_measure();
     IGNORABLE = /^[\p{Cc}\p{Zs}\p{Zl}\p{Zp}\p{Default_Ignorable_Code_Point}]$/u;
-    variationsRecord = (list3) => {
-      if (!list3?.length) return void 0;
+    variationsRecord = (list4) => {
+      if (!list4?.length) return void 0;
       const out = {};
-      for (const item2 of list3) {
+      for (const item2 of list4) {
         const [tag2, value] = item2.split("=");
         if (tag2 && Number.isFinite(Number(value))) out[tag2] = Number(value);
       }
@@ -112988,7 +113252,7 @@ __export(text_thai_exports, {
   TEXT_THAI_RESOURCE: () => TEXT_THAI_RESOURCE,
   thaiTextBreaks: () => thaiTextBreaks
 });
-function dictionary() {
+function dictionary2() {
   if (root) return root;
   root = { next: /* @__PURE__ */ new Map() };
   for (const word of text_thai_data_default.words) {
@@ -113006,7 +113270,7 @@ function dictionary() {
   return root;
 }
 function thaiTextBreaks(source) {
-  const breaks = [], trie = dictionary();
+  const breaks = [], trie = dictionary2();
   for (const run3 of source.matchAll(/[\u0e01-\u0e3a\u0e40-\u0e4e]+/gu)) {
     const text8 = run3[0], bounds = [...textBoundaries(text8)], allowed = new Set(bounds);
     const cost = new Float64Array(text8.length + 1), next2 = new Uint32Array(text8.length + 1), known = new Uint8Array(text8.length + 1);
@@ -113058,7 +113322,7 @@ async function composeParagraphLines(story, range, prepared3, width) {
   const sharedShape = prepared3.shape.shared;
   const readShape = sharedShape ?? prepared3.shape;
   const readHyphen = sharedShape && prepared3.hyphen.shared || prepared3.hyphen;
-  const keep = (line) => sharedShape ? structuredClone(line) : line;
+  const keep2 = (line) => sharedShape ? structuredClone(line) : line;
   const settings = prepared3.settings, mode2 = settings.hyphenation?.mode ?? "manual";
   const hyphenator = mode2 === "auto" ? await textHyphenator(settings.language) : null;
   if (mode2 === "auto" && !hyphenator) diagnostics.push({ ...range, code: "hyphenation-language", message: "Automatic hyphenation is unavailable for this language. Choose a supported language or use manual hyphens." });
@@ -113175,9 +113439,9 @@ async function composeParagraphLines(story, range, prepared3, width) {
     }
     if (limited2) diagnostics.push({ start: segmentStart, end: ending.end, code: "composition-budget", message: "This paragraph exceeded the composition budget. Standard breaks were used." });
     let previous2 = 0;
-    if (!selected.length) result.push(keep(await readShape({ start: segmentStart, end: ending.end })));
+    if (!selected.length) result.push(keep2(await readShape({ start: segmentStart, end: ending.end })));
     for (const end of selected) {
-      result.push(keep(await shape(previous2, end)));
+      result.push(keep2(await shape(previous2, end)));
       previous2 = end;
     }
     const last = result.at(-1);
@@ -113354,7 +113618,7 @@ function positionLine(slot, top, metrics, settings, first = false) {
 function placeTextLines(lines, settings, start, slots, next2) {
   const positions = [], metrics = lines.map((line) => textLineMetrics(line, settings));
   let cursor = { ...start }, index2 = 0, impossible = false;
-  const keep = settings.keep ?? { startLines: 1, endLines: 1, together: false, nextLines: 0 };
+  const keep2 = settings.keep ?? { startLines: 1, endLines: 1, together: false, nextLines: 0 };
   const fit = (slotIndex, from, y) => {
     const slot = slots[slotIndex], result = [];
     const first = y <= slot.top + 1e-4;
@@ -113382,10 +113646,10 @@ function placeTextLines(lines, settings, start, slots, next2) {
     }
     const remaining = lines.length - index2, atTop = cursor.y <= slot.top + 1e-4;
     if (take < remaining) {
-      const needsStart = index2 === 0 && take < keep.startLines;
-      const needsWhole = keep.together && index2 === 0;
+      const needsStart = index2 === 0 && take < keep2.startLines;
+      const needsWhole = keep2.together && index2 === 0;
       if (needsStart || needsWhole) {
-        const later = slots.findIndex((candidate, at) => at > cursor.slot && fit(at, index2, candidate.top).length >= (needsWhole ? remaining : Math.min(remaining, keep.startLines)));
+        const later = slots.findIndex((candidate, at) => at > cursor.slot && fit(at, index2, candidate.top).length >= (needsWhole ? remaining : Math.min(remaining, keep2.startLines)));
         if (later >= 0) {
           cursor = { slot: later, y: slots[later].top };
           continue;
@@ -113396,22 +113660,22 @@ function placeTextLines(lines, settings, start, slots, next2) {
         }
         impossible = true;
       }
-      if (remaining - take < keep.endLines) {
-        const reduced = remaining - keep.endLines;
-        if (reduced >= (index2 === 0 ? Math.max(1, keep.startLines) : 1)) take = reduced;
+      if (remaining - take < keep2.endLines) {
+        const reduced = remaining - keep2.endLines;
+        if (reduced >= (index2 === 0 ? Math.max(1, keep2.startLines) : 1)) take = reduced;
         else if (!atTop && cursor.slot + 1 < slots.length) {
           cursor = { slot: cursor.slot + 1, y: slots[cursor.slot + 1].top };
           continue;
         } else impossible = true;
       }
-    } else if (keep.nextLines && next2?.lines.length) {
+    } else if (keep2.nextLines && next2?.lines.length) {
       let y = fitted.at(-1).y + fitted.at(-1).height + (settings.spaceAfter ?? 0) + (next2.settings.spaceBefore ?? 0);
-      for (const line of next2.lines.slice(0, keep.nextLines)) {
+      for (const line of next2.lines.slice(0, keep2.nextLines)) {
         const metrics2 = textLineMetrics(line, next2.settings);
         y = positionLine(slot, y, metrics2, next2.settings) + metrics2.height;
       }
       if (y > slot.bottom + 1e-4) {
-        if (take > 1 && !keep.together) take--;
+        if (take > 1 && !keep2.together) take--;
         else if (!atTop && cursor.slot + 1 < slots.length) {
           cursor = { slot: cursor.slot + 1, y: slots[cursor.slot + 1].top };
           continue;
@@ -114499,8 +114763,8 @@ function slideContentGroups(objects) {
   return rows2.flatMap((row) => row.sort((a, b) => a[0].box.x - b[0].box.x));
 }
 function slideLayoutChoices(slide, plan) {
-  const kept = new Map(plan.objects.filter((p) => (p.decision ?? p.proposal) === "keep" && !["title", "subtitle", "caption", "footer", "page-number"].includes(p.role ?? p.class)).map((p) => [p.id, p]));
-  const content2 = slide.objects.filter((o) => kept.has(o.id) && !["decoration", "template-furniture", "recurring-text", "brand-logo", "page-number", "footer"].includes(kept.get(o.id).class));
+  const kept2 = new Map(plan.objects.filter((p) => (p.decision ?? p.proposal) === "keep" && !["title", "subtitle", "caption", "footer", "page-number"].includes(p.role ?? p.class)).map((p) => [p.id, p]));
+  const content2 = slide.objects.filter((o) => kept2.has(o.id) && !["decoration", "template-furniture", "recurring-text", "brand-logo", "page-number", "footer"].includes(kept2.get(o.id).class));
   if (!content2.length || content2.some((o) => o.kind !== "text")) return [];
   const count4 = slideContentGroups(content2).length;
   if (count4 < 2 || count4 > 12) return [];
@@ -114850,9 +115114,9 @@ function roleOrdinals(layers) {
 }
 function slotOrdinalOf(row, rows2) {
   let index2 = rows2.indexOf(row);
-  const list3 = index2 >= 0 ? rows2 : [...rows2, row];
-  if (index2 < 0) index2 = list3.length - 1;
-  const ordinal = roleOrdinals(list3).get(index2);
+  const list4 = index2 >= 0 ? rows2 : [...rows2, row];
+  if (index2 < 0) index2 = list4.length - 1;
+  const ordinal = roleOrdinals(list4).get(index2);
   return ordinal === void 0 ? 0 : ordinal + 1;
 }
 function deriveOrigin(master, archetype, layers, ordinals, opts) {
@@ -115949,9 +116213,9 @@ function indexSource(source) {
     for (const object4 of slide.objects) {
       const row = { object: object4, slideId: slide.id };
       byId.set(object4.id, row);
-      const list3 = byFingerprint.get(object4.fingerprint) ?? [];
-      list3.push(row);
-      byFingerprint.set(object4.fingerprint, list3);
+      const list4 = byFingerprint.get(object4.fingerprint) ?? [];
+      list4.push(row);
+      byFingerprint.set(object4.fingerprint, list4);
     }
   }
   return { byId, byFingerprint };
@@ -115966,10 +116230,10 @@ function carryForward(previous2, source, census) {
   const applied = [];
   const usedMemory = /* @__PURE__ */ new Set();
   const claimed = /* @__PURE__ */ new Set();
-  const recorded = /* @__PURE__ */ new Set();
+  const recorded2 = /* @__PURE__ */ new Set();
   const record38 = (objectId, row, carriedBy) => {
-    if (recorded.has(objectId)) return;
-    recorded.add(objectId);
+    if (recorded2.has(objectId)) return;
+    recorded2.add(objectId);
     const entry2 = {
       objectId,
       action: row.decision,
@@ -116092,8 +116356,8 @@ function carryForward(previous2, source, census) {
     applied: applied.sort((a, b) => compareCodeUnits(a.objectId, b.objectId))
   };
 }
-function applyDecision(plan, objectId, decision2, replacement, author = "user", scope, source) {
-  const touches = (row) => row.id === objectId || scope !== void 0 && row.scope === scope;
+function applyDecision(plan, objectId, decision2, replacement, author = "user", scope2, source) {
+  const touches = (row) => row.id === objectId || scope2 !== void 0 && row.scope === scope2;
   const slides = plan.slides.map((slide) => ({
     ...slide,
     objects: slide.objects.map((row) => {
@@ -116106,7 +116370,7 @@ function applyDecision(plan, objectId, decision2, replacement, author = "user", 
       };
       if (replacement) next2.decisionReplacement = replacement;
       else delete next2.decisionReplacement;
-      if (scope !== void 0) next2.scope = scope;
+      if (scope2 !== void 0) next2.scope = scope2;
       return next2;
     })
   }));
@@ -116126,7 +116390,7 @@ function applyDecision(plan, objectId, decision2, replacement, author = "user", 
         planRevision: plan.revision
       };
       if (replacement) memory.replacement = replacement;
-      if (scope !== void 0) memory.scope = scope;
+      if (scope2 !== void 0) memory.scope = scope2;
       const at = decisions.findIndex((one) => one.fingerprint === memory.fingerprint && one.slideLineage === memory.slideLineage);
       if (at >= 0) decisions[at] = memory;
       else decisions.push(memory);
@@ -116188,8 +116452,8 @@ function slideOfObject(source) {
   for (const slide of source?.slides ?? []) for (const object4 of slide.objects) out.set(object4.id, slide);
   return out;
 }
-function stampScope(plan, ids2, scope, source) {
-  const next2 = mapRows(plan, (row) => ids2.has(row.id) ? { ...row, scope } : row);
+function stampScope(plan, ids2, scope2, source) {
+  const next2 = mapRows(plan, (row) => ids2.has(row.id) ? { ...row, scope: scope2 } : row);
   if (!source) return next2;
   const placed2 = slideOfObject(source);
   const keys2 = /* @__PURE__ */ new Set();
@@ -116200,7 +116464,7 @@ function stampScope(plan, ids2, scope, source) {
   }
   return {
     ...next2,
-    decisions: next2.decisions.map((memory) => keys2.has(JSON.stringify([memory.fingerprint, memory.slideLineage])) ? { ...memory, scope } : memory)
+    decisions: next2.decisions.map((memory) => keys2.has(JSON.stringify([memory.fingerprint, memory.slideLineage])) ? { ...memory, scope: scope2 } : memory)
   };
 }
 function decideObjects(plan, input) {
@@ -117045,9 +117309,9 @@ function localOf(el) {
 }
 function kids(el) {
   const out = [];
-  const list3 = el.childNodes;
-  for (let i = 0; i < list3.length; i++) {
-    const n7 = list3[i];
+  const list4 = el.childNodes;
+  for (let i = 0; i < list4.length; i++) {
+    const n7 = list4[i];
     if (n7 && n7.nodeType === 1) out.push(n7);
   }
   return out;
@@ -117147,8 +117411,8 @@ function sheetOf(doc) {
         const rule = { ...sel, order: order++, decls };
         sheet.rules.push(rule);
         const key = keyOf2(sel.chain[sel.chain.length - 1]);
-        const list3 = sheet.byKey.get(key);
-        if (list3) list3.push(rule);
+        const list4 = sheet.byKey.get(key);
+        if (list4) list4.push(rule);
         else sheet.byKey.set(key, [rule]);
       }
     }
@@ -117280,10 +117544,10 @@ function unitOf(value) {
   return Number.isFinite(n7) ? Math.max(0, Math.min(1, n7)) : void 0;
 }
 function familyOf3(value) {
-  let list3 = value.trim();
-  const v = /^var\(\s*--[\w-]+\s*,\s*(.*)\)$/s.exec(list3);
-  if (v) list3 = v[1];
-  for (const raw of list3.split(",")) {
+  let list4 = value.trim();
+  const v = /^var\(\s*--[\w-]+\s*,\s*(.*)\)$/s.exec(list4);
+  if (v) list4 = v[1];
+  for (const raw of list4.split(",")) {
     const name = raw.trim().replace(/^['"]|['"]$/g, "").trim();
     if (name && !/^var\(/.test(name)) return name.slice(0, 64);
   }
@@ -117449,8 +117713,8 @@ function svgItemsOf(svgText, parseXml, opts = {}) {
     else if (join30 === "miter-clip" || join30 === "arcs") own3.join = "miter";
     const dash = get3("stroke-dasharray");
     if (dash !== void 0) {
-      const list3 = dash === "none" ? [] : dash.split(/[\s,]+/).map((v) => lengthOf(v, own3.fontSize)).filter((v) => v !== void 0 && v >= 0);
-      own3.dash = list3.length > 0 && list3.some((v) => v > 0) ? list3.length % 2 ? [...list3, ...list3] : list3 : void 0;
+      const list4 = dash === "none" ? [] : dash.split(/[\s,]+/).map((v) => lengthOf(v, own3.fontSize)).filter((v) => v !== void 0 && v >= 0);
+      own3.dash = list4.length > 0 && list4.some((v) => v > 0) ? list4.length % 2 ? [...list4, ...list4] : list4 : void 0;
     }
     const opacity = unitOf(get3("opacity"));
     if (opacity !== void 0) own3.opacity = parent.opacity * opacity;
@@ -118222,7 +118486,7 @@ function cropVectorItems(items2, crop) {
   const vb = cropViewBox(items2.viewBox, crop);
   if (!vb) return null;
   const edge = 0.5;
-  const kept = [];
+  const kept2 = [];
   for (const item2 of items2.items) {
     let x0;
     let y0;
@@ -118244,10 +118508,10 @@ function cropVectorItems(items2, crop) {
     if (outside) continue;
     const inside2 = x0 >= vb.x - edge && y0 >= vb.y - edge && x1 <= vb.x + vb.w + edge && y1 <= vb.y + vb.h + edge;
     if (!inside2) return null;
-    kept.push(item2);
+    kept2.push(item2);
   }
-  if (!kept.length) return null;
-  return { ...items2, viewBox: vb, items: kept };
+  if (!kept2.length) return null;
+  return { ...items2, viewBox: vb, items: kept2 };
 }
 function escXml(value) {
   return value.replace(/[&<>"']/g, (c) => c === "&" ? "&amp;" : c === "<" ? "&lt;" : c === ">" ? "&gt;" : c === '"' ? "&quot;" : "&#39;");
@@ -119255,16 +119519,16 @@ function describePlacement(object4, entry2, outcome, slideNumber) {
       message: `The ${nounFor(entry2.class, object4.kind)} ${where} was carried over unchanged: the plan asks to replace it but names nothing to put there.`
     };
   }
-  const kept = describeKeep(object4, entry2, outcome, where, surplus);
-  if (outcome.heldBack && kept.disposition === "retained") {
+  const kept2 = describeKeep(object4, entry2, outcome, where, surplus);
+  if (outcome.heldBack && kept2.disposition === "retained") {
     const flagged = entry2.review === "needs-attention";
     return {
-      ...kept,
+      ...kept2,
       reason: flagged ? "needs-attention-held" : "unreviewed-proposal-held",
       message: flagged ? `The ${nounFor(entry2.class, object4.kind)} ${where} was carried over: the plan proposes to ${entry2.decision ?? entry2.proposal} it and flagged it for a person to look at, which nobody has answered.` : `The ${nounFor(entry2.class, object4.kind)} ${where} was carried over: the plan proposes to ${entry2.decision ?? entry2.proposal} it, and nobody has reviewed that.`
     };
   }
-  return kept;
+  return kept2;
 }
 function describeKeep(object4, entry2, outcome, where, surplus) {
   const base = { object: object4, entry: entry2, outcome, surplus };
@@ -119721,10 +119985,10 @@ function keepRowMarkers(placements, mode2, slideNumber) {
   if (rowed.length < 2) return;
   for (const p of rowed) {
     const at = placements.indexOf(p);
-    const keep = describeKeep(p.object, p.entry, { action: "keep", appliedUnreviewed: false, heldBack: false }, `on slide ${slideNumber}`, p.surplus);
+    const keep2 = describeKeep(p.object, p.entry, { action: "keep", appliedUnreviewed: false, heldBack: false }, `on slide ${slideNumber}`, p.surplus);
     const glyph = plainText2(p.object).trim();
     placements[at] = {
-      ...keep,
+      ...keep2,
       reading: p.reading,
       listed: p.listed,
       marker: true,
@@ -119777,9 +120041,9 @@ function pourItems(placements, mode2) {
   const byRoot = /* @__PURE__ */ new Map();
   placements.forEach((p, i) => {
     const root2 = find(i);
-    const list3 = byRoot.get(root2) ?? [];
-    list3.push(p);
-    byRoot.set(root2, list3);
+    const list4 = byRoot.get(root2) ?? [];
+    list4.push(p);
+    byRoot.set(root2, list4);
   });
   const items2 = [...byRoot.values()].map((members) => {
     const boxes = members.map(boxOf5);
@@ -120390,17 +120654,17 @@ function compileRenovated(input) {
     if (placement2.content !== "text" || placement2.corrected || paras.length < 2) return void 0;
     const [first, ...others] = paras;
     if (!first) return void 0;
-    const words3 = (list3) => list3.map((para) => para.runs.map((run3) => run3.text).join("")).join("\n").trim();
+    const words3 = (list4) => list4.map((para) => para.runs.map((run3) => run3.text).join("")).join("\n").trim();
     const headText = words3([first]);
     const restText = words3(others);
     if (!headText || !restText) return void 0;
-    const size = (list3) => Math.max(0, ...list3.flatMap((para) => para.runs.map((run3) => run3.sizePt ?? 0)));
-    const bold = (list3) => list3.every((para) => para.runs.every((run3) => run3.bold === true || run3.text.trim() === ""));
+    const size = (list4) => Math.max(0, ...list4.flatMap((para) => para.runs.map((run3) => run3.sizePt ?? 0)));
+    const bold = (list4) => list4.every((para) => para.runs.every((run3) => run3.bold === true || run3.text.trim() === ""));
     const larger = size(others) > 0 && size([first]) >= size(others) * HEADING_SIZE_RATIO;
     const heavier = bold([first]) && !bold(others);
     const probe = { ...placement2, text: headText };
     if (!isLabelText(probe) || !(larger || heavier)) return void 0;
-    const rich = (list3) => designTextOf(list3, { carryColour: false, masterSetsType: true, mapColour: (hex3) => mappedColour(placement2.object.id, hex3) }).text;
+    const rich = (list4) => designTextOf(list4, { carryColour: false, masterSetsType: true, mapColour: (hex3) => mappedColour(placement2.object.id, hex3) }).text;
     const heading = { runs: first.runs };
     if (first.align) heading.align = first.align;
     return {
@@ -120960,8 +121224,8 @@ function compileRenovated(input) {
     let pouredUnits = 0;
     if (grouped) {
       const pourable = leftovers.filter((p) => p.content === "text" || p.content === "image" || p.content === "placeholder");
-      const kept = new Set(pourable);
-      leftovers = leftovers.filter((p) => !kept.has(p));
+      const kept2 = new Set(pourable);
+      leftovers = leftovers.filter((p) => !kept2.has(p));
       const byObject = new Map(pourable.map((p) => [p.object.id, p]));
       const units2 = slideLayoutRecipe(build2.archetype) ? slideContentGroups(pourable.map((p) => p.object)).map((group) => {
         const members = group.map((o) => byObject.get(o.id));
@@ -121262,9 +121526,9 @@ function compileRenovated(input) {
       const produced = assigned.get(object4.id) ?? [];
       if (placement2.content === "brand-logo") {
         if (logoLayerId) {
-          const list3 = furnitureLineage.get(logoLayerId) ?? [];
-          list3.push(object4.id);
-          furnitureLineage.set(logoLayerId, list3);
+          const list4 = furnitureLineage.get(logoLayerId) ?? [];
+          list4.push(object4.id);
+          furnitureLineage.set(logoLayerId, list4);
           addEntry(report4, {
             code: "object.replaced-logo",
             message: placement2.message,
@@ -121449,9 +121713,9 @@ function compileRenovated(input) {
       const furniture = new Set(item2.furnitureLayerIds);
       const byLayer = /* @__PURE__ */ new Map();
       for (const [objectId, ids2] of assigned) for (const id2 of ids2) {
-        const list3 = byLayer.get(id2) ?? [];
-        list3.push(objectId);
-        byLayer.set(id2, list3);
+        const list4 = byLayer.get(id2) ?? [];
+        list4.push(objectId);
+        byLayer.set(id2, list4);
       }
       for (const row of layersOf(item2)) {
         const id2 = rowStr(row, "id");
@@ -121653,10 +121917,10 @@ function compileRenovated(input) {
       }
     }
     if (touched > 0) {
-      const note = conflicts.length > 0 ? ` ${conflicts.length === 1 ? "Another colour mapping" : `${conflicts.length} other colour mappings`} already wrote some of the layers it names, which it did not overwrite.` : "";
+      const note2 = conflicts.length > 0 ? ` ${conflicts.length === 1 ? "Another colour mapping" : `${conflicts.length} other colour mappings`} already wrote some of the layers it names, which it did not overwrite.` : "";
       addEntry(report4, {
         code: "colour.assigned",
-        message: `The ${colourNoun(mapping)} was assigned ${named ?? ""} on ${touched} layer(s).${note}`,
+        message: `The ${colourNoun(mapping)} was assigned ${named ?? ""} on ${touched} layer(s).${note2}`,
         layerId: firstLayer,
         reason: mapping.toPath
       });
@@ -122347,10 +122611,10 @@ function pairLabels(units2, ctx) {
     }
   }
   const columnOf = (pair) => pairs2.filter((other) => Math.abs(other.label.box.x - pair.label.box.x) <= STACK_EDGE);
-  const kept = pairs2.filter((pair) => columnOf(pair).length >= 3);
-  if (kept.length === 0) return units2;
-  const gone = new Set(kept.flatMap((pair) => [pair.label.id, pair.line.id]));
-  const rows2 = kept.map(({ label: label4, line }) => ({
+  const kept2 = pairs2.filter((pair) => columnOf(pair).length >= 3);
+  if (kept2.length === 0) return units2;
+  const gone = new Set(kept2.flatMap((pair) => [pair.label.id, pair.line.id]));
+  const rows2 = kept2.map(({ label: label4, line }) => ({
     id: line.id,
     kind: "text",
     box: union3(label4.box, line.box),
@@ -123636,8 +123900,8 @@ function firstPass(input) {
       layoutName !== void 0 ? preset?.layout?.bySourceLayoutName?.[layoutName] : void 0,
       match ? preset?.layout?.byStructure?.[match.signature] ?? preset?.layout?.byStructure?.[match.structure] : void 0
     ].find((id2) => id2 !== void 0 && declared.has(id2));
-    const kept = previousSlides.get(slide.id);
-    const keptLayout = kept && (kept.layoutSource === "user" || kept.layoutSource === "auto") && declared.has(kept.layout) ? kept : void 0;
+    const kept2 = previousSlides.get(slide.id);
+    const keptLayout = kept2 && (kept2.layoutSource === "user" || kept2.layoutSource === "auto") && declared.has(kept2.layout) ? kept2 : void 0;
     let layout2 = "content";
     let layoutSource = "proposed";
     let alternative;
@@ -123678,7 +123942,7 @@ function firstPass(input) {
     }
     const plan2 = {
       id: slide.id,
-      include: !excluded.has(slide.id) && (kept ? kept.include : true),
+      include: !excluded.has(slide.id) && (kept2 ? kept2.include : true),
       layout: layout2,
       layoutSource,
       objects
@@ -123686,9 +123950,9 @@ function firstPass(input) {
     if (alternative && alternative !== layout2) plan2.layoutAlternative = alternative;
     if (reasons.length > 0) plan2.layoutReasons = reasons;
     if (match) plan2.layoutMatch = match;
-    if (kept?.order !== void 0) plan2.order = kept.order;
-    if (kept?.ground !== void 0) plan2.ground = kept.ground;
-    if (kept?.arrangement !== void 0) plan2.arrangement = kept.arrangement;
+    if (kept2?.order !== void 0) plan2.order = kept2.order;
+    if (kept2?.ground !== void 0) plan2.ground = kept2.ground;
+    if (kept2?.arrangement !== void 0) plan2.arrangement = kept2.arrangement;
     return plan2;
   });
   const themed = theme !== void 0 && !isPlainTheme(theme) && !(input.locked === true && theme.id === "look") || slides.some((slide) => slide.ground !== void 0);
@@ -123870,8 +124134,8 @@ function resolveDrawColor(value, resolve8) {
   const s = value.trim();
   if (!s) return null;
   if (/var\(/i.test(s) || s.startsWith("{")) {
-    const live = resolve8?.(s) ?? null;
-    const parsed2 = live ? parsePenpotColor(live) : null;
+    const live2 = resolve8?.(s) ?? null;
+    const parsed2 = live2 ? parsePenpotColor(live2) : null;
     if (parsed2) return { color: parsed2.hex, opacity: parsed2.alpha };
   }
   const parsed = parsePenpotColor(s);
@@ -124324,9 +124588,9 @@ async function describeDesignDrawPictures(page3, describe3) {
     return true;
   };
   if (page3.frame && !await settle2(page3.frame)) delete page3.frame.picture;
-  const kept = [];
-  for (const op of page3.ops) if (await settle2(op)) kept.push(op);
-  page3.ops = kept;
+  const kept2 = [];
+  for (const op of page3.ops) if (await settle2(op)) kept2.push(op);
+  page3.ops = kept2;
 }
 var DESIGN_DRAW_VERSION, authoredColor, NON_STATIC, DEFAULT_FONT_SIZE, FITS2, OBJPOS, BLENDS2, clampTo;
 var init_design_draw = __esm({
@@ -124568,7 +124832,7 @@ function wordsSvg(op, words3) {
   ];
   const style = `white-space:pre${features.length ? `;font-feature-settings:${features.join(", ")}` : ""}`;
   let text8 = `<text font-size="${round25(m2.size)}" style="${svgEscape(style)}"${m2.tracking ? ` letter-spacing="${round25(m2.tracking)}"` : ""}>`;
-  let shapes3 = "", live = false;
+  let shapes3 = "", live2 = false;
   layout2.lines.forEach((line, li) => {
     line.runs.forEach((run3, ri) => {
       const outline2 = words3.outlines?.[li]?.[ri];
@@ -124580,13 +124844,13 @@ function wordsSvg(op, words3) {
         return;
       }
       if (!run3.text) return;
-      live = true;
+      live2 = true;
       const deco = [run3.underline ? "underline" : "", run3.strike ? "line-through" : ""].filter(Boolean).join(" ");
       const ink = run3.color && /^#[0-9a-fA-F]{3,8}$/.test(run3.color) ? run3.color : words3.ink;
       text8 += `<tspan x="${round25(box4.x + line.x + run3.x)}" y="${round25(box4.y + line.baseline)}" font-family="${svgEscape(run3.face.family)}" font-weight="${run3.face.weight}"${run3.face.italic ? ' font-style="italic"' : ""}${colorPaint("fill", ink, ink === words3.ink ? words3.inkOpacity : void 0)}${deco ? ` text-decoration="${deco}"` : ""}>${svgEscape(run3.text)}</tspan>`;
     });
   });
-  text8 = shapes3 + (live ? `${text8}</text>` : "");
+  text8 = shapes3 + (live2 ? `${text8}</text>` : "");
   const defs = [];
   const shadow = op.shadow?.target === "text" ? op.shadow : void 0;
   if (shadow) {
@@ -124870,10 +125134,10 @@ function furnitureAt(value, pointer2) {
   if (value.footer !== void 0 && typeof value.footer !== "string") throw new Error(`${pointer2}/footer: expected the footer text.`);
   return { omit, ...typeof value.footer === "string" ? { footer: value.footer } : {}, ...logo !== void 0 ? { logo } : {} };
 }
-function underPhotoShare(list3, size) {
-  if (!Array.isArray(list3)) return 0;
+function underPhotoShare(list4, size) {
+  if (!Array.isArray(list4)) return 0;
   let best = 0;
-  for (const row of list3) {
+  for (const row of list4) {
     if (!record25(row) || row.kind !== "image" && (row.kind !== void 0 || typeof row.image !== "string")) continue;
     const [x, y, w, h] = ["x", "y", "w", "h"].map((k) => Number(row[k]));
     if (![x, y, w, h].every((n7) => Number.isFinite(n7)) || !(w > 0) || !(h > 0)) continue;
@@ -125040,8 +125304,8 @@ function boldBreaksRules(brief, role) {
   const rules = record25(brief) && Array.isArray(brief.houseRules) ? brief.houseRules : [];
   for (const rule of rules) {
     if (!record25(rule) || rule.kind !== "text-weight") continue;
-    const scope = record25(rule.scope) && Array.isArray(rule.scope.tools) ? rule.scope.tools : null;
-    if (scope && !scope.includes("design")) continue;
+    const scope2 = record25(rule.scope) && Array.isArray(rule.scope.tools) ? rule.scope.tools : null;
+    if (scope2 && !scope2.includes("design")) continue;
     const p = record25(rule.parameters) ? rule.parameters : {};
     const allowed = strings3(p.weights).map(String);
     if (!allowed.length || allowed.includes("700")) continue;
@@ -125372,7 +125636,7 @@ function composeDesignSlides(spec, ctx) {
     }
     const filled2 = [];
     const dropped = [];
-    const kept = [];
+    const kept2 = [];
     const slotTables = [];
     const furnitureKept = [];
     const omitUsed = /* @__PURE__ */ new Set();
@@ -125415,7 +125679,7 @@ function composeDesignSlides(spec, ctx) {
           row.lineHeight = lineHeightFor(kind === "page-number" ? "number" : "label");
         }
         row.locked = true;
-        kept.push(row);
+        kept2.push(row);
         furnitureKept.push(row.furniture);
         continue;
       }
@@ -125450,9 +125714,9 @@ function composeDesignSlides(spec, ctx) {
         continue;
       }
       filled2.push(key);
-      kept.push(row);
+      kept2.push(row);
     }
-    if (surfaceAuto && tokenSet) lowerSlotColours(kept, tokenSet, (row) => assigned.get(row)?.pointer ?? `${p}/archetype`);
+    if (surfaceAuto && tokenSet) lowerSlotColours(kept2, tokenSet, (row) => assigned.get(row)?.pointer ?? `${p}/archetype`);
     for (const o of slideFurniture.omit) {
       if (!omitUsed.has(o)) {
         const what = FURNITURE_KINDS2.has(o) ? `no ${o} furniture` : `no furniture "${o}"`;
@@ -125472,8 +125736,8 @@ function composeDesignSlides(spec, ctx) {
       throw new Error(`${p}/notes: expected the notes text, true or null.`);
     }
     if (noteText) frame.notes = noteText;
-    if (ctx.photoSurface && underPhotoShare(slide.under, size) >= PHOTO_COVER) photoTextCheck(kept, origin, index2, p, ctx, notes);
-    for (const row of kept) {
+    if (ctx.photoSurface && underPhotoShare(slide.under, size) >= PHOTO_COVER) photoTextCheck(kept2, origin, index2, p, ctx, notes);
+    for (const row of kept2) {
       if (typeof row.id !== "string" || !row.id) continue;
       const id2 = row.id;
       const what = `slide ${index2 + 1}'s ${String(row.furniture ? `${row.furniture} furniture` : row.role ?? row.kind)} row`;
@@ -125483,7 +125747,7 @@ function composeDesignSlides(spec, ctx) {
       if (taker) throw new Error(`${p}/id: layer "${id2}" of slide ${index2 + 1} is already the id of ${taker.what} (${taker.pointer}); give this slide another id.`);
       takenBy.set(id2, { pointer: `${p}/archetype`, what, extra: false });
     }
-    const before = [...boxes, frame, ...kept];
+    const before = [...boxes, frame, ...kept2];
     const under = lowerExtras(slide.under, "under", p, frameId, { styles, brief, theme: briefTheme(ground), existing: before, notes, ...lowering });
     const tables2 = slotTables.flatMap((t) => {
       let r5;
@@ -125493,7 +125757,7 @@ function composeDesignSlides(spec, ctx) {
         if (err instanceof Error) err.message = err.message.split(`${t.pointer}/0/`).join(`${t.pointer}/`).split(`${t.pointer}/0:`).join(`${t.pointer}:`);
         throw err;
       }
-      for (const note of r5.notes) notes.push({ path: note.path.split(`${t.pointer}/0/`).join(`${t.pointer}/`), code: note.code, message: note.message });
+      for (const note2 of r5.notes) notes.push({ path: note2.path.split(`${t.pointer}/0/`).join(`${t.pointer}/`), code: note2.code, message: note2.message });
       for (const made of r5.rows) {
         if (typeof made.id !== "string" || !made.id) continue;
         const taker = takenBy.get(made.id);
@@ -125517,7 +125781,7 @@ function composeDesignSlides(spec, ctx) {
         takenBy.set(id2, { pointer: pointer2, what: `${key === "under" ? "an under" : "an over"} row of slide ${index2 + 1}`, extra: true });
       }
     }
-    boxes.push(frame, ...under, ...kept, ...tables2, ...over);
+    boxes.push(frame, ...under, ...kept2, ...tables2, ...over);
     reportSlides.push({
       index: index2,
       id: frameId,
@@ -125842,10 +126106,10 @@ function carriedText(row, source, value, pointer2, fx, asked) {
   const id2 = Array.isArray(value.from) ? value.from.join(", ") : String(value.from);
   let paragraphs2 = source;
   if (value.para !== void 0) {
-    const list3 = Array.isArray(value.para) ? value.para : [value.para];
-    if (!list3.length) throw new Error(`${pointer2}/para: expected a 0-based paragraph number, or a list of them.`);
+    const list4 = Array.isArray(value.para) ? value.para : [value.para];
+    if (!list4.length) throw new Error(`${pointer2}/para: expected a 0-based paragraph number, or a list of them.`);
     const seen = /* @__PURE__ */ new Set();
-    paragraphs2 = list3.map((n7, k) => {
+    paragraphs2 = list4.map((n7, k) => {
       const at = Array.isArray(value.para) ? `${pointer2}/para/${k}` : `${pointer2}/para`;
       if (typeof n7 !== "number" || !Number.isInteger(n7) || n7 < 0) throw new Error(`${at}: expected a 0-based paragraph number.`);
       if (n7 >= source.length) throw new Error(`${at}: "${id2}" has ${plural(source.length, "paragraph")} (0 to ${source.length - 1}).`);
@@ -125941,10 +126205,10 @@ function slotTableRow(row, value, pointer2, origin, archetype, frameId) {
   const at = (k) => (k === "x" ? Number(row.x) - origin.x : Number(row.y) - origin.y) + (macro[k] === void 0 ? 0 : numberAt2(macro[k], `${pointer2}/$table/${k}`));
   return { row: { id: row.id, $in: frameId, $table: { ...macro, x: at("x"), y: at("y") } }, pointer: pointer2 };
 }
-function lowerExtras(list3, key, p, frameId, opts) {
-  if (list3 === void 0) return [];
-  if (!Array.isArray(list3)) throw new Error(`${p}/${key}: expected a list of Design rows.`);
-  const rows2 = list3.map((row, k) => {
+function lowerExtras(list4, key, p, frameId, opts) {
+  if (list4 === void 0) return [];
+  if (!Array.isArray(list4)) throw new Error(`${p}/${key}: expected a list of Design rows.`);
+  const rows2 = list4.map((row, k) => {
     const at = `${p}/${key}/${k}`;
     if (!record25(row)) throw new Error(`${at}: expected a Design row.`);
     if (row.kind === "frame" || row.$artboard !== void 0) throw new Error(`${at}: a slide's ${key} rows sit on the slide; an artboard belongs in the slides list.`);
@@ -125967,7 +126231,7 @@ function lowerExtras(list3, key, p, frameId, opts) {
     ...opts.tokens ? { tokens: opts.tokens } : {},
     ...opts.themes ? { themes: opts.themes } : {}
   });
-  for (const note of r5.notes) opts.notes.push({ path: note.path, code: note.code, message: note.message });
+  for (const note2 of r5.notes) opts.notes.push({ path: note2.path, code: note2.code, message: note2.message });
   return r5.rows;
 }
 function themeFollowOf(cached2, names, byName, authored) {
@@ -126378,9 +126642,9 @@ function cellRefs(archetype) {
   const groups = /* @__PURE__ */ new Map();
   for (const ref of slotRefs(archetype)) {
     if (!ref.group || !/^c\d+$/.test(ref.group)) continue;
-    const list3 = groups.get(ref.group) ?? [];
-    list3.push(ref);
-    groups.set(ref.group, list3);
+    const list4 = groups.get(ref.group) ?? [];
+    list4.push(ref);
+    groups.set(ref.group, list4);
   }
   return [...groups.entries()].sort((a, b) => Number(a[0].slice(1)) - Number(b[0].slice(1))).map(([, refs]) => refs);
 }
@@ -126426,7 +126690,7 @@ function sizeSplit(item2) {
   const head2 = sized.slice(0, lead);
   const tail = sized.slice(lead);
   if (tail.some((p) => p.pt >= top * SUBTITLE_SIZE_RATIO || !(p.pt > 0))) return void 0;
-  const pick = (list3) => list3.length === 1 ? list3[0].k : list3.map((p) => p.k);
+  const pick = (list4) => list4.length === 1 ? list4[0].k : list4.map((p) => p.k);
   return {
     title: { from: item2.t.objectId, para: pick(head2) },
     rest: { from: item2.t.objectId, para: pick(tail), text: tail.map((p) => p.text).join("\n"), role: "subtitle", box: item2.t.box, pt: Math.max(...tail.map((p) => p.pt)) }
@@ -127281,13 +127545,13 @@ function terms(u, v) {
   return [1, u, v, u * u, v * v, u * v];
 }
 function fitSurface(points) {
-  let kept = points;
+  let kept2 = points;
   let coef = [];
   for (let pass = 0; pass < 3; pass++) {
-    if (kept.length < 12) return null;
+    if (kept2.length < 12) return null;
     const ata = Array.from({ length: 6 }, () => new Array(6).fill(0));
     const atb = [new Array(6).fill(0), new Array(6).fill(0), new Array(6).fill(0)];
-    for (const p of kept) {
+    for (const p of kept2) {
       const t = terms(p.u, p.v);
       for (let i = 0; i < 6; i++) {
         const ti = t[i] ?? 0;
@@ -127308,7 +127572,7 @@ function fitSurface(points) {
     coef = next2;
     const res = points.map((p) => surfaceResidual(coef, p));
     const cut = Math.max(12, 2.5 * median7(res));
-    kept = points.filter((_, i) => (res[i] ?? 0) <= cut);
+    kept2 = points.filter((_, i) => (res[i] ?? 0) <= cut);
   }
   return { coef, residuals: points.map((p) => surfaceResidual(coef, p)) };
 }
@@ -127360,15 +127624,15 @@ function estimateGround(image, opts) {
     const bins = /* @__PURE__ */ new Map();
     for (const p of points) {
       const key = p.c[0] >> 3 << 10 | p.c[1] >> 3 << 5 | p.c[2] >> 3;
-      const list3 = bins.get(key);
-      if (list3) list3.push(p.c);
+      const list4 = bins.get(key);
+      if (list4) list4.push(p.c);
       else bins.set(key, [p.c]);
     }
     let bestKey = -1;
     let best = [];
-    for (const [key, list3] of bins) {
-      if (list3.length > best.length || list3.length === best.length && key < bestKey) {
-        best = list3;
+    for (const [key, list4] of bins) {
+      if (list4.length > best.length || list4.length === best.length && key < bestKey) {
+        best = list4;
         bestKey = key;
       }
     }
@@ -127385,7 +127649,7 @@ function estimateGround(image, opts) {
     const fit = fitSurface(points);
     if (fit) {
       const surfaceRes = [...fit.residuals].sort((a, b) => a - b);
-      const share = (list3) => list3.filter((d) => d <= SURFACE_INLIER).length / Math.max(1, list3.length);
+      const share = (list4) => list4.filter((d) => d <= SURFACE_INLIER).length / Math.max(1, list4.length);
       if (clippedMean(surfaceRes) < SURFACE_BETTER * flatTypical && share(surfaceRes) >= SURFACE_MIN_INLIERS) {
         model2 = surfaceModel(fit.coef, w, h);
         coef = fit.coef;
@@ -127864,8 +128128,8 @@ function runPass(pass, page3, maxCandidates) {
     const groups = /* @__PURE__ */ new Map();
     rest2.forEach((p, i) => {
       const r5 = find(i);
-      const list3 = groups.get(r5);
-      if (list3) list3.push(p);
+      const list4 = groups.get(r5);
+      if (list4) list4.push(p);
       else groups.set(r5, [p]);
     });
     return [inner, ...groups.values()];
@@ -127895,9 +128159,9 @@ function runPass(pass, page3, maxCandidates) {
     const ys = [b.y, b.y + (b.h >> 1), b.y + b.h - 1];
     return xs.every((x) => ys.every((y) => p.inside?.(x, y) === true));
   });
-  const kept = candidates2.filter((c) => !owned(c));
+  const kept2 = candidates2.filter((c) => !owned(c));
   candidates2.length = 0;
-  candidates2.push(...kept);
+  candidates2.push(...kept2);
   if (candidates2.length > maxCandidates) {
     return { candidates: [], overflow: true, specks, reads: reads + counter.reads, cells, seen: candidates2.length };
   }
@@ -127992,10 +128256,10 @@ function insideShare2(a, b) {
 function absorb(region, rule) {
   return { ...region, box: union4(region.box, rule.box), ink: region.ink + rule.ink };
 }
-function mergeCandidates(list3) {
-  const panels = list3.filter((c) => c.kind === "panel");
-  let rules = list3.filter((c) => c.kind === "rule");
-  let open3 = list3.filter((c) => c.kind === "text" || c.kind === "picture");
+function mergeCandidates(list4) {
+  const panels = list4.filter((c) => c.kind === "panel");
+  let rules = list4.filter((c) => c.kind === "rule");
+  let open3 = list4.filter((c) => c.kind === "text" || c.kind === "picture");
   for (let round10 = 0; round10 < MAX_MERGE_ROUNDS; round10++) {
     let changed = false;
     const next2 = [];
@@ -128200,8 +128464,8 @@ function findSlideRegions(source, opts = {}) {
     }
   };
   walk2(tree);
-  const kept = overflow ? [] : flat.slice(0, maxRegions);
-  const dropped = overflow ? flat.length + overflowSeen : flat.length - kept.length;
+  const kept2 = overflow ? [] : flat.slice(0, maxRegions);
+  const dropped = overflow ? flat.length + overflowSeen : flat.length - kept2.length;
   return {
     width,
     height,
@@ -128210,7 +128474,7 @@ function findSlideRegions(source, opts = {}) {
     ...ground.coef ? { surface: ground.coef.map((row) => [...row]) } : {},
     threshold: ground.threshold,
     cell: Math.max(1, Math.ceil(Math.max(width, height) / gridCells)),
-    regions: kept,
+    regions: kept2,
     complete: !overflow && dropped === 0,
     dropped,
     specks,
@@ -128607,7 +128871,7 @@ function inkAbove(image, area2, under, lineHeight, threshold, maxLines) {
   const channel5 = [[], [], []];
   for (let cy3 = Math.floor(y0 / step); cy3 <= Math.floor((y1 - 1) / step); cy3++) {
     for (let cx2 = Math.floor(x0 / step); cx2 <= Math.floor((x1 - 1) / step); cx2++) {
-      for (const list3 of channel5) list3.length = 0;
+      for (const list4 of channel5) list4.length = 0;
       for (let y = cy3 * step; y < Math.min(image.height, (cy3 + 1) * step); y += stride) {
         for (let x = cx2 * step; x < Math.min(image.width, (cx2 + 1) * step); x += stride) {
           const i = (y * image.width + x) * 4;
@@ -129098,7 +129362,7 @@ function lineGlyphsOf(image, box4, text8) {
     const third = Math.max(1, Math.floor(rows2.length / 3));
     const upper = rows2.slice(0, third);
     const lower3 = rows2.slice(rows2.length - third);
-    const mean = (list3, f) => list3.reduce((n7, row) => n7 + f(row), 0) / list3.length;
+    const mean = (list4, f) => list4.reduce((n7, row) => n7 + f(row), 0) / list4.length;
     const lean = (mean(upper, (row) => (row.left + row.right) / 2) - mean(lower3, (row) => (row.left + row.right) / 2)) * stride / rows2.length;
     const topWidth = mean(upper, (row) => row.right - row.left + 1);
     const lowWidth = mean(lower3, (row) => row.right - row.left + 1);
@@ -129574,8 +129838,8 @@ function assembleLines(input, opts) {
   const groups = /* @__PURE__ */ new Map();
   items2.forEach((item2, i) => {
     const r5 = find(i);
-    const list3 = groups.get(r5);
-    if (list3) list3.push(item2);
+    const list4 = groups.get(r5);
+    if (list4) list4.push(item2);
     else groups.set(r5, [item2]);
   });
   const lines = [];
@@ -129640,8 +129904,8 @@ function ocrTextBlocks(input, barriers = []) {
   const groups = /* @__PURE__ */ new Map();
   items2.forEach((item2, i) => {
     const r5 = find(i);
-    const list3 = groups.get(r5);
-    if (list3) list3.push(item2.index);
+    const list4 = groups.get(r5);
+    if (list4) list4.push(item2.index);
     else groups.set(r5, [item2.index]);
   });
   return [...groups.values()].map((g2) => g2.sort((a, b) => a - b)).sort((a, b) => (a[0] ?? 0) - (b[0] ?? 0));
@@ -131071,9 +131335,9 @@ __export(token_font_pins_exports, {
 async function pinnedFontAliases(pins) {
   const groups = /* @__PURE__ */ new Map();
   for (const pin of pins) if (pin.font) {
-    const key = pin.font.family.toLowerCase(), list3 = groups.get(key) ?? [];
-    list3.push(pin);
-    groups.set(key, list3);
+    const key = pin.font.family.toLowerCase(), list4 = groups.get(key) ?? [];
+    list4.push(pin);
+    groups.set(key, list4);
   }
   if (groups.size > 64 || pins.length > 512) throw new Error("The font manifest exceeds the release limit.");
   const aliases = /* @__PURE__ */ new Map();
@@ -131252,8 +131516,8 @@ function viewSize(frame, region, maxSide = 1024, maxZoom = 8) {
 function reframeSvg(svg, region, width, height, overlay = "") {
   const tag2 = rootTag(svg);
   if (!tag2) throw new Error("Not an SVG document.");
-  const kept = tag2.attrs.replace(/\s(viewBox|width|height|preserveAspectRatio)\s*=\s*("[^"]*"|'[^']*')/gi, "").replace(/(\sstyle\s*=\s*)(["'])([^"']*)\2/i, (_m, pre, q, css2) => `${pre}${q}${css2.replace(/(^|;)\s*(width|height)\s*:[^;]*/gi, "$1").replace(/^;+|;+(?=;)/g, "")}${q}`).replace(/\s+$/, "");
-  const open3 = `<svg${kept} viewBox="${fmt2(region.x)} ${fmt2(region.y)} ${fmt2(region.w)} ${fmt2(region.h)}" width="${Math.round(width)}" height="${Math.round(height)}" preserveAspectRatio="none">`;
+  const kept2 = tag2.attrs.replace(/\s(viewBox|width|height|preserveAspectRatio)\s*=\s*("[^"]*"|'[^']*')/gi, "").replace(/(\sstyle\s*=\s*)(["'])([^"']*)\2/i, (_m, pre, q, css2) => `${pre}${q}${css2.replace(/(^|;)\s*(width|height)\s*:[^;]*/gi, "$1").replace(/^;+|;+(?=;)/g, "")}${q}`).replace(/\s+$/, "");
+  const open3 = `<svg${kept2} viewBox="${fmt2(region.x)} ${fmt2(region.y)} ${fmt2(region.w)} ${fmt2(region.h)}" width="${Math.round(width)}" height="${Math.round(height)}" preserveAspectRatio="none">`;
   const selfClosing = svg[tag2.end - 2] === "/";
   const body = selfClosing ? `${overlay}</svg>` : (() => {
     const close = svg.lastIndexOf("</svg>");
@@ -131515,9 +131779,9 @@ function follow(edge, seen, w, h, start) {
 }
 function simplifyPolyline(points, tolerance) {
   if (points.length < 3 || !(tolerance > 0)) return points.slice();
-  const keep = new Uint8Array(points.length);
-  keep[0] = 1;
-  keep[points.length - 1] = 1;
+  const keep2 = new Uint8Array(points.length);
+  keep2[0] = 1;
+  keep2[points.length - 1] = 1;
   const ranges = [[0, points.length - 1]];
   while (ranges.length) {
     const [first, last] = ranges.pop();
@@ -131533,10 +131797,10 @@ function simplifyPolyline(points, tolerance) {
       }
     }
     if (index2 < 0 || far <= tolerance) continue;
-    keep[index2] = 1;
+    keep2[index2] = 1;
     ranges.push([first, index2], [index2, last]);
   }
-  return points.filter((_, i) => keep[i]);
+  return points.filter((_, i) => keep2[i]);
 }
 function traceEdges(img, opts = {}) {
   const { width: w, height: h } = img;
@@ -131801,15 +132065,15 @@ function inventoryFromSource(source, census, opts) {
   for (const entry2 of census.objects) classOf.set(entry2.id, entry2.hypothesis.class);
   const iconUnits = /* @__PURE__ */ new Set();
   for (const layout2 of census.layouts) for (const unit2 of layout2.units ?? []) if (unit2.kind === "icon") iconUnits.add(unit2.id);
-  const warnings = source.warnings.map((w) => ({ code: w.code, message: w.message }));
+  const warnings2 = source.warnings.map((w) => ({ code: w.code, message: w.message }));
   const first = source.slides[0];
   const deckSize = first && first.width > 0 && first.height > 0 ? { width: first.width, height: first.height } : DEFAULT_SLIDE;
   const slides = source.slides.map((slide, position) => {
     const number6 = position + 1;
     const size = slide.width > 0 && slide.height > 0 ? { width: slide.width, height: slide.height } : deckSize;
     const flattened = slide.origin.flattened === true;
-    if (flattened) warnings.push(flattenedWarning(slide, number6));
-    for (const w of slide.warnings) warnings.push({ code: w.code, message: `Slide ${number6}: ${w.message}` });
+    if (flattened) warnings2.push(flattenedWarning(slide, number6));
+    for (const w of slide.warnings) warnings2.push({ code: w.code, message: `Slide ${number6}: ${w.message}` });
     const readingPos = /* @__PURE__ */ new Map();
     for (const [i, id2] of slide.readingOrder.entries()) readingPos.set(id2, i);
     const byReading2 = [...slide.objects].sort((a, b) => {
@@ -131863,7 +132127,7 @@ function inventoryFromSource(source, census, opts) {
           class: "decoration"
         }, media2));
       } else {
-        warnings.push({ code: "media-unknown", message: `Slide ${number6}: the background picture ${background} was not read, so it is left out.` });
+        warnings2.push({ code: "media-unknown", message: `Slide ${number6}: the background picture ${background} was not read, so it is left out.` });
       }
     }
     for (const object4 of slide.objects) {
@@ -131877,7 +132141,7 @@ function inventoryFromSource(source, census, opts) {
       const ref = svg ? drawing : object4.media;
       if (!ref) {
         if (object4.fidelity.state === "unavailable") {
-          warnings.push({
+          warnings2.push({
             code: "media-unavailable",
             message: `Slide ${number6}: the picture ${object4.id} is left out: ${unavailableWhy(object4.fidelity.reason)}.`
           });
@@ -131886,7 +132150,7 @@ function inventoryFromSource(source, census, opts) {
       }
       const media2 = svg ?? opts.media.get(ref);
       if (!media2) {
-        warnings.push({ code: "media-unknown", message: `Slide ${number6}: the picture ${object4.id} draws ${ref}, which was not read, so it is left out.` });
+        warnings2.push({ code: "media-unknown", message: `Slide ${number6}: the picture ${object4.id} draws ${ref}, which was not read, so it is left out.` });
         continue;
       }
       const klass = classOf.get(object4.id);
@@ -131925,13 +132189,13 @@ function inventoryFromSource(source, census, opts) {
       }
     }
     if (hiddenLeftOut > 0) {
-      warnings.push({
+      warnings2.push({
         code: "hidden-left-out",
         message: `Slide ${number6}: ${hiddenLeftOut === 1 ? "one hidden object is" : `${hiddenLeftOut} hidden objects are`} left out of text and pictures, as the source does not show ${hiddenLeftOut === 1 ? "it" : "them"}; ${hiddenLeftOut === 1 ? "it is" : "they are"} still listed under objects.`
       });
     }
     if (hiddenTextKept > 0) {
-      warnings.push({
+      warnings2.push({
         code: "hidden-text-kept",
         message: `Slide ${number6}: ${hiddenTextKept === 1 ? "one line of text is" : `${hiddenTextKept} lines of text are`} invisible on the page, as a scan's OCR layer is; ${hiddenTextKept === 1 ? "that line is" : "they are"} listed as text with hidden set.`
       });
@@ -131957,7 +132221,7 @@ function inventoryFromSource(source, census, opts) {
     return out;
   });
   const media = [...opts.media].map(([ref, facts2]) => withFacts({ ref, sha256: facts2.sha256, mime: facts2.mime, bytes: facts2.bytes }, facts2));
-  for (const w of opts.warnings ?? []) warnings.push({ code: w.code, message: w.message });
+  for (const w of opts.warnings ?? []) warnings2.push({ code: w.code, message: w.message });
   const sha2563 = opts.sha256 ?? sha256Of(source.source.hash);
   const inventory2 = {
     version: CONTENT_INVENTORY_VERSION,
@@ -131972,7 +132236,7 @@ function inventoryFromSource(source, census, opts) {
     },
     slides,
     media,
-    warnings
+    warnings: warnings2
   };
   if (source.source.title) inventory2.source.title = source.source.title;
   return inventory2;
@@ -132232,7 +132496,7 @@ var init_premiere_xml = __esm({
 
 // engine/src/idml-read.ts
 import { strFromU8 } from "fflate";
-async function readIdmlSpreads(files, parse, { warn = () => {
+async function readIdmlSpreads(files, parse, { warn: warn2 = () => {
 }, map, linkedFiles = {}, storeImage } = {}) {
   if (Object.keys(files).length > 4096 || Object.values(files).reduce((n7, b) => n7 + b.length, 0) > 128 * 1024 * 1024) throw new Error("IDML package exceeds the import limits.");
   const xml2 = (path) => {
@@ -132258,7 +132522,7 @@ async function readIdmlSpreads(files, parse, { warn = () => {
   const stories = /* @__PURE__ */ Object.create(null);
   for (const src of pkgSrcs("Story")) {
     const d = xml2(src);
-    if (d) parseStories(d, swatches, stories, styles, warn);
+    if (d) parseStories(d, swatches, stories, styles, warn2);
   }
   if (spreadSrcs.length > 256) throw new Error("IDML contains more than 256 spreads.");
   const frames = [];
@@ -132267,7 +132531,7 @@ async function readIdmlSpreads(files, parse, { warn = () => {
   for (const [index2, src] of spreadSrcs.entries()) {
     const spreadDoc = xml2(src), spreadEl = spreadDoc && innerElement(spreadDoc, "Spread");
     if (!spreadEl) throw new Error(`Could not read IDML spread ${index2 + 1}.`);
-    const ctx = { nodes: [], swatches, stories, seen: { group: 0 }, warn };
+    const ctx = { nodes: [], swatches, stories, seen: { group: 0 }, warn: warn2 };
     for (const child of Array.from(spreadEl.children)) walkItem(child, IDENTITY5, "", ctx);
     if (ctx.nodes.length > 1e4) throw new Error("IDML spread exceeds the item limit.");
     totalItems += ctx.nodes.length;
@@ -132283,8 +132547,8 @@ async function readIdmlSpreads(files, parse, { warn = () => {
         if (ref && (ref.type === "raster" || ref.type === "vector")) {
           node.kind = "image";
           node.image = ref;
-        } else warn(`Image ${name} could not be imported.`);
-      } else warn(`Missing linked image: ${node._imagePath}. Supply its bytes to replace the placeholder.`);
+        } else warn2(`Image ${name} could not be imported.`);
+      } else warn2(`Missing linked image: ${node._imagePath}. Supply its bytes to replace the placeholder.`);
     }
     const pages = Array.from(spreadEl.children).filter((el) => el.localName === "Page").map((el) => {
       const bounds = (el.getAttribute("GeometricBounds") || "").split(/\s+/).map(Number);
@@ -132434,7 +132698,7 @@ function colorValueToHex(space, value) {
 function rgb(r5, g2, b) {
   return "#" + [r5, g2, b].map((x) => x.toString(16).padStart(2, "0")).join("");
 }
-function parseStories(doc, swatches, out, styles = /* @__PURE__ */ new Map(), warn = () => {
+function parseStories(doc, swatches, out, styles = /* @__PURE__ */ new Map(), warn2 = () => {
 }) {
   for (const story of Array.from(doc.getElementsByTagName("Story"))) {
     const self = story.getAttribute("Self");
@@ -132468,8 +132732,8 @@ function parseStories(doc, swatches, out, styles = /* @__PURE__ */ new Map(), wa
     }
     if (paras.some((para) => para.runs.some((run3) => !run3.bold && run3.text.trim()))) weight = 400;
     const formatted = designTextOf(paras, { carryColour: true, rowWeight: weight || 400 });
-    if (formatted.dropped.length) warn(`Story ${self}: unsupported formatting ${formatted.dropped.join(", ")}.`);
-    if (story.getElementsByTagName("Table").length || story.getElementsByTagName("Footnote").length) warn(`Story ${self}: tables and footnotes are reduced to supported text runs.`);
+    if (formatted.dropped.length) warn2(`Story ${self}: unsupported formatting ${formatted.dropped.join(", ")}.`);
+    if (story.getElementsByTagName("Table").length || story.getElementsByTagName("Footnote").length) warn2(`Story ${self}: tables and footnotes are reduced to supported text runs.`);
     out[self] = { text: formatted.text, fontSize, fg, font, weight, align };
   }
 }
@@ -132534,6 +132798,7 @@ var init_idml_read = __esm({
 var src_exports = {};
 __export(src_exports, {
   ACCENT_CHROMA_FLOOR: () => ACCENT_CHROMA_FLOOR,
+  ALGORITHMIC_SOURCE_TYPE: () => ALGORITHMIC_SOURCE_TYPE,
   APCA_BANDS: () => APCA_BANDS,
   APCA_SRGB_ONLY: () => APCA_SRGB_ONLY,
   APNG_DEMUX_MAX_CHUNKS: () => APNG_DEMUX_MAX_CHUNKS,
@@ -132824,7 +133089,14 @@ __export(src_exports, {
   REWORD_SYSTEM_PROMPT: () => REWORD_SYSTEM_PROMPT,
   REWORD_WATERMARK: () => REWORD_WATERMARK,
   RIGHTS_RULES_VERSION: () => RIGHTS_RULES_VERSION,
+  RONDOCODE_URL: () => RONDOCODE_URL,
+  RONDO_ASSET_FORMAT: () => RONDO_ASSET_FORMAT,
+  RONDO_FILE_SUFFIX: () => RONDO_FILE_SUFFIX,
+  RONDO_MAX_SOURCE_BYTES: () => RONDO_MAX_SOURCE_BYTES,
+  RONDO_SINGING_MODELS: () => RONDO_SINGING_MODELS,
+  RONDO_SOURCE_SCHEMA_VERSION: () => RONDO_SOURCE_SCHEMA_VERSION,
   RUN_LINKS_KEY: () => RUN_LINKS_KEY,
+  RondoSourceError: () => RondoSourceError,
   SCALES: () => SCALES,
   SCHEME_KINDS: () => SCHEME_KINDS,
   SCREEN_SOURCE_TYPE: () => SCREEN_SOURCE_TYPE,
@@ -133544,6 +133816,9 @@ __export(src_exports, {
   isPsd: () => isPsd,
   isRasterPhotoLook: () => isRasterPhotoLook,
   isRateCardError: () => isRateCardError,
+  isRondoFileName: () => isRondoFileName,
+  isRondoShareLink: () => isRondoShareLink,
+  isRondoSongIngredient: () => isRondoSongIngredient,
   isSafeTokenPath: () => isSafeTokenPath,
   isShadowPlate: () => isShadowPlate,
   isStrippableFormat: () => isStrippableFormat,
@@ -133938,6 +134213,19 @@ __export(src_exports, {
   rgbToCmyk: () => rgbToCmyk,
   rightsReportFromC2pa: () => rightsReportFromC2pa,
   roleObligation: () => roleObligation,
+  rondoCreatedAction: () => rondoCreatedAction,
+  rondoDeclaration: () => rondoDeclaration,
+  rondoDigitalSourceType: () => rondoDigitalSourceType,
+  rondoFileName: () => rondoFileName,
+  rondoFromBytes: () => rondoFromBytes,
+  rondoFromFile: () => rondoFromFile,
+  rondoFromShareLink: () => rondoFromShareLink,
+  rondoRecordedSentence: () => rondoRecordedSentence,
+  rondoRenderFacts: () => rondoRenderFacts,
+  rondoSilentParts: () => rondoSilentParts,
+  rondoSongIngredient: () => rondoSongIngredient,
+  rondoSourceBytes: () => rondoSourceBytes,
+  rondoSourceId: () => rondoSourceId,
   rotateHue: () => rotateHue,
   rotateRampHue: () => rotateRampHue,
   roundedEdgePath: () => roundedEdgePath,
@@ -134170,6 +134458,7 @@ __export(src_exports, {
   unfilterPng: () => unfilterPng,
   uniformRadius: () => uniformRadius,
   unionPath: () => unionPath,
+  uniqueRondoIngredients: () => uniqueRondoIngredients,
   unpackEncrypted: () => unpackEncrypted,
   unpackF16: () => unpackF16,
   unpackToken: () => unpackToken,
@@ -134316,6 +134605,8 @@ var init_src2 = __esm({
     init_zzfx_compose();
     init_zzfx_compose();
     init_zzfxm_ref();
+    init_rondo_source();
+    init_rondo_provenance();
     init_design_version();
     init_design_system();
     init_css_box();
@@ -135549,8 +135840,8 @@ function deckSvgBakeRaster(bytes, maxPx = 4096) {
 }
 function deckTransition(v, notes) {
   const drop = (s) => {
-    const list3 = Array.isArray(notes) ? notes : notes?.dropped;
-    if (list3 && !list3.includes(s)) list3.push(s);
+    const list4 = Array.isArray(notes) ? notes : notes?.dropped;
+    if (list4 && !list4.includes(s)) list4.push(s);
   };
   switch (typeof v === "string" ? v : "") {
     case "fade":
@@ -136030,7 +136321,7 @@ function lineOf(hit, strokeW, opacity) {
   const alpha = foldAlpha(hit.alpha, opacity);
   return { color: hit.hex, w: emu(strokeW), ...alpha !== void 0 ? { alpha } : {} };
 }
-function layoutFor(ctx, archetype, master, size, bindings, kept) {
+function layoutFor(ctx, archetype, master, size, bindings, kept2) {
   const typeScale = typeFactor(master, size);
   const placeholders = [];
   const seen = /* @__PURE__ */ new Map();
@@ -136065,7 +136356,7 @@ function layoutFor(ctx, archetype, master, size, bindings, kept) {
   }
   const shapes3 = [];
   for (const id2 of archetype.furniture ?? []) {
-    if (kept && !kept.has(id2)) continue;
+    if (kept2 && !kept2.has(id2)) continue;
     const f = master.furniture.find((item2) => item2.id === id2);
     if (!f) continue;
     const shape = furnitureShape(ctx, f, master, size);
@@ -136290,8 +136581,8 @@ async function designFramesToPptx(opts) {
   };
 }
 function placeholderStyle(archetype, role, ordinal) {
-  const list3 = archetype.placeholders.filter((p) => p.role === role);
-  return list3[ordinal - 1]?.style;
+  const list4 = archetype.placeholders.filter((p) => p.role === role);
+  return list4[ordinal - 1]?.style;
 }
 function framesOfDesignDoc(doc) {
   const frames = [];
@@ -136870,23 +137161,23 @@ function inflateStepped(input, cap, kind) {
     total += take.length;
   };
   const inflater = kind === "zlib" ? new Unzlib(onData) : new Inflate2(onData);
-  let failed = false;
+  let failed2 = false;
   try {
     for (let at = 0; at < input.length && total < cap; at += INFLATE_STEP) {
       const end = Math.min(input.length, at + INFLATE_STEP);
       inflater.push(input.subarray(at, end), end >= input.length);
     }
   } catch {
-    failed = true;
+    failed2 = true;
   }
-  if (parts.length === 1) return { bytes: parts[0], failed };
+  if (parts.length === 1) return { bytes: parts[0], failed: failed2 };
   const out = new Uint8Array(total);
   let off = 0;
   for (const part of parts) {
     out.set(part, off);
     off += part.length;
   }
-  return { bytes: out, failed };
+  return { bytes: out, failed: failed2 };
 }
 function pdfStreamBytes(stream, cap = Number.POSITIVE_INFINITY) {
   const trim2 = (bytes) => bytes.length > cap ? bytes.subarray(0, cap) : bytes;
@@ -136976,11 +137267,11 @@ function pdfContentString(ctx, pageNode, content2) {
 async function loadPdfDocument(bytes) {
   return PDFDocument.load(bytes, { ignoreEncryption: true, throwOnInvalidObject: false, updateMetadata: false });
 }
-function makePdfWalk(ctx, imageStreams, warn, decoders = {}, opts = {}) {
+function makePdfWalk(ctx, imageStreams, warn2, decoders = {}, opts = {}) {
   const walk2 = {
     ctx,
     imageStreams,
-    warn,
+    warn: warn2,
     decoders,
     resources: (dict, depth) => extractPdfResources(walk2, dict, depth)
   };
@@ -137361,8 +137652,8 @@ function rampOf(fn, comps, t0, t1) {
 function collapseStops(ramp) {
   const out = [];
   for (let i = 0; i < ramp.length; i++) {
-    const keep = i === 0 || i === ramp.length - 1 || ramp[i] !== ramp[i - 1] || ramp[i] !== ramp[i + 1];
-    if (keep) out.push({ offset: i / (ramp.length - 1 || 1), color: ramp[i] });
+    const keep2 = i === 0 || i === ramp.length - 1 || ramp[i] !== ramp[i - 1] || ramp[i] !== ramp[i + 1];
+    if (keep2) out.push({ offset: i / (ramp.length - 1 || 1), color: ramp[i] });
   }
   return out;
 }
@@ -137493,7 +137784,7 @@ function interpretPdfDocPage(doc, pageIndex, opts = {}) {
   const node = pdfPage.node;
   const mb2 = pdfPage.getMediaBox();
   const imageStreams = /* @__PURE__ */ new Map();
-  const walk2 = (opts.walk ?? ((c, images, warn) => makePdfWalk(c, images, warn, {}, { bounded: true })))(ctx, imageStreams, diag);
+  const walk2 = (opts.walk ?? ((c, images, warn2) => makePdfWalk(c, images, warn2, {}, { bounded: true })))(ctx, imageStreams, diag);
   if (opts.maxContentChars !== void 0) walk2.content ??= { used: 0, limit: opts.maxContentChars };
   const resources = walk2.resources(getKey(ctx, node, "Resources"), 0);
   let content2 = pdfContentString(ctx, node, walk2.content);
@@ -138505,8 +138796,8 @@ function centreIn(a, b) {
   return cx2 >= b.x && cx2 < b.x + b.w && cy3 >= b.y && cy3 < b.y + b.h;
 }
 function meaningful2(line, minConfidence) {
-  const kept = line.text.replace(/[^\p{L}\p{N}]/gu, "");
-  const chars = Array.from(kept);
+  const kept2 = line.text.replace(/[^\p{L}\p{N}]/gu, "");
+  const chars = Array.from(kept2);
   if (chars.length === 0 || line.confidence < minConfidence) return false;
   if (chars.length >= REPEAT_RUN && new Set(chars).size === 1) return false;
   return chars.length >= SHORT_LINE_CHARS || line.confidence >= SHORT_LINE_CONFIDENCE;
@@ -138617,8 +138908,8 @@ function parentFirst(regions) {
   const roots2 = [];
   for (const r5 of regions) {
     if (r5.parent && ids2.has(r5.parent) && r5.parent !== r5.id) {
-      const list3 = children.get(r5.parent);
-      if (list3) list3.push(r5);
+      const list4 = children.get(r5.parent);
+      if (list4) list4.push(r5);
       else children.set(r5.parent, [r5]);
     } else {
       roots2.push(r5);
@@ -138961,8 +139252,8 @@ async function reconstructFlattenedSlide(input) {
       const held = containerOf(line.box)?.id;
       const corner = held ? null : cornerOf(line.box);
       const key = held ?? (corner ? `~${corner}` : "");
-      const list3 = byContainer.get(key);
-      if (list3) list3.push(line);
+      const list4 = byContainer.get(key);
+      if (list4) list4.push(line);
       else byContainer.set(key, [line]);
     }
     const pictures = found.regions.filter((r5) => r5.kind === "picture").sort((a, b) => areaOf2(a.box) - areaOf2(b.box));
@@ -139003,8 +139294,8 @@ async function reconstructFlattenedSlide(input) {
             if (glyphs2 < TITLE_MIN_CHARS || bodyHeight > 0 && lineHeight < LABEL_SIZE_SHARE * bodyHeight) block.inPicture = host.id;
           }
         }
-        const kept = keptWhole.find((r5) => insideShare3(box4, r5.box) >= KEPT_INSIDE);
-        if (kept) block.keptIn = kept.id;
+        const kept2 = keptWhole.find((r5) => insideShare3(box4, r5.box) >= KEPT_INSIDE);
+        if (kept2) block.keptIn = kept2.id;
         blocks.push(block);
       }
     }
@@ -139174,8 +139465,8 @@ async function reconstructFlattenedSlide(input) {
     }
     if (region.kind === "picture" && decision2?.keep !== "text") {
       if (page3) {
-        const kept = await pagePicture(region);
-        if (kept) built.push(kept);
+        const kept2 = await pagePicture(region);
+        if (kept2) built.push(kept2);
       } else {
         built.push(await pictureObject(`${base}.${region.id}`, region.box, { state: unreadState }));
       }
@@ -139187,8 +139478,8 @@ async function reconstructFlattenedSlide(input) {
     else if (result.picture.lines?.some((l) => l.text.trim())) {
       built.push(await pictureObject(`${base}.${region.id}`, region.box, result.picture, [], canvas));
     } else {
-      const kept = await pagePicture(region, result.picture);
-      if (kept) built.push(kept);
+      const kept2 = await pagePicture(region, result.picture);
+      if (kept2) built.push(kept2);
     }
   }
   if (truncated + dropped + underText > 0) {
@@ -139369,8 +139660,8 @@ async function reconstructFlattenedSlide(input) {
     const clusters = /* @__PURE__ */ new Map();
     loose2.forEach((b, i) => {
       const r5 = rootOf2(i);
-      const list3 = clusters.get(r5);
-      if (list3) list3.push(b);
+      const list4 = clusters.get(r5);
+      if (list4) list4.push(b);
       else clusters.set(r5, [b]);
     });
     const edgeStep = Math.max(2, Math.round(CARD_STEP_SHARE * Math.min(picture.width, picture.height)));
@@ -139879,8 +140170,8 @@ async function readPage(picture, ocr, opts) {
   const groups = /* @__PURE__ */ new Map();
   all.forEach((l, i) => {
     const r5 = find(i);
-    const list3 = groups.get(r5);
-    if (list3) list3.push(l);
+    const list4 = groups.get(r5);
+    if (list4) list4.push(l);
     else groups.set(r5, [l]);
   });
   const merged = [];
@@ -140179,8 +140470,8 @@ function carryTextLayer(layer, built) {
       }
     }
     if (!best) continue;
-    const list3 = byObject.get(best);
-    if (list3) list3.push(line);
+    const list4 = byObject.get(best);
+    if (list4) list4.push(line);
     else byObject.set(best, [line]);
   }
   let carried = 0;
@@ -140554,10 +140845,10 @@ function columnCuts(texts) {
     if (gap >= body * GUTTER_SIZES2) cuts.push({ x: (reach2 + x0) / 2, gap });
     reach2 = Math.max(reach2, x1);
   }
-  const kept = cuts.slice(0, MAX_COLUMNS2 - 1);
-  if (!kept.length) return [];
-  const xs = kept.map((c) => c.x);
-  const widest = Math.max(...kept.map((c) => c.gap));
+  const kept2 = cuts.slice(0, MAX_COLUMNS2 - 1);
+  if (!kept2.length) return [];
+  const xs = kept2.map((c) => c.x);
+  const widest = Math.max(...kept2.map((c) => c.gap));
   const cols = Array.from({ length: xs.length + 1 }, () => []);
   for (const o of texts) cols[xs.filter((x) => o.box.x >= x).length].push(o);
   const believable = cols.every((col) => {
@@ -140742,7 +141033,7 @@ async function sourceDeckFromPdf(bytes, opts) {
     }
     opts.signal?.throwIfAborted();
     const slideId = `page${index2 + 1}`;
-    const warnings = [];
+    const warnings2 = [];
     const diag = [];
     const decodeDiag = [];
     let page3 = null;
@@ -140757,14 +141048,14 @@ async function sourceDeckFromPdf(bytes, opts) {
       }
       const rotation = (Math.round(pdfPage.getRotation().angle) % 360 + 360) % 360;
       if (rotation) {
-        warnings.push({
+        warnings2.push({
           code: "group-transform-approximated",
           message: `${slideId} is shown turned ${rotation} degrees, and that turn was not applied: its objects are placed as the page is stored, not as it is shown.`
         });
       }
       const cb = pdfPage.getCropBox();
       if (Math.abs(cb.x - mb2.x) > 0.5 || Math.abs(cb.y - mb2.y) > 0.5 || Math.abs(cb.width - mb2.width) > 0.5 || Math.abs(cb.height - mb2.height) > 0.5) {
-        warnings.push({
+        warnings2.push({
           code: "group-transform-approximated",
           message: `${slideId} shows only part of its page (a crop box of ${round27(cb.width)} by ${round27(cb.height)} points); the whole page was read, so content outside the shown part is included.`
         });
@@ -140780,7 +141071,7 @@ async function sourceDeckFromPdf(bytes, opts) {
         walk: (ctx, images) => makePdfWalk(ctx, images, (m2) => decodeDiag.push(m2), opts.decoders ?? {}, { bounded: true })
       });
     } catch (err) {
-      warnings.push(err instanceof PdfPageTooLargeError ? { code: "part-too-large", message: `${slideId} was not read: ${err.message}`, count: err.chars } : { code: "media-skipped", message: `${slideId} could not be read (${String(err?.message ?? err)}), so it holds no objects.` });
+      warnings2.push(err instanceof PdfPageTooLargeError ? { code: "part-too-large", message: `${slideId} was not read: ${err.message}`, count: err.chars } : { code: "media-skipped", message: `${slideId} could not be read (${String(err?.message ?? err)}), so it holds no objects.` });
     }
     const slide = {
       id: slideId,
@@ -140790,7 +141081,7 @@ async function sourceDeckFromPdf(bytes, opts) {
       background: {},
       objects: [],
       readingOrder: [],
-      warnings,
+      warnings: warnings2,
       origin: { kind: "pdf" }
     };
     let ranks = /* @__PURE__ */ new Map();
@@ -140869,7 +141160,7 @@ async function readPage2(page3, slideId, store, caps, fontRuns, struct) {
   const artifacts = page3.artifacts ?? [];
   const invisible = page3.invisible ?? [];
   const pageArea = Math.max(1, width * height);
-  const warnings = [];
+  const warnings2 = [];
   let background;
   let groundIndex = -1;
   const first = nodes[0];
@@ -140941,7 +141232,7 @@ async function readPage2(page3, slideId, store, caps, fontRuns, struct) {
     }
     units2.push(picUnit(cover, layer));
     if (others.length) {
-      warnings.push({
+      warnings2.push({
         code: "nodes-truncated",
         message: `${slideId} is read as one picture; ${others.length} other painted ${plural2(others.length, "item was", "items were")} not carried as objects of their own.`,
         count: others.length
@@ -140990,7 +141281,7 @@ async function readPage2(page3, slideId, store, caps, fontRuns, struct) {
   units2.sort((a, b) => a.z - b.z);
   const cap = Math.max(0, Math.floor(caps.maxObjectsPerPage));
   if (units2.length > cap) {
-    warnings.push({
+    warnings2.push({
       code: "nodes-truncated",
       message: `${slideId} holds ${units2.length} objects; the first ${cap} in paint order were kept.`,
       count: units2.length - cap
@@ -141002,10 +141293,10 @@ async function readPage2(page3, slideId, store, caps, fontRuns, struct) {
   for (const [z, unit2] of units2.entries()) {
     const { object: object4, warnings: own3 } = await unit2.build(`${slideId}.${z}`);
     objects.push(object4);
-    warnings.push(...own3);
+    warnings2.push(...own3);
     if (unit2.rank !== void 0) ranks.set(object4.id, unit2.rank);
   }
-  const out = { objects, warnings, flattened, ranks };
+  const out = { objects, warnings: warnings2, flattened, ranks };
   if (pageOcr) out.ocr = pageOcr;
   if (background) out.background = background;
   return out;
@@ -141068,14 +141359,14 @@ async function shapeObject(id2, n7, artifact, clip3) {
   if (clip3.cut && !exactCut && clip3.visible) object4.clip = boxOf2(clip3.visible.x, clip3.visible.y, clip3.visible.w, clip3.visible.h);
   const fill2 = colorOf(n7.fill, n7.opacity);
   if (fill2) object4.fill = fill2;
-  const warnings = [];
+  const warnings2 = [];
   if (n7._gradient) {
     object4.fidelity = { state: "approximate", reason: "reader-approximation" };
-    warnings.push({ code: "gradient-flattened", message: `A gradient on ${id2} was read as one flat colour.`, objectIds: [id2] });
+    warnings2.push({ code: "gradient-flattened", message: `A gradient on ${id2} was read as one flat colour.`, objectIds: [id2] });
   }
   if (clip3.cut && !exactCut) {
     object4.fidelity = { state: "approximate", reason: "reader-approximation" };
-    warnings.push(clip3.exact ? {
+    warnings2.push(clip3.exact ? {
       code: "group-transform-approximated",
       message: `The ${geom} ${id2} is cut by a rectangle; it keeps its own box and states the part that shows as its clip.`,
       objectIds: [id2]
@@ -141083,10 +141374,10 @@ async function shapeObject(id2, n7, artifact, clip3) {
   }
   if (n7._softMask) {
     object4.fidelity = { state: "approximate", reason: "reader-approximation" };
-    warnings.push(cutWarning(id2, "The shape", true));
+    warnings2.push(cutWarning(id2, "The shape", true));
   }
   object4.fingerprint = await fingerprintOf3("shape", box4, `${geom}|${fill2?.hex ?? ""}:${fill2?.alpha ?? ""}`);
-  return { object: object4, warnings };
+  return { object: object4, warnings: warnings2 };
 }
 async function vectorObject(id2, nodes, indices, extent2, width, height, artifacts, markFill) {
   const members = indices.map((i) => nodes[i]);
@@ -141104,7 +141395,7 @@ async function vectorObject(id2, nodes, indices, extent2, width, height, artifac
     origin: allArtifact ? "pdf-artifact" : "slide",
     fidelity: { state: "approximate", reason: "reader-approximation" }
   };
-  const warnings = [];
+  const warnings2 = [];
   const idPrefix = id2.replace(/[^A-Za-z0-9]/g, "_");
   let svg = "";
   let reason2;
@@ -141112,11 +141403,11 @@ async function vectorObject(id2, nodes, indices, extent2, width, height, artifac
     svg = windowPdfSvg(pdfNodesToSvg(members, { width, height, images: {}, idPrefix }), { x, y, width: w, height: h });
   } catch (err) {
     reason2 = "reader-approximation";
-    warnings.push({ code: "media-skipped", message: `The vector art ${id2} could not be drawn (${String(err?.message ?? err)}).`, objectIds: [id2] });
+    warnings2.push({ code: "media-skipped", message: `The vector art ${id2} could not be drawn (${String(err?.message ?? err)}).`, objectIds: [id2] });
   }
   if (svg.length > MAX_VECTOR_CHARS) {
     reason2 = "cap-reached";
-    warnings.push({ code: "part-too-large", message: `The vector art ${id2} is ${svg.length} characters of SVG, over the ${MAX_VECTOR_CHARS} limit, so it was not carried.`, objectIds: [id2] });
+    warnings2.push({ code: "part-too-large", message: `The vector art ${id2} is ${svg.length} characters of SVG, over the ${MAX_VECTOR_CHARS} limit, so it was not carried.`, objectIds: [id2] });
     svg = "";
   }
   if (svg) object4.vector = svg;
@@ -141130,7 +141421,7 @@ async function vectorObject(id2, nodes, indices, extent2, width, height, artifac
     if (color5) object4.line.color = color5;
   }
   object4.fingerprint = await fingerprintOf3("vector", box4, vectorMaterial(members, extent2.x, extent2.y));
-  return { object: object4, warnings };
+  return { object: object4, warnings: warnings2 };
 }
 var PX_PER_PT, SOURCE_PDF_DEFAULT_CAPS, MAX_VECTOR_CHARS, FLATTEN_MAX_OTHERS, FLATTEN_MAX_OTHER_AREA, FLATTEN_EDGE_BAND, MAX_OCR_LINES, round27, px, plural2, EDGE_EPS, GUTTER_SIZES2, MIN_COLUMN_LINES2, MIN_COLUMN_FILL2, MAX_COLUMNS2, MIN_TAGGED_SHARE, idCmp, FILL_NOT_PAINTED, FILL_EXACT, WORK_BUDGET, RESOURCES_REFUSED, YIELD_EVERY_MS;
 var init_source_pdf = __esm({
@@ -141299,7 +141590,7 @@ async function sourceDeckFromPsd(bytes, opts) {
   opts.onSlide?.(0, 1);
   const fonts = /* @__PURE__ */ new Map();
   const stored = /* @__PURE__ */ new Map();
-  const warnings = [];
+  const warnings2 = [];
   const slide = {
     id: PSD_SLIDE_ID,
     index: 0,
@@ -141308,7 +141599,7 @@ async function sourceDeckFromPsd(bytes, opts) {
     background: {},
     objects: [],
     readingOrder: [],
-    warnings,
+    warnings: warnings2,
     origin: { kind: "psd" }
   };
   const store = async (png) => {
@@ -141386,7 +141677,7 @@ async function sourceDeckFromPsd(bytes, opts) {
       object4 = { ...base, kind: "shape", box: b, geom: "rect", fill: color3(s.fill, alpha) };
       object4.fingerprint = await fingerprintOf4("shape", b, s.fill);
     } else if (s?.adjustment) {
-      if (l.visible) warnings.push({ code: "feature-dropped", message: `${l.name || id2}: ${notes.join(" ")}`.slice(0, 1e3) });
+      if (l.visible) warnings2.push({ code: "feature-dropped", message: `${l.name || id2}: ${notes.join(" ")}`.slice(0, 1e3) });
       continue;
     }
     if (!object4 && l.width > 0 && l.height > 0 && l.pixels.length === l.width * l.height * 4) {
@@ -141404,7 +141695,7 @@ async function sourceDeckFromPsd(bytes, opts) {
       object4.fingerprint = await fingerprintOf4("pic", b, ref);
     }
     if (!object4) continue;
-    if (notes.length && l.visible) warnings.push({ code: "feature-dropped", message: `${l.name || id2}: ${notes.join(" ")}`.slice(0, 1e3), objectIds: [object4.id] });
+    if (notes.length && l.visible) warnings2.push({ code: "feature-dropped", message: `${l.name || id2}: ${notes.join(" ")}`.slice(0, 1e3), objectIds: [object4.id] });
     slide.objects.push(object4);
   }
   const order = slide.objects.filter((o) => o.kind === "text" && !o.hidden).sort((a, b) => Math.abs(a.box.y - b.box.y) > 8 ? a.box.y - b.box.y : a.box.x - b.box.x);
@@ -141413,7 +141704,7 @@ async function sourceDeckFromPsd(bytes, opts) {
   });
   slide.readingOrder = order.map((o) => o.id);
   if (docWarnings.includes("layer.semantics")) {
-    warnings.push({ code: "part-too-large", message: "Some layer details were too large to read, so those layers stay pictures." });
+    warnings2.push({ code: "part-too-large", message: "Some layer details were too large to read, so those layers stay pictures." });
   }
   opts.onSlide?.(1, 1);
   const source = { kind: "psd", hash: opts.hash, lineageId: opts.hash, instanceId: opts.instanceId, pageCount: 1 };
@@ -141671,12 +141962,12 @@ function stacksOf(runs2, order) {
   const byGroup = /* @__PURE__ */ new Map();
   for (const i of order) {
     const key = (runs2[i].groups ?? []).join("");
-    const list3 = byGroup.get(key) ?? [];
-    list3.push(i);
-    byGroup.set(key, list3);
+    const list4 = byGroup.get(key) ?? [];
+    list4.push(i);
+    byGroup.set(key, list4);
   }
-  for (const list3 of byGroup.values()) {
-    const sorted = [...list3].sort((a, b) => runs2[a].baseline - runs2[b].baseline || runs2[a].box.x - runs2[b].box.x);
+  for (const list4 of byGroup.values()) {
+    const sorted = [...list4].sort((a, b) => runs2[a].baseline - runs2[b].baseline || runs2[a].box.x - runs2[b].box.x);
     const used = /* @__PURE__ */ new Set();
     for (const start of sorted) {
       if (used.has(start)) continue;
@@ -141773,9 +142064,9 @@ function settleByAxis(runs2, texts, out) {
   runs2.forEach((run3, i) => {
     if (!run3.labelGroup) return;
     const key = (run3.groups ?? []).join("");
-    const list3 = byGroup.get(key) ?? [];
-    list3.push(i);
-    byGroup.set(key, list3);
+    const list4 = byGroup.get(key) ?? [];
+    list4.push(i);
+    byGroup.set(key, list4);
   });
   for (const members of byGroup.values()) {
     if (members.length < 3) continue;
@@ -141895,9 +142186,9 @@ function vectorTextOf(items2, runs2, readings, opts = {}) {
   const buckets = /* @__PURE__ */ new Map();
   const bucketOf = (run3) => `${(run3.groups ?? []).join("")}|${run3.fill}|${run3.opacity ?? 1}`;
   for (const c of chosen) {
-    const list3 = buckets.get(bucketOf(c.run)) ?? [];
-    list3.push(c.size);
-    buckets.set(bucketOf(c.run), list3);
+    const list4 = buckets.get(bucketOf(c.run)) ?? [];
+    list4.push(c.size);
+    buckets.set(bucketOf(c.run), list4);
   }
   const replace = /* @__PURE__ */ new Map();
   const covered = /* @__PURE__ */ new Set();
@@ -142113,8 +142404,8 @@ function slidePartsInOrder(parts, parseXml) {
     const doc = parseXml(xml2);
     const rels = new Map(readRels(parts, "ppt/presentation.xml", parseXml).map((r5) => [r5.id, r5]));
     const ordered = [];
-    const list3 = elementsByLocal(doc, "sldIdLst")[0];
-    for (const sldId of list3 ? childrenByLocal3(list3, "sldId") : []) {
+    const list4 = elementsByLocal(doc, "sldIdLst")[0];
+    for (const sldId of list4 ? childrenByLocal3(list4, "sldId") : []) {
       const rid = relIdOf(sldId);
       const rel = rid ? rels.get(rid) : void 0;
       if (rel && !rel.external) ordered.push(resolveTarget4("ppt/presentation.xml", rel.target));
@@ -142343,9 +142634,9 @@ async function sourceDeckFromPptx(parts, parseXml, opts) {
     const mapped = { code: WARNING_CODE_MAP[warning.code], message: warning.message };
     if (typeof warning.count === "number") mapped.count = warning.count;
     if (typeof warning.slideIndex === "number") {
-      const list3 = slideWarnings.get(warning.slideIndex) ?? [];
-      list3.push(mapped);
-      slideWarnings.set(warning.slideIndex, list3);
+      const list4 = slideWarnings.get(warning.slideIndex) ?? [];
+      list4.push(mapped);
+      slideWarnings.set(warning.slideIndex, list4);
     } else {
       deckWarnings.push(mapped);
     }
@@ -143120,17 +143411,17 @@ function mapPsd(meta, payload, options2, budget3) {
   const depth = meta.depth;
   const icc = meta.icc ? spanBytes(payload, meta.icc).slice() : void 0;
   const profile = icc ? parseIccProfile(icc) : null;
-  const warnings = [];
-  const warn = (code, detail) => {
-    if (!warnings.includes(code)) {
-      warnings.push(code);
+  const warnings2 = [];
+  const warn2 = (code, detail) => {
+    if (!warnings2.includes(code)) {
+      warnings2.push(code);
       options2.onWarn?.(code, detail);
     }
   };
-  if (depth !== 8) warn("psd.preview-depth", `${depth}-bit source; editable preview uses 8-bit pixels. Preserve the original separately to keep its precision.`);
-  if (mode2 === "lab") warn("psd.lab-preview", "Lab preview converted to sRGB. Preserve the original separately to keep its source colour data.");
-  if (mode2 === "cmyk" && !profile) warn("cmyk.no-profile");
-  if (depth === 32) warn("psd.hdr-preview", "Linear preview is clipped to the display range. This preview does not retain HDR values.");
+  if (depth !== 8) warn2("psd.preview-depth", `${depth}-bit source; editable preview uses 8-bit pixels. Preserve the original separately to keep its precision.`);
+  if (mode2 === "lab") warn2("psd.lab-preview", "Lab preview converted to sRGB. Preserve the original separately to keep its source colour data.");
+  if (mode2 === "cmyk" && !profile) warn2("cmyk.no-profile");
+  if (depth === 32) warn2("psd.hdr-preview", "Linear preview is clipped to the display range. This preview does not retain HDR values.");
   let allocated = payload.length;
   const charge = (size) => {
     if (!Number.isSafeInteger(size) || size < 0 || size > budget3 - allocated) throw new Error("PSD preview exceeds the decoded byte budget.");
@@ -143200,7 +143491,7 @@ function mapPsd(meta, payload, options2, budget3) {
       isGroup,
       groupPath: [...ancestors]
     };
-    if (blend2.lossy) warn("blend.lossy", layer.blend);
+    if (blend2.lossy) warn2("blend.lossy", layer.blend);
     const semantics = readLayerSemantics(new Map(layer.blocks.map((b) => [b.key, spanBytes(payload, b.data)])), { x: layer.x, y: layer.y, w: layer.width, h: layer.height }, { w: meta.width, h: meta.height });
     if (semantics) raster.psd = semantics;
     if (options2.applyLayerMasks !== false && layer.mask && raster.pixels.length) {
@@ -143219,7 +143510,7 @@ function mapPsd(meta, payload, options2, budget3) {
   const indices = [...indexed.keys()].sort((a, b) => a - b), remap = new Map(indices.map((n7, i) => [n7, i]));
   const layers = indices.map((i) => indexed.get(i));
   for (const layer of layers) layer.groupPath = layer.groupPath.map((i) => remap.get(i)).filter((i) => i !== void 0);
-  return { format: "psd", width: meta.width, height: meta.height, depth, colorMode: mode2, layers, composite: composite2, icc, warnings };
+  return { format: "psd", width: meta.width, height: meta.height, depth, colorMode: mode2, layers, composite: composite2, icc, warnings: warnings2 };
 }
 var MAX_INPUT, MAX_DECODE, MAX_META;
 var init_adobe_psd = __esm({
@@ -143243,7 +143534,7 @@ __export(adobe_psd_node_exports, {
   readPsdPortable: () => readPsdPortable
 });
 import { readFile as readFile2 } from "node:fs/promises";
-import { inflateSync } from "node:zlib";
+import { inflateSync as inflateSync2 } from "node:zlib";
 import { join as join5 } from "node:path";
 function loadPsdKernel() {
   pending ??= readFile2(new URL("../wasm/adobe-psd/adobe-psd.wasm", import.meta.url)).catch((error2) => {
@@ -143257,7 +143548,7 @@ function loadPsdKernel() {
 }
 async function readPsdPortable(bytes, options2 = {}) {
   try {
-    return readPsd(bytes, { inflate: (b, maxOut) => new Uint8Array(inflateSync(b, { maxOutputLength: maxOut })), ...options2 });
+    return readPsd(bytes, { inflate: (b, maxOut) => new Uint8Array(inflateSync2(b, { maxOutputLength: maxOut })), ...options2 });
   } catch (error2) {
     if (!(error2 instanceof PsdUnsupportedError) || !["depth", "color-mode"].includes(error2.code)) throw error2;
     return (await loadPsdKernel()).read(bytes, options2);
@@ -143572,24 +143863,24 @@ async function handleFlattenedSlides(source, media, input) {
       if (outcome === "rebuilt" && out2.recovery?.fromObjectId) entry2.replaced = out2.recovery.fromObjectId;
       reports.push(entry2);
     };
-    const keep = (reason2, message, objectIds = pic ? [pic.id] : []) => {
+    const keep2 = (reason2, message, objectIds = pic ? [pic.id] : []) => {
       report4(keptSlide(slide, pic, missing, message ? { message, objectIds } : void 0), "kept", reason2);
     };
     const tooLarge2 = (width, height) => {
-      keep("too-large", `The picture of ${slide.id} is ${width} by ${height} pixels, over the ${FLATTENED_MAX_PIXELS} pixel limit for a rebuild, so it stays one picture.`);
+      keep2("too-large", `The picture of ${slide.id} is ${width} by ${height} pixels, over the ${FLATTENED_MAX_PIXELS} pixel limit for a rebuild, so it stays one picture.`);
     };
     if (mode2 === "keep") {
-      keep("asked");
+      keep2("asked");
       continue;
     }
     if (!pic) {
       const own3 = slide.objects.filter((o) => o.origin === "slide" || o.origin === "pdf-artifact").map((o) => o.id);
-      keep("not-one-picture", `${slide.id} is read as a picture of a slide, but it holds ${own3.length === 0 ? "no object" : own3.length === 1 ? "one object that is not a picture" : `${own3.length} objects of its own`} rather than one picture, so it was not rebuilt and stays as it is.`, own3);
+      keep2("not-one-picture", `${slide.id} is read as a picture of a slide, but it holds ${own3.length === 0 ? "no object" : own3.length === 1 ? "one object that is not a picture" : `${own3.length} objects of its own`} rather than one picture, so it was not rebuilt and stays as it is.`, own3);
       continue;
     }
     const held = pic.media ? media.get(pic.media) : void 0;
     if (!held) {
-      keep("picture-missing", `The picture of ${slide.id} was not stored, so the slide was not rebuilt.`);
+      keep2("picture-missing", `The picture of ${slide.id} was not stored, so the slide was not rebuilt.`);
       continue;
     }
     const size = pictureDimensions(held.bytes);
@@ -143605,7 +143896,7 @@ async function handleFlattenedSlides(source, media, input) {
     }
     if (!picture) {
       const why = size ? "could not be decoded here" : "is in a format whose size this reader cannot read before decoding it";
-      keep("undecodable", `The picture of ${slide.id} (${held.mime || "an unknown format"}) ${why}, so the slide was not rebuilt and stays one picture.`);
+      keep2("undecodable", `The picture of ${slide.id} (${held.mime || "an unknown format"}) ${why}, so the slide was not rebuilt and stays one picture.`);
       continue;
     }
     if (picture.width * picture.height > FLATTENED_MAX_PIXELS) {
@@ -143633,12 +143924,12 @@ async function handleFlattenedSlides(source, media, input) {
       });
     } catch (err) {
       if (input.signal?.aborted) throw err;
-      keep("failed", `${slide.id} could not be rebuilt (${err instanceof Error ? err.message : String(err)}), so it stays one picture.`);
+      keep2("failed", `${slide.id} could not be rebuilt (${err instanceof Error ? err.message : String(err)}), so it stays one picture.`);
       continue;
     }
     if (out.objects.some((o) => o.id === pic.id)) {
-      const { recovery: _uncut, ...kept } = out;
-      report4(kept, "kept", "not-cut");
+      const { recovery: _uncut, ...kept2 } = out;
+      report4(kept2, "kept", "not-cut");
       continue;
     }
     for (const [ref, one] of staged) media.set(ref, one);
@@ -143793,12 +144084,12 @@ function flattenedReadProblem(plan, source) {
     return planned !== void 0 && (planned.size !== slide.objects.length || slide.objects.some((o) => !planned.has(o.id)));
   });
   if (differs.length === 0 || differs.some((slide) => slide.origin.flattened !== true)) return null;
-  const recorded = flattenedReadOfPlan(plan);
+  const recorded2 = flattenedReadOfPlan(plan);
   const rebuiltNow = differs.filter((slide) => slide.recovery !== void 0).length;
   const now2 = rebuiltNow === differs.length ? "rebuilt them" : rebuiltNow === 0 ? "kept them as pictures" : `rebuilt ${rebuiltNow} and kept ${differs.length - rebuiltNow} as pictures`;
   const ids2 = differs.slice(0, 5).map((slide) => slide.id).join(", ");
-  const made = recorded ? `The plan was made from a read that ${flattenedReadWords(recorded)}` : "The plan does not record how they were read";
-  const fix = recorded ? `Read the file again with the options flattenedReadOfPlan gives for this plan${recorded.ocr ? " and an OCR runner" : ""}${recorded.flattened === "rebuild" ? ", on a host that can decode the slide pictures" : ""}.` : "Make the plan again from this read.";
+  const made = recorded2 ? `The plan was made from a read that ${flattenedReadWords(recorded2)}` : "The plan does not record how they were read";
+  const fix = recorded2 ? `Read the file again with the options flattenedReadOfPlan gives for this plan${recorded2.ocr ? " and an OCR runner" : ""}${recorded2.flattened === "rebuild" ? ", on a host that can decode the slide pictures" : ""}.` : "Make the plan again from this read.";
   return `The flattened slides ${ids2}${differs.length > 5 ? ` and ${differs.length - 5} more` : ""} were read another way than when the plan was made. ${made}, and this read ${now2}. ${fix}`;
 }
 function acceptScopeOf(value) {
@@ -143816,11 +144107,11 @@ async function compileDeck(input) {
     autoMatched = matched.touched;
     if (autoMatched.length > 0) plan = { ...matched.plan, revision: plan.revision + 1 };
   }
-  const scope = acceptScopeOf(input.acceptSuggestions);
-  if (scope) {
+  const scope2 = acceptScopeOf(input.acceptSuggestions);
+  if (scope2) {
     const before = /* @__PURE__ */ new Map();
     for (const slide of plan.slides) for (const row of slide.objects) before.set(row.id, row.review);
-    const answered = acceptSuggestions(plan, { scope, author: input.author ?? "agent", source: input.source });
+    const answered = acceptSuggestions(plan, { scope: scope2, author: input.author ?? "agent", source: input.source });
     appliedUnreviewed = answered.touched.map((id2) => ({ id: id2, review: before.get(id2) ?? "unreviewed" }));
     plan = appliedUnreviewed.length > 0 ? { ...answered.plan, revision: input.plan.revision + 1 } : answered.plan;
   }
@@ -143839,14 +144130,14 @@ async function compileDeck(input) {
   return { compiled: compiled2, report: compiled2.report, plan, appliedUnreviewed, autoMatched };
 }
 function outcomeCounts(plan, compiled2) {
-  const kept = /* @__PURE__ */ new Set();
+  const kept2 = /* @__PURE__ */ new Set();
   for (const slide of plan.slides) {
     if (!slide.include) continue;
     for (const row of slide.objects) {
-      if (effectiveAction(row) !== "remove") kept.add(row.id);
+      if (effectiveAction(row) !== "remove") kept2.add(row.id);
     }
   }
-  const unresolvedColours = plan.colors.filter((row) => (row.unresolved !== void 0 || !row.to && !row.toPath) && row.affects.some((id2) => kept.has(id2))).length;
+  const unresolvedColours = plan.colors.filter((row) => (row.unresolved !== void 0 || !row.to && !row.toPath) && row.affects.some((id2) => kept2.has(id2))).length;
   const { pending: pending3, attention } = openPendingCounts(plan);
   return {
     pending: pending3,
@@ -145239,6 +145530,7 @@ var raster_exports = {};
 __export(raster_exports, {
   DEEP_FORMATS: () => DEEP_FORMATS,
   DeepSourceError: () => DeepSourceError,
+  HOOK_OWNED_FORMATS: () => HOOK_OWNED_FORMATS,
   NODE_FORMATS: () => NODE_FORMATS,
   PRINT_PREP_FORMATS: () => PRINT_PREP_FORMATS,
   canCarryPrintPrep: () => canCarryPrintPrep,
@@ -145249,6 +145541,7 @@ __export(raster_exports, {
   isDeepFormat: () => isDeepFormat,
   matchedExportFormat: () => matchedExportFormat,
   needsFloatScene: () => needsFloatScene,
+  nodePathFormat: () => nodePathFormat,
   printPrepRefusal: () => printPrepRefusal,
   pxDims: () => pxDims,
   rasterizeSvgToBmp: () => rasterizeSvgToBmp,
@@ -145258,6 +145551,10 @@ __export(raster_exports, {
   rasterizeTierAPng: () => rasterizeTierAPng,
   renderDeepRaster: () => renderDeepRaster
 });
+function nodePathFormat(manifest, format) {
+  const f = format.toLowerCase();
+  return NODE_FORMATS.includes(f) || !!manifest.hooks?.exportStill && HOOK_OWNED_FORMATS.includes(f);
+}
 function needsFloatScene(toolId, editingRange, format, hdr) {
   return toolId === "design" && (editingRange === "hdr" || !!hdr) && !["html", "json", "csv", "ics", "vcf", "md", "txt"].includes(format.toLowerCase());
 }
@@ -145458,7 +145755,7 @@ function matchedExportFormat(manifest, model2) {
   const formats = (manifest.render?.formats ?? []).map((x) => x.toLowerCase());
   return f && formats.includes(f) ? f : null;
 }
-var NODE_FORMATS, DEEP_FORMATS, fontDirs, PRINT_PREP_FORMATS, DeepSourceError;
+var NODE_FORMATS, HOOK_OWNED_FORMATS, DEEP_FORMATS, fontDirs, PRINT_PREP_FORMATS, DeepSourceError;
 var init_raster3 = __esm({
   "packages/node-shell/src/raster.ts"() {
     "use strict";
@@ -145467,6 +145764,7 @@ var init_raster3 = __esm({
     init_radiance();
     init_content_roots();
     NODE_FORMATS = ["svg", "svgz", "emf", "wmf", "eps", "eps-cmyk", "dxf", "penpot", "lottie", "idml", "premiere-xml", "jxl", "jxl-lossless", "bmp", "exr", "hdr", "html", "json", "csv", "ics", "vcf", "md"];
+    HOOK_OWNED_FORMATS = ["wav", "mp3", "m4a", "opus"];
     DEEP_FORMATS = ["exr", "hdr"];
     fontDirs = null;
     PRINT_PREP_FORMATS = /* @__PURE__ */ new Set(["pdf", "pdf-cmyk", "cmyk-tiff"]);
@@ -145976,7 +146274,7 @@ async function checkMediaDir(dir) {
     throw new ContentInventoryError("media.unwritable", `Cannot use ${dir} as the media folder: ${err.message}`, [dir]);
   }
 }
-async function drawThumbnails(source, media, warnings, signal) {
+async function drawThumbnails(source, media, warnings2, signal) {
   const hrefs = /* @__PURE__ */ new Map();
   const assetHref = (ref) => {
     const cached2 = hrefs.get(ref);
@@ -145991,7 +146289,7 @@ async function drawThumbnails(source, media, warnings, signal) {
   try {
     frames = compileFaithful(source).frames;
   } catch (err) {
-    warnings.push({ code: "thumbnails-unavailable", message: `The slides could not be drawn: ${err.message}` });
+    warnings2.push({ code: "thumbnails-unavailable", message: `The slides could not be drawn: ${err.message}` });
     return [];
   }
   const out = [];
@@ -146004,7 +146302,7 @@ async function drawThumbnails(source, media, warnings, signal) {
       const svg = framePreviewSvg(frame, { assetHref, emptySlots: false });
       out[position] = { bytes: await rasterizeSvgToPng(svg, width, height), width, height };
     } catch (err) {
-      warnings.push({ code: "thumbnail-failed", message: `Slide ${position + 1} could not be drawn: ${err.message}` });
+      warnings2.push({ code: "thumbnail-failed", message: `Slide ${position + 1} could not be drawn: ${err.message}` });
     }
   }
   return out;
@@ -146027,7 +146325,7 @@ async function readContentInventory(input) {
   let notesParas;
   let crops;
   let svgParts;
-  const warnings = [];
+  const warnings2 = [];
   if (source.source.kind === "pptx") {
     try {
       const extras = pptxExtras(await inflatePptx(input.bytes), parseXml, source);
@@ -146035,7 +146333,7 @@ async function readContentInventory(input) {
       crops = extras.crops;
       svgParts = extras.svgs;
     } catch (err) {
-      warnings.push({ code: "notes-structure-unavailable", message: `The notes paragraphs and picture crops could not be read again: ${err.message}` });
+      warnings2.push({ code: "notes-structure-unavailable", message: `The notes paragraphs and picture crops could not be read again: ${err.message}` });
     }
   }
   const media = new Map(read.media);
@@ -146055,7 +146353,7 @@ async function readContentInventory(input) {
   const facts2 = /* @__PURE__ */ new Map();
   const planned = [];
   if (input.thumbnails && input.mediaDir) {
-    const drawn = await drawThumbnails(source, media, warnings, input.signal);
+    const drawn = await drawThumbnails(source, media, warnings2, input.signal);
     thumbnails = drawn.map((thumb, position) => {
       if (!thumb) return void 0;
       const path = join9(input.mediaDir, mediaFileName(sha256Hex3(thumb.bytes), "image/png"));
@@ -146120,7 +146418,7 @@ async function readContentInventory(input) {
     ...crops ? { crops } : {},
     ...vectors.size > 0 ? { vectors } : {},
     ...thumbnails ? { thumbnails } : {},
-    warnings
+    warnings: warnings2
   });
   return { inventory: inventory2, media, written, reused, source, census };
 }
@@ -146337,9 +146635,9 @@ function classify2(id2, keys2) {
   return { kind: "catalog", id: id2 };
 }
 function pushLayer(map, key, layer) {
-  const list3 = map.get(key);
-  if (list3) {
-    if (!list3.includes(layer)) list3.push(layer);
+  const list4 = map.get(key);
+  if (list4) {
+    if (!list4.includes(layer)) list4.push(layer);
   } else map.set(key, [layer]);
 }
 async function profileCatalog() {
@@ -146368,7 +146666,7 @@ async function packageDesign(input, opts = {}) {
   } catch (err) {
     throw new DesignPackageError("authoring.invalid", err.message);
   }
-  const warnings = expanded.notes.map((n7) => ({ code: "authoring.note", message: `${n7.code}: ${n7.message}`, ...n7.path ? { path: n7.path } : {} }));
+  const warnings2 = expanded.notes.map((n7) => ({ code: "authoring.note", message: `${n7.code}: ${n7.message}`, ...n7.path ? { path: n7.path } : {} }));
   const keys2 = /* @__PURE__ */ new Map();
   for (const asset2 of opts.assets ?? []) {
     if (!asset2.key) throw new DesignPackageError("asset.invalid", "An asset needs a key: the image value the rows name it by (KEY=PATH).");
@@ -146399,7 +146697,7 @@ async function packageDesign(input, opts = {}) {
     const layer = layerIdOf(row, index2);
     if (row.kind === "path") {
       const path = typeof row.path === "string" ? row.path.trim() : "";
-      if (!path) warnings.push({ code: "path.empty", message: `Path layer ${layer} has no path and draws nothing.`, path: `/boxes/${index2}/path` });
+      if (!path) warnings2.push({ code: "path.empty", message: `Path layer ${layer} has no path and draws nothing.`, path: `/boxes/${index2}/path` });
       else {
         const decoded = decodeAuthoredPathsResult(path);
         if (typeof decoded === "string") pathProblems.push(`${layer} (${decoded}, /boxes/${index2}/path)`);
@@ -146541,12 +146839,12 @@ async function packageDesign(input, opts = {}) {
         { unknown: unknownList, ...unusedAssets.length ? { unusedAssets } : {} }
       );
   } else {
-    for (const m2 of missing) warnings.push({ code: "media.missing", message: `${m2.ref} is written as a reference with no bytes (${listOf(m2.layers, 3)}).` });
-    for (const m2 of unknownList) warnings.push({ code: "reference.unknown", message: `${m2.ref} is not in the ${catalog?.profile ?? "active"} profile (${listOf(m2.layers, 3)}).` });
+    for (const m2 of missing) warnings2.push({ code: "media.missing", message: `${m2.ref} is written as a reference with no bytes (${listOf(m2.layers, 3)}).` });
+    for (const m2 of unknownList) warnings2.push({ code: "reference.unknown", message: `${m2.ref} is not in the ${catalog?.profile ?? "active"} profile (${listOf(m2.layers, 3)}).` });
   }
-  if (unchecked) warnings.push({ code: "reference.unchecked", message: `No content profile resolved, so ${plural3(unchecked, "catalog reference")} could not be checked.` });
-  if (external) warnings.push({ code: "reference.external", message: `${plural3(external, "layer")} draw${external === 1 ? "s" : ""} a picture from a URL, left as written.` });
-  for (const key of unusedAssets) warnings.push({ code: "asset.unused", message: `No layer names ${key}; its file was not carried.` });
+  if (unchecked) warnings2.push({ code: "reference.unchecked", message: `No content profile resolved, so ${plural3(unchecked, "catalog reference")} could not be checked.` });
+  if (external) warnings2.push({ code: "reference.external", message: `${plural3(external, "layer")} draw${external === 1 ? "s" : ""} a picture from a URL, left as written.` });
+  for (const key of unusedAssets) warnings2.push({ code: "asset.unused", message: `No layer names ${key}; its file was not carried.` });
   const values = { ...expanded.values, boxes: rows2 };
   const first = rows2.find((r5) => r5.kind === "frame");
   const width = Number(first?.w);
@@ -146613,7 +146911,7 @@ async function packageDesign(input, opts = {}) {
     },
     missingMedia: opts.allowMissingMedia ? missing : [],
     unusedAssets,
-    warnings,
+    warnings: warnings2,
     readback,
     next: ["lolly check <file.lolly>", "lolly run <file.lolly> --export=pptx"]
   };
@@ -146816,11 +147114,11 @@ async function openSessionInPage(page3, base, bytes, name, opts = {}) {
     await page3.goto(`${root2}/#/open?lolly=${encodeURIComponent(path)}`, { waitUntil: "load", timeout: Math.min(timeout, 6e4) });
     const never = () => new Promise(() => {
     });
-    let quiet;
+    let quiet2;
     const silent = new Promise((resolve8) => {
-      quiet = setTimeout(() => resolve8({ kind: "silent" }), Math.min(timeout, opts.askTimeoutMs ?? OPEN_ROUTE_ASK_MS));
+      quiet2 = setTimeout(() => resolve8({ kind: "silent" }), Math.min(timeout, opts.askTimeoutMs ?? OPEN_ROUTE_ASK_MS));
     });
-    void requested.then(() => clearTimeout(quiet));
+    void requested.then(() => clearTimeout(quiet2));
     const outcome = await Promise.race([
       requested.then(() => never()),
       silent,
@@ -146832,7 +147130,7 @@ async function openSessionInPage(page3, base, bytes, name, opts = {}) {
       }, void 0, { timeout, polling: 100 }).then(async (handle) => ({ kind: "opened", href: String(await handle.jsonValue()) })),
       page3.locator('[data-open-route="failed"]').waitFor({ state: "visible", timeout }).then(async () => ({ kind: "failed", message: (await page3.locator('[data-open-route="failed"] p').innerText().catch(() => "")).trim() })).catch(never),
       page3.locator('[data-dialog-tag="lolly-intake"]').waitFor({ state: "visible", timeout }).then(() => ({ kind: "asks" })).catch(never)
-    ]).finally(() => clearTimeout(quiet));
+    ]).finally(() => clearTimeout(quiet2));
     if (outcome.kind === "silent") {
       throw new OpenSessionError(`The web shell at ${root2} never asked for ${name}, so it has no #/open route (it predates plan 291 W8). Rebuild it (pnpm run build:web), or point LOLLY_WEB_BASE at a current one.`);
     }
@@ -147117,7 +147415,7 @@ function clip2(s, cap = DETAIL_CAP) {
   const t = s.replace(/\s+/g, " ").trim();
   return t.length > cap ? `${t.slice(0, cap - 1)}\u2026` : t;
 }
-function list2(items2, cap = LIST_CAP) {
+function list3(items2, cap = LIST_CAP) {
   const seen = items2.map((s) => s.trim()).filter(Boolean);
   if (!seen.length) return "";
   const head2 = seen.slice(0, cap).join(", ");
@@ -147280,7 +147578,7 @@ function fieldValue(ctx, v) {
   const num17 = numOf2(ctx, v);
   if (num17 != null) return String(num17);
   const arr = arrOf(ctx, v);
-  if (arr) return list2(arr.map((x) => strOf(ctx, x) ?? "")) || null;
+  if (arr) return list3(arr.map((x) => strOf(ctx, x) ?? "")) || null;
   return null;
 }
 function walkFields(ctx, node, out, seen, prefix = "", inheritedType = null, depth = 0) {
@@ -147355,7 +147653,7 @@ function scanPdfStructure(doc) {
     const files = collectAttachments(ctx, doc, pages);
     if (files.length) {
       const shown = files.map((f) => f.bytes ? `${f.name} (${bytesLabel(f.bytes)})` : f.name);
-      add("Attachments", `${count3(files.length, "embedded file")} - ${list2(shown)}`, "warn");
+      add("Attachments", `${count3(files.length, "embedded file")} - ${list3(shown)}`, "warn");
     }
   } catch {
   }
@@ -147371,13 +147669,13 @@ function scanPdfStructure(doc) {
       add("JavaScript", `${count3(scripts.length, "script")} - runs when the document is opened or used \xB7 ${clip2(scripts[0], 160)}`, "warn");
     }
     if (act.launches.length) {
-      add("Launch actions", `${count3(act.launches.length, "action")} that opens an external program or file - ${list2(uniq(act.launches))}`, "warn");
+      add("Launch actions", `${count3(act.launches.length, "action")} that opens an external program or file - ${list3(uniq(act.launches))}`, "warn");
     }
     if (act.submits.length) {
-      add("Form submission", `Sends filled values to ${list2(uniq(act.submits))}`, "warn");
+      add("Form submission", `Sends filled values to ${list3(uniq(act.submits))}`, "warn");
     }
     if (act.remotes.length) {
-      add("Remote documents", `Jumps into ${list2(uniq(act.remotes))}`, "warn");
+      add("Remote documents", `Jumps into ${list3(uniq(act.remotes))}`, "warn");
     }
     if (act.uris.length) {
       const urls = uniq(act.uris);
@@ -147388,7 +147686,7 @@ function scanPdfStructure(doc) {
           return "";
         }
       }));
-      add("Links", hosts.length ? `${count3(urls.length, "outbound link")} to ${list2(hosts)}` : `${count3(urls.length, "outbound link")} - ${list2(urls)}`);
+      add("Links", hosts.length ? `${count3(urls.length, "outbound link")} to ${list3(hosts)}` : `${count3(urls.length, "outbound link")} - ${list3(urls)}`);
       for (const url of urls.filter((u) => u.length <= 2048).slice(0, 64)) {
         out.push({ label: "Link", detail: url, tone: "" });
       }
@@ -147398,7 +147696,7 @@ function scanPdfStructure(doc) {
   try {
     const filled2 = fields.filter((f) => f.type !== "Sig" && f.value);
     if (filled2.length) {
-      add("Form values", `${count3(filled2.length, "filled field")} - ${list2(filled2.map((f) => `${f.name || "(unnamed)"}: ${f.value}`))}`, "warn");
+      add("Form values", `${count3(filled2.length, "filled field")} - ${list3(filled2.map((f) => `${f.name || "(unnamed)"}: ${f.value}`))}`, "warn");
     }
     const signatures = fields.filter((f) => f.type === "Sig" && f.dict.get(PDFName2.of("V")) != null);
     if (signatures.length) {
@@ -147418,7 +147716,7 @@ function scanPdfStructure(doc) {
     const comments = markup.map((a) => strOf(ctx, a.get(PDFName2.of("Contents"))) ?? "").filter(Boolean);
     if (markup.length) {
       const parts = [count3(markup.length, "annotation")];
-      if (authors.length) parts.push(`by ${list2(authors)}`);
+      if (authors.length) parts.push(`by ${list3(authors)}`);
       if (comments.length) parts.push(`\xB7 ${clip2(comments[0], 120)}`);
       add("Annotations", parts.join(" "), authors.length || comments.length ? "warn" : "");
     }
@@ -147427,9 +147725,9 @@ function scanPdfStructure(doc) {
   try {
     const { names, hidden: hidden4 } = collectLayers(ctx, doc);
     if (hidden4.length) {
-      add("Hidden layers", `${count3(hidden4.length, "layer")} present but switched off - ${list2(hidden4)}`, "warn");
+      add("Hidden layers", `${count3(hidden4.length, "layer")} present but switched off - ${list3(hidden4)}`, "warn");
     } else if (names.length) {
-      add("Layers", `${count3(names.length, "layer")} - ${list2(names)}`);
+      add("Layers", `${count3(names.length, "layer")} - ${list3(names)}`);
     }
   } catch {
   }
@@ -148864,7 +149162,7 @@ var init_text3 = __esm({
 
 // packages/node-shell/src/browsers.ts
 import { join as join14 } from "node:path";
-import { existsSync as existsSync8 } from "node:fs";
+import { existsSync as existsSync9 } from "node:fs";
 import { homedir as homedir2 } from "node:os";
 function playwrightUserCacheDir(env = process.env, platform = process.platform, home = homedir2()) {
   if (platform === "darwin") return join14(home, "Library", "Caches", "ms-playwright");
@@ -148873,10 +149171,10 @@ function playwrightUserCacheDir(env = process.env, platform = process.platform, 
 }
 function resolveBrowsersDir() {
   if (process.env.PLAYWRIGHT_BROWSERS_PATH) return process.env.PLAYWRIGHT_BROWSERS_PATH;
-  if (existsSync8(INSTALL_BROWSERS_DIR)) return INSTALL_BROWSERS_DIR;
-  if (existsSync8(SIBLING_BROWSERS_DIR)) return SIBLING_BROWSERS_DIR;
+  if (existsSync9(INSTALL_BROWSERS_DIR)) return INSTALL_BROWSERS_DIR;
+  if (existsSync9(SIBLING_BROWSERS_DIR)) return SIBLING_BROWSERS_DIR;
   const userCache = playwrightUserCacheDir();
-  if (existsSync8(userCache)) return userCache;
+  if (existsSync9(userCache)) return userCache;
   return INSTALL_BROWSERS_DIR;
 }
 function chromiumLaunchArgs(graphics = "software", platform = process.platform) {
@@ -149053,7 +149351,7 @@ function ctcGreedyDecode(probs, T, C, charset) {
   let out = "";
   let prev = -1;
   let sum = 0;
-  let kept = 0;
+  let kept2 = 0;
   for (let t = 0; t < T; t++) {
     let best = 0;
     let bestP = -Infinity;
@@ -149068,11 +149366,11 @@ function ctcGreedyDecode(probs, T, C, charset) {
     if (best !== prev && best !== 0) {
       out += charset[best] ?? "";
       sum += bestP;
-      kept++;
+      kept2++;
     }
     prev = best;
   }
-  return { text: out, confidence: kept ? sum / kept : 0 };
+  return { text: out, confidence: kept2 ? sum / kept2 : 0 };
 }
 function connectedComponentBoxes(prob, w, h, { binThresh, minArea, boxThresh }) {
   const n7 = w * h;
@@ -149772,7 +150070,7 @@ var init_label_artwork = __esm({
 // packages/node-shell/src/state-dir.ts
 import { homedir as homedir3 } from "node:os";
 import { join as join16 } from "node:path";
-import { existsSync as existsSync9 } from "node:fs";
+import { existsSync as existsSync10 } from "node:fs";
 function desktopAppDataDir(env = process.env, probe = {}) {
   const platform = probe.platform ?? process.platform;
   const home = probe.home ?? homedir3();
@@ -149795,7 +150093,7 @@ function resolveStateDir(env = process.env, onNote = (m2) => process.stderr.writ
     }
     return { dir: old, explicit: true, deprecated: true, source: "env-deprecated", shared: false };
   }
-  const exists = probe.exists ?? existsSync9;
+  const exists = probe.exists ?? existsSync10;
   const app = desktopAppDataDir(env, probe);
   if (app && exists(app)) return { dir: app, explicit: false, deprecated: false, source: "app", shared: true };
   const home = probe.home ?? homedir3();
@@ -150054,21 +150352,21 @@ function readDeepTiff(bytes) {
     if (!Number.isSafeInteger(size) || at + size > bytes.length || tags3.has(tag2)) throw new Error("Invalid TIFF field.");
     tags3.set(tag2, { type, count: n7, at, size });
   }
-  const list3 = (tag2, fallback = []) => {
+  const list4 = (tag2, fallback = []) => {
     const item2 = tags3.get(tag2);
     if (!item2) return fallback;
     if (![1, 3, 4].includes(item2.type) || item2.count > 65536) throw new Error(`Unsupported TIFF field ${tag2}.`);
     return Array.from({ length: item2.count }, (_, i) => item2.type === 1 ? bytes[item2.at + i] : item2.type === 3 ? v.getUint16(item2.at + i * 2, le) : v.getUint32(item2.at + i * 4, le));
   };
-  const one = (tag2, fallback = 0) => list3(tag2, [fallback])[0];
+  const one = (tag2, fallback = 0) => list4(tag2, [fallback])[0];
   const width = one(256), height = one(257);
   deepDimensions(width, height);
-  const spp = one(277, 1), depth = list3(258, [8]), sample = list3(339, [1]);
+  const spp = one(277, 1), depth = list4(258, [8]), sample = list4(339, [1]);
   const bits = depth[0], kind = sample[0], photo = one(262, 1), compression = one(259, 1), predictor = one(317, 1), orientation = one(274, 1);
   if (![1, 2].includes(photo) || ![1, 2, 3, 4].includes(spp) || photo === 2 && spp < 3 || photo === 1 && spp > 2 || depth.some((n7) => n7 !== bits) || sample.some((n7) => n7 !== kind) || !([8, 16].includes(bits) && kind === 1 || bits === 32 && kind === 3) || one(284, 1) !== 1 || ![1, 8, 32946].includes(compression) || ![1, 2].includes(predictor) || kind === 3 && predictor !== 1 || orientation < 1 || orientation > 8 || tags3.has(322)) {
     throw new Error("Use stripped RGB/gray TIFF with no compression or Deflate, at 8/16-bit integer or 32-bit float.");
   }
-  const offsets = list3(273), lengths = list3(279), rows2 = one(278, height), extra = one(338, 0);
+  const offsets = list4(273), lengths = list4(279), rows2 = one(278, height), extra = one(338, 0);
   if (!rows2 || offsets.length !== Math.ceil(height / rows2) || lengths.length !== offsets.length) throw new Error("Invalid TIFF strips.");
   const hasAlpha3 = spp === 2 || spp === 4;
   if (hasAlpha3 && ![1, 2].includes(extra)) throw new Error("TIFF alpha must declare associated or unassociated samples.");
@@ -150719,16 +151017,16 @@ var init_geometry_clipping = __esm({
 });
 
 // packages/node-shell/src/geometry-wasm-node.ts
-import { existsSync as existsSync10 } from "node:fs";
+import { existsSync as existsSync11 } from "node:fs";
 import { readFile as readFile15 } from "node:fs/promises";
 import { dirname as dirname6, join as join19 } from "node:path";
-import { fileURLToPath as fileURLToPath8 } from "node:url";
+import { fileURLToPath as fileURLToPath9 } from "node:url";
 async function readGeometryWasm(name) {
-  const adjacent = fileURLToPath8(new URL(`../wasm/geometry-kernel/${name}`, import.meta.url));
-  if (existsSync10(adjacent)) return readFile15(adjacent);
+  const adjacent = fileURLToPath9(new URL(`../wasm/geometry-kernel/${name}`, import.meta.url));
+  if (existsSync11(adjacent)) return readFile15(adjacent);
   for (let dir = dirname6(adjacent); ; dir = dirname6(dir)) {
     const candidate = join19(dir, "packages/node-shell/wasm/geometry-kernel", name);
-    if (existsSync10(candidate)) return readFile15(candidate);
+    if (existsSync11(candidate)) return readFile15(candidate);
     if (dirname6(dir) === dir) break;
   }
   throw new Error(`The geometry kernel ${name} is not installed.`);
@@ -150945,7 +151243,7 @@ var text_tools_exports = {};
 __export(text_tools_exports, {
   createNodeTextTools: () => createNodeTextTools
 });
-import { Worker as Worker3 } from "node:worker_threads";
+import { Worker as Worker4 } from "node:worker_threads";
 function createNodeTextTools() {
   return {
     async operations() {
@@ -150956,7 +151254,7 @@ function createNodeTextTools() {
     },
     run(request2) {
       return new Promise((resolve8, reject) => {
-        const worker = new Worker3(new URL("./text-tools-worker.ts", import.meta.url), {
+        const worker = new Worker4(new URL("./text-tools-worker.ts", import.meta.url), {
           workerData: request2
         });
         const timer = setTimeout(() => {
@@ -151341,11 +151639,11 @@ function admitLottieAnimation(value, label4 = "Animation") {
       else if (child && typeof child === "object") inspectProperties(child);
     }
   }
-  function inspectLayers(list3, ancestry) {
-    if (!Array.isArray(list3)) throw new Error(`${label4}: invalid precomposition layers.`);
+  function inspectLayers(list4, ancestry) {
+    if (!Array.isArray(list4)) throw new Error(`${label4}: invalid precomposition layers.`);
     const parents = /* @__PURE__ */ new Map();
     const indices = /* @__PURE__ */ new Set();
-    for (const item2 of list3) {
+    for (const item2 of list4) {
       const layer = lottieObject(item2, `${label4} layer`);
       if (++layerCount > LOTTIE_LIMITS.layers) throw new Error(`${label4}: layer limit exceeded.`);
       if (typeof layer.ty !== "number" || ![0, 1, 2, 3, 4].includes(layer.ty)) throw new Error(`${label4}: layer ${String(layer.nm ?? layer.ind)} uses unsupported type ${String(layer.ty)}.`);
@@ -151473,8 +151771,8 @@ function readLottie(bytes) {
   if (!version) throw new Error(`dotLottie: unsupported manifest version ${String(manifest.version)}.`);
   if (!Array.isArray(manifest.animations) || !manifest.animations.length) throw new Error("dotLottie: no declared animations.");
   const initial = manifest.initial ? lottieObject(manifest.initial, "dotLottie initial") : {};
-  const warnings = [];
-  if (initial.stateMachine || manifest.stateMachines) warnings.push("Interactive state machines are preserved in the source. Choose a linear animation for Sequence.");
+  const warnings2 = [];
+  if (initial.stateMachine || manifest.stateMachines) warnings2.push("Interactive state machines are preserved in the source. Choose a linear animation for Sequence.");
   const animations = [];
   let expandedBytes = 0;
   const ids2 = /* @__PURE__ */ new Set();
@@ -151483,7 +151781,7 @@ function readLottie(bytes) {
     if (typeof entry2.id !== "string" || !/^[A-Za-z0-9_-]+$/.test(entry2.id) || ids2.has(entry2.id)) throw new Error("dotLottie: invalid or duplicate animation id.");
     ids2.add(entry2.id);
     if (entry2.initialTheme || entry2.theme || entry2.background) throw new Error(`dotLottie ${entry2.id}: themed appearance or a package background is not supported. Export an unthemed source first.`);
-    if (entry2.loop || entry2.autoplay || entry2.direction || entry2.playMode || entry2.speed !== void 0 && entry2.speed !== 1) warnings.push(`${entry2.id}: package playback preferences are preserved; Sequence controls timing and plays each clip once.`);
+    if (entry2.loop || entry2.autoplay || entry2.direction || entry2.playMode || entry2.speed !== void 0 && entry2.speed !== 1) warnings2.push(`${entry2.id}: package playback preferences are preserved; Sequence controls timing and plays each clip once.`);
     const directory = version === "2" ? "a" : "animations";
     const data = members.get(`${directory}/${entry2.id}.json`);
     if (!data) throw new Error(`dotLottie: missing declared animation ${entry2.id}.`);
@@ -151493,7 +151791,7 @@ function readLottie(bytes) {
   }
   const declared = version === "2" ? initial.animation : manifest.activeAnimationId;
   if (declared !== void 0 && (typeof declared !== "string" || !ids2.has(declared))) throw new Error("dotLottie: the declared initial animation is missing.");
-  return { version, manifest, animations, expandedBytes, initial: typeof declared === "string" && ids2.has(declared) ? declared : animations[0].id, warnings };
+  return { version, manifest, animations, expandedBytes, initial: typeof declared === "string" && ids2.has(declared) ? declared : animations[0].id, warnings: warnings2 };
 }
 function selectLottie(pkg, id2 = pkg.initial) {
   const selected = pkg.animations.find((item2) => item2.id === id2);
@@ -151733,8 +152031,8 @@ function retimeLottie(source, fps, prefix) {
       else if (child && typeof child === "object") properties2(child);
     }
   }
-  function layers(list3) {
-    for (const layer of list3) {
+  function layers(list4) {
+    for (const layer of list4) {
       for (const key of ["ip", "op", "st"]) if (typeof layer[key] === "number") layer[key] *= ratio;
       if (typeof layer.refId === "string") layer.refId = ids2.get(layer.refId) ?? layer.refId;
       const transform2 = layer.ks;
@@ -152507,7 +152805,7 @@ __export(text_measure_exports, {
   sfntVerticalMetrics: () => sfntVerticalMetrics,
   textMeasureSpecOfRow: () => textMeasureSpecOfRow
 });
-import { existsSync as existsSync11, readdirSync as readdirSync2, readFileSync as readFileSync6 } from "node:fs";
+import { existsSync as existsSync12, readdirSync as readdirSync2, readFileSync as readFileSync6 } from "node:fs";
 import { join as join20 } from "node:path";
 function firstFamily(value) {
   if (typeof value !== "string") return void 0;
@@ -152551,7 +152849,7 @@ function variableFaces(root2) {
   if (hit) return hit;
   const dir = join20(root2, "shells", "web", "public", "fonts");
   const faces = [];
-  if (existsSync11(dir)) {
+  if (existsSync12(dir)) {
     for (const name of readdirSync2(dir)) {
       const m2 = /^(.+?)(-Italic)?\[[^\]]+\]\.(ttf|otf)$/i.exec(name);
       if (m2) faces.push({ url: `/fonts/${name}`, family: normFamily2(m2[1]), italic: Boolean(m2[2]) });
@@ -152878,15 +153176,15 @@ function pngImage(bytes) {
   };
 }
 function stopsFunction(stops, value) {
-  const list3 = [...stops].sort((a, b) => a.offset - b.offset);
-  if (list3[0].offset > 0) list3.unshift({ ...list3[0], offset: 0 });
-  if (list3[list3.length - 1].offset < 1) list3.push({ ...list3[list3.length - 1], offset: 1 });
+  const list4 = [...stops].sort((a, b) => a.offset - b.offset);
+  if (list4[0].offset > 0) list4.unshift({ ...list4[0], offset: 0 });
+  if (list4[list4.length - 1].offset < 1) list4.push({ ...list4[list4.length - 1], offset: 1 });
   const piece = (a, b) => `<< /FunctionType 2 /Domain [0 1] /C0 [${value(a).map(n6).join(" ")}] /C1 [${value(b).map(n6).join(" ")}] /N 1 >>`;
-  if (list3.length === 2) return piece(list3[0], list3[1]);
+  if (list4.length === 2) return piece(list4[0], list4[1]);
   const pieces = [], bounds = [];
-  for (let i = 0; i + 1 < list3.length; i++) {
-    pieces.push(piece(list3[i], list3[i + 1]));
-    if (i + 2 < list3.length) bounds.push(Math.max(list3[i + 1].offset, (bounds[bounds.length - 1] ?? 0) + 1e-4));
+  for (let i = 0; i + 1 < list4.length; i++) {
+    pieces.push(piece(list4[i], list4[i + 1]));
+    if (i + 2 < list4.length) bounds.push(Math.max(list4[i + 1].offset, (bounds[bounds.length - 1] ?? 0) + 1e-4));
   }
   return `<< /FunctionType 3 /Domain [0 1] /Functions [${pieces.join(" ")}] /Bounds [${bounds.map(n6).join(" ")}] /Encode [${pieces.map(() => "0 1").join(" ")}] >>`;
 }
@@ -153424,6 +153722,58 @@ var init_design_ops_svg = __esm({
   }
 });
 
+// engine/src/rondo-sign.ts
+var rondo_sign_exports = {};
+__export(rondo_sign_exports, {
+  canSignRondo: () => canSignRondo,
+  rondoModelDisclosures: () => rondoModelDisclosures,
+  signRondoFile: () => signRondoFile
+});
+function rondoModelDisclosures(facts2) {
+  if (!facts2.sungParts?.length) return [];
+  const voices = facts2.voices?.length ? facts2.voices : [];
+  return [
+    { modelType: ONNX, modelName: "Supertonic-3 text to speech (Supertone Inc.)", modelIdentifier: SUPERTONIC_REPO },
+    { modelType: ONNX, modelName: "wav2vec 2.0 phoneme aligner (facebook/wav2vec2-lv-60-espeak-cv-ft, exported to ONNX)", modelIdentifier: `${RONDO_SING_REPO}/phoneme.onnx` },
+    { modelType: ONNX, modelName: "ContentVec speech encoder for voice conversion", modelIdentifier: `${RONDO_SING_REPO}/vec-768.onnx` },
+    ...voices.length ? voices.slice(0, 8).map((v) => ({ modelType: ONNX, modelName: `RVC voice generator "${v}"`, .../^[a-z]+$/.test(v) ? { modelIdentifier: `${RONDO_SING_REPO}/gen_${v}.onnx` } : {} })) : [{ modelType: ONNX, modelName: "RVC voice generator" }]
+  ];
+}
+function canSignRondo(format) {
+  return C2PA_FORMATS.includes(format);
+}
+async function signRondoFile(bytes, format, args) {
+  if (!canSignRondo(format)) throw new Error(`${format.toUpperCase()} has no place for Content Credentials`);
+  const hash = new Uint8Array(await globalThis.crypto.subtle.digest("SHA-256", args.song));
+  const tagged = format === "wav" ? embedWavInfo(bytes, { title: args.name, comment: rondoDeclaration(args.facts) }) : bytes;
+  const disclosures = rondoModelDisclosures(args.facts);
+  return embedC2pa(tagged, format, {
+    title: args.name,
+    claimGenerator: "Lolly lolly.tools",
+    generatorInfo: { name: args.generator ?? "Lolly", version: ENGINE_VERSION },
+    actions: [rondoCreatedAction(args.facts)],
+    ingredients: [rondoSongIngredient({ name: args.name, hash, facts: args.facts })],
+    ...disclosures.length ? { aiDisclosure: disclosures } : {},
+    ...args.signer ? { signer: args.signer } : {},
+    // An enrolled identity brings its certificate window; the ephemeral signer
+    // gets now to 30 days on.
+    dates: args.dates ?? { notBefore: new Date(Date.now() - 6e4), notAfter: new Date(Date.now() + 30 * 864e5) }
+  });
+}
+var SUPERTONIC_REPO, RONDO_SING_REPO, ONNX;
+var init_rondo_sign = __esm({
+  "engine/src/rondo-sign.ts"() {
+    "use strict";
+    init_c2pa_containers();
+    init_riff_meta();
+    init_rondo_provenance();
+    init_version();
+    SUPERTONIC_REPO = "https://huggingface.co/Supertone/supertonic-3/tree/3cadd1ee6394adea1bd021217a0e650ede09a323";
+    RONDO_SING_REPO = "https://huggingface.co/hi-im-vijay/rondocode-sing/blob/528c7e4eaec2a0a71cb6f02c2169f16ee11c55b1";
+    ONNX = "c2pa.types.model.onnx";
+  }
+});
+
 // packages/node-shell/src/trust-anchors.ts
 import { homedir as homedir4 } from "node:os";
 function expandHome(p) {
@@ -153594,10 +153944,10 @@ async function resolveSigningIdentity(input = {}) {
       );
     }
   }
-  const warnings = [];
+  const warnings2 = [];
   const last = parsed[parsed.length - 1];
   if (!last.selfSigned) {
-    warnings.push(
+    warnings2.push(
       `the chain in ${certSource} stops at ${describe2(last)}, which is not self-signed, so its issuing root is not included. That verifies only for a recipient who pins exactly that issuer. Append the issuing certificates if you want the chain to reach a root on its own.`
     );
   }
@@ -153611,7 +153961,7 @@ async function resolveSigningIdentity(input = {}) {
     chainLength: chain2.length,
     keySource,
     certSource,
-    warnings
+    warnings: warnings2
   };
 }
 function describe2(c) {
@@ -154188,7 +154538,7 @@ var init_production2 = __esm({
 });
 
 // packages/node-shell/src/desktop-renderer.ts
-import { constants, existsSync as existsSync14, accessSync, readFileSync as readFileSync8, statSync as statSync4 } from "node:fs";
+import { constants, existsSync as existsSync15, accessSync, readFileSync as readFileSync8, statSync as statSync4 } from "node:fs";
 import { homedir as homedir5, tmpdir as tmpdir4 } from "node:os";
 import { basename as basename3, delimiter, join as join26 } from "node:path";
 import { spawn as spawn3, spawnSync } from "node:child_process";
@@ -154278,7 +154628,7 @@ function windowsInstallLocations(env) {
 }
 function executable(path) {
   try {
-    if (!existsSync14(path)) return false;
+    if (!existsSync15(path)) return false;
     if (process.platform !== "win32") accessSync(path, constants.X_OK);
     return true;
   } catch {
@@ -154491,9 +154841,9 @@ async function launchRenderServer(opts = {}) {
   return null;
 }
 async function renderThroughRungs(preference, drivers) {
-  const running = preference === "chromium" ? null : drivers.runningServer();
+  const running2 = preference === "chromium" ? null : drivers.runningServer();
   const available = {
-    running: Boolean(running),
+    running: Boolean(running2),
     installed: preference === "chromium" ? false : drivers.installed(),
     chromium: true
   };
@@ -154506,7 +154856,7 @@ async function renderThroughRungs(preference, drivers) {
   let last = null;
   for (const rung of order) {
     try {
-      if (rung === "desktop-running") return { rung, result: await drivers.renderOnServer(running) };
+      if (rung === "desktop-running") return { rung, result: await drivers.renderOnServer(running2) };
       if (rung === "desktop-installed") {
         const server = await drivers.launchServer();
         if (!server) {
@@ -154585,7 +154935,7 @@ __export(webshell_render_exports, {
 });
 import { createServer as createServer2 } from "node:http";
 import { readFile as readFile23, stat as stat6 } from "node:fs/promises";
-import { existsSync as existsSync15, writeFileSync as writeFileSync2 } from "node:fs";
+import { existsSync as existsSync16, writeFileSync as writeFileSync2 } from "node:fs";
 import { join as join27, resolve as resolve7, extname as extname3, normalize as normalize3 } from "node:path";
 async function webShellBase2() {
   const remote = process.env.LOLLY_WEB_BASE;
@@ -154614,14 +154964,14 @@ function activeContentResponse(urlPath) {
   try {
     if (head2 === "catalog" && rest2.join("/") === "assets/index.json") return { json: JSON.stringify(readAssetIndex()) };
     const file = head2 === "catalog" ? catalogFile(rest2.join("/")) : head2 === "tools" && rest2.length > 1 ? toolFile(rest2[0], rest2.slice(1).join("/")) : null;
-    return file && existsSync15(file) ? { file } : null;
+    return file && existsSync16(file) ? { file } : null;
   } catch {
     return null;
   }
 }
 function serveDist2() {
   const dist2 = process.env.LOLLY_WEB_DIST || join27(repoRoot(), "shells", "web", "dist");
-  if (!existsSync15(join27(dist2, "index.html"))) {
+  if (!existsSync16(join27(dist2, "index.html"))) {
     throw new BrowserError(
       `No built web shell at ${dist2}. Run \`pnpm run build:web\` (or set LOLLY_WEB_DIST to a prebuilt shell / LOLLY_WEB_BASE to a running one). Raster/PDF/video export needs it; svg and data formats render without it.`
     );
@@ -154630,19 +154980,19 @@ function serveDist2() {
   const server = createServer2(async (req, res) => {
     try {
       const urlPath = decodeURIComponent((req.url || "/").split("?")[0]);
-      const live = activeContentResponse(urlPath);
-      if (live && "json" in live) {
+      const live2 = activeContentResponse(urlPath);
+      if (live2 && "json" in live2) {
         res.setHeader("Content-Type", "application/json; charset=utf-8");
         res.setHeader("Cache-Control", "no-store");
-        res.end(live.json);
+        res.end(live2.json);
         return;
       }
-      let filePath = live ? live.file : resolve7(root2, "." + normalize3(urlPath));
-      if (!live && !filePath.startsWith(root2)) {
+      let filePath = live2 ? live2.file : resolve7(root2, "." + normalize3(urlPath));
+      if (!live2 && !filePath.startsWith(root2)) {
         res.writeHead(403).end();
         return;
       }
-      if (!live && (urlPath === "/" || !existsSync15(filePath) || !(await stat6(filePath)).isFile())) {
+      if (!live2 && (urlPath === "/" || !existsSync16(filePath) || !(await stat6(filePath)).isFile())) {
         filePath = join27(root2, "index.html");
       }
       const data = await readFile23(filePath);
@@ -154802,24 +155152,24 @@ async function deepScanViaWebShell(files) {
       const msg3 = banner.querySelector("[data-deepscan-banner-msg]")?.textContent || "";
       return /couldn|failed/i.test(msg3);
     }, { timeout: 18e4 });
-    const failed = await page3.locator("[data-deepscan-banner]").count();
-    if (failed) {
+    const failed2 = await page3.locator("[data-deepscan-banner]").count();
+    if (failed2) {
       return files.map((f) => ({ file: f, scanned: false, lollyDurable: false, trustmark: false, contentSeal: false, note: null }));
     }
     const snapshot = () => page3.evaluate((count4) => Array.from({ length: count4 }, (_, i) => {
       const block = document.querySelector(`[data-deepscan-block="${i}"]`);
-      const scope = block?.closest(".valid-item") ?? document;
-      const pips = [...scope.querySelectorAll("[data-deepscan-pip]")].map((p) => (p.textContent || "").replace(/\s+/g, " ").trim());
-      const note = (block?.querySelector(`[data-deepscan-result="${i}"]`)?.textContent || "").replace(/\s+/g, " ").trim();
-      return { pips, note };
+      const scope2 = block?.closest(".valid-item") ?? document;
+      const pips = [...scope2.querySelectorAll("[data-deepscan-pip]")].map((p) => (p.textContent || "").replace(/\s+/g, " ").trim());
+      const note2 = (block?.querySelector(`[data-deepscan-result="${i}"]`)?.textContent || "").replace(/\s+/g, " ").trim();
+      return { pips, note: note2 };
     }), files.length);
     const QUIET_MS = 8e3, MAX_MS2 = 24e4, STEP_MS = 1e3;
     let last = JSON.stringify(await snapshot());
-    let quiet = 0;
-    for (let waited = 0; waited < MAX_MS2 && quiet < QUIET_MS; waited += STEP_MS) {
+    let quiet2 = 0;
+    for (let waited = 0; waited < MAX_MS2 && quiet2 < QUIET_MS; waited += STEP_MS) {
       await page3.waitForTimeout(STEP_MS);
       const now2 = JSON.stringify(await snapshot());
-      quiet = now2 === last ? quiet + STEP_MS : 0;
+      quiet2 = now2 === last ? quiet2 + STEP_MS : 0;
       last = now2;
     }
     const found = JSON.parse(last);
@@ -155195,7 +155545,7 @@ function assertDurableEncoder(dims, remote) {
   if (!dims.durable || remote) return;
   const dist2 = process.env.LOLLY_WEB_DIST || join27(repoRoot(), "shells", "web", "dist");
   const model2 = join27(dist2, "models", "trustmark", "encoder_Q.onnx");
-  if (!existsSync15(model2)) {
+  if (!existsSync16(model2)) {
     throw new BrowserError(
       `The durable credential needs the TrustMark encoder model, which isn't in the built web shell (${model2}). Rebuild it with \`pnpm run build:web\` (the model ships in shells/web/public), or export without --durable.`
     );
@@ -155949,7 +156299,7 @@ var init_forensic2 = __esm({
 });
 
 // packages/node-shell/src/check.ts
-import { createHash as createHash7 } from "node:crypto";
+import { createHash as createHash8 } from "node:crypto";
 function fidelityNote(compared) {
   const excepted = compared.fidelity.excepted?.length ?? 0;
   return (excepted ? ` ${excepted === 1 ? "1 string is recorded as a deliberate edit" : `${excepted} strings are recorded as deliberate edits`} (excepted, not passed).` : "") + (compared.complete ? "" : " The comparison stopped at one of its limits, so the family is partial (see fidelity.coverage.partial).");
@@ -156092,14 +156442,14 @@ function authoringInvalid(invalid4, boxes) {
     origin: { checker: "design-authoring", id: "authoring.invalid" }
   };
 }
-function authoringNoteFinding(note) {
+function authoringNoteFinding(note2) {
   return {
-    code: `design.${note.code}`,
+    code: `design.${note2.code}`,
     family: "structure",
     severity: "info",
-    message: note.message,
-    path: note.path.replace(/^\/values(?=\/|$)/, "") || "/",
-    origin: { checker: "design-authoring", id: note.code }
+    message: note2.message,
+    path: note2.path.replace(/^\/values(?=\/|$)/, "") || "/",
+    origin: { checker: "design-authoring", id: note2.code }
   };
 }
 function assetIdsOf(boxes) {
@@ -156400,8 +156750,8 @@ async function textMeasureFamily(input, ds, opts, lookup4) {
   }
   const unmeasured = report4.skipped.filter((s) => !/hidden/.test(s.reason));
   const why = unmeasured.find((s) => /font file/.test(s.reason))?.reason ?? unmeasured[0]?.reason ?? "";
-  const note = `Clipping was predicted from font metrics instead (text-measure): ${plural5(judged, "plain text layer")} measured, ${findings.length} clipped${fallback ? `, ${plural5(fallback, "layer")} not judged (its face has no glyph for some characters, which the canvas draws in a fallback font)` : ""}${unmeasured.length ? `, ${plural5(unmeasured.length, "layer")} not measured (${why.replace(/[.;]\s.*$|\.$/, "")})` : ""}; contrast and font coverage need the browser tier.`;
-  return { findings, note };
+  const note2 = `Clipping was predicted from font metrics instead (text-measure): ${plural5(judged, "plain text layer")} measured, ${findings.length} clipped${fallback ? `, ${plural5(fallback, "layer")} not judged (its face has no glyph for some characters, which the canvas draws in a fallback font)` : ""}${unmeasured.length ? `, ${plural5(unmeasured.length, "layer")} not measured (${why.replace(/[.;]\s.*$|\.$/, "")})` : ""}; contrast and font coverage need the browser tier.`;
+  return { findings, note: note2 };
 }
 function rasterSize(bytes) {
   const b = bytes;
@@ -156622,8 +156972,8 @@ function tokenLinkFindings(boxes, lookup4, theme) {
   });
   return out;
 }
-function inThemeFindings(list3, theme) {
-  return theme ? list3.map((f) => ({ ...f, theme })) : list3;
+function inThemeFindings(list4, theme) {
+  return theme ? list4.map((f) => ({ ...f, theme })) : list4;
 }
 function themesToCheck(ds, opts) {
   if (opts.themes === void 0) return [opts.theme];
@@ -156669,9 +157019,9 @@ async function checkFile(bytes, name, asked = {}) {
   let designSystem2;
   let requiredTierMissing = false;
   const source = opts.source ? await sourceInventory(opts.source, opts.signal) : void 0;
-  const take = (family2, state, list3) => {
+  const take = (family2, state, list4) => {
     families[family2] = state;
-    findings.push(...list3);
+    findings.push(...list4);
   };
   const read = isDocument ? kind === "lolly" ? await designFromLolly(bytes) : designFromJson(bytes) : null;
   const saved = opts.theme === void 0 && opts.themes === void 0 ? savedTheme(ds, read?.tokenSelection) : void 0;
@@ -156712,7 +157062,7 @@ async function checkFile(bytes, name, asked = {}) {
     } else {
       const lists = [];
       const reasons = [];
-      let failed = null;
+      let failed2 = null;
       for (const theme of checkThemes) {
         const boxes = inTheme(theme);
         const brand = await guarded(opts.signal, async () => {
@@ -156724,7 +157074,7 @@ async function checkFile(bytes, name, asked = {}) {
             // when the document does not set one), read in this theme.
             background: lowered.doc.values.background ?? DESIGN_CANVAS_BACKGROUND
           });
-          const list3 = [
+          const list4 = [
             ...result.findings.map((f) => checkFindingFromBrand(f, lookup4)),
             ...enforceHouseRules(checkFindingsFromHouseRules(rules, lookup4), ds.doc)
           ];
@@ -156736,22 +157086,22 @@ async function checkFile(bytes, name, asked = {}) {
           if (uploads) notes.push(`${plural5(uploads, "uploaded picture")} ${uploads === 1 ? "is" : "are"} not catalog assets and ${uploads === 1 ? "was" : "were"} not reviewed.`);
           if (result.coverage.truncated) notes.push("The document has more layers than the brand check reads; the rest were not compared.");
           if (result.notAssessed.length) notes.push(`Not assessed: ${result.notAssessed.join(", ")}.`);
-          return { state: familyState("ran", notes.join(" ")), list: list3 };
+          return { state: familyState("ran", notes.join(" ")), list: list4 };
         });
         if (isFailed(brand)) {
-          failed = multiTheme ? `In the ${theme} theme: ${brand.failed}` : brand.failed;
+          failed2 = multiTheme ? `In the ${theme} theme: ${brand.failed}` : brand.failed;
           break;
         }
         lists.push(...inThemeFindings([...brand.list, ...tokenLinkFindings(boxes, lookup4, theme)], multiTheme ? theme : void 0));
         reasons.push(multiTheme ? `In the ${theme} theme: ${brand.state.reason ?? ""}`.trim() : brand.state.reason ?? "");
       }
-      if (failed !== null) families.brand = familyState("failed", failed);
+      if (failed2 !== null) families.brand = familyState("failed", failed2);
       else take("brand", familyState("ran", reasons.join(" ")), lists);
     }
     {
       const lists = [];
       const reasons = [];
-      let failed = null;
+      let failed2 = null;
       for (const theme of checkThemes) {
         const boxes = inTheme(theme);
         const verify = await guarded(opts.signal, async () => {
@@ -156763,22 +157113,22 @@ async function checkFile(bytes, name, asked = {}) {
             ...resolveColor3 ? { resolveColor: resolveColor3 } : {},
             ...opts.pageCap ? { pageCap: opts.pageCap } : {}
           });
-          const note = coverageNote(result.coverage);
+          const note2 = coverageNote(result.coverage);
           const read2 = result.report.pages.length;
           const total = Math.max(read2, structure.artboards.length);
           return {
-            state: familyState("ran", `Read ${plural5(read2, "artboard")} from the document's own geometry (no OCR, no pixels).${note ? ` ${note}` : ""}`),
+            state: familyState("ran", `Read ${plural5(read2, "artboard")} from the document's own geometry (no OCR, no pixels).${note2 ? ` ${note2}` : ""}`),
             list: [...result.findings, ...read2 < total ? [pagesCapped(read2, total, "artboard")] : []]
           };
         });
         if (isFailed(verify)) {
-          failed = multiTheme ? `In the ${theme} theme: ${verify.failed}` : verify.failed;
+          failed2 = multiTheme ? `In the ${theme} theme: ${verify.failed}` : verify.failed;
           break;
         }
         lists.push(...inThemeFindings(verify.list, multiTheme ? theme : void 0));
         reasons.push(multiTheme ? `In the ${theme} theme: ${verify.state.reason ?? ""}`.trim() : verify.state.reason ?? "");
       }
-      if (failed !== null) families.verify = familyState("failed", failed);
+      if (failed2 !== null) families.verify = familyState("failed", failed2);
       else take("verify", familyState("ran", reasons.join(" ")), lists);
     }
     const render2 = await renderFamilyInThemes(checkThemes, opts, (o) => guarded(opts.signal, () => renderFamily(doc, o, lookup4, structure.layers.length, name, ds)));
@@ -156849,14 +157199,14 @@ async function checkFile(bytes, name, asked = {}) {
       if (crashed) return { failed: crashed.reason };
       const blank = undecodable(report4);
       if (blank) return { failed: blank };
-      const note = coverageNote(report4.coverage);
+      const note2 = coverageNote(report4.coverage);
       const models = opts.ocr ? "OCR on, text classifier off" : "OCR and the text classifier off";
-      const list3 = report4.findings.flatMap((f) => checkFindingsFromForensic(f, { strict }));
+      const list4 = report4.findings.flatMap((f) => checkFindingsFromForensic(f, { strict }));
       const ocrSkipped = new Set(report4.coverage.filter((c) => c.collector === "ocr" && c.state === "skipped").map((c) => c.page ?? ""));
       const unread = opts.ocr ? [] : report4.pages.filter((p) => !p.text.trim() && (ocrSkipped.has(p.id) || ocrSkipped.has("")));
       if (unread.length) {
         const pages = unread.map((p) => p.id);
-        list3.push({
+        list4.push({
           code: "verify.text.unread",
           family: "verify",
           severity: "warn",
@@ -156867,10 +157217,10 @@ async function checkFile(bytes, name, asked = {}) {
           origin: { checker: "forensic", id: "text.unread" }
         });
       }
-      if (read2 < total) list3.push(pagesCapped(read2, total, "page"));
+      if (read2 < total) list4.push(pagesCapped(read2, total, "page"));
       return {
-        state: familyState("ran", `Read ${plural5(read2, "page")}${read2 < total ? ` of ${total}` : ""} from the file (${models}).${note ? ` ${note}` : ""}`),
-        list: list3
+        state: familyState("ran", `Read ${plural5(read2, "page")}${read2 < total ? ` of ${total}` : ""} from the file (${models}).${note2 ? ` ${note2}` : ""}`),
+        list: list4
       };
     });
     if (isFailed(verify)) families.verify = familyState("failed", verify.failed);
@@ -156949,7 +157299,7 @@ var init_check = __esm({
       const n7 = typeof v === "string" && v.trim() !== "" ? Number(v) : v;
       return typeof n7 === "number" && Number.isFinite(n7) ? n7 : fallback;
     };
-    sha2562 = (bytes) => createHash7("sha256").update(bytes).digest("hex");
+    sha2562 = (bytes) => createHash8("sha256").update(bytes).digest("hex");
     zero = () => ({ error: 0, warn: 0, info: 0 });
     familyState = (state, reason2) => ({
       state,
@@ -157124,7 +157474,7 @@ async function measureComposePhotos(spec, size, bytesOf4, marks, opts = {}) {
     const deckFurniture = record34(spec) && record34(spec.furniture) ? spec.furniture : {};
     const furniture = record34(slide.furniture) ? slide.furniture : {};
     const logoMode = furniture.logo ?? deckFurniture.logo ?? "auto";
-    const omitted = [deckFurniture.omit, furniture.omit].some((list3) => Array.isArray(list3) && list3.includes("logo"));
+    const omitted = [deckFurniture.omit, furniture.omit].some((list4) => Array.isArray(list4) && list4.includes("logo"));
     const tell = logoMode === "auto" && !omitted;
     let covered = false;
     let refused = null;
@@ -158428,11 +158778,11 @@ async function svgDomToIr(svgEl, ctx = {}) {
     if (filterCache.has(id2)) return filterCache.get(id2);
     const def = el.ownerDocument?.getElementById(id2) ?? svgEl.querySelector(`#${CSS.escape(id2)}`);
     const parsed = def && def.tagName.toLowerCase().replace(/^svg:/, "") === "filter" ? parseSvgDropShadow(def) : null;
-    if (!parsed) warn(`filter #${id2} is not a drop shadow - left out of this format`);
+    if (!parsed) warn2(`filter #${id2} is not a drop shadow - left out of this format`);
     filterCache.set(id2, parsed);
     return parsed;
   };
-  const warn = (m2) => host?.log?.("warn", `${LABEL.toLowerCase()}: ${m2}`);
+  const warn2 = (m2) => host?.log?.("warn", `${LABEL.toLowerCase()}: ${m2}`);
   async function visit(el, t, inherited2) {
     if (!el.tagName) return;
     const tag2 = el.tagName.toLowerCase().replace(/^svg:/, "");
@@ -158488,12 +158838,12 @@ async function svgDomToIr(svgEl, ctx = {}) {
     } else if (tag2 === "image") {
       const href = el.getAttribute("href") || el.getAttribute("xlink:href") || el.getAttributeNS?.("http://www.w3.org/1999/xlink", "href") || "";
       if (!href) {
-        warn("image with no href (skipped)");
+        warn2("image with no href (skipped)");
         return;
       }
       const dec = await decodeImageToRgb(href, bg);
       if (!dec) {
-        warn("image could not be rasterised for this format (skipped)");
+        warn2("image could not be rasterised for this format (skipped)");
         return;
       }
       const { x: bx, y: by } = mapPt(len(prop2(el, style, "x"), vbW), len(prop2(el, style, "y"), vbH));
@@ -158514,7 +158864,7 @@ async function svgDomToIr(svgEl, ctx = {}) {
       prims.push({ type: "image", x, y, w, h, pxW: dec.w, pxH: dec.h, rgb: dec.rgb });
       return;
     } else if (tag2 === "use") {
-      warn("use elements are not supported (skipped)");
+      warn2("use elements are not supported (skipped)");
       return;
     } else {
       for (const child of el.children || []) await visit(child, t, inherited2);
@@ -158600,7 +158950,7 @@ async function svgDomToIr(svgEl, ctx = {}) {
     if (Math.abs(regX - regY) / Math.max(regX, regY) > 0.01) return null;
     const rotation = Math.atan2(et.b, et.a) * 180 / Math.PI;
     const face = gdiFaceName(r5.family) ?? "";
-    if (!face) warn(`live text run "${r5.raw.slice(0, 24)}" has no resolvable font-family - the reader's default font will render it`);
+    if (!face) warn2(`live text run "${r5.raw.slice(0, 24)}" has no resolvable font-family - the reader's default font will render it`);
     const wRaw = r5.weight.trim().toLowerCase();
     const weightNum = wRaw === "bold" ? 700 : Number.isFinite(parseFloat(wRaw)) ? Math.round(parseFloat(wRaw)) : 400;
     const { x, y } = m2.mapPt(len(prop2(el, style, "x"), vbW), len(prop2(el, style, "y"), vbH));
@@ -158635,9 +158985,9 @@ async function svgDomToIr(svgEl, ctx = {}) {
     const fontSize = parseFloat(prop2(el, style, "font-size", null) ?? cs?.fontSize ?? "16");
     const letterSpacingCss = prop2(el, style, "letter-spacing", null) ?? cs?.letterSpacing;
     if (liveText) {
-      const live = liveTextPrim(el, style, m2, { raw, rgb: rgb3, family: family2, weight, italic, fontSize, letterSpacingCss, cs });
-      if (live) {
-        prims.push(live);
+      const live2 = liveTextPrim(el, style, m2, { raw, rgb: rgb3, family: family2, weight, italic, fontSize, letterSpacingCss, cs });
+      if (live2) {
+        prims.push(live2);
         return;
       }
     }
@@ -158738,8 +159088,391 @@ init_text3();
 init_src2();
 init_content_roots();
 import { readFile as readFile9 } from "node:fs/promises";
-import { fileURLToPath as fileURLToPath6 } from "node:url";
+import { fileURLToPath as fileURLToPath7 } from "node:url";
 import { isAbsolute, join as join13 } from "node:path";
+
+// packages/node-shell/src/rondo.ts
+import { Worker as Worker3 } from "node:worker_threads";
+import { existsSync as existsSync8 } from "node:fs";
+import { fileURLToPath as fileURLToPath6 } from "node:url";
+import { createHash as createHash7 } from "node:crypto";
+
+// packages/rondo/src/limits.ts
+var RONDO_LIMITS = Object.freeze({
+  /** Largest song source accepted, in UTF-8 bytes. The largest upstream example is under 20 KB. */
+  maxSourceBytes: 256 * 1024,
+  /** Longest render, in seconds. */
+  maxSeconds: 600,
+  /** Output sample rate. Fixed, because the byte-identity tests are pinned to this rate. */
+  sampleRate: 48e3,
+  /** Length when nothing asks for one and the song has no arrangement: upstream's own bounce default. */
+  defaultCycles: 8,
+  /** QuickJS heap for one staging run. */
+  vmMemoryBytes: 128 * 1024 * 1024,
+  /**
+   * QuickJS's own stack check. Kept well under the host's native stack, which the
+   * WebAssembly frames also use: set too high, a runaway recursion overflows the
+   * host first and escapes as a host error instead of a QuickJS one.
+   */
+  vmStackBytes: 512 * 1024,
+  /** Time to load the staging bundle and evaluate the song. */
+  prepareBudgetMs: 15e3,
+  /** Time to schedule the patterns: a base plus this much per second of audio. */
+  scheduleBaseMs: 1e4,
+  scheduleMsPerSecond: 400,
+  /** Largest staged result accepted from the vm, in UTF-16 code units. */
+  maxStagedChars: 48 * 1024 * 1024,
+  maxSynths: 64,
+  maxBuses: 32,
+  maxSends: 2048,
+  maxNodesPerGraph: 2048,
+  maxParamsPerGraph: 512,
+  maxVoices: 32,
+  maxEvents: 4e6,
+  /** Numbers anywhere in one node's config, wavetable frames included. */
+  maxConfigNumbers: 1e6,
+  maxConfigDepth: 8,
+  maxStringChars: 8192,
+  /**
+   * Upper bound on (voices x nodes) summed over every synth plus every bus graph.
+   * Render time grows with it, so it is the CPU budget for one render.
+   */
+  maxVoiceNodes: 6e4,
+  /** Diagnostics kept from a failed compile or evaluation. */
+  maxDiagnostics: 20
+});
+
+// packages/node-shell/src/rondo.ts
+init_src2();
+var LOCAL_RONDO_CAPS = Object.freeze({
+  maxSeconds: RONDO_LIMITS.maxSeconds,
+  maxConcurrent: 2,
+  maxQueued: 8,
+  heapMb: 1024
+});
+var HOSTED_RONDO_CAPS = Object.freeze({
+  maxSeconds: 30,
+  timeoutMs: 2e4,
+  budgetMs: 2e4,
+  maxConcurrent: 1,
+  maxQueued: 2,
+  heapMb: 384
+});
+var RondoAudioError = class extends Error {
+  name = "RondoAudioError";
+  code;
+  diagnostics;
+  constructor(message, code, diagnostics = []) {
+    super(message);
+    this.code = code;
+    this.diagnostics = diagnostics;
+  }
+};
+var CACHE_ENTRIES = 4;
+var CACHE_SAMPLES = 24 * 1024 * 1024;
+var kept = /* @__PURE__ */ new Map();
+var inflight = /* @__PURE__ */ new Map();
+var FAILED_ENTRIES = 16;
+var FAILED_MS = 5 * 6e4;
+var failed = /* @__PURE__ */ new Map();
+var TRANSIENT = /* @__PURE__ */ new Set(["rondo.busy", "rondo.limits.budget", "rondo.vm.unavailable"]);
+function rememberFailure(key, error2) {
+  if (TRANSIENT.has(error2.code)) return;
+  failed.delete(key);
+  failed.set(key, { error: error2, at: Date.now() });
+  for (const oldest of failed.keys()) {
+    if (failed.size <= FAILED_ENTRIES) break;
+    failed.delete(oldest);
+  }
+}
+function knownFailure(key) {
+  const hit = failed.get(key);
+  if (!hit) return null;
+  if (Date.now() - hit.at > FAILED_MS) {
+    failed.delete(key);
+    return null;
+  }
+  return new RondoAudioError(hit.error.message, hit.error.code, hit.error.diagnostics);
+}
+var samplesOf = (k) => k.channels[0].length + k.channels[1].length;
+function keep(key, k) {
+  if (samplesOf(k) > CACHE_SAMPLES / 2) return;
+  kept.delete(key);
+  kept.set(key, k);
+  let total = 0;
+  for (const v of kept.values()) total += samplesOf(v);
+  for (const [oldest, v] of kept) {
+    if (kept.size <= CACHE_ENTRIES && total <= CACHE_SAMPLES) break;
+    kept.delete(oldest);
+    total -= samplesOf(v);
+  }
+}
+var running = 0;
+var waiters = [];
+function pump() {
+  for (let i = 0; i < waiters.length; ) {
+    const w = waiters[i];
+    if (running < w.cap) {
+      waiters.splice(i, 1);
+      running += 1;
+      w.wake();
+    } else i += 1;
+  }
+}
+async function acquire(caps, waitMs) {
+  let released = false;
+  const release = () => {
+    if (released) return;
+    released = true;
+    running -= 1;
+    pump();
+  };
+  if (running < caps.maxConcurrent && waiters.length === 0) {
+    running += 1;
+    return release;
+  }
+  const busy = () => new RondoAudioError(
+    "Another song is rendering on this server, so this one was not started. Try again shortly.",
+    "rondo.busy"
+  );
+  if (waiters.length >= caps.maxQueued) throw busy();
+  await new Promise((resolve8, reject) => {
+    const waiter = {
+      cap: caps.maxConcurrent,
+      wake: () => {
+        clearTimeout(timer);
+        resolve8();
+      }
+    };
+    const timer = setTimeout(() => {
+      const at = waiters.indexOf(waiter);
+      if (at >= 0) waiters.splice(at, 1);
+      reject(busy());
+    }, Math.max(0, waitMs));
+    waiters.push(waiter);
+  });
+  return release;
+}
+function workerUrl() {
+  const candidates2 = [new URL("./rondo-worker.ts", import.meta.url), new URL("./_rondo-worker.js", import.meta.url)];
+  for (const url of candidates2) {
+    if (url.protocol === "file:" && existsSync8(fileURLToPath6(url))) return url;
+  }
+  throw new RondoAudioError("The song renderer is missing from this installation, so the song was not rendered.", "rondo.vm.unavailable");
+}
+var STDERR_KEEP = 2048;
+var live = /* @__PURE__ */ new Set();
+function runWorker2(job, caps, timeoutMs, limitText) {
+  const url = workerUrl();
+  return new Promise((resolve8, reject) => {
+    let worker;
+    try {
+      worker = new Worker3(url, {
+        workerData: job,
+        // Nothing in this process's environment is the song's business.
+        env: {},
+        execArgv: [],
+        // Kept off this process's stdout, which is the payload (CLI) or the
+        // JSON-RPC channel (MCP over stdio).
+        stdout: true,
+        stderr: true,
+        resourceLimits: { maxOldGenerationSizeMb: caps.heapMb }
+      });
+    } catch (e) {
+      reject(new RondoAudioError(`The song renderer could not start: ${e instanceof Error ? e.message : String(e)}`, "rondo.vm.unavailable"));
+      return;
+    }
+    live.add(worker);
+    worker.once("exit", () => live.delete(worker));
+    let stderr = "";
+    worker.stdout.resume();
+    worker.stderr.on("data", (chunk6) => {
+      if (stderr.length < STDERR_KEEP) stderr += chunk6.toString("utf8").slice(0, STDERR_KEEP - stderr.length);
+    });
+    let settled = false;
+    const finish2 = (err, value) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      void worker.terminate();
+      if (err) reject(err);
+      else resolve8(value);
+    };
+    const timer = setTimeout(() => {
+      finish2(new RondoAudioError(`The song ran past ${limitText} and was stopped.`, "rondo.vm.timeout"));
+    }, timeoutMs);
+    worker.on("message", (reply) => {
+      if (!reply || typeof reply !== "object") {
+        finish2(new RondoAudioError("The song renderer answered with nothing.", "rondo.render.error"));
+        return;
+      }
+      if (!reply.ok) {
+        finish2(new RondoAudioError(reply.message, reply.code, reply.diagnostics ?? []));
+        return;
+      }
+      const { left, right } = reply;
+      if (!(left instanceof Float32Array) || !(right instanceof Float32Array) || left.length !== right.length) {
+        finish2(new RondoAudioError("The song renderer answered with unreadable audio.", "rondo.render.error"));
+        return;
+      }
+      finish2(null, {
+        sampleRate: reply.sampleRate,
+        channels: [left, right],
+        seconds: reply.seconds,
+        findings: reply.findings.map((f) => ({ code: f.code, message: f.message, parts: [...f.parts] })),
+        run: {
+          executionClass: reply.run.executionClass,
+          source: "rondocode",
+          version: `${reply.run.upstream.slice(0, 12)}+lolly.${reply.run.adapter}`,
+          seed: reply.run.seed
+        }
+      });
+    });
+    worker.on("error", (e) => {
+      if (e.code === "ERR_WORKER_OUT_OF_MEMORY") {
+        finish2(new RondoAudioError(`The song needed more than this host's ${caps.heapMb} MB of memory to render and was stopped.`, "rondo.vm.memory"));
+      } else if (e.code === "ERR_MODULE_NOT_FOUND" || e.code === "ERR_WORKER_INIT_FAILED") {
+        finish2(new RondoAudioError(`The song renderer could not start: ${e.message}`, "rondo.vm.unavailable"));
+      } else {
+        finish2(new RondoAudioError(`The song renderer failed: ${e.message}`, "rondo.render.error"));
+      }
+    });
+    worker.on("exit", (code) => {
+      const tail = stderr.trim() ? ` (${stderr.trim().split("\n").slice(-1)[0]})` : "";
+      finish2(new RondoAudioError(`The song renderer stopped before it answered, exit code ${code}${tail}.`, "rondo.render.error"));
+    });
+  });
+}
+var secondsText = (ms) => ms < 1e4 ? (ms / 1e3).toFixed(1) : String(Math.round(ms / 1e3));
+var digestOf = (song) => createHash7("sha256").update(`${song.lang}\0${song.code}`).digest("hex");
+var copyOf = (k) => ({
+  ...k,
+  channels: [k.channels[0].slice(), k.channels[1].slice()],
+  findings: k.findings.map((f) => ({ ...f, parts: [...f.parts] }))
+});
+async function renderRondoSong(song, opts = {}) {
+  const caps = opts.caps ?? LOCAL_RONDO_CAPS;
+  const maxSeconds = Math.min(caps.maxSeconds, RONDO_LIMITS.maxSeconds);
+  const { seconds } = opts;
+  if (seconds !== void 0 && (!Number.isFinite(seconds) || seconds <= 0)) {
+    throw new RondoAudioError("The length must be a positive number of seconds.", "rondo.limits.seconds");
+  }
+  if (seconds !== void 0 && seconds > maxSeconds) {
+    throw new RondoAudioError(`This host renders songs up to ${maxSeconds} s long; ${seconds} s was asked for.`, "rondo.limits.seconds");
+  }
+  const key = `${digestOf(song)}|${seconds ?? "natural"}|${maxSeconds}`;
+  const sourceDigest = createHash7("sha256").update(rondoSourceBytes(song)).digest("hex");
+  const report4 = (k, cached2) => ({
+    sampleRate: k.sampleRate,
+    channels: k.channels,
+    seconds: k.seconds,
+    findings: k.findings,
+    run: k.run,
+    report: {
+      key,
+      source: "rondocode",
+      name: song.name,
+      sourceDigest,
+      seconds: k.seconds,
+      sampleRate: k.sampleRate,
+      findings: k.findings.map((f) => ({ ...f, parts: [...f.parts] })),
+      run: { ...k.run },
+      cached: cached2
+    }
+  });
+  const hit = kept.get(key);
+  if (hit) {
+    kept.delete(key);
+    kept.set(key, hit);
+    return report4(copyOf(hit), true);
+  }
+  const pending3 = inflight.get(key);
+  if (pending3) return report4(copyOf(await pending3), true);
+  const budget3 = opts.budget;
+  const remaining = caps.budgetMs === void 0 ? Number.POSITIVE_INFINITY : caps.budgetMs - (budget3?.spentMs ?? 0);
+  if (remaining <= 0) {
+    throw new RondoAudioError(
+      `This request has used its ${Math.round(caps.budgetMs / 1e3)} s of song rendering, so this song was not started.`,
+      "rondo.limits.budget"
+    );
+  }
+  const nominal = caps.timeoutMs ?? 6e4 + 2e3 * (seconds ?? maxSeconds);
+  const failureKey = `${key}|${nominal}|${JSON.stringify(caps.vmLimits ?? {})}`;
+  const known = knownFailure(failureKey);
+  if (known) throw known;
+  const wallClock = Math.min(nominal, remaining);
+  const job = {
+    code: song.code,
+    lang: song.lang,
+    ...seconds !== void 0 ? { seconds } : {},
+    limits: { ...caps.vmLimits, maxSeconds }
+  };
+  let fullClock = false;
+  const work = (async () => {
+    const started = Date.now();
+    let release = null;
+    try {
+      release = await acquire(caps, Math.max(0, wallClock - 1e3));
+      const waited = Date.now() - started;
+      const left = Math.max(1, wallClock - waited);
+      fullClock = wallClock === nominal && waited <= 100;
+      const limitText = wallClock < nominal || waited > 100 ? `the ${secondsText(left)} s of rendering time this request had left` : `this host's ${secondsText(nominal)} s time limit`;
+      return await runWorker2(job, caps, left, limitText);
+    } finally {
+      release?.();
+      if (budget3) budget3.spentMs += Date.now() - started;
+    }
+  })();
+  inflight.set(key, work);
+  let fresh;
+  try {
+    fresh = await work;
+  } catch (e) {
+    if (e instanceof RondoAudioError && fullClock) rememberFailure(failureKey, e);
+    throw e;
+  } finally {
+    inflight.delete(key);
+  }
+  keep(key, fresh);
+  return report4(kept.has(key) ? copyOf(fresh) : fresh, false);
+}
+
+// packages/node-shell/src/song-provenance.ts
+init_src2();
+async function recordedSongs(bytes) {
+  try {
+    const report4 = await verifyC2pa(bytes);
+    if (report4.state !== "valid") return [];
+    return (report4.ingredients ?? []).filter(isRondoSongIngredient).map((r5) => r5.title ?? "").filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+async function songIngredientsIn(bytes) {
+  try {
+    const report4 = await verifyC2pa(bytes);
+    if (report4.state !== "valid") return [];
+    const out = [];
+    for (const r5 of report4.ingredients ?? []) {
+      if (!isRondoSongIngredient(r5) || !r5.title) continue;
+      out.push({
+        credential: "none",
+        title: r5.title,
+        ...r5.format ? { format: r5.format } : {},
+        relationship: "componentOf",
+        ...r5.instanceId ? { instanceId: r5.instanceId } : {},
+        ...r5.description ? { description: r5.description } : {},
+        ...r5.informationalUri ? { informationalUri: r5.informationalUri } : {},
+        ...r5.digitalSourceType ? { digitalSourceType: r5.digitalSourceType } : {}
+      });
+    }
+    return uniqueRondoIngredients(out);
+  } catch {
+    return [];
+  }
+}
+
+// packages/node-shell/src/audio.ts
 function rootsFor3(root2) {
   try {
     return contentRoots({ root: root2 });
@@ -158767,7 +159500,7 @@ async function bytesOf2(src, repoRoot2) {
     if (!res.ok) throw new Error(`audio: fetch failed (${res.status})`);
     return new Uint8Array(await res.arrayBuffer());
   }
-  if (url.startsWith("file:")) return new Uint8Array(await readFile9(fileURLToPath6(url)));
+  if (url.startsWith("file:")) return new Uint8Array(await readFile9(fileURLToPath7(url)));
   const roots2 = url.startsWith("/") ? rootsFor3(repoRoot2) : void 0;
   const content2 = roots2 ? contentUrlFile(url, roots2) : null;
   const path = content2 ?? (isAbsolute(url) && !url.startsWith("/catalog/") && !url.startsWith("/community/") ? url : join13(repoRoot2, url.replace(/^\//, "")));
@@ -158777,37 +159510,96 @@ async function songOf(src, repoRoot2) {
   const bytes = await bytesOf2(src, repoRoot2);
   return JSON.parse(Buffer.from(bytes).toString("utf8"));
 }
-async function decodeAudioPcm(src, opts) {
+function fileNameOf(url) {
+  if (!url || url.startsWith("data:")) return "";
+  return url.split(/[?#]/)[0].replace(/^.*[\\/]/, "");
+}
+function looksLikeRondoRecord(b) {
+  if (b.length > RONDO_MAX_SOURCE_BYTES * 2 + 4096) return false;
+  let i = b[0] === 239 && b[1] === 187 && b[2] === 191 ? 3 : 0;
+  while (i < b.length && (b[i] === 32 || b[i] === 9 || b[i] === 10 || b[i] === 13)) i += 1;
+  if (b[i] !== 123) return false;
+  try {
+    const o = JSON.parse(new TextDecoder().decode(b));
+    return !!o && typeof o === "object" && o.format === "rondocode" && typeof o.code === "string";
+  } catch {
+    return false;
+  }
+}
+function readSong(read) {
+  try {
+    return read();
+  } catch (e) {
+    if (e instanceof RondoSourceError) throw new RondoAudioError(`The song could not be read: ${e.message}`, "rondo.source.invalid");
+    throw e;
+  }
+}
+async function renderSong(song, opts, seconds) {
+  let out;
+  try {
+    out = await renderRondoSong(song, {
+      ...seconds !== void 0 ? { seconds } : {},
+      ...opts.rondo ? { caps: opts.rondo } : {},
+      ...opts.budget ? { budget: opts.budget } : {}
+    });
+  } catch (e) {
+    if (e instanceof RondoAudioError) opts.onRunFailed?.({ source: "rondocode", name: song.name, code: e.code, message: e.message });
+    throw e;
+  }
+  opts.onRun?.(out.report);
+  return { sampleRate: out.sampleRate, channels: out.channels, seconds: out.seconds, findings: out.findings, run: out.run };
+}
+var recorded = (channels, sampleRate) => ({
+  sampleRate,
+  channels,
+  seconds: (channels[0]?.length ?? 0) / sampleRate,
+  findings: []
+});
+async function decodeAudioSource(src, opts, decodeOpts = {}) {
   const { repoRoot: repoRoot2 } = opts;
-  const url = isRef(src) ? src.url : typeof src === "string" ? src : "";
+  const ref = isRef(src) ? src : null;
+  const url = ref ? ref.url : typeof src === "string" ? src : "";
   if (isZzfxmRef(url)) {
-    const ref = parseZzfxmRef(url);
-    if (!ref) throw new Error(`audio: malformed procedural song ref (${url})`);
+    const zref = parseZzfxmRef(url);
+    if (!zref) throw new Error(`audio: malformed procedural song ref (${url})`);
     const { left, right, sampleRate: sampleRate2 } = renderZzfxm(
-      composeSong(generatedSongSpec(ref.seed, 30, ref.style))
+      composeSong(generatedSongSpec(zref.seed, 30, zref.style))
     );
     if (!left.length) throw new Error("audio: zzfxm song rendered empty");
-    return { channels: [left, right], sampleRate: sampleRate2 };
+    return recorded([left, right], sampleRate2);
   }
-  if (isRef(src) && src.format === "zzfxm" || /\.zzfxm\.json$/i.test(url)) {
+  if (isRondoShareLink(url)) return renderSong(readSong(() => rondoFromShareLink(url)), opts, decodeOpts.seconds);
+  const fileName = fileNameOf(url) || fileNameOf(opts.sourceName ?? "");
+  if (ref?.format === RONDO_ASSET_FORMAT || isRondoFileName(fileName)) {
+    const bytes2 = await bytesOf2(src, repoRoot2);
+    const asName = isRondoFileName(fileName) ? fileName : looksLikeJsonObject(bytes2) ? "song.rondo.json" : "song.rondo";
+    return renderSong(readSong(() => rondoFromFile(bytes2, asName)), opts, decodeOpts.seconds);
+  }
+  if (ref && ref.format === "zzfxm" || /\.zzfxm\.json$/i.test(url)) {
     const { left, right, sampleRate: sampleRate2 } = renderZzfxm(await songOf(src, repoRoot2));
     if (!left.length) throw new Error("audio: zzfxm song rendered empty");
-    return { channels: [left, right], sampleRate: sampleRate2 };
+    return recorded([left, right], sampleRate2);
   }
   if (NEEDS_PLATFORM_CODEC.test(url)) {
     throw new Error(
-      `audio: ${url.split(".").pop()} needs a platform codec this shell does not have - analyse WAV or a ZzFXM song headlessly, or render in a browser shell`
+      `audio: ${url.split(".").pop()} needs a platform codec this shell does not have - analyse WAV, a ZzFXM song or a rondocode song headlessly, or render in a browser shell`
     );
   }
   const bytes = await bytesOf2(src, repoRoot2);
+  if (looksLikeRondoRecord(bytes)) return renderSong(readSong(() => rondoFromBytes(bytes)), opts, decodeOpts.seconds);
   const container = sniffContainer2(bytes);
   if (container && container !== "wav") {
     throw new Error(
-      `audio: ${container} needs a platform codec this shell does not have - analyse WAV or a ZzFXM song headlessly, or render in a browser shell`
+      `audio: ${container} needs a platform codec this shell does not have - analyse WAV, a ZzFXM song or a rondocode song headlessly, or render in a browser shell`
     );
   }
   const { channels, sampleRate } = parseWav(bytes);
-  return { channels, sampleRate };
+  return recorded(channels, sampleRate);
+}
+function looksLikeJsonObject(b) {
+  let i = b[0] === 239 && b[1] === 187 && b[2] === 191 ? 3 : 0;
+  while (i < b.length && (b[i] === 32 || b[i] === 9 || b[i] === 10 || b[i] === 13)) i += 1;
+  return b[i] === 123;
 }
 function sniffContainer2(b) {
   const tag2 = (at, s) => b.length >= at + s.length && [...s].every((c, i) => b[at + i] === c.charCodeAt(0));
@@ -158821,14 +159613,18 @@ function sniffContainer2(b) {
   return null;
 }
 function createNodeAudioAPI(opts) {
+  const scoped = { ...opts, budget: opts.budget ?? { spentMs: 0 } };
   return {
-    // There IS a decoder here (WAV + ZzFXM), so this is true. Per the contract it
-    // never promised that a given file decodes. analyse() rejects by name for the
-    // formats Node cannot read.
+    // There IS a decoder here (WAV, ZzFXM, rondocode), so this is true. Per the
+    // contract it never promised that a given file decodes. analyse() rejects by
+    // name for the formats Node cannot read.
     isAvailable: () => true,
     async analyse(src, analyseOpts = {}) {
-      const { channels, sampleRate } = await decodeAudioPcm(src, opts);
+      const { channels, sampleRate } = await decodeAudioSource(src, scoped);
       return analysePcm(channels, sampleRate, analyseOpts);
+    },
+    async decode(src, decodeOpts = {}) {
+      return decodeAudioSource(src, scoped, decodeOpts);
     },
     async clean(src, cleanOpts = {}) {
       const format = cleanOpts.output ?? "wav";
@@ -158838,7 +159634,7 @@ function createNodeAudioAPI(opts) {
       if ((cleanOpts.denoise ?? "off") !== "off") {
         throw new Error("audio clean: speech denoising needs the browser's on-device GTCRN model - choose Denoise off or use a browser shell");
       }
-      const decoded = await decodeAudioPcm(src, opts);
+      const decoded = await decodeAudioSource(src, cleanOpts.sourceName ? { ...scoped, sourceName: cleanOpts.sourceName } : scoped);
       const channels = resamplePcm(decoded.channels, decoded.sampleRate);
       const result = cleanAudioPcm(channels, 48e3, cleanOpts);
       return {
@@ -158851,6 +159647,40 @@ function createNodeAudioAPI(opts) {
     }
   };
 }
+async function prerenderSongInputs(inputs, values, host) {
+  const decode = host.audio?.decode;
+  if (!decode) return;
+  for (const input of inputs) {
+    const value = values[input.id];
+    if (!value || typeof value !== "object") continue;
+    let src = null;
+    if (input.type === "asset") {
+      const v = value;
+      if (typeof v.id === "string" && isRondoShareLink(v.id)) src = v.id;
+      else if (v.format === RONDO_ASSET_FORMAT && typeof v.url === "string" && v.url) src = v;
+      else if (v._unresolved && typeof v.id === "string" && input.assetType === "audio" && host.assets) {
+        const ref = await host.assets.get(v.id).catch(() => null);
+        if (ref?.format === RONDO_ASSET_FORMAT) src = ref;
+      }
+    } else if (input.type === "file") {
+      const f = value;
+      if (typeof f.name === "string" && isRondoFileName(f.name) && f.bytes instanceof Uint8Array) {
+        try {
+          src = rondoSourceBytes(rondoFromFile(f.bytes, f.name));
+        } catch {
+        }
+      }
+    }
+    if (!src) continue;
+    try {
+      await decode.call(host.audio, src);
+    } catch {
+    }
+  }
+}
+
+// shells/cli/src/bridge.ts
+init_src2();
 
 // packages/node-shell/src/url-capture.ts
 init_browsers();
@@ -159828,15 +160658,15 @@ function clampMaxPages(v) {
 async function collectPages(count4, maxPages, renderOne, pageNumbers) {
   const indices = pageNumbers ? [...new Set(pageNumbers)].filter((n7) => Number.isInteger(n7) && n7 >= 1 && n7 <= count4).slice(0, maxPages).map((n7) => n7 - 1) : Array.from({ length: Math.min(count4, maxPages) }, (_, i) => i);
   const pages = [];
-  const failed = [];
+  const failed2 = [];
   for (const i of indices) {
     try {
       pages.push(await renderOne(i));
     } catch {
-      failed.push(i + 1);
+      failed2.push(i + 1);
     }
   }
-  return { pages, truncated: count4 > indices.length, failed };
+  return { pages, truncated: count4 > indices.length, failed: failed2 };
 }
 function barToPixels(bar, dpi, cw, ch) {
   const s = dpi / 72;
@@ -160145,7 +160975,7 @@ function loadSharpForPages() {
   sharpPromise ??= import("sharp").then((m2) => m2.default ?? m2).catch(() => null);
   return sharpPromise;
 }
-async function imageDataUri(desc, warn) {
+async function imageDataUri(desc, warn2) {
   const last = desc.filter[desc.filter.length - 1];
   try {
     if (last === "DCTDecode") {
@@ -160155,12 +160985,12 @@ async function imageDataUri(desc, warn) {
     const comps = /RGB/i.test(desc.colorSpace || "") ? 3 : /Gray/i.test(desc.colorSpace || "") ? 1 : 0;
     const sharp = await loadSharpForPages();
     if (!sharp) {
-      warn.push("An embedded image was left out (no image codec in this install).");
+      warn2.push("An embedded image was left out (no image codec in this install).");
       return null;
     }
     let rgba2 = null;
     if (last === "DCTDecode") {
-      warn.push("An embedded JPEG with a soft mask was kept opaque (its alpha plane needs a decode this half does not do).");
+      warn2.push("An embedded JPEG with a soft mask was kept opaque (its alpha plane needs a decode this half does not do).");
       return `data:image/jpeg;base64,${Buffer.from(desc.stream.getContents()).toString("base64")}`;
     }
     if ((last === "FlateDecode" || last == null) && comps) {
@@ -160194,13 +161024,13 @@ async function imageDataUri(desc, warn) {
               }
             }
           } else {
-            warn.push("Kept an embedded image opaque (its soft mask was undecodable).");
+            warn2.push("Kept an embedded image opaque (its soft mask was undecodable).");
           }
         }
       }
     }
     if (!rgba2) {
-      warn.push(`Skipped an embedded image in an unsupported encoding (${last || "raw"}).`);
+      warn2.push(`Skipped an embedded image in an unsupported encoding (${last || "raw"}).`);
       return null;
     }
     const png = await sharp(Buffer.from(rgba2.buffer, rgba2.byteOffset, rgba2.byteLength), {
@@ -160208,7 +161038,7 @@ async function imageDataUri(desc, warn) {
     }).png().toBuffer();
     return `data:image/png;base64,${png.toString("base64")}`;
   } catch (err) {
-    warn.push(`Could not read an embedded image (${msg2(err)}).`);
+    warn2.push(`Could not read an embedded image (${msg2(err)}).`);
     return null;
   }
 }
@@ -160238,7 +161068,7 @@ async function openPdfForRender(bytes) {
     async pageToSvg(index2, opts = {}) {
       const page3 = doc.getPage(index2);
       const mb2 = safeMediaBox(page3);
-      const warnings = [];
+      const warnings2 = [];
       const streams = /* @__PURE__ */ new Map();
       const resources = extractResources(ctx, getKey2(ctx, page3.node, "Resources"), 0, /* @__PURE__ */ new Set(), { left: RESOURCE_NODE_BUDGET }, streams);
       const nodes = interpretPdfPage({
@@ -160252,7 +161082,7 @@ async function openPdfForRender(bytes) {
         extgstates: resources.extgstates,
         ocgs: resources.ocgs,
         onWarn: (code, detail) => {
-          warnings.push(detail ? `${code} (${detail})` : code);
+          warnings2.push(detail ? `${code} (${detail})` : code);
         }
       });
       const images = {};
@@ -160261,7 +161091,7 @@ async function openPdfForRender(bytes) {
         if (!key || key in images) continue;
         const desc = streams.get(key);
         if (!desc) continue;
-        const uri = await imageDataUri(desc, warnings);
+        const uri = await imageDataUri(desc, warnings2);
         if (uri) images[key] = uri;
       }
       return {
@@ -160276,7 +161106,7 @@ async function openPdfForRender(bytes) {
         page: index2 + 1,
         widthPt: mb2.width,
         heightPt: mb2.height,
-        warnings
+        warnings: warnings2
       };
     }
   };
@@ -160372,7 +161202,7 @@ async function redactPdf(bytes, opts) {
   const bars = Array.isArray(opts?.bars) ? opts.bars : [];
   const handle = await openPdfForRender(input);
   const sizes = handle.sizes;
-  const warnings = [];
+  const warnings2 = [];
   const pages = [];
   for (let i = 0; i < sizes.length; i++) {
     const { width: wPt, height: hPt } = sizes[i];
@@ -160388,7 +161218,7 @@ async function redactPdf(bytes, opts) {
       const px3 = new Uint8ClampedArray(raster.data.buffer, raster.data.byteOffset, raster.data.byteLength);
       cx2.putImageData(new mod.ImageData(px3, raster.width, raster.height), 0, 0);
     } catch {
-      warnings.push(`Page ${i + 1} could not be rendered. It ships as a blank page with its bars burned in.`);
+      warnings2.push(`Page ${i + 1} could not be rendered. It ships as a blank page with its bars burned in.`);
     }
     if (opts?.grayscale) {
       const img = cx2.getImageData(0, 0, cw, ch);
@@ -160414,7 +161244,7 @@ async function redactPdf(bytes, opts) {
     pages.push({ jpeg: new Uint8Array(jpeg.buffer, jpeg.byteOffset, jpeg.byteLength), widthPt: wPt, heightPt: hPt });
   }
   const out = await buildImagePdf(pages);
-  return { bytes: out, pages: sizes.length, ...warnings.length ? { warnings } : {} };
+  return { bytes: out, pages: sizes.length, ...warnings2.length ? { warnings: warnings2 } : {} };
 }
 function createNodePdfRedact() {
   if (!isCanvasAvailable()) return null;
@@ -160431,7 +161261,7 @@ import { readFileSync as readFileSync5 } from "node:fs";
 import { readFile as readFile11 } from "node:fs/promises";
 import { createRequire as createRequire4 } from "node:module";
 import { isAbsolute as isAbsolute2, join as join15 } from "node:path";
-import { fileURLToPath as fileURLToPath7 } from "node:url";
+import { fileURLToPath as fileURLToPath8 } from "node:url";
 
 // packages/node-shell/src/tts-blend.ts
 init_src2();
@@ -160507,14 +161337,14 @@ function quietestFrame(pcm, from, to, frameLen) {
   return Math.min(to, bestAt + (frameLen >> 1));
 }
 function cleanWordTimings(raw, chunkDuration) {
-  const kept = raw.map((w) => ({ ...w, text: w.text.trim() })).filter((w) => w.text.length > 0);
+  const kept2 = raw.map((w) => ({ ...w, text: w.text.trim() })).filter((w) => w.text.length > 0);
   const out = [];
-  for (let i = 0; i < kept.length; i++) {
-    const w = kept[i];
+  for (let i = 0; i < kept2.length; i++) {
+    const w = kept2[i];
     const prevEnd = out.length > 0 ? out[out.length - 1].end : 0;
     let start = isFiniteTime(w.start) ? w.start : prevEnd;
     start = Math.min(chunkDuration, Math.max(start, prevEnd));
-    const nextStart = kept.slice(i + 1).find((n7) => isFiniteTime(n7.start))?.start;
+    const nextStart = kept2.slice(i + 1).find((n7) => isFiniteTime(n7.start))?.start;
     let end = isFiniteTime(w.end) ? w.end : nextStart ?? chunkDuration;
     end = Math.min(chunkDuration, Math.max(end, start));
     out.push({ text: w.text, start, end });
@@ -160731,7 +161561,7 @@ async function bytesOf3(src, root2) {
     if (!res.ok) throw new Error(`speech: audio fetch failed (${res.status})`);
     return new Uint8Array(await res.arrayBuffer());
   }
-  if (url.startsWith("file:")) return new Uint8Array(await readFile11(fileURLToPath7(url)));
+  if (url.startsWith("file:")) return new Uint8Array(await readFile11(fileURLToPath8(url)));
   const path = isAbsolute2(url) && !url.startsWith("/catalog/") && !url.startsWith("/community/") ? url : join15(root2, url.replace(/^\//, ""));
   return new Uint8Array(await readFile11(path));
 }
@@ -161422,6 +162252,51 @@ var CliError = class extends Error {
 };
 var unavailableHere = (message, kind = "UNAVAILABLE_HERE") => new CliError(message, EXIT.UNAVAILABLE_HERE, kind);
 
+// shells/cli/src/output.ts
+var quiet = false;
+var warnings = [];
+function note(message) {
+  if (!quiet) process.stderr.write(message.endsWith("\n") ? message : message + "\n");
+}
+function warn(code, message, kind = "usage", extra) {
+  warnings.push({ code, message, kind, ...extra ? { extra } : {} });
+  if (!quiet) process.stderr.write(`Warning: ${message}
+`);
+}
+
+// shells/cli/src/song-report.ts
+var warningCodeOf = (code) => code.toUpperCase().replace(/[^A-Z0-9]+/g, "_");
+function runFacts(run3) {
+  return {
+    executionClass: run3.run.executionClass,
+    source: run3.run.source,
+    version: run3.run.version,
+    ...run3.run.seed !== void 0 ? { seed: run3.run.seed } : {}
+  };
+}
+function cliAudioRunReporter() {
+  const seen = /* @__PURE__ */ new Set();
+  return (run3) => {
+    if (seen.has(run3.key)) return;
+    seen.add(run3.key);
+    const facts2 = runFacts(run3);
+    const seed = run3.run.seed !== void 0 ? `, seed ${run3.run.seed}` : "";
+    note(`Song "${run3.name}": ${run3.seconds.toFixed(2)} s rendered in the ${run3.run.executionClass} execution class (QuickJS in WebAssembly; ${run3.run.source} ${run3.run.version}${seed}).`);
+    for (const f of run3.findings) {
+      warn(warningCodeOf(f.code), `Song "${run3.name}": ${f.message}`, "usage", { finding: f.code, parts: f.parts, song: run3.name, ...facts2 });
+    }
+  };
+}
+function cliAudioFailureReporter() {
+  return (failure5) => {
+    warn(warningCodeOf(failure5.code), `Song "${failure5.name}" was not rendered: ${failure5.message}`, "usage", {
+      failure: failure5.code,
+      song: failure5.name,
+      source: failure5.source
+    });
+  };
+}
+
 // shells/cli/src/bridge.ts
 var REPO_ROOT2 = repoRoot();
 function cliResolveFont(host) {
@@ -161451,9 +162326,31 @@ function urlAssetKind(mime2, id2) {
   if (["jxl", "png", "jpg", "jpeg", "webp", "gif", "avif"].includes(ext)) return { type: "raster", format: ext.replace("jpeg", "jpg") };
   if (["mp4", "webm", "mov"].includes(ext)) return { type: "video", format: ext };
   if (["mp3", "wav", "ogg", "m4a"].includes(ext)) return { type: "audio", format: ext };
+  if (/\.rondo(?:\.json)?(?:[?#]|$)/i.test(id2)) return { type: "audio", format: "rondo" };
   return null;
 }
-async function createCliBridge({ profile = {}, dom, networkAllowlist, designVersion, tokenSelection, capturePublicOnly = false, aiEnabled = true, tokensDocument = null, geometryBackend } = {}) {
+function rondoAssetRef(source, id2, song) {
+  const bytes = rondoSourceBytes(song);
+  return {
+    source,
+    id: id2,
+    type: "audio",
+    format: RONDO_ASSET_FORMAT,
+    url: `data:application/json;base64,${Buffer.from(bytes).toString("base64")}`,
+    meta: { name: song.name, lang: song.lang }
+  };
+}
+function rondoRecordOf(bytes) {
+  const lead = Buffer.from(bytes.subarray(0, 64)).toString("utf8").trimStart();
+  if (!lead.startsWith("{")) return null;
+  try {
+    const o = JSON.parse(Buffer.from(bytes).toString("utf8"));
+    return o && o.format === "rondocode" ? rondoFromBytes(bytes) : null;
+  } catch {
+    return null;
+  }
+}
+async function createCliBridge({ profile = {}, dom, networkAllowlist, designVersion, tokenSelection, capturePublicOnly = false, aiEnabled = true, tokensDocument = null, rondo, onAudioRun, onAudioRunFailed, rondoBudget, geometryBackend } = {}) {
   const w = dom.window;
   const assetIndex2 = readAssetIndex();
   const assetById = new Map(assetIndex2.assets.map((a) => [a.id, a]));
@@ -161686,7 +162583,13 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
     }
   }
   host.connectors = makeConnectorsApi();
-  host.audio = createNodeAudioAPI({ repoRoot: REPO_ROOT2 });
+  host.audio = createNodeAudioAPI({
+    repoRoot: REPO_ROOT2,
+    ...rondo ? { rondo } : {},
+    ...rondoBudget ? { budget: rondoBudget } : {},
+    onRun: onAudioRun ?? cliAudioRunReporter(),
+    onRunFailed: onAudioRunFailed ?? cliAudioFailureReporter()
+  });
   const speech = aiEnabled ? createNodeSpeechAPI({}) : void 0;
   if (speech) host.speech = speech;
   const images = createNodeImagesAPI();
@@ -161745,6 +162648,13 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
           meta: { name: "Generated music", generated: true, seed: ref.seed, ...ref.style ? { style: ref.style } : {} }
         };
       }
+      if (isRondoShareLink(id2)) {
+        try {
+          return rondoAssetRef("remote", id2, rondoFromShareLink(id2));
+        } catch (e) {
+          throw new Error(`Rondocode link could not be read: ${e instanceof Error ? e.message : String(e)}`);
+        }
+      }
       const lookedInline = parseTreatedAssetId(id2);
       if (lookedInline.treatment && /^data:/i.test(lookedInline.baseId)) {
         const plain = await host.assets.get(lookedInline.baseId);
@@ -161759,6 +162669,8 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
       if (/^data:/i.test(id2)) {
         const mime3 = /^data:([^;,]+)/i.exec(id2)?.[1] ?? "";
         const bytes = new Uint8Array(await (await fetch(id2)).arrayBuffer());
+        const song = urlAssetKind(mime3, id2) ? null : rondoRecordOf(bytes);
+        if (song) return rondoAssetRef("remote", id2, song);
         const kind = isJxl(bytes) ? { type: "raster", format: "jxl" } : urlAssetKind(mime3, id2);
         if (!kind) throw new Error(`Unsupported data: asset type: ${mime3 || "unknown"}`);
         return prepareJxlAsset({ source: "remote", id: id2, type: kind.type, format: kind.format, url: id2 }, bytes);
@@ -162062,7 +162974,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
         }
         markToolComponents(doc, name);
         const build2 = buildPenpotEntries(doc);
-        for (const note of lowered?.notes ?? []) host.log("warn", `penpot: ${note}`);
+        for (const note2 of lowered?.notes ?? []) host.log("warn", `penpot: ${note2}`);
         for (const wmsg of build2.warnings) host.log("warn", `penpot: ${wmsg}`);
         const files = {};
         const enc6 = new TextEncoder();
@@ -162237,6 +163149,23 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
   host.c2pa = {
     async sign(bytes, format, opts = {}) {
       if (!C2PA_FORMATS.includes(format)) throw new Error(`no C2PA container for '${format}'`);
+      if (opts.rondo) {
+        const { signRondoFile: signRondoFile2 } = await Promise.resolve().then(() => (init_rondo_sign(), rondo_sign_exports));
+        const { song, name, ...facts2 } = opts.rondo;
+        let id2 = null;
+        try {
+          const { resolveSigningIdentity: resolveSigningIdentity2 } = await Promise.resolve().then(() => (init_signing_identity(), signing_identity_exports));
+          id2 = await resolveSigningIdentity2({});
+        } catch {
+        }
+        return signRondoFile2(bytes, format, {
+          song,
+          name,
+          facts: facts2,
+          generator: "Lolly",
+          ...id2 ? { signer: id2.signer, dates: { notBefore: id2.notBefore, notAfter: id2.notAfter } } : {}
+        });
+      }
       const imported = opts.action === "imported" || opts.action == null && (opts.author != null || opts.rights != null || (opts.ingredients?.length ?? 0) > 0);
       const author = opts.author != null ? typeof opts.author === "string" ? opts.author.trim() ? { name: opts.author.trim() } : void 0 : opts.author : profile.useDetails === true && profile.firstname ? { name: [profile.firstname, profile.lastname].filter(Boolean).join(" "), ...profile.email ? { email: profile.email } : {} } : void 0;
       const rights = opts.rights != null ? opts.rights.trim() || void 0 : void 0;
@@ -162448,6 +163377,9 @@ function mimeFor(format) {
       return "image/vnd.radiance";
     case "json":
       return "application/json";
+    // A rondocode song's canonical record is JSON (engine/src/rondo-source.ts).
+    case "rondo":
+      return "application/json";
     default:
       return "application/octet-stream";
   }
@@ -162465,6 +163397,67 @@ async function brandCmykPalette(host) {
   } catch {
     return /* @__PURE__ */ new Map();
   }
+}
+
+// services/mcp/src/audio-runs.ts
+init_src2();
+import { AsyncLocalStorage } from "node:async_hooks";
+var scope = new AsyncLocalStorage();
+function currentAudioScope() {
+  return scope.getStore();
+}
+var DEFAULT_SCOPE_CAPS = HOSTED_RONDO_CAPS;
+async function withAudioScope(caps, fn) {
+  const store = { caps: caps ?? DEFAULT_SCOPE_CAPS, budget: { spentMs: 0 }, runs: [], failures: [] };
+  const value = await scope.run(store, fn);
+  return { value, runs: distinctRuns(store.runs), failures: distinctFailures(store.failures) };
+}
+function distinctFailures(failures) {
+  const seen = /* @__PURE__ */ new Set();
+  return failures.filter((f) => {
+    const key = `${f.name}\0${f.code}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+function rondoCapsFor(env, hosted) {
+  const base = { ...hosted ? HOSTED_RONDO_CAPS : LOCAL_RONDO_CAPS };
+  const raw = env.LOLLY_MCP_RONDO_MAX_SECONDS?.trim();
+  if (raw) {
+    const n7 = Number(raw);
+    if (Number.isFinite(n7) && n7 >= 1 && n7 <= LOCAL_RONDO_CAPS.maxSeconds) base.maxSeconds = n7;
+  }
+  return base;
+}
+function distinctRuns(runs2) {
+  const seen = /* @__PURE__ */ new Set();
+  const out = [];
+  for (const run3 of runs2) {
+    if (seen.has(run3.key)) continue;
+    seen.add(run3.key);
+    out.push(run3);
+  }
+  return out;
+}
+function audioRunText(outcome) {
+  const runs2 = outcome.runs ?? [];
+  const failed2 = (outcome.failures ?? []).map((f) => `Audio: song "${f.name}" was not rendered: ${f.code} - ${f.message}`);
+  const ran = runs2.map((run3) => {
+    const seed = run3.run.seed !== void 0 ? `, seed ${run3.run.seed}` : "";
+    const head2 = `Audio: song "${run3.name}" rendered ${run3.seconds.toFixed(2)} s in the ${run3.run.executionClass} execution class (${run3.run.source} ${run3.run.version}${seed}).`;
+    const lines = run3.findings.map((f) => `  ${f.code} - ${f.message}`);
+    return [head2, ...lines.length ? lines : ["  Every part played."]].join("\n");
+  });
+  return [...ran, ...failed2].join("\n");
+}
+function songCredentialText(songs) {
+  if (!songs?.expected.length) return "";
+  const lines = [];
+  if (songs.recorded.length) lines.push(`Songs: ${rondoRecordedSentence(songs.recorded)}`);
+  const missing = songs.expected.filter((name) => !songs.recorded.includes(name));
+  if (missing.length) lines.push(`Songs: Content Credentials in this file do not record ${missing.map((n7) => `"${n7}"`).join(", ")}.`);
+  return lines.join("\n");
 }
 
 // services/mcp/src/host.ts
@@ -162491,7 +163484,22 @@ function withHost(profile, fn, opts = {}) {
     g2["document"] = dom.window.document;
     g2["Element"] = dom.window.Element;
     try {
-      const host = await createCliBridge({ dom, profile, capturePublicOnly: true, aiEnabled: false, ...opts.tokenSelection ? { tokenSelection: opts.tokenSelection } : {} });
+      const audio = currentAudioScope();
+      const host = await createCliBridge({
+        dom,
+        profile,
+        capturePublicOnly: true,
+        aiEnabled: false,
+        ...opts.tokenSelection ? { tokenSelection: opts.tokenSelection } : {},
+        rondo: audio?.caps ?? DEFAULT_SCOPE_CAPS,
+        ...audio ? { rondoBudget: audio.budget } : {},
+        onAudioRun: (run3) => {
+          audio?.runs.push(run3);
+        },
+        onAudioRunFailed: (failure5) => {
+          audio?.failures.push(failure5);
+        }
+      });
       host.log = (level2, msg3, ctx) => {
         process.stderr.write(`[mcp:${level2}] ${msg3}${ctx ? " " + safeJson(ctx) : ""}
 `);
@@ -162513,7 +163521,7 @@ function withHost(profile, fn, opts = {}) {
 import { createServer } from "node:http";
 import { spawn } from "node:child_process";
 import { readFile as readFile19, stat as stat4 } from "node:fs/promises";
-import { existsSync as existsSync12 } from "node:fs";
+import { existsSync as existsSync13 } from "node:fs";
 import { join as join21, resolve as resolve4, extname, normalize as normalize2 } from "node:path";
 
 // services/mcp/src/egress.ts
@@ -162665,14 +163673,14 @@ async function webShellBase() {
 }
 async function buildAndServe() {
   const dist2 = process.env.LOLLY_WEB_DIST || join21(REPO_ROOT, "shells", "web", "dist");
-  if (!existsSync12(join21(dist2, "index.html"))) {
-    if (!existsSync12(join21(REPO_ROOT, "shells", "web", "package.json"))) {
+  if (!existsSync13(join21(dist2, "index.html"))) {
+    if (!existsSync13(join21(REPO_ROOT, "shells", "web", "package.json"))) {
       throw new Error(
         `No built web shell at ${dist2}. Set LOLLY_WEB_DIST to a prebuilt shell, or LOLLY_WEB_BASE to a running one. Tier-B (pdf/video/HTML-raster) needs it; SVG/data formats render without it.`
       );
     }
     await buildWebShell();
-    if (!existsSync12(join21(dist2, "index.html"))) throw new Error(`Web shell build produced no ${dist2}/index.html`);
+    if (!existsSync13(join21(dist2, "index.html"))) throw new Error(`Web shell build produced no ${dist2}/index.html`);
   }
   return serveDist(dist2);
 }
@@ -162697,7 +163705,7 @@ function serveDist(dist2) {
         res.writeHead(403).end();
         return;
       }
-      if (urlPath === "/" || !existsSync12(filePath) || !(await stat4(filePath)).isFile()) {
+      if (urlPath === "/" || !existsSync13(filePath) || !(await stat4(filePath)).isFile()) {
         filePath = join21(root2, "index.html");
       }
       const data = await readFile19(filePath);
@@ -162811,6 +163819,7 @@ function browserQueueOptions(env = process.env) {
 // services/mcp/src/render.ts
 var TIER_A = /* @__PURE__ */ new Set(["svg", "emf", "eps", "eps-cmyk", "dxf", "exr", "hdr", "penpot", "html", "md", "txt", "json", "csv", "ics", "vcf"]);
 var MAX_RASTER_EDGE_PX = 1e4;
+var AUDIO_BEARING = /* @__PURE__ */ new Set(["mp4", "webm", "mov", "wav", "mp3", "m4a", "opus", "aac", "ogg", "flac"]);
 var RenderError = class extends Error {
 };
 function normFormat(f) {
@@ -162927,13 +163936,13 @@ async function applyEmojiRequest(runtime, host, request2) {
     await host.emoji.sets(),
     swatches.map((swatch) => ({ id: swatch.ref, hex: swatch.value }))
   );
-  const warnings = parsed.issues.map((issue2) => issue2.message);
+  const warnings2 = parsed.issues.map((issue2) => issue2.message);
   if (!parsed.pin) {
     if (named || request2.emojistyle) await runtime.setEmojiStyle(null);
     if (fx && !named) {
-      warnings.push(`emojifx=${fx} names a treatment but no set, so there is no artwork to treat. Add emoji=<id>@<version>.`);
+      warnings2.push(`emojifx=${fx} names a treatment but no set, so there is no artwork to treat. Add emoji=<id>@<version>.`);
     }
-    return warnings;
+    return warnings2;
   }
   await runtime.setEmojiStyle(parsed.style ?? {
     schemaVersion: 1,
@@ -162942,17 +163951,18 @@ async function applyEmojiRequest(runtime, host, request2) {
     metricsPolicy: "inline-em-v1",
     treatment: parsed.treatment ?? { mode: "original", strengthBps: 0 }
   });
-  return warnings;
+  return warnings2;
 }
 async function mountAndDraw(dom, host, toolId, values, emoji, tokenSelection) {
   const tool = await loadToolCached(toolId);
+  await prerenderSongInputs(tool.manifest.inputs ?? [], values, host);
   const runtime = await createRuntime(tool, host, values, tokenSelection ? { tokenSelection } : void 0);
   const canvas = dom.window.document.getElementById("canvas");
   if (!canvas) throw new RenderError("render canvas missing");
-  const warnings = await applyEmojiRequest(runtime, host, emoji);
+  const warnings2 = await applyEmojiRequest(runtime, host, emoji);
   canvas.innerHTML = runtime.getHydrated();
   await runtime.applyEmojiToDom(canvas);
-  return { runtime, canvas, warnings };
+  return { runtime, canvas, warnings: warnings2 };
 }
 async function emojiCensus(toolId, values, fmt4, profile, emoji, tokenSelection) {
   return withHost(profile, async (dom, host) => {
@@ -162988,7 +163998,7 @@ function resolveEmojiSetName(named, sets) {
 }
 async function renderTierA(toolId, values, fmt4, opts, profile, emoji, productionContract, tokenSelection) {
   return withHost(profile, async (dom, host) => {
-    const { runtime, canvas, warnings } = await mountAndDraw(dom, host, toolId, values, emoji, tokenSelection);
+    const { runtime, canvas, warnings: warnings2 } = await mountAndDraw(dom, host, toolId, values, emoji, tokenSelection);
     let productionInputs;
     if (productionContract?.requirements.some((requirement) => requirement.kind === "input")) {
       const { productionInputFacts: productionInputFacts2 } = await Promise.resolve().then(() => (init_src2(), src_exports));
@@ -163023,7 +164033,7 @@ async function renderTierA(toolId, values, fmt4, opts, profile, emoji, productio
       // the sources this render placed. The audience stays unknown: an agent
       // asking for a file has said nothing about where it goes.
       rights: runtime.rights({ delivery: { format: fmt4, canCarryCredential: C2PA_FORMATS.includes(fmt4) } }),
-      warnings
+      warnings: warnings2
     };
   }, tokenSelection ? { tokenSelection } : {});
 }
@@ -163285,9 +164295,17 @@ async function render(toolId, query2, o = {}) {
     if (error2 instanceof Error) Object.assign(error2, { attempts: run3.attempts.map((a) => a.report) });
     throw error2;
   }
-  return { bytes: last.bytes, mime: last.mime, format: last.format, tier: last.tier, warnings: last.warnings, ...last.rights ? { rights: last.rights } : {}, production: last.report, productionAttempts: run3.attempts.map((a) => a.report) };
+  return { bytes: last.bytes, mime: last.mime, format: last.format, tier: last.tier, warnings: last.warnings, ...last.rights ? { rights: last.rights } : {}, ...last.audio ? { audio: last.audio } : {}, ...last.audioFailures ? { audioFailures: last.audioFailures } : {}, ...last.songs ? { songs: last.songs } : {}, production: last.report, productionAttempts: run3.attempts.map((a) => a.report) };
 }
 async function renderCandidate(toolId, query2, o = {}) {
+  const { value, runs: runs2, failures } = await withAudioScope(o.rondo, () => renderCandidateBytes(toolId, query2, o));
+  return {
+    ...value,
+    ...runs2.length ? { audio: runs2 } : {},
+    ...failures.length ? { audioFailures: failures } : {}
+  };
+}
+async function renderCandidateBytes(toolId, query2, o = {}) {
   const tool = await loadToolCached(toolId);
   const formats = (tool.manifest.render.formats ?? []).map((f) => f.toLowerCase());
   const supported = /* @__PURE__ */ new Set();
@@ -163324,9 +164342,9 @@ async function renderCandidate(toolId, query2, o = {}) {
   };
   const profile = o.profile ?? {};
   const emoji = { emoji: st.emoji, emojifx: st.emojiFx, emojistyle: st.emojiStyle };
-  const warnings = [];
+  const warnings2 = [];
   if (merged.password && exportFmt === "pdf-cmyk") {
-    warnings.push('Password is not applied for pdf-cmyk - the returned PDF is not protected. Use format "pdf" for an open-password.');
+    warnings2.push('Password is not applied for pdf-cmyk - the returned PDF is not protected. Use format "pdf" for an open-password.');
   }
   const productionContract = o.production === void 0 ? void 0 : parseProductionSpec(o.production);
   let out;
@@ -163341,11 +164359,11 @@ async function renderCandidate(toolId, query2, o = {}) {
       const r5 = await renderTierA(toolId, values, exportFmt, exportOpts(merged), profile, emoji, productionContract, st.tokenSelection);
       placed2 = r5.ingredients;
       evaluation = r5.rights;
-      warnings.push(...r5.warnings);
+      warnings2.push(...r5.warnings);
       out = { bytes: r5.bytes, mime: r5.mime, tier: "A", productionInputs: r5.productionInputs };
     } catch (e) {
       if (o.noBrowser) throw e;
-      warnings.push(`Browser-free path unavailable (${e.message}); trying the browser tier.`);
+      warnings2.push(`Browser-free path unavailable (${e.message}); trying the browser tier.`);
       placed2 = [];
       evaluation = null;
       out = { ...await renderTierB(toolId, q, exportFmt, merged), tier: "B" };
@@ -163355,18 +164373,18 @@ async function renderCandidate(toolId, query2, o = {}) {
       const svg = await renderTierA(toolId, values, "svg", exportOpts({ ...merged, width: void 0, height: void 0, unit: "px" }), profile, emoji, productionContract, st.tokenSelection);
       placed2 = svg.ingredients;
       evaluation = svg.rights;
-      warnings.push(...svg.warnings);
+      warnings2.push(...svg.warnings);
       const px3 = targetPx(merged.width, merged.unit, merged.dpi);
       const png = await svgToPng(new TextDecoder().decode(svg.bytes), px3, merged.background, o.maxRasterPixels);
       if (png.reduced) {
-        warnings.push(`PNG reduced to ${png.width} x ${png.height} px to stay within this server's ${o.maxRasterPixels.toLocaleString("en")}-pixel raster limit. Ask for svg for a file that scales to any size.`);
+        warnings2.push(`PNG reduced to ${png.width} x ${png.height} px to stay within this server's ${o.maxRasterPixels.toLocaleString("en")}-pixel raster limit. Ask for svg for a file that scales to any size.`);
       }
       out = { bytes: png.png, mime: "image/png", tier: "A(resvg)", productionInputs: svg.productionInputs };
     } catch (e) {
       if (o.noBrowser) {
         throw e instanceof RenderError ? e : new RenderError(`SVG\u2192PNG render failed: ${e.message}`);
       }
-      warnings.push(`SVG\u2192PNG fast path unavailable (${e.message}); trying the browser tier.`);
+      warnings2.push(`SVG\u2192PNG fast path unavailable (${e.message}); trying the browser tier.`);
       placed2 = [];
       evaluation = null;
       out = { ...await renderTierB(toolId, q, exportFmt, merged), tier: "B" };
@@ -163384,18 +164402,21 @@ async function renderCandidate(toolId, query2, o = {}) {
       placed2 = census.ingredients;
       evaluation = census.rights;
     } catch (e) {
-      warnings.push(`This render drew emoji in the browser tier, and the source census could not be established here (${e.message}), so the result records no creative sources and no rights answer. Ask for a format the browser-free tier renders, or read the set's licence from the catalog entry.`);
+      warnings2.push(`This render drew emoji in the browser tier, and the source census could not be established here (${e.message}), so the result records no creative sources and no rights answer. Ask for a format the browser-free tier renders, or read the set's licence from the catalog entry.`);
     }
   }
+  const songsIn = out.tier.startsWith("B") && AUDIO_BEARING.has(exportFmt) ? await songIngredientsIn(out.bytes) : [];
+  if (songsIn.length) placed2 = [...placed2, ...songsIn];
   if (!sampled && merged.c2pa?.on && C2PA_FORMATS.includes(exportFmt) && !(exportFmt === "pdf" && merged.password)) {
     try {
       bytes = await stampC2pa(bytes, exportFmt, tool.manifest, values, merged, placed2);
     } catch (e) {
-      warnings.push(`Content Credentials not attached - ${e.message}`);
+      warnings2.push(`Content Credentials not attached - ${e.message}`);
     }
   } else if (!sampled && merged.c2pa?.on) {
-    warnings.push(`Format "${fmt4}" cannot carry Content Credentials - skipped.`);
+    warnings2.push(`Format "${fmt4}" cannot carry Content Credentials - skipped.`);
   }
+  const songs = songsIn.length ? { expected: songsIn.map((i) => i.title), recorded: await recordedSongs(bytes) } : null;
   let production;
   if (o.production !== void 0) {
     const { inspectProductionBytes: inspectProductionBytes2 } = await Promise.resolve().then(() => (init_production2(), production_exports));
@@ -163407,8 +164428,9 @@ async function renderCandidate(toolId, query2, o = {}) {
     mime: out.mime,
     format: deliveredFormat,
     tier: out.tier,
-    warnings,
-    ...evaluation ? { rights: await rightsResult(evaluation, bytes) } : {}
+    warnings: warnings2,
+    ...evaluation ? { rights: await rightsResult(evaluation, bytes) } : {},
+    ...songs ? { songs } : {}
   };
 }
 async function rightsResult(evaluation, bytes) {
@@ -163517,6 +164539,16 @@ async function designChecksTierB(session, opts = {}) {
   });
 }
 async function transform(toolId, file, inputs = {}, profile = {}, o = {}) {
+  const { value, runs: runs2, failures } = await withAudioScope(o.rondo, () => transformFile(toolId, file, inputs, profile, o));
+  const expected = [...new Set(runs2.map((r5) => r5.name))];
+  return {
+    ...value,
+    ...runs2.length ? { audio: runs2 } : {},
+    ...failures.length ? { audioFailures: failures } : {},
+    ...expected.length ? { songs: { expected, recorded: await recordedSongs(value.bytes) } } : {}
+  };
+}
+async function transformFile(toolId, file, inputs, profile, o) {
   const tool = await loadToolCached(toolId);
   if (!tool.manifest.hooks?.exportFile) {
     throw new RenderError(`Tool "${toolId}" is not a transform (file-in/file-out) tool.`);
@@ -163550,6 +164582,7 @@ async function transform(toolId, file, inputs = {}, profile = {}, o = {}) {
   };
   try {
     return await withHost(profile, async (_dom, host) => {
+      await prerenderSongInputs(tool.manifest.inputs ?? [], values, host);
       const runtime = await createRuntime(tool, host, values);
       const res = await runtime.exportFile();
       return done(res, "A");
@@ -163579,7 +164612,7 @@ init_design_system2();
 init_src();
 init_content_roots();
 init_state_dir();
-import { existsSync as existsSync13, readFileSync as readFileSync7 } from "node:fs";
+import { existsSync as existsSync14, readFileSync as readFileSync7 } from "node:fs";
 import { isAbsolute as isAbsolute3, join as join25, resolve as resolve5 } from "node:path";
 var PRESET_ASSET_TAGS = ["slides", "rebrand-preset"];
 var PRESET_FILE_VERSION = 1;
@@ -163606,7 +164639,7 @@ var LAYOUT_MAPS = [
 ];
 var RESERVED_KEYS = ["__proto__", "constructor", "prototype"];
 var ARCHETYPE_WORDS = `one of ${ARCHETYPE_IDS.join(", ")}, or a layout library id in lower case letters, digits and dashes`;
-var has3 = (list3, value) => typeof value === "string" && list3.includes(value);
+var has3 = (list4, value) => typeof value === "string" && list4.includes(value);
 function isRecord4(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
@@ -163811,7 +164844,7 @@ function listPresets(opts = {}) {
       }
     }
   }
-  if (existsSync13(personalFile)) {
+  if (existsSync14(personalFile)) {
     try {
       const sorted = sortEntries(readPresetFile(personalFile), { origin: "personal", file: personalFile });
       const packIds = /* @__PURE__ */ new Set([
@@ -163825,7 +164858,7 @@ function listPresets(opts = {}) {
     }
   }
   const seen = /* @__PURE__ */ new Set();
-  const kept = [];
+  const kept2 = [];
   for (const one of presets) {
     const key = `${one.shadowed ? "shadowed:" : ""}${one.id}`;
     if (seen.has(key)) {
@@ -163833,9 +164866,9 @@ function listPresets(opts = {}) {
       continue;
     }
     seen.add(key);
-    kept.push(one);
+    kept2.push(one);
   }
-  return { profile: roots2?.profile ?? null, personalFile, presets: kept, invalid: invalid4 };
+  return { profile: roots2?.profile ?? null, personalFile, presets: kept2, invalid: invalid4 };
 }
 function isPresetFileSpec(spec) {
   return /\.json$/i.test(spec) || spec.startsWith(".") || isAbsolute3(spec) || spec.includes("\\");
@@ -165223,7 +166256,7 @@ async function withPreset(resolved2, preset) {
   const input = { ...resolved2.input, preset: { id: preset.id, ...preset.version !== void 0 ? { version: preset.version } : {} } };
   return { ...resolved2, input, system: await resolvePipelineSystem(input) };
 }
-function stemOf(name) {
+function stemOf2(name) {
   const dot = name.lastIndexOf(".");
   return dot > 0 ? name.slice(0, dot) : name;
 }
@@ -165250,7 +166283,7 @@ function readFileArg(value, ctx) {
     throw new RebrandToolError("source.too-large", `The file is ${bytes.length} bytes and this server reads decks up to ${max} bytes.`);
   }
   const name = safeFileName(typeof file.name === "string" ? file.name : "deck.pptx", "deck.pptx");
-  return { bytes, name, stem: stemOf(name) };
+  return { bytes, name, stem: stemOf2(name) };
 }
 var schemaCheck = null;
 async function planSchemaProblems(doc) {
@@ -165437,11 +166470,11 @@ function planRead(plan) {
 function flattenedFacts(reports) {
   if (reports.length === 0) return void 0;
   const rebuilt = reports.filter((one) => one.outcome === "rebuilt").length;
-  const kept = reports.length - rebuilt;
+  const kept2 = reports.length - rebuilt;
   const count4 = reports.length;
   const slides = `${count4} slide${count4 === 1 ? "" : "s"}`;
-  const note = rebuilt === 0 ? `${slides} ${count4 === 1 ? "is a picture" : "are pictures"} of a slide and ${count4 === 1 ? "stays one picture" : "stay pictures"}, because this server reads no text from pictures. lolly rebrand plan --ocr reads it on a machine with the text recognition model.` : `${slides} ${count4 === 1 ? "is a picture" : "are pictures"} of a slide; ${rebuilt} ${rebuilt === 1 ? "was" : "were"} rebuilt from ${rebuilt === 1 ? "its" : "their"} regions without reading text, and ${kept} stay${kept === 1 ? "s" : ""} as a picture.`;
-  return { slides: count4, rebuilt, kept, ocr: false, note };
+  const note2 = rebuilt === 0 ? `${slides} ${count4 === 1 ? "is a picture" : "are pictures"} of a slide and ${count4 === 1 ? "stays one picture" : "stay pictures"}, because this server reads no text from pictures. lolly rebrand plan --ocr reads it on a machine with the text recognition model.` : `${slides} ${count4 === 1 ? "is a picture" : "are pictures"} of a slide; ${rebuilt} ${rebuilt === 1 ? "was" : "were"} rebuilt from ${rebuilt === 1 ? "its" : "their"} regions without reading text, and ${kept2} stay${kept2 === 1 ? "s" : ""} as a picture.`;
+  return { slides: count4, rebuilt, kept: kept2, ocr: false, note: note2 };
 }
 function waitingOf(counts) {
   return {
@@ -165642,7 +166675,7 @@ async function designToolVersion2() {
 async function compileStage(args, ctx) {
   const deck = readFileArg(args.file, ctx);
   const plan = await readPlanArg(args.plan);
-  const scope = readAcceptScope(args.acceptSuggestions);
+  const scope2 = readAcceptScope(args.acceptSuggestions);
   const autoMatch = readAutoMatch(args.autoMatch);
   const exportAs = readExport(args.export);
   const hash = sourceHashOf(deck.bytes);
@@ -165658,7 +166691,7 @@ async function compileStage(args, ctx) {
     census: read.census,
     plan,
     system: resolved2.system,
-    ...scope ? { acceptSuggestions: scope } : {},
+    ...scope2 ? { acceptSuggestions: scope2 } : {},
     ...autoMatch ? { autoMatch } : {},
     author: "agent"
   });
@@ -165735,7 +166768,7 @@ async function compileStage(args, ctx) {
     summary,
     report: result.report.counts,
     planRevision: result.plan.revision,
-    acceptSuggestions: scope ?? "none",
+    acceptSuggestions: scope2 ?? "none",
     appliedUnreviewed: result.appliedUnreviewed.length,
     outputs,
     ...answered ? { answeredPlanDelivery: answered.delivery } : {},
@@ -165890,7 +166923,7 @@ init_src2();
 init_raster_child();
 import { readFile as readFile22 } from "node:fs/promises";
 import { extname as extname2, resolve as resolve6, sep as sep2 } from "node:path";
-import { fileURLToPath as fileURLToPath9 } from "node:url";
+import { fileURLToPath as fileURLToPath10 } from "node:url";
 var B642 = /^[A-Za-z0-9+/]*={0,2}$/;
 var RASTER_DATA = /^data:image\/(png|jpeg|gif|webp);base64,([A-Za-z0-9+/=\s]*)$/i;
 var SVG_DATA = /^data:image\/svg\+xml(;charset=[\w-]+)?(;base64)?,([\s\S]*)$/i;
@@ -165899,7 +166932,7 @@ var MAX_INLINE_BYTES = 16 * 1024 * 1024;
 var MAX_NESTING = 3;
 function localPath(href) {
   try {
-    if (/^file:\/\//i.test(href)) return fileURLToPath9(href);
+    if (/^file:\/\//i.test(href)) return fileURLToPath10(href);
     if (href.startsWith("/")) return decodeURIComponent(href);
   } catch {
   }
@@ -165974,13 +167007,13 @@ function rasterMime(bytes) {
   if (bytes[0] === 82 && bytes[1] === 73 && bytes[8] === 87 && bytes[9] === 69) return "image/webp";
   return null;
 }
-async function sourceFromBytes(bytes, mime2, roots2, label4, warnings = []) {
+async function sourceFromBytes(bytes, mime2, roots2, label4, warnings2 = []) {
   if (sniffSvg(bytes, mime2)) {
     const svg2 = await cleanImageRefs(Buffer.from(bytes).toString("utf8"), roots2);
     const frame = svgDocumentFrame(svg2);
     if (!frame) return { error: "The SVG has no viewBox or size to measure." };
     if (frame.w * frame.h > 1e12) return { error: "The SVG is too large to look at." };
-    return { svg: svg2, frame, units: "document", label: label4, warnings };
+    return { svg: svg2, frame, units: "document", label: label4, warnings: warnings2 };
   }
   const type = rasterMime(bytes);
   if (!type) return { error: "Not a PNG, JPEG, GIF, WebP or SVG image." };
@@ -165988,7 +167021,7 @@ async function sourceFromBytes(bytes, mime2, roots2, label4, warnings = []) {
   if (!dims || dims.w < 1 || dims.h < 1) return { error: "The image size could not be read." };
   if (dims.w * dims.h > MAX_SOURCE_PIXELS) return { error: `The image is larger than ${MAX_SOURCE_PIXELS.toLocaleString("en")} pixels.` };
   const svg = rasterAsSvg(type, Buffer.from(bytes).toString("base64"), dims.w, dims.h);
-  return { svg, frame: { x: 0, y: 0, w: dims.w, h: dims.h }, units: "pixels", label: label4, warnings };
+  return { svg, frame: { x: 0, y: 0, w: dims.w, h: dims.h }, units: "pixels", label: label4, warnings: warnings2 };
 }
 var FALLBACK_MAX_PIXELS = 16e6;
 async function drawRegion(src, region, width, height, overlay, want, ctx) {
@@ -166200,7 +167233,7 @@ async function callLookTool(name, args, renderFn) {
   const source = await lookSource(args, renderFn);
   if ("error" in source) return errorResult(`${name}: ${source.error}`);
   const ctx = lookContext();
-  const warnings = source.warnings.length ? `
+  const warnings2 = source.warnings.length ? `
 Warnings: ${source.warnings.join("; ")}` : "";
   if (name === "lolly_look") {
     const look2 = await lookAt(source, { region: args.region, grid: args.grid, maxSide: args.maxSide }, ctx);
@@ -166209,7 +167242,7 @@ Warnings: ${source.warnings.join("; ")}` : "";
       `Showing ${look2.whole ? "the whole document" : `region ${regionText(look2.region)}`} at ${look2.width} x ${look2.height} px (${Math.round(look2.pxPerUnit * 100) / 100} px per unit).`,
       look2.spacing ? `Grid every ${Math.round(look2.spacing * 10) / 10} units, numbered on the top and left edges.` : "No grid.",
       unitsText(source.units)
-    ].join("\n") + warnings;
+    ].join("\n") + warnings2;
     const content2 = [{ type: "text", text: text8 }, { type: "image", data: Buffer.from(look2.png).toString("base64"), mimeType: "image/png" }];
     return { content: content2 };
   }
@@ -166228,7 +167261,7 @@ Warnings: ${source.warnings.join("; ")}` : "";
     const header = `Sampled ${samples.length} point${samples.length === 1 ? "" : "s"} of ${source.label}, radius ${radius} units. ${unitsText(source.units)}` + (swatches.length ? ` Compared with ${swatches.length} design-system colour${swatches.length === 1 ? "" : "s"}.` : " No design-system colours to compare with.");
     return {
       content: [
-        { type: "text", text: [header, ...samples.slice(0, 20).map(sampleLine), samples.length > 20 ? `... and ${samples.length - 20} more in the JSON below.` : ""].filter(Boolean).join("\n") + warnings },
+        { type: "text", text: [header, ...samples.slice(0, 20).map(sampleLine), samples.length > 20 ? `... and ${samples.length - 20} more in the JSON below.` : ""].filter(Boolean).join("\n") + warnings2 },
         { type: "text", text: JSON.stringify({ frame: source.frame, units: source.units, radius, samples }, null, 2) }
       ]
     };
@@ -166245,7 +167278,7 @@ Warnings: ${source.warnings.join("; ")}` : "";
       asDesignLayers: asLayers
     }, ctx);
     const { lines, region } = traced;
-    const text8 = `Traced ${lines.length} edge line${lines.length === 1 ? "" : "s"} in ${source.label}, ${traced.whole ? "whole document" : `region ${regionText(region)}`}, found at ${traced.width} x ${traced.height} px. ${lines.filter((l) => l.closed).length} closed. ${unitsText(source.units)}` + (asLayers ? ' Each line carries a Design path layer: add an id and pass it to layerOperations as { op: "add", layer }.' : "") + warnings;
+    const text8 = `Traced ${lines.length} edge line${lines.length === 1 ? "" : "s"} in ${source.label}, ${traced.whole ? "whole document" : `region ${regionText(region)}`}, found at ${traced.width} x ${traced.height} px. ${lines.filter((l) => l.closed).length} closed. ${unitsText(source.units)}` + (asLayers ? ' Each line carries a Design path layer: add an id and pass it to layerOperations as { op: "add", layer }.' : "") + warnings2;
     return { content: [{ type: "text", text: text8 }, { type: "text", text: JSON.stringify({ frame: source.frame, region, units: source.units, lines }, null, 2) }] };
   }
   return errorResult(`Unknown tool: ${name}`);
@@ -169587,7 +170620,7 @@ init_src2();
 init_src();
 init_file_v1();
 init_design_lolly();
-import { createHash as createHash8 } from "node:crypto";
+import { createHash as createHash9 } from "node:crypto";
 
 // schemas/design-package-v1.schema.json
 var design_package_v1_schema_default = {
@@ -170093,7 +171126,7 @@ async function callPackage(args, resolveDesign, env = process.env, limits = PACK
       } catch (err) {
         throw new ToolCodeError("input.unsupported", `The compiled document could not be packaged: ${err instanceof Error ? err.message : String(err)}`);
       }
-      const sha2563 = createHash8("sha256").update(packed2.bytes).digest("hex");
+      const sha2563 = createHash9("sha256").update(packed2.bytes).digest("hex");
       const name2 = "document.lolly";
       const structured = { legacy: true, manifest: packed2.manifest, bytes: packed2.bytes.byteLength, sha256: sha2563 };
       const block2 = { type: "resource", resource: { uri: resourceUri2("package", sha2563, name2), mimeType: LOLLY_MIME2, blob: Buffer.from(packed2.bytes).toString("base64") } };
@@ -170619,7 +171652,7 @@ function applyDesignLayerPatches(toolId, manifest, inputs, value, authoring = {}
 function validateToolInputs(manifest, inputs) {
   const base = validateDocument({ kind: "inputs", manifest, value: inputs });
   const errors = [...base.errors];
-  const warnings = [...base.warnings];
+  const warnings2 = [...base.warnings];
   const info = [];
   let design;
   if (manifest.id === "design") {
@@ -170635,11 +171668,11 @@ function validateToolInputs(manifest, inputs) {
         ...item2.artboardId ? { artboardId: item2.artboardId } : {}
       };
       if (item2.severity === "error") errors.push(issue2);
-      else if (item2.severity === "warn") warnings.push(issue2);
+      else if (item2.severity === "warn") warnings2.push(issue2);
       else info.push(issue2);
     }
   }
-  return { ok: errors.length === 0, errors, warnings, info, ...design ? { design } : {} };
+  return { ok: errors.length === 0, errors, warnings: warnings2, info, ...design ? { design } : {} };
 }
 function invalidInputs(report4) {
   const summary = report4.errors.map((item2) => `${item2.path}: ${item2.message}`).join("\n");
@@ -170938,6 +171971,7 @@ ${links.renderUrl ?? "(unavailable)"}${check}`);
           password: args.password,
           c2pa: c2paSetting(args.c2pa),
           maxRasterPixels: maxRasterPixelsFor(process.env, isHostedServer()),
+          rondo: rondoCapsFor(process.env, isHostedServer()),
           ...exportSettings(args)
         };
         const emoji = await emojiSettings(args);
@@ -170958,7 +171992,13 @@ Rights: ${result.rights.status}` + result.rights.issues.map((issue2) => `
           ...result.production ? [`Production checks: ${JSON.stringify({ report: result.production, attempts: result.productionAttempts })}`] : [],
           `Rendered ${toolId} \u2192 ${result.format} (${result.bytes.length} bytes, tier ${result.tier}).`,
           args.link === false ? "" : `Edit: ${links.editUrl}`,
-          `Provenance: ${provenance}${rights}`
+          `Provenance: ${provenance}${rights}`,
+          // Each rondocode song the render ran (plan 301): the execution class its
+          // code ran in and every part it could not play, by stable code.
+          audioRunText({ runs: result.audio, failures: result.audioFailures }),
+          // What the file's Content Credentials record about the songs it holds,
+          // read back from the delivered bytes.
+          songCredentialText(result.songs)
         ].filter(Boolean).join("\n");
         const content2 = [{ type: "text", text: header }];
         const b64 = Buffer.from(result.bytes).toString("base64");
@@ -170987,10 +172027,12 @@ Rights: ${result.rights.status}` + result.rights.issues.map((issue2) => `
         if (!TOOL_ID_RE.test(toolId)) return errorResult2(`Invalid toolId: ${toolId}. Use lolly_list_tools.`);
         if (!file?.base64) return errorResult2("file.base64 is required.");
         const inputs = args.inputs ?? {};
-        const res = await transform(toolId, { base64: file.base64, name: file.name, mime: file.mime }, inputs);
+        const res = await transform(toolId, { base64: file.base64, name: file.name, mime: file.mime }, inputs, {}, { rondo: rondoCapsFor(process.env, isHostedServer()) });
+        const audio = [audioRunText({ runs: res.audio, failures: res.audioFailures }), songCredentialText(res.songs)].filter(Boolean).join("\n");
         return {
           content: [
-            { type: "text", text: `Transformed ${file.name ?? "file"} \u2192 ${res.filename} (${res.bytes.length} bytes, tier ${res.tier}). Not watermarked; no provenance added.` },
+            { type: "text", text: `Transformed ${file.name ?? "file"} \u2192 ${res.filename} (${res.bytes.length} bytes, tier ${res.tier}). Not watermarked; no provenance added.${audio ? `
+${audio}` : ""}` },
             { type: "resource", resource: { uri: `lolly://transform/${res.filename}`, mimeType: res.mime, blob: Buffer.from(res.bytes).toString("base64") } }
           ]
         };
@@ -171280,7 +172322,7 @@ init_file_operation_v1();
 init_file_v1();
 import { open as open2 } from "node:fs/promises";
 import { basename as basename4 } from "node:path";
-import { createHash as createHash9 } from "node:crypto";
+import { createHash as createHash10 } from "node:crypto";
 
 // packages/core/src/image-operation-v1.ts
 var DEFAULT_IMAGE_OPTIONS = { maxEdge: 0, quality: 0.92, background: "#ffffff" };
@@ -171404,7 +172446,7 @@ async function describeOperationFile(file, signal) {
   const format = detected === "jpg" ? "jpeg" : detected ?? file.name.split(".").pop()?.toLowerCase() ?? "unknown";
   const jxl = isJxl(bytes) ? (await runJxl({ operation: "probe", bytes }, signal)).info : void 0;
   const dimensions = jxl ? { w: jxl.width, h: jxl.height } : imageDimensions(bytes, file.type);
-  return { name: file.name, format, formatSource: detected ? "detected" : "declared", mime: mime[format] ?? (file.type || "application/octet-stream"), size: file.size, sha256: createHash9("sha256").update(bytes).digest("hex"), ...dimensions ? { width: dimensions.w, height: dimensions.h } : {} };
+  return { name: file.name, format, formatSource: detected ? "detected" : "declared", mime: mime[format] ?? (file.type || "application/octet-stream"), size: file.size, sha256: createHash10("sha256").update(bytes).digest("hex"), ...dimensions ? { width: dimensions.w, height: dimensions.h } : {} };
 }
 async function runNodeFileOperation(file, request2, signal, execution = "device") {
   return executeFileOperationV1(file, request2, {
@@ -171986,10 +173028,10 @@ async function dispatch(req, context = {}) {
 
 // services/mcp/src/render-get.ts
 init_src2();
-import { createHash as createHash11 } from "node:crypto";
+import { createHash as createHash12 } from "node:crypto";
 
 // services/mcp/src/rate-limit.ts
-import { createHash as createHash10 } from "node:crypto";
+import { createHash as createHash11 } from "node:crypto";
 var RateLimitUnavailableError = class extends Error {
   code = "rate-limit-unavailable";
   constructor(message = "Durable rate limiter is unavailable") {
@@ -172004,10 +173046,10 @@ var MemoryRateLimiter = class {
   constructor(now2 = Date.now) {
     this.#now = now2;
   }
-  async consume(scope, subject, limit, windowMs) {
+  async consume(scope2, subject, limit, windowMs) {
     validateBudget(limit, windowMs);
     const now2 = this.#now();
-    const key = digestKey("memory", scope, subject);
+    const key = digestKey("memory", scope2, subject);
     let bucket = this.#windows.get(key);
     if (!bucket || bucket.expires <= now2) {
       if (this.#windows.size >= MAX_MEMORY_KEYS) {
@@ -172042,11 +173084,11 @@ var RedisRestRateLimiter = class {
     this.#fetch = options2.fetchImpl ?? fetch;
     this.#onWrite = options2.onWrite;
   }
-  async consume(scope, subject, limit, windowMs) {
+  async consume(scope2, subject, limit, windowMs) {
     validateBudget(limit, windowMs);
     const finish2 = this.#onWrite?.();
     try {
-      const result = await this.#consume(scope, subject, limit, windowMs);
+      const result = await this.#consume(scope2, subject, limit, windowMs);
       finish2?.(true);
       return result;
     } catch (error2) {
@@ -172054,8 +173096,8 @@ var RedisRestRateLimiter = class {
       throw error2;
     }
   }
-  async #consume(scope, subject, limit, windowMs) {
-    const key = `lolly:rl:${digestKey(this.#namespace, scope, subject)}`;
+  async #consume(scope2, subject, limit, windowMs) {
+    const key = `lolly:rl:${digestKey(this.#namespace, scope2, subject)}`;
     let response;
     try {
       response = await this.#fetch(this.#url, {
@@ -172093,7 +173135,7 @@ var UnconfiguredRateLimiter = class {
   constructor(reason2) {
     this.reason = reason2;
   }
-  async consume(scope, subject, limit, windowMs) {
+  async consume(scope2, subject, limit, windowMs) {
     validateBudget(limit, windowMs);
     throw new RateLimitUnavailableError(this.reason);
   }
@@ -172122,8 +173164,8 @@ function createRateLimiter(env, namespace2 = "mcp", onWrite) {
   }
   return new MemoryRateLimiter();
 }
-function digestKey(namespace2, scope, subject) {
-  return createHash10("sha256").update(namespace2).update("\0").update(scope).update("\0").update(subject).digest("hex");
+function digestKey(namespace2, scope2, subject) {
+  return createHash11("sha256").update(namespace2).update("\0").update(scope2).update("\0").update(subject).digest("hex");
 }
 function normalizeRestUrl(raw) {
   let url;
@@ -172485,7 +173527,7 @@ async function renderGet(path, query2, opts) {
   }
   const sorted = new URLSearchParams(params2);
   sorted.sort();
-  const etag = `"${createHash11("sha256").update(`${ENGINE_VERSION}|${index2.version}|${index2.generatedAt}|${match.toolId}.${fmt4}?${sorted.toString()}`).digest("hex").slice(0, 32)}"`;
+  const etag = `"${createHash12("sha256").update(`${ENGINE_VERSION}|${index2.version}|${index2.generatedAt}|${match.toolId}.${fmt4}?${sorted.toString()}`).digest("hex").slice(0, 32)}"`;
   const cacheHeaders = {
     "cache-control": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800",
     etag,
@@ -172965,13 +174007,13 @@ async function token(body, env) {
   }
   return oauthError(400, "unsupported_grant_type", String(grant || ""));
 }
-async function issueTokens(scope, aud, secret) {
-  const access = await signValue({ t: "access", sc: scope, aud, exp: now() + ACCESS_TTL }, secret);
-  const refresh = await signValue({ t: "refresh", sc: scope, aud, exp: now() + REFRESH_TTL }, secret);
+async function issueTokens(scope2, aud, secret) {
+  const access = await signValue({ t: "access", sc: scope2, aud, exp: now() + ACCESS_TTL }, secret);
+  const refresh = await signValue({ t: "refresh", sc: scope2, aud, exp: now() + REFRESH_TTL }, secret);
   return {
     status: 200,
     headers: { "cache-control": "no-store" },
-    json: { access_token: access, token_type: "Bearer", expires_in: ACCESS_TTL, refresh_token: refresh, scope }
+    json: { access_token: access, token_type: "Bearer", expires_in: ACCESS_TTL, refresh_token: refresh, scope: scope2 }
   };
 }
 async function isAuthorized(authorizationHeader, env) {
@@ -173037,7 +174079,7 @@ function errorPage(message) {
 }
 
 // services/mcp/src/gateway.ts
-import { createHash as createHash12 } from "node:crypto";
+import { createHash as createHash13 } from "node:crypto";
 init_src();
 var CORS = {
   "access-control-allow-origin": "*",
@@ -173167,9 +174209,9 @@ function positiveInt(raw, fallback) {
   const value = Number(raw);
   return Number.isSafeInteger(value) && value > 0 ? value : fallback;
 }
-async function limited(limiter, scope, subject, limit) {
+async function limited(limiter, scope2, subject, limit) {
   try {
-    const result = await limiter.consume(scope, subject, limit, RATE_WINDOW_MS);
+    const result = await limiter.consume(scope2, subject, limit, RATE_WINDOW_MS);
     return result.ok ? null : {
       status: 429,
       headers: { "retry-after": String(result.retryAfter) },
@@ -173349,7 +174391,7 @@ function createGateway(env = process.env, options2 = {}) {
         return;
       }
       const auth = String(req.headers["authorization"] || "anonymous");
-      const principal = open3 ? `ip:${clientIp(req, env)}` : createHash12("sha256").update(auth).digest("hex");
+      const principal = open3 ? `ip:${clientIp(req, env)}` : createHash13("sha256").update(auth).digest("hex");
       const refusal2 = await limited(limiter, "mcp", principal, positiveInt(env.LOLLY_MCP_RPM, open3 ? 60 : 120));
       if (refusal2) return send(res, refusal2);
       const spent = await overBudget(budget3);

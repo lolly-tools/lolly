@@ -1,0 +1,43 @@
+Lolly patch 0008: no network fetch for ddsp instrument models.
+
+Why: upstream fetches ddsp instrument models (violin, cello, ...) and their
+body impulse responses from models.rondocode.com on first use. The frame
+fetches nothing from the network, so an instrument that is not loaded stays
+silent and the editor says which ones, in place.
+
+Applied by scripts/vendor-rondocode.ts with git apply --directory=packages/rondo/upstream.
+
+diff --git a/packages/app/src/audio/ddspModels.ts b/packages/app/src/audio/ddspModels.ts
+index 220469f4edfca72d8339fc80ff5990fa0b846765..5d2f1374a9de683697efea0cb878d17f45be78f2 100644
+--- a/packages/app/src/audio/ddspModels.ts
++++ b/packages/app/src/audio/ddspModels.ts
+@@ -12,12 +12,18 @@
+  * per block — the sample live-load contract.
+  * ------------------------------------------------------------------------- */
+ 
++import { lolly } from '../lolly/host'
++
+ /** The instruments we ship (and the enum the editor cycles through —
+  *  editor/rondo/enums.ts mirrors this list; ddsp-models.test.ts pins them
+  *  together). The bank accepts user-loaded models under any name; this list
+  *  is only what the CDN serves. */
+ export const DDSP_MODELS = ['violin', 'viola', 'cello', 'bass', 'flute', 'trumpet', 'tenorsax', 'piano'] as const
+ 
++/** Lolly: the frame fetches nothing from the network, so a shipped instrument
++ *  that is not loaded stays silent, and the editor says which ones. */
++const lollySilent = new Set<string>()
++
+ const DEFAULT_BASE = 'https://models.rondocode.com/ddsp/v1'
+ 
+ const readEnv = (key: string): string | undefined => {
+@@ -139,6 +145,10 @@ export function ensureDdspModels(
+     const have = loaded.get(name)
+     if (have !== undefined) {
+       deliver(name, have)
++    } else if (lolly !== null) {
++      lollySilent.add(name)
++      lolly.notice('ddsp', `The ddsp instrument models (${[...lollySilent].join(', ')}) are not available here, so those parts stay silent.`)
++      continue
+     } else if (inflight.has(name)) {
+       void inflight.get(name)!.then((bytes) => {
+         if (bytes !== undefined) deliver(name, bytes)

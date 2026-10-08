@@ -514,3 +514,31 @@ test('withLabelAsExportName copies the label only into a session that has no exp
   assert.equal(withLabelAsExportName(null, 'session'), null);
   assert.equal(lollySessionLabel({ __label: 42 }), '');
 });
+
+test('.lolly carries a rondocode song as its .rondo.json source, with no licence claimed for it', async () => {
+  // A song asset is its canonical source (plan 301): tiny JSON that rondocode itself
+  // opens. It travels whole like any upload, under a name that says what the bytes
+  // are, and arrives as the same kind of asset. A song file records no licence, so
+  // the pack must not invent one.
+  const bytes = new TextEncoder().encode(`${JSON.stringify({ schemaVersion: 1, format: 'rondocode', name: 'Acid line', lang: 'rondo', code: 'play acid\n  c4\n' }, null, 2)}\n`);
+  const id = 'user/upload/7-acid-line.rondo.json';
+  const session = { __toolId: 'design', bed: { source: 'user', id, url: '' } };
+  const built = await buildLollyFile({
+    session, toolId: 'design',
+    userAssets: [{ id, type: 'audio', format: 'rondo', blob: new Blob([bytes], { type: 'application/json' }), meta: { name: 'Acid line', rondo: { lang: 'rondo' }, tags: ['audio', 'rondocode'] } }],
+  });
+  const row = built.manifest.assets.find((a) => a.id === id)!;
+  assert.equal(row.kind, 'asset');
+  assert.equal(row.path, 'assets/uploads/Acid-line.rondo.json', 'named for what the bytes are, not a bare .rondo');
+  assert.equal(row.format, 'rondo');
+  assert.equal(row.type, 'audio');
+  assert.equal((row as { licence?: unknown }).licence, undefined, 'no licence is invented for a song');
+  const target = memHost();
+  const imported = await ingestLollyFile(await built.blob.arrayBuffer(), target.host);
+  const ref = (imported.session as typeof session).bed;
+  const saved = target.userStore.get(ref.id)!;
+  assert.equal(saved.type, 'audio');
+  assert.equal(saved.format, 'rondo');
+  assert.deepEqual((saved.meta as { rondo?: unknown }).rondo, { lang: 'rondo' });
+  assert.deepEqual(new Uint8Array(await saved.blob!.arrayBuffer()), bytes, 'the song arrives byte for byte');
+});

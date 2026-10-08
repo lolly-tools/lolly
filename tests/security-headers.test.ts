@@ -242,6 +242,21 @@ test('script-src carries unsafe-eval WITH the reason recorded, not by accident',
   assert.match(nginx, /new Function|hooks run via/i, 'nginx.conf must explain why unsafe-eval is present');
 });
 
+test('script-src carries blob: for the Rondocode editor, on every copy', () => {
+  // The Rondocode utility (community/rondocode) runs its editor in an opaque-origin
+  // srcdoc frame, which inherits this policy. The editor's audio engine is an
+  // AudioWorklet module created from a blob: URL inside that frame, and worklets
+  // are governed by script-src, not worker-src: without blob: here Chrome refuses
+  // addModule with an AbortError and the editor has no sound. 'unsafe-inline' and
+  // 'unsafe-eval' are already present, so blob: adds no new way to run script.
+  for (const [where, csp] of [['vercel', rootHeaders['Content-Security-Policy']], ['vercel /any-site', anySiteHeaders['Content-Security-Policy']]] as const) {
+    assert.ok(parseCsp(csp!)['script-src']?.includes('blob:'), `${where} script-src must keep blob: (the Rondocode AudioWorklet)`);
+  }
+  for (const m of nginx.matchAll(/script-src ([^;]+);/g)) {
+    assert.ok(m[1]!.split(/\s+/).includes('blob:'), 'nginx script-src must keep blob: (the Rondocode AudioWorklet)');
+  }
+});
+
 test('every host docs/privacy.md discloses is ALLOWED by the CSP', () => {
   // The direction that bites hardest. An egress host the app really uses, missing
   // from the policy, is a feature that works everywhere except the deployed build

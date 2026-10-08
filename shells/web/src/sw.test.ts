@@ -653,6 +653,8 @@ describe('precache.json grouping (vite.config.js)', () => {
     '/models/reword/smollm2-360m-instruct/onnx/model_q4.onnx',
     '/models/embed/onnx/model_quantized.onnx',
     '/models/ai-detect/modernbert-raid-mage/onnx/model_quantized.onnx',
+    '/models/sing/rondocode/vec-768.onnx',
+    '/models/sing/rondocode/phoneme.onnx',
   ];
 
   test('groups route each path to the bucket the SW actually serves it from', async () => {
@@ -698,6 +700,8 @@ describe('precache.json grouping (vite.config.js)', () => {
       'the embed group is the Ask matching model only (plans/103 M1) - it rides transformers-cache like speech and reword');
     assert.deepEqual(names(groups.aiDetect), ['/models/ai-detect/modernbert-raid-mage/onnx/model_quantized.onnx'],
       'the aiDetect group is the AI-text detector set only (plans/126 WP-A) - it rides transformers-cache like the others');
+    assert.deepEqual(names(groups.sing), ['/models/sing/rondocode/vec-768.onnx', '/models/sing/rondocode/phoneme.onnx'],
+      'the sing group is every singing model (plan 301 phase F), the fp32 fallbacks included - the part selects what it downloads');
   });
 
   test('mergeModelsManifest fills only the /models/ entries the dist scan is missing', async () => {

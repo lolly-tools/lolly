@@ -37,6 +37,8 @@ import { checksInOpenedPage, openSessionInPage, OpenSessionError, packageDesignS
 import { readFile, stat } from 'node:fs/promises';
 import { loadToolCached } from './catalog.ts';
 import { withHost } from './host.ts';
+import { withAudioScope } from './audio-runs.ts';
+import { prerenderSongInputs, recordedSongs, songIngredientsIn, type ComputedAudioFailure, type ComputedAudioRun, type RondoCaps } from '@lolly-tools/node-shell/audio';
 import type { Jsdom } from './host.ts';
 import { fontsDir, BROWSERS_DIR } from './paths.ts';
 import { webShellBase, closeWebShell } from './webshell.ts';
@@ -99,6 +101,9 @@ export interface RenderOpts {
    *  cap alone still admits a 10000 x 10000 raster, a 400 MB allocation an
    *  unauthenticated request must not be able to ask for. Unset = edge cap only. */
   maxRasterPixels?: number;
+  /** The limits a rondocode song in this render runs under (audio-runs.ts
+   *  `rondoCapsFor`). Unset: the hosted caps, the safe default for a public route. */
+  rondo?: RondoCaps;
 }
 
 /**
@@ -131,7 +136,20 @@ export interface RenderResult {
   tier: string;
   warnings: string[];
   rights?: RenderRightsResult;
+  /** Every rondocode song this render ran: its execution class and its silent parts. */
+  audio?: ComputedAudioRun[];
+  /** Every song this render asked for that did not render, by stable code. */
+  audioFailures?: ComputedAudioFailure[];
+  /**
+   * The rondocode songs the delivered file holds as sound (plan 301): `expected` is
+   * what the render put in the file, `recorded` what its Content Credentials name,
+   * read back from the final bytes. Absent when the file holds no song.
+   */
+  songs?: { expected: string[]; recorded: string[] };
 }
+
+/** Formats whose bytes carry sound, and so can hold a song. */
+const AUDIO_BEARING = new Set(['mp4', 'webm', 'mov', 'wav', 'mp3', 'm4a', 'opus', 'aac', 'ogg', 'flac']);
 
 /** Raised for a caller-facing render problem (bad format, browser not configured). */
 export class RenderError extends Error {}
@@ -300,6 +318,9 @@ async function mountAndDraw(
   warnings: string[];
 }> {
   const tool = await loadToolCached(toolId);
+  // A rondocode song in an audio input renders first, under this request's caps,
+  // so a hook that analyses it is not racing its own time budget (plan 301).
+  await prerenderSongInputs(tool.manifest.inputs ?? [], values, host);
   // The `_themes` choice (plan 291 M4): the runtime resolves token references in that theme.
   const runtime = await createRuntime(tool, host, values as never, tokenSelection ? { tokenSelection } : undefined);
   const canvas = dom.window.document.getElementById('canvas');
@@ -828,10 +849,20 @@ export async function render(toolId: string, query: string, o: RenderOpts = {}):
   const last = run.attempts.at(-1)!;
   try { await requireProduction(last.report, last.bytes, contract); }
   catch (error) { if (error instanceof Error) Object.assign(error, { attempts: run.attempts.map(a => a.report) }); throw error; }
-  return { bytes: last.bytes, mime: last.mime, format: last.format, tier: last.tier, warnings: last.warnings, ...(last.rights ? { rights: last.rights } : {}), production: last.report, productionAttempts: run.attempts.map(a => a.report) };
+  return { bytes: last.bytes, mime: last.mime, format: last.format, tier: last.tier, warnings: last.warnings, ...(last.rights ? { rights: last.rights } : {}), ...(last.audio ? { audio: last.audio } : {}), ...(last.audioFailures ? { audioFailures: last.audioFailures } : {}), ...(last.songs ? { songs: last.songs } : {}), production: last.report, productionAttempts: run.attempts.map(a => a.report) };
 }
 
+/** One candidate render as one request scope: its songs share the caps and one time budget. */
 async function renderCandidate(toolId: string, query: string, o: RenderOpts = {}): Promise<RenderResult> {
+  const { value, runs, failures } = await withAudioScope(o.rondo, () => renderCandidateBytes(toolId, query, o));
+  return {
+    ...value,
+    ...(runs.length ? { audio: runs } : {}),
+    ...(failures.length ? { audioFailures: failures } : {}),
+  };
+}
+
+async function renderCandidateBytes(toolId: string, query: string, o: RenderOpts = {}): Promise<RenderResult> {
   const tool = await loadToolCached(toolId);
   const formats = (tool.manifest.render.formats ?? []).map(f => f.toLowerCase());
   const supported = new Set<string>();
@@ -966,12 +997,19 @@ async function renderCandidate(toolId: string, query: string, o: RenderOpts = {}
         + 'Ask for a format the browser-free tier renders, or read the set\'s licence from the catalog entry.');
     }
   }
+  // A rondocode song on a Design timeline is mixed and recorded inside the web shell
+  // (plan 301), whose credential records the song. The stamp below replaces that
+  // credential, so the song ingredients it carried are read off the browser's
+  // bytes first and carried into the new one.
+  const songsIn = out.tier.startsWith('B') && AUDIO_BEARING.has(exportFmt) ? await songIngredientsIn(out.bytes) : [];
+  if (songsIn.length) placed = [...placed, ...songsIn];
   if (!sampled && merged.c2pa?.on && C2PA_FORMATS.includes(exportFmt as ExportFormat) && !(exportFmt === 'pdf' && merged.password)) {
     try { bytes = await stampC2pa(bytes, exportFmt, tool.manifest, values, merged, placed); }
     catch (e) { warnings.push(`Content Credentials not attached - ${(e as Error).message}`); }
   } else if (!sampled && merged.c2pa?.on) {
     warnings.push(`Format "${fmt}" cannot carry Content Credentials - skipped.`);
   }
+  const songs = songsIn.length ? { expected: songsIn.map((i) => i.title), recorded: await recordedSongs(bytes) } : null;
 
   let production: import('@lolly/engine').ProductionReport | undefined;
   if (o.production !== undefined) {
@@ -982,6 +1020,7 @@ async function renderCandidate(toolId: string, query: string, o: RenderOpts = {}
     ...(production ? { production } : {}),
     bytes, mime: out.mime, format: deliveredFormat, tier: out.tier, warnings,
     ...(evaluation ? { rights: await rightsResult(evaluation, bytes) } : {}),
+    ...(songs ? { songs } : {}),
   };
 }
 
@@ -1155,7 +1194,26 @@ export async function transform(
   file: FileArg,
   inputs: Record<string, unknown> = {},
   profile: Profile = {},
-  o: { noBrowser?: boolean } = {},
+  o: { noBrowser?: boolean; rondo?: RondoCaps } = {},
+): Promise<{ bytes: Uint8Array; filename: string; mime: string; tier: string; audio?: ComputedAudioRun[]; audioFailures?: ComputedAudioFailure[]; songs?: { expected: string[]; recorded: string[] } }> {
+  const { value, runs, failures } = await withAudioScope(o.rondo, () => transformFile(toolId, file, inputs, profile, o));
+  // A transform adds no provenance of its own, so what the file says about a song it
+  // rendered is whatever its own bytes carry, read back rather than assumed.
+  const expected = [...new Set(runs.map((r) => r.name))];
+  return {
+    ...value,
+    ...(runs.length ? { audio: runs } : {}),
+    ...(failures.length ? { audioFailures: failures } : {}),
+    ...(expected.length ? { songs: { expected, recorded: await recordedSongs(value.bytes) } } : {}),
+  };
+}
+
+async function transformFile(
+  toolId: string,
+  file: FileArg,
+  inputs: Record<string, unknown>,
+  profile: Profile,
+  o: { noBrowser?: boolean },
 ): Promise<{ bytes: Uint8Array; filename: string; mime: string; tier: string }> {
   const tool = await loadToolCached(toolId);
   if (!tool.manifest.hooks?.exportFile) {
@@ -1195,6 +1253,7 @@ export async function transform(
 
   try {
     return await withHost(profile, async (_dom, host) => {
+      await prerenderSongInputs(tool.manifest.inputs ?? [], values, host);
       const runtime = await createRuntime(tool, host, values as never);
       const res = await (runtime as unknown as { exportFile: () => Promise<{ bytes: Uint8Array; filename?: string }> }).exportFile();
       return done(res, 'A');

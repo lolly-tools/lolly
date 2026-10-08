@@ -573,6 +573,19 @@ html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
    quiet colour, underlined so it is still obviously the actionable half. */
 .export-details-ask a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
 
+/* The songs a credential will record (plan 301), under the export buttons. Before
+   the export it is a statement of what will be written, so it takes the muted voice
+   rather than .guide-fact's green, which means "verified". After the export the line
+   is rebuilt from a readback of the file and then uses the guidance voices
+   (parts/guide.css): .guide-fact when the record was found, .guide-absent when not. */
+.export-song-note-slot[hidden] { display: none; }
+.export-song-note-slot > p { margin: 8px 0 0; text-align: center; }
+.export-song-note {
+  font-size: var(--fs-sm);
+  line-height: 1.45;
+  color: hsl(var(--muted-foreground));
+}
+
 /* Tier 1 - filename · format. The filename fills the row; when a format
    selector exists the two fuse into a single "name.format" segmented control. */
 .filename-extension {
