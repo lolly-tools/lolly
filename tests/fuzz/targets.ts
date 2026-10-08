@@ -1898,7 +1898,53 @@ export const mcpNegotiationTarget: FuzzTarget = {
   },
 };
 
+export const adobeXmlTarget: FuzzTarget = {
+  name: 'adobe-xml',
+  async seeds() {
+    const { readFile } = await import('node:fs/promises');
+    return [new Uint8Array(await readFile(new URL('../fixtures/adobe/preset.xmp', import.meta.url))), new Uint8Array(await readFile(new URL('../fixtures/adobe/premiere.xml', import.meta.url)))];
+  },
+  async invoke(bytes) {
+    const source = new TextDecoder().decode(bytes);
+    const { readCameraRawPreset } = await import('../../engine/src/camera-raw-preset.ts');
+    const { readPremiereXml } = await import('../../engine/src/premiere-xml.ts');
+    if (source.includes('xmeml')) readPremiereXml(source, parseXml);
+    else readCameraRawPreset(source, parseXml);
+  },
+};
+export const adobePsdTarget: FuzzTarget = {
+  name: 'adobe-psd',
+  async seeds() {
+    const pixel = new Uint8Array([255, 0, 0, 255]);
+    const normal = writePsd({ width: 1, height: 1, layers: [{ name: 'Bounded source', x: 0, y: 0, width: 1, height: 1, pixels: pixel }] });
+    const hdr = new Uint8Array(52), v = new DataView(hdr.buffer); hdr.set([56, 66, 80, 83]); v.setUint16(4, 1); v.setUint16(12, 3); v.setUint32(14, 1); v.setUint32(18, 1); v.setUint16(22, 32); v.setUint16(24, 3); v.setFloat32(40, 0.5); v.setFloat32(44, 0.1); v.setFloat32(48, 2);
+    return [normal, hdr];
+  },
+  async invoke(bytes) {
+    const { loadPsdKernel } = await import('../../packages/node-shell/src/adobe-psd-node.ts');
+    const kernel = await loadPsdKernel(); kernel.read(bytes, { maxDecodedBytes: 8 * 1024 * 1024 });
+    kernel.roundTrip(bytes);
+  },
+};
+export const idmlReadTarget: FuzzTarget = {
+  name: 'idml-read',
+  async seeds() {
+    const { storeZip } = await import('../../engine/src/zip.ts');
+    const encode = (s: string) => new TextEncoder().encode(s);
+    return [storeZip([
+      { name: 'designmap.xml', bytes: encode('<Document xmlns:p="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"><p:Spread src="Spreads/a.xml"/></Document>') },
+      { name: 'Spreads/a.xml', bytes: encode('<Spread><Page GeometricBounds="0 0 600 400"/><Rectangle FillColor="Color/Black"><Properties><PathGeometry><PathPointType Anchor="20 30"/><PathPointType Anchor="200 250"/></PathGeometry></Properties></Rectangle></Spread>') },
+    ])];
+  },
+  async invoke(bytes) {
+    const { readZip } = await import('../../engine/src/zip.ts');
+    const { readIdmlSpreads } = await import('../../engine/src/idml-read.ts');
+    const parts = readZip(bytes, { maxInputBytes: 8 * 1024 * 1024, maxTotalBytes: 8 * 1024 * 1024, maxEntryBytes: 1024 * 1024, maxEntries: 256 });
+    await readIdmlSpreads(Object.fromEntries(parts.map(p => [p.name, p.bytes])), parseXml);
+  },
+};
 export const ALL_TARGETS: FuzzTarget[] = [
+  adobeXmlTarget, adobePsdTarget, idmlReadTarget,
   motionCuesTarget, motionParamsTarget, mcpNegotiationTarget,
   textSourceTarget, textDocumentTarget, textFrameTarget, vectorPaintTarget,
   deepImageTarget, emojiBundleTarget, jxlTarget,

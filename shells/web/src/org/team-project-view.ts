@@ -3,7 +3,7 @@
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { getSessionSource, readSourceProjects, readSourceSessions } from '../lib/session-source.ts';
 import { folderTile, sessionTile } from '../folder-tiles.ts';
-import { createTeamFolder, listTeamFolders, moveTeamFolderItem, teamFolderHref } from './team-folders.ts';
+import { createTeamFolder, listTeamFolders, moveTeamFolderItem, teamFolderHref, teamFolderPath, teamItemFolder, TeamFolderError } from './team-folders.ts';
 import { icon, type IconName } from '../lib/icons.ts';
 import { actionButton, mountActionToolbar } from '../components/action-button.ts';
 import { tRaw } from '../i18n.ts';
@@ -50,6 +50,8 @@ interface ProjectViewOptions {
   assetId?: string;
   assetPreview?(projectId: string, file: TeamFile): ProjectAssetPageOptions['preview'];
   folderId?: string;
+  /** Save one session to disk as a `.lolly` file (views/projects-team-download.ts). */
+  downloadSession?(sessionId: string, name: string, current: () => boolean): Promise<void>;
 }
 
 export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOptions): () => void {
@@ -74,12 +76,13 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
   const breadcrumbs = node('nav', undefined, 'projects-crumbs'); breadcrumbs.setAttribute('aria-label', tRaw('Folder path'));
   const root = node('a', tRaw('Projects')); root.href = '#/p'; breadcrumbs.append(root);
   container.append(breadcrumbs);
-  const setBreadcrumbs = (entries: Array<{ name: string; href: string }>) => {
+  const setBreadcrumbs = (entries: Array<{ name: string; href: string; folder?: string | null }>) => {
     breadcrumbs.replaceChildren(root);
     for (const [index, entry] of entries.entries()) {
       const separator = node('span', '/', 'projects-crumb-sep'); separator.setAttribute('aria-hidden', 'true');
       const crumb = index === entries.length - 1 ? node('span', entry.name) : node('a', entry.name);
-      if (crumb instanceof HTMLAnchorElement) crumb.href = entry.href; else crumb.setAttribute('aria-current', 'page');
+      // A crumb with data-team-folder takes dropped shared items (team-project-actions.ts).
+      if (crumb instanceof HTMLAnchorElement) { crumb.href = entry.href; if (entry.folder !== undefined) crumb.dataset.teamFolder = entry.folder ?? ''; } else crumb.setAttribute('aria-current', 'page');
       breadcrumbs.append(separator, crumb);
     }
   };
@@ -103,7 +106,7 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
   window.addEventListener('focus', refresh, { signal: abort.signal });
   const timer = window.setInterval(refresh, 60_000);
 
-  async function load(): Promise<void> {
+  async function load(message?: string): Promise<void> {
     if (!source || !current()) return;
     const my = ++ticket;
     createFolderAction = undefined;
@@ -158,7 +161,7 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
     addTab(tRaw('Agents'), 'agents');
     if (peopleAccess(project.myRole, invitePolicy(orgConfig())) !== 'hidden') addTab(tRaw('People'), 'people');
     if (orgConfig()?.sharing?.projectFiles) addTab(tRaw('Files'), 'files');
-    const notice = node('p', undefined, 'team-project-notice'); notice.setAttribute('role', 'status');
+    const notice = node('p', message, 'team-project-notice'); notice.setAttribute('role', 'status');
     const content = node('div'); body.replaceChildren(head, tabs, notice, content);
     clearToolbar = mountActionToolbar(actions);
     if (opts.tab === 'agents') {
@@ -168,27 +171,30 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
       content.append(buildPeoplePanel({ projectId: project.id, projectName: project.name, policy: invitePolicy(orgConfig()) })); return;
     }
     if (opts.tab === 'files') {
-      if (orgConfig()?.sharing?.projectFiles) content.append(buildTeamFilesPanel({ projectId: project.id, fileId: opts.fileId, canUpload: canWrite, canManage: isManagerPlus(projectRole), onBack: () => { window.location.hash = `#/p?team=${encodeURIComponent(project.id)}`; } }));
+      if (orgConfig()?.sharing?.projectFiles) content.append(buildTeamFilesPanel({ projectId: project.id, fileId: opts.fileId, canUpload: canWrite, canRename: canWrite, canManage: isManagerPlus(projectRole), onBack: () => { window.location.hash = `#/p?team=${encodeURIComponent(project.id)}`; } }));
       else content.append(node('p', tRaw('Shared files are not available on this instance.'), 'team-project-notice'));
       return;
     }
     const [got, assets, folderData] = await Promise.all([
       readSourceSessions(source!, project.id),
       orgConfig()?.sharing?.projectFiles ? listTeamFiles(project.id).then(data => ({ files: data.files, error: '' }), error => ({ files: [], error: teamFileMessage(error, 'list') })) : Promise.resolve({ files: [], error: '' }),
-      listTeamFolders(project.id).then(folders => ({ folders, error: '' }), error => ({ folders: [], error: String(error instanceof Error ? error.message : error) })),
+      listTeamFolders(project.id).then(folders => ({ folders, error: '', missing: false }), error => ({ folders: [], error: String(error instanceof Error ? error.message : error),
+        missing: error instanceof TeamFolderError && error.status === 404 })),
     ]);
     if (!current() || my !== ticket) return;
     if (!got.ok) { content.append(node('p', teamOpenMessage(got.status), 'team-project-notice'), button(tRaw('Try again'), () => { void load(); })); return; }
     if (assets.error) content.append(node('p', assets.error, 'team-project-notice'), button(tRaw('Try again'), () => { void load(); }));
-    if (folderData.error) content.append(node('p', folderData.error, 'team-project-notice'));
-    const folders = folderData.folders, folderId = opts.folderId || null;
+    // An instance without shared folders shows the project flat; any other failure is
+    // reported, and moves stay off until the folders can be read again.
+    if (folderData.error && !folderData.missing) content.append(node('p', folderData.error, 'team-project-notice'));
+    const folders = folderData.folders, folderId = opts.folderId || null, canOrganize = canWrite && !folderData.error;
     const folder = folders.find(f => f.id === folderId);
     if (folderId && !folder) { content.append(node('p', tRaw('This shared folder is unavailable. Return to the project or refresh.'), 'team-project-notice')); return; }
     const chain = []; let ancestor = folder; const seen = new Set<string>();
     while (ancestor && !seen.has(ancestor.id)) { seen.add(ancestor.id); chain.unshift(ancestor); ancestor = folders.find(f => f.id === ancestor!.parentId); }
-    setBreadcrumbs([{ name: project.name, href: teamFolderHref(project.id) }, ...chain.map(entry => ({ name: entry.name, href: teamFolderHref(project.id, entry.id) }))]);
+    setBreadcrumbs([{ name: project.name, href: teamFolderHref(project.id), folder: null }, ...chain.map(entry => ({ name: entry.name, href: teamFolderHref(project.id, entry.id), folder: entry.id }))]);
     if (folder) head.querySelector('h2')!.textContent = folder.name;
-    if (canWrite) createFolderAction = showNewFolder;
+    if (canOrganize) createFolderAction = showNewFolder;
     if (opts.assetId) {
       const file = assets.files.find(file => file.id === opts.assetId);
       if (file) {
@@ -199,30 +205,40 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
       return;
     }
     const tokens = tokenize(opts.query || '');
-    const belongs = (kind: 'session' | 'file', ref: string) => folder ? folder.items.some(item => item.kind === kind && item.ref === ref)
-      : !folders.some(f => f.items.some(item => item.kind === kind && item.ref === ref));
+    // A search reaches the open folder's whole subtree (the whole project at its top),
+    // as a local search does, and each result from elsewhere says where it lives.
+    const inScope = (home: string | null) => !folderId || home !== null && teamFolderPath(folders, home).some(f => f.id === folderId);
+    const homeOf = (kind: 'session' | 'file', ref: string) => teamItemFolder(folders, { kind, ref });
+    const belongs = (kind: 'session' | 'file', ref: string) => tokens.length ? inScope(homeOf(kind, ref)) : homeOf(kind, ref) === folderId;
+    const place = (home: string | null) => !tokens.length || home === folderId ? ''
+      : tRaw('In {place}', { place: home ? teamFolderPath(folders, home).map(f => f.name).join(' / ') : project.name });
     const sessions = got.items.filter(session => belongs('session', session.id) && (!tokens.length || matchesHaystack(buildFolderHaystack(`${session.label || ''} ${opts.toolName(session.toolId)}`), tokens)));
     sessions.sort((a, b) => (opts.reversed ? -1 : 1) * (opts.sort === 'name' ? (a.label || a.toolId).localeCompare(b.label || b.toolId) : opts.sort === 'tool' ? opts.toolName(a.toolId).localeCompare(opts.toolName(b.toolId)) : (b.updatedAt || '').localeCompare(a.updatedAt || '')));
     const grid = node('div', undefined, `folder-grid projects-grid${opts.list ? ' projects-list' : ''}`);
     const files = assets.files.filter(file => belongs('file', file.id) && (!tokens.length || matchesHaystack(buildFolderHaystack(file.name), tokens)));
-    const children = folders.filter(f => f.parentId === folderId && (!tokens.length || matchesHaystack(buildFolderHaystack(f.name), tokens))).sort((a, b) => a.name.localeCompare(b.name));
-    grid.innerHTML = children.map(f => folderTile(f, { count: f.items.length + folders.filter(child => child.parentId === f.id).length, href: teamFolderHref(project.id, f.id), shared: { subfolder: true, subtitle: tRaw('Shared folder'), openLabel: tRaw('Open shared folder {name}', { name: f.name }) } })).join('') + sessions.map(session => {
+    const children = folders.filter(f => (tokens.length ? f.id !== folderId && inScope(f.id) : f.parentId === folderId) && (!tokens.length || matchesHaystack(buildFolderHaystack(f.name), tokens))).sort((a, b) => a.name.localeCompare(b.name));
+    grid.innerHTML = children.map(f => folderTile(f, { count: f.items.length + folders.filter(child => child.parentId === f.id).length, href: teamFolderHref(project.id, f.id), shared: { subfolder: true, subtitle: [tRaw('Shared folder'), place(f.parentId)].filter(Boolean).join(' · '), openLabel: tRaw('Open shared folder {name}', { name: f.name }) } })).join('') + sessions.map(session => {
       const name = session.label || opts.toolName(session.toolId) || session.toolId;
       return sessionTile({ slot: session.id, toolId: session.toolId, label: name, updatedAt: session.updatedAt }, {
         toolName: opts.toolName(session.toolId), href: `#/team/${encodeURIComponent(session.id)}`,
-        shared: { subtitle: [opts.toolName(session.toolId), activityLabel(session)].filter(Boolean).join(' · '), openLabel: tRaw('Open shared session {name}', { name }) },
+        shared: { subtitle: [opts.toolName(session.toolId), activityLabel(session), place(homeOf('session', session.id))].filter(Boolean).join(' · '), openLabel: tRaw('Open shared session {name}', { name }) },
       });
-    }).join('') + teamAssetTiles(project.id, files, folderId);
+    }).join('') + teamAssetTiles(project.id, files, folderId, file => tokens.length ? { folderId: homeOf('file', file.id), label: place(homeOf('file', file.id)) } : null);
     applyCardSize(grid, readCardSize('projects'));
-    clearActions = mountTeamProjectActions({ grid, content, projectId, projectName: project.name, folderId, folders, files,
-      canWrite, canManage: isManagerPlus(projectRole), canDeleteSession: isManagerPlus(projectRole) && orgConfig()?.can?.['session.delete'] !== false,
-      current: () => current() && my === ticket, reload: () => { void load(); },
-      duplicate: (id, kind) => duplicateProjectItem({ projectId, id, kind, folderId, folders, writer: source?.write,
-        name: grid.querySelector<HTMLElement>(`[data-ref="${CSS.escape(id)}"] .tile-title`)?.textContent || id, current: () => current() && my === ticket }),
+    clearActions = mountTeamProjectActions({ grid, content, projectId, projectName: project.name, folderId, folders, files, crumbs: breadcrumbs,
+      canWrite, canOrganize, canDownload: !!opts.downloadSession, canManage: isManagerPlus(projectRole), canDeleteSession: isManagerPlus(projectRole) && orgConfig()?.can?.['session.delete'] !== false,
+      current: () => current() && my === ticket, reload: message => { void load(message); },
+      duplicate: (id, kind, place) => duplicateProjectItem({ projectId, id, kind, folderId: place?.folderId !== undefined ? place.folderId : folderId, folders, writer: source?.write,
+        name: place?.name || grid.querySelector<HTMLElement>(`[data-ref="${CSS.escape(id)}"] .tile-title`)?.textContent || id, current: () => current() && my === ticket }),
       notice: message => { if (current() && my === ticket) notice.textContent = message; }, sessionAction,
     });
     async function sessionAction(action: string, id: string, tile: HTMLElement | null): Promise<boolean | undefined> {
       const session = sessions.find(s => s.id === id); if (!session || !current()) return;
+      if (action === 'download-lolly' && opts.downloadSession) {
+        notice.textContent = tRaw('Preparing the .lolly file…');
+        await opts.downloadSession(id, session.label || opts.toolName(session.toolId) || session.toolId, () => current() && my === ticket);
+        if (current()) notice.textContent = ''; return;
+      }
       if (action === 'invite' && tile && isManagerPlus(projectRole)) {
         invitation?.close(); invitation = showProjectInviteLink(tile.querySelector<HTMLElement>('.tile-menu-btn') || tile, projectId, () => current() && my === ticket, id); return;
       }

@@ -3,8 +3,8 @@
  * Template files - "Export as file (.json)" writes a user template in the exact shape a
  * shipped template carries (`tools/<toolId>/templates/<tid>.json`: id, name, description,
  * values), so a self-hoster drops it into their pack and a contributor opens a pull request
- * against lolly-tools with it. This is the bridge from "mine" to "shipped" until catalog
- * submission exists in lolly-work (plans/226 section 4.7).
+ * against lolly-tools with it. On a workspace that takes catalog submissions the same shape,
+ * plus the tool id, is what "Submit to <workspace>" sends (lib/catalog-submit.ts).
  *
  * The file's `id` is a slug of the name because validate-catalog requires id == basename;
  * `values` is written verbatim (the `__export_*` markers are legal keys - the validator

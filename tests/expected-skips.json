@@ -584,6 +584,41 @@
       "owner": "tests"
     },
     {
+      "file": "tests/collab-review-m4.browser.test.ts",
+      "fullName": "M4 review: mentions, inbox notice, Open thread, unread, filters, jump and pins with three people",
+      "reason": "set LOLLY_COLLAB_TEST_URL to a local Vite shell (the run also needs a lolly-work checkout)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/collab-review-m4.browser.test.ts",
+      "fullName": "M4 review: a thread link opens after an access approval later than 120 s",
+      "reason": "set LOLLY_COLLAB_TEST_URL to a local Vite shell (the run also needs a lolly-work checkout)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/collab-review-m4.browser.test.ts",
+      "fullName": "M4 recovery: an interrupted edit keeps a persistent recovery notice",
+      "reason": "set LOLLY_COLLAB_TEST_URL to a local Vite shell (the run also needs a lolly-work checkout)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/collab-review-m4.browser.test.ts",
+      "fullName": "M4 follow: Hide pointers, following a person, followers by name, one presenter and following a presentation",
+      "reason": "set LOLLY_COLLAB_TEST_URL to a local Vite shell (the run also needs a lolly-work checkout)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/collab-review-m4.browser.test.ts",
+      "fullName": "M4 versions: save a version, preview, restore with three people present, Undo restore and a manager delete",
+      "reason": "set LOLLY_COLLAB_TEST_URL to a local Vite shell (the run also needs a lolly-work checkout)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
       "file": "tests/collab-work.browser.test.ts",
       "fullName": "authenticated work Design: cursors, edits, reconnect, duplicate tabs, viewer and revocation",
       "reason": "set LOLLY_COLLAB_TEST_URL to a local Vite shell (the run also needs a lolly-work checkout)",
@@ -1386,13 +1421,6 @@
       "fullName": "two authored artboards keep text and embedded images through the strict worker",
       "reason": "Serve the web shell and set LOLLY_DESIGN_TOOL_TEST_URL.",
       "capability": "environment",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/docs-dom-spoken-text.test.ts",
-      "fullName": "device-voice DOM extraction matches the markdown extractor heading sequence",
-      "reason": "no built /info on disk - run `pnpm run build:info`",
-      "capability": "docs-build",
       "owner": "tests"
     },
     {
@@ -3203,7 +3231,7 @@
     },
     {
       "file": "tests/docs-editions.test.ts",
-      "fullName": "the built English page preserves its print edition while Listen is withdrawn",
+      "fullName": "the built English page links its print edition",
       "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
@@ -3401,6 +3429,34 @@
       "file": "tests/design-pptx-brand-fonts.test.ts",
       "fullName": "CLI Tier A under suse: a mono-slot run names font.mono, never the sans face",
       "reason": "brands/suse is not checked out",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/pose-geeko-alive.test.ts",
+      "fullName": "Still emits no motion: no SMIL, no clip length, the CSS breath left to the idle toggle",
+      "reason": "brands/suse is not checked out, so the suse profile cannot be resolved here",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/pose-geeko-alive.test.ts",
+      "fullName": "every alive track is a well-formed loop of exactly the chosen length that ends where it starts",
+      "reason": "brands/suse is not checked out, so the suse profile cannot be resolved here",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/pose-geeko-alive.test.ts",
+      "fullName": "frame 0 of the loop is the posed still",
+      "reason": "brands/suse is not checked out, so the suse profile cannot be resolved here",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/pose-geeko-alive.test.ts",
+      "fullName": "only <animateTransform>: nothing the shell's SVG sanitiser would strip",
+      "reason": "brands/suse is not checked out, so the suse profile cannot be resolved here",
       "capability": "brand:suse",
       "owner": "tests"
     }

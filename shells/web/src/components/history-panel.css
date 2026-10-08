@@ -34,6 +34,16 @@
 .revision-history-draft { display:flex; flex-direction:column; gap:var(--sp-2); padding:var(--ui-space-control-block); border:1px solid var(--ui-color-border-default); border-radius:var(--ui-radius-control); }
 .revision-history-draft strong { font-size:var(--ui-type-label); overflow-wrap:anywhere; }
 .revision-history-draft time,.revision-history-draft p { font-size:var(--ui-type-caption); line-height:1.5; margin:0; opacity:.8; }
+/* Save version: an optional name and the button on one line, wrapping when narrow. */
+.revision-history-save { display:flex; flex-wrap:wrap; gap:var(--sp-2); align-items:center; }
+.revision-history-save input { flex:1 1 12rem; min-width:0; box-sizing:border-box; }
+/* One version, larger, with its actions (components/history-version-preview.ts). */
+.history-version-preview { width:min(560px,92vw); }
+.history-version-figure { margin:0 0 var(--ui-space-control-block); }
+.history-version-figure img { display:block; width:100%; max-height:min(52vh,420px); object-fit:contain; border-radius:var(--ui-radius-control); background:var(--ui-color-surface-muted); }
+.history-version-facts { display:flex; flex-wrap:wrap; gap:var(--sp-2) var(--ui-space-control-block); margin:0; font-size:var(--ui-type-caption); color:var(--ui-color-text-muted); }
+.history-version-facts .revision-history-editor { flex-basis:100%; overflow-wrap:anywhere; }
+.history-version-actions { flex-wrap:wrap; }
 .revision-history-mobile { position:fixed; inset:0 0 0 auto; width:min(100%,380px); z-index:var(--ui-layer-overlay); box-shadow:var(--ui-elevation-sheet); overscroll-behavior:contain; padding-block-start:max(var(--ui-space-panel),var(--safe-top)); }
 /* Legacy fixed navigation sits above ordinary overlays. A full-height History
  * sheet owns this space until closed; don't leave an invisible focus target. */

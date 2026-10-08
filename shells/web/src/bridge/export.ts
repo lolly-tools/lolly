@@ -68,7 +68,7 @@ import { createPdfDoc } from './export-pdf-doc.ts';
 import { isOwnProfile, resolveEmbeddedProfile } from '../lib/press-profile-embed.ts';
 import type { EmbedResolution } from '../lib/press-profile-embed.ts';
 import { _host, canvasToBlob, imprintCanvas, exportDims, getDomToImage, swapBlobUrls, fontMetricsPx, blobToDataUrl, MAX_RASTER_PX, makeRoundedFill, setExportHost } from './export-shared.ts';
-import { beginFrameClock, renderFrameAt, endFrameClock } from './frame-clock.ts';
+import { beginFrameClock, renderFrameAt, endFrameClock, posedFrame } from './frame-clock.ts';
 import { isTopTailStage, isRecordStage } from './export-shared.ts';
 import type { WebHost, ExportOpts, ExportDims, DtoRenderOpts, ImprintState, Rgba } from './export-shared.ts';
 import { renderSvgFromHtml, stripCommentNodes, inlineBlobUrlsInEl, inlineSvgFromImg, imprintEmbedCanvas, isPaintSkipped, rotationPivot, rasterizePosedNodeToDataUrl, effectSpillCss, detectUnsupportedCss, rasterizeNodeToDataUrl, firstCssUrl, cssUrlToHref, bakeImageFilter, visualLines, mergeDeco, decoFlags, pseudoDescriptor } from './export-svg-walker.ts';
@@ -379,7 +379,7 @@ async function renderPreparedFormat(node: Element, format: string, opts: ExportO
   }
   // A route with no credential still owes an honest answer: the readback below
   // finds nothing and the receipt says so, rather than the promise being dropped.
-  if (format !== 'lottie') await reportRightsReceipt(blob, opts);
+  if (!['lottie', 'idml', 'premiere-xml'].includes(format)) await reportRightsReceipt(blob, opts);
   return blob;
 }
 
@@ -550,10 +550,8 @@ async function renderFormatDispatch(node: Element, format: string, opts: ExportO
   if (request.samples) return renderSequenceCutSheet(node, format, opts);
   if (wantsDeepExport(format,opts)) return (await import('./export-deep.ts')).renderDesignOrFrame(node,format,opts,_host);
   switch (format) {
-    case 'lottie': {
-      if (!_host) throw new Error('dotLottie export needs the asset host.');
-      return (await import('../../../../engine/src/design-lottie.ts')).exportDesignLottie(opts, _host);
-    }
+    case 'idml': case 'premiere-xml': case 'lottie':
+      return (await import('./export-structural.ts')).renderStructuralExport(format, opts, _host);
     case 'jxl': case 'jxl-lossless':
       return (await import('./jxl.ts')).renderJxlExport(() => renderBitmap(node, 'image/jxl', opts, format === 'jxl-lossless'), opts);
     case 'png':
@@ -5364,8 +5362,10 @@ export async function createFrameSource(node: Element, opts: ExportOpts & { fram
       // frameClock - a clocked canvas can still share the DOM with CSS-animated
       // chrome around it. No-op when the node has none.
       scrubAnimations(node, t * durationMs, scrubbedAnims);
-      if (window.__lollyCaptureScreenshot)
-        return captureViaExternalScreenshot(targetW, targetH, window.__lollyCaptureScreenshot);
+      // A Node caller's real screenshot replaces dom-to-image, and SMIL (which
+      // scrubAnimations cannot reach) is posed at this frame's time: see posedFrame.
+      const posed = await posedFrame(node, t * durationMs, window.__lollyCaptureScreenshot ? () => captureViaExternalScreenshot(targetW, targetH, window.__lollyCaptureScreenshot!) : null, () => lib.toCanvas(node, dtoOpts));
+      if (posed) return posed;
       // ── Direct-canvas capture (opt-in, per-node) ──────────────────────────────
       // A raster tool that already holds the FINISHED frame on a working <canvas>
       // (the filter tool's glitch shimmer) can register node.__lollyFrameCanvas(t,

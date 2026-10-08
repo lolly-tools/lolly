@@ -32,7 +32,7 @@ import { prefersReducedMotion } from '../../lib/a11y-prefs.ts';
 import { FONT_LICENSE, WEIGHT_RAMP } from '../../lib/typefaces.ts';
 import { prepareAssetForVerify, setPendingVerify } from '../../lib/verify-handoff.ts';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
-import { CAT_ICONS, DOWNLOAD_ICON, emojiPackMeta, emojiPackSource } from './shared.ts';
+import { ASSET_PAGE_SIZE, CAT_ICONS, DOWNLOAD_ICON, emojiPackMeta, emojiPackSource, showMoreHtml } from './shared.ts';
 import { bindOp, type CatCtx } from './context.ts';
 import { appPathname } from '../../lib/any-site.ts';
 import { cardSizeAttr } from '../../components/view-options.ts';
@@ -191,7 +191,12 @@ export function fontsSectionHtml(cat: CatCtx): string {
 }
 // The scrollable content. Swatches + Fonts are reference material, not searchable
 // assets - drop them while a search is active so the results grid stands alone.
-export const bodyHtml = (cat: CatCtx): string =>
+export const bodyHtml = (cat: CatCtx): string => {
+  cat.deferredBodies.clear();
+  cat.assetPageItems.clear();
+  return bodyMarkup(cat);
+};
+const bodyMarkup = (cat: CatCtx): string =>
   `${cat.filters.assetsSectionHtml()}${(cat.query || cat.typeFilter !== 'all' || !['all', 'catalog'].includes(cat.sourceSelection ?? 'all')) ? '' : swatchesSectionHtml(cat) + fontsSectionHtml(cat)}`;
 export const bulkBarHtml = (cat: CatCtx): string => { const { bulkBarCfg } = cat; return buildBulkBar(bulkBarCfg); };
 export function render(cat: CatCtx): void {
@@ -463,8 +468,50 @@ export function navRefs(cat: CatCtx, ref: AssetRef): { prev: AssetRef | null; ne
   };
   return { prev: i > 0 ? at(i - 1) : null, next: i >= 0 ? at(i + 1) : null };
 }
+// Build a folded group's tiles the first time it opens (see groupSection); true when it
+// built any. The caller re-arms the thumbnail upgraders once for however many it opened.
+export function expandDeferred(cat: CatCtx, section: Element): boolean {
+  const key = (section as HTMLElement).dataset?.group;
+  const holder = section.querySelector<HTMLElement>(':scope > .cat-group-body > [data-cat-deferred]');
+  const build = key ? cat.deferredBodies.get(key) : undefined;
+  if (!holder || !build || !key) return false;
+  cat.deferredBodies.delete(key);
+  holder.insertAdjacentHTML('beforebegin', build());
+  holder.remove();
+  return true;
+}
+// Tiles were added in place (an opened group, an appended page): give them the same
+// colours, players and upgraders a full paint gives every tile.
+export function afterTilesAdded(cat: CatCtx): void {
+  cat.wiring.reapplyTreatment();
+  mountLottieThumbs(cat);
+  mountAudioThumbGrid(cat);
+  mountTextThumbGrid(cat);
+  mountMotionThumbs(cat);
+  mountPdfThumbGrid(cat);
+  mountEmojiSpecimenGrid(cat);
+}
+// Show more: append the next page to that grid in place. Nothing already drawn is
+// rebuilt, so scroll, focus, selection and playing previews all stay as they were.
+export function appendPage(cat: CatCtx, button: HTMLElement): HTMLElement | null {
+  const scope = button.dataset.catMore ?? '', shown = Number(button.dataset.shown) || 0;
+  const items = cat.assetPageItems.get(scope);
+  const grid = button.previousElementSibling;
+  if (!items || !grid?.classList.contains('cat-grid')) return null;
+  const next = items.slice(shown, shown + ASSET_PAGE_SIZE);
+  const total = shown + next.length;
+  cat.assetPageSizes.set(scope, total);
+  grid.insertAdjacentHTML('beforeend', next.map(cat.thumbs.assetTile).join(''));
+  button.insertAdjacentHTML('afterend', showMoreHtml(scope, total, items.length));
+  button.remove();
+  afterTilesAdded(cat);
+  return grid.querySelectorAll<HTMLElement>('.cat-tile-open')[shown] ?? null;
+}
 export function sectionsOps(cat: CatCtx) {
   return {
+    expandDeferred: bindOp(cat, expandDeferred),
+    afterTilesAdded: bindOp(cat, afterTilesAdded),
+    appendPage: bindOp(cat, appendPage),
     revealSwatches: bindOp(cat, revealSwatches),
     mountFavStrip: bindOp(cat, mountFavStrip),
     refreshFavStrip: bindOp(cat, refreshFavStrip),

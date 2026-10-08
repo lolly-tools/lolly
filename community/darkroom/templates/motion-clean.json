@@ -1,0 +1,15 @@
+{
+  "id": "motion-clean",
+  "name": "Motion · Clean colour",
+  "description": "A small contrast lift and clear colour for product clips.",
+  "values": {
+    "filmLook": "none",
+    "contrast": 6,
+    "highlights": -8,
+    "shadows": 4,
+    "saturation": 105,
+    "grain": 0,
+    "vignette": 0
+  },
+  "category": "Motion looks"
+}

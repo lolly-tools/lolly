@@ -16,12 +16,20 @@
 
 const opened = new Set<string>();
 let listener: ((projectId: string) => void) | null = null;
+let recorder: ((projectId: string) => void) | null = null;
 
-/** A team project was opened: remember it and tell the listener. */
+/** A team project was opened: remember it, tell the listener, and let the workspace
+ *  record the opening for the person's own recent list (lolly plan 299). */
 export function noteProjectOpened(projectId: string): void {
   if (!projectId) return;
   opened.add(projectId);
   listener?.(projectId);
+  recorder?.(projectId);
+}
+
+/** Set the one recorder (org/session-source.ts), or clear it with null. */
+export function onProjectOpenedRecord(fn: ((projectId: string) => void) | null): void {
+  recorder = fn;
 }
 
 /** The team projects opened in this tab so far. */

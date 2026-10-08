@@ -225,10 +225,21 @@
   "Enlarge {label} for scanning": "Forstørr {label} for skanning",
   "Point another device here to scan it. Tap anywhere or press Escape to close.": "Rett en annen enhet hit for å skanne den. Trykk hvor som helst eller trykk Esc for å lukke.",
   "This link is too long to scan. Copy it instead, or use the Code tab.": "Denne lenken er for lang til å skanne. Kopier den i stedet, eller bruk Kode-fanen.",
-  "View {name}": "Vis {name}",
   "AI agent": "KI-agent",
   "Pause agent": "Sett agent på pause",
   "Resume agent": "Fortsett agent",
   "Disconnect agent": "Koble fra agent",
-  "Paused": "På pause"
+  "Paused": "På pause",
+  "Follow {name}": "Følg {name}",
+  "Following {name}": "Følger {name}",
+  "Stop following": "Slutt å følge",
+  "You stopped following {name}.": "Du sluttet å følge {name}.",
+  "{name} left. You stopped following.": "{name} dro. Du sluttet å følge.",
+  "Followers: {count}": "Følgere: {count}",
+  "Following you": "Følger deg",
+  "{name} is following you": "{name} følger deg",
+  "{name} is presenting": "{name} presenterer",
+  "Follow presentation": "Følg presentasjonen",
+  "Following the presentation by {name}": "Følger presentasjonen til {name}",
+  "Press Escape to stop following.": "Trykk Escape for å slutte å følge."
 }

@@ -19,8 +19,8 @@
  *               gallery previews/ so the gallery paints on first run offline.
  *               No og/, no loops/modules media: brand content arrives from the
  *               instance the user connects (lib/instance.ts) or a loaded
- *               .lolly pack. Also drops the /info narration audio (plans/131
- *               B.3: Listen moves to device TTS in the apps).
+ *               .lolly pack. Also drops any /info narration audio an older
+ *               docs build left behind (docs Listen was removed on 2026-10-08).
  *
  * Plain .mjs: it runs inside each shell's own Vite process via a relative
  * import, so it can depend on nothing either shell would have to install. Node
@@ -192,10 +192,9 @@ export function bundleRepoDirs({ outDirDefault, mode }) {
       const roots = neutralRoots();
       for (const id of toolDirs(roots).keys()) copyToolTree(id, roots, outDir);
       copyNeutralCatalog(roots, outDir);
-      // Plans/131 B.3: the apps drop the baked Listen narration (~30 MB of
-      // .opus that compresses no further). Removing audio-index.json with it
-      // makes the player's track resolution return null, so a Listen press
-      // no-ops instead of 404ing mid-play.
+      // The docs narration was removed on 2026-10-08, but a public/info built
+      // before then can still hold its recordings (~30 MB of .opus) and playlist.
+      // Vite copies public/ whole, so prune them before they embed.
       rmSync(join(outDir, 'info/audio'), { recursive: true, force: true });
       rmSync(join(outDir, 'info/audio-index.json'), { force: true });
     },
@@ -266,8 +265,8 @@ export function assertDistState({ outDirDefault, mode }) {
         mustNot('catalog/og', 'the neutral seed carries no og cards');
         mustNot('catalog/assets/lolly/loops', 'excluded asset family (NEUTRAL_EXCLUDED_ASSET_PREFIXES)');
         mustNot('catalog/assets/lolly/modules', 'excluded asset family (NEUTRAL_EXCLUDED_ASSET_PREFIXES)');
-        mustNot('info/audio', 'the apps drop baked narration (plans/131 B.3)');
-        mustNot('info/audio-index.json', 'removed with the narration so the Listen player resolves null');
+        mustNot('info/audio', 'the removed docs narration must not embed');
+        mustNot('info/audio-index.json', 'the removed docs narration playlist must not embed');
         must('catalog/assets/lolly/tokens/brand.json', 'the neutral brand tokens are the point of the seed');
         const index = JSON.parse(readFileSync(join(outDir, 'catalog/assets/index.json'), 'utf8'));
         for (const asset of index.assets) {

@@ -1,3 +1,14 @@
 {
-  "View {name}": "Vis {name}"
+  "Follow {name}": "Følg {name}",
+  "Following {name}": "Følger {name}",
+  "Stop following": "Slutt å følge",
+  "You stopped following {name}.": "Du sluttet å følge {name}.",
+  "{name} left. You stopped following.": "{name} dro. Du sluttet å følge.",
+  "Followers: {count}": "Følgere: {count}",
+  "Following you": "Følger deg",
+  "{name} is following you": "{name} følger deg",
+  "{name} is presenting": "{name} presenterer",
+  "Follow presentation": "Følg presentasjonen",
+  "Following the presentation by {name}": "Følger presentasjonen til {name}",
+  "Press Escape to stop following.": "Trykk Escape for å slutte å følge."
 }

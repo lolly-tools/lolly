@@ -8,7 +8,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { svgMarkupAnimated, precheckAnimatedRef } from './anim-detect.ts';
+import { svgMarkupAnimated, precheckAnimatedRef, svgLoopMs } from './anim-detect.ts';
 
 // ── svgMarkupAnimated ────────────────────────────────────────────────────────
 
@@ -67,4 +67,35 @@ test('SVG / vector refs defer to a markup sniff', () => {
 
 test('lottie refs are not classified playable (deliberately deferred)', () => {
   assert.equal(precheckAnimatedRef({ type: 'lottie', format: 'json', url: 'blob:l' }), null);
+});
+
+// ── svgLoopMs ────────────────────────────────────────────────────────────────
+
+test('svgLoopMs: one forever-repeating SMIL track is the loop', () => {
+  const m = '<svg><g><animateTransform attributeName="transform" type="rotate" dur="8s" repeatCount="indefinite" values="0 1 1;4 1 1;0 1 1"/></g></svg>';
+  assert.equal(svgLoopMs(m), 8000);
+});
+
+test('svgLoopMs: several tracks loop together at their least common multiple', () => {
+  const m = '<svg><animateTransform dur="2s" repeatCount="indefinite"/><animateTransform dur="3000ms" repeatCount="indefinite"/></svg>';
+  assert.equal(svgLoopMs(m), 6000);
+  // A track that plays once has no loop to join, so it does not stretch the answer.
+  assert.equal(svgLoopMs('<svg><animateTransform dur="2s" repeatCount="indefinite"/><animateTransform dur="7s"/></svg>'), 2000);
+});
+
+test('svgLoopMs: clock values, repeatDur and CSS infinite shorthands count', () => {
+  assert.equal(svgLoopMs('<svg><animateTransform dur="00:00:05" repeatDur="indefinite"/></svg>'), 5000);
+  assert.equal(svgLoopMs('<svg><animateTransform dur="1.5" repeatCount="indefinite"/></svg>'), 1500);
+  assert.equal(svgLoopMs('<svg><style>.a { animation: spin 4s linear infinite } .b { animation: pulse 500ms infinite, fade 2s }</style></svg>'), 4000);
+});
+
+test('svgLoopMs: nothing that repeats forever means no loop', () => {
+  assert.equal(svgLoopMs(''), 0);
+  assert.equal(svgLoopMs('<svg><rect width="1" height="1"/></svg>'), 0);
+  assert.equal(svgLoopMs('<svg><animateTransform dur="3s" repeatCount="2"/></svg>'), 0);
+});
+
+test('svgLoopMs: parts that never realign report the longest part, not an absurd length', () => {
+  const m = '<svg><animateTransform dur="9.97s" repeatCount="indefinite"/><animateTransform dur="7.03s" repeatCount="indefinite"/></svg>';
+  assert.equal(svgLoopMs(m), 9970);
 });

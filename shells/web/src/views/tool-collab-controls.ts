@@ -8,8 +8,18 @@ import { mountInviteLinkControl } from '../components/invite-link-control.ts';
 import { publishNotification } from '../lib/notifications.ts';
 import { announce } from '../a11y.ts';
 
+/** The per-device Hide pointers choice. Storage that is unavailable leaves pointers shown. */
+const POINTERS_KEY = 'lolly.collab.pointers';
+export function pointersHidden(win: Window | null): boolean {
+  try { return win?.localStorage.getItem(POINTERS_KEY) === 'hidden'; } catch { return false; }
+}
+function rememberPointersHidden(win: Window | null, hidden: boolean): void {
+  try { if (hidden) win?.localStorage.setItem(POINTERS_KEY, 'hidden'); else win?.localStorage.removeItem(POINTERS_KEY); } catch { /* A device preference is optional. */ }
+}
+
 /** Keep the live room's controls together as the editor opens and closes its dock. */
-export function mountCollabControls(bar: HTMLElement, handle: CollabSessionHandle, reanchor?: () => void): () => void {
+export function mountCollabControls(bar: HTMLElement, handle: CollabSessionHandle, reanchor?: () => void,
+  pointers?: { setHidden(hidden: boolean): void }): () => void {
   const doc = bar.ownerDocument;
   const stopInvite = handle.inviteLinks && mountInviteLinkControl(bar, handle.inviteLinks);
   const agent = handle.inviteAgent && doc.createElement('button');
@@ -23,6 +33,19 @@ export function mountCollabControls(bar: HTMLElement, handle: CollabSessionHandl
     people.type = 'button'; people.className = 'btn btn--sm';
     people.textContent = tRaw('People'); commentIcon(people, 'People', 'users');
     people.addEventListener('click', handle.people!); bar.append(people);
+  }
+  // Hide pointers hides other people's cursors on this device only; focus rings, pins and avatars stay.
+  const pointerToggle = pointers && doc.createElement('button');
+  if (pointerToggle && pointers) {
+    let hidden = pointersHidden(doc.defaultView);
+    const paint = (): void => {
+      pointerToggle.type = 'button'; pointerToggle.className = 'btn btn--sm';
+      pointerToggle.textContent = hidden ? tRaw('Show pointers') : tRaw('Hide pointers');
+      commentIcon(pointerToggle, 'pointers', hidden ? 'eye' : 'eyeOff');
+      pointers.setHidden(hidden);
+    };
+    pointerToggle.addEventListener('click', () => { hidden = !hidden; rememberPointersHidden(doc.defaultView, hidden); paint(); });
+    paint(); bar.append(pointerToggle);
   }
   const status = handle.saveIn && doc.createElement('span');
   if (status) { status.className = 'collab-save-status'; status.setAttribute('role', 'status'); bar.append(status); }
@@ -49,5 +72,5 @@ export function mountCollabControls(bar: HTMLElement, handle: CollabSessionHandl
   const offDock = onDockChange(sync);
   // Existing full panels may already be mounted when the live room joins.
   sync((['inspector', 'history', 'export', 'share', 'transcript', 'neuro'] as const).filter(isDocked));
-  return () => { offDock(); releaseDock('people', 'host'); stopSave?.(); clearNotice?.(); stopInvite?.(); people?.remove(); agent?.remove(); status?.remove(); };
+  return () => { offDock(); releaseDock('people', 'host'); stopSave?.(); clearNotice?.(); stopInvite?.(); people?.remove(); agent?.remove(); pointerToggle?.remove(); status?.remove(); };
 }

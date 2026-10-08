@@ -459,6 +459,11 @@ async function mountToolInto(
   // once everything above has run.
   await tview.setup.wireEmojiSection();
   if (tview.openDocument.stopped()) { releaseTeamSessionOrigin(); return tview.openDocument.abandon(); }
+  if (toolId === 'darkroom') {
+    const { wirePhotoPresetImport } = await import('./adobe-preset-import.ts');
+    if (tview.openDocument.stopped()) { releaseTeamSessionOrigin(); return tview.openDocument.abandon(); }
+    wirePhotoPresetImport(tview);
+  }
   void tview.openDocument.finish();
   const stopReady = publishToolReady({ toolId, view: viewEl, collaborating: !!tview.collabHandle,
     unsaved: () => tview.userHasMadeChanges });

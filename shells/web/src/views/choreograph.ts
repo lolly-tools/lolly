@@ -62,13 +62,15 @@ export type ChoreoOrder = '' | 'reverse' | 'center' | 'random' | 'depth';
  * plus, optionally, its own authored TILT in degrees (P2.1). Optional because absent IS
  * flat: a caller on a tool that declares no tilt fields hands over what it always did.
  */
-export interface ChoreoBox { id: string; z: number; cx: number; cy: number; w: number; h: number; rx?: number; ry?: number }
+export interface ChoreoBox { id: string; z: number; cx: number; cy: number; w: number; h: number; rx?: number; ry?: number; group?: string }
 export interface ChoreoStage { w: number; h: number }
 
 export interface ChoreoOptions {
   showcase: ShowcaseId;
   /** The whole arc, ms. Defaults to the showcase's authored length. */
   durationMs?: number;
+  /** Fit selected clip ends to the explicit arc length. */
+  retime?: boolean;
   /** Delay between consecutive ranks, ms. Compressed when the ranks would overrun the window. */
   staggerMs?: number;
   order?: ChoreoOrder;
@@ -99,11 +101,13 @@ export const SHOWCASE_IDS: readonly ShowcaseId[] = Object.freeze(['buildup', 'de
 export const SHOWCASE_ARC: Readonly<Record<ShowcaseId, ChoreoArc>> = Object.freeze({
   buildup: 'intro', deconstruct: 'outro', loop: 'loop', hero: 'feature', trench: 'feature', scan: 'intro',
   'editorial-reveal': 'intro', 'type-snap': 'intro', 'feature-cascade': 'intro', 'assemble-loop': 'loop',
+  'drift-loop': 'loop',
 });
 /** Authored lengths, ms - what a fresh (untimed) stack is given. */
 export const SHOWCASE_MS: Readonly<Record<ShowcaseId, number>> = Object.freeze({
   buildup: 3000, deconstruct: 2500, loop: 6000, hero: 6000, trench: 5000, scan: 8000,
   'editorial-reveal': 6000, 'type-snap': 6000, 'feature-cascade': 6000, 'assemble-loop': 6000,
+  'drift-loop': 6000,
 });
 export const DEFAULT_STAGGER_MS = 90;
 /** The floor under any arc - below this a stagger strobes rather than reads. */
@@ -627,6 +631,7 @@ export function applyChoreograph(
     const r = env.rect(b);
     return {
       id: String(b[cfg.idField]),
+      group: cfg.groupField ? String(b[cfg.groupField] ?? '') : '',
       z: cfg.zField ? num(b[cfg.zField], 0) : 0,
       // The box's own tilt, on the depth field's terms exactly (P2.1): a tool that
       // declares no tilt fields hands over 0, which is the flat card.
@@ -641,6 +646,15 @@ export function applyChoreograph(
   const t0Ms = Math.min(Math.round(t0Sec * 1000), KF_MAX_TIME_MS - T);
 
   let rows = rows0.map((b) => b);
+  if (timedScene && opts.retime && opts.durationMs != null) {
+    for (const b of members) {
+      const id = String(b[cfg.idField]);
+      const start = boxTiming(b, cfg).start ?? t0Sec;
+      if (start >= t0Sec + T / 1000) throw new RangeError('The motion length ends before a selected clip starts. Choose a longer length.');
+      const fitted = setDuration([b], cfg, id, t0Sec + T / 1000 - start, null)[0]!;
+      rows = rows.map(row => String(row[cfg.idField]) === id ? { ...row, [cfg.durField]: fitted[cfg.durField] } : row);
+    }
+  }
   if (!timedScene) {
     for (const b of members) {
       const id = String(b[cfg.idField]);

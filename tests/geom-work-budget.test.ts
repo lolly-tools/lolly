@@ -25,14 +25,13 @@ const geom = makeGeomApi();
 test('the two ceilings are the numbers the file documents', () => {
   // Pinned so that moving either is a deliberate edit with its own measurement, not a
   // side effect. The head of intersect.ts carries the distributions both came from.
-  assert.equal(CLIP_BUDGET.maxNodes, 512);
+  assert.equal(CLIP_BUDGET.maxNodes, 16384);
   assert.equal(OVERRUN_BUDGET.maxNodes, 131072);
 });
 
 test('an ordinary pair never reaches the overrun search', () => {
   // Two quarter-arcs of circles, mirrored, crossing once. The clip search converges in ten
-  // nodes, a fiftieth of the budget, so none of the overrun search's per-node cost is paid
-  // for work like this. The corpora's median pair takes 9 nodes and their p99.9 takes 478.
+  // nodes, so none of the overrun search's per-node cost is paid for work like this.
   const a: Cubic = [0, 0, 55.23, 0, 100, 44.77, 100, 100];
   const b: Cubic = [100, 0, 44.77, 0, 0, 44.77, 0, 100];
   const before = CLIP_COUNTS.overruns;
@@ -47,8 +46,8 @@ test('the clip search cannot run away: a pair it cannot separate stops at the bu
   // The heaviest pair of tests/fuzz/regressions/geom-repeated-coincident-cs-pairs.bin, the
   // 185-byte path the weekly fuzz soak found. The two curves share their start and agree to
   // third order past it. The clip search spends 256 ms on it and reports ten points spread
-  // over the stretch where they agree; under the budget it stops one node past 512 and the
-  // overrun search answers with the one contact, the shared start vertex.
+  // over the stretch where they agree; under the budget it stops one node past 16,384 and
+  // the overrun search answers with the one contact, the shared start vertex. 16 ms.
   const c1: Cubic = [20, 20, 20, 30, 30, 40, 40, 4];
   const c2: Cubic = [20, 20, 20, 30, 30, 40, 40, 40];
   const before = CLIP_COUNTS.overruns;

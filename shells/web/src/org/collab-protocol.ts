@@ -23,6 +23,7 @@
  *                     {t:'peer-join', member}
  *                     {t:'peer-leave', id}             ← the CONNECTION id, not a user id
  *                     {t:'error', code, message, inputs?}  ← sender-only (input-locked veto)
+ *                     {t:'comment', threadId, revision}  ← a saved review write; ids only, no text
  *                     + typed close codes (COLLAB_CLOSE)
  *
  * ── AUTH IS A COOKIE, SO THE GATEWAY IS SAME-ORIGIN ONLY ─────────────────────
@@ -59,6 +60,7 @@
  */
 
 import { CANVAS_OP_VERSION, DEFAULT_GEOMETRY_FIELDS } from '@lolly-tools/core/canvas-op-v1';
+import { commentId } from '@lolly-tools/core/canvas-review-v1';
 import type {
   BoxId,
   BoxRow,
@@ -245,6 +247,15 @@ export interface ErrorFrame {
   readonly message?: string;
 }
 
+/**
+ * A review thread was written and saved (lolly-work rooms.ts `ServerFrame`, plan 76
+ * milestone 4). It gives the thread id and its new revision, never any comment text, so
+ * a listener fetches that one thread over HTTP, where the comment read checks apply.
+ * Unlike every other server frame, this one is rebuilt by the parser
+ * ({@link readCommentFrame}): both fields are proven, and nothing else survives.
+ */
+export interface CommentFrame { readonly t: 'comment'; readonly threadId: string; readonly revision: number }
+
 export interface ReceiptFrame { readonly t: 'receipt'; readonly batchId: string; readonly durableRevision: number; readonly acceptedIds: readonly string[]; readonly rejectedIds: readonly string[]; readonly checkpoint?: CanvasCheckpoint; readonly serverClock?: number }
 export type ServerFrame =
   | { readonly t: 'claims'; readonly claims?: unknown }
@@ -256,9 +267,22 @@ export type ServerFrame =
   | ServerPresenceFrame
   | PeerJoinFrame
   | PeerLeaveFrame
-  | ErrorFrame;
+  | ErrorFrame
+  | CommentFrame;
 
-const SERVER_FRAME_TYPES = new Set(['join-ack', 'ops', 'presence', 'peer-join', 'peer-leave', 'peer-role', 'error', 'receipt', 'claims', 'claim-result']);
+const SERVER_FRAME_TYPES = new Set(['join-ack', 'ops', 'presence', 'peer-join', 'peer-leave', 'peer-role', 'error', 'receipt', 'claims', 'claim-result', 'comment']);
+
+/**
+ * The strict reader for a `comment` frame: `threadId` passes the core `commentId`
+ * rule and `revision` is a safe integer of at least 1. Anything else is null, and the
+ * result is a fresh object holding only those two fields.
+ */
+export function readCommentFrame(body: unknown): CommentFrame | null {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return null;
+  const { t, threadId, revision } = body as { t?: unknown; threadId?: unknown; revision?: unknown };
+  if (t !== 'comment' || !commentId(threadId) || typeof revision !== 'number' || !Number.isSafeInteger(revision) || revision < 1) return null;
+  return { t: 'comment', threadId, revision };
+}
 
 /**
  * Parse one inbound message. Returns null for anything that is not a JSON object
@@ -277,6 +301,7 @@ export function parseServerFrame(data: unknown): ServerFrame | null {
   if (!body || typeof body !== 'object' || Array.isArray(body)) return null;
   const t = (body as { t?: unknown }).t;
   if (typeof t !== 'string' || !SERVER_FRAME_TYPES.has(t)) return null;
+  if (t === 'comment') return readCommentFrame(body);
   return body as ServerFrame;
 }
 

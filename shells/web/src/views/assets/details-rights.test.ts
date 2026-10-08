@@ -115,3 +115,29 @@ test('a non-http source locator never becomes a link', () => {
   assert.ok(!html.includes('javascript:'));
   assert.ok(!html.includes('<a href'));
 });
+
+test('the Licence and Using rows read the shared licence label, word for word as before', () => {
+  // Plan 302 PR 1 moved the licence wording into lib/asset-rights.ts
+  // (licenceLabel) so the Assets list and this sheet name a licence the same
+  // way. These rows were captured from the sheet before that move.
+  const rows: [Record<string, unknown>, string, string][] = [
+    [{}, 'Not recorded', 'Licence not recorded.'],
+    [{ license: '  ' }, 'Not recorded', 'Licence not recorded.'],
+    [{ license: 'CC0-1.0' }, '<span title="CC0-1.0">CC0 1.0</span>', 'No credit required. A courtesy credit is welcome.'],
+    [{ license: 'cc0-1.0' }, '<span title="cc0-1.0">CC0 1.0</span>', 'No credit required. A courtesy credit is welcome.'],
+    [{ license: 'CC-PDDC' }, '<span title="CC-PDDC">Creative Commons Public Domain Dedication and Certification</span>', 'No credit required. A courtesy credit is welcome.'],
+    [{ license: 'cc-by-4.0' }, '<span title="cc-by-4.0">CC BY 4.0</span>', 'Credit required. Lolly prepares it for the export routes that can carry it.'],
+    [{ license: 'CC BY-NC 4.0' }, '<span title="CC BY-NC 4.0">CC BY-NC 4.0</span>', 'Conditions recorded, not yet interpreted.'],
+    [{ license: 'CC BY 3.0' }, '<span title="CC BY 3.0">CC-BY-3.0 3.0</span>', 'Conditions recorded, not yet interpreted.'],
+    [{ license: 'Apache-2.0' }, '<span title="Apache-2.0">Apache License 2.0</span>', 'Credit required. Lolly prepares it for the export routes that can carry it.'],
+    [{ license: 'LicenseRef-acme-brand' }, '<span title="LicenseRef-acme-brand">LicenseRef-acme-brand</span>', 'Conditions recorded, not yet interpreted.'],
+    [{ license: 'Proprietary <internal> & "secret"' }, '<span title="Proprietary &lt;internal&gt; &amp; &quot;secret&quot;">Proprietary &lt;internal&gt; &amp; &quot;secret&quot;</span>', 'Conditions recorded, not yet interpreted.'],
+    [{ rights: { works: [{ id: 'w', creators: [], rights: [{ declaration: 'CC-BY-SA-4.0', assertedBy: 'catalog', evidence: 'notice-file', status: 'parsed' }] }] } },
+      '<span title="CC-BY-SA-4.0">CC BY-SA 4.0</span>', 'Credit required. Lolly prepares it for the export routes that can carry it. ShareAlike applies to adapted versions you share.'],
+  ];
+  for (const [meta, licence, using] of rows) {
+    const html = assetRightsRows(ref(meta), false);
+    assert.ok(html.includes(`<div><dt>Licence</dt><dd>${licence}</dd></div>`), `Licence row for ${JSON.stringify(meta)}`);
+    assert.ok(html.includes(`<div><dt>Using this work</dt><dd>${using}</dd></div>`), `Using row for ${JSON.stringify(meta)}`);
+  }
+});

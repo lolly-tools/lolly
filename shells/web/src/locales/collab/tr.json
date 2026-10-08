@@ -225,10 +225,21 @@
   "Enlarge {label} for scanning": "Taramak için {label} büyüt",
   "Point another device here to scan it. Tap anywhere or press Escape to close.": "Taramak için buraya başka bir cihaz tutun. Kapatmak için herhangi bir yere dokunun veya Esc'ye basın.",
   "This link is too long to scan. Copy it instead, or use the Code tab.": "Bu bağlantı taranamayacak kadar uzun. Bunun yerine kopyalayın veya Kod sekmesini kullanın.",
-  "View {name}": "{name} görünümünü aç",
   "AI agent": "Yapay zekâ ajanı",
   "Pause agent": "Ajanı duraklat",
   "Resume agent": "Ajanı sürdür",
   "Disconnect agent": "Ajanın bağlantısını kes",
-  "Paused": "Duraklatıldı"
+  "Paused": "Duraklatıldı",
+  "Follow {name}": "{name} kişisini takip et",
+  "Following {name}": "{name} kişisini takip ediyorsun",
+  "Stop following": "Takibi bırak",
+  "You stopped following {name}.": "{name} kişisini takip etmeyi bıraktın.",
+  "{name} left. You stopped following.": "{name} ayrıldı. Takibi bıraktın.",
+  "Followers: {count}": "Takipçiler: {count}",
+  "Following you": "Seni takip ediyor",
+  "{name} is following you": "{name} seni takip ediyor",
+  "{name} is presenting": "{name} sunum yapıyor",
+  "Follow presentation": "Sunumu takip et",
+  "Following the presentation by {name}": "{name} kişisinin sunumunu takip ediyorsun",
+  "Press Escape to stop following.": "Takibi bırakmak için Escape tuşuna bas."
 }

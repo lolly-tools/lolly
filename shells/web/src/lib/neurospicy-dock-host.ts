@@ -5,8 +5,8 @@
  *
  * It drives the shared audio-dock shell from the neurospicy ENGINE (lib/neurospicy.ts)
  * without touching it: every transport method here is a thin delegate to an exported
- * engine function. The sibling `lib/docs-narration-host.ts` is the narration counterpart;
- * the two prove one dock shell serves both players.
+ * engine function. A docs page-narration adapter used the same dock shell until that
+ * feature was removed on 2026-10-08.
  *
  * VISUALISER (2026-08-15). The rich MilkDrop/Butterchurn visualiser now lives INSIDE
  * the dock - there is no separate fullscreen panel any more. The shell owns the canvas
@@ -524,8 +524,8 @@ class NeurospicyDockHost implements DockHost {
   }
 
   // ── Media Session - OS lock-screen transport + now-playing (plans/146) ─────────
-  // Mirrors docs/player/narration-host.ts's wireMediaSession, over this player's
-  // transport. Metadata + playbackState are pushed on every change via syncMediaSession
+  // Sets the OS action handlers over this player's transport. Metadata +
+  // playbackState are pushed on every change via syncMediaSession
   // (called from emitChange); this only sets the action handlers, once.
 
   private wireMediaSession(): void {

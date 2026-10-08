@@ -68,6 +68,13 @@
 .lolly-box-lottie { pointer-events: none; }
 .lolly-box-lottie > svg { display: block; width: 100%; height: 100%; }
 
+/* An animated SVG box (a CSS/SMIL vector, or a tool composed in with its own loop) is
+   the same kind of marker: a <div> that shows its poster <img> until the shell's
+   anim-svg enhancer swaps in the live, seekable <svg>. The poster fills the box and
+   carries the fit as object-fit; the live <svg> carries it as preserveAspectRatio. */
+.lolly-box-anim { pointer-events: none; }
+.lolly-box-anim > img { display: block; width: 100%; height: 100%; }
+
 /* A 3D scene box (plan 265 milestone 3) is the same arrangement one step further out: it
    reuses .lolly-box-img for position/size, and it is a <div> the shell's design-scene
    enhancer fills with an <img> poster, or with the live renderer's own canvas while the
