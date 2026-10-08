@@ -23,19 +23,26 @@
  * already open in this tab, its panel hears the target at once and opens the thread.
  * Otherwise the panel of the document this open shows takes the target once its live
  * room connects, within two minutes.
+ *
+ * The origin also carries the person's role in the session's project (the session
+ * read's `myRole`, or on an older instance the project row's), and the open waits for
+ * the team documents' scope provider (org/team-scope.ts, through
+ * org/team-session-origin.ts `prepareTeamScope`) before navigating: the scope chip
+ * says where the document belongs, Save writes back to the session, and a viewer's
+ * inputs are read-only from the tool's first sidebar draw.
  */
 import { serializeUrlState } from '@lolly/engine';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { createToolRuntime as createRuntime } from '../lib/mount-runtime.ts';
 import { getTool } from '../bridge/tool-loader.ts';
 import { getHostRef } from '../lib/host-ref.ts';
-import type { TeamSessionData } from '../lib/session-source.ts';
+import { getSessionSource, readSourceProjects, type TeamRole, type TeamSessionData } from '../lib/session-source.ts';
 import { tRaw } from '../i18n.ts';
 import { fetchTeamSession } from './session-source.ts';
 import { noteProjectOpened } from './opened-projects.ts';
 import { refreshToolReady } from '../lib/tool-ready.ts';
 import { setReviewTarget } from '../lib/review-target.ts';
-import { adoptTeamSessionOrigin, rememberTeamSessionOrigin, teamAddressKey } from './team-session-origin.ts';
+import { adoptTeamSessionOrigin, prepareTeamScope, rememberTeamSessionOrigin, teamAddressKey } from './team-session-origin.ts';
 
 /** How one open ended. `status` is the HTTP status of a failed fetch (0: no answer,
  *  -1: the session arrived but its tool could not be built, -2: the person moved on,
@@ -114,6 +121,19 @@ export async function teamSessionHash(host: HostV1, data: TeamSessionData): Prom
 }
 
 /**
+ * The person's role in a session's project: the session read's own `myRole`, else, on
+ * an instance that does not send one, the project row's from the project list.
+ * Undefined when neither says (the instance's own answer to a save then decides).
+ */
+export async function teamSessionRole(data: Pick<TeamSessionData, 'myRole'>, projectId: string | undefined): Promise<TeamRole | undefined> {
+  if (data.myRole) return data.myRole;
+  const source = getSessionSource();
+  if (!projectId || !source) return undefined;
+  const list = await readSourceProjects(source);
+  return list.ok ? list.items.find((p) => p.id === projectId)?.myRole : undefined;
+}
+
+/**
  * Fetch (unless given) and open one team session. Never throws: the outcome says
  * what happened, and {@link teamOpenMessage} turns a failure into a sentence.
  */
@@ -152,13 +172,18 @@ export async function openTeamSession(sessionId: string, opts: TeamOpenOptions =
   // A session in a project opens that project too, so a "shared it with you" message is done.
   if (projectId) noteProjectOpened(projectId);
   const label = teamSessionLabel(data);
+  const role = await teamSessionRole(data, projectId);
   const origin = {
     sessionId: data.id ?? sessionId,
     toolId: data.toolId,
     ...(projectId ? { projectId } : {}),
     ...(data.rev !== undefined ? { rev: data.rev } : {}),
     ...(label ? { label } : {}),
+    ...(role ? { role } : {}),
   };
+  // The scope provider is registered before the mount it governs starts.
+  await prepareTeamScope();
+  if (opts.stillWanted && !opts.stillWanted()) return { ok: false, status: -2 };
   // Already on screen (the same document at the same address): setting the hash would
   // remount nothing, so a stash would wait for some later, unrelated mount. The
   // document on screen IS this session, so it takes the origin now.

@@ -1,0 +1,33 @@
+@layer views {
+  /* The view-only banner (components/viewer-banner.ts): the recommended-card pattern, a
+     full accent wash with a full border all the way round, never a one-edge rail. */
+  .viewer-banner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    margin: 0 0 12px;
+    padding: 10px 12px;
+    border: 1px solid hsl(var(--primary) / 0.85);
+    border-radius: var(--ui-radius-surface, 12px);
+    background: hsl(var(--primary) / 0.12);
+    box-shadow: 0 0 0 1px hsl(var(--primary) / 0.5);
+    color: hsl(var(--foreground));
+  }
+  .viewer-banner-text {
+    flex: 1 1 12rem;
+    margin: 0;
+    font-size: calc(13px * var(--a11y-fs, 1));
+    line-height: 1.4;
+  }
+  .viewer-banner-action { flex: 0 0 auto; }
+  .viewer-banner--stage {
+    position: absolute;
+    top: calc(var(--design-topbar-h, 0px) + 56px);
+    left: 50%;
+    z-index: 34;
+    width: min(32rem, calc(100% - 24px));
+    margin: 0;
+    transform: translateX(-50%);
+  }
+}

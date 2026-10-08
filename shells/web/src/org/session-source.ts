@@ -44,6 +44,7 @@ interface SessionBody {
   updatedBy?: string;
   updatedByName?: string | null;
   updatedByYou?: boolean;
+  myRole?: string;
 }
 
 /**
@@ -66,6 +67,10 @@ export function sessionDataFromBody(body: unknown): TeamSessionData | null {
   if (typeof b.updatedBy === 'string') out.updatedBy = b.updatedBy;
   if (typeof b.updatedByName === 'string' && b.updatedByName.trim()) out.updatedByName = b.updatedByName.trim();
   if (b.updatedByYou === true) out.updatedByYou = true;
+  // A role this shell does not know (one added after it was built) fails closed: the
+  // document opens view-only, and the instance still refuses what the role may not do.
+  const myRole = teamRoleOf(b.myRole) ?? (typeof b.myRole === 'string' && b.myRole.trim() ? 'viewer' : undefined);
+  if (myRole) out.myRole = myRole;
   return out;
 }
 

@@ -14,6 +14,7 @@ import { navigateTo } from '../../nav.js';
 import { snapshotSession } from '../tool-session-snapshot.ts';
 import { THUMB_CAPTURE_TIMEOUT_MS, captureThumbnail } from '../tool-action-helpers.ts';
 import { jellyActive } from '../../lib/jelly.ts';
+import { documentScopeClaimed, saveInDocumentScope } from '../../lib/document-scope.ts';
 import { readBleed, readMarks } from './shared.ts';
 import { bindOp, type ActionsCtx } from './context.ts';
 
@@ -36,15 +37,48 @@ export const saveBtnHtml = (ta: ActionsCtx) =>
 // (tool identity + export settings). Shared by performSave and the "Make
 // variants" action so a variant is byte-for-byte a normal saved session.
 export const sessionSnapshot = (ta: ActionsCtx) => { const { el, experience, manifest, runtime } = ta; return snapshotSession(el, manifest, runtime, experience, readBleed, readMarks); };
+// Put a Save button back to rest a moment after its "Saved" confirmation.
+function restoreSaveButton(btn: HTMLButtonElement): void {
+  const label = btn.querySelector<HTMLElement>('[data-save-label]') ?? btn;
+  setTimeout(() => {
+    label.textContent = 'Save';
+    btn.toggleAttribute('disabled', false);
+    delete btn.dataset.saving;
+  }, 1500);
+}
+// A document that belongs somewhere else (a team project, lib/document-scope.ts) is
+// saved there by its scope's provider, which tells the person how it went. The button
+// shows the same busy and done states as a save on this device, and a done save is
+// announced to the view like one (exportCompleted), so the leave guard stands down.
+async function saveInScope(ta: ActionsCtx, btn: HTMLButtonElement, pending: Promise<boolean>): Promise<boolean> {
+  const label = btn.querySelector<HTMLElement>('[data-save-label]') ?? btn;
+  const idle = label.textContent;
+  btn.dataset.saving = '1';
+  btn.toggleAttribute('disabled', true);
+  label.textContent = 'Saving…';
+  if (!(await pending)) {
+    label.textContent = idle;
+    btn.toggleAttribute('disabled', false);
+    delete btn.dataset.saving;
+    return false;
+  }
+  label.textContent = 'Saved';
+  exportCompleted(ta, 'save');
+  return true;
+}
 // Shared, awaitable save routine - used by the Save button AND the
 // unsaved-changes dialog's "Save & leave". Returns true on success. Always
 // re-enables the button and surfaces failures: a save error used to leave the
 // button stuck on "Saving…" silently, which made "Save & leave" appear to do
 // nothing (and then click a now-disabled button - a no-op). The thumbnail is
 // best-effort (captureThumbnail swallows its own errors), so it never blocks a save.
+// A document whose scope saves it elsewhere goes there instead (Save, Cmd-S and the
+// leave prompt all arrive here); `device` saves on this device whatever the scope,
+// for the scope's own "Save a copy on this device" and "Make a copy", and settles the
+// button itself because no caller is waiting to.
 export async function performSave(ta: ActionsCtx, 
   saveBtnEl?: HTMLElement | null,
-  opts?: { folderId?: string | null }
+  opts?: { folderId?: string | null; device?: boolean }
 ): Promise<boolean> {
   const { canvasEl, el, exportUnscaled, host, manifest, runtime } = ta;
   // Either the native <button> or its jelly-mode <jelly-button> stand-in -
@@ -53,6 +87,8 @@ export async function performSave(ta: ActionsCtx,
   const btn = (saveBtnEl ??
     el?.querySelector('[data-action="save"]')) as HTMLButtonElement | null;
   if (!btn || btn.dataset.saving) return false;
+  const scoped = opts?.device ? null : saveInDocumentScope(manifest.id);
+  if (scoped) return saveInScope(ta, btn, scoped);
   const label = btn.querySelector<HTMLElement>('[data-save-label]') ?? btn;
   const idle = label.textContent;
   btn.dataset.saving = '1';
@@ -122,6 +158,7 @@ export async function performSave(ta: ActionsCtx,
     label.textContent = 'Saved';
     announce('Saved');
     exportCompleted(ta, 'save');
+    if (opts?.device) restoreSaveButton(btn);
     return true; // leave the button as-is; the caller navigates away
   } catch (e) {
     console.error('Save failed:', e);
@@ -136,13 +173,11 @@ export async function performSave(ta: ActionsCtx,
 // disabled reading "Saved" for the old navigate-away flow, so hold that as the
 // confirmation, restore the button, and offer the library as a toast action
 // instead of a forced navigation.
-export function settleSaveButton(_ta: ActionsCtx, btn: HTMLButtonElement): void {
-  const label = btn.querySelector<HTMLElement>('[data-save-label]') ?? btn;
-  setTimeout(() => {
-    label.textContent = 'Save';
-    btn.toggleAttribute('disabled', false);
-    delete btn.dataset.saving;
-  }, 1500);
+// A save that went to the document's scope (a team project) was already told by its
+// provider, with the project's name, so the library offer is left out.
+export function settleSaveButton(ta: ActionsCtx, btn: HTMLButtonElement): void {
+  restoreSaveButton(btn);
+  if (documentScopeClaimed(ta.manifest.id)) return;
   void import('../../lib/undo-toast.ts').then(({ showUndoToast }) =>
     showUndoToast({
       message: t('Saved'),

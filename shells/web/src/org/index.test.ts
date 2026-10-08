@@ -596,6 +596,59 @@ test('after a sign-out the gate asks the identity provider for its account picke
   assert.ok(!signInHref().includes('prompt='), 'a later gate is the plain link again');
 });
 
+// ── Team-document origins go with the person (plan 75 G17) ─────────────────────
+
+/** The durable origin store on a Map, so a test can see it empty. */
+async function durableOnMap() {
+  const durable = await import('./team-origin-durable.ts');
+  type Rec = import('./team-origin-durable.ts').DurableTeamOrigin;
+  const rows = new Map<string, Rec>();
+  durable._setDurableBackendForTests({
+    get: async (key) => rows.get(key),
+    put: async (rec) => { rows.set(rec.key, rec); },
+    delete: async (key) => { rows.delete(key); },
+    all: async () => [...rows.values()],
+    clear: async () => { rows.clear(); },
+  });
+  return { durable, rows, done: () => durable._setDurableBackendForTests(null) };
+}
+
+/** A member boot whose org-config carries the account id, as the server's does. */
+async function memberBoot(sub: string): Promise<void> {
+  controlPlane({ mode: 'gated', session: 'member', user: { sub }, orgConfig: { instance: { name: 'Acme' }, inboxUnread: 0, session: { sub, email: 'me@corp' } } });
+  const member = router;
+  router = (url, init) => (url.includes('/api/auth/logout') ? new Response(null, { status: 204 }) : member(url, init));
+  await initOrg();
+}
+
+test('a sign-out drops the device\'s team-document origins at once, without any copy being opened', async () => {
+  const { durable, rows, done } = await durableOnMap();
+  reset();
+  await memberBoot('u1');
+  assert.equal(await durable.rememberDurableTeamOrigin({ sessionId: 's1', toolId: 'poster', slot: 'poster:1', role: 'editor', projectName: 'Brand refresh' }), true);
+  assert.equal(rows.size, 1);
+  assert.equal(await signOutOfInstance(), true);
+  assert.equal(rows.size, 0, 'the store is empty after the sign-out itself');
+  assert.equal(durable.mayHoldDurableTeamOrigins(), false, 'and the mark is gone');
+  done();
+});
+
+test('another account signing in on this device drops what the last one left; the same one keeps it', async () => {
+  const { durable, rows, done } = await durableOnMap();
+  reset();
+  await memberBoot('u1');
+  await durable.rememberDurableTeamOrigin({ sessionId: 's1', toolId: 'poster', slot: 'poster:1', role: 'editor' });
+  // The same person again (a reload): kept.
+  _resetOrgForTests();
+  await memberBoot('u1');
+  assert.equal(rows.size, 1, 'the same account keeps its records');
+  // Someone else on this device (the old cookie gone, another sign-in): dropped at boot.
+  _resetOrgForTests();
+  await memberBoot('u2');
+  assert.equal(rows.size, 0, 'the next account inherits nothing');
+  done();
+});
+
 test('signOutOfInstance: a refusal or a network failure changes nothing', async () => {
   for (const [label, logout] of [
     ['403 from the cross-site guard', () => json({ error: { code: 'CSRF_BLOCKED' } }, {}, 403)],

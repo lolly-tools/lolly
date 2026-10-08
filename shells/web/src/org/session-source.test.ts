@@ -229,3 +229,15 @@ test('projectOptions: a viewer who may not save sessions is told so', () => {
   assert.deepEqual(teamProjectOptions({ can: { 'session.create': false } }), { canCreate: true, groups: [], canSave: false, canEdit: true });
   assert.deepEqual(teamProjectOptions({ can: { 'session.edit': false } }), { canCreate: true, groups: [], canSave: true, canEdit: false });
 });
+
+test('a session read carries the caller\'s project role when the instance sends one (plan 75 J5)', async () => {
+  const { sessionDataFromBody } = await import('./session-source.ts');
+  assert.equal(sessionDataFromBody({ toolId: 'poster', inputs: {}, myRole: 'viewer' })?.myRole, 'viewer');
+  assert.equal(sessionDataFromBody({ toolId: 'poster', inputs: {}, myRole: 'owner' })?.myRole, 'owner');
+  assert.equal(sessionDataFromBody({ toolId: 'poster', inputs: {}, myRole: 'commenter' })?.myRole, 'commenter');
+  // A role this shell does not know (one added after it was built) fails closed: read as
+  // a viewer's, so the document opens view-only. Only an absent role is unknown.
+  assert.equal(sessionDataFromBody({ toolId: 'poster', inputs: {}, myRole: 'superuser' })?.myRole, 'viewer', 'a role this shell does not know fails closed');
+  assert.equal('myRole' in (sessionDataFromBody({ toolId: 'poster', inputs: {}, myRole: '  ' }) ?? {}), false, 'a blank role is no role');
+  assert.equal('myRole' in (sessionDataFromBody({ toolId: 'poster', inputs: {} }) ?? {}), false, 'absent stays absent, never an undefined key');
+});
