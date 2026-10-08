@@ -17,9 +17,9 @@
  * Some of them are plainly poor: a loop against a copy of itself a hundred-thousandth away
  * comes back as three near-identical points at t = 0.5 rather than its three crossings, and
  * an S curve against its own reversal comes back as 46 points strung along the whole curve.
- * They remain a comparison for the original 16,384-node budget. The 512-node default keeps
- * cheap answers and hands expensive pairs to the overrun search. Separate cases check the
- * new default and its boundary without changing the recorded legacy contacts.
+ * They are recorded because they are what callers have had, and this change is not allowed to
+ * move them. A diff here means the budget or the counting changed an answer that was never in
+ * question, and the fix is the code, not the table.
  *
  * The node counts are pinned with the answers, so the margin between ordinary work and the
  * budget stays visible. A pair that suddenly costs ten times what it did should fail here
@@ -179,10 +179,10 @@ const INSIDE_THE_BUDGET: { what: string; nodes: number; c1: Cubic; c2: Cubic; hi
 test('the budget is the measured one', () => {
   // A change here is a change to what callers get, and wants the measurement in the head of
   // engine/src/geom/intersect.ts redone rather than a new number typed in.
-  assert.equal(CLIP_BUDGET.maxNodes, 512);
+  assert.equal(CLIP_BUDGET.maxNodes, 16384);
 });
 
-test('legacy clip answers remain unchanged with the original 16384-node budget', () => withBudget(16384, () => {
+test('a pair inside the budget answers exactly as the clip search always did', () => {
   for (const c of INSIDE_THE_BUDGET) {
     const got = answer(c.c1, c.c2);
     assert.equal(got.overrun, false, `${c.what}: went to the overrun search`);
@@ -190,7 +190,7 @@ test('legacy clip answers remain unchanged with the original 16384-node budget',
     assert.ok(got.nodes <= CLIP_BUDGET.maxNodes, `${c.what}: ${got.nodes} nodes is over the budget`);
     assert.deepEqual(got.hits, c.hits, `${c.what}: the answer moved`);
   }
-}));
+});
 
 test('the exact line paths never reach the budget at all', () => {
   const line = (x0: number, y0: number, x1: number, y1: number): Cubic =>
@@ -205,20 +205,6 @@ test('the exact line paths never reach the budget at all', () => {
   // Even at a budget of one node the closed-form path is untouched.
   const squeezed = withBudget(1, () => answer(line(0, 30, 100, 30), HUMP));
   assert.deepEqual(squeezed.hits, overArch.hits, 'the line path depends on the budget');
-});
-
-test('the 512-node default preserves cheap contacts and hands expensive pairs to the bounded search', () => {
-  for (const c of INSIDE_THE_BUDGET) {
-    const got = answer(c.c1, c.c2);
-    if (c.nodes <= 512) {
-      assert.equal(got.overrun, false, c.what);
-      assert.equal(got.nodes, c.nodes, c.what);
-      assert.deepEqual(got.hits, c.hits, c.what);
-    } else {
-      assert.equal(got.overrun, true, c.what);
-      assert.equal(got.nodes, 513, c.what);
-    }
-  }
 });
 
 // ── 2. over the budget, the other search answers ──────────────────────────────
@@ -312,9 +298,8 @@ test('the switch is at the pair\'s own node count, to the node', () => {
   assert.notDeepEqual(one.hits, c.hits, 'this pair is answered differently by the two searches');
 
   const back = answer(c.c1, c.c2);
-  assert.equal(CLIP_BUDGET.maxNodes, 512, 'the budget was not put back');
-  assert.equal(back.overrun, true, 'the restored default hands this expensive pair to the overrun search');
-  assert.equal(back.nodes, 513);
+  assert.equal(back.overrun, false, 'the budget was not put back');
+  assert.deepEqual(back.hits, c.hits, 'the clip search\'s answer did not come back');
 });
 
 // ── 3. the same question, the same answer ─────────────────────────────────────
@@ -347,17 +332,17 @@ test('either operand order is answered the same way every time, though the two o
     }
   }
   // A pair well clear of the budget takes the same path whichever way round it is given.
-  const easy = shift(LOOP, 0.1, 0);
+  const easy = shift(LOOP, 0.0001, 0);
   assert.equal(answer(LOOP, easy).overrun, false);
   assert.equal(answer(easy, LOOP).overrun, false);
   // A pair well over it does too.
   const hard = shift(LOOP, 0.000001, 0);
   assert.equal(answer(LOOP, hard).overrun, true);
   assert.equal(answer(hard, LOOP).overrun, true);
-  // At the historical 16,384-node budget the two orders can part company: this pair costs 15,701 nodes one
+  // Right at the budget the two orders can part company: this pair costs 15,701 nodes one
   // way round and more than the budget the other. Both answers are still answers to the
   // question asked, and the cost has never been symmetric.
   const edge = shift(LOOP, 0.00001, 0);
-  assert.equal(withBudget(16384, () => answer(LOOP, edge)).overrun, false);
-  assert.equal(withBudget(16384, () => answer(edge, LOOP)).overrun, true);
+  assert.equal(answer(LOOP, edge).overrun, false);
+  assert.equal(answer(edge, LOOP).overrun, true);
 });

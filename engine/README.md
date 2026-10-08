@@ -309,7 +309,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `geom/bezier.ts` | 484 | Cubic Bézier kernel - the geometric substrate for boolean operations, offsetting and stroke outlining. | yes | `tests/geom-bezier.test.ts` | – |
 | `geom/boolean.ts` | 1622 | Boolean operations on regions bounded by cubic Béziers - union, intersection, difference, exclusive-or - and the winding-number test they are all decided by. | yes | `tests/geom-boolean.test.ts` | – |
 | `geom/fit.ts` | 1262 | Fitting cubics to a curve that has no Bézier form - an exact offset, a stroke edge, a distorted path. | yes | `tests/geom-fit.test.ts` | – |
-| `geom/intersect.ts` | 2368 | Curve intersection. | yes | `tests/geom-intersect.test.ts` | – |
+| `geom/intersect.ts` | 2352 | Curve intersection. | yes | `tests/geom-intersect.test.ts` | – |
 | `geom/near-pieces.ts` | 57 | Ordered curve-proximity candidates from start, midpoint and end cells. | no | `tests/geom-near-pieces.test.ts` | – |
 | `geom/offset-error.ts` | 126 | Independent source-to-fitted-chain offset verification with bounded adaptive sampling. | no | indirect | – |
 | `geom/offset-source.ts` | 36 | Exact cubic offset points and source directions, including vanishing-tangent fallbacks. | no | indirect | – |
