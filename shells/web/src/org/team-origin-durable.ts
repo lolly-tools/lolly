@@ -25,8 +25,9 @@
  * The copies themselves stay on the device when their records go, and they are still a
  * team's documents. So every drop first lists the slots the records pointed at, by slot
  * name alone (no workspace, account or session), and {@link durableTeamOriginSlots}
- * keeps returning them: the signed-out gate's download (org/gate-device-work.ts) leaves
- * them out after the person who opened them has signed out.
+ * keeps returning them without disclosing that identity. These names are retained
+ * evidence, not a complete classification: derived templates/tools and failed initial
+ * writes may leave no name. The managed sign-in gate offers no local backup.
  *
  * The workspace and account are read from what org/index.ts already keeps on this
  * device (the instance base, and the member org-config cache with its session block),
@@ -37,7 +38,8 @@
  */
 import { getInstanceBase } from '../lib/instance.ts';
 import type { TeamRole } from '../lib/session-source.ts';
-import { TEAM_ORIGINS_DB, TEAM_ORIGINS_MARK, dropTeamOriginRecords } from '../lib/team-origin-records.ts';
+import { TEAM_ORIGINS_DB, TEAM_ORIGINS_MARK, readTeamCopySlots, listTeamCopySlots, clearTeamOriginRecords } from '../lib/team-origin-records.ts';
+export { TEAM_COPY_SLOTS_KEY } from '../lib/team-origin-records.ts';
 
 /** One device copy's origin, as stored. */
 export interface DurableTeamOrigin {
@@ -80,8 +82,6 @@ export interface DurableBackend {
 
 /** Set while any record may exist, so opening a device copy costs nothing otherwise. */
 export const DURABLE_MARK_KEY = TEAM_ORIGINS_MARK;
-/** The slots of device copies whose records were dropped, as a JSON array of slot names. */
-export const TEAM_COPY_SLOTS_KEY = 'lolly:team-copy-slots';
 const DB_NAME = TEAM_ORIGINS_DB;
 const STORE = 'origins';
 
@@ -191,7 +191,7 @@ const indexedDbBackend: DurableBackend = {
     const open = dbPromise;
     dbPromise = null;
     if (open) await open.then((conn) => conn.close(), () => undefined);
-    await dropTeamOriginRecords();
+    if (!await clearTeamOriginRecords()) throw new Error('Team origin records could not be cleared');
   },
 };
 
@@ -219,38 +219,22 @@ export function mayHoldDurableTeamOrigins(): boolean {
 /** The listed slots of team copies whose records were dropped. Empty when none are
  *  listed or the list cannot be read. */
 export function teamCopySlots(): Set<string> {
-  try {
-    const list: unknown = JSON.parse(readLocal(TEAM_COPY_SLOTS_KEY) ?? '[]');
-    return new Set(Array.isArray(list) ? list.filter((slot): slot is string => typeof slot === 'string' && !!slot) : []);
-  } catch {
-    return new Set();
-  }
+  try { return readTeamCopySlots(); } catch { return new Set(); }
 }
-
-/**
- * Add `slots` to the list, before the records that point at them are dropped. The list
- * is never trimmed: a copy that left the Library may come back from Trash, and a name
- * that points at nothing withholds nothing.
- */
-function listTeamCopySlots(slots: Iterable<string>): void {
-  const listed = teamCopySlots(), size = listed.size;
-  for (const slot of slots) if (slot) listed.add(slot);
-  if (listed.size === size) return;
-  try { globalThis.localStorage?.setItem(TEAM_COPY_SLOTS_KEY, JSON.stringify([...listed])); } catch { /* storage blocked: nothing more can be kept */ }
-}
-
-// ── Records ─────────────────────────────────────────────────────────────────
 
 /**
  * Keep the origin of the device copy at `input.slot` for the signed-in member. A no-op
  * without a known member (nothing to bind it to) or for a viewer, who cannot save to
- * the session and copies instead. Resolves whether a record was written.
+ * the session and copies instead. Its copy name is kept before the record is written;
+ * if that write fails, the origin record still keeps the evidence for a later drop.
+ * Resolves whether a record was written.
  */
 export async function rememberDurableTeamOrigin(input: DurableTeamOriginInput): Promise<boolean> {
   if (!input.slot || !input.sessionId || !input.toolId || (input.role !== undefined && !EDIT_ROLES.includes(input.role))) return false;
   const identity = await durableIdentity();
   if (!identity) return false;
   const record: DurableTeamOrigin = { ...input, ...identity, key: durableKey(identity, input.slot), at: Date.now() };
+  try { listTeamCopySlots([input.slot]); } catch { /* keep the origin record until its copy name can be kept */ }
   try {
     await backend.put(record);
     mark(true);
@@ -297,17 +281,18 @@ export async function findDurableTeamOrigin(toolId: string, slot: string): Promi
 /**
  * Every device copy of a team document this device knows of, for any workspace and
  * account, without pruning: the copies a record points at, and the listed copies whose
- * records were dropped. What the signed-out gate's download leaves out
- * (org/gate-device-work.ts), since a copy of a team document is that team's work, not
- * the next person's at a signed-out screen. Only the listed copies when the mark says
- * there are no records or the store cannot be read.
+ * records were dropped. Rejects if either evidence store cannot be read completely.
+ * This is retained evidence, not proof that every other slot or profile record is
+ * personal work: a failed initial write or a derived template may have no entry.
  */
 export async function durableTeamOriginSlots(): Promise<Set<string>> {
-  const slots = teamCopySlots();
-  if (!mayHoldDurableTeamOrigins()) return slots;
-  try {
-    for (const rec of await backend.all()) slots.add(rec.slot);
-  } catch { /* the listed copies stand */ }
+  const slots = readTeamCopySlots();
+  // The mark only makes reopening cheap. It may itself have failed to be written,
+  // so evidence enumeration must read the store even when that hint is absent.
+  for (const rec of await backend.all()) {
+    if (typeof rec.slot !== 'string' || !rec.slot) throw new Error('Team origin record is unreadable');
+    slots.add(rec.slot);
+  }
   return slots;
 }
 
@@ -315,20 +300,25 @@ export async function durableTeamOriginSlots(): Promise<Set<string>> {
 export async function forgetDurableTeamOrigin(slot: string): Promise<void> {
   const identity = await durableIdentity();
   if (!identity || !slot) return;
-  try { await backend.delete(durableKey(identity, slot)); } catch { /* nothing to forget */ }
+  try {
+    listTeamCopySlots([slot]);
+    await backend.delete(durableKey(identity, slot));
+  } catch { /* keep the original evidence until its copy name can be retained */ }
 }
 
 /**
  * Drop every record and the mark: the person is no longer the one signed in here (a
  * sign-out, Sign out on all devices, another account, Leave). Never rejects; when the
- * storage cannot be cleared, the records left are inert (no mark, and no member they
- * could be found under) and the next look drops them.
+ * copies cannot be listed safely, their records and mark stay for another attempt.
+ * A failed listing must never remove the only evidence of who those copies belong to.
  */
 export async function dropDurableTeamOrigins(): Promise<void> {
-  // The copies stay on the device: list them first, so they stay out of the gate's download.
-  if (mayHoldDurableTeamOrigins()) {
-    try { listTeamCopySlots((await backend.all()).map((rec) => rec.slot)); } catch { /* the store cannot be read: nothing to list */ }
+  // The copies stay on the device: retain their names before removing origin identity.
+  try {
+    listTeamCopySlots(await durableTeamOriginSlots());
+    await backend.clear();
+    mark(false);
+  } catch {
+    mark(true);
   }
-  mark(false);
-  try { await backend.clear(); } catch { /* see above */ }
 }

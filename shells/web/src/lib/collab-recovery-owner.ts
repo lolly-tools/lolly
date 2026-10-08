@@ -8,9 +8,9 @@
  * `__collabRecovery` with the workspace it came from, the account that made the edit and
  * when. That tag is what keeps one person's copies from the next person on a shared
  * device: the recovery notices list only the signed-in account's copies, Sign out offers
- * to download or discard them (org/account-chip.ts), and the signed-out gate's download
- * leaves every tagged copy out (org/index.ts). All of them read the tag here, so the key
- * and the account id can never drift apart again.
+ * to download or discard them (org/account-chip.ts). Both read the tag here, so the key
+ * and the account id can never drift apart again. The managed sign-in gate offers no
+ * local backup, including copies or profile records whose custody is unknown.
  *
  * The account is the workspace's own id for the person (`OrgUser.sub`, the org
  * principal), which the shell knows whenever a member is signed in, in a room or not.

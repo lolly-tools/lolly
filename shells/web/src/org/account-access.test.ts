@@ -12,10 +12,10 @@
  *    invite is registered beside the work opener;
  *  - a 401 from either sign-out route (the session already ended elsewhere) still signs
  *    this device out;
- *  - the sign-in gate offers "Download the work saved in this browser" only when this
- *    browser holds work the gate may hand out, and the file leaves out recovery copies
- *    tagged to an account, device copies of team documents (after a sign-out dropped
- *    their origins too), the team's project files and the revision history.
+ *  - the managed sign-in gate offers no local backup or export, even when both
+ *    team-copy custody stores fail and derived templates/tools remain in the profile;
+ *  - missing or rejected sign-in links do not let a managed gate mount the app;
+ *  - authenticated backups remain available through the existing Settings exporter.
  *
  * Run directly:  node --test shells/web/src/org/account-access.test.ts
  */
@@ -25,6 +25,12 @@ import { readFileSync } from 'node:fs';
 import { unzipSync, strFromU8 } from 'fflate';
 import { JSDOM } from 'jsdom';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
+import type { exportBackup } from '../data-transfer.ts';
+import { memoryDb } from '../bridge/idb-memory.test-utils.ts';
+import { createStateAPI, type StateDb } from '../bridge/state.ts';
+import { createProfileAPI, type ProfileDb } from '../bridge/profile.ts';
+import { createUserTemplateStore } from '../lib/user-templates.ts';
+import { createUserToolStore } from '../lib/user-tools.ts';
 
 const dom = new JSDOM(
   '<!doctype html><html><head></head><body><div id="app"><main id="view"><p class="loading">Loading…</p></main></div></body></html>',
@@ -62,11 +68,19 @@ globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
 const json = (body: unknown, status = 200): Response =>
   new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
 
-const { initOrg, orgSession, orgConsoleUrl, signOutEverywhere, signOutOfInstance, _resetOrgForTests } = await import('./index.ts');
+const { initOrg, initOrgWithAuth, orgSession, orgConsoleUrl, signOutEverywhere, signOutOfInstance, _resetOrgForTests } = await import('./index.ts');
 const { _setBaseForTests } = await import('../lib/instance.ts');
 const { setHostRef } = await import('../lib/host-ref.ts');
 const { shareSectionBuilders, _clearShareSectionsForTests } = await import('../lib/share-sections.ts');
 const { _clearAccountSlotForTests } = await import('../lib/account-slot.ts');
+const durable = await import('./team-origin-durable.ts');
+test.beforeEach(() => {
+  durable._setDurableBackendForTests({
+    get: async () => undefined, put: async () => {}, delete: async () => {},
+    all: async () => [], clear: async () => {},
+  });
+});
+test.afterEach(() => durable._setDurableBackendForTests(null));
 
 const tick = (): Promise<void> => new Promise((r) => setTimeout(r, 0));
 async function until(check: () => boolean, what: string): Promise<void> {
@@ -249,185 +263,135 @@ test('the work opener and the pill invite are registered together, and Work coll
   assert.ok(branch.indexOf('registerWorkCollabOpener') < branch.indexOf('registerWorkCollabPillInvite'), 'after the opener it depends on');
 });
 
-// ── The gate's device work (WEBGATE) ──────────────────────────────────────────
+// ── Managed sign-in protects all local work ────────────────────────────────────
 
-function deviceHost(sessions: number, downloads: Array<{ name: string; size: number }>): HostV1 {
-  const rows = Array.from({ length: sessions }, (_, i) => ({ slot: `s${i}`, toolId: 'qr-code', toolVersion: '1', updatedAt: '2026-10-07T00:00:00Z' }));
+/** Persist actual session and profile records before observing the gate's host calls. */
+type BackupHost = Parameters<typeof exportBackup>[0]['host'];
+async function savedDevice(): Promise<{ host: HostV1 & BackupHost; reads: string[]; files: Blob[] }> {
+  const { db } = memoryDb();
+  const state = createStateAPI(db as unknown as StateDb);
+  const profile = createProfileAPI(db as unknown as ProfileDb, { channel: null });
+  const values = { url: 'https://synthetic-private-team.test', logo: 'user/team/synthetic-file' };
+  await state.save('qr-code:team-copy', { ...values, __toolId: 'qr-code', __toolVersion: '1.0.0' });
+  await state.save('qr-code:personal', { url: 'https://synthetic-personal.test', __toolId: 'qr-code', __toolVersion: '1.0.0' });
+  await profile.set({ firstname: 'Ana' });
+  await createUserTemplateStore({ profile }).save({ toolId: 'qr-code', name: 'Derived team template', values });
+  await createUserToolStore({ profile }).save({ baseToolId: 'qr-code', title: 'Derived team tool', values });
+  assert.equal((await state.list()).length, 2, 'ordinary saved records really exist');
+  const saved = await profile.get();
+  assert.equal(saved.userTemplates?.length, 1);
+  assert.equal((await createUserToolStore({ profile }).list()).length, 1);
+  const reads: string[] = [];
+  const files: Blob[] = [];
   const host = {
     state: {
-      list: async () => rows,
-      load: async () => ({ url: 'https://example.com' }),
-      save: async () => {},
-      delete: async () => {},
+      ...state,
+      list: async () => { reads.push('state.list'); return state.list(); },
+      load: async (slot: string) => { reads.push('state.load'); return state.load(slot); },
     },
-    profile: { get: async () => ({ firstname: 'Ana' }), set: async () => {} },
-    assets: { _exportUserAssets: async () => [], _importUserAsset: async () => {} },
-    export: { download: async (blob: Blob, name: string) => { downloads.push({ name, size: blob.size }); } },
-  };
-  return host as unknown as HostV1;
+    profile: { ...profile, get: async () => { reads.push('profile.get'); return profile.get(); } },
+    assets: { _exportUserAssets: async () => {
+      reads.push('assets.export');
+      return [{ id: 'user/team/synthetic-file', format: 'png', blob: new Blob(['synthetic-team-file'], { type: 'image/png' }) }];
+    }, _importUserAsset: async () => {} },
+    fileHistory: { export: async () => { reads.push('history.export'); return { assetVersions: [], operations: [] }; } },
+    export: { download: async (blob: Blob) => { reads.push('download'); files.push(blob); } },
+  } as unknown as HostV1 & BackupHost;
+  return { host, reads, files };
 }
 
-const gateButton = (): HTMLButtonElement | null => document.querySelector('#org-gate-device-work [data-act="gate-device-work"]');
-
-test('the gate offers the work saved in this browser, and saves it as a backup file', async () => {
-  reset();
-  const downloads: Array<{ name: string; size: number }> = [];
-  setHostRef(deviceHost(2, downloads));
-  controlPlane({ mode: 'gated', session: 'none' });
-  const r = await initOrg();
-  assert.equal(r?.gate, true);
-  await until(() => !!gateButton(), 'the offer');
-  assert.equal(gateButton()!.textContent, 'Download the work saved in this browser');
-  assert.equal(document.getElementById('org-gate-device-work')!.hidden, false);
-  gateButton()!.click();
-  await until(() => downloads.length === 1, 'the backup file');
-  assert.match(downloads[0]!.name, /^LollyTools-Ana-\d{4}-\d{2}-\d{2}-1\.zip$/);
-  assert.ok(downloads[0]!.size > 0);
-  await until(() => gateButton()!.disabled === false, 'the button back');
-  assert.equal(gateButton()!.textContent, 'Download the work saved in this browser');
-});
-
-test('the gate makes no offer when this browser holds no saved work', async () => {
-  reset();
-  setHostRef(deviceHost(0, []));
-  controlPlane({ mode: 'gated', session: 'none' });
-  await initOrg();
-  await settle();
-  assert.equal(gateButton(), null);
-  assert.equal(document.getElementById('org-gate-device-work')!.hidden, true, 'the slot stays hidden');
-});
-
-/** A device whose storage holds exactly `slots`, saving the gate's file into `files`. */
-function slotsHost(slots: Record<string, Record<string, unknown>>, files: Blob[]): HostV1 {
-  const host = {
-    state: {
-      list: async () => Object.keys(slots).map((slot) => ({ slot, toolId: 'design', toolVersion: '1', updatedAt: '2026-10-07T00:00:00Z' })),
-      load: async (slot: string) => slots[slot] ?? null,
-      save: async () => {},
-      delete: async () => {},
-    },
-    profile: { get: async () => ({ firstname: 'Ana' }), set: async () => {} },
-    assets: { _exportUserAssets: async () => [], _importUserAsset: async () => {} },
-    export: { download: async (blob: Blob) => { files.push(blob); } },
-  };
-  return host as unknown as HostV1;
+function assertGateHasNoExport(reads: string[], files: Blob[]): void {
+  assert.ok(document.querySelector('.org-gate'), 'the managed gate is rendered');
+  assert.equal(document.querySelector('#org-gate-device-work'), null, 'no dormant backup slot');
+  assert.equal(document.querySelector('[data-act="gate-device-work"]'), null, 'no backup action');
+  assert.doesNotMatch(document.querySelector('.org-gate')!.textContent!, /download|export/i);
+  assert.deepEqual(reads, [], 'the gate reads no saved state, profile, templates, tools, assets or history');
+  assert.deepEqual(files, [], 'nothing leaves the device');
 }
-const tagged = (account: string): Record<string, unknown> => ({ __collabRecovery: { origin: 'https://instance.test', account, at: '2026-10-07T12:00:00.000Z' } });
 
-test('the gate\'s file leaves out recovery copies tagged to an account and team document copies', async () => {
-  const durable = await import('./team-origin-durable.ts');
-  type Rec = import('./team-origin-durable.ts').DurableTeamOrigin;
-  const records = new Map<string, Rec>([['k', { key: 'k', workspace: 'https://instance.test', account: 'digest', slot: 'design:team', toolId: 'design', sessionId: 's1', at: 1 }]]);
-  durable._setDurableBackendForTests({
-    get: async (key) => records.get(key), put: async (rec) => { records.set(rec.key, rec); },
-    delete: async (key) => { records.delete(key); }, all: async () => [...records.values()], clear: async () => { records.clear(); },
-  });
-  try {
+for (const failure of ['none', 'dual-write', 'unreadable'] as const) {
+  test(`the managed gate reads and exports no local work (${failure} custody failure)`, async () => {
     reset();
-    store.set('lolly:team-origins', '1');
-    const files: Blob[] = [];
-    setHostRef(slotsHost({
-      'design:mine': { headline: 'My own work' },
-      'collab-recovery:old': { headline: 'An untagged copy from before the tags' },
-      'collab-recovery:ana': { headline: 'Ana\'s interrupted team edit', ...tagged('u_ana') },
-      'collab-recovery:bo': { headline: 'Bo\'s interrupted team edit', ...tagged('u_bo') },
-      'design:team': { headline: 'A copy of a team document' },
-    }, files));
+    const { host, reads, files } = await savedDevice();
+    setHostRef(host);
+    const originalStorage = globalThis.localStorage;
+    let originWrites = 0;
+    if (failure !== 'none') {
+      store.set('lolly:org-config:same-origin', JSON.stringify({ config: { session: { sub: 'u1' } } }));
+      globalThis.localStorage = {
+        ...originalStorage,
+        getItem: (key: string) => {
+          if (failure === 'unreadable' && (key.includes('org-config') || key === durable.TEAM_COPY_SLOTS_KEY)) throw new Error('Synthetic unreadable custody/config');
+          return originalStorage.getItem(key);
+        },
+        setItem: (key: string, value: string) => {
+          if (key === durable.TEAM_COPY_SLOTS_KEY) throw new Error('Synthetic copy-list write failure');
+          originalStorage.setItem(key, value);
+        },
+      } as Storage;
+      durable._setDurableBackendForTests({
+        get: async () => undefined, delete: async () => {}, clear: async () => {},
+        put: async () => { originWrites++; throw new Error('Synthetic origin write failure'); },
+        all: async () => { if (failure === 'unreadable') throw new Error('Synthetic origin read failure'); return []; },
+      });
+      if (failure === 'dual-write') {
+        assert.equal(await durable.rememberDurableTeamOrigin({ slot: 'qr-code:team-copy', toolId: 'qr-code', sessionId: 'synthetic-session', role: 'editor' }), false);
+        assert.equal(originWrites, 1, 'the origin write really failed after the copy-list write failed');
+        assert.equal(store.has(durable.TEAM_COPY_SLOTS_KEY), false, 'no companion classification was saved');
+      }
+    }
+    try {
+      controlPlane({ mode: 'gated', session: 'none' });
+      assert.equal((await initOrg())?.gate, true);
+      await settle();
+      assertGateHasNoExport(reads, files);
+      const signIn = document.querySelector<HTMLAnchorElement>('.org-gate a');
+      assert.equal(signIn?.textContent, 'Sign in');
+      assert.match(signIn!.getAttribute('href')!, /^\/login\?returnTo=/, 'sign-in is still available');
+      assert.equal(fetchLog.some(({ url }) => url.includes('/api/v1/org-config')), false, 'no member settings request before sign-in');
+    } finally { globalThis.localStorage = originalStorage; }
+  });
+}
+
+for (const loginPath of [null, '', 'javascript:alert(1)']) {
+  test(`a managed gate with an unavailable sign-in link stays closed (${JSON.stringify(loginPath)})`, async () => {
+    reset();
+    const { host, reads, files } = await savedDevice();
+    setHostRef(host);
     controlPlane({ mode: 'gated', session: 'none' });
-    await initOrg();
-    await until(() => !!gateButton(), 'the offer');
-    gateButton()!.click();
-    await until(() => files.length === 1, 'the backup file');
-    const zip = unzipSync(new Uint8Array(await files[0]!.arrayBuffer()));
-    const sessions = JSON.parse(strFromU8(zip['sessions.json']!)) as Array<{ slot: string; data: unknown }>;
-    assert.deepEqual(sessions.map((row) => row.slot).sort(), ['collab-recovery:old', 'design:mine'], 'only work that belongs to nobody in particular');
-    const text = strFromU8(zip['sessions.json']!);
-    assert.ok(!text.includes('collab-recovery:ana') && !text.includes('u_bo') && !text.includes('A copy of a team document'));
-    assert.equal(zip['revision-history.json'], undefined, 'no history, whose checkpoints would carry the left-out documents');
-  } finally {
-    durable._setDurableBackendForTests(null);
-  }
-});
-
-test('after a sign-out, the gate\'s file still leaves out the team\'s document copies, project files and history', async () => {
-  // The sign-out drops the team-document origins (and the lolly:team-origins mark) before
-  // the reload reaches the gate, so the gate cannot ask those records which copies are a
-  // team's. The copies, the project files restored beside them and the history stay on
-  // the device, and whoever is at the signed-out screen must not get them.
-  const durable = await import('./team-origin-durable.ts');
-  type Rec = import('./team-origin-durable.ts').DurableTeamOrigin;
-  const records = new Map<string, Rec>();
-  durable._setDurableBackendForTests({
-    get: async (key) => records.get(key), put: async (rec) => { records.set(rec.key, rec); },
-    delete: async (key) => { records.delete(key); }, all: async () => [...records.values()], clear: async () => { records.clear(); },
+    const result = await initOrgWithAuth({ mode: 'gated', provider: 'oidc', loginPath });
+    assert.equal(result?.gate, true, 'boot must stop even with no usable sign-in action');
+    await settle();
+    assertGateHasNoExport(reads, files);
+    assert.equal(document.querySelector('.org-gate a'), null);
+    assert.match(document.querySelector('.org-gate')!.textContent!, /did not supply a usable sign-in link/);
   });
+}
+
+test('a missing gate mount point still refuses managed boot', async () => {
+  reset();
+  const view = document.getElementById('view')!;
+  view.remove();
   try {
-    reset();
-    controlPlane({ mode: 'gated', session: 'member', logout: 204 });
-    await initOrg();
-    assert.equal(orgSession()?.kind, 'member');
-    store.set('lolly:org-config:same-origin', JSON.stringify({ at: Date.now(), etag: null, config: { instance: { name: 'Acme' }, session: { sub: 'u1' } } }));
-    assert.equal(await durable.rememberDurableTeamOrigin({ sessionId: 's1', toolId: 'design', slot: 'design:team', role: 'editor' }), true);
-    const files: Blob[] = [];
-    let historyRead = false;
-    const host = slotsHost({
-      'design:mine': { headline: 'My own work' },
-      'design:team': { headline: 'A copy of a team document', logo: 'user/team/f1' },
-    }, files) as unknown as Record<string, unknown> & { assets: Record<string, unknown> };
-    host.assets._exportUserAssets = async () => [
-      { id: 'user/mine', format: 'png', blob: new Blob(['mine'], { type: 'image/png' }) },
-      { id: 'user/team/f1', format: 'png', blob: new Blob(['team'], { type: 'image/png' }) },
-    ];
-    host.fileHistory = { export: async () => { historyRead = true; return { assetVersions: [], operations: [] }; } };
-    setHostRef(host as unknown as HostV1);
-
-    assert.equal(await signOutOfInstance(), true);
-    assert.equal(records.size, 0, 'the sign-out dropped the records');
-    assert.equal(store.has('lolly:team-origins'), false, 'and the mark');
-
-    // The reload after the sign-out: the same device, signed out of a gated workspace.
-    _resetOrgForTests();
-    _clearShareSectionsForTests();
-    _clearAccountSlotForTests();
-    document.getElementById('view')!.innerHTML = HEADER;
     controlPlane({ mode: 'gated', session: 'none' });
     assert.equal((await initOrg())?.gate, true);
-    await until(() => !!gateButton(), 'the offer, for the work that is this browser\'s own');
-    gateButton()!.click();
-    await until(() => files.length === 1, 'the backup file');
-    const zip = unzipSync(new Uint8Array(await files[0]!.arrayBuffer()));
-    const sessions = JSON.parse(strFromU8(zip['sessions.json']!)) as Array<{ slot: string }>;
-    assert.deepEqual(sessions.map((row) => row.slot), ['design:mine'], 'the team document copy stays out');
-    const assets = JSON.parse(strFromU8(zip['assets.json']!)) as Array<{ id: string }>;
-    assert.deepEqual(assets.map((a) => a.id), ['user/mine'], 'the team\'s project file stays out');
-    assert.equal(historyRead, false, 'the revision history is never read');
-    assert.equal(zip['revision-history.json'], undefined);
-  } finally {
-    durable._setDurableBackendForTests(null);
-  }
+  } finally { document.getElementById('app')!.append(view); }
 });
 
-test('the gate makes no offer when everything here is another person\'s or a team\'s', async () => {
+test('authenticated Settings backups still carry the saved work and derived profile records', async () => {
   reset();
-  setHostRef(slotsHost({ 'collab-recovery:bo': { headline: 'Bo\'s edit', ...tagged('u_bo') } }, []));
-  controlPlane({ mode: 'gated', session: 'none' });
-  await initOrg();
-  await settle();
-  assert.equal(gateButton(), null);
-  assert.equal(document.getElementById('org-gate-device-work')!.hidden, true);
-});
-
-test('a failed backup says so on the gate and keeps the offer', async () => {
-  reset();
-  const host = deviceHost(1, []);
-  (host as unknown as { profile: { get(): Promise<never> } }).profile.get = async () => { throw new Error('blocked'); };
+  const { host, reads } = await savedDevice();
   setHostRef(host);
-  controlPlane({ mode: 'gated', session: 'none' });
-  await initOrg();
-  await until(() => !!gateButton(), 'the offer');
-  gateButton()!.click();
-  const status = (): HTMLElement => document.querySelector<HTMLElement>('#org-gate-device-work [role="status"]')!;
-  await until(() => !status().hidden, 'the failure line');
-  assert.equal(status().textContent, 'Data export failed. Keep your local files and try again.');
-  assert.ok(gateButton(), 'the offer stays');
+  controlPlane({ mode: 'gated', session: 'member' });
+  assert.equal((await initOrg())?.gate, false);
+  assert.equal(orgSession()?.kind, 'member');
+  const { exportBackup } = await import('../data-transfer.ts');
+  const { blob } = await exportBackup({ host, storage: localStorage });
+  const zip = unzipSync(new Uint8Array(await blob.arrayBuffer()));
+  const sessions = JSON.parse(strFromU8(zip['sessions.json']!)) as Array<{ slot: string }>;
+  assert.deepEqual(sessions.map(({ slot }) => slot).sort(), ['qr-code:personal', 'qr-code:team-copy']);
+  const profile = JSON.parse(strFromU8(zip['profile.json']!)) as { userTemplates: Array<{ values: { url: string } }>; userTools: Array<{ values: { url: string } }> };
+  assert.equal(profile.userTemplates[0]!.values.url, 'https://synthetic-private-team.test');
+  assert.equal(profile.userTools[0]!.values.url, 'https://synthetic-private-team.test');
+  assert.ok(reads.includes('state.list') && reads.includes('profile.get'));
 });

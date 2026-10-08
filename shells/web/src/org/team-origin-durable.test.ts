@@ -39,13 +39,14 @@ const origin = await import('./team-session-origin.ts');
 const { _setBaseForTests } = await import('../lib/instance.ts');
 
 const rows = new Map<string, Rec>();
-durable._setDurableBackendForTests({
+const memoryBackend: import('./team-origin-durable.ts').DurableBackend = {
   get: async (key) => rows.get(key),
   put: async (rec) => { rows.set(rec.key, rec); },
   delete: async (key) => { rows.delete(key); },
   all: async () => [...rows.values()],
   clear: async () => { rows.clear(); },
-});
+};
+durable._setDurableBackendForTests(memoryBackend);
 
 /** The account as a record stores it: never the id, a digest bound to the workspace. */
 const digest = (workspace: string, sub: string): string => createHash('sha256').update(`lolly-team-origin\n${workspace}\n${sub}`).digest('hex');
@@ -69,6 +70,7 @@ function signOut(base = ''): void {
   local.set(`lolly:signed-out:${scope}`, '1');
 }
 function reset(): void {
+  durable._setDurableBackendForTests(memoryBackend);
   rows.clear();
   local.clear();
   _setBaseForTests('');
@@ -113,9 +115,9 @@ test('dropping the records empties the store and the mark, without any copy bein
   assert.equal(durable.mayHoldDurableTeamOrigins(), false, 'and the mark');
 });
 
-test('the slots of every record are listed for the signed-out gate, whoever made them', async () => {
+test('the slots of every record are listed as retained evidence, whoever made them', async () => {
   reset();
-  assert.deepEqual([...await durable.durableTeamOriginSlots()], [], 'no mark, no look');
+  assert.deepEqual([...await durable.durableTeamOriginSlots()], [], 'a readable empty store');
   signIn('ana');
   await durable.rememberDurableTeamOrigin({ ...ORIGIN, slot: 'poster:1' });
   signIn('lee');
@@ -125,7 +127,7 @@ test('the slots of every record are listed for the signed-out gate, whoever made
   assert.equal(rows.size, 2, 'and listing drops nothing');
 });
 
-test('copies whose records a sign-out drops stay listed for the gate, by slot name alone', async () => {
+test('copies whose records a sign-out drops stay listed by slot name alone', async () => {
   reset();
   signIn('ana');
   await durable.rememberDurableTeamOrigin({ ...ORIGIN, slot: 'poster:1' });
@@ -275,4 +277,92 @@ test('the origin module reads the durable mark by the same key, without loading 
   assert.match(src, /const DURABLE_MARK = 'lolly:team-origins';/);
   assert.doesNotMatch(src, /^import .*team-origin-durable/m, 'the store is loaded lazily, never statically');
   assert.doesNotMatch(src, /^import .*team-scope/m, 'and so is the scope provider');
+});
+
+test('evidence enumeration reads origin records even when their opening mark is absent', async () => {
+  reset();
+  signIn('ana');
+  await durable.rememberDurableTeamOrigin({ ...ORIGIN, slot: 'poster:legacy' });
+  local.delete(durable.DURABLE_MARK_KEY);
+  local.delete(durable.TEAM_COPY_SLOTS_KEY);
+  assert.deepEqual([...await durable.durableTeamOriginSlots()], ['poster:legacy']);
+});
+
+test('an unavailable origin listing rejects and preserves sign-out evidence', async () => {
+  reset();
+  signIn('ana');
+  await durable.rememberDurableTeamOrigin({ ...ORIGIN, slot: 'poster:legacy' });
+  local.delete(durable.TEAM_COPY_SLOTS_KEY);
+  let clears = 0;
+  durable._setDurableBackendForTests({
+    ...memoryBackend,
+    all: async () => { throw new Error('Synthetic origins DB unavailable'); },
+    clear: async () => { clears++; rows.clear(); },
+  });
+  await assert.rejects(durable.durableTeamOriginSlots(), /Synthetic origins DB unavailable/);
+  await durable.dropDurableTeamOrigins();
+  assert.equal(clears, 0, 'no destructive call after an incomplete listing');
+  assert.equal(rows.size, 1, 'the origin remains evidence');
+  assert.equal(local.get(durable.DURABLE_MARK_KEY), '1', 'the opening mark stays');
+  assert.equal(local.has(durable.TEAM_COPY_SLOTS_KEY), false, 'failure is not an empty list');
+});
+
+test('malformed or unreadable copy lists reject and do not delete origins', async () => {
+  reset();
+  signIn('ana');
+  await durable.rememberDurableTeamOrigin({ ...ORIGIN, slot: 'poster:1' });
+  for (const list of ['{', '{}', '["poster:1",7]', '[""]']) {
+    local.set(durable.TEAM_COPY_SLOTS_KEY, list);
+    await assert.rejects(durable.durableTeamOriginSlots());
+    await durable.dropDurableTeamOrigins();
+    assert.equal(rows.size, 1, list);
+    assert.equal(local.get(durable.TEAM_COPY_SLOTS_KEY), list, 'no replacement with incomplete evidence');
+    assert.equal(local.get(durable.DURABLE_MARK_KEY), '1');
+  }
+  const storage = globalThis.localStorage, get = storage.getItem;
+  storage.getItem = (key) => {
+    if (key === durable.TEAM_COPY_SLOTS_KEY) throw new Error('SecurityError');
+    return get(key);
+  };
+  try {
+    await assert.rejects(durable.durableTeamOriginSlots(), /SecurityError/);
+    await durable.dropDurableTeamOrigins();
+    assert.equal(rows.size, 1);
+  } finally { storage.getItem = get; }
+});
+
+test('a failed copy-list write keeps an origin across remember, prune and sign-out', async () => {
+  reset();
+  signIn('ana');
+  const storage = globalThis.localStorage, set = storage.setItem;
+  storage.setItem = (key, value) => {
+    if (key === durable.TEAM_COPY_SLOTS_KEY) throw new Error('QuotaExceededError');
+    set(key, value);
+  };
+  try {
+    assert.equal(await durable.rememberDurableTeamOrigin({ ...ORIGIN, slot: 'poster:1' }), true, 'the origin record is fallback evidence');
+    assert.deepEqual([...await durable.durableTeamOriginSlots()], ['poster:1']);
+    await durable.forgetDurableTeamOrigin('poster:1');
+    assert.equal(rows.size, 1, 'forget cannot drop the only evidence either');
+    signIn('lee');
+    assert.equal(await durable.findDurableTeamOrigin('poster', 'poster:1'), null, 'unusable under another account');
+    assert.equal(rows.size, 1, 'prune cannot drop the only evidence');
+    await durable.dropDurableTeamOrigins();
+    assert.equal(rows.size, 1, 'sign-out cannot drop it either');
+    assert.equal(local.get(durable.DURABLE_MARK_KEY), '1');
+  } finally { storage.setItem = set; }
+  await durable.dropDurableTeamOrigins();
+  assert.equal(rows.size, 0, 'the next successful attempt can forget identity');
+  assert.deepEqual([...await durable.durableTeamOriginSlots()], ['poster:1'], 'the copy name is retained');
+});
+
+test('a failed clear keeps the mark and already saved copy evidence', async () => {
+  reset();
+  signIn('ana');
+  await durable.rememberDurableTeamOrigin({ ...ORIGIN, slot: 'poster:1' });
+  durable._setDurableBackendForTests({ ...memoryBackend, clear: async () => { throw new Error('Clear failed'); } });
+  await durable.dropDurableTeamOrigins();
+  assert.equal(rows.size, 1);
+  assert.equal(local.get(durable.DURABLE_MARK_KEY), '1');
+  assert.deepEqual([...await durable.durableTeamOriginSlots()], ['poster:1']);
 });

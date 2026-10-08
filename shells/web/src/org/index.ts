@@ -839,20 +839,15 @@ function loginUrl(loginPath: string): string {
 function renderGate(auth: AuthConfig, instanceName?: string): boolean {
   const view = document.getElementById('view');
   if (!view) return false;
-  if (!auth.loginPath) return false; // gated but no way in - misconfigured; let boot proceed
   // loginPath comes from the control plane's /api/auth/config, and instancePath
   // passes a non-http(s) value straight through when there is no instance base - 
   // so a javascript: loginPath would otherwise reach an href. Same guard, same
   // reasoning as banner.ts/chrome.ts: escaping is not scheme validation.
   //
-  // A rejected href must NOT abandon the gate. Returning false here would mean
-  // "no gate was rendered", and the caller then lets boot proceed - turning a
-  // hostile loginPath into an authentication BYPASS on a gated instance, which is
-  // far worse than the XSS the guard exists to stop. So the gate still renders and
-  // still blocks; only the button is dropped, exactly as chrome.ts drops a link
-  // and keeps its text.
-  const href = loginUrl(auth.loginPath);
-  const linkSafe = safeHref(href);
+  // An absent or rejected href keeps the gate and replaces its link with an
+  // explanation. The caller stops boot even when the view cannot be rendered.
+  const href = typeof auth.loginPath === 'string' && auth.loginPath ? loginUrl(auth.loginPath) : '';
+  const linkSafe = !!href && safeHref(href);
   // t() HTML-escapes interpolated params (see i18n.ts), so the instance name is
   // safe in this innerHTML sink. Do NOT switch this to tRaw without escaping it.
   const heading = instanceName
@@ -881,7 +876,6 @@ function renderGate(auth: AuthConfig, instanceName?: string): boolean {
         ${lines.map((line, i) => `<p style="margin:0 0 ${i === lines.length - 1 ? '1.5rem' : '.5rem'};color:hsl(var(--muted-foreground));font-size:.95rem;line-height:1.55">${line}</p>`).join('')}
         ${action}
         ${isTauriShell() ? '<div id="org-gate-device" style="margin-top:1.25rem"></div>' : ''}
-        <div id="org-gate-device-work" style="margin-top:1rem" hidden></div>
       </div>
     </section>`;
   // Native shells get the device-code alternative: leaving the app shell to
@@ -890,10 +884,8 @@ function renderGate(auth: AuthConfig, instanceName?: string): boolean {
   // this shell in via any browser where the person already has a session.
   const slot = view.querySelector<HTMLElement>('#org-gate-device');
   if (slot) wireDeviceCodeSignIn(slot);
-  // The work kept in this browser, minus what is another person's or a team's
-  // (org/gate-device-work.ts, loaded only for the gate).
-  const work = view.querySelector<HTMLElement>('#org-gate-device-work');
-  if (work) void import('./gate-device-work.ts').then((m) => m.offerDeviceWork(work)).catch(() => { /* additive: the gate stands without it */ });
+  // Local backups remain in authenticated Settings. A signed-out visitor cannot
+  // establish custody of saved sessions or documents derived into templates/tools.
   return true;
 }
 
@@ -1118,14 +1110,11 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
 
     // Gated instance, not a member → sign-in gate instead of the app.
     if (auth.mode === 'gated' && !isMember) {
-      const gated = renderGate(auth, workspaceName() || undefined);
-      if (gated) {
-        // Signed out of a gated instance: no catalog or tool reads until sign-in
-        // (which reloads), and the next boot asks before it syncs at all.
-        noteCatalogRefused();
-        return { auth, session, config: null, gate: true };
-      }
-      // Could not render a gate (no loginPath) - fall through and let the app mount.
+      renderGate(auth, workspaceName() || undefined);
+      // Signed out of a gated instance: no catalog or tool reads until sign-in
+      // (which reloads). A missing view or sign-in link must not let boot proceed.
+      noteCatalogRefused();
+      return { auth, session, config: null, gate: true };
     }
 
     // Member → load org-config, apply its profile policy, surface the inbox.
