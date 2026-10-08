@@ -89,7 +89,7 @@ async function settle(): Promise<void> {
 
 /** Wait, in real time, until `cond` holds. The client's SHA-256 digest finishes on
  *  the thread pool, so a fixed number of event-loop turns is not enough on a busy
- *  machine: a job posted after the test looked for it would never be answered. */
+ *  machine to be sure a job has been posted. */
 async function until(cond: () => boolean, what: string, ms = 10_000): Promise<void> {
   const end = Date.now() + ms;
   while (!cond() && Date.now() < end) await new Promise<void>((r) => setTimeout(r, 5));
@@ -134,9 +134,11 @@ test('a render past its wall-clock budget is stopped by terminating the worker, 
 
 test('renders run one at a time, in order', async () => {
   mode = 'manual';
+  // Each call digests its song before it joins the queue, so two calls made at once
+  // can join in either order. The second call is made once the first is posted.
   const a = renderRondoSong(TINY, { seconds: 1 });
-  const b = renderRondoSong(TINY, { seconds: 1.5 });
   await until(() => held.length === 1, 'the first render to be posted');
+  const b = renderRondoSong(TINY, { seconds: 1.5 });
   await settle();
   assert.equal(FakeWorker.all[0]!.posted.length, 1, 'the second waits for the first');
   held.shift()!();
