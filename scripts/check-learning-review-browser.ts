@@ -2,6 +2,7 @@
 /** Course review regressions across a long outline, sources, picker and guided repairs. */
 import assert from 'node:assert/strict';
 import { chromium, webkit } from 'playwright';
+import { webGpuLaunchArgs } from '../packages/node-shell/src/webgpu-launch.ts';
 import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -14,6 +15,7 @@ if (output) await mkdir(output, { recursive: true });
 const profile = await mkdtemp(join(tmpdir(), 'learning-review-'));
 const browser = await { chromium, webkit }[engine].launchPersistentContext(profile, {
   headless: true,
+  args: engine === 'chromium' ? webGpuLaunchArgs('software') : [],
   viewport: { width: 1280, height: 950 },
 });
 try {

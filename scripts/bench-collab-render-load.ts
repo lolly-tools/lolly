@@ -8,6 +8,7 @@ import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { monitorEventLoopDelay } from 'node:perf_hooks';
 import { chromium, type Page } from 'playwright-core';
+import { webGpuLaunchArgs } from '../packages/node-shell/src/webgpu-launch.ts';
 import { traceCollabBrowser, beginCollabSample, readCollabTrace, startCpuProfile, verifyExportFidelity } from './lib/collab-load-browser.ts';
 import { sampleProcessTrees } from './lib/collab-load-processes.ts';
 import { serveCollabBuild } from './lib/collab-load-static.ts';
@@ -63,7 +64,7 @@ const pgFixture = process.env.LOLLY_LOAD_POSTGRES === '1'
   ? await (await import(pathToFileURL(resolve(work, 'tests/collab/postgres-fixture.ts')).href)).createCollabPostgresFixture() as { store: unknown; pid: number; version: string; close(): Promise<void> }
   : undefined;
 cleanups.push(() => pgFixture?.close());
-const browser = await chromium.launch({ channel: 'chrome', headless: true, handleSIGINT: false, handleSIGTERM: false, args: ['--disable-background-timer-throttling', '--disable-renderer-backgrounding'] }).catch(error => { worker.kill('SIGTERM'); throw error; });
+const browser = await chromium.launch({ channel: 'chrome', headless: true, handleSIGINT: false, handleSIGTERM: false, args: ['--disable-background-timer-throttling', '--disable-renderer-backgrounding', ...webGpuLaunchArgs('auto')] }).catch(error => { worker.kill('SIGTERM'); throw error; });
 cleanups.push(() => browser.close());
 const interrupted = () => { worker.kill('SIGTERM'); void browser.close(); };
 process.once('SIGINT', interrupted); process.once('SIGTERM', interrupted);

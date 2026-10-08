@@ -68,44 +68,55 @@ export function chromiumLaunchArgs(graphics: 'software' | 'auto' = 'software', p
 }
 
 /**
+ * The complete options getBrowser passes to `chromium.launch`: an explicit channel
+ * (LOLLY_BROWSER_CHANNEL, e.g. 'chrome') or binary (LOLLY_BROWSER_PATH) when one is set,
+ * and always chromiumLaunchArgs. Exported so a test can check what a launch receives
+ * without starting a browser.
+ */
+export function chromiumLaunchOptions(graphics: 'software' | 'auto' = 'software', env: NodeJS.ProcessEnv = process.env, platform: NodeJS.Platform = process.platform): { channel?: string; executablePath?: string; args: string[] } {
+  const channel = env.LOLLY_BROWSER_CHANNEL;
+  const executablePath = env.LOLLY_BROWSER_PATH;
+  return {
+    ...(channel ? { channel } : {}),
+    ...(executablePath ? { executablePath } : {}),
+    args: chromiumLaunchArgs(graphics, platform),
+  };
+}
+
+/**
  * Launch (or reuse) the scoped Chromium. An explicit channel/binary wins; otherwise
  * Chromium is loaded from the resolved browsers dir.
  */
 export async function getBrowser({ graphics = 'software' }: { graphics?: 'software' | 'auto' } = {}): Promise<import('playwright-core').Browser> {
   if (!browserPromise) {
     browserPromise = (async () => {
-      const channel = process.env.LOLLY_BROWSER_CHANNEL;   // e.g. 'chrome'
-      const executablePath = process.env.LOLLY_BROWSER_PATH;
-      if (!channel && !executablePath) {
+      if (!process.env.LOLLY_BROWSER_CHANNEL && !process.env.LOLLY_BROWSER_PATH) {
         process.env.PLAYWRIGHT_BROWSERS_PATH ??= resolveBrowsersDir();
       }
       const { chromium } = await import('playwright-core');
       try {
-        return await chromium.launch({
-          ...(channel ? { channel } : {}),
-          ...(executablePath ? { executablePath } : {}),
-          // SwiftShader gives headless runs a software WebGL2 context (recent
-          // Chromium disables it without the explicit opt-in). The docs pipeline's
-          // ?neuro=viz capture needs one to render the MilkDrop visualizer at all.
-          // The two rendering-intent flags pin what the user's export looks like
-          // regardless of the machine doing the rendering. force-color-profile=srgb
-          // takes the host display profile out of every canvas/raster path: a brand
-          // #30ba78 exports as those bytes on any box. HDR is unaffected, because the
-          // engine's PQ boost embeds its own BT.2020 profile downstream. Playwright
-          // already passes this flag in its OWN default args, so here it is an
-          // explicit pin, not a behaviour change. It keeps the intent if the
-          // launcher ever sets ignoreDefaultArgs or moves off Playwright.
-          // font-render-hinting=none removes the largest source of Linux/macOS
-          // glyph-metric divergence (FreeType hint distortion) so server layouts
-          // (MCP, lolly.work) don't reflow vs desktop. Antialiasing and subpixel
-          // positioning still differ per-OS, so raster BYTES are not cross-OS
-          // identical. Mirrored in services/mcp/src/render.ts, the byte-golden
-          // test harnesses (export-format-golden / export-text-emission) and the
-          // drawing fidelity harness (design-draw-fidelity).
-          // Docs captures render a whole gallery, including 3D examples. They
-          // can use the available GPU; software remains the default for exports.
-          args: chromiumLaunchArgs(graphics),
-        });
+        // The launch flags (chromiumLaunchArgs) and why each is there:
+        // SwiftShader gives headless runs a software WebGL2 context (recent
+        // Chromium disables it without the explicit opt-in). The docs pipeline's
+        // ?neuro=viz capture needs one to render the MilkDrop visualizer at all.
+        // The two rendering-intent flags pin what the user's export looks like
+        // regardless of the machine doing the rendering. force-color-profile=srgb
+        // takes the host display profile out of every canvas/raster path: a brand
+        // #30ba78 exports as those bytes on any box. HDR is unaffected, because the
+        // engine's PQ boost embeds its own BT.2020 profile downstream. Playwright
+        // already passes this flag in its OWN default args, so here it is an
+        // explicit pin, not a behaviour change. It keeps the intent if the
+        // launcher ever sets ignoreDefaultArgs or moves off Playwright.
+        // font-render-hinting=none removes the largest source of Linux/macOS
+        // glyph-metric divergence (FreeType hint distortion) so server layouts
+        // (MCP, lolly.work) don't reflow vs desktop. Antialiasing and subpixel
+        // positioning still differ per-OS, so raster BYTES are not cross-OS
+        // identical. Mirrored in services/mcp/src/render.ts, the byte-golden
+        // test harnesses (export-format-golden / export-text-emission) and the
+        // drawing fidelity harness (design-draw-fidelity).
+        // Docs captures render a whole gallery, including 3D examples. They
+        // can use the available GPU; software remains the default for exports.
+        return await chromium.launch(chromiumLaunchOptions(graphics));
       } catch (err) {
         const msg = (err as Error).message || '';
         if (/executable doesn't exist|Executable doesn't exist|please run|not been downloaded/i.test(msg)) {

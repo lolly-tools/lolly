@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Compare one cached Design slide with the live DOM capture route; generated camera only. */
 import { chromium } from 'playwright';
+import { webGpuLaunchArgs } from '../packages/node-shell/src/webgpu-launch.ts';
 import { mkdir, writeFile } from 'node:fs/promises';
 const origin = process.env.LOLLY_PRESENT_TEST_URL ?? 'http://127.0.0.1:5184';
 if (!['127.0.0.1', 'localhost'].includes(new URL(origin).hostname)) throw new Error('Serve a local web shell for this probe');
 const output = process.argv[2] ?? '/tmp/lolly-presentation-260/static';
 await mkdir(output, { recursive: true });
-const browser = await chromium.launch({ channel: 'chromium', headless: true });
+const browser = await chromium.launch({ channel: 'chromium', headless: true, args: webGpuLaunchArgs('auto') });
 try {
   const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
   await page.goto(`${origin}/#/tool/design?template=slide-deck&present`);

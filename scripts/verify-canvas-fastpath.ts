@@ -21,6 +21,7 @@ import { existsSync } from 'node:fs';
 import { join, extname } from 'node:path';
 import type { AddressInfo } from 'node:net';
 import { chromium, type Page } from 'playwright-core';
+import { webGpuLaunchArgs } from '../packages/node-shell/src/webgpu-launch.ts';
 import { build } from 'esbuild';
 import type {} from '../shells/web/src/views/canvas-content.ts';
 
@@ -67,7 +68,7 @@ async function main(): Promise<void> {
     loader: { '.css': 'empty' }, external: ['module'], logLevel: 'silent',
   });
   const { base, close } = await serveDist();
-  const browser = await chromium.launch({ channel: 'chrome', headless: true });
+  const browser = await chromium.launch({ channel: 'chrome', headless: true, args: webGpuLaunchArgs('auto') });
 
   const url = (boxes: unknown, fast: boolean) => `${base}/${fast ? '' : '?canvasfastpath=0'}#/tool/design?boxes=${encodeURIComponent(JSON.stringify(boxes))}`;
   const styles = (pg: Page) => pg.evaluate(() => {

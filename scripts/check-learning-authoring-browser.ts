@@ -2,6 +2,7 @@
 /** Exercise the lesson canvas and quiz resume in a real exported static package. */
 import assert from 'node:assert/strict';
 import { chromium, webkit } from 'playwright';
+import { webGpuLaunchArgs } from '../packages/node-shell/src/webgpu-launch.ts';
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
@@ -17,6 +18,7 @@ await mkdir(output, { recursive: true });
 const profile = await mkdtemp(join(tmpdir(), 'lolly-authoring-'));
 const browser = await engine.launchPersistentContext(profile, {
   headless: true,
+  args: engine === chromium ? webGpuLaunchArgs('software') : [],
   viewport: { width: 1440, height: 1080 },
   acceptDownloads: true,
   hasTouch: true,

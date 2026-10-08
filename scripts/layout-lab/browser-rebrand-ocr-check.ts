@@ -3,11 +3,12 @@
 import assert from 'node:assert/strict';
 import { writeFileSync } from 'node:fs';
 import { chromium } from 'playwright';
+import { webGpuLaunchArgs } from '../../packages/node-shell/src/webgpu-launch.ts';
 
 const file = process.argv[2];
 if (!file) throw new Error('Pass the Lolly_Strategic_Vision.pptx corpus file.');
 const base = process.argv[3] ?? 'http://127.0.0.1:5175';
-const browser = await chromium.launch({ headless: true });
+const browser = await chromium.launch({ headless: true, args: webGpuLaunchArgs('software') });
 const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
 const errors: string[] = [];
 const external: string[] = [];
