@@ -7442,6 +7442,8 @@
   "Commenter": "コメント可",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "閲覧者は開いてコピーできます。コメント可のメンバーはコメントもできます。編集者は変更を保存できます。マネージャーはメンバーの追加もできます。",
   "Asks to comment": "コメントをリクエスト",
+  "Search all {n}": "{n}件すべてを検索",
+  "Search all {facet} options": "{facet}のすべての選択肢を検索",
   "Copy to my projects": "自分のプロジェクトにコピー",
   "Add to a folder…": "フォルダに追加…",
   "Remove shortcut": "ショートカットを削除",

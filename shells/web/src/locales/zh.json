@@ -7442,6 +7442,8 @@
   "Commenter": "评论者",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "查看者可以打开和复制。评论者还可以评论。编辑者可以保存更改。管理员还可以添加成员。",
   "Asks to comment": "申请评论",
+  "Search all {n}": "搜索全部 {n} 项",
+  "Search all {facet} options": "搜索所有{facet}选项",
   "Copy to my projects": "复制到我的项目",
   "Add to a folder…": "添加到文件夹…",
   "Remove shortcut": "移除快捷方式",

@@ -939,6 +939,8 @@
   "Commenter": "Kommentator",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "Läsare öppnar och kopierar. Kommentatorer kommenterar också. Redaktörer sparar ändringar. Förvaltare lägger också till personer.",
   "Asks to comment": "Ber om att få kommentera",
+  "Search all {n}": "Sök bland alla {n}",
+  "Search all {facet} options": "Sök bland alla alternativ för {facet}",
   "Copy to my projects": "Kopiera till mina projekt",
   "Add to a folder…": "Lägg till i en mapp…",
   "Remove shortcut": "Ta bort genväg",

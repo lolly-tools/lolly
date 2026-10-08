@@ -7442,6 +7442,8 @@
   "Commenter": "Người nhận xét",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "Người xem có thể mở và sao chép. Người nhận xét còn có thể nhận xét. Biên tập viên lưu được thay đổi. Quản lý còn thêm được người.",
   "Asks to comment": "Xin quyền nhận xét",
+  "Search all {n}": "Tìm trong tất cả {n}",
+  "Search all {facet} options": "Tìm trong tất cả tùy chọn {facet}",
   "Copy to my projects": "Sao chép vào dự án của tôi",
   "Add to a folder…": "Thêm vào thư mục…",
   "Remove shortcut": "Xóa lối tắt",

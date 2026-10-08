@@ -1077,6 +1077,8 @@
   "Commenter": "Коментатор",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "Наблюдателите отварят и копират. Коментаторите също коментират. Редакторите запазват промените. Мениджърите също добавят хора.",
   "Asks to comment": "Моли да коментира",
+  "Search all {n}": "Търсене във всички {n}",
+  "Search all {facet} options": "Търсене във всички опции за {facet}",
   "Copy to my projects": "Копирай в моите проекти",
   "Add to a folder…": "Добави в папка…",
   "Remove shortcut": "Премахни пряката връзка",

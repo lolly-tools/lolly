@@ -940,6 +940,8 @@
   "Commenter": "Komentující",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "Čtenáři otevírají a kopírují. Komentující navíc komentují. Editoři ukládají změny. Správci navíc přidávají lidi.",
   "Asks to comment": "Žádá o možnost komentovat",
+  "Search all {n}": "Hledat ve všech {n}",
+  "Search all {facet} options": "Hledat ve všech možnostech: {facet}",
   "Copy to my projects": "Kopírovat do mých projektů",
   "Add to a folder…": "Přidat do složky…",
   "Remove shortcut": "Odebrat zástupce",

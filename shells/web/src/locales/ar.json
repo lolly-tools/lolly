@@ -7442,6 +7442,8 @@
   "Commenter": "المعلّق",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "يفتح المشاهدون المشروع وينسخونه. ويعلّق المعلّقون أيضًا. ويحفظ المحررون التغييرات. ويضيف المديرون الأشخاص أيضًا.",
   "Asks to comment": "يطلب التعليق",
+  "Search all {n}": "بحث في كل {n}",
+  "Search all {facet} options": "البحث في كل خيارات {facet}",
   "Copy to my projects": "نسخ إلى مشاريعي",
   "Add to a folder…": "إضافة إلى مجلد…",
   "Remove shortcut": "إزالة الاختصار",

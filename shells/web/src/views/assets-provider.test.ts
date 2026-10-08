@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
-import { providerBrowserHtml, providerFacets, providerGroups, withProviderFacet } from './assets-provider.ts';
+import { FACET_OPTION_LIMIT, findFacetOption, providerBrowserHtml, providerFacets, providerGroups, shownFacetOptions, withProviderFacet } from './assets-provider.ts';
 import { buildSearchHaystack, matchesQuery, parseCatQuery, withCatalogFacet } from './assets-filter.ts';
 
 const asset = (id: string, meta: Record<string, unknown> = {}): AssetRef => ({ source: 'library', id, type: 'raster', format: 'png', url: '', meta });
@@ -74,4 +74,25 @@ test('browser markup escapes provider names and offers all tags, with no panel f
   assert.ok(html.includes('data-provider-facet="tag"'));
   assert.ok(html.includes('aria-pressed="true"'));
   assert.equal(providerBrowserHtml([asset('pack')], ''), '');
+});
+
+test('a DAM with thousands of tags lists its most-used values and a field that finds the rest', () => {
+  const many = Array.from({ length: 1500 }, (_, i) => asset(`ext/bf/a${i}`, {
+    provider: 'bf', providerLabel: 'Brandfolder', providerSections: ['Photos'],
+    providerTags: [`tag ${String(i).padStart(4, '0')}`, ...(i % 3 === 0 ? ['popular'] : [])],
+  }));
+  const shown = shownFacetOptions(providerFacets(many).tag);
+  assert.equal(shown.length, FACET_OPTION_LIMIT);
+  assert.ok(shown.some(option => option.name === 'popular'), 'the most-used value is kept');
+  assert.deepEqual(shown.map(o => o.name), [...shown.map(o => o.name)].sort((a, b) => a.localeCompare(b)), 'shown by name');
+  const html = providerBrowserHtml(many, '');
+  const tagSelect = html.slice(html.indexOf('data-provider-facet="tag"'));
+  assert.ok((tagSelect.match(/<option /g) ?? []).length <= FACET_OPTION_LIMIT + 1, 'one option per shown value plus All');
+  assert.match(html, /data-provider-find="tag"/);
+  assert.doesNotMatch(html, /data-provider-find="source"/, 'a short list needs no search field');
+  assert.equal(findFacetOption(many, 'tag', 'TAG 1234')?.name, 'tag 1234', 'an exact value, ignoring case');
+  assert.equal(findFacetOption(many, 'tag', 'popul')?.name, 'popular', 'else the most used value containing the text');
+  assert.equal(findFacetOption(many, 'tag', 'no such thing'), null);
+  const chosen = providerBrowserHtml(many, withCatalogFacet('', 'tag', 'tag 1499'));
+  assert.match(chosen, /<option value="tag 1499" selected>/, 'a chosen value outside the shown ones still reads as selected');
 });

@@ -947,6 +947,8 @@
   "Commenter": "留言者",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "檢視者可以開啟和複製。留言者還可以留言。編輯者可以儲存變更。管理者還可以加入成員。",
   "Asks to comment": "申請留言",
+  "Search all {n}": "搜尋全部 {n} 項",
+  "Search all {facet} options": "搜尋所有{facet}選項",
   "Copy to my projects": "複製到我的專案",
   "Add to a folder…": "新增到資料夾…",
   "Remove shortcut": "移除捷徑",
