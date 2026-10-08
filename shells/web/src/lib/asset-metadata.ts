@@ -35,6 +35,24 @@ const PDF_CAP = 32 * 1024 * 1024;           // skip the string scan above this
 const AV_CAP = 150 * 1024 * 1024;           // refuse mediabunny/AudioContext above this
 const AUDIOCTX_CAP = 40 * 1024 * 1024;      // decodeAudioData fallback ceiling
 
+/** At or above this size, an original that is not on this device is described
+ *  from what is recorded about it rather than downloaded. */
+export const LARGE_ORIGINAL_BYTES = 12_000_000;
+
+/**
+ * Whether the details sheet leaves this asset's original unread: one of
+ * {@link LARGE_ORIGINAL_BYTES} or more, or a provider original of unknown size,
+ * shows its recorded facts and a manual credential check instead. An upload
+ * never does. Its bytes are already on this device, so reading them downloads
+ * nothing, and since plan 302 every upload carries its true size, which would
+ * otherwise turn the automatic checks off for every large upload.
+ */
+export function leavesOriginalUnread(ref: Pick<AssetRef, 'source' | 'meta'>): boolean {
+  if (ref.source === 'user') return false;
+  const size = Number(ref.meta?.bytes ?? ref.meta?.size ?? 0);
+  return size >= LARGE_ORIGINAL_BYTES || (!!ref.meta?.provider && !size);
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Public entry point
 // ─────────────────────────────────────────────────────────────────────────────
@@ -53,7 +71,8 @@ export async function extractAssetMetadata(ref: AssetRef): Promise<MetaField[]> 
   let size: number | null = metaBytes(ref);
 
   try {
-    if ((size !== null && size >= 12_000_000) || (ref.meta?.provider && size === null)) {
+    // An upload is read whatever its size: its bytes are on this device.
+    if (ref.source !== 'user' && ((size !== null && size >= LARGE_ORIGINAL_BYTES) || (ref.meta?.provider && size === null))) {
       const width = ref.width ?? ref.meta?.width, height = ref.height ?? ref.meta?.height;
       if (width && height) push(t('Dimensions'), `${width} × ${height}`);
       const duration = metaDurationSec(ref);

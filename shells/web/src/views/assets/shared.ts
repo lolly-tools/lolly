@@ -4,7 +4,7 @@
  * constants and pure helpers that used to sit above mountCatalog(). Moved here verbatim so
  * no feature module has to import the orchestrator file. The asset catalog view.
  */
-import type { TypeFilter } from '../assets-filter.ts';
+import { catalogAddedAt, type TypeFilter } from '../assets-filter.ts';
 import { t } from '../../i18n.ts';
 import { mountZoomHud } from '../../components/zoom-hud.ts';
 import type { TextSignalPanel } from '../valid-text.ts';
@@ -338,15 +338,15 @@ export const stripC2paManifest = (svg: string): string =>
     .replace(/<c2pa:manifest>[\s\S]*?<\/c2pa:manifest>/g, '');
 export const isVector = (ref: AssetRef): boolean => ref.type === 'vector';
 // The date a CATALOG asset's file was first added to its brand pack, as the index
-// carries it (`added`, YYYY-MM-DD, stamped by pnpm run build:catalog). Read at noon
-// UTC so a reader west of UTC is not shown the day before. Empty string when the
-// asset has no date, which is every upload - those carry a millisecond stamp
-// instead and go through assetAddedAt.
+// carries it (`added`, YYYY-MM-DD, stamped by pnpm run build:catalog), read through
+// catalogAddedAt (noon UTC) so this text and the Date added sort agree. Empty
+// string when the asset has no date, which is every upload - those carry a
+// millisecond stamp instead and go through assetAddedAt.
 export const catalogAddedText = (ref: AssetRef): string => {
   const iso = typeof ref.meta?.added === 'string' ? ref.meta.added : '';
   if (!iso) return '';
-  const d = new Date(`${iso}T12:00:00Z`);
-  return Number.isNaN(d.getTime()) ? iso : d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+  const at = catalogAddedAt(ref);
+  return at === null ? iso : new Date(at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 };
 // A safe, readable download filename from an asset's name (or id), + extension.
 export function downloadName(ref: AssetRef, ext: string): string {

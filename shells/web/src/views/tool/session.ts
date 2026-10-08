@@ -69,7 +69,7 @@ const lazyEmojiControl: EmojiControlMount = (container, opts) => {
 };
 import type { MotionCaptureOpts } from './shared.ts';
 import { bindOp, type ToolViewCtx } from './context.ts';
-import { discardUnsavedWork, leftEntryHref, localDocument, rewriteLeftEntry, syncEntryMark } from '../tool-leave.ts';
+import { discardUnsavedWork, leftEntryHref, localDocument, recordedClipBytes, rewriteLeftEntry, syncEntryMark } from '../tool-leave.ts';
 import { unfileSession } from '../tool-revision-history.ts';
 import { historySettled } from '../../lib/overlay-back.ts';
 import { isIframeMode } from '../../lib/iframe-mode.ts';
@@ -259,13 +259,10 @@ export function backPillIntercept(tview: ToolViewCtx, go: () => void): boolean {
   if (!hasInputs || !tview.userHasMadeChanges || tview.exportedSinceEdit) return false;
   // Offer "Save & leave" only when the tool actually has a save action.
   const canSave = !!actionsEl?.querySelector('[data-action="save"]') && !!actionsApi?.save;
-  // If the session carries heavy embedded bytes (a recorded clip stamps meta.bytes),
-  // tell the user how big the save is - the recording is what makes a Record session
-  // large, and it's stored on-device.
-  const heavy = runtime
-    .getModel()
-    .map((i) => (i.value as { meta?: { bytes?: number } } | undefined)?.meta?.bytes)
-    .find((b): b is number => typeof b === 'number' && b > 0);
+  // If the session holds a recorded video take, tell the user how big the save is -
+  // the recording is what makes a Record session large, and it's stored on-device.
+  // Keyed on the take itself: an upload carries meta.bytes too.
+  const heavy = recordedClipBytes(runtime.getModel().map((i) => i.value));
   const detail = heavy
     ? (isTauriShell() ? t('Includes a {size} video clip, stored on this device.', { size: fmtBytes(heavy) }) : t('Includes a {size} video clip, stored in this browser.', { size: fmtBytes(heavy) }))
     : historyKeepsEdits(tview);
