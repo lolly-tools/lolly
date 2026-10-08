@@ -3,6 +3,12 @@ name: Linux RPM
 
 on:
   workflow_dispatch:
+    inputs:
+      webgpu_qualification:
+        description: WebGPU qualification build (plan 295 P0b) - skips the release gate, unsigned, marked not for release
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -24,6 +30,10 @@ jobs:
       LOLLY_PROFILE: lolly-start
       LOLLY_EMBED_CATALOG: profile
       ONNXRUNTIME_NODE_INSTALL_CUDA: skip
+      # A WebGPU qualification build (plan 295 P0b) only on a manual dispatch that asks for
+      # one: scripts/build-release-web.ts then skips the release gate, signs nothing and
+      # marks the frontend, and the step before upload marks the packages not for release.
+      LOLLY_WEBGPU_QUALIFICATION_BUILD: ${{ github.event_name == 'workflow_dispatch' && inputs.webgpu_qualification && '1' || '' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
@@ -51,8 +61,13 @@ jobs:
         run: shells/tauri-desktop/rpm/make-sources.sh --skip-frontend
       - name: Build and verify RPM in its distribution container
         run: shells/tauri-desktop/release/build-rpm.sh "${{ matrix.target }}"
+      - name: Mark a WebGPU qualification build as not for release
+        if: env.LOLLY_WEBGPU_QUALIFICATION_BUILD == '1'
+        run: node scripts/webgpu-qualification.ts mark ~/.cache/lolly-release/artifacts
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: lolly-rpm-${{ matrix.target }}
-          path: ~/.cache/lolly-release/artifacts/*.rpm
+          path: |
+            ~/.cache/lolly-release/artifacts/*.rpm
+            ~/.cache/lolly-release/artifacts/WEBGPU-QUALIFICATION-BUILD-NOT-FOR-RELEASE.txt
           if-no-files-found: error

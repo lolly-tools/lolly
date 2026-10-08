@@ -37,6 +37,7 @@ import { fileURLToPath } from 'node:url';
 
 import { contentRoots } from '@lolly-tools/node-shell/content-roots';
 import { assertWebGpuReleaseAllowed } from './webgpu-release-gate.ts';
+import { assertNotQualificationBuild } from './webgpu-qualification.ts';
 
 const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
 export const MANIFEST = join(ROOT, 'deploy', 'yunohost', 'manifest.toml');
@@ -170,7 +171,9 @@ export function parseArgs(argv: string[]): Args {
 export async function main(argv = process.argv.slice(2)): Promise<void> {
   const args = parseArgs(argv);
   // A YunoHost tarball is a release: it may not ship the WebGPU startup requirement
-  // before the supported-environment table is published (plan 295 P0b).
+  // before the supported-environment table is published (plan 295 P0b), and it is
+  // never built from a WebGPU qualification build.
+  assertNotQualificationBuild(process.env, 'the YunoHost release');
   assertWebGpuReleaseAllowed();
   const version = args.version ?? upstreamVersion();
   const profile = activeProfile();

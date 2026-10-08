@@ -180,7 +180,13 @@ in place during this first migration slice. CLI inspection and ordinary engine
 operations do not acquire a graphics device. Embedded webviews and physical
 devices need separate qualification, and `pnpm run check:release` refuses a
 release until `docs/supported-environments.md` publishes a result for each
-required environment.
+required environment. The signed frontend builds refuse too
+(`scripts/build-release-web.ts`, used by the web image, Vercel and every Tauri
+package), so neither the public web image nor a package can be built from main
+before then. To qualify the packaged webviews, dispatch a packaging workflow with
+`webgpu_qualification` (or set `LOLLY_WEBGPU_QUALIFICATION_BUILD=1` for a Tauri
+frontend build): the build skips the gate, signs nothing, and is marked not for
+release, and the release tools refuse such a build (`scripts/webgpu-qualification.ts`).
 
 `pnpm run test:webgpu` runs required browser conformance against the Rust/WASM
 and TypeScript references. See the [pixel kernel guide](packages/node-shell/wasm/pixel-kernel/README.md)
