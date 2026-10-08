@@ -244,7 +244,7 @@ html[data-a11y-motion="reduce"] .collab-tile-dot { animation: none; }
   z-index: 40;
 }
 .collab-comments-open--docked {
-  position: static;
+  position: relative;
   flex: none;
   min-height: var(--chrome-h);
 }
@@ -293,7 +293,9 @@ body:has(.tool-stage[data-design-layout="compact"] .collab-comments-panel:not([h
 .collab-comments-panel.is-floating { inset: auto; max-width: none; }
 .collab-comments-panel.is-edge-docked { position: relative; inset: auto; width: 100%; height: 100%; min-height: 0; max-width: none; border-radius: 0; box-shadow: none; }
 .collab-comments-panel:is(.is-edge-docked, :not(.is-floating)) > .panel-grip { display: none; }
-.collab-comment-thread-tools { display: flex; gap: var(--sp-1); margin-inline-start: auto; }
+.collab-comment-thread-tools { display: flex; flex-wrap: wrap; gap: var(--sp-1); padding: var(--sp-1); border-radius: var(--radius-round); background: var(--ui-color-surface-muted); align-self: start; }
+.collab-comment-thread-tools[hidden], .collab-comment-thread-tools button[hidden], .collab-comment-filter-bar[hidden], .collab-comment-mark-read[hidden] { display: none; }
+.collab-comment-resolve { display: contents; }
 .collab-comment-actions { display: flex; gap: var(--sp-1); padding: var(--sp-1); border-radius: var(--radius-round); background: var(--ui-color-surface-muted); align-self: start; }
 .collab-comment-icon { flex: none; display: inline-grid; place-items: center; width: var(--ui-size-target); height: var(--ui-size-target); min-width: var(--ui-size-target); padding: 0; border-radius: var(--radius-round); }
 .collab-comment-icon svg { width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); pointer-events: none; }
@@ -306,7 +308,7 @@ body:has(.tool-stage[data-design-layout="compact"] .collab-comments-panel:not([h
 .collab-comment-message { position: relative; flex: none; display: flex; align-items: start; gap: var(--sp-2); font-size: var(--fs-sm); }
 .collab-comment-message[data-own="true"] { flex-direction: row-reverse; }
 .collab-comment-avatar { flex: none; display: inline-grid; place-items: center; width: calc(30px * var(--a11y-fs)); height: calc(30px * var(--a11y-fs)); border-radius: var(--radius-round); font-size: var(--fs-xs); font-weight: 700; }
-.collab-comment-bubble { min-width: 0; max-width: calc(100% - 38px); padding: var(--sp-3); border-radius: var(--ui-radius-surface); border-start-start-radius: var(--sp-1); border-inline-start: 2px solid var(--comment-person-color); }
+.collab-comment-bubble { min-width: 0; max-width: calc(100% - 38px); padding: var(--sp-3); border-radius: var(--ui-radius-surface); border-start-start-radius: var(--sp-1); border: 1px solid var(--comment-person-color); }
 .collab-comment-message[data-own="true"] .collab-comment-bubble { border-start-start-radius: var(--ui-radius-surface); border-start-end-radius: var(--sp-1); }
 .collab-comment-meta { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-2); }
 .collab-comment-meta strong { min-width: 0; overflow-wrap: anywhere; }
@@ -315,7 +317,7 @@ body:has(.tool-stage[data-design-layout="compact"] .collab-comments-panel:not([h
 .collab-comment-message-tools { position: absolute; inset-block-start: 0; inset-inline-end: var(--sp-2); display: flex; gap: var(--sp-1); opacity: 0; border-radius: var(--radius-round); background: var(--ui-color-surface-raised); box-shadow: var(--ui-edge-faint), var(--ui-elevation-sheet); }
 .collab-comment-message:is(:hover, :focus-within) .collab-comment-message-tools { opacity: 1; }
 @media (hover: none) { .collab-comment-message-tools { position: static; opacity: 1; flex-direction: column; } }
-.collab-comment-composer { order: 5; display: flex; flex: none; align-items: end; gap: var(--sp-2); padding-block-start: var(--sp-2); border-block-start: 1px solid var(--ui-color-border-default); font-size: var(--fs-sm); }
+.collab-comment-composer { order: 5; position: relative; display: flex; flex: none; align-items: end; gap: var(--sp-2); padding-block-start: var(--sp-2); border-block-start: 1px solid var(--ui-color-border-default); font-size: var(--fs-sm); }
 .collab-comment-composer[hidden] { display: none; }
 .collab-comment-input-label { flex: 1; min-width: 0; }
 .collab-comments-panel > [role="status"] { margin: 0; font-size: var(--fs-xs); color: var(--ui-color-text-muted); }
@@ -324,6 +326,7 @@ body:has(.tool-stage[data-design-layout="compact"] .collab-comments-panel:not([h
 .collab-comment-messages p { white-space: pre-wrap; overflow-wrap: anywhere; }
 .collab-comment-composer textarea { display: block; box-sizing: border-box; width: 100%; }
 .collab-comment-pins { position: absolute; inset: 0; pointer-events: none; z-index: 40; }
+.collab-comment-pins[hidden] { display: none; }
 .collab-comment-pin {
   border:0;
   display: grid;
@@ -338,3 +341,54 @@ body:has(.tool-stage[data-design-layout="compact"] .collab-comments-panel:not([h
   color: var(--ui-color-action-on-primary);
 }
 .collab-comment-pin::after { content: attr(data-number); position: absolute; inset-block-start: calc(-1 * var(--sp-1)); inset-inline-end: calc(-1 * var(--sp-1)); background: inherit; color: inherit; border-radius: var(--radius-round); padding-inline: var(--sp-1); font-size: var(--fs-xs); font-weight: 700; }
+/* Resolved pins appear only under the Resolved filter, dimmed; a deleted object's pin stays muted where it stood. */
+.collab-comment-pin.is-resolved { opacity: .55; }
+.collab-comment-pin.is-missing { background: var(--ui-color-surface-muted); color: var(--ui-color-text-muted); border: 1px dashed currentColor; }
+.collab-comments-badge {
+  position: absolute;
+  inset-block-start: calc(-1 * var(--sp-1));
+  inset-inline-end: calc(-1 * var(--sp-1));
+  min-width: calc(18px * var(--a11y-fs));
+  padding-inline: var(--sp-1);
+  border-radius: var(--radius-round);
+  background: var(--ui-color-action-primary);
+  color: var(--ui-color-action-on-primary);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  line-height: calc(18px * var(--a11y-fs));
+  text-align: center;
+  pointer-events: none;
+}
+.collab-comment-filter-bar { display: grid; gap: var(--sp-2); flex: none; }
+.collab-comment-filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); gap: var(--sp-1); padding: var(--sp-1); border-radius: var(--ui-radius-control); background: var(--ui-color-surface-muted); }
+.collab-comment-filter { min-height: var(--ui-size-target); padding: var(--sp-1) var(--sp-2); border: 0; border-radius: var(--ui-radius-control); background: transparent; color: var(--ui-color-text-default); font: inherit; font-size: var(--fs-sm); text-align: center; cursor: pointer; }
+.collab-comment-filter[hidden] { display: none; }
+.collab-comment-filter[aria-checked="true"] { background: var(--ui-color-surface-raised); box-shadow: var(--ui-edge-faint); font-weight: 600; }
+.collab-comment-filter:focus-visible { outline: 2px solid var(--ui-color-action-primary); outline-offset: 1px; }
+.collab-comment-mark-read { justify-self: end; }
+.collab-comment-unread { flex: none; align-self: center; width: calc(8px * var(--a11y-fs)); height: calc(8px * var(--a11y-fs)); margin-inline-start: auto; border-radius: var(--radius-round); background: var(--ui-color-action-primary); }
+.collab-comment-thread[data-unread="true"] .collab-comment-preview > strong { font-weight: 800; }
+.collab-comment-link { flex: none; width: 100%; box-sizing: border-box; font-size: var(--fs-sm); }
+.collab-comment-link[hidden] { display: none; }
+.collab-comment-mention { font-weight: 700; }
+.collab-comment-mentions {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 100%;
+  z-index: 1;
+  margin-block-end: var(--sp-1);
+  max-height: 14rem;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: var(--sp-1);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-color-surface-raised);
+  box-shadow: var(--ui-edge-faint), var(--ui-elevation-sheet);
+}
+.collab-comment-bubble .collab-comment-mentions { position: static; margin-block: var(--sp-2) 0; }
+.collab-comment-mentions[hidden] { display: none; }
+.collab-comment-mentions [role="listbox"] { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.collab-comment-mentions [role="option"] { padding: var(--sp-1) var(--sp-2); border-radius: var(--ui-radius-control); cursor: pointer; overflow-wrap: anywhere; }
+.collab-comment-mentions [role="option"][aria-selected="true"] { background: var(--ui-color-selection-surface); box-shadow: var(--ui-effect-accent-ring); }
+.collab-comment-mention-note { margin: var(--sp-1) var(--sp-2); color: var(--ui-color-text-muted); font-size: var(--fs-xs); }
+.collab-comment-mention-note:empty { display: none; }

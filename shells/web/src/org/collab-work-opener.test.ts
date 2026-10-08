@@ -619,3 +619,41 @@ test('the room is live in this tab until its handle closes', async () => {
   await openWorkCollab({ toolId: 'qr-code', baseParts: [], sessionId: 'ses_2' }, dead.deps);
   assert.equal(teamSessionLive('ses_2'), false, 'a handle that closed before the watch is never live');
 });
+
+test('the real wiring hands the room\'s comment events to the comments capability', async () => {
+  reset();
+  router = (url) => {
+    if (url.includes('/api/auth/config')) return json({ mode: 'open', provider: 'oidc', loginPath: '/login' });
+    if (url.includes('/api/auth/session')) return json({ kind: 'member', user: { sub: 'u1', groups: ['eng'] } });
+    if (url.includes('/api/v1/org-config')) return json({ instance: { name: 'Acme' }, can: { 'collab.join': true } });
+    return new Response('', { status: 404 });
+  };
+  await initOrg();
+  const { registerWorkCollabFactory } = await import('./collab-provider.ts');
+  const p = fakeProvider('live');
+  let push: (event: { threadId: string; revision: number }) => void = () => {};
+  const provider = { ...p.handle, reviewEvents: { subscribe(fn: typeof push) { push = fn; return () => { push = () => {}; }; } } };
+  const off = registerWorkCollabFactory(() => provider as unknown as ReturnType<WorkCollabWiring['makeProvider']>);
+  const delivered: Array<{ handle?: { comments?: import('../lib/canvas-comments.ts').CanvasCommentsCapability; close?: () => void } }> = [];
+  try {
+    const out = await openWorkCollab({ toolId: 'qr-code', baseParts: [], sessionId: 'ses_1' }, {
+      canEdit: () => true, canJoin: () => true,
+      deliver: (conn) => { delivered.push(conn as unknown as (typeof delivered)[number]); return true; },
+      setTimer: () => 1, clearTimer: () => {},
+    });
+    assert.deepEqual(out, { ok: true });
+    const comments = delivered[0]?.handle?.comments;
+    assert.ok(comments?.changes, 'the capability carries the room\'s events');
+    const heard: unknown[] = [];
+    const stop = comments.changes.subscribe(event => heard.push(event));
+    push({ threadId: 't1', revision: 2 });
+    assert.deepEqual(heard, [{ threadId: 't1', revision: 2 }]);
+    stop();
+    push({ threadId: 't1', revision: 3 });
+    assert.equal(heard.length, 1);
+    delivered[0]?.handle?.close?.();
+  } finally {
+    off();
+    reset();
+  }
+});

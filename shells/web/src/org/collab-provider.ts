@@ -241,8 +241,18 @@ function floorFilter(ops: readonly CanvasOp[]): CanvasOp[] {
   return ok;
 }
 
+/** One saved review write in this room: the thread and its new revision, never its text. */
+export interface WorkCollabReviewEvent { readonly threadId: string; readonly revision: number }
+
 export interface WorkCollabHandle {
   readonly claims?: CanvasClaimCapability;
+  /**
+   * Saved comment writes announced by the gateway (`comment` frames, plan 76 milestone 4),
+   * per provider. org/collab-work-opener.ts hands it to the comments capability as its
+   * `changes`, so the comments panel fetches only the thread that changed. Listeners
+   * are released by `close()`.
+   */
+  readonly reviewEvents?: { subscribe(fn: (event: WorkCollabReviewEvent) => void): () => void };
   recovery?(): { id: string; ops: readonly CanvasOp[] } | undefined;
   recoveries?(): readonly { id: string; ops: readonly CanvasOp[] }[];
   readonly clientId?: string;
@@ -438,6 +448,7 @@ export function createWorkCollabProvider(sessionId: string, opts: WorkCollabOpti
 
   const outbox: Queued[] = [];
   const listeners = new Set<(event: WorkCollabEvent) => void>();
+  const reviewListeners = new Set<(event: WorkCollabReviewEvent) => void>();
 
   let persistChain: Promise<void> = Promise.resolve();
   let dirty = false;
@@ -762,6 +773,13 @@ export function createWorkCollabProvider(sessionId: string, opts: WorkCollabOpti
   // - inbound - 
 
   function handle(frame: ServerFrame): void {
+    // A review event changes no document state, so it never waits behind a recovery save.
+    if (frame.t === 'comment') {
+      for (const fn of [...reviewListeners]) {
+        try { fn({ threadId: frame.threadId, revision: frame.revision }); } catch (e) { console.warn('[lolly:collab] review listener', e); }
+      }
+      return;
+    }
     if (savingRecovery) {
       if (recoveryFrames.length < 500) recoveryFrames.push(frame);
       else sock?.close(COLLAB_CLOSE.PROTOCOL);
@@ -1080,6 +1098,13 @@ export function createWorkCollabProvider(sessionId: string, opts: WorkCollabOpti
     sessionId,
     clientId,
     claims,
+    reviewEvents: {
+      subscribe(fn) {
+        if (ended) return () => {};
+        reviewListeners.add(fn);
+        return () => { reviewListeners.delete(fn); };
+      },
+    },
     recovery: () => recovery,
     recoveries: () => recoveries,
     history: opts.history,
@@ -1113,6 +1138,7 @@ export function createWorkCollabProvider(sessionId: string, opts: WorkCollabOpti
       // Subscribers are released last, after the final state has been delivered - 
       // "close() tears down listeners and timers" is the whole point of this method.
       listeners.clear();
+      reviewListeners.clear();
     },
     state: snapshotState,
     on(listener) {

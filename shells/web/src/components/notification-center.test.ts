@@ -44,3 +44,12 @@ test('failed callback actions stay recoverable in the queue', async () => {
   openNotifications(); click('Try save'); await new Promise(resolve => setTimeout(resolve, 0));
   assert.match(queue().textContent!, /Could not complete this action/); assert.ok(queue().querySelector('button'));
 });
+test('a second action sits beside the first and runs without closing the queue', async () => {
+  let opened = 0, downloaded = 0;
+  publishNotification({ id: 'copy', title: 'Copy saved', action: { label: 'Open copy', run: () => { opened++; } }, secondary: { label: 'Download copy', run: () => { downloaded++; } } });
+  openNotifications(); const card = queue().querySelector('article')!;
+  assert.deepEqual([...card.querySelectorAll('button')].map(node => [node.textContent, node.classList.contains('btn--primary')]),
+    [['Open copy', true], ['Download copy', false], ['Dismiss', false]]);
+  click('Download copy'); await Promise.resolve(); await Promise.resolve();
+  assert.equal(downloaded, 1); assert.equal(opened, 0); assert.ok(queue(), 'the queue stays open');
+});

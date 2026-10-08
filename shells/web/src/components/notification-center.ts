@@ -62,6 +62,13 @@ function row(entry: NotificationEntry, modal: ModalHandle<void>): HTMLElement {
         });
       }); act.classList.add('btn--primary'); actions.append(act);
     }
+    // The second way to act keeps the queue open: it does not lead anywhere.
+    const { secondary } = entry;
+    if (secondary) actions.append(button(secondary.label, () => {
+      void Promise.resolve().then(() => secondary.run()).catch(() => {
+        publishNotification({ id: `action-error:${entry.id}`, title: t('Could not complete this action'), body: t('Try again.'), tone: 'warning', action: secondary });
+      });
+    }));
   }
   if (entry.dismissed || entry.until) actions.append(button(t('Show again'), () => restoreNotification(entry.id)));
   else {
