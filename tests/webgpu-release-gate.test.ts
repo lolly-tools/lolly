@@ -13,9 +13,10 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, relative, resolve } from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { parse as parseYaml } from 'yaml';
 import {
@@ -122,8 +123,12 @@ test('ordinary CI keeps passing release-checklist --check; release mode refuses 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const repoFile = (path: string): string => readFileSync(join(REPO, path), 'utf8');
 const GATE_STEP = 'node scripts/webgpu-release-gate.ts';
-/** Anything that runs the gate, directly or through the signed frontend wrapper. */
-const GATED_BUILD = /webgpu-release-gate|build-release-web|build:(?:web|desktop:frontend|mobile:frontend):release|web\.Dockerfile|check:release(?![-\w])/;
+/**
+ * Anything that runs the gate: the gate itself, the signed frontend wrapper and every
+ * script that reaches it (the shell-level build:frontend:release included), the web
+ * image, the release checklist in release mode, and the release tools that import the gate.
+ */
+const GATED_BUILD = /webgpu-release-gate|build-release-web|build:(?:web|desktop:frontend|mobile:frontend|frontend):release|web\.Dockerfile|check:release(?![-\w])|release-checklist(?:\.ts)?\b[^\n"]*--release|yunohost-release|build-latest-json|scripts\/ship\.ts|run ship\b/;
 
 interface WorkflowStep { name?: string; if?: string; run?: string; uses?: string; with?: Record<string, unknown>; env?: Record<string, unknown> }
 interface WorkflowJob { name?: string; if?: string; needs?: string | string[]; env?: Record<string, unknown>; outputs?: Record<string, string>; steps: WorkflowStep[] }
@@ -161,30 +166,134 @@ test('the deployment workflow gates the web shell image and no other image or th
     assert.ok(!needsOf(job).some((need) => need === 'web-release-gate' || need === 'web-image'), `${id} must not wait for the web image`);
   }
 
-  // The services and the docs are actually built there.
-  const services = jobText(jobs['service-images']!);
-  assert.match(services, /for service in mcp-browser ca penpot; do/);
-  assert.match(services, /deploy\/docker\/\$\{service\}\.Dockerfile/);
+  // The services and the docs are actually built there. CA and Penpot need no web
+  // shell, so only the MCP browser image waits for the probe shell: a failed web
+  // build cannot withhold CA, Penpot or the docs.
+  const services = jobs['service-images']!;
+  assert.match(jobText(services), /for service in ca penpot; do/);
+  assert.match(jobText(services), /deploy\/docker\/\$\{service\}\.Dockerfile/);
+  assert.deepEqual(needsOf(services), ['chart', 'public-vm']);
+  const browser = jobs['mcp-browser-image']!;
+  assert.match(jobText(browser), /-f deploy\/docker\/mcp-browser\.Dockerfile/);
+  assert.deepEqual(needsOf(browser), ['chart', 'public-vm', 'probe-web-shell']);
+  for (const [id, job] of Object.entries(jobs)) {
+    if (id === 'mcp-browser-image') continue;
+    assert.ok(!needsOf(job).includes('probe-web-shell'), `${id} must not wait for the probe web shell`);
+  }
   assert.match(jobText(jobs['info-docs']!), /pnpm run build:info/);
+  assert.deepEqual(needsOf(jobs['info-docs']!), ['chart', 'public-vm']);
   assert.match(jobText(jobs['probe-web-shell']!), /"run":"pnpm run build:web"/);
 });
 
-/** Relative imports a module makes: static, re-exports, dynamic and require, literal specifiers only. */
-function relativeImports(file: string): string[] {
+test('the gate job turns a refusal into allowed=false, a published table into allowed=true, and never fails the run', (t) => {
+  if (spawnSync('bash', ['--version']).status !== 0) { t.skip('bash is not installed'); return; }
+  const step = workflowJobs('deployment-suse.yml')['web-release-gate']!.steps.find((candidate) => candidate.run?.includes(GATE_STEP));
+  assert.ok(step?.run, 'the gate step exists');
+  const script: string = step.run;
+  for (const [table, allowed] of [[undefined, 'false'], [COMPLETE, 'true']] as const) {
+    // A scratch checkout holding the real gate, the shell's WebGPU requirement and,
+    // for the second run, the published table. The step runs the way GitHub runs a bash step.
+    const root = tree(GATED_MAIN, table);
+    try {
+      mkdirSync(join(root, 'scripts'));
+      copyFileSync(join(REPO, 'scripts', 'webgpu-release-gate.ts'), join(root, 'scripts', 'webgpu-release-gate.ts'));
+      writeFileSync(join(root, 'package.json'), '{ "type": "module" }\n');
+      const bin = join(root, 'bin');
+      mkdirSync(bin);
+      symlinkSync(process.execPath, join(bin, 'node'));
+      const output = join(root, 'github-output');
+      const summary = join(root, 'step-summary');
+      writeFileSync(output, '');
+      writeFileSync(summary, '');
+      const result = spawnSync('bash', ['--noprofile', '--norc', '-eo', 'pipefail', '-c', script], {
+        cwd: root,
+        encoding: 'utf8',
+        env: { PATH: `${bin}:${process.env.PATH ?? ''}`, RUNNER_TEMP: root, GITHUB_OUTPUT: output, GITHUB_STEP_SUMMARY: summary },
+      });
+      assert.equal(result.status, 0, `the gate step must not fail the run: ${result.stderr}`);
+      assert.equal(readFileSync(output, 'utf8'), `allowed=${allowed}\n`);
+      assert.match(readFileSync(summary, 'utf8'), new RegExp(`web shell image allowed=${allowed}`));
+      if (allowed === 'false') {
+        assert.match(result.stdout, /::warning title=Web shell image withheld::/);
+        assert.match(readFileSync(summary, 'utf8'), /Release refused/);
+      } else {
+        assert.doesNotMatch(result.stdout, /::warning/);
+      }
+    } finally { rmSync(root, { recursive: true, force: true }); }
+  }
+});
+
+/** The workspace packages by name, each with its directory and the exports its specifiers resolve through. */
+const WORKSPACE_PACKAGES: ReadonlyMap<string, { dir: string; exports: Record<string, unknown> }> = (() => {
+  const { packages } = parseYaml(repoFile('pnpm-workspace.yaml')) as { packages: string[] };
+  const found = new Map<string, { dir: string; exports: Record<string, unknown> }>();
+  for (const dir of packages) {
+    const manifest = JSON.parse(repoFile(`${dir}/package.json`)) as { name: string; exports?: unknown; main?: string };
+    const exports = typeof manifest.exports === 'string' ? { '.': manifest.exports }
+      : manifest.exports && typeof manifest.exports === 'object' ? manifest.exports as Record<string, unknown>
+      : manifest.main ? { '.': `./${manifest.main.replace(/^\.\//, '')}` } : {};
+    found.set(manifest.name, { dir: join(REPO, dir), exports });
+  }
+  return found;
+})();
+
+/** An exports entry's file: a string, or the node/import/default condition of an object. */
+function exportTarget(value: unknown): string | undefined {
+  if (typeof value === 'string') return value;
+  if (!value || typeof value !== 'object') return undefined;
+  for (const condition of ['node', 'import', 'default']) {
+    const target = exportTarget((value as Record<string, unknown>)[condition]);
+    if (target) return target;
+  }
+  return undefined;
+}
+
+/** The file a workspace specifier (`@lolly/engine`, `@lolly-tools/core/host-v1`) names, through its package's exports. */
+function workspaceFile(specifier: string): string {
+  const match = /^(@[^/]+\/[^/]+)(\/.+)?$/.exec(specifier);
+  const pkg = match ? WORKSPACE_PACKAGES.get(match[1]!) : undefined;
+  assert.ok(match && pkg, `${specifier} is not a workspace package`);
+  const key = `.${match[2] ?? ''}`;
+  let target = exportTarget(pkg.exports[key]);
+  for (const [pattern, value] of Object.entries(pkg.exports)) {
+    if (target) break;
+    const star = pattern.indexOf('*');
+    if (star < 0) continue;
+    const head = pattern.slice(0, star);
+    const tail = pattern.slice(star + 1);
+    if (!key.startsWith(head) || !key.endsWith(tail) || key.length < head.length + tail.length) continue;
+    target = exportTarget(value)?.replace('*', key.slice(head.length, key.length - tail.length));
+  }
+  // A specifier the walk cannot follow would hide every module past that point, so the walk fails here.
+  assert.ok(target, `${specifier} resolves to no file through ${match[1]}'s exports`);
+  return join(pkg.dir, target);
+}
+
+const importCache = new Map<string, string[]>();
+
+/**
+ * First-party modules a module imports: relative specifiers and workspace packages
+ * (`@lolly/*`, `@lolly-tools/*`), static, re-exports, dynamic and require, literal
+ * specifiers only.
+ */
+function firstPartyImports(file: string): string[] {
+  const cached = importCache.get(file);
+  if (cached) return cached;
   const text = readFileSync(file, 'utf8');
   const specifiers = new Set<string>();
-  for (const match of text.matchAll(/(?:\bfrom\s*|\bimport\s*\(\s*|\bimport\s+|\brequire\s*\(\s*)['"](\.{1,2}\/[^'"]+)['"]/g)) specifiers.add(match[1]!);
+  for (const match of text.matchAll(/(?:\bfrom\s*|\bimport\s*\(\s*|\bimport\s+|\brequire\s*\(\s*)['"]((?:\.{1,2}|@lolly(?:-tools)?)\/[^'"]+)['"]/g)) specifiers.add(match[1]!);
   const resolved: string[] = [];
   for (const specifier of specifiers) {
-    const base = resolve(dirname(file), specifier);
+    const base = specifier.startsWith('.') ? resolve(dirname(file), specifier) : workspaceFile(specifier);
     const found = [base, `${base}.ts`, `${base}.mjs`, `${base}.js`, join(base, 'index.ts')]
       .find((candidate) => existsSync(candidate) && statSync(candidate).isFile());
     if (found && /\.(?:ts|mjs|js)$/.test(found)) resolved.push(found);
   }
+  importCache.set(file, resolved);
   return resolved;
 }
 
-/** Every first-party module an entry point reaches through relative imports. */
+/** Every first-party module an entry point reaches through relative and workspace imports. */
 function reachable(entry: string): Set<string> {
   const seen = new Set<string>();
   const queue = [join(REPO, entry)];
@@ -192,7 +301,7 @@ function reachable(entry: string): Set<string> {
     const file = queue.pop()!;
     if (seen.has(file) || file.includes('/node_modules/')) continue;
     seen.add(file);
-    queue.push(...relativeImports(file));
+    queue.push(...firstPartyImports(file));
   }
   return new Set([...seen].map((file) => relative(REPO, file)));
 }
@@ -201,6 +310,7 @@ function reachable(entry: string): Set<string> {
 const GATE_IMPORTERS = [
   'scripts/build-release-web.ts',
   'scripts/release-checklist.ts',
+  'scripts/ship.ts',
   'scripts/yunohost-release.ts',
   'shells/tauri-desktop/release/build-latest-json.ts',
 ];
@@ -219,7 +329,7 @@ test('only the web shell and app release tools import the gate', () => {
   const gate = join(REPO, 'scripts', 'webgpu-release-gate.ts');
   const importers = ['scripts', 'shells/tauri-desktop/release', 'shells/tauri-mobile', 'services', 'docs', 'packages', 'deploy']
     .flatMap(sourceFiles)
-    .filter((path) => relativeImports(join(REPO, path)).includes(gate))
+    .filter((path) => firstPartyImports(join(REPO, path)).includes(gate))
     .sort();
   assert.deepEqual(importers, [...GATE_IMPORTERS].sort());
 });
@@ -280,4 +390,56 @@ test('the web shell and every Tauri app build still go through the gate', () => 
     assert.match(text, /tauri (?:ios )?build|build:frontend:release/, file);
     assert.doesNotMatch(text, /beforeBuildCommand/, `${file} must not replace the gated beforeBuildCommand`);
   }
+});
+
+/** Every job of every workflow, with its file and the workflow-level env it inherits. */
+function everyWorkflowJob(): { file: string; id: string; job: WorkflowJob; inherited?: Record<string, unknown> }[] {
+  const directory = join(REPO, '.github', 'workflows');
+  return readdirSync(directory).filter((name) => /\.ya?ml$/.test(name)).sort().flatMap((file) => {
+    const workflow = parseYaml(readFileSync(join(directory, file), 'utf8')) as { env?: Record<string, unknown>; jobs?: Record<string, WorkflowJob> };
+    return Object.entries(workflow.jobs ?? {}).map(([id, job]) => ({ file, id, job, inherited: workflow.env }));
+  });
+}
+
+const RELEASE_MODE_ASSIGNMENT = /\bLOLLY_RELEASE_BUILD=['"]?1\b|\bVITE_CATALOG_TRUST_MODE=['"]?verified\b/;
+
+/** Whether a job turns the web shell's release mode on: a release build or the verified catalog trust mode. */
+function setsReleaseMode(job: WorkflowJob, inherited?: Record<string, unknown>): boolean {
+  const steps = job.steps ?? [];
+  const scopes = [inherited, job.env, ...steps.map((step) => step.env)];
+  return scopes.some((scope) => String(scope?.LOLLY_RELEASE_BUILD ?? '') === '1' || String(scope?.VITE_CATALOG_TRUST_MODE ?? '') === 'verified')
+    || steps.some((step) => RELEASE_MODE_ASSIGNMENT.test(step.run ?? ''));
+}
+
+test('every workflow job, Dockerfile and script that turns release mode on asks the gate first', () => {
+  const releaseJobs = everyWorkflowJob().filter(({ job, inherited }) => setsReleaseMode(job, inherited));
+  // CI's verified instance shell is one today. If none were found, this test would check nothing.
+  assert.ok(releaseJobs.some(({ file, id }) => file === 'ci.yml' && id === 'instance-shell'), 'the scan finds the instance shell job');
+  for (const { file, id, job } of releaseJobs) {
+    const steps = job.steps ?? [];
+    const asked = steps.findIndex((step) => step.run?.trim() === GATE_STEP);
+    const built = steps.findIndex((step) => /\bbuild:web\b|\bvite(?:\.js)?\b[^\n]*\bbuild\b|\btauri (?:ios |android )?build\b|docker (?:buildx )?build/.test(step.run ?? ''));
+    const throughWrapper = steps.some((step) => step.run?.trim() !== GATE_STEP && GATED_BUILD.test(step.run ?? ''));
+    assert.ok(throughWrapper || (asked >= 0 && (built < 0 || asked < built)), `${file} ${id} builds in release mode without asking the WebGPU gate first`);
+  }
+  for (const name of readdirSync(join(REPO, 'deploy', 'docker')).filter((file) => file.endsWith('Dockerfile'))) {
+    const text = repoFile(`deploy/docker/${name}`);
+    if (RELEASE_MODE_ASSIGNMENT.test(text)) assert.match(text, GATED_BUILD, `${name} turns release mode on outside the gated wrapper`);
+  }
+  for (const path of ['scripts', 'shells/tauri-desktop/release', 'deploy'].flatMap(sourceFiles)) {
+    if (/\bLOLLY_RELEASE_BUILD['"]?\s*[:=]\s*['"]1['"]/.test(repoFile(path))) {
+      assert.ok(GATE_IMPORTERS.includes(path), `${path} turns release mode on without importing the gate`);
+    }
+  }
+});
+
+test('a ship asks the gate before the test gate and before any driver publishes, even with --no-gate', () => {
+  // Every ship driver publishes the creative web shell (the dormant internal_it driver
+  // runs plain build:web and rsyncs it), so ship() refuses while the table is unpublished.
+  const source = repoFile('scripts/ship.ts');
+  const body = source.slice(source.indexOf('export function ship('));
+  const asked = body.indexOf('    assertWebGpuReleaseAllowed();');
+  assert.ok(asked > 0, 'ship() asks the gate at the top level of its body');
+  assert.ok(asked < body.indexOf('if (opts.runGate)'), 'before the test gate, outside the --no-gate branch');
+  assert.ok(asked < body.indexOf('driver.publish('), 'before any driver publishes');
 });

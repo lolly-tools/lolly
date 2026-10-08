@@ -16,7 +16,9 @@
  * and so do the release tools that publish: scripts/build-release-web.ts (signed web,
  * desktop and mobile frontends, including the web container), scripts/yunohost-release.ts
  * (the YunoHost tarball), shells/tauri-desktop/release/build-latest-json.ts --out (the desktop updater
- * manifests) and the package workflows when a `v*` tag triggers them.
+ * manifests), scripts/ship.ts (every ship driver publishes the web shell) and the package
+ * workflows when a `v*` tag triggers them. CI's `instance-shell` job, which builds a
+ * verified web shell in release mode, runs this check as its first step.
  *
  * Scope (Andy, 2026-10-08: "Gate only the web shell"): the gate covers the web shell and
  * the Tauri apps, which carry the WebGPU requirement. The MCP, CA and Penpot images and the

@@ -97,22 +97,45 @@ separate jobs, because only the web shell requires WebGPU (plan 295):
   the supplied pin, and the job verifies the image catalog against that pin.
   While `docs/supported-environments.md` is unpublished the gate withholds this
   image, the run still succeeds, and a warning says so.
-- **MCP, CA and Penpot images** (`service-images`). They never ask the gate and
-  never wait for the web image. The job boots the restricted service images,
-  checks authentication and unavailable-admission refusal, and requires actual
-  sandboxed Chromium SVG/PNG/PDF exports. Those exports drive the ordinary
-  unsigned web shell built from the same source (`probe-web-shell`), which is
-  kept for one day as the probe's input and never published. The MCP image must
-  carry every tool file that shell carries, byte for byte.
+- **CA and Penpot images** (`service-images`). They never ask the gate and
+  wait for no web shell. The job boots both under their restricted bounds and
+  publishes them.
+- **MCP browser image** (`mcp-browser-image`). It never asks the gate and never
+  waits for the web image. The job checks authentication and
+  unavailable-admission refusal, and requires actual sandboxed Chromium
+  SVG/PNG/PDF exports. Those exports drive the ordinary unsigned web shell built
+  from the same source (`probe-web-shell`), which is kept for one day as the
+  probe's input and never published. The MCP image must carry every tool file
+  that shell carries, with identical bytes. Only this job waits for that shell, so a
+  failed web build cannot withhold CA, Penpot or the docs.
+- **Pairing with the production web shell.** In production the MCP drives the
+  shell at its `webBase`, which stays on an older release while the web image is
+  gated, so a tool or input that is new on main can fail a Tier-B render there.
+  Dispatch with `paired_web_base` (that shell's HTTPS origin) and the MCP job
+  compares its tools with the shell's signed file list
+  (`deploy/docker/web-pairing.ts`). It records tools missing from the shell,
+  tools whose signed files changed and tools only in the shell in
+  `web-pairing.json`, with a warning when any differ. The report never blocks
+  publication, and it compares file lists without verifying the shell's
+  signature.
 - **/info docs** (`info-docs`). The docs site is built from the same source,
   held to its size budget and kept as the `public-info-docs` artifact
   (`info.tar.gz`, `source.json`, `SHA256SUMS`), independent of the web image.
+  Nothing serves that artifact yet: a deployment serves the `/info` baked into
+  its web image until a deploy step serves the artifact instead (for Compose, a
+  read-only bind mount of the extracted archive over `/usr/share/nginx/html/info`
+  would do). That step is an open follow-up.
 
 Each image job publishes source-labelled digests to GHCR and retains small
-receipts (`public-candidate-web-receipts`, `public-candidate-service-receipts`).
-The offline export (`archive_run`) judges each image by the job that qualified
-it, so it can carry the MCP browser image while the web image is withheld; its
-`transport.json` then lists `web` under `withheld`.
+receipts: `public-candidate-web-receipts`, `public-candidate-service-receipts`
+(CA and Penpot) and `public-candidate-mcp-browser-receipts`. They replace the
+single `public-candidate-image-receipts` artifact, and each `release.json` lists
+only its own job's images, so a consumer of the old artifact name or of
+`images.web` beside the service images needs updating. The offline export
+(`archive_run`) judges each exported image by the job that qualified it, so it
+can carry the MCP browser image without the web image. Its `transport.json` then
+lists `web` under `withheld` when the WebGPU gate held the image back, or under
+`notQualified` with the job's conclusion when the web image job itself failed.
 These checks do not replace candidate HTTPS, CA enrollment, proxy peer,
 invited-agent or Kubernetes runtime acceptance. A sandbox startup failure is a
 failed qualification; the workflow does not retry with a bypass.

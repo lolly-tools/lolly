@@ -46,6 +46,7 @@ import { repoRoot } from '../packages/node-shell/src/repo-root.ts';
 import { gate } from './gate.ts';
 import { banner, err, info, ok, phase, rule, site, step, tally, warn } from './lib/log.ts';
 import { type ShipTarget, shipTargetError, shipTargets, shipTeam } from './lib/ship-targets.ts';
+import { assertWebGpuReleaseAllowed } from './webgpu-release-gate.ts';
 
 const ROOT = repoRoot();
 
@@ -467,6 +468,16 @@ export function ship(argv: string[] = process.argv.slice(2)): boolean {
     }
   } catch (error) {
     err(`invalid deployment configuration: ${error instanceof Error ? error.message : String(error)}`);
+    return false;
+  }
+
+  // Every driver here publishes the creative web shell, which requires WebGPU, so
+  // a ship waits for the supported-environment table like any other web shell
+  // release (plan 295 section 1B). --no-gate skips the test gate below, not this.
+  try {
+    assertWebGpuReleaseAllowed();
+  } catch (error) {
+    err(error instanceof Error ? error.message : String(error));
     return false;
   }
 

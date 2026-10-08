@@ -677,6 +677,11 @@ jobs:
         with:
           node-version: '24'
           cache: pnpm
+      # This job builds the creative web shell in release mode, and that shell
+      # requires WebGPU. Plan 295 section 1B gates it on the published
+      # supported-environment table, the same as the web image and the apps.
+      - name: Refuse the web shell while the WebGPU table is unpublished
+        run: node scripts/webgpu-release-gate.ts
       - name: Install frozen dependencies
         timeout-minutes: 10
         run: pnpm install --frozen-lockfile
