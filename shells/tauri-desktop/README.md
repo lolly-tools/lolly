@@ -34,6 +34,8 @@ shell-open plugin is intentionally absent.
 
 The **frontend** entry is the web shell's, `shells/web/index.html` → `/src/main.js` → `shells/web/src/main.ts`. `src-tauri/tauri.conf.json` points `devUrl` at `http://localhost:5173` and `frontendDist` at `../dist`, and its `beforeDevCommand` runs `dev:frontend`. The production `beforeBuildCommand` runs the signed `build:frontend:release` wrapper, builds the macOS Quick Look extensions where applicable, and installs the native CLI sidecar.
 
+Keep the JavaScript plugin guests and their locked Rust crates on the same major/minor release. Tauri checks this before packaging. The filesystem guest is pinned to 2.5.2 in both shells and the desktop updater guest to 2.13.1, matching the existing native locks. Update each pair together; `tests/tauri-package-versions.test.ts` checks the API and every plugin pair without needing a native build. Keep the version check enabled when preparing qualification packages.
+
 ## How the bridge gets composed: build-time module substitution
 
 This is the single most confusing thing about this directory, and until now it was explained only inside the override files themselves.

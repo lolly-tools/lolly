@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:78817016-1682-4e62-8575-c5bec82cf41f",
+  "serialNumber": "urn:uuid:ed557358-521b-4f76-85cd-6b5efae38c84",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-10-08T21:30:05.774Z",
+    "timestamp": "2026-10-08T23:02:04.828Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -23364,10 +23364,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40tauri-apps/plugin-fs@2.6.0",
+      "bom-ref": "pkg:npm/%40tauri-apps/plugin-fs@2.5.2",
       "name": "@tauri-apps/plugin-fs",
-      "version": "2.6.0",
-      "purl": "pkg:npm/%40tauri-apps/plugin-fs@2.6.0",
+      "version": "2.5.2",
+      "purl": "pkg:npm/%40tauri-apps/plugin-fs@2.5.2",
       "scope": "required",
       "licenses": [
         {
@@ -23377,7 +23377,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "321040678aebc9dfa1f5f8a377f1960df02baa201e188d1935db95e30b91c94548eb00d9fa80c163b6adaada17283c254d4552be9be6589018d1e85077fbfa53"
+          "content": "5d7bcc4a7162a1bf86d47f981c20dff9bcd656e9ac790b84221ce96ce2737af51f2f893453eb13029656247a682e26a68209d53c99b9749e6c0ec9e24725b196"
         }
       ]
     },
@@ -23421,10 +23421,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40tauri-apps/plugin-updater@2.12.0",
+      "bom-ref": "pkg:npm/%40tauri-apps/plugin-updater@2.13.1",
       "name": "@tauri-apps/plugin-updater",
-      "version": "2.12.0",
-      "purl": "pkg:npm/%40tauri-apps/plugin-updater@2.12.0",
+      "version": "2.13.1",
+      "purl": "pkg:npm/%40tauri-apps/plugin-updater@2.13.1",
       "scope": "required",
       "licenses": [
         {
@@ -23434,7 +23434,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "ef8fa0eeb4881d74237b7b6d47ab586a9dc524ffd4b59aaa63119517d104d0aa73d18003c475f6627c3f78894d3cccbd0f5686f85f28068b13fba9e98526bc3a"
+          "content": "f924c3cc9d2c7502c89a373adf392fe8d9dc8a6a9ea3a8f2096a1342d6d2c2018b363d6a6cff48e8b0b8a79479a1c064de034a019b3a8bf009cf48f1caccad8b"
         }
       ]
     },

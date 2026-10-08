@@ -1,5 +1,7 @@
 # lolly-mobile
 
+The JavaScript API and filesystem plugin must share their locked Rust counterpart's major/minor release. The filesystem guest is pinned to 2.5.2, matching the native crate. Update the guest and native locks together; `tests/tauri-package-versions.test.ts` checks both shells before packaging.
+
 The Tauri 2 mobile app, iOS and Android.
 
 ## Read this first: there is no `src/` here
