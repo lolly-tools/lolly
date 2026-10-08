@@ -1210,5 +1210,11 @@
   "Shared projects could not be loaded. Try again.": "مشترکہ پراجیکٹس لوڈ نہیں ہو سکے۔ دوبارہ کوشش کریں۔",
   "You can view this project but cannot change its folders.": "آپ یہ پراجیکٹ دیکھ سکتے ہیں لیکن اس کے فولڈرز تبدیل نہیں کر سکتے۔",
   "New {name}": "نیا {name} بنائیں",
-  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly کو WebGPU درکار ہے، اور براؤزر WebGPU صرف محفوظ (HTTPS) صفحات پر فراہم کرتے ہیں۔ یہ انسٹینس سادہ، غیر خفیہ کردہ HTTP پر پیش کیا جا رہا ہے۔ جو اسے چلاتا ہے اس سے اسے HTTPS پر پیش کرنے کو کہیں۔"
+  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly کو WebGPU درکار ہے، اور براؤزر WebGPU صرف محفوظ (HTTPS) صفحات پر فراہم کرتے ہیں۔ یہ انسٹینس سادہ، غیر خفیہ کردہ HTTP پر پیش کیا جا رہا ہے۔ جو اسے چلاتا ہے اس سے اسے HTTPS پر پیش کرنے کو کہیں۔",
+  "Lolly requires WebGPU. Use an up-to-date browser or app with graphics acceleration enabled.": "Lolly کو WebGPU درکار ہے۔ گرافکس ایکسلریشن آن والا اپ ٹو ڈیٹ براؤزر یا ایپ استعمال کریں۔",
+  "This graphics device does not provide the WebGPU limits Lolly requires.": "یہ گرافکس ڈیوائس وہ WebGPU حدود فراہم نہیں کرتی جو Lolly کو درکار ہیں۔",
+  "WebGPU initialisation timed out. Reload Lolly to try again.": "WebGPU شروع ہونے کا وقت ختم ہو گیا۔ دوبارہ کوشش کرنے کے لیے Lolly کو دوبارہ لوڈ کریں۔",
+  "WebGPU initialisation expired. Reload Lolly to try again.": "WebGPU شروع کرنے کی میعاد ختم ہو گئی۔ دوبارہ کوشش کرنے کے لیے Lolly کو دوبارہ لوڈ کریں۔",
+  "The graphics device was lost. Reload Lolly to reconnect.": "گرافکس ڈیوائس سے رابطہ ٹوٹ گیا۔ دوبارہ جڑنے کے لیے Lolly کو دوبارہ لوڈ کریں۔",
+  "Reload": "دوبارہ لوڈ کریں"
 }

@@ -7,6 +7,7 @@ import assert from 'node:assert/strict';
 import { writeFileSync } from 'node:fs';
 import { cpus, platform, arch } from 'node:os';
 import { chromium } from 'playwright';
+import { webGpuLaunchArgs } from '../packages/node-shell/src/webgpu-launch.ts';
 import type { CanvasFeedbackSample } from '../shells/web/src/lib/canvas-feedback.ts';
 import { serveCanvasBuild } from './lib/canvas-browser-server.ts';
 
@@ -25,7 +26,7 @@ for (let i = 0; i < 3000; i++) {
   boxes.push({ id: `b${i}`, kind: 'text', frame: `f${f}`, x: f % 5 * 900 + 20 + position % 10 * 70, y: Math.floor(f / 5) * 650 + 20 + Math.floor(position / 10) * 75,
     w: 60, h: 45, rot: 0, text: `Label ${i}`, fontSize: 14, fg: '#152135', bg: '', shape: 'rect' });
 }
-const server = await serveCanvasBuild(), browser = await chromium.launch({ channel: 'chrome', headless: true });
+const server = await serveCanvasBuild(), browser = await chromium.launch({ channel: 'chrome', headless: true, args: webGpuLaunchArgs('auto') });
 const report: { environment: object; note: string; rows: object[] } = {
   environment: { date: new Date().toISOString(), node: process.version, browser: browser.version(), cpu: cpus()[0]?.model, platform: platform(), arch: arch(), viewport: { width: 1440, height: 1000 } },
   note: '50 artboards/3000 text objects; warm production session. Real pointer events include scheduling, gesture code, hooks and DOM work. Two rAF callbacks give a presentation opportunity, not physical display latency. CPU throttling is a lab multiplier, not a named device. Content edits use the existing debug setter and are reported separately from pointer input. Transport is excluded. Concurrent machine load is uncontrolled.', rows: [],

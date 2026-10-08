@@ -2,10 +2,11 @@
 /** Check course editing, modal navigation and keyboard continuity in the web shell. */
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
+import { webGpuLaunchArgs } from '../packages/node-shell/src/webgpu-launch.ts';
 
 const url =
   process.argv.find((arg) => arg.startsWith('--url='))?.slice(6) || 'http://127.0.0.1:5179';
-const browser = await chromium.launch({ headless: true });
+const browser = await chromium.launch({ headless: true, args: webGpuLaunchArgs('software') });
 try {
   const page = await browser.newPage({ viewport: { width: 1280, height: 950 } });
   await page.goto(`${url}/#/learning`);

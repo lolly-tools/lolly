@@ -3945,7 +3945,7 @@
   "Relative": "Relativo",
   "Release": "Release",
   "Release clip": "Soltar clipe",
-  "Reload": "Recarregamento",
+  "Reload": "Recarregar",
   "Remembered on this device; signs in again on each visit": "Remembered on this device; signs in again on each visit",
   "Remove": "Remover",
   "Remove 1 keyframe": "Remover 1 quadro-chave",
@@ -7704,5 +7704,10 @@
   "Shared projects could not be loaded. Try again.": "Não foi possível carregar os projetos compartilhados. Tente novamente.",
   "You can view this project but cannot change its folders.": "Você pode ver este projeto, mas não pode alterar as pastas dele.",
   "New {name}": "Criar {name}",
-  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "O Lolly precisa de WebGPU, e os navegadores só oferecem WebGPU em páginas seguras (HTTPS). Esta instância é servida por HTTP sem criptografia. Peça a quem a administra para servi-la por HTTPS."
+  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "O Lolly precisa de WebGPU, e os navegadores só oferecem WebGPU em páginas seguras (HTTPS). Esta instância é servida por HTTP sem criptografia. Peça a quem a administra para servi-la por HTTPS.",
+  "Lolly requires WebGPU. Use an up-to-date browser or app with graphics acceleration enabled.": "O Lolly precisa de WebGPU. Use um navegador ou app atualizado com a aceleração gráfica ativada.",
+  "This graphics device does not provide the WebGPU limits Lolly requires.": "Este dispositivo gráfico não oferece os limites de WebGPU de que o Lolly precisa.",
+  "WebGPU initialisation timed out. Reload Lolly to try again.": "A inicialização do WebGPU demorou demais. Recarregue o Lolly para tentar novamente.",
+  "WebGPU initialisation expired. Reload Lolly to try again.": "A inicialização do WebGPU expirou. Recarregue o Lolly para tentar novamente.",
+  "The graphics device was lost. Reload Lolly to reconnect.": "O dispositivo gráfico foi perdido. Recarregue o Lolly para reconectar."
 }

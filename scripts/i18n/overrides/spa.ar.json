@@ -1346,5 +1346,11 @@
   "Shared projects could not be loaded. Try again.": "تعذر تحميل المشاريع المشتركة. حاول مرة أخرى.",
   "You can view this project but cannot change its folders.": "يمكنك عرض هذا المشروع لكن لا يمكنك تغيير مجلداته.",
   "New {name}": "أنشئ {name}",
-  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "يتطلب Lolly تقنية WebGPU، ولا توفر المتصفحات WebGPU إلا في الصفحات الآمنة (HTTPS). هذه النسخة مقدمة عبر HTTP عادي غير مشفر. اطلب من مسؤول تشغيلها أن يقدمها عبر HTTPS."
+  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "يتطلب Lolly تقنية WebGPU، ولا توفر المتصفحات WebGPU إلا في الصفحات الآمنة (HTTPS). هذه النسخة مقدمة عبر HTTP عادي غير مشفر. اطلب من مسؤول تشغيلها أن يقدمها عبر HTTPS.",
+  "Lolly requires WebGPU. Use an up-to-date browser or app with graphics acceleration enabled.": "يتطلب Lolly تقنية WebGPU. استخدم متصفحًا أو تطبيقًا محدّثًا مع تفعيل تسريع الرسومات.",
+  "This graphics device does not provide the WebGPU limits Lolly requires.": "لا يوفر جهاز الرسومات هذا حدود WebGPU التي يتطلبها Lolly.",
+  "WebGPU initialisation timed out. Reload Lolly to try again.": "انتهت مهلة تهيئة WebGPU. أعد تحميل Lolly وحاول مجددًا.",
+  "WebGPU initialisation expired. Reload Lolly to try again.": "انتهت صلاحية تهيئة WebGPU. أعد تحميل Lolly وحاول مجددًا.",
+  "The graphics device was lost. Reload Lolly to reconnect.": "فُقد الاتصال بجهاز الرسومات. أعد تحميل Lolly لإعادة الاتصال.",
+  "Reload": "إعادة التحميل"
 }

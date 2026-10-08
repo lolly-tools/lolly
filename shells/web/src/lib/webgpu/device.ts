@@ -21,6 +21,10 @@ const REQUIRED_MESSAGE = 'Lolly requires WebGPU. Use an up-to-date browser or ap
 /** Browsers withhold WebGPU from any page that is not a secure context, so a
  *  self-hosted copy served over plain HTTP never sees the API at all. */
 const INSECURE_MESSAGE = 'Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.';
+const LIMIT_MESSAGE = 'This graphics device does not provide the WebGPU limits Lolly requires.';
+const TIMEOUT_MESSAGE = 'WebGPU initialisation timed out. Reload Lolly to try again.';
+const EXPIRED_MESSAGE = 'WebGPU initialisation expired. Reload Lolly to try again.';
+const LOST_MESSAGE = 'The graphics device was lost. Reload Lolly to reconnect.';
 const ACQUISITION_BUDGET_MS = 8000;
 /**
  * An automated browser (the CLI, MCP and test renderers) draws on software graphics,
@@ -40,15 +44,23 @@ export interface WebGpuEnvironment {
 }
 
 /**
- * The unsupported-environment card's words for a failure, or null to show the
- * failure's own (English) message. `t` is the shell's translator, passed in so this
- * module stays free of the i18n catalogue: the photo-look worker imports it too.
+ * The unsupported-environment card's words for a failure, in the interface language,
+ * or null to show the failure's own (English) message. `t` is the shell's translator,
+ * passed in so this module stays free of the i18n catalogue: the photo-look worker
+ * imports it too. Each key is written out as a literal, because the translation corpus
+ * (scripts/translate.ts) collects literal t() calls; device.test.ts checks that each
+ * one still equals the message it stands for.
  */
 export function webGpuFailureText(error: Error & { code: WebGpuErrorCode }, t: (source: string) => string): string | null {
-  if (error.code === 'WEBGPU_INSECURE_CONTEXT') {
-    return t('Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.');
+  switch (error.message) {
+    case INSECURE_MESSAGE: return t('Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.');
+    case REQUIRED_MESSAGE: return t('Lolly requires WebGPU. Use an up-to-date browser or app with graphics acceleration enabled.');
+    case LIMIT_MESSAGE: return t('This graphics device does not provide the WebGPU limits Lolly requires.');
+    case TIMEOUT_MESSAGE: return t('WebGPU initialisation timed out. Reload Lolly to try again.');
+    case EXPIRED_MESSAGE: return t('WebGPU initialisation expired. Reload Lolly to try again.');
+    case LOST_MESSAGE: return t('The graphics device was lost. Reload Lolly to reconnect.');
+    default: return null;
   }
-  return null;
 }
 
 function meetsLimits(limits: GPUSupportedLimits): boolean {
@@ -79,18 +91,18 @@ export function createWebGpuDeviceService(readGpu: () => WebGpuProvider | undefi
       const device = await adapter.requestDevice({ label });
       if (expired || stale()) {
         device.destroy();
-        throw new WebGpuError('WEBGPU_UNAVAILABLE', 'WebGPU initialisation expired. Reload Lolly to try again.');
+        throw new WebGpuError('WEBGPU_UNAVAILABLE', EXPIRED_MESSAGE);
       }
       if (!meetsLimits(device.limits)) {
         device.destroy();
-        throw new WebGpuError('WEBGPU_LIMIT', 'This graphics device does not provide the WebGPU limits Lolly requires.');
+        throw new WebGpuError('WEBGPU_LIMIT', LIMIT_MESSAGE);
       }
       return device;
     })();
     const deadline = new Promise<never>((_, reject) => {
       timer = setTimeout(() => {
         expired = true;
-        reject(new WebGpuError('WEBGPU_UNAVAILABLE', 'WebGPU initialisation timed out. Reload Lolly to try again.'));
+        reject(new WebGpuError('WEBGPU_UNAVAILABLE', TIMEOUT_MESSAGE));
       }, budgetMs);
     });
     return Promise.race([acquisition, deadline]).catch(error => {
@@ -119,7 +131,7 @@ export function createWebGpuDeviceService(readGpu: () => WebGpuProvider | undefi
       const lossController = new AbortController();
       lossSignals.set(device, lossController.signal);
       void device.lost.then(() => {
-        const failure = new WebGpuError('WEBGPU_DEVICE_LOST', 'The graphics device was lost. Reload Lolly to reconnect.');
+        const failure = new WebGpuError('WEBGPU_DEVICE_LOST', LOST_MESSAGE);
         lossController.abort(failure);
         if (current !== device || generation !== attempt) return;
         current = null;

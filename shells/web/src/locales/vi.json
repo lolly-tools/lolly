@@ -3945,7 +3945,7 @@
   "Relative": "Tương đối",
   "Release": "Release",
   "Release clip": "Nhả đoạn phim",
-  "Reload": "Lắp lại",
+  "Reload": "Tải lại",
   "Remembered on this device; signs in again on each visit": "Remembered on this device; signs in again on each visit",
   "Remove": "Xóa",
   "Remove 1 keyframe": "Gỡ 1 khung hình khóa",
@@ -7704,5 +7704,10 @@
   "Shared projects could not be loaded. Try again.": "Không thể tải các dự án được chia sẻ. Hãy thử lại.",
   "You can view this project but cannot change its folders.": "Bạn có thể xem dự án này nhưng không thể thay đổi các thư mục của nó.",
   "New {name}": "Tạo {name} mới",
-  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly cần WebGPU, và trình duyệt chỉ cung cấp WebGPU trên các trang bảo mật (HTTPS). Instance này đang được phục vụ qua HTTP thường, không mã hóa. Hãy nhờ người quản lý instance phục vụ nó qua HTTPS."
+  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly cần WebGPU, và trình duyệt chỉ cung cấp WebGPU trên các trang bảo mật (HTTPS). Instance này đang được phục vụ qua HTTP thường, không mã hóa. Hãy nhờ người quản lý instance phục vụ nó qua HTTPS.",
+  "Lolly requires WebGPU. Use an up-to-date browser or app with graphics acceleration enabled.": "Lolly cần WebGPU. Hãy dùng trình duyệt hoặc ứng dụng mới nhất đã bật tăng tốc đồ họa.",
+  "This graphics device does not provide the WebGPU limits Lolly requires.": "Thiết bị đồ họa này không đáp ứng các giới hạn WebGPU mà Lolly cần.",
+  "WebGPU initialisation timed out. Reload Lolly to try again.": "Khởi tạo WebGPU đã hết thời gian chờ. Hãy tải lại Lolly để thử lại.",
+  "WebGPU initialisation expired. Reload Lolly to try again.": "Khởi tạo WebGPU đã hết hạn. Hãy tải lại Lolly để thử lại.",
+  "The graphics device was lost. Reload Lolly to reconnect.": "Đã mất kết nối với thiết bị đồ họa. Hãy tải lại Lolly để kết nối lại."
 }

@@ -3945,7 +3945,7 @@
   "Relative": "Relativ",
   "Release": "Release",
   "Release clip": "Eliberează clipul",
-  "Reload": "Răcărcarea",
+  "Reload": "Reîncarcă",
   "Remembered on this device; signs in again on each visit": "Remembered on this device; signs in again on each visit",
   "Remove": "Elimină",
   "Remove 1 keyframe": "Elimină 1 cadru cheie",
@@ -7704,5 +7704,10 @@
   "Shared projects could not be loaded. Try again.": "Proiectele partajate nu au putut fi încărcate. Încearcă din nou.",
   "You can view this project but cannot change its folders.": "Poți vedea acest proiect, dar nu îi poți modifica folderele.",
   "New {name}": "Creează {name}",
-  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly are nevoie de WebGPU, iar browserele oferă WebGPU doar pe paginile securizate (HTTPS). Această instanță este servită prin HTTP necriptat. Cere administratorului ei să o servească prin HTTPS."
+  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly are nevoie de WebGPU, iar browserele oferă WebGPU doar pe paginile securizate (HTTPS). Această instanță este servită prin HTTP necriptat. Cere administratorului ei să o servească prin HTTPS.",
+  "Lolly requires WebGPU. Use an up-to-date browser or app with graphics acceleration enabled.": "Lolly are nevoie de WebGPU. Folosește un browser sau o aplicație actualizată, cu accelerarea grafică activată.",
+  "This graphics device does not provide the WebGPU limits Lolly requires.": "Acest dispozitiv grafic nu oferă limitele WebGPU de care are nevoie Lolly.",
+  "WebGPU initialisation timed out. Reload Lolly to try again.": "Inițializarea WebGPU a durat prea mult. Reîncarcă Lolly ca să încerci din nou.",
+  "WebGPU initialisation expired. Reload Lolly to try again.": "Inițializarea WebGPU a expirat. Reîncarcă Lolly ca să încerci din nou.",
+  "The graphics device was lost. Reload Lolly to reconnect.": "Conexiunea cu dispozitivul grafic s-a pierdut. Reîncarcă Lolly ca să te reconectezi."
 }

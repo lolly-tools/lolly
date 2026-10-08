@@ -3949,7 +3949,7 @@
   "Relative": "Relativo",
   "Release": "Release",
   "Release clip": "Soltar clip",
-  "Reload": "Recarga",
+  "Reload": "Recargar",
   "Remembered on this device; signs in again on each visit": "Remembered on this device; signs in again on each visit",
   "Remove": "Quitar",
   "Remove 1 keyframe": "Quitar 1 fotograma clave",
@@ -7704,5 +7704,10 @@
   "Shared projects could not be loaded. Try again.": "No se pudieron cargar los proyectos compartidos. Inténtalo de nuevo.",
   "You can view this project but cannot change its folders.": "Puedes ver este proyecto, pero no cambiar sus carpetas.",
   "New {name}": "Crear {name}",
-  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly necesita WebGPU, y los navegadores solo ofrecen WebGPU en páginas seguras (HTTPS). Esta instancia se sirve por HTTP sin cifrar. Pide a quien la administra que la sirva por HTTPS."
+  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly necesita WebGPU, y los navegadores solo ofrecen WebGPU en páginas seguras (HTTPS). Esta instancia se sirve por HTTP sin cifrar. Pide a quien la administra que la sirva por HTTPS.",
+  "Lolly requires WebGPU. Use an up-to-date browser or app with graphics acceleration enabled.": "Lolly necesita WebGPU. Usa un navegador o una app actualizados con la aceleración gráfica activada.",
+  "This graphics device does not provide the WebGPU limits Lolly requires.": "Este dispositivo gráfico no ofrece los límites de WebGPU que Lolly necesita.",
+  "WebGPU initialisation timed out. Reload Lolly to try again.": "La inicialización de WebGPU tardó demasiado. Recarga Lolly para volver a intentarlo.",
+  "WebGPU initialisation expired. Reload Lolly to try again.": "La inicialización de WebGPU caducó. Recarga Lolly para volver a intentarlo.",
+  "The graphics device was lost. Reload Lolly to reconnect.": "Se perdió el dispositivo gráfico. Recarga Lolly para volver a conectar."
 }

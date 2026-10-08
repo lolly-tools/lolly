@@ -3949,7 +3949,7 @@
   "Relative": "Relativo",
   "Release": "Release",
   "Release clip": "Rilascia la clip",
-  "Reload": "Reload",
+  "Reload": "Ricarica",
   "Remembered on this device; signs in again on each visit": "Remembered on this device; signs in again on each visit",
   "Remove": "Rimuovi",
   "Remove 1 keyframe": "Rimuovi 1 fotogramma chiave",
@@ -7704,5 +7704,10 @@
   "Shared projects could not be loaded. Try again.": "Impossibile caricare i progetti condivisi. Riprova.",
   "You can view this project but cannot change its folders.": "Puoi visualizzare questo progetto, ma non modificarne le cartelle.",
   "New {name}": "Crea {name}",
-  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly richiede WebGPU, e i browser offrono WebGPU solo sulle pagine sicure (HTTPS). Questa istanza è servita tramite HTTP non cifrato. Chiedi a chi la gestisce di servirla tramite HTTPS."
+  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly richiede WebGPU, e i browser offrono WebGPU solo sulle pagine sicure (HTTPS). Questa istanza è servita tramite HTTP non cifrato. Chiedi a chi la gestisce di servirla tramite HTTPS.",
+  "Lolly requires WebGPU. Use an up-to-date browser or app with graphics acceleration enabled.": "Lolly richiede WebGPU. Usa un browser o un'app aggiornati con l'accelerazione grafica attiva.",
+  "This graphics device does not provide the WebGPU limits Lolly requires.": "Questo dispositivo grafico non offre i limiti WebGPU richiesti da Lolly.",
+  "WebGPU initialisation timed out. Reload Lolly to try again.": "L'inizializzazione di WebGPU ha richiesto troppo tempo. Ricarica Lolly per riprovare.",
+  "WebGPU initialisation expired. Reload Lolly to try again.": "L'inizializzazione di WebGPU è scaduta. Ricarica Lolly per riprovare.",
+  "The graphics device was lost. Reload Lolly to reconnect.": "Il dispositivo grafico è stato perso. Ricarica Lolly per riconnetterti."
 }

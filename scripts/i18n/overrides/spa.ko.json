@@ -1341,5 +1341,11 @@
   "Shared projects could not be loaded. Try again.": "공유 프로젝트를 불러오지 못했어요. 다시 시도하세요.",
   "You can view this project but cannot change its folders.": "이 프로젝트를 볼 수는 있지만 폴더를 변경할 수는 없어요.",
   "New {name}": "새 {name}",
-  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly에는 WebGPU가 필요하지만, 브라우저는 보안(HTTPS) 페이지에서만 WebGPU를 제공해요. 이 인스턴스는 암호화되지 않은 HTTP로 제공되고 있어요. 관리자에게 HTTPS로 제공해 달라고 요청하세요."
+  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly에는 WebGPU가 필요하지만, 브라우저는 보안(HTTPS) 페이지에서만 WebGPU를 제공해요. 이 인스턴스는 암호화되지 않은 HTTP로 제공되고 있어요. 관리자에게 HTTPS로 제공해 달라고 요청하세요.",
+  "Lolly requires WebGPU. Use an up-to-date browser or app with graphics acceleration enabled.": "Lolly에는 WebGPU가 필요해요. 그래픽 가속이 켜진 최신 브라우저나 앱을 사용하세요.",
+  "This graphics device does not provide the WebGPU limits Lolly requires.": "이 그래픽 장치는 Lolly에 필요한 WebGPU 한도를 제공하지 않아요.",
+  "WebGPU initialisation timed out. Reload Lolly to try again.": "WebGPU 초기화 시간이 초과됐어요. Lolly를 새로고침한 후 다시 시도하세요.",
+  "WebGPU initialisation expired. Reload Lolly to try again.": "WebGPU 초기화가 만료됐어요. Lolly를 새로고침한 후 다시 시도하세요.",
+  "The graphics device was lost. Reload Lolly to reconnect.": "그래픽 장치 연결이 끊어졌어요. 다시 연결하려면 Lolly를 새로고침하세요.",
+  "Reload": "새로고침"
 }

@@ -28,7 +28,7 @@ export function showBootError(error: unknown): void {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'btn';
-    btn.textContent = 'Reload';
+    btn.textContent = t('Reload');
     btn.style.marginTop = '10px';
     btn.addEventListener('click', () => window.location.reload());
     div.appendChild(btn);

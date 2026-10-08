@@ -3945,7 +3945,7 @@
   "Relative": "Relative",
   "Release": "Release",
   "Release clip": "I-release ang clip",
-  "Reload": "Pag-reload",
+  "Reload": "I-reload",
   "Remembered on this device; signs in again on each visit": "Remembered on this device; signs in again on each visit",
   "Remove": "Alisin",
   "Remove 1 keyframe": "Alisin ang 1 keyframe",
@@ -7704,5 +7704,10 @@
   "Shared projects could not be loaded. Try again.": "Hindi ma-load ang mga shared na project. Subukan ulit.",
   "You can view this project but cannot change its folders.": "Matitingnan mo ang project na ito pero hindi mo mababago ang mga folder nito.",
   "New {name}": "Bagong {name}",
-  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Kailangan ng Lolly ang WebGPU, at sa mga secure (HTTPS) na page lang nag-aalok ng WebGPU ang mga browser. Inihahatid ang instance na ito sa plain HTTP na walang encryption. Hilingin sa nagpapatakbo nito na ihatid ito sa HTTPS."
+  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Kailangan ng Lolly ang WebGPU, at sa mga secure (HTTPS) na page lang nag-aalok ng WebGPU ang mga browser. Inihahatid ang instance na ito sa plain HTTP na walang encryption. Hilingin sa nagpapatakbo nito na ihatid ito sa HTTPS.",
+  "Lolly requires WebGPU. Use an up-to-date browser or app with graphics acceleration enabled.": "Kailangan ng Lolly ang WebGPU. Gumamit ng updated na browser o app na naka-on ang graphics acceleration.",
+  "This graphics device does not provide the WebGPU limits Lolly requires.": "Hindi ibinibigay ng graphics device na ito ang mga WebGPU limit na kailangan ng Lolly.",
+  "WebGPU initialisation timed out. Reload Lolly to try again.": "Nag-time out ang pagsisimula ng WebGPU. I-reload ang Lolly para subukan ulit.",
+  "WebGPU initialisation expired. Reload Lolly to try again.": "Nag-expire ang pagsisimula ng WebGPU. I-reload ang Lolly para subukan ulit.",
+  "The graphics device was lost. Reload Lolly to reconnect.": "Nawala ang graphics device. I-reload ang Lolly para kumonekta ulit."
 }

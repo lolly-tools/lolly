@@ -1210,5 +1210,11 @@
   "Shared projects could not be loaded. Try again.": "無法載入共用專案。請再試一次。",
   "You can view this project but cannot change its folders.": "你可以檢視此專案，但無法變更其中的資料夾。",
   "New {name}": "新增 {name}",
-  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly 需要 WebGPU，而瀏覽器只在安全的（HTTPS）頁面上提供 WebGPU。此實例透過未加密的 HTTP 提供。請要求管理者改用 HTTPS 提供。"
+  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly 需要 WebGPU，而瀏覽器只在安全的（HTTPS）頁面上提供 WebGPU。此實例透過未加密的 HTTP 提供。請要求管理者改用 HTTPS 提供。",
+  "Lolly requires WebGPU. Use an up-to-date browser or app with graphics acceleration enabled.": "Lolly 需要 WebGPU。請使用已啟用圖形加速的最新瀏覽器或應用程式。",
+  "This graphics device does not provide the WebGPU limits Lolly requires.": "此圖形裝置不提供 Lolly 所需的 WebGPU 限制值。",
+  "WebGPU initialisation timed out. Reload Lolly to try again.": "WebGPU 初始化逾時。請重新載入 Lolly 再試一次。",
+  "WebGPU initialisation expired. Reload Lolly to try again.": "WebGPU 初始化已過期。請重新載入 Lolly 再試一次。",
+  "The graphics device was lost. Reload Lolly to reconnect.": "與圖形裝置的連線已中斷。請重新載入 Lolly 以重新連線。",
+  "Reload": "重新載入"
 }

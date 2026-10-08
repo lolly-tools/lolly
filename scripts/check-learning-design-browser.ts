@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { chromium, webkit } from 'playwright';
+import { webGpuLaunchArgs } from '../packages/node-shell/src/webgpu-launch.ts';
 
 const arg = (key: string) =>
   process.argv.find((a) => a.startsWith(`--${key}=`))?.slice(key.length + 3);
@@ -11,7 +12,7 @@ const url = arg('url') || 'http://127.0.0.1:5173';
 const engine = arg('browser') === 'webkit' ? 'webkit' : 'chromium';
 const output = arg('output');
 if (output) await mkdir(output, { recursive: true });
-const browser = await { chromium, webkit }[engine].launch({ headless: true });
+const browser = await { chromium, webkit }[engine].launch({ headless: true, args: engine === 'chromium' ? webGpuLaunchArgs('software') : [] });
 try {
   const page = await browser.newPage({ viewport: { width: 1280, height: 950 }, hasTouch: true });
   const errors: string[] = [];

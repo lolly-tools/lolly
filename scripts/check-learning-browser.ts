@@ -5,12 +5,13 @@ import { readFile, writeFile, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { chromium } from 'playwright';
+import { webGpuLaunchArgs } from '../packages/node-shell/src/webgpu-launch.ts';
 import { strFromU8, unzipSync } from 'fflate';
 import { stampLearningShot } from './lib/learning-shot-credential.ts';
 
 const url = process.argv.find((a) => a.startsWith('--url='))?.slice(6) || 'http://127.0.0.1:5173';
 const shots = process.argv.includes('--shots');
-const browser = await chromium.launch({ headless: true });
+const browser = await chromium.launch({ headless: true, args: webGpuLaunchArgs('software') });
 const temp = await mkdtemp(join(tmpdir(), 'lolly-learning-'));
 try {
   const page = await browser.newPage({

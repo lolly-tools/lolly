@@ -3949,7 +3949,7 @@
   "Relative": "रिलेटिव",
   "Release": "Release",
   "Release clip": "क्लिप रिलीज़ करें",
-  "Reload": "पुनः लोड करना",
+  "Reload": "फिर से लोड करें",
   "Remembered on this device; signs in again on each visit": "Remembered on this device; signs in again on each visit",
   "Remove": "हटाएँ",
   "Remove 1 keyframe": "1 कीफ़्रेम हटाएँ",
@@ -7704,5 +7704,10 @@
   "Shared projects could not be loaded. Try again.": "साझा प्रोजेक्ट लोड नहीं हो सके। फिर से कोशिश करें।",
   "You can view this project but cannot change its folders.": "आप यह प्रोजेक्ट देख सकते हैं, लेकिन इसके फ़ोल्डर नहीं बदल सकते।",
   "New {name}": "नया {name} बनाएँ",
-  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly को WebGPU चाहिए, और ब्राउज़र WebGPU सिर्फ़ सुरक्षित (HTTPS) पेजों पर देते हैं। यह इंस्टेंस सादे HTTP पर चल रहा है। इसे चलाने वाले से इसे HTTPS पर चलाने को कहें।"
+  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly को WebGPU चाहिए, और ब्राउज़र WebGPU सिर्फ़ सुरक्षित (HTTPS) पेजों पर देते हैं। यह इंस्टेंस सादे HTTP पर चल रहा है। इसे चलाने वाले से इसे HTTPS पर चलाने को कहें।",
+  "Lolly requires WebGPU. Use an up-to-date browser or app with graphics acceleration enabled.": "Lolly को WebGPU चाहिए। ग्राफ़िक्स एक्सेलेरेशन चालू वाला अप-टू-डेट ब्राउज़र या ऐप इस्तेमाल करें।",
+  "This graphics device does not provide the WebGPU limits Lolly requires.": "यह ग्राफ़िक्स डिवाइस वे WebGPU सीमाएँ नहीं देता जो Lolly को चाहिए।",
+  "WebGPU initialisation timed out. Reload Lolly to try again.": "WebGPU शुरू होने में बहुत देर लगी। फिर से कोशिश करने के लिए Lolly को फिर से लोड करें।",
+  "WebGPU initialisation expired. Reload Lolly to try again.": "WebGPU शुरू करने की समय-सीमा खत्म हो गई। फिर से कोशिश करने के लिए Lolly को फिर से लोड करें।",
+  "The graphics device was lost. Reload Lolly to reconnect.": "ग्राफ़िक्स डिवाइस से संपर्क टूट गया। फिर से जुड़ने के लिए Lolly को फिर से लोड करें।"
 }
