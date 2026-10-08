@@ -75,6 +75,7 @@ interface Inherited { fill: string | null; opacity: number; }
 // The result shape every parse branch returns (feeds Design).
 interface DesignImportResult {
   boxes: unknown[]; width: number; height: number; background: string;
+  sequenceValues?: { projectFps: string };
   fontSubstitutions?: string[];
   /** The map the boxes were finalized with, font vocabulary and all (Penpot
    *  binfile only). Additive: a caller that wants a SECOND pass over the same
@@ -157,6 +158,11 @@ export async function parseDesignFile(
   }
   const buf = new Uint8Array(await file.arrayBuffer());
 
+  if (/^\s*(?:<\?xml[^>]*>\s*)?(?:<!DOCTYPE\s+xmeml\s*>\s*)?<xmeml[\s>]/i.test(new TextDecoder().decode(buf.subarray(0, 1024)))) {
+    const { importPremiereFile } = await import('./premiere-import.ts');
+    return importPremiereFile(file, { host, interactive, warn });
+  }
+
   // Layered bitmaps (Photoshop PSD/PSB, GIMP XCF): each layer becomes an image box
   // at its exact document offset. The parse + per-layer asset storage live in
   // psd-import.ts (its own lazy chunk, like the PDF path below).
@@ -195,13 +201,14 @@ export async function parseDesignFile(
     });
     // A PowerPoint deck is a zip too. One slide replaces the board (the picker asks
     // which); its parts arrive as editable boxes through pptx-import's mapper.
+    if (files['sequence.xml']) return (await import('./premiere-import.ts')).importPremiereFile(file, { host, interactive, warn });
     if (isPptx(files)) {
       const { parsePptxFile } = await import('./pptx-import.ts');
       return parsePptxFile(file, files, { host: host as HostV1, warn, interactive, map });
     }
     if (isIdml(files)) {
       const { parseIdmlZip } = await import('./idml-import.ts');
-      return parseIdmlZip(files, { host, warn, map });
+      return parseIdmlZip(files, { host, warn, map, interactive });
     }
     if (files['canvas.fig']) return parseFig(files, { host, warn, map });
     return parsePenpotZip(files, { host, warn, interactive, map });
@@ -305,9 +312,8 @@ export async function parseDesignArtboards(
       return { frames, background };
     }
     if (isIdml(files)) {
-      // The IDML reader imports the first spread (and says so); one artboard.
-      const { parseIdmlZip } = await import('./idml-import.ts');
-      return one(await parseIdmlZip(files, { host, warn, map }), 'Spread 1');
+      const { parseIdmlSpreads } = await import('./idml-import.ts');
+      return { frames: await parseIdmlSpreads(files, { host, warn, map, interactive }), background: '#ffffff' };
     }
     if (files['canvas.fig']) return { frames: await collectFigFrames(files, { host, warn, map }), background: '#ffffff' };
     return collectPenpotZipFrames(files, { host, warn, interactive, map });
@@ -1616,11 +1622,13 @@ export async function parseDesignScenes(
       return { scenes: refs.map((asset, i) => ({ name: sceneName(asset, i), asset })) };
     }
     if (isIdml(files)) {
-      // IDML: parse the first spread into boxes and bake it as a single scene.
-      const { parseIdmlZip } = await import('./idml-import.ts');
-      const res = await parseIdmlZip(files, { host, warn, map });
-      const asset = await bakeSceneAsset(host, warn, 'Spread 1', res.boxes, res.width, res.height);
-      return { scenes: asset ? [{ name: 'Spread 1', asset }] : [] };
+      const { parseIdmlSpreads } = await import('./idml-import.ts');
+      const scenes: { name: string; asset: AssetRef }[] = [];
+      for (const res of await parseIdmlSpreads(files, { host, warn, map, interactive })) {
+        const asset = await bakeSceneAsset(host, warn, res.name, res.boxes, res.width, res.height);
+        if (asset) scenes.push({ name: res.name, asset });
+      }
+      return { scenes };
     }
     if (files['canvas.fig']) return parseFigScenes(files, { host, warn, map });
     return parsePenpotZipScenes(files, { host, warn, interactive, map });

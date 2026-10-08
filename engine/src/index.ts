@@ -1171,3 +1171,8 @@ export type { InventoryFromSourceOptsV1, InventoryMediaInputV1, InventoryNotesPa
 export { applySurfaceRuleToLogoSet, brandRulesOfTokenDocument, buildSurfaceVariantTable, iconThemeSurfaces, isSurfaceAutoId, logoSetInBrandOrder, pickSurfaceVariant, planSurfaceVariants, surfaceAutoId, surfaceColourResolver, surfaceUnderDesignLayer, themeSurfaceColours, SURFACE_COVER_SHARE } from './surface-variant.ts';
 export type { DesignCanvasFields, DesignSurfaceV1, SurfaceLogoMemberV1, SurfacePickV1, SurfaceVariantTableInputV1, SurfaceVariantTableV1 } from './surface-variant.ts';
 export { AUTO_ASSET_THEME } from './icon-theme.ts';
+export { readCameraRawPreset } from './camera-raw-preset.ts';
+export type { CameraRawPreset } from './camera-raw-preset.ts';
+export { readPremiereXml, writePremiereXml, premiereSequenceValues, framesToSeconds, secondsToFrames } from './premiere-xml.ts';
+export type { InterchangeRate, InterchangeClip, InterchangeSequence } from './premiere-xml.ts';
+export { readIdmlSpreads } from './idml-read.ts';

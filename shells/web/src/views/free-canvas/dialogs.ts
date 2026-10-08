@@ -12,10 +12,12 @@ import type { Box } from '../free-canvas-math.ts';
 import { segHtml, segRow, wireSegs } from '../free-canvas-fields.ts';
 import type { ChoreoOrder, ShowcaseId } from '../choreograph.ts';
 import type { InputValue } from '../../../../../engine/src/inputs.ts';
+import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { escape as escapeText } from '../../utils.ts';
 import { t } from '../../i18n.ts';
 import { SVG, icon } from '../free-canvas-icons.ts';
 import { CHOREO_SHOWCASES, reflectChoreographChoice } from '../choreograph-options.ts';
+import { wireChoreographPreview } from '../choreograph-preview.ts';
 import { HEAD_CHOICES, ROUTE_CHOICES, dashRowOn } from './shared.ts';
 import type { ConfirmAsk, ImportMode, NumberAsk, SvgLayerPlan, SvgSourceBox } from './shared.ts';
 import { bindOp, type FcCtx } from './context.ts';
@@ -883,6 +885,7 @@ export function askChoreograph(fc: FcCtx): void {
   p.innerHTML =
     `<div class="fc-panel-head">${escapeText(t('Choreograph'))}</div>` +
     `<p class="fc-num-hint" id="fc-choreo-desc">${escapeText(t('{n} boxes. One click writes a full motion arc - every keyframe stays editable afterwards.', { n }))}</p>` +
+    `<p class="hint">${escapeText(t('Launch recipes move selected group members together. Soft drift loop keeps the artwork visible throughout.'))}</p>` +
     `<div class="fc-choreo-grid" role="radiogroup" aria-label="${escapeText(t('Showcase'))}">` +
     CHOREO_SHOWCASES.map(
       (s) =>
@@ -921,6 +924,12 @@ export function askChoreograph(fc: FcCtx): void {
     // capture tier and refuses a board holding video, so 3D is a choice, not a default.
     `<label class="fc-row fc-row-toggle field-toggle"><span>${escapeText(t('Tumble - a 3D wobble (slower to export)'))}</span>` +
     '<input type="checkbox" class="field-check" data-choreo-tumble></label>' +
+    (fc.info?.id === 'design' ?
+      '<div class="fc-choreo-preview-media" data-choreo-preview-media hidden></div>' +
+      '<div class="fc-choreo-preview-controls">' +
+      `<button type="button" class="btn btn--sm" data-choreo-preview aria-pressed="false">${escapeText(t('Preview motion'))}</button>` +
+      `<input type="range" min="0" max="1000" value="0" data-choreo-scrub aria-label="${escapeText(t('Preview position'))}" disabled>` +
+      '</div><p class="fc-choreo-preview-status" data-choreo-preview-status role="status"></p>' : '') +
     '<div class="fc-num-row fc-confirm-row">' +
     `<button type="button" class="btn btn--sm" data-choreo-no>${escapeText(t('Cancel'))}</button>` +
     `<button type="button" class="btn btn--primary btn--sm" data-choreo-yes>${escapeText(t('Choreograph'))}</button>` +
@@ -949,9 +958,43 @@ export function askChoreograph(fc: FcCtx): void {
   const floatIn = p.querySelector<HTMLInputElement>('[data-choreo-float]')!;
   const tumbleIn = p.querySelector<HTMLInputElement>('[data-choreo-tumble]')!;
   const yes = p.querySelector<HTMLButtonElement>('[data-choreo-yes]')!;
+  const candidate = async () => {
+    const { timeCfg } = fc;
+    if (!timeCfg) throw new Error(t('This tool cannot store motion.'));
+    const { applyChoreograph, whyNotChoreograph } = await import('../choreograph.ts');
+    const boxes = fc.select.getBoxes();
+    const ids = choreoIds(fc, boxes);
+    if (whyNotChoreograph(boxes, ids, timeCfg) === 'frames') throw new Error(t('Import onto a single board to preview and apply this motion.'));
+    let sec = parseFloat(secIn.value);
+    if (!Number.isFinite(sec)) sec = Number(secOf(showcase));
+    sec = Math.max(0.8, sec); secIn.value = String(sec);
+    const result = applyChoreograph(boxes, ids, {
+      showcase, durationMs: Math.round(sec * 1000), retime: true,
+      staggerMs: Math.max(0, Math.round(parseFloat(staggerIn.value) || 0)),
+      order: orderSel.value as ChoreoOrder, camera: camIn.checked,
+      float: floatIn.checked, tumble: tumbleIn.checked,
+    }, {
+      cfg: timeCfg, rect: b => boxRect(b, cfg), stage: fc.helpers.canvasWH(),
+      cameraSeed: addKinds.find(k => k.id === 'camera')?.seed,
+      mint: rows => fc.select.freshId(rows),
+    });
+    if (!result) throw new Error(t('Select at least two boxes to choreograph.'));
+    return result;
+  };
+  const preview = fc.info?.id === 'design' ? wireChoreographPreview(p, fc.host as HostV1, async () => {
+    const result = await candidate();
+    const values = Object.fromEntries(fc.runtime.getModel().map(item => [item.id, item.value])) as Record<string, InputValue>;
+    values[fc.input.id] = result.rows as InputValue;
+    const size = fc.helpers.canvasWH();
+    const starts = result.rows.filter(row => result.ids.includes(String(row[cfg.idField]))).map(row => Number(row[fc.timeCfg!.startField]) || 0);
+    return { values, width: size.w, height: size.h, durationMs: result.plan.durationMs, startMs: Math.min(...starts) * 1000 };
+  }) : undefined;
+  p.addEventListener('input', event => { if (!(event.target as Element).matches('[data-choreo-scrub]')) preview?.invalidate(); });
+  p.addEventListener('change', event => { if (!(event.target as Element).matches('[data-choreo-scrub]')) preview?.invalidate(); });
 
   const pick = (id: ShowcaseId): void => {
     showcase = id;
+    preview?.invalidate();
     reflectChoreographChoice(p, id);
     if (!secDirty) secIn.value = secOf(id);
   };
@@ -1010,24 +1053,7 @@ export function askChoreograph(fc: FcCtx): void {
   async function run(): Promise<void> {
   const { timeCfg } = fc;
     if (yes.disabled || !timeCfg) return;
-    // The generator floors the arc at 0.8 s; report it in the field rather than let it read
-    // 0.1 while a 0.8 s arc is made.
-    let sec = parseFloat(secIn.value);
-    if (secDirty && Number.isFinite(sec) && sec < 0.8) {
-      sec = 0.8;
-      secIn.value = '0.8';
-    }
-    const opts = {
-      showcase,
-      staggerMs: Math.max(0, Math.round(parseFloat(staggerIn.value) || 0)),
-      order: orderSel.value as ChoreoOrder,
-      camera: camIn.checked,
-      float: floatIn.checked,
-      tumble: tumbleIn.checked,
-      // Left alone, the generator picks: a timed board's own clip span, and the
-      // showcase's authored length on a board with no sequence yet.
-      durationMs: secDirty && Number.isFinite(sec) ? Math.round(sec * 1000) : undefined,
-    };
+    preview?.invalidate();
     yes.disabled = true;
     yes.textContent = t('Choreographing…');
     // Busy for the reason the lift's confirm is: the chunk fetch and the commit are work
@@ -1036,35 +1062,8 @@ export function askChoreograph(fc: FcCtx): void {
     p.setAttribute('aria-busy', 'true');
     p.focus();
     try {
-      // LAZY, and this is why: choreograph.ts pulls timeline-math and with it the
-      // engine's keyframe module - the same reason DEFAULT_CLIP_S is read through a
-      // dynamic import rather than named at the top of this file.
-      const { applyChoreograph, whyNotChoreograph } = await import('../choreograph.ts');
+      const res = await candidate();
       if (!live()) return;
-      const boxes = fc.select.getBoxes();
-      const ids = choreoIds(fc, boxes);
-      // A frames document opts out of depth and keyframe projection wholesale, so a
-      // showcase written there would render as nothing: refuse, and say which.
-      if (whyNotChoreograph(boxes, ids, timeCfg) === 'frames') {
-        fc.stage.flash(
-          t(
-            'Choreograph works on a single artboard - a document with frames cannot be projected.'
-          )
-        );
-        return;
-      }
-      const res = applyChoreograph(boxes, ids, opts, {
-        cfg: timeCfg,
-        rect: (b) => boxRect(b, cfg),
-        stage: fc.helpers.canvasWH(),
-        // The manifest's own camera seed, exactly as ensureSceneCameraRows mints one.
-        cameraSeed: addKinds.find((k) => k.id === 'camera')?.seed,
-        mint: (rows) => fc.select.freshId(rows),
-      });
-      if (!res) {
-        fc.stage.flash(t('Select at least two boxes to choreograph.'));
-        return;
-      }
       fc.document.closeMorePanel();
       fc.selection = new Set(res.ids);
       fc.select.commit(res.rows);
@@ -1074,7 +1073,7 @@ export function askChoreograph(fc: FcCtx): void {
       fc.stage.flash(t('Choreographed {n} boxes.', { n: res.ids.length }));
     } catch (e) {
       console.error(e);
-      if (!fc.disposed) fc.stage.flash(t('That showcase could not be written, so nothing was changed.'));
+      if (!fc.disposed) fc.stage.flash(e instanceof Error ? e.message : t('That showcase could not be written, so nothing was changed.'));
     } finally {
       // Idempotent: on the happy path the panel is already gone and `live()` is false.
       if (live()) fc.document.closeMorePanel();

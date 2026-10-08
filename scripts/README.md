@@ -42,6 +42,13 @@ The manifest is always the source of truth; `catalog/tools/index.json` and the a
 
 ## Profiles and brands
 
+`node scripts/build-adobe-qa-pack.ts --out=<empty-directory> --corpus=<pinned-PSD-corpus>`
+builds a native Adobe qualification pack with PSD preservation specimens, IDML,
+Premiere XML and original media, an Illustrator SVG and a Darkroom XMP fixture.
+The generator checks supported geometry, timing and source hashes. Its manifest
+records source identity and leaves native application results pending. Existing
+output directories must be empty so prior tester results cannot be overwritten.
+
 | Script | npm alias | Purpose | Flags |
 |---|---|---|---|
 | `ingest-brand.ts` | `ingest:brand` | Hydrates a `brands/<name>/` pack from a DTCG, Tokens Studio or Penpot token export, optionally registering or activating it as a profile. | DESTRUCTIVE, native |

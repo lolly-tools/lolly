@@ -1,5 +1,11 @@
 # Engine changelog
 
+## 1.245.0
+
+- Add supported static IDML and Premiere-compatible XML plus media exports for authored Design documents. Both use the same source snapshot on web and CLI, include readable attribution companions, and refuse features they cannot represent.
+- Add bounded Camera Raw XMP settings and Final Cut Pro 7 XML readers with shell-supplied XML parsing. Preset mapping targets existing Darkroom inputs. Timeline interchange retains rational frame counts and reports missing media and losses when mapped to Design.
+- Add Lab to the layered preview colour-mode contract. Shells can use the shared PhotoCraft WASM adapter for 32-bit and Lab PSD/PSB files while preserving source bytes through a separate no-edit writer.
+
 One entry per ENGINE_VERSION minor (the bridge contract version in `src/version.ts`,
 re-exported from `src/index.ts`). Additive-only within v1: methods are added in
 minors, never removed or signature-changed without a major bump.

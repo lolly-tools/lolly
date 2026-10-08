@@ -10,6 +10,10 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
 const EXPECTED: readonly string[] = [
+  // Additive Adobe interchange readers and sequence conversion APIs.
+  'CameraRawPreset', 'InterchangeClip', 'InterchangeRate', 'InterchangeSequence',
+  'framesToSeconds', 'premiereSequenceValues', 'readCameraRawPreset', 'readIdmlSpreads',
+  'readPremiereXml', 'secondsToFrames', 'writePremiereXml',
   // Additive 1.244 image repair and matte refinement APIs.
   'HealFrame', 'HealMode', 'HealOptions', 'MatteRefineOptions', 'boxMean', 'guidedFilter',
   'healCoverageBounds', 'healFrame', 'refineMatte', 'resizeMask', 'spotHealPremultiplied',

@@ -18,6 +18,7 @@
  * costs nothing; the native module itself is imported lazily on first use.
  */
 import { isJxl } from '../../../engine/src/jxl.ts';
+import { sniffLayeredRaster } from '../../../engine/src/media-sniff.ts';
 import { packPng } from '../../../engine/src/png.ts';
 import { runJxl } from './jxl.ts';
 import { createRequire } from 'node:module';
@@ -82,6 +83,13 @@ export function createNodeImagesAPI(): ImagesAPI | null {
     const sharp = await loadSharp();
     const buf = await toBuffer(input);
     if (!buf.length) throw new Error('host.images: empty input - nothing to decode.');
+    if (sniffLayeredRaster(buf) === 'psd') {
+      const { readPsdPortable } = await import('./adobe-psd-node.ts');
+      const doc = await readPsdPortable(buf, { compositeOnly: true });
+      if (!doc.composite) throw new Error('This Photoshop document has no merged preview.');
+      const png = packPng(doc.composite.pixels, { width: doc.width, height: doc.height, channels: 4 });
+      return { img: sharp(Buffer.from(png)), buf };
+    }
     if (isJxl(buf)) {
       const result = await runJxl({ operation: 'decode', bytes: buf });
       const png = packPng(result.bytes, { width: result.info!.width, height: result.info!.height, channels: 4, depth: 8 });

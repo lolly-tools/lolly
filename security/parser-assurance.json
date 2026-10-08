@@ -907,6 +907,66 @@
         "fuzzCoverage": "`mcp-negotiation` mutates modern discovery, tool calls and legacy initialization envelopes with their HTTP mirrors",
         "notes": "Header mismatches and unsupported versions return protocol errors before dispatch."
       }
+    },
+    "engine/src/adobe-xml.ts": {
+      "fuzzTargets": [
+        "adobe-xml"
+      ],
+      "details": {
+        "inputSource": "User-supplied Adobe interchange files. Platform parsing and media lookup are supplied by the shell.",
+        "bounds": "1 MiB default, 8 MiB for timeline/IDML parts; no DTD/entities; 50,000 elements, depth 64, 128 attributes per element",
+        "directTests": "`tests/adobe-interchange.test.ts`",
+        "fuzzCoverage": "`adobe-xml` mutates maintained independent format seeds.",
+        "notes": "XML parser is injected. Premiere permits only the inert xmeml doctype before common admission."
+      }
+    },
+    "engine/src/camera-raw-preset.ts": {
+      "fuzzTargets": [
+        "adobe-xml"
+      ],
+      "details": {
+        "inputSource": "User-supplied Adobe interchange files. Platform parsing and media lookup are supplied by the shell.",
+        "bounds": "1 MiB XML, Camera Raw namespace only, duplicate settings refused, numeric values checked and clamped to Darkroom ranges",
+        "directTests": "`tests/adobe-interchange.test.ts`",
+        "fuzzCoverage": "`adobe-xml` mutates maintained independent format seeds.",
+        "notes": "Explicit values only; unmapped controls and process differences are reported. Legacy Lua presets are refused."
+      }
+    },
+    "engine/src/premiere-xml.ts": {
+      "fuzzTargets": [
+        "adobe-xml"
+      ],
+      "details": {
+        "inputSource": "User-supplied Adobe interchange files. Platform parsing and media lookup are supplied by the shell.",
+        "bounds": "8 MiB XML; one sequence; 128 tracks per stream; 10,000 clips; paths 8,192 characters; safe integer frame counts; 32 M preview pixels",
+        "directTests": "`tests/adobe-interchange.test.ts`",
+        "fuzzCoverage": "`adobe-xml` mutates maintained independent format seeds.",
+        "notes": "Rational frame rates remain in the interchange model. Lolly clock conversion and unsupported effects are reported. No media path is fetched implicitly."
+      }
+    },
+    "packages/node-shell/src/adobe-psd.ts": {
+      "fuzzTargets": [
+        "adobe-psd"
+      ],
+      "details": {
+        "inputSource": "User-supplied Adobe interchange files. Platform parsing and media lookup are supplied by the shell.",
+        "bounds": "64 MiB input, 128 MiB decoded samples plus preview allocations, 2 MiB metadata, 1,024 layers; 512 MiB WASM memory cap",
+        "directTests": "`tests/adobe-psd.test.ts`, `scripts/adobe-corpus.ts`",
+        "fuzzCoverage": "`adobe-psd` mutates maintained independent format seeds.",
+        "notes": "Pinned PhotoCraft parser and writer. No-edit source preservation is verified separately from visual fidelity by the optional 258-file pinned corpus. Conventional inputs retain the established engine reader."
+      }
+    },
+    "engine/src/idml-read.ts": {
+      "fuzzTargets": [
+        "idml-read"
+      ],
+      "details": {
+        "inputSource": "Unzipped user IDML parts; linked image bytes and XML parsing are supplied by the shell.",
+        "bounds": "4096 entries, 128 MiB aggregate parts, 8 MiB XML parts with common XML structure limits; 256 spreads, 10000 items per spread and 100000 total items, 32 M preview pixels; linked images capped at 64 MiB.",
+        "directTests": "`tests/adobe-interchange.test.ts`",
+        "fuzzCoverage": "`idml-read` mutates an independently assembled ZIP through bounded extraction and the shared reader.",
+        "notes": "All spreads and page bounds are retained. Named direct styles and supported text runs are mapped; unsupported formatting is reported. External links are never fetched implicitly."
+      }
     }
   }
 }

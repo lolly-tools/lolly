@@ -775,14 +775,24 @@ export function makeGradeOp(params: GradeVideoParams): FrameOp {
 // (decode) and bridge/video-encode-core.ts (encode), both already shipping.
 
 /**
- * Read a source track's own average frame rate from a bounded packet scan. Used
+ * Read a source track's detected frame rate from a bounded packet scan. Used
  * only when the caller asks for `fps <= 0` ("keep the source rate"), which is what
  * a TRIM wants: re-timing a clip you only meant to shorten is a silent quality
  * change. The scan is metadata-only and capped at a few hundred packets, so it
  * costs a seek, not a decode. Anything unreadable falls back to 30; the result is
  * clamped to 1..60 so a broken header can't ask for a 1000fps grid.
  */
-async function sourceTrackFps(track: { computePacketStats?: (n?: number) => Promise<{ averagePacketRate: number }> }): Promise<number> {
+export async function sourceTrackFps(track: {
+  computeFrameRateMetrics?: (opts: { targetPacketCount: number }) => Promise<{ bestGuessFrameRate: number }>;
+  computePacketStats?: (n?: number) => Promise<{ averagePacketRate: number }>;
+}): Promise<number> {
+  try {
+    // Packet count divided by duration is biased when the final packet has no
+    // duration. Timestamp-lattice detection handles rounded WebM clocks and NTSC.
+    const metrics = await track.computeFrameRateMetrics?.({ targetPacketCount: 256 });
+    const rate = metrics?.bestGuessFrameRate;
+    if (typeof rate === 'number' && Number.isFinite(rate) && rate > 0) return Math.min(60, Math.max(1, rate));
+  } catch { /* older decoder - use packet stats below */ }
   try {
     const stats = await track.computePacketStats?.(240);
     const rate = stats?.averagePacketRate;
