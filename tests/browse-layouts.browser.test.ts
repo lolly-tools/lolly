@@ -6,7 +6,8 @@
  * thumbnail bigger, not only the column wider (plan 296's build moved only the column).
  * Around it, the things a layout switch must never break: the tiles are the same
  * nodes after a round trip, a search still hides tools, the selection dot can be hit,
- * nothing overflows the page, Compact is shorter and keeps every status badge whole,
+ * nothing overflows the page, the cards follow the "Yours" shelf with no strip-sized gap,
+ * Compact is shorter and keeps every status badge whole,
  * Compact gives a phone two Grid columns, right-to-left mirrors the dot,
  * large text clips nothing, hidden previews leave the icon in the slot, and "+ New"
  * is quiet until the card is hovered and opens the starting points, never a seeded look.
@@ -246,6 +247,51 @@ test('Tools Card: search still hides tools, Compact is shorter, RTL mirrors the 
     assert.deepEqual(slot, { gcar: 0, icon: true });
   } finally {
     await context.close();
+  }
+});
+
+// The favourites strip draws in Grid only, so in Card the "Yours" shelf leads the page.
+// An earlier build left the masonry's top-bar clearance under the shelf as well, an
+// empty band of about 90px on a desktop and 60px on a phone above the first card row.
+test('Tools Card: the first card row follows the "Yours" shelf, and the shelf clears the top bar inside the view', { skip, timeout: 150_000 }, async () => {
+  const browser = await getBrowser();
+  for (const [width, height] of [[1440, 900], [390, 844]] as const) {
+    const mobile = width < 640;
+    const context = await browser.newContext({ viewport: { width, height }, hasTouch: mobile, isMobile: mobile, reducedMotion: 'reduce' });
+    try {
+      const page = await context.newPage();
+      await openGallery(page, '#/?layout=card');
+      // The shelf shows once three distinct tools have saved sessions (views/yours-shelf.ts).
+      await page.evaluate(async () => {
+        const path = '/src/lib/host-ref.ts', host = (await import(path)).getHostRef();
+        for (const id of ['design', 'chart', 'qr-code']) await host.state.save(`${id}:browse-layouts`, { __toolId: id, __label: id }, null);
+      });
+      await page.reload({ waitUntil: 'load' });
+      await page.locator('.tool-masonry[data-browse-layout="card"] .gtile[data-tool-id]').first().waitFor({ timeout: 60_000 });
+      await settled(page);
+      await page.locator('.yours-shelf').waitFor();
+      const at = await page.evaluate(() => {
+        const view = document.querySelector('#view')!.getBoundingClientRect();
+        const shelf = document.querySelector('.yours-shelf')!.getBoundingClientRect();
+        const first = [...document.querySelectorAll('.tool-masonry .gtile:not(.is-filtered)')].find(el => el.getClientRects().length)!;
+        return { gap: first.getBoundingClientRect().top - shelf.bottom, clearance: shelf.top - view.top };
+      });
+      assert.ok(at.gap >= 0 && at.gap <= 24, `at ${width}px the first card row starts ${at.gap}px below the shelf`);
+      // A margin that collapsed through the view would start the page tint below the top bar.
+      assert.ok(at.clearance >= 40, `at ${width}px the shelf sits ${at.clearance}px inside the view`);
+      if (mobile) {
+        // A touch screen shows the dot at rest, so Card draws it as a small ring with no fill.
+        const dot = await page.locator('.tool-masonry .gtile--has-preview:not(.is-filtered) .tile-check').first().evaluate((el) => {
+          const s = getComputedStyle(el);
+          return { opacity: s.opacity, fill: s.backgroundColor, width: el.getBoundingClientRect().width };
+        });
+        assert.equal(dot.opacity, '1', 'the dot stays reachable on touch');
+        assert.equal(dot.fill, 'rgba(0, 0, 0, 0)', 'no disc covers the thumbnail');
+        assert.ok(dot.width < 20, `the touch dot is ${dot.width}px`);
+      }
+    } finally {
+      await context.close();
+    }
   }
 });
 

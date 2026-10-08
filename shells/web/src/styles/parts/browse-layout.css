@@ -28,8 +28,11 @@
   /* List: the row's thumbnail chip (4:3). */
   --browse-chip-w: calc(40px * var(--a11y-fs));
   --browse-chip-h: calc(30px * var(--a11y-fs));
-  /* The selection dot on a Card, smaller than Grid's so it sits on the thumbnail. */
+  /* The selection dot on a Card, smaller than Grid's so it sits on the thumbnail, and
+     smaller again on a touch screen, where it shows at rest. */
   --browse-check-size: calc(20px * var(--a11y-fs));
+  --browse-check-size-touch: calc(16px * var(--a11y-fs));
+  --browse-check-glyph-touch: calc(10px * var(--a11y-fs));
   --browse-check-col: calc(var(--object-check-size, calc(26px * var(--a11y-fs))) + 2 * var(--sp-3));
   --browse-menu-col: var(--sp-5);
   /* A Card's padding, which density tightens. */
@@ -76,6 +79,16 @@
 }
 
 /* ── Tools and Utilities (.tool-masonry, views/gallery-tiles.ts) ──────────── */
+
+/* The favourites strip draws in Grid only (plan 302 Q3), so outside Grid the "Yours"
+   shelf leads the page and clears the top bar itself (parts/gallery.css). The cards
+   then follow the shelf at its own spacing, not at the top-bar clearance a leading
+   grid reserves (6rem, 4.2rem on a phone). Grid always has the strip here, so this
+   never matches it. The shelf's clearance is a margin, which would collapse through
+   the view and start the page tint below it; a new formatting context keeps the tint
+   from the top, as on Utilities and Projects. */
+.gallery:not(.has-featured) .yours-shelf ~ .tool-masonry[data-browse-layout] { padding-block-start: var(--sp-7); }
+.gallery:not(.has-featured):has(> .tool-masonry[data-browse-layout]) { display: flow-root; }
 
 /* The pieces only Card draws. Grid hides them, so Grid's tiles are unchanged. */
 .gtile-resume,
@@ -310,6 +323,26 @@
   bottom: auto;
   inset-inline-start: calc(var(--browse-pad-inline) + 3px);
   inset-inline-end: auto;
+}
+/* On a touch screen the dot shows at rest (parts/object-tiles.css), where the dark
+   disc and white ring would cover every thumbnail. Card draws plan 302's List dot
+   there instead: smaller, a neutral ring with no fill, and the primary fill only once
+   pressed. The base rule's 28px hit extension still applies. */
+@media (pointer: coarse) {
+  .tool-masonry[data-browse-layout="card"] { --browse-check-size: var(--browse-check-size-touch); }
+  .tool-masonry[data-browse-layout="card"] .gtile .tile-check {
+    background: transparent;
+    border-color: var(--ui-color-border-default);
+  }
+  .tool-masonry[data-browse-layout="card"] .gtile .tile-check[aria-pressed="true"] {
+    background: var(--ui-color-action-primary);
+    border-color: var(--ui-color-action-primary);
+    color: var(--ui-color-action-on-primary);
+  }
+  .tool-masonry[data-browse-layout="card"] .gtile .tile-check svg {
+    width: var(--browse-check-glyph-touch);
+    height: var(--browse-check-glyph-touch);
+  }
 }
 
 /* ── Projects (.projects-grid) ─────────────────────────────────────────────── */

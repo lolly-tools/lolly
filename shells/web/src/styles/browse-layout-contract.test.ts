@@ -156,6 +156,32 @@ test('the Card selection dot sits on the thumbnail, not against the container wi
   assert.doesNotMatch(dot!.body, /cqw/, 'container-width units resolve against the viewport once a card is a row');
 });
 
+test('on a touch screen the Card dot is the List variant: smaller, a neutral ring, filled only when pressed', () => {
+  const coarse = ALL.filter(r => r.at === '@media (pointer: coarse)');
+  const size = coarse.find(r => r.selector === '.tool-masonry[data-browse-layout="card"]');
+  assert.match(size?.body ?? '', /--browse-check-size:\s*var\(--browse-check-size-touch\)/);
+  const base = ALL.find(r => arms(r.selector).includes('[data-browse-layout]'))!;
+  const px = (prop: string): number => Number(new RegExp(`${prop}:\\s*calc\\(([\\d.]+)px \\* var\\(--a11y-fs\\)\\)`).exec(base.body)?.[1]);
+  assert.ok(px('--browse-check-size-touch') < px('--browse-check-size'), 'smaller than the pointer dot');
+  const ring = coarse.find(r => r.selector === '.tool-masonry[data-browse-layout="card"] .gtile .tile-check');
+  assert.match(ring?.body ?? '', /background:\s*transparent/);
+  assert.match(ring?.body ?? '', /border-color:\s*var\(--ui-color-border-default\)/);
+  const pressed = coarse.find(r => r.selector === '.tool-masonry[data-browse-layout="card"] .gtile .tile-check[aria-pressed="true"]');
+  assert.match(pressed?.body ?? '', /background:\s*var\(--ui-color-action-primary\)/);
+  // The 28px hit extension stays with the base rule (object-tiles.css), so nothing here may remove the ::after.
+  assert.ok(!ALL.some(r => /tile-check::after/.test(r.selector)), 'the touch hit extension is left alone');
+});
+
+test('outside Grid the cards follow the "Yours" shelf, and the shelf clearance stays inside the view', () => {
+  const gap = ALL.find(r => r.selector === '.gallery:not(.has-featured) .yours-shelf ~ .tool-masonry[data-browse-layout]');
+  assert.ok(gap, 'the masonry drops its top-bar clearance under the shelf');
+  assert.match(gap!.body, /padding-block-start:\s*var\(--sp-\d\)/);
+  const root = ALL.find(r => r.selector === '.gallery:not(.has-featured):has(> .tool-masonry[data-browse-layout])');
+  assert.match(root?.body ?? '', /display:\s*flow-root/);
+  // Grid (no attribute) never matches either rule, so its captures do not move.
+  for (const r of [gap!, root!]) assert.match(r.selector, /\.tool-masonry\[data-browse-layout\]/);
+});
+
 test('the quiet "+ New" is muted at rest and full on hover, focus and touch', () => {
   const quiet = ALL.find(r => r.selector === '.tool-masonry[data-browse-layout="card"] .gtile-new-icon')!;
   assert.match(quiet.body, /opacity:\s*\.\d+/);
