@@ -164,7 +164,7 @@ export function enhanceDocsReading(root: HTMLElement, opts: DocsEnhanceOptions):
     // Keep it on screen: flip above near the bottom edge, slide in from a side edge.
     const r = toast.getBoundingClientRect();
     // Flip above near the bottom edge, or when something fixed outside the reader (the
-    // app's narration dock, a floating button) sits where the message would show.
+    // app's music dock, a floating button) sits where the message would show.
     const cover = doc.elementFromPoint?.(Math.min(Math.max(r.left + r.width / 2, 0), win.innerWidth - 1), Math.min(Math.max(r.top + r.height / 2, 0), win.innerHeight - 1));
     const covered = !!cover && !root.contains(cover) && !cover.contains(root);
     if (r.bottom > win.innerHeight - EDGE || covered) toast.setAttribute('data-above', '');

@@ -204,7 +204,8 @@ export function mdToHtml(md: string, ctx: DocsRenderContext): string {
   const fenceBlock = (info: string, code: string[]): string => {
     const { lang, flags } = parseFenceInfo(info);
     // A narrate-skip fence is set as an inscription by its page (the Warde verses), not
-    // as code, so it keeps the bare element that page's styles and the narrator expect.
+    // as code, so it keeps the bare element that page's styles expect. The info string
+    // is kept from the removed docs narration, which skipped these verses.
     if (lang === 'narrate-skip') return `<pre><code class="language-narrate-skip">${esc(code.join('\n'))}</code></pre>`;
     return codeBlock({
       lang, label: fenceLabel(lang, ctx.t), copy: fenceCopies(lang, flags), copyMode: fenceCopyMode(lang), wrap: flags.has('wrap'),

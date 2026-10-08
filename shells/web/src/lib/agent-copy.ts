@@ -6,7 +6,7 @@
  * from docs/agents-pages.ts buildAgentInstructions, the same text served as
  * /info/agent-instructions.md), so every action works without the network and a copy
  * happens inside the click, and an attribute stays out of the page text that search
- * and narration read. One module for both readers: docs/build.ts bundles it into the
+ * reads. One module for both readers: docs/build.ts bundles it into the
  * static page, and the in-app reader (lib/docs-landing.ts) calls it on the fragment
  * it adopts.
  *
