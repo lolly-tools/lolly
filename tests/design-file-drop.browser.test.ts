@@ -18,6 +18,30 @@ const rows = (page: Page): Promise<Array<Record<string, unknown>>> =>
       )!.value as Array<Record<string, unknown>>
   );
 
+const savedRows = (page: Page, ids: unknown[]): Promise<unknown> =>
+  page.waitForFunction(async (expectedIds) => {
+    const slot = new URLSearchParams(location.hash.split('?')[1] ?? location.search).get('slot');
+    if (!slot) return false;
+    const request = indexedDB.open('lolly');
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    try {
+      if (!db.objectStoreNames.contains('state')) return false;
+      const read = db.transaction('state').objectStore('state').get(slot);
+      const saved = await new Promise<{ data?: { boxes?: Array<{ id?: unknown }> } } | undefined>(
+        (resolve, reject) => {
+          read.onsuccess = () => resolve(read.result);
+          read.onerror = () => reject(read.error);
+        }
+      );
+      return JSON.stringify(saved?.data?.boxes?.map(box => box.id)) === JSON.stringify(expectedIds);
+    } finally {
+      db.close();
+    }
+  }, ids);
+
 test('dropping image, video and audio adds objects, undoes together, and reopens with their media', {
   skip: origin ? false : 'no browser origin (set LOLLY_EXPORT_TEST_URL to a local web shell)',
   timeout: 300_000,
@@ -110,35 +134,18 @@ test('dropping image, video and audio adds objects, undoes together, and reopens
     assert.equal(placed[3]!.dur, 1);
     assert.ok(placed.slice(1).every((box) => box.frame === 'page'));
     assert.equal(await page.locator('#tool-canvas.is-file-dragover').count(), 0);
+    await savedRows(page, placed.map(box => box.id));
     await page.locator('[data-topbar="undo"]').click();
     await settleEditor(page, 30_000);
     assert.equal((await rows(page)).length, 1);
+    // Observe the durable undo before redo, so the earlier four-object drop
+    // cannot satisfy the redo's persistence check while undo is still writing.
+    await savedRows(page, seed.map(box => box.id));
     await page.locator('[data-topbar="redo"]').click();
     await settleEditor(page, 30_000);
     assert.equal((await rows(page)).length, 4);
     // Wait for automatic history to finish writing the document and its uploads.
-    await page.waitForFunction(async () => {
-      const slot = new URLSearchParams(location.hash.split('?')[1] ?? location.search).get('slot');
-      if (!slot) return false;
-      const request = indexedDB.open('lolly');
-      const db = await new Promise<IDBDatabase>((resolve, reject) => {
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error);
-      });
-      try {
-        if (!db.objectStoreNames.contains('state')) return false;
-        const read = db.transaction('state').objectStore('state').get(slot);
-        const saved = await new Promise<{ data?: { boxes?: unknown[] } } | undefined>(
-          (resolve, reject) => {
-            read.onsuccess = () => resolve(read.result);
-            read.onerror = () => reject(read.error);
-          }
-        );
-        return saved?.data?.boxes?.length === 4;
-      } finally {
-        db.close();
-      }
-    });
+    await savedRows(page, placed.map(box => box.id));
     const slot = await page.evaluate(() =>
       new URLSearchParams(location.hash.split('?')[1] ?? location.search).get('slot')
     );

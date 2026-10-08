@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:8ba80ea0-875c-4ab8-8bab-b8d78bc9376f",
+  "serialNumber": "urn:uuid:7d4e988b-999f-43f6-8957-57a7f973b2fa",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-10-06T17:38:10.295Z",
+    "timestamp": "2026-10-07T21:04:35.102Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -1712,6 +1712,31 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/cfg-if@1.0.5",
+      "name": "cfg-if",
+      "version": "1.0.5",
+      "purl": "pkg:cargo/cfg-if@1.0.5",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4e7648175b45a9a48536d676f68d918270699102aa8dab5496df06904c914600"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/adobe-psd/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/cfg_aliases@0.2.1",
       "name": "cfg_aliases",
       "version": "0.2.1",
@@ -2292,6 +2317,31 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/crc32fast@1.5.2",
+      "name": "crc32fast",
+      "version": "1.5.2",
+      "purl": "pkg:cargo/crc32fast@1.5.2",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "01a7799fd6b852db0e61728dde9a204c423b44d689dbd432522543614b490e78"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/adobe-psd/Cargo.lock"
         }
       ]
     },
@@ -4090,6 +4140,31 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/flate2@1.1.10",
+      "name": "flate2",
+      "version": "1.1.10",
+      "purl": "pkg:cargo/flate2@1.1.10",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6e634e2e0ebac1ee034020da1ca582e17ffe4e0f5e985823721e168928136dcb"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/adobe-psd/Cargo.lock"
         }
       ]
     },
@@ -7214,6 +7289,27 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/lolly-adobe-psd@0.1.0",
+      "name": "lolly-adobe-psd",
+      "version": "0.1.0",
+      "purl": "pkg:cargo/lolly-adobe-psd@0.1.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/adobe-psd/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/lolly-desktop@1.1.0",
       "name": "lolly-desktop",
       "version": "1.1.0",
@@ -7529,6 +7625,31 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/memchr@2.8.3",
+      "name": "memchr",
+      "version": "2.8.3",
+      "purl": "pkg:cargo/memchr@2.8.3",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "Unlicense OR MIT"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/adobe-psd/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/memoffset@0.9.1",
       "name": "memoffset",
       "version": "0.9.1",
@@ -7653,6 +7774,31 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/miniz_oxide@0.9.1",
+      "name": "miniz_oxide",
+      "version": "0.9.1",
+      "purl": "pkg:cargo/miniz_oxide@0.9.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Zlib OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b63fbc4a50860e98e7b2aa7804ded1db5cbc3aff9193adaff57a6931bf7c4b4c"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/adobe-psd/Cargo.lock"
         }
       ]
     },
@@ -9314,6 +9460,25 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/photocraft-psd@0.2.0",
+      "name": "photocraft-psd",
+      "version": "0.2.0",
+      "purl": "pkg:cargo/photocraft-psd@0.2.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/adobe-psd/Cargo.lock"
         }
       ]
     },
@@ -12024,6 +12189,33 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/simd-adler32@0.3.10",
+      "name": "simd-adler32",
+      "version": "0.3.10",
+      "purl": "pkg:cargo/simd-adler32@0.3.10",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3a219298ac11a56ea9a6d2120044824d6f01aeb034955e7af7bc16858527deea"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/adobe-psd/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/simd-adler32@0.3.9",
       "name": "simd-adler32",
       "version": "0.3.9",
@@ -12787,6 +12979,31 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/syn@3.0.6",
+      "name": "syn",
+      "version": "3.0.6",
+      "purl": "pkg:cargo/syn@3.0.6",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8593e8e72159ed2257d083c7a454a85cbf854f37a0966d8d483aff8c8a3ebcee"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/adobe-psd/Cargo.lock"
         }
       ]
     },
@@ -13696,6 +13913,31 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/thiserror-impl@2.0.21",
+      "name": "thiserror-impl",
+      "version": "2.0.21",
+      "purl": "pkg:cargo/thiserror-impl@2.0.21",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fe5197923287db20a58125f0bc85c062f7f2c892de97b18c356f9efb14b28524"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/adobe-psd/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/thiserror@1.0.69",
       "name": "thiserror",
       "version": "1.0.69",
@@ -13766,6 +14008,31 @@
         {
           "name": "lolly:source",
           "value": "packages/node-shell/wasm/skera/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/thiserror@2.0.21",
+      "name": "thiserror",
+      "version": "2.0.21",
+      "purl": "pkg:cargo/thiserror@2.0.21",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "09e52cb86a36cede5cb101bf8908837b3e4c6e5e59fe7fd85c23fb56200d189e"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/adobe-psd/Cargo.lock"
         }
       ]
     },
@@ -14746,6 +15013,31 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/unicode-ident@1.0.26",
+      "name": "unicode-ident",
+      "version": "1.0.26",
+      "purl": "pkg:cargo/unicode-ident@1.0.26",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "(MIT OR Apache-2.0) AND Unicode-3.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d245f478577f809a851594d02313b640fb437e0bb33866753cff937863096954"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/adobe-psd/Cargo.lock"
         }
       ]
     },
@@ -18541,6 +18833,33 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/zmij@1.0.23",
+      "name": "zmij",
+      "version": "1.0.23",
+      "purl": "pkg:cargo/zmij@1.0.23",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "29666d0abbfad1e3dc4dcf6144730dd3a3ab225bbbdac83319345b1b44ccfc1b"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/adobe-psd/Cargo.lock"
         }
       ]
     },
