@@ -1,0 +1,1023 @@
+/* Rondo UI styles: the inline knob/envelope/piano-roll widgets and the tap
+ * palette. Co-located with editor/rondo and imported by it, so the main app
+ * and the docs page render them identically. */
+
+/* --- the rondo tap palette ---
+ * A chip bar docked above the software keyboard (below the editor): the
+ * grammar's legal next moves at the cursor, tappable. Chips insert on
+ * pointerdown + preventDefault so the editor keeps focus and the phone
+ * keyboard never dismisses. Horizontally scrollable, one row. */
+.rondo-palette {
+  flex: none;
+  display: flex;
+  gap: var(--sp-1);
+  align-items: center;
+  padding: var(--sp-1) calc(var(--sp-2) + env(safe-area-inset-right)) var(--sp-1) calc(var(--sp-2) + env(safe-area-inset-left));
+  background: var(--c-bar);
+  border-top: 1px solid var(--c-border);
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.rondo-palette::-webkit-scrollbar { display: none; }
+.rondo-palette.hidden { display: none; }
+.rp-chip {
+  flex: none;
+  min-height: 36px;
+  padding: 0 var(--sp-1);
+  font-family: var(--font-mono);
+  font-size: calc(var(--fs-xs) / 1.3);
+  color: var(--c-text);
+  background: var(--c-raised);
+  border:0;
+  box-shadow: 0 .5px 3px #0002;
+  border-radius: var(--r);
+  cursor: pointer;
+  white-space: nowrap;
+  touch-action: manipulation;
+}
+.rp-chip:active { background: var(--c-surface); border-color: var(--c-accent); }
+.rp-chip.rp-kw { color: var(--c-accent); }
+.rp-chip.rp-note { min-width: 36px; text-align: center; padding: 0 var(--sp-2); }
+.rp-chip.rp-op { color: var(--c-dim); min-width: 36px; padding: 0 var(--sp-2); }
+/* inline rondo knob widget: a draggable dial after a `knob` value. The
+   padding is the touch target — the dial stays visually compact. */
+.rondo-knob {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  margin: 0 0 0 2px;
+  padding: 4px;
+  color: var(--c-accent, #6ea8fe);
+  cursor: ns-resize;
+  touch-action: none;
+  opacity: 0.8;
+  transition: opacity 0.1s, transform 0.1s;
+}
+.rondo-knob:hover { opacity: 1; }
+.rondo-knob.active { opacity: 1; transform: scale(1.35); }
+/* pattern-driven: the dial is following a .ctrl sweep — read as "live" */
+.rondo-knob.live { opacity: 1; color: var(--c-accent-alt, #6ea8fe); }
+.rondo-knob svg { display: block; }
+/* the pointer is FRAME-DRIVEN while pattern-driven (a rAF loop interpolates
+ * between note samples on the audio clock) — no CSS transition, it would lag
+ * every frame's update */
+/* always-on readout: DEF at rest, driven value while a .ctrl sweeps (live),
+ * hand value while dragging. Always rendered + tabular digits with a reserved
+ * minimum width, so value changes never shift the surrounding text. */
+.rondo-knob .kv {
+  font-size: 10px;
+  line-height: 1;
+  margin-left: 3px;
+  min-width: 3.5ch;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.75;
+  pointer-events: none;
+}
+.rondo-knob.live .kv, .rondo-knob.active .kv { opacity: 1; }
+@media (pointer: coarse) {
+  .rondo-knob { padding: 8px; } /* ~40px target under a thumb */
+}
+/* what a macro is DELIVERING at this destination. Derived, so it is a readout
+   and not a control: the number to edit is on the macro line, or in the
+   formula next to it. Muted at rest, lit while its macro is being moved. */
+.rondo-macro-chip {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 6px;
+  padding: 0 4px;
+  border-radius: 3px;
+  font-size: 10px;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+  /* a fixed box: the number inside changes width as a macro is dragged, and a
+     chip that resizes reads as jitter even with nothing after it on the line */
+  min-width: 5ch;
+  text-align: right;
+  color: var(--c-dim);
+  background: color-mix(in srgb, var(--c-accent) 10%, transparent);
+  opacity: 0.7;
+  pointer-events: none;
+  user-select: none;
+}
+.rondo-macro-chip.live {
+  opacity: 1;
+  color: var(--c-accent);
+  background: color-mix(in srgb, var(--c-accent) 20%, transparent);
+}
+/* the value the ENGINE will use, where it differs from the one written. A
+   warning tone rather than the accent: this is "that number is not doing what
+   it says", not a readout you asked for. */
+.rondo-clamp-chip {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 4px;
+  padding: 0 4px;
+  border-radius: 3px;
+  font-size: 10px;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+  color: var(--c-warn, #e0a94a);
+  background: color-mix(in srgb, var(--c-warn, #e0a94a) 16%, transparent);
+  pointer-events: none;
+  user-select: none;
+}
+/* inline rondo envelope widget: a draggable A/D/S/R curve after an `adsr` */
+.rondo-env {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: text-bottom;
+  margin: 0 0 0 6px;
+  color: var(--c-accent, #6ea8fe);
+  cursor: pointer;
+  touch-action: none;
+}
+.rondo-env svg { display: block; overflow: visible; }
+/* The CURVE is the content, so it is drawn at full strength: it used to
+   inherit a blanket opacity:0.8 from the widget and sit at the same weight and
+   colour as every other accent control, which made the one thing you are
+   reading the hardest thing to see. The chrome dims instead. */
+.rondo-env .line {
+  stroke: var(--c-accent-alt, #8fd0ff);
+  stroke-width: 2.4;
+  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--c-accent-alt, #8fd0ff) 55%, transparent));
+}
+.rondo-env .fill { fill: color-mix(in srgb, var(--c-accent-alt, #8fd0ff) 26%, transparent); }
+/* a floor to read the shape against, so a low sustain is legible as low */
+.rondo-env .base { stroke: var(--c-border, #2a2e37); stroke-width: 1; }
+.rondo-env .h {
+  fill: var(--c-bg, #16181d);
+  stroke: currentColor;
+  stroke-width: 1.5;
+  opacity: 0.75; /* the handles are chrome — they must not out-shout the curve */
+  transition: opacity 0.1s;
+}
+.rondo-env:hover .h, .rondo-env.active .h { opacity: 1; }
+/* the note-fired marker riding the curve + the "firing" flash */
+.rondo-env .emark {
+  fill: var(--c-accent-alt, #6ea8fe);
+  opacity: 0;
+  filter: drop-shadow(0 0 4px var(--c-accent-alt, #6ea8fe));
+}
+.rondo-env.firing .line { stroke: var(--c-accent-alt, #6ea8fe); }
+.rondo-env.firing .fill { fill: color-mix(in srgb, var(--c-accent-alt, #6ea8fe) 22%, transparent); }
+/* the breakpoint editor: `env t l t l …` as a draggable shape. Same visual
+   language as the adsr curve — the curve is the content and reads brightest,
+   the handles are chrome and dim until you go near them. */
+.rondo-envpts {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: text-bottom;
+  margin: 0 0 0 6px;
+  color: var(--c-accent, #6ea8fe);
+  cursor: pointer;
+  touch-action: none;
+}
+.rondo-envpts svg { display: block; overflow: visible; }
+.rondo-envpts .line {
+  stroke: var(--c-accent-alt, #8fd0ff);
+  stroke-width: 2.4;
+  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--c-accent-alt, #8fd0ff) 55%, transparent));
+}
+.rondo-envpts .fill { fill: color-mix(in srgb, var(--c-accent-alt, #8fd0ff) 26%, transparent); }
+.rondo-envpts .base { stroke: var(--c-border, #2a2e37); stroke-width: 1; }
+/* the bend grab zone: invisible, but thick enough to catch a finger. Painted
+   AFTER the curve and BEFORE the handles, so grabbing a point still moves the
+   point and only the span between them bends. */
+.rondo-envpts .seg {
+  stroke: transparent;
+  stroke-width: 12;
+  stroke-linecap: round;
+  cursor: ns-resize;
+}
+.rondo-envpts .h {
+  fill: var(--c-bg, #16181d);
+  stroke: currentColor;
+  stroke-width: 1.5;
+  opacity: 0.75;
+  transition: opacity 0.1s, r 0.1s;
+}
+.rondo-envpts:hover .h, .rondo-envpts.active .h { opacity: 1; }
+@media (pointer: coarse) {
+  .rondo-envpts .h { r: 6; } /* a thumb needs a bigger target than a cursor */
+}
+/* inline rondo piano-roll: tap/drag the notation as a step grid */
+.rondo-roll {
+  display: inline-grid;
+  gap: 2px;
+  vertical-align: text-bottom;
+  margin: 0 0 0 8px;
+  padding: 3px;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--c-border, #2a2e37) 28%, transparent);
+  touch-action: none;
+}
+.rondo-roll .rc {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--c-border, #2a2e37) 55%, transparent);
+  cursor: pointer;
+  /* NO TRANSITION ON THE PLAYHEAD PROPERTIES. `.play` and `.trig` are toggled
+   * on every frame as the head sweeps, and a transition turns each flip into
+   * 60 ms of interpolation-plus-repaint — hundreds of them in flight at once
+   * across a roll. `background` alone is cheap and keeps the hover feel. */
+  transition: background 0.06s;
+}
+.rondo-roll .rc:hover { background: color-mix(in srgb, var(--c-accent, #6ea8fe) 35%, transparent); }
+/* every 4th column brighter: the beat grid */
+.rondo-roll .rc.beat { background: color-mix(in srgb, var(--c-border, #2a2e37) 90%, transparent); }
+.rondo-roll .rc.on {
+  background: var(--c-accent, #6ea8fe);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, #fff 30%, var(--c-accent, #6ea8fe));
+}
+/* playhead: the sweeping column lights, the sounding cell blooms */
+.rondo-roll .rc.play { box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--c-accent, #6ea8fe) 55%, transparent); }
+/* the sounding cell: same reasoning as .qr-cell.on — a hard ring, not a blur.
+ * The scale stays: transforms are composited and cost nothing to animate. */
+.rondo-roll .rc.trig {
+  background: var(--c-accent-alt, #6ea8fe);
+  box-shadow: 0 0 0 1.5px color-mix(in srgb, #fff 50%, var(--c-accent-alt, #6ea8fe));
+  transform: scale(1.12);
+}
+/* whole-block step sequencer: instrument labels + lanes aligned in TIME —
+ * every lane spans the same width, so a 4-step row's cells are twice as wide
+ * as an 8-step row's and downbeats line up vertically */
+.rondo-beatgrid {
+  --beat-cell: 18px;
+  display: inline-grid;
+  grid-template-columns: auto max-content;
+  gap: 3px 8px;
+  align-items: center;
+  vertical-align: text-bottom;
+  margin: 2px 0 2px 8px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--c-border, #2a2e37) 28%, transparent);
+  touch-action: none;
+}
+.rondo-beatgrid .bl {
+  font-size: 10px;
+  line-height: 1;
+  opacity: 0.75;
+  text-align: right;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.rondo-beatgrid .lane { margin: 0; padding: 0; background: none; border-radius: 0; }
+.rondo-beatgrid .lane .rc { width: auto; height: 16px; border-radius: 3px; }
+@media (pointer: coarse) {
+  .rondo-roll .rc { width: 16px; height: 16px; } /* thumb-sized steps */
+  .rondo-beatgrid { --beat-cell: 22px; }
+  .rondo-beatgrid .lane .rc { height: 20px; }
+}
+
+/* undo/redo chips: always present (both languages) at the bar's left edge —
+ * the phone's only history surface. Dim when there's nothing to un/redo. */
+.rp-chip.rp-hist {
+  min-width: 40px;
+  font-size: 15px;
+  line-height: 1;
+}
+.rp-chip.rp-hist:disabled { opacity: 0.35; pointer-events: none; }
+
+/* read-only query roll: ONE cycle of a rich single-cycle pattern (euclid /
+ * polymeter / …) on a time-proportional lane. No pointer affordance on the
+ * lane itself — the text (and the number scrub on its integers) is the write
+ * surface; the left grab strip is the whole-roll transpose handle. */
+.rondo-qwrap {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 3px;
+  vertical-align: text-bottom;
+  margin: 0 0 0 8px;
+}
+.rondo-qwrap .rondo-qroll { margin: 0; }
+.rondo-qroll {
+  position: relative;
+  display: inline-block;
+  vertical-align: text-bottom;
+  width: min(46vw, 220px);
+  margin: 0 0 0 8px;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--c-border, #2a2e37) 28%, transparent);
+  overflow: hidden;
+  pointer-events: none;
+}
+/* a single-euclid roll is a CONTROL SURFACE: drag vertically for pulses,
+ * sideways for rotation */
+.rondo-qroll.editable {
+  touch-action: none;
+  cursor: ns-resize;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c-accent, #6ea8fe) 25%, transparent);
+}
+/* the cell layer: a transpose drag previews by sliding every row at once */
+.rondo-qroll .qr-layer,
+.rondo-rollov .qr-layer {
+  position: absolute;
+  inset: 0;
+}
+.rondo-qroll .qr-cell,
+.rondo-rollov .qr-cell {
+  position: absolute;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--c-accent, #6ea8fe) 55%, transparent);
+}
+/* THE LIT CELL IS REPAINTED EVERY FRAME as the playhead sweeps, so its
+ * treatment has to be paint-cheap. A blurred box-shadow is not: each flip
+ * repaints the cell AND an 8px blur halo around it, for every lit cell of
+ * every roll on screen. A section block puts several long rolls in view at
+ * once, which is where the frame rate went.
+ *
+ * A brighter fill plus a hard 1px ring reads as the same "bloom" at this size
+ * and is a fill, with no blur anywhere. */
+.rondo-qroll .qr-cell.on,
+.rondo-rollov .qr-cell.on {
+  background: var(--c-accent-alt, #6ea8fe);
+  box-shadow: 0 0 0 1px color-mix(in srgb, #fff 45%, var(--c-accent-alt, #6ea8fe));
+}
+/* The playhead is moved with `transform`, not `left`, because it moves every
+ * frame and `left` is a layout property — a roll can hold hundreds of
+ * positioned cells, and relaying several of them per frame is enough to make
+ * a full-screen shader choppy while they are on screen.
+ *
+ * translateX(%) is a fraction of the ELEMENT's own width, so the head spans
+ * the whole roll and paints its line in a ::before at the left edge. At the
+ * old 1.5px width a 50% translate would have moved it three quarters of a
+ * pixel. */
+.rondo-qroll .qr-head,
+.rondo-rollov .qr-head {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.rondo-qroll .qr-head::before,
+.rondo-rollov .qr-head::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 1.5px;
+  background: color-mix(in srgb, var(--c-accent, #6ea8fe) 70%, transparent);
+}
+
+/* whole-roll TRANSPOSE grab strip (both roll forms): a narrow left-edge
+ * handle — vertical drag rewrites the play block's `add N` (one roll row per
+ * degree step). The ::after bleed grows the hit area to a ~44px touch target
+ * without widening the visual strip. */
+.qr-grab {
+  position: relative;
+  z-index: 1; /* wins the overlap with an editable roll's euclid surface */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  border-radius: 5px;
+  color: var(--c-dim, #8b93a3);
+  background: color-mix(in srgb, var(--c-border, #2a2e37) 42%, transparent);
+  pointer-events: auto;
+  touch-action: none;
+  cursor: ns-resize;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.qr-grab::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  left: -10px;
+  right: -16px;
+}
+.qr-grab.active {
+  color: var(--c-accent, #6ea8fe);
+  background: color-mix(in srgb, var(--c-accent, #6ea8fe) 18%, transparent);
+}
+
+/* full-width MULTI-CYCLE clip overview: a BLOCK widget below the notation
+ * line (never inline — an inline strip floats mid-wrap on a soft-wrapped
+ * mega-line). All bars of the repeating period side by side, subtle bar
+ * separators, rows = degrees. Width is set inline by the widget. */
+.rondo-rollov {
+  display: flex;
+  box-sizing: border-box;
+  align-items: stretch;
+  gap: 3px;
+  /* Spacing as transparent BORDER, never margin. CodeMirror measures a block
+   * widget from its element box, which excludes margins, so 10px of vertical
+   * margin here left the height map 10px short per widget -- and every click
+   * below one landed on the wrong line. background-clip keeps the fill inside
+   * the border so this looks exactly like the margin it replaces. */
+  border-top: 4px solid transparent;
+  border-bottom: 6px solid transparent;
+  border-left: 2px solid transparent;
+  padding: 4px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--c-border, #2a2e37) 26%, transparent);
+  /* AFTER the background shorthand, which would reset it. */
+  background-clip: padding-box;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.rondo-rollov .ro-body {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--c-border, #2a2e37) 28%, transparent);
+}
+.rondo-rollov .ro-bar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: color-mix(in srgb, var(--c-dim, #8b93a3) 30%, transparent);
+}
+
+/* ---- wavetable ribbon (v1: visualize the morph) ---------------------------- */
+.rondo-wt {
+  display: inline-block;
+  vertical-align: middle;
+  margin: 2px 0 2px 10px;
+  padding: 2px;
+  border-radius: 6px;
+  color: var(--c-accent, #6ea8fe);
+  background: color-mix(in srgb, var(--c-border, #2a2e37) 22%, transparent);
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.rondo-wt .wt-canvas { display: block; }
+
+/* ---- wavedef editor (v2: author the table by touch) ------------------------ */
+/* a BLOCK widget rendered below its wavedef line (never inline: live value
+   rewrites change the line's text length, and an inline widget would shift
+   under the pointer mid-drag). Width is set inline by the widget. */
+.rondo-wavedef {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  gap: 4px;
+  /* Spacing as transparent BORDER, never margin. CodeMirror measures a block
+   * widget from its element box, which excludes margins, so 10px of vertical
+   * margin here left the height map 10px short per widget -- and every click
+   * below one landed on the wrong line. background-clip keeps the fill inside
+   * the border so this looks exactly like the margin it replaces. */
+  border-top: 4px solid transparent;
+  border-bottom: 6px solid transparent;
+  border-left: 2px solid transparent;
+  padding: 5px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--c-border, #2a2e37) 26%, transparent);
+  /* AFTER the background shorthand, which would reset it. */
+  background-clip: padding-box;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.rondo-wavedef .wd-frames {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.rondo-wavedef .wd-frame {
+  position: relative;
+  display: inline-block;
+  padding: 2px;
+  border-radius: 6px;
+  color: var(--c-dim, #8b93a3);
+  background: color-mix(in srgb, var(--c-border, #2a2e37) 45%, transparent);
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+.rondo-wavedef .wd-frame.sel {
+  color: var(--c-accent, #6ea8fe);
+  border-color: color-mix(in srgb, var(--c-accent, #6ea8fe) 60%, transparent);
+  background: color-mix(in srgb, var(--c-accent, #6ea8fe) 12%, transparent);
+}
+.rondo-wavedef .wd-frame canvas { display: block; }
+.rondo-wavedef .wd-flabel {
+  position: absolute;
+  top: 1px;
+  right: 4px;
+  font-size: 9px;
+  opacity: 0.7;
+}
+/* the selected frame's partial bars: >= 20px columns, scroll when cramped */
+.rondo-wavedef .wd-bars-strip {
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+}
+.rondo-wavedef .wd-bars {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 96px;
+}
+.rondo-wavedef .wd-bar {
+  position: relative;
+  display: inline-block;
+  width: var(--wd-bar-w, 28px);
+  height: 100%;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--c-border, #2a2e37) 50%, transparent);
+  cursor: ns-resize;
+  overflow: hidden;
+}
+.rondo-wavedef .wd-fill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 4px 4px 0 0;
+  background: color-mix(in srgb, var(--c-accent, #6ea8fe) 75%, transparent);
+  min-height: 2px;
+  pointer-events: none;
+}
+.rondo-wavedef.active .wd-fill { background: var(--c-accent-alt, #6ea8fe); }
+.rondo-wavedef .wd-h {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 2px;
+  text-align: center;
+  font-size: 9px;
+  color: var(--c-text, #e8eaf0);
+  opacity: 0.55;
+  pointer-events: none;
+}
+.rondo-wavedef .wd-rail {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 4px;
+  width: var(--wd-bar-w, 28px);
+  height: 100%;
+}
+.rondo-wavedef .wd-add,
+.rondo-wavedef .wd-del {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 26px;
+  border-radius: 5px;
+  font-size: 15px;
+  color: var(--c-accent, #6ea8fe);
+  background: color-mix(in srgb, var(--c-border, #2a2e37) 55%, transparent);
+  cursor: pointer;
+}
+.rondo-wavedef .wd-del { color: var(--c-dim, #8b93a3); }
+.rondo-wavedef .wd-del.off { opacity: 0.3; pointer-events: none; }
+
+/* ---- unison fan glyph ------------------------------------------------------- *
+ * Display-only read-back on a `synth … unison:N` header: one stroke per
+ * sub-voice at its curved detune position, height = blend gain, octave
+ * voices tinted. The header numbers scrub; the glyph never takes a pointer. */
+.rondo-ufan {
+  display: inline-block;
+  vertical-align: middle;
+  margin: 0 0 0 8px;
+  color: var(--c-accent, #6ea8fe);
+  opacity: 0.85;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.rondo-ufan svg { display: block; }
+.rondo-ufan line {
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+.rondo-ufan line.oct { stroke: var(--c-accent-alt, #9d7bfe); }
+
+/* ---- enum tap-cycler ------------------------------------------------------- *
+ * Every registry enum word (noise colors, filter modes, shape types, table
+ * names) is tappable: a tap cycles it to the next legal value. The affordance
+ * is a soft SOLID underline in the accent tint — deliberately distinct from
+ * the number scrub's faint dotted one (different gesture, different look). */
+.cm-rondo-enum {
+  text-decoration: underline;
+  text-decoration-style: solid;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
+  text-decoration-color: color-mix(in srgb, var(--c-accent, #6ea8fe) 45%, transparent);
+  cursor: pointer;
+}
+.cm-rondo-enum:hover {
+  text-decoration-color: var(--c-accent, #6ea8fe);
+}
+@media (pointer: coarse) {
+  /* pad the tap target under a thumb without shifting the text layout */
+  .cm-rondo-enum { padding: 10px 4px; margin: -10px -4px; }
+}
+
+/* ---- filter response curve (svf / ladder / dualsvf / eq) -------------------- */
+.rondo-fcurve {
+  display: inline-block;
+  vertical-align: middle;
+  margin: 2px 0 2px 10px;
+  padding: 3px;
+  border-radius: 6px;
+  color: var(--c-accent, #6ea8fe);
+  background: color-mix(in srgb, var(--c-border, #2a2e37) 22%, transparent);
+  user-select: none;
+  -webkit-user-select: none;
+}
+.rondo-fcurve canvas { display: block; }
+.rondo-fcurve.editable {
+  touch-action: none;
+  cursor: ew-resize;
+}
+.rondo-fcurve.active {
+  color: var(--c-accent-alt, #6ea8fe);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c-accent, #6ea8fe) 35%, transparent);
+}
+/* live on the playhead: this filter is processing a note right now. The colour
+   change is what the canvas picks up (it re-reads `color` through inkOf on the
+   redraw activation triggers); background and opacity carry the rest.
+   Deliberately no filter/blur and no per-frame work — see the roll-cell repaint
+   regression: compositor-only properties, twice per note. */
+.rondo-fcurve.armed {
+  opacity: 0.78;
+  transition: opacity 0.09s ease-out, background-color 0.09s ease-out;
+}
+.rondo-fcurve.firing {
+  opacity: 1;
+  color: var(--c-accent-alt, #6ea8fe);
+  background: color-mix(in srgb, var(--c-accent-alt, #6ea8fe) 14%, transparent);
+}
+
+/* --- the switch: a knob with two values, tapped rather than dragged --- */
+.rondo-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0 0 0 8px;
+  padding: 1px 7px 1px 5px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--c-accent, #6ea8fe) 35%, transparent);
+  background: color-mix(in srgb, var(--c-accent, #6ea8fe) 12%, transparent);
+  color: var(--c-accent, #6ea8fe);
+  font-size: var(--fs-meta, 11px);
+  font-family: var(--font-mono);
+  line-height: 1.5;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  vertical-align: middle;
+  touch-action: manipulation;
+}
+.rondo-switch:hover,
+.rondo-switch:focus-visible {
+  background: color-mix(in srgb, var(--c-accent, #6ea8fe) 22%, transparent);
+  outline: none;
+  border-color: var(--c-accent, #6ea8fe);
+}
+.rondo-switch .rs-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 5px currentColor;
+}
+/* the flip is the only feedback a tap gets, so it has to be visible */
+.rondo-switch.flipped .rs-dot { animation: rs-pop 220ms ease-out; }
+@keyframes rs-pop {
+  0% { transform: scale(0.4); opacity: 0.4; }
+  60% { transform: scale(1.35); }
+  100% { transform: scale(1); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rondo-switch.flipped .rs-dot { animation: none; }
+}
+
+/* An accidental degree sits on its own degree's ROW — the rows are scale
+   degrees and there is no row between them — so it is marked rather than
+   moved. Without the mark, `2#` and `2` would be the same cell. */
+.rondo-roll .rc.acc::after {
+  content: attr(data-acc);
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  line-height: 1;
+  color: var(--c-bg, #10131a);
+  font-family: var(--font-mono);
+  pointer-events: none;
+}
+
+/* ---- PER-NOTE BEND ------------------------------------------------------ *
+ * TWO SURFACES, on purpose.
+ *
+ * The inline cell is 12px square (16 on touch). That is enough to say WHICH
+ * notes carry a value and hopeless for saying how much — a curve drawn in
+ * there gave eight marks that all looked alike. So the cell shows DIRECTION
+ * only, and the shape lives in a full-width lane under the line, which is the
+ * same placement a multi-cycle figure already uses for its clip overview. */
+.rondo-roll .rc { position: relative; }
+.rondo-roll .rc.bend::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 7px;
+  height: 2px;
+  margin: -1px 0 0 -3.5px;
+  border-radius: 1px;
+  background: var(--c-bg, #10131a);
+  opacity: 0.7;
+  transform-origin: 50% 50%;
+}
+.rondo-roll .rc.bendup::before { transform: rotate(-32deg); }
+.rondo-roll .rc.benddn::before { transform: rotate(32deg); }
+
+/* ---- THE BEND LANE ------------------------------------------------------ *
+ * Full width, under the notation, and ONLY on a line that carries values —
+ * ordinary notation grows no automation row. Drag a note's curve to set it;
+ * the same number stays draggable in the source, because it is a number in
+ * the source. */
+.rondo-bendlane {
+  display: block;
+  margin: 2px 0 4px 8px;
+  padding: 2px 3px;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--c-border, #2a2e37) 22%, transparent);
+  touch-action: none;
+  cursor: ns-resize;
+}
+.rondo-bendlane svg { display: block; }
+.rondo-bendlane .bl-zero {
+  stroke: var(--c-border, #2a2e37);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+  vector-effect: non-scaling-stroke;
+}
+.rondo-bendlane .bl-hit { fill: transparent; }
+.rondo-bendlane .bl-slot:hover .bl-hit {
+  fill: color-mix(in srgb, var(--c-accent, #6ea8fe) 12%, transparent);
+}
+.rondo-bendlane .bl-curve {
+  fill: none;
+  stroke: var(--c-accent, #6ea8fe);
+  stroke-width: 2;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+/* a rest has no pitch to bend: draw it faint so the slot still reads as a
+   step, without implying it carries a value */
+.rondo-bendlane .bl-curve.rest { opacity: 0.18; }
+/* A note that INHERITED its value rather than setting one. Dashed and dimmer:
+   the level is real (the engine is holding it) but the note does not own it,
+   so it is not the one to drag if you want to change it. */
+.rondo-bendlane .bl-curve.held {
+  opacity: 0.45;
+  stroke-dasharray: 3 3;
+}
+
+/* The feel lane: the written grid as a ruler, one mark per note where the
+   engine actually plays it. Sideways drag; ew-resize says so. */
+.rondo-feellane {
+  display: block;
+  margin: 2px 0 4px 8px;
+  padding: 2px 3px;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--c-border, #2a2e37) 22%, transparent);
+  touch-action: none;
+  cursor: ew-resize;
+}
+.rondo-feellane svg { display: block; }
+.rondo-feellane .fl-grid {
+  stroke: var(--c-border, #2a2e37);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+  vector-effect: non-scaling-stroke;
+}
+.rondo-feellane .fl-hit { fill: transparent; }
+.rondo-feellane .fl-hit:hover {
+  fill: color-mix(in srgb, var(--c-accent, #6ea8fe) 12%, transparent);
+}
+.rondo-feellane .fl-mark {
+  stroke: var(--c-accent, #6ea8fe);
+  stroke-width: 3;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+/* a note sitting exactly ON its gridpoint carries no lane: real, but not the
+   thing this lane is about, so it reads quieter than a pushed one */
+.rondo-feellane .fl-mark.grid-on { opacity: 0.35; }
+
+/* The sustain guide: the curve no longer touches sustain at the decay handle
+   (it is one time constant, 63.2% of the way), so the level needs its own
+   readable reference or a low sustain becomes unguessable. */
+.rondo-env .sus {
+  stroke: var(--c-accent-alt, #8fd0ff);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+  opacity: 0.45;
+}
+
+/* DRAGGABLE NOTES (widgets.ts attachNoteGesture + rollnotes.ts). A cell is a
+   note you can move: sideways to reposition it, right edge to change its
+   length. The cursor is the whole affordance — the cells are small, so a
+   visible handle would cost more room than it earns. */
+.qr-cell { cursor: grab; }
+.qr-cell:active { cursor: grabbing; }
+.qr-cell.dragging {
+  cursor: grabbing;
+  z-index: 2;
+  outline: 1px solid var(--c-accent, #6ea8fe);
+  filter: brightness(1.35);
+}
+
+/* A `patdef` name used as a pattern (patrefs.ts). It stands where notation
+   normally is, so leaving it plain made the one line that is NOT literal
+   notation look most like it. Mint, matching the keyword that defined it,
+   with a dotted underline saying "this stands for something else". */
+.cm-patref {
+  color: var(--c-kw, #a7f3d0);
+  border-bottom: 1px dotted currentColor;
+}
+
+/* --- live on the playhead, the widgets that had no live state at all --- *
+   Same rule as the filter curve: `armed` means a transport is wired up (so the
+   resting style may sit dimmer), `firing` means this widget's synth is
+   sounding right now. Compositor-only properties and no per-frame work. */
+.rondo-envpts.armed,
+.rondo-switch.armed {
+  transition: opacity 0.09s ease-out, color 0.09s ease-out;
+  opacity: 0.8;
+}
+.rondo-envpts.firing,
+.rondo-switch.firing {
+  opacity: 1;
+  color: var(--c-accent-alt, #6ea8fe);
+}
+.rondo-envpts.firing .line { stroke: var(--c-accent-alt, #6ea8fe); }
+.rondo-envpts.firing .fill { fill: color-mix(in srgb, var(--c-accent-alt, #6ea8fe) 22%, transparent); }
+
+/* the note-fired marker riding the breakpoint curve — same language as the
+   adsr widget's .emark, because it is the same envelope written the long way */
+.rondo-envpts .emark {
+  fill: var(--c-accent-alt, #6ea8fe);
+  filter: drop-shadow(0 0 4px var(--c-accent-alt, #6ea8fe));
+  pointer-events: none;
+}
+
+/* the live cutoff, riding the response curve. Compositor-only (transform +
+   opacity) and moved per NOTE, not per frame — the curve itself never redraws
+   for this. */
+.rondo-fcurve { position: relative; }
+.rondo-fcurve-dot {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 7px;
+  height: 7px;
+  margin: -3.5px 0 0 -3.5px;
+  border-radius: 50%;
+  background: var(--c-accent-alt, #6ea8fe);
+  box-shadow: 0 0 6px var(--c-accent-alt, #6ea8fe);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s ease-out;
+}
+
+/* the compressor transfer curve — same surface language as the filter curve */
+.rondo-ccurve {
+  display: inline-block;
+  vertical-align: middle;
+  margin: 2px 0 2px 10px;
+  padding: 3px;
+  border-radius: 6px;
+  color: var(--c-accent, #6ee7b7);
+  background: color-mix(in srgb, var(--c-border, #1e352c) 22%, transparent);
+  user-select: none;
+  -webkit-user-select: none;
+}
+.rondo-ccurve canvas { display: block; }
+.rondo-ccurve.armed { opacity: 0.78; transition: opacity 0.09s ease-out; }
+.rondo-ccurve.firing { opacity: 1; color: var(--c-accent-alt, #67e8f9); }
+
+/* the sidechain duck envelope */
+.rondo-dcurve {
+  display: inline-block;
+  vertical-align: middle;
+  margin: 2px 0 2px 10px;
+  padding: 3px;
+  border-radius: 6px;
+  color: var(--c-accent, #6ee7b7);
+  background: color-mix(in srgb, var(--c-border, #1e352c) 22%, transparent);
+  user-select: none;
+  -webkit-user-select: none;
+}
+.rondo-dcurve canvas { display: block; }
+.rondo-dcurve.armed { opacity: 0.78; transition: opacity 0.09s ease-out; }
+.rondo-dcurve.firing { opacity: 1; color: var(--c-accent-alt, #67e8f9); }
+
+/* the LFO curve: shape, speed, and a dot where the cycle is right now */
+.rondo-lfocurve {
+  display: inline-block;
+  /* like .rondo-fcurve: a tall inline box raises the whole line box unless it
+     is aligned to the middle, which put the code's baseline at the bottom of a
+     38px row and read as a rendering bug */
+  vertical-align: middle;
+  position: relative;
+  margin: 2px 0 2px 10px;
+  padding: 3px;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--c-border, #2a2e37) 22%, transparent);
+}
+.rondo-lfocurve svg { display: block; }
+.rondo-lfocurve .lc-mid {
+  stroke: var(--c-border, #2a2e37);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+}
+.rondo-lfocurve .lc-curve {
+  fill: none;
+  stroke: var(--c-accent, #7fd1b9);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+.rondo-lfocurve .lc-head {
+  stroke: var(--c-accent, #7fd1b9);
+  stroke-width: 1.5;
+  /* 0.45 was too faint to track at speed, which was the whole complaint */
+  opacity: 0.75;
+  vector-effect: non-scaling-stroke;
+}
+.rondo-lfocurve .lc-dot {
+  fill: var(--c-accent, #7fd1b9);
+  /* a ring in the background colour, so the dot stays legible where it
+     crosses the curve it is riding */
+  stroke: var(--c-bg, #14161a);
+  stroke-width: 1.5;
+  /* a fast LFO moves the dot several times its own width per frame, so it
+     needs to carry at a glance rather than be found */
+  filter: drop-shadow(0 0 3px var(--c-accent, #7fd1b9));
+}
+.rondo-lfocurve .lc-label {
+  position: absolute;
+  top: 2px;
+  right: 6px;
+  font: 10px var(--mono, monospace);
+  color: var(--c-dim, #7b8494);
+  pointer-events: none;
+}
+
+/* THE AUTOMATION LANE — `cut: curve 8 1 8 .35 400..7000`.
+ *
+ * Sits after its own line like the filter and LFO curves. The bar grid is the
+ * part that makes it a LANE rather than a shape: automation here is measured
+ * in bars against the transport, so being able to count them is the whole
+ * difference between reading the picture and guessing at it. */
+.rondo-curvelane {
+  display: inline-block;
+  vertical-align: middle;
+  position: relative;
+  margin: 2px 0 2px 10px;
+  padding: 3px;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--c-border, #2a2e37) 22%, transparent);
+}
+.rondo-curvelane svg { display: block; }
+.rondo-curvelane .cl-bar {
+  stroke: var(--c-border, #2a2e37);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+}
+.rondo-curvelane .cl-line {
+  fill: none;
+  stroke: var(--c-accent, #7fd1b9);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+.rondo-curvelane .cl-head {
+  stroke: var(--c-accent-alt, #d9a441);
+  stroke-width: 1;
+}
+/* A breakpoint is a HANDLE, so it has to look grabbable: filled, and it grows
+ * under the pointer rather than only changing colour. */
+.rondo-curvelane .cl-pt {
+  fill: var(--c-accent, #7fd1b9);
+  stroke: var(--c-bg, #14161a);
+  stroke-width: 1;
+  cursor: ew-resize;
+  transition: r 90ms ease-out;
+}
+.rondo-curvelane .cl-pt:hover {
+  r: 6;
+  cursor: move;
+}

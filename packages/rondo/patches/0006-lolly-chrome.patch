@@ -1,0 +1,254 @@
+Lolly patch 0006: Lolly's chrome over the editor.
+
+Why: inside Lolly the editor wears Lolly's controls, built from the web
+shell's own modules in Lolly's boot script (packages/rondo/editor/chrome.ts):
+the audio transport, the visualiser switcher, the menus and context menus.
+This hands that chrome what it drives (the editor, the audio session, the
+library and the offline renders) through lolly.mountChrome, puts a gain
+stage before the speakers so its volume and mute have something to turn,
+tags each project row in the library with its id for the row's context
+menu, gives the library the verbs of Lolly's Song menu (new, rename,
+duplicate, start from an example), and leaves upstream's phone overflow menu
+unmounted (Lolly's menus
+carry those controls). The WebGPU shader visuals (src/shaderviz/) are not
+mounted: Lolly's MilkDrop visualiser takes their place (decision D4 of plan
+301). Upstream's header stays in the page, unseen, so its panels and
+popovers still open from Lolly's menus. With no host the app is unchanged.
+
+Applied by scripts/vendor-rondocode.ts with git apply --directory=packages/rondo/upstream.
+
+diff --git a/packages/app/src/audio/AudioSession.ts b/packages/app/src/audio/AudioSession.ts
+index a4eb72590c15c567278c2bc31d798fe0133719fc..8b806bf7af405695ea1e4ba72bb6a294943ee48b 100644
+--- a/packages/app/src/audio/AudioSession.ts
++++ b/packages/app/src/audio/AudioSession.ts
+@@ -60,6 +60,8 @@ export class AudioSession {
+     analyser: AnalyserNode | null,
+     analyserL: AnalyserNode | null = null,
+     analyserR: AnalyserNode | null = null,
++    /** Lolly: the output gain stage (see start()). */
++    private readonly out: GainNode | null = null,
+   ) {
+     this.analyser = analyser
+     this.analyserL = analyserL
+@@ -117,7 +119,15 @@ export class AudioSession {
+        * below are PURE TAPS (never connected onward). The old wiring ran the
+        * audio THROUGH the mono analyser, which with a multichannel node would
+        * have downmixed every routed stem back into the master pair. */
+-      node.connect(context.destination)
++      /* Lolly: a gain stage before the speakers, so the utility's volume and
++       * mute have something to turn. Unity until they do, and the analyser taps
++       * below stay ahead of it, so a quieter mix never dims the visualiser. */
++      const out = context.createGain()
++      out.channelCount = chans
++      out.channelCountMode = 'explicit'
++      out.channelInterpretation = 'discrete'
++      node.connect(out)
++      out.connect(context.destination)
+       let analyser: AnalyserNode | null = null
+       let analyserL: AnalyserNode | null = null
+       let analyserR: AnalyserNode | null = null
+@@ -156,7 +166,7 @@ export class AudioSession {
+       }
+       // Do NOT resume here: at page load there's no user gesture yet. The
+       // context stays suspended (silent) until the first Run calls resume().
+-      return new AudioSession(context, node, chans, analyser, analyserL, analyserR)
++      return new AudioSession(context, node, chans, analyser, analyserL, analyserR, out)
+     } catch (e) {
+       context.close().catch(() => {})
+       throw e
+@@ -602,6 +612,13 @@ export class AudioSession {
+     return this.context.currentTime * this.context.sampleRate
+   }
+ 
++  /** Lolly: set the output level, 0 (silent) to 1 (unity). */
++  setOutputGain(level: number): void {
++    if (!this.out) return
++    const v = Number.isFinite(level) ? Math.min(1, Math.max(0, level)) : 1
++    this.out.gain.setTargetAtTime(v, this.context.currentTime, 0.015)
++  }
++
+   suspend(): Promise<void> {
+     return this.context.suspend()
+   }
+diff --git a/packages/app/src/editor/library.ts b/packages/app/src/editor/library.ts
+index b31a3e1db6b8db2c411349693a101a62b74a2d19..9631bf8e4d5b7b295bcd3fc5d8f0e2a0b2e84a82 100644
+--- a/packages/app/src/editor/library.ts
++++ b/packages/app/src/editor/library.ts
+@@ -179,6 +179,20 @@ export interface LibraryHandle {
+   /** Switch to the most recently updated project with this exact name.
+    *  Returns false (touching nothing) when no such project exists. */
+   openByName(name: string): Promise<boolean>
++  /** Lolly: the verbs of Lolly's Song menu, on the open project. */
++  lolly: LollySongVerbs
++}
++
++/** Lolly: what Lolly's Song menu does to the library (added by Lolly's patch series). */
++export interface LollySongVerbs {
++  /** The open project's name. */
++  name(): string
++  newSong(): Promise<void>
++  rename(name: string): Promise<void>
++  duplicate(): Promise<void>
++  /** The examples, each in the languages it comes in. */
++  examples(): { id: string; name: string; lang: 'rondo' | 'rondocode' }[]
++  openExample(id: string): Promise<void>
+ }
+ 
+ export async function mountLibrary(editor: EditorHandle): Promise<LibraryHandle> {
+@@ -879,6 +893,7 @@ export async function mountLibrary(editor: EditorHandle): Promise<LibraryHandle>
+     for (const p of projects) {
+       const row = el('button', 'lib-row' + (p.id === current.id ? ' active' : ''))
+       row.type = 'button'
++      row.dataset.project = p.id // Lolly: the project a row's context menu acts on
+       const rowName = el('span', 'lib-row-name', p.name)
+       tooltip(rowName, p.name) // full name; the row ellipsizes
+       row.append(rowName)
+@@ -1045,5 +1060,41 @@ export async function mountLibrary(editor: EditorHandle): Promise<LibraryHandle>
+       await render()
+       return true
+     },
++    // Lolly: the same steps as the sheet's own new, rename, duplicate and
++    // example controls, for Lolly's Song menu.
++    lolly: {
++      name: () => active.name,
++      newSong: async () => {
++        const lang = newProjectLang()
++        const p = await store.createProject('untitled', blankStarter(lang), lang)
++        await switchTo(p)
++        await render()
++      },
++      rename: async (name) => {
++        const next = name.trim().slice(0, 200) || 'untitled'
++        const at = await store.renameProject(activeId, next)
++        if (at !== undefined) baseVersion = at
++        active = { ...active, name: next }
++        setLabel(next)
++      },
++      duplicate: async () => {
++        const copy = await store.duplicateProject(activeId)
++        if (copy) await switchTo(copy)
++        await render()
++      },
++      examples: () => EXAMPLES.flatMap((ex, i) => [
++        ...(ex.rondo !== undefined ? [{ id: `r:${i}`, name: ex.name, lang: 'rondo' as const }] : []),
++        { id: `j:${i}`, name: ex.name, lang: 'rondocode' as const },
++      ]),
++      openExample: async (id) => {
++        const m = /^([jr]):(\d+)$/.exec(id)
++        const ex = m ? EXAMPLES[Number(m[2])] : undefined
++        if (!m || !ex) return
++        const useRondo = m[1] === 'r' && ex.rondo !== undefined
++        const p = await store.createProject(ex.name, useRondo ? ex.rondo! : ex.code, useRondo ? 'rondo' : 'rondocode')
++        await switchTo(p)
++        await render()
++      },
++    },
+   }
+ }
+diff --git a/packages/app/src/lolly/host.ts b/packages/app/src/lolly/host.ts
+index ba1fa7b1a91840d04b7e40a59bf0413ce6c7aa68..aa0c8c1850b5f83cd9cef7a9fe9ae13245fe635f 100644
+--- a/packages/app/src/lolly/host.ts
++++ b/packages/app/src/lolly/host.ts
+@@ -24,10 +24,24 @@ export interface LollyDb {
+   del(store: string, id: string): Promise<void>
+ }
+ 
+-/** A running visualiser drawn into a canvas the app owns. */
+-export interface LollyViz {
+-  setActive(on: boolean): void
+-  dispose(): void
++/** What Lolly's chrome drives: the app's own objects and its offline renders. */
++export interface LollyChromeHandles {
++  editor: import('../editor/editor').EditorHandle
++  audio: import('../audio/AudioSession').AudioSession
++  library: Promise<import('../editor/library').LibraryHandle>
++  exports: {
++    /** The program an offline render runs (rondo source compiled to JavaScript). */
++    evalCode(): string | { error: string }
++    bounceLoop: typeof import('../editor/export').bounceLoop
++    bounceStems: typeof import('../editor/export').bounceStems
++    bounceMidi: typeof import('../editor/export').bounceMidi
++  }
++  /** The parts whose synthesised singing is loaded, when the app can sing. */
++  sungParts?(): string[]
++  /** The voices that singing was synthesised with. */
++  sungVoices?(): string[]
++  /** Sung parts left silent because Lolly had no singing models to give. */
++  silentParts?(): string[]
+ }
+ 
+ export interface LollyHost {
+@@ -43,8 +57,8 @@ export interface LollyHost {
+   onSong(fn: (song: LollySong) => void): void
+   /** Hand a finished file to Lolly, which saves it the way the app saves files. */
+   download(bytes: Uint8Array, name: string, type: string): void
+-  /** Start Lolly's visualiser on `canvas`, fed by the app's output tap. */
+-  startViz(canvas: HTMLCanvasElement, analyser: AnalyserNode): LollyViz
++  /** Mount Lolly's chrome: transport, song, visualiser, export, menus. */
++  mountChrome(handles: LollyChromeHandles): void
+   /** Show a plain notice in the editor. `key` keeps one notice per subject. */
+   notice(key: string, message: string): void
+ }
+diff --git a/packages/app/src/main.ts b/packages/app/src/main.ts
+index 78437f9a4cdfb7310d83f3b48285654a21360ee8..42189ccc8823fc40839171c5bfd1a2afdf25d699 100644
+--- a/packages/app/src/main.ts
++++ b/packages/app/src/main.ts
+@@ -5,7 +5,9 @@ import { mountLibrary } from './editor/library'
+ import type { ProjectStore } from './session/projects'
+ import { mountDocs } from './editor/docspanel'
+ import { mountSynthLib } from './editor/synthlib'
+-import { mountShaderViz } from './shaderviz/shaderviz'
++import { compile } from '@rondocode/rondo'
++import { bounceLoop, bounceMidi, bounceStems } from './editor/export'
++import { lolly } from './lolly/host'
+ import { mountProbes } from './editor/probes'
+ import { mountOptions } from './ui/options'
+ import { getSetting } from './ui/settings'
+@@ -51,7 +53,6 @@ AudioSession.start().then(
+     void library.then((h) => { projectStore = h.store }).catch((e) => console.warn('[library] failed to mount', e))
+     mountDocs(editor)
+     mountSynthLib(editor, () => projectStore)
+-    const shaderviz = mountShaderViz(app, editor, audio)
+     mountProbes(editor) // inline live-value readouts on modulation expressions
+     // First-run onboarding: a one-question survey sets the default language,
+     // a dedicated welcome project owns the coach marks (created through the
+@@ -81,15 +82,35 @@ AudioSession.start().then(
+     }) // user settings popover (gear)
+     mountMidi(editor, audio)
+     mountMask(editor) // the Bluetooth LED mask as a pattern output
+-    mountHeaderOverflow(editor.topbar) // after every module has added its button
++    // Lolly: no phone overflow menu; Lolly's own menus carry these controls
++    if (!lolly) mountHeaderOverflow(editor.topbar) // after every module has added its button
++    /* Lolly: Lolly's own chrome over the editor - the transport, the song, the
++     * visualiser, export and menus - in place of upstream's header and the
++     * WebGPU shader visuals. Upstream's header stays in the page, unseen, so its
++     * panels and popovers still open from Lolly's menus. */
++    lolly?.mountChrome({
++      editor,
++      audio,
++      library,
++      exports: {
++        evalCode: () => {
++          const source = editor.getDoc()
++          if (editor.getLang() !== 'rondo') return source
++          const c = compile(source)
++          if (c.ok) return c.code
++          const first = c.errors[0]
++          return { error: first ? `line ${first.line}: ${first.message}` : 'rondo compile failed' }
++        },
++        bounceLoop,
++        bounceStems,
++        bounceMidi,
++      },
++    })
+     // DEV-only: singing-engine console hook for bring-up (window.__rcSing).
+     if (import.meta.env.DEV) {
+       void import('./sing/devhook').then((m) => m.installSingDevHook())
+       ;(window as unknown as { __rcEditor: typeof editor }).__rcEditor = editor
+       ;(window as unknown as { __rcAudio: typeof audio }).__rcAudio = audio
+-      // The frame-pacing harness drives the visuals from here rather than by
+-      // clicking the header button: `pnpm tsx scripts/measure-frames.ts`.
+-      ;(window as unknown as { __rcViz: typeof shaderviz }).__rcViz = shaderviz
+     }
+   },
+   (e: unknown) => {

@@ -1,0 +1,966 @@
+/* Standalone docs page. Oscilloscope-Lab palette (var(--c-*) set at runtime by
+ * applyPalette()). Unlike the editor shell (style.css) this page SCROLLS, so it
+ * does not share that stylesheet — the tokens below mirror it deliberately. */
+
+:root {
+  color-scheme: dark;
+  --fs-meta: 12px;
+  --fs-ctrl: 13px;
+  --fs-body: 15px;
+  --fs-title: 15px;
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --r: 10px;
+  --r-sm: 6px;
+  --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --sans: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --content: 760px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  /* instant jumps on purpose: smooth scroll made every anchor hop and
+     search hit feel slow, and the re-aim passes (docs.ts) fought it */
+  /* clears the sticky header AND the route tabs on anchor jumps */
+  scroll-padding-top: calc(var(--doc-top-h, 52px) + var(--doc-tabs-h, 44px) + var(--sp-2));
+}
+
+body {
+  margin: 0;
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-family: var(--sans);
+  font-size: var(--fs-body);
+  line-height: 1.6;
+  -webkit-text-size-adjust: 100%;
+}
+
+a {
+  color: var(--c-accent);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+/* --- sticky header --- */
+
+.doc-top {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  background:
+    repeating-linear-gradient(90deg, var(--c-grid) 0 1px, transparent 1px 34px),
+    repeating-linear-gradient(0deg, var(--c-grid) 0 1px, transparent 1px 34px),
+    color-mix(in srgb, var(--c-bar) 92%, transparent);
+  /* No backdrop blur: the background above is already 92% opaque, so the
+   * blur is invisible, and on the docs pages that host a shader preview it
+   * would be recomputed every frame against animating content. */
+  border-bottom: 1px solid var(--c-border);
+}
+
+.doc-top .brand {
+  font-family: var(--mono);
+  font-size: var(--fs-title);
+  font-weight: 600;
+  color: var(--c-accent);
+}
+.doc-top .brand:hover {
+  text-decoration: none;
+}
+.doc-top .spacer {
+  flex: 1;
+}
+.doc-top .cta {
+  font-family: var(--mono);
+  font-size: var(--fs-ctrl);
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--c-green);
+  border-radius: var(--r-sm);
+  background: var(--c-green-deep);
+  color: var(--c-accent);
+}
+.doc-top .cta:hover {
+  text-decoration: none;
+  background: var(--c-green);
+  color: var(--c-text);
+}
+
+/* --- layout: sticky TOC + content --- */
+
+.doc-wrap {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: var(--sp-6) var(--sp-4) 25vh;
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: var(--sp-8);
+}
+
+.nav-toggle {
+  display: none; /* desktop: the sidebar is always there */
+}
+.doc-nav {
+  position: sticky;
+  /* below the header AND the route tabs; both are measured at runtime */
+  top: calc(var(--doc-top-h, 52px) + var(--doc-tabs-h, 44px) + var(--sp-3));
+  align-self: start;
+  font-family: var(--mono);
+  font-size: var(--fs-ctrl);
+  max-height: calc(100dvh - var(--doc-top-h, 52px) - var(--doc-tabs-h, 44px) - var(--sp-6));
+  overflow-y: auto;
+}
+.doc-nav a {
+  display: block;
+  padding: 5px 0;
+  color: var(--c-dim);
+  border-left: 2px solid transparent;
+  padding-left: var(--sp-3);
+}
+.doc-nav a:hover {
+  color: var(--c-text);
+  text-decoration: none;
+}
+.doc-nav a.on {
+  color: var(--c-accent);
+  border-left-color: var(--c-accent);
+}
+.doc-nav .nav-group {
+  margin-top: var(--sp-4);
+  color: var(--c-faint);
+  font-size: var(--fs-meta);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding-left: var(--sp-3);
+}
+
+.doc-main {
+  min-width: 0;
+  max-width: var(--content);
+}
+
+/* --- hero --- */
+
+.doc-hero {
+  padding-bottom: var(--sp-6);
+  border-bottom: 1px solid var(--c-border);
+  margin-bottom: var(--sp-6);
+}
+.doc-hero h1 {
+  font-family: var(--mono);
+  font-size: clamp(32px, 7vw, 52px);
+  font-weight: 700;
+  margin: 0 0 var(--sp-2);
+  color: var(--c-accent);
+  letter-spacing: -0.01em;
+}
+.doc-hero .tagline {
+  font-size: clamp(17px, 3.5vw, 22px);
+  color: var(--c-text);
+  margin: 0 0 var(--sp-4);
+  line-height: 1.4;
+}
+.doc-hero .blurb {
+  color: var(--c-dim);
+  max-width: 62ch;
+}
+
+/* --- sections --- */
+
+.doc-section {
+  margin-top: var(--sp-8);
+}
+.doc-section > h2 {
+  font-family: var(--mono);
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0 0 var(--sp-3);
+  /* NO scroll-margin-top here: `html` already sets scroll-padding-top to the
+     same calc, and the two ADD — an anchor matching both lands at twice the
+     offset (measured: 232px instead of 116px, which put the previous section
+     back inside the spy band). One source of truth, on the scroller. */
+}
+.doc-section > h2::before {
+  content: '';
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: var(--sp-2);
+  border-radius: 2px;
+  background: var(--c-accent);
+  box-shadow: 0 0 8px var(--c-accent);
+  vertical-align: middle;
+}
+.doc-section p {
+  color: var(--c-dim);
+  margin: 0 0 var(--sp-4);
+  max-width: 64ch;
+}
+.doc-section p code {
+  font-family: var(--mono);
+  font-size: 0.88em;
+  color: var(--c-accent);
+  background: var(--c-surface);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+/* --- tables, lists, notes (docs/blocks.ts) --- */
+
+/* The table's OWN scroller. A reference table can be wider than a phone; what
+ * must never happen is the PAGE scrolling sideways, so the overflow is trapped
+ * here (min-width: 0 lets this shrink inside the grid column). */
+.doc-table-wrap {
+  max-width: 100%;
+  min-width: 0;
+  margin: 0 0 var(--sp-6);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--c-border);
+  border-radius: var(--r);
+  background: var(--c-surface);
+}
+.doc-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: var(--fs-ctrl);
+  line-height: 1.5;
+}
+.doc-table caption {
+  caption-side: top;
+  text-align: left;
+  font-size: var(--fs-meta);
+  color: var(--c-dim);
+  padding: var(--sp-2) var(--sp-3);
+  border-bottom: 1px solid var(--c-border);
+  background: var(--c-bar);
+}
+.doc-table th,
+.doc-table td {
+  text-align: left;
+  vertical-align: top;
+  padding: var(--sp-2) var(--sp-3);
+  border-bottom: 1px solid var(--c-raised);
+}
+.doc-table thead th {
+  font-family: var(--mono);
+  font-size: var(--fs-meta);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-faint);
+  white-space: nowrap;
+  background: var(--c-bar);
+}
+.doc-table tbody td {
+  color: var(--c-dim);
+}
+/* the first column is the thing being named: keep it on one line and lit */
+.doc-table tbody td:first-child {
+  color: var(--c-text);
+  white-space: nowrap;
+}
+.doc-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.doc-table tbody tr:nth-child(even) td {
+  background: color-mix(in srgb, var(--c-raised) 35%, transparent);
+}
+/* numeric columns line up digit for digit */
+.doc-table .num {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.doc-table code {
+  font-family: var(--mono);
+  font-size: 0.9em;
+  color: var(--c-accent);
+  background: var(--c-surface);
+  padding: 1px 4px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.doc-table tbody tr:nth-child(even) code {
+  background: var(--c-bg);
+}
+
+.doc-list {
+  color: var(--c-dim);
+  max-width: 64ch;
+  margin: 0 0 var(--sp-4);
+  padding-left: 1.35em;
+}
+.doc-list li {
+  margin-bottom: var(--sp-2);
+}
+.doc-list li::marker {
+  color: var(--c-faint);
+  font-family: var(--mono);
+  font-size: var(--fs-meta);
+}
+.doc-list code,
+.doc-note code {
+  font-family: var(--mono);
+  font-size: 0.88em;
+  color: var(--c-accent);
+  background: var(--c-surface);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+/* A callout, not a billboard: a left rule and a whisper of tint. */
+.doc-note {
+  display: block;
+  max-width: 64ch;
+  margin: 0 0 var(--sp-4);
+  padding: var(--sp-2) var(--sp-3);
+  color: var(--c-dim);
+  font-size: var(--fs-ctrl);
+  border-left: 2px solid var(--c-accent-alt);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  background: color-mix(in srgb, var(--c-accent-alt) 8%, transparent);
+}
+.doc-note-warn {
+  border-left-color: var(--c-warn);
+  background: color-mix(in srgb, var(--c-warn) 10%, transparent);
+}
+.doc-note-warn code {
+  color: var(--c-warn);
+}
+
+/* --- code block card --- */
+
+.doc-code {
+  margin: 0 0 var(--sp-6);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r);
+  overflow: hidden;
+  background: var(--c-surface);
+}
+.doc-code-cap {
+  font-size: var(--fs-meta);
+  color: var(--c-dim);
+  padding: var(--sp-2) var(--sp-3);
+  border-bottom: 1px solid var(--c-border);
+  background: var(--c-bar);
+}
+.doc-code-body {
+  position: relative;
+}
+/* inline WebGPU visual, revealed inside a playing block that has visual() */
+.doc-viz-canvas {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-top: 1px solid var(--c-border);
+  background: #060807;
+}
+.doc-viz-canvas.hidden {
+  display: none;
+}
+.doc-code pre {
+  margin: 0;
+  padding: var(--sp-3) var(--sp-4);
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: var(--fs-ctrl);
+  line-height: 1.6;
+  color: var(--c-text);
+  tab-size: 2;
+}
+.doc-code-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  border-top: 1px solid var(--c-border);
+  background: var(--c-bar);
+}
+.play-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: var(--fs-ctrl);
+  min-height: 34px;
+  padding: 0 var(--sp-3);
+  border: 1px solid var(--c-green);
+  border-radius: var(--r-sm);
+  background: var(--c-green-deep);
+  color: var(--c-accent);
+  cursor: pointer;
+}
+.play-btn:hover {
+  background: var(--c-green);
+  color: var(--c-text);
+}
+.play-btn.playing {
+  background: var(--c-accent);
+  color: var(--c-bg);
+  border-color: var(--c-accent);
+}
+.edit-link {
+  font-family: var(--mono);
+  font-size: var(--fs-ctrl);
+  color: var(--c-dim);
+}
+.edit-link:hover {
+  color: var(--c-accent);
+}
+.doc-code-err {
+  flex: 1;
+  font-family: var(--mono);
+  font-size: var(--fs-meta);
+  color: var(--c-error);
+  text-align: right;
+}
+
+/* syntax highlight tokens */
+.tok-com {
+  color: var(--c-faint);
+  font-style: italic;
+}
+.tok-str {
+  color: var(--c-accent-alt);
+}
+.tok-num {
+  color: var(--c-warn);
+}
+.tok-kw {
+  color: var(--c-accent);
+}
+.tok-fn {
+  color: var(--c-accent-alt);
+}
+
+/* --- reference --- */
+
+.doc-ref {
+  margin-top: var(--sp-8);
+}
+.doc-ref-search {
+  width: 100%;
+  min-height: 44px;
+  font-family: var(--mono);
+  font-size: 16px;
+  padding: 0 var(--sp-3);
+  margin-bottom: var(--sp-4);
+  background: var(--c-surface);
+  color: var(--c-text);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+}
+.doc-ref-search:focus {
+  outline: none;
+  border-color: var(--c-accent);
+}
+.ref-group {
+  font-family: var(--mono);
+  font-size: var(--fs-meta);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--c-faint);
+  margin: var(--sp-6) 0 var(--sp-2);
+}
+.ref-entry {
+  padding: var(--sp-3) 0;
+  border-bottom: 1px solid var(--c-raised);
+}
+.ref-sig {
+  font-family: var(--mono);
+  font-size: var(--fs-ctrl);
+  color: var(--c-accent);
+  word-break: break-word;
+}
+.ref-sum {
+  color: var(--c-dim);
+  font-size: var(--fs-meta);
+  margin-top: 3px;
+}
+.ref-ex {
+  display: block;
+  font-family: var(--mono);
+  font-size: var(--fs-meta);
+  color: var(--c-faint);
+  margin-top: 5px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* --- mobile: TOC collapses above content --- */
+
+@media (max-width: 720px) {
+  .doc-wrap {
+    grid-template-columns: 1fr;
+    gap: var(--sp-4);
+  }
+  /* CONTENTS panel, not a wall of links: 37 sections (each with an
+   * open-in-editor twin) used to pile up as ~70 undifferentiated chips ABOVE
+   * the guide, with the group headings hidden. Now the nav collapses behind
+   * one button and opens grouped. */
+  .nav-toggle {
+    display: block;
+    width: 100%;
+    min-height: 44px;
+    font-family: var(--mono);
+    font-size: var(--fs-ctrl);
+    color: var(--c-text);
+    background: var(--c-panel, transparent);
+    border: 1px solid var(--c-border);
+    border-radius: var(--r-sm);
+    text-align: left;
+    padding: 0 var(--sp-3);
+  }
+  .nav-toggle::after {
+    content: ' ▾';
+    color: var(--c-faint);
+  }
+  .nav-toggle[aria-expanded='true']::after {
+    content: ' ▴';
+  }
+  .doc-nav {
+    position: static;
+    max-height: none;
+    display: none; /* opened by the contents button */
+    padding-bottom: var(--sp-3);
+    border-bottom: 1px solid var(--c-border);
+  }
+  .doc-nav.open {
+    display: block;
+  }
+  .doc-nav .nav-sect {
+    margin-top: var(--sp-3);
+  }
+  .doc-nav .nav-group {
+    display: block; /* the GROUPS are the organization; keep them */
+    margin: 0 0 var(--sp-1);
+  }
+  .doc-nav .nav-sect > .nav-item {
+    display: inline-block;
+    margin: 0 var(--sp-1) var(--sp-1) 0;
+  }
+  .doc-nav a {
+    border-left: none;
+    display: inline-flex;
+    align-items: center;
+    min-height: 36px;
+    padding: 0 var(--sp-2);
+    border: 1px solid var(--c-border);
+    border-radius: var(--r-sm);
+  }
+  .doc-nav a.on {
+    border-color: var(--c-accent);
+  }
+  /* the open-in-editor twin doubles the chip count and every section already
+   * has a play control in its body: drop it on phones */
+  .doc-nav .nav-open {
+    display: none;
+  }
+}
+
+/* --- full editors in the guide (docs/doceditor.ts) --- */
+
+.doc-code-body .cm-editor {
+  background: var(--c-bg);
+  font-size: 14px;
+}
+.doc-code-body .cm-editor.cm-focused {
+  outline: none;
+}
+.doc-code-body .cm-scroller {
+  font-family: var(--mono);
+  line-height: 1.6;
+}
+.doc-code-body .cm-content {
+  padding: var(--sp-3) 0;
+}
+
+/* flash decoration: mirrors style.css so the docs editors light atoms too.
+ * --flash-ms is set on :root by docs.ts. */
+.cm-flash {
+  border-radius: var(--r-sm);
+  background-color: rgba(90, 190, 135, 0.55);
+  animation: cm-flash-attack var(--flash-ms, 150ms) ease-out;
+}
+@keyframes cm-flash-attack {
+  from {
+    background-color: rgba(120, 230, 180, 0.9);
+  }
+  to {
+    background-color: rgba(90, 190, 135, 0.55);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cm-flash {
+    animation: none;
+  }
+}
+
+/* keyboard shortcuts list */
+.kbd-list {
+  margin: var(--sp-4) 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.kbd-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-3);
+}
+.kbd-row kbd {
+  flex: none;
+  min-width: 12.5rem;
+  font-family: var(--mono);
+  font-size: var(--fs-meta);
+  color: var(--c-text);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+  padding: 2px var(--sp-2);
+}
+.kbd-row span {
+  color: var(--c-dim);
+  font-size: var(--fs-ctrl);
+}
+
+/* footer */
+.doc-footer {
+  margin-top: var(--sp-8);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--c-border);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-4);
+  align-items: center;
+  color: var(--c-dim);
+  font-family: var(--mono);
+  font-size: var(--fs-meta);
+}
+.doc-footer a {
+  color: var(--c-dim);
+  text-decoration: none;
+}
+@media (hover: hover) {
+  .doc-footer a:hover {
+    color: var(--c-accent);
+  }
+}
+.doc-footer a:focus-visible {
+  outline: 2px solid var(--c-accent);
+  outline-offset: 2px;
+  color: var(--c-accent);
+}
+@media (max-width: 640px) {
+  .kbd-row {
+    flex-direction: column;
+    gap: 2px;
+  }
+  .kbd-row kbd {
+    min-width: 0;
+  }
+}
+
+/* global docs search (in the hero) */
+.doc-search {
+  width: 100%;
+  margin-top: var(--sp-4);
+  padding: var(--sp-2) var(--sp-3);
+  font-family: var(--mono);
+  font-size: var(--fs-ctrl);
+  color: var(--c-text);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+}
+.doc-search:focus-visible {
+  outline: 2px solid var(--c-accent);
+  outline-offset: 2px;
+}
+/* The result list. Sits directly under the search box, above the filtered
+ * page, so a reader can either jump straight to the best answer or keep
+ * reading the narrowed page below. */
+.doc-results {
+  margin-top: var(--sp-2);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+  background: var(--c-surface);
+  max-height: 22rem;
+  overflow-y: auto;
+}
+.doc-results-head {
+  padding: var(--sp-2) var(--sp-3);
+  color: var(--c-dim);
+  font-family: var(--mono);
+  font-size: var(--fs-sm, 0.85em);
+  border-bottom: 1px solid var(--c-border);
+}
+.doc-result {
+  display: block;
+  width: 100%;
+  padding: var(--sp-2) var(--sp-3);
+  text-align: left;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--c-border);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.doc-result:last-child {
+  border-bottom: 0;
+}
+.doc-result:hover,
+.doc-result.on {
+  background: var(--c-raised);
+}
+.doc-result.on {
+  outline: 2px solid var(--c-accent);
+  outline-offset: -2px;
+}
+.doc-result-title {
+  display: block;
+  font-family: var(--mono);
+  color: var(--c-text);
+}
+.doc-result-snip {
+  display: block;
+  margin-top: 2px;
+  color: var(--c-dim);
+  font-size: var(--fs-sm, 0.85em);
+}
+.doc-result mark,
+.doc-elsewhere mark {
+  background: var(--c-accent);
+  color: var(--c-bg, #000);
+  border-radius: 2px;
+  padding: 0 1px;
+}
+.doc-nohits {
+  color: var(--c-dim);
+  font-family: var(--mono);
+}
+
+/* hero mini-demo: a touch more prominent than a guide block */
+.doc-hero-demo {
+  margin-bottom: var(--sp-8);
+  border-color: var(--c-accent-alt);
+}
+
+/* nav items: a jump link plus a reveal-on-hover "open in editor" icon */
+.nav-item {
+  display: flex;
+  align-items: center;
+}
+.nav-item > a:first-child {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.nav-open {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--sp-2);
+  color: var(--c-faint);
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+.nav-open svg {
+  width: 13px;
+  height: 13px;
+}
+.nav-item:hover .nav-open,
+.nav-open:focus-visible {
+  opacity: 1;
+}
+@media (hover: hover) {
+  .nav-open:hover {
+    color: var(--c-accent);
+  }
+}
+
+/* "copy for LLMs" button in the docs header */
+.doc-copy {
+  font-family: var(--mono);
+  font-size: var(--fs-ctrl);
+  padding: var(--sp-2) var(--sp-3);
+  margin-right: var(--sp-2);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+  background: var(--c-surface);
+  color: var(--c-dim);
+  cursor: pointer;
+}
+@media (hover: hover) {
+  .doc-copy:hover {
+    color: var(--c-text);
+    border-color: var(--c-dim);
+  }
+}
+.doc-copy:focus-visible {
+  outline: 2px solid var(--c-accent);
+  outline-offset: 2px;
+}
+@media (max-width: 640px) {
+  .doc-copy {
+    display: none; /* the header is tight on phones; /llms.txt still works */
+  }
+}
+
+/* --- route tabs (docs / cookbook / troubleshooting / reference) ---
+   A scrolling strip, not a wrapping row: on a phone these must stay on one
+   line and stay thumb-reachable. Scroll snap so a half-scrolled tab settles. */
+/* The BAR is sticky and does not scroll; the tabs scroll inside it, so the
+   language buttons stay put. They used to live in the scroller and vanished
+   off the right edge in portrait, where four tabs already fill the width. */
+.doc-tabbar {
+  position: sticky;
+  top: var(--doc-top-h, 52px);
+  z-index: 8;
+  display: flex;
+  align-items: stretch;
+  gap: var(--sp-2);
+  padding-right: var(--sp-2);
+  background: var(--c-bg);
+  border-bottom: 1px solid var(--c-border);
+}
+.doc-tabs {
+  flex: 1 1 auto;
+  min-width: 0; /* or the flex item refuses to shrink and never scrolls */
+  display: flex;
+  gap: 2px;
+  padding: 0 0 0 var(--sp-3);
+  overflow-x: auto;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+}
+.doc-tabs::-webkit-scrollbar { display: none; }
+.doc-tab {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  padding: 10px 14px;
+  color: var(--c-dim);
+  text-decoration: none;
+  font-family: var(--mono);
+  font-size: var(--fs-ctrl);
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  /* a comfortable tap target even though the text is small */
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+}
+.doc-tab:hover { color: var(--c-text); }
+.doc-tab.on {
+  color: var(--c-accent);
+  border-bottom-color: var(--c-accent);
+}
+
+/* a non-landing route says what it is without the full pitch */
+.doc-hero.compact { padding-top: var(--sp-4); }
+.doc-hero.compact h1 {
+  font-size: clamp(1.4rem, 5vw, 2rem);
+  font-family: var(--mono);
+  color: var(--c-accent);
+}
+
+/* --- cross-route search hits --- */
+.doc-elsewhere {
+  margin: var(--sp-6) 0;
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--c-border);
+}
+.doc-elsewhere-head {
+  color: var(--c-faint);
+  font-size: var(--fs-meta);
+  font-family: var(--mono);
+  margin-bottom: var(--sp-2);
+}
+.doc-elsewhere-hit {
+  display: flex;
+  gap: var(--sp-2);
+  align-items: baseline;
+  padding: 9px 0;
+  color: var(--c-text);
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--c-border) 50%, transparent);
+}
+.doc-elsewhere-hit:hover { color: var(--c-accent); }
+.doc-elsewhere-where {
+  flex: 0 0 auto;
+  color: var(--c-accent-alt);
+  font-family: var(--mono);
+  font-size: var(--fs-meta);
+}
+
+/* --- reference language toggle (JavaScript / rondo) ---
+   rondo is not the JS API with different punctuation, so the reference has to
+   be able to say both. Sized as real tap targets: on a phone this is the
+   control that decides whether the whole page is useful to you. */
+.ref-langs {
+  display: inline-flex;
+  gap: 2px;
+  margin: var(--sp-3) 0 var(--sp-4);
+  padding: 2px;
+  border: 1px solid var(--c-border);
+  border-radius: 8px;
+  background: var(--c-surface);
+}
+.ref-lang {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--c-dim);
+  font-family: var(--mono);
+  font-size: var(--fs-ctrl);
+  padding: 8px 14px;
+  min-height: 38px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.ref-lang:hover { color: var(--c-text); }
+.ref-lang.on {
+  background: color-mix(in srgb, var(--c-accent) 18%, transparent);
+  color: var(--c-accent);
+}
+
+/* snippet language, in the tab strip. Pinned right on desktop; on a phone it
+   scrolls with the tabs rather than stealing a line of its own. */
+.doc-langpick {
+  flex: 0 0 auto; /* never shrinks, never scrolls away */
+  display: flex;
+  gap: 2px;
+  align-self: center;
+}
+.doc-langbtn {
+  appearance: none;
+  border: 1px solid var(--c-border);
+  background: transparent;
+  color: var(--c-dim);
+  font-family: var(--mono);
+  font-size: var(--fs-meta);
+  padding: 5px 9px;
+  min-height: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.doc-langbtn:hover { color: var(--c-text); border-color: var(--c-dim); }
+.doc-langbtn.on {
+  color: var(--c-accent);
+  border-color: var(--c-accent);
+  background: color-mix(in srgb, var(--c-accent) 15%, transparent);
+}

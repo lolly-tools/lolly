@@ -1,0 +1,396 @@
+Lolly patch 0003: brand faces.
+
+Why: Lolly tools use the active design system's faces only. Every hardcoded
+font stack becomes var(--font-brand) or var(--font-mono); style.css defines
+both from upstream's own stacks, and the utility overrides them at boot with
+the design system's stacks (the font files themselves are registered with
+FontFace inside the frame, so the frame never fetches a font).
+
+Applied by scripts/vendor-rondocode.ts with git apply --directory=packages/rondo/upstream.
+
+diff --git a/packages/app/src/editor/rondo/rondo-ui.css b/packages/app/src/editor/rondo/rondo-ui.css
+index 919a24660de9b057c111002e62209545693e7be4..5161078eac757c4e6c77dc945dbabfba46ac3867 100644
+--- a/packages/app/src/editor/rondo/rondo-ui.css
++++ b/packages/app/src/editor/rondo/rondo-ui.css
+@@ -26,7 +26,7 @@
+   flex: none;
+   min-height: 36px;
+   padding: 0 var(--sp-3);
+-  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
++  font-family: var(--font-mono);
+   font-size: var(--fs-ctrl);
+   color: var(--c-text);
+   background: var(--c-raised);
+@@ -668,7 +668,7 @@
+   background: color-mix(in srgb, var(--c-accent, #6ea8fe) 12%, transparent);
+   color: var(--c-accent, #6ea8fe);
+   font-size: var(--fs-meta, 11px);
+-  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
++  font-family: var(--font-mono);
+   line-height: 1.5;
+   cursor: pointer;
+   user-select: none;
+@@ -713,7 +713,7 @@
+   font-size: 9px;
+   line-height: 1;
+   color: var(--c-bg, #10131a);
+-  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
++  font-family: var(--font-mono);
+   pointer-events: none;
+ }
+ 
+diff --git a/packages/app/src/editor/theme.ts b/packages/app/src/editor/theme.ts
+index 236a0ea290df65209cdb7505c678c412b75da7ca..c1705c1b867676f06c7f8ad1afe692cb94ccc4c9 100644
+--- a/packages/app/src/editor/theme.ts
++++ b/packages/app/src/editor/theme.ts
+@@ -37,7 +37,7 @@ const editorTheme = EditorView.theme(
+       height: '100%',
+     },
+     '.cm-scroller': {
+-      fontFamily: "ui-monospace, 'SF Mono', Menlo, Consolas, monospace",
++      fontFamily: 'var(--font-mono)',
+       lineHeight: '1.5',
+       overscrollBehavior: 'contain',
+     },
+@@ -112,7 +112,7 @@ const editorTheme = EditorView.theme(
+     '.cm-diagnostic-warning': { borderLeft: `3px solid ${C_WARN}` },
+     // completion list: keep it phone-sized; the info panel carries the docs
+     '.cm-tooltip.cm-tooltip-autocomplete > ul': {
+-      fontFamily: "ui-monospace, 'SF Mono', Menlo, Consolas, monospace",
++      fontFamily: 'var(--font-mono)',
+       fontSize: '13px',
+       maxHeight: '12em',
+     },
+@@ -123,14 +123,14 @@ const editorTheme = EditorView.theme(
+     '.cm-dsl-doc': { padding: '6px 9px', maxWidth: '340px' },
+     '.cm-dsl-doc + .cm-dsl-doc': { borderTop: `1px solid ${C_BORDER}` },
+     '.cm-dsl-doc-signature': {
+-      fontFamily: "ui-monospace, 'SF Mono', Menlo, Consolas, monospace",
++      fontFamily: 'var(--font-mono)',
+       fontSize: '12px',
+       color: C_ACCENT,
+     },
+     '.cm-dsl-doc-summary': { fontSize: '12px', margin: '4px 0 0', lineHeight: '1.4' },
+     '.cm-dsl-doc-example': {
+       display: 'block',
+-      fontFamily: "ui-monospace, 'SF Mono', Menlo, Consolas, monospace",
++      fontFamily: 'var(--font-mono)',
+       fontSize: '11px',
+       color: C_GREEN,
+       marginTop: '4px',
+diff --git a/packages/app/src/editor/widgets/widgets.css b/packages/app/src/editor/widgets/widgets.css
+index 0fa2fd2e7ba1aa0bd372e26a7dffe290e8332f49..fd1c689fce6d5fa53b138eeedabeb1c97a3b7263 100644
+--- a/packages/app/src/editor/widgets/widgets.css
++++ b/packages/app/src/editor/widgets/widgets.css
+@@ -57,7 +57,7 @@
+   background: linear-gradient(90deg, var(--c-accent), var(--c-accent-alt));
+ }
+ .cm-w-readout {
+-  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
++  font-family: var(--font-mono);
+   font-size: var(--fs-meta);
+   color: var(--c-accent);
+   min-width: 3ch;
+@@ -67,7 +67,7 @@
+ .cm-w-toggle {
+   min-width: 52px;
+   justify-content: center;
+-  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
++  font-family: var(--font-mono);
+   color: var(--c-dim);
+ }
+ .cm-w-toggle.on {
+@@ -76,7 +76,7 @@
+   border-color: var(--c-green);
+ }
+ .cm-w-pick {
+-  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
++  font-family: var(--font-mono);
+   color: var(--c-accent);
+   white-space: nowrap;
+ }
+@@ -151,7 +151,7 @@
+   background: var(--c-bg);
+   border: 1px solid var(--c-accent);
+   color: var(--c-accent);
+-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
++  font-family: var(--font-mono);
+   font-size: 24px;
+   line-height: 1.2;
+   font-variant-numeric: tabular-nums;
+diff --git a/packages/app/src/style.css b/packages/app/src/style.css
+index 9bdec30e571e8c6225312f3fc6c29b6ca5a97c5c..b7fc43e7f05895ae5ebdbd340920350a9da667f0 100644
+--- a/packages/app/src/style.css
++++ b/packages/app/src/style.css
+@@ -32,6 +32,12 @@
+   /* the single touch-target height for every interactive control */
+   --h-ctrl: 44px;
+ 
++  /* Lolly: the two font stacks every rule below reads. The utility sets them
++   * from the active design system's brand and monospace faces at boot; these
++   * are upstream's own stacks, for the app on its own. */
++  --font-brand: system-ui, -apple-system, 'Segoe UI', sans-serif;
++  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
++
+   /* subtle desaturated film-grain, replaces the old graticule grid (signature) */
+   --noise: url("data:image/svg+xml,%3Csvg width='200' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.1'/%3E%3C/svg%3E");
+ }
+@@ -51,7 +57,7 @@ body {
+ body {
+   background: var(--c-bg);
+   color: var(--c-text);
+-  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
++  font-family: var(--font-brand);
+   -webkit-text-size-adjust: 100%;
+ }
+ 
+@@ -88,7 +94,7 @@ body {
+ 
+ .logo {
+   flex: none;
+-  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
++  font-family: var(--font-mono);
+   font-size: var(--fs-title);
+   font-weight: 600;
+   letter-spacing: 0.01em;
+@@ -138,7 +144,7 @@ body {
+   border: 0;
+   background: none;
+   color: var(--c-text);
+-  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
++  font-family: var(--font-mono);
+   font-size: var(--fs-input);
+   font-weight: 600;
+   text-align: right;
+@@ -166,13 +172,13 @@ body {
+   color: var(--c-accent);
+ }
+ .tempo-unit {
+-  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
++  font-family: var(--font-mono);
+   font-size: var(--fs-meta);
+   color: var(--c-dim);
+ }
+ .tempo-cps {
+   grid-column: 1 / -1;
+-  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
++  font-family: var(--font-mono);
+   font-size: var(--fs-meta);
+   line-height: 1.1;
+   color: var(--c-dim);
+@@ -196,7 +202,7 @@ body {
+   align-content: center;
+ }
+ .startfrom-label {
+-  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
++  font-family: var(--font-mono);
+   font-size: var(--fs-meta);
+   color: var(--c-dim);
+ }
+@@ -207,7 +213,7 @@ body {
+   border: 0;
+   background: none;
+   color: var(--c-text);
+-  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
++  font-family: var(--font-mono);
+   font-size: var(--fs-input);
+   font-weight: 600;
+   text-align: right;
+@@ -292,7 +298,7 @@ body {
+   overflow: hidden;
+   text-overflow: ellipsis;
+   white-space: nowrap;
+-  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
++  font-family: var(--font-mono);
+ }
+ .samples-tag {
+   margin-left: var(--sp-1);
+@@ -492,7 +498,7 @@ body {
+   padding: 6px 9px;
+ }
+ .cm-note-card-head {
+-  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
++  font-family: var(--font-mono);
+   font-size: var(--fs-meta);
+   color: var(--c-accent);
+   margin-bottom: 6px;
+@@ -627,7 +633,7 @@ body {
+   overflow: hidden;
+   text-overflow: ellipsis;
+   white-space: nowrap;
+-  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
++  font-family: var(--font-mono);
+   font-size: var(--fs-ctrl);
+   color: var(--c-dim);
+ }
+@@ -708,7 +714,7 @@ body {
+   overflow: hidden;
+   text-overflow: ellipsis;
+   white-space: nowrap;
+-  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
++  font-family: var(--font-mono);
+   font-size: var(--fs-ctrl);
+   color: var(--c-dim);
+ }
+@@ -742,7 +748,7 @@ body {
+ 
+ .btn {
+   min-height: var(--h-ctrl); /* touch target */
+-  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
++  font-family: var(--font-mono);
+   font-size: var(--fs-ctrl);
+   letter-spacing: 0.01em;
+   white-space: nowrap;
+@@ -790,7 +796,7 @@ body {
+   z-index: 60; /* above sheets (40) and popovers (45) */
+   max-width: min(280px, calc(100vw - 12px));
+   padding: 5px 8px;
+-  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
++  font-family: var(--font-mono);
+   font-size: var(--fs-meta);
+   line-height: 1.3;
+   color: var(--c-text);
+@@ -987,7 +993,7 @@ body {
+ 
+ .sheet-title {
+   margin: 0;
+-  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
++  font-family: var(--font-mono);
+   font-size: var(--fs-title);
+   font-weight: 600;
+   letter-spacing: 0.02em;
+@@ -1125,7 +1131,7 @@ body {
+ 
+ .lib-subtitle {
+   margin: 0;
+-  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
++  font-family: var(--font-mono);
+   font-size: var(--fs-ctrl);
+   font-weight: 600;
+   letter-spacing: 0.02em;
+@@ -1279,7 +1285,7 @@ body {
+ }
+ 
+ .docs-signature {
+-  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
++  font-family: var(--font-mono);
+   font-size: var(--fs-ctrl);
+   color: var(--c-accent);
+   word-break: break-word;
+@@ -1294,7 +1300,7 @@ body {
+ 
+ .docs-example {
+   display: block;
+-  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
++  font-family: var(--font-mono);
+   font-size: var(--fs-meta);
+   color: var(--c-dim);
+   margin-top: var(--sp-1);
+@@ -1309,7 +1315,7 @@ body {
+   gap: 4px;
+   margin-left: auto;
+   margin-right: var(--sp-3);
+-  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
++  font-family: var(--font-mono);
+   font-size: var(--fs-meta);
+   color: var(--c-dim);
+   text-decoration: none;
+@@ -1374,7 +1380,7 @@ body {
+   color: var(--c-text);
+ }
+ .synthlib-tags {
+-  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
++  font-family: var(--font-mono);
+   font-size: var(--fs-meta);
+   color: var(--c-dim);
+ }
+@@ -1445,7 +1451,7 @@ body {
+   margin: 0;
+   padding: var(--sp-2) var(--sp-3);
+   overflow-x: auto;
+-  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
++  font-family: var(--font-mono);
+   font-size: var(--fs-meta);
+   line-height: 1.55;
+   color: var(--c-text);
+@@ -1526,7 +1532,7 @@ body.shaderviz-on .cm-content {
+   z-index: 60;
+   padding: 4px 8px;
+   border-radius: 5px;
+-  font: 11px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
++  font: 11px/1.4 var(--font-mono);
+   color: #cfe3ff;
+   background: rgb(8 12 20 / 78%);
+   border: 1px solid rgb(120 160 220 / 25%);
+@@ -1541,7 +1547,7 @@ body.shaderviz-on .cm-content {
+   z-index: 40;
+   max-width: 90vw;
+   padding: var(--sp-2) var(--sp-3);
+-  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
++  font-family: var(--font-mono);
+   font-size: var(--fs-meta);
+   color: var(--c-error);
+   background: var(--c-error-bg);
+@@ -1646,7 +1652,7 @@ body.shaderviz-on .cm-content {
+ .export-cycles {
+   width: 4rem;
+   padding: var(--sp-1) var(--sp-2);
+-  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
++  font-family: var(--font-mono);
+   font-size: var(--fs-ctrl);
+   color: var(--c-text);
+   background: var(--c-surface);
+@@ -1708,7 +1714,7 @@ body.shaderviz-on .cm-content {
+   gap: var(--sp-1);
+   padding: 0 var(--sp-1);
+   color: var(--c-error);
+-  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
++  font-family: var(--font-mono);
+   font-size: var(--fs-meta);
+   font-variant-numeric: tabular-nums;
+ }
+@@ -1903,7 +1909,7 @@ body.shaderviz-on .cm-content {
+ }
+ .midi-pick {
+   padding: var(--sp-1) var(--sp-2);
+-  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
++  font-family: var(--font-mono);
+   font-size: var(--fs-ctrl);
+   color: var(--c-text);
+   background: var(--c-surface);
+@@ -1949,7 +1955,7 @@ body.shaderviz-on .cm-content {
+   overflow: hidden;
+   text-overflow: ellipsis;
+   white-space: nowrap;
+-  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
++  font-family: var(--font-mono);
+   font-size: var(--fs-ctrl);
+ }
+ .midi-map-cc {
+@@ -2233,7 +2239,7 @@ body.shaderviz-on .cm-content {
+   text-overflow: ellipsis;
+   direction: rtl;
+   text-align: left;
+-  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
++  font-family: var(--font-mono);
+   font-size: var(--fs-meta);
+   color: var(--c-text);
+ }
+@@ -2467,7 +2473,7 @@ body.shaderviz-on .cm-content {
+   overflow: hidden;
+   text-overflow: ellipsis;
+   white-space: nowrap;
+-  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
++  font-family: var(--font-mono);
+   color: var(--c-text);
+ }
+ .midi-mon-state {
+@@ -2486,7 +2492,7 @@ body.shaderviz-on .cm-content {
+   overscroll-behavior: contain;
+   border: 1px solid var(--c-border);
+   border-radius: var(--r-sm);
+-  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
++  font-family: var(--font-mono);
+   font-size: var(--fs-meta);
+ }
+ .midi-mon-row {

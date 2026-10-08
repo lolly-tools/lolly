@@ -162,3 +162,23 @@ test('a failed precache read is not kept for the session', async () => {
     globalThis.fetch = origFetch;
   }
 });
+
+test('sing: the listing matches the pinned sizes, and the part leaves the fp32 fallbacks out', async () => {
+  const { SING_FILE_BYTES, SING_FALLBACK_FILES, SING_PART_BYTES, SING_PART_FILES } = await import('./sing-models.ts');
+  const listed = LISTING.filter(f => f.url.startsWith('/models/sing/'));
+  assert.deepEqual(
+    Object.fromEntries(listed.map(f => [f.url.slice('/models/sing/'.length), f.size])),
+    { ...SING_FILE_BYTES },
+    'models-manifest.json lists exactly the hosted singing files, at their pinned sizes',
+  );
+  const { manifest, listed: fromListing } = withModelFiles(null);
+  assert.ok(fromListing.has('sing'));
+  const part = partFiles(manifest, 'sing');
+  assert.equal(part.length, SING_PART_FILES.length);
+  assert.equal(sum(part), SING_PART_BYTES, 'the size every surface quotes is the download, not the whole family');
+  for (const f of SING_FALLBACK_FILES) {
+    assert.ok(!part.some(p => p.url === `/models/sing/${f}`), `${f} is on demand only`);
+    assert.ok(manifest.groups.sing!.some(p => p.url === `/models/sing/${f}`), `${f} is still in the precache group`);
+  }
+  assert.ok(MODEL_PART_IDS.includes('sing'));
+});

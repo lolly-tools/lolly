@@ -35,15 +35,19 @@
 import modelsListing from '../../models-manifest.json' with { type: 'json' };
 import { t } from '../i18n.ts';
 import { aiOfflinePartAllowed } from './ai-policy.ts';
+import { isSingPartFile, SING_MODEL_STORE, SING_PART_FILES } from './sing-models.ts';
 import {
   downloadAiDetect, downloadAsk, downloadDurable, downloadMatte, downloadOcr, downloadReword,
-  downloadSpeech, downloadUpscale, downloadVerify, fetchPrecacheManifest, modelFetchUrl,
+  downloadSing, downloadSpeech, downloadUpscale, downloadVerify, fetchPrecacheManifest, modelFetchUrl,
   partRecords, speechFileLists, trustmarkGroupSplit, SPEECH_CACHE, TRANSFORMERS_CACHE,
   type ManifestFile, type OfflinePartId, type OnProgress, type PartRecord, type PartState, type PrecacheManifest,
 } from './offline-manager.ts';
 
-/** The offline parts that are on-device AI models. */
-export const MODEL_PART_IDS = ['speech', 'upscale', 'matte', 'ocr', 'reword', 'ask', 'ai-detect', 'verify', 'durable'] as const;
+/** The offline parts that are on-device AI models. `sing` is one of them for
+ *  every per-part surface (its Profile row, the in-place offer, host.models), but
+ *  no bulk download takes it: Profile's sweep and the desktop first-run sheet keep
+ *  their own lists without it (lib/sing-models.ts). */
+export const MODEL_PART_IDS = ['speech', 'upscale', 'matte', 'ocr', 'reword', 'ask', 'ai-detect', 'verify', 'durable', 'sing'] as const;
 export type ModelPartId = (typeof MODEL_PART_IDS)[number];
 
 export function isModelPart(id: OfflinePartId | string): id is ModelPartId {
@@ -51,7 +55,7 @@ export function isModelPart(id: OfflinePartId | string): id is ModelPartId {
 }
 
 /** The precache groups that hold model files. */
-export type ModelGroupKey = 'models' | 'speech' | 'upscale' | 'matte' | 'ocr' | 'reword' | 'embed' | 'aiDetect';
+export type ModelGroupKey = 'models' | 'speech' | 'upscale' | 'matte' | 'ocr' | 'reword' | 'embed' | 'aiDetect' | 'sing';
 
 const GROUP_PREFIXES: Record<ModelGroupKey, readonly string[]> = {
   models: ['/models/trustmark/'],
@@ -62,11 +66,15 @@ const GROUP_PREFIXES: Record<ModelGroupKey, readonly string[]> = {
   reword: ['/models/reword/'],
   embed: ['/models/embed/'],
   aiDetect: ['/models/ai-detect/'],
+  sing: ['/models/sing/'],
 };
 
-/** Which group holds a part's model files, which runtime group rides with it, and
- *  (for the shared trustmark group) which half of it the part owns. */
-const PART_GROUPS: Record<ModelPartId, { model: ModelGroupKey; runtime?: 'ort' | 'ortHf'; half?: 'verify' | 'durable' }> = {
+/** Which group holds a part's model files, which runtime group rides with it,
+ *  (for the shared trustmark group) which half of it the part owns, and (for
+ *  sing) which of the group's files the part downloads. */
+const PART_GROUPS: Record<ModelPartId, {
+  model: ModelGroupKey; runtime?: 'ort' | 'ortHf'; half?: 'verify' | 'durable'; select?: (f: ManifestFile) => boolean;
+}> = {
   speech: { model: 'speech', runtime: 'ortHf' },
   upscale: { model: 'upscale' },
   matte: { model: 'matte' },
@@ -76,6 +84,9 @@ const PART_GROUPS: Record<ModelPartId, { model: ModelGroupKey; runtime?: 'ort' |
   'ai-detect': { model: 'aiDetect', runtime: 'ortHf' },
   verify: { model: 'models', runtime: 'ort', half: 'verify' },
   durable: { model: 'models', half: 'durable' },
+  // The fp32 fallbacks sit in the group but not in the part: they download on
+  // demand only, so they are not in its size either.
+  sing: { model: 'sing', select: (f) => isSingPartFile(f.url.slice('/models/sing/'.length)) },
 };
 
 /** Split a file listing into the model groups, by the build's prefix rules. Pure. */
@@ -117,7 +128,8 @@ export function withModelFiles(precache: PrecacheManifest | null): { manifest: P
 export function partModelFiles(manifest: PrecacheManifest, id: ModelPartId): ManifestFile[] {
   const def = PART_GROUPS[id];
   const files = manifest.groups[def.model] ?? [];
-  return def.half ? trustmarkGroupSplit(files)[def.half] : files;
+  if (def.half) return trustmarkGroupSplit(files)[def.half];
+  return def.select ? files.filter(def.select) : files;
 }
 
 /** Everything a part downloads: its model files plus the runtime that rides with it. */
@@ -141,7 +153,16 @@ export function modelPartLabel(id: ModelPartId): string {
     case 'ai-detect': return t('AI text detector');
     case 'verify': return t('Verify deep scan');
     case 'durable': return t('Durable credential');
+    case 'sing': return t('Singing voices');
   }
+}
+
+/** A fact the person should have before downloading a part, shown on its
+ *  Profile row and in the in-place offer. Only the singing models carry one: the
+ *  licence position of their files. */
+export function modelPartNote(id: ModelPartId): string | undefined {
+  if (id === 'sing') return t('Supertonic-3 is under OpenRAIL-M; the voices’ source states no licence.');
+  return undefined;
 }
 
 export interface ModelPartInfo {
@@ -231,6 +252,7 @@ async function defaultReady(id: ModelPartId, manifest: PrecacheManifest): Promis
       const { DURABLE_MODEL_STORE, DURABLE_ENCODER_FILE } = await import('./durable-model.ts');
       return storeHasAll(DURABLE_MODEL_STORE, [DURABLE_ENCODER_FILE]);
     }
+    case 'sing': return storeHasAll(SING_MODEL_STORE, SING_PART_FILES);
     case 'verify': {
       const { trustmarkModelsReady } = await import('./trustmark.ts');
       return trustmarkModelsReady();
@@ -346,5 +368,6 @@ export async function downloadModelPart(
     case 'matte': return downloadMatte(opts);
     case 'ocr': return downloadOcr(opts);
     case 'durable': return downloadDurable(opts);
+    case 'sing': return downloadSing(opts);
   }
 }

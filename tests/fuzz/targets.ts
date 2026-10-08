@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import { extractSite } from '../../shells/web/src/lib/design-system/extract-site.ts';
+import { rondoFromFile, rondoFromShareLink, rondoSourceBytes } from '../../engine/src/rondo-source.ts';
+import { parseStaged } from '../../packages/rondo/src/staged.ts';
 import { readBrandStyleEvidence, summarizeBrandStyles } from '../../engine/src/brand-evidence.ts';
 import { contextTokens } from '../../engine/src/brand-context.ts';
 /**
@@ -30,6 +32,8 @@ import { contextTokens } from '../../engine/src/brand-context.ts';
  *   - keyframes     : parse/normalise/evaluate the URL-mode `kf` wire grammar
  *   - midi          : Standard MIDI event walker plus note-to-pattern mapping
  *   - zzfxm         : guarded procedural-song object validation and PCM rendering
+ *   - rondo-source  : rondocode song files and share links (base64url + dictionary DEFLATE)
+ *   - rondo-staged  : the validator between the rondocode vm and the DSP (packages/rondo)
  *   - radiance      : RGBE header/scanline reader over writer-produced HDR files
  *   - seal          : edge record/range parser and bounded message assembly
  *   - png-unfilter  : PNG/PDF predictor reversal with byte-derived dimensions
@@ -1943,6 +1947,50 @@ export const idmlReadTarget: FuzzTarget = {
     await readIdmlSpreads(Object.fromEntries(parts.map(p => [p.name, p.bytes])), parseXml);
   },
 };
+const b64urlOf = (b: Uint8Array): string => {
+  let bin = '';
+  for (const x of b) bin += String.fromCharCode(x);
+  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+};
+
+export const rondoSourceTarget: FuzzTarget = {
+  name: 'rondo-source',
+  async seeds() {
+    const canonical = rondoSourceBytes({ schemaVersion: 1, format: 'rondocode', name: 'acid', lang: 'rondo', code: 'synth acid\n  saw\n\nplay acid\n  0 3 5\n' });
+    return [canonical, bytesOf(JSON.stringify({ name: 'groove', code: "p('d', note('c2'))" })), bytesOf('play acid\n  0 3 5\n')];
+  },
+  async invoke(bytes) {
+    // One buffer reaches all three readers: as a canonical/project file, as rondo
+    // source, and as the payload of a share link under each scheme letter.
+    for (const name of ['x.rondo.json', 'x.rondo']) {
+      try { rondoFromFile(bytes, name); } catch (e) { if (!(e instanceof Error)) throw e; }
+    }
+    for (const scheme of ['p', 'd', 'u']) {
+      try { rondoFromShareLink(`https://rondocode.com/#s=${scheme}${b64urlOf(bytes)}`); } catch (e) { if (!(e instanceof Error)) throw e; }
+    }
+  },
+};
+
+export const rondoStagedTarget: FuzzTarget = {
+  name: 'rondo-staged',
+  async seeds() {
+    const graph = { nodes: [{ id: 0, type: 'sine', inputs: { freq: 440 } }, { id: 1, type: 'delay', inputs: { in: { node: 0 } }, config: { maxTime: 0.5 } }], out: 1, params: [{ name: 'cutoff', default: 800, min: 80, max: 8000 }] };
+    return [bytesOf(JSON.stringify({
+      ok: true, cps: 0.5,
+      synths: { __map: [['s', { graph, maxVoices: 4 }]] },
+      events: { __map: [['s', [{ time: 0, type: 'noteOn', note: 60, velocity: 1 }, { time: 0.4, type: 'param', name: 'cutoff', value: 900 }, { time: 0.5, type: 'noteOff', note: 60 }]]] },
+      buses: { __map: [['space', { graph, gain: 0.5 }]] },
+      sends: [{ synth: 's', bus: 'space', amount: 0.3 }],
+      sidechain: { source: 's', depth: 0.5, releaseMs: 120 },
+      wavetables: { mine: [[1, 0.5, 0.25]] },
+    }))];
+  },
+  async invoke(bytes) {
+    // The validator's input is a string the vm wrote, so any UTF-8 is fair game.
+    parseStaged(new TextDecoder('utf-8').decode(bytes), 10);
+  },
+};
+
 export const ALL_TARGETS: FuzzTarget[] = [
   adobeXmlTarget, adobePsdTarget, idmlReadTarget,
   motionCuesTarget, motionParamsTarget, mcpNegotiationTarget,
@@ -1958,7 +2006,7 @@ export const ALL_TARGETS: FuzzTarget[] = [
   pptxReadTarget, pptxPatchTarget, pptxBridgeTarget, iccTarget,
   derReadTarget, c2paExtractTarget, c2paContainersTarget, urlPackTarget, wavTarget,
   depthHintTarget, lutParseTarget, psdTarget, psdDescriptorTarget, xcfTarget, docxReadTarget,
-  svgReadersTarget, keyframesTarget, midiTarget, zzfxmTarget,
+  svgReadersTarget, keyframesTarget, midiTarget, zzfxmTarget, rondoSourceTarget, rondoStagedTarget,
   radianceTarget, sealTarget, pngUnfilterTarget, watermarkAnalysisTarget,
   geomTarget, svgItemsTarget,
 ];

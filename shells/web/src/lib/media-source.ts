@@ -76,6 +76,66 @@ export function looksLikeTrackerModule(url: string, bytes?: ArrayBuffer | Uint8A
   return !!bytes && sniffTrackerModule(bytes);
 }
 
+// ── rondocode songs ─────────────────────────────────────────────────────────
+//
+// A rondocode song is code that computes audio (plan 301), stored as its source:
+// canonical `.rondo.json` bytes behind a user asset's `blob:` url, a `.rondo` or
+// `.rondo.json` file, or a rondocode share link. Like a tracker module it holds
+// no encoded audio, so no demuxer and no `decodeAudioData` reads one; it is
+// rendered by lib/rondo-render.ts, which runs the song in the `vm` class.
+//
+// These tests mirror engine/src/rondo-source.ts's `isRondoFileName` and
+// `isRondoShareLink` (a test asserts they agree) instead of importing them: that
+// module carries fflate and the share-link dictionary, and this one sits on the
+// editor's first-paint path, where a song is rare.
+
+/** A share link's shape: rondocode.com with an `s=` payload in the fragment. */
+const RONDO_LINK_RE = /^https:\/\/(?:www\.)?rondocode\.com\/[^#\s]*#(?:[^#\s]*&)?s=[A-Za-z0-9_-]/;
+/** A song file's name: `x.rondo` (rondo language) or `x.rondo.json` (a project file). */
+const RONDO_PATH_RE = /\.rondo(?:\.json)?$/i;
+/** Largest stored song the byte sniff parses: the code ceiling twice over, plus the JSON frame. */
+export const MAX_RONDO_SNIFF_BYTES = 256 * 1024 * 2 + 4096;
+
+/** Is this a rondocode share link, which carries its song inside the link? */
+export function isRondoShareUrl(url: string): boolean {
+  return RONDO_LINK_RE.test(url.trim());
+}
+
+/** Does this url NAME a rondocode song: a share link, or a `.rondo`/`.rondo.json` path? */
+export function isRondoUrl(url: string): boolean {
+  const u = url.trim();
+  if (RONDO_LINK_RE.test(u)) return true;
+  const path = (u.split('#')[0] ?? '').split('?')[0] ?? '';
+  return RONDO_PATH_RE.test(path);
+}
+
+/**
+ * Is this a stored rondocode song, by its own bytes? A user asset's url is a
+ * `blob:` with no extension, so the bytes are what identify it, exactly as for an
+ * uploaded tracker module. The stored form is always the canonical file, which
+ * says `"format": "rondocode"`, so one bounded JSON parse settles the question.
+ */
+export function sniffRondoSource(src: ArrayBuffer | Uint8Array): boolean {
+  const b = src instanceof Uint8Array ? src : new Uint8Array(src);
+  if (b.length < 2 || b.length > MAX_RONDO_SNIFF_BYTES) return false;
+  let i = 0;
+  if (b[0] === 0xef && b[1] === 0xbb && b[2] === 0xbf) i = 3;            // UTF-8 BOM
+  while (i < b.length && (b[i] === 0x20 || b[i] === 0x0a || b[i] === 0x0d || b[i] === 0x09)) i++;
+  if (b[i] !== 0x7b /* '{' */) return false;
+  try {
+    const o = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(b.subarray(i))) as Record<string, unknown> | null;
+    return !!o && o.format === 'rondocode' && typeof o.code === 'string';
+  } catch {
+    return false;
+  }
+}
+
+/** The question every audio consumer asks before it reaches a decoder: is this a song? */
+export function looksLikeRondoSong(url: string, bytes?: ArrayBuffer | Uint8Array | null): boolean {
+  if (isRondoUrl(url)) return true;
+  return !!bytes && sniffRondoSource(bytes);
+}
+
 
 /**
  * Real confirmation that a seek presented a frame: rVFC where it exists (its

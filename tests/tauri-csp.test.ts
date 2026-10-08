@@ -46,6 +46,7 @@ test('the shared policy is a real CSP with the directives the shells rely on', (
   }
   assert.ok(directives.get('connect-src')?.includes('ipc:'), 'IPC transport stays reachable');
   assert.ok(directives.get('script-src')?.includes("'wasm-unsafe-eval'"), 'WASM engines stay loadable');
+  assert.ok(directives.get('script-src')?.includes('blob:'), "the Rondocode editor's AudioWorklet module loads from a blob: URL");
   assert.deepEqual(directives.get('object-src'), ["'none'"]);
   // A browser ignores frame-ancestors from a <meta> element and warns about it;
   // inside a WebView there is nothing to refuse, so the meta form leaves it out.

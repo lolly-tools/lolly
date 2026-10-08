@@ -1,0 +1,789 @@
+import { GraphError, validateGraph } from './graph'
+import type { GraphSpec, NodeSpec, NodeType, ParamSpec } from './graph'
+import type { DspContext, Kernel } from './dsp/types'
+import { SineKernel, SawKernel, SquareKernel, TriKernel, PulseKernel, NoiseKernel, SyncSawKernel, FMKernel, SuperSawKernel, LFSRKernel } from './dsp/osc'
+import { PhaserKernel, FormantKernel } from './dsp/fx2'
+import type { PhaserConfig } from './dsp/fx2'
+import { VocoderKernel } from './dsp/vocoder'
+import type { VocoderConfig } from './dsp/vocoder'
+import { WavetableKernel } from './dsp/wavetable'
+import { SvfKernel, LadderKernel, OnePoleKernel, DualSvfKernel } from './dsp/filters'
+import type { SvfMode, DualSvfConfig } from './dsp/filters'
+import { AdsrKernel, EnvKernel } from './dsp/env'
+import { Math2Kernel, MathKernel } from './dsp/math'
+import type { Math2Config, MathConfig } from './dsp/math'
+import type { EnvConfig } from './dsp/env'
+import { LfoKernel } from './dsp/lfo'
+import type { LfoShape } from './dsp/lfo'
+import {
+  MulKernel, AddKernel, SubKernel, DivKernel, PowKernel,
+  ClipKernel, FoldKernel, TanhKernel, MixKernel,
+} from './dsp/math'
+import { DelayKernel } from './dsp/delay'
+import type { DelayConfig } from './dsp/delay'
+import { LooperKernel } from './dsp/looper'
+import type { LooperConfig } from './dsp/looper'
+import { ReverbKernel } from './dsp/reverb'
+import { ChorusKernel } from './dsp/chorus'
+import type { ChorusConfig } from './dsp/chorus'
+import { CombKernel } from './dsp/comb'
+import type { CombConfig } from './dsp/comb'
+import { BitcrushKernel } from './dsp/bitcrush'
+import type { BitcrushConfig } from './dsp/bitcrush'
+import { ShapeKernel } from './dsp/shape'
+import type { ShapeType } from './dsp/shape'
+import { SampleKernel } from './dsp/sample'
+import type { SampleSliceConfig, SampleZone } from './dsp/sample'
+import { GranularKernel } from './dsp/granular'
+import { PluckKernel, ModalKernel } from './dsp/physical'
+import type { PluckConfig, ModalConfig } from './dsp/physical'
+import { DdspKernel } from './dsp/ddsp'
+import { MicInKernel } from './dsp/micin'
+import type { DdspConfig } from './dsp/ddsp'
+import type { GranularConfig } from './dsp/granular'
+import { CompressKernel } from './dsp/compress'
+import { GateKernel } from './dsp/gate'
+import { DeessKernel } from './dsp/deess'
+import { FollowKernel } from './dsp/follow'
+import { PitchShiftKernel } from './dsp/pitchshift'
+import { ConvolveKernel } from './dsp/convolve'
+import { TapeKernel } from './dsp/tape'
+import { LimiterKernel } from './dsp/limiter'
+import { EqKernel } from './dsp/eq'
+import type { EqBand } from './dsp/eq'
+import { ExciterKernel } from './dsp/exciter'
+import type { ExciterConfig } from './dsp/exciter'
+import { OttKernel } from './dsp/ott'
+import type { OttConfig } from './dsp/ott'
+import { WidthKernel } from './dsp/width'
+import type { WidthConfig } from './dsp/width'
+import { TransientKernel } from './dsp/transient'
+import type { TransientConfig } from './dsp/transient'
+import { FlangerKernel } from './dsp/flanger'
+import type { FlangerConfig } from './dsp/flanger'
+import type { CompressConfig } from './dsp/compress'
+import type { GateConfig } from './dsp/gate'
+import type { DeessConfig } from './dsp/deess'
+import type { FollowConfig } from './dsp/follow'
+import type { PitchShiftConfig } from './dsp/pitchshift'
+import type { ConvolveConfig } from './dsp/convolve'
+import type { TapeConfig } from './dsp/tape'
+import type { LimiterConfig } from './dsp/limiter'
+
+/** Samples per processing block. All node buffers are this long; Voice.process
+ *  may render any n <= BLOCK. */
+export const BLOCK = 128
+
+/* ------------------------------------------------------------------------- *
+ * Stereo contract (v1)
+ *
+ * Kernels are mono. A voice produces stereo via AT MOST ONE `pan` node, and
+ * that pan must be the terminal out-feeding node (the node `out` consumes, or
+ * the node `spec.out` points at directly). The compiler special-cases pan —
+ * it is not a kernel: the voice reads pan's resolved `in` and `pos` buffers
+ * and applies equal-power panning while summing into the stereo bus:
+ *
+ *   pos clamped to [0, 1];  0 = hard left, 0.5 = center, 1 = hard right
+ *   L = in * cos(pos * pi/2),  R = in * sin(pos * pi/2)
+ *
+ * With no pan node, the mono terminal is centered at equal power:
+ * L = R = in * 0.7071 (cos(pi/4)). A pan anywhere else in the graph, or more
+ * than one pan, is a GraphError.
+ *
+ * Delay semantics: edges INTO a delay node's `in` port are excluded from the
+ * topological order (that is what makes feedback loops legal). The delay's
+ * `in` input still references the producer's output buffer — buffers persist
+ * across blocks, the process order just doesn't guarantee freshness — so when
+ * the producer is downstream of the delay in a loop, the delay reads the
+ * producer's PREVIOUS block. Feedback through a delay therefore carries one
+ * block (BLOCK samples) of extra latency on top of the delay time.
+ *
+ * One honest exception to that contract: the degenerate self-loop
+ * `delay.in <- delay` resolves the delay's input to its OWN output buffer, and
+ * DelayKernel writes out[i] before reading input[i], so within the shared
+ * buffer each sample reads the CURRENT block's freshly written output — zero
+ * blocks of latency, not one. The result is bounded (the delay's soft knee
+ * still applies) and harmless, just off-contract for this one shape.
+ *
+ * Delays are per-voice by design (short feedback-loop synthesis, e.g.
+ * Karplus-Strong flavors). Echo/reverb-style delays belong in the future
+ * per-synth post-chain, not inside a voice graph (see plan doc, Task 1.6/1.9).
+ * ------------------------------------------------------------------------- */
+
+/** One kernel-backed node, ready to run: kernel instance, resolved input
+ *  buffers, and its output buffer. Everything is prebuilt at compile time —
+ *  running a step allocates nothing. */
+export interface CompiledStep {
+  /** NodeSpec id, for debugging/tests. */
+  id: number
+  kernel: Kernel
+  inputs: Record<string, Float32Array>
+  out: Float32Array
+}
+
+export interface CompiledParam {
+  spec: ParamSpec
+  /** Voice-owned buffer read by `param` nodes; filled with a new value on
+   *  Voice.setParam. Pre-filled with the spec default at compile. */
+  buf: Float32Array
+}
+
+/** A fully instantiated, single-voice runnable graph: kernel instances are
+ *  stateful, so one CompiledGraph belongs to exactly one Voice. Compile once
+ *  per voice (VoicePool does this). */
+export interface CompiledGraph {
+  /** Kernel steps in topological order (delay `in` edges excluded — see
+   *  header comment on feedback latency). */
+  steps: CompiledStep[]
+  /** Voice-state buffers, filled by the Voice on noteOn/noteOff. */
+  noteFreq: Float32Array
+  gate: Float32Array
+  /** Note velocity, 0..1. Available to the graph for TIMBRE only — amplitude
+   *  is auto-scaled by velocity in Voice.process(), so consuming this buffer
+   *  to multiply the output double-applies velocity. */
+  velocity: Float32Array
+  /** Param name -> spec + voice-owned buffer. */
+  params: Map<string, CompiledParam>
+  /** Buffer feeding the stereo stage: pan's `in` if a pan node is terminal,
+   *  else the mono terminal's output buffer. */
+  panIn: Float32Array
+  /** Pan position buffer, or null for equal-power center. */
+  panPos: Float32Array | null
+}
+
+/** Input port table per node type. `def` present = optional with that
+ *  constant default; absent = required (missing -> GraphError). Derived from
+ *  the kernel process() contracts in dsp/*.ts. */
+/* EXPORTED so the rondo registry can be checked against it: a named arg
+ * declared `sig` there must be a signal input here, or the value lands in
+ * construction config and is silently dropped. See
+ * sig-params-are-real.test.ts. */
+export const PORTS: Record<NodeType, { name: string; def?: number }[]> = {
+  sine: [{ name: 'freq' }],
+  saw: [{ name: 'freq' }],
+  square: [{ name: 'freq' }],
+  tri: [{ name: 'freq' }],
+  pulse: [{ name: 'freq' }, { name: 'width', def: 0.5 }],
+  syncsaw: [{ name: 'freq' }, { name: 'ratio', def: 2 }],
+  fm: [{ name: 'freq' }, { name: 'mod', def: 0 }, { name: 'feedback', def: 0 }],
+  supersaw: [{ name: 'freq' }, { name: 'detune', def: 0.2 }, { name: 'mix', def: 0.7 }],
+  lfsr: [{ name: 'freq', def: 4000 }],
+  // warpAmt defaults to 0.5 so `warp:'sync'` alone is audibly warped (0 would
+  // make every mode the identity transfer — a silent no-op reads as broken)
+  wavetable: [{ name: 'freq' }, { name: 'pos', def: 0 }, { name: 'warpAmt', def: 0.5 }],
+  noise: [],
+  // gate required (retrigger edge); speed optional, 1 = natural pitch; pitch is
+  // the note-to-reference RATIO that picks a chop when `slices` is set (1 = the
+  // reference note = slice 0), ignored otherwise.
+  sample: [{ name: 'gate' }, { name: 'speed', def: 1 }, { name: 'pitch', def: 1 }, { name: 'variant', def: 0 },
+    // note frequency, so the kernel can pick a KEY ZONE by note
+    { name: 'nfreq', def: 440 },
+    // the per-NOTE slice (`.chop()`): the Voice patches these two ports at
+    // noteOn, and the kernel latches them on the gate edge
+    { name: 'begin', def: 0 }, { name: 'end', def: 1 }],
+  // gate spawns grains; pos scans the buffer 0..1; rate is the pitch.
+  granular: [{ name: 'gate' }, { name: 'pos', def: 0 }, { name: 'rate', def: 1 }],
+  pluck: [{ name: 'gate' }, { name: 'freq', def: 220 }],
+  modal: [{ name: 'gate' }, { name: 'freq', def: 220 }],
+  // trained neural instrument: vel/breath steer the decoder's loudness input
+  // (timbre, not just gain); vib/vibrate are the built-in vibrato LFO; the
+  // articulation set (air/bright/scoop/fall) reshapes the decoder's outputs
+  ddsp: [{ name: 'gate' }, { name: 'freq', def: 220 }, { name: 'vel', def: 1 },
+    { name: 'breath', def: 0 }, { name: 'vib', def: 0 }, { name: 'vibrate', def: 5.5 },
+    { name: 'air', def: 1 }, { name: 'bright', def: 0 }, { name: 'scoop', def: 0 }, { name: 'fall', def: 0 }],
+  svf: [{ name: 'in' }, { name: 'cutoff' }, { name: 'res', def: 0 }],
+  ladder: [{ name: 'in' }, { name: 'cutoff' }, { name: 'res', def: 0 }],
+  onepole: [{ name: 'in' }, { name: 'cutoff' }],
+  dualsvf: [{ name: 'in' }, { name: 'cutoff' }, { name: 'cutoff2' }, { name: 'res', def: 0 }],
+  // a/d/s/r are ports, not config: any of them can be a knob or an LFO. The
+  // defaults match AdsrKernel's old constructor defaults, and a plain number
+  // resolves to a constant buffer (line ~590) so nothing pays for the freedom.
+  adsr: [
+    { name: 'gate' },
+    { name: 'a', def: 0.01 },
+    { name: 'd', def: 0.1 },
+    { name: 's', def: 0.7 },
+    { name: 'r', def: 0.2 },
+  ],
+  env: [{ name: 'gate' }],
+  lfo: [{ name: 'freq' }],
+  mul: [{ name: 'a' }, { name: 'b' }],
+  add: [{ name: 'a' }, { name: 'b' }],
+  sub: [{ name: 'a' }, { name: 'b' }],
+  div: [{ name: 'a' }, { name: 'b' }],
+  pow: [{ name: 'a' }, { name: 'b' }],
+  clip: [{ name: 'in' }, { name: 'lo', def: -1 }, { name: 'hi', def: 1 }],
+  fold: [{ name: 'in' }],
+  math: [{ name: 'in' }],
+  math2: [{ name: 'a' }, { name: 'b' }],
+  tanh: [{ name: 'in' }],
+  mix: [{ name: 'a' }, { name: 'b' }, { name: 't', def: 0.5 }],
+  delay: [{ name: 'in' }, { name: 'time', def: 0.25 }, { name: 'feedback', def: 0 }, { name: 'mix', def: 0.35 }],
+  looper: [{ name: 'in' }, { name: 'rec', def: 0 }, { name: 'feedback', def: 1 }, { name: 'mix', def: 1 }, { name: 'clear', def: 0 }],
+  reverb: [{ name: 'in' }],
+  chorus: [{ name: 'in' }, { name: 'rate', def: 0.6 }, { name: 'depth', def: 0.003 }, { name: 'mix', def: 0.5 }],
+  comb: [{ name: 'in' }, { name: 'freq', def: 220 }, { name: 'feedback', def: 0.5 }],
+  bitcrush: [{ name: 'in' }],
+  shape: [{ name: 'in' }, { name: 'drive', def: 1 }],
+  // `key` is the DETECTOR input: absent = the compressor listens to itself
+  compress: [{ name: 'in' }, { name: 'key', def: 0 }],
+  noisegate: [{ name: 'in' }],
+  deess: [{ name: 'in' }],
+  follow: [{ name: 'in' }],
+  pitchshift: [{ name: 'in' }, { name: 'mix', def: 1 }, { name: 'semitones', def: 0 }],
+  convolve: [{ name: 'in' }, { name: 'mix', def: 0.35 }],
+  tape: [{ name: 'in' }],
+  limiter: [{ name: 'in' }],
+  phaser: [{ name: 'in' }, { name: 'rate', def: 0.5 }, { name: 'depth', def: 0.7 }, { name: 'feedback', def: 0.4 }, { name: 'mix', def: 0.5 }],
+  formant: [{ name: 'in' }, { name: 'morph', def: 0 }],
+  vocoder: [{ name: 'carrier' }, { name: 'modulator' }],
+  eq: [{ name: 'in' }],
+  exciter: [{ name: 'in' }],
+  ott: [{ name: 'in' }],
+  // amount defaults to 0.5 so a bare `width(input)` is audibly wide (0 would
+  // be an exact passthrough — a silent no-op reads as broken)
+  width: [{ name: 'in' }, { name: 'amount', def: 0.5 }],
+  transient: [{ name: 'in' }],
+  flanger: [{ name: 'in' }, { name: 'rate', def: 0.3 }, { name: 'depth', def: 0.7 }, { name: 'feedback', def: 0.7 }, { name: 'mix', def: 0.5 }],
+  pan: [{ name: 'in' }, { name: 'pos', def: 0.5 }],
+  const: [],
+  param: [],
+  notefreq: [],
+  gate: [],
+  velocity: [],
+  businput: [],
+  mic: [],
+  out: [{ name: 'in' }],
+}
+
+/** Graph node types the compiler maps to kernel instances. Everything else
+ *  (const/param/notefreq/gate/velocity/out/pan) is resolved to buffers by the
+ *  compiler itself. */
+const REGISTRY: Partial<Record<NodeType, (config: Record<string, unknown>, ctx: DspContext) => Kernel>> = {
+  sine: () => new SineKernel(),
+  saw: () => new SawKernel(),
+  square: () => new SquareKernel(),
+  tri: () => new TriKernel(),
+  pulse: () => new PulseKernel(),
+  syncsaw: () => new SyncSawKernel(),
+  fm: (c) => new FMKernel(typeof c['wave'] === 'string' ? c['wave'] : undefined),
+  // ctx carries the sample rate the kernel needs for mipmap selection; the
+  // table's harmonic content is sample-rate-independent and cached module-level
+  wavetable: (c, ctx) => new WavetableKernel(
+    typeof c['table'] === 'string' ? c['table'] : undefined,
+    ctx,
+    typeof c['warp'] === 'string' ? c['warp'] : undefined,
+  ),
+  noise: (c) => new NoiseKernel(typeof c['seed'] === 'number' ? c['seed'] : undefined, typeof c['color'] === 'string' ? c['color'] : undefined),
+  supersaw: () => new SuperSawKernel(),
+  lfsr: (c) => new LFSRKernel(typeof c['mode'] === 'string' ? c['mode'] : undefined),
+  // ctx carries the shared sample bank the kernel resolves `name` against each
+  // block (so samples loaded after compile still play).
+  // Only the DEVICE-NAMED form does per-block work (the bare mic's buffer is
+  // aliased at compile and the kernel is a no-op — see dsp/micin.ts).
+  mic: (c) => new MicInKernel(typeof c['device'] === 'string' && c['device'] !== '' ? c['device'] : undefined),
+  sample: (c, ctx) => new SampleKernel(String(c['name'] ?? ''), c['loop'] === true, ctx.samples, sampleCfg(c)),
+  granular: (c, ctx) => new GranularKernel(String(c['name'] ?? ''), granularCfg(c), ctx.samples),
+  // ctx sizes the delay line to the lowest note at the engine rate up front
+  pluck: (c, ctx) => new PluckKernel(c as PluckConfig, ctx),
+  modal: (c, ctx) => new ModalKernel(c as ModalConfig, ctx),
+  // ctx carries the shared model bank the kernel resolves `model` against each
+  // block (so models fetched after compile still become audible).
+  ddsp: (c) => new DdspKernel(c as DdspConfig),
+  svf: (c) => new SvfKernel((c['mode'] as SvfMode | undefined) ?? 'lp'),
+  ladder: () => new LadderKernel(),
+  onepole: () => new OnePoleKernel(),
+  dualsvf: (c) => new DualSvfKernel(dualsvfCfg(c)),
+  adsr: () => new AdsrKernel(),
+  env: (c) => new EnvKernel(c as unknown as EnvConfig),
+  // sync flips 'freq' from Hz to transport cycles; the kernel reads ctx.cps
+  lfo: (c) => new LfoKernel((c['shape'] as LfoShape | undefined) ?? 'sine', undefined, c['sync'] === true),
+  mul: () => new MulKernel(),
+  add: () => new AddKernel(),
+  sub: () => new SubKernel(),
+  div: () => new DivKernel(),
+  pow: () => new PowKernel(),
+  clip: () => new ClipKernel(),
+  fold: () => new FoldKernel(),
+  math: (c) => new MathKernel(c as MathConfig),
+  math2: (c) => new Math2Kernel(c as Math2Config),
+  tanh: () => new TanhKernel(),
+  mix: () => new MixKernel(),
+  // ctx makes the delay allocate its ring buffer NOW, not on the audio thread
+  delay: (c, ctx) => new DelayKernel(c as DelayConfig, ctx),
+  // same eager-allocation contract for the loop pedal's buffer
+  looper: (c, ctx) => new LooperKernel(c as LooperConfig, ctx),
+  // ctx makes reverb allocate its comb/allpass buffers NOW, not on the audio
+  // thread; only forward config keys that are present (kernel defaults otherwise)
+  reverb: (c, ctx) => new ReverbKernel(num(c['roomSize'], c['damp']), ctx),
+  // ctx makes chorus/comb allocate their ring buffers NOW, not on the audio
+  // thread; only forward config keys that are present (kernel defaults otherwise)
+  chorus: (c, ctx) => new ChorusKernel(chorusCfg(c), ctx),
+  comb: (c, ctx) => new CombKernel(typeof c['damp'] === 'number' ? { damp: c['damp'] } : {}, ctx),
+  bitcrush: (c) => new BitcrushKernel(bitcrushCfg(c)),
+  shape: (c) => new ShapeKernel((c['type'] as ShapeType | undefined) ?? 'soft'),
+  compress: (c) => new CompressKernel(compressCfg(c)),
+  noisegate: (c) => new GateKernel(gateCfg(c)),
+  deess: (c) => new DeessKernel(deessCfg(c)),
+  follow: (c) => new FollowKernel(followCfg(c)),
+  pitchshift: (c) => new PitchShiftKernel(pitchShiftCfg(c)),
+  // ctx carries the same sample bank sample() reads, so the IR can be a
+  // loaded WAV or a generated one
+  convolve: (c, ctx) => new ConvolveKernel(String(c['name'] ?? ''), ctx.samples, convolveCfg(c)),
+  tape: (c) => new TapeKernel(tapeCfg(c)),
+  limiter: (c) => new LimiterKernel(limiterCfg(c)),
+  phaser: (c) => new PhaserKernel(c as PhaserConfig),
+  formant: () => new FormantKernel(),
+  vocoder: (c, ctx) => new VocoderKernel(c as VocoderConfig, ctx),
+  eq: (c) => new EqKernel(Array.isArray(c['bands']) ? (c['bands'] as EqBand[]) : []),
+  exciter: (c) => new ExciterKernel(exciterCfg(c)),
+  ott: (c) => new OttKernel(ottCfg(c)),
+  // ctx carries BOTH the sample rate (eager ring-buffer sizing, off the audio
+  // thread) and the stereo-side marker width/flanger read to decorrelate the
+  // two post instances — see dsp/width.ts and dsp/flanger.ts
+  width: (c, ctx) => new WidthKernel(widthCfg(c), ctx),
+  transient: (c) => new TransientKernel(transientCfg(c)),
+  flanger: (c, ctx) => new FlangerKernel(flangerCfg(c), ctx),
+}
+
+/** Build a { roomSize?, damp? } config, keeping only the numeric entries so the
+ *  kernel falls back to its own defaults for anything absent. */
+const num = (roomSize: unknown, damp: unknown): { roomSize?: number; damp?: number } => {
+  const out: { roomSize?: number; damp?: number } = {}
+  if (typeof roomSize === 'number') out.roomSize = roomSize
+  if (typeof damp === 'number') out.damp = damp
+  return out
+}
+
+/** Keep only the numeric entries of a chorus/bitcrush config so the kernel
+ *  falls back to its own defaults for anything absent (mirrors num()). */
+const chorusCfg = (c: Record<string, unknown>): ChorusConfig => {
+  const out: ChorusConfig = {}
+  if (typeof c['rate'] === 'number') out.rate = c['rate']
+  if (typeof c['depth'] === 'number') out.depth = c['depth']
+  if (typeof c['mix'] === 'number') out.mix = c['mix']
+  return out
+}
+
+/** Keep only well-typed dualsvf config entries (kernel defaults otherwise). */
+const dualsvfCfg = (c: Record<string, unknown>): DualSvfConfig => {
+  const out: DualSvfConfig = {}
+  if (c['mode'] === 'serial' || c['mode'] === 'parallel') out.mode = c['mode']
+  if (typeof c['a'] === 'string') out.a = c['a'] as DualSvfConfig['a']
+  if (typeof c['b'] === 'string') out.b = c['b'] as DualSvfConfig['b']
+  return out
+}
+
+const bitcrushCfg = (c: Record<string, unknown>): BitcrushConfig => {
+  const out: BitcrushConfig = {}
+  if (typeof c['bits'] === 'number') out.bits = c['bits']
+  if (typeof c['downsample'] === 'number') out.downsample = c['downsample']
+  return out
+}
+
+const sampleCfg = (c: Record<string, unknown>): SampleSliceConfig => {
+  const out: SampleSliceConfig = {}
+  for (const k of ['start', 'end', 'slices', 'fade'] as const) {
+    if (typeof c[k] === 'number') out[k] = c[k] as number
+  }
+  if (typeof c['reverse'] === 'boolean') out.reverse = c['reverse']
+  // `zones` is an ARRAY, so the numeric sweep above would drop it — the same
+  // way compressCfg silently dropped a boolean `key`
+  if (Array.isArray(c['zones'])) out.zones = c['zones'] as SampleZone[]
+  return out
+}
+
+const granularCfg = (c: Record<string, unknown>): GranularConfig => {
+  const out: GranularConfig = {}
+  for (const k of ['size', 'density', 'spray', 'seed'] as const) {
+    if (typeof c[k] === 'number') out[k] = c[k] as number
+  }
+  if (typeof c['loop'] === 'boolean') out.loop = c['loop']
+  return out
+}
+
+const compressCfg = (c: Record<string, unknown>): CompressConfig => {
+  const out: CompressConfig = {}
+  for (const k of ['threshold', 'ratio', 'attack', 'release', 'knee', 'makeup'] as const) {
+    if (typeof c[k] === 'number') out[k] = c[k] as number
+  }
+  // `key` is a BOOLEAN, so the numeric sweep above silently dropped it and the
+  // sidechain input read as absent however it was patched
+  if (c['key'] === true) out.key = true
+  return out
+}
+
+const gateCfg = (c: Record<string, unknown>): GateConfig => {
+  const out: GateConfig = {}
+  for (const k of ['threshold', 'range', 'attack', 'hold', 'release', 'hysteresis'] as const) {
+    if (typeof c[k] === 'number') out[k] = c[k] as number
+  }
+  return out
+}
+
+const deessCfg = (c: Record<string, unknown>): DeessConfig => {
+  const out: DeessConfig = {}
+  for (const k of ['freq', 'threshold', 'ratio', 'attack', 'release'] as const) {
+    if (typeof c[k] === 'number') out[k] = c[k] as number
+  }
+  return out
+}
+
+const followCfg = (c: Record<string, unknown>): FollowConfig => {
+  const out: FollowConfig = {}
+  for (const k of ['attack', 'release'] as const) {
+    if (typeof c[k] === 'number') out[k] = c[k] as number
+  }
+  // the one non-numeric config in this family: an unknown word must fall back
+  // to the default rather than reaching the kernel as garbage
+  if (c['mode'] === 'rms' || c['mode'] === 'peak') out.mode = c['mode']
+  return out
+}
+
+const pitchShiftCfg = (c: Record<string, unknown>): PitchShiftConfig => {
+  const out: PitchShiftConfig = {}
+  for (const k of ['semitones', 'window'] as const) {
+    if (typeof c[k] === 'number') out[k] = c[k] as number
+  }
+  return out
+}
+
+const convolveCfg = (_c: Record<string, unknown>): ConvolveConfig => ({})
+
+const tapeCfg = (c: Record<string, unknown>): TapeConfig => {
+  const out: TapeConfig = {}
+  for (const k of ['wow', 'flutter', 'sat', 'tone'] as const) {
+    if (typeof c[k] === 'number') out[k] = c[k] as number
+  }
+  return out
+}
+
+const limiterCfg = (c: Record<string, unknown>): LimiterConfig => {
+  const out: LimiterConfig = {}
+  for (const k of ['ceiling', 'lookahead', 'release'] as const) {
+    if (typeof c[k] === 'number') out[k] = c[k] as number
+  }
+  return out
+}
+
+const exciterCfg = (c: Record<string, unknown>): ExciterConfig => {
+  const out: ExciterConfig = {}
+  for (const k of ['freq', 'amount', 'drive'] as const) {
+    if (typeof c[k] === 'number') out[k] = c[k] as number
+  }
+  return out
+}
+
+const ottCfg = (c: Record<string, unknown>): OttConfig => {
+  const out: OttConfig = {}
+  for (const k of ['depth', 'low', 'high', 'makeup'] as const) {
+    if (typeof c[k] === 'number') out[k] = c[k] as number
+  }
+  return out
+}
+
+const widthCfg = (c: Record<string, unknown>): WidthConfig => {
+  const out: WidthConfig = {}
+  if (c['mode'] === 'wide' || c['mode'] === 'tight') out.mode = c['mode']
+  return out
+}
+
+const transientCfg = (c: Record<string, unknown>): TransientConfig => {
+  const out: TransientConfig = {}
+  for (const k of ['attack', 'sustain'] as const) {
+    if (typeof c[k] === 'number') out[k] = c[k] as number
+  }
+  return out
+}
+
+const flangerCfg = (c: Record<string, unknown>): FlangerConfig => {
+  const out: FlangerConfig = {}
+  for (const k of ['rate', 'depth', 'feedback', 'mix'] as const) {
+    if (typeof c[k] === 'number') out[k] = c[k] as number
+  }
+  return out
+}
+
+const validateParams = (params: ParamSpec[]): void => {
+  const seen = new Set<string>()
+  for (const p of params) {
+    if (seen.has(p.name)) throw new GraphError(`duplicate param name '${p.name}'`)
+    seen.add(p.name)
+    if (!(p.min < p.max)) throw new GraphError(`param '${p.name}': min (${p.min}) must be < max (${p.max})`)
+    if (p.default < p.min || p.default > p.max) {
+      throw new GraphError(`param '${p.name}': default ${p.default} outside [${p.min}, ${p.max}]`)
+    }
+    if (p.curve === 'log' && p.min <= 0) {
+      throw new GraphError(`param '${p.name}': log curve requires min > 0 (got ${p.min})`)
+    }
+  }
+}
+
+/** A compiled POST graph: the per-synth FX chain that processes the SUMMED
+ *  voices (one instance per stereo side — see PostChain). DSP kernels are mono,
+ *  so `out` here is MONO (unlike the voice graph's stereo pan stage): the L/R
+ *  independence that gives reverb/chorus their stereo width comes from running
+ *  TWO of these with separate state, not from the graph. `input` is a
+ *  businput-source buffer the caller fills with the mono signal to process
+ *  before running `steps`; `out` holds the mono result. */
+export interface CompiledPost {
+  steps: CompiledStep[]
+  params: Map<string, CompiledParam>
+  /** businput source buffer — caller writes the mono input here per block. */
+  input: Float32Array
+  /** Mono result buffer written by the terminal (out-feeding) node. */
+  out: Float32Array
+}
+
+/** Everything both a voice graph and a post graph need: validated, topo-sorted
+ *  kernel steps with every input pre-resolved to a concrete buffer. The two
+ *  compile entry points differ only in their OUTPUT stage (voice = stereo pan,
+ *  post = mono out) and which source buffers their graphs actually reference
+ *  (voice: notefreq/gate/velocity; post: businput -> `input`). */
+interface CompiledCore {
+  steps: CompiledStep[]
+  params: Map<string, CompiledParam>
+  nodeOut: Map<number, Float32Array>
+  resolve: (src: number | { node: number }) => Float32Array
+  byId: Map<number, NodeSpec>
+  outNode: NodeSpec
+  terminal: NodeSpec | null
+  pan: NodeSpec | undefined
+  noteFreq: Float32Array
+  gate: Float32Array
+  velocity: Float32Array
+  input: Float32Array
+}
+
+function assemble(spec: GraphSpec, ctx: DspContext): CompiledCore {
+  validateGraph(spec)
+  validateParams(spec.params)
+
+  const byId = new Map<number, NodeSpec>()
+  for (const n of spec.nodes) byId.set(n.id, n)
+  const paramSpecs = new Map<string, ParamSpec>()
+  for (const p of spec.params) paramSpecs.set(p.name, p)
+
+  // --- per-node structural validation --------------------------------------
+  const panNodes = spec.nodes.filter((n) => n.type === 'pan')
+  if (panNodes.length > 1) throw new GraphError(`at most one pan node allowed (found ${panNodes.length})`)
+  for (const n of spec.nodes) {
+    const ports = PORTS[n.type]
+    if (!ports) throw new GraphError(`node ${n.id}: unknown type '${n.type}'`)
+    for (const port of Object.keys(n.inputs)) {
+      if (!ports.some((p) => p.name === port)) {
+        throw new GraphError(`node ${n.id} (${n.type}): unknown input port '${port}'`)
+      }
+    }
+    for (const p of ports) {
+      if (p.def === undefined && n.inputs[p.name] === undefined) {
+        throw new GraphError(`node ${n.id} (${n.type}): missing required input '${p.name}'`)
+      }
+    }
+    if (n.type === 'out' && n.id !== spec.out) {
+      throw new GraphError(`node ${n.id} (out): must be the graph output node`)
+    }
+    // a/d/s/r used to be config and are now ports. A spec that still puts them
+    // in config would silently get the port DEFAULTS instead of what it asked
+    // for (a wrong-sounding envelope, not an error), so refuse it outright.
+    if (n.type === 'adsr' && n.config) {
+      const stale = ['a', 'd', 's', 'r'].filter((k) => n.config![k] !== undefined)
+      if (stale.length > 0) {
+        throw new GraphError(
+          `node ${n.id} (adsr): ${stale.join('/')} is an input port, not config — ` +
+            `pass it in inputs (a plain number is fine, and a signal now works too)`,
+        )
+      }
+    }
+    if (n.type === 'const' && typeof n.config?.['value'] !== 'number') {
+      throw new GraphError(`node ${n.id} (const): requires numeric config.value`)
+    }
+    if (n.type === 'param') {
+      const name = n.config?.['name']
+      if (typeof name !== 'string') throw new GraphError(`node ${n.id} (param): requires config.name`)
+      if (!paramSpecs.has(name)) throw new GraphError(`node ${n.id} (param): '${name}' not declared in spec.params`)
+    }
+  }
+
+  // --- stereo contract ------------------------------------------------------
+  // Terminal producer: what `out` consumes, or spec.out itself if it isn't an
+  // 'out'-type node. A pan node must BE the terminal producer (and nothing
+  // else may consume it).
+  const outNode = byId.get(spec.out)!
+  let terminal: NodeSpec | null = outNode
+  if (outNode.type === 'out') {
+    const src = outNode.inputs['in']!
+    terminal = typeof src === 'number' ? null : byId.get(src.node)!
+  }
+  const pan = panNodes[0]
+  if (pan && pan !== terminal) {
+    throw new GraphError(
+      `node ${pan.id} (pan): must be the terminal out-feeding node — route pan directly into out`,
+    )
+  }
+  for (const n of spec.nodes) {
+    for (const [port, src] of Object.entries(n.inputs)) {
+      if (typeof src === 'number') continue
+      const ref = byId.get(src.node)!
+      if (ref.type === 'out') throw new GraphError(`node ${n.id}: cannot consume 'out' node ${ref.id}`)
+      if (ref.type === 'pan' && !(n.type === 'out' && port === 'in')) {
+        throw new GraphError(`node ${n.id}: pan output may only feed 'out'`)
+      }
+    }
+  }
+
+  // --- buffers --------------------------------------------------------------
+  const noteFreq = new Float32Array(BLOCK)
+  const gate = new Float32Array(BLOCK)
+  const velocity = new Float32Array(BLOCK)
+  // businput source buffer (post graphs only; voice graphs never reference it).
+  const input = new Float32Array(BLOCK)
+  const params = new Map<string, CompiledParam>()
+  for (const p of spec.params) {
+    params.set(p.name, { spec: p, buf: new Float32Array(BLOCK).fill(p.default) })
+  }
+
+  const constPool = new Map<number, Float32Array>()
+  const constBuf = (v: number): Float32Array => {
+    let b = constPool.get(v)
+    if (!b) constPool.set(v, (b = new Float32Array(BLOCK).fill(v)))
+    return b
+  }
+
+  // Output buffer per node. Kernel nodes get a fresh buffer; source-like
+  // specials alias the voice-state/constant buffers; out/pan produce none.
+  const nodeOut = new Map<number, Float32Array>()
+  for (const n of spec.nodes) {
+    switch (n.type) {
+      case 'out':
+      case 'pan':
+        break
+      case 'const':
+        nodeOut.set(n.id, constBuf(n.config!['value'] as number))
+        break
+      case 'param':
+        nodeOut.set(n.id, params.get(n.config!['name'] as string)!.buf)
+        break
+      case 'notefreq':
+        nodeOut.set(n.id, noteFreq)
+        break
+      case 'gate':
+        nodeOut.set(n.id, gate)
+        break
+      case 'velocity':
+        nodeOut.set(n.id, velocity)
+        break
+      case 'businput':
+        nodeOut.set(n.id, input)
+        break
+      case 'mic':
+        // BARE live input aliases the host's shared block (or silence
+        // offline); a DEVICE-NAMED mic gets its own buffer, filled per block
+        // by MicInKernel from whichever slot the host has mapped the name to
+        // (see dsp/micin.ts for why the named form cannot alias).
+        if (typeof n.config?.['device'] === 'string' && n.config['device'] !== '') {
+          nodeOut.set(n.id, new Float32Array(BLOCK))
+        } else {
+          nodeOut.set(n.id, ctx.mic ?? new Float32Array(BLOCK))
+        }
+        break
+      default:
+        nodeOut.set(n.id, new Float32Array(BLOCK))
+    }
+  }
+
+  const resolve = (src: number | { node: number }): Float32Array => {
+    if (typeof src === 'number') return constBuf(src)
+    const buf = nodeOut.get(src.node)
+    // unreachable after validation (only out/pan lack buffers, and consuming
+    // them is rejected above) — kept as a hard failure rather than a silent one
+    if (!buf) throw new GraphError(`node ${src.node} has no output buffer`)
+    return buf
+  }
+
+  // --- topological order (delay `in` edges excluded) ------------------------
+  // Kahn's algorithm over all nodes; validateGraph already guarantees the
+  // delay-reduced graph is acyclic, so this always completes.
+  const indegree = new Map<number, number>()
+  const dependents = new Map<number, number[]>()
+  for (const n of spec.nodes) indegree.set(n.id, 0)
+  for (const n of spec.nodes) {
+    for (const [port, src] of Object.entries(n.inputs)) {
+      if (typeof src === 'number') continue
+      if (n.type === 'delay' && port === 'in') continue
+      indegree.set(n.id, indegree.get(n.id)! + 1)
+      let d = dependents.get(src.node)
+      if (!d) dependents.set(src.node, (d = []))
+      d.push(n.id)
+    }
+  }
+  const order: number[] = []
+  const queue: number[] = []
+  for (const n of spec.nodes) if (indegree.get(n.id) === 0) queue.push(n.id)
+  while (queue.length > 0) {
+    const id = queue.shift()!
+    order.push(id)
+    for (const dep of dependents.get(id) ?? []) {
+      const deg = indegree.get(dep)! - 1
+      indegree.set(dep, deg)
+      if (deg === 0) queue.push(dep)
+    }
+  }
+
+  // --- kernel steps ---------------------------------------------------------
+  const steps: CompiledStep[] = []
+  for (const id of order) {
+    const n = byId.get(id)!
+    const make = REGISTRY[n.type]
+    if (!make) continue // specials: buffers already wired / handled below
+    const inputs: Record<string, Float32Array> = {}
+    for (const p of PORTS[n.type]) {
+      const src = n.inputs[p.name]
+      inputs[p.name] = src === undefined ? constBuf(p.def!) : resolve(src)
+    }
+    steps.push({ id: n.id, kernel: make(n.config ?? {}, ctx), inputs, out: nodeOut.get(n.id)! })
+  }
+
+  return { steps, params, nodeOut, resolve, byId, outNode, terminal, pan, noteFreq, gate, velocity, input }
+}
+
+/** Compile a validated GraphSpec into a runnable single-voice graph: validate
+ *  params/ports/stereo contract, topo-sort (delay `in` edges excluded),
+ *  instantiate kernels, and pre-resolve every input to a concrete buffer so
+ *  the per-block process path allocates nothing. */
+export function compileGraph(spec: GraphSpec, ctx: DspContext): CompiledGraph {
+  const c = assemble(spec, ctx)
+  const { outNode, terminal, pan, resolve, nodeOut } = c
+
+  // --- stereo stage ---------------------------------------------------------
+  let panIn: Float32Array
+  let panPos: Float32Array | null
+  if (pan) {
+    panIn = resolve(pan.inputs['in']!)
+    const posSrc = pan.inputs['pos']
+    panPos = resolve(posSrc ?? 0.5) // resolve() pools numeric constants
+  } else if (terminal) {
+    panIn = nodeOut.get(terminal.id)!
+    panPos = null
+  } else {
+    // out consumes a bare constant — degenerate but legal
+    panIn = resolve(outNode.inputs['in']!)
+    panPos = null
+  }
+
+  return { steps: c.steps, noteFreq: c.noteFreq, gate: c.gate, velocity: c.velocity, params: c.params, panIn, panPos }
+}
+
+/** Compile a POST graph (per-synth FX chain over the summed voices). Like
+ *  compileGraph but the terminal `out` produces a MONO result (no pan stage):
+ *  stereo width comes from running two of these independently (see PostChain).
+ *  Validated + compiled at synth() definition time so a bad post graph fails
+ *  fast, just like the voice graph. */
+export function compilePost(spec: GraphSpec, ctx: DspContext): CompiledPost {
+  const c = assemble(spec, ctx)
+  const { outNode, resolve, nodeOut } = c
+  // The mono result is whatever feeds `out`; if `out` was optimized away (spec
+  // points straight at a producer) it's that node's own buffer.
+  const out = outNode.type === 'out' ? resolve(outNode.inputs['in']!) : nodeOut.get(outNode.id)!
+  return { steps: c.steps, params: c.params, input: c.input, out }
+}

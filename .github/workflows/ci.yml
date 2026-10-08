@@ -489,6 +489,17 @@ jobs:
       - name: Engine module map drift (stale? rerun build:engine-modules)
         run: pnpm run check:engine-modules
 
+      # packages/rondo/generated/ is built from the vendored upstream by esbuild.
+      # Rebuilding must be a no-op, so a patch or an upstream bump always lands
+      # with the bundles that the web worker, the CLI and MCP actually run.
+      - name: Rondocode bundles drift (stale? rerun build:rondo)
+        run: pnpm run check:rondo
+
+      # The Rondocode utility's editor (community/rondocode/lib/editor.html) is
+      # built from the same patched tree plus Lolly's frame glue.
+      - name: Rondocode editor drift (stale? rerun build:rondo-editor)
+        run: pnpm run check:rondo-editor
+
       # The engine must stay free of DOM, storage and network access: that is
       # what lets one tool render unchanged in the browser, Tauri and the CLI.
       # engine/tsconfig.json has to include the DOM lib for the fetch-spec

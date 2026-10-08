@@ -1,0 +1,392 @@
+Lolly patch 0007: sing() asks Lolly for its models.
+
+Why: upstream fetches the singing models from models.rondocode.com and
+HuggingFace into the Cache API and loads ONNX Runtime's wasm from a CDN. The
+frame has an opaque origin (no Cache API, no IndexedDB) and must never fetch
+an external host. Every model byte now goes through ONE call to the utility
+(src/lolly/sing.ts, lolly.singModels), by a stable file id in Lolly's `sing`
+model family; ORT gets its wasm binary from the same call, one thread, no
+proxy. The int8 builds are asked for first on every device. When the utility
+has no models to give, the sung parts stay silent and an in-place notice
+lists them instead of the bake error dialog; upstream's own download dialog
+is not shown, because the utility makes the offer. Parts whose generated
+vocals are loaded are tracked, with their voices and the parts left silent,
+so a file made from the editor declares the AI-generated singing it holds.
+
+Applied by scripts/vendor-rondocode.ts with git apply --directory=packages/rondo/upstream.
+
+diff --git a/packages/app/src/editor/editor.ts b/packages/app/src/editor/editor.ts
+index 4de34fa5d23e05584b4a29f7d99c34dde74f8415..488cc9543660a9c1fbe2d6a6548480d2774fa184 100644
+--- a/packages/app/src/editor/editor.ts
++++ b/packages/app/src/editor/editor.ts
+@@ -49,6 +49,7 @@ import { synthScopes } from './rondo/scope'
+ import * as singMgr from '../sing/singMgr'
+ import { mountSingDialog, confirmSingDownload } from '../ui/singDialog'
+ import { tabGet, tabSet } from '../session/tabstore'
++import { lolly } from '../lolly/host'
+ import type { MaskFrame } from '../mask/frame'
+ import type { MaskDrawFn } from '../mask/music'
+ 
+@@ -500,7 +501,9 @@ export function mountEditor(root: HTMLElement, audio: AudioSession): EditorHandl
+         // yet, ASK first (it's a large one-time download); on consent, bake +
+         // wait + play; if declined, play the track without the vocal.
+         void (async () => {
+-          if (!(await singMgr.modelsCached()) && !(await confirmSingDownload())) {
++          // Lolly: the utility offers the models in place (lolly/sing.ts), so
++          // upstream's own download dialog is not shown inside it
++          if (lolly === null && !(await singMgr.modelsCached()) && !(await confirmSingDownload())) {
+             startPlayback()
+             return
+           }
+diff --git a/packages/app/src/lolly/host.ts b/packages/app/src/lolly/host.ts
+index aa0c8c1850b5f83cd9cef7a9fe9ae13245fe635f..3697ccf9a492f3540dca6777514fc60e2aa2645c 100644
+--- a/packages/app/src/lolly/host.ts
++++ b/packages/app/src/lolly/host.ts
+@@ -61,6 +61,17 @@ export interface LollyHost {
+   mountChrome(handles: LollyChromeHandles): void
+   /** Show a plain notice in the editor. `key` keeps one notice per subject. */
+   notice(key: string, message: string): void
++  /**
++   * The bytes of singing-model files, by their file id (lolly/sing.ts lists
++   * them). Lolly asks the person, downloads or reads them from its own store,
++   * and transfers them in; a refusal rejects with a LollySingRefusal.
++   */
++  singModels(files: string[], onProgress?: (p: { label: string; done: number; total: number }) => void): Promise<Record<string, ArrayBuffer>>
++}
++
++/** Why Lolly did not hand over singing models. */
++export interface LollySingRefusal extends Error {
++  lollyReason: 'declined' | 'offline' | 'error'
+ }
+ 
+ export const lolly: LollyHost | null =
+diff --git a/packages/app/src/lolly/sing.ts b/packages/app/src/lolly/sing.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..ae587b1c7efe50890693e72f318336a0f7e82956
+--- /dev/null
++++ b/packages/app/src/lolly/sing.ts
+@@ -0,0 +1,86 @@
++import { lolly } from './host'
++import type { LollySingRefusal } from './host'
++import { SING_MODELS_BASE, SUPERTONIC_BASE } from '../sing/config'
++
++/* ------------------------------------------------------------------------- *
++ * Lolly: where sing() gets its model bytes.
++ *
++ * Upstream fetches its singing models from models.rondocode.com and
++ * HuggingFace, caches them in the Cache API, and loads ONNX Runtime's wasm
++ * from a CDN. This frame has an opaque origin: no Cache API, no IndexedDB, no
++ * network of its own. So every byte the pipeline needs is asked of Lolly by a
++ * stable file id, through ONE call (lolly.singModels). Lolly decides whether
++ * the person has the models, offers them in place, and transfers the bytes.
++ *
++ * The file ids are paths in Lolly's `sing` model family, and the hosting
++ * matches them exactly:
++ *   rondocode/phoneme-int8.onnx, rondocode/phoneme.onnx   (phoneme aligner)
++ *   rondocode/tts_vector_estimator-int8.onnx, rondocode/tts_vocoder-int8.onnx
++ *   rondocode/vec-768.onnx                                (ContentVec encoder)
++ *   rondocode/gen_kizuna.onnx, gen_barbara.onnx, gen_rise.onnx (RVC voices;
++ *     only the voice a song names is asked for)
++ *   supertonic/onnx/{duration_predictor,text_encoder,vector_estimator,
++ *     vocoder}.onnx, supertonic/onnx/{tts,unicode_indexer}.json,
++ *   supertonic/voice_styles/<voice>.json                  (F1..F5, M1..M5)
++ *   wav2vec2/vocab.json                                   (aligner vocabulary)
++ *   runtime/ort-wasm-simd-threaded.jsep.wasm              (ONNX Runtime 1.30)
++ * The int8 builds are asked for first on every device, with upstream's fp32
++ * builds as the fallback upstream already codes (sing/config.ts).
++ * ------------------------------------------------------------------------- */
++
++export const VOCAB_URL = 'https://huggingface.co/facebook/wav2vec2-lv-60-espeak-cv-ft/resolve/main/vocab.json'
++export const VOCAB_FILE = 'wav2vec2/vocab.json'
++/** The runtime this build bundles is onnxruntime-web's `ort.bundle` (WebGPU
++ *  with a wasm fallback), whose binary is the jsep build. */
++export const ORT_WASM_FILE = 'runtime/ort-wasm-simd-threaded.jsep.wasm'
++
++/** The file id for one of upstream's model URLs. */
++export function singFileOf(url: string): string {
++  if (url === VOCAB_URL) return VOCAB_FILE
++  if (url.startsWith(`${SUPERTONIC_BASE}/`)) return `supertonic/${url.slice(SUPERTONIC_BASE.length + 1)}`
++  if (url.startsWith(`${SING_MODELS_BASE}/`)) return `rondocode/${url.slice(SING_MODELS_BASE.length + 1)}`
++  return url
++}
++
++/** A decline (or no connection) ends the clip's whole load: the next file would
++ *  only be refused again, or ask the person a second time. An 'error' is about
++ *  one file, so the fp32 fallback still gets its turn. Cleared per clip. */
++let refused: LollySingRefusal | null = null
++
++/** Start a clip's model loading afresh (singMgr calls this per render). */
++export function beginSingLoad(): void {
++  refused = null
++}
++
++/** True for the error a Lolly refusal produces. */
++export function isSingRefusal(e: unknown): e is LollySingRefusal {
++  return e instanceof Error && typeof (e as Partial<LollySingRefusal>).lollyReason === 'string'
++}
++
++/** The bytes of one model file, by upstream URL or file id. */
++export async function singBytes(
++  urlOrFile: string,
++  onProgress?: (loaded: number, total: number) => void,
++): Promise<ArrayBuffer> {
++  if (lolly === null) throw new Error('singBytes needs the Lolly host')
++  if (refused !== null) throw refused
++  const file = singFileOf(urlOrFile)
++  try {
++    const got = await lolly.singModels([file], (p) => onProgress?.(p.done, p.total))
++    const bytes = got[file]
++    if (!(bytes instanceof ArrayBuffer)) throw new Error(`Lolly sent no bytes for ${file}`)
++    return bytes
++  } catch (e) {
++    if (isSingRefusal(e) && e.lollyReason !== 'error') refused = e
++    throw e
++  }
++}
++
++/** ONNX Runtime set up for this frame: one thread (the frame is not
++ *  cross-origin isolated), no proxy worker, and the wasm binary handed over by
++ *  Lolly instead of fetched from a CDN. */
++export async function prepareOrt(ort: { env: { wasm: { numThreads?: number; proxy?: boolean; wasmBinary?: ArrayBufferLike | Uint8Array } } }): Promise<void> {
++  ort.env.wasm.numThreads = 1
++  ort.env.wasm.proxy = false
++  if (ort.env.wasm.wasmBinary === undefined) ort.env.wasm.wasmBinary = await singBytes(ORT_WASM_FILE)
++}
+diff --git a/packages/app/src/main.ts b/packages/app/src/main.ts
+index 42189ccc8823fc40839171c5bfd1a2afdf25d699..c7735f16ea9ab7bf114e61c396075ccda3abcf33 100644
+--- a/packages/app/src/main.ts
++++ b/packages/app/src/main.ts
+@@ -8,6 +8,7 @@ import { mountSynthLib } from './editor/synthlib'
+ import { compile } from '@rondocode/rondo'
+ import { bounceLoop, bounceMidi, bounceStems } from './editor/export'
+ import { lolly } from './lolly/host'
++import { bakedSingParts, bakedSingVoices, silentSingParts } from './sing/singMgr'
+ import { mountProbes } from './editor/probes'
+ import { mountOptions } from './ui/options'
+ import { getSetting } from './ui/settings'
+@@ -105,6 +106,9 @@ AudioSession.start().then(
+         bounceStems,
+         bounceMidi,
+       },
++      sungParts: bakedSingParts,
++      sungVoices: bakedSingVoices,
++      silentParts: silentSingParts,
+     })
+     // DEV-only: singing-engine console hook for bring-up (window.__rcSing).
+     if (import.meta.env.DEV) {
+diff --git a/packages/app/src/sing/config.ts b/packages/app/src/sing/config.ts
+index d84edf47203d65371021d8707368d79abda245ef..de057d3be8154ad8e3569d41b79d06eb80b303fd 100644
+--- a/packages/app/src/sing/config.ts
++++ b/packages/app/src/sing/config.ts
+@@ -12,6 +12,8 @@
+  *  edge CDN (fast, cached, no egress fees), so it works everywhere (prod, dev,
+  *  over Tailnet) with no local server. Override with VITE_SING_MODELS_BASE (e.g.
+  *  http://127.0.0.1:8790 for a local model server). */
++import { lolly } from '../lolly/host'
++
+ const DEFAULT_BASE = 'https://models.rondocode.com'
+ 
+ const readEnv = (key: string): string | undefined => {
+@@ -52,6 +54,9 @@ export const PHONEME_INT8_MODEL_URL = `${SING_MODELS_BASE}/phoneme-int8.onnx`
+  *  (tight per-tab memory budget) or the explicit opt-in flag for testing the
+  *  small build on any device (`localStorage['rc.singSmallAligner'] = '1'`). */
+ export function preferSmallAligner(): boolean {
++  // Lolly: the small builds first on every device (about 1 GB for one voice
++  // instead of about 2.4 GB), the fp32 builds as the fallback
++  if (lolly) return true
+   try {
+     if (typeof localStorage !== 'undefined' && localStorage.getItem('rc.singSmallAligner') === '1') return true
+   } catch {
+@@ -88,7 +93,7 @@ export const TTS_INT8_MODELS: ReadonlySet<string> = new Set(['vector_estimator',
+  *  with the fp32 HuggingFace build as fallback, so a client keeps working
+  *  while `tts_<name>-int8.onnx` isn't uploaded yet (404 falls through).
+  *  Desktop stays fp32. Pure, exported for tests. */
+-export function supertonicModelUrls(name: string, small: boolean = sequentialSingSessions()): string[] {
++export function supertonicModelUrls(name: string, small: boolean = lolly !== null || sequentialSingSessions()): string[] {
+   const fp32 = `${SUPERTONIC_BASE}/onnx/${name}.onnx`
+   if (small && TTS_INT8_MODELS.has(name)) return [`${SING_MODELS_BASE}/tts_${name}-int8.onnx`, fp32]
+   return [fp32]
+diff --git a/packages/app/src/sing/modelcache.ts b/packages/app/src/sing/modelcache.ts
+index f6ebb5761103162ca511b564e4c25528fbefe5be..b7e1148328fbec81231f2b3497ca2a2f6aca36f2 100644
+--- a/packages/app/src/sing/modelcache.ts
++++ b/packages/app/src/sing/modelcache.ts
+@@ -10,6 +10,9 @@
+  * One-time download, then served from the cache offline.
+  * ------------------------------------------------------------------------- */
+ 
++import { lolly } from '../lolly/host'
++import { singBytes } from '../lolly/sing'
++
+ const RETRIES = 3
+ 
+ /** How a cache is opened. The browser uses the Cache API; node has none, so
+@@ -98,6 +101,8 @@ export async function cachedBytes(
+   cacheName: string,
+   onProgress?: (loaded: number, total: number) => void,
+ ): Promise<ArrayBuffer> {
++  // Lolly: no Cache API and no network in this frame; Lolly hands the bytes over.
++  if (lolly) return singBytes(url, onProgress)
+   const cache = await openCache(cacheName)
+   const hit = await cache.match(url)
+   if (hit) return hit.arrayBuffer()
+diff --git a/packages/app/src/sing/phonemes.ts b/packages/app/src/sing/phonemes.ts
+index e3d4f916389917e7289d8e429539a4e218ce8bf8..6a95bcf15f2c39403919e48b231e53893b92cf4b 100644
+--- a/packages/app/src/sing/phonemes.ts
++++ b/packages/app/src/sing/phonemes.ts
+@@ -15,6 +15,8 @@
+  * config.ts/modelcache.ts.
+  * ------------------------------------------------------------------------- */
+ import * as ort from 'onnxruntime-web'
++import { lolly } from '../lolly/host'
++import { prepareOrt, singBytes } from '../lolly/sing'
+ 
+ import { isIOSWebKit, phonemeModelUrls } from './config'
+ import { cachedBytes, firstAvailableBytes } from './modelcache'
+@@ -90,7 +92,9 @@ export async function loadPhonemes(onProgress?: (p: { label: string; done: numbe
+   await slot.load(async () => {
+     if (!ortReady) {
+       ort.env.wasm.numThreads = 1
+-      if (!ort.env.wasm.wasmPaths) ort.env.wasm.wasmPaths = `https://cdn.jsdelivr.net/npm/onnxruntime-web@${ort.env.versions.web}/dist/` /* browser CDN; node presets a local path */
++      // Lolly: the wasm comes from Lolly, never a CDN (lolly/sing.ts)
++      if (lolly) await prepareOrt(ort)
++      else if (!ort.env.wasm.wasmPaths) ort.env.wasm.wasmPaths = `https://cdn.jsdelivr.net/npm/onnxruntime-web@${ort.env.versions.web}/dist/` /* browser CDN; node presets a local path */
+       ortReady = true
+     }
+     let webgpu = false
+@@ -107,9 +111,14 @@ export async function loadPhonemes(onProgress?: (p: { label: string; done: numbe
+     // `buf` stays local: ORT copies the bytes on create, so the JS-side copy is
+     // collectable while the session lives.
+     const s = await ort.InferenceSession.create(buf, { executionProviders: webgpu ? ['webgpu', 'wasm'] : ['wasm'] })
+-    const res = await fetch(VOCAB_URL)
+-    if (!res.ok) throw new Error(`vocab fetch: ${res.status}`)
+-    const vocab = (await res.json()) as Record<string, number>
++    // Lolly: the vocabulary is one of the model files Lolly hands over
++    const vocab = (lolly
++      ? JSON.parse(new TextDecoder().decode(await singBytes(VOCAB_URL)))
++      : await (async () => {
++          const res = await fetch(VOCAB_URL)
++          if (!res.ok) throw new Error(`vocab fetch: ${res.status}`)
++          return res.json()
++        })()) as Record<string, number>
+     installVocab(vocab)
+     return s
+   })
+diff --git a/packages/app/src/sing/rvc.ts b/packages/app/src/sing/rvc.ts
+index 4538a8ea595ea4b6cb66a1ace997ecd3bfc827ff..9021972ed6ed8dd286719e3498c497f5739351d7 100644
+--- a/packages/app/src/sing/rvc.ts
++++ b/packages/app/src/sing/rvc.ts
+@@ -13,6 +13,8 @@
+  * v2 .pth); the ContentVec encoder is shared across voices.
+  * ------------------------------------------------------------------------- */
+ import * as ort from 'onnxruntime-web'
++import { lolly } from '../lolly/host'
++import { prepareOrt } from '../lolly/sing'
+ import { SING_MODELS_BASE, isIOSWebKit } from './config'
+ import { cachedBytes } from './modelcache'
+ import { ModelSlot } from './lifecycle'
+@@ -59,7 +61,9 @@ function generatorSlot(voiceId: string): ModelSlot<ort.InferenceSession> {
+ async function ortOptions(): Promise<ort.InferenceSession.SessionOptions> {
+   if (!ortReady) {
+     ort.env.wasm.numThreads = 1
+-    if (!ort.env.wasm.wasmPaths) ort.env.wasm.wasmPaths = `https://cdn.jsdelivr.net/npm/onnxruntime-web@${ort.env.versions.web}/dist/` /* browser CDN; node presets a local path */
++    // Lolly: the wasm comes from Lolly, never a CDN (lolly/sing.ts)
++    if (lolly) await prepareOrt(ort)
++    else if (!ort.env.wasm.wasmPaths) ort.env.wasm.wasmPaths = `https://cdn.jsdelivr.net/npm/onnxruntime-web@${ort.env.versions.web}/dist/` /* browser CDN; node presets a local path */
+     ortReady = true
+   }
+   let webgpu = false
+diff --git a/packages/app/src/sing/singMgr.ts b/packages/app/src/sing/singMgr.ts
+index 216f174cd7f3bec2640fd85514ad4ad6e50ccdfd..eabc7568f9a7413d499cd93d7814a16f026b56e5 100644
+--- a/packages/app/src/sing/singMgr.ts
++++ b/packages/app/src/sing/singMgr.ts
+@@ -17,6 +17,8 @@ import type { SingRequest } from '../session/evalCode'
+ import type { SingProgress } from './neural'
+ import { PHONEME_INT8_MODEL_URL, PHONEME_MODEL_URL } from './config'
+ import { clearPhase } from './bakephase'
++import { lolly } from '../lolly/host'
++import { beginSingLoad, isSingRefusal } from '../lolly/sing'
+ 
+ /** True once the big models have been downloaded (the phoneme model — the
+  *  largest — is in the Cache API; either the fp32 or the int8 build counts).
+@@ -44,6 +46,27 @@ function humanError(e: unknown): string {
+   return `Singing failed: ${m.slice(0, 140)}`
+ }
+ 
++/** Lolly: the sung parts left silent because Lolly had no models to give. */
++const silentParts = new Set<string>()
++/** Lolly: sampleName → the part name of each vocal that has been sung and
++ *  loaded, so a file exported from here can say it holds generated singing. */
++const sungParts = new Map<string, string>()
++
++/** Lolly: the parts whose generated vocals are in the sample bank now. */
++export function bakedSingParts(): string[] {
++  return [...new Set(sungParts.values())]
++}
++/** Lolly: the sung parts left silent for want of models. */
++export function silentSingParts(): string[] {
++  return [...silentParts]
++}
++/** Lolly: sampleName → the voice each loaded vocal was sung with. */
++const sungVoices = new Map<string, string>()
++/** Lolly: the voices of the generated vocals in the sample bank now. */
++export function bakedSingVoices(): string[] {
++  return [...new Set(sungVoices.values())]
++}
++
+ /** sampleName → the render key currently LOADED for it. */
+ const loadedKey = new Map<string, string>()
+ /** sampleName → { key, promise } for the render in flight. */
+@@ -70,6 +93,8 @@ export function hasUnloaded(sings: SingRequest[], cps: number): boolean {
+ }
+ 
+ async function renderOne(r: SingRequest, cps: number, report: (p: SingProgress) => void): Promise<void> {
++  // Lolly: each clip asks Lolly for the models afresh
++  if (lolly) beginSingLoad()
+   const { renderNeural } = await import('./neural')
+   const { audio: pcm, sr } = await renderNeural(r.lyrics, r.notes, cps, r.voice, report, r.cycles ?? 1)
+   audio?.loadSamplePcm(r.sampleName, pcm, sr, false)
+@@ -104,9 +129,20 @@ export function bake(sings: SingRequest[], cps: number): void {
+       })
+       .then(() => {
+         loadedKey.set(r.sampleName, k)
++        sungParts.set(r.sampleName, r.synthName)
++        sungVoices.set(r.sampleName, String(r.voice))
++        silentParts.delete(r.synthName)
+         clearPhase() // clean finish: no crash marker left for the next boot
+       })
+       .catch((e) => {
++        // Lolly: no models, so this part stays silent. Say which parts, in
++        // place, instead of the bake error dialog: nothing went wrong.
++        if (lolly && isSingRefusal(e)) {
++          silentParts.add(r.synthName)
++          clearPhase()
++          lolly.notice('sing', `${e.message} These sung parts stay silent: ${[...silentParts].join(', ')}.`)
++          return
++        }
+         // eslint-disable-next-line no-console
+         console.error('[sing] render failed', r.sampleName, e)
+         // A HANDLED failure reached this catch, so the tab is alive and the
+diff --git a/packages/app/src/sing/supertonic.ts b/packages/app/src/sing/supertonic.ts
+index bc1fc8e2f0fbe8b88abd618b1dc179ed655b26c3..f1d6852381c78f2e9cf03322cc42ac6079c6c300 100644
+--- a/packages/app/src/sing/supertonic.ts
++++ b/packages/app/src/sing/supertonic.ts
+@@ -11,6 +11,8 @@
+  * vocoder → waveform. See synthesize().
+  * ------------------------------------------------------------------------- */
+ import * as ort from 'onnxruntime-web'
++import { lolly } from '../lolly/host'
++import { prepareOrt } from '../lolly/sing'
+ import { SUPERTONIC_BASE, isIOSWebKit, supertonicModelUrls } from './config'
+ import { cachedBytes, firstAvailableBytes } from './modelcache'
+ import { ModelSlot } from './lifecycle'
+@@ -92,7 +94,9 @@ export function loadEngine(onProgress?: (p: SingProgress) => void): Promise<Supe
+     // Serve the ORT wasm binaries from the matching CDN build (no COOP/COEP →
+     // single-threaded; WebGPU carries the heavy models anyway).
+     ort.env.wasm.numThreads = 1
+-    if (!ort.env.wasm.wasmPaths) ort.env.wasm.wasmPaths = `https://cdn.jsdelivr.net/npm/onnxruntime-web@${ort.env.versions.web}/dist/` /* browser CDN; node presets a local path */
++    // Lolly: the wasm comes from Lolly, never a CDN (lolly/sing.ts)
++    if (lolly) await prepareOrt(ort)
++    else if (!ort.env.wasm.wasmPaths) ort.env.wasm.wasmPaths = `https://cdn.jsdelivr.net/npm/onnxruntime-web@${ort.env.versions.web}/dist/` /* browser CDN; node presets a local path */
+ 
+     const cfgs = await cachedJson<Cfgs>(`${HF}/onnx/tts.json`)
+     const indexer = await cachedJson<number[]>(`${HF}/onnx/unicode_indexer.json`)

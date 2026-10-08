@@ -20,6 +20,9 @@ import path from 'node:path';
 const WORKSPACE_PACKAGES: Record<string, string> = {
   '@lolly-tools/core': 'packages/core',
   '@lolly-tools/node-shell': 'packages/node-shell',
+  // Rondocode songs (plan 301): node-shell reads its limits, and the song
+  // renderer's Worker bundle (api/mcp/_rondo-worker.js) inlines the package.
+  '@lolly-tools/rondo': 'packages/rondo',
 };
 
 function exportTarget(value: unknown): string | null {

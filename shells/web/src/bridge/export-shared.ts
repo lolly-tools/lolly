@@ -9,7 +9,7 @@
  */
 import { parseDimension, isPhysical, CSS_DPI, embedWatermark, roundedRectPath } from '@lolly/engine';
 import type { ExportAudio } from './audio-envelope.ts';
-import type { HostV1, ExportMeta, IngredientCredential } from '@lolly-tools/core/host-v1';
+import type { HostV1, ExportMeta, IngredientCredential, SourceIngredient } from '@lolly-tools/core/host-v1';
 import type { AttributionPlanV1, AttributionReceiptV1 } from '@lolly-tools/core/rights-v1';
 import type { Dimension } from '../../../../engine/src/units.ts';
 import type { CornerRadii, CornerPair } from '../../../../engine/src/css-box.ts';
@@ -58,7 +58,7 @@ export interface ExportOpts {
   dpi?: number;
   unit?: string;
   meta?: ExportMeta;
-  ingredients?: IngredientCredential[];  // preserved source-asset credentials → C2PA
+  ingredients?: (IngredientCredential | SourceIngredient)[];  // preserved source-asset credentials, and sources with none of their own → C2PA
   c2paInputs?: Record<string, string>;   // scalar-input digest → tools.lolly.export assertion (runtime-supplied)
   c2paCapture?: { camera?: boolean; microphone?: boolean; screen?: boolean }; // sensor/screen origin → created step = digitalCapture/screenCapture (runtime-supplied)
   c2paTextAdded?: { sample?: string };   // text over an opened asset → a c2pa.edited "Added text" step (runtime-supplied)
@@ -137,6 +137,12 @@ export interface ExportOpts {
    *  so an embedded asset's origin still rides the export's manifest. Created only
    *  under c2pa; deduped against opts.ingredients by activeLabel after dispatch. */
   _ingredientSink?: IngredientCredential[];
+  /** Internal: source ingredients (no credential of their own) known only once the
+   *  render has run or the caller has rendered them: a rondocode song the sequence mix
+   *  played, or a song the export bar rendered into the soundtrack (plan 301). A caller
+   *  may hand a filled list in; renderFormat creates one under c2pa otherwise, and
+   *  merges it into opts.ingredients after dispatch, one entry per instanceId. */
+  _sourceIngredientSink?: SourceIngredient[];
   palette?: BrandPaletteEntry[];
   bleed?: number | string;
   cropMarks?: boolean;
@@ -517,6 +523,28 @@ export async function blobToDataUrl(url: string): Promise<string> {
 
 /** export.ts hands the host over once, at createExportAPI(); everything else reads `_host`. */
 export function setExportHost(host: WebHost): void { _host = host; }
+
+/**
+ * Fold the ingredient sinks a stamped render filled into `opts.ingredients`, after
+ * dispatch. Walker-collected bitmap ingredients are deduped by manifest label against
+ * the ones the runtime already supplied for declared asset inputs, so a bitmap that
+ * WAS a declared asset is not double-listed. Source ingredients (no credential of
+ * their own) that the render or the caller met, such as a rondocode song in the
+ * soundtrack (plan 301), are deduped by instanceId, so a zip member re-entering the
+ * render, or a song placed twice, is listed once.
+ */
+export function foldIngredientSinks(opts: ExportOpts): void {
+  if (opts._ingredientSink?.length) {
+    // A source ingredient (no credential of its own) has no manifest label; it never collides.
+    const have = new Set((opts.ingredients ?? []).map((i) => ('activeLabel' in i ? i.activeLabel : undefined)));
+    opts.ingredients = [...(opts.ingredients ?? []), ...opts._ingredientSink.filter((i) => !have.has(i.activeLabel))];
+  }
+  if (opts._sourceIngredientSink?.length) {
+    const ids = new Set((opts.ingredients ?? []).map((i) => ('instanceId' in i ? i.instanceId : undefined)).filter(Boolean));
+    const fresh = opts._sourceIngredientSink.filter((i) => !i.instanceId || !ids.has(i.instanceId));
+    if (fresh.length) opts.ingredients = [...(opts.ingredients ?? []), ...fresh];
+  }
+}
 
 // A top-&-tail recorder's render target carries [data-toptail] (on the node or a
 // descendant), routing webm/mp4 export through the real-time card+footage compositor.

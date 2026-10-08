@@ -228,6 +228,114 @@
   "size": 2104556
  },
  {
+  "url": "/models/sing/CREDITS.txt",
+  "size": 1527
+ },
+ {
+  "url": "/models/sing/rondocode/gen_barbara.onnx",
+  "size": 112110094
+ },
+ {
+  "url": "/models/sing/rondocode/gen_kizuna.onnx",
+  "size": 112110094
+ },
+ {
+  "url": "/models/sing/rondocode/gen_rise.onnx",
+  "size": 112110094
+ },
+ {
+  "url": "/models/sing/rondocode/phoneme-int8.onnx",
+  "size": 356662870
+ },
+ {
+  "url": "/models/sing/rondocode/phoneme.onnx",
+  "size": 1264009987
+ },
+ {
+  "url": "/models/sing/rondocode/tts_vector_estimator-int8.onnx",
+  "size": 65580309
+ },
+ {
+  "url": "/models/sing/rondocode/tts_vocoder-int8.onnx",
+  "size": 38569499
+ },
+ {
+  "url": "/models/sing/rondocode/vec-768.onnx",
+  "size": 377655729
+ },
+ {
+  "url": "/models/sing/supertonic/LICENSE.txt",
+  "size": 15007
+ },
+ {
+  "url": "/models/sing/supertonic/onnx/duration_predictor.onnx",
+  "size": 3700147
+ },
+ {
+  "url": "/models/sing/supertonic/onnx/text_encoder.onnx",
+  "size": 36416150
+ },
+ {
+  "url": "/models/sing/supertonic/onnx/tts.json",
+  "size": 8253
+ },
+ {
+  "url": "/models/sing/supertonic/onnx/unicode_indexer.json",
+  "size": 277676
+ },
+ {
+  "url": "/models/sing/supertonic/onnx/vector_estimator.onnx",
+  "size": 256534781
+ },
+ {
+  "url": "/models/sing/supertonic/onnx/vocoder.onnx",
+  "size": 101424195
+ },
+ {
+  "url": "/models/sing/supertonic/voice_styles/F1.json",
+  "size": 292046
+ },
+ {
+  "url": "/models/sing/supertonic/voice_styles/F2.json",
+  "size": 292423
+ },
+ {
+  "url": "/models/sing/supertonic/voice_styles/F3.json",
+  "size": 290794
+ },
+ {
+  "url": "/models/sing/supertonic/voice_styles/F4.json",
+  "size": 291808
+ },
+ {
+  "url": "/models/sing/supertonic/voice_styles/F5.json",
+  "size": 291479
+ },
+ {
+  "url": "/models/sing/supertonic/voice_styles/M1.json",
+  "size": 291748
+ },
+ {
+  "url": "/models/sing/supertonic/voice_styles/M2.json",
+  "size": 292055
+ },
+ {
+  "url": "/models/sing/supertonic/voice_styles/M3.json",
+  "size": 290198
+ },
+ {
+  "url": "/models/sing/supertonic/voice_styles/M4.json",
+  "size": 291522
+ },
+ {
+  "url": "/models/sing/supertonic/voice_styles/M5.json",
+  "size": 291469
+ },
+ {
+  "url": "/models/sing/wav2vec2/vocab.json",
+  "size": 4637
+ },
+ {
   "url": "/models/trustmark/decoder_P.onnx",
   "size": 47400467
  },

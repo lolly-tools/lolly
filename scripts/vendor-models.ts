@@ -20,9 +20,14 @@
  * models bundled into your own dist.
  *
  * Usage:
- *   node scripts/vendor-models.ts                  # every family, skip what's present
+ *   node scripts/vendor-models.ts                  # every family but the opt-in ones, skip what's present
  *   node scripts/vendor-models.ts --only=kokoro,matte
+ *   node scripts/vendor-models.ts --only=sing      # the singing models (about 2.8 GB), only when named
  *   node scripts/vendor-models.ts --list           # show families + scripts, fetch nothing
+ *
+ * OPT-IN FAMILIES are never part of a run with no --only: `sing`, rondocode's
+ * singing models (plan 301 phase F), is fetched only by name, the same rule the app
+ * keeps (no "download everything" takes them; Andy, 2026-10-07).
  *
  * Per-family flags (e.g. upscale --no-face-detect) aren't exposed here - run
  * that one fetch-*-models.ts directly when you need them.
@@ -47,13 +52,18 @@ const FAMILIES: Record<string, string> = {
   matte: 'fetch-matte-models.ts',
   ocr: 'fetch-ocr-models.ts',
   reword: 'fetch-reword-models.ts',
+  sing: 'fetch-sing-models.ts',
   trustmark: 'fetch-trustmark-models.ts',
   upscale: 'fetch-upscale-models.ts',
   whisper: 'fetch-whisper-models.ts',
 };
 
+/** Families fetched only when named with --only, never by a run with no
+ *  arguments, and left out of that run's completeness check. */
+export const OPT_IN_FAMILIES: readonly string[] = ['sing'];
+
 export function resolveScripts(only?: string[]): { fam: string; script: string }[] {
-  const fams = only && only.length ? only : Object.keys(FAMILIES);
+  const fams = only && only.length ? only : Object.keys(FAMILIES).filter((f) => !OPT_IN_FAMILIES.includes(f));
   return fams.map((f) => {
     const script = FAMILIES[f];
     if (!script) throw new Error(`unknown model family "${f}" - known: ${Object.keys(FAMILIES).join(', ')}`);
@@ -61,11 +71,12 @@ export function resolveScripts(only?: string[]): { fam: string; script: string }
   });
 }
 
-/** Manifest files (url "/models/<rel>") with no file yet at <modelsDir>/<rel>. */
-export function missingFromManifest(modelsDir: string, manifest: { url: string }[]): string[] {
+/** Manifest files (url "/models/<rel>") with no file yet at <modelsDir>/<rel>.
+ *  Files of the `skip` families (their top directory) are not counted. */
+export function missingFromManifest(modelsDir: string, manifest: { url: string }[], skip: readonly string[] = []): string[] {
   return manifest
     .map((e) => e.url.replace(/^\/models\//, ''))
-    .filter((rel) => rel && !existsSync(join(modelsDir, rel)));
+    .filter((rel) => rel && !skip.includes(rel.split('/')[0]!) && !existsSync(join(modelsDir, rel)));
 }
 
 function dirBytes(dir: string): number {
@@ -97,7 +108,12 @@ function main(): void {
   }
 
   if (list) {
-    for (const { fam, script } of scripts) process.stdout.write(`  ${fam.padEnd(10)} scripts/${script}\n`);
+    // --list alone lists every family, the opt-in ones marked.
+    const shown = only ? scripts : resolveScripts(Object.keys(FAMILIES));
+    for (const { fam, script } of shown) {
+      const note = OPT_IN_FAMILIES.includes(fam) ? '  (opt-in: only with --only)' : '';
+      process.stdout.write(`  ${fam.padEnd(10)} scripts/${script}${note}\n`);
+    }
     return;
   }
 
@@ -114,7 +130,9 @@ function main(): void {
   let missing: string[] = [];
   try {
     const manifest = JSON.parse(readFileSync(MANIFEST, 'utf8')) as { url: string }[];
-    missing = missingFromManifest(MODELS_DIR, manifest);
+    // An opt-in family not asked for this run is not "missing".
+    const skip = OPT_IN_FAMILIES.filter((f) => !scripts.some((s) => s.fam === f));
+    missing = missingFromManifest(MODELS_DIR, manifest, skip);
   } catch { /* no manifest - skip the cross-check */ }
 
   process.stderr.write(`\n${'─'.repeat(40)}\n`);

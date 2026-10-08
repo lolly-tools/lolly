@@ -127,6 +127,16 @@ pnpm run cli mix ./plan.json --out=mix.wav --normalize=-16
 
 The decoder is the honest limit. Node reads WAV and our procedural ZzFXM songs; an mp3, m4a, opus, flac or webm clip needs a platform codec this shell does not have, so it is **named and left out** rather than mixed as silence, and a timeline where nothing could be decoded refuses rather than writing silence under your filename. The catalog's own music library is `.opus`, so a design state pointing at a shipped loop reaches that refusal today and is told which door does work (`lolly design --export=wav`, which drives the browser tier). Two things the Node plan reader does not take off a design state, both warned about rather than silently applied: `data-t-kf` volume keyframes and the crossfades a sequence lane derives from its neighbours. A plan JSON can carry the crossfade values itself.
 
+A rondocode song can be the whole soundtrack: give `lolly mix` a `.rondo` file, a `.rondo.json` file or a `rondocode.com` share link, and `--seconds=<n>` for its length (without it, the song's own arrangement, or eight cycles):
+
+```bash
+pnpm run cli mix ./acid.rondo --seconds=20 --out=acid.wav --json
+```
+
+The song's code runs in the `vm` execution class, QuickJS in WebAssembly with no host, inside a worker the CLI stops when its time runs out. One line on standard error says so, with the renderer's version and seed. A part the render cannot play is a warning with its own code (`RONDO_PART_MIC`, `RONDO_PART_SING`, `RONDO_PART_SAMPLE`), so `--strict` exits 2, and the `--json` envelope carries the class and the findings under `result.song`. A plan JSON clip can point at a song too, and a tool's audio input takes one (`lolly audiogram --audio=acid.rondo`).
+
+A mix that holds a song is signed with Content Credentials that record each song as a source: its name, the SHA-256 of its `.rondo.json` file and how it was rendered (the `vm` class, the renderer's version and seed, the parts that stayed silent). When the whole file is one song, the credential's created step and the WAV's comment tag also say the music was computed from the song's code with no trained model. The CLI reads the written file back and prints one line naming the songs its credential records, and `--json` carries the same under `result.credentials`. `--c2pa=off` or `--no-provenance` leaves all of this out, and `--sign-key`/`--sign-cert` sign with your identity as a render does. A mix with no song is written with no credential, as before.
+
 ## Composed tools
 
 Some tools **embed another tool's render** as an asset - declared in the manifest (`composes`) with no tool-to-tool imports. For example, `event-name-badge` composes `qr-code` as an SVG. Composition is transparent on the CLI: the runtime resolves it on mount, so the embedding tool renders headlessly with **no extra flags**.

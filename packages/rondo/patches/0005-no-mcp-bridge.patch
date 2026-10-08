@@ -1,0 +1,116 @@
+Lolly patch 0005: no MCP browser bridge.
+
+Why: upstream starts a WebSocket client (src/session/bridge-client.ts) that
+lets a local MCP server drive the editor. Inside Lolly the frame runs
+untrusted songs and must talk only to the page that holds it, so the bridge
+is never started and drops out of the build (the editor build refuses a
+bundle that still opens a WebSocket). The file itself is left as upstream
+wrote it, so an upstream change to it never breaks this patch.
+
+Applied by scripts/vendor-rondocode.ts with git apply --directory=packages/rondo/upstream.
+
+diff --git a/packages/app/src/main.ts b/packages/app/src/main.ts
+index e3fe7a876a038dd49f5cc7bdf0f71370f69a78c7..78437f9a4cdfb7310d83f3b48285654a21360ee8 100644
+--- a/packages/app/src/main.ts
++++ b/packages/app/src/main.ts
+@@ -1,9 +1,6 @@
+ import './style.css'
+-import { measureToCycle } from '@rondocode/pattern'
+ import { AudioSession } from './audio/AudioSession'
+ import { mountEditor } from './editor/editor'
+-import type { EditorHandle } from './editor/editor'
+-import { rondoMode } from './editor/langflag'
+ import { mountLibrary } from './editor/library'
+ import type { ProjectStore } from './session/projects'
+ import { mountDocs } from './editor/docspanel'
+@@ -17,78 +14,13 @@ import { mountTour } from './ui/tour'
+ import { mountMidi } from './editor/midi'
+ import { mountMask } from './editor/mask'
+ import { mountHeaderOverflow } from './ui/header-overflow'
+-import { BridgeClient } from './session/bridge-client'
+ import { applyPalette } from './ui/palette'
+ import { installViewportFit } from './ui/viewport'
+ 
+-/* MCP bridge wiring: expose the Session command API to the local bridge
+- * server (see session/bridge-client.ts for protocol, reach, and the
+- * notification-seam rationale). Purely additive — the editor keeps sole
+- * ownership of the Session's own callbacks; state notifications ride the
+- * EditorHandle.onState subscription seam. The client is silent and retries
+- * with backoff when no bridge is running, so the app works standalone. */
+-const startBridge = (editor: EditorHandle): void => {
+-  const session = editor.session
+-  const str = (v: unknown, name: string): string => {
+-    if (typeof v !== 'string') throw new TypeError(`${name} must be a string`)
+-    return v
+-  }
+-  const num = (v: unknown, name: string): number => {
+-    if (typeof v !== 'number') throw new TypeError(`${name} must be a number`)
+-    return v
+-  }
+-  const obj = (p: unknown): Record<string, unknown> =>
+-    typeof p === 'object' && p !== null ? (p as Record<string, unknown>) : {}
+-  const client = new BridgeClient({
+-    handlers: {
+-      evalCode: (p) => session.evalCode(str(obj(p).source, 'source')),
+-      getCode: () => ({ code: session.code, lastAttempted: session.lastAttempted }),
+-      /* The EDITOR's text, which is NOT `getCode`: that answers with the
+-       * session's evaluated JavaScript, and the human may be writing rondo.
+-       * Tooling that writes a file back to disk needs the source they are
+-       * editing, in the language they are editing it in. */
+-      getDoc: () => ({
+-        text: editor.view.state.doc.toString(),
+-        lang: editor.view.state.facet(rondoMode) ? 'rondo' : 'rondocode',
+-      }),
+-      setParam: (p) => {
+-        const q = obj(p)
+-        session.setParam(
+-          str(q.addr, 'addr'),
+-          num(q.value, 'value'),
+-          q.rampMs === undefined ? undefined : num(q.rampMs, 'rampMs'),
+-        )
+-      },
+-      setChannel: (p) => {
+-        const q = obj(p)
+-        session.setChannel(str(q.synth, 'synth'), {
+-          gain: q.gain === undefined ? undefined : num(q.gain, 'gain'),
+-          pan: q.pan === undefined ? undefined : num(q.pan, 'pan'),
+-        })
+-      },
+-      transport: (p) => {
+-        const q = obj(p)
+-        const cmd = str(q.cmd, 'cmd')
+-        if (cmd !== 'play' && cmd !== 'stop' && cmd !== 'pause' && cmd !== 'resume') {
+-          throw new TypeError(`cmd must be play|stop|pause|resume`)
+-        }
+-        // The wire speaks MEASURES, the way the tool's caller and the header
+-        // field do; cycles start below this line (see measureToCycle).
+-        const opts: { cps?: number; from?: number } = {}
+-        if (q.cps !== undefined) opts.cps = num(q.cps, 'cps')
+-        if (q.fromMeasure !== undefined) opts.from = measureToCycle(num(q.fromMeasure, 'fromMeasure'))
+-        const done = session.transport(cmd, opts)
+-        // pause on a stopped (or unfreezable) session is a no-op, not a
+-        // failure: say so rather than reporting a hold that never happened.
+-        return { ok: done, ...session.getState() }
+-      },
+-      getState: () => session.getState(),
+-    },
+-    getState: () => session.getState(),
+-    subscribeState: (fn) => editor.onState(fn),
+-  })
+-  client.start()
+-}
++/* Lolly: upstream's MCP browser bridge (session/bridge-client.ts, a WebSocket
++ * to a local server) is not started, so it is not in the build at all. The
++ * utility runs untrusted songs in this frame, and the frame talks only to the
++ * page that holds it. */
+ 
+ // Palette first: style.css consumes var(--c-*) with no fallbacks, so the
+ // custom properties must exist before anything renders (see ui/palette.ts).
+@@ -150,7 +82,6 @@ AudioSession.start().then(
+     mountMidi(editor, audio)
+     mountMask(editor) // the Bluetooth LED mask as a pattern output
+     mountHeaderOverflow(editor.topbar) // after every module has added its button
+-    startBridge(editor)
+     // DEV-only: singing-engine console hook for bring-up (window.__rcSing).
+     if (import.meta.env.DEV) {
+       void import('./sing/devhook').then((m) => m.installSingDevHook())

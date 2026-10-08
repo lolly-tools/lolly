@@ -83,6 +83,10 @@ export interface StorageModel {
    *  measures the store, not a record. Scoped to its own key: the deep-scan
    *  decoders sharing that store stay in the meter's "Other" remainder. */
   durable: { bytes: number; files: number };
+  /** The singing models in the `sing-models` store (plan 301 phase F) - filled by
+   *  the 'sing' offline part or a song's in-place offer, so this measures the
+   *  store, not a record. Optional so a model built before it reads as zero. */
+  sing?: { bytes: number; files: number };
   measured: number;
   hasEstimate: boolean;
   usage: number | null;
@@ -123,6 +127,7 @@ export function reconciliationSentence(m: StorageModel): string {
   if (m.matte.bytes) parts.push(`Background removal ${fmtBytes(m.matte.bytes)}`);
   if (m.ocr.bytes) parts.push(`Text recognition ${fmtBytes(m.ocr.bytes)}`);
   if (m.durable.bytes) parts.push(`Durable credential ${fmtBytes(m.durable.bytes)}`);
+  if (m.sing?.bytes) parts.push(`Singing voices ${fmtBytes(m.sing.bytes)}`);
   let s = m.hasEstimate
     ? `Using ${fmtBytes(m.total)}: ${parts.join(', ')}`
     : `Measured ${fmtBytes(m.measured)}: ${parts.join(', ')}`;

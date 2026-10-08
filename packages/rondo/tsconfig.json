@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // TextEncoder and the WebAssembly globals QuickJS's types reference; the
+    // package itself runs in a browser worker and in Node alike.
+    "lib": ["ES2023", "DOM"],
+    "types": ["node"]
+  },
+  "include": ["src/**/*", "test/**/*", "editor/**/*"],
+  // The two bundle entries import the vendored upstream source, which is built by
+  // scripts/build-rondo.ts and is not held to this tree's compiler settings. The
+  // editor's boot script, chrome and shims import the web shell's own modules,
+  // so editor/tsconfig.json checks them with the web shell's settings; the
+  // editor's pure modules (theme, storage, protocol) are checked here too.
+  "exclude": ["src/stage-entry.ts", "src/render-entry.ts", "upstream/**", "editor/boot.ts", "editor/chrome.ts", "editor/shims/**"]
+}

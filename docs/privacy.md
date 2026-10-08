@@ -74,6 +74,11 @@ into memory in your browser, transformed locally and offered back as a download.
 It is never uploaded, because there is no server in the path to upload it to.
 These utilities work offline, and their output carries no watermark or metadata of
 ours - the point of most of them is to remove & protect data, not add risk.
+**Rondocode** is the one exception, because it makes new audio from your song
+rather than transforming a file of yours: every audio file it writes carries
+Content Credentials that record the song and declare any AI-generated singing,
+the Export panel says so before you export, and [Exporting](/info/exporting.html#files-from-the-rondocode-utility)
+lists exactly what is recorded.
 
 ![The badge these tools carry: Runs on your device - nothing is uploaded](/t/url-shot?url=%2F%23%2Ftool%2Fstrip-data&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=.on-device-badge&dark=1&filename=pv-ondevice-badge)
 
@@ -288,7 +293,8 @@ and signing itself happens offline. Without enrolment that key is a throwaway:
 a fresh keypair minted for each export and dropped with it. Once you enrol, the
 key becomes a lasting one and is generated **non-extractable** - not even Lolly's
 own code can read it, only ask it to sign. Either way it never leaves your
-device. This section covers the one *optional* step on top of that:
+device. What a credential records is listed in [Exporting](/info/exporting.html#content-credentials-c2pa): the tool, the time, the coarse export surface, your name only when you turned on *Use my details*, the credited works an export places, and each rondocode song a video or audio export plays (its name, a hash of its source and how Lolly's sandbox rendered the song). The export panel lists those songs before you export.
+This section covers the one *optional* step on top of that:
 enrolling a verified identity, so your exports say "Verified - signed by
 \<your email\>" instead of an anonymous key. **If you skip enrolment, this certificate service receives no enrolment data
 from you. Other optional services have the data flows described above.**

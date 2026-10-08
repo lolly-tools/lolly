@@ -42,6 +42,8 @@ function isExcluded(rel: string): boolean {
     rel === 'tools' || rel.startsWith('tools/') ||
     rel === 'catalog' || rel.startsWith('catalog/') ||
     rel === 'api/mcp' || rel === 'api/ca' ||
+    // Vendored third-party source, kept in upstream's own words.
+    rel === 'packages/rondo/upstream' || rel.startsWith('packages/rondo/upstream/') ||
     rel.endsWith('/public/info') || rel.includes('/public/info/') ||
     /\/lib$/.test(rel) && rel.startsWith('tools/')
   );

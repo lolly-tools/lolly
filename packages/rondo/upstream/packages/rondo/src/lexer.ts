@@ -1,0 +1,183 @@
+/* rondo lexer — line-oriented, indentation-aware.
+ *
+ * rondo blocks are delimited by 2-space indentation: a `synth NAME` / `play
+ * NAME` header at one level, its body indented under it. So rather than a flat
+ * INDENT/DEDENT token stream, the lexer yields LOGICAL LINES, each carrying its
+ * indent depth, its raw text (used verbatim for play-block notation), and its
+ * inline tokens (used to parse synth-block expressions).
+ *
+ * Comments run from a `#` (at line start, or preceded by whitespace) to EOL —
+ * so a note like `c#4` keeps its sharp, but ` # note` is a comment. */
+
+import type { Pos, RondoError } from './ast'
+
+export type Tok =
+  | { k: 'num'; v: number; text: string; pos: Pos; sp: boolean }
+  | { k: 'ident'; v: string; pos: Pos; sp: boolean }
+  | { k: 'op'; v: '+' | '-' | '*' | '/' | '^'; pos: Pos; sp: boolean }
+  | { k: 'lparen'; pos: Pos; sp: boolean }
+  | { k: 'rparen'; pos: Pos; sp: boolean }
+  | { k: 'range'; pos: Pos; sp: boolean } // ..
+  | { k: 'arrow'; pos: Pos; sp: boolean } // ->
+  | { k: 'colon'; pos: Pos; sp: boolean } // :
+  | { k: 'eq'; pos: Pos; sp: boolean } // =
+  | { k: 'jsexpr'; v: string; pos: Pos; sp: boolean; from: number; to: number } // js{ … } escape hatch (inner; from/to = absolute source region)
+
+export interface Line {
+  indent: number
+  line: number
+  /** text after the indent, with any trailing comment removed. */
+  raw: string
+  /** column (1-based) where `raw` begins, for accurate positions. */
+  rawCol: number
+  /** absolute char offset (into the whole source) where `raw` begins — used to
+   *  map notation ranges back to the editor buffer for note-play highlighting. */
+  offset: number
+  toks: Tok[]
+}
+
+export const stripComment = (s: string): string => {
+  // A '#' at line start, or preceded by whitespace, begins a comment — but only
+  // OUTSIDE quotes, so a js{ … } line like `s("bd # sn")` survives intact.
+  // (`c#4` also survives: its '#' follows a letter.)
+  let str = '' // active string delimiter (' " `) or ''
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i]!
+    if (str) {
+      if (c === '\\') { i++; continue }
+      if (c === str) str = ''
+      continue
+    }
+    if (c === "'" || c === '"' || c === '`') { str = c; continue }
+    if (c === '#' && (i === 0 || /\s/.test(s[i - 1]!))) return s.slice(0, i)
+  }
+  return s
+}
+
+const OPS = new Set(['+', '-', '*', '/', '^'])
+
+/** Index of the `}` that closes the `{` at `open`, string/escape-aware, or -1. */
+export function scanBalanced(text: string, open: number): number {
+  let depth = 0
+  let str = '' // active string delimiter (' " `) or ''
+  for (let k = open; k < text.length; k++) {
+    const c = text[k]!
+    if (str) {
+      if (c === '\\') { k++; continue }
+      if (c === str) str = ''
+      continue
+    }
+    if (c === "'" || c === '"' || c === '`') { str = c; continue }
+    if (c === '{') depth++
+    else if (c === '}') { depth--; if (depth === 0) return k }
+  }
+  return -1
+}
+
+/** Tokenize one line's text into inline tokens. `base` is the 1-based column of
+ *  the first character, so token positions map back to the source; `off` is the
+ *  absolute source offset of the first character (for js{ … } regions). */
+function tokenizeLine(text: string, lineNo: number, base: number, off: number, errors: RondoError[]): Tok[] {
+  const toks: Tok[] = []
+  let i = 0
+  let sawSpace = true // leading position counts as space-preceded
+  while (i < text.length) {
+    const ch = text[i]!
+    if (ch === ' ' || ch === '\t') { sawSpace = true; i++; continue }
+    const pos: Pos = { line: lineNo, col: base + i }
+    const sp = sawSpace
+    sawSpace = false
+    // escape hatch: js{ … } — capture the raw JS inside (balanced, single line)
+    if (ch === 'j' && /^js\s*\{/.test(text.slice(i))) {
+      const open = text.indexOf('{', i)
+      const close = scanBalanced(text, open)
+      if (close < 0) {
+        errors.push({ message: 'unterminated js{ … } block', line: lineNo, col: base + i })
+        break
+      }
+      toks.push({ k: 'jsexpr', v: text.slice(open + 1, close).trim(), pos, sp, from: off + open + 1, to: off + close })
+      i = close + 1
+      continue
+    }
+    // two-char tokens
+    if (ch === '.' && text[i + 1] === '.') { toks.push({ k: 'range', pos, sp }); i += 2; continue }
+    if (ch === '-' && text[i + 1] === '>') { toks.push({ k: 'arrow', pos, sp }); i += 2; continue }
+    // number: 12, 12.5, .5, and NEGATIVE literals (`knob -6 -12..0`,
+    // `threshold:-6`). A '-' is a sign when glued to its digits AND either
+    // space-preceded or following a `:` `=` `..` or operator — so `env - 1`
+    // and `env-1` both stay subtraction. Single decimal point only, never `..`.
+    const digitAt = (k: number): boolean => /[0-9]/.test(text[k] ?? '')
+    const last = toks[toks.length - 1]
+    const signCtx = sp || (last !== undefined && (last.k === 'colon' || last.k === 'eq' || last.k === 'range' || last.k === 'op'))
+    const startsNum =
+      digitAt(i) ||
+      (ch === '.' && digitAt(i + 1)) ||
+      (ch === '-' && signCtx && (digitAt(i + 1) || (text[i + 1] === '.' && digitAt(i + 2))))
+    if (startsNum) {
+      let j = ch === '-' ? i + 1 : i
+      while (j < text.length && digitAt(j)) j++
+      if (text[j] === '.' && text[j + 1] !== '.') { j++; while (j < text.length && digitAt(j)) j++ }
+      const t = text.slice(i, j)
+      const v = Number(t)
+      if (!Number.isFinite(v)) errors.push({ message: `bad number "${t}"`, line: lineNo, col: base + i })
+      toks.push({ k: 'num', v, text: t, pos, sp })
+      i = j
+      continue
+    }
+    // identifier: letters, then word chars
+    if (/[a-zA-Z_]/.test(ch)) {
+      let j = i
+      while (j < text.length && /[a-zA-Z0-9_]/.test(text[j]!)) j++
+      toks.push({ k: 'ident', v: text.slice(i, j), pos, sp })
+      i = j
+      continue
+    }
+    if (ch === ':') { toks.push({ k: 'colon', pos, sp }); i++; continue }
+    if (ch === '=') { toks.push({ k: 'eq', pos, sp }); i++; continue }
+    if (OPS.has(ch)) { toks.push({ k: 'op', v: ch as '+', pos, sp }); i++; continue }
+    // Parens GROUP arithmetic. They used to fall into the skip below with
+    // every other unknown character, which did not reject them — it dropped
+    // them: `gate * (1 + gate)` lexed as `gate * 1 + gate` and computed the
+    // wrong thing with no error anywhere. A notation line reads `(` from raw
+    // text as euclid (`rim(7,16)`) and never sees these tokens.
+    if (ch === '(') { toks.push({ k: 'lparen', pos, sp }); i++; continue }
+    if (ch === ')') { toks.push({ k: 'rparen', pos, sp }); i++; continue }
+    // Any other character (`~ < > [ ] * @ ! , …`) belongs to the notation /
+    // mini sublanguage, which play blocks read from raw text — so we skip it
+    // here rather than error. Synth-expression validity is enforced by the
+    // parser working over the tokens it does produce.
+    i++
+  }
+  return toks
+}
+
+export function lex(src: string): { lines: Line[]; errors: RondoError[]; jsRegions: { from: number; to: number }[] } {
+  const errors: RondoError[] = []
+  const lines: Line[] = []
+  const rawLines = src.split('\n')
+  let lineStart = 0 // absolute offset of the current line in `src`
+  for (let li = 0; li < rawLines.length; li++) {
+    const rawFull = rawLines[li]!
+    const lineNo = li + 1
+    const noComment = stripComment(rawFull)
+    if (noComment.trim() !== '') {
+      const indentMatch = /^[ \t]*/.exec(noComment)![0]
+      if (indentMatch.includes('\t')) {
+        errors.push({ message: 'use spaces, not tabs, for indentation', line: lineNo, col: 1 })
+      }
+      const indent = indentMatch.length
+      const rawCol = indent + 1
+      const text = noComment.slice(indent).replace(/\s+$/, '')
+      lines.push({
+        indent, line: lineNo, raw: text, rawCol, offset: lineStart + indent,
+        toks: tokenizeLine(text, lineNo, rawCol, lineStart + indent, errors),
+      })
+    }
+    lineStart += rawFull.length + 1 // +1 for the '\n' consumed by split
+  }
+  // every inline js{ … } region, for note-flash inside escape hatches (the
+  // parser adds js BLOCK body regions — only it knows which lines those are)
+  const jsRegions: { from: number; to: number }[] = []
+  for (const l of lines) for (const t of l.toks) if (t.k === 'jsexpr') jsRegions.push({ from: t.from, to: t.to })
+  return { lines, errors, jsRegions }
+}

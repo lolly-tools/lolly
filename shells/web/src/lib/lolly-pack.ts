@@ -589,7 +589,9 @@ function extForAsset(format: string, mime: string): string {
  * purely cosmetic to the wire format and transparent to import.
  */
 function assetPath(dir: string, base: string, format: string, mime: string, taken: Set<string>): string {
-  const ext = extForAsset(format, mime);
+  // A rondocode song is stored as its canonical JSON, the file rondocode itself
+  // opens as `.rondo.json`; `.rondo` alone would claim rondo-language text.
+  const ext = (format || '').toLowerCase() === 'rondo' ? 'rondo.json' : extForAsset(format, mime);
   let stem = (base.split(/[\\/]/).pop() ?? base);           // last segment of an id-shaped name
   const dot = stem.lastIndexOf('.');                        // drop an already-matching extension
   if (dot > 0 && stem.slice(dot + 1).toLowerCase() === ext) stem = stem.slice(0, dot);

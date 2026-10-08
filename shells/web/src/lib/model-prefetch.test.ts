@@ -75,3 +75,27 @@ test('the embed fetches through the shared model fetcher, not a hand-rolled same
   assert.ok(!/'encoder_\w+\.onnx'/.test(code), 'no second copy of the file name to drift');
   assert.ok(!/\$\{MODELS_BASE\}/.test(code), 'URL building belongs to the fetcher (models base included)');
 });
+
+test('a model file past Chrome’s IndexedDB value ceiling is stored as a Blob, smaller ones as before', async () => {
+  const { storableModelBytes, IDB_ARRAYBUFFER_MAX } = await import('./ort.ts');
+  // Chrome refuses a serialized value past 133169152 bytes; the threshold stays well below that ceiling.
+  assert.ok(IDB_ARRAYBUFFER_MAX < 133_169_152);
+  const small = new ArrayBuffer(1024);
+  assert.equal(storableModelBytes(small), small, 'a small model keeps the old record shape');
+  const big = storableModelBytes(new ArrayBuffer(IDB_ARRAYBUFFER_MAX + 1));
+  assert.ok(big instanceof Blob);
+  assert.equal((big as Blob).size, IDB_ARRAYBUFFER_MAX + 1);
+});
+
+test('the singing part downloads every file but the fp32 fallbacks, the big files first', async () => {
+  const { singOfflineFiles } = await import('./model-prefetch.ts');
+  const { SING_FALLBACK_FILES, SING_FILE_BYTES, SING_PART_BYTES } = await import('./sing-models.ts');
+  const files = singOfflineFiles();
+  assert.equal(files.length, Object.keys(SING_FILE_BYTES).length - SING_FALLBACK_FILES.length);
+  for (const f of SING_FALLBACK_FILES) assert.ok(!files.includes(f), `${f} is on demand only`);
+  for (const v of ['kizuna', 'barbara', 'rise']) assert.ok(files.includes(`rondocode/gen_${v}.onnx`), `${v} rides with the part`);
+  assert.ok(files.includes('rondocode/phoneme-int8.onnx') && files.includes('rondocode/tts_vector_estimator-int8.onnx') && files.includes('rondocode/tts_vocoder-int8.onnx'));
+  assert.ok(files.includes('supertonic/LICENSE.txt') && files.includes('CREDITS.txt'), 'the licence and credits travel with the weights');
+  assert.equal(files[0], 'rondocode/vec-768.onnx');
+  assert.equal(SING_PART_BYTES, 1_218_137_628);
+});

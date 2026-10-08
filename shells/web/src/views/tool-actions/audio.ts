@@ -118,6 +118,21 @@ export async function generatedWavUrl(ta: ActionsCtx, targetSec: number): Promis
   ta.genWavKey = key;
   return ta.genWavUrl;
 } // asset id currently loaded into previewAudio
+/**
+ * A track's audition url. Encoded audio plays from its own url; a rondocode song
+ * is code, so it is rendered first (lib/rondo-render.ts runs it in the `vm` class)
+ * to a WAV blob, at its own length. The previous song's blob is revoked when a new
+ * one is minted, so at most one is held.
+ */
+export async function trackPreviewUrl(ta: ActionsCtx, id: string): Promise<string> {
+  const ref = await ta.host.assets.get(id);
+  if (ref.format !== 'rondo') return ref.url;
+  const r = await import('../../lib/rondo-render.ts');
+  const { url } = await r.renderRondoToWavUrl(await r.songFromUrl(ref.url));
+  if (ta.songWavUrl) URL.revokeObjectURL(ta.songWavUrl);
+  ta.songWavUrl = url;
+  return url;
+}
 export const setAudioPreviewPlaying = (ta: ActionsCtx, playing: boolean): void => {
   const { ICON_PAUSE, ICON_PLAY, audioPreviewBtn } = ta;
   if (!audioPreviewBtn) return;
@@ -190,7 +205,7 @@ export const syncCaptionsAvailable = (ta: ActionsCtx): void => {
   }, 250);
 };
 export function wireAudio(ta: ActionsCtx): void {
-  const { audioPreviewBtn, audioRegenBtn, audioSel, exportDefaults, host } = ta;
+  const { audioPreviewBtn, audioRegenBtn, audioSel, exportDefaults } = ta;
   audioSel?.addEventListener('change', () => {
     ta.audio.stopAudioPreview();
     ta.previewSrcId = null;
@@ -223,7 +238,7 @@ export function wireAudio(ta: ActionsCtx): void {
           const url =
             id === '__generate__'
               ? await ta.audio.generatedWavUrl(ta.audio.genDur())
-              : (await host.assets.get(id)).url;
+              : await ta.audio.trackPreviewUrl(id);
           if (!url) throw new Error('no track to preview');
           ta.previewAudio.src = url;
           ta.previewSrcId = srcKey;
@@ -265,6 +280,7 @@ export function audioOps(ta: ActionsCtx) {
     captionText: bindOp(ta, captionText),
     genDur: bindOp(ta, genDur),
     generatedWavUrl: bindOp(ta, generatedWavUrl),
+    trackPreviewUrl: bindOp(ta, trackPreviewUrl),
     setAudioPreviewPlaying: bindOp(ta, setAudioPreviewPlaying),
     stopAudioPreview: bindOp(ta, stopAudioPreview),
     syncAudioPreviewEnabled: bindOp(ta, syncAudioPreviewEnabled),

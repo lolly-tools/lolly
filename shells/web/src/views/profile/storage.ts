@@ -25,7 +25,7 @@ import { backupHistoryNote } from '../../lib/backup-summary.ts';
 import { measureFileHistory } from '../../lib/file-history-storage.ts';
 import { pinnedToolBytes, unpinAll } from '../../lib/offline-pins.ts';
 import { aiDetectCacheBytes, clearAiDetectCaches, removePart, rewordCacheBytes, speechCacheBytes } from '../../lib/offline-manager.ts';
-import { durableCacheBytes, matteCacheBytes, ocrCacheBytes, upscaleCacheBytes } from '../../lib/model-prefetch.ts';
+import { durableCacheBytes, matteCacheBytes, ocrCacheBytes, singCacheBytes, upscaleCacheBytes } from '../../lib/model-prefetch.ts';
 import { createTrash, trashHostOf } from '../../lib/trash.ts';
 import { openTrashDialog, showTrashUndoToast } from '../../components/trash-dialog.ts';
 import { clearAllLollyData, sealWebStorageUntilReload } from '../../lib/clear-all-data.ts';
@@ -68,7 +68,7 @@ export async function measure(pv: ProfileViewCtx): Promise<StorageModel> {
   const estP = navigator.storage?.estimate
     ? navigator.storage.estimate().catch(() => null)
     : Promise.resolve(null);
-  const [estimate, sessions, sessionSizes, blobCacheBytes, allImages, imagesBytes, previews, pins, speech, upscale, matte, ocr, reword, aiDetect, durable, fileHistory] = await Promise.all([
+  const [estimate, sessions, sessionSizes, blobCacheBytes, allImages, imagesBytes, previews, pins, speech, upscale, matte, ocr, reword, aiDetect, durable, fileHistory, sing] = await Promise.all([
     estP,
     host.state.list().catch((): SessionEntry[] => []),
     host.state.sizes!().catch((): Record<string, number> => ({})),
@@ -85,6 +85,7 @@ export async function measure(pv: ProfileViewCtx): Promise<StorageModel> {
     aiDetectCacheBytes().catch(() => ({ bytes: 0, files: 0 })),
     durableCacheBytes().catch(() => ({ bytes: 0, files: 0 })),
     measureFileHistory().catch(() => ({ bytes: 0 })),
+    singCacheBytes().catch(() => ({ bytes: 0, files: 0 })),
   ]);
   // Version history's bytes (plan 277 P4): checkpoints, previews and recovery
   // drafts, as the revision store counts them. They sit outside the saved-session
@@ -109,7 +110,7 @@ export async function measure(pv: ProfileViewCtx): Promise<StorageModel> {
   // would render as broken tiles. Their bytes stay in the slice either way.
   const VISUAL = new Set(['raster', 'vector', 'video', 'lottie']);
   const imageList = allImages.filter(a => a.id !== HEADSHOT_ID && VISUAL.has(a.type));
-  const measured = sessBytes + imagesBytes + cacheBytes + previews.bytes + pins.bytes + speech.bytes + upscale.bytes + matte.bytes + ocr.bytes + reword.bytes + aiDetect.bytes + durable.bytes + fileHistory.bytes + historyBytes(history);
+  const measured = sessBytes + imagesBytes + cacheBytes + previews.bytes + pins.bytes + speech.bytes + upscale.bytes + matte.bytes + ocr.bytes + reword.bytes + aiDetect.bytes + durable.bytes + sing.bytes + fileHistory.bytes + historyBytes(history);
   const hasEstimate = !!(estimate && estimate.usage != null);
   const usage: number | null = hasEstimate ? estimate!.usage! : null;
   const quota: number | null = (estimate && estimate.quota) || null;
@@ -130,6 +131,7 @@ export async function measure(pv: ProfileViewCtx): Promise<StorageModel> {
     reword,
     aiDetect,
     durable,
+    sing,
     fileHistory,
     ...(history ? { history } : {}),
     measured, hasEstimate, usage, quota, overshoot, other, total,
@@ -208,6 +210,7 @@ export function renderSection(pv: ProfileViewCtx, m: StorageModel, sort: string)
           <button type="button" class="seg" data-cat="reword" style="flex-grow:0"${has(m.reword.bytes) ? '' : ' hidden'}></button>
           <button type="button" class="seg" data-cat="aidetect" style="flex-grow:0"${has(m.aiDetect.bytes) ? '' : ' hidden'}></button>
           <button type="button" class="seg" data-cat="durable" style="flex-grow:0"${has(m.durable.bytes) ? '' : ' hidden'}></button>
+          <button type="button" class="seg" data-cat="sing" style="flex-grow:0"${has(m.sing?.bytes ?? 0) ? '' : ' hidden'}></button>
           <span class="seg seg--other" data-cat="other" style="flex-grow:0" aria-hidden="true" hidden></span>
         </div>
         <p class="visually-hidden" id="store-aria-sentence"></p>
@@ -271,6 +274,7 @@ export function renderSection(pv: ProfileViewCtx, m: StorageModel, sort: string)
           ${has(m.ocr.bytes) ? clearRow('ocr', t('Text recognition'), t('On-device OCR models for reading text out of images. Removing them frees the space; they download again with your consent when next used.'), 'clear-ocr-btn', t('Remove models')) : ''}
           ${has(m.reword.bytes) ? clearRow('reword', t('Rewriter model'), t('The on-device rewriter for Humanize. Removing it frees the space; it downloads again with your consent when next used.'), 'clear-reword-btn', t('Remove model')) : ''}
           ${has(m.aiDetect.bytes) ? clearRow('aidetect', t('AI text detector'), t('The on-device detector behind the deeper AI-text check. Removing it frees the space; it downloads again with your consent when next used.'), 'clear-aidetect-btn', t('Remove model')) : ''}
+          ${has(m.sing?.bytes ?? 0) ? clearRow('sing', t('Singing voices'), t('On-device singing models for songs in Rondocode. Removing them frees the space; they download again with your consent when next used.'), 'clear-sing-btn', t('Remove models')) : ''}
           ${has(m.durable.bytes) ? clearRow('durable', t('Durable credential'), t('The on-device model that hides the durable credential in exported pixels. Removing it frees the space; it downloads again with your consent when next used.'), 'clear-durable-btn', t('Remove model')) : ''}
           ${m.hasEstimate ? storeRow('other', t('Other'), t('Your profile, internal indexes, the offline app cache and storage overhead - everything not itemised above. Calculated as total used minus the measured items. Clear it with "Clear all my data" below.'), '') : ''}
           </div></div>
@@ -390,6 +394,7 @@ export async function loadStorage(pv: ProfileViewCtx) {
       ['reword', m.reword.bytes, t('Rewriter model'), m.reword.bytes > 0],
       ['aidetect', m.aiDetect.bytes, t('AI text detector'), m.aiDetect.bytes > 0],
       ['durable', m.durable.bytes, t('Durable credential'), m.durable.bytes > 0],
+      ['sing', m.sing?.bytes ?? 0, t('Singing voices'), (m.sing?.bytes ?? 0) > 0],
     ];
     for (const [cat, bytes, label, avail] of segs) {
       const seg = bar?.querySelector<HTMLElement>(`.seg[data-cat="${cat}"]`);
@@ -410,7 +415,7 @@ export async function loadStorage(pv: ProfileViewCtx) {
     setText('[data-trash-summary]', trashSummary(m.trash));
     setGroupValue('work', m.sessions.bytes + m.images.bytes + (m.fileHistory?.bytes ?? 0) + historyBytes(m.history));
     setGroupValue('caches', m.cache.bytes + m.previews.bytes + m.pins.bytes + m.speech.bytes + m.upscale.bytes + m.matte.bytes
-      + m.ocr.bytes + m.reword.bytes + m.aiDetect.bytes + m.durable.bytes);
+      + m.ocr.bytes + m.reword.bytes + m.aiDetect.bytes + m.durable.bytes + (m.sing?.bytes ?? 0));
 
     const note = body.querySelector<HTMLElement>('#store-footnote');
     if (note) {
@@ -602,6 +607,8 @@ export async function loadStorage(pv: ProfileViewCtx) {
     if (ocrBtn) { await clearRegenerable(ocrBtn, () => removePart('ocr'), t('Removed text-recognition models')); return; }
     const durableBtn = (e.target as Element).closest<HTMLButtonElement>('#clear-durable-btn');
     if (durableBtn) { await clearRegenerable(durableBtn, () => removePart('durable'), t('Removed the durable-credential model')); return; }
+    const singBtn = (e.target as Element).closest<HTMLButtonElement>('#clear-sing-btn');
+    if (singBtn) { await clearRegenerable(singBtn, () => removePart('sing'), t('Removed the singing models')); return; }
     const rewordBtn = (e.target as Element).closest<HTMLButtonElement>('#clear-reword-btn');
     if (rewordBtn) { await clearRegenerable(rewordBtn, () => removePart('reword'), t('Removed the rewriter model')); return; }
     const aiDetectBtn = (e.target as Element).closest<HTMLButtonElement>('#clear-aidetect-btn');

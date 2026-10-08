@@ -5,6 +5,15 @@ UpCloud web service. Model bytes stay separate from application images, and
 clients keep their same-origin URLs. Use the release staging and verification
 commands below and the instance's current deployment handoff.
 
+The desktop shells and the YunoHost package fetch the same URLs from
+`https://lolli.li/models/` (`VITE_MODELS_BASE`), the `lolly` bucket on UpCloud
+Object Storage. Publish a family there with
+`node scripts/upload-models.ts --family=<name>` (dry run first with `--dry-run`;
+the script only adds keys under `models/<name>/`, skips files already present at
+the same size and never deletes), then run `node scripts/gen-models-manifest.ts`.
+The `sing` family (rondocode's singing models, plan 301) is opt-in: fetch its files
+with `node scripts/vendor-models.ts --only=sing` before staging a release.
+
 The offline "Available offline" manager reads model URLs + sizes from
 `precache.json`, which is scanned from the built dist. Because the app build no
 longer has the model files on disk, the committed listing

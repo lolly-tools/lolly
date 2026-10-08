@@ -15,6 +15,8 @@
       "!catalog",
       "!api",
       "!shells/web/public",
+      "!packages/rondo/upstream",
+      "!packages/rondo/generated",
       "!shells/*/bridge-overrides",
       "!shells/chrome-extension",
       "!shells/*/src-tauri",
