@@ -148146,8 +148146,9 @@ async function getBrowser({ graphics = "software" } = {}) {
           // glyph-metric divergence (FreeType hint distortion) so server layouts
           // (MCP, lolly.work) don't reflow vs desktop. Antialiasing and subpixel
           // positioning still differ per-OS, so raster BYTES are not cross-OS
-          // identical. Mirrored in services/mcp/src/render.ts and the byte-golden
-          // test harnesses (export-format-golden / export-text-emission).
+          // identical. Mirrored in services/mcp/src/render.ts, the byte-golden
+          // test harnesses (export-format-golden / export-text-emission) and the
+          // drawing fidelity harness (design-draw-fidelity).
           // Docs captures render a whole gallery, including 3D examples. They
           // can use the available GPU; software remains the default for exports.
           // The web shell requires WebGPU before it boots (plan 295), and headless
