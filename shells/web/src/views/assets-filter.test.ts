@@ -16,7 +16,11 @@ import {
   type TypeFilter,
   sortAssets,
   assetAddedAt,
+  assetAddedSortKey,
+  assetByteSize,
   assetModifiedAt,
+  catalogAddedAt,
+  typeBucket,
   parseCatQuery,
   matchContext,
 } from './assets-filter.ts';
@@ -271,6 +275,99 @@ test('sortAssets: reversed flips the finished order of every key, the input unto
   assert.deepEqual(sortAssets(list, 'name', true).map((a) => a.meta?.name), ['Zeta', 'Beta', 'alpha']);
   assert.deepEqual(sortAssets(list, 'default', true), [newer, cat, older]);
   assert.deepEqual(list, [older, cat, newer]);
+});
+
+// ── Sizes, Date added and Type (plan 302 PR 1) ───────────────────────────────
+
+test('catalogAddedAt reads the pack date at noon UTC, and anything else as no date', () => {
+  assert.equal(catalogAddedAt({ meta: { added: '2026-08-20' } }), Date.UTC(2026, 7, 20, 12));
+  for (const added of [undefined, '', 'soon', 20260820]) {
+    assert.equal(catalogAddedAt({ meta: { added } }), null, String(added));
+  }
+});
+
+test('assetAddedSortKey: an upload keeps its own time, a catalog asset gets its pack date', () => {
+  assert.equal(assetAddedSortKey({ id: 'user/upload/1787058652322-x.jpg', meta: { added: '2020-01-01' } }), 1787058652322);
+  assert.equal(assetAddedSortKey({ id: 'lolly/photo/lorikeet', meta: { added: '2026-08-20' } }), Date.UTC(2026, 7, 20, 12));
+  assert.equal(assetAddedSortKey({ id: 'lolly/photo/undated' }), null);
+});
+
+test('the catalog pack date never leaks into the Last modified read or the added read', () => {
+  // Andy, 2026-08-20: catalog assets keep their curated order under the
+  // default sort, and a tile's title gains no "added" date from the index.
+  const ref = { id: 'lolly/photo/lorikeet', meta: { added: '2026-08-20' } };
+  assert.equal(assetAddedAt(ref), null);
+  assert.equal(assetModifiedAt(ref), null);
+});
+
+test('assetByteSize reads an upload\'s bytes, else a catalog entry\'s size', () => {
+  assert.equal(assetByteSize({ meta: { bytes: 10, size: 99 } }), 10);
+  assert.equal(assetByteSize({ meta: { size: 99 } }), 99);
+  assert.equal(assetByteSize({ meta: { bytes: 0 } }), 0);
+  for (const meta of [undefined, {}, { bytes: 'many' }, { size: -1 }, { bytes: Number.NaN }]) {
+    assert.equal(assetByteSize({ meta }), null, JSON.stringify(meta));
+  }
+});
+
+test('typeBucket gives the filter bucket a type falls in, and null for one no bucket admits', () => {
+  const cases: [string, string | null][] = [
+    ['raster', 'image'], ['vector', 'vector'], ['video', 'motion'], ['lottie', 'motion'], ['model', '3d'],
+    ['lut', 'lut'], ['audio', 'audio'], ['text', 'text'], ['data', 'text'], ['font', 'font'],
+    ['palette', null], ['tokens', null],
+  ];
+  for (const [type, bucket] of cases) assert.equal(typeBucket({ type: type as AssetRef['type'] }), bucket, type);
+});
+
+test('Size sort ranks uploads and catalog entries together, largest first', () => {
+  const upload = mk('user/upload/1700000000000-u.png', { name: 'Upload', bytes: 5000 });
+  const big = mk('lolly/photo/big', { name: 'Big', size: 9000 });
+  const small = mk('lolly/photo/small', { name: 'Small', size: 100 });
+  const unknown = mk('lolly/photo/unknown', { name: 'Unknown' });
+  assert.deepEqual(sortAssets([small, unknown, upload, big], 'size').map(a => a.meta?.name), ['Big', 'Upload', 'Small', 'Unknown']);
+});
+
+test('Date added orders catalog rows by their pack date, newest first, undated last', () => {
+  const older = mk('lolly/photo/older', { name: 'Older', added: '2026-07-01' });
+  const undated = mk('lolly/photo/undated', { name: 'Undated' });
+  const newer = mk('lolly/photo/newer', { name: 'Newer', added: '2026-09-01' });
+  const upload = mk('user/upload/1785000000000-u.png', { name: 'Upload' }); // 2026-07-25
+  assert.deepEqual(sortAssets([older, undated, newer, upload], 'added').map(a => a.meta?.name), ['Newer', 'Upload', 'Older', 'Undated']);
+});
+
+test('Last modified keeps catalog rows in their curated order even when they carry pack dates', () => {
+  const first = mk('lolly/photo/first', { name: 'First', added: '2026-01-01' });
+  const second = mk('lolly/photo/second', { name: 'Second', added: '2026-09-01' });
+  const third = mk('lolly/photo/third', { name: 'Third', added: '2026-05-01' });
+  assert.deepEqual(sortAssets([first, second, third], 'modified').map(a => a.meta?.name), ['First', 'Second', 'Third']);
+  assert.deepEqual(sortAssets([first, second, third], 'default').map(a => a.meta?.name), ['First', 'Second', 'Third']);
+});
+
+test('Type sort follows the filter buckets, then format, then name', () => {
+  const asset = (name: string, type: string, format: string) =>
+    ({ id: `lolly/x/${name}`, type, format, url: '', source: 'library', meta: { name } }) as AssetRef;
+  const list = [
+    asset('Song', 'audio', 'xm'),
+    asset('Tokens', 'tokens', 'json'),
+    asset('Photo b', 'raster', 'png'),
+    asset('Logo', 'vector', 'svg'),
+    asset('Clip', 'video', 'mp4'),
+    asset('Photo a', 'raster', 'png'),
+    asset('Still', 'raster', 'jpg'),
+    asset('Doc', 'data', 'pdf'),
+    asset('Face', 'font', 'woff2'),
+    asset('Loop', 'lottie', 'json'),
+  ];
+  assert.deepEqual(sortAssets(list, 'type').map(a => a.meta?.name),
+    ['Still', 'Photo a', 'Photo b', 'Logo', 'Loop', 'Clip', 'Song', 'Doc', 'Face', 'Tokens']);
+  assert.deepEqual(sortAssets(list, 'type', true).map(a => a.meta?.name),
+    ['Tokens', 'Face', 'Doc', 'Song', 'Clip', 'Loop', 'Logo', 'Photo b', 'Photo a', 'Still']);
+});
+
+test('Type sort runs through every bucket in the filter bar\'s order, unbucketed types last', () => {
+  const one = (type: string) => ({ id: `lolly/x/${type}`, type, format: 'bin', url: '', source: 'library', meta: { name: 'Same' } }) as AssetRef;
+  const types = ['palette', 'font', 'data', 'audio', 'lut', 'model', 'lottie', 'vector', 'raster'];
+  assert.deepEqual(sortAssets(types.map(one), 'type').map(a => typeBucket(a) ?? a.type),
+    ['image', 'vector', 'motion', '3d', 'lut', 'audio', 'text', 'font', 'palette']);
 });
 
 // ── Structured query prefixes (plans/132 WP-C item 3) ────────────────────────

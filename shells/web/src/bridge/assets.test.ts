@@ -250,3 +250,54 @@ test('a meta blob that is not an object at all is read as empty', () => {
     assert.deepEqual(withoutReservedMeta(value), {});
   }
 });
+
+// ── Sizes and durations a listing can show without reading bytes (plan 302) ──
+
+/** One stored upload record, the shape `_listUserAssets` and `get()` read. */
+const upload = (id: string, bytes: string, meta: Record<string, unknown> = {}) =>
+  ({ id, type: 'raster', format: 'png', version: '1', blob: new Blob([bytes]), meta: { name: id, ...meta } as Record<string, unknown> });
+
+/** A fake asset db holding these upload records and no catalog rows. */
+const uploadsDb = (records: ReturnType<typeof upload>[]) => ({
+  getAll: async (store: string) => (store === 'user-assets' ? records : []),
+  get: async (store: string, id: string) => (store === 'user-assets' ? records.find(r => r.id === id) : undefined),
+});
+
+test('an upload ref carries its stored byte length, read off the blob, on every path', async () => {
+  const records = [upload('user/upload/1800000000000-a', 'twelve bytes')];
+  const api = createAssetsAPI(uploadsDb(records) as never);
+  const [listed] = await api._listUserAssets();
+  assert.equal(listed?.meta?.bytes, 12, 'the listing (Assets and the picker)');
+  const resolved = await api.get('user/upload/1800000000000-a');
+  assert.equal(resolved.meta?.bytes, 12, 'and get()');
+  assert.equal(records[0]!.meta.bytes, undefined, 'the stored record is not written to');
+  for (const ref of [listed!, resolved]) URL.revokeObjectURL(ref.url);
+});
+
+test('a byte length a writer already recorded is kept', async () => {
+  // Some ingest paths record the size of the file as it arrived, before a
+  // re-encode; the stamp only fills the gap where nothing was recorded.
+  const api = createAssetsAPI(uploadsDb([upload('user/upload/1800000000000-b', 'xyz', { bytes: 4096 })]) as never);
+  const [ref] = await api._listUserAssets();
+  assert.equal(ref?.meta?.bytes, 4096);
+  URL.revokeObjectURL(ref!.url);
+});
+
+test('a catalog listing carries the primary format\'s authored duration and refuses a placeholder', async () => {
+  const entry = (id: string, durationMs: unknown) => ({ id, type: 'audio', name: id, version: '1',
+    formats: [{ format: 'xm', url: `/${id}.xm`, size: 2048, durationMs }] });
+  const rows = [entry('song/good', 193333), entry('song/zero', 0), entry('song/nan', Number.NaN),
+    entry('song/inf', Number.POSITIVE_INFINITY), entry('song/negative', -5), entry('song/text', '193333')];
+  const refs = await createAssetsAPI({ getAll: async () => rows } as never).query();
+  assert.deepEqual(refs.map(ref => ref.meta?.durationMs), [193333, undefined, undefined, undefined, undefined, undefined]);
+  for (const ref of refs.slice(1)) assert.equal('durationMs' in (ref.meta ?? {}), false, `${ref.id} has no durationMs key`);
+  assert.equal(refs[0]?.meta?.size, 2048, 'beside the byte length the index already carried');
+});
+
+test('a catalog listing reads the duration off the format it points at, not a companion still', async () => {
+  const rows = [{ id: 'clip/intro', type: 'video', name: 'Intro', version: '1',
+    formats: [{ format: 'png', url: '/intro.png' }, { format: 'mp4', url: '/intro.mp4', durationMs: 4200 }] }];
+  const [ref] = await createAssetsAPI({ getAll: async () => rows } as never).query();
+  assert.equal(ref?.url, '/intro.mp4');
+  assert.equal(ref?.meta?.durationMs, 4200);
+});
