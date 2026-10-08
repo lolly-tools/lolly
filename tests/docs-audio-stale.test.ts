@@ -59,6 +59,8 @@ const STALE_ALLOWED: Record<string, string> = {
   'en/beatrice-warde': ENDS_IN_IT,
   'en/inclusive-design': ENDS_IN_IT,
   'en/quickstart': ENDS_IN_IT,
+  'en/about': '2026-10-08: the README (the About page source) gained the Development note that the creative shell '
+    + 'requires WebGPU (plan 295); narration re-render pending - re-render, then delete this line.',
   'en/privacy': '2026-10-03: the MCP section now lists lolly_read, lolly_check, lolly_package and lolly_compose among the '
     + 'tools that handle file bytes (plan 291); narration re-render pending - re-render, then delete this line.',
 };
