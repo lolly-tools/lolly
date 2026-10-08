@@ -21,8 +21,9 @@
  * verified web shell in release mode, runs this check as its first step.
  *
  * Scope (Andy, 2026-10-08: "Gate only the web shell"): the gate covers the web shell and
- * the Tauri apps, which carry the WebGPU requirement. The MCP, CA and Penpot images and the
- * /info docs do not require WebGPU, so they never call this check and never wait for it:
+ * the Tauri apps, which carry the WebGPU requirement. The MCP browser probe uses software
+ * WebGPU through SwiftShader; CA, Penpot and /info need no WebGPU. These builds are independent
+ * of the physical frontend environment table, so they never call or wait for this check:
  * .github/workflows/deployment-suse.yml builds them in jobs of their own, and only its
  * web image job depends on the gate. tests/webgpu-release-gate.test.ts holds that line.
  *

@@ -6,8 +6,9 @@
  * table; release mode (`pnpm run check:release`) must refuse.
  *
  * The gate covers the web shell and the Tauri apps only (Andy, 2026-10-08: "Gate only
- * the web shell"). The MCP, CA and Penpot images and the /info docs do not require
- * WebGPU, so they must never call the gate or wait for a job that does. The last tests
+ * the web shell"). The MCP probe uses software WebGPU through SwiftShader; CA, Penpot
+ * and /info need no WebGPU. These builds are independent of the physical frontend
+ * environment table and must never call or wait for its gate. The last tests
  * here read the workflows, Dockerfiles, package scripts and import graphs to hold both
  * sides of that line.
  */

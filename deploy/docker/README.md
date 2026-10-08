@@ -88,7 +88,8 @@ The maintained `deployment-suse.yml` workflow has opt-in native amd64 image
 jobs. Dispatch its exact reviewed ref with `build_images=true`, matching
 `expected_source` and the existing published `public_key_jwk`. Chart and route
 checks run first. The web shell image and the service images then qualify in
-separate jobs, because only the web shell requires WebGPU (plan 295):
+separate jobs, because only the web shell release waits for the physical
+frontend environment table (plan 295):
 
 - **Web image** (`web-image`). It runs only when the WebGPU release gate
   (`scripts/webgpu-release-gate.ts`) allows it, and refuses again before its
@@ -104,9 +105,11 @@ separate jobs, because only the web shell requires WebGPU (plan 295):
   waits for the web image. The job checks authentication and
   unavailable-admission refusal, and requires actual sandboxed Chromium
   SVG/PNG/PDF exports. Those exports drive the ordinary unsigned web shell built
-  from the same source (`probe-web-shell`), which is kept for one day as the
-  probe's input and never published. The MCP image must carry every tool file
-  that shell carries, with identical bytes. Only this job waits for that shell, so a
+  from the same source (`probe-web-shell`), using software WebGPU through
+  Chromium's SwiftShader adapter. This qualifies container rendering without
+  qualifying physical browsers or packaged webviews. The shell is kept for one
+  day as the probe's input and never published. The MCP image must carry every
+  tool file that shell carries, with identical bytes. Only this job waits for that shell, so a
   failed web build cannot withhold CA, Penpot or the docs.
 - **Pairing with the production web shell.** In production the MCP drives the
   shell at its `webBase`, which stays on an older release while the web image is

@@ -298,10 +298,10 @@ jobs:
 
   # Plan 295 section 1B (Andy, 2026-10-08): "Gate only the web shell". The web
   # shell requires WebGPU at startup, so its image waits for the published
-  # supported-environment table (scripts/webgpu-release-gate.ts). The MCP, CA and
-  # Penpot images and the /info docs do not require WebGPU: their jobs never run
-  # the gate and never need a job that does, so a refused or skipped web image
-  # leaves the images free to build, qualify and publish from main, and the docs
+  # supported-environment table (scripts/webgpu-release-gate.ts). The MCP probe
+  # uses software WebGPU through SwiftShader; CA, Penpot and /info need no WebGPU.
+  # Their jobs never run the frontend gate or need a job that does, so a refused
+  # or skipped web image leaves the images free to build, qualify and publish from main, and the docs
   # free to build. Nothing serves the docs artifact yet (see info-docs).
   web-release-gate:
     name: WebGPU release gate (web shell image only)
