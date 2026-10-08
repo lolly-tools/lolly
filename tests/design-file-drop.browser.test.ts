@@ -134,6 +134,7 @@ test('dropping image, video and audio adds objects, undoes together, and reopens
     assert.equal(placed[3]!.dur, 1);
     assert.ok(placed.slice(1).every((box) => box.frame === 'page'));
     assert.equal(await page.locator('#tool-canvas.is-file-dragover').count(), 0);
+    await savedRows(page, placed.map(box => box.id));
     await page.locator('[data-topbar="undo"]').click();
     await settleEditor(page, 30_000);
     assert.equal((await rows(page)).length, 1);
