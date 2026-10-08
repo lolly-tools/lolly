@@ -2,12 +2,10 @@
 /** Render shared document and folder previews from current, authorized saved state. */
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { getSessionSource, readSourceSessions, type SessionSource } from '../lib/session-source.ts';
-import { getInstanceBase } from '../lib/instance.ts';
-import { getTool } from '../bridge/tool-loader.ts';
 import { orgSession } from './index.ts';
 import { icon } from '../lib/icons.ts';
 import { tRaw } from '../i18n.ts';
-import { restoreTeamFiles } from './team-files.ts';
+import { sharedSessionThumb } from './team-thumb.ts';
 
 export function hydrateSharedPreviews(container: HTMLElement, source: SessionSource, host: HostV1, mounted: () => boolean): () => void {
   const person = orgSession();
@@ -15,16 +13,7 @@ export function hydrateSharedPreviews(container: HTMLElement, source: SessionSou
   const queue: HTMLElement[] = [];
   const current = () => !stopped && mounted() && container.isConnected && source === getSessionSource() && person === orgSession();
   async function thumbnail(id: string): Promise<string | undefined> {
-    if (!current()) return;
-    const data = await source.fetchSession(id);
-    if (!data || !current()) return;
-    await restoreTeamFiles(host, data);
-    if (!current()) return;
-    const tool = await getTool(data.toolId);
-    const { renderFeaturedVariant } = await import('../lib/featured-render.ts');
-    const scope = `${getInstanceBase()}:${person?.kind === 'member' ? person.user.sub : 'none'}:${data.projectId}`;
-    const thumb = await renderFeaturedVariant(host, data.toolId, tool.manifest.render?.formats, `${id}:${data.rev ?? data.updatedAt}`, data.inputs, `team:${scope}`);
-    return current() ? thumb : undefined;
+    return current() ? sharedSessionThumb(source, host, id, person?.kind === 'member' ? person.user.sub : 'none', current) : undefined;
   }
   async function paint(tile: HTMLElement): Promise<void> {
     const projectId = tile.dataset.openTeamProject;

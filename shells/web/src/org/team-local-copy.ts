@@ -19,11 +19,12 @@ import type { TeamSessionData } from '../lib/session-source.ts';
 import { hasMethods } from '../lib/util/guards.ts';
 import { fetchTeamSession, fetchTeamProjectSessions } from './session-source.ts';
 import { listTeamFolders } from './team-folders.ts';
-import { restoreTeamFiles } from './team-files.ts';
+import { listTeamFiles, restoreTeamFile, restoreTeamFiles } from './team-files.ts';
 
 interface AssetStore {
   _getUserRecord(id: string, version?: string): Promise<BeamAssetRecord | null>;
   _uploadUserAsset(record: BeamAssetRecord): Promise<unknown>;
+  _listUserAssets?(): Promise<Array<{ id: string; meta?: Record<string, unknown> }>>;
 }
 type CopyHost = HostV1 & FolderHost & { state: { save(slot: string, data: Record<string, unknown>, thumb?: string | null): Promise<void> } };
 
@@ -66,6 +67,33 @@ export async function localSessionData(host: HostV1, data: TeamSessionData): Pro
     ...(data.toolVersion ? { __toolVersion: data.toolVersion } : {}),
     ...(label ? { __label: label } : {}),
   };
+}
+
+/** One shared session as local session data, or null when it is gone. The asset
+ *  picker places it as a render; nothing is saved. */
+export async function teamSessionAsLocal(host: HostV1, sessionId: string): Promise<Record<string, unknown> | null> {
+  const got = await fetchTeamSession(sessionId);
+  return got.ok ? localSessionData(host, got.data) : null;
+}
+
+/**
+ * Copy one shared file into the person's own uploads (an asset picker pick) and
+ * resolve the local id. The copy records which project file and version it came
+ * from, so picking the same version again reuses it rather than adding a duplicate.
+ */
+export async function copyTeamFileToLocal(host: HostV1, projectId: string, fileId: string): Promise<string> {
+  const assets: unknown = host.assets;
+  if (!isStore(assets)) throw new Error('This device cannot keep a copy of the shared files.');
+  const file = (await listTeamFiles(projectId)).files.find(f => f.id === fileId && f.ready);
+  if (!file) throw new Error('A shared file could not be copied.');
+  const copiedFrom = `${projectId}/${file.id}@${file.checksum}`;
+  const earlier = (await assets._listUserAssets?.().catch(() => []))?.find(a => a.meta?.copiedFrom === copiedFrom);
+  if (earlier) return earlier.id;
+  const record = await assets._getUserRecord(await restoreTeamFile(host, projectId, file), file.checksum);
+  if (!record?.blob) throw new Error('A shared file could not be copied.');
+  const id = `user/upload/${crypto.randomUUID()}`;
+  await assets._uploadUserAsset({ ...record, id, meta: { ...record.meta, copiedFrom } });
+  return id;
 }
 
 async function saveCopy(host: CopyHost, sessionId: string): Promise<string | null> {

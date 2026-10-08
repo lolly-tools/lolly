@@ -330,15 +330,28 @@ export async function restoreTeamFiles(host: HostV1, data: TeamSessionData): Pro
     const dep = decodeAssetVersion(key);
     const file = files.find(f => assetId(f) === dep.id);
     if (!file || (dep.pin && dep.pin.version !== file.checksum)) throw new TeamFileError(404);
-    const existing = await assets._getUserRecord(dep.id, file.checksum);
-    if (existing?.blob && existing.version === file.checksum) continue;
-    const bytes = new Uint8Array(await (await downloadTeamFile(data.projectId, file)).arrayBuffer());
-    const kind = sniffBeamAsset(bytes, file.asset);
-    const safe = kind.markup ? await defaultSanitizeSvg(bytes) : bytes;
-    await assets._uploadUserAsset({ id: dep.id, version: file.checksum, type: kind.type, format: kind.format,
-      blob: new Blob([safe as BlobPart], { type: kind.mime }), meta: { ...safeMeta(file.asset.meta), name: file.name },
-      ...dims(file.asset) });
+    await keepOnDevice(assets, data.projectId, file);
   }
+}
+
+/** Bring one project file onto this device under its shared id, the same way, and
+ *  resolve that id. A copy of this version already on the device is kept. */
+export async function restoreTeamFile(host: HostV1, projectId: string, file: TeamFile): Promise<string> {
+  const assets: unknown = host.assets;
+  if (!isStore(assets)) throw new TeamFileError(422);
+  await keepOnDevice(assets, projectId, file);
+  return assetId(file);
+}
+
+async function keepOnDevice(assets: AssetStore, projectId: string, file: TeamFile): Promise<void> {
+  const existing = await assets._getUserRecord(assetId(file), file.checksum);
+  if (existing?.blob && existing.version === file.checksum) return;
+  const bytes = new Uint8Array(await (await downloadTeamFile(projectId, file)).arrayBuffer());
+  const kind = sniffBeamAsset(bytes, file.asset);
+  const safe = kind.markup ? await defaultSanitizeSvg(bytes) : bytes;
+  await assets._uploadUserAsset({ id: assetId(file), version: file.checksum, type: kind.type, format: kind.format,
+    blob: new Blob([safe as BlobPart], { type: kind.mime }), meta: { ...safeMeta(file.asset.meta), name: file.name },
+    ...dims(file.asset) });
 }
 
 /** Upload one file from this device into the project (the Files panel). Markup is
