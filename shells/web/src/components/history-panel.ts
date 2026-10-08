@@ -7,12 +7,14 @@ import { mountHistoryRecovery } from './history-recovery.ts';
 import { mountHistoryWorkflows } from './history-workflows.ts';
 import { mountHistoryFidelity } from './history-fidelity.ts';
 import { createHistoryPreviews } from './history-previews.ts';
+import { contributorsText, mountVersionSave, openVersionPreview, versionReason, type VersionActions } from './history-version-preview.ts';
 import { navigateHistoryHref } from '../lib/history-navigation.ts';
 import type { AutomaticHistory } from '../views/automatic-history.ts';
 import { requestDock, releaseDock, isDocked } from '../lib/edge-dock.ts';
 import { icon } from '../lib/icons.ts';
 import { t, tRaw } from '../i18n.ts';
 import { isTauriShell } from '../lib/instance-choice.ts';
+import { announce } from '../a11y.ts';
 import './history-panel.css';
 
 let closeActive: (() => void) | undefined;
@@ -67,6 +69,11 @@ export function openHistoryPanel(opts: {
   // inferable from the checkpoint rows below, so they are not rendered.
   const status = document.createElement('p'); status.className = 'revision-history-status'; status.setAttribute('role', 'status'); status.hidden = true;
   const showError = (message: string): void => { status.textContent = message; status.hidden = false; };
+  // Version actions refresh the list, then say what happened; once the panel is closed
+  // (an Undo restore can outlive it) the outcome is announced instead.
+  const versionActions: VersionActions = { status: message => { if (closed) announce(message); else showError(message); },
+    changed: message => { if (closed) { if (message) announce(message); return; } void load().then(() => { if (message && !closed) showError(message); }); } };
+  const saveVersion = opts.collab?.saveVersion ? mountVersionSave(opts.collab, versionActions) : undefined;
   const note = document.createElement('p'); note.className = 'revision-history-note';
   if (opts.collab) note.textContent = opts.collab.scope === 'memory'
     ? (isTauriShell() ? t('This session history lives in memory. Save a copy to keep a checkpoint on this device.') : t('This session history lives in memory. Save a copy to keep a checkpoint in this browser.'))
@@ -87,6 +94,7 @@ export function openHistoryPanel(opts: {
   }) : undefined;
   if (workflows) panel.append(workflows.el);
   if (opts.collab) panel.append(note);
+  if (saveVersion) panel.append(saveVersion.el);
   panel.append(recovery, list, newer, more);
   if (opts.peer) panel.append(peerList);
   panel.append(projects);
@@ -96,7 +104,8 @@ export function openHistoryPanel(opts: {
   let before: string | undefined;
   let pageCursor: string | undefined;
   const pages: Array<string | undefined> = [];
-  const previews = history ? createHistoryPreviews(panel, id => history.preview(id)) : undefined;
+  const previews = history ? createHistoryPreviews(panel, id => history.preview(id))
+    : opts.collab?.preview ? createHistoryPreviews(panel, id => opts.collab?.preview?.(id) ?? Promise.resolve(null)) : undefined;
   const onKey = (event: KeyboardEvent): void => { if (event.key === 'Escape') { event.preventDefault(); dispose(); } };
   const dispose = (): void => {
     if (closed) return;
@@ -135,6 +144,18 @@ export function openHistoryPanel(opts: {
     line.textContent = tRaw('Edited by {name}', { name });
     return line;
   };
+  // Who changed the document since the previous version, when the host records contributors.
+  const editorLine = (entry: CollabHistoryEntry): HTMLElement => {
+    const people = contributorsText(entry);
+    if (!people) return editor(entry.actor);
+    const line = document.createElement('span'); line.className = 'revision-history-editor'; line.textContent = people;
+    return line;
+  };
+  const previewButton = (entry: CollabHistoryEntry, openCopy: () => Promise<void>): HTMLButtonElement => {
+    const button = document.createElement('button'); button.type = 'button'; button.className = 'btn'; button.textContent = t('Preview');
+    button.addEventListener('click', () => { if (!closed) openVersionPreview({ collab: opts.collab!, entry, actions: versionActions, openCopy }); });
+    return button;
+  };
   const row = (entry: RevisionEntry | CollabHistoryEntry): HTMLElement => {
     const article = document.createElement('article'); article.className = 'revision-history-entry';
     const image = document.createElement('img'); image.alt = ''; image.loading = 'lazy'; image.hidden = true;
@@ -143,22 +164,25 @@ export function openHistoryPanel(opts: {
     const label = document.createElement('strong'); label.textContent = 'milestone' in entry && entry.milestone ? entry.milestone : entry.label;
     const when = document.createElement('time'); when.dateTime = entry.at;
     when.textContent = new Date(entry.at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-    const reason = document.createElement('span'); reason.textContent = entry.reason === 'save' ? t('Saved version') : entry.reason === 'recovery' ? t('Recovered work') : t('Automatic checkpoint');
+    const reason = document.createElement('span'); reason.textContent = versionReason(entry.reason, opts.collab?.durability === 'durable');
     const copy = document.createElement('button'); copy.type = 'button'; copy.className = 'btn'; copy.textContent = t('Open as a copy');
     copy.hidden = opts.collab ? !opts.collab.canSaveCopy : false;
-    copy.addEventListener('click', async () => {
+    const openCopy = async (): Promise<void> => {
       copy.disabled = true;
       try {
         const data = opts.collab
           ? (opts.collab.saveCopy ? await opts.collab.saveCopy(entry.id) : await opts.collab.read(entry.id))
           : await history!.read(entry.id);
-        if (!closed && copy.isConnected) await writeLocalCopy(entry, data);
+        if (!closed) await writeLocalCopy(entry, data);
       } catch (error) { showError(error instanceof Error ? error.message : t('Could not open this checkpoint.')); copy.disabled = false; }
-    });
-    text.append(label, when, ...('actor' in entry ? [editor(entry.actor)] : []), reason, copy); article.append(image, text);
+    };
+    copy.addEventListener('click', () => { void openCopy(); });
+    const people = 'actor' in entry ? [editorLine(entry)] : [];
+    // Preview opens the version larger in a dialog, with restore and delete for those allowed.
+    const look = opts.collab?.preview && 'actor' in entry ? [previewButton(entry, openCopy)] : [];
+    text.append(label, when, ...people, reason, ...look, copy); article.append(image, text);
     if ('slot' in entry && workflows) text.append(workflows.actions(entry));
     if ('slot' in entry && fidelity) text.append(fidelity.action(entry, article));
-    if (opts.collab) { image.hidden = true; return article; }
     return article;
   };
   const peerRow = (entry: HistoryWireEntry): HTMLElement => {
@@ -225,6 +249,7 @@ export function openHistoryPanel(opts: {
         list.append(empty);
       }
       before = page.before; more.hidden = !before;
+      saveVersion?.update();
       newer.hidden = pages.length === 0;
     } catch (error) { if (!closed && token === request) showError(error instanceof Error ? error.message : t('Could not load history.')); }
     finally { if (token === request) { more.disabled = false; newer.disabled = false; } }

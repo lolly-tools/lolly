@@ -225,10 +225,21 @@
   "Enlarge {label} for scanning": "Agrandir {label} pour scanner",
   "Point another device here to scan it. Tap anywhere or press Escape to close.": "Pointez un autre appareil ici pour le scanner. Appuyez n'importe où ou sur Échap pour fermer.",
   "This link is too long to scan. Copy it instead, or use the Code tab.": "Ce lien est trop long pour être scanné. Copiez-le, ou utilisez l'onglet Code.",
-  "View {name}": "Afficher {name}",
   "AI agent": "Agent IA",
   "Pause agent": "Mettre l’agent en pause",
   "Resume agent": "Reprendre l’agent",
   "Disconnect agent": "Déconnecter l’agent",
-  "Paused": "En pause"
+  "Paused": "En pause",
+  "Follow {name}": "Suivre {name}",
+  "Following {name}": "Tu suis {name}",
+  "Stop following": "Arrêter de suivre",
+  "You stopped following {name}.": "Tu ne suis plus {name}.",
+  "{name} left. You stopped following.": "{name} est parti. Tu ne suis plus personne.",
+  "Followers: {count}": "Personnes qui suivent : {count}",
+  "Following you": "Te suit",
+  "{name} is following you": "{name} te suit",
+  "{name} is presenting": "{name} présente",
+  "Follow presentation": "Suivre la présentation",
+  "Following the presentation by {name}": "Tu suis la présentation de {name}",
+  "Press Escape to stop following.": "Appuie sur Échap pour arrêter de suivre."
 }

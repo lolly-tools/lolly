@@ -1,3 +1,14 @@
 {
-  "View {name}": "عرض {name}"
+  "Follow {name}": "متابعة {name}",
+  "Following {name}": "تتابع {name}",
+  "Stop following": "إيقاف المتابعة",
+  "You stopped following {name}.": "توقفت عن متابعة {name}.",
+  "{name} left. You stopped following.": "غادر {name}. توقفت المتابعة.",
+  "Followers: {count}": "المتابعون: {count}",
+  "Following you": "يتابعك",
+  "{name} is following you": "{name} يتابعك",
+  "{name} is presenting": "{name} يقدم عرضا",
+  "Follow presentation": "متابعة العرض التقديمي",
+  "Following the presentation by {name}": "تتابع العرض التقديمي الذي يقدمه {name}",
+  "Press Escape to stop following.": "اضغط Escape لإيقاف المتابعة."
 }

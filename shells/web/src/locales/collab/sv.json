@@ -225,10 +225,21 @@
   "Enlarge {label} for scanning": "Förstora {label} för skanning",
   "Point another device here to scan it. Tap anywhere or press Escape to close.": "Rikta en annan enhet hit för att skanna den. Tryck var som helst eller tryck Esc för att stänga.",
   "This link is too long to scan. Copy it instead, or use the Code tab.": "Den här länken är för lång för att skanna. Kopiera den i stället, eller använd fliken Kod.",
-  "View {name}": "Visa {name}",
   "AI agent": "AI-agent",
   "Pause agent": "Pausa agent",
   "Resume agent": "Återuppta agent",
   "Disconnect agent": "Koppla från agent",
-  "Paused": "Pausad"
+  "Paused": "Pausad",
+  "Follow {name}": "Följ {name}",
+  "Following {name}": "Följer {name}",
+  "Stop following": "Sluta följa",
+  "You stopped following {name}.": "Du slutade följa {name}.",
+  "{name} left. You stopped following.": "{name} lämnade. Du slutade följa.",
+  "Followers: {count}": "Följare: {count}",
+  "Following you": "Följer dig",
+  "{name} is following you": "{name} följer dig",
+  "{name} is presenting": "{name} presenterar",
+  "Follow presentation": "Följ presentationen",
+  "Following the presentation by {name}": "Följer presentationen av {name}",
+  "Press Escape to stop following.": "Tryck på Escape för att sluta följa."
 }

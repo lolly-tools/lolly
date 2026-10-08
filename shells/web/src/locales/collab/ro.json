@@ -225,10 +225,21 @@
   "Enlarge {label} for scanning": "Mărește {label} pentru scanare",
   "Point another device here to scan it. Tap anywhere or press Escape to close.": "Îndreaptă alt dispozitiv aici pentru a-l scana. Atinge oriunde sau apasă Esc pentru a închide.",
   "This link is too long to scan. Copy it instead, or use the Code tab.": "Acest link este prea lung pentru a fi scanat. Copiază-l, sau folosește fila Cod.",
-  "View {name}": "Vizualizează {name}",
   "AI agent": "Agent IA",
   "Pause agent": "Pune agentul pe pauză",
   "Resume agent": "Reia agentul",
   "Disconnect agent": "Deconectează agentul",
-  "Paused": "În pauză"
+  "Paused": "În pauză",
+  "Follow {name}": "Urmărește pe {name}",
+  "Following {name}": "Îl urmărești pe {name}",
+  "Stop following": "Nu mai urmări",
+  "You stopped following {name}.": "Ai încetat să îl urmărești pe {name}.",
+  "{name} left. You stopped following.": "{name} a plecat. Nu mai urmărești.",
+  "Followers: {count}": "Urmăritori: {count}",
+  "Following you": "Te urmărește",
+  "{name} is following you": "{name} te urmărește",
+  "{name} is presenting": "{name} prezintă",
+  "Follow presentation": "Urmărește prezentarea",
+  "Following the presentation by {name}": "Urmărești prezentarea lui {name}",
+  "Press Escape to stop following.": "Apasă Escape pentru a nu mai urmări."
 }

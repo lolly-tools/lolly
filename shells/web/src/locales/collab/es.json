@@ -225,10 +225,21 @@
   "Couldn't read the transfer back.": "No se pudo volver a leer la transferencia.",
   "Part of the transfer is missing.": "Falta parte de la transferencia.",
   "The transfer was cancelled.": "La transferencia se canceló.",
-  "View {name}": "Ver {name}",
   "AI agent": "Agente de IA",
   "Pause agent": "Pausar agente",
   "Resume agent": "Reanudar agente",
   "Disconnect agent": "Desconectar agente",
-  "Paused": "En pausa"
+  "Paused": "En pausa",
+  "Follow {name}": "Seguir a {name}",
+  "Following {name}": "Siguiendo a {name}",
+  "Stop following": "Dejar de seguir",
+  "You stopped following {name}.": "Dejaste de seguir a {name}.",
+  "{name} left. You stopped following.": "{name} se fue. Dejaste de seguir.",
+  "Followers: {count}": "Seguidores: {count}",
+  "Following you": "Te sigue",
+  "{name} is following you": "{name} te está siguiendo",
+  "{name} is presenting": "{name} está presentando",
+  "Follow presentation": "Seguir la presentación",
+  "Following the presentation by {name}": "Siguiendo la presentación de {name}",
+  "Press Escape to stop following.": "Pulsa Escape para dejar de seguir."
 }

@@ -1,3 +1,14 @@
 {
-  "View {name}": "Виж {name}"
+  "Follow {name}": "Следвай {name}",
+  "Following {name}": "Следваш {name}",
+  "Stop following": "Спри да следваш",
+  "You stopped following {name}.": "Вече не следваш {name}.",
+  "{name} left. You stopped following.": "{name} напусна. Вече не следваш.",
+  "Followers: {count}": "Последователи: {count}",
+  "Following you": "Следва те",
+  "{name} is following you": "{name} те следва",
+  "{name} is presenting": "{name} представя",
+  "Follow presentation": "Следвай презентацията",
+  "Following the presentation by {name}": "Следваш презентацията на {name}",
+  "Press Escape to stop following.": "Натисни Escape, за да спреш да следваш."
 }

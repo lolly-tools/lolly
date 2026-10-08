@@ -44,6 +44,31 @@ A work collab can also hold a review: comments pinned to the canvas, mentions th
 **Interrupted edits.** If the connection drops in the middle of an edit, the edit that could not be sent is saved as a separate copy on this device, and a notice about the copy stays until you dismiss the notice. Changes the server had already accepted are in the shared document. **Open recovery copy** opens the copy; **Download recovery copy** saves it as a file. A copy is listed only for the account and organisation that made it, and it is removed from the device after 30 days.
 :::
 
+::: details Work collabs: follow, presenting and versions
+**What everyone in the document can see.** While you are connected, your device shares where you are: the artboard you are on, the part of the canvas in view and your zoom, what you have selected, your pointer, whether you are presenting, and whom you are following. Everyone in the document can see all of this, including where you are looking and whom you follow, not only the person you follow. Closing the document stops the sharing.
+
+**Following someone.** Press a person's picture in the bar at the top of the canvas to follow them, or press their name in the list of people (your own picture opens the list). Your view then moves with theirs: the artboard they are on, where they are looking and how far they are zoomed in. Their selection stays theirs. If they open a comment thread, your Comments panel opens the same thread. The bar shows **Following** and their name, and an outline in their colour frames your canvas.
+
+- **Stop following** or Escape stops following and takes you back to the view you had before.
+- Moving the canvas yourself (scrolling, dragging, pinching or zooming) or choosing something also stops following, and keeps the view you are on.
+- If the person leaves the document or steps away, following stops and the bar says so.
+
+**Who is following you.** The bar shows **Followers:** with a count. Their names are in the list of people under **Following you**, and a screen reader announces each new follower.
+
+**Presenting.** When someone presents the document, everyone else sees that they are presenting, with **Follow presentation**. Following a presentation shows each slide they show, and it ends when they stop presenting. If two people present at once, only the one who joined the document first is shown. Guests cannot present.
+
+**Hide pointers.** **Hide pointers** in the collab controls hides other people's pointers on your canvas, and **Show pointers** brings them back. It changes only what you see: others still see your pointer, and the pictures, pins and follow outline stay. The choice is kept on this device.
+
+**Versions.** Open **History** to see the document's versions, newest first. Your organisation's instance keeps them with the document. Each version says when it was made, why (**Automatic version**, **Saved version**, **Restored version** or **Recovered work**) and who edited since the previous version. Names never include email addresses, and guests are shown as "Guest".
+
+- **Save version** (editors) keeps the document as it is now. Give it a name, or leave the name empty to name it after the time.
+- **Preview** shows a version larger, with when it was made and who edited the document. **Open as a copy** opens it as a separate document of your own.
+- **Restore this version** (editors) asks first, then changes the document for everyone who has it open, with the same checks as anyone's edits. **Undo restore** is offered for 30 seconds and puts back the document as it was just before. Locked settings, and settings others are using at that moment, stay as they are, and the message says so. If the document cannot take every change, nothing is restored.
+- **Delete version** (managers) asks first, then removes the version from History for everyone.
+
+Deleting the document deletes all its versions. An older instance without saved versions shows its recent checkpoints in History instead, which you can open as a copy but not restore.
+:::
+
 ## What a private collab is
 
 A **private collab** is a live editing link between two devices. One person invites, the other joins and from that moment both are typing into the same tool session: change a field on one device and it appears on the other. The link is made by the two browsers talking to each other directly. Your work does not travel through a service on the way, because there is no service - the invite and the reply are the whole of the setup, and you are the one who carries them across.

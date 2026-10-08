@@ -6,9 +6,10 @@
  * transport exists is Andy's: "we can't build this and not have the realestate
  * ready". It is the one place a person looks to answer *who is here, can they see
  * what I see, and is the connection alive* - so it holds an avatar stack (3 + "+N"),
- * a connection-state dot, an optional invite affordance and a roster popover, and
- * nothing else. Cursors, focus rings and the projects badge are separate surfaces
- * that read the same session state.
+ * a connection-state dot, an optional invite affordance, a roster popover and, when
+ * a follow controller is supplied, whom you follow and who is presenting (plan 76 M4).
+ * It holds nothing more. Cursors, focus rings and the projects badge are separate
+ * surfaces that read the same session state.
  *
  * ── The idiom it borrows ──────────────────────────────────────────────────────
  *
@@ -101,7 +102,6 @@ export const STRINGS = {
   sendFailed: 'That could not be sent.',
   /** The roster popover. */
   roster: 'Collaborators',
-  view: 'View {name}',
   /** The avatar stack's accessible name - everyone here, by name. */
   stack: 'Collaborators: {names}',
 
@@ -132,6 +132,20 @@ export const STRINGS = {
   reconnecting: 'Reconnecting',
   away: 'Away',
   closed: 'Disconnected',
+
+  // Following a person's view, and presenting (plan 76 M4).
+  follow: 'Follow {name}',
+  followingName: 'Following {name}',
+  stopFollowing: 'Stop following',
+  stoppedFollowing: 'You stopped following {name}.',
+  leaderLeft: '{name} left. You stopped following.',
+  followers: 'Followers: {count}',
+  followingYou: 'Following you',
+  followsYou: '{name} is following you',
+  presenting: '{name} is presenting',
+  followPresentation: 'Follow presentation',
+  followingPresentation: 'Following the presentation by {name}',
+  escapeToStop: 'Press Escape to stop following.',
 };
 
 // ── Styles ────────────────────────────────────────────────────────────────────
@@ -351,7 +365,51 @@ html[data-a11y-motion="reduce"] .collab-action { transition: none; }
 .collab-roster-tags { display: inline-flex; gap: calc(4px * var(--a11y-fs)); flex: none; }
 .collab-roster-row[data-kind="agent"] { display:grid; grid-template-columns:calc(24px * var(--a11y-fs)) minmax(0,1fr); }
 .collab-roster-row[data-kind="agent"] .collab-roster-tags { grid-column:2; display:flex; flex-wrap:wrap; min-width:0; }
-.collab-roster-row[data-kind="agent"] .collab-tag { max-width:100%; overflow:hidden; text-overflow:ellipsis; box-sizing:border-box; }`;
+.collab-roster-row[data-kind="agent"] .collab-tag { max-width:100%; overflow:hidden; text-overflow:ellipsis; box-sizing:border-box; }
+
+/* ── Following and presenting ─────────────────────────────────────────────── */
+.collab-follow {
+  flex: 0 1 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: calc(6px * var(--a11y-fs));
+  min-width: 0;
+  max-width: min(calc(320px * var(--a11y-fs)), 60vw);
+}
+.collab-follow[hidden] { display: none; }
+.collab-follow-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+.collab-follow[data-state="notice"] .collab-follow-label { font-weight: 400; color: hsl(var(--muted-foreground)); }
+.collab-follow-action {
+  flex: none;
+  padding: calc(3px * var(--a11y-fs)) calc(8px * var(--a11y-fs));
+  border: 1px solid hsl(var(--border));
+  border-radius: 999px;
+  background: hsl(var(--background));
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.collab-follow-action[hidden] { display: none; }
+.collab-follow-action:hover { background: hsl(var(--accent)); color: hsl(var(--accent-foreground)); }
+@media (prefers-reduced-motion: reduce) { .collab-follow-action { transition: none; } }
+html[data-a11y-motion="reduce"] .collab-follow-action { transition: none; }
+/* The person being followed carries a full accent ring; the follow label says who. */
+.collab-av[data-followed="1"] { box-shadow: 0 0 0 1px hsl(var(--card)), 0 0 0 calc(3px * var(--a11y-fs)) hsl(var(--primary)); }
+.collab-roster-name[aria-pressed="true"] { background: hsl(var(--accent)); color: hsl(var(--accent-foreground)); }
+.collab-roster-heading {
+  margin: calc(8px * var(--a11y-fs)) calc(6px * var(--a11y-fs)) calc(2px * var(--a11y-fs));
+  color: hsl(var(--muted-foreground));
+  font-size: calc(11px * var(--a11y-fs));
+  font-weight: 700;
+}`;
 
 function ensureStyles(): void {
   if (typeof document === 'undefined' || document.getElementById(STYLE_ID)) return;
@@ -446,6 +504,30 @@ export interface CollabPillAction {
   available?(): boolean;
 }
 
+/** One person in the follow state: their roster key and the name they are shown by. */
+export interface CollabFollowPerson { readonly clientId: string; readonly name: string }
+
+/** Following and presenting, as the pill shows them (plan 76 M4). */
+export interface CollabFollowState {
+  /** The person this device follows; `presentation` when it follows their slides. */
+  readonly leader: (CollabFollowPerson & { readonly presentation: boolean }) | null;
+  /** The one presenter shown: the earliest-joined present participant who is not away. */
+  readonly presenter: CollabFollowPerson | null;
+  /** People following this person, in join order. Visible to them by name. */
+  readonly followers: readonly CollabFollowPerson[];
+  /** The latest end of a follow, shown for a few seconds. */
+  readonly notice: { readonly id: number; readonly kind: 'stopped' | 'left'; readonly name: string } | null;
+}
+
+/** Follow controls the pill drives: the avatar click, Stop following and Follow presentation. */
+export interface CollabPillFollow {
+  state(): CollabFollowState;
+  subscribe(fn: (state: CollabFollowState) => void): () => void;
+  follow(clientId: string): void;
+  followPresentation(): void;
+  stop(): void;
+}
+
 export interface CollabPillOptions {
   onDisconnectAgent?: (clientId: string) => void;
   onPauseAgent?: (clientId: string) => void;
@@ -458,8 +540,9 @@ export interface CollabPillOptions {
    * component deliberately imports nothing from it.
    */
   onInvite?: () => void;
-  /** Jump to this person's current view, using their latest presence. */
-  onPeer?: (clientId: string) => void;
+  /** Following. Supplied, a person's avatar follows them and the pill shows who follows
+   *  whom and who is presenting; absent, avatars are not actionable. */
+  follow?: CollabPillFollow;
   /**
    * Extra controls, in order, after the invite slot.
    *
@@ -594,6 +677,9 @@ function positionRoster(el: HTMLDivElement, anchor: PopoverAnchor): void {
   }
 }
 
+/** Ids for the "Following you" headings, unique across every pill in the document. */
+let followingHeadings = 0;
+
 export function mountCollabPill(container: HTMLElement, opts: CollabPillOptions): CollabPill {
   ensureStyles();
   const say = opts.announce ?? ((m: string) => { announceLive(m); });
@@ -619,7 +705,23 @@ export function mountCollabPill(container: HTMLElement, opts: CollabPillOptions)
   const tags = document.createElement('span');
   tags.className = 'collab-pill-tags';
 
-  el.append(dot, dotLabel, stack, tags);
+  // Who this device follows, or who is presenting, with the one action that applies.
+  const followBox = document.createElement('span');
+  followBox.className = 'collab-follow';
+  followBox.hidden = true;
+  const followLabel = document.createElement('span');
+  followLabel.className = 'collab-follow-label';
+  const followAction = document.createElement('button');
+  followAction.type = 'button';
+  followAction.className = 'collab-follow-action';
+  followAction.addEventListener('click', () => {
+    const follow = opts.follow, now = follow?.state();
+    if (now?.leader) follow?.stop();
+    else if (now?.presenter) follow?.followPresentation();
+  });
+  followBox.append(followLabel, followAction);
+
+  el.append(dot, dotLabel, stack, tags, followBox);
 
   if (opts.onInvite) {
     const invite = document.createElement('button');
@@ -696,14 +798,22 @@ export function mountCollabPill(container: HTMLElement, opts: CollabPillOptions)
   const avatars = new Map<string, HTMLElement>();
   const moreAvatar = document.createElement('span'); moreAvatar.className = 'collab-av collab-av--more'; moreAvatar.setAttribute('aria-hidden', 'true');
 
+  /** The person this device follows, if any - read fresh, because following changes under a render. */
+  const leaderId = (): string | undefined => opts.follow?.state().leader?.clientId;
+
+  /** An avatar or roster click: follow that person, or stop when they are already followed. */
   function visitPeer(id: string): boolean {
-    const state = opts.source.state();
-    if (!opts.onPeer || state.connection !== 'live' || !state.peers.some(p => p.clientId === id && !p.away && !p.isSelf && p.kind !== 'agent')) return false;
-    popover.close(true); opts.onPeer(id); return true;
+    const state = opts.source.state(), follow = opts.follow;
+    if (!follow || state.connection !== 'live' || !state.peers.some(p => p.clientId === id && !p.away && !p.isSelf && p.kind !== 'agent')) return false;
+    popover.close(true);
+    if (leaderId() === id) follow.stop(); else follow.follow(id);
+    return true;
   }
 
   function renderRoster(host: HTMLElement, state: CollabSessionState): void {
-    const signature = JSON.stringify([currentLang(), state.connection, ...[state.self, ...state.peers].map(p => [p.clientId, p.name, p.color, p.away, p.isSelf, p.isHost, p.role, p.kind, p.phase, p.activity])]);
+    const following = opts.follow?.state();
+    const signature = JSON.stringify([currentLang(), state.connection, following?.leader?.clientId, following?.followers.map(f => f.name),
+      ...[state.self, ...state.peers].map(p => [p.clientId, p.name, p.color, p.away, p.isSelf, p.isHost, p.role, p.kind, p.phase, p.activity])]);
     if (rosterSignatures.get(host) === signature) return;
     rosterSignatures.set(host, signature);
     const focused = host.ownerDocument.activeElement;
@@ -716,14 +826,15 @@ export function mountCollabPill(container: HTMLElement, opts: CollabPillOptions)
       const row = document.createElement('li');
       row.className = 'collab-roster-row';
       if (p.kind === 'agent') row.dataset.kind = 'agent';
-      const actionable = !!opts.onPeer && !p.isSelf && p.kind !== 'agent';
+      const actionable = !!opts.follow && !p.isSelf && p.kind !== 'agent';
       const name = document.createElement(actionable ? 'button' : 'span');
       name.className = 'collab-roster-name';
       name.textContent = collabDisplayName(p);
       if (name instanceof document.defaultView!.HTMLButtonElement) {
         name.type = 'button'; name.classList.add('btn', 'btn--ghost'); name.dataset.peerId = p.clientId;
         name.disabled = p.away || state.connection !== 'live';
-        name.setAttribute('aria-label', tRaw(STRINGS.view, { name: collabDisplayName(p) }));
+        name.setAttribute('aria-label', tRaw(STRINGS.follow, { name: collabDisplayName(p) }));
+        name.setAttribute('aria-pressed', String(following?.leader?.clientId === p.clientId));
         name.addEventListener('click', () => { visitPeer(p.clientId); });
       }
       const rowTags = document.createElement('span');
@@ -751,6 +862,26 @@ export function mountCollabPill(container: HTMLElement, opts: CollabPillOptions)
       list.appendChild(row);
     }
     host.appendChild(list);
+    // Followers see the view of the person they follow, so that person sees who they are, by name.
+    if (following?.followers.length) {
+      const heading = document.createElement('p');
+      heading.className = 'collab-roster-heading';
+      heading.id = `collab-following-you-${++followingHeadings}`;
+      heading.textContent = tRaw(STRINGS.followingYou);
+      const followers = document.createElement('ul');
+      followers.className = 'collab-roster-list collab-roster-followers';
+      followers.setAttribute('aria-labelledby', heading.id);
+      for (const follower of following.followers) {
+        const row = document.createElement('li');
+        row.className = 'collab-roster-row';
+        const name = document.createElement('span');
+        name.className = 'collab-roster-name';
+        name.textContent = follower.name;
+        row.appendChild(name);
+        followers.appendChild(row);
+      }
+      host.append(heading, followers);
+    }
     if (focusedId) {
       const next = Array.from(host.querySelectorAll<HTMLButtonElement>('button')).find(button => button.dataset.peerId === focusedId && button.dataset.agentAction === focusedAction && !button.disabled);
       (next ?? host).focus();
@@ -791,6 +922,52 @@ export function mountCollabPill(container: HTMLElement, opts: CollabPillOptions)
    *  announcements are its diff. */
   let seen: Map<string, string> | null = null;
 
+  /** What the follow announcements were last made about; the first paint seeds them silently. */
+  let followSeen: { followers: Set<string>; notice?: number; presenter?: string; leader?: string } | null = null;
+
+  /** The follow region, the followers tag and their announcements, from the follow state. */
+  function renderFollow(): void {
+    const follow = opts.follow?.state();
+    let text = '', action = '', state = '';
+    if (follow?.leader) {
+      state = 'following';
+      text = tRaw(follow.leader.presentation ? STRINGS.followingPresentation : STRINGS.followingName, { name: follow.leader.name });
+      action = tRaw(STRINGS.stopFollowing);
+    } else if (follow?.notice) {
+      state = 'notice';
+      text = tRaw(follow.notice.kind === 'left' ? STRINGS.leaderLeft : STRINGS.stoppedFollowing, { name: follow.notice.name });
+    } else if (follow?.presenter) {
+      state = 'presenting';
+      text = tRaw(STRINGS.presenting, { name: follow.presenter.name });
+      action = tRaw(STRINGS.followPresentation);
+    }
+    followBox.hidden = !text;
+    followBox.dataset.state = state;
+    if (followLabel.textContent !== text) followLabel.textContent = text;
+    followLabel.title = text;
+    followAction.hidden = !action;
+    if (followAction.textContent !== action) followAction.textContent = action;
+    // Escape is the quicker way out; the button's tooltip says so on hover and focus.
+    if (follow?.leader) followAction.title = tRaw(STRINGS.escapeToStop); else followAction.removeAttribute('title');
+    const count = follow?.followers.length ?? 0;
+    if (count) {
+      const tag = tagEl(tRaw(STRINGS.followers, { count }));
+      tag.classList.add('collab-followers');
+      tag.title = follow!.followers.map(f => f.name).join(', ');
+      tags.appendChild(tag);
+    }
+    if (!follow) return;
+    const next = { followers: new Set(follow.followers.map(f => f.clientId)), notice: follow.notice?.id,
+      presenter: follow.presenter?.clientId, leader: follow.leader?.clientId };
+    if (followSeen) {
+      for (const f of follow.followers) if (!followSeen.followers.has(f.clientId)) say(tRaw(STRINGS.followsYou, { name: f.name }));
+      if (follow.presenter && next.presenter !== followSeen.presenter && !follow.leader) say(tRaw(STRINGS.presenting, { name: follow.presenter.name }));
+      if (follow.notice && next.notice !== followSeen.notice) say(text);
+      if (follow.leader && next.leader !== followSeen.leader) say(tRaw(STRINGS.escapeToStop));
+    }
+    followSeen = next;
+  }
+
   function render(state: CollabSessionState): void {
     const dotState = pillDotState(state);
     dot.dataset.state = dotState;
@@ -806,11 +983,15 @@ export function mountCollabPill(container: HTMLElement, opts: CollabPillOptions)
 
     const wanted: HTMLElement[] = [];
     const fresh = !stillness();
+    const leader = leaderId();
     for (const p of shown) {
       let av = avatars.get(p.clientId);
       if (!av) { av = avatarEl(p); avatars.set(p.clientId, av); }
       else refreshAvatar(av, p);
-      if (opts.onPeer && !p.isSelf && !p.away && p.kind !== 'agent' && state.connection === 'live') av.title = tRaw(STRINGS.view, { name: collabDisplayName(p) });
+      const followed = leader === p.clientId;
+      if (followed) av.dataset.followed = '1'; else delete av.dataset.followed;
+      if (opts.follow && !p.isSelf && !p.away && p.kind !== 'agent' && state.connection === 'live')
+        av.title = tRaw(followed ? STRINGS.followingName : STRINGS.follow, { name: collabDisplayName(p) });
       av.classList.toggle('is-new', !!(fresh && seen && !p.isSelf && !seen.has(p.clientId)));
       wanted.push(av);
     }
@@ -829,6 +1010,7 @@ export function mountCollabPill(container: HTMLElement, opts: CollabPillOptions)
     // The observer banner is about THIS client - "you can watch but not edit" is a
     // fact about the person reading it, so it rides the pill, not only the roster.
     if (state.role === 'observer') tags.appendChild(tagEl(tRaw(STRINGS.observing)));
+    renderFollow();
 
     // Availability, re-read every paint. A throwing predicate hides its control
     // rather than taking the roster down with it - the same containment rule the
@@ -865,6 +1047,7 @@ export function mountCollabPill(container: HTMLElement, opts: CollabPillOptions)
 
   render(opts.source.state());
   const unsubscribe = opts.source.subscribe(render);
+  const unfollow = opts.follow?.subscribe(() => { render(opts.source.state()); });
 
   let destroyed = false;
 
@@ -895,6 +1078,7 @@ export function mountCollabPill(container: HTMLElement, opts: CollabPillOptions)
       if (destroyed) return;
       destroyed = true;
       unsubscribe();
+      unfollow?.();
       popover.close();
       rosterEl = null;
       el.remove();
