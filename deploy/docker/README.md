@@ -84,15 +84,35 @@ The optional [public browser image and bounded overlays](public-vm.md#optional-p
 install lockfile-scoped Chromium on a pinned Debian base. They retain sandbox and
 authentication defaults and require actual target export acceptance.
 
-The maintained `deployment-suse.yml` workflow has an opt-in native amd64 image
-job. Dispatch its exact reviewed ref with `build_images=true`, matching
-`expected_source` and the existing published `public_key_jwk`. The repository's
-`LOLLY_CATALOG_SIGNING_KEY` secret reaches only the web BuildKit signing step;
-the release builder verifies that its public key matches the supplied pin.
-Chart and route checks run first. The job boots restricted service images,
-verifies every signed tool file, checks authentication and unavailable-admission
-refusal, and requires actual sandboxed Chromium SVG/PNG/PDF exports before
-publishing source-labelled image digests to GHCR. It retains small receipts.
+The maintained `deployment-suse.yml` workflow has opt-in native amd64 image
+jobs. Dispatch its exact reviewed ref with `build_images=true`, matching
+`expected_source` and the existing published `public_key_jwk`. Chart and route
+checks run first. The web shell image and the service images then qualify in
+separate jobs, because only the web shell requires WebGPU (plan 295):
+
+- **Web image** (`web-image`). It runs only when the WebGPU release gate
+  (`scripts/webgpu-release-gate.ts`) allows it, and refuses again before its
+  build. The repository's `LOLLY_CATALOG_SIGNING_KEY` secret reaches only its
+  BuildKit signing step; the release builder verifies that its public key matches
+  the supplied pin, and the job verifies the image catalog against that pin.
+  While `docs/supported-environments.md` is unpublished the gate withholds this
+  image, the run still succeeds, and a warning says so.
+- **MCP, CA and Penpot images** (`service-images`). They never ask the gate and
+  never wait for the web image. The job boots the restricted service images,
+  checks authentication and unavailable-admission refusal, and requires actual
+  sandboxed Chromium SVG/PNG/PDF exports. Those exports drive the ordinary
+  unsigned web shell built from the same source (`probe-web-shell`), which is
+  kept for one day as the probe's input and never published. The MCP image must
+  carry every tool file that shell carries, byte for byte.
+- **/info docs** (`info-docs`). The docs site is built from the same source,
+  held to its size budget and kept as the `public-info-docs` artifact
+  (`info.tar.gz`, `source.json`, `SHA256SUMS`), independent of the web image.
+
+Each image job publishes source-labelled digests to GHCR and retains small
+receipts (`public-candidate-web-receipts`, `public-candidate-service-receipts`).
+The offline export (`archive_run`) judges each image by the job that qualified
+it, so it can carry the MCP browser image while the web image is withheld; its
+`transport.json` then lists `web` under `withheld`.
 These checks do not replace candidate HTTPS, CA enrollment, proxy peer,
 invited-agent or Kubernetes runtime acceptance. A sandbox startup failure is a
 failed qualification; the workflow does not retry with a bypass.

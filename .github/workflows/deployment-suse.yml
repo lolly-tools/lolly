@@ -292,12 +292,61 @@ jobs:
           # Native Caddy/nginx acceptance is explicit and never silently skipped.
           node --test tests/deployment-public-vm.integration.ts
 
-  candidate-images:
-    name: Opt-in native public candidate images
+  # Plan 295 section 1B (Andy, 2026-10-08): "Gate only the web shell". The web
+  # shell requires WebGPU at startup, so its image waits for the published
+  # supported-environment table (scripts/webgpu-release-gate.ts). The MCP, CA and
+  # Penpot images and the /info docs do not require WebGPU: their jobs never run
+  # the gate and never need a job that does, so a refused or skipped web image
+  # leaves them free to build, qualify and publish from main.
+  web-release-gate:
+    name: WebGPU release gate (web shell image only)
     if: github.event_name == 'workflow_dispatch' && inputs.build_images == true
-    needs: [chart, public-vm]
     runs-on: ubuntu-24.04
-    timeout-minutes: 90
+    timeout-minutes: 5
+    defaults:
+      run:
+        shell: bash
+    outputs:
+      allowed: ${{ steps.gate.outputs.allowed }}
+    steps:
+      # A full checkout, not a sparse one: without shells/web/src/main.ts the gate
+      # would see no WebGPU requirement and allow the web image.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          submodules: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '26'
+          package-manager-cache: false
+
+      - name: Ask the gate; a refusal withholds the web image and nothing else
+        id: gate
+        run: |
+          set -euo pipefail
+          report="$RUNNER_TEMP/webgpu-release-gate.txt"
+          if node scripts/webgpu-release-gate.ts > "$report" 2>&1; then
+            allowed=true
+          else
+            allowed=false
+            echo '::warning title=Web shell image withheld::The WebGPU release gate refused the web shell image (plan 295 P0b). The MCP, CA and Penpot images and the /info docs build without it. The step summary has the reasons.'
+          fi
+          cat "$report"
+          echo "allowed=$allowed" >> "$GITHUB_OUTPUT"
+          {
+            echo "### WebGPU release gate: web shell image allowed=$allowed"
+            echo
+            sed 's/^/    /' "$report"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  web-image:
+    name: Opt-in native public web image (gated on the WebGPU table)
+    if: github.event_name == 'workflow_dispatch' && inputs.build_images == true && needs.web-release-gate.outputs.allowed == 'true'
+    needs: [chart, public-vm, web-release-gate]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
     permissions:
       contents: read
       packages: write
@@ -337,30 +386,29 @@ jobs:
             writeFileSync(process.env.RUNNER_TEMP + "/lolly-image-receipts/public.jwk.json", JSON.stringify(key));
           '
 
-      - name: Build exact public images sequentially on native amd64
+      # The image build refuses too (deploy/docker/web.Dockerfile runs
+      # build:web:release, which is scripts/build-release-web.ts); this step refuses
+      # first, on this exact checkout, before any signing material is used.
+      - name: Refuse the web image while the WebGPU table is unpublished
+        run: node scripts/webgpu-release-gate.ts
+
+      - name: Build the exact public web image on native amd64
         env:
           LOLLY_CATALOG_SIGNING_KEY: ${{ secrets.LOLLY_CATALOG_SIGNING_KEY }}
         run: |
           set -euo pipefail
           test "$(uname -m)" = x86_64
           test -n "$LOLLY_CATALOG_SIGNING_KEY"
-          for service in web mcp-browser ca penpot; do
-            arguments=()
-            if [[ "$service" == web ]]; then
-              arguments=(--build-arg LOLLY_PROFILE=lolly-start \
-                --build-arg VITE_LIVE_RELAY=https://lolly.tools/live \
-                --secret id=LOLLY_CATALOG_SIGNING_KEY,env=LOLLY_CATALOG_SIGNING_KEY \
-                --secret id=VITE_CATALOG_PUBLIC_KEY_JWK,env=VITE_CATALOG_PUBLIC_KEY_JWK)
-            elif [[ "$service" == mcp-browser ]]; then
-              arguments=(--build-arg LOLLY_PROFILE=lolly-start)
-            fi
-            docker buildx build --load --no-cache --platform linux/amd64 \
-              --label "org.opencontainers.image.revision=$EXPECTED_SOURCE" \
-              --label "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" \
-              --label org.lolly.profile=lolly-start \
-              "${arguments[@]}" -f "deploy/docker/${service}.Dockerfile" \
-              -t "lolly-candidate-${service}:$EXPECTED_SOURCE" .
-          done
+          docker buildx build --load --no-cache --platform linux/amd64 \
+            --label "org.opencontainers.image.revision=$EXPECTED_SOURCE" \
+            --label "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" \
+            --label org.lolly.profile=lolly-start \
+            --build-arg LOLLY_PROFILE=lolly-start \
+            --build-arg VITE_LIVE_RELAY=https://lolly.tools/live \
+            --secret id=LOLLY_CATALOG_SIGNING_KEY,env=LOLLY_CATALOG_SIGNING_KEY \
+            --secret id=VITE_CATALOG_PUBLIC_KEY_JWK,env=VITE_CATALOG_PUBLIC_KEY_JWK \
+            -f deploy/docker/web.Dockerfile \
+            -t "lolly-candidate-web:$EXPECTED_SOURCE" .
 
       - name: Verify the actual image catalog against the supplied public pin
         run: |
@@ -373,13 +421,205 @@ jobs:
             > "$RUNNER_TEMP/lolly-image-receipts/catalog.json"
           test "$(docker inspect --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}' "lolly-candidate-web:$EXPECTED_SOURCE")" = "$EXPECTED_SOURCE"
 
-      - name: Boot native web, CA and Penpot under their restricted bounds
+      - name: Boot native web under its restricted bounds
         run: |
           set -euo pipefail
-          trap 'docker rm -f probe-web probe-ca probe-penpot >/dev/null 2>&1 || true' EXIT
+          trap 'docker rm -f probe-web >/dev/null 2>&1 || true' EXIT
           docker run -d --name probe-web --read-only --cap-drop ALL --security-opt no-new-privileges:true \
             --memory 128m --cpus 0.5 --pids-limit 64 --tmpfs /tmp:size=16m,mode=1777 \
             -p 127.0.0.1:18880:8080 "lolly-candidate-web:$EXPECTED_SOURCE"
+          node --input-type=module -e '
+            import assert from "node:assert/strict";
+            import { setTimeout as delay } from "node:timers/promises";
+            import { writeFileSync } from "node:fs";
+            let response;
+            for (let attempt = 0; attempt < 100; attempt++) {
+              try { response = await fetch("http://127.0.0.1:18880/healthz"); } catch {}
+              if (response) break;
+              await delay(100);
+            }
+            assert.equal(response?.status, 200, "web");
+            writeFileSync(process.env.RUNNER_TEMP + "/lolly-image-receipts/web-boot.json", JSON.stringify({ serviceBootPassed: true, results: { web: 200 } }, null, 2));
+          '
+
+      - name: Publish only the qualified web image digest
+        env:
+          REGISTRY_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          owner="${GITHUB_REPOSITORY_OWNER,,}"
+          printf '%s' "$REGISTRY_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          trap 'docker logout ghcr.io >/dev/null 2>&1 || true' EXIT
+          remote="ghcr.io/$owner/lolly-web:candidate-$EXPECTED_SOURCE"
+          docker tag "lolly-candidate-web:$EXPECTED_SOURCE" "$remote"
+          docker push "$remote"
+          docker image inspect "$remote" --format '{{json .}}' \
+            > "$RUNNER_TEMP/lolly-image-receipts/web.json"
+          node --input-type=module -e '
+            import { readFileSync, writeFileSync } from "node:fs";
+            const directory = process.env.RUNNER_TEMP + "/lolly-image-receipts";
+            const image = JSON.parse(readFileSync(directory + "/web.json", "utf8"));
+            if (image.Config.Labels["org.opencontainers.image.revision"] !== process.env.EXPECTED_SOURCE || image.Os !== "linux" || image.Architecture !== "amd64" || image.RepoDigests.length !== 1) throw new Error("Image/source binding failed");
+            const images = { web: { imageId: image.Id, digest: image.RepoDigests[0], platform: "linux/amd64", source: process.env.EXPECTED_SOURCE } };
+            writeFileSync(directory + "/web.json", JSON.stringify(images.web, null, 2));
+            writeFileSync(directory + "/release.json", JSON.stringify({ source: process.env.EXPECTED_SOURCE, runId: process.env.GITHUB_RUN_ID, neutralProfile: true, images, candidateRuntimeQualified: false }, null, 2));
+          '
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: always()
+        with:
+          name: public-candidate-web-receipts
+          path: ${{ runner.temp }}/lolly-image-receipts/*.json
+          if-no-files-found: warn
+          retention-days: 14
+
+  # The MCP browser probe drives a web shell for its Tier-B exports. While the web
+  # image is gated, that shell is the ordinary unsigned development build of the
+  # same source (the build every pull request makes, which the release gate does
+  # not cover). It carries no signing key and no public pin, it is never pushed to
+  # a registry, and it is kept for one day as the probe's input only.
+  probe-web-shell:
+    name: Unsigned web shell for the MCP browser probe (never published)
+    if: github.event_name == 'workflow_dispatch' && inputs.build_images == true
+    needs: [chart, public-vm]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    defaults:
+      run:
+        shell: bash
+    env:
+      EXPECTED_SOURCE: ${{ inputs.expected_source }}
+      LOLLY_PROFILE: lolly-start
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          submodules: false
+
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          version: 11.26.0
+          run_install: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '24'
+          package-manager-cache: false
+
+      - name: Require the reviewed source
+        run: |
+          set -euo pipefail
+          [[ "$EXPECTED_SOURCE" =~ ^[a-f0-9]{40}$ ]]
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE"
+          test "$GITHUB_SHA" = "$EXPECTED_SOURCE"
+          test ! -e brands/suse/tools
+
+      - name: Install frozen dependencies
+        timeout-minutes: 10
+        run: pnpm install --frozen-lockfile
+
+      - name: Build the ordinary unsigned web shell
+        run: pnpm run build:web
+
+      - name: Package the probe shell with its source
+        run: |
+          set -euo pipefail
+          out="$RUNNER_TEMP/lolly-probe-web"
+          mkdir -p "$out"
+          tar -czf "$out/web-dist.tar.gz" -C shells/web/dist .
+          node --input-type=module -e '
+            import { writeFileSync } from "node:fs";
+            writeFileSync(process.env.RUNNER_TEMP + "/lolly-probe-web/source.json", JSON.stringify({ source: process.env.EXPECTED_SOURCE, runId: process.env.GITHUB_RUN_ID, purpose: "MCP browser probe input", signed: false, release: false }, null, 2));
+          '
+          (cd "$out" && sha256sum web-dist.tar.gz source.json > SHA256SUMS)
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: unsigned-probe-web-shell
+          path: ${{ runner.temp }}/lolly-probe-web/
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 1
+
+  service-images:
+    name: Opt-in native public service images (MCP, CA, Penpot)
+    if: github.event_name == 'workflow_dispatch' && inputs.build_images == true
+    needs: [chart, public-vm, probe-web-shell]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    permissions:
+      contents: read
+      packages: write
+    defaults:
+      run:
+        shell: bash
+    env:
+      EXPECTED_SOURCE: ${{ inputs.expected_source }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          submodules: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '26'
+          package-manager-cache: false
+
+      - name: Require the reviewed source
+        run: |
+          set -euo pipefail
+          [[ "$EXPECTED_SOURCE" =~ ^[a-f0-9]{40}$ ]]
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE"
+          test "$GITHUB_SHA" = "$EXPECTED_SOURCE"
+          test ! -e brands/suse/tools
+          test -z "$(git status --porcelain)"
+          docker version
+          docker buildx version
+          mkdir -p "$RUNNER_TEMP/lolly-image-receipts" "$RUNNER_TEMP/lolly-probe-web"
+
+      - name: Build exact service images sequentially on native amd64
+        run: |
+          set -euo pipefail
+          test "$(uname -m)" = x86_64
+          for service in mcp-browser ca penpot; do
+            arguments=()
+            if [[ "$service" == mcp-browser ]]; then
+              arguments=(--build-arg LOLLY_PROFILE=lolly-start)
+            fi
+            docker buildx build --load --no-cache --platform linux/amd64 \
+              --label "org.opencontainers.image.revision=$EXPECTED_SOURCE" \
+              --label "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" \
+              --label org.lolly.profile=lolly-start \
+              "${arguments[@]}" -f "deploy/docker/${service}.Dockerfile" \
+              -t "lolly-candidate-${service}:$EXPECTED_SOURCE" .
+          done
+
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: unsigned-probe-web-shell
+          path: ${{ runner.temp }}/lolly-probe-web-artifact
+
+      - name: Unpack the probe web shell built from this source
+        run: |
+          set -euo pipefail
+          artifact="$RUNNER_TEMP/lolly-probe-web-artifact"
+          (cd "$artifact" && sha256sum --check SHA256SUMS)
+          node --input-type=module -e '
+            import { readFileSync } from "node:fs";
+            const receipt = JSON.parse(readFileSync(process.env.RUNNER_TEMP + "/lolly-probe-web-artifact/source.json", "utf8"));
+            if (receipt.source !== process.env.EXPECTED_SOURCE || receipt.runId !== process.env.GITHUB_RUN_ID || receipt.release !== false) throw new Error("The probe web shell is not the unsigned build of the reviewed source from this run");
+          '
+          tar -xzf "$artifact/web-dist.tar.gz" -C "$RUNNER_TEMP/lolly-probe-web"
+
+      - name: Boot native CA and Penpot under their restricted bounds
+        run: |
+          set -euo pipefail
+          trap 'docker rm -f probe-ca probe-penpot >/dev/null 2>&1 || true' EXIT
           docker run -d --name probe-ca --read-only --cap-drop ALL --security-opt no-new-privileges:true \
             --memory 192m --cpus 0.25 --pids-limit 64 --tmpfs /tmp:size=8m,mode=1777 \
             -p 127.0.0.1:18887:8787 "lolly-candidate-ca:$EXPECTED_SOURCE"
@@ -390,7 +630,7 @@ jobs:
             import assert from "node:assert/strict";
             import { setTimeout as delay } from "node:timers/promises";
             import { writeFileSync } from "node:fs";
-            const checks = [["web", "http://127.0.0.1:18880/healthz", 200], ["unconfiguredCA", "http://127.0.0.1:18887/api/ca/health", 404], ["penpot", "http://127.0.0.1:18891/healthz", 200]];
+            const checks = [["unconfiguredCA", "http://127.0.0.1:18887/api/ca/health", 404], ["penpot", "http://127.0.0.1:18891/healthz", 200]];
             const results = {};
             for (const [name, url, status] of checks) {
               let response;
@@ -417,7 +657,7 @@ jobs:
             --env LOLLY_MCP_PRIVATE_FILES=0 --env LOLLY_ALLOW_IN_MEMORY_RATE_LIMIT=0 \
             --env LOLLY_BROWSER_MAX_CONCURRENCY=1 --env LOLLY_BROWSER_MAX_QUEUE=4 \
             --env LOLLY_BROWSER_QUEUE_TIMEOUT_MS=30000 --env LOLLY_WEB_DIST=/qualification-web \
-            --mount "type=bind,src=$RUNNER_TEMP/lolly-qualified-web,dst=/qualification-web,readonly" \
+            --mount "type=bind,src=$RUNNER_TEMP/lolly-probe-web,dst=/qualification-web,readonly" \
             --mount "type=bind,src=$GITHUB_WORKSPACE/deploy/docker/public-image-probe.ts,dst=/qualification/probe.ts,readonly" \
             --entrypoint node "lolly-candidate-mcp-browser:$EXPECTED_SOURCE" /qualification/probe.ts \
             > "$RUNNER_TEMP/lolly-image-receipts/native-probe.json"
@@ -431,7 +671,7 @@ jobs:
           directory="$RUNNER_TEMP/lolly-unqualified-diagnosis"
           mkdir -p "$directory"
           docker save "lolly-candidate-mcp-browser:$EXPECTED_SOURCE" | gzip -1 > "$directory/mcp-browser.tar.gz"
-          tar -C "$RUNNER_TEMP/lolly-qualified-web" -czf "$directory/web-dist.tar.gz" .
+          tar -C "$RUNNER_TEMP/lolly-probe-web" -czf "$directory/web-dist.tar.gz" .
           cp deploy/docker/public-image-probe.ts "$directory/probe.ts"
           node --input-type=module -e '
             import { createHash } from "node:crypto";
@@ -467,7 +707,7 @@ jobs:
           owner="${GITHUB_REPOSITORY_OWNER,,}"
           printf '%s' "$REGISTRY_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
           trap 'docker logout ghcr.io >/dev/null 2>&1 || true' EXIT
-          for service in web mcp-browser ca penpot; do
+          for service in mcp-browser ca penpot; do
             remote="ghcr.io/$owner/lolly-${service}:candidate-$EXPECTED_SOURCE"
             docker tag "lolly-candidate-${service}:$EXPECTED_SOURCE" "$remote"
             docker push "$remote"
@@ -478,7 +718,7 @@ jobs:
             import { readFileSync, writeFileSync } from "node:fs";
             const directory = process.env.RUNNER_TEMP + "/lolly-image-receipts";
             const images = {};
-            for (const service of ["web", "mcp-browser", "ca", "penpot"]) {
+            for (const service of ["mcp-browser", "ca", "penpot"]) {
               const image = JSON.parse(readFileSync(directory + "/" + service + ".json", "utf8"));
               if (image.Config.Labels["org.opencontainers.image.revision"] !== process.env.EXPECTED_SOURCE || image.Os !== "linux" || image.Architecture !== "amd64" || image.RepoDigests.length !== 1) throw new Error("Image/source binding failed");
               images[service] = { imageId: image.Id, digest: image.RepoDigests[0], platform: "linux/amd64", source: process.env.EXPECTED_SOURCE };
@@ -490,9 +730,81 @@ jobs:
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
         with:
-          name: public-candidate-image-receipts
+          name: public-candidate-service-receipts
           path: ${{ runner.temp }}/lolly-image-receipts/*.json
           if-no-files-found: warn
+          retention-days: 14
+
+  # The /info docs site, built from the reviewed source on its own. It does not
+  # require WebGPU and does not wait for the web image, so the docs ship from main
+  # while the web shell image is gated.
+  info-docs:
+    name: /info docs site (not gated on WebGPU)
+    if: github.event_name == 'workflow_dispatch' && inputs.build_images == true
+    needs: [chart, public-vm]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    defaults:
+      run:
+        shell: bash
+    env:
+      EXPECTED_SOURCE: ${{ inputs.expected_source }}
+      LOLLY_PROFILE: lolly-start
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          submodules: false
+
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          version: 11.26.0
+          run_install: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '24'
+          package-manager-cache: false
+
+      - name: Require the reviewed source
+        run: |
+          set -euo pipefail
+          [[ "$EXPECTED_SOURCE" =~ ^[a-f0-9]{40}$ ]]
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE"
+          test "$GITHUB_SHA" = "$EXPECTED_SOURCE"
+          test ! -e brands/suse/tools
+
+      - name: Install frozen dependencies
+        timeout-minutes: 10
+        run: pnpm install --frozen-lockfile
+
+      - name: Build the /info site and hold it to its size budget
+        run: |
+          set -euo pipefail
+          pnpm run build:info
+          pnpm run check:docs-size
+
+      - name: Package the /info site with its source
+        run: |
+          set -euo pipefail
+          out="$RUNNER_TEMP/lolly-info-docs"
+          mkdir -p "$out"
+          tar -czf "$out/info.tar.gz" -C shells/web/public/info .
+          node --input-type=module -e '
+            import { writeFileSync } from "node:fs";
+            writeFileSync(process.env.RUNNER_TEMP + "/lolly-info-docs/source.json", JSON.stringify({ source: process.env.EXPECTED_SOURCE, runId: process.env.GITHUB_RUN_ID, profile: process.env.LOLLY_PROFILE, servedAt: "/info/" }, null, 2));
+          '
+          (cd "$out" && sha256sum info.tar.gz source.json > SHA256SUMS)
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: public-info-docs
+          path: ${{ runner.temp }}/lolly-info-docs/
+          compression-level: 0
+          if-no-files-found: error
           retention-days: 14
 
   archive-qualified-images:
@@ -511,18 +823,34 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: '24'
-      - name: Require a successful exact-source qualification
+      # The images qualify in separate jobs, so the run as a whole can fail on the
+      # web image alone. Each image is judged by the job that qualified it: the
+      # service images must have passed, and the web image is exported only when
+      # its own job passed. While the WebGPU gate holds it back, the transport
+      # carries the MCP browser image without the web image and says so.
+      - name: Require a completed exact-source qualification
         run: |
           set -euo pipefail
           [[ "$QUALIFICATION_RUN" =~ ^[0-9]+$ ]]
           [[ "$SOURCE_SHA" =~ ^[a-f0-9]{40}$ ]]
           gh api "repos/$GITHUB_REPOSITORY/actions/runs/$QUALIFICATION_RUN" > "$RUNNER_TEMP/run.json"
-          node --input-type=module -e '
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$QUALIFICATION_RUN/jobs?per_page=100" > "$RUNNER_TEMP/jobs.json"
+          web_qualified=$(node --input-type=module -e '
             import {readFileSync} from "node:fs";
             const run=JSON.parse(readFileSync(process.env.RUNNER_TEMP+"/run.json"));
-            if(run.conclusion!=="success" || run.head_sha!==process.env.SOURCE_SHA || run.path!==".github/workflows/deployment-suse.yml" || run.event!=="workflow_dispatch") throw Error("Unqualified source/run");
-          '
-          gh run download "$QUALIFICATION_RUN" --repo "$GITHUB_REPOSITORY" --name public-candidate-image-receipts --dir "$RUNNER_TEMP/receipts"
+            if(run.status!=="completed" || run.head_sha!==process.env.SOURCE_SHA || run.path!==".github/workflows/deployment-suse.yml" || run.event!=="workflow_dispatch") throw Error("Unqualified source/run");
+            const jobs=JSON.parse(readFileSync(process.env.RUNNER_TEMP+"/jobs.json")).jobs;
+            const outcome=(name)=>{const found=jobs.filter((job)=>job.name===name);return found.length===1?found[0].conclusion:"missing";};
+            if(outcome("Opt-in native public service images (MCP, CA, Penpot)")!=="success") throw Error("The service images did not qualify in that run");
+            console.log(outcome("Opt-in native public web image (gated on the WebGPU table)")==="success");
+          ')
+          echo "WEB_QUALIFIED=$web_qualified" >> "$GITHUB_ENV"
+          gh run download "$QUALIFICATION_RUN" --repo "$GITHUB_REPOSITORY" --name public-candidate-service-receipts --dir "$RUNNER_TEMP/receipts/services"
+          if [[ "$web_qualified" == true ]]; then
+            gh run download "$QUALIFICATION_RUN" --repo "$GITHUB_REPOSITORY" --name public-candidate-web-receipts --dir "$RUNNER_TEMP/receipts/web"
+          else
+            echo '::warning title=Web image not exported::The qualification run did not qualify a web shell image (the WebGPU release gate withholds it until plan 295 P0b). Only the MCP browser image is exported.'
+          fi
       - name: Export the qualified registry content without changing its digest
         run: |
           set -euo pipefail
@@ -537,12 +865,19 @@ jobs:
           import {createHash} from 'node:crypto';
           import {spawnSync} from 'node:child_process';
           const root=process.env.RUNNER_TEMP;
-          const release=JSON.parse(readFileSync(root+'/receipts/release.json'));
-          if(release.source!==process.env.SOURCE_SHA || release.runId!==process.env.QUALIFICATION_RUN || !release.neutralProfile) throw Error('Receipt differs');
-          const evidence={version:1,source:release.source,qualificationRun:release.runId,transportRun:process.env.GITHUB_RUN_ID,images:{}};
+          const qualified=[['mcp-browser','services']];
+          if(process.env.WEB_QUALIFIED==='true') qualified.push(['web','web']);
+          const releases={};
+          for(const [,set] of qualified){
+            const release=JSON.parse(readFileSync(root+'/receipts/'+set+'/release.json'));
+            if(release.source!==process.env.SOURCE_SHA || release.runId!==process.env.QUALIFICATION_RUN || !release.neutralProfile) throw Error('Receipt differs');
+            releases[set]=release;
+          }
+          const evidence={version:1,source:process.env.SOURCE_SHA,qualificationRun:process.env.QUALIFICATION_RUN,transportRun:process.env.GITHUB_RUN_ID,withheld:process.env.WEB_QUALIFIED==='true'?[]:['web'],images:{}};
           async function hash(path){const h=createHash('sha256');for await(const c of createReadStream(path))h.update(c);return h.digest('hex');}
           function run(command,args){const r=spawnSync(command,args,{stdio:'inherit'});if(r.status!==0)throw Error(command+' failed');}
-          for(const service of ['web','mcp-browser']){
+          for(const [service,set] of qualified){
+            const release=releases[set];
             const receipt=release.images[service];
             const prefix='ghcr.io/'+process.env.GITHUB_REPOSITORY_OWNER.toLowerCase()+'/lolly-'+service+'@sha256:';
             if(!receipt.digest.startsWith(prefix) || !/^[a-f0-9]{64}$/.test(receipt.digest.slice(prefix.length)) || receipt.source!==release.source || receipt.platform!=='linux/amd64')throw Error('Invalid image receipt');

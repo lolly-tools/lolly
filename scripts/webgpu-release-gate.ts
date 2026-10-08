@@ -18,6 +18,12 @@
  * (the YunoHost tarball), shells/tauri-desktop/release/build-latest-json.ts --out (the desktop updater
  * manifests) and the package workflows when a `v*` tag triggers them.
  *
+ * Scope (Andy, 2026-10-08: "Gate only the web shell"): the gate covers the web shell and
+ * the Tauri apps, which carry the WebGPU requirement. The MCP, CA and Penpot images and the
+ * /info docs do not require WebGPU, so they never call this check and never wait for it:
+ * .github/workflows/deployment-suse.yml builds them in jobs of their own, and only its
+ * web image job depends on the gate. tests/webgpu-release-gate.test.ts holds that line.
+ *
  * The table is an ordinary Markdown table: the first column is the environment, and
  * the second column starts with "Supported" or "Not supported":
  *

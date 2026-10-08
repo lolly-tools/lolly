@@ -109,33 +109,66 @@ test('browser image is optional, lockfile-scoped and retains sandbox/auth defaul
   assert.match(compose, /LOLLY_BROWSER_MAX_CONCURRENCY: "1"/);
 });
 
+/**
+ * One job's block from a workflow, by its id under `jobs:`. The block ends where the
+ * next two-space key or two-space comment begins. This file runs in a sparse
+ * checkout with no dependencies installed, so it reads the YAML as text.
+ */
+function workflowJob(workflow: string, id: string): string {
+  const start = workflow.indexOf(`\n  ${id}:\n`);
+  assert.ok(start >= 0, `no ${id} job`);
+  const rest = workflow.slice(start + 1);
+  const next = rest.slice(1).search(/\n {2}(?:#|[a-z0-9-]+:\n)/);
+  return next < 0 ? rest : rest.slice(0, next + 1);
+}
+
 test('native image publication is opt-in and follows source, catalog and sandbox qualification', () => {
   const workflow = read('.github/workflows/deployment-suse.yml');
-  const job = workflow.split('  candidate-images:\n')[1];
-  assert.ok(job);
-  assert.match(job, /github.event_name == 'workflow_dispatch' && inputs.build_images == true/);
-  assert.match(job, /needs: \[chart, public-vm\]/);
-  assert.match(job, /test "\$GITHUB_SHA" = "\$EXPECTED_SOURCE"/);
-  assert.match(job, /submodules: false/);
-  assert.match(job, /secrets.LOLLY_CATALOG_SIGNING_KEY/);
-  assert.match(job, /--secret id=LOLLY_CATALOG_SIGNING_KEY,env=LOLLY_CATALOG_SIGNING_KEY/);
-  assert.match(job, /verify-release-catalog.ts/);
-  assert.match(job, /--read-only --cap-drop ALL --security-opt no-new-privileges:true/);
-  assert.match(job, /--env LOLLY_BROWSER_NO_SANDBOX=0/);
+  const web = workflowJob(workflow, 'web-image');
+  const services = workflowJob(workflow, 'service-images');
+  for (const job of [web, services]) {
+    assert.match(job, /github.event_name == 'workflow_dispatch' && inputs.build_images == true/);
+    assert.match(job, /needs: \[chart, public-vm, [a-z-]+\]/);
+    assert.match(job, /test "\$GITHUB_SHA" = "\$EXPECTED_SOURCE"/);
+    assert.match(job, /submodules: false/);
+    assert.match(job, /--read-only --cap-drop ALL --security-opt no-new-privileges:true/);
+    assert.doesNotMatch(job, /seccomp=unconfined|--privileged|SYS_ADMIN|LOLLY_BROWSER_NO_SANDBOX=1/);
+  }
+  // Only the web image is signed, so only its job sees the signing key.
+  assert.match(web, /secrets.LOLLY_CATALOG_SIGNING_KEY/);
+  assert.match(web, /--secret id=LOLLY_CATALOG_SIGNING_KEY,env=LOLLY_CATALOG_SIGNING_KEY/);
+  assert.match(web, /verify-release-catalog.ts/);
+  assert.ok(web.indexOf('verify-release-catalog.ts') < web.indexOf('docker push "$remote"'));
+  assert.doesNotMatch(services, /LOLLY_CATALOG_SIGNING_KEY|VITE_CATALOG_PUBLIC_KEY_JWK/);
+  assert.match(services, /--env LOLLY_BROWSER_NO_SANDBOX=0/);
   assert.match(
-    job,
+    services,
     /--security-opt "seccomp=\$GITHUB_WORKSPACE\/deploy\/docker\/seccomp\/public-browser-sandbox.json"/
   );
-  assert.ok(job.indexOf('public-image-probe.ts') < job.indexOf('docker push "$remote"'));
-  const diagnosis = job.slice(
-    job.indexOf('- name: Retain bounded unqualified'),
-    job.indexOf('- name: Publish only qualified')
+  assert.ok(services.indexOf('public-image-probe.ts') < services.indexOf('docker push "$remote"'));
+  // The probe's web shell is this run's unsigned build of the same source, checked
+  // before use and never pushed.
+  const fixture = workflowJob(workflow, 'probe-web-shell');
+  assert.match(fixture, /run: pnpm run build:web\n/);
+  assert.match(fixture, /release: false/);
+  assert.match(fixture, /retention-days: 1/);
+  assert.doesNotMatch(fixture, /LOLLY_CATALOG_SIGNING_KEY|VITE_CATALOG_PUBLIC_KEY_JWK|packages: write|docker push/);
+  assert.match(services, /receipt.source !== process.env.EXPECTED_SOURCE \|\| receipt.runId !== process.env.GITHUB_RUN_ID \|\| receipt.release !== false/);
+  assert.match(services, /src=\$RUNNER_TEMP\/lolly-probe-web,dst=\/qualification-web,readonly/);
+  const diagnosis = services.slice(
+    services.indexOf('- name: Retain bounded unqualified'),
+    services.indexOf('- name: Publish only qualified')
   );
   assert.match(diagnosis, /failure\(\) && steps\.native_probe\.outcome == 'failure'/);
   assert.match(diagnosis, /qualified: false, promotionAllowed: false/);
   assert.match(diagnosis, /retention-days: 1/);
   assert.doesNotMatch(diagnosis, /docker push|REGISTRY_TOKEN|CA_ROOT_KEY/);
-  assert.doesNotMatch(job, /seccomp=unconfined|--privileged|SYS_ADMIN|LOLLY_BROWSER_NO_SANDBOX=1/);
+  // The offline transport judges each image by its own qualifying job.
+  const archive = workflowJob(workflow, 'archive-qualified-images');
+  assert.match(archive, /outcome\("Opt-in native public service images \(MCP, CA, Penpot\)"\)!=="success"/);
+  assert.match(archive, /outcome\("Opt-in native public web image \(gated on the WebGPU table\)"\)==="success"/);
+  assert.match(archive, /--name public-candidate-service-receipts/);
+  assert.match(archive, /if \[\[ "\$web_qualified" == true \]\]; then\n\s+gh run download [^\n]+--name public-candidate-web-receipts/);
 });
 
 test('Compose browser overlay requires a verified seccomp file and preserves isolation', () => {
