@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MPL-2.0
 // The two contracts at the heart of @lolly-tools/audio-dock.
 //
-// The dock is ONE UI shell that two different hosts drive: the Lolly web app
-// (music / internet radio / atmosphere soundbeds, via neurospicy.ts) and the
-// static /info docs site (page narration, via docs/player/player.ts). The shell
-// owns none of the audio. It renders controls and delegates every action to a
+// The dock is ONE UI shell a host drives: the Lolly web app (music / internet
+// radio / atmosphere soundbeds, via neurospicy.ts). The docs page narration was a
+// second host until it was removed on 2026-10-08; the optional narration contract
+// stays for a future one. The shell owns none of the audio. It renders controls and delegates every action to a
 // `DockHost` the host implements. `DockCapabilities` is what the APP declares
 // CAN appear; the user drives collapse size + which sections are open.
 //
-// Designed against the real player APIs (neurospicy.ts / music-player.ts /
-// docs/player/player.ts). Everything beyond bare transport is optional per
+// Designed against the real player APIs (neurospicy.ts / music-player.ts and the
+// former docs narration player). Everything beyond bare transport is optional per
 // capability, so a narration-only host and a music-only host both satisfy it.
 
 /**

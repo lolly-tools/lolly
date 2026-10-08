@@ -181,7 +181,6 @@ describe('offline-manager: docsFileList', () => {
     groups: {
       en: [{ url: '/info/index.html', size: 1 }],
       shots: [{ url: '/info/shots/a.svg', size: 2 }],
-      audio: [{ url: '/info/audio/en/index/audio.opus', size: 9 }],
       locales: { fr: [{ url: '/info/fr/index.html', size: 3 }] },
     },
   };
@@ -199,15 +198,6 @@ describe('offline-manager: docsFileList', () => {
   test('an unknown locale degrades to the English set', () => {
     assert.deepEqual(docsFileList(manifest, 'xx').map(f => f.url),
       ['/info/index.html', '/info/shots/a.svg']);
-  });
-
-  // Narration must never silently fatten "Available offline: Docs"
-  // (plans/40-docs-audio-listen.md section 7) - the group is excluded for every locale.
-  test('the audio group never rides along in the docs part', () => {
-    for (const lang of ['en', 'fr', 'xx']) {
-      assert.ok(!docsFileList(manifest, lang).some(f => f.url.includes('/audio/')),
-        `${lang} docs part must not include narration`);
-    }
   });
 });
 

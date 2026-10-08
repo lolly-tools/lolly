@@ -4,7 +4,7 @@
  * here is plain math and string work with no transformers.js, no phonemizer
  * wasm and no DOM, so the SAME logic runs in the web worker
  * (shells/web/src/lib/speech-kokoro-worker.ts), in Node scripts
- * (scripts/build-docs-audio.ts) and under test. Same split as analysePcm: the
+ * (packages/node-shell's speech host, scripts/say-lines.ts) and under test. Same split as analysePcm: the
  * heavy runtime is injectable, the bookkeeping lives in the engine. This
  * follows the roadmap's one-synthesis-layer rule (plans/39-inclusive-audio-roadmap.md section 4).
  *
@@ -80,8 +80,8 @@ export const KOKORO_VOICES: SpeechVoiceInfo[] = [
  * Lily is graded D in the table above and Emma B-, and Emma was tried first on
  * exactly that reasoning. It was rejected AFTER LISTENING: Emma reads as robotic
  * at length, Lily sounds on brand. The grade measures acoustic fidelity, not fit,
- * so it decides nothing on its own. See the same call, with the same reasoning,
- * on the docs corpus in scripts/build-docs-audio.ts. Do not "fix" this back to a
+ * so it decides nothing on its own. The docs narration (since removed) made the
+ * same call for the same reason. Do not "fix" this back to a
  * higher-graded voice from the table without listening to both.
  */
 export const KOKORO_DEFAULT_VOICE = 'bf_lily';

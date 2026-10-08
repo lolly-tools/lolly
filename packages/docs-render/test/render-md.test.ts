@@ -190,7 +190,7 @@ test('a code block carries its label as data only, so the page text is unchanged
   assert.match(html, /<div class="doc-code" data-label="Terminal" data-copy="shell"><div class="doc-code-bar" data-label="Terminal"><\/div>/);
   assert.match(html, /<div class="doc-code" data-label="Text"><div class="doc-code-bar"/, 'plain text is read, not copied');
   assert.match(html, /<div class="doc-code" data-label="Terminal" data-wrap="">/, 'no-copy drops Copy; wrap is carried');
-  // Stripping tags leaves exactly the code: the bar adds no words to search or narration.
+  // Stripping tags leaves exactly the code: the bar adds no words to search or the model index.
   assert.equal(html.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim(), 'pnpm install output line long line');
 });
 

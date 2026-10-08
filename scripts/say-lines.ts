@@ -3,14 +3,13 @@
 /**
  * Narrate an arbitrary text file, one authored line at a time, on device.
  *
- * The docs corpus renderer (scripts/build-docs-audio.ts) narrates PAGES: it reads
- * docs/build.ts, speaks blocks, and pins one corpus voice. This speaks a FILE, at a
- * voice and pace you choose, with a gap after every line - the shape verse needs,
- * where the line break IS the pacing and a sentence splitter would flatten it.
+ * Script audio and Design narration read prose a sentence at a time. This speaks a
+ * FILE, at a voice and pace you choose, with a gap after every line - the shape verse
+ * needs, where the line break IS the pacing and a sentence splitter would flatten it.
  *
  * It is a second CALLER of the shared speech maths (engine/src/speech-text.ts), not a
  * second implementation: normalize/phonemize/chunk/timing and the caption grouper are
- * the same functions the web worker and the docs corpus run, so a word lands at the
+ * the same functions the web worker and the Node speech host run, so a word lands at the
  * same millisecond in all three.
  *
  *   node scripts/say-lines.ts --in poem.txt --out ./out --voice bf_emma --speed 0.85 --gap 600
@@ -19,7 +18,7 @@
  * master for further work (an audiogram, an mp4); transcode downstream.
  *
  * ── Learning pacing from a human read (the reason this is kept) ────────────
- * Kept as a research tool, not because the docs corpus needs it: the open question
+ * Kept as a research tool, not because a product path needs it: the open question
  * is how to TEACH pacing, both to users writing scripts and to ourselves. The model
  * gives word timings for free; what it cannot give is where the silences belong, and
  * silence is most of what makes a read sound composed rather than recited.
