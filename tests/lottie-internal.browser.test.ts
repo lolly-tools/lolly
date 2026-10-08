@@ -29,6 +29,8 @@ test('nested layer/property edits, curves, undo, independent duplicates and save
   }
   try {
     await page.goto(origin!, { waitUntil: 'networkidle' });
+    // The shell acquires WebGPU before it boots, so network idleness can come first.
+    await page.locator('#view[data-drop-ready]').waitFor({ state: 'attached' });
     await page.evaluate(json => {
       const transfer = new DataTransfer(); transfer.items.add(new File([json], 'nested.json', { type: 'application/json' }));
       document.querySelector('#view')!.dispatchEvent(new DragEvent('drop', { bubbles: true, dataTransfer: transfer }));

@@ -19,6 +19,8 @@ test('gallery drop, selection, clip edits, save/reopen and actual dotLottie down
   const diagnose = journeyDiagnostics(context, 'lottie-import');
   try {
     await page.goto(origin!, { waitUntil: 'networkidle' });
+    // The shell acquires WebGPU before it boots, so network idleness can come first.
+    await page.locator('#view[data-drop-ready]').waitFor({ state: 'attached' });
     await page.evaluate(bytes => {
       const transfer = new DataTransfer();
       transfer.items.add(new File([new Uint8Array(bytes)], 'two.lottie', { type: 'application/zip+dotlottie' }));

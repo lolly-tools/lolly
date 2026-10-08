@@ -154014,7 +154014,7 @@ async function renderToolPackageViaWebShell(bytes, toolId, query2, format, produ
     const page3 = await context.newPage();
     const observeInputs = await observeProductionInputs(page3, toolId, production.productionInputIds ?? []);
     await page3.goto(base, { waitUntil: "load", timeout: 3e4 });
-    await page3.waitForLoadState("networkidle");
+    await page3.locator("#view[data-drop-ready]").waitFor({ state: "attached", timeout: 3e4 });
     await page3.evaluate((data) => {
       const transfer = new DataTransfer();
       transfer.items.add(new File([new Uint8Array(data)], "tool.lolly"));
