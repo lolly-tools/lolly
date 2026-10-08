@@ -45,6 +45,13 @@ jobs:
           node-version: '22'
           cache: pnpm
 
+      # A version tag is a release, and no release may ship the WebGPU startup
+      # requirement before its supported-environment table is published (plan 295
+      # P0b). A manual dispatch, such as a qualification build, is not refused.
+      - name: Refuse a release without the WebGPU supported-environment table
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: node scripts/webgpu-release-gate.ts
+
       - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable branch, pinned 2026-08-04
 
       - name: Cache cargo build

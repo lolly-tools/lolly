@@ -144,6 +144,7 @@
     "build:licenses": "node scripts/build-licenses.ts",
     "build:release-checklist": "node scripts/release-checklist.ts --write",
     "check:release-checklist": "node scripts/release-checklist.ts --check",
+    "check:release": "node scripts/release-checklist.ts --check --release",
     "doctor": "node scripts/doctor.ts",
     "build:host-v1-api": "node scripts/check-host-v1-api.ts --write",
     "check:host-v1-api": "node scripts/check-host-v1-api.ts --check",
