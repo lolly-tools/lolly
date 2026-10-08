@@ -7,6 +7,7 @@ import {
   type BranchVerdict,
   branchNameWarning,
   checkFindings,
+  checkedCwds,
   classifyBranch,
   classifyIgnored,
   decideLocal,
@@ -50,7 +51,7 @@ test('classifyBranch: main, merged, squash-merged, unique, conflicting and open 
 
 test('decideRemote deletes only an IN_MAIN branch with known pull requests and fresh refs', () => {
   const ctx = { mainBranch: 'main', prsKnown: true, refsFresh: true, protectionKnown: true };
-  const branch = (name: string, v: BranchVerdict, protectedBranch = false) => ({ name, verdict: v, protectedBranch });
+  const branch = (name: string, v: BranchVerdict, protectedBranch = false, ancestorOfMain = true) => ({ name, verdict: v, protectedBranch, ancestorOfMain });
   assert.equal(decideRemote(branch('feat/x', verdict('IN_MAIN')), ctx).act, true);
   assert.equal(decideRemote(branch('main', verdict('MAIN')), ctx).act, false);
   // Even when classified IN_MAIN, a main branch is kept by name.
@@ -58,6 +59,7 @@ test('decideRemote deletes only an IN_MAIN branch with known pull requests and f
   assert.equal(decideRemote(branch('trunk', verdict('IN_MAIN')), { ...ctx, mainBranch: 'trunk' }).act, false);
   assert.equal(decideRemote(branch('feat/x', verdict('OPEN_PR', true)), ctx).act, false);
   assert.equal(decideRemote(branch('feat/x', verdict('UNIQUE')), ctx).act, false);
+  assert.equal(decideRemote(branch('feat/x', verdict('IN_MAIN'), false, false), ctx).act, false);
   assert.equal(decideRemote(branch('release/1', verdict('IN_MAIN'), true), ctx).act, false);
   assert.deepEqual(decideRemote(branch('feat/x', verdict('IN_MAIN')), { ...ctx, prsKnown: false }), {
     act: false, why: 'open pull requests could not be read',
@@ -87,7 +89,7 @@ const wctx = { idleMinutes: 30, prunedRemotes: new Set<string>() };
 test('decideWorktree removes an idle, clean worktree whose HEAD is safe', () => {
   assert.deepEqual(decideWorktree(idle, wctx), { act: true, why: 'idle, clean, HEAD in main' });
   const pushed = { ...idle, headInMain: false, headOnRemote: ['feat/a'] };
-  assert.deepEqual(decideWorktree(pushed, wctx), { act: true, why: 'idle, clean, HEAD on feat/a' });
+  assert.equal(decideWorktree(pushed, wctx).act, false);
 });
 
 test('decideWorktree keeps anything in use, recent, dirty or not saved elsewhere', () => {
@@ -102,7 +104,7 @@ test('decideWorktree keeps anything in use, recent, dirty or not saved elsewhere
     ['nested worktree', { containsWorktree: true }, /another worktree/],
     ['initialised submodule', { submoduleInitialised: true }, /submodule/],
     ['uncommitted work', { dirty: ['src/a.ts', 'src/b.ts'] }, /2 uncommitted files/],
-    ['HEAD only local', { headInMain: false, headOnRemote: [] }, /HEAD is not in main/],
+    ['HEAD only local', { headInMain: false, headOnRemote: [] }, /HEAD is not in pinned main/],
     ['ignored files not scanned', { ignoredKeep: null }, /not scanned/],
     ['ignored files to keep', { ignoredKeep: ['keys/', '.env', 'a.log', 'b.log'] }, /keys\/, \.env, a\.log and 1 more/],
   ];
@@ -117,41 +119,39 @@ test('decideWorktree does not count a remote branch this run deletes as a home f
   const onRemote = { ...idle, headInMain: false, headOnRemote: ['feat/a'] };
   assert.equal(decideWorktree(onRemote, { idleMinutes: 30, prunedRemotes: new Set(['feat/a']) }).act, false);
   const twoHomes = { ...onRemote, headOnRemote: ['feat/a', 'feat/b'] };
-  assert.deepEqual(decideWorktree(twoHomes, { idleMinutes: 30, prunedRemotes: new Set(['feat/a']) }), {
-    act: true, why: 'idle, clean, HEAD on feat/b',
-  });
+  assert.equal(decideWorktree(twoHomes, { idleMinutes: 30, prunedRemotes: new Set(['feat/a']) }).act, false);
 });
 
-test('decideWorktree prunes a vanished worktree entry only when its HEAD stays reachable', () => {
+test('decideWorktree retains vanished worktree registrations for manual custody checks', () => {
   const gone = { ...idle, missing: true, cwdPids: null, indexAgeMinutes: null, ignoredKeep: null };
-  assert.equal(decideWorktree(gone, wctx).act, true);
+  assert.equal(decideWorktree(gone, wctx).act, false);
   const detachedLocal = { ...gone, branch: null, headInMain: false, headOnRemote: [] };
   assert.equal(decideWorktree(detachedLocal, wctx).act, false);
-  assert.equal(decideWorktree({ ...detachedLocal, headOnRemote: ['feat/b'] }, wctx).act, true);
+  assert.equal(decideWorktree({ ...detachedLocal, headOnRemote: ['feat/b'] }, wctx).act, false);
   assert.equal(decideWorktree({ ...gone, locked: true }, wctx).act, false);
 });
 
-test('decideLocal deletes an IN_MAIN branch that no remaining worktree has checked out', () => {
+test('decideLocal retains local branches even when their changes are in main', () => {
   const ctx = { mainBranch: 'main', removedWorktrees: new Set(['/repo/.worktrees/a']) };
   const local = (name: string, v: BranchVerdict, checkedOutIn: string[] = []) => ({ name, verdict: v, checkedOutIn });
-  assert.equal(decideLocal(local('feat/x', verdict('IN_MAIN')), ctx).act, true);
+  assert.equal(decideLocal(local('feat/x', verdict('IN_MAIN')), ctx).act, false);
   assert.equal(decideLocal(local('main', verdict('IN_MAIN')), ctx).act, false);
   assert.equal(decideLocal(local('feat/x', verdict('IN_MAIN'), ['/repo/.worktrees/b']), ctx).act, false);
-  // Its only worktree goes in the same run, so the branch can go too.
-  assert.equal(decideLocal(local('feat/x', verdict('IN_MAIN'), ['/repo/.worktrees/a']), ctx).act, true);
+  // Even when its only checkout is nominated, local deletion stays manual.
+  assert.equal(decideLocal(local('feat/x', verdict('IN_MAIN'), ['/repo/.worktrees/a']), ctx).act, false);
   assert.equal(decideLocal(local('feat/x', verdict('OPEN_PR', true)), ctx).act, false);
   assert.equal(decideLocal(local('feat/x', verdict('UNIQUE')), ctx).act, false);
 });
 
-test('isNoise accepts only regenerable entries', () => {
+test('isNoise does not discard changed files based on directory or bundle names', () => {
   const submodules = new Set(['brands/suse']);
   const noise = (code: string, p: string) => isNoise({ code, path: p }, submodules);
-  assert.equal(noise('??', 'node_modules'), true);
-  assert.equal(noise('??', 'engine/node_modules'), true);
-  assert.equal(noise('??', 'shells/web/public/info/docs.E2-5K81LvdRXRXyK.css'), true);
-  assert.equal(noise(' D', 'shells/web/public/info/docs.0zoAklZtW3jeg7pK.js'), true);
+  assert.equal(noise('??', 'node_modules'), false);
+  assert.equal(noise('??', 'engine/node_modules'), false);
+  assert.equal(noise('??', 'shells/web/public/info/docs.E2-5K81LvdRXRXyK.css'), false);
+  assert.equal(noise(' D', 'shells/web/public/info/docs.0zoAklZtW3jeg7pK.js'), false);
   // An absent, uninitialised submodule directory.
-  assert.equal(noise(' D', 'brands/suse'), true);
+  assert.equal(noise(' D', 'brands/suse'), false);
   // A moved submodule pointer, a staged submodule removal or ordinary work is never noise.
   assert.equal(noise(' M', 'brands/suse'), false);
   assert.equal(noise('D ', 'brands/suse'), false);
@@ -161,16 +161,31 @@ test('isNoise accepts only regenerable entries', () => {
   assert.equal(noise(' D', 'engine/src/runtime.ts'), false);
 });
 
-test('classifyIgnored separates notes, regenerable output and files to keep', () => {
+test('classifyIgnored keeps all ignored artifacts, including secrets in build directories', () => {
   for (const p of ['plans/', 'plans/notes.md']) assert.equal(classifyIgnored(p), 'notes', p);
   for (const p of [
     'node_modules/', 'packages/node-shell/node_modules/', 'dist/', 'packages/x/dist/', '.vercel/',
     'shells/web/public/info/index.html', 'shells/web/public/ort/', 'community/emoji-packs/noto-color.json.gz',
     'shells/tauri-desktop/src-tauri/target/', 'tsconfig.tsbuildinfo', '.DS_Store',
-  ]) assert.equal(classifyIgnored(p), 'regenerable', p);
+    'dist/.env', 'target/recovery.sql', '.cache/customer-assets.bin', '.vercel/.env.production.local',
+  ]) assert.equal(classifyIgnored(p), 'keep', p);
   for (const p of ['keys/', '.env', 'instance.json', 'secret.key', 'packs/oss-view/', 'debug.log', 'data/']) {
     assert.equal(classifyIgnored(p), 'keep', p);
   }
+});
+
+test('checkedCwds refuses failed, warning, timeout and malformed partial visibility', () => {
+  const partial = 'p100\nfcwd\nn/repo\n';
+  assert.deepEqual(checkedCwds({ status: 0, stdout: partial, stderr: '' }, 999), [{ pid: 100, path: '/repo' }]);
+  for (const result of [
+    { status: 1, stdout: partial, stderr: '' },
+    { status: -1, stdout: partial, stderr: 'Error: spawnSync lsof ETIMEDOUT' },
+    { status: 0, stdout: partial, stderr: 'WARNING: cannot stat process' },
+    { status: 0, stdout: `${partial}p200\n`, stderr: '' },
+    { status: 0, stdout: 'partial output', stderr: '' },
+    { status: 0, stdout: 'p100\nnrelative/path\n', stderr: '' },
+    { status: 0, stdout: '', stderr: '' },
+  ]) assert.equal(checkedCwds(result, 999), null);
 });
 
 test('parseStatusZ reads porcelain v1 -z, including a rename source field', () => {
@@ -197,6 +212,8 @@ test('parseWorktreePorcelain reads branches, detached heads, locks and missing w
   assert.equal(entries[1]?.locked, true);
   assert.equal(entries[2]?.branch, 'feat/gone');
   assert.equal(entries[2]?.prunable, true);
+  const unusual = '/repo/.worktrees/unicode é\nsecond line';
+  assert.equal(parseWorktreePorcelain(`worktree ${unusual}\0HEAD ${'1'.repeat(40)}\0detached\0\0`)[0]?.path, unusual);
 });
 
 test('parseLsofCwd and assignCwds give each process to the deepest worktree', () => {
@@ -240,6 +257,15 @@ test('parseGithubSlug reads SSH and HTTPS remotes', () => {
   assert.equal(parseGithubSlug('ssh://git@github.com/owner/repo.name.git'), 'owner/repo.name');
   assert.equal(parseGithubSlug('/srv/git/remote.git'), null);
   assert.equal(parseGithubSlug('https://gitlab.com/owner/repo.git'), null);
+  for (const url of [
+    'https://notgithub.com/lolly-tools/lolly.git',
+    'ssh://git@evilgithub.com/lolly-tools/lolly.git',
+    'https://github.com.evil.test/owner/repo',
+    'https://token@github.com/owner/repo',
+    'https://github.com/owner/repo?redirect=other',
+    'ssh://other@github.com/owner/repo',
+    'git@evilgithub.com:owner/repo.git',
+  ]) assert.equal(parseGithubSlug(url), null, url);
 });
 
 test('checkFindings reports too many branches and merged branches left on the remote', () => {

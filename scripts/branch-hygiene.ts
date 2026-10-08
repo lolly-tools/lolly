@@ -3,9 +3,9 @@
  * Branch and worktree hygiene for this repository, or any other checkout.
  *
  * Reports every remote branch, local branch and worktree against the remote's
- * main branch. With --prune it removes only what main already holds and nobody
- * is using, and it writes the sha of everything it removes to a log first, so
- * each action can be undone. Report-only is the default.
+ * main branch. --prune rechecks each eligible remote branch and clean worktree
+ * before acting and logs its sha first. Local branches, missing registrations
+ * and any worktree containing ignored files are kept. Report-only is the default.
  *
  *   node scripts/branch-hygiene.ts                        # this checkout
  *   node scripts/branch-hygiene.ts . ../lolly-work        # two repositories
@@ -19,29 +19,30 @@
  * touched.
  *
  * --prune deletes only:
- *  - remote branches that are IN_MAIN, have no open pull request and are not
+ *  - remote branches that are ancestors of pinned main, have no open PR and are not
  *    main or a protected branch (the push carries a lease on the sha seen, so a
  *    branch someone pushed to since is left alone);
- *  - worktrees that no process has as its working directory, whose index has
- *    not changed for --idle-minutes, that hold no uncommitted work apart from
- *    regenerable noise, no initialised submodule, no nested worktree and no
- *    ignored file outside the regenerable list, and whose HEAD is in main or on
- *    a remote branch that stays. Ignored plans/ notes move to
- *    plans/worktree-notes/<name>/ first;
- *  - local branches that are IN_MAIN and that no remaining worktree has checked
- *    out.
+ *  - worktrees with a successful fresh process check, an idle index, no
+ *    uncommitted or ignored files, no initialised submodule, no nested worktree,
+ *    no lock and a HEAD already in the pinned main commit. Removal never uses
+ *    --force. Directory names alone do not prove that files can be recreated.
+ *
+ * GitHub PR/protection checks and the branch sha lease are separate operations;
+ * they cannot make metadata changes on GitHub globally atomic. Coordinate with
+ * other agents before pruning. This tool does not transfer notes or delete local
+ * branches because those operations cannot preserve custody under concurrent use.
+ * Lock any worktree referenced by a deployment helper, recovery evidence or
+ * external configuration until those references have moved; process and Git
+ * checks cannot discover that use.
  */
 import { spawnSync } from 'node:child_process';
 import {
   appendFileSync,
-  cpSync,
   existsSync,
   lstatSync,
   mkdirSync,
   readdirSync,
   realpathSync,
-  renameSync,
-  rmSync,
   statSync,
 } from 'node:fs';
 import path from 'node:path';
@@ -97,6 +98,7 @@ export interface RemoteDecisionInput {
   name: string;
   verdict: BranchVerdict;
   protectedBranch: boolean;
+  ancestorOfMain: boolean;
 }
 
 export interface RemoteDecisionContext {
@@ -115,6 +117,7 @@ export function decideRemote(branch: RemoteDecisionInput, ctx: RemoteDecisionCon
   }
   if (branch.verdict.status === 'OPEN_PR') return { act: false, why: 'open pull request' };
   if (branch.verdict.status !== 'IN_MAIN') return { act: false, why: 'has changes that are not in main' };
+  if (!branch.ancestorOfMain) return { act: false, why: 'equivalent changes; unique history needs manual archival' };
   if (branch.protectedBranch) return { act: false, why: 'protected branch' };
   if (!ctx.prsKnown) return { act: false, why: 'open pull requests could not be read' };
   if (!ctx.refsFresh) return { act: false, why: 'fetch failed, remote refs may be stale' };
@@ -134,13 +137,14 @@ export interface WorktreeFacts {
   cwdPids: readonly number[] | null;
   /** Minutes since the worktree's index last changed; null when unknown. */
   indexAgeMinutes: number | null;
-  /** Uncommitted paths that are not regenerable noise. */
+  /** Every uncommitted path; names do not prove disposable build output. */
   dirty: readonly string[];
-  /** Ignored paths that are neither regenerable nor plans/ notes; null until scanned. */
+  /** Every ignored path, including notes and build directories; null until scanned. */
   ignoredKeep: readonly string[] | null;
   submoduleInitialised: boolean;
   /** Another registered worktree lives inside this one. */
   containsWorktree: boolean;
+  /** HEAD is an ancestor of the pinned main commit, preserving its history. */
   headInMain: boolean;
   /** Remote branches (short names) whose history contains HEAD. */
   headOnRemote: readonly string[];
@@ -148,20 +152,15 @@ export interface WorktreeFacts {
 
 export interface WorktreeDecisionContext {
   idleMinutes: number;
-  /** Remote branches this run deletes; they do not count as a safe home for HEAD. */
+  /** Retained report context; remote homes never authorize worktree removal. */
   prunedRemotes: ReadonlySet<string>;
 }
 
 export function decideWorktree(w: WorktreeFacts, ctx: WorktreeDecisionContext): Decision {
   if (w.isMain) return { act: false, why: 'main checkout' };
   if (w.locked) return { act: false, why: 'locked' };
-  const remoteHome = w.headOnRemote.filter((name) => !ctx.prunedRemotes.has(name));
-  const headSafe = w.headInMain || remoteHome.length > 0;
   if (w.missing) {
-    // Only the administrative entry is left. A branch ref keeps the commits;
-    // a detached HEAD that is nowhere else would become unreachable.
-    if (w.branch !== null || headSafe) return { act: true, why: 'directory is gone' };
-    return { act: false, why: 'directory is gone, but its detached HEAD is not in main or on a remote branch' };
+    return { act: false, why: 'missing registration; inspect and prune by hand' };
   }
   if (w.cwdPids === null) return { act: false, why: 'could not check for processes using it' };
   if (w.cwdPids.length) return { act: false, why: `in use (pid ${w.cwdPids.join(', ')})` };
@@ -170,14 +169,14 @@ export function decideWorktree(w: WorktreeFacts, ctx: WorktreeDecisionContext): 
   if (w.containsWorktree) return { act: false, why: 'another worktree lives inside it' };
   if (w.submoduleInitialised) return { act: false, why: 'has an initialised submodule' };
   if (w.dirty.length) return { act: false, why: `${w.dirty.length} uncommitted file${w.dirty.length === 1 ? '' : 's'}` };
-  if (!headSafe) return { act: false, why: 'HEAD is not in main or on a remote branch' };
+  if (!w.headInMain) return { act: false, why: 'HEAD is not in pinned main' };
   if (w.ignoredKeep === null) return { act: false, why: 'ignored files not scanned' };
   if (w.ignoredKeep.length) {
     const shown = w.ignoredKeep.slice(0, 3).join(', ');
     const more = w.ignoredKeep.length > 3 ? ` and ${w.ignoredKeep.length - 3} more` : '';
     return { act: false, why: `ignored files to check by hand: ${shown}${more}` };
   }
-  return { act: true, why: w.headInMain ? 'idle, clean, HEAD in main' : `idle, clean, HEAD on ${remoteHome[0]}` };
+  return { act: true, why: 'idle, clean, HEAD in main' };
 }
 
 export interface LocalDecisionInput {
@@ -199,14 +198,9 @@ export function decideLocal(branch: LocalDecisionInput, ctx: LocalDecisionContex
   if (users.length) return { act: false, why: `checked out in ${users.join(', ')}` };
   if (branch.verdict.status === 'OPEN_PR') return { act: false, why: 'open pull request' };
   if (branch.verdict.status !== 'IN_MAIN') return { act: false, why: 'has changes that are not in main' };
-  return { act: true, why: 'in main, not checked out' };
+  return { act: false, why: 'in main; delete by hand with checkout and ref guards' };
 }
 
-/** Uncommitted entries that a build or install recreates: node_modules links and hashed docs bundles. */
-export const NOISE_PATTERNS: readonly RegExp[] = [
-  /(?:^|\/)node_modules(?:\/|$)/,
-  /^shells\/web\/public\/info\/docs\.[\w-]+\.(?:js|css)$/,
-];
 
 export interface StatusEntry {
   /** The two-letter porcelain v1 code, for example ' M', '??' or '!!'. */
@@ -215,32 +209,18 @@ export interface StatusEntry {
 }
 
 /**
- * Noise is safe to lose with the worktree. A deleted gitlink (' D' on a
- * submodule path) means the submodule directory is absent, which loses nothing
- * by itself; an initialised submodule is refused separately.
+ * A path name cannot prove that a changed file is safe to discard. Cache
+ * cleanup is separate from worktree removal, which requires a clean status.
  */
-export function isNoise(entry: StatusEntry, submodulePaths: ReadonlySet<string>): boolean {
-  const p = entry.path.replace(/\/$/, '');
-  if (NOISE_PATTERNS.some((re) => re.test(p))) return true;
-  return entry.code === ' D' && submodulePaths.has(p);
+export function isNoise(_entry: StatusEntry, _submodulePaths: ReadonlySet<string>): boolean {
+  return false;
 }
-
-/** Ignored paths that are build output, caches or downloads and may go with the worktree. */
-export const REGENERABLE_IGNORED: readonly RegExp[] = [
-  /(?:^|\/)node_modules(?:\/|$)/,
-  /(?:^|\/)(?:dist|target|coverage|\.vite|\.vite-temp|\.turbo|\.cache|\.vercel)(?:\/|$)/,
-  /^shells\/web\/public\/(?:info|t|view|ort|ort-hf|viz-presets|models|examples)(?:\/|$)/,
-  /^community\/emoji-packs\/[^/]+\.json\.gz$/,
-  /(?:^|\/)\.DS_Store$/,
-  /\.tsbuildinfo$/,
-];
 
 export type IgnoredKind = 'regenerable' | 'notes' | 'keep';
 
 export function classifyIgnored(entryPath: string): IgnoredKind {
   const p = entryPath.replace(/\/$/, '');
   if (p === 'plans' || p.startsWith('plans/')) return 'notes';
-  if (REGENERABLE_IGNORED.some((re) => re.test(p))) return 'regenerable';
   return 'keep';
 }
 
@@ -271,7 +251,7 @@ export interface WorktreeEntry {
 export function parseWorktreePorcelain(text: string): WorktreeEntry[] {
   const entries: WorktreeEntry[] = [];
   let current: WorktreeEntry | null = null;
-  for (const line of text.split('\n')) {
+  for (const line of text.split(text.includes('\0') ? '\0' : '\n')) {
     if (line.startsWith('worktree ')) {
       current = { path: line.slice(9), head: '', branch: null, locked: false, prunable: false, bare: false };
       entries.push(current);
@@ -347,7 +327,23 @@ export function branchNameWarning(name: string): string | null {
 
 /** owner/repo for a GitHub remote URL, or null for any other host. */
 export function parseGithubSlug(url: string): string | null {
-  const match = url.trim().match(/github\.com[:/]+([\w.-]+)\/([\w.-]+?)(?:\.git)?\/?$/);
+  const raw = url.trim();
+  const scp = raw.match(/^git@github\.com:([^?#]+)$/);
+  let pathname: string;
+  if (scp) pathname = scp[1]!;
+  else {
+    try {
+      const parsed = new URL(raw);
+      if (parsed.hostname !== 'github.com' || parsed.search || parsed.hash || parsed.password) return null;
+      if (parsed.protocol === 'https:') {
+        if (parsed.username || (parsed.port && parsed.port !== '443')) return null;
+      } else if (parsed.protocol === 'ssh:') {
+        if (parsed.username !== 'git' || (parsed.port && parsed.port !== '22')) return null;
+      } else return null;
+      pathname = parsed.pathname.replace(/^\//, '');
+    } catch { return null; }
+  }
+  const match = pathname.match(/^([\w.-]+)\/([\w.-]+?)(?:\.git)?\/?$/);
   return match ? `${match[1]}/${match[2]}` : null;
 }
 
@@ -443,7 +439,7 @@ export function parseArgs(argv: readonly string[]): Options {
 // Git and process helpers
 // ---------------------------------------------------------------------------
 
-interface RunResult {
+export interface RunResult {
   status: number;
   stdout: string;
   stderr: string;
@@ -484,9 +480,29 @@ function canonical(p: string): string {
 }
 
 function listCwds(): CwdEntry[] | null {
-  const result = run('lsof', ['-n', '-P', '-w', '-d', 'cwd', '-F', 'pn'], '/', 60_000);
-  if (!result.stdout.trim()) return null;
-  return parseLsofCwd(result.stdout).filter((entry) => entry.pid !== process.pid);
+  const result = run('lsof', ['-n', '-P', '-d', 'cwd', '-F', 'pn'], '/', 60_000);
+  const entries = checkedCwds(result, process.pid);
+  return entries?.map((entry) => ({ ...entry, path: canonical(entry.path) })) ?? null;
+}
+
+/** Reject partial, failed or malformed process visibility, including warning-only output. */
+export function checkedCwds(result: RunResult, ownPid: number): CwdEntry[] | null {
+  if (result.status !== 0 || result.stderr.trim() || !result.stdout.trim()) return null;
+  let pid = 0;
+  let hasPath = false;
+  for (const line of result.stdout.split('\n')) {
+    if (!line) continue;
+    if (/^p[1-9]\d*$/.test(line)) {
+      if (pid && !hasPath) return null;
+      pid = Number(line.slice(1));
+      if (!Number.isSafeInteger(pid)) return null;
+      hasPath = false;
+    } else if (line === 'fcwd' && pid && !hasPath) continue;
+    else if (line.startsWith('n/') && pid && !hasPath) hasPath = true;
+    else return null;
+  }
+  if (!pid || !hasPath) return null;
+  return parseLsofCwd(result.stdout).filter((entry) => entry.pid !== ownPid);
 }
 
 function gh(args: readonly string[], cwd: string): string | null {
@@ -504,6 +520,7 @@ export interface RemoteBranch {
   date: string;
   verdict: BranchVerdict;
   protectedBranch: boolean;
+  ancestorOfMain: boolean;
   warning: string | null;
   decision: Decision;
 }
@@ -561,7 +578,10 @@ class Classifier {
   facts(sha: string): { ahead: number; mergedTree: string | null } {
     const cached = this.cache.get(sha);
     if (cached) return cached;
-    const ahead = Number(git(this.root, ['rev-list', '--count', `${this.mainRef}..${sha}`]).trim());
+    const count = git(this.root, ['rev-list', '--count', `${this.mainRef}..${sha}`]).trim();
+    if (!/^\d+$/.test(count)) throw new Error('git revision count is invalid');
+    const ahead = Number(count);
+    if (!Number.isSafeInteger(ahead)) throw new Error('git revision count is too large');
     let mergedTree: string | null = null;
     if (ahead > 0) {
       const merge = run('git', ['merge-tree', '--write-tree', '--no-messages', this.mainRef, sha], this.root);
@@ -595,6 +615,9 @@ function openPullRequests(slug: string | null, cwd: string): Map<string, number[
     // A full page may have left some pull requests out, so treat the list as unknown.
     if (!Array.isArray(list) || list.length >= limit) return null;
     for (const pr of list) {
+      if (!pr || !Number.isSafeInteger(pr.number) || pr.number <= 0
+        || typeof pr.headRefName !== 'string' || !pr.headRefName
+        || typeof pr.baseRefName !== 'string' || !pr.baseRefName) return null;
       add(pr.headRefName, pr.number);
       add(pr.baseRefName, pr.number);
     }
@@ -606,8 +629,18 @@ function openPullRequests(slug: string | null, cwd: string): Map<string, number[
 
 function protectedBranches(slug: string | null, cwd: string): Set<string> | null {
   if (!slug) return null;
-  const out = gh(['api', '--paginate', `repos/${slug}/branches?protected=true&per_page=100`, '--jq', '.[].name'], cwd);
-  return out === null ? null : new Set(out.split('\n').filter(Boolean));
+  const out = gh(['api', '--paginate', '--slurp', `repos/${slug}/branches?protected=true&per_page=100`], cwd);
+  if (out === null) return null;
+  try {
+    const pages: unknown = JSON.parse(out);
+    if (!Array.isArray(pages) || !pages.length || pages.some((page) => !Array.isArray(page))) return null;
+    const names = new Set<string>();
+    for (const page of pages) for (const branch of page) {
+      if (!branch || typeof branch.name !== 'string' || !branch.name || branch.protected !== true) return null;
+      names.add(branch.name);
+    }
+    return names;
+  } catch { return null; }
 }
 
 function remoteContaining(root: string, remote: string, sha: string): string[] {
@@ -624,7 +657,7 @@ function submodulePaths(dir: string): Set<string> {
 }
 
 function statusEntries(dir: string, ignored: boolean): StatusEntry[] {
-  const args = ['status', '--porcelain=v1', '-z', '--untracked-files=normal'];
+  const args = ['status', '--porcelain=v1', '-z', '--untracked-files=all'];
   if (ignored) args.push('--ignored=matching');
   return parseStatusZ(git(dir, args));
 }
@@ -655,14 +688,14 @@ export function collectRepo(target: string, options: Options): RepoReport {
   const start = canonical(path.resolve(target));
   const top = git(start, ['rev-parse', '--show-toplevel']).trim();
   const commonDir = canonical(git(top, ['rev-parse', '--path-format=absolute', '--git-common-dir']).trim());
-  const entries = parseWorktreePorcelain(git(top, ['worktree', 'list', '--porcelain']));
+  const entries = parseWorktreePorcelain(git(top, ['worktree', 'list', '--porcelain', '-z']));
   const root = canonical(entries[0]?.path ?? top);
   const remote = options.remote;
   const warnings: string[] = [];
 
   let fetched = false;
   if (options.fetch) {
-    const fetch = run('git', ['fetch', '--prune', '--quiet', '--no-recurse-submodules', remote], root);
+    const fetch = run('git', ['fetch', '--no-prune', '--quiet', '--no-recurse-submodules', remote], root);
     fetched = fetch.status === 0;
     if (!fetched) warnings.push(`git fetch ${remote} failed: ${fetch.stderr.trim().split('\n')[0] ?? ''}`);
   }
@@ -670,7 +703,7 @@ export function collectRepo(target: string, options: Options): RepoReport {
   const mainBranch = options.main ?? (remoteHead ? remoteHead.slice(remote.length + 1) : 'main');
   const mainRef = `refs/remotes/${remote}/${mainBranch}`;
   const mainSha = git(root, ['rev-parse', mainRef]).trim();
-  const classifier = new Classifier(root, mainRef, git(root, ['rev-parse', `${mainRef}^{tree}`]).trim());
+  const classifier = new Classifier(root, mainSha, git(root, ['rev-parse', `${mainSha}^{tree}`]).trim());
   const remoteUrl = run('git', ['remote', 'get-url', remote], root).stdout.trim();
   const slug = parseGithubSlug(remoteUrl);
   const prs = openPullRequests(slug, root);
@@ -678,7 +711,7 @@ export function collectRepo(target: string, options: Options): RepoReport {
   if (!prsKnown) warnings.push('open pull requests could not be read (gh missing, offline, or not a GitHub remote); remote branches are kept');
   const guarded = protectedBranches(slug, root);
   const protectionKnown = guarded !== null;
-  const refsFresh = fetched || !options.fetch;
+  const refsFresh = fetched;
 
   const remoteRefs = git(root, ['for-each-ref', '--format=%(refname)%09%(objectname)%09%(committerdate:short)', `refs/remotes/${remote}/`]);
   const remoteBranches: RemoteBranch[] = [];
@@ -687,9 +720,10 @@ export function collectRepo(target: string, options: Options): RepoReport {
     const name = ref.slice(`refs/remotes/${remote}/`.length);
     if (name === 'HEAD') continue;
     const verdict = classifier.verdict(name, sha, name === mainBranch, prs?.get(name) ?? []);
+    const ancestorOfMain = classifier.facts(sha).ahead === 0;
     const protectedBranch = guarded?.has(name) ?? false;
-    const decision = decideRemote({ name, verdict, protectedBranch }, { mainBranch, prsKnown, refsFresh, protectionKnown });
-    remoteBranches.push({ name, sha, date, verdict, protectedBranch, warning: branchNameWarning(name), decision });
+    const decision = decideRemote({ name, verdict, protectedBranch, ancestorOfMain }, { mainBranch, prsKnown, refsFresh, protectionKnown });
+    remoteBranches.push({ name, sha, date, verdict, protectedBranch, ancestorOfMain, warning: branchNameWarning(name), decision });
   }
   const prunedRemotes = new Set(remoteBranches.filter((b) => b.decision.act).map((b) => b.name));
 
@@ -760,7 +794,7 @@ function collectWorktrees(
       }
     }
     const head = entry.head;
-    const headInMain = head ? classifier.verdict(entry.branch ?? head, head, false, []).inMain : false;
+    const headInMain = head ? classifier.facts(head).ahead === 0 : false;
     const facts: WorktreeFacts = {
       path: wtPath,
       isMain,
@@ -787,7 +821,7 @@ function collectWorktrees(
           if (status.code !== '!!') continue;
           const kind = classifyIgnored(status.path);
           if (kind === 'notes') notes.push(status.path);
-          else if (kind === 'keep') keep.push(status.path);
+          keep.push(status.path);
         }
       } catch {
         keep.push('(git status --ignored failed)');
@@ -831,54 +865,72 @@ class ActionLog {
   }
 }
 
-function moveNotes(worktree: Worktree, log: ActionLog): boolean {
-  for (const rel of worktree.notes) {
-    const src = path.join(worktree.path, rel.replace(/\/$/, ''));
-    if (!existsSync(src) || lstatSync(src).isSymbolicLink()) continue;
-    let dst = path.join(log.notesRoot, path.basename(worktree.path), rel.replace(/\/$/, ''));
-    if (existsSync(dst)) dst = `${dst}-${stamp()}`;
-    mkdirSync(path.dirname(dst), { recursive: true });
-    try {
-      renameSync(src, dst);
-    } catch {
-      try {
-        cpSync(src, dst, { recursive: true, verbatimSymlinks: true });
-        rmSync(src, { recursive: true, force: true });
-      } catch (error) {
-        log.write(`notes-move-failed ${src}: ${String(error)}; worktree kept`);
-        return false;
-      }
-    }
-    log.write(`notes-moved ${src} -> ${dst}`);
+/** A complete authoritative branch read; never substitute remote-tracking refs. */
+function liveRemoteRefs(report: RepoReport, names: readonly string[]): Map<string, string> | null {
+  const out = run('git', ['ls-remote', '--exit-code', report.remote, ...names.map((n) => `refs/heads/${n}`)], report.root);
+  if (out.status !== 0 || out.stderr.trim()) return null;
+  const refs = new Map<string, string>();
+  for (const line of out.stdout.split('\n').filter(Boolean)) {
+    const match = line.match(/^([a-f0-9]{40,64})\trefs\/heads\/(.+)$/);
+    if (!match || !names.includes(match[2]!) || refs.has(match[2]!)) return null;
+    refs.set(match[2]!, match[1]!);
   }
-  return true;
+  return names.every((name) => refs.has(name)) ? refs : null;
 }
 
-/** Re-read the facts that could have changed since the report; a reason means skip. */
-function recheckWorktree(worktree: Worktree, cwds: CwdEntry[] | null): string | null {
+/** Re-read PR heads/bases, protection and both exact live refs before each leased push. */
+function recheckRemote(report: RepoReport, branch: RemoteBranch): string | null {
+  const url = run('git', ['remote', 'get-url', report.remote], report.root);
+  if (url.status !== 0 || !report.slug || parseGithubSlug(url.stdout) !== report.slug) return 'remote identity changed or is unknown';
+  const push = run('git', ['remote', 'get-url', '--push', '--all', report.remote], report.root);
+  const pushUrls = push.stdout.trim().split('\n');
+  if (push.status !== 0 || push.stderr.trim() || pushUrls.length !== 1 || parseGithubSlug(pushUrls[0]!) !== report.slug) return 'push destination differs or is unknown';
+  const prs = openPullRequests(report.slug, report.root);
+  if (prs === null) return 'open pull requests could not be read';
+  if (prs.has(branch.name)) return 'now used by an open pull request';
+  const protectedNames = protectedBranches(report.slug, report.root);
+  if (protectedNames === null) return 'branch protection could not be read';
+  if (protectedNames.has(branch.name)) return 'now protected';
+  const refs = liveRemoteRefs(report, [report.mainBranch, branch.name]);
+  if (!refs || refs.get(report.mainBranch) !== report.mainSha) return 'live main changed or could not be read';
+  if (refs.get(branch.name) !== branch.sha) return 'remote branch moved or disappeared';
+  const classifier = new Classifier(report.root, report.mainSha, git(report.root, ['rev-parse', `${report.mainSha}^{tree}`]).trim());
+  const verdict = classifier.verdict(branch.name, branch.sha, branch.name === report.mainBranch, []);
+  const decision = decideRemote({ name: branch.name, verdict, protectedBranch: false, ancestorOfMain: classifier.facts(branch.sha).ahead === 0 }, {
+    mainBranch: report.mainBranch, prsKnown: true, refsFresh: true, protectionKnown: true,
+  });
+  return decision.act ? null : decision.why;
+}
+
+/** Fresh registration, custody and process reads are repeated for each candidate. */
+function recheckWorktree(worktree: Worktree, report: RepoReport): string | null {
   if (!existsSync(worktree.path)) return 'directory vanished';
-  if (cwds === null) return 'could not check for processes using it';
-  const owners = assignCwds([worktree.path], cwds).get(worktree.path) ?? [];
-  if (owners.length) return `now in use (pid ${owners.join(', ')})`;
+  if (lstatSync(worktree.path).isSymbolicLink()) return 'worktree path is a symlink';
+  const entries = parseWorktreePorcelain(git(report.root, ['worktree', 'list', '--porcelain', '-z']));
+  const current = entries.find((entry) => canonical(entry.path) === worktree.path);
+  if (!current || canonical(entries[0]?.path ?? '') === worktree.path) return 'registration changed or is main';
+  if (current.locked || current.bare || current.prunable) return 'registration is locked, bare or prunable';
+  if (current.head !== worktree.head || current.branch !== worktree.branch) return 'registration HEAD or branch changed';
+  if (entries.some((entry) => canonical(entry.path).startsWith(`${worktree.path}/`))) return 'another worktree now lives inside it';
+  const refs = liveRemoteRefs(report, [report.mainBranch]);
+  if (!refs || refs.get(report.mainBranch) !== report.mainSha) return 'live main changed or could not be read';
+  const classifier = new Classifier(report.root, report.mainSha, git(report.root, ['rev-parse', `${report.mainSha}^{tree}`]).trim());
+  if (classifier.facts(worktree.head).ahead !== 0) return 'HEAD is not an ancestor of pinned main';
   const head = run('git', ['rev-parse', 'HEAD'], worktree.path).stdout.trim();
   if (head !== worktree.head) return 'HEAD moved';
   if (indexMtime(gitDirOf(worktree.path)) !== worktree.indexMtimeMs) return 'index changed';
   try {
     const submodules = submodulePaths(worktree.path);
     if (hasInitialisedSubmodule(worktree.path, gitDirOf(worktree.path), submodules)) return 'a submodule was initialised';
-    const status = statusEntries(worktree.path, false);
-    const dirty = status.filter((s) => !isNoise(s, submodules));
-    if (dirty.length) return `${dirty.length} uncommitted files appeared`;
-    const ignored = statusEntries(worktree.path, true).filter((s) => s.code === '!!');
-    const keep = ignored.filter((s) => classifyIgnored(s.path) === 'keep');
-    if (keep.length) return `ignored files to check by hand appeared: ${keep.map((s) => s.path).join(', ')}`;
-    // Refresh what the removal acts on: --force only for noise, and every current plans/ note moves.
-    worktree.noise = status.length;
-    worktree.notes = ignored.filter((s) => classifyIgnored(s.path) === 'notes').map((s) => s.path);
+    const status = statusEntries(worktree.path, true);
+    if (status.length) return `${status.length} uncommitted or ignored paths appeared`;
   } catch (error) {
     return `git status failed: ${(error as Error).message}`;
   }
-  return null;
+  const cwds = listCwds();
+  if (cwds === null) return 'could not check for processes using it';
+  const owners = assignCwds([worktree.path], cwds).get(worktree.path) ?? [];
+  return owners.length ? `now in use (pid ${owners.join(', ')})` : null;
 }
 
 export function prune(report: RepoReport): void {
@@ -886,51 +938,38 @@ export function prune(report: RepoReport): void {
   console.log(`\nPruning ${report.root} (log: ${log.file})`);
 
   for (const b of report.remoteBranches.filter((x) => x.decision.act)) {
+    let reason: string | null;
+    try { reason = recheckRemote(report, b); }
+    catch { reason = 'fresh remote checks failed'; }
+    if (reason) {
+      console.log(`  skipped remote ${b.name}: ${reason}`);
+      continue;
+    }
     log.write(`remote-branch ${report.remote}/${b.name} ${b.sha} restore: git push ${report.remote} ${b.sha}:refs/heads/${b.name}`);
     // The lease refuses the delete if the branch moved since the fetch. --no-verify:
     // a delete carries no content for the pre-push wording gate to read.
     const push = run('git', ['push', '--no-verify', '--quiet', `--force-with-lease=refs/heads/${b.name}:${b.sha}`, report.remote, `:refs/heads/${b.name}`], report.root);
-    log.write(push.status === 0 ? `  deleted ${report.remote}/${b.name}` : `  FAILED ${report.remote}/${b.name}: ${push.stderr.trim()}`);
+    log.write(push.status === 0 ? `  deleted ${report.remote}/${b.name}` : `  UNCONFIRMED ${report.remote}/${b.name}: ${push.stderr.trim()}; inspect before retrying`);
   }
 
   const worktrees = report.worktrees ?? [];
-  const missing = worktrees.filter((w) => w.missing && !w.locked && !w.isMain);
-  if (missing.length && missing.every((w) => w.decision.act)) {
-    for (const w of missing) log.write(`worktree-entry ${w.path} ${w.head} ${w.branch ?? '(detached)'} restore: git worktree add ${w.path} ${w.branch ?? w.head}`);
-    const result = run('git', ['worktree', 'prune'], report.root);
-    log.write(result.status === 0 ? '  pruned entries for missing worktrees' : `  FAILED git worktree prune: ${result.stderr.trim()}`);
-  } else if (missing.some((w) => w.decision.act)) {
-    console.log('  skipped missing-worktree entries: another missing worktree holds the only reference to its HEAD');
-  }
+  if (worktrees.some((w) => w.missing)) console.log('  kept missing-worktree registrations for manual review');
 
   const candidates = worktrees.filter((w) => w.decision.act && !w.missing);
-  const cwds = candidates.length ? listCwds() : null;
   for (const w of candidates) {
-    const reason = recheckWorktree(w, cwds);
+    let reason: string | null;
+    try { reason = recheckWorktree(w, report); }
+    catch { reason = 'fresh worktree checks failed'; }
     if (reason) {
       console.log(`  skipped worktree ${w.path}: ${reason}`);
       continue;
     }
     log.write(`worktree ${w.path} ${w.head} ${w.branch ?? '(detached)'} restore: git worktree add ${w.path} ${w.branch ?? w.head}`);
-    if (!moveNotes(w, log)) continue;
-    const args = ['worktree', 'remove'];
-    if (w.noise > 0) args.push('--force');
-    args.push(w.path);
-    const result = run('git', args, report.root);
+    const result = run('git', ['worktree', 'remove', w.path], report.root);
     log.write(result.status === 0 ? `  removed ${w.path}` : `  FAILED ${w.path}: ${result.stderr.trim()}`);
   }
 
-  for (const b of (report.localBranches ?? []).filter((x) => x.decision.act)) {
-    const now = run('git', ['rev-parse', '--verify', '--quiet', `refs/heads/${b.name}`], report.root).stdout.trim();
-    if (now !== b.sha) {
-      console.log(`  skipped local ${b.name}: moved since the report`);
-      continue;
-    }
-    log.write(`local-branch ${b.name} ${b.sha} restore: git branch ${b.name} ${b.sha}`);
-    // git refuses to delete a branch that any worktree still has checked out.
-    const result = run('git', ['branch', '-D', b.name], report.root);
-    log.write(result.status === 0 ? `  deleted ${b.name}` : `  FAILED ${b.name}: ${result.stderr.trim()}`);
-  }
+  if ((report.localBranches ?? []).length) console.log('  kept local branches for manual checkout and ref checks');
 }
 
 // ---------------------------------------------------------------------------
