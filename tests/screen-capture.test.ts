@@ -526,6 +526,7 @@ test('ENGINE_VERSION is 1.246.0', () => {
   // 1.242.0 adds openWith intents and 1.243.0 the forensic heat view and AI-signal
   // lexicon 8; capture is unchanged.
   // 1.244.0 reads Photoshop documents as a Rebrand source; capture is unchanged.
+  // 1.245.0 adds Adobe interchange, which is additive; capture is unchanged.
   // 1.246.0 adds portable geometry maths and Design drawing operations (plan 295);
   // capture is unchanged.
   assert.equal(ENGINE_VERSION, '1.246.0');

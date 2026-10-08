@@ -20,14 +20,18 @@ export function projectAssetHref(projectId: string, fileId: string): string {
   return `#/p?team=${encodeURIComponent(projectId)}&asset=${encodeURIComponent(fileId)}`;
 }
 
-export function teamAssetTiles(projectId: string, files: readonly TeamFile[], folderId?: string | null): string {
-  return files.map(file => imageTile({ id: file.id,
-    ...(file.contentType.startsWith('image/') ? { url: projectFileUrl(projectId, file.id) } : {}),
-    format: typeof file.asset.format === 'string' ? file.asset.format : file.name.split('.').at(-1),
-    meta: { name: file.name } }, {
-    sub: `${tRaw('Shared asset')} · ${fmtBytes(file.size)}`,
-    shared: { href: projectAssetHref(projectId, file.id) + (folderId ? `&folder=${encodeURIComponent(folderId)}` : ''), openLabel: tRaw('Open shared asset {name}', { name: file.name }) },
-  })).join('');
+/** `placeOf` gives a search result its own folder (for the Back link) and where it lives. */
+export function teamAssetTiles(projectId: string, files: readonly TeamFile[], folderId?: string | null, placeOf?: (file: TeamFile) => { folderId: string | null; label: string } | null): string {
+  return files.map(file => {
+    const place = placeOf?.(file), home = place ? place.folderId : folderId;
+    return imageTile({ id: file.id,
+      ...(file.contentType.startsWith('image/') ? { url: projectFileUrl(projectId, file.id) } : {}),
+      format: typeof file.asset.format === 'string' ? file.asset.format : file.name.split('.').at(-1),
+      meta: { name: file.name } }, {
+      sub: [tRaw('Shared asset'), fmtBytes(file.size), place?.label].filter(Boolean).join(' · '),
+      shared: { href: projectAssetHref(projectId, file.id) + (home ? `&folder=${encodeURIComponent(home)}` : ''), openLabel: tRaw('Open shared asset {name}', { name: file.name }) },
+    });
+  }).join('');
 }
 
 export function buildProjectAsset(projectId: string, file: TeamFile, folderId?: string | null, preview?: ProjectAssetPageOptions['preview']): ProjectAssetPage {

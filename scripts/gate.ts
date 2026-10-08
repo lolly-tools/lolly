@@ -44,6 +44,7 @@
  */
 
 import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { closeSync, openSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -56,7 +57,10 @@ import { shipProfiles } from './lib/ship-targets.ts';
 const ROOT = repoRoot();
 
 /** Where a failed gate leaves the test output, so the failure can be read once. */
-export const GATE_TEST_LOG = join(tmpdir(), 'lolly-gate-test.log');
+export const GATE_TEST_LOG = process.env.LOLLY_GATE_TEST_LOG || join(
+  tmpdir(),
+  `lolly-gate-test-${createHash('sha256').update(ROOT).digest('hex').slice(0, 12)}-${process.pid}.log`,
+);
 
 /**
  * Run a package script, inheriting stdio. True when it exited 0.
@@ -115,6 +119,7 @@ export function gate(): boolean {
   ok('typecheck passed');
 
   step('running the test suite');
+  info(`test output: ${GATE_TEST_LOG}`);
   if (!pnpmRunLogged('test')) {
     err(`tests failed - see ${GATE_TEST_LOG} (or re-run: pnpm test)`);
     return false;

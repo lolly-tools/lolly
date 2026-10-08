@@ -972,6 +972,8 @@ function rootSvgOf(node: Element | null): Element | null {
         });
       }
       if (format === 'lottie') return (await import('../../../engine/src/design-lottie.ts')).exportDesignLottie(opts, host);
+      if (format === 'idml') return (await import('../../../engine/src/design-idml.ts')).exportDesignIdml(opts, host);
+      if (format === 'premiere-xml') return (await import('../../../engine/src/design-premiere.ts')).exportDesignPremiere(opts, host);
       // Strip the markers annotateTemplate leaves (plans/222) so every deliverable is
       // clean: data-canvas-input is web-edit-only, data-lolly-paint an intermediate,
       // and a data-lolly-bind is meaningful ONLY to the penpot export - kept there so

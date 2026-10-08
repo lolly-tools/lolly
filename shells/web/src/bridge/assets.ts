@@ -177,6 +177,9 @@ interface AssetRefSource {
   height?: number;
   meta?: Record<string, unknown>;
   cacheKey?: string;
+  /** This ref is a photo look's bake, not the stored upload, so the upload's
+   *  byte length is not stamped on it (see withUploadBytes). */
+  baked?: boolean;
 }
 
 /** One readwrite transaction over a single store. */
@@ -410,11 +413,11 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       const themeKey = photoLookThemeKey(def, opts.tokenSelection);
       const cacheKey = photoLookCacheKey(baseId, rec.version ?? 'x', def, themeKey) + (def.kind === 'lut' ? `:${LUT_GPU_RECIPE}` : '');
       const meta = { ...rec.meta, treatment, baseId, ...(def.kind === 'lut' ? { lookRecipe: LUT_GPU_RECIPE } : {}), ...(themeKey !== 'base' ? { lookTheme: themeKey } : {}) };
-      if (OBJECT_URL_CACHE.has(cacheKey)) return toAssetRef({ ...rec, id, cacheKey, meta, format: OBJECT_URL_FORMAT.get(cacheKey) ?? rec.format }, 'user');
+      if (OBJECT_URL_CACHE.has(cacheKey)) return toAssetRef({ ...rec, id, cacheKey, baked: true, meta, format: OBJECT_URL_FORMAT.get(cacheKey) ?? rec.format }, 'user');
       try {
         const baked = await bakeLook(cacheKey, rec.blob, def, themeKey);
         OBJECT_URL_FORMAT.set(cacheKey, bakedFormat(baked));
-        return await toAssetRef({ ...rec, id, blob: baked, format: bakedFormat(baked), cacheKey, meta }, 'user');
+        return await toAssetRef({ ...rec, id, blob: baked, format: bakedFormat(baked), cacheKey, baked: true, meta }, 'user');
       } catch (error) {
         if (def.kind === 'lut') throw error;
         console.warn(`[assets] photo look ${treatment} was not applied to ${baseId}:`, error);
@@ -524,10 +527,8 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       // durationMs is authored on the FORMAT entry (beside width/height) but
       // read from ref.meta, so it has to be lifted here. Otherwise a catalog
       // clip's authored length is invisible to the picker badge and the
-      // timeline. Same "finite and positive or absent" rule the upload path
-      // applies; never a 0 placeholder.
-      const durationMs = typeof format.durationMs === 'number' && Number.isFinite(format.durationMs) && format.durationMs > 0
-        ? format.durationMs : undefined;
+      // timeline.
+      const durationMs = authoredDurationMs(format);
       const refMeta = {
         ...withoutReservedMeta(meta.meta),
         name: meta.name,
@@ -755,6 +756,9 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
         // the json separately for a looping motion preview
         // (catalog/picker). Video needs none: its directUrl is the clip.
         const animationUrl = m.type === 'lottie' ? (m.formats.find(f => f.format === 'json')?.url ?? '') : '';
+        // The primary format's authored length, lifted as get() lifts it, so a
+        // listing can show and sort by a clip's duration without resolving the clip.
+        const durationMs = primary ? authoredDurationMs(primary) : undefined;
         return {
           source: 'library',
           id: m.id,
@@ -784,6 +788,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
             // 32 MiB ceiling) has nothing else to read: `bytes()` materialises
             // the whole thing before anyone can check its size.
             ...(typeof primary?.size === 'number' ? { size: primary.size } : {}),
+            ...(durationMs != null ? { durationMs } : {}),
             ...(posterUrl ? { posterUrl } : {}),
             ...(animated ? { animated: true } : {}),
             ...(thumbUrl ? { thumbUrl } : {}),
@@ -1414,6 +1419,13 @@ export async function assertQuotaRoom(incomingBytes: number): Promise<void> {
   return (await import('./asset-cache-maintenance.ts')).checkQuotaRoom(incomingBytes, QUOTA_SAFETY_FRACTION);
 }
 
+/** A format entry's authored playback length: finite and positive, or absent.
+ *  The same rule the upload path applies, so a 0 placeholder never reaches a ref. */
+function authoredDurationMs(format: AssetFormat): number | undefined {
+  const ms = format.durationMs;
+  return typeof ms === 'number' && Number.isFinite(ms) && ms > 0 ? ms : undefined;
+}
+
 function pickFormat(meta: AssetMetaRecord, requested?: string): AssetFormat {
   if (!meta.formats.length) throw new Error(`Asset has no files: ${meta.id}`);
   if (requested) {
@@ -1444,6 +1456,19 @@ const healLegacyType = (record: AssetRefSource): AssetRef['type'] =>
     ? 'raster'
     : record.type;
 
+/**
+ * An upload's meta with its stored byte length, so a listing can show and sort
+ * by size without reading a byte (`blob.size` is a property). Most upload paths
+ * never wrote `meta.bytes`; a value a writer did record is kept. Only the stored
+ * upload is stamped: a ref marked `baked` is a photo look's picture, whose size
+ * is not the upload's. The plain fallback for an unknown or non-raster look
+ * carries the upload's own blob, so it is stamped.
+ */
+function withUploadBytes(record: AssetRefSource, source: 'user' | 'library'): Record<string, unknown> | undefined {
+  if (source !== 'user' || record.baked || !record.blob || record.meta?.bytes != null) return record.meta;
+  return { ...record.meta, bytes: record.blob.size };
+}
+
 async function toAssetRef(record: AssetRefSource, source: 'user' | 'library'): Promise<AssetRef> {
   // record.cacheKey overrides the default key - themed icon refs key on the
   // base blob + pairing colours (see get()) so identical bakes share one URL.
@@ -1464,7 +1489,7 @@ async function toAssetRef(record: AssetRefSource, source: 'user' | 'library'): P
     checksum: record.checksum,
     width: record.width,
     height: record.height,
-    meta: record.meta,
+    meta: withUploadBytes(record, source),
   };
   if (record.type === 'raster' && ['tiff','hdr','exr'].includes(record.format ?? '') && record.blob) return (await import('./deep-asset.ts')).deepAssetRef(ref,record.blob,OBJECT_URL_CACHE,`${cacheKey}:deep-sdr-v1`);
   if (record.format === 'jxl' && record.blob) {

@@ -56,7 +56,7 @@ export interface NoteParts {
 
 /** An admonition. role="note" rather than <aside>: /info's article is a <main> and the
  *  app's is an <article>, and an aside would become a complementary landmark in one
- *  host only. The title is not a <p>, so narration paragraph ids after it stay put. */
+ *  host only. */
 export function noteBlock(p: NoteParts): string {
   return `<div class="doc-note doc-note--${p.kind}" role="note">`
     + `<span class="doc-note-glyph" aria-hidden="true">${p.glyph}</span>`
@@ -138,8 +138,8 @@ export interface CodeParts {
   codeHtml: string;
 }
 
-/** A code block. The bar holds no text: its label is data, drawn by CSS, so search,
- *  the model index and narration read the page exactly as before. The enhancer
+/** A code block. The bar holds no text: its label is data, drawn by CSS, so search
+ *  and the model index read the page exactly as before. The enhancer
  *  (shells/web/src/lib/docs-enhance.ts) adds Copy to blocks marked data-copy. */
 export function codeBlock(p: CodeParts): string {
   const label = escAttr(p.label);

@@ -118,10 +118,14 @@
     "./design-ops-svg": "./src/design-ops-svg.ts",
     "./design-lolly": "./src/design-lolly.ts",
     "./design-compose": "./src/design-compose.ts",
-    "./production": "./src/production.ts"
+    "./production": "./src/production.ts",
+    "./adobe-psd": "./src/adobe-psd.ts",
+    "./adobe-psd-node": "./src/adobe-psd-node.ts",
+    "./adobe-psd.wasm": "./wasm/adobe-psd/adobe-psd.wasm"
   },
   "files": [
     "src",
+    "wasm/adobe-psd",
     "README.md"
   ],
   "scripts": {

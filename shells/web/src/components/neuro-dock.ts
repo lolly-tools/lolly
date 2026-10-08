@@ -2,9 +2,8 @@
 /**
  * Neurospicy music source - registers the music/radio/atmosphere/visualiser player into
  * the app-global SINGLETON audio dock (lib/audio-dock-singleton.ts) while Neurospicy Mode
- * is on. There is ONE window app-wide: this module feeds the MUSIC side of it, and the
- * docs reader (views/docs.ts) feeds the NARRATION side; the two coexist in that one
- * draggable/resizable device rather than as two separate windows.
+ * is on. There is ONE window app-wide, and this module is its only source: the music
+ * player is the whole of that draggable, resizable window.
  *
  * This module keeps ONLY the neuro-specific lifecycle it always owned - flag-gated
  * register/unregister, the spring-in entrance, and the close (×) semantics
@@ -14,8 +13,8 @@
  *
  * Dismissals:
  *   - minimize: collapse to the Mini pill (music keeps playing); click the pill to expand.
- *   - close (×): turn the mode off (stops the music, releases the visualiser); the window
- *     hides unless the narration reader is still registered. Re-enable from Sound settings.
+ *   - close (×): turn the mode off (stops the music, releases the visualiser) and hide the
+ *     window. Re-enable from Sound settings.
  */
 import { createNeurospicyDockHost, type NeurospicyDockHandle } from '../lib/neurospicy-dock-host.ts';
 import {
@@ -42,7 +41,7 @@ function releaseMusic(): void {
 }
 
 /** Close (×): leave the mode. Stops the music immediately, releases the visualiser, and
- *  detaches the music block (the window hides unless narration remains). */
+ *  detaches the music block, which hides the window. */
 function closeMode(host: NeurospicyHost): void {
   stopNeurospicy();
   void setNeurospicyEnabled(host, false);
@@ -88,7 +87,7 @@ export function showNeuroDock(host: NeurospicyHost, opts: boolean | NeuroDockSho
   }
 }
 
-/** Detach the music source (mode off). The window hides unless narration is still shown. */
+/** Detach the music source (mode off), which hides the window. */
 export function hideNeuroDock(): void {
   releaseMusic();
 }

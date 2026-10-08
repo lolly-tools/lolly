@@ -1,0 +1,15 @@
+{
+  "id": "motion-mono",
+  "name": "Motion · Editorial mono",
+  "description": "Black and white with open shadows and no moving grain.",
+  "values": {
+    "filmLook": "bw",
+    "contrast": 12,
+    "highlights": -10,
+    "shadows": 10,
+    "saturation": 100,
+    "grain": 0,
+    "vignette": 0
+  },
+  "category": "Motion looks"
+}

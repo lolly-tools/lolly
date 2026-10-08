@@ -81,3 +81,11 @@ test('an unsaved edit present at mount counts as unsaved, and edits and saves ma
   assert.match(bodyAfter('export function rememberEntryEdits('), /syncEntryMark\(/, 'written again once a dialog entry is gone');
   assert.match(feature, /detail === 'save'\) tview\.session\.rememberEntryEdits\(false\)/, 'the export panel\'s Save clears the mark too');
 });
+
+test('the video clip line keys on a recorded take, not on any stored size (plan 302)', () => {
+  // Every upload carries meta.bytes since plan 302, so reading it here would
+  // tell a person with an uploaded photo that their session includes a video clip.
+  const body = bodyAfter('export function backPillIntercept(');
+  assert.match(body, /recordedClipBytes\(runtime\.getModel\(\)\.map\(/);
+  assert.doesNotMatch(body, /meta\?\.bytes|meta\.bytes/);
+});

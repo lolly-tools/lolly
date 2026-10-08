@@ -379,7 +379,7 @@ async function renderPreparedFormat(node: Element, format: string, opts: ExportO
   }
   // A route with no credential still owes an honest answer: the readback below
   // finds nothing and the receipt says so, rather than the promise being dropped.
-  if (format !== 'lottie') await reportRightsReceipt(blob, opts);
+  if (!['lottie', 'idml', 'premiere-xml'].includes(format)) await reportRightsReceipt(blob, opts);
   return blob;
 }
 
@@ -550,10 +550,8 @@ async function renderFormatDispatch(node: Element, format: string, opts: ExportO
   if (request.samples) return renderSequenceCutSheet(node, format, opts);
   if (wantsDeepExport(format,opts)) return (await import('./export-deep.ts')).renderDesignOrFrame(node,format,opts,_host);
   switch (format) {
-    case 'lottie': {
-      if (!_host) throw new Error('dotLottie export needs the asset host.');
-      return (await import('../../../../engine/src/design-lottie.ts')).exportDesignLottie(opts, _host);
-    }
+    case 'idml': case 'premiere-xml': case 'lottie':
+      return (await import('./export-structural.ts')).renderStructuralExport(format, opts, _host);
     case 'jxl': case 'jxl-lossless':
       return (await import('./jxl.ts')).renderJxlExport(() => renderBitmap(node, 'image/jxl', opts, format === 'jxl-lossless'), opts);
     case 'png':

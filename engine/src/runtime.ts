@@ -1245,14 +1245,14 @@ export async function createRuntime(
     // is why this asks the tool's own provenance default rather than a list of
     // formats: promising an ingredient a route never carries is the one thing
     // section 4.3 forbids. The receipt measures the truth afterwards either way.
-    const carriesCredential = !['lottie', 'jxl', 'jxl-lossless'].includes(format) && (given.canCarryCredential ?? (tool.manifest.render?.c2pa !== false && tool.manifest.privacy !== 'on-device'));
-    const route: DeliveryRouteV1 = given.route ?? (format === 'lottie' ? 'package' : carriesCredential ? 'file-with-c2pa' : 'file-without-c2pa');
+    const carriesCredential = !['lottie', 'idml', 'premiere-xml', 'jxl', 'jxl-lossless'].includes(format) && (given.canCarryCredential ?? (tool.manifest.render?.c2pa !== false && tool.manifest.privacy !== 'on-device'));
+    const route: DeliveryRouteV1 = given.route ?? (['lottie', 'idml', 'premiere-xml'].includes(format) ? 'package' : carriesCredential ? 'file-with-c2pa' : 'file-without-c2pa');
     return {
       operation: context?.operation ?? 'render',
       delivery: {
         format,
         route,
-        canCarryCredential: !['lottie', 'jxl', 'jxl-lossless'].includes(format) && (given.canCarryCredential ?? (route === 'file-with-c2pa' || route === 'package')),
+        canCarryCredential: !['lottie', 'idml', 'premiere-xml', 'jxl', 'jxl-lossless'].includes(format) && (given.canCarryCredential ?? (route === 'file-with-c2pa' || route === 'package')),
         // A clipboard carries pixels and nothing beside them; every other route
         // here has somewhere a reader can find the credit.
         canCarryReadableCredit: !['jxl', 'jxl-lossless'].includes(format) && (given.canCarryReadableCredit ?? route !== 'clipboard'),
@@ -1865,7 +1865,7 @@ export async function createRuntime(
           script: tool.presentationSource, title: String(model.find(i => i.id === 'title')?.value || tool.manifest.name), lang: hookLang,
         } };
       }
-      if (format === 'lottie' || format === 'html' && tool.manifest.id === 'design') opts = { ...opts, width: opts.width ?? tool.manifest.render?.width, height: opts.height ?? tool.manifest.render?.height, sourceDocument: { toolId: tool.manifest.id, values: structuredClone(modelToValues(model)) } };
+      if (['lottie', 'idml', 'premiere-xml'].includes(format) || format === 'html' && tool.manifest.id === 'design') opts = { ...opts, width: opts.width ?? tool.manifest.render?.width, height: opts.height ?? tool.manifest.render?.height, sourceDocument: { toolId: tool.manifest.id, values: structuredClone(modelToValues(model)) } };
       // A Design SVG or PDF page can be drawn from the authored document (plan 295, P3d); the size stays the caller's.
       else if ((format === 'svg' || format === 'pdf') && tool.manifest.id === 'design') opts = { ...opts, sourceDocument: { toolId: tool.manifest.id, values: structuredClone(modelToValues(model)) } };
       if (tool.manifest.designTool) {

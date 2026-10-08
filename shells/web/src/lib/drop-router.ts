@@ -1939,7 +1939,9 @@ export function attachDropRouter(rootEl: HTMLElement, host: PickerHost, hooks: D
   let depth = 0;
   let hint: HTMLElement | null = null;
 
-  const isFileDrag = (e: DragEvent): boolean => !!e.dataTransfer?.types?.includes('Files');
+  // A drag of Lolly's own tiles (text/lolly-*, application/x-lolly-*) is never a file
+  // import, even where the browser adds the tile's picture as a file.
+  const isFileDrag = (e: DragEvent): boolean => { const types = e.dataTransfer?.types; return !!types?.includes('Files') && !types.some(type => /^(?:text\/lolly-|application\/x-lolly-)/.test(type)); };
   const showHint = (on: boolean): void => {
     if (on) {
       if (!hint) {

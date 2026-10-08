@@ -206,6 +206,7 @@ const VERSION = cliPkg.version;
 rmSync(OUT, { recursive: true, force: true });
 mkdirSync(PKG, { recursive: true });
 cpSync(join(REPO, 'packages/node-shell/wasm/jxl'), join(PKG, 'wasm/jxl'), { recursive: true });
+cpSync(join(REPO, 'packages/node-shell/wasm/adobe-psd'), join(PKG, 'wasm/adobe-psd'), { recursive: true });
 
 const result = await build({
   // The output NAMES matter: shells/cli/src/tui.ts starts the TUI by looking for
