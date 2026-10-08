@@ -722,14 +722,14 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // glyph (the TRUSTED LANG_ICON_SVG constant), and the full-width toggle's glyph (a
   // TRUSTED lib/icons string; its label is an aria attribute, never HTML). The rehosted
   // /info page fragment is injected as a PARSED node (DOMParser), not via a sink, and
-  // has its <script>/<style>/.listen-bar stripped.
+  // has its <script>/<style>/.docs-edition-bar stripped.
   // +1 2026-08-21: the AI-scan donut (donut.innerHTML) - fixed SVG markup whose only
   // interpolations are a clamped integer score, toFixed() arc lengths and the
   // analyser's closed band union (escape()d anyway); its label is an aria attribute.
   // +1 2026-09-26 (plan 277 step 2): the compact navigation's disclosure summary, fixed
   // markup plus two lib/icons glyphs; the section title goes in through textContent.
-  // Listen inserts a fixed registry icon; its translated label uses textContent.
-  'views/docs.ts': 7,
+  // -1 2026-10-08: the Listen button's registry icon went with the docs narration.
+  'views/docs.ts': 6,
   // #/prepare route scaffold: the shared chrome (backHomeHtml/langFabHtml) plus t() copy,
   // no free text; the panel itself mounts into an empty slot (components/prepare/panel.ts).
   'views/prepare.ts': 1,
