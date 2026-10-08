@@ -7635,5 +7635,6 @@
   "Shared folder": "共有フォルダ",
   "Shared folders could not be loaded or saved. Check your connection and try again.": "共有フォルダを読み込みまたは保存できませんでした。接続を確認してもう一度お試しください。",
   "Shared projects could not be loaded. Try again.": "共有プロジェクトを読み込めませんでした。もう一度お試しください。",
-  "You can view this project but cannot change its folders.": "このプロジェクトは表示できますが、フォルダは変更できません。"
+  "You can view this project but cannot change its folders.": "このプロジェクトは表示できますが、フォルダは変更できません。",
+  "New {name}": "{name} を新規作成"
 }

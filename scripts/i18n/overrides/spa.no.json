@@ -1271,5 +1271,6 @@
   "Shared folder": "Delt mappe",
   "Shared folders could not be loaded or saved. Check your connection and try again.": "Delte mapper kunne ikke lastes inn eller lagres. Sjekk tilkoblingen og prøv igjen.",
   "Shared projects could not be loaded. Try again.": "Delte prosjekter kunne ikke lastes inn. Prøv igjen.",
-  "You can view this project but cannot change its folders.": "Du kan se dette prosjektet, men ikke endre mappene i det."
+  "You can view this project but cannot change its folders.": "Du kan se dette prosjektet, men ikke endre mappene i det.",
+  "New {name}": "Nytt: {name}"
 }

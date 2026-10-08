@@ -1141,5 +1141,6 @@
   "Shared folder": "مشترکہ فولڈر",
   "Shared folders could not be loaded or saved. Check your connection and try again.": "مشترکہ فولڈرز لوڈ یا محفوظ نہیں ہو سکے۔ اپنا کنکشن چیک کریں اور دوبارہ کوشش کریں۔",
   "Shared projects could not be loaded. Try again.": "مشترکہ پراجیکٹس لوڈ نہیں ہو سکے۔ دوبارہ کوشش کریں۔",
-  "You can view this project but cannot change its folders.": "آپ یہ پراجیکٹ دیکھ سکتے ہیں لیکن اس کے فولڈرز تبدیل نہیں کر سکتے۔"
+  "You can view this project but cannot change its folders.": "آپ یہ پراجیکٹ دیکھ سکتے ہیں لیکن اس کے فولڈرز تبدیل نہیں کر سکتے۔",
+  "New {name}": "نیا {name} بنائیں"
 }

@@ -7635,5 +7635,6 @@
   "Shared folder": "Thư mục được chia sẻ",
   "Shared folders could not be loaded or saved. Check your connection and try again.": "Không thể tải hoặc lưu các thư mục được chia sẻ. Hãy kiểm tra kết nối rồi thử lại.",
   "Shared projects could not be loaded. Try again.": "Không thể tải các dự án được chia sẻ. Hãy thử lại.",
-  "You can view this project but cannot change its folders.": "Bạn có thể xem dự án này nhưng không thể thay đổi các thư mục của nó."
+  "You can view this project but cannot change its folders.": "Bạn có thể xem dự án này nhưng không thể thay đổi các thư mục của nó.",
+  "New {name}": "Tạo {name} mới"
 }

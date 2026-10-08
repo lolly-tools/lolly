@@ -7635,5 +7635,6 @@
   "Shared folder": "共享文件夹",
   "Shared folders could not be loaded or saved. Check your connection and try again.": "无法加载或保存共享文件夹。请检查网络连接后重试。",
   "Shared projects could not be loaded. Try again.": "无法加载共享项目。请重试。",
-  "You can view this project but cannot change its folders.": "你可以查看此项目，但无法更改其中的文件夹。"
+  "You can view this project but cannot change its folders.": "你可以查看此项目，但无法更改其中的文件夹。",
+  "New {name}": "新建 {name}"
 }

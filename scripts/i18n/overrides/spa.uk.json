@@ -1269,5 +1269,6 @@
   "Shared folder": "Спільна папка",
   "Shared folders could not be loaded or saved. Check your connection and try again.": "Не вдалося завантажити або зберегти спільні папки. Перевірте з'єднання й повторіть спробу.",
   "Shared projects could not be loaded. Try again.": "Не вдалося завантажити спільні проєкти. Спробуйте ще раз.",
-  "You can view this project but cannot change its folders.": "Ви можете переглядати цей проєкт, але не можете змінювати його папки."
+  "You can view this project but cannot change its folders.": "Ви можете переглядати цей проєкт, але не можете змінювати його папки.",
+  "New {name}": "Створити {name}"
 }

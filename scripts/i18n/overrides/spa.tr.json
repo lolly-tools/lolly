@@ -1269,5 +1269,6 @@
   "Shared folder": "Paylaşılan klasör",
   "Shared folders could not be loaded or saved. Check your connection and try again.": "Paylaşılan klasörler yüklenemedi veya kaydedilemedi. Bağlantını kontrol edip tekrar dene.",
   "Shared projects could not be loaded. Try again.": "Paylaşılan projeler yüklenemedi. Tekrar dene.",
-  "You can view this project but cannot change its folders.": "Bu projeyi görüntüleyebilirsin ama klasörlerini değiştiremezsin."
+  "You can view this project but cannot change its folders.": "Bu projeyi görüntüleyebilirsin ama klasörlerini değiştiremezsin.",
+  "New {name}": "Yeni {name} oluştur"
 }

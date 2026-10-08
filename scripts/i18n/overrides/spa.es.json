@@ -1141,5 +1141,6 @@
   "Shared folder": "Carpeta compartida",
   "Shared folders could not be loaded or saved. Check your connection and try again.": "No se pudieron cargar ni guardar las carpetas compartidas. Comprueba tu conexión e inténtalo de nuevo.",
   "Shared projects could not be loaded. Try again.": "No se pudieron cargar los proyectos compartidos. Inténtalo de nuevo.",
-  "You can view this project but cannot change its folders.": "Puedes ver este proyecto, pero no cambiar sus carpetas."
+  "You can view this project but cannot change its folders.": "Puedes ver este proyecto, pero no cambiar sus carpetas.",
+  "New {name}": "Crear {name}"
 }

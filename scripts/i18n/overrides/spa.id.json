@@ -1141,5 +1141,6 @@
   "Shared folder": "Folder bersama",
   "Shared folders could not be loaded or saved. Check your connection and try again.": "Folder bersama tidak dapat dimuat atau disimpan. Periksa koneksi Anda lalu coba lagi.",
   "Shared projects could not be loaded. Try again.": "Proyek bersama tidak dapat dimuat. Coba lagi.",
-  "You can view this project but cannot change its folders.": "Anda dapat melihat proyek ini, tetapi tidak dapat mengubah foldernya."
+  "You can view this project but cannot change its folders.": "Anda dapat melihat proyek ini, tetapi tidak dapat mengubah foldernya.",
+  "New {name}": "Buat {name} baru"
 }
