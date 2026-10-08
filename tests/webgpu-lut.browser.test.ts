@@ -21,6 +21,7 @@ import { gradeLutWasm } from '../packages/node-shell/src/pixel-kernel.ts';
 import { lutCases, lutPixels, lutTable } from './helpers/lut-cases.ts';
 import { launchWebGpuBrowser, webGpuBrowserEngine } from './helpers/webgpu-browser.ts';
 import type { QualificationBrowser } from './helpers/webgpu-local-receiver.ts';
+import { PRODUCT_PAGE, isProductUrl, type ProductQualificationBrowser } from './helpers/webgpu-product-receiver.ts';
 
 interface LutProbe {
   gradeLutWebGpu: typeof gradeLutWebGpu;
@@ -35,6 +36,7 @@ interface LutProbe {
   resetWebGpuDevice(): void;
   startWebGpuCheck(): Promise<void>;
   webGpuChecked(): Promise<void>;
+  workerUrl?: string;
 }
 declare global { interface Window { lutProbe: LutProbe } }
 
@@ -76,39 +78,40 @@ test('WebGPU LUT grading and photo baking conform to the portable reference', { 
       : 'WebGPU browser qualification requires the selected browser to launch.'); return;
   }
   t.after(() => browser.close());
-  const repo = fileURLToPath(new URL('../', import.meta.url));
-  const [entry, worker] = await Promise.all([
-    build({ stdin: { contents: `
-      export { gradeLutWebGpu, gradeLutChainWebGpu } from './shells/web/src/lib/webgpu/lut.ts';
-      export { lutWorkspaces } from './shells/web/src/lib/webgpu/workspace.ts';
-      export { applyLutFrame } from './engine/src/grade.ts';
-      export { bakePhotoLookBlob } from './shells/web/src/bridge/photo-look-bake.ts';
-      export { treatedPhotoSvg } from './shells/web/src/lib/photo-look-download.ts';
-      export { createAssetsAPI } from './shells/web/src/bridge/assets.ts';
-      export { createPhotoLookWorkerClient } from './shells/web/src/bridge/photo-look-worker-client.ts';
-      export { requireWebGpu, resetWebGpuDevice, startWebGpuCheck, webGpuChecked } from './shells/web/src/lib/webgpu/device.ts';
-    `, resolveDir: repo }, bundle: true, write: false, format: 'esm', platform: 'browser' }),
-    build({ entryPoints: [fileURLToPath(new URL('../shells/web/src/bridge/photo-look.worker.ts', import.meta.url))], bundle: true, write: false, format: 'esm', platform: 'browser' }),
-  ]);
-  const sources = { entrySha256: createHash('sha256').update(entry.outputFiles[0]!.text).digest('hex'),
-    workerSha256: createHash('sha256').update(worker.outputFiles[0]!.text).digest('hex') };
-  const server = createServer((req, res) => {
-    if (browser.handleRequest?.(req, res)) return;
-    if (req.url === '/entry.js' || req.url === '/photo-look.worker.ts') {
-      res.setHeader('content-type', 'text/javascript'); res.end(req.url === '/entry.js' ? entry.outputFiles[0]!.text : worker.outputFiles[0]!.text);
-    } else {
-      res.setHeader('content-type', 'text/html');
-      const csp = process.env.LOLLY_WEBGPU_TEST_CSP;
-      res.end(`<!doctype html>${csp ? `<meta http-equiv="Content-Security-Policy" content="${csp.replaceAll('"', '&quot;')}">` : ''}<title>Lolly WebGPU Qualification</title><p>Isolated local WebGPU conformance. No workspace or personal data is loaded.</p><script type="module">import * as probe from "/entry.js"; window.lutProbe=probe; ${browser.receiverScript ?? ''}</script>`);
-    }
-  });
-  t.after(() => new Promise<void>(resolve => server.close(() => resolve())));
-  await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve));
-  const address = server.address();
-  if (!address || typeof address === 'string') throw new Error('The GPU test server did not start.');
+  const product = engine === 'tauri-product-macos' ? (browser as ProductQualificationBrowser).productQualification : null;
+  let sources: Record<string, unknown>, fixtureUrl = PRODUCT_PAGE;
+  if (product) sources = product.sources;
+  else {
+    const [entry, worker] = await Promise.all([
+      build({ entryPoints: [fileURLToPath(new URL('./helpers/webgpu-probe-entry.ts', import.meta.url))], bundle: true, write: false, format: 'esm', platform: 'browser' }),
+      build({ entryPoints: [fileURLToPath(new URL('../shells/web/src/bridge/photo-look.worker.ts', import.meta.url))], bundle: true, write: false, format: 'esm', platform: 'browser' }),
+    ]);
+    sources = { entrySha256: createHash('sha256').update(entry.outputFiles[0]!.text).digest('hex'),
+      workerSha256: createHash('sha256').update(worker.outputFiles[0]!.text).digest('hex') };
+    const server = createServer((req, res) => {
+      if (browser.handleRequest?.(req, res)) return;
+      if (req.url === '/entry.js' || req.url === '/photo-look.worker.ts') {
+        res.setHeader('content-type', 'text/javascript'); res.end(req.url === '/entry.js' ? entry.outputFiles[0]!.text : worker.outputFiles[0]!.text);
+      } else {
+        res.setHeader('content-type', 'text/html');
+        const csp = process.env.LOLLY_WEBGPU_TEST_CSP;
+        res.end(`<!doctype html>${csp ? `<meta http-equiv="Content-Security-Policy" content="${csp.replaceAll('"', '&quot;')}">` : ''}<title>Lolly WebGPU Qualification</title><p>Isolated local WebGPU conformance. No workspace or personal data is loaded.</p><script type="module">import * as probe from "/entry.js"; window.lutProbe={...probe}; ${browser.receiverScript ?? ''}</script>`);
+      }
+    });
+    t.after(() => new Promise<void>(resolve => server.close(() => resolve())));
+    await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve));
+    const address = server.address();
+    if (!address || typeof address === 'string') throw new Error('The GPU test server did not start.');
+    fixtureUrl = `http://127.0.0.1:${address.port}/`;
+  }
   const page = await browser.newPage();
   record({ status: 'not run', stage: 'page startup', browser: browser.version(), sources });
-  await page.goto(`http://127.0.0.1:${address.port}/`);
+  try { await page.goto(fixtureUrl); }
+  catch (error) {
+    record({ status: 'not run', stage: product ? 'actual product startup' : 'fixture startup', reason: String(error),
+      browser: browser.version(), productStartup: product?.startup, sources });
+    throw error;
+  }
   await page.waitForFunction(() => Boolean(window.lutProbe));
   const support = await page.evaluate(async () => {
     const started = performance.now();
@@ -142,7 +145,8 @@ test('WebGPU LUT grading and photo baking conform to the portable reference', { 
     return { startupCheckMs: performance.now() - started, toolFenceWaitMs: performance.now() - fenceStarted,
       scope: 'The production startup device service and tool mount fence, without the full gallery or tool route.' };
   });
-  record({ status: 'capability observed; conformance not complete', browser: browser.version(), adapter: support, startup, sources });
+  record({ status: 'capability observed; conformance not complete', browser: browser.version(), adapter: support, startup,
+    productStartup: product?.startup, sources });
   t.diagnostic(`GPU adapter: ${JSON.stringify(support)}`);
   for (const row of lutCases()) {
     const expected = row.pixels.slice(); applyLutFrame(expected, row.lut, row.intensity);
@@ -168,7 +172,9 @@ test('WebGPU LUT grading and photo baking conform to the portable reference', { 
     const OriginalWorker = window.Worker;
     let createdWorkers = 0;
     window.Worker = class extends OriginalWorker {
-      constructor(...args: ConstructorParameters<typeof Worker>) { super(...args); createdWorkers++; }
+      constructor(...args: ConstructorParameters<typeof Worker>) {
+        super(...args); createdWorkers++; window.lutProbe.workerUrl ??= String(args[0]);
+      }
     };
     const pixels = new Uint8ClampedArray(wire.pixels);
     const table = { ...wire.lut, data: new Float32Array(wire.lut.data) };
@@ -211,7 +217,8 @@ test('WebGPU LUT grading and photo baking conform to the portable reference', { 
     const cached = await assets.get(ref.id, options);
     window.Worker = OriginalWorker;
     return { actual, download: await read(await (await fetch(href)).blob()), baked: download.baked, bakeMs,
-      asset: await read(await (await fetch(ref.url)).blob()), recipe: ref.meta?.lookRecipe, cacheHit: cached.url === ref.url, createdWorkers };
+      asset: await read(await (await fetch(ref.url)).blob()), recipe: ref.meta?.lookRecipe, cacheHit: cached.url === ref.url,
+      createdWorkers, workerUrl: window.lutProbe.workerUrl };
   }, { pixels: Array.from(source), lut: { ...lut, data: Array.from(lut.data) }, look });
   const expectedPhoto = source.slice(); applyPhotoLook(expectedPhoto, 8, 8, look, { theme: 'dark', lut });
   comparePixels(photo.actual, expectedPhoto, 'worker photo bake');
@@ -220,9 +227,21 @@ test('WebGPU LUT grading and photo baking conform to the portable reference', { 
   assert.equal(photo.recipe, 'lut-webgpu-v1'); assert.equal(photo.cacheHit, true);
   assert.equal(photo.baked, true);
   assert.equal(photo.createdWorkers, 1, 'bake, download and asset reuse one LUT worker');
+  if (product) {
+    assert.ok(isProductUrl(photo.workerUrl), 'the real bake uses its bundled product worker');
+    assert.match(new URL(photo.workerUrl).pathname, /^\/_app\/.*\.js$/, 'the worker URL is a compiled product asset');
+    const assets = product.sources.compiledAssets as Record<string, { sha256: string; bytes: number }>;
+    const expected = assets[new URL(photo.workerUrl).pathname.slice(1)];
+    assert.ok(expected, 'the real bake worker belongs to the source-bound frontend receipt');
+    const observed = await page.evaluate(async url => {
+      const bytes = await (await fetch(url)).arrayBuffer();
+      return { bytes: bytes.byteLength, sha256: Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), byte => byte.toString(16).padStart(2, '0')).join('') };
+    }, photo.workerUrl);
+    assert.deepEqual(observed, expected, 'the worker served by the custom origin has the recorded product bytes');
+  }
   assert.equal(await page.evaluate(async () => {
     const handler = window.onmessage;
-    const entry = '/photo-look.worker.ts';
+    const entry = window.lutProbe.workerUrl ?? '/photo-look.worker.ts';
     await import(entry);
     return window.onmessage === handler;
   }), true, 'a shared worker chunk leaves the main message handler intact');
@@ -329,8 +348,9 @@ test('WebGPU LUT grading and photo baking conform to the portable reference', { 
   assert.deepEqual(recovery.recovered, [10, 20, 30, 40]);
 
   if (process.env.LOLLY_WEBGPU_REPORT) {
+    await page.close();
     const timingPage = await browser.newPage();
-    await timingPage.goto(`http://127.0.0.1:${address.port}/`);
+    await timingPage.goto(fixtureUrl);
     await timingPage.waitForFunction(() => Boolean(window.lutProbe));
     const timings = await timingPage.evaluate(async wire => {
       const table = { ...wire, data: new Float32Array(wire.data) };
@@ -350,7 +370,7 @@ test('WebGPU LUT grading and photo baking conform to the portable reference', { 
       const request = { blob: original, lut: table, output: 'image/png' as const,
         look: { id: 'timing', kind: 'lut' as const, amount: 75, contrast: 12, lightness: -6 } };
       const fresh = async () => {
-        const client = window.lutProbe.createPhotoLookWorkerClient({ createWorker: () => new Worker('/photo-look.worker.ts', { type: 'module' }), onError() {} });
+        const client = window.lutProbe.createPhotoLookWorkerClient({ createWorker: () => new Worker(wire.workerUrl ?? '/photo-look.worker.ts', { type: 'module' }), onError() {} });
         const start = performance.now();
         try { await client.run(request); freshWorkerMs.push(performance.now() - start); }
         finally { client.dispose(); }
@@ -381,11 +401,12 @@ test('WebGPU LUT grading and photo baking conform to the portable reference', { 
         completePngBakeMs: bakeMs, coldPngBakeMs: bakeMs[0], warmPngBakeMs: bakeMs.slice(1),
         comparisonFreshWorkerPngBakeMs: freshWorkerMs,
         retained: window.lutProbe.lutWorkspaces.stats(await window.lutProbe.requireWebGpu()), cancellation: { name: cancelledName, callerMs: cancelMs, recoveredRgbError: maxRgbError } };
-    }, { ...lut, data: Array.from(lut.data) });
+    }, { ...lut, data: Array.from(lut.data), workerUrl: photo.workerUrl });
     await timingPage.close();
     assert.equal(timings.cancellation.name, 'AbortError');
     assert.ok(timings.cancellation.recoveredRgbError <= 1, 'the next complete bake recovers after worker cancellation');
-    const report = { status: 'conformance passed', date: new Date().toISOString(), browser: browser.version(), node: process.version, adapter: support, startup, sources,
+    const report = { status: 'conformance passed', date: new Date().toISOString(), browser: browser.version(), node: process.version, adapter: support, startup,
+      productStartup: product?.startup, bundledWorkerUrl: product ? photo.workerUrl : undefined, sources,
       machine: { platform: process.platform, architecture: process.arch, processor: cpus()[0]?.model, release: release() },
       testAdapter: process.env.LOLLY_WEBGPU_TEST_ADAPTER ?? 'default', cases: lutCases().map(row => row.name),
       workerPhotoBakeMs: photo.bakeMs, timings, cleanup, chain: { created: chain.created, frameUploads: chain.frameUploads, readbacks: chain.maps, retained: chain.retained },

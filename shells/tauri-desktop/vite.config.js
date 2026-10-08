@@ -5,6 +5,7 @@ import {
   embedContentPlugins, injectModelsBase, resolveEmbedMode,
 } from '../tauri-shared/vite-embed.mjs';
 import { tauriCspMeta } from '../tauri-shared/vite-csp.mjs';
+import { webGpuProductProbe } from './webgpu-product-probe.mjs';
 // Borrowed from the web shell's config, which owns the format. See the plugin list.
 import { precacheManifest, APP_ASSETS_DIR } from '../web/vite.config.js';
 
@@ -84,6 +85,7 @@ export default defineConfig({
   root: webShell,
   publicDir: resolve(webShell, 'public'),
   plugins: [
+    webGpuProductProbe({ root: repoRoot }),
     // The app's Content Security Policy rides in as a <meta> tag: with a CSP in
     // tauri.conf.json, Tauri's codegen re-serialises every .html asset - the tool
     // templates included - and the signed digests no longer match.

@@ -6,11 +6,12 @@ The Tauri 2 desktop app (macOS, Windows, Linux, plus a Flatpak manifest under `f
 
 **This directory contains no application code.** The app *is* the web shell. `vite.config.js` sets `root` to `../web`, so `vite` builds `shells/web/index.html` and `shells/web/src/main.ts` exactly as the PWA does, and then substitutes four modules at build time.
 
-Everything in this directory is therefore one of five things:
+Everything in this directory belongs to one of these areas:
 
 | Path | What it is |
 |---|---|
 | `vite.config.js` | The substitution mechanism, plus dev-server middleware for `/tools/` and `/catalog/` |
+| `webgpu-product-probe.mjs` | An explicit qualification-only module for the bundled app; absent from ordinary builds |
 | `bridge-overrides/*.ts` | The four replacement modules |
 | `src-tauri/` | The Rust side: the Tauri app, its permissions and native page capture |
 | `package.json`, `flatpak/`, `dist/` | Scripts, packaging, build output |
@@ -35,6 +36,20 @@ shell-open plugin is intentionally absent.
 The **frontend** entry is the web shell's, `shells/web/index.html` → `/src/main.js` → `shells/web/src/main.ts`. `src-tauri/tauri.conf.json` points `devUrl` at `http://localhost:5173` and `frontendDist` at `../dist`, and its `beforeDevCommand` runs `dev:frontend`. The production `beforeBuildCommand` runs the signed `build:frontend:release` wrapper, builds the macOS Quick Look extensions where applicable, and installs the native CLI sidecar.
 
 Keep the JavaScript plugin guests and their locked Rust crates on the same major/minor release. Tauri checks this before packaging. The filesystem guest is pinned to 2.5.2 in both shells and the desktop updater guest to 2.13.1, matching the existing native locks. Update each pair together; `tests/tauri-package-versions.test.ts` checks the API and every plugin pair without needing a native build. Keep the version check enabled when preparing qualification packages.
+
+### Qualify the actual macOS product
+
+The localhost WebGPU fixture diagnoses the WebView's numerical capabilities. It does not prove that the bundled application starts, mounts a tool or loads its compiled worker through `tauri://localhost`. The optional product harness runs the same mandatory corpus inside the normally started desktop GUI. It retains the shared CSP, ordinary window configuration, storage behavior and default graphics preferences. It uses a separate app identifier and removes document, URL and Quick Look registrations from its generated test bundle.
+
+From a clean isolated checkout with the pinned root and desktop dependencies installed, run these commands at the repository root. Preparing and building never launch the app; `--run` is a separate step. The output directory holds the source, lock, binary, frontend and worker receipts, logs and the conformance result.
+
+```sh
+node scripts/verify-webgpu-product.ts --prepare --output=plans/295-validation/my-mac-product
+node scripts/verify-webgpu-product.ts --build --output=plans/295-validation/my-mac-product
+node scripts/verify-webgpu-product.ts --run --output=plans/295-validation/my-mac-product
+```
+
+These builds are unsigned and marked **not for release**. They reject release tags, retain the native plugin version check and withhold signing credentials. The runner requires its exact recorded source and binary before launch. A working-tree development build needs an explicit `--working-tree` and records its source differences. Failures remain failures; there is no software GPU fallback or looser numerical band. A successful run qualifies only the recorded Mac/runtime/source combination. It does not close the other physical target checks or publish the supported-environment table required for a frontend release.
 
 ## How the bridge gets composed: build-time module substitution
 

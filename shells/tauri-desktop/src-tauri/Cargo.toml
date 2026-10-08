@@ -13,6 +13,7 @@ crate-type = ["rlib"]
 [features]
 # Explicit test build only; generated media and assertions are absent from shipped binaries.
 presentation-probe = []
+webgpu-probe = []
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }

@@ -9,6 +9,8 @@ mod oauth;
 mod presentation_windows;
 #[cfg(feature = "presentation-probe")]
 mod presentation_probe;
+#[cfg(feature = "webgpu-probe")]
+mod webgpu_qualification;
 mod render_server;
 mod reword;
 mod remote_fetch;
@@ -57,6 +59,8 @@ fn dispatch(args: Vec<String>) {
 
 /// The desktop app proper: host the WebView and fulfil the `capture` capability.
 fn run_gui(mut context: tauri::Context, search_provider: bool) {
+    #[cfg(feature = "webgpu-probe")]
+    webgpu_qualification::prepare(&context.config().identifier, search_provider);
     // GNOME and KRunner start the provider over D-Bus while the app is closed.
     // They must be able to query the embedded catalogue without flashing a full
     // application window. Keep the ordinary main webview (activation promotes it)
@@ -196,6 +200,8 @@ fn run_gui(mut context: tauri::Context, search_provider: bool) {
         // the clipboard-lens tray, and - on Linux - the D-Bus search/automation
         // surfaces. All additive; failures degrade to a plain window, logged.
         .setup(move |app| {
+            #[cfg(feature = "webgpu-probe")]
+            webgpu_qualification::setup(app)?;
             presentation_windows::build(app, &windows)?;
             let handle = app.handle().clone();
             if !search_provider {

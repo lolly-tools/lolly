@@ -126,6 +126,10 @@ pub fn main_commands<R: Runtime>(
         if invoke.message.command() == "presentation_probe_report" {
             return crate::presentation_probe::report(invoke);
         }
+        #[cfg(feature = "webgpu-probe")]
+        if invoke.message.command().starts_with("webgpu_qualification_") {
+            return crate::webgpu_qualification::route(invoke);
+        }
         handler(invoke)
     }
 }
