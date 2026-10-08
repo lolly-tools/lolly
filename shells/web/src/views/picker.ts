@@ -51,7 +51,7 @@ import { getTool } from '../bridge/tool-loader.ts';
 import { wireTabs } from '../lib/tabs.ts';
 import { downscaleRaster, computeResize, MAX_LONGEST_EDGE, readVideoDimensions, readDimensions } from '../bridge/image-resize.ts';
 import { depthHint } from '../lib/image-sample.ts';
-import { createFolderStore, childFolders, folderPath } from '../folders.ts';
+import { createFolderStore } from '../folders.ts';
 import { announce } from '../a11y.ts';
 import { choiceDialog } from '../components/confirm-dialog.ts';
 import { openWebcamCapture } from './picker-webcam.ts';
@@ -83,6 +83,7 @@ import { escapeHtml } from '../lib/html.ts';
 // The cards that START something (a tool, a saved creation, a template) and the tab
 // that lists templates - moved out so this file keeps to the dialog's wiring.
 import { paneSearchPlaceholder, sessionCard, tabButtonHtml, toolsPaneHtml, type PickerSession, type PickerTool } from './picker-cards.ts';
+import { createProjectsTab, type ProjectsTab } from './picker-projects.ts';
 import { mountTemplatesTab, type CollectTemplates, type TemplatesTab } from './picker-templates.ts';
 import { t, tRaw, docsAppHref } from '../i18n.ts';
 import { genAiPill, assetAiKind, aiSignalsChip } from '../lib/genai-pill.ts';
@@ -92,7 +93,7 @@ import type { InputValue } from '../../../../engine/src/inputs.ts';
 import type { IconTheme } from '../../../../engine/src/icon-theme.ts';
 import type { PhotoTreatment } from '../../../../engine/src/photo-treatment.ts';
 import { createPhotoTreatmentLoader, photoTreatmentStripHtml, previewPhotoTreatment, installPhotoTreatmentFilters } from '../components/photo-treatment-strip.ts';
-import type { Folder, FolderItem, FolderHost } from '../folders.ts';
+import type { Folder, FolderHost } from '../folders.ts';
 import type { WebStateAPI } from '../bridge/state.ts';
 import type { VideoJobHost } from '../lib/video-jobs.ts';
 
@@ -290,9 +291,6 @@ export function askLollyIntent(toolName?: string): Promise<string | null> {
 // Lucide-style camera glyph for the "Take a photo" affordance (themes via currentColor).
 const cameraGlyph = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>';
 
-// Lucide-style folder glyph for the Projects tab's folder cards.
-const folderGlyph = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>';
-
 export function openPicker(host: PickerHost, opts: PickerOpts = {}): Promise<AssetRef | null> {
   return new Promise(resolve => {
     if (!modalEl) {
@@ -345,8 +343,6 @@ async function render(
   const folderStore = createFolderStore(host as unknown as FolderHost);
   let folders: Folder[] = [];
   let foldersLoaded = false;
-  // The folder the Projects tab is currently browsing (null = the top level).
-  let projectFolder: string | null = opts.initialFolder || null;
 
   // "Take a photo" is offered on the same terms as upload (the slot accepts the
   // user's own images) for raster-capable slots, when the browser exposes a camera.
@@ -618,10 +614,8 @@ async function render(
       counts.set('library', typeFiltered(librarySearch.filter(libraryCandidates, q, c => categoryLabel(cat(c)))).length);
       if (showUserAssets) counts.set('uploads', userAssets.filter(a => searchMatches(q, String(a.meta?.name ?? a.id), a.id)).length);
       if (sessions) counts.set('sessions', sessions.filter(s2 => searchMatches(q, s2.toolName, s2.label, s2.toolId)).length);
-      // Projects was the one tab with no search badge (plan 216 item 5): count the
-      // folders whose name matches, once they've loaded. Cheap - the same in-memory
-      // list renderProjects filters from.
-      if (showProjects && foldersLoaded) counts.set('projects', folders.filter(f => searchMatches(q, f.name)).length);
+      // Folders, and shared projects once listed, whose name matches (plan 216 item 5).
+      if (projectsTab) counts.set('projects', projectsTab.count(q));
       counts.set('tools', embedTools.filter(t2 => searchMatches(q, t2.name, t2.description ?? '', t2.id)).length);
       if (templatesTab) counts.set('templates', templatesTab.count(q));
     }
@@ -661,6 +655,7 @@ async function render(
     textThumbs?.destroy();
     motionThumbs?.destroy();
     templatesTab?.destroy();
+    projectsTab?.destroy();
     // Before the wipe: the card's teardown revokes its preview URLs, and the upload
     // it is blocking still has to reach storeUserUpload with an answer.
     pendingTrim?.();
@@ -765,6 +760,35 @@ async function render(
       onLoaded: () => { const q = searchInput.value.trim().toLowerCase(); if (activeTab === 'templates') templatesTab?.render(q); syncTabCounts(q); },
     })
     : null;
+  // The Projects tab (lolly plan 299 X8): local folders, shortcuts and shared projects.
+  const projectsTab: ProjectsTab | null = projectsPane ? createProjectsTab({
+    pane: projectsPane, initialFolder: opts.initialFolder || null,
+    folders: () => (foldersLoaded ? folders : null), sessions: () => sessions, userAssets: () => userAssets,
+    imageCard: ref => projectImageCardHtml(ref, { upscaleButton, matteButton, vidMatteButton, formatBadge }),
+    matches: (q, ...fields) => searchMatches(q, ...fields),
+    tool: id => {
+      const tl = toolById.get(id);
+      return tl && (collect || isEmbeddable(tl, needsSvg)) ? { name: tl.name, icon: tl.icon ?? null } : null;
+    },
+    accepts: showUserAssets ? type => (opts.type ? isAcceptable(type) : isPlaceableAsset({ type })) : null,
+    placeSession: async (load, toolId, name, card) => {
+      if (!collect) return embedSessionData(load, toolId, name);
+      const data = await load();
+      if (!data) throw new Error('shared session is gone');
+      const slot = `${toolId}:${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
+      await host.state.save(slot, data);
+      flashCard(card, await collect.onSession(slot));
+    },
+    placeFile: async (id, card) => {
+      const ref = await host.assets.get(id);
+      if (collect) { flashCard(card, await collect.onAsset(ref)); return; }
+      recordRecentAsset(ref.id);
+      close(ref);
+    },
+    query: () => searchInput.value.trim().toLowerCase(), visible: () => activeTab === 'projects' && toolcardHost.hidden,
+    painted: () => { refreshAudioThumbs(); refreshTextThumbs(); refreshMotionThumbs(); },
+    navigated: () => focusCard(navCards()[0]), log: (level, message, data) => host.log(level, message, data),
+  }) : null;
 
   // "Edit the tool you're already using": re-open the source tool's inputs seeded
   // from the slot's current embed URL (mode 'edit' → "Re-apply to slot"). A commit
@@ -913,14 +937,8 @@ async function render(
       updateCatbar(); // manually opening/closing a section moves the row's indicator too
       return;
     }
-    // Projects tab: drill into a folder (or a breadcrumb) - empty id = the top level.
-    const fo = (e.target as HTMLElement).closest<HTMLElement>('[data-folder-open]');
-    if (fo) {
-      projectFolder = fo.dataset.folderOpen || null;
-      renderProjects(searchInput.value.trim().toLowerCase());
-      focusCard(navCards()[0]);
-      return;
-    }
+    // Projects tab: a folder, a breadcrumb or a shared item.
+    if (projectsTab?.handle(e.target as HTMLElement)) return;
     const del = (e.target as HTMLElement).closest<HTMLElement>('[data-delete-id]');
     if (del) {
       const id = del.dataset.deleteId!;
@@ -1841,84 +1859,8 @@ async function render(
       `<div class="asset-picker-grid">${list.map(sessionCard).join('')}</div>`;
   }
 
-  // ── Projects (browse the user's folders of saved creations + images) ────────
-  // The items a folder holds that this picker can actually place: saved creations
-  // whose tool still renders here, and user images that are loaded. Non-pickable
-  // refs (a session tool that can't embed, images on a no-upload slot) are skipped.
-  function pickableFolderItems(f: Folder): FolderItem[] {
-    return f.items.filter(it => it.type === 'session'
-      ? (sessions ?? []).some(s => s.slot === it.ref)
-      : userAssets.some(a => a.id === it.ref));
-  }
-
-  function folderCard(f: Folder): string {
-    const subs  = childFolders(folders, f.id).length;
-    const items = pickableFolderItems(f).length;
-    const bits: string[] = [];
-    if (subs)  bits.push(subs === 1 ? t('1 folder') : t('{n} folders', { n: subs }));
-    if (items) bits.push(items === 1 ? t('1 item') : t('{n} items', { n: items }));
-    return `
-      <button type="button" class="asset-picker-card asset-picker-folderitem" data-folder-open="${escapeHtml(f.id)}" title="${escapeHtml(f.name)}">
-        <span class="asset-picker-thumb asset-picker-folder-thumb" aria-hidden="true">${folderGlyph}</span>
-        <span class="asset-picker-name" title="${escapeHtml(f.name)}">${escapeHtml(f.name)}</span>
-        <span class="asset-picker-sessitem-when">${escapeHtml(bits.join(' · ') || t('Empty'))}</span>
-      </button>`;
-  }
-
-  function projectImageCard(ref: AssetRef): string {
-    return projectImageCardHtml(ref, { upscaleButton, matteButton, vidMatteButton, formatBadge });
-  }
-
   function renderProjects(q: string): void {
-    if (!projectsPane) return;
-    if (!foldersLoaded) { projectsPane.innerHTML = `<div class="asset-picker-loading">${t('Loading…')}</div>`; return; }
-    // A folder that vanished (deleted elsewhere / synced-away) drops us back to the top.
-    if (projectFolder && !folders.some(f => f.id === projectFolder)) projectFolder = null;
-
-    const path = projectFolder ? folderPath(folders, projectFolder) : [];
-    const crumbs = `<nav class="asset-picker-crumbs" aria-label="${escapeHtml(t('Folder path'))}">`
-      + `<button type="button" class="asset-picker-crumb" data-folder-open="">${t('Projects')}</button>`
-      + path.map((f, i) => {
-          const last = i === path.length - 1;
-          return `<span class="asset-picker-crumb-sep" aria-hidden="true">›</span>`
-            + (last
-                ? `<span class="asset-picker-crumb is-current" aria-current="true">${escapeHtml(f.name)}</span>`
-                : `<button type="button" class="asset-picker-crumb" data-folder-open="${escapeHtml(f.id)}">${escapeHtml(f.name)}</button>`);
-        }).join('')
-      + `</nav>`;
-
-    if (!folders.length) {
-      projectsPane.innerHTML = crumbs
-        + `<p class="asset-picker-empty">${t('No projects yet - group your saved creations and images into folders to browse them here.')}</p>`;
-      return;
-    }
-
-    const kids = childFolders(folders, projectFolder).filter(f => searchMatches(q, f.name));
-    const cur = projectFolder ? folders.find(f => f.id === projectFolder) ?? null : null;
-    const itemCards: string[] = [];
-    if (cur) {
-      for (const it of pickableFolderItems(cur)) {
-        if (it.type === 'session') {
-          const s = (sessions ?? []).find(x => x.slot === it.ref)!;
-          if (!searchMatches(q, s.toolName, s.label)) continue;
-          itemCards.push(sessionCard(s));
-        } else {
-          const a = userAssets.find(x => x.id === it.ref)!;
-          if (!searchMatches(q, String(a.meta?.name ?? ''))) continue;
-          itemCards.push(projectImageCard(a));
-        }
-      }
-    }
-
-    const parts: string[] = [];
-    if (kids.length)      parts.push(`<div class="asset-picker-grid asset-picker-foldergrid">${kids.map(folderCard).join('')}</div>`);
-    if (itemCards.length) parts.push(`<div class="asset-picker-grid">${itemCards.join('')}</div>`);
-    projectsPane.innerHTML = crumbs + (parts.length
-      ? parts.join('')
-      : `<p class="asset-picker-empty">${q ? t('Nothing here matches.') : (cur ? t('This folder is empty.') : t('No folders yet.'))}</p>`);
-    refreshAudioThumbs();
-    refreshTextThumbs();
-    refreshMotionThumbs();
+    projectsTab?.render(q);
   }
 
   // ── Tools (configure first, then insert) ───────────────────────────────────
@@ -2188,23 +2130,27 @@ async function render(
   // so it goes straight to preview/size - with an Edit-inputs escape hatch.
   async function embedSession(slot: string): Promise<void> {
     const entry = (sessions ?? []).find(s => s.slot === slot);
-    if (!entry) return;
-    showTakeover(`<div class="asset-picker-loading">${t('Opening “{name}”…', { name: entry.toolName })}</div>`);
+    if (entry) await embedSessionData(() => host.state.load(slot), entry.toolId, entry.toolName);
+  }
+
+  // A saved session as a render card: one on this device, or a shared one copied here.
+  async function embedSessionData(load: () => Promise<Record<string, unknown> | null>, toolId: string, name: string): Promise<void> {
+    showTakeover(`<div class="asset-picker-loading">${t('Opening “{name}”…', { name })}</div>`);
     try {
-      const data = await host.state.load(slot);
+      const data = await load();
       if (!data) throw new Error('empty session');
-      const tool = await getTool(entry.toolId);
+      const tool = await getTool(toolId);
       const runtime = await createRuntime(tool, host, data as Record<string, InputValue>);
       // keepUserIds: this embed identity re-renders ON THIS DEVICE, where a user/
       // upload resolves - the pre-plan-171 behaviour. Off-device it degrades to the
       // same silent blank it always did (the id is device-local either way).
       const query = serializeUrlState(runtime.getModel(), { keepUserIds: true });
-      const url = buildEmbedUrl({ toolId: entry.toolId, format: imageFormatSeed(data.__export_format), query });
+      const url = buildEmbedUrl({ toolId, format: imageFormatSeed(data.__export_format), query });
       const desc = url ? await host.compose._describeUrl(url) : null;
       if (!url || !desc) throw new Error('not renderable');
       showToolCard(desc, url, { editUrl: url });
     } catch (e) {
-      host.log('warn', 'Embed saved session failed', { slot, error: String(e) });
+      host.log('warn', 'Embed saved session failed', { toolId, error: String(e) });
       showTakeover(`<p class="asset-picker-error">${t("Couldn't open this saved creation.")}</p><div class="asset-picker-toolcard-actions"><button type="button" class="tc-back">← ${t('Back')}</button></div>`);
       toolcardHost.querySelector('.tc-back')?.addEventListener('click', dismissTakeover);
     }

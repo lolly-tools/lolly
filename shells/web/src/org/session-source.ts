@@ -15,7 +15,7 @@
  */
 import { instanceFetch, instancePath } from '../lib/instance.ts';
 import type {
-  SessionSource, SessionSourceWriter, TeamProjectCreate, TeamProjectOptions, TeamProjectRef,
+  SessionSource, SessionSourceFiles, SessionSourceWriter, TeamProjectCreate, TeamProjectOptions, TeamProjectRef,
   TeamProjectVia, TeamProjectVisibility, TeamRole, TeamSessionData, TeamSessionRef, TeamSessionSave, TeamSessionWrite,
   SourceList,
 } from '../lib/session-source.ts';
@@ -366,8 +366,9 @@ export function createInstanceSessionWriter(config: () => TeamWriteConfig | null
 }
 
 /** Build the source. `label` is the already-localised instance name for the heading.
- *  With `config`, the source also carries the write half (see createInstanceSessionWriter). */
-export function createInstanceSessionSource(label: string, config?: () => TeamWriteConfig | null): SessionSource {
+ *  With `config`, the source also carries the write half (see createInstanceSessionWriter);
+ *  with `files`, the files half the asset picker reads (org/source-files.ts). */
+export function createInstanceSessionSource(label: string, config?: () => TeamWriteConfig | null, files?: SessionSourceFiles): SessionSource {
   // Each opening goes to the workspace for the person's own recent list. Nothing waits
   // on the answer: an older workspace without the route simply keeps no such list.
   onProjectOpenedRecord((projectId) => {
@@ -378,6 +379,7 @@ export function createInstanceSessionSource(label: string, config?: () => TeamWr
     ...(config ? { write: createInstanceSessionWriter(config) } : {}),
     readProjects: fetchTeamProjects,
     setProjectListing: setTeamProjectListing,
+    ...(files ? { files } : {}),
     async readSessions(projectId) {
       const got = await fetchTeamProjectSessions(projectId);
       return got.ok ? { ok: true, items: got.sessions } : got;
