@@ -176,7 +176,7 @@ test('classifyIgnored keeps all ignored artifacts, including secrets in build di
 
 test('checkedCwds refuses failed, warning, timeout and malformed partial visibility', () => {
   const partial = 'p100\nfcwd\nn/repo\n';
-  assert.deepEqual(checkedCwds({ status: 0, stdout: partial, stderr: '' }, 999), [{ pid: 100, path: '/repo' }]);
+  assert.deepEqual(checkedCwds({ status: 0, stdout: partial, stderr: '' }), [{ pid: 100, path: '/repo' }]);
   for (const result of [
     { status: 1, stdout: partial, stderr: '' },
     { status: -1, stdout: partial, stderr: 'Error: spawnSync lsof ETIMEDOUT' },
@@ -185,7 +185,7 @@ test('checkedCwds refuses failed, warning, timeout and malformed partial visibil
     { status: 0, stdout: 'partial output', stderr: '' },
     { status: 0, stdout: 'p100\nnrelative/path\n', stderr: '' },
     { status: 0, stdout: '', stderr: '' },
-  ]) assert.equal(checkedCwds(result, 999), null);
+  ]) assert.equal(checkedCwds(result), null);
 });
 
 test('parseStatusZ reads porcelain v1 -z, including a rename source field', () => {

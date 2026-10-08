@@ -33,6 +33,7 @@ fs.appendFileSync(process.env.LOLLY_HYGIENE_TEST_CALLS, JSON.stringify({name,arg
 function emit(out='',status=0,err='') { process.stdout.write(out); process.stderr.write(err); process.exit(status); }
 if (name==='lsof') {
   const i=s.counts.lsof||0; s.counts.lsof=i+1; fs.writeFileSync(file,JSON.stringify(s));
+  if(s.ownCwd) emit('p'+process.ppid+'\\nn'+s.ownCwd+'\\n');
   const row=(s.lsof||[{stdout:'p123\\nn/elsewhere\\n',status:0}])[i] || {stdout:'p123\\nn/elsewhere\\n',status:0};
   emit(row.stdout,row.status,row.stderr||'');
 }
@@ -137,6 +138,16 @@ test('actual process guard resolves a working-directory symlink into the worktre
     const alias = path.join(f.home, 'alias');
     symlinkSync(f.a.path, alias, 'dir');
     f.state.lsof = [{ stdout: `p456\nn${alias}\n`, status: 0 }];
+    const calls = f.run();
+    assert.equal(calls.filter((c) => c.name === 'lsof').length, 1);
+    assert.deepEqual(mutations(calls), []);
+  } finally { f.close(); }
+});
+
+test('actual prune retains the checkout used by its own calling process', () => {
+  const f = sandbox();
+  try {
+    f.state.ownCwd = f.a.path;
     const calls = f.run();
     assert.equal(calls.filter((c) => c.name === 'lsof').length, 1);
     assert.deepEqual(mutations(calls), []);

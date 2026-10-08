@@ -481,12 +481,12 @@ function canonical(p: string): string {
 
 function listCwds(): CwdEntry[] | null {
   const result = run('lsof', ['-n', '-P', '-d', 'cwd', '-F', 'pn'], '/', 60_000);
-  const entries = checkedCwds(result, process.pid);
+  const entries = checkedCwds(result);
   return entries?.map((entry) => ({ ...entry, path: canonical(entry.path) })) ?? null;
 }
 
 /** Reject partial, failed or malformed process visibility, including warning-only output. */
-export function checkedCwds(result: RunResult, ownPid: number): CwdEntry[] | null {
+export function checkedCwds(result: RunResult): CwdEntry[] | null {
   if (result.status !== 0 || result.stderr.trim() || !result.stdout.trim()) return null;
   let pid = 0;
   let hasPath = false;
@@ -502,7 +502,7 @@ export function checkedCwds(result: RunResult, ownPid: number): CwdEntry[] | nul
     else return null;
   }
   if (!pid || !hasPath) return null;
-  return parseLsofCwd(result.stdout).filter((entry) => entry.pid !== ownPid);
+  return parseLsofCwd(result.stdout);
 }
 
 function gh(args: readonly string[], cwd: string): string | null {
