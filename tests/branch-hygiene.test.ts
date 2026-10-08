@@ -19,6 +19,8 @@ import {
   parseLsofCwd,
   parseStatusZ,
   parseWorktreePorcelain,
+  renderMarkdown,
+  type RepoReport,
   type WorktreeFacts,
   worktreeLocationWarnings,
 } from '../scripts/branch-hygiene.ts';
@@ -27,6 +29,28 @@ const MAIN_TREE = 'a'.repeat(40);
 const OTHER_TREE = 'b'.repeat(40);
 
 const verdict = (status: BranchVerdict['status'], inMain = status === 'IN_MAIN'): BranchVerdict => ({ status, inMain, detail: '' });
+
+test('renderMarkdown distinguishes represented changes from deletable history and preserves custody', () => {
+  const report: RepoReport = {
+    root: '/fixture/lolly', commonDir: '/fixture/lolly/.git', slug: 'owner/lolly',
+    remote: 'origin', mainBranch: 'main', mainSha: MAIN_TREE, fetched: true, prsKnown: true,
+    remoteBranches: [{
+      name: 'feat/equivalent', sha: OTHER_TREE, date: '2026-10-08', protectedBranch: false,
+      ancestorOfMain: false, verdict: { status: 'IN_MAIN', inMain: true, detail: '3 commits, changes already in main' },
+      warning: null, decision: { act: false, why: 'unique history requires manual archival' },
+    }],
+    localBranches: [], worktrees: [], mainCheckout: null, warnings: [],
+  };
+  const markdown = renderMarkdown(report, []);
+  assert.match(markdown, /feat\/equivalent.*IN_MAIN.*3 commits, changes already in main/);
+  assert.match(markdown, /equivalent squash or rebase merges can still have unique commit history/);
+  assert.match(markdown, /rechecks exact ancestry, live refs, PRs and protection/);
+  assert.match(markdown, /before removing eligible clean worktrees/);
+  assert.match(markdown, /Unique history, local branches, ignored files, notes and locked worktrees are retained/);
+  assert.match(markdown, /Lock externally referenced worktrees until their deployment, recovery or other configuration references have moved/);
+  assert.match(markdown, /coordinate cleanup with other users/);
+  assert.doesNotMatch(markdown, /To delete them|matching local branches|each action can be undone/);
+});
 
 test('classifyBranch: main, merged, squash-merged, unique, conflicting and open PR', () => {
   const base = { name: 'feat/x', isMain: false, ahead: 0, mergedTree: null, mainTree: MAIN_TREE, openPrs: [] };

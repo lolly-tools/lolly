@@ -1062,7 +1062,7 @@ export function renderMarkdown(report: RepoReport, findings: readonly string[]):
   }
   lines.push(
     '',
-    'Branches marked IN_MAIN hold nothing that main lacks. To delete them, and the matching local branches and idle worktrees, run `node scripts/branch-hygiene.ts --prune` from a checkout; it logs every sha it removes.'
+    'IN_MAIN means the changes are already represented in main; equivalent squash or rebase merges can still have unique commit history. Optional `node scripts/branch-hygiene.ts --prune` rechecks exact ancestry, live refs, PRs and protection before deleting eligible remote branches, and fresh process, registration, lock and file checks before removing eligible clean worktrees. Unique history, local branches, ignored files, notes and locked worktrees are retained. Lock externally referenced worktrees until their deployment, recovery or other configuration references have moved, and coordinate cleanup with other users. Each attempted action logs its SHA first.'
   );
   return lines.join('\n');
 }
