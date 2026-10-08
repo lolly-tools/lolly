@@ -8,6 +8,7 @@ import { readLottie } from '../engine/src/dotlottie.ts';
 import { lottieLayers, lottieTracks } from '../engine/src/lottie-edit.ts';
 import { propertyKeys } from '../engine/src/lottie-properties.ts';
 import type { LottieObject } from '../engine/src/lottie-model.ts';
+import { shellSettled } from './helpers/shell-settled.ts';
 
 const origin = process.env.LOLLY_EXPORT_TEST_URL;
 test('nested layer/property edits, curves, undo, independent duplicates and save/reopen/export', {
@@ -28,8 +29,9 @@ test('nested layer/property edits, curves, undo, independent duplicates and save
     if (key.e) (key.e as number[])[1] = 32.123456789;
   }
   try {
-    await page.goto(origin!, { waitUntil: 'networkidle' });
-    // The shell acquires WebGPU before it boots, so network idleness can come first.
+    await page.goto(origin!, { waitUntil: 'networkidle' }); await shellSettled(page);
+    // Network idleness is not a boot signal (the WebGPU startup check can keep the
+    // network quiet), so wait for the gallery's drop router before dropping.
     await page.locator('#view[data-drop-ready]').waitFor({ state: 'attached' });
     await page.evaluate(json => {
       const transfer = new DataTransfer(); transfer.items.add(new File([json], 'nested.json', { type: 'application/json' }));
@@ -87,7 +89,7 @@ test('nested layer/property edits, curves, undo, independent duplicates and save
     assert.equal(propertyKeys(lottieTracks(dot.layer).find(track => track.id === 'p.x')!.property).length, 3);
     assert.ok(propertyKeys(lottieTracks(dot.layer).find(track => track.id === 'p.y')!.property).every(key => (key.s as number[])[0] === 32.123456789), 'editing X preserves source Y precision');
     assert.deepEqual(lottieTracks(dot.layer).find(track => track.id === 'shapes/1/c')!.property.k, [0, 1, 0, 1]);
-    await page.reload({ waitUntil: 'networkidle' });
+    await page.reload({ waitUntil: 'networkidle' }); await shellSettled(page);
     await page.locator('#tool-canvas [data-lottie-src].is-lottie-live').first().waitFor();
     await page.getByRole('button', { name: 'Export', exact: true }).click();
     await page.locator('[data-action="format"]').selectOption('lottie', { force: true });

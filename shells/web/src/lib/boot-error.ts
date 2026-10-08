@@ -1,7 +1,14 @@
 // SPDX-License-Identifier: MPL-2.0
-import { isWebGpuFailure } from './webgpu/device.ts';
+import { t } from '../i18n.ts';
+import { isWebGpuFailure, webGpuFailureText } from './webgpu/device.ts';
 
-/** Load recovery UI after a failed boot; supported startup does not need this path. */
+/**
+ * Load recovery UI after a failed boot; supported startup does not need this path.
+ * The same card is the unsupported-environment result when the WebGPU startup check
+ * fails (plan 295): it carries `data-webgpu-unsupported` so a test or a driver can
+ * tell it apart from any other boot failure. Safe to call again (main.ts repaints it
+ * once the interface language has loaded); each call replaces the card.
+ */
 export function showBootError(error: unknown): void {
   const view = document.getElementById('view');
   if (!view) return;
@@ -11,11 +18,13 @@ export function showBootError(error: unknown): void {
   const msg = document.createElement('p');
   msg.style.margin = '0';
   const message = error instanceof Error ? error.message : String(error);
-  msg.textContent = isWebGpuFailure(error) ? message : `Boot failed: ${message}`;
+  const webGpu = isWebGpuFailure(error);
+  if (webGpu) div.dataset.webgpuUnsupported = error.code;
+  msg.textContent = webGpu ? webGpuFailureText(error, t) ?? message : `Boot failed: ${message}`;
   div.appendChild(msg);
   const databaseBlocked = error instanceof Error && 'code' in error
     && (error.code === 'DB_BLOCKED' || error.code === 'DB_OPEN_TIMEOUT');
-  if (databaseBlocked || isWebGpuFailure(error)) {
+  if (databaseBlocked || webGpu) {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'btn';

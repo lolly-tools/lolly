@@ -4,6 +4,7 @@ import test from 'node:test';
 import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
 import { chromium } from 'playwright';
+import { shellSettled } from './helpers/shell-settled.ts';
 
 const origin = process.env.LOLLY_IMPORT_TEST_URL;
 const options = { skip: origin ? false : 'set LOLLY_IMPORT_TEST_URL to a local Vite shell', timeout: 120_000 };
@@ -31,7 +32,7 @@ test('Profile creates and reopens editable systems beside a locked deployment br
       return { record: await host.designSystems.active(), doc: await host.tokens.raw(), locked: await host.tokens.isLocked() };
     });
     const profile = async () => {
-      await page.goto(`${origin}/#/profile?focus=design-systems-section`, { waitUntil: 'networkidle' });
+      await page.goto(`${origin}/#/profile?focus=design-systems-section`, { waitUntil: 'networkidle' }); await shellSettled(page);
       await page.locator('[data-ds-act="new"]').waitFor();
     };
     await profile();
@@ -77,7 +78,7 @@ test('Profile creates and reopens editable systems beside a locked deployment br
     await name.waitFor();
     assert.equal(await name.inputValue(), 'My local system');
     assert.deepEqual((await read()).doc, edited.doc);
-    await page.reload({ waitUntil: 'networkidle' });
+    await page.reload({ waitUntil: 'networkidle' }); await shellSettled(page);
     await name.waitFor();
     assert.equal((await read()).locked, false);
     assert.deepEqual((await read()).doc, edited.doc, 'local edits survive a reload on the locked deployment');
@@ -134,7 +135,7 @@ test('cold brand discovery shares a slow asset sync without a second index reque
       await new Promise<void>(resolve => setTimeout(resolve, 750));
       await route.continue();
     });
-    await page.goto(`${origin}/`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/`, { waitUntil: 'networkidle' }); await shellSettled(page);
     assert.equal(reads, 1);
   } finally { await browser.close(); }
 });
@@ -148,7 +149,7 @@ test('local looks compare without writes, apply through recovery, and retain sea
     const page = await context.newPage();
     const errors: string[] = [];
     page.on('pageerror', error => errors.push(error.message));
-    await page.goto(`${origin}/#/start`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/#/start`, { waitUntil: 'networkidle' }); await shellSettled(page);
     const read = () => page.evaluate(async () => { const p = '/src/bridge/index.ts'; return (await (await import(p)).createBridge()).tokens.raw(); });
     const before = await read();
     await page.getByRole('button', { name: 'Find a look', exact: true }).click();
@@ -187,7 +188,7 @@ test('local looks compare without writes, apply through recovery, and retain sea
       const record = await host.designSystems.get(id);
       await host.designSystems.put({ ...record, label });
     }, { id: savedId, label: hostileLabel });
-    await page.reload({ waitUntil: 'networkidle' });
+    await page.reload({ waitUntil: 'networkidle' }); await shellSettled(page);
     await page.getByRole('button', { name: 'Find a look', exact: true }).click();
     dialog = page.getByRole('dialog', { name: 'Find a look', exact: true });
     await dialog.locator('[data-looks-search]').fill('school');
@@ -236,7 +237,7 @@ test('export offers an individual brand fix and ordinary Undo restores the origi
     const errors: string[] = [];
     page.on('pageerror', error => errors.push(error.message));
     const boxes = [{ id: 'brand-test', kind: 'text', name: 'Greeting', text: 'Hello', x: 30, y: 30, w: 200, h: 100, fg: '#ed1234', font: 'sans' }];
-    await page.goto(`${origin}/#/tool/design?boxes=${encodeURIComponent(JSON.stringify(boxes))}`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/#/tool/design?boxes=${encodeURIComponent(JSON.stringify(boxes))}`, { waitUntil: 'networkidle' }); await shellSettled(page);
     const text = page.locator('.lolly-box[data-box-id="brand-test"] .lolly-box-text').first();
     const color = () => text.evaluate(el => getComputedStyle(el).color);
     const before = await color();

@@ -746,9 +746,9 @@ export async function renderToolPackageViaWebShell(bytes: Uint8Array, toolId: st
     const page = await context.newPage();
     const observeInputs = await observeProductionInputs(page, toolId, production.productionInputIds ?? []);
     await page.goto(base, {waitUntil:'load',timeout:30_000});
-    // Network idleness is not a boot signal: the shell acquires WebGPU before it boots,
-    // and a cold software adapter keeps the network quiet for seconds. Drop the file once
-    // the gallery's drop router is attached.
+    // Network idleness is not a boot signal: the WebGPU startup check (plan 295) can keep
+    // the network quiet for seconds on a cold software adapter. Drop the file once the
+    // gallery's drop router is attached.
     await page.locator('#view[data-drop-ready]').waitFor({state:'attached',timeout:30_000});
     await page.evaluate(data => {
       const transfer = new DataTransfer(); transfer.items.add(new File([new Uint8Array(data)], 'tool.lolly'));

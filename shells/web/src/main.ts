@@ -70,7 +70,7 @@ import { announce } from './a11y.ts';
 import { beginViewFade } from './view-fade.ts';
 import { beginViewLoading, type ViewLoading } from './components/view-loading.ts';
 import { noteLeavingHref, takeLeavingHref, recordLeave, noteMountedView } from './lib/back-nav.ts';
-import { requireWebGpu } from './lib/webgpu/device.ts';
+import { startWebGpuCheck, webGpuChecked } from './lib/webgpu/device.ts';
 
 // The collab + nearby wiring, installed once the critical load is done rather than at
 // module scope. All five are REGISTRATIONS - a Share-dialog row, the opener that row
@@ -195,6 +195,11 @@ interface RouteSpec {
    *  the destination is known). Leaving such a route records no back step, so a back
    *  pill never returns to the hand-off. */
   handoff?: boolean;
+  /** Mounts while the WebGPU startup check is still running (plan 295). Only for
+   *  views that run no tool and no GPU operation of their own: a tool opened from one
+   *  goes through its own route, which waits, and an off-screen preview render waits
+   *  in pro/render-export.ts. Every other route waits for the check before it mounts. */
+  beforeWebGpu?: true;
 }
 
 /**
@@ -206,12 +211,12 @@ interface RouteSpec {
  */
 const ROUTES: Record<RouteName, RouteSpec> = {
   learning: { label: 'Learning module', footer: 'none' },
-  gallery: { label: 'Tools gallery', tab: 'tools', viewClasses: ['gallery-view'], footer: 'search' },
+  gallery: { label: 'Tools gallery', tab: 'tools', viewClasses: ['gallery-view'], footer: 'search', beforeWebGpu: true },
   // Utilities IS the gallery view (mountGallery in only-utility mode), so it must
   // carry the same scoping class - gallery.css's desktop saved-list grid, footer
   // padding and every other .gallery-view rule apply identically. Without it the
   // mounted markup is styled by nothing and the view renders broken/blank.
-  utilities: { label: 'Utilities', tab: 'utilities', viewClasses: ['gallery-view', 'utilities-view'], footer: 'search' },
+  utilities: { label: 'Utilities', tab: 'utilities', viewClasses: ['gallery-view', 'utilities-view'], footer: 'search', beforeWebGpu: true },
   tool: { label: 'Tool', viewClasses: ['tool-view'], footer: 'none' },
   profile: { label: 'Settings', viewClasses: ['profile-view'], footer: 'search' },
   // The dashboard keys on its query too, so a deep link that only changes a flag
@@ -272,7 +277,7 @@ const ROUTES: Record<RouteName, RouteSpec> = {
   // backing out to a browse route first. Unclaimed - queries go to the overlay only, never
   // reshape the page behind. Moving
   // between doc pages re-mounts the reader.
-  docs: { label: 'Documentation', viewClasses: ['docs-view'], footer: 'search' },
+  docs: { label: 'Documentation', viewClasses: ['docs-view'], footer: 'search', beforeWebGpu: true },
   // The two private-collab ceremony links (plan 100 section 6.1 skin 1, section 11.25). Both are
   // arrival points from someone ELSE's device, so they get no tab and no footer bar - 
   // and both key on `params`, because the whole meaning of the route is the invite (or
@@ -339,7 +344,53 @@ function routeSignature(route: Route): string {
 // compares the complete route, including its query, and restores the new state.
 window.addEventListener('lolly:url-state', () => { mountedRouteSig = routeSignature(parseRoute()); });
 
+/**
+ * Set once the WebGPU startup check fails (plan 295, section 2). The requirement is
+ * hard: from then on no route mounts, and every navigation shows the
+ * unsupported-environment card instead. A wrapper, so a falsy rejection value still
+ * counts as a failure.
+ */
+let webGpuStop: { error: unknown } | null = null;
+
+/** Read through a call so a function that checked it before an await sees a later failure. */
+function webGpuFailed(): boolean { return webGpuStop !== null; }
+
+function showWebGpuCard(): void {
+  if (!webGpuStop) return;
+  const { error } = webGpuStop;
+  void import('./lib/boot-error.ts').then(({ showBootError }) => showBootError(error))
+    .catch(() => showReloadCard(error instanceof Error ? error.message : String(error)));
+}
+
+/**
+ * The check failed: tear down whatever view is mounted (the gallery paints before the
+ * check settles, and its preview queue and listeners must stop with it), then replace
+ * it with the card. No CPU, WebGL or WASM fallback takes its place.
+ */
+function stopForWebGpu(error: unknown): void {
+  if (!webGpuStop) {
+    webGpuStop = { error };
+    document.documentElement.dataset.webgpu = 'unsupported';
+    // One string, so a headless driver (packages/node-shell/src/export-wait.ts) can
+    // fail its export wait on this line instead of waiting out its idle limit.
+    console.error(`[lolly] WebGPU is required and unavailable: ${error instanceof Error ? error.message : String(error)}`);
+    routeLoading?.close();
+    routeLoading = null;
+    mountedRouteSig = '';
+    const view = document.getElementById('view') as ViewElement | null;
+    if (view) {
+      try { view._cleanup?.(); } catch (e) { console.error('[nav] view cleanup threw:', e); }
+      delete view._cleanup;
+      delete view._beforeLeave;
+      for (const [cls] of VIEW_CLASS_OWNERS) view.classList.remove(cls);
+    }
+    applySearchBarRoute('none', parseRoute().name);
+  }
+  showWebGpuCard();
+}
+
 async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<void> {
+  if (webGpuStop) { showWebGpuCard(); return; }
   const route = parseRoute();
   const appearance = urlThemeOverride();
   applyTheme(appearance ?? localStorage.getItem('theme') ?? 'light', false, false);
@@ -475,6 +526,14 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
   const loading = scriptedExport || browsingBoot || isIframeMode() ? null : beginViewLoading();
   routeLoading = loading;
   try {
+  // The WebGPU startup check runs alongside boot (see boot()). A route that can run a
+  // tool or a GPU operation waits for it here, under the loading card, and never mounts
+  // if it fails; the gallery, utilities and docs paint without waiting.
+  if (!ROUTES[route.name].beforeWebGpu) {
+    try { await webGpuChecked(); } catch (error) { fade?.commit(); stopForWebGpu(error); return; }
+    // A newer navigation started while this one waited, and owns the view now.
+    if (mountedRouteSig !== routeSig) { fade?.commit(); return; }
+  }
   switch (route.name) {
     case 'tool': {
       if (!isIframeMode()) recordTool(route.toolId); // local usage metric (profile page); a framed tool is not a visit
@@ -762,10 +821,13 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
     }
   }
   } catch (err) {
-    console.error('View mount failed:', err);
     // Fade the outgoing snapshot out either way, so it can't linger over the
     // reload card (or the fresh shell after a stale-chunk reload).
     fade?.commit();
+    // The startup check failed while this view mounted and tore it down: the card, not
+    // a Reload card. A GPU operation's own failure is not that, and takes the path below.
+    if (webGpuFailed()) { showWebGpuCard(); return; }
+    console.error('View mount failed:', err);
     if (import.meta.env.PROD && looksLikeChunkError(err)) { recoverFromStaleShell(); return; }
     showReloadCard('This view didn’t finish loading. Reload to try again.');
     return;
@@ -1012,13 +1074,18 @@ function startBootCatalog(host: Awaited<ReturnType<typeof createBridge>>, coldGa
   const welcomeRoute = parseRoute().name;
   const catalogHost = catalogHostOf(host);
   const welcomeFirst = coldGallery && welcomeRoute === 'gallery'
-    ? () => showGalleryWelcome(catalogHost, () => parseRoute().name === 'gallery').catch(console.error) : undefined;
+    ? () => showGalleryWelcome(catalogHost, () => parseRoute().name === 'gallery' && !webGpuStop).catch(console.error) : undefined;
   return syncCatalog(catalogHost, welcomeFirst, welcomeSettled, signInRequired, preparedAssets)
     .then(async () => { try { await mergeInstalledToolsIntoIndex(); } catch { /* no installed tools / no index yet */ } });
 }
 
 async function boot(): Promise<void> {
-  await requireWebGpu();
+  // WebGPU is a hard requirement (plan 295), checked alongside boot rather than before
+  // it: a cold software adapter can take seconds, and the gallery must not wait for one
+  // to paint. navigate() holds every route that can run a tool until the check passes;
+  // a failure replaces the view with the unsupported-environment card wherever the
+  // person is (stopForWebGpu).
+  void startWebGpuCheck().then(() => { document.documentElement.dataset.webgpu = 'ready'; }, stopForWebGpu);
   // Prime the in-memory tool index from the last cached copy so the gallery can
   // paint immediately, before the network catalog sync resolves. syncCatalog
   // overwrites window.__toolIndex with fresh data when it lands. (Mirrors the
@@ -1309,6 +1376,9 @@ async function boot(): Promise<void> {
     // in English. Attached HERE, not at the continuation below, so the rejection is
     // never momentarily unhandled.
     .catch((err: unknown) => { console.error('Language init failed - staying in English:', err); });
+  // An unsupported-environment card painted before the interface language arrived is
+  // in English; paint it again in the person's language once that has loaded.
+  void i18nReady.then(() => { if (webGpuStop && loadedLang() !== 'en') showWebGpuCard(); });
 
   // Interface sounds: the profile is the canonical mute store (like the theme). Reconcile
   // the sfx layer's localStorage-derived flag with the profile's value once it has loaded,

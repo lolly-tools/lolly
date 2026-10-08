@@ -7555,5 +7555,6 @@
   "Shared folder": "Споделена папка",
   "Shared folders could not be loaded or saved. Check your connection and try again.": "Споделените папки не можаха да бъдат заредени или запазени. Провери връзката си и опитай отново.",
   "Shared projects could not be loaded. Try again.": "Споделените проекти не можаха да бъдат заредени. Опитай отново.",
-  "You can view this project but cannot change its folders.": "Можеш да разглеждаш този проект, но не и да променяш папките му."
+  "You can view this project but cannot change its folders.": "Можеш да разглеждаш този проект, но не и да променяш папките му.",
+  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly изисква WebGPU, а браузърите предлагат WebGPU само на защитени (HTTPS) страници. Тази инстанция се обслужва през обикновен HTTP. Помоли администратора ѝ да я обслужва през HTTPS."
 }

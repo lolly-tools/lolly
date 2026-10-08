@@ -1053,5 +1053,6 @@
   "Shared folder": "Delad mapp",
   "Shared folders could not be loaded or saved. Check your connection and try again.": "Det gick inte att läsa in eller spara delade mappar. Kontrollera anslutningen och försök igen.",
   "Shared projects could not be loaded. Try again.": "Delade projekt kunde inte läsas in. Försök igen.",
-  "You can view this project but cannot change its folders.": "Du kan visa projektet men inte ändra dess mappar."
+  "You can view this project but cannot change its folders.": "Du kan visa projektet men inte ändra dess mappar.",
+  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly kräver WebGPU, och webbläsare erbjuder bara WebGPU på säkra sidor (HTTPS). Den här instansen levereras över okrypterad HTTP. Be den som driver den att leverera den över HTTPS."
 }

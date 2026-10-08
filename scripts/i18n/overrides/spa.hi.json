@@ -1061,5 +1061,6 @@
   "Shared folder": "साझा फ़ोल्डर",
   "Shared folders could not be loaded or saved. Check your connection and try again.": "साझा फ़ोल्डर लोड या सहेजे नहीं जा सके। अपना कनेक्शन जाँचें और फिर कोशिश करें।",
   "Shared projects could not be loaded. Try again.": "साझा प्रोजेक्ट लोड नहीं हो सके। फिर से कोशिश करें।",
-  "You can view this project but cannot change its folders.": "आप यह प्रोजेक्ट देख सकते हैं, लेकिन इसके फ़ोल्डर नहीं बदल सकते।"
+  "You can view this project but cannot change its folders.": "आप यह प्रोजेक्ट देख सकते हैं, लेकिन इसके फ़ोल्डर नहीं बदल सकते।",
+  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly को WebGPU चाहिए, और ब्राउज़र WebGPU सिर्फ़ सुरक्षित (HTTPS) पेजों पर देते हैं। यह इंस्टेंस सादे HTTP पर चल रहा है। इसे चलाने वाले से इसे HTTPS पर चलाने को कहें।"
 }

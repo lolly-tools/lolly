@@ -7555,5 +7555,6 @@
   "Shared folder": "Folder partajat",
   "Shared folders could not be loaded or saved. Check your connection and try again.": "Folderele partajate nu au putut fi încărcate sau salvate. Verifică-ți conexiunea și încearcă din nou.",
   "Shared projects could not be loaded. Try again.": "Proiectele partajate nu au putut fi încărcate. Încearcă din nou.",
-  "You can view this project but cannot change its folders.": "Poți vedea acest proiect, dar nu îi poți modifica folderele."
+  "You can view this project but cannot change its folders.": "Poți vedea acest proiect, dar nu îi poți modifica folderele.",
+  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly are nevoie de WebGPU, iar browserele oferă WebGPU doar pe paginile securizate (HTTPS). Această instanță este servită prin HTTP necriptat. Cere administratorului ei să o servească prin HTTPS."
 }

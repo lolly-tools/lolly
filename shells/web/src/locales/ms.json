@@ -7555,5 +7555,6 @@
   "Shared folder": "Folder dikongsi",
   "Shared folders could not be loaded or saved. Check your connection and try again.": "Folder dikongsi tidak dapat dimuatkan atau disimpan. Semak sambungan anda dan cuba lagi.",
   "Shared projects could not be loaded. Try again.": "Projek yang dikongsi tidak dapat dimuatkan. Cuba lagi.",
-  "You can view this project but cannot change its folders.": "Anda boleh melihat projek ini tetapi tidak boleh mengubah foldernya."
+  "You can view this project but cannot change its folders.": "Anda boleh melihat projek ini tetapi tidak boleh mengubah foldernya.",
+  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly memerlukan WebGPU, dan pelayar hanya menyediakan WebGPU pada halaman selamat (HTTPS). Instans ini disediakan melalui HTTP biasa tanpa penyulitan. Minta pengendalinya menyediakannya melalui HTTPS."
 }

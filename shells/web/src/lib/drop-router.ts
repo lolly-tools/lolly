@@ -1928,9 +1928,9 @@ const ATTACHED = new WeakMap<HTMLElement, () => void>();
  * The shell reuses one #view element across routes, so the attachment tears
  * itself down on any navigation - a tool view can never inherit it. Returns the
  * teardown for callers that want it earlier. While attached, the root carries
- * `data-drop-ready`: the shell acquires WebGPU before it boots (plan 295), which can
- * leave the network quiet for seconds, so a headless driver that drops a file waits
- * for this attribute rather than for network idleness.
+ * `data-drop-ready`, and a headless driver that drops a file waits for this attribute
+ * rather than for network idleness, which says nothing about when boot attached the
+ * router: the WebGPU startup check (plan 295) can keep the network quiet for seconds.
  */
 export function attachDropRouter(rootEl: HTMLElement, host: PickerHost, hooks: DropChooserHooks = {}): () => void {
   ATTACHED.get(rootEl)?.();

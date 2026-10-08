@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 import { mkdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
+import { shellSettled } from './helpers/shell-settled.ts';
 
 const origin = process.env.LOLLY_HISTORY_TEST_URL;
 const skip = origin ? false : 'LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)';
@@ -98,7 +99,7 @@ test('asset checks stay local and repair copies revalidate exact compatible uplo
 test('the History panel checks only on request and opens selected repairs as a new creation', { skip, timeout: 60_000 }, async () => {
   const browser = await chromium.launch({ headless: true }); const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   try {
-    await page.goto(`${origin}/#/history`, { waitUntil: 'networkidle' }); await page.keyboard.press('Escape');
+    await page.goto(`${origin}/#/history`, { waitUntil: 'networkidle' }); await shellSettled(page); await page.keyboard.press('Escape');
     const original = await page.evaluate(async () => {
       const hostPath = '/src/lib/host-ref.ts', dbPath = '/src/bridge/db.ts';
       const state = (await import(hostPath)).getHostRef().state, db = await (await import(dbPath)).openDB();

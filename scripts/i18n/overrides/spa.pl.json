@@ -1189,5 +1189,6 @@
   "Shared folder": "Udostępniony folder",
   "Shared folders could not be loaded or saved. Check your connection and try again.": "Nie udało się wczytać ani zapisać udostępnionych folderów. Sprawdź połączenie i spróbuj ponownie.",
   "Shared projects could not be loaded. Try again.": "Nie udało się wczytać udostępnionych projektów. Spróbuj ponownie.",
-  "You can view this project but cannot change its folders.": "Możesz przeglądać ten projekt, ale nie możesz zmieniać jego folderów."
+  "You can view this project but cannot change its folders.": "Możesz przeglądać ten projekt, ale nie możesz zmieniać jego folderów.",
+  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly wymaga WebGPU, a przeglądarki udostępniają WebGPU tylko na bezpiecznych stronach (HTTPS). Ta instancja działa przez zwykły, nieszyfrowany HTTP. Poproś osobę, która nią zarządza, o udostępnienie jej przez HTTPS."
 }

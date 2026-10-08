@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { getBrowser, closeBrowser } from '../packages/node-shell/src/browsers.ts';
+import { shellSettled } from './helpers/shell-settled.ts';
 
 const origin = process.env.LOLLY_IMPORT_TEST_URL;
 test('gallery controls support keyboard and native scrolling past pending previews across accessibility preferences', {
@@ -17,7 +18,7 @@ test('gallery controls support keyboard and native scrolling past pending previe
         await page.addInitScript(() => {
           for (const key of ['lolly-welcome-dismissed', 'lolly-tips-dismissed', 'lolly-privacy-ack']) localStorage.setItem(key, '1');
         });
-        await page.goto(`${origin}/#/p`, { waitUntil: 'networkidle' });
+        await page.goto(`${origin}/#/p`, { waitUntil: 'networkidle' }); await shellSettled(page);
         // Real carousel code and styles, with deterministic completion order so
         // native gestures can reach a still-pending pane without racing rendering.
         await page.evaluate(async (mobile) => {

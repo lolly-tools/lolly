@@ -4,6 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { getBrowser, closeBrowser } from '../packages/node-shell/src/browsers.ts';
+import { shellSettled } from './helpers/shell-settled.ts';
 
 const origin = process.env.LOLLY_CONVERT_TEST_URL;
 test('portable file history: two-device restore, immutable collisions, orphan recovery and mobile storage UI', { skip: origin ? false : 'no browser origin (set LOLLY_CONVERT_TEST_URL to a running web shell)', timeout: 90_000 }, async () => {
@@ -15,7 +16,7 @@ test('portable file history: two-device restore, immutable collisions, orphan re
   const errors: string[] = [];
   page.on('pageerror', e => errors.push(e.message)); restored.on('pageerror', e => errors.push(e.message));
   try {
-    await page.goto(`${origin}/#/convert`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/#/convert`, { waitUntil: 'networkidle' }); await shellSettled(page);
     const seeded = await page.evaluate(async () => {
       const hostPath = '/src/lib/host-ref.ts', storePath = '/src/lib/file-operation-store.ts', adapterPath = '/src/lib/file-operation-adapter.ts';
       const host = (await import(hostPath)).getHostRef();
@@ -38,7 +39,7 @@ test('portable file history: two-device restore, immutable collisions, orphan re
     await page.locator('[data-history-storage] summary').click();
     await page.locator('[data-history-search]').fill('palette');
     await page.screenshot({ path: '/Users/andy/Build/lolly/plans/203-work/history-recovery-desktop.png', fullPage: true });
-    await page.goto(`${origin}/#/profile?focus=storage-section`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/#/profile?focus=storage-section`, { waitUntil: 'networkidle' }); await shellSettled(page);
     await page.locator('[data-store-group="move"] > summary').click();
     await page.locator('#export-data-btn').waitFor();
     assert.match(await page.locator('.profile-row[data-cat="file-history"]').textContent() ?? '', /Not a disposable cache/);
@@ -46,7 +47,7 @@ test('portable file history: two-device restore, immutable collisions, orphan re
     const backup = await readFile((await download.path())!);
     assert.ok(backup.length > 0);
 
-    await restored.goto(`${origin}/#/profile?focus=storage-section`, { waitUntil: 'networkidle' });
+    await restored.goto(`${origin}/#/profile?focus=storage-section`, { waitUntil: 'networkidle' }); await shellSettled(restored);
     await restored.locator('#import-data-input').setInputFiles({ name: download.suggestedFilename(), mimeType: 'application/zip', buffer: backup });
     await restored.locator('[data-scope="import"]').click();
     await restored.locator('.clear-dialog').waitFor({ state: 'detached' });
@@ -70,7 +71,7 @@ test('portable file history: two-device restore, immutable collisions, orphan re
     assert.equal(roundTrip.count, 2); assert.equal(roundTrip.versions, 1); assert.equal(roundTrip.twice.failedHistory, 0);
     assert.equal(roundTrip.currentVersion, 'live-v1', 'repeated imports preserve the current asset version too');
 
-    await restored.goto(`${origin}/#/convert`, { waitUntil: 'networkidle' });
+    await restored.goto(`${origin}/#/convert`, { waitUntil: 'networkidle' }); await shellSettled(restored);
     await restored.locator('[data-history-storage] summary').click();
     await restored.locator('[data-all-versions]').click();
     await restored.locator('[data-open-asset-history]').waitFor();
@@ -148,19 +149,19 @@ test('built application backs up and restores a converted copy through the real 
   const errors: string[] = [];
   page.on('pageerror', e => errors.push(e.stack || e.message)); other.on('pageerror', e => errors.push(e.stack || e.message));
   try {
-    await page.goto(`${productionOrigin}/#/convert`, { waitUntil: 'networkidle' });
+    await page.goto(`${productionOrigin}/#/convert`, { waitUntil: 'networkidle' }); await shellSettled(page);
     await page.locator('[data-file]').setInputFiles({ name: 'portable-proof.svg', mimeType: 'image/svg+xml', buffer: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="150"><rect width="300" height="150" fill="#238875"/></svg>') });
     await page.locator('[data-convert]').click(); await page.locator('.convert-output').waitFor();
     const [result] = await Promise.all([page.waitForEvent('download'), page.locator('[data-download]').click()]);
     const original = await readFile((await result.path())!);
     assert.deepEqual([...original.subarray(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10]);
-    await page.goto(`${productionOrigin}/#/profile?focus=storage-section`, { waitUntil: 'networkidle' });
+    await page.goto(`${productionOrigin}/#/profile?focus=storage-section`, { waitUntil: 'networkidle' }); await shellSettled(page);
     const [backup] = await Promise.all([page.waitForEvent('download'), page.locator('#export-data-btn').click()]);
     const bytes = await readFile((await backup.path())!);
-    await other.goto(`${productionOrigin}/#/profile?focus=storage-section`, { waitUntil: 'networkidle' });
+    await other.goto(`${productionOrigin}/#/profile?focus=storage-section`, { waitUntil: 'networkidle' }); await shellSettled(other);
     await other.locator('#import-data-input').setInputFiles({ name: backup.suggestedFilename(), mimeType: 'application/zip', buffer: bytes });
     await other.locator('[data-scope="import"]').click(); await other.locator('.clear-dialog').waitFor({ state: 'detached' });
-    await other.goto(`${productionOrigin}/#/convert`, { waitUntil: 'networkidle' });
+    await other.goto(`${productionOrigin}/#/convert`, { waitUntil: 'networkidle' }); await shellSettled(other);
     await other.locator('[data-batch-id] summary').click();
     const [batchReport] = await Promise.all([other.waitForEvent('download'), other.locator('[data-batch-saved-report]').click()]);
     assert.deepEqual(JSON.parse(await readFile((await batchReport.path())!, 'utf8')).counts, { succeeded: 1, failed: 0, cancelled: 0 });

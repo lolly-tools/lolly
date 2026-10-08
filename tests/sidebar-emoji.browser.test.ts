@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { journeyDiagnostics } from './helpers/journey-diagnostics.ts';
 import { getBrowser, closeBrowser } from '../packages/node-shell/src/browsers.ts';
+import { shellSettled } from './helpers/shell-settled.ts';
 
 const origin = process.env.LOLLY_IMPORT_TEST_URL;
 test('tool sidebars choose an emoji set once, insert at the caret, and preserve document choices', {
@@ -40,7 +41,7 @@ test('tool sidebars choose an emoji set once, insert at the caret, and preserve 
   };
   const diagnose = journeyDiagnostics(context, 'sidebar-emoji');
   try {
-    await page.goto(`${origin}/#/tool/jump`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/#/tool/jump`, { waitUntil: 'networkidle' }); await shellSettled(page);
     const heading = page.locator('input[data-input-id="heading"]');
     // The shared Loading card (components/view-loading.ts) stays up until the whole
     // tool mount has finished, and as a modal it leaves the painted sidebar inert:
@@ -84,7 +85,7 @@ test('tool sidebars choose an emoji set once, insert at the caret, and preserve 
     await page.locator('#tool-canvas .lolly-emoji svg').first().waitFor();
 
     // The profile choice seeds a fresh tool; textarea insertion also uses native edits.
-    await page.goto(`${origin}/#/tool/snippet`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/#/tool/snippet`, { waitUntil: 'networkidle' }); await shellSettled(page);
     await page.waitForURL(url => url.searchParams.get('emoji') === chosenSet);
     await startBlank();
     const code = page.locator('textarea[data-input-id="code"]');
@@ -130,7 +131,7 @@ test('tool sidebars choose an emoji set once, insert at the caret, and preserve 
     assert.equal(await page.locator('#tool-inputs .input-section-icon svg').count(), 6);
 
     // Block fields use qualified row identities and retain the other cards.
-    await page.goto(`${origin}/#/tool/diagram-builder`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/#/tool/diagram-builder`, { waitUntil: 'networkidle' }); await shellSettled(page);
     await startBlank();
     await page.locator('.block-item').first().locator('.block-collapse').click();
     const card = page.locator('input[data-field-id="nodes:0:label"]');
@@ -148,7 +149,7 @@ test('tool sidebars choose an emoji set once, insert at the caret, and preserve 
     // A link's set beats the remembered set, including a narrow, large-text display.
     await page.setViewportSize({ width: 390, height: 844 });
     const linkedSet = 'community/emoji/openmoji/black@17.0.0';
-    await page.goto(`${origin}/#/tool/jump?emoji=${encodeURIComponent(linkedSet)}&heading=Hi`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/#/tool/jump?emoji=${encodeURIComponent(linkedSet)}&heading=Hi`, { waitUntil: 'networkidle' }); await shellSettled(page);
     await page.evaluate(() => document.documentElement.dataset.a11yText = 'large');
     const toolInputs = page.locator('#tool-inputs');
     await toolInputs.waitFor({ state: 'attached' });

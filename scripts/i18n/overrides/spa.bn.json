@@ -1061,5 +1061,6 @@
   "Shared folder": "শেয়ার করা ফোল্ডার",
   "Shared folders could not be loaded or saved. Check your connection and try again.": "শেয়ার করা ফোল্ডারগুলো লোড বা সংরক্ষণ করা যায়নি। আপনার সংযোগ দেখে আবার চেষ্টা করুন।",
   "Shared projects could not be loaded. Try again.": "শেয়ার করা প্রজেক্টগুলো লোড করা যায়নি। আবার চেষ্টা করুন।",
-  "You can view this project but cannot change its folders.": "আপনি এই প্রজেক্ট দেখতে পারেন, কিন্তু এর ফোল্ডার বদলাতে পারবেন না।"
+  "You can view this project but cannot change its folders.": "আপনি এই প্রজেক্ট দেখতে পারেন, কিন্তু এর ফোল্ডার বদলাতে পারবেন না।",
+  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly-র জন্য WebGPU প্রয়োজন, আর ব্রাউজার শুধু নিরাপদ (HTTPS) পেজেই WebGPU দেয়। এই ইনস্ট্যান্স সাধারণ HTTP দিয়ে পরিবেশন করা হচ্ছে। যিনি এটি চালান তাঁকে এটি HTTPS দিয়ে পরিবেশন করতে বলুন।"
 }

@@ -1061,5 +1061,6 @@
   "Shared folder": "共用資料夾",
   "Shared folders could not be loaded or saved. Check your connection and try again.": "無法載入或儲存共用資料夾。請檢查連線後再試一次。",
   "Shared projects could not be loaded. Try again.": "無法載入共用專案。請再試一次。",
-  "You can view this project but cannot change its folders.": "你可以檢視此專案，但無法變更其中的資料夾。"
+  "You can view this project but cannot change its folders.": "你可以檢視此專案，但無法變更其中的資料夾。",
+  "Lolly requires WebGPU, and browsers only offer WebGPU on secure (HTTPS) pages. This instance is served over plain HTTP. Ask whoever runs it to serve it over HTTPS.": "Lolly 需要 WebGPU，而瀏覽器只在安全的（HTTPS）頁面上提供 WebGPU。此實例透過未加密的 HTTP 提供。請要求管理者改用 HTTPS 提供。"
 }
