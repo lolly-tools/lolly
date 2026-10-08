@@ -1,0 +1,114 @@
+/* Styles for the sing() bake dialog + consent modal (see singDialog.ts).
+ * Co-located with the component and imported by it, so any page that mounts
+ * the dialog (editor OR docs) gets the styles — no per-page stylesheet drift. */
+
+/* sing() render dialog — centered overlay while a vocal clip bakes. Tracks the
+ * visible viewport (--app-h/--app-top from ui/viewport.ts) so the card centers
+ * in the on-screen band rather than behind an open keyboard. */
+.sing-dialog {
+  position: fixed;
+  top: var(--app-top, 0px);
+  left: 0;
+  right: 0;
+  height: var(--app-h, 100dvh);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  pointer-events: none;
+  background: rgba(0, 0, 0, 0.35);
+}
+.sing-dialog.hidden { display: none; }
+.sing-card {
+  position: relative;
+  min-width: 300px;
+  max-width: min(420px, calc(100vw - 32px));
+  padding: 20px 22px;
+  background: var(--c-bg, #16181d);
+  border: 1px solid var(--c-border, #2a2e37);
+  border-radius: var(--r-md, 10px);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+.sing-title { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+.sing-label { font-size: 12px; opacity: 0.7; margin-bottom: 12px; font-variant-numeric: tabular-nums; }
+.sing-bar { height: 6px; border-radius: 3px; background: var(--c-border, #2a2e37); overflow: hidden; }
+.sing-fill { height: 100%; width: 0; background: var(--c-accent, #6ea8fe); transition: width 0.15s ease; }
+.sing-fill.indeterminate {
+  width: 40% !important;
+  animation: sing-indet 1.1s ease-in-out infinite;
+}
+@keyframes sing-indet {
+  0% { margin-left: -40%; }
+  100% { margin-left: 100%; }
+}
+/* note about where the PREVIOUS bake died (bakephase.ts crash telemetry) */
+.sing-crashnote {
+  margin-top: 12px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--c-danger, #ff6b6b);
+  opacity: 0.85;
+}
+.sing-crashnote.hidden { display: none; }
+.sing-dialog.sing-error .sing-title { color: var(--c-danger, #ff6b6b); }
+.sing-dialog.sing-error .sing-label { opacity: 0.9; }
+.sing-dialog.sing-error .sing-fill { background: var(--c-danger, #ff6b6b); }
+/* An error waits to be read, so it must not dim the whole app while it waits,
+ * and the message wants to be selectable/copyable. */
+.sing-dialog.sing-error { background: transparent; }
+.sing-dialog.sing-error .sing-label { user-select: text; -webkit-user-select: text; }
+/* The overlay is click-through (pointer-events: none) so a running bake never
+ * blocks the editor. The error CARD opts back in — otherwise its close button
+ * would be unclickable, which is how it shipped without one. */
+.sing-dialog.sing-error .sing-card { pointer-events: auto; }
+
+/* Close affordance: error-only. There is nothing to dismiss mid-bake (the bake
+ * keeps running either way), and a dead button would just invite the click. */
+.sing-close {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  display: none;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  font: inherit;
+  font-size: 20px;
+  line-height: 1;
+  border: 0;
+  border-radius: var(--r-sm, 6px);
+  background: transparent;
+  color: inherit;
+  opacity: 0.6;
+  cursor: pointer;
+}
+.sing-close:hover { opacity: 1; background: var(--c-border, #2a2e37); }
+.sing-close:focus-visible { outline: 2px solid var(--c-accent, #6ea8fe); outline-offset: 1px; }
+/* 32px of tap target, and clear of the title text beside it. */
+.sing-dialog.sing-error .sing-close { display: block; }
+.sing-dialog.sing-error .sing-title { padding-right: 30px; }
+
+/* first-time "download voice models?" consent modal */
+.sing-consent {
+  position: fixed; z-index: 1000;
+  top: var(--app-top, 0px); left: 0; right: 0; height: var(--app-h, 100dvh);
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0, 0, 0, 0.55); padding: 20px;
+}
+.sing-consent-card {
+  max-width: 380px; width: 100%;
+  background: var(--c-panel, #1b1e24); color: var(--c-text, #e8eaed);
+  border: 1px solid var(--c-border, #2a2e37); border-radius: 12px;
+  padding: 20px; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+.sing-consent-title { font-size: 15px; font-weight: 600; margin-bottom: 10px; }
+.sing-consent-body { font-size: 13px; line-height: 1.5; opacity: 0.8; margin-bottom: 18px; }
+.sing-consent-actions { display: flex; gap: 10px; justify-content: flex-end; }
+.sing-consent-actions button {
+  font: inherit; font-size: 13px; padding: 8px 14px; border-radius: 8px; cursor: pointer;
+  border: 1px solid var(--c-border, #2a2e37); background: transparent; color: inherit;
+}
+.sing-consent-go {
+  background: var(--c-accent, #6ea8fe) !important; border-color: var(--c-accent, #6ea8fe) !important;
+  color: var(--c-on-accent, #08131f) !important; font-weight: 600;
+}

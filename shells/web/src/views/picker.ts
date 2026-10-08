@@ -40,6 +40,7 @@ import { isHiddenSlot } from '../lib/batch-slots.ts';
 import { archiveBudgetFor, archiveMemberFile, readArchiveMembers, readUploadArchiveBytes } from '../lib/archive-ingest.ts';
 import DOMPurify from 'dompurify';
 import { serializeUrlState, buildEmbedUrl, parseThemedAssetId, buildThemedAssetId, restyleIconTheme, sniffAnimatedRaster, sniffVideoContainer, parseTreatedAssetId, buildTreatedAssetId, stripAssetModifiers, extractC2paStore, prepareC2paIngredientFromStore, stripMetadata, midiToZzfxm, bakeAssetRef, decodeBmp, isBmp, decodeIco, isIco, gunzip, packPng, analyzeTextSignals, LEXICON_VERSION, extractFileMetadata } from '@lolly/engine';
+import type { RondoSourceV1 } from '@lolly/engine';
 import { createToolRuntime as createRuntime } from '../lib/mount-runtime.ts';
 // Format + embeddability rules - pure and unit-tested in ./picker-formats.test.ts.
 import {
@@ -71,6 +72,7 @@ import { createLazyGrid } from '../lib/lazy-grid.ts';
 import type { LibGroup } from '../lib/asset-category.ts';
 import { icon } from '../lib/icons.ts';
 import { createUrlEntry } from '../lib/add-via-url-entry.ts';
+import { isRondoShareUrl, isRondoUrl } from '../lib/media-source.ts';
 import { isChromium } from '../capabilities.ts';
 import { loadFavouriteAssets, loadHiddenAssets, assetBaseId } from '../lib/asset-favourites.ts';
 import { matchesType as pickerMatchesType, type TypeFilter as PickerTypeFilter } from './assets-filter.ts';
@@ -1438,6 +1440,7 @@ async function render(
   // "Add from URL": reveal the URL-entry card (reuses the toolcard takeover). The same
   // entry routes a URL typed into the search box (lib/add-via-url-entry.ts); a fetched
   // image takes the upload ingest (storeUserUpload) and is picked or collected.
+  const songLinks = Boolean(collect || !opts.type || isAcceptable('audio'));
   const urlEntry = createUrlEntry<ToolUrlDescription>({
     takeoverEl: toolcardHost,
     showTakeover,
@@ -1449,6 +1452,16 @@ async function render(
       if (collect) { dismissTakeover(); collectToast(await collect.onAsset(ref)); return; }
       close(ref);
     },
+    // A rondocode share link becomes a song asset (plan 301), offered only where a
+    // song can go: an audio slot, an untyped one, or a collection.
+    useSong: songLinks
+      ? async (url) => {
+        const ref = await storeRondoShareLink(host, url);
+        if (opts.type && !isAcceptable(ref.type)) throw new Error(t('This slot can’t use that kind of file.'));
+        if (collect) { dismissTakeover(); collectToast(await collect.onAsset(ref)); return; }
+        close(ref);
+      }
+      : null,
     showFallback: showUrlFallback,
   });
   root.querySelector('.asset-picker-addurl')?.addEventListener('click', () => urlEntry.showCard());
@@ -2311,7 +2324,9 @@ async function render(
     searchInput?.addEventListener('input', async () => {
       userTouched = true; // the user is driving now - don't auto-switch the pane out
       const raw = searchInput.value.trim();
-      if (allowToolUrl && /^https?:\/\//i.test(raw)) {
+      // A rondocode share link is a song wherever the picker can take one, even in
+      // a picker that renders no tool links (the "Add media" collection, plan 301).
+      if ((allowToolUrl && /^https?:\/\//i.test(raw)) || (songLinks && isRondoShareUrl(raw))) {
         // The URL entry (shared with the footer "Add from URL" card) drops a stale run.
         await urlEntry.handle(raw);
         return;
@@ -2905,6 +2920,30 @@ async function findIdenticalUpload(host: PickerHost, file: File): Promise<AssetR
   return null;
 }
 
+/**
+ * A rondocode share link (`https://rondocode.com/#s=...`) as a song asset. The song
+ * is INSIDE the link: it is decoded here, nothing is fetched from rondocode.com, and
+ * the code is never run (lib/rondo-render.ts runs it later, in the `vm` class). The
+ * decoded song takes the same ingest as an uploaded `.rondo.json`, so a pasted link
+ * and a dropped file give the same asset.
+ */
+export async function storeRondoShareLink(host: PickerHost, url: string): Promise<AssetRef> {
+  // The reader is imported here, at the point of use, so no boot-reachable chunk
+  // lists it among its dependencies (scripts/check-bundle-budget.ts).
+  const { rondoFromShareLink, rondoSourceBytes, rondoFileName } = await import('../../../../engine/src/rondo-source.ts');
+  let song: RondoSourceV1;
+  try {
+    song = rondoFromShareLink(url);
+  } catch (err) {
+    throw Object.assign(
+      new Error(tRaw('That rondocode link could not be read. {reason}', { reason: err instanceof Error ? err.message : String(err) })),
+      { code: 'unsupported-format' },
+    );
+  }
+  const file = new File([rondoSourceBytes(song) as BlobPart], rondoFileName(song), { type: 'application/json' });
+  return storeUserUpload(host, file, { sourceHint: 'url' });
+}
+
 export async function storeUserUpload(
   host: PickerHost,
   file: File,
@@ -2934,6 +2973,26 @@ export async function storeUserUpload(
   file = precision.file;
   const model = (await tryStoreModelUpload(host, file)) ?? (await tryStoreRadianceUpload(host, file));
   if (model) return model;
+  // A rondocode song (plan 301): `.rondo` (rondo-language text) or `.rondo.json`
+  // (rondocode's project file, or the canonical form). It is CODE, read here and
+  // never run: the bytes are normalised to the canonical `.rondo.json` first, so
+  // the duplicate check below compares like with like and every later reader
+  // (lib/rondo-render.ts, which runs the song in the `vm` class) gets one shape.
+  // Checked before the Lottie test, which would otherwise claim any `.json`.
+  let rondo: RondoSourceV1 | null = null;
+  if (isRondoUrl(file.name)) {
+    const { rondoFromFile, rondoSourceBytes, rondoFileName } = await import('../../../../engine/src/rondo-source.ts');
+    try {
+      rondo = rondoFromFile(new Uint8Array(await file.arrayBuffer()), file.name);
+    } catch (err) {
+      throw Object.assign(
+        new Error(tRaw('That song file could not be read. {reason}', { reason: err instanceof Error ? err.message : String(err) })),
+        { code: 'unsupported-format' },
+      );
+    }
+    file = new File([rondoSourceBytes(rondo) as BlobPart], rondoFileName(rondo), { type: 'application/json' });
+  }
+  const isRondo = rondo !== null;
   // Read the file as a blob, stash it in the user-assets IDB store, return
   // a `user/...` AssetRef. The bridge's assets.get() resolves these via the
   // same lookup path as library assets - uniform from the tool's POV.
@@ -2942,7 +3001,7 @@ export async function storeUserUpload(
   // raster resize, which would choke on non-image bytes). Both the raw Bodymovin
   // JSON and dotLottie (.lottie, a zip) keep their complete original bytes.
   const isDotLottie = /\.lottie$/i.test(file.name) || file.type === 'application/zip+dotlottie';
-  const isLottie = isDotLottie || /\.json$/i.test(file.name) || file.type.includes('json');
+  const isLottie = !isRondo && (isDotLottie || /\.json$/i.test(file.name) || file.type.includes('json'));
   // Detect SVG by extension too, not just MIME: a dragged-in .svg (or one the OS gives a
   // blank/wrong type) would otherwise fall through to the raster path and get rasterized
   // into a tiny bitmap. As a vector it's sanitised + normalised to a viewBox-only SVG that
@@ -3129,7 +3188,7 @@ export async function storeUserUpload(
   // bytes are the source of truth (that is the whole reason to byte-sniff); MIME/name
   // only widen which files we bother to read. (Audio is verbatim - nothing to sniff.)
   let animatedKind: 'gif' | 'apng' | 'webp' | null = null;
-  if (!isLottie && !isVector && !isAudio && !isMidi && !isModule && !isData && !isText) {
+  if (!isRondo && !isLottie && !isVector && !isAudio && !isMidi && !isModule && !isData && !isText) {
     const head = new Uint8Array(await file.slice(0, 4096).arrayBuffer());
     // Byte-level video backstop: a real mp4/webm handed over with a wrong extension
     // AND a blank/non-video MIME would otherwise fall to downscaleRaster and be
@@ -3168,7 +3227,12 @@ export async function storeUserUpload(
   // asset carries it from birth. Absent on any other type, and on analyser failure.
   let aiSignals: Record<string, unknown> | undefined;
 
-  if (isLottie) {
+  if (isRondo) {
+    // Already canonical (above). Tiny by construction: the code ceiling is 256 KB.
+    // No duration: a song has no length until a render asks for one.
+    assertVerbatimSize(file, MAX_AUDIO_BYTES, t('song'));
+    format = 'rondo';   // RONDO_ASSET_FORMAT (engine/src/rondo-source.ts)
+  } else if (isLottie) {
     const prepared = await (await import('./lottie-import.ts')).prepareLottieUpload(file);
     ({ blob, format, width, height, durationMs, fps } = prepared);
     lottieMeta = prepared.meta;
@@ -3414,7 +3478,7 @@ export async function storeUserUpload(
   // export-side lie the plan's governing principle forbids. Best-effort and
   // never fatal: unknown stays absent.
   let storedDepth: number | null = null;
-  if (!isLottie && !isAudio && !isMidi && !isVector && !isVideo) {
+  if (!isRondo && !isLottie && !isAudio && !isMidi && !isVector && !isVideo) {
     try { storedDepth = (await depthHint(blob)).bitsPerChannel; } catch { storedDepth = null; }
   }
   if (jxlInfo && format === 'jxl') storedDepth = jxlInfo.bitsPerSample;
@@ -3431,7 +3495,7 @@ export async function storeUserUpload(
   // Best-effort by contract: a parse error must never block an upload.
   let bareAi: 'full' | 'partial' | undefined;
   let makerLikely: { vendor: string; hint: string } | undefined;
-  if (!isLottie && !isAudio && !isMidi && !isVector && !isData && !isText && blob.size <= MAX_CREDENTIAL_SCAN_BYTES) {
+  if (!isRondo && !isLottie && !isAudio && !isMidi && !isVector && !isData && !isText && blob.size <= MAX_CREDENTIAL_SCAN_BYTES) {
     try {
       const fm = extractFileMetadata(new Uint8Array(await blob.arrayBuffer()));
       if (fm.ai) bareAi = fm.ai.kind === 'composite' ? 'partial' : 'full';
@@ -3447,7 +3511,7 @@ export async function storeUserUpload(
   // sanitisation strips the in-file manifest, so the record still carries the original's
   // chain. Lottie/audio/MIDI carry nothing to scan. Best-effort - absent = nothing to preserve.
   let credential: Uint8Array | undefined, credentialFormat: string | undefined;
-  if (!isLottie && !isAudio && !isMidi) {
+  if (!isRondo && !isLottie && !isAudio && !isMidi) {
     try {
       const fromBlob = blob.size <= MAX_CREDENTIAL_SCAN_BYTES ? extractC2paStore(new Uint8Array(await blob.arrayBuffer())) : null;
       const src = fromBlob ?? (file.size <= MAX_CREDENTIAL_SCAN_BYTES ? extractC2paStore(new Uint8Array(await file.arrayBuffer())) : null);
@@ -3461,7 +3525,7 @@ export async function storeUserUpload(
   // ORIGINAL bytes, not the stored blob, because the downscale strips what
   // this exists to remember. IDB-only, never exported, deleted with the asset.
   let provenance: Record<string, unknown> | undefined;
-  if (!isLottie && !isAudio && !isMidi && file.size <= MAX_CREDENTIAL_SCAN_BYTES) {
+  if (!isRondo && !isLottie && !isAudio && !isMidi && file.size <= MAX_CREDENTIAL_SCAN_BYTES) {
     try {
       const sm = extractFileMetadata(new Uint8Array(await file.arrayBuffer()));
       const pick = (...labels: string[]): string | undefined => {
@@ -3496,7 +3560,7 @@ export async function storeUserUpload(
 
   const record: UserAssetRecordInput = {
     id,
-    type: isLottie ? 'lottie' : isVector ? 'vector' : isVideo ? 'video' : (isAudio || isMidi || isModule) ? 'audio' : isData ? 'data' : isText ? 'text' : 'raster',
+    type: isLottie ? 'lottie' : isVector ? 'vector' : isVideo ? 'video' : (isAudio || isMidi || isModule || isRondo) ? 'audio' : isData ? 'data' : isText ? 'text' : 'raster',
     format,
     blob,
     width,
@@ -3512,11 +3576,17 @@ export async function storeUserUpload(
     // with the music beds. (The player lists ANY user audio regardless, but the tags
     // keep grouping/search consistent with catalog audio.)
     meta: {
-      name: renameExt(file.name, format),
+      // A song is named by its own `name`, never by a file extension it does not have.
+      name: rondo ? rondo.name : renameExt(file.name, format),
+      // The song's language, so a tile and the details sheet can say it without
+      // reading the bytes. No licence is recorded: a song file carries none, and
+      // missing licence information is not permission (docs/creative-rights.md).
+      ...(rondo ? { rondo: { lang: rondo.lang } } : {}),
       ...lottieMeta,
       ...(jxlInfo ? { jxl: jxlInfo, displayDepth: 8, displayColorSpace: 'srgb' } : {}),
       ...(animated ? { animated: true } : {}),
       ...(isAudio || isMidi || isModule ? { tags: ['audio', 'neurospicy'] } : {}),
+      ...(isRondo ? { tags: ['audio', 'neurospicy', 'rondocode'] } : {}),
       // Playback length - video (probed, incl. the MediaRecorder-webm force-seek
       // workaround), lottie (derived from op/ip/fr), or pure-audio (decodeAudioData).
       // Never 0/bogus: only ever set when resolved to a finite positive value.

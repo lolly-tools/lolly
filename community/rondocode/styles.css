@@ -1,0 +1,132 @@
+/* Rondocode: the editor frame as the hero (its controls are inside it), and a
+   one-line credit.
+   Colours, type, radii and spacing are the app's design tokens, which follow
+   the active design system; the editor inside the frame takes its own colours
+   from the same design system at boot. */
+.rc {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-control-block);
+  width: 100%;
+  /* --rc-fit is the room left below the tool's top edge in the visible
+     viewport (set by the template script), so the frame never runs past
+     the bottom of a phone screen. */
+  height: min(100%, var(--rc-fit, 100%));
+  min-height: 420px;
+  padding: var(--ui-space-control-inline);
+  background: var(--ui-color-surface-canvas);
+  color: var(--ui-color-text-default);
+  font-family: var(--font-brand);
+  font-size: var(--ui-type-body);
+}
+
+.rc-stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--ui-color-border-default);
+  border-radius: var(--ui-radius-panel);
+  background: var(--ui-color-surface-raised);
+}
+.rc-frame {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+.rc-wait {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ui-space-control-inline);
+  padding: var(--ui-space-panel);
+  background: var(--ui-color-surface-raised);
+  color: var(--ui-color-text-muted);
+  text-align: center;
+}
+.rc-wait[hidden] { display: none; }
+.rc-wait.is-error .rc-spinner { display: none; }
+.rc-spinner {
+  flex: none;
+  width: var(--ui-size-icon-md);
+  height: var(--ui-size-icon-md);
+  border: 2px solid var(--ui-color-border-default);
+  border-top-color: var(--ui-color-action-primary);
+  border-radius: 50%;
+  animation: rc-spin 0.9s linear infinite;
+}
+@keyframes rc-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .rc-spinner { animation: none; } }
+
+/* The export picture: parked off-screen at the default export size, laid
+   out for real so an image export or a save's thumbnail draws it. */
+.rc-shot {
+  position: absolute;
+  left: -100000px;
+  top: 0;
+  width: 1280px;
+  height: 800px;
+  overflow: hidden;
+  pointer-events: none;
+  background: var(--ui-color-surface-canvas);
+}
+
+/* The song as a still card: the CLI's render, and the export picture above. */
+.rc-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-control-inline);
+  height: 100%;
+  box-sizing: border-box;
+  padding: var(--ui-space-panel);
+}
+.rc-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--ui-space-control-inline);
+}
+.rc-card-name { font-size: var(--ui-type-heading); }
+.rc-card-meta { color: var(--ui-color-text-muted); }
+.rc-card-code {
+  flex: 1 1 auto;
+  margin: 0;
+  padding: var(--ui-space-control-inline);
+  overflow: hidden;
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-color-surface-muted);
+  font-family: var(--font-mono);
+  font-size: var(--ui-type-caption);
+  line-height: 1.5;
+  white-space: pre;
+}
+
+.rc-row--comment { color: var(--ui-color-text-muted); }
+.rc-row--part { color: var(--ui-color-action-primary); font-weight: var(--ui-type-weight-section); }
+
+/* The export picture is a fixed 1280 by 800 image, so its type is sized for
+   the image, not for the screen. */
+.rc-shot .rc-card { justify-content: center; gap: var(--sp-6); padding: calc(var(--sp-8) * 2); }
+.rc-shot .rc-card-name { font-size: calc(var(--ui-type-heading) * 1.6); }
+.rc-shot .rc-card-meta { font-size: calc(var(--ui-type-body) * 1.6); }
+.rc-shot .rc-card-code {
+  padding: var(--sp-8);
+  border-radius: var(--ui-radius-card);
+  flex: none;
+  font-size: calc(var(--ui-type-body) * 2.2);
+  line-height: 1.5;
+}
+
+.rc-credit {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  color: var(--ui-color-text-muted);
+  font-size: var(--ui-type-caption);
+}
+.rc-credit a { color: inherit; }
+

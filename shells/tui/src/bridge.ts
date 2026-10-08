@@ -31,7 +31,22 @@ export async function createTuiBridge(profile: Profile = {}): Promise<TuiBridge>
   g.document = dom.window.document;
   g.Element = dom.window.Element;
 
-  const host = await createCliBridge({ dom, profile });
+  const logs: string[] = [];
+  const keep = (line: string): void => {
+    logs.push(line);
+    if (logs.length > 200) logs.shift();
+  };
+  // A rondocode song's report (plan 301) goes to the buffer too: the CLI's default
+  // writes it to stderr, which would land on Ink's screen.
+  const host = await createCliBridge({
+    dom,
+    profile,
+    onAudioRun: (run) => {
+      keep(`[info] Song "${run.name}": ${run.seconds.toFixed(2)} s rendered in the ${run.run.executionClass} execution class (${run.run.source} ${run.run.version}).`);
+      for (const f of run.findings) keep(`[warn] Song "${run.name}": ${f.message}`);
+    },
+    onAudioRunFailed: (failure) => keep(`[warn] Song "${failure.name}" was not rendered: ${failure.message} (${failure.code})`),
+  });
   // Read the persisted profile LIVE so bindToProfile inputs pre-fill from it and edits
   // in the Profile view take effect on the next tool mount (the CLI bridge would otherwise
   // pin the profile captured at boot).
@@ -39,10 +54,8 @@ export async function createTuiBridge(profile: Profile = {}): Promise<TuiBridge>
     get: async (): Promise<Profile> => (await getProfile()) as Profile,
     subscribe: () => () => {},
   };
-  const logs: string[] = [];
   host.log = (level: string, msg: string, ctx?: object): void => {
-    logs.push(`[${level}] ${msg}${ctx ? ' ' + JSON.stringify(ctx) : ''}`);
-    if (logs.length > 200) logs.shift();
+    keep(`[${level}] ${msg}${ctx ? ' ' + JSON.stringify(ctx) : ''}`);
   };
 
   // The CLI stubs the clipboard (headless render has nowhere to paste); an interactive

@@ -1,0 +1,267 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* Lolly's chrome in the Rondocode editor frame (editor/chrome.ts).
+   Every colour, radius, shadow and size is a web shell token; the utility
+   passes the values it resolves on its own page, so the frame matches the
+   app in light, dark and every design system. The pills follow Design's
+   floating toolbar (.fc-toolbar, .fc-btn in styles/parts/editor.css). */
+
+/* Upstream's header stays in the page so its panels and popovers still open
+   from Lolly's menus, but it takes no room and cannot be seen or reached. */
+.lolly-chrome-on .topbar {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: var(--lolly-bar-h, 60px);
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.lolly-bar {
+  --lolly-btn: calc(40px * var(--a11y-fs, 1));
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2, 8px);
+  padding: var(--sp-2, 8px) calc(var(--sp-3, 12px) + env(safe-area-inset-right)) var(--sp-2, 8px) calc(var(--sp-3, 12px) + env(safe-area-inset-left));
+  padding-top: calc(var(--sp-2, 8px) + env(safe-area-inset-top));
+  background: var(--ui-color-surface-canvas);
+  color: var(--ui-color-text-default);
+  font-family: var(--font-brand);
+  min-width: 0;
+}
+
+.lolly-pill {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 3px;
+  border-radius: var(--ui-radius-panel);
+  background: var(--ui-color-surface-raised);
+  color: var(--ui-color-text-default);
+  box-shadow: var(--ui-elevation-floating), var(--ui-edge-default);
+}
+.lolly-pill--transport { flex: 1 1 auto; padding-inline: 6px 4px; }
+.lolly-pill--tools { margin-inline-start: auto; }
+.lolly-pill--song { flex: 0 1 auto; min-width: 0; }
+
+.lolly-btn,
+.lolly-song {
+  height: var(--lolly-btn);
+  min-width: var(--lolly-btn);
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: none;
+  border-radius: var(--ui-radius-control);
+  background: transparent;
+  color: var(--ui-color-text-default);
+  font: inherit;
+  font-size: calc(13px * var(--a11y-fs, 1));
+  cursor: pointer;
+  transition: background-color var(--ui-motion-feedback, .12s) ease;
+}
+.lolly-btn[hidden] { display: none; }
+.lolly-btn svg,
+.lolly-song svg { width: calc(20px * var(--a11y-fs, 1)); height: calc(20px * var(--a11y-fs, 1)); flex: none; }
+.lolly-btn:hover:not(:disabled),
+.lolly-song:hover { background: var(--ui-color-surface-muted); }
+.lolly-btn:focus-visible,
+.lolly-song:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.lolly-btn:disabled { opacity: .35; cursor: default; }
+.lolly-btn.is-on,
+.lolly-btn[aria-expanded="true"] { background: var(--ui-color-surface-muted); color: var(--ui-color-action-primary); }
+.lolly-btn.is-busy { cursor: progress; opacity: .6; }
+.lolly-btn-label { white-space: nowrap; }
+.lolly-apply { padding-inline: 10px; color: var(--ui-color-action-primary); font-weight: 600; }
+
+.lolly-song { padding-inline: 10px 8px; max-width: 100%; min-width: 0; font-weight: 600; }
+.lolly-song-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 22ch; }
+
+/* The transport strip (lib/audio-transport.ts) at the bar's size. Run is the
+   loudest control in the bar: the round primary button. */
+.lolly-bar .cat-tp { flex: 1 1 auto; }
+.lolly-bar .cat-tp-btn.cat-tp-play { width: var(--lolly-btn); height: var(--lolly-btn); border-radius: 999px; }
+.lolly-bar .cat-tp-btn:not(.cat-tp-play) { width: var(--lolly-btn); height: var(--lolly-btn); }
+.lolly-bar .cat-tp-time { min-width: 4.5ch; font-size: calc(12px * var(--a11y-fs, 1)); }
+.lolly-stop svg { width: calc(18px * var(--a11y-fs, 1)); height: calc(18px * var(--a11y-fs, 1)); }
+
+/* Upstream's tempo and start-from fields, moved into a pill of their own and
+   repainted in the app's colours (they keep their own layout and behaviour). */
+.lolly-pill--tempo { padding-inline: 4px; gap: 4px; }
+.lolly-pill--tempo > * { flex: none; }
+.lolly-pill--tempo .tempo,
+.lolly-pill--tempo .startfrom {
+  min-height: var(--lolly-btn);
+  border-color: transparent;
+  border-radius: var(--ui-radius-control);
+  background: transparent;
+  color: var(--ui-color-text-default);
+}
+.lolly-pill--tempo .tempo:hover,
+.lolly-pill--tempo .startfrom:hover { background: var(--ui-color-surface-muted); }
+.lolly-pill--tempo .tempo:focus-within,
+.lolly-pill--tempo .startfrom:focus-within { border-color: var(--ui-color-focus-ring); }
+.lolly-pill--tempo .tempo-input,
+.lolly-pill--tempo .startfrom-input { color: var(--ui-color-text-default); }
+.lolly-pill--tempo .tempo-input:focus,
+.lolly-pill--tempo .startfrom-input:focus,
+.lolly-pill--tempo .startfrom.set .startfrom-input { color: var(--ui-color-action-primary); }
+.lolly-pill--tempo .startfrom.set { border-color: var(--ui-color-action-primary); }
+.lolly-pill--tempo .tempo-unit,
+.lolly-pill--tempo .tempo-cps,
+.lolly-pill--tempo .tempo-sig,
+.lolly-pill--tempo .startfrom-label { color: var(--ui-color-text-muted); }
+
+/* The visualiser: a view of its own between the bar and the code, at full
+   strength, never a faint layer behind the text. */
+.lolly-viz {
+  flex: none;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: clamp(200px, 40vh, 460px);
+  margin: 0 calc(var(--sp-3, 12px) + env(safe-area-inset-right)) var(--sp-2, 8px) calc(var(--sp-3, 12px) + env(safe-area-inset-left));
+  border-radius: var(--ui-radius-panel);
+  overflow: hidden;
+  background: var(--ui-color-surface-canvas);
+  box-shadow: var(--ui-elevation-floating), var(--ui-edge-default);
+}
+.lolly-viz[hidden] { display: none; }
+.lolly-viz-stage { position: absolute; inset: 0; }
+.lolly-viz-canvas { width: 100%; height: 100%; display: block; }
+.lolly-viz-note {
+  position: absolute; inset: auto var(--sp-3, 12px) 64px; margin: 0;
+  padding: var(--sp-2, 8px) var(--sp-3, 12px);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-color-surface-overlay); color: var(--ui-color-text-default);
+  font-size: var(--ui-type-help);
+}
+.lolly-viz-note[hidden] { display: none; }
+.lolly-viz-bar {
+  position: absolute; inset: auto 8px 8px 8px;
+  display: flex; align-items: center; gap: 6px; flex-wrap: nowrap;
+  padding: 4px 6px;
+  border-radius: var(--ui-radius-panel);
+  background: var(--ui-color-surface-overlay);
+  color: var(--ui-color-text-default);
+  box-shadow: var(--ui-elevation-floating);
+  font-family: var(--font-brand);
+}
+.lolly-viz-bar .cat-viz-name { flex: 1 1 auto; max-width: none; min-width: 0; }
+.lolly-viz-bar .cat-viz-btn { min-width: 36px; min-height: 36px; }
+.lolly-viz-bar .cat-viz-btn[aria-pressed="true"] { background: var(--ui-color-surface-muted); }
+
+/* Immersive: the visualiser fills the frame (and the screen, when the utility
+   can put the frame in full screen). Esc or the button leaves it. */
+.lolly-immersive .lolly-viz {
+  position: fixed; inset: 0; z-index: 9000; height: auto; margin: 0; border-radius: 0; box-shadow: none;
+}
+
+/* The Export panel and the More menu: the shell's menu skin, plus a field. */
+.lolly-menu { min-width: 240px; max-width: min(340px, calc(100vw - 16px)); max-height: calc(100vh - 80px); overflow-y: auto; font-family: var(--font-brand); }
+.lolly-menu [role="menu"] { display: flex; flex-direction: column; gap: 1px; }
+.lolly-field {
+  display: flex; align-items: center; gap: 8px; padding: 6px 10px;
+  font-size: calc(12.5px * var(--a11y-fs, 1)); color: var(--ui-color-text-default);
+}
+.lolly-field input {
+  width: 5.5em; min-height: 32px; padding: 4px 8px;
+  border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-control);
+  background: var(--ui-color-surface-canvas); color: var(--ui-color-text-default); font: inherit;
+}
+.lolly-field input:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 1px; }
+/* Where the Export menu's files go: the app's segmented control
+   (.view-seg in styles/parts/gallery.css), the chosen side in the primary fill. */
+.lolly-seg { display: flex; margin: 2px 6px 6px; }
+.lolly-seg-btn {
+  flex: 1 1 0; min-height: 32px; padding: 6px 10px;
+  border: 0; border-radius: 0; box-shadow: var(--ui-effect-bevel), var(--ui-elevation-control);
+  background: var(--ui-color-surface-canvas); color: var(--ui-color-text-default);
+  font: inherit; font-size: calc(12.5px * var(--a11y-fs, 1)); font-weight: 600; cursor: pointer;
+  transition: background var(--ui-motion-feedback, .12s), color var(--ui-motion-feedback, .12s);
+}
+.lolly-seg-btn:first-child { border-start-start-radius: var(--ui-radius-panel); border-end-start-radius: var(--ui-radius-panel); }
+.lolly-seg-btn:last-child { border-start-end-radius: var(--ui-radius-panel); border-end-end-radius: var(--ui-radius-panel); }
+.lolly-seg-btn:not([aria-checked="true"]):hover { background: var(--ui-color-surface-muted); }
+.lolly-seg-btn[aria-checked="true"] { background: var(--ui-color-action-primary); color: var(--ui-color-action-on-primary); }
+.lolly-seg-btn:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.lolly-field--wide input { flex: 1 1 auto; width: auto; min-width: 0; }
+/* A group that folds inside a menu: a menu row for its head, with the chevron
+   turning as it opens (the summary/details pair, as every fold in the app). */
+.lolly-disclosure > summary {
+  list-style: none; display: flex; align-items: center; gap: 9px; padding: 7px 10px;
+  border-radius: var(--ui-radius-control); cursor: pointer;
+  font-size: calc(12.5px * var(--a11y-fs, 1)); color: var(--ui-color-text-default);
+}
+.lolly-disclosure > summary::-webkit-details-marker { display: none; }
+.lolly-disclosure > summary svg { width: calc(15px * var(--a11y-fs, 1)); height: calc(15px * var(--a11y-fs, 1)); opacity: .8; transition: transform var(--ui-motion-feedback, .12s) ease; }
+.lolly-disclosure[open] > summary svg { transform: rotate(90deg); }
+.lolly-disclosure > summary:hover { background: var(--ui-color-surface-muted); }
+.lolly-disclosure > summary:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
+.lolly-disclosure [role="menu"] { max-height: 36vh; overflow-y: auto; padding-inline-start: 14px; }
+.lolly-cred {
+  margin: 4px 0 2px; padding: 8px 10px 4px;
+  font-size: var(--ui-type-help); line-height: 1.4; color: var(--ui-color-text-muted);
+}
+.ctx-menu .folder-menu-item { min-height: 32px; }
+
+/* The context sheet's Cancel button: the shell's ghost button. The frame's
+   own .btn is upstream's, so the look is restated here on the sheet's class. */
+.ctx-sheet .ctx-sheet-cancel {
+  display: inline-flex; align-items: center;
+  border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-control);
+  background: var(--ui-color-surface-canvas); color: var(--ui-color-text-default);
+  font: inherit; font-family: var(--font-brand); font-size: var(--ui-type-body); font-weight: 500;
+  text-transform: none; letter-spacing: 0; box-shadow: none;
+}
+.ctx-sheet .ctx-sheet-cancel:hover { background: var(--ui-color-surface-muted); }
+.ctx-sheet .ctx-sheet-cancel:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.ctx-sheet, .ctx-menu { font-family: var(--font-brand); }
+
+/* Lolly's notices sit at the top of the editor, under the bar, in the app's
+   overlay look, so they never land under the app's own toasts at the bottom
+   of the page (a save to Assets announces itself there, with Undo). */
+.lib-notice.lolly-notice {
+  top: calc(70px + env(safe-area-inset-top)); bottom: auto;
+  /* Centred by its margins rather than left: 50%, which would cap its width at
+     half the frame and wrap a sentence into a narrow column on a phone. */
+  left: 12px; right: 12px; transform: none; width: fit-content; margin-inline: auto;
+  border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-panel);
+  background: var(--ui-color-surface-overlay); color: var(--ui-color-text-default);
+  box-shadow: var(--ui-elevation-floating);
+  font-family: var(--font-brand); font-size: calc(13px * var(--a11y-fs, 1));
+}
+.lib-notice.lolly-notice .lib-notice-close { min-width: 32px; min-height: 32px; color: var(--ui-color-text-muted); }
+
+/* Touch: 44 px targets everywhere in the bar and the menus. */
+@media (pointer: coarse) {
+  .lolly-bar { --lolly-btn: max(44px, calc(40px * var(--a11y-fs, 1))); }
+  .ctx-menu .folder-menu-item,
+  .lolly-seg-btn,
+  .lolly-disclosure > summary { min-height: 44px; }
+  .lolly-viz-bar .cat-viz-btn { min-width: 44px; min-height: 44px; }
+}
+
+/* Phones: the bar keeps the song, the transport and three buttons. The tempo
+   stays in the code, the seek strip (a live song has no length to scrub) and
+   the labels go. */
+@media (max-width: 700px) {
+  .lolly-pill--tempo { display: none; }
+}
+@media (max-width: 560px) {
+  .lolly-bar { --lolly-btn: 44px; gap: 6px; padding-inline: calc(8px + env(safe-area-inset-left)) calc(8px + env(safe-area-inset-right)); }
+  .lolly-pill { gap: 0; padding: 2px; }
+  .lolly-bar .cat-tp-seek,
+  .lolly-bar .cat-tp-vol,
+  .lolly-bar .cat-tp-mute,
+  .lolly-btn-label { display: none; }
+  .lolly-bar .cat-tp { gap: 2px; }
+  .lolly-bar .cat-tp-time { min-width: 0; }
+  .lolly-apply { padding-inline: 0; }
+  .lolly-song { padding-inline: 8px 4px; }
+  .lolly-song > svg:first-child { display: none; }
+  .lolly-song-name { max-width: 11ch; }
+  .lolly-viz { height: clamp(160px, 32vh, 320px); margin-inline: 8px; }
+}

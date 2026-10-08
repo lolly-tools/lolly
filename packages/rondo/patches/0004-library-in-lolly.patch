@@ -1,0 +1,125 @@
+Lolly patch 0004: the project library lives in Lolly.
+
+Why: an opaque-origin frame has no IndexedDB, so openIdb() serves the store
+the utility hands over (kept in host.state by the utility, through the
+frame's postMessage protocol). The library also opens the utility's own song
+(its code, language and name inputs) the way it files a share link, and
+reports every edit, project switch, rename and language toggle back, so the
+utility's inputs, Save and share links always hold the song. A song changed
+on the utility's side (undo, a collaborator) goes into the open project.
+
+Applied by scripts/vendor-rondocode.ts with git apply --directory=packages/rondo/upstream.
+
+diff --git a/packages/app/src/editor/library.ts b/packages/app/src/editor/library.ts
+index 2e7e8ec4d30a65c76cde21629d662a0ec1f86d61..b31a3e1db6b8db2c411349693a101a62b74a2d19 100644
+--- a/packages/app/src/editor/library.ts
++++ b/packages/app/src/editor/library.ts
+@@ -31,6 +31,7 @@ import {
+ import type { WorkspaceEntry } from '../desktop/bridge'
+ import { compile as compileRondo } from '@rondocode/rondo'
+ import { tabGet, tabSet } from '../session/tabstore'
++import { lolly } from '../lolly/host'
+ 
+ const ACTIVE_KEY = 'rondocode-active-project'
+ /** Which project this TAB's editor buffer currently holds.
+@@ -198,7 +199,18 @@ export async function mountLibrary(editor: EditorHandle): Promise<LibraryHandle>
+   // A share link (#s=…) opens the shared tune as a NEW project, then strips the
+   // hash so a reload doesn't re-import it. This wins over the stored active.
+   let active: Project | undefined
+-  const sharePayload = readShareHash(location.hash)
++  // Lolly: the utility opens with a song of its own (its inputs: a link, a
++  // saved session, or the default song). Open the project that holds exactly
++  // that song, or file it as a new project, the way a share link is filed.
++  const seed = lolly?.song ?? null
++  if (seed !== null) {
++    const lang = seed.lang ?? sniffLang(seed.code)
++    active = projects.find((p) => p.code === seed.code && p.name === seed.name)
++      ?? (await store.createProject(seed.name, seed.code, lang))
++    editor.setLang(active.lang ?? lang)
++    editor.loadCode(active.code)
++  }
++  const sharePayload = active ? null : readShareHash(location.hash)
+   if (sharePayload) {
+     const shared = await decodeShare(sharePayload)
+     if (shared) {
+@@ -340,10 +352,19 @@ export async function mountLibrary(editor: EditorHandle): Promise<LibraryHandle>
+     noticeBar.classList.remove('hidden')
+   }
+ 
++  // Lolly: the utility holds the song in its own inputs (code, language,
++  // name), so it hears every edit, project switch, rename and language toggle.
++  let lollyName = active.name
++  const tellLolly = (): void => {
++    lolly?.publishDoc({ code: editor.getDoc(), lang: editor.getLang(), name: lollyName })
++  }
++
+   const projectBtn = el('button', 'btn project-btn')
+   projectBtn.type = 'button'
+   projectBtn.setAttribute('aria-expanded', 'false')
+   const setLabel = (name: string): void => {
++    lollyName = name
++    tellLolly()
+     // name (ellipsizes) + a fixed chevron, so the affordance survives a long
+     // name; full name in the title since the button truncates.
+     projectBtn.replaceChildren(el('span', 'project-name', name), iconEl('chevron'))
+@@ -926,6 +947,7 @@ export async function mountLibrary(editor: EditorHandle): Promise<LibraryHandle>
+   // read when the timer fires: a fast project switch must never let an edit made
+   // in one project land in another. switchTo flushes this before loading.
+   const offDoc = editor.onDoc((code) => {
++    tellLolly()
+     pendingSave = { id: activeId, code }
+     clearTimeout(saveTimer)
+     saveTimer = setTimeout(flushSave, SAVE_DEBOUNCE_MS)
+@@ -937,6 +959,7 @@ export async function mountLibrary(editor: EditorHandle): Promise<LibraryHandle>
+   // the active project remembers its language: persist on every toggle (this
+   // also migrates legacy no-lang records the first time switchTo sniffs them)
+   const offLang = editor.onLang((lang) => {
++    tellLolly()
+     // …and the same for the language toggle, which is the one that bit: every
+     // js/rondo switch moved updatedAt, so the next autosave forked. Toggle
+     // three times and you had "language (this tab) (this tab) (this tab)".
+@@ -964,6 +987,22 @@ export async function mountLibrary(editor: EditorHandle): Promise<LibraryHandle>
+     }
+   })
+ 
++  // Lolly: the utility changed the song (undo, redo, a collaborator, an edited
++  // link). It lands in the open project, as an edit typed here would.
++  lolly?.onSong((song) => {
++    if (song.name !== lollyName && song.name.trim() !== '') {
++      const id = activeId
++      void store.renameProject(id, song.name).then((at) => {
++        if (at !== undefined && id === activeId) baseVersion = at
++      })
++      setLabel(song.name)
++    }
++    if (song.code === editor.getDoc()) return
++    const lang = song.lang ?? sniffLang(song.code)
++    if (lang !== editor.getLang()) editor.setLang(lang)
++    editor.loadCode(song.code)
++  })
++
+   const onKey = (e: KeyboardEvent): void => {
+     if (e.key === 'Escape' && !backdrop.classList.contains('hidden')) {
+       closeSheet()
+diff --git a/packages/app/src/session/idb.ts b/packages/app/src/session/idb.ts
+index dfa76f7397ae9bf6d5b816e350bee829dabce50f..28008178a2c905e4f58519d682ad80e441fe5791 100644
+--- a/packages/app/src/session/idb.ts
++++ b/packages/app/src/session/idb.ts
+@@ -9,6 +9,7 @@
+  * ------------------------------------------------------------------------- */
+ 
+ import type { Db, Project, StoredSample, StoredSnippet, StoreName, Version } from './projects'
++import { lolly } from '../lolly/host'
+ 
+ const DB_NAME = 'rondocode'
+ // 2: added the `samples` store, so a project's takes outlive the tab. The
+@@ -52,6 +53,9 @@ export class IdbDb implements Db {
+  *  unavailable (private mode / old browser) — the caller should fall back to
+  *  an in-memory store so the editor still works without persistence. */
+ export function openIdb(): Promise<IdbDb> {
++  // Lolly: an opaque-origin frame has no IndexedDB. The utility keeps the
++  // library in its own saved state and serves it through the same Db surface.
++  if (lolly) return lolly.openDb() as unknown as Promise<IdbDb>
+   return new Promise((resolve, reject) => {
+     if (typeof indexedDB === 'undefined') {
+       reject(new Error('IndexedDB unavailable'))

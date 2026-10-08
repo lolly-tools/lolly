@@ -1,0 +1,254 @@
+Lolly patch 0002: colours from the active design system.
+
+Why: upstream's palette (src/ui/palette.ts) is the single colour source,
+written to --c-* at boot and imported as constants by the CodeMirror theme
+and the canvas readers. This routes all of them through ONE resolved table
+the utility derives from the app around it (light or dark as the app is, in
+the design system's colours, contrast-checked, packages/rondo/editor/theme.ts),
+with upstream's hex as the fallback. Inside Lolly each constant is a
+var(--c-*) reference, so when the app's theme changes while the editor is
+open the boot script rewrites the custom properties and everything repaints,
+CodeMirror's theme included. It also
+gathers the few literals that must follow the table: three syntax hues, the
+ink on the run button and on an accent fill, the event flash, the record dot
+and the scrim behind code while visuals are on.
+
+Applied by scripts/vendor-rondocode.ts with git apply --directory=packages/rondo/upstream.
+
+diff --git a/packages/app/src/editor/theme.ts b/packages/app/src/editor/theme.ts
+index cc342d1196794950ab9621a9da76fa95b8c71260..236a0ea290df65209cdb7505c678c412b75da7ca 100644
+--- a/packages/app/src/editor/theme.ts
++++ b/packages/app/src/editor/theme.ts
+@@ -15,7 +15,11 @@ import {
+   C_TEXT,
+   C_REST,
+   C_WARN,
++  C_KEYWORD,
++  C_PROPERTY,
++  C_MAGENTA,
+ } from '../ui/palette'
++import { lolly } from '../lolly/host'
+ 
+ /* Minimal hand-rolled dark theme — deliberately not a theme dependency. Shared
+  * colors come from ui/palette.ts (the single source of truth). Syntax uses a
+@@ -77,7 +81,8 @@ const editorTheme = EditorView.theme(
+     },
+     '.cm-cursor, .cm-dropCursor': { borderLeftColor: C_ACCENT, borderLeftWidth: '2px' },
+     '&.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground, .cm-selectionBackground':
+-      { backgroundColor: `${C_GREEN}66` },
++      // Lolly: C_GREEN is a var() reference inside Lolly, so mix the alpha in
++      { backgroundColor: lolly ? 'color-mix(in srgb, var(--c-green) 40%, transparent)' : `${C_GREEN}66` },
+     '.cm-activeLine': { backgroundColor: '#ffffff08' },
+     '.cm-gutters': {
+       backgroundColor: C_BG,
+@@ -138,13 +143,13 @@ const editorTheme = EditorView.theme(
+     // The per-token marks are Prec.highest, so they nest innermost and win over
+     // the JS grammar's whole-string coloring.
+     '.wgsl-com': { color: C_FAINT, fontStyle: 'italic' },
+-    '.wgsl-kw': { color: '#a7f3d0' },
++    '.wgsl-kw': { color: C_KEYWORD },
+     '.wgsl-type': { color: C_ACCENT_ALT },
+     '.wgsl-fn': { color: C_ACCENT },
+     '.wgsl-num': { color: C_WARN },
+-    '.wgsl-attr': { color: '#f7a8ff' },
++    '.wgsl-attr': { color: C_MAGENTA },
+     // the rondocode audio API (level, spectrum, beat…) — magenta so it pops
+-    '.wgsl-api': { color: '#f7a8ff', fontWeight: '600' },
++    '.wgsl-api': { color: C_MAGENTA, fontWeight: '600' },
+     '.wgsl-punct': { color: C_DIM },
+     '.wgsl-id': { color: C_TEXT },
+     // Inline live-value readout trailing a modulation expression (editor/
+@@ -171,11 +176,11 @@ const highlight = HighlightStyle.define([
+   { tag: t.comment, color: C_FAINT, fontStyle: 'italic' },
+   { tag: t.string, color: C_ACCENT_ALT }, // cyan channel
+   { tag: t.number, color: C_WARN }, // amber channel
+-  { tag: [t.keyword, t.definitionKeyword, t.modifier], color: '#a7f3d0' }, // bright mint
++  { tag: [t.keyword, t.definitionKeyword, t.modifier], color: C_KEYWORD }, // bright mint
+   { tag: [t.bool, t.null, t.atom], color: C_WARN },
+   { tag: restTag, color: C_REST, fontWeight: '600' },
+   { tag: [t.function(t.variableName), t.function(t.propertyName)], color: C_ACCENT }, // phosphor
+-  { tag: t.propertyName, color: '#5ec8b0' },
++  { tag: t.propertyName, color: C_PROPERTY },
+   { tag: [t.definition(t.variableName), t.variableName], color: C_TEXT },
+   { tag: [t.operator, t.punctuation], color: C_DIM },
+   { tag: t.bracket, color: C_DIM },
+diff --git a/packages/app/src/style.css b/packages/app/src/style.css
+index 7a8bc70fa826dbd4f73f55c6da2fd1b86e01b484..9bdec30e571e8c6225312f3fc6c29b6ca5a97c5c 100644
+--- a/packages/app/src/style.css
++++ b/packages/app/src/style.css
+@@ -460,16 +460,16 @@ body {
+  * controls only that attack. */
+ .cm-flash {
+   border-radius: var(--r-sm);
+-  background-color: rgba(90, 190, 135, 0.55);
++  background-color: color-mix(in srgb, var(--c-accent) 55%, transparent);
+   animation: cm-flash-attack var(--flash-ms, 150ms) ease-out;
+ }
+ 
+ @keyframes cm-flash-attack {
+   from {
+-    background-color: rgba(120, 230, 180, 0.9);
++    background-color: color-mix(in srgb, var(--c-accent) 90%, transparent);
+   }
+   to {
+-    background-color: rgba(90, 190, 135, 0.55);
++    background-color: color-mix(in srgb, var(--c-accent) 55%, transparent);
+   }
+ }
+ 
+@@ -821,7 +821,7 @@ body {
+   position: relative; /* anchors the dirty dot */
+   min-width: 78px;
+   font-weight: 600;
+-  color: #d7fff0;
++  color: var(--c-on-green);
+   background: var(--c-green-deep);
+   border-color: var(--c-green);
+ }
+@@ -829,7 +829,7 @@ body {
+ .run.playing {
+   background: var(--c-green);
+   border-color: var(--c-accent);
+-  color: #eafff6;
++  color: var(--c-on-green);
+ }
+ 
+ /* Tactile feedback: a quick brighten on every Run/Update (click or Mod-Enter).
+@@ -843,7 +843,7 @@ body {
+   from {
+     background: var(--c-accent);
+     border-color: var(--c-accent);
+-    color: #04120c;
++    color: var(--c-on-accent);
+   }
+ }
+ 
+@@ -1508,7 +1508,7 @@ body.shaderviz-on .topbar {
+  * fill behind the column costs nothing and reads better, because the contrast
+  * is then constant instead of depending on what the shader is doing. */
+ body.shaderviz-on .cm-content {
+-  background: rgb(6 9 14 / 52%);
++  background: color-mix(in srgb, var(--c-bg) 52%, transparent);
+ }
+ 
+ .shaderviz-btn.active {
+@@ -1996,8 +1996,8 @@ body.shaderviz-on .cm-content {
+  * them too. */
+ 
+ /* mic sampling: the record action in the samples popover */
+-.samples-rec .samples-recdot { color: #e05656; font-size: 10px; }
+-.samples-rec.recording { color: #e05656; }
++.samples-rec .samples-recdot { color: var(--c-error); font-size: 10px; }
++.samples-rec.recording { color: var(--c-error); }
+ .samples-rec.recording .samples-recdot { animation: rec-blink 1s steps(2) infinite; }
+ @keyframes rec-blink { 50% { opacity: 0.25; } }
+ .samples-recmsg {
+diff --git a/packages/app/src/ui/palette.ts b/packages/app/src/ui/palette.ts
+index 7bfed4a6634c86f65ed862d957e8a81c7ff925b8..20518f98d2d7e6f82660bd5c98951bb3909976fc 100644
+--- a/packages/app/src/ui/palette.ts
++++ b/packages/app/src/ui/palette.ts
+@@ -20,51 +20,55 @@
+  * a green-cast black, faint graticule lines, a phosphor-mint trace with a cyan
+  * tip, and amber as the second (warning) channel. Cool green-tinted text, not
+  * neutral gray — everything is "on the display". */
+-export const C_BG = '#050807' // scope glass — near-black with a faint green cast
+-export const C_BAR = '#0a100e' // header / viz panel bezel
+-export const C_SURFACE = '#0e1512' // inputs, selects
+-export const C_RAISED = '#14201b' // buttons, meter tracks, tooltips
+-export const C_BORDER = '#1e352c' // hairline control borders (green-cast)
+-export const C_TEXT = '#c8e6da' // cool phosphor-white
+-export const C_DIM = '#6f9284' // secondary text
+-export const C_FAINT = '#3c5249' // gutter numbers, graticule-adjacent
+-export const C_ACCENT = '#6ee7b7' // phosphor mint — the primary trace/accent
+-export const C_ACCENT_ALT = '#67e8f9' // cyan trace-tip (meter/scope gradient)
+-export const C_GREEN = '#155e45' // run-button / selection phosphor
+-export const C_GREEN_DEEP = '#0b2c20'
+-export const C_WARN = '#f2b155' // amber channel
++import { lolly } from '../lolly/host'
++
++/* Lolly: the utility hands over a table derived from the active design system
++ * (same entries, contrast-checked, light or dark as the app is). Upstream's hex
++ * is the fallback. The table changes while the editor is open (the app's theme
++ * switch, its design system), so inside Lolly each constant is a var(--c-*)
++ * reference and the hex lives only in the custom properties, which the boot
++ * script rewrites: everything that styles with them, CodeMirror's theme
++ * included, repaints. With no host the constants are upstream's hex. */
++const L: Readonly<Record<string, string>> = lolly?.palette ?? {}
++const HEX: Record<string, string> = {}
++const live = (name: string, hex: string): string => {
++  HEX[name] = hex
++  return lolly ? `var(${name})` : hex
++}
++
++export const C_BG = live('--c-bg', L.bg ?? '#050807') // scope glass — near-black with a faint green cast
++export const C_BAR = live('--c-bar', L.bar ?? '#0a100e') // header / viz panel bezel
++export const C_SURFACE = live('--c-surface', L.surface ?? '#0e1512') // inputs, selects
++export const C_RAISED = live('--c-raised', L.raised ?? '#14201b') // buttons, meter tracks, tooltips
++export const C_BORDER = live('--c-border', L.border ?? '#1e352c') // hairline control borders (green-cast)
++export const C_TEXT = live('--c-text', L.text ?? '#c8e6da') // cool phosphor-white
++export const C_DIM = live('--c-dim', L.dim ?? '#6f9284') // secondary text
++export const C_FAINT = live('--c-faint', L.faint ?? '#3c5249') // gutter numbers, graticule-adjacent
++export const C_ACCENT = live('--c-accent', L.accent ?? '#6ee7b7') // phosphor mint — the primary trace/accent
++export const C_ACCENT_ALT = live('--c-accent-alt', L.accentAlt ?? '#67e8f9') // cyan trace-tip (meter/scope gradient)
++export const C_GREEN = live('--c-green', L.green ?? '#155e45') // run-button / selection phosphor
++export const C_GREEN_DEEP = live('--c-green-deep', L.greenDeep ?? '#0b2c20')
++export const C_WARN = live('--c-warn', L.warn ?? '#f2b155') // amber channel
+ /** RESTS. Their own channel because amber already carries both the numbers
+  *  and the grouping characters, so in `[~ -7!7]` the one thing you scan a
+  *  pattern for — where the holes are — was the same colour as everything
+  *  around it. Violet is the gap in a palette that is otherwise green, cyan
+  *  and amber. */
+-export const C_REST = '#c39bf5'
+-export const C_ERROR = '#ff6b6b'
+-export const C_ERROR_BG = '#170c0a' // error surfaces (status strip, boot error)
+-export const C_ERROR_BORDER = '#3a1e18'
++export const C_REST = live('--c-rest', L.rest ?? '#c39bf5')
++export const C_ERROR = live('--c-error', L.error ?? '#ff6b6b')
++export const C_ERROR_BG = live('--c-error-bg', L.errorBg ?? '#170c0a') // error surfaces (status strip, boot error)
++export const C_ERROR_BORDER = live('--c-error-border', L.errorBorder ?? '#3a1e18')
+ /** Faint graticule grid line color (the scope's measurement grid). */
+-export const C_GRID = '#12241d'
++export const C_GRID = live('--c-grid', L.grid ?? '#12241d')
++/** Lolly: three syntax hues and two inks that upstream writes as literals in
++ *  editor/theme.ts and style.css, gathered here so they follow the table too. */
++export const C_KEYWORD = live('--c-keyword', L.keyword ?? '#a7f3d0')
++export const C_PROPERTY = live('--c-property', L.property ?? '#5ec8b0')
++export const C_MAGENTA = live('--c-magenta', L.magenta ?? '#f7a8ff')
++export const C_ON_GREEN = live('--c-on-green', L.onGreen ?? '#d7fff0')
++export const C_ON_ACCENT = live('--c-on-accent', L.onAccent ?? '#04120c')
+ 
+-export const CSS_VARS: Readonly<Record<string, string>> = {
+-  '--c-bg': C_BG,
+-  '--c-bar': C_BAR,
+-  '--c-surface': C_SURFACE,
+-  '--c-raised': C_RAISED,
+-  '--c-border': C_BORDER,
+-  '--c-text': C_TEXT,
+-  '--c-dim': C_DIM,
+-  '--c-faint': C_FAINT,
+-  '--c-accent': C_ACCENT,
+-  '--c-accent-alt': C_ACCENT_ALT,
+-  '--c-green': C_GREEN,
+-  '--c-green-deep': C_GREEN_DEEP,
+-  '--c-warn': C_WARN,
+-  '--c-rest': C_REST,
+-  '--c-error': C_ERROR,
+-  '--c-error-bg': C_ERROR_BG,
+-  '--c-error-border': C_ERROR_BORDER,
+-  '--c-grid': C_GRID,
+-}
++export const CSS_VARS: Readonly<Record<string, string>> = HEX
+ 
+ /** Write the palette as CSS custom properties (call once on boot, before
+  *  anything renders — style.css consumes these with no fallbacks). */
+diff --git a/packages/app/src/ui/singDialog.css b/packages/app/src/ui/singDialog.css
+index c21acc04b3f9051e773c6590874fb609048df210..d5512cca5aed44a194289ae5668ba9cb5f739a06 100644
+--- a/packages/app/src/ui/singDialog.css
++++ b/packages/app/src/ui/singDialog.css
+@@ -110,5 +110,5 @@
+ }
+ .sing-consent-go {
+   background: var(--c-accent, #6ea8fe) !important; border-color: var(--c-accent, #6ea8fe) !important;
+-  color: #08131f !important; font-weight: 600;
++  color: var(--c-on-accent, #08131f) !important; font-weight: 600;
+ }

@@ -1,0 +1,220 @@
+import type { GraphSpec } from './graph'
+import type { VoiceOpts } from './voice'
+
+/* ------------------------------------------------------------------------- *
+ * Wire protocol between the host (main thread) and the RealtimeEngine
+ * (AudioWorklet). Every type here crosses a postMessage boundary, so all of
+ * it MUST stay structured-clone-safe: plain objects, strings, and numbers
+ * only — no class instances, functions, Maps, or typed arrays. GraphSpec is
+ * already plain data by construction.
+ *
+ * The engine never throws on a message: malformed or out-of-policy messages
+ * come back as an { kind: 'error' } EngineEvent instead (see realtime.ts).
+ * ------------------------------------------------------------------------- */
+
+/** Host → engine. */
+export type EngineMessage = (
+  /** Create or atomically REPLACE the synth named `name`. Replacement only
+   *  happens if the new graph compiles — a bad graph leaves the old synth
+   *  untouched (last-good-version guarantee). `maxVoices` defaults to 8 and
+   *  is clamped so the total across all synths stays within the engine's
+   *  voice budget. Definition is a control-plane op: compiling allocates, so
+   *  a very complex graph may glitch audio for a block or two — hosts can
+   *  pre-validate on the main thread (builder's synth() compiles) to make
+   *  worklet-side failures rare. */
+  | { kind: 'defineSynth'; name: string; graph: GraphSpec; post?: GraphSpec; voiceOpts?: VoiceOpts; maxVoices?: number }
+  /** Live-patch input-port constants of an already-defined synth WITHOUT
+   *  rebuilding its voice pool — updates every voice's compiled input buffer
+   *  in place, so ringing notes keep their state and sweep continuously. The
+   *  host sends this (instead of defineSynth) only when the new graph differs
+   *  from the live one solely in numeric input constants (see patch.ts /
+   *  diffGraphConstants). Unknown synth → no-op. */
+  | { kind: 'patchConstants'; name: string; patches: { node: number; port: string; value: number }[] }
+  /** Set which of a synth's voice-graph nodes are value-probed (the editor's
+   *  live readouts): the engine samples each listed node's current output on
+   *  the meter cadence and emits `probe` events. Replaces the synth's whole
+   *  probe set; an empty `nodes` clears it. Unknown synth → no-op. */
+  | { kind: 'setProbes'; synth: string; nodes: number[] }
+  /** Drop the synth and all its voices immediately (hard stop, no release). */
+  | { kind: 'removeSynth'; name: string }
+  /** Create/replace a shared send bus: a named FX chain (a POST-style graph,
+   *  compiled like a synth's post-chain) that synths feed via per-synth send
+   *  amounts (see setSend). The bus output is summed into the master before
+   *  the master gain/compressor. `gain` (default 1) scales the bus output.
+   *  Like defineSynth, a bad graph leaves any existing bus untouched. */
+  | { kind: 'defineBus'; name: string; graph: GraphSpec; gain?: number }
+  /** Drop a shared bus; any sends into it become no-ops. */
+  | { kind: 'removeBus'; name: string }
+  /** Per-synth send amount (0..1, clamped) into a shared bus. Unknown synth or
+   *  bus → validated no-op. Pre-fader/pre-duck tap, so a reverb send does not
+   *  pump with the sidechain. */
+  | { kind: 'setSend'; synth: string; bus: string; amount: number }
+  /** `atFrame` is an absolute frame in the SAME timeline the host passes as
+   *  `startFrame` to RealtimeEngine.process() — for an AudioWorklet host
+   *  that's the context's running frame counter. Omitted or already past →
+   *  applies at the start of the next block; in the future → queued and
+   *  applied sample-accurately. Schedulers learn "now" from the `frame`
+   *  field of meters events (or engine.currentFrame on the worklet side). */
+  /** `begin`/`end` (fractions 0..1, default 0/1): the slice of the sample
+   *  this note plays — what `.chop()` writes. Per NOTE, latched by every
+   *  sampler in the voice at the gate edge (a plain synth ignores them). */
+  | { kind: 'noteOn'; synth: string; note: number; velocity?: number; begin?: number; end?: number; atFrame?: number }
+  | { kind: 'noteOff'; synth: string; note: number; atFrame?: number }
+  /** Panic: releases every note on every synth NOW and drops all queued
+   *  note events. Envelopes RELEASE (tails ring) — used when a live-coding
+   *  synth swap retires the old voices, so the swap is click-free. */
+  | { kind: 'allNotesOff' }
+  /** Hard stop (transport Stop): like allNotesOff but resets every active voice
+   *  immediately, so held tails AND one-shot samples (a sung vocal clip plays to
+   *  its end otherwise) are cut at once. */
+  | { kind: 'silenceAll' }
+  /** Set a declared synth param. rampMs (default 0 = instant, clamped to
+   *  [0, 10000]) ramps the value linearly, applied at block granularity
+   *  (~2.7ms at 48kHz) — params are block-rate in the voice pool.
+   *
+   *  `atFrame` schedules the set on the SAME timeline noteOn uses, and at the
+   *  same frame it fires BEFORE the note (noteOff < setParam < noteOn), so a
+   *  patterned param is in place when the gate opens. Omit it and the set
+   *  applies on arrival, which for a scheduled pattern is up to one lookahead
+   *  (~100ms) early — the value then lands on whatever voices are still
+   *  ringing, because a param is synth-wide. Live-coding writes (a knob drag,
+   *  MIDI) legitimately omit it: they mean "now". */
+  | { kind: 'setParam'; synth: string; name: string; value: number; rampMs?: number; atFrame?: number }
+  /** Channel strip: per-synth gain (default 0.8) and pan (default 0.5,
+   *  equal-power balance). Changes ramp over one block to avoid zipper.
+   *  `sidechain` (0..1, default 1) is how much THIS channel responds to the
+   *  sidechain duck: 1 = full duck (down to 1 - depth), 0 = ignore the duck
+   *  entirely. Clamped to [0, 1]; the source channel is never ducked
+   *  regardless. Lets some channels pump hard while others stay steady. */
+  /** `out` routes the strip to hardware output channels, 0-BASED: {lo:0,hi:1}
+   *  is the master pair (the default); {lo:2,hi:3} is the interface's outputs
+   *  3/4. lo===hi routes MONO (the strip's L+R summed into one channel).
+   *  Routed channels bypass the master stage (gain/comp/width) — they are
+   *  independent feeds — but keep their own strip, duck and sends. When the
+   *  host provides no buffer for a routed channel (device has too few
+   *  outputs), the engine folds the strip back into the master pair so a
+   *  routed part is never silently lost. */
+  | { kind: 'setChannel'; synth: string; gain?: number; pan?: number; sidechain?: number; out?: { lo: number; hi: number } }
+  /** Map device names (exactly as written in `mic device:x`) to live input
+   *  slots (0..MAX_MIC_INPUTS-1; slot 0 is the bare-mic default capture).
+   *  REPLACES the whole map. Compiled device-named mic kernels re-read it per
+   *  block, so captures may open, close and remap live without recompiling
+   *  any synth. */
+  | { kind: 'setMicMap'; map: Record<string, number> }
+  /** Master gain (default 0.8), ramped over one block. */
+  | { kind: 'setMaster'; gain: number }
+  /** Master-bus stereo stage: side scale, and a mono-below crossover. The one
+   *  place mid/side is expressible — every kernel is mono (see dsp/midside). */
+  | { kind: 'setStereo'; width?: number; monoBelow?: number }
+  /** TRANSPORT TEMPO in cycles per second (default 0.5 = 120 bpm at four beats
+   *  to the cycle), clamped to [0.001, 100]. This is the ONE number every
+   *  tempo-synced kernel reads: a `sync` lfo takes its rate in cycles, a
+   *  `sync` delay its time in cycles, and both re-rate on the NEXT BLOCK after
+   *  this message — no recompile, no voice restart, no click (the LFO keeps
+   *  its phase and only changes increment; the delay glides its read head).
+   *  Hosts send it from wherever they set the scheduler's cps: on eval, on
+   *  transport changes, and on any live tempo edit. Unsynced lfo/delay nodes
+   *  (Hz and seconds) ignore it entirely. */
+  | { kind: 'setCps'; cps: number }
+  /** SIDECHAIN DUCK: every noteOn to `source` snaps a duck envelope down to
+   *  `1 - depth` (instant attack) which then recovers toward 1 via a one-pole
+   *  release; the envelope multiplies every channel EXCEPT `source` (the kick
+   *  stays full) — the classic progressive-house "pump". `depth` is 0..1
+   *  (default 0.6, clamped); `releaseMs` is the recovery time constant
+   *  (default 180, clamped to [1, 5000]). Last setSidechain wins. */
+  | { kind: 'setSidechain'; source: string; depth?: number; releaseMs?: number }
+  /** Remove the sidechain duck: the level returns to 1 (no ducking). */
+  | { kind: 'clearSidechain' }
+  /** Load (or REPLACE) a mono audio sample under `name`, available to any
+   *  synth's sample('name') node. `data` is Float32 PCM (stereo is downmixed
+   *  to mono by the host before sending); `sampleRate` is the buffer's own
+   *  rate (the kernel resamples to the engine rate). Loading is a control-plane
+   *  op; already-compiled synths pick the sample up on their next block. */
+  | { kind: 'loadSample'; name: string; data: Float32Array; sampleRate: number }
+  /** Drop a loaded sample; synths referencing `name` fall back to silence. */
+  | { kind: 'clearSample'; name: string }
+  /** Load (or REPLACE) a custom wavetable under `name`: `frames` is an array
+   *  of FRAMES, each an array of harmonic partial amplitudes (frames[f][i] =
+   *  harmonic i+1, 1..32 partials, |a| <= 16). The engine synthesizes
+   *  band-limited mipmapped single-cycle frames from the partials (same
+   *  anti-aliasing as the built-in tables). Control-plane op; wavetable
+   *  kernels re-resolve the name per block, so a replace is heard live.
+   *  Names must not shadow the built-ins (basic/harmonic/pwm). Hosts send
+   *  this BEFORE defineSynth of any synth using the table (kernels resolve
+   *  at voice construction and an unknown name fails the define). */
+  | { kind: 'loadWavetable'; name: string; frames: number[][] }
+  /** Drop a custom wavetable. Synths still referencing it keep playing their
+   *  last resolved bank; re-DEFINING such a synth then fails (unknown name). */
+  | { kind: 'clearWavetable'; name: string }
+  /** Load (or REPLACE) a trained DDSP instrument model under `name`, available
+   *  to any synth's ddsp node. `data` is an RDSP .bin (training/ddsp/SPEC.md);
+   *  parsing and validation happen in the handler, so a malformed file becomes
+   *  an error event, never an audio-thread throw. Control-plane op; ddsp
+   *  kernels re-resolve the name per block, so a load is heard live. */
+  | { kind: 'loadDdspModel'; name: string; data: Uint8Array }
+  /** Drop a loaded ddsp model; synths referencing `name` fall back to silence. */
+  | { kind: 'clearDdspModel'; name: string }
+  /** MASTER GLUE COMPRESSOR: a stereo-linked feed-forward compressor on the
+   *  master bus, after master gain and before the limiter. All fields optional
+   *  with compressor defaults (threshold -18 dB, ratio 4, attack 10 ms, release
+   *  120 ms, knee 6 dB, makeup 0 dB). Last setMasterComp wins. */
+  | { kind: 'setMasterComp'; threshold?: number; ratio?: number; attack?: number; release?: number; knee?: number; makeup?: number }
+  /** Remove the master glue compressor (no reduction). */
+  | { kind: 'clearMasterComp' }
+  /** Copy a NAMED looper's current loop out of the engine: finds the pedal
+   *  registered under `looper` (see the looper node's `name` config) and
+   *  emits a `loopBounced` event carrying the PCM. The engine's own bank is
+   *  NOT written here — the host round-trips the audio through loadSample,
+   *  so the sample registry, persistence and UI all take the one existing
+   *  path. Unknown name or an empty loop → an error event. */
+  | { kind: 'bounceLoop'; looper: string; sample?: string }
+) & {
+  /** Optional correlation id, echoed back on any error event this message
+   *  provokes so hosts (MCP bridge, UI) can match failures to requests.
+   *  Successes are silent — no ack events in v1. */
+  id?: string
+}
+
+/** Engine → host. */
+export type EngineEvent =
+  /** Anything the engine refused or scrubbed: bad message, failed
+   *  defineSynth, unknown synth/param, queue overflow, NaN scrub. `id`
+   *  echoes the offending message's correlation id when it carried one
+   *  (audio-path errors like NaN scrub have none). */
+  | { kind: 'error'; message: string; context?: string; id?: string }
+  /** RMS of the LAST processed block, per synth (post channel strip) and for
+   *  the master output. `frame` is the engine's current frame at collection
+   *  time (the end of the last processed block) — the natural "now" heartbeat
+   *  for schedulers stamping future atFrame values. Produced by
+   *  RealtimeEngine.collectMeters() on request — the engine does not emit
+   *  these unprompted. */
+  | {
+      kind: 'meters'
+      frame: number
+      master: number
+      channels: Record<string, number>
+      /** Per-synth SCOPE TRACE: SCOPE_POINTS signed peaks, one per processed
+       *  block, oldest first. An envelope with polarity rather than raw audio
+       *  — at this size that is what a scope can show, and raw samples would
+       *  cost ~60x the bandwidth to draw the same picture. */
+      scopes?: Record<string, Float32Array>
+      buses?: Record<string, number>
+      /** The sidechain envelope right now: 1 open, dipping toward 1-depth on
+       *  each source hit. Absent when nothing is ducking. Reported because a
+       *  visualizer otherwise has to APPROXIMATE the pump from bass energy,
+       *  which is a different shape from the thing actually being applied. */
+      duck?: number
+      /** RMS of the live input for the last block, absent when the mic is off. */
+      mic?: number
+    }
+  /** Current output value of each probed node (see setProbes), for the editor's
+   *  live-value readouts. `values[synth][nodeId]` is the node's most recent
+   *  output sample from a currently-active voice; a silent synth (no active
+   *  voice) or a stale/unknown node reports NaN. Emitted on the meter cadence
+   *  only while at least one probe is set. */
+  | { kind: 'probe'; frame: number; values: Record<string, Record<number, number>> }
+  /** A bounceLoop result: the named looper's loop as mono PCM at the engine
+   *  rate. `sample` is the name to load it under (the message's override,
+   *  else the looper's own name). Hosts feed it back via loadSample — see
+   *  bounceLoop. */
+  | { kind: 'loopBounced'; looper: string; sample: string; data: Float32Array; sampleRate: number; frames: number }

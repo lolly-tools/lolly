@@ -100,6 +100,7 @@ On-device file utilities: bytes in, bytes out. Most take the user's own file
 | `prompt-card` | Prompt Card | utility | png, webp, jpg, avif, svg, penpot, pdf | - | - | Typeset a long prompt into one compact, legible image for a multimodal model - image input is often cheaper than the… |
 | `rebrand-deck` | Theme swap | utility | pptx | - | - | Swaps the theme, colours and fonts in a PowerPoint deck on this device. |
 | `redact` | Redact | utility | png, jpg, webp, svg, penpot, pdf | - | - | Black out sensitive content by rebuilding the file, then verify the output before it downloads, all on your device. |
+| `rondocode` | Rondocode | utility | png, html, wav, mp3, m4a, opus, json | - | - | Write music as code and hear it as you type: synths, patterns and a mix in rondocode's live editor. |
 | `sandbox` | Sandbox | utility | png, svg, penpot, pdf, jpg, webp | - | - | Paste HTML, CSS, JS - or a JSX/TypeScript component - and watch it run in a private, offline sandbox. |
 | `scan-code` | Scan | utility | png | - | - | Read QR codes and barcodes on-device, with nothing sent to any cloud. |
 | `screencap` | Screen Capture | utility | png, jpg, webp, avif, tiff | - | screen, microphone | Screenshot or record your whole screen, a window, or a browser tab. |

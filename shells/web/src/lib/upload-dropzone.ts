@@ -22,7 +22,8 @@
  * longer on the page can never be answered, and one unanswerable question would hold
  * that module-level lane shut for the rest of the session.
  */
-import { storeUserUpload, isPdfUpload, isPptxUpload, UPLOAD_ACCEPT } from '../views/picker.ts';
+import { storeUserUpload, storeRondoShareLink, isPdfUpload, isPptxUpload, UPLOAD_ACCEPT } from '../views/picker.ts';
+import { isRondoShareUrl } from './media-source.ts';
 import type { PickerHost } from '../views/picker.ts';
 import { announce } from '../a11y.ts';
 import { playSfx } from './sfx.ts';
@@ -102,6 +103,14 @@ export function mountUploadDropzone(container: HTMLElement, host: PickerHost, op
   async function addFromUrl(rawUrl: string): Promise<void> {
     const url = rawUrl.trim();
     if (!url) return;
+    // A rondocode share link holds its song: decoded here and stored as audio (plan 301).
+    if (isRondoShareUrl(url)) {
+      await storeRondoShareLink(host, url);
+      playSfx('drop');
+      announce(t('Song added to your uploads.'));
+      await opts.onAdded?.(1);
+      return;
+    }
     let file: File;
     const desc = await host.compose?._describeUrl?.(url).catch(() => null) ?? null;
     if (desc) {

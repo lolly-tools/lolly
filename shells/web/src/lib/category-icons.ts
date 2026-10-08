@@ -52,6 +52,14 @@ const CATEGORY_ICON: Record<string, string> = {
   'emoji-sets': g('smile'),
   // Your uploads - an image with an up-arrow.
   uploads: g('uploadImage'),
+  // Music - a note.
+  music: g('music'),
+  // Sound effects - a lightning bolt (a short, sharp sound).
+  'sound-effects': g('zap'),
+  // Voice - a microphone.
+  voice: g('mic'),
+  // Other audio - a sound wave (audio whose role nothing states).
+  'other-audio': g('waves'),
   // More / other - a four-square grid (the catch-all).
   other: g('grid'),
 };

@@ -53,8 +53,9 @@ export type { PxDimsInput } from './raster.ts';
 export { buildExportC2paOpts } from './c2pa-opts.ts';
 export type { BuildExportC2paOpts, ExportC2paOpts } from './c2pa-opts.ts';
 export { createNodeTextAPI } from './text.ts';
-export { createNodeAudioAPI, decodeAudioPcm } from './audio.ts';
-export type { NodeAudioOptions } from './audio.ts';
+export { createNodeAudioAPI, decodeAudioPcm, decodeAudioSource, prerenderSongInputs, HOSTED_RONDO_CAPS, LOCAL_RONDO_CAPS, RondoAudioError } from './audio.ts';
+export { recordedSongs, singleSongEssence, songIngredients, songIngredientsIn, songRunFacts } from './song-provenance.ts';
+export type { NodeAudioOptions, ComputedAudioFailure, ComputedAudioRun, RondoCaps } from './audio.ts';
 export {
   mixSequenceAudio, sequenceMixToWav, mixWindow, limitPlanes, clipGainEvents,
   bedDuckEnvelope, envelopeGainAt, isTrivialGain, MIX_RATE, MIX_CHANNELS,

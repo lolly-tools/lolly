@@ -25,6 +25,7 @@ import { listTools, loadToolCached, loadIndex, listToolTemplates, loadTemplateSe
 import { toolInputSchema, fileInputId } from './schema.ts';
 import { render, transform, isTextFormat, normFormat, emojiSets, emojiSetName, resolveEmojiSetName, maxRasterPixelsFor, previewPng } from './render.ts';
 import { withHost } from './host.ts';
+import { audioRunText, rondoCapsFor, songCredentialText } from './audio-runs.ts';
 import type { RenderOpts } from './render.ts';
 import { REBRAND_TOOL_DEF, callRebrand, isHostedServer } from './rebrand.ts';
 import { callLookTool, lookToolDefs, type LookRender } from './look.ts';
@@ -1004,6 +1005,7 @@ export async function callTool(name: string, args: Record<string, unknown>): Pro
           password: args.password as string | undefined,
           c2pa: c2paSetting(args.c2pa),
           maxRasterPixels: maxRasterPixelsFor(process.env, isHostedServer()),
+          rondo: rondoCapsFor(process.env, isHostedServer()),
           ...exportSettings(args),
         };
         // The set is resolved before anything renders, so an unknown name is
@@ -1036,6 +1038,12 @@ export async function callTool(name: string, args: Record<string, unknown>): Pro
           `Rendered ${toolId} → ${result.format} (${result.bytes.length} bytes, tier ${result.tier}).`,
           args.link === false ? '' : `Edit: ${links.editUrl}`,
           `Provenance: ${provenance}${rights}`,
+          // Each rondocode song the render ran (plan 301): the execution class its
+          // code ran in and every part it could not play, by stable code.
+          audioRunText({ runs: result.audio, failures: result.audioFailures }),
+          // What the file's Content Credentials record about the songs it holds,
+          // read back from the delivered bytes.
+          songCredentialText(result.songs),
         ].filter(Boolean).join('\n');
 
         const content: ContentBlock[] = [{ type: 'text', text: header }];
@@ -1068,10 +1076,11 @@ export async function callTool(name: string, args: Record<string, unknown>): Pro
         if (!TOOL_ID_RE.test(toolId)) return errorResult(`Invalid toolId: ${toolId}. Use lolly_list_tools.`);
         if (!file?.base64) return errorResult('file.base64 is required.');
         const inputs = (args.inputs as Record<string, unknown>) ?? {};
-        const res = await transform(toolId, { base64: file.base64, name: file.name, mime: file.mime }, inputs);
+        const res = await transform(toolId, { base64: file.base64, name: file.name, mime: file.mime }, inputs, {}, { rondo: rondoCapsFor(process.env, isHostedServer()) });
+        const audio = [audioRunText({ runs: res.audio, failures: res.audioFailures }), songCredentialText(res.songs)].filter(Boolean).join('\n');
         return {
           content: [
-            { type: 'text', text: `Transformed ${file.name ?? 'file'} → ${res.filename} (${res.bytes.length} bytes, tier ${res.tier}). Not watermarked; no provenance added.` },
+            { type: 'text', text: `Transformed ${file.name ?? 'file'} → ${res.filename} (${res.bytes.length} bytes, tier ${res.tier}). Not watermarked; no provenance added.${audio ? `\n${audio}` : ''}` },
             { type: 'resource', resource: { uri: `lolly://transform/${res.filename}`, mimeType: res.mime, blob: Buffer.from(res.bytes).toString('base64') } },
           ],
         };

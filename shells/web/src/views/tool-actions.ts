@@ -226,6 +226,10 @@ function renderActions(
   ta.genSeed = (Math.random() * 0x7fffffff) >>> 0;
   ta.genWavUrl = null; // cached preview WAV blob URL
   ta.genWavKey = '';
+  ta.songWavUrl = null; // a rondocode song's audition WAV, revoked when replaced
+  ta.songNoteNames = []; // the songs the sheet says the next credential records (notes.ts)
+  ta.songNoteSeq = 0;
+  ta.songNoteTimer = null;
 
   // Audio preview - a play/pause toggle that auditions the selected track before
   // export. A single detached <audio> element (never in the DOM, so it must be
@@ -347,7 +351,7 @@ function renderActions(
   // change what preflight sees (a paginate source table gaining a row), so re-run
   // on every input change as well as on every format/size/print-setting change.
   // Cheap: one pure synchronous pass over a plain object.
-  runtime.subscribe(() => { ta.preflight.refreshPreflight(); ta.audio.syncCaptionsAvailable(); });
+  runtime.subscribe(() => { ta.preflight.refreshPreflight(); ta.audio.syncCaptionsAvailable(); ta.notes.scheduleSongNote(); });
   ta.preflight.refreshPreflight();
   ta.audio.syncCaptionsAvailable();
 

@@ -67,7 +67,7 @@ import { applyPdfX } from './export-pdfx.ts';
 import { createPdfDoc } from './export-pdf-doc.ts';
 import { isOwnProfile, resolveEmbeddedProfile } from '../lib/press-profile-embed.ts';
 import type { EmbedResolution } from '../lib/press-profile-embed.ts';
-import { _host, canvasToBlob, imprintCanvas, exportDims, getDomToImage, swapBlobUrls, fontMetricsPx, blobToDataUrl, MAX_RASTER_PX, makeRoundedFill, setExportHost } from './export-shared.ts';
+import { _host, canvasToBlob, imprintCanvas, exportDims, getDomToImage, swapBlobUrls, fontMetricsPx, blobToDataUrl, MAX_RASTER_PX, makeRoundedFill, setExportHost, foldIngredientSinks } from './export-shared.ts';
 import { beginFrameClock, renderFrameAt, endFrameClock, posedFrame } from './frame-clock.ts';
 import { isTopTailStage, isRecordStage } from './export-shared.ts';
 import type { WebHost, ExportOpts, ExportDims, DtoRenderOpts, ImprintState, Rgba } from './export-shared.ts';
@@ -353,6 +353,9 @@ async function renderPreparedFormat(node: Element, format: string, opts: ExportO
   // stamp - a preview/thumbnail render never pays to decode + C2PA-scan embedded
   // images. Populated by the SVG/PDF walker (before its canvas re-encode), read below.
   if (opts.c2pa) opts._ingredientSink ??= [];
+  // Sources with no credential of their own that only the render meets (a rondocode
+  // song the sequence mix played). A caller's own filled list is kept.
+  if (opts.c2pa) opts._sourceIngredientSink ??= [];
   const blob = await renderFormatDispatch(node, format, opts);
   const key = format === 'webm' || format === 'mp4'
     ? (blob.type.includes('mp4') ? 'mp4' : 'webm')
@@ -365,14 +368,10 @@ async function renderPreparedFormat(node: Element, format: string, opts: ExportO
     // the credential can record "where/how big" alongside the input digest.
     let dimensions: string | undefined;
     try { dimensions = describeDimensions(exportDims(node, opts)); } catch { /* size is a nicety */ }
-    // Merge walker-collected bitmap ingredients into the stamp, deduped against any the
-    // runtime already supplied for declared asset inputs (so a bitmap that WAS a
-    // declared asset is not double-listed).
-    if (opts._ingredientSink?.length) {
-      // A source ingredient (no credential of its own) has no manifest label; it never collides.
-      const have = new Set((opts.ingredients ?? []).map((i) => ('activeLabel' in i ? i.activeLabel : undefined)));
-      opts.ingredients = [...(opts.ingredients ?? []), ...opts._ingredientSink.filter((i) => !have.has(i.activeLabel))];
-    }
+    // Merge the ingredients gathered during dispatch into the stamp: walker-collected
+    // bitmaps, and sources with no credential of their own such as a rondocode song
+    // in the soundtrack (plan 301). foldIngredientSinks (export-shared.ts) dedupes each.
+    foldIngredientSinks(opts);
     const stamped = await stampC2pa(blob, key, opts, dimensions);
     await reportRightsReceipt(stamped, opts);
     return stamped;

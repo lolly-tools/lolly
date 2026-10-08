@@ -1,0 +1,613 @@
+<main class="rc" data-rondo>
+  <section class="rc-stage">
+    {{#if card}}
+    <article class="rc-card" aria-label="Song">
+      <header class="rc-card-head">
+        <strong class="rc-card-name">{{card.name}}</strong>
+        <span class="rc-card-meta">{{card.lang}} · {{card.lines}} · {{card.length}}</span>
+      </header>
+      <pre class="rc-card-code">{{#each card.rows}}<span class="rc-row rc-row--{{kind}}">{{text}}</span>
+{{/each}}</pre>
+    </article>
+    {{else}}
+    <iframe class="rc-frame" data-rondo-frame title="Rondocode editor" sandbox="allow-scripts allow-modals allow-popups allow-popups-to-escape-sandbox"></iframe>
+    <div class="rc-wait" data-rondo-wait><span class="rc-spinner" aria-hidden="true"></span><span data-rondo-wait-text>Opening the editor…</span></div>
+    <div class="rc-shot" data-export-root aria-hidden="true">
+      <article class="rc-card">
+        <header class="rc-card-head">
+          <strong class="rc-card-name" data-shot-name></strong>
+          <span class="rc-card-meta" data-shot-meta></span>
+        </header>
+        <pre class="rc-card-code" data-shot-code></pre>
+      </article>
+    </div>
+    {{/if}}
+  </section>
+  <footer class="rc-credit">
+    <span>Editor: rondocode by Vijay Pemmaraju, MIT licence.</span>
+    <a href="https://github.com/vijaypemmaraju/rondocode" target="_blank" rel="noopener noreferrer">Source on GitHub</a>
+  </footer>
+</main>
+
+<script>
+(function () {
+  var root = document.querySelector('[data-rondo]');
+  if (!root || root.dataset.rondoReady) return;
+  var frame = root.querySelector('[data-rondo-frame]');
+  if (!frame) return; // the static song card (a render with no live editor)
+  root.dataset.rondoReady = '1';
+
+  var waitEl = root.querySelector('[data-rondo-wait]');
+  var waitText = root.querySelector('[data-rondo-wait-text]');
+
+  // An off-screen render (a gallery preview, a thumbnail) is a still picture:
+  // it never runs the editor, so nobody's songs load into someone else's picture.
+  if (root.closest('[data-lolly-offscreen]')) {
+    if (waitText) waitText.textContent = 'Rondocode';
+    return;
+  }
+
+  var EDITOR_URL = '/tools/rondocode/lib/editor.html';
+  var MAX_CODE = 256 * 1024;
+  var MAX_NAME = 200;
+  var STORES = { projects: 300, versions: 3000, snippets: 500 };
+  var MAX_LIBRARY_CHARS = 8 * 1024 * 1024;
+  var MIMES = { 'audio/wav': 1, 'audio/midi': 1, 'application/zip': 1, 'application/json': 1 };
+  var FORMATS = { wav: 1, mp3: 1, m4a: 1, opus: 1, flac: 1, zip: 1, mid: 1, json: 1 };
+  var editorVersion = 'unknown';
+
+  function bridge() { return window.__lollyRondocode || null; }
+
+  // ── The model channel (the shell's per-canvas commit API) ─────────────────
+  var chan = root.closest && root.closest('[data-lolly-canvas]');
+  function model() {
+    try { return (chan && chan.__lollyModel && chan.__lollyModel()) || []; } catch (e) { return []; }
+  }
+  function value(id) {
+    var m = model();
+    for (var i = 0; i < m.length; i++) if (m[i].id === id) return m[i].value;
+    return null;
+  }
+  function commit(id, v, coarse) {
+    if (!chan) return;
+    var fn = coarse ? chan.__lollyCommit : (chan.__lollyCommitQuiet || chan.__lollyCommit);
+    if (fn) try { fn(id, v); } catch (e) { /* the model refused it; the editor keeps the text */ }
+  }
+  function modelSong() {
+    var lang = value('language');
+    return {
+      code: typeof value('code') === 'string' ? value('code') : '',
+      lang: lang === 'js' || lang === 'rondo' ? lang : 'auto',
+      name: typeof value('name') === 'string' ? value('name') : '',
+    };
+  }
+  function same(a, b) { return !!a && !!b && a.code === b.code && a.lang === b.lang && a.name === b.name; }
+
+  // ── What the frame needs at boot ──────────────────────────────────────────
+  var probe = null;
+  function toHex(css) {
+    if (typeof css !== 'string' || !css.trim()) return null;
+    var v = css.trim();
+    if (/^\d+(\.\d+)?\s+\d+(\.\d+)?%\s+\d+(\.\d+)?%$/.test(v)) v = 'hsl(' + v + ')';
+    try {
+      probe = probe || document.createElement('canvas').getContext('2d');
+      probe.fillStyle = '#000';
+      probe.fillStyle = v;
+      var out = String(probe.fillStyle);
+      return /^#[0-9a-f]{6}$/i.test(out) ? out.toLowerCase() : null;
+    } catch (e) { return null; }
+  }
+  function token(name) {
+    try { return getComputedStyle(root).getPropertyValue(name).trim(); } catch (e) { return ''; }
+  }
+
+  // Relative luminance of a '#rrggbb', 0 (black) to 1 (white).
+  function luminance(hex) {
+    var c = [1, 3, 5].map(function (i) {
+      var v = parseInt(hex.slice(i, i + 2), 16) / 255;
+      return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+  }
+
+  // The app's colours now: its semantic tokens (the editor's surfaces and text
+  // are the app's own), light or dark, high contrast, and the design system's
+  // brand hues and swatches.
+  function theme() {
+    var ui = {
+      canvas: toHex(token('--ui-color-surface-canvas')),
+      raised: toHex(token('--ui-color-surface-raised')),
+      muted: toHex(token('--ui-color-surface-muted')),
+      overlay: toHex(token('--ui-color-surface-overlay')),
+      border: toHex(token('--ui-color-border-default')),
+      text: toHex(token('--ui-color-text-default')),
+      textMuted: toHex(token('--ui-color-text-muted')),
+      accent: toHex(token('--ui-color-action-primary')),
+      danger: toHex(token('--ui-color-status-danger')),
+    };
+    for (var k in ui) if (!ui[k]) delete ui[k];
+    var out = {
+      primary: toHex(token('--brand-primary')) || toHex(token('--primary')) || undefined,
+      secondary: toHex(token('--brand-secondary')) || undefined,
+      warn: toHex(token('--brand-warn')) || undefined,
+      danger: toHex(token('--destructive')) || undefined,
+      mode: ui.canvas ? (luminance(ui.canvas) < 0.4 ? 'dark' : 'light') : undefined,
+      highContrast: document.documentElement.getAttribute('data-a11y-contrast') === 'high' || undefined,
+      ui: ui,
+      swatches: [],
+    };
+    var b = bridge();
+    var colours = b && b.brandColors ? b.brandColors() : Promise.resolve([]);
+    return colours.then(function (list) {
+      (list || []).forEach(function (c) { var h = toHex(c); if (h && out.swatches.indexOf(h) < 0 && out.swatches.length < 24) out.swatches.push(h); });
+      return out;
+    }, function () { return out; });
+  }
+
+  // The shell's design tokens the editor's chrome reads, resolved here, so the
+  // frame wears the app's own colours, radii and shadows (light or dark).
+  function tokens(html) {
+    var m = /<meta name="lolly-rondo-tokens" content="([^"]*)">/.exec(html);
+    var out = {};
+    if (!m) return out;
+    var cs;
+    try { cs = getComputedStyle(root); } catch (e) { return out; }
+    m[1].split(' ').slice(0, 400).forEach(function (name) {
+      if (!/^--[\w-]{1,80}$/.test(name)) return;
+      var v = cs.getPropertyValue(name).trim();
+      if (v && v.length <= 400 && !/[;{}<>\\]|url\(/i.test(v)) out[name] = v;
+    });
+    return out;
+  }
+
+  function firstFamily(stack) {
+    var f = String(stack || '').split(',')[0] || '';
+    return f.trim().replace(/^['"]|['"]$/g, '');
+  }
+  function fontRules(sheet, family, out) {
+    var rules;
+    try { rules = sheet.cssRules; } catch (e) { return; }
+    if (!rules) return;
+    for (var i = 0; i < rules.length; i++) {
+      var r = rules[i];
+      if (r.cssRules) fontRules(r, family, out);
+      if (r.type !== 5 || !r.style) continue;
+      if (firstFamily(r.style.getPropertyValue('font-family')) !== family) continue;
+      var m = /url\(\s*['"]?([^'")]+)['"]?\s*\)/.exec(r.style.getPropertyValue('src') || '');
+      if (!m) continue;
+      var base = (r.parentStyleSheet && r.parentStyleSheet.href) || document.baseURI;
+      var url;
+      try { url = new URL(m[1], base).href; } catch (e) { continue; }
+      out.push({
+        family: family, url: url,
+        weight: r.style.getPropertyValue('font-weight') || undefined,
+        style: r.style.getPropertyValue('font-style') || undefined,
+        unicodeRange: r.style.getPropertyValue('unicode-range') || undefined,
+      });
+    }
+  }
+  function b64(bytes) {
+    var parts = [];
+    for (var i = 0; i < bytes.length; i += 32768) parts.push(String.fromCharCode.apply(null, bytes.subarray(i, i + 32768)));
+    return btoa(parts.join(''));
+  }
+  function fonts() {
+    var brand = token('--font-brand');
+    var mono = token('--font-mono');
+    var wanted = [];
+    [firstFamily(brand), firstFamily(mono)].forEach(function (family) {
+      if (!family || /^(ui-|system-ui|sans-serif|serif|monospace)/.test(family)) return;
+      var found = [];
+      for (var i = 0; i < document.styleSheets.length; i++) fontRules(document.styleSheets[i], family, found);
+      found.slice(0, 3).forEach(function (f) { wanted.push(f); });
+    });
+    var budget = 3 * 1024 * 1024;
+    return Promise.all(wanted.map(function (f) {
+      return fetch(f.url, { credentials: 'same-origin' }).then(function (r) { return r.ok ? r.arrayBuffer() : null; })
+        .then(function (buf) {
+          if (!buf || buf.byteLength > budget) return null;
+          budget -= buf.byteLength;
+          return { family: f.family, data: b64(new Uint8Array(buf)), weight: f.weight, style: f.style, unicodeRange: f.unicodeRange };
+        }, function () { return null; });
+    })).then(function (faces) {
+      return { brand: brand || undefined, mono: mono || undefined, faces: faces.filter(Boolean) };
+    });
+  }
+
+  // ── The project library, kept in host.state ───────────────────────────────
+  var library = { projects: {}, versions: {}, snippets: {} };
+  var prefs = {};
+  var saveTimer = 0;
+  function rows(store) {
+    var m = library[store], out = [];
+    for (var k in m) if (Object.prototype.hasOwnProperty.call(m, k)) out.push(m[k]);
+    return out;
+  }
+  function loadLibrary() {
+    var b = bridge();
+    if (!b) return Promise.resolve();
+    return b.loadLibrary().then(function (data) {
+      if (!data || typeof data !== 'object') return;
+      Object.keys(STORES).forEach(function (store) {
+        (Array.isArray(data[store]) ? data[store] : []).forEach(function (r) {
+          if (r && typeof r === 'object' && typeof r.id === 'string') library[store][r.id] = r;
+        });
+      });
+      if (data.prefs && typeof data.prefs === 'object') {
+        for (var k in data.prefs) if (typeof data.prefs[k] === 'string') prefs[k] = data.prefs[k];
+      }
+    }, function () { /* no saved library yet */ });
+  }
+  function scheduleSave() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(function () {
+      var b = bridge();
+      if (!b) return;
+      var data = { v: 1, projects: rows('projects'), versions: rows('versions'), snippets: rows('snippets'), prefs: prefs };
+      // Oldest automatic versions go first when the library outgrows its room.
+      var size = JSON.stringify(data).length;
+      if (size > MAX_LIBRARY_CHARS) {
+        data.versions.sort(function (a, b2) { return (a.createdAt || 0) - (b2.createdAt || 0); });
+        while (size > MAX_LIBRARY_CHARS && data.versions.length) {
+          var gone = data.versions.shift();
+          delete library.versions[gone.id];
+          size -= JSON.stringify(gone).length;
+        }
+      }
+      b.saveLibrary(data).catch(function (e) { console.warn('[rondocode] the library was not saved', e); });
+    }, 800);
+  }
+  function applyOps(ops) {
+    if (!Array.isArray(ops) || ops.length > 500) return;
+    ops.forEach(function (o) {
+      if (!o || typeof o !== 'object' || !STORES[o.store]) return;
+      if (o.op === 'del' && typeof o.id === 'string') { delete library[o.store][o.id]; return; }
+      var v = o.value;
+      if (o.op !== 'put' || !v || typeof v !== 'object' || Array.isArray(v) || typeof v.id !== 'string' || v.id.length > 100) return;
+      if (typeof v.code === 'string' && v.code.length > MAX_CODE) return;
+      if (typeof v.name === 'string' && v.name.length > MAX_NAME) return;
+      var m = library[o.store];
+      if (!m[v.id] && Object.keys(m).length >= STORES[o.store]) return;
+      m[v.id] = JSON.parse(JSON.stringify(v));
+    });
+    scheduleSave();
+  }
+  function applyPrefs(items) {
+    if (!items || typeof items !== 'object') return;
+    var keys = Object.keys(items);
+    if (keys.length > 100) return;
+    keys.forEach(function (k) {
+      if (k.length > 100) return;
+      var v = items[k];
+      if (v === null) delete prefs[k];
+      else if (typeof v === 'string' && v.length <= 20000) prefs[k] = v;
+    });
+    scheduleSave();
+  }
+
+  // ── The frame ──────────────────────────────────────────────────────────────
+  var ready = false;
+  var queued = null;
+  var lastSong = null; // what the frame and the model last agreed on
+  var coarseTimer = 0;
+
+  function send(msg, transfer) {
+    try { frame.contentWindow.postMessage(msg, '*', transfer || []); } catch (e) { /* frame gone */ }
+  }
+  function pushSong(song) {
+    var msg = { kind: 'rondo:song', code: song.code, lang: song.lang, name: song.name };
+    if (ready) send(msg); else queued = msg;
+  }
+
+  function onDoc(d) {
+    if (typeof d.code !== 'string' || d.code.length > MAX_CODE) return;
+    if (d.lang !== 'js' && d.lang !== 'rondo') return;
+    if (typeof d.name !== 'string' || d.name.length > MAX_NAME) return;
+    var song = { code: d.code, lang: d.lang, name: d.name };
+    var cur = modelSong();
+    lastSong = song;
+    if (same(song, cur)) return;
+    // Every change at once, quietly (no undo step, no broadcast), then one
+    // undo step a second after the typing stops.
+    if (cur.code !== song.code) commit('code', song.code, false);
+    if (cur.lang !== song.lang && !(cur.lang === 'auto' && cur.code === song.code)) commit('language', song.lang, false);
+    if (cur.name !== song.name) commit('name', song.name, false);
+    clearTimeout(coarseTimer);
+    coarseTimer = setTimeout(function () {
+      var now = modelSong();
+      commit('code', now.code, true);
+    }, 1000);
+  }
+
+  function names(v) {
+    return Array.isArray(v) ? v.filter(function (x) { return typeof x === 'string' && x.length <= 200; }).slice(0, 20) : [];
+  }
+  function songIn(v) {
+    if (!v || typeof v !== 'object' || typeof v.code !== 'string' || v.code.length > MAX_CODE) return null;
+    if (v.lang !== 'js' && v.lang !== 'rondo') return null;
+    if (typeof v.name !== 'string' || v.name.length > MAX_NAME) return null;
+    return { code: v.code, lang: v.lang, name: v.name };
+  }
+  function notice(key, message) { send({ kind: 'rondo:notice', key: key, message: String(message).slice(0, 1000) }); }
+
+  // A file upstream's own controls made: a recording is signed before it is saved.
+  function onDownload(d) {
+    var name = typeof d.name === 'string' ? d.name.replace(/[\\/:*?"<>|\u0000-\u001f]/g, '-').slice(0, 200) : '';
+    if (!name || !MIMES[d.mime] || !(d.bytes instanceof ArrayBuffer) || d.bytes.byteLength > 1024 * 1024 * 1024) return;
+    var b = bridge();
+    if (!b) return;
+    var job = { name: name, mime: d.mime, bytes: d.bytes, sung: names(d.sung), voices: names(d.voices), song: songIn(d.song) };
+    b.saveDownload(job, editorVersion).then(function (sentence) { notice('saved', sentence); },
+      function (e) { notice('saved', 'Could not save ' + name + ': ' + (e && e.message || e)); });
+  }
+
+  // An export the editor rendered: the utility encodes, signs, reads back and saves.
+  function onExport(d) {
+    var reply = function (ok, message) { send({ kind: 'rondo:export-result', id: d.id, ok: ok, message: String(message).slice(0, 1000) }); };
+    if (!Number.isSafeInteger(d.id)) return;
+    var b = bridge();
+    var song = songIn(d.song);
+    if (!b || !b.exportSong || !FORMATS[d.format] || !song) { reply(false, 'That export is not one this utility makes.'); return; }
+    var buf = function (v) { return v instanceof ArrayBuffer && v.byteLength <= 1024 * 1024 * 1024 ? v : null; };
+    var job = { format: d.format, song: song, sung: names(d.sung), voices: names(d.voices), silent: names(d.silent), send: d.send === true, dest: d.dest === 'assets' ? 'assets' : undefined };
+    if (d.format === 'zip') {
+      if (!Array.isArray(d.stems) || !d.stems.length || d.stems.length > 64) { reply(false, 'The stems did not arrive.'); return; }
+      job.stems = [];
+      for (var i = 0; i < d.stems.length; i++) {
+        var st = d.stems[i];
+        if (!st || !buf(st.bytes) || typeof st.part !== 'string' || typeof st.name !== 'string') { reply(false, 'A stem did not arrive whole.'); return; }
+        job.stems.push({ name: st.name.slice(0, 200), part: st.part.slice(0, 200), bytes: st.bytes });
+      }
+    } else if (d.format === 'mid') {
+      if (!buf(d.midi)) { reply(false, 'The MIDI file did not arrive.'); return; }
+      job.midi = d.midi;
+    } else if (d.format !== 'json') {
+      if (!buf(d.audio)) { reply(false, 'The audio did not arrive.'); return; }
+      job.audio = d.audio;
+    }
+    b.exportSong(job, editorVersion).then(function (sentence) { reply(true, sentence); },
+      function (e) { reply(false, e && e.message || String(e)); });
+  }
+
+  // Artist visualiser presets: the frame asks for one by id, and the page
+  // reads the file the app serves for it (the frame cannot fetch). Only ids
+  // host.viz listed are answered.
+  var vizIds = {};
+  var vizText = {};
+  function onVizPreset(d) {
+    if (!Number.isSafeInteger(d.id) || typeof d.preset !== 'string') return;
+    var reply = function (json) { send(json ? { kind: 'rondo:viz-preset', id: d.id, ok: true, json: json } : { kind: 'rondo:viz-preset', id: d.id, ok: false }); };
+    var id = d.preset;
+    if (!vizIds[id] || !/^stock:[\w.-]{1,80}$/.test(id)) { reply(null); return; }
+    if (vizText[id]) { reply(vizText[id]); return; }
+    fetch('/viz-presets/' + encodeURIComponent(id.slice(6)) + '.json', { credentials: 'same-origin' })
+      .then(function (r) { return r.ok ? r.text() : null; })
+      .then(function (text) {
+        if (!text || text.length > 256 * 1024) { reply(null); return; }
+        vizText[id] = text;
+        reply(text);
+      }, function () { reply(null); });
+  }
+  // The list host.viz gives, without the presets the pack's own index measured
+  // drawing nothing (pure black or blown out), as the asset preview leaves them out.
+  function vizPresets() {
+    var b = bridge();
+    var listed = b && b.vizPresets ? b.vizPresets() : Promise.resolve([]);
+    var measured = fetch('/viz-presets/index.json', { credentials: 'same-origin' })
+      .then(function (r) { return r.ok ? r.json() : []; }, function () { return []; });
+    return Promise.all([listed, measured]).then(function (got) {
+      var bad = {};
+      (Array.isArray(got[1]) ? got[1] : []).forEach(function (p) { if (p && p.ok === false) bad['stock:' + p.id] = 1; });
+      return (Array.isArray(got[0]) ? got[0] : []).filter(function (p) {
+        if (!p || typeof p.id !== 'string' || bad[p.id]) return false;
+        vizIds[p.id] = 1;
+        return true;
+      }).map(function (p) { return { id: p.id, name: String(p.name || p.id), author: String(p.author || ''), calm: p.calm === true }; });
+    }, function () { return []; });
+  }
+
+  // Immersive: the frame asks; the page puts the frame in full screen.
+  function onImmersive(d) {
+    var on = d.on === true;
+    try {
+      if (on && !document.fullscreenElement && frame.requestFullscreen) frame.requestFullscreen().catch(function () { /* the frame fills itself instead */ });
+      else if (!on && document.fullscreenElement === frame && document.exitFullscreen) document.exitFullscreen().catch(function () {});
+    } catch (e) { /* no full screen here; the frame fills itself */ }
+  }
+  document.addEventListener('fullscreenchange', function () {
+    if (!frame.isConnected) return;
+    if (document.fullscreenElement !== frame) send({ kind: 'rondo:immersive', on: false });
+  });
+
+  function onSingModels(d) {
+    if (!Number.isSafeInteger(d.id) || !Array.isArray(d.files) || d.files.length > 32) return;
+    var files = d.files.filter(function (f) { return typeof f === 'string' && f.length < 200 && /^[a-z0-9][a-z0-9_./-]*$/i.test(f) && f.indexOf('..') < 0; });
+    var b = bridge();
+    if (!b || !b.singModels) {
+      send({ kind: 'rondo:sing-models', id: d.id, ok: false, reason: 'error', message: 'Singing needs voice models, and this version of Lolly cannot offer them yet.' });
+      return;
+    }
+    b.singModels(files, function (p) {
+      if (p && typeof p === 'object') send({ kind: 'rondo:sing-progress', id: d.id, label: String(p.label || ''), done: Number(p.done) || 0, total: Number(p.total) || 0 });
+    }).then(function (got) {
+      if (!got) { send({ kind: 'rondo:sing-models', id: d.id, ok: false, reason: 'declined', message: 'The voice models are not downloaded.' }); return; }
+      var out = {}, transfer = [];
+      files.forEach(function (f) {
+        var u = got[f];
+        if (!(u instanceof Uint8Array)) return;
+        var buf = u.byteOffset === 0 && u.byteLength === u.buffer.byteLength ? u.buffer : u.slice().buffer;
+        out[f] = buf;
+        transfer.push(buf);
+      });
+      send({ kind: 'rondo:sing-models', id: d.id, ok: true, files: out }, transfer);
+    }, function (e) {
+      var offline = typeof navigator !== 'undefined' && navigator.onLine === false;
+      send({ kind: 'rondo:sing-models', id: d.id, ok: false, reason: offline ? 'offline' : 'error', message: String(e && e.message || e).slice(0, 300) });
+    });
+  }
+
+  window.addEventListener('message', function (e) {
+    if (!frame.isConnected || e.source !== frame.contentWindow) return;
+    var d = e.data;
+    if (!d || typeof d !== 'object' || typeof d.kind !== 'string') return;
+    if (d.kind === 'rondo:ready') {
+      ready = true;
+      if (waitEl) waitEl.hidden = true;
+      if (queued) { send(queued); queued = null; }
+      pushTheme(); // a change while the editor was loading
+    } else if (d.kind === 'rondo:doc') onDoc(d);
+    else if (d.kind === 'rondo:store') applyOps(d.ops);
+    else if (d.kind === 'rondo:prefs') applyPrefs(d.items);
+    else if (d.kind === 'rondo:download') onDownload(d);
+    else if (d.kind === 'rondo:export') onExport(d);
+    else if (d.kind === 'rondo:immersive') onImmersive(d);
+    else if (d.kind === 'rondo:viz-preset') onVizPreset(d);
+    else if (d.kind === 'rondo:sing-models') onSingModels(d);
+  });
+
+  // The model changed somewhere else (undo, a collaborator, an edited link):
+  // the frame shows the new song.
+  var opened = modelSong();
+  if (opened.code) lastSong = opened;
+  if (chan && chan.__lollySubscribe) {
+    try {
+      chan.__lollySubscribe(function () {
+        drawShot();
+        var song = modelSong();
+        if (!song.code || same(song, lastSong)) return;
+        if (lastSong && song.code === lastSong.code && song.name === lastSong.name && song.lang === 'auto') return;
+        lastSong = song;
+        pushSong(song);
+      });
+    } catch (e) { /* no live updates; editing still works */ }
+  }
+
+  // ── The app's theme, followed live ───────────────────────────────────────
+  // Light or dark, high contrast and the design system can all change while
+  // the editor is open; each change goes to the frame, which repaints the
+  // editor and Lolly's chrome. What can trigger one: the theme and contrast
+  // attributes on <html>, the brand styles in <head> and on the tool's own
+  // ancestors, and the system colour scheme. Repeats are dropped.
+  var editorHtml = '';
+  var lastTheme = '';
+  var themeTimer = 0;
+  function pushTheme() {
+    if (!ready || !editorHtml || !frame.isConnected) return;
+    theme().then(function (t) {
+      var msg = { kind: 'rondo:theme', theme: t, tokens: tokens(editorHtml) };
+      var key = JSON.stringify(msg);
+      if (key === lastTheme) return;
+      lastTheme = key;
+      send(msg);
+    });
+  }
+  var themeWatch = typeof MutationObserver === 'function' ? new MutationObserver(function () {
+    if (!root.isConnected) { themeWatch.disconnect(); return; }
+    clearTimeout(themeTimer);
+    themeTimer = setTimeout(pushTheme, 150);
+  }) : null;
+  if (themeWatch) {
+    themeWatch.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'data-a11y-contrast', 'class', 'style'] });
+    themeWatch.observe(document.head, { childList: true, subtree: true, characterData: true });
+    for (var up = root.parentElement; up && up !== document.body; up = up.parentElement) {
+      themeWatch.observe(up, { attributes: true, attributeFilter: ['style', 'class', 'data-theme'] });
+    }
+  }
+  if (typeof matchMedia === 'function') {
+    try {
+      matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function () {
+        clearTimeout(themeTimer);
+        themeTimer = setTimeout(pushTheme, 150);
+      });
+    } catch (e) { /* an old browser: the theme follows on the next change it can see */ }
+  }
+
+  // ── The picture of the song ───────────────────────────────────────────────
+  // The editor runs in an opaque-origin frame no export can read, so a save's
+  // thumbnail and an image export draw this card instead ([data-export-root]):
+  // the song's name and the first lines of its code, as text, never markup.
+  var shotName = root.querySelector('[data-shot-name]');
+  var shotMeta = root.querySelector('[data-shot-meta]');
+  var shotCode = root.querySelector('[data-shot-code]');
+  // A line's kind for the picture: a comment, a line that starts a part, or code.
+  function rowKind(line) {
+    var t = line.trim();
+    if (/^(#|\/\/)/.test(t)) return 'comment';
+    if (/^(synth|play|bus|section|cps|bpm|level|master|sidechain|const|let|p\(|defineSynth|setCps|setBpm)\b/.test(t)) return 'part';
+    return 'code';
+  }
+  function drawShot() {
+    var song = modelSong();
+    var lines = song.code.split('\n');
+    // The song's own lines, not its opening comment block, and few enough
+    // that the picture stays small.
+    var first = 0;
+    while (first < lines.length - 1 && /^\s*(#|\/\/|$)/.test(lines[first])) first++;
+    var shown = lines.slice(first, first + 8);
+    if (shotName) shotName.textContent = song.name || 'Untitled song';
+    if (shotMeta) shotMeta.textContent = (song.lang === 'js' ? 'JavaScript' : song.lang === 'rondo' ? 'rondo' : 'rondo or JavaScript')
+      + ' \u00b7 ' + lines.length + (lines.length === 1 ? ' line' : ' lines') + ' \u00b7 Rondocode';
+    if (!shotCode) return;
+    shotCode.textContent = '';
+    shown.concat(lines.length > first + shown.length ? ['\u2026'] : []).forEach(function (line) {
+      var row = document.createElement('span');
+      row.className = 'rc-row rc-row--' + rowKind(line);
+      row.textContent = line.length > 48 ? line.slice(0, 47) + '\u2026' : line;
+      shotCode.append(row, '\n');
+    });
+  }
+  drawShot();
+
+  // ── Fit the visible viewport ───────────────────────────────────────────────
+  function fit() {
+    if (!root.isConnected) return;
+    var vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    var room = Math.floor(vh - root.getBoundingClientRect().top);
+    if (room > 300) root.style.setProperty('--rc-fit', room + 'px');
+  }
+  fit();
+  window.addEventListener('resize', fit);
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', fit);
+
+  // ── Boot ───────────────────────────────────────────────────────────────────
+  function fail(text) {
+    if (waitText) waitText.textContent = text;
+    if (waitEl) { waitEl.hidden = false; waitEl.classList.add('is-error'); }
+  }
+  var reduced = (typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches)
+    || document.documentElement.getAttribute('data-a11y-motion') === 'reduce';
+  var editor = fetch(EDITOR_URL, { credentials: 'same-origin' }).then(function (r) {
+    if (!r.ok) throw new Error('status ' + r.status);
+    return r.text();
+  });
+  Promise.all([editor, theme(), fonts(), loadLibrary(), vizPresets()]).then(function (got) {
+    var html = got[0];
+    if (html.indexOf('<meta name="lolly-rondo-editor"') < 0 || html.indexOf('<!--lolly-rondo-boot-->') < 0) throw new Error('not the editor');
+    var song = modelSong();
+    lastSong = song.code ? song : null;
+    var version = /<meta name="lolly-rondo-version" content="([\w.+-]{1,80})">/.exec(html);
+    if (version) editorVersion = version[1];
+    var b = bridge();
+    var boot = {
+      theme: got[1],
+      fonts: got[2],
+      tokens: tokens(html),
+      exports: b && b.capabilities ? b.capabilities() : { encoders: [], credentials: false },
+      viz: { presets: got[4] },
+      song: song.code ? song : null,
+      library: { projects: rows('projects'), versions: rows('versions'), snippets: rows('snippets') },
+      prefs: prefs,
+      reducedMotion: reduced,
+    };
+    editorHtml = html;
+    lastTheme = JSON.stringify({ kind: 'rondo:theme', theme: boot.theme, tokens: boot.tokens });
+    var json = JSON.stringify(boot).replace(/</g, '\\u003c');
+    frame.srcdoc = html.replace('<!--lolly-rondo-boot-->', '<script type="application/json" id="lolly-rondo-boot">' + json + '<\/script>');
+  }).catch(function (e) {
+    console.warn('[rondocode] the editor did not open', e);
+    fail(typeof navigator !== 'undefined' && navigator.onLine === false
+      ? 'The editor is not on this device yet. Open Rondocode once while online, or make it available offline from its menu.'
+      : 'The editor did not open. Reload to try again.');
+  });
+})();
+</script>

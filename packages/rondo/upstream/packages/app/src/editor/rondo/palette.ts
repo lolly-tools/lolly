@@ -1,0 +1,532 @@
+import { redo, redoDepth, toggleComment, undo, undoDepth } from '@codemirror/commands'
+/* The rondo TAP PALETTE — the original design thesis, made real: because we
+ * own the grammar, we know exactly which tokens are legal at the cursor. So a
+ * chip bar (docked above the software keyboard) offers ONLY the valid next
+ * moves — sources and transforms in a synth body, degrees and rests in
+ * notation, modifiers under a play, block starters at the top level. Tapping
+ * a chip inserts it with correct spacing; multi-line chips insert whole
+ * working skeletons (a new synth arrives with a knob + envelope, so the
+ * widgets appear instantly and the first Run makes sound).
+ *
+ * The classifier is PURE ((doc, pos) → chips) and unit-tested; the DOM layer
+ * is a thin bar whose chips fire on pointerdown + preventDefault, so the
+ * editor never loses focus and the phone keyboard stays up. */
+
+import type { EditorView } from '@codemirror/view'
+import { buzz, rollPreviewMidi } from './widgets'
+import { localBindings, macroNames, rondoPositionAt } from './complete'
+import { ENUM_VALUE_TABLE } from './enums'
+import { BUILTINS, VOICE_FLAGS, VOICE_OPTS } from '@rondocode/rondo'
+
+export interface Chip {
+  /** what the bar shows. */
+  label: string
+  /** text inserted at the cursor; contains '\n' → appended as a BLOCK. */
+  insert: string
+  /** cursor position within `insert` after inserting (default: its end). */
+  cursor?: number
+  /** styling group. */
+  kind?: 'kw' | 'note' | 'op'
+  /** a degree chip previews this scale degree through the enclosing play's
+   *  synth + scale when the transport is stopped (play-to-write). */
+  previewDegree?: number
+  /** non-insert chips: 'del-token' erases the token before the caret;
+   *  'cycle-scale' advances the block's scale through the modes. */
+  action?: 'del-token' | 'cycle-scale'
+}
+
+const chip = (label: string, insert: string, kind?: Chip['kind'], cursor?: number): Chip => {
+  const c: Chip = { label, insert }
+  if (kind !== undefined) c.kind = kind
+  if (cursor !== undefined) c.cursor = cursor
+  return c
+}
+
+/** Next unused `sN` synth name, and the last synth name (for play blocks). */
+function synthNames(doc: string): { next: string; last?: string } {
+  const names: string[] = []
+  const re = /^synth[ \t]+([a-zA-Z_]\w*)/gm
+  let m: RegExpExecArray | null
+  while ((m = re.exec(doc)) !== null) names.push(m[1]!)
+  let n = 1
+  while (names.includes(`s${n}`)) n++
+  const out: { next: string; last?: string } = { next: `s${n}` }
+  const last = names[names.length - 1]
+  if (last !== undefined) out.last = last
+  return out
+}
+
+/* ---- chip sets ------------------------------------------------------------ */
+
+function topChips(doc: string): Chip[] {
+  const { next, last } = synthNames(doc)
+  const target = last ?? next
+  return [
+    chip('＋ synth', `synth ${next}\n  saw\n  ladder cutoff res:.5\n  * env\n  env = adsr .01 .15 .6 .2\n  cutoff = knob 1200 100..6000 log\n`, 'kw'),
+    chip('＋ play', `play ${target}\n  0 3 5 7  scale:a-min\n`, 'kw'),
+    chip('＋ beat', `beat\n  kick ~ kick ~\n  ~ hat ~ hat\n`, 'kw'),
+    chip('＋ sing', `sing vox voice:barbara\n  la la la\n  c4 e4 g4\n  gain: .9\n`, 'kw'),
+    chip('＋ section', `section part 4\n  play ${target}\n    0 3 5 7  scale:a-min\n`, 'kw'),
+    chip('＋ bus', `bus space\n  reverb room:.9 damp:.35\n  send ${target} .3\n`, 'kw'),
+    chip('＋ wavedef', `wavedef wt 1 .25 / .5 1 .5 / .3 .8 1\n\nsynth ${next}\n  wavetable note scan table:wt\n  * env\n  env = adsr .01 .15 .6 .2\n  scan = env -> .1...9\n`, 'kw'),
+    chip('sidechain', `sidechain kick depth:.7 release:120\n`, 'kw'),
+    chip('master', `master threshold:-6 ratio:2\n`, 'kw'),
+    chip('level', `level -4\n`, 'kw'),
+    chip('sum', `sum k 1..16\n  sine note * k\n`, 'kw'),
+    chip('patdef', `patdef riff <[0 ~ 3] [5 ~ 7]>\n`, 'kw'),
+    chip('with', ` with drums`, 'kw'),
+    chip('bpm', 'bpm 120\n', 'kw'),
+    chip('cps', 'cps .5\n', 'kw'),
+    chip('timesig', 'timesig 3 4\n', 'kw'),
+  ]
+}
+
+const SYNTH_CHIPS: Chip[] = [
+  chip('* env', '* env'),
+  chip('ladder', 'ladder cutoff res:.5'),
+  chip('svf', 'svf 1200 res:.3'),
+  chip('delay', 'delay .375 .3'),
+  chip('shape', 'shape 2 type:tube'),
+  chip('reverb', 'reverb room:.8 mix:.3'),
+  chip('tanh', 'tanh'),
+  chip('env =', 'env = adsr .01 .15 .6 .2'),
+  chip('knob', 'cutoff = knob 1200 100..6000 log'),
+  chip('lfo', 'wob = lfo 4 tri -> 200..2400'),
+  chip('post', 'post\n  reverb room:.85 mix:.3', 'kw'),
+]
+
+const SOURCE_CHIPS: Chip[] = [
+  chip('saw', 'saw'),
+  chip('supersaw', 'supersaw detune:.4 mix:.8'),
+  chip('sine', 'sine'),
+  chip('square', 'square'),
+  chip('pulse', 'pulse note .25'),
+  chip('fm', 'fm note mod feedback:.2'),
+  chip('noise', 'noise pink'),
+  chip('sample', 'sample vox root:57'),
+  chip('chop', 'sample break slices:8'),
+]
+
+const NOTE_CHIPS: Chip[] = [
+  ...['0', '1', '2', '3', '4', '5', '6', '7'].map((d) => ({ ...chip(d, `${d} `, 'note'), previewDegree: Number(d) })),
+  chip('~', '~ ', 'note'),
+  chip('<', '<', 'op'),
+  chip('>', '> ', 'op'),
+  chip('[', '[', 'op'),
+  chip(']', '] ', 'op'),
+  { ...chip('⌫', '', 'op'), action: 'del-token' },
+  // progression preset: uppercase roots are CHORD names, ready to sing over
+  chip('chords', '<Cmaj7 Am7 Fmaj7 G7> ', 'note'),
+  // taps CYCLE the block's scale through the modes (insert on first tap)
+  { ...chip('scale', ' scale:a-min', 'kw'), action: 'cycle-scale' },
+]
+
+/** Every synth defined in the document, in source order — a `beat` row's words
+ *  ARE these names, so they are the chips that block needs. */
+function allSynthNames(doc: string): string[] {
+  const out: string[] = []
+  const re = /^synth[ \t]+([a-zA-Z_]\w*)/gm
+  let m: RegExpExecArray | null
+  while ((m = re.exec(doc)) !== null) out.push(m[1]!)
+  return out
+}
+
+/** A melody line is absolute note names — `scale:` does not apply in a vocal. */
+const SING_MELODY_CHIPS: Chip[] = [
+  ...['c4', 'd4', 'e4', 'f4', 'g4', 'a4', 'b4', 'c5'].map((n) => chip(n, `${n} `, 'note')),
+  chip('~', '~ ', 'note'),
+  chip('@2', '@2 ', 'op'),
+  { ...chip('⌫', '', 'op'), action: 'del-token' },
+]
+
+const MOD_CHIPS: Chip[] = [
+  chip('gain:', 'gain: .8'),
+  chip('dur:', 'dur: .9'),
+  chip('every', 'every 4: rev', 'kw'),
+  chip('jux', 'jux: rev', 'kw'),
+  chip('struct', 'struct ~ t ~ t', 'kw'),
+  chip('euclid', 'euclid 3 8'),
+  chip('rev', 'rev'),
+  chip('fast', 'fast 2'),
+  chip('sweep', 'cutoff: sine 200..2400 slow:4'),
+  chip('rise', 'wet: rise 8 0..1'),
+]
+
+const BUS_CHIPS: Chip[] = [
+  chip('reverb', 'reverb room:.9 damp:.35'),
+  chip('delay', 'delay .375 .3'),
+  chip('send', 'send '),
+]
+
+/* ---- the pure classifier -------------------------------------------------- */
+
+/** Which block encloses the line at `lineIdx`? Walks up for the nearest
+ *  indent-0 header (synth/play/bus/section/…); tracks a play nested in a
+ *  section too. */
+function enclosing(lines: string[], lineIdx: number): { block?: string; header?: string; headerIdx: number } {
+  for (let i = lineIdx; i >= 0; i--) {
+    const ln = lines[i]!
+    if (/^\S/.test(ln)) {
+      const kw = /^([a-zA-Z_]\w*)/.exec(ln)?.[1]
+      return { block: kw, header: ln, headerIdx: i }
+    }
+    // a play nested inside a section: nearest shallower header line wins if
+    // it's a play at indent > 0 and the cursor line is deeper than it
+    const nested = /^([ \t]+)play\b/.exec(ln)
+    if (nested && i < lineIdx) {
+      const cur = /^[ \t]*/.exec(lines[lineIdx]!)![0].length
+      if (cur > nested[1]!.length) return { block: 'play', header: ln.trim(), headerIdx: i }
+    }
+  }
+  return { headerIdx: -1 }
+}
+
+/** The legal chips at `pos` in `doc` — the tap palette's whole brain. */
+/* ARGUMENT-AWARE CHIPS.
+ *
+ * The palette used to decide from the BLOCK alone — which is why `svf 900 `
+ * offered you a new pipeline line instead of `res:` and `mode:`, and why
+ * `supersaw voices:` offered top-level block starters.
+ *
+ * The knowledge to do better already existed and was already grounded in the
+ * parser's own BUILTINS table: `rondoPositionAt` (the keyboard completion's
+ * eyes) reports `{args, builtin}` inside a call and `{named, builtin, arg}` in
+ * a value slot, and it gets every one of those cases right. It simply was not
+ * being consulted here, so the KEYBOARD surface understood argument position
+ * and the TAP surface did not — on a phone-first editor, that is the wrong way
+ * round.
+ *
+ * Chips, not completions: a value slot offers the legal values, a call offers
+ * its named args. Where the table knows nothing, fall through to the block
+ * chips rather than showing an empty bar.
+ */
+function argChips(doc: string, pos: number): Chip[] | null {
+  const where = rondoPositionAt(doc, pos)
+  if (where.kind === 'named') {
+    const values = ENUM_VALUE_TABLE[where.builtin]?.named?.[where.arg]
+    if (values !== undefined && values !== null && values.length > 0) return values.map((v) => chip(v, v, 'kw'))
+    /* A value slot whose values are NOT an enum — `res:`, `voices:`, any
+     * number or signal. Falling through to the block chips here is what made
+     * `supersaw voices:` offer to start a new oscillator, so do not: an
+     * argument is an expression, which means a number, a binding in this
+     * block, or a macro. Same three the keyboard offers. */
+    const nums = ['.2', '.5', '1', '2'].map((n) => chip(n, n, 'note'))
+    const refs = [...localBindings(doc, pos), ...macroNames(doc)]
+    return [...nums, ...refs.map((r) => chip(r, r, 'kw'))]
+  }
+  if (where.kind === 'args') {
+    const named = BUILTINS[where.builtin]?.named
+    const entries = Object.entries(named ?? {})
+    if (entries.length === 0) return null
+    // `mode:` lands you in its value slot, where the enum chips take over
+    return entries.map(([name, kind]) => chip(`${name}:`, `${name}:${kind === 'bool' ? '1' : ''}`, 'op'))
+  }
+  return null
+}
+
+export function paletteChips(doc: string, pos: number): Chip[] {
+  const before = doc.slice(0, pos)
+  const lineIdx = before.split('\n').length - 1
+  const lines = doc.split('\n')
+  const line = lines[lineIdx] ?? ''
+
+  // inside a call's arguments, or in a named argument's value slot — this is
+  // a finer position than the block, so it wins over everything below
+  const args = argChips(doc, pos)
+  if (args !== null) return args
+
+  // top-level position: the cursor line is blank at indent 0, or the doc is empty
+  if (line.trim() === '' && !/^[ \t]/.test(line)) {
+    // …unless we're inside a block body (previous non-blank line is indented
+    // or a block header) — a blank line between body lines still belongs to
+    // the block above only if the NEXT line is indented; keep it simple:
+    // blank indent-0 line → top level.
+    return topChips(doc)
+  }
+
+  const ctx = enclosing(lines, lineIdx)
+  if (ctx.headerIdx === lineIdx) {
+    /* A `synth NAME ` header still accepts VOICE OPTIONS — `mono`, `glide:`,
+     * `unison:`, `voices:` — and offering top-level block starters there was
+     * not merely unhelpful: tapping one inserted a whole nested `synth`. The
+     * list is imported from the parser that validates it, so an option cannot
+     * exist without being offered. */
+    const head = /^synth[ \t]+[a-zA-Z_]\w*[ \t]/.exec(line)
+    if (head !== null && pos - (before.lastIndexOf('\n') + 1) >= head[0].length) {
+      return [
+        ...[...VOICE_FLAGS].map((f) => chip(f, `${f} `, 'kw')),
+        ...[...VOICE_OPTS].map((o) => chip(`${o}:`, `${o}:`, 'op')),
+      ]
+    }
+    // otherwise: ON a header/statement line at indent 0 → top-level starters
+    return topChips(doc)
+  }
+  switch (ctx.block) {
+    case 'synth': {
+      // inside a post sub-block? nearest `post` line between header and cursor
+      for (let i = lineIdx; i > ctx.headerIdx; i--) {
+        if (/^[ \t]+post[ \t]*$/.test(lines[i]!)) return SYNTH_CHIPS.filter((c) => c.label !== 'post')
+      }
+      // first body line (no spine yet) → sources; later → transforms/bindings
+      let hasSpine = false
+      for (let i = ctx.headerIdx + 1; i < lineIdx; i++) {
+        const b = lines[i]!
+        if (b.trim() !== '' && !/^\s*#/.test(b)) { hasSpine = true; break }
+      }
+      return hasSpine ? SYNTH_CHIPS : SOURCE_CHIPS
+    }
+    case 'play': {
+      // first body line → notation chips; later lines → modifiers
+      let hasNotation = false
+      for (let i = ctx.headerIdx + 1; i < lineIdx; i++) {
+        const b = lines[i]!
+        if (b.trim() !== '' && !/^\s*#/.test(b)) { hasNotation = true; break }
+      }
+      return hasNotation ? MOD_CHIPS : NOTE_CHIPS
+    }
+    /* A beat row's WORDS are synth names, so the useful chips are the kit in
+     * this document plus the mini-notation around them. This block had no case
+     * at all and fell through to the top-level starters, which meant tapping a
+     * chip inside a drum pattern inserted a whole nested `synth` block. */
+    case 'beat': {
+      const kit = allSynthNames(doc)
+      return [
+        ...kit.map((n) => chip(n, `${n} `, 'note')),
+        chip('~', '~ ', 'note'),
+        chip('*2', '*2 ', 'op'),
+        chip('[', '[', 'op'),
+        chip(']', '] ', 'op'),
+        chip(':vel', ':.6 ', 'op'),
+        { ...chip('⌫', '', 'op'), action: 'del-token' },
+      ]
+    }
+    /* A sing block alternates lyric and melody lines. Chips cannot write your
+     * words, but they can write the melody and the modifiers — and either
+     * beats offering to open a new `synth` inside the vocal. */
+    case 'sing': {
+      let bodyLines = 0
+      for (let i = ctx.headerIdx + 1; i < lineIdx; i++) {
+        const b = lines[i]!
+        if (b.trim() !== '' && !/^\s*#/.test(b)) bodyLines++
+      }
+      // lyrics first, then its melody: an even count means the next line is a
+      // lyric line, where the only useful chip is the one that ends the block
+      return bodyLines % 2 === 1 ? SING_MELODY_CHIPS : MOD_CHIPS
+    }
+    case 'bus':
+      return BUS_CHIPS
+    case 'section':
+      return [chip('＋ play', `play ${synthNames(doc).last ?? 's1'}\n  0 3 5 7  scale:a-min`, 'kw')]
+    default:
+      return topChips(doc)
+  }
+}
+
+/** The enclosing play block's preview context at `pos`: which synth a tapped
+ *  degree should sound through, and the block's scale (inline `scale:a-min`
+ *  or a `scale: a-min` modifier line). Pure. */
+export function notationCtxAt(doc: string, pos: number): { synth?: string; scale?: string } {
+  const lines = doc.split('\n')
+  const lineIdx = doc.slice(0, pos).split('\n').length - 1
+  const ctx = enclosing(lines, lineIdx)
+  if (ctx.block !== 'play' || ctx.header === undefined) return {}
+  // `play NAME` routes to NAME; `play chan synth:NAME` routes to NAME
+  const named = /\bsynth:([a-zA-Z_]\w*)/.exec(ctx.header)
+  const bare = /^play[ \t]+([a-zA-Z_]\w*)/.exec(ctx.header.trim())
+  const synth = named?.[1] ?? bare?.[1]
+  const out: { synth?: string; scale?: string } = {}
+  if (synth !== undefined) out.synth = synth
+  const headerIndent = /^[ \t]*/.exec(lines[ctx.headerIdx] ?? '')![0].length
+  for (let i = ctx.headerIdx + 1; i < lines.length; i++) {
+    const ln = lines[i]!
+    if (ln.trim() === '') continue
+    const indent = /^[ \t]*/.exec(ln)![0].length
+    if (indent <= headerIndent) break // left the block
+    const m = /\bscale:[ \t]*([a-gA-G][a-zA-Z0-9#_-]*)/.exec(ln)
+    if (m !== null) {
+      out.scale = m[1]!
+      break
+    }
+  }
+  return out
+}
+
+/** The scale chip CYCLES: each tap advances the enclosing play block's
+ *  scale through the modes (and chromatic), teaching that they exist. When
+ *  the block has no scale yet, returns null (the chip inserts instead). */
+export const SCALE_CYCLE = ['a-min', 'c-maj', 'd-dor', 'e-phr', 'f-lyd', 'g-mix', 'b-loc', 'a-pentatonic', 'c-chromatic'] as const
+
+export function cycleScaleEdit(doc: string, pos: number): { from: number; to: number; insert: string } | null {
+  const lines = doc.split('\n')
+  const lineIdx = doc.slice(0, pos).split('\n').length - 1
+  const ctx = enclosing(lines, lineIdx)
+  if (ctx.block !== 'play' || ctx.headerIdx < 0) return null
+  const headerIndent = /^[ \t]*/.exec(lines[ctx.headerIdx] ?? '')![0].length
+  let off = 0
+  for (let i = 0; i < ctx.headerIdx + 1; i++) off += lines[i]!.length + 1
+  for (let i = ctx.headerIdx + 1; i < lines.length; i++) {
+    const ln = lines[i]!
+    if (ln.trim() !== '') {
+      const indent = /^[ \t]*/.exec(ln)![0].length
+      if (indent <= headerIndent) break
+      const m = /\bscale:[ \t]*([a-gA-G][a-zA-Z0-9#_-]*)/.exec(ln)
+      if (m !== null) {
+        const cur = m[1]!
+        const idx = SCALE_CYCLE.indexOf(cur as (typeof SCALE_CYCLE)[number])
+        const next = SCALE_CYCLE[(idx + 1) % SCALE_CYCLE.length]!
+        const start = off + m.index + m[0].length - cur.length
+        return { from: start, to: start + cur.length, insert: next }
+      }
+    }
+    off += ln.length + 1
+  }
+  return null
+}
+
+/** The range of the token immediately before `pos` on its own line
+ *  (including the spaces that separate it), or null when the caret sits at
+ *  the start of the line's content. Pure - the ⌫ chip's brain. */
+export function deleteTokenRange(doc: string, pos: number): { from: number; to: number } | null {
+  const lineStart = doc.lastIndexOf('\n', pos - 1) + 1
+  let i = pos
+  while (i > lineStart && (doc[i - 1] === ' ' || doc[i - 1] === '\t')) i--
+  const tokenEnd = i
+  while (i > lineStart && doc[i - 1] !== ' ' && doc[i - 1] !== '\t') i--
+  if (i === tokenEnd) return null // only whitespace (or nothing) before the caret
+  return { from: i, to: pos }
+}
+
+/* ---- the DOM bar ----------------------------------------------------------- */
+
+export interface PaletteHandle {
+  /** re-derive chips from the current selection (call on doc/selection/lang change). */
+  refresh(): void
+  /** show/hide with the language toggle. */
+  setVisible(on: boolean): void
+  dispose(): void
+}
+
+export interface PaletteHooks {
+  /** sound one note now (the play-to-write preview; the tap is the unlock gesture). */
+  previewNote?: (synth: string, midi: number) => void
+  isPlaying?: () => boolean
+  /** format the whole document (the host owns language dispatch: rondo rules
+   *  or prettier). Renders a chip in BOTH languages, like undo/redo. */
+  format?: () => void
+}
+
+export function mountRondoPalette(bar: HTMLElement, view: EditorView, hooks: PaletteHooks = {}): PaletteHandle {
+  bar.classList.add('rondo-palette')
+  let visible = true
+  let full = false
+
+  const insert = (c: Chip): void => {
+    const isBlock = c.insert.includes('\n')
+    if (isBlock) {
+      // blocks append at the end of the doc, separated by a blank line
+      const doc = view.state.doc
+      const needsGap = doc.length > 0 && !doc.toString().endsWith('\n\n')
+      const prefix = doc.length === 0 ? '' : needsGap ? (doc.toString().endsWith('\n') ? '\n' : '\n\n') : ''
+      const from = doc.length
+      const text = prefix + c.insert
+      view.dispatch({
+        changes: { from, insert: text },
+        selection: { anchor: from + (c.cursor !== undefined ? prefix.length + c.cursor : text.length) },
+        scrollIntoView: true,
+      })
+      return
+    }
+    const { head } = view.state.selection.main
+    const prev = head > 0 ? view.state.doc.sliceString(head - 1, head) : '\n'
+    const needsSpace = prev !== '' && !/[\s([<]/.test(prev) && !/^[\s\])>:]/.test(c.insert)
+    const text = (needsSpace ? ' ' : '') + c.insert
+    view.dispatch({
+      changes: { from: head, insert: text },
+      selection: { anchor: head + (c.cursor !== undefined ? (needsSpace ? 1 : 0) + c.cursor : text.length) },
+      scrollIntoView: true,
+    })
+  }
+
+  // UNDO/REDO chips pinned at the front of the bar: on a phone there's no
+  // Cmd+Z, so history needs a thumb-reachable surface. Same pointerdown +
+  // preventDefault trick — using them never dismisses the keyboard. They
+  // render in BOTH languages (the bar shows just these two in JS mode).
+  const histChip = (label: string, title: string, run: () => void, depth: () => number): HTMLButtonElement => {
+    const b = document.createElement('button')
+    b.type = 'button'
+    b.className = 'rp-chip rp-hist'
+    b.textContent = label
+    b.title = title
+    b.setAttribute('aria-label', title)
+    b.disabled = depth() === 0
+    b.addEventListener('pointerdown', (e) => {
+      e.preventDefault()
+      if (depth() === 0) return
+      buzz()
+      run()
+    })
+    return b
+  }
+
+  const render = (): void => {
+    if (!visible) return
+    const chips = full ? paletteChips(view.state.doc.toString(), view.state.selection.main.head) : []
+    bar.replaceChildren(
+      histChip('↶', 'undo', () => undo(view), () => undoDepth(view.state)),
+      histChip('↷', 'redo', () => redo(view), () => redoDepth(view.state)),
+      // comment toggle: the mobile spelling of Mod-/ (works on the current
+      // line or the whole selection, either language)
+      histChip('#', 'toggle comment', () => toggleComment(view), () => 1),
+      // auto-format: the mobile spelling of Mod-Shift-F (whole doc, either
+      // language; the host decides rondo rules vs prettier)
+      ...(hooks.format !== undefined
+        ? [histChip('{ }', 'format code', () => hooks.format!(), () => 1)]
+        : []),
+      ...chips.map((c) => {
+        const b = document.createElement('button')
+        b.type = 'button'
+        b.className = 'rp-chip' + (c.kind !== undefined ? ` rp-${c.kind}` : '')
+        b.textContent = c.label
+        // pointerdown + preventDefault: the editor keeps focus, the phone
+        // keyboard stays up — tapping the palette must never dismiss it
+        b.addEventListener('pointerdown', (e) => {
+          e.preventDefault()
+          buzz()
+          if (c.action === 'del-token') {
+            const range = deleteTokenRange(view.state.doc.toString(), view.state.selection.main.head)
+            if (range !== null) view.dispatch({ changes: range, selection: { anchor: range.from }, scrollIntoView: true })
+            return
+          }
+          if (c.action === 'cycle-scale') {
+            const edit = cycleScaleEdit(view.state.doc.toString(), view.state.selection.main.head)
+            if (edit !== null) {
+              view.dispatch({ changes: edit, scrollIntoView: true })
+              return
+            }
+            // no scale in the block yet: fall through and insert one
+          }
+          insert(c)
+          // play-to-write: a degree chip SOUNDS while stopped, through the
+          // enclosing play's synth + scale (same rules as the grid preview)
+          if (c.previewDegree !== undefined && hooks.previewNote !== undefined && hooks.isPlaying?.() !== true) {
+            const ctx = notationCtxAt(view.state.doc.toString(), view.state.selection.main.head)
+            const midi = rollPreviewMidi(ctx.scale, c.previewDegree)
+            if (ctx.synth !== undefined && midi !== undefined) hooks.previewNote(ctx.synth, midi)
+          }
+        })
+        return b
+      }),
+    )
+  }
+
+  return {
+    refresh: render,
+    setVisible: (on: boolean): void => {
+      visible = true // the bar itself always shows (undo/redo live here)
+      full = on // rondo mode adds the grammar chips
+      bar.classList.remove('hidden')
+      render()
+    },
+    dispose: (): void => bar.replaceChildren(),
+  }
+}

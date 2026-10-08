@@ -18,6 +18,7 @@
 
 import { createCliBridge } from '../../../shells/cli/src/bridge.ts';
 import type { HostV1, Profile } from '@lolly-tools/core/host-v1';
+import { DEFAULT_SCOPE_CAPS, currentAudioScope } from './audio-runs.ts';
 
 /** The DOM one render runs in. Exported so a helper that takes both halves of a
  *  `withHost` call (the render path's shared hydrate-and-draw) can name it. */
@@ -55,7 +56,18 @@ export function withHost<T>(
     try {
       // A hosted process: a hook's host.capture.page may only reach public http(s)
       // pages, never the worker's own network (cloud metadata, localhost, RFC 1918).
-      const host = await createCliBridge({ dom: dom as never, profile, capturePublicOnly: true, aiEnabled: false, ...(opts.tokenSelection ? { tokenSelection: opts.tokenSelection } : {}) });
+      // A rondocode song renders under the request's caps and shared time budget,
+      // and what ran is collected for the tool result rather than written to
+      // stderr (audio-runs.ts). Outside a request scope: the hosted caps.
+      const audio = currentAudioScope();
+      const host = await createCliBridge({
+        dom: dom as never, profile, capturePublicOnly: true, aiEnabled: false,
+        ...(opts.tokenSelection ? { tokenSelection: opts.tokenSelection } : {}),
+        rondo: audio?.caps ?? DEFAULT_SCOPE_CAPS,
+        ...(audio ? { rondoBudget: audio.budget } : {}),
+        onAudioRun: (run) => { audio?.runs.push(run); },
+        onAudioRunFailed: (failure) => { audio?.failures.push(failure); },
+      });
       // Redirect logging to stderr (never stdout - it is the stdio protocol channel).
       (host as { log: HostV1['log'] }).log = (level, msg, ctx) => {
         process.stderr.write(`[mcp:${level}] ${msg}${ctx ? ' ' + safeJson(ctx) : ''}\n`);

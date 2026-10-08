@@ -47,6 +47,34 @@ export interface C2paSignOpts {
    * Ignored on `'redacted'`.
    */
   imprinted?: boolean;
+  /**
+   * The file is a render of one rondocode song (v1.246, plan 301). The shell
+   * signs the created step and the song's source ingredient that
+   * engine/src/rondo-provenance.ts words, and for WAV writes the same
+   * declaration into the RIFF comment, the way a generated voice clip is signed.
+   * Every other option above is ignored. A format with no credential placer
+   * rejects, so a caller never reports a credential that was not written.
+   */
+  rondo?: C2paRondoFile;
+}
+
+/** What a rondocode render's credential records: engine RondoRenderFacts, plus the song. */
+export interface C2paRondoFile {
+  /** The song's canonical `.rondo.json` bytes; their sha256 identifies the source ingredient. */
+  song: Uint8Array;
+  /** The song's display name, the credential's title. */
+  name: string;
+  /** The execution class the song's code ran in, for example `vm`. */
+  executionClass: string;
+  /** The renderer's version, as host.audio.decode reports the version. */
+  version: string;
+  seed?: number;
+  /** Synths whose synthesised singing is in the file. Present: composite AI media. */
+  sungParts?: string[];
+  /** Singing voices used. */
+  voices?: string[];
+  /** Parts the render could not play. */
+  silentParts?: string[];
 }
 
 export interface C2paAPI {

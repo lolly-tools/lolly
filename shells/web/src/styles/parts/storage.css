@@ -371,6 +371,10 @@
 .profile-view .store-chip-sw[data-cat="aidetect"] { background: hsl(var(--store-11, 180 45% 48%)); }
 .profile-view .store-bar .seg[data-cat="durable"],
 .profile-view .store-chip-sw[data-cat="durable"] { background: hsl(var(--store-12, 8 62% 60%)); }
+/* The singing models (plan 301 phase F): a deep ochre, darker than the amber
+   upscale slice and the lime rewriter slice beside it. */
+.profile-view .store-bar .seg[data-cat="sing"],
+.profile-view .store-chip-sw[data-cat="sing"] { background: hsl(var(--store-14, 45 72% 42%)); }
 
 /* Version history (plan 277 P4): checkpoints, their previews and recovery drafts,
    in a magenta held apart from the violet and pink slices above. */

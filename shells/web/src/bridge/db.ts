@@ -36,7 +36,7 @@ import { indexSavedWork, indexExport } from './history-index.ts';
 import { clearSignal } from '../lib/clear-signal.ts';
 
 const DB_NAME = 'lolly';
-const DB_VERSION = 24;
+const DB_VERSION = 25;
 
 // How long to wait for the DB to open before giving up. A healthy open is
 // near-instant; this only trips when the connection is genuinely wedged.
@@ -285,6 +285,14 @@ function openOnce(timeoutMs = OPEN_TIMEOUT_MS): Promise<IDBPDatabase> {
           let exported = await tx.objectStore('exports').openCursor();
           while (exported) { await exported.update(indexExport(exported.value)); migrationProgress = Date.now(); exported = await exported.continue(); }
         })().catch(() => { try { tx.abort(); } catch { /* already aborted */ } });
+      }
+      if (oldVersion < 25) {
+        // The singing models behind rondocode's sing() (plan 301 phase F,
+        // lib/sing-models.ts), keyed by their path under /models/sing/ - the same
+        // fetch-once/IndexedDB-forever cache the shared ORT fetcher writes
+        // (createModelFetcher store:'sing-models'). Pure and re-downloadable like
+        // 'matte-models', so NOT in REQUIRED_STORES and out of the portable backup.
+        db.createObjectStore('sing-models');
       }
     },
     blocking() {

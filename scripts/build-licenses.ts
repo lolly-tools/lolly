@@ -68,6 +68,10 @@ interface NpmComponent {
   // Canonical license text for packages that publish no LICENSE file to npm
   // (the license is declared in package.json only). Used verbatim.
   fallbackText?: string;
+  // A workspace's own node_modules (repo-relative) to read first, for a package
+  // whose root hoist is another version than the one that ships. Its installed
+  // package.json gives the version.
+  installRoot?: string;
 }
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -77,6 +81,7 @@ const INSTALLED_PACKAGE_ROOTS = [
   join(ROOT, 'shells', 'web', 'node_modules'),
   join(ROOT, 'shells', 'cli', 'node_modules'),
   join(ROOT, 'engine', 'node_modules'),
+  join(ROOT, 'packages', 'rondo', 'node_modules'),
 ];
 
 const MD_OUT = join(ROOT, 'THIRD-PARTY-NOTICES.md');
@@ -160,6 +165,8 @@ ${MIT_BODY}
 (The @pdf-lib/fontkit npm package publishes no LICENSE file; its README declares
 MIT at https://github.com/Hopding/fontkit#license.)`;
 
+const RONDO_EDITOR_NOTE = 'Bundled into the Rondocode utility\'s editor (community/rondocode/lib/editor.html).';
+
 // ─── npm components that are DISTRIBUTED to users ────────────────────────────
 // `where: 'web'`  → bundled into the web PWA (engine runtime deps + web deps).
 // `where: 'cli'`  → ships only with the Node CLI shell.
@@ -229,7 +236,36 @@ const NPM_COMPONENTS: NpmComponent[] = [
 
   // Media / export pipeline (all lazy-imported, but distributed all the same).
   { pkg: 'butterchurn', where: 'web' },
+  // Rondocode songs (packages/rondo): the song's code runs in QuickJS compiled to
+  // WebAssembly, and acorn/acorn-walk are bundled into packages/rondo/generated/stage.js
+  // with upstream's evaluation core. Shipped in the web worker, the CLI and MCP.
+  { pkg: 'quickjs-emscripten-core', where: 'web' },
+  { pkg: '@jitl/quickjs-wasmfile-release-sync', where: 'web', note: 'Includes QuickJS (MIT, Fabrice Bellard and Charlie Gordon) compiled to WebAssembly.' },
+  { pkg: 'acorn', where: 'web', note: 'Bundled into packages/rondo/generated/stage.js, which only ever runs inside QuickJS.' },
+  { pkg: 'acorn-walk', where: 'web', note: 'Bundled into packages/rondo/generated/stage.js, which only ever runs inside QuickJS.' },
   { pkg: 'butterchurn-presets', where: 'web' },
+  // The Rondocode utility's editor (community/rondocode/lib/editor.html, built by
+  // scripts/build-rondo-editor.ts from packages/rondo/upstream): CodeMirror and
+  // Lezer, with the three small packages CodeMirror's view pulls in, and pako for
+  // upstream's share links. Prettier, onnxruntime-web, phonemizer, acorn and
+  // butterchurn ride in it too and are listed once, elsewhere in this list.
+  { pkg: '@codemirror/view', where: 'web', note: RONDO_EDITOR_NOTE },
+  { pkg: '@codemirror/state', where: 'web', note: RONDO_EDITOR_NOTE },
+  { pkg: '@codemirror/language', where: 'web', note: RONDO_EDITOR_NOTE },
+  { pkg: '@codemirror/autocomplete', where: 'web', note: RONDO_EDITOR_NOTE },
+  { pkg: '@codemirror/commands', where: 'web', note: RONDO_EDITOR_NOTE },
+  { pkg: '@codemirror/search', where: 'web', note: RONDO_EDITOR_NOTE },
+  { pkg: '@codemirror/lint', where: 'web', note: RONDO_EDITOR_NOTE },
+  { pkg: '@codemirror/lang-javascript', where: 'web', note: RONDO_EDITOR_NOTE },
+  { pkg: '@lezer/common', where: 'web', transitiveVia: '@codemirror/language', note: RONDO_EDITOR_NOTE },
+  { pkg: '@lezer/lr', where: 'web', transitiveVia: '@codemirror/lang-javascript', note: RONDO_EDITOR_NOTE },
+  { pkg: '@lezer/highlight', where: 'web', note: RONDO_EDITOR_NOTE },
+  { pkg: '@lezer/javascript', where: 'web', transitiveVia: '@codemirror/lang-javascript', note: RONDO_EDITOR_NOTE },
+  { pkg: '@marijn/find-cluster-break', where: 'web', transitiveVia: '@codemirror/state', note: RONDO_EDITOR_NOTE },
+  { pkg: 'style-mod', where: 'web', transitiveVia: '@codemirror/view', note: RONDO_EDITOR_NOTE },
+  { pkg: 'crelt', where: 'web', transitiveVia: '@codemirror/view', note: RONDO_EDITOR_NOTE },
+  { pkg: 'w3c-keyname', where: 'web', transitiveVia: '@codemirror/view', note: RONDO_EDITOR_NOTE },
+  { pkg: 'pako', where: 'web', installRoot: 'packages/rondo/node_modules', note: RONDO_EDITOR_NOTE },
   { pkg: 'lottie-web', where: 'web' },
   { pkg: 'onnxruntime-web', where: 'web', fallbackText: ONNXRUNTIME_WEB_TEXT },
   { pkg: 'woff2-encoder', where: 'web' },
@@ -627,6 +663,16 @@ const MANIFEST: {
       where: 'web',
     },
     {
+      name: 'rondocode (vendored, patched)',
+      version: 'git fbbf6512df37501308ab6a738b2e00fc183dd5ec',
+      spdx: 'MIT',
+      copyright: 'Copyright (c) 2026 Vijay Pemmaraju',
+      files: 'packages/rondo/upstream/ (source); packages/rondo/generated/stage.js and render.mjs (bundles); engine/src/rondo-share-dict.ts (share-link dictionary)',
+      text: `Copyright (c) 2026 Vijay Pemmaraju\n\n${MIT_BODY}`,
+      note: 'Live-codeable synths and mini-notation patterns (https://github.com/vijaypemmaraju/rondocode). Vendored at the commit above with Lolly\'s patch series in packages/rondo/patches/ (packages/rondo/UPSTREAM.md lists both). Upstream credits the algorithms and designs it follows in packages/rondo/upstream/NOTICE.md (Freeverb, the Audio EQ Cookbook, the TPT state-variable filter, Karplus-Strong, TidalCycles and Strudel).',
+      where: 'web',
+    },
+    {
       name: 'Composa edge tracer (adapted)',
       version: 'git 4322495dae4836c0be26d1c85b0741bc63798a30',
       spdx: 'MIT',
@@ -757,11 +803,13 @@ function loadNpmComponent({
   transitiveVia,
   note,
   fallbackText,
+  installRoot,
 }: NpmComponent): Entry {
   // npm may keep a package beside the workspace that owns it when another
   // version occupies the root hoist. Attribution must follow the actual
   // installation layout rather than assuming every package was hoisted.
-  const dir = INSTALLED_PACKAGE_ROOTS.map((root) => join(root, pkg)).find((candidate) =>
+  const roots = installRoot ? [join(ROOT, installRoot), ...INSTALLED_PACKAGE_ROOTS] : INSTALLED_PACKAGE_ROOTS;
+  const dir = roots.map((root) => join(root, pkg)).find((candidate) =>
     existsSync(join(candidate, 'package.json'))
   );
   if (!dir) throw new Error(`installed package not found for attribution: ${pkg}`);
@@ -773,7 +821,7 @@ function loadNpmComponent({
   };
   // Version from the LOCK (see the header note); the install is only the
   // fallback, for a component npm hoisted somewhere other than the root.
-  const version = lockedVersion(pkg) ?? meta.version;
+  const version = installRoot ? meta.version : lockedVersion(pkg) ?? meta.version;
   const spdx = elect
     ? `${elect} (elected from "${spdxString(meta.license)}")`
     : spdxString(meta.license);

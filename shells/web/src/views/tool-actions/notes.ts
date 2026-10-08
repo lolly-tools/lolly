@@ -9,6 +9,7 @@
  */
 import { LEXICON_VERSION } from '@lolly/engine';
 import { t, tRaw } from '../../i18n.ts';
+import { isAudioFormat as isAudioFmt } from '../../lib/audio-encode.js';
 import { isTauriShell } from '../../lib/instance-choice.ts';
 import type { ProfileStore } from './shared.ts';
 import { bindOp, type ActionsCtx } from './context.ts';
@@ -78,6 +79,131 @@ export async function fillIngredientNote(ta: ActionsCtx): Promise<void> {
   }
   slot.hidden = false;
 }
+// ── Songs in Content Credentials (plan 301) ─────────────────────────────────
+//
+// Andy approved on 2026-10-08 that an export holding a rondocode song records it
+// in its Content Credentials, on two conditions: the person sees it at the moment
+// of export, and the public docs list the record. This is the first half. Before the
+// export, one plain sentence beside the export button says which songs the
+// credential will record. After it, the same line says only what a reading of the
+// delivered bytes found (the docs/creative-rights.md wording rule). The record
+// follows the C2PA toggle: with credentials off, nothing is written and nothing
+// is said.
+
+/** Will this export carry a credential? The C2PA toggle and a format that can hold one. */
+function songCredentialOn(ta: ActionsCtx, fmt: string): boolean {
+  const c2pa = ta.el?.querySelector<HTMLInputElement>('[data-action="pdf-c2pa"]');
+  const on = c2pa ? c2pa.checked && !c2pa.disabled : ta.c2paInitOn;
+  return Boolean(on) && (ta.c2paFormats ?? []).includes(fmt);
+}
+
+/**
+ * The songs the next export holds as sound, by name: the timeline's audio boxes,
+ * the tool's own audio slot, and the export bar's track. Only a format that carries
+ * sound holds a song; a still drawn from a song's waveform holds none.
+ */
+export async function exportSongNames(ta: ActionsCtx): Promise<string[]> {
+  const fmt = ta.formatEl?.value || ta.initialFmt || '';
+  const video = ta.formatRules.isVideoFmt(fmt);
+  if (!video && !isAudioFmt(fmt)) return [];
+  const { songAt, timelineSongs, distinctNames } = await import('../../lib/rondo-provenance.ts');
+  const songs = [];
+  if (ta.canvasEl?.querySelector?.('[data-sequence]')) songs.push(...(await timelineSongs(ta.canvasEl)));
+  if (ta.hasToolAudioInput && ta.audio.toolAudioRef()?.format === 'rondo') {
+    const ref = await ta.audio.resolveToolAudio().catch(() => null);
+    if (ref?.url) songs.push(await songAt(ref.url));
+  }
+  const track = video ? ta.el?.querySelector<HTMLSelectElement>('[data-action="video-audio"]')?.value : '';
+  if (track && track !== '__generate__') {
+    const ref = await ta.host.assets.get(track).catch(() => null);
+    if (ref?.format === 'rondo' && ref.url) songs.push(await songAt(ref.url));
+  }
+  return distinctNames(songs);
+}
+
+/** Quote a list of song names for a sentence. */
+const quoted = (names: readonly string[]): string => names.map((n) => `“${n}”`).join(', ');
+
+/** Paint the pre-export line: which songs the credential will record. Hidden when none. */
+export async function fillSongNote(ta: ActionsCtx): Promise<void> {
+  const slot = ta.el?.querySelector<HTMLElement>('[data-song-note]');
+  if (!slot) return;
+  const seq = (ta.songNoteSeq ?? 0) + 1;
+  ta.songNoteSeq = seq;
+  const fmt = ta.formatEl?.value || ta.initialFmt || '';
+  let names: string[] = [];
+  try {
+    names = songCredentialOn(ta, fmt) ? await exportSongNames(ta) : [];
+  } catch {
+    names = [];
+  }
+  if (seq !== ta.songNoteSeq) return;
+  ta.songNoteNames = names;
+  if (!names.length) {
+    slot.hidden = true;
+    slot.replaceChildren();
+    return;
+  }
+  const line = document.createElement('p');
+  line.className = 'export-song-note';
+  line.dataset.songNoteState = 'before';
+  line.textContent = names.length === 1
+    ? tRaw('Content Credentials will record the song {name}, rendered in Lolly’s sandbox, as a source of this file.', { name: quoted(names) })
+    : tRaw('Content Credentials will record the songs {names}, rendered in Lolly’s sandbox, as sources of this file.', { names: quoted(names) });
+  slot.replaceChildren(line);
+  slot.hidden = false;
+}
+
+/** Re-check the songs after an edit. Debounced: an input change can arrive many times a second. */
+export function scheduleSongNote(ta: ActionsCtx): void {
+  if (ta.songNoteTimer) clearTimeout(ta.songNoteTimer);
+  ta.songNoteTimer = setTimeout(() => {
+    ta.songNoteTimer = null;
+    void fillSongNote(ta);
+  }, 300);
+}
+
+/**
+ * After an export: say what the delivered file's Content Credentials record about
+ * its songs, read from its bytes. Silent when the sheet promised no song.
+ */
+export async function reportSongRecord(ta: ActionsCtx, blob: Blob | null): Promise<void> {
+  const slot = ta.el?.querySelector<HTMLElement>('[data-song-note]');
+  const promised = ta.songNoteNames ?? [];
+  if (!slot || !blob || !promised.length) return;
+  const seq = (ta.songNoteSeq ?? 0) + 1;
+  ta.songNoteSeq = seq;
+  const { recordedSongNames } = await import('../../lib/rondo-provenance.ts');
+  const recorded = await recordedSongNames(blob);
+  if (seq !== ta.songNoteSeq) return;
+  const lines: HTMLElement[] = [];
+  const say = (cls: string, text: string): void => {
+    const p = document.createElement('p');
+    p.className = cls;
+    p.dataset.songNoteState = 'after';
+    p.textContent = text;
+    lines.push(p);
+  };
+  if (recorded === null) {
+    say('guide-absent', t('The song record was not checked: this file is too large to read back here.'));
+  } else {
+    const found = promised.filter((n) => recorded.includes(n));
+    const missing = promised.filter((n) => !recorded.includes(n));
+    if (found.length) {
+      say('guide-fact', found.length === 1
+        ? tRaw('This file’s Content Credentials record the song {name}.', { name: quoted(found) })
+        : tRaw('This file’s Content Credentials record the songs {names}.', { names: quoted(found) }));
+    }
+    if (missing.length) {
+      say('guide-absent', missing.length === 1
+        ? tRaw('This file’s Content Credentials do not record the song {name}.', { name: quoted(missing) })
+        : tRaw('This file’s Content Credentials do not record the songs {names}.', { names: quoted(missing) }));
+    }
+  }
+  slot.replaceChildren(...lines);
+  slot.hidden = !lines.length;
+}
+
 // The provenance ask, at the moment it means something (plans/137 WP-E). A file
 // has just been downloaded, so "should your details go into it?" is now a real
 // question about a real file rather than a cold prompt at boot - which is why
@@ -133,6 +259,10 @@ export const refreshFilenamePlaceholder = (ta: ActionsCtx): void => {
 export function notesOps(ta: ActionsCtx) {
   return {
     fillIngredientNote: bindOp(ta, fillIngredientNote),
+    exportSongNames: bindOp(ta, exportSongNames),
+    fillSongNote: bindOp(ta, fillSongNote),
+    scheduleSongNote: bindOp(ta, scheduleSongNote),
+    reportSongRecord: bindOp(ta, reportSongRecord),
     offerDetailsAsk: bindOp(ta, offerDetailsAsk),
     offerReopenNote: bindOp(ta, offerReopenNote),
     refreshFilenamePlaceholder: bindOp(ta, refreshFilenamePlaceholder),

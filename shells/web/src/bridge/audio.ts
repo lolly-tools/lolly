@@ -20,12 +20,17 @@
  */
 import type {
   AudioAPI, AudioSource, AudioAnalyseOpts, AudioAnalysis, AssetRef, AudioCleanOpts,
+  AudioDecodeOpts, AudioDecoded, AudioFinding,
 } from '@lolly-tools/core/host-v1';
 import type { ZzfxSong } from '../../../../engine/src/zzfxm.ts';
 import { renderSong } from '../lib/zzfxm-render.ts';
 import { audioSourceBytes } from '../lib/util/bytes.ts';
 import { isZzfxmRef, parseZzfxmRef } from '../../../../engine/src/zzfxm-ref.ts';
 import { isModuleFormat, renderMod } from '../lib/mod-render.ts';
+import { isRondoUrl, sniffRondoSource } from '../lib/media-source.ts';
+// Types only: the rondocode client is imported at the point of use, so its worker
+// (QuickJS and the staging bundle) loads only when a song is first analysed.
+import type { RondoSong } from '../lib/rondo-render.ts';
 
 interface WorkerReply {
   id: number;
@@ -103,8 +108,8 @@ function isRef(src: AudioSource): src is AssetRef {
 /**
  * Source → decoded channel data.
  *
- * Two source kinds are SONG DATA rather than encoded audio, and both would fail at
- * `decodeAudioData` - no browser has a decoder for either. They are rendered instead,
+ * Three source kinds are SONG DATA rather than encoded audio, and each would fail at
+ * `decodeAudioData` - no browser has a decoder for any of them. They are rendered instead,
  * which yields Float32 PCM directly, so encoding it to WAV just to hand it back to a
  * decoder would be pure waste:
  *
@@ -120,19 +125,76 @@ function isRef(src: AudioSource): src is AssetRef {
  *   actual audio - not a lossy re-synthesis that would look like a measurement while
  *   being a guess. Without this branch a .mod reached decodeAudioData, threw, and the
  *   asset fell back to a music-note glyph forever.
+ *
+ *   RONDOCODE SONGS - code that computes audio, rendered in the `vm` class; see
+ *   `rondoDecoded` below.
  */
 export async function toPcm(src: AudioSource): Promise<{ channels: Float32Array[]; sampleRate: number }> {
+  return decodeSource(src);
+}
+
+/** PCM plus what a computed source could not play and how it ran: `decode()`'s shape. */
+interface Decoded {
+  channels: Float32Array[];
+  sampleRate: number;
+  findings: AudioFinding[];
+  run?: AudioDecoded['run'];
+}
+
+/**
+ * A RONDOCODE SONG (plan 301) is a third kind of song data, and the only one whose
+ * source is CODE. It never runs here: lib/rondo-render.ts runs it in the `vm`
+ * execution class inside its own Worker. Three forms reach this file: an asset
+ * whose `format` is `rondo` (canonical `.rondo.json` bytes), a song url (a share
+ * link, decoded in place, or a `.rondo` / `.rondo.json` path) and raw bytes or a
+ * `blob:` url whose bytes sniff as a stored song. `seconds` is the length asked
+ * of `decode()`; omitted, the song plays its own arrangement.
+ */
+async function rondoDecoded(song: RondoSong, seconds: number | undefined): Promise<Decoded> {
+  const [{ renderRondoSong }, { RONDO_EXTENSION }] = await Promise.all([
+    import('../lib/rondo-render.ts'),
+    import('@lolly-tools/rondo/extension'),
+  ]);
+  const r = await renderRondoSong(song, seconds === undefined ? {} : { seconds });
+  if (!r.left.length) throw new Error('rondocode song rendered empty');
+  // Copies: the render is shared with the client's cache, and analyse() TRANSFERS
+  // its channels to the analysis worker, which would detach the cached arrays.
+  return {
+    channels: [r.left.slice(), r.right.slice()],
+    sampleRate: r.sampleRate,
+    findings: r.findings.map((f) => ({ code: f.code, message: f.message, parts: [...f.parts] })),
+    run: { executionClass: r.run.executionClass, source: 'rondocode', version: RONDO_EXTENSION.version, seed: r.run.seed },
+  };
+}
+
+/** The song in a source that names itself one, or null when it does not. */
+async function namedRondoSong(src: AudioSource): Promise<RondoSong | null> {
+  const url = typeof src === 'string' ? src : isRef(src) ? src.url : '';
+  const declared = isRef(src) && src.format === 'rondo';
+  if (!declared && !(url && isRondoUrl(url))) return null;
+  const r = await import('../lib/rondo-render.ts');
+  if (declared) {
+    const song = r.songFromBytes(new Uint8Array(await audioSourceBytes(src)));
+    if (!song) throw new Error('this asset is not a readable rondocode song');
+    return song;
+  }
+  return r.songFromUrl(url);
+}
+
+async function decodeSource(src: AudioSource, seconds?: number): Promise<Decoded> {
   if (isRef(src) && src.format === 'zzfxm') {
-    const song = isZzfxmRef(src.url) ? await composeProceduralSong(src.url) : await fetchSong(src.url);
+    const song = isZzfxmRef(src.url) ? await composeProceduralSong(src.url, seconds) : await fetchSong(src.url);
     const { left, right, sampleRate } = await renderSong(song);
     if (!left.length) throw new Error('zzfxm song rendered empty');
-    return { channels: [left, right], sampleRate };
+    return { channels: [left, right], sampleRate, findings: [] };
   }
   if (typeof src === 'string' && isZzfxmRef(src)) {
-    const { left, right, sampleRate } = await renderSong(await composeProceduralSong(src));
+    const { left, right, sampleRate } = await renderSong(await composeProceduralSong(src, seconds));
     if (!left.length) throw new Error('zzfxm song rendered empty');
-    return { channels: [left, right], sampleRate };
+    return { channels: [left, right], sampleRate, findings: [] };
   }
+  const named = await namedRondoSong(src);
+  if (named) return rondoDecoded(named, seconds);
 
   // A module is identified by the ref's FORMAT, not by sniffing the bytes: libopenmpt
   // sniffs the real format itself, and an asset's `format` carries the true extension
@@ -146,10 +208,17 @@ export async function toPcm(src: AudioSource): Promise<{ channels: Float32Array[
     const raw = await audioSourceBytes(src);
     const { left, right, sampleRate } = await renderMod(new Uint8Array(raw.slice(0)), 44100);
     if (!left.length) throw new Error('tracker module rendered empty');
-    return { channels: [left, right], sampleRate };
+    return { channels: [left, right], sampleRate, findings: [] };
   }
 
   const bytes = await audioSourceBytes(src);
+  // A stored song behind a `blob:` url, or handed over as raw bytes: the bytes say
+  // so. Checked BEFORE decodeAudioData, which detaches the buffer it is given.
+  if (sniffRondoSource(bytes)) {
+    const { songFromBytes } = await import('../lib/rondo-render.ts');
+    const song = songFromBytes(new Uint8Array(bytes));
+    if (song) return rondoDecoded(song, seconds);
+  }
   // A 1-frame context: the rate and channel count here don't constrain the decode - 
   // decodeAudioData reports the file's own - this context exists only to own the call.
   const OAC = window.OfflineAudioContext ?? (window as { webkitOfflineAudioContext?: typeof OfflineAudioContext }).webkitOfflineAudioContext;
@@ -157,7 +226,7 @@ export async function toPcm(src: AudioSource): Promise<{ channels: Float32Array[
   const buf = await new OAC(1, 1, 44100).decodeAudioData(bytes);
   const channels: Float32Array[] = [];
   for (let c = 0; c < buf.numberOfChannels; c++) channels.push(buf.getChannelData(c));
-  return { channels, sampleRate: buf.sampleRate };
+  return { channels, sampleRate: buf.sampleRate, findings: [] };
 }
 
 async function fetchSong(url: string): Promise<ZzfxSong> {
@@ -166,16 +235,17 @@ async function fetchSong(url: string): Promise<ZzfxSong> {
   return (await res.json()) as ZzfxSong;
 }
 
-async function composeProceduralSong(id: string): Promise<ZzfxSong> {
+async function composeProceduralSong(id: string, seconds?: number): Promise<ZzfxSong> {
   const ref = parseZzfxmRef(id);
   if (!ref) throw new Error(`malformed procedural audio ref: ${id}`);
-  const [{ generatedSongSpec }, { composeSong }] = await Promise.all([
+  const [{ generatedSongSpec, zzfxmTargetSec }, { composeSong }] = await Promise.all([
     import('./sequence-providers.ts'),
     import('../../../../engine/src/zzfx-compose.ts'),
   ]);
   // 30s is the seeded generator's own house length; a longer window than the song
-  // simply analyses the song.
-  return composeSong(generatedSongSpec(ref.seed, 30, ref.style));
+  // simply analyses the song. A decode() that asks for a length composes to fit it,
+  // on the same grid the timeline uses.
+  return composeSong(generatedSongSpec(ref.seed, seconds === undefined ? 30 : zzfxmTargetSec(seconds), ref.style));
 }
 
 
@@ -229,6 +299,26 @@ export function createAudioAPI(): Required<AudioAPI> {
       // first paint, so it lives in its own chunk (scripts/check-bundle-budget.ts).
       const { runAudioClean } = await import('./audio-clean-run.ts');
       return runAudioClean(src, opts, toPcm);
+    },
+
+    /**
+     * PCM for any source this shell can play (v1.246). Recorded audio decodes
+     * through the platform; ZzFXM songs and tracker modules render through their
+     * workers; a rondocode song renders in the `vm` class, exactly `seconds` long
+     * when asked, and reports what it could not play in `findings` and how it ran
+     * in `run`. Not cached here: the song client caches its own renders, and a
+     * decoded file is the caller's to keep.
+     */
+    async decode(src: AudioSource, opts: AudioDecodeOpts = {}): Promise<AudioDecoded> {
+      const d = await decodeSource(src, opts.seconds);
+      const frames = d.channels[0]?.length ?? 0;
+      return {
+        sampleRate: d.sampleRate,
+        channels: d.channels,
+        seconds: d.sampleRate > 0 ? frames / d.sampleRate : 0,
+        findings: d.findings,
+        ...(d.run ? { run: d.run } : {}),
+      };
     },
   };
 }

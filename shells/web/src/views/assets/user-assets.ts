@@ -13,7 +13,7 @@ import { createTrash } from '../../lib/trash.ts';
 import { showTrashUndoToast } from '../../components/trash-dialog.ts';
 import { announce } from '../../a11y.ts';
 import { choiceDialog, confirmDialog, promptDialog } from '../../components/confirm-dialog.ts';
-import { LIB_GROUPS, categoryLabel, libCategory, loadAssetCategories, saveAssetCategory } from '../../lib/asset-category.ts';
+import { categoryLabel, groupsFor, libCategory, loadAssetCategories, saveAssetCategory } from '../../lib/asset-category.ts';
 import { assetBaseId, saveFavouriteAssets, saveHiddenAssets } from '../../lib/asset-favourites.ts';
 import type { TrimProposal } from '../../lib/design-system/trim-offer.ts';
 import { UPLOAD_ACCEPT, replaceUserUpload } from '../picker.ts';
@@ -102,7 +102,7 @@ export async function recategorise(cat: CatCtx, ref: AssetRef): Promise<void> {
     title: t('Recategorise asset'),
     message: tRaw('Move “{name}” into which group? (Currently {category}.)', { name: String(ref.meta?.name ?? ref.id), category: t(categoryLabel(current)) }),
     choices: [
-      ...LIB_GROUPS.map(g => ({ id: g.key, label: t(g.label), primary: g.key === current })),
+      ...groupsFor(ref).map(g => ({ id: g.key, label: t(g.label), primary: g.key === current })),
       { id: '__auto__', label: t('Auto (from tags)') },
     ],
   });

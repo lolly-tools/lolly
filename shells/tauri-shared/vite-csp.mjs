@@ -36,7 +36,9 @@
 
 export const TAURI_CSP = [
   "default-src 'self' customprotocol: asset:",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval'",
+  // blob: is the Rondocode editor's AudioWorklet module, made from a blob: URL in
+  // its opaque-origin frame; worklets follow script-src, not worker-src.
+  "script-src 'self' blob: 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval'",
   "style-src 'self' 'unsafe-inline'",
   "connect-src 'self' ipc: http://ipc.localhost https: data: blob:",
   "img-src 'self' asset: http://asset.localhost https: data: blob:",

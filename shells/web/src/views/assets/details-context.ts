@@ -16,6 +16,7 @@ import type { inlineModesOps } from './details-inline-modes.ts';
 import type { sheetOps } from './details-sheet.ts';
 import type { controlsOps } from './details-controls.ts';
 import type { provenanceOps } from './details-provenance.ts';
+import type { rondoOps } from './details-rondo.ts';
 import type { openDetails } from './details.ts';
 
 export interface DetailsCtx {
@@ -106,6 +107,7 @@ export interface DetailsCtx {
   sheet: ReturnType<typeof sheetOps>;
   controls: ReturnType<typeof controlsOps>;
   provenance: ReturnType<typeof provenanceOps>;
+  rondo: ReturnType<typeof rondoOps>;
   /** The closure itself, for the moved code that re-enters it. */
   openDetails: typeof openDetails;
 }

@@ -143,7 +143,21 @@ export function createDebugLogger(
 // then serve from IndexedDB forever. The service worker bypasses `/models/`
 // (public/sw.js) so there is only ONE on-device copy of the bytes.
 
-interface CachedModel { bytes: ArrayBuffer; version: number; cachedAt: number }
+interface CachedModel { bytes: ArrayBuffer | Blob; version: number; cachedAt: number }
+
+/** Files larger than this are stored as a Blob, not an ArrayBuffer. Chrome refuses
+ *  an IndexedDB value whose serialized form passes about 127 MB ("The serialized
+ *  keys and/or value are too large", max=133169152, measured 2026-10-07), so a
+ *  350 MB model put as an ArrayBuffer was never stored: the fetch succeeded, the
+ *  best-effort write failed, and every use downloaded the file again. A Blob is
+ *  kept on disk by the browser and has no such ceiling. Smaller files stay
+ *  ArrayBuffers, exactly as before. */
+export const IDB_ARRAYBUFFER_MAX = 64 * 1024 * 1024;
+
+/** The value to store for a fetched model file. */
+export function storableModelBytes(bytes: ArrayBuffer): ArrayBuffer | Blob {
+  return bytes.byteLength > IDB_ARRAYBUFFER_MAX ? new Blob([bytes]) : bytes;
+}
 
 export interface ModelCacheOptions {
   /** IndexedDB object store holding this detector's model bytes (bridge/db.ts). */
@@ -178,9 +192,13 @@ export function createModelFetcher(
     try {
       const db = await openDB();
       const cached = await db.get(store, fileName) as CachedModel | undefined;
-      if (cached && cached.version === version && cached.bytes?.byteLength) {
-        dbg('fetch', { file: fileName, source: 'idb-cache', bytes: cached.bytes.byteLength });
-        return cached.bytes;
+      if (cached && cached.version === version && cached.bytes) {
+        // A large file is stored as a Blob (storableModelBytes); callers get bytes.
+        const bytes = cached.bytes instanceof Blob ? await cached.bytes.arrayBuffer() : cached.bytes;
+        if (bytes.byteLength) {
+          dbg('fetch', { file: fileName, source: 'idb-cache', bytes: bytes.byteLength });
+          return bytes;
+        }
       }
     } catch {
       // IDB unavailable - fall through to a network-only (uncached) fetch below.
@@ -220,7 +238,7 @@ export function createModelFetcher(
     try {
       const db = await openDB();
       signal.throwIfAborted();
-      await db.put(store, { bytes, version, cachedAt: Date.now() }, fileName);
+      await db.put(store, { bytes: storableModelBytes(bytes), version, cachedAt: Date.now() }, fileName);
       await afterCache?.(fileName, db);
     } catch {
       // Best-effort cache write - a failed put just means re-fetching next time.

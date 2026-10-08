@@ -568,6 +568,14 @@ async function loadBuffer(id: string, url: string, format: string | undefined): 
       // it flows through this same buffer path - meter, seek, loop all come for free.
       const bytes = new Uint8Array(await (await fetch(url)).arrayBuffer());
       buf = await renderModToAudioBuffer(a.ctx, bytes);
+    } else if (format === 'rondo') {
+      // A rondocode song: code, rendered by lib/rondo-render.ts in the `vm` class
+      // (QuickJS in a worker), at its own length. Imported here, at the point of
+      // use, so the dock never loads the song renderer for anyone without a song.
+      const r = await import('./rondo-render.ts');
+      const song = r.songFromBytes(new Uint8Array(await (await fetch(url)).arrayBuffer()));
+      if (!song) return null;
+      buf = await r.renderRondoToAudioBuffer(a.ctx, song);
     } else {
       const bytes = await (await fetch(url)).arrayBuffer();
       buf = await a.ctx.decodeAudioData(bytes);

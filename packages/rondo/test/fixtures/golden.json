@@ -1,0 +1,164 @@
+{
+ "cycles": 8,
+ "sampleRate": 48000,
+ "hash": "sha256 of left then right Float32 PCM",
+ "reference": "upstream all-native render",
+ "pcm": {
+  "acid": {
+   "js": "dc62def6de40feb9e85d45d517d022b37baadd96896242b4b6a329b939fd3ed8",
+   "rondo": "fa74c18316c8e7091b429bc3951a390170d8566fd7004ccba0c27e401baeb433"
+  },
+  "visuals": {
+   "js": "772079fd8a6a07a770dd8e8da7bc2bc5104ae92bdab2f0aa46cfde619d26ebca",
+   "rondo": "772079fd8a6a07a770dd8e8da7bc2bc5104ae92bdab2f0aa46cfde619d26ebca"
+  },
+  "techno": {
+   "js": "6c0e3ffd87005720e1a812de41a2c8ead95cdc929492dacc9dcc0f39f2216b7b",
+   "rondo": "6c0e3ffd87005720e1a812de41a2c8ead95cdc929492dacc9dcc0f39f2216b7b"
+  },
+  "dubstep": {
+   "js": "33711038440935b8d6d746e30de636cb6053688c64673135b57491c34521a04b",
+   "rondo": "33711038440935b8d6d746e30de636cb6053688c64673135b57491c34521a04b"
+  },
+  "trance": {
+   "js": "b9b2a23b5f197703f8bb819a71c435ca0a7f65753b282586aae26373ca5c0810",
+   "rondo": "b9b2a23b5f197703f8bb819a71c435ca0a7f65753b282586aae26373ca5c0810"
+  },
+  "future bass": {
+   "js": "b863c12de198fc6fea979dc84906bc5f7a326a7555f4bca7168b222e27b0c676",
+   "rondo": "b863c12de198fc6fea979dc84906bc5f7a326a7555f4bca7168b222e27b0c676"
+  },
+  "ambient bells": {
+   "js": "7560cb5ebcf899b32ccc2bfa1d72ddbb13741d9beb33c9e3f4e8694f6685b152",
+   "rondo": "6a000f8f99666b2e339f5b2dc1f74eb0663fdb82d166f514b42780c9e5e876ac"
+  },
+  "drum groove": {
+   "js": "00169fe7677d5e705fff7978e39614c1829334ec24ad1b8804347b229cb3e7ab",
+   "rondo": "00169fe7677d5e705fff7978e39614c1829334ec24ad1b8804347b229cb3e7ab"
+  },
+  "fm keys": {
+   "js": "a146c31ed5f5aef49f65b2de865ac44b5af332c3850cb31186955549842c611b",
+   "rondo": "a146c31ed5f5aef49f65b2de865ac44b5af332c3850cb31186955549842c611b"
+  },
+  "fm presets": {
+   "js": "5e338e4c77fc62cd83b758578c1e9af2e3f8e8e1838bf737463e7ed4f97f06ec",
+   "rondo": "f1b4e65c0d689f108793932d89ed6a485f13a1c2245468954f3953eb0340a460"
+  },
+  "chiptune": {
+   "js": "4d01c27b31a6eab9da8c769a0a05c1737512437758a9ea82a0c15b9ab05f0cf1",
+   "rondo": "4d01c27b31a6eab9da8c769a0a05c1737512437758a9ea82a0c15b9ab05f0cf1"
+  },
+  "chords & arps": {
+   "js": "741304e55858a8dde4c6fe8e9e73120619767b2e759d5af84c95cb44f5bb6804",
+   "rondo": "c9300a5ddcb7f093e0c89cdaab7605a88ba972641d9a50b95f5ff93153fb6ffc"
+  },
+  "over a chord": {
+   "js": "cac966b3678f2f5503204f36bb648f3afece18034420fbd7e8f82a188cf3b474",
+   "rondo": "cac966b3678f2f5503204f36bb648f3afece18034420fbd7e8f82a188cf3b474"
+  },
+  "generative": {
+   "js": "af873e8e92d6107623f3d006d4f021bf44ac641022921d29e5d3097fd809a02b",
+   "rondo": "ea9daf143efb7ed957d9921424fee3d20e04f9acef688b70cd8527c9c2f05e42"
+  },
+  "edm": {
+   "js": "07a13b4c023aecebcb4ebd770471410fbad1a29532895a28336f2e6f70e00dca",
+   "rondo": "07a13b4c023aecebcb4ebd770471410fbad1a29532895a28336f2e6f70e00dca"
+  },
+  "synthscape": {
+   "js": "50ec5bf5a54d6be4a66f6ac2559b1c428e20aa9c7661584af911324e51071330",
+   "rondo": "19aa832f24a7375e85ab1e1f7210bb9cd614278d085e778ff51e0b3b95f1100a"
+  },
+  "arrangement": {
+   "js": "1e0531aaf6f31f6985c3beac12466421495cb82de7286c2e117da8e75f82bdb2",
+   "rondo": "1e0531aaf6f31f6985c3beac12466421495cb82de7286c2e117da8e75f82bdb2"
+  },
+  "sampler": {
+   "js": "924878674b2a29898377afc2b5a4b8ec2d6302367b635510b02bcae02c595c9f",
+   "rondo": "924878674b2a29898377afc2b5a4b8ec2d6302367b635510b02bcae02c595c9f"
+  },
+  "granular": {
+   "js": "d400e8c7c9d77a1e58e4ede47aef709dcee326ddd64da12e4788b52269f16cbe",
+   "rondo": "d400e8c7c9d77a1e58e4ede47aef709dcee326ddd64da12e4788b52269f16cbe"
+  },
+  "singing": {
+   "js": "e37b74c42f16b9596e645a2a4c3cd420f672a71e70fb998aafba60d8d4dfc2b5",
+   "rondo": "e37b74c42f16b9596e645a2a4c3cd420f672a71e70fb998aafba60d8d4dfc2b5"
+  },
+  "wobble": {
+   "js": "08cadf29ce62c4097903ed44f13836965c48baa520c0c3af58b4a991324888aa",
+   "rondo": "08cadf29ce62c4097903ed44f13836965c48baa520c0c3af58b4a991324888aa"
+  },
+  "club": {
+   "js": "bc63a19bf5897b7e858312843f9ae9e485c8ea071642356af3effef97dcfe094",
+   "rondo": "bc63a19bf5897b7e858312843f9ae9e485c8ea071642356af3effef97dcfe094"
+  },
+  "drum machine": {
+   "js": "32c2885886bd9bf61b855efec6871aa8643d42198ae873d217616d022978a43e",
+   "rondo": "32c2885886bd9bf61b855efec6871aa8643d42198ae873d217616d022978a43e"
+  },
+  "polyrhythm": {
+   "js": "44477dc43f004f666480d479389b7c55ad8d2d65cc0222c6d16ebe17902f96ab",
+   "rondo": "44477dc43f004f666480d479389b7c55ad8d2d65cc0222c6d16ebe17902f96ab"
+  },
+  "live mic": {
+   "js": "1ffe8dfb027836afd9de6ce873e4eb0e2746821ea2ce986a9bfc900235516ad2",
+   "rondo": "1ffe8dfb027836afd9de6ce873e4eb0e2746821ea2ce986a9bfc900235516ad2"
+  },
+  "mic channel strip": {
+   "js": "b15b79e1f79b625b7be660d31da74943bff98b94eee89544d233aabfbb91d51a",
+   "rondo": "b15b79e1f79b625b7be660d31da74943bff98b94eee89544d233aabfbb91d51a"
+  },
+  "auto wah": {
+   "js": "79924d8e6202571ae4c385678db07952f0b04a31678c251a6f675d1717e8bdfb",
+   "rondo": "79924d8e6202571ae4c385678db07952f0b04a31678c251a6f675d1717e8bdfb"
+  },
+  "harmoniser": {
+   "js": "c058e147eb6d024d30e64131b0c861707e127ebbbddb13948bf20c0a7d042018",
+   "rondo": "c058e147eb6d024d30e64131b0c861707e127ebbbddb13948bf20c0a7d042018"
+  },
+  "strings": {
+   "js": "2daae00063e6141cfc30db8b7786566ff10feefa4ea65b4f9980a541a7a5c421",
+   "rondo": "2daae00063e6141cfc30db8b7786566ff10feefa4ea65b4f9980a541a7a5c421"
+  },
+  "chant": {
+   "js": "60b7300eb23985da81183c5a8d0d9ddb21f3511aa3eba5d5fd758d835ae130db",
+   "rondo": "60b7300eb23985da81183c5a8d0d9ddb21f3511aa3eba5d5fd758d835ae130db"
+  },
+  "real room": {
+   "js": "076a6a602d3d6d760bf0663a6cbe85855a21d0c2b917c9909974395e71983194",
+   "rondo": "076a6a602d3d6d760bf0663a6cbe85855a21d0c2b917c9909974395e71983194"
+  },
+  "tape": {
+   "js": "e7d20233f632211f5224298c268f6f18f915359dd232ea21f4df5a669615515e",
+   "rondo": "e7d20233f632211f5224298c268f6f18f915359dd232ea21f4df5a669615515e"
+  },
+  "moving modulation": {
+   "js": "32a8d46cf6236922d588c661cd2a488c96c2b6a9a3401d207393e3347508f673",
+   "rondo": "32a8d46cf6236922d588c661cd2a488c96c2b6a9a3401d207393e3347508f673"
+  },
+  "note bends": {
+   "js": "70dcb004b808bc8bd9ef4f7c7bad8b9021f45a0a5869870b144463adfb43adc7",
+   "rondo": "70dcb004b808bc8bd9ef4f7c7bad8b9021f45a0a5869870b144463adfb43adc7"
+  },
+  "wavetable lead": {
+   "js": "c819a3ddf6e4f3885a93c77eddc5e054b6656411e59b1cef2ab1d6ce635dc008",
+   "rondo": "c819a3ddf6e4f3885a93c77eddc5e054b6656411e59b1cef2ab1d6ce635dc008"
+  },
+  "chop": {
+   "js": "4ba6572c6d8b4b9413187306b79cfd06266b3cad03788f5feacb5487c3b501ef",
+   "rondo": "4ba6572c6d8b4b9413187306b79cfd06266b3cad03788f5feacb5487c3b501ef"
+  },
+  "macros": {
+   "js": "3902f2e256b735248237b55068cc61ee7e4471269ebafa5c2b41acbc768dd0c4",
+   "rondo": "3902f2e256b735248237b55068cc61ee7e4471269ebafa5c2b41acbc768dd0c4"
+  },
+  "waltz": {
+   "js": "4cdd7df9739a29268c1717d4f12ccee93938de910c8442ac13d7315f8aa30614",
+   "rondo": "4cdd7df9739a29268c1717d4f12ccee93938de910c8442ac13d7315f8aa30614"
+  },
+  "reverse cymbal": {
+   "js": "dc74de129d9d57066bdb9ff12f96779f343bccd41ba0a07587b002b9fa517006",
+   "rondo": "dc74de129d9d57066bdb9ff12f96779f343bccd41ba0a07587b002b9fa517006"
+  }
+ }
+}

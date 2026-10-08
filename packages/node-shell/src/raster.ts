@@ -32,6 +32,21 @@ import { catalogFile } from './content-roots.ts';
 // entries, with no rasteriser and no browser anywhere in the path (plans/178).
 export const NODE_FORMATS = ['svg', 'svgz', 'emf', 'wmf', 'eps', 'eps-cmyk', 'dxf', 'penpot', 'lottie', 'jxl', 'jxl-lossless', 'bmp', 'exr', 'hdr', 'html', 'json', 'csv', 'ics', 'vcf', 'md'];
 
+/**
+ * Audio formats a tool's own `exportStill` hook writes (the Rondocode utility's
+ * song exports). No DOM render can produce them, so for a tool with that hook the
+ * Node path runs the hook instead of sending the job to the browser tier, and the
+ * hook either writes the file or refuses the format by name.
+ */
+export const HOOK_OWNED_FORMATS = ['wav', 'mp3', 'm4a', 'opus'];
+
+/** True when this shell's Node path renders `format` for this tool: a DOM-free
+ *  format, or an audio format the tool's exportStill hook owns. */
+export function nodePathFormat(manifest: { hooks?: { exportStill?: unknown } | null }, format: string): boolean {
+  const f = format.toLowerCase();
+  return NODE_FORMATS.includes(f) || (!!manifest.hooks?.exportStill && HOOK_OWNED_FORMATS.includes(f));
+}
+
 /** Design float composition requires the browser's measured scene layout. */
 export function needsFloatScene(toolId: string, editingRange: unknown, format: string, hdr: unknown): boolean {
   return toolId === 'design' && (editingRange === 'hdr' || !!hdr) && !['html','json','csv','ics','vcf','md','txt'].includes(format.toLowerCase());

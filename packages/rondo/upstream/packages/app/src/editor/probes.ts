@@ -1,0 +1,154 @@
+import { EditorView, Decoration, WidgetType } from '@codemirror/view'
+import type { DecorationSet } from '@codemirror/view'
+import { StateField, StateEffect } from '@codemirror/state'
+import type { EngineEvent } from '@rondocode/engine'
+import type { EditorHandle } from './editor'
+import type { ProbeTarget } from '../session/Session'
+import { getSetting, onSettingsChange } from '../ui/settings'
+
+/* ------------------------------------------------------------------------- *
+ * Live-value readouts: a small ⟨value⟩ that trails a modulation expression and
+ * updates from the running engine — e.g. `sine(0.5).range(200, 2000) ⟨1243⟩`.
+ *
+ * The evaluator tags every modulation expression with its source span (see
+ * evalCode / SynthDef.nodeLocs); the Session hands those here as ProbeTargets.
+ * This module picks the ones worth a readout (control sources, not audio-rate
+ * carriers), decorates each with a widget, and asks the engine to value-probe
+ * exactly those nodes (session.setProbes). Probe events (on the meter cadence)
+ * carry each node's current value, which we write straight into the widget DOM
+ * — no editor transaction per frame.
+ * ------------------------------------------------------------------------- */
+
+const keyOf = (synth: string, node: number): string => `${synth}\u0000${node}`
+
+/** Which tagged expressions earn a readout. v1: the value-range idiom the LFO
+ *  case uses, plus the envelope generators — the canonical control sources.
+ *  Audio-rate carriers (a bare `saw(f)`) are intentionally excluded: their
+ *  sampled value is meaningless noise. Broadenable without engine changes. */
+const isModulation = (text: string): boolean => /\.range\s*\(|(^|[^\w.$])(adsr|env|lfo)\s*\(/.test(text)
+
+/** Compact, tabular-friendly formatting; NaN/absent shows a dim placeholder. */
+const fmt = (v: number | undefined): string => {
+  if (v === undefined || Number.isNaN(v)) return '·'
+  const a = Math.abs(v)
+  if (a >= 1000) return v.toFixed(0)
+  if (a >= 100) return v.toFixed(1)
+  if (a >= 1) return v.toFixed(2)
+  return v.toFixed(3)
+}
+
+class ReadoutWidget extends WidgetType {
+  constructor(
+    readonly k: string,
+    readonly values: Map<string, number>,
+  ) {
+    super()
+  }
+  eq(other: ReadoutWidget): boolean {
+    return other.k === this.k
+  }
+  toDOM(): HTMLElement {
+    const el = document.createElement('span')
+    el.className = 'cm-probe'
+    el.dataset.probe = this.k
+    el.textContent = `⟨${fmt(this.values.get(this.k))}⟩`
+    return el
+  }
+  ignoreEvent(): boolean {
+    return true
+  }
+}
+
+const setProbeDecos = StateEffect.define<DecorationSet>()
+const probeField = StateField.define<DecorationSet>({
+  create: () => Decoration.none,
+  update(value, tr) {
+    value = value.map(tr.changes) // keep readouts glued to their expression across edits
+    for (const e of tr.effects) if (e.is(setProbeDecos)) value = e.value
+    return value
+  },
+  provide: (f) => EditorView.decorations.from(f),
+})
+
+/** Mount the live-value readouts on an editor. Returns a teardown. */
+export function mountProbes(editor: EditorHandle): () => void {
+  const view = editor.view
+  const values = new Map<string, number>() // "synth\0node" → current value
+  let probed = new Set<string>() // synths we currently have probes registered for
+  let lastTargets: ProbeTarget[] = [] // latest eval's targets, re-applied on toggle
+
+  view.dispatch({ effects: StateEffect.appendConfig.of(probeField) })
+
+  const paint = (): void => {
+    view.dom.querySelectorAll<HTMLElement>('.cm-probe').forEach((el) => {
+      el.textContent = `⟨${fmt(values.get(el.dataset.probe!))}⟩`
+    })
+  }
+
+  /** Tear down all readouts + engine probes (feature off, or nothing to show). */
+  const clearAll = (): void => {
+    view.dispatch({ effects: setProbeDecos.of(Decoration.none) })
+    for (const synth of probed) editor.session.setProbes(synth, [])
+    probed = new Set()
+    values.clear()
+  }
+
+  /** Reconcile decorations + engine probes to the current targets — but only
+   *  when the opt-in setting is on; otherwise leave the editor clean. */
+  const apply = (): void => {
+    if (getSetting('liveValues') !== true) {
+      clearAll()
+      return
+    }
+    const doc = view.state.doc
+    const chosen = lastTargets.filter((t) => t.to <= doc.length && isModulation(doc.sliceString(t.from, t.to)))
+    const decos = chosen
+      .slice()
+      .sort((a, b) => a.to - b.to)
+      .map((t) =>
+        Decoration.widget({ widget: new ReadoutWidget(keyOf(t.synth, t.node), values), side: 1 }).range(t.to),
+      )
+    view.dispatch({ effects: setProbeDecos.of(Decoration.set(decos, true)) })
+
+    // Register probes with the engine: exactly the chosen nodes, grouped by
+    // synth. Any synth previously probed but now absent gets cleared.
+    const bySynth = new Map<string, number[]>()
+    for (const t of chosen) (bySynth.get(t.synth) ?? bySynth.set(t.synth, []).get(t.synth)!).push(t.node)
+    for (const [synth, nodes] of bySynth) editor.session.setProbes(synth, nodes)
+    for (const synth of probed) if (!bySynth.has(synth)) editor.session.setProbes(synth, [])
+    probed = new Set(bySynth.keys())
+    paint()
+  }
+
+  const unsubTargets = editor.onProbeTargets((targets) => {
+    lastTargets = targets
+    apply()
+  })
+
+  const unsubEngine = editor.onEngineEvent((ev: EngineEvent) => {
+    if (ev.kind !== 'probe') return
+    for (const [synth, perNode] of Object.entries(ev.values)) {
+      for (const [node, val] of Object.entries(perNode)) values.set(keyOf(synth, Number(node)), val)
+    }
+    paint()
+  })
+
+  // On stop, the engine stops emitting probe values; blank the readouts so they
+  // don't show a frozen last value as if it were live.
+  const unsubState = editor.onState((s) => {
+    if (!s.playing) {
+      values.clear()
+      paint()
+    }
+  })
+
+  // Toggling the setting applies or tears down the readouts immediately.
+  const offSettings = onSettingsChange(apply)
+
+  return () => {
+    unsubTargets()
+    unsubEngine()
+    unsubState()
+    offSettings()
+  }
+}

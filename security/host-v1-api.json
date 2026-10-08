@@ -5,7 +5,7 @@
     "HOST_V1_OPTIONAL_APIS": {
       "module": "apis.ts",
       "kind": "FirstStatement",
-      "sha256": "782ae2a34f51025b925d43c72b84ac84f0932d84f8eb96cd0c578e187fc190cc"
+      "sha256": "402a89511c25077459606e6382d270c1e79c4db34e90735b1a37f609980eec12"
     },
     "HostApiName": {
       "module": "apis.ts",
@@ -55,7 +55,12 @@
     "AssetsAPI": {
       "module": "assets.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "5363a9028c87ca336ad74de42598598ccf7ccca699ce6117fad9c875723297b7"
+      "sha256": "c8e867215c319b656910d1b2d84ba79b375894582beb1fa57aecbc862d9a7f0f"
+    },
+    "AssetAddInput": {
+      "module": "assets.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "0d9dc663dc7bd51a636f7c24e05909cc32de8455fdf491a2a18a57c117dfa655"
     },
     "IngredientCredential": {
       "module": "assets.ts",
@@ -85,17 +90,32 @@
     "AudioAPI": {
       "module": "audio.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "15c10f564db036bf2c79f801b0facb22c6923da5644144bc8fcb0e9d77fc030c"
+      "sha256": "e0bbf1afd25c3c018d99e453415b0fb3384374085036be9d2b0fe09529e21a97"
+    },
+    "AudioDecodeOpts": {
+      "module": "audio.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "2237683c5e894318cb02029e852c86661c3fa529abc53c504f9c4d6f93d93967"
+    },
+    "AudioFinding": {
+      "module": "audio.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "e19c48ec635eedfa4268d0789164e8b4ccf7e4ffc416359d959a849913e386e0"
+    },
+    "AudioDecoded": {
+      "module": "audio.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "c6c834745ca0f269f8fbdacebb63461afdfa3802fdaea933ac9b36ef5d5713f8"
     },
     "AudioCleanOpts": {
       "module": "audio.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "899e98e182a3ffbbd4c4a96d0e5666107a3155560a725a2f2f31361c6fd1cfc1"
+      "sha256": "3a22bac59f770a21cbb480b013c9222a21c6cc107a14b2480d6670bff024a493"
     },
     "AudioCleanResult": {
       "module": "audio.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "bbdec2dfbb8d4166a41aa59191e80375e5f0e4460bfa55ff60242cfe363ce437"
+      "sha256": "d33106642a68b1eb1ea32a1ec5e55a6c9240ccaf4646254d8f58b5a16b0a2b1c"
     },
     "AudioSource": {
       "module": "audio.ts",
@@ -120,7 +140,12 @@
     "C2paSignOpts": {
       "module": "c2pa.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "cd69fa730752653e9210d11c59146675e3af8870f3e51c079c612eeb8a6b76f6"
+      "sha256": "0a948d47175c1cb7cfe187f0a86a1f5947955611b1467ab12cb916e24e79a65f"
+    },
+    "C2paRondoFile": {
+      "module": "c2pa.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "bb23443758404c2d4c67192f9c721a099355f4cd872d64e1979b54a649755c07"
     },
     "C2paAPI": {
       "module": "c2pa.ts",
@@ -500,7 +525,7 @@
     "HostV1": {
       "module": "host.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "fb8c56bc48142affc8484a4d534d8fa8b6491d7359426f04bf34d270b3f85fdd"
+      "sha256": "d934cec44502b50b949154dfb857bbdc8bd057e6516258f7032d15545a726302"
     },
     "Capability": {
       "module": "host.ts",
@@ -621,6 +646,21 @@
       "module": "media.ts",
       "kind": "InterfaceDeclaration",
       "sha256": "55583175a9348432242acc419e8ff38a45a3269eac2055f1c5e0842880784abf"
+    },
+    "ModelFilesProgress": {
+      "module": "models.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "e30109973cf1b6b16f22e41aa72889f8b3962b1c1c9c1753b4d72a1532046b70"
+    },
+    "ModelFilesOpts": {
+      "module": "models.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "0822b7d57d610036dfd1fd24f1bb06d2180b8ce7b9bfe8c227be74469a14545a"
+    },
+    "ModelsAPI": {
+      "module": "models.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "a9f59ced944a6bcd89d17621c47e889c9fd88f5480f8c4aebf8fa62a9ea80baf"
     },
     "NetAPI": {
       "module": "net.ts",

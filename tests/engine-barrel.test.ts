@@ -10,6 +10,8 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
 const EXPECTED: readonly string[] = [
+  // Additive 1.246 rondocode song types and the algorithmic source type (plan 301).
+  'ALGORITHMIC_SOURCE_TYPE', 'RondoLang', 'RondoRenderFacts', 'RondoSourceV1',
   // Additive Adobe interchange readers and sequence conversion APIs.
   'CameraRawPreset', 'InterchangeClip', 'InterchangeRate', 'InterchangeSequence',
   'framesToSeconds', 'premiereSequenceValues', 'readCameraRawPreset', 'readIdmlSpreads',

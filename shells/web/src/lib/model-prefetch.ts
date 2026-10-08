@@ -41,6 +41,9 @@ import {
 import {
   DURABLE_ENCODER_BYTES, DURABLE_ENCODER_FILE, DURABLE_MODEL_STORE,
 } from './durable-model.ts';
+import {
+  SING_FILE_BYTES, SING_MODEL_CACHE_VERSION, SING_MODEL_DIR, SING_MODEL_STORE, SING_PART_BYTES, SING_PART_FILES,
+} from './sing-models.ts';
 import { isTauriShell } from './instance-choice.ts';
 
 const upscaleFetch = createModelFetcher({
@@ -55,6 +58,23 @@ const ocrFetch = createModelFetcher({
   store: OCR_MODEL_STORE, dir: OCR_MODEL_DIR, version: OCR_MODEL_CACHE_VERSION,
   dbg: createDebugLogger({ tag: 'ocr-prefetch', storageKey: 'lolly:ocr:debug', globalFlag: '__OCR_DEBUG__' }),
 });
+// The singing models (plan 301 phase F). The one fetcher for the family: the
+// Profile download and host.models (bridge/models.ts) both read and write through
+// it, so the bytes a song is handed are the bytes the part recorded.
+const singFetch = createModelFetcher({
+  store: SING_MODEL_STORE, dir: SING_MODEL_DIR, version: SING_MODEL_CACHE_VERSION,
+  dbg: createDebugLogger({ tag: 'sing-prefetch', storageKey: 'lolly:sing:debug', globalFlag: '__SING_DEBUG__' }),
+});
+
+/** One singing-model file by its path under /models/sing/: from the
+ *  `sing-models` store when the file is there at the current version, else
+ *  fetched and stored (unless `cacheOnly`). Null when the file is not on the
+ *  device (cacheOnly) or the host does not serve the file. */
+export function fetchSingModelFile(
+  file: string, cacheOnly = false, onProgress?: (p: FetchProgress) => void,
+): Promise<ArrayBuffer | null> {
+  return singFetch(file, cacheOnly, onProgress);
+}
 
 export interface PrefetchResult { ok: boolean; bytes: number; files: number }
 type OnProgress = (p: DownloadProgress) => void;
@@ -156,6 +176,24 @@ export function prefetchOcrModels(opts: { signal?: AbortSignal; onProgress?: OnP
   return prefetchList(ocrFetch, ocrOfflineFiles(), required, opts);
 }
 
+/** The files the "Singing voices" part downloads (lib/sing-models.ts says why
+ *  the fp32 fallbacks are not among them). */
+export function singOfflineFiles(): string[] {
+  return [...SING_PART_FILES];
+}
+
+/** Pre-download the singing models into the `sing-models` IDB store. Every file
+ *  is required. The bar's total is the part's known size from the start, so a
+ *  1.2 GB run does not grow its total file by file and jump backwards. */
+export function prefetchSingModels(opts: { signal?: AbortSignal; onProgress?: OnProgress } = {}): Promise<PrefetchResult> {
+  const files = singOfflineFiles();
+  const { onProgress } = opts;
+  return prefetchList(singFetch, files, new Set(files), {
+    signal: opts.signal,
+    onProgress: onProgress && ((p) => onProgress({ ...p, total: p.total === null ? null : Math.max(SING_PART_BYTES, p.total) })),
+  });
+}
+
 // ─── Measurement (for the /profile storage-reconciliation meter) ──────────────
 //
 // Measures what is ACTUALLY on device in a model store - filled by this prefetch OR
@@ -215,6 +253,12 @@ export function durableCacheBytes(): Promise<{ bytes: number; files: number }> {
 export async function durableModelCached(): Promise<boolean> {
   const { files } = await durableCacheBytes();
   return files > 0;
+}
+
+/** Bytes of the singing models cached in `sing-models` IDB, the fp32 fallbacks
+ *  included when a song fetched them. */
+export function singCacheBytes(): Promise<{ bytes: number; files: number }> {
+  return modelStoreBytes(SING_MODEL_STORE, new Map(Object.entries(SING_FILE_BYTES)));
 }
 
 /** Bytes of the offered OCR models cached in `ocr-models` IDB. approxBytes covers a

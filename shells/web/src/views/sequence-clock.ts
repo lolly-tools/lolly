@@ -61,8 +61,8 @@
  * `requestAnimationFrame`, and real layout for box sizes.
  */
 
-import { SEEK_TOLERANCE_S, SEEK_NUDGE_S, MEDIA_END_EPS_S, looksLikeTrackerModule, waitSeekConfirmed } from '../lib/media-source.ts';
-export { SEEK_CONFIRM_MS, SEEK_TOLERANCE_S, SEEK_NUDGE_S, MEDIA_END_EPS_S, MODULE_EXTENSIONS, urlExtension, isModuleUrl, sniffTrackerModule, looksLikeTrackerModule, waitSeekConfirmed } from '../lib/media-source.ts';
+import { SEEK_TOLERANCE_S, SEEK_NUDGE_S, MEDIA_END_EPS_S, looksLikeTrackerModule, looksLikeRondoSong, isRondoUrl, waitSeekConfirmed } from '../lib/media-source.ts';
+export { SEEK_CONFIRM_MS, SEEK_TOLERANCE_S, SEEK_NUDGE_S, MEDIA_END_EPS_S, MODULE_EXTENSIONS, urlExtension, isModuleUrl, sniffTrackerModule, looksLikeTrackerModule, isRondoUrl, sniffRondoSource, looksLikeRondoSong, waitSeekConfirmed } from '../lib/media-source.ts';
 import { clipGainEvents, clipGainValueAt, isTrivialGain, scheduleGainEvents } from '../bridge/audio-envelope.ts';
 // The ref test alone - deliberately a leaf module (see its header) so the composer
 // stays out of this module's eager graph; the composer itself is imported lazily in
@@ -321,6 +321,24 @@ async function renderZzfxmToBuffer(ctx: BaseAudioContext, url: string, wantedSec
   const ref = parseZzfxmRef(url);
   if (!ref) throw new Error(`malformed procedural audio ref: ${url}`);
   return renderSongToAudioBuffer(ctx, composeSong(generatedSongSpec(ref.seed, zzfxmTargetSec(wantedSec), ref.style)));
+}
+
+/**
+ * A RONDOCODE SONG (plan 301) is code that computes audio, rendered by
+ * lib/rondo-render.ts in the `vm` execution class. The span loader reaches it
+ * through bridge/sequence-providers' createClipAudio, the same door the export mix
+ * uses; this is the fallback rung for when that door declined. `bytes` is the
+ * stored song already in hand, or null for a share link, which is decoded where it
+ * stands (nothing is fetched from rondocode.com). The length is the clip's own,
+ * on the client's half-second grid, so this hears the render the export hears.
+ */
+async function renderRondoToBuffer(ctx: BaseAudioContext, url: string, bytes: ArrayBuffer | null, wantedSec: number): Promise<AudioBuffer> {
+  const r = await import('../lib/rondo-render.ts');
+  // A `.rondo` file is rondo-language text, not JSON: the url's own name decides the reading.
+  const path = (url.split('#')[0] ?? '').split('?')[0] ?? '';
+  const song = bytes ? r.songFromBytes(new Uint8Array(bytes), /\.rondo(?:\.json)?$/i.test(path) ? path : undefined) : await r.songFromUrl(url);
+  if (!song) throw new Error('not a readable rondocode song');
+  return r.renderRondoToAudioBuffer(ctx, song, r.rondoTargetSec(wantedSec));
 }
 
 /**
@@ -770,12 +788,16 @@ export function createSequenceClock(opts: SequenceClockOpts): SequenceClock {
    * response cannot buffer a 500 MB asset just to be refused afterwards. Both ceilings
    * are the waveform reader's, so "too big to draw" and "too big to hear" agree.
    */
-  async function fetchAndDecode(url: string, signal: AbortSignal): Promise<AudioBuffer | null> {
+  async function fetchAndDecode(url: string, signal: AbortSignal, wantedSec?: number): Promise<AudioBuffer | null> {
     const c = audioCtx();
     if (!c || typeof fetch !== 'function') return null;
     // Not a file - composed, not fetched. Sized to the sequence, the ceiling on
     // what any box can be heard under. See renderZzfxmToBuffer.
     if (isZzfxmRef(url)) return renderZzfxmToBuffer(c, url, seqMs() / 1000);
+    // A rondocode share link carries its song inside it: decoded, never fetched.
+    if (isRondoUrl(url) && /^https:/i.test(url) && url.includes('#')) {
+      return renderRondoToBuffer(c, url, null, wantedSec ?? seqMs() / 1000);
+    }
     const res = await fetch(url, { signal });
     if (!res.ok || signal.aborted) return null;
     const declared = Number(res.headers?.get?.('content-length') ?? Number.NaN);
@@ -799,6 +821,16 @@ export function createSequenceClock(opts: SequenceClockOpts): SequenceClock {
         throw new Error(`tracker module could not be rendered (${err instanceof Error ? err.message : String(err)})`);
       }
     }
+    // A stored rondocode song: canonical JSON bytes behind a blob: URL, recognised
+    // by its own `"format": "rondocode"` before the ZzFXM song check below.
+    if (looksLikeRondoSong(url, bytes)) {
+      try {
+        return await renderRondoToBuffer(c, url, bytes, wantedSec ?? seqMs() / 1000);
+      } catch (err) {
+        // Named, never swallowed - bufferFor's catch logs it against this url.
+        throw new Error(`rondocode song could not be rendered (${err instanceof Error ? err.message : String(err)})`);
+      }
+    }
     // An ingested-MIDI song asset: JSON bytes behind a blob: URL. See parseZzfxmSongJson.
     if (new Uint8Array(bytes)[0] === 0x7b /* '{' */) {
       const song = parseZzfxmSongJson(bytes);
@@ -816,7 +848,8 @@ export function createSequenceClock(opts: SequenceClockOpts): SequenceClock {
     const decoded = await loadAudioSpan(url, span, signal, log);
     if (decoded || signal.aborted) return decoded;
     // Browsers without WebCodecs and uploaded song JSON retain their bounded fallback.
-    const full = await fetchAndDecode(url, signal);
+    // A rondocode song renders to the span's end, the length the export mix asks for.
+    const full = await fetchAndDecode(url, signal, span.to);
     if (!full || signal.aborted) return null;
     const from = Math.round(span.from * full.sampleRate);
     const length = Math.min(full.length, Math.round(span.to * full.sampleRate)) - from;
