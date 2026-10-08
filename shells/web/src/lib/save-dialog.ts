@@ -24,6 +24,7 @@
 
 import { mountModal } from '../components/modal.ts';
 import { escape } from '../utils.ts';
+import { offerUserToolSubmit } from './catalog-submit.ts';
 
 export interface SaveDialogFolder { id: string; name: string; }
 /** One template the person already saved for this tool - the "Update ‹name›" targets. */
@@ -388,6 +389,9 @@ export function openSaveDialog(deps: SaveDialogDeps): void {
         await deps.createTool!({ title: title2, description, icon, formats });
         announce(t('Tool created'));
         modal.close();
+        // On a workspace that takes submissions, offer the new tool to the workspace
+        // (lib/catalog-submit.ts). Nothing shows on a plain build.
+        void offerUserToolSubmit(title2, t('Tool created'));
       });
       return;
     }
