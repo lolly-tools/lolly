@@ -7542,5 +7542,18 @@
   "Local folders changed during the move.": "Локальні папки змінилися під час переміщення.",
   "A local session changed during the move.": "Локальний сеанс змінився під час переміщення.",
   "Moving local originals to Trash…": "Переміщення локальних оригіналів у кошик…",
-  "Moved to {project}. Local sessions and folders are in Trash, and uploads stay in Assets.": "Переміщено до {project}. Локальні сеанси й папки в кошику, а завантаження залишаються в Ресурсах."
+  "Moved to {project}. Local sessions and folders are in Trash, and uploads stay in Assets.": "Переміщено до {project}. Локальні сеанси й папки в кошику, а завантаження залишаються в Ресурсах.",
+  "A folder was already shared from this device, so it cannot move again.": "Папку вже було надано у спільний доступ із цього пристрою, тому її не можна перемістити знову.",
+  "Could not change these items. Refresh and try again.": "Не вдалося змінити ці елементи. Оновіть сторінку й повторіть спробу.",
+  "Could not move these items. Refresh and try again.": "Не вдалося перемістити ці елементи. Оновіть сторінку й повторіть спробу.",
+  "File": "Файл",
+  "Move to folder": "Перемістити до папки",
+  "Open shared asset {name}": "Відкрити спільний ресурс {name}",
+  "Open shared folder {name}": "Відкрити спільну папку {name}",
+  "Open shared session {name}": "Відкрити спільну сесію {name}",
+  "Shared asset": "Спільний ресурс",
+  "Shared folder": "Спільна папка",
+  "Shared folders could not be loaded or saved. Check your connection and try again.": "Не вдалося завантажити або зберегти спільні папки. Перевірте з'єднання й повторіть спробу.",
+  "Shared projects could not be loaded. Try again.": "Не вдалося завантажити спільні проєкти. Спробуйте ще раз.",
+  "You can view this project but cannot change its folders.": "Ви можете переглядати цей проєкт, але не можете змінювати його папки."
 }

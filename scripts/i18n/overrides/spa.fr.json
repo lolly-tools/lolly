@@ -1048,5 +1048,18 @@
   "Local folders changed during the move.": "Des dossiers locaux ont changé pendant le déplacement.",
   "A local session changed during the move.": "Une session locale a changé pendant le déplacement.",
   "Moving local originals to Trash…": "Déplacement des originaux locaux vers la Corbeille…",
-  "Moved to {project}. Local sessions and folders are in Trash, and uploads stay in Assets.": "Déplacé vers {project}. Les sessions et dossiers locaux sont dans la Corbeille, et les envois restent dans Éléments."
+  "Moved to {project}. Local sessions and folders are in Trash, and uploads stay in Assets.": "Déplacé vers {project}. Les sessions et dossiers locaux sont dans la Corbeille, et les envois restent dans Éléments.",
+  "A folder was already shared from this device, so it cannot move again.": "Un dossier a déjà été partagé depuis cet appareil, il ne peut donc plus être déplacé.",
+  "Could not change these items. Refresh and try again.": "Impossible de modifier ces éléments. Actualise et réessaie.",
+  "Could not move these items. Refresh and try again.": "Impossible de déplacer ces éléments. Actualise et réessaie.",
+  "File": "Fichier",
+  "Move to folder": "Déplacer vers un dossier",
+  "Open shared asset {name}": "Ouvrir l'élément partagé {name}",
+  "Open shared folder {name}": "Ouvrir le dossier partagé {name}",
+  "Open shared session {name}": "Ouvrir la session partagée {name}",
+  "Shared asset": "Élément partagé",
+  "Shared folder": "Dossier partagé",
+  "Shared folders could not be loaded or saved. Check your connection and try again.": "Impossible de charger ou d'enregistrer les dossiers partagés. Vérifie ta connexion et réessaie.",
+  "Shared projects could not be loaded. Try again.": "Impossible de charger les projets partagés. Réessaie.",
+  "You can view this project but cannot change its folders.": "Tu peux consulter ce projet, mais pas modifier ses dossiers."
 }

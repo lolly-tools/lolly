@@ -222,7 +222,8 @@ export async function moveLocalItemsToTeam(deps: TeamTransferDeps, items: readon
   if (running) { announce(tRaw('Wait for the current move to finish.')); return false; }
   const origin = instance();
   const projects = await readSourceProjects(source);
-  const target: TeamProjectRef | undefined = projects.ok ? projects.items.find(item => item.id === project && canWriteProject(item.myRole)) : undefined;
+  if (!projects.ok) { announce(tRaw('Shared projects could not be loaded. Try again.')); return false; }
+  const target: TeamProjectRef | undefined = projects.items.find(item => item.id === project && canWriteProject(item.myRole));
   if (!target) { announce(tRaw('You cannot save to that shared project.')); return false; }
   const accepted = await confirmDialog({
     title: tRaw('Move to a shared project'),
@@ -242,13 +243,16 @@ export async function moveLocalItemsToTeam(deps: TeamTransferDeps, items: readon
     const bySlot = new Map(rows.map(row => [row.slot, row]));
     const wanted = [...new Map(items.filter(item => isLocalKind(item.kind)).map(item => [item.ref, item])).values()];
     for (const item of wanted) if (item.kind === 'folder' && !folders.some(folder => folder.id === item.ref)) throw new Error(tRaw('A folder is no longer on this device.'));
-    const covered = new Set(wanted.filter(item => item.kind === 'folder').flatMap(item => [item.ref, ...descendantFolderIds(folders, item.ref)]));
+    // Every moving folder and every folder inside one, as this folder list has them.
+    const subtree = (list: readonly Folder[]): Set<string> => new Set(wanted.filter(item => item.kind === 'folder').flatMap(item => [item.ref, ...descendantFolderIds(list, item.ref)]));
+    const covered = subtree(folders);
     // A selected item inside a selected folder travels with that folder.
     const roots = wanted.filter(item => item.kind === 'folder'
       ? !folders.some(folder => covered.has(folder.id) && folder.id !== item.ref && descendantFolderIds(folders, folder.id).includes(item.ref))
       : !folders.some(folder => covered.has(folder.id) && folder.items.some(member => member.ref === item.ref)));
     const inside = folders.filter(folder => covered.has(folder.id));
-    if (inside.some(folder => folder.link || folder.teamCopy)) throw new Error(tRaw('A folder holds a shortcut to a shared project. Move the shortcut out first.'));
+    if (inside.some(folder => folder.link)) throw new Error(tRaw('A folder holds a shortcut to a shared project. Move the shortcut out first.'));
+    if (inside.some(folder => folder.teamCopy)) throw new Error(tRaw('A folder was already shared from this device, so it cannot move again.'));
     const materials: LocalProjectItem[] = [
       ...roots.filter(item => item.kind !== 'folder'),
       ...inside.flatMap(folder => folder.items.map(member => ({ kind: member.type === 'session' ? 'session' as const : 'image' as const, ref: member.ref }))),
@@ -327,8 +331,12 @@ export async function moveLocalItemsToTeam(deps: TeamTransferDeps, items: readon
     };
     for (const item of roots) await copy(item, destination);
     check();
-    // 3. The originals must be as they were when the copies were made.
-    if (JSON.stringify((await deps.store.list()).filter(folder => covered.has(folder.id))) !== folderSnapshot) throw new Error(tRaw('Local folders changed during the move.'));
+    // 3. The originals must be as they were when the copies were made. The subtree is
+    // worked out again, so a folder made inside a moving folder meanwhile, which has
+    // no shared copy, stops the move.
+    const now = await deps.store.list(), coveredNow = subtree(now);
+    if (coveredNow.size !== covered.size || [...coveredNow].some(id => !covered.has(id))
+      || JSON.stringify(now.filter(folder => covered.has(folder.id))) !== folderSnapshot) throw new Error(tRaw('Local folders changed during the move.'));
     for (const [slot, before] of snapshots) if (JSON.stringify(await h.state.load(slot)) !== before) throw new Error(tRaw('A local session changed during the move.'));
     // 4. Only now do the originals leave: sessions and folders to the Trash.
     phase = 'archive';

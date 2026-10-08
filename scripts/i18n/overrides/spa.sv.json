@@ -1040,5 +1040,18 @@
   "Local folders changed during the move.": "Lokala mappar ändrades under flytten.",
   "A local session changed during the move.": "En lokal session ändrades under flytten.",
   "Moving local originals to Trash…": "Flyttar lokala original till papperskorgen…",
-  "Moved to {project}. Local sessions and folders are in Trash, and uploads stay in Assets.": "Flyttat till {project}. Lokala sessioner och mappar ligger i papperskorgen, och uppladdningar finns kvar i Tillgångar."
+  "Moved to {project}. Local sessions and folders are in Trash, and uploads stay in Assets.": "Flyttat till {project}. Lokala sessioner och mappar ligger i papperskorgen, och uppladdningar finns kvar i Tillgångar.",
+  "A folder was already shared from this device, so it cannot move again.": "En mapp har redan delats från den här enheten, så den kan inte flyttas igen.",
+  "Could not change these items. Refresh and try again.": "Det gick inte att ändra objekten. Uppdatera och försök igen.",
+  "Could not move these items. Refresh and try again.": "Det gick inte att flytta objekten. Uppdatera och försök igen.",
+  "File": "Fil",
+  "Move to folder": "Flytta till mapp",
+  "Open shared asset {name}": "Öppna delad tillgång {name}",
+  "Open shared folder {name}": "Öppna delad mapp {name}",
+  "Open shared session {name}": "Öppna delad session {name}",
+  "Shared asset": "Delad tillgång",
+  "Shared folder": "Delad mapp",
+  "Shared folders could not be loaded or saved. Check your connection and try again.": "Det gick inte att läsa in eller spara delade mappar. Kontrollera anslutningen och försök igen.",
+  "Shared projects could not be loaded. Try again.": "Delade projekt kunde inte läsas in. Försök igen.",
+  "You can view this project but cannot change its folders.": "Du kan visa projektet men inte ändra dess mappar."
 }

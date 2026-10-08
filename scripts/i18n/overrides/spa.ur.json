@@ -1048,5 +1048,18 @@
   "Local folders changed during the move.": "منتقلی کے دوران مقامی فولڈرز تبدیل ہو گئے۔",
   "A local session changed during the move.": "منتقلی کے دوران ایک مقامی سیشن تبدیل ہو گیا۔",
   "Moving local originals to Trash…": "مقامی اصل آئٹمز ٹریش میں منتقل کیے جا رہے ہیں…",
-  "Moved to {project}. Local sessions and folders are in Trash, and uploads stay in Assets.": "{project} میں منتقل ہو گیا۔ مقامی سیشنز اور فولڈرز ٹریش میں ہیں، اور اپ لوڈز اثاثے میں رہتے ہیں۔"
+  "Moved to {project}. Local sessions and folders are in Trash, and uploads stay in Assets.": "{project} میں منتقل ہو گیا۔ مقامی سیشنز اور فولڈرز ٹریش میں ہیں، اور اپ لوڈز اثاثے میں رہتے ہیں۔",
+  "A folder was already shared from this device, so it cannot move again.": "ایک فولڈر اس ڈیوائس سے پہلے ہی شیئر کیا جا چکا ہے، اس لیے اسے دوبارہ منتقل نہیں کیا جا سکتا۔",
+  "Could not change these items. Refresh and try again.": "یہ آئٹمز تبدیل نہیں ہو سکے۔ ریفریش کریں اور دوبارہ کوشش کریں۔",
+  "Could not move these items. Refresh and try again.": "یہ آئٹمز منتقل نہیں ہو سکے۔ ریفریش کریں اور دوبارہ کوشش کریں۔",
+  "File": "فائل",
+  "Move to folder": "فولڈر میں منتقل کریں",
+  "Open shared asset {name}": "مشترکہ اثاثہ {name} کھولیں",
+  "Open shared folder {name}": "مشترکہ فولڈر {name} کھولیں",
+  "Open shared session {name}": "مشترکہ سیشن {name} کھولیں",
+  "Shared asset": "مشترکہ اثاثہ",
+  "Shared folder": "مشترکہ فولڈر",
+  "Shared folders could not be loaded or saved. Check your connection and try again.": "مشترکہ فولڈرز لوڈ یا محفوظ نہیں ہو سکے۔ اپنا کنکشن چیک کریں اور دوبارہ کوشش کریں۔",
+  "Shared projects could not be loaded. Try again.": "مشترکہ پراجیکٹس لوڈ نہیں ہو سکے۔ دوبارہ کوشش کریں۔",
+  "You can view this project but cannot change its folders.": "آپ یہ پراجیکٹ دیکھ سکتے ہیں لیکن اس کے فولڈرز تبدیل نہیں کر سکتے۔"
 }

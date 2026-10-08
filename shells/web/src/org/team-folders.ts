@@ -2,6 +2,7 @@
 /** Shared folder references are kept by the instance, independently of each device. */
 import { getInstanceBase, instanceFetch, instancePath } from '../lib/instance.ts';
 import { tRaw } from '../i18n.ts';
+import { isRecord } from '../lib/util/guards.ts';
 
 export interface TeamFolder {
   id: string; projectId: string; parentId: string | null; name: string; createdAt: string;
@@ -55,10 +56,17 @@ export function validTeamFolders(projectId: string, value: unknown): value is Te
   }
   return true;
 }
+/** Leave out folder members of a kind this shell does not know, such as one a newer
+ *  instance adds. They stay where they are on the instance, and the rest of the tree
+ *  still shows. A member without a string kind and ref is still a broken answer. */
+function knownMembers(value: unknown): unknown {
+  const unknownKind = (item: unknown): boolean => isRecord(item) && typeof item.kind === 'string' && typeof item.ref === 'string' && item.kind !== 'session' && item.kind !== 'file';
+  return Array.isArray(value) ? value.map(folder => isRecord(folder) && Array.isArray(folder.items) ? { ...folder, items: folder.items.filter(item => !unknownKind(item)) } : folder) : value;
+}
 export async function listTeamFolders(projectId: string): Promise<TeamFolder[]> {
-  const data = await request(projectId);
-  if (!validTeamFolders(projectId, data.folders)) throw new TeamFolderError(0);
-  return data.folders;
+  const folders = knownMembers((await request(projectId)).folders);
+  if (!validTeamFolders(projectId, folders)) throw new TeamFolderError(0);
+  return folders;
 }
 export async function createTeamFolder(projectId: string, name: string, parentId: string | null): Promise<TeamFolder> {
   const data = await request(projectId, '', 'POST', { name, parentId });

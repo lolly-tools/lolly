@@ -7542,5 +7542,18 @@
   "Local folders changed during the move.": "移動期間本機資料夾發生了變化。",
   "A local session changed during the move.": "移動期間本機工作階段發生了變化。",
   "Moving local originals to Trash…": "正在將本機原件移到垃圾桶…",
-  "Moved to {project}. Local sessions and folders are in Trash, and uploads stay in Assets.": "已移至 {project}。本機工作階段和資料夾在垃圾桶中，上傳的檔案仍留在素材中。"
+  "Moved to {project}. Local sessions and folders are in Trash, and uploads stay in Assets.": "已移至 {project}。本機工作階段和資料夾在垃圾桶中，上傳的檔案仍留在素材中。",
+  "A folder was already shared from this device, so it cannot move again.": "有個資料夾已從這部裝置共用，因此無法再次移動。",
+  "Could not change these items. Refresh and try again.": "無法變更這些項目。請重新整理後再試一次。",
+  "Could not move these items. Refresh and try again.": "無法移動這些項目。請重新整理後再試一次。",
+  "File": "檔案",
+  "Move to folder": "移至資料夾",
+  "Open shared asset {name}": "開啟共用素材 {name}",
+  "Open shared folder {name}": "開啟共用資料夾 {name}",
+  "Open shared session {name}": "開啟共用工作階段 {name}",
+  "Shared asset": "共用素材",
+  "Shared folder": "共用資料夾",
+  "Shared folders could not be loaded or saved. Check your connection and try again.": "無法載入或儲存共用資料夾。請檢查連線後再試一次。",
+  "Shared projects could not be loaded. Try again.": "無法載入共用專案。請再試一次。",
+  "You can view this project but cannot change its folders.": "你可以檢視此專案，但無法變更其中的資料夾。"
 }

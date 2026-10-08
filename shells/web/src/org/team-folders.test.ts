@@ -34,6 +34,13 @@ test('the folder list refuses broken trees and keeps failures, rather than showi
     if (value === folders) assert.equal(got, 'ok');
     else assert.ok(got instanceof TeamFolderError && got.status === 0, JSON.stringify(value));
   }
+  // A member kind this shell does not know is left out; a malformed member still breaks the list.
+  const later = [{ ...folders[0], items: [{ kind: 'session', ref: 's' }, { kind: 'board', ref: 'x' }] }];
+  assert.deepEqual(await withFetch(async () => Response.json({ folders: later }), () => listTeamFolders('p')), [folders[0]]);
+  for (const items of [[{ kind: 'session' }], [{ kind: 7, ref: 'x' }], [null]]) {
+    const broken = await withFetch(async () => Response.json({ folders: [{ ...folders[0], items }] }), () => listTeamFolders('p').catch((error: unknown) => error));
+    assert.ok(broken instanceof TeamFolderError && broken.status === 0, JSON.stringify(items));
+  }
   const refused = await withFetch(async () => new Response(null, { status: 403 }), () => listTeamFolders('p').catch((error: unknown) => error));
   assert.ok(refused instanceof TeamFolderError && refused.status === 403);
   assert.match((refused as Error).message, /cannot change its folders/);

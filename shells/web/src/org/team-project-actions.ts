@@ -193,7 +193,11 @@ export function mountTeamProjectActions(o: Options): () => void {
           }
         }
       }
-    } catch (error) { if (o.current()) o.notice(error instanceof TeamFileError ? teamFileMessage(error, 'delete') : error instanceof Error ? error.message : tRaw('Could not change these items. Refresh and try again.')); }
+    } catch (error) {
+      // A failed download reads as a download, not as a refused delete.
+      const fileAction = action === 'delete' ? 'delete' : action === 'duplicate' ? 'upload' : 'read';
+      if (o.current()) o.notice(error instanceof TeamFileError ? teamFileMessage(error, fileAction) : error instanceof Error ? error.message : tRaw('Could not change these items. Refresh and try again.'));
+    }
     finally { busy = false; if (o.current()) { paint(); if (changed || action === 'duplicate') o.reload(); } }
   }
 

@@ -1183,5 +1183,18 @@
   "Local folders changed during the move.": "تغيّرت المجلدات المحلية أثناء النقل.",
   "A local session changed during the move.": "تغيّرت جلسة محلية أثناء النقل.",
   "Moving local originals to Trash…": "جارٍ نقل النسخ الأصلية المحلية إلى سلة المهملات…",
-  "Moved to {project}. Local sessions and folders are in Trash, and uploads stay in Assets.": "تم النقل إلى {project}. الجلسات والمجلدات المحلية في سلة المهملات، وتبقى الملفات المرفوعة في الأصول."
+  "Moved to {project}. Local sessions and folders are in Trash, and uploads stay in Assets.": "تم النقل إلى {project}. الجلسات والمجلدات المحلية في سلة المهملات، وتبقى الملفات المرفوعة في الأصول.",
+  "A folder was already shared from this device, so it cannot move again.": "سبقت مشاركة أحد المجلدات من هذا الجهاز، لذا لا يمكن نقله مرة أخرى.",
+  "Could not change these items. Refresh and try again.": "تعذر تغيير هذه العناصر. حدّث الصفحة وحاول مرة أخرى.",
+  "Could not move these items. Refresh and try again.": "تعذر نقل هذه العناصر. حدّث الصفحة وحاول مرة أخرى.",
+  "File": "ملف",
+  "Move to folder": "نقل إلى مجلد",
+  "Open shared asset {name}": "فتح الأصل المشترك {name}",
+  "Open shared folder {name}": "فتح المجلد المشترك {name}",
+  "Open shared session {name}": "فتح الجلسة المشتركة {name}",
+  "Shared asset": "أصل مشترك",
+  "Shared folder": "مجلد مشترك",
+  "Shared folders could not be loaded or saved. Check your connection and try again.": "تعذر تحميل المجلدات المشتركة أو حفظها. تحقق من اتصالك وحاول مرة أخرى.",
+  "Shared projects could not be loaded. Try again.": "تعذر تحميل المشاريع المشتركة. حاول مرة أخرى.",
+  "You can view this project but cannot change its folders.": "يمكنك عرض هذا المشروع لكن لا يمكنك تغيير مجلداته."
 }

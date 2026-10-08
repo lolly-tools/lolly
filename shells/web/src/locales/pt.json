@@ -7542,5 +7542,18 @@
   "Local folders changed during the move.": "As pastas locais mudaram durante a movimentação.",
   "A local session changed during the move.": "Uma sessão local mudou durante a movimentação.",
   "Moving local originals to Trash…": "Movendo os originais locais para a Lixeira…",
-  "Moved to {project}. Local sessions and folders are in Trash, and uploads stay in Assets.": "Movido para {project}. As sessões e pastas locais estão na Lixeira, e os uploads continuam em Ativos."
+  "Moved to {project}. Local sessions and folders are in Trash, and uploads stay in Assets.": "Movido para {project}. As sessões e pastas locais estão na Lixeira, e os uploads continuam em Ativos.",
+  "A folder was already shared from this device, so it cannot move again.": "Uma pasta já foi compartilhada a partir deste dispositivo, por isso não pode ser movida de novo.",
+  "Could not change these items. Refresh and try again.": "Não foi possível alterar estes itens. Atualize e tente novamente.",
+  "Could not move these items. Refresh and try again.": "Não foi possível mover estes itens. Atualize e tente novamente.",
+  "File": "Arquivo",
+  "Move to folder": "Mover para pasta",
+  "Open shared asset {name}": "Abrir o ativo compartilhado {name}",
+  "Open shared folder {name}": "Abrir a pasta compartilhada {name}",
+  "Open shared session {name}": "Abrir a sessão compartilhada {name}",
+  "Shared asset": "Ativo compartilhado",
+  "Shared folder": "Pasta compartilhada",
+  "Shared folders could not be loaded or saved. Check your connection and try again.": "Não foi possível carregar nem salvar as pastas compartilhadas. Verifique sua conexão e tente novamente.",
+  "Shared projects could not be loaded. Try again.": "Não foi possível carregar os projetos compartilhados. Tente novamente.",
+  "You can view this project but cannot change its folders.": "Você pode ver este projeto, mas não pode alterar as pastas dele."
 }

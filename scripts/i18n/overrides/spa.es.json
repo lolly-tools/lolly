@@ -1048,5 +1048,18 @@
   "Local folders changed during the move.": "Las carpetas locales cambiaron durante el movimiento.",
   "A local session changed during the move.": "Una sesión local cambió durante el movimiento.",
   "Moving local originals to Trash…": "Moviendo los originales locales a la Papelera…",
-  "Moved to {project}. Local sessions and folders are in Trash, and uploads stay in Assets.": "Movido a {project}. Las sesiones y carpetas locales están en la Papelera, y las cargas siguen en Recursos."
+  "Moved to {project}. Local sessions and folders are in Trash, and uploads stay in Assets.": "Movido a {project}. Las sesiones y carpetas locales están en la Papelera, y las cargas siguen en Recursos.",
+  "A folder was already shared from this device, so it cannot move again.": "Una carpeta ya se compartió desde este dispositivo, así que no se puede volver a mover.",
+  "Could not change these items. Refresh and try again.": "No se pudieron cambiar estos elementos. Actualiza e inténtalo de nuevo.",
+  "Could not move these items. Refresh and try again.": "No se pudieron mover estos elementos. Actualiza e inténtalo de nuevo.",
+  "File": "Archivo",
+  "Move to folder": "Mover a carpeta",
+  "Open shared asset {name}": "Abrir el recurso compartido {name}",
+  "Open shared folder {name}": "Abrir la carpeta compartida {name}",
+  "Open shared session {name}": "Abrir la sesión compartida {name}",
+  "Shared asset": "Recurso compartido",
+  "Shared folder": "Carpeta compartida",
+  "Shared folders could not be loaded or saved. Check your connection and try again.": "No se pudieron cargar ni guardar las carpetas compartidas. Comprueba tu conexión e inténtalo de nuevo.",
+  "Shared projects could not be loaded. Try again.": "No se pudieron cargar los proyectos compartidos. Inténtalo de nuevo.",
+  "You can view this project but cannot change its folders.": "Puedes ver este proyecto, pero no cambiar sus carpetas."
 }

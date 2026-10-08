@@ -7542,5 +7542,18 @@
   "Local folders changed during the move.": "이동하는 동안 로컬 폴더가 변경되었어요.",
   "A local session changed during the move.": "이동하는 동안 로컬 세션이 변경되었어요.",
   "Moving local originals to Trash…": "로컬 원본을 휴지통으로 이동하는 중…",
-  "Moved to {project}. Local sessions and folders are in Trash, and uploads stay in Assets.": "{project}(으)로 이동했어요. 로컬 세션과 폴더는 휴지통에 있고, 업로드한 파일은 애셋에 남아 있어요."
+  "Moved to {project}. Local sessions and folders are in Trash, and uploads stay in Assets.": "{project}(으)로 이동했어요. 로컬 세션과 폴더는 휴지통에 있고, 업로드한 파일은 애셋에 남아 있어요.",
+  "A folder was already shared from this device, so it cannot move again.": "이 기기에서 이미 공유한 폴더라서 다시 옮길 수 없어요.",
+  "Could not change these items. Refresh and try again.": "이 항목을 변경하지 못했어요. 새로고침한 뒤 다시 시도하세요.",
+  "Could not move these items. Refresh and try again.": "이 항목을 이동하지 못했어요. 새로고침한 뒤 다시 시도하세요.",
+  "File": "파일",
+  "Move to folder": "폴더로 이동",
+  "Open shared asset {name}": "공유 애셋 {name} 열기",
+  "Open shared folder {name}": "공유 폴더 {name} 열기",
+  "Open shared session {name}": "공유 세션 {name} 열기",
+  "Shared asset": "공유 애셋",
+  "Shared folder": "공유 폴더",
+  "Shared folders could not be loaded or saved. Check your connection and try again.": "공유 폴더를 불러오거나 저장하지 못했어요. 연결을 확인한 뒤 다시 시도하세요.",
+  "Shared projects could not be loaded. Try again.": "공유 프로젝트를 불러오지 못했어요. 다시 시도하세요.",
+  "You can view this project but cannot change its folders.": "이 프로젝트를 볼 수는 있지만 폴더를 변경할 수는 없어요."
 }

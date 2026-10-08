@@ -7542,5 +7542,18 @@
   "Local folders changed during the move.": "Lokale mapper ble endret under flyttingen.",
   "A local session changed during the move.": "En lokal økt ble endret under flyttingen.",
   "Moving local originals to Trash…": "Flytter lokale originaler til papirkurven…",
-  "Moved to {project}. Local sessions and folders are in Trash, and uploads stay in Assets.": "Flyttet til {project}. Lokale økter og mapper ligger i papirkurven, og opplastinger blir i Ressurser."
+  "Moved to {project}. Local sessions and folders are in Trash, and uploads stay in Assets.": "Flyttet til {project}. Lokale økter og mapper ligger i papirkurven, og opplastinger blir i Ressurser.",
+  "A folder was already shared from this device, so it cannot move again.": "En mappe er allerede delt fra denne enheten, så den kan ikke flyttes igjen.",
+  "Could not change these items. Refresh and try again.": "Kunne ikke endre disse elementene. Oppdater og prøv igjen.",
+  "Could not move these items. Refresh and try again.": "Kunne ikke flytte disse elementene. Oppdater og prøv igjen.",
+  "File": "Fil",
+  "Move to folder": "Flytt til mappe",
+  "Open shared asset {name}": "Åpne delt ressurs {name}",
+  "Open shared folder {name}": "Åpne delt mappe {name}",
+  "Open shared session {name}": "Åpne delt økt {name}",
+  "Shared asset": "Delt ressurs",
+  "Shared folder": "Delt mappe",
+  "Shared folders could not be loaded or saved. Check your connection and try again.": "Delte mapper kunne ikke lastes inn eller lagres. Sjekk tilkoblingen og prøv igjen.",
+  "Shared projects could not be loaded. Try again.": "Delte prosjekter kunne ikke lastes inn. Prøv igjen.",
+  "You can view this project but cannot change its folders.": "Du kan se dette prosjektet, men ikke endre mappene i det."
 }

@@ -7542,5 +7542,18 @@
   "Local folders changed during the move.": "Локалните папки се промениха по време на преместването.",
   "A local session changed during the move.": "Локална сесия се промени по време на преместването.",
   "Moving local originals to Trash…": "Преместване на локалните оригинали в кошчето…",
-  "Moved to {project}. Local sessions and folders are in Trash, and uploads stay in Assets.": "Преместено в {project}. Локалните сесии и папки са в кошчето, а качените файлове остават в Активи."
+  "Moved to {project}. Local sessions and folders are in Trash, and uploads stay in Assets.": "Преместено в {project}. Локалните сесии и папки са в кошчето, а качените файлове остават в Активи.",
+  "A folder was already shared from this device, so it cannot move again.": "Папка вече е споделена от това устройство, затова не може да бъде преместена отново.",
+  "Could not change these items. Refresh and try again.": "Тези елементи не можаха да бъдат променени. Опресни и опитай отново.",
+  "Could not move these items. Refresh and try again.": "Тези елементи не можаха да бъдат преместени. Опресни и опитай отново.",
+  "File": "Файл",
+  "Move to folder": "Премести в папка",
+  "Open shared asset {name}": "Отвори споделения актив {name}",
+  "Open shared folder {name}": "Отвори споделената папка {name}",
+  "Open shared session {name}": "Отвори споделената сесия {name}",
+  "Shared asset": "Споделен актив",
+  "Shared folder": "Споделена папка",
+  "Shared folders could not be loaded or saved. Check your connection and try again.": "Споделените папки не можаха да бъдат заредени или запазени. Провери връзката си и опитай отново.",
+  "Shared projects could not be loaded. Try again.": "Споделените проекти не можаха да бъдат заредени. Опитай отново.",
+  "You can view this project but cannot change its folders.": "Можеш да разглеждаш този проект, но не и да променяш папките му."
 }

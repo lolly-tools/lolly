@@ -7542,5 +7542,18 @@
   "Local folders changed during the move.": "Folder lokal berubah selama pemindahan.",
   "A local session changed during the move.": "Sebuah sesi lokal berubah selama pemindahan.",
   "Moving local originals to Trash…": "Memindahkan item asli lokal ke Sampah…",
-  "Moved to {project}. Local sessions and folders are in Trash, and uploads stay in Assets.": "Dipindahkan ke {project}. Sesi dan folder lokal ada di Sampah, dan unggahan tetap di Aset."
+  "Moved to {project}. Local sessions and folders are in Trash, and uploads stay in Assets.": "Dipindahkan ke {project}. Sesi dan folder lokal ada di Sampah, dan unggahan tetap di Aset.",
+  "A folder was already shared from this device, so it cannot move again.": "Sebuah folder sudah dibagikan dari perangkat ini, jadi tidak dapat dipindahkan lagi.",
+  "Could not change these items. Refresh and try again.": "Tidak dapat mengubah item ini. Muat ulang lalu coba lagi.",
+  "Could not move these items. Refresh and try again.": "Tidak dapat memindahkan item ini. Muat ulang lalu coba lagi.",
+  "File": "File",
+  "Move to folder": "Pindahkan ke folder",
+  "Open shared asset {name}": "Buka aset bersama {name}",
+  "Open shared folder {name}": "Buka folder bersama {name}",
+  "Open shared session {name}": "Buka sesi bersama {name}",
+  "Shared asset": "Aset bersama",
+  "Shared folder": "Folder bersama",
+  "Shared folders could not be loaded or saved. Check your connection and try again.": "Folder bersama tidak dapat dimuat atau disimpan. Periksa koneksi Anda lalu coba lagi.",
+  "Shared projects could not be loaded. Try again.": "Proyek bersama tidak dapat dimuat. Coba lagi.",
+  "You can view this project but cannot change its folders.": "Anda dapat melihat proyek ini, tetapi tidak dapat mengubah foldernya."
 }

@@ -7542,5 +7542,18 @@
   "Local folders changed during the move.": "Lokalne foldery zmieniły się podczas przenoszenia.",
   "A local session changed during the move.": "Lokalna sesja zmieniła się podczas przenoszenia.",
   "Moving local originals to Trash…": "Przenoszenie lokalnych oryginałów do kosza…",
-  "Moved to {project}. Local sessions and folders are in Trash, and uploads stay in Assets.": "Przeniesiono do: {project}. Lokalne sesje i foldery są w koszu, a przesłane pliki zostają w Zasobach."
+  "Moved to {project}. Local sessions and folders are in Trash, and uploads stay in Assets.": "Przeniesiono do: {project}. Lokalne sesje i foldery są w koszu, a przesłane pliki zostają w Zasobach.",
+  "A folder was already shared from this device, so it cannot move again.": "Folder został już udostępniony z tego urządzenia, więc nie można go ponownie przenieść.",
+  "Could not change these items. Refresh and try again.": "Nie udało się zmienić tych elementów. Odśwież i spróbuj ponownie.",
+  "Could not move these items. Refresh and try again.": "Nie udało się przenieść tych elementów. Odśwież i spróbuj ponownie.",
+  "File": "Plik",
+  "Move to folder": "Przenieś do folderu",
+  "Open shared asset {name}": "Otwórz udostępniony zasób {name}",
+  "Open shared folder {name}": "Otwórz udostępniony folder {name}",
+  "Open shared session {name}": "Otwórz udostępnioną sesję {name}",
+  "Shared asset": "Udostępniony zasób",
+  "Shared folder": "Udostępniony folder",
+  "Shared folders could not be loaded or saved. Check your connection and try again.": "Nie udało się wczytać ani zapisać udostępnionych folderów. Sprawdź połączenie i spróbuj ponownie.",
+  "Shared projects could not be loaded. Try again.": "Nie udało się wczytać udostępnionych projektów. Spróbuj ponownie.",
+  "You can view this project but cannot change its folders.": "Możesz przeglądać ten projekt, ale nie możesz zmieniać jego folderów."
 }

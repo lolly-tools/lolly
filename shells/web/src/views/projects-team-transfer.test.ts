@@ -7,7 +7,9 @@ import { __resetJobsForTest, jobsSnapshot } from '../lib/jobs.ts';
 import { createFolderStore } from '../folders.ts';
 import { createTrash } from '../lib/trash.ts';
 import { registerSessionSource, type SessionSource } from '../lib/session-source.ts';
-import { isLocalItemsDrag, LOCAL_ITEMS_MIME, localDragItems, moveLocalItemsToTeam, type LocalProjectItem } from './projects-team-transfer.ts';
+import { isLocalItemsDrag, LOCAL_ITEMS_MIME, localDragItems, moveLocalItemsToTeam, wireLocalTeamDrops, type LocalProjectItem } from './projects-team-transfer.ts';
+import { createSharedProjectsView, teamProjectTiles } from './projects-team.ts';
+import type { Folder } from '../folders.ts';
 
 interface Options {
   /** Refuse the nth session write. */
@@ -16,6 +18,12 @@ interface Options {
   editDuring?: string;
   /** Extra items to move besides the Campaign folder. */
   extra?: LocalProjectItem[];
+  /** Make a new folder inside Campaign while the shared copies are being written. */
+  folderDuring?: boolean;
+  /** Mark Drafts as a folder already shared from this device. */
+  sharedBefore?: boolean;
+  /** The shared project list cannot be read. */
+  projectsFail?: boolean;
 }
 
 async function fixture(o: Options = {}) {
@@ -36,11 +44,14 @@ async function fixture(o: Options = {}) {
   const store = createFolderStore(host), trash = createTrash(host);
   const root = await store.create('Campaign'), child = await store.create('Drafts', root.id);
   await store.moveItem('s1', root.id, 'session'); await store.moveItem('s2', child.id, 'session');
-  const source: SessionSource = { label: 'Workspace', listProjects: async () => [{ id: 'p', name: 'Team', myRole: 'editor' }], listSessions: async () => [], fetchSession: async () => null,
+  if (o.sharedBefore) await store.setTeamCopy(child.id, { instance: 'https://instance.test', projectId: 'p', complete: true, copied: {} });
+  const source: SessionSource = { label: 'Workspace', listSessions: async () => [], fetchSession: async () => null,
+    listProjects: async () => { if (o.projectsFail) throw new Error('offline'); return [{ id: 'p', name: 'Team', myRole: 'editor' }]; },
     write: { projectOptions: () => ({ canCreate: true, canShareFiles: true, groups: [] }), createProject: async () => ({ kind: 'error', status: 500 }), updateSession: async () => ({ kind: 'error', status: 500 }),
       createSession: async (project, data) => {
         writes.push({ project, title: data.inputs.title, meta: data.meta });
         if (o.editDuring && writes.length === 1) records.set(o.editDuring, { ...records.get(o.editDuring), title: 'Edited meanwhile' });
+        if (o.folderDuring && writes.length === 1) await store.create('Late', root.id);
         return o.failWrite === writes.length ? { kind: 'error', status: 503 } : { kind: 'saved', id: `shared-${writes.length}`, rev: 1 };
       } },
   };
@@ -61,6 +72,18 @@ async function fixture(o: Options = {}) {
   return { records, deleted, writes, memberships, before, after: JSON.stringify(await store.list()), profile, success, jobs: jobsSnapshot(), hash: w.location.hash,
     close: () => { __resetJobsForTest(); unregister(); globalThis.fetch = originalFetch; w.close(); } };
 }
+
+// First in the file: a11y.ts makes its live region on first use, in the document of
+// the moment, so this test must announce before any other test does.
+test('an unreadable shared project list stops the move before the question is asked', async () => {
+  const f = await fixture({ projectsFail: true });
+  try {
+    assert.equal(f.success, false); assert.equal(f.writes.length, 0); assert.deepEqual(f.deleted, []); assert.equal(f.after, f.before);
+    assert.equal(f.jobs.length, 0);
+    await new Promise(resolve => setTimeout(resolve, 50));
+    assert.ok([...document.querySelectorAll('[aria-live]')].some(region => region.textContent === 'Shared projects could not be loaded. Try again.'));
+  } finally { f.close(); }
+});
 
 test('a refused shared write keeps the whole local tree and its saved sessions', async () => {
   const f = await fixture({ failWrite: 2 });
@@ -95,6 +118,25 @@ test('a session edited during the move keeps every local original, and the share
   } finally { f.close(); }
 });
 
+test('a folder made inside a moving folder during the move keeps every local original', async () => {
+  const f = await fixture({ folderDuring: true });
+  try {
+    assert.equal(f.success, false); assert.equal(f.writes.length, 2); assert.deepEqual(f.deleted, []);
+    const after = JSON.parse(f.after) as Array<{ name: string }>;
+    assert.deepEqual(after.map(folder => folder.name).sort(), ['Campaign', 'Drafts', 'Late']);
+    assert.equal(f.profile.trash, undefined, 'nothing went to Trash');
+    assert.match(f.jobs[0]!.error!, /Local folders changed during the move\. 2 items were saved to the shared project\. Your local items have not changed\./);
+  } finally { f.close(); }
+});
+
+test('a folder already shared from this device stops the move with its own reason', async () => {
+  const f = await fixture({ sharedBefore: true });
+  try {
+    assert.equal(f.success, false); assert.equal(f.writes.length, 0); assert.deepEqual(f.deleted, []);
+    assert.match(f.jobs[0]!.error!, /^A folder was already shared from this device, so it cannot move again\. Your local items have not changed\.$/);
+  } finally { f.close(); }
+});
+
 test('a catalog picture stops the move before anything is written', async () => {
   const f = await fixture({ extra: [{ kind: 'image', ref: 'lolly/logo/primary' }] });
   try {
@@ -102,6 +144,54 @@ test('a catalog picture stops the move before anything is written', async () => 
     assert.deepEqual(f.deleted, []); assert.equal(f.after, f.before);
     assert.match(f.jobs[0]!.error!, /catalog image cannot move.*Your local items have not changed\./);
   } finally { f.close(); }
+});
+
+test('only a shared project or shortcut the person may write to takes a drop of local tiles', async () => {
+  const dom = new JSDOM('<body></body>', { url: 'https://instance.test/#/p', pretendToBeVisual: true });
+  const w = dom.window;
+  Object.assign(globalThis, { window: w, document: w.document, location: w.location, Element: w.Element, HTMLElement: w.HTMLElement, HTMLDialogElement: w.HTMLDialogElement, Node: w.Node, localStorage: w.localStorage, AbortController: w.AbortController, requestAnimationFrame: w.requestAnimationFrame.bind(w) });
+  w.HTMLDialogElement.prototype.showModal = function () { this.open = true; };
+  w.HTMLDialogElement.prototype.close = function () { this.open = false; };
+  const projects = [{ id: 'mine', name: 'Mine', myRole: 'editor' as const }, { id: 'look', name: 'Look only', myRole: 'viewer' as const }];
+  let reads = 0;
+  const unregister = registerSessionSource({ label: 'Workspace', listSessions: async () => [], fetchSession: async () => null,
+    listProjects: async () => { reads++; return projects; },
+    write: { projectOptions: () => ({ canCreate: true, canShareFiles: true, groups: [] }), createProject: async () => ({ kind: 'error', status: 500 }), updateSession: async () => ({ kind: 'error', status: 500 }), createSession: async () => ({ kind: 'error', status: 500 }) } });
+  const shortcut = (id: string, projectId: string): Folder => ({ id, name: `Shortcut ${projectId}`, items: [], createdAt: '', updatedAt: '', link: { instance: 'https://instance.test', projectId } });
+  const view = document.createElement('div');
+  const shared = createSharedProjectsView({ host: {} as HostV1, toolName: id => id, beforeNavigate() {}, isMounted: () => true }, view, '', () => {});
+  try {
+    await shared.refresh();
+    const folders = [shortcut('l1', 'mine'), shortcut('l2', 'look')];
+    shared.folders(folders);
+    const root = document.createElement('div');
+    root.innerHTML = `<div id="own">${teamProjectTiles(projects)}</div><div id="links">${folders.map(folder => shared.folderTile(folder, {})).join('')}</div>`;
+    document.body.append(root);
+    const writable = (box: string) => [...root.querySelectorAll<HTMLElement>(`#${box} .folder-tile`)].map(tile => [tile.dataset.ref, tile.dataset.teamWritable]);
+    assert.deepEqual(writable('own'), [['mine', 'true'], ['look', 'false']]);
+    // A shortcut (lolly plan 299) is drawn as its project and carries the same answer.
+    assert.deepEqual(writable('links'), [['mine', 'true'], ['look', 'false']]);
+    wireLocalTeamDrops(root, { host: {} as HostV1, store: { list: async () => [], moveItem: async () => {} }, trash: { trashSessions: async () => {}, trashFolder: async () => {} }, mounted: () => true });
+    const drag = (type: string, target: Element) => {
+      const event = new w.Event(type, { bubbles: true, cancelable: true });
+      Object.defineProperty(event, 'dataTransfer', { value: { types: [LOCAL_ITEMS_MIME], dropEffect: 'none', getData: (kind: string) => kind === LOCAL_ITEMS_MIME ? JSON.stringify([{ kind: 'session', ref: 's1' }]) : '' } });
+      target.dispatchEvent(event);
+      return event.defaultPrevented;
+    };
+    for (const box of ['own', 'links']) {
+      const [mine, look] = root.querySelectorAll<HTMLElement>(`#${box} .folder-tile`);
+      assert.equal(drag('dragover', mine!), true, `${box}: a writable tile takes the drag`);
+      assert.equal(drag('dragover', look!), false, `${box}: a read-only tile does not`);
+      const before = reads;
+      assert.equal(drag('drop', look!), false); await new Promise(resolve => setTimeout(resolve, 0));
+      assert.equal(reads, before, `${box}: a drop on a read-only tile starts no move`);
+      assert.equal(document.querySelector('[data-act="ok"]'), null);
+    }
+    // A drop on a writable tile does start a move, which asks first.
+    assert.equal(drag('drop', root.querySelector('#own .folder-tile')!), true);
+    for (let n = 0; n < 50 && !document.querySelector('[data-act="cancel"]'); n++) await new Promise(resolve => setTimeout(resolve, 0));
+    document.querySelector<HTMLButtonElement>('[data-act="cancel"]')!.click();
+  } finally { shared.dispose(); unregister(); __resetJobsForTest(); w.close(); }
 });
 
 test('a drag reads its own items, and a desktop file drag is not a local move', () => {

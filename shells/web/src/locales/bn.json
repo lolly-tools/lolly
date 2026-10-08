@@ -7542,5 +7542,18 @@
   "Local folders changed during the move.": "সরানোর সময় স্থানীয় ফোল্ডার বদলে গেছে।",
   "A local session changed during the move.": "সরানোর সময় একটি স্থানীয় সেশন বদলে গেছে।",
   "Moving local originals to Trash…": "স্থানীয় মূল কপি ট্র্যাশে সরানো হচ্ছে…",
-  "Moved to {project}. Local sessions and folders are in Trash, and uploads stay in Assets.": "{project}-এ সরানো হয়েছে। স্থানীয় সেশন ও ফোল্ডার ট্র্যাশে আছে, আর আপলোড অ্যাসেটে থাকে।"
+  "Moved to {project}. Local sessions and folders are in Trash, and uploads stay in Assets.": "{project}-এ সরানো হয়েছে। স্থানীয় সেশন ও ফোল্ডার ট্র্যাশে আছে, আর আপলোড অ্যাসেটে থাকে।",
+  "A folder was already shared from this device, so it cannot move again.": "একটি ফোল্ডার আগেই এই ডিভাইস থেকে শেয়ার করা হয়েছে, তাই সেটি আর সরানো যাবে না।",
+  "Could not change these items. Refresh and try again.": "এই আইটেমগুলো বদলানো যায়নি। রিফ্রেশ করে আবার চেষ্টা করুন।",
+  "Could not move these items. Refresh and try again.": "এই আইটেমগুলো সরানো যায়নি। রিফ্রেশ করে আবার চেষ্টা করুন।",
+  "File": "ফাইল",
+  "Move to folder": "ফোল্ডারে সরান",
+  "Open shared asset {name}": "শেয়ার করা অ্যাসেট {name} খুলুন",
+  "Open shared folder {name}": "শেয়ার করা ফোল্ডার {name} খুলুন",
+  "Open shared session {name}": "শেয়ার করা সেশন {name} খুলুন",
+  "Shared asset": "শেয়ার করা অ্যাসেট",
+  "Shared folder": "শেয়ার করা ফোল্ডার",
+  "Shared folders could not be loaded or saved. Check your connection and try again.": "শেয়ার করা ফোল্ডারগুলো লোড বা সংরক্ষণ করা যায়নি। আপনার সংযোগ দেখে আবার চেষ্টা করুন।",
+  "Shared projects could not be loaded. Try again.": "শেয়ার করা প্রজেক্টগুলো লোড করা যায়নি। আবার চেষ্টা করুন।",
+  "You can view this project but cannot change its folders.": "আপনি এই প্রজেক্ট দেখতে পারেন, কিন্তু এর ফোল্ডার বদলাতে পারবেন না।"
 }

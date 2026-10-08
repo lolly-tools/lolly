@@ -1048,5 +1048,18 @@
   "Local folders changed during the move.": "移动期间本地文件夹发生了变化。",
   "A local session changed during the move.": "移动期间本地会话发生了变化。",
   "Moving local originals to Trash…": "正在将本地原件移到回收站…",
-  "Moved to {project}. Local sessions and folders are in Trash, and uploads stay in Assets.": "已移动到 {project}。本地会话和文件夹在回收站中，上传的文件仍留在素材中。"
+  "Moved to {project}. Local sessions and folders are in Trash, and uploads stay in Assets.": "已移动到 {project}。本地会话和文件夹在回收站中，上传的文件仍留在素材中。",
+  "A folder was already shared from this device, so it cannot move again.": "有个文件夹已从此设备共享，因此无法再次移动。",
+  "Could not change these items. Refresh and try again.": "无法更改这些项目。请刷新后重试。",
+  "Could not move these items. Refresh and try again.": "无法移动这些项目。请刷新后重试。",
+  "File": "文件",
+  "Move to folder": "移动到文件夹",
+  "Open shared asset {name}": "打开共享素材 {name}",
+  "Open shared folder {name}": "打开共享文件夹 {name}",
+  "Open shared session {name}": "打开共享会话 {name}",
+  "Shared asset": "共享素材",
+  "Shared folder": "共享文件夹",
+  "Shared folders could not be loaded or saved. Check your connection and try again.": "无法加载或保存共享文件夹。请检查网络连接后重试。",
+  "Shared projects could not be loaded. Try again.": "无法加载共享项目。请重试。",
+  "You can view this project but cannot change its folders.": "你可以查看此项目，但无法更改其中的文件夹。"
 }

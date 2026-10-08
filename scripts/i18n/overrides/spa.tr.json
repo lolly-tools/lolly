@@ -1176,5 +1176,18 @@
   "Local folders changed during the move.": "Yerel klasörler taşıma sırasında değişti.",
   "A local session changed during the move.": "Yerel bir oturum taşıma sırasında değişti.",
   "Moving local originals to Trash…": "Yerel özgün dosyalar çöp kutusuna taşınıyor…",
-  "Moved to {project}. Local sessions and folders are in Trash, and uploads stay in Assets.": "{project} projesine taşındı. Yerel oturumlar ve klasörler çöp kutusunda, yüklemeler ise Varlıklar'da kalır."
+  "Moved to {project}. Local sessions and folders are in Trash, and uploads stay in Assets.": "{project} projesine taşındı. Yerel oturumlar ve klasörler çöp kutusunda, yüklemeler ise Varlıklar'da kalır.",
+  "A folder was already shared from this device, so it cannot move again.": "Bir klasör bu cihazdan zaten paylaşıldı, bu yüzden yeniden taşınamaz.",
+  "Could not change these items. Refresh and try again.": "Bu öğeler değiştirilemedi. Yenileyip tekrar dene.",
+  "Could not move these items. Refresh and try again.": "Bu öğeler taşınamadı. Yenileyip tekrar dene.",
+  "File": "Dosya",
+  "Move to folder": "Klasöre taşı",
+  "Open shared asset {name}": "{name} paylaşılan varlığını aç",
+  "Open shared folder {name}": "{name} paylaşılan klasörünü aç",
+  "Open shared session {name}": "{name} paylaşılan oturumunu aç",
+  "Shared asset": "Paylaşılan varlık",
+  "Shared folder": "Paylaşılan klasör",
+  "Shared folders could not be loaded or saved. Check your connection and try again.": "Paylaşılan klasörler yüklenemedi veya kaydedilemedi. Bağlantını kontrol edip tekrar dene.",
+  "Shared projects could not be loaded. Try again.": "Paylaşılan projeler yüklenemedi. Tekrar dene.",
+  "You can view this project but cannot change its folders.": "Bu projeyi görüntüleyebilirsin ama klasörlerini değiştiremezsin."
 }

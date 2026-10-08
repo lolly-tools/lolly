@@ -7542,5 +7542,18 @@
   "Local folders changed during the move.": "Lokale mappen zijn tijdens het verplaatsen gewijzigd.",
   "A local session changed during the move.": "Een lokale sessie is tijdens het verplaatsen gewijzigd.",
   "Moving local originals to Trash…": "Lokale originelen naar de prullenbak verplaatsen…",
-  "Moved to {project}. Local sessions and folders are in Trash, and uploads stay in Assets.": "Verplaatst naar {project}. Lokale sessies en mappen staan in de prullenbak, uploads blijven in Assets."
+  "Moved to {project}. Local sessions and folders are in Trash, and uploads stay in Assets.": "Verplaatst naar {project}. Lokale sessies en mappen staan in de prullenbak, uploads blijven in Assets.",
+  "A folder was already shared from this device, so it cannot move again.": "Een map is al vanaf dit apparaat gedeeld en kan daarom niet opnieuw worden verplaatst.",
+  "Could not change these items. Refresh and try again.": "Deze items konden niet worden gewijzigd. Vernieuw en probeer het opnieuw.",
+  "Could not move these items. Refresh and try again.": "Deze items konden niet worden verplaatst. Vernieuw en probeer het opnieuw.",
+  "File": "Bestand",
+  "Move to folder": "Verplaatsen naar map",
+  "Open shared asset {name}": "Gedeelde asset {name} openen",
+  "Open shared folder {name}": "Gedeelde map {name} openen",
+  "Open shared session {name}": "Gedeelde sessie {name} openen",
+  "Shared asset": "Gedeelde asset",
+  "Shared folder": "Gedeelde map",
+  "Shared folders could not be loaded or saved. Check your connection and try again.": "Gedeelde mappen konden niet worden geladen of opgeslagen. Controleer je verbinding en probeer het opnieuw.",
+  "Shared projects could not be loaded. Try again.": "Gedeelde projecten konden niet worden geladen. Probeer het opnieuw.",
+  "You can view this project but cannot change its folders.": "Je kunt dit project bekijken, maar de mappen ervan niet wijzigen."
 }

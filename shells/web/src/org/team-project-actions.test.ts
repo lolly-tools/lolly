@@ -5,6 +5,7 @@ import { JSDOM } from 'jsdom';
 import { mountTeamProjectActions } from './team-project-actions.ts';
 import { clearTeamClipboard, teamClipboard, TEAM_ITEMS_MIME } from './team-project-moves.ts';
 import { renameTeamFile, resetTeamFileRenameForTest, type TeamFolder } from './team-folders.ts';
+import { TeamFileError } from './team-files.ts';
 
 const dom = new JSDOM('<!doctype html><body></body>', { url: 'https://instance.test/' });
 for (const key of ['window', 'document', 'HTMLElement', 'Element', 'Node', 'MutationObserver', 'CustomEvent', 'getComputedStyle', 'AbortController']) {
@@ -48,13 +49,13 @@ test('viewers have no duplicate or delete menu actions', () => {
 // Moves, the shared clipboard and file rename (plan 296).
 
 const drafts: TeamFolder = { id: 'drafts', name: 'Drafts', projectId: 'p', parentId: null, createdAt: '', items: [] };
-function sharedGrid(o: { folderId?: string | null; canWrite?: boolean; canDownload?: boolean; folders?: TeamFolder[]; tiles?: string; duplicate?: (id: string, kind: string, place?: { name?: string; folderId?: string | null }) => Promise<void> } = {}) {
+function sharedGrid(o: { folderId?: string | null; canWrite?: boolean; canDownload?: boolean; folders?: TeamFolder[]; tiles?: string; duplicate?: (id: string, kind: string, place?: { name?: string; folderId?: string | null }) => Promise<void>; sessionAction?: (action: string, id: string, tile: HTMLElement | null) => Promise<boolean | undefined> } = {}) {
   document.body.innerHTML = `<nav id="crumbs"><a href="#/p?team=p" data-team-folder="">Team</a></nav><section><div id="grid">${o.tiles ?? '<article class="folder-tile" data-ref="s1" data-kind="team-session"><span class="tile-title">Poster</span></article><article class="folder-tile" data-ref="s2" data-kind="team-session"><span class="tile-title">Flyer</span></article>'}</div></section>`;
   const grid = document.getElementById('grid')!, reloads: Array<string | undefined> = [], notices: string[] = [];
   const cleanup = mountTeamProjectActions({ grid, content: grid.parentElement!, crumbs: document.getElementById('crumbs')!, projectId: 'p', projectName: 'Team', folderId: o.folderId ?? null,
     folders: o.folders ?? [drafts], files: [], canWrite: o.canWrite ?? true, canManage: true, canDeleteSession: true, canDownload: o.canDownload,
     current: () => grid.isConnected, reload: message => { reloads.push(message); }, notice: message => { notices.push(message); },
-    duplicate: o.duplicate ?? (async () => {}), sessionAction: async () => undefined });
+    duplicate: o.duplicate ?? (async () => {}), sessionAction: o.sessionAction ?? (async () => undefined) });
   const act = (act: string) => document.querySelector<HTMLButtonElement>(`[data-act="${act}"]`);
   const bulk = (id: string) => { for (const dot of grid.querySelectorAll<HTMLButtonElement>('.tile-check')) if (dot.dataset.select === id) dot.click(); };
   return { grid, reloads, notices, cleanup, act, bulk };
@@ -152,6 +153,15 @@ test('sessions offer Download as .lolly file beside Copy to my projects when the
   const g = sharedGrid({ canDownload: false });
   try { g.grid.querySelector<HTMLButtonElement>('.tile-menu-btn')!.click(); assert.equal(g.act('download-lolly'), null); }
   finally { g.cleanup(); }
+});
+
+test('a refused .lolly download reads as a download, not as a delete', async () => {
+  const f = sharedGrid({ canDownload: true, sessionAction: async action => { if (action === 'download-lolly') throw new TeamFileError(403); return undefined; } });
+  try {
+    f.grid.querySelector<HTMLButtonElement>('.tile-menu-btn')!.click(); f.act('download-lolly')!.click();
+    await settle(); await settle();
+    assert.deepEqual(f.notices, ['You do not have access to the files in this project.']);
+  } finally { f.cleanup(); }
 });
 
 test('shared file Rename is offered disabled, with the reason, on an instance without the route', async () => {
