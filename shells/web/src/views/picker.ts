@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 import { readRecentAssets, recordRecentAsset, readTabMemory, recordTabMemory } from '../lib/picker-memory.ts';
-import { videoThumb, lottieThumb, audioThumb, modelThumb, mogrtThumb, projectImageCardHtml } from './picker-thumbnails.ts';
+import { projectImageCardHtml, libraryCardThumb, userCardThumb } from './picker-thumbnails.ts';
 import { assetViewerKind } from '../lib/asset-viewer-source.ts';
 import { assetFiles } from '../lib/asset-files.ts';
 import { mountAssetFilePicker } from '../components/asset-file-picker.ts';
@@ -66,9 +66,9 @@ import { livePalette } from '../lib/live-palette.ts';
 import { cachedPeaks, derivePeaks, memoPeaks, MAX_CONCURRENT_DERIVES } from '../lib/audio-peaks.ts';
 import { libCategory, loadAssetCategories, categoryLabel } from '../lib/asset-category.ts';
 import { providerCategory } from './assets-provider.ts';
-import { pickerLibraryGroups, pickerCategoryButtons, PickerLibrarySearch } from './picker-library.ts';
+import { pickerLibraryGroups, pickerCategoryButtons, PickerLibrarySearch, pickerSectionHtml, pickerThemeStripHtml, PICKER_PAGE_SIZE } from './picker-library.ts';
+import { createLazyGrid } from '../lib/lazy-grid.ts';
 import type { LibGroup } from '../lib/asset-category.ts';
-import { categoryGlyph } from '../lib/category-icons.ts';
 import { icon } from '../lib/icons.ts';
 import { createUrlEntry } from '../lib/add-via-url-entry.ts';
 import { isChromium } from '../capabilities.ts';
@@ -97,7 +97,7 @@ import type { WebStateAPI } from '../bridge/state.ts';
 import type { VideoJobHost } from '../lib/video-jobs.ts';
 
 import { UPLOAD_ACCEPT, isPdfUpload, isPptxUpload } from '../lib/upload-types.ts';
-import { isRadianceAsset, tryStoreModelUpload, tryStoreRadianceUpload } from '../lib/model-upload.ts';
+import { tryStoreModelUpload, tryStoreRadianceUpload } from '../lib/model-upload.ts';
 export { UPLOAD_ACCEPT, isPdfUpload, isPptxUpload };
 
 type TabId = 'library' | 'uploads' | 'sessions' | 'projects' | 'tools' | 'templates';
@@ -909,7 +909,7 @@ async function render(
       const collapse = !sec.classList.contains('is-collapsed');
       sec.classList.toggle('is-collapsed', collapse);
       gt.setAttribute('aria-expanded', String(!collapse));
-      if (collapse) collapsedGroups.add(key); else collapsedGroups.delete(key);
+      if (collapse) collapsedGroups.add(key); else { collapsedGroups.delete(key); lazy.expand(sec); }
       updateCatbar(); // manually opening/closing a section moves the row's indicator too
       return;
     }
@@ -1510,35 +1510,19 @@ async function render(
   const cat = (ref: AssetRef): string => providerCategory(ref)?.key ?? libCategory(ref, assetCategoryOverrides);
   const nativeCategoryLabels = new Map<string, string>();
   const collapsedGroups = new Set<string>(); // group keys the user collapsed; persists across re-render
+  // Library grids draw a page at a time and folded groups build on expand (lib/lazy-grid.ts).
+  const lazy = createLazyGrid<AssetRef>({ pageSize: PICKER_PAGE_SIZE, render: card, gridClass: 'asset-picker-grid', onAppend: () => afterLibraryPaint(), moreLabel: (shown, total) => `${t('Show more')} · ${shown} / ${total}` });
   // The present top-level library category keys, in display order - the model behind
   // the category filter row. Refreshed on every renderLibrary (search narrows it).
   let libraryGroupKeys: string[] = [];
   // Seed the "one category open" default exactly once, on the first full render.
   let catFilterSeeded = false;
-  const CHEVRON = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 6 15 12 9 18"/></svg>';
-
-  // One collapsible section shell - used by the library groups and their nested
-  // sub-groups, so the delegated toggle handler
-  // and collapse-state Set serve all of them identically. `collapsed` defaults to
-  // the persisted state but callers can override it (the library forces every
-  // section open while a search query is active so matches are never hidden).
-  function sectionHtml(
-    g: { key: string; label: string }, count: string | number, strip: string, bodyHtml: string,
-    collapsed: boolean = collapsedGroups.has(g.key),
-  ): string {
-    return `<section class="asset-picker-group${collapsed ? ' is-collapsed' : ''}" data-group="${escapeHtml(g.key)}">
-      <div class="asset-picker-group-head">
-        <button type="button" class="asset-picker-group-toggle" data-group-toggle="${escapeHtml(g.key)}" aria-expanded="${!collapsed}">
-          <span class="asset-picker-group-chevron">${CHEVRON}</span>
-          <span class="asset-picker-group-icon">${categoryGlyph(g.key)}</span>
-          <span class="asset-picker-group-title">${escapeHtml(t(g.label))}</span>
-          <span class="asset-picker-count">${count}</span>
-        </button>
-        ${strip}
-      </div>
-      <div class="asset-picker-group-body">${bodyHtml}</div>
-    </section>`;
-  }
+  // One collapsible section shell (picker-library.ts) - used by the library groups and
+  // their nested sub-groups, so the delegated toggle handler and collapse-state Set serve
+  // all of them identically. `collapsed` defaults to the persisted state; the library
+  // forces every section open while a search query is active.
+  const sectionHtml = (g: { key: string; label: string }, count: string | number, strip: string, bodyHtml: string,
+    collapsed: boolean = collapsedGroups.has(g.key)): string => pickerSectionHtml(g, count, strip, bodyHtml, collapsed);
 
   // The category filter row (icons up the top of the library pane): one glyph per
   // present category, active when its section is open, hidden while searching or
@@ -1569,6 +1553,7 @@ async function render(
       const collapsed = collapsedGroups.has(sec.dataset.group!);
       sec.classList.toggle('is-collapsed', collapsed);
       sec.querySelector('.asset-picker-group-toggle')?.setAttribute('aria-expanded', String(!collapsed));
+      if (!collapsed) lazy.expand(sec);
     }
   }
 
@@ -1580,11 +1565,11 @@ async function render(
     for (const s of g.sub ?? []) {
       const inSub = rest.filter(c => (c.meta?.tags as string[] | undefined)?.includes(s.tag));
       if (inSub.length) {
-        subs.push(sectionHtml(s, inSub.length, '', `<div class="asset-picker-grid">${inSub.map(card).join('')}</div>`));
+        subs.push(sectionHtml(s, inSub.length, '', lazy.grid(inSub)));
         rest = rest.filter(c => !(c.meta?.tags as string[] | undefined)?.includes(s.tag));
       }
     }
-    const restGrid = rest.length ? `<div class="asset-picker-grid">${rest.map(card).join('')}</div>` : '';
+    const restGrid = rest.length ? lazy.grid(rest) : '';
     return restGrid + subs.join('');
   }
 
@@ -1625,14 +1610,20 @@ async function render(
     // (e.g. a raster-only field) - so a narrow slot's picker matches the full
     // catalog selector: collapsible folders, nested sub-groups (Headshots), and
     // the colour strip whenever themable icons / treatable photos are present.
+    lazy.reset();
     libraryEl.innerHTML = present.map(g => {
-      const items = buckets.get(g.key)!;
-      const strip = themableOf(items) ? themeStripHtml() : treatableOf(items) ? treatmentStripHtml() : '';
-      return sectionHtml(g, items.length, strip, groupBodyHtml(g, items), searching ? false : collapsedGroups.has(g.key));
+      const items = buckets.get(g.key)!, folded = searching ? false : collapsedGroups.has(g.key);
+      const strip = themableOf(items) ? pickerThemeStripHtml(iconThemes, activeTheme) : treatableOf(items) ? treatmentStripHtml() : '';
+      return sectionHtml(g, items.length, strip, folded ? lazy.defer(() => groupBodyHtml(g, items)) : groupBodyHtml(g, items), folded);
     }).join('');
     renderCatbar();
     ensureTreatmentDefs();
-    retintThemableCards(); // re-applied after every innerHTML rebuild (search, tab return)
+    lazy.observe(libraryEl);
+    afterLibraryPaint();
+  }
+  // Re-applied after every paint of library cards (a rebuild, an appended page, an expanded group).
+  function afterLibraryPaint(): void {
+    retintThemableCards();
     retreatPhotoCards();
     refreshLottieThumbs();
     refreshAudioThumbs();
@@ -1660,21 +1651,9 @@ async function render(
   }
 
   // ── Icon theme strip ────────────────────────────────────────────────────────
-  // Markup for the colour-pairing strip. Rebuilt with the Icons group on every
-  // renderLibrary (search / tab return); the active pairing lives in `activeTheme`
-  // and clicks are handled by the delegated body listener, so no per-render wiring.
-  function themeStripHtml(): string {
-    return `<div class="asset-picker-themes" role="group" aria-label="${escapeHtml(t('Theme'))}">`
-      + `<span class="asset-picker-themes-label">${t('Colours')}</span>`
-      + iconThemes.map((t, i) => {
-          const on = activeTheme ? t.id === activeTheme : i === 0;
-          return `<button type="button" class="asset-picker-theme${on ? ' is-active' : ''}" data-theme-id="${escapeHtml(t.id)}" data-sfx="shimmer" aria-pressed="${on}">
-            <span class="asset-picker-theme-duo" style="background:${escapeHtml(t.previewBg ?? '#ffffff')}"><i style="background:${escapeHtml(t.c2)}"></i><i style="background:${escapeHtml(t.c1)}"></i></span>
-            <span>${escapeHtml(t.label ?? t.id)}</span>
-          </button>`;
-        }).join('')
-      + `</div>`;
-  }
+  // The colour-pairing strip's markup lives in picker-library.ts (pickerThemeStripHtml).
+  // It is rebuilt with the Icons group on every renderLibrary; the active pairing lives in
+  // `activeTheme` and clicks are handled by the delegated body listener.
 
   // Live-preview the chosen pairing on every themable thumbnail. Restyle (class
   // contract kept) rather than bake - each thumb is its own <img> document, so
@@ -2666,28 +2645,7 @@ function vidMatteButton(ref: AssetRef, name: string): string {
 function card(ref: AssetRef): string {
   const isPlaceholder = ref.meta?._placeholder;
   const name = ref.meta?.name ?? ref.id;
-  // A user-uploaded lottie's url is JSON (no still poster), so an <img> would 404 - show
-  // a play glyph, matching userCard. (Catalog lotties resolve to a poster url upstream.)
-  // A video plays itself in a muted looping <video>; audio draws its own waveform
-  // (audioThumb - an <img> at an .mp3 is the broken-image icon); everything else is an
-  // <img> (gif/apng/animated-webp animate natively there).
-  const thumb = ref.type === 'font' || ['pdf', 'converted'].includes(assetViewerKind(ref.format))
-    ? (typeof ref.meta?.thumbUrl === 'string' ? `<img class="asset-picker-thumb" src="${escapeHtml(ref.meta.thumbUrl)}" alt="" loading="lazy">` : `<span class="asset-picker-thumb asset-picker-thumb-stub" aria-hidden="true">${ref.type === 'font' ? 'Aa' : '▦'}</span>`)
-    : isPlaceholder
-    ? `<div class="asset-picker-thumb asset-picker-thumb-stub">${escapeHtml(ref.type)}</div>`
-    : isMogrtAsset(ref) ? mogrtThumb(ref)
-    : ref.type === 'lottie'
-      ? (lottieThumb(ref, 'asset-picker-thumb') ?? `<span class="asset-picker-thumb asset-picker-thumb-stub" aria-hidden="true">▶</span>`)
-      : ref.type === 'video'
-        ? videoThumb(ref.url, 'asset-picker-thumb')
-        : ref.type === 'audio'
-          ? audioThumb(ref, 'asset-picker-thumb')
-          // A 3-D model / LUT's `url` is the .glb / .cube binary, which an <img> can't
-          // paint (the blank `Lolly/02-3d` tile, plan 216 item 9). Use the baked
-          // still (posterUrl) when the asset ships one, else a 3-D box glyph.
-          : (ref.type === 'model' || ref.type === 'lut')
-            ? modelThumb(ref)
-            : `<img class="asset-picker-thumb" src="${escapeHtml(ref.url)}" alt="" loading="lazy" decoding="async">`;
+  const thumb = libraryCardThumb(ref); // picker-thumbnails.ts: the per-type picture
   const inspectBtn = ['pdf', 'font', 'converted'].includes(assetViewerKind(ref.format)) || assetFiles(ref.meta).length > 1
     ? `<button type="button" class="btn btn--ghost btn--sm" data-preview-asset="${escapeHtml(ref.id)}">${t('Preview files')}</button>` : '';
   const upBtn = upscaleButton(ref, String(name));
@@ -2773,22 +2731,7 @@ function formatBadge(ref: AssetRef): string {
 // nested buttons are invalid HTML and break the delegated click handler).
 function userCard(ref: AssetRef): string {
   const name = ref.meta?.name ?? t('Image');
-  // A user-uploaded lottie's url is the JSON itself, so it plays as a looping motion marker
-  // (autoplayLottieThumbs mounts it on screen); the ▶ stub is only the pre-mount resting frame.
-  // An uploaded track shows its measured waveform once mountAudioThumbs has peaks for it.
-  const thumb = isMogrtAsset(ref) ? mogrtThumb(ref) : ref.type === 'lottie'
-    ? (lottieThumb(ref, 'asset-picker-thumb') ?? `<span class="asset-picker-thumb asset-picker-thumb-stub" aria-hidden="true">▶</span>`)
-    : ref.type === 'video'
-      ? videoThumb(ref.url, 'asset-picker-thumb')
-      : ref.type === 'audio'
-        ? audioThumb(ref, 'asset-picker-thumb')
-        : ref.type === 'text' || (ref.type === 'data' && !isRadianceAsset(ref))
-          ? (ref.type === 'text'
-            ? `<span class="asset-picker-thumb asset-picker-thumb-stub" data-text-thumb="${escapeHtml(ref.id)}" aria-hidden="true">¶</span>`
-            : `<span class="asset-picker-thumb asset-picker-thumb-stub" aria-hidden="true">▦</span>`)
-          : (ref.type === 'model' || ref.type === 'lut' || isRadianceAsset(ref))
-            ? modelThumb(ref)
-            : `<img class="asset-picker-thumb" src="${escapeHtml(ref.url)}" alt="" loading="lazy" decoding="async">`;
+  const thumb = userCardThumb(ref); // picker-thumbnails.ts: the per-type picture
   return `
     <div class="asset-picker-card asset-picker-card-user">
       <button type="button" class="asset-picker-card-pick" data-asset-id="${escapeHtml(ref.id)}" draggable="true">

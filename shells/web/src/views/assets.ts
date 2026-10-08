@@ -125,6 +125,8 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
   cat.allAssets = [];
   cat.assetById = new Map<string, AssetRef>();
   cat.assetPageSizes = new Map<string, number>();
+  cat.assetPageItems = new Map<string, AssetRef[]>();
+  cat.deferredBodies = new Map<string, () => string>();
   // Uploads on their way to the Trash (plan 277 P3): out of sight at once, while
   // the move is written. reload() filters them so a refresh in that moment can't
   // resurrect the tile.

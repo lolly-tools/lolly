@@ -7442,6 +7442,8 @@
   "Commenter": "Kommentator",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "Lesere åpner og kopierer. Kommentatorer kommenterer også. Redaktører lagrer endringer. Ledere legger også til personer.",
   "Asks to comment": "Ber om å få kommentere",
+  "Search all {n}": "Søk i alle {n}",
+  "Search all {facet} options": "Søk i alle {facet}-alternativer",
   "Copy to my projects": "Kopier til mine prosjekter",
   "Add to a folder…": "Legg til i en mappe…",
   "Remove shortcut": "Fjern snarvei",

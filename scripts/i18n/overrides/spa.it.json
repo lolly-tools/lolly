@@ -1077,6 +1077,8 @@
   "Commenter": "Commentatore",
   "Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.": "I lettori aprono e copiano. I commentatori commentano anche. Gli editor salvano le modifiche. I gestori aggiungono anche persone.",
   "Asks to comment": "Chiede di commentare",
+  "Search all {n}": "Cerca in tutti i {n}",
+  "Search all {facet} options": "Cerca in tutte le opzioni di {facet}",
   "Copy to my projects": "Copia nei miei progetti",
   "Add to a folder…": "Aggiungi a una cartella…",
   "Remove shortcut": "Rimuovi collegamento",

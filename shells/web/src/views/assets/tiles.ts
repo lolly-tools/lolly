@@ -289,10 +289,17 @@ export function catalogTopbarHtml(cat: CatCtx): string {
 // use it, so "Collapse all" and the [data-cat-toggle] handler treat them uniformly.
 // Driven by the `collapsed` Set; an active search force-expands every group so matches
 // are never hidden behind a fold. `count` is optional (null → no pill); `extraClass`
-// lets a group opt into extra chrome (e.g. the reference-panel divider).
-export function groupSection(cat: CatCtx, key: string, label: string, count: number | null, bodyHtml: string, extraClass = ''): string {
+// lets a group opt into extra chrome (e.g. the reference-panel divider). A body passed
+// as a function is built only when the group is open: a folded group keeps a placeholder
+// and cat.deferredBodies holds the builder until expandDeferred() runs it, so a library
+// with dozens of folded groups builds none of their tiles up front.
+export function groupSection(cat: CatCtx, key: string, label: string, count: number | null, body: string | (() => string), extraClass = ''): string {
   const { collapsed } = cat;
   const isCollapsed = collapsed.has(key) && !cat.query;
+  let bodyHtml = typeof body === 'string' ? body : '';
+  if (typeof body === 'function') {
+    if (isCollapsed) { cat.deferredBodies.set(key, body); bodyHtml = '<div data-cat-deferred></div>'; } else bodyHtml = body();
+  }
   return `<section class="cat-group${isCollapsed ? ' is-collapsed' : ''}${extraClass ? ' ' + extraClass : ''}" data-group="${escapeText(key)}">
       <button type="button" class="cat-group-head" data-cat-toggle="${escapeText(key)}" aria-expanded="${!isCollapsed}">
         <span class="cat-group-chevron">${CHEVRON}</span>
