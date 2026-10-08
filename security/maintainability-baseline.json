@@ -185,7 +185,6 @@
     [
       "shells/web/src/org/banner.ts",
       "shells/web/src/org/collab-config.ts",
-      "shells/web/src/org/collab-share.ts",
       "shells/web/src/org/collab-work-opener.ts",
       "shells/web/src/org/index.ts",
       "shells/web/src/org/probe.ts"

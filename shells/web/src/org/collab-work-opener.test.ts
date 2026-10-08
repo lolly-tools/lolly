@@ -657,3 +657,15 @@ test('the real wiring hands the room\'s comment events to the comments capabilit
     reset();
   }
 });
+
+test('the room handle publishes the member\'s workspace id, which tags recovery copies (SEC-13)', async () => {
+  // views/tool-collab.ts tags interrupted-edit copies with `handle.self.account`, and Sign
+  // out (org/account-chip.ts) counts them by the member's `OrgUser.sub`. The handle the
+  // real wiring builds must carry that id, or the offer never appears.
+  const { readFileSync } = await import('node:fs');
+  const src = readFileSync(new URL('./collab-work-opener.ts', import.meta.url), 'utf8');
+  const at = src.indexOf('makeHandle(p) {');
+  const make = src.slice(at, src.indexOf('crossOriginReason:', at));
+  assert.match(make, /const inviter = person\?\.kind === 'member' \? person\.user\.sub : undefined;/);
+  assert.match(make, /createWorkCollabHandle\(p, \{ \.\.\.\(inviter \? \{ account: inviter \} : \{\}\)/);
+});

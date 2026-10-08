@@ -179,6 +179,7 @@ import {
   type Cubic, type Pt, evalCubic, splitCubic, subCubic, boundsCubic, hullBounds,
   boxesOverlap, isLineCubic, flatnessCubic, nearestOnCubic, tangentAt,
 } from './bezier.ts';
+import * as pmath from './portable-math.ts';
 
 /** One intersection: where it is, and its position on each input. */
 export interface Intersection {
@@ -373,7 +374,7 @@ export function intersectLineCubic(
   x0: number, y0: number, x1: number, y1: number, c: Cubic, tol = EPS, clamp = true,
 ): Intersection[] {
   const dx = x1 - x0, dy = y1 - y0;
-  const len = Math.hypot(dx, dy);
+  const len = pmath.hypot(dx, dy);
   if (len < 1e-12) return [];
   // Unit normal: dot with (P - lineStart) gives signed distance.
   const nx = -dy / len, ny = dx / len;
@@ -411,12 +412,12 @@ export function intersectLineCubic(
  *  control distances (scaled by the standard 3/4 factor) bound it. */
 function fatLine(c: Cubic): { nx: number; ny: number; c0: number; dMin: number; dMax: number } | null {
   let dx = c[6] - c[0], dy = c[7] - c[1];
-  if (Math.hypot(dx, dy) < 1e-12) {
+  if (pmath.hypot(dx, dy) < 1e-12) {
     // Closed or near-closed curve: use the longest control leg for a direction.
     dx = c[4] - c[0]; dy = c[5] - c[1];
-    if (Math.hypot(dx, dy) < 1e-12) return null;
+    if (pmath.hypot(dx, dy) < 1e-12) return null;
   }
-  const len = Math.hypot(dx, dy);
+  const len = pmath.hypot(dx, dy);
   const nx = -dy / len, ny = dx / len;
   const c0 = nx * c[0] + ny * c[1];
   const d1 = nx * c[2] + ny * c[3] - c0;
@@ -556,7 +557,7 @@ function atResolutionFloor(
  *  bound the whole difference. */
 function coincideAtParams(a: Cubic, b: Cubic, tol: number): boolean {
   for (let i = 0; i < 8; i += 2) {
-    if (Math.hypot(a[i]! - b[i]!, a[i + 1]! - b[i + 1]!) > tol) return false;
+    if (pmath.hypot(a[i]! - b[i]!, a[i + 1]! - b[i + 1]!) > tol) return false;
   }
   return true;
 }
@@ -623,7 +624,7 @@ function nearest(c: Cubic, x: number, y: number): { t: number; point: Pt; distan
     const tn = Math.min(1, Math.max(0, t - step));
     if (tn === t) break;
     const pn = evalCubic(c, tn);
-    const dn = Math.hypot(pn.x - x, pn.y - y);
+    const dn = pmath.hypot(pn.x - x, pn.y - y);
     if (dn < best) { best = dn; bestT = tn; bestP = pn; }
     // Progress is judged against the previous step, not against the best point: at a cusp
     // the first step from the quintic's root can leave the point a long way off and the
@@ -649,9 +650,9 @@ function secondDerivative(c: Cubic, t: number): Pt {
 /** How far a curve reaches from its start: a chord-and-hull measure, no roots. */
 function reach(c: Cubic): number {
   return Math.max(
-    Math.hypot(c[2] - c[0], c[3] - c[1]),
-    Math.hypot(c[4] - c[0], c[5] - c[1]),
-    Math.hypot(c[6] - c[0], c[7] - c[1]),
+    pmath.hypot(c[2] - c[0], c[3] - c[1]),
+    pmath.hypot(c[4] - c[0], c[5] - c[1]),
+    pmath.hypot(c[6] - c[0], c[7] - c[1]),
   );
 }
 
@@ -706,7 +707,7 @@ function sharedRun(c1: Cubic, c2: Cubic, tol: number): Intersection[] | null {
   for (const t of [0, 1]) {
     for (const u of [0, 1]) {
       if (onC2[t] !== null) continue;
-      if (Math.hypot(c1[6 * t]! - c2[6 * u]!, c1[6 * t + 1]! - c2[6 * u + 1]!) <= eps) {
+      if (pmath.hypot(c1[6 * t]! - c2[6 * u]!, c1[6 * t + 1]! - c2[6 * u + 1]!) <= eps) {
         onC2[t] = u;
         onC1[u] ??= t;
         shared++;
@@ -792,7 +793,7 @@ function shallow(search: ClipSearch, swap: boolean, a: number, b: number): boole
   // stroking a path.
   if ((a <= TOUCH || a >= 1 - TOUCH) && (b <= TOUCH || b >= 1 - TOUCH)) return false;
   const d1 = tangentAt(search.c1, swap ? b : a), d2 = tangentAt(search.c2, swap ? a : b);
-  const l1 = Math.hypot(d1.x, d1.y), l2 = Math.hypot(d2.x, d2.y);
+  const l1 = pmath.hypot(d1.x, d1.y), l2 = pmath.hypot(d2.x, d2.y);
   // A point where either curve is nearly stationary has no direction to judge the angle
   // by: at the apex of a cusp the tangent is a rounding-sized vector pointing anywhere,
   // and two cusp curves touching at their apexes read as crossing at a wide angle at every
@@ -863,15 +864,15 @@ function overrunClip(
   // depth cap: 3.5 s for one pair.
   const res = Math.max(tol, search.pad);
   // Both pieces are down to a point: record one intersection.
-  const s1 = Math.hypot(c1[6] - c1[0], c1[7] - c1[1]) + flatnessCubic(c1);
-  const s2 = Math.hypot(c2[6] - c2[0], c2[7] - c2[1]) + flatnessCubic(c2);
+  const s1 = pmath.hypot(c1[6] - c1[0], c1[7] - c1[1]) + flatnessCubic(c1);
+  const s2 = pmath.hypot(c2[6] - c2[0], c2[7] - c2[1]) + flatnessCubic(c2);
   if (s1 <= res && s2 <= res) {
     const m1 = (t1lo + t1hi) / 2, m2 = (t2lo + t2hi) / 2;
     const p = evalCubic(c1, 0.5), q = evalCubic(c2, 0.5);
     // The box test above is padded by the rounding of deep subdivision, so two pieces can
     // reach this point a few hundred ulps apart without meeting: measured, not assumed. A
     // pair that close but not touching is left to the scan, as a point just off a piece is.
-    const apart = Math.hypot(p.x - q.x, p.y - q.y);
+    const apart = pmath.hypot(p.x - q.x, p.y - q.y);
     if (apart > res) {
       if (apart <= POINT_OFF_SLACK * tol) stall(search, swap, t1lo, t1hi, t2lo, t2hi);
       return;
@@ -1023,8 +1024,8 @@ function clipIntersect(
   if (!boxesOverlap(hullBounds(c1), hullBounds(c2), tol)) return;
 
   // Both pieces are down to a point: record one intersection.
-  const s1 = Math.hypot(c1[6] - c1[0], c1[7] - c1[1]) + flatnessCubic(c1);
-  const s2 = Math.hypot(c2[6] - c2[0], c2[7] - c2[1]) + flatnessCubic(c2);
+  const s1 = pmath.hypot(c1[6] - c1[0], c1[7] - c1[1]) + flatnessCubic(c1);
+  const s2 = pmath.hypot(c2[6] - c2[0], c2[7] - c2[1]) + flatnessCubic(c2);
   if (s1 <= tol && s2 <= tol) {
     const p = evalCubic(c1, 0.5);
     emit((t1lo + t1hi) / 2, (t2lo + t2hi) / 2, p.x, p.y);
@@ -1189,27 +1190,27 @@ function twinNode(
   const dx1 = (q[4] - q[2]) * k, dy1 = (q[5] - q[3]) * k;
   const dx2 = (q[6] - q[4]) * k, dy2 = (q[7] - q[5]) * k;
   let ux = dx0 + dx1 + dx2, uy = dy0 + dy1 + dy2;
-  const ul = Math.hypot(ux, uy);
+  const ul = pmath.hypot(ux, uy);
   if (!(ul > 0)) return false;
   ux /= ul; uy /= ul;
   const still = FOOT_SPEED * search.size;
   let vlo = Infinity;
   for (const [dx, dy] of [[dx0, dy0], [dx1, dy1], [dx2, dy2]] as const) {
     const along = dx * ux + dy * uy;
-    if (!(along >= TWIN_TURN * Math.hypot(dx, dy)) || along < still) return false;
+    if (!(along >= TWIN_TURN * pmath.hypot(dx, dy)) || along < still) return false;
     if (along < vlo) vlo = along;
   }
   // The second derivative's controls are the legs' differences over the range's width, so
   // the curvature bound carries that width: without it a short range read as a thousand
   // times straighter than it was, and the certificate fired on pieces a tenth of a unit
   // apart where it holds only for pieces a millionth apart.
-  const kappa = 2 * Math.max(Math.hypot(dx1 - dx0, dy1 - dy0), Math.hypot(dx2 - dx1, dy2 - dy1)) / ((R1 - R0) * vlo * vlo);
+  const kappa = 2 * Math.max(pmath.hypot(dx1 - dx0, dy1 - dy0), pmath.hypot(dx2 - dx1, dy2 - dy1)) / ((R1 - R0) * vlo * vlo);
   // The matched piece and the offset, with the most the offset reaches.
   const m = subCubic(W, t1lo, t1hi);
   const dX = [c1[0] - m[0], c1[2] - m[2], c1[4] - m[4], c1[6] - m[6]];
   const dY = [c1[1] - m[1], c1[3] - m[3], c1[5] - m[5], c1[7] - m[7]];
   let T = 0;
-  for (let i = 0; i < 4; i++) T = Math.max(T, Math.hypot(dX[i]!, dY[i]!));
+  for (let i = 0; i < 4; i++) T = Math.max(T, pmath.hypot(dX[i]!, dY[i]!));
   const rho = tol + T;
   if (kappa * rho * rho > TWIN_BEND * tol) return false;
   // P = m' x D and S = |m'|^2 in Bernstein form over the piece's own parameter.
@@ -1238,7 +1239,7 @@ function twinNode(
 function dedupe(list: Intersection[], tol: number): Intersection[] {
   const out: Intersection[] = [];
   for (const i of list) {
-    if (!out.some((o) => Math.hypot(o.x - i.x, o.y - i.y) <= tol * 8
+    if (!out.some((o) => pmath.hypot(o.x - i.x, o.y - i.y) <= tol * 8
                       && Math.abs(o.t1 - i.t1) <= 1e-6 + tol
                       && Math.abs(o.t2 - i.t2) <= 1e-6 + tol)) out.push(i);
   }
@@ -2097,7 +2098,7 @@ function reportRunEnds(scan: Scan, samples: Gap[]): void {
   // was up to an eighth of the run away from where the contact ends.
   const a = lo > 0 ? runEnd(scan, samples[lo - 1]!, samples[lo]!) : samples[lo]!;
   const b = hi < samples.length - 1 ? runEnd(scan, samples[hi + 1]!, samples[hi]!) : samples[hi]!;
-  if (Math.hypot(a.px - b.px, a.py - b.py) < RUN_MIN_REL * scan.size) return;
+  if (pmath.hypot(a.px - b.px, a.py - b.py) < RUN_MIN_REL * scan.size) return;
   if (out.length > MAX_HITS - 2) return;
   for (const s of [a, b]) {
     if (!out.some((h) => Math.abs(h.t1 - s.t) <= TOUCH_MERGE && Math.abs(h.t2 - s.u) <= TOUCH_MERGE)) {
@@ -2139,7 +2140,7 @@ function gapAt(scan: Scan, t: number): Gap | null {
   let d = beyond ? endDirection(c2, u <= 0 ? 0 : 1) : tangentAt(c2, u);
   // A cusp, or an end whose handles all sit on it: fall back to the chord.
   if (d.x === 0 && d.y === 0) d = { x: c2[6] - c2[0], y: c2[7] - c2[1] };
-  const len = Math.hypot(d.x, d.y);
+  const len = pmath.hypot(d.x, d.y);
   if (!(len > 0)) return null;
   const g = (d.x * (p.y - q.y) - d.y * (p.x - q.x)) / len;
   return { t, u, g, beyond, d: near.distance, sp: len / scan.size, nx: -d.y / len, ny: d.x / len, o: 1, px: p.x, py: p.y, qx: q.x, qy: q.y };
@@ -2281,7 +2282,7 @@ function endContact(scan: Scan, curve: 1 | 2, end: 0 | 1): void {
   // few billionths along the other curve instead, which no caller reads as its vertex.
   let u = near.t;
   for (const e of [0, 1] as const) {
-    if (Math.hypot(other[6 * e]! - x, other[6 * e + 1]! - y) <= tol) u = e;
+    if (pmath.hypot(other[6 * e]! - x, other[6 * e + 1]! - y) <= tol) u = e;
   }
   out.push(curve === 1
     ? { t1: end, t2: u, x, y }
@@ -2347,5 +2348,5 @@ function touchPoint(scan: Scan, samples: Gap[]): Gap | null {
   if (fd && size(fd) < size(best)) best = fd;
   // Measured as a distance, so that a nearest point past an end of c2 counts only when that
   // end is itself within `tol`.
-  return Math.hypot(best.px - best.qx, best.py - best.qy) > tol ? null : best;
+  return pmath.hypot(best.px - best.qx, best.py - best.qy) > tol ? null : best;
 }

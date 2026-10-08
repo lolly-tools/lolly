@@ -1095,7 +1095,7 @@ export function openContextMenu(fc: FcCtx, clientX: number, clientY: number): vo
       icon: icon(ic),
       disabled: regions < 2,
       run: () =>
-        fc.ops.runVectorOp((ops, id) => booleanBoxes(ops, op, { cfg: vectorCfg, id }), {
+        fc.ops.runVectorOp((ops, id, operations) => booleanBoxes(ops, op, { cfg: vectorCfg, id, operations }), {
           skipNote: true,
           empty: fc.ops.boolEmptyMessage(op),
         }),

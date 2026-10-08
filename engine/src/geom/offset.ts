@@ -78,11 +78,16 @@ import {
   pathBounds, JOIN_EPS,
 } from './path.ts';
 import { selfUnion, windingNumber } from './boolean.ts';
+import type { GeometryOperations, GeometryOffsetPiece as OffsetPiece } from './operations.ts';
 import { type ParamCurveFit, fitToCubics, quadratureMoments } from './fit.ts';
+import { offsetError } from './offset-error.ts';
+import { unitTangent } from './offset-source.ts';
+import * as pmath from './portable-math.ts';
 
 export type JoinStyle = 'miter' | 'round' | 'bevel';
 
 export interface OffsetOptions {
+  operations?: GeometryOperations;
   join?: JoinStyle;
   miterLimit?: number;
   tol?: number;
@@ -106,16 +111,6 @@ const MAX_FIT_ITERATIONS = 8;
  *  hands the range back to the splitter here instead of letting a pathological piece
  *  consume the whole output. */
 const MAX_FIT_SEGMENTS = 32;
-/** Where the error measurement STARTS. It refines from here wherever the exact offset
- *  trace is still coarser than `tol` between neighbours, so this is a floor and not the
- *  resolution: a fixed grid of any size misses a curvature spike narrower than its step,
- *  and near a cusp that step would have to be ~1e-7 to see the feature at all. */
-const ERROR_SAMPLES = 12;
-/** Caps on the refinement. The depth reaches a 1e-7-wide feature from a 1/12 grid; the
- *  sample budget is what keeps a pathological piece from spending the depth everywhere,
- *  and running out only costs a split that could have been better placed. */
-const MAX_ERROR_DEPTH = 20;
-const ERROR_BUDGET = 512;
 /** How many of a resolved contour's curves may be probed before it is judged. One is
  *  almost always enough; the rest are for the case where the longest curve is a mitre
  *  spike or a cap, which is real output but is not AT the offset distance. */
@@ -134,8 +129,8 @@ const MIN_SPAN = 1e-4;
  * shows up as a genuine gap between consecutive pieces, because that gap IS the
  * geometry. `offsetContour` is where gaps become joins.
  */
-export function offsetCubic(c: Cubic, distance: number, tol = DEFAULT_TOL): Cubic[] {
-  return offsetPieces(c, distance, tol).map((p) => p.curve);
+export function offsetCubic(c: Cubic, distance: number, tol = DEFAULT_TOL, operations?: GeometryOperations): Cubic[] {
+  return offsetPiecesWithOperations(c, distance, tol, operations).map((p) => p.curve);
 }
 
 /**
@@ -149,7 +144,10 @@ export function offsetCubic(c: Cubic, distance: number, tol = DEFAULT_TOL): Cubi
  * a cusp sweeps its cap through the spike instead of over it. Null where the piece is
  * interior to a fitted run, since consecutive pieces of a run meet and never take a join.
  */
-interface OffsetPiece { curve: Cubic; dirStart: Pt | null; dirEnd: Pt | null }
+function offsetPiecesWithOperations(c: Cubic, distance: number, tol: number, operations?: GeometryOperations): OffsetPiece[] {
+  if (!operations?.fitting || !isFiniteCubic(c) || !Number.isFinite(distance) || Math.abs(distance) < 1e-12) return offsetPieces(c, distance, tol);
+  return operations.fitting(c, distance, Math.max(tol, 1e-9));
+}
 
 function offsetPieces(c: Cubic, distance: number, tol: number): OffsetPiece[] {
   // A curve with a coordinate that is not a number has no normal, so every step below
@@ -188,7 +186,7 @@ function pushRun(src: Cubic, fitted: Cubic[], out: OffsetPiece[]): void {
  *
  * `fitToCubics` has its own metric (normal-ray casting escalating to an arc-length
  * correspondence, with every local maximum of a 20-sample grid refined by golden
- * section), and it decides where the fitter subdivides. `offsetError` below is the one
+ * section), and it decides where the fitter subdivides. `offsetError` is the one
  * that decides whether the RESULT is delivered. Acceptance requires both: a chain has
  * to satisfy each metric, so whichever is stricter on a given piece is the one that
  * governs, and neither can quietly accept what the other would reject.
@@ -258,7 +256,7 @@ function offsetSource(c: Cubic, d: number): ParamCurveFit {
   const sample = (t: number): { x: number; y: number; dx: number; dy: number } => {
     const p = evalCubic(c, t);
     const d1 = tangentAt(c, t);
-    const s = Math.hypot(d1.x, d1.y);
+    const s = pmath.hypot(d1.x, d1.y);
     if (s > 1e-12) {
       const d2 = secondDeriv(c, t);
       const k = 1 - (d * (d1.x * d2.y - d1.y * d2.x)) / (s * s * s);
@@ -283,7 +281,7 @@ function offsetSource(c: Cubic, d: number): ParamCurveFit {
  *  compares like with like. Null when the chord has no direction. */
 function translateCubic(c: Cubic, d: number): Cubic | null {
   const dx = c[6] - c[0], dy = c[7] - c[1];
-  const len = Math.hypot(dx, dy);
+  const len = pmath.hypot(dx, dy);
   if (!(len > 1e-12)) return null;
   const nx = (-d * dy) / len, ny = (d * dx) / len;
   return [c[0] + nx, c[1] + ny, c[2] + nx, c[3] + ny, c[4] + nx, c[5] + ny, c[6] + nx, c[7] + ny];
@@ -307,132 +305,9 @@ function offsetBreaks(c: Cubic, d: number): number[] {
   return out.sort((a, b) => a - b);
 }
 
-/**
- * How far the approximation is from the true offset, at its worst, and at which source
- * parameter.
- *
- * The only sampling in this file, and it is measurement rather than construction: every
- * point measured is computed exactly (`offsetPoint` is a point of the source plus `d`
- * along an exact normal), and `nearestOnCubic` answers exactly. Nothing here stands in
- * for geometry that should have been solved.
- *
- * `approx` is the whole CHAIN the fitter returned for the piece, measured against the
- * nearest of its curves. Per-curve measurement would need each one's source parameter
- * range, which the fitter does not report, and the chain-wide question is the one that
- * matters anyway: every point of the true offset has to be covered by SOMETHING.
- *
- * The direction of the measurement is the part worth keeping. The obvious test (sample
- * the approximation and check it is |d| from the source) is fooled wherever the offset
- * FOLDS, which is anywhere |distance| exceeds the local radius of curvature: a point
- * that cuts straight across the swallowtail is still exactly |d| from some other part of
- * the source, so a badly wrong curve passes. Asking instead how far the approximation is
- * from a point that must lie ON it cannot be fooled that way, and it hands back the
- * source parameter to split at, rather than one inferred from a nearest-point search.
- *
- * ## Why the step is refined rather than fixed
- *
- * A fixed grid only measures where it looks, and the places an offset goes wrong are
- * narrower than any grid worth paying for. Near a cusp the tangent whips round inside a
- * window of ~1e-7 in `t`, so the exact offset trace travels several units between two
- * neighbours of a 12-point grid: the piece is accepted, and the DELIVERED error stays
- * at 0.07 however small `tol` gets. That is the one failure mode that would make a
- * tolerance argument meaningless. So an interval is subdivided until the exact offset
- * points at its ends and its middle are collinear to within `tol`, which is the
- * condition under which nothing can be hiding between them, and the samples land where
- * the trace actually moves rather than at even spacing.
- * Refining the measurement grid is not flattening: no output coordinate comes from it.
- */
-function offsetError(src: Cubic, approx: Cubic[], d: number, tol: number): { error: number; t: number } {
-  const worst = { error: 0, t: 0.5 };
-  let budget = ERROR_BUDGET;
-  const measure = (u: number): Pt | null => {
-    const want = offsetPoint(src, u, d);
-    if (!want) return null;
-    if (u > 0 && u < 1) {
-      const e = nearestOnChain(approx, want);
-      if (e > worst.error) { worst.error = e; worst.t = u; }
-    }
-    return want;
-  };
-  const refine = (u0: number, u1: number, w0: Pt | null, w1: Pt | null, depth: number): void => {
-    if (budget <= 0 || depth >= MAX_ERROR_DEPTH) return;
-    budget--;
-    const um = (u0 + u1) / 2;
-    const wm = measure(um);
-    if (!w0 || !w1 || !wm || sagitta(w0, wm, w1) <= tol) return;
-    refine(u0, um, w0, wm, depth + 1);
-    refine(um, u1, wm, w1, depth + 1);
-  };
-  let prev = measure(0);
-  for (let i = 1; i <= ERROR_SAMPLES; i++) {
-    const u = i / ERROR_SAMPLES;
-    const here = measure(u);
-    refine(u - 1 / ERROR_SAMPLES, u, prev, here, 0);
-    prev = here;
-  }
-  return worst;
-}
-
-/** Nearest distance from a point to a chain of fitted pieces. The box test runs first,
- *  because this runs once per measured sample against every piece of the chain, and a
- *  chain the fitter split fifteen ways would otherwise cost fifteen quintic solves per
- *  sample.
- *
- *  This used to run with a raised sample count, because the probe bracketed its answer
- *  on a grid, and 24 samples over a piece spanning a whole curvature feature stopped
- *  resolving the basins: the wrong one got refined, and the measurement over-reported,
- *  costing a split that was not needed. `nearestOnCubic` now solves the quintic
- *  outright, so there is no grid to size, and the over-reporting it was compensating
- *  for is gone. */
-function nearestOnChain(chain: Cubic[], p: Pt): number {
-  let best = Infinity;
-  for (const k of chain) {
-    const b = boundsCubic(k);
-    const dx = Math.max(b.x0 - p.x, 0, p.x - b.x1), dy = Math.max(b.y0 - p.y, 0, p.y - b.y1);
-    if (Math.hypot(dx, dy) >= best) continue;
-    const e = nearestOnCubic(k, p.x, p.y).distance;
-    if (e < best) best = e;
-  }
-  return best;
-}
-
-/** How far `m` stands off the chord `a`→`b`. Zero says the three are collinear, which is
- *  what licenses treating the run between them as resolved. */
-function sagitta(a: Pt, m: Pt, b: Pt): number {
-  const dx = b.x - a.x, dy = b.y - a.y;
-  const len = Math.hypot(dx, dy);
-  if (len < 1e-12) return Math.hypot(m.x - a.x, m.y - a.y);
-  return Math.abs((m.x - a.x) * dy - (m.y - a.y) * dx) / len;
-}
-
 function isFiniteCubic(c: Cubic): boolean {
   for (let i = 0; i < 8; i++) if (!Number.isFinite(c[i]!)) return false;
   return true;
-}
-
-/** The exact offset point at `t`: on the curve, plus `d` along the left normal. */
-function offsetPoint(c: Cubic, t: number, d: number): Pt | null {
-  const tan = unitTangent(c, t);
-  if (!tan) return null;
-  const p = evalCubic(c, t);
-  return { x: p.x - d * tan.y, y: p.y + d * tan.x };
-}
-
-/** Unit tangent, with the fallbacks a vanishing derivative needs. `tangentAt` returns
- *  zero at a coincident control pair and at a cusp, and a zero normal would put the
- *  offset endpoint on top of the source. */
-function unitTangent(c: Cubic, t: number): Pt | null {
-  const d = tangentAt(c, t);
-  const len = Math.hypot(d.x, d.y);
-  if (len > 1e-12) return { x: d.x / len, y: d.y / len };
-  const legs: [number, number][] = t < 0.5
-    ? [[c[4] - c[0], c[5] - c[1]], [c[6] - c[0], c[7] - c[1]]]
-    : [[c[6] - c[2], c[7] - c[3]], [c[6] - c[0], c[7] - c[1]]];
-  for (const [dx, dy] of legs) {
-    const l = Math.hypot(dx, dy);
-    if (l > 1e-12) return { x: dx / l, y: dy / l };
-  }
-  return null;
 }
 
 // ── curvature features ────────────────────────────────────────────────────────
@@ -558,9 +433,9 @@ function featureParams(c: Cubic): Feature[] {
   // stationary points of D are the only places to look. Comparing against the control
   // legs keeps the test scale-free: 3·max leg length bounds |C'| for a cubic.
   const speedScale = 3 * Math.max(
-    Math.hypot(c[2] - c[0], c[3] - c[1]),
-    Math.hypot(c[4] - c[2], c[5] - c[3]),
-    Math.hypot(c[6] - c[4], c[7] - c[5]),
+    pmath.hypot(c[2] - c[0], c[3] - c[1]),
+    pmath.hypot(c[4] - c[2], c[5] - c[3]),
+    pmath.hypot(c[6] - c[4], c[7] - c[5]),
     1e-12,
   );
   for (const t of cubicRoots01(4 * d4, 3 * d3, 2 * d2, d1)) {
@@ -686,7 +561,7 @@ export function offsetContour(c: Contour, distance: number, opts: OffsetOptions 
   const area = contourArea(cc);
   const curves = buildOffset(cc, distance * outwardSign(area), opts);
   if (!curves.length) return [];
-  return resolveLoops([{ curves, closed: true }], [cc], distance, area > 0);
+  return resolveLoops([{ curves, closed: true }], [cc], distance, area > 0, opts.operations);
 }
 
 /**
@@ -718,7 +593,7 @@ export function offsetPath(p: GeomPath, distance: number, opts: OffsetOptions = 
       const curves = buildOffset(c, signed, opts);
       if (curves.length) loops.push({ curves, closed: true });
     }
-    if (loops.length) out.push(...resolveLoops(loops, closed, distance, ref > 0));
+    if (loops.length) out.push(...resolveLoops(loops, closed, distance, ref > 0, opts.operations));
   }
   for (const c of open) {
     const curves = buildOffset(c, distance, opts);
@@ -795,8 +670,8 @@ function outwardSign(area: number): number {
  * bevelled one deliberately do not sit at |distance|: a mitre reaches out to
  * `miterLimit` times it, and SVG asks for that spike.
  */
-function resolveLoops(raw: GeomPath, src: GeomPath, distance: number, wantCcw: boolean): GeomPath {
-  const resolved = compactPath(selfUnion(raw));
+function resolveLoops(raw: GeomPath, src: GeomPath, distance: number, wantCcw: boolean, operations?: GeometryOperations): GeomPath {
+  const resolved = compactPath(selfUnion(raw, { operations }));
   const probes = regionProber(resolved);
   const kept = resolved.filter((c) => probes(c).some(
     (p) => isOffsetMaterial(src, p.left, distance),
@@ -835,7 +710,7 @@ export function distanceToPath(p: GeomPath, x: number, y: number): number {
     for (const k of c.curves) {
       const b = boundsCubic(k);
       const dx = Math.max(b.x0 - x, 0, x - b.x1), dy = Math.max(b.y0 - y, 0, y - b.y1);
-      if (Math.hypot(dx, dy) >= best) continue;
+      if (pmath.hypot(dx, dy) >= best) continue;
       const d = nearestOnCubic(k, x, y).distance;
       if (d < best) best = d;
     }
@@ -874,7 +749,7 @@ export interface SideProbes {
 export function regionProber(region: GeomPath): (c: Contour, limit?: number) => SideProbes[] {
   const box = pathBounds(region);
   const curves = region.flatMap((c) => c.curves).map((k) => ({ k, box: boundsCubic(k) }));
-  const reach = box ? Math.hypot(box.x1 - box.x0, box.y1 - box.y0) : 0;
+  const reach = box ? pmath.hypot(box.x1 - box.x0, box.y1 - box.y0) : 0;
   // The ray starts ON the boundary, so the contact at its own origin is not a crossing.
   const skip = reach * 1e-9;
 
@@ -898,7 +773,7 @@ export function regionProber(region: GeomPath): (c: Contour, limit?: number) => 
   return (c: Contour, limit = PROBE_CURVES): SideProbes[] => {
     if (!(reach > 0)) return [];
     const order = [...c.curves]
-      .map((k, i) => ({ k, i, span: Math.hypot(k[6] - k[0], k[7] - k[1]) }))
+      .map((k, i) => ({ k, i, span: pmath.hypot(k[6] - k[0], k[7] - k[1]) }))
       .sort((a, b) => b.span - a.span || a.i - b.i)
       .slice(0, limit);
 
@@ -956,7 +831,7 @@ function buildOffset(c: Contour, d: number, opts: OffsetOptions): Cubic[] {
   const seq: OffsetPiece[] = [];
   const corners: (Pt | null)[] = [];
   for (const k of c.curves) {
-    const pieces = offsetPieces(k, d, tol);
+    const pieces = offsetPiecesWithOperations(k, d, tol, opts.operations);
     for (let i = 0; i < pieces.length; i++) {
       seq.push(pieces[i]!);
       corners.push(i === pieces.length - 1 ? { x: k[6], y: k[7] } : null);
@@ -973,7 +848,7 @@ function buildOffset(c: Contour, d: number, opts: OffsetOptions): Cubic[] {
     const next = seq[last ? 0 : i + 1]!;
     const a: Pt = { x: cur.curve[6], y: cur.curve[7] };
     const b: Pt = { x: next.curve[0], y: next.curve[1] };
-    if (Math.hypot(b.x - a.x, b.y - a.y) <= JOIN_EPS) {
+    if (pmath.hypot(b.x - a.x, b.y - a.y) <= JOIN_EPS) {
       next.curve[0] = a.x; next.curve[1] = a.y;
       continue;
     }
@@ -1037,19 +912,19 @@ function joinPieces(
   const m: Pt = { x: a.x + t0.x * s, y: a.y + t0.y * s };
   // SVG's rule: past the limit the mitre becomes a bevel, so a near-tangential corner
   // does not fire a spike across the page.
-  if (Math.hypot(m.x - pivot.x, m.y - pivot.y) > miterLimit * Math.abs(d)) return bevel();
+  if (pmath.hypot(m.x - pivot.x, m.y - pivot.y) > miterLimit * Math.abs(d)) return bevel();
   return [lineToCubic(a.x, a.y, m.x, m.y), lineToCubic(m.x, m.y, b.x, b.y)];
 }
 
 /** Circular arc from `a` to `b` about `pivot`, as cubics. `heading` is the direction the
  *  incoming piece was travelling in, and settles which way round the arc goes. */
 function arcJoin(a: Pt, b: Pt, pivot: Pt, heading: Pt | null): Cubic[] {
-  const r0 = Math.hypot(a.x - pivot.x, a.y - pivot.y);
-  const r1 = Math.hypot(b.x - pivot.x, b.y - pivot.y);
+  const r0 = pmath.hypot(a.x - pivot.x, a.y - pivot.y);
+  const r1 = pmath.hypot(b.x - pivot.x, b.y - pivot.y);
   const r = (r0 + r1) / 2;
   if (r < 1e-12) return [lineToCubic(a.x, a.y, b.x, b.y)];
-  const from = Math.atan2(a.y - pivot.y, a.x - pivot.x);
-  let sweep = Math.atan2(b.y - pivot.y, b.x - pivot.x) - from;
+  const from = pmath.atan2(a.y - pivot.y, a.x - pivot.x);
+  let sweep = pmath.atan2(b.y - pivot.y, b.x - pivot.x) - from;
   while (sweep <= -Math.PI) sweep += 2 * Math.PI;
   while (sweep > Math.PI) sweep -= 2 * Math.PI;
   // A half turn is the one case where the endpoints do not say which way round: both
@@ -1067,16 +942,16 @@ function arcJoin(a: Pt, b: Pt, pivot: Pt, heading: Pt | null): Cubic[] {
   // length that makes the arc's midpoint exact; it carries the sweep's sign with it.
   const n = Math.max(1, Math.ceil(Math.abs(sweep) / (Math.PI / 2)));
   const step = sweep / n;
-  const k = (4 / 3) * Math.tan(step / 4);
+  const k = (4 / 3) * pmath.tan(step / 4);
   const out: Cubic[] = [];
   for (let i = 0; i < n; i++) {
     const s = from + step * i, e = s + step;
-    const sx = pivot.x + r * Math.cos(s), sy = pivot.y + r * Math.sin(s);
-    const ex = pivot.x + r * Math.cos(e), ey = pivot.y + r * Math.sin(e);
+    const sx = pivot.x + r * pmath.cos(s), sy = pivot.y + r * pmath.sin(s);
+    const ex = pivot.x + r * pmath.cos(e), ey = pivot.y + r * pmath.sin(e);
     out.push([
       sx, sy,
-      sx - k * r * Math.sin(s), sy + k * r * Math.cos(s),
-      ex + k * r * Math.sin(e), ey - k * r * Math.cos(e),
+      sx - k * r * pmath.sin(s), sy + k * r * pmath.cos(s),
+      ex + k * r * pmath.sin(e), ey - k * r * pmath.cos(e),
       ex, ey,
     ]);
   }
@@ -1161,7 +1036,7 @@ function fitRecursive(pts: Pt[], t0: Pt, t1: Pt, tol: number, depth: number): Cu
     // Two points say nothing about the interior, so Wu & Barsky's heuristic stands in:
     // handles a third of the chord along the given tangents.
     const a = pts[0]!, b = pts[1]!;
-    const l = Math.hypot(b.x - a.x, b.y - a.y) / 3;
+    const l = pmath.hypot(b.x - a.x, b.y - a.y) / 3;
     return [[a.x, a.y, a.x + t0.x * l, a.y + t0.y * l, b.x + t1.x * l, b.y + t1.y * l, b.x, b.y]];
   }
 
@@ -1220,7 +1095,7 @@ function bezierWithTangents(pts: Pt[], u: number[], t0: Pt, t1: Pt): Cubic {
     x1 += a1x * rx + a1y * ry;
   }
   const det = c00 * c11 - c01 * c01;
-  const chord = Math.hypot(last.x - first.x, last.y - first.y);
+  const chord = pmath.hypot(last.x - first.x, last.y - first.y);
   let l0 = 0, l1 = 0;
   if (Math.abs(det) > 1e-18) {
     l0 = (c11 * x0 - c01 * x1) / det;
@@ -1246,7 +1121,7 @@ function fitError(pts: Pt[], u: number[], curve: Cubic): { error: number; index:
   let error = 0, index = Math.floor(pts.length / 2);
   for (let i = 1; i < pts.length - 1; i++) {
     const p = evalCubic(curve, u[i]!);
-    const d = Math.hypot(p.x - pts[i]!.x, p.y - pts[i]!.y);
+    const d = pmath.hypot(p.x - pts[i]!.x, p.y - pts[i]!.y);
     if (d > error) { error = d; index = i; }
   }
   return { error, index };
@@ -1287,7 +1162,7 @@ function centreTangent(pts: Pt[], i: number): Pt | null {
 function chordParams(pts: Pt[]): number[] {
   const u = [0];
   for (let i = 1; i < pts.length; i++) {
-    u.push(u[i - 1]! + Math.hypot(pts[i]!.x - pts[i - 1]!.x, pts[i]!.y - pts[i - 1]!.y));
+    u.push(u[i - 1]! + pmath.hypot(pts[i]!.x - pts[i - 1]!.x, pts[i]!.y - pts[i - 1]!.y));
   }
   const total = u[u.length - 1]!;
   if (!(total > 0)) return pts.map((_, i) => i / Math.max(1, pts.length - 1));
@@ -1300,13 +1175,13 @@ function dedupePoints(pts: Pt[]): Pt[] {
   const out: Pt[] = [];
   for (const p of pts) {
     const last = out[out.length - 1];
-    if (!last || Math.hypot(p.x - last.x, p.y - last.y) > 1e-12) out.push({ x: p.x, y: p.y });
+    if (!last || pmath.hypot(p.x - last.x, p.y - last.y) > 1e-12) out.push({ x: p.x, y: p.y });
   }
   return out;
 }
 
 function normalise(v: Pt): Pt | null {
-  const l = Math.hypot(v.x, v.y);
+  const l = pmath.hypot(v.x, v.y);
   return l > 1e-12 ? { x: v.x / l, y: v.y / l } : null;
 }
 

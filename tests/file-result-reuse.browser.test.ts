@@ -2,6 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { getBrowser, closeBrowser } from '../packages/node-shell/src/browsers.ts';
+import { shellSettled } from './helpers/shell-settled.ts';
 
 const origin = process.env.LOLLY_CONVERT_TEST_URL;
 test('real UI reuses exact result bytes in the library, a new design and another conversion', { skip: origin ? false : 'no browser origin (set LOLLY_CONVERT_TEST_URL to a running web shell)', timeout: 90_000 }, async () => {
@@ -9,7 +10,7 @@ test('real UI reuses exact result bytes in the library, a new design and another
   const browser = await getBrowser(); const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
   const page = await context.newPage(); const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));
   try {
-    await page.goto(`${origin}/#/convert`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/#/convert`, { waitUntil: 'networkidle' }); await shellSettled(page);
     await page.locator('[data-file]').setInputFiles({ name: 'design-proof.svg', mimeType: 'image/svg+xml', buffer: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="150"><rect width="300" height="150" fill="#238875"/></svg>') });
     await page.locator('[data-convert]').click(); await page.locator('.convert-output').waitFor();
     const card = page.locator('.convert-output'); await card.locator('.convert-reuse summary').click();
@@ -43,7 +44,7 @@ test('real UI reuses exact result bytes in the library, a new design and another
       return { refused, version: (await host.assets._getUserRecord(reused.id)).version };
     }, reused);
     assert.equal(preserved.refused, true); assert.equal(preserved.version, reused.version);
-    await page.goto(`${origin}/#/convert`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/#/convert`, { waitUntil: 'networkidle' }); await shellSettled(page);
     await page.locator('[data-operation] .convert-reuse summary').click();
     await page.locator('[data-operation] [data-result-convert]').click();
     await page.locator('.convert-name').waitFor(); assert.equal(await page.locator('.convert-name').innerText(), 'design-proof.png');

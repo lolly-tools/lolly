@@ -23,6 +23,7 @@ import { mkdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { PACKS, packTools, type PackTool } from '../scripts/tool-history-audit.ts';
 import { historyParticipation } from '../shells/web/src/views/tool-history-adapters.ts';
+import { shellSettled } from './helpers/shell-settled.ts';
 
 const origin = process.env.LOLLY_HISTORY_TEST_URL;
 const skip = origin ? false : 'LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)';
@@ -303,14 +304,14 @@ for (const tool of nothingToKeep) test(`${tool.id}: a tool with nothing to keep 
 test('Snippet history retains an uploaded icon version after replacement and mobile history stays reachable', { skip, timeout: 60_000 }, async () => {
   const browser = await chromium.launch({ headless: true }); const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   try {
-    await page.goto(`${origin}/#/history`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/#/history`, { waitUntil: 'networkidle' }); await shellSettled(page);
     await page.evaluate(async () => {
       const dbPath = '/src/bridge/db.ts', assetPath = '/src/bridge/asset-history.ts';
       const db = await (await import(dbPath)).openDB();
       await (await import(assetPath)).writeVersionedUserAsset(db, { id: 'user/upload/history-icon', version: 'v1', format: 'svg', type: 'vector',
         blob: new Blob(['<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><circle cx="20" cy="20" r="18" fill="green"/></svg>'], { type: 'image/svg+xml' }) });
     });
-    await page.goto(`${origin}/#/tool/snippet?titleIcon=user%2Fupload%2Fhistory-icon`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/#/tool/snippet?titleIcon=user%2Fupload%2Fhistory-icon`, { waitUntil: 'networkidle' }); await shellSettled(page);
     await page.locator(opener).waitFor();
     await page.locator('textarea[data-input-id="code"], [data-input-id="code"] textarea').fill('const history = "kept";');
     await saved(page, 'code', 'const history = "kept";');

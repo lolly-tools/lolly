@@ -7,7 +7,8 @@
  * thread has no bitmap decoder of its own, so a hook that needs one takes the
  * owner-side `host.raster.decode` RPC instead.
  */
-import { parentPort } from 'node:worker_threads';
+import { parentPort, workerData } from 'node:worker_threads';
+import type { HostV1 } from '@lolly-tools/core/host-v1';
 // Load only the worker core so startup does not evaluate the full engine barrel.
 import { createHookWorkerCore, lockDownAmbientCapabilities, type HookWorkerIn } from '../../../engine/src/hook-worker-core.ts';
 
@@ -19,23 +20,31 @@ const NODE_AMBIENT = ['require', 'module'] as const;
 
 if (parentPort) {
   const port = parentPort;
-  const core = createHookWorkerCore({ post: (m) => port.postMessage(m) }, { canRaster: () => false });
-  let initialized = false;
-  port.on('message', (msg: HookWorkerIn) => {
-    if (!initialized && msg.t === 'init') {
-      initialized = true;
-      if (msg.strict) {
-        try {
-          lockDownAmbientCapabilities(globalThis as unknown as Record<string, unknown>, NODE_AMBIENT);
-        } catch (error) {
-          port.postMessage({
-            t: 'init-done', runId: msg.runId, declared: [], inRealmOnlyDeclared: [],
-            compileError: error instanceof Error ? error.message : String(error),
-          });
-          return;
-        }
-      }
+  async function prepare() {
+    const backend: unknown = workerData?.geometryBackend ?? 'typescript';
+    let geom: HostV1['geom'];
+    if (backend !== 'typescript') {
+      const { loadDefaultNodeGeometryHost, loadNodeGeometryHost } = await import('./geometry-host-node.ts');
+      const { isGeometryBackend } = await import('./geometry-host.ts');
+      if (!isGeometryBackend(backend)) throw Error('Unknown geometry backend.');
+      // An explicit owner selection stays strict here too; the default may use the reference.
+      geom = (workerData?.geometryStrict === false ? await loadDefaultNodeGeometryHost() : await loadNodeGeometryHost(backend)).api;
     }
-    core.handle(msg);
+    return createHookWorkerCore({ post: (m) => port.postMessage(m) }, { canRaster: () => false, geom });
+  }
+  let ready: ReturnType<typeof prepare> | undefined;
+  let initialized = false;
+  port.on('message', async (msg: HookWorkerIn) => {
+    try {
+      ready ??= prepare();
+      const core = await ready;
+      if (!initialized && msg.t === 'init') {
+        initialized = true;
+        if (msg.strict) lockDownAmbientCapabilities(globalThis as unknown as Record<string, unknown>, NODE_AMBIENT);
+      }
+      core.handle(msg);
+    } catch (error) {
+      if (msg.t === 'init') port.postMessage({ t: 'init-done', runId: msg.runId, declared: [], inRealmOnlyDeclared: [], compileError: error instanceof Error ? error.message : String(error) });
+    }
   });
 }

@@ -130,7 +130,7 @@ export function withBrandFonts(theme: PptxTheme | undefined, resolve?: DeckColor
  *  must be a plain family name, the rule the web shell's `brandFontStack` applies, so a
  *  release's internal 'Lolly Release <sha256>' alias, or any other odd value, is never
  *  written as a PowerPoint face. */
-function tokenFontStack(value: unknown): string {
+export function tokenFontStack(value: unknown): string {
   const names = (Array.isArray(value) ? value : [value])
     .filter((v): v is string => typeof v === 'string' && !v.trim().startsWith('{'))
     .flatMap((v) => v.split(','))

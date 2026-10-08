@@ -19,6 +19,12 @@
  * Moved out of views/projects.ts so that view only knows the tile exists; it hands
  * in the three things it owns (the host, its tool-name lookup and its return arm)
  * and lazy-loads this module on the first click.
+ *
+ * Archived projects drop out of every list (the instance leaves them out unless asked
+ * with `?archived=1`). A person who manages a project gets a "Show archived" switch
+ * (buildArchivedProjects below): it lists the archived projects they manage, each with
+ * Restore project (`PATCH { archived: false }`). The modal's project list and the
+ * Projects view's shared section (org/project-sharing.ts) both show the switch.
  */
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { mountModal } from '../components/modal.ts';
@@ -35,6 +41,124 @@ import { buildNewProjectForm } from './team-project-form.ts';
 import { activityLabel, canWriteProject, invitePolicy, isManagerPlus, peopleAccess, sessionCountLabel } from './team-access.ts';
 import { noteProjectOpened } from './opened-projects.ts';
 import { orgConfig } from './index.ts';
+import { listArchivedProjects, restoreTeamProject, type ArchivedProject } from './project-members.ts';
+
+// ── Archived projects (managers) ────────────────────────────────────────────────
+
+/** Whether the switch was left on, for this page load: a list drawn again keeps the switch on. */
+let archivedShown = false;
+
+/** Whether this person manages anything that could be archived: a listed project they
+ *  manage, or the workspace's `project.manage`. Pure apart from the org-config read. */
+export function managesProjects(projects: readonly Pick<TeamProjectRef, 'myRole'>[]): boolean {
+  return projects.some((p) => isManagerPlus(p.myRole)) || orgConfig()?.can?.['project.manage'] === true;
+}
+
+export interface ArchivedProjectsOptions {
+  /** Runs after a project is restored, so the live list can be read again. */
+  onRestored?: (project: { id: string; name: string }) => void;
+  /** False once the surface the switch sits on has gone. */
+  current?: () => boolean;
+}
+
+/**
+ * The managers' "Show archived" switch, and under it, while it is on, the archived
+ * projects this person manages, each with Restore project. The list is read when the
+ * switch turns on (and again each time it does), never before. A restored project leaves
+ * this list, is announced, and `onRestored` reads the live list again.
+ */
+export function buildArchivedProjects(opts: ArchivedProjectsOptions = {}): HTMLElement {
+  const current = opts.current ?? (() => true);
+  const box = document.createElement('div');
+  box.className = 'team-archived';
+  box.style.cssText = 'margin:.75rem 0 0;display:flex;flex-direction:column;gap:.4rem';
+  const label = document.createElement('label');
+  label.style.cssText = 'display:inline-flex;align-items:center;gap:.5rem;min-height:var(--ui-size-target);font-size:var(--fs-sm);font-weight:600;cursor:pointer;align-self:flex-start';
+  const toggle = document.createElement('input');
+  toggle.type = 'checkbox';
+  toggle.setAttribute('role', 'switch');
+  toggle.dataset.act = 'show-archived';
+  label.append(toggle, document.createTextNode(tRaw('Show archived')));
+  const status = document.createElement('p');
+  status.setAttribute('role', 'status');
+  status.style.cssText = `margin:0;font-size:var(--fs-sm);${MUTED}`;
+  status.hidden = true;
+  const list = document.createElement('ul');
+  list.dataset.archivedList = '';
+  list.style.cssText = 'list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px';
+  list.hidden = true;
+  box.append(label, status, list);
+  const say = (text: string, error = false): void => {
+    status.textContent = text;
+    status.style.color = error ? 'hsl(var(--destructive))' : '';
+    status.hidden = !text;
+  };
+
+  let read = 0;
+  const row = (p: ArchivedProject): HTMLLIElement => {
+    const li = document.createElement('li');
+    li.dataset.archivedProject = p.id;
+    li.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:.5rem 1rem;flex-wrap:wrap;padding:.35rem 0;border-bottom:1px solid hsl(var(--border))';
+    const name = document.createElement('span');
+    name.textContent = p.name;
+    name.id = `team-archived-${p.id}`;
+    name.style.cssText = 'font-weight:600;overflow-wrap:anywhere;min-width:0';
+    const restore = document.createElement('button');
+    restore.type = 'button';
+    restore.className = 'btn btn--sm';
+    restore.dataset.act = 'restore-project';
+    restore.style.minHeight = 'var(--ui-size-target)';
+    restore.textContent = tRaw('Restore project');
+    restore.setAttribute('aria-describedby', name.id);
+    restore.addEventListener('click', async () => {
+      if (restore.getAttribute('aria-busy') === 'true') return;
+      restore.setAttribute('aria-busy', 'true');
+      restore.textContent = tRaw('Restoring…');
+      say('');
+      const got = await restoreTeamProject(p.id);
+      restore.removeAttribute('aria-busy');
+      restore.textContent = tRaw('Restore project');
+      if (!current()) return;
+      if (!got.ok) { say(tRaw('Could not complete this action. Please try again.'), true); restore.focus(); return; }
+      const next = (li.nextElementSibling ?? li.previousElementSibling)?.querySelector<HTMLElement>('[data-act="restore-project"]');
+      li.remove();
+      announce(tRaw('Restored "{name}".', { name: p.name }));
+      if (!list.children.length) { list.hidden = true; say(tRaw('No archived projects.')); }
+      (next ?? toggle).focus();
+      opts.onRestored?.({ id: p.id, name: p.name });
+    });
+    li.append(name, restore);
+    return li;
+  };
+
+  const show = async (): Promise<void> => {
+    const my = ++read;
+    say(tRaw('Loading…'));
+    const got = await listArchivedProjects();
+    if (my !== read || !toggle.checked || !current()) return;
+    if (!got.ok) { list.hidden = true; say(tRaw('Could not complete this action. Please try again.'), true); return; }
+    const mine = got.data.filter((p) => isManagerPlus(p.myRole) || orgConfig()?.can?.['project.manage'] === true);
+    list.replaceChildren(...mine.map(row));
+    list.hidden = !mine.length;
+    say(mine.length ? '' : tRaw('No archived projects.'));
+  };
+  const apply = (): void => {
+    archivedShown = toggle.checked;
+    if (toggle.checked) { void show(); return; }
+    ++read;
+    list.hidden = true;
+    list.replaceChildren();
+    say('');
+  };
+  toggle.addEventListener('change', apply);
+  if (archivedShown) { toggle.checked = true; void show(); }
+  return box;
+}
+
+/** TEST-ONLY: forget the switch state. */
+export function _resetArchivedForTests(): void {
+  archivedShown = false;
+}
 
 export interface TeamProjectsDeps {
   /** The host to open a session with; the live web host when absent. */
@@ -158,6 +282,12 @@ export function openTeamProjectsModal(deps: TeamProjectsDeps): void {
         activityLabel(p, now),
       ].filter(Boolean).join(' · '))))
       : empty(tRaw('No team projects are shared with you yet.')));
+    if (managesProjects(projects)) {
+      body.append(buildArchivedProjects({
+        current: () => modal.el.isConnected && my === screen,
+        onRestored: () => { void showProjects(); },
+      }));
+    }
     if (focusProject) {
       const back = Array.from(body.querySelectorAll<HTMLElement>('[data-team-project]')).find((b) => b.dataset.teamProject === focusProject);
       (back ?? modal.el.querySelector<HTMLElement>('[data-team-title]'))?.focus();

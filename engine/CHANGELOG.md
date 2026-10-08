@@ -1,5 +1,20 @@
 # Engine changelog
 
+One entry per ENGINE_VERSION minor (the bridge contract version in `src/version.ts`,
+re-exported from `src/index.ts`). Additive-only within v1: methods are added in
+minors, never removed or signature-changed without a major bump.
+
+Moved verbatim from the comment block that used to live in `src/index.ts`.
+
+## 1.247.0
+
+- One geometry answer in every JavaScript engine (plan 295, geometry revision `geom-portable-v1`). The geometry (`geom/*`, `svg-path.ts`, `vector-paint.ts`) takes its scalar maths from `geom/portable-math.ts` instead of `Math`: `hypot` is V8's two-argument formula written out, and `sin`, `cos`, `tan`, `acos`, `cbrt`, `log2`, `atan2` and `pow` come from a 16,461-byte import-free WebAssembly module embedded in `geom/portable-math-wasm.ts` and compiled on first use. Node, Chromium, Firefox and WebKit then return the same bits for the same paths. On V8 a few results move in the last bit (of about 4,100 seeded inputs per function: sin 49, cos 50, tan 44, acos 21, cbrt 317, atan2 3; `hypot` and `log2` are unchanged). A host without WebAssembly cannot run these geometry calls.
+- `makeGeomApi(operations?)` takes an optional, frozen set of numerical dependencies (`GeometryOperations` in `geom/operations.ts`: `clipping` and `fitting`). Boolean, offset and stroke calls route curve-pair clipping and offset fitting through them, passing the engine's own `CLIP_BUDGET`, `OVERRUN_BUDGET` and `SCAN_LIMITS` on each request, and a dependency's `GeometryOperationError` comes back as an ordinary geom failure with its code. With no dependencies the TypeScript reference runs as before; the web, CLI, TUI and MCP hosts supply the portable WASM kernels from `@lolly-tools/node-shell` by default and fall back to the reference with a warning when the kernels cannot load. `createHookWorkerCore` accepts a shell-prepared `geom` for its worker realm.
+- Geometry internals split into separate modules with no geometry test expectation changed: `geom/offset-source.ts` (exact offset points and directions), `geom/offset-error.ts` (independent offset verification), `geom/near-pieces.ts` (ordered curve-proximity candidates), `geom/ray-cast.ts` (ordered indexed ray casting) and `geom-nearest-cache.ts` (a bounded cache of parsed paths for repeated `nearest` calls).
+- Design drawing operations (plan 295, phase 3). `design-draw.ts` compiles authored Design rows into drawing operations with the Design renderer's semantics (`compileDesignRow`, `compileDesignDraw`; `DESIGN_DRAW_VERSION` 0, engine-internal and never persisted) and reports what it cannot carry as findings per row. `design-draw-svg.ts` writes them as SVG, `design-draw-pdf.ts` as a PDF 1.7 file with no embedded fonts, and `design-page-svg.ts` (`designPageSvg`, `designPagesPdf`) exports a whole frame from `ExportOpts.sourceDocument`, with text laid out by the engine's measure (outlined through `host.text` when the caller asks for paths, live text otherwise) and pictures embedded. `frame-preview-svg.ts` now draws through the same compile. `draw-color.ts` holds the shared colour reading; `parsePenpotColor` is still exported from `penpot-file.ts`.
+- Text for the drawing operations: `drawDesignText` returns each laid-out line's baseline, left edge and runs; `textMeasureSpecOfRow` now lives in the engine; `createHostTextShaper` and `sfntVerticalMetrics` (`text-shaper-host.ts`) build the measure's shaper over the host's HarfBuzz for every shell. All are exported from the barrel.
+- A Design `svg` or `pdf` export now carries `sourceDocument`, a frozen copy of the authored values, without the size defaults the Lottie and HTML exports add. The web and CLI shells draw a frame from the operations when the compile reports no findings and use the DOM walker otherwise, logging the reasons.
+
 ## 1.246.0
 
 - Add `rondo-source.ts` (plan 301): a rondocode song (github.com/vijaypemmaraju/rondocode, MIT) as an asset of format `rondo`. `rondoFromFile` reads a `.rondo` file (rondo-language source) or a `.rondo.json` file (rondocode's own project export or the canonical form), `rondoFromShareLink` reads a `https://rondocode.com/#s=` link under all three of its schemes (dictionary-primed raw DEFLATE, raw DEFLATE, uncompressed; the dictionary is generated from the vendored upstream into `rondo-share-dict.ts`), and `rondoSourceBytes` writes the canonical `RondoSourceV1` (`schemaVersion`, `format`, `name`, `lang`, `code`), which rondocode still imports. Every path is bounded before it allocates, and an inflate that fills its ceiling is refused rather than read truncated. The module reads and never runs a song: rendering is a shell's, through `packages/rondo`, which evaluates the song in the `vm` execution class and hands only validated data to upstream's DSP.
@@ -16,12 +31,6 @@
 - Add supported static IDML and Premiere-compatible XML plus media exports for authored Design documents. Both use the same source snapshot on web and CLI, include readable attribution companions, and refuse features they cannot represent.
 - Add bounded Camera Raw XMP settings and Final Cut Pro 7 XML readers with shell-supplied XML parsing. Preset mapping targets existing Darkroom inputs. Timeline interchange retains rational frame counts and reports missing media and losses when mapped to Design.
 - Add Lab to the layered preview colour-mode contract. Shells can use the shared PhotoCraft WASM adapter for 32-bit and Lab PSD/PSB files while preserving source bytes through a separate no-edit writer.
-
-One entry per ENGINE_VERSION minor (the bridge contract version in `src/version.ts`,
-re-exported from `src/index.ts`). Additive-only within v1: methods are added in
-minors, never removed or signature-changed without a major bump.
-
-Moved verbatim from the comment block that used to live in `src/index.ts`.
 
 ## 1.244.0
 

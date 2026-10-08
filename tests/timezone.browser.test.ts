@@ -41,7 +41,7 @@ async function open(values: Record<string, unknown> = {}, noWebGL = false): Prom
         type: any,
         ...args: any[]
       ) {
-        return type === 'webgl' || type === 'webgl2' ? null : original.call(this, type, ...args);
+        return type === 'webgl' || type === 'webgl2' ? null : Reflect.apply(original, this, [type, ...args]);
       } as any;
     });
   const html = `<style>body{margin:0}${await readFile(join(dir, 'styles.css'), 'utf8')}</style><div id="tool-inputs"><input data-input-id="view"></div><div id="fixture-artboard" style="width:1440px;height:1080px">${runtime.getHydrated()}</div><script>document.querySelector('[data-input-id="view"]').addEventListener('input',e=>{history.replaceState(null,'','?view='+encodeURIComponent(e.target.value))});</script>`;

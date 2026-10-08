@@ -165,6 +165,14 @@ export interface CollabSelf {
   readonly clientId: string;
   /** Authenticated account identity on a work gateway; absent in a private pairing. */
   readonly userId?: string;
+  /**
+   * The workspace's own id for the signed-in member (`OrgUser.sub`, the org principal),
+   * when a work room knows the member. The gateway seat's {@link userId} can differ, as a
+   * work server keys seats by its own user record. Recovery copies on this device carry
+   * this id (lib/collab-recovery-owner.ts), and Sign out finds them by this id.
+   * Absent in a private pairing.
+   */
+  readonly account?: string;
   /** The display name chosen at ceremony time, or absent for an anonymous peer
    *  (the UI then renders the role fallback - section 4.5). Never a profile field. */
   readonly name?: string;

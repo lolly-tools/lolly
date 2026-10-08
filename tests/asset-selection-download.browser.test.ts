@@ -8,6 +8,7 @@ import { unzipSync, strFromU8 } from 'fflate';
 import { getBrowser, closeBrowser } from '../packages/node-shell/src/browsers.ts';
 import { embedC2pa, extractC2paStore, GENERATED_SOURCE_TYPE } from '../engine/src/index.ts';
 import { collectActionChain } from '../engine/src/c2pa-extract.ts';
+import { shellSettled } from './helpers/shell-settled.ts';
 
 const origin = process.env.LOLLY_ASSETS_TEST_URL;
 test('Assets selection downloads preserve the displayed colours, source history and original bytes', {
@@ -30,7 +31,7 @@ test('Assets selection downloads preserve the displayed colours, source history 
       localStorage.setItem('lolly-welcome-dismissed', '1');
       localStorage.setItem('lolly-catalog-collapsed', '[]');
     });
-    await page.goto(`${origin}/#/`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/#/`, { waitUntil: 'networkidle' }); await shellSettled(page);
     await page.evaluate(async ({ svg, png, gif }) => {
       const moduleUrl = '/src/lib/host-ref.ts';
       const host = (await import(moduleUrl)).getHostRef();

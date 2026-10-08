@@ -36,6 +36,7 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { webGpuReleaseProblems, assertWebGpuReleaseAllowed } from '../../../scripts/webgpu-release-gate.ts';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const CONF = resolve(HERE, '../src-tauri/tauri.conf.json');
@@ -138,6 +139,12 @@ function main(): void {
       + '\n'
       + 'Until then every build is unsigned and the updater would refuse the artifact anyway.',
     );
+    process.exit(1);
+  }
+  // Writing a manifest pushes this version to every installed app, which is a release:
+  // refused while the WebGPU requirement lacks its supported-environment table (plan 295 P0b).
+  if (outDir && webGpuReleaseProblems().length) {
+    try { assertWebGpuReleaseAllowed(); } catch (error) { console.error(error instanceof Error ? error.message : String(error)); }
     process.exit(1);
   }
   if (placeholderKey) {

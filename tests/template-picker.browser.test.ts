@@ -4,6 +4,7 @@ import test from 'node:test';
 import { setTimeout as pollDelay } from 'node:timers/promises';
 import type { Page } from 'playwright-core';
 import { getBrowser, closeBrowser } from '../packages/node-shell/src/browsers.ts';
+import { shellSettled } from './helpers/shell-settled.ts';
 
 const origin = process.env.LOLLY_IMPORT_TEST_URL;
 
@@ -39,7 +40,7 @@ test('the Projects template picker renders previews and adds independent creatio
     for (const key of ['lolly-welcome-dismissed', 'lolly-tips-dismissed', 'lolly-privacy-ack']) localStorage.setItem(key, '1');
   });
   try {
-    await page.goto(`${origin}/#/p`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/#/p`, { waitUntil: 'networkidle' }); await shellSettled(page);
     const id = await page.evaluate(async () => {
       const bridgePath = '/src/bridge/index.ts', storePath = '/src/lib/user-templates.ts';
       const { createBridge } = await import(bridgePath);
@@ -48,7 +49,7 @@ test('the Projects template picker renders previews and adds independent creatio
       const template = await store.save({ toolId: 'qr-code', name: 'Company QR', values: { url: 'https://example.org/company' } });
       return template.id;
     });
-    await page.reload({ waitUntil: 'networkidle' });
+    await page.reload({ waitUntil: 'networkidle' }); await shellSettled(page);
     // The picker is a modal, and a modal pushes one same-URL history entry for system
     // Back when it opens (lib/overlay-back.ts). Closing it pops that entry again with a
     // history.back() one task later. A reload issued before that pop finishes is
@@ -87,7 +88,7 @@ test('the Projects template picker renders previews and adds independent creatio
       const { navigation } = window as unknown as HistoryPosition;
       return navigation.currentEntry?.index === index && !navigation.transition;
     }, historyBefore);
-    await page.reload({ waitUntil: 'networkidle' });
+    await page.reload({ waitUntil: 'networkidle' }); await shellSettled(page);
     const saved = await page.evaluate(async (id) => {
       const path = '/src/bridge/index.ts';
       const host = await (await import(path)).createBridge();
@@ -120,7 +121,7 @@ test('template Open edits, saves and returns to its originating Projects folder 
           localStorage.setItem('theme', dark ? 'dark' : 'light');
           localStorage.setItem('lolly-a11y', JSON.stringify({ largeText: true, reduceMotion: true }));
         }, folder);
-        await page.goto(`${origin}/#/p`, { waitUntil: 'networkidle' });
+        await page.goto(`${origin}/#/p`, { waitUntil: 'networkidle' }); await shellSettled(page);
         const seed = await page.evaluate(async () => {
           const bridgePath = '/src/bridge/index.ts', storePath = '/src/lib/user-templates.ts', foldersPath = '/src/folders.ts';
           const host = await (await import(bridgePath)).createBridge();
@@ -130,8 +131,8 @@ test('template Open edits, saves and returns to its originating Projects folder 
           return { template: template.id, folder: folder.id };
         });
         const route = `${origin}/#/p${folder ? `/${seed.folder}` : ''}`;
-        await page.goto(route, { waitUntil: 'networkidle' });
-        await page.reload({ waitUntil: 'networkidle' });
+        await page.goto(route, { waitUntil: 'networkidle' }); await shellSettled(page);
+        await page.reload({ waitUntil: 'networkidle' }); await shellSettled(page);
         assert.equal(await page.locator('html').getAttribute('data-a11y-text'), 'large');
         const create = page.locator('[data-create-btn="tool"]').first();
         for (const mode of ['list', 'preview']) {

@@ -28,6 +28,7 @@
  *
  * Pure, synchronous, DOM-free - every shell attaches this same object.
  */
+import { GeometryOperationError, type GeometryOperations } from './geom/operations.ts';
 import type {
   GeomAPI, GeomAuthoredPath, GeomBooleanOpts, GeomBox, GeomContour, GeomErrorCode,
   GeomFailure, GeomLimits, GeomNearest, GeomNode, GeomOffsetOpts, GeomPathResult,
@@ -48,6 +49,7 @@ import { decodeAuthoredPathsResult, encodeAuthoredPaths } from './geom/authored-
 import { simplifyCubics } from './geom/fit.ts';
 import { parseSvgPath } from './svg-path.ts';
 import { renderVectorPaint } from './vector-paint.ts';
+import { createNearestPathCache } from './geom-nearest-cache.ts';
 
 // ── ceilings ──────────────────────────────────────────────────────────────────
 // Sized above any real authored path and below where the superlinear kernel passes
@@ -133,6 +135,7 @@ function attempt(run: () => GeomPathResult): GeomPathResult {
     return run();
   } catch (e) {
     if (e instanceof GeomLimitError) return fail('limit', e.message);
+    if (e instanceof GeometryOperationError) return fail(e.code, `geom: ${e.message}`);
     const msg = e instanceof Error ? e.message : String(e);
     // The spline lowering says which of the two it is, and the two are matched on
     // rather than enumerated here on purpose: a family added to `SplineKind` later
@@ -422,7 +425,9 @@ function nodeIn(n: unknown): SplineNode | GeomFailure {
  * Every shell attaches THIS (`host.geom = makeGeomApi()`) instead of implementing
  * anything, so the surface can never drift between web, CLI and Tauri.
  */
-export function makeGeomApi(): GeomAPI {
+export function makeGeomApi(dependencies: GeometryOperations = {}): GeomAPI {
+  const operations = Object.freeze({ ...dependencies });
+  const nearestCache = createNearestPathCache(parsePath);
   const boolOp = (
     ds: unknown,
     op: (a: GeomPath, b: GeomPath, o: BooleanOptions) => GeomPath,
@@ -432,7 +437,7 @@ export function makeGeomApi(): GeomAPI {
     if (bad) return bad;
     const paths = parsePaths(ds);
     if (isFail(paths)) return paths;
-    return attempt(() => pathOut(fold(paths, op, booleanOpts(opts)), opts?.decimals));
+    return attempt(() => pathOut(fold(paths, op, { ...booleanOpts(opts), operations }), opts?.decimals));
   };
 
   return {
@@ -450,7 +455,7 @@ export function makeGeomApi(): GeomAPI {
       if (bad) return bad;
       const p = parsePath(d);
       if (isFail(p)) return p;
-      return attempt(() => pathOut(selfUnion(p, booleanOpts(opts)), opts?.decimals));
+      return attempt(() => pathOut(selfUnion(p, { ...booleanOpts(opts), operations }), opts?.decimals));
     },
 
     offset: (d, distance, opts) => {
@@ -464,7 +469,7 @@ export function makeGeomApi(): GeomAPI {
       }
       const p = parsePath(d);
       if (isFail(p)) return p;
-      return attempt(() => pathOut(offsetPath(p, distance, offsetOpts(opts)), opts?.decimals));
+      return attempt(() => pathOut(offsetPath(p, distance, { ...offsetOpts(opts), operations }), opts?.decimals));
     },
 
     stroke: (d, width, opts) => {
@@ -477,7 +482,7 @@ export function makeGeomApi(): GeomAPI {
       const p = parsePath(d);
       if (isFail(p)) return p;
       return attempt(() => pathOut(strokeToPath(p, width, {
-        ...offsetOpts(opts),
+        ...offsetOpts(opts), operations,
         ...(opts?.cap ? { cap: opts.cap } : {}),
       }), opts?.decimals));
     },
@@ -644,7 +649,7 @@ export function makeGeomApi(): GeomAPI {
     nearest: (d, x, y) => {
       const pt = point(x, y);
       if (isFail(pt)) return pt;
-      const p = parsePath(d);
+      const p = nearestCache.load(d);
       if (isFail(p)) return p;
       let best: GeomNearest | null = null;
       for (let ci = 0; ci < p.length; ci++) {

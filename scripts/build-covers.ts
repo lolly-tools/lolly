@@ -33,6 +33,7 @@ import { fileURLToPath } from 'node:url';
 import { tmpdir } from 'node:os';
 import sharp from 'sharp';
 import { deriveBrandTokens, hexToOklch, oklchToHex, parseOklch } from '../engine/src/brand-derive.ts';
+import { webGpuLaunchArgs } from '../packages/node-shell/src/webgpu-launch.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
@@ -294,7 +295,9 @@ async function main(): Promise<void> {
   mkdirSync(OUT_DIR, { recursive: true });
 
   const { chromium } = await import('playwright');
-  const browser = await chromium.launch({ headless: !opts.headed, args: ['--ignore-gpu-blocklist'] });
+  // The machine's own GPU where it has a reliable one; the shell's WebGPU requirement
+  // gets SwiftShader on Linux, where a headless host often has none (webgpu-launch.ts).
+  const browser = await chromium.launch({ headless: !opts.headed, args: ['--ignore-gpu-blocklist', ...webGpuLaunchArgs('auto')] });
   const failures: string[] = [];
   try {
     for (const pose of poses) {

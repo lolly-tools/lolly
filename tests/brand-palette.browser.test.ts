@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { chromium } from 'playwright';
+import { shellSettled } from './helpers/shell-settled.ts';
 
 const origin = process.env.LOLLY_IMPORT_TEST_URL;
 test('palette handles support keyboard, mouse and tablet dragging with persistent order', {
@@ -16,7 +17,7 @@ test('palette handles support keyboard, mouse and tablet dragging with persisten
     });
     const page = await context.newPage(), errors: string[] = [];
     page.on('pageerror', e => errors.push(e.message));
-    await page.goto(`${origin}/#/start?area=color&focus=generate&seed=%23e0452b`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/#/start?area=color&focus=generate&seed=%23e0452b`, { waitUntil: 'networkidle' }); await shellSettled(page);
     await page.locator('[data-be-add-ramp="primary"]').click();
     const group = page.locator('[data-be-group="Primary shades"]');
     await group.waitFor();
@@ -46,7 +47,7 @@ test('palette handles support keyboard, mouse and tablet dragging with persisten
       const doc = await (await (await import(path)).createBridge()).tokens.raw();
       return Object.values(doc.$extensions ?? {}).some(value => Array.isArray((value as { paletteOrder?: unknown[] }).paletteOrder));
     });
-    await page.reload({ waitUntil: 'networkidle' });
+    await page.reload({ waitUntil: 'networkidle' }); await shellSettled(page);
     await group.waitFor();
     assert.deepEqual(await keys(), swapped);
     await page.screenshot({ path: '/tmp/lolly-brand-palette-tablet.png', fullPage: true });

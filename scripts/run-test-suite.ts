@@ -112,6 +112,7 @@ export function main(argv = process.argv.slice(2)): number {
   }
   const started = Date.now();
   const args = ['--import', './tests/css-stub.mjs', '--test'];
+  if (process.env.LOLLY_WEBGPU_TEST_ADAPTER) args.push('--import', './tests/browser-gpu.ts');
   if (process.env.LOLLY_SKIP_REPORT) args.push('--test-reporter=./tests/reporters/skip-identities.ts');
   const childEnv = { ...process.env };
   if (partition) {

@@ -6,6 +6,7 @@ import { chromium } from 'playwright';
 import { loadTool } from '../engine/src/loader.ts';
 import { parseUrlState } from '../engine/src/url-mode.ts';
 import { expandQuery } from '../engine/src/url-pack.ts';
+import { shellSettled } from './helpers/shell-settled.ts';
 
 const origin = process.env.LOLLY_MOTION_TEST_URL ?? process.env.LOLLY_EXPORT_TEST_URL;
 const output = process.env.LOLLY_MOTION_TEST_OUTPUT ?? 'plans/artifacts/297/motion-starters';
@@ -22,19 +23,19 @@ test('Motion collection, photo composition and non-writing choreography preview 
       });
     });
     const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
-    await page.goto(`${origin}/t/design`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/t/design`, { waitUntil: 'networkidle' }); await shellSettled(page);
     await page.locator('[data-template-id="motion-photo-loop"]').waitFor();
     await page.locator('[data-template-id="motion-photo-loop"] [data-motion-play]').click();
     await page.locator('[data-template-id="motion-photo-loop"] .template-motion-stage').waitFor({ timeout: 45000 });
     assert.equal(await page.locator('.template-motion-stage').count(), 1);
     await page.screenshot({ path: `${output}/collection.png` });
-    await page.goto(`${origin}/t/design?template=motion-photo-loop`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/t/design?template=motion-photo-loop`, { waitUntil: 'networkidle' }); await shellSettled(page);
     await page.locator('.lolly-box[data-box-id="photo"] img').waitFor();
     await page.waitForFunction(() => { const image = document.querySelector<HTMLImageElement>('.lolly-box[data-box-id="photo"] img'); return image?.complete && image.naturalWidth > 0; });
     await page.screenshot({ path: `${output}/photo-title.png` });
     const source = JSON.parse(await readFile(new URL('../community/design/templates/motion-feature-loop.json', import.meta.url), 'utf8'));
     const ids = source.values.boxes.filter((row: { locked?: boolean }) => !row.locked).map((row: { id: string }) => row.id);
-    await page.goto(`${origin}/t/design?template=motion-feature-loop&preset=long&_sel=${encodeURIComponent(ids.join(','))}`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/t/design?template=motion-feature-loop&preset=long&_sel=${encodeURIComponent(ids.join(','))}`, { waitUntil: 'networkidle' }); await shellSettled(page);
     const headline = page.locator('.lolly-box[data-box-id="headline"][role="button"]');
     await headline.click({ button: 'right' });
     await page.getByRole('menuitem', { name: 'Choreograph…', exact: true }).click();
@@ -83,7 +84,7 @@ test('Motion collection, photo composition and non-writing choreography preview 
     }, JSON.stringify(state.values));
     await writeFile(`${output}/feature-loop.webm`, new Uint8Array(result));
     }
-    await page.goto(`${origin}/t/darkroom?template=motion-warm`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/t/darkroom?template=motion-warm`, { waitUntil: 'networkidle' }); await shellSettled(page);
     await page.getByRole('button', { name: 'Import Adobe photo preset', exact: true }).waitFor();
     assert.equal(new URL(page.url()).searchParams.get('filmLook'), 'portrait');
     assert.deepEqual(errors, []);

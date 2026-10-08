@@ -528,6 +528,15 @@ test('self: the device client id, and the SSO name once the gateway states one',
   assert.equal(handle.self.colorIndex, undefined, 'this wire carries a hex, never a slot');
 });
 
+test('self.account is the member\'s workspace id, apart from the gateway seat\'s user id', () => {
+  const fake = fakeProvider();
+  const handle = createWorkCollabHandle(fake.provider, { clientId: 'DEVICE-SELF', account: 'u_ana' });
+  fake.setState({ status: 'live', self: member({ id: 'conn-me', userId: 'usr_8f3a', name: 'Ana' }) });
+  assert.equal(handle.self.account, 'u_ana', 'recovery copies are tagged with the id Sign out looks them up by');
+  assert.equal(handle.self.userId, 'usr_8f3a', 'the seat keeps the gateway principal');
+  assert.equal(createWorkCollabHandle(fakeProvider().provider).self.account, undefined, 'no member, no account');
+});
+
 test('peerRole is honest ignorance when the gateway did not say', () => {
   const fake = fakeProvider({
     status: 'live',
