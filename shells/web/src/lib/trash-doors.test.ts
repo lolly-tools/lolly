@@ -147,7 +147,8 @@ test('P10: the Projects avatar menu opens Saved sessions exactly as the gallery 
 });
 
 test('P10: the gallery caption names the time it shows', () => {
-  const gallery = read('views/gallery.ts');
+  // The caption is built with the tile markup, in views/gallery-tiles.ts.
+  const gallery = read('views/gallery.ts') + read('views/gallery-tiles.ts');
   const caption = between(gallery, 'const sub = hasSession', ": '';");
   assert.match(caption, /latest!\.openedAt\s*\?\s*t\('Last opened · \{time\}', \{ time: relativeTime\(latest!\.openedAt\) \}\)/);
   assert.match(caption, /t\('Last modified · \{time\}', \{ time: relativeTime\(latest!\.updatedAt\) \}\)/);

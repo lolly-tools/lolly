@@ -1053,5 +1053,6 @@
   "Shared folder": "Gedeelde map",
   "Shared folders could not be loaded or saved. Check your connection and try again.": "Gedeelde mappen konden niet worden geladen of opgeslagen. Controleer je verbinding en probeer het opnieuw.",
   "Shared projects could not be loaded. Try again.": "Gedeelde projecten konden niet worden geladen. Probeer het opnieuw.",
-  "You can view this project but cannot change its folders.": "Je kunt dit project bekijken, maar de mappen ervan niet wijzigen."
+  "You can view this project but cannot change its folders.": "Je kunt dit project bekijken, maar de mappen ervan niet wijzigen.",
+  "New {name}": "Nieuw: {name}"
 }

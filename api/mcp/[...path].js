@@ -144700,7 +144700,7 @@ var init_raster3 = __esm({
     init_exr();
     init_radiance();
     init_content_roots();
-    NODE_FORMATS = ["svg", "svgz", "emf", "wmf", "eps", "eps-cmyk", "dxf", "penpot", "lottie", "jxl", "jxl-lossless", "bmp", "exr", "hdr", "html", "json", "csv", "ics", "vcf", "md"];
+    NODE_FORMATS = ["svg", "svgz", "emf", "wmf", "eps", "eps-cmyk", "dxf", "penpot", "lottie", "idml", "premiere-xml", "jxl", "jxl-lossless", "bmp", "exr", "hdr", "html", "json", "csv", "ics", "vcf", "md"];
     HOOK_OWNED_FORMATS = ["wav", "mp3", "m4a", "opus"];
     DEEP_FORMATS = ["exr", "hdr"];
     fontDirs = null;
