@@ -80,6 +80,17 @@ The Tauri `bridge-overrides/` are `.ts` as of 2026-07-30 and typechecked, but **
 
 Three CI checks fail on **wording**, not behaviour: `check:code-comments`, `check:ui-copy` and `tests/docs-vernacular.test.ts`. They match a fixed list of characters (em dash, section sign, hidden unicode) and phrases, literally, with no model in the loop, because AI-assisted edits keep reintroducing them and the maintainer wants them gone (see `scripts/README.md`, "Vernacular gates", and the explanation each gate prints on failure from `scripts/lib/vernacular-why.ts`). The comment and UI-copy gates are per-file ratchets (`scripts/vernacular-*-baseline.json`, counts only go down, `--write` records a reviewed improvement). The docs gate is a hard ban plus one ratchet: a sentence that ends in "it" (`RATCHETED_PHRASES`, `scripts/vernacular-docs-baseline.json`); a heading that ends in "it" is a hard ban. To pass, reword in plain English; never widen the list.
 
+## Branches and worktrees
+
+Many agent sessions share this checkout. These rules keep their work from piling up or getting lost:
+
+- One branch per PR, in its own worktree under `<repo>/.worktrees/<name>`, made off `origin/main`. Never under `/private/tmp` (macOS empties it nightly) and never inside `plans/`.
+- Commit the work to its branch and push before the session ends. Uncommitted files in the shared main checkout are not a safe place to keep work.
+- The main checkout stays on `main`.
+- After a PR merges, remove its worktree and local branch, and its remote branch if GitHub has not already deleted the branch on merge.
+- No `backup/*`, `scratch/*`, `deploy/*` or `integrate/*` branches on the remote. Never merge a snapshot or backup branch into main wholesale: one merged that way shipped a change that had failed review. Keep superseded work as an `archive/*` tag, not a branch.
+- Run `pnpm run branch:hygiene` before ending a long session (add `../lolly-work` to check both repositories). It reports each branch as IN_MAIN, OPEN_PR or UNIQUE and lists worktrees with their state; `--prune` removes only what main already holds and nobody is using, and logs every sha to `plans/worktree-notes/` first.
+
 ## Architecture
 
 ### The three-layer separation (this is the core idea)
