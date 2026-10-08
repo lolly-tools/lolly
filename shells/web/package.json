@@ -60,6 +60,7 @@
   "devDependencies": {
     "@lolly-tools/node-shell": "workspace:*",
     "@types/css-tree": "^3.2.0",
+    "@webgpu/types": "0.1.74",
     "vite": "^8.3.2"
   }
 }

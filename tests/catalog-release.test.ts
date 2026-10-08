@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 import assert from 'node:assert/strict';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -13,12 +13,48 @@ import {
   parseReleaseFrontend,
   validateReleaseEnvironment,
 } from '../scripts/build-release-web.ts';
+import { REQUIRED_WEBGPU_TARGETS } from '../scripts/webgpu-release-gate.ts';
 
 const PUBLIC_JWK = JSON.stringify({
   kty: 'EC',
   crv: 'P-256',
   x: 'test-public-x',
   y: 'test-public-y',
+});
+
+test('signed frontend entrypoints refuse before signing when WebGPU qualification is missing', (t) => {
+  const dir = realpathSync(mkdtempSync(join(tmpdir(), 'lolly-frontend-gate-')));
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  mkdirSync(join(dir, 'scripts'), { recursive: true });
+  mkdirSync(join(dir, 'shells', 'web', 'src'), { recursive: true });
+  mkdirSync(join(dir, 'docs'), { recursive: true });
+  for (const file of ['build-release-web.ts', 'webgpu-release-gate.ts', 'webgpu-qualification.ts']) {
+    writeFileSync(join(dir, 'scripts', file), readFileSync(new URL(`../scripts/${file}`, import.meta.url)));
+  }
+  writeFileSync(join(dir, 'shells', 'web', 'src', 'main.ts'),
+    "import { startWebGpuCheck } from './lib/webgpu/device.ts';\nvoid startWebGpuCheck();\n");
+  const marker = join(dir, 'signing-reached');
+  writeFileSync(join(dir, 'scripts', 'sign-catalog.ts'),
+    "import { writeFileSync } from 'node:fs'; writeFileSync('signing-reached', 'yes'); process.exit(77);\n");
+  const run = (target: string) => spawnSync(process.execPath, [join(dir, 'scripts', 'build-release-web.ts'), target], {
+    cwd: dir, encoding: 'utf8', timeout: 10_000,
+    env: { PATH: process.env.PATH, LOLLY_CATALOG_SIGNING_KEY: 'test-only', VITE_CATALOG_PUBLIC_KEY_JWK: PUBLIC_JWK },
+  });
+  for (const target of ['web', 'tauri-desktop', 'tauri-mobile']) {
+    const result = run(target);
+    assert.equal(result.status, 1, target);
+    assert.match(result.stderr, /Release refused[\s\S]*supported-environments\.md/, target);
+    assert.equal(existsSync(marker), false, `${target} must refuse before signing`);
+  }
+  const rows = REQUIRED_WEBGPU_TARGETS.map(({ name }) => `| ${name} | Not supported | none | fixture |`);
+  writeFileSync(join(dir, 'docs', 'supported-environments.md'), rows.slice(1).join('\n'));
+  const partial = run('web');
+  assert.equal(partial.status, 1);
+  assert.match(partial.stderr, /no row for Chrome and Edge/);
+  assert.equal(existsSync(marker), false, 'partial qualification still refuses before signing');
+  writeFileSync(join(dir, 'docs', 'supported-environments.md'), rows.join('\n'));
+  assert.equal(run('web').status, 77, 'published results allow the signing stage to run');
+  assert.equal(existsSync(marker), true);
 });
 
 test('release web builds require both catalog signing and verification keys', () => {

@@ -16,6 +16,8 @@
 import { spawnSync } from 'node:child_process';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { assertWebGpuReleaseAllowed, webGpuReleaseProblems } from './webgpu-release-gate.ts';
+import { announceQualificationBuild, assertQualificationAllowed, isQualificationBuild, writeMarker } from './webgpu-qualification.ts';
 
 const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
 
@@ -80,9 +82,38 @@ function sign(env: NodeJS.ProcessEnv, extraArgs: string[] = []): void {
   run(process.execPath, ['scripts/sign-catalog.ts', ...extraArgs], env);
 }
 
+/**
+ * A WebGPU qualification build (scripts/webgpu-qualification.ts): the same frontend
+ * build without the release gate, without signing and without the release trust mode,
+ * marked not for release. It exists so plan 295 P0b can qualify the packaged webviews
+ * the release gate is waiting on; it never replaces a release build.
+ */
+export function qualificationMain(target: ReleaseFrontend, env: NodeJS.ProcessEnv = process.env): void {
+  assertQualificationAllowed(env);
+  // The web frontend is what the public image and every web deployment build from,
+  // so it never takes this path. The browsers P0b qualifies need no exception: the
+  // ordinary `pnpm run build:web` and the dev shell are not gated.
+  if (target === 'web') {
+    throw new Error('Refused: a WebGPU qualification build is for the packaged apps (tauri-desktop, tauri-mobile). For browsers, qualify `pnpm run build:web` or the dev shell, which the release gate does not cover.');
+  }
+  const problems = webGpuReleaseProblems();
+  announceQualificationBuild(problems, env);
+  // Nothing downstream signs: the signing key never reaches a child process. The public
+  // pin goes too, because a frontend that carries a pin trusts only signed catalogs
+  // (catalog/integrity.ts), and this one is built in the unsigned development mode.
+  const build: NodeJS.ProcessEnv = { ...env };
+  for (const name of ['LOLLY_CATALOG_SIGNING_KEY', 'VITE_CATALOG_PUBLIC_KEY_JWK', 'LOLLY_RELEASE_BUILD', 'VITE_CATALOG_TRUST_MODE']) delete build[name];
+  const packageManager = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
+  const shellDir = TAURI_DIR[target];
+  run(packageManager, ['-C', shellDir, 'run', 'build:frontend'], build);
+  writeMarker(resolve(ROOT, shellDir, 'dist'), problems, env);
+}
+
 export function main(): void {
-  validateReleaseEnvironment(process.env);
   const target = parseReleaseFrontend(process.argv[2]);
+  if (isQualificationBuild(process.env)) { qualificationMain(target); return; }
+  assertWebGpuReleaseAllowed();
+  validateReleaseEnvironment(process.env);
   const env = {
     ...process.env,
     LOLLY_RELEASE_BUILD: '1',
@@ -112,4 +143,9 @@ export function main(): void {
   ]);
 }
 
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main();
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  try { main(); } catch (error) {
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exit(1);
+  }
+}

@@ -10,6 +10,19 @@ Lives at `shells/web/` in the [`lolly`](https://github.com/lolly-tools/lolly) re
 
 The `.js` specifier for a `.ts` file is deliberate, and it is the reason the Tauri shells carry a `jsToTsFallback` Vite plugin. This shell pins `vite@^8`, which resolves the sibling `.ts` implicitly; the Tauri shells pin `vite@^5`, which does not.
 
+Creative startup requires a usable WebGPU adapter and device in a secure context
+(HTTPS or local development). `src/lib/webgpu/device.ts` owns acquisition,
+deadlines and device loss; `main.ts` awaits acquisition before mounting the app.
+An unavailable adapter produces the required-environment error card. LUT photo
+grading requires WebGPU in both worker and main-realm execution, and failures
+propagate to asset/download callers. The embedded Tauri frontend has the same
+startup requirement; actual webview graphics support needs separate qualification.
+
+LUT bakes reuse a bounded worker and device-owned frame buffers, with cancellation
+acknowledgement and idle disposal. Up to eight LUT passes can share one upload and
+final readback. See the [pixel kernel guide](../../packages/node-shell/wasm/pixel-kernel/README.md)
+for numerical limits, resource ownership and `pnpm run test:webgpu` qualification.
+
 `index.html` is not a stub. It carries three things worth knowing about before you edit it:
 
 - An inline pre-paint script that reads `theme`, `brand-fonts`, `brand-radius` and `lang` from `localStorage` and stamps `data-theme`, the brand font custom properties, `<html lang>` and `dir` before the first frame. This is the **only** sanctioned use of `localStorage` in the shell. Tool and session state always goes through `host.state`, which is IndexedDB here. The language alias and `htmlLang` maps in that script are hand-inlined mirrors of `engine/src/lang.ts`, because an inline script cannot import anything.
@@ -29,6 +42,8 @@ Eleven more are wired as **lazy facades**: the field on `host` is a small object
 This is not a style preference, it is a tested budget. `scripts/check-bundle-budget.ts` re-derives the boot payload from the built `dist/index.html` (the entry script plus every `modulepreload`), asserts that no chunk matching `/(engine-render|engine-c2pa|handlebars|ajv|html2canvas)-/` appears on it, and caps the total gzipped boot JS at `MAX_PRELOAD_JS_GZ = 135 * 1024`. Run it with `pnpm run check:bundle` after a production build exists. A single careless top-level `import { createRuntime }` in a boot-path module drags Handlebars and Ajv back in, and nothing else would fail. The same reasoning is why `bridge/index.ts` imports deep engine paths rather than the `@lolly/engine` barrel: that barrel is one shared facade whose retained export set is the union over every importer.
 
 Two contractually **synchronous** APIs cannot be lazy facades, so they get their own mechanism. `host.color` (v1.40) and `host.geom` (v1.64) are pure engine maths, and nothing in this shell reads either one, only tool hooks do. `installToolApis(host)` attaches them, and the single enforced chokepoint that awaits it is `createToolRuntime` in `src/lib/mount-runtime.ts`. Failure there is non-fatal by design, because both APIs are optional in the contract and tools feature-detect them.
+
+Explicit geometry selection waits for its WASM modules before publishing a synchronous API, and loading failures reject that selected installation. The TypeScript geometry uses portable scalar maths (`engine/src/geom/portable-math.ts`), so it gives the same bits in Chromium, Firefox, WebKit and Node; `wasm-portable` runs the import-free clipping and fitting kernels and returns those same bits faster. Selected isolated hooks inherit that choice before strict lockdown. `wasm-portable` is the default for tool mounts, hook workers, Design vector operations and Studio 3D; if the kernels cannot load, the reference is used with a logged warning. An explicit `geometryBackend` stays strict. The [kernel guide](../../packages/node-shell/wasm/geometry-kernel/README.md#one-portable-answer) describes qualification and measurement.
 
 `capabilities` comes from `src/bridge/capabilities-provided.ts`, plus `'capture'` when the Chrome extension's `window.__lollyCapture` flag is present. `identity` and `previews` are web-only host-UI helpers hung off the same object and are **not** part of the tool-facing v1 contract.
 

@@ -93,6 +93,8 @@ draft shape
     textFallbacks[]   runs that stayed live text: { text, reason }
     emoji             { set, version, treatment }
     models[]          { id, version, licence } for any on-device model the run used
+    kernels[]         { operation, implementation, revision, artifact sha256? } per numerical or pixel implementation that produced a result
+    devices[]         { api, adapter, backend, software } per graphics device the run computed on
     conversions[]     unit and DPI conversions applied, with the site that applied each
     clocks            the clocks the run read and the value each supplied
     environment       { shell, engine, suite versions, execution class }
@@ -126,6 +128,8 @@ A receipt must record every text run that stayed a live `<text>` element, and a 
 
 `docs/determinism.md` already states the public limit this serves: vector export converts text to outlines, so the bytes depend on which font file was resolved, and a machine with a different font set is a different render. The receipt records that dependency so a reader can check it afterwards.
 
+The drawing operations from plan 295 already hold most of what this section asks a receipt to record. `engine/src/design-draw.ts` lays every Design text block out with the engine's measure (`drawDesignText` in `engine/src/design-text-measure.ts`) and the host's shaper, and each laid-out run keeps the face it resolved: family, weight, style, font file and variation axes. `outlineDesignDrawText` outlines each run from that same face through `host.text.toPath`, so the layout and the outline cannot disagree about the font. A run the host cannot outline stays live text and is reported as the `text-unoutlined` finding, which is the fact this section requires a receipt to keep. The face file is still a location, not a digest, so a receipt built from the operations must add the digest (R15).
+
 ### Clocks
 
 Clocks are explicit and separate, and a receipt must name which ones fed the run and with what values (R15, plan section 8.5).
@@ -146,11 +150,32 @@ Each unit and DPI conversion a run applied must be recorded with the site that a
 
 `engine/src/units.ts` holds the conversion maths and must stay the only place that holds it (plan section 8.4). The conversion is applied at several boundaries, one per export format in each shell's export bridge, which is why a receipt records the site as well as the number. Three DPI conventions are live at once: the rebrand reference space at 96 (`REBRAND_REFERENCE_DPI` in `packages/core/src/rebrand-v1.ts`), the export default at 300 (the `dpi` parameter in `engine/src/url-mode.ts`) and a Design document's own resolution (the `documentDpi` input in `community/design/tool.json`). A receipt that records the converted number without the convention cannot be read back, so both must travel.
 
+### Pictures
+
+A picture's placement depends on a fact the instance record does not hold: the picture's own size. Plan 295's drawing compiler places a picture as CSS places one, by `object-fit` from that size, `object-position` and the framing zoom, with the edges snapped to whole pixels as Chromium snaps a replaced element (`pictureRect` in `engine/src/design-draw.ts`). The host supplies the size and the media kind (`describeDesignDrawPictures`), and the media kind can decide whether a row draws at all: a row whose asset is sound leaves no mark, and an animation or a video is reported rather than drawn as a still. Both are inputs to the evaluation, so a receipt must record the digest of each picture a run resolved under `inputs[]`, and a size the host could not supply must appear as a finding (R15).
+
+### Choosing the renderer
+
+Plan 295 draws a Design page's SVG export from the drawing operations on the web and in the CLI, which needs no browser for such a page, and a Design document's PDF from the same operations on the web (`designDrawPdf` in `engine/src/design-draw-pdf.ts`), where the CLI reaches it through its browser tier. Each page is drawn from the operations only when the compile reports no findings; any finding, such as an emoji drawn from the chosen pack, a brand colour only the live page can read, or a picture larger than its drawing needs, sends the page to the DOM walker with the reasons stated (`designOpsSvg` in `shells/web/src/bridge/export-design-ops.ts`, `designOpsSvgNode` in `packages/node-shell/src/design-ops-svg.ts`). This is a declared fallback, chosen before anything is drawn, so a receipt must list it in `fallbacks[]` with the findings that chose it; the operations never fail part way and hand their work to the walker under their own identity (R15).
+
+The two shells write identical bytes for the same page because each host lends only facts: the shaped advances and outlines from HarfBuzz, the face files and their metrics, and each picture's own bytes and media kind. Everything that shapes the output, from the layout to the picture's type, size and encoding, runs once in the engine. A host interface that passed encoded results instead, such as a data URL or a picture size, would let the two shells drift.
+
 ### Emoji, models and policy
 
 - The emoji set and the brand treatment must be recorded (R15). The session record already carries the pair as a stamp at format 3 and keeps it as the two reserved parameters verbatim rather than as resolved bytes (`engine/src/session-record.ts`), and the receipt must record the same identity.
 - Any on-device model must be recorded by identity and version (R15). `packages/node-shell/src/ml/matte-models.ts` carries a version string per model and copies it verbatim into the provenance edit step, which is the identity a receipt reuses.
 - The effective policy version, its issuer and the execution class the run used must be recorded (R15, R3). Where a local waiver deactivated a rule, the receipt must list the bypassed rules, and measured conformance to the unmodified rule reads failed, never passed (R6). The waiver is recorded as an exception on the acceptance, never on the report (R8).
+
+### Numerical kernels and graphics devices
+
+These rules come from the first WebGPU and Rust kernel work (plan 295), added on 2026-10-07. They describe what the tree now does for LUT grading and curve geometry, and they bind any later renderer.
+
+- A receipt must record the revision of every implementation that produced a result, by artifact digest where a compiled artifact exists. An algorithm revision is a different result identity even when the authored instance is unchanged. The precedent is LUT grading on WebGPU: `packages/node-shell/src/pixel-kernel-recipe.ts` holds the recipe identity, and `shells/web/src/bridge/assets.ts` adds the recipe to the cache key and to the asset metadata, so bytes from the earlier implementation are never served under the new identity.
+- Host arithmetic is an environment input. JavaScript engines do not round `Math.hypot`, `Math.atan2` and the other transcendental functions identically: one fixed curve derivative gives norm bits ending `a4` in V8 and `a3` in SpiderMonkey and JavaScriptCore. The same TypeScript geometry therefore gives different raw control points and different internal work counts in the CLI and in Safari or Firefox, even where the serialized SVG is equal. A result that must be repeatable across shells must come from an implementation that uses only correctly rounded operations or one compiled module that imports nothing from its host. The geometry now does both: `engine/src/geom/portable-math.ts` keeps V8's two-argument norm in exactly rounded operations and runs the transcendental functions in an embedded import-free WebAssembly module, and the complete geometry workflows give one digest in Node, Chromium, Firefox and WebKit, main realm and worker. `engine/src/emoji-treatment.ts` is the earlier precedent: its colour core avoids `pow`, `cbrt`, `exp` and `log` for the same reason.
+- A receipt must record each graphics device a run computed on: the interface, the adapter, the backend and whether the device was a software implementation. Software graphics and physical hardware are different evidence. `shells/web/src/lib/webgpu/device.ts` acquires the device and reports the failure codes a receipt would carry.
+- The choice of implementation is environment, never authored state. An instance record must never hold a backend selection, and a tool must never read one. `packages/node-shell/src/geometry-host.ts` keeps the geometry backend private to the host, which is the precedent.
+- A selected implementation that fails must produce a visible failure finding. A host must never retry the operation on another implementation and present that output under the selected identity, and an implementation fallback is never one of the declared fallbacks a receipt lists in `fallbacks[]`. LUT grading rethrows its failure to the asset and download callers rather than serving the untreated picture.
+- Renderer-owned resources belong to no record. Device loss invalidates GPU buffers, textures and pipelines, and a host rebuilds them from logical resources and the frozen evaluation. A package must never persist a renderer resource or a process-local handle.
 
 ## Redaction is an explicit field
 
@@ -206,6 +231,13 @@ Q1 and Q5 are answered in [Conformance and fidelity](conformance.html). Q6 is an
 - `shells/web/src/bridge/export-svg-text-runs.ts`
 - `shells/web/src/bridge/frame-clock.ts`
 - `shells/cli/src/run.ts`
+- `packages/node-shell/src/pixel-kernel-recipe.ts`
+- `packages/node-shell/src/geometry-host.ts`
+- `packages/node-shell/wasm/geometry-kernel/`
+- `shells/web/src/bridge/assets.ts`
+- `shells/web/src/lib/webgpu/device.ts`
+- `engine/src/emoji-treatment.ts`
+- `engine/src/geom/portable-math.ts`
 - `schemas/tool.schema.json`
 - `community/design/tool.json`
 - `docs/agenda.md`

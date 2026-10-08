@@ -4,13 +4,14 @@ import assert from 'node:assert/strict';
 import { readFile, mkdir } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 import { chromium } from 'playwright';
+import { webGpuLaunchArgs } from '../packages/node-shell/src/webgpu-launch.ts';
 import type { ForensicReport } from '../engine/src/forensic.ts';
 const origin = process.argv[2] ?? 'http://127.0.0.1:4198';
 assert.ok(['127.0.0.1', 'localhost', '[::1]'].includes(new URL(origin).hostname));
 const root = resolve('plans/287-verify-forensics'),
   fixtures = join(root, 'design-review');
 await mkdir(root, { recursive: true });
-const browser = await chromium.launch(),
+const browser = await chromium.launch({ args: webGpuLaunchArgs('software') }),
   page = await browser.newPage({ viewport: { width: 1440, height: 1100 } });
 page.setDefaultTimeout(30_000);
 const errors: string[] = [],

@@ -5,6 +5,7 @@ import test from 'node:test';
 import { readFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
 import { journeyDiagnostics } from './helpers/journey-diagnostics.ts';
+import { shellSettled } from './helpers/shell-settled.ts';
 
 const origin = process.env.LOLLY_IMPORT_TEST_URL;
 test('reference onboarding previews locally, applies exact colours, and restores the previous design system', {
@@ -22,7 +23,7 @@ test('reference onboarding previews locally, applies exact colours, and restores
     const errors: string[] = [], external: string[] = [];
     page.on('pageerror', e => errors.push(e.message));
     await context.route('https://example.invalid/**', route => { external.push(route.request().url()); return route.abort(); });
-    await page.goto(`${origin}/#/start?source=page`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/#/start?source=page`, { waitUntil: 'networkidle' }); await shellSettled(page);
     const read = () => page.evaluate(async () => {
       const path = '/src/bridge/index.ts';
       return (await (await import(path)).createBridge()).tokens.raw();

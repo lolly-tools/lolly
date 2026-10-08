@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { getBrowser, closeBrowser } from '../packages/node-shell/src/browsers.ts';
+import { shellSettled } from './helpers/shell-settled.ts';
 
 const origin = process.env.LOLLY_IMPORT_TEST_URL;
 test('SVG import keeps brand font snapping, fits both text layers and offers Type setup without losing the design', {
@@ -17,7 +18,7 @@ test('SVG import keeps brand font snapping, fits both text layers and offers Typ
     for (const key of ['lolly-welcome-dismissed', 'lolly-tips-dismissed', 'lolly-privacy-ack']) localStorage.setItem(key, '1');
   });
   try {
-    await page.goto(`${origin}/#/p`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/#/p`, { waitUntil: 'networkidle' }); await shellSettled(page);
     const [chooser] = await Promise.all([
       page.waitForEvent('filechooser'),
       page.getByRole('button', { name: 'Open a file - import a .lolly, design or image' }).click(),

@@ -52,6 +52,7 @@ For signed targets, provide `LOLLY_CATALOG_SIGNING_KEY` and `VITE_CATALOG_PUBLIC
 
 ## Publication
 
+- [ ] `pnpm run check:release` passes. Release mode refuses a release while the web shell requires WebGPU at startup and `docs/supported-environments.md` lacks a published result for any required environment (plan 295 P0b, `scripts/webgpu-release-gate.ts`).
 - [ ] Every mounted profile's generated catalogue index was rebuilt after community manifest changes (`pnpm run build:catalog:all`).
 - [ ] Release artifacts have recorded SHA-256 digests and their source commit/submodule pointers are recoverable.
 - [ ] SBOM, third-party notices, release notes, privacy/security docs, and vulnerability-reporting links match the shipped target.

@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 import { mkdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
+import { shellSettled } from './helpers/shell-settled.ts';
 
 const origin = process.env.LOLLY_HISTORY_TEST_URL;
 const skip = origin ? false : 'LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)';
@@ -135,7 +136,7 @@ test('History route supports project filters, milestones, right-panel versions, 
   const browser = await chromium.launch({ headless: true }); const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
   try {
-    await page.goto(origin!, { waitUntil: 'networkidle' });
+    await page.goto(origin!, { waitUntil: 'networkidle' }); await shellSettled(page);
     await page.evaluate(async () => {
       const path = '/src/lib/host-ref.ts', host = (await import(path)).getHostRef();
       const canvas = document.createElement('canvas'); canvas.width = 280; canvas.height = 180; const ctx = canvas.getContext('2d')!;
@@ -193,7 +194,7 @@ test('History route supports project filters, milestones, right-panel versions, 
     await page.locator('[data-topbar="history"]').waitFor(); await page.goBack(); await page.locator('.app-history-row').first().waitFor();
     assert.equal(await page.getByRole('button', { name: 'Filter by project', exact: true }).getAttribute('data-value'), 'launch');
     assert.equal(await page.locator('.app-history-row').count(), 1);
-    await page.reload({ waitUntil: 'networkidle' }); await page.locator('.app-history-row').waitFor();
+    await page.reload({ waitUntil: 'networkidle' }); await shellSettled(page); await page.locator('.app-history-row').waitFor();
     await page.setViewportSize({ width: 390, height: 844 });
     assert.ok(await page.locator('.app-history').evaluate(el => el.scrollWidth <= el.clientWidth));
     const filters = page.getByRole('button', { name: /^Filters/ });
@@ -233,7 +234,7 @@ test('file History hands off to the exact batch and its retained report and down
   const browser = await chromium.launch({ headless: true }); const page = await browser.newPage();
   const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
   try {
-    await page.goto(origin!, { waitUntil: 'networkidle' });
+    await page.goto(origin!, { waitUntil: 'networkidle' }); await shellSettled(page);
     const id = await page.evaluate(async () => {
       const storePath = '/src/lib/file-operation-store.ts', adapterPath = '/src/lib/file-operation-adapter.ts', savedPath = '/src/lib/saved-file-operation.ts';
       const store = await (await import(storePath)).localFileOperations();

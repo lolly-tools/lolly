@@ -30,6 +30,7 @@ import { assertRenderOk, RenderIntegrityError } from '@lolly-tools/node-shell/re
 import { isDeepFormat, DeepSourceError, needsFloatScene } from '@lolly-tools/node-shell/raster';
 import { buildExportC2paOpts } from '@lolly-tools/node-shell/c2pa-opts';
 import { needsBrowserTier } from '@lolly-tools/node-shell/browser-tier';
+import { webGpuLaunchArgs } from '@lolly-tools/node-shell/webgpu-launch';
 import { observeProductionInputs } from '@lolly-tools/node-shell/production-browser';
 import { waitForExport, type ExportWait } from '@lolly-tools/node-shell/export-wait';
 import { checksInOpenedPage, openSessionInPage, OpenSessionError, packageDesignSession, sessionQuery, shortenUrls } from '@lolly-tools/node-shell/open-session';
@@ -584,6 +585,9 @@ async function readBoundedDownload(filename: string): Promise<Uint8Array> {
 export function browserLaunchArgs(env: NodeJS.ProcessEnv = process.env): string[] {
   return [
     ...(env.LOLLY_BROWSER_NO_SANDBOX === '1' ? ['--no-sandbox'] : []),
+    // The web shell requires a WebGPU adapter (plan 295). A hosted renderer has no
+    // GPU to offer one, so the shared flags name SwiftShader (webgpu-launch.ts).
+    ...webGpuLaunchArgs('software'),
     '--force-color-profile=srgb',
     '--font-render-hinting=none',
   ];
@@ -619,10 +623,11 @@ async function getBrowser(): Promise<import('playwright-core').Browser> {
           // Rendering-intent pins, mirrored from packages/node-shell/src/browsers.ts
           // (see the full comment there): host-profile-independent sRGB colour and
           // unhinted glyph metrics, so hosted layouts don't reflow vs desktop.
-          // Known divergence from node-shell: no swiftshader pair here, so a
-          // WebGL-dependent tool (3d, viz) renders its fallback rather than GL
-          // content on this tier. Add '--use-angle=swiftshader',
-          // '--enable-unsafe-swiftshader' if a hosted deployment needs those tools.
+          // Known divergence from node-shell: no SwiftShader WebGL pair here (the
+          // WebGPU adapter flags above are separate), so a WebGL-dependent tool (3d,
+          // viz) renders its fallback rather than GL content on this tier. Add
+          // '--use-angle=swiftshader', '--enable-unsafe-swiftshader' if a hosted
+          // deployment needs those tools.
           ...browserLaunchOptions(),
         });
       } catch (err) {

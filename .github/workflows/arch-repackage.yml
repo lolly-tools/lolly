@@ -28,6 +28,11 @@ jobs:
           set -euo pipefail
           [[ "$DEB_RUN_ID" =~ ^[0-9]+$ ]]
           gh run download "$DEB_RUN_ID" --name lolly-deb --dir package
+          # A WebGPU qualification build (plan 295 P0b) is unsigned and never published.
+          if find package -name 'WEBGPU-QUALIFICATION-BUILD-NOT-FOR-RELEASE.txt' | grep -q .; then
+            echo "::error::Run $DEB_RUN_ID is a WebGPU qualification build: unsigned and not for release."
+            exit 1
+          fi
           deb=$(find package -maxdepth 1 -name '*.deb' -print -quit)
           test -n "$deb"
           version=$(jq -r .version shells/tauri-desktop/src-tauri/tauri.conf.json)

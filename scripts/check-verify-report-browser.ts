@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Verify the unified reader flow and downloaded PDF signatures against a local build. */
 import { chromium } from 'playwright';
+import { webGpuLaunchArgs } from '../packages/node-shell/src/webgpu-launch.ts';
 import assert from 'node:assert/strict';
 import { resolve } from 'node:path';
 import { readFile } from 'node:fs/promises';
@@ -10,7 +11,7 @@ const origin = process.argv[2] ?? 'http://127.0.0.1:4199';
 assert.ok(['localhost', '127.0.0.1', '[::1]'].includes(new URL(origin).hostname));
 const root = resolve('plans/287-verify-forensics'),
   fixtures = root + '/design-review';
-const browser = await chromium.launch();
+const browser = await chromium.launch({ args: webGpuLaunchArgs('software') });
 const page = await browser.newPage({ viewport: { width: 1440, height: 1080 } });
 const errors: string[] = [];
 page.on('pageerror', (e) => errors.push(e.message));

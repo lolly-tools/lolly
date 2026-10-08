@@ -246,11 +246,13 @@ interface Run {
 }
 
 /** Build the singleton color/geom once (shared across all runs in this worker). */
-function makeColocatedApis() {
-  return { color: makeColorApi(), geom: makeGeomApi() };
+function makeColocatedApis(geom?: HostV1['geom']) {
+  return { color: makeColorApi(), geom: geom ?? makeGeomApi() };
 }
 
 export interface HookWorkerCoreOpts {
+  /** A shell-prepared synchronous numerical API for this worker realm. */
+  geom?: HostV1['geom'];
   hostCallSeq?: () => number;
   /** The worker realm's own answer to `host.raster.canRaster()` - whether a
    *  bitmap can be decoded/drawn here. A browser Worker probes
@@ -264,7 +266,7 @@ export interface HookWorkerCoreOpts {
  */
 export function createHookWorkerCore(port: HookWorkerPort, opts: HookWorkerCoreOpts = {}) {
   const runs = new Map<number, Run>();
-  const apis = makeColocatedApis();
+  const apis = makeColocatedApis(opts.geom);
   let hostCallCounter = 0;
   const nextHostCallId = opts.hostCallSeq ?? (() => ++hostCallCounter);
   const canRaster = opts.canRaster ?? (() => false);

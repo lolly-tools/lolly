@@ -2,6 +2,7 @@
 /** Pointer, touch, selection and keyboard block editing; incomplete learner previews. */
 import assert from 'node:assert/strict';
 import { chromium, webkit } from 'playwright';
+import { webGpuLaunchArgs } from '../packages/node-shell/src/webgpu-launch.ts';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -14,6 +15,7 @@ const engine = arg('browser') === 'webkit' ? 'webkit' : 'chromium';
 const profile = await mkdtemp(join(tmpdir(), 'learning-blocks-'));
 const browser = await { chromium, webkit }[engine].launchPersistentContext(profile, {
   headless: true,
+  args: engine === 'chromium' ? webGpuLaunchArgs('software') : [],
   viewport: { width: 1280, height: 1200 },
   hasTouch: true,
 });

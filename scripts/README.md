@@ -10,6 +10,13 @@ Run `node scripts/clean-native-builds.ts` to preview old caches in the current c
 
 Read this alongside [`../CONTRIBUTING.md`](../CONTRIBUTING.md), which explains which file lives where.
 
+Before branch cleanup, lock any worktree referenced by production helpers,
+backup or migration evidence, or other external configuration with
+`git worktree lock --reason "external deployment or recovery reference" <path>`.
+Keep the lock until those references have moved. A clean, idle checkout with
+commits in main can still be needed by an external tool; the cleanup script
+cannot discover those references.
+
 ## How to read the tables
 
 Each script carries flags for the things that will surprise you:
@@ -143,6 +150,7 @@ These drive tools in a real browser and export through the app's own render path
 | `build-viz-preset-list.ts` | none | Rebuilds `scripts/viz-preset-list.json` and the matching option list in `community/audiogram/tool.json` from butterchurn's own packs, replacing what used to be a hand-assembled selection. | DESTRUCTIVE, submodule |
 | `migrate-checkout.sh` | none | Moves a checkout from the pre-fold submodule layout onto the folded repository in place: dry run by default, `--yes` applies; exports local submodule commits as patches, parks the gitignored heavy directories, deinitialises the ten old submodules, fast-forwards main, removes the retired views, reinstalls. | DESTRUCTIVE |
 | `prune-caches.ts` | `prune:caches` | Reports the regenerable build caches (Tauri Rust targets, Playwright browsers, Xcode DerivedData, the MCP browser install, unreferenced pnpm store packages) with sizes; `--yes` deletes them, `--when-below=<GiB>` acts only when the disk is that low. The Claude Code SessionStart hook runs it with `--yes --when-below=10 --quiet`. | DESTRUCTIVE |
+| `branch-hygiene.ts` | `branch:hygiene` | Reports remote branches, local branches and worktrees against `origin/main`, including equivalent squash/rebase merges and open PR heads or bases. Fetch preserves stale remote-tracking refs. `--prune` rechecks live main, each remote branch SHA, GitHub PRs and protection before a leased delete; only ancestors of the pinned main are eligible, so equivalent changes with unique history stay for manual archival. Worktree removal requires a fresh successful process inventory, unchanged registration, no lock or nested worktree, an idle index, no local or ignored paths, and a HEAD already in pinned main. No `--force`, notes transfer, local branch deletion or global worktree-registration pruning. Build directories, `node_modules`, notes and unfamiliar files retain their worktree; use the separate cache tools after reviewing them. Every action logs its SHA first. GitHub metadata checks and the SHA lease are separate operations, so coordinate with other users before cleanup. `--remote-only --check` is the weekly report. | DESTRUCTIVE (`--prune` only), network |
 | `check-bundle-budget.ts` | `check:bundle` | Regression guard on the web shell's boot-path bundle size. | |
 | `check-ui-performance.ts` | `check:ui-performance` | Measures gallery scroll/search, tool opening/editing, idle main-thread use and live Performance UI toggling in Chromium. Repeated OFF/ON runs with CPU throttling; JSON report and optional target enforcement. See [`shells/web/PERFORMANCE.md`](../shells/web/PERFORMANCE.md). | browser, network |
 | `build-docs-shots.ts` | `docs:shots` | Captures, compares and credentials the docs screenshots that are declared as ordinary markdown images in the docs pages. Pins the `lolly-start` profile for the capture, since SUSE tools and assets must never reach the public docs repo. | DESTRUCTIVE, submodule, browser, native |

@@ -2,6 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
+import { shellSettled } from './helpers/shell-settled.ts';
 const origin = process.env.LOLLY_HISTORY_TEST_URL;
 const skip = origin ? false : 'LOLLY_HISTORY_TEST_URL not set (serve the web shell locally)';
 if (origin) assert.ok(['localhost', '127.0.0.1', '[::1]'].includes(new URL(origin).hostname));
@@ -10,7 +11,7 @@ test('Compare utility: real worker, keyboard, files, report privacy and mobile l
   const browser = await chromium.launch();
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   try {
-    await page.goto(`${origin}/#/compare`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/#/compare`, { waitUntil: 'networkidle' }); await shellSettled(page);
     await page.getByRole('textbox', { name: 'Before text', exact: true }).fill('unchanged\nCONFIDENTIAL_REMOVED\n');
     await page.getByRole('textbox', { name: 'After text', exact: true }).fill('unchanged\nreplacement\n');
     await page.getByRole('button', { name: 'Compare', exact: true }).click();
@@ -62,7 +63,7 @@ test('Compare utility: real worker, keyboard, files, report privacy and mobile l
 test('History compares retained or current snapshots without changing saved or live state', { skip, timeout: 90_000 }, async () => {
   const browser = await chromium.launch(); const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   try {
-    await page.goto(`${origin}/#/compare`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/#/compare`, { waitUntil: 'networkidle' }); await shellSettled(page);
     const before = await page.evaluate(async () => {
       const path = '/src/lib/host-ref.ts', panel = '/src/components/history-panel.ts';
       const host = (await import(path)).getHostRef(), history = host.state.history;

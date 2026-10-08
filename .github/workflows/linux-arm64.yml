@@ -21,6 +21,12 @@ on:
   push:
     tags: ['v*']
   workflow_dispatch:
+    inputs:
+      webgpu_qualification:
+        description: WebGPU qualification build (plan 295 P0b) - skips the release gate, unsigned, marked not for release
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -33,6 +39,11 @@ jobs:
   build:
     name: Build .deb (aarch64)
     runs-on: ubuntu-24.04-arm
+    env:
+      # A WebGPU qualification build (plan 295 P0b) only on a manual dispatch that asks for
+      # one: scripts/build-release-web.ts then skips the release gate, signs nothing and
+      # marks the frontend, and the step before upload marks the packages not for release.
+      LOLLY_WEBGPU_QUALIFICATION_BUILD: ${{ github.event_name == 'workflow_dispatch' && inputs.webgpu_qualification && '1' || '' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -47,6 +58,16 @@ jobs:
         with:
           node-version: '24'          # the tree runs .ts directly; engines require >= 22.18
           cache: pnpm
+
+      # A version tag is a release, and no release may ship the WebGPU startup
+      # requirement before its supported-environment table is published (plan 295
+      # P0b). This step refuses a tag early; the build step refuses every run the same
+      # way (scripts/build-release-web.ts is the beforeBuildCommand), a manual dispatch
+      # included, unless the dispatch asks for a WebGPU qualification build with the
+      # webgpu_qualification input. That build is unsigned and marked not for release.
+      - name: Refuse a release without the WebGPU supported-environment table
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: node scripts/webgpu-release-gate.ts
 
       - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable branch, pinned 2026-08-04
 
@@ -113,6 +134,10 @@ jobs:
           test -n "$deb" || { echo "::error::no .deb produced"; exit 1; }
           mkdir -p out && cp "$deb" out/
           ls -la out/
+
+      - name: Mark a WebGPU qualification build as not for release
+        if: env.LOLLY_WEBGPU_QUALIFICATION_BUILD == '1'
+        run: node scripts/webgpu-qualification.ts mark out
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:

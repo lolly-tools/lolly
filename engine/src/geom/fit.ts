@@ -56,6 +56,7 @@
  */
 import { type Cubic, evalCubic, tangentAt, subCubic, lineToCubic } from './bezier.ts';
 import { cubicRoots01 } from './intersect.ts';
+import * as pmath from './portable-math.ts';
 
 /** A curve that can be sampled but has no Bézier form - an exact offset, a stroke edge,
  *  a transformed curve. The whole point: fit the REAL curve, not a polyline of it. */
@@ -149,7 +150,7 @@ function chordFrameMoments(raw: RawMoments, x0: number, y0: number, dx: number, 
   y -= dx * (y0 * y0 + y0 * dy + dy3 * dy);
   x -= x0 * area;
   y = 0.5 * y - y0 * area;
-  const chord = Math.hypot(dx, dy);
+  const chord = pmath.hypot(dx, dy);
   return { area, moment: chord > 0 ? (dx * x + dy * y) / chord : 0 };
 }
 
@@ -291,14 +292,14 @@ function solveCubic(c0: number, c1: number, c2: number, c3: number): number[] {
   const de = -2 * s2 * d0 + d1;
   if (disc < 0) {
     const sq = Math.sqrt(-0.25 * disc), r = -0.5 * de;
-    return [Math.cbrt(r + sq) + Math.cbrt(r - sq) - s2];
+    return [pmath.cbrt(r + sq) + pmath.cbrt(r - sq) - s2];
   }
   if (disc === 0) {
     const t1 = copysign(Math.sqrt(-d0), de);
     return [t1 - s2, -2 * t1 - s2];
   }
-  const th = Math.atan2(Math.sqrt(disc), -de) * third;
-  const thc = Math.cos(th), ss3 = Math.sin(th) * Math.sqrt(3);
+  const th = pmath.atan2(Math.sqrt(disc), -de) * third;
+  const thc = pmath.cos(th), ss3 = pmath.sin(th) * Math.sqrt(3);
   const t = 2 * Math.sqrt(-d0);
   return [t * thc - s2, t * 0.5 * (-thc + ss3) - s2, t * 0.5 * (-thc - ss3) - s2];
 }
@@ -311,9 +312,9 @@ function depressedCubicDominant(g: number, h: number): number {
     x = g > 0 ? 0 : Math.sqrt(-g);
   } else if (r * r < q * q * q) {
     const t = r / Math.sqrt(q * q * q);
-    x = -2 * Math.sqrt(q) * copysign(Math.cos(Math.acos(Math.abs(t)) * (1 / 3)), t);
+    x = -2 * Math.sqrt(q) * copysign(pmath.cos(pmath.acos(Math.abs(t)) * (1 / 3)), t);
   } else {
-    const a = Math.cbrt(-r - copysign(Math.sqrt(r * r - q * q * q), r));
+    const a = pmath.cbrt(-r - copysign(Math.sqrt(r * r - q * q * q), r));
     x = a === 0 ? 0 : a + q / a;
   }
   let f = (x * x + g) * x + h;
@@ -470,11 +471,11 @@ interface Frame {
 function endpointSample(src: ParamCurveFit, t: number, dir: number, span: number): { x: number; y: number; tx: number; ty: number } {
   const s = src.sample(t);
   let tx = s.dx, ty = s.dy;
-  const len = Math.hypot(tx, ty);
+  const len = pmath.hypot(tx, ty);
   let step = span * 1e-7;
   if (len > 1e-12) {
     const probe = src.sample(clamp01(t + dir * step));
-    const pl = Math.hypot(probe.dx, probe.dy);
+    const pl = pmath.hypot(probe.dx, probe.dy);
     if (pl > 1e-12) {
       const sin = Math.abs(tx * probe.dy - ty * probe.dx) / (len * pl);
       const cos = (tx * probe.dx + ty * probe.dy) / (len * pl);
@@ -482,11 +483,11 @@ function endpointSample(src: ParamCurveFit, t: number, dir: number, span: number
     }
     return { x: s.x, y: s.y, tx, ty };
   }
-  for (let i = 0; i < 6 && Math.hypot(tx, ty) < 1e-12; i++) {
+  for (let i = 0; i < 6 && pmath.hypot(tx, ty) < 1e-12; i++) {
     const probe = src.sample(clamp01(t + dir * step));
     tx = probe.dx; ty = probe.dy;
     // Still nothing: fall back to the chord to the probe, which at least has a direction.
-    if (Math.hypot(tx, ty) < 1e-12) { tx = probe.x - s.x; ty = probe.y - s.y; }
+    if (pmath.hypot(tx, ty) < 1e-12) { tx = probe.x - s.x; ty = probe.y - s.y; }
     step *= 8;
   }
   return { x: s.x, y: s.y, tx, ty };
@@ -506,9 +507,9 @@ function frameFor(src: ParamCurveFit, t0: number, t1: number): Frame | null {
   const chord2 = dx * dx + dy * dy;
   if (!(chord2 > 0) || !Number.isFinite(chord2)) return null;
   const chord = Math.sqrt(chord2);
-  const th = Math.atan2(dy, dx);
-  const th0 = mod2pi(Math.atan2(start.ty, start.tx) - th);
-  const th1 = mod2pi(th - Math.atan2(end.ty, end.tx));
+  const th = pmath.atan2(dy, dx);
+  const th0 = mod2pi(pmath.atan2(start.ty, start.tx) - th);
+  const th1 = mod2pi(th - pmath.atan2(end.ty, end.tx));
   const { area, moment } = src.momentIntegrals(t0, t1);
   if (!Number.isFinite(area) || !Number.isFinite(moment)) return null;
   return {
@@ -530,8 +531,8 @@ interface Candidate { c: Cubic; d0: number; d1: number }
  * constraints and nothing like the source.
  */
 function candidates(f: Frame): Candidate[] {
-  const s0 = Math.sin(f.th0), c0 = Math.cos(f.th0);
-  const s1 = Math.sin(f.th1), c1 = Math.cos(f.th1);
+  const s0 = pmath.sin(f.th0), c0 = pmath.cos(f.th0);
+  const s1 = pmath.sin(f.th1), c1 = pmath.cos(f.th1);
   const area = f.unitArea, mx = f.mx;
 
   // The quartic in δ0, from substituting the area relation (linear in δ1) into the
@@ -601,10 +602,10 @@ function candidates(f: Frame): Candidate[] {
 
 /** Unit-frame arm lengths → a cubic in the source's coordinates. */
 function mapCandidate(f: Frame, d0: number, d1: number): Candidate {
-  const cs = Math.cos(f.th) * f.chord, sn = Math.sin(f.th) * f.chord;
+  const cs = pmath.cos(f.th) * f.chord, sn = pmath.sin(f.th) * f.chord;
   const place = (ux: number, uy: number): [number, number] => [f.sx + cs * ux - sn * uy, f.sy + sn * ux + cs * uy];
-  const [p1x, p1y] = place(d0 * Math.cos(f.th0), d0 * Math.sin(f.th0));
-  const [p2x, p2y] = place(1 - d1 * Math.cos(f.th1), d1 * Math.sin(f.th1));
+  const [p1x, p1y] = place(d0 * pmath.cos(f.th0), d0 * pmath.sin(f.th0));
+  const [p2x, p2y] = place(1 - d1 * pmath.cos(f.th1), d1 * pmath.sin(f.th1));
   return { c: [f.sx, f.sy, p1x, p1y, p2x, p2y, f.ex, f.ey], d0, d1 };
 }
 
@@ -748,7 +749,7 @@ function rayErr2(c: Cubic, q: Poly, s: Sample, miss: number): number {
   // cubicRoots01 takes DESCENDING coefficients; the cast derives them ascending.
   for (const t of cubicRoots01(k3, k2, k1, k0)) {
     const p = evalCubic(c, t);
-    const e = (p.x - s.x) ** 2 + (p.y - s.y) ** 2;
+    const ex = p.x - s.x, ey = p.y - s.y, e = ex * ex + ey * ey;
     if (e < best) best = e;
   }
   return best;
@@ -780,7 +781,7 @@ function arcSpan(c: Cubic, a: number, b: number): number {
   let sum = 0;
   for (const [w, xi] of GL16) {
     const d = tangentAt(c, mid + xi * half);
-    sum += w * Math.hypot(d.x, d.y);
+    sum += w * pmath.hypot(d.x, d.y);
   }
   return sum * half;
 }
@@ -806,7 +807,7 @@ function srcArcSpan(src: ParamCurveFit, a: number, b: number): number {
   let sum = 0;
   for (const [w, xi] of GL16) {
     const s = src.sample(mid + xi * half);
-    sum += w * Math.hypot(s.dx, s.dy);
+    sum += w * pmath.hypot(s.dx, s.dy);
   }
   return sum * half;
 }
@@ -842,7 +843,7 @@ function arcInvert(c: Cubic, tab: ArcTable, target: number): number {
   for (let i = 0; i < 3; i++) {
     const f = tab.cum[lo]! + arcSpan(c, tLo, t) - s;
     const d = tangentAt(c, t);
-    const speed = Math.hypot(d.x, d.y);
+    const speed = pmath.hypot(d.x, d.y);
     if (speed < 1e-12) break;
     const next = Math.min(tHi, Math.max(tLo, t - f / speed));
     if (Math.abs(next - t) < 1e-13) { t = next; break; }
@@ -869,7 +870,8 @@ function evalArc(d: CurveDist, c: Cubic, acc2: number): number {
   const tab = arcTable(c);
   const at = (s: { x: number; y: number }, frac: number): number => {
     const p = evalCubic(c, arcInvert(c, tab, tab.total * frac));
-    return (p.x - s.x) ** 2 + (p.y - s.y) ** 2;
+    const ex = p.x - s.x, ey = p.y - s.y;
+    return ex * ex + ey * ey;
   };
   let maxErr2 = 0;
   for (let i = 0; i < d.samples.length; i++) {
@@ -966,7 +968,7 @@ function fitOne(src: ParamCurveFit, t0: number, t1: number, tol: number): { c: C
     if (!Number.isFinite(err2)) continue;
     // Squared error, so the linear penalty is squared with it. Applying it unsquared
     // would halve its effect.
-    const scale = Math.max(armPenalty(cand.d0), armPenalty(cand.d1)) ** 2;
+    const penalty = Math.max(armPenalty(cand.d0), armPenalty(cand.d1)), scale = penalty * penalty;
     const pen = err2 * scale;
     if (pen < acc2 && pen < bestErr2) { best = cand.c; bestErr2 = pen; }
   }
@@ -1067,7 +1069,7 @@ function fitAdaptive(src: ParamCurveFit, t0: number, t1: number, tol: number, b:
  * because the function can jump. k2 is hardwired to 2. Assumes ya < 0 < yb.
  */
 function solveItp(f: (x: number) => number, a: number, b: number, eps: number, n0: number, k1: number, ya: number, yb: number): number {
-  const n12 = Math.max(0, Math.ceil(Math.log2((b - a) / eps)) - 1);
+  const n12 = Math.max(0, Math.ceil(pmath.log2((b - a) / eps)) - 1);
   let scaledEps = eps * 2 ** (n0 + n12);
   let lo = a, hi = b, ylo = ya, yhi = yb;
   let guard = 0;
@@ -1204,7 +1206,7 @@ function polyCubicSource(curves: Cubic[]): ParamCurveFit {
       const out: number[] = [];
       for (let i = 1; i < n; i++) {
         const a = tangentAt(curves[i - 1]!, 1), b2 = tangentAt(curves[i]!, 0);
-        const la = Math.hypot(a.x, a.y), lb = Math.hypot(b2.x, b2.y);
+        const la = pmath.hypot(a.x, a.y), lb = pmath.hypot(b2.x, b2.y);
         if (la < 1e-12 || lb < 1e-12) { out.push(i / n); continue; }
         const cos = (a.x * b2.x + a.y * b2.y) / (la * lb);
         const sin = Math.abs(a.x * b2.y - a.y * b2.x) / (la * lb);

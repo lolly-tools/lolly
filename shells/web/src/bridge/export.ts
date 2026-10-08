@@ -71,8 +71,8 @@ import { _host, canvasToBlob, imprintCanvas, exportDims, getDomToImage, swapBlob
 import { beginFrameClock, renderFrameAt, endFrameClock, posedFrame } from './frame-clock.ts';
 import { isTopTailStage, isRecordStage } from './export-shared.ts';
 import type { WebHost, ExportOpts, ExportDims, DtoRenderOpts, ImprintState, Rgba } from './export-shared.ts';
-import { renderSvgFromHtml, stripCommentNodes, inlineBlobUrlsInEl, inlineSvgFromImg, imprintEmbedCanvas, isPaintSkipped, rotationPivot, rasterizePosedNodeToDataUrl, effectSpillCss, detectUnsupportedCss, rasterizeNodeToDataUrl, firstCssUrl, cssUrlToHref, bakeImageFilter, visualLines, mergeDeco, decoFlags, pseudoDescriptor } from './export-svg-walker.ts';
-import type { Deco } from './export-svg-walker.ts';
+import { renderSvgFromHtml, stripCommentNodes, inlineBlobUrlsInEl, inlineSvgFromImg, imprintEmbedCanvas, isPaintSkipped, rotationPivot, rasterizePosedNodeToDataUrl, effectSpillCss, detectUnsupportedCss, rasterizeNodeToDataUrl, firstCssUrl, cssUrlToHref, bakeImageFilter, visualLines, mergeDeco, decoFlags, pseudoDescriptor, type Deco } from './export-svg-walker.ts';
+import { designOpsSvg, renderDesignOpsPdf } from './export-design-ops.ts';
 import { outlineSvgTextRuns } from './export-svg-text-runs.ts';
 import { buildLinearGradientEl, buildRadialGradientEl } from './export-gradients.ts';
 import { assertExportReady, browserExportProgress } from './export-progress.ts';
@@ -1530,7 +1530,9 @@ async function renderSvg(node: Element, opts: ExportOpts = {}): Promise<Blob> {
   // is wrapped in a media-sized outer <svg> with the marks (wrapArtworkSvgWithMarks).
   const geo = printGeometry(node, opts);
   if (!isSvgRooted(node)) {
-    const inner = await renderSvgFromHtml(node, { backdropBlur: true, compactPaths: true, ...opts });
+    // A Design frame is drawn from the engine's drawing operations when they carry the
+    // whole page (plan 295, P3d); otherwise, and for every other tool, by the walker.
+    const inner = await designOpsSvg(node, opts) ?? await renderSvgFromHtml(node, { backdropBlur: true, compactPaths: true, ...opts });
     if (!geo) return inner;
     const artworkEl = new DOMParser().parseFromString(await inner.text(), 'image/svg+xml').documentElement;
     return wrapArtworkSvgWithMarks(artworkEl, geo, opts);
@@ -2027,7 +2029,9 @@ export async function renderPdf(node: Element, opts: ExportOpts): Promise<Blob> 
   const pageEls = node.querySelectorAll ? [...node.querySelectorAll('[data-pdf-page]')] : [];
   let blob: Blob;
   if (pageEls.length > 0) {
-    blob = await renderMultiPagePdf(pageEls, opts);
+    // Design frames are drawn from the engine's drawing operations when every page
+    // carries all it shows (plan 295, P3d); otherwise, and for every other tool, walked.
+    blob = await renderDesignOpsPdf(pageEls, opts, { geometry: printGeometryForSize, labels: provenanceLabels, finish: finishPdfX }) ?? await renderMultiPagePdf(pageEls, opts);
   } else {
     const geo = printGeometry(node, opts);
     const artBlob = await renderArtworkPdf(node, opts, geo);

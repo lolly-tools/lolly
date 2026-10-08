@@ -3,6 +3,12 @@ name: Windows installers
 
 on:
   workflow_dispatch:
+    inputs:
+      webgpu_qualification:
+        description: WebGPU qualification build (plan 295 P0b) - skips the release gate, unsigned, marked not for release
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -27,6 +33,10 @@ jobs:
       LOLLY_EMBED_CATALOG: profile
       ONNXRUNTIME_NODE_INSTALL_CUDA: skip
       NODE_OPTIONS: --max-old-space-size=6144
+      # A WebGPU qualification build (plan 295 P0b) only on a manual dispatch that asks for
+      # one: scripts/build-release-web.ts then skips the release gate, signs nothing and
+      # marks the frontend, and the step before upload marks the packages not for release.
+      LOLLY_WEBGPU_QUALIFICATION_BUILD: ${{ github.event_name == 'workflow_dispatch' && inputs.webgpu_qualification && '1' || '' }}
     steps:
       - name: Preserve repository line endings
         run: git config --global core.autocrlf false
@@ -56,10 +66,14 @@ jobs:
       - name: Preserve application bundle permissions
         if: runner.os == 'macOS'
         run: ditto -c -k --keepParent shells/tauri-desktop/src-tauri/target/release/bundle/macos/Lolly.app Lolly-macos-x64.app.zip
+      - name: Mark a WebGPU qualification build as not for release
+        if: env.LOLLY_WEBGPU_QUALIFICATION_BUILD == '1'
+        run: node scripts/webgpu-qualification.ts mark shells/tauri-desktop/src-tauri/target/release/bundle
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: lolly-${{ matrix.target }}
           path: |
+            shells/tauri-desktop/src-tauri/target/release/bundle/WEBGPU-QUALIFICATION-BUILD-NOT-FOR-RELEASE.txt
             shells/tauri-desktop/src-tauri/target/release/bundle/**/*.dmg
             shells/tauri-desktop/src-tauri/target/release/bundle/**/*.exe
             shells/tauri-desktop/src-tauri/target/release/bundle/**/*.msi

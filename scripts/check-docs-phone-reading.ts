@@ -61,6 +61,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSy
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { Browser, BrowserContext, Page, Response, Route } from 'playwright';
+import { webGpuLaunchArgs } from '../packages/node-shell/src/webgpu-launch.ts';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PUBLIC_INFO_DIR = path.join(ROOT, 'shells/web/public/info');
@@ -928,7 +929,7 @@ async function main(): Promise<void> {
     }
   };
 
-  const browser: Browser = await chromium.launch();
+  const browser: Browser = await chromium.launch({ args: webGpuLaunchArgs('software') });
   const infoDir = opts.infoDir;
   const context = async (width: number): Promise<BrowserContext> => {
     const ctx = await browser.newContext({

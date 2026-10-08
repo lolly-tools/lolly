@@ -29,7 +29,15 @@ jobs:
           github-token: ${{ github.token }}
           path: shells/tauri-desktop/flatpak
       - name: Stage and verify the Debian input
+        env:
+          DEB_RUN_ID: ${{ inputs.deb_run_id }}
         run: |
+          # A WebGPU qualification build (plan 295 P0b) is unsigned and never published.
+          # Its own Flatpak (flatpak.yml, same run) is what qualification uses.
+          if [ -e shells/tauri-desktop/flatpak/WEBGPU-QUALIFICATION-BUILD-NOT-FOR-RELEASE.txt ]; then
+            echo "::error::Run $DEB_RUN_ID is a WebGPU qualification build: unsigned and not for release."
+            exit 1
+          fi
           mv shells/tauri-desktop/flatpak/*.deb shells/tauri-desktop/flatpak/lolly.deb
           test "$(stat -c%s shells/tauri-desktop/flatpak/lolly.deb)" -gt 80000000
           ar t shells/tauri-desktop/flatpak/lolly.deb | grep -q '^data\.tar'

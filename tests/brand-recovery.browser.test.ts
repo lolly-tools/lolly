@@ -7,6 +7,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { chromium, type BrowserContext, type Page } from 'playwright';
 import { journeyDiagnostics } from './helpers/journey-diagnostics.ts';
+import { shellSettled } from './helpers/shell-settled.ts';
 
 const origin = process.env.LOLLY_IMPORT_TEST_URL;
 
@@ -41,7 +42,7 @@ test('brand recovery survives a browser restart and preserves the settings it re
     let page = context.pages()[0]!;
     const errors: string[] = [];
     page.on('pageerror', error => errors.push(error.message));
-    await page.goto(`${origin}/#/start?area=color`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/#/start?area=color`, { waitUntil: 'networkidle' }); await shellSettled(page);
     const id = await page.evaluate(async () => {
       const bridgePath = '/src/bridge/index.ts', studioPath = '/src/lib/design-system/studio-state.ts';
       const { createBridge } = await import(bridgePath);
@@ -54,7 +55,7 @@ test('brand recovery survives a browser restart and preserves the settings it re
       await studio.install(doc('#ffc220'), 'test-yellow');
       return id;
     });
-    await page.reload({ waitUntil: 'networkidle' });
+    await page.reload({ waitUntil: 'networkidle' }); await shellSettled(page);
     await page.getByRole('button', { name: 'Restore brand settings', exact: true }).click();
     const dialog = page.getByRole('dialog', { name: 'Restore brand settings' });
     await dialog.getByLabel('Checkpoint').selectOption(id);
@@ -73,7 +74,7 @@ test('brand recovery survives a browser restart and preserves the settings it re
     open = context;
     diagnose = journeyDiagnostics(context, 'brand-recovery-restarted');
     page = context.pages()[0]!;
-    await page.goto(`${origin}/#/start?area=color`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/#/start?area=color`, { waitUntil: 'networkidle' }); await shellSettled(page);
     const read = () => page.evaluate(async () => {
       const path = '/src/bridge/index.ts';
       return (await (await (await import(path)).createBridge()).tokens.raw()).color.brand.primary.$value;
@@ -93,7 +94,7 @@ test('brand recovery survives a browser restart and preserves the settings it re
     const secondClose = nextPopstate(page, 'Close closed the dialog');
     await restored.getByRole('button', { name: 'Close', exact: true }).click();
     await secondClose;
-    await page.reload({ waitUntil: 'networkidle' });
+    await page.reload({ waitUntil: 'networkidle' }); await shellSettled(page);
     assert.equal(await read(), '#ffc220');
   } catch (error) { await diagnose(error); throw error; } finally { await context.close(); open = undefined; await rm(profile, { recursive: true, force: true }); }
 });

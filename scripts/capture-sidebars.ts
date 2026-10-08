@@ -30,6 +30,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { chromium } from 'playwright';
 import { contentRoots } from '../packages/node-shell/src/content-roots.ts';
+import { webGpuLaunchArgs } from '../packages/node-shell/src/webgpu-launch.ts';
 
 const args = process.argv.slice(2);
 const flag = (name: string, fallback: string): string => {
@@ -96,7 +97,8 @@ const AUDIT = `(() => {
 async function main(): Promise<void> {
   mkdirSync(OUT, { recursive: true });
   const ids = toolIds();
-  const browser = await chromium.launch({ headless: true });
+  // The shell needs a WebGPU adapter to start (webgpu-launch.ts).
+  const browser = await chromium.launch({ headless: true, args: webGpuLaunchArgs('software') });
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 2200 }, deviceScaleFactor: 1, reducedMotion: 'reduce' });
   const results: Record<string, unknown> = {};
   for (const id of ids) {

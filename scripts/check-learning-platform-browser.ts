@@ -7,11 +7,12 @@ import { readFile, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { chromium } from 'playwright';
+import { webGpuLaunchArgs } from '../packages/node-shell/src/webgpu-launch.ts';
 import { unzipSync, strFromU8 } from 'fflate';
 
 const url = process.argv.find((a) => a.startsWith('--url='))?.slice(6) || 'http://127.0.0.1:5179';
 const temp = await mkdtemp(join(tmpdir(), 'lolly-course-platform-'));
-const browser = await chromium.launch({ headless: true });
+const browser = await chromium.launch({ headless: true, args: webGpuLaunchArgs('software') });
 let files: Record<string, Uint8Array> = {};
 const server = createServer((request, response) => {
   const path = (request.url || '/').replace(/^\/course\//, '').split('?')[0] || 'index.html';

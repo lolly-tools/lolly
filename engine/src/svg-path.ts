@@ -20,6 +20,8 @@
  * map them into device/page space themselves. `closed` reflects an explicit Z.
  */
 
+import * as pmath from './geom/portable-math.ts';
+
 /** One normalized path segment: a move, a line, or a cubic bezier. */
 export type PathSegment =
   | { op: 'M'; x: number; y: number }
@@ -297,8 +299,8 @@ export function svgArcToBeziers(
 ): ArcBezier[] {
   if (x1 === x2 && y1 === y2) return [];
 
-  const cosP = Math.cos(phi);
-  const sinP = Math.sin(phi);
+  const cosP = pmath.cos(phi);
+  const sinP = pmath.sin(phi);
 
   const dx = (x1 - x2) / 2;
   const dy = (y1 - y2) / 2;
@@ -326,7 +328,7 @@ export function svgArcToBeziers(
     const sign = (ux * vy - uy * vx) < 0 ? -1 : 1;
     const dot  = ux * vx + uy * vy;
     const len  = Math.sqrt((ux * ux + uy * uy) * (vx * vx + vy * vy));
-    return sign * Math.acos(Math.max(-1, Math.min(1, dot / len)));
+    return sign * pmath.acos(Math.max(-1, Math.min(1, dot / len)));
   };
 
   const theta1 = angV(1, 0, (x1p - cxp) / rx, (y1p - cyp) / ry);
@@ -341,10 +343,10 @@ export function svgArcToBeziers(
   for (let i = 0; i < n; i++) {
     const t1 = theta1 + i * dt;
     const t2 = theta1 + (i + 1) * dt;
-    const alpha = (4 / 3) * Math.tan(dt / 4);
+    const alpha = (4 / 3) * pmath.tan(dt / 4);
 
-    const cos1 = Math.cos(t1), sin1 = Math.sin(t1);
-    const cos2 = Math.cos(t2), sin2 = Math.sin(t2);
+    const cos1 = pmath.cos(t1), sin1 = pmath.sin(t1);
+    const cos2 = pmath.cos(t2), sin2 = pmath.sin(t2);
 
     const ep1x = cosP * (rx * cos1) - sinP * (ry * sin1) + cx;
     const ep1y = sinP * (rx * cos1) + cosP * (ry * sin1) + cy;

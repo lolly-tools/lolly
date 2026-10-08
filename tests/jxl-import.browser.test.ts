@@ -8,6 +8,7 @@ import { getBrowser, closeBrowser } from '../packages/node-shell/src/browsers.ts
 import { runJxl } from '../packages/node-shell/src/jxl.ts';
 import { readZip } from '../engine/src/zip.ts';
 import { isJxl } from '../engine/src/jxl.ts';
+import { shellSettled } from './helpers/shell-settled.ts';
 const origin = process.env.LOLLY_EXPORT_TEST_URL;
 const offline = process.env.LOLLY_JXL_OFFLINE === '1';
 test('Design keeps a JXL original through export, history and fresh-profile portable transfer', {
@@ -33,7 +34,7 @@ test('Design keeps a JXL original through export, history and fresh-profile port
   const page = await context.newPage(); page.setDefaultTimeout(20000);
   const diagnose = journeyDiagnostics(context, 'jxl-import');
   try {
-    await page.goto(`${origin}/#/tool/design`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/#/tool/design`, { waitUntil: 'networkidle' }); await shellSettled(page);
     await page.getByText('Blank canvas', { exact: true }).click();
     await page.getByRole('button', { name: 'Add a box', exact: true }).click();
     await page.getByRole('menuitem', { name: 'Image', exact: true }).click();
@@ -67,7 +68,7 @@ test('Design keeps a JXL original through export, history and fresh-profile port
     assert.equal(alphaDelta, 0); assert.equal(opaqueDelta, 0);
     // Native PNG encoding and canvas readback can round translucent colour differently.
     assert.ok(colourDelta <= 1, `translucent colour differs by ${colourDelta} levels`);
-    await page.reload({ waitUntil: 'networkidle' }); await visibleImage();
+    await page.reload({ waitUntil: 'networkidle' }); await shellSettled(page); await visibleImage();
     // The restored export panel also carries Share and can hide while the inspector
     // mounts. Target the Design toolbar instead of whichever Share appears first.
     await page.getByRole('toolbar', { name: 'Design tools', exact: true })
@@ -77,7 +78,7 @@ test('Design keeps a JXL original through export, history and fresh-profile port
     const sources = readZip(archive).filter(entry => isJxl(entry.bytes));
     assert.equal(sources.length, 1); assert.deepEqual(sources[0]!.bytes, original);
     const receiver = await fresh.newPage(); receiver.setDefaultTimeout(20000);
-    await receiver.goto(origin!, { waitUntil: 'networkidle' });
+    await receiver.goto(origin!, { waitUntil: 'networkidle' }); await shellSettled(receiver);
     await receiver.evaluate(bytes => {
       const transfer = new DataTransfer();
       transfer.items.add(new File([new Uint8Array(bytes)], 'JXL.lolly', { type: 'application/vnd.lolly+zip' }));

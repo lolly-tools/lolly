@@ -16,6 +16,7 @@ import {
   lockDownAmbientCapabilities,
 } from '../../../../engine/src/hook-worker-core.ts';
 import type { HookWorkerIn } from '../../../../engine/src/hook-worker-core.ts';
+import type { HostV1 } from '@lolly-tools/core/host-v1';
 
 export {
   createHookWorkerCore,
@@ -50,22 +51,32 @@ function inWorkerScope(): boolean {
 
 if (inWorkerScope()) {
   const post = postMessage as (message: unknown, transfer: Transferable[]) => void;
-  const core = createHookWorkerCore({ post: (m, transfer) => post(m, (transfer ?? []) as Transferable[]) }, { canRaster: browserCanRaster });
-  let initialized = false;
-  addEventListener('message', (e: MessageEvent<HookWorkerIn>) => {
-    const msg = e.data;
-    if (!initialized && msg.t === 'init') {
-      initialized = true;
-      try {
-        if (msg.strict) lockDownAmbientCapabilities(globalThis as unknown as Record<string, unknown>);
-      } catch (error) {
-        post({
-          t: 'init-done', runId: msg.runId, declared: [], inRealmOnlyDeclared: [],
-          compileError: error instanceof Error ? error.message : String(error),
-        }, []);
-        return;
-      }
+  async function prepare() {
+    const [backend = 'typescript', mode] = ((globalThis as { name?: string }).name || 'typescript').split(':');
+    let geom: HostV1['geom'];
+    if (backend !== 'typescript') {
+      const { loadDefaultWebGeometryHost, loadWebGeometryHost } = await import('./geometry-host.ts');
+      const { isGeometryBackend } = await import('@lolly-tools/node-shell/geometry-host');
+      if (!isGeometryBackend(backend)) throw Error('Unknown geometry backend.');
+      // An explicit owner selection stays strict here too; the default may use the reference.
+      geom = (mode === 'default' ? await loadDefaultWebGeometryHost() : await loadWebGeometryHost(backend)).api;
     }
-    core.handle(msg);
+    return createHookWorkerCore({ post: (m, transfer) => post(m, (transfer ?? []) as Transferable[]) }, { canRaster: browserCanRaster, geom });
+  }
+  let ready: ReturnType<typeof prepare> | undefined;
+  let initialized = false;
+  addEventListener('message', async (e: MessageEvent<HookWorkerIn>) => {
+    const msg = e.data;
+    try {
+      ready ??= prepare();
+      const core = await ready;
+      if (!initialized && msg.t === 'init') {
+        initialized = true;
+        if (msg.strict) lockDownAmbientCapabilities(globalThis as unknown as Record<string, unknown>);
+      }
+      core.handle(msg);
+    } catch (error) {
+      if (msg.t === 'init') post({ t: 'init-done', runId: msg.runId, declared: [], inRealmOnlyDeclared: [], compileError: error instanceof Error ? error.message : String(error) }, []);
+    }
   });
 }

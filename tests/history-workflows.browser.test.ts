@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 import { mkdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
+import { shellSettled } from './helpers/shell-settled.ts';
 
 const origin = process.env.LOLLY_HISTORY_TEST_URL;
 const skip = origin ? false : 'LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)';
@@ -13,7 +14,7 @@ test('milestones, comparison, filters and bounded paging work in the History pan
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   try {
-    await page.goto(`${origin}/#/tool/design`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/#/tool/design`, { waitUntil: 'networkidle' }); await shellSettled(page);
     await page.locator('[data-topbar="history"]').waitFor();
     await page.keyboard.press('Escape');
     await page.evaluate(async () => {

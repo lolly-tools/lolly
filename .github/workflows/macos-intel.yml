@@ -14,6 +14,11 @@ on:
         required: false
         default: ''
         type: string
+      webgpu_qualification:
+        description: WebGPU qualification build (plan 295 P0b) - skips the release gate, unsigned, marked not for release
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -29,6 +34,10 @@ jobs:
       ONNXRUNTIME_NODE_INSTALL_CUDA: skip
       NODE_OPTIONS: --max-old-space-size=6144
       MACOSX_DEPLOYMENT_TARGET: '13.5'
+      # A WebGPU qualification build (plan 295 P0b) only on a manual dispatch that asks for
+      # one: scripts/build-release-web.ts then skips the release gate, signs nothing and
+      # marks the frontend, and the step before upload marks the packages not for release.
+      LOLLY_WEBGPU_QUALIFICATION_BUILD: ${{ github.event_name == 'workflow_dispatch' && inputs.webgpu_qualification && '1' || '' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
@@ -116,6 +125,9 @@ jobs:
           otool -L "$app/Contents/MacOS/lolly-desktop" | grep '@rpath/libonnxruntime.dylib'
           test -f "$app/Contents/Frameworks/libonnxruntime.dylib"
           ditto -c -k --keepParent "$app" Lolly-macos-x64.app.zip
+      - name: Mark a WebGPU qualification build as not for release
+        if: env.LOLLY_WEBGPU_QUALIFICATION_BUILD == '1'
+        run: node scripts/webgpu-qualification.ts mark .
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: lolly-macos-x64
@@ -123,4 +135,5 @@ jobs:
             shells/tauri-desktop/src-tauri/target/release/bundle/dmg/*.dmg
             Lolly-macos-x64.app.zip
             intel-tools.json
+            WEBGPU-QUALIFICATION-BUILD-NOT-FOR-RELEASE.txt
           if-no-files-found: error

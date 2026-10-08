@@ -64,6 +64,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { BrowserContext, Page } from 'playwright';
+import { webGpuLaunchArgs } from '../packages/node-shell/src/webgpu-launch.ts';
 // The frame diff, from the docs-shot comparator that already owns "these pixels differ".
 import { pixelDiffFraction, DEFAULT_THRESHOLDS, type RawImage } from './lib/shot-compare.ts';
 // The content measure + probe size, from the blank-preview probe, so a `still` verdict on a
@@ -179,7 +180,7 @@ async function main(): Promise<void> {
 
   // Rendering-intent pins matching packages/node-shell/src/browsers.ts: a verdict must not
   // depend on the host's display profile or font hinting.
-  const browser = await chromium.launch({ headless: true, args: ['--force-color-profile=srgb', '--font-render-hinting=none'] });
+  const browser = await chromium.launch({ headless: true, args: ['--force-color-profile=srgb', '--font-render-hinting=none', ...webGpuLaunchArgs('software')] });
   const context = await browser.newContext({
     serviceWorkers: 'block',
     // deviceScaleFactor 1: the frames are diffed at PROBE_DIM, never written, so retina

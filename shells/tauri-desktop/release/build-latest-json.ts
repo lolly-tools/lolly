@@ -36,6 +36,8 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { webGpuReleaseProblems, assertWebGpuReleaseAllowed } from '../../../scripts/webgpu-release-gate.ts';
+import { assertNoMarkedBuild, assertNotQualificationBuild } from '../../../scripts/webgpu-qualification.ts';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const CONF = resolve(HERE, '../src-tauri/tauri.conf.json');
@@ -139,6 +141,23 @@ function main(): void {
       + 'Until then every build is unsigned and the updater would refuse the artifact anyway.',
     );
     process.exit(1);
+  }
+  // Writing a manifest pushes this version to every installed app, which is a release:
+  // refused while the WebGPU requirement lacks its supported-environment table (plan 295 P0b).
+  if (outDir && webGpuReleaseProblems().length) {
+    try { assertWebGpuReleaseAllowed(); } catch (error) { console.error(error instanceof Error ? error.message : String(error)); }
+    process.exit(1);
+  }
+  // Nor is it ever written for a WebGPU qualification build: those are unsigned and
+  // marked not for release (scripts/webgpu-qualification.ts).
+  if (outDir) {
+    try {
+      assertNotQualificationBuild(process.env, 'writing updater manifests');
+      if (sigDir) assertNoMarkedBuild(resolve(sigDir), 'writing updater manifests');
+    } catch (error) {
+      console.error(error instanceof Error ? error.message : String(error));
+      process.exit(1);
+    }
   }
   if (placeholderKey) {
     console.log('# NOTE: plugins.updater.pubkey is still the placeholder, so this is a preview only.');

@@ -25,6 +25,7 @@
  */
 import { type Cubic, evalCubic, boundsCubic, type Box, lineToCubic } from './bezier.ts';
 import type { PathSegment, SubPath } from '../svg-path.ts';
+import * as pmath from './portable-math.ts';
 
 /** A run of end-to-start connected cubics. `closed` means the last curve's endpoint
  * joins the first curve's start - implicitly, so a closing straight edge is NOT
@@ -59,7 +60,7 @@ export function contourEnd(c: Contour): { x: number; y: number } | null {
 export function closeContour(c: Contour): Contour {
   const s = contourStart(c), e = contourEnd(c);
   if (!s || !e) return { curves: [...c.curves], closed: true };
-  const gap = Math.hypot(e.x - s.x, e.y - s.y);
+  const gap = pmath.hypot(e.x - s.x, e.y - s.y);
   if (gap <= JOIN_EPS) return { curves: [...c.curves], closed: true };
   return { curves: [...c.curves, lineToCubic(e.x, e.y, s.x, s.y)], closed: true };
 }
@@ -209,11 +210,11 @@ export function toSvgPathData(p: GeomPath, dp = 4): string {
  *  later split lands on it. */
 function isStraight(k: Cubic, tol = 1e-9): boolean {
   const dx = k[6] - k[0], dy = k[7] - k[1];
-  const len = Math.hypot(dx, dy);
+  const len = pmath.hypot(dx, dy);
   if (len < tol) return false;
   for (const [px, py, want] of [[k[2], k[3], 1 / 3] as const, [k[4], k[5], 2 / 3] as const]) {
     const p = { x: k[0] + dx * want, y: k[1] + dy * want };
-    if (Math.hypot(px - p.x, py - p.y) > tol * Math.max(1, len)) return false;
+    if (pmath.hypot(px - p.x, py - p.y) > tol * Math.max(1, len)) return false;
   }
   return true;
 }

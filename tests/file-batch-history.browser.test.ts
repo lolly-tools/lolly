@@ -3,6 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { getBrowser, closeBrowser } from '../packages/node-shell/src/browsers.ts';
+import { shellSettled } from './helpers/shell-settled.ts';
 
 const origin = process.env.LOLLY_CONVERT_TEST_URL;
 test('durable batches preserve failures, unread cancellations, quota failures and crash windows across reload and backup', { skip: origin ? false : 'no browser origin (set LOLLY_CONVERT_TEST_URL to a running web shell)', timeout: 90_000 }, async () => {
@@ -13,7 +14,7 @@ test('durable batches preserve failures, unread cancellations, quota failures an
   const page = await context.newPage(), other = await otherContext.newPage();
   const errors: string[] = []; page.on('pageerror', e => errors.push(e.message)); other.on('pageerror', e => errors.push(e.message));
   try {
-    await page.goto(`${origin}/#/convert`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/#/convert`, { waitUntil: 'networkidle' }); await shellSettled(page);
     const seeded = await page.evaluate(async () => {
       const dbPath = '/src/bridge/db.ts', storePath = '/src/lib/file-operation-store.ts', adapterPath = '/src/lib/file-operation-adapter.ts', savedPath = '/src/lib/saved-file-operation.ts';
       const db = await (await import(dbPath)).openDB();
@@ -73,7 +74,7 @@ test('durable batches preserve failures, unread cancellations, quota failures an
     assert.deepEqual(seeded.rows.find((b: { id: string }) => b.id === seeded.id)!.states, ['succeeded', 'failed', 'cancelled', 'failed']);
     assert.equal(seeded.rows.find((b: { id: string }) => b.id === seeded.id)!.hashes[2], undefined);
     assert.deepEqual(seeded.rows.find((b: { id: string }) => b.id === seeded.crashId)!.states, ['succeeded', 'failed']);
-    await page.reload({ waitUntil: 'networkidle' });
+    await page.reload({ waitUntil: 'networkidle' }); await shellSettled(page);
     const batch = page.locator(`[data-batch-id="${seeded.id}"]`); await batch.locator('summary').click();
     assert.equal(await batch.locator('[data-batch-member]').count(), 4);
     const [download] = await Promise.all([page.waitForEvent('download'), batch.locator('[data-batch-saved-report]').click()]);
@@ -88,13 +89,13 @@ test('durable batches preserve failures, unread cancellations, quota failures an
     await batch.scrollIntoViewIfNeeded(); assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
     await page.screenshot({ path: '/Users/andy/Build/lolly/plans/203-work/batch-recovery-mobile.png', fullPage: true });
 
-    await page.goto(`${origin}/#/profile?focus=storage-section`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/#/profile?focus=storage-section`, { waitUntil: 'networkidle' }); await shellSettled(page);
     const [backup] = await Promise.all([page.waitForEvent('download'), page.locator('#export-data-btn').click()]);
     const bytes = await readFile((await backup.path())!);
-    await other.goto(`${origin}/#/profile?focus=storage-section`, { waitUntil: 'networkidle' });
+    await other.goto(`${origin}/#/profile?focus=storage-section`, { waitUntil: 'networkidle' }); await shellSettled(other);
     await other.locator('#import-data-input').setInputFiles({ name: backup.suggestedFilename(), mimeType: 'application/zip', buffer: bytes });
     await other.locator('[data-scope="import"]').click(); await other.locator('.clear-dialog').waitFor({ state: 'detached' });
-    await other.goto(`${origin}/#/convert`, { waitUntil: 'networkidle' });
+    await other.goto(`${origin}/#/convert`, { waitUntil: 'networkidle' }); await shellSettled(other);
     const restored = other.locator(`[data-batch-id="${seeded.id}"]`); await restored.locator('summary').click();
     assert.equal(await restored.locator('[data-batch-member]').count(), 4);
     const [result] = await Promise.all([other.waitForEvent('download'), restored.locator('[data-batch-result]').click()]);
