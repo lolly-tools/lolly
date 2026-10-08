@@ -178,4 +178,32 @@ One fail-loud exception cuts across that order: on Vercel (`$VERCEL` set) an inc
 
 `toolFile()` and `catalogFile()` answer where a given path lives for the resolved profile, so most consumers never need a real `tools/`/`catalog/` tree on disk. `materializeInto()` is the one place that still writes one - a build that ships static files (`dist/`, an RPM payload, a Docker image) - and it writes a plain copy, not symlinks, since a copy is what a package manifest or a container layer can actually contain.
 
-Retired with the old view: `scripts/use-profile.ts`, `scripts/subrepo/` (the multi-repo `loldev` toolkit - `sync.sh`, `status.sh`, `verify.sh`, `migrate.sh`, `snap-history.sh` - whose reason for existing was coordinating separate repositories), and the `.lolly-profile` sticky-choice file. Deploying now goes through `scripts/ship.ts`.
+Retired with the old view: `scripts/use-profile.ts`, `scripts/subrepo/` (the multi-repo `loldev` toolkit - `sync.sh`, `status.sh`, `verify.sh`, `migrate.sh`, `snap-history.sh` - whose reason for existing was coordinating separate repositories), and the `.lolly-profile` sticky-choice file.
+
+## Deployment targets
+
+`lolly.tools` and `lolly.ing` use operator-managed UpCloud K3s releases after the
+2026-10-07 cutover. Read the instance's current deployment handoff and the
+[sovereign profile](../deploy/helm/profiles/sovereign/README.md) before choosing a
+target. `pnpm run gate` still validates `lolly-start` through the committed
+`k3s` target. `pnpm run ship`, including preview, production and `--no-gate`
+modes, refuses that target before the gate, credential setup or upload.
+
+For the next application release, follow Work's maintained
+[application update guide](https://github.com/lolly-tools/lolly-work/blob/main/deploy/helm/APP-UPDATES.md).
+From a qualified `lolly-work` checkout, `python3 scripts/app-update.py --target
+/protected/production-target.json --release /protected/reviewed-release.json
+--plan-out /protected/app-update-plan.json` prepares an image update. Review the
+plan, then use the guide's explicit apply command and reviewed plan hash. This
+updates the existing application's image without provisioning infrastructure.
+The public web image includes its shell, tools and catalog. A private Work image
+update preserves any mounted shell or tool pack; publish those separately using
+the guide's content release procedure.
+
+For another instance, configure `scripts/data/ship-targets.json` with an explicit
+`vercel` or `internal_it` driver and its own domain and project. Vercel also needs
+an explicit team ID. There is no default adapter, and the old Lolly production
+projects and managed domains cannot be deployed through either legacy adapter.
+The Vercel configuration remains an optional adapter with automatic Git
+deployments disabled. Operators adopting that adapter must deliberately arrange
+their own project and deployment trigger.

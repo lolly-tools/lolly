@@ -200,7 +200,7 @@ git submodule update --init --checkout brands/suse
 
 **Where your changes go** - almost everywhere, a change is one commit in this repo. The one exception is `brands/suse`: a change there is a commit inside that submodule, then a pointer commit here recording it. See **[CONTRIBUTING.md section 4](CONTRIBUTING.md#4-where-your-changes-go)** for the full breakdown, including why a community tool change still needs `pnpm run build:catalog:all` (the generated catalog index is per brand, so a SUSE-profile build needs its own rebuild even though the tool lives in this repo).
 
-**Deploying.** `scripts/ship.ts` runs the pre-push gate (typecheck, the full test suite, a per-profile catalog build, the docs-shot and boot-budget checks) then deploys to Vercel. See [`scripts/README.md`](scripts/README.md).
+**Deploying.** `lolly.tools` and `lolly.ing` use operator-managed UpCloud K3s releases. Use the [sovereign deployment profile](deploy/helm/profiles/sovereign/README.md) and the instance's current deployment handoff. `pnpm run gate` still checks the release; `scripts/ship.ts` refuses these managed targets before building or uploading. Explicit Vercel and internal IT adapters remain available for separately configured instances. See [`scripts/README.md`](scripts/README.md).
 
 ## Current tools
 

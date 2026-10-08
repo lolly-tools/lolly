@@ -18,6 +18,7 @@ import type { TextSignalMark, TextSignalPanel } from '../valid-text.ts';
 import { categoryLabel, libCategory } from '../../lib/asset-category.ts';
 import { assetBaseId } from '../../lib/asset-favourites.ts';
 import { assetFiles } from '../../lib/asset-files.ts';
+import { thumbImgHtml } from '../../lib/asset-thumb-src.ts';
 import { icon } from '../../lib/icons.ts';
 import { audioThumbPlaceholder } from '../../lib/audio-thumb.ts';
 import { peaksFingerprint } from '../../lib/audio-peaks.ts';
@@ -42,9 +43,11 @@ import { bindOp, type CatCtx } from './context.ts';
 // otherwise a plain <img>/<div>. Both are used: tiles nest it in the open-details button.
 export function thumbHtml(cat: CatCtx, ref: AssetRef, asSpan = false, full = false): string {
   const tag = asSpan ? 'span' : 'div';
+  // A connected library's tile draws its small thumb, or the SVG itself for a
+  // vector (lib/asset-thumb-src.ts), so a DAM logo stays crisp at any tile size.
   if (ref.meta?.provider && typeof ref.meta.thumbUrl === 'string' && ref.meta.thumbUrl
     && (!full || ref.type === 'font' || ref.type === 'data')) {
-    return `<img class="cat-thumb" src="${escapeText(ref.meta.thumbUrl)}" alt="" loading="lazy" decoding="async">`;
+    return full ? `<img class="cat-thumb" src="${escapeText(ref.meta.thumbUrl)}" alt="" loading="lazy" decoding="async">` : thumbImgHtml(ref, 'cat-thumb');
   }
   if (ref.type === 'font') return `<${tag} class="cat-thumb cat-thumb-stub" aria-hidden="true">Aa</${tag}>`;
   if ((ref.original?.format ?? ref.format) === 'mogrt' && typeof ref.meta?.posterUrl === 'string')
@@ -243,10 +246,11 @@ export function thumbHtml(cat: CatCtx, ref: AssetRef, asSpan = false, full = fal
       ? `<img class="cat-thumb" src="${escapeText(poster)}" alt="" loading="lazy" decoding="async">`
       : `<${tag} class="cat-thumb cat-thumb-stub" aria-hidden="true">◈</${tag}>`;
   }
-  // Grid tiles show the small `thumb` derivative (query() puts its url on meta.thumbUrl);
-  // the details/zoom modal passes full=true to keep the original for close inspection.
-  const src = !full && typeof ref.meta?.thumbUrl === 'string' && ref.meta.thumbUrl ? ref.meta.thumbUrl : ref.url;
-  return `<img class="cat-thumb" src="${escapeText(src)}" alt="" loading="lazy" decoding="async">`;
+  // Grid tiles show the small `thumb` derivative (query() puts its url on meta.thumbUrl),
+  // except a vector, which draws its own SVG (lib/asset-thumb-src.ts); the details/zoom
+  // modal passes full=true to keep the original for close inspection.
+  if (!full) return thumbImgHtml(ref, 'cat-thumb');
+  return `<img class="cat-thumb" src="${escapeText(ref.url)}" alt="" loading="lazy" decoding="async">`;
 }
 // The catalog's compact render of a text AI-likelihood report (plans/125), the
 // counterpart to the verify view's panel. A SIGNAL, never a verdict: hedged heading,
