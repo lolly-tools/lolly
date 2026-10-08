@@ -307,7 +307,7 @@ Personal saves stay on this device, in the browser or app you saved from, unless
 
 
 ::: details Team projects with lolly.work (optional)
-If your [organisation uses lolly.work](/info/organisation.html), sign in to its instance and open **Projects → Team projects** for sessions shared with you. Access and retention are set by the organisation. For live editing, open a shared session and choose **Share → Work collab** when available; [Working together](/info/collaborate.html#work-collabs-with-lolly-work-optional) explains the steps.
+If your [organisation uses lolly.work](/info/organisation.html), sign in to its instance and open **Projects → Team projects** for sessions shared with you. Access and retention are set by the organisation. A shared session joins its live collab as it opens, when your organisation allows live editing; [Working together](/info/collaborate.html#work-collabs-with-lolly-work-optional) explains the steps.
 
 Your personal library remains separate. Signing in on another device gives you access to team work, while personal saves still need Sync or a backup to move across.
 :::

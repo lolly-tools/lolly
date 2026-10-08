@@ -159,6 +159,9 @@ export interface WorkCollabHandleOptions {
   /** Display name to use before the gateway states one (the org session's SSO name,
    *  when the caller already holds it). The `join-ack` seat wins once it lands. */
   name?: string;
+  /** The signed-in member's workspace id (`OrgUser.sub`), published as `self.account`
+   *  so this device's recovery copies carry the id Sign out looks them up by. */
+  account?: string;
   /** Preferred palette slot, if a caller has one. Absent by default - see the
    *  header: this wire carries a colour hex, never an index. */
   colorIndex?: number;
@@ -415,6 +418,7 @@ export function createWorkCollabHandle(
 
   const self: CollabSelf = {
     get userId(): string | undefined { return provider.state().self?.userId; },
+    ...(opts.account ? { account: opts.account } : {}),
     get clientId(): string {
       return clientId;
     },
