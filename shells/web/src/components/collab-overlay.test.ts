@@ -248,6 +248,22 @@ test('a peer with no cursor - or an away peer - holds no node at all', () => {
   h.cursors.dispose();
 });
 
+test('Hide pointers releases every remote cursor, and Show pointers brings back the latest set', () => {
+  const h = mount();
+  h.cursors.setPeers([peer('a', 0.25, 0.5), peer('b', 0.5, 0.5)]);
+  assert.equal(h.cursors.stats().active, 2);
+  h.cursors.setHidden(true);
+  assert.equal(h.cursors.stats().active, 0, 'hidden means released, not merely invisible');
+  assert.equal(h.cursors.stats().ticking, false, 'and nothing keeps a frame loop alive for them');
+  h.cursors.setPeers([peer('a', 0.75, 0.5)]);
+  assert.equal(h.cursors.stats().active, 0, 'presence arriving while hidden paints nothing');
+  h.cursors.setHidden(false);
+  assert.equal(h.cursors.stats().active, 1, 'showing again paints the newest set, not the old one');
+  assert.equal(h.transformOf(), 'translate3d(320px, 110px, 0)');
+  h.cursors.dispose();
+  h.cursors.setHidden(true);
+});
+
 test('the ticker runs only while somebody is MOVING - a parked pointer and an empty roster both stand it down', () => {
   const h = mount();
   assert.equal(h.frames.pending(), 0, 'nothing is scheduled before anyone arrives');

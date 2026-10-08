@@ -1,3 +1,14 @@
 {
-  "View {name}": "Wyświetl {name}"
+  "Follow {name}": "Obserwuj: {name}",
+  "Following {name}": "Obserwujesz: {name}",
+  "Stop following": "Przestań obserwować",
+  "You stopped following {name}.": "Przestano obserwować: {name}.",
+  "{name} left. You stopped following.": "{name} wyszedł. Przestano obserwować.",
+  "Followers: {count}": "Obserwujący: {count}",
+  "Following you": "Obserwuje Cię",
+  "{name} is following you": "{name} Cię obserwuje",
+  "{name} is presenting": "{name} prezentuje",
+  "Follow presentation": "Obserwuj prezentację",
+  "Following the presentation by {name}": "Obserwujesz prezentację: {name}",
+  "Press Escape to stop following.": "Naciśnij Escape, aby przestać obserwować."
 }

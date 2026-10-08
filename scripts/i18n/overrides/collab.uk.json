@@ -1,3 +1,14 @@
 {
-  "View {name}": "Перегляд {name}"
+  "Follow {name}": "Стежити за {name}",
+  "Following {name}": "Ви стежите за {name}",
+  "Stop following": "Припинити стежити",
+  "You stopped following {name}.": "Ви припинили стежити за {name}.",
+  "{name} left. You stopped following.": "{name} вийшов(-ла). Ви припинили стежити.",
+  "Followers: {count}": "Стежать: {count}",
+  "Following you": "Стежить за вами",
+  "{name} is following you": "{name} стежить за вами",
+  "{name} is presenting": "{name} показує презентацію",
+  "Follow presentation": "Стежити за презентацією",
+  "Following the presentation by {name}": "Ви стежите за презентацією від {name}",
+  "Press Escape to stop following.": "Натисніть Escape, щоб припинити стежити."
 }

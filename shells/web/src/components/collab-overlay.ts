@@ -422,6 +422,9 @@ export interface CollabCursors {
   readonly el: HTMLElement | null;
   /** Replace the live cursor set. Peers with no cursor (or away) are released. */
   setPeers(peers: readonly CursorPeer[]): void;
+  /** Hide or show every remote cursor at the person's request (Hide pointers). Hidden
+   *  cursors are released, not merely made invisible; showing them repaints the latest set. */
+  setHidden(hidden: boolean): void;
   /** Re-measure and repaint without waiting for a frame - the hook the runtime's
    *  paint, a scroll and a resize all call. Cheap: two rects and N transforms. */
   reanchor(): void;
@@ -679,13 +682,25 @@ export function createCollabCursors(opts: CollabCursorOptions): CollabCursors {
   const motionObserver = MotionObserver ? new MotionObserver(motionChanged) : null;
   motionObserver?.observe(doc.documentElement, { attributes: true, attributeFilter: ['data-a11y-motion'] });
 
-  return {
+  // The person's own Hide pointers choice, and the set to repaint when they show them again.
+  let hiddenByPerson = false;
+  let latest: readonly CursorPeer[] = [];
+
+  const api: CollabCursors = {
     get el(): HTMLElement | null {
       return layer?.el ?? null;
     },
 
-    setPeers(peers: readonly CursorPeer[]): void {
+    setHidden(hidden: boolean): void {
+      if (disposed || hiddenByPerson === hidden) return;
+      hiddenByPerson = hidden;
+      api.setPeers(latest);
+    },
+
+    setPeers(next: readonly CursorPeer[]): void {
       if (disposed || !layer) return;
+      latest = next;
+      const peers = hiddenByPerson ? [] : next;
       const t = now();
       const seen = new Set<string>();
       let arrived = false;
@@ -779,8 +794,10 @@ export function createCollabCursors(opts: CollabCursorOptions): CollabCursors {
       for (const entry of live.values()) entry.node.root.remove();
       live.clear();
       pool.length = 0;
+      latest = [];
       layer?.unmount();
       layer = null;
     },
   };
+  return api;
 }

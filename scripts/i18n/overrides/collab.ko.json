@@ -1,3 +1,14 @@
 {
-  "View {name}": "{name} 보기"
+  "Follow {name}": "{name}님 따라가기",
+  "Following {name}": "{name}님을 따라가는 중",
+  "Stop following": "따라가기 중지",
+  "You stopped following {name}.": "{name}님 따라가기를 중지했어요.",
+  "{name} left. You stopped following.": "{name}님이 나갔어요. 따라가기를 중지했어요.",
+  "Followers: {count}": "따라가는 사람: {count}명",
+  "Following you": "나를 따라가는 중",
+  "{name} is following you": "{name}님이 나를 따라가고 있어요",
+  "{name} is presenting": "{name}님이 발표 중이에요",
+  "Follow presentation": "발표 따라가기",
+  "Following the presentation by {name}": "{name}님의 발표를 따라가는 중",
+  "Press Escape to stop following.": "Esc 키를 누르면 따라가기를 중지해요."
 }

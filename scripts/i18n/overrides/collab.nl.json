@@ -1,3 +1,14 @@
 {
-  "View {name}": "{name} weergeven"
+  "Follow {name}": "{name} volgen",
+  "Following {name}": "{name} wordt gevolgd",
+  "Stop following": "Niet meer volgen",
+  "You stopped following {name}.": "Je volgt {name} niet meer.",
+  "{name} left. You stopped following.": "{name} is weggegaan. Je volgt niet meer.",
+  "Followers: {count}": "Volgers: {count}",
+  "Following you": "Volgt jou",
+  "{name} is following you": "{name} volgt jou",
+  "{name} is presenting": "{name} is aan het presenteren",
+  "Follow presentation": "Presentatie volgen",
+  "Following the presentation by {name}": "Je volgt de presentatie van {name}",
+  "Press Escape to stop following.": "Druk op Escape om te stoppen met volgen."
 }
