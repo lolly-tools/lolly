@@ -125,3 +125,7 @@
 .share-group-actions { display: flex; justify-content: space-between; gap: var(--sp-3); flex-wrap: wrap; margin-block-start: var(--sp-4); }
 .share-group-actions .btn { min-height: var(--ui-size-target); }
 .share-group-delete { color: hsl(var(--destructive)); }
+.project-browse .field-input { min-height: var(--ui-size-target); margin-block: var(--sp-3) var(--sp-2); }
+.project-browse a.share-access-name { color: inherit; text-decoration: none; }
+.project-browse a.share-access-name:hover, .project-browse a.share-access-name:focus-visible { text-decoration: underline; }
+.project-browse .share-access-row .btn { min-height: var(--ui-size-target); }
