@@ -17,16 +17,16 @@ import {
 import { main as releaseChecklist } from '../scripts/release-checklist.ts';
 
 const COMPLETE = [
-  '| Environment | WebGPU result | Adapter and backend | Evidence |',
-  '|---|---|---|---|',
-  '| Chrome and Edge (Chromium) 153 | Supported | Metal, SwiftShader | run 1 |',
-  '| Firefox 155 | Not supported: no adapter | none | run 2 |',
-  '| Safari 26 (WebKit) | Supported | Metal | run 3 |',
-  '| macOS app (WKWebView) | Supported | Metal | run 4 |',
-  '| iOS and iPadOS app (WKWebView) | Supported | Metal | run 5 |',
-  '| Windows app (WebView2) | Supported | D3D12 | run 6 |',
-  '| Linux app (WebKitGTK) | Not supported | none | run 7 |',
-  '| Android app (WebView) | Supported | Vulkan | run 8 |',
+  '| Environment | WebGPU result | Versions | Adapter and backend | Evidence |',
+  '|---|---|---|---|---|',
+  '| Chrome and Edge (Chromium) | Supported | 153 | Metal, SwiftShader | run 1 |',
+  '| Firefox | Not supported: no adapter | 155 | none | run 2 |',
+  '| Safari (WebKit) | Supported | 26 | Metal | run 3 |',
+  '| macOS app (WKWebView) | Supported | 26 | Metal | run 4 |',
+  '| iOS and iPadOS app (WKWebView) | Supported | 26 | Metal | run 5 |',
+  '| Windows app (WebView2) | Supported | 141 | D3D12 | run 6 |',
+  '| Linux app (WebKitGTK) | Not supported | 2.50 | none | run 7 |',
+  '| Android app (WebView) | Supported | 153 | Vulkan | run 8 |',
 ].join('\n');
 
 /** A scratch tree with the shell's main.ts and, optionally, the published table. */
@@ -52,10 +52,32 @@ test('the table needs a published result for every required environment', () => 
   assert.deepEqual(supportedEnvironmentProblems(COMPLETE), []);
   const missing = supportedEnvironmentProblems(COMPLETE.split('\n').filter(line => !/Firefox|WebKitGTK/.test(line)).join('\n'));
   assert.deepEqual(missing, ['no row for Firefox', 'no row for Linux app (WebKitGTK)']);
-  const pending = supportedEnvironmentProblems(COMPLETE.replace('| Supported | D3D12', '| pending | D3D12'));
+  const pending = supportedEnvironmentProblems(COMPLETE.replace('| Supported | 141 | D3D12', '| pending | 141 | D3D12'));
   assert.equal(pending.length, 1);
   assert.match(pending[0]!, /Windows app \(WebView2\): the result column says "pending"/);
   assert.equal(supportedEnvironmentProblems('').length, REQUIRED_WEBGPU_TARGETS.length);
+});
+
+test('a row answers only for the environment it names exactly, whatever the order of the rows', () => {
+  // The old matcher took the first row containing a word: "Chrome on Android" answered
+  // for the Android app, and "Android app (WebView, Chromium)" for Chrome and Edge.
+  const borrowed = [
+    '| Environment | WebGPU result |',
+    '|---|---|',
+    '| Android app (WebView, Chromium) | Supported |',
+    '| Chrome on Android | Supported |',
+    '| Safari 26 (WebKit) | Supported |',
+    ...COMPLETE.split('\n').slice(2).filter(line => !/Chrome and Edge|Android app|Safari/.test(line)),
+  ].join('\n');
+  assert.deepEqual(supportedEnvironmentProblems(borrowed), [
+    'no row for Chrome and Edge (Chromium)', 'no row for Safari (WebKit)', 'no row for Android app (WebView)',
+  ]);
+  // Case, spacing and emphasis do not change the name; extra rows are ignored.
+  const styled = COMPLETE.replace('| Firefox |', '| **firefox** |').replace('| Windows app (WebView2) |', '|  Windows  app (WebView2) |')
+    + '\n| Chrome on Android | Supported | 153 | Vulkan | run 9 |';
+  assert.deepEqual(supportedEnvironmentProblems(styled), []);
+  const twice = `${COMPLETE}\n| Firefox | Supported | 156 | Metal | run 10 |`;
+  assert.deepEqual(supportedEnvironmentProblems(twice), ['2 rows for Firefox; publish one']);
 });
 
 test('a release is refused without the table, allowed with it, and not gated once the requirement is gone', () => {

@@ -18,16 +18,20 @@
  * (the YunoHost tarball), shells/tauri-desktop/release/build-latest-json.ts --out (the desktop updater
  * manifests) and the package workflows when a `v*` tag triggers them.
  *
- * The table is an ordinary Markdown table: the first column says which environment the
- * row is about, and the second column starts with "Supported" or "Not supported":
+ * The table is an ordinary Markdown table: the first column is the environment, and
+ * the second column starts with "Supported" or "Not supported":
  *
- *   | Environment | WebGPU result | Adapter and backend | Evidence |
- *   |---|---|---|---|
- *   | Chrome and Edge (Chromium) | Supported | ... | ... |
- *   | Firefox | Not supported: no adapter | ... | ... |
+ *   | Environment | WebGPU result | Versions | Adapter and backend | Evidence |
+ *   |---|---|---|---|---|
+ *   | Chrome and Edge (Chromium) | Supported | 153 | ... | ... |
+ *   | Firefox | Not supported: no adapter | 155 | ... | ... |
  *
- * Every entry in REQUIRED_WEBGPU_TARGETS needs a row. "Not supported" is a published
- * answer; a blank, "pending" or "not run" is not.
+ * Every entry in REQUIRED_WEBGPU_TARGETS needs exactly one row, and the first column must
+ * be that entry's name exactly (case and spacing aside), so versions go in a column of
+ * their own. A looser match let one environment's result stand in for another's: a
+ * "Chrome on Android" row answered for the Android app. Rows for other environments are
+ * allowed and ignored. "Not supported" is a published answer; a blank, "pending" or
+ * "not run" is not.
  */
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
@@ -40,20 +44,30 @@ export const SUPPORTED_ENVIRONMENTS_PATH = 'docs/supported-environments.md';
 
 export interface WebGpuTarget { name: string; matches(environment: string): boolean }
 
+/** A first-column cell as a name: emphasis and code marks dropped, spacing and case folded. */
+function environmentName(cell: string): string {
+  return cell.replace(/[*_`]/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
+}
+
+function exactly(name: string): WebGpuTarget {
+  const wanted = environmentName(name);
+  return { name, matches: (cell) => environmentName(cell) === wanted };
+}
+
 /**
  * The environments a release ships the requirement to: the browsers the web shell is
- * opened in, and the webview each packaged app embeds. `matches` reads the first column
- * of a row, so that column must carry the words it looks for.
+ * opened in, and the webview each packaged app embeds. A row answers for a target only
+ * when its first column is the target's name.
  */
 export const REQUIRED_WEBGPU_TARGETS: readonly WebGpuTarget[] = [
-  { name: 'Chrome and Edge (Chromium)', matches: (cell) => /chromium/i.test(cell) },
-  { name: 'Firefox', matches: (cell) => /firefox/i.test(cell) },
-  { name: 'Safari (WebKit)', matches: (cell) => /safari/i.test(cell) },
-  { name: 'macOS app (WKWebView)', matches: (cell) => /macos/i.test(cell) && /wkwebview/i.test(cell) },
-  { name: 'iOS and iPadOS app (WKWebView)', matches: (cell) => /\b(?:ios|ipados)\b/i.test(cell) && /wkwebview/i.test(cell) },
-  { name: 'Windows app (WebView2)', matches: (cell) => /webview2/i.test(cell) },
-  { name: 'Linux app (WebKitGTK)', matches: (cell) => /webkitgtk/i.test(cell) },
-  { name: 'Android app (WebView)', matches: (cell) => /android/i.test(cell) },
+  exactly('Chrome and Edge (Chromium)'),
+  exactly('Firefox'),
+  exactly('Safari (WebKit)'),
+  exactly('macOS app (WKWebView)'),
+  exactly('iOS and iPadOS app (WKWebView)'),
+  exactly('Windows app (WebView2)'),
+  exactly('Linux app (WebKitGTK)'),
+  exactly('Android app (WebView)'),
 ];
 
 /** Whether the web shell's boot still makes WebGPU a startup requirement. */
@@ -77,8 +91,10 @@ export function supportedEnvironmentProblems(markdown: string): string[] {
   const rows = tableRows(markdown);
   const problems: string[] = [];
   for (const target of REQUIRED_WEBGPU_TARGETS) {
-    const row = rows.find((cells) => target.matches(cells[0] ?? ''));
-    if (!row) { problems.push(`no row for ${target.name}`); continue; }
+    const matching = rows.filter((cells) => target.matches(cells[0] ?? ''));
+    if (!matching.length) { problems.push(`no row for ${target.name}`); continue; }
+    if (matching.length > 1) { problems.push(`${matching.length} rows for ${target.name}; publish one`); continue; }
+    const row = matching[0]!;
     const result = row[1] ?? '';
     if (!/^(?:not\s+)?supported\b/i.test(result)) {
       problems.push(`${target.name}: the result column says "${result}", not "Supported" or "Not supported"`);
@@ -104,7 +120,7 @@ export function assertWebGpuReleaseAllowed(root = REPO): void {
     ...problems.map((problem) => `  - ${problem}`),
     `Run the WebGPU conformance on each target and publish ${SUPPORTED_ENVIRONMENTS_PATH} with one row per environment:`,
     ...REQUIRED_WEBGPU_TARGETS.map((target) => `  - ${target.name}`),
-    'The second column of each row starts with "Supported" or "Not supported". See scripts/webgpu-release-gate.ts.',
+    'The first column of each row is the environment name exactly as listed, and the second starts with "Supported" or "Not supported". See scripts/webgpu-release-gate.ts.',
   ].join('\n'));
 }
 
