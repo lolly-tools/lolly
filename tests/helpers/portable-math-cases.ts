@@ -58,10 +58,11 @@ export function portableMathResults(math: PortableMath, perFunction = 4096): Flo
 
 /**
  * SHA-256 of `geometryRevisionRecord()`: revision `geom-portable-v1` in every engine, with
- * the engine's 512-node `CLIP_BUDGET`. The record carries the clipping work counters, so
- * the budget is part of the answer: at the earlier 16,384 nodes the digest was 7d0709d6...76e7.
+ * the engine's 16,384-node `CLIP_BUDGET`. The record carries the clipping work counters, so
+ * the budget is part of the answer: during main's brief 512-node budget the digest was
+ * e00e2880...c624.
  */
-export const GEOMETRY_WORKFLOWS_SHA256 = 'e00e2880625e47908c0cd7579b5b2d3111e9a72560637424c6bc4575750cc624';
+export const GEOMETRY_WORKFLOWS_SHA256 = '7d0709d69fe35906cc9c41a52f388b1f542e3188171b9e219b208d65f75b76e7';
 
 /** Every stage workflow through the TypeScript reference, with the clipping work counters each one used. */
 export async function geometryRevisionRecord(): Promise<string> {

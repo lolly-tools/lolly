@@ -461,11 +461,10 @@ workspace's `intersect(a,b,tolerance,limits)` returns fresh owned contacts and
 per-pair work metadata; disposal is idempotent. The comparison adapter applies
 metadata to every original cumulative, maximum and last counter, including the
 early paths that leave last counters untouched. Production calls pass the engine's
-own limits on every request: `CLIP_BUDGET` (512 initial nodes), `OVERRUN_BUDGET`
+own limits on every request: `CLIP_BUDGET` (16,384 initial nodes), `OVERRUN_BUDGET`
 (131,072 overrun nodes) and `SCAN_LIMITS` (65,536 stalled pairs), with the original
-16,384 gap-sampling allowance and depth limits. `GEOMETRY_CLIP_LIMITS` keeps 16,384
-initial nodes, the engine's earlier budget, as the qualification default for direct
-workspace calls. Explicit raw admission also supports existing qualification overrides: up
+16,384 gap-sampling allowance and depth limits. `GEOMETRY_CLIP_LIMITS` keeps the same
+16,384 initial nodes as the qualification default for direct workspace calls. Explicit raw admission also supports existing qualification overrides: up
 to 10,000,000 initial nodes and 262,144 overrun nodes. Those maxima do not change
 production defaults.
 
