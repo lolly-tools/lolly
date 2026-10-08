@@ -24,6 +24,7 @@ import { renderRowToBlob } from '../pro/render-export.ts';
 import type { InputValue } from '../../../../engine/src/inputs.ts';
 import type { Unit } from '../../../../engine/src/units.ts';
 import { getTool } from './tool-loader.ts';
+import { svgLoopMs, svgMarkupAnimated } from '../lib/anim-detect.ts';
 
 // Child render formats that make sense as an image dropped into a picker slot.
 // (Compose itself can also produce pdf, but a picker is choosing an *image*.)
@@ -133,7 +134,7 @@ export function createComposeAPI(host: HostV1) {
       url,
       // `animated` badges the motion in the picker and tells the placement layer
       // (and the parent's own export) this is one moment of a moving asset.
-      meta: { compose: toolId, ...(isMotionFormat(fmt) ? { animated: true } : {}) },
+      meta: { compose: toolId, ...(await motionMeta(blob, fmt)) },
     };
 
     if (transient) return assetRef;
@@ -268,6 +269,24 @@ export function createComposeAPI(host: HostV1) {
   // _describeUrl is web-only host-UI chrome (the picker's detected-tool card), not
   // part of the v1 ComposeAPI contract - underscore-prefixed like assets._* helpers.
   return { render, renderUrl, _describeUrl: describeUrl };
+}
+
+/**
+ * What a child render says about its own motion. A video or an animated raster moves
+ * by definition. An SVG moves when its markup carries SMIL or CSS animation - Pose
+ * Geeko's alive loop, any tool whose inline <svg> animates - and that markup also says
+ * how long one loop lasts. Without this an animated SVG reached the parent as a still:
+ * a Design box drew it as a plain <img>, which the timeline cannot seek and the video
+ * export photographs at one moment. Marked, it becomes the live, seekable anim marker
+ * (mediaHtmlFor in the Design hooks), and `durationMs` gives the box a clip one loop long.
+ */
+async function motionMeta(blob: Blob, fmt: string): Promise<{ animated?: true; durationMs?: number }> {
+  if (isMotionFormat(fmt)) return { animated: true };
+  if (normFmt(fmt) !== 'svg') return {};
+  const text = await blob.text().catch(() => '');
+  if (!svgMarkupAnimated(text)) return {};
+  const loop = svgLoopMs(text);
+  return { animated: true, ...(loop > 0 ? { durationMs: loop } : {}) };
 }
 
 // Convert a blob: URL to a self-contained data: URL (see renderUrl). Falls back to
