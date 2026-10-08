@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 import { test } from 'node:test';
+import { createHash } from 'node:crypto';
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -7,7 +8,6 @@ import { dirname } from 'node:path';
 import { cpus, release } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
-import { chromium, type Browser } from 'playwright';
 import { applyLutFrame, type GradeLut } from '../engine/src/grade.ts';
 import { applyPhotoLook } from '../engine/src/photo-look.ts';
 import type { PhotoTreatment } from '../engine/src/photo-treatment.ts';
@@ -19,6 +19,8 @@ import type { createAssetsAPI } from '../shells/web/src/bridge/assets.ts';
 import type { createPhotoLookWorkerClient } from '../shells/web/src/bridge/photo-look-worker-client.ts';
 import { gradeLutWasm } from '../packages/node-shell/src/pixel-kernel.ts';
 import { lutCases, lutPixels, lutTable } from './helpers/lut-cases.ts';
+import { launchWebGpuBrowser, webGpuBrowserEngine } from './helpers/webgpu-browser.ts';
+import type { QualificationBrowser } from './helpers/webgpu-local-receiver.ts';
 
 interface LutProbe {
   gradeLutWebGpu: typeof gradeLutWebGpu;
@@ -31,6 +33,8 @@ interface LutProbe {
   createPhotoLookWorkerClient: typeof createPhotoLookWorkerClient;
   requireWebGpu(): Promise<GPUDevice>;
   resetWebGpuDevice(): void;
+  startWebGpuCheck(): Promise<void>;
+  webGpuChecked(): Promise<void>;
 }
 declare global { interface Window { lutProbe: LutProbe } }
 
@@ -51,12 +55,25 @@ function latencySummary(samples: number[]) {
 }
 
 test('WebGPU LUT grading and photo baking conform to the portable reference', { timeout: 90_000 }, async t => {
-  let browser: Browser;
+  const engine = webGpuBrowserEngine();
+  const record = (result: Record<string, unknown>) => {
+    const report = process.env.LOLLY_WEBGPU_REPORT;
+    if (!report) return;
+    mkdirSync(dirname(report), { recursive: true });
+    writeFileSync(report, JSON.stringify({ date: new Date().toISOString(), engine,
+      channel: process.env.LOLLY_BROWSER_CHANNEL ?? (process.env.LOLLY_WEBGPU_BROWSER ? null : 'chrome'),
+      executable: process.env.LOLLY_WEBGPU_EXECUTABLE ?? null,
+      node: process.version, machine: { platform: process.platform, architecture: process.arch,
+        processor: cpus()[0]?.model, release: release() }, ...result }, null, 2) + '\n');
+  };
+  let browser: QualificationBrowser;
   try {
-    browser = await chromium.launch({ channel: process.env.LOLLY_BROWSER_CHANNEL ?? 'chrome', headless: true });
+    browser = await launchWebGpuBrowser();
   } catch (error) {
+    record({ status: 'not run', stage: 'browser launch', reason: String(error) });
     if (process.env.LOLLY_WEBGPU_REQUIRED === '1') throw error;
-    t.skip('WebGPU browser qualification requires an installed Chromium browser.'); return;
+    t.skip(engine === 'chromium' ? 'WebGPU browser qualification requires an installed Chromium browser.'
+      : 'WebGPU browser qualification requires the selected browser to launch.'); return;
   }
   t.after(() => browser.close());
   const repo = fileURLToPath(new URL('../', import.meta.url));
@@ -69,16 +86,20 @@ test('WebGPU LUT grading and photo baking conform to the portable reference', { 
       export { treatedPhotoSvg } from './shells/web/src/lib/photo-look-download.ts';
       export { createAssetsAPI } from './shells/web/src/bridge/assets.ts';
       export { createPhotoLookWorkerClient } from './shells/web/src/bridge/photo-look-worker-client.ts';
-      export { requireWebGpu, resetWebGpuDevice } from './shells/web/src/lib/webgpu/device.ts';
+      export { requireWebGpu, resetWebGpuDevice, startWebGpuCheck, webGpuChecked } from './shells/web/src/lib/webgpu/device.ts';
     `, resolveDir: repo }, bundle: true, write: false, format: 'esm', platform: 'browser' }),
     build({ entryPoints: [fileURLToPath(new URL('../shells/web/src/bridge/photo-look.worker.ts', import.meta.url))], bundle: true, write: false, format: 'esm', platform: 'browser' }),
   ]);
+  const sources = { entrySha256: createHash('sha256').update(entry.outputFiles[0]!.text).digest('hex'),
+    workerSha256: createHash('sha256').update(worker.outputFiles[0]!.text).digest('hex') };
   const server = createServer((req, res) => {
+    if (browser.handleRequest?.(req, res)) return;
     if (req.url === '/entry.js' || req.url === '/photo-look.worker.ts') {
       res.setHeader('content-type', 'text/javascript'); res.end(req.url === '/entry.js' ? entry.outputFiles[0]!.text : worker.outputFiles[0]!.text);
     } else {
       res.setHeader('content-type', 'text/html');
-      res.end('<!doctype html><script type="module">import * as probe from "/entry.js"; window.lutProbe=probe;</script>');
+      const csp = process.env.LOLLY_WEBGPU_TEST_CSP;
+      res.end(`<!doctype html>${csp ? `<meta http-equiv="Content-Security-Policy" content="${csp.replaceAll('"', '&quot;')}">` : ''}<title>Lolly WebGPU Qualification</title><p>Isolated local WebGPU conformance. No workspace or personal data is loaded.</p><script type="module">import * as probe from "/entry.js"; window.lutProbe=probe; ${browser.receiverScript ?? ''}</script>`);
     }
   });
   t.after(() => new Promise<void>(resolve => server.close(() => resolve())));
@@ -86,19 +107,42 @@ test('WebGPU LUT grading and photo baking conform to the portable reference', { 
   const address = server.address();
   if (!address || typeof address === 'string') throw new Error('The GPU test server did not start.');
   const page = await browser.newPage();
+  record({ status: 'not run', stage: 'page startup', browser: browser.version(), sources });
   await page.goto(`http://127.0.0.1:${address.port}/`);
   await page.waitForFunction(() => Boolean(window.lutProbe));
   const support = await page.evaluate(async () => {
-    if (!navigator.gpu) return null;
-    const adapter = await navigator.gpu.requestAdapter();
-    if (!adapter) return null;
-    return { vendor: adapter.info.vendor, architecture: adapter.info.architecture, device: adapter.info.device,
-      description: adapter.info.description, fallback: adapter.info.isFallbackAdapter };
+    const started = performance.now();
+    const context = { secureContext: isSecureContext, userAgent: navigator.userAgent, webdriver: navigator.webdriver, origin: location.origin };
+    if (!navigator.gpu) return { status: 'no API' as const, elapsedMs: performance.now() - started, ...context };
+    try {
+      const adapter = await navigator.gpu.requestAdapter();
+      if (!adapter) return { status: 'no adapter' as const, elapsedMs: performance.now() - started, ...context };
+      const deviceStart = performance.now(), device = await adapter.requestDevice();
+      const limits = { maxStorageBuffersPerShaderStage: device.limits.maxStorageBuffersPerShaderStage,
+        maxComputeInvocationsPerWorkgroup: device.limits.maxComputeInvocationsPerWorkgroup,
+        maxComputeWorkgroupSizeX: device.limits.maxComputeWorkgroupSizeX,
+        maxStorageBufferBindingSize: device.limits.maxStorageBufferBindingSize };
+      device.destroy();
+      return { status: 'available' as const, adapterMs: deviceStart - started, deviceMs: performance.now() - deviceStart,
+        ...context, limits, vendor: adapter.info.vendor, architecture: adapter.info.architecture,
+        device: adapter.info.device, description: adapter.info.description, fallback: adapter.info.isFallbackAdapter };
+    } catch (error) { return { status: 'refused' as const, elapsedMs: performance.now() - started,
+      ...context, reason: String(error) }; }
   });
-  if (!support) {
+  record({ status: 'capability observed; conformance not complete', browser: browser.version(), adapter: support, sources });
+  if (support.status !== 'available') {
+    record({ status: 'capability unavailable', browser: browser.version(), adapter: support, sources });
     if (process.env.LOLLY_WEBGPU_REQUIRED === '1') throw new Error('The required WebGPU adapter is unavailable.');
     t.skip('WebGPU browser qualification requires a usable compute adapter.'); return;
   }
+  const startup = await page.evaluate(async () => {
+    const started = performance.now(), check = window.lutProbe.startWebGpuCheck();
+    const fenceStarted = performance.now();
+    await window.lutProbe.webGpuChecked(); await check;
+    return { startupCheckMs: performance.now() - started, toolFenceWaitMs: performance.now() - fenceStarted,
+      scope: 'The production startup device service and tool mount fence, without the full gallery or tool route.' };
+  });
+  record({ status: 'capability observed; conformance not complete', browser: browser.version(), adapter: support, startup, sources });
   t.diagnostic(`GPU adapter: ${JSON.stringify(support)}`);
   for (const row of lutCases()) {
     const expected = row.pixels.slice(); applyLutFrame(expected, row.lut, row.intensity);
@@ -341,13 +385,12 @@ test('WebGPU LUT grading and photo baking conform to the portable reference', { 
     await timingPage.close();
     assert.equal(timings.cancellation.name, 'AbortError');
     assert.ok(timings.cancellation.recoveredRgbError <= 1, 'the next complete bake recovers after worker cancellation');
-    const report = { date: new Date().toISOString(), browser: browser.version(), node: process.version, adapter: support,
+    const report = { status: 'conformance passed', date: new Date().toISOString(), browser: browser.version(), node: process.version, adapter: support, startup, sources,
       machine: { platform: process.platform, architecture: process.arch, processor: cpus()[0]?.model, release: release() },
       testAdapter: process.env.LOLLY_WEBGPU_TEST_ADAPTER ?? 'default', cases: lutCases().map(row => row.name),
       workerPhotoBakeMs: photo.bakeMs, timings, cleanup, chain: { created: chain.created, frameUploads: chain.frameUploads, readbacks: chain.maps, retained: chain.retained },
       completeBakeSummary: { warm: latencySummary(timings.warmPngBakeMs), freshWorker: latencySummary(timings.comparisonFreshWorkerPngBakeMs) },
       note: 'GPU operation: one warmup and four samples, including admission/upload/dispatch/readback. Complete PNG bake: one cold-worker/device sample and nine warm samples, including decode, contrast/lightness, LUT and encode. Each warm bake is paired with a fresh-worker bake of the same implementation; order alternates. Source PNG preparation is excluded. Cancellation reports caller latency; worker acknowledgement is separately enforced before reuse. Small samples and uncontrolled machine contention limit conclusions.' };
-    mkdirSync(dirname(process.env.LOLLY_WEBGPU_REPORT), { recursive: true });
-    writeFileSync(process.env.LOLLY_WEBGPU_REPORT, JSON.stringify(report, null, 2) + '\n');
+    record(report);
   }
 });

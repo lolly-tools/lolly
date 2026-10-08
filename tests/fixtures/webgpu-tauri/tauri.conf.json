@@ -1,0 +1,8 @@
+{
+  "productName": "Lolly WebGPU Probe",
+  "version": "0.1.0",
+  "identifier": "tools.lolly.WebGpuProbe",
+  "build": { "frontendDist": "frontend" },
+  "app": { "windows": [], "security": { "csp": null, "devCsp": null } },
+  "bundle": { "active": false }
+}
