@@ -37,6 +37,7 @@ mkdirSync(SCRATCH, { recursive: true });
 interface Finding { target: string; iter: number; kind: 'crash' | 'alloc' | 'hang'; ms: number; size: number; message: string; bytes: Uint8Array; }
 
 function classify(err: unknown): 'crash' | 'alloc' | null {
+  if (err instanceof WebAssembly.RuntimeError) return 'crash';
   const msg = err instanceof Error ? err.message : String(err);
   if (/maximum call stack/i.test(msg)) return 'crash';
   if (/invalid (typed )?array length|array buffer allocation|out of memory/i.test(msg)) return 'alloc';

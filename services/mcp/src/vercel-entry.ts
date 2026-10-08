@@ -8,5 +8,11 @@
 // The catch-all `api/mcp/[...path].js` (+ the well-known rewrites in vercel.json)
 // send every OAuth/discovery/JSON-RPC path here; createGateway() routes by path.
 import { createGateway } from './gateway.ts';
+import type { IncomingMessage, ServerResponse } from 'node:http';
+import { vercelRenderUrl } from './vercel-render-url.ts';
 
-export default createGateway();
+const gateway = createGateway();
+export default function vercelEntry(req: IncomingMessage, res: ServerResponse): Promise<void> {
+  req.url = vercelRenderUrl(req.url || '/');
+  return gateway(req, res);
+}

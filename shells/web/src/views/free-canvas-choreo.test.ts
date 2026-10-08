@@ -475,7 +475,7 @@ test('_t opens the timeline and parks the playhead there', async () => {
   } finally { f.destroy(); }
 });
 
-for (const recipe of ['editorial-reveal', 'type-snap', 'feature-cascade', 'assemble-loop']) {
+for (const recipe of ['editorial-reveal', 'type-snap', 'feature-cascade', 'assemble-loop', 'drift-loop']) {
   test(`quick ${recipe} applies editable tracks in one undo step`, async () => {
     const f = mount(STACK());
     try {

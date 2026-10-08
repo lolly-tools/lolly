@@ -229,7 +229,9 @@
               "ttf",
               "otf",
               "woff",
-              "lottie"
+              "lottie",
+              "idml",
+              "premiere-xml"
             ]
           },
           "minItems": 1,
