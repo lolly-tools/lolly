@@ -3,6 +3,7 @@
 import { createThemeToggle } from '../../components/theme-toggle.ts';
 import { t } from '../../i18n.ts';
 import { icon } from '../../lib/icons.ts';
+import { catalogSubmitter } from '../../lib/catalog-submit.ts';
 import { escape as escapeText } from '../../utils.ts';
 import { bindOp, type DetailsCtx } from './details-context.ts';
 import { CHEVRON_RIGHT, CROP_ICON, DOWNLOAD_ICON, EYE_ICON, EYE_OFF_ICON, PENCIL_ICON, REPLACE_ICON, SHARE_ICON, STAR_ICON, TAG_ICON, TRASH_ICON, emojiPackMeta } from './shared.ts';
@@ -68,6 +69,7 @@ export function sidebarHtml(dt: DetailsCtx): string {
       ${button('add-to-project', t('Add to project…'), icon('folder'))}
       ${button('recategorise', t('Recategorise…'), TAG_ICON)}
       ${isUser ? button('rename', t('Rename'), PENCIL_ICON) + button('replace', t('Replace…'), REPLACE_ICON) : ''}
+      ${isUser && catalogSubmitter('upload') ? button('catalog-submit', catalogSubmitter('upload')!.label(), icon('upload')) : ''}
       ${isUser ? button('delete', t('Move to Trash'), TRASH_ICON, 'cat-act-danger') : hidden ? button('unhide', t('Unhide'), EYE_ICON) : button('hide', t('Hide'), EYE_OFF_ICON, 'cat-act-danger')}
     </div></details>`;
   return `<div class="cat-details-actions">
