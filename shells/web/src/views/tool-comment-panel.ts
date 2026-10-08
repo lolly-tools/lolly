@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Move and resize Comments with the shared panel grips and right-side dock. */
 import { t } from '../i18n.ts';
-import { edgeDockAvailable, edgeDockHitTest, edgeDockPreview, edgeDockWidth, isDocked, releaseDock, requestDock } from '../lib/edge-dock.ts';
+import { edgeDockAvailable, edgeDockHitTest, edgeDockPreview, edgeDockWidth, isDocked, onDockChange, releaseDock, requestDock } from '../lib/edge-dock.ts';
 import { icon, type IconName } from '../lib/icons.ts';
 import { panelGripsHtml, wirePanelGrips, type GripBox } from '../lib/panel-grips.ts';
 
@@ -51,7 +51,7 @@ export function wireCommentPanel(panel: HTMLElement, head: HTMLElement, close: H
   const tools = doc.createElement('span'); tools.className = 'collab-comment-panel-tools';
   const button = (label: string, glyph: IconName, run: () => void) => {
     const b = doc.createElement('button'); b.type = 'button'; b.className = 'btn btn--ghost collab-comment-icon';
-    b.setAttribute('aria-label', t(label)); b.title = t(label); b.innerHTML = icon(glyph); b.addEventListener('click', run); tools.append(b); return b;
+    b.setAttribute('aria-label', label); b.title = label; b.innerHTML = icon(glyph); b.addEventListener('click', run); tools.append(b); return b;
   };
   const render = () => {
     const docked = isDocked('comments');
@@ -71,11 +71,11 @@ export function wireCommentPanel(panel: HTMLElement, head: HTMLElement, close: H
     rememberScroll(); box = clamp(box ?? read());
     if (requestDock('comments', panel, { icon: icon('messageCircle'), label: t('Comments'), onRelease: () => { render(); restoreScroll(); } })) { edge = true; render(); save(); restoreScroll(); }
   };
-  const detach = button('Detach comments', 'resize', float);
-  const expand = button('Expand comments to full height', 'arrowsV', () => {
+  const detach = button(t('Detach comments'), 'resize', float);
+  const expand = button(t('Expand comments to full height'), 'arrowsV', () => {
     float(); apply({ ...(box ?? read()), y: GAP, h: win.innerHeight - GAP * 2 }); save();
   });
-  const dock = button('Dock comments to the side', 'dock', enterEdge);
+  const dock = button(t('Dock comments to the side'), 'dock', enterEdge);
   head.insertBefore(tools, close);
   panel.insertAdjacentHTML('beforeend', panelGripsHtml());
   const resizeOff = wirePanelGrips(panel, { read, apply, clamp, min: MIN, locked: () => mobile() || isDocked('comments'), onEnd: save });
@@ -113,9 +113,11 @@ export function wireCommentPanel(panel: HTMLElement, head: HTMLElement, close: H
   head.addEventListener('pointerdown', down); head.addEventListener('pointermove', move);
   head.addEventListener('pointerup', end); head.addEventListener('pointercancel', end);
   win.addEventListener('resize', resized); render();
+  // A panel docking later (the Inspector opening beside a thread a link just opened) narrows the room a floating panel may use.
+  const dockOff = onDockChange(() => { if (!disposed && box && !panel.hidden && !isDocked('comments')) { box = clamp(box); render(); } });
   return { setOpen, positioned: () => !mobile() && !panel.hidden,
     destroy() {
-      disposed = true; releaseDock('comments', 'host'); resizeOff(); edgeDockPreview(false);
+      disposed = true; dockOff(); releaseDock('comments', 'host'); resizeOff(); edgeDockPreview(false);
       head.removeEventListener('pointerdown', down); head.removeEventListener('pointermove', move);
       head.removeEventListener('pointerup', end); head.removeEventListener('pointercancel', end);
       win.removeEventListener('resize', resized); conversation?.removeEventListener('scroll', rememberScroll); tools.remove();

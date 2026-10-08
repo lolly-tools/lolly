@@ -6,6 +6,8 @@ export interface ShellNotification {
   body?: string;
   tone?: 'info' | 'warning' | 'action';
   action?: { label: string; href?: string; run?(): void | Promise<void> };
+  /** A second way to act, shown beside the action (for example, Download beside Open). */
+  secondary?: { label: string; run(): void | Promise<void> };
   dismissible?: boolean;
   reminder?: boolean;
   onDismiss?(): void;

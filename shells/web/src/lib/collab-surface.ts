@@ -12,6 +12,10 @@ export interface CollabSurface {
   snapshot?(): Pick<CollabSurface, 'object' | 'toClient'>;
   fromClient?(point: { x: number; y: number }): { x: number; y: number };
   reveal?(id: string): void;
+  /** Bring the surface `id` (an artboard, slide or page) into view; false when this host has no such surface. */
+  focusSurface?(id: string): boolean;
+  /** Centre a document-space point of surface `surfaceId`, instantly under reduced motion; false when it cannot. */
+  revealPoint?(surfaceId: string, point: { x: number; y: number }): boolean;
   revealPeer?(state: PresenceState): boolean;
   toClient?(point: { x: number; y: number }): { x: number; y: number };
   subscribe(fn: () => void): () => void;

@@ -22,6 +22,28 @@ In a **work collab**, participants edit a session held by the organisation's ins
 If **Team projects** or **Work collab** is absent, check with whoever runs your organisation's Lolly that the feature and your access are enabled. Work collabs need a reachable instance; the offline pairing instructions below apply to private collabs. Operators can find setup information in the [lolly.work documentation](https://github.com/lolly-tools/lolly-work/tree/main/docs).
 :::
 
+::: details Work collabs: comments, mentions and links
+A work collab can also hold a review: comments pinned to the canvas, mentions that tell a colleague, and links that open one thread. All of it stays inside your organisation's instance, and none of it changes who can open the document.
+
+**Comments.** Press **Comments** over the canvas. **Pin a comment** and then choose an object or a point, or use **Comment on selection** or **Comment at canvas center**. Each comment starts a thread that anyone who can open the document can read and reply to. **Resolve thread** moves it out of the open list; **Reopen thread** brings it back.
+
+**Finding feedback.** The four filters at the top of the panel are **Open threads**, **Resolved threads**, **Unread** and **Involving me** (threads you started, replied to or were mentioned in). Each shows how many threads it holds.
+
+- **Show comment location** moves the canvas to the pin, switching artboard if the thread is on another one. If the object was deleted, the canvas shows where it was.
+- **Previous thread** and **Next thread**, or Alt+Up and Alt+Down, step through the threads in the current filter.
+- **Hide pins** clears the pins from your canvas without changing anyone else's. The choice is kept on this device.
+
+**Unread.** The Comments button counts the threads with replies you have not seen, and each of those threads carries a dot. Opening a thread marks it read, and **Mark all as read** clears the rest. Read state is yours alone: nobody else sees what you have read.
+
+**Mentions.** Type @ in a comment to choose a colleague. Only people who can already open the document are offered, by name and never by email address, and a mention never gives anyone access. The people you mention, and everyone already in the thread, get a notice in their inbox; its **Open thread** button opens the document and the thread. If you lose access to the document, or it is deleted, its notices leave your inbox. Your organisation can turn mentions or notices off.
+
+**Links to a thread.** **Copy link to thread** copies an address that ends in `?thread=` and the thread's id. For anyone who can open the document, the link opens that thread, after signing in if they need to. The link gives no access by itself: someone without access sees **Ask for access**, and once a manager approves, the same tab opens the thread.
+
+**Live updates.** While you are connected, a new comment or reply shows for everyone in the document within about a second. Without a live connection the panel still checks for changes every few seconds.
+
+**Interrupted edits.** If the connection drops in the middle of an edit, the edit that could not be sent is saved as a separate copy on this device, and a notice about the copy stays until you dismiss the notice. Changes the server had already accepted are in the shared document. **Open recovery copy** opens the copy; **Download recovery copy** saves it as a file. A copy is listed only for the account and organisation that made it, and it is removed from the device after 30 days.
+:::
+
 ## What a private collab is
 
 A **private collab** is a live editing link between two devices. One person invites, the other joins and from that moment both are typing into the same tool session: change a field on one device and it appears on the other. The link is made by the two browsers talking to each other directly. Your work does not travel through a service on the way, because there is no service - the invite and the reply are the whole of the setup, and you are the one who carries them across.

@@ -9,7 +9,10 @@
  * for a deleted (410) and an unknown (404) session. Also the Team projects modal's
  * "New project" action, which shares the create form with the Share dialog. And a
  * member the instance turns away (plans/75 G13): a 403 asks for access to the
- * session's project through the session, and a 401 offers Sign in.
+ * session's project through the session, and a 401 offers Sign in. And a link to one
+ * comment thread (plan 76 M4): the thread id is checked, held for the session's
+ * comments panel, carried through sign-in, and held again by the open that follows an
+ * access answer, however late that answer comes.
  *
  * Run directly:  node --test shells/web/src/org/team-link.test.ts
  */
@@ -44,7 +47,8 @@ globalThis.fetch = recordingFetch;
 const json = (body: unknown, status = 200): Response =>
   new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
 
-const { planTeamLink, teamLinkSessionId, mountTeamLink } = await import('./team-link.ts');
+const { planTeamLink, teamLinkSessionId, teamLinkThread, mountTeamLink } = await import('./team-link.ts');
+const { onReviewTarget, takeReviewTarget, REVIEW_TARGET_TTL_MS } = await import('../lib/review-target.ts');
 const { teamOpenMessage } = await import('./team-open.ts');
 const { openTeamProjectsModal } = await import('./team-projects.ts');
 const { createInstanceSessionSource } = await import('./session-source.ts');
@@ -268,4 +272,120 @@ test('a lapsed sign-in on a session link offers Sign in, coming back to the link
   assert.match(view().textContent ?? '', /Your sign-in has expired\. Sign in again to open the link\./);
   assert.equal(view().querySelector('a.btn')?.getAttribute('href'), '/api/auth/login?returnTo=%2F%23%2Fteam%2Fsess-1');
   _resetOrgForTests();
+});
+
+// ── A link to one comment thread ──────────────────────────────────────────────
+
+test('teamLinkThread takes a comment id from the link and refuses anything else', () => {
+  assert.equal(teamLinkThread('#/team/sess-1?thread=th_1'), 'th_1');
+  assert.equal(teamLinkThread('#/team/sess-1?x=1&thread=c-2'), 'c-2');
+  assert.equal(teamLinkThread('#/team/sess-1?thread=th%5F1'), 'th_1', 'an escaped id is read as the id');
+  assert.equal(teamLinkThread('#/team/sess-1'), '');
+  assert.equal(teamLinkThread('#/team/sess-1?thread='), '');
+  assert.equal(teamLinkThread(undefined), '');
+  assert.equal(teamLinkThread('#/team/sess-1?thread=%3Cscript%3E'), '');
+  assert.equal(teamLinkThread('#/team/sess-1?thread=th.1'), '', 'a dot is not in a comment id');
+  assert.equal(teamLinkThread('#/team/sess-1?thread=th%201'), '');
+  assert.equal(teamLinkThread(`#/team/sess-1?thread=${'a'.repeat(81)}`), '', 'longer than a comment id');
+  assert.equal(teamLinkThread('#/team/sess-1?thread=%E0%A4%A'), '', 'a broken escape is not an id');
+});
+
+/** Collect the targets listeners hear while `fn` runs. */
+async function hearing(fn: (heard: Array<[string, string]>) => Promise<void>): Promise<void> {
+  const heard: Array<[string, string]> = [];
+  const off = onReviewTarget((sessionId, threadId) => { heard.push([sessionId, threadId]); });
+  try { await fn(heard); } finally { off(); }
+}
+
+test('a thread link: the open holds the thread, and a panel already showing the session hears it at once', async () => {
+  reset();
+  setHostRef({ log: () => {} } as unknown as HostV1);
+  registerSessionSource(createInstanceSessionSource('Acme', () => null));
+  dom.window.location.hash = '#/team/sess-1?thread=th_1';
+  let release!: () => void;
+  const gate = new Promise<void>((r) => { release = r; });
+  router = () => json({ error: { code: 'NOT_FOUND' } }, 404);
+  globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => { await gate; return router(String(input), init); }) as typeof fetch;
+  try {
+    await hearing(async (heard) => {
+      await mountTeamLink(view(), 'sess-1');
+      assert.match(view().textContent ?? '', /Opening the team session/);
+      assert.deepEqual(heard, [['sess-1', 'th_1']], 'told while the session is still on its way');
+      release();
+      await settle();
+    });
+    assert.equal(takeReviewTarget('sess-1'), 'th_1', 'held for the comments panel of the session');
+    assert.equal(takeReviewTarget('sess-1'), undefined, 'a target is taken once');
+  } finally {
+    release();
+    globalThis.fetch = recordingFetch;
+  }
+});
+
+test('a thread link whose id is not a comment id opens the session and holds no thread', async () => {
+  reset();
+  setHostRef({ log: () => {} } as unknown as HostV1);
+  registerSessionSource(createInstanceSessionSource('Acme', () => null));
+  router = (url) => url.endsWith('/api/v1/sessions/sess-1') ? json({ error: { code: 'GONE' } }, 410) : new Response('', { status: 404 });
+  for (const bad of ['%3Cscript%3E', 'th.1', 'a'.repeat(81)]) {
+    view().replaceChildren();
+    dom.window.location.hash = `#/team/sess-1?thread=${bad}`;
+    await hearing(async (heard) => {
+      await mountTeamLink(view(), 'sess-1');
+      await settle();
+      assert.deepEqual(heard, [], `nothing told for ${bad}`);
+    });
+    assert.match(view().textContent ?? '', /was deleted/, 'the session itself was still opened');
+    assert.equal(takeReviewTarget('sess-1'), undefined);
+  }
+});
+
+test('a thread link signed out: Sign in comes back to the thread, and nothing is held before then', async () => {
+  reset();
+  dom.window.location.hash = '#/team/sess-1?thread=th_1';
+  router = (url) => url.includes('/api/auth/config')
+    ? json({ mode: 'open', provider: 'oidc', loginPath: '/api/auth/login' })
+    : new Response('', { status: 404 });
+  await hearing(async (heard) => {
+    await mountTeamLink(view(), 'sess-1');
+    assert.deepEqual(heard, []);
+  });
+  assert.equal(view().querySelector('a.btn')?.getAttribute('href'), '/api/auth/login?returnTo=%2F%23%2Fteam%2Fsess-1%3Fthread%3Dth_1');
+  assert.equal(takeReviewTarget('sess-1'), undefined);
+});
+
+test('a thread link turned away (403): an answer that gives access more than two minutes later holds the thread afresh', async () => {
+  const realNow = Date.now;
+  let later = 0;
+  Date.now = () => realNow() + later;
+  try {
+    await member((url) => {
+      if (url.endsWith('/api/v1/sessions/sess-1')) return json({ error: { code: 'FORBIDDEN' } }, 403);
+      if (url === '/api/v1/access-requests/mine?sessionId=sess-1') {
+        return json({ requests: [{ id: 'req_1', status: 'open', role: 'editor', createdAt: new Date(realNow()).toISOString() }] });
+      }
+      if (url.endsWith('/api/v1/inbox')) {
+        return json({ messages: [{ id: 'msg_1', kind: 'request', severity: 'info', title: 'Access approved', dismissible: true,
+          data: { kind: 'access-answer', requestId: 'req_1', outcome: 'approved' } }] });
+      }
+      return new Response('', { status: 404 });
+    });
+    dom.window.location.hash = '#/team/sess-1?thread=th_1';
+    await hearing(async (heard) => {
+      await mountTeamLink(view(), 'sess-1');
+      await settle();
+      assert.match(view().textContent ?? '', /You do not have access to this team session\./);
+      assert.deepEqual(heard, [['sess-1', 'th_1']], 'the first open held the thread');
+      // The answer arrives after the first hold has run out.
+      later = REVIEW_TARGET_TTL_MS + 1_000;
+      const { refreshInbox } = await import('./inbox.ts');
+      await refreshInbox({ force: true });
+      await settle();
+      assert.deepEqual(heard, [['sess-1', 'th_1'], ['sess-1', 'th_1']], 'the open after the answer held it again');
+    });
+    assert.equal(takeReviewTarget('sess-1'), 'th_1', 'held afresh, so it has not run out');
+  } finally {
+    Date.now = realNow;
+    _resetOrgForTests();
+  }
 });
