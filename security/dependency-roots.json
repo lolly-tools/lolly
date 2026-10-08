@@ -48,6 +48,30 @@
       "lockfile": "packages/node-shell/wasm/skera/Cargo.lock",
       "exposure": "shipped-runtime",
       "owner": "packages/node-shell"
+    },
+    {
+      "id": "geometry-kernel-cargo",
+      "ecosystem": "cargo",
+      "directory": "packages/node-shell/wasm/geometry-kernel",
+      "lockfile": "packages/node-shell/wasm/geometry-kernel/Cargo.lock",
+      "exposure": "shipped-runtime",
+      "owner": "packages/node-shell"
+    },
+    {
+      "id": "pixel-kernel-cargo",
+      "ecosystem": "cargo",
+      "directory": "packages/node-shell/wasm/pixel-kernel",
+      "lockfile": "packages/node-shell/wasm/pixel-kernel/Cargo.lock",
+      "exposure": "build-toolchain",
+      "owner": "packages/node-shell"
+    },
+    {
+      "id": "portable-math-cargo",
+      "ecosystem": "cargo",
+      "directory": "packages/node-shell/wasm/portable-math",
+      "lockfile": "packages/node-shell/wasm/portable-math/Cargo.lock",
+      "exposure": "shipped-runtime",
+      "owner": "packages/node-shell"
     }
   ]
 }
