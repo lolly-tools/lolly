@@ -11,7 +11,7 @@ Roughly 718,000 lines of TypeScript, tests included, and 59,000 lines of CSS.
 |---|---|---|---|
 | `views/` | 491 files, 194,817 lines | 232 files, 76,413 lines | 6 files, 1,427 lines |
 | `lib/` | 761 files, 158,098 lines | 429 files, 84,885 lines | 12 files, 1,805 lines |
-| `bridge/` | 208 files, 52,474 lines | 122 files, 25,362 lines | none |
+| `bridge/` | 208 files, 52,481 lines | 122 files, 25,362 lines | none |
 | `components/` | 112 files, 26,341 lines | 49 files, 12,465 lines | 19 files, 1,130 lines |
 | `org/` | 64 files, 16,358 lines | 44 files, 12,677 lines | none |
 | `collab/` | 20 files, 13,532 lines | 22 files, 14,132 lines | none |
@@ -58,7 +58,7 @@ Do not be ambushed by these. The largest source files, by line count:
 <!-- web-src-largest:start -->
 | Lines | File | Direct test coverage |
 |---|---|---|
-| 7,189 | `bridge/export.ts` | yes, but mostly gated. `export-audio-bed.test.ts` imports `bedStartOffset` and `connectMusic` directly and always runs; the SVG and PDF emission is covered by ten `chromiumOrSkip()` suites (`export-m3`, `export-paint-order`, `export-stroke-paint`, `export-shadow-fidelity`, `export-pdf-shadow-fidelity`, `export-emf-eps-shadow`, `export-atomic-inline`, `export-backdrop-blur`, `export-form-controls`, `export-text-emission`) that esbuild-bundle the real `renderSvgFromHtml` and drive it in Chromium, and which **self-skip** when no Chromium is installed. `export-text-emission` is the newest and covers the `<path>`-vs-`<text>` decision layer specifically; unlike the SUSE-gated golden suite it is brand-independent, so it runs on `lolly-start` too. |
+| 7,166 | `bridge/export.ts` | yes, but mostly gated. `export-audio-bed.test.ts` imports `bedStartOffset` and `connectMusic` directly and always runs; the SVG and PDF emission is covered by ten `chromiumOrSkip()` suites (`export-m3`, `export-paint-order`, `export-stroke-paint`, `export-shadow-fidelity`, `export-pdf-shadow-fidelity`, `export-emf-eps-shadow`, `export-atomic-inline`, `export-backdrop-blur`, `export-form-controls`, `export-text-emission`) that esbuild-bundle the real `renderSvgFromHtml` and drive it in Chromium, and which **self-skip** when no Chromium is installed. `export-text-emission` is the newest and covers the `<path>`-vs-`<text>` decision layer specifically; unlike the SUSE-gated golden suite it is brand-independent, so it runs on `lolly-start` too. |
 | 3,966 | `views/valid.ts` | `valid-verdict.test.ts` only |
 | 3,859 | `views/tool-inputs.ts` | none |
 | 3,819 | `views/picker.ts` | partial - the format and embeddability rules are extracted to `picker-formats.ts` and covered by `picker-formats.test.ts`, plus `picker-initial-tab.test.ts`; the 3,000-line panel body is not. |

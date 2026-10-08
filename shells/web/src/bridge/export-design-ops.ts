@@ -9,12 +9,13 @@
  * page shows (a finding), or the export is not one frame: the caller then draws the page
  * with the DOM walker, as before. The choice is never silent.
  */
-import { createHostTextShaper, extractC2paStore, prepareC2paIngredientFromStore, sfntVerticalMetrics, toCssLength, toCssPx } from '@lolly/engine';
+import { createHostTextShaper, extractC2paStore, parseDimension, prepareC2paIngredientFromStore, sfntVerticalMetrics, toCssLength, toCssPx, toPoints } from '@lolly/engine';
 import type { TextFontMetricsV1 } from '@lolly/engine';
 import type { TextMeasureFontsV1 } from '@lolly-tools/core/text-measure-v1';
 import { _host, exportDims, type ExportOpts } from './export-shared.ts';
 import { parseFontFamilies, resolveVectorFont } from './font-registry.ts';
 import type { DesignPageSvg, DesignPageSvgHost, DesignPdfPlacement } from '../../../../engine/src/design-page-svg.ts';
+import type { PrintGeometry } from '../../../../engine/src/print-marks.ts';
 
 const log = (message: string): void => { _host?.log?.('info', message); };
 
@@ -186,4 +187,33 @@ export async function designOpsPdf(pageEls: readonly Element[], opts: ExportOpts
   if (!out.pdf) return why(`a page holds features the drawing operations or PDF do not carry yet: ${findingList(out.findings)}`);
   log(`Design PDF export: ${ids.length} page${ids.length === 1 ? '' : 's'} drawn from the drawing operations.`);
   return out.pdf;
+}
+
+/** The pieces of the walked multi-page PDF that `export.ts` lends a drawn Design PDF. */
+export interface DesignPdfFinishing<Labels> {
+  geometry(trimWpt: number, trimHpt: number, opts: ExportOpts, palette: ExportOpts['palette']): PrintGeometry | null;
+  labels(meta: ExportOpts['meta']): Labels | null;
+  finish(bytes: Uint8Array, opts: ExportOpts, settings: { intentKind: string; geos?: (PrintGeometry | null)[]; space?: string; labels?: Labels | null }): Promise<Blob>;
+}
+
+/**
+ * Design pages written by the engine from its drawing operations, then finished exactly
+ * as the walked multi-page PDF is: the same per-page print geometry (the artwork scaled
+ * into the bleed box), marks, page boxes and PDF/X-4 metadata. Null hands the document
+ * to the walker.
+ */
+export async function renderDesignOpsPdf<Labels>(pageEls: Element[], opts: ExportOpts, use: DesignPdfFinishing<Labels>): Promise<Blob | null> {
+  const bleedPt = (() => { const b = parseDimension(opts.bleed); return b ? toPoints(b) : 0; })();
+  const hasGeo = bleedPt > 0 || Boolean(opts.cropMarks) || Boolean(opts.registrationMarks) || Boolean(opts.bleedMarks) || Boolean(opts.colorBars) || Boolean(opts.provenance);
+  const geos: (PrintGeometry | null)[] = [];
+  const bytes = await designOpsPdf(pageEls, opts, (frame) => {
+    const w = toPoints({ value: frame.width, unit: 'px' }), h = toPoints({ value: frame.height, unit: 'px' });
+    const g = use.geometry(w, h, opts, opts.palette);
+    geos.push(g);
+    return g ? { size: g.page, artwork: g.artwork } : { size: { w, h } };
+  });
+  if (!bytes) return null;
+  return await use.finish(bytes, opts, hasGeo
+    ? { intentKind: 'srgb', geos, space: 'rgb', labels: use.labels(opts.meta) }
+    : { intentKind: 'srgb' });
 }
