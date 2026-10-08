@@ -56,14 +56,17 @@ env:
 
 # Every job has a time limit. GitHub's default is 6 hours, and stalled apt
 # mirrors held runners for up to 4 hours before these limits existed. Each job
-# limit is about 2.5 times the 90th percentile of 25 passing runs (October
-# 2026), at least 1.4 times the slowest of them, and never under 10 minutes.
-# Package installs have their own, smaller limits and retry a stalled attempt.
+# limit is about 2.5 times the 90th percentile of 45 passing runs (October
+# 2026), at least 1.4 times the slowest of them, and never under 15 minutes,
+# because actions/checkout alone has taken 7 minutes (12 in opengrep). A job
+# limit also covers the full limits of its own install steps plus its slowest
+# checkout and test time, so a slow install that passes inside its step limit is
+# not then stopped by the job limit. Package installs retry a stalled attempt.
 jobs:
   secrets:
     name: secret history scan
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -110,8 +113,11 @@ jobs:
   test:
     name: ${{ matrix.partition && format('test (browser {0})', matrix.partition) || format('test ({0})', matrix.shard) }}
     runs-on: ubuntu-latest
-    # Per shard, in minutes. Passing runs take about 14 (unit:engine), 10
-    # (unit:web) and 25 to 37 (a browser partition) at the 90th percentile.
+    # Per shard, in minutes. Passing runs take about 15 (unit:engine), 11
+    # (unit:web) and 21 to 33 (a browser partition) at the 90th percentile.
+    # A shard that installs packages adds those step limits: a browser
+    # partition allows 20 + 25 + 10 for its installs, 34 for its tests and 7
+    # for checkout, with 9 to spare.
     timeout-minutes: ${{ matrix.timeout }}
     strategy:
       fail-fast: false
@@ -119,16 +125,16 @@ jobs:
         include:
           - { shard: 'unit:engine', artifact: 'unit-engine', timeout: 40 }
           - { shard: 'unit:web', artifact: 'unit-web', timeout: 30 }
-          - { shard: 'contracts', artifact: 'contracts', timeout: 30 }
-          - { shard: 'security', artifact: 'security', timeout: 10 }
-          - { shard: 'tools', artifact: 'tools', timeout: 10 }
-          - { shard: 'browser', artifact: 'browser-1', partition: '1/4', timeout: 90 }
-          - { shard: 'browser', artifact: 'browser-2', partition: '2/4', timeout: 90 }
-          - { shard: 'browser', artifact: 'browser-3', partition: '3/4', timeout: 90 }
-          - { shard: 'browser', artifact: 'browser-4', partition: '4/4', timeout: 90 }
-          - { shard: 'tauri', artifact: 'tauri', timeout: 30 }
-          - { shard: 'conformance', artifact: 'conformance', timeout: 10 }
-          - { shard: 'fuzz:regression', artifact: 'fuzz-regression', timeout: 10 }
+          - { shard: 'contracts', artifact: 'contracts', timeout: 40 }
+          - { shard: 'security', artifact: 'security', timeout: 30 }
+          - { shard: 'tools', artifact: 'tools', timeout: 15 }
+          - { shard: 'browser', artifact: 'browser-1', partition: '1/4', timeout: 105 }
+          - { shard: 'browser', artifact: 'browser-2', partition: '2/4', timeout: 105 }
+          - { shard: 'browser', artifact: 'browser-3', partition: '3/4', timeout: 105 }
+          - { shard: 'browser', artifact: 'browser-4', partition: '4/4', timeout: 105 }
+          - { shard: 'tauri', artifact: 'tauri', timeout: 40 }
+          - { shard: 'conformance', artifact: 'conformance', timeout: 25 }
+          - { shard: 'fuzz:regression', artifact: 'fuzz-regression', timeout: 15 }
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -172,12 +178,25 @@ jobs:
       # 17 minutes to fetch ffmpeg. `timeout` stops a stalled attempt and the
       # loop tries again; apt keeps the packages it already fetched, so a retry
       # only fetches what is still missing. The step limit is the hard stop.
+      # Every apt command runs as `sudo timeout`, so the root `timeout` can stop
+      # apt-get and its download helpers. A stopped attempt can leave dpkg half
+      # configured, so each retry runs `dpkg --configure -a` first.
       - name: Install Chromium (browser and security shards)
         if: matrix.shard == 'browser' || matrix.shard == 'security'
         timeout-minutes: 20
+        # The system libraries are installed as root here instead of through
+        # `--with-deps`, which would run apt under playwright's own sudo, out of
+        # reach of a `timeout` that runs as the runner user. `install-deps
+        # chromium` installs the same packages as `install chromium --with-deps`.
+        # The first `apt-get update` catches a stalled mirror within 4 minutes;
+        # playwright runs it again, which is quick once the lists are fresh.
         run: |
+          node_bin="$(command -v node)"
           for attempt in 1 2 3; do
-            if timeout -k 30 360 pnpm run install:browser --with-deps; then exit 0; fi
+            if [ "$attempt" -gt 1 ]; then sudo timeout -k 10 120 dpkg --configure -a || true; fi
+            if sudo timeout -k 30 240 apt-get update &&
+              sudo timeout -k 30 600 "$node_bin" node_modules/playwright-core/cli.js install-deps chromium &&
+              timeout -k 30 300 pnpm run install:browser; then exit 0; fi
             echo "::warning::Chromium install attempt $attempt failed or stalled"
             sleep 15
           done
@@ -203,6 +222,7 @@ jobs:
         timeout-minutes: 25
         run: |
           for attempt in 1 2 3; do
+            if [ "$attempt" -gt 1 ]; then sudo timeout -k 10 120 dpkg --configure -a || true; fi
             if sudo timeout -k 30 240 apt-get update &&
               sudo timeout -k 30 600 apt-get install -y --no-install-recommends ffmpeg; then exit 0; fi
             echo "::warning::apt-get attempt $attempt failed or stalled"
@@ -215,6 +235,7 @@ jobs:
         timeout-minutes: 10
         run: |
           for attempt in 1 2 3; do
+            if [ "$attempt" -gt 1 ]; then sudo timeout -k 10 120 dpkg --configure -a || true; fi
             if sudo timeout -k 30 240 apt-get update &&
               sudo timeout -k 30 300 apt-get install -y --no-install-recommends poppler-utils; then exit 0; fi
             echo "::warning::apt-get attempt $attempt failed or stalled"
@@ -289,6 +310,7 @@ jobs:
         timeout-minutes: 20
         run: |
           for attempt in 1 2 3; do
+            if [ "$attempt" -gt 1 ]; then sudo timeout -k 10 120 dpkg --configure -a || true; fi
             if sudo timeout -k 30 240 apt-get update &&
               sudo timeout -k 30 600 apt-get install -y --no-install-recommends \
                 libwebkit2gtk-4.1-dev libgtk-3-dev librsvg2-dev \
@@ -306,6 +328,7 @@ jobs:
         timeout-minutes: 10
         run: |
           for attempt in 1 2 3; do
+            if [ "$attempt" -gt 1 ]; then sudo timeout -k 10 120 dpkg --configure -a || true; fi
             if sudo timeout -k 30 240 apt-get update &&
               sudo timeout -k 30 300 apt-get install -y --no-install-recommends qpdf; then exit 0; fi
             echo "::warning::apt-get attempt $attempt failed or stalled"
@@ -393,7 +416,7 @@ jobs:
     needs: test
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - name: Every required test partition must succeed
         env:
@@ -420,7 +443,7 @@ jobs:
   typecheck:
     name: typecheck
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -507,7 +530,7 @@ jobs:
   validate-catalog:
     name: validate catalog
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -539,7 +562,7 @@ jobs:
   smoke:
     name: smoke (render every tool)
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -609,7 +632,7 @@ jobs:
   build:
     name: build + bundle budget
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -645,7 +668,7 @@ jobs:
   api-bundles:
     name: api bundle drift
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -679,7 +702,7 @@ jobs:
   render-action:
     name: render-action self-test
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       # No submodules: this job only needs action/ itself - the action performs
       # its own pinned lolly checkout into a work dir.
@@ -731,7 +754,7 @@ jobs:
   audit:
     name: npm audit (high+critical)
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -851,7 +874,7 @@ jobs:
   sast:
     name: opengrep (custom rules + new findings)
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     # Runs on PUSH as well as PR. It was PR-only, which sounds harmless until you
     # notice this repo commits straight to main - so the security gate never saw a
     # single one of the commits it was added to guard (SUSE assessment follow-up,
