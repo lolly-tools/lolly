@@ -17,7 +17,7 @@ import { collabHistoryStamp } from '../../lib/collab-undo.ts';
  */
 import { annotateTemplate, diffDocuments, expandQuery, hasEncryptedState, inspectDocument, measureDocument, parseUrlState } from '@lolly/engine';
 import type { Profile } from '@lolly-tools/core/host-v1';
-import type { InputValue } from '../../../../../engine/src/inputs.js';
+import type { InputValue, InputWriteOptions } from '../../../../../engine/src/inputs.js';
 import { buildInputModel, tokenRestoreRefsOf } from '../../../../../engine/src/inputs.ts';
 import { createInteractiveToolRuntime as createRuntime } from '../../lib/mount-runtime.ts';
 import { attachCollabPlumbing } from '../../lib/collab-plumbing.ts';
@@ -58,7 +58,7 @@ import { asRow } from '../tool-types.ts';
 import { openToolSession } from '../tool-session-open.ts';
 import { carriedEmojiPins } from '../tool-session-snapshot.ts';
 import { _sliderDragging, fileToRef, fmtBytes, makeBlocksDropper, syncInputs } from '../tool-inputs.ts';
-import { notifyToolInputMount, policyValuesFor } from '../../lib/input-policy.ts';
+import { notifyToolInputMount, guardDocumentEdits, policyValuesFor } from '../../lib/input-policy.ts';
 import { createLiveControls, mountSidebarLiveControls, registerLiveControls } from '../live-controls.ts';
 import { mountCaptureSignin } from '../capture-signin.ts';
 import { captureThumbnail, renderActions } from '../tool-actions.ts';
@@ -721,7 +721,9 @@ export function wrapSetInput(tview: ToolViewCtx): void {
       window.removeEventListener('blur', up);
     });
   }
-  runtime.setInput = (id: string, value: InputValue, options) => {
+  // A view-only document (lib/input-policy.ts) refuses every editor's write here, the
+  // one place they all arrive; the refresh puts the stage and panels back on the model.
+  runtime.setInput = guardDocumentEdits(tview.toolId, (id: string, value: InputValue, options?: InputWriteOptions) => {
     const cur = runtime.getModel().find((i) => i.id === id);
     const beforeLinks = historyTokenLinks(runtime.getModel(), [id]);
     const pending = baseSetInput(id, value, options);
@@ -740,7 +742,7 @@ export function wrapSetInput(tview: ToolViewCtx): void {
       }
     }
     return trackRevisionInput(pending, () => tview.revisionChanged());
-  };
+  }, () => tview.applyingHistory, () => runtime.refresh());
 }
 
 /** Stable row ids. */

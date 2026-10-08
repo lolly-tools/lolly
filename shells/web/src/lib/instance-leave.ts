@@ -21,6 +21,7 @@
  */
 import { getInstanceBase, setInstanceBase, clearInstallId, setInstanceSession } from './instance.ts';
 import { clearInstancePack, getPackMeta } from './pack-store.ts';
+import { dropTeamOriginRecords } from './team-origin-records.ts';
 
 /**
  * How many locally saved sessions belong to a tool THIS pack installed. They
@@ -50,6 +51,10 @@ export async function leaveInstance(): Promise<void> {
     localStorage.removeItem(`lolly:org-absent:${scope}`);
     localStorage.removeItem(`lolly:org-config:${scope}`);
   } catch { /* storage unavailable - the caches expire on their own TTLs */ }
+  // Where this device's copies of team documents came from (plan 75 G17): bound to
+  // the person on this workspace, so Leave drops them with the workspace. The copies
+  // themselves stay, as device work.
+  await dropTeamOriginRecords();
   // The install identity and the native-shell session: this device stops
   // speaking for the org entirely, and returns fresh if it ever comes back.
   await clearInstallId();
