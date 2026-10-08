@@ -183,7 +183,18 @@ release until `docs/supported-environments.md` publishes a result for each
 required environment. The signed frontend builds refuse too
 (`scripts/build-release-web.ts`, used by the web image, Vercel and every Tauri
 package), so neither the public web image nor a package can be built from main
-before then. To qualify the packaged webviews, dispatch a packaging workflow with
+before then; CI's verified instance shell and `scripts/ship.ts` refuse as well.
+The gate covers only the web shell and the apps. The MCP browser probe boots
+the shell with software WebGPU through SwiftShader; it qualifies container
+rendering independently of the physical frontend environment table. The CA and
+Penpot images and the `/info` docs need no WebGPU. `deployment-suse.yml` builds
+these images and docs from main in jobs that never ask the frontend gate and
+publishes the images to GHCR. The docs are kept as a build artifact only.
+Nothing serves that artifact yet, so a deployment still serves the `/info`
+baked into its web image until a deploy step
+serves the artifact instead (an open follow-up). (Vercel deploys the web shell
+and its functions as one unit, so that retired path stays held with the web
+shell.) To qualify the packaged webviews, dispatch a packaging workflow with
 `webgpu_qualification` (or set `LOLLY_WEBGPU_QUALIFICATION_BUILD=1` for a Tauri
 frontend build): the build skips the gate, signs nothing, and is marked not for
 release, and the release tools refuse such a build (`scripts/webgpu-qualification.ts`).

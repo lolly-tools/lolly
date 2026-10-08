@@ -7,7 +7,9 @@
  *
  * Release mode adds the checks that only a release must pass, which ordinary CI must
  * not: today the WebGPU startup requirement's supported-environment table
- * (scripts/webgpu-release-gate.ts, plan 295 P0b).
+ * (scripts/webgpu-release-gate.ts, plan 295 P0b). That check is for releases of the web
+ * shell and the packaged apps; the MCP, CA and Penpot images and the /info docs ship
+ * without it (plan 295 section 1B).
  */
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
@@ -99,7 +101,7 @@ export function renderChecklist(inventory: Inventory): string {
     '',
     '## Publication',
     '',
-    '- [ ] `pnpm run check:release` passes. Release mode refuses a release while the web shell requires WebGPU at startup and `docs/supported-environments.md` lacks a published result for any required environment (plan 295 P0b, `scripts/webgpu-release-gate.ts`).',
+    '- [ ] `pnpm run check:release` passes. Release mode refuses a release of the web shell or the packaged apps while the web shell requires WebGPU at startup and `docs/supported-environments.md` lacks a published result for any required environment (plan 295 P0b, `scripts/webgpu-release-gate.ts`). The MCP, CA and Penpot images and the /info docs do not wait for it.',
     '- [ ] Every mounted profile\'s generated catalogue index was rebuilt after community manifest changes (`pnpm run build:catalog:all`).',
     '- [ ] Release artifacts have recorded SHA-256 digests and their source commit/submodule pointers are recoverable.',
     '- [ ] SBOM, third-party notices, release notes, privacy/security docs, and vulnerability-reporting links match the shipped target.',

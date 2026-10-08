@@ -5,7 +5,7 @@ import { spawn } from 'node:child_process';
 import { createHash, randomBytes } from 'node:crypto';
 import { readdir, readFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
-import { join, resolve } from 'node:path';
+import { join, relative, resolve, sep } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 
 const root = resolve(process.env.LOLLY_IMAGE_ROOT || '/app');
@@ -105,7 +105,7 @@ try {
   );
   assert.ok(!listed.result.tools.some((tool: { name: string }) => tool.name.startsWith('files_')));
   // Initialize's recipe count is distinct from the MCP meta-tool count. Verify
-  // both materialized images contain every current public recipe and signed file.
+  // the MCP image carries every current public recipe and tool file.
   const webRoot = process.env.LOLLY_WEB_DIST;
   assert.ok(webRoot);
   const webIndex = JSON.parse(await readFile(join(webRoot, 'catalog/tools/index.json'), 'utf8'));
@@ -116,11 +116,20 @@ try {
     recipes.map((tool: { id: string }) => tool.id),
     webIndex.tools.map((tool: { id: string }) => tool.id)
   );
-  const envelope = JSON.parse(
-    await readFile(join(webRoot, 'catalog/tools/index.sig.json'), 'utf8')
-  );
+  // The web shell beside this image is the unsigned build of the same source:
+  // since plan 295 section 1B the web image is gated on WebGPU qualification and
+  // the service images are not, so no release signature is there to list the
+  // files. Both trees come from the same content resolver, so compare all of
+  // them, path for path and byte for byte.
+  const toolFiles = async (directory: string): Promise<string[]> =>
+    (await readdir(directory, { recursive: true, withFileTypes: true }))
+      .filter((entry) => entry.isFile())
+      .map((entry) => relative(directory, join(entry.parentPath, entry.name)).split(sep).join('/'))
+      .sort();
+  const webFiles = await toolFiles(join(webRoot, 'tools'));
+  assert.deepEqual(await toolFiles(join(root, 'tools')), webFiles);
   let matchedPublicFiles = 0;
-  for (const path of Object.keys(envelope.files)) {
+  for (const path of webFiles) {
     assert.match(path, /^[a-z0-9-]+\//);
     assert.ok(!path.split('/').some((part) => part === '..' || part === '.'));
     const [webBytes, mcpBytes]: [Buffer, Buffer] = await Promise.all([
