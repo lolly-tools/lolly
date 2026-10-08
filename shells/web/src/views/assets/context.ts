@@ -30,7 +30,13 @@ import type { actionsOps } from './actions.ts';
 import type { BodyPopoverHandle } from '../../components/body-popover.ts';
 import type { wiringOps } from './wiring.ts';
 
+import type { CatalogSourceStatus } from '../../lib/asset-source-tree.ts';
+import type { sourcesOps } from './sources.ts';
 export interface CatCtx {
+  preview?: AssetPreviewOptions;
+  detailsOpening?: boolean;
+  sourceSelection: string; sourcesOpen: boolean; sourceExpanded: Set<string>; sourceStatuses: CatalogSourceStatus[]; sourceCanManage: boolean; sourceDispose?: () => void; sourcePrefsKey?: string; sources: ReturnType<typeof sourcesOps>;
+
   // ---- state (was: closure variables of mountCatalog) ----
   viewEl: HTMLElement;
   hostIn: HostV1;
@@ -62,6 +68,8 @@ export interface CatCtx {
   catPhotoTreatment: string | null;
   TREATMENT_FILTER_PREFIX: "lolly-pt-";
   collapsed: Set<string>;
+  assetPageSizes: Map<string, number>;
+  uploadToolbarDispose?: () => void;
   mounted: boolean;
   firstPaint: boolean;
   dlDialog: HTMLDialogElement | null;
@@ -129,6 +137,13 @@ export interface CatCtx {
   bulk: ReturnType<typeof bulkOps>;
   downloads: ReturnType<typeof downloadsOps>;
   wiring: ReturnType<typeof wiringOps>;
+}
+
+export interface AssetPreviewOptions {
+  ref: AssetRef;
+  refs?: readonly AssetRef[];
+  link?(ref: AssetRef): string;
+  onClose?(ref: AssetRef): void;
 }
 
 /** A module function minus its leading context parameter. */

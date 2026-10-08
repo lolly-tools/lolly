@@ -23,6 +23,8 @@ import type { BoxFieldConfig } from '../free-canvas-math.ts';
 import type { helpersOps } from './helpers.ts';
 import type { selectOps } from './select.ts';
 import type { catalogIntakeOps } from './catalog-intake.ts';
+import type { fileDropOps } from './file-drop.ts';
+import type { cameraCaptureOps } from './camera-capture.ts';
 import type { timelineOps } from './timeline.ts';
 import type { stageOps } from './stage.ts';
 import type { narrationOps } from './narration.ts';
@@ -60,6 +62,7 @@ import type { editorStateOps } from './editor-state.ts';
 import type { LoadedMaster, MasterStatus, slideMastersOps } from './slide-masters.ts';
 
 export interface FcCtx {
+  cameraCapture: ReturnType<typeof cameraCaptureOps>;
   rules?: import('../design-rules.ts').DesignRulesHandle;
   // ---- state (was: closure variables of initFreeCanvas) ----
   opts: InitFreeCanvasOpts;
@@ -258,7 +261,7 @@ export interface FcCtx {
   CAM_TILT_DEG_PER_PX: 0.2;
   inspectorPort: {
     reveal(
-      section: 'document' | 'artboard' | 'object' | 'text' | 'image' | 'scene' | 'web' | 'motion' | 'present' | 'guide'
+      section: 'document' | 'artboard' | 'object' | 'text' | 'image' | 'tool' | 'scene' | 'web' | 'motion' | 'present' | 'guide'
     ): void;
   } | null;
   gradEdit: string | null;
@@ -317,6 +320,7 @@ export interface FcCtx {
   select: ReturnType<typeof selectOps>;
   timeline: ReturnType<typeof timelineOps>;
   catalogIntake: ReturnType<typeof catalogIntakeOps>;
+  fileDrop: ReturnType<typeof fileDropOps>;
   stage: ReturnType<typeof stageOps>;
   narration: ReturnType<typeof narrationOps>;
   rail: ReturnType<typeof railOps>;

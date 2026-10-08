@@ -504,6 +504,36 @@ strong{font-weight:600}
   outline-offset: 2px;
 }
 
+/* Labelled actions share their anatomy in toolbars and dialog footers. */
+.btn--labelled {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  min-height: var(--ui-size-target);
+  box-sizing: border-box;
+}
+.btn > svg,
+.tool-actions button > svg {
+  width: var(--ui-size-icon-md);
+  height: var(--ui-size-icon-md);
+  flex: none;
+}
+.btn--labelled > .btn-label { white-space: nowrap; }
+.action-toolbar.is-compact .btn--labelled > .btn-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.action-toolbar.is-compact .btn--labelled {
+  min-width: var(--ui-size-target);
+  padding-inline: var(--sp-2);
+}
+
 /* Small size - folds brand-studio's .be-btn--sm/.be-add--sm, a byte-identical
    duplicate (this was previously just a comment claiming the generalisation;
    the declaration itself hadn't actually been merged). */

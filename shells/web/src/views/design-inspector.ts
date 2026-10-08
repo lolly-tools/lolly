@@ -1,4 +1,5 @@
 import { mountTextInspector } from '../lib/text-inspector.ts';
+import { webPlaybackRows, wireWebPlayback } from './design-web-playback.ts';
 // SPDX-License-Identifier: MPL-2.0
 /**
  * The Design editor's INSPECTOR column - plan 179 M3, slice (c).
@@ -90,6 +91,7 @@ import { mountTextInspector } from '../lib/text-inspector.ts';
 import { t, tRaw } from '../i18n.ts';
 import { escape } from '../utils.ts';
 import { parseVoiceBlend, KOKORO_DEFAULT_VOICE } from '../../../../engine/src/speech-text.ts';
+import { parseToolUrl } from '../../../../engine/src/tool-url.ts';
 import { inspectDesignV1 } from '@lolly-tools/core';
 import type { HostV1, SpeechVoiceInfo } from '@lolly-tools/core/host-v1';
 import type { EmojiStyleV1 } from '@lolly-tools/core/emoji-v1';
@@ -100,6 +102,7 @@ import type { IconName } from '../lib/icons.ts';
 import { colorFieldHtml, wireColorField, resolveColorVar, colorVarLabel } from '../components/color-field.ts';
 import { designColorValue } from '../lib/design-color.ts';
 import { numField } from '../components/num-field.ts';
+import { helpTip, wireHelpTips, unwireHelpTips, linkHelpDescriptions } from '../components/help-tip.ts';
 import type { NumFieldHandle } from '../components/num-field.ts';
 import {
   FIELD_GLYPH, TILT_RANGE, dimOf, iconRow, opt, posGridHtml, segHtml, segRow,
@@ -109,23 +112,24 @@ import type { ChoiceField } from './free-canvas-fields.ts';
 import type { Box, BoxFieldConfig } from './free-canvas-math.ts';
 import type {
   ArtboardPort, DesignGuide, DesignGuidePort, FramePort, InspectorActions, ModelPort, NarrationActions, NarrationStatus, SelectionPort,
+  ToolSettingsHandle,
 } from './design-ports.ts';
 import { isDocked, onDockChange } from '../lib/edge-dock.ts';
 import {
   appearModeOf, appearSummary, NARRATION_LEAD_IN_MS, NARRATION_TAIL_MS, resetAppearMemory, setAppear,
 } from '../lib/motion-model.ts';
 import type { AppearIntent, AppearMode } from '../lib/motion-model.ts';
-import { auditMountedDesign } from './design-mounted-audit.ts';
+import { auditCurrentDesign } from './design-mounted-audit.ts';
 import type { MountedDesignAudit, MountedFontStyle } from './design-mounted-audit.ts';
 import { mountedDesignFindingMessage } from './design-audit-copy.ts';
 import { mountDesignTokenBindings } from './design-token-bindings.ts';
 import type { BlockFieldSpec } from '../../../../engine/src/inputs.ts';
 import { parseWebEmbed } from '../../../../engine/src/web-embed.ts';
-import { consentToLink, policyNote, trustEntryFor, webFrameState, webSiteVerdict } from '../lib/design-web-mount.ts';
-import { anySiteApplies, enterAnySite, probeAnySite } from '../lib/any-site.ts';
+import { onWebConsentChange } from '../lib/design-web-mount.ts';
+import { approveWebLink, webApprovalRows } from './design-web-policy.ts';
 import { announce } from '../a11y.ts';
-import { canTrustMore, onTrustedSitesChange, trustSite } from '../lib/trusted-sites.ts';
-import { trustedSiteHost } from '../../../../engine/src/trusted-sites.ts';
+import { fieldFocusToken } from '../lib/collab-field-focus.ts';
+import { onTrustedSitesChange } from '../lib/trusted-sites.ts';
 
 /** The dock slot this column lives in - the app's one right sidebar. */
 const DOCK_ID = 'inspector';
@@ -146,7 +150,7 @@ const DOCK_ID = 'inspector';
  * to be sub-headings inside Object.
  */
 export type InspectorSection =
-  | 'document' | 'artboard' | 'object' | 'text' | 'image' | 'scene' | 'web' | 'motion' | 'present'
+  | 'document' | 'artboard' | 'object' | 'text' | 'image' | 'tool' | 'scene' | 'web' | 'motion' | 'present'
   | 'fill' | 'appearance' | 'shadow' | 'tilt' | 'arrange' | 'guide';
 
 /**
@@ -391,12 +395,17 @@ const WATCHED: Record<InspectorSection, (c: Cfg, m: FlagFields) => Array<string 
   text: (c) => [c.textField, c.fontField, c.fontSizeField, c.weightField, c.lineHeightField, c.trackingField,
     c.ligaturesField, c.alternatesField, c.fitTextField, c.alignField, c.valignField, c.padField, c.textColorField],
   image: (c) => [c.imageField, c.fitField, c.imgPosField],
+  // A placed tool's picture is the image field, rewritten by its own settings panel on
+  // every settled change. The rebuild that write triggers MOVES the live panel into the
+  // fresh slot rather than remounting it (see mountToolPanel), so watching it costs
+  // nothing and is how an undo of a tool edit reaches the panel.
+  tool: (c) => [c.imageField, c.fitField, c.imgPosField],
   // The 3D scene box's one field (plan 265 milestone 3). Named literally, like `build`
   // and `lane` above: the Design manifest declares `scene` as a machine-written field
   // with no `canvas` key of its own, so there is no cfg name to read it through.
   scene: () => ['scene'],
   // The web page box (plan 288): its link, layout width, load rule and poster.
-  web: (c) => ['web', 'webView', 'webLoad', c.imageField],
+  web: (c) => ['web', 'webView', 'webLoad', 'webCss', 'webHideCookies', c.imageField],
   // `build` and `lane` have no cfg key of their own (the manifest names them literally,
   // as `notes` and `cls` are named), and the Appears control is derived from all four of
   // build/start/dur/lane - so a build step written anywhere else has to move this memo.
@@ -434,6 +443,8 @@ const SECTION_META: Record<InspectorSection, { title: () => string; glyph: IconN
   arrange: { title: () => t('Arrange'), glyph: 'orderFront', band: 'layout' },
   text: { title: () => t('Text'), glyph: 'font', band: 'content' },
   image: { title: () => t('Image'), glyph: 'image', band: 'content' },
+  // A box whose picture is another Lolly tool's render: that tool's own settings.
+  tool: { title: () => t('Tool'), glyph: 'tool', band: 'content' },
   // `box` is the registry's isometric cube, and it is already the 3D Studio's own
   // section glyph for Start, Collection, Lighting and Arrangement, so the studio and
   // the door onto it wear one picture.
@@ -467,7 +478,7 @@ export const SECTIONS_KEY = 'lolly-design-inspector-sections';
 const DEFAULT_OPEN: Record<InspectorSection, boolean> = {
   document: true, guide: true, artboard: true, object: false, fill: true, appearance: false,
   shadow: false, tilt: false, arrange: false,
-  text: true, image: true, scene: true, web: true, motion: false, present: false,
+  text: true, image: true, tool: true, scene: true, web: true, motion: false, present: false,
 };
 
 /** The remembered state, section by section. Storage can be absent or refuse. */
@@ -684,6 +695,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
   let numMounted: NumFieldHandle[] = [];
   /** The shared emoji control, while the Document section is showing it. */
   let emojiMounted: EmojiStyleControl | null = null;
+  const emojiDisclosureState = { management: false, import: false };
   const numByPair = new Map<string, NumFieldHandle>();
   let lastSig: string | null = null;   // null, so the very first sync always paints
   let lastWidth = -1;
@@ -770,7 +782,11 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     if (kindOf(box) === '3d' && F_SCENE) secs.push('scene');
     // A web page box's section carries its poster door, so it never also takes Image.
     else if (kindOf(box) === 'web' && F_WEB) secs.push('web');
-    else if (cfg.imageField && box[cfg.imageField]) secs.push('image');
+    // A picture that is a placed TOOL takes Tool, which carries that tool's own inputs
+    // (and the image rows a picture needs); any other picture, and a webcam, takes Image.
+    else if (kindOf(box) === 'webcam' || (cfg.imageField && box[cfg.imageField])) {
+      secs.push(kindOf(box) !== 'webcam' && toolLinkOf(box) && actions.mountToolSettings ? 'tool' : 'image');
+    }
     secs.push('object', ...paintSecs(true));
     secs.push('motion');
     // …and Present LAST, for the three per-box fields only a box can carry (see
@@ -1057,11 +1073,13 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     + `<input type="checkbox" class="field-check" data-doc="${escape(input)}" data-kind="bool"`
     + `${boolOf(model.getInput(input), false) ? ' checked' : ''}></label>`;
 
-  const docSelectRow = (label: string, input: string, options: ReadonlyArray<[string, string]>): string => {
+  const docSelectRow = (label: string, input: string, options: ReadonlyArray<[string, string]>, help?: string): string => {
     const cur = String(model.getInput(input) ?? '');
-    return `<label class="fc-row"><span>${label}</span><select class="field-select" data-doc="${escape(input)}">`
+    const tip = help ? helpTip(help) : null;
+    const tag = tip ? 'div' : 'label';
+    return `<${tag} class="fc-row${tip ? ' help-tip-host' : ''}"><span class="fc-row-help-label"><span>${label}</span>${tip?.button ?? ''}</span><select class="field-select" data-doc="${escape(input)}" aria-label="${escape(label)}">`
       + options.map(([value, text]) => `<option value="${escape(value)}"${value === cur ? ' selected' : ''}>${escape(text)}</option>`).join('')
-      + '</select></label>';
+      + `</select>${tip?.pop ?? ''}</${tag}>`;
   };
 
   /**
@@ -1098,7 +1116,8 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     const other = parts[1]?.id || '';
     const weight = parts[1] ? Math.round(parts[1].w * 100) : 30;
     const opt = (id: string): string => `<option value="${escape(id)}" selected>${escape(voiceNameOf(id))}</option>`;
-    return `<div class="fc-row"><span>${t('Voice')}</span><select class="field-select" data-doc-voice="main" aria-label="${escape(t('Voice'))}">${opt(main)}</select></div>`
+    const tip = helpTip(t('English voices only.'));
+    return `<div class="fc-row help-tip-host"><span class="fc-row-help-label"><span>${t('Voice')}</span>${tip.button}</span><select class="field-select" data-doc-voice="main" aria-label="${escape(t('Voice'))}">${opt(main)}</select>${tip.pop}</div>`
       + `<div class="fc-row"><span>${t('Blend with')}</span><select class="field-select" data-doc-voice="blend" aria-label="${escape(t('Blend with'))}">`
       + `<option value=""${other ? '' : ' selected'}>${escape(t('None'))}</option>${other ? opt(other) : ''}</select></div>`
       + (other
@@ -1199,15 +1218,13 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     const generation = ++mountedAuditGeneration;
     const size = canvasSize();
     const report = inspectDesignV1(model.getBoxes(), { width: size.w, height: size.h });
-    void (async () => {
-      try { await document.fonts?.ready; } catch { /* the mounted layout still answers */ }
-      const result = await auditMountedDesign(canvasEl, report, { resolveFont: opts.resolveFont });
-      if (destroyed || generation !== mountedAuditGeneration || boxesAuditKey !== currentBoxesAuditKey()) return;
+    void auditCurrentDesign(canvasEl, report, { resolveFont: opts.resolveFont, isCurrent: () => !destroyed && generation === mountedAuditGeneration }).then(result => {
+      if (!result || destroyed || generation !== mountedAuditGeneration || boxesAuditKey !== currentBoxesAuditKey()) return;
       mountedAudit = result;
       // Mounted findings are deliberately outside `signature()` (which hashes authored
       // state). Force the one repaint that publishes this asynchronous browser answer.
       sync(true);
-    })();
+    });
   }
 
   function documentBody(): string {
@@ -1215,9 +1232,9 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     const unit = documentUnit();
     const scale = CSS_PX_PER_UNIT[unit];
     const fmt = (n: number): string => String(Math.round(n / scale * 1000) / 1000);
-    const options = (model.getInput('projectFps') == null || !(opts.videoWorkspace?.() || model.getBoxes().some(row => frame && kindOf(row) === frame.frameKind)) ? '' : docSelectRow(t('Project frame rate'), 'projectFps', ['24', '25', '30', '50', '60'].map(rate => [rate, `${rate} fps`])))
-      + docSelectRow(t('Document unit'), 'documentUnit', DOCUMENT_UNITS.map((u) => [u, u]))
-      + docNumRow(t('Document DPI'), 'documentDpi', 300, {
+    const options = (model.getInput('projectFps') == null || !(opts.videoWorkspace?.() || model.getBoxes().some(row => frame && kindOf(row) === frame.frameKind)) ? '' : docSelectRow(t('Frame rate'), 'projectFps', ['24', '25', '30', '50', '60'].map(rate => [rate, `${rate} fps`])))
+      + docSelectRow(t('Units'), 'documentUnit', DOCUMENT_UNITS.map((u) => [u, u]))
+      + docNumRow(t('DPI'), 'documentDpi', 300, {
         min: 36, max: 2400, step: 1, precision: 0, unit: 'dpi',
         onCommit: (dpi) => {
           const next = Math.round(dpi);
@@ -1225,13 +1242,13 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
           canvasEl.dispatchEvent(new CustomEvent('fc-document-dpi', { detail: next }));
         },
       }) + narrationDocRows();
-    return (actions.openDocumentSize ? doorRow(t('Canvas size'), `${fmt(size.w)} x ${fmt(size.h)} ${unit}`, 'documentsize', 'resize') : readRow(t('Canvas size'), `${fmt(size.w)} x ${fmt(size.h)} ${unit}`))
+    return (actions.openDocumentSize ? doorRow(t('Size'), `${fmt(size.w)} x ${fmt(size.h)} ${unit}`, 'documentsize', 'resize') : readRow(t('Size'), `${fmt(size.w)} x ${fmt(size.h)} ${unit}`))
       + `<div class="fc-row"><span>${t('Background')}</span><span class="fc-cfield">${colorField('fc-insp-bg', model.getInput('background'), t('Background'))}</span></div>`
       + themeDocRows()
-      + (model.getInput('editingRange') == null ? '' : docSelectRow(t('Editing range'), 'editingRange', [['sdr', t('SDR')], ['hdr', t('HDR / wide gamut')]]) + `<p class="fc-insp-hint">${t('Preview depends on your display. Export HDR is chosen separately.')}</p>`)
+      + (model.getInput('editingRange') == null ? '' : docSelectRow(t('Colour'), 'editingRange', [['sdr', t('SDR')], ['hdr', t('HDR / wide gamut')]], t('Preview depends on your display. Export HDR is chosen separately.')))
       + emojiDocRows()
       + (opts.videoWorkspace?.()
-        ? `<details class="lp-details fc-insp-document-options" data-document-options${documentOptionsOpen ? ' open' : ''}><summary>${icon('sliders')}<span>${t('More document settings')}</span><i class="lp-caret" aria-hidden="true"></i></summary>${options}</details>`
+        ? `<details class="lp-details fc-insp-document-options" data-document-options${documentOptionsOpen ? ' open' : ''}><summary>${icon('sliders')}<span>${t('More settings')}</span><i class="lp-caret" aria-hidden="true"></i></summary>${options}</details>`
         : options)
       + designHealthHtml(size);
   }
@@ -1253,10 +1270,12 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
   function themeDocRows(): string {
     const groups = opts.theme?.groups() ?? [];
     if (!groups.length) return '';
-    return groups.map((g, gi) => `<div class="fc-row"><span>${escape(g.label)}</span>`
-      + segHtml(`${THEME_SEG}${gi}`, String(g.options.findIndex((o) => o.id === g.active)), g.options.map((o, oi) => [String(oi), o.label]), g.label)
-      + '</div>').join('')
-      + `<p class="fc-insp-hint">${t('Colours linked to the design system follow this choice.')}</p>`;
+    return groups.map((g, gi) => {
+      const tip = helpTip(t('Colours linked to the design system follow this choice.'));
+      return `<div class="fc-row help-tip-host"><span class="fc-row-help-label"><span>${escape(g.label)}</span>${tip.button}</span>`
+        + segHtml(`${THEME_SEG}${gi}`, String(g.options.findIndex((o) => o.id === g.active)), g.options.map((o, oi) => [String(oi), o.label]), g.label)
+        + `${tip.pop}</div>`;
+    }).join('');
   }
 
   /** Apply a theme segment press: index back to ids, then the port does the rest. */
@@ -1274,7 +1293,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
 
   function emojiDocRows(): string {
     if (!opts.emoji) return '';
-    return `<p class="lp-subhead">${t('Emoji')}</p><div data-emoji-slot></div>`;
+    return `<div data-emoji-slot role="group" aria-label="${escape(t('Emoji'))}"></div>`;
   }
 
   /** Put the shared control in the slot the Document section left for it. */
@@ -1290,6 +1309,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       // select, the shape every other row here already has.
       compact: true,
       compactManagement: true,
+      disclosureState: emojiDisclosureState,
       specimen: port.specimen,
       onChange: (next) => port.onChange((next ?? null) as EmojiStyleV1 | null),
     });
@@ -1313,7 +1333,6 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
   function narrationDocRows(): string {
     if (!narration || opts.narrationEnabled?.() === false) return '';
     return `<p class="lp-subhead">${t('Narration')}</p>`
-      + `<p class="fc-insp-hint">${t('English voices only.')}</p>`
       + docVoiceRows()
       + docNumRow(t('Speed'), 'narrationSpeed', 1, { min: 0.5, max: 2, step: 0.05, precision: 2 })
       // The ranges are the MANIFEST's own (community/design/tool.json), so this column
@@ -1363,7 +1382,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     const choices = optionsOf(F_TRANS);
     if (!choices.length) return '';
     const cur = String(fv(b, F_TRANS) ?? '');
-    return selectRow(t('Transition to next'), F_TRANS, choices, cur)
+    return selectRow(t('Transition'), F_TRANS, choices, cur)
       + (cur === 'custom' ? doorBtn(t('Reset to the deck transition'), 'resettrans', 'undo') : '');
   }
 
@@ -1520,7 +1539,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
         + `<button type="button" class="fc-cbtn" data-act="smaller" aria-label="${escape(t('Smaller text'))}">A-</button>`
         + numCell('', cfg.fontSizeField, num(cfg.fontSizeField, 48, 1, 2000), { name: t('Size'), min: 4, max: 2000, unit: 'px' })
         + `<button type="button" class="fc-cbtn" data-act="bigger" aria-label="${escape(t('Bigger text'))}">A+</button></div></div>` : '')
-      + (cfg.textColorField ? colorRow(t('Text colour'), 'fc-insp-fg', fv(b, cfg.textColorField), '', mixed(cfg.textColorField)) : '')
+      + (cfg.textColorField ? colorRow(t('Colour'), 'fc-insp-fg', fv(b, cfg.textColorField), '', mixed(cfg.textColorField)) : '')
       + (cfg.textColorField && actions.useAsInput ? doorBtn(t('Use colour as input'), 'input-fg', 'sliders') : '')
       + align
       // Vertical align sits WITH horizontal align, because that is the pair
@@ -1535,7 +1554,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       // which is a typographic property, next to Font and Size.
       + (cfg.valignField ? segRow(FIELD_GLYPH.textM, mixed(cfg.valignField) ? t('Vertical (Mixed)') : t('Vertical'), segHtml(cfg.valignField, mixed(cfg.valignField) ? '' : String(fv(b, cfg.valignField) ?? 'middle'), [
         ['top', t('Align top'), FIELD_GLYPH.textT], ['middle', t('Centre vertically'), FIELD_GLYPH.textM], ['bottom', t('Align bottom'), FIELD_GLYPH.textB]], t('Vertical'))) : '')
-      + `<details class="lp-details" data-advanced-text${advancedTextOpen ? ' open' : ''}><summary>${icon('sliders')}<span>${t('Advanced typography')}</span><i class="lp-caret" aria-hidden="true"></i></summary>`
+      + `<details class="lp-details" data-advanced-text${advancedTextOpen ? ' open' : ''}><summary>${icon('sliders')}<span>${t('Advanced')}</span><i class="lp-caret" aria-hidden="true"></i></summary>`
       + choice(t('Weight'), cfg.weightField, weights, '700')
       + (cfg.lineHeightField ? ctrlRow(FIELD_GLYPH.textM, t('Line height'), numCell('', cfg.lineHeightField, num(cfg.lineHeightField, 1.12, 0.7, 3), { name: t('Line height'), min: 0.7, max: 3, step: 0.01 })) : '')
       + (cfg.trackingField ? ctrlRow(FIELD_GLYPH.textC, t('Letter spacing'), numCell('', cfg.trackingField, num(cfg.trackingField, 0, -20, 100), { name: t('Letter spacing'), min: -20, max: 100, step: 0.5, precision: 2, unit: 'px' })) : '')
@@ -1551,10 +1570,44 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     const fitChoices: Array<[string, string, string?]> = fit.length
       ? fit.map(([v, l]) => [v, l, ({ contain: FIELD_GLYPH.fitContain, cover: FIELD_GLYPH.fitCover, fill: FIELD_GLYPH.fitFill } as Record<string, string>)[v]])
       : [['contain', t('Contain'), FIELD_GLYPH.fitContain], ['cover', t('Cover (crop)'), FIELD_GLYPH.fitCover], ['fill', t('Stretch'), FIELD_GLYPH.fitFill]];
-    return doorBtn(t('Set image'), 'pickimage', 'uploadImage')
-      + (actions.useAsInput ? doorBtn(t('Use image as input'), 'input-image', 'sliders') : '')
+    const liveCamera = kindOf(b) === 'webcam';
+    return (liveCamera ? '' : doorBtn(t('Set image'), 'pickimage', 'uploadImage'))
+      + (!liveCamera && actions.useAsInput ? doorBtn(t('Use image as input'), 'input-image', 'sliders') : '')
       + (cfg.fitField ? segRow(FIELD_GLYPH.fitContain, t('Image fit'), segHtml(cfg.fitField, String(fv(b, cfg.fitField) ?? 'contain'), fitChoices, t('Image fit'))) : '')
       + (cfg.imgPosField ? segRow(FIELD_GLYPH.fitPos, t('Image position'), posGridHtml(cfg.imgPosField, String(fv(b, cfg.imgPosField) ?? 'center'), t('Image position'))) : '');
+  }
+
+  /** The tool link a box's picture was rendered from, or '' when it is not a tool render. */
+  function toolLinkOf(b: Box): string {
+    const img = cfg.imageField ? b[cfg.imageField] as { id?: unknown; meta?: { toolUrl?: unknown } } | undefined : undefined;
+    if (!img || typeof img !== 'object') return '';
+    if (typeof img.meta?.toolUrl === 'string' && img.meta.toolUrl) return img.meta.toolUrl;
+    return typeof img.id === 'string' && parseToolUrl(img.id) ? img.id : '';
+  }
+
+  /**
+   * THE TOOL SECTION: a placed tool, tuned on the board.
+   *
+   * The body is a slot the host fills with the placed tool's OWN inputs (the same
+   * controls its sidebar shows, driven by a child runtime: InspectorActions
+   * .mountToolSettings), so a tool dropped onto the board is adjusted in this column
+   * with the canvas in view, instead of in a modal that covers the board while you decide.
+   * Every settled change re-renders the tool into the box. Below the panel sit the two
+   * rows any picture has (fit and position) and the one door out: replace it with a
+   * different tool or image.
+   */
+  function toolBody(b: Box): string {
+    const fit = optionsOf(cfg.fitField);
+    const fitChoices: Array<[string, string, string?]> = fit.length
+      ? fit.map(([v, l]) => [v, l, ({ contain: FIELD_GLYPH.fitContain, cover: FIELD_GLYPH.fitCover, fill: FIELD_GLYPH.fitFill } as Record<string, string>)[v]])
+      : [['contain', t('Contain'), FIELD_GLYPH.fitContain], ['cover', t('Cover (crop)'), FIELD_GLYPH.fitCover], ['fill', t('Stretch'), FIELD_GLYPH.fitFill]];
+    const img = cfg.imageField ? b[cfg.imageField] as { meta?: { name?: unknown } } | undefined : undefined;
+    const name = typeof img?.meta?.name === 'string' ? img.meta.name : '';
+    return (name ? readRow(t('Tool'), name) : '')
+      + '<div class="fc-insp-toolset" data-tool-settings></div>'
+      + (cfg.fitField ? segRow(FIELD_GLYPH.fitContain, t('Image fit'), segHtml(cfg.fitField, String(fv(b, cfg.fitField) ?? 'contain'), fitChoices, t('Image fit'))) : '')
+      + (cfg.imgPosField ? segRow(FIELD_GLYPH.fitPos, t('Image position'), posGridHtml(cfg.imgPosField, String(fv(b, cfg.imgPosField) ?? 'center'), t('Image position'))) : '')
+      + doorBtn(t('Replace with another tool or image'), 'replaceimage', 'uploadImage');
   }
 
   /**
@@ -1593,7 +1646,14 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
         ['slide', t('With its slide')], ['early', t('One slide early')],
         ['keep', t('Keep running')], ['click', t('Wait for a click')],
       ], String(fv(b, 'webLoad') ?? '') || 'slide')
-      + (embed && !embed.sameOrigin ? siteRows(embed) : '')
+      + (embed ? webPlaybackRows(embed) : '')
+      + (embed && !embed.sameOrigin ? webApprovalRows(embed, readRow, doorBtn) : '')
+      + (embed && !embed.refuses ? doorBtn(t('Use page'), 'webuse', 'externalLink') : '')
+      + (embed?.sameOrigin && embed.provider !== 'sandbox'
+        ? toggleRow(t('Hide cookie banners'), 'webHideCookies', boolOf(fv(b, 'webHideCookies'), false))
+          + doorBtn(fv(b, 'webCss') ? t('Edit page CSS') : t('Add page CSS'), 'webcss', 'code')
+          + readRow(t('Appearance'), t('Live page only. Hiding a banner does not accept cookies.'))
+        : embed && !embed.refuses ? readRow(t('Cookie banners'), t('Use page to reject cookies or close the banner. This site controls its own CSS.')) : '')
       + doorBtn(cfg.imageField && b[cfg.imageField] ? t('Change poster') : t('Choose poster'), 'pickimage', 'image')
       + (embed?.kind === 'lolly'
         ? doorBtn(embed.provider === 'sandbox' ? t('Edit in Sandbox') : t('Edit in the tool'), 'webedit', 'code')
@@ -1601,35 +1661,12 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
         : embed ? doorBtn(t('Open in new tab'), 'webopen', 'externalLink') : '');
   }
 
-  /** Whether the site a web box contacts is trusted, and by whom, with "Always trust"
-   *  beside a site nobody has decided about (plan 288 D5: double-clicking the box on the
-   *  canvas loads it just this time). */
-  function siteRows(embed: NonNullable<ReturnType<typeof parseWebEmbed>>): string {
-    const verdict = webSiteVerdict(embed);
-    if (verdict.state === 'blocked') return readRow(t('Site'), policyNote(embed));
-    // The web version's own policy, which no trust can change: the way through is the
-    // device-wide "Allow pages from any site" (lib/any-site.ts), or the desktop app.
-    if (webFrameState(embed, 'editor') === 'blocked') {
-      return readRow(t('Site'), t('The web version of Lolly cannot show this site.'))
-        + (anySiteApplies() ? doorBtn(t('Allow pages from any site'), 'webanysite', 'globe') : '');
-    }
-    if (verdict.state === 'trusted') {
-      const by = verdict.source === 'organisation'
-        ? (verdict.by ? t('Trusted by {org}', { org: verdict.by }) : t('Trusted by your organisation'))
-        : verdict.source === 'brand' ? t('Trusted by your brand') : t('Trusted by you');
-      return readRow(t('Site'), by);
-    }
-    const entry = trustEntryFor(embed);
-    return readRow(t('Site'), t('Not trusted yet'))
-      + (entry && canTrustMore() ? doorBtn(t('Always trust {host}', { host: trustedSiteHost(entry) }), 'webtrust', 'shieldCheck') : '');
-  }
-
   function sceneBody(b: Box): string {
     const query = String(fv(b, F_SCENE) ?? '');
     const { subject, studio } = sceneSummary(query);
     return doorBtn(t('Edit in 3D Studio'), 'editscene', 'box')
       + readRow(t('Scene'), query ? (subject || t('Studio defaults')) : t('Empty scene'))
-      + (studio ? readRow(t('Lighting studio'), studio) : '');
+      + (studio ? readRow(t('Lighting'), studio) : '');
   }
 
   /**
@@ -1767,15 +1804,15 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       // the button that speaks them have to be one control away from each other. Still
       // the only door onto `notes` - two doors onto one field is the drift this column
       // exists to end.
-      return areaRow(t('Speaker notes'), 'notes', b['notes'], t('What to say on this slide…'))
+      return areaRow(t('Notes'), 'notes', b['notes'], t('What to say on this slide…'))
         + narrateRows(b)
-        + textRow(t('Slide style'), 'state', b['state'], 'dark title-slide')
+        + textRow(t('Style'), 'state', b['state'], 'dark title-slide')
         + readRow(t('Stack'), String(b['stackOf'] ?? '') || '-');
     }
     return numRow(t('Build step'), 'build', Math.round(clampN(b['build'], 0, 0, 999)), { min: 0, max: 999 },
         t('A click step while presenting. A video or a PDF export shows the box from the start.'))
       + textRow(t('Morph match'), 'matchOf', b['matchOf'], 'hero')
-      + textRow(t('Slide audio'), 'presentAudio', b['presentAudio']);
+      + textRow(t('Audio'), 'presentAudio', b['presentAudio']);
   }
 
   /**
@@ -1818,7 +1855,6 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       })
       + colorRow(t('Colour'), 'fc-insp-guide', guide.color || 'var(--ui-color-action-primary)')
       + toggleRow(t('Snap objects to guide'), 'guide-snap', guide.snap)
-      + `<p class="fc-insp-hint">${t('Rotation is clockwise around X / Y. Hold Shift while dragging for 10 px steps. Hold Alt while moving objects to bypass snapping.')}</p>`
       + doorBtn(t('Delete guide'), 'delete-guide', 'trash');
   }
 
@@ -1838,6 +1874,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     if (sec === 'text') return textBody(b, g.rows);
     if (sec === 'image') return imageBody(b);
     if (sec === 'scene') return sceneBody(b);
+    if (sec === 'tool') return toolBody(b);
     if (sec === 'web') return webBody(b);
     if (sec === 'motion') return motionBody(b, g.kind === 'frame');
     return presentBody(b, g.kind === 'frame');
@@ -1871,8 +1908,76 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
   }
 
   let textMounted: ReturnType<typeof mountTextInspector> | null = null;
+
+  /**
+   * The live Tool section panel, kept ACROSS rebuilds. The column throws its markup
+   * away on most model changes, and the panel is a child runtime with its own control
+   * state, so remounting it on every one of its own writes would reset a half-typed
+   * field and restart the tool. Instead each render MOVES the same panel into the fresh
+   * slot, and mounts a new one only for a different box, or when the box's tool link
+   * changed from somewhere else (an undo, a collaborator).
+   */
+  let toolPanel: { id: string; handle: ToolSettingsHandle | null; pending: Promise<ToolSettingsHandle | null> | null } | null = null;
+  function dropToolPanel(): void {
+    toolPanel?.handle?.destroy();
+    toolPanel = null;
+  }
+  /** Move `node` under `parent`, keeping focus and an in-flight drag where the browser can. */
+  function moveInto(parent: HTMLElement, node: HTMLElement): void {
+    const move = (parent as HTMLElement & { moveBefore?: (n: Node, c: Node | null) => void }).moveBefore;
+    if (typeof move === 'function' && node.isConnected && parent.isConnected) {
+      try { move.call(parent, node, null); return; } catch { /* fall through to a plain move */ }
+    }
+    parent.appendChild(node);
+  }
+  /**
+   * Lift the live panel out of the column BEFORE a rebuild replaces the markup around
+   * it, into a holder that stays in the document, so it is never detached (a detached
+   * subtree loses focus, and cannot be moved with moveBefore). mountToolPanel moves it
+   * into the fresh slot in the same task, or destroys the panel when no slot asks for one.
+   */
+  let toolPark: HTMLElement | null = null;
+  function parkToolPanel(): void {
+    const panel = toolPanel?.handle?.el;
+    if (!panel?.isConnected || !scroll.contains(panel)) return;
+    if (!toolPark) { toolPark = document.createElement('div'); toolPark.setAttribute('data-tool-park', ''); el.appendChild(toolPark); }
+    moveInto(toolPark, panel);
+  }
+  function toolHint(text: string): HTMLElement {
+    const p = document.createElement('p');
+    p.className = 'fc-insp-hint';
+    p.textContent = text;
+    return p;
+  }
+  function mountToolPanel(g: Gate): void {
+    const slot = scroll.querySelector<HTMLElement>('[data-tool-settings]');
+    const id = g.ids[0];
+    if (!slot || !id || g.ids.length !== 1 || !actions.mountToolSettings) { dropToolPanel(); return; }
+    const link = toolLinkOf(g.box ?? {});
+    if (toolPanel && toolPanel.id === id && toolPanel.handle && toolPanel.handle.url() === link) {
+      moveInto(slot, toolPanel.handle.el);
+      return;
+    }
+    if (toolPanel && toolPanel.id === id && toolPanel.pending) return;
+    dropToolPanel();
+    const entry: NonNullable<typeof toolPanel> = { id, handle: null, pending: null };
+    toolPanel = entry;
+    slot.replaceChildren(toolHint(t('Loading the tool…')));
+    entry.pending = actions.mountToolSettings(slot, id).then((handle) => {
+      entry.pending = null;
+      if (toolPanel !== entry || destroyed) { handle?.destroy(); return null; }
+      entry.handle = handle;
+      const live = scroll.querySelector<HTMLElement>('[data-tool-settings]');
+      live?.querySelector('.fc-insp-hint')?.remove();
+      if (!handle) { live?.replaceChildren(toolHint(t('This tool is not available here.'))); return null; }
+      if (live && handle.el.parentElement !== live) live.appendChild(handle.el);
+      return handle;
+    });
+  }
+
   function render(g: Gate): void {
     const keep = focusKey(typeof document !== 'undefined' ? document.activeElement : null);
+    parkToolPanel();
     tokenDisposers.forEach(dispose => { dispose(); }); tokenDisposers = [];
     textMounted?.destroy(); textMounted = null;
     renderedIds = [...g.ids];
@@ -1889,7 +1994,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     emojiMounted = null;
     // The column head says WHAT is selected; a multi-selection has no one section that
     // could carry the count now that the paint groups stand on their own.
-    colTitle.textContent = g.kind === 'multi' ? t('{n} selected', { n: g.ids.length }) : g.kind === 'empty' ? t('Document') : g.kind === 'guide' ? t('Guide') : [kindOf(g.box), String(fv(g.box ?? {}, F_NAME) ?? '')].filter(Boolean).join(': ');
+    colTitle.textContent = g.kind === 'multi' ? t('{n} selected', { n: g.ids.length }) : g.kind === 'empty' ? t('Document') : g.kind === 'guide' ? t('Guide') : [kindOf(g.box) === 'webcam' ? t('Camera') : kindOf(g.box), String(fv(g.box ?? {}, F_NAME) ?? '')].filter(Boolean).join(': ');
     selectionTab.setAttribute('aria-pressed', String(!documentView));
     documentTab.setAttribute('aria-pressed', String(documentView));
     layerName.hidden = !(g.ids.length === 1 && F_NAME);
@@ -1907,6 +2012,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     // flex row, and the one section carrying an action pushed its caret 72px
     // left of all the others.
     const sectionHtml = (sec: InspectorSection): string => {
+      const cameraSection = sec === 'image' && kindOf(g.box) === 'webcam';
       const openSec = isExpanded(sec, g);
       const deferred = opts.videoWorkspace?.() && !openSec;
       // The flag column holds a FLAG and nothing else. A section action cannot go
@@ -1917,7 +2023,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       const flag = !openSec && autoOpens(sec, g.box) ? `<em class="lp-sec-flag">${t('In use')}</em>` : '<i></i>';
       return `<section class="lp-sec fc-insp-sec" data-sec="${sec}">`
         + `<button type="button" class="lp-sec-head fc-insp-head" data-head="${sec}" aria-expanded="${openSec}">`
-        + `${icon(SECTION_META[sec].glyph)}<span class="lp-sec-name">${escape(SECTION_META[sec].title())}</span>`
+        + `${icon(cameraSection ? 'camera' : SECTION_META[sec].glyph)}<span class="lp-sec-name">${escape(cameraSection ? t('Camera') : SECTION_META[sec].title())}</span>`
         + `${flag}<i class="lp-caret" aria-hidden="true"></i></button>`
         + `<div class="lp-rows fc-insp-rows" data-rows="${sec}"${deferred ? ' data-deferred' : ''}${openSec ? '' : ' hidden'}>${deferred ? '' : bodyFor(sec, g)}</div>`
         + '</section>';
@@ -1939,9 +2045,18 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     }).join('') || `<p class="lp-empty">${t('Nothing selected')}</p>`;
     mountNums();
     mountEmojiControl();
+    wireHelpTips(el);
+    linkHelpDescriptions(scroll);
     const textSlot = scroll.querySelector<HTMLElement>('[data-composed-inspector]');
     if (textSlot && actions.text) textMounted = mountTextInspector(textSlot, g.ids, actions.text, fonts);
+    mountToolPanel(g);
     wire();
+    if (model.collection && renderedIds[0]) {
+      for (const control of scroll.querySelectorAll<HTMLElement>('[data-fld], [data-num-field]')) {
+        const field = control.dataset.fld ?? control.dataset.numField?.replace(/^f:/, '').split('#')[0];
+        if (field && fieldDefs.some(def => def.id === field)) control.dataset.collabFocus = fieldFocusToken(model.collection, renderedIds[0], field);
+      }
+    }
     if (opts.tokens && g.ids.length) for (const sec of g.secs) {
       if (sec === 'text' && g.rows.some(row => row.textStory)) continue;
       const parent = scroll.querySelector<HTMLElement>(`[data-rows="${sec}"]`);
@@ -1989,9 +2104,6 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
    * labelled as a box edit.
    */
   function write(field: string | undefined, value: unknown): void {
-    // A link the person typed here is theirs to load (plan 288): agreed before the paint
-    // that follows mounts the frame.
-    if (field === F_WEB && F_WEB && typeof value === 'string') consentToLink(value);
     if (renderedGuideId && field === 'guide-snap') {
       opts.guides?.update(renderedGuideId, { snap: Boolean(value) });
       return;
@@ -2055,6 +2167,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     scroll.querySelectorAll<HTMLSelectElement>('select[data-fld]').forEach((sel) => {
       sel.addEventListener('change', () => write(sel.dataset.fld, sel.dataset.kind === 'num' ? Number(sel.value) : sel.value));
     });
+    wireWebPlayback(scroll, () => parseWebEmbed(String(fv(boxesById(renderedIds)[0] ?? {}, F_WEB) ?? ''), { appOrigin: location.origin }), link => write(F_WEB, link));
 
     // The DOCUMENT's own settings (plans/180's narration inputs, and the captions flag).
     // They write a top-level input, so they never travel through `write` and can never be
@@ -2088,6 +2201,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     }
 
     scroll.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input[data-fld], textarea[data-fld]').forEach((inp) => {
+      if (inp.dataset.webParam) return;
       const kind = inp.dataset.kind;
       const type = (inp as HTMLInputElement).type;
       if (kind === 'bool') {
@@ -2139,6 +2253,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
           case 'delete-guide': if (renderedGuideId) opts.guides?.remove(renderedGuideId); break;
           case 'gradient': actions.openGradient(ids); break;
           case 'pickimage': actions.pickImage(ids); break;
+          case 'replaceimage': if (actions.replaceImage) actions.replaceImage(ids); else actions.pickImage(ids); break;
           // The scene editor opens on the rows this section was BUILT for, like every
           // other door here: the studio round trip is asynchronous, and the selection can
           // move while it is open.
@@ -2146,19 +2261,18 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
           // A web page box's link, opened as the person gave it (the watch page, not the
           // embed form; a Sandbox link opens the Sandbox itself, where the code can change).
           case 'webedit': actions.editWebTool?.(ids); break;
+          case 'webuse': actions.useWebPage?.(ids); break;
+          case 'webcss': actions.editWebCss?.(ids); break;
           case 'webposter': actions.refreshWebPoster?.(ids, false); break;
-          case 'webanysite':
-            void probeAnySite().then((offer) => {
-              if (offer === 'offered') enterAnySite();
-              else announce(offer === 'unreachable'
-                ? t('Lolly could not reach its server to check. Try again when you are online.')
-                : t('This server does not offer pages from any site. The desktop app can show any page.'));
-            });
-            break;
+          case 'webapprove':
           case 'webtrust': {
-            const embed = parseWebEmbed(String(fv(boxesById(ids)[0] ?? {}, F_WEB) ?? ''), { appOrigin: location.origin });
-            const entry = embed ? trustEntryFor(embed) : null;
-            if (entry) void trustSite(entry);
+            const link = String(fv(boxesById(ids)[0] ?? {}, F_WEB) ?? '');
+            btn.disabled = true;
+            void approveWebLink(link, btn.dataset.act === 'webtrust').then(result => {
+              if (!result.ok && result.message) announce(result.message);
+              btn.disabled = false;
+              sync(true);
+            });
             break;
           }
           case 'webopen': {
@@ -2311,6 +2425,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
    */
   function heldOpen(): boolean {
     return typingHere()
+      || !!toolPanel?.handle?.busy()
       || numMounted.some((h) => h.scrubbing())
       || rangeDrag
       || !!scroll.querySelector('.color-popover:not([hidden])');
@@ -2352,6 +2467,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
 
   // A site trusted from the pre-flight, /profile or this section repaints its Site row.
   const offTrust = onTrustedSitesChange(() => sync(true));
+  const offConsent = onWebConsentChange(() => sync(true));
 
   function sync(force = false): void {
     if (destroyed) return;
@@ -2523,9 +2639,11 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     destroy(): void {
       tokenDisposers.forEach(dispose => { dispose(); }); tokenDisposers = [];
       textMounted?.destroy();
+      dropToolPanel();
       if (destroyed) return;
       destroyed = true;
       offTrust();
+      offConsent();
       returnFocus = null;
       for (const h of numMounted) h.destroy();
       numMounted = [];
@@ -2548,6 +2666,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       unsubSel();
       unsubGuides?.();
       unsubArt();
+      unwireHelpTips(el);
       el.remove();
       opts.onWidthChange?.(0);
     },

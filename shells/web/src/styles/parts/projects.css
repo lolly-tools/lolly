@@ -9,16 +9,11 @@
    The root header is the root's TOOLBAR too (plans/245): the create buttons lead,
    the spacer holds Batch out on the right, and the row wraps on a narrow screen. */
 .projects-roothead {
-  display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 0 0 .75rem;
+  display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-2); margin: 0 0 var(--sp-3);
 }
 .projects-batch-btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  height: 40px; padding: 0 14px;
-  border: 1px solid hsl(var(--border)); border-radius: var(--radius);
-  background: hsl(var(--card)); color: hsl(var(--foreground));
-  font-size: var(--fs-md); font-weight: 600; white-space: nowrap;
+  font-weight: 500;
 }
-.projects-batch-btn svg { width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); }
 .projects-batch-btn:hover, .projects-batch-btn:focus-visible {
   border-color: hsl(var(--primary)); background: hsl(var(--primary) / 0.08);
 }
@@ -258,8 +253,8 @@
    The create TILES render only in grid mode. The list table tucks up under that
    header row rather than keeping the grid's 3.6rem tile clearance. */
 .projects-roothead + .projects-grid.projects-list { padding-top: 0.8rem; }
-.projects-create-btn { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
-.projects-create-btn svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); }
+.projects-create-btn { display: inline-flex; align-items: center; gap: var(--sp-2); white-space: nowrap; }
+.projects-create-btn svg { width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); }
 
 /* Empty-folder blank state (Andy, 2026-08-22): no grid - an invitation to the
    two create actions the header also carries. */

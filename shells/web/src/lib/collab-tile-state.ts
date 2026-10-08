@@ -69,6 +69,7 @@ export interface CollabTilePeer {
    *  a second shape: enough to not be the ONLY signal, without a state machine
    *  this small badge has no room for. */
   readonly away?: boolean;
+  readonly role?: 'writer' | 'observer';
 }
 
 export interface CollabTileProvider {
@@ -227,8 +228,13 @@ export function renderCollabBadge(
   // takes the general one. Kept as two whole sentences rather than a count glued to a
   // noun, so a translator can move `{n}` wherever their grammar needs it.
   const label =
-    list.length === 1 ? tRaw('Live now - 1 person editing') : tRaw('Live now - {n} people editing', { n: list.length });
-  badge.setAttribute('aria-label', label);
+    list.length === 1 ? tRaw('Live now - 1 person here') : tRaw('Live now - {n} people here', { n: list.length });
+  const names = list.map(peer => {
+    const name = peer.name || tRaw('Collaborator');
+    return peer.away ? tRaw('{name} (away)', { name }) : name;
+  }).join(', ');
+  badge.setAttribute('aria-label', `${label}. ${names}`);
+  badge.title = names;
 
   // Rebuilt in place, node by node: `replaceChildren` clears the previous pass exactly
   // as the old wholesale `innerHTML` assignment did, without a raw-HTML sink for a

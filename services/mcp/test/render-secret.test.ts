@@ -1,12 +1,16 @@
 // SPDX-License-Identifier: MPL-2.0
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { browserLaunchArgs, exposeExportPassword, exportUrl } from '../src/render.ts';
+import { browserLaunchArgs, browserLaunchOptions, exposeExportPassword, exportUrl } from '../src/render.ts';
 
 test('Chromium sandbox is on unless deployment explicitly opts out', () => {
   assert.ok(!browserLaunchArgs({}).includes('--no-sandbox'));
   assert.ok(browserLaunchArgs({ LOLLY_BROWSER_NO_SANDBOX: '1' }).includes('--no-sandbox'));
   assert.ok(browserLaunchArgs({}).includes('--enable-unsafe-webgpu'), 'the shell needs a WebGPU adapter to boot');
+  assert.equal(browserLaunchOptions({}).chromiumSandbox, true);
+  assert.equal(browserLaunchOptions({ LOLLY_BROWSER_NO_SANDBOX: '0' }).chromiumSandbox, true);
+  assert.equal(browserLaunchOptions({ LOLLY_BROWSER_NO_SANDBOX: '1' }).chromiumSandbox, false);
+  assert.deepEqual(browserLaunchOptions({}).args, browserLaunchArgs({}));
 });
 
 test('Tier-B navigation never carries a PDF password', () => {

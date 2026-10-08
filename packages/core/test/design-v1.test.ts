@@ -2,7 +2,33 @@
 
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { DESIGN_DOCUMENT_VERSION, inspectDesignV1 } from '../src/design-v1.ts';
+import { DESIGN_DOCUMENT_VERSION, DESIGN_LAYER_KINDS, inspectDesignV1 } from '../src/design-v1.ts';
+
+test('Design inspection accepts persisted webcam markers and posters without live state', () => {
+  const rows = [
+    { id: 'live', kind: 'webcam', x: 0, y: 0, w: 640, h: 360, image: '' },
+    {
+      id: 'poster', kind: 'webcam', x: 640, y: 0, w: 640, h: 360,
+      image: 'data:image/png;base64,cG9zdGVy',
+    },
+  ];
+  const saved = JSON.stringify(rows);
+  Object.defineProperty(rows[0], 'stream', {
+    get() { throw new Error('Inspection must not access local camera hardware state'); },
+  });
+  const report = inspectDesignV1(rows);
+  assert.equal(report.valid, true);
+  assert.deepEqual(report.findings, []);
+  assert.deepEqual(report.layers.map((layer) => layer.kind), ['webcam', 'webcam']);
+  assert.equal(report.layers[0]!.assetId, undefined);
+  assert.equal(report.layers[1]!.assetId, rows[1]!.image);
+  assert.equal(report.summary.timedLayers, 0);
+  assert.equal(JSON.stringify(rows), saved);
+  assert.ok(report.layers.every((layer) => !('stream' in layer)));
+  assert.deepEqual([...DESIGN_LAYER_KINDS], [
+    'box', 'text', 'image', 'path', 'audio', 'camera', 'frame', '3d', 'web', 'webcam',
+  ]);
+});
 
 test('Design inspection exposes ordered artboards, layers and timing', () => {
   const report = inspectDesignV1([

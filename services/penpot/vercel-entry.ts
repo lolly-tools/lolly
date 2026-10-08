@@ -57,7 +57,9 @@ const UPSTREAM_TIMEOUT_MS = 25_000;
 
 // Vercel caps request bodies at ~4.5 MB anyway; this is just a sanity ceiling
 // so a misbehaving client can't balloon the buffer.
-const MAX_BODY = 32 * 1024 * 1024;
+export const MAX_BODY = 32 * 1024 * 1024;
+
+class BodyTooLargeError extends Error {}
 
 // Tell @vercel/node NOT to parse the body: import-binfile is
 // multipart/form-data and must reach Penpot byte-exact - a parse/re-serialise
@@ -72,24 +74,43 @@ function readRawBody(req: IncomingMessage): Promise<Buffer> {
   // could not be re-serialised byte-exact.
   const pre = (req as unknown as { body?: unknown }).body;
   if (pre !== undefined && pre !== null && typeof (req as unknown as { on?: unknown }).on !== 'function') {
-    if (typeof pre === 'string') return Promise.resolve(Buffer.from(pre));
-    if (Buffer.isBuffer(pre)) return Promise.resolve(pre);
+    const bytes = typeof pre === 'string' ? Buffer.from(pre) : Buffer.isBuffer(pre) ? pre : undefined;
+    if (bytes) return bytes.length > MAX_BODY
+      ? Promise.reject(new BodyTooLargeError('Request body too large'))
+      : Promise.resolve(bytes);
     return Promise.reject(new Error('Pre-parsed request body cannot be forwarded byte-exact'));
+  }
+  const contentLength = Number(req.headers['content-length']);
+  if (Number.isFinite(contentLength) && contentLength > MAX_BODY) {
+    req.on('error', () => {});
+    req.resume();
+    return Promise.reject(new BodyTooLargeError('Request body too large'));
   }
   return new Promise((resolve, reject) => {
     let size = 0;
     const chunks: Buffer[] = [];
     req.on('data', (c: Buffer) => {
+      if (size > MAX_BODY) return;
       size += c.length;
-      if (size > MAX_BODY) { reject(new Error('Request body too large')); req.destroy(); return; }
+      if (size > MAX_BODY) {
+        chunks.length = 0;
+        reject(new BodyTooLargeError('Request body too large'));
+        return;
+      }
       chunks.push(c);
     });
-    req.on('end', () => resolve(Buffer.concat(chunks)));
+    req.on('end', () => {
+      const body = Buffer.concat(chunks);
+      chunks.length = 0;
+      resolve(body);
+    });
     req.on('error', reject);
+    req.on('aborted', () => reject(new Error('Request aborted')));
   });
 }
 
 function sendJson(res: ServerResponse, status: number, body: unknown): void {
+  if (res.destroyed) return;
   res.writeHead(status, { ...CORS, 'content-type': 'application/json; charset=utf-8' });
   res.end(JSON.stringify(body));
 }
@@ -98,6 +119,7 @@ export function createPenpotProxy(
   fetchImpl: typeof fetch = fetch,
 ): (req: IncomingMessage, res: ServerResponse) => Promise<void> {
   return async (req, res) => {
+    if (res.destroyed) return;
     // Browser preflight - answer it ourselves; the upstream 401s these.
     if (req.method === 'OPTIONS') { res.writeHead(204, CORS); res.end(); return; }
     if (req.method !== 'POST') {
@@ -122,9 +144,13 @@ export function createPenpotProxy(
     try {
       body = await readRawBody(req);
     } catch (err) {
-      sendJson(res, 400, { error: 'bad-request', hint: String((err as Error)?.message ?? err) });
+      sendJson(res, err instanceof BodyTooLargeError ? 413 : 400, {
+        error: err instanceof BodyTooLargeError ? 'request-too-large' : 'bad-request',
+        hint: err instanceof BodyTooLargeError ? 'Request body exceeds 32 MiB' : 'Request body could not be read',
+      });
       return;
     }
+    if (res.destroyed) return;
 
     // Forward ONLY the headers the RPC needs. Authorization passes through as
     // an opaque value - never read, never logged (custody rule, header comment).
@@ -138,21 +164,29 @@ export function createPenpotProxy(
     // Penpot takes 26 s to finish and does finish - is never cut mid-flight; the
     // function's own maxDuration bounds the pipe below.
     const ac = new AbortController();
+    const abortUpstream = () => { if (!res.writableFinished) ac.abort(); };
+    res.once('close', abortUpstream);
     let timerFired = false;
     const timer = setTimeout(() => { timerFired = true; ac.abort(); }, UPSTREAM_TIMEOUT_MS);
+    const cleanup = () => {
+      clearTimeout(timer);
+      res.off('close', abortUpstream);
+    };
     let upstream: Response;
     try {
       upstream = await fetchImpl(UPSTREAM_BASE + command, {
         method: 'POST',
         headers,
-        body: body.length > 0 ? new Uint8Array(body) : undefined,
+        body: body.length > 0 ? new Uint8Array(body.buffer as ArrayBuffer, body.byteOffset, body.byteLength) : undefined,
+        redirect: 'error',
         signal: ac.signal,
       });
     } catch (err) {
       // Network failure / timeout. The hint stays generic: an upstream error
       // string could not contain the token, but keeping the body synthetic
       // guarantees nothing user-supplied is ever echoed.
-      clearTimeout(timer);
+      cleanup();
+      if (res.destroyed) return;
       const timedOut = timerFired || (err as Error)?.name === 'TimeoutError';
       sendJson(res, 502, {
         error: 'penpot-unreachable',
@@ -166,25 +200,25 @@ export function createPenpotProxy(
     // Pass status + body through untouched; the shell interprets Penpot's own
     // JSON (including its error shapes). Command + status only - never headers.
     clearTimeout(timer);
-    console.log(`[penpot] ${command} -> ${upstream.status}`);
-    res.writeHead(upstream.status, {
-      ...CORS,
-      'content-type': upstream.headers.get('content-type') ?? 'application/json',
-    });
-    // import-binfile answers text/event-stream: PIPE it so an import's progress
-    // events reach the browser as they happen instead of the whole stream being
-    // held in memory until Penpot finishes. Buffering stays the fallback for a
-    // response with no readable web stream (some fetch stubs).
-    if (upstream.body) {
-      try {
-        await pipeline(Readable.fromWeb(upstream.body as Parameters<typeof Readable.fromWeb>[0]), res);
-      } catch {
-        // The client went away, or the stream broke after the head was sent -
-        // there is no error body to write at that point, so just close.
-        if (!res.writableEnded) res.end();
+    try {
+      if (res.destroyed) { await upstream.body?.cancel(); return; }
+      console.log(`[penpot] ${command} -> ${upstream.status}`);
+      res.writeHead(upstream.status, {
+        ...CORS,
+        'content-type': upstream.headers.get('content-type') ?? 'application/json',
+      });
+      // Progress reaches the caller immediately. Keep disconnect cancellation
+      // mounted until the upstream body and response have finished.
+      if (upstream.body) {
+        await pipeline(Readable.fromWeb(upstream.body as Parameters<typeof Readable.fromWeb>[0]), res, { signal: ac.signal });
+      } else {
+        const bytes = Buffer.from(await upstream.arrayBuffer());
+        if (!res.destroyed) res.end(bytes);
       }
-    } else {
-      res.end(Buffer.from(await upstream.arrayBuffer()));
+    } catch {
+      if (!res.writableEnded && !res.destroyed) res.end();
+    } finally {
+      cleanup();
     }
   };
 }

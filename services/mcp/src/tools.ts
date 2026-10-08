@@ -74,7 +74,7 @@ const TEMPLATE_ARGS = {
   presetId: { type: 'string', description: 'Apply this preset from the selected template. Requires templateId.' },
 };
 
-const DESIGN_PATCH_ARG = {
+export const DESIGN_PATCH_ARG = {
   type: 'array',
   description: 'Design only: update template/document layers by stable id without resending their coordinates. Applied after template and inputs.',
   items: {
@@ -88,7 +88,7 @@ const DESIGN_PATCH_ARG = {
   },
 };
 
-const DESIGN_OPERATION_ARG = {
+export const DESIGN_OPERATION_ARG = {
   type: 'array',
   description: 'Design only: add, duplicate, remove, reparent or reorder layers by stable id. Operations are applied in order before layerPatches.',
   items: {

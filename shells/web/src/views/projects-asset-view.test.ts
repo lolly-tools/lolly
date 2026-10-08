@@ -9,6 +9,7 @@ import type { AssetRef, HostV1 } from '@lolly-tools/core/host-v1';
 
 const dom = new JSDOM('<!doctype html><body></body>', { url: 'https://instance.test/' });
 globalThis.document = dom.window.document;
+globalThis.window = dom.window as unknown as typeof window;
 
 test('local folder asset cards have refreshable routes and the same page as shared assets', () => {
   const asset: AssetRef = { id: 'ext/provider/asset', source: 'library', type: 'raster', format: 'jpeg', url: '/catalog/image.jpeg', meta: { name: 'Cover <review>.jpeg' } };
@@ -19,7 +20,10 @@ test('local folder asset cards have refreshable routes and the same page as shar
   assert.ok(page.classList.contains('project-asset-page'));
   assert.equal(page.querySelector('a')?.getAttribute('href'), '#/p/folder%20one');
   assert.equal(page.querySelector('h3')?.textContent, asset.meta?.name);
-  assert.equal(page.querySelector('img')?.getAttribute('src'), asset.url);
+  assert.ok(page.querySelector('[data-asset-preview]'));
+  assert.equal(page.querySelector('img'), null);
+  assert.equal(page.querySelector('[data-asset-preview] button')?.textContent, 'Preview');
+  page.dispose();
   assert.equal(page.querySelector('dialog'), null);
 });
 
@@ -42,4 +46,30 @@ test('an asset outside the addressed folder has a clear return path', () => {
   assert.match(view.textContent!, /This asset is unavailable/);
   assert.equal(view.querySelector('a')?.getAttribute('href'), '#/p/folder%20one');
   assert.equal(view.querySelector('img'), null);
+});
+
+test('preview navigation returns to its folder without overriding a different destination', async () => {
+  const asset: AssetRef = { source: 'library', id: 'cover', type: 'raster', format: 'png', url: '/cover.png' };
+  const href = localProjectAssetHref('folder', asset.id);
+  let closes: ((ref: AssetRef) => void) | undefined, opened = 0, destroyed = 0;
+  const page = buildProjectAssetPage({ name: 'Cover', url: asset.url, contentType: 'image/png', backHref: '#/p/folder',
+    download: async () => {}, preview: { link: () => href, open(onClose) {
+      opened++; closes = onClose;
+      return { ready: Promise.resolve(), destroy() { destroyed++; } };
+    } } });
+  window.location.hash = href;
+  document.body.replaceChildren(page);
+  await Promise.resolve();
+  assert.equal(opened, 1);
+  page.querySelector<HTMLButtonElement>('[data-asset-preview] button')!.click();
+  assert.equal(opened, 1, 'the same preview is not mounted twice');
+  window.location.hash = '#/settings';
+  closes!(asset);
+  assert.equal(window.location.hash, '#/settings');
+  window.location.hash = href;
+  closes!(asset);
+  assert.equal(window.location.hash, '#/p/folder');
+  page.dispose(); page.dispose();
+  assert.equal(destroyed, 1, 'the preview is torn down once');
+  document.body.replaceChildren();
 });

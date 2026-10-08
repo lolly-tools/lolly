@@ -23,6 +23,7 @@ import { JPEG_APP_IDS, scanJpegSegments } from './jpeg-segments.ts';
 import { unzlibSync } from 'fflate';
 import { xmlProvenanceFields } from './software-origin.ts';
 import { auxiliaryMetadata, type AuxiliaryMetadata } from './auxiliary-metadata.ts';
+import { pngGeneratorHint } from './png-generator.ts';
 
 export type MetaGroup =
   | 'location'
@@ -861,6 +862,8 @@ function pngText(bytes: Uint8Array, start: number, len: number, kind: 'tEXt' | '
   const canonical = Object.keys(PNG_KEYWORD_GROUP).find((key) => key.toLowerCase() === keyword.toLowerCase());
   const m = PNG_KEYWORD_GROUP[canonical ?? keyword] ?? { group: 'description' as MetaGroup };
   out.fields.push({ label: (canonical ?? keyword) || 'Text', value, group: m.group, sensitive: m.sensitive, source: `PNG ${kind} ${keyword}` });
+  const generator = pngGeneratorHint(keyword, value);
+  if (generator && out.fields.length < MAX_FIELDS) out.fields.push({ label: 'Generator hint', value: generator, group: 'software', source: `PNG ${kind} ${keyword}`, signal: 'hint' });
 }
 
 function readPng(bytes: Uint8Array, out: FileMetadata): void {

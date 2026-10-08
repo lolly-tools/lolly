@@ -185,6 +185,7 @@ export interface ToolViewCtx {
   frameCfg: { frameField: string; frameKind: string; orderField: string | undefined; clipChildrenField: string | undefined; transitionField: string | undefined; hiddenField: string | undefined; lockedField: string | undefined; } | undefined;
   fixedCanvasMode: boolean;
   designChrome: boolean;
+  initialCanvasPending: boolean;
   documentLayout: boolean;
   docEditInput: InputSpec | null | undefined;
   deckLayout: boolean;

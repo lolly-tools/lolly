@@ -33,6 +33,7 @@ import { announce } from '../a11y.ts';
 import { tRaw } from '../i18n.ts';
 import { copyText } from '../lib/copy-text.ts';
 import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
+import { accountAvatar } from '../lib/account-headshots.ts';
 import { styleTeamBack } from './team-back.ts';
 import type { InboxWatch } from './access-request.ts';
 import { inviteMessage } from './invite-message.ts';
@@ -43,11 +44,12 @@ import {
   type ProjectPeople, type ProjectRequest,
 } from './project-members.ts';
 import {
-  INVITE_ROLES, MAX_INVITE_EMAILS, invitationLines, inviteLinkKind, inviteResultText, isManagerPlus, parseInviteEmails,
+  INVITE_ROLES, MAX_INVITE_EMAILS, invitationLines, inviteLinkKind, inviteResultText, isManagerPlus, isReadOnlyRole, parseInviteEmails,
   passwordTickDefault, peopleMessage, requestAnsweredText, requestAskText, requestAskedText, requestRefusalText,
   roleHelpText, roleLabel, shownInviteStatus, waitingAddresses,
   type InviteLinkKind, type InvitePolicy, type InviteRole, type InviteShownStatus,
 } from './team-access.ts';
+import { shareAccessFor } from './share-access-panel.ts';
 
 export interface PeoplePanelOptions {
   projectId: string;
@@ -76,7 +78,7 @@ export function peoplePanelView(people: ProjectPeople, policy: InvitePolicy | nu
 } {
   const manage = isManagerPlus(people.myRole);
   const roles = policy?.projectRoles ?? [];
-  return { manage, invite: manage && !!policy && roles.length > 0, roles, askToEdit: people.myRole === 'viewer' && policy?.askToEdit === true };
+  return { manage, invite: manage && !!policy && roles.length > 0, roles, askToEdit: isReadOnlyRole(people.myRole) && policy?.askToEdit === true };
 }
 
 /** The roles a member's role select offers: the instance's invite roles, plus the
@@ -206,7 +208,8 @@ export function buildPeoplePanel(opts: PeoplePanelOptions): HTMLElement {
   const listSlot = el('div');
   listSlot.append(el('p', { className: 'projects-empty', text: tRaw('Loading…') }));
   const inviteSlot = el('div');
-  panel.append(status, askSlot, listSlot, inviteSlot);
+  const access = shareAccessFor({ projectId: opts.projectId, say, context: () => ({ workspace: opts.policy?.workspace ?? '', directoryGroups: opts.policy?.sharingGroups ?? [], canCreateGroups: opts.policy?.canCreateGroups === true }) });
+  panel.append(status, askSlot, listSlot, access.section, inviteSlot);
 
   let people: ProjectPeople | null = null;
   /** Set once this person has left the project from their own row. */
@@ -299,6 +302,7 @@ export function buildPeoplePanel(opts: PeoplePanelOptions): HTMLElement {
   // ── Members and invitations ─────────────────────────────────────────────────
   const memberRow = (m: ProjectMember, manage: boolean, roles: InviteRole[]): HTMLLIElement => {
     const li = el('li', { style: ROW_STYLE });
+    li.append(accountAvatar(li.ownerDocument, m.userId, m.name));
     li.dataset.member = m.userId;
     const who = el('div', { style: 'min-width:0;flex:1 1 12rem' });
     who.append(el('div', { text: m.name, style: 'font-weight:600;overflow-wrap:anywhere' }));
@@ -350,6 +354,7 @@ export function buildPeoplePanel(opts: PeoplePanelOptions): HTMLElement {
       // Anyone but the owner may leave a project, whatever their role.
       if (m.isMe && m.role !== 'owner') controls.append(removeButton(m, li));
     }
+    access.decorateMember(controls, m, manage);
     li.append(who, controls);
     return li;
   };
@@ -439,6 +444,8 @@ export function buildPeoplePanel(opts: PeoplePanelOptions): HTMLElement {
 
   const invitationRow = (inv: ProjectInvitation): HTMLLIElement => {
     const li = el('li', { style: ROW_STYLE });
+    const avatar = accountAvatar(li.ownerDocument, `invite:${inv.id}`, inv.email.split('@')[0]!);
+    avatar.dataset.waiting = 'true'; li.append(avatar);
     li.dataset.invitation = inv.id;
     li.dataset.status = inv.status;
     const who = el('div', { style: 'min-width:0;flex:1 1 12rem' });
@@ -484,6 +491,7 @@ export function buildPeoplePanel(opts: PeoplePanelOptions): HTMLElement {
   // ── Asking for access ───────────────────────────────────────────────────────
   const requestRow = (req: ProjectRequest, roles: InviteRole[], helpId: string): HTMLLIElement => {
     const li = el('li', { style: 'display:flex;align-items:center;justify-content:space-between;gap:.35rem .75rem;flex-wrap:wrap' });
+    li.append(accountAvatar(li.ownerDocument, req.userId ?? `request:${req.id}`, req.name));
     li.dataset.request = req.id;
     const who = el('div', { style: 'min-width:0;flex:1 1 12rem' });
     const name = el('div', { text: req.name, style: 'font-weight:600;overflow-wrap:anywhere' });

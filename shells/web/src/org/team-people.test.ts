@@ -46,7 +46,7 @@ const json = (body: unknown, status = 200): Response =>
   new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
 
 const {
-  listProjectPeople, inviteToProject, changeMemberRole, removeMember, revokeInvitation, teamProjectLinkUrl, peopleFromBody, personalInviteLink, renameTeamProject, renameTeamSession, deleteTeamSession,
+  listProjectPeople, inviteToProject, changeMemberRole, removeMember, revokeInvitation, teamProjectLinkUrl, teamProjectFileLinkUrl, peopleFromBody, personalInviteLink, renameTeamProject, renameTeamSession, deleteTeamSession,
   rotateInvitationLink, reinvite, answerRequest, signInProviderNames,
 } = await import('./project-members.ts');
 const { buildPeoplePanel, peoplePanelView, revealPeoplePanel, roleChoices } = await import('./team-people.ts');
@@ -123,6 +123,7 @@ test('an invite with no usable link falls back to this app address; an empty lis
   assert.ok(got.ok);
   assert.equal(got.data.link, 'https://instance.test/#/team/project/p%201');
   assert.equal(teamProjectLinkUrl('p1', 'https://w.test/'), 'https://w.test/#/team/project/p1');
+  assert.equal(teamProjectFileLinkUrl('p 1', 'fil_a&b', 'https://w.test/'), 'https://w.test/#/team/project/p%201?file=fil_a%26b');
   calls.length = 0;
   assert.deepEqual(await inviteToProject('p1', [], 'viewer'), { ok: false, status: 400 });
   assert.equal(calls.length, 0);
@@ -244,7 +245,7 @@ test('a manager sees roles to change, Remove, pending invitations and the invite
   assert.deepEqual(rows.map((r) => r.dataset.member), ['u1', 'u2']);
   assert.equal(rows[0]!.querySelector('select'), null, 'the owner row has no role control');
   const select = rows[1]!.querySelector<HTMLSelectElement>('select')!;
-  assert.deepEqual([...select.options].map((o) => o.value), ['viewer', 'editor', 'manager']);
+  assert.deepEqual([...select.options].map((o) => o.value), ['viewer', 'commenter', 'editor', 'manager']);
   assert.ok(rows[1]!.querySelector('[data-act="people-remove"]'));
   assert.equal(panel.querySelectorAll('[data-invitation]').length, 1);
   assert.match(panel.textContent!, /acme\.com/);
@@ -938,7 +939,7 @@ test('asking for access: a section above the list, notes as text, Approve with a
   const select = priya.querySelector<HTMLSelectElement>('select')!;
   assert.equal(select.getAttribute('aria-label'), 'Role for Priya');
   assert.equal(select.value, 'editor', 'starts on what was asked for');
-  assert.equal(document.getElementById(select.getAttribute('aria-describedby')!)!.textContent, 'Viewers open and copy. Editors save changes. Managers also add people.');
+  assert.equal(document.getElementById(select.getAttribute('aria-describedby')!)!.textContent, 'Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.');
 
   // Approve as Manager: the role chosen is sent, and the list is read again.
   answers['req_1/approve'] = json({ request: { status: 'approved', answeredBy: { name: 'Me' }, answerRole: 'manager' }, outcome: 'added' });
@@ -1129,7 +1130,7 @@ test('the invite form: what each role may do, and who invites new people on this
   reset();
   const { panel } = await mountR17({ config: { can: {}, instance: { name: 'lolly.ing' }, invites: {} } });
   const role = panel.querySelector<HTMLSelectElement>('.team-people-invite select')!;
-  assert.equal(document.getElementById(role.getAttribute('aria-describedby')!)!.textContent, 'Viewers open and copy. Editors save changes. Managers also add people.');
+  assert.equal(document.getElementById(role.getAttribute('aria-describedby')!)!.textContent, 'Viewers open and copy. Commenters also comment. Editors save changes. Managers also add people.');
   assert.match(panel.querySelector('.team-people-invite')!.textContent!, /Only admins of lolly\.ing invite new people\. You can add people who already use lolly\.ing\./);
   reset();
   const unnamed = await mountR17({ config: { can: {}, invites: {} } });

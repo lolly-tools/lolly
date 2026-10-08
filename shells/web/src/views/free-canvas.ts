@@ -54,6 +54,7 @@
 
 import { mountDesignRules } from './design-rules.ts';
 import { registerCollabSurface } from '../lib/collab-surface.ts';
+import { canvasProjection } from './canvas-projection.ts';
 import { revealCanvasPeer } from './free-canvas/peer-view.ts';
 import { disposeCanvasInteractions } from './free-canvas/collaboration.ts';
 import { boxRect, sequenceFramesInOrder } from './free-canvas-math.ts';
@@ -81,6 +82,8 @@ import type { FcCtx } from './free-canvas/context.ts';
 import { helpersOps } from './free-canvas/helpers.ts';
 import { selectOps } from './free-canvas/select.ts';
 import { catalogIntakeOps } from './free-canvas/catalog-intake.ts';
+import { fileDropOps } from './free-canvas/file-drop.ts';
+import { cameraCaptureOps } from './free-canvas/camera-capture.ts';
 import { timelineOps } from './free-canvas/timeline.ts';
 import { stageOps } from './free-canvas/stage.ts';
 import { narrationOps } from './free-canvas/narration.ts';
@@ -204,6 +207,8 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   fc.select = selectOps(fc);
   fc.timeline = timelineOps(fc);
   fc.catalogIntake = catalogIntakeOps(fc);
+  fc.fileDrop = fileDropOps(fc);
+  fc.cameraCapture = cameraCaptureOps(fc);
   fc.stage = stageOps(fc);
   fc.narration = narrationOps(fc);
   fc.rail = railOps(fc);
@@ -937,7 +942,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   const frameLabels = document.createElement('div'); fc.frameLabels = frameLabels;
   frameLabels.className = 'fc-frame-labels';
   overlay.appendChild(frameLabels);
-  frameLabels.addEventListener('pointerdown', (e) => e.stopPropagation());
+  frameLabels.addEventListener('pointerdown', (e) => { fc.gestures.onFrameLabelPointerDown(e); e.stopPropagation(); });
   frameLabels.addEventListener('click', (e) => {
     const el = (e.target as HTMLElement | null)?.closest<HTMLElement>('.fc-frame-label');
     if (!el) return;
@@ -1396,6 +1401,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
     // The scene camera (plans/104 section 5.4). Same glyph the timeline's add menu and the
     // Camera inspector group wear, so one thing looks like one thing.
     camera: SVG.camera,
+    webcam: SVG.camera,
     // A 3D scene (plan 265 milestone 3) - the isometric cube, which is the glyph the
     // 3D Studio already wears over its own Start, Collection and Arrangement sections
     // and the one the inspector's Scene header carries, so the add-kind, the section and
@@ -1438,12 +1444,12 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
    *  are part of the SCENE, set in the studio, so a second caption typed on the canvas is
    *  two places to write the same sentence. A row that already carries text keeps the
    *  inspector's Text section, which is where such a caption is repaired or cleared. */
-  const NO_TEXT_KINDS = new Set(['frame', 'audio', 'camera', '3d', 'web']); fc.NO_TEXT_KINDS = NO_TEXT_KINDS;
+  const NO_TEXT_KINDS = new Set(['frame', 'audio', 'camera', 'webcam', '3d', 'web']); fc.NO_TEXT_KINDS = NO_TEXT_KINDS;
   /** Kinds that paint no picture from the image field. (An `audio` box DOES use it - that
    *  field is where its track lives - and a frame page paints it as the board's fill.) A
    *  `3d` box paints through the studio's renderer, and the hook returns its scene marker
    *  before ever reading the image field, so an image set here would never be drawn. */
-  const NO_IMAGE_KINDS = new Set(['camera', '3d']); fc.NO_IMAGE_KINDS = NO_IMAGE_KINDS;
+  const NO_IMAGE_KINDS = new Set(['camera', 'webcam', '3d']); fc.NO_IMAGE_KINDS = NO_IMAGE_KINDS;
 
   /**
    * The DOLLY, coalesced (section 8: "wheel coalesces one commit per pause").
@@ -1877,6 +1883,8 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   }
   fc.editorState.applyEditorState(opts.deepLink);
   void fc.catalogIntake.intake();
+  const unwireFileDrop = fc.fileDrop.wire();
+  fc.cameraCapture.wire();
 
   // Universal drop front door (lib/drop-router.ts): a design file dropped on the
   // gallery/dashboard was stashed one-shot and is consumed here on mount, through
@@ -2020,7 +2028,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
       onDirty?.(id);
       runtime.setInput(id, value as InputValue);
     },
-  }; fc.modelPort = modelPort;
+  }; modelPort.collection = blockId; fc.modelPort = modelPort;
 
   const artboardPort: ArtboardPort = {
     active: fc.document.activeArtboardId,
@@ -2071,8 +2079,19 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
     // rows the inspector handed it, so moving the canvas selection under the dialog
     // would only change what the user comes back to.
     openStudio: (ids) => { void fc.objects.openStudio(ids); },
+    // A placed tool's own inputs, in the inspector beside the board (design-inspector's
+    // Tool section), and the section's door to a different picture.
+    mountToolSettings: (slot, id) => fc.objects.mountToolSettings(slot, id),
+    replaceImage: (ids) => {
+      if (!ids.length) return;
+      fc.selection = new Set(ids);
+      fc.chromeSync.renderChrome();
+      void fc.objects.pickImage({ replace: true });
+    },
     refreshWebPoster: (ids, onlyComposed) => { void fc.objects.refreshWebPoster(ids, onlyComposed); },
     editWebTool: (ids) => { void fc.objects.editWebTool(ids); },
+    useWebPage: (ids) => fc.objects.useWebPage(ids),
+    editWebCss: (ids) => { void fc.objects.editWebCss(ids); },
     useAsInput: (ids, property) => { fc.selection = new Set(ids); fc.rules?.expose(property); },
   }; fc.inspectorActions = inspectorActions;
 
@@ -2158,6 +2177,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
     dirty: () => onDirty?.('__designTool'),
     saveMaster: () => fc.actions?.save?.(),
   });
+  const projection = canvasProjection(canvasEl, () => fc.select.getBoxes(), cfg);
   const unregisterCollabSurface = registerCollabSurface(runtime, {
     revealPeer: state => revealCanvasPeer(fc, state),
     collection: blockId,
@@ -2166,6 +2186,10 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
       if (index < 0) return null;
       const r = boxRect(boxes[index], cfg);
       return { element: fc.stage.liveBoxEl(id), x: r.x, y: r.y, w: r.w, h: r.h, rot: r.rot ?? 0 };
+    },
+    snapshot: () => {
+      const object = projection.snapshot(), m = fc.stage.metrics();
+      return { object, toClient: point => ({ x: m.cr.left + point.x * m.scale, y: m.cr.top + point.y * m.scale }) };
     },
     fromClient: point => fc.stage.clientToNative(point.x, point.y),
     reveal: id => {
@@ -2190,7 +2214,11 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
       const m = fc.stage.metrics();
       return { x: (m.sr.left - m.cr.left) / m.scale, y: (m.sr.top - m.cr.top) / m.scale, zoom: m.scale };
     },
-    subscribe: fn => { const a = selectionPort.onChange(fn); const b = artboardPort.onChange(fn); return () => { a(); b(); }; },
+    subscribe: fn => {
+      const a = selectionPort.onChange(fn), b = artboardPort.onChange(fn);
+      stageEl.addEventListener('lolly:stage-view', fn);
+      return () => { a(); b(); stageEl.removeEventListener('lolly:stage-view', fn); };
+    },
   });
 
   // 3D scene boxes (plan 265 milestone 3, lane B). Exactly one selected scene box becomes
@@ -2211,9 +2239,12 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   return {
     design: designPorts,
     destroy() {
+      fc.cameraCapture.destroy();
+      unwireFileDrop();
       disposeCanvasInteractions(fc);
       fc.rules?.destroy();
       unregisterCollabSurface();
+      projection.dispose();
       unwatchScenes();
       // Hand the scene renderer back now. Nothing repaints this canvas again, so waiting
       // for the enhancer's own reap would hold a WebGL context until some other tool paints.

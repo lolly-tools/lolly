@@ -144,6 +144,29 @@ test('a member lands on Projects with the project requested, and no card stays',
   assert.equal(takeSourceProjectRequest(), null, 'once');
 });
 
+test('an individual file link lands on Files only after project access succeeds', async () => {
+  const fileId = `fil_${'a'.repeat(22)}`;
+  reset(`#/team/project/p1?file=${fileId}`);
+  registerSessionSource(createInstanceSessionSource('Acme'));
+  router = url => url === '/api/v1/projects/p1/sessions' ? json({ sessions: [] }) : new Response('', { status: 404 });
+  await mountTeamLink(view(), 'project/p1');
+  await until(() => window.location.hash === `#/p?team=p1&tab=files&file=${fileId}`);
+  assert.equal(takeSourceProjectRequest(), null, 'the selected file travels in the destination address');
+
+  reset(`#/team/project/p1?file=${fileId}`);
+  registerSessionSource(createInstanceSessionSource('Acme'));
+  router = () => json({ error: {} }, 403);
+  await mountTeamLink(view(), 'project/p1'); await settle();
+  assert.match(view().textContent!, /do not have access to that team project/);
+  assert.equal(window.location.hash, `#/team/project/p1?file=${fileId}`);
+
+  reset('#/team/project/p1?file=bad%2Fid');
+  registerSessionSource(createInstanceSessionSource('Acme'));
+  router = () => json({ sessions: [] });
+  await mountTeamLink(view(), 'project/p1'); await settle();
+  assert.match(view().textContent!, /link is incomplete/);
+});
+
 test('the Team projects dialog: the project, its activity, a session count, Close and Escape', async () => {
   reset('#/p');
   await settle();

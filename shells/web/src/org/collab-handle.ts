@@ -142,6 +142,7 @@ export function readPresencePayload(payload: unknown): ReadPresencePayload | nul
 }
 
 export interface WorkCollabHandleOptions {
+  inviteAgent?: () => void;
   people?: () => void;
   inviteLinks?: import('../lib/collab-session.ts').CollabInviteLinks;
   assets?: import('../lib/canvas-assets.ts').CanvasAssetsCapability;
@@ -413,6 +414,7 @@ export function createWorkCollabHandle(
   // ── the handle ──────────────────────────────────────────────────────────────
 
   const self: CollabSelf = {
+    get userId(): string | undefined { return provider.state().self?.userId; },
     get clientId(): string {
       return clientId;
     },
@@ -512,6 +514,7 @@ export function createWorkCollabHandle(
     claims: provider.claims,
     comments: opts.comments,
     people: opts.people,
+    inviteAgent: opts.inviteAgent,
     inviteLinks: opts.inviteLinks,
 
     /**

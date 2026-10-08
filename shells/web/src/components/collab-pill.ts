@@ -72,6 +72,9 @@ import { collabLabelColor } from '../lib/collab-label-color.ts';
 import type { CollabParticipant, CollabSessionState } from '../lib/collab-session.ts';
 import { icon, type IconName } from '../lib/icons.ts';
 import { mountBodyPopover } from './body-popover.ts';
+import { paintAccountAvatar } from '../lib/account-headshots.ts';
+import { collabInitials } from '../lib/collab-identity.ts';
+export { collabInitials } from '../lib/collab-identity.ts';
 import type { BodyPopoverHandle, PopoverAnchor } from './body-popover.ts';
 
 // ── Copy ──────────────────────────────────────────────────────────────────────
@@ -111,6 +114,11 @@ export const STRINGS = {
   you: 'You',
   observer: 'Observer',
   awayTag: 'Away',
+  agent: 'AI agent',
+  pauseAgent: 'Pause agent',
+  resumeAgent: 'Resume agent',
+  disconnectAgent: 'Disconnect agent',
+  paused: 'Paused',
   /** The pill's own banner: this client can watch but not edit. */
   observing: 'Observing',
 
@@ -253,6 +261,7 @@ html[data-a11y-motion="reduce"] .collab-av.is-new { animation: none; }
 }
 .collab-stack .collab-av:first-child { margin-inline-start: 0; }
 .collab-av[data-away="1"] { opacity: 0.55; }
+.collab-av[data-kind="agent"] { border-radius: calc(7px * var(--a11y-fs)); }
 .collab-av--more {
   background: hsl(var(--muted));
   color: hsl(var(--muted-foreground));
@@ -300,7 +309,7 @@ html[data-a11y-motion="reduce"] .collab-av.is-new { animation: none; }
 .collab-invite:hover,
 .collab-action:not(:disabled):hover { background: hsl(var(--accent)); color: hsl(var(--accent-foreground)); }
 .collab-invite svg,
-.collab-action svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); }
+.collab-action svg { width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); }
 @media (prefers-reduced-motion: reduce) { .collab-invite, .collab-action { transition: none; } }
 html[data-a11y-motion="reduce"] .collab-invite,
 html[data-a11y-motion="reduce"] .collab-action { transition: none; }
@@ -308,9 +317,13 @@ html[data-a11y-motion="reduce"] .collab-action { transition: none; }
 /* ── Roster popover ───────────────────────────────────────────────────────── */
 .collab-roster {
   position: fixed;
-  z-index: 9000;
-  min-width: calc(200px * var(--a11y-fs));
-  max-width: min(calc(320px * var(--a11y-fs)), 90vw);
+  box-sizing: border-box;
+  z-index: 9502;
+  min-width: min(calc(200px * var(--a11y-fs)), calc(100vw - 16px));
+  max-width: min(calc(384px * var(--a11y-fs)), calc(100vw - 16px));
+  max-height: calc(100dvh - 16px);
+  overflow: auto;
+  box-sizing: border-box;
   padding: calc(6px * var(--a11y-fs));
   border: 1px solid hsl(var(--border));
   border-radius: calc(12px * var(--a11y-fs));
@@ -332,11 +345,13 @@ html[data-a11y-motion="reduce"] .collab-action { transition: none; }
 .collab-roster-name {
   flex: 1 1 auto;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
-.collab-roster-tags { display: inline-flex; gap: calc(4px * var(--a11y-fs)); flex: none; }`;
+.collab-roster-tags { display: inline-flex; gap: calc(4px * var(--a11y-fs)); flex: none; }
+.collab-roster-row[data-kind="agent"] { display:grid; grid-template-columns:calc(24px * var(--a11y-fs)) minmax(0,1fr); }
+.collab-roster-row[data-kind="agent"] .collab-roster-tags { grid-column:2; display:flex; flex-wrap:wrap; min-width:0; }
+.collab-roster-row[data-kind="agent"] .collab-tag { max-width:100%; overflow:hidden; text-overflow:ellipsis; box-sizing:border-box; }`;
 
 function ensureStyles(): void {
   if (typeof document === 'undefined' || document.getElementById(STYLE_ID)) return;
@@ -382,30 +397,6 @@ export function collabDisplayName(p: CollabParticipant): string {
   if (p.name) return p.name;
   if (p.isHost) return tRaw(STRINGS.host);
   return p.inviteeIndex > 1 ? tRaw(STRINGS.inviteeNumbered, { n: p.inviteeIndex }) : tRaw(STRINGS.invitee);
-}
-
-/**
- * Up to two initials for the avatar disc.
- *
- * The first LETTER of each of the first two words that have one, which is what makes
- * "Priya Fernandes" read as PF rather than PR, and "Andy (Owner)" as AO rather than
- * "A(": a bracket, a dash or an emoji is never an initial, and a word with no letter is
- * skipped. A letter is any script's (`\p{L}`), matched by code point, so a CJK name keeps
- * its characters and an astral-plane letter is never sliced into a lone surrogate. A name
- * with no letters at all (only punctuation, emoji or spaces) yields '' and the disc is
- * then colour + halo only - which is fine, because the initials were never the
- * accessible name.
- */
-export function collabInitials(name: string): string {
-  let out = '';
-  let count = 0;
-  for (const word of name.trim().split(/\s+/)) {
-    const letter = /\p{L}/u.exec(word)?.[0];
-    if (!letter) continue;
-    out += letter.toUpperCase();
-    if (++count === 2) break;
-  }
-  return out;
 }
 
 /** The chip's truncation point (section 4.5: "chips truncate at ~12 chars"). The full name
@@ -456,6 +447,8 @@ export interface CollabPillAction {
 }
 
 export interface CollabPillOptions {
+  onDisconnectAgent?: (clientId: string) => void;
+  onPauseAgent?: (clientId: string) => void;
   /** The live session state. */
   source: CollabPillSource;
   /**
@@ -499,22 +492,26 @@ function avatarEl(p: CollabParticipant): HTMLElement {
   const el = document.createElement('span');
   el.className = 'collab-av';
   el.dataset.clientId = p.clientId;
+  if (p.kind === 'agent') el.dataset.kind = 'agent';
   if (p.away) el.dataset.away = '1';
   if (p.color) { const label = collabLabelColor(p.color); el.style.background = label.fill; el.style.color = label.ink; }
-  el.title = collabDisplayName(p);
+  el.title = p.kind === 'agent' ? `${collabDisplayName(p)} (${tRaw(STRINGS.agent)})` : collabDisplayName(p);
   const letters = document.createElement('span');
   letters.setAttribute('aria-hidden', 'true');
   letters.textContent = collabInitials(collabDisplayName(p));
   el.appendChild(letters);
+  if (p.kind !== 'agent') paintAccountAvatar(el, p.userId);
   return el;
 }
 
 function refreshAvatar(el: HTMLElement, p: CollabParticipant): void {
-  el.title = collabDisplayName(p);
+  if (p.kind === 'agent') el.dataset.kind = 'agent'; else delete el.dataset.kind;
+  el.title = p.kind === 'agent' ? `${collabDisplayName(p)} (${tRaw(STRINGS.agent)})` : collabDisplayName(p);
   if (p.away) el.dataset.away = '1'; else delete el.dataset.away;
   const label = p.color ? collabLabelColor(p.color) : undefined;
   el.style.background = label?.fill ?? ''; el.style.color = label?.ink ?? '';
   const letters = el.firstElementChild; if (letters) letters.textContent = collabInitials(collabDisplayName(p));
+  if (p.kind !== 'agent') paintAccountAvatar(el, p.userId);
 }
 
 function tagEl(text: string): HTMLElement {
@@ -585,13 +582,15 @@ function positionRoster(el: HTMLDivElement, anchor: PopoverAnchor): void {
   const r = anchor.getBoundingClientRect();
   const rtl = typeof getComputedStyle === 'function'
     && getComputedStyle(document.documentElement).direction === 'rtl';
-  el.style.top = `${Math.round(r.bottom + 8)}px`;
+  const width = el.offsetWidth, height = el.offsetHeight;
+  const top = r.bottom + 8;
+  el.style.top = `${Math.round(top + height <= window.innerHeight - 8 ? top : Math.max(8, r.top - height - 8))}px`;
   if (rtl) {
     el.style.right = '';
-    el.style.left = `${Math.max(8, Math.round(r.left))}px`;
+    el.style.left = `${Math.max(8, Math.round(Math.min(r.left, window.innerWidth - width - 8)))}px`;
   } else {
     el.style.left = '';
-    el.style.right = `${Math.max(8, Math.round(window.innerWidth - r.right))}px`;
+    el.style.right = `${Math.max(8, Math.round(Math.min(window.innerWidth - r.right, window.innerWidth - width - 8)))}px`;
   }
 }
 
@@ -699,23 +698,25 @@ export function mountCollabPill(container: HTMLElement, opts: CollabPillOptions)
 
   function visitPeer(id: string): boolean {
     const state = opts.source.state();
-    if (!opts.onPeer || state.connection !== 'live' || !state.peers.some(p => p.clientId === id && !p.away && !p.isSelf)) return false;
+    if (!opts.onPeer || state.connection !== 'live' || !state.peers.some(p => p.clientId === id && !p.away && !p.isSelf && p.kind !== 'agent')) return false;
     popover.close(true); opts.onPeer(id); return true;
   }
 
   function renderRoster(host: HTMLElement, state: CollabSessionState): void {
-    const signature = JSON.stringify([currentLang(), state.connection, ...[state.self, ...state.peers].map(p => [p.clientId, p.name, p.color, p.away, p.isSelf, p.isHost, p.role])]);
+    const signature = JSON.stringify([currentLang(), state.connection, ...[state.self, ...state.peers].map(p => [p.clientId, p.name, p.color, p.away, p.isSelf, p.isHost, p.role, p.kind, p.phase, p.activity])]);
     if (rosterSignatures.get(host) === signature) return;
     rosterSignatures.set(host, signature);
     const focused = host.ownerDocument.activeElement;
     const focusedId = focused instanceof host.ownerDocument.defaultView!.HTMLElement && host.contains(focused) ? focused.dataset.peerId : undefined;
+    const focusedAction = focused instanceof host.ownerDocument.defaultView!.HTMLElement ? focused.dataset.agentAction : undefined;
     host.textContent = '';
     const list = document.createElement('ul');
     list.className = 'collab-roster-list';
     for (const p of [state.self, ...state.peers]) {
       const row = document.createElement('li');
       row.className = 'collab-roster-row';
-      const actionable = !!opts.onPeer && !p.isSelf;
+      if (p.kind === 'agent') row.dataset.kind = 'agent';
+      const actionable = !!opts.onPeer && !p.isSelf && p.kind !== 'agent';
       const name = document.createElement(actionable ? 'button' : 'span');
       name.className = 'collab-roster-name';
       name.textContent = collabDisplayName(p);
@@ -733,12 +734,25 @@ export function mountCollabPill(container: HTMLElement, opts: CollabPillOptions)
       // unknown role as one would be a claim the transport never made.
       if (p.role === 'observer') rowTags.appendChild(tagEl(tRaw(STRINGS.observer)));
       if (p.away) rowTags.appendChild(tagEl(tRaw(STRINGS.awayTag)));
+      if (p.kind === 'agent') {
+        rowTags.appendChild(tagEl(tRaw(STRINGS.agent)));
+        if (p.phase === 'paused') rowTags.appendChild(tagEl(tRaw(STRINGS.paused)));
+        if (p.activity) { const activity = tagEl(p.activity); activity.title = p.activity; rowTags.appendChild(activity); }
+        for (const [action, label] of [[opts.onPauseAgent, p.phase === 'paused' ? tRaw(STRINGS.resumeAgent) : tRaw(STRINGS.pauseAgent)], [opts.onDisconnectAgent, tRaw(STRINGS.disconnectAgent)]] as const) {
+          if (!action || p.delegatedBy !== state.self.clientId) continue;
+          const control = document.createElement('button');
+          control.type = 'button'; control.className = 'btn btn--ghost btn--sm'; control.textContent = label;
+          control.dataset.peerId = p.clientId;
+          control.dataset.agentAction = action === opts.onPauseAgent ? 'pause' : 'disconnect';
+          control.addEventListener('click', () => action(p.clientId)); rowTags.appendChild(control);
+        }
+      }
       row.append(avatarEl(p), name, rowTags);
       list.appendChild(row);
     }
     host.appendChild(list);
     if (focusedId) {
-      const next = Array.from(host.querySelectorAll<HTMLButtonElement>('button')).find(button => button.dataset.peerId === focusedId && !button.disabled);
+      const next = Array.from(host.querySelectorAll<HTMLButtonElement>('button')).find(button => button.dataset.peerId === focusedId && button.dataset.agentAction === focusedAction && !button.disabled);
       (next ?? host).focus();
     }
   }
@@ -796,7 +810,7 @@ export function mountCollabPill(container: HTMLElement, opts: CollabPillOptions)
       let av = avatars.get(p.clientId);
       if (!av) { av = avatarEl(p); avatars.set(p.clientId, av); }
       else refreshAvatar(av, p);
-      if (opts.onPeer && !p.isSelf && !p.away && state.connection === 'live') av.title = tRaw(STRINGS.view, { name: collabDisplayName(p) });
+      if (opts.onPeer && !p.isSelf && !p.away && p.kind !== 'agent' && state.connection === 'live') av.title = tRaw(STRINGS.view, { name: collabDisplayName(p) });
       av.classList.toggle('is-new', !!(fresh && seen && !p.isSelf && !seen.has(p.clientId)));
       wanted.push(av);
     }

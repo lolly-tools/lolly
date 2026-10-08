@@ -42,6 +42,7 @@ import { domToPenpotDoc } from "../lib/dom-penpot.ts";
 import { stampSvgBindings } from "../lib/svg-bindings.ts";
 import { bakeTextStyles } from "./export-pptx.ts";
 import { renderSvgFromHtml, _exportNotice, type ExportOpts } from "./export.ts";
+import { cameraPosterBoxes } from './export-camera-posters.ts';
 
 /** Per-image ceiling. Matches the pptx deck path: a `src` is tool-controlled. */
 const MAX_PENPOT_IMG_BYTES = 32 * 1024 * 1024;
@@ -358,14 +359,15 @@ export async function renderPenpot(node: Element, opts: ExportOpts): Promise<Blo
   const model = readPenpotDocModel(node);
   if (model) {
     report.producer = 'design';
-    const media = await resolveBoxMedia(model.boxes);
+    const boxes = cameraPosterBoxes(model.boxes);
+    const media = await resolveBoxMedia(boxes);
     // Count by DISTINCT box id: resolveBoxMedia (and boxesToPenpotDoc) dedupe boxes
     // by id, so a duplicate-id picture is dropped as a dup, not "left out".
-    const pictures = new Set(model.boxes.filter(isPictureBox).map((b) => String(b.id ?? ''))).size;
+    const pictures = new Set(boxes.filter(isPictureBox).map((b) => String(b.id ?? ''))).size;
     report.missingImages = Math.max(0, pictures - media.size);
     const colors = makeColorResolver(node);
     try {
-      doc = boxesToPenpotDoc(model.boxes, {
+      doc = boxesToPenpotDoc(boxes, {
         ...shared,
         canvas: stageSize(node),
         background: model.background,

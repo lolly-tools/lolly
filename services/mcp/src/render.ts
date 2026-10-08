@@ -531,6 +531,10 @@ export async function previewPng(svg: string): Promise<Uint8Array> {
 
 let browserPromise: Promise<import('playwright-core').Browser> | null = null;
 const browserJobs = new BrowserJobQueue(browserQueueOptions());
+/** Operator diagnostics only; no file, document, caller or queue contents. */
+export function browserJobStatus(): { active: number; queued: number } {
+  return { active: browserJobs.active, queued: browserJobs.queued };
+}
 const MAX_BROWSER_OUTPUT_BYTES = 256 * 1024 * 1024;
 export const MAX_TRANSFORM_INPUT_BYTES = 24 * 1024 * 1024;
 
@@ -567,6 +571,17 @@ export function browserLaunchArgs(env: NodeJS.ProcessEnv = process.env): string[
   ];
 }
 
+/** Playwright defaults its Chromium sandbox off, so set the launch option too. */
+export function browserLaunchOptions(env: NodeJS.ProcessEnv = process.env): {
+  chromiumSandbox: boolean;
+  args: string[];
+} {
+  return {
+    chromiumSandbox: env.LOLLY_BROWSER_NO_SANDBOX !== '1',
+    args: browserLaunchArgs(env),
+  };
+}
+
 async function getBrowser(): Promise<import('playwright-core').Browser> {
   if (!browserPromise) {
     browserPromise = (async () => {
@@ -590,7 +605,7 @@ async function getBrowser(): Promise<import('playwright-core').Browser> {
           // WebGL-dependent tool (3d, viz) renders its fallback rather than GL
           // content on this tier. Add '--use-angle=swiftshader',
           // '--enable-unsafe-swiftshader' if a hosted deployment needs those tools.
-          args: browserLaunchArgs(),
+          ...browserLaunchOptions(),
         });
       } catch (err) {
         const msg = (err as Error).message || '';
@@ -620,7 +635,7 @@ async function getBrowser(): Promise<import('playwright-core').Browser> {
 export async function closeBrowser(): Promise<void> {
   const b = browserPromise;
   browserPromise = null;
-  if (b) { try { (await b).close(); } catch { /* ignore */ } }
+  if (b) { try { await (await b).close(); } catch { /* ignore */ } }
 }
 
 /** Reserved params we set ourselves on the export URL - cleared from the inbound

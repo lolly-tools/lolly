@@ -230,7 +230,7 @@ declare global {
   interface Window {
     /** Fetches index.html's pre-paint script started, keyed by root-relative
      *  path - see adoptBootFetch. Optional, and every entry is optional: the
-     *  script is gated (and a release build strips it entirely), so the usual
+     *  scripts are gated (signed releases strip only the slim request), so the usual
      *  state is that this object does not exist. */
     __lollyBootFetch?: Record<string, Promise<Response> | undefined>;
   }

@@ -50,6 +50,32 @@ const SA_SET: EmojiSetInfoV1 = {
 };
 const SA_KEY = 'community/emoji/openmoji/color@17.0.0';
 
+test('document emoji settings fold together and import stays a separate closed choice', async () => {
+  const host = fakeHost();
+  host.emoji!.install = async () => SET;
+  const r = await rig({ mode: 'document', host, compactManagement: true });
+  try {
+    const section = r.root.querySelector<HTMLDetailsElement>('[data-emoji-manage]')!;
+    assert.equal(section.open, false);
+    assert.equal(r.root.querySelector('.emoji-style')!.children.length, 1);
+    assert.ok(section.contains(r.root.querySelector('[data-emoji-set]')));
+    const imports = section.querySelector<HTMLDetailsElement>('[data-emoji-import]')!;
+    assert.equal(imports.open, false);
+    assert.equal(imports.querySelector('.field-row .btn')!.textContent, 'Import file…');
+    assert.equal(imports.querySelector('[role="status"]')!.textContent, '');
+    const importInfo = imports.querySelector<HTMLButtonElement>('summary .help-tip-btn')!;
+    importInfo.click();
+    assert.equal(importInfo.getAttribute('aria-expanded'), 'true');
+    assert.equal(imports.open, false, 'import help does not open the file-import section');
+    const info = section.querySelector<HTMLButtonElement>('.help-tip-btn')!;
+    assert.equal(info.getAttribute('aria-expanded'), 'false');
+    info.click();
+    assert.equal(info.getAttribute('aria-expanded'), 'true');
+    assert.equal(section.open, false, 'requesting info does not expand the section');
+    assert.equal(r.emitted.length, 0, 'opening settings never changes document artwork');
+  } finally { r.destroy(); }
+});
+
 /** Two brand colours: one accent-named, one near-black, so mono and duotone both have an answer. */
 const SWATCHES = [
   { ref: '{color.brand.primary}', value: '#0c322c' },
@@ -79,7 +105,7 @@ interface Rig {
   destroy(): void;
 }
 
-async function rig(opts: { mode: 'document' | 'preference'; value?: ControlValue; host?: HostV1; specimen?: (style: EmojiStyleV1) => Promise<string> }): Promise<Rig> {
+async function rig(opts: { mode: 'document' | 'preference'; value?: ControlValue; host?: HostV1; specimen?: (style: EmojiStyleV1) => Promise<string>; compactManagement?: boolean }): Promise<Rig> {
   document.body.innerHTML = '';
   const root = document.createElement('div');
   document.body.appendChild(root);
@@ -89,6 +115,7 @@ async function rig(opts: { mode: 'document' | 'preference'; value?: ControlValue
     mode: opts.mode,
     value: opts.value ?? null,
     onChange: (next) => emitted.push(next),
+    compactManagement: opts.compactManagement,
     ...(opts.specimen ? { specimen: opts.specimen } : {}),
   });
   // The listing and the palette both arrive on a microtask; the control renders twice.
@@ -336,4 +363,20 @@ test('two mounts in one document never share the treatment label', async () => {
   assert.notEqual(ids[0], ids[1], 'each mount labels its own group');
   for (const id of ids) assert.equal(document.querySelectorAll(`#${id}`).length, 1, 'and that id is unique');
   for (const control of controls) control.destroy();
+});
+
+test('Inspector remounts retain disclosure state even before toggle events arrive', () => {
+  const root = document.createElement('div'); document.body.append(root);
+  const host = fakeHost(); host.emoji!.install = async () => SET;
+  const disclosureState = { management: false, import: false };
+  const options = { host, mode: 'document' as const, value: null, sets: [SET], palette: [],
+    compactManagement: true, disclosureState, onChange: () => {} };
+  const first = mountEmojiStyleControl(root, options);
+  root.querySelector<HTMLDetailsElement>('[data-emoji-manage]')!.open = true;
+  root.querySelector<HTMLDetailsElement>('[data-emoji-import]')!.open = true;
+  first.destroy();
+  const second = mountEmojiStyleControl(root, options);
+  assert.equal(root.querySelector<HTMLDetailsElement>('[data-emoji-manage]')!.open, true);
+  assert.equal(root.querySelector<HTMLDetailsElement>('[data-emoji-import]')!.open, true);
+  second.destroy(); root.remove();
 });

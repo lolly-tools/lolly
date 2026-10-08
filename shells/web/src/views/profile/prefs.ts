@@ -249,7 +249,7 @@ export async function wireTrustedSites(pv: ProfileViewCtx): Promise<void> {
   const sourceWord = (source: string): string => {
     const by = policy.sitePolicy()?.by;
     if (source === 'organisation') return by ?? t('Your organisation');
-    return source === 'brand' ? t('Brand') : t('You');
+    return source === 'brand' ? t('Brand') : source === 'default' ? t('Lolly default') : t('You');
   };
   let draft = '';
   const paint = (): void => {
@@ -337,7 +337,7 @@ export async function wireTrustedSites(pv: ProfileViewCtx): Promise<void> {
     input.type = 'checkbox';
     input.id = 'trusted-sites-anysite';
     input.checked = anySite.anySiteChosen();
-    const note = el('p', 'profile-hint', t('On the web version, Design shows only video and map players until you turn this on. Lolly then reloads under a looser frame policy on this device, and still asks before loading a site you have not trusted.'));
+    const note = el('p', 'profile-hint', t('On the web version, Design shows supported players and reference sites until you turn this on. Lolly then reloads under a looser frame policy on this device, and still asks before loading a site you have not trusted.'));
     note.id = 'trusted-sites-anysite-note';
     input.setAttribute('aria-describedby', note.id);
     const switchMark = el('span', 'feature-flag-switch');

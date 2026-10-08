@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * "Check web pages": the one moment Lolly asks about a deck's web pages (plan 288 D2).
+ * "Check web pages": unresolved site choices before presenting (plan 288 D2).
  *
  * Nothing is asked once the presenter is open. A web page box whose site nobody has
  * trusted shows its picture there and its slide goes on. So every question is asked
@@ -110,7 +110,7 @@ function rowHtml(row: WebCheckRow, i: number): string {
   const pageHref = webPageHref(row.embed);
   const href = safeHref(pageHref) ? esc(pageHref) : '';
   const open = href ? `<a class="btn btn--sm" href="${href}" target="_blank" rel="noopener noreferrer">`
-    + `${icon('externalLink')}<span>${t('Open in new tab')}</span></a>` : '';
+    + `${icon('externalLink', { size: 18 })}<span>${t('Open in new tab')}</span></a>` : '';
   const meta = [slidesText(row.slides), row.label].filter(Boolean).join(' · ');
   return `<li class="pwc-row" data-pwc-row="${i}">`
     + `<span class="pwc-glyph" aria-hidden="true">${icon(row.state === 'ask' ? 'globe' : 'shield')}</span>`

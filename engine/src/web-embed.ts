@@ -17,12 +17,14 @@
  *   - `http:` only for this machine's own dev servers (localhost, 127.0.0.1, [::1]).
  *
  * Refused outright: credentials in the URL, any scheme but http(s), `data:`/`blob:`
- * (which would run as this app), and same-origin paths that are not a tool route. A
+ * (which would run as this app), and same-origin paths outside tools and documentation. A
  * site known to forbid framing comes back with `refuses`, and the UI tells the author
  * before anyone tries. `HOSTED_FRAME_ORIGINS` is the list the hosted web CSP names in
  * `frame-src` (plan 288 D2): a test pins the two together, and the shell uses it to say
  * "this deployment's security policy blocks this site" instead of showing a blank frame.
  */
+
+import { DEFAULT_REFERENCE_SITES, matchTrustedSite } from './trusted-sites.ts';
 
 export type WebEmbedKind = 'lolly' | 'provider' | 'page';
 
@@ -65,14 +67,15 @@ export interface WebEmbedContext {
   knownTool?: (id: string) => boolean;
 }
 
-/** The origins the hosted web CSP lists in `frame-src` (plan 288 D2 option a): video and
- *  map players that run no author code. Pinned to the headers by tests/web-embed.test.ts. */
+/** Named players and reference sources in the hosted frame policy, pinned by tests. */
 export const HOSTED_FRAME_ORIGINS = [
   'https://www.youtube-nocookie.com',
   'https://player.vimeo.com',
   'https://www.loom.com',
   'https://www.google.com',
   'https://www.figma.com',
+  'https://wikipedia.org',
+  ...DEFAULT_REFERENCE_SITES.map(site => `https://${site}`),
 ] as const;
 
 /** Origins a Lolly link may come from besides the app's own. */
@@ -91,6 +94,7 @@ const LOLLY_DROP = /^(format|export|copy|output|download|filename|nostage|full|o
 const REFUSERS = new Set([
   'github.com', 'gist.github.com', 'colab.research.google.com', 'x.com', 'twitter.com',
   'developer.mozilla.org', 'stackoverflow.com', 'news.ycombinator.com', 'play.grafana.org',
+  'suse.com',
 ]);
 
 /** Parse a pasted link or `<iframe>` snippet. Null when it cannot be framed safely. */
@@ -119,7 +123,7 @@ export function parseWebEmbed(input: unknown, ctx: WebEmbedContext): WebEmbed | 
   try { app = new URL(ctx.appOrigin); } catch { app = null; }
   const sameOrigin = !!app && url.origin === app.origin;
   if (sameOrigin || LOLLY_ORIGINS.has(url.origin)) {
-    return lollyEmbed(source, url, ctx, app) ?? null;
+    return lollyEmbed(source, url, ctx, app) ?? lollyDocs(source, url, app) ?? null;
   }
   const host = url.hostname.replace(/^(www|m)\./, '');
   const provider = providerEmbed(url, host);
@@ -133,6 +137,18 @@ export function parseWebEmbed(input: unknown, ctx: WebEmbedContext): WebEmbed | 
     aspect: 16 / 10, viewport: 1280,
     ...(refuses ? { refuses: true } : {}),
     ...(loopback ? { loopback: true } : {}),
+  };
+}
+
+/** Documentation is a controlled static page, never a privileged application route. */
+function lollyDocs(source: string, url: URL, app: URL | null): WebEmbed | undefined {
+  const path = /^\/info\/?$/.test(url.pathname) ? '/info/index.html' : url.pathname;
+  if (!/^\/info\/(?:[a-z0-9-]+\/)*[a-z0-9-]+\.html$/.test(path)) return undefined;
+  const origin = app?.origin ?? url.origin;
+  return {
+    source, src: `${origin}${path}${url.search}${url.hash}`, kind: 'page', provider: 'lolly-docs',
+    label: 'Lolly documentation', host: new URL(origin).host, sameOrigin: true,
+    sandbox: PAGE_SANDBOX, allow: 'fullscreen; clipboard-write', aspect: 16 / 10, viewport: 1280,
   };
 }
 
@@ -192,6 +208,15 @@ function providerEmbed(url: URL, host: string): ProviderPart | null {
       // enablejsapi lets a presenting deck pause a kept player when its slide is left.
       const q = new URLSearchParams({ rel: '0', enablejsapi: '1' });
       if (start > 0) q.set('start', String(start));
+      for (const key of ['autoplay', 'mute', 'loop', 'controls', 'fs', 'playsinline', 'cc_load_policy']) {
+        const value = url.searchParams.get(key);
+        if (value === '0' || value === '1') q.set(key, value);
+      }
+      const end = ytSeconds(url.searchParams.get('end'));
+      if (end > start && end <= 86400) q.set('end', String(end));
+      if (q.get('autoplay') === '1' && !q.has('mute')) q.set('mute', '1');
+      if (q.get('loop') === '1') q.set('playlist', id);
+      q.set('playsinline', '1');
       const list = url.searchParams.get('list');
       if (list && /^[A-Za-z0-9_-]+$/.test(list)) q.set('list', list);
       return player('youtube', 'YouTube video', `https://www.youtube-nocookie.com/embed/${id}?${q}`);
@@ -261,5 +286,6 @@ function providerEmbed(url: URL, host: string): ProviderPart | null {
  *  or one of the named player origins. */
 export function allowedOnHostedWeb(embed: Pick<WebEmbed, 'src' | 'sameOrigin'>): boolean {
   if (embed.sameOrigin) return true;
-  try { return (HOSTED_FRAME_ORIGINS as readonly string[]).includes(new URL(embed.src).origin); } catch { return false; }
+  try { return (HOSTED_FRAME_ORIGINS as readonly string[]).includes(new URL(embed.src).origin)
+    || !!matchTrustedSite(embed.src, DEFAULT_REFERENCE_SITES); } catch { return false; }
 }

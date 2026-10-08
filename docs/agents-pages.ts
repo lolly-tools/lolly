@@ -19,6 +19,7 @@
  * description cannot drift from the code that answers the requests.
  */
 import { PENPOT_MIME } from '../engine/src/penpot-file.ts';
+import { readLiveRelay } from '../packages/core/src/live-invite-v1.ts';
 
 export type Pathway = 'quickstart' | 'creators' | 'builders' | 'operators' | 'trust';
 
@@ -42,6 +43,8 @@ export interface AgentDocsOpts {
   sections: Array<{ pathway: Pathway; label: string }>;
   /** The full-tier MCP endpoint (a headless browser behind it). */
   mcpFull?: string;
+  /** The document collaboration relay offered by this shell build. */
+  liveRelay?: string;
 }
 
 /** Output filenames under /info/. */
@@ -420,6 +423,7 @@ export function buildOpenApi(o: AgentDocsOpts): Record<string, unknown> {
 
 export function buildWellKnown(o: AgentDocsOpts): Record<string, unknown> {
   const u = o.url;
+  const liveRelay = readLiveRelay(o.liveRelay, u);
   return {
     name: 'Lolly',
     description: o.description,
@@ -453,6 +457,15 @@ export function buildWellKnown(o: AgentDocsOpts): Record<string, unknown> {
       full_oauth_authorization_server: `${new URL(o.mcpFull ?? MCP_FULL_DEFAULT).origin}/.well-known/oauth-authorization-server`,
       tools: [...MCP_TOOLS],
       resources: [...MCP_RESOURCES],
+      collaboration: {
+        enabled: !!liveRelay,
+        connector: `${u}/api/mcp/agents`,
+        connector_auth: 'document invitation on every tool call',
+        ...(liveRelay ? { relay: liveRelay, invite: 'Share > Invite an agent' } : {}),
+        local_stdio: true,
+        tools: ['lolly_live_connect', 'lolly_live_status', 'lolly_live_context', 'lolly_live_find', 'lolly_live_document', 'lolly_live_apply', 'lolly_live_look', 'lolly_live_undo', 'lolly_live_disconnect'],
+        scope: 'one invited open document',
+      },
     },
   };
 }

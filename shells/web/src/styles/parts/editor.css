@@ -41,9 +41,9 @@
 .tool-layout.is-editor #tool-canvas [data-pdf-page],
 .tool-layout.is-editor #tool-canvas .artboard {
   box-shadow:
-    0 0 0 1px hsl(var(--foreground) / 0.07),
-    0 2px 6px hsl(var(--foreground) / 0.10),
-    0 14px 34px hsl(var(--foreground) / 0.09);
+    0 0 0 1px #0001,
+    0 2px 6px #0001,
+    0 14px 34px #0002;
 }
 
 /* Editor mode surfaces Export/Save/Copy/Share as prominent icons in the toolbar
@@ -498,6 +498,7 @@ html[data-a11y-motion="reduce"] .fc-btn-lolly:focus-visible svg .lolly-mark__spi
    field, its unit and the confirm button on one line, so the whole prompt is one row
    under its heading. */
 .fc-num-panel { min-width: 250px; }
+.fc-confirm-panel { width: 420px; max-width: calc(100% - 12px); min-width: min(250px, calc(100% - 12px)); box-sizing: border-box; }
 .fc-num-panel .fc-panel-head { font-weight: 700; font-size: var(--fs-md); }
 .fc-num-hint { margin: -3px 0 0; font-size: var(--fs-sm); line-height: 1.4; color: hsl(var(--muted-foreground)); }
 .fc-num-row { display: flex; align-items: center; gap: 7px; }

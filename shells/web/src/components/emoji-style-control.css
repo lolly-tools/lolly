@@ -71,3 +71,24 @@
   line-height: 1.45;
   color: var(--ui-color-text-muted);
 }
+
+.emoji-style-management {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  min-width: 0;
+  padding-block: var(--sp-3);
+}
+.emoji-style-summary {
+  margin-inline-start: auto;
+  color: var(--ui-color-text-muted);
+  font-size: var(--fs-xs);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.emoji-style .lp-details > summary { gap: var(--sp-2); }
+.emoji-style-adaptation { display: flex; align-items: center; gap: var(--sp-2); }
+.emoji-style-import-label { display: flex; align-items: center; gap: var(--sp-2); }
+.emoji-style [role="status"]:empty { display: none; }

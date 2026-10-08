@@ -63,6 +63,22 @@ Operators who don't want a public render surface switch the route off entirely w
 
 The route's parameters, refusals and headers are described in OpenAPI 3.1 at [`/openapi.json`](/openapi.json); the other machine-readable entry points (the discovery record, `llms.txt`, `llms-full.txt`, `agents.md`) are listed on [AI Agents](/info/ai-agents.html).
 
+## Browser site tools (WebMCP)
+
+Lolly also registers site tools in browsers that support `document.modelContext`. These actions use the open page and its signed-in workspace session. They follow the current view and end when the page closes. OpenAI's [Site tools guide](https://learn.chatgpt.com/docs/webmcp) describes compatible clients. Registration runs in the top-level shell; embedded tool pages do not register actions.
+
+Start with `lolly_read_context` to learn the active project, tool, design system, inspected asset and available document actions. Use `lolly_search_tools` and `lolly_describe_tool` to discover tool ids and exact engine input definitions. Search results include device availability, formats and links; descriptions of the mounted tool include current values. Other tools use their engine defaults.
+
+`lolly_read_project` returns paged folders, session summaries and asset ids for the current project. At the Projects root it lists local project folders. `lolly_search_assets` and `lolly_describe_asset` require an explicit `scope`: `project`, `uploads` or `catalog`. Project scope includes local subfolders or the current shared project's ready files. Shared project caches do not appear in uploads scope. Describing a shared file verifies its checksum and prepares the ordinary local asset reference for placement.
+
+Asset results include dimensions, formats, rights, attribution, AI disclosures and author declarations. An author declaration remains a user assertion. Credential verification is reported as `not-checked`; discovery does not certify a file. Metadata discovery omits original file contents and uses bounded responses.
+
+In a mounted Design editor, `lolly_read_document` and `lolly_find_layers` return stable layer ids, selection, canvas size and revision. `lolly_read_document_context` provides the exact layer field definitions and supported authoring operations. `lolly_apply_document_changes` requires `documentId`, `ifRevision`, `transactionId` and a history `label`. Keep the same transaction id and arguments when retrying. Changes use the live editor's validation and become one undo step. `lolly_preview_document` returns the rendered SVG; `lolly_undo_document_changes` takes back only the browser agent's newest step.
+
+The browser agent appears in People on its first document action. The person can pause or disconnect the agent there. Paused agents can read, and cannot edit. Leaving the document closes its agent session; late requests cannot act in the next view. Other tools support discovery and inspection through this adapter. Their inputs remain editable through the ordinary UI.
+
+Browsers without site tools keep the normal interface. The existing MCP server and project invitations continue to support agents working independently of an open page.
+
 ## The parameter contract is the URL
 
 Every tool input and every export control an agent can set is a URL query parameter, and the one table that defines them is [URL mode](/info/url-mode.html): inputs by id (or `urlKey`), and the reserved export names - `format`, `width`/`height`/`unit`/`dpi`, `profile`, `password`, `bleed`/`marks`, `c2pa`/`imprint`/`durable`/`meta`, `hdr`/`depth`, `cuts`, `s`, `lang`, `emoji`/`emojifx`, and for the motion formats `fps`, `seconds`, `wait`, `codec` and `vq`. The MCP `query` argument, a share link, the CLI's `--flag=value` pairs and the hot-linkable render URL are that one contract under four transports, so an agent that has learnt the table has learnt all four; `lolly_list_tools` and `lolly_describe_tool` return each tool's inputs in the same vocabulary. Nothing here is a second API to memorise.
@@ -157,14 +173,38 @@ For what no archetype holds (a slide's `under` and `over` rows) and for slides w
 
 ## Work in the open document
 
-A local MCP server (stdio) has seven more tools. With them an agent works in the Design document a person has open in Lolly, while the person watches. The hosted endpoints do not have them, because their process is not on the person's computer.
+A local MCP server (stdio) has nine collaboration tools. They let an agent join the Design document a person has open, find the requested layers, create alternatives and edit alongside its other collaborators.
+
+On an instance with an agent relay configured, open **Share > Invite an agent**, choose **Can edit** or **Can read**, and copy the instructions to your agent. The agent calls `lolly_live_connect` with the copied `invitation` and its `client` name. The connection addresses this open document, even when several documents and agents are connected to the relay. The invitation works for ten minutes before an agent joins; a joined connection lasts up to thirty minutes and ends when the inviting editor closes. A new invitation starts another connection.
+
+### Install Lolly in ChatGPT
+
+An invitation gives an installed agent access to one document. Pasting instructions into ChatGPT cannot install tools.
+
+Open **Plugins** in ChatGPT, choose **Create custom MCP server**, name the plugin **Lolly**, and set the server URL to `https://lolly.tools/api/mcp/agents`. Choose **No authentication**, review the connection notice, and create the plugin. Install the resulting plugin, then enable Lolly in your conversation. Account and workspace policies determine whether custom MCP connections are available. See [OpenAI's connection guide](https://developers.openai.com/plugins/deploy/connect-chatgpt).
+
+Complete installation before copying a fresh document invitation from Share. Call `lolly_live_connect` with `invitation` and your `client` name. Pass the same `invitation` on every hosted tool call. The installed plugin has no account-wide credential: the invitation selects its instance, document and permissions. It works with public HTTPS Lolly relays on any domain, including lolly.ing. Calls to private networks and local addresses require the local MCP server instead.
+
+The hosted connector keeps no active document or invitation between calls. The relay retains the connection while the editor stays open. Editing requires `documentId`, `ifRevision` and `transactionId`; retry with the same arguments. An ended invitation grants no access. Operators can disable the connector with `LOLLY_DISABLE_AGENT_CONNECTOR=1`. The connector uses the public gateway's durable request limits and usage budget, and refuses requests when admission is unavailable. Outbound calls pin a checked public DNS address, verify TLS for the original hostname, refuse redirects, and carry only the document bearer capability.
+
+Directory publication is separate from installing a custom MCP server. Lolly's stable plugin identity is on lolly.tools; a document invitation selects the instance where the work happens.
+
+### Plugin use
+
+Lolly's software uses the [Mozilla Public License 2.0](https://www.mozilla.org/en-US/MPL/2.0/), including its permissions, conditions, warranty disclaimer and limits of liability. Documentation uses [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). Assets have their own licenses. Using the plugin does not change your rights in your content or grant rights in somebody else's assets. Check agent edits before sharing them. Your agent provider and a private instance's operator may have their own terms.
+
+Installing the plugin grants no account-wide access. Keep invitations private. Document data passes through the connector and invitation relay to your agent provider; see the [privacy policy](privacy.md). Report setup problems through [Lolly's issue tracker](https://github.com/lolly-tools/lolly/issues). Leave private invitations and document content out of public reports.
+
+The agent appears beside people in **People**, with an **AI agent** tag, its own colour, and its current activity. Changed layers carry temporary outlines and a note identifying the agent. These cues remain outside the artwork and exports. The inviter can **Pause agent**, **Resume agent** or **Disconnect agent** from People, or end their agent invitations from Share. Pausing allows reads while refusing writes, including requests waiting in the editor's queue. Agent edits use the existing collaboration and history path: other people keep editing, and a person's newer history entry cannot be undone by the agent.
 
 | Tool | Does |
 |---|---|
-| `lolly_live_connect` | Connects to the desktop app when Allow AI control is on, or opens a browser pairing and returns its code. |
+| `lolly_live_connect` | Joins the document selected by `invitation`. Without one, connects to the desktop app when Allow AI control is on, or opens a local browser pairing. `client` gives the invited agent's name in People. |
 | `lolly_live_status` | Says whether an editor is connected. With `wait`, waits up to 120 seconds for the person to type the code. |
-| `lolly_live_document` | The open document: its rows with their stable ids, the canvas size, the person's selection and a `revision`. |
-| `lolly_live_apply` | `layerOperations` and `layerPatches`, the same vocabulary `lolly_render` takes. The whole edit becomes one undo step labelled "AI agent: " and your `label`, or nothing changes. Pass `ifRevision` to refuse the edit when the person changed the document after your read. |
+| `lolly_live_context` | The open editor's design brief, active design system and version, exact layer fields, selection, document id, revision and capabilities. |
+| `lolly_live_find` | Compact matches by text, name, kind, artboard or selection. `limit` and `offset` page the results. |
+| `lolly_live_document` | Rows with stable ids, canvas size, selection, `documentId` and `revision`. Use `ids`, `artboardId`, `selection` or `fields` to read the relevant part. |
+| `lolly_live_apply` | Typed `layerOperations` and `layerPatches`, as `lolly_render` takes. The edit is one undo step labelled with the agent's name and your `label`. Pass `documentId`, `ifRevision` and `transactionId`. A retry with the same transaction id and arguments returns its original receipt without another history entry. |
 | `lolly_live_look` | The document as it draws now, with the same labelled grid as `lolly_look`, or one region enlarged. |
 | `lolly_live_undo` | Undoes your own newest edit. When the newest change is the person's, the call is refused and nothing changes. |
 | `lolly_live_disconnect` | Ends the connection. |
@@ -173,7 +213,23 @@ A local MCP server (stdio) has seven more tools. With them an agent works in the
 
 **In a browser**, `lolly_live_connect` returns a code such as `52817-K7QF-9XMB`. The person opens Design, chooses **Connect an AI agent** and types the code. The code works once, and three wrong codes end the pairing. The page connects to the agent's server on `127.0.0.1`, which accepts pages from lolly.tools, from the sites named in `LOLLY_LIVE_ORIGINS` and from localhost. The content security policy of the served builds does not allow that connection yet, so the browser path works in a development build, or in a self-hosted build made with `VITE_LIVE_AGENT=1` whose policy allows `ws://127.0.0.1:*`.
 
-What the person keeps: a pill in the corner shows which agent is connected and its latest change, with **Disconnect**. Each agent edit is one step in their history, so Undo takes it back. The agent cannot open or save files, export, change settings, reach the network or run a tool's hooks, and each row an edit touches is checked against the Design manifest first. Text in the document is data to these tools; nothing in it is run. Text can still mislead an agent that reads it, so connect only an agent you trust.
+To create a slide alternative, find the source artboard, read its children, then use a `duplicate` operation with a new artboard id and a complete `childIds` map. Patch the new title and positions in the same apply. To place new content in a frame, add a `text` or `image` layer with `$in` set to that artboard's id; the coordinates are relative to that frame. An agent can supply its generated image as an inline data image in the `image` field, within the request's 4 MB limit. `$style` resolves against this editor's current design brief. Check the result with `lolly_live_look`.
+
+Successful reads, context and apply calls include `structuredContent`. An apply receipt includes the document, transaction, changed ids and the admitted revision; `currentRevision` also reports the document when the reply is sent, including changes made while rendering finished. Each changed row is checked against the Design manifest before admission. The renderer and hooks still follow the normal tool lifecycle.
+
+The connection retains its latest 128 receipts. Older transaction ids are refused, so retrying an expired receipt cannot repeat its edit. A connection admits up to 4096 named transactions before another invitation is needed.
+
+### Operate a document relay
+
+Run the long-lived MCP service with `pnpm run mcp:http`. Its `/live/invitations`, `/live/editor`, `/live/rpc` and `/live/mcp` routes provide invitations, outbound browser WebSockets and scoped document calls. The browser sends its attachment secret in the first socket frame; agent credentials travel in Authorization headers. A copied invitation keeps the agent secret in its URL fragment. Each grant has separate browser and agent credentials and is bound to one document and one originating editor site. The first joining agent identifies itself on the connection; another agent needs its own invitation.
+
+For a relay-only process, run `node services/mcp/src/live-http.ts`. This exposes the invitation routes and `/healthz`; the public rendering gateway stays separate. The VM sidecar recipe is `deploy/docker/live-relay.compose.yml`. Apply it beside the Work compose file, with the clean OSS release in `agent-relay-src`, and generate the Work Caddyfile with `--serve-shell --live-relay-upstream live-relay:8790`. Keep one relay process: invitation grants and their editor sockets share its memory. Restarting that process ends existing invitations.
+
+Build the web shell with `VITE_LIVE_RELAY=https://your-relay.example/live`. Allow the exact HTTPS and WSS relay origins in the shell's `connect-src` policy, and add the shell origin to the relay's `LOLLY_LIVE_ORIGINS`. Proxy these routes to the long-lived process with WebSocket upgrade support. The public Vercel function remains stateless and does not own these sockets. Development builds use `/live` through Vite's proxy to port 8790. Production builds offer the Share invitation section only when `VITE_LIVE_RELAY` is configured; the discovery record reports the same setting.
+
+An MCP client that accepts a URL and bearer headers can also use the relay's `/live/mcp` endpoint directly, with the invitation token as its bearer credential. The copied instructions include both this route and the local MCP connection. On the scoped endpoint, call `lolly_live_connect` with `client` only; the bearer credential already selects the document. That endpoint lists only the nine document tools. It has no access to server files, server tokens or rendering outside the invited document.
+
+Agent presence is delegated by the inviter's authenticated collaboration connection. Work instances must repin the updated core SDK before deploying: its presence sanitizer preserves the bounded `agents` field. Older Work servers discard that field, so other users on those servers see the ordinary document edits without the agent roster or change cues. Agent edit labels name the agent; the authenticated collaboration author remains the inviting member.
 
 ## Any format, transparently
 

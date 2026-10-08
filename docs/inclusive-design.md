@@ -52,12 +52,6 @@ contrast and every one of these switches is a plain, always-visible card on
 the profile page - findable by someone who can barely read the page as it is,
 which is the moment it matters.
 
-**Listen.** Eleven core pages of this documentation can be read aloud - play,
-pause and follow the words as they are spoken, at a pace you set. Narration is
-English-only for now, and more pages are being recorded. Slowing down costs
-nothing in quality: it is a different speed, not a lesser one, for anyone who
-learns at their own pace.
-
 ## Reduced and enhanced stimulation
 
 Neurodivergent people are not one audience with one need. The same brain that is

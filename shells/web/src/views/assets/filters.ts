@@ -13,7 +13,6 @@ import type { TypeFilter } from '../assets-filter.ts';
 import { t, tRaw } from '../../i18n.ts';
 import { LIB_GROUPS, categoryLabel, libCategory } from '../../lib/asset-category.ts';
 import { assetBaseId } from '../../lib/asset-favourites.ts';
-import { icon } from '../../lib/icons.ts';
 import { isModuleFormat } from '../../lib/mod-render.ts';
 import { isTransparent } from '../../lib/swatches.ts';
 import { fold } from '../../lib/search/match.ts';
@@ -24,12 +23,23 @@ import type { PaletteEntry } from '../../palette.ts';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 import { CAT_ICONS, CHEVRON, TYPE_FILTERS, emojiPackMeta, isThemable } from './shared.ts';
 import { bindOp, type CatCtx } from './context.ts';
+import { matchesAssetSource } from '../../lib/asset-source-tree.ts';
+import { providerBrowserHtml, providerGroups } from '../assets-provider.ts';
+import { actionButtonContent } from '../../components/action-button.ts';
+
+/** Search and selection use every record; only the expensive tile DOM is batched. */
+export function assetGridHtml(cat: CatCtx, group: string, items: AssetRef[]): string {
+  const scope = encodeURIComponent(JSON.stringify([group, cat.query, cat.typeFilter, cat.sourceSelection, cat.catSort, cat.catSortRev]));
+  const shown = Math.min(items.length, cat.assetPageSizes.get(scope) ?? 120);
+  const more = shown < items.length ? `<button type="button" class="btn btn--labelled cat-load-more" data-cat-more="${scope}" data-shown="${shown}">${actionButtonContent(t('Show more'), 'plus')}<span class="cat-page-count">${shown} / ${items.length}</span></button>` : '';
+  return `<div class="cat-grid">${items.slice(0, shown).map(cat.thumbs.assetTile).join('')}</div>${more}`;
+}
 
 // The rules below live in ./assets-filter.ts - pure, DOM-free and unit-tested
 // (assets-filter.test.ts). This view keeps the mutable state; the module owns
 // the logic. These wrappers just bind the current state to it, so every call
 // site in mountCatalog reads exactly as it did before the extraction.
-export const visibleAssets = (cat: CatCtx): AssetRef[] => visibleAssetsRule(cat.allAssets, cat.hiddenSet, assetBaseId);
+export const visibleAssets = (cat: CatCtx): AssetRef[] => visibleAssetsRule(cat.allAssets, cat.hiddenSet, assetBaseId).filter(a => matchesAssetSource(a, cat.sourceSelection));
 export const matchesType = (cat: CatCtx, a: AssetRef): boolean => matchesTypeRule(a, cat.typeFilter);
 export const playableHere = (cat: CatCtx, a: AssetRef): boolean => cat.modulesPlayable !== false || !isModuleFormat(a.format);
 // The search index, memoised across keystrokes and dropped whenever the asset
@@ -94,8 +104,8 @@ export function uploadsSectionHtml(cat: CatCtx, items: AssetRef[]): string {
   // there, and the button says whether anything is waiting.
   const trashLabel = cat.trashCount ? tRaw('Open Trash, {n} items', { n: cat.trashCount }) : t('Open Trash, empty');
   const scriptAudio = `<div class="cat-uploads-tts">${host.speech?.isAvailable()
-      ? `<button type="button" class="btn" data-script-audio>${icon('mic', { size: 14 })} ${t('Script audio')}</button>` : ''
-    }<button type="button" class="btn" data-paste-text>${icon('filePlus', { size: 14 })} ${t('Paste text')}</button><button type="button" class="btn cat-uploads-trash" data-open-trash aria-label="${escapeText(trashLabel)}">${icon('trash', { size: 14 })} ${t('Trash')}${cat.trashCount ? ` <span class="cat-uploads-trash-count">${cat.trashCount}</span>` : ''}</button></div>`;
+      ? `<button type="button" class="btn btn--labelled" data-script-audio>${actionButtonContent(t('Script audio'), 'mic')}</button>` : ''
+    }<button type="button" class="btn btn--labelled" data-paste-text>${actionButtonContent(t('Paste text'), 'filePlus')}</button><button type="button" class="btn btn--labelled cat-uploads-trash" data-open-trash aria-label="${escapeText(trashLabel)}">${actionButtonContent(t('Trash'), 'trash')}${cat.trashCount ? ` <span class="cat-uploads-trash-count">${cat.trashCount}</span>` : ''}</button></div>`;
   return `<section class="cat-group cat-group--uploads${isCollapsed ? ' is-collapsed' : ''}" data-group="${key}">
       <button type="button" class="cat-group-head" data-cat-toggle="${key}" aria-expanded="${!isCollapsed}">
         <span class="cat-group-chevron">${CHEVRON}</span>
@@ -108,7 +118,7 @@ export function uploadsSectionHtml(cat: CatCtx, items: AssetRef[]): string {
         ${scriptAudio}
         ${items.length ? `<div class="cat-uploads-bar"><button type="button" class="cat-uploads-selectall" data-selectall aria-pressed="${allSel}">${allSel ? t('Deselect all') : t('Select all')}</button><span class="cat-storage-chip" data-storage-chip hidden></span></div>` : ''}
         ${colourRow}
-        ${items.length ? `<div class="cat-grid">${items.map(cat.thumbs.assetTile).join('')}</div>` : ''}
+        ${items.length ? assetGridHtml(cat, key, items) : ''}
       </div>
     </section>`;
 }
@@ -158,7 +168,7 @@ export function assetsSectionHtml(cat: CatCtx): string {
 
   // Bucket the catalog assets by (override-aware) category, in LIB_GROUPS order.
   const buckets = new Map<string, AssetRef[]>();
-  for (const a of catalogItems) {
+  for (const a of catalogItems.filter(a => !a.meta?.provider)) {
     const k = libCategory(a, cat.overrides);
     (buckets.get(k) ?? buckets.set(k, []).get(k)!).push(a);
   }
@@ -169,6 +179,12 @@ export function assetsSectionHtml(cat: CatCtx): string {
   // grid stays the whole focus.
   const showUploads = userItems.length > 0 || !cat.query;
   if (showUploads) parts.push(uploadsSectionHtml(cat, userItems));
+  const connectedGroups = providerGroups(catalogItems);
+  for (const group of connectedGroups) {
+    const items = sortAssets(group.items, cat.catSort, cat.catSortRev);
+    parts.push(cat.tiles.groupSection(group.key, `${group.source} · ${group.label}`, items.length,
+      assetGridHtml(cat, group.key, items)));
+  }
   for (const g of LIB_GROUPS) {
     const items = buckets.get(g.key) && sortAssets(buckets.get(g.key)!, cat.catSort, cat.catSortRev);
     if (!items?.length) continue;
@@ -183,15 +199,15 @@ export function assetsSectionHtml(cat: CatCtx): string {
       : treatableGroup
         ? `<div class="cat-dl-section cat-group-colours"><span class="cat-dl-label">${t('Colour')}</span>${cat.thumbs.treatmentSwatchRow(cat.catPhotoTreatment)}</div>`
         : '';
-    parts.push(cat.tiles.groupSection(g.key, g.label, items.length, colourRow + `<div class="cat-grid">${items.map(cat.thumbs.assetTile).join('')}</div>`));
+    parts.push(cat.tiles.groupSection(g.key, g.label, items.length, colourRow + assetGridHtml(cat, g.key, items)));
   }
   if (packItems.length) {
-    parts.push(cat.tiles.sectionHtml('emoji-sets', 'Emoji sets', packItems.length, packItems.map(cat.thumbs.assetTile).join('')));
+    parts.push(cat.tiles.groupSection('emoji-sets', 'Emoji sets', packItems.length, assetGridHtml(cat, 'emoji-sets', packItems)));
   }
   // Hidden assets never match a search (they're not in `visible`); keep them under a
   // dedicated group only in the normal (non-search) view.
   if (cat.showHidden && !cat.query && hiddenItems.length) {
-    parts.push(cat.tiles.sectionHtml('hidden', 'Hidden', hiddenItems.length, sortAssets(hiddenItems, cat.catSort, cat.catSortRev).map(cat.thumbs.assetTile).join('')));
+    parts.push(cat.tiles.groupSection('hidden', 'Hidden', hiddenItems.length, assetGridHtml(cat, 'hidden', sortAssets(hiddenItems, cat.catSort, cat.catSortRev))));
   }
 
   // No asset matched the active filters → a clear empty line instead of a bare toolbar.
@@ -218,6 +234,7 @@ export function assetsSectionHtml(cat: CatCtx): string {
   const renderedKeys = [
     ...(showUploads ? ['your-uploads'] : []),
     ...LIB_GROUPS.filter(g => buckets.get(g.key)?.length).map(g => g.key),
+    ...connectedGroups.map(group => group.key),
     ...(packItems.length ? ['emoji-sets'] : []),
     ...(cat.showHidden && hiddenItems.length ? ['hidden'] : []),
     'swatches', 'fonts',
@@ -257,7 +274,7 @@ export function assetsSectionHtml(cat: CatCtx): string {
   return `
       <section class="cat-assets">
         ${showStrip ? '<div class="cat-fav-strip"></div>' : ''}
-        ${toolbar}${parts.join('')}
+        ${providerBrowserHtml(visibleAssets(cat), cat.query)}${toolbar}${parts.join('')}
       </section>`;
 }
 // Mount (or re-mount) the favourites strip into its placeholder using the shared

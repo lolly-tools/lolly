@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Discover and run deterministic, disjoint node:test shards. */
 
-import { spawnSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { browserPartitionFiles, parseBrowserPartition } from './browser-partitions.ts';
 
 export const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const TEST_ROOTS = [
@@ -92,7 +93,12 @@ export function main(argv = process.argv.slice(2)): number {
     return 2;
   }
   const inventory = shardInventory();
-  const files = requested === 'all' ? discoverTests() : inventory[requested as TestShard];
+  const partitionArgs = argv.filter((arg) => arg.startsWith('--partition='));
+  if (partitionArgs.length > 1) throw new Error('only one browser partition may be selected');
+  if (partitionArgs.length && requested !== 'browser') throw new Error('only the browser shard can be partitioned');
+  const partition = partitionArgs[0] ? parseBrowserPartition(partitionArgs[0].slice('--partition='.length)) : undefined;
+  const files = partition ? browserPartitionFiles(inventory.browser, partition)
+    : requested === 'all' ? discoverTests() : inventory[requested as TestShard];
   if (argv.includes('--list')) {
     for (const shard of SHARDS) console.log(`${shard.padEnd(16)} ${inventory[shard].length}`);
     if (requested !== 'all') for (const file of files) console.log(`  ${file}`);
@@ -107,6 +113,15 @@ export function main(argv = process.argv.slice(2)): number {
   const args = ['--import', './tests/css-stub.mjs', '--test'];
   if (process.env.LOLLY_WEBGPU_TEST_ADAPTER) args.push('--import', './tests/browser-gpu.ts');
   if (process.env.LOLLY_SKIP_REPORT) args.push('--test-reporter=./tests/reporters/skip-identities.ts');
+  const childEnv = { ...process.env };
+  if (partition) {
+    if (!process.env.LOLLY_SKIP_REPORT || !process.env.LOLLY_TEST_COVERAGE_REPORT) {
+      throw new Error('browser partitions require skip and execution report paths');
+    }
+    const source = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: REPO, encoding: 'utf8' }).trim();
+    if (process.env.GITHUB_SHA && process.env.GITHUB_SHA !== source) throw new Error('browser source differs from the workflow checkout');
+    childEnv.LOLLY_TEST_COVERAGE_METADATA = JSON.stringify({ schemaVersion: 1, shard: 'browser', source, partition, files });
+  }
   // Optional cap on the runner's file-level parallelism. node:test defaults to one worker
   // per CPU, and the native ORT model loads (ml/speech), the TUI terminal waits and the
   // encode tiers lose their timing budgets when every core is busy at once - a different
@@ -115,11 +130,12 @@ export function main(argv = process.argv.slice(2)): number {
   // some wall time for a run that does not depend on scheduling luck. Unset - CI and a plain
   // `pnpm test` - keeps the default, so this is byte-for-byte inert until someone opts in.
   const testConcurrency = process.env.LOLLY_TEST_CONCURRENCY;
-  if (testConcurrency && /^\d+$/.test(testConcurrency)) args.push(`--test-concurrency=${testConcurrency}`);
+  if (partition) args.push('--test-concurrency=1');
+  else if (testConcurrency && /^\d+$/.test(testConcurrency)) args.push(`--test-concurrency=${testConcurrency}`);
   args.push(...files);
   const result = spawnSync(process.execPath, args, {
     cwd: REPO,
-    env: process.env,
+    env: childEnv,
     stdio: 'inherit',
   });
   const elapsedSeconds = Math.round((Date.now() - started) / 100) / 10;

@@ -24,6 +24,9 @@ import { t, tRaw } from '../i18n.ts';
 import { announce } from '../a11y.ts';
 import { PairError, pairWithAgent, parsePairingCode, type AgentLink, type PairFailure } from '../lib/live-agent-connect.ts';
 import type { LiveEditor } from '../lib/live-agent.ts';
+import type { AgentChange } from '@lolly-tools/core/agent-presence-v1';
+import { agentRosterFor } from '../lib/agent-collaborators.ts';
+import { mountAgentRosterControls } from '../lib/agent-roster-controls.ts';
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, text?: string): HTMLElementTagNameMap[K] {
   const node = document.createElement(tag);
@@ -142,7 +145,7 @@ export function openAgentConnect(host: AgentConnectHost): void {
     d.status.textContent = t('Connecting…');
     let pill: AgentPill | null = null;
     void pairWithAgent(code, host.editor(), {
-      onActivity: (event) => pill?.activity(event.method, event.note),
+      onActivity: (event) => pill?.activity(event.method, event.note, event.change),
       onEnd: (reason) => {
         host.setLink(null);
         pill?.remove();
@@ -150,7 +153,7 @@ export function openAgentConnect(host: AgentConnectHost): void {
       },
     }).then((link) => {
       host.setLink(link);
-      pill = mountAgentPill(host.viewEl, { client: () => link.session.client(), disconnect: () => link.disconnect() });
+      pill = mountAgentPill(host.viewEl, { client: () => link.session.client(), disconnect: () => link.disconnect(), pause: value => link.session.pause(value) });
       d.close();
     }, (error: unknown) => {
       busy = false;
@@ -189,8 +192,8 @@ export interface AgentControlHost {
 export function openAgentControl(host: AgentControlHost): void {
   const d = dialog(t('Connect an AI agent'));
   d.body.append(el('p', 'agent-connect-lead', LEAD()));
-  const row = el('label', 'agent-connect-switch');
-  const box = el('input');
+  const row = el('label', 'field-toggle agent-connect-switch');
+  const box = el('input', 'field-check');
   box.type = 'checkbox';
   box.checked = host.allowed();
   row.append(box, el('span', undefined, t('Allow AI control on this device')));
@@ -229,35 +232,33 @@ export function openAgentControl(host: AgentControlHost): void {
 
 // ── the pill ──────────────────────────────────────────────────────────────────
 
-export interface AgentPill { activity(method: string, note?: string): void; remove(): void }
+export interface AgentPill { activity(method: string, note?: string, change?: AgentChange): void; remove(): void }
 
 /** The corner pill while an agent is linked: who, what it last did, and Disconnect. */
-export function mountAgentPill(viewEl: HTMLElement, link: { client(): string; disconnect(): void }): AgentPill {
-  const pill = el('div', 'agent-pill');
-  pill.setAttribute('role', 'status');
-  const dot = el('span', 'agent-pill-dot');
-  dot.setAttribute('aria-hidden', 'true');
-  const textEl = el('span', 'agent-pill-text');
+export function mountAgentPill(viewEl: HTMLElement, link: { client(): string; disconnect(): void; pause?(paused: boolean): void }): AgentPill {
+  const stage = viewEl.querySelector<HTMLElement>('.tool-stage') ?? viewEl;
+  const canvas = viewEl.querySelector<HTMLElement>('#tool-canvas, #tool-content');
+  const roster = agentRosterFor(stage);
   const name = (): string => link.client() || t('AI agent');
-  const idle = (): string => tRaw('{name} is connected', { name: name() });
-  textEl.textContent = idle();
-  const off = el('button', 'agent-pill-off', t('Disconnect'));
-  off.type = 'button';
-  off.addEventListener('click', () => link.disconnect());
-  pill.append(dot, textEl, off);
-  viewEl.appendChild(pill);
+  const agent = roster.join(name(), { disconnect: () => link.disconnect(), pause: value => link.pause?.(value) });
+  const removeControls = mountAgentRosterControls(stage, canvas);
   let timer: ReturnType<typeof setTimeout> | undefined;
+  let removed = false;
   return {
-    activity(method, note) {
-      if (method === 'hello') { textEl.textContent = idle(); return; }
-      const said = method === 'document.apply' ? tRaw('{name}: {note}', { name: name(), note: note ?? '' })
-        : method === 'history.undo' ? tRaw('{name} undid its last change', { name: name() })
-          : method === 'look' ? tRaw('{name} is looking at the document', { name: name() }) : idle();
-      textEl.textContent = said;
-      pill.classList.add('is-active');
+    activity(method, note, change) {
+      if (removed) return;
+      if (method === 'hello') { agent.update({ name: name() }); return; }
+      const activity = method === 'document.apply' ? note
+        : method === 'history.undo' ? t('Undo last change') : method === 'look' ? t('Looking at the document') : undefined;
+      if (!activity && !change) return;
+      const paused = roster.local().find(entry => entry.id === agent.id)?.phase === 'paused';
+      agent.update({ name: name(), activity, ...(paused ? {} : { phase: 'working' }), ...(change ? { change } : {}) });
       clearTimeout(timer);
-      timer = setTimeout(() => { pill.classList.remove('is-active'); textEl.textContent = idle(); }, 4000);
+      timer = setTimeout(() => {
+        const paused = roster.local().find(entry => entry.id === agent.id)?.phase === 'paused';
+        agent.update({ ...(paused ? {} : { phase: 'idle' }), activity: undefined, change: undefined });
+      }, 4000);
     },
-    remove() { clearTimeout(timer); pill.remove(); },
+    remove() { if (removed) return; removed = true; clearTimeout(timer); agent.remove(); removeControls(); },
   };
 }

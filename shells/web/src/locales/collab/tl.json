@@ -225,5 +225,10 @@
   "Enlarge {label} for scanning": "Palakihin ang {label} para ma-scan",
   "Point another device here to scan it. Tap anywhere or press Escape to close.": "Ituro ang isa pang device dito para i-scan ito. Mag-tap kahit saan o pindutin ang Esc para isara.",
   "This link is too long to scan. Copy it instead, or use the Code tab.": "Masyadong mahaba ang link na ito para i-scan. I-copy na lang, o gamitin ang tab na Code.",
-  "View {name}": "Tingnan ang {name}"
+  "View {name}": "Tingnan ang {name}",
+  "AI agent": "AI agent",
+  "Pause agent": "I-pause ang agent",
+  "Resume agent": "Ipagpatuloy ang agent",
+  "Disconnect agent": "Idiskonekta ang agent",
+  "Paused": "Naka-pause"
 }

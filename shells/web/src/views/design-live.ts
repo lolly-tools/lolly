@@ -10,8 +10,12 @@
  */
 
 import type { LiveEditor } from '../lib/live-agent.ts';
+import type { HostV1 } from '@lolly-tools/core/host-v1';
+import { prepareLiveAssets } from './design-live-assets.ts';
 
 export interface DesignLiveDeps {
+  documentId?: string;
+  context?: LiveEditor['context'];
   toolId: string;
   engine: string;
   surface: 'desktop' | 'web';
@@ -20,6 +24,7 @@ export interface DesignLiveDeps {
   blockId: string;
   /** The blocks input's field definitions, for a new layer's defaults. */
   fields: unknown[];
+  assets?: Pick<HostV1['assets'], 'get'>;
   selection(): string[];
   size(): { width: number; height: number };
   history: {
@@ -29,7 +34,7 @@ export interface DesignLiveDeps {
   };
   readOnly(): boolean;
   /** The history label for an agent edit, in the person's language. */
-  label(note: string): string;
+  label(note: string, client?: string): string;
   /** The manifest's own input check (the engine's `validateDocument`), given `{ [blockId]: rows }`. */
   validateInputs?(values: Record<string, unknown>): { errors: Array<{ path: string; message: string }> };
   exportSvg(): Promise<Blob>;
@@ -41,6 +46,9 @@ export function designLiveEditor(d: DesignLiveDeps): LiveEditor {
     return Array.isArray(value) ? structuredClone(value) : [];
   };
   return {
+    documentId: d.documentId,
+    owner: d.runtime,
+    context: d.context,
     tool: d.toolId,
     engine: d.engine,
     surface: d.surface,
@@ -51,11 +59,12 @@ export function designLiveEditor(d: DesignLiveDeps): LiveEditor {
       const field = d.fields.find((f) => !!f && typeof f === 'object' && (f as { id?: unknown }).id === id) as { default?: unknown } | undefined;
       return field && 'default' in field ? field.default : fallback;
     },
-    async commit(next, note) {
+    ...(d.assets ? { prepareRows: (next: unknown[], before: unknown[]) => prepareLiveAssets(next, before, d.fields, d.assets!) } : {}),
+    async commit(next, note, client) {
       const before = d.history.top();
       // The history records the step before the call first awaits, so reading the top
       // here, with no await in between, cannot pick up an edit the person made meanwhile.
-      const pending = d.history.commit({ [d.blockId]: next }, d.label(note));
+      const pending = d.history.commit({ [d.blockId]: next }, d.label(note, client));
       const after = d.history.top();
       await pending;
       return after && after !== before ? after : null;

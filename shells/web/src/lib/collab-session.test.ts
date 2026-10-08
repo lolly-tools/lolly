@@ -401,6 +401,18 @@ test('a blocks row is addressed by its stable id, never by its array index', () 
   root.remove();
 });
 
+test('inspector property focus uses the stable row and declared property; unknown fields are ignored', async () => {
+  const { fieldFocusToken } = await import('./collab-field-focus.ts');
+  const runtime = harness([blocks('items', [{ [ROW_ID_FIELD]: 'AAA', label: 'a' }])]);
+  const root = sidebar(), control = document.createElement('input'); root.append(control);
+  try {
+    const token = fieldFocusToken('items', 'AAA', 'label'); control.dataset.collabFocus = token;
+    assert.equal(focusTokenFor(control, runtime.getModel(), root), token);
+    control.dataset.collabFocus = fieldFocusToken('items', 'AAA', 'undeclared');
+    assert.equal(focusTokenFor(control, runtime.getModel(), root), undefined);
+  } finally { root.remove(); }
+});
+
 test('a row with no stable id degrades to the plain input id rather than lying', () => {
   const runtime = harness([blocks('items', [{ label: 'a' }])]);
   const root = sidebar();

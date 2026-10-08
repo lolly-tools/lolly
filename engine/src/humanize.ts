@@ -19,6 +19,7 @@
  * ingredient so the genAI provenance follows the asset wherever it is used. This module
  * runs no model, so it never stamps one.
  */
+import { inspectHiddenUnicode } from './text-hidden-unicode.ts';
 import { MODEL_FINGERPRINTS } from './claudisms.ts';
 
 /** One class of change the clean-up made, for a "what changed" summary. */
@@ -62,12 +63,25 @@ export function humanizeText(input: string): HumanizeResult {
   }
   if (fpCount > 0) changes.push({ kind: 'fingerprint', label: `Model scaffolding tokens (${[...fpModels].join(', ')})`, count: fpCount });
 
-  // 2. Invisible / hidden characters. ZWJ/ZWNJ (U+200C/D) are KEPT - they are load-carrying
-  //    in emoji sequences and Arabic/Indic shaping - so only the never-legitimate set goes.
-  apply(/[\u200b\u2060\ufeff\u180e\u00ad]/g, '', 'invisible', 'Invisible / zero-width characters');
-  apply(/[\u{E0000}-\u{E007F}]/gu, '', 'tag-char', 'Hidden tag characters');
+  // Detection and cleanup use the same emoji and orthographic context rules.
+  const hidden = inspectHiddenUnicode(text);
+  const spans = [...hidden.invisible, ...hidden.tags, ...hidden.variations].sort((a, b) => a.index - b.index);
+  if (spans.length) {
+    const parts: string[] = [];
+    let cursor = 0;
+    for (const span of spans) {
+      parts.push(text.slice(cursor, span.index));
+      cursor = span.index + span.length;
+    }
+    parts.push(text.slice(cursor));
+    text = parts.join('');
+  }
+  for (const [kind, label, count] of [
+    ['invisible', 'Invisible / zero-width characters', hidden.invisible.length],
+    ['tag-char', 'Hidden tag characters', hidden.tags.length],
+    ['variation', 'Unusual variation selectors', hidden.variations.length],
+  ] as const) if (count) changes.push({ kind, label, count });
   apply(/[\u202d\u202e]/g, '', 'bidi', 'Bidirectional override characters');
-  apply(/[\u{E0100}-\u{E01EF}]/gu, '', 'variation', 'Unusual variation selectors');
 
   // 3. Typography → house style.
   apply(/\u2014/g, ' - ', 'em-dash', 'Em-dashes to " - "');

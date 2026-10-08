@@ -45,6 +45,11 @@ test('Design keeps compact actions, panels and timeline resizing usable across t
         const page = await context.newPage();
         await visit(page);
         const compact = await page.locator('.tool-stage').getAttribute('data-design-layout') === 'compact';
+        if (compact) {
+          const profile = page.locator('.design-topbar .profile-link:visible');
+          const box = (await profile.boundingBox())!;
+          assert.ok(box.width >= 44 && box.height >= 44 && box.x + box.width <= width!, 'profile queue stays reachable on phones');
+        }
         const title = (await page.locator('.dtb-name').boundingBox())!;
         const exp = (await page.locator('[data-topbar="export"]').boundingBox())!;
         assert.ok(title.width >= 90, `readable title at ${width}`);
@@ -86,6 +91,20 @@ test('Design keeps compact actions, panels and timeline resizing usable across t
         await select(page);
         const inspector = (await page.locator('.fc-insp:not([hidden])').boundingBox())!;
         if (compact) {
+          const background = await page.locator('.fc-insp.is-compact-sheet').evaluate(el => getComputedStyle(el).backgroundColor);
+          assert.notEqual(background, 'rgba(0, 0, 0, 0)', 'the inspector sheet has a background');
+          await page.getByRole('button', { name: 'Add', exact: true }).click();
+          const menu = page.locator('.fc-popover');
+          const menuBox = (await menu.boundingBox())!;
+          const actionBox = (await page.locator('.design-compact-actions').boundingBox())!;
+          assert.ok(menuBox.y >= 0 && menuBox.y + menuBox.height <= actionBox.y, `Add stays above the bottom bar at ${width}`);
+          const webpage = menu.getByRole('menuitem', { name: 'Web page', exact: true });
+          await webpage.scrollIntoViewIfNeeded();
+          const webpageBox = (await webpage.boundingBox())!;
+          assert.ok(webpageBox.y >= menuBox.y && webpageBox.y + webpageBox.height <= actionBox.y, 'Web page is reachable by scrolling');
+          await webpage.click();
+          await menu.waitFor({ state: 'hidden' });
+          await page.getByRole('button', { name: 'Inspect', exact: true }).click();
           assert.ok(inspector.y > 90, 'a visible preview remains above the sheet');
           assert.equal(await page.locator('.fc-nav:not(.is-collapsed):visible').count(), 0);
         } else if (width! <= 1024) {
@@ -196,4 +215,55 @@ test('compact editing survives rotation, enlarged text, RTL and returning from i
     await page.getByRole('menuitem', { name: 'Design outcome', exact: true }).click();
     assert.ok(await page.getByRole('menuitemcheckbox', { name: 'Video', exact: true }).count() || await page.getByRole('menuitem', { name: 'Video', exact: true }).count());
   } finally { await context.close(); await closeBrowser(); }
+});
+
+test('profile notifications retain readable scroll space with enlarged text in phone landscape', { skip, timeout: 120000 }, async () => {
+  const browser = await getBrowser({ graphics: 'auto' });
+  try {
+    for (const [width, height] of [[320, 568], [568, 320]]) {
+      const context = await browser.newContext({ serviceWorkers: 'block', viewport: { width: width!, height: height! }, hasTouch: true });
+      try {
+        const page = await context.newPage();
+        const replies: Record<string, unknown> = {
+          '/api/auth/config': { mode: 'open', provider: 'oidc', loginPath: '/login' },
+          '/api/auth/session': { kind: 'member', user: { sub: 'notification-layout-test', email: 'test@example.invalid', groups: [], role: 'member' } },
+          '/api/v1/org-config': { instance: { name: 'Notification layout test' }, inboxUnread: 1 },
+          '/api/v1/inbox': { messages: [{ id: 'layout-notice', kind: 'notice', severity: 'info', title: 'Layout notice',
+            body: 'This message and its actions stay readable when text is enlarged and the phone rotates.', dismissible: true }] },
+        };
+        await page.route('**/api/**', async route => {
+          const body = replies[new URL(route.request().url()).pathname];
+          await route.fulfill({ status: body ? 200 : 404, contentType: 'application/json', body: JSON.stringify(body ?? {}) });
+        });
+        await visit(page);
+        await page.evaluate(() => {
+          document.documentElement.dir = 'rtl';
+          document.documentElement.style.fontSize = '200%';
+        });
+        const profile = page.locator('.design-topbar .profile-link:visible');
+        const trigger = await profile.elementHandle();
+        assert.ok(trigger);
+        await profile.click();
+        await page.locator('[data-act="notifications"]').click();
+        const center = page.locator('dialog.notification-center');
+        await center.getByRole('heading', { name: 'Layout notice', exact: true }).waitFor();
+        const bounds = (await center.boundingBox())!;
+        assert.ok(bounds.x >= 0 && bounds.y >= 0 && bounds.x + bounds.width <= width! + 1 && bounds.y + bounds.height <= height! + 1);
+        const list = center.locator('.notification-center-list');
+        assert.ok(await list.evaluate(el => el.clientHeight) >= 88, 'the message viewport can show a large-text action');
+        const dismiss = center.locator('article').filter({ hasText: 'Layout notice' }).getByRole('button', { name: 'Dismiss', exact: true });
+        await dismiss.scrollIntoViewIfNeeded();
+        const listBounds = (await list.boundingBox())!, actionBounds = (await dismiss.boundingBox())!;
+        assert.ok(actionBounds.height >= 44 && actionBounds.y >= listBounds.y && actionBounds.y + actionBounds.height <= listBounds.y + listBounds.height + 1,
+          'the full dismiss button is visible inside the scrolling message list');
+        await page.evaluate(() => {
+          window.addEventListener('popstate', () => { document.documentElement.dataset.notificationBackSettled = '1'; }, { once: true });
+        });
+        await page.keyboard.press('Escape');
+        await page.waitForFunction(() => document.documentElement.dataset.notificationBackSettled === '1');
+        assert.equal(await trigger.evaluate(el => el.isConnected && el === document.activeElement), true);
+        assert.ok(await trigger.isVisible(), 'focus returns to the visible profile button after the dock moves it');
+      } finally { await context.close(); }
+    }
+  } finally { await closeBrowser(); }
 });

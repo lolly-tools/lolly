@@ -71,7 +71,7 @@
   min-width: 0;
   min-height: 0;
   height: 100%;
-  background: var(--ui-color-surface-raised);
+  background: transparent;
   color: var(--ui-color-text-default);
   font-family: var(--ui-type-ui-family);
   font-size: var(--ui-type-body);
@@ -149,7 +149,7 @@ input.lp-head-name:focus {
   display: flex;
   gap: var(--sp-1);
   padding: var(--sp-2) var(--sp-3);
-  border-bottom: 1px solid var(--ui-color-border-default);
+  border-bottom: 1px solid var(--ui-color-surface-overlay);
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -204,7 +204,7 @@ input.lp-head-name:focus {
   font-weight: var(--ui-type-weight-label);
   text-transform: uppercase;
   letter-spacing: var(--ui-type-tracking-label);
-  color: var(--ui-color-text-muted);
+  color: var(--ui-color-border-default);
 }
 .lp-band-label::after {
   content: '';

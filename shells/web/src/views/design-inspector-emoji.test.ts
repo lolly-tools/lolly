@@ -166,7 +166,7 @@ test('the Document section mounts the shared control, in document mode, on the c
     const slot = h.slot();
     assert.ok(slot, 'the Document section left a slot for the control');
     assert.equal(h.el.querySelector('[data-sec="document"]')?.contains(slot!), true, 'and it is inside Document');
-    assert.ok(h.el.textContent?.includes('Emoji'), 'the row says what it is');
+    assert.equal(slot!.getAttribute('aria-label'), 'Emoji', 'the shared control owns the visible heading');
 
     assert.equal(control.mounts.length, 1, 'the control was mounted once');
     const mounted = control.mounts[0]!;

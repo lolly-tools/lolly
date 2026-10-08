@@ -42,6 +42,21 @@ interface CapturedResponse {
   body: string;
 }
 
+test('installed agent route lists tools without account auth and fails closed when admission is unavailable', async () => {
+  const request = { method: 'POST', headers: { 'content-type': 'application/json' }, body: { jsonrpc: '2.0', id: 1, method: 'tools/list' } };
+  const listed = await drive('/api/mcp/agents', {}, request);
+  assert.equal(listed.status, 200);
+  assert.equal(JSON.parse(listed.body).result.tools.length, 9);
+  assert.equal(listed.headers['cache-control'], 'no-store');
+  assert.equal((await drive('/api/mcp/agents', { LOLLY_MCP_HOSTED: '1' }, request)).status, 503);
+  assert.equal((await drive('/api/mcp/agents', { LOLLY_DISABLE_AGENT_CONNECTOR: '1' }, request)).status, 404);
+  assert.equal((await drive('/api/mcp/agents', {})).status, 405);
+  assert.equal((await drive('/api/mcp/agents', {}, { ...request, headers: {} })).status, 415);
+  assert.equal((await drive('/api/mcp/agents', {}, { ...request, body: 'x'.repeat(4 * 1024 * 1024 + 1) })).status, 413);
+  const noInvitation = await drive('/api/mcp/agents', {}, { ...request, body: { jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'lolly_live_document', arguments: {} } } });
+  assert.equal(JSON.parse(noInvitation.body).result.isError, true);
+});
+
 async function drive(
   url: string,
   env: NodeJS.ProcessEnv,

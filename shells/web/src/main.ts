@@ -10,17 +10,17 @@
  */
 
 import { recordFeaturedRoute } from './lib/featured-activity.ts';
+import { clearSiteToolSources } from './lib/site-tools-context.ts';
 import { mountIOSTextScale } from './lib/ios-text-scale.ts';
-import { mountTooltips } from './lib/tooltips.ts';
 import { overlayAbsorbsPopstate } from './lib/overlay-back.ts';
 import { createBridge } from './bridge/index.ts';
 import { setSceneManifestLoader, SCENE_TOOL_ID } from './bridge/scene-manifest.ts';
 import type { Profile } from '@lolly-tools/core/host-v1';
-import { syncCatalog, syncCorePrefetch, defaultFavouriteAssetIds, toolIndexChanged, localizeToolIndex, loadSlimToolIndex } from './catalog/sync.ts';
+import { prepareAssetCatalogFetch, syncCatalog, syncCorePrefetch, defaultFavouriteAssetIds, toolIndexChanged, localizeToolIndex, loadSlimToolIndex } from './catalog/sync.ts';
 import { mergeInstalledToolsIntoIndex } from './lib/installed-tools.ts';
 import { saveFavouriteAssets } from './lib/asset-favourites.ts';
 import { settingsRoute } from './views/settings-route.ts';
-import { mountGallery, showGalleryWelcome } from './views/gallery.ts';
+import { showGalleryWelcome } from './views/gallery-welcome.ts';
 import { openDropFilePicker } from './lib/drop-file-picker.ts';
 import { expectWelcomeDecision, isWelcomeDismissed, settleWelcomeDecision, welcomeSettled } from './lib/welcome-gate.ts';
 import { initTheme, applyTheme, urlThemeOverride } from './theme.ts';
@@ -102,7 +102,7 @@ if (isIframeMode()) forwardDeckKeys();
 // seam the tool renders the flat photo, and with DEPTH_STAGED false the seam
 // resolves null rather than offering a download that cannot succeed.
 installDepthSeam();
-mountTooltips();
+onWindowLoad(() => { void welcomeSettled().then(() => import('./lib/tooltips.ts')).then(m => m.mountTooltips()); });
 
 /** The web capability bridge, as produced by createBridge. */
 type WebHost = Awaited<ReturnType<typeof createBridge>>;
@@ -365,6 +365,9 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
     }
   }
   if (outgoing?._beforeLeave && !await outgoing._beforeLeave()) return;
+  clearSiteToolSources({ name: route.name,
+    ...(route.name === 'projects' ? { folderId: route.folderId, projectId: new URLSearchParams(route.params ?? '').get('team') || undefined } : {}),
+  });
   const prevSig = mountedRouteSig;
   mountedRouteSig = routeSig;
   routeLoading?.close();
@@ -738,19 +741,25 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
       await mountDocumentModel(view, host, route.slug, route.params ?? '');
       break;
     }
-    case 'utilities':
+    case 'utilities': {
       // The gallery in only-utilities mode: same view, same wiring, filtered to
       // the on-device utility tools (compress-pdf, strip-data, countdown-timer…).
       // The 'Offline Utilities' flag governs the WHOLE view now - off means no
       // tab and no route (a deep link lands on the main gallery).
       if (!flagEnabledSync(UTILITIES_FLAG_ID)) { window.location.replace('#'); return; }
+      const { mountGallery } = await import('./views/gallery.ts');
       await mountGallery(view, host as unknown as Parameters<typeof mountGallery>[1], { only: 'utility', params: route.params });
       break;
-    case 'gallery':
+    }
+    case 'gallery': {
+      const { mountGallery } = await import('./views/gallery.ts');
       await mountGallery(view, host as unknown as Parameters<typeof mountGallery>[1], { params: route.params });
       break;
-    default:
+    }
+    default: {
+      const { mountGallery } = await import('./views/gallery.ts');
       await mountGallery(view, host as unknown as Parameters<typeof mountGallery>[1]);
+    }
   }
   } catch (err) {
     console.error('View mount failed:', err);
@@ -999,13 +1008,12 @@ function catalogHostOf(host: Awaited<ReturnType<typeof createBridge>>) {
 /** Start the catalog once the shell's instance choice is settled. `signInRequired`
  *  is the control-plane gate, asked only by an instance that refused its catalog
  *  before (catalog/sync.ts), so a signed-out visitor sends no catalog requests. */
-function startBootCatalog(host: Awaited<ReturnType<typeof createBridge>>, coldGallery: boolean, signInRequired: () => Promise<boolean>): Promise<void> {
+function startBootCatalog(host: Awaited<ReturnType<typeof createBridge>>, coldGallery: boolean, signInRequired: () => Promise<boolean>, preparedAssets?: ReturnType<typeof prepareAssetCatalogFetch>): Promise<void> {
   const welcomeRoute = parseRoute().name;
-  if ((welcomeRoute === 'gallery' || welcomeRoute === 'utilities') && !isWelcomeDismissed()) expectWelcomeDecision();
   const catalogHost = catalogHostOf(host);
   const welcomeFirst = coldGallery && welcomeRoute === 'gallery'
     ? () => showGalleryWelcome(catalogHost, () => parseRoute().name === 'gallery').catch(console.error) : undefined;
-  return syncCatalog(catalogHost, welcomeFirst, welcomeSettled, signInRequired)
+  return syncCatalog(catalogHost, welcomeFirst, welcomeSettled, signInRequired, preparedAssets)
     .then(async () => { try { await mergeInstalledToolsIntoIndex(); } catch { /* no installed tools / no index yet */ } });
 }
 
@@ -1047,12 +1055,11 @@ async function boot(): Promise<void> {
   // the base for good. Correctness costs Tauri nothing measurable - the sheet is one
   // fast IndexedDB read on every boot after the first.
   const coldGallery = !window.__toolIndex;
-  if (coldGallery && parseRoute().name === 'gallery') {
-    void import('./components/welcome-dialog.ts');
-  }
+  const firstRoute = parseRoute().name;
+  if ((firstRoute === 'gallery' || firstRoute === 'utilities') && !isWelcomeDismissed()) expectWelcomeDecision();
   let slimIndexReady = coldGallery && !isTauriShell() ? loadSlimToolIndex() : null;
 
-  const host = await createBridge();
+  const hostReady = createBridge();
   // The optional deployment control plane's probe (src/org/) is a time-boxed fetch
   // (AUTH_PROBE_BUDGET_MS in org/probe.ts, retry included; an unanswered probe is not
   // cached as "no instance", only noted so the next boots use a shorter budget) that
@@ -1079,11 +1086,19 @@ async function boot(): Promise<void> {
   // the sheet's setInstanceBase() write. Web/PWA never shows the sheet, and is where
   // the overlap was worth having.
   let releaseOrgProbe!: () => void;
-  const orgPromise = new Promise<void>(resolve => { releaseOrgProbe = resolve; }).then(() => initOrgProbeFirst());
+  const orgPromise = new Promise<void>(resolve => { releaseOrgProbe = resolve; }).then(async () => {
+    await hostReady;
+    return initOrgProbeFirst();
+  });
   if (!isTauriShell()) void initInstanceBase().then(releaseOrgProbe, releaseOrgProbe);
   const signInRequired = (): Promise<boolean> => orgPromise.then(org => !!org?.gate);
+  // The cold gallery needs brand metadata first; fetch while the bridge opens.
+  // No storage sync starts until its design-system migration has finished.
+  const earlyAssets = !isTauriShell() && coldGallery && firstRoute === 'gallery'
+    ? prepareAssetCatalogFetch(signInRequired) : undefined;
+  const host = await hostReady;
   // Web can sync while profile and chrome initialize. Tauri waits for its instance sheet.
-  const earlyCatalog = !isTauriShell() ? startBootCatalog(host, coldGallery, signInRequired) : null;
+  const earlyCatalog = !isTauriShell() ? startBootCatalog(host, coldGallery, signInRequired, earlyAssets) : null;
   trackVisualViewport();
   initMobilePlatformFit();
   // A Design 3D scene box keeps its uploads as asset ids inside its scene query, and only
@@ -1131,7 +1146,7 @@ async function boot(): Promise<void> {
   // downstream of a user gesture that is many seconds away, and mountJobToast's own
   // last line is `render(jobsSnapshot())` - so a job somehow started first is picked
   // up by the mount rather than missed by it.
-  onWindowLoad(() => { void import('./lib/job-toast.ts').then(m => m.mountJobToast()); });
+  onWindowLoad(() => { void welcomeSettled().then(() => import('./lib/job-toast.ts')).then(m => m.mountJobToast()); });
 
   // Installing the PWA re-arms the one-time offline nudge (views/offline-nudge.ts):
   // an install puts an icon on the device while precaching only the shell, so a
@@ -1544,6 +1559,9 @@ async function boot(): Promise<void> {
   // section at all.
   const org = await orgPromise;
   if (org?.gate) { settleWelcomeDecision(); return; }
+  if (window.top === window && typeof (document as Document & { modelContext?: { registerTool?: unknown } }).modelContext?.registerTool === 'function') {
+    void import('./lib/site-tools-discovery.ts').then(module => module.installSiteTools(host)).catch(error => console.warn('[lolly:site-tools]', error));
+  }
   if (org?.config?.branding?.revision) {
     void import('./lib/design-system/brand-refresh.ts').then(module => module.mountBrandRefresh(host, catalogHostOf(host), org.config!.branding!.revision, () => parseRoute().name)).catch(console.error);
   }

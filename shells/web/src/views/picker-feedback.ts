@@ -132,3 +132,45 @@ export function mountGuidedCollection(
     menu?.close(false);
   };
 }
+
+/** Transient feedback for additions that have no tile, such as pasted assets. */
+export function createCollectToast(root: HTMLElement): (result: CollectResult | boolean) => void {
+  let toastTimer: ReturnType<typeof setTimeout> | undefined;
+  return (r) => {
+    const ok = collectOk(r), label = collectLabel(r);
+    let toast = root.querySelector<HTMLElement>('.asset-picker-toast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.className = 'asset-picker-toast';
+      toast.setAttribute('role', 'status');
+      root.querySelector('.asset-picker-panel')?.appendChild(toast);
+    }
+    toast.textContent = (ok ? '✓ ' : '') + label;
+    toast.classList.toggle('is-fail', !ok);
+    toast.classList.add('is-shown');
+    announce(label);
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast?.classList.remove('is-shown'), 1600);
+  };
+}
+
+export function focusPickerCard(el: HTMLElement | null | undefined): void { if (el) { el.focus({ preventScroll: true }); el.scrollIntoView({ block: 'nearest' }); } }
+export function movePickerSelection(cur: HTMLElement, key: string, cards: HTMLElement[]): void {
+  const i = cards.indexOf(cur);
+  if (key === 'ArrowRight') { focusPickerCard(cards[i + 1]); return; }
+  if (key === 'ArrowLeft') { focusPickerCard(cards[i - 1]); return; }
+  const r = cur.getBoundingClientRect();
+  const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+  const down = key === 'ArrowDown';
+  let best: HTMLElement | null = null, bestScore = Infinity;
+  for (const c of cards) {
+    if (c === cur) continue;
+    const cr = c.getBoundingClientRect();
+    const vy = (cr.top + cr.height / 2) - cy;
+    if (down ? vy <= r.height * 0.4 : vy >= -r.height * 0.4) continue; // must be a further row
+    const dx = Math.abs((cr.left + cr.width / 2) - cx);
+    const score = dx + Math.abs(vy) * 1.5; // nearest column first, then nearest row
+    if (score < bestScore) { bestScore = score; best = c; }
+  }
+  focusPickerCard(best);
+}

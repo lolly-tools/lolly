@@ -225,5 +225,10 @@
   "Couldn't read the transfer back.": "Kon de overdracht niet teruglezen.",
   "Part of the transfer is missing.": "Een deel van de overdracht ontbreekt.",
   "The transfer was cancelled.": "De overdracht is geannuleerd.",
-  "View {name}": "{name} weergeven"
+  "View {name}": "{name} weergeven",
+  "AI agent": "AI-agent",
+  "Pause agent": "Agent pauzeren",
+  "Resume agent": "Agent hervatten",
+  "Disconnect agent": "Agent loskoppelen",
+  "Paused": "Gepauzeerd"
 }

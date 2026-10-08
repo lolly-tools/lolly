@@ -29,6 +29,7 @@ test('SVG import keeps brand font snapping, fits both text layers and offers Typ
     assert.match(await page.locator('dialog').innerText(), /Arial/);
     assert.match(await page.locator('dialog').innerText(), /Make it yours → Type/);
     const headline = page.locator('#tool-canvas .lolly-box-text').filter({ hasText: 'Welcome to Northstar' });
+    const supportingText = page.locator('#tool-canvas .lolly-box-text').filter({ hasText: 'Make something useful together.' });
     const textMetrics = () => page.locator('#tool-canvas .lolly-box-text').evaluateAll(elements => elements.filter(el => el.textContent?.trim()).map(el => {
       const box = el.closest<HTMLElement>('.lolly-box')!;
       const text = el as HTMLElement;
@@ -36,6 +37,7 @@ test('SVG import keeps brand font snapping, fits both text layers and offers Typ
         needWidth: text.scrollWidth, needHeight: text.scrollHeight,
         padding: getComputedStyle(text).padding, font: getComputedStyle(text).fontFamily };
     }));
+    await Promise.all([headline.waitFor(), supportingText.waitFor()]);
     await page.evaluate(() => document.fonts.ready);
     const firstText = await textMetrics();
     assert.deepEqual(firstText.map(layer => layer.text?.trim()).sort(), ['Make something useful together.', 'Welcome to Northstar']);
@@ -44,7 +46,7 @@ test('SVG import keeps brand font snapping, fits both text layers and offers Typ
     await page.waitForURL(/area=type/);
     await page.getByRole('heading', { name: 'Make it yours', exact: true }).waitFor();
     await page.goBack();
-    await headline.waitFor();
+    await Promise.all([headline.waitFor(), supportingText.waitFor()]);
     await page.evaluate(() => document.fonts.ready);
     const text = [...firstText, ...await textMetrics()];
     assert.equal(text.length, 4);

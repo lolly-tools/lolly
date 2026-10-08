@@ -27,7 +27,7 @@
    strip of four is a guessing game. */
 .edge-dock-tabs {
   flex: 0 0 auto; display: flex; gap: var(--sp-1); margin-block-end: var(--ui-space-control-inline);
-  padding: var(--sp-1); border-radius: var(--ui-radius-control); background: color-mix(in srgb, var(--ui-color-surface-muted) 60%, transparent);
+  padding: var(--sp-1); border-radius: var(--ui-radius-control); background:transparent;
   overflow-x: auto; scrollbar-width: none;
 }
 .edge-dock-tab {
@@ -43,7 +43,7 @@
 }
 .edge-dock-tab:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
 .edge-dock-tab-ic { flex: none; display: inline-flex; }
-.edge-dock-tab-ic svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); }
+.edge-dock-tab-ic svg { width: var(--ui-size-icon-sm); height: var(--ui-size-icon-sm); }
 .edge-dock-tab-lb { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* A docked occupant is a pane now, not a floating pill/rounded card: drop its large
    outer radius to a small pane corner. Overrides the panel's own (pill or big) radius. */
@@ -65,6 +65,7 @@
 }
 .collab-save-status { padding-inline: var(--sp-2); }
 .edge-dock-slot:not(.edge-dock-slot--compact) > * {
+  background:transparent;
   position: static !important; inset: auto !important; margin: 0 !important;
   width: 100% !important; height: 100% !important; max-width: none !important; max-height: none !important;
   /* The dock owns visibility here: the export panel's reveal is scoped to its #tool-layout
@@ -99,7 +100,7 @@
   display: inline-flex; align-items: center; justify-content: center;
 }
 .edge-dock-rail-btn:hover { background: var(--ui-color-surface-muted); }
-.edge-dock-rail-btn svg { width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); }
+.edge-dock-rail-btn svg { width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); }
 .edge-dock-drop {
   position: fixed; inset-block: 0 var(--design-timeline-h, 0px); inset-inline-end: 0; width: var(--dock-w, 340px);
   z-index: 9399; pointer-events: none;

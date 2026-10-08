@@ -28,6 +28,8 @@ import type { mountProfile } from '../profile.ts';
 
 /** The instance card's account half, as a deployment's control plane hands it over. */
 export interface ProfileAccount {
+  /** Present only when this workspace offers passkey management. */
+  securityHref?: string;
   /** The workspace's own name ("lolly.ing"), or '' when it gives none. */
   workspace: string;
   /** Who is signed in; `name` is '' when the instance knows only the address. Null

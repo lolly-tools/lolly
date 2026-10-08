@@ -128,9 +128,10 @@ function leaveFor(url: string): void {
 }
 
 /** Turn the setting on and reload under the wider policy. */
-export function enterAnySite(extraParam?: string): void {
-  try { localStorage.setItem(ANY_SITE_KEY, '1'); } catch { return; }
+export function enterAnySite(extraParam?: string): boolean {
+  try { localStorage.setItem(ANY_SITE_KEY, '1'); } catch { return false; }
   leaveFor(anySiteTarget(location, extraParam));
+  return true;
 }
 
 /** Turn the setting off and reload under the hosted policy. */

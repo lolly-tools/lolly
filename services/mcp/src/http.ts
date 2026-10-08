@@ -14,23 +14,43 @@
  * plans/77-mcp-server.md section 5.
  */
 
-import { createServer } from 'node:http';
 import { pathToFileURL } from 'node:url';
+import { createHttpLifecycle, createWriteTracker } from '../../shared/http-lifecycle.mjs';
 import { createGateway } from './gateway.ts';
+import { createLiveRelay } from './live-relay.ts';
+import { browserJobStatus, closeBrowser, closeWebShell } from './render.ts';
+import { createUsageBudget } from './usage-budget.ts';
 
 /** @deprecated name kept for back-compat; the gateway now also serves OAuth. */
 export const createMcpHttpHandler = createGateway;
 
 export function startHttpServer(port = Number(process.env.PORT || 8790)): void {
-  const handler = createGateway();
-  createServer((req, res) => {
-    handler(req, res).catch(err => {
-      try { res.writeHead(500, { 'content-type': 'application/json' }); res.end(JSON.stringify({ jsonrpc: '2.0', id: null, error: { code: -32603, message: String(err) } })); }
-      catch { /* headers already sent */ }
-    });
-  }).listen(port, process.env.LOLLY_MCP_BIND_HOST || '127.0.0.1', () => {
+  const writes = createWriteTracker();
+  const budget = createUsageBudget(process.env, 'mcp', writes.begin);
+  const handler = createGateway(process.env, { onWrite: writes.begin, budget });
+  const relay = createLiveRelay();
+  let dispose = (): void => {};
+  const lifecycle = createHttpLifecycle({
+    handler: async (req, res) => {
+      if (!(await relay.handle(req, res))) await handler(req, res);
+    },
+    writes,
+    queueStatus: browserJobStatus,
+    flushAccounting: () => budget.record(0),
+    beforeClose: async () => {
+      dispose();
+      await closeBrowser();
+      await closeWebShell();
+    },
+  });
+  dispose = relay.mount(lifecycle.server, () => !lifecycle.isDraining());
+  lifecycle.installSignalHandlers();
+  lifecycle.server.listen(port, process.env.LOLLY_MCP_BIND_HOST || '127.0.0.1', () => {
     process.stderr.write(`lolly-mcp (http) on http://localhost:${port}/mcp\n`);
-    if (!process.env.LOLLY_WEB_BASE) process.stderr.write('  note: LOLLY_WEB_BASE unset - Tier-B (browser) formats disabled; svg/data + resvg-png still work.\n');
+    if (!process.env.LOLLY_WEB_BASE)
+      process.stderr.write(
+        '  note: LOLLY_WEB_BASE unset - Tier-B (browser) formats disabled; svg/data + resvg-png still work.\n'
+      );
   });
 }
 

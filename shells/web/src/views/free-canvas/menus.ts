@@ -636,6 +636,31 @@ export function openImportPanel(fc: FcCtx, anchor: HTMLElement): void {
 }
 // Right-click context menu at the cursor (desktop): a consolidated list of the
 // arrange / align / group / clip / edit actions.
+function groupMenuItems(fc: FcCtx, at: {x:number;y:number}, multi: boolean): PopItem[] {
+  return [
+    { sep: true },
+    { label: t('Group'), icon: icon(SVG.group), run: () => fc.objects.groupSelection(), disabled: !multi },
+    {
+      label: t('Ungroup'),
+      icon: icon(SVG.ungroup),
+      run: () => fc.objects.ungroupSelection(),
+      disabled: !fc.objects.canUngroup(),
+    },
+    ...(fc.cfg.pathField ? [{label:t('Unpack SVG layers'),icon:icon(SVG.ungroup),run:()=>void fc.objects.unpackSvgPaths(at),disabled:!fc.objects.canUnpackSvgPaths()}] : []),
+    {
+      label: t('Clip to bottom shape'),
+      icon: icon(SVG.clip),
+      run: () => fc.objects.clipSelection(),
+      disabled: !multi,
+    },
+    {
+      label: t('Release clip'),
+      icon: icon(SVG.unclip),
+      run: () => fc.objects.releaseClip(),
+      disabled: !fc.objects.selHasClip(),
+    },
+  ];
+}
 export function openContextMenu(fc: FcCtx, clientX: number, clientY: number): void {
   const { canFlip, cfg, frameCfg, host, stageEl, styleFields, timeCfg, vectorCfg, viewEl } = fc;
   fc.toolbox.closePopover();
@@ -826,26 +851,7 @@ export function openContextMenu(fc: FcCtx, clientX: number, clientY: number): vo
       ],
       cols: 2,
     },
-    { sep: true },
-    { label: t('Group'), icon: icon(SVG.group), run: () => fc.objects.groupSelection(), disabled: !multi },
-    {
-      label: t('Ungroup'),
-      icon: icon(SVG.ungroup),
-      run: () => fc.objects.ungroupSelection(),
-      disabled: !fc.objects.canUngroup(),
-    },
-    {
-      label: t('Clip to bottom shape'),
-      icon: icon(SVG.clip),
-      run: () => fc.objects.clipSelection(),
-      disabled: !multi,
-    },
-    {
-      label: t('Release clip'),
-      icon: icon(SVG.unclip),
-      run: () => fc.objects.releaseClip(),
-      disabled: !fc.objects.selHasClip(),
-    },
+    ...groupMenuItems(fc, {x:clientX,y:clientY}, multi),
   ];
   // ── timeline ───────────────────────────────────────────────────────────────
   // Right-click parity with the panel's own timing toggle. Present for any
@@ -1236,7 +1242,7 @@ export function openAddMenu(fc: FcCtx, anchor: HTMLElement): void {
   const { ADD_KIND_ICON, addKinds } = fc;
   spawnPopover(fc, 
     anchor,
-    [...addKinds.flatMap((k) => [{
+    [...addKinds.filter(k => !fc.timeCfg || k.id !== 'camera').flatMap((k) => [{
       label: k.label ? t(k.label) : k.id,
       icon: icon(ADD_KIND_ICON[k.id] || SVG.add),
       run: () => fc.modes.setMode('create', { kind: k }),

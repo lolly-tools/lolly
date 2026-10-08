@@ -1,7 +1,7 @@
 {
   "id": "synth",
   "name": "Synth",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "engineVersion": "^1.214.0",
   "status": "experimental",
   "singleInstance": true,
@@ -108,7 +108,7 @@
       "section": "Scene",
       "type": "boolean",
       "default": true,
-      "help": "Let your pointer push the picture around, and play it from a MIDI controller if you have one. Each note strikes a splat of ink, low notes to the left and high to the right; the knob map is fixed: CC1 is Intensity, CC2 is Speed, CC3 is Symmetry, CC74 is Colour rotation. Nothing is asked of your MIDI devices until this is switched on, and Safari has no Web MIDI at all, so there the pointer is all you get. Turn it off to leave the picture on its own loop, which is what you want while you set up an export."
+      "help": "Let your pointer push the picture around, and play it from a MIDI controller if you have one. Each note strikes a splat of ink, low notes to the left and high to the right; the knob map is fixed: CC1 is Intensity, CC2 is Speed, CC3 is Symmetry, CC74 is Colour rotation. MIDI access is requested only while playing in this tool view, never for gallery previews or background exports. Safari has no Web MIDI, so there the pointer is all you get. Turn it off to leave the picture on its own loop while you set up an export."
     },
 
     { "id": "color1", "label": "Colour 1", "section": "Colour", "type": "color", "default": "{color.semantic.primary}", "help": "The ramp runs Colour 1 to Colour 3 through OKLab, so the blend stays perceptual." },

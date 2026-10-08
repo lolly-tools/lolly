@@ -1,0 +1,76 @@
+{{- $fileCertificates := ne .Values.edge.tls.mode "acme" -}}
+{{- $persistentCertificates := ne .Values.edge.tls.mode "file" -}}
+{{- $volumeCount := int (add 4 (ternary 2 0 $fileCertificates) (ternary 1 0 $persistentCertificates)) -}}
+{{- $mountGuards := list -}}
+{{- $volumeGuards := list -}}
+{{- if $fileCertificates -}}
+{{- $mountGuards = append $mountGuards "(has(m.readOnly) && m.readOnly && ((m.name == 'public-tls' && m.mountPath == '/tls/public') || (m.name == 'private-tls' && m.mountPath == '/tls/private')))" -}}
+{{- $volumeGuards = append $volumeGuards (printf "((v.name == 'public-tls' && has(v.secret) && v.secret.secretName == '%s') || (v.name == 'private-tls' && has(v.secret) && v.secret.secretName == '%s'))" .Values.public.tlsSecret .Values.private.tlsSecret) -}}
+{{- end -}}
+{{- if $persistentCertificates -}}
+{{- $mountGuards = append $mountGuards "(m.name == 'caddy-data' && m.mountPath == '/data')" -}}
+{{- $volumeGuards = append $volumeGuards (printf "(v.name == 'caddy-data' && has(v.persistentVolumeClaim) && v.persistentVolumeClaim.claimName == '%s')" .Values.edge.tls.existingClaim) -}}
+{{- end -}}
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: {{ include "sovereign.admissionName" . }}
+  labels:
+    {{- include "sovereign.labels" (dict "root" . "name" "edge") | nindent 4 }}
+  annotations:
+    helm.sh/resource-policy: keep
+    meta.helm.sh/release-name: {{ .Release.Name | quote }}
+    meta.helm.sh/release-namespace: {{ .Release.Namespace | quote }}
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: [v1]
+        operations: [CREATE, UPDATE]
+        resources: [pods, pods/ephemeralcontainers]
+  validations:
+    - expression: {{ printf "object.spec.hostNetwork == true && object.spec.dnsPolicy == 'ClusterFirstWithHostNet' && has(object.spec.nodeSelector) && object.spec.nodeSelector.size() == 1 && 'kubernetes.io/hostname' in object.spec.nodeSelector && object.spec.nodeSelector['kubernetes.io/hostname'] == '%s' && ((!has(object.spec.nodeName) || object.spec.nodeName == '') || (request.operation == 'UPDATE' && object.spec.nodeName == '%s')) && (!has(object.spec.hostPID) || !object.spec.hostPID) && (!has(object.spec.hostIPC) || !object.spec.hostIPC)" .Values.edge.nodeName .Values.edge.nodeName | quote }}
+      message: Only the reviewed host-network edge may run in this namespace.
+    - expression: "has(object.spec.automountServiceAccountToken) && !object.spec.automountServiceAccountToken && (!has(object.spec.initContainers) || object.spec.initContainers.size() == 0) && (!has(object.spec.ephemeralContainers) || object.spec.ephemeralContainers.size() == 0)"
+      message: The edge cannot mount service-account tokens or add sidecar/debug containers.
+    - expression: "has(object.spec.securityContext) && object.spec.securityContext.runAsNonRoot == true && object.spec.securityContext.runAsUser == 1000 && object.spec.securityContext.runAsGroup == 1000 && object.spec.securityContext.seccompProfile.type == 'RuntimeDefault'"
+      message: The edge must remain non-root with RuntimeDefault seccomp.
+    - expression: {{ printf "object.spec.containers.size() == 1 && object.spec.containers[0].name == 'edge' && object.spec.containers[0].image == '%s'" (include "sovereign.image" .Values.edge.image) | quote }}
+      message: The edge namespace accepts only the pinned single Caddy container.
+    - expression: "object.spec.containers.all(c, has(c.securityContext) && c.securityContext.allowPrivilegeEscalation == false && c.securityContext.readOnlyRootFilesystem == true && (!has(c.securityContext.privileged) || !c.securityContext.privileged) && c.securityContext.capabilities.drop == ['ALL'] && c.securityContext.capabilities.add == ['NET_BIND_SERVICE'])"
+      message: The sole capability exception is NET_BIND_SERVICE; filesystem and privilege restrictions stay enabled.
+    # Quantity's oneOf schema needs dynamic field access in built-in Pod CEL.
+    - expression: {{ printf "object.spec.containers.all(c, dyn(c.resources).requests == %s && dyn(c.resources).limits == %s)" (mustToJson .Values.edge.resources.requests) (mustToJson .Values.edge.resources.limits) | quote }}
+      message: The edge must retain its reviewed CPU, memory and scratch resource bounds.
+    - expression: "object.spec.containers.all(c, c.command == ['caddy'] && c.args == ['run', '--config', '/etc/lolly/Caddyfile', '--adapter', 'caddyfile'] && (!has(c.envFrom) || c.envFrom.size() == 0) && (!has(c.securityContext.runAsUser) || c.securityContext.runAsUser == 1000) && (!has(c.securityContext.runAsGroup) || c.securityContext.runAsGroup == 1000) && (!has(c.securityContext.runAsNonRoot) || c.securityContext.runAsNonRoot))"
+      message: The reviewed Caddy command and identity cannot be overridden.
+    - expression: {{ printf "object.spec.containers.all(c, c.env.size() == 6 && c.env.all(e, !has(e.valueFrom) && ((e.name == 'LOLLY_PUBLIC_HOST' && (has(e.value) ? e.value : '') == '%s') || (e.name == 'LOLLY_PUBLIC_REDIRECT_HOSTS' && (has(e.value) ? e.value : '') == '%s') || (e.name == 'LOLLY_PRIVATE_HOST' && (has(e.value) ? e.value : '') == '%s') || (e.name == 'LOLLY_PRIVATE_REDIRECT_HOSTS' && (has(e.value) ? e.value : '') == '%s') || (e.name == 'XDG_CONFIG_HOME' && (has(e.value) ? e.value : '') == '/tmp/config') || (e.name == 'XDG_DATA_HOME' && (has(e.value) ? e.value : '') == '%s'))))" .Values.public.host (join " " .Values.public.redirectHosts) .Values.private.host (join " " .Values.private.redirectHosts) (ternary "/data" "/tmp/data" $persistentCertificates) | quote }}
+      message: The edge accepts only the reviewed hostnames and scratch environment.
+    - expression: {{ printf "object.spec.containers.all(c, c.volumeMounts.size() == %d && c.volumeMounts.all(m, (m.name == 'tmp' && m.mountPath == '/tmp') || (has(m.readOnly) && m.readOnly && ((m.name == 'caddy' && m.mountPath == '/etc/lolly/Caddyfile' && m.subPath == 'Caddyfile') || (m.name == 'public-host' && m.mountPath == '/etc/lolly/public.caddy' && m.subPath == 'public.caddy') || (m.name == 'private-host' && m.mountPath == '/etc/lolly/private.caddy' && m.subPath == 'private.caddy'))) || %s))" $volumeCount (join " || " $mountGuards) | quote }}
+      message: Configuration stays read-only; only the reviewed certificate mode's storage is mounted.
+    - expression: "(!has(object.spec.hostAliases) || object.spec.hostAliases.size() == 0) && !has(object.spec.dnsConfig) && (!has(object.spec.shareProcessNamespace) || !object.spec.shareProcessNamespace) && object.spec.containers.all(c, !has(c.lifecycle) && (!has(c.stdin) || !c.stdin) && (!has(c.tty) || !c.tty) && (!has(c.securityContext.seccompProfile) || c.securityContext.seccompProfile.type == 'RuntimeDefault') && (!has(c.livenessProbe) || !has(c.livenessProbe.exec)) && (!has(c.readinessProbe) || !has(c.readinessProbe.exec)) && (!has(c.startupProbe) || !has(c.startupProbe.exec)))"
+      message: DNS overrides, interactive execution, lifecycle hooks and executable probes are not allowed.
+    # The API defaults hostPort to containerPort on host-network Pods.
+    - expression: "object.spec.containers.all(c, c.ports.size() == 2 && c.ports.all(p, p.containerPort in [80, 443] && (!has(p.hostPort) || p.hostPort == 0 || p.hostPort == p.containerPort)))"
+      message: The edge exposes only HTTP and HTTPS, without other host-port mappings.
+    - expression: {{ printf "object.spec.volumes.size() == %d && object.spec.volumes.all(v, (v.name == 'tmp' && has(v.emptyDir) && dyn(v.emptyDir).sizeLimit == '%s' && (!has(v.emptyDir.medium) || v.emptyDir.medium == '')) || (v.name == 'caddy' && has(v.configMap) && v.configMap.name == '%s') || (v.name == 'public-host' && has(v.configMap) && v.configMap.name == '%s') || (v.name == 'private-host' && has(v.configMap) && v.configMap.name == '%s') || %s)" $volumeCount .Values.edge.tmpSize (include "sovereign.name" (dict "root" . "name" "edge")) (include "sovereign.name" (dict "root" . "name" "public-host")) (include "sovereign.name" (dict "root" . "name" "private-host")) (join " || " $volumeGuards) | quote }}
+      message: Only bounded scratch, reviewed configuration and certificate storage may be mounted.
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: {{ include "sovereign.admissionName" . }}
+  labels:
+    {{- include "sovereign.labels" (dict "root" . "name" "edge") | nindent 4 }}
+  annotations:
+    helm.sh/resource-policy: keep
+    meta.helm.sh/release-name: {{ .Release.Name | quote }}
+    meta.helm.sh/release-namespace: {{ .Release.Namespace | quote }}
+spec:
+  policyName: {{ include "sovereign.admissionName" . }}
+  validationActions: [Deny]
+  matchResources:
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: {{ .Values.edge.namespace }}

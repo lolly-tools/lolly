@@ -1,3 +1,4 @@
+import { readColumnPref, writeColumnPref } from './shared.ts';
 // SPDX-License-Identifier: MPL-2.0
 /**
  * tool view: session dirty state, URL sync, revisions, bulk, framing.
@@ -11,6 +12,7 @@ import { replaceRouteUrl, routeParams, updateRouteParams } from '../../lib/url-s
 import { copyBesidePackParams, copyWorkspaceParams, packableContent, RESULT_CONTEXT_PARAMS, WORKSPACE_PARAMS } from '../../lib/tool-url-state.ts';
 import { encodeAddressModelParam } from '../../lib/url-budget.ts';
 import type { FontStyleSlice } from '../../bridge/text-svg.ts';
+import { fontCoversText } from '../../bridge/font-coverage-load.ts';
 import { designTokenInspectorOptions } from '../design-token-bindings.ts';
 import type { AssetRef, Profile } from '@lolly-tools/core/host-v1';
 import { PACK_PARAM, isPackAvailable, packQuery, toCssPx } from '@lolly/engine';
@@ -39,9 +41,9 @@ import { collectExportParams, isTextEditing, shareDialogOptions, showShareDialog
 import { emojiDocumentCredits, emojiDocumentStyle, onEmojiDocumentChange, setEmojiDocumentStyle } from './emoji-doc.ts';
 import type { EmojiControlMount, InspectorEmojiPort } from '../design-inspector.ts';
 import { createDocumentThemeController } from '../../lib/document-theme.ts';
+import { mountToolSiteEditor } from '../tool-site-tools.ts';
 
 async function resolveDesignFont(tview: ToolViewCtx, style: FontStyleSlice, text: string): Promise<boolean> {
-  const { fontCoversText } = await import('../../bridge/font-coverage.ts');
   return fontCoversText(style, text, tview.host.text);
 }
 
@@ -1175,31 +1177,9 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
     let designInspectorFloat: import('../design-inspector-float.ts').DesignInspectorFloatHandle | null = null;
     let offEmojiDoc: (() => void) | null = null;
 
-    /**
-     * Column open state is a DEVICE preference, not document data: it must never dirty the
-     * document, ride a collab op or travel in a saved session, which is what `host.state`
-     * would mean. Same reasoning (and the same try/catch) as the sidebar width.
-     */
-    const readColumnPref = (key: string): boolean => {
-      try {
-        const v = localStorage.getItem(key);
-        if (v === 'open') return true;
-        if (v === 'closed') return false;
-      } catch {
-        /* private mode / blocked storage: fall through to the width default */
-      }
-      return window.innerWidth > 1180;
-    };
-    const writeColumnPref = (key: string, open: boolean): void => {
-      try {
-        localStorage.setItem(key, open ? 'open' : 'closed');
-      } catch {
-        /* best-effort */
-      }
-    };
 
-    import('../free-canvas.ts')
-      .then(({ initFreeCanvas }) => {
+    await import('../free-canvas.ts')
+      .then(async ({ initFreeCanvas }) => {
         if (!viewEl.isConnected) return; // navigated away before the chunk loaded
         // The host-UI profile setter is a web-shell extension (WebProfileAPI), not on
         // the engine's read-only ProfileAPI - surface it via a narrow cast so the
@@ -1211,33 +1191,15 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
         // code (agentLink); in the desktop app the app listens while Allow AI control
         // is on and this view answers (desktopServing). Both end with the view.
         const desktopAgents = isTauriShell() && !isTauriMobileShell();
+        const documentId = `doc:${globalThis.crypto.randomUUID()}`;
         let agentLink: import('../../lib/live-agent-connect.ts').AgentLink | null = null;
         let desktopServing: import('../../lib/live-agent-desktop.ts').DesktopServing | null = null;
         let desktopPill: import('../agent-connect.ts').AgentPill | null = null;
         mountLifecycle.add('agent-link', () => { agentLink?.disconnect(); desktopServing?.stop(); desktopPill?.remove(); });
-        const liveEditorFactory = async () => {
-          const [{ designLiveEditor }, { ENGINE_VERSION, validateDocument }, { exportTargetNode }] = await Promise.all([
-            import('../design-live.ts'), import('@lolly/engine'), import('../../lib/export-target.ts'),
-          ]);
-          return () => designLiveEditor({
-            toolId,
-            engine: ENGINE_VERSION,
-            surface: desktopAgents ? 'desktop' : 'web',
-            runtime,
-            blockId: fc.design.model.blockId,
-            fields: fc.design.fields,
-            selection: () => fc.design.selection.get(),
-            size: () => ({ width: nativeW, height: nativeH }),
-            history: { commit: tview.history.commitInputs, top: () => tview.inputHistory.peekUndo(), undo: () => tview.history.undoHistory() },
-            readOnly: () => tview.collabHandle?.role === 'observer',
-            label: (note) => tRaw('AI agent: {note}', { note }),
-            validateInputs: (value) => validateDocument({ kind: 'inputs', manifest: tview.tool.manifest, value }),
-            exportSvg: () => tview.exporting.exportUnscaled(
-              () => runtime.export(exportTargetNode(canvasEl) ?? canvasEl, 'svg', { width: nativeW, height: nativeH, embedMeta: false, watermark: false }),
-              { shutter: false },
-            ),
-          });
-        };
+        const liveEditorFactory = mountToolSiteEditor(tview, stageEl, () => import('../tool-agent-editor.ts').then(({ toolAgentEditor }) => toolAgentEditor(tview, {
+          documentId, desktop: desktopAgents, canvas: canvasEl,
+          design: () => fc.design, size: () => ({ width: nativeW, height: nativeH }),
+        })));
         const startDesktopServing = async (): Promise<void> => {
           const invoke = tauriInvoke();
           if (!invoke || desktopServing || !viewEl.isConnected) return;
@@ -1251,10 +1213,11 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
               if (event.method === 'hello' && !desktopPill) {
                 desktopPill = mountAgentPill(viewEl, {
                   client: () => serving.session().client(),
+                  pause: value => serving.session().pause(value),
                   disconnect: () => { serving.disconnect(); desktopPill?.remove(); desktopPill = null; announce(t('The AI agent was disconnected.')); },
                 });
               }
-              desktopPill?.activity(event.method, event.note);
+              desktopPill?.activity(event.method, event.note, event.change);
             },
           });
           desktopServing = serving;
@@ -1262,7 +1225,19 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
         if (desktopAgents && toolId === 'design' && !isPresent) {
           void import('../../lib/live-agent-desktop.ts').then(({ allowAiControl }) => { if (allowAiControl()) void startDesktopServing().catch(() => {}); });
         }
+        const agentInvitationsReady = toolId === 'design' && !isPresent
+          ? Promise.all([import('../agent-share.ts'), import('../../lib/agent-invitation-host.ts'), liveEditorFactory()]).then(([{ installAgentInvitations }, { agentRelayBase }, editor]) => {
+              const base = agentRelayBase();
+              if (base && viewEl.isConnected) mountLifecycle.add('agent-invitations', installAgentInvitations(runtime, viewEl, base, editor));
+            })
+          : Promise.resolve();
         const openAgentLink = async (): Promise<void> => {
+          const { agentRelayBase } = await import('../../lib/agent-invitation-host.ts');
+          if (agentRelayBase()) {
+            await agentInvitationsReady;
+            if (viewEl.isConnected) showShareDialog(runtime, actionsEl, tview.tool.manifest);
+            return;
+          }
           if (desktopAgents) {
             const [{ openAgentControl }, { allowAiControl, setAllowAiControlPref, setListener }] = await Promise.all([
               import('../agent-connect.ts'), import('../../lib/live-agent-desktop.ts'),
@@ -1457,7 +1432,7 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
             // the tab may reach loopback: a development build, or a build made with
             // VITE_LIVE_AGENT=1 whose CSP allows ws://127.0.0.1 (the served CSPs do not
             // yet; widening them is a reviewed security change).
-            agent: toolId === 'design' && !isPresent && (desktopAgents || !import.meta.env?.PROD || import.meta.env?.VITE_LIVE_AGENT === '1')
+            agent: toolId === 'design' && !isPresent && (desktopAgents || !import.meta.env?.PROD || import.meta.env?.VITE_LIVE_AGENT === '1' || import.meta.env?.VITE_LIVE_RELAY)
               ? () => {
                   void openAgentLink();
                 }
@@ -1466,6 +1441,7 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
             dirtyRef: tview.renderSaveBtn,
           },
         } as Parameters<typeof initFreeCanvas>[0]);
+
 
         // ── The Design chrome: top bar + navigator + inspector (plan 179 M1-M3) ──────
         //
@@ -1477,7 +1453,7 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
         // both halves. Order matters: the bar measures its own height into
         // `--stage-reserve-top` before the columns report their widths, so the first fit
         // the canvas performs already accounts for all three bands.
-        void Promise.all([
+        const chromeReady = Promise.all([
           import('../design-topbar.ts'),
           import('../design-navigator.ts'),
           import('../design-inspector.ts'),
@@ -1884,8 +1860,7 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
               tview.applyDesignIntentLayout = () => {};
               prevChromeCleanup?.();
             };
-          })
-          .catch((err: unknown) => console.error('[design] chrome failed to load:', err));
+          });
 
         tview.poseTemplate = () => fc.applyUi(tview.templatePose);
         const detachEditorApi = attachCanvasEditorApi(fc);
@@ -1900,8 +1875,12 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
           }
           prevCleanup?.();
         };
+        await chromeReady;
       })
-      .catch((err: unknown) => console.error('[design] editor overlay failed to load:', err));
+      .catch((err: unknown) => {
+        console.error('[design] editor overlay failed to load:', err);
+        throw err;
+      });
 
     // `?present` auto-entry: open the deck once the canvas has rendered its frame pages
     // (the runtime paints on mount asynchronously, so poll a few frames for them).

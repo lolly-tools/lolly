@@ -24,7 +24,7 @@ import { formatPanelHtml, formatTriggerHtml, wireFormatPicker } from '../export-
 import { packageOptionsHtml, saveAsBridge, saveAsButtonHtml } from '../export-package-options.ts';
 import { preflightRowHtml } from '../export-preflight.ts';
 import { jellyActive } from '../../lib/jelly.ts';
-import { DEFAULT_PRINT_MARKS, fmtLabel, isC2paFmt, isCmykFmt, isHdrFmt, isImprintFmt, isPrintFmt } from './shared.ts';
+import { DEFAULT_PRINT_MARKS, fmtLabel, formatExperience, isC2paFmt, isCmykFmt, isHdrFmt, isImprintFmt, isPrintFmt } from './shared.ts';
 import { bindOp, type ActionsCtx } from './context.ts';
 
 export function buildFormatOptions(ta: ActionsCtx): void {
@@ -139,7 +139,7 @@ export function buildFormatOptions(ta: ActionsCtx): void {
   const cmykRow = hasCmyk
     ? `
       <div class="section-card export-cmyk" data-cmyk-only style="display:${isCmykFmt(initialFmt) ? 'flex' : 'none'}">
-        <span class="cmyk-head help-tip-host">${ICON_DROP}<span>Color profile</span>${cmykTip!.button}${cmykTip!.pop}</span>
+        <span class="cmyk-head help-tip-host">${ICON_DROP}<span>Profile</span>${cmykTip!.button}${cmykTip!.pop}</span>
         <select class="field-select" data-action="cmyk-profile" aria-label="CMYK press profile">
           ${cmykOptions}
         </select>
@@ -172,7 +172,7 @@ export function buildFormatOptions(ta: ActionsCtx): void {
     hasPdf || hasZip
       ? `
       <div class="section-card export-pdfpass${pdfPassInitOpen ? ' is-open' : ''}" data-pdf-only style="display:${initialFmt === 'pdf' || initialFmt === 'zip' ? 'flex' : 'none'}">
-        <button type="button" class="pdfpass-head" data-action="pdfpass-toggle" aria-expanded="${pdfPassInitOpen}">${ICON_LOCK}<span>Password protect</span></button>
+        <button type="button" class="pdfpass-head" data-action="pdfpass-toggle" aria-expanded="${pdfPassInitOpen}">${ICON_LOCK}<span>Password</span></button>
         <div class="pdfpass-body" data-pdfpass-body style="display:${pdfPassInitOpen ? 'flex' : 'none'}">
           <input type="password" class="field-input" data-action="pdf-password" autocomplete="new-password" spellcheck="false"
                  value="${escapeText(exportDefaults.password ?? '')}"
@@ -313,7 +313,7 @@ export function buildHdrRow(ta: ActionsCtx): void {
       <div class="section-card export-hdr" data-hdr-only style="display:${isHdrFmt(initialFmt) ? 'flex' : 'none'}">
         <label class="hdr-enable field-toggle help-tip-host">
           <input type="checkbox" class="field-check" data-action="hdr" ${exportDefaults.hdr ? 'checked' : ''}>
-          <span class="hdr-head">${icon('sunburst', { className: 'hdr-icon' })}<span>${t('HDR (bright colours)')}</span></span>
+          <span class="hdr-head">${icon('sunburst', { className: 'hdr-icon' })}<span>${t('HDR')}</span></span>
           ${hdrTip!.button}
           ${hdrTip!.pop}
         </label>
@@ -361,13 +361,14 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
     ...(exportDefaults.marks || {}),
     provenance: true,
   }; ta.pim = pim;
+  const printTip = helpTip(t('Adds bleed and the chosen marks for a print shop; the artwork is scaled to fill the bleed. Registration marks print on all four plates in the Print PDF and Print TIFF. (An open-password can’t be combined with marks.)'));
   const printRow = hasPrint
     ? `
-      <div class="section-card export-print" data-printmarks-only style="display:${isPrintFmt(initialFmt) ? 'flex' : 'none'}">
-        <label class="print-enable field-toggle">
+      <div class="section-card export-print help-tip-host" data-printmarks-only style="display:${isPrintFmt(initialFmt) ? 'flex' : 'none'}">
+        <div class="export-setting-head"><label class="print-enable field-toggle">
           <input type="checkbox" class="field-check" data-action="print-enable" ${printInitOn ? 'checked' : ''}>
-          <span class="print-head">${ICON_CROP}<span>Print marks &amp; bleed</span></span>
-        </label>
+          <span class="print-head">${ICON_CROP}<span>Marks &amp; bleed</span></span>
+        </label>${printTip.button}</div>${printTip.pop}
         <div class="print-body" data-print-body style="display:${printInitOn ? 'flex' : 'none'}">
           <label class="print-bleed">
             <span>Bleed</span>
@@ -381,7 +382,6 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
             <label class="export-option"><input type="checkbox" class="field-check" data-action="mark-bars" ${pim.colorBars ? 'checked' : ''}> Color bars</label>
             <label class="export-option"><input type="checkbox" class="field-check" data-action="mark-prov" ${pim.provenance ? 'checked' : ''}> Stamp details</label>
           </div>
-          <p class="print-hint">Adds bleed and the chosen marks for a print shop; the artwork is scaled to fill the bleed. Registration marks print on all four plates in the Print PDF and Print TIFF. (An open-password can't be combined with marks.)</p>
         </div>
       </div>`
     : ''; ta.printRow = printRow;
@@ -450,7 +450,7 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
   const protectionRow = hasProtection
     ? `
       <div class="section-card export-protection${protectionOpen ? ' is-open' : ''}" data-protection-section style="display:${protectionVisibleInitial ? 'flex' : 'none'}">
-        <button type="button" class="protection-head" data-action="protection-toggle" aria-expanded="${protectionOpen}">${icon('shield', { className: 'protection-icon' })}<span>${t('Content protection')}</span></button>
+        <button type="button" class="protection-head" data-action="protection-toggle" aria-expanded="${protectionOpen}">${icon('shield', { className: 'protection-icon' })}<span>${t('Protection')}</span></button>
         <div class="protection-body" data-protection-body style="display:${protectionOpen ? 'flex' : 'none'}">
           ${licenceRow}${ta.rights.rowHtml()}${pdfPassRow}${c2paRow}${imprintRow}${durableRow}
         </div>
@@ -474,16 +474,15 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
       const vectorOnly = i.id === 'convertPaths';
       const hide = vectorOnly && !ta.formatRules.isVectorFmt(initialFmt);
       if (vectorOnly) {
-        const tip = helpTip(t('Embeds supported fonts when possible. Text that cannot be embedded faithfully stays outlined.'));
+        const tip = helpTip(t('Embeds supported fonts when possible. Text that cannot be embedded faithfully stays outlined.') + (runtime.getModel().some(item => item.id === 'textDocument' && item.value) ? ' ' + t('Composed text exports as paths to preserve its exact appearance. Exported paths do not have ordinary text editing.') : ''));
         return `
-        <label class="export-option help-tip-host" data-vector-only${hide ? ' style="display:none"' : ''}>
-          <span>${t('Text')}</span>${tip.button}${tip.pop}
-          ${runtime.getModel().some(item=>item.id==='textDocument'&&item.value)?`<small>${escapeText(t('Composed text exports as paths to preserve its exact appearance. Exported paths do not have ordinary text editing.'))}</small>`:''}
+        <div class="export-text-mode help-tip-host" data-vector-only${hide ? ' style="display:none"' : ''}>
+          <span class="export-text-label">${t('Text')}${tip.button}</span>${tip.pop}
           <select class="field-select" data-input-id="convertPaths" aria-label="${escapeText(t('Export text'))}">
             <option value="outline"${i.value ? ' selected' : ''}>${t('Outline')}</option>
-            <option value="embed"${i.value ? '' : ' selected'} data-embed-label>${initialFmt === 'pdf' ? t('Embed (subset)') : t('Keep text')}</option>
+            <option value="embed"${i.value ? '' : ' selected'} data-embed-label>${initialFmt === 'pdf' || initialFmt === 'pdf-cmyk' ? t('Embed (subset)') : t('Keep text')}</option>
           </select>
-        </label>`;
+        </div>`;
       }
       const tip = i.help ? helpTip(i.help) : null;
       return `
@@ -555,7 +554,7 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
             <input type="number" class="field-input field-input--sm" data-action="video-duration" value="${defaultDuration}" min="1" max="${durationMax}" step="0.5"
                    aria-label="${escapeText(t('Recording duration (seconds)'))}"><span>s</span></span>
           <span class="vp-field" data-seq-range hidden></span>
-          ${motionControlsMarkup()}
+          ${motionControlsMarkup(true)}
           <label class="gif-dither-toggle" data-gif-only
                  style="display:${initialFmt === 'gif' ? 'flex' : 'none'}">
             <input type="checkbox" class="field-check" data-action="gif-dither">
@@ -736,7 +735,7 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
           </select>
         </label>
         <div class="section-card export-pro-settings">
-          <button type="button" class="prosettings-head" data-action="prosettings-toggle" aria-expanded="false">${ICON_SLIDERS}<span>${escapeText(t('Pro settings'))}</span></button>
+          <button type="button" class="prosettings-head" data-action="prosettings-toggle" aria-expanded="false">${ICON_SLIDERS}<span>${escapeText(t('Advanced'))}</span></button>
           <div class="prosettings-body" data-prosettings-body style="display:none">
             <label class="vp-field"><span>${escapeText(t('Codec'))}</span>
               <select class="field-select field-select--sm" data-action="video-codec" aria-label="${escapeText(t('Video codec'))}">
@@ -831,7 +830,8 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
     : ''; ta.copyBtn = copyBtn;
   const saveBtn = actions.includes('save') ? ta.saving.saveBtnHtml() : ''; ta.saveBtn = saveBtn;
   // Download is the primary CTA - jelly mode gives it the accent-fill squish.
-  const initialExperience = experience.current?.() ?? {}; ta.initialExperience = initialExperience;
+  const rawExperience = experience.current?.() ?? {}; ta.initialExperience = rawExperience;
+  const initialExperience = formatExperience(rawExperience, ta.initialFmt ?? formats[0] ?? '');
   const downloadLabel =
     initialExperience.downloadLabel ||
     `Download${formats.length === 1 ? ' ' + fmtLabel(formats[0]!) : ''}`; ta.downloadLabel = downloadLabel;
@@ -884,15 +884,15 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
   // control the user has not reached yet. Hidden until the engine's rules have
   // something true to say; see views/export-preflight.ts + refreshPreflight().
   const isDesignTool = manifest.id === 'design'; ta.isDesignTool = isDesignTool;
+  const notesHandoutTip = helpTip(t('Makes a portrait PDF with each slide above its speaker notes. Long notes continue onto extra pages.'));
   const notesHandoutRow =
     isDesignTool && formats.includes('pdf')
       ? `
-      <div class="section-card export-notes-handout" data-notes-handout-only style="display:${initialFmt === 'pdf' && canvasEl?.querySelector('[data-pdf-page]') ? 'flex' : 'none'}">
-        <label class="field-toggle">
+      <div class="section-card export-notes-handout help-tip-host" data-notes-handout-only style="display:${initialFmt === 'pdf' && canvasEl?.querySelector('[data-pdf-page]') ? 'flex' : 'none'}">
+        <div class="export-setting-head"><label class="field-toggle">
           <input type="checkbox" class="field-check" data-action="pdf-notes-handout">
-          <span class="notes-handout-head">${icon('transcript', { size: 18 })}<span>${escapeText(t('Speaker notes handout'))}</span></span>
-        </label>
-        <p class="print-hint">${escapeText(t('Makes a portrait PDF with each slide above its speaker notes. Long notes continue onto extra pages.'))}</p>
+          <span class="notes-handout-head">${icon('transcript', { size: 18 })}<span>${escapeText(t('Notes handout'))}</span></span>
+        </label>${notesHandoutTip.button}</div>${notesHandoutTip.pop}
       </div>`
       : ''; ta.notesHandoutRow = notesHandoutRow;
   const preflightRow = preflightRowHtml({ force: isDesignTool }); ta.preflightRow = preflightRow;
@@ -916,28 +916,26 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
   const recordingRow = isAudioCaptureTool
     ? `
       <div class="section-card export-recording" data-recording-row>
-        <span class="c2pa-head">${icon('mic', { className: 'c2pa-icon' })}<span>${escapeText(t('Your recording'))}</span></span>
+        <span class="c2pa-head">${icon('mic', { className: 'c2pa-icon' })}<span>${escapeText(t('Recording'))}</span></span>
         <div class="export-recording-body" data-recording-body></div>
       </div>`
     : ''; ta.recordingRow = recordingRow;
 }
 
 export function paintBar(ta: ActionsCtx): void {
-  const { actions, aspectWarnRow, audioRow, cmykRow, costRow, dimsRow, downloadRow, el, exportOpts, fidelityWarnRow, filenameRow, hdrRow, host, initialExperience, isAudioCaptureTool, loudnessRow, manifest, notesHandoutRow, pkgRow, preflightRow, printRow, protectionRow, recordingRow, runtime, secondaryRow, sendRow, settingsRow, timingRow, videoQualityRow } = ta;
-  // The action buttons are the sheet's PRIMARY content, so they come FIRST -
-  // Copy / Save / Share and Download at the very top, before any setting - and
-  // the dock sticks to the top edge so they stay in reach while the long sheets
-  // (Print PDF, MP4) are scrolled.
+  const { actions, aspectWarnRow, audioRow, cmykRow, costRow, dimsRow, downloadRow, el, exportOpts, fidelityWarnRow, filenameRow, hdrRow, host, isAudioCaptureTool, loudnessRow, manifest, notesHandoutRow, pkgRow, preflightRow, printRow, protectionRow, recordingRow, runtime, secondaryRow, sendRow, settingsRow, timingRow, videoQualityRow } = ta;
+  // Settings lead the export flow; the report and delivery actions follow them.
+  const initialExperience = formatExperience(ta.initialExperience, ta.initialFmt ?? ta.formats[0] ?? '');
   el.innerHTML = `
+    ${actions.includes('download') ? `${recordingRow}<div class="export-file-group">${filenameRow}${dimsRow}${timingRow}${aspectWarnRow}${fidelityWarnRow}</div><div class="export-options-group">${notesHandoutRow}${cmykRow}${printRow}${pkgRow}${settingsRow}${videoQualityRow}<details class="section-card export-video-options" data-video-options open><summary hidden>${escapeText(t('Audio and colour settings'))}</summary>${audioRow}${loudnessRow}${hdrRow}</details></div>${protectionRow}<div class="export-ingredient-note" data-ingredient-note hidden></div>${protectionRow ? '' : ta.rights.rowHtml()}${preflightRow}${costRow}${sendRow}` : ''}
     <div class="export-actions-dock">
       <p class="export-outcome-summary" data-export-outcome${initialExperience.summary ? '' : ' hidden'}>${escapeText(initialExperience.summary ?? '')}</p>
       ${manifest.status === 'experimental' ? `<p class="export-experimental-note" role="note">${escapeText(t('This tool is experimental, so every export carries a watermark.'))}</p>` : ''}
-      ${secondaryRow}
       ${downloadRow}
+      ${secondaryRow}
       ${actions.includes('download') ? `<p class="export-degraded-note" data-export-degraded role="status" hidden style="margin:.2rem 0 0;color:hsl(var(--muted-foreground));font-size:12px;text-align:center"></p>` : ''}
       ${actions.includes('download') ? `<p class="export-delivery" data-export-delivery role="status" hidden></p>` : ''}
     </div>
-    ${actions.includes('download') ? `${recordingRow}${filenameRow}${dimsRow}${timingRow}${aspectWarnRow}${fidelityWarnRow}${notesHandoutRow}${cmykRow}${printRow}${pkgRow}${protectionRow}<div class="export-ingredient-note" data-ingredient-note hidden></div>${protectionRow ? '' : ta.rights.rowHtml()}${settingsRow}${videoQualityRow}<details class="section-card export-video-options" data-video-options open><summary hidden>${escapeText(t('Audio and colour settings'))}</summary>${audioRow}${loudnessRow}${hdrRow}</details>${sendRow}${preflightRow}${costRow}` : ''}
   `;
   void ta.notes.fillIngredientNote();
 

@@ -265,12 +265,15 @@ function bundle(): Promise<{ js: string; css: string }> {
       format: 'iife',
       platform: 'browser',
       target: 'chrome120',
+      loader: { '.svg': 'dataurl', '.gif': 'dataurl' },
       outdir: 'out',
       logLevel: 'silent',
       define: { 'import.meta.env': '{}', 'process.env.NODE_ENV': '"test"' },
       plugins: [{
         name: 'rebrand-harness',
         setup(b) {
+          b.onResolve({ filter: /\?url$/ }, args => ({ path: args.path, namespace: 'asset-url' }));
+          b.onLoad({ filter: /.*/, namespace: 'asset-url' }, () => ({ contents: 'export default "";', loader: 'js' }));
           // Fonts and other public files load from the page's own origin, served below.
           b.onResolve({ filter: /^\//, namespace: 'file' }, (args) => (args.kind === 'url-token' ? { path: args.path, external: true } : undefined));
           b.onResolve({ filter: STUBBED }, (args) => ({ path: args.path, namespace: 'stub' }));

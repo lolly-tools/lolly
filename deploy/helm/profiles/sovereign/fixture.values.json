@@ -1,0 +1,60 @@
+{
+  "manageNamespaces": true,
+  "public": {
+    "host": "public.example",
+    "redirectHosts": [
+      "www.public.example"
+    ],
+    "tlsSecret": "public-tls"
+  },
+  "private": {
+    "host": "private.example",
+    "redirectHosts": [
+      "www.private.example"
+    ],
+    "tlsSecret": "private-tls"
+  },
+  "edge": {
+    "nodeName": "fixture-node",
+    "hostNetworkAcknowledged": true,
+    "proxyAddresses": [
+      "192.0.2.10",
+      "::ffff:192.0.2.10"
+    ],
+    "image": {
+      "digest": "sha256:0101010101010101010101010101010101010101010101010101010101010101"
+    },
+    "upstreamSourceAddress": "192.0.2.10",
+    "tls": {
+      "mode": "file"
+    }
+  },
+  "models": {
+    "existingClaim": "models-fixture",
+    "release": "models-0202020202020202020202020202020202020202020202020202020202020202"
+  },
+  "components": {
+    "web": {
+      "image": {
+        "digest": "sha256:0101010101010101010101010101010101010101010101010101010101010101"
+      }
+    },
+    "mcp": {
+      "image": {
+        "digest": "sha256:0101010101010101010101010101010101010101010101010101010101010101"
+      },
+      "existingSecret": "mcp-fixture"
+    },
+    "ca": {
+      "image": {
+        "digest": "sha256:0101010101010101010101010101010101010101010101010101010101010101"
+      },
+      "existingSecret": "ca-fixture"
+    },
+    "penpot": {
+      "image": {
+        "digest": "sha256:0101010101010101010101010101010101010101010101010101010101010101"
+      }
+    }
+  }
+}

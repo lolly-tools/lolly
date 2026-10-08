@@ -77,7 +77,7 @@ const CFG = {
     { id: 'frame', label: 'Artboard', seed: { kind: 'frame', bg: '#fafbfe' } },
   ],
 };
-const FRAME_CFG = { frameField: 'frame', frameKind: 'frame', orderField: 'order', clipChildrenField: 'clipChildren' };
+const FRAME_CFG = { frameField: 'frame', frameKind: 'frame', orderField: 'order', clipChildrenField: 'clipChildren', lockedField: 'locked' };
 
 /** One 400×300 artboard at (100,100) with one member box at (150,150). A click at
  *  (400,300) hits empty artboard area - the only way to grab the artboard. */
@@ -99,7 +99,7 @@ interface Fixture {
   destroy(): void;
 }
 
-function mount(seed: Box[]): Fixture {
+function mount(seed: Box[], canEdit?: () => boolean): Fixture {
   const viewEl = dom.window.document.createElement('div');
   const stageEl = dom.window.document.createElement('div');
   const canvasEl = dom.window.document.createElement('div');
@@ -123,7 +123,7 @@ function mount(seed: Box[]): Fixture {
     host: {} as never,
     input: { id: 'boxes', canvas: CFG as never, fields: [] },
     frame: FRAME_CFG,
-    nativeW: NATIVE, nativeH: NATIVE,
+    nativeW: NATIVE, nativeH: NATIVE, canEdit,
   });
   return {
     stageEl, canvasEl,
@@ -643,4 +643,49 @@ test('A13: a marquee that encloses an artboard whole DOES take it', async () => 
     assert.equal(f.boxes().find((b) => b.id === 'f1'), undefined, 'the enclosed artboard went');
     assert.ok(f.boxes().some((b) => b.id === 'f2'), 'and only that one');
   } finally { f.destroy(); }
+});
+
+
+test('dragging an artboard label moves its frame and members in one commit', async () => {
+  const f = mount(SEED());
+  try {
+    await settle();
+    const label = f.stageEl.querySelector<HTMLElement>('.fc-frame-label')!;
+    const before = f.writes();
+    label.dispatchEvent(pointerEvent('pointerdown', 100, 80));
+    f.canvasEl.dispatchEvent(pointerEvent('pointermove', 150, 110));
+    await settle();
+    f.canvasEl.dispatchEvent(pointerEvent('pointerup', 150, 110));
+    await settle();
+    assert.equal(f.byId('f1').x, 150); assert.equal(f.byId('f1').y, 130);
+    assert.equal(f.byId('b1').x, 200); assert.equal(f.byId('b1').y, 180);
+    assert.equal(f.writes() - before, 1);
+  } finally { f.destroy(); }
+});
+
+test('clicking an artboard label without moving creates no history entry', async () => {
+  const f = mount(SEED());
+  try {
+    await settle(); const before = f.writes();
+    f.stageEl.querySelector<HTMLElement>('.fc-frame-label')!.dispatchEvent(pointerEvent('pointerdown', 100, 80));
+    f.canvasEl.dispatchEvent(pointerEvent('pointerup', 100, 80));
+    await settle(); assert.equal(f.writes(), before);
+  } finally { f.destroy(); }
+});
+
+
+test('locked and read-only artboard labels select without moving their content', async () => {
+  for (const locked of [true, false]) {
+    const boxes = SEED(); boxes[0]!.locked = locked;
+    const f = mount(boxes, () => locked);
+    try {
+      await settle(); const before = f.writes();
+      f.stageEl.querySelector<HTMLElement>('.fc-frame-label')!.dispatchEvent(pointerEvent('pointerdown', 100, 80));
+      f.canvasEl.dispatchEvent(pointerEvent('pointermove', 150, 110));
+      f.canvasEl.dispatchEvent(pointerEvent('pointerup', 150, 110));
+      await settle();
+      assert.equal(f.byId('f1').x, 100); assert.equal(f.byId('b1').x, 150);
+      assert.equal(f.writes(), before);
+    } finally { f.destroy(); }
+  }
 });

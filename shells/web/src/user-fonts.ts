@@ -506,7 +506,7 @@ export async function installFontFromBytes(
 ): Promise<UserFontFamily | null> {
   const original = toArrayBuffer(bytes);
 
-  // The 5MB cap lives in validateFontFile and nowhere else. It reads only size
+  // The 32MB cap lives in validateFontFile and nowhere else. It reads only size
   // and type, so bytes with no File behind them (a PDF-embedded face) can be
   // vetted by the same gate: an empty `type` skips the MIME branch, which is
   // advisory anyway - the magic number below is the real check.
@@ -540,6 +540,7 @@ export async function installFontFromBytes(
       const u8 = out instanceof Uint8Array ? out : new Uint8Array(out);
       sfnt = u8.buffer.slice(u8.byteOffset, u8.byteOffset + u8.byteLength) as ArrayBuffer;
     } catch { return null; }
+    if (!withinCap(sfnt.byteLength)) return null;
   }
 
   const parsed = parseFontMetadata(sfnt);

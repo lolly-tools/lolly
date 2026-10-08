@@ -830,7 +830,7 @@ are timing. Generated from the `boxes` block.
 | ID | Alias | Type | Default | What it does | Allowed values |
 |---|---|---|---|---|---|
 | `id` | - | text | - |  | - |
-| `kind` | - | select | `box` | Kind | `"box"`, `"text"`, `"image"`, `"path"`, `"audio"`, `"camera"`, `"frame"`, `"3d"`, `"web"` |
+| `kind` | - | select | `box` | Kind | `"box"`, `"text"`, `"image"`, `"path"`, `"audio"`, `"camera"`, `"frame"`, `"3d"`, `"web"`, `"webcam"` |
 | `x` | - | number | 120 | X | - |
 | `y` | - | number | 120 | Y | - |
 | `w` | - | number | 320 | Width | - |
@@ -946,4 +946,6 @@ are timing. Generated from the `boxes` block.
 | `web` | - | text | `""` | Web page | - |
 | `webView` | - | number | 0 | Lay out as | - |
 | `webLoad` | - | select | `slide` | When presenting | `"slide"`, `"early"`, `"keep"`, `"click"` |
+| `webCss` | - | text | `""` | Page CSS | - |
+| `webHideCookies` | - | boolean | false | Hide cookie banners | - |
 <!-- /GEN:design-boxes -->

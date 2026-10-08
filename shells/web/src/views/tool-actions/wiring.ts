@@ -223,13 +223,14 @@ export function wireFormatChange(ta: ActionsCtx): void {
   if (formatEl) {
     formatEl.addEventListener('change', () => {
       const fmt = formatEl.value;
+      ta.video.setExperience(ta.initialExperience);
       const embedLabel = el.querySelector('[data-embed-label]');
-      if (embedLabel) embedLabel.textContent = fmt === 'pdf' ? t('Embed (subset)') : t('Keep text');
+      if (embedLabel) embedLabel.textContent = fmt === 'pdf' || fmt === 'pdf-cmyk' ? t('Embed (subset)') : t('Keep text');
       ta.audio.syncCaptionsUi(fmt);
       if (animParamsEl) animParamsEl.style.display = ta.formatRules.isAnimatedFmt(fmt) ? 'flex' : 'none';
       if (ditherEl) ditherEl.style.display = fmt === 'gif' ? 'flex' : 'none';
       el.querySelectorAll<HTMLElement>('[data-vector-only]').forEach((c) => {
-        c.style.display = ta.formatRules.isVectorFmt(fmt) ? 'flex' : 'none';
+        c.style.display = ta.formatRules.isVectorFmt(fmt) ? '' : 'none';
       });
       el.querySelectorAll<HTMLElement>('[data-alpha-only]').forEach((c) => {
         c.style.display = ta.formatRules.isAlphaFmt(fmt) ? 'flex' : 'none';
@@ -604,7 +605,11 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
       // Native <button> or jelly-mode <jelly-button> - disable via the attribute,
       // which both honour (jelly syncs it onto its shadow button).
       const btn = e.currentTarget as HTMLButtonElement;
-      const prev = btn.textContent;
+      const idleNodes = Array.from(btn.childNodes, node => node.cloneNode(true));
+      const restoreDownload = (): void => {
+        btn.replaceChildren(...idleNodes.map(node => node.cloneNode(true)));
+        ta.video.setExperience(ta.initialExperience);
+      };
       btn.toggleAttribute('disabled', true);
       btn.setAttribute('aria-busy', 'true');
 
@@ -1672,7 +1677,7 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
         // compositor maps its SEQ_ABORTED onto it.
         if ((err as { name?: string })?.name === 'AbortError') {
           btn.removeAttribute('aria-busy');
-          btn.textContent = prev;
+          restoreDownload();
           btn.toggleAttribute('disabled', false);
           announce(t('Export cancelled'));
           return;
@@ -1691,7 +1696,7 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
         btn.textContent = why;
         announce(why, { assertive: true });
         setTimeout(() => {
-          btn.textContent = prev;
+          restoreDownload();
           btn.toggleAttribute('disabled', false);
         }, 3500);
         return;
@@ -1709,7 +1714,7 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
       }
 
       btn.removeAttribute('aria-busy');
-      btn.textContent = prev;
+      restoreDownload();
       btn.toggleAttribute('disabled', false);
       announce('Export complete');
       // (b) A calm, visible line on the card for each degradation, honest not alarmed.

@@ -57,6 +57,9 @@ export interface MountedDesignAuditOptions {
   resolveFont?: (style: MountedFontStyle, text: string) => Promise<boolean>;
   /** Test seam; the default is the browser's computed cascade. */
   styleOf?: (element: Element) => CSSStyleDeclaration;
+  /** Obsolete audits stop between bounded batches and never publish partial findings. */
+  isCurrent?: () => boolean;
+  yield?: () => Promise<void>;
 }
 
 interface Rgba {
@@ -118,7 +121,8 @@ function labelOf(layer: DesignLayerInspectionV1): string {
 function hasComplexPaint(
   box: HTMLElement,
   stop: HTMLElement,
-  styleOf: (element: Element) => CSSStyleDeclaration
+  styleOf: (element: Element) => CSSStyleDeclaration,
+  ancestorPaint: WeakMap<HTMLElement, boolean> = new WeakMap()
 ): boolean {
   if (
     box.querySelector(
@@ -127,18 +131,20 @@ function hasComplexPaint(
   )
     return true;
   for (let node: HTMLElement | null = box; node; node = node.parentElement) {
-    const computed = styleOf(node);
-    const image = computed.backgroundImage;
-    if (image && image !== 'none') return true;
-    if (Number.parseFloat(computed.opacity) < 0.999) return true;
-    if (computed.mixBlendMode && computed.mixBlendMode !== 'normal') return true;
-    if (computed.filter && computed.filter !== 'none') return true;
-    if (computed.backdropFilter && computed.backdropFilter !== 'none') return true;
-    if (
-      node.classList.contains('lolly-frame-page') &&
-      node.querySelector(':scope > .lolly-frame-img')
-    )
-      return true;
+    let complex = ancestorPaint.get(node);
+    if (complex === undefined) {
+      const computed = styleOf(node);
+      complex = Boolean(
+        (computed.backgroundImage && computed.backgroundImage !== 'none') ||
+        Number.parseFloat(computed.opacity) < 0.999 ||
+        (computed.mixBlendMode && computed.mixBlendMode !== 'normal') ||
+        (computed.filter && computed.filter !== 'none') ||
+        (computed.backdropFilter && computed.backdropFilter !== 'none') ||
+        (node.classList.contains('lolly-frame-page') && node.querySelector(':scope > .lolly-frame-img'))
+      );
+      ancestorPaint.set(node, complex);
+    }
+    if (complex) return true;
     if (node === stop) break;
   }
   return false;
@@ -188,12 +194,19 @@ function siblingUnderlay(
   box: HTMLElement,
   layers: readonly DesignLayerInspectionV1[],
   elements: ReadonlyMap<string, HTMLElement>,
-  styleOf: (element: Element) => CSSStyleDeclaration
+  styleOf: (element: Element) => CSSStyleDeclaration,
+  orders: WeakMap<Element, Map<Element, number>>,
+  ancestorPaint: WeakMap<HTMLElement, boolean>
 ): { colour?: Rgba; review: boolean } {
-  const order = new Map<Element, number>();
-  [...(box.parentElement?.children ?? [])].forEach((element, index) => {
-    order.set(element, index);
-  });
+  const parent = box.parentElement;
+  let order = parent && orders.get(parent);
+  if (!order) {
+    order = new Map<Element, number>();
+    [...(parent?.children ?? [])].forEach((element, index) => {
+      order!.set(element, index);
+    });
+    if (parent) orders.set(parent, order);
+  }
   const zOf = (element: HTMLElement): number => {
     const value = Number.parseFloat(styleOf(element).zIndex);
     return Number.isFinite(value) ? value : 0;
@@ -233,7 +246,7 @@ function siblingUnderlay(
       element.querySelector('.lolly-box-img, .lolly-box-text:not(:empty), svg, canvas, video')
     );
     const complex =
-      hasComplexPaint(element, element, styleOf) ||
+      hasComplexPaint(element, element, styleOf, ancestorPaint) ||
       candidate.bounds.rotation !== 0 ||
       layer.bounds.rotation !== 0;
     if (!complex && (!colour || colour.a === 0) && !hasContent) continue;
@@ -254,7 +267,31 @@ export async function auditMountedDesign(
   documentReport: DesignInspectionV1,
   options: MountedDesignAuditOptions = {}
 ): Promise<MountedDesignAudit> {
-  const styleOf = options.styleOf ?? ((element: Element) => getComputedStyle(element));
+  const readStyle = options.styleOf ?? ((element: Element) => getComputedStyle(element));
+  const styles = new WeakMap<Element, CSSStyleDeclaration>();
+  const ancestorPaint = new WeakMap<HTMLElement, boolean>();
+  const orders = new WeakMap<Element, Map<Element, number>>();
+  const styleOf = (element: Element) => {
+    let style = styles.get(element);
+    if (!style) {
+      style = readStyle(element);
+      styles.set(element, style);
+    }
+    return style;
+  };
+  const yieldWork = options.yield ?? (() => new Promise<void>(resolve => setTimeout(resolve, 0)));
+  let deadline = performance.now() + 4;
+  const current = () => {
+    if (options.isCurrent?.() === false) throw new DOMException('Obsolete mounted audit', 'AbortError');
+  };
+  const checkpoint = async () => {
+    current();
+    if (performance.now() >= deadline) {
+      await yieldWork();
+      current();
+      deadline = performance.now() + 4;
+    }
+  };
   const findings: MountedDesignFinding[] = [];
   const checked = { overflow: 0, contrast: 0, fonts: 0 };
   let manualContrastReview = 0;
@@ -262,6 +299,14 @@ export async function auditMountedDesign(
   for (const element of canvas.querySelectorAll<HTMLElement>('.lolly-box[data-box-id]')) {
     const id = element.dataset.boxId;
     if (id && !elements.has(id)) elements.set(id, element);
+  }
+  const siblings = new Map<Element, DesignLayerInspectionV1[]>();
+  for (const layer of documentReport.layers) {
+    const parent = elements.get(layer.id)?.parentElement;
+    if (!parent) continue;
+    const group = siblings.get(parent) ?? [];
+    group.push(layer);
+    siblings.set(parent, group);
   }
 
   const fontRuns = new Map<
@@ -274,6 +319,7 @@ export async function auditMountedDesign(
   >();
 
   for (const layer of documentReport.layers) {
+    await checkpoint();
     if (layer.kind !== 'text' || layer.hidden || !layer.id || !layer.text?.trim()) continue;
     const box = elements.get(layer.id);
     const text = box?.querySelector<HTMLElement>('.lolly-box-text');
@@ -298,8 +344,8 @@ export async function auditMountedDesign(
     const underlay =
       boxColour?.a === 1
         ? { review: false }
-        : siblingUnderlay(layer, box, documentReport.layers, elements, styleOf);
-    if (hasComplexPaint(box, canvas, styleOf) || underlay.review) {
+        : siblingUnderlay(layer, box, siblings.get(box.parentElement!) ?? [], elements, styleOf, orders, ancestorPaint);
+    if (hasComplexPaint(box, canvas, styleOf, ancestorPaint) || underlay.review) {
       manualContrastReview++;
       findings.push({
         id: 'design.text.contrast-review',
@@ -369,8 +415,10 @@ export async function auditMountedDesign(
   if (options.resolveFont) {
     const checkedLayers = new Set<string>();
     const missingLayers = new Set<string>();
-    await Promise.all(
-      [...fontRuns.values()].map(async (run) => {
+    const runs = [...fontRuns.values()];
+    for (let offset = 0; offset < runs.length; offset += 8) {
+      await checkpoint();
+      await Promise.all(runs.slice(offset, offset + 8).map(async (run) => {
         let resolved = false;
         try {
           resolved = await options.resolveFont!(run.style, run.text);
@@ -393,10 +441,25 @@ export async function auditMountedDesign(
             layerId: layer.id,
           });
         }
-      })
-    );
+      }));
+    }
     checked.fonts = checkedLayers.size;
   }
 
+  current();
   return { findings, checked, manualContrastReview };
+}
+
+export async function auditCurrentDesign(
+  canvas: HTMLElement,
+  report: DesignInspectionV1,
+  options: MountedDesignAuditOptions
+): Promise<MountedDesignAudit | null> {
+  try { await canvas.ownerDocument.fonts?.ready; } catch { /* The mounted layout still answers. */ }
+  try {
+    return await auditMountedDesign(canvas, report, options);
+  } catch (error) {
+    if ((error as Error).name === 'AbortError') return null;
+    throw error;
+  }
 }

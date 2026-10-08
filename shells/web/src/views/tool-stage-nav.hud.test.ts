@@ -372,7 +372,7 @@ test('a plain wheel over a floating surface scrolls it, and still pans anywhere 
     const moved = h.outer.style.transform;
     assert.match(moved, /translate/, 'and the view moved');
 
-    for (const cls of ['fc-popover fc-context-menu', 'fc-panel', 'fc-text-popover']) {
+    for (const cls of ['fc-popover fc-context-menu', 'fc-panel', 'fc-text-popover', 'fc-nav']) {
       const surface = document.createElement('div');
       surface.className = cls;
       const row = document.createElement('button');

@@ -465,6 +465,7 @@ test('catalog "Extract audio" is gated on ref.type === video', () => {
   assert.ok(gate, 'canExtractAudio gate is present');
   assert.match(gate![1]!, /ref\.type === 'video'/, 'gate requires a video asset');
   // The button + dispatch only ever appear behind that gate.
-  assert.match(catalog, /canExtractAudio \? `<button[^`]*data-act="extract-audio"/);
+  assert.match(catalog, /act: 'extract-audio'[^\n]*available: dt\.canExtractAudio/);
+  assert.match(catalog, /actions\.filter\(a => a\.available\)/);
   assert.match(catalog, /act === 'extract-audio'/);
 });

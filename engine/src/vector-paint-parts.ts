@@ -2,7 +2,7 @@
 /** Separate paint groups only where inherited compositing can remain exact. */
 import { decodeAuthoredPathsResult,encodeAuthoredPaths } from './geom/authored-url.ts';
 import { parseVectorPaint,type VectorPaintNode,type VectorPaintV1 } from './vector-paint.ts';
-export function splitVectorPaint(raw:string,value:unknown):Array<{path:string;paint:VectorPaintV1}>{
+export function splitVectorPaint(raw:string,value:unknown,allowSingle=false):Array<{path:string;paint:VectorPaintV1}>{
   const paths=decodeAuthoredPathsResult(raw);if(!Array.isArray(paths))throw new Error('The authored vector geometry is invalid.');
   const paint=parseVectorPaint(value,paths.length),definitions=new Map<string,VectorPaintNode>();
   function collect(node:VectorPaintNode,inDefinitions=false){if(inDefinitions&&node.attributes.id)definitions.set(node.attributes.id,node);for(const child of node.children??[])collect(child,inDefinitions||node.tag==='defs');}
@@ -12,7 +12,7 @@ export function splitVectorPaint(raw:string,value:unknown):Array<{path:string;pa
     if(node.tag==='path'||node.attributes['clip-path']||node.attributes.opacity!==undefined&&Number(node.attributes.opacity)!==1)return [node];
     return (node.children??[]).flatMap(child=>units(child).map(unit=>({...node,children:[unit]})));
   }
-  const parts=units(paint.root);if(parts.length<2)throw new Error('This paint group must stay together to preserve its opacity or clipping. Its points remain editable.');
+  const parts=units(paint.root);if(!parts.length)throw new Error('This vector has no visible paint layers.');if(parts.length<2&&!allowSingle)throw new Error('This paint group must stay together to preserve its opacity or clipping. Its points remain editable.');
   if(parts.length>1024)throw new Error('This vector has too many parts to separate. Select a smaller text range first.');
   return parts.map(root=>{
     const needed=new Set<string>();

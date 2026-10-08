@@ -1,0 +1,11 @@
+@layer views {
+  .project-agents { display: flex; flex-direction: column; gap: var(--sp-4); max-width: 720px; }
+  .project-agents h3, .project-agents h4, .project-agents p { margin: 0; }
+  .project-agents > button, .project-agent > button { align-self: flex-start; }
+  .project-agent { display: flex; flex-direction: column; gap: var(--sp-2); padding: var(--sp-4); margin-block-end: var(--sp-3); border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-panel); }
+  .project-agent strong, .project-agent p { overflow-wrap: anywhere; }
+  .project-agent time { color: var(--ui-color-text-muted); font-size: var(--fs-sm); }
+  .project-agent-form { display: flex; flex-wrap: wrap; align-items: end; gap: var(--sp-4); }
+  .project-agent-form label { display: flex; flex: 1 1 160px; flex-direction: column; gap: var(--sp-2); }
+  .project-agents textarea { display: block; box-sizing: border-box; width: 100%; margin-block: var(--sp-3); font-family: var(--font-mono, monospace); overflow-wrap: anywhere; }
+}

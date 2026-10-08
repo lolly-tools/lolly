@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MPL-2.0
-export function snapshotMotion(node: Element): () => void {
+export function snapshotMotion(node: Element, selector = 'video'): () => void {
   if (!node.querySelectorAll) return () => {};
   const swaps: { video: HTMLElement; still: HTMLElement; prevDisplay: string }[] = [];
-  for (const el of [...node.querySelectorAll('video')]) {
+  for (const el of [...node.querySelectorAll(selector)]) {
     const video = el as HTMLVideoElement;
     try {
       const w = video.videoWidth, h = video.videoHeight;

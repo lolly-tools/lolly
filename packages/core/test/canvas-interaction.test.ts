@@ -3,6 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { claimCoversOp, claimsOverlap, readCanvasPreview, readClaimTarget } from '../src/canvas-interaction-v1.ts';
 import { sanitizePresenceState } from '../src/collab-presence-v1.ts';
+import { encodeCanvasAsset } from '../src/canvas-asset-v1.ts';
 
 test('claims are atomic bounded targets, distinct for text and geometry', () => {
   const move = readClaimTarget({ kind: 'transform', collection: 'boxes', ids: ['a', 'b'] })!;
@@ -19,6 +20,14 @@ test('claims are atomic bounded targets, distinct for text and geometry', () => 
   assert.equal(claimCoversOp(move, { k: 'geom', col: 'boxes', id: 'a', fields: { x: 2 }, origin }), true);
   assert.equal(claimCoversOp(move, { k: 'field', col: 'boxes', id: 'a', field: 'color', value: 'red', origin }), false);
   assert.equal(claimCoversOp(text, { k: 'field', col: 'boxes', id: 'a', field: 'text', value: 'hello', origin }), true);
+});
+
+test('headshots keep only bounded portable workspace images, without allowing external URLs or inline bytes', () => {
+  const image = encodeCanvasAsset({ id: 'user/team/headshot', source: 'user', type: 'raster', format: 'png', pin: { version: 'immutable' } })!;
+  assert.equal(sanitizePresenceState({ headshot: image }).headshot, image);
+  for (const value of ['https://tracker.example/photo.png', 'data:image/png;base64,aGVsbG8=', 'x'.repeat(513), encodeCanvasAsset({ id: 'library/audio', source: 'library', type: 'audio', format: 'mp3' })]) {
+    assert.equal(sanitizePresenceState({ headshot: value }).headshot, undefined);
+  }
 });
 
 test('previews preserve document coordinates without allowing unbounded or hostile geometry', () => {

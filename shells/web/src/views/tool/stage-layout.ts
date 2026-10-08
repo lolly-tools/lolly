@@ -522,6 +522,10 @@ export async function wireSidebar(tview: ToolViewCtx): Promise<void> {
   const layout = viewEl.querySelector<HTMLElement>('#tool-layout')!; tview.layout = layout;
   const inputsEl = viewEl.querySelector<PanelEl>('#tool-inputs'); tview.inputsEl = inputsEl;
   const canvasEl = hideSidebar ? null : viewEl.querySelector<HTMLElement>('#tool-canvas'); tview.canvasEl = canvasEl;
+  // Measure the editor normally, but reveal its content only after chrome and the
+  // first clean template paint have supplied the artboard fit target.
+  tview.initialCanvasPending = !!(designChrome && canvasEl);
+  if (tview.initialCanvasPending) canvasEl!.style.visibility = 'hidden';
   const outerEl = hideSidebar ? null : viewEl.querySelector<HTMLElement>('#tool-canvas-outer'); tview.outerEl = outerEl as ToolViewCtx['outerEl'];
   const contentEl = (hideSidebar ? viewEl.querySelector<HTMLElement>('#tool-content') : canvasEl)!; tview.contentEl = contentEl;
   // The node the export/thumbnail actions target. Normally the fixed render canvas;
@@ -837,7 +841,7 @@ export async function wireCanvas(tview: ToolViewCtx): Promise<void> {
     });
     tview.mountLifecycle.add('viewport URL', offView);
     const linkedView = tview.urlFlags.get('_view');
-    if (linkedView) requestAnimationFrame(() => {
+    if (linkedView && !designChrome) requestAnimationFrame(() => {
       if (!viewEl.isConnected) return;
       try { zoom.applyView(JSON.parse(linkedView)); } catch { /* unreadable viewport */ }
     });
@@ -851,24 +855,6 @@ export async function wireCanvas(tview: ToolViewCtx): Promise<void> {
       else if (d) tview.stageZoom?.focusRect(d.x, d.y, d.w, d.h);
     };
     stageEl.addEventListener('fc-focus-rect', tview.onFocusRect);
-
-    // A document with artboards OPENS showing all of them. Both halves of the answer land
-    // after this line - the runtime paints the frame pages asynchronously and the overlay
-    // that reports them is a lazy chunk - so poll a bounded run of frames for the first
-    // content rect, exactly like the `?present` auto-entry below, and fit once. Any hand
-    // on the trackpad (or a deep link that framed something) wins and stops the poll.
-    {
-      let tries = 0;
-      const openFit = (): void => {
-        if (!viewEl.isConnected || !tview.stageZoom || tview.stageZoom.isUserZoomed()) return;
-        if (contentRect()) {
-          tview.stageZoom.fit();
-          return;
-        }
-        if (tries++ < 120) requestAnimationFrame(openFit); // ~2s at 60fps, then give up
-      };
-      requestAnimationFrame(openFit);
-    }
   } else if (stageEl && pagedDoc && (themeToggle || soundToggle)) {
     // Paged docs navigate by NATIVE scroll of the canvas surface (no pan/zoom transform),
     // so there's no zoom HUD - but the theme / sound toggles still dock in the same

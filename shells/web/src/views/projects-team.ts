@@ -5,7 +5,8 @@
  * opens this door. Shared folders mount inside Projects; their forms and previews
  * load on demand. Opening a session remembers its origin without creating a local slot.
  */
-import type { HostV1 } from '@lolly-tools/core/host-v1';
+import type { AssetRef, HostV1 } from '@lolly-tools/core/host-v1';
+import { mountAssetPreview } from './asset-preview.ts';
 import { getSessionSource, readSourceProjects, takeSourceProjectRequest } from '../lib/session-source.ts';
 import type { TeamProjectRef } from '../lib/session-source.ts';
 import { folderTile } from '../folder-tiles.ts';
@@ -14,7 +15,7 @@ import { tokenize } from '../lib/search/match.ts';
 import { buildFolderHaystack, matchesHaystack } from '../lib/search/projects-source.ts';
 import { announce } from '../a11y.ts';
 import { t } from '../i18n.ts';
-import { icon } from '../lib/icons.ts';
+import { actionButtonContent } from '../components/action-button.ts';
 import { escape as escapeHtml } from '../utils.ts';
 import type { Folder } from '../folders.ts';
 import { getInstanceBase } from '../lib/instance.ts';
@@ -51,11 +52,15 @@ export function openTeamProjects(door: TeamProjectsDoor, projectId?: string, cre
   window.location.hash = create ? '#/p?create=team' : projectId ? `#/p?team=${encodeURIComponent(projectId)}` : '#/p';
 }
 
-export async function mountTeamProjectFolder(door: TeamProjectsDoor, container: HTMLElement, opts: { projectId: string; create: boolean; tab: string; query: string; list: boolean; sort: string; reversed: boolean; assetId?: string }): Promise<() => void> {
+export async function mountTeamProjectFolder(door: TeamProjectsDoor, container: HTMLElement, opts: { projectId: string; create: boolean; tab: string; fileId?: string; query: string; list: boolean; sort: string; reversed: boolean; assetId?: string; folderId?: string }): Promise<() => void> {
   try {
     const module = await import('../org/team-project-view.ts');
+    const { prepareProjectAsset, projectAssetHref } = await import('../org/team-project-assets.ts');
     if (!door.isMounted() || !container.isConnected) return () => {};
-    return module.mountTeamProjectView(container, { ...door, ...opts });
+    return module.mountTeamProjectView(container, { ...door, ...opts, assetPreview(projectId, file) {
+      const link = (ref: AssetRef) => projectAssetHref(projectId, ref.id);
+      return { link, open: onClose => mountAssetPreview(door.host, () => prepareProjectAsset(projectId, file), { link, onClose }) };
+    } });
   } catch (error) {
     door.host.log?.('warn', 'projects: shared folder failed to load', { error: String(error) });
     if (container.isConnected) container.textContent = t('Team projects could not be opened.');
@@ -94,6 +99,7 @@ export function createSharedProjectsView(door: TeamProjectsDoor, view: HTMLEleme
   function beforeRender(): void { ++generation; clearFolder?.(); clearPreviews?.(); clearMenus?.(); clearFolder = clearPreviews = clearMenus = undefined; }
   return {
     projectId, active, create, refresh, beforeRender,
+    createFolder(): void { view.querySelector('[data-shared-folder]')?.dispatchEvent(new CustomEvent('lolly:team-folder-create')); },
     folders(items: readonly Folder[]): void { localFolders = items; },
     async shareFolder(id: string): Promise<void> {
       const module = await import('../org/team-folder-share.ts');
@@ -111,14 +117,14 @@ export function createSharedProjectsView(door: TeamProjectsDoor, view: HTMLEleme
       const message = state === 'error' ? t('Shared projects could not be loaded. Try again.') : state === 'loading' ? t('Loading shared projects…')
         : filter ? t('No shared projects match your search.') : t('Create a team project or ask a teammate to add you.');
       return `<section class="projects-shared" aria-label="${escapeHtml(tRaw('Shared projects'))}"><div class="projects-shared-head"><div><h2>${t('Shared projects')}</h2><p>${escapeHtml(source.label)}</p></div>
-        <button type="button" class="btn btn--sm btn--ghost" data-refresh-team>${icon('refresh')}${t('Refresh')}</button></div>
+        <button type="button" class="btn btn--labelled btn--ghost" data-refresh-team>${actionButtonContent(tRaw('Refresh'), 'refresh')}</button></div>
         ${tiles ? `<div class="folder-grid projects-grid${list ? ' projects-list' : ''}"${size}>${list ? head : ''}${tiles}</div>` : `<p class="projects-shared-status" role="status">${message}</p>`}</section>`;
     },
     afterRender(opts: { query: string; list: boolean; sort: string; reversed: boolean }): void {
       const ticket = generation, source = getSessionSource();
       if (active) {
         const slot = view.querySelector<HTMLElement>('[data-shared-folder]'); if (!slot) return;
-        void mountTeamProjectFolder(door, slot, { ...opts, projectId, create, tab: query.get('tab') || 'sessions', assetId: query.get('asset') || undefined }).then(clear => {
+        void mountTeamProjectFolder(door, slot, { ...opts, projectId, create, tab: query.get('tab') || 'sessions', assetId: query.get('asset') || undefined, folderId: query.get('folder') || undefined, fileId: query.get('file') || undefined }).then(clear => {
           if (!door.isMounted() || ticket !== generation || !slot.isConnected) clear(); else clearFolder = clear;
         });
       } else if (source) void Promise.all([import('../org/team-previews.ts'), import('../org/project-sharing.ts')]).then(([module, sharing]) => {

@@ -222,3 +222,16 @@ test('design systems open as a child picker without navigating and close with th
     assert.equal(document.querySelector('.design-system-menu'), null);
   } finally { detach(); }
 });
+
+
+test('the profile badge and menu count reflect queue changes and standalone controls retain their badge', async () => {
+  const { publishNotification, dismissNotification, _resetNotificationsForTests } = await import('../lib/notifications.ts');
+  _resetNotificationsForTests(); const detach = attachProfileMenu(trigger(), host);
+  const clear = publishNotification({ id: 'recovery', title: 'Saving and recovery' });
+  assert.equal(trigger().querySelector('.notification-badge')?.textContent, '1');
+  trigger().click(); assert.equal(menu()?.querySelector('[data-notification-count]')?.textContent, '1');
+  dismissNotification('recovery'); assert.equal(menu()?.querySelector('[data-notification-count]')?.textContent, '0');
+  assert.equal(trigger().querySelector<HTMLElement>('.notification-badge')?.hidden, true);
+  const standalone = createProfileControl(host); assert.ok(standalone.querySelector('.notification-badge'));
+  detach(); clear(); _resetNotificationsForTests();
+});

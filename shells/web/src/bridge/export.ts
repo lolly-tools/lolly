@@ -68,7 +68,7 @@ import { createPdfDoc } from './export-pdf-doc.ts';
 import { isOwnProfile, resolveEmbeddedProfile } from '../lib/press-profile-embed.ts';
 import type { EmbedResolution } from '../lib/press-profile-embed.ts';
 import { _host, canvasToBlob, imprintCanvas, exportDims, getDomToImage, swapBlobUrls, fontMetricsPx, blobToDataUrl, MAX_RASTER_PX, makeRoundedFill, setExportHost } from './export-shared.ts';
-import { beginFrameClock, renderFrameAt, endFrameClock } from './frame-clock.ts';
+import { beginFrameClock, renderFrameAt, endFrameClock, posedFrame } from './frame-clock.ts';
 import { isTopTailStage, isRecordStage } from './export-shared.ts';
 import type { WebHost, ExportOpts, ExportDims, DtoRenderOpts, ImprintState, Rgba } from './export-shared.ts';
 import { renderSvgFromHtml, stripCommentNodes, inlineBlobUrlsInEl, inlineSvgFromImg, imprintEmbedCanvas, isPaintSkipped, rotationPivot, rasterizePosedNodeToDataUrl, effectSpillCss, detectUnsupportedCss, rasterizeNodeToDataUrl, firstCssUrl, cssUrlToHref, bakeImageFilter, visualLines, mergeDeco, decoFlags, pseudoDescriptor } from './export-svg-walker.ts';
@@ -180,7 +180,7 @@ export function createExportAPI(host: WebHost) {
       // the frame at the playhead, with each video exactly where the preview had
       // it (the phase-2 WYSIWYG contract).
       const restoreMotion = ((SEQUENCE_MOTION_FORMATS.has(format) || format === 'html') && isSequenceStage(node))
-        ? (): void => {}
+        ? snapshotMotion(node, 'video[data-live-camera-video]')
         : snapshotMotion(node);
 
       // The timeline panel photographs its own clip boxes with the same dom-to-image
@@ -5391,8 +5391,10 @@ export async function createFrameSource(node: Element, opts: ExportOpts & { fram
       // frameClock - a clocked canvas can still share the DOM with CSS-animated
       // chrome around it. No-op when the node has none.
       scrubAnimations(node, t * durationMs, scrubbedAnims);
-      if (window.__lollyCaptureScreenshot)
-        return captureViaExternalScreenshot(targetW, targetH, window.__lollyCaptureScreenshot);
+      // A Node caller's real screenshot replaces dom-to-image, and SMIL (which
+      // scrubAnimations cannot reach) is posed at this frame's time: see posedFrame.
+      const posed = await posedFrame(node, t * durationMs, window.__lollyCaptureScreenshot ? () => captureViaExternalScreenshot(targetW, targetH, window.__lollyCaptureScreenshot!) : null, () => lib.toCanvas(node, dtoOpts));
+      if (posed) return posed;
       // ── Direct-canvas capture (opt-in, per-node) ──────────────────────────────
       // A raster tool that already holds the FINISHED frame on a working <canvas>
       // (the filter tool's glitch shimmer) can register node.__lollyFrameCanvas(t,

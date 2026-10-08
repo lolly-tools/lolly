@@ -45,6 +45,12 @@ export function positionEditorPopover(menu: HTMLElement, anchor: HTMLElement, st
   const sr = detached
     ? { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }
     : stage.getBoundingClientRect();
+  const actions = anchor.closest('.design-compact-actions');
+  const viewport = window.visualViewport;
+  const visibleTop = Math.max(sr.top, viewport?.offsetTop ?? 0);
+  const visibleBottom = Math.min(sr.top + sr.height, (viewport?.offsetTop ?? 0) + (viewport?.height ?? window.innerHeight));
+  const menuBottom = actions ? Math.min(visibleBottom, actions.getBoundingClientRect().top) : sr.top + sr.height;
+  if (actions) menu.style.maxHeight = `${Math.max(0, menuBottom - visibleTop - 12)}px`;
   const below = !!anchor.closest('.design-topbar');
   // A top-bar menu scrolls into the space below its trigger instead of covering it.
   if (below) menu.style.maxHeight = `${Math.max(0, sr.height - (ar.bottom - sr.top) - 14)}px`;
@@ -52,8 +58,8 @@ export function positionEditorPopover(menu: HTMLElement, anchor: HTMLElement, st
   const pos = placePopover(
     { left: ar.left - sr.left, right: ar.right - sr.left, top: ar.top - sr.top,
       ...(below ? { bottom: ar.bottom - sr.top } : {}) },
-    { w: pr.width, h: pr.height }, { w: sr.width, h: sr.height },
+    { w: pr.width, h: pr.height }, { w: sr.width, h: menuBottom - sr.top },
   );
   menu.style.left = `${pos.left}px`;
-  menu.style.top = `${pos.top}px`;
+  menu.style.top = `${actions ? Math.max(visibleTop - sr.top + 6, pos.top) : pos.top}px`;
 }

@@ -11,10 +11,13 @@ import { wireSyntaxRequests } from '../../lib/syntax-preview.ts';
  */
 import { C2PA_FORMATS, DEFAULT_CMYK_CONDITION, VIDEO_CODEC_STRINGS, hasVideoParams, normalizeTableValue } from '@lolly/engine';
 import { t } from '../../i18n.ts';
-import { patchCanvasTranslations } from '../canvas-translation.ts';
+import { cacheCanvasTranslations, patchCanvasTranslations } from '../canvas-translation.ts';
+import { contentPatchPlan } from '../canvas-content-plan.ts';
+import { patchCanvasContent } from '../canvas-content.ts';
 import { livePalette } from '../../lib/live-palette.ts';
 import { patchTextEditingCanvas } from '../../lib/text-edit-paint.ts';
 import { patchLivePreview } from '../../lib/live-preview.ts';
+import { finishCanvasFeedback } from '../../lib/canvas-feedback.ts';
 import { scopeTemplateStyles } from '../../lib/scope-css.ts';
 import { runTemplateScripts, waitForQuiescence } from '../../lib/render-lifecycle.ts';
 import { hydrateEmbeds, neutralizeEmbeds } from '../../bridge/embed.ts';
@@ -90,6 +93,10 @@ export async function runPreview(tview: ToolViewCtx, btn?: HTMLElement | null): 
 // the stage as a sibling of the canvas, so the per-render innerHTML rebuild
 // doesn't wipe it; cleared on the next successful render.
 export function showCanvasError(tview: ToolViewCtx): void {
+  if (tview.initialCanvasPending) {
+    tview.initialCanvasPending = false;
+    if (tview.canvasEl) tview.canvasEl.style.visibility = '';
+  }
   const { contentEl, stageEl } = tview;
   const stage = stageEl || contentEl?.parentElement;
   if (!stage || stage.querySelector(':scope > .canvas-error')) return;
@@ -155,11 +162,22 @@ export function paint(tview: ToolViewCtx): void {
     }
   }
 
-  const livePatched = !geomSkipped && hydrated !== tview.lastPainted &&
+  let contentPatched = false;
+  if (!geomSkipped && fastCfgPaint && prevBoxes && curBoxes && tview.toolId === 'design') {
+    const ids = contentPatchPlan(prevBoxes, curBoxes, { ...fastCfgPaint, connectorEndpointIds: boundEndpointIds(curBoxes, {
+      idField: fastCfgPaint.field.idField, bindStartField: fastCfgPaint.bindStartField, bindEndField: fastCfgPaint.bindEndField, kindField: fastCfgPaint.kindField,
+    }) });
+    if (ids && patchCanvasContent(contentEl, tview.lastPainted, hydrated, ids)) {
+      tview.lastPainted = hydrated; tview.lastPaintedBoxes = curBoxes; contentPatched = true;
+      window.__lollyCanvasContentPath ??= { patches: 0 };
+      window.__lollyCanvasContentPath.patches++;
+    }
+  }
+  const livePatched = !geomSkipped && !contentPatched && hydrated !== tview.lastPainted &&
     patchLivePreview(contentEl, tview.lastPainted, hydrated);
   if (livePatched) tview.lastPainted = hydrated;
-  let contentPainted = geomSkipped || livePatched;
-  if (!geomSkipped && !livePatched && hydrated !== tview.lastPainted) {
+  let contentPainted = geomSkipped || contentPatched || livePatched;
+  if (!geomSkipped && !contentPatched && !livePatched && hydrated !== tview.lastPainted) {
     const gen = ++tview.renderGen;
     // Paged docs scroll the whole document in the canvas surface; a full innerHTML
     // rebuild would otherwise snap the view back to the cover on every keystroke.
@@ -176,6 +194,7 @@ export function paint(tview: ToolViewCtx): void {
       // every keystroke.
       const parkedWeb = webModule ? webModule.parkWebFrames(contentEl) : null;
       if (!patchTextEditingCanvas(contentEl, safeHtml)) contentEl.innerHTML = safeHtml;
+      if (fastCfgPaint) cacheCanvasTranslations(contentEl, hydrated);
       webModule?.restoreWebFrames(contentEl, parkedWeb);
       // A <style> inside template.html would otherwise apply unscoped and unlayered,
       // beating every app layer - one tool's `*` reset strips the chrome's padding.
@@ -375,6 +394,20 @@ export function paint(tview: ToolViewCtx): void {
   // Mounted Design health must never inspect the previous DOM against a newer
   // boxes model. The inspector invalidates on the synchronous model echo and only
   // resumes its layout/contrast/font checks after this clean-paint signal.
+  if (contentPainted && tview.initialCanvasPending) {
+    // The editor and its chrome are mounted before subscription. Fit the newly
+    // painted artboards in this same frame, before any content becomes visible.
+    const userView = tview.stageZoom?.isUserZoomed();
+    tview.stageLayout.refitStage();
+    // Restore against the final fitted geometry, rather than racing mount-time
+    // resize events in a separate animation frame. A gesture during open wins.
+    const linkedView = tview.urlFlags.get('_view');
+    if (linkedView && !userView) {
+      try { tview.stageZoom?.applyView(JSON.parse(linkedView)); } catch { /* unreadable viewport */ }
+    }
+    tview.initialCanvasPending = false;
+    canvasEl!.style.visibility = '';
+  }
   if (contentPainted) canvasEl?.dispatchEvent(new CustomEvent('lolly-canvas-painted'));
 
   // The canvas just moved (or was rebuilt outright, taking every annotated node
@@ -575,6 +608,7 @@ export function paint(tview: ToolViewCtx): void {
       runPreview(tview).catch((err) => console.error('Auto-preview failed:', err))
     ).catch((err) => tview.host.log?.('warn', `Auto-preview did not start: ${String(err)}`));
   }
+  if (contentPainted) finishCanvasFeedback(tview.runtime, 'pointer-commit');
 }
 // Paint any queued frame right now (cancelling the scheduled rAF). Used by
 // exportUnscaled so a capture reads the latest keystroke, and harmless if no

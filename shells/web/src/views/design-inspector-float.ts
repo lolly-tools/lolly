@@ -19,11 +19,11 @@ import { type GripBox, panelGripsHtml, wirePanelGrips } from '../lib/panel-grips
 import { attachWobble } from '../lib/wobble.ts';
 import type { DesignInspectorHandle } from './design-inspector.ts';
 
-type Mode = 'edge' | 'floating' | 'maximized';
+type Mode = 'edge' | 'floating';
 type OpenReason = 'user' | 'host';
 
 interface SavedState {
-  mode?: Mode;
+  mode?: Mode | 'maximized';
   box?: GripBox | null;
 }
 
@@ -66,16 +66,14 @@ export function wireDesignInspectorFloat(
   const panel = inspector.el;
   const isMobile = opts.isMobile ?? compactDesignViewport;
   const saved = load();
-  let mode: Mode = saved.mode === 'floating' || saved.mode === 'maximized' ? saved.mode : 'edge';
+  let mode: Mode = saved.mode === 'floating' || saved.mode === 'maximized' ? 'floating' : 'edge';
   let box: GripBox | null =
     saved.box && [saved.box.x, saved.box.y, saved.box.w, saved.box.h].every(Number.isFinite)
       ? saved.box
       : null;
-  let restoreBox: GripBox | null = null;
   let open = false;
   let destroyed = false;
   let sheet = false;
-  let sheetExpanded = false;
   let sheetInvoker: HTMLElement | null = null;
   let releaseAction: 'float' | 'close' | 'destroy' | null = null;
 
@@ -141,14 +139,11 @@ export function wireDesignInspectorFloat(
     const top = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--design-topbar-h')) || 60;
     const actionsHeight = compactActionsHeight();
     const available = Math.max(120, height - top - actionsHeight);
-    const wanted = Math.min(available, sheetExpanded ? available * 0.9 : Math.max(160, available * 0.52));
+    const wanted = Math.min(available, Math.max(160, available * 0.52));
     panel.style.left = `${viewport?.offsetLeft ?? 0}px`;
     panel.style.top = `${(viewport?.offsetTop ?? 0) + height - actionsHeight - wanted}px`;
     panel.style.width = `${viewport?.width ?? vw()}px`;
     panel.style.height = `${Math.round(wanted)}px`;
-    maxBtn.setAttribute('aria-expanded', String(sheetExpanded));
-    maxBtn.setAttribute('aria-label', sheetExpanded ? t('Collapse inspector') : t('Expand inspector'));
-    maxBtn.title = maxBtn.getAttribute('aria-label')!;
     opts.onSheetHeight?.(Math.round(wanted));
     const focused = document.activeElement;
     if (focused instanceof HTMLElement && panel.contains(focused)) focused.scrollIntoView?.({ block: 'nearest' });
@@ -172,10 +167,8 @@ export function wireDesignInspectorFloat(
     el.title = label;
     return el;
   };
-  const detachBtn = button('detach', icon('resize'), t('Detach inspector'));
-  const maxBtn = button('maximize', icon('arrowsV'), t('Expand inspector to full height'));
   const dockBtn = button('dock', icon('dock'), t('Dock inspector to the side'));
-  tools.append(detachBtn, maxBtn, dockBtn);
+  tools.append(dockBtn);
   const closeBtn = head.querySelector<HTMLElement>('[data-act-col="close"]');
   head.insertBefore(tools, closeBtn ?? null);
 
@@ -192,15 +185,7 @@ export function wireDesignInspectorFloat(
   const render = (): void => {
     const floating = mode !== 'edge';
     panel.classList.toggle('is-floating', floating);
-    panel.classList.toggle('is-maximized', mode === 'maximized');
-    detachBtn.hidden = mode !== 'edge';
-    dockBtn.hidden = mode === 'edge';
-    maxBtn.setAttribute('aria-pressed', String(mode === 'maximized'));
-    maxBtn.setAttribute(
-      'aria-label',
-      mode === 'maximized' ? t('Restore inspector size') : t('Expand inspector to full height')
-    );
-    maxBtn.title = maxBtn.getAttribute('aria-label') || '';
+    dockBtn.hidden = mode === 'edge' || isMobile();
     if (floating && box) applyBox(box);
     else if (!floating) clearBox();
   };
@@ -219,7 +204,7 @@ export function wireDesignInspectorFloat(
     }
     if (!destroyed && !action && isMobile() && open) {
       sheet = true; panel.classList.add('is-compact-sheet');
-      panel.classList.remove('is-floating', 'is-maximized');
+      panel.classList.remove('is-floating');
       document.body.append(panel); sizeSheet(); inspector.setOpen(true); return;
     }
     panel.remove();
@@ -277,7 +262,7 @@ export function wireDesignInspectorFloat(
       if (sheet) return true;
       if (isDocked('inspector')) releaseDock('inspector', 'host');
       clearBox();
-      panel.classList.remove('is-floating', 'is-maximized');
+      panel.classList.remove('is-floating');
       sheetInvoker = document.activeElement instanceof HTMLElement ? document.activeElement : null;
       sheet = true;
       panel.classList.add('is-compact-sheet');
@@ -316,34 +301,13 @@ export function wireDesignInspectorFloat(
     if (enterEdge()) save();
   };
 
-  const toggleMax = (): void => {
-    if (sheet) { sheetExpanded = !sheetExpanded; sizeSheet(); return; }
-    if (isMobile()) return;
-    if (mode === 'edge') enterFloating();
-    if (mode === 'maximized') {
-      mode = 'floating';
-      box = clamp(restoreBox ?? box ?? seedBox());
-      restoreBox = null;
-    } else {
-      restoreBox = { ...(box ?? currentRect()) };
-      mode = 'maximized';
-      const base = box ?? seedBox();
-      box = clamp({ x: base.x, y: MARGIN, w: base.w, h: vh() - MARGIN * 2 });
-    }
-    render();
-    save();
-  };
-
-  detachBtn.addEventListener('click', enterFloating);
   dockBtn.addEventListener('click', dock);
-  maxBtn.addEventListener('click', toggleMax);
 
   let drag: { px: number; py: number; lx: number; ly: number; box: GripBox; id: number } | null =
     null;
   const onHeadDown = (event: PointerEvent): void => {
     if (isMobile() || event.button !== 0 || (event.target as HTMLElement).closest('button')) return;
     if (mode === 'edge') enterFloating();
-    if (mode === 'maximized') toggleMax();
     const current = box ?? seedBox();
     drag = {
       px: event.clientX,
@@ -405,7 +369,6 @@ export function wireDesignInspectorFloat(
     min: MIN,
     locked: () => isMobile() || mode === 'edge',
     onEnd: () => {
-      if (mode === 'maximized') mode = 'floating';
       save();
     },
   });

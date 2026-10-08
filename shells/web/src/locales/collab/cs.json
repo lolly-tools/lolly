@@ -225,5 +225,10 @@
   "Couldn't read the transfer back.": "Přenos se nepodařilo znovu načíst.",
   "Part of the transfer is missing.": "Část přenosu chybí.",
   "The transfer was cancelled.": "Přenos byl zrušen.",
-  "View {name}": "Zobrazit {name}"
+  "View {name}": "Zobrazit {name}",
+  "AI agent": "AI agent",
+  "Pause agent": "Pozastavit agenta",
+  "Resume agent": "Pokračovat s agentem",
+  "Disconnect agent": "Odpojit agenta",
+  "Paused": "Pozastaveno"
 }

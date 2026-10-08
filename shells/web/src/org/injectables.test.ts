@@ -4,7 +4,7 @@
  *
  * The three things that MUST hold:
  *   - a member's org-config `injectables` populate the neutral injected-tools
- *     registry (tool kind) and render a chrome banner (chrome kind);
+ *     registry (tool kind) and queue a workspace notice (chrome kind);
  *   - flag/resource/unknown kinds are ignored here (they ride other seams);
  *   - dormancy: no control plane (or no injectables) ⇒ the registry stays empty
  *     and no chrome node is inserted, so the shell is byte-identical to today.
@@ -58,6 +58,7 @@ async function reset(): Promise<void> {
   _resetOrgForTests();
   _clearInjectedToolsForTests();
   _resetChromeForTests();
+  _resetNotificationsForTests();
   store.clear();
   document.getElementById('app')!.querySelectorAll('.org-chrome').forEach((n) => n.remove());
   document.getElementById('view')!.innerHTML = '<p class="loading">Loading…</p>';
@@ -73,7 +74,8 @@ function member(orgConfig: unknown): void {
   };
 }
 const cfg = (injectables: unknown[]): unknown => ({ instance: { name: 'Acme' }, inboxUnread: 0, injectables });
-const banner = () => document.querySelector('.org-chrome--banner');
+const { notificationEntries, dismissNotification, _resetNotificationsForTests } = await import('../lib/notifications.ts');
+const banner = () => notificationEntries().find(row => row.id.startsWith('chrome:') && !row.dismissed) ?? null;
 
 /**
  * Wait for the lazy `import('./chrome.ts')` to resolve AND mount.
@@ -81,7 +83,7 @@ const banner = () => document.querySelector('.org-chrome--banner');
  * This was a single `setTimeout(0)`, which is one macrotask - enough on a warm
  * module cache and not enough on a cold one. It passed on every developer machine
  * and failed in CI, where the import is compiled fresh: "member injectables …
- * render a chrome banner" has been red on main for several commits for exactly
+ * queue a workspace notice" has been red on main for several commits for exactly
  * this reason, with a nonsense symptom (the banner simply absent).
  *
  * So poll the caller's condition rather than guess a duration. With no condition
@@ -99,7 +101,7 @@ const settle = async (until?: () => unknown, timeoutMs = 3000): Promise<void> =>
   }
 };
 
-test('member injectables populate the tool registry + render a chrome banner', async () => {
+test('member injectables populate the tool registry + queue a workspace notice', async () => {
   await reset();
   member(cfg([
     { id: 't1', kind: 'tool', title: 'Event Badge', toolId: 'event-badge', source: 'catalog' },
@@ -112,9 +114,10 @@ test('member injectables populate the tool registry + render a chrome banner', a
   assert.equal(tools[0]!.id, 'event-badge'); // the SERVED id, not the injectable id
   assert.equal(tools[0]!.name, 'Event Badge');
   const bar = banner();
-  assert.ok(bar, 'a chrome banner is inserted');
-  assert.match(bar!.textContent || '', /Welcome to Acme/);
-  assert.match(bar!.innerHTML, /#\/docs/); // the link href
+  assert.ok(bar, 'workspace notice is queued');
+  assert.equal(bar.body, 'Welcome to Acme');
+  assert.equal(bar.action?.href, '#/docs');
+  assert.equal(document.querySelector('.org-chrome'), null, 'no floating banner');
 });
 
 test('a url-source tool resolves to its served id + URL-mode query (opens preconfigured)', async () => {
@@ -153,7 +156,7 @@ test('flag / resource / unknown kinds are ignored (they ride other seams)', asyn
   assert.equal(banner(), null);
 });
 
-test('a dismissed chrome banner does not reappear', async () => {
+test('a dismissed workspace notice does not reappear', async () => {
   await reset();
   const one = () => member(cfg([{ id: 'c1', kind: 'chrome', title: 'N', slot: 'banner', text: 'Notice', tone: 'warn' }]));
   one();
@@ -161,7 +164,7 @@ test('a dismissed chrome banner does not reappear', async () => {
   await settle(banner);
   const bar = banner();
   assert.ok(bar);
-  (bar!.querySelector('.org-chrome-dismiss') as HTMLElement).click();
+  dismissNotification(bar!.id);
   assert.equal(banner(), null, 'dismiss removes it');
   // Re-init (a fresh boot): the dismissed id is remembered locally, so it stays gone.
   _resetOrgForTests();
@@ -201,9 +204,8 @@ test('a javascript: link href is dropped, not rendered as a clickable anchor', a
   await settle(banner);
   const bar = banner();
   assert.ok(bar);
-  assert.match(bar!.textContent || '', /Notice/); // text still shows
-  assert.equal(bar!.querySelector('.org-chrome-cta'), null, 'no anchor for an unsafe href');
-  assert.doesNotMatch(bar!.innerHTML, /javascript:/);
+  assert.equal(bar!.body, 'Notice');
+  assert.equal(bar!.action, undefined, 'no action for an unsafe href');
 });
 
 test('duplicate injected tool ids collapse to one registry entry (no dup card)', async () => {

@@ -14,6 +14,8 @@ import type { ModalHandle } from '../../components/modal.ts';
 import type { panelsOps } from './details-panels.ts';
 import type { inlineModesOps } from './details-inline-modes.ts';
 import type { sheetOps } from './details-sheet.ts';
+import type { controlsOps } from './details-controls.ts';
+import type { provenanceOps } from './details-provenance.ts';
 import type { openDetails } from './details.ts';
 
 export interface DetailsCtx {
@@ -26,6 +28,8 @@ export interface DetailsCtx {
   TREATMENT_FILTER_PREFIX: string;
   host: CatCtx['host'];
   emojiBrowser?: { destroy(): void };
+  previewStatusDispose?: () => void;
+  formatViewer?: import('../../components/asset-format-viewer.ts').AssetFormatViewerHandle;
   nav: { prev: AssetRef | null; next: AssetRef | null; };
   base: string;
   isUser: boolean;
@@ -100,6 +104,8 @@ export interface DetailsCtx {
   panels: ReturnType<typeof panelsOps>;
   inlineModes: ReturnType<typeof inlineModesOps>;
   sheet: ReturnType<typeof sheetOps>;
+  controls: ReturnType<typeof controlsOps>;
+  provenance: ReturnType<typeof provenanceOps>;
   /** The closure itself, for the moved code that re-enters it. */
   openDetails: typeof openDetails;
 }

@@ -25,6 +25,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
+import { editingHtml } from './assets/details-controls.ts';
+import type { DetailsCtx } from './assets/details-context.ts';
 
 // the Assets view is an orchestrator plus feature modules under ./assets/ (2026-09-09 split)
 const catDir = new URL('./assets/', import.meta.url);
@@ -74,11 +76,12 @@ test('the video-job dialog has no crop controls left to drift from the inline bo
 });
 
 test('the mode gets its own Escape branch, with preventDefault and a busy() guard', () => {
-  const branch = /if \((?:dt\.)?inlineVideoEdit\) \{[\s\S]{0,320}?\}/.exec(catalog)?.[0] ?? '';
+  const branch = /if \(dt\.inlineCrop[^\n]*dt\.inlineVideoEdit[^\n]*\) \{[\s\S]{0,320}?\}/.exec(catalog)?.[0] ?? '';
   assert.ok(branch, 'the keydown handler answers the mode');
   assert.match(branch, /e\.preventDefault\(\)/, 'or Escape closes the whole details modal instead of the mode');
   assert.match(branch, /e\.stopPropagation\(\)/);
-  assert.match(branch, /busy\(\)/, 'a committing Apply is never torn down mid-enqueue');
+  assert.match(branch, /dismissLayer\(\)/);
+  assert.match(catalog, /else if \(dt\.inlineVideoEdit\) \{ if \(!dt\.inlineVideoEdit\.busy\(\)\) dt\.inlineVideoEdit\.exit\(\); \}/, 'a committing Apply is never torn down mid-enqueue');
 });
 
 test("the modal's onClose reaps the mode, next to the other inline modes", () => {
@@ -97,14 +100,17 @@ test('the entry is guarded against a double-click and a stale dialog', () => {
   assert.match(entry, /(?:setCropModeActive\(true\)|cropModeActive = true);/, 'attachZoom stands down while the mode owns the stage');
 });
 
-test('the action row offers both, and never collides with "Trim margins"', () => {
-  assert.match(catalog, /data-act="vid-grade"[\s\S]{0,200}?Grade…/, 'Grade… is offered on a video');
-  assert.match(catalog, /data-act="vid-trim"[\s\S]{0,200}?Trim…/, 'Trim… too');
+test('the editing toolbar offers both video actions, and never collides with "Trim margins"', () => {
+  const context = { ref: { source: 'user', type: 'video' }, cat: { actions: { choices: () => [], canConvert: () => false } }, canVideoGrade: true, canVideoTrim: true, trimmable: true } as unknown as DetailsCtx;
+  const html = editingHtml(context);
+  assert.match(html, /data-act="vid-grade"[\s\S]{0,300}?Grade…/, 'Grade… is offered on a video');
+  assert.match(html, /data-act="vid-trim"[\s\S]{0,300}?Trim…/, 'Trim… too');
   assert.match(catalog, /const canVideoGrade = videoDecodable && videoEncodable;/, 'gated on decode AND encode');
   assert.match(catalog, /const canVideoTrim = videoDecodable && videoEncodable;/);
   // The still-upload "Trim margins" keeps its own act, class and mode class.
-  assert.match(catalog, /data-act="trim"[\s\S]{0,200}?Trim margins/, 'the unrelated margin trim is untouched');
-  assert.ok(!/data-act="vid-trim"[\s\S]{0,400}?is-trimming/.test(catalog), 'the video mode never borrows .is-trimming');
+  assert.match(html, /data-act="trim"[\s\S]{0,300}?Trim margins/, 'the unrelated margin trim is untouched');
+  assert.ok(!html.includes('is-trimming'), 'the video mode never borrows .is-trimming');
+  assert.ok(!editingHtml({ ...context, canVideoGrade: false, canVideoTrim: false }).includes('data-act="vid-'), 'unsupported video actions are omitted');
 });
 
 test('the takeover CSS hides the zoom stage, the stage bar, the action row AND the paging arrows', () => {

@@ -1,0 +1,10 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+.web-css-dialog {
+  width: min(42rem, calc(100vw - 1.5rem));
+  max-height: calc(100dvh - 1.5rem);
+  overflow: auto;
+}
+.web-css-dialog .web-css-editor { min-height: 12rem; }
+.web-css-dialog .web-css-error:empty { display: none; }
+.web-css-dialog .modal-actions { flex-wrap: wrap; }
+.web-css-dialog .modal-actions .btn { min-height: 44px; min-width: 44px; }

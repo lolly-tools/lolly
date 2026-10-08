@@ -16,7 +16,11 @@ pnpm run test:conformance
 pnpm run test:fuzz:regression
 ```
 
-Do not replace the runner with `node --test tests/`: on current Node the bare directory is loaded as a module rather than discovered recursively. The repo root owns the run, including package, web, TUI and MCP tests. The CI matrix runs all nine shards in parallel; target-specific browser and Tauri concerns stay in their own shards rather than being forced onto CLI.
+Do not replace the runner with `node --test tests/`: on current Node the bare directory is loaded as a module rather than discovered recursively. The repo root owns the run, including package, web, TUI and MCP tests. The CI matrix runs all nine shard families in parallel; target-specific browser and Tauri concerns stay in their own shards rather than being forced onto CLI.
+
+CI divides the browser inventory across four isolated runners. Each runner executes its sorted partition serially, with the same Chromium, source and production shells, warm-up and entry-point checks. `scripts/browser-partitions.ts` assigns every fourth sorted file to a partition, so new tests join automatically. `tests/test-shards.test.ts` checks that their union is the complete browser inventory and that no file appears twice. Local `pnpm run test:browser` still runs the complete shard.
+
+The required `test (browser)` aggregate waits for every matrix job to succeed. It then requires four paired execution/skip reports from the same checkout and workflow attempt. Actual Node test-file completion events must match each planned partition exactly; missing, duplicate, failed or unfinished files fail the gate. All reviewed browser skip identities must still match, including their reasons and owners. The reports include per-file durations to measure partition balance; no shorter deployment time is claimed before full CI qualifies the split. For a local partition, set `LOLLY_SKIP_REPORT` and `LOLLY_TEST_COVERAGE_REPORT`, then run `pnpm run test:browser --partition=1/4` (or `2/4`, `3/4`, `4/4`).
 
 CI also sets `LOLLY_SKIP_REPORT` so the custom reporter writes each skipped test's file, full parent-chain name, reason, capability and owner. `tests/expected-skips.json` is the exact reviewed Ubuntu baseline. Any new/replacement skip fails, and any expected skip that starts running also fails until its stale entry is removed. To refresh after a reviewed environment change, download all `test-skips-*` artifacts and pass every JSON file as a repeated argument: `pnpm run check:skip-identities --report=<one> --report=<two> … --write`.
 

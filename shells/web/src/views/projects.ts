@@ -3,7 +3,7 @@ import { updateRouteParams } from '../lib/url-state.ts';
 import { createProjectScenePreviews, projectRecentExports } from './projects-scene-previews.ts';
 import { sceneThumbPatcher } from './projects-scene-patch.ts';
 import { handleProjectTextAction, projectAssetMenu } from './projects-asset-actions.ts';
-import { mountLocalProjectAsset, localProjectAssetHref } from './projects-asset-view.ts';
+import { mountLocalProjectAsset, localProjectAssetHref, setProjectViewTitle } from './projects-asset-view.ts';
 /**
  * Projects view (route /p and /p/<folderId>).
  *
@@ -29,6 +29,7 @@ import { mountLocalProjectAsset, localProjectAssetHref } from './projects-asset-
 import { escape } from '../utils.ts';
 import { t, tRaw } from '../i18n.ts';
 import { icon } from '../lib/icons.ts';
+import { groupSelectionInFolder } from './projects-folder-create.ts';
 import { createFolderStore, childFolders, folderPath, descendantFolderIds, FOLDER_COLORS } from '../folders.ts';
 import type { Folder, FolderItem, TrashEntry, ProjectTemplate } from '../folders.ts';
 import { PTPL_SLOT_PREFIX, isHiddenSlot } from '../lib/batch-slots.ts';
@@ -70,7 +71,8 @@ import { mountModal } from '../components/modal.ts';
 import type { ModalHandle } from '../components/modal.ts';
 import { startBatchExport } from '../lib/batch-job.ts';
 import { announce } from '../a11y.ts';
-import { listCreateBtns as createButtonsHtml, emptyFolderHtml } from './projects-create.ts';
+import { mountActionToolbar, actionButtonContent } from '../components/action-button.ts';
+import { listCreateBtns as createButtonsHtml, emptyFolderHtml, projectLearningActionsHtml } from './projects-create.ts';
 import { FEATURED_VIEW_STORAGE, liveAnchor, mountProjectsViewOptions, projectsCardSizeAttr, projectsViewFromUrl, readProjectsViewPrefs, writeProjectsViewPrefs, readFeaturedView, switchFavouritesView } from './projects-view-options.ts';
 import type { BodyPopoverHandle } from '../components/body-popover.ts';
 import { shareProjectFavourite, shareProjectSession } from './projects-sharing.ts';
@@ -193,7 +195,6 @@ const DUPLICATE_ICON = icon('duplicate', { strokeWidth: 1.9 });
 const STAR_ICON = icon('star', { strokeWidth: 1.9 });
 const STAR_FILLED_ICON = icon('star', { filled: true });
 const SHEET_ICON = icon('grid', { strokeWidth: 1.9 });
-const BATCH_ICON = icon('table', { strokeWidth: 1.9 });
 const MOVE_ICON = icon('move', { strokeWidth: 1.9 });
 const TRASH_ICON = icon('trash', { strokeWidth: 1.9 });
 const PALETTE_ICON = icon('palette', { strokeWidth: 1.9 });
@@ -563,7 +564,11 @@ export async function mountProjects(
   }
 
   // ── render ───────────────────────────────────────────────────────────────
+  let disposeAssetPreview: (() => void) | undefined;
+  let clearRootToolbar: (() => void) | undefined;
   function render(): void {
+    clearRootToolbar?.(); clearRootToolbar = undefined;
+    disposeAssetPreview?.(); disposeAssetPreview = undefined;
     shared.folders(folders);
     viewPopover?.close();
     if (!mounted) return; // an async callback fired after we navigated away - don't clobber the new view
@@ -571,17 +576,16 @@ export async function mountProjects(
     // previous view off document.title - this is how a tool opened from a folder,
     // or #/start reached from one, gets a back pill wearing the folder's name).
     shared.beforeRender();
-    const titleName = sharedFolder ? t('Team project') : folderId == null ? t('Projects')
-      : folderId === UNCAT ? t('Uncategorised') : folderId === TEMPLATES ? t('Templates')
-      : (folders.find(f => f.id === folderId)?.name || t('Projects'));
-    document.title = tRaw('{name} - Lolly', { name: titleName });
+    const titleName = setProjectViewTitle(folderId, folders, sharedFolder ? t('Team project') : folderId === UNCAT ? t('Uncategorised') : folderId === TEMPLATES ? t('Templates') : undefined);
     featuredHandle?.destroy(); featuredHandle = null;  // stop the prior ribbon's rAF loop + listeners before its DOM is wiped
     searchCache = null;   // recompute matches once for this render (sort/data may have changed); the two callers below then share it
     pruneSelection();     // forget refs that vanished since the last render
     viewEl.innerHTML = sharedFolder ? shell(titleName, 'projects', '<div data-shared-folder></div>', { inFolder: true }) : folderId == null ? rootHtml() : folderId === TEMPLATES ? shell(t('Templates'), 'projects', tpl.html(query), { inFolder: true }) : folderHtml(folderId);
     const assetId = !sharedFolder ? new URLSearchParams(opts.params || '').get('asset') : null;
-    if (assetId) mountLocalProjectAsset(viewEl, host, folderId, assetId, folders, imageRefs);
+    if (assetId) disposeAssetPreview = mountLocalProjectAsset(viewEl, host, folderId, assetId, folders, imageRefs);
     wire();
+    const rootToolbar = viewEl.querySelector<HTMLElement>('.projects-roothead, .projects-head');
+    if (rootToolbar) clearRootToolbar = mountActionToolbar(rootToolbar);
     shared.afterRender({ query, list: viewMode === 'list', sort: sortBy, reversed: sortRev });
     scenePreviews.refresh(entries);
   }
@@ -628,7 +632,7 @@ export async function mountProjects(
     return shell(t('Projects'), 'projects', `
       ${/* The root toolbar (plans/245): the same create buttons a folder header carries,
             both view modes. Batch waits for the first project (plans/163 F14). */ ''}
-      <div class="projects-roothead">${listCreateBtns()}${getSessionSource()?.write?.projectOptions().canCreate ? `<button type="button" class="btn btn--primary" data-new-team-project>${TEAM_ICON}${t('New team project')}</button>` : ''}<span class="projects-head-spacer"></span>${nothingSaved ? '' : batchButtonHtml()}</div>
+      <div class="projects-roothead">${listCreateBtns()}${getSessionSource()?.write?.projectOptions().canCreate ? `<button type="button" class="btn btn--labelled btn--primary" data-new-team-project>${actionButtonContent(t('New team project'), 'users')}</button>` : ''}<span class="projects-head-spacer"></span>${nothingSaved ? '' : batchButtonHtml()}</div>
       ${sharedProjectsHtml()}
       ${favourites.size && !list ? `<div class="projects-featured" data-fav-strip></div>` : ''}
       ${invite}
@@ -801,7 +805,7 @@ export async function mountProjects(
         <span class="projects-head-spacer"></span>
         ${searching ? '' : listCreateBtns(isUncat)}
         ${searching ? '' : batchButtonHtml()}
-        ${!searching && count ? `<button type="button" class="projects-render btn" data-render-folder="${escape(id)}">${RENDER_ICON}<span>${t('Render folder')}</span></button>` : ''}
+        ${!searching && count ? `<button type="button" class="projects-render btn btn--labelled" data-render-folder="${escape(id)}">${RENDER_ICON}<span class="btn-label">${t('Render folder')}</span></button>` : ''}
         ${isUncat || searching ? '' : `<button type="button" class="tile-menu-btn projects-head-menu" data-menu="${escape(id)}" data-menu-kind="folder" aria-label="${escape(t('Folder actions (rename, render, delete)'))}">${MENU_ICON}</button>`}
       </div>`;
 
@@ -879,17 +883,7 @@ export async function mountProjects(
       : `<span class="projects-result-path projects-result-path--static">${inner}</span>`;
   }
 
-  /** The "Batch" button that leads to the grid (moved off the shared bottom bar,
-   *  Andy 2026-08-26 - a batch is a Projects-scoped action). Rendered in the Projects
-   *  content header of BOTH the root and folder views. Carries the current REAL folder
-   *  as the batch's origin (`?from=`), so a batch saved from inside a folder defaults
-   *  back to that folder; root/Uncategorised carry none (save defaults to top level). */
-  function batchButtonHtml(): string {
-    const batchFrom = folderId && folderId !== UNCAT ? folderId : null;
-    const batchHref = `#/batch${batchFrom ? `?from=${encodeURIComponent(batchFrom)}` : ''}`;
-    // nosemgrep: lolly-href-escape-is-not-scheme-validation - first-party `#/batch` hash route built just above
-    return `${folderId ? `<button type="button" class="btn projects-create-btn" data-course-folder="${escape(folderId)}">${COURSE_ICON}<span>${t('Export course')}</span></button>` : ''}<a class="btn projects-create-btn" href="#/learning${batchFrom ? `?from=${encodeURIComponent(batchFrom)}` : ''}">${COURSE_ICON}<span>${t('Create learning module')}</span></a><a href="${escape(batchHref)}" class="btn projects-batch-btn" aria-label="${escape(t('Open Batch mode - render many at once'))}" title="${escape(t('Batch'))}">${BATCH_ICON}<span>${t('Batch')}</span></a>`;
-  }
+  const batchButtonHtml = (): string => projectLearningActionsHtml(folderId, folderId && folderId !== UNCAT ? folderId : null);
 
   function shell(heading: string, active: 'tools' | 'projects' | 'catalog', inner: string, { inFolder = false }: { inFolder?: boolean } = {}): string {
     // projects--searching marks the URL-entered results mode (plans/99 section 2a) - it can
@@ -1161,6 +1155,7 @@ export async function mountProjects(
       if (cbtn) {
         const kind = cbtn.dataset.createBtn;
         if (kind === 'folder') {
+          if (sharedFolder) { shared.createFolder(); return; }
           const name = await promptFolderName();
           if (name && mounted) { await store.create(name, currentFolderTarget()); await reload(); render(); }
         } else if (kind === 'template') void openBlueprintChooser();
@@ -1306,17 +1301,17 @@ export async function mountProjects(
 
   const tileSelect = wireTileSelect({
     host: viewEl,
-    tiles: selectableTiles,
+    tiles: () => sharedFolder ? [] : selectableTiles(),
     refOf: (t) => t.dataset.ref!,
     current: () => new Set(selected.keys()),
     setRefs: applySelectionRefs,
     clear: () => { dropSelection(); render(); },
     // Never start a box on a tile, control, chip, bar, breadcrumb, etc. - only in a gap.
-    noStart: '.folder-tile, button, a, input, label, dialog, .projects-bulkbar, .projects-rail, .projects-crumbs, .projects-head, .gallery-topbar',
+    noStart: sharedFolder ? '*' : '.folder-tile, button, a, input, label, dialog, .projects-bulkbar, .projects-rail, .projects-crumbs, .projects-head, .gallery-topbar',
     // Keyboard grid (plans/133 WP-3 + WP-13): arrows/Space/Cmd-A come from the shared
     // model; Delete routes through the Trash path, F2 into the inline renames, the
     // Menu key opens the tile's menu, Cmd-I its info sheet, Cmd-X/C/V the clipboard.
-    keyboard: {
+    keyboard: sharedFolder ? undefined : {
       remove: (refs) => {
         selected.clear();
         for (const ref of refs) selected.set(ref, kindOfRef(ref));
@@ -1582,6 +1577,7 @@ export async function mountProjects(
   }
   async function onBackgroundAction(act: string): Promise<void> {
     if (act === 'new-folder') {
+      if (sharedFolder) { shared.createFolder(); return; }
       // The create tile's inline editor where there is one; Uncategorised and the
       // ?tools= grid render no create tiles, so they get the name prompt instead.
       const tile = viewEl.querySelector<HTMLElement>('[data-create="folder"]');
@@ -2693,14 +2689,11 @@ export async function mountProjects(
   }
 
   async function newFolderFromSelection(): Promise<void> {
+    if (sharedFolder) { shared.createFolder(); return; }
     if (!selected.size) return;
     const name = await promptFolderName();
     if (!name || !mounted) return;
-    const parent = (folderId && folderId !== UNCAT) ? folderId : null;
-    const created = await store.create(name, parent);
-    for (const ref of selectedByKind('session')) await store.moveItem(ref, created.id, 'session');
-    for (const ref of selectedByKind('image'))   await store.moveItem(ref, created.id, 'image');
-    for (const id of topLevelSelectedFolders()) { if (id !== created.id) await store.moveFolder(id, created.id); }
+    await groupSelectionInFolder(store, name, (folderId && folderId !== UNCAT) ? folderId : null, { sessions: selectedByKind('session'), images: selectedByKind('image'), folders: topLevelSelectedFolders() });
     dropSelection();
     if (!mounted) return;
     await reload(); render();
@@ -2925,7 +2918,7 @@ export async function mountProjects(
   try { sessionStorage.removeItem(FILE_INTO_KEY); sessionStorage.removeItem(RETURN_KEY); } catch { /* ignore */ }
   // NB tileSelect.destroy() is not optional: its mousedown is bound to viewEl (#view), which
   // the router REUSES for every route - leave it bound and the next mount stacks another.
-  (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { mounted = false; shared.dispose(); window.removeEventListener('lolly:trash-changed', onTrashChanged); scenePreviews.destroy(); flushUndoToasts(); cancelArrivalAah(); tileSelect.destroy(); tileMenu.destroy(); unwireEscape(); featuredHandle?.destroy(); featuredHandle = null; tpl.destroy(); closeMenu(); closeConfirmDialogs(); overlayModal?.close(); releaseSearch?.(); };
+  (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { mounted = false; clearRootToolbar?.(); disposeAssetPreview?.(); shared.dispose(); window.removeEventListener('lolly:trash-changed', onTrashChanged); scenePreviews.destroy(); flushUndoToasts(); cancelArrivalAah(); tileSelect.destroy(); tileMenu.destroy(); unwireEscape(); featuredHandle?.destroy(); featuredHandle = null; tpl.destroy(); closeMenu(); closeConfirmDialogs(); overlayModal?.close(); releaseSearch?.(); };
   await reload();
   void sweepTrash();   // age out trash entries past the 30-day retention (silent)
   // A stale /p/<id> deep link to a deleted folder falls back to root.

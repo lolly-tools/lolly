@@ -4,6 +4,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { tap } from 'node:test/reporters';
+import type { BrowserPartitionMetadata, FileSummary, TestSummary } from '../../scripts/browser-partitions.ts';
 
 interface TestNode {
   file: string;
@@ -52,9 +53,18 @@ function normalizedFile(file: unknown): string {
 export default async function* skipIdentityReporter(source: AsyncIterable<Record<string, any>>): AsyncGenerator<string> {
   const nodes = new Map<string, TestNode>();
   const skips: SkipIdentity[] = [];
+  const metadata = process.env.LOLLY_TEST_COVERAGE_METADATA
+    ? JSON.parse(process.env.LOLLY_TEST_COVERAGE_METADATA) as BrowserPartitionMetadata : undefined;
+  const summaries: FileSummary[] = [];
+  let runSummary: TestSummary | null = null;
   const tee = async function* (): AsyncGenerator<Record<string, any>> {
     for await (const event of source) {
       const data = event.data ?? {};
+      if (metadata && event.type === 'test:summary') {
+        const summary: TestSummary = { success: data.success, durationMs: data.duration_ms, counts: data.counts };
+        if (typeof data.file === 'string') summaries.push({ ...summary, file: normalizedFile(data.entryFile ?? data.file) });
+        else runSummary = summary;
+      }
       // `file` is where test() was called, which can be a shared helper imported by
       // several test files. `entryFile` (Node 24.20+) is the test file that ran, so
       // the identity names the file a shard actually runs, and test ids, which are
@@ -94,5 +104,11 @@ export default async function* skipIdentityReporter(source: AsyncIterable<Record
     mkdirSync(path.dirname(absolute), { recursive: true });
     skips.sort((a, b) => `${a.file}\0${a.fullName}`.localeCompare(`${b.file}\0${b.fullName}`));
     writeFileSync(absolute, `${JSON.stringify({ schemaVersion: 1, skips }, null, 2)}\n`);
+  }
+  const coverageOutput = process.env.LOLLY_TEST_COVERAGE_REPORT;
+  if (metadata && coverageOutput) {
+    const absolute = path.resolve(coverageOutput);
+    mkdirSync(path.dirname(absolute), { recursive: true });
+    writeFileSync(absolute, `${JSON.stringify({ ...metadata, summaries, runSummary }, null, 2)}\n`);
   }
 }

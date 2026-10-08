@@ -177,7 +177,9 @@ export const emojiPackSource = (meta: EmojiPackTileMeta): EmojiSpecimenSource =>
  */
 export function gridAdmits(a: AssetRef): boolean {
   return (a.source === 'library' && typeof a.meta?.provider === 'string')
+    || (a.type === 'font' && a.meta?.uploadedFont === true)
     || VISUAL_TYPES.has(a.type)
+    || a.type === 'font'
     || (a.type === 'audio' && (a.source === 'user' || (Array.isArray(a.meta?.tags) && (a.meta.tags as string[]).includes('neurospicy'))))
     // A user's OWN text/code/markdown and data uploads are first-class here
     // (¶/▦ stub tiles; preview + Copy/Analyse in the details modal). Catalog
@@ -254,6 +256,7 @@ export const TYPE_FILTERS: { key: TypeFilter; label: string; icon: string; sfx?:
   { key: 'lut', label: 'LUTs', icon: CAT_ICONS.lut },
   { key: 'audio', label: 'Audio', icon: CAT_ICONS.audio, sfx: 'waveform' },
   { key: 'text', label: 'Text', icon: CAT_ICONS.text },
+  { key: 'font', label: 'Fonts', icon: CAT_ICONS.text },
 ];
 
 /** Stand-in for the search index when there is no query to match against. */

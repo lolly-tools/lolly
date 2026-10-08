@@ -20,6 +20,7 @@ import { armViewEnter } from '../../view-enter.ts';
 import { assetBaseId } from '../../lib/asset-favourites.ts';
 import { mountUploadDropzone } from '../../lib/upload-dropzone.ts';
 import { fitLabels } from '../../lib/fit-labels.ts';
+import { actionButtonContent, mountActionToolbar } from '../../components/action-button.ts';
 import { bulkBarHtml as buildBulkBar } from '../../lib/bulk-bar.ts';
 import { mountAudioThumbs } from '../picker.ts';
 import type { PickerHost } from '../picker.ts';
@@ -191,7 +192,7 @@ export function fontsSectionHtml(cat: CatCtx): string {
 // The scrollable content. Swatches + Fonts are reference material, not searchable
 // assets - drop them while a search is active so the results grid stands alone.
 export const bodyHtml = (cat: CatCtx): string =>
-  `${cat.filters.assetsSectionHtml()}${(cat.query || cat.typeFilter !== 'all') ? '' : swatchesSectionHtml(cat) + fontsSectionHtml(cat)}`;
+  `${cat.filters.assetsSectionHtml()}${(cat.query || cat.typeFilter !== 'all' || !['all', 'catalog'].includes(cat.sourceSelection ?? 'all')) ? '' : swatchesSectionHtml(cat) + fontsSectionHtml(cat)}`;
 export const bulkBarHtml = (cat: CatCtx): string => { const { bulkBarCfg } = cat; return buildBulkBar(bulkBarCfg); };
 export function render(cat: CatCtx): void {
   const { viewEl } = cat;
@@ -200,10 +201,12 @@ export function render(cat: CatCtx): void {
       <div class="catalog${cat.catLayout === 'list' ? ' cat-layout-list' : ''}${cat.catDensity === 'compact' ? ' cat-density-compact' : ''}"${cardSizeAttr(cat.cardSize)}>
         ${cat.tiles.catalogTopbarHtml()}
         <h1 class="visually-hidden">${t('Assets')}</h1>
-        <div class="catalog-body">${bodyHtml(cat)}</div>
+        <button type="button" class="btn btn--labelled btn--ghost" data-browse-sources>${actionButtonContent(t('Browse sources'), 'folder')}</button>
+        <div class="catalog-workspace"><aside class="asset-sources" aria-label="${t('Sources')}"></aside><div class="catalog-body">${bodyHtml(cat)}</div></div>
         ${bulkBarHtml(cat)}
       </div>`;
   cat.wiring.wire();
+  cat.sources.wire();
   mountFavStrip(cat);
   cat.bulk.syncBulkBar();
   cat.wiring.reapplyTreatment();
@@ -215,6 +218,9 @@ export function render(cat: CatCtx): void {
   mountEmojiSpecimenGrid(cat);
   mountDropzone(cat);
   fitToolbar(cat);
+  cat.uploadToolbarDispose?.();
+  const uploadActions = viewEl.querySelector<HTMLElement>('.cat-uploads-tts');
+  cat.uploadToolbarDispose = uploadActions ? mountActionToolbar(uploadActions) : undefined;
   if (cat.firstPaint) { armViewEnter(viewEl, '.cat-assets, .cat-group--ref'); cat.firstPaint = false; }
 }
 // Search re-render: rebuild ONLY the body so the fixed footer - and the search input's
@@ -323,6 +329,9 @@ export function renderBody(cat: CatCtx): void {
   mountDropzone(cat);
   fillStorageChip(cat);
   fitToolbar(cat);
+  cat.uploadToolbarDispose?.();
+  const uploadActions = viewEl.querySelector<HTMLElement>('.cat-uploads-tts');
+  cat.uploadToolbarDispose = uploadActions ? mountActionToolbar(uploadActions) : undefined;
 }
 // The sticky toolbar drops labels only when they do not fit (lib/fit-labels.ts):
 // first the Collapse all / Show hidden labels, then the type-filter labels. Every
@@ -349,7 +358,7 @@ export function fillStorageChip(cat: CatCtx): void {
 // Re-render from state, preserving the document scroll position so an in-page action
 // (star / hide / recategorise) doesn't jump the page to the top.
 export function rerender(cat: CatCtx): void {
-  if (!cat.mounted) return;
+  if (!cat.mounted || cat.preview) return;
   const y = window.scrollY;
   render(cat);
   window.scrollTo(0, y);
@@ -362,7 +371,13 @@ export function closeDetails(cat: CatCtx): void {
  *  bar reopens the same view. replaceState, deliberately: paging must not
  *  stack history entries, and the hash router only reacts to hashchange,
  *  which replaceState never fires. Other catalog params are preserved. */
-export function syncAssetUrl(_cat: CatCtx, id: string | null): void {
+export function syncAssetUrl(cat: CatCtx, id: string | null): void {
+  if (cat.preview) {
+    const ref = id ? cat.assetById.get(id) : null;
+    const link = ref ? cat.preview.link?.(ref) : null;
+    if (link) replaceRouteUrl(`${location.pathname}${link}`);
+    return;
+  }
   const [path = '', query = ''] = location.hash.split('?');
   if (path !== '#/a' && path !== '#/assets') return; // only rewrite this view's own URL
   const params = new URLSearchParams(query);
@@ -383,7 +398,8 @@ export async function checkCredentials(cat: CatCtx, ref: AssetRef): Promise<void
     // Shared preparation (lib/verify-handoff.ts): fetch, TTS heal, captured-
     // credential re-attach - the same pipeline the #/verify?asset= deep link
     // runs cold, so this warm hop and a shared link reach the same verdict.
-    const prep = await prepareAssetForVerify(host, ref);
+    const sourceRef = ref.source === 'remote' && ref.original ? { ...ref, url: ref.original.url, format: ref.original.format } : ref;
+    const prep = await prepareAssetForVerify(host, sourceRef);
     if (!prep) {
       announce(t('Could not open the credential checker for this asset.'));
       return;
@@ -421,11 +437,20 @@ export async function maybeHealTtsClip(cat: CatCtx, ref: AssetRef): Promise<void
   } catch { /* best-effort - checkCredentials heals on click too */ }
 }
 // The canonical shareable link that reopens this modal from the catalog view.
-export const assetLink = (_cat: CatCtx, ref: AssetRef): string =>
-  `${location.origin}${appPathname()}#/a?asset=${encodeURIComponent(ref.id)}`;
+export const assetLink = (cat: CatCtx, ref: AssetRef): string =>
+  `${location.origin}${appPathname()}${cat.preview?.link?.(ref) ?? `#/a?asset=${encodeURIComponent(ref.id)}`}`;
 // The previous/next asset for the details modal's lightbox paging - in on-screen grid
 // order, skipping tiles inside a collapsed group so paging matches what's visible.
 export function navRefs(cat: CatCtx, ref: AssetRef): { prev: AssetRef | null; next: AssetRef | null } {
+  if (cat.preview) {
+    const refs = cat.preview.refs ?? [cat.preview.ref];
+    const i = refs.findIndex(asset => asset.id === ref.id);
+    const at = (index: number) => {
+      const asset = refs[index];
+      return asset ? cat.assetById.get(asset.id) ?? asset : null;
+    };
+    return { prev: i > 0 ? at(i - 1) : null, next: i >= 0 ? at(i + 1) : null };
+  }
   const { viewEl } = cat;
   const ids = [...viewEl.querySelectorAll<HTMLElement>('[data-open]')]
     .filter(el => !el.closest('.cat-group.is-collapsed'))

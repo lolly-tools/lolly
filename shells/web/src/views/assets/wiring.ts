@@ -8,12 +8,12 @@
  * from mountCatalog() by scripts/split-closure.ts.
  */
 import { updateRouteParams } from '../../lib/url-state.ts';
-import type { CatSort, TypeFilter } from '../assets-filter.ts';
+import { withCatalogFacet, type CatalogFacet, type CatSort, type TypeFilter } from '../assets-filter.ts';
 import { t, tRaw } from '../../i18n.ts';
 import { announce } from '../../a11y.ts';
 import type { FeaturedViewMode } from '../../components/featured-row.ts';
 import { mountViewTopbar } from '../../components/view-topbar.ts';
-import { clearSearchBar } from '../../components/search-bar.ts';
+import { clearSearchBar, setSearchBarQuery } from '../../components/search-bar.ts';
 import { applyCardSize, syncSortDir, wireCardSize } from '../../components/view-options.ts';
 import { wireDisclosure } from '../../components/body-popover.ts';
 import { playSfx } from '../../lib/sfx.ts';
@@ -24,6 +24,7 @@ import { staggerReveal } from '../../lib/reveal.ts';
 import { restyleIconTheme, treatmentFilterSvg } from '@lolly/engine';
 import { CAT_ICONS, isThemable, setCatToggle, svgTextToDataUrl } from './shared.ts';
 import { bindOp, type CatCtx } from './context.ts';
+import { withProviderFacet } from '../assets-provider.ts';
 
 // ── wiring ───────────────────────────────────────────────────────────────────
 // Recolour every themable icon in a category group in place (the category "Colours"
@@ -94,9 +95,37 @@ export function wire(cat: CatCtx): void {
   const body = viewEl.querySelector<HTMLElement>('.catalog-body');
   if (!body) return;
 
+  body.addEventListener('change', e => {
+    const select = (e.target as HTMLElement).closest<HTMLSelectElement>('[data-provider-facet]');
+    if (!select) return;
+    setSearchBarQuery(withProviderFacet(cat.allAssets, cat.query, select.dataset.providerFacet as CatalogFacet, select.value));
+    const facet = select.dataset.providerFacet;
+    requestAnimationFrame(() => body.querySelector<HTMLSelectElement>(`[data-provider-facet="${facet}"]`)?.focus());
+  });
+
   body.addEventListener('click', async (e) => {
   const { tileSelect } = cat;
     const target = e.target as HTMLElement;
+    const more = target.closest<HTMLElement>('[data-cat-more]');
+    if (more) {
+      const scope = more.dataset.catMore!, shown = Number(more.dataset.shown);
+      const group = more.closest<HTMLElement>('[data-group]')?.dataset.group;
+      cat.assetPageSizes.set(scope, shown + 120);
+      const scroll = window.scrollY;
+      cat.sections.renderBody();
+      window.scrollTo(0, scroll);
+      const section = group ? body.querySelector<HTMLElement>(`[data-group="${CSS.escape(group)}"]`) : null;
+      section?.querySelectorAll<HTMLElement>('.cat-tile-open')[shown]?.focus({ preventScroll: true });
+      return;
+    }
+    const tag = target.closest<HTMLElement>('[data-provider-tag]');
+    if (tag) { setSearchBarQuery(withProviderFacet(cat.allAssets, cat.query, 'tag', tag.getAttribute('aria-pressed') === 'true' ? '' : tag.dataset.providerTag!)); return; }
+    if (target.closest('[data-provider-clear]')) {
+      let query = cat.query;
+      for (const facet of ['source', 'category', 'collection', 'tag'] as const) query = withCatalogFacet(query, facet, '');
+      setSearchBarQuery(query);
+      return;
+    }
 
     // "Clear search" link in the no-results copy (the shell bar owns its own ✕;
     // its onQuery('') notification ends up in the claim below and re-renders).

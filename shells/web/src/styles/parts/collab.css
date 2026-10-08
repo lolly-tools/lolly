@@ -48,13 +48,13 @@
  * one-state precedent this extends).
  */
 
-/* Clear of `.tile-check` (top-inline-start, folders.css) and `.tile-menu-btn`
- * (top-inline-end) - both hover-only, so the live badge is the one tile
+/* Clear of `.tile-check` (below the preview, folders.css) and `.tile-menu-btn`
+ * (top-inline-end), keeping session metadata readable. The live badge is the tile
  * decoration that stays visible at rest. `.folder-tile` is already
  * `position: relative` (folders.css), which is what this anchors against. */
 .collab-tile-badge {
   position: absolute;
-  inset-block-end: 6px;
+  inset-block-start: 6px;
   inset-inline-start: 6px;
   z-index: 2;
   display: flex;
@@ -69,6 +69,8 @@
   backdrop-filter: blur(3px);
   box-shadow: 0 1px 4px hsl(0 0% 0% / 0.15);
 }
+.projects-list .folder-tile:has(> .collab-tile-badge) { padding-block-end: calc(var(--fs-xl) + var(--sp-8)); }
+.projects-list .collab-tile-badge { inset-block-start: auto; inset-block-end: 2px; inset-inline-start: calc(26px + var(--list-chip)); }
 .collab-tile-avatars { display: flex; align-items: center; }
 
 /* One filled disc per collaborator, coloured by the `--collab-color` custom
@@ -282,21 +284,26 @@ html[data-a11y-motion="reduce"] .collab-tile-dot { animation: none; }
 }
 body:has(.tool-stage[data-design-layout="compact"] .collab-comments-panel:not([hidden])) :is(.fc-insp.is-compact-sheet, .design-compact-actions, .fc-nav) { visibility: hidden; }
 .collab-comment-typing { order: 4; min-height: 1.5em; margin: 0; color: var(--ui-color-text-muted); font-size: var(--fs-sm); }
-.collab-comment-list { display: grid; align-content: start; gap: var(--sp-2); overflow: auto; min-height: 0; flex: 1; }
+.collab-comment-list { display: grid; align-content: start; gap: var(--sp-2); overflow: auto; overscroll-behavior: contain; min-height: 0; flex: 1; }
 .collab-comment-list[hidden], .collab-comment-head button[hidden] { display: none; }
 .collab-comment-head { display: flex; align-items: center; gap: var(--sp-2); }
-.collab-comment-head h2 { margin: 0; font-size: var(--fs-lg); }
+.collab-comment-head h2 { margin: 0; min-width: 0; flex: 1; font-size: var(--fs-lg); }
+.collab-comment-panel-tools { display: flex; flex: none; gap: var(--sp-1); }
+.collab-comment-head { cursor: move; touch-action: none; }
+.collab-comments-panel.is-floating { inset: auto; max-width: none; }
+.collab-comments-panel.is-edge-docked { position: relative; inset: auto; width: 100%; height: 100%; min-height: 0; max-width: none; border-radius: 0; box-shadow: none; }
+.collab-comments-panel:is(.is-edge-docked, :not(.is-floating)) > .panel-grip { display: none; }
 .collab-comment-thread-tools { display: flex; gap: var(--sp-1); margin-inline-start: auto; }
 .collab-comment-actions { display: flex; gap: var(--sp-1); padding: var(--sp-1); border-radius: var(--radius-round); background: var(--ui-color-surface-muted); align-self: start; }
-.collab-comment-icon { flex: none; display: inline-grid; place-items: center; width: calc(36px * var(--a11y-fs)); height: calc(36px * var(--a11y-fs)); min-width: calc(36px * var(--a11y-fs)); padding: 0; border-radius: var(--radius-round); }
-.collab-comment-icon svg { pointer-events: none; }
+.collab-comment-icon { flex: none; display: inline-grid; place-items: center; width: var(--ui-size-target); height: var(--ui-size-target); min-width: var(--ui-size-target); padding: 0; border-radius: var(--radius-round); }
+.collab-comment-icon svg { width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); pointer-events: none; }
 .collab-comment-thread { display: flex; align-items: start; gap: var(--sp-2); padding: var(--sp-3); border-radius: var(--ui-radius-control); color: var(--ui-color-text-default); }
 .collab-comment-preview { display: grid; gap: var(--sp-1); min-width: 0; }
 .collab-comment-preview > span { color: var(--ui-color-text-muted); font-size: var(--fs-sm); }
 .collab-comment-thread[aria-pressed="true"] { background: var(--ui-color-selection-surface); box-shadow: var(--ui-effect-accent-ring); }
-.collab-comment-messages { flex: 1; min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: var(--sp-3); padding-block: var(--sp-1); }
+.collab-comment-messages { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: var(--sp-3); padding-block: var(--sp-1); }
 .collab-comment-messages:empty { display: none; }
-.collab-comment-message { position: relative; display: flex; align-items: start; gap: var(--sp-2); font-size: var(--fs-sm); }
+.collab-comment-message { position: relative; flex: none; display: flex; align-items: start; gap: var(--sp-2); font-size: var(--fs-sm); }
 .collab-comment-message[data-own="true"] { flex-direction: row-reverse; }
 .collab-comment-avatar { flex: none; display: inline-grid; place-items: center; width: calc(30px * var(--a11y-fs)); height: calc(30px * var(--a11y-fs)); border-radius: var(--radius-round); font-size: var(--fs-xs); font-weight: 700; }
 .collab-comment-bubble { min-width: 0; max-width: calc(100% - 38px); padding: var(--sp-3); border-radius: var(--ui-radius-surface); border-start-start-radius: var(--sp-1); border-inline-start: 2px solid var(--comment-person-color); }
@@ -308,7 +315,7 @@ body:has(.tool-stage[data-design-layout="compact"] .collab-comments-panel:not([h
 .collab-comment-message-tools { position: absolute; inset-block-start: 0; inset-inline-end: var(--sp-2); display: flex; gap: var(--sp-1); opacity: 0; border-radius: var(--radius-round); background: var(--ui-color-surface-raised); box-shadow: var(--ui-edge-faint), var(--ui-elevation-sheet); }
 .collab-comment-message:is(:hover, :focus-within) .collab-comment-message-tools { opacity: 1; }
 @media (hover: none) { .collab-comment-message-tools { position: static; opacity: 1; flex-direction: column; } }
-.collab-comment-composer { order: 5; display: flex; align-items: end; gap: var(--sp-2); padding-block-start: var(--sp-2); border-block-start: 1px solid var(--ui-color-border-default); font-size: var(--fs-sm); }
+.collab-comment-composer { order: 5; display: flex; flex: none; align-items: end; gap: var(--sp-2); padding-block-start: var(--sp-2); border-block-start: 1px solid var(--ui-color-border-default); font-size: var(--fs-sm); }
 .collab-comment-composer[hidden] { display: none; }
 .collab-comment-input-label { flex: 1; min-width: 0; }
 .collab-comments-panel > [role="status"] { margin: 0; font-size: var(--fs-xs); color: var(--ui-color-text-muted); }
@@ -318,6 +325,7 @@ body:has(.tool-stage[data-design-layout="compact"] .collab-comments-panel:not([h
 .collab-comment-composer textarea { display: block; box-sizing: border-box; width: 100%; }
 .collab-comment-pins { position: absolute; inset: 0; pointer-events: none; z-index: 40; }
 .collab-comment-pin {
+  border:0;
   display: grid;
   place-items: center;
   position: absolute;

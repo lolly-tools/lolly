@@ -42,4 +42,6 @@ test('ungroup keeps each shaped outline and each clipped paint unit exact and ed
   assert.deepEqual(new Resvg(combined).render().pixels,new Resvg(renderVectorPaint(vector.path,vector.paint,200,100,'original')).render().pixels);
   for(const part of parts){const paths=decodeAuthoredPathsResult(part.path);assert.ok(Array.isArray(paths));assert.equal(vectorPaintMatrices(part.paint,paths.length,paths).length,paths.length);}
   assert.throws(()=>splitVectorPaint(parts[2]!.path,parts[2]!.paint),/must stay together/);
+  const retained=splitVectorPaint(parts[2]!.path,parts[2]!.paint,true);assert.equal(retained.length,1);
+  assert.deepEqual(new Resvg(renderVectorPaint(retained[0]!.path,retained[0]!.paint,200,100,'retained')).render().pixels,new Resvg(renderVectorPaint(parts[2]!.path,parts[2]!.paint,200,100,'part')).render().pixels);
 });

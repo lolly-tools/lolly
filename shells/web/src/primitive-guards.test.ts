@@ -218,7 +218,6 @@ const INLINE_GLYPH_ALLOWED: Record<string, number> = {
   'components/color-field.ts': 2,
   'components/help-tip.ts': 1,
   'components/music-player.ts': 6,   // play/pause now come from lib/icons.ts (2026-07-29)
-  'components/profile-menu.ts': 1,  // 2 → 1, 2026-08-23: the per-row chevron copies collapsed into one CHEVRON const
   'components/view-toggle.ts': 2,   // 3 → 2, 2026-08-20: the Tools tab's inline wrench went - it's icon('hammer') from lib/icons.ts now
   'lib/audio-coaching.ts': 1,
   // 5 → 0, plan 97 M1 (2026-08-09): the five BRAND_TABS glyphs went with the tab
@@ -234,7 +233,6 @@ const INLINE_GLYPH_ALLOWED: Record<string, number> = {
   'pro/blocks-editor.ts': 3,
   'pro/grid.ts': 5,
   'pro/run-overlay.ts': 1,
-  'theme.ts': 3,
   'views/assets.ts': 1,   // +2 2026-08-18: INTERP_ICON + FIT_ICON zoom-pill glyphs (inline, like ZOOM_IN/OUT_ICON)
   'views/assets/shared.ts': 21,   // 2026-09-25: the view-options sliders glyph went to the shared button. 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts (the zoom-pill and treatment glyph constants)
   'views/dashboard.ts': 1,
@@ -657,6 +655,8 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'components/invite-link-control.ts': 1,
   // Fixed registry icons only; button labels and comment content use textContent.
   'views/tool-comment-chat.ts': 2,
+  // Comments panel buttons and resize grips use only fixed registry markup.
+  'views/tool-comment-panel.ts': 2,
   // System IDs, labels and translated status copy are escaped; icons are registry markup.
   'components/design-system-menu.ts': 3,
   // Read the already-hydrated studio marker in an inert template; never mount its content.
@@ -1073,12 +1073,6 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // user dismisses the trim card).
   'lib/upload-dropzone.ts': 2,
   'org/approval-dialog.ts': 3,
-  'org/banner.ts': 1,
-  // Reviewed 2026-08-02: every interpolated value is escape()d (text, link label,
-  // link href, the Dismiss aria-label); safeHref() drops javascript:/data: schemes
-  // before an anchor is built at all; and the only unescaped interpolation is
-  // `accent`, a two-literal ternary with no user input in it.
-  'org/chrome.ts': 1,
   // Reviewed 2026-08-24 (1 → 4, the gate's device-code option, plans/145): the
   // gate card itself (unchanged review - t() escapes its params, the action is
   // safeHref-gated); the device slot's idle button and note() are static markup
@@ -1345,7 +1339,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'views/profile/offline.ts': 2,      // the download-manager list and the persistence line
   'views/profile/identity.ts': 4,     // the credentials card: status, enrol form and its errors
   // Shared covers use only registry icons and sessionTile's escaped ids/labels.
-  'org/team-project-view.ts': 3,
+  'org/team-project-view.ts': 2,
   'org/team-previews.ts': 1,
   'views/projects.ts': 5,   // View-options markup moved to its shared-popover adapter; the Team projects modal moved to org/team-projects.ts (DOM-built, no sink).
   'views/projects-view-options.ts': 1, // Static enums + escaped t() labels and the existing theme/sound generators.
@@ -1626,6 +1620,9 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // The two artwork sinks use the validated compiler's template and scoped
   // renderer styles; source files are never inserted as chrome markup.
   'views/design-rules.ts': 4,
+  // Incremental content parses the same compiled tool HTML used by full hydration.
+  // Its source proof rejects changed surrounding markup before replacing safe targets.
+  'views/canvas-content.ts': 1,
   'views/design-rules-preview.ts': 1, // moved strict compiled-tool hydration from design-rules.ts
   'lib/design-tool-preflight.ts': 2,
   // 2 as of 2026-09-13 (new file: the shared emoji control, plans/252). One sink is
@@ -1663,6 +1660,8 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'views/text/inspection.ts': 1,
   // Inert template comparison of already hydrated tool markup; never mounted.
   'views/canvas-translation.ts': 2,
+  // Detached, inert engine HTML/style parsing; source/DOM geometry must agree before mutation.
+  'views/canvas-translation-source.ts': 2,
   // Fixed registry icons, escaped report names/indices, and escaped action labels.
   'views/valid-actions.ts': 4,
   // Static unavailable state with a registry icon and a fixed translation.
@@ -1965,7 +1964,7 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // 300 to 299: help-tip paint is shared by the component and uses semantic elevation.
     // Shared surfaces replace repeated paint in the pending editor and report work.
     // 263 to 262: the docs reading components print with an outline, not a shadow.
-    pin: 262,
+    pin: 260,
     count: (t) => [...t.matchAll(/box-shadow:\s*([^;}]+)/g)]
       .map(m => m[1]!.trim())
       .filter(v => v !== 'none' && !/var\(--(?:ui-(?:edge|elevation|effect)|shadow|edge|ring-focus|bevel)/.test(v)).length,

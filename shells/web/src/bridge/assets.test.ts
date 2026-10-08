@@ -13,9 +13,18 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { createAssetsAPI, typeMatches, withoutReservedMeta } from './assets.ts';
 
+test('agent metadata discovery includes dimensions and formats without fetching a JXL original', async context => {
+  context.mock.method(globalThis, 'fetch', async () => { throw new Error('Metadata listing fetched an original'); });
+  const api = createAssetsAPI({ getAll: async () => [{ id: 'photo', type: 'raster', name: 'Photo',
+    formats: [{ format: 'jxl', url: '/photo.jxl', width: 1200, height: 800 }, { format: 'png', url: '/photo.png' }, { format: 'thumb', url: '/thumb.webp' }] }] } as never);
+  const [ref] = await api._queryMetadata();
+  assert.equal(ref!.width, 1200); assert.equal(ref!.height, 800);
+  assert.deepEqual(ref!.meta?.formats, ['jxl', 'png']);
+});
+
 test('provider catalog queries retain small thumbnails and source metadata without fetching originals', async context => {
   context.mock.method(globalThis, 'fetch', async () => { throw new Error('A catalog query must not download files'); });
-  const common = { provider: 'brand', tier: 'on-demand', version: 'upstream1', description: 'From the shared brand library', tags: ['provider:brand'] };
+  const common = { provider: 'brand', tier: 'on-demand', version: 'upstream1', description: 'From the shared brand library', tags: ['provider:brand'], meta: { providerLabel: 'Brand library', providerSections: ['Logos'], providerTags: ['Launch'], providerCollections: ['Launch Kit'] } };
   const rows = [
     { ...common, id: 'ext/brand/photo', type: 'raster', name: 'Photo', formats: [{ format: 'jpeg', url: '/photo.jpeg' }, { format: 'thumb', url: '/photo-thumb' }] },
     { ...common, id: 'ext/brand/logo', type: 'vector', name: 'Logo', formats: [{ format: 'eps', url: '/source.eps' }, { format: 'svg', url: '/logo.svg' }, { format: 'thumb', url: '/logo-thumb' }] },
@@ -28,6 +37,9 @@ test('provider catalog queries retain small thumbnails and source metadata witho
   for (const ref of refs) {
     assert.equal(ref.meta?.provider, 'brand');
     assert.equal(ref.meta?.description, common.description);
+    assert.deepEqual(ref.meta?.providerSections, ['Logos']);
+    assert.deepEqual(ref.meta?.providerCollections, ['Launch Kit']);
+    assert.deepEqual(ref.meta?.providerTags, ['Launch']);
     assert.equal(ref.version, 'upstream1');
   }
 });
@@ -38,13 +50,15 @@ test('verified catalog bytes remain usable when the browser cannot cache a Blob'
   const readObjectUrl = globalThis.fetch;
   context.mock.method(globalThis, 'fetch', async () => new Response(body, { headers: { 'Content-Type': 'application/json' } }));
   const warning = context.mock.method(console, 'warn', () => {});
-  const meta = { id: 'test/cache-refusal', type: 'data', version: '1', tier: 'on-demand', formats: [{ format: 'json', url: '/pack.json', checksum }] };
+  const meta = { id: 'test/cache-refusal', type: 'data', version: '1', tier: 'on-demand', meta: { providerLabel: 'Brand library', providerSections: ['Logos'], providerTags: ['Launch'] }, formats: [{ format: 'json', url: '/pack.json', checksum }] };
   const db = { get: async (store: string) => store === 'asset-meta' ? meta : undefined,
     put: async () => { throw new Error('Error preparing Blob/File data to be stored in object store'); } };
   const ref = await createAssetsAPI(db as never).get(meta.id, { format: 'json' });
   // Read the actual returned object URL, bypassing the download mock.
   const response = await readObjectUrl(ref.url);
   assert.ok(ref.url.startsWith('blob:'));
+  assert.deepEqual(ref.meta?.providerSections, ['Logos']);
+  assert.deepEqual(ref.meta?.providerTags, ['Launch']);
   assert.equal(await response.text(), body);
   assert.equal(warning.mock.callCount(), 1);
   URL.revokeObjectURL(ref.url);

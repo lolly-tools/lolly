@@ -64,7 +64,7 @@
   }
 
   /* "Check web pages" before presenting (views/present-web-check.ts). */
-  .pwc-dialog { width: min(560px, 92vw); }
+  .pwc-dialog { width: min(600px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); overflow: auto; }
   .pwc-list {
     list-style: none;
     margin: 0;
@@ -89,6 +89,9 @@
   .pwc-meta { font-size: var(--fs-sm); color: var(--ui-color-text-muted); }
   .pwc-state { font-size: var(--fs-md); }
   .pwc-actions { grid-column: 2; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+  .pwc-actions .btn { display: inline-flex; align-items: center; gap: var(--sp-2); max-width: 100%; white-space: normal; text-align: start; }
+  .pwc-actions .btn svg { flex: none; width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); }
+  .pwc-dialog .modal-actions { position: sticky; bottom: 0; padding-block-start: var(--sp-3); background: var(--ui-color-surface-raised); }
   .pwc-anysite { margin-top: 12px; display: grid; gap: 8px; justify-items: start; }
   .pwc-anysite-note { margin: 0; font-size: var(--fs-sm); color: var(--ui-color-text-muted); }
 }

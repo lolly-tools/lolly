@@ -8,6 +8,7 @@ import { getInstanceBase } from '../lib/instance.ts';
 import { assetVersionPin } from '../../../../engine/src/asset-version.ts';
 import { fetchTeamSession } from './session-source.ts';
 import { restoreTeamFiles, shareTeamFiles } from './team-files.ts';
+import { shareCanvasToolImage } from './canvas-tool-image.ts';
 
 export function createWorkCanvasAssets(sessionId: string, principal: () => string | undefined): CanvasAssetsCapability {
   const account = principal(), base = getInstanceBase();
@@ -18,13 +19,22 @@ export function createWorkCanvasAssets(sessionId: string, principal: () => strin
   const check = () => { if (closed || !account || principal() !== account || getInstanceBase() !== base) throw new Error('Project access changed.'); };
   const publish = () => { for (const fn of listeners) fn({ pending, message }); };
   async function transfer<T>(label: string, action: () => Promise<T>): Promise<T> {
-    check(); pending++; message = label; retry = undefined; publish();
+    check(); pending++; message = label; failure = ''; retry = undefined; publish();
     try { const result = await action(); check(); return result; }
     catch (error) { failure = 'Image transfer failed. Your upload is still on this device.'; throw error; }
     finally { pending--; if (!pending) message = failure; publish(); }
   }
   async function resolve(ref: AssetRef): Promise<AssetRef> {
     check(); const host = getHostRef(); if (!host?.assets) throw new Error('Asset storage is unavailable.');
+    // A placed tool is not a project file: it travels as its link (canvas-asset-v1) and is
+    // drawn again here, from its own settings, at export quality, the way a Design box's
+    // tool render is resolved when a document opens. No session read, no download.
+    if (ref.source === 'remote') {
+      const compose = host.compose as { renderUrl?: (url: string, opts?: { thumbnail?: boolean }) => Promise<AssetRef | null> } | undefined;
+      const rendered = await compose?.renderUrl?.(ref.id, { thumbnail: false }); check();
+      if (!rendered) throw new Error('This tool could not be drawn here.');
+      return rendered;
+    }
     const data = await session(); check();
     if (ref.source === 'user') await restoreTeamFiles(host, { ...data, inputs: { image: ref } });
     check(); const result = await host.assets.get(ref.id, ref.pin); check(); return { ...result, ...(ref.pin ? { pin: ref.pin } : {}) };
@@ -34,12 +44,21 @@ export function createWorkCanvasAssets(sessionId: string, principal: () => strin
       return () => { if (!released) { released = true; pending--; if (!pending) message = failure; publish(); } }; },
     async prepare(ref) {
       failure = '';
+      // A placed tool needs no transfer: its link is the shared form, and the render the
+      // editor already holds is the picture. Uploading that render as a project file, as
+      // happened before, froze the tool (and any motion it had) in every peer's canvas.
+      // Only a local render passes through; any other picture is drawn again by resolve().
+      const tool = portableCanvasAsset(ref), held = (ref as AssetRef).url;
+      if (tool?.source === 'remote' && typeof held === 'string' && /^(?:data:image\/|blob:)/.test(held)) { check(); return ref as AssetRef; }
       return transfer('Uploading image…', async () => {
         const existing = portableCanvasAsset(ref);
         if (existing) return resolve(existing);
         const data = await session(); check();
         if (!data.projectId) throw new Error('This session has no project.');
         const host = getHostRef();
+        const toolImage = await shareCanvasToolImage(data.projectId, ref, host, { signal: controller.signal });
+        check();
+        if (toolImage) return { ...await resolve(toolImage), meta: toolImage.meta };
         let pinned = ref;
         if (ref && typeof ref === 'object' && 'source' in ref && ref.source === 'user' && 'id' in ref && typeof ref.id === 'string') {
           const current = await host?.assets.get(ref.id, assetVersionPin(ref)); check();

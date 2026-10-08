@@ -3,8 +3,8 @@
 // an animation on `window.__lollyAnim`. The tool owns rendering and its own frame clock;
 // this control only drives that shared clock (play/pause, seek, step) and reflects its
 // position, so one component works across every animated tool without knowing its
-// internals. Mounted on the tool stage for any manifest declaring `render.video`; it
-// shows itself only while an animation is actually active.
+// internals. Timed canvases own their playback UI. Other tools reveal this bar only
+// for an active clock published by the current canvas mount.
 //
 // Contract (window.__lollyAnim - all fields additive, the tool may set a subset):
 //   active   boolean - tool sets true while animating; false / absent hides the bar
@@ -14,12 +14,13 @@
 //   playing  boolean - the SHELL toggles it; the tool advances only while true
 //   scrubT   number | null - the SHELL sets 0..1 to seek/hold; null = follow the clock
 //   gen      number - the tool bumps it when it republishes so the bar resyncs ticks
+//   owner    Node - optional DOM root that owns this clock
 
 import { icon } from '../lib/icons.ts';
 
 export type AnimState = {
   active?: boolean; labels?: string[]; loopMs?: number; curT?: number;
-  playing?: boolean; scrubT?: number | null; gen?: number;
+  playing?: boolean; scrubT?: number | null; gen?: number; owner?: Node;
 };
 
 // Transport glyphs come from the one icon registry (lib/icons.ts) - filled so the
@@ -31,9 +32,27 @@ const ICON = {
   next: icon('skipForward', { filled: true }),
 };
 
-export function setupAnimTransport({ stageEl }: { stageEl: HTMLElement }): () => void {
+export function setupAnimTransport({ stageEl, canvasEl, manifest }: {
+  stageEl: HTMLElement; canvasEl: HTMLElement; manifest: { inputs: readonly { type: string; canvas?: unknown }[] };
+}): () => void {
+  const timeFields = ['startField', 'durField', 'clipInField', 'speedField', 'enterField',
+    'exitField', 'enterMsField', 'exitMsField', 'muteField', 'laneField'];
+  const nativeTimeline = manifest.inputs.some(input => {
+    const cv = input.type === 'blocks' ? input.canvas as Record<string, unknown> | undefined : undefined;
+    return cv && timeFields.every(field => !!cv[field]);
+  });
+  if (nativeTimeline) return () => {};
   const w = window as unknown as { __lollyAnim?: AnimState };
-  const A = (): AnimState | undefined => w.__lollyAnim;
+  // Legacy publishers have no owner node: only a new object after this mount's
+  // boundary can belong here. DOM-owned clocks must still live in this canvas.
+  const previous = w.__lollyAnim;
+  let owned: AnimState | undefined;
+  const A = (): AnimState | undefined => {
+    const a = w.__lollyAnim;
+    if (!a || (a.owner ? !canvasEl.contains(a.owner) : a === previous)) return undefined;
+    owned = a;
+    return a;
+  };
 
   const bar = document.createElement('div');
   bar.className = 'anim-transport';
@@ -56,6 +75,7 @@ export function setupAnimTransport({ stageEl }: { stageEl: HTMLElement }): () =>
   const ticksEl = bar.querySelector<HTMLElement>('.anim-transport-ticks')!;
   const labelEl = bar.querySelector<HTMLElement>('.anim-transport-label')!;
 
+  let lastAnim: AnimState | undefined;
   let lastGen = -1, dragging = false, wasPlaying = false, iconPlaying: boolean | null = null;
 
   const buildTicks = (labels: string[]): void => {
@@ -148,12 +168,17 @@ export function setupAnimTransport({ stageEl }: { stageEl: HTMLElement }): () =>
     if (!a || !a.active) { if (!bar.hidden) bar.hidden = true; }
     else {
       if (bar.hidden) bar.hidden = false;
-      if (a.gen !== lastGen) { lastGen = a.gen ?? 0; buildTicks(a.labels || []); }
+      if (a !== lastAnim || (a.gen ?? 0) !== lastGen) {
+        lastAnim = a; lastGen = a.gen ?? 0; buildTicks(a.labels || []);
+      }
       if (!dragging) { paintPos(a.curT || 0, a.labels); setPlayIcon(a.playing !== false && a.scrubT == null); }
     }
     raf = requestAnimationFrame(poll);
   };
   raf = requestAnimationFrame(poll);
 
-  return () => { cancelAnimationFrame(raf); bar.remove(); };
+  return () => {
+    cancelAnimationFrame(raf); bar.remove();
+    if (owned && w.__lollyAnim === owned) delete w.__lollyAnim;
+  };
 }

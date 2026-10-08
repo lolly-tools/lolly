@@ -1,0 +1,7 @@
+apiVersion: v2
+name: lolly-sovereign
+description: Explicit single-node public Lolly edge and service profile with existing private Work upstreams.
+type: application
+version: 0.1.4
+appVersion: "0.1.0"
+kubeVersion: ">=1.30.0-0"

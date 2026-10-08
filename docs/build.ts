@@ -79,6 +79,7 @@ import {
   commentStandaloneProvenanceLines,
   mdDescription,
   renderCredential,
+  PROV_SEAL,
   inline as pkgInline,
   mdToHtml as pkgMdToHtml,
   type DocsRenderContext,
@@ -5017,9 +5018,7 @@ function localizeHref(lang: Lang, href: string): string {
 // as shells/web/src/i18n.ts's LANG_ICON_SVG - duplicated (not imported) since
 // this static-site generator has no shared module boundary with the SPA.
 const LANG_ICON_SVG = `<svg class="lang-switch-icon" viewBox="0 0 440.332 510.236" fill="currentColor" aria-hidden="true"><path d="m311.768 445.719 12.531 20.615c-31.404 20.067-66.19 30.034-103.148 33.127h-16.436c-3.287 0-19.54-2.008-20.088-2.008-6.026-.913-12.235-2.009-17.896-3.287q-15.34-3.562-30.68-9.315c-7.487-2.739-15.34-6.391-22.28-9.86-3.469-1.644-6.573-3.287-9.86-5.296-1.096-.548-6.94-4.748-9.862-4.748-3.287 0-5.297 2.556-5.297 5.295 0 1.644.184 3.106 2.375 4.566 12.418 8.218 25.566 14.426 38.166 19.174 6.94 2.74 14.063 5.296 21.367 7.305 4.2 1.278 8.948 2.558 13.33 3.47 5.662 1.279 11.689 2.375 17.35 3.288 6.392.913 13.15 1.643 19.541 2.191 36.8 0 80.597-5.566 122.537-30.498 1.721-1.243 4.493-2.286 6.744-3.758l11.428 18.801 15.725-45.576z"/><path d="m639.838 180.403-40.768-12.976V48.363c0-3.47-2.557-5.843-5.844-5.843-2.556 0-84.917 28.306-91.492 30.68-22.334 7.444-86.798 29.733-86.798 29.733-1.034.297-2.638.787-4.741 1.449L252.855 48.85a1.826 1.826 0 0 0-2.435 1.722v106.724c-24.405 8.17-41.808 14.02-42.701 14.335-1.644.548-4.2.913-5.662 2.922-.73.73-.913 2.009-1.278 2.922v306.982c0 .365.183.547.183.73 1.095 2.374 3.104 3.835 5.296 3.835 2.739 0 208.367-69.03 212.933-70.856.215-.072.458-.24.697-.438L638.73 487.48a1.826 1.826 0 0 0 2.38-1.74V182.143c0-.795-.514-1.5-1.272-1.74M410.973 409.4l-199.054 66.29V182.04l199.054-66.29ZM587.93 55.668v108.213l-164.492-52.354Zm-20.243 329.6-10.52-38.43-60.517-18.341-13.013 31.304-29.292-8.886 62.178-152.587 28.508 8.636 51.939 187.188zm-183.723-51.715c-1.658-.602-35.965-14.814-40.828-17.142-3.98-1.914-13.737-6.04-18.328-7.913 12.931-19.938 21.094-34.984 22.18-37.276 2.012-4.193 15.699-30.976 16.018-32.625.31-1.67.7-7.843.399-9.31-.302-1.495-5.32 1.38-12.134 3.69-6.824 2.3-19.794 10.735-24.803 11.793-5.027 1.048-21.094 7.135-29.316 9.863s-23.773 7.475-30.17 9.202c-6.406 1.728-11.998 1.865-15.581 2.951 0 0 .477 5.019 1.428 6.523.94 1.505 4.33 5.194 8.27 6.224 3.942 1.037 10.465.62 13.436-.058 2.97-.69 8.114-3.204 8.804-4.301.698-1.116-.36-4.553.814-5.592 1.186-1.028 16.843-4.688 22.755-6.474 5.911-1.817 28.54-9.61 31.607-9.213-.971 3.223-19.173 39.276-25.035 50.032-5.864 10.755-39.926 58.07-47.177 66.408-5.505 6.338-18.843 22.558-23.463 26.218 1.165.322 9.425-.387 10.93-1.318 9.377-5.777 24.996-25.22 30.026-31.142 14.949-17.532 28.083-35.947 38.497-51.75h.011c2.03.845 18.434 14.21 22.714 17.173 4.281 2.96 21.173 12.385 24.833 13.948 3.66 1.583 17.725 8.068 18.317 5.873.591-2.213-2.544-15.154-4.204-15.784m-106.167-120.33c-1.118-1.098 1.455 8.968 5.036 12.59 6.35 6.405 11.31 7.23 13.95 7.337 5.844.233 13.056-1.456 17.338-3.25 4.144-1.769 11.405-5.476 14.153-10.883.583-1.156 2.173-3.097 1.174-7.893-.757-3.689-3.106-4.98-5.97-4.775-2.863.193-11.532 2.505-15.725 3.794-4.194 1.273-12.834 3.903-16.6 4.72-3.756.814-12.038-.379-13.356-1.64" transform="translate(-200.78 -42.52)"/><path d="m529.556 247.883-21.718 52.496 39.929 12.104z" transform="translate(-200.78 -42.52)"/></svg>`;
-const NAV_ICON_SPRITE = createIconSprite({ language: LANG_ICON_SVG, sun: THEME_SVG_SUN, moon: THEME_SVG_MOON, brand: THEME_SVG_BRAND,
-  ...Object.fromEntries([...GITHUB_LINK.matchAll(/<svg\b[\s\S]*?<\/svg>/g)].map((match, i) => [`nav-${i}`, match[0]])),
-});
+
 
 // The persistent, combined language picker - same control, same options, on
 // every /info page and (via the shared `lang` localStorage key - see i18n.ts's
@@ -5568,6 +5567,9 @@ interface AudioEntry { slug: string; title: string; url: string; duration: numbe
 // slug → playlist entry for the CURRENT build() pass. Module-level like
 // activeCatalog (wrapPage has no channel for per-build state), reset at the top
 // of every build() so a --watch reimport can never serve a previous pass's set.
+// Listen is withdrawn pending a replacement. Keep source recordings available,
+// but do not ship the player, narration assets, or device-voice controls.
+const DOCS_LISTEN_ENABLED = false;
 let audioBySlug = new Map<string, AudioEntry>();
 
 /** The committed English narration set, in pages[] (sidebar) order - that order
@@ -5735,6 +5737,7 @@ function assertAudioCues(page: Page, content: string, md: string): void {
 // speechSynthesis. `data-listen-produced` lets the loader tell the two apart for its
 // codec ladder; the minutes badge only makes sense for a fixed-length produced track.
 function listenButtonHtml(page: Page, a?: AudioEntry, edition = ''): string {
+  if (!DOCS_LISTEN_ENABLED) return edition ? `<div class="listen-bar${page.isLanding ? ' listen-bar-float' : ''}">${edition}</div>` : '';
   const mins = a && a.duration > 0 ? `${Math.max(1, Math.round(a.duration / 60))} min` : '';
   const producedAttr = a ? ' data-listen-produced' : '';
   return `<div class="listen-bar${page.isLanding ? ' listen-bar-float' : ''}">${edition}<button type="button" class="docs-listen"${producedAttr} data-listen-slug="${esc(page.slug)}" data-listen-title="${esc(page.title)}" aria-label="${esc(`Listen to ${page.title}`)}">${LISTEN_ICON}<span>Listen</span>${mins ? `<span class="listen-mins">${esc(mins)}</span>` : ''}</button></div>`;
@@ -5880,8 +5883,8 @@ function mastheadArt(slug: string, heading: string): string {
 // ONCE here (its two consumers, HERO/MASTHEAD, dropped their inline copies above).
 // LIQUID_GLASS_SCRIPT is the one without an early-return; it only touches
 // `.btn-primary`, which exists on the landing page alone today, so on every other
-// page its querySelectorAll is an empty-set no-op. THEME_INIT_SCRIPT and
-// SHOT_MOTION_INIT stay inline in <head> (FOUC-critical, must run before paint);
+// page its querySelectorAll is an empty-set no-op. The theme and shot initialisers
+// share a blocking script in <head>, before the stylesheet and first paint.
 // Listen-button styles share the stylesheet. CSP allows both 'self'
 // and 'unsafe-inline' for script/style, so external same-origin + the head inits both
 // load. The seals (sealPages, run tail) re-hash whole-document bytes, so every English
@@ -5893,15 +5896,30 @@ const DOCS_JS = [
   FORMATS_DIALOG_SCRIPT, THEME_INTERACT_SCRIPT, SHOT_MOTION_SCRIPT, SHOWCASE_SCRIPT,
   SHOT_CRED_SCRIPT, SCROLL_REVEAL_SCRIPT, LIQUID_GLASS_SCRIPT, HERO_CANVAS_SCRIPT,
   DOCS_MASTHEAD_SCRIPT, VERIFY_POPOUT_SCRIPT, DOCS_SEARCH_SCRIPT, HAMBURGER_SCRIPT,
-  DOC_JUMP_SCRIPT, LANG_PICKER_SCRIPT, LISTEN_SCRIPT, readingScript(), stripScript(), agentCopyScript(), MAST_CLEAR_SCRIPT,
+  DOC_JUMP_SCRIPT, LANG_PICKER_SCRIPT, ...(DOCS_LISTEN_ENABLED ? [LISTEN_SCRIPT] : []), readingScript(), stripScript(), agentCopyScript(), MAST_CLEAR_SCRIPT,
 ].map(stripScriptTags).join('\n;\n');
 const fingerprint = (s: string): string =>
   createHash('sha256').update(s).digest('base64url').slice(0, 16);
 const DOCS_CSS = CSS + '\n' + LISTEN_STYLE.replace(/^<style>\s*|\s*<\/style>$/g, '') + '\n' + COMPONENTS_CSS;
 const DOCS_CSS_FILE = `docs.${fingerprint(DOCS_CSS)}.css`;
 const DOCS_JS_FILE = `docs.${fingerprint(DOCS_JS)}.js`;
+const DOCS_INIT_JS = [THEME_INIT_SCRIPT, SHOT_MOTION_INIT].map(stripScriptTags).join('\n;\n');
+const DOCS_INIT_FILE = `docs.${fingerprint(DOCS_INIT_JS)}.js`;
+const DOCS_INIT_TAG = `<script src="/info/${DOCS_INIT_FILE}"></script>`;
 const DOCS_CSS_LINK = `<link rel="stylesheet" href="/info/${DOCS_CSS_FILE}">`;
 const DOCS_JS_TAG = `<script src="/info/${DOCS_JS_FILE}" defer></script>`;
+
+const NAV_ICON_SPRITE = createIconSprite({
+  language: LANG_ICON_SVG, sun: THEME_SVG_SUN, moon: THEME_SVG_MOON, brand: THEME_SVG_BRAND,
+  seal: PROV_SEAL, listen: LISTEN_ICON, edition: EDITION_ICON, jump: JUMP_ICON,
+  ...Object.fromEntries([...GITHUB_LINK.matchAll(/<svg\b[\s\S]*?<\/svg>/g)].map((match, i) => [`nav-${i}`, match[0]])),
+  ...Object.fromEntries(Object.entries(SITE_ICONS).map(([key, svg]) => [`site-${key}`, svg])),
+  ...Object.fromEntries(Object.entries(FMT_CAT_ICON).map(([key, svg]) => [`format-${key}`, svg])),
+  ...Object.fromEntries(Object.entries(ICONS).map(([key, svg]) => [`audience-${key}`, svg])),
+  ...Object.fromEntries(Object.entries(BICONS).map(([key, svg]) => [`benefit-${key}`, svg])),
+  ...Object.fromEntries(Object.entries(PICONS).map(([key, svg]) => [`platform-${key}`, svg])),
+  ...Object.fromEntries(Object.entries(DOC_ICONS).map(([key, svg]) => [`doc-${key}`, svg])),
+});
 
 function wrapPage(lang: Lang, page: Page, content: string, ogSlugs: Set<string>, md = '') {
   const activeHref = page.slug === 'index' ? '/info/index.html' : `/info/${page.slug}.html`; // logical (English) - identity only
@@ -6038,8 +6056,7 @@ ${alternates}${seal}
 <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/SUSE[wght].woff2">
-${THEME_INIT_SCRIPT}
-${SHOT_MOTION_INIT}
+${DOCS_INIT_TAG}
 ${DOCS_CSS_LINK}
 ${NOSCRIPT_NAV}
 </head>
@@ -6150,6 +6167,7 @@ async function build() {
   writeFileSync(resolve(outDir, NAV_ICON_SPRITE.filename), NAV_ICON_SPRITE.svg, 'utf-8');
   writeFileSync(resolve(outDir, DOCS_CSS_FILE), DOCS_CSS, 'utf-8');
   writeFileSync(resolve(outDir, DOCS_JS_FILE), DOCS_JS, 'utf-8');
+  writeFileSync(resolve(outDir, DOCS_INIT_FILE), DOCS_INIT_JS, 'utf-8');
   console.log(`✓  /info/${DOCS_CSS_FILE} + /info/${DOCS_JS_FILE} (shared chrome, linked per page)`);
   // icon.svg is THE site mark (hero logo; the README + overview doc use it too) - the
   // single source of truth, a hand-drawn C2PA- + RDF-signed vector, served verbatim so its
@@ -6276,7 +6294,7 @@ async function build() {
   // stay behind in the gitignored output dir to be served stale. The player
   // bundle and audio-index.json exist only while at least one page has audio,
   // so a no-audio checkout builds a byte-identical /info with none of this.
-  audioBySlug = collectDocsAudio();
+  audioBySlug = DOCS_LISTEN_ENABLED ? collectDocsAudio() : new Map();
   rmSync(resolve(outDir, 'audio'), { recursive: true, force: true });
   rmSync(resolve(outDir, 'audio-index.json'), { force: true });
   for (const f of readdirSync(outDir)) {
@@ -6504,6 +6522,7 @@ async function build() {
     url: SITE_URL,
     description: SITE_DESCRIPTION,
     engineVersion: ENGINE_VERSION,
+    liveRelay: process.env.VITE_LIVE_RELAY || undefined,
     pages: pages.map((p) => ({ slug: p.slug, title: p.title, pathway: p.pathway ?? 'builders', path: pathSlug(p.slug), isLanding: !!p.isLanding })),
     mdBySlug,
     sections: LLMS_SECTIONS,

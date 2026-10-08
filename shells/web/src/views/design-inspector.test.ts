@@ -335,8 +335,19 @@ test('Document health merges settled mounted overflow, contrast and vector-font 
     scrollWidth: { configurable: true, value: 260 },
     scrollHeight: { configurable: true, value: 40 },
   });
+  const settled = new Promise<void>((resolve, reject) => {
+    const observer = new W.MutationObserver(() => {
+      const check = h.el.querySelector<HTMLElement>('[data-design-check]');
+      if (!check?.textContent?.includes('Font coverage could not be verified')) return;
+      observer.disconnect(); clearTimeout(timeout); resolve();
+    });
+    const timeout = setTimeout(() => {
+      observer.disconnect(); reject(new Error('Mounted audit findings were not published'));
+    }, 2000);
+    observer.observe(h.el, { subtree: true, childList: true, characterData: true });
+  });
   fire(canvas, 'lolly-canvas-painted');
-  await new Promise((resolve) => setTimeout(resolve, 10));
+  await settled;
 
   const check = h.el.querySelector<HTMLElement>('[data-design-check]');
   assert.equal(check?.dataset.designCheck, 'warn');
@@ -386,6 +397,17 @@ test('a text box adds Text; an image box adds Image, with the 3x3 position grid'
   assert.deepEqual(secs(h), ['image', 'fill', 'appearance', 'shadow', 'object', 'arrange', 'motion', 'present', 'tilt']);
   assert.equal(h.el.querySelectorAll('.fc-posgrid .fc-pos-btn').length, 9);
   h.handle.destroy();
+});
+
+test('a webcam offers framing before capture and keeps asset replacement out of its controls', () => {
+  const h = mount([{ id: 'cam', kind: 'webcam', x: 0, y: 0, w: 640, h: 360 }]);
+  try {
+    h.select(['cam']);
+    assert.equal(h.el.querySelector('[data-head="image"] .lp-sec-name')?.textContent, 'Camera');
+    assert.ok(h.el.querySelector('[data-seg="fit"]'));
+    assert.equal(h.el.querySelector('[data-act="pickimage"]'), null);
+    assert.equal(h.el.querySelector('[data-act="input-image"]'), null);
+  } finally { h.handle.destroy(); }
 });
 
 test('a multi-selection shows the paint groups only, and the column head carries the count', () => {
@@ -1671,7 +1693,7 @@ function themePort(opts: { fail?: boolean; options?: Array<{ id: string; label: 
   const chosen: Array<[string, string]> = [];
   const options = opts.options ?? [{ id: 'light', label: 'Light' }, { id: 'dark', label: 'Dark' }];
   const port = {
-    groups: () => (options.length > 1 ? [{ id: '', label: 'Colour theme', options, active }] : []),
+    groups: () => (options.length > 1 ? [{ id: '', label: 'Theme', options, active }] : []),
     choose: async (group: string, option: string) => {
       chosen.push([group, option]);
       if (opts.fail) throw new Error('refused');
@@ -1693,7 +1715,7 @@ test('Document offers the declared themes as one segmented row, and a press reac
     assert.deepEqual(buttons.map((b) => b.getAttribute('aria-pressed')), ['true', 'false']);
     const group = h.el.querySelector('.fc-seg[data-seg="lolly-doc-theme-0"]')!;
     assert.equal(group.getAttribute('role'), 'group');
-    assert.equal(group.getAttribute('aria-label'), 'Colour theme');
+    assert.equal(group.getAttribute('aria-label'), 'Theme');
     assert.ok(buttons.every((b) => b.tagName === 'BUTTON' && b.type === 'button'), 'native buttons: one Tab stop each, Enter and Space press');
     assert.match(h.el.textContent!, /Colours linked to the design system follow this choice\./);
     click(buttons[1]!);
@@ -1730,4 +1752,90 @@ test('a refused theme change puts the segment back on the theme in force', async
     assert.deepEqual(theme.chosen, [['', 'dark']]);
     assert.deepEqual(themeButtons(h).map((b) => b.getAttribute('aria-pressed')), ['true', 'false']);
   } finally { console.warn = warn; h.handle.destroy(); }
+});
+
+// ── the Tool section (a placed tool, tuned in the column) ─────────────────────
+
+const TOOL_LINK = 'https://lolly.tools/tool/pose-geeko.svg?motion=alive&w=800&h=800';
+const TOOL_BOX: Box = { id: 'g1', kind: 'image', frame: 'f1', x: 0, y: 0, w: 400, h: 400, fit: 'contain', imgpos: 'center',
+  image: { id: TOOL_LINK, source: 'remote', type: 'vector', format: 'svg', meta: { toolUrl: TOOL_LINK, name: 'Pose Geeko', animated: true } } };
+
+/** A fake mountToolSettings that records what it mounted and what it destroyed. */
+function fakeToolSettings() {
+  const mounted: Array<{ id: string; el: HTMLElement; destroyed: boolean; url: string }> = [];
+  const mountToolSettings = async (slot: HTMLElement, id: string) => {
+    const el = document.createElement('div');
+    el.className = 'fake-tool-panel';
+    el.innerHTML = '<input type="text" data-probe>';
+    slot.appendChild(el);
+    const rec = { id, el, destroyed: false, url: TOOL_LINK };
+    mounted.push(rec);
+    return { el, url: () => rec.url, busy: () => false, destroy: () => { rec.destroyed = true; el.remove(); } };
+  };
+  return { mounted, mountToolSettings };
+}
+const settle = (): Promise<void> => new Promise((r) => setTimeout(r, 0));
+
+test('a placed tool takes Tool instead of Image, and mounts that tool\'s own inputs in it', async () => {
+  const fake = fakeToolSettings();
+  const replaced: string[][] = [];
+  const h2 = mount([...BOXES, TOOL_BOX], {
+    actions: {
+      pickImage: () => {}, openGradient: () => {}, arrange: () => {}, openTimeline: () => {}, openStudio: () => {},
+      mountToolSettings: fake.mountToolSettings, replaceImage: (ids) => { replaced.push(ids); },
+    },
+  });
+  h2.select(['g1']);
+  assert.equal(secs(h2)[0], 'tool', 'Tool leads the Content band');
+  assert.ok(!secs(h2).includes('image'), 'never Tool and Image both');
+  await settle();
+  assert.equal(fake.mounted.length, 1);
+  assert.ok(h2.el.querySelector('[data-tool-settings] .fake-tool-panel'), 'the panel sits in the section');
+  assert.match(h2.el.querySelector('[data-sec="tool"]')!.textContent!, /Pose Geeko/);
+  // The door out goes straight to the picker, past the edit-or-replace question.
+  click(h2.el.querySelector('[data-act="replaceimage"]')!);
+  assert.deepEqual(replaced, [['g1']]);
+  h2.handle.destroy();
+  assert.equal(fake.mounted[0]!.destroyed, true, 'the column takes its panel with it');
+});
+
+test('the Tool panel survives the column\'s own rebuilds and remounts only for an outside change', async () => {
+  const fake = fakeToolSettings();
+  const h = mount([...BOXES, TOOL_BOX], {
+    actions: {
+      pickImage: () => {}, openGradient: () => {}, arrange: () => {}, openTimeline: () => {}, openStudio: () => {},
+      mountToolSettings: fake.mountToolSettings,
+    },
+  });
+  h.select(['g1']);
+  await settle();
+  const first = fake.mounted[0]!;
+  // A geometry edit rebuilds the column; the SAME panel element is moved into the new slot.
+  h.poke((rows) => rows.map((b) => (b.id === 'g1' ? { ...b, x: 25 } : b)));
+  await settle();
+  assert.equal(fake.mounted.length, 1, 'no remount for a rebuild');
+  assert.equal(h.el.querySelector('[data-tool-settings] .fake-tool-panel'), first.el);
+  // The panel's own write (its url() moves with the box) is still the same panel.
+  const next = `${TOOL_LINK}&eyeX=40`;
+  first.url = next;
+  h.poke((rows) => rows.map((b) => (b.id === 'g1' ? { ...b, image: { ...TOOL_BOX.image as object, id: next, meta: { toolUrl: next, name: 'Pose Geeko' } } } : b)));
+  await settle();
+  assert.equal(fake.mounted.length, 1, 'its own render is not an outside change');
+  // An undo puts the old link back: the panel no longer describes the box, so it remounts.
+  h.poke((rows) => rows.map((b) => (b.id === 'g1' ? { ...TOOL_BOX, x: 25 } : b)));
+  await settle();
+  assert.equal(fake.mounted.length, 2);
+  assert.equal(first.destroyed, true);
+  // Selecting something that is not a tool lets the panel go.
+  h.select(['b1']);
+  await settle();
+  assert.equal(fake.mounted[1]!.destroyed, true);
+  h.handle.destroy();
+});
+
+test('without a host that can mount tool inputs, a tool render is an ordinary Image', () => {
+  const h = mount([...BOXES, TOOL_BOX]);
+  h.select(['g1']);
+  assert.equal(secs(h)[0], 'image');
+  h.handle.destroy();
 });

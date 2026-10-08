@@ -68,7 +68,7 @@ extracted root. It does not verify application access or the image's provenance.
 
 ## Optional service images
 
-CA and MCP use the pinned Node 24 Alpine base and explicit OpenSSL updates used
+CA, MCP and Penpot use the pinned Node Alpine base and explicit OpenSSL updates used
 by Work. CA carries only its dependency-free handler and certificate helpers;
 it does not need the tool packs or browser model files. Its health route is active
 only when the CA is configured. Successful liveness does not verify the issuer,
@@ -80,6 +80,22 @@ Hosted model APIs and their unused native inference packages are omitted. This
 image supports headless SVG/data and resvg PNG rendering; it has no Chromium.
 Setting `LOLLY_WEB_BASE` alone cannot enable working browser formats. Use a
 separately reviewed browser-enabled MCP deployment if those formats are needed.
+The optional [public browser image and bounded overlays](public-vm.md#optional-public-browser-exports)
+install lockfile-scoped Chromium on a pinned Debian base. They retain sandbox and
+authentication defaults and require actual target export acceptance.
+
+The maintained `deployment-suse.yml` workflow has an opt-in native amd64 image
+job. Dispatch its exact reviewed ref with `build_images=true`, matching
+`expected_source` and the existing published `public_key_jwk`. The repository's
+`LOLLY_CATALOG_SIGNING_KEY` secret reaches only the web BuildKit signing step;
+the release builder verifies that its public key matches the supplied pin.
+Chart and route checks run first. The job boots restricted service images,
+verifies every signed tool file, checks authentication and unavailable-admission
+refusal, and requires actual sandboxed Chromium SVG/PNG/PDF exports before
+publishing source-labelled image digests to GHCR. It retains small receipts.
+These checks do not replace candidate HTTPS, CA enrollment, proxy peer,
+invited-agent or Kubernetes runtime acceptance. A sandbox startup failure is a
+failed qualification; the workflow does not retry with a bypass.
 
 Production MCP needs its approved token/signing-secret references and canonical
 `LOLLY_MCP_PUBLIC_ORIGIN`, plus `LOLLY_RATE_LIMIT_REST_URL` and the matching
@@ -92,3 +108,14 @@ to stand in for the approved production control. TCP/HTTP health checks do not
 establish these controls.
 Keep unused services out of the deployed scope. The existing private-content
 access boundary still applies to every public render route and direct asset URL.
+
+Standalone MCP and CA images support an [observable operator drain](../../services/shared/README.md)
+for application updates and accounting-store migration. Configure a separate
+runtime Secret for the loopback control listener, qualify the new readiness
+probe, and require a settled receipt before replacing an active writer.
+
+Penpot has a dependency-free standalone listener and optional hardened Compose
+service. The [public Penpot VM recipe](public-penpot.md) supplies the Caddy mount,
+two-command RPC boundary and staged qualification checklist for UpCloud or Evroc.
+The recipe preserves opaque user tokens and streamed import progress. It does
+not establish parity for the complete public host or authorize a DNS cutover.

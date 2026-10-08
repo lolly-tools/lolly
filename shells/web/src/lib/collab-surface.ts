@@ -8,6 +8,8 @@ export interface CollabSurface {
   viewport?(): { x: number; y: number; zoom: number };
   readonly collection?: string;
   object?(id: string): { element: HTMLElement | null; x: number; y: number; w: number; h: number; rot: number } | null;
+  /** One model/DOM projection and camera snapshot for a complete overlay paint. */
+  snapshot?(): Pick<CollabSurface, 'object' | 'toClient'>;
   fromClient?(point: { x: number; y: number }): { x: number; y: number };
   reveal?(id: string): void;
   revealPeer?(state: PresenceState): boolean;

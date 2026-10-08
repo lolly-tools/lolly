@@ -8,6 +8,8 @@
  * violate the strict-TS contract.
  */
 interface ImportMetaEnv {
+  readonly DEV?: boolean;
+  readonly VITE_LIVE_RELAY?: string;
   readonly PROD: boolean;
   readonly BASE_URL?: string;
   // External base URL for the on-device model files (Vercel Blob); '' / undefined
@@ -60,6 +62,11 @@ declare module '*.css?raw' {
  * from a CDN. A blanket `*?url` would swallow typos in ordinary specifiers.
  */
 declare module '*.wasm?url' {
+  const url: string;
+  export default url;
+}
+
+declare module 'pdfjs-dist/build/pdf.worker.min.mjs?url' {
   const url: string;
   export default url;
 }
