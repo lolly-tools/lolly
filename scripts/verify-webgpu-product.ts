@@ -21,6 +21,8 @@ const SOURCE_FILES = [
   'shells/tauri-desktop/webgpu-product-probe.mjs', 'shells/tauri-desktop/vite.config.js',
   'shells/tauri-desktop/src-tauri/Cargo.toml', 'shells/tauri-desktop/src-tauri/Cargo.lock',
   'shells/tauri-desktop/src-tauri/src/lib.rs', 'shells/tauri-desktop/src-tauri/src/presentation_windows.rs',
+  'shells/tauri-desktop/src-tauri/src/cli.rs',
+  'shells/tauri-shared/embedded-js-mime.rs', 'shells/tauri-shared/tauri-embedded-assets.rs',
   'shells/tauri-desktop/src-tauri/src/webgpu_qualification.rs', 'shells/tauri-desktop/src-tauri/tauri.conf.json',
   'package.json', 'pnpm-lock.yaml', 'shells/tauri-desktop/package.json', 'shells/tauri-desktop/pnpm-lock.yaml',
   'shells/tauri-desktop/src-tauri/Info.plist', 'scripts/build-native.ts', 'scripts/build-release-web.ts', 'scripts/webgpu-qualification.ts',

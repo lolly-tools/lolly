@@ -158,6 +158,7 @@ const MS = 4000;
  */
 const GATE_FPS = 15;
 const GATE_WIDTH = 480;
+const SHADOW_STAGE_PREFIX = '[lift-shadow-stage]';
 /** frameTimestamps(4000, 15) = 60 frames at n·1000/15, so the last is 3933.33 ms. */
 const LAST = 59;
 const tOf = (n: number): number => (n * 1000) / GATE_FPS;
@@ -252,6 +253,7 @@ describe('plans/104 P3 - the Lift-layers exit demo', { skip: gate ?? false, conc
   let Hn: Harness;
   const page = (): Harness['page'] => Hn.page;
   let mp4 = false;
+  let closing = false;
 
   /** Step 1 + 2, run once in `before` and shared: the funnel up to the finished stage. */
   let shotSvg = '';
@@ -268,6 +270,14 @@ describe('plans/104 P3 - the Lift-layers exit demo', { skip: gate ?? false, conc
 
   before(async () => {
     Hn = await openHarness();
+    page().on('crash', () => console.log(`${SHADOW_STAGE_PREFIX} page crashed during suite`));
+    page().context().browser()?.on('disconnected', () => {
+      if (!closing) console.log(`${SHADOW_STAGE_PREFIX} browser disconnected during suite`);
+    });
+    page().on('console', (message) => {
+      const text = message.text();
+      if (text.startsWith(`${SHADOW_STAGE_PREFIX} `)) console.log(text);
+    });
     const p = Hn.probe;
     mp4 = p.avcEncode;
     console.log(`[browser] ${usingChannel() ? `channel=${process.env.LOLLY_BROWSER_CHANNEL ?? process.env.LOLLY_BROWSER_PATH}` : 'bundled Chromium'} :: ${p.ua}`);
@@ -322,6 +332,7 @@ describe('plans/104 P3 - the Lift-layers exit demo', { skip: gate ?? false, conc
   });
 
   after(async () => {
+    closing = true;
     await Hn?.close();
     await closeBrowser();
     for (const line of measured) console.log(line);
@@ -559,7 +570,7 @@ describe('plans/104 P3 - the Lift-layers exit demo', { skip: gate ?? false, conc
   // ── 2b. the cached shadow plate is a CACHE, not a cheaper lane ──────────────
 
   test('cached and uncached shadows encode the SAME source pixels, and the cache is what makes this affordable', async () => {
-    const r = await page().evaluate(async ({ spec, fps, width, last }) => {
+    const r = await page().evaluate(async ({ spec, fps, width, last, prefix }) => {
       const S = (window as never as { SEQ: SeqApi }).SEQ;
       // The compositor directly, both ways, in ONE run on ONE engine - the only way to
       // say "identical pixels" about a cache rather than to hope it across builds.
@@ -567,13 +578,21 @@ describe('plans/104 P3 - the Lift-layers exit demo', { skip: gate ?? false, conc
       // layer re-renders its filter on every frame, which is the path that shipped
       // before P3.1 and the path the numbers below are measured against.
       const idx = [0, Math.round(last / 3), Math.round((2 * last) / 3), last];
+      console.info(`${prefix} uncached render starting`);
       const off = await S.exportSeq(spec, 'mp4', { fps, width, fxCacheBytes: 0, rawFrames: idx });
+      console.info(`${prefix} uncached render completed`);
+      console.info(`${prefix} cached render starting`);
       const on = await S.exportSeq(spec, 'mp4', { fps, width, rawFrames: idx });
+      console.info(`${prefix} cached render completed`);
+      console.info(`${prefix} sampled-frame decoding starting`);
+      const onPixels = on.key ? await S.frameHashes(on.key, idx, fps) : [];
+      const offPixels = off.key ? await S.frameHashes(off.key, idx, fps) : [];
+      console.info(`${prefix} sampled-frame decoding completed`);
       return {
-        on: { err: on.error, size: on.size, ms: on.ms, raw: on.rawHashes, pix: on.key ? await S.frameHashes(on.key, idx, fps) : [] },
-        off: { err: off.error, size: off.size, ms: off.ms, raw: off.rawHashes, pix: off.key ? await S.frameHashes(off.key, idx, fps) : [] },
+        on: { err: on.error, size: on.size, ms: on.ms, raw: on.rawHashes, pix: onPixels },
+        off: { err: off.error, size: off.size, ms: off.ms, raw: off.rawHashes, pix: offPixels },
       };
-    }, { spec, fps: GATE_FPS, width: GATE_WIDTH, last: LAST });
+    }, { spec, fps: GATE_FPS, width: GATE_WIDTH, last: LAST, prefix: SHADOW_STAGE_PREFIX });
 
     if (!mp4 && r.on.err) {
       say('[skip] mp4: this build cannot encode H.264 - rerun with LOLLY_BROWSER_CHANNEL=chrome');

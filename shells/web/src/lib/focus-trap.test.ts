@@ -47,6 +47,17 @@ test('the sweep still inerts real background siblings', () => {
   el.remove();
 });
 
+test('modified Tab remains a browser shortcut inside a trapped overlay', () => {
+  const el = overlay(); const button = el.querySelector('button')!; const trap = trapFocus(el);
+  try {
+    button.focus();
+    for (const mods of [{ ctrlKey: true }, { metaKey: true }, { altKey: true }]) {
+      const event = new dom.window.KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true, ...mods });
+      button.dispatchEvent(event); assert.equal(event.defaultPrevented, false); assert.equal(document.activeElement, button);
+    }
+  } finally { trap.release(); el.remove(); }
+});
+
 test('a live region created BEFORE the trap survives the sweep', async () => {
   announce('route changed');            // main.ts does this on every navigation
   await tick();

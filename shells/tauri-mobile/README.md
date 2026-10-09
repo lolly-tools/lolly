@@ -27,6 +27,14 @@ Two of them, in sequence.
 
 The **native** entry is `src-tauri/src/main.rs`, which calls `run()` in `src-tauri/src/lib.rs`. It builds the Tauri app, registers the `fs` plugin and bounded native network commands, and exposes the small native command surface for website-source ingest plus iOS deep-link/document-open delivery.
 
+Window setup retains the configured window fields and creation flags while
+attaching the same embedded-asset response guard as desktop. For successful
+canonical `/_app/*.js` or `.mjs` requests on the exact native origin, the guard
+corrects Tauri's PDF sniffing of a `%PDF` string inside a UTF-8 module. It changes
+only the MIME header; bytes, CSP, HTML fallbacks, errors, real PDFs and non-core
+assets remain unchanged. This shared repair does not claim mobile runtime
+qualification.
+
 The **frontend** entry is the web shell's, `shells/web/index.html` → `/src/main.js` → `shells/web/src/main.ts`. `src-tauri/tauri.conf.json` points `devUrl` at `http://localhost:5174` (a different port from desktop's 5173, so both dev servers can run at once) and `frontendDist` at `../dist`.
 
 Production builds run `build:frontend:release` before compiling Rust. Provide `LOLLY_CATALOG_SIGNING_KEY` and `VITE_CATALOG_PUBLIC_KEY_JWK` through managed secret storage, and set `LOLLY_PROFILE=lolly-start` with `LOLLY_EMBED_CATALOG=profile` for public packages.

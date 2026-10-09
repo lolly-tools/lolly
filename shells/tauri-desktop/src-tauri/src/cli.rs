@@ -482,6 +482,7 @@ pub(crate) fn build_offscreen_window<M: tauri::Manager<tauri::Wry>>(
     #[cfg(not(target_os = "windows"))]
     let page = "index.html".to_string();
     tauri::WebviewWindowBuilder::new(manager, WINDOW_LABEL, tauri::WebviewUrl::App(page.into()))
+        .on_web_resource_request(crate::embedded_assets::correct)
         .title("Lolly")
         .visible(true)
         .focused(false)

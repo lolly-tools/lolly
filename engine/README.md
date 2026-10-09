@@ -399,7 +399,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `prepare-pii.ts` | 173 | Typed adaptation of community/_shared/pii.js. | no | indirect | – |
 | `prepare-text.ts` | 104 | Credential and personal-data suggestions with bounded declarative rules. | yes | `tests/prepare-text.test.ts` | – |
 | `prepare.ts` | 163 | Source-bound inspection, consistent replacement and content-free preparation reports. | yes | `tests/prepare.test.ts` | yes |
-| `present-interact.ts` | 261 | Authored presentation controls, independent of a page or a browser. | yes | `tests/present-interact.test.ts` | yes |
+| `present-interact.ts` | 263 | Authored presentation controls, independent of a page or a browser. | yes | `tests/present-interact.test.ts` | yes |
 | `print-marks.ts` | 315 | Print-marks & bleed geometry. | yes | `tests/print-marks.test.ts` | – |
 | `production.ts` | 9 | Versioned, scoped production measurement and repair primitives. | yes | `tests/production.test.ts` | – |
 | `production/collect.ts` | 58 |  | no | none | – |

@@ -1,5 +1,7 @@
 mod site_fetch;
 mod remote_fetch;
+#[path = "../../../tauri-shared/tauri-embedded-assets.rs"]
+mod embedded_assets;
 
 use std::collections::BTreeMap;
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -206,6 +208,11 @@ fn mobile_take_open_file(
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    let mut context = tauri::generate_context!();
+    let windows = context.config().app.windows.clone();
+    for window in &mut context.config_mut().app.windows {
+        window.create = false;
+    }
     tauri::Builder::default()
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_lolly_auth::init())
@@ -221,7 +228,15 @@ pub fn run() {
             mobile_poll_events,
             mobile_take_open_file
         ])
-        .build(tauri::generate_context!())
+        .setup(move |app| {
+            for config in windows.iter().filter(|window| window.create) {
+                tauri::WebviewWindowBuilder::from_config(app, config)?
+                    .on_web_resource_request(embedded_assets::correct)
+                    .build()?;
+            }
+            Ok(())
+        })
+        .build(context)
         .expect("error while building Lolly mobile")
         .run(|app, event| {
             // iOS delivers both a lolly:// link and a .lolly document open as

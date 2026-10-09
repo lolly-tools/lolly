@@ -23,11 +23,16 @@ test('testing requires an explicit start, remembers a chosen button, and restore
   const root = document.createElement('div'); root.innerHTML = clickerPanelHtml(); document.body.append(root);
   const panel = root.querySelector('details')!; panel.open = true;
   const dispose = wireClickerPanel(root);
-  const press = (key: string) => { const event = new win.KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }); document.dispatchEvent(event); return event; };
+  const press = (key: string, mods: KeyboardEventInit = {}) => { const event = new win.KeyboardEvent('keydown', { key, bubbles: true, cancelable: true, ...mods }); document.dispatchEvent(event); return event; };
   try {
     assert.equal(press('x').defaultPrevented, false);
     (root.querySelector('[data-clicker-test]') as HTMLButtonElement).click();
     assert.equal(press('x').defaultPrevented, true); assert.match(root.querySelector('[data-clicker-result]')!.textContent!, /x/);
+    const result = root.querySelector('[data-clicker-result]')!.textContent;
+    for (const mods of [{ ctrlKey: true }, { metaKey: true }, { altKey: true }]) {
+      assert.equal(press('F8', mods).defaultPrevented, false);
+      assert.equal(root.querySelector('[data-clicker-result]')!.textContent, result, 'browser shortcuts are not learning candidates');
+    }
     const action = root.querySelector('[data-clicker-action]') as HTMLSelectElement; action.value = 'next'; action.dispatchEvent(new win.Event('change'));
     const save = root.querySelector('[data-clicker-save]') as HTMLButtonElement; assert.equal(save.disabled, false); save.click();
     assert.equal(clickerKey(new win.KeyboardEvent('keydown', { key: 'x' })), 'PageDown');

@@ -28,7 +28,8 @@ pub fn prepare(context: &mut tauri::Context) -> Vec<tauri::utils::config::Window
 pub fn build(app: &App, windows: &[tauri::utils::config::WindowConfig]) -> tauri::Result<()> {
     for config in windows.iter().filter(|window| window.create) {
         let handle = app.handle().clone();
-        let builder = WebviewWindowBuilder::from_config(app, config)?;
+        let builder = WebviewWindowBuilder::from_config(app, config)?
+            .on_web_resource_request(crate::embedded_assets::correct);
         #[cfg(feature = "presentation-probe")]
         let builder = builder.initialization_script(include_str!("../tests/presentation-probe.js"));
         let window = builder
@@ -55,6 +56,7 @@ pub fn build(app: &App, windows: &[tauri::utils::config::WindowConfig]) -> tauri
                 let closer = handle.clone();
                 let popup =
                     WebviewWindowBuilder::new(&handle, CONTROLS, tauri::WebviewUrl::External(url))
+                        .on_web_resource_request(crate::embedded_assets::correct)
                         .window_features(features)
                         .title("Presentation")
                         .min_inner_size(360.0, 480.0)

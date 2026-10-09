@@ -182,7 +182,9 @@ export function resolvePresentInteractStops(stops: readonly PresentInteractDepth
 }
 
 /** Stops keep their authored order, including a deliberate return up the page. */
-export function pickPresentInteractStop(stops: readonly PresentInteractStop[], current: PresentInteractDepth, direction: 1 | -1): PresentInteractStop | null {
+export function pickPresentInteractStop(stops: readonly PresentInteractStop[], current: PresentInteractDepth, direction: 1 | -1, currentIndex: number | null = null): PresentInteractStop | null {
+  const retained = currentIndex !== null && Number.isInteger(currentIndex) ? stops.findIndex((stop) => stop.index === currentIndex) : -1;
+  if (retained >= 0) return stops[retained + direction] ?? null;
   const exact = stops.findIndex((stop) => stop.depth === current || typeof current === 'number' && stop.y === current);
   if (exact >= 0) return stops[exact + direction] ?? null;
   if (typeof current !== 'number') return (direction === 1 ? stops[0] : stops.at(-1)) ?? null;

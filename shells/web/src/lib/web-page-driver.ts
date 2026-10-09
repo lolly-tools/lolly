@@ -207,7 +207,10 @@ class FrameDriver implements WebPageDriver {
   }
   setFocused(on: boolean): void { this.focused = on; this.send(on ? 'focus' : 'release'); }
   setSlideActive(on: boolean): void { if (this.active !== on) { this.active = on; this.send('slide', { state: on ? 'start' : 'stop' }); } }
-  handKeyboard(on: boolean): void { this.send('handover', { hand: on }); this.frame.tabIndex = on ? 0 : -1; if (on) this.frame.focus(); }
+  handKeyboard(on: boolean): void {
+    this.send('handover', { hand: on }); this.frame.tabIndex = on ? 0 : -1;
+    if (on && this.frame.ownerDocument.activeElement !== this.frame) this.frame.focus();
+  }
   subscribe(callback: () => void): () => void { this.callbacks.add(callback); return () => { this.callbacks.delete(callback); }; }
   destroy(): void {
     if (this.disposed) return;

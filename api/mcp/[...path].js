@@ -66526,7 +66526,9 @@ function resolvePresentInteractDepth(depth, context) {
 function resolvePresentInteractStops(stops, context) {
   return stops.slice(0, PRESENT_INTERACT_MAX_STOPS).map((depth, index2) => ({ depth, y: resolvePresentInteractDepth(depth, context), index: index2 }));
 }
-function pickPresentInteractStop(stops, current, direction2) {
+function pickPresentInteractStop(stops, current, direction2, currentIndex = null) {
+  const retained = currentIndex !== null && Number.isInteger(currentIndex) ? stops.findIndex((stop) => stop.index === currentIndex) : -1;
+  if (retained >= 0) return stops[retained + direction2] ?? null;
   const exact = stops.findIndex((stop) => stop.depth === current || typeof current === "number" && stop.y === current);
   if (exact >= 0) return stops[exact + direction2] ?? null;
   if (typeof current !== "number") return (direction2 === 1 ? stops[0] : stops.at(-1)) ?? null;

@@ -35,6 +35,7 @@ export interface PresentInteractConfig {
   reduced: boolean;
   kiosk: boolean;
   load(marker: HTMLElement): void;
+  handover?(on: boolean): void;
   /** Tests can provide a driver without creating a real frame. */
   driver?(marker: HTMLElement): WebPageDriver | null;
 }
@@ -71,6 +72,10 @@ export function mountPresentInteract(config: PresentInteractConfig): PresentInte
     : (callback: FrameRequestCallback): number => win.setTimeout(() => callback(win.performance.now()), 16);
   const cancelFrame = typeof win.cancelAnimationFrame === 'function' ? win.cancelAnimationFrame.bind(win) : win.clearTimeout.bind(win);
   const keyOf = (index: number, build: number): string => `${index}:${build}`;
+  const setHanded = (on: boolean): void => {
+    if (handed === on) return;
+    handed = on; config.handover?.(on);
+  };
 
   function dimensions(visit: Visit): { scrollMax: number; boxHeight: number } {
     const frame = visit.marker.querySelector<HTMLIFrameElement>('iframe[data-web-live]');
@@ -97,8 +102,36 @@ export function mountPresentInteract(config: PresentInteractConfig): PresentInte
     if (!driver) return;
     driver.configure(visit.opts); driver.setSlideActive(!state.overview);
     driver.setFocused(current === visit); driver.handKeyboard(current === visit && handed);
-    visit.unsubscribe = driver.subscribe(() => { paintSpeaker(); schedule(); });
-    if (!(visit.opts.keep && visit.marker.dataset.webLoad === 'keep')) driver.scrollTo(visit.opts.start);
+    const unsubscribeDepth = driver.subscribe(() => {
+      if (visit.stop !== null && !visit.move) {
+        const expected = resolvePresentInteractStops(visit.opts.stops, dimensions(visit))[visit.stop]?.y;
+        const depth = driver.depth();
+        if (expected != null && depth && Math.round(depth.y) !== Math.round(expected)) visit.stop = null;
+      }
+      paintSpeaker(); schedule();
+    });
+    let childDocument: Document | null = null;
+    const childPointer = (event: PointerEvent): void => {
+      if (event.isTrusted && current === visit && visit.opts.hand) { pointerAt = Date.now(); pointerFrame = driver.frame; onBlur(); }
+    };
+    const childFocus = (): void => onBlur();
+    const releaseChild = (): void => {
+      childDocument?.removeEventListener('pointerdown', childPointer, true);
+      childDocument?.removeEventListener('focusin', childFocus); childDocument = null;
+    };
+    const watchChild = (): void => {
+      let fresh: Document | null = null;
+      try { fresh = driver.frame.contentDocument; } catch { /* outside pages use native parent focus events */ }
+      if (fresh === childDocument) return;
+      releaseChild(); childDocument = fresh;
+      childDocument?.addEventListener('pointerdown', childPointer, true); childDocument?.addEventListener('focusin', childFocus);
+    };
+    const restart = (): void => { visit.stop = null; watchChild(); paintSpeaker(); };
+    driver.frame.addEventListener('load', restart);
+    watchChild(); visit.unsubscribe = () => { unsubscribeDepth(); releaseChild(); driver.frame.removeEventListener('load', restart); };
+    if (!(visit.opts.keep && visit.marker.dataset.webLoad === 'keep')) {
+      visit.stop = null; driver.scrollTo(visit.opts.start);
+    }
     const frame = visit.marker.querySelector<HTMLIFrameElement>('iframe[data-web-live]');
     if (frame) frame.tabIndex = handed && current === visit ? 0 : -1;
   }
@@ -126,7 +159,7 @@ export function mountPresentInteract(config: PresentInteractConfig): PresentInte
     page?.classList.remove('pr-interact-zoom');
     for (const prop of ['--pr-interact-scale', '--pr-interact-x', '--pr-interact-y']) page?.style.removeProperty(prop);
     scrim?.remove(); scrim = null;
-    current = null; handed = false;
+    current = null; setHanded(false);
     stage.classList.remove('pr-interact-on');
   }
 
@@ -210,12 +243,13 @@ export function mountPresentInteract(config: PresentInteractConfig): PresentInte
     if (!visit.driver) return !walk;
     if (walk && !visit.driver.capabilities.scroll) return false;
     if (!walk && visit.opts.keys === 'key' && visit.driver.capabilities.key) {
+      visit.stop = null;
       visit.driver.key(direction === 1 ? 'ArrowDown' : 'ArrowUp'); return true;
     }
     const stops = resolvePresentInteractStops(visit.opts.stops, dimensions(visit));
     if (stops.length) {
       const position = visit.stop === null ? visit.driver.depth()?.y ?? visit.opts.start : stops[visit.stop]?.depth ?? visit.opts.start;
-      const target = pickPresentInteractStop(stops, position, direction);
+      const target = pickPresentInteractStop(stops, position, direction, visit.stop);
       if (!target) return !walk;
       if (!moveTo(visit, target.depth)) return !walk;
       visit.stop = target.index; paintSpeaker(); return true;
@@ -233,10 +267,7 @@ export function mountPresentInteract(config: PresentInteractConfig): PresentInte
     if (!current || state.overview) return false;
     if (keyName === 'Escape') { release(); return true; }
     if (keyName === 'Enter' && current.opts.hand && current.driver) {
-      handed = true; current.driver.handKeyboard(true);
-      const frame = current.marker.querySelector<HTMLIFrameElement>('iframe[data-web-live]');
-      if (frame) { frame.tabIndex = 0; frame.focus({ preventScroll: true }); }
-      paintSpeaker(); return true;
+      handKeyboard(current); return true;
     }
     if (current.opts.keys !== 'none' && (keyName === 'ArrowUp' || keyName === 'ArrowDown')) return manualMove(keyName === 'ArrowDown' ? 1 : -1);
     return false;
@@ -317,6 +348,13 @@ export function mountPresentInteract(config: PresentInteractConfig): PresentInte
   }
   function speaker(root: HTMLElement): void { speakerRoot = root; paintSpeaker(); }
 
+  function handKeyboard(visit: Visit): void {
+    visit.stop = null; setHanded(true); visit.driver?.handKeyboard(true);
+    const frame = visit.marker.querySelector<HTMLIFrameElement>('iframe[data-web-live]');
+    if (frame) { frame.tabIndex = 0; if (doc.activeElement !== frame) frame.focus({ preventScroll: true }); }
+    paintSpeaker();
+  }
+
   const onPointer = (event: PointerEvent): void => {
     if (!event.isTrusted || !current) return;
     const frame = current.marker.querySelector<HTMLIFrameElement>('iframe[data-web-live]');
@@ -332,16 +370,20 @@ export function mountPresentInteract(config: PresentInteractConfig): PresentInte
       if (destroyed || !current || handed || state.overview) return;
       const frame = current.marker.querySelector<HTMLIFrameElement>('iframe[data-web-live]');
       if (!frame || doc.activeElement !== frame) return;
-      if (current.opts.hand && pointerFrame === frame && Date.now() - pointerAt < 500) { handed = true; current.driver?.handKeyboard(true); paintSpeaker(); return; }
+      if (current.opts.hand && pointerFrame === frame && Date.now() - pointerAt < 500) { handKeyboard(current); return; }
       if (guardAttempts++ < 3) stage.focus({ preventScroll: true });
-      else { stage.classList.add('pr-embed-focus'); handed = true; paintSpeaker(); }
+      else { stage.classList.add('pr-embed-focus'); setHanded(true); paintSpeaker(); }
     }, 0);
+  };
+  const onFrameFocus = (event: FocusEvent): void => {
+    const target = event.target as Element | null;
+    if (target?.tagName === 'IFRAME' && stage.contains(target)) onBlur();
   };
   const onReturn = (event: Event): void => {
     if ((event.target as Element | null)?.closest('.pr-embed-return')) returnKeyboard();
   };
   function returnKeyboard(): void {
-    handed = false; guardAttempts = 0; current?.driver?.handKeyboard(false);
+    setHanded(false); guardAttempts = 0; current?.driver?.handKeyboard(false);
     const frame = current?.marker.querySelector<HTMLIFrameElement>('iframe[data-web-live]'); if (frame) frame.tabIndex = -1;
     stage.focus({ preventScroll: true });
     if (returnFrameId !== null) cancelFrame(returnFrameId);
@@ -355,7 +397,7 @@ export function mountPresentInteract(config: PresentInteractConfig): PresentInte
   const observer = new win.MutationObserver(() => { if (!destroyed) for (const visit of visits) connect(visit); });
   observer.observe(stage, { childList: true, subtree: true });
   stage.addEventListener('pointermove', onPointer); stage.addEventListener('pointerover', onPointer);
-  stage.addEventListener('click', onReturn); win.addEventListener('blur', onBlur); win.addEventListener('resize', onResize);
+  stage.addEventListener('click', onReturn); win.addEventListener('blur', onBlur); win.addEventListener('focus', onFrameFocus, true); win.addEventListener('resize', onResize);
   function destroy(): void {
     if (destroyed) return; destroyed = true;
     observer.disconnect(); if (frameId !== null) cancelFrame(frameId);
@@ -363,7 +405,7 @@ export function mountPresentInteract(config: PresentInteractConfig): PresentInte
     if (blurTimer) clearTimeout(blurTimer); stopVisits();
     speakerRoot?.querySelector('.pr-sp-interact')?.remove(); speakerRoot = null;
     stage.removeEventListener('pointermove', onPointer); stage.removeEventListener('pointerover', onPointer);
-    stage.removeEventListener('click', onReturn); win.removeEventListener('blur', onBlur); win.removeEventListener('resize', onResize);
+    stage.removeEventListener('click', onReturn); win.removeEventListener('blur', onBlur); win.removeEventListener('focus', onFrameFocus, true); win.removeEventListener('resize', onResize);
   }
   return { sync, key, walk, speaker, release, returnKeyboard, get active() { return current?.marker ?? null; }, destroy };
 }

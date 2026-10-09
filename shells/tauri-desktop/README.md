@@ -33,6 +33,15 @@ native command surface. There is no HTTP plugin - see the `remote_fetch` note
 further down. OAuth and file reveal use narrow Rust commands; the generic
 shell-open plugin is intentionally absent.
 
+Every owned desktop webview uses the shared embedded-asset response guard in
+`../tauri-shared/tauri-embedded-assets.rs`: the main shell, private presentation
+controls and the offscreen CLI/render window. Tauri can sniff a `%PDF` string
+inside a compiled module as a PDF. The guard corrects only that MIME header on
+a successful canonical `/_app/*.js` or `.mjs` response from the exact native
+origin, with a valid UTF-8 JavaScript declaration prefix. It preserves the
+response bytes, CSP and other headers. HTML fallback pages, errors, real PDFs,
+catalog/user assets and external captures keep their original MIME types.
+
 The **frontend** entry is the web shell's, `shells/web/index.html` → `/src/main.js` → `shells/web/src/main.ts`. `src-tauri/tauri.conf.json` points `devUrl` at `http://localhost:5173` and `frontendDist` at `../dist`, and its `beforeDevCommand` runs `dev:frontend`. The production `beforeBuildCommand` runs the signed `build:frontend:release` wrapper, builds the macOS Quick Look extensions where applicable, and installs the native CLI sidecar.
 
 Keep the JavaScript plugin guests and their locked Rust crates on the same major/minor release. Tauri checks this before packaging. The filesystem guest is pinned to 2.5.2 in both shells and the desktop updater guest to 2.13.1, matching the existing native locks. Update each pair together; `tests/tauri-package-versions.test.ts` checks the API and every plugin pair without needing a native build. Keep the version check enabled when preparing qualification packages.

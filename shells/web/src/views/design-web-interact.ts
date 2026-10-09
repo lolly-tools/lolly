@@ -11,7 +11,7 @@ import { escape as esc } from '../utils.ts';
 import { icon } from '../lib/icons.ts';
 import { fieldFocusToken } from '../lib/collab-field-focus.ts';
 import { colorFieldHtml, resolveColorVar } from '../components/color-field.ts';
-import { getWebPageDriver } from '../lib/web-page-driver.ts';
+import { getWebPageDriver, type WebPageDriver } from '../lib/web-page-driver.ts';
 import type { Box } from './free-canvas-math.ts';
 import type { ModelPort } from './design-ports.ts';
 
@@ -140,6 +140,24 @@ export function wireWebInteract(root: HTMLElement, model: ModelPort, ids: readon
     }
     return true;
   };
+  const isPlace = (depth: PresentInteractOptions['start']): boolean => typeof depth === 'string' && depth.startsWith('#');
+  const normalizeMode = (next: PresentInteractOptions, mode: 'places' | 'pan', firstPlace?: PresentInteractOptions['start']): boolean => {
+    next.mode = mode;
+    if (mode === 'pan') {
+      next.stops = next.stops.filter(depth => !isPlace(depth));
+      for (const key of ['start', 'from', 'to'] as const) if (isPlace(next[key])) next[key] = PRESENT_INTERACT_DEFAULTS[key];
+      if (!next.pageLength) next.pageLength = 3200;
+      return true;
+    }
+    next.stops = next.stops.filter(isPlace);
+    const first = firstPlace ?? next.stops[0] ?? [next.start, next.from, next.to].find(isPlace);
+    if (!first) return false;
+    if (!isPlace(next.start)) next.start = first;
+    if (!isPlace(next.from)) next.from = next.start;
+    if (!isPlace(next.to)) next.to = next.stops.at(-1) ?? next.from;
+    if (!next.stops.length) next.stops = [first];
+    return true;
+  };
 
   const folds = disclosureStates.get(root) ?? new Map<string, boolean>();
   disclosureStates.set(root, folds);
@@ -147,7 +165,8 @@ export function wireWebInteract(root: HTMLElement, model: ModelPort, ids: readon
     const token = fieldFocusToken(model.collection, id, 'interactOpts');
     for (const control of root.querySelectorAll<HTMLElement>('[data-color-field], [data-web-accent], [data-web-depth], [data-web-add-stop], [data-web-stop-remove]')) control.dataset.collabFocus = token;
   }
-  for (const detail of root.querySelectorAll<HTMLDetailsElement>('.fc-web-interact-group')) {
+  const details = [...root.querySelectorAll<HTMLDetailsElement>('.fc-web-interact-group')];
+  for (const detail of details) {
     const name = detail.querySelector('summary')?.textContent ?? '';
     detail.open = folds.get(name) ?? false;
     detail.addEventListener('toggle', () => { if (detail.isConnected) folds.set(name, detail.open); });
@@ -191,10 +210,31 @@ export function wireWebInteract(root: HTMLElement, model: ModelPort, ids: readon
       } else if (key === 'ease') {
         const ease = normaliseKfEase(value); if (!ease) return; next.ease = ease;
       } else Object.assign(next, { [key]: value });
+      if (key === 'mode') {
+        root.querySelector('[data-web-places-start]')?.remove();
+        if (outside() && (value === 'places' || value === 'pan') && !normalizeMode(next, value)) {
+          const retainedMode = options().mode; control.value = retainedMode;
+          const row = document.createElement('label'); row.className = 'fc-row fc-insp-text'; row.dataset.webPlacesStart = '';
+          const label = document.createElement('span'); label.textContent = t('Start');
+          const first = document.createElement('input');
+          Object.assign(first, { className: 'field-input', placeholder: '#pricing', maxLength: 128, spellcheck: false });
+          first.setAttribute('aria-label', t('Start'));
+          if (model.collection) first.dataset.collabFocus = fieldFocusToken(model.collection, id, 'interactOpts');
+          row.append(label, first); control.closest('label')?.after(row);
+          first.addEventListener('change', () => {
+            if (!current() || control.value !== retainedMode || !row.isConnected) return;
+            const depth = parsePresentInteractDepth(first.value);
+            if (depth === null || !isPlace(depth)) { error(t('Places need a page ID such as #pricing.'), first); return; }
+            const latest = options(); normalizeMode(latest, 'places', depth); save(latest, first);
+          });
+          error(t('Places need a page ID such as #pricing.')); first.focus(); return;
+        }
+      }
       if (key === 'mode' && value === 'pan' && !next.pageLength) next.pageLength = 3200;
       save(next, control);
     });
     if (key === 'preview') control.addEventListener('input', () => {
+      if (!current()) return;
       const page = driver(), depth = page?.depth();
       if (depth) page?.scrollTo(depth.max * Number(control.value) / 100);
     });
@@ -236,10 +276,32 @@ export function wireWebInteract(root: HTMLElement, model: ModelPort, ids: readon
     else { if (next.stops.length >= 32) { error(t('A page can have up to 32 scroll stops.')); return; } next.stops = [...next.stops, y]; }
     save(next);
   });
-  refreshWebInteractCapability(root, canvas, id);
-  const refresh = (): void => refreshWebInteractCapability(root, canvas, id);
+  let previewDriver: WebPageDriver | null = null, unsubscribeDepth: (() => void) | null = null;
+  const refreshPreview = (): void => {
+    if (disposed) return;
+    const control = root.querySelector<HTMLInputElement>('[data-web-interact="preview"]');
+    if (!control) return;
+    const depth = current() ? previewDriver?.depth() : null;
+    control.disabled = !previewDriver?.capabilities.depth || !depth;
+    control.value = String(depth && depth.max > 0 ? Math.max(0, Math.min(100, depth.y / depth.max * 100)) : 0);
+  };
+  const refresh = (): void => {
+    if (disposed) return;
+    refreshWebInteractCapability(root, canvas, id);
+    const page = current() ? driver() : null;
+    if (page !== previewDriver) {
+      unsubscribeDepth?.(); previewDriver = page;
+      unsubscribeDepth = page?.subscribe(refreshPreview) ?? null;
+    }
+    refreshPreview();
+  };
   canvas.addEventListener('lolly:web-driver-change', refresh);
-  return () => { disposed = true; canvas.removeEventListener('lolly:web-driver-change', refresh); };
+  refresh();
+  return () => {
+    if (disposed) return;
+    for (const detail of details) folds.set(detail.querySelector('summary')?.textContent ?? '', detail.open);
+    disposed = true; unsubscribeDepth?.(); canvas.removeEventListener('lolly:web-driver-change', refresh);
+  };
 }
 
 export function commitWebInteractColour(model: ModelPort, ids: readonly string[], colour: unknown): void {

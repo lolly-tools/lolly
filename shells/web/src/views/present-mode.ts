@@ -59,6 +59,7 @@ import { CAPTION_BOX_CLASS } from './timeline-captions.ts';
 import { mountWebFrames, pauseWebFrame, setWebPresenting, stripWebFrames, unmountWebFrames } from '../lib/design-web-mount.ts';
 import { mountPresentInteract, presentBuildSteps } from './present-interact.ts';
 import { clickerKey } from './present-clicker.ts';
+import { trapFocus } from '../lib/focus-trap.ts';
 
 /** How long the HUD stays visible after the last pointer/key wake (the old visualiser panel used 2600). */
 const IDLE_MS = 2600;
@@ -512,6 +513,7 @@ function openSlideMotion(
 export function openPresentMode(opts: OpenPresentOptions): PresentController | null {
   if (opts.production && (opts.production.controlsWindow === window || !liveDoc(opts.production.controlsWindow))) return null;
   closeActivePresentation?.();
+  const returnFocus = document.activeElement as HTMLElement | null;
   const { source, loop = false, onAddress, onClose, transition = 'slide' } = opts;
   const container = opts.container ?? document.body;
   /** The deck's own transition - what a frame that names none of its own falls back to. */
@@ -705,7 +707,7 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
   let releaseSourcePreview: (() => void) | undefined;
   let speakerRefs: {
     nowSlot: HTMLElement; nextSlot: HTMLElement; nextWrap: HTMLElement;
-    notes: HTMLElement; timer: HTMLElement; counter: HTMLElement;
+    notes: HTMLElement; timer: HTMLElement; counter: HTMLElement; status: HTMLElement;
   } | null = null;
   let speakerWin: Window | null = null;      // the SECOND WINDOW (null → in-page fallback)
   let speakerDoc: Document = document;        // the document the panel lives in (popup or main)
@@ -1077,7 +1079,7 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
   const webLoaded = new WeakSet<Element>();
   const webClicked = new WeakSet<Element>();
   const webWasCurrent = new WeakSet<Element>();
-  const interact = mountPresentInteract({ stage, pages: cloneByIndex, reduced, kiosk, load: (marker) => { if (marker.dataset.webLoad === 'click') { webClicked.add(marker); conductWeb(); } } });
+  const interact = mountPresentInteract({ stage, pages: cloneByIndex, reduced, kiosk, handover: on => { if (!closed) syncEmbedFocus(on); }, load: (marker) => { if (marker.dataset.webLoad === 'click') { webClicked.add(marker); conductWeb(); } } });
   function webShouldBeLive(i: number, marker: HTMLElement): boolean {
     const current = i === active || inFlight(i);
     const rule = marker.dataset.webLoad || 'slide';
@@ -1118,6 +1120,7 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
   // A page that has the keyboard keeps every key from the deck, a clicker's included. The
   // window's blur says so; "Back to slides" and a click anywhere outside hand them back.
   let embedFocus = false;
+  let embedFocusTimer: ReturnType<typeof setTimeout> | null = null;
   function syncEmbedFocus(on: boolean): void {
     embedFocus = on;
     stage.classList.toggle('pr-embed-focus', on);
@@ -1126,11 +1129,21 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
   }
   const onWindowBlur = (): void => {
     setTimeout(() => {
+      if (closed) return;
       const el = document.activeElement;
-      syncEmbedFocus(!!el && el.tagName === 'IFRAME' && stage.contains(el));
+      if (el?.tagName === 'IFRAME' && stage.contains(el)) syncEmbedFocus(true);
     }, 0);
   };
-  const onWindowFocus = (): void => { if (embedFocus) { syncEmbedFocus(false); interact.returnKeyboard(); } };
+  const onWindowFocus = (): void => {
+    if (!embedFocus) return;
+    if (embedFocusTimer) clearTimeout(embedFocusTimer);
+    embedFocusTimer = setTimeout(() => {
+      embedFocusTimer = null;
+      const active = document.activeElement;
+      if (closed || !embedFocus || (active !== stage && !!active && stage.contains(active))) return;
+      syncEmbedFocus(false); interact.returnKeyboard();
+    }, 0);
+  };
   // A Lolly tool framed in a box (`?iframe`) forwards a clicker's PageUp/PageDown here
   // (lib/iframe-mode.ts); arrows stay with the demo, which may need them.
   const onEmbedKey = (e: MessageEvent): void => {
@@ -1327,6 +1340,7 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
     motion?.setPaused(autoPaused || blackout || overview);
     scheduleAdvance();
     announce(autoPaused ? t('Paused.') : t('Playing.'));
+    syncSpeakerStatus();
   }
 
   // ---- Blackout (`b`): a black hold that pauses media + auto-advance; any key resumes.
@@ -1339,6 +1353,7 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
     // The slide's clock holds where it was: a hold taken mid-build must not fast-forward
     // the rest of the slide while nobody can see it.
     motion?.setPaused(blackout || overview || autoPaused);
+    syncSpeakerStatus();
   }
 
   function armWillChange(): void {
@@ -1518,7 +1533,14 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
     speakerRefs.notes.textContent = notes;
     speakerRefs.notes.style.display = notes ? '' : 'none';
     speakerRefs.counter.textContent = `${active + 1} / ${deck.count}`;
+    syncSpeakerStatus();
     interact.speaker(speaker);
+  }
+
+  function syncSpeakerStatus(): void {
+    if (!speakerRefs) return;
+    speakerRefs.status.textContent = blackout ? t('Blackout') : autoPaused ? t('Paused.') : overview ? t('Overview') : t('Playing.');
+    speakerRefs.status.dataset.state = blackout ? 'blackout' : autoPaused ? 'paused' : overview ? 'overview' : 'playing';
   }
 
   function fmtClock(ms: number): string {
@@ -1558,7 +1580,10 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
     const nowSlot = mk('div', 'pr-sp-slot');
     now.append(nowTag, nowSlot);
     const aside = mk('div', 'pr-sp-aside');
-    const timer = mk('div', 'pr-sp-timer'); timer.textContent = '00:00';
+    const timer = mk('div', 'pr-sp-timer');
+    const clock = mk('span', 'pr-sp-clock'); clock.textContent = '00:00';
+    const status = mk('div', 'pr-sp-status'); status.setAttribute('role', 'status');
+    status.setAttribute('aria-live', 'polite'); status.setAttribute('aria-atomic', 'true'); timer.append(clock, status);
     const nextWrap = mk('div', 'pr-sp-nextwrap');
     const nextTag = mk('span', 'pr-sp-tag'); nextTag.textContent = t('Next');
     const nextSlot = mk('div', 'pr-sp-slot pr-sp-slot-next');
@@ -1575,7 +1600,7 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
     root.append(now, aside);
     host.appendChild(root);
     speaker = root;
-    speakerRefs = { nowSlot, nextSlot, nextWrap, notes, timer, counter };
+    speakerRefs = { nowSlot, nextSlot, nextWrap, notes, timer: clock, counter, status };
     if (production) { root.classList.add('pr-speaker-production'); production.controls(doc, root); }
   }
 
@@ -1625,6 +1650,7 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
   // the deck through the shared handler, so arrows/space work from either window.
   function onSpeakerKey(e: KeyboardEvent): void {
     if (e.key === 'F5') { e.preventDefault(); return; }
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
     if (e.key === 'Escape' && interact.key(e)) { e.preventDefault(); return; }
     if (production && isTyping(e.target)) return;
     if (e.key === 'Escape' || e.key === 's' || e.key === 'S') {
@@ -1904,9 +1930,18 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
     return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el.isContentEditable || !!el.closest?.('.pr-framing-canvas');
   }
 
+  function nativeControlActivation(e: KeyboardEvent): boolean {
+    if (!['Enter', ' ', 'Spacebar'].includes(e.key)) return false;
+    const el = e.target as Element | null;
+    const control = el?.closest?.('button, a[href]');
+    return !!control && control.ownerDocument.activeElement === control
+      && !!control.closest('.pr-stage, .pr-speaker');
+  }
+
   function onKey(e: KeyboardEvent): void {
     if (!closed && e.key === 'F5') { e.preventDefault(); e.stopPropagation(); return; }
-    if (closed || isTyping(e.target)) return;
+    if (closed || e.ctrlKey || e.metaKey || e.altKey || isTyping(e.target)) return;
+    if (!blackout && nativeControlActivation(e)) { e.stopPropagation(); return; }
     const key = clickerKey(e);
     if (production) {
       if ((!e.ctrlKey && !e.metaKey && production.key(e.key)) || ['Escape', 'o', 'O', 'b', 'B'].includes(e.key)) {
@@ -1967,8 +2002,13 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
 
   // ---- Wiring ------------------------------------------------------------------------
   const onResize = () => layoutScales();
-  tapPrev.addEventListener('click', () => { wake(); prev(); });
-  tapNext.addEventListener('click', () => { wake(); next(); });
+  const edgeTap = (direction: 1 | -1): void => {
+    wake();
+    if (blackout) { setBlackout(false); return; }
+    direction === 1 ? next() : prev();
+  };
+  tapPrev.addEventListener('click', () => edgeTap(-1));
+  tapNext.addEventListener('click', () => edgeTap(1));
   btnPrev.addEventListener('click', () => { wake(); prev(); });
   btnNext.addEventListener('click', () => { wake(); next(); });
   btnOverview.addEventListener('click', () => { wake(); setOverview(!overview); });
@@ -1997,6 +2037,7 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
   render(null);
   wake();
   stage.focus({ preventScroll: true });
+  const focusTrap = trapFocus(stage, { completeTabOrder: true });
   if (production) toggleSpeaker(); else enterFullscreen();
   // Hydrate motion content on the clones so it actually plays in present mode: lottie
   // players and animated-SVG markers (video autoplays natively via its markup). Both are
@@ -2019,6 +2060,7 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
     window.removeEventListener('message', onEmbedKey);
     window.removeEventListener('resize', onResize);
     if (idleTimer) clearTimeout(idleTimer);
+    if (embedFocusTimer) clearTimeout(embedFocusTimer);
     if (armTimer) clearTimeout(armTimer);
     if (camTimer) clearTimeout(camTimer);
     if (advTimer) clearTimeout(advTimer);
@@ -2039,11 +2081,14 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
     flushLeaving();
     closeSpeaker(); // stops the timer, the popup probe AND closes the second window / overlay
     htmlEl.style.overflow = prevOverflow;
-    if (ownedFullscreen.v && document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
+    const exitFullscreen = ownedFullscreen.v && document.fullscreenElement ? document.exitFullscreen?.().catch(() => {}) : null;
     destroyLottiePlayers(stage); // reap OUR players only - lottie-web's global rAF ticks detached trees otherwise
     unmountWebFrames(stage); // blank each page first, so a playing video stops with the deck
+    focusTrap.release();
     stage.remove(); // clones (and their media) die with it; originals are untouched
     setWebPresenting(false); // the editor's own web frames load again
+    const restore = (): void => { if (!closeActivePresentation && returnFocus?.isConnected) returnFocus.focus?.({ preventScroll: true }); };
+    if (exitFullscreen) void exitFullscreen.then(restore); else restore();
     onClose?.();
   }
 

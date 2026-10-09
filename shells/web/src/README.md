@@ -5,12 +5,12 @@ This file exists so you can find the code for a feature without reading all of i
 The counts below are GENERATED - `pnpm run build:web-src-readme`, checked in CI by `pnpm run check:web-src-readme`, so they cannot rot the way the hand-measured ones did. They convey proportion; don't cite them as an API.
 
 <!-- web-src-dirs:start -->
-Roughly 738,000 lines of TypeScript, tests included, and 59,000 lines of CSS.
+Roughly 739,000 lines of TypeScript, tests included, and 59,000 lines of CSS.
 
 | Directory | Source | Tests | CSS |
 |---|---|---|---|
-| `views/` | 509 files, 198,651 lines | 247 files, 79,125 lines | 7 files, 1,440 lines |
-| `lib/` | 775 files, 160,353 lines | 446 files, 86,750 lines | 13 files, 1,819 lines |
+| `views/` | 509 files, 198,800 lines | 248 files, 79,373 lines | 7 files, 1,440 lines |
+| `lib/` | 775 files, 160,364 lines | 446 files, 86,777 lines | 13 files, 1,819 lines |
 | `bridge/` | 213 files, 52,565 lines | 128 files, 26,244 lines | none |
 | `components/` | 117 files, 27,264 lines | 52 files, 13,266 lines | 21 files, 1,268 lines |
 | `org/` | 74 files, 19,795 lines | 53 files, 16,113 lines | none |
@@ -18,7 +18,7 @@ Roughly 738,000 lines of TypeScript, tests included, and 59,000 lines of CSS.
 | `pro/` | 22 files, 8,539 lines | 11 files, 1,738 lines | 3 files, 1,226 lines |
 | `catalog/` | 2 files, 1,004 lines | 3 files, 533 lines | none |
 | `ext/` | 2 files, 136 lines | 1 file, 86 lines | none |
-| `styles/` | none | 7 files, 1,450 lines | 129 files, 53,646 lines |
+| `styles/` | none | 7 files, 1,450 lines | 129 files, 53,651 lines |
 
 Plus 51 `.ts`/`.js` files at the top level of `src/`, 17,081 lines all told, of which 25 are tests and 3 are ambient declarations. `main.ts` is 2,338 of that.
 <!-- web-src-dirs:end -->
@@ -76,7 +76,7 @@ Do not be ambushed by these. The largest source files, by line count:
 | 2,349 | `views/free-canvas.ts` | yes, nine `free-canvas-*.test.ts` files |
 | 2,338 | `main.ts` | yes |
 | 2,262 | `lib/drop-router.ts` | yes |
-| 2,162 | `views/present-mode.ts` | yes |
+| 2,207 | `views/present-mode.ts` | yes |
 | 2,140 | `lib/clip-thumbs.ts` | yes |
 <!-- web-src-largest:end -->
 

@@ -1,6 +1,8 @@
 mod capture;
 mod cli;
 mod desktop_integration;
+#[path = "../../../tauri-shared/tauri-embedded-assets.rs"]
+mod embedded_assets;
 mod live_server;
 mod menu;
 mod native_transport;

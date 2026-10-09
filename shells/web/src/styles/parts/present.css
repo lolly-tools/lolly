@@ -474,6 +474,11 @@
   font-variant-numeric: tabular-nums;
   color: #fff;
 }
+.pr-sp-status {
+  font: 400 var(--fs-sm)/1.5 var(--font-ui, system-ui, sans-serif);
+  margin-top: var(--sp-2, 8px);
+  overflow-wrap: anywhere;
+}
 .pr-sp-notes {
   flex: 1;
   min-height: 0;

@@ -124,6 +124,26 @@ test('next and previous stops retain the authored path, including a return upwar
   assert.equal(pickPresentInteractStop([], 0, 1), null);
 });
 
+test('a retained stop index distinguishes returns and equal clamped depths', () => {
+  for (const depths of [[0, 400, 0, 800], [0, 3000, 4000, 800]] as const) {
+    const stops = resolvePresentInteractStops(depths, context);
+    let index = 0;
+    for (const expected of [1, 2, 3]) {
+      const target = pickPresentInteractStop(stops, stops[index]!.depth, 1, index)!;
+      assert.equal(target.index, expected); index = target.index;
+    }
+    assert.equal(pickPresentInteractStop(stops, stops[index]!.depth, 1, index), null);
+    for (const expected of [2, 1, 0]) {
+      const target = pickPresentInteractStop(stops, stops[index]!.depth, -1, index)!;
+      assert.equal(target.index, expected); index = target.index;
+    }
+    assert.equal(pickPresentInteractStop(stops, 0, -1, index), null);
+  }
+  const stops = resolvePresentInteractStops([0, 400, 0, 800], context);
+  for (const index of [null, -1, 99, NaN, 1.5]) assert.equal(pickPresentInteractStop(stops, 0, 1, index)?.index, 1);
+  assert.equal(pickPresentInteractStop([], 0, 1, 0), null);
+});
+
 test('a once-only automatic scroll follows engine easing and holds its destination', () => {
   const options = opts('auto=open;from=0;to=100%25;sec=10;ease=el');
   assert.deepEqual(samplePresentInteractAuto(options, 0, context), { to: 0, done: false, stopIndex: null, paused: false });

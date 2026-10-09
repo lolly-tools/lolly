@@ -48,6 +48,8 @@ export interface FocusTrapOptions {
   /** False for a lightweight anchored dropdown whose trigger lives in the branch
    *  that would otherwise get inerted (see the module doc). Default true. */
   inertBackground?: boolean;
+  /** Include every visible control even when native Tab omits buttons or links. */
+  completeTabOrder?: boolean;
 }
 
 export function trapFocus(overlay: HTMLElement, opts: FocusTrapOptions = {}): FocusTrap {
@@ -57,7 +59,7 @@ export function trapFocus(overlay: HTMLElement, opts: FocusTrapOptions = {}): Fo
     // one is tab-reachable): they're reachable via JS/arrow-keys but NOT via Tab, so they
     // must not define the wrap boundary. (The element selectors above still match them via
     // `button`/`input`; el.tabIndex reflects the effective, roving value.)
-    [...overlay.querySelectorAll<HTMLElement>(FOCUSABLE)].filter((el) => visible(el) && el.tabIndex !== -1);
+    [...overlay.querySelectorAll<HTMLElement>(FOCUSABLE)].filter((el) => visible(el) && el.tabIndex !== -1 && !el.matches(':disabled') && !el.closest('[inert], [hidden]'));
 
   // 1. Inert everything outside the overlay's branch (siblings up the ancestor chain).
   //    Skip already-inert nodes so a nested trap doesn't clobber an outer one on release,
@@ -77,7 +79,7 @@ export function trapFocus(overlay: HTMLElement, opts: FocusTrapOptions = {}): Fo
   // 2. Tab wrap (+ optional Escape).
   const onKey = (e: KeyboardEvent): void => {
     if (e.key === 'Escape' && opts.onEscape) { e.preventDefault(); opts.onEscape(); return; }
-    if (e.key !== 'Tab') return;
+    if (e.key !== 'Tab' || e.ctrlKey || e.metaKey || e.altKey) return;
     const active = document.activeElement as HTMLElement | null;
     // Only wrap when focus is inside THIS overlay - so a nested modal (e.g. the
     // webcam over the picker) is handled solely by its own trap, and this outer
@@ -86,7 +88,13 @@ export function trapFocus(overlay: HTMLElement, opts: FocusTrapOptions = {}): Fo
     const f = focusables();
     if (!f.length) { e.preventDefault(); return; }
     const first = f[0]!, last = f[f.length - 1]!;
-    if (e.shiftKey && active === first) { e.preventDefault(); last.focus(); }
+    if (active === overlay) { e.preventDefault(); (e.shiftKey ? last : first).focus(); }
+    else if (opts.completeTabOrder) {
+      const index = f.findIndex(el => el === active || el.contains(active));
+      e.preventDefault();
+      f[index < 0 ? (e.shiftKey ? f.length - 1 : 0) : (index + (e.shiftKey ? -1 : 1) + f.length) % f.length]!.focus();
+    }
+    else if (e.shiftKey && active === first) { e.preventDefault(); last.focus(); }
     else if (!e.shiftKey && active === last) { e.preventDefault(); first.focus(); }
   };
   document.addEventListener('keydown', onKey);

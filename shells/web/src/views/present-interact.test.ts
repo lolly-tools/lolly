@@ -32,10 +32,13 @@ function fixture(settings = '', reduced = false, kiosk = false) {
     configure: () => {}, setFocused: (on) => { calls.push(['focus', on]); }, setSlideActive: (on) => { calls.push(['slide', on]); },
     handKeyboard: (on) => { calls.push(['hand', on]); }, subscribe: (cb) => { subscribers.add(cb); return () => { subscribers.delete(cb); }; }, destroy: () => {},
   };
-  const controller = mountPresentInteract({ stage, pages: [page], reduced, kiosk, load: () => { calls.push(['load', true]); }, driver: () => driver });
+  let retainedDriver = driver;
+  const controller = mountPresentInteract({ stage, pages: [page], reduced, kiosk, load: () => { calls.push(['load', true]); }, driver: () => retainedDriver });
   const sync = (build = 2, extras = {}) => controller.sync({ index: 0, build, overview: false, paused: false, ...extras });
   const close = () => { controller.destroy(); stage.remove(); };
-  return { stage, page, marker, driver, controller, calls, sync, tick, close, callbacks, subscribers, get y() { return y; } };
+  return { stage, page, marker, driver, controller, calls, sync, tick, close, callbacks, subscribers,
+    movePage(value: number) { y = value; for (const callback of subscribers) callback(); },
+    replaceDriver() { retainedDriver = { ...driver }; }, get y() { return y; } };
 }
 
 test('the step union includes focus clicks, deduplicates builds and excludes kiosk focus', () => {
@@ -76,6 +79,47 @@ test('walking stops is opt-in and releases navigation at either boundary', () =>
   const normal = fixture('stops=0,400;ms=0'); try { normal.sync(); assert.equal(normal.controller.walk(1), false); } finally { normal.close(); }
   const blocked = fixture('stops=0,400;walk=1;ms=0');
   try { blocked.driver.capabilities.scroll = false; blocked.sync(); assert.equal(blocked.controller.walk(1), false); } finally { blocked.close(); }
+});
+
+test('walking repeated and clamped stops preserves the speaker index in both directions', () => {
+  for (const [settings, depths] of [
+    ['stops=0,400,0,800;walk=1;ms=0', [400, 0, 800]],
+    ['stops=0,2000,3000,800;walk=1;ms=0', [1000, 1000, 800]],
+  ] as const) {
+    const f = fixture(settings);
+    const speaker = document.createElement('div'); speaker.innerHTML = '<div class="pr-sp-aside"></div>'; f.stage.append(speaker);
+    try {
+      f.sync(); f.controller.speaker(speaker);
+      for (const [index, depth] of depths.entries()) {
+        assert.equal(f.controller.walk(1), true); assert.equal(f.y, depth);
+        assert.equal(speaker.querySelector('.pr-sp-interact-depth')?.textContent, `Stop ${index + 2} of 4`);
+      }
+      assert.equal(f.controller.walk(1), false);
+      for (const [index, depth] of [depths[1], depths[0], 0].entries()) {
+        assert.equal(f.controller.walk(-1), true); assert.equal(f.y, depth);
+        assert.equal(speaker.querySelector('.pr-sp-interact-depth')?.textContent, `Stop ${3 - index} of 4`);
+      }
+      assert.equal(f.controller.walk(-1), false);
+    } finally { f.close(); }
+  }
+});
+
+test('native movement, keyboard handover and a fresh driver discard the stored stop', () => {
+  const f = fixture('stops=0,400,0,800;walk=1;ms=0;keys=key;hand=1');
+  try {
+    f.sync(); f.controller.walk(1); f.controller.walk(1);
+    f.controller.key(new win.KeyboardEvent('keydown', { key: 'ArrowDown' }));
+    assert.equal(f.controller.walk(1), true); assert.equal(f.y, 400);
+    f.controller.walk(1);
+    f.controller.key(new win.KeyboardEvent('keydown', { key: 'Enter' })); f.controller.returnKeyboard();
+    assert.equal(f.controller.walk(1), true); assert.equal(f.y, 400);
+    f.controller.walk(1); f.controller.walk(1); f.movePage(200);
+    assert.equal(f.controller.walk(1), true); assert.equal(f.y, 400);
+    f.controller.walk(1); f.driver.frame.dispatchEvent(new win.Event('load'));
+    assert.equal(f.controller.walk(1), true); assert.equal(f.y, 400);
+    f.controller.walk(1); f.replaceDriver(); f.sync(); assert.equal(f.y, 0);
+    assert.equal(f.controller.walk(1), true); assert.equal(f.y, 400);
+  } finally { f.close(); }
 });
 test('zoom and spotlight preserve the existing frame; reduced motion chooses a stationary ring', () => {
   const zoom = fixture('hl=zoom');
@@ -128,6 +172,72 @@ test('the real deck uses focus steps in deep links and backward arrivals, swallo
   } finally { deck.close(); assert.equal(source.innerHTML, before); source.remove(); }
 });
 
+test('focused presentation controls keep native activation and browser modifiers bypass deck shortcuts', () => {
+  const source = document.createElement('div');
+  source.innerHTML = '<div class="lolly-frames"><div class="lolly-frame-page" data-frame-id="a" style="width:1280px;height:720px"><div data-interact="0"></div></div><div class="lolly-frame-page" data-frame-id="b" style="width:1280px;height:720px">Second</div></div>';
+  document.body.append(source); const deck = openPresentMode({ source, initial: 'a' })!;
+  const press = (target: EventTarget, key: string, mods: KeyboardEventInit = {}) => {
+    const event = new win.KeyboardEvent('keydown', { key, bubbles: true, cancelable: true, ...mods }); target.dispatchEvent(event); return event;
+  };
+  let editorKeys = 0; const editor = () => { editorKeys++; }; document.addEventListener('keydown', editor);
+  try {
+    const pause = document.querySelector<HTMLButtonElement>('.pr-hud [aria-label="Pause"]')!; pause.focus();
+    for (const key of [' ', 'Enter']) {
+      assert.equal(press(pause, key).defaultPrevented, false); assert.equal(deck.frameId, 'a'); assert.equal(editorKeys, 0);
+    }
+    assert.equal(press(pause, 'ArrowRight').defaultPrevented, true); assert.equal(deck.frameId, 'b'); assert.equal(editorKeys, 0);
+    const stage = document.querySelector<HTMLElement>('.pr-stage')!; stage.focus();
+    for (const mods of [{ ctrlKey: true }, { metaKey: true }, { altKey: true }]) {
+      for (const key of ['f', 's', 'o', 'b', 'Enter', 'ArrowLeft', 'ArrowUp', ' ']) {
+        assert.equal(press(stage, key, mods).defaultPrevented, false, `${JSON.stringify(mods)} ${key}`);
+        assert.equal(deck.frameId, 'b'); assert.equal(document.querySelector('.pr-blackout'), null);
+      }
+      assert.equal(press(stage, 'F5', mods).defaultPrevented, true, 'F5 remains reload-safe with modifiers');
+    }
+    assert.equal(press(stage, 'Tab').defaultPrevented, true, 'the fallback trap keeps focus on its controls');
+    for (const selector of ['.pr-tap-prev', '.pr-tap-next']) {
+      press(stage, '.'); assert.ok(stage.classList.contains('pr-blackout'));
+      document.querySelector<HTMLButtonElement>(selector)!.click();
+      assert.equal(stage.classList.contains('pr-blackout'), false); assert.equal(deck.frameId, 'b');
+    }
+  } finally { document.removeEventListener('keydown', editor); deck.close(); source.remove(); }
+});
+
+test('explicit Enter handover shows Back without relying on a parent window blur event', () => {
+  const source = document.createElement('div');
+  source.innerHTML = '<div class="lolly-frame-page" data-frame-id="a" style="width:1280px;height:720px"><div class="lolly-box-web" data-lolly-web="https://lolly.tools/info" data-interact="0" data-interact-opts="hand=1"></div></div>';
+  document.body.append(source); const deck = openPresentMode({ source })!;
+  try {
+    const stage = document.querySelector<HTMLElement>('.pr-stage')!;
+    assert.equal(stage.classList.contains('pr-embed-focus'), false);
+    stage.dispatchEvent(new win.KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+    assert.equal(document.activeElement?.tagName, 'IFRAME');
+    assert.equal(stage.classList.contains('pr-embed-focus'), true);
+    document.querySelector<HTMLButtonElement>('.pr-embed-return')!.click();
+    assert.equal(document.activeElement, stage); assert.equal(stage.classList.contains('pr-embed-focus'), false);
+  } finally { deck.close(); source.remove(); }
+});
+
+test('speaker status distinguishes pause and blackout; closing restores focus and prior inert state', () => {
+  const source = document.createElement('div'); source.innerHTML = '<div class="lolly-frame-page" data-frame-id="a" style="width:1280px;height:720px"><div data-interact="0"></div></div>';
+  const opener = document.createElement('button'); opener.textContent = 'Present';
+  const prior = document.createElement('div'); prior.inert = true;
+  document.body.append(opener, source, prior); opener.focus();
+  const open = win.open; win.open = (() => null) as typeof win.open;
+  const deck = openPresentMode({ source })!;
+  const press = (key: string) => document.dispatchEvent(new win.KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }));
+  try {
+    assert.equal(opener.inert, true); deck.speaker();
+    const status = () => document.querySelector<HTMLElement>('.pr-sp-status')!;
+    assert.equal(status().getAttribute('role'), 'status'); assert.equal(status().textContent, 'Playing.');
+    press('k'); assert.equal(status().textContent, 'Paused.'); assert.equal(status().dataset.state, 'paused');
+    press('b'); assert.equal(status().textContent, 'Blackout'); assert.equal(status().dataset.state, 'blackout');
+    press(' '); assert.equal(status().textContent, 'Paused.');
+    press('k'); assert.equal(status().textContent, 'Playing.');
+    deck.close(); assert.equal(opener.inert, false); assert.equal(prior.inert, true); assert.equal(document.activeElement, opener);
+  } finally { deck.close(); win.open = open; opener.remove(); source.remove(); prior.remove(); }
+});
+
 test('early loading follows Next through a stack and then to its next main slide', () => {
   const source = document.createElement('div');
   const page = (id: string, stack = '') => `<div class="lolly-frame-page" data-frame-id="${id}" ${stack ? `data-frame-stack="${stack}"` : ''} style="left:0px;top:0px;width:1920px;height:1080px"><div class="lolly-box-web" data-lolly-web="https://lolly.tools/info" data-web-load="early"></div></div>`;
@@ -154,5 +264,21 @@ test('the autofocus guard gives up after three attempts and teardown removes its
     f.controller.destroy(); win.dispatchEvent(new win.Event('blur'));
     await new Promise(resolve => setTimeout(resolve, 5)); assert.equal(attempts, 3);
     assert.equal(f.subscribers.size, 0); assert.equal(f.callbacks.size, 0);
+  } finally { f.close(); }
+});
+
+test('child focus observation rejects scripted pointer handover and releases old documents on navigation', async () => {
+  const f = fixture('hand=1'); let attempts = 0;
+  f.stage.focus = () => { attempts++; };
+  const tick = () => new Promise(resolve => setTimeout(resolve, 5));
+  try {
+    f.sync(); const old = f.driver.frame.contentDocument!; f.driver.frame.focus(); await tick();
+    f.driver.frame.src = 'https://lolly.tools/another-demo';
+    f.driver.frame.dispatchEvent(new win.Event('load')); const fresh = f.driver.frame.contentDocument!;
+    const before = attempts; old.dispatchEvent(new win.FocusEvent('focusin')); await tick(); assert.equal(attempts, before);
+    fresh.dispatchEvent(new win.MouseEvent('pointerdown', { bubbles: true }));
+    fresh.dispatchEvent(new win.FocusEvent('focusin')); await tick();
+    assert.equal(attempts, before + 1); assert.ok(!f.calls.some(([type, value]) => type === 'hand' && value === true));
+    f.controller.destroy(); fresh.dispatchEvent(new win.FocusEvent('focusin')); await tick(); assert.equal(attempts, before + 1);
   } finally { f.close(); }
 });
