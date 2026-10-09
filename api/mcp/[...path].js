@@ -109986,10 +109986,11 @@ var init_design_draw_lottie = __esm({
 });
 
 // engine/src/design-draw-penpot.ts
-function isPenpotPrimitiveRow(row, shapeKind) {
+function isPenpotPrimitiveRow(row, shapeKind, capturedGradient = false) {
   if (!["", "box"].includes(string(row.kind))) return false;
   if (!["", "rect", "rounded", "pill", "circle", "ellipse"].includes(shapeKind ?? string(row.shape))) return false;
-  for (const field2 of ["grad", "clip", "image", "text", "path", "pathPaint", "headStart", "headEnd", "kf", "enter", "exit", "hold"]) {
+  if (!capturedGradient && string(row.grad).trim()) return false;
+  for (const field2 of ["clip", "image", "text", "path", "pathPaint", "headStart", "headEnd", "kf", "enter", "exit", "hold"]) {
     if (string(row[field2]).trim()) return false;
   }
   if (!["", "none"].includes(string(row.shadow))) return false;
@@ -110005,10 +110006,23 @@ function validColor(color6, opacity = 1) {
   }
 }
 function validatePaint(fills, stroke) {
-  if (fills.length > 1) throw new Error("Penpot primitives carry at most one solid fill.");
+  if (fills.length > 1) throw new Error("Penpot primitives carry at most one fill.");
   for (const fill2 of fills) {
-    if (fill2.kind !== "color") throw new Error("Penpot primitive paint must be solid.");
-    validColor(fill2.color, fill2.opacity);
+    if (fill2.kind === "color") {
+      validColor(fill2.color, fill2.opacity);
+      continue;
+    }
+    if (fill2.kind !== "linear" && fill2.kind !== "radial") throw new Error("Penpot primitives need evaluated colour or gradient paint.");
+    if (fill2.kind === "linear" && ![fill2.x1, fill2.y1, fill2.x2, fill2.y2].every(Number.isFinite)) {
+      throw new Error("Penpot gradient endpoints must be finite.");
+    }
+    if (fill2.stops.length < 2) throw new Error("Penpot gradients need at least two stops.");
+    for (const stop of fill2.stops) {
+      validColor(stop.color, stop.opacity);
+      if (!Number.isFinite(stop.opacity) || !Number.isFinite(stop.offset) || stop.offset < 0 || stop.offset > 1) {
+        throw new Error("Penpot gradient stop alpha and offsets must be in range.");
+      }
+    }
   }
   if (!stroke) return;
   validColor(stroke.color, stroke.opacity);
@@ -110016,9 +110030,12 @@ function validatePaint(fills, stroke) {
     throw new Error("Penpot primitives need a solid centered stroke.");
   }
 }
+function copyPaint(fill2) {
+  return fill2.kind === "color" ? { ...fill2 } : { ...fill2, stops: fill2.stops.map((stop) => ({ ...stop })) };
+}
 function compilePenpotCompatRow(row, offset, supplied) {
   const capture = supplied?.capture;
-  if (!isPenpotPrimitiveRow(row, capture?.shapeKind)) throw new Error("This row needs the legacy Penpot producer.");
+  if (!isPenpotPrimitiveRow(row, capture?.shapeKind, supplied?.fills.some((fill2) => fill2.kind !== "color"))) throw new Error("This row needs the legacy Penpot producer.");
   if (!supplied) throw new Error("The Penpot compatibility reading needs resolved paints.");
   validatePaint(supplied.fills, supplied.stroke);
   if (capture && (![
@@ -110046,7 +110063,7 @@ function compilePenpotCompatRow(row, offset, supplied) {
     opacity: capture?.opacity ?? clamp(number(row.opacity, 100), 0, 100),
     ...rot ? { pose: { rot, flipH: false, flipV: false } } : {},
     shape: name === "circle" || name === "ellipse" ? { kind: "ellipse" } : { kind: "rect", radius: name === "rounded" ? number(row.radius) : name === "pill" ? Math.min(box4.w, box4.h) / 2 : 0 },
-    fills: supplied.fills.map((fill2) => ({ ...fill2 })),
+    fills: supplied.fills.map(copyPaint),
     ...supplied.stroke ? { stroke: { ...supplied.stroke } } : {}
   };
 }
@@ -110068,8 +110085,12 @@ function designDrawPenpot(op) {
     ...op.opacity < 100 ? { opacity: op.opacity / 100 } : {},
     ...op.pose?.rot ? { rotation: op.pose.rot } : {},
     fills: op.fills.map((fill2) => {
-      if (fill2.kind !== "color") throw new Error("Penpot primitive paint must be solid.");
-      return { color: fill2.color, opacity: fill2.opacity ?? 1 };
+      if (fill2.kind === "color") return { color: fill2.color, opacity: fill2.opacity ?? 1 };
+      return { gradient: {
+        type: fill2.kind,
+        ...fill2.kind === "linear" ? { startX: fill2.x1, startY: fill2.y1, endX: fill2.x2, endY: fill2.y2 } : { startX: 0.5, startY: 0.5, endX: 0.5, endY: 1, width: 1 },
+        stops: fill2.stops.map((stop) => ({ ...stop }))
+      } };
     }),
     strokes: op.stroke ? [{
       color: op.stroke.color,
@@ -111535,6 +111556,22 @@ function gradSpecToPenpot(spec, w, h) {
     stops
   };
 }
+function primitiveDrawPaint(fill2) {
+  const gradient2 = fill2.gradient;
+  if (!gradient2) {
+    if (!fill2.color || fill2.media) throw new Error("Penpot primitives need resolved colour or gradient paint.");
+    return { kind: "color", color: fill2.color, opacity: fill2.opacity };
+  }
+  const stops = gradient2.stops.map((stop) => ({ color: stop.color, opacity: stop.opacity ?? 1, offset: stop.offset }));
+  if (gradient2.type === "linear") {
+    if (![gradient2.startX, gradient2.startY, gradient2.endX, gradient2.endY].every(Number.isFinite)) return null;
+    return { kind: "linear", x1: gradient2.startX, y1: gradient2.startY, x2: gradient2.endX, y2: gradient2.endY, stops };
+  }
+  if (gradient2.width !== 1 || gradient2.startX !== 0.5 || gradient2.startY !== 0.5 || gradient2.endX !== 0.5 || gradient2.endY !== 1) {
+    return null;
+  }
+  return { kind: "radial", stops };
+}
 function designTextRuns(line) {
   const out = [];
   const push = (text8, style) => {
@@ -111788,11 +111825,12 @@ function boxesToPenpotDoc(boxesIn, o) {
       const shapeKind = str6(b.shape);
       const fills = fillsOf(b, w, h);
       const strokes = strokeOf3(b);
-      if (isPenpotPrimitiveRow(b, shapeKind)) {
+      const paints2 = fills.map(primitiveDrawPaint);
+      if (paints2.every((paint2) => paint2 !== null) && isPenpotPrimitiveRow(b, shapeKind, fills.some((fill2) => !!fill2.gradient))) {
         const stroke = strokes[0];
         const op = compileDesignRow(b, { x: 0, y: 0 }, { semantics: "penpot-compat", penpotCompat: {
           capture: { geometry: { x, y, w, h }, ...effectCapture, shapeKind },
-          fills: fills.map((fill2) => ({ kind: "color", color: fill2.color, opacity: fill2.opacity })),
+          fills: paints2,
           ...stroke ? { stroke: {
             color: stroke.color,
             opacity: stroke.opacity,
