@@ -37,6 +37,28 @@ import { clearSignal } from '../lib/clear-signal.ts';
 
 const DB_NAME = 'lolly';
 const DB_VERSION = 25;
+let databaseUpdateRequired = false;
+
+function databaseUpdateError(): Error & { code: string } {
+  return Object.assign(new Error('An update is ready. This tab cannot use local storage until it reloads.'), { code: 'DB_UPDATE_REQUIRED' });
+}
+
+function closeForDatabaseUpdate(database: IDBDatabase): void {
+  const firstNotice = !databaseUpdateRequired;
+  databaseUpdateRequired = true;
+  const pending = dbPromise;
+  dbPromise = null;
+  const shared = dbHandle;
+  dbHandle = null;
+  // close() lets existing transactions finish, but refuses new ones immediately.
+  database.close();
+  if (shared && unwrap(shared) !== database) shared.close();
+  void pending?.then(db => { db.close(); }, () => {});
+  if (firstNotice && typeof document !== 'undefined') {
+    void import('../lib/boot-error.ts').then(({ showDatabaseUpdateRequired }) => showDatabaseUpdateRequired())
+      .catch(() => console.warn('[db] An update is ready. Save your work, then reload this tab.'));
+  }
+}
 
 // How long to wait for the DB to open before giving up. A healthy open is
 // near-instant; this only trips when the connection is genuinely wedged.
@@ -54,6 +76,7 @@ const OPEN_TIMEOUT_MS = 8000;
 const REQUIRED_STORES = ['profile', 'state', 'asset-meta', 'asset-blob', 'user-assets'];
 
 function openOnce(timeoutMs = OPEN_TIMEOUT_MS): Promise<IDBPDatabase> {
+  if (databaseUpdateRequired) return Promise.reject(databaseUpdateError());
   // Set when the browser tells us our open is queued behind an older connection
   // (a version upgrade blocked by another tab / a bfcache-frozen page). Lets the
   // timeout below mark the error as recoverable so boot() can offer a retry
@@ -295,10 +318,10 @@ function openOnce(timeoutMs = OPEN_TIMEOUT_MS): Promise<IDBPDatabase> {
         db.createObjectStore('sing-models');
       }
     },
-    blocking() {
+    blocking(_currentVersion, _blockedVersion, event) {
       // A newer version of the app wants to open the DB; close this connection
-      // so the upgrade isn't blocked across tabs.
-      (this as unknown as IDBPDatabase).close();
+      // so the upgrade isn't blocked across tabs. idb calls this without a receiver.
+      closeForDatabaseUpdate(event.target as IDBDatabase);
     },
     blocked() {
       // Our open is queued behind an older connection (usually another Lolly tab
@@ -362,8 +385,12 @@ export function openDB(): Promise<IDBPDatabase> {
   if (clearSignal.databaseSealed()) {
     return Promise.reject(Object.assign(new Error('Lolly data was cleared: this tab reloads before it uses the database again.'), { code: 'DB_SEALED' }));
   }
+  if (databaseUpdateRequired) return Promise.reject(databaseUpdateError());
   if (!dbPromise) {
-    dbPromise = openResilient().then((db) => { dbHandle = db; checkEachTransaction(db); return db; }).catch((e) => { dbPromise = null; throw e; });
+    dbPromise = openResilient().then((db) => {
+      if (databaseUpdateRequired) { db.close(); throw databaseUpdateError(); }
+      dbHandle = db; checkEachTransaction(db); return db;
+    }).catch((e) => { dbPromise = null; throw e; });
   }
   return dbPromise;
 }
@@ -388,6 +415,7 @@ function checkEachTransaction(db: IDBPDatabase): void {
       if (clearSignal.databaseSealed()) {
         throw new DOMException('Lolly data was cleared: this tab reloads before it uses the database again.', 'InvalidStateError');
       }
+      if (databaseUpdateRequired) throw databaseUpdateError();
       return native.apply(this, args);
     },
   });
@@ -440,6 +468,7 @@ async function openResilient(): Promise<IDBPDatabase> {
 
 async function openHealed(timeoutMs?: number): Promise<IDBPDatabase> {
   let db = await openOnce(timeoutMs);
+  if (databaseUpdateRequired) { db.close(); throw databaseUpdateError(); }
 
   // Self-heal a half-initialized DB. An interrupted upgrade (e.g. a tab killed
   // mid-`versionchange`) can leave the DB at the current version yet missing
