@@ -1,11 +1,15 @@
 // SPDX-License-Identifier: MPL-2.0
 //! Feature-only bounded stdio broker for the ordinary bundled GUI on an owned test identity.
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::{
     collections::VecDeque,
     io::{BufRead, Read, Write},
-    sync::{Arc, Mutex},
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc, Mutex,
+    },
+    time::{Duration, Instant},
 };
 use tauri::{
     ipc::{Invoke, InvokeBody},
@@ -16,6 +20,162 @@ const PREFIX: &str = "tools.lolly.WebGpuProductQualification.r";
 const COMMAND_LIMIT: usize = 1024 * 1024;
 const REPLY_LIMIT: usize = 16 * 1024 * 1024;
 const SOURCE_LIMIT: usize = 64 * 1024;
+const DIAGNOSTIC_CONTROL_PREFIX: &str = "LOLLY_WEBGPU_PRODUCT_DIAGNOSTIC_CONTROL ";
+const DIAGNOSTIC_PREFIX: &str = "LOLLY_WEBGPU_PRODUCT_NATIVE_DIAGNOSTIC ";
+const DIAGNOSTIC_LIMIT: u8 = 8;
+
+#[derive(Clone, Copy, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "kebab-case")]
+enum Phase {
+    NativeHandshake,
+    OnboardingPoll,
+    Csp,
+    ProbeLoad,
+    ToolWait,
+    Corpus,
+    Closing,
+}
+
+impl Phase {
+    fn startup(self) -> bool {
+        !matches!(self, Self::Corpus | Self::Closing)
+    }
+    fn rank(self) -> u8 {
+        self as u8
+    }
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+struct DiagnosticControl {
+    run_id: String,
+    phase: Phase,
+}
+
+#[derive(Clone, Copy, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct Checkpoint {
+    stage: &'static str,
+    id: u64,
+    elapsed_ms: u64,
+}
+
+struct DiagnosticState {
+    started: Instant,
+    phase: Phase,
+    checkpoints: [Option<Checkpoint>; 4],
+    last_snapshot_id: Option<u64>,
+    emitted: u8,
+    controls: u8,
+}
+
+impl DiagnosticState {
+    fn elapsed_ms(&self) -> u64 {
+        self.started
+            .elapsed()
+            .as_millis()
+            .min(9_007_199_254_740_991) as u64
+    }
+    fn stale_snapshot(&mut self, run_id: &str, elapsed_ms: u64) -> Option<Value> {
+        let intake = self.checkpoints[0]?;
+        let replied = self.checkpoints[3].is_some_and(|reply| reply.id >= intake.id);
+        if !self.phase.startup()
+            || replied
+            || elapsed_ms.saturating_sub(intake.elapsed_ms) < 5_000
+            || self.last_snapshot_id == Some(intake.id)
+            || self.emitted >= DIAGNOSTIC_LIMIT
+        {
+            return None;
+        }
+        self.last_snapshot_id = Some(intake.id);
+        self.emitted += 1;
+        Some(
+            json!({ "event": "native-checkpoints", "runId": run_id, "phase": self.phase,
+            "sequence": self.emitted, "elapsedMs": elapsed_ms,
+            "checkpoints": self.checkpoints.iter().flatten().collect::<Vec<_>>() }),
+        )
+    }
+}
+
+struct Diagnostics {
+    active: AtomicBool,
+    state: Mutex<DiagnosticState>,
+}
+
+impl Diagnostics {
+    fn new() -> Self {
+        Self {
+            active: AtomicBool::new(true),
+            state: Mutex::new(DiagnosticState {
+                started: Instant::now(),
+                phase: Phase::NativeHandshake,
+                checkpoints: [None; 4],
+                last_snapshot_id: None,
+                emitted: 0,
+                controls: 0,
+            }),
+        }
+    }
+    fn control(&self, bytes: &[u8], run_id: &str) -> Result<(), &'static str> {
+        if bytes.len() > 256 {
+            return Err("Qualification diagnostic control exceeds its bound");
+        }
+        let control: DiagnosticControl = serde_json::from_slice(bytes)
+            .map_err(|_| "Malformed qualification diagnostic control")?;
+        if control.run_id != run_id {
+            return Err("Qualification diagnostic run ID differs");
+        }
+        let mut state = self
+            .state
+            .lock()
+            .map_err(|_| "Qualification diagnostic state failed")?;
+        if state.controls >= 16 || control.phase.rank() < state.phase.rank() {
+            return Err("Qualification diagnostic phase or count differs");
+        }
+        state.controls += 1;
+        state.phase = control.phase;
+        self.active
+            .store(control.phase.startup(), Ordering::Relaxed);
+        Ok(())
+    }
+    fn checkpoint(&self, index: usize, id: u64) {
+        if !self.active.load(Ordering::Relaxed) || !(1..=10_000).contains(&id) {
+            return;
+        }
+        if let Ok(mut state) = self.state.lock() {
+            if state.phase.startup() {
+                state.checkpoints[index] = Some(Checkpoint {
+                    stage: ["intake", "enqueued", "dequeued", "reply"][index],
+                    id,
+                    elapsed_ms: state.elapsed_ms(),
+                });
+            }
+        }
+    }
+    fn watch(self: Arc<Self>, run_id: String) {
+        std::thread::spawn(move || {
+            for _ in 0..180 {
+                std::thread::sleep(Duration::from_secs(1));
+                if !self.active.load(Ordering::Relaxed) {
+                    break;
+                }
+                let snapshot = self.state.try_lock().ok().and_then(|mut state| {
+                    let elapsed = state.elapsed_ms();
+                    state.stale_snapshot(&run_id, elapsed)
+                });
+                if let Some(snapshot) = snapshot {
+                    let line = format!("{DIAGNOSTIC_PREFIX}{snapshot}\n");
+                    if line.len() <= 2048 && self.active.load(Ordering::Relaxed) {
+                        // A separate stream can report when original stdout or queue work stalls.
+                        let mut output = std::io::stderr().lock();
+                        let _ = output.write_all(line.as_bytes());
+                        let _ = output.flush();
+                    }
+                }
+            }
+        });
+    }
+}
 
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -40,6 +200,7 @@ struct Queue {
 struct Broker {
     run_id: String,
     queue: Arc<Mutex<Queue>>,
+    diagnostics: Arc<Diagnostics>,
 }
 
 fn run_id_valid(value: &str) -> bool {
@@ -135,9 +296,12 @@ pub fn setup(app: &tauri::App) -> tauri::Result<()> {
     let run_id = std::env::var("LOLLY_WEBGPU_PRODUCT_PROBE").unwrap_or_default();
     prepare(&app.config().identifier, false);
     let queue = Arc::new(Mutex::new(Queue::default()));
+    let diagnostics = Arc::new(Diagnostics::new());
+    diagnostics.clone().watch(run_id.clone());
     app.manage(Broker {
         run_id: run_id.clone(),
         queue: queue.clone(),
+        diagnostics: diagnostics.clone(),
     });
     let handle = app.handle().clone();
     std::thread::spawn(move || {
@@ -158,12 +322,18 @@ pub fn setup(app: &tauri::App) -> tauri::Result<()> {
                     if bytes.len() > COMMAND_LIMIT || bytes.last() != Some(&b'\n') {
                         return Err("Qualification input exceeds its bound");
                     }
+                    if let Some(control) = bytes.strip_prefix(DIAGNOSTIC_CONTROL_PREFIX.as_bytes())
+                    {
+                        return diagnostics.control(control, &run_id);
+                    }
                     let command: Command = serde_json::from_slice(&bytes)
                         .map_err(|_| "Malformed qualification command")?;
+                    diagnostics.checkpoint(0, command.id);
                     let mut state = queue.lock().map_err(|_| "Qualification queue failed")?;
                     command_valid(&command, &state)?;
                     state.last = command.id;
                     state.commands.push_back(command);
+                    diagnostics.checkpoint(1, state.last);
                     Ok(())
                 });
             if let Err(error) = result {
@@ -232,6 +402,7 @@ pub fn route<R: Runtime>(invoke: Invoke<R>) -> bool {
                 }
                 Ok(state.commands.pop_front().map_or(Value::Null, |command| {
                     state.inflight = Some(command.id);
+                    broker.diagnostics.checkpoint(2, command.id);
                     json!({ "id": command.id, "source": command.source, "arg": command.arg, "close": command.close })
                 }))
             }
@@ -260,6 +431,8 @@ pub fn route<R: Runtime>(invoke: Invoke<R>) -> bool {
                 }
                 state.inflight = None;
                 emit(json!({ "event": "reply", "runId": broker.run_id, "reply": reply }));
+                // Reaching this checkpoint means the original stdout write/flush returned.
+                broker.diagnostics.checkpoint(3, id);
                 Ok(Value::Null)
             }
             _ => {
@@ -347,5 +520,92 @@ mod tests {
             "{\"id\":1,\"source\":\"() => true\",\"unknown\":true}"
         )
         .is_err());
+        assert!(serde_json::from_str::<Command>(
+            "{\"id\":1,\"source\":\"() => true\",\"phase\":\"tool-wait\"}"
+        )
+        .is_err());
+    }
+    #[test]
+    fn diagnostic_controls_are_exact_bounded_and_do_not_consume_commands() {
+        let diagnostics = Diagnostics::new();
+        let control =
+            |phase: &str| serde_json::to_vec(&json!({"runId": ID, "phase": phase})).unwrap();
+        assert!(diagnostics.control(&control("tool-wait"), ID).is_ok());
+        for bytes in [
+            serde_json::to_vec(&json!({"runId": "another", "phase": "tool-wait"})).unwrap(),
+            serde_json::to_vec(&json!({"runId": ID, "phase": "unknown"})).unwrap(),
+            serde_json::to_vec(&json!({"runId": ID, "phase": "tool-wait", "arg": "private"}))
+                .unwrap(),
+            format!("{{\"runId\":\"{ID}\",\"runId\":\"{ID}\",\"phase\":\"tool-wait\"}}")
+                .into_bytes(),
+            vec![b' '; 257],
+        ] {
+            assert!(diagnostics.control(&bytes, ID).is_err());
+        }
+        assert!(diagnostics.control(&control("csp"), ID).is_err());
+        for _ in 1..16 {
+            assert!(diagnostics.control(&control("tool-wait"), ID).is_ok());
+        }
+        assert!(diagnostics.control(&control("tool-wait"), ID).is_err());
+        let queue = Queue::default();
+        let command = Command {
+            id: 1,
+            source: "() => true".into(),
+            arg: Value::Null,
+            close: false,
+        };
+        assert!(command_valid(&command, &queue).is_ok());
+    }
+    #[test]
+    fn stale_native_snapshots_have_fixed_storage_one_per_id_and_eight_output_limit() {
+        let diagnostics = Diagnostics::new();
+        diagnostics.checkpoint(0, 61);
+        diagnostics.checkpoint(1, 61);
+        diagnostics.checkpoint(2, 60);
+        diagnostics.checkpoint(3, 60);
+        let mut state = diagnostics.state.lock().unwrap();
+        state.phase = Phase::ToolWait;
+        let intake_at = state.checkpoints[0].unwrap().elapsed_ms;
+        assert!(state.stale_snapshot(ID, intake_at + 4999).is_none());
+        let snapshot = state.stale_snapshot(ID, intake_at + 5000).unwrap();
+        assert_eq!(snapshot["runId"], ID);
+        assert_eq!(snapshot["phase"], "tool-wait");
+        assert_eq!(snapshot["sequence"], 1);
+        assert_eq!(snapshot["checkpoints"].as_array().unwrap().len(), 4);
+        assert_eq!(snapshot["checkpoints"][0]["id"], 61);
+        assert_eq!(snapshot["checkpoints"][3]["id"], 60);
+        assert!(format!("{DIAGNOSTIC_PREFIX}{snapshot}\n").len() <= 2048);
+        assert!(state.stale_snapshot(ID, intake_at + 9000).is_none());
+        for id in 62..69 {
+            state.checkpoints[0] = Some(Checkpoint {
+                stage: "intake",
+                id,
+                elapsed_ms: 0,
+            });
+            assert!(state.stale_snapshot(ID, 9000).is_some());
+        }
+        state.checkpoints[0] = Some(Checkpoint {
+            stage: "intake",
+            id: 69,
+            elapsed_ms: 0,
+        });
+        assert!(state.stale_snapshot(ID, 9000).is_none());
+        assert_eq!(state.emitted, DIAGNOSTIC_LIMIT);
+    }
+    #[test]
+    fn corpus_and_closing_disable_native_trace_without_queue_or_timing_changes() {
+        let diagnostics = Diagnostics::new();
+        diagnostics.checkpoint(0, 1);
+        let control =
+            |phase: &str| serde_json::to_vec(&json!({"runId": ID, "phase": phase})).unwrap();
+        assert!(diagnostics.control(&control("corpus"), ID).is_ok());
+        diagnostics.checkpoint(0, 2);
+        let mut state = diagnostics.state.lock().unwrap();
+        assert_eq!(state.checkpoints[0].unwrap().id, 1);
+        assert!(state.stale_snapshot(ID, 10_000).is_none());
+        drop(state);
+        assert!(diagnostics.control(&control("tool-wait"), ID).is_err());
+        assert!(diagnostics.control(&control("closing"), ID).is_ok());
+        assert!(!diagnostics.active.load(Ordering::Relaxed));
     }
 }

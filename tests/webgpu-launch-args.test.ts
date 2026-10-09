@@ -90,7 +90,7 @@ function scriptFiles(dir = SCRIPTS, out: string[] = []): string[] {
 }
 
 /** Each launch call's full argument text, read with bracket matching (strings skipped). */
-function launchCalls(source: string): string[] {
+function launchCalls(source: string, sourcePath = ''): string[] {
   const calls: string[] = [];
   for (const match of source.matchAll(/\.(?:launch|launchPersistentContext)\(/g)) {
     let depth = 1, i = match.index + match[0].length, quote = '';
@@ -101,13 +101,35 @@ function launchCalls(source: string): string[] {
       else if (ch === '(' || ch === '{' || ch === '[') depth++;
       else if (ch === ')' || ch === '}' || ch === ']') depth--;
     }
-    calls.push(source.slice(match.index, i));
+    const call = source.slice(match.index, i);
+    // This typed transport executes xcrun devicectl, never a browser. Every
+    // other call in this file still participates in the Chromium scan.
+    const deviceTransport = sourcePath === 'lib/webgpu-ios-device.ts'
+      && source.slice(0, match.index).endsWith('this.commands')
+      && /^\.launch\(\['device',\s*'process',\s*'launch',/.test(call)
+      && /commands:\s*DeviceCommands\s*=\s*devicectlCommands\(\)/.test(source)
+      && /spawn\('xcrun',\s*\['devicectl',\s*\.\.\.args\]/.test(source);
+    if (!deviceTransport) calls.push(call);
   }
   return calls;
 }
 
 /** A string that navigates into the shell: a hash route, or the /verify path route. */
 const SHELL_ROUTE = /['"`][^'"`\n]*(?:#\/|\/verify\/)[^'"`\n]*['"`]/;
+
+test('the scanner distinguishes only the verified devicectl transport call', () => {
+  const backend = "commands: DeviceCommands = devicectlCommands(); spawn('xcrun', ['devicectl', ...args]);\n";
+  const native = "this.commands.launch(['device', 'process', 'launch', '--device', id], env)";
+  const browser = "chromium.launch(['device', 'process', 'launch', '--device', id], env)";
+  assert.deepEqual(launchCalls(backend + native, 'lib/webgpu-ios-device.ts'), []);
+  for (const [source, path] of [[backend + browser, 'lib/webgpu-ios-device.ts'],
+    [backend + native, 'other.ts'], [native, 'lib/webgpu-ios-device.ts'],
+    [backend + native.replace("'device'", "'browser'"), 'lib/webgpu-ios-device.ts'],
+    [backend.replace("'xcrun'", "'chromium'") + native, 'lib/webgpu-ios-device.ts']]) {
+    assert.equal(launchCalls(source!, path).length, 1);
+  }
+  assert.deepEqual(launchCalls(backend + native + '; ' + browser, 'lib/webgpu-ios-device.ts'), [browser.slice(browser.indexOf('.launch'))]);
+});
 
 test('every script that launches Chromium to open the shell gives it the shared WebGPU flags', () => {
   const files = scriptFiles();
@@ -118,7 +140,7 @@ test('every script that launches Chromium to open the shell gives it the shared 
   for (const file of files) {
     const rel = relative(SCRIPTS, file).split('\\').join('/');
     const source = readFileSync(file, 'utf8');
-    const calls = launchCalls(source);
+    const calls = launchCalls(source, rel);
     if (!calls.length) continue;
     launches += calls.length;
     if (rel in NOT_THE_SHELL) {

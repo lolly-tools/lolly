@@ -15,10 +15,18 @@ const SOURCE_LIMIT = 64 * 1024;
 const OUTPUT_PREFIX = 'LOLLY_WEBGPU_PRODUCT ';
 export const PRODUCT_DIAGNOSTIC_LIMIT = 16;
 export const PRODUCT_SOURCE_PREFIX_BYTES = 192;
+export const PRODUCT_NATIVE_DIAGNOSTIC_PREFIX = 'LOLLY_WEBGPU_PRODUCT_NATIVE_DIAGNOSTIC ';
+export const PRODUCT_DIAGNOSTIC_CONTROL_PREFIX = 'LOLLY_WEBGPU_PRODUCT_DIAGNOSTIC_CONTROL ';
+export const PRODUCT_NATIVE_DIAGNOSTIC_LIMIT = 8;
+export const PRODUCT_NATIVE_DIAGNOSTIC_BYTES = 2048;
 export type ProductPhase = 'native-handshake' | 'onboarding-poll' | 'csp' | 'probe-load' | 'tool-wait' | 'corpus' | 'closing';
 interface CommandDiagnostic { id: number; phase: ProductPhase; sourceSha256: string; sourceBytes: number; sourcePrefix: string }
-interface ProtocolDiagnostic { phase: ProductPhase; pendingCommand: CommandDiagnostic | null }
+type ResultKind = 'undefined' | 'null' | 'boolean' | 'number' | 'string' | 'array' | 'object' | 'error';
+interface CompletedCommandDiagnostic { id: number; phase: ProductPhase; sourceSha256: string; resultKind: ResultKind; sentAtMs: number; completedAtMs: number }
+interface ProtocolDiagnostic { phase: ProductPhase; pendingCommand: CommandDiagnostic | null; lastCompletedCommand: CompletedCommandDiagnostic | null }
 interface ProductDiagnostic extends ProtocolDiagnostic { event: 'startup-phase' | 'protocol-failure'; message?: string }
+interface NativeCheckpoint { stage: 'intake' | 'enqueued' | 'dequeued' | 'reply'; id: number; elapsedMs: number }
+export interface NativeDiagnostic { event: 'native-checkpoints'; runId: string; phase: ProductPhase; sequence: number; elapsedMs: number; checkpoints: NativeCheckpoint[] }
 
 function bytePrefix(value: string, limit: number): string {
   let prefix = '', bytes = 0;
@@ -39,6 +47,9 @@ export function productDiagnosticRecorder(records: Array<Record<string, unknown>
     const record = { event: entry.event, phase: entry.phase,
       pendingCommand: command ? { id: command.id, phase: command.phase, sourceSha256: command.sourceSha256,
         sourceBytes: command.sourceBytes, sourcePrefix: bytePrefix(command.sourcePrefix, PRODUCT_SOURCE_PREFIX_BYTES) } : null,
+      lastCompletedCommand: entry.lastCompletedCommand ? { id: entry.lastCompletedCommand.id, phase: entry.lastCompletedCommand.phase,
+        sourceSha256: entry.lastCompletedCommand.sourceSha256, resultKind: entry.lastCompletedCommand.resultKind,
+        sentAtMs: entry.lastCompletedCommand.sentAtMs, completedAtMs: entry.lastCompletedCommand.completedAtMs } : null,
       ...(entry.message === undefined ? {} : { message: bytePrefix(entry.message, 2048) }) };
     records.push(record);
     write('LOLLY_WEBGPU_PRODUCT_DIAGNOSTIC ' + JSON.stringify(record) + '\n');
@@ -53,7 +64,7 @@ class ProductCommandError extends Error {
   }
 }
 
-interface Pending { resolve(value: unknown): void; reject(error: Error): void; timer: ReturnType<typeof setTimeout>; command: CommandDiagnostic }
+interface Pending { resolve(value: unknown): void; reject(error: Error): void; timer: ReturnType<typeof setTimeout>; command: CommandDiagnostic; sentAtMs: number }
 export interface ProductReady {
   event: 'ready'; runId: string; url: string; nativeUrl: string; identifier: string;
   runtime: string; secureContext: boolean; os: string; architecture: string;
@@ -78,6 +89,28 @@ export function isProductUrl(value: unknown): value is string {
 
 function onlyFields(object: Record<string, unknown>, fields: readonly string[]): boolean {
   return Object.keys(object).every(key => fields.includes(key));
+}
+
+const PHASES: readonly ProductPhase[] = ['native-handshake', 'onboarding-poll', 'csp', 'probe-load', 'tool-wait', 'corpus', 'closing'];
+
+export function decodeNativeDiagnostic(line: string, runId: string): NativeDiagnostic {
+  if (!line.startsWith(PRODUCT_NATIVE_DIAGNOSTIC_PREFIX) || Buffer.byteLength(line) > PRODUCT_NATIVE_DIAGNOSTIC_BYTES) throw new Error('Invalid native diagnostic frame.');
+  let value: unknown;
+  try { value = JSON.parse(line.slice(PRODUCT_NATIVE_DIAGNOSTIC_PREFIX.length)); }
+  catch { throw new Error('Malformed native diagnostic JSON.'); }
+  if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Malformed native diagnostic.');
+  const row = value as Record<string, unknown>, integer = (n: unknown, minimum: number, maximum: number): n is number => Number.isSafeInteger(n) && Number(n) >= minimum && Number(n) <= maximum;
+  if (!onlyFields(row, ['event', 'runId', 'phase', 'sequence', 'elapsedMs', 'checkpoints']) || row.event !== 'native-checkpoints' || row.runId !== runId
+    || !PHASES.slice(0, 5).includes(row.phase as ProductPhase) || !integer(row.sequence, 1, PRODUCT_NATIVE_DIAGNOSTIC_LIMIT)
+    || !integer(row.elapsedMs, 0, Number.MAX_SAFE_INTEGER) || !Array.isArray(row.checkpoints) || row.checkpoints.length < 1 || row.checkpoints.length > 4) throw new Error('Native diagnostic identity, phase or bounds differ.');
+  const stages = new Set<string>();
+  for (const item of row.checkpoints) {
+    if (!item || typeof item !== 'object' || Array.isArray(item) || !onlyFields(item, ['stage', 'id', 'elapsedMs'])
+      || !['intake', 'enqueued', 'dequeued', 'reply'].includes(item.stage) || stages.has(item.stage)
+      || !integer(item.id, 1, 10_000) || !integer(item.elapsedMs, 0, row.elapsedMs)) throw new Error('Native checkpoint bounds differ.');
+    stages.add(item.stage);
+  }
+  return value as NativeDiagnostic;
 }
 
 export function decodeProductMessage(line: string, runId: string, platform: 'macos' | 'ios' = 'macos'): ProductMessage {
@@ -115,11 +148,19 @@ export class ProductProbeProtocol {
   private ready = false;
   private failure: Error | null = null;
   private phase: ProductPhase = 'corpus';
+  private readonly startedAt = performance.now();
+  private lastCompleted: CompletedCommandDiagnostic | null = null;
   constructor(runId: string, write: (line: string) => void, onReady: (ready: ProductReady) => void, onFailure: (error: Error) => void = () => {}, platform: 'macos' | 'ios' = 'macos') {
     productProbeIdentity(runId); this.runId = runId; this.write = write; this.onReady = onReady; this.onFailure = onFailure; this.platform = platform;
   }
-  setPhase(phase: ProductPhase): void { this.phase = phase; }
-  diagnostic(): ProtocolDiagnostic { return { phase: this.pending?.command.phase ?? this.phase, pendingCommand: this.pending ? { ...this.pending.command } : null }; }
+  setPhase(phase: ProductPhase): void {
+    this.phase = phase;
+    if (this.failure) return;
+    try { this.write(PRODUCT_DIAGNOSTIC_CONTROL_PREFIX + JSON.stringify({ runId: this.runId, phase }) + '\n'); }
+    catch (error) { this.fail(error instanceof Error ? error : new Error(String(error))); }
+  }
+  diagnostic(): ProtocolDiagnostic { return { phase: this.pending?.command.phase ?? this.phase, pendingCommand: this.pending ? { ...this.pending.command } : null,
+    lastCompletedCommand: this.lastCompleted ? { ...this.lastCompleted } : null }; }
   fail(error: Error): void {
     if (this.failure) return;
     this.failure = new ProductCommandError(error, this.diagnostic());
@@ -137,7 +178,13 @@ export class ProductProbeProtocol {
       else {
         if (!this.pending || row.reply.id !== this.id) throw new Error('Product qualification reply sequence differs.');
         const pending = this.pending; this.pending = null; clearTimeout(pending.timer);
-        if (row.reply.error !== undefined) pending.reject(new ProductCommandError(new Error(`${row.reply.error}\n${row.reply.stack ?? ''}`), { phase: pending.command.phase, pendingCommand: pending.command }));
+        if (pending.command.phase !== 'corpus') {
+          const value = row.reply.value;
+          this.lastCompleted = { id: pending.command.id, phase: pending.command.phase, sourceSha256: pending.command.sourceSha256,
+            resultKind: row.reply.error !== undefined ? 'error' : value === null ? 'null' : Array.isArray(value) ? 'array' : typeof value as ResultKind,
+            sentAtMs: pending.sentAtMs, completedAtMs: Math.floor(performance.now() - this.startedAt) };
+        }
+        if (row.reply.error !== undefined) pending.reject(new ProductCommandError(new Error(`${row.reply.error}\n${row.reply.stack ?? ''}`), { phase: pending.command.phase, pendingCommand: pending.command, lastCompletedCommand: this.lastCompleted }));
         else pending.resolve(row.reply.value);
       }
     } catch (error) { this.fail(error instanceof Error ? error : new Error(String(error))); }
@@ -156,7 +203,7 @@ export class ProductProbeProtocol {
       sourceBytes: Buffer.byteLength(source), sourcePrefix: bytePrefix(source, PRODUCT_SOURCE_PREFIX_BYTES) };
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => this.fail(new Error('Product qualification command did not finish within 30 seconds.')), 30_000);
-      this.pending = { resolve, reject, timer, command };
+      this.pending = { resolve, reject, timer, command, sentAtMs: this.phase === 'corpus' ? 0 : Math.floor(performance.now() - this.startedAt) };
       try { this.write(line); } catch (error) { this.fail(error instanceof Error ? error : new Error(String(error))); }
     });
   }
@@ -167,8 +214,11 @@ export interface ProductQualificationBrowser extends QualificationBrowser {
   productQualification: { sources: Record<string, unknown>; startup: Array<Record<string, unknown>> };
 }
 
-export function productReceiverBrowser(env: NodeJS.ProcessEnv = process.env, transport?: ProductTransport): ProductQualificationBrowser {
-  if (process.platform !== 'darwin') throw new Error('Bundled product qualification currently requires macOS.');
+export function productReceiverBrowser(env: NodeJS.ProcessEnv = process.env, transport?: ProductTransport,
+  hostPlatform: () => NodeJS.Platform = () => process.platform): ProductQualificationBrowser {
+  const platform = hostPlatform();
+  if (platform !== 'darwin') throw new Error('Bundled product qualification currently requires macOS.');
+  if (platform !== process.platform && !transport) throw new Error('A fake host platform requires an isolated test transport.');
   const runId = env.LOLLY_WEBGPU_PRODUCT_PROBE ?? '', identifier = productProbeIdentity(runId);
   productProbeOptions(env);
   if (Object.keys(runtimeOverrides(env)).length || (env.LOLLY_WEBGPU_TEST_ADAPTER && env.LOLLY_WEBGPU_TEST_ADAPTER !== 'default')) {
@@ -191,9 +241,10 @@ export function productReceiverBrowser(env: NodeJS.ProcessEnv = process.env, tra
       let child: ChildProcessWithoutNullStreams | null = null, protocol: ProductProbeProtocol | null = null, closed = false;
       let phase: ProductPhase = 'native-handshake';
       const recordedErrors = new WeakSet<Error>();
-      const setPhase = (next: ProductPhase) => { phase = next; protocol?.setPhase(next); recordDiagnostic({ event: 'startup-phase', phase, pendingCommand: null }); };
+      const setPhase = (next: ProductPhase) => { phase = next; protocol?.setPhase(next); recordDiagnostic({ event: 'startup-phase', phase, pendingCommand: null,
+        lastCompletedCommand: protocol?.diagnostic().lastCompletedCommand ?? null }); };
       const failure = (error: Error): ProductCommandError => {
-        const wrapped = error instanceof ProductCommandError ? error : new ProductCommandError(error, protocol?.diagnostic() ?? { phase, pendingCommand: null });
+        const wrapped = error instanceof ProductCommandError ? error : new ProductCommandError(error, protocol?.diagnostic() ?? { phase, pendingCommand: null, lastCompletedCommand: null });
         if (!recordedErrors.has(wrapped)) { recordedErrors.add(wrapped); recordDiagnostic({ event: 'protocol-failure', ...wrapped.diagnostic, message: error.message }); }
         return wrapped;
       };
@@ -202,7 +253,20 @@ export function productReceiverBrowser(env: NodeJS.ProcessEnv = process.env, tra
           if (url !== PRODUCT_PAGE || child || closed) throw new Error('Product qualification starts the bundled GUI once; it does not navigate to an external fixture.');
           setPhase('native-handshake');
           child = transport?.launch() ?? spawn(binary, [], { env: { ...env }, stdio: 'pipe' });
-          let output = Buffer.alloc(0), stderrBytes = 0;
+          let output = Buffer.alloc(0), stderrBytes = 0, nativeDiagnosticCount = 0;
+          let diagnosticOutput = Buffer.alloc(0);
+          const receiveNativeDiagnostic = (line: string) => {
+            try {
+              const diagnostic = decodeNativeDiagnostic(line, runId);
+              if (diagnostic.sequence !== nativeDiagnosticCount + 1) throw new Error('Native diagnostic sequence differs.');
+              nativeDiagnosticCount++;
+              // A startup snapshot already in transit may arrive after the corpus begins.
+              if (phase !== 'corpus' && phase !== 'closing') {
+                startup.push({ ...diagnostic });
+                process.stderr.write(PRODUCT_NATIVE_DIAGNOSTIC_PREFIX + JSON.stringify(diagnostic) + '\n');
+              }
+            } catch (error) { protocol!.fail(error instanceof Error ? error : new Error(String(error))); }
+          };
           await new Promise<void>((resolve, reject) => {
             const timer = setTimeout(() => reject(failure(new Error('Bundled product did not complete its native handshake within 30 seconds.'))), 30_000);
             protocol = new ProductProbeProtocol(runId, line => { child!.stdin.write(line); }, ready => {
@@ -219,7 +283,19 @@ export function productReceiverBrowser(env: NodeJS.ProcessEnv = process.env, tra
                 newline = output.indexOf(10);
               }
             });
-            child!.stderr.on('data', (chunk: Buffer) => { stderrBytes += chunk.length; if (stderrBytes <= 64 * 1024) process.stderr.write(chunk); });
+            child!.stderr.on('data', (chunk: Buffer) => {
+              stderrBytes += chunk.length;
+              if (stderrBytes > 64 * 1024) { diagnosticOutput = Buffer.alloc(0); return; }
+              diagnosticOutput = Buffer.concat([diagnosticOutput, chunk]);
+              let newline = diagnosticOutput.indexOf(10);
+              while (newline >= 0) {
+                const line = diagnosticOutput.subarray(0, newline).toString(); diagnosticOutput = diagnosticOutput.subarray(newline + 1);
+                if (line.startsWith(PRODUCT_NATIVE_DIAGNOSTIC_PREFIX)) {
+                  receiveNativeDiagnostic(line);
+                } else process.stderr.write(line + '\n');
+                newline = diagnosticOutput.indexOf(10);
+              }
+            });
             child!.once('error', error => { protocol!.fail(error); clearTimeout(timer); reject(error); });
             child!.stdin.on('error', error => { protocol!.fail(error); clearTimeout(timer); reject(error); });
             child!.once('exit', (code, signal) => {

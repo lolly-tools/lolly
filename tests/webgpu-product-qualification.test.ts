@@ -14,7 +14,7 @@ import { build } from 'vite';
 import { productProbeIdentity, productProbeOptions, productProbeSource, webGpuProductProbe } from '../shells/tauri-desktop/webgpu-product-probe.mjs';
 import { assertProductBuildSource, assertProductCsp, assertProductSourcesUnchanged, isGeneratedInfoCss, markProductBundleRoot, productConfig, productEnvironment, productExecutableName, productSourceReceipt } from '../scripts/verify-webgpu-product.ts';
 import { assertNoMarkedBuild, MARKER_FILE } from '../scripts/webgpu-qualification.ts';
-import { PRODUCT_COMMAND_LIMIT, PRODUCT_DIAGNOSTIC_LIMIT, PRODUCT_PAGE, PRODUCT_REPLY_LIMIT, PRODUCT_SOURCE_PREFIX_BYTES, ProductProbeProtocol, decodeProductMessage, isProductUrl, productDiagnosticRecorder, productReceiverBrowser } from './helpers/webgpu-product-receiver.ts';
+import { PRODUCT_COMMAND_LIMIT, PRODUCT_DIAGNOSTIC_LIMIT, PRODUCT_DIAGNOSTIC_CONTROL_PREFIX, PRODUCT_NATIVE_DIAGNOSTIC_PREFIX, PRODUCT_NATIVE_DIAGNOSTIC_LIMIT, PRODUCT_NATIVE_DIAGNOSTIC_BYTES, PRODUCT_PAGE, PRODUCT_REPLY_LIMIT, PRODUCT_SOURCE_PREFIX_BYTES, ProductProbeProtocol, decodeNativeDiagnostic, decodeProductMessage, isProductUrl, productDiagnosticRecorder, productReceiverBrowser } from './helpers/webgpu-product-receiver.ts';
 import { TAURI_CSP, tauriCspMeta } from '../shells/tauri-shared/vite-csp.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
@@ -168,6 +168,61 @@ test('reply frames refuse malformed JSON, unknown fields and oversized values', 
   assert.throws(() => decodeProductMessage(line({ event: 'reply', runId, reply: { id: 1, value: 'x'.repeat(PRODUCT_REPLY_LIMIT + 1) } }), runId));
 });
 
+test('native diagnostic frames are separate, exact, bounded and run-scoped', () => {
+  const row = { event: 'native-checkpoints', runId, phase: 'tool-wait', sequence: 1, elapsedMs: 5100,
+    checkpoints: [{ stage: 'intake', id: 61, elapsedMs: 100 }, { stage: 'reply', id: 60, elapsedMs: 90 }] };
+  const encode = (value: unknown) => PRODUCT_NATIVE_DIAGNOSTIC_PREFIX + JSON.stringify(value);
+  assert.deepEqual(decodeNativeDiagnostic(encode(row), runId), row);
+  assert.throws(() => decodeProductMessage(encode(row), runId), /Invalid product qualification output/);
+  for (const patch of [{ runId: 'another-run' }, { extra: true }, { phase: 'corpus' }, { phase: 'closing' },
+    { sequence: 0 }, { sequence: PRODUCT_NATIVE_DIAGNOSTIC_LIMIT + 1 }, { elapsedMs: NaN }, { elapsedMs: -1 },
+    { elapsedMs: Number.MAX_SAFE_INTEGER + 1 }, { checkpoints: [] },
+    { checkpoints: Array(5).fill(row.checkpoints[0]) },
+    { checkpoints: [row.checkpoints[0], row.checkpoints[0]] },
+    { checkpoints: [{ stage: 'intake', id: 10_001, elapsedMs: 100 }] },
+    { checkpoints: [{ stage: 'intake', id: 0, elapsedMs: 100 }] },
+    { checkpoints: [{ stage: 'unknown', id: 61, elapsedMs: 100 }] },
+    { checkpoints: [{ stage: 'intake', id: 61, elapsedMs: 5101 }] },
+    { checkpoints: [{ stage: 'intake', id: 61, elapsedMs: 100, args: 'private' }] },
+  ]) assert.throws(() => decodeNativeDiagnostic(encode({ ...row, ...patch }), runId));
+  assert.throws(() => decodeNativeDiagnostic(PRODUCT_NATIVE_DIAGNOSTIC_PREFIX + 'x'.repeat(PRODUCT_NATIVE_DIAGNOSTIC_BYTES), runId));
+});
+
+test('startup completion facts retain bounded metadata without values and stop before numeric work', async () => {
+  const writes: string[] = [], protocol = new ProductProbeProtocol(runId, value => writes.push(value), () => {});
+  protocol.receive(line(ready)); protocol.setPhase('onboarding-poll');
+  assert.deepEqual(JSON.parse(writes[0]!.slice(PRODUCT_DIAGNOSTIC_CONTROL_PREFIX.length)), { runId, phase: 'onboarding-poll' });
+  const source = '() => false', pending = protocol.request(source, { private: 'not-for-diagnostics' });
+  assert.deepEqual(JSON.parse(writes[1]!), { id: 1, source, arg: { private: 'not-for-diagnostics' }, close: false });
+  protocol.receive(line({ event: 'reply', runId, reply: { id: 1, value: false } })); await pending;
+  const completion = protocol.diagnostic().lastCompletedCommand;
+  assert.ok(completion); assert.equal(completion.id, 1); assert.equal(completion.phase, 'onboarding-poll');
+  assert.equal(completion.resultKind, 'boolean'); assert.equal(completion.sourceSha256, createHash('sha256').update(source).digest('hex'));
+  assert.ok(Number.isSafeInteger(completion.sentAtMs)); assert.ok(completion.completedAtMs >= completion.sentAtMs);
+  assert.ok(!JSON.stringify(completion).includes('not-for-diagnostics'));
+  completion.id = 900; assert.equal(protocol.diagnostic().lastCompletedCommand?.id, 1);
+  protocol.setPhase('corpus'); const numeric = protocol.request('() => "private-result"');
+  protocol.receive(line({ event: 'reply', runId, reply: { id: 2, value: 'private-result' } })); await numeric;
+  assert.equal(protocol.diagnostic().lastCompletedCommand?.id, 1);
+  assert.ok(!JSON.stringify(protocol.diagnostic()).includes('private-result'));
+});
+
+test('the real host refusal stays strict while an explicit mock transport is portable', () => {
+  assert.throws(() => productReceiverBrowser({}, undefined, () => 'linux'), /requires macOS/);
+  if (process.platform !== 'darwin') assert.throws(() => productReceiverBrowser({}, undefined, () => 'darwin'), /isolated test transport/);
+});
+
+test('diagnostic control write failures retain their cause and cannot prevent closing', async () => {
+  const original = new Error('original transport write failed'), failures: Error[] = [];
+  const protocol = new ProductProbeProtocol(runId, () => { throw original; }, () => {}, error => failures.push(error));
+  protocol.receive(line(ready));
+  assert.doesNotThrow(() => protocol.setPhase('tool-wait'));
+  assert.equal(failures.length, 1); assert.equal(failures[0]!.cause, original);
+  assert.match(failures[0]!.message, /original transport write failed/);
+  await assert.rejects(protocol.request('() => true'), /original transport write failed/);
+  assert.doesNotThrow(() => protocol.setPhase('closing')); assert.equal(failures.length, 1);
+});
+
 test('protocol preserves ordering, rejects overlap and permits a later command after a page error', async () => {
   const writes: string[] = [], protocol = new ProductProbeProtocol(runId, value => writes.push(value), () => {});
   await assert.rejects(protocol.request('() => true'), /not ready/);
@@ -213,13 +268,15 @@ test('the unchanged command timeout retains pending ID, phase and bounded source
   t.mock.timers.tick(29_999); assert.equal(failures.length, 0);
   t.mock.timers.tick(1); await rejected; assert.equal(failures.length, 1);
   assert.equal(protocol.diagnostic().pendingCommand, null);
-  assert.deepEqual(JSON.parse(writes[0]!), { id: 1, source, arg: argument, close: false });
+  assert.deepEqual(JSON.parse(writes.find(value => !value.startsWith(PRODUCT_DIAGNOSTIC_CONTROL_PREFIX))!), { id: 1, source, arg: argument, close: false });
+  assert.ok(failures[0]!.cause instanceof Error); assert.equal(failures[0]!.cause.message, 'Product qualification command did not finish within 30 seconds.');
 });
 
 test('host diagnostic retention and encoded logs have strict count and UTF-8 byte bounds', () => {
   const records: Array<Record<string, unknown>> = [], logs: string[] = [], record = productDiagnosticRecorder(records, line => logs.push(line));
   const entry = { event: 'protocol-failure' as const, phase: 'probe-load' as const, message: '\u0001'.repeat(10000),
     pendingCommand: { id: 12, phase: 'probe-load' as const, sourceSha256: 'a'.repeat(64), sourceBytes: 6000, sourcePrefix: '🦎'.repeat(1000), args: 'private-argument' },
+    lastCompletedCommand: { id: 11, phase: 'probe-load' as const, sourceSha256: 'b'.repeat(64), resultKind: 'boolean' as const, sentAtMs: 2, completedAtMs: 3, args: 'private-argument' },
     args: 'private-argument' };
   for (let i = 0; i < PRODUCT_DIAGNOSTIC_LIMIT + 10; i++) record(entry);
   assert.equal(records.length, PRODUCT_DIAGNOSTIC_LIMIT); assert.equal(logs.length, PRODUCT_DIAGNOSTIC_LIMIT);
@@ -228,7 +285,7 @@ test('host diagnostic retention and encoded logs have strict count and UTF-8 byt
     const command = row.pendingCommand as { sourcePrefix: string };
     assert.ok(Buffer.byteLength(command.sourcePrefix) <= PRODUCT_SOURCE_PREFIX_BYTES);
     assert.ok(Buffer.byteLength(logs[index]!) < 16 * 1024); assert.ok(!logs[index]!.includes('private-argument'));
-    assert.deepEqual(Object.keys(row).sort(), ['event', 'message', 'pendingCommand', 'phase']);
+    assert.deepEqual(Object.keys(row).sort(), ['event', 'lastCompletedCommand', 'message', 'pendingCommand', 'phase']);
   }
 });
 
@@ -246,8 +303,14 @@ test('iOS transport startup records each host phase and identifies a pending too
   const child = Object.assign(new EventEmitter(), { stdin: new PassThrough(), stdout: new PassThrough(), stderr: new PassThrough(), exitCode: null as number | null, signalCode: null });
   const commands: Array<{ id: number; source: string }> = [];
   child.stdin.on('data', bytes => {
+    if (String(bytes).startsWith(PRODUCT_DIAGNOSTIC_CONTROL_PREFIX)) return;
     const command = JSON.parse(String(bytes)); commands.push(command);
-    if (command.source.includes("document.querySelector('#tool-canvas svg')")) return;
+    if (command.source.includes("document.querySelector('#tool-canvas svg')")) {
+      const diagnostic = PRODUCT_NATIVE_DIAGNOSTIC_PREFIX + JSON.stringify({ event: 'native-checkpoints', runId, phase: 'tool-wait', sequence: 1, elapsedMs: 5100,
+        checkpoints: [{ stage: 'intake', id: command.id, elapsedMs: 100 }, { stage: 'reply', id: command.id - 1, elapsedMs: 90 }] }) + '\n';
+      child.stderr.write(diagnostic.slice(0, 9)); child.stderr.write(diagnostic.slice(9));
+      return;
+    }
     const value = command.source.includes('await probe.load()') ? true : command.source.includes('expectedCsp =>')
       ? { origin: 'tauri://localhost', url: ready.url, csp: TAURI_CSP, webgpu: 'ready' } : 'ready';
     child.stdout.write(line({ event: 'reply', runId, reply: { id: command.id, value } }) + '\n');
@@ -256,7 +319,7 @@ test('iOS transport startup records each host phase and identifies a pending too
     platform: 'ios', launch() { queueMicrotask(() => child.stdout.write(line({ ...ready, os: 'ios' }) + '\n')); return child as unknown as ChildProcessWithoutNullStreams; },
     runtime: row => 'WKWebView ' + row.runtime,
     async close() { child.exitCode = 0; child.emit('exit', 0); },
-  });
+  }, () => 'darwin');
   try {
     const page = await browser.newPage(), pending = page.goto(PRODUCT_PAGE);
     const rejected = assert.rejects(pending, /"phase":"tool-wait"/);
@@ -266,9 +329,52 @@ test('iOS transport startup records each host phase and identifies a pending too
     assert.deepEqual(rows.filter(row => row.event === 'startup-phase').map(row => row.phase), ['native-handshake', 'onboarding-poll', 'csp', 'probe-load', 'tool-wait']);
     const failure = rows.find(row => row.event === 'protocol-failure'); assert.ok(failure);
     assert.equal(failure.phase, 'tool-wait'); assert.equal((failure.pendingCommand as { id: number }).id, 4);
+    const completed = failure.lastCompletedCommand as { id: number; resultKind: string; sourceSha256: string };
+    assert.equal(completed.id, 3); assert.equal(completed.resultKind, 'boolean');
+    assert.equal(completed.sourceSha256, createHash('sha256').update(commands[2]!.source).digest('hex'));
+    const native = rows.find(row => row.event === 'native-checkpoints'); assert.ok(native);
+    assert.equal(native.runId, runId); assert.equal(native.sequence, 1);
+    assert.equal((native.checkpoints as { id: number }[])[0]!.id, 4);
     assert.match(logs.join(''), /LOLLY_WEBGPU_PRODUCT_DIAGNOSTIC/); assert.match(logs.join(''), /"id":4/);
     assert.deepEqual(browser.productQualification.sources, sourceFacts);
   } finally { await browser.close(); child.stdin.destroy(); child.stdout.destroy(); child.stderr.destroy(); await rm(fixture, { recursive: true, force: true }); }
+});
+
+test('rejected reserved native stderr frames never forward their private fields', async t => {
+  const logs: string[] = [];
+  t.mock.method(process.stderr, 'write', (chunk: string | Uint8Array) => { logs.push(String(chunk)); return true; });
+  const parent = resolve(root, 'plans/295-validation/product-probe-development'); await mkdir(parent, { recursive: true });
+  const fixture = await mkdtemp(resolve(parent, 'native-diagnostic-privacy-'));
+  const binary = resolve(fixture, 'owned-binary'), receipt = resolve(fixture, 'environment.json');
+  await writeFile(binary, 'owned host fixture');
+  await writeFile(receipt, JSON.stringify({ version: 1, runId, identifier: ready.identifier, binary,
+    binarySha256: createHash('sha256').update('owned host fixture').digest('hex'), sources: {} }));
+  const invalid = PRODUCT_NATIVE_DIAGNOSTIC_PREFIX + JSON.stringify({ event: 'native-checkpoints', runId, phase: 'native-handshake', sequence: 1, elapsedMs: 5100,
+    checkpoints: [{ stage: 'intake', id: 1, elapsedMs: 100 }], args: 'private-argument-never-forward' }) + '\n';
+  try {
+    for (const [frame, error] of [
+      [invalid, /Native diagnostic identity, phase or bounds differ/],
+      [PRODUCT_NATIVE_DIAGNOSTIC_PREFIX + '{"args": private-malformed-never-forward}\n', /Malformed native diagnostic JSON/],
+    ] as const) {
+      const child = Object.assign(new EventEmitter(), { stdin: new PassThrough(), stdout: new PassThrough(), stderr: new PassThrough(), exitCode: null as number | null, signalCode: null });
+      const browser = productReceiverBrowser({ ...env, LOLLY_WEBGPU_PRODUCT_BINARY: binary, LOLLY_WEBGPU_PRODUCT_RECEIPT: receipt }, {
+        platform: 'ios', launch() {
+          queueMicrotask(() => { child.stderr.write('ordinary native stderr\n'); child.stderr.write(frame.slice(0, 11)); child.stderr.write(frame.slice(11)); });
+          return child as unknown as ChildProcessWithoutNullStreams;
+        },
+        runtime: row => 'WKWebView ' + row.runtime,
+        async close() { child.exitCode = 0; child.emit('exit', 0); },
+      }, () => 'darwin');
+      try {
+        const page = await browser.newPage(); await assert.rejects(page.goto(PRODUCT_PAGE), error);
+        assert.ok(!browser.productQualification.startup.some(row => row.event === 'native-checkpoints'));
+      } finally { await browser.close(); child.stdin.destroy(); child.stdout.destroy(); child.stderr.destroy(); }
+    }
+    assert.match(logs.join(''), /ordinary native stderr/);
+    assert.ok(!logs.join('').includes('private-argument-never-forward'));
+    assert.ok(!logs.join('').includes('private-malformed-never-forward'));
+    assert.ok(!logs.join('').includes(PRODUCT_NATIVE_DIAGNOSTIC_PREFIX));
+  } finally { await rm(fixture, { recursive: true, force: true }); }
 });
 
 test('a replay, malformed reply or native failure closes the protocol', async () => {
