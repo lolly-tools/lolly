@@ -171,6 +171,7 @@ test('shared project layouts preserve their own selection, presence and folder a
     await chooseLayout(page, 'projects', 'card');
     await page.locator('[data-shared-folder] .folder-tile').filter({ hasText: 'Shared subfolder' }).locator('.tile-primary').click();
     await page.waitForFunction(() => new URLSearchParams(location.hash.split('?')[1]).get('folder') === 'fld_layout');
+    await page.locator('[data-shared-folder]').getByRole('heading', { name: 'Shared subfolder', exact: true }).waitFor();
     await chooseLayout(page, 'projects', 'list');
     assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('lolly:projectsViewPrefs') || '{}')['team:prj_layout:fld_layout']?.v), 'list');
     assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('lolly:projectsViewPrefs') || '{}')['team:prj_layout:']?.v), 'card');
