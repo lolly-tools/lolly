@@ -150,7 +150,8 @@ export function setBulkBarBusy(host: HTMLElement, cfg: BulkBarConfig, label: str
  */
 export function wireEscapeClearsSelection(opts: { active: () => boolean; clear: () => void }): () => void {
   const onKey = (e: KeyboardEvent): void => {
-    if (e.key !== 'Escape' || !opts.active()) return;
+    // An earlier menu listener can close its DOM before this lazy listener runs.
+    if (e.key !== 'Escape' || e.defaultPrevented || e.cancelBubble || !opts.active()) return;
     if (document.querySelector('dialog[open], .folder-menu, [role="menu"], [role="listbox"], .filter-popover:not([hidden]), .view-options:not([hidden])')) return;
     const a = document.activeElement;
     if (a instanceof HTMLElement && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.tagName === 'SELECT' || a.isContentEditable)) return;

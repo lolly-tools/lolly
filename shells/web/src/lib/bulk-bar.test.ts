@@ -148,3 +148,19 @@ test('wireEscapeClearsSelection: clears when active; yields to dialogs, menus an
   esc();
   assert.equal(cleared, 2, 'unbound after cleanup');
 });
+
+test('wireEscapeClearsSelection yields to Escape already consumed on the same document', () => {
+  for (const consume of [(e: KeyboardEvent) => e.preventDefault(), (e: KeyboardEvent) => e.stopPropagation()]) {
+    const { doc } = dom();
+    let cleared = 0;
+    doc.addEventListener('keydown', consume);
+    const unwire = wireEscapeClearsSelection({ active: () => true, clear: () => { cleared++; } });
+    const esc = (): void => { doc.dispatchEvent(new doc.defaultView!.KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true })); };
+    esc();
+    assert.equal(cleared, 0, 'a consumed Escape does not also clear selection');
+    doc.removeEventListener('keydown', consume);
+    esc();
+    assert.equal(cleared, 1, 'an unclaimed Escape still clears selection');
+    unwire();
+  }
+});
