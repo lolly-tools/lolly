@@ -14,12 +14,18 @@ const modulePath = fileURLToPath(import.meta.url);
 export const IOS_BUILD_PROVISIONING_FLAGS = ['-allowProvisioningUpdates'] as const;
 const unsigned = ['CODE_SIGNING_REQUIRED=NO', 'CODE_SIGNING_ALLOWED=NO', 'CODE_SIGN_IDENTITY=""', 'CODE_SIGN_ENTITLEMENTS=""'];
 export interface ExecutableIdentity { path: string; sha256: string; size: number; mtimeMs: number; inode: number; device: number }
+export interface IosObjectCopyTool { requestedPath: string; executable: ExecutableIdentity; version: string }
+export interface IosObjectCopyTools {
+  sysroot: string; host: 'aarch64-apple-darwin' | 'x86_64-apple-darwin';
+  llvmObjcopy: IosObjectCopyTool; rustObjcopy: IosObjectCopyTool;
+}
 export interface IosBuildGuard {
   version: 1; repo: string; output: string; runId: string; sourceSha: string; deadline: number;
   toolchain: string; rustc: ExecutableIdentity; cargo: ExecutableIdentity; rustdoc: ExecutableIdentity; xcode: ExecutableIdentity;
   helperSha256: string; processHelperSha256: string; workspace: string; archive: string; target: string; wrapperBin: string;
   compilerWrapper: string; leases: string; compilerRecords: string; path: string;
   protectedGroup: number;
+  objectCopyTools: IosObjectCopyTools;
 }
 function command(command: string, args: string[]): string {
   const reply = spawnSync(command, args, { encoding: 'utf8', timeout: 20_000, maxBuffer: 1024 * 1024 });
@@ -34,6 +40,41 @@ async function unchangedExecutable(expected: ExecutableIdentity): Promise<void> 
   const info = await stat(expected.path);
   assert.equal(await realpath(expected.path), expected.path);
   assert.deepEqual([info.size, info.mtimeMs, info.ino, info.dev], [expected.size, expected.mtimeMs, expected.inode, expected.device], 'The selected executable identity changed.');
+}
+const objectCopyNames = { llvmObjcopy: 'llvm-objcopy', rustObjcopy: 'rust-objcopy' } as const;
+function objectCopyVersion(path: string): string {
+  const reply = spawnSync(path, ['--version'], { encoding: 'utf8', timeout: 20_000, maxBuffer: 1024 });
+  assert.ok(!reply.error && reply.status === 0, 'The selected Rust object-copy tool cannot be verified; install its llvm-tools component.');
+  const version = reply.stdout.trim();
+  assert.ok(version.length > 0 && Buffer.byteLength(version) <= 1024 && /^[\t\r\n\x20-\x7e]+$/.test(version) && /\bLLVM\b/.test(version), 'The object-copy version exceeds its printable evidence bound.');
+  return version;
+}
+/** Swift bindings use the selected compiler's host tools, not a PATH fallback. */
+export async function prepareIosObjectCopyTools(rustc: ExecutableIdentity): Promise<IosObjectCopyTools> {
+  const sysrootValue = command(rustc.path, ['--print', 'sysroot']); assert.ok(isAbsolute(sysrootValue));
+  const sysroot = await realpath(sysrootValue);
+  assert.equal(dirname(dirname(rustc.path)), sysroot, 'The selected compiler and its sysroot differ.');
+  const host = /^host: ([^\r\n]+)$/m.exec(command(rustc.path, ['--version', '--verbose']))?.[1];
+  assert.ok(host === 'aarch64-apple-darwin' || host === 'x86_64-apple-darwin', 'An Apple compiler host is required.');
+  const tools = {} as Pick<IosObjectCopyTools, 'llvmObjcopy' | 'rustObjcopy'>;
+  for (const [key, name] of Object.entries(objectCopyNames)) {
+    const requestedPath = join(sysroot, 'lib/rustlib', host, 'bin', name);
+    const identity = await executable(requestedPath);
+    assert.ok(inside(sysroot, identity.path));
+    assert.equal(dirname(identity.path), await realpath(dirname(requestedPath)), 'The object-copy executable is outside the selected host tool directory.');
+    tools[key as keyof typeof tools] = { requestedPath, executable: identity, version: objectCopyVersion(requestedPath) };
+  }
+  return { sysroot, host, ...tools };
+}
+/** Recheck aliases and bytes before Xcode and after a completed archive. */
+export async function verifyIosObjectCopyTools(tools: IosObjectCopyTools): Promise<void> {
+  assert.ok(isAbsolute(tools.sysroot)); assert.equal(await realpath(tools.sysroot), tools.sysroot);
+  assert.ok(tools.host === 'aarch64-apple-darwin' || tools.host === 'x86_64-apple-darwin');
+  for (const [key, name] of Object.entries(objectCopyNames)) {
+    const tool = tools[key as keyof typeof objectCopyNames];
+    assert.equal(tool.requestedPath, join(tools.sysroot, 'lib/rustlib', tools.host, 'bin', name));
+    assert.deepEqual(await executable(tool.requestedPath), tool.executable, 'The selected object-copy executable changed.');
+  }
 }
 const inside = (parent: string, value: string) => resolve(value).startsWith(resolve(parent) + '/');
 const quote = (value: string) => `'${value.replace(/'/g, `'"'"'`)}'`;
@@ -73,6 +114,7 @@ export async function prepareIosBuildGuard(repo: string, output: string, runId: 
   const selected = await Promise.all(['rustc', 'cargo', 'rustdoc'].map(tool => executable(command('rustup', ['which', '--toolchain', toolchain, tool]))));
   const [rustc, cargo, rustdoc] = selected as [ExecutableIdentity, ExecutableIdentity, ExecutableIdentity];
   assert.equal(dirname(cargo.path), dirname(rustc.path)); assert.equal(dirname(rustdoc.path), dirname(rustc.path));
+  const objectCopyTools = await prepareIosObjectCopyTools(rustc);
   const wrapperBin = join(output, 'build-bin'), leases = join(output, 'build-processes'), compilerRecords = join(output, 'compiler-invocations');
   for (const path of [wrapperBin, leases, compilerRecords]) await mkdir(path, { mode: 0o700 });
   const guard: IosBuildGuard = { version: 1, repo, output, runId, sourceSha, toolchain, rustc, cargo, rustdoc, deadline: Date.now() + IOS_BUILD_MS,
@@ -81,11 +123,12 @@ export async function prepareIosBuildGuard(repo: string, output: string, runId: 
     workspace: join(repo, 'shells/tauri-mobile/src-tauri/gen/apple/lolly-mobile.xcodeproj/project.xcworkspace') + '/',
     archive: join(repo, 'shells/tauri-mobile/src-tauri/gen/apple/build/lolly-mobile_iOS'), target: join(output, 'target'),
     wrapperBin, compilerWrapper: join(wrapperBin, 'observe-rustc'), leases, compilerRecords,
-    path: [wrapperBin, dirname(rustc.path), env.PATH ?? ''].join(delimiter), protectedGroup: processFacts().find(row => row.pid === process.pid)!.group };
+    path: [wrapperBin, dirname(rustc.path), env.PATH ?? ''].join(delimiter), protectedGroup: processFacts().find(row => row.pid === process.pid)!.group, objectCopyTools };
   const bytes = JSON.stringify(guard, null, 2) + '\n', binding = sha256(bytes), path = join(output, 'build-guard.json');
+  assert.ok(Buffer.byteLength(bytes) <= 32 * 1024, 'The build guard exceeds its evidence bound.');
   await writeFile(path, bytes, { flag: 'wx', mode: 0o600 }); await createWrappers(path, guard);
   return { guard, binding, env: iosArchiveEnvironment(env, guard, binding), tools: { toolchain, rustc: command(rustc.path, ['--version', '--verbose']),
-    cargo: command(cargo.path, ['--version']), rustdoc: command(rustdoc.path, ['--version']), executables: selected, xcode: guard.xcode } };
+    cargo: command(cargo.path, ['--version']), rustdoc: command(rustdoc.path, ['--version']), executables: selected, xcode: guard.xcode, objectCopyTools } };
 }
 
 export function compilerMetadata(args: string[], guard: Pick<IosBuildGuard, 'target'>): { crate: string | null; target: string | null } {
@@ -124,7 +167,8 @@ export async function archiveProvenance(guard: IosBuildGuard, binding: string): 
   assert.ok(Array.isArray(row.command) && row.command.every((arg: unknown) => typeof arg === 'string'));
   assert.equal(guardedXcodeArgs(row.command, guard).removed, 0, 'The executed archive command retained provisioning.');
   assert.equal(sha256(await readFile(guard.xcode.path)), guard.xcode.sha256);
-  return { sourceSha: guard.sourceSha, binding, commandSha256: sha256(bytes), provisioningFlagsRemoved: row.provisioningFlagsRemoved, completedUnsignedArchive: true };
+  await verifyIosObjectCopyTools(guard.objectCopyTools);
+  return { sourceSha: guard.sourceSha, binding, commandSha256: sha256(bytes), provisioningFlagsRemoved: row.provisioningFlagsRemoved, completedUnsignedArchive: true, objectCopyTools: guard.objectCopyTools };
 }
 
 async function wrapper(mode: string, path: string, args: string[]): Promise<number> {
@@ -138,6 +182,7 @@ async function wrapper(mode: string, path: string, args: string[]): Promise<numb
     outgoing = args.slice(1); meta = compilerMetadata(outgoing, guard);
   } else {
     const safe = guardedXcodeArgs(args, guard); outgoing = safe.args; meta = { command: outgoing, provisioningFlagsRemoved: safe.removed };
+    await verifyIosObjectCopyTools(guard.objectCopyTools);
   }
   const row = { sourceSha: guard.sourceSha, binding, executable: selected.path, executableSha256: selected.sha256, ...meta };
   const record = join(rust ? guard.compilerRecords : guard.output, rust ? `${randomUUID()}.json` : 'xcode-archive-command.json');

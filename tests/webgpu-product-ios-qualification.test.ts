@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, readFile, readdir, rm, stat, symlink, writeFile } from 'node:fs/promises';
+import { chmod, mkdtemp, mkdir, readFile, readdir, rm, stat, symlink, writeFile } from 'node:fs/promises';
 import { readFileSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -16,7 +16,7 @@ import { iosProbeConfig } from '../scripts/verify-webgpu-product-ios.ts';
 import { decodeProductMessage, ProductProbeProtocol } from './helpers/webgpu-product-receiver.ts';
 import { webGpuBrowserEngine } from './helpers/webgpu-browser.ts';
 import { PRODUCT_CORPUS_MS, waitOwnedCorpus } from '../scripts/lib/webgpu-product-corpus.ts';
-import { archiveProvenance, guardedXcodeArgs, iosArchiveEnvironment, compilerMetadata, compilerProvenance, type IosBuildGuard } from '../scripts/lib/webgpu-ios-build.ts';
+import { archiveProvenance, guardedXcodeArgs, iosArchiveEnvironment, compilerMetadata, compilerProvenance, prepareIosObjectCopyTools, verifyIosObjectCopyTools, type IosBuildGuard } from '../scripts/lib/webgpu-ios-build.ts';
 import { collectOwnedProcesses, sameProcess, stopOwnedBuild, runOwnedBuild, processFacts, IOS_BUILD_MS, type ProcessFact } from '../scripts/lib/webgpu-ios-process.ts';
 import { expectedAppleProject, expectedAppleInfo, validateAppleDerivatives, validateIosSourceChanges, IOS_APPLE_INPUTS } from '../scripts/lib/webgpu-ios-generated.ts';
 
@@ -295,6 +295,79 @@ const archiveGuard = { workspace: '/owned/apple/lolly-mobile.xcodeproj/project.x
 const archiveArgs = () => ['CODE_SIGNING_REQUIRED=NO', 'CODE_SIGNING_ALLOWED=NO', 'CODE_SIGN_IDENTITY=""', 'CODE_SIGN_ENTITLEMENTS=""',
   '-scheme', 'lolly-mobile_iOS', '-workspace', archiveGuard.workspace, '-sdk', 'iphoneos', '-configuration', 'release', 'archive', '-archivePath', archiveGuard.archive];
 
+const executableIdentity = async (path: string) => {
+  const row = await stat(path);
+  return { path, sha256: sha256(await readFile(path)), size: row.size, mtimeMs: row.mtimeMs, inode: row.ino, device: row.dev };
+};
+async function fakeObjectCopyTools(sysroot: string, host: string, alias = true): Promise<{ llvm: string; rust: string }> {
+  const bin = join(sysroot, 'lib/rustlib', host, 'bin'); await mkdir(bin, { recursive: true });
+  const llvm = join(bin, 'llvm-objcopy'), rust = join(bin, 'rust-objcopy');
+  const text = '#!/bin/sh\nprintf "LLVM version 23.1.1\\n"\n';
+  await writeFile(llvm, text, { mode: 0o700 });
+  if (alias) await symlink('llvm-objcopy', rust); else await writeFile(rust, text, { mode: 0o700 });
+  return { llvm, rust };
+}
+async function fakeObjectCopyCompiler(sysroot: string, host: string): Promise<string> {
+  const bin = join(sysroot, 'bin'); await mkdir(bin, { recursive: true });
+  const rustc = join(bin, 'rustc');
+  await writeFile(rustc, `#!${process.execPath}\nconst args = process.argv.slice(2);\n` +
+    `if (args.join(' ') === '--print sysroot') console.log(${JSON.stringify(sysroot)});\n` +
+    `else if (args.join(' ') === '--version --verbose') console.log(${JSON.stringify('rustc 1.99.0\nhost: ' + host)});\n` +
+    `else process.exit(9);\n`, { mode: 0o700 });
+  return rustc;
+}
+
+test('object-copy preflight binds selected Apple host tools and aliases without changing process defaults', async () => {
+  const parent = join(root, 'plans/295-validation/ios-object-copy-tests'); await mkdir(parent, { recursive: true });
+  const output = await mkdtemp(join(parent, 'selected-')), env = { ...process.env };
+  try {
+    for (const host of ['aarch64-apple-darwin', 'x86_64-apple-darwin']) {
+      const sysroot = join(output, host), rustc = await fakeObjectCopyCompiler(sysroot, host);
+      const paths = await fakeObjectCopyTools(sysroot, host);
+      const tools = await prepareIosObjectCopyTools(await executableIdentity(rustc));
+      assert.equal(tools.sysroot, sysroot); assert.equal(tools.host, host);
+      assert.equal(tools.llvmObjcopy.requestedPath, paths.llvm); assert.equal(tools.rustObjcopy.requestedPath, paths.rust);
+      assert.equal(tools.rustObjcopy.executable.path, paths.llvm);
+      assert.equal(tools.llvmObjcopy.executable.sha256, sha256(await readFile(paths.llvm)));
+      assert.match(tools.rustObjcopy.version, /LLVM version 23\.1\.1/);
+      await verifyIosObjectCopyTools(tools);
+    }
+    assert.ok(JSON.stringify({ ...process.env }) === JSON.stringify(env), 'The preflight changed process defaults.');
+  } finally { await rm(output, { recursive: true, force: true }); }
+});
+
+test('object-copy preflight refuses missing, nonexecutable, failed and unbounded tools before archive', async () => {
+  const parent = join(root, 'plans/295-validation/ios-object-copy-tests'); await mkdir(parent, { recursive: true });
+  const output = await mkdtemp(join(parent, 'refused-'));
+  try {
+    for (const name of ['llvm', 'rust'] as const) for (const fault of ['missing', 'nonexecutable', 'failed', 'unbounded', 'nonprintable']) {
+      const sysroot = join(output, name + '-' + fault), rustc = await fakeObjectCopyCompiler(sysroot, 'aarch64-apple-darwin');
+      const paths = await fakeObjectCopyTools(sysroot, 'aarch64-apple-darwin', false);
+      if (fault === 'missing') await rm(paths[name]);
+      else if (fault === 'nonexecutable') await chmod(paths[name], 0o600);
+      else if (fault === 'failed') await writeFile(paths[name], '#!/bin/sh\nexit 7\n');
+      else if (fault === 'unbounded') await writeFile(paths[name], '#!/bin/sh\nprintf "LLVM ' + 'x'.repeat(1025) + '"\n');
+      else await writeFile(paths[name], '#!/bin/sh\nprintf "LLVM \\033bad"\n');
+      await assert.rejects(prepareIosObjectCopyTools(await executableIdentity(rustc)));
+    }
+    const sysroot = join(output, 'nonapple'), rustc = await fakeObjectCopyCompiler(sysroot, 'x86_64-unknown-linux-gnu');
+    await assert.rejects(prepareIosObjectCopyTools(await executableIdentity(rustc)), /Apple compiler host/);
+  } finally { await rm(output, { recursive: true, force: true }); }
+});
+
+test('object-copy identity recheck rejects replaced aliases and changed bytes despite a retained receipt', async () => {
+  const parent = join(root, 'plans/295-validation/ios-object-copy-tests'); await mkdir(parent, { recursive: true });
+  const output = await mkdtemp(join(parent, 'changed-'));
+  try {
+    const rustc = await fakeObjectCopyCompiler(output, 'aarch64-apple-darwin');
+    const paths = await fakeObjectCopyTools(output, 'aarch64-apple-darwin');
+    const tools = await prepareIosObjectCopyTools(await executableIdentity(rustc));
+    await assert.rejects(verifyIosObjectCopyTools({ ...tools, llvmObjcopy: { ...tools.llvmObjcopy, executable: { ...tools.llvmObjcopy.executable, sha256: '0'.repeat(64) } } }), /executable changed/);
+    await rm(paths.rust); await symlink(rustc, paths.rust);
+    await assert.rejects(verifyIosObjectCopyTools(tools), /executable changed/);
+  } finally { await rm(output, { recursive: true, force: true }); }
+});
+
 test('archive guard removes only the pinned provisioning flags and preserves every other argument', () => {
   const authored = archiveArgs();
   const guarded = guardedXcodeArgs([...authored.slice(0, 4), '-allowProvisioningUpdates', '-quiet', ...authored.slice(4, 12), '-allowProvisioningUpdates', ...authored.slice(12)], archiveGuard);
@@ -413,15 +486,20 @@ test('real observer invocation preserves compiler arguments and records only saf
     const bin = join(output, 'bin'), target = join(output, 'target'), leases = join(output, 'leases'), records = join(output, 'records');
     for (const path of [bin, target, leases, records]) await mkdir(path);
     const rustc = join(bin, 'rustc'), cargo = join(bin, 'cargo'), argvFile = join(output, 'actual-argv.json');
-    await writeFile(rustc, `#!${process.execPath}\nimport { writeFileSync } from 'node:fs'; writeFileSync(process.env.TEST_ARGV_PATH, JSON.stringify(process.argv.slice(2)));\n`, { mode: 0o700 });
+    await writeFile(rustc, `#!${process.execPath}\nimport { writeFileSync } from 'node:fs'; const args = process.argv.slice(2);\n` +
+      `if (args.join(' ') === '--print sysroot') console.log(${JSON.stringify(output)});\n` +
+      `else if (args.join(' ') === '--version --verbose') console.log('rustc 1.99.0\\nhost: aarch64-apple-darwin');\n` +
+      `else writeFileSync(process.env.TEST_ARGV_PATH, JSON.stringify(args));\n`, { mode: 0o700 });
     await writeFile(cargo, '#!/bin/sh\nexit 0\n', { mode: 0o700 });
-    const identity = async (path: string) => { const row = await stat(path); return { path, sha256: sha256(await readFile(path)), size: row.size, mtimeMs: row.mtimeMs, inode: row.ino, device: row.dev }; };
+    const identity = executableIdentity;
+    await fakeObjectCopyTools(output, 'aarch64-apple-darwin');
+    const objectCopyTools = await prepareIosObjectCopyTools(await identity(rustc));
     const guard: IosBuildGuard = { version: 1, repo: root, output, runId, sourceSha: spawnSync('git', ['-C', root, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).stdout.trim(),
       toolchain: 'test-observer-only', rustc: await identity(rustc), cargo: await identity(cargo), rustdoc: await identity(rustc), xcode: await identity(process.execPath),
       deadline: Date.now() + 20_000, helperSha256: sha256(await readFile(join(root, 'scripts/lib/webgpu-ios-build.ts'))),
       processHelperSha256: sha256(await readFile(join(root, 'scripts/lib/webgpu-ios-process.ts'))), ...archiveGuard, target,
       wrapperBin: bin, compilerWrapper: join(bin, 'observe-rustc'), leases, compilerRecords: records, path: bin + ':' + process.env.PATH,
-      protectedGroup: processFacts().find(row => row.pid === process.pid)!.group };
+      protectedGroup: processFacts().find(row => row.pid === process.pid)!.group, objectCopyTools };
     const bytes = JSON.stringify(guard), binding = sha256(bytes), path = join(output, 'build-guard.json'); await writeFile(path, bytes);
     const env = { ...iosArchiveEnvironment(process.env, guard, binding), TEST_ARGV_PATH: argvFile };
     const args = ['--crate-name', 'lolly_mobile_lib', '--target', 'aarch64-apple-ios', '--out-dir', join(target, 'deps'), '--cfg', 'private-argument-value'];
@@ -432,6 +510,20 @@ test('real observer invocation preserves compiler arguments and records only saf
       status: 'completed', exit: 0, command: archiveArgs(), provisioningFlagsRemoved: 2 };
     await writeFile(join(output, 'xcode-archive-command.json'), JSON.stringify(archiveRecord));
     assert.equal((await archiveProvenance(guard, binding)).completedUnsignedArchive, true);
+    await assert.rejects(archiveProvenance({ ...guard, objectCopyTools: { ...objectCopyTools, llvmObjcopy: { ...objectCopyTools.llvmObjcopy,
+      executable: { ...objectCopyTools.llvmObjcopy.executable, sha256: '0'.repeat(64) } } } }, binding), /executable changed/);
+    await writeFile(path, JSON.stringify({ ...guard, objectCopyTools: { ...objectCopyTools, host: 'x86_64-apple-darwin' } }));
+    const rebound = spawnSync(process.execPath, ['scripts/lib/webgpu-ios-build.ts', '--rustc', path, rustc, ...args], { cwd: root, env, encoding: 'utf8', timeout: 5000 });
+    assert.equal(rebound.status, 1); assert.equal((await readdir(records)).length, 1);
+    const changedGuard = { ...guard, objectCopyTools: { ...objectCopyTools, llvmObjcopy: { ...objectCopyTools.llvmObjcopy,
+      executable: { ...objectCopyTools.llvmObjcopy.executable, sha256: '0'.repeat(64) } } } };
+    const changedBytes = JSON.stringify(changedGuard), changedBinding = sha256(changedBytes);
+    await writeFile(path, changedBytes); await rm(join(output, 'xcode-archive-command.json'));
+    const refused = spawnSync(process.execPath, ['scripts/lib/webgpu-ios-build.ts', '--xcode', path, ...archiveArgs()], {
+      cwd: root, env: iosArchiveEnvironment(process.env, changedGuard, changedBinding), encoding: 'utf8', timeout: 5000 });
+    assert.equal(refused.status, 1); assert.ok(!(await readdir(output)).includes('xcode-archive-command.json'), 'Changed tools must fail before the archive starts.');
+    await writeFile(join(output, 'xcode-archive-command.json'), JSON.stringify(archiveRecord));
+    await writeFile(path, bytes);
     for (const patch of [{ status: 'started' }, { exit: 1 }, { command: [...archiveArgs(), '-allowProvisioningUpdates'] }, { provisioningFlagsRemoved: 3 }]) {
       await writeFile(join(output, 'xcode-archive-command.json'), JSON.stringify({ ...archiveRecord, ...patch })); await assert.rejects(archiveProvenance(guard, binding));
     }

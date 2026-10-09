@@ -42,6 +42,7 @@ type Mode = 'render' | 'hang' | 'manual';
 let mode: Mode = 'render';
 /** In 'manual' mode a posted render waits here until the test sends its answer. */
 let held: (() => void)[] = [];
+const realSetTimeout = setTimeout;
 
 class FakeWorker {
   static all: FakeWorker[] = [];
@@ -82,7 +83,7 @@ beforeEach(() => {
   held = [];
 });
 
-/** Let the client's async steps (the SHA-256 digest) reach the worker. */
+/** Let pending event-loop callbacks run; this does not await a thread-pool digest. */
 async function settle(): Promise<void> {
   for (let i = 0; i < 20; i++) await new Promise<void>((r) => setImmediate(r));
 }
@@ -92,7 +93,7 @@ async function settle(): Promise<void> {
  *  machine to be sure a job has been posted. */
 async function until(cond: () => boolean, what: string, ms = 10_000): Promise<void> {
   const end = Date.now() + ms;
-  while (!cond() && Date.now() < end) await new Promise<void>((r) => setTimeout(r, 5));
+  while (!cond() && Date.now() < end) await new Promise<void>((r) => realSetTimeout(r, 5));
   assert.ok(cond(), `timed out waiting for ${what}`);
 }
 
@@ -113,23 +114,65 @@ test('a render past its wall-clock budget is stopped by terminating the worker, 
   mode = 'hang';
   const stuck = renderRondoSong(TINY, { seconds: 2 });
   const caught = stuck.catch((e: unknown) => e);
-  await settle();
-  assert.equal(FakeWorker.all.length, 1);
-  assert.equal(FakeWorker.all[0]!.posted.length, 1, 'the render was posted');
-  t.mock.timers.tick(renderBudgetMs(2) - 1);
-  await settle();
-  assert.equal(FakeWorker.all[0]!.terminated, false, 'not stopped before its budget');
-  t.mock.timers.tick(2);
-  const err = await caught as RondoRenderError;
-  assert.ok(err instanceof RondoRenderError);
-  assert.equal(err.code, 'rondo.timeout');
-  assert.equal(FakeWorker.all[0]!.terminated, true, 'the only stop that always works');
-  t.mock.timers.reset();
+  let clocksMocked = true;
+  try {
+    await until(() => FakeWorker.all.length === 1 && FakeWorker.all[0]!.posted.length === 1,
+      'the budgeted render to be posted');
+    assert.equal(FakeWorker.all.length, 1);
+    assert.equal(FakeWorker.all[0]!.posted.length, 1, 'the render was posted');
+    t.mock.timers.tick(renderBudgetMs(2) - 1);
+    await settle();
+    assert.equal(FakeWorker.all[0]!.terminated, false, 'not stopped before its budget');
+    t.mock.timers.tick(2);
+    const err = await caught as RondoRenderError;
+    assert.ok(err instanceof RondoRenderError);
+    assert.equal(err.code, 'rondo.timeout');
+    assert.equal(FakeWorker.all[0]!.terminated, true, 'the only stop that always works');
+    t.mock.timers.reset(); clocksMocked = false;
 
-  mode = 'render';
-  const next = await renderRondoSong(TINY, { seconds: 1 });
-  assert.equal(FakeWorker.all.length, 2, 'a fresh worker for the next render');
-  assert.equal(next.left.length, 48_000);
+    mode = 'render';
+    const next = await renderRondoSong(TINY, { seconds: 1 });
+    assert.equal(FakeWorker.all.length, 2, 'a fresh worker for the next render');
+    assert.equal(next.left.length, 48_000);
+  } finally {
+    // Drain this owned request even if setup fails before its digest reaches the queue.
+    mode = 'render';
+    if (clocksMocked) { t.mock.timers.tick(renderBudgetMs(2) + 1); t.mock.timers.reset(); }
+    await caught;
+    _resetRondoRender();
+  }
+});
+
+test('worker readiness waits for a digest held beyond twenty event-loop turns', async t => {
+  const originalDigest = crypto.subtle.digest.bind(crypto.subtle);
+  let release = () => {};
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  t.mock.method(crypto.subtle, 'digest', async (algorithm: AlgorithmIdentifier, data: BufferSource) => {
+    await gate;
+    return originalDigest(algorithm, data);
+  });
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  mode = 'hang';
+  const caught = renderRondoSong(TINY, { seconds: 2 }).catch((error: unknown) => error);
+  try {
+    await settle();
+    assert.equal(FakeWorker.all.length, 0, 'event-loop turns do not finish the held digest');
+    release();
+    await until(() => FakeWorker.all.length === 1 && FakeWorker.all[0]!.posted.length === 1,
+      'the render after the held digest');
+    t.mock.timers.tick(renderBudgetMs(2) - 1);
+    assert.equal(FakeWorker.all[0]!.terminated, false);
+    t.mock.timers.tick(2);
+    const error = await caught;
+    assert.ok(error instanceof RondoRenderError);
+    assert.equal(error.code, 'rondo.timeout');
+    assert.equal(FakeWorker.all[0]!.terminated, true);
+  } finally {
+    release(); mode = 'render';
+    t.mock.timers.tick(renderBudgetMs(2) + 1); t.mock.timers.reset();
+    await caught;
+    _resetRondoRender();
+  }
 });
 
 test('renders run one at a time, in order', async () => {

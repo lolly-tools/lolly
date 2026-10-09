@@ -28,7 +28,28 @@ provisioning, change device preferences or install dependencies.
 Set `RUSTUP_TOOLCHAIN` to the explicit installed toolchain selected for this
 attempt (for example `1.99.0`); do not change the Mac's default toolchain. The
 helper resolves and hashes that toolchain's real Cargo, rustc and rustdoc
-executables. It places the real bin directory ahead of rustup shims for this
+executables. The selected toolchain also needs its `llvm-tools` component for
+the pinned Swift bindings. Install the component for that explicit toolchain,
+without changing the default:
+
+```sh
+rustup component add llvm-tools --toolchain "$RUSTUP_TOOLCHAIN"
+```
+
+The preflight asks the selected real rustc for its sysroot and Apple host, then
+verifies both `llvm-objcopy` and `rust-objcopy` under
+`lib/rustlib/<host>/bin/`. It records their requested paths, resolved executable
+identities, hashes and bounded version output before the archive starts.
+Missing, nonexecutable or failing tools stop preparation before the expensive
+build. There is no object-copy PATH fallback or dynamic-loader override.
+Aliases and executable identities are checked again before Xcode runs and after
+a successful archive. These facts form part of the source-bound build guard
+and archive receipt. Rustup documents `llvm-tools` as an optional component
+whose tool availability may change, so the preflight checks the actual tools
+instead of inferring their presence from a component name. See the
+[Rustup component documentation](https://rust-lang.github.io/rustup/concepts/components.html).
+
+The helper places the real compiler bin directory ahead of rustup shims for this
 process and forwards the absolute compiler through `CARGO_BUILD_RUSTC`.
 `RUSTUP_TOOLCHAIN` alone is insufficient: the pinned Tauri CLI filters that
 variable out before Xcode executes its Rust script. A local observer passes
