@@ -472,10 +472,10 @@ export function ship(argv: string[] = process.argv.slice(2)): boolean {
   }
 
   // Every driver here publishes the creative web shell, which requires WebGPU, so
-  // a ship waits for the supported-environment table like any other web shell
-  // release (plan 295 section 1B). --no-gate skips the test gate below, not this.
+  // a ship requires the published browser results for a web artifact. Native
+  // releases retain their separate full hold. --no-gate skips only the test gate.
   try {
-    assertWebGpuReleaseAllowed();
+    assertWebGpuReleaseAllowed(undefined, 'web');
   } catch (error) {
     err(error instanceof Error ? error.message : String(error));
     return false;

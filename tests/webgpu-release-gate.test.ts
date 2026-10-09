@@ -21,7 +21,7 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { parse as parseYaml } from 'yaml';
 import {
-  REQUIRED_WEBGPU_TARGETS, SUPPORTED_ENVIRONMENTS_PATH, assertWebGpuReleaseAllowed,
+  REQUIRED_WEBGPU_TARGETS, REQUIRED_WEBGPU_WEB_TARGETS, SUPPORTED_ENVIRONMENTS_PATH, assertWebGpuReleaseAllowed, parseWebGpuReleaseScope,
   supportedEnvironmentProblems, webGpuReleaseProblems, webGpuStartupGatePresent,
 } from '../scripts/webgpu-release-gate.ts';
 import { main as releaseChecklist } from '../scripts/release-checklist.ts';
@@ -38,6 +38,7 @@ const COMPLETE = [
   '| Linux app (WebKitGTK) | Not supported | 2.50 | none | run 7 |',
   '| Android app (WebView) | Supported | 153 | Vulkan | run 8 |',
 ].join('\n');
+const WEB_QUALIFIED = COMPLETE.split('\n').map((row, index) => index >= 5 ? row.replace(/(?:Not supported(?:: no adapter)?|Supported)/, 'Pending: runtime not qualified') : row).join('\n');
 
 /** A scratch tree with the shell's main.ts and, optionally, the published table. */
 function tree(mainSource: string, table?: string): string {
@@ -103,6 +104,52 @@ test('a release is refused without the table, allowed with it, and not gated onc
   } finally { for (const root of roots) rmSync(root, { recursive: true, force: true }); }
 });
 
+test('web-only qualification allows a web artifact while the default and packaged scope remain held', () => {
+  const root = tree(GATED_MAIN, WEB_QUALIFIED);
+  try {
+    assert.equal(REQUIRED_WEBGPU_WEB_TARGETS.length, 3);
+    assert.deepEqual(webGpuReleaseProblems(root, 'web'), []);
+    assert.doesNotThrow(() => assertWebGpuReleaseAllowed(root, 'web'));
+    assert.equal(webGpuReleaseProblems(root).length, 5);
+    assert.throws(() => assertWebGpuReleaseAllowed(root), /all artifact scope[\s\S]*Windows app/);
+    assert.throws(() => assertWebGpuReleaseAllowed(root, 'all'), /Android app/);
+    const pendingBrowser = WEB_QUALIFIED.replace('| Firefox | Not supported: no adapter |', '| Firefox | Pending |');
+    assert.match(supportedEnvironmentProblems(pendingBrowser, 'web')[0]!, /^Firefox:/);
+    assert.deepEqual(supportedEnvironmentProblems(WEB_QUALIFIED.split('\n').filter(row => !row.includes('| Safari (WebKit) |')).join('\n'), 'web'), ['no row for Safari (WebKit)']);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test('scope is explicit and closed, including an unknown scope when startup is ungated', () => {
+  assert.equal(parseWebGpuReleaseScope([]), 'all');
+  assert.equal(parseWebGpuReleaseScope(['--scope', 'all']), 'all');
+  assert.equal(parseWebGpuReleaseScope(['--scope', 'web']), 'web');
+  for (const argv of [['--scope'], ['--scope', 'native'], ['--scope=web'], ['web'], ['--scope', 'web', '--scope', 'all']]) {
+    assert.throws(() => parseWebGpuReleaseScope(argv), /Release refused/);
+  }
+  const root = tree('void boot();\n');
+  try {
+    assert.throws(() => webGpuReleaseProblems(root, 'native' as 'all'), /unknown WebGPU release scope/);
+    assert.throws(() => supportedEnvironmentProblems(COMPLETE, 'native' as 'all'), /unknown WebGPU release scope/);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test('the standalone gate keeps the full hold unless its exact CLI selects a qualified web artifact', () => {
+  const root = tree(GATED_MAIN, WEB_QUALIFIED);
+  try {
+    mkdirSync(join(root, 'scripts'));
+    copyFileSync(new URL('../scripts/webgpu-release-gate.ts', import.meta.url), join(root, 'scripts/webgpu-release-gate.ts'));
+    writeFileSync(join(root, 'package.json'), '{ "type": "module" }\n');
+    const run = (args: string[]) => spawnSync(process.execPath, [join(root, 'scripts/webgpu-release-gate.ts'), ...args], {
+      encoding: 'utf8', timeout: 10_000, env: { PATH: process.env.PATH, LOLLY_WEBGPU_RELEASE_SCOPE: 'web' },
+    });
+    assert.equal(run([]).status, 1, 'an environment variable cannot waive the default native hold');
+    const web = run(['--scope', 'web']);
+    assert.equal(web.status, 0, web.stderr);
+    assert.match(web.stdout, /WebGPU release gate \(web\).*3 required environments/);
+    for (const args of [['--scope', 'all'], ['--scope', 'native'], ['--scope', 'web', '--extra']]) assert.equal(run(args).status, 1);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
 test('ordinary CI keeps passing release-checklist --check; release mode refuses until the table exists', () => {
   const quiet = console.error;
   console.error = () => {};
@@ -117,6 +164,18 @@ test('ordinary CI keeps passing release-checklist --check; release mode refuses 
   }
 });
 
+test('the published Mac browser matrix permits web artifacts and keeps the remaining native qualification hold', () => {
+  assert.deepEqual(webGpuReleaseProblems(undefined, 'web'), []);
+  const problems = webGpuReleaseProblems();
+  assert.equal(problems.length, 4);
+  for (const environment of ['iOS and iPadOS', 'Windows', 'Linux', 'Android']) {
+    assert.ok(problems.some(problem => problem.startsWith(environment) && problem.includes('Pending: physical runtime not qualified')));
+  }
+  const table = readFileSync(new URL('../docs/supported-environments.md', import.meta.url), 'utf8');
+  assert.match(table, /macOS 27, Apple M4/);
+  assert.match(table, /do not establish support for the\nsame browsers on Windows, Linux, Android, iOS/);
+});
+
 // ---------------------------------------------------------------------------
 // Scope: the web shell and the Tauri apps are gated; MCP, CA, Penpot and docs are not.
 // ---------------------------------------------------------------------------
@@ -124,6 +183,7 @@ test('ordinary CI keeps passing release-checklist --check; release mode refuses 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const repoFile = (path: string): string => readFileSync(join(REPO, path), 'utf8');
 const GATE_STEP = 'node scripts/webgpu-release-gate.ts';
+const WEB_GATE_STEP = `${GATE_STEP} --scope web`;
 /**
  * Anything that runs the gate: the gate itself, the signed frontend wrapper and every
  * script that reaches it (the shell-level build:frontend:release included), the web
@@ -148,14 +208,14 @@ test('the deployment workflow gates the web shell image and no other image or th
   const gate = jobs['web-release-gate'];
   const web = jobs['web-image'];
   assert.ok(gate && web, 'the gate job and the web image job exist');
-  assert.ok(gate.steps.some((step) => step.run?.includes(GATE_STEP)), 'the gate job runs the gate');
+  assert.ok(gate.steps.some((step) => step.run?.includes(WEB_GATE_STEP)), 'the web image gate explicitly selects web scope');
   assert.match(gate.outputs?.allowed ?? '', /^\$\{\{ steps\.gate\.outputs\.allowed \}\}$/);
 
   // The web image waits for the gate, then refuses again on its own checkout before
   // it builds, and the image build itself runs the gated wrapper.
   assert.ok(needsOf(web).includes('web-release-gate'));
   assert.match(web.if ?? '', /needs\.web-release-gate\.outputs\.allowed == 'true'/);
-  const refuse = web.steps.findIndex((step) => step.run?.trim() === GATE_STEP);
+  const refuse = web.steps.findIndex((step) => step.run?.trim() === WEB_GATE_STEP);
   const build = web.steps.findIndex((step) => step.run?.includes('-f deploy/docker/web.Dockerfile'));
   assert.ok(refuse >= 0 && build > refuse, 'the web job refuses before it builds');
   assert.match(repoFile('deploy/docker/web.Dockerfile'), /^\s+pnpm run build:web:release$/m);
@@ -191,7 +251,7 @@ test('the gate job turns a refusal into allowed=false, a published table into al
   const step = workflowJobs('deployment-suse.yml')['web-release-gate']!.steps.find((candidate) => candidate.run?.includes(GATE_STEP));
   assert.ok(step?.run, 'the gate step exists');
   const script: string = step.run;
-  for (const [table, allowed] of [[undefined, 'false'], [COMPLETE, 'true']] as const) {
+  for (const [table, allowed] of [[undefined, 'false'], [COMPLETE, 'true'], [WEB_QUALIFIED, 'true']] as const) {
     // A scratch checkout holding the real gate, the shell's WebGPU requirement and,
     // for the second run, the published table. The step runs the way GitHub runs a bash step.
     const root = tree(GATED_MAIN, table);
@@ -373,7 +433,7 @@ test('the web shell and every Tauri app build still go through the gate', () => 
   const wrapper = repoFile('scripts/build-release-web.ts');
   const main = wrapper.slice(wrapper.indexOf('export function main(): void {'));
   const body = main.slice(0, main.indexOf('\n}\n'));
-  const asked = body.indexOf('  assertWebGpuReleaseAllowed();');
+  const asked = body.indexOf("  assertWebGpuReleaseAllowed(ROOT, target === 'web' ? 'web' : 'all');");
   assert.ok(asked > 0 && asked < body.indexOf('validateReleaseEnvironment(') && asked < body.indexOf('sign(env)'));
   for (const [shell, root] of [['tauri-desktop', 'build:desktop:frontend:release'], ['tauri-mobile', 'build:mobile:frontend:release']] as const) {
     const config = JSON.parse(repoFile(`shells/${shell}/src-tauri/tauri.conf.json`)) as { build: { beforeBuildCommand: string } };
@@ -419,9 +479,9 @@ test('every workflow job, Dockerfile and script that turns release mode on asks 
   assert.ok(releaseJobs.some(({ file, id }) => file === 'ci.yml' && id === 'instance-shell'), 'the scan finds the instance shell job');
   for (const { file, id, job } of releaseJobs) {
     const steps = job.steps ?? [];
-    const asked = steps.findIndex((step) => step.run?.trim() === GATE_STEP);
+    const asked = steps.findIndex((step) => step.run?.trim() === GATE_STEP || step.run?.trim() === WEB_GATE_STEP);
     const built = steps.findIndex((step) => /\bbuild:web\b|\bvite(?:\.js)?\b[^\n]*\bbuild\b|\btauri (?:ios |android )?build\b|docker (?:buildx )?build/.test(step.run ?? ''));
-    const throughWrapper = steps.some((step) => step.run?.trim() !== GATE_STEP && GATED_BUILD.test(step.run ?? ''));
+    const throughWrapper = steps.some((step) => step.run?.trim() !== GATE_STEP && step.run?.trim() !== WEB_GATE_STEP && GATED_BUILD.test(step.run ?? ''));
     assert.ok(throughWrapper || (asked >= 0 && (built < 0 || asked < built)), `${file} ${id} builds in release mode without asking the WebGPU gate first`);
   }
   for (const name of readdirSync(join(REPO, 'deploy', 'docker')).filter((file) => file.endsWith('Dockerfile'))) {
@@ -440,7 +500,7 @@ test('a ship asks the gate before the test gate and before any driver publishes,
   // runs plain build:web and rsyncs it), so ship() refuses while the table is unpublished.
   const source = repoFile('scripts/ship.ts');
   const body = source.slice(source.indexOf('export function ship('));
-  const asked = body.indexOf('    assertWebGpuReleaseAllowed();');
+  const asked = body.indexOf("    assertWebGpuReleaseAllowed(undefined, 'web');");
   assert.ok(asked > 0, 'ship() asks the gate at the top level of its body');
   assert.ok(asked < body.indexOf('if (opts.runGate)'), 'before the test gate, outside the --no-gate branch');
   assert.ok(asked < body.indexOf('driver.publish('), 'before any driver publishes');

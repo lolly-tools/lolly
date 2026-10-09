@@ -5,6 +5,11 @@ for the machine in front of you. This page is the one list of every packaged
 build: what each one is, how to install it, and how to check you got the file we
 made.
 
+The current main web shell requires WebGPU. See
+[supported environments](/info/supported-environments.html) for the tested browser
+versions and the separate native qualification status. A web-only update does
+not replace the packaged downloads below.
+
 The app is the same either way. Same tools, same brand packs, same files out -
 on the web, macOS, Windows, Linux, iOS and Android, plus the [CLI](/info/cli.html)
 and the terminal [TUI](/info/tui.html). Install it, open a hosted address, or run

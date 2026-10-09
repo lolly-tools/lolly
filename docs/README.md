@@ -43,6 +43,7 @@ security posture).
 | [quickstart.md](quickstart.md) | end user | The one page to read first: make Lolly wear your brand, bring in the design files and tokens you already have, then pick a pathway. Its own pathway hub. |
 | [make-something.md](make-something.md) | end user | One first lesson: make a QR code, download it, check that it scans and save an editable copy, with no account or setup. Links to an audiogram and a filtered photo as other first projects. The first click for a brand-new visitor. |
 | [install.md](install.md) | end user | Every packaged build in one list: the macOS disk image, the openSUSE Tumbleweed and Leap 16 RPMs, the Flatpak, the Android APK, plus Windows, iOS, the CLI and the TUI. The destination of the landing hero's download rail. |
+| [supported-environments.md](supported-environments.md) | end user and operator | Published browser and app qualification results, their platform limits, and the web-only release scope while native qualification remains open. |
 | [organisation.md](organisation.md) | end user | Connect to an organisation's Lolly, with progressive disclosure for optional lolly.work identity, shared work, policies and data handling. |
 
 ## For Creators

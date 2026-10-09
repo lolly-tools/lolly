@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 import assert from 'node:assert/strict';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, unlinkSync, writeFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -52,6 +52,16 @@ test('signed frontend entrypoints refuse before signing when WebGPU qualificatio
   assert.equal(partial.status, 1);
   assert.match(partial.stderr, /no row for Chrome and Edge/);
   assert.equal(existsSync(marker), false, 'partial qualification still refuses before signing');
+  const webQualified = rows.map((row, index) => index < 3 ? row : row.replace('Not supported', 'Pending: runtime not qualified'));
+  writeFileSync(join(dir, 'docs', 'supported-environments.md'), webQualified.join('\n'));
+  assert.equal(run('web').status, 77, 'web-only qualification reaches signing for the web artifact');
+  unlinkSync(marker);
+  for (const target of ['tauri-desktop', 'tauri-mobile']) {
+    const held = run(target);
+    assert.equal(held.status, 1, `${target} stays held with a web-only table`);
+    assert.match(held.stderr, /all artifact scope[\s\S]*Pending/);
+    assert.equal(existsSync(marker), false, `${target} never reaches signing`);
+  }
   writeFileSync(join(dir, 'docs', 'supported-environments.md'), rows.join('\n'));
   assert.equal(run('web').status, 77, 'published results allow the signing stage to run');
   assert.equal(existsSync(marker), true);

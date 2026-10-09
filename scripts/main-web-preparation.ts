@@ -57,7 +57,7 @@ export async function prepareMainWebCandidate(options: {
   root?: string; repository: string; event: unknown | (() => unknown); publicKey?: string; api: CandidateApi;
 }): Promise<MainWebPreparation> {
   const root = options.root ?? ROOT;
-  const problems = webGpuReleaseProblems(root);
+  const problems = webGpuReleaseProblems(root, 'web');
   if (problems.length) return { result: 'HELD', reason: 'release-gate', problems };
   require(statSync(join(root, 'shells/web/src/main.ts')).isFile(), 'Missing web release-gate source');
   require(REPOSITORY.test(options.repository), 'Invalid repository identity');

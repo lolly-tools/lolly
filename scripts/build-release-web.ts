@@ -112,7 +112,7 @@ export function qualificationMain(target: ReleaseFrontend, env: NodeJS.ProcessEn
 export function main(): void {
   const target = parseReleaseFrontend(process.argv[2]);
   if (isQualificationBuild(process.env)) { qualificationMain(target); return; }
-  assertWebGpuReleaseAllowed();
+  assertWebGpuReleaseAllowed(ROOT, target === 'web' ? 'web' : 'all');
   validateReleaseEnvironment(process.env);
   const env = {
     ...process.env,

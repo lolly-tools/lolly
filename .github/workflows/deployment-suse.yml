@@ -432,7 +432,7 @@ jobs:
         run: |
           set -euo pipefail
           report="$RUNNER_TEMP/webgpu-release-gate.txt"
-          if node scripts/webgpu-release-gate.ts > "$report" 2>&1; then
+          if node scripts/webgpu-release-gate.ts --scope web > "$report" 2>&1; then
             allowed=true
           else
             allowed=false
@@ -500,8 +500,8 @@ jobs:
       # The image build refuses too (deploy/docker/web.Dockerfile runs
       # build:web:release, which is scripts/build-release-web.ts); this step refuses
       # first, on this exact checkout, before any signing material is used.
-      - name: Refuse the web image while the WebGPU table is unpublished
-        run: node scripts/webgpu-release-gate.ts
+      - name: Check browser qualification for the web-only image
+        run: node scripts/webgpu-release-gate.ts --scope web
 
       - name: Build the exact public web image on native amd64
         env:

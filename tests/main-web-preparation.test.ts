@@ -22,7 +22,7 @@ function gateRoot(table: 'complete' | 'incomplete' | 'missing' = 'complete'): st
   writeFileSync(join(root, 'shells/web/src/main.ts'), gateSource);
   if (table !== 'missing') {
     mkdirSync(join(root, 'docs'));
-    const targets = table === 'complete' ? REQUIRED_WEBGPU_TARGETS : REQUIRED_WEBGPU_TARGETS.slice(0, -1);
+    const targets = table === 'complete' ? REQUIRED_WEBGPU_TARGETS : REQUIRED_WEBGPU_TARGETS.filter(target => target.name !== 'Safari (WebKit)');
     writeFileSync(join(root, 'docs/supported-environments.md'), ['| Environment | WebGPU result |', '|---|---|',
       ...targets.map(target => `| ${target.name} | Supported |`)].join('\n'));
   }
@@ -66,6 +66,17 @@ test('approved current main dispatches only the exact web candidate request', as
       } },
     ]);
     assert.equal(JSON.stringify(posts(mock.calls)).includes('archive_run'), false);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test('pending native rows do not withhold a qualified web-only candidate', async () => {
+  const root = gateRoot(), mock = syntheticApi();
+  try {
+    const table = join(root, 'docs/supported-environments.md');
+    writeFileSync(table, readFileSync(table, 'utf8').split('\n').map(row => /app \(/.test(row) ? row.replace('Supported', 'Pending: runtime not qualified') : row).join('\n'));
+    assert.equal((await prepareMainWebCandidate({ root, repository, event, publicKey: keyText, api: mock.api })).result, 'REQUESTED');
+    assert.equal(posts(mock.calls).length, 1);
+    assert.equal((posts(mock.calls)[0]!.body!.inputs as Record<string, unknown>).release_scope, 'web');
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 

@@ -101,7 +101,7 @@ export function renderChecklist(inventory: Inventory): string {
     '',
     '## Publication',
     '',
-    '- [ ] `pnpm run check:release` passes. Release mode refuses a release of the web shell or the packaged apps while the web shell requires WebGPU at startup and `docs/supported-environments.md` lacks a published result for any required environment (plan 295 P0b, `scripts/webgpu-release-gate.ts`). The MCP, CA and Penpot images and the /info docs do not wait for it.',
+    '- [ ] `pnpm run check:release` passes for a full frontend release. It retains the complete browser/app qualification hold. A web-only artifact explicitly runs `node scripts/webgpu-release-gate.ts --scope web` plus the ordinary closure check (`pnpm run check:release-checklist`); its signed wrapper checks the browser scope again before signing. Publish truthful platform/version limits in `docs/supported-environments.md`; pending native results remain held (plan 295 P0b). The MCP, CA and Penpot images and the /info docs have independent checks.',
     '- [ ] Every mounted profile\'s generated catalogue index was rebuilt after community manifest changes (`pnpm run build:catalog:all`).',
     '- [ ] Release artifacts have recorded SHA-256 digests and their source commit/submodule pointers are recoverable.',
     '- [ ] SBOM, third-party notices, release notes, privacy/security docs, and vulnerability-reporting links match the shipped target.',
