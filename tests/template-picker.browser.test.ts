@@ -135,9 +135,11 @@ test('template Open edits, saves and returns to its originating Projects folder 
         await page.reload({ waitUntil: 'networkidle' }); await shellSettled(page);
         assert.equal(await page.locator('html').getAttribute('data-a11y-text'), 'large');
         const create = page.locator('[data-create-btn="tool"]').first();
-        for (const mode of ['list', 'preview']) {
+        for (const mode of ['list', 'grid']) {
           await page.locator('.projects-viewopts').click();
-          await page.locator(`[data-vm="${mode}"]`).click();
+          const choice = page.locator('.projects-viewmenu').locator(`[data-vm="${mode}"]`);
+          await choice.click();
+          assert.equal(await choice.getAttribute('aria-pressed'), 'true');
           // View options stays open after a choice (views/projects-view-options.ts), so
           // close it before checking the layout underneath and reopening it.
           await page.keyboard.press('Escape');
