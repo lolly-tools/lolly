@@ -131,14 +131,127 @@ export async function prepareIosBuildGuard(repo: string, output: string, runId: 
     cargo: command(cargo.path, ['--version']), rustdoc: command(rustdoc.path, ['--version']), executables: selected, xcode: guard.xcode, objectCopyTools } };
 }
 
-export function compilerMetadata(args: string[], guard: Pick<IosBuildGuard, 'target'>): { crate: string | null; target: string | null } {
-  const value = (flag: string) => args[args.indexOf(flag) + 1];
-  const crate = args.includes('--crate-name') ? value('--crate-name') : null;
-  const target = args.includes('--target') ? value('--target') : null;
-  if (crate !== null) { assert.ok(crate); assert.match(crate, /^[A-Za-z0-9_]{1,128}$/); }
+// Only input-free, stdout-only information queries can have a nonzero outcome.
+// native-static-libs/link-args may compile; crate-name/file-names may read input.
+const informationPrints = ['sysroot', 'host-tuple', 'target-libdir', 'cfg', 'target-list', 'target-cpus', 'target-features',
+  'relocation-models', 'code-models', 'tls-models', 'deployment-target', 'split-debuginfo'] as const;
+const diagnosticPrints = [...informationPrints, 'crate-name', 'file-names', 'native-static-libs', 'link-args',
+  'target-spec-json', 'all-target-specs-json', 'calling-conventions', 'stack-protector-strategies',
+  'explain', 'codegen-help', 'unstable-help', 'lint-help', 'unknown'] as const;
+const compilerFlags = ['--crate-name', '--target', '--out-dir', '-o', '--emit', '--print', '--version', '--verbose', '--help',
+  '--crate-type', '--edition', '--cfg', '--check-cfg', '--extern', '--cap-lints', '--force-warn', '--error-format', '--json', '--color',
+  '--diagnostic-width', '--remap-path-prefix', '--remap-path-scope', '--sysroot', '--test', '--explain',
+  '-C', '-L', '-l', '-Z', '-W', '-A', '-D', '-F', '-g', '-O', 'input', 'unknown-option'] as const;
+const valueFlags = ['--crate-type', '--edition', '--cfg', '--check-cfg', '--extern', '--cap-lints', '--force-warn', '--error-format', '--json',
+  '--color', '--diagnostic-width', '--remap-path-prefix', '--remap-path-scope', '--sysroot', '--explain', '-C', '-L', '-l', '-Z', '-W', '-A', '-D', '-F'];
+const compilerAliases: Record<string, string> = { '--codegen': '-C', '--warn': '-W', '--allow': '-A', '--deny': '-D', '--forbid': '-F' };
+export interface CompilerMetadata {
+  metadataVersion: 1; crate: string | null; target: string | null;
+  operation: 'compile' | 'information' | 'unclassified'; argvSha256: string; argumentCount: number;
+  flags: string[]; querySelectors: string[]; ownedOutputCount: number; inputCount: number; sourceInputCount: number;
+}
+function ownedCompilerOutput(value: string, guard: Pick<IosBuildGuard, 'target'>): void {
+  assert.ok(isAbsolute(value) && [...value].every(char => char.charCodeAt(0) >= 32 && char.charCodeAt(0) !== 127)
+    && !value.split('/').some(part => part === '.' || part === '..')
+    && inside(guard.target, value), 'Compiler output is outside the owned target directory.');
+}
+function informationGrammar(row: CompilerMetadata): boolean {
+  if (row.crate !== null || row.ownedOutputCount !== 0 || row.querySelectors.length === 0) return false;
+  const flags = new Set(row.flags), queries = row.querySelectors;
+  if (queries.length === 1 && queries[0] === 'version') return row.target === null && flags.has('--version')
+    && [...flags].every(flag => flag === '--version' || flag === '--verbose')
+    && row.argumentCount >= 1 && row.argumentCount <= (flags.has('--verbose') ? 2 : 1);
+  if (queries.length === 1 && queries[0] === 'help') return row.target === null && flags.size === 1 && flags.has('--help') && row.argumentCount === 1;
+  return flags.has('--print') && [...flags].every(flag => flag === '--print' || flag === '--target')
+    && queries.every(query => informationPrints.includes(query as typeof informationPrints[number]))
+    && row.argumentCount >= queries.length + Number(row.target !== null)
+    && row.argumentCount <= 2 * (queries.length + Number(row.target !== null));
+}
+/** Evidence contains fixed flag names/selectors and an argv hash, never values. */
+export function compilerMetadata(args: string[], guard: Pick<IosBuildGuard, 'target'>): CompilerMetadata {
+  assert.ok(isAbsolute(guard.target), 'The owned compiler target directory must be absolute.');
+  assert.ok(args.length > 0 && args.length <= 4096 && args.every(arg => typeof arg === 'string' && arg.length > 0
+    && Buffer.byteLength(arg) <= 16 * 1024) && Buffer.byteLength(JSON.stringify(args)) <= 1024 * 1024, 'Compiler arguments exceed their bound.');
+  assert.ok(!args.some(arg => arg.startsWith('@') || arg === '--'), 'Response files and ambiguous compiler argument boundaries are refused.');
+  const values = new Map<string, string>(), flags = new Set<string>(), prints = new Set<string>(), specialQueries = new Set<string>();
+  let version = 0, verbose = 0, help = 0, compilation = false, ownedOutputCount = 0, inputCount = 0, sourceInputCount = 0;
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i]!;
+    const long = /^(--crate-name|--target|--out-dir|--print|--emit)(?:=(.*))?$/.exec(arg);
+    if (long || arg === '-o' || arg.startsWith('-o')) {
+      const flag = long?.[1] ?? '-o', attached = long ? long[2] : arg.length > 2 ? arg.slice(2) : undefined;
+      const value = attached ?? args[++i];
+      assert.ok(value && !value.startsWith('-') && !(flag === '-o' && value.startsWith('=')), 'A guarded compiler flag has a missing or ambiguous value.');
+      flags.add(flag);
+      if (flag === '--print') {
+        assert.match(value, /^[a-z][a-z-]{0,63}$/, 'Redirected or ambiguous compiler print selectors are refused.');
+        assert.ok(!prints.has(value) && prints.size < 16, 'Duplicate or excessive compiler print selectors.'); prints.add(value);
+        if (value === 'native-static-libs' || value === 'link-args') compilation = true;
+      } else {
+        assert.ok(!values.has(flag), 'Duplicate guarded compiler flag.'); values.set(flag, value);
+        if (flag === '--out-dir' || flag === '-o') { ownedCompilerOutput(value, guard); ownedOutputCount++; }
+        if (flag === '--emit') {
+          const kinds = new Set<string>();
+          for (const emit of value.split(',')) {
+            const [kind, destination, ...extra] = emit.split('=');
+            assert.ok(kind && ['asm', 'dep-info', 'link', 'llvm-bc', 'llvm-ir', 'metadata', 'mir', 'obj'].includes(kind)
+              && !kinds.has(kind) && extra.length === 0, 'Ambiguous compiler emit selector.'); kinds.add(kind);
+            if (destination !== undefined) { ownedCompilerOutput(destination, guard); ownedOutputCount++; }
+          }
+        }
+        if (flag !== '--target') compilation = true;
+      }
+    } else if (arg === '-vV' || arg === '--version' || arg === '-V') {
+      version++; flags.add('--version'); if (arg === '-vV') { verbose++; flags.add('--verbose'); }
+    } else if (arg === '--verbose' || arg === '-v') { verbose++; flags.add('--verbose'); }
+    else if (arg === '--help' || arg === '-h') { help++; flags.add('--help'); }
+    else {
+      assert.ok(!/^(?:--version|--verbose|--help)=/.test(arg), 'Ambiguous compiler information flag.');
+      const originalName = arg.startsWith('--') ? arg.split('=')[0]! : /^-[CLlZWADF].+/.test(arg) ? arg.slice(0, 2) : arg;
+      const name = compilerAliases[originalName] ?? originalName;
+      const known = arg.startsWith('-') && compilerFlags.includes(name as typeof compilerFlags[number]);
+      flags.add(known ? name : arg.startsWith('-') && arg !== '-' ? 'unknown-option' : 'input');
+      if (known && valueFlags.includes(name)) {
+        const attached = originalName.startsWith('--') && arg.includes('=') ? arg.slice(originalName.length + 1)
+          : originalName.length === 2 && arg.length > 2 ? arg.slice(2) : undefined;
+        const value = attached ?? args[++i]; assert.ok(value && !value.startsWith('-'), 'A compiler option value is missing.');
+        if (name === '--explain') specialQueries.add('explain');
+        if (value === 'help' && ['-C', '-Z', '-W', '-A', '-D', '-F', '--force-warn'].includes(name)) specialQueries.add(name === '-C' ? 'codegen-help' : name === '-Z' ? 'unstable-help' : 'lint-help');
+      } else if (!arg.startsWith('-') || arg === '-') { inputCount++; if (arg.endsWith('.rs')) sourceInputCount++; }
+      if (known || !arg.startsWith('-') || arg === '-') compilation = true;
+    }
+  }
+  assert.ok(version <= 1 && verbose <= 1 && help <= 1, 'Duplicate compiler information flag.');
+  const crate = values.get('--crate-name') ?? null, target = values.get('--target') ?? null;
+  if (crate !== null) assert.match(crate, /^[A-Za-z0-9_]{1,128}$/, 'Invalid compiler crate name.');
   if (target !== null) assert.ok(target === 'aarch64-apple-ios' || target === 'aarch64-apple-darwin', 'Unexpected compiler target.');
-  for (const flag of ['--out-dir', '-o']) if (args.includes(flag)) assert.ok(value(flag) && inside(guard.target, value(flag)!), 'Compiler output is outside the owned target directory.');
-  return { crate, target };
+  const querySelectors = version ? ['version'] : help ? ['help'] : [...new Set([...prints].map(value =>
+    diagnosticPrints.includes(value as typeof diagnosticPrints[number]) ? value : 'unknown').concat([...specialQueries]))];
+  const row: CompilerMetadata = { metadataVersion: 1, crate, target, operation: compilation ? 'compile' : 'unclassified',
+    argvSha256: sha256(JSON.stringify(args)), argumentCount: args.length, flags: [...flags].sort(), querySelectors, ownedOutputCount, inputCount, sourceInputCount };
+  if (informationGrammar(row)) row.operation = 'information';
+  if (version || help) assert.ok(informationGrammar(row), 'Mixed compiler information and compilation arguments are refused.');
+  validateCompilerMetadata(row);
+  return row;
+}
+function validateCompilerMetadata(row: CompilerMetadata): void {
+  assert.ok(row.metadataVersion === 1 && ['compile', 'information', 'unclassified'].includes(row.operation), 'Compiler operation evidence is absent.');
+  assert.ok(typeof row.argvSha256 === 'string' && /^[a-f0-9]{64}$/.test(row.argvSha256)
+    && Number.isSafeInteger(row.argumentCount) && row.argumentCount > 0 && row.argumentCount <= 4096, 'Compiler argument binding is invalid.');
+  assert.ok(row.crate === null || typeof row.crate === 'string' && /^[A-Za-z0-9_]{1,128}$/.test(row.crate));
+  assert.ok(row.target === null || row.target === 'aarch64-apple-ios' || row.target === 'aarch64-apple-darwin');
+  assert.ok(Array.isArray(row.flags) && row.flags.length > 0 && row.flags.length <= compilerFlags.length && new Set(row.flags).size === row.flags.length
+    && row.flags.every(flag => compilerFlags.includes(flag as typeof compilerFlags[number])), 'Compiler diagnostic flags are invalid.');
+  assert.ok(Array.isArray(row.querySelectors) && row.querySelectors.length <= 16 && new Set(row.querySelectors).size === row.querySelectors.length
+    && row.querySelectors.every(query => query === 'version' || query === 'help' || diagnosticPrints.includes(query as typeof diagnosticPrints[number])), 'Compiler diagnostic selectors are invalid.');
+  assert.ok((row.crate !== null) === row.flags.includes('--crate-name') && (row.target !== null) === row.flags.includes('--target'), 'Compiler identity flags differ from their evidence.');
+  assert.ok(Number.isSafeInteger(row.inputCount) && row.inputCount >= 0 && row.inputCount <= row.argumentCount
+    && Number.isSafeInteger(row.sourceInputCount) && row.sourceInputCount >= 0 && row.sourceInputCount <= row.inputCount
+    && (row.inputCount > 0) === row.flags.includes('input'), 'Compiler input evidence is invalid.');
+  assert.ok(Number.isSafeInteger(row.ownedOutputCount) && row.ownedOutputCount >= 0 && row.ownedOutputCount <= 10
+    && row.ownedOutputCount >= Number(row.flags.includes('--out-dir')) + Number(row.flags.includes('-o'))
+    && (row.ownedOutputCount === 0 || row.flags.some(flag => flag === '--out-dir' || flag === '-o' || flag === '--emit')), 'Compiler output evidence is invalid.');
+  if (row.operation === 'information') assert.ok(informationGrammar(row), 'Compiler information evidence contains compilation or unknown selectors.');
 }
 
 async function readGuard(path: string): Promise<{ guard: IosBuildGuard; binding: string }> {
@@ -175,7 +288,7 @@ async function wrapper(mode: string, path: string, args: string[]): Promise<numb
   const { guard, binding } = await readGuard(path);
   const rust = mode === '--rustc'; assert.ok(rust || mode === '--xcode');
   const selected = rust ? guard.rustc : guard.xcode; await unchangedExecutable(selected);
-  let meta: Record<string, unknown>, outgoing: string[];
+  let meta: Record<string, unknown> | CompilerMetadata, outgoing: string[];
   if (rust) {
     assert.equal(args[0], guard.rustc.path, 'Cargo selected an unreviewed compiler.');
     assert.equal(await realpath(command('/usr/bin/which', ['cargo'])), guard.cargo.path, 'Xcode did not retain the selected real Cargo bin.');
@@ -201,13 +314,21 @@ async function wrapper(mode: string, path: string, args: string[]): Promise<numb
 export async function compilerProvenance(guard: IosBuildGuard, binding: string): Promise<Record<string, unknown>> {
   const files = (await readdir(guard.compilerRecords)).sort(); assert.ok(files.length > 0 && files.length <= 8192, 'Nested compiler evidence is absent or exceeds its bound.');
   const records = await Promise.all(files.map(async name => { assert.match(name, /^[a-f0-9-]{36}\.json$/); const bytes = await readFile(join(guard.compilerRecords, name)); assert.ok(bytes.length <= 4096); return JSON.parse(bytes.toString()); }));
-  for (const row of records) {
+  for (const [index, row] of records.entries()) {
     assert.equal(row.binding, binding); assert.equal(row.sourceSha, guard.sourceSha); assert.equal(row.executable, guard.rustc.path);
-    assert.equal(row.executableSha256, guard.rustc.sha256); assert.equal(row.status, 'completed'); assert.equal(row.exit, 0);
+    assert.equal(row.executableSha256, guard.rustc.sha256); assert.equal(row.status, 'completed'); validateCompilerMetadata(row);
+    assert.ok(Number.isInteger(row.exit) && row.exit >= 0 && row.exit <= 255, 'Compiler exit evidence is invalid.');
+    assert.ok(row.exit === 0 || row.operation === 'information', `Nonzero compiler operation refused: ${JSON.stringify({ record: files[index], operation: row.operation,
+      flags: row.flags, querySelectors: row.querySelectors, argumentCount: row.argumentCount, argvSha256: row.argvSha256 })}`);
   }
-  assert.ok(records.some(row => row.crate === 'lolly_mobile_lib' && row.target === 'aarch64-apple-ios'), 'No completed physical-product compiler invocation was observed.');
+  assert.ok(records.some(row => row.crate === 'lolly_mobile_lib' && row.target === 'aarch64-apple-ios' && row.operation === 'compile'
+    && row.ownedOutputCount > 0 && row.inputCount === 1 && row.sourceInputCount === 1 && row.querySelectors.length === 0
+    && !row.flags.some((flag: string) => ['--print', '--version', '--help', '--explain', 'unknown-option'].includes(flag))
+    && row.exit === 0), 'No completed physical-product compiler invocation was observed.');
   assert.equal(sha256(await readFile(guard.rustc.path)), guard.rustc.sha256);
-  return { sourceSha: guard.sourceSha, compiler: guard.rustc, invocationCount: records.length, completedPhysicalProduct: true, recordsSha256: sha256(JSON.stringify(files.map((name, i) => [name, records[i]]))) };
+  return { sourceSha: guard.sourceSha, compiler: guard.rustc, invocationCount: records.length, completedPhysicalProduct: true,
+    nonzeroInformationQueries: records.filter(row => row.exit !== 0 && row.operation === 'information').length,
+    recordsSha256: sha256(JSON.stringify(files.map((name, i) => [name, records[i]]))) };
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === modulePath) {

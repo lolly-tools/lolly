@@ -398,10 +398,87 @@ test('process-local compiler choice survives the pinned CLI CARGO/PATH filter wi
 
 test('compiler metadata is bounded and excludes argument values while protecting output scope', () => {
   const guard = { target: '/owned/target' };
-  assert.deepEqual(compilerMetadata(['--crate-name', 'lolly_mobile_lib', '--target', 'aarch64-apple-ios', '--out-dir', '/owned/target/dep', '--cfg', 'private-argument'], guard),
-    { crate: 'lolly_mobile_lib', target: 'aarch64-apple-ios' });
-  assert.deepEqual(compilerMetadata(['-vV'], guard), { crate: null, target: null });
-  for (const args of [['--crate-name', 'a'.repeat(129)], ['--target', 'ios-simulator'], ['--out-dir', '/owned/target-other'], ['-o', '/outside/product'], ['--crate-name']]) assert.throws(() => compilerMetadata(args, guard));
+  const args = ['--crate-name', 'lolly_mobile_lib', '--target', 'aarch64-apple-ios', '--out-dir', '/owned/target/dep', '--cfg', 'private-argument'];
+  const row = compilerMetadata(args, guard);
+  assert.equal(row.crate, 'lolly_mobile_lib'); assert.equal(row.target, 'aarch64-apple-ios'); assert.equal(row.operation, 'compile');
+  assert.equal(row.argvSha256, sha256(JSON.stringify(args))); assert.equal(row.argumentCount, args.length); assert.equal(row.ownedOutputCount, 1);
+  assert.equal(row.inputCount, 0, 'A private cfg value is not a source input.');
+  assert.ok(!JSON.stringify(row).includes('private-argument')); assert.ok(!JSON.stringify(row).includes('/owned/target/dep'));
+  assert.equal(compilerMetadata(['-vV'], guard).operation, 'information');
+  for (const bad of [['--crate-name', 'a'.repeat(129)], ['--target', 'ios-simulator'], ['--out-dir', '/owned/target-other'], ['-o', '/outside/product'], ['--crate-name']]) assert.throws(() => compilerMetadata(bad, guard));
+});
+
+test('compiler identity and output flags accept attached forms and refuse ambiguity or output escapes', () => {
+  const guard = { target: '/owned/target' };
+  for (const args of [['--crate-name=lolly_mobile_lib', '--target=aarch64-apple-ios', '--out-dir=/owned/target/deps'],
+    ['--crate-name', 'lolly_mobile_lib', '--target', 'aarch64-apple-ios', '-o/owned/target/product'],
+    ['--crate-name=lolly_mobile_lib', '--emit=link,dep-info=/owned/target/deps/product.d']]) {
+    const row = compilerMetadata(args, guard); assert.equal(row.crate, 'lolly_mobile_lib'); assert.equal(row.operation, 'compile');
+    assert.equal(row.ownedOutputCount, 1); assert.equal(row.argvSha256, sha256(JSON.stringify(args)));
+  }
+  for (const args of [['--crate-name=x', '--crate-name', 'x'], ['--target=aarch64-apple-ios', '--target', 'aarch64-apple-ios'],
+    ['--out-dir=/owned/target/a', '--out-dir', '/owned/target/b'], ['-o/owned/target/a', '-o', '/owned/target/b'],
+    ['--crate-name='], ['--out-dir', '--target=aarch64-apple-ios'], ['-o=/owned/target/x'], ['--out-dir=../escape'],
+    ['--out-dir=/owned/target/../escape'], ['-o/owned/target-other/x'], ['-o/owned/target/\0x'], ['--emit=dep-info=/outside/x'],
+    ['--emit=link,link'], ['--emit=link=/owned/target/x=extra'], ['--emit=llvm-ir=-'], ['@private-response'],
+    ['--cfg', '@private-response'], ['--', 'private.rs'], ['--print=sysroot=/owned/target/x'], ['--print', 'cfg=/outside/x'],
+    ['--print=cfg', '--print', 'cfg'], ['--version', '-V'], ['-vV', '--verbose'], ['--version=private'], ['--version', 'private.rs'],
+    ['--help', '--out-dir=/owned/target/x'], ['--version', '--print=cfg']]) assert.throws(() => compilerMetadata(args, guard));
+});
+
+test('only an exact input-free compiler information grammar permits nonzero query roles', () => {
+  const guard = { target: '/owned/target' };
+  for (const args of [['--version'], ['-V'], ['-vV'], ['--version', '--verbose'], ['-v', '-V'], ['--help'], ['-h'],
+    ['--print=sysroot'], ['--print', 'cfg', '--target=aarch64-apple-ios'], ['--print=host-tuple', '--print', 'target-list'],
+    ['--print=split-debuginfo'], ['--print=deployment-target']]) assert.equal(compilerMetadata(args, guard).operation, 'information');
+  for (const args of [['--print=native-static-libs'], ['--print=link-args'], ['--print=file-names'], ['--print=crate-name'],
+    ['--print=target-spec-json'], ['--print=all-target-specs-json'], ['--print=cfg', 'private.rs'],
+    ['--print=cfg', '--crate-name=___', '-'], ['--print=cfg', '--emit=metadata'], ['--print=cfg', '-Copt-level=3'],
+    ['--print=private-selector'], ['--print=cfg', '--private-option=secret'], ['--verbose']]) {
+    const row = compilerMetadata(args, guard); assert.notEqual(row.operation, 'information');
+    assert.ok(!JSON.stringify(row).includes('private-selector')); assert.ok(!JSON.stringify(row).includes('secret'));
+  }
+  for (const args of [[], Array.from({ length: 4097 }, () => 'x'), ['x'.repeat(16385)]]) assert.throws(() => compilerMetadata(args, guard));
+});
+
+test('compiler provenance retains nonzero pure queries but refuses failed, unclassified and incomplete compilation', async () => {
+  const parent = join(root, 'plans/295-validation/ios-compiler-provenance-tests'); await mkdir(parent, { recursive: true });
+  const output = await mkdtemp(join(parent, 'metadata-'));
+  try {
+    const compilerRecords = join(output, 'records'); await mkdir(compilerRecords);
+    const rustc = join(output, 'compiler-witness'); await writeFile(rustc, 'not executed');
+    const guard = { compilerRecords, sourceSha: 'a'.repeat(40), rustc: { path: rustc, sha256: sha256(await readFile(rustc)) } } as IosBuildGuard;
+    const binding = 'source-bound-test', target = { target: '/owned/target' };
+    const base = { binding, sourceSha: guard.sourceSha, executable: rustc, executableSha256: guard.rustc.sha256, status: 'completed' };
+    const product = { ...base, ...compilerMetadata(['--crate-name=lolly_mobile_lib', '--target=aarch64-apple-ios', '--out-dir=/owned/target/deps', 'product.rs'], target), exit: 0 };
+    const query = { ...base, ...compilerMetadata(['--print=cfg', '--target=aarch64-apple-ios'], target), exit: 1 };
+    const productPath = join(compilerRecords, '11111111-1111-4111-8111-111111111111.json'), queryName = '22222222-2222-4222-8222-222222222222.json';
+    const queryPath = join(compilerRecords, queryName); await writeFile(productPath, JSON.stringify(product)); await writeFile(queryPath, JSON.stringify(query));
+    const accepted = await compilerProvenance(guard, binding); assert.equal(accepted.invocationCount, 2); assert.equal(accepted.nonzeroInformationQueries, 1);
+    assert.equal(JSON.parse(await readFile(queryPath, 'utf8')).exit, 1, 'The observed nonzero outcome is preserved.');
+    for (const patch of [{ operation: 'unclassified' }, { status: 'started' }, { argvSha256: 'missing' }, { argumentCount: 4096 },
+      { querySelectors: ['native-static-libs'] }, { flags: ['--print'] }, { exit: -1 }, { metadataVersion: undefined },
+      { flags: ['--print', 'private-argument'] }]) {
+      await writeFile(queryPath, JSON.stringify({ ...query, ...patch })); await assert.rejects(compilerProvenance(guard, binding));
+    }
+    const unknown = { ...base, ...compilerMetadata(['--print=private-selector'], target), exit: 1 };
+    await writeFile(queryPath, JSON.stringify(unknown));
+    await assert.rejects(compilerProvenance(guard, binding), error => {
+      assert.ok(error instanceof Error); assert.ok(error.message.includes(queryName)); assert.ok(error.message.includes('unclassified'));
+      assert.ok(error.message.includes('unknown')); assert.ok(!error.message.includes('private-selector')); return true;
+    });
+    await writeFile(queryPath, JSON.stringify(query));
+    for (const patch of [{ exit: 1 }, { status: 'started' }, { operation: 'information' }, { ownedOutputCount: 0 }, { crate: null }]) {
+      await writeFile(productPath, JSON.stringify({ ...product, ...patch })); await assert.rejects(compilerProvenance(guard, binding));
+    }
+    for (const args of [['--crate-name=lolly_mobile_lib', '--target=aarch64-apple-ios', '--out-dir=/owned/target/deps', '--print=cfg', 'product.rs'],
+      ['--crate-name=lolly_mobile_lib', '--target=aarch64-apple-ios', '--out-dir=/owned/target/deps', '--explain', 'E0123', 'product.rs'],
+      ['--crate-name=lolly_mobile_lib', '--target=aarch64-apple-ios', '--out-dir=/owned/target/deps', '-Chelp', 'product.rs'],
+      ['--crate-name=lolly_mobile_lib', '--target=aarch64-apple-ios', '--out-dir=/owned/target/deps', '--cfg', 'private.rs']]) {
+      await writeFile(productPath, JSON.stringify({ ...base, ...compilerMetadata(args, target), exit: 0 }));
+      await assert.rejects(compilerProvenance(guard, binding), /No completed physical-product compiler invocation/);
+    }
+  } finally { await rm(output, { recursive: true, force: true }); }
 });
 
 const projectIds = ['A'.repeat(24), 'B'.repeat(24)];
@@ -485,11 +562,13 @@ test('real observer invocation preserves compiler arguments and records only saf
   try {
     const bin = join(output, 'bin'), target = join(output, 'target'), leases = join(output, 'leases'), records = join(output, 'records');
     for (const path of [bin, target, leases, records]) await mkdir(path);
-    const rustc = join(bin, 'rustc'), cargo = join(bin, 'cargo'), argvFile = join(output, 'actual-argv.json');
-    await writeFile(rustc, `#!${process.execPath}\nimport { writeFileSync } from 'node:fs'; const args = process.argv.slice(2);\n` +
+    const rustc = join(bin, 'rustc'), cargo = join(bin, 'cargo'), argvFile = join(output, 'actual-argv.json'), startedFile = join(output, 'started-metadata.json');
+    await writeFile(rustc, `#!${process.execPath}\nimport { writeFileSync, readFileSync, readdirSync } from 'node:fs'; const args = process.argv.slice(2);\n` +
       `if (args.join(' ') === '--print sysroot') console.log(${JSON.stringify(output)});\n` +
       `else if (args.join(' ') === '--version --verbose') console.log('rustc 1.99.0\\nhost: aarch64-apple-darwin');\n` +
-      `else writeFileSync(process.env.TEST_ARGV_PATH, JSON.stringify(args));\n`, { mode: 0o700 });
+      `else { writeFileSync(process.env.TEST_ARGV_PATH, JSON.stringify(args));\n` +
+      `writeFileSync(process.env.TEST_STARTED_PATH, JSON.stringify(readdirSync(process.env.TEST_RECORDS_PATH).map(name => JSON.parse(readFileSync(process.env.TEST_RECORDS_PATH + '/' + name, 'utf8'))).find(row => row.status === 'started')));\n` +
+      `if (args.join(' ') === '--print=cfg') process.exitCode = 1; }\n`, { mode: 0o700 });
     await writeFile(cargo, '#!/bin/sh\nexit 0\n', { mode: 0o700 });
     const identity = executableIdentity;
     await fakeObjectCopyTools(output, 'aarch64-apple-darwin');
@@ -501,10 +580,12 @@ test('real observer invocation preserves compiler arguments and records only saf
       wrapperBin: bin, compilerWrapper: join(bin, 'observe-rustc'), leases, compilerRecords: records, path: bin + ':' + process.env.PATH,
       protectedGroup: processFacts().find(row => row.pid === process.pid)!.group, objectCopyTools };
     const bytes = JSON.stringify(guard), binding = sha256(bytes), path = join(output, 'build-guard.json'); await writeFile(path, bytes);
-    const env = { ...iosArchiveEnvironment(process.env, guard, binding), TEST_ARGV_PATH: argvFile };
-    const args = ['--crate-name', 'lolly_mobile_lib', '--target', 'aarch64-apple-ios', '--out-dir', join(target, 'deps'), '--cfg', 'private-argument-value'];
+    const env = { ...iosArchiveEnvironment(process.env, guard, binding), TEST_ARGV_PATH: argvFile, TEST_STARTED_PATH: startedFile, TEST_RECORDS_PATH: records };
+    const args = ['--crate-name', 'lolly_mobile_lib', '--target', 'aarch64-apple-ios', '--out-dir', join(target, 'deps'), '--cfg', 'private-argument-value', 'product.rs'];
     const run = spawnSync(process.execPath, ['scripts/lib/webgpu-ios-build.ts', '--rustc', path, rustc, ...args], { cwd: root, env, encoding: 'utf8', timeout: 25_000 });
     assert.equal(run.status, 0, run.stderr); assert.deepEqual(JSON.parse(await readFile(argvFile, 'utf8')), args);
+    const started = JSON.parse(await readFile(startedFile, 'utf8')); assert.equal(started.status, 'started'); assert.equal(started.operation, 'compile');
+    assert.equal(started.argvSha256, sha256(JSON.stringify(args))); assert.ok(!JSON.stringify(started).includes('private-argument-value'));
     const evidence = await compilerProvenance(guard, binding); assert.equal(evidence.invocationCount, 1);
     const archiveRecord = { sourceSha: guard.sourceSha, binding, executable: guard.xcode.path, executableSha256: guard.xcode.sha256,
       status: 'completed', exit: 0, command: archiveArgs(), provisioningFlagsRemoved: 2 };
@@ -536,6 +617,12 @@ test('real observer invocation preserves compiler arguments and records only saf
     await writeFile(join(records, recordName), recordText);
     const wrong = spawnSync(process.execPath, ['scripts/lib/webgpu-ios-build.ts', '--rustc', path, cargo, ...args], { cwd: root, env, encoding: 'utf8', timeout: 5000 });
     assert.equal(wrong.status, 1); assert.ok(!wrong.stderr.includes('private-argument-value')); assert.equal((await readdir(records)).length, 1);
+    const queryArgs = ['--print=cfg'];
+    const queryRun = spawnSync(process.execPath, ['scripts/lib/webgpu-ios-build.ts', '--rustc', path, rustc, ...queryArgs], { cwd: root, env, encoding: 'utf8', timeout: 5000 });
+    assert.equal(queryRun.status, 1, queryRun.stderr); assert.deepEqual(JSON.parse(await readFile(argvFile, 'utf8')), queryArgs);
+    const queryStarted = JSON.parse(await readFile(startedFile, 'utf8')); assert.equal(queryStarted.operation, 'information');
+    assert.equal(queryStarted.status, 'started'); assert.equal(queryStarted.argvSha256, sha256(JSON.stringify(queryArgs)));
+    const queries = await compilerProvenance(guard, binding); assert.equal(queries.invocationCount, 2); assert.equal(queries.nonzeroInformationQueries, 1);
   } finally { await rm(output, { recursive: true, force: true }); }
 });
 

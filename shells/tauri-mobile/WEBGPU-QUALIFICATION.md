@@ -62,8 +62,19 @@ process and forwards the absolute compiler through `CARGO_BUILD_RUSTC`.
 `RUSTUP_TOOLCHAIN` alone is insufficient: the pinned Tauri CLI filters that
 variable out before Xcode executes its Rust script. A local observer passes
 every compiler argument unchanged and records the actual nested compiler,
-target, crate name, completion status and count. It records no source bytes,
-compiler argument values or environment dump.
+target, crate name, completion status and count. Each invocation also has an
+argument hash, a bounded operation classification and fixed diagnostic flag and
+query-selector names. It records no source bytes, compiler argument values or
+environment dump.
+
+The verifier permits a nonzero result only for a precisely recognized,
+input-free information query. Compilation and unclassified calls must succeed;
+the physical product witness requires an actual Rust source input and owned
+output, rather than a print or help query. Missing operation evidence or an
+unclassified failure stops verification. Inspect the exact recorded operation
+before preparing another attempt; old records cannot be retroactively treated
+as successful queries. An unsigned archive alone does not establish a signed
+app, physical runtime or release qualification.
 
 The maintained archive policy is bound to Tauri CLI `2.12.1` and its locked
 `cargo-mobile2 0.22.5`. Their archive path injects provisioning flags even for an
