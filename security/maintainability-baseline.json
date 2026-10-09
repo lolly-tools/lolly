@@ -225,7 +225,6 @@
     "shells/web/src/brand-transfer.ts": 5,
     "shells/web/src/bridge/app-history.ts": 1,
     "shells/web/src/bridge/asset-history.ts": 12,
-    "shells/web/src/bridge/db.ts": 1,
     "shells/web/src/bridge/emoji.ts": 1,
     "shells/web/src/bridge/export-pdf-doc.ts": 1,
     "shells/web/src/bridge/export-pdf-vector.ts": 11,
