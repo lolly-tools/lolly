@@ -21,6 +21,8 @@
  * Markup and wiring only. The view decides what a change means for its own extras
  * (the favourites strip shows only in Grid, for example) through `onChange`.
  */
+import { icon } from '../lib/icons.ts';
+import { escape as escapeHtml } from '../utils.ts';
 import { t } from '../i18n.ts';
 import { segHtml } from '../lib/seg.ts';
 import { captureNeutralPinned } from '../lib/capture-neutral.ts';
@@ -144,6 +146,19 @@ export function layoutSection(group: string, value: BrowseLayout, modes: readonl
   const labels: Record<BrowseLayout, string> = { grid: t('Grid'), card: t('Card'), list: t('List') };
   return viewOptionsSection(t('Layout'), segHtml(group, modes.map(id => ({ id, label: labels[id] })), value, t('Layout'),
     { attr: 'data-layout-mode', extraClass: 'view-seg--layout' }) + extra);
+}
+
+/** Visible layout choices, shared by the top bars and View options. */
+export function layoutControlHtml(group: string, value: BrowseLayout, attr = 'data-layout-mode'): string {
+  const labels: Record<BrowseLayout, string> = { grid: t('Grid'), card: t('Card'), list: t('List') };
+  const icons = { grid: 'grid', card: 'panelLeft', list: 'menuLines' } as const;
+  return `<div class="view-seg be-seg view-seg--layout browse-layout-control" role="group" aria-label="${escapeHtml(t('Layout'))}" data-be-seg="${escapeHtml(group)}">${BROWSE_LAYOUTS.map(mode => `<button type="button" class="view-seg-btn" ${attr}="${mode}" aria-pressed="${mode === value}" title="${escapeHtml(labels[mode])}"><span aria-hidden="true">${icon(icons[mode])}</span><span class="browse-layout-label">${escapeHtml(labels[mode])}</span></button>`).join('')}</div>`;
+}
+
+/** Keep visible choices and an open options panel in agreement. */
+export function syncLayoutControls(root: Element, mode: BrowseLayout, attr = 'data-layout-mode'): void {
+  for (const button of root.querySelectorAll<HTMLElement>(`[${attr}]`)) button.setAttribute('aria-pressed', String(button.getAttribute(attr) === mode));
+  root.querySelector('.view-options-size')?.toggleAttribute('hidden', mode === 'list');
 }
 
 /** The density segment, Comfortable | Compact, for the Layout section. `hidden` is for

@@ -2,14 +2,13 @@
 import { mountBodyPopover, type BodyPopoverHandle, type PopoverAnchor } from '../components/body-popover.ts';
 import { applyCardSize, cardSizeAttr, cardSizeHtml, favouritesViewSection, readCardSize, sortSection, syncSortDir, viewOptionsSection, wireCardSize } from '../components/view-options.ts';
 import type { FeaturedViewMode } from '../components/featured-row.ts';
-import { segHtml } from '../lib/seg.ts';
-import { applyDensity, densityAttr, densityHtml, readDensity, wireDensityControl } from '../components/browse-layout.ts';
+import { applyDensity, densityAttr, densityHtml, layoutControlHtml, parseLayout, readDensity, wireDensityControl } from '../components/browse-layout.ts';
 import { playSfx } from '../lib/sfx.ts';
 import { captureNeutralPinned } from '../lib/capture-neutral.ts';
 import { perfUiOn } from '../feature-flags.ts';
 import { t } from '../i18n.ts';
 
-export type ProjectsViewMode = 'preview' | 'list';
+export type ProjectsViewMode = 'preview' | 'card' | 'list';
 export type ProjectsSort = 'name' | 'added' | 'modified' | 'size' | 'tool';
 
 interface ProjectViewPrefs { view: ProjectsViewMode; sort: ProjectsSort; reversed: boolean }
@@ -17,13 +16,16 @@ const isSort = (value: unknown): value is ProjectsSort => ['name', 'tool', 'adde
 
 export function readProjectsViewPrefs(scope: string, fallback: ProjectViewPrefs, shared = false): ProjectViewPrefs {
   const prefs = { ...fallback };
+  if (captureNeutralPinned()) return prefs;
   try {
     if (localStorage.getItem('lolly:projectsView') === 'list') prefs.view = 'list';
     const sort = localStorage.getItem('lolly:projectsSort');
     if (isSort(sort)) prefs.sort = sort; else if (sort === 'date') prefs.sort = 'modified';
-    const own = (JSON.parse(localStorage.getItem('lolly:projectsViewPrefs') || '{}') as Record<string, { v?: unknown; s?: unknown; r?: unknown }>)[scope];
+    const map = JSON.parse(localStorage.getItem('lolly:projectsViewPrefs') || '{}') as Record<string, { v?: unknown; s?: unknown; r?: unknown }>;
+    const own = map[scope] ?? (scope.startsWith('team:') && scope.endsWith(':') ? map[scope.slice(0, -1)] : undefined);
     if (own) {
-      if (own.v === 'list' || own.v === 'preview') prefs.view = own.v;
+      if (own.v === 'list' || own.v === 'card' || own.v === 'preview') prefs.view = own.v;
+      else if (own.v === 'grid') prefs.view = 'preview';
       if (isSort(own.s)) prefs.sort = own.s;
       prefs.reversed = !!own.r;
     }
@@ -45,10 +47,10 @@ export function projectsViewFromUrl(query: string | undefined, current: {
   view: ProjectsViewMode; sort: ProjectsSort; reversed: boolean;
 }): typeof current {
   const params = new URLSearchParams(query ?? '');
-  const view = params.get('view');
+  const view = parseLayout(params.get('layout')) ?? parseLayout(params.get('view'));
   const sort = params.get('sort');
   return {
-    view: view === 'preview' || view === 'list' ? view : current.view,
+    view: view === 'grid' ? 'preview' : view ?? current.view,
     sort: sort === 'name' || sort === 'added' || sort === 'modified' || sort === 'size' || sort === 'tool' ? sort : current.sort,
     reversed: params.has('rev') ? params.get('rev') !== '0' : current.reversed,
   };
@@ -74,13 +76,7 @@ export function mountProjectsViewOptions(anchor: PopoverAnchor, options: {
     let reversed = options.reversed;
     el.innerHTML = [
       options.favView ? favouritesViewSection(options.favView) : '',
-      viewOptionsSection(t('Layout'), segHtml('projects-layout', [
-        { id: 'preview', label: t('Grid') },
-        { id: 'list', label: t('List') },
-      ], options.view, t('Layout'), { attr: 'data-vm' }) + cardSizeHtml(readCardSize('projects'), options.view === 'list')
-        // Compact has no List form until the List table arrives (plan 302 PR 4), so
-        // List hides the segment rather than offer a choice that changes nothing.
-        + densityHtml('projects-density', readDensity('projects'), options.view === 'list')),
+      viewOptionsSection(t('Layout'), layoutControlHtml('projects-layout', options.view === 'preview' ? 'grid' : options.view, 'data-vm') + cardSizeHtml(readCardSize('projects'), options.view === 'list') + densityHtml('projects-density', readDensity('projects'))),
       sortSection('projects-sort', [
         { id: 'name', label: t('Name') },
         ...(options.shared ? [] : [{ id: 'added', label: t('Date added') }]),
@@ -95,11 +91,11 @@ export function mountProjectsViewOptions(anchor: PopoverAnchor, options: {
       el.querySelectorAll<HTMLElement>(`[data-be-seg="${group}"] [${attr}]`).forEach(b => { b.setAttribute('aria-pressed', String(b.getAttribute(attr) === value)); });
     el.addEventListener('click', event => {
       const target = event.target as HTMLElement;
-      const vm = target.closest<HTMLElement>('[data-vm]')?.dataset.vm as ProjectsViewMode | undefined;
+      const clicked = target.closest<HTMLElement>('[data-vm]')?.dataset.vm;
+      const vm = clicked === 'grid' ? 'preview' : clicked === 'card' || clicked === 'list' ? clicked : undefined;
       if (vm) {
-        press('projects-layout', 'data-vm', vm);
+        press('projects-layout', 'data-vm', vm === 'preview' ? 'grid' : vm);
         el.querySelector<HTMLElement>('.view-options-size')?.toggleAttribute('hidden', vm === 'list');
-        el.querySelector<HTMLElement>('[data-be-seg="projects-density"]')?.toggleAttribute('hidden', vm === 'list');
         options.onView(vm);
         return;
       }

@@ -149,7 +149,7 @@ test('the type multiplier reaches only custom properties and glyph sizes', () =>
 });
 
 test('the Card selection dot sits on the thumbnail, not against the container width', () => {
-  const dot = ALL.find(r => r.selector === '.tool-masonry[data-browse-layout="card"] .gtile .tile-check');
+  const dot = ALL.find(r => r.selector === '.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile .tile-check');
   assert.ok(dot, 'the Tools and Utilities Card dot has its own placement');
   assert.match(dot!.body, /top:\s*calc\(50% \+ var\(--browse-thumb-h\) \/ 2 - var\(--object-check-size\) - 3px\)/);
   assert.match(dot!.body, /inset-inline-start:\s*calc\(var\(--browse-pad-inline\) \+ 3px\)/);
@@ -158,16 +158,16 @@ test('the Card selection dot sits on the thumbnail, not against the container wi
 
 test('on a touch screen the Card dot is the List variant: smaller, a neutral ring, filled only when pressed', () => {
   const coarse = ALL.filter(r => r.at === '@media (pointer: coarse)');
-  const size = coarse.find(r => r.selector === '.tool-masonry[data-browse-layout="card"]');
+  const size = coarse.find(r => r.selector === '.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"])');
   assert.match(size?.body ?? '', /--browse-check-size:\s*var\(--browse-check-size-touch\)/);
   const base = ALL.find(r => arms(r.selector).includes('[data-browse-layout]'))!;
   const px = (prop: string): number => Number(new RegExp(`${prop}:\\s*calc\\(([\\d.]+)px \\* var\\(--a11y-fs\\)\\)`).exec(base.body)?.[1]);
   assert.ok(px('--browse-check-size-touch') < px('--browse-check-size'), 'smaller than the pointer dot');
-  const ring = coarse.find(r => r.selector === '.tool-masonry[data-browse-layout="card"] .gtile .tile-check');
+  const ring = coarse.find(r => r.selector === '.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile .tile-check');
   assert.match(ring?.body ?? '', /background:\s*transparent/);
   // The muted text colour, not the hairline border colour: the ring must reach 3:1 on a thumbnail in both themes.
   assert.match(ring?.body ?? '', /border-color:\s*var\(--ui-color-text-muted\)/);
-  const pressed = coarse.find(r => r.selector === '.tool-masonry[data-browse-layout="card"] .gtile .tile-check[aria-pressed="true"]');
+  const pressed = coarse.find(r => r.selector === '.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile .tile-check[aria-pressed="true"]');
   assert.match(pressed?.body ?? '', /background:\s*var\(--ui-color-action-primary\)/);
   // The 28px hit extension stays with the base rule (object-tiles.css), so nothing here may remove the ::after.
   assert.ok(!ALL.some(r => /tile-check::after/.test(r.selector)), 'the touch hit extension is left alone');
@@ -184,12 +184,12 @@ test('outside Grid the cards follow the "Yours" shelf, and the shelf clearance s
 });
 
 test('the quiet "+ New" is muted at rest and full on hover, focus and touch', () => {
-  const quiet = ALL.find(r => r.selector === '.tool-masonry[data-browse-layout="card"] .gtile-new-icon')!;
+  const quiet = ALL.find(r => r.selector === '.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile-new-icon')!;
   assert.match(quiet.body, /opacity:\s*\.\d+/);
   assert.match(quiet.body, /color:\s*var\(--ui-color-text-muted\)/);
   assert.doesNotMatch(quiet.body, /background:|border:/, 'a ghost button: no fill and no border at rest');
-  const loud = ALL.find(r => arms(r.selector).includes('.tool-masonry[data-browse-layout="card"] .gtile:is(:hover, :focus-within) .gtile-new-icon'));
-  assert.ok(loud && arms(loud.selector).includes('.tool-masonry[data-browse-layout="card"] .gtile-new-icon:focus-visible'));
+  const loud = ALL.find(r => arms(r.selector).includes('.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile:is(:hover, :focus-within) .gtile-new-icon'));
+  assert.ok(loud && arms(loud.selector).includes('.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile-new-icon:focus-visible'));
   assert.match(loud!.body, /opacity:\s*1/);
   const touch = ALL.find(r => r.at === '@media (hover: none)' && r.selector.includes('.gtile-new-icon'));
   assert.ok(touch, 'always full on a touch screen');
@@ -202,7 +202,7 @@ test('gallery.css: phone scroll-snap is Grid only, and hidden previews give Card
   const snap = gallery.filter(r => /scroll-snap-(?:type|align)/.test(r.body));
   assert.ok(snap.length >= 2);
   for (const r of snap.filter(x => x.selector.includes('gallery-view'))) assert.match(r.selector, /\.tool-masonry:not\(\[data-browse-layout\]\)/, r.selector);
-  const icon = gallery.find(r => r.selector === 'html[data-a11y-previews="hidden"] .tool-masonry[data-browse-layout="card"] .gtile--has-preview .gtile-cap > .tool-card-icon');
+  const icon = gallery.find(r => r.selector === 'html[data-a11y-previews="hidden"] .tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile--has-preview .gtile-cap > .tool-card-icon');
   assert.ok(icon, 'the documented hidePreviews sheet carries the Card rule');
   assert.match(icon!.body, /display:\s*grid/);
 });

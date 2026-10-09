@@ -1,3 +1,4 @@
+import { readDensity, readLayout } from '../components/browse-layout.ts';
 // SPDX-License-Identifier: MPL-2.0
 import { selectAssetFile, assetFiles } from '../lib/asset-files.ts';
 import { parseFileAssetId } from '../../../../engine/src/asset-modifiers.ts';
@@ -272,8 +273,8 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
   // comfortable | compact tile size. Both persisted, both pure CSS classes.
   const LAYOUT_PREF_KEY = 'lolly-catalog-layout'; cat.LAYOUT_PREF_KEY = LAYOUT_PREF_KEY;
   const DENSITY_PREF_KEY = 'lolly-catalog-density'; cat.DENSITY_PREF_KEY = DENSITY_PREF_KEY;
-  cat.catLayout = localStorage.getItem(LAYOUT_PREF_KEY) === 'list' ? 'list' : 'grid';
-  cat.catDensity = localStorage.getItem(DENSITY_PREF_KEY) === 'compact' ? 'compact' : 'comfortable';
+  cat.catLayout = readLayout('catalog', cat.params);
+  cat.catDensity = readDensity('catalog');
   cat.cardSize = readCardSize('catalog');
   const CAT_SORTS: readonly CatSort[] = ['default', 'name', 'added', 'modified', 'size', 'type']; cat.CAT_SORTS = CAT_SORTS;
   cat.catSort = 'modified';

@@ -111,14 +111,14 @@
 }
 
 /* Card: one row per tool, the thumbnail at the inline start. */
-.tool-masonry[data-browse-layout="card"],
-.tool-masonry[data-browse-layout="card"][data-card-size] {
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]),
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"])[data-card-size] {
   grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--browse-card-min)), 1fr));
   gap: var(--grid-gap-tight);
 }
-.tool-masonry[data-browse-layout="card"][data-browse-density="compact"],
-.tool-masonry[data-browse-layout="card"][data-browse-density="compact"][data-card-size] { gap: var(--sp-2); }
-.tool-masonry[data-browse-layout="card"] .gtile:not(.is-filtered, .gtile--hiddenbox) {
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"])[data-browse-density="compact"],
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"])[data-browse-density="compact"][data-card-size] { gap: var(--sp-2); }
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile:not(.is-filtered, .gtile--hiddenbox) {
   --object-check-size: var(--browse-check-size);
   display: flex;
   flex-direction: row;
@@ -132,20 +132,20 @@
 }
 /* The thumbnail: the first look, still (no arrows, no dots, no swipe). Same element,
    same image and upgraders as Grid, sized by the step. */
-.tool-masonry[data-browse-layout="card"] .gtile > .gcar {
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile > .gcar {
   flex: none;
   width: var(--browse-thumb-w);
   height: var(--browse-thumb-h);
   aspect-ratio: auto;
   border-radius: var(--ui-radius-control);
 }
-.tool-masonry[data-browse-layout="card"] .gtile > .gcar .gcar-track { overflow: hidden; }
-.tool-masonry[data-browse-layout="card"] .gcar :is(.gcar-nav, .gcar-dots, .gcar-motion-play, .gcar-motion-label),
-.tool-masonry[data-browse-layout="card"] .gcar > .badge,
-.tool-masonry[data-browse-layout="card"] .gtile > .gtile-tile { display: none; }
-.tool-masonry[data-browse-layout="card"] .gcar-slide.is-failed::after { content: none; }
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile > .gcar .gcar-track { overflow: hidden; }
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gcar :is(.gcar-nav, .gcar-dots, .gcar-motion-play, .gcar-motion-label),
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gcar > .badge,
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile > .gtile-tile { display: none; }
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gcar-slide.is-failed::after { content: none; }
 /* A tool with no look (and every utility) shows its icon in the same slot. */
-.tool-masonry[data-browse-layout="card"] .gtile-cap > .tool-card-icon {
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile-cap > .tool-card-icon {
   display: grid;
   place-items: center;
   place-self: center;
@@ -155,19 +155,19 @@
   border-radius: var(--ui-radius-control);
   background: var(--ui-color-surface-muted);
 }
-.tool-masonry[data-browse-layout="card"] .gtile-cap > .tool-card-icon svg { width: 50%; height: 50%; opacity: .7; }
-.tool-masonry[data-browse-layout="card"] .gtile:hover .gtile-cap > .tool-card-icon svg { opacity: 1; }
-.tool-masonry[data-browse-layout="card"] .gtile--has-preview .gtile-cap > .tool-card-icon { display: none; }
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile-cap > .tool-card-icon svg { width: 50%; height: 50%; opacity: .7; }
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile:hover .gtile-cap > .tool-card-icon svg { opacity: 1; }
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile--has-preview .gtile-cap > .tool-card-icon { display: none; }
 
 /* The text column. The body steps out of the way so the name link's stretched hit
    area covers the whole card, as the whole tile is the target in Grid. */
-.tool-masonry[data-browse-layout="card"] .gtile-body {
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile-body {
   position: static;
   display: block;
   flex: 1 1 auto;
   min-width: 0;
 }
-.tool-masonry[data-browse-layout="card"] .gtile .gtile-cap {
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile .gtile-cap {
   flex-direction: row;
   align-items: center;
   text-align: start;
@@ -178,7 +178,7 @@
    formats, then the status badge). Line 2's text gives way before the badge does.
    The full-width rows are size-contained, so a long description can never widen the
    columns past the card; each one ends in an ellipsis instead. */
-.tool-masonry[data-browse-layout="card"] .gtile-meta {
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile-meta {
   display: grid;
   grid-template-columns: minmax(0, max-content) minmax(max-content, 1fr);
   align-items: center;
@@ -188,33 +188,33 @@
   line-height: 1.5;
   color: var(--ui-color-text-muted);
 }
-.tool-masonry[data-browse-layout="card"] .gtile-meta > * {
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile-meta > * {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.tool-masonry[data-browse-layout="card"] .gtile-meta > :is(.gtile-name, .gtile-desc, .gtile-resume) {
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile-meta > :is(.gtile-name, .gtile-desc, .gtile-resume) {
   grid-column: 1 / -1;
   contain: inline-size;
 }
-.tool-masonry[data-browse-layout="card"] .gtile-name {
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile-name {
   grid-row: 1;
   font-size: var(--fs-lg);
   line-height: 1.35;
   white-space: nowrap;
 }
-.tool-masonry[data-browse-layout="card"] .gtile-sub { display: none; }
-.tool-masonry[data-browse-layout="card"] .gtile-desc {
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile-sub { display: none; }
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile-desc {
   display: block;
   grid-row: 2;
   margin: 0;
   -webkit-line-clamp: unset;
   line-clamp: unset;
 }
-.tool-masonry[data-browse-layout="card"] .gtile--resumable .gtile-desc { display: none; }
-.tool-masonry[data-browse-layout="card"] .gtile-resume { display: block; grid-row: 2; }
-.tool-masonry[data-browse-layout="card"] .gtile-resume-link {
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile--resumable .gtile-desc { display: none; }
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile-resume { display: block; grid-row: 2; }
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile-resume-link {
   display: inline-block;
   max-width: 100%;
   vertical-align: top;
@@ -233,9 +233,9 @@
   white-space: nowrap;
   cursor: pointer;
 }
-.tool-masonry[data-browse-layout="card"] .gtile-resume-link:hover { text-decoration: underline; }
-.tool-masonry[data-browse-layout="card"] .gtile-resume-link:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
-.tool-masonry[data-browse-layout="card"] :is(.gtile-tpl, .gtile-fmts) {
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile-resume-link:hover { text-decoration: underline; }
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile-resume-link:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) :is(.gtile-tpl, .gtile-fmts) {
   display: block;
   grid-row: 3;
   grid-column: 1;
@@ -243,28 +243,28 @@
   padding-inline-end: var(--sp-2);
   font-size: inherit;
 }
-.tool-masonry[data-browse-layout="card"] .gtile-status { display: flex; grid-row: 3; grid-column: 2; justify-self: start; }
-.tool-masonry[data-browse-layout="card"] .gtile-status .badge { display: inline-block; vertical-align: middle; }
-.tool-masonry[data-browse-layout="card"] .gtile-cap > .badge { display: none; }
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile-status { display: flex; grid-row: 3; grid-column: 2; justify-self: start; }
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile-status .badge { display: inline-block; vertical-align: middle; }
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile-cap > .badge { display: none; }
 /* A name or description in another script keeps its own direction and truncates at
    its own end, so the start of an English description stays visible in an Arabic
    card. Under plaintext, text-align: start would follow the text's direction, so the
    alignment is the physical pair, flipped for a right-to-left page. */
-.tool-masonry[data-browse-layout="card"] .gtile-meta > :is(.gtile-name, .gtile-desc) { unicode-bidi: plaintext; text-align: left; }
-.tool-masonry[data-browse-layout="card"] .gtile-meta > :is(.gtile-name, .gtile-desc):dir(rtl) { text-align: right; }
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile-meta > :is(.gtile-name, .gtile-desc) { unicode-bidi: plaintext; text-align: left; }
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile-meta > :is(.gtile-name, .gtile-desc):dir(rtl) { text-align: right; }
 /* Compact: the status badge, then line 1 and line 2, run on as one line that ends in an
    ellipsis. The badge leads (it comes first in the markup), so it is never the piece cut
    off: "Experimental", "Add-on" and "Desktop" always show. The text gives way from the
    end, the starting points or formats first, then the description. */
-.tool-masonry[data-browse-layout="card"][data-browse-density="compact"] .gtile-meta {
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"])[data-browse-density="compact"] .gtile-meta {
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.tool-masonry[data-browse-layout="card"][data-browse-density="compact"] .gtile-meta > .gtile-name { display: block; }
-.tool-masonry[data-browse-layout="card"][data-browse-density="compact"] .gtile:not(.gtile--resumable) .gtile-meta > .gtile-desc,
-.tool-masonry[data-browse-layout="card"][data-browse-density="compact"] .gtile-meta > :is(.gtile-resume, .gtile-tpl, .gtile-fmts, .gtile-status) {
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"])[data-browse-density="compact"] .gtile-meta > .gtile-name { display: block; }
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"])[data-browse-density="compact"] .gtile:not(.gtile--resumable) .gtile-meta > .gtile-desc,
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"])[data-browse-density="compact"] .gtile-meta > :is(.gtile-resume, .gtile-tpl, .gtile-fmts, .gtile-status) {
   display: inline;
   contain: none;
   padding: 0;
@@ -276,20 +276,20 @@
    be cut mid-line. That line is a grid instead: the badge at its own width, Continue up
    to its own width (it ends in its own ellipsis), then the starting points or formats
    in what is left. */
-.tool-masonry[data-browse-layout="card"][data-browse-density="compact"] .gtile--resumable .gtile-meta {
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"])[data-browse-density="compact"] .gtile--resumable .gtile-meta {
   display: grid;
   grid-template-columns: max-content minmax(0, max-content) minmax(0, 1fr);
   align-items: center;
 }
-.tool-masonry[data-browse-layout="card"][data-browse-density="compact"] .gtile--resumable .gtile-meta > .gtile-status { display: block; grid-row: 2; grid-column: 1; }
-.tool-masonry[data-browse-layout="card"][data-browse-density="compact"] .gtile--resumable .gtile-meta > .gtile-resume { display: block; grid-row: 2; grid-column: 2; }
-.tool-masonry[data-browse-layout="card"][data-browse-density="compact"] .gtile--resumable .gtile-meta > :is(.gtile-tpl, .gtile-fmts) { display: block; grid-row: 2; grid-column: 3; }
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"])[data-browse-density="compact"] .gtile--resumable .gtile-meta > .gtile-status { display: block; grid-row: 2; grid-column: 1; }
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"])[data-browse-density="compact"] .gtile--resumable .gtile-meta > .gtile-resume { display: block; grid-row: 2; grid-column: 2; }
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"])[data-browse-density="compact"] .gtile--resumable .gtile-meta > :is(.gtile-tpl, .gtile-fmts) { display: block; grid-row: 2; grid-column: 3; }
 
 /* "+ New" stays (it is the way to the starting points), as a quiet icon button at the
    card's end: muted at rest, full strength while the card is hovered or holds focus,
    and always full on a touch screen, where nothing hovers. */
-.tool-masonry[data-browse-layout="card"] .gtile-new { display: none; }
-.tool-masonry[data-browse-layout="card"] .gtile-new-icon {
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile-new { display: none; }
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile-new-icon {
   display: inline-grid;
   place-items: center;
   flex: none;
@@ -302,13 +302,13 @@
   opacity: .45;
   transition: opacity var(--ui-motion-feedback), color var(--ui-motion-feedback), background var(--ui-motion-feedback);
 }
-.tool-masonry[data-browse-layout="card"] .gtile-new-icon svg { width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); }
-.tool-masonry[data-browse-layout="card"] .gtile:is(:hover, :focus-within) .gtile-new-icon,
-.tool-masonry[data-browse-layout="card"] .gtile-new-icon:focus-visible { opacity: 1; color: var(--ui-color-action-primary); }
-.tool-masonry[data-browse-layout="card"] .gtile-new-icon:hover { background: var(--ui-color-selection-surface); }
-.tool-masonry[data-browse-layout="card"] .gtile-new-icon:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile-new-icon svg { width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); }
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile:is(:hover, :focus-within) .gtile-new-icon,
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile-new-icon:focus-visible { opacity: 1; color: var(--ui-color-action-primary); }
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile-new-icon:hover { background: var(--ui-color-selection-surface); }
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile-new-icon:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
 @media (hover: none) {
-  .tool-masonry[data-browse-layout="card"] .gtile-new-icon {
+  .tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile-new-icon {
     width: var(--ui-size-target);
     height: var(--ui-size-target);
     opacity: 1;
@@ -318,7 +318,7 @@
 
 /* The selection dot sits on the thumbnail's lower inline-start corner. The thumbnail
    is centred in the card, so 50% plus half its height is its lower edge. */
-.tool-masonry[data-browse-layout="card"] .gtile .tile-check {
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile .tile-check {
   top: calc(50% + var(--browse-thumb-h) / 2 - var(--object-check-size) - 3px);
   bottom: auto;
   inset-inline-start: calc(var(--browse-pad-inline) + 3px);
@@ -332,17 +332,17 @@
    the 3:1 a control's outline needs, and the muted text colour about 6:1 and 9:1.
    The base rule's 28px hit extension still applies. */
 @media (pointer: coarse) {
-  .tool-masonry[data-browse-layout="card"] { --browse-check-size: var(--browse-check-size-touch); }
-  .tool-masonry[data-browse-layout="card"] .gtile .tile-check {
+  .tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) { --browse-check-size: var(--browse-check-size-touch); }
+  .tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile .tile-check {
     background: transparent;
     border-color: var(--ui-color-text-muted);
   }
-  .tool-masonry[data-browse-layout="card"] .gtile .tile-check[aria-pressed="true"] {
+  .tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile .tile-check[aria-pressed="true"] {
     background: var(--ui-color-action-primary);
     border-color: var(--ui-color-action-primary);
     color: var(--ui-color-action-on-primary);
   }
-  .tool-masonry[data-browse-layout="card"] .gtile .tile-check svg {
+  .tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile .tile-check svg {
     width: var(--browse-check-glyph-touch);
     height: var(--browse-check-glyph-touch);
   }
@@ -364,3 +364,53 @@
     grid-template-columns: repeat(clamp(1, 3 + var(--card-shift, 0), 4), minmax(0, 1fr));
   }
 }
+
+/* Layout is visible without opening the options menu. */
+.browse-layout-control { flex: none; width: auto; margin: 0; }
+.browse-layout-control .view-seg-btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2); min-height: var(--chrome-h); padding-inline: var(--sp-3); }
+.browse-layout-control svg { width: var(--ui-size-icon-sm); height: var(--ui-size-icon-sm); }
+.browse-layout-control .view-seg-btn:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+@media (max-width: 900px) {
+  .gallery-topright .browse-layout-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .gallery-topright .browse-layout-control .view-seg-btn { padding-inline: var(--sp-2); min-width: 30px; }
+}
+
+/* Tools List keeps each live preview but lays out one compact row per result. */
+.tool-masonry[data-browse-layout="list"],
+.tool-masonry[data-browse-layout="list"][data-card-size] { grid-template-columns: minmax(0, 1fr); gap: 0; }
+.tool-masonry[data-browse-layout="list"] .gtile:not(.is-filtered, .gtile--hiddenbox) { border-radius: 0; border-width: 0 0 1px; box-shadow: none; min-height: var(--browse-row-est); padding-block: var(--sp-2); contain-intrinsic-size: auto var(--browse-row-est); }
+.tool-masonry[data-browse-layout="list"] .gtile > .gcar { width: var(--browse-chip-w); height: var(--browse-chip-h); }
+.tool-masonry[data-browse-layout="list"] .gtile-cap > .tool-card-icon { width: var(--browse-chip-w); height: var(--browse-chip-h); }
+.tool-masonry[data-browse-layout="list"] .gtile-body { min-width: 0; }
+.tool-masonry[data-browse-layout="list"] .gtile-meta { grid-template-columns: minmax(0, 2fr) minmax(0, 3fr) minmax(0, 1fr); column-gap: var(--sp-5); }
+.tool-masonry[data-browse-layout="list"] .gtile-meta > :is(.gtile-name, .gtile-desc, .gtile-resume) { grid-column: auto; grid-row: 1; }
+.tool-masonry[data-browse-layout="list"] .gtile-name { font-size: var(--fs-sm); }
+.tool-masonry[data-browse-layout="list"] .gtile-meta > :is(.gtile-tpl, .gtile-fmts) { grid-row: 1; }
+.tool-masonry[data-browse-layout="list"] .gtile-status { display: none; }
+.tool-masonry[data-browse-layout="list"] .gtile .tile-check { inset-block-start: 50%; transform: translateY(-50%); }
+@media (max-width: 640px) {
+  .tool-masonry[data-browse-layout="list"] .gtile-meta { grid-template-columns: minmax(0, 1fr); }
+  .tool-masonry[data-browse-layout="list"] .gtile-meta > :is(.gtile-desc, .gtile-resume, .gtile-tpl, .gtile-fmts) { grid-row: 2; }
+  .tool-masonry[data-browse-layout="list"] .gtile-meta > :is(.gtile-tpl, .gtile-fmts) { display: none; }
+}
+
+/* Projects Card uses the ordinary tiles and preserves their action and presence hooks. */
+.projects-grid[data-browse-layout="card"],
+.projects-grid[data-browse-layout="card"][data-card-size] { grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--browse-card-min)), 1fr)); gap: var(--grid-gap-tight); }
+.projects-grid[data-browse-layout="card"] .folder-tile { container-type: normal; content-visibility: auto; contain-intrinsic-size: auto var(--browse-card-est); }
+.projects-grid[data-browse-layout="card"] .folder-tile .tile-primary { display: grid; grid-template-columns: var(--browse-thumb-w) minmax(0, 1fr); align-items: center; gap: var(--sp-4); padding: var(--browse-pad-block) calc(var(--browse-pad-inline) + var(--sp-6)) var(--browse-pad-block) var(--browse-pad-inline); }
+.projects-grid[data-browse-layout="card"] :is(.tile-figure, .tile-cover, .folder-cover) { width: var(--browse-thumb-w); height: var(--browse-thumb-h); aspect-ratio: auto; flex: none; }
+.projects-grid[data-browse-layout="card"] .folder-cover { height: calc(var(--browse-thumb-h) - 6px); margin-block-start: 6px; }
+.projects-grid[data-browse-layout="card"] .folder-tile .tile-meta { min-width: 0; min-block-size: 0; padding: 0; }
+.projects-grid[data-browse-layout="card"] :is(.tile-title, .tile-sub) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.projects-grid[data-browse-layout="card"] .tile-title { font-size: var(--fs-sm); }
+.projects-grid[data-browse-layout="card"] .folder-tile .tile-check { inset-block-start: var(--sp-2); inset-inline-start: var(--sp-2); --object-check-size: var(--browse-check-size); }
+.projects-grid[data-browse-layout="card"] .tile-menu-btn { inset-block-start: 50%; inset-inline-end: var(--sp-2); transform: translateY(-50%); }
+.projects-grid[data-browse-layout="card"] .collab-tile-badge { position: static; width: max-content; margin-block: 0 var(--sp-2); margin-inline-start: var(--browse-pad-inline); }
+.projects-grid:not(.projects-list) .projects-listhead { display: none; }
+.projects-grid[data-browse-layout] > .folder-tile--create[data-create],
+.projects-grid[data-browse-layout] > .projects-sec-label { display: none; }
+.projects-grid.projects-list[data-browse-density="compact"] { --list-chip: calc(40px * var(--a11y-fs)); }
+.projects-grid.projects-list[data-browse-density="compact"] .tile-primary { padding-block: var(--sp-1); }
+.projects-grid.projects-list[data-browse-density="compact"] .tile-cover { height: calc(30px * var(--a11y-fs)); }
+html[data-a11y-previews="hidden"] .projects-grid[data-browse-layout="card"] .tile-figure { filter: saturate(.5) contrast(.5); }

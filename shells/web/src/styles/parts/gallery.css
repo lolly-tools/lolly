@@ -1424,7 +1424,7 @@ html[data-a11y-previews="hidden"] .gtile .tile-check { top: auto; bottom: 6px; }
 html[data-a11y-previews="hidden"] .tool-masonry .gcar { display: none; }
 /* Card (plan 302, styles/parts/browse-layout.css): the tool's icon takes the
    thumbnail slot the hidden strip leaves, so no card is left without a picture. */
-html[data-a11y-previews="hidden"] .tool-masonry[data-browse-layout="card"] .gtile--has-preview .gtile-cap > .tool-card-icon { display: grid; }
+html[data-a11y-previews="hidden"] .tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile--has-preview .gtile-cap > .tool-card-icon { display: grid; }
 .gtile-hero::after {
   content: '';
   position: absolute;

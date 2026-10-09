@@ -18,6 +18,7 @@ import { announce } from '../a11y.ts';
 import { t } from '../i18n.ts';
 import { actionButtonContent } from '../components/action-button.ts';
 import { escape as escapeHtml } from '../utils.ts';
+import type { ProjectsViewMode } from './projects-view-options.ts';
 import type { Folder } from '../folders.ts';
 import { getInstanceBase } from '../lib/instance.ts';
 import { canWriteProject } from '../org/team-access.ts';
@@ -60,7 +61,7 @@ export function openTeamProjects(door: TeamProjectsDoor, projectId?: string, cre
   window.location.hash = create ? '#/p?create=team' : projectId ? `#/p?team=${encodeURIComponent(projectId)}` : '#/p';
 }
 
-export async function mountTeamProjectFolder(door: TeamProjectsDoor, container: HTMLElement, opts: { projectId: string; create: boolean; tab: string; fileId?: string; query: string; list: boolean; sort: string; reversed: boolean; assetId?: string; folderId?: string }): Promise<() => void> {
+export async function mountTeamProjectFolder(door: TeamProjectsDoor, container: HTMLElement, opts: { projectId: string; create: boolean; tab: string; fileId?: string; query: string; list: boolean; sort: string; reversed: boolean; layout?: () => ProjectsViewMode; head?: () => string; assetId?: string; folderId?: string }): Promise<() => void> {
   try {
     const module = await import('../org/team-project-view.ts');
     const { prepareProjectAsset, projectAssetHref } = await import('../org/team-project-assets.ts');
@@ -142,9 +143,9 @@ export function createSharedProjectsView(door: TeamProjectsDoor, view: HTMLEleme
         : filter ? t('No shared projects match your search.') : other.length ? t('Projects you belong to, add or open appear here.') : t('Create a team project or ask a teammate to add you.');
       return `<section class="projects-shared" aria-label="${escapeHtml(tRaw('Shared projects'))}"><div class="projects-shared-head"><div><h2>${t('Shared projects')}</h2><p>${escapeHtml(source.label)}</p></div>
         <div class="team-project-actions">${browse}<button type="button" class="btn btn--labelled btn--ghost" data-refresh-team>${actionButtonContent(tRaw('Refresh'), 'refresh')}</button></div></div>
-        ${tiles ? `<div class="folder-grid projects-grid${list ? ' projects-list' : ''}"${size}>${list ? head : ''}${tiles}</div>` : `<p class="projects-shared-status" role="status">${message}</p>`}</section>`;
+        ${tiles ? `<div class="folder-grid projects-grid${list ? ' projects-list' : ''}"${size}>${head}${tiles}</div>` : `<p class="projects-shared-status" role="status">${message}</p>`}</section>`;
     },
-    afterRender(opts: { query: string; list: boolean; sort: string; reversed: boolean }): void {
+    afterRender(opts: { query: string; list: boolean; layout?: () => ProjectsViewMode; head?: () => string; sort: string; reversed: boolean }): void {
       const ticket = generation, source = getSessionSource();
       if (active) {
         const slot = view.querySelector<HTMLElement>('[data-shared-folder]'); if (!slot) return;

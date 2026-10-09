@@ -7,6 +7,7 @@
  * a value (an event listener), goes through `cat.<module>.<fn>`. Extracted verbatim
  * from mountCatalog() by scripts/split-closure.ts.
  */
+import { assetDetailsId, assetRowDetails } from './layout.ts';
 import { escape as escapeText } from '../../utils.ts';
 import { assetAddedAt, matchContext as matchContextRule } from '../assets-filter.ts';
 import { audioTransportHtml } from '../../lib/audio-transport.ts';
@@ -545,7 +546,7 @@ export function assetTile(cat: CatCtx, ref: AssetRef): string {
   return `
       <div class="cat-tile${fav ? ' is-fav' : ''}${hidden ? ' is-hidden-asset' : ''}${sel ? ' is-selected' : ''}" data-id="${escapeText(ref.id)}" draggable="true">
         <button type="button" class="cat-check" data-select="${escapeText(ref.id)}" aria-pressed="${sel}" aria-label="${escapeText(tRaw('Select {name}', { name }))}" title="${escapeText(t('Select'))}">${CHECK_ICON}</button>
-        <button type="button" class="cat-tile-open" data-open="${escapeText(ref.id)}" aria-label="${escapeText(tRaw('View {name} details', { name }))}">
+        <button type="button" class="cat-tile-open" data-open="${escapeText(ref.id)}" data-describedby="${escapeText(assetDetailsId(ref))}"${cat.catLayout === 'grid' ? '' : ` aria-describedby="${escapeText(assetDetailsId(ref))}"`} aria-label="${escapeText(tRaw('View {name} details', { name }))}">
           <span class="cat-tile-fig">${thumbHtml(cat, ref, true)}</span>
           <span class="cat-tile-cap">
             <span class="cat-tile-name" title="${escapeText((() => {
@@ -559,7 +560,7 @@ export function assetTile(cat: CatCtx, ref: AssetRef): string {
               const ctx = matchContextRule(ref, cat.query, x => categoryLabel(libCategory(x, cat.overrides)));
               return ctx ? ` <span class="cat-match-chip" title="${escapeText(t('This is what the search matched'))}">${escapeText(ctx)}</span>` : '';
             })()}</span>
-          </span>
+          </span>${assetRowDetails(ref)}
         </button>
       </div>`;
 }

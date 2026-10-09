@@ -58,6 +58,7 @@ import { playProjectsAah, cancelArrivalAah } from '../lib/sfx.ts';
 import { mountFeaturedRow } from '../components/featured-row.ts';
 import type { FeaturedEntry, FeaturedRowHandle, FeaturedViewMode } from '../components/featured-row.ts';
 import { viewTopbarHtml, mountViewTopbar } from '../components/view-topbar.ts';
+import { projectListHead } from '../components/project-listhead.ts';
 import { projectsTopRight } from './projects-topbar.ts';
 import { claimSearchBar, clearSearchBar } from '../components/search-bar.ts';
 import {
@@ -73,6 +74,7 @@ import { startBatchExport } from '../lib/batch-job.ts';
 import { announce } from '../a11y.ts';
 import { mountActionToolbar, actionButtonContent } from '../components/action-button.ts';
 import { listCreateBtns as createButtonsHtml, emptyFolderHtml, projectLearningActionsHtml } from './projects-create.ts';
+import { applyProjectsLayout, projectLayoutAttrs, projectsLayoutControl, wireProjectsLayout } from './projects-layout.ts';
 import { FEATURED_VIEW_STORAGE, liveAnchor, mountProjectsViewOptions, projectsGridAttrs, projectsViewFromUrl, readProjectsViewPrefs, writeProjectsViewPrefs, readFeaturedView, switchFavouritesView } from './projects-view-options.ts';
 import type { BodyPopoverHandle } from '../components/body-popover.ts';
 import { shareProjectFavourite, shareProjectSession } from './projects-sharing.ts';
@@ -132,7 +134,7 @@ type Entry = Awaited<ReturnType<WebStateAPI['list']>>[number];
 // 'modified' = last save (updatedAt) - the old catch-all 'date', which stored prefs
 // migrate to on load. 'tool' groups by the owning tool (folder views only).
 type SortBy = 'modified' | 'added' | 'name' | 'tool' | 'size';
-type ViewMode = 'preview' | 'list';
+type ViewMode = 'preview' | 'card' | 'list';
 type SelectKind = 'folder' | 'session' | 'image' | 'template';   // images join via marquee (no checkbox)
 
 /** Query result: the (capped) tiles to render plus the true `total` so the header can
@@ -325,7 +327,7 @@ export async function mountProjects(
   const RECENTS_COLLAPSED_KEY = 'lolly-projects-recents-collapsed';
   let recentsCollapsed = ((): boolean => { try { return localStorage.getItem(RECENTS_COLLAPSED_KEY) === '1'; } catch { return false; } })();
 
-  const prefsScope = sharedProjectId ? `team:${sharedProjectId}` : folderId ?? '__root__';
+  const prefsScope = sharedProjectId ? `team:${sharedProjectId}:${new URLSearchParams(opts.params || '').get('folder') || ''}` : folderId ?? '__root__';
   ({ view: viewMode, sort: sortBy, reversed: sortRev } = readProjectsViewPrefs(prefsScope, { view: viewMode, sort: sortBy, reversed: sortRev }, sharedFolder));
   // `#/p?view=&sort=&rev` seed the same three for THIS mount, outranking both stored
   // layers above - what a shared link, a docs recipe or a screenshot run needs to land
@@ -469,7 +471,7 @@ export async function mountProjects(
 
   /** Persist view + sort for THIS folder (plans/133 WP-2). */
   function saveViewPrefs(): void {
-    updateRouteParams({ view: viewMode, sort: sortBy, rev: sortRev ? '1' : '0' });
+    updateRouteParams({ layout: viewMode === 'preview' ? null : viewMode, view: null, sort: sortBy, rev: sortRev ? '1' : '0' });
     writeProjectsViewPrefs(prefsScope, { view: viewMode, sort: sortBy, reversed: sortRev });
   }
 
@@ -478,27 +480,7 @@ export async function mountProjects(
    *  as every row (projects.css --list-cols), so it cannot drift from them. A
    *  sort with no column (Date added) is named beside Name, so the active
    *  order is never invisible. Rendered only in list mode. */
-  function listHeadHtml(): string {
-    // The arrow shows the REAL direction: name/kind run A→Z unreversed, while the
-    // date and size sorts run newest/biggest first unreversed - i.e. descending.
-    const descending = (key: SortBy): boolean => (key === 'name' || key === 'tool') ? sortRev : !sortRev;
-    const glyph = (key: SortBy): string => descending(key) ? '▾' : '▴';
-    // The sort state rides the accessible NAME: aria-sort is only exposed on real
-    // table header roles, and these are buttons in a div, so a screen reader would
-    // otherwise hear nothing of it.
-    const col = (key: SortBy, label: string): string => {
-      const on = sortBy === key;
-      const state = on ? (descending(key) ? t('sorted descending') : t('sorted ascending')) : t('not sorted');
-      return `<button type="button" class="listhead-col${on ? ' is-on' : ''}" data-listsort="${key}" aria-label="${escape(`${label}, ${state}`)}">${escape(label)}${on ? `<span class="listhead-dir" aria-hidden="true">${glyph(key)}</span>` : ''}</button>`;
-    };
-    const note = sortBy === 'added'
-      ? `<span class="listhead-sortnote">${t('Sorted by date added')} <span aria-hidden="true">${glyph('added')}</span></span>`
-      : '';
-    return `<div class="projects-listhead" role="row">
-      <span class="listhead-name">${col('name', t('Name'))}${note}</span>
-      ${col('tool', t('Kind'))}${col('size', t('Size'))}${col('modified', t('Modified'))}
-    </div>`;
-  }
+  const listHeadHtml = (): string => projectListHead(sortBy, sortRev);
 
   const sessionTitle = (e: Entry): string => (e.label || e.filename || toolName(e.toolId) || '').toLowerCase();
   // A session's creation time for the "Date added" sort: the stored createdAt when the
@@ -586,10 +568,10 @@ export async function mountProjects(
     viewEl.innerHTML = sharedFolder ? shell(titleName, 'projects', '<div data-shared-folder></div>', { inFolder: true }) : folderId == null ? rootHtml() : folderId === TEMPLATES ? shell(t('Templates'), 'projects', tpl.html(query), { inFolder: true }) : folderHtml(folderId);
     const assetId = !sharedFolder ? new URLSearchParams(opts.params || '').get('asset') : null;
     if (assetId) disposeAssetPreview = mountLocalProjectAsset(viewEl, host, folderId, assetId, folders, imageRefs);
-    wire();
+    wire(); wireProjectsLayout(viewEl.querySelector<HTMLElement>('.projects')!, () => viewMode, value => { viewMode = value; saveViewPrefs(); applyProjectsLayout(viewEl, value); });
     const rootToolbar = viewEl.querySelector<HTMLElement>('.projects-roothead, .projects-head');
     if (rootToolbar) clearRootToolbar = mountActionToolbar(rootToolbar);
-    shared.afterRender({ query, list: viewMode === 'list', sort: sortBy, reversed: sortRev });
+    shared.afterRender({ query, list: viewMode === 'list', layout: () => viewMode, head: () => listHeadHtml(), sort: sortBy, reversed: sortRev });
     scenePreviews.refresh(entries);
   }
 
@@ -637,16 +619,16 @@ export async function mountProjects(
             both view modes. Batch waits for the first project (plans/163 F14). */ ''}
       <div class="projects-roothead">${listCreateBtns()}${getSessionSource()?.write?.projectOptions().canCreate ? `<button type="button" class="btn btn--labelled btn--primary" data-new-team-project>${actionButtonContent(t('New team project'), 'users')}</button>` : ''}<span class="projects-head-spacer"></span>${nothingSaved ? '' : batchButtonHtml()}</div>
       ${sharedProjectsHtml()}
-      ${favourites.size && !list ? `<div class="projects-featured" data-fav-strip></div>` : ''}
+      ${favourites.size ? `<div class="projects-featured" data-fav-strip></div>` : ''}
       ${invite}
-      <div class="folder-grid projects-grid${list ? ' projects-list' : ''}"${projectsGridAttrs()}>
-        ${list ? listHeadHtml() : ''}
+      <div class="folder-grid projects-grid${list ? ' projects-list' : ''}"${projectsGridAttrs()}${projectLayoutAttrs(viewMode)}>
+        ${listHeadHtml()}
         ${folderTiles}${/* "My library" names the loose block when folders sit above
           it (plans/170 keeping-model): the save dialog files here by that name,
           so the place answers to it. Grid mode only - the list table has its own
           header row - and pointless when the grid IS only the library. */ ''}
         ${!list && loose.length && topFolders.length ? `<h2 class="projects-sec-label">${t('My library')}</h2>` : ''}
-        ${looseTiles}${list ? '' : `${createFolder}${createTool}${blueprintTile()}`}${templatesRootTile()}${trashTile}
+        ${looseTiles}${createFolder}${createTool}${blueprintTile()}${templatesRootTile()}${trashTile}
       </div>
       ${recentExports.length ? `
         <section class="projects-exports folder-exports">
@@ -686,7 +668,7 @@ export async function mountProjects(
     const status = `<p class="projects-search-status" role="status" aria-live="polite">${tRaw('{count} for {names}', { count: countText, names: escape(label) })} · ${clearBtn}</p>`;
     const gridClass = `folder-grid projects-grid projects-search-grid${viewMode === 'list' ? ' projects-list' : ''}`;
     const tiles = ms.map(e => sessionTile(e, sessionTileOpts(e))).join('');
-    return `${status}<div class="${gridClass}"${projectsGridAttrs()}>${viewMode === 'list' ? listHeadHtml() : ''}${tiles}</div>`;
+    return `${status}<div class="${gridClass}"${projectsGridAttrs()}${projectLayoutAttrs(viewMode)}>${listHeadHtml()}${tiles}</div>`;
   }
 
   // The per-tile options every surface (root, folder, results) passes, so a tile
@@ -824,7 +806,7 @@ export async function mountProjects(
     const hasTiles = subfolders.length > 0 || sessions.length > 0 || images.length > 0;
     // Empty folder → a blank state inviting the two create actions (no grid at all).
     const body = hasTiles
-      ? `<div class="${gridClass}"${projectsGridAttrs()}>${viewMode === 'list' ? listHeadHtml() : ''}${tiles}</div>`
+      ? `<div class="${gridClass}"${projectsGridAttrs()}${projectLayoutAttrs(viewMode)}>${listHeadHtml()}${tiles}</div>`
       : emptyFolderHtml(isUncat);
 
     return shell(title, 'projects', `${ribbon}${stripSwitch}${rail}${header}${body}`, { inFolder: true });
@@ -857,7 +839,7 @@ export async function mountProjects(
     const status = `<p class="projects-search-status" role="status" aria-live="polite">${tRaw('{count} for “{query}” in {scope}', { count: countText, query: escape(query), scope: escape(scope) })} · ${clearBtn}</p>`;
     const gridClass = `folder-grid projects-grid projects-search-grid${viewMode === 'list' ? ' projects-list' : ''}`;
     const tiles = [...mf.map(folderResultTile), ...ms.map(sessionResultTile)].join('');
-    return `${status}<div class="${gridClass}"${projectsGridAttrs()}>${viewMode === 'list' ? listHeadHtml() : ''}${tiles}</div>`;
+    return `${status}<div class="${gridClass}"${projectsGridAttrs()}${projectLayoutAttrs(viewMode)}>${listHeadHtml()}${tiles}</div>`;
   }
 
   // A search hit = the normal tile + a location breadcrumb beneath it. Reusing the shared
@@ -896,7 +878,7 @@ export async function mountProjects(
       <div class="projects${inFolder ? ' projects--folder' : ''}${query ? ' projects--searching' : ''}">
         ${viewTopbarHtml({
           active,
-          right: projectsTopRight(folderId && folderId !== UNCAT && folderId !== TEMPLATES ? folderId : null),
+          right: projectsLayoutControl(viewMode) + projectsTopRight(folderId && folderId !== UNCAT && folderId !== TEMPLATES ? folderId : null),
           // No view-specific class on the cluster: the old `.projects-topright` marker
           // this markup used to carry had no CSS rule and no selector anywhere in the
           // repo, so it went out with the hand-rolled copy.
@@ -1294,7 +1276,7 @@ export async function mountProjects(
   // reset the Shift-anchor mid-gesture).
   const selectableTiles = (): HTMLElement[] =>
     [...viewEl.querySelectorAll<HTMLElement>('.folder-tile[data-ref][data-kind]')]
-      .filter(t => !t.classList.contains('folder-tile--create'));
+      .filter(t => !t.classList.contains('folder-tile--create') && !t.dataset.kind?.startsWith('team-'));
 
   const tileSelect = wireTileSelect({
     host: viewEl,
@@ -2000,7 +1982,7 @@ export async function mountProjects(
     viewPopover = mountProjectsViewOptions(liveAnchor(current), {
       view: viewMode, sort: sortBy, reversed: sortRev, atRoot: folderId == null && !sharedFolder, shared: sharedFolder,
       favView: featuredHandle ? readFeaturedView() : null,
-      onView: value => { viewMode = value; remember('lolly:projectsView', value); repaint(); },
+      onView: value => { viewMode = value; saveViewPrefs(); applyProjectsLayout(viewEl, value); },
       onSort: value => { sortBy = value; remember('lolly:projectsSort', value); repaint(); },
       onReverse: value => { sortRev = value; repaint(); },
       onFavView: value => switchFavouritesView(value, featuredHandle),

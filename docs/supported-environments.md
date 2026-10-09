@@ -50,8 +50,8 @@ Qualification alone does not publish a build or deploy an instance.
 
 `node scripts/webgpu-release-gate.ts` and `pnpm run check:release` keep the full
 frontend gate. Tauri builds, native package workflows and the YunoHost release
-command also keep that hold. A pending or missing result cannot pass it; an
-environment variable cannot override it. A genuinely tested unsupported result
+command also keep that hold. A pending or missing result cannot pass the gate;
+environment variables cannot bypass qualification. A tested unsupported result
 may be recorded as **Not supported**, but an unrun check stays **Pending**.
 
 The MCP, certificate service, Penpot service and documentation builds are

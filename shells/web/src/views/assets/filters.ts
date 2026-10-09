@@ -1,3 +1,4 @@
+import { assetListHead } from './layout.ts';
 // SPDX-License-Identifier: MPL-2.0
 /**
  * catalog: filtering and search, the uploads and assets sections, the swatch strip.
@@ -32,7 +33,7 @@ export function assetGridHtml(cat: CatCtx, group: string, items: AssetRef[]): st
   const scope = encodeURIComponent(JSON.stringify([group, cat.query, cat.typeFilter, cat.sourceSelection, cat.catSort, cat.catSortRev]));
   const shown = Math.min(items.length, cat.assetPageSizes.get(scope) ?? ASSET_PAGE_SIZE);
   if (shown < items.length) cat.assetPageItems.set(scope, items);
-  return `<div class="cat-grid">${items.slice(0, shown).map(cat.thumbs.assetTile).join('')}</div>${showMoreHtml(scope, shown, items.length)}`;
+  return `<div class="cat-grid">${assetListHead()}${items.slice(0, shown).map(cat.thumbs.assetTile).join('')}</div>${showMoreHtml(scope, shown, items.length)}`;
 }
 
 

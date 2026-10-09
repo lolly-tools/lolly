@@ -35,6 +35,7 @@ import type { AssetRef } from '@lolly-tools/core/host-v1';
 import { ASSET_PAGE_SIZE, CAT_ICONS, DOWNLOAD_ICON, emojiPackMeta, emojiPackSource, showMoreHtml } from './shared.ts';
 import { bindOp, type CatCtx } from './context.ts';
 import { appPathname } from '../../lib/any-site.ts';
+import { layoutAttr, densityAttr } from '../../components/browse-layout.ts';
 import { cardSizeAttr } from '../../components/view-options.ts';
 
 // Open on a favourite-swatch tile → reveal the Swatches reference panel below.
@@ -203,7 +204,7 @@ export function render(cat: CatCtx): void {
   const { viewEl } = cat;
   cat.bulk.pruneSelection();
   viewEl.innerHTML = `
-      <div class="catalog${cat.catLayout === 'list' ? ' cat-layout-list' : ''}${cat.catDensity === 'compact' ? ' cat-density-compact' : ''}"${cardSizeAttr(cat.cardSize)}>
+      <div class="catalog"${cardSizeAttr(cat.cardSize)}${layoutAttr(cat.catLayout)}${densityAttr(cat.catDensity)}>
         ${cat.tiles.catalogTopbarHtml()}
         <h1 class="visually-hidden">${t('Assets')}</h1>
         <button type="button" class="btn btn--labelled btn--ghost" data-browse-sources>${actionButtonContent(t('Browse sources'), 'folder')}</button>

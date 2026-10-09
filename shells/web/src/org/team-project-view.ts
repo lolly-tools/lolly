@@ -7,6 +7,8 @@ import { createTeamFolder, listTeamFolders, moveTeamFolderItem, teamFolderHref, 
 import { icon, type IconName } from '../lib/icons.ts';
 import { actionButton, mountActionToolbar } from '../components/action-button.ts';
 import { tRaw } from '../i18n.ts';
+import type { ProjectsViewMode } from '../views/projects-view-options.ts';
+import { applyDensity, readDensity } from '../components/browse-layout.ts';
 import { applyCardSize, readCardSize } from '../components/view-options.ts';
 import { confirmDialog, promptDialog } from '../components/confirm-dialog.ts';
 import { duplicateProjectItem } from './team-project-duplicate.ts';
@@ -45,6 +47,8 @@ interface ProjectViewOptions {
   isMounted: () => boolean;
   query?: string;
   list?: boolean;
+  layout?: () => ProjectsViewMode;
+  head?: () => string;
   sort?: string;
   reversed?: boolean;
   assetId?: string;
@@ -217,14 +221,17 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
     const grid = node('div', undefined, `folder-grid projects-grid${opts.list ? ' projects-list' : ''}`);
     const files = assets.files.filter(file => belongs('file', file.id) && (!tokens.length || matchesHaystack(buildFolderHaystack(file.name), tokens)));
     const children = folders.filter(f => (tokens.length ? f.id !== folderId && inScope(f.id) : f.parentId === folderId) && (!tokens.length || matchesHaystack(buildFolderHaystack(f.name), tokens))).sort((a, b) => a.name.localeCompare(b.name));
-    grid.innerHTML = children.map(f => folderTile(f, { count: f.items.length + folders.filter(child => child.parentId === f.id).length, href: teamFolderHref(project.id, f.id), shared: { subfolder: true, subtitle: [tRaw('Shared folder'), place(f.parentId)].filter(Boolean).join(' · '), openLabel: tRaw('Open shared folder {name}', { name: f.name }) } })).join('') + sessions.map(session => {
+    grid.innerHTML = (opts.head?.() || '') + children.map(f => folderTile(f, { count: f.items.length + folders.filter(child => child.parentId === f.id).length, href: teamFolderHref(project.id, f.id), shared: { subfolder: true, subtitle: [tRaw('Shared folder'), place(f.parentId)].filter(Boolean).join(' · '), openLabel: tRaw('Open shared folder {name}', { name: f.name }) } })).join('') + sessions.map(session => {
       const name = session.label || opts.toolName(session.toolId) || session.toolId;
       return sessionTile({ slot: session.id, toolId: session.toolId, label: name, updatedAt: session.updatedAt }, {
         toolName: opts.toolName(session.toolId), href: `#/team/${encodeURIComponent(session.id)}`,
         shared: { subtitle: [opts.toolName(session.toolId), activityLabel(session), place(homeOf('session', session.id))].filter(Boolean).join(' · '), openLabel: tRaw('Open shared session {name}', { name }) },
       });
     }).join('') + teamAssetTiles(project.id, files, folderId, file => tokens.length ? { folderId: homeOf('file', file.id), label: place(homeOf('file', file.id)) } : null);
-    applyCardSize(grid, readCardSize('projects'));
+    applyCardSize(grid, readCardSize('projects')); applyDensity(grid, readDensity('projects'));
+    const layout = opts.layout?.() ?? (opts.list ? 'list' : 'preview');
+    grid.classList.toggle('projects-list', layout === 'list');
+    if (layout !== 'preview') grid.dataset.browseLayout = layout;
     clearActions = mountTeamProjectActions({ grid, content, projectId, projectName: project.name, folderId, folders, files, crumbs: breadcrumbs,
       canWrite, canOrganize, canDownload: !!opts.downloadSession, canManage: isManagerPlus(projectRole), canDeleteSession: isManagerPlus(projectRole) && orgConfig()?.can?.['session.delete'] !== false,
       current: () => current() && my === ticket, reload: message => { void load(message); },

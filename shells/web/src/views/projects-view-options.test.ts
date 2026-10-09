@@ -44,8 +44,8 @@ test('settings apply at once and stay open, as in the other views; the tool sort
   select.value = 'name';
   select.dispatchEvent(new f.w.Event('change', { bubbles: true }));
   assert.equal(f.popover.isOpen(), true);
-  f.panel()!.querySelector<HTMLButtonElement>('[data-vm="preview"]')!.click();
-  assert.equal(f.panel()!.querySelector('[data-vm="preview"]')!.getAttribute('aria-pressed'), 'true');
+  f.panel()!.querySelector<HTMLButtonElement>('[data-vm="grid"]')!.click();
+  assert.equal(f.panel()!.querySelector('[data-vm="grid"]')!.getAttribute('aria-pressed'), 'true');
   const dir = f.panel()!.querySelector<HTMLButtonElement>('.view-options-dir')!;
   dir.click();
   assert.equal(dir.getAttribute('aria-pressed'), 'true');
@@ -102,7 +102,7 @@ test('card size hides in list layout, returns with Grid, and reports each step i
   f.popover.open();
   const row = () => f.panel()!.querySelector<HTMLElement>('.view-options-size')!;
   assert.equal(row().hidden, true, 'list layout has no cards to size');
-  f.panel()!.querySelector<HTMLElement>('[data-vm="preview"]')!.click();
+  f.panel()!.querySelector<HTMLElement>('[data-vm="grid"]')!.click();
   assert.equal(row().hidden, false, 'Grid brings the slider back');
   const grid = f.w.document.body.appendChild(f.w.document.createElement('div'));
   grid.className = 'projects-grid';
@@ -120,15 +120,15 @@ test('card size hides in list layout, returns with Grid, and reports each step i
   f.close();
 });
 
-test('density hides in list layout, where Compact has no form yet, and returns with Grid', () => {
+test('density remains available in List and applies to its compact rows', () => {
   const f = fixture();
   f.popover.open();
   const seg = () => f.panel()!.querySelector<HTMLElement>('[data-be-seg="projects-density"]')!;
-  assert.equal(seg().hidden, true, 'no dead control in List');
-  f.panel()!.querySelector<HTMLElement>('[data-vm="preview"]')!.click();
+  assert.equal(seg().hidden, false, 'List has compact rows');
+  f.panel()!.querySelector<HTMLElement>('[data-vm="grid"]')!.click();
   assert.equal(seg().hidden, false, 'Grid brings the segment back');
   f.panel()!.querySelector<HTMLElement>('[data-vm="list"]')!.click();
-  assert.equal(seg().hidden, true);
+  assert.equal(seg().hidden, false);
   f.close();
 });
 

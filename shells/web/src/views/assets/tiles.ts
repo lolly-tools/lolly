@@ -1,3 +1,4 @@
+import { assetListHead } from './layout.ts';
 // SPDX-License-Identifier: MPL-2.0
 /**
  * catalog: tile and bulk menus, section grouping, the top bar, reload.
@@ -14,8 +15,8 @@ import { t } from '../../i18n.ts';
 import { isTauriShell } from '../../lib/instance-choice.ts';
 import { announce } from '../../a11y.ts';
 import { viewTopbarHtml } from '../../components/view-topbar.ts';
-import { cardSizeHtml, favouritesViewSection, sortSection, viewOptionsButtonHtml, viewOptionsSection } from '../../components/view-options.ts';
-import { segHtml } from '../../lib/seg.ts';
+import { layoutControlHtml, layoutSection, densityHtml } from '../../components/browse-layout.ts';
+import { cardSizeHtml, favouritesViewSection, sortSection, viewOptionsButtonHtml } from '../../components/view-options.ts';
 import { loadAssetCategories } from '../../lib/asset-category.ts';
 import { assetBaseId, loadFavouriteAssets, loadHiddenAssets } from '../../lib/asset-favourites.ts';
 import { icon } from '../../lib/icons.ts';
@@ -258,7 +259,7 @@ export async function reload(cat: CatCtx): Promise<void> {
 export function catalogTopbarHtml(cat: CatCtx): string {
   return viewTopbarHtml({
     active: 'catalog',
-    right: viewOptionsButtonHtml('cat-viewopts-btn', { expanded: cat.viewOptsOpen }),
+    right: layoutControlHtml('catalog-layout-visible', cat.catLayout, 'data-catlayout') + viewOptionsButtonHtml('cat-viewopts-btn', { expanded: cat.viewOptsOpen }),
     popover: `
         <div class="cat-viewopts filter-popover view-options" role="group" aria-label="${escapeText(t('View options'))}"${cat.viewOptsOpen ? '' : ' hidden'}>
           ${favouritesViewSection(cat.favView, `
@@ -266,13 +267,7 @@ export function catalogTopbarHtml(cat: CatCtx): string {
             <input type="checkbox" class="cat-favstrip-toggle field-check"${cat.favStripOn ? ' checked' : ''}>
             <span>${t('Show favourites strip')}</span>
           </label>`)}
-          ${viewOptionsSection(t('Layout'), segHtml('catalog-layout', [
-            { id: 'grid', label: t('Grid') },
-            { id: 'list', label: t('List') },
-          ], cat.catLayout, t('Assets layout'), { attr: 'data-catlayout' }) + segHtml('catalog-density', [
-            { id: 'comfortable', label: t('Comfortable') },
-            { id: 'compact', label: t('Compact') },
-          ], cat.catDensity, t('Tile density'), { attr: 'data-catdensity' }) + cardSizeHtml(cat.cardSize, cat.catLayout === 'list'))}
+          ${layoutSection('catalog-layout', cat.catLayout, undefined, densityHtml('catalog-density', cat.catDensity) + cardSizeHtml(cat.cardSize, cat.catLayout === 'list')).replaceAll('data-layout-mode', 'data-catlayout').replaceAll('data-density-mode', 'data-catdensity')}
           ${sortSection('catalog-sort', [
             { id: 'default', label: t('Default') },
             { id: 'name', label: t('Name') },
@@ -312,7 +307,7 @@ export function groupSection(cat: CatCtx, key: string, label: string, count: num
 }
 // Asset groups wrap their tiles in the responsive .cat-grid.
 export const sectionHtml = (cat: CatCtx, key: string, label: string, count: number, tilesHtml: string): string =>
-  groupSection(cat, key, label, count, `<div class="cat-grid">${tilesHtml}</div>`);
+  groupSection(cat, key, label, count, `<div class="cat-grid">${assetListHead()}${tilesHtml}</div>`);
 export function tilesOps(cat: CatCtx) {
   return {
     setOverrides: bindOp(cat, setOverrides),

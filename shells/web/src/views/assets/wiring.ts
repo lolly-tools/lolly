@@ -14,6 +14,7 @@ import { announce } from '../../a11y.ts';
 import type { FeaturedViewMode } from '../../components/featured-row.ts';
 import { mountViewTopbar } from '../../components/view-topbar.ts';
 import { clearSearchBar, setSearchBarQuery } from '../../components/search-bar.ts';
+import { applyLayout, applyDensity, parseLayout, writeLayout, writeDensity, syncLayoutControls } from '../../components/browse-layout.ts';
 import { applyCardSize, syncSortDir, wireCardSize } from '../../components/view-options.ts';
 import { wireDisclosure } from '../../components/body-popover.ts';
 import { playSfx } from '../../lib/sfx.ts';
@@ -348,15 +349,16 @@ export function wire(cat: CatCtx): void {
   // Card size: the grid reflows live while the slider moves; no re-render.
   if (voPop) wireCardSize(voPop, 'catalog', step => { cat.cardSize = step; applyCardSize(viewEl.querySelector('.catalog'), step); });
   // Gallery ↔ Cover Flow: switch the live strip in place (no full re-render).
-  voPop?.addEventListener('click', (e) => {
-  const { DENSITY_PREF_KEY, FAV_VIEW_KEY, LAYOUT_PREF_KEY, SORT_PREF_KEY } = cat;
+  viewEl.querySelector('.catalog')?.addEventListener('click', (e) => {
+  const { FAV_VIEW_KEY, SORT_PREF_KEY } = cat;
     const layoutSeg = (e.target as HTMLElement).closest<HTMLElement>('[data-catlayout]');
     if (layoutSeg) {
-      const next = layoutSeg.dataset.catlayout === 'list' ? 'list' : 'grid';
+      const next = parseLayout(layoutSeg.dataset.catlayout);
+      if (!next) return;
       if (next === cat.catLayout) return;
       cat.catLayout = next;
-      try { localStorage.setItem(LAYOUT_PREF_KEY, cat.catLayout); } catch { /* storage off */ }
-      cat.sections.rerender();
+      writeLayout('catalog', next); updateRouteParams({ layout: next === 'grid' ? null : next });
+      applyLayout(viewEl.querySelector('.catalog'), next); syncLayoutControls(viewEl, next, 'data-catlayout');
       return;
     }
     const densitySeg = (e.target as HTMLElement).closest<HTMLElement>('[data-catdensity]');
@@ -364,15 +366,15 @@ export function wire(cat: CatCtx): void {
       const next = densitySeg.dataset.catdensity === 'compact' ? 'compact' : 'comfortable';
       if (next === cat.catDensity) return;
       cat.catDensity = next;
-      try { localStorage.setItem(DENSITY_PREF_KEY, cat.catDensity); } catch { /* storage off */ }
-      cat.sections.rerender();
+      writeDensity('catalog', next); applyDensity(viewEl.querySelector('.catalog'), next);
+      for (const button of viewEl.querySelectorAll('[data-catdensity]')) button.setAttribute('aria-pressed', String(button.getAttribute('data-catdensity') === next));
       return;
     }
     // Direction toggle: reverses whichever sort is active, every section in place.
     if ((e.target as HTMLElement).closest('.view-options-dir')) {
       cat.catSortRev = !cat.catSortRev; updateRouteParams({ rev: cat.catSortRev ? '1' : '0' });
       try { localStorage.setItem(`${SORT_PREF_KEY}-rev`, cat.catSortRev ? '1' : '0'); } catch { /* storage off */ }
-      syncSortDir(voPop.querySelector<HTMLElement>('.view-options-dir'), cat.catSortRev);
+      syncSortDir(voPop?.querySelector<HTMLElement>('.view-options-dir') ?? null, cat.catSortRev);
       cat.sections.rerender();
       return;
     }
@@ -383,7 +385,7 @@ export function wire(cat: CatCtx): void {
     cat.favView = next;
     updateRouteParams({ view: next });
     try { localStorage.setItem(FAV_VIEW_KEY, cat.favView); } catch { /* storage off */ }
-    voPop.querySelectorAll<HTMLElement>('[data-be-seg="featured-view"] [data-view]').forEach(b => { b.setAttribute('aria-pressed', String(b.dataset.view === cat.favView)); });
+    voPop?.querySelectorAll<HTMLElement>('[data-be-seg="featured-view"] [data-view]').forEach(b => { b.setAttribute('aria-pressed', String(b.dataset.view === cat.favView)); });
     cat.featuredHandle?.setViewMode(cat.favView);
     // Same cue as the main gallery's Gallery|Cover Flow switch (gallery.ts) - Cover Flow is
     // cool & futuristic, Gallery is refined.

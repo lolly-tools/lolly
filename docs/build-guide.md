@@ -5,7 +5,7 @@
 How to build Lolly for each distribution target: standalone CLI binary, desktop app (macOS / Windows / Linux), mobile apps (iOS / Android) and the web shell as a container image for Kubernetes.
 
 The current main web shell requires WebGPU. Check the dated
-[supported environments](/info/supported-environments.html) before releasing it.
+[supported environments](/info/supported-environments.html) before publishing the web shell.
 Qualified web-only artifacts have a separate explicit gate; native releases
 retain the full qualification hold. Ordinary development builds remain available
 for testing and do not qualify a release.

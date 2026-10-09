@@ -58,7 +58,7 @@ import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
 import { wireStripMenu } from './gallery-strip-menu.ts';
 import { applyCardSize, cardSizeAttr, cardSizeHtml, favouritesViewSection, readCardSize, sortSection, syncSortDir, viewOptionsButtonHtml, viewOptionsSection, wireCardSize } from '../components/view-options.ts';
 import { wireDisclosure } from '../components/body-popover.ts';
-import { applyDensity, applyLayout, densityAttr, densityHtml, layoutAttr, layoutSection, readDensity, readLayout, syncDescriptions, wireDensityControl, wireLayoutControl, type BrowseLayout } from '../components/browse-layout.ts';
+import { applyDensity, applyLayout, densityAttr, densityHtml, layoutAttr, layoutSection, layoutControlHtml, readDensity, readLayout, syncDescriptions, wireDensityControl, wireLayoutControl, type BrowseLayout } from '../components/browse-layout.ts';
 import type { FeaturedEntry, FeaturedManifest, FeaturedVariant, FeaturedRowHandle, FeaturedViewMode } from '../components/featured-row.ts';
 import { loadFavourites, saveFavourites } from '../lib/favourites.ts';
 import { loadHiddenTools, saveHiddenTools } from '../lib/hidden-tools.ts';
@@ -152,7 +152,7 @@ const SORT_LABELS: Record<SortKey, string> = {
 };
 const SORT_KEY_STORAGE = 'lolly-gallery-sort';
 // The browse layouts Tools and Utilities offer (plan 302): List arrives with its columns.
-const GALLERY_LAYOUTS: readonly BrowseLayout[] = ['grid', 'card'];
+const GALLERY_LAYOUTS: readonly BrowseLayout[] = ['grid', 'card', 'list'];
 // Featured hero view mode: the current strip ('gallery') or the Cover Flow player-select.
 const FEATURED_VIEWS: readonly FeaturedViewMode[] = ['gallery', 'coverflow'];
 const FEATURED_VIEW_STORAGE = 'lolly-featured-view';
@@ -837,7 +837,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
       ${viewTopbarHtml({
         active: opts.only ? 'utilities' : 'tools',
         right: `
-          ${visibleCats.length ? viewOptionsButtonHtml('gallery-viewopts', { controls: 'filter-popover' }) : ''}
+          ${visibleCats.length ? layoutControlHtml('gallery-layout-visible', browseLayout) : ''}${visibleCats.length ? viewOptionsButtonHtml('gallery-viewopts', { controls: 'filter-popover' }) : ''}
           ${sortedSaved.length && !opts.only ? `<button type="button" class="history-fab" title="${escape(t('Saved sessions'))}" aria-label="${escape(t('Saved sessions ({n})', { n: sortedSaved.length }))}">${HISTORY_ICON}<span class="history-fab-count" aria-hidden="true">${sortedSaved.length}</span></button>` : ''}`,
         popover: visibleCats.length ? `
           <div class="filter-popover view-options" id="filter-popover" role="group" aria-label="${escape(t('View options'))}" hidden>
@@ -1699,7 +1699,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
 
   if (filterPop) wireCardSize(filterPop, cardSizeView, step => applyCardSize(viewEl.querySelector('.tool-masonry'), step));
   if (filterPop) {
-    wireLayoutControl(filterPop, { view: cardSizeView, current: browseLayout, onChange: (mode) => { browseLayout = mode; applyLayout(masonry, mode); refreshFeatured(); } });
+    wireLayoutControl(viewEl.querySelector<HTMLElement>('.gallery')!, { view: cardSizeView, current: browseLayout, onChange: (mode) => { browseLayout = mode; applyLayout(masonry, mode); refreshFeatured(); } });
     wireDensityControl(filterPop, { view: cardSizeView, current: browseDensity, onChange: (density) => applyDensity(masonry, density) });
   }
 

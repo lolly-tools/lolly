@@ -103,7 +103,7 @@ export interface CatCtx {
   SORT_PREF_KEY: "lolly-catalog-sort";
   LAYOUT_PREF_KEY: "lolly-catalog-layout";
   DENSITY_PREF_KEY: "lolly-catalog-density";
-  catLayout: 'grid' | 'list';
+  catLayout: 'grid' | 'card' | 'list';
   catDensity: 'comfortable' | 'compact';
   /** Card size step from the view options (components/view-options.ts). */
   cardSize: number;

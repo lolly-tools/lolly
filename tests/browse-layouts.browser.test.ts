@@ -128,7 +128,7 @@ for (const [width, height] of [[1440, 900], [390, 844]] as const) {
         assert.match(page.url(), /[?&]layout=card\b/);
         assert.equal(await page.locator('.featured-mount .ftile').count(), 0, 'the favourites strip draws only in Grid');
         assert.equal(await page.locator('#filter-popover [data-be-seg="featured-view"]').isVisible(), false);
-        assert.equal(await page.locator('#filter-popover [data-layout-mode="list"]').count(), 0, 'List arrives with its columns, later');
+        assert.equal(await page.locator('#filter-popover [data-layout-mode="list"]').count(), 1, 'List is available alongside Grid and Card');
 
         // The requirement: column AND thumbnail grow at every step, for a look and for an icon.
         const look = '.tool-masonry .gtile--has-preview:not(.is-filtered)';
