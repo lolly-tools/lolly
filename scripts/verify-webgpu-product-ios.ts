@@ -12,6 +12,9 @@ import { assertProductCsp, assertProductSourcesUnchanged, productEnvironment, pr
 import { MARKER_FILE, writeMarker } from './webgpu-qualification.ts';
 import { installJournal, OwnedIosDevice } from './lib/webgpu-ios-device.ts';
 import { waitOwnedCorpus } from './lib/webgpu-product-corpus.ts';
+import { archiveProvenance, compilerProvenance, prepareIosBuildGuard } from './lib/webgpu-ios-build.ts';
+import { runOwnedBuild } from './lib/webgpu-ios-process.ts';
+import { IOS_APPLE_INPUTS, expectedAppleInfo, validateAppleDerivatives, validateIosSourceChanges, type AppleInputs } from './lib/webgpu-ios-generated.ts';
 import { appDigest, completeIosRuntime, ownedAppName, parseApplePlist, requireSourceSha, sanitizeIosInfo, sha256, validateIosInfo, validateProfile,
   validateReceiptFiles, validateSignedEntitlements, type IosProductReceipt } from './lib/webgpu-ios-product.ts';
 
@@ -20,6 +23,7 @@ const mobile = join(repo, 'shells/tauri-mobile');
 export const IOS_PRODUCT_SOURCES = [
   'scripts/verify-webgpu-product-ios.ts', 'scripts/verify-webgpu-product.ts', 'scripts/build-native.ts', 'scripts/build-release-web.ts',
   'scripts/lib/webgpu-ios-product.ts', 'scripts/lib/webgpu-ios-device.ts', 'scripts/lib/webgpu-product-corpus.ts', 'scripts/webgpu-qualification.ts',
+  'scripts/lib/webgpu-ios-build.ts', 'scripts/lib/webgpu-ios-generated.ts', 'scripts/lib/webgpu-ios-process.ts',
   'tests/helpers/webgpu-product-receiver.ts', 'tests/helpers/webgpu-product-ios-receiver.ts', 'tests/helpers/webgpu-browser.ts',
   'tests/helpers/lut-cases.ts', 'tests/helpers/webgpu-probe-entry.ts', 'tests/webgpu-lut.browser.test.ts',
   'shells/tauri-shared/embedded-js-mime.rs', 'shells/tauri-shared/tauri-embedded-assets.rs',
@@ -28,6 +32,7 @@ export const IOS_PRODUCT_SOURCES = [
   'shells/tauri-mobile/src-tauri/Cargo.toml', 'shells/tauri-mobile/src-tauri/Cargo.lock', 'shells/tauri-mobile/src-tauri/src/lib.rs',
   'shells/tauri-mobile/src-tauri/tauri.conf.json', 'shells/tauri-mobile/src-tauri/Info.ios.plist',
   'shells/tauri-mobile/src-tauri/gen/apple/project.yml', 'shells/tauri-mobile/src-tauri/gen/apple/lolly-mobile.xcodeproj/project.pbxproj',
+  'shells/tauri-mobile/src-tauri/gen/apple/lolly-mobile_iOS/Info.plist',
   'shells/tauri-mobile/src-tauri/gen/apple/Sources/lolly-mobile/main.mm', 'shells/tauri-mobile/src-tauri/gen/apple/lolly-mobile_iOS/PrivacyInfo.xcprivacy',
   'shells/tauri-mobile/bridge-overrides/state.ts', 'shells/tauri-mobile/bridge-overrides/assets.ts',
   'shells/web/src/main.ts', 'shells/web/src/lib/webgpu/device.ts', 'shells/web/src/lib/webgpu/lut.ts', 'shells/web/src/lib/webgpu/workspace.ts',
@@ -115,10 +120,58 @@ async function prepare(output: string, sourceSha: string): Promise<void> {
   requireSourceSha(sourceSha, String(sources.sourceSha)); assert.equal(sources.sourceDirty, '', 'Prepare from a clean reviewed source tree.');
   await mkdir(dirname(output), { recursive: true }); await mkdir(output);
   const runId = randomUUID(), config = iosProbeConfig(runId);
+  await mkdir(join(output, 'apple-inputs'));
+  for (const [name, path] of Object.entries(IOS_APPLE_INPUTS)) await cp(join(repo, path), join(output, 'apple-inputs', name), { errorOnExist: true, force: false });
   writeMarker(output); await writeFile(join(output, 'probe-config.json'), JSON.stringify(config, null, 2) + '\n', { flag: 'wx' });
   await writeFile(join(output, 'environment.json'), JSON.stringify({ version: 1, platform: 'ios', runId, identifier: config.identifier,
     date: new Date().toISOString(), status: 'prepared; no build, device install or launch', release: false, sources, sourceSha,
     scope: 'Instrumented mobile product with normal scene, custom protocol, shared CSP, startup, storage and default GPU preferences. Device use needs explicit --run. Catalog/release signing remains disabled; local development signing is required for a physical device.' }, null, 2) + '\n', { flag: 'wx' });
+}
+
+async function appleInputs(output: string, sources: Record<string, unknown>): Promise<AppleInputs> {
+  const result = {} as AppleInputs, hashes = sources.sourceFiles as Record<string, string>;
+  for (const [name, path] of Object.entries(IOS_APPLE_INPUTS)) {
+    const bytes = await readFile(join(output, 'apple-inputs', name), 'utf8');
+    assert.equal(sha256(bytes), hashes[path], 'An immutable Apple input copy changed.'); result[name as keyof AppleInputs] = bytes;
+  }
+  return result;
+}
+
+async function checkAppleOutputs(output: string, before: Record<string, unknown>, after: Record<string, unknown>, runId: string): Promise<Record<string, unknown>> {
+  const original = await appleInputs(output, before);
+  const config = JSON.parse(await readFile(join(mobile, 'src-tauri/tauri.conf.json'), 'utf8'));
+  assert.equal(config.bundle.iOS.infoPlist, 'Info.ios.plist', 'The authored iOS overlay must remain in the reviewed source inventory.');
+  try { await stat(join(mobile, 'src-tauri/Info.plist')); throw new Error('An additional platform plist needs explicit immutable-input coverage.'); }
+  catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error; }
+  const baseline = parseApplePlist(original.info), overlay = plistFile(join(mobile, 'src-tauri/Info.ios.plist'));
+  const expectedInfo = expectedAppleInfo(baseline, config.version, [overlay, overlay]);
+  const actual = { project: await readFile(join(repo, IOS_APPLE_INPUTS.project), 'utf8'), info: await readFile(join(repo, IOS_APPLE_INPUTS.info), 'utf8') };
+  const parsedProject = JSON.parse(local('/usr/bin/plutil', ['-convert', 'json', '-o', '-', join(output, 'apple-inputs/project')]));
+  const evidence = validateAppleDerivatives(original, actual, parsedProject, expectedInfo, parseApplePlist(actual.info), runId);
+  validateIosSourceChanges(before, after, local('git', ['-C', repo, 'diff', '--name-only', '-z', 'HEAD']).split('\0').filter(Boolean));
+  return evidence;
+}
+
+async function archiveProduct(output: string, receipt: IosProductReceipt & Record<string, unknown>, config: string): Promise<{ started: number; after: Record<string, unknown> }> {
+  const before = await productSourceReceipt(repo, IOS_PRODUCT_SOURCES); assertProductSourcesUnchanged(receipt.sources, before);
+  await appleInputs(output, before);
+  const selected = await prepareIosBuildGuard(repo, output, receipt.runId, String(before.sourceSha), productEnvironment(process.env, receipt.runId));
+  const tauriCli = JSON.parse(await readFile(join(mobile, 'node_modules/@tauri-apps/cli/package.json'), 'utf8')).version;
+  assert.equal(tauriCli, '2.12.1', 'The reviewed archive and generated-output policy requires pinned Tauri CLI 2.12.1.');
+  receipt.buildTools = { node: process.version, xcodeVersion: local(selected.guard.xcode.path, ['-version']), iphoneSdk: local('/usr/bin/xcrun', ['--sdk', 'iphoneos', '--show-sdk-version']),
+    ...selected.tools, tauriCli };
+  const started = Date.now(), log = openSync(join(output, 'build.log'), 'wx');
+  try {
+    const status = await runOwnedBuild({ command: process.execPath, args: ['scripts/build-native.ts', 'mobile', 'ios', '--target', 'aarch64', '--features', 'webgpu-probe', '--no-sign', '--archive-only', '--config', config],
+      cwd: repo, env: { ...selected.env, LOLLY_KEEP_NATIVE_CACHE: '1' }, stdio: ['ignore', log, log], leases: selected.guard.leases, binding: selected.binding, deadline: selected.guard.deadline, supervise: true, protectedGroup: selected.guard.protectedGroup });
+    assert.equal(status, 0, 'The archive build failed; inspect the owned build log.');
+  } finally { closeSync(log); }
+  receipt.compilerProvenance = await compilerProvenance(selected.guard, selected.binding);
+  receipt.archiveProvenance = await archiveProvenance(selected.guard, selected.binding);
+  const after = await productSourceReceipt(repo, IOS_PRODUCT_SOURCES);
+  receipt.appleDerivations = await checkAppleOutputs(output, before, after, receipt.runId);
+  receipt.builtSources = after;
+  return { started, after };
 }
 
 async function buildProduct(output: string, receipt: IosProductReceipt & Record<string, unknown>, argv: string[]): Promise<void> {
@@ -127,22 +180,9 @@ async function buildProduct(output: string, receipt: IosProductReceipt & Record<
   assert.ok(profile && identity, '--build requires an existing --profile file and --identity fingerprint; no provisioning is performed.');
   assert.ok(process.env.CI === undefined || process.env.CI === 'true' || process.env.CI === 'false', 'Tauri requires CI to be absent or the literal true or false.');
   await stat(join(mobile, 'node_modules/@tauri-apps/cli/tauri.js'));
-  receipt.buildTools = { node: process.version, xcode: local('xcodebuild', ['-version']).trim(),
-    iphoneSdk: local('xcrun', ['--sdk', 'iphoneos', '--show-sdk-version']).trim(),
-    rustc: local('rustc', ['--version', '--verbose']).trim(), cargo: local('cargo', ['--version']).trim(),
-    rustupToolchain: process.env.RUSTUP_TOOLCHAIN ?? null,
-    tauriCli: JSON.parse(await readFile(join(mobile, 'node_modules/@tauri-apps/cli/package.json'), 'utf8')).version };
   const config = join(output, 'probe-config.json');
   assert.deepEqual(JSON.parse(await readFile(config, 'utf8')), iosProbeConfig(receipt.runId));
-  const before = await productSourceReceipt(repo, IOS_PRODUCT_SOURCES); assertProductSourcesUnchanged(receipt.sources, before);
-  const env = { ...productEnvironment(process.env, receipt.runId), CARGO_TARGET_DIR: join(output, 'target'), LOLLY_KEEP_NATIVE_CACHE: '1' };
-  const started = Date.now(), log = openSync(join(output, 'build.log'), 'wx');
-  try {
-    const run = spawnSync(process.execPath, ['scripts/build-native.ts', 'mobile', 'ios', '--target', 'aarch64', '--features', 'webgpu-probe', '--no-sign', '--archive-only', '--config', config],
-      { cwd: repo, env, stdio: ['ignore', log, log], timeout: 1_800_000 });
-    assert.ok(!run.error && run.status === 0, 'The archive build failed; inspect the owned build log.');
-  } finally { closeSync(log); }
-  const after = await productSourceReceipt(repo, IOS_PRODUCT_SOURCES); assertProductSourcesUnchanged(before, after);
+  const { started } = await archiveProduct(output, receipt, config);
   const frontend = join(mobile, 'dist'); assertProductCsp(await readFile(join(frontend, 'index.html'), 'utf8'));
   const marker = JSON.parse(await readFile(join(frontend, 'webgpu-product-probe.json'), 'utf8'));
   assert.equal(marker.runId, receipt.runId); assert.equal(marker.identifier, receipt.identifier);
@@ -152,7 +192,7 @@ async function buildProduct(output: string, receipt: IosProductReceipt & Record<
   const signing = await signOwnedApp(app, output, receipt.runId, resolve(profile), identity);
   const binary = join(app, String(plistFile(join(app, 'Info.plist')).CFBundleExecutable));
   Object.assign(receipt, { app, binary, binarySha256: sha256(await readFile(binary)), appSha256: await appDigest(app), signing,
-    status: 'built and development signed; not installed or launched', sources: { ...after, compiledAssetsSha256: await appDigest(frontend) } });
+    status: 'built and development signed; not installed or launched', compiledAssetsSha256: await appDigest(frontend) });
   await signedAppChecks(receipt);
 }
 
@@ -161,7 +201,9 @@ async function runProduct(output: string, receipt: IosProductReceipt & Record<st
   const deviceId = argument(argv, 'device'); assert.ok(deviceId, '--run requires one exact --device identifier.');
   const env = productEnvironment(process.env, receipt.runId);
   await validateReceiptFiles(receipt, output); await signedAppChecks(receipt);
-  const sources = await productSourceReceipt(repo, IOS_PRODUCT_SOURCES); assertProductSourcesUnchanged(receipt.sources, sources);
+  const sources = await productSourceReceipt(repo, IOS_PRODUCT_SOURCES);
+  assertProductSourcesUnchanged(receipt.builtSources as Record<string, unknown>, sources);
+  await checkAppleOutputs(output, receipt.sources, sources, receipt.runId);
   const owned = new OwnedIosDevice(receipt, deviceId), device = owned.preflight();
   await signedAppChecks(receipt, device.udid); await validateReceiptFiles(receipt, output);
   const lease = join(output, 'owned-install.json');

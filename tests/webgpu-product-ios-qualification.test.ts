@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MPL-2.0
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, readFile, rm, symlink, writeFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, readdir, rm, stat, symlink, writeFile } from 'node:fs/promises';
 import { readFileSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import type { ChildProcessWithoutNullStreams } from 'node:child_process';
+import { spawnSync, type ChildProcessWithoutNullStreams } from 'node:child_process';
 import { EventEmitter } from 'node:events';
 import { productProbeIdentity, productProbeOptions, webGpuProductProbe } from '../shells/tauri-shared/webgpu-product-probe.mjs';
 import { DeviceMutationError, installJournal, OwnedIosDevice, consoleEnvironment, type DeviceCommands, type IosInstallLease } from '../scripts/lib/webgpu-ios-device.ts';
@@ -16,6 +16,9 @@ import { iosProbeConfig } from '../scripts/verify-webgpu-product-ios.ts';
 import { decodeProductMessage, ProductProbeProtocol } from './helpers/webgpu-product-receiver.ts';
 import { webGpuBrowserEngine } from './helpers/webgpu-browser.ts';
 import { PRODUCT_CORPUS_MS, waitOwnedCorpus } from '../scripts/lib/webgpu-product-corpus.ts';
+import { archiveProvenance, guardedXcodeArgs, iosArchiveEnvironment, compilerMetadata, compilerProvenance, type IosBuildGuard } from '../scripts/lib/webgpu-ios-build.ts';
+import { collectOwnedProcesses, sameProcess, stopOwnedBuild, runOwnedBuild, processFacts, IOS_BUILD_MS, type ProcessFact } from '../scripts/lib/webgpu-ios-process.ts';
+import { expectedAppleProject, expectedAppleInfo, validateAppleDerivatives, validateIosSourceChanges, IOS_APPLE_INPUTS } from '../scripts/lib/webgpu-ios-generated.ts';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const runId = '4c3d9db0-f06e-4870-a75f-c4a2a1502bad';
@@ -286,4 +289,186 @@ test('ordinary mobile builds omit the probe and retain the native dispatcher, sc
   const config = JSON.parse(await readFile(join(root, 'shells/tauri-mobile/src-tauri/tauri.conf.json'), 'utf8'));
   assert.equal(config.identifier, 'tools.lolly.mobile'); assert.equal(config.app.security.csp, null); assert.equal(config.app.security.devCsp, null);
   const info = parseApplePlist(await readFile(join(root, 'shells/tauri-mobile/src-tauri/Info.ios.plist'), 'utf8')); assert.deepEqual(info.UIApplicationSceneManifest, scene);
+});
+
+const archiveGuard = { workspace: '/owned/apple/lolly-mobile.xcodeproj/project.xcworkspace/', archive: '/owned/apple/build/lolly-mobile_iOS' };
+const archiveArgs = () => ['CODE_SIGNING_REQUIRED=NO', 'CODE_SIGNING_ALLOWED=NO', 'CODE_SIGN_IDENTITY=""', 'CODE_SIGN_ENTITLEMENTS=""',
+  '-scheme', 'lolly-mobile_iOS', '-workspace', archiveGuard.workspace, '-sdk', 'iphoneos', '-configuration', 'release', 'archive', '-archivePath', archiveGuard.archive];
+
+test('archive guard removes only the pinned provisioning flags and preserves every other argument', () => {
+  const authored = archiveArgs();
+  const guarded = guardedXcodeArgs([...authored.slice(0, 4), '-allowProvisioningUpdates', '-quiet', ...authored.slice(4, 12), '-allowProvisioningUpdates', ...authored.slice(12)], archiveGuard);
+  assert.equal(guarded.removed, 2); assert.deepEqual(guarded.args, [...authored.slice(0, 4), '-quiet', ...authored.slice(4)]);
+  assert.deepEqual(guardedXcodeArgs(authored, archiveGuard), { args: authored, removed: 0 });
+  for (const bad of [authored.filter(arg => arg !== 'CODE_SIGNING_ALLOWED=NO'), authored.map(arg => arg === 'iphoneos' ? 'iphonesimulator' : arg),
+    authored.map(arg => arg === 'archive' ? 'build' : arg), authored.map(arg => arg === archiveGuard.workspace ? '/another/workspace/' : arg),
+    authored.map(arg => arg === archiveGuard.archive ? '/another/archive' : arg), authored.map(arg => arg === 'release' ? 'debug' : arg),
+    [...authored, '-exportArchive'], [...authored, '-allowProvisioningDeviceRegistration'], [...authored, '-authenticationKeyPath', 'private-key'],
+    [...authored, 'CODE_SIGNING_ALLOWED=YES'], [...authored, '-destination', 'physical-device']]) assert.throws(() => guardedXcodeArgs(bad, archiveGuard));
+});
+
+test('process-local compiler choice survives the pinned CLI CARGO/PATH filter without importing signing credentials', () => {
+  const guard = { toolchain: '1.99.0', path: '/owned/wrappers:/installed/1.99/bin:/shims', target: '/owned/target',
+    compilerWrapper: '/owned/wrappers/observe-rustc', rustc: { path: '/installed/1.99/bin/rustc' }, rustdoc: { path: '/installed/1.99/bin/rustdoc' } } as IosBuildGuard;
+  const outer = { PATH: '/shims', RUSTUP_TOOLCHAIN: '1.96.0', RUSTC: '/shims/rustc', RUSTC_WRAPPER: '/unreviewed',
+    IOS_CERTIFICATE: 'secret', IOS_CERTIFICATE_PASSWORD: 'secret', IOS_MOBILE_PROVISION: 'secret', APPLE_DEVELOPMENT_TEAM: 'other', TAURI_SIGNING_PRIVATE_KEY: undefined };
+  const env = iosArchiveEnvironment(outer, guard, 'bound-source');
+  assert.equal(outer.IOS_CERTIFICATE, 'secret', 'The user environment is not modified.');
+  assert.equal(env.RUSTC, undefined); assert.equal(env.RUSTC_WRAPPER, undefined);
+  for (const key of ['IOS_CERTIFICATE', 'IOS_CERTIFICATE_PASSWORD', 'IOS_MOBILE_PROVISION', 'APPLE_DEVELOPMENT_TEAM']) assert.equal(env[key], undefined);
+  const nested = Object.fromEntries(Object.entries(env).filter(([key]) => /^(?:CARGO_|RUST_|TAURI_|WRY_)/.test(key) || key === 'PATH'));
+  assert.equal(nested.RUSTUP_TOOLCHAIN, undefined, 'The primary-source CLI filter drops this variable.');
+  assert.equal(nested.CARGO_BUILD_RUSTC, guard.rustc.path); assert.equal(nested.CARGO_BUILD_RUSTC_WRAPPER, guard.compilerWrapper);
+  assert.equal(nested.CARGO_BUILD_RUSTC_WORKSPACE_WRAPPER, ''); assert.equal(nested.CARGO_LOLLY_IOS_BUILD_BINDING, 'bound-source');
+  assert.equal(nested.PATH, guard.path);
+});
+
+test('compiler metadata is bounded and excludes argument values while protecting output scope', () => {
+  const guard = { target: '/owned/target' };
+  assert.deepEqual(compilerMetadata(['--crate-name', 'lolly_mobile_lib', '--target', 'aarch64-apple-ios', '--out-dir', '/owned/target/dep', '--cfg', 'private-argument'], guard),
+    { crate: 'lolly_mobile_lib', target: 'aarch64-apple-ios' });
+  assert.deepEqual(compilerMetadata(['-vV'], guard), { crate: null, target: null });
+  for (const args of [['--crate-name', 'a'.repeat(129)], ['--target', 'ios-simulator'], ['--out-dir', '/owned/target-other'], ['-o', '/outside/product'], ['--crate-name']]) assert.throws(() => compilerMetadata(args, guard));
+});
+
+const projectIds = ['A'.repeat(24), 'B'.repeat(24)];
+const projectModel = { objects: { target: { isa: 'PBXNativeTarget', name: 'lolly-mobile_iOS', buildConfigurationList: 'configs' },
+  configs: { isa: 'XCConfigurationList', buildConfigurations: projectIds },
+  [projectIds[0]!]: { isa: 'XCBuildConfiguration', name: 'debug' }, [projectIds[1]!]: { isa: 'XCBuildConfiguration', name: 'release' } } };
+const projectText = () => projectIds.map((id, i) => `\t\t${id} /* ${i ? 'release' : 'debug'} */ = {\n\t\t\tisa = XCBuildConfiguration;\n\t\t\tbuildSettings = {\n\t\t\t\tPRODUCT_BUNDLE_IDENTIFIER = tools.lolly.mobile;\n\t\t\t\tPRODUCT_NAME = "Lolly";\n\t\t\t\tDEVELOPMENT_TEAM = EXISTING00;\n\t\t\t};\n\t\t};`).join('\n') + '\n// ordinary build script and other settings\n';
+
+test('Apple generated project permits exactly app-target identity assignments, preserving all other bytes', () => {
+  const original = { project: projectText(), info: 'original plist bytes' };
+  const expected = expectedAppleProject(original.project, projectModel, runId);
+  const info = { CFBundleShortVersionString: '1.1.0', CFBundleVersion: '1.1.0', UIApplicationSceneManifest: scene };
+  const actual = { project: expected, info: 'generated plist bytes' };
+  const proof = validateAppleDerivatives(original, actual, projectModel, info, structuredClone(info), runId);
+  assert.deepEqual(proof.project, { inputSha256: sha256(original.project), outputSha256: sha256(expected) });
+  for (const changed of [expected.replace('EXISTING00', 'REPLACED00'), expected.replace('ordinary build script', 'new script'), expected + '\n',
+    expected.replace(identifier, 'tools.lolly.mobile')]) assert.throws(() => validateAppleDerivatives(original, { ...actual, project: changed }, projectModel, info, info, runId));
+  assert.throws(() => expectedAppleProject(original.project, { objects: { ...projectModel.objects, other: projectModel.objects.target } }, runId));
+  assert.throws(() => expectedAppleProject(original.project, { objects: { ...projectModel.objects, configs: { ...projectModel.objects.configs, buildConfigurations: [projectIds[0]] } } }, runId));
+});
+
+test('Info derivation follows the pinned shallow overlay order and agvtool version without weakening the normal scene', () => {
+  const baseline = { CFBundleShortVersionString: '1.0.9', CFBundleVersion: '1.0.9', retained: ['normal'], nested: { a: true, b: true }, CFBundleURLTypes: ['normal-link'] };
+  const expected = expectedAppleInfo(baseline, '1.1.0', [{ nested: { c: true }, overwritten: 'first' }, { UIApplicationSceneManifest: scene, overwritten: 'last' }]);
+  assert.deepEqual(expected.nested, { c: true }); assert.equal(expected.overwritten, 'last'); assert.deepEqual(expected.retained, ['normal']);
+  assert.equal(expected.CFBundleVersion, '1.1.0'); assert.equal(expected.CFBundleShortVersionString, '1.1.0'); assert.deepEqual(expected.CFBundleURLTypes, ['normal-link']);
+  const original = { project: projectText(), info: 'baseline' }, actual = { project: expectedAppleProject(original.project, projectModel, runId), info: 'output' };
+  for (const patch of [{ UIApplicationSceneManifest: {} }, { CFBundleVersion: '2' }, { CFBundleURLTypes: [] }, { extra: true }])
+    assert.throws(() => validateAppleDerivatives(original, actual, projectModel, expected, { ...expected, ...patch }, runId));
+});
+
+test('two verified generated outputs do not exempt other tracked, untracked, CSP or lock inputs', () => {
+  const before = { sourceDirty: '', sourceSha: 'a'.repeat(40), sourceFiles: { [IOS_APPLE_INPUTS.project]: 'original-pbx', [IOS_APPLE_INPUTS.info]: 'original-info', 'normal.rs': 'normal' },
+    untrackedSourceFiles: {}, generatedInfoCss: {}, cspSha256: 'csp', desktopLockSha256: 'lock' };
+  const after = { ...before, sourceDirty: ' M project', sourceFiles: { ...before.sourceFiles, [IOS_APPLE_INPUTS.project]: 'generated-pbx', [IOS_APPLE_INPUTS.info]: 'generated-info' } };
+  validateIosSourceChanges(before, after, Object.values(IOS_APPLE_INPUTS));
+  for (const changed of [{ ...after, sourceSha: 'b'.repeat(40) }, { ...after, cspSha256: 'relaxed' }, { ...after, desktopLockSha256: 'other' },
+    { ...after, untrackedSourceFiles: { 'new-source.rs': 'new' } }, { ...after, sourceFiles: { ...after.sourceFiles, 'normal.rs': 'modified' } }])
+    assert.throws(() => validateIosSourceChanges(before, changed, Object.values(IOS_APPLE_INPUTS)));
+  assert.throws(() => validateIosSourceChanges(before, after, [...Object.values(IOS_APPLE_INPUTS), 'another-file.rs']));
+});
+
+const actor: ProcessFact = { pid: 3101, parent: 1, group: 3101, born: 'Fri Oct 9 04:00:00 2026', executable: '/owned/builder' };
+
+test('build ownership adopts descendants only from live anchors and refuses a reused PID or foreign group', () => {
+  const child = { ...actor, pid: 3102, parent: 3101, group: 3102, executable: '/owned/script' };
+  assert.deepEqual(collectOwnedProcesses([actor], [actor, child]), [actor, child]);
+  const replacement = { ...actor, born: 'Fri Oct 9 04:00:01 2026' };
+  assert.equal(sameProcess(actor, replacement), false);
+  assert.deepEqual(collectOwnedProcesses([actor], [replacement, child]), [actor]);
+  assert.deepEqual(collectOwnedProcesses([], [replacement, child], [actor]), []);
+});
+
+test('build teardown waits for exit after KILL and never signals a replacement process', async () => {
+  let now = [actor], killed = false, polls = 0;
+  const sent: string[] = [];
+  await stopOwnedBuild([actor], () => now, (_pid, signal) => { sent.push(signal); if (signal === 'SIGKILL') killed = true; }, async () => { if (killed && ++polls === 2) now = []; });
+  assert.deepEqual(sent, ['SIGTERM', 'SIGKILL']); assert.equal(polls, 2);
+  const replacement = { ...actor, born: 'new process' };
+  await stopOwnedBuild([actor], () => [replacement], () => { assert.fail('must preserve a replacement'); }, async () => {});
+  await assert.rejects(stopOwnedBuild([actor], () => [actor], () => {}, async () => {}), /remains after bounded/);
+});
+
+test('owned build supervisor cleans a real detached test process without native build or device use', async () => {
+  assert.equal(IOS_BUILD_MS, 1_800_000);
+  const parent = join(root, 'plans/295-validation/ios-build-process-tests'); await mkdir(parent, { recursive: true });
+  const output = await mkdtemp(join(parent, 'run-'));
+  try {
+    const protectedGroup = processFacts().find(row => row.pid === process.pid)!.group;
+    const code = await runOwnedBuild({ command: process.execPath, args: ['-e', 'setTimeout(() => process.exit(7), 180)'], cwd: root, env: {}, stdio: ['ignore', 'inherit', 'inherit'],
+      leases: output, binding: 'source-test-only', deadline: Date.now() + 5000, supervise: true, protectedGroup });
+    assert.equal(code, 7);
+    const journals = await Promise.all((await readdir(output)).map(async file => JSON.parse(await readFile(join(output, file), 'utf8'))));
+    assert.ok(journals.some(row => row.teardown === 'all observed owned descendants exited'));
+  } finally { await rm(output, { recursive: true, force: true }); }
+});
+
+test('real observer invocation preserves compiler arguments and records only safe completed metadata', async () => {
+  const parent = join(root, 'plans/295-validation/ios-compiler-observer-tests'); await mkdir(parent, { recursive: true });
+  const output = await mkdtemp(join(parent, 'observer-'));
+  try {
+    const bin = join(output, 'bin'), target = join(output, 'target'), leases = join(output, 'leases'), records = join(output, 'records');
+    for (const path of [bin, target, leases, records]) await mkdir(path);
+    const rustc = join(bin, 'rustc'), cargo = join(bin, 'cargo'), argvFile = join(output, 'actual-argv.json');
+    await writeFile(rustc, `#!${process.execPath}\nimport { writeFileSync } from 'node:fs'; writeFileSync(process.env.TEST_ARGV_PATH, JSON.stringify(process.argv.slice(2)));\n`, { mode: 0o700 });
+    await writeFile(cargo, '#!/bin/sh\nexit 0\n', { mode: 0o700 });
+    const identity = async (path: string) => { const row = await stat(path); return { path, sha256: sha256(await readFile(path)), size: row.size, mtimeMs: row.mtimeMs, inode: row.ino, device: row.dev }; };
+    const guard: IosBuildGuard = { version: 1, repo: root, output, runId, sourceSha: spawnSync('git', ['-C', root, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).stdout.trim(),
+      toolchain: 'test-observer-only', rustc: await identity(rustc), cargo: await identity(cargo), rustdoc: await identity(rustc), xcode: await identity(process.execPath),
+      deadline: Date.now() + 20_000, helperSha256: sha256(await readFile(join(root, 'scripts/lib/webgpu-ios-build.ts'))),
+      processHelperSha256: sha256(await readFile(join(root, 'scripts/lib/webgpu-ios-process.ts'))), ...archiveGuard, target,
+      wrapperBin: bin, compilerWrapper: join(bin, 'observe-rustc'), leases, compilerRecords: records, path: bin + ':' + process.env.PATH,
+      protectedGroup: processFacts().find(row => row.pid === process.pid)!.group };
+    const bytes = JSON.stringify(guard), binding = sha256(bytes), path = join(output, 'build-guard.json'); await writeFile(path, bytes);
+    const env = { ...iosArchiveEnvironment(process.env, guard, binding), TEST_ARGV_PATH: argvFile };
+    const args = ['--crate-name', 'lolly_mobile_lib', '--target', 'aarch64-apple-ios', '--out-dir', join(target, 'deps'), '--cfg', 'private-argument-value'];
+    const run = spawnSync(process.execPath, ['scripts/lib/webgpu-ios-build.ts', '--rustc', path, rustc, ...args], { cwd: root, env, encoding: 'utf8', timeout: 25_000 });
+    assert.equal(run.status, 0, run.stderr); assert.deepEqual(JSON.parse(await readFile(argvFile, 'utf8')), args);
+    const evidence = await compilerProvenance(guard, binding); assert.equal(evidence.invocationCount, 1);
+    const archiveRecord = { sourceSha: guard.sourceSha, binding, executable: guard.xcode.path, executableSha256: guard.xcode.sha256,
+      status: 'completed', exit: 0, command: archiveArgs(), provisioningFlagsRemoved: 2 };
+    await writeFile(join(output, 'xcode-archive-command.json'), JSON.stringify(archiveRecord));
+    assert.equal((await archiveProvenance(guard, binding)).completedUnsignedArchive, true);
+    for (const patch of [{ status: 'started' }, { exit: 1 }, { command: [...archiveArgs(), '-allowProvisioningUpdates'] }, { provisioningFlagsRemoved: 3 }]) {
+      await writeFile(join(output, 'xcode-archive-command.json'), JSON.stringify({ ...archiveRecord, ...patch })); await assert.rejects(archiveProvenance(guard, binding));
+    }
+    const recordName = (await readdir(records))[0]!;
+    const recordText = await readFile(join(records, recordName), 'utf8'); assert.ok(!recordText.includes('private-argument-value'));
+    const row = JSON.parse(recordText); assert.equal(row.exit, 0); assert.equal(row.status, 'completed'); assert.equal(row.target, 'aarch64-apple-ios');
+    for (const patch of [{ status: 'started' }, { exit: 1 }, { sourceSha: 'b'.repeat(40) }, { executable: '/unreviewed/rustc' }, { crate: 'other_crate' }]) {
+      await writeFile(join(records, recordName), JSON.stringify({ ...row, ...patch })); await assert.rejects(compilerProvenance(guard, binding));
+    }
+    await writeFile(join(records, recordName), recordText);
+    const wrong = spawnSync(process.execPath, ['scripts/lib/webgpu-ios-build.ts', '--rustc', path, cargo, ...args], { cwd: root, env, encoding: 'utf8', timeout: 5000 });
+    assert.equal(wrong.status, 1); assert.ok(!wrong.stderr.includes('private-argument-value')); assert.equal((await readdir(records)).length, 1);
+  } finally { await rm(output, { recursive: true, force: true }); }
+});
+
+test('build timeout cleans an explicitly leased detached descendant and interruption removes signal listeners', async () => {
+  const parent = join(root, 'plans/295-validation/ios-build-abort-tests'); await mkdir(parent, { recursive: true });
+  const output = await mkdtemp(join(parent, 'abort-'));
+  try {
+    const protectedGroup = processFacts().find(row => row.pid === process.pid)!.group, binding = 'owned-abort-test';
+    const script = join(output, 'build-fixture.mjs');
+    await writeFile(script, `import { spawn } from 'node:child_process'; import { writeFileSync } from 'node:fs';\n` +
+      `import { processFacts } from ${JSON.stringify(new URL('../scripts/lib/webgpu-ios-process.ts', import.meta.url).href)};\n` +
+      `const child = spawn(process.execPath, ['-e', 'setInterval(() => {}, 1000)'], { detached: true, stdio: 'ignore' });\n` +
+      `writeFileSync(${JSON.stringify(join(output, '11111111-1111-4111-8111-111111111111.json'))}, JSON.stringify({ binding: '${binding}', actors: processFacts().filter(row => row.pid === child.pid) }));\n` +
+      `setInterval(() => {}, 1000);\n`);
+    await assert.rejects(runOwnedBuild({ command: process.execPath, args: [script], cwd: root, env: {}, stdio: ['ignore', 'inherit', 'inherit'],
+      leases: output, binding, deadline: Date.now() + 600, supervise: true, protectedGroup }), /deadline expired/);
+    const rows = await Promise.all((await readdir(output)).filter(name => name.endsWith('.json')).map(async name => JSON.parse(await readFile(join(output, name), 'utf8'))));
+    const known = rows.flatMap(row => row.actors ?? []) as ProcessFact[], current = processFacts();
+    assert.ok(known.length >= 2, 'Both the direct builder and detached descendant have ownership evidence.');
+    assert.ok(!known.some(row => current.some(now => sameProcess(row, now))));
+    const interruptDir = join(output, 'interrupt'); await mkdir(interruptDir);
+    const signals = new EventEmitter();
+    const stop = setTimeout(() => signals.emit('SIGTERM'), 100);
+    await assert.rejects(runOwnedBuild({ command: process.execPath, args: ['-e', 'setInterval(() => {}, 1000)'], cwd: root, env: {}, stdio: ['ignore', 'inherit', 'inherit'],
+      leases: interruptDir, binding, deadline: Date.now() + 5000, supervise: true, protectedGroup }, signals), /interrupted/);
+    clearTimeout(stop); assert.equal(signals.listenerCount('SIGTERM'), 0); assert.equal(signals.listenerCount('SIGINT'), 0);
+  } finally { await rm(output, { recursive: true, force: true }); }
 });
