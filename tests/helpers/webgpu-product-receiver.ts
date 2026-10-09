@@ -19,6 +19,12 @@ export const PRODUCT_NATIVE_DIAGNOSTIC_PREFIX = 'LOLLY_WEBGPU_PRODUCT_NATIVE_DIA
 export const PRODUCT_DIAGNOSTIC_CONTROL_PREFIX = 'LOLLY_WEBGPU_PRODUCT_DIAGNOSTIC_CONTROL ';
 export const PRODUCT_NATIVE_DIAGNOSTIC_LIMIT = 8;
 export const PRODUCT_NATIVE_DIAGNOSTIC_BYTES = 2048;
+export const PRODUCT_GUEST_DIAGNOSTIC_PREFIX = 'LOLLY_WEBGPU_PRODUCT_GUEST_DIAGNOSTIC ';
+export const PRODUCT_GUEST_DIAGNOSTIC_BYTES = 1024;
+export type GuestStage = 'ready-await' | 'before-next' | 'after-next' | 'before-evaluate' | 'after-evaluate' | 'before-reply' | 'after-reply' | 'before-idle' | 'after-idle' | 'stopped';
+interface GuestState { stage: GuestStage; lastCommandId: number | null; visibility: 'visible' | 'hidden'; hasFocus: boolean }
+export interface GuestDiagnostic { event: 'guest-await-state'; runId: string; phase: ProductPhase; sequence: 1 | 2; elapsedMs: number;
+  status: 'requested' | 'observed' | 'eval-error'; state?: GuestState }
 export type ProductPhase = 'native-handshake' | 'onboarding-poll' | 'csp' | 'probe-load' | 'tool-wait' | 'corpus' | 'closing';
 interface CommandDiagnostic { id: number; phase: ProductPhase; sourceSha256: string; sourceBytes: number; sourcePrefix: string }
 type ResultKind = 'undefined' | 'null' | 'boolean' | 'number' | 'string' | 'array' | 'object' | 'error';
@@ -111,6 +117,27 @@ export function decodeNativeDiagnostic(line: string, runId: string): NativeDiagn
     stages.add(item.stage);
   }
   return value as NativeDiagnostic;
+}
+
+const GUEST_STAGES: readonly GuestStage[] = ['ready-await', 'before-next', 'after-next', 'before-evaluate', 'after-evaluate', 'before-reply', 'after-reply', 'before-idle', 'after-idle', 'stopped'];
+
+export function decodeGuestDiagnostic(line: string, runId: string): GuestDiagnostic {
+  if (!line.startsWith(PRODUCT_GUEST_DIAGNOSTIC_PREFIX) || Buffer.byteLength(line) > PRODUCT_GUEST_DIAGNOSTIC_BYTES) throw new Error('Invalid guest diagnostic frame.');
+  let value: unknown;
+  try { value = JSON.parse(line.slice(PRODUCT_GUEST_DIAGNOSTIC_PREFIX.length)); }
+  catch { throw new Error('Malformed guest diagnostic JSON.'); }
+  if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Malformed guest diagnostic.');
+  const row = value as Record<string, unknown>;
+  if (!onlyFields(row, ['event', 'runId', 'phase', 'sequence', 'elapsedMs', 'status', 'state']) || row.event !== 'guest-await-state' || row.runId !== runId
+    || !PHASES.slice(0, 5).includes(row.phase as ProductPhase) || !Number.isSafeInteger(row.elapsedMs) || Number(row.elapsedMs) < 0
+    || !['requested', 'observed', 'eval-error'].includes(String(row.status)) || row.sequence !== (row.status === 'requested' ? 1 : 2)) throw new Error('Guest diagnostic identity, phase or bounds differ.');
+  if (row.status === 'observed') {
+    const state = row.state as Record<string, unknown> | undefined;
+    if (!state || typeof state !== 'object' || Array.isArray(state) || !onlyFields(state, ['stage', 'lastCommandId', 'visibility', 'hasFocus'])
+      || !GUEST_STAGES.includes(state.stage as GuestStage) || !['visible', 'hidden'].includes(String(state.visibility)) || typeof state.hasFocus !== 'boolean'
+      || !(state.lastCommandId === null || (Number.isSafeInteger(state.lastCommandId) && Number(state.lastCommandId) >= 1 && Number(state.lastCommandId) <= 10_000))) throw new Error('Guest await-state fields or bounds differ.');
+  } else if ('state' in row) throw new Error('Guest diagnostic status does not carry state.');
+  return value as GuestDiagnostic;
 }
 
 export function decodeProductMessage(line: string, runId: string, platform: 'macos' | 'ios' = 'macos'): ProductMessage {
@@ -253,7 +280,7 @@ export function productReceiverBrowser(env: NodeJS.ProcessEnv = process.env, tra
           if (url !== PRODUCT_PAGE || child || closed) throw new Error('Product qualification starts the bundled GUI once; it does not navigate to an external fixture.');
           setPhase('native-handshake');
           child = transport?.launch() ?? spawn(binary, [], { env: { ...env }, stdio: 'pipe' });
-          let output = Buffer.alloc(0), stderrBytes = 0, nativeDiagnosticCount = 0;
+          let output = Buffer.alloc(0), stderrBytes = 0, nativeDiagnosticCount = 0, guestDiagnosticCount = 0, guestElapsedMs = 0;
           let diagnosticOutput = Buffer.alloc(0);
           const receiveNativeDiagnostic = (line: string) => {
             try {
@@ -264,6 +291,17 @@ export function productReceiverBrowser(env: NodeJS.ProcessEnv = process.env, tra
               if (phase !== 'corpus' && phase !== 'closing') {
                 startup.push({ ...diagnostic });
                 process.stderr.write(PRODUCT_NATIVE_DIAGNOSTIC_PREFIX + JSON.stringify(diagnostic) + '\n');
+              }
+            } catch (error) { protocol!.fail(error instanceof Error ? error : new Error(String(error))); }
+          };
+          const receiveGuestDiagnostic = (line: string) => {
+            try {
+              const diagnostic = decodeGuestDiagnostic(line, runId);
+              if (diagnostic.sequence !== guestDiagnosticCount + 1 || diagnostic.elapsedMs < guestElapsedMs) throw new Error('Guest diagnostic sequence or clock differs.');
+              guestDiagnosticCount++; guestElapsedMs = diagnostic.elapsedMs;
+              if (phase !== 'corpus' && phase !== 'closing') {
+                startup.push({ ...diagnostic });
+                process.stderr.write(PRODUCT_GUEST_DIAGNOSTIC_PREFIX + JSON.stringify(diagnostic) + '\n');
               }
             } catch (error) { protocol!.fail(error instanceof Error ? error : new Error(String(error))); }
           };
@@ -292,6 +330,8 @@ export function productReceiverBrowser(env: NodeJS.ProcessEnv = process.env, tra
                 const line = diagnosticOutput.subarray(0, newline).toString(); diagnosticOutput = diagnosticOutput.subarray(newline + 1);
                 if (line.startsWith(PRODUCT_NATIVE_DIAGNOSTIC_PREFIX)) {
                   receiveNativeDiagnostic(line);
+                } else if (line.startsWith(PRODUCT_GUEST_DIAGNOSTIC_PREFIX)) {
+                  receiveGuestDiagnostic(line);
                 } else process.stderr.write(line + '\n');
                 newline = diagnosticOutput.indexOf(10);
               }

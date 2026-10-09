@@ -14,7 +14,7 @@ import { build } from 'vite';
 import { productProbeIdentity, productProbeOptions, productProbeSource, webGpuProductProbe } from '../shells/tauri-desktop/webgpu-product-probe.mjs';
 import { assertProductBuildSource, assertProductCsp, assertProductSourcesUnchanged, isGeneratedInfoCss, markProductBundleRoot, productConfig, productEnvironment, productExecutableName, productSourceReceipt } from '../scripts/verify-webgpu-product.ts';
 import { assertNoMarkedBuild, MARKER_FILE } from '../scripts/webgpu-qualification.ts';
-import { PRODUCT_COMMAND_LIMIT, PRODUCT_DIAGNOSTIC_LIMIT, PRODUCT_DIAGNOSTIC_CONTROL_PREFIX, PRODUCT_NATIVE_DIAGNOSTIC_PREFIX, PRODUCT_NATIVE_DIAGNOSTIC_LIMIT, PRODUCT_NATIVE_DIAGNOSTIC_BYTES, PRODUCT_PAGE, PRODUCT_REPLY_LIMIT, PRODUCT_SOURCE_PREFIX_BYTES, ProductProbeProtocol, decodeNativeDiagnostic, decodeProductMessage, isProductUrl, productDiagnosticRecorder, productReceiverBrowser } from './helpers/webgpu-product-receiver.ts';
+import { PRODUCT_COMMAND_LIMIT, PRODUCT_DIAGNOSTIC_LIMIT, PRODUCT_DIAGNOSTIC_CONTROL_PREFIX, PRODUCT_NATIVE_DIAGNOSTIC_PREFIX, PRODUCT_NATIVE_DIAGNOSTIC_LIMIT, PRODUCT_NATIVE_DIAGNOSTIC_BYTES, PRODUCT_PAGE, PRODUCT_REPLY_LIMIT, PRODUCT_SOURCE_PREFIX_BYTES, ProductProbeProtocol, decodeGuestDiagnostic, PRODUCT_GUEST_DIAGNOSTIC_PREFIX, PRODUCT_GUEST_DIAGNOSTIC_BYTES, decodeNativeDiagnostic, decodeProductMessage, isProductUrl, productDiagnosticRecorder, productReceiverBrowser } from './helpers/webgpu-product-receiver.ts';
 import { TAURI_CSP, tauriCspMeta } from '../shells/tauri-shared/vite-csp.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
@@ -188,6 +188,67 @@ test('native diagnostic frames are separate, exact, bounded and run-scoped', () 
   assert.throws(() => decodeNativeDiagnostic(PRODUCT_NATIVE_DIAGNOSTIC_PREFIX + 'x'.repeat(PRODUCT_NATIVE_DIAGNOSTIC_BYTES), runId));
 });
 
+test('guest observations contain only authenticated bounded await-state facts', () => {
+  const state = { stage: 'before-reply', lastCommandId: 59, visibility: 'visible', hasFocus: false };
+  const base = { event: 'guest-await-state', runId, phase: 'tool-wait', elapsedMs: 5200 };
+  const encode = (value: unknown) => PRODUCT_GUEST_DIAGNOSTIC_PREFIX + JSON.stringify(value);
+  const requested = { ...base, sequence: 1, status: 'requested' }, observed = { ...base, sequence: 2, status: 'observed', state };
+  for (const row of [requested, observed, { ...base, sequence: 2, status: 'eval-error' }]) assert.deepEqual(decodeGuestDiagnostic(encode(row), runId), row);
+  assert.throws(() => decodeProductMessage(encode(observed), runId));
+  for (const patch of [{ runId: 'another-run' }, { phase: 'corpus' }, { phase: 'closing' }, { sequence: 1 }, { sequence: 3 },
+    { status: 'unknown' }, { elapsedMs: -1 }, { elapsedMs: Number.MAX_SAFE_INTEGER + 1 }, { args: 'private' },
+    { state: { ...state, source: 'private' } }, { state: { ...state, stage: 'arbitrary-source' } },
+    { state: { ...state, lastCommandId: 0 } }, { state: { ...state, lastCommandId: 10_001 } }, { state: { ...state, lastCommandId: '59' } },
+    { state: { ...state, visibility: 'unknown' } }, { state: { ...state, hasFocus: 'false' } }, { state: [] }, { state: undefined },
+  ]) assert.throws(() => decodeGuestDiagnostic(encode({ ...observed, ...patch }), runId));
+  assert.throws(() => decodeGuestDiagnostic(encode({ ...requested, state }), runId));
+  assert.throws(() => decodeGuestDiagnostic(PRODUCT_GUEST_DIAGNOSTIC_PREFIX + '{"private":', runId), /Malformed/);
+  assert.throws(() => decodeGuestDiagnostic(PRODUCT_GUEST_DIAGNOSTIC_PREFIX + '🦎'.repeat(PRODUCT_GUEST_DIAGNOSTIC_BYTES / 4), runId), /Invalid.*frame/);
+});
+
+test('local guest checkpoints distinguish suspended next, evaluation, reply and idle without polling IPC', async () => {
+  for (const mode of ['next', 'evaluate', 'reply', 'idle'] as const) {
+    const calls: Array<{ name: string; body: Record<string, unknown> }> = [];
+    let release: (() => void) | undefined, sleeps = 0;
+    const blocked = new Promise<void>(resolve => { release = resolve; });
+    const window = Object.assign(new EventTarget(), { pendingEvaluate: () => blocked,
+      __TAURI_INTERNALS__: { invoke(name: string, body: Record<string, unknown>) {
+        calls.push({ name, body });
+        if (name === 'webgpu_qualification_next') return mode === 'next' ? blocked : Promise.resolve(mode === 'idle' ? null
+          : { id: 59, source: mode === 'evaluate' ? '() => window.pendingEvaluate()' : '() => true', arg: 'private-argument', close: true });
+        if (name === 'webgpu_qualification_reply') return mode === 'reply' ? blocked : Promise.resolve();
+        return Promise.resolve();
+      } },
+    });
+    const document = { visibilityState: 'hidden', hasFocus: () => false, documentElement: { dataset: { webgpu: 'ready' } } };
+    runInNewContext(productProbeSource(runId, '/not-loaded.ts'), { window, document, location: { href: ready.url }, isSecureContext: true,
+      console, TextEncoder, TextDecoder, setTimeout() { sleeps++; } });
+    await new Promise(resolve => setImmediate(resolve));
+    const probe = (window as typeof window & { __lollyProductQualification: { observe(sequence: number): boolean } }).__lollyProductQualification;
+    assert.equal(calls.some(row => row.name === 'webgpu_qualification_observation'), false);
+    assert.equal(probe.observe(0), false); assert.equal(probe.observe(1), true); assert.equal(probe.observe(1), false);
+    const observations = calls.filter(row => row.name === 'webgpu_qualification_observation'); assert.equal(observations.length, 1);
+    assert.deepEqual(JSON.parse(JSON.stringify(observations[0]!.body)), { runId, url: ready.url, sequence: 1,
+      state: { stage: mode === 'idle' ? 'before-idle' : 'before-' + mode, lastCommandId: mode === 'next' || mode === 'idle' ? null : 59,
+        visibility: 'hidden', hasFocus: false } });
+    assert.ok(!JSON.stringify(observations[0]).includes('private-argument'));
+    assert.equal(sleeps, mode === 'idle' ? 1 : 0);
+    if (mode === 'reply' || mode === 'evaluate') { release!(); await new Promise(resolve => setImmediate(resolve)); assert.equal(probe.observe(1), false); }
+  }
+});
+
+test('closed guest receivers refuse an observation and preserve command/reply order', async () => {
+  const calls: string[] = [], window = Object.assign(new EventTarget(), { __TAURI_INTERNALS__: { async invoke(name: string) {
+    calls.push(name); return name === 'webgpu_qualification_next' ? { id: 1, source: '() => true', close: true } : null;
+  } } });
+  runInNewContext(productProbeSource(runId, '/not-loaded.ts'), { window, document: { visibilityState: 'visible', hasFocus: () => true },
+    location: { href: ready.url }, isSecureContext: true, console, TextEncoder, TextDecoder, setTimeout });
+  await new Promise(resolve => setImmediate(resolve));
+  const probe = (window as typeof window & { __lollyProductQualification: { observe(sequence: number): boolean } }).__lollyProductQualification;
+  assert.equal(probe.observe(1), false);
+  assert.deepEqual(calls, ['webgpu_qualification_ready', 'webgpu_qualification_next', 'webgpu_qualification_reply']);
+});
+
 test('startup completion facts retain bounded metadata without values and stop before numeric work', async () => {
   const writes: string[] = [], protocol = new ProductProbeProtocol(runId, value => writes.push(value), () => {});
   protocol.receive(line(ready)); protocol.setPhase('onboarding-poll');
@@ -309,6 +370,10 @@ test('iOS transport startup records each host phase and identifies a pending too
       const diagnostic = PRODUCT_NATIVE_DIAGNOSTIC_PREFIX + JSON.stringify({ event: 'native-checkpoints', runId, phase: 'tool-wait', sequence: 1, elapsedMs: 5100,
         checkpoints: [{ stage: 'intake', id: command.id, elapsedMs: 100 }, { stage: 'reply', id: command.id - 1, elapsedMs: 90 }] }) + '\n';
       child.stderr.write(diagnostic.slice(0, 9)); child.stderr.write(diagnostic.slice(9));
+      for (const [sequence, status] of [[1, 'requested'], [2, 'observed']] as const) child.stderr.write(PRODUCT_GUEST_DIAGNOSTIC_PREFIX + JSON.stringify({
+        event: 'guest-await-state', runId, phase: 'tool-wait', sequence, status, elapsedMs: 5100 + sequence,
+        ...(status === 'observed' ? { state: { stage: 'before-reply', lastCommandId: command.id - 1, visibility: 'visible', hasFocus: true } } : {}),
+      }) + '\n');
       return;
     }
     const value = command.source.includes('await probe.load()') ? true : command.source.includes('expectedCsp =>')
@@ -335,6 +400,9 @@ test('iOS transport startup records each host phase and identifies a pending too
     const native = rows.find(row => row.event === 'native-checkpoints'); assert.ok(native);
     assert.equal(native.runId, runId); assert.equal(native.sequence, 1);
     assert.equal((native.checkpoints as { id: number }[])[0]!.id, 4);
+    const guests = rows.filter(row => row.event === 'guest-await-state'); assert.equal(guests.length, 2);
+    assert.deepEqual(guests[1]!.state, { stage: 'before-reply', lastCommandId: 3, visibility: 'visible', hasFocus: true });
+    assert.match(logs.join(''), /LOLLY_WEBGPU_PRODUCT_GUEST_DIAGNOSTIC/);
     assert.match(logs.join(''), /LOLLY_WEBGPU_PRODUCT_DIAGNOSTIC/); assert.match(logs.join(''), /"id":4/);
     assert.deepEqual(browser.productQualification.sources, sourceFacts);
   } finally { await browser.close(); child.stdin.destroy(); child.stdout.destroy(); child.stderr.destroy(); await rm(fixture, { recursive: true, force: true }); }
@@ -355,6 +423,11 @@ test('rejected reserved native stderr frames never forward their private fields'
     for (const [frame, error] of [
       [invalid, /Native diagnostic identity, phase or bounds differ/],
       [PRODUCT_NATIVE_DIAGNOSTIC_PREFIX + '{"args": private-malformed-never-forward}\n', /Malformed native diagnostic JSON/],
+      [PRODUCT_GUEST_DIAGNOSTIC_PREFIX + JSON.stringify({ event: 'guest-await-state', runId, phase: 'native-handshake', sequence: 1,
+        elapsedMs: 0, status: 'requested', args: 'private-argument-never-forward' }) + '\n', /Guest diagnostic identity, phase or bounds differ/],
+      [PRODUCT_GUEST_DIAGNOSTIC_PREFIX + '{"args": private-malformed-never-forward}\n', /Malformed guest diagnostic JSON/],
+      [PRODUCT_GUEST_DIAGNOSTIC_PREFIX + JSON.stringify({ event: 'guest-await-state', runId, phase: 'native-handshake', sequence: 2,
+        elapsedMs: 0, status: 'observed', state: { stage: 'before-next', lastCommandId: null, visibility: 'visible', hasFocus: true } }) + '\n', /Guest diagnostic sequence or clock differs/],
     ] as const) {
       const child = Object.assign(new EventEmitter(), { stdin: new PassThrough(), stdout: new PassThrough(), stderr: new PassThrough(), exitCode: null as number | null, signalCode: null });
       const browser = productReceiverBrowser({ ...env, LOLLY_WEBGPU_PRODUCT_BINARY: binary, LOLLY_WEBGPU_PRODUCT_RECEIPT: receipt }, {
@@ -367,14 +440,51 @@ test('rejected reserved native stderr frames never forward their private fields'
       }, () => 'darwin');
       try {
         const page = await browser.newPage(); await assert.rejects(page.goto(PRODUCT_PAGE), error);
-        assert.ok(!browser.productQualification.startup.some(row => row.event === 'native-checkpoints'));
+        assert.ok(!browser.productQualification.startup.some(row => row.event === 'native-checkpoints' || row.event === 'guest-await-state'));
       } finally { await browser.close(); child.stdin.destroy(); child.stdout.destroy(); child.stderr.destroy(); }
     }
     assert.match(logs.join(''), /ordinary native stderr/);
     assert.ok(!logs.join('').includes('private-argument-never-forward'));
     assert.ok(!logs.join('').includes('private-malformed-never-forward'));
     assert.ok(!logs.join('').includes(PRODUCT_NATIVE_DIAGNOSTIC_PREFIX));
+    assert.ok(!logs.join('').includes(PRODUCT_GUEST_DIAGNOSTIC_PREFIX));
   } finally { await rm(fixture, { recursive: true, force: true }); }
+});
+
+test('guest observations in transit after corpus starts are suppressed without changing normal requests', async t => {
+  const logs: string[] = [];
+  t.mock.method(process.stderr, 'write', (chunk: string | Uint8Array) => { logs.push(String(chunk)); return true; });
+  const parent = resolve(root, 'plans/295-validation/product-probe-development'); await mkdir(parent, { recursive: true });
+  const fixture = await mkdtemp(resolve(parent, 'late-guest-diagnostic-'));
+  const binary = resolve(fixture, 'owned-binary'), receipt = resolve(fixture, 'environment.json');
+  await writeFile(binary, 'owned fixture');
+  await writeFile(receipt, JSON.stringify({ version: 1, runId, identifier: ready.identifier, binary,
+    binarySha256: createHash('sha256').update('owned fixture').digest('hex'), sources: {} }));
+  const child = Object.assign(new EventEmitter(), { stdin: new PassThrough(), stdout: new PassThrough(), stderr: new PassThrough(), exitCode: null as number | null, signalCode: null });
+  const commands: Array<Record<string, unknown>> = [];
+  child.stdin.on('data', bytes => {
+    if (String(bytes).startsWith(PRODUCT_DIAGNOSTIC_CONTROL_PREFIX)) return;
+    const command = JSON.parse(String(bytes)); commands.push(command);
+    const value = command.source.includes('expectedCsp =>') ? { origin: 'tauri://localhost', url: ready.url, csp: TAURI_CSP, webgpu: 'ready' }
+      : command.source.includes("document.querySelector('#tool-canvas svg')") || command.source.includes('await probe.load()') ? true
+      : command.source === '() => 17' ? 17 : 'ready';
+    child.stdout.write(line({ event: 'reply', runId, reply: { id: command.id, value } }) + '\n');
+  });
+  const browser = productReceiverBrowser({ ...env, LOLLY_WEBGPU_PRODUCT_BINARY: binary, LOLLY_WEBGPU_PRODUCT_RECEIPT: receipt }, {
+    platform: 'ios', launch() { queueMicrotask(() => child.stdout.write(line({ ...ready, os: 'ios' }) + '\n')); return child as unknown as ChildProcessWithoutNullStreams; },
+    runtime: row => 'WKWebView ' + row.runtime, async close() { child.exitCode = 0; child.emit('exit', 0); },
+  }, () => 'darwin');
+  try {
+    const page = await browser.newPage(); await page.goto(PRODUCT_PAGE);
+    assert.equal(browser.productQualification.startup.at(-1)!.phase, 'corpus');
+    for (const [sequence, status] of [[1, 'requested'], [2, 'observed']] as const) child.stderr.write(PRODUCT_GUEST_DIAGNOSTIC_PREFIX + JSON.stringify({
+      event: 'guest-await-state', runId, phase: 'tool-wait', sequence, elapsedMs: 5000 + sequence, status,
+      ...(status === 'observed' ? { state: { stage: 'before-reply', lastCommandId: 3, visibility: 'hidden', hasFocus: false } } : {}),
+    }) + '\n');
+    assert.equal(await page.evaluate(() => 17), 17); assert.equal(commands.length, 5);
+    assert.equal(browser.productQualification.startup.some(row => row.event === 'guest-await-state'), false);
+    assert.ok(!logs.join('').includes(PRODUCT_GUEST_DIAGNOSTIC_PREFIX));
+  } finally { await browser.close(); child.stdin.destroy(); child.stdout.destroy(); child.stderr.destroy(); await rm(fixture, { recursive: true, force: true }); }
 });
 
 test('a replay, malformed reply or native failure closes the protocol', async () => {
@@ -428,6 +538,24 @@ test('feature routing retains the main window guard and normal native configurat
   const config = JSON.parse(csp) as { app: { security: { csp: unknown; devCsp: unknown } } };
   assert.equal(config.app.security.csp, null); assert.equal(config.app.security.devCsp, null);
   assert.ok(!TAURI_CSP.split(';').find(row => row.trim().startsWith('connect-src'))!.includes('127.0.0.1'));
+});
+
+test('native observation routing is independent, one-shot, exact and disabled outside startup', async () => {
+  const source = await readFile(resolve(root, 'shells/tauri-shared/webgpu-product-broker.rs'), 'utf8');
+  const route = source.slice(source.indexOf('pub fn route'));
+  assert.ok(route.indexOf('authorize(webview.label()') < route.indexOf('if command == "webgpu_qualification_observation"'));
+  assert.ok(route.indexOf('if command == "webgpu_qualification_observation"') < route.indexOf('broker.queue.lock()'));
+  assert.match(route, /"webgpu_qualification_observation" => &\["runId", "url", "sequence", "state"\]/);
+  assert.match(source, /const OBSERVATION_SOURCE: &str = "window\.__lollyProductQualification\?\.observe\(1\);"/);
+  assert.equal(source.match(/window\.eval\(OBSERVATION_SOURCE\)/g)?.length, 1);
+  assert.match(source, /state\.observation != Observation::Unrequested/);
+  assert.match(source, /!control\.phase\.startup\(\).*state\.observation = Observation::Finished/s);
+  assert.match(source, /serde_json::to_vec\(body\).*len\(\)\s*> 512/s);
+  assert.match(source, /deny_unknown_fields, rename_all = "camelCase"\)\]\s*struct GuestState/);
+  assert.match(source, /observation\.sequence != 1/);
+  assert.match(source, /1\.\.=maximum_id/);
+  assert.ok(route.indexOf('broker.diagnostics.checkpoint(3, id)') < route.indexOf('invoke.resolver.resolve(value)'));
+  assert.doesNotMatch(source, /_webProcessIdentifier|webContentProcessIdentifier|set_focus\(/);
 });
 
 test('actual Vite graph omits the default module and bundles shared GPU modules/worker for qualification', { timeout: 60_000 }, async () => {

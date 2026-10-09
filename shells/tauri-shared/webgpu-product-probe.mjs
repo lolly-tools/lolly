@@ -30,7 +30,15 @@ export function productProbeSource(id, entry) {
 const runId = ${JSON.stringify(id)};
 const invoke = window.__TAURI_INTERNALS__?.invoke;
 if (typeof invoke !== 'function') throw new Error('Product qualification requires the native feature.');
-let stopped = false;
+let stopped = false, observationSent = false;
+let awaitStage = 'ready-await', lastCommandId = null;
+const observe = sequence => {
+  if (stopped || observationSent || sequence !== 1) return false;
+  observationSent = true;
+  const state = { stage: awaitStage, lastCommandId, visibility: document.visibilityState, hasFocus: document.hasFocus() };
+  invoke('webgpu_qualification_observation', { runId, url: location.href, sequence, state }).catch(() => {});
+  return true;
+};
 const url = () => location.href;
 const failure = (kind, error) => {
   const detail = error?.message ? [error.name, error.message, error.stack, error.url].filter(Boolean).join('\\n') : String(error);
@@ -47,19 +55,31 @@ const load = async () => {
   window.lutProbe = { ...module };
   return true;
 };
-Object.defineProperty(window, '__lollyProductQualification', { value: Object.freeze({ load }), configurable: true });
+Object.defineProperty(window, '__lollyProductQualification', { value: Object.freeze({ load, observe }), configurable: true });
 (async () => {
   await invoke('webgpu_qualification_ready', { runId, url: url(), secureContext: isSecureContext });
   while (!stopped) {
+    awaitStage = 'before-next';
     const command = await invoke('webgpu_qualification_next', { runId, url: url() });
-    if (!command) { await new Promise(resolve => setTimeout(resolve, 10)); continue; }
+    if (command) lastCommandId = command.id;
+    awaitStage = 'after-next';
+    if (!command) {
+      awaitStage = 'before-idle';
+      await new Promise(resolve => setTimeout(resolve, 10));
+      awaitStage = 'after-idle';
+      continue;
+    }
     let reply;
+    awaitStage = 'before-evaluate';
     try {
       const value = await (0, eval)('(' + command.source + ')')(command.arg);
       reply = { id: command.id, value: value ?? null };
     } catch (error) { reply = { id: command.id, error: String(error), stack: error?.stack }; }
+    awaitStage = 'after-evaluate';
+    awaitStage = 'before-reply';
     await invoke('webgpu_qualification_reply', { runId, url: url(), reply });
-    if (command.close) stopped = true;
+    awaitStage = 'after-reply';
+    if (command.close) { stopped = true; awaitStage = 'stopped'; }
   }
 })().catch(error => {
   console.error('[webgpu-product-qualification]', error);

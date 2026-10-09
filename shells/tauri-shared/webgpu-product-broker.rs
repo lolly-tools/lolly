@@ -23,6 +23,53 @@ const SOURCE_LIMIT: usize = 64 * 1024;
 const DIAGNOSTIC_CONTROL_PREFIX: &str = "LOLLY_WEBGPU_PRODUCT_DIAGNOSTIC_CONTROL ";
 const DIAGNOSTIC_PREFIX: &str = "LOLLY_WEBGPU_PRODUCT_NATIVE_DIAGNOSTIC ";
 const DIAGNOSTIC_LIMIT: u8 = 8;
+const GUEST_DIAGNOSTIC_PREFIX: &str = "LOLLY_WEBGPU_PRODUCT_GUEST_DIAGNOSTIC ";
+const OBSERVATION_SOURCE: &str = "window.__lollyProductQualification?.observe(1);";
+
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+struct GuestState {
+    stage: GuestStage,
+    last_command_id: Option<u64>,
+    visibility: Visibility,
+    has_focus: bool,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(rename_all = "kebab-case")]
+enum GuestStage {
+    ReadyAwait,
+    BeforeNext,
+    AfterNext,
+    BeforeEvaluate,
+    AfterEvaluate,
+    BeforeReply,
+    AfterReply,
+    BeforeIdle,
+    AfterIdle,
+    Stopped,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(rename_all = "lowercase")]
+enum Visibility {
+    Visible,
+    Hidden,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct GuestObservation {
+    sequence: u8,
+    state: GuestState,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Observation {
+    Unrequested,
+    Requested(u64),
+    Finished,
+}
 
 #[derive(Clone, Copy, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "kebab-case")]
@@ -67,6 +114,7 @@ struct DiagnosticState {
     last_snapshot_id: Option<u64>,
     emitted: u8,
     controls: u8,
+    observation: Observation,
 }
 
 impl DiagnosticState {
@@ -113,6 +161,7 @@ impl Diagnostics {
                 last_snapshot_id: None,
                 emitted: 0,
                 controls: 0,
+                observation: Observation::Unrequested,
             }),
         }
     }
@@ -134,6 +183,9 @@ impl Diagnostics {
         }
         state.controls += 1;
         state.phase = control.phase;
+        if !control.phase.startup() {
+            state.observation = Observation::Finished;
+        }
         self.active
             .store(control.phase.startup(), Ordering::Relaxed);
         Ok(())
@@ -152,7 +204,90 @@ impl Diagnostics {
             }
         }
     }
-    fn watch(self: Arc<Self>, run_id: String) {
+    fn guest_emit(state: &DiagnosticState, run_id: &str, status: &str, guest: Option<&GuestState>) {
+        let mut row = json!({ "event": "guest-await-state", "runId": run_id, "phase": state.phase,
+            "sequence": if status == "requested" { 1 } else { 2 }, "elapsedMs": state.elapsed_ms(), "status": status });
+        if let Some(guest) = guest {
+            row["state"] = json!(guest);
+        }
+        let line = format!("{GUEST_DIAGNOSTIC_PREFIX}{row}\n");
+        if line.len() <= 1024 {
+            let mut output = std::io::stderr().lock();
+            let _ = output.write_all(line.as_bytes());
+            let _ = output.flush();
+        }
+    }
+    fn request_observation(&self, run_id: &str) -> bool {
+        let Ok(mut state) = self.state.lock() else {
+            return false;
+        };
+        if !state.phase.startup() || state.observation != Observation::Unrequested {
+            return false;
+        }
+        let Some(intake) = state.checkpoints[0] else {
+            return false;
+        };
+        if state.last_snapshot_id != Some(intake.id)
+            || state.checkpoints[3].is_some_and(|reply| reply.id >= intake.id)
+        {
+            return false;
+        }
+        state.observation = Observation::Requested(intake.id);
+        Self::guest_emit(&state, run_id, "requested", None);
+        true
+    }
+    fn observation(&self, body: &Value, run_id: &str) -> Result<(), &'static str> {
+        if serde_json::to_vec(body)
+            .map_err(|_| "Malformed guest observation")?
+            .len()
+            > 512
+        {
+            return Err("Guest observation exceeds its bound");
+        }
+        if body
+            .get("state")
+            .and_then(Value::as_object)
+            .is_none_or(|state| state.len() != 4 || !state.contains_key("lastCommandId"))
+        {
+            return Err("Malformed guest observation");
+        }
+        let mut payload = body.clone();
+        let object = payload
+            .as_object_mut()
+            .ok_or("Malformed guest observation")?;
+        object.remove("runId");
+        object.remove("url");
+        let observation: GuestObservation =
+            serde_json::from_value(payload).map_err(|_| "Malformed guest observation")?;
+        let mut state = self
+            .state
+            .lock()
+            .map_err(|_| "Qualification diagnostic state failed")?;
+        let Observation::Requested(maximum_id) = state.observation else {
+            return Err("Guest observation was not requested or repeated");
+        };
+        if !state.phase.startup()
+            || observation.sequence != 1
+            || observation
+                .state
+                .last_command_id
+                .is_some_and(|id| !(1..=maximum_id).contains(&id))
+        {
+            return Err("Guest observation phase, sequence or command differs");
+        }
+        state.observation = Observation::Finished;
+        Self::guest_emit(&state, run_id, "observed", Some(&observation.state));
+        Ok(())
+    }
+    fn observation_eval_failed(&self, run_id: &str) {
+        if let Ok(mut state) = self.state.lock() {
+            if state.phase.startup() && matches!(state.observation, Observation::Requested(_)) {
+                state.observation = Observation::Finished;
+                Self::guest_emit(&state, run_id, "eval-error", None);
+            }
+        }
+    }
+    fn watch(self: Arc<Self>, run_id: String, handle: tauri::AppHandle) {
         std::thread::spawn(move || {
             for _ in 0..180 {
                 std::thread::sleep(Duration::from_secs(1));
@@ -165,11 +300,23 @@ impl Diagnostics {
                 });
                 if let Some(snapshot) = snapshot {
                     let line = format!("{DIAGNOSTIC_PREFIX}{snapshot}\n");
-                    if line.len() <= 2048 && self.active.load(Ordering::Relaxed) {
-                        // A separate stream can report when original stdout or queue work stalls.
-                        let mut output = std::io::stderr().lock();
-                        let _ = output.write_all(line.as_bytes());
-                        let _ = output.flush();
+                    if let Ok(state) = self.state.lock() {
+                        if line.len() <= 2048 && state.phase.startup() {
+                            // A separate stream can report when original stdout or queue work stalls.
+                            let mut output = std::io::stderr().lock();
+                            let _ = output.write_all(line.as_bytes());
+                            let _ = output.flush();
+                        }
+                    }
+                    if self.request_observation(&run_id) {
+                        // Only the first stale startup snapshot schedules this fixed independent eval.
+                        let result = handle
+                            .get_webview_window("main")
+                            .ok_or(())
+                            .and_then(|window| window.eval(OBSERVATION_SOURCE).map_err(|_| ()));
+                        if result.is_err() {
+                            self.observation_eval_failed(&run_id);
+                        }
                     }
                 }
             }
@@ -297,7 +444,9 @@ pub fn setup(app: &tauri::App) -> tauri::Result<()> {
     prepare(&app.config().identifier, false);
     let queue = Arc::new(Mutex::new(Queue::default()));
     let diagnostics = Arc::new(Diagnostics::new());
-    diagnostics.clone().watch(run_id.clone());
+    diagnostics
+        .clone()
+        .watch(run_id.clone(), app.handle().clone());
     app.manage(Broker {
         run_id: run_id.clone(),
         queue: queue.clone(),
@@ -356,6 +505,7 @@ pub fn route<R: Runtime>(invoke: Invoke<R>) -> bool {
         "webgpu_qualification_next" => &["runId", "url"],
         "webgpu_qualification_reply" => &["runId", "url", "reply"],
         "webgpu_qualification_failure" => &["runId", "url", "error"],
+        "webgpu_qualification_observation" => &["runId", "url", "sequence", "state"],
         _ => {
             invoke
                 .resolver
@@ -372,6 +522,13 @@ pub fn route<R: Runtime>(invoke: Invoke<R>) -> bool {
     let native_url = webview.url().map(|url| url.to_string()).unwrap_or_default();
     if let Err(error) = authorize(webview.label(), &native_url, &broker.run_id, body, fields) {
         invoke.resolver.reject(error);
+        return true;
+    }
+    if command == "webgpu_qualification_observation" {
+        match broker.diagnostics.observation(body, &broker.run_id) {
+            Ok(()) => invoke.resolver.resolve(Value::Null),
+            Err(error) => invoke.resolver.reject(error),
+        }
         return true;
     }
     let Ok(mut state) = broker.queue.lock() else {
@@ -607,5 +764,73 @@ mod tests {
         assert!(diagnostics.control(&control("tool-wait"), ID).is_err());
         assert!(diagnostics.control(&control("closing"), ID).is_ok());
         assert!(!diagnostics.active.load(Ordering::Relaxed));
+    }
+    #[test]
+    fn guest_observation_is_one_use_bounded_and_independent_of_command_queue() {
+        let diagnostics = Diagnostics::new();
+        let body = json!({ "runId": ID, "url": "tauri://localhost/", "sequence": 1,
+            "state": { "stage": "before-reply", "lastCommandId": 59, "visibility": "hidden", "hasFocus": false } });
+        assert!(diagnostics.observation(&body, ID).is_err());
+        diagnostics.checkpoint(0, 60);
+        assert!(!diagnostics.request_observation(ID));
+        let mut state = diagnostics.state.lock().unwrap();
+        let elapsed = state.checkpoints[0].unwrap().elapsed_ms + 5000;
+        assert!(state.stale_snapshot(ID, elapsed).is_some());
+        drop(state);
+        assert!(diagnostics.request_observation(ID));
+        assert!(!diagnostics.request_observation(ID));
+        for patch in [
+            json!({ "stage": "arbitrary-source", "lastCommandId": 59, "visibility": "hidden", "hasFocus": false }),
+            json!({ "stage": "before-reply", "lastCommandId": 61, "visibility": "hidden", "hasFocus": false }),
+            json!({ "stage": "before-reply", "lastCommandId": 0, "visibility": "hidden", "hasFocus": false }),
+            json!({ "stage": "before-reply", "visibility": "hidden", "hasFocus": false }),
+            json!({ "stage": "before-reply", "lastCommandId": 59, "visibility": "hidden", "hasFocus": false, "args": "private" }),
+            json!({ "stage": "before-reply", "lastCommandId": 59, "visibility": "unknown", "hasFocus": false }),
+        ] {
+            let mut changed = body.clone();
+            changed["state"] = patch;
+            assert!(diagnostics.observation(&changed, ID).is_err());
+        }
+        let mut changed = body.clone();
+        changed["sequence"] = json!(2);
+        assert!(diagnostics.observation(&changed, ID).is_err());
+        changed["sequence"] = json!(1);
+        changed["extra"] = json!("x".repeat(513));
+        assert!(diagnostics.observation(&changed, ID).is_err());
+        assert!(diagnostics.observation(&body, ID).is_ok());
+        assert!(diagnostics.observation(&body, ID).is_err());
+        assert!(!diagnostics.request_observation(ID));
+        let queue = Queue::default();
+        assert!(command_valid(
+            &Command {
+                id: 1,
+                source: "() => true".into(),
+                arg: Value::Null,
+                close: false
+            },
+            &queue
+        )
+        .is_ok());
+    }
+    #[test]
+    fn corpus_disables_pending_guest_observation_without_another_eval() {
+        let diagnostics = Diagnostics::new();
+        diagnostics.checkpoint(0, 1);
+        let mut state = diagnostics.state.lock().unwrap();
+        let elapsed = state.checkpoints[0].unwrap().elapsed_ms + 5000;
+        assert!(state.stale_snapshot(ID, elapsed).is_some());
+        drop(state);
+        assert!(diagnostics.request_observation(ID));
+        assert!(diagnostics
+            .control(
+                &serde_json::to_vec(&json!({ "runId": ID, "phase": "corpus" })).unwrap(),
+                ID
+            )
+            .is_ok());
+        assert!(diagnostics.observation(&json!({ "runId": ID, "url": "tauri://localhost/", "sequence": 1,
+            "state": { "stage": "before-next", "lastCommandId": null, "visibility": "visible", "hasFocus": true } }), ID).is_err());
+        diagnostics.observation_eval_failed(ID);
+        assert!(!diagnostics.request_observation(ID));
+        assert!(diagnostics.state.lock().unwrap().observation == Observation::Finished);
     }
 }
