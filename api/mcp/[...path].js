@@ -55528,9 +55528,9 @@ function tokenize2(s) {
   return toks;
 }
 function embeddedRaster(value, budget3) {
-  value = value.replace(/&#(x[0-9a-f]+|[0-9]+);|&(amp|lt|gt|quot|apos);/gi, (raw, number7, name) => {
-    if (number7) {
-      const point3 = parseInt(number7.startsWith("x") ? number7.slice(1) : number7, number7.startsWith("x") ? 16 : 10);
+  value = value.replace(/&#(x[0-9a-f]+|[0-9]+);|&(amp|lt|gt|quot|apos);/gi, (raw, number8, name) => {
+    if (number8) {
+      const point3 = parseInt(number8.startsWith("x") ? number8.slice(1) : number8, number8.startsWith("x") ? 16 : 10);
       return point3 <= 1114111 ? String.fromCodePoint(point3) : raw;
     }
     return { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'" }[name.toLowerCase()];
@@ -55791,8 +55791,8 @@ function inputSchema(input) {
   const about = input.help ?? input.description;
   const base = { title: input.label ?? input.id, ...about ? { description: about } : {} };
   if (input.type === "number") {
-    const number7 = { type: "number", ...input.min !== void 0 ? { minimum: input.min } : {}, ...input.max !== void 0 ? { maximum: input.max } : {} };
-    return { ...base, ...input.default === "" ? { anyOf: [number7, { const: "" }] } : number7, ...input.default !== void 0 ? { default: input.default } : {} };
+    const number8 = { type: "number", ...input.min !== void 0 ? { minimum: input.min } : {}, ...input.max !== void 0 ? { maximum: input.max } : {} };
+    return { ...base, ...input.default === "" ? { anyOf: [number8, { const: "" }] } : number8, ...input.default !== void 0 ? { default: input.default } : {} };
   }
   if (input.type === "boolean") return { ...base, ...input.default === "" ? { anyOf: [{ type: "boolean" }, { const: "" }] } : { type: "boolean" }, ...input.default !== void 0 ? { default: input.default } : {} };
   if (input.type === "blocks") {
@@ -61261,7 +61261,7 @@ function validatePathData(d) {
     SEP_RE.exec(d);
     i = SEP_RE.lastIndex;
   };
-  const number7 = () => {
+  const number8 = () => {
     skipSep();
     NUM_RE.lastIndex = i;
     const m2 = NUM_RE.exec(d);
@@ -61310,7 +61310,7 @@ function validatePathData(d) {
       if (!NUM_START.test(d[i])) break;
       for (let a = 0; a < arity2; a++) {
         const isFlag = C === "A" && (a === 3 || a === 4);
-        const v = isFlag ? flag() : number7();
+        const v = isFlag ? flag() : number8();
         if (isFail(v)) return v;
         if (v === null) {
           return fail2("invalid-path", `geom: "${letter}" has an incomplete argument group at offset ${i}`);
@@ -62976,7 +62976,7 @@ function parseEngineData(bytes) {
       p++;
       return token2();
     }
-    if (b === 45 || b === 43 || b === 46 || b >= 48 && b <= 57) return number7();
+    if (b === 45 || b === 43 || b === 46 || b >= 48 && b <= 57) return number8();
     if (word("true")) return true;
     if (word("false")) return false;
     if (word("null")) return "";
@@ -63018,7 +63018,7 @@ function parseEngineData(bytes) {
     p++;
     return out;
   }
-  function number7() {
+  function number8() {
     const s = p;
     if (at() === 43 || at() === 45) p++;
     while (at() >= 48 && at() <= 57) p++;
@@ -83103,9 +83103,9 @@ function serialiseSegment(text8, fmt4, rowWeight, lineStart) {
     if (!emphasis) {
       if (lineStart) {
         const bullet = /^([-•])(\s)/.exec(body);
-        const number7 = /^(\d{1,3})(\.\s)/.exec(body);
+        const number8 = /^(\d{1,3})(\.\s)/.exec(body);
         if (bullet?.[1]) body = `{w${rowWeight}|${bullet[1]}}${body.slice(1)}`;
-        else if (number7?.[1]) body = `{w${rowWeight}|${number7[1]}}${body.slice(number7[1].length)}`;
+        else if (number8?.[1]) body = `{w${rowWeight}|${number8[1]}}${body.slice(number8[1].length)}`;
       }
     } else if (body.endsWith("\\")) {
       body += separator(weight);
@@ -83346,10 +83346,10 @@ function parseDesignLine(line) {
     const indent2 = (bullet[1] ?? "").length;
     return { list: "bullet", indent: indent2, level: Math.floor(indent2 / 2), runs: parseInline(bullet[2] ?? "") };
   }
-  const number7 = NUMBER_LINE.exec(line);
-  if (number7) {
-    const indent2 = (number7[1] ?? "").length;
-    return { list: "number", number: Number(number7[2]), indent: indent2, level: Math.floor(indent2 / 2), runs: parseInline(number7[3] ?? "") };
+  const number8 = NUMBER_LINE.exec(line);
+  if (number8) {
+    const indent2 = (number8[1] ?? "").length;
+    return { list: "number", number: Number(number8[2]), indent: indent2, level: Math.floor(indent2 / 2), runs: parseInline(number8[3] ?? "") };
   }
   const indent = (/^ */.exec(line)?.[0] ?? "").length;
   return { indent, level: Math.floor(indent / 2), runs: parseInline(line) };
@@ -106978,8 +106978,8 @@ function compileRenovated(input) {
       if (slot.members.length === 0 && slot.notes.length === 0) continue;
       if (wouldFit(build2, slot, placement2)) return joinSlot(build2, slot, placement2, false);
     }
-    const number7 = isBigNumber(text8) ? freeSlot(build2, (s) => s.role === "number") : void 0;
-    if (number7) return takeSlot2(build2, number7, placement2);
+    const number8 = isBigNumber(text8) ? freeSlot(build2, (s) => s.role === "number") : void 0;
+    if (number8) return takeSlot2(build2, number8, placement2);
     const other = freeSlot(build2, (s) => s.kind === "text" && (s.role === "caption" || s.role === "subtitle" || s.role === "quote"));
     if (other && (emptyOk || wouldFit(build2, other, placement2))) return takeSlot2(build2, other, placement2);
     for (const slot of freeBoxesInReadingOrder(build2)) {
@@ -109986,9 +109986,9 @@ var init_design_draw_lottie = __esm({
 });
 
 // engine/src/design-draw-penpot.ts
-function isPenpotPrimitiveRow(row) {
+function isPenpotPrimitiveRow(row, shapeKind) {
   if (!["", "box"].includes(string(row.kind))) return false;
-  if (!["", "rect", "rounded", "pill", "circle", "ellipse"].includes(string(row.shape))) return false;
+  if (!["", "rect", "rounded", "pill", "circle", "ellipse"].includes(shapeKind ?? string(row.shape))) return false;
   for (const field2 of ["grad", "clip", "image", "text", "path", "pathPaint", "headStart", "headEnd", "kf", "enter", "exit", "hold"]) {
     if (string(row[field2]).trim()) return false;
   }
@@ -110017,22 +110017,33 @@ function validatePaint(fills, stroke) {
   }
 }
 function compilePenpotCompatRow(row, offset, supplied) {
-  if (!isPenpotPrimitiveRow(row)) throw new Error("This row needs the legacy Penpot producer.");
+  const capture = supplied?.capture;
+  if (!isPenpotPrimitiveRow(row, capture?.shapeKind)) throw new Error("This row needs the legacy Penpot producer.");
   if (!supplied) throw new Error("The Penpot compatibility reading needs resolved paints.");
   validatePaint(supplied.fills, supplied.stroke);
-  const box4 = {
+  if (capture && (![
+    capture.geometry.x,
+    capture.geometry.y,
+    capture.geometry.w,
+    capture.geometry.h,
+    capture.opacity,
+    capture.rotation
+  ].every(Number.isFinite) || capture.geometry.w < 1 || capture.geometry.h < 1 || capture.opacity < 0 || capture.opacity > 100 || typeof capture.shapeKind !== "string")) {
+    throw new Error("Penpot captured primitive geometry is not finite or in range.");
+  }
+  const box4 = capture ? { x: capture.geometry.x - offset.x, y: capture.geometry.y - offset.y, w: capture.geometry.w, h: capture.geometry.h } : {
     x: number(row.x) - offset.x,
     y: number(row.y) - offset.y,
     w: Math.max(1, number(row.w, 1)),
     h: Math.max(1, number(row.h, 1))
   };
-  const name = string(row.shape), rot = number(row.rot);
+  const name = capture?.shapeKind ?? string(row.shape), rot = capture?.rotation ?? number(row.rot);
   return {
     id: string(row.id),
     op: "shape",
     compatibility: "penpot-native-v1",
     box: box4,
-    opacity: clamp(number(row.opacity, 100), 0, 100),
+    opacity: capture?.opacity ?? clamp(number(row.opacity, 100), 0, 100),
     ...rot ? { pose: { rot, flipH: false, flipV: false } } : {},
     shape: name === "circle" || name === "ellipse" ? { kind: "ellipse" } : { kind: "rect", radius: name === "rounded" ? number(row.radius) : name === "pill" ? Math.min(box4.w, box4.h) / 2 : 0 },
     fills: supplied.fills.map((fill2) => ({ ...fill2 })),
@@ -110080,6 +110091,102 @@ var init_design_draw_penpot = __esm({
       const result = typeof value === "number" ? value : Number.parseFloat(String(value));
       return Number.isFinite(result) ? result : fallback;
     };
+  }
+});
+
+// engine/src/design-draw-pptx.ts
+function isPptxPrimitiveRow(row, origin = { x: 0, y: 0 }, geometry3) {
+  if (!["", "box"].includes(string2(row.kind)) || !["", "rect", "rounded"].includes(string2(row.shape))) return false;
+  for (const field2 of ["grad", "clip", "image", "text", "path", "pathPaint", "headStart", "headEnd", "kf", "enter", "exit", "hold", "matchOf", "strokeDashArray"]) {
+    if (string2(row[field2]).trim()) return false;
+  }
+  if (!["", "none"].includes(string2(row.shadow)) || !["", "normal"].includes(string2(row.blend))) return false;
+  if (!["", "solid"].includes(string2(row.strokeDash))) return false;
+  if (["blur", "bgBlur", "rx", "ry"].some((field2) => number2(row[field2]) !== 0)) return false;
+  if (row.start != null || row.dur != null || string2(row.lane) === "seq") return false;
+  const coordinates = geometry3 ?? { x: number2(row.x), y: number2(row.y), w: number2(row.w, 1), h: number2(row.h, 1) };
+  return [coordinates.x - origin.x, coordinates.y - origin.y, coordinates.w, coordinates.h, number2(row.radius), number2(row.strokeW)].every((value) => Number.isFinite(emu(value)));
+}
+function validColor2(color6, alpha) {
+  if (!/^#[0-9a-f]{6}$/i.test(color6) || alpha !== void 0 && (!Number.isFinite(alpha) || alpha < 0 || alpha > 1)) {
+    throw new Error("PPTX primitives need resolved sRGB paint.");
+  }
+}
+function validatePaint2(fills, stroke) {
+  if (fills.length > 1) throw new Error("PPTX primitives carry at most one solid fill.");
+  for (const fill2 of fills) {
+    if (fill2.kind !== "color") throw new Error("PPTX primitive paint must be solid.");
+    validColor2(fill2.color, fill2.opacity);
+  }
+  if (!stroke) return;
+  validColor2(stroke.color, stroke.opacity);
+  if (!Number.isFinite(stroke.width) || stroke.width <= 0 || !Number.isFinite(emu(stroke.width)) || stroke.align || stroke.dash || stroke.cap || stroke.join) {
+    throw new Error("PPTX primitives need the native solid line.");
+  }
+}
+function compilePptxCompatRow(row, origin, supplied) {
+  if (!isPptxPrimitiveRow(row, origin, supplied?.geometry)) throw new Error("This row needs the legacy native PPTX producer.");
+  if (!supplied) throw new Error("The PPTX compatibility reading needs resolved paints.");
+  validatePaint2(supplied.fills, supplied.stroke);
+  const rounded = string2(row.shape) === "rounded", rot = number2(row.rot);
+  const geometry3 = supplied.geometry ?? { x: number2(row.x), y: number2(row.y), w: number2(row.w, 1), h: number2(row.h, 1) };
+  return {
+    id: string2(row.id),
+    op: "shape",
+    compatibility: "pptx-native-v1",
+    nativePptx: { rounded },
+    box: {
+      x: geometry3.x - origin.x,
+      y: geometry3.y - origin.y,
+      w: Math.max(1 / EMU_PER_PX, geometry3.w),
+      h: Math.max(1 / EMU_PER_PX, geometry3.h)
+    },
+    opacity: 100,
+    shape: { kind: "rect", radius: rounded ? number2(row.radius) : 0 },
+    ...rot !== 0 ? { pose: { rot, flipH: false, flipV: false } } : {},
+    fills: supplied.fills.map((fill2) => ({ ...fill2 })),
+    ...supplied.stroke ? { stroke: { ...supplied.stroke } } : {}
+  };
+}
+function designDrawPptx(op) {
+  if (op.compatibility !== "pptx-native-v1" || !("nativePptx" in op) || !op.nativePptx || typeof op.nativePptx !== "object" || !Object.hasOwn(op.nativePptx, "rounded") || !("rounded" in op.nativePptx) || typeof op.nativePptx.rounded !== "boolean") throw new Error("PPTX needs its named native-primitive compatibility reading.");
+  if (op.words || op.picture || op.clip || op.blend || op.shadow || op.blur || op.outline || op.fillRule || op.pose?.flipH || op.pose?.flipV || op.shape.kind !== "rect" || op.opacity !== 100) {
+    throw new Error("PPTX native-primitive evaluation contains unsupported content.");
+  }
+  const { x, y, w, h } = op.box;
+  if (![x, y, w, h, op.shape.radius, op.pose?.rot ?? 0].every(Number.isFinite) || w < 1 / EMU_PER_PX || h < 1 / EMU_PER_PX || ![x, y, w, h, op.shape.radius].every((value) => Number.isFinite(emu(value)))) {
+    throw new Error("PPTX primitive geometry is not finite or in range.");
+  }
+  validatePaint2(op.fills, op.stroke);
+  const fill2 = op.fills[0], stroke = op.stroke;
+  if (fill2 && fill2.kind !== "color") throw new Error("PPTX primitive paint must be solid.");
+  return {
+    kind: "rect",
+    x: emu(x),
+    y: emu(y),
+    cx: Math.max(1, emu(w)),
+    cy: Math.max(1, emu(h)),
+    ...op.pose?.rot ? { rot: op.pose.rot } : {},
+    ...fill2 ? { fill: { solid: fill2.color.slice(1), ...fill2.opacity !== void 0 ? { alpha: fill2.opacity } : {} } } : {},
+    ...stroke ? { line: { color: stroke.color.slice(1), w: emu(stroke.width), ...stroke.opacity !== void 0 ? { alpha: stroke.opacity } : {} } } : {},
+    ...op.nativePptx.rounded ? { radius: emu(op.shape.radius) } : {}
+  };
+}
+var string2, number2, emu;
+var init_design_draw_pptx = __esm({
+  "engine/src/design-draw-pptx.ts"() {
+    "use strict";
+    init_pptx2();
+    string2 = (value) => typeof value === "string" ? value : "";
+    number2 = (value, fallback = 0) => {
+      if (typeof value === "number") return Number.isFinite(value) ? value : fallback;
+      if (typeof value === "string" && value.trim() !== "") {
+        const result = Number(value);
+        return Number.isFinite(result) ? result : fallback;
+      }
+      return fallback;
+    };
+    emu = (value) => Math.round(value * EMU_PER_PX);
   }
 });
 
@@ -110436,7 +110543,7 @@ function effectsOf(row, box4, offset, opts, color6) {
   const shadow = shadowOf(row, color6);
   if (shadow) {
     out.shadow = shadow;
-    if (shadow.target === "box") out.outline = outlineOf2(row, box4, opts.semantics === "lottie-compat" || opts.semantics === "penpot-compat" ? "design" : opts.semantics);
+    if (shadow.target === "box") out.outline = outlineOf2(row, box4, opts.semantics === "lottie-compat" || opts.semantics === "penpot-compat" || opts.semantics === "pptx-compat" ? "design" : opts.semantics);
   }
   const blur2 = clampTo(rowNum2(row, "blur"), 0, 300);
   if (blur2 > 0) out.blur = Math.round(blur2 * 10) / 10;
@@ -110445,6 +110552,7 @@ function effectsOf(row, box4, offset, opts, color6) {
 function compileDesignRow(row, offset, opts = {}) {
   if (opts.semantics === "lottie-compat") return compileLottieCompatRow(row, offset, opts.lottieCompat);
   if (opts.semantics === "penpot-compat") return compilePenpotCompatRow(row, offset, opts.penpotCompat);
+  if (opts.semantics === "pptx-compat") return compilePptxCompatRow(row, offset, opts.pptxCompat);
   const design = opts.semantics !== "preview";
   const box4 = design ? { x: Math.round(rowNum2(row, "x")) - offset.x, y: Math.round(rowNum2(row, "y")) - offset.y, w: Math.max(1, Math.round(rowNum2(row, "w", 1))), h: Math.max(1, Math.round(rowNum2(row, "h", 1))) } : { x: rowNum2(row, "x") - offset.x, y: rowNum2(row, "y") - offset.y, w: Math.max(0, rowNum2(row, "w")), h: Math.max(0, rowNum2(row, "h")) };
   const rot = design ? Math.round(rowNum2(row, "rot") * 10) / 10 : rowNum2(row, "rot");
@@ -110550,6 +110658,7 @@ function framePaint(head2, page3, opts) {
 function compileDesignDraw(rows2, size, opts = {}) {
   if (opts.semantics === "lottie-compat") throw new Error("The Lottie sequence owns page selection; compile its admitted vectors with compileDesignRow.");
   if (opts.semantics === "penpot-compat") throw new Error("The Penpot producer owns page selection; compile its admitted primitives with compileDesignRow.");
+  if (opts.semantics === "pptx-compat") throw new Error("The native PPTX producer owns page selection; compile its admitted primitives with compileDesignRow.");
   const head2 = rows2[0];
   const framed = head2 !== void 0 && rowStr2(head2, "kind") === "frame";
   const round11 = opts.semantics !== "preview" ? Math.round : (n7) => n7;
@@ -110697,6 +110806,7 @@ var init_design_draw = __esm({
     init_design_draw_lottie();
     init_design_draw_lottie();
     init_design_draw_penpot();
+    init_design_draw_pptx();
     init_spline();
     init_css_color();
     init_gradient_spec();
@@ -111522,7 +111632,8 @@ function boxesToPenpotDoc(boxesIn, o) {
     return w;
   };
   const effects = (b, base) => {
-    const op = clamp(fin2(b.opacity, 100), 0, 100) / 100;
+    const opacity = clamp(fin2(b.opacity, 100), 0, 100);
+    const op = opacity / 100;
     if (op < 1) base.opacity = op;
     const blend2 = str6(b.blend);
     if (blend2 && blend2 !== "normal" && BLEND_MODES.has(blend2)) base.blend = blend2;
@@ -111541,6 +111652,7 @@ function boxesToPenpotDoc(boxesIn, o) {
     if (blur2 > 0) base.blur = blur2;
     const bgBlur = fin2(b.bgBlur);
     if (bgBlur > 0) base.backgroundBlur = bgBlur;
+    return { opacity, rotation: rot };
   };
   const strokeOf3 = (b) => {
     const sc = color6(b.stroke);
@@ -111581,7 +111693,7 @@ function boxesToPenpotDoc(boxesIn, o) {
     if (kind === "audio" || kind === "camera" || kind === "frame") return null;
     const x = fin2(b.x), y = fin2(b.y), w = Math.max(1, fin2(b.w, 1)), h = Math.max(1, fin2(b.h, 1));
     const base = { name: nameOf4(b, kind), x, y, w, h };
-    effects(b, base);
+    const effectCapture = effects(b, base);
     let shape = null;
     let textHasRunColor = false;
     if (kind === "text") {
@@ -111676,9 +111788,10 @@ function boxesToPenpotDoc(boxesIn, o) {
       const shapeKind = str6(b.shape);
       const fills = fillsOf(b, w, h);
       const strokes = strokeOf3(b);
-      if (isPenpotPrimitiveRow(b)) {
+      if (isPenpotPrimitiveRow(b, shapeKind)) {
         const stroke = strokes[0];
         const op = compileDesignRow(b, { x: 0, y: 0 }, { semantics: "penpot-compat", penpotCompat: {
+          capture: { geometry: { x, y, w, h }, ...effectCapture, shapeKind },
           fills: fills.map((fill2) => ({ kind: "color", color: fill2.color, opacity: fill2.opacity })),
           ...stroke ? { stroke: {
             color: stroke.color,
@@ -115110,7 +115223,7 @@ var init_text_syntax = __esm({
 });
 
 // engine/src/text-operations.ts
-var choice, field, number2, rows, TEXT_OPERATIONS;
+var choice, field, number3, rows, TEXT_OPERATIONS;
 var init_text_operations = __esm({
   "engine/src/text-operations.ts"() {
     "use strict";
@@ -115122,7 +115235,7 @@ var init_text_operations = __esm({
       default: value
     });
     field = (id2, label4, value = "") => ({ id: id2, label: label4, type: "text", default: value });
-    number2 = (id2, label4, value) => ({ id: id2, label: label4, type: "number", default: value });
+    number3 = (id2, label4, value) => ({ id: id2, label: label4, type: "number", default: value });
     rows = [
       ["upper", "UPPERCASE", "Edit", ["case"]],
       ["lower", "lowercase", "Edit", ["case"]],
@@ -115329,8 +115442,8 @@ var init_text_operations = __esm({
         [
           choice("style", "Lettering", ["compact", "block", "slant"]),
           field("ink", "Ink character", "#"),
-          number2("spacing", "Letter spacing", 1),
-          number2("width", "Width (0 for automatic)", 0),
+          number3("spacing", "Letter spacing", 1),
+          number3("width", "Width (0 for automatic)", 0),
           choice("align", "Align", ["left", "center", "right"])
         ]
       ],
@@ -115339,16 +115452,16 @@ var init_text_operations = __esm({
         "Placeholder text",
         "Generate",
         ["lorem", "ipsum"],
-        [number2("paragraphs", "Paragraphs", 3)]
+        [number3("paragraphs", "Paragraphs", 3)]
       ],
-      ["uuid", "UUID", "Generate", ["random", "identifier"], [number2("count", "Count", 1)]],
+      ["uuid", "UUID", "Generate", ["random", "identifier"], [number3("count", "Count", 1)]],
       [
         "random",
         "Random text",
         "Generate",
         ["password", "string"],
         [
-          number2("length", "Length", 32),
+          number3("length", "Length", 32),
           field(
             "alphabet",
             "Alphabet",
@@ -117310,7 +117423,7 @@ var init_studio3d_arrangement = __esm({
 function record14(value) {
   return value && typeof value === "object" && !Array.isArray(value) ? value : {};
 }
-function number3(value, fallback, min, max) {
+function number4(value, fallback, min, max) {
   const n7 = typeof value === "number" ? value : typeof value === "string" && value.trim() ? Number(value) : NaN;
   return Number.isFinite(n7) ? Math.max(min, Math.min(max, n7)) : fallback;
 }
@@ -117341,17 +117454,17 @@ function studioActiveIndex(values) {
 }
 function itemValues2(values, item2) {
   const kind = item2.kind === "model" ? "model" : item2.kind === "primitive" ? "primitive" : item2.kind === "text" ? "text" : "artwork";
-  const scale = number3(item2.scale, 1, 0.5, 2);
-  const offsetX = number3(item2.offsetX, 0, -5, 5), offsetY = number3(item2.offsetY, 0, -5, 5);
+  const scale = number4(item2.scale, 1, 0.5, 2);
+  const offsetX = number4(item2.offsetX, 0, -5, 5), offsetY = number4(item2.offsetY, 0, -5, 5);
   const transform2 = record14(values.transform), position = record14(values.position);
   const corrections = {};
   if (scale !== 1)
-    corrections.transform = { ...transform2, scale: number3(transform2.scale, 1, 0.1, 5) * scale };
+    corrections.transform = { ...transform2, scale: number4(transform2.scale, 1, 0.1, 5) * scale };
   if (offsetX || offsetY)
     corrections.position = {
-      x: number3(position.x, 0, -5, 5) + offsetX,
-      y: number3(position.y, 0.1, -5, 5) + offsetY,
-      z: number3(position.z, 0, -5, 5)
+      x: number4(position.x, 0, -5, 5) + offsetX,
+      y: number4(position.y, 0.1, -5, 5) + offsetY,
+      z: number4(position.z, 0, -5, 5)
     };
   const camera = record14(values.camera);
   const framing = { ...camera };
@@ -117680,7 +117793,7 @@ var init_studio3d_motion = __esm({
 function record15(value) {
   return value && typeof value === "object" && !Array.isArray(value) ? value : {};
 }
-function number4(value, fallback, min, max) {
+function number5(value, fallback, min, max) {
   const n7 = typeof value === "number" ? value : typeof value === "string" && value.trim() ? Number(value) : NaN;
   return Number.isFinite(n7) ? Math.max(min, Math.min(max, n7)) : fallback;
 }
@@ -117697,7 +117810,7 @@ function enabled2(value, fallback = false) {
 }
 function vector(value, keys2, defaults2, limit) {
   const v = record15(value);
-  return keys2.map((key, i) => number4(v[key], defaults2[i], -limit, limit));
+  return keys2.map((key, i) => number5(v[key], defaults2[i], -limit, limit));
 }
 function asset(value) {
   const v = record15(value);
@@ -117750,9 +117863,9 @@ function textSettings(v) {
   return {
     text: "",
     font: family2 || "sans",
-    weight: Math.round(number4(v.wordWeight, 700, 100, 900) / 100) * 100,
-    tracking: number4(v.wordTracking, 0, -0.2, 1),
-    lineHeight: number4(v.wordLineHeight, 1.1, 0.7, 2),
+    weight: Math.round(number5(v.wordWeight, 700, 100, 900) / 100) * 100,
+    tracking: number5(v.wordTracking, 0, -0.2, 1),
+    lineHeight: number5(v.wordLineHeight, 1.1, 0.7, 2),
     align: choice2(v.wordAlign, ["left", "center", "right"], "center")
   };
 }
@@ -117804,17 +117917,17 @@ function arrangementObjects(v) {
       ...pending3 ? { pending: true } : {},
       transform: {
         rotation: [
-          number4(row.rotX, 0, -360, 360),
-          number4(row.rotY, 0, -360, 360),
-          number4(row.rotZ, 0, -360, 360)
+          number5(row.rotX, 0, -360, 360),
+          number5(row.rotY, 0, -360, 360),
+          number5(row.rotZ, 0, -360, 360)
         ],
         position: [
-          number4(row.x, 0, -STUDIO_ARRANGEMENT_EXTENT, STUDIO_ARRANGEMENT_EXTENT),
-          number4(row.y, 0, -STUDIO_ARRANGEMENT_EXTENT, STUDIO_ARRANGEMENT_EXTENT),
-          number4(row.z, 0, -STUDIO_ARRANGEMENT_EXTENT, STUDIO_ARRANGEMENT_EXTENT)
+          number5(row.x, 0, -STUDIO_ARRANGEMENT_EXTENT, STUDIO_ARRANGEMENT_EXTENT),
+          number5(row.y, 0, -STUDIO_ARRANGEMENT_EXTENT, STUDIO_ARRANGEMENT_EXTENT),
+          number5(row.z, 0, -STUDIO_ARRANGEMENT_EXTENT, STUDIO_ARRANGEMENT_EXTENT)
         ],
         // A row without a scale is a newcomer to a group; 0.6 is the manifest default.
-        scale: number4(row.scale, 0.6, 0.1, 5)
+        scale: number5(row.scale, 0.6, 0.1, 5)
       },
       grounded: enabled2(row.grounded, true),
       visible: enabled2(row.visible, true),
@@ -117847,9 +117960,9 @@ function buildStudioScene(input) {
     ["soft", "dramatic", "electric", "warm", "custom"],
     "dramatic"
   );
-  const drama = number4(v.drama, 0.7, 0, 1), light = record15(v.lightLevels);
-  const intensity = number4(light.key, 2.5, 0, 20), fill2 = number4(light.fill, 0.7, 0, 20), rim = number4(light.rim, 3, 0, 20);
-  const softness = number4(v.softness, 1.5, 0, 5);
+  const drama = number5(v.drama, 0.7, 0, 1), light = record15(v.lightLevels);
+  const intensity = number5(light.key, 2.5, 0, 20), fill2 = number5(light.fill, 0.7, 0, 20), rim = number5(light.rim, 3, 0, 20);
+  const softness = number5(v.softness, 1.5, 0, 5);
   const placed2 = (role) => vector(v[`${role}Position`], ["x", "y", "z"], STUDIO_PRESET_LIGHT_POSITIONS[role], 30);
   const keyPosition = placed2("key");
   let lights = [
@@ -117901,9 +118014,9 @@ function buildStudioScene(input) {
         id: `light-${i + 1}`,
         kind: kind2,
         color: color2(l.color, keyColor),
-        intensity: number4(l.intensity, 2, 0, 50),
-        position: [number4(l.x, -3, -30, 30), number4(l.y, 6, -30, 30), number4(l.z, 4, -30, 30)],
-        size: number4(l.size, 1.5, 0.01, 10),
+        intensity: number5(l.intensity, 2, 0, 50),
+        position: [number5(l.x, -3, -30, 30), number5(l.y, 6, -30, 30), number5(l.z, 4, -30, 30)],
+        size: number5(l.size, 1.5, 0.01, 10),
         shadows: kind2 !== "area" && enabled2(l.shadows, true)
       };
     });
@@ -117933,36 +118046,36 @@ function buildStudioScene(input) {
     return {
       slot,
       color: color2(m2.color, primary),
-      roughness: number4(m2.roughness, 0.4, 0.04, 1),
-      metalness: number4(m2.metalness, 0, 0, 1),
-      clearcoat: number4(m2.clearcoat, 0.2, 0, 1),
+      roughness: number5(m2.roughness, 0.4, 0.04, 1),
+      metalness: number5(m2.metalness, 0, 0, 1),
+      clearcoat: number5(m2.clearcoat, 0.2, 0, 1),
       ...finish2 && finish2 !== "satin" ? { finish: finish2 } : {}
     };
   });
   const view = {
     projection,
-    azimuth: number4(camera.azimuth, 25, -180, 180),
-    elevation: number4(camera.elevation, 14, -60, 80),
-    fov: number4(camera.fov, 29, 15, 80),
-    zoom: number4(camera.zoom, 1, 0.05, 3),
+    azimuth: number5(camera.azimuth, 25, -180, 180),
+    elevation: number5(camera.elevation, 14, -60, 80),
+    fov: number5(camera.fov, 29, 15, 80),
+    zoom: number5(camera.zoom, 1, 0.05, 3),
     target: [
-      number4(target.x, 0, -5, 5) + number4(camera.panX, 0, -20, 20),
-      number4(target.y, 1.6, -5, 10) + number4(camera.panY, 0, -20, 20),
-      number4(target.z, 0, -5, 5) + number4(camera.panZ, 0, -20, 20)
+      number5(target.x, 0, -5, 5) + number5(camera.panX, 0, -20, 20),
+      number5(target.y, 1.6, -5, 10) + number5(camera.panY, 0, -20, 20),
+      number5(target.z, 0, -5, 5) + number5(camera.panZ, 0, -20, 20)
     ],
-    focus: number4(v.focusDistance, 0, 0, 500),
-    aperture: projection === "perspective" && v.depthOfField === true ? number4(v.aperture, 0.12, 0.01, 0.5) : 0
+    focus: number5(v.focusDistance, 0, 0, 500),
+    aperture: projection === "perspective" && v.depthOfField === true ? number5(v.aperture, 0.12, 0.01, 0.5) : 0
   };
   const cameraKind = choice2(v.cameraMotion, STUDIO_CAMERA_MOTIONS, "still");
-  const cameraAmount = number4(v.cameraAmount, 1, 0.25, 2);
+  const cameraAmount = number5(v.cameraAmount, 1, 0.25, 2);
   const authoredKeys = cameraKeys(v);
   return {
     version: 1,
     source,
     shape: {
-      depth: number4(shape.depth, 0.25, 0.01, 2),
-      bevel: number4(shape.bevel, 0.025, 0, 0.15),
-      smoothness: Math.round(number4(shape.smoothness, 24, 8, 64)),
+      depth: number5(shape.depth, 0.25, 0.01, 2),
+      bevel: number5(shape.bevel, 0.025, 0, 0.15),
+      smoothness: Math.round(number5(shape.smoothness, 24, 8, 64)),
       // count keeps Smoothness as the number of chords per curve, as every earlier
       // release did; auto asks the shell to read the count off the output size.
       detail: choice2(v.curveDetail, ["count", "auto"], "count")
@@ -117972,7 +118085,7 @@ function buildStudioScene(input) {
       // for objects. A wordmark can still take the scene pose on request.
       rotation: source.kind === "text" && choice2(v.wordPose, ["front", "scene"], "front") === "front" ? [0, 0, 0] : vector(v.rotation, ["x", "y", "z"], [-6, -16, -7], 360),
       position: vector(v.position, ["x", "y", "z"], [0, 0.1, 0], 10),
-      scale: number4(transform2.scale, 1, 0.1, 5)
+      scale: number5(transform2.scale, 1, 0.1, 5)
     },
     camera: view,
     materials: {
@@ -117986,7 +118099,7 @@ function buildStudioScene(input) {
         a: String(v.materialSlotA || "").trim(),
         b: String(v.materialSlotB || "").trim()
       },
-      glow: number4(v.glow, 0.45, 0, 1),
+      glow: number5(v.glow, 0.45, 0, 1),
       ...enabled2(v.surfaceFinishes) ? {
         surfaces: Object.fromEntries(
           ["a", "b"].map((role) => [
@@ -118007,54 +118120,54 @@ function buildStudioScene(input) {
     },
     lights,
     environment: {
-      intensity: number4(v.environmentIntensity, 0.4, 0, 3),
-      rotation: number4(v.environmentRotation, 0, -180, 180),
+      intensity: number5(v.environmentIntensity, 0.4, 0, 3),
+      rotation: number5(v.environmentRotation, 0, -180, 180),
       kind: environmentKind,
       url: environmentKind === "image" ? environment.url : "",
       id: environmentKind === "image" ? environment.id : "",
       background: enabled2(v.environmentBackground),
-      blur: number4(v.environmentBlur, 0.3, 0, 1)
+      blur: number5(v.environmentBlur, 0.3, 0, 1)
     },
     stage: {
       output: choice2(v.outputMode, ["scene", "object-shadow", "object"], "scene"),
       floor: choice2(v.floor, ["shadow", "matte", "cove"], "shadow"),
       floorColor: color2(v.floorColor, secondary),
-      shadowOpacity: number4(v.shadowOpacity, 0.4, 0, 1),
+      shadowOpacity: number5(v.shadowOpacity, 0.4, 0, 1),
       background,
       background2: color2(v.background2, primary),
       backdrop: choice2(v.backdrop, ["solid", "gradient", "image"], "gradient"),
       backdropUrl: backdrop.url,
       backdropId: backdrop.id,
-      backdropStrength: number4(v.backdropStrength, 0.5, 0, 1),
+      backdropStrength: number5(v.backdropStrength, 0.5, 0, 1),
       pedestal: v.pedestal === true,
       atmosphere: v.atmosphere === true,
       atmosphereForms: choice2(v.atmosphereForms, ["spheres", "copies"], "copies"),
-      atmosphereSpread: number4(v.atmosphereSpread, 0.5, 0, 1),
-      atmosphereCount: Math.round(number4(v.atmosphereCount, 7, 1, 12)),
-      seed: Math.round(number4(v.seed, 1, 1, 99999)),
+      atmosphereSpread: number5(v.atmosphereSpread, 0.5, 0, 1),
+      atmosphereCount: Math.round(number5(v.atmosphereCount, 7, 1, 12)),
+      seed: Math.round(number5(v.seed, 1, 1, 99999)),
       // The hemisphere fill the stage has always used, declared so the tie to the
       // background is visible in the recipe.
       fill: { sky: primary, ground: background, intensity: 0.12 }
     },
-    exposure: number4(v.exposure, 1.1, 0.1, 4),
+    exposure: number5(v.exposure, 1.1, 0.1, 4),
     quality: {
       previewSamples: 8,
-      exportSamples: Math.round(number4(v.samples, 64, 8, 256)),
+      exportSamples: Math.round(number5(v.samples, 64, 8, 256)),
       // Motion hides sampling noise a still would show, and a clip is hundreds of frames.
-      clipSamples: Math.round(number4(v.videoSamples, 16, 1, 64))
+      clipSamples: Math.round(number5(v.videoSamples, 16, 1, 64))
     },
     motion: {
       kind: choice2(v.motion, STUDIO_MOTION_KINDS, "still"),
-      seconds: number4(v.duration, 5, 1, 30),
-      degrees: number4(v.turnDegrees, 360, -720, 720),
+      seconds: number5(v.duration, 5, 1, 30),
+      degrees: number5(v.turnDegrees, 360, -720, 720),
       // How far a loop travels, and how much of it a one-shot loop holds the rest
       // pose at the end. The defaults are the shapes the library was drawn at.
-      amount: number4(v.motionAmount, 1, 0.25, 2),
-      rest: number4(v.motionRest, 0.25, 0, 0.6)
+      amount: number5(v.motionAmount, 1, 0.25, 2),
+      rest: number5(v.motionRest, 0.25, 0, 0.6)
     },
     lightAnimation: {
       kind: choice2(v.lightMotion, ["still", "orbit", "breathe"], "still"),
-      amount: number4(v.lightMotionAmount, 0.35, 0, 1)
+      amount: number5(v.lightMotionAmount, 0.35, 0, 1)
     },
     ...arrangement ? { objects, activeObject: studioActiveObject(v) } : {},
     cameraMotion: {
@@ -118075,17 +118188,17 @@ function cameraKeys(v) {
     const name = String(k.name || "").trim().slice(0, STUDIO_CAMERA_KEY_NAME_LIMIT);
     return {
       ...name ? { name } : {},
-      at: number4(k.at, rows2.length > 1 ? i / (rows2.length - 1) * 100 : 0, 0, 100) / 100,
-      azimuth: number4(k.azimuth, 25, -720, 720),
-      elevation: number4(k.elevation, 14, -60, 80),
-      fov: number4(k.fov, 29, 15, 80),
-      zoom: number4(k.zoom, 1, 0.05, 3),
+      at: number5(k.at, rows2.length > 1 ? i / (rows2.length - 1) * 100 : 0, 0, 100) / 100,
+      azimuth: number5(k.azimuth, 25, -720, 720),
+      elevation: number5(k.elevation, 14, -60, 80),
+      fov: number5(k.fov, 29, 15, 80),
+      zoom: number5(k.zoom, 1, 0.05, 3),
       target: [
-        number4(k.panX, 0, -25, 25),
-        number4(k.panY, 1.6, -25, 25),
-        number4(k.panZ, 0, -25, 25)
+        number5(k.panX, 0, -25, 25),
+        number5(k.panY, 1.6, -25, 25),
+        number5(k.panZ, 0, -25, 25)
       ],
-      focus: number4(k.focusDistance, 0, 0, 500)
+      focus: number5(k.focusDistance, 0, 0, 500)
     };
   });
 }
@@ -119770,7 +119883,7 @@ function object3(value, keys2) {
 function text6(value) {
   if (typeof value !== "string" || !value.length || value.length > 4096) fail3("expected a bounded nonempty string");
 }
-function number5(value, min, max, integer2 = false) {
+function number6(value, min, max, integer2 = false) {
   if (typeof value !== "number" || !Number.isFinite(value) || value < min || value > max || integer2 && !Number.isInteger(value)) fail3("number outside supported range");
 }
 function productionHash(value) {
@@ -119783,9 +119896,9 @@ function parseProductionContract(value) {
   text6(c.id);
   text6(c.revision);
   if (!["svg", "png", "jpg", "pdf"].includes(String(c.format))) fail3("unsupported format");
-  number5(c.width, 1e-3, 1e5);
-  number5(c.height, 1e-3, 1e5);
-  number5(c.pages, 1, 100, true);
+  number6(c.width, 1e-3, 1e5);
+  number6(c.height, 1e-3, 1e5);
+  number6(c.pages, 1, 100, true);
   if (!["any", "opaque", "transparent"].includes(String(c.alpha))) fail3("unsupported alpha policy");
   for (const key of ["sourceSha256", "contextSha256"]) if (c[key] !== void 0) productionHash(c[key]);
   if (!Array.isArray(c.requirements) || c.requirements.length > 128) fail3("requirements must be a list of at most 128 items");
@@ -119803,8 +119916,8 @@ function parseProductionContract(value) {
   if (c.comparison !== void 0) {
     const v = object3(c.comparison, ["referenceSha256", "channelTolerance", "maxChangedFraction", "regions"]);
     productionHash(v.referenceSha256);
-    number5(v.channelTolerance, 0, 255, true);
-    number5(v.maxChangedFraction, 0, 1);
+    number6(v.channelTolerance, 0, 255, true);
+    number6(v.maxChangedFraction, 0, 1);
     if (!Array.isArray(v.regions) || v.regions.length > 64) fail3("comparison needs at most 64 regions");
     const names = /* @__PURE__ */ new Set();
     for (const raw of v.regions) {
@@ -119812,12 +119925,12 @@ function parseProductionContract(value) {
       text6(r5.id);
       if (names.has(r5.id)) fail3("duplicate region id");
       names.add(r5.id);
-      number5(r5.x, 0, 1e5, true);
-      number5(r5.y, 0, 1e5, true);
-      number5(r5.width, 1, 1e5, true);
-      number5(r5.height, 1, 1e5, true);
-      number5(r5.minSsim, -1, 1);
-      number5(r5.maxInkDelta, 0, 1);
+      number6(r5.x, 0, 1e5, true);
+      number6(r5.y, 0, 1e5, true);
+      number6(r5.width, 1, 1e5, true);
+      number6(r5.height, 1, 1e5, true);
+      number6(r5.minSsim, -1, 1);
+      number6(r5.maxInkDelta, 0, 1);
       if (r5.x + r5.width > c.width || r5.y + r5.height > c.height) fail3("region outside output");
     }
     if (c.pages !== 1) fail3("pixel comparison supports one page");
@@ -119831,27 +119944,27 @@ function parseProductionSpec(value) {
   if (c.format !== "mp4" && c.format !== "webm") fail3("motion supports MP4 and WebM");
   const { motion, ...common } = c;
   parseProductionContract({ ...common, profile: "lolly/production-still-v1", format: "png", pages: 1, alpha: "any" });
-  number5(c.width, 1, 4096, true);
-  number5(c.height, 1, 4096, true);
+  number6(c.width, 1, 4096, true);
+  number6(c.height, 1, 4096, true);
   if (c.width * c.height > 4e6) fail3("motion viewport exceeds four million pixels");
   const m2 = object3(motion, ["seconds", "secondsTolerance", "fps", "fpsTolerance", "frameCount", "timestampTolerance", "audio", "audioSecondsTolerance", "loudness", "truePeakMax", "comparison"]);
-  number5(m2.seconds, 1e-3, 120);
-  number5(m2.secondsTolerance, 0, 1);
-  number5(m2.fps, 1, 120);
-  number5(m2.fpsTolerance, 0, 1);
-  number5(m2.frameCount, 1, 14400, true);
-  number5(m2.timestampTolerance, 0, 1);
+  number6(m2.seconds, 1e-3, 120);
+  number6(m2.secondsTolerance, 0, 1);
+  number6(m2.fps, 1, 120);
+  number6(m2.fpsTolerance, 0, 1);
+  number6(m2.frameCount, 1, 14400, true);
+  number6(m2.timestampTolerance, 0, 1);
   if (typeof m2.audio !== "boolean") fail3("motion needs an explicit audio requirement");
-  if (m2.audio) number5(m2.audioSecondsTolerance, 0, 1);
+  if (m2.audio) number6(m2.audioSecondsTolerance, 0, 1);
   else if (m2.audioSecondsTolerance !== void 0) fail3("audio duration requires an audio track");
   if (m2.loudness !== void 0) {
     const l = object3(m2.loudness, ["min", "max"]);
-    number5(l.min, -100, 10);
-    number5(l.max, l.min, 10);
+    number6(l.min, -100, 10);
+    number6(l.max, l.min, 10);
     if (!m2.audio) fail3("loudness requires an audio track");
   }
   if (m2.truePeakMax !== void 0) {
-    number5(m2.truePeakMax, -100, 20);
+    number6(m2.truePeakMax, -100, 20);
     if (!m2.audio) fail3("true peak requires an audio track");
   }
   if (m2.comparison !== void 0) {
@@ -119859,7 +119972,7 @@ function parseProductionSpec(value) {
     if (!Array.isArray(p.times) || !p.times.length || p.times.length > 16) return fail3("motion comparison needs one to sixteen times");
     let previous2 = -1;
     for (const t of p.times) {
-      number5(t, 0, m2.seconds);
+      number6(t, 0, m2.seconds);
       if (t >= m2.seconds || t <= previous2 || Math.round(t * m2.fps) >= m2.frameCount) fail3("sample times must increase and address an output frame");
       previous2 = t;
     }
@@ -127800,10 +127913,10 @@ function fillText(pieces, slots, into) {
     free.splice(free.indexOf(slot), 1);
   };
   let rest2 = [...pieces];
-  const number7 = free.find((s) => s.role === "number");
-  const counted = number7 ? rest2.find((p) => sequenceOf(p) !== void 0) : void 0;
-  if (number7 && counted) {
-    take(number7, counted);
+  const number8 = free.find((s) => s.role === "number");
+  const counted = number8 ? rest2.find((p) => sequenceOf(p) !== void 0) : void 0;
+  if (number8 && counted) {
+    take(number8, counted);
     rest2 = rest2.filter((p) => p !== counted);
   }
   for (const piece of [...rest2]) {
@@ -130786,8 +130899,8 @@ function lineSizeEstimate(text8, boxHeight, opts = {}) {
 }
 function leadingGlyph(text8) {
   const t = text8.trimStart();
-  const number7 = NUMBER_MARKER.exec(t);
-  if (number7) return { glyph: `${number7[1]}${number7[2]}`, rest: t.slice(number7[0].length), ambiguous: true, kind: "number" };
+  const number8 = NUMBER_MARKER.exec(t);
+  if (number8) return { glyph: `${number8[1]}${number8[2]}`, rest: t.slice(number8[0].length), ambiguous: true, kind: "number" };
   const first = Array.from(t)[0];
   if (!first) return null;
   const after = t.slice(first.length);
@@ -132447,9 +132560,9 @@ function supportedValue(type, value) {
   if (type === "dimension" || type === "duration") {
     const units2 = type === "duration" ? ["ms", "s"] : ["px", "rem", "em", "%", "vh", "vw", "mm", "cm", "in", "pt", "pc"];
     const match = typeof value === "string" ? /^([+-]?(?:\d+(?:\.\d*)?|\.\d+))([a-z%]+)$/.exec(value.trim()) : null;
-    const number7 = match ? Number(match[1]) : record28(value) ? value.value : null;
+    const number8 = match ? Number(match[1]) : record28(value) ? value.value : null;
     const unit2 = match ? match[2] : record28(value) ? value.unit : null;
-    return finite7(number7) && typeof unit2 === "string" && units2.includes(unit2) && (type !== "duration" || number7 >= 0);
+    return finite7(number8) && typeof unit2 === "string" && units2.includes(unit2) && (type !== "duration" || number8 >= 0);
   }
   if (type === "cubicBezier") return Array.isArray(value) && value.length === 4 && value.every(finite7) && value[0] >= 0 && value[0] <= 1 && value[2] >= 0 && value[2] <= 1;
   if (type === "gradient") return Array.isArray(value) && value.length >= 2 && value.length <= 32 && value.every((v) => supportedValue("gradientStop", v));
@@ -133071,10 +133184,10 @@ function pictureKind(object4, klass, iconUnit, slide, flattened) {
   if (share >= BACKGROUND_AREA_SHARE) return flattened ? "picture" : "background";
   return "picture";
 }
-function flattenedWarning(slide, number7) {
+function flattenedWarning(slide, number8) {
   const ocr = slide.ocr?.state ?? "not-run";
   const says = OCR_SAYS[ocr] ?? `OCR state ${ocr}`;
-  const message = slide.recovery ? `Slide ${number7} was one picture of its text and was rebuilt from its regions; ${says}.` : `Slide ${number7} is one picture of its text, kept as that picture; ${says}.`;
+  const message = slide.recovery ? `Slide ${number8} was one picture of its text and was rebuilt from its regions; ${says}.` : `Slide ${number8} is one picture of its text, kept as that picture; ${says}.`;
   return { code: "slide-flattened", message };
 }
 function unavailableWhy(reason2) {
@@ -133114,11 +133227,11 @@ function inventoryFromSource(source, census, opts) {
   const first = source.slides[0];
   const deckSize = first && first.width > 0 && first.height > 0 ? { width: first.width, height: first.height } : DEFAULT_SLIDE;
   const slides = source.slides.map((slide, position) => {
-    const number7 = position + 1;
+    const number8 = position + 1;
     const size = slide.width > 0 && slide.height > 0 ? { width: slide.width, height: slide.height } : deckSize;
     const flattened = slide.origin.flattened === true;
-    if (flattened) warnings2.push(flattenedWarning(slide, number7));
-    for (const w of slide.warnings) warnings2.push({ code: w.code, message: `Slide ${number7}: ${w.message}` });
+    if (flattened) warnings2.push(flattenedWarning(slide, number8));
+    for (const w of slide.warnings) warnings2.push({ code: w.code, message: `Slide ${number8}: ${w.message}` });
     const readingPos = /* @__PURE__ */ new Map();
     for (const [i, id2] of slide.readingOrder.entries()) readingPos.set(id2, i);
     const byReading2 = [...slide.objects].sort((a, b) => {
@@ -133172,7 +133285,7 @@ function inventoryFromSource(source, census, opts) {
           class: "decoration"
         }, media2));
       } else {
-        warnings2.push({ code: "media-unknown", message: `Slide ${number7}: the background picture ${background} was not read, so it is left out.` });
+        warnings2.push({ code: "media-unknown", message: `Slide ${number8}: the background picture ${background} was not read, so it is left out.` });
       }
     }
     for (const object4 of slide.objects) {
@@ -133188,14 +133301,14 @@ function inventoryFromSource(source, census, opts) {
         if (object4.fidelity.state === "unavailable") {
           warnings2.push({
             code: "media-unavailable",
-            message: `Slide ${number7}: the picture ${object4.id} is left out: ${unavailableWhy(object4.fidelity.reason)}.`
+            message: `Slide ${number8}: the picture ${object4.id} is left out: ${unavailableWhy(object4.fidelity.reason)}.`
           });
         }
         continue;
       }
       const media2 = svg ?? opts.media.get(ref);
       if (!media2) {
-        warnings2.push({ code: "media-unknown", message: `Slide ${number7}: the picture ${object4.id} draws ${ref}, which was not read, so it is left out.` });
+        warnings2.push({ code: "media-unknown", message: `Slide ${number8}: the picture ${object4.id} draws ${ref}, which was not read, so it is left out.` });
         continue;
       }
       const klass = classOf.get(object4.id);
@@ -133236,13 +133349,13 @@ function inventoryFromSource(source, census, opts) {
     if (hiddenLeftOut > 0) {
       warnings2.push({
         code: "hidden-left-out",
-        message: `Slide ${number7}: ${hiddenLeftOut === 1 ? "one hidden object is" : `${hiddenLeftOut} hidden objects are`} left out of text and pictures, as the source does not show ${hiddenLeftOut === 1 ? "it" : "them"}; ${hiddenLeftOut === 1 ? "it is" : "they are"} still listed under objects.`
+        message: `Slide ${number8}: ${hiddenLeftOut === 1 ? "one hidden object is" : `${hiddenLeftOut} hidden objects are`} left out of text and pictures, as the source does not show ${hiddenLeftOut === 1 ? "it" : "them"}; ${hiddenLeftOut === 1 ? "it is" : "they are"} still listed under objects.`
       });
     }
     if (hiddenTextKept > 0) {
       warnings2.push({
         code: "hidden-text-kept",
-        message: `Slide ${number7}: ${hiddenTextKept === 1 ? "one line of text is" : `${hiddenTextKept} lines of text are`} invisible on the page, as a scan's OCR layer is; ${hiddenTextKept === 1 ? "that line is" : "they are"} listed as text with hidden set.`
+        message: `Slide ${number8}: ${hiddenTextKept === 1 ? "one line of text is" : `${hiddenTextKept} lines of text are`} invisible on the page, as a scan's OCR layer is; ${hiddenTextKept === 1 ? "that line is" : "they are"} listed as text with hidden set.`
       });
     }
     const objects = slide.objects.map((object4) => {
@@ -133251,7 +133364,7 @@ function inventoryFromSource(source, census, opts) {
       return entry2;
     });
     const out = {
-      number: number7,
+      number: number8,
       id: slide.id,
       text: text8,
       notes: projectNotes(slide, opts.notesParas?.[position]),
@@ -137077,10 +137190,10 @@ function parasOf(text8, run3, align, resolveColour, onRestart) {
 }
 function boxEmu(box4, w, h) {
   return {
-    x: emu(box4.x * w),
-    y: emu(box4.y * h),
-    cx: Math.max(1, emu(box4.w * w)),
-    cy: Math.max(1, emu(box4.h * h))
+    x: emu2(box4.x * w),
+    y: emu2(box4.y * h),
+    cx: Math.max(1, emu2(box4.w * w)),
+    cy: Math.max(1, emu2(box4.h * h))
   };
 }
 function typeFactor(master, size) {
@@ -137249,11 +137362,12 @@ async function lowerLayer(ctx, sink, row, origin, binding, masterStyle, master, 
     ctx.notes.add("an animation was left out of the deck, so its objects arrive in place");
   }
   const kind = str9(row, "kind");
+  const geometry3 = { x: num12(row, "x"), y: num12(row, "y"), w: num12(row, "w", 1), h: num12(row, "h", 1) };
   const box4 = {
-    x: emu(num12(row, "x") - origin.x),
-    y: emu(num12(row, "y") - origin.y),
-    cx: Math.max(1, emu(num12(row, "w", 1))),
-    cy: Math.max(1, emu(num12(row, "h", 1)))
+    x: emu2(geometry3.x - origin.x),
+    y: emu2(geometry3.y - origin.y),
+    cx: Math.max(1, emu2(geometry3.w)),
+    cy: Math.max(1, emu2(geometry3.h))
   };
   const opacity = opacityOf(row);
   if (kind === "path") {
@@ -137338,7 +137452,19 @@ async function lowerLayer(ctx, sink, row, origin, binding, masterStyle, master, 
   const strokeHit = ctx.palette.resolve(row.stroke);
   const strokeW = num12(row, "strokeW");
   noteDash(ctx, row);
-  const radius = str9(row, "shape") === "rounded" ? { radius: emu(num12(row, "radius")) } : {};
+  if (isPptxPrimitiveRow(row, origin, geometry3)) {
+    const foldedFill = fill2 ? withFillAlpha(fill2, opacity) : void 0;
+    const line = strokeHit && strokeW > 0 ? lineOf(strokeHit, strokeW, opacity) : void 0;
+    const op = compileDesignRow(row, origin, { semantics: "pptx-compat", pptxCompat: {
+      geometry: geometry3,
+      fills: foldedFill && "solid" in foldedFill ? [{ kind: "color", color: `#${foldedFill.solid}`, opacity: foldedFill.alpha }] : [],
+      ...line ? { stroke: { color: `#${line.color}`, opacity: line.alpha, width: strokeW } } : {}
+    } });
+    if (op.op !== "shape") throw new Error("PPTX primitive compilation did not produce a shape.");
+    sink.shapes.push(designDrawPptx(op));
+    return;
+  }
+  const radius = str9(row, "shape") === "rounded" ? { radius: emu2(num12(row, "radius")) } : {};
   const gradFill = linearGradBox(row) ? gradSpecFill(str9(row, "grad").trim(), { flipH: bool(row, "flipH"), flipV: bool(row, "flipV") }) : null;
   if (gradFill && fill2) {
     sink.shapes.push({ kind: "rect", ...box4, ...rotOf(row), fill: withFillAlpha(fill2, opacity), ...radius });
@@ -137376,7 +137502,7 @@ function withFillAlpha(fill2, opacity) {
 }
 function lineOf(hit, strokeW, opacity) {
   const alpha = foldAlpha(hit.alpha, opacity);
-  return { color: hit.hex, w: emu(strokeW), ...alpha !== void 0 ? { alpha } : {} };
+  return { color: hit.hex, w: emu2(strokeW), ...alpha !== void 0 ? { alpha } : {} };
 }
 function layoutFor(ctx, archetype, master, size, bindings, kept2) {
   const typeScale = typeFactor(master, size);
@@ -137565,7 +137691,7 @@ async function designFramesToPptx(opts) {
       drawnDarkLayouts.add(archetype.name || archetype.id);
     }
     const bg = fillOf2(ctx, frameRow);
-    if (bg) sink.shapes.push({ kind: "rect", x: 0, y: 0, cx: emu(size.w), cy: emu(size.h), fill: bg });
+    if (bg) sink.shapes.push({ kind: "rect", x: 0, y: 0, cx: emu2(size.w), cy: emu2(size.h), fill: bg });
     const origin = { x: num12(frameRow, "x"), y: num12(frameRow, "y") };
     const ordinalOf = /* @__PURE__ */ new Map();
     if (archetype) {
@@ -137658,7 +137784,7 @@ function framesOfDesignDoc(doc) {
   }
   return frames;
 }
-var SCHEME_SLOTS, THEME_SLOT_TOKENS2, MAX_SLIDES3, MAX_LAYERS_PER_SLIDE, MAX_PICTURE_BYTES, num12, str9, bool, emu, TOKEN_PATH_RE, ROLE_PH_TYPE, SLD_NUM_IDX, Palette, SLOT_FILL_GROUPS, ALIGN, ANCHOR, INDENTED_LINE, Notes, addMedia, EXT_OF_MIME, BLEND_MODES2, MOTION_FIELDS, SHADOW_TARGETS, DEFAULT_TEXT_WEIGHT, DEFAULT_TEXT_HEX, DEFAULT_LINE_HEIGHT, LINE_ENDS_OF_HEADS, FOLDS_OPACITY, TURNS, MIRRORS, hidden2, MAX_FALLBACK_PX, FALLBACK_SCALE;
+var SCHEME_SLOTS, THEME_SLOT_TOKENS2, MAX_SLIDES3, MAX_LAYERS_PER_SLIDE, MAX_PICTURE_BYTES, num12, str9, bool, emu2, TOKEN_PATH_RE, ROLE_PH_TYPE, SLD_NUM_IDX, Palette, SLOT_FILL_GROUPS, ALIGN, ANCHOR, INDENTED_LINE, Notes, addMedia, EXT_OF_MIME, BLEND_MODES2, MOTION_FIELDS, SHADOW_TARGETS, DEFAULT_TEXT_WEIGHT, DEFAULT_TEXT_HEX, DEFAULT_LINE_HEIGHT, LINE_ENDS_OF_HEADS, FOLDS_OPACITY, TURNS, MIRRORS, hidden2, MAX_FALLBACK_PX, FALLBACK_SCALE;
 var init_design_pptx = __esm({
   "packages/node-shell/src/design-pptx.ts"() {
     "use strict";
@@ -137671,6 +137797,8 @@ var init_design_pptx = __esm({
     init_path();
     init_spline();
     init_brand_derive();
+    init_design_draw();
+    init_design_draw_pptx();
     init_pptx_deck();
     init_pptx_deck();
     SCHEME_SLOTS = [
@@ -137713,7 +137841,7 @@ var init_design_pptx = __esm({
       if (t === "false" || t === "0" || t === "no" || t === "off") return false;
       return fallback;
     };
-    emu = (px3) => Math.round(px3 * EMU_PER_PX);
+    emu2 = (px3) => Math.round(px3 * EMU_PER_PX);
     TOKEN_PATH_RE = /^[a-z][a-z0-9-]*(?:\.[a-z0-9-]+)+$/i;
     ROLE_PH_TYPE = {
       title: "title",
@@ -143480,8 +143608,8 @@ function lineageParts(parts, slidePart, parseXml) {
   const master = masterRel && !masterRel.external ? resolveTarget4(layout2, masterRel.target) : void 0;
   return master ? { layout: layout2, master } : { layout: layout2 };
 }
-function px2(emu2) {
-  const n7 = typeof emu2 === "number" && Number.isFinite(emu2) ? emu2 : 0;
+function px2(emu3) {
+  const n7 = typeof emu3 === "number" && Number.isFinite(emu3) ? emu3 : 0;
   return Math.round(n7 / EMU_PER_PX3 * 100) / 100;
 }
 function boxOf3(node) {
@@ -145836,10 +145964,10 @@ function withMeta(schema, item2, extraDesc) {
 }
 function numberField(f) {
   const declaredDefault = f.default;
-  const number7 = { type: "number" };
-  if (f.min !== void 0) number7["minimum"] = f.min;
-  if (f.max !== void 0) number7["maximum"] = f.max;
-  const s = declaredDefault === "" ? { anyOf: [number7, { const: "" }] } : number7;
+  const number8 = { type: "number" };
+  if (f.min !== void 0) number8["minimum"] = f.min;
+  if (f.max !== void 0) number8["maximum"] = f.max;
+  const s = declaredDefault === "" ? { anyOf: [number8, { const: "" }] } : number8;
   if (declaredDefault !== void 0) s["default"] = declaredDefault;
   const desc = describe(f);
   if (desc) s["description"] = desc;
@@ -153109,7 +153237,7 @@ function pathPoints(w, h, oval) {
     [[cx2, h], [cx2 + kx, h], [cx2 - kx, h]],
     [[0, cy3], [0, cy3 + ky], [0, cy3 - ky]]
   ] : [[0, 0], [w, 0], [w, h], [0, h]].map((point3) => [point3, point3, point3]);
-  return points.map(([anchor, left, right]) => `<PathPointType Anchor="${anchor.map(number6).join(" ")}" LeftDirection="${left.map(number6).join(" ")}" RightDirection="${right.map(number6).join(" ")}"/>`).join("");
+  return points.map(([anchor, left, right]) => `<PathPointType Anchor="${anchor.map(number7).join(" ")}" LeftDirection="${left.map(number7).join(" ")}" RightDirection="${right.map(number7).join(" ")}"/>`).join("");
 }
 async function exportDesignIdml(opts, host) {
   if (opts.sourceDocument?.toolId !== "design") throw new Error("IDML export needs an authored Design document.");
@@ -153181,7 +153309,7 @@ async function exportDesignIdml(opts, host) {
       if (w <= 0 || h <= 0 || w > 3e5 || h > 3e5) throw new Error("IDML item dimensions are invalid.");
       const angle = num13(box4.rot) * Math.PI / 180, a = Math.cos(angle), b = Math.sin(angle);
       const e = x + w / 2 - a * w / 2 + b * h / 2, f = y + h / 2 - b * w / 2 - a * h / 2;
-      const transform2 = [a, b, -b, a, e, f].map(number6).join(" ");
+      const transform2 = [a, b, -b, a, e, f].map(number7).join(" ");
       const shape = String(box4.shape || "rect");
       if (!["rect", "ellipse", "circle", ""].includes(shape)) throw new Error(`${String(box4.id)}: shape ${shape} is unsupported in IDML export.`);
       let tag2 = shape === "ellipse" || shape === "circle" ? "Oval" : "Rectangle", extra = "", inside2 = "";
@@ -153200,7 +153328,7 @@ async function exportDesignIdml(opts, host) {
           for (const [index2, run3] of line.runs.entries()) {
             const fontStyle = `${run3.bold || (run3.weight ?? weight) >= 600 ? "Bold" : "Regular"}${run3.italic ? " Italic" : ""}`;
             const runColor = run3.color ? await paint2(run3.color) : color6;
-            runs2 += `<CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]" PointSize="${number6(size)}" FontStyle="${fontStyle}" FillColor="${runColor}" Underline="${!!run3.underline}" StrikeThru="${!!run3.strike}"><Properties><AppliedFont type="string">${escapeAdobeXml(run3.font === "mono" ? "Courier New" : family2)}</AppliedFont></Properties><Content>${escapeAdobeXml((index2 === 0 ? prefix : "") + run3.text)}</Content></CharacterStyleRange>`;
+            runs2 += `<CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]" PointSize="${number7(size)}" FontStyle="${fontStyle}" FillColor="${runColor}" Underline="${!!run3.underline}" StrikeThru="${!!run3.strike}"><Properties><AppliedFont type="string">${escapeAdobeXml(run3.font === "mono" ? "Courier New" : family2)}</AppliedFont></Properties><Content>${escapeAdobeXml((index2 === 0 ? prefix : "") + run3.text)}</Content></CharacterStyleRange>`;
           }
           paras.push(`<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/$ID/[No paragraph style]" Justification="${align}">${runs2 || "<CharacterStyleRange><Content/></CharacterStyleRange>"}<CharacterStyleRange><Br/></CharacterStyleRange></ParagraphStyleRange>`);
         }
@@ -153218,20 +153346,20 @@ async function exportDesignIdml(opts, host) {
         const path2 = `Links/image-${++image}.${ext}`;
         add(path2, bytes2);
         const scale = box4.fit === "cover" ? Math.max(w / size.w, h / size.h) : Math.min(w / size.w, h / size.h);
-        inside2 += `<Image Self="image-${image}" ItemTransform="${[scale, 0, 0, scale, (w - size.w * scale) / 2, (h - size.h * scale) / 2].map(number6).join(" ")}"><Properties><GraphicBounds Left="0" Top="0" Right="${size.w}" Bottom="${size.h}"/></Properties><Link Self="link-${image}" LinkResourceURI="${path2}" LinkResourceFormat="$ID/${ext === "jpg" ? "JPEG" : "PNG"}" StoredState="Normal" LinkClassID="35906" LinkClientID="257" ShowInUI="true" CanEmbed="true" CanPackage="true" ImportPolicy="NoAutoImport" ExportPolicy="NoAutoExport"/></Image>`;
+        inside2 += `<Image Self="image-${image}" ItemTransform="${[scale, 0, 0, scale, (w - size.w * scale) / 2, (h - size.h * scale) / 2].map(number7).join(" ")}"><Properties><GraphicBounds Left="0" Top="0" Right="${size.w}" Bottom="${size.h}"/></Properties><Link Self="link-${image}" LinkResourceURI="${path2}" LinkResourceFormat="$ID/${ext === "jpg" ? "JPEG" : "PNG"}" StoredState="Normal" LinkClassID="35906" LinkClientID="257" ShowInUI="true" CanEmbed="true" CanPackage="true" ImportPolicy="NoAutoImport" ExportPolicy="NoAutoExport"/></Image>`;
         notes.push(`${String(box4.id)}: image bytes are bundled in Links; InDesign may ask to relink that folder.`);
       }
       const fill2 = await paint2(box4.bg), stroke = num13(box4.strokeW) ? await paint2(box4.stroke) : "Swatch/None";
       const points = pathPoints(w, h, tag2 === "Oval");
-      body += `<${tag2} Self="item-${++item2}" Name="${escapeAdobeXml(String(box4.name || box4.id || "Layer"))}" ItemLayer="layer-1" Visible="true" ContentType="${kind === "text" ? "TextType" : kind === "image" ? "GraphicType" : "Unassigned"}" AppliedObjectStyle="ObjectStyle/$ID/[None]" ItemTransform="${transform2}" FillColor="${fill2}" StrokeColor="${stroke}" StrokeWeight="${number6(num13(box4.strokeW))}"${extra}><Properties><PathGeometry><GeometryPathType PathOpen="false"><PathPointArray>${points}</PathPointArray></GeometryPathType></PathGeometry></Properties>${inside2}</${tag2}>`;
+      body += `<${tag2} Self="item-${++item2}" Name="${escapeAdobeXml(String(box4.name || box4.id || "Layer"))}" ItemLayer="layer-1" Visible="true" ContentType="${kind === "text" ? "TextType" : kind === "image" ? "GraphicType" : "Unassigned"}" AppliedObjectStyle="ObjectStyle/$ID/[None]" ItemTransform="${transform2}" FillColor="${fill2}" StrokeColor="${stroke}" StrokeWeight="${number7(num13(box4.strokeW))}"${extra}><Properties><PathGeometry><GeometryPathType PathOpen="false"><PathPointArray>${points}</PathPointArray></GeometryPathType></PathGeometry></Properties>${inside2}</${tag2}>`;
     }
     const path = `Spreads/Spread_${pageIndex + 1}.xml`;
     spreadRefs.push(path);
-    add(path, wrap2("Spread", `<Spread Self="spread-${pageIndex + 1}" PageCount="1" BindingLocation="0" ItemTransform="1 0 0 1 0 0"><Page Self="page-${pageIndex + 1}" Name="${pageIndex + 1}" AppliedMaster="n" GeometricBounds="0 0 ${number6(height)} ${number6(width)}" ItemTransform="1 0 0 1 0 0"/>${body}</Spread>`));
+    add(path, wrap2("Spread", `<Spread Self="spread-${pageIndex + 1}" PageCount="1" BindingLocation="0" ItemTransform="1 0 0 1 0 0"><Page Self="page-${pageIndex + 1}" Name="${pageIndex + 1}" AppliedMaster="n" GeometricBounds="0 0 ${number7(height)} ${number7(width)}" ItemTransform="1 0 0 1 0 0"/>${body}</Spread>`));
   }
   add("Resources/Graphic.xml", wrap2("Graphic", `<Swatch Self="Swatch/None" Name="$ID/None"/>${[...colors].map(([rgb3, id2]) => `<Color Self="${id2}" Name="${id2}" Model="Process" Space="RGB" ColorValue="${rgb3}"/>`).join("")}`));
   add("Resources/Styles.xml", wrap2("Styles", '<RootParagraphStyleGroup><ParagraphStyle Self="ParagraphStyle/$ID/[No paragraph style]" Name="$ID/[No paragraph style]"/></RootParagraphStyleGroup><RootCharacterStyleGroup><CharacterStyle Self="CharacterStyle/$ID/[No character style]" Name="$ID/[No character style]"/></RootCharacterStyleGroup><RootObjectStyleGroup><ObjectStyle Self="ObjectStyle/$ID/[None]" Name="$ID/[None]"/></RootObjectStyleGroup>'));
-  add("Resources/Preferences.xml", wrap2("Preferences", `<DocumentPreference PageWidth="${number6(num13(pages[0]?.w, 1920))}" PageHeight="${number6(num13(pages[0]?.h, 1080))}" FacingPages="false"/>`));
+  add("Resources/Preferences.xml", wrap2("Preferences", `<DocumentPreference PageWidth="${number7(num13(pages[0]?.w, 1920))}" PageHeight="${number7(num13(pages[0]?.h, 1080))}" FacingPages="false"/>`));
   add("designmap.xml", xml(`<?aid style="50" type="document" readerVersion="6.0" featureSet="257" product="16.0(0)"?><Document xmlns:idPkg="${ns}" DOMVersion="16.0" Self="lolly-document" Name="Lolly.indd" ActiveLayer="layer-1" ZeroPoint="0 0" StoryList="${Array.from({ length: story }, (_, i) => `story-${i + 1}`).join(" ")}"><idPkg:Graphic src="Resources/Graphic.xml"/><idPkg:Styles src="Resources/Styles.xml"/><idPkg:Preferences src="Resources/Preferences.xml"/><Layer Self="layer-1" Name="Lolly" Visible="true" Locked="false" Printable="true"/>${spreadRefs.map((p) => `<idPkg:Spread src="${p}"/>`).join("")}${storyRefs.map((p) => `<idPkg:Story src="${p}"/>`).join("")}</Document>`));
   const report4 = [...new Set(notes)];
   host.log("warn", report4.join(" "));
@@ -153242,7 +153370,7 @@ async function exportDesignIdml(opts, host) {
   if (opts.rights?.onReceipt) opts.rights.onReceipt(await checkCompanionReadback(bytes, opts.rights.plan, opts.rights.fingerprint));
   return new Blob([bytes], { type: "application/vnd.adobe.indesign-idml-package" });
 }
-var num13, yes2, ns, xml, wrap2, number6;
+var num13, yes2, ns, xml, wrap2, number7;
 var init_design_idml = __esm({
   "engine/src/design-idml.ts"() {
     "use strict";
@@ -153259,7 +153387,7 @@ var init_design_idml = __esm({
     ns = "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging";
     xml = (body) => `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>${body}`;
     wrap2 = (kind, body) => xml(`<idPkg:${kind} xmlns:idPkg="${ns}" DOMVersion="16.0">${body}</idPkg:${kind}>`);
-    number6 = (n7) => String(Math.round(n7 * 1e6) / 1e6);
+    number7 = (n7) => String(Math.round(n7 * 1e6) / 1e6);
   }
 });
 
@@ -157057,13 +157185,13 @@ function passiveForensicSvg(source, parse = (source2) => new DOMParser().parseFr
     if (text8 && b && size > 0) lines.push({ text: text8, box: b, size: b.height / 1.2, confidence: 0.7 });
   }
   const rects = [...root2.querySelectorAll("rect")].flatMap((el) => {
-    const number7 = (key) => Number.parseFloat(el.getAttribute(key) ?? "0");
+    const number8 = (key) => Number.parseFloat(el.getAttribute(key) ?? "0");
     if (hidden4(el) || !parseColorToSrgb8(inherited2(el, "fill", "#000"))) return [];
-    const b = box4(el, number7("x"), number7("y"), number7("width"), number7("height"));
+    const b = box4(el, number8("x"), number8("y"), number8("width"), number8("height"));
     return b && b.width > 0 && b.height > 0 ? [
       {
         box: b,
-        radius: Math.max(number7("rx"), number7("ry")),
+        radius: Math.max(number8("rx"), number8("ry")),
         fill: inherited2(el, "fill", "#000")
       }
     ] : [];

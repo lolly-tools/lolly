@@ -659,3 +659,58 @@ test('seeded primitive and coercion corpus preserves all legacy producer bytes a
   assert.deepEqual(entries(actual), entries(expected));
   assert.deepEqual(corpus, before);
 });
+
+for (const phase of ['resolve', 'bind'] as const) test(`colour and binding callbacks keep the original retained-row capture timing (${phase})`, () => {
+  const configured = (phase: 'resolve' | 'bind', trace: string[]) => {
+    const box: Record<string, unknown> = { id: 'retained', kind: 'box', name: 'Retained', x: 10.25, y: -0.75, w: 20.5, h: 10.75,
+      shape: 'rounded', radius: 50, opacity: 42.5, rot: 12.345, bg: 'var(--live)', stroke: '#abcdef', strokeW: 2 };
+    let changed = false;
+    const mutate = () => {
+      if (changed) return;
+      changed = true; trace.push('mutate:retained-row');
+      box.x = 900; box.y = 800; box.w = 90; box.h = 80; box.opacity = 99; box.rot = 90; box.radius = 3; box.shape = 'circle';
+    };
+    const opts: BoxesToPenpotOptions = { ...options(),
+      resolveColor(value) { trace.push(`resolve:${value}`); if (phase === 'resolve') mutate(); return '#123456'; },
+      bindToken(value, kind) { trace.push(`bind:${kind}:${value}`); if (phase === 'bind') mutate(); return null; },
+    };
+    return { box, rows: [box], opts };
+  };
+  const oldTrace: string[] = [], newTrace: string[] = [];
+  const oldInput = configured(phase, oldTrace), newInput = configured(phase, newTrace);
+  const expected = legacy(oldInput.rows, oldInput.opts), actual = boxesToPenpotDoc(newInput.rows, newInput.opts);
+  assert.deepEqual(newTrace, oldTrace, phase);
+  assert.equal(oldInput.box.x, 900, 'the original producer retains the input row rather than cloning it');
+  assert.equal(newInput.box.x, 900);
+  const shape = flatShapes(expected).find(item => item.name === 'Retained')!;
+  assert.equal(shape.type, 'rect', 'shape kind is read before paint callbacks');
+  assert.deepEqual([shape.x, shape.y, shape.w, shape.h, shape.opacity, shape.rotation], [10.25, -0.75, 20.5, 10.75, 0.425, 12.345]);
+  assert.equal(shape.type === 'rect' ? shape.radius : undefined, phase === 'resolve' ? 3 : 50, 'radius is read after paint but before binding callbacks');
+  assert.deepEqual(actual, expected, phase);
+  assert.deepEqual(entries(actual), entries(expected), phase);
+});
+
+test('captured primitive facts do not reread early fields or enumerate the authored row', () => {
+  const row: DesignBoxRowV1 = { id: 'captured', kind: 'box', radius: 3 };
+  for (const key of ['x', 'y', 'w', 'h', 'opacity', 'rot', 'shape', 'unrelated']) {
+    Object.defineProperty(row, key, { enumerable: true, get() { throw new Error(`unexpected row read: ${key}`); } });
+  }
+  const capture = { geometry: { x: 10.25, y: -0.75, w: 20.5, h: 10.75 }, opacity: 42.5, rotation: 12.345, shapeKind: 'rounded' };
+  const options = { semantics: 'penpot-compat' as const, penpotCompat: { fills: [], capture } };
+  const op = compileDesignRow(row, { x: 2, y: 3 }, options) as DrawShapeOp;
+  assert.deepEqual(op.box, { x: 8.25, y: -3.75, w: 20.5, h: 10.75 });
+  assert.deepEqual(op.shape, { kind: 'rect', radius: 3 });
+  assert.equal(op.opacity, 42.5);
+  assert.equal(op.pose!.rot, 12.345);
+  const expected = designDrawPenpot(op);
+  capture.geometry.x = 900; capture.opacity = 99; capture.rotation = 90; capture.shapeKind = 'ellipse'; row.radius = 1;
+  assert.deepEqual(designDrawPenpot(op), expected);
+
+  const good = { geometry: { x: 10.25, y: -0.75, w: 20.5, h: 10.75 }, opacity: 42.5, rotation: 12.345, shapeKind: 'rounded' };
+  for (const bad of [
+    { ...good, geometry: { ...good.geometry, x: NaN } }, { ...good, geometry: { ...good.geometry, y: Infinity } },
+    { ...good, geometry: { ...good.geometry, w: 0 } }, { ...good, geometry: { ...good.geometry, h: 0.5 } },
+    { ...good, opacity: -1 }, { ...good, opacity: 101 }, { ...good, rotation: Infinity },
+  ]) assert.throws(() => compileDesignRow(row, { x: 0, y: 0 }, { ...options, penpotCompat: { fills: [], capture: bad } }), /captured primitive geometry/);
+  assert.throws(() => compileDesignRow(row, { x: 0, y: 0 }, { ...options, penpotCompat: { fills: [], capture: { ...good, shapeKind: 'polygon' } } }), /legacy Penpot producer/);
+});

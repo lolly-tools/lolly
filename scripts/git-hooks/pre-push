@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
-# Local vernacular gate. A push to the parent now triggers a lolly.tools (bt) git
-# deploy, so block the push if code/docs comments carry claudisms or banned tics -
-# the same checks loldev's gate ran. Emergency bypass: git push --no-verify.
+# Local vernacular gate before source publication. Main pushes run CI; production
+# application releases use their reviewed target and qualified artifacts. A source
+# push does not deploy infrastructure. Emergency bypass: git push --no-verify.
 root=$(git rev-parse --show-toplevel) || exit 1
 cd "$root" || exit 1
 printf '→ pre-push: vernacular gate…\n'

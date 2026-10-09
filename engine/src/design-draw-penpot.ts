@@ -12,9 +12,9 @@ const number = (value: unknown, fallback = 0): number => {
 };
 
 /** Other row families and effects retain the original producer. Hidden is not an admission rule. */
-export function isPenpotPrimitiveRow(row: Record<string, unknown>): boolean {
+export function isPenpotPrimitiveRow(row: Record<string, unknown>, shapeKind?: string): boolean {
   if (!['', 'box'].includes(string(row.kind))) return false;
-  if (!['', 'rect', 'rounded', 'pill', 'circle', 'ellipse'].includes(string(row.shape))) return false;
+  if (!['', 'rect', 'rounded', 'pill', 'circle', 'ellipse'].includes(shapeKind ?? string(row.shape))) return false;
   for (const field of ['grad', 'clip', 'image', 'text', 'path', 'pathPaint', 'headStart', 'headEnd', 'kf', 'enter', 'exit', 'hold']) {
     if (string(row[field]).trim()) return false;
   }
@@ -52,15 +52,23 @@ export function compilePenpotCompatRow(
   offset: { x: number; y: number },
   supplied: DesignDrawCompileOpts['penpotCompat'],
 ): DrawShapeOp {
-  if (!isPenpotPrimitiveRow(row)) throw new Error('This row needs the legacy Penpot producer.');
+  const capture = supplied?.capture;
+  if (!isPenpotPrimitiveRow(row, capture?.shapeKind)) throw new Error('This row needs the legacy Penpot producer.');
   if (!supplied) throw new Error('The Penpot compatibility reading needs resolved paints.');
   validatePaint(supplied.fills, supplied.stroke);
-  const box = { x: number(row.x) - offset.x, y: number(row.y) - offset.y,
-    w: Math.max(1, number(row.w, 1)), h: Math.max(1, number(row.h, 1)) };
-  const name = string(row.shape), rot = number(row.rot);
+  if (capture && (![capture.geometry.x, capture.geometry.y, capture.geometry.w, capture.geometry.h,
+    capture.opacity, capture.rotation].every(Number.isFinite) || capture.geometry.w < 1 || capture.geometry.h < 1
+    || capture.opacity < 0 || capture.opacity > 100 || typeof capture.shapeKind !== 'string')) {
+    throw new Error('Penpot captured primitive geometry is not finite or in range.');
+  }
+  const box = capture
+    ? { x: capture.geometry.x - offset.x, y: capture.geometry.y - offset.y, w: capture.geometry.w, h: capture.geometry.h }
+    : { x: number(row.x) - offset.x, y: number(row.y) - offset.y,
+      w: Math.max(1, number(row.w, 1)), h: Math.max(1, number(row.h, 1)) };
+  const name = capture?.shapeKind ?? string(row.shape), rot = capture?.rotation ?? number(row.rot);
   return {
     id: string(row.id), op: 'shape', compatibility: 'penpot-native-v1', box,
-    opacity: clamp(number(row.opacity, 100), 0, 100),
+    opacity: capture?.opacity ?? clamp(number(row.opacity, 100), 0, 100),
     ...(rot ? { pose: { rot, flipH: false, flipV: false } } : {}),
     shape: name === 'circle' || name === 'ellipse' ? { kind: 'ellipse' }
       : { kind: 'rect', radius: name === 'rounded' ? number(row.radius) : name === 'pill' ? Math.min(box.w, box.h) / 2 : 0 },

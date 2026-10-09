@@ -1176,8 +1176,9 @@ export function boxesToPenpotDoc(boxesIn: unknown, o: BoxesToPenpotOptions): Pen
     return w;
   };
 
-  const effects = (b: Box, base: PenpotIrShapeBase): void => {
-    const op = clamp(fin(b.opacity, 100), 0, 100) / 100;
+  const effects = (b: Box, base: PenpotIrShapeBase): { opacity: number; rotation: number } => {
+    const opacity = clamp(fin(b.opacity, 100), 0, 100);
+    const op = opacity / 100;
     if (op < 1) base.opacity = op;
     const blend = str(b.blend);
     if (blend && blend !== 'normal' && BLEND_MODES.has(blend)) base.blend = blend;
@@ -1196,6 +1197,7 @@ export function boxesToPenpotDoc(boxesIn: unknown, o: BoxesToPenpotOptions): Pen
     if (blur > 0) base.blur = blur;
     const bgBlur = fin(b.bgBlur);
     if (bgBlur > 0) base.backgroundBlur = bgBlur;
+    return { opacity, rotation: rot };
   };
   const strokeOf = (b: Box): PenpotIrStroke[] => {
     const sc = color(b.stroke);
@@ -1234,7 +1236,7 @@ export function boxesToPenpotDoc(boxesIn: unknown, o: BoxesToPenpotOptions): Pen
     if (kind === 'audio' || kind === 'camera' || kind === 'frame') return null;
     const x = fin(b.x), y = fin(b.y), w = Math.max(1, fin(b.w, 1)), h = Math.max(1, fin(b.h, 1));
     const base: PenpotIrShapeBase = { name: nameOf(b, kind), x, y, w, h };
-    effects(b, base);
+    const effectCapture = effects(b, base);
     let shape: PenpotIrShape | null = null;
     let textHasRunColor = false;
     if (kind === 'text') {
@@ -1319,9 +1321,10 @@ export function boxesToPenpotDoc(boxesIn: unknown, o: BoxesToPenpotOptions): Pen
       const shapeKind = str(b.shape);
       const fills = fillsOf(b, w, h);
       const strokes = strokeOf(b);
-      if (isPenpotPrimitiveRow(b)) {
+      if (isPenpotPrimitiveRow(b, shapeKind)) {
         const stroke = strokes[0];
         const op = compileDesignRow(b as DesignBoxRowV1, { x: 0, y: 0 }, { semantics: 'penpot-compat', penpotCompat: {
+          capture: { geometry: { x, y, w, h }, ...effectCapture, shapeKind },
           fills: fills.map(fill => ({ kind: 'color', color: fill.color!, opacity: fill.opacity })),
           ...(stroke ? { stroke: { color: stroke.color, opacity: stroke.opacity, width: stroke.width,
             ...(stroke.capStart ? { cap: stroke.capStart } : {}) } } : {}),
