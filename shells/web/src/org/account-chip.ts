@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * org/account-chip - the workspace account chip in the header's account slot
- * (lib/account-slot.ts): who is signed in to which workspace, and the account's own
- * actions in one menu.
+ * Workspace account actions in the existing profile menu, with a standalone
+ * header chip only on views that have no profile control.
  *
- * For a member the chip shows their name and opens a menu headed "Signed in to
- * {workspace} as {name}", with Inbox, Team projects, Linked sign-ins, Workspace console
- * (admins and owners, an absolute address so it also works from the apps), Sign out and
- * Sign out on all devices. On an open workspace nobody is signed in to, the chip is only
- * Sign in. org/index.ts registers it, hands in everything it reads (this module imports
+ * Members get Inbox, Projects, Admin (when allowed) and sign-out actions. The
+ * existing Settings row contains linked sign-ins; the standalone chip offers that
+ * destination directly. Visitors get Sign in. org/index.ts registers the actions,
+ * hands in everything this module reads (this module imports
  * nothing from org/index.ts, so it adds no load-order cycle) and loads it lazily, so it
  * is not on the boot path.
  *
@@ -25,7 +23,7 @@
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { mountBodyPopover, type BodyPopoverHandle } from '../components/body-popover.ts';
 import { choiceDialog } from '../components/confirm-dialog.ts';
-import { registerAccountSlot } from '../lib/account-slot.ts';
+import { registerAccountSlot, type AccountMenuControls } from '../lib/account-slot.ts';
 import { RECOVERY_SLOT_PREFIX, ownsRecoveryCopy, withoutRecoveryOwner } from '../lib/collab-recovery-owner.ts';
 import { getHostRef } from '../lib/host-ref.ts';
 import { iconNode } from '../lib/icon-node.ts';
@@ -107,8 +105,6 @@ const CSS = `
 .org-account-menu-line{margin:0;padding:0 12px 6px;font-size:var(--fs-sm);color:var(--ui-color-text-muted);overflow-wrap:anywhere}
 .org-account-menu-error{margin:0 0 4px;padding:8px 12px;border:1px solid hsl(var(--destructive) / 0.45);border-radius:var(--ui-radius-panel);background:hsl(var(--destructive) / 0.08);font-size:var(--fs-sm)}
 .org-account-menu .profile-menu-item[aria-disabled="true"]{opacity:.6;cursor:progress}
-.org-account-menu-label{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:0}
-.org-account-menu-hint{font-size:var(--fs-sm);font-weight:400;color:var(--ui-color-text-muted)}
 .org-account-menu-split{height:1px;margin:4px 0;background:var(--ui-color-border-default)}
 @media (max-width:640px){.org-account-chip{padding:0;justify-content:center}.org-account-chip-name{display:none}}
 `;
@@ -154,7 +150,9 @@ async function deliver(host: ReturnType<NonNullable<AccountChipDeps['host']>>, b
  * Fill `into` with the chip for the account `deps` describes. Returns the cleanup.
  * Exported for tests; the header gets it through {@link registerAccountChip}.
  */
-export function mountAccountChip(into: HTMLElement, deps: AccountChipDeps): () => void {
+interface AccountActionState { failure: string; busy: boolean }
+
+export function mountAccountChip(into: HTMLElement, deps: AccountChipDeps, menu?: AccountMenuControls, state: AccountActionState = { failure: '', busy: false }): () => void {
   const doc = into.ownerDocument;
   ensureStyle(doc);
   const account = deps.account();
@@ -165,29 +163,32 @@ export function mountAccountChip(into: HTMLElement, deps: AccountChipDeps): () =
     const href = deps.signInUrl();
     if (!href) return () => {};
     const link = doc.createElement('a');
-    link.className = 'org-account-chip';
+    link.className = menu ? 'profile-menu-item' : 'org-account-chip';
     link.href = href;
     link.dataset.accountChip = 'visitor';
-    link.append(...glyph('user', doc), node(doc, 'span', 'org-account-chip-name', tRaw('Sign in')));
+    if (menu) link.setAttribute('role', 'menuitem');
+    link.append(...(menu ? [] : glyph('user', doc)), node(doc, 'span', menu ? '' : 'org-account-chip-name', tRaw('Sign in')));
     into.replaceChildren(link);
     return () => { link.remove(); };
   }
 
   const name = chipName(member);
   const workspace = account.workspace;
-  const chip = doc.createElement('button');
-  chip.type = 'button';
-  chip.className = 'org-account-chip';
-  chip.dataset.accountChip = 'member';
-  chip.setAttribute('aria-haspopup', 'menu');
-  chip.setAttribute('aria-expanded', 'false');
+  const chip = menu?.trigger ?? doc.createElement('button');
   const signedIn = workspace ? tRaw('Signed in to {workspace} as {name}', { workspace, name }) : tRaw('Signed in as {email}', { email: name });
-  chip.setAttribute('aria-label', signedIn);
-  chip.title = signedIn;
   const dot = node(doc, 'span', 'org-account-chip-dot');
   dot.setAttribute('aria-hidden', 'true');
-  chip.append(...glyph('user', doc), node(doc, 'span', 'org-account-chip-name', name), dot);
-  into.replaceChildren(chip);
+  if (!menu) {
+    chip.setAttribute('type', 'button');
+    chip.className = 'org-account-chip';
+    chip.dataset.accountChip = 'member';
+    chip.setAttribute('aria-haspopup', 'menu');
+    chip.setAttribute('aria-expanded', 'false');
+    chip.setAttribute('aria-label', signedIn);
+    chip.title = signedIn;
+    chip.append(...glyph('user', doc), node(doc, 'span', 'org-account-chip-name', name), dot);
+    into.replaceChildren(chip);
+  }
 
   const inbox = account.inbox;
   let unread = inbox ? inbox.count() : 0;
@@ -200,12 +201,8 @@ export function mountAccountChip(into: HTMLElement, deps: AccountChipDeps): () =
     if (slot) { slot.textContent = String(n); slot.hidden = n <= 0; }
   });
 
-  /** The last failure, shown at the top of the menu when it opens again. */
-  let failure = '';
-  let busy = false;
-
   /** One menu row: a button, or a link for the console. */
-  const item = (act: string, label: string, opts: { hint?: string; count?: number; href?: string } = {}): HTMLElement => {
+  const item = (act: string, label: string, opts: { count?: number; href?: string } = {}): HTMLElement => {
     let row: HTMLAnchorElement | HTMLButtonElement;
     if (opts.href) {
       const link = doc.createElement('a');
@@ -221,13 +218,7 @@ export function mountAccountChip(into: HTMLElement, deps: AccountChipDeps): () =
     row.className = 'profile-menu-item';
     row.setAttribute('role', 'menuitem');
     row.dataset.accountAct = act;
-    if (opts.hint) {
-      const text = node(doc, 'span', 'org-account-menu-label');
-      text.append(node(doc, 'span', '', label), node(doc, 'span', 'org-account-menu-hint', opts.hint));
-      row.append(text);
-    } else {
-      row.append(node(doc, 'span', '', label));
-    }
+    row.append(node(doc, 'span', '', label));
     if (opts.count !== undefined) {
       const count = node(doc, 'span', 'profile-menu-count', String(opts.count));
       count.dataset.inboxCount = '';
@@ -243,23 +234,23 @@ export function mountAccountChip(into: HTMLElement, deps: AccountChipDeps): () =
     return line;
   };
 
-  const popover: BodyPopoverHandle = mountBodyPopover(chip, (el, pop) => {
+  const renderMenu = (el: HTMLElement, pop: Pick<BodyPopoverHandle, 'close'>): HTMLElement | null => {
     const consoleUrl = deps.consoleUrl();
-    el.append(node(doc, 'p', 'org-account-menu-head', signedIn));
+    el.append(split(), node(doc, 'p', 'org-account-menu-head', workspace || tRaw('Account')));
     if (member.email && member.email !== name) el.append(node(doc, 'p', 'org-account-menu-line', member.email));
-    if (failure) {
-      const error = node(doc, 'p', 'org-account-menu-error', failure);
+    if (state.failure) {
+      const error = node(doc, 'p', 'org-account-menu-error', state.failure);
       error.setAttribute('role', 'alert');
       el.append(error);
     }
-    el.append(split());
     if (inbox) el.append(item('inbox', tRaw('Inbox'), { count: unread }));
-    el.append(item('projects', tRaw('Team projects')), item('signins', tRaw('Linked sign-ins')));
-    if (consoleUrl) el.append(item('console', tRaw('Workspace console'), { href: consoleUrl }));
+    el.append(item('projects', tRaw('Projects')));
+    if (!menu) el.append(item('signins', tRaw('Linked sign-ins')));
+    if (consoleUrl) el.append(item('console', tRaw('Admin'), { href: consoleUrl }));
     el.append(
       split(),
-      item('signout', tRaw('Sign out'), { hint: tRaw('Signs you out on this device.') }),
-      item('everywhere', tRaw('Sign out on all devices'), { hint: tRaw('Signs you out everywhere, including this device.') }),
+      item('signout', tRaw('Sign out')),
+      item('everywhere', tRaw('Sign out everywhere')),
     );
     el.addEventListener('click', (e) => {
       const target = (e.target as Element).closest<HTMLElement>('[data-account-act]');
@@ -271,10 +262,11 @@ export function mountAccountChip(into: HTMLElement, deps: AccountChipDeps): () =
       if (act === 'signins') { pop.close(); go('#/settings?focus=instance-section'); return; }
       if (act === 'signout' || act === 'everywhere') void leave(act, target);
     });
-    const first = el.querySelector<HTMLElement>(failure ? '[data-account-act="signout"]' : '[data-account-act]');
-    failure = '';
+    const first = el.querySelector<HTMLElement>(state.failure ? '[data-account-act="signout"]' : '[data-account-act]');
+    state.failure = '';
     return first;
-  }, {
+  };
+  const popover = menu ? { close: menu.close, open: menu.reopen } : mountBodyPopover(chip, renderMenu, {
     className: 'profile-menu org-account-menu',
     ariaLabel: signedIn,
     onClose: () => { chip.setAttribute('aria-expanded', 'false'); },
@@ -283,15 +275,16 @@ export function mountAccountChip(into: HTMLElement, deps: AccountChipDeps): () =
   const go = deps.go ?? ((hash: string) => { location.hash = hash; });
 
   const onClick = (): void => {
-    if (popover.isOpen()) { popover.close(true); return; }
+    if ('isOpen' in popover && popover.isOpen()) { popover.close(true); return; }
     popover.open();
     chip.setAttribute('aria-expanded', 'true');
   };
-  chip.addEventListener('click', onClick);
+  if (menu) renderMenu(into, popover);
+  else chip.addEventListener('click', onClick);
 
   /** A failure: said aloud now, and shown at the top of the menu, which opens again to show the failure. */
   const fail = (message: string): void => {
-    failure = message;
+    state.failure = message;
     announce(message, { assertive: true });
     if (chip.isConnected) { popover.close(); popover.open(); chip.setAttribute('aria-expanded', 'true'); }
   };
@@ -323,8 +316,8 @@ export function mountAccountChip(into: HTMLElement, deps: AccountChipDeps): () =
   };
 
   const leave = async (act: 'signout' | 'everywhere', control: HTMLElement): Promise<void> => {
-    if (busy) return;
-    busy = true;
+    if (state.busy) return;
+    state.busy = true;
     control.setAttribute('aria-disabled', 'true');
     try {
       popover.close();
@@ -343,20 +336,23 @@ export function mountAccountChip(into: HTMLElement, deps: AccountChipDeps): () =
         location.replace('/');
       }))();
     } finally {
-      busy = false;
+      state.busy = false;
       control.removeAttribute('aria-disabled');
     }
   };
 
   return () => {
     offInbox?.();
-    chip.removeEventListener('click', onClick);
-    popover.close();
-    chip.remove();
+    if (!menu) {
+      chip.removeEventListener('click', onClick);
+      popover.close();
+      chip.remove();
+    }
   };
 }
 
 /** Put the chip in the header's account slot. Returns the unregister function. */
 export function registerAccountChip(deps: AccountChipDeps): () => void {
-  return registerAccountSlot({ mount: (into) => mountAccountChip(into, deps) });
+  const state: AccountActionState = { failure: '', busy: false };
+  return registerAccountSlot({ mount: into => mountAccountChip(into, deps), menu: (into, controls) => mountAccountChip(into, deps, controls, state) });
 }

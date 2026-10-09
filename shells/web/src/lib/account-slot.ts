@@ -22,6 +22,28 @@
  *  the function that takes its listeners down again. */
 export interface AccountSlotProvider {
   mount(into: HTMLElement): () => void;
+  /** Optional rows for the existing avatar menu, instead of a second header control. */
+  menu?(into: HTMLElement, controls: AccountMenuControls): () => void;
+}
+
+export interface AccountMenuControls {
+  trigger: HTMLElement;
+  close(returnFocus?: boolean): void;
+  reopen(): void;
+}
+
+/** Fill the shared profile menu without importing a deployment's account code. */
+export function mountAccountMenu(into: HTMLElement, controls: AccountMenuControls): () => void {
+  let off: () => void = () => {};
+  try { off = provider?.menu?.(into, controls) ?? off; } catch (e) { console.error(e); }
+  const cleanup = (): void => {
+    if (menus.get(into) !== cleanup) return;
+    menus.delete(into);
+    try { off(); } catch (e) { console.error(e); }
+    into.replaceChildren();
+  };
+  menus.set(into, cleanup);
+  return cleanup;
 }
 
 /** The attribute every slot carries, so a cluster that already has one is left alone. */
@@ -33,6 +55,7 @@ const PROFILE_SELECTOR = ':scope > .profile-link, :scope > .profile-fab';
 let provider: AccountSlotProvider | null = null;
 /** Every slot this module made, with the cleanup its provider returned. */
 const slots = new Map<HTMLElement, () => void>();
+const menus = new Map<HTMLElement, () => void>();
 let observer: MutationObserver | null = null;
 let scheduled = false;
 
@@ -49,6 +72,11 @@ function place(): void {
   const current = provider;
   if (!current || typeof document === 'undefined') return;
   for (const cluster of document.querySelectorAll<HTMLElement>(CLUSTER_SELECTOR)) {
+    if (current.menu && cluster.querySelector(PROFILE_SELECTOR)) {
+      const old = cluster.querySelector<HTMLElement>(`:scope > [${ACCOUNT_SLOT_ATTR}]`);
+      if (old) { cleanup(old); old.remove(); }
+      continue;
+    }
     if (cluster.querySelector(`:scope > [${ACCOUNT_SLOT_ATTR}]`)) continue;
     const slot = document.createElement('div');
     slot.setAttribute(ACCOUNT_SLOT_ATTR, '');
@@ -88,6 +116,7 @@ function unwatch(): void {
  * unregister function, which removes every slot this registration made.
  */
 export function registerAccountSlot(next: AccountSlotProvider): () => void {
+  for (const off of [...menus.values()]) off();
   for (const slot of [...slots.keys()]) { cleanup(slot); slot.remove(); }
   provider = next;
   watch();
@@ -95,6 +124,7 @@ export function registerAccountSlot(next: AccountSlotProvider): () => void {
   return () => {
     if (provider !== next) return;
     provider = null;
+    for (const off of [...menus.values()]) off();
     unwatch();
     for (const slot of [...slots.keys()]) { cleanup(slot); slot.remove(); }
   };
@@ -108,6 +138,7 @@ export function accountSlotRegistered(): boolean {
 /** TEST-ONLY: drop the provider, every slot and the observer. */
 export function _clearAccountSlotForTests(): void {
   provider = null;
+  for (const off of [...menus.values()]) off();
   unwatch();
   for (const slot of [...slots.keys()]) { cleanup(slot); slot.remove(); }
   scheduled = false;

@@ -3,7 +3,7 @@
  * The mobile profile menu's row contract + the Language child popover's
  * ownership rules (the body-popover `isInside` case).
  *
- * Run directly:  node --test shells/web/src/components/profile-menu.test.ts
+ * Run directly:  node --import ./tests/css-stub.mjs --test shells/web/src/components/profile-menu.test.ts
  *
  * What is pinned:
  *  - the menu carries the consolidated rows: theme segments, Home (root-absolute
@@ -19,6 +19,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
+import type { AccountChipDeps } from '../org/account-chip.ts';
 
 const dom = new JSDOM('<!doctype html><html><body><a href="#/settings" id="pl">Profile</a></body></html>', { url: 'https://lolly.tools/' });
 globalThis.window = dom.window as unknown as typeof globalThis.window;
@@ -27,11 +28,14 @@ globalThis.localStorage = dom.window.localStorage;
 globalThis.HTMLElement = dom.window.HTMLElement;
 globalThis.Node = dom.window.Node;
 globalThis.Element = dom.window.Element;
+globalThis.requestAnimationFrame = cb => { setTimeout(() => cb(0), 0); return 0; };
 // Mobile breakpoint matches; the '(pointer: coarse)' back-stack probe does not.
 (globalThis.window as { matchMedia?: (q: string) => { matches: boolean } }).matchMedia =
   (q: string) => ({ matches: q.includes('max-width') });
 
 const { attachProfileMenu, mountProfileFab, createProfileControl } = await import('./profile-menu.ts');
+const { registerAccountChip } = await import('../org/account-chip.ts');
+const { _clearAccountSlotForTests } = await import('../lib/account-slot.ts');
 
 /** A host slice good enough for setTheme/switchLang signatures - never invoked
  *  here (no theme click, no language pick reaches switchLang). */
@@ -234,4 +238,84 @@ test('the profile badge and menu count reflect queue changes and standalone cont
   assert.equal(trigger().querySelector<HTMLElement>('.notification-badge')?.hidden, true);
   const standalone = createProfileControl(host); assert.ok(standalone.querySelector('.notification-badge'));
   detach(); clear(); _resetNotificationsForTests();
+});
+
+function workspaceAccount({ signedIn = true, signOutWorks = true }: { signedIn?: boolean; signOutWorks?: boolean } = {}) {
+  const listeners = new Set<(count: number) => void>();
+  const calls = { inbox: 0, signout: 0, everywhere: 0, after: 0, routes: [] as string[] };
+  const deps: AccountChipDeps = {
+    account: () => ({ workspace: 'Acme', member: signedIn ? { name: 'Ana Ruiz', email: 'ana@acme.test' } : null, inbox: {
+      count: () => 2, onChange(fn) { listeners.add(fn); return () => { listeners.delete(fn); }; }, open() { calls.inbox++; },
+    } }),
+    consoleUrl: () => signedIn ? 'https://work.test/admin' : null,
+    signInUrl: () => '/login?returnTo=%2F%23%2Fp',
+    signOut: async () => { calls.signout++; return signOutWorks; },
+    signOutEverywhere: async () => { calls.everywhere++; return 'ok'; },
+    afterSignOut: () => { calls.after++; }, go: route => { calls.routes.push(route); },
+    host: () => null, workspaceOrigin: 'https://work.test', principal: signedIn ? 'u_ana' : undefined,
+  };
+  return { deps, calls, listeners, unread(n: number) { for (const listener of listeners) listener(n); } };
+}
+
+test('one existing avatar menu carries Work actions, one Settings link and live inbox counts', async () => {
+  _clearAccountSlotForTests();
+  const account = workspaceAccount();
+  const offAccount = registerAccountChip(account.deps);
+  const detach = attachProfileMenu(trigger(), host);
+  try {
+    trigger().click();
+    assert.equal(document.querySelector('.org-account-chip'), null, 'no independent account button');
+    assert.equal(menu()!.querySelectorAll('[data-act="settings"]').length, 1);
+    const link = menu()!.querySelector<HTMLAnchorElement>('[data-account-act="console"]')!;
+    assert.equal(link.textContent, 'Admin');
+    assert.equal(link.href, 'https://work.test/admin');
+    assert.equal(link.target, '_blank');
+    assert.equal(link.rel, 'noopener');
+    assert.equal(menu()!.querySelector('.org-account-menu-head')!.textContent, 'Acme');
+    assert.equal(menu()!.querySelector('[data-inbox-count]')!.textContent, '2');
+    account.unread(3);
+    assert.equal(menu()!.querySelector('[data-inbox-count]')!.textContent, '3');
+    menu()!.querySelector<HTMLElement>('[data-account-act="inbox"]')!.click();
+    assert.equal(account.calls.inbox, 1);
+    assert.equal(menu(), null);
+    assert.equal(account.listeners.size, 0, 'closing releases the inbox listener');
+    trigger().click();
+    assert.equal(menu()!.querySelector('[data-account-act="signins"]'), null, 'Settings already contains linked sign-ins');
+    menu()!.querySelector<HTMLElement>('[data-account-act="projects"]')!.click();
+    assert.deepEqual(account.calls.routes, ['#/p']);
+  } finally { detach(); offAccount(); }
+});
+
+test('a failed shared-menu sign-out reopens with its error and keeps the profile control', async () => {
+  const account = workspaceAccount({ signOutWorks: false });
+  const off = registerAccountChip(account.deps), detach = attachProfileMenu(trigger(), host);
+  try {
+    trigger().click();
+    menu()!.querySelector<HTMLElement>('[data-account-act="signout"]')!.click();
+    for (let i = 0; i < 20 && !menu()?.querySelector('[role="alert"]'); i++) await tick();
+    assert.equal(account.calls.signout, 1);
+    assert.equal(account.calls.after, 0);
+    assert.equal(menu()!.querySelector('[role="alert"]')!.textContent, 'Could not sign out. Try again.');
+    assert.ok(trigger().isConnected);
+    assert.equal(account.listeners.size, 1, 'only the reopened menu listens');
+  } finally { detach(); off(); }
+});
+
+test('switching to a signed-out workspace removes old actions and offers Sign in on the next open', () => {
+  const member = workspaceAccount(), visitor = workspaceAccount({ signedIn: false });
+  const offMember = registerAccountChip(member.deps), detach = attachProfileMenu(trigger(), host);
+  let offVisitor: (() => void) | null = null;
+  try {
+    trigger().click();
+    assert.ok(menu()!.querySelector('[data-account-act="signout"]'));
+    offVisitor = registerAccountChip(visitor.deps);
+    assert.equal(menu()!.querySelector('[data-account-act="signout"]'), null, 'stale identity actions are removed immediately');
+    assert.equal(member.listeners.size, 0);
+    trigger().click(); trigger().click();
+    const signIn = menu()!.querySelector<HTMLAnchorElement>('a[data-account-chip="visitor"]')!;
+    assert.equal(signIn.getAttribute('href'), '/login?returnTo=%2F%23%2Fp');
+    assert.equal(signIn.textContent, 'Sign in');
+    assert.equal(menu()!.querySelector('[data-account-act="console"]'), null);
+    assert.equal(menu()!.querySelectorAll('[data-act="settings"]').length, 1);
+  } finally { detach(); offMember(); offVisitor?.(); }
 });

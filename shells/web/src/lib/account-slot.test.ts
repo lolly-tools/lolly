@@ -21,7 +21,7 @@ globalThis.HTMLElement = dom.window.HTMLElement as unknown as typeof HTMLElement
 globalThis.MutationObserver = dom.window.MutationObserver as unknown as typeof MutationObserver;
 globalThis.requestAnimationFrame = ((cb: FrameRequestCallback) => { setTimeout(() => cb(0), 0); return 0; }) as unknown as typeof requestAnimationFrame;
 
-const { registerAccountSlot, accountSlotRegistered, ACCOUNT_SLOT_ATTR, _clearAccountSlotForTests } = await import('./account-slot.ts');
+const { registerAccountSlot, mountAccountMenu, accountSlotRegistered, ACCOUNT_SLOT_ATTR, _clearAccountSlotForTests } = await import('./account-slot.ts');
 
 const tick = (): Promise<void> => new Promise((r) => setTimeout(r, 0));
 async function settle(): Promise<void> { for (let i = 0; i < 4; i++) await tick(); }
@@ -123,4 +123,37 @@ test('a provider that throws leaves the header standing', () => {
   } finally {
     console.error = err;
   }
+});
+
+test('a menu provider uses the existing avatar and removes stale actions when the account changes', () => {
+  _clearAccountSlotForTests();
+  view().innerHTML = header();
+  const log: string[] = [];
+  const off = registerAccountSlot({
+    ...provider(log),
+    menu(into) { into.textContent = 'Member actions'; return () => { log.push('menu cleanup'); }; },
+  });
+  assert.equal(slots().length, 0, 'no header chip beside the profile control');
+  const menu = document.createElement('div');
+  const detach = mountAccountMenu(menu, { trigger: document.querySelector('.profile-link')!, close() {}, reopen() {} });
+  assert.equal(menu.textContent, 'Member actions');
+  assert.deepEqual(log, [], 'only the shared menu was mounted');
+  off();
+  assert.equal(menu.textContent, '', 'unregistering removes the old account actions');
+  detach();
+  assert.deepEqual(log, ['menu cleanup'], 'cleanup runs once');
+});
+
+test('a menu provider keeps the fallback until a profile control appears', async () => {
+  _clearAccountSlotForTests();
+  view().innerHTML = '<div class="gallery-topright"></div>';
+  const log: string[] = [];
+  const off = registerAccountSlot({ ...provider(log), menu() { return () => {}; } });
+  assert.equal(slots().length, 1, 'a header without an avatar keeps its account control');
+  const profile = document.createElement('a'); profile.className = 'profile-link';
+  document.querySelector('.gallery-topright')!.append(profile);
+  await settle();
+  assert.equal(slots().length, 0, 'the fallback disappears when the shared profile arrives');
+  assert.deepEqual(log, ['mount', 'cleanup']);
+  off();
 });

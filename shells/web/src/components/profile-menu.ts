@@ -35,6 +35,7 @@ import { navigateTo } from '../nav.ts';
 import { configureNotifications, notificationCount, onNotificationsChange } from '../lib/notifications.ts';
 import { icon } from '../lib/icons.ts';
 import { historySettled } from '../lib/overlay-back.ts';
+import { mountAccountMenu } from '../lib/account-slot.ts';
 
 // The chevron every navigation row wears (was hand-copied per row).
 const CHEVRON = icon('chevronRight', { size: 15 });
@@ -76,6 +77,7 @@ export function attachProfileMenu(
   // fresh each time), torn down with the menu so the child can't outlive it.
   let detachLang: (() => void) | null = null;
   let detachDesignSystem: (() => void) | null = null;
+  let detachAccount: (() => void) | null = null;
   void configureNotifications();
   const originalLabel = trigger.getAttribute('aria-label');
   const badge = document.createElement('span'); badge.className = 'notification-badge btn--primary'; badge.setAttribute('aria-hidden', 'true');
@@ -118,6 +120,11 @@ export function attachProfileMenu(
         <span>${t('Settings')}</span>
         ${CHEVRON}
       </a>`;
+
+    const account = document.createElement('div');
+    account.className = 'org-account-menu';
+    detachAccount = mountAccountMenu(account, { trigger, close: returnFocus => pop.close(returnFocus), reopen: () => pop.open() });
+    if (account.childElementCount) el.append(account);
 
     notificationCountSlot = el.querySelector('[data-notification-count]');
     el.querySelector('[data-act="notifications"]')?.addEventListener('click', () => {
@@ -220,7 +227,7 @@ export function attachProfileMenu(
     isInside: inLangMenu,
     // Close the child with the parent, whichever route closed it (Escape,
     // outside tap, route change) - detachLang's cleanup closes the child popover.
-    onClose: () => { detachLang?.(); detachLang = null; detachDesignSystem?.(); detachDesignSystem = null; },
+    onClose: () => { detachLang?.(); detachLang = null; detachDesignSystem?.(); detachDesignSystem = null; detachAccount?.(); detachAccount = null; },
   });
 
   const onClick = (e: MouseEvent) => {

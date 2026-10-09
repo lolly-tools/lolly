@@ -203,12 +203,12 @@ test('the menu carries the account actions, and the console only for someone wit
   click(chip());
   assert.ok(menu(), 'the menu opens');
   assert.equal(chip().getAttribute('aria-expanded'), 'true');
-  assert.equal(menu()!.querySelector('.org-account-menu-head')?.textContent, 'Signed in to Acme as Ana Ruiz');
+  assert.equal(menu()!.querySelector('.org-account-menu-head')?.textContent, 'Acme');
   assert.equal(menu()!.querySelector('.org-account-menu-line')?.textContent, 'ana@acme.com');
   for (const name of ['inbox', 'projects', 'signins', 'signout', 'everywhere']) assert.ok(act(name), `${name} is offered`);
   assert.equal(act('console'), null, 'no console address, no console item');
-  assert.match(act('signout')!.textContent!, /Signs you out on this device\./);
-  assert.match(act('everywhere')!.textContent!, /Signs you out everywhere, including this device\./);
+  assert.equal(act('signout')!.textContent, 'Sign out');
+  assert.equal(act('everywhere')!.textContent, 'Sign out everywhere');
   click(act('projects')!);
   assert.deepEqual(h.went, ['#/p']);
   click(chip());
@@ -227,7 +227,7 @@ test('the menu carries the account actions, and the console only for someone wit
   assert.equal(link!.getAttribute('href'), 'https://work.test/admin', 'an absolute address');
   assert.equal(link!.target, '_blank');
   assert.equal(link!.rel, 'noopener');
-  assert.match(link!.textContent!, /Workspace console/);
+  assert.equal(link!.textContent, 'Admin');
   offAdmin();
 });
 
@@ -249,14 +249,14 @@ test('a visitor gets only Sign in, and nothing at all without a way in', () => {
   assert.equal(empty.childElementCount, 0, 'dormant account: no chip');
 });
 
-test('registerAccountChip puts the chip in the header slot', async () => {
+test('registerAccountChip uses the existing profile control instead of a second header chip', async () => {
   _clearAccountSlotForTests();
   for (const n of document.querySelectorAll('.gallery-topright > :not(.profile-link)')) n.remove();
   const h = harness();
   const off = registerAccountChip(h.deps);
   const placed = document.querySelector('[data-account-slot] .org-account-chip');
-  assert.ok(placed, 'the chip sits in the account slot');
-  assert.equal(placed!.parentElement!.nextElementSibling?.className, 'profile-link');
+  assert.equal(placed, null, 'no duplicate account control beside the avatar');
+  assert.ok(document.querySelector('.gallery-topright > .profile-link'), 'the existing profile control stays');
   off();
   assert.equal(document.querySelector('[data-account-slot]'), null);
 });

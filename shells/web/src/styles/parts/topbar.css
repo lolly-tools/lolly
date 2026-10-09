@@ -149,6 +149,9 @@
   z-index: 100000;
   min-width: 210px;
   max-width: calc(100vw - 16px);
+  max-height: calc(100dvh - 16px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 8px;
   display: flex;
   flex-direction: column;
@@ -199,7 +202,7 @@
 }
 .profile-menu-item:hover { background: var(--ui-color-surface-muted); }
 .profile-menu-item:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
-.profile-menu-item svg { color: var(--ui-color-text-muted); flex: none; }
+.profile-menu-item svg { width: calc(16px * var(--a11y-fs)); height: calc(16px * var(--a11y-fs)); color: var(--ui-color-text-muted); flex: none; }
 .profile-menu-count {
   /* Box scales with the numeral inside it - see .history-fab-count. */
   min-width: calc(20px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); padding: 0 6px;
