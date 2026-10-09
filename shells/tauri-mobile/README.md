@@ -39,6 +39,36 @@ The **frontend** entry is the web shell's, `shells/web/index.html` → `/src/mai
 
 Production builds run `build:frontend:release` before compiling Rust. Provide `LOLLY_CATALOG_SIGNING_KEY` and `VITE_CATALOG_PUBLIC_KEY_JWK` through managed secret storage, and set `LOLLY_PROFILE=lolly-start` with `LOLLY_EMBED_CATALOG=profile` for public packages.
 
+### Swift runtime exports on iOS
+
+Use an explicitly selected Rust toolchain with its optional `llvm-tools`
+component for iOS builds. First set `RUSTUP_TOOLCHAIN` to the name of your chosen
+installed toolchain; `rustup toolchain list` shows the available names. Installing
+the component for that toolchain leaves the default toolchain unchanged:
+
+```sh
+rustup component add llvm-tools --toolchain "$RUSTUP_TOOLCHAIN"
+```
+
+The auth plugin's normal build hook follows the pinned Swift package build for
+both debug and release, on iPhoneOS and the simulator. Xcode 27 can make the
+SwiftRs runtime's four existing C entry points local in static products; pinned
+swift-rs repairs the top-level plugin exports but excludes the dependency
+runtime. The hook restores only `retain_object`, `release_object`,
+`data_from_bytes` and `string_from_bytes` in one `SwiftRs.o` member of the
+plugin's own `OUT_DIR` archive. It asks Cargo's selected `RUSTC` for the real
+sysroot and Apple host, and uses that sysroot's `llvm-objcopy`, with no PATH
+fallback or default-toolchain change.
+
+The hook stages the member, rebuilds the archive index, checks all four export
+definitions and requires every unrelated object member to remain byte-identical
+before replacing the owned archive. Missing tools, ambiguous or foreign outputs,
+changed members and failed readback stop the build. It does not edit registry
+sources, dependency locks, the Tauri archive or generated Apple projects. This
+build repair does not establish physical-device or GPU qualification. See the
+[pinned upstream build logic](https://github.com/Brendonovich/swift-rs/blob/fd82965ee1a55b2777122a9ac42a581c613327ac/src-rs/build.rs)
+and [Rustup component documentation](https://rust-lang.github.io/rustup/concepts/components.html).
+
 On Android there is a third entry that runs before either: `MainActivity.kt`, described below.
 
 ## How the bridge gets composed: build-time module substitution

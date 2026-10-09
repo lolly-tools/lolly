@@ -49,6 +49,14 @@ whose tool availability may change, so the preflight checks the actual tools
 instead of inferring their presence from a component name. See the
 [Rustup component documentation](https://rust-lang.github.io/rustup/concepts/components.html).
 
+The normal auth-plugin build hook also restores the four existing SwiftRs C
+runtime exports in one verified member of its own Swift archive. It checks
+symbol readback and unchanged unrelated members before replacement, for both
+debug/release and device/simulator builds. The qualification source inventory
+includes the plugin build script and its runtime-export helper; this normal
+build repair is not a substitute for a successful archive or physical corpus
+receipt. See [the mobile build notes](README.md#swift-runtime-exports-on-ios).
+
 The helper places the real compiler bin directory ahead of rustup shims for this
 process and forwards the absolute compiler through `CARGO_BUILD_RUSTC`.
 `RUSTUP_TOOLCHAIN` alone is insufficient: the pinned Tauri CLI filters that

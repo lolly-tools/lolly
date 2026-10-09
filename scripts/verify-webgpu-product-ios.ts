@@ -29,6 +29,7 @@ export const IOS_PRODUCT_SOURCES = [
   'shells/tauri-shared/embedded-js-mime.rs', 'shells/tauri-shared/tauri-embedded-assets.rs',
   'shells/tauri-shared/webgpu-product-probe.mjs', 'shells/tauri-shared/webgpu-product-broker.rs', 'shells/tauri-shared/vite-csp.mjs',
   'shells/tauri-mobile/vite.config.js', 'shells/tauri-mobile/package.json', 'shells/tauri-mobile/pnpm-lock.yaml',
+  'shells/tauri-mobile/plugins/lolly-auth/build.rs', 'shells/tauri-mobile/plugins/lolly-auth/build/swift-runtime-exports.rs',
   'shells/tauri-mobile/src-tauri/Cargo.toml', 'shells/tauri-mobile/src-tauri/Cargo.lock', 'shells/tauri-mobile/src-tauri/src/lib.rs',
   'shells/tauri-mobile/src-tauri/tauri.conf.json', 'shells/tauri-mobile/src-tauri/Info.ios.plist',
   'shells/tauri-mobile/src-tauri/gen/apple/project.yml', 'shells/tauri-mobile/src-tauri/gen/apple/lolly-mobile.xcodeproj/project.pbxproj',
