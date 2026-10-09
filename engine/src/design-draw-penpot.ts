@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
-/** Penpot's existing flat-primitive reading, separate from Design's CSS geometry. */
+/** Penpot's existing flat-primitive and gradient reading, separate from Design's CSS geometry. */
 import type { DesignBoxRowV1 } from '@lolly-tools/core';
 import type { DesignDrawCompileOpts, DrawPaint, DrawShapeOp, DrawStroke } from './design-draw.ts';
 import type { PenpotIrCircle, PenpotIrRect } from './penpot-file.ts';
@@ -12,10 +12,12 @@ const number = (value: unknown, fallback = 0): number => {
 };
 
 /** Other row families and effects retain the original producer. Hidden is not an admission rule. */
-export function isPenpotPrimitiveRow(row: Record<string, unknown>, shapeKind?: string): boolean {
+export function isPenpotPrimitiveRow(row: Record<string, unknown>, shapeKind?: string, capturedGradient = false): boolean {
   if (!['', 'box'].includes(string(row.kind))) return false;
   if (!['', 'rect', 'rounded', 'pill', 'circle', 'ellipse'].includes(shapeKind ?? string(row.shape))) return false;
-  for (const field of ['grad', 'clip', 'image', 'text', 'path', 'pathPaint', 'headStart', 'headEnd', 'kf', 'enter', 'exit', 'hold']) {
+  // A paint callback may already have changed grad; the resolved paint remains authoritative.
+  if (!capturedGradient && string(row.grad).trim()) return false;
+  for (const field of ['clip', 'image', 'text', 'path', 'pathPaint', 'headStart', 'headEnd', 'kf', 'enter', 'exit', 'hold']) {
     if (string(row[field]).trim()) return false;
   }
   if (!['', 'none'].includes(string(row.shadow))) return false;
@@ -33,10 +35,20 @@ function validColor(color: string, opacity = 1): void {
 }
 
 function validatePaint(fills: DrawPaint[], stroke?: DrawStroke): void {
-  if (fills.length > 1) throw new Error('Penpot primitives carry at most one solid fill.');
+  if (fills.length > 1) throw new Error('Penpot primitives carry at most one fill.');
   for (const fill of fills) {
-    if (fill.kind !== 'color') throw new Error('Penpot primitive paint must be solid.');
-    validColor(fill.color, fill.opacity);
+    if (fill.kind === 'color') { validColor(fill.color, fill.opacity); continue; }
+    if (fill.kind !== 'linear' && fill.kind !== 'radial') throw new Error('Penpot primitives need evaluated colour or gradient paint.');
+    if (fill.kind === 'linear' && ![fill.x1, fill.y1, fill.x2, fill.y2].every(Number.isFinite)) {
+      throw new Error('Penpot gradient endpoints must be finite.');
+    }
+    if (fill.stops.length < 2) throw new Error('Penpot gradients need at least two stops.');
+    for (const stop of fill.stops) {
+      validColor(stop.color, stop.opacity);
+      if (!Number.isFinite(stop.opacity) || !Number.isFinite(stop.offset) || stop.offset < 0 || stop.offset > 1) {
+        throw new Error('Penpot gradient stop alpha and offsets must be in range.');
+      }
+    }
   }
   if (!stroke) return;
   validColor(stroke.color, stroke.opacity);
@@ -46,6 +58,10 @@ function validatePaint(fills: DrawPaint[], stroke?: DrawStroke): void {
   }
 }
 
+function copyPaint(fill: DrawPaint): DrawPaint {
+  return fill.kind === 'color' ? { ...fill } : { ...fill, stops: fill.stops.map(stop => ({ ...stop })) };
+}
+
 /** Keep fractional positions, unrounded radii and rotation, and the producer's numeric coercion. */
 export function compilePenpotCompatRow(
   row: DesignBoxRowV1,
@@ -53,7 +69,7 @@ export function compilePenpotCompatRow(
   supplied: DesignDrawCompileOpts['penpotCompat'],
 ): DrawShapeOp {
   const capture = supplied?.capture;
-  if (!isPenpotPrimitiveRow(row, capture?.shapeKind)) throw new Error('This row needs the legacy Penpot producer.');
+  if (!isPenpotPrimitiveRow(row, capture?.shapeKind, supplied?.fills.some(fill => fill.kind !== 'color'))) throw new Error('This row needs the legacy Penpot producer.');
   if (!supplied) throw new Error('The Penpot compatibility reading needs resolved paints.');
   validatePaint(supplied.fills, supplied.stroke);
   if (capture && (![capture.geometry.x, capture.geometry.y, capture.geometry.w, capture.geometry.h,
@@ -72,7 +88,7 @@ export function compilePenpotCompatRow(
     ...(rot ? { pose: { rot, flipH: false, flipV: false } } : {}),
     shape: name === 'circle' || name === 'ellipse' ? { kind: 'ellipse' }
       : { kind: 'rect', radius: name === 'rounded' ? number(row.radius) : name === 'pill' ? Math.min(box.w, box.h) / 2 : 0 },
-    fills: supplied.fills.map(fill => ({ ...fill })),
+    fills: supplied.fills.map(copyPaint),
     ...(supplied.stroke ? { stroke: { ...supplied.stroke } } : {}),
   };
 }
@@ -95,8 +111,13 @@ export function designDrawPenpot(op: DrawShapeOp): PenpotIrRect | PenpotIrCircle
     ...(op.opacity < 100 ? { opacity: op.opacity / 100 } : {}),
     ...(op.pose?.rot ? { rotation: op.pose.rot } : {}),
     fills: op.fills.map(fill => {
-      if (fill.kind !== 'color') throw new Error('Penpot primitive paint must be solid.');
-      return { color: fill.color, opacity: fill.opacity ?? 1 };
+      if (fill.kind === 'color') return { color: fill.color, opacity: fill.opacity ?? 1 };
+      return { gradient: {
+        type: fill.kind,
+        ...(fill.kind === 'linear' ? { startX: fill.x1, startY: fill.y1, endX: fill.x2, endY: fill.y2 }
+          : { startX: 0.5, startY: 0.5, endX: 0.5, endY: 1, width: 1 }),
+        stops: fill.stops.map(stop => ({ ...stop })),
+      } };
     }),
     strokes: op.stroke ? [{ color: op.stroke.color, opacity: op.stroke.opacity ?? 1, width: op.stroke.width, alignment: 'center' as const,
       ...(op.stroke.cap ? { capStart: op.stroke.cap, capEnd: op.stroke.cap } : {}) }] : [],

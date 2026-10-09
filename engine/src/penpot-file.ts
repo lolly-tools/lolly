@@ -38,7 +38,7 @@ import { makeGeomApi } from './geom-api.ts';
 import { pathBounds, pathFromSubPaths } from './geom/path.ts';
 import { sanitizeAppliedTokens, buildTokenTypeIndex, isSafeTokenPath } from './penpot-bindings.ts';
 import { clamp } from './clamp.ts';
-import { compileDesignRow } from './design-draw.ts';
+import { compileDesignRow, type DrawPaint } from './design-draw.ts';
 import { designDrawPenpot, isPenpotPrimitiveRow } from './design-draw-penpot.ts';
 
 // ─── constants ────────────────────────────────────────────────────────────────
@@ -1040,6 +1040,25 @@ export function gradSpecToPenpot(spec: unknown, w: number, h: number): PenpotIrG
   };
 }
 
+/** Capture the native parser's paint without recomputing its geometry or reading the row. */
+function primitiveDrawPaint(fill: PenpotIrFill): DrawPaint | null {
+  const gradient = fill.gradient;
+  if (!gradient) {
+    if (!fill.color || fill.media) throw new Error('Penpot primitives need resolved colour or gradient paint.');
+    return { kind: 'color', color: fill.color, opacity: fill.opacity };
+  }
+  const stops = gradient.stops.map(stop => ({ color: stop.color, opacity: stop.opacity ?? 1, offset: stop.offset }));
+  if (gradient.type === 'linear') {
+    // The original parser can overflow on enormous finite boxes; its writer still owns those facts.
+    if (![gradient.startX, gradient.startY, gradient.endX, gradient.endY].every(Number.isFinite)) return null;
+    return { kind: 'linear', x1: gradient.startX, y1: gradient.startY, x2: gradient.endX, y2: gradient.endY, stops };
+  }
+  if (gradient.width !== 1 || gradient.startX !== 0.5 || gradient.startY !== 0.5 || gradient.endX !== 0.5 || gradient.endY !== 1) {
+    return null;
+  }
+  return { kind: 'radial', stops };
+}
+
 interface MdRun {
   text: string;
   color?: string;
@@ -1321,11 +1340,12 @@ export function boxesToPenpotDoc(boxesIn: unknown, o: BoxesToPenpotOptions): Pen
       const shapeKind = str(b.shape);
       const fills = fillsOf(b, w, h);
       const strokes = strokeOf(b);
-      if (isPenpotPrimitiveRow(b, shapeKind)) {
+      const paints = fills.map(primitiveDrawPaint);
+      if (paints.every((paint): paint is DrawPaint => paint !== null) && isPenpotPrimitiveRow(b, shapeKind, fills.some(fill => !!fill.gradient))) {
         const stroke = strokes[0];
         const op = compileDesignRow(b as DesignBoxRowV1, { x: 0, y: 0 }, { semantics: 'penpot-compat', penpotCompat: {
           capture: { geometry: { x, y, w, h }, ...effectCapture, shapeKind },
-          fills: fills.map(fill => ({ kind: 'color', color: fill.color!, opacity: fill.opacity })),
+          fills: paints,
           ...(stroke ? { stroke: { color: stroke.color, opacity: stroke.opacity, width: stroke.width,
             ...(stroke.capStart ? { cap: stroke.capStart } : {}) } } : {}),
         } });

@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
 import type { DesignBoxRowV1 } from '@lolly-tools/core';
 import { boxesToPenpotDoc, buildPenpotEntries, seededPenpotUuid, type BoxesToPenpotOptions, type PenpotDoc, type PenpotIrShape } from '../engine/src/penpot-file.ts';
-import { compileDesignDraw, compileDesignRow, type DrawShapeOp } from '../engine/src/design-draw.ts';
+import { compileDesignDraw, compileDesignRow, type DrawPaint, type DrawShapeOp } from '../engine/src/design-draw.ts';
 import { designDrawPenpot, isPenpotPrimitiveRow } from '../engine/src/design-draw-penpot.ts';
 import { makeGeomApi } from '../engine/src/geom-api.ts';
 
@@ -713,4 +713,176 @@ test('captured primitive facts do not reread early fields or enumerate the autho
     { ...good, opacity: -1 }, { ...good, opacity: 101 }, { ...good, rotation: Infinity },
   ]) assert.throws(() => compileDesignRow(row, { x: 0, y: 0 }, { ...options, penpotCompat: { fills: [], capture: bad } }), /captured primitive geometry/);
   assert.throws(() => compileDesignRow(row, { x: 0, y: 0 }, { ...options, penpotCompat: { fills: [], capture: { ...good, shapeKind: 'polygon' } } }), /legacy Penpot producer/);
+});
+
+test('native gradient operations retain endpoints, radial width, stop alpha and detached evaluation', () => {
+  const paints: DrawPaint[] = [
+    { kind: 'linear', x1: -0.25, y1: 0.125, x2: 1.25, y2: 0.875,
+      stops: [{ color: '#FF0000', opacity: 128 / 255, offset: 0 }, { color: '#0000ff', opacity: 1, offset: 1 }] },
+    { kind: 'radial', stops: [{ color: '#123456', opacity: 0, offset: 0.25 }, { color: '#abcdef', opacity: 1, offset: 0.75 }] },
+  ];
+  for (const paint of paints) {
+    const row = { id: paint.kind, kind: 'box', shape: 'rounded', radius: 50, x: 10.25, y: -0.75, w: 20.5, h: 10.75,
+      grad: paint.kind === 'linear' ? 'lin.srgb_45_ff000080-0_0000ff-100' : 'rad.srgb_0_12345600-25_abcdef-75', opacity: '42.5%', rot: 12.345 };
+    assert.equal(isPenpotPrimitiveRow(row, row.shape, true), true);
+    const supplied = { fills: [structuredClone(paint)] };
+    const op = compileDesignRow(row, { x: 0, y: 0 }, { semantics: 'penpot-compat', penpotCompat: supplied }) as DrawShapeOp;
+    const before = structuredClone(op), expected = designDrawPenpot(op);
+    row.grad = 'different'; row.radius = 1;
+    const suppliedPaint = supplied.fills[0]!;
+    assert.notEqual(suppliedPaint.kind, 'color');
+    if (suppliedPaint.kind !== 'color') { suppliedPaint.stops[0]!.color = '#ffffff'; suppliedPaint.stops.reverse(); }
+    assert.deepEqual(op, before, 'input mutations must not alter frozen stops');
+    assert.deepEqual(designDrawPenpot(op), expected);
+    const emitted = expected.fills![0]!.gradient!;
+    assert.deepEqual(emitted.stops, paint.kind === 'color' ? [] : paint.stops);
+    assert.equal(expected.opacity, 0.425, 'global opacity stays on the shape rather than changing stop alpha');
+    assert.equal(expected.radius, 50);
+    if (paint.kind === 'linear') assert.deepEqual([emitted.startX, emitted.startY, emitted.endX, emitted.endY], [-0.25, 0.125, 1.25, 0.875]);
+    else assert.deepEqual([emitted.startX, emitted.startY, emitted.endX, emitted.endY, emitted.width], [0.5, 0.5, 0.5, 1, 1]);
+    emitted.stops[0]!.offset = 1;
+    assert.deepEqual(op, before, 'emitted stops must not alias the evaluated stops');
+  }
+});
+
+test('gradient evaluation refuses malformed paints and retains legacy admission for unresolved gradients', () => {
+  const row = { id: 'gradient', kind: 'box', w: 40, h: 20, grad: 'lin.srgb_90_ff0000-0_0000ff-100' };
+  const paint: DrawPaint = { kind: 'linear', x1: 0, y1: 0.5, x2: 1, y2: 0.5,
+    stops: [{ color: '#ff0000', opacity: 1, offset: 0 }, { color: '#0000ff', opacity: 0.25, offset: 1 }] };
+  assert.equal(isPenpotPrimitiveRow(row), false, 'a present gradient without captured facts stays with the producer');
+  const op = compileDesignRow(row, { x: 0, y: 0 }, { semantics: 'penpot-compat', penpotCompat: { fills: [paint] } }) as DrawShapeOp;
+  const bad: DrawPaint[] = [
+    { ...paint, x1: NaN }, { ...paint, y2: Infinity }, { ...paint, stops: [] }, { ...paint, stops: [paint.stops[0]!] },
+    { ...paint, stops: [{ ...paint.stops[0]!, offset: -0.1 }, paint.stops[1]!] },
+    { ...paint, stops: [{ ...paint.stops[0]!, offset: Infinity }, paint.stops[1]!] },
+    { ...paint, stops: [{ ...paint.stops[0]!, opacity: 1.01 }, paint.stops[1]!] },
+    { ...paint, stops: [{ ...paint.stops[0]!, opacity: NaN }, paint.stops[1]!] },
+    { ...paint, stops: [{ ...paint.stops[0]!, color: 'var(--unresolved)' }, paint.stops[1]!] },
+  ];
+  for (const invalid of bad) {
+    assert.throws(() => compileDesignRow(row, { x: 0, y: 0 }, { semantics: 'penpot-compat', penpotCompat: { fills: [invalid] } }));
+    assert.throws(() => designDrawPenpot({ ...op, fills: [invalid] }));
+  }
+  const missingAlpha = structuredClone(paint);
+  Reflect.deleteProperty(missingAlpha.stops[0]!, 'opacity');
+  assert.throws(() => designDrawPenpot({ ...op, fills: [missingAlpha] }));
+  for (const fields of [{ clip: 'mask' }, { shadow: 'box' }, { image: 'picture' }, { text: 'Words' }, { kind: 'path', path: 'nodes' }]) {
+    assert.equal(isPenpotPrimitiveRow({ ...row, ...fields }, undefined, true), false, JSON.stringify(fields));
+  }
+});
+
+test('captured gradients do not reread authored paint or early geometry while emission remains detached', () => {
+  const row: DesignBoxRowV1 = { id: 'captured-gradient', kind: 'box', radius: 3 };
+  for (const key of ['grad', 'x', 'y', 'w', 'h', 'opacity', 'rot', 'shape', 'unrelated']) {
+    Object.defineProperty(row, key, { enumerable: true, get() { throw new Error(`unexpected row read: ${key}`); } });
+  }
+  const paint: DrawPaint = { kind: 'radial', stops: [{ color: '#123456', opacity: 0, offset: 0 }, { color: '#abcdef', opacity: 1, offset: 1 }] };
+  const capture = { geometry: { x: 10.25, y: -0.75, w: 20.5, h: 10.75 }, opacity: 42.5, rotation: 12.345, shapeKind: 'rounded' };
+  const op = compileDesignRow(row, { x: 2, y: 3 }, { semantics: 'penpot-compat', penpotCompat: { fills: [paint], capture } }) as DrawShapeOp;
+  const expected = designDrawPenpot(op);
+  paint.stops[0]!.opacity = 1; capture.geometry.x = 900; row.radius = 50;
+  assert.deepEqual(designDrawPenpot(op), expected);
+});
+
+test('complete gradient archives preserve the frozen producer and detect altered gradient semantics', () => {
+  const corpus = [
+    ...rows,
+    { id: 'linear', kind: 'box', name: 'Linear', shape: 'rounded', radius: 80, x: 120.25, y: 90.5, w: 230.75, h: 50.25,
+      grad: 'lin.srgb_33.75_FF000080-0_00ff0000-50_0000ff-100', bg: '#ffffff', opacity: 42.5, rot: 12.25, stroke: '#abcdef80', strokeW: 2.75 },
+    { id: 'radial', kind: 'box', name: 'Radial', shape: 'ellipse', x: 400.5, y: 90.25, w: 180.75, h: 70.5,
+      grad: 'rad.srgb_0_12345600-0_abcdef80-65_abcdef-100', opacity: 75 },
+  ];
+  const expected = legacy(corpus, options()), actual = boxesToPenpotDoc(corpus, options());
+  assert.deepEqual(actual, expected);
+  const expectedArchive = entries(expected);
+  assert.deepEqual(entries(actual), expectedArchive);
+  const gradient = flatShapes(actual).find(shape => shape.name === 'Linear')!.fills![0]!.gradient!;
+  assert.equal(gradient.type, 'linear');
+  assert.equal(gradient.stops[0]!.opacity, 128 / 255);
+  assert.equal(flatShapes(actual).find(shape => shape.name === 'Linear')!.fills!.length, 1, 'a valid gradient replaces the background');
+  for (const mutation of ['missing-gradient', 'moved-endpoint', 'reversed-stops', 'lost-alpha', 'radial-width']) {
+    const changed = structuredClone(expected);
+    const target = flatShapes(changed).find(shape => shape.name === (mutation === 'radial-width' ? 'Radial' : 'Linear'))!;
+    const fill = target.fills![0]!;
+    if (mutation === 'missing-gradient') target.fills = [];
+    if (mutation === 'moved-endpoint') fill.gradient!.startX += 0.01;
+    if (mutation === 'reversed-stops') fill.gradient!.stops.reverse();
+    if (mutation === 'lost-alpha') fill.gradient!.stops[0]!.opacity = 1;
+    if (mutation === 'radial-width') fill.gradient!.width = target.h / target.w;
+    assert.throws(() => assert.deepEqual(changed, expected), mutation);
+    assert.throws(() => assert.deepEqual(entries(changed), expectedArchive), mutation);
+  }
+});
+
+test('seeded gradient and malformed-spec corpus preserves every original archive byte', () => {
+  const corpus: Record<string, unknown>[] = [];
+  const shapes = ['', 'rect', 'rounded', 'pill', 'circle', 'ellipse'];
+  const malformed = ['', 'rad.srgb_0_ff0000-0', 'lin.srgb_90_zzz-0_abcdef-100', 'conic.srgb_0_ff0000-0_abcdef-100', 'not-a-gradient'];
+  for (let index = 0; index < 288; index++) {
+    corpus.push({ id: `gradient-${index}`, kind: index % 7 ? 'box' : '', shape: shapes[index % shapes.length],
+      x: index / 7 - 10.25, y: index / 11 - 0.125, w: ['0.5px', '50%', index / 3 + 1][index % 3], h: [0, -1, index / 9 + 1][index % 3],
+      radius: index / 5 - 3, rot: index / 13, opacity: `${index % 150}.5%`,
+      grad: index % 8 === 0 ? malformed[index % malformed.length]
+        : `${index % 2 ? 'lin' : 'rad'}.srgb_${index % 2 ? index / 7 - 300 : 0}_ABCDEF80-${index % 3 ? 0 : 120}_12345600-50_ffffff-100`,
+      bg: index % 2 ? '#33445580' : 'transparent', stroke: '#abcdef80', strokeW: index / 19,
+      strokeCap: ['square', 'round', ''][index % 3], hidden: index % 2 === 0 });
+  }
+  const before = structuredClone(corpus);
+  for (const row of corpus) assert.deepEqual(boxesToPenpotDoc([row], options()), legacy([row], options()), String(row.id));
+  const expected = legacy(corpus, options()), actual = boxesToPenpotDoc(corpus, options());
+  assert.deepEqual(actual, expected);
+  assert.deepEqual(entries(actual), entries(expected));
+  assert.deepEqual(corpus, before);
+});
+
+for (const phase of ['stroke', 'bind'] as const) test(`gradient facts retain pre-callback paint while later row reads remain live (${phase})`, () => {
+  const configured = (trace: string[]) => {
+    const box = { id: 'retained-gradient', kind: 'box', name: 'Retained gradient', x: 10.25, y: -0.75, w: 20.5, h: 10.75,
+      shape: 'rounded', radius: 50, opacity: 42.5, rot: 12.345, bg: 'var(--background)',
+      grad: 'lin.srgb_33.75_ff000080-0_0000ff-100', stroke: 'var(--stroke)', strokeW: 2 };
+    let changed = false;
+    const mutate = () => {
+      if (changed) return;
+      changed = true; trace.push('mutate:retained-gradient');
+      box.x = 900; box.w = 90; box.opacity = 99; box.rot = 90; box.radius = 3; box.shape = 'circle'; box.grad = '';
+    };
+    const opts: BoxesToPenpotOptions = { ...options(),
+      resolveColor(value) { trace.push(`resolve:${value}`); if (phase === 'stroke' && value === 'var(--stroke)') mutate(); return '#123456'; },
+      bindToken(value, kind) { trace.push(`bind:${kind}:${value}`); if (phase === 'bind') mutate(); return null; },
+    };
+    return { box, opts };
+  };
+  const oldTrace: string[] = [], newTrace: string[] = [], oldInput = configured(oldTrace), newInput = configured(newTrace);
+  const expected = legacy([oldInput.box], oldInput.opts), actual = boxesToPenpotDoc([newInput.box], newInput.opts);
+  assert.deepEqual(newTrace, oldTrace);
+  const shape = flatShapes(actual).find(item => item.name === 'Retained gradient')!;
+  assert.equal(shape.type, 'rect');
+  assert.deepEqual([shape.x, shape.y, shape.w, shape.h, shape.opacity, shape.rotation], [10.25, -0.75, 20.5, 10.75, 0.425, 12.345]);
+  assert.equal(shape.radius, phase === 'stroke' ? 3 : 50);
+  assert.equal(shape.fills![0]!.gradient!.stops[0]!.opacity, 128 / 255);
+  assert.deepEqual(actual, expected);
+  assert.deepEqual(entries(actual), entries(expected));
+});
+
+test('overflowing native gradient geometry retains the legacy producer even when a callback clears grad', () => {
+  for (const mutate of [false, true]) {
+    const configured = (trace: string[]) => {
+      const box = { id: 'overflow', kind: 'box', name: 'Overflow', w: Number.MAX_VALUE, h: Number.MAX_VALUE,
+        grad: 'lin.srgb_45_ff0000-0_0000ff-100', stroke: 'var(--stroke)', strokeW: 1 };
+      const opts: BoxesToPenpotOptions = { ...options(), resolveColor(value) {
+        trace.push(value);
+        if (mutate) box.grad = '';
+        return '#123456';
+      } };
+      return { box, opts };
+    };
+    const oldTrace: string[] = [], newTrace: string[] = [], oldInput = configured(oldTrace), newInput = configured(newTrace);
+    const expected = legacy([oldInput.box], oldInput.opts);
+    const gradient = flatShapes(expected).find(shape => shape.name === 'Overflow')!.fills![0]!.gradient!;
+    assert.ok([gradient.startX, gradient.startY, gradient.endX, gradient.endY].some(value => !Number.isFinite(value)), 'the fixture reaches the original arithmetic overflow');
+    const actual = boxesToPenpotDoc([newInput.box], newInput.opts);
+    assert.deepEqual(newTrace, oldTrace);
+    assert.deepEqual(actual, expected);
+    assert.deepEqual(entries(actual), entries(expected), 'the writer retains its original safe-number handling');
+  }
 });
