@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import type { Page } from 'playwright-core';
+import { errors, type Page } from 'playwright-core';
 import { packPng } from '../engine/src/png.ts';
 import { packWav } from '../engine/src/wav.ts';
 import { closeBrowser, getBrowser } from '../packages/node-shell/src/browsers.ts';
@@ -128,14 +128,44 @@ async function mediaPersistenceRead({ expectedIds, durable }: {
   return { navigationSlot: slot, diagnostic };
 }
 
-const savedRows = async (page: Page, ids: unknown[]): Promise<MediaPersistenceRead> => {
-  const result = await page.waitForFunction(mediaPersistenceRead, { expectedIds: ids, durable: true });
-  try {
-    return await result.jsonValue() as MediaPersistenceRead;
-  } finally {
-    await result.dispose();
-  }
-};
+function pollMediaPersistence(read: () => Promise<MediaPersistenceRead | false>): Promise<MediaPersistenceRead> {
+  return new Promise((resolve, reject) => {
+    let stopped = false;
+    let next: ReturnType<typeof setTimeout> | undefined;
+    let deadline: ReturnType<typeof setTimeout> | undefined;
+    const finish = (settle: () => void) => {
+      if (stopped) return;
+      stopped = true;
+      clearTimeout(deadline);
+      clearTimeout(next);
+      settle();
+    };
+    const fail = (error: unknown) => finish(() => reject(error));
+    const poll = () => {
+      if (stopped) return;
+      Promise.resolve().then(read).then((value) => {
+        if (stopped) return;
+        if (value === false) {
+          next = setTimeout(poll, 100);
+          return;
+        }
+        if (!value || typeof value !== 'object' || Array.isArray(value)
+          || typeof value.navigationSlot !== 'string' || !value.diagnostic
+          || !Array.isArray(value.diagnostic.durable?.ids)) {
+          fail(new Error('The durable media query returned an invalid snapshot.'));
+          return;
+        }
+        finish(() => resolve(value));
+      }, fail);
+    };
+    // Async reads must finish and match, including when the page query stalls.
+    deadline = setTimeout(() => fail(new errors.TimeoutError('Durable media rows did not match within 30000ms.')), 30_000);
+    poll();
+  });
+}
+
+const savedRows = (page: Page, ids: unknown[]): Promise<MediaPersistenceRead> =>
+  pollMediaPersistence(() => page.evaluate(mediaPersistenceRead, { expectedIds: ids, durable: true }));
 
 test('dropping image, video and audio adds objects, undoes together, and reopens with their media', {
   skip: origin ? false : 'no browser origin (set LOLLY_EXPORT_TEST_URL to a local web shell)',
