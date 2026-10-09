@@ -3,8 +3,9 @@
  * org/index.ts - account and access close-out (plan 75 G5, G10, G18, WEBGATE).
  *
  * Pinned, against a stubbed control plane in jsdom:
- *  - the header account chip: a member's chip in the header cluster, Sign in for a
- *    visitor on an open workspace, none behind the gate and none for a guest;
+ *  - account actions share the existing profile menu: one profile control and
+ *    Settings row, Sign in for visitors, none behind the gate or for a guest;
+ *  - a view without a profile control retains the standalone account chip;
  *  - the console address the chip uses is absolute, on the workspace;
  *  - Sign out on all devices posts to its own route, forgets the member on this device
  *    when it worked, and changes nothing when the route is missing or refuses;
@@ -17,7 +18,7 @@
  *  - missing or rejected sign-in links do not let a managed gate mount the app;
  *  - authenticated backups remain available through the existing Settings exporter.
  *
- * Run directly:  node --test shells/web/src/org/account-access.test.ts
+ * Run directly:  node --import ./tests/css-stub.mjs --test shells/web/src/org/account-access.test.ts
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -72,7 +73,9 @@ const { initOrg, initOrgWithAuth, orgSession, orgConsoleUrl, signOutEverywhere, 
 const { _setBaseForTests } = await import('../lib/instance.ts');
 const { setHostRef } = await import('../lib/host-ref.ts');
 const { shareSectionBuilders, _clearShareSectionsForTests } = await import('../lib/share-sections.ts');
-const { _clearAccountSlotForTests } = await import('../lib/account-slot.ts');
+const { accountSlotRegistered, _clearAccountSlotForTests } = await import('../lib/account-slot.ts');
+const { attachProfileMenu } = await import('../components/profile-menu.ts');
+let detachProfileMenu: (() => void) | null = null;
 const durable = await import('./team-origin-durable.ts');
 test.beforeEach(() => {
   durable._setDurableBackendForTests({
@@ -80,7 +83,7 @@ test.beforeEach(() => {
     all: async () => [], clear: async () => {},
   });
 });
-test.afterEach(() => durable._setDurableBackendForTests(null));
+test.afterEach(() => { detachProfileMenu?.(); detachProfileMenu = null; durable._setDurableBackendForTests(null); });
 
 const tick = (): Promise<void> => new Promise((r) => setTimeout(r, 0));
 async function until(check: () => boolean, what: string): Promise<void> {
@@ -92,6 +95,8 @@ async function settle(): Promise<void> { for (let i = 0; i < 20; i++) await tick
 const HEADER = '<div class="gallery-topbar"><div class="gallery-topright"><a class="profile-link" href="#/settings"></a></div></div>';
 
 function reset(): void {
+  detachProfileMenu?.();
+  detachProfileMenu = null;
   _resetOrgForTests();
   _clearShareSectionsForTests();
   _clearAccountSlotForTests();
@@ -120,17 +125,37 @@ function controlPlane(opts: { mode: 'open' | 'gated'; session?: 'member' | 'gues
 
 const chipIn = (): HTMLElement | null => document.querySelector('.gallery-topright [data-account-slot] .org-account-chip');
 
-// ── Account chip ──────────────────────────────────────────────────────────────
+function openProfileMenu(): HTMLElement {
+  const trigger = document.querySelector<HTMLElement>('.gallery-topright > .profile-link')!;
+  detachProfileMenu = attachProfileMenu(trigger, { profile: { get: async () => ({}), set: async () => {} } });
+  trigger.click();
+  const menu = document.querySelector<HTMLElement>('.profile-menu');
+  assert.ok(menu, 'the existing profile control opens its menu');
+  assert.equal(document.querySelectorAll('.gallery-topright > .profile-link').length, 1);
+  assert.equal(chipIn(), null, 'no duplicate account control beside the profile');
+  assert.equal(menu.querySelectorAll('[data-act="settings"]').length, 1, 'Settings remains reachable once');
+  assert.equal(menu.querySelector('[data-account-act="signins"]'), null, 'linked sign-ins remain in Settings');
+  return menu;
+}
 
-test('a member gets the account chip in the header', async () => {
+// ── Account menu and standalone fallback ──────────────────────────────────────
+
+test('a member gets account actions in the existing profile menu', async () => {
   reset();
   controlPlane({ mode: 'open', session: 'member' });
   await initOrg();
-  await until(() => !!chipIn(), 'the chip');
-  assert.equal(chipIn()!.dataset.accountChip, 'member');
-  assert.equal(chipIn()!.getAttribute('aria-label'), 'Signed in to Acme as Ana Ruiz');
+  await until(accountSlotRegistered, 'the account menu registration');
+  const menu = openProfileMenu();
+  assert.equal(menu.querySelector('.org-account-menu-head')?.textContent, 'Acme');
+  assert.equal(menu.querySelector('.org-account-menu-line')?.textContent, 'ana@acme.com');
+  for (const action of ['inbox', 'projects', 'signout', 'everywhere']) assert.ok(menu.querySelector(`[data-account-act="${action}"]`));
+  const session = orgSession();
+  assert.ok(session?.kind === 'member');
+  assert.equal(session.user.name, 'Ana Ruiz');
   _resetOrgForTests();
-  assert.equal(document.querySelector('[data-account-slot]'), null, 'a reset takes the chip away');
+  assert.equal(accountSlotRegistered(), false);
+  assert.equal(menu.querySelector('[data-account-act]'), null, 'a reset removes the account actions');
+  assert.ok(document.querySelector('.profile-link'), 'the existing profile control stays');
 });
 
 test('a visitor on an open workspace gets Sign in, with the account picker after a sign-out', async () => {
@@ -138,11 +163,31 @@ test('a visitor on an open workspace gets Sign in, with the account picker after
   store.set('lolly:signed-out:same-origin', '1');
   controlPlane({ mode: 'open', session: 'none' });
   await initOrg();
-  await until(() => !!chipIn(), 'the chip');
-  const link = chipIn() as HTMLAnchorElement;
+  await until(accountSlotRegistered, 'the account menu registration');
+  const menu = openProfileMenu();
+  const link = menu.querySelector<HTMLAnchorElement>('[data-account-chip="visitor"]');
+  assert.ok(link);
   assert.equal(link.dataset.accountChip, 'visitor');
   assert.equal(link.textContent, 'Sign in');
   assert.equal(link.getAttribute('href'), `/login?returnTo=${encodeURIComponent('/#/p')}&prompt=select_account`);
+  assert.equal(menu.querySelector('[data-account-act]'), null, 'visitors get no member actions');
+});
+
+test('views without a profile control retain the member chip or visitor Sign in', async () => {
+  for (const session of ['member', 'none'] as const) {
+    reset();
+    document.getElementById('view')!.innerHTML = '<div class="gallery-topright"></div>';
+    controlPlane({ mode: 'open', session });
+    await initOrg();
+    await until(() => !!chipIn(), 'the standalone account chip');
+    const chip = chipIn()!;
+    assert.equal(chip.dataset.accountChip, session === 'member' ? 'member' : 'visitor');
+    if (session === 'member') assert.equal(chip.getAttribute('aria-label'), 'Signed in to Acme as Ana Ruiz');
+    else {
+      assert.equal(chip.textContent, 'Sign in');
+      assert.equal(chip.getAttribute('href'), `/login?returnTo=${encodeURIComponent('/#/p')}`);
+    }
+  }
 });
 
 test('no chip behind the gate, and none for a guest', async () => {
@@ -152,11 +197,13 @@ test('no chip behind the gate, and none for a guest', async () => {
   assert.equal(gated?.gate, true);
   await settle();
   assert.equal(document.querySelector('[data-account-slot]'), null);
+  assert.equal(accountSlotRegistered(), false);
   reset();
   controlPlane({ mode: 'open', session: 'guest' });
   await initOrg();
   await settle();
   assert.equal(document.querySelector('[data-account-slot]'), null);
+  assert.equal(accountSlotRegistered(), false);
 });
 
 test('the console address is absolute on the workspace, and only for an admin or owner', async () => {
