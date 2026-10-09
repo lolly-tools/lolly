@@ -5,6 +5,7 @@ import {
   embedContentPlugins, injectModelsBase, resolveEmbedMode,
 } from '../tauri-shared/vite-embed.mjs';
 import { tauriCspMeta } from '../tauri-shared/vite-csp.mjs';
+import { webGpuProductProbe } from '../tauri-shared/webgpu-product-probe.mjs';
 // Borrowed from the web shell's config, which owns the format. See the plugin list.
 import { precacheManifest, APP_ASSETS_DIR } from '../web/vite.config.js';
 
@@ -92,6 +93,7 @@ export default defineConfig({
     // templates included - and the signed digests no longer match.
     // Policy + rationale: ../tauri-shared/vite-csp.mjs.
     tauriCspMeta(),
+    webGpuProductProbe({ root: repoRoot }),
     injectModelsBase(MODELS_HOST),
     jsToTsFallback(),
     overrideBridgeModules({

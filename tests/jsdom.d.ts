@@ -13,6 +13,7 @@ declare module 'jsdom' {
     sendTo(console: Console): this;
   }
   export interface JSDOMOptions {
+    contentType?: string;
     runScripts?: 'dangerously' | 'outside-only';
     beforeParse?: (window: Window & typeof globalThis) => void;
     virtualConsole?: VirtualConsole;

@@ -7,6 +7,9 @@ edition = "2021"
 name = "lolly_mobile_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
+[features]
+webgpu-probe = []
+
 [build-dependencies]
 tauri-build = { version = "2.7", features = [] }
 

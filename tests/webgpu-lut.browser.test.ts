@@ -78,7 +78,7 @@ test('WebGPU LUT grading and photo baking conform to the portable reference', { 
       : 'WebGPU browser qualification requires the selected browser to launch.'); return;
   }
   t.after(() => browser.close());
-  const product = engine === 'tauri-product-macos' ? (browser as ProductQualificationBrowser).productQualification : null;
+  const product = (engine === 'tauri-product-macos' || engine === 'tauri-product-ios') ? (browser as ProductQualificationBrowser).productQualification : null;
   let sources: Record<string, unknown>, fixtureUrl = PRODUCT_PAGE;
   if (product) sources = product.sources;
   else {

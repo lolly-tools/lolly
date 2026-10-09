@@ -1,7 +1,10 @@
-mod site_fetch;
-mod remote_fetch;
 #[path = "../../../tauri-shared/tauri-embedded-assets.rs"]
 mod embedded_assets;
+mod remote_fetch;
+mod site_fetch;
+#[cfg(feature = "webgpu-probe")]
+#[path = "../../../tauri-shared/webgpu-product-broker.rs"]
+mod webgpu_qualification;
 
 use std::collections::BTreeMap;
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -206,9 +209,27 @@ fn mobile_take_open_file(
     events.files.lock().ok()?.remove(&token)
 }
 
+fn mobile_commands<R: tauri::Runtime>(
+    normal: impl Fn(tauri::ipc::Invoke<R>) -> bool + Send + Sync + 'static,
+) -> impl Fn(tauri::ipc::Invoke<R>) -> bool + Send + Sync + 'static {
+    move |invoke| {
+        #[cfg(feature = "webgpu-probe")]
+        if invoke
+            .message
+            .command()
+            .starts_with("webgpu_qualification_")
+        {
+            return webgpu_qualification::route(invoke);
+        }
+        normal(invoke)
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let mut context = tauri::generate_context!();
+    #[cfg(feature = "webgpu-probe")]
+    webgpu_qualification::prepare(&context.config().identifier, false);
     let windows = context.config().app.windows.clone();
     for window in &mut context.config_mut().app.windows {
         window.create = false;
@@ -222,13 +243,15 @@ pub fn run() {
         // the first-party redirect rule and the byte caps itself; the deep-link
         // queue is the second. Remote HTTP is a bounded command rather than a
         // webview-visible plugin; everything else is fs or the shared bridge.
-        .invoke_handler(tauri::generate_handler![
+        .invoke_handler(mobile_commands(tauri::generate_handler![
             site_fetch::site_fetch,
             remote_fetch::remote_fetch,
             mobile_poll_events,
             mobile_take_open_file
-        ])
+        ]))
         .setup(move |app| {
+            #[cfg(feature = "webgpu-probe")]
+            webgpu_qualification::setup(app)?;
             for config in windows.iter().filter(|window| window.create) {
                 tauri::WebviewWindowBuilder::from_config(app, config)?
                     .on_web_resource_request(embedded_assets::correct)

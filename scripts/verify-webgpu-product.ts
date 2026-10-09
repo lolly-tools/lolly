@@ -18,6 +18,7 @@ const hash = (bytes: Uint8Array | string): string => createHash('sha256').update
 const SOURCE_FILES = [
   'tests/webgpu-lut.browser.test.ts', 'tests/helpers/lut-cases.ts', 'tests/helpers/webgpu-probe-entry.ts',
   'tests/helpers/webgpu-product-receiver.ts', 'tests/helpers/webgpu-browser.ts',
+  'shells/tauri-shared/webgpu-product-probe.mjs', 'shells/tauri-shared/webgpu-product-broker.rs',
   'shells/tauri-desktop/webgpu-product-probe.mjs', 'shells/tauri-desktop/vite.config.js',
   'shells/tauri-desktop/src-tauri/Cargo.toml', 'shells/tauri-desktop/src-tauri/Cargo.lock',
   'shells/tauri-desktop/src-tauri/src/lib.rs', 'shells/tauri-desktop/src-tauri/src/presentation_windows.rs',

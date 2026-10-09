@@ -148,6 +148,12 @@ pnpm run dev:frontend   # just vite, in a desktop browser, with the mobile overr
 
 ## Build it
 
+For the full bundled product on a physical iPhone, use the
+[qualification recipe](WEBGPU-QUALIFICATION.md). Its UUID app preserves an
+installed Lolly app and uses existing development signing. Prepare, build and
+device use are separate explicit steps; no simulator result substitutes for a
+physical qualification.
+
 ```bash
 pnpm run build:android   # build:frontend then tauri android build
 pnpm run build:ios       # build:frontend then tauri ios build

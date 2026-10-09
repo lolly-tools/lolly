@@ -2,17 +2,19 @@
 /** Explicit qualification targets; test-engine WebKit is never labelled Safari or WKWebView. */
 import { chromium, firefox, webkit } from 'playwright';
 import { localReceiverBrowser, type QualificationBrowser } from './webgpu-local-receiver.ts';
+import { iosProductReceiverBrowser } from './webgpu-product-ios-receiver.ts';
 import { productReceiverBrowser } from './webgpu-product-receiver.ts';
 
-export type WebGpuBrowserEngine = 'chromium' | 'firefox' | 'webkit' | 'safari-local' | 'firefox-local' | 'tauri-macos' | 'tauri-windows' | 'tauri-linux' | 'ios-simulator' | 'android-webview' | 'tauri-product-macos';
+export type WebGpuBrowserEngine = 'chromium' | 'firefox' | 'webkit' | 'safari-local' | 'firefox-local' | 'tauri-macos' | 'tauri-windows' | 'tauri-linux' | 'ios-simulator' | 'android-webview' | 'tauri-product-macos' | 'tauri-product-ios';
 export function webGpuBrowserEngine(value = process.env.LOLLY_WEBGPU_BROWSER): WebGpuBrowserEngine {
   if (value === undefined) return 'chromium';
-  if (value === 'chromium' || value === 'firefox' || value === 'webkit' || value === 'safari-local' || value === 'firefox-local' || value === 'tauri-macos' || value === 'tauri-windows' || value === 'tauri-linux' || value === 'ios-simulator' || value === 'android-webview' || value === 'tauri-product-macos') return value;
+  if (value === 'chromium' || value === 'firefox' || value === 'webkit' || value === 'safari-local' || value === 'firefox-local' || value === 'tauri-macos' || value === 'tauri-windows' || value === 'tauri-linux' || value === 'ios-simulator' || value === 'android-webview' || value === 'tauri-product-macos' || value === 'tauri-product-ios') return value;
   throw new Error(`Unknown WebGPU qualification browser: ${value}`);
 }
 
 export async function launchWebGpuBrowser(): Promise<QualificationBrowser> {
   const engine = webGpuBrowserEngine();
+  if (engine === 'tauri-product-ios') return iosProductReceiverBrowser();
   if (engine === 'tauri-product-macos') return productReceiverBrowser();
   if (engine === 'safari-local' || engine === 'firefox-local' || engine === 'tauri-macos' || engine === 'tauri-windows' || engine === 'tauri-linux' || engine === 'ios-simulator' || engine === 'android-webview') return localReceiverBrowser(engine);
   const browser = engine === 'firefox' ? await firefox.launch({ headless: true,

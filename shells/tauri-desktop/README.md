@@ -62,6 +62,11 @@ node scripts/verify-webgpu-product.ts --run --output=plans/295-validation/my-mac
 
 These builds are unsigned and marked **not for release**. They reject release tags, retain the native plugin version check and withhold signing credentials. The runner requires its exact recorded source and binary before launch. A working-tree development build needs an explicit `--working-tree` and records its source differences. Failures remain failures; there is no software GPU fallback or looser numerical band. A successful run qualifies only the recorded Mac/runtime/source combination. It does not close the other physical target checks or publish the supported-environment table required for a frontend release.
 
+The [physical iPhone product recipe](../tauri-mobile/WEBGPU-QUALIFICATION.md)
+reuses this bounded probe and maintained corpus with the mobile shell's normal
+scene, storage and custom protocol. It requires separate development signing
+and an explicit device-use step.
+
 ## How the bridge gets composed: build-time module substitution
 
 This is the single most confusing thing about this directory, and until now it was explained only inside the override files themselves.

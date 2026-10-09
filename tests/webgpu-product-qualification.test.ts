@@ -7,11 +7,14 @@ import { fileURLToPath } from 'node:url';
 import { runInNewContext } from 'node:vm';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
+import { EventEmitter } from 'node:events';
+import { PassThrough } from 'node:stream';
+import type { ChildProcessWithoutNullStreams } from 'node:child_process';
 import { build } from 'vite';
 import { productProbeIdentity, productProbeOptions, productProbeSource, webGpuProductProbe } from '../shells/tauri-desktop/webgpu-product-probe.mjs';
 import { assertProductBuildSource, assertProductCsp, assertProductSourcesUnchanged, isGeneratedInfoCss, markProductBundleRoot, productConfig, productEnvironment, productExecutableName, productSourceReceipt } from '../scripts/verify-webgpu-product.ts';
 import { assertNoMarkedBuild, MARKER_FILE } from '../scripts/webgpu-qualification.ts';
-import { PRODUCT_COMMAND_LIMIT, PRODUCT_REPLY_LIMIT, ProductProbeProtocol, decodeProductMessage, isProductUrl } from './helpers/webgpu-product-receiver.ts';
+import { PRODUCT_COMMAND_LIMIT, PRODUCT_DIAGNOSTIC_LIMIT, PRODUCT_PAGE, PRODUCT_REPLY_LIMIT, PRODUCT_SOURCE_PREFIX_BYTES, ProductProbeProtocol, decodeProductMessage, isProductUrl, productDiagnosticRecorder, productReceiverBrowser } from './helpers/webgpu-product-receiver.ts';
 import { TAURI_CSP, tauriCspMeta } from '../shells/tauri-shared/vite-csp.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
@@ -188,6 +191,84 @@ test('protocol rejects source/byte budgets before consuming sequence IDs', async
   const valid = protocol.request('() => 1');
   assert.equal(JSON.parse(writes[0]!).id, 1);
   protocol.receive(line({ event: 'reply', runId, reply: { id: 1, value: 1 } })); assert.equal(await valid, 1);
+});
+
+test('the unchanged command timeout retains pending ID, phase and bounded source facts without arguments', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const writes: string[] = [], failures: Error[] = [];
+  const protocol = new ProductProbeProtocol(runId, value => writes.push(value), () => {}, error => failures.push(error));
+  protocol.receive(line(ready)); protocol.setPhase('tool-wait');
+  const source = '() => ' + '🦎'.repeat(150), argument = 'argument-must-not-enter-host-diagnostics';
+  const pending = protocol.request(source, argument);
+  const rejected = assert.rejects(pending, error => {
+    assert.match(String(error), /within 30 seconds/); assert.match(String(error), /"id":1/); assert.match(String(error), /"phase":"tool-wait"/);
+    assert.match(String(error), new RegExp(createHash('sha256').update(source).digest('hex')));
+    assert.ok(!String(error).includes(argument)); return true;
+  });
+  const snapshot = protocol.diagnostic();
+  assert.ok(snapshot.pendingCommand); assert.equal(snapshot.pendingCommand.sourceBytes, Buffer.byteLength(source));
+  assert.ok(Buffer.byteLength(snapshot.pendingCommand.sourcePrefix) <= PRODUCT_SOURCE_PREFIX_BYTES);
+  snapshot.pendingCommand.id = 900; assert.equal(protocol.diagnostic().pendingCommand?.id, 1);
+  protocol.setPhase('closing'); assert.equal(protocol.diagnostic().phase, 'tool-wait');
+  t.mock.timers.tick(29_999); assert.equal(failures.length, 0);
+  t.mock.timers.tick(1); await rejected; assert.equal(failures.length, 1);
+  assert.equal(protocol.diagnostic().pendingCommand, null);
+  assert.deepEqual(JSON.parse(writes[0]!), { id: 1, source, arg: argument, close: false });
+});
+
+test('host diagnostic retention and encoded logs have strict count and UTF-8 byte bounds', () => {
+  const records: Array<Record<string, unknown>> = [], logs: string[] = [], record = productDiagnosticRecorder(records, line => logs.push(line));
+  const entry = { event: 'protocol-failure' as const, phase: 'probe-load' as const, message: '\u0001'.repeat(10000),
+    pendingCommand: { id: 12, phase: 'probe-load' as const, sourceSha256: 'a'.repeat(64), sourceBytes: 6000, sourcePrefix: '🦎'.repeat(1000), args: 'private-argument' },
+    args: 'private-argument' };
+  for (let i = 0; i < PRODUCT_DIAGNOSTIC_LIMIT + 10; i++) record(entry);
+  assert.equal(records.length, PRODUCT_DIAGNOSTIC_LIMIT); assert.equal(logs.length, PRODUCT_DIAGNOSTIC_LIMIT);
+  for (const [index, row] of records.entries()) {
+    assert.ok(Buffer.byteLength(String(row.message)) <= 2048);
+    const command = row.pendingCommand as { sourcePrefix: string };
+    assert.ok(Buffer.byteLength(command.sourcePrefix) <= PRODUCT_SOURCE_PREFIX_BYTES);
+    assert.ok(Buffer.byteLength(logs[index]!) < 16 * 1024); assert.ok(!logs[index]!.includes('private-argument'));
+    assert.deepEqual(Object.keys(row).sort(), ['event', 'message', 'pendingCommand', 'phase']);
+  }
+});
+
+test('iOS transport startup records each host phase and identifies a pending tool wait in report and log', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const logs: string[] = [];
+  t.mock.method(process.stderr, 'write', (chunk: string | Uint8Array) => { logs.push(String(chunk)); return true; });
+  const parent = resolve(root, 'plans/295-validation/product-probe-development'); await mkdir(parent, { recursive: true });
+  const fixture = await mkdtemp(resolve(parent, 'host-diagnostics-'));
+  const binary = resolve(fixture, 'owned-binary'), receipt = resolve(fixture, 'environment.json');
+  const sourceFacts = { sourceSha: 'a'.repeat(40) };
+  await writeFile(binary, 'owned host fixture');
+  await writeFile(receipt, JSON.stringify({ version: 1, runId, identifier: ready.identifier, binary,
+    binarySha256: createHash('sha256').update('owned host fixture').digest('hex'), sources: sourceFacts }));
+  const child = Object.assign(new EventEmitter(), { stdin: new PassThrough(), stdout: new PassThrough(), stderr: new PassThrough(), exitCode: null as number | null, signalCode: null });
+  const commands: Array<{ id: number; source: string }> = [];
+  child.stdin.on('data', bytes => {
+    const command = JSON.parse(String(bytes)); commands.push(command);
+    if (command.source.includes("document.querySelector('#tool-canvas svg')")) return;
+    const value = command.source.includes('await probe.load()') ? true : command.source.includes('expectedCsp =>')
+      ? { origin: 'tauri://localhost', url: ready.url, csp: TAURI_CSP, webgpu: 'ready' } : 'ready';
+    child.stdout.write(line({ event: 'reply', runId, reply: { id: command.id, value } }) + '\n');
+  });
+  const browser = productReceiverBrowser({ ...env, LOLLY_WEBGPU_PRODUCT_BINARY: binary, LOLLY_WEBGPU_PRODUCT_RECEIPT: receipt }, {
+    platform: 'ios', launch() { queueMicrotask(() => child.stdout.write(line({ ...ready, os: 'ios' }) + '\n')); return child as unknown as ChildProcessWithoutNullStreams; },
+    runtime: row => 'WKWebView ' + row.runtime,
+    async close() { child.exitCode = 0; child.emit('exit', 0); },
+  });
+  try {
+    const page = await browser.newPage(), pending = page.goto(PRODUCT_PAGE);
+    const rejected = assert.rejects(pending, /"phase":"tool-wait"/);
+    for (let i = 0; i < 20 && commands.length < 4; i++) await new Promise(resolve => setImmediate(resolve));
+    assert.equal(commands.length, 4); t.mock.timers.tick(30_000); await rejected;
+    const rows = browser.productQualification.startup;
+    assert.deepEqual(rows.filter(row => row.event === 'startup-phase').map(row => row.phase), ['native-handshake', 'onboarding-poll', 'csp', 'probe-load', 'tool-wait']);
+    const failure = rows.find(row => row.event === 'protocol-failure'); assert.ok(failure);
+    assert.equal(failure.phase, 'tool-wait'); assert.equal((failure.pendingCommand as { id: number }).id, 4);
+    assert.match(logs.join(''), /LOLLY_WEBGPU_PRODUCT_DIAGNOSTIC/); assert.match(logs.join(''), /"id":4/);
+    assert.deepEqual(browser.productQualification.sources, sourceFacts);
+  } finally { await browser.close(); child.stdin.destroy(); child.stdout.destroy(); child.stderr.destroy(); await rm(fixture, { recursive: true, force: true }); }
 });
 
 test('a replay, malformed reply or native failure closes the protocol', async () => {

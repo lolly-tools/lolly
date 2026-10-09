@@ -53,18 +53,20 @@ test('every owned desktop window constructor attaches the resource callback', ()
 
 test('mobile defers automatic creation and preserves the configured window fields', () => {
   const mobile = read('shells/tauri-mobile/src-tauri/src/lib.rs');
-  assert.match(
-    mobile,
-    /let mut context = tauri::generate_context!\(\);\s*let windows = context\.config\(\)\.app\.windows\.clone\(\);/
-  );
+  const prepareAndClone = /let mut context = tauri::generate_context!\(\);\s*#\[cfg\(feature = "webgpu-probe"\)\]\s*webgpu_qualification::prepare\(&context\.config\(\)\.identifier, false\);\s*let windows = context\.config\(\)\.app\.windows\.clone\(\);/;
+  assert.match(mobile, prepareAndClone);
   assert.match(
     mobile,
     /for window in &mut context\.config_mut\(\)\.app\.windows \{\s*window\.create = false;/
   );
-  assert.match(
-    mobile,
-    /\.setup\(move \|app\| \{\s*for config in windows\.iter\(\)\.filter\(\|window\| window\.create\) \{\s*tauri::WebviewWindowBuilder::from_config\(app, config\)\?\s*\.on_web_resource_request\(embedded_assets::correct\)\s*\.build\(\)\?;/
-  );
+  const setupAndCreate = /\.setup\(move \|app\| \{\s*#\[cfg\(feature = "webgpu-probe"\)\]\s*webgpu_qualification::setup\(app\)\?;\s*for config in windows\.iter\(\)\.filter\(\|window\| window\.create\) \{\s*tauri::WebviewWindowBuilder::from_config\(app, config\)\?\s*\.on_web_resource_request\(embedded_assets::correct\)\s*\.build\(\)\?;/;
+  assert.match(mobile, setupAndCreate);
+  // Only these feature-gated calls may separate the normal configuration steps.
+  assert.doesNotMatch(mobile.replace('webgpu_qualification::prepare', 'arbitrary::prepare'), prepareAndClone);
+  assert.doesNotMatch(mobile.replace('webgpu_qualification::setup(app)?;', 'webgpu_qualification::setup(app)?; arbitrary();'), setupAndCreate);
+  for (const pattern of [prepareAndClone, setupAndCreate]) {
+    assert.doesNotMatch(mobile.replaceAll('#[cfg(feature = "webgpu-probe")]', ''), pattern);
+  }
   assert.match(mobile, /\.build\(context\)/);
   assert.doesNotMatch(mobile, /WebviewWindowBuilder::new\(/);
 });
