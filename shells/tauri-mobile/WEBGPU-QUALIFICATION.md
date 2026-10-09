@@ -67,14 +67,25 @@ argument hash, a bounded operation classification and fixed diagnostic flag and
 query-selector names. It records no source bytes, compiler argument values or
 environment dump.
 
-The verifier permits a nonzero result only for a precisely recognized,
-input-free information query. Compilation and unclassified calls must succeed;
-the physical product witness requires an actual Rust source input and owned
-output, rather than a print or help query. Missing operation evidence or an
-unclassified failure stops verification. Inspect the exact recorded operation
-before preparing another attempt; old records cannot be retroactively treated
-as successful queries. An unsigned archive alone does not establish a signed
-app, physical runtime or release qualification.
+The verifier permits a nonzero result for a precisely recognized, input-free
+information query. It also permits ordinary exit one for an attested capability
+probe from the pinned proc-macro2, anyhow or thiserror build scripts. These
+scripts deliberately try unstable Rust features and select a fallback when the
+probe fails. Recognition requires the exact package version and Cargo lock
+checksum, build-script and probe-source hashes, package context, argument
+sequence and owned probe output. Those source facts are captured before the
+compiler runs and checked again after it exits. Evidence retains the actual
+exit status; a failed probe is not reported as a successful compilation.
+
+Normal compilation and unclassified calls must succeed. The physical product
+witness requires an actual Rust source input and owned output, rather than a
+query or capability probe; the complete native build and Xcode archive must
+also succeed. Missing operation evidence, source changes or an unknown failure
+stop verification. Dependency upgrades require a reviewed update to the finite
+probe definitions. Inspect the exact recorded operation before preparing
+another attempt; old records cannot be retrospectively attested. An unsigned
+archive alone does not establish a signed app, physical runtime or release
+qualification.
 
 The maintained archive policy is bound to Tauri CLI `2.12.1` and its locked
 `cargo-mobile2 0.22.5`. Their archive path injects provisioning flags even for an

@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { productProbeIdentity } from '../../shells/tauri-shared/webgpu-product-probe.mjs';
 import { requireSourceSha, sha256 } from './webgpu-ios-product.ts';
 import { IOS_BUILD_MS, processFacts, runOwnedBuild } from './webgpu-ios-process.ts';
+import { observeCapabilityProbe, validateCapabilityProbe, type IosCapabilityProbe } from './webgpu-ios-probes.ts';
 
 const modulePath = fileURLToPath(import.meta.url);
 export const IOS_BUILD_PROVISIONING_FLAGS = ['-allowProvisioningUpdates'] as const;
@@ -22,7 +23,7 @@ export interface IosObjectCopyTools {
 export interface IosBuildGuard {
   version: 1; repo: string; output: string; runId: string; sourceSha: string; deadline: number;
   toolchain: string; rustc: ExecutableIdentity; cargo: ExecutableIdentity; rustdoc: ExecutableIdentity; xcode: ExecutableIdentity;
-  helperSha256: string; processHelperSha256: string; workspace: string; archive: string; target: string; wrapperBin: string;
+  helperSha256: string; processHelperSha256: string; probeHelperSha256: string; workspace: string; archive: string; target: string; wrapperBin: string;
   compilerWrapper: string; leases: string; compilerRecords: string; path: string;
   protectedGroup: number;
   objectCopyTools: IosObjectCopyTools;
@@ -120,6 +121,7 @@ export async function prepareIosBuildGuard(repo: string, output: string, runId: 
   const guard: IosBuildGuard = { version: 1, repo, output, runId, sourceSha, toolchain, rustc, cargo, rustdoc, deadline: Date.now() + IOS_BUILD_MS,
     xcode: await executable(command('/usr/bin/xcrun', ['--find', 'xcodebuild'])), helperSha256: sha256(await readFile(modulePath)),
     processHelperSha256: sha256(await readFile(join(repo, 'scripts/lib/webgpu-ios-process.ts'))),
+    probeHelperSha256: sha256(await readFile(join(repo, 'scripts/lib/webgpu-ios-probes.ts'))),
     workspace: join(repo, 'shells/tauri-mobile/src-tauri/gen/apple/lolly-mobile.xcodeproj/project.xcworkspace') + '/',
     archive: join(repo, 'shells/tauri-mobile/src-tauri/gen/apple/build/lolly-mobile_iOS'), target: join(output, 'target'),
     wrapperBin, compilerWrapper: join(wrapperBin, 'observe-rustc'), leases, compilerRecords,
@@ -146,9 +148,10 @@ const valueFlags = ['--crate-type', '--edition', '--cfg', '--check-cfg', '--exte
   '--color', '--diagnostic-width', '--remap-path-prefix', '--remap-path-scope', '--sysroot', '--explain', '-C', '-L', '-l', '-Z', '-W', '-A', '-D', '-F'];
 const compilerAliases: Record<string, string> = { '--codegen': '-C', '--warn': '-W', '--allow': '-A', '--deny': '-D', '--forbid': '-F' };
 export interface CompilerMetadata {
-  metadataVersion: 1; crate: string | null; target: string | null;
-  operation: 'compile' | 'information' | 'unclassified'; argvSha256: string; argumentCount: number;
+  metadataVersion: 2; crate: string | null; target: string | null;
+  operation: 'compile' | 'information' | 'unclassified' | 'capability-probe'; argvSha256: string; argumentCount: number;
   flags: string[]; querySelectors: string[]; ownedOutputCount: number; inputCount: number; sourceInputCount: number;
+  capabilityProbe: IosCapabilityProbe | null; probeSourcesRechecked: boolean;
 }
 function ownedCompilerOutput(value: string, guard: Pick<IosBuildGuard, 'target'>): void {
   assert.ok(isAbsolute(value) && [...value].every(char => char.charCodeAt(0) >= 32 && char.charCodeAt(0) !== 127)
@@ -227,7 +230,7 @@ export function compilerMetadata(args: string[], guard: Pick<IosBuildGuard, 'tar
   if (target !== null) assert.ok(target === 'aarch64-apple-ios' || target === 'aarch64-apple-darwin', 'Unexpected compiler target.');
   const querySelectors = version ? ['version'] : help ? ['help'] : [...new Set([...prints].map(value =>
     diagnosticPrints.includes(value as typeof diagnosticPrints[number]) ? value : 'unknown').concat([...specialQueries]))];
-  const row: CompilerMetadata = { metadataVersion: 1, crate, target, operation: compilation ? 'compile' : 'unclassified',
+  const row: CompilerMetadata = { metadataVersion: 2, crate, target, capabilityProbe: null, probeSourcesRechecked: false, operation: compilation ? 'compile' : 'unclassified',
     argvSha256: sha256(JSON.stringify(args)), argumentCount: args.length, flags: [...flags].sort(), querySelectors, ownedOutputCount, inputCount, sourceInputCount };
   if (informationGrammar(row)) row.operation = 'information';
   if (version || help) assert.ok(informationGrammar(row), 'Mixed compiler information and compilation arguments are refused.');
@@ -235,7 +238,7 @@ export function compilerMetadata(args: string[], guard: Pick<IosBuildGuard, 'tar
   return row;
 }
 function validateCompilerMetadata(row: CompilerMetadata): void {
-  assert.ok(row.metadataVersion === 1 && ['compile', 'information', 'unclassified'].includes(row.operation), 'Compiler operation evidence is absent.');
+  assert.ok(row.metadataVersion === 2 && ['compile', 'information', 'unclassified', 'capability-probe'].includes(row.operation), 'Compiler operation evidence is absent.');
   assert.ok(typeof row.argvSha256 === 'string' && /^[a-f0-9]{64}$/.test(row.argvSha256)
     && Number.isSafeInteger(row.argumentCount) && row.argumentCount > 0 && row.argumentCount <= 4096, 'Compiler argument binding is invalid.');
   assert.ok(row.crate === null || typeof row.crate === 'string' && /^[A-Za-z0-9_]{1,128}$/.test(row.crate));
@@ -251,6 +254,16 @@ function validateCompilerMetadata(row: CompilerMetadata): void {
   assert.ok(Number.isSafeInteger(row.ownedOutputCount) && row.ownedOutputCount >= 0 && row.ownedOutputCount <= 10
     && row.ownedOutputCount >= Number(row.flags.includes('--out-dir')) + Number(row.flags.includes('-o'))
     && (row.ownedOutputCount === 0 || row.flags.some(flag => flag === '--out-dir' || flag === '-o' || flag === '--emit')), 'Compiler output evidence is invalid.');
+  assert.equal(typeof row.probeSourcesRechecked, 'boolean');
+  if (row.operation === 'capability-probe') {
+    validateCapabilityProbe(row.capabilityProbe!);
+    const name = row.capabilityProbe!.id.split('@')[0]!, cfg = name !== 'thiserror';
+    assert.equal(row.crate, name === 'proc-macro2' ? 'proc_macro2' : name); assert.ok(row.target !== null);
+    assert.equal(row.argvSha256, row.capabilityProbe!.argvSha256);
+    assert.deepEqual(row.flags, ['--cap-lints', ...(cfg ? ['--cfg'] : []), '--crate-name', '--crate-type', '--edition', '--emit', '--out-dir', '--target', 'input']);
+    assert.deepEqual(row.querySelectors, []); assert.equal(row.argumentCount, cfg ? 11 : 10);
+    assert.equal(row.inputCount, 1); assert.equal(row.sourceInputCount, 1); assert.equal(row.ownedOutputCount, 1);
+  } else { assert.equal(row.capabilityProbe, null); assert.equal(row.probeSourcesRechecked, false); }
   if (row.operation === 'information') assert.ok(informationGrammar(row), 'Compiler information evidence contains compilation or unknown selectors.');
 }
 
@@ -263,6 +276,7 @@ async function readGuard(path: string): Promise<{ guard: IosBuildGuard; binding:
   requireSourceSha(guard.sourceSha, command('git', ['-C', guard.repo, 'rev-parse', 'HEAD']));
   assert.equal(sha256(await readFile(modulePath)), guard.helperSha256);
   assert.equal(sha256(await readFile(join(guard.repo, 'scripts/lib/webgpu-ios-process.ts'))), guard.processHelperSha256);
+  assert.equal(sha256(await readFile(join(guard.repo, 'scripts/lib/webgpu-ios-probes.ts'))), guard.probeHelperSha256);
   assert.equal(process.env.CARGO_BUILD_RUSTC, guard.rustc.path); assert.equal(process.env.CARGO_TARGET_DIR, guard.target);
   assert.equal(process.env.CARGO_BUILD_RUSTC_WRAPPER, guard.compilerWrapper);
   assert.ok(Number.isSafeInteger(guard.protectedGroup) && guard.protectedGroup > 0);
@@ -287,26 +301,37 @@ export async function archiveProvenance(guard: IosBuildGuard, binding: string): 
 async function wrapper(mode: string, path: string, args: string[]): Promise<number> {
   const { guard, binding } = await readGuard(path);
   const rust = mode === '--rustc'; assert.ok(rust || mode === '--xcode');
-  const selected = rust ? guard.rustc : guard.xcode; await unchangedExecutable(selected);
-  let meta: Record<string, unknown> | CompilerMetadata, outgoing: string[];
-  if (rust) {
-    assert.equal(args[0], guard.rustc.path, 'Cargo selected an unreviewed compiler.');
-    assert.equal(await realpath(command('/usr/bin/which', ['cargo'])), guard.cargo.path, 'Xcode did not retain the selected real Cargo bin.');
-    outgoing = args.slice(1); meta = compilerMetadata(outgoing, guard);
-  } else {
-    const safe = guardedXcodeArgs(args, guard); outgoing = safe.args; meta = { command: outgoing, provisioningFlagsRemoved: safe.removed };
-    await verifyIosObjectCopyTools(guard.objectCopyTools);
-  }
-  const row = { sourceSha: guard.sourceSha, binding, executable: selected.path, executableSha256: selected.sha256, ...meta };
+  const selected = rust ? guard.rustc : guard.xcode;
+  const identity = { sourceSha: guard.sourceSha, binding, executable: selected.path, executableSha256: selected.sha256 };
   const record = join(rust ? guard.compilerRecords : guard.output, rust ? `${randomUUID()}.json` : 'xcode-archive-command.json');
-  await writeFile(record, JSON.stringify({ ...row, status: 'started' }), { flag: 'wx', mode: 0o600 });
+  // Dependencies handle a refused capability compile as false. Its refusal must
+  // remain visible even when no unvalidated metadata or actual child is allowed.
+  if (rust) await writeFile(record, JSON.stringify({ ...identity, status: 'validating' }), { flag: 'wx', mode: 0o600 });
+  let row: Record<string, unknown> = identity, launched = false;
   try {
+    await unchangedExecutable(selected);
+    let meta: Record<string, unknown> | CompilerMetadata, outgoing: string[];
+    let probe: Awaited<ReturnType<typeof observeCapabilityProbe>> = null;
+    if (rust) {
+      assert.equal(args[0], guard.rustc.path, 'Cargo selected an unreviewed compiler.');
+      assert.equal(await realpath(command('/usr/bin/which', ['cargo'])), guard.cargo.path, 'Xcode did not retain the selected real Cargo bin.');
+      outgoing = args.slice(1); meta = compilerMetadata(outgoing, guard);
+      probe = await observeCapabilityProbe(outgoing, guard, process.cwd());
+      if (probe) { meta = { ...meta, operation: 'capability-probe', capabilityProbe: probe.receipt }; validateCompilerMetadata(meta as CompilerMetadata); }
+    } else {
+      const safe = guardedXcodeArgs(args, guard); outgoing = safe.args; meta = { command: outgoing, provisioningFlagsRemoved: safe.removed };
+      await verifyIosObjectCopyTools(guard.objectCopyTools);
+    }
+    row = { ...identity, ...meta };
+    await writeFile(record, JSON.stringify({ ...row, status: 'started' }), { ...(rust ? {} : { flag: 'wx' }), mode: 0o600 });
+    launched = true;
     const status = await runOwnedBuild({ command: selected.path, args: outgoing, cwd: process.cwd(), env: process.env, stdio: ['inherit', 'inherit', 'inherit'],
       leases: guard.leases, binding, deadline: guard.deadline, protectedGroup: guard.protectedGroup });
-    await unchangedExecutable(selected);
-    await writeFile(record, JSON.stringify({ ...row, status: 'completed', exit: status }), { mode: 0o600 }); return status;
+    await unchangedExecutable(selected); await probe?.recheck();
+    await writeFile(record, JSON.stringify({ ...row, ...(rust ? { probeSourcesRechecked: Boolean(probe) } : {}), status: 'completed', exit: status }), { mode: 0o600 }); return status;
   } catch {
-    await writeFile(record, JSON.stringify({ ...row, status: 'failed or interrupted; inspect owned process journal' }), { mode: 0o600 });
+    if (rust || launched) await writeFile(record, JSON.stringify(launched ? { ...row, status: 'failed or interrupted; inspect owned process journal' }
+      : { ...identity, status: 'refused before execution' }), { mode: 0o600 });
     throw new Error('The scoped build tool failed; inspect its bounded owned record.');
   }
 }
@@ -318,7 +343,8 @@ export async function compilerProvenance(guard: IosBuildGuard, binding: string):
     assert.equal(row.binding, binding); assert.equal(row.sourceSha, guard.sourceSha); assert.equal(row.executable, guard.rustc.path);
     assert.equal(row.executableSha256, guard.rustc.sha256); assert.equal(row.status, 'completed'); validateCompilerMetadata(row);
     assert.ok(Number.isInteger(row.exit) && row.exit >= 0 && row.exit <= 255, 'Compiler exit evidence is invalid.');
-    assert.ok(row.exit === 0 || row.operation === 'information', `Nonzero compiler operation refused: ${JSON.stringify({ record: files[index], operation: row.operation,
+    assert.ok(row.operation !== 'capability-probe' || row.probeSourcesRechecked, 'Capability sources were not rechecked after execution.');
+    assert.ok(row.exit === 0 || row.operation === 'information' || row.operation === 'capability-probe' && row.exit === 1, `Nonzero compiler operation refused: ${JSON.stringify({ record: files[index], operation: row.operation,
       flags: row.flags, querySelectors: row.querySelectors, argumentCount: row.argumentCount, argvSha256: row.argvSha256 })}`);
   }
   assert.ok(records.some(row => row.crate === 'lolly_mobile_lib' && row.target === 'aarch64-apple-ios' && row.operation === 'compile'
@@ -328,6 +354,7 @@ export async function compilerProvenance(guard: IosBuildGuard, binding: string):
   assert.equal(sha256(await readFile(guard.rustc.path)), guard.rustc.sha256);
   return { sourceSha: guard.sourceSha, compiler: guard.rustc, invocationCount: records.length, completedPhysicalProduct: true,
     nonzeroInformationQueries: records.filter(row => row.exit !== 0 && row.operation === 'information').length,
+    nonzeroCapabilityProbes: records.filter(row => row.exit === 1 && row.operation === 'capability-probe').length,
     recordsSha256: sha256(JSON.stringify(files.map((name, i) => [name, records[i]]))) };
 }
 

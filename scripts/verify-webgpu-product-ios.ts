@@ -23,7 +23,7 @@ const mobile = join(repo, 'shells/tauri-mobile');
 export const IOS_PRODUCT_SOURCES = [
   'scripts/verify-webgpu-product-ios.ts', 'scripts/verify-webgpu-product.ts', 'scripts/build-native.ts', 'scripts/build-release-web.ts',
   'scripts/lib/webgpu-ios-product.ts', 'scripts/lib/webgpu-ios-device.ts', 'scripts/lib/webgpu-product-corpus.ts', 'scripts/webgpu-qualification.ts',
-  'scripts/lib/webgpu-ios-build.ts', 'scripts/lib/webgpu-ios-generated.ts', 'scripts/lib/webgpu-ios-process.ts',
+  'scripts/lib/webgpu-ios-build.ts', 'scripts/lib/webgpu-ios-probes.ts', 'scripts/lib/webgpu-ios-generated.ts', 'scripts/lib/webgpu-ios-process.ts',
   'tests/helpers/webgpu-product-receiver.ts', 'tests/helpers/webgpu-product-ios-receiver.ts', 'tests/helpers/webgpu-browser.ts',
   'tests/helpers/lut-cases.ts', 'tests/helpers/webgpu-probe-entry.ts', 'tests/webgpu-lut.browser.test.ts',
   'shells/tauri-shared/embedded-js-mime.rs', 'shells/tauri-shared/tauri-embedded-assets.rs',

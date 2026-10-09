@@ -17,6 +17,7 @@ import { decodeProductMessage, ProductProbeProtocol } from './helpers/webgpu-pro
 import { webGpuBrowserEngine } from './helpers/webgpu-browser.ts';
 import { PRODUCT_CORPUS_MS, waitOwnedCorpus } from '../scripts/lib/webgpu-product-corpus.ts';
 import { archiveProvenance, guardedXcodeArgs, iosArchiveEnvironment, compilerMetadata, compilerProvenance, prepareIosObjectCopyTools, verifyIosObjectCopyTools, type IosBuildGuard } from '../scripts/lib/webgpu-ios-build.ts';
+import { capabilityProbeCandidate, capabilityProbeReceipt, observeCapabilityProbe, validateCapabilityProbe } from '../scripts/lib/webgpu-ios-probes.ts';
 import { collectOwnedProcesses, sameProcess, stopOwnedBuild, runOwnedBuild, processFacts, IOS_BUILD_MS, type ProcessFact } from '../scripts/lib/webgpu-ios-process.ts';
 import { expectedAppleProject, expectedAppleInfo, validateAppleDerivatives, validateIosSourceChanges, IOS_APPLE_INPUTS } from '../scripts/lib/webgpu-ios-generated.ts';
 
@@ -457,7 +458,7 @@ test('compiler provenance retains nonzero pure queries but refuses failed, uncla
     const accepted = await compilerProvenance(guard, binding); assert.equal(accepted.invocationCount, 2); assert.equal(accepted.nonzeroInformationQueries, 1);
     assert.equal(JSON.parse(await readFile(queryPath, 'utf8')).exit, 1, 'The observed nonzero outcome is preserved.');
     for (const patch of [{ operation: 'unclassified' }, { status: 'started' }, { argvSha256: 'missing' }, { argumentCount: 4096 },
-      { querySelectors: ['native-static-libs'] }, { flags: ['--print'] }, { exit: -1 }, { metadataVersion: undefined },
+      { querySelectors: ['native-static-libs'] }, { flags: ['--print'] }, { exit: -1 }, { metadataVersion: undefined }, { metadataVersion: 1 },
       { flags: ['--print', 'private-argument'] }]) {
       await writeFile(queryPath, JSON.stringify({ ...query, ...patch })); await assert.rejects(compilerProvenance(guard, binding));
     }
@@ -568,7 +569,8 @@ test('real observer invocation preserves compiler arguments and records only saf
       `else if (args.join(' ') === '--version --verbose') console.log('rustc 1.99.0\\nhost: aarch64-apple-darwin');\n` +
       `else { writeFileSync(process.env.TEST_ARGV_PATH, JSON.stringify(args));\n` +
       `writeFileSync(process.env.TEST_STARTED_PATH, JSON.stringify(readdirSync(process.env.TEST_RECORDS_PATH).map(name => JSON.parse(readFileSync(process.env.TEST_RECORDS_PATH + '/' + name, 'utf8'))).find(row => row.status === 'started')));\n` +
-      `if (args.join(' ') === '--print=cfg') process.exitCode = 1; }\n`, { mode: 0o700 });
+      `if (process.env.TEST_MUTATE_PROBE_PATH) writeFileSync(process.env.TEST_MUTATE_PROBE_PATH, 'changed after capture');\n` +
+      `if (args.join(' ') === '--print=cfg' || args.includes('--cfg=anyhow_build_probe')) process.exitCode = 1; }\n`, { mode: 0o700 });
     await writeFile(cargo, '#!/bin/sh\nexit 0\n', { mode: 0o700 });
     const identity = executableIdentity;
     await fakeObjectCopyTools(output, 'aarch64-apple-darwin');
@@ -576,7 +578,8 @@ test('real observer invocation preserves compiler arguments and records only saf
     const guard: IosBuildGuard = { version: 1, repo: root, output, runId, sourceSha: spawnSync('git', ['-C', root, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).stdout.trim(),
       toolchain: 'test-observer-only', rustc: await identity(rustc), cargo: await identity(cargo), rustdoc: await identity(rustc), xcode: await identity(process.execPath),
       deadline: Date.now() + 20_000, helperSha256: sha256(await readFile(join(root, 'scripts/lib/webgpu-ios-build.ts'))),
-      processHelperSha256: sha256(await readFile(join(root, 'scripts/lib/webgpu-ios-process.ts'))), ...archiveGuard, target,
+      processHelperSha256: sha256(await readFile(join(root, 'scripts/lib/webgpu-ios-process.ts'))),
+      probeHelperSha256: sha256(await readFile(join(root, 'scripts/lib/webgpu-ios-probes.ts'))), ...archiveGuard, target,
       wrapperBin: bin, compilerWrapper: join(bin, 'observe-rustc'), leases, compilerRecords: records, path: bin + ':' + process.env.PATH,
       protectedGroup: processFacts().find(row => row.pid === process.pid)!.group, objectCopyTools };
     const bytes = JSON.stringify(guard), binding = sha256(bytes), path = join(output, 'build-guard.json'); await writeFile(path, bytes);
@@ -616,13 +619,68 @@ test('real observer invocation preserves compiler arguments and records only saf
     }
     await writeFile(join(records, recordName), recordText);
     const wrong = spawnSync(process.execPath, ['scripts/lib/webgpu-ios-build.ts', '--rustc', path, cargo, ...args], { cwd: root, env, encoding: 'utf8', timeout: 5000 });
-    assert.equal(wrong.status, 1); assert.ok(!wrong.stderr.includes('private-argument-value')); assert.equal((await readdir(records)).length, 1);
+    assert.equal(wrong.status, 1); assert.ok(!wrong.stderr.includes('private-argument-value')); assert.equal((await readdir(records)).length, 2);
+    await assert.rejects(compilerProvenance(guard, binding), /completed/);
+    const wrongName = (await readdir(records)).find(name => name !== recordName)!;
+    const wrongRow = JSON.parse(await readFile(join(records, wrongName), 'utf8')); assert.equal(wrongRow.status, 'refused before execution');
+    assert.deepEqual(Object.keys(wrongRow).sort(), ['binding', 'executable', 'executableSha256', 'sourceSha', 'status']);
+    await rm(join(records, wrongName));
     const queryArgs = ['--print=cfg'];
     const queryRun = spawnSync(process.execPath, ['scripts/lib/webgpu-ios-build.ts', '--rustc', path, rustc, ...queryArgs], { cwd: root, env, encoding: 'utf8', timeout: 5000 });
     assert.equal(queryRun.status, 1, queryRun.stderr); assert.deepEqual(JSON.parse(await readFile(argvFile, 'utf8')), queryArgs);
     const queryStarted = JSON.parse(await readFile(startedFile, 'utf8')); assert.equal(queryStarted.operation, 'information');
     assert.equal(queryStarted.status, 'started'); assert.equal(queryStarted.argvSha256, sha256(JSON.stringify(queryArgs)));
     const queries = await compilerProvenance(guard, binding); assert.equal(queries.invocationCount, 2); assert.equal(queries.nonzeroInformationQueries, 1);
+    const fixture = await anyhowProbeFiles(output, target), probeArgs = anyhowProbeArgs(target);
+    const probeRun = spawnSync(process.execPath, [join(root, 'scripts/lib/webgpu-ios-build.ts'), '--rustc', path, rustc, ...probeArgs], {
+      cwd: fixture, env, encoding: 'utf8', timeout: 5000 });
+    assert.equal(probeRun.status, 1, probeRun.stderr); assert.deepEqual(JSON.parse(await readFile(argvFile, 'utf8')), probeArgs);
+    const probeStarted = JSON.parse(await readFile(startedFile, 'utf8'));
+    assert.equal(probeStarted.status, 'started'); assert.equal(probeStarted.operation, 'capability-probe');
+    assert.equal(probeStarted.probeSourcesRechecked, false); assert.equal(probeStarted.capabilityProbe.id, 'anyhow@1.0.103:src/nightly.rs');
+    assert.equal(probeStarted.capabilityProbe.argvSha256, sha256(JSON.stringify(probeArgs)));
+    assert.ok(!JSON.stringify(probeStarted).includes(fixture) && !JSON.stringify(probeStarted).includes(anyhowProbeSource));
+    const probes = await compilerProvenance(guard, binding); assert.equal(probes.invocationCount, 3); assert.equal(probes.nonzeroCapabilityProbes, 1);
+    const probeRows = await Promise.all((await readdir(records)).map(async name => [name, JSON.parse(await readFile(join(records, name), 'utf8'))] as const));
+    const [probeName, probeRow] = probeRows.find(([, row]) => row.operation === 'capability-probe')!;
+    assert.equal(probeRow.probeSourcesRechecked, true); assert.equal(probeRow.exit, 1);
+    for (const patch of [{ probeSourcesRechecked: false }, { capabilityProbe: null }, { exit: 101 }, { operation: 'compile' },
+      { capabilityProbe: { ...probeRow.capabilityProbe, sourceSha256: '0'.repeat(64) } }, { argvSha256: '0'.repeat(64) }]) {
+      await writeFile(join(records, probeName), JSON.stringify({ ...probeRow, ...patch })); await assert.rejects(compilerProvenance(guard, binding));
+    }
+    await writeFile(join(records, probeName), JSON.stringify(probeRow));
+    await rm(argvFile); await writeFile(join(fixture, 'build.rs'), 'wrong build script');
+    const invalidProbe = spawnSync(process.execPath, [join(root, 'scripts/lib/webgpu-ios-build.ts'), '--rustc', path, rustc, ...probeArgs], {
+      cwd: fixture, env, encoding: 'utf8', timeout: 5000 });
+    assert.equal(invalidProbe.status, 1); await assert.rejects(readFile(argvFile), /ENOENT/);
+    assert.equal((await readdir(records)).length, 4, 'Wrong pinned source must leave refusal evidence without starting the child.');
+    await assert.rejects(compilerProvenance(guard, binding), /completed/);
+    const refusedRows = await Promise.all((await readdir(records)).map(async name => [name, JSON.parse(await readFile(join(records, name), 'utf8'))] as const));
+    const [refusedName, refusedRow] = refusedRows.find(([, row]) => row.status === 'refused before execution')!;
+    assert.deepEqual(Object.keys(refusedRow).sort(), ['binding', 'executable', 'executableSha256', 'sourceSha', 'status']);
+    assert.ok(!JSON.stringify(refusedRow).includes(fixture) && !JSON.stringify(refusedRow).includes('wrong build script'));
+    await rm(join(records, refusedName));
+    await writeFile(join(fixture, 'build.rs'), anyhowProbeBuild);
+    const changedProbe = spawnSync(process.execPath, [join(root, 'scripts/lib/webgpu-ios-build.ts'), '--rustc', path, rustc, ...probeArgs], {
+      cwd: fixture, env: { ...env, TEST_MUTATE_PROBE_PATH: join(fixture, 'src/nightly.rs') }, encoding: 'utf8', timeout: 5000 });
+    assert.equal(changedProbe.status, 1); assert.deepEqual(JSON.parse(await readFile(argvFile, 'utf8')), probeArgs);
+    const failedRows = await Promise.all((await readdir(records)).map(async name => JSON.parse(await readFile(join(records, name), 'utf8'))));
+    assert.ok(failedRows.some(row => row.operation === 'capability-probe' && row.status.startsWith('failed')));
+    await assert.rejects(compilerProvenance(guard, binding), /completed/);
+    for (const name of await readdir(records)) {
+      const row = JSON.parse(await readFile(join(records, name), 'utf8'));
+      if (row.status.startsWith('failed')) await rm(join(records, name));
+    }
+    await rm(argvFile); await writeFile(rustc, (await readFile(rustc, 'utf8')) + '// changed selected test executable\n');
+    const changedExecutable = spawnSync(process.execPath, [join(root, 'scripts/lib/webgpu-ios-build.ts'), '--rustc', path, rustc, ...args], {
+      cwd: root, env, encoding: 'utf8', timeout: 5000 });
+    assert.equal(changedExecutable.status, 1); await assert.rejects(readFile(argvFile), /ENOENT/);
+    const executableRows = await Promise.all((await readdir(records)).map(async name => JSON.parse(await readFile(join(records, name), 'utf8'))));
+    const executableRefusal = executableRows.find(row => row.status === 'refused before execution'); assert.ok(executableRefusal);
+    assert.deepEqual(Object.keys(executableRefusal).sort(), ['binding', 'executable', 'executableSha256', 'sourceSha', 'status']);
+    await assert.rejects(compilerProvenance(guard, binding), /completed/);
+
+
   } finally { await rm(output, { recursive: true, force: true }); }
 });
 
@@ -649,5 +707,360 @@ test('build timeout cleans an explicitly leased detached descendant and interrup
     await assert.rejects(runOwnedBuild({ command: process.execPath, args: ['-e', 'setInterval(() => {}, 1000)'], cwd: root, env: {}, stdio: ['ignore', 'inherit', 'inherit'],
       leases: interruptDir, binding, deadline: Date.now() + 5000, supervise: true, protectedGroup }, signals), /interrupted/);
     clearTimeout(stop); assert.equal(signals.listenerCount('SIGTERM'), 0); assert.equal(signals.listenerCount('SIGINT'), 0);
+  } finally { await rm(output, { recursive: true, force: true }); }
+});
+
+/*
+ * Exact public fixtures: https://github.com/dtolnay/anyhow, crate 1.0.103,
+ * build.rs and src/nightly.rs. Upstream offers MIT OR Apache-2.0; these
+ * copied fixture portions are used under the following MIT terms.
+ * Permission is hereby granted, free of charge, to any
+ * person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the
+ * Software without restriction, including without
+ * limitation the rights to use, copy, modify, merge,
+ * publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software
+ * is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice
+ * shall be included in all copies or substantial portions
+ * of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF
+ * ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+ * TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+ * PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT
+ * SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
+ * IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+const anyhowProbeBuild = [
+  "#![allow(clippy::uninlined_format_args)]\n",
+  "\n",
+  "use std::env;\n",
+  "use std::ffi::OsString;\n",
+  "use std::fs;\n",
+  "use std::io::ErrorKind;\n",
+  "use std::iter;\n",
+  "use std::path::Path;\n",
+  "use std::process::{self, Command, Stdio};\n",
+  "use std::str;\n",
+  "\n",
+  "fn main() {\n",
+  "    if cfg!(feature = \"std\") {\n",
+  "        println!(\"cargo:rerun-if-changed=src/nightly.rs\");\n",
+  "\n",
+  "        let error_generic_member_access;\n",
+  "        let consider_rustc_bootstrap;\n",
+  "        if compile_probe(false) {\n",
+  "            // This is a nightly or dev compiler, so it supports unstable\n",
+  "            // features regardless of RUSTC_BOOTSTRAP. No need to rerun build\n",
+  "            // script if RUSTC_BOOTSTRAP is changed.\n",
+  "            error_generic_member_access = true;\n",
+  "            consider_rustc_bootstrap = false;\n",
+  "        } else if let Some(rustc_bootstrap) = env::var_os(\"RUSTC_BOOTSTRAP\") {\n",
+  "            if compile_probe(true) {\n",
+  "                // This is a stable or beta compiler for which the user has set\n",
+  "                // RUSTC_BOOTSTRAP to turn on unstable features. Rerun build\n",
+  "                // script if they change it.\n",
+  "                error_generic_member_access = true;\n",
+  "                consider_rustc_bootstrap = true;\n",
+  "            } else if rustc_bootstrap == \"1\" {\n",
+  "                // This compiler does not support the generic member access API\n",
+  "                // in the form that anyhow expects. No need to pay attention to\n",
+  "                // RUSTC_BOOTSTRAP.\n",
+  "                error_generic_member_access = false;\n",
+  "                consider_rustc_bootstrap = false;\n",
+  "            } else {\n",
+  "                // This is a stable or beta compiler for which RUSTC_BOOTSTRAP\n",
+  "                // is set to restrict the use of unstable features by this\n",
+  "                // crate.\n",
+  "                error_generic_member_access = false;\n",
+  "                consider_rustc_bootstrap = true;\n",
+  "            }\n",
+  "        } else {\n",
+  "            // Without RUSTC_BOOTSTRAP, this compiler does not support the\n",
+  "            // generic member access API in the form that anyhow expects, but\n",
+  "            // try again if the user turns on unstable features.\n",
+  "            error_generic_member_access = false;\n",
+  "            consider_rustc_bootstrap = true;\n",
+  "        }\n",
+  "\n",
+  "        if error_generic_member_access {\n",
+  "            println!(\"cargo:rustc-cfg=error_generic_member_access\");\n",
+  "        }\n",
+  "\n",
+  "        if consider_rustc_bootstrap {\n",
+  "            println!(\"cargo:rerun-if-env-changed=RUSTC_BOOTSTRAP\");\n",
+  "        }\n",
+  "    }\n",
+  "\n",
+  "    let Some(rustc) = rustc_minor_version() else {\n",
+  "        return;\n",
+  "    };\n",
+  "\n",
+  "    if rustc >= 80 {\n",
+  "        println!(\"cargo:rustc-check-cfg=cfg(anyhow_build_probe)\");\n",
+  "        println!(\"cargo:rustc-check-cfg=cfg(anyhow_nightly_testing)\");\n",
+  "        println!(\"cargo:rustc-check-cfg=cfg(anyhow_no_clippy_format_args)\");\n",
+  "        println!(\"cargo:rustc-check-cfg=cfg(anyhow_no_core_error)\");\n",
+  "        println!(\"cargo:rustc-check-cfg=cfg(error_generic_member_access)\");\n",
+  "    }\n",
+  "\n",
+  "    if rustc < 81 {\n",
+  "        // core::error::Error\n",
+  "        // https://blog.rust-lang.org/2024/09/05/Rust-1.81.0.html#coreerrorerror\n",
+  "        println!(\"cargo:rustc-cfg=anyhow_no_core_error\");\n",
+  "    }\n",
+  "\n",
+  "    if rustc < 85 {\n",
+  "        // #[clippy::format_args]\n",
+  "        // https://doc.rust-lang.org/1.85.1/clippy/attribs.html#clippyformat_args\n",
+  "        println!(\"cargo:rustc-cfg=anyhow_no_clippy_format_args\");\n",
+  "    }\n",
+  "}\n",
+  "\n",
+  "fn compile_probe(rustc_bootstrap: bool) -> bool {\n",
+  "    if env::var_os(\"RUSTC_STAGE\").is_some() {\n",
+  "        // We are running inside rustc bootstrap. This is a highly non-standard\n",
+  "        // environment with issues such as:\n",
+  "        //\n",
+  "        //     https://github.com/rust-lang/cargo/issues/11138\n",
+  "        //     https://github.com/rust-lang/rust/issues/114839\n",
+  "        //\n",
+  "        // Let's just not use nightly features here.\n",
+  "        return false;\n",
+  "    }\n",
+  "\n",
+  "    let rustc = cargo_env_var(\"RUSTC\");\n",
+  "    let out_dir = cargo_env_var(\"OUT_DIR\");\n",
+  "    let out_subdir = Path::new(&out_dir).join(\"probe\");\n",
+  "    let probefile = Path::new(\"src\").join(\"nightly.rs\");\n",
+  "\n",
+  "    if let Err(err) = fs::create_dir(&out_subdir) {\n",
+  "        if err.kind() != ErrorKind::AlreadyExists {\n",
+  "            eprintln!(\"Failed to create {}: {}\", out_subdir.display(), err);\n",
+  "            process::exit(1);\n",
+  "        }\n",
+  "    }\n",
+  "\n",
+  "    let rustc_wrapper = env::var_os(\"RUSTC_WRAPPER\").filter(|wrapper| !wrapper.is_empty());\n",
+  "    let rustc_workspace_wrapper =\n",
+  "        env::var_os(\"RUSTC_WORKSPACE_WRAPPER\").filter(|wrapper| !wrapper.is_empty());\n",
+  "    let mut rustc = rustc_wrapper\n",
+  "        .into_iter()\n",
+  "        .chain(rustc_workspace_wrapper)\n",
+  "        .chain(iter::once(rustc));\n",
+  "    let mut cmd = Command::new(rustc.next().unwrap());\n",
+  "    cmd.args(rustc);\n",
+  "\n",
+  "    if !rustc_bootstrap {\n",
+  "        cmd.env_remove(\"RUSTC_BOOTSTRAP\");\n",
+  "    }\n",
+  "\n",
+  "    cmd.stderr(Stdio::null())\n",
+  "        .arg(\"--cfg=anyhow_build_probe\")\n",
+  "        .arg(\"--edition=2018\")\n",
+  "        .arg(\"--crate-name=anyhow\")\n",
+  "        .arg(\"--crate-type=lib\")\n",
+  "        .arg(\"--cap-lints=allow\")\n",
+  "        .arg(\"--emit=dep-info,metadata\")\n",
+  "        .arg(\"--out-dir\")\n",
+  "        .arg(&out_subdir)\n",
+  "        .arg(probefile);\n",
+  "\n",
+  "    if let Some(target) = env::var_os(\"TARGET\") {\n",
+  "        cmd.arg(\"--target\").arg(target);\n",
+  "    }\n",
+  "\n",
+  "    // If Cargo wants to set RUSTFLAGS, use that.\n",
+  "    if let Ok(rustflags) = env::var(\"CARGO_ENCODED_RUSTFLAGS\") {\n",
+  "        if !rustflags.is_empty() {\n",
+  "            for arg in rustflags.split('\\x1f') {\n",
+  "                cmd.arg(arg);\n",
+  "            }\n",
+  "        }\n",
+  "    }\n",
+  "\n",
+  "    let success = match cmd.status() {\n",
+  "        Ok(status) => status.success(),\n",
+  "        Err(_) => false,\n",
+  "    };\n",
+  "\n",
+  "    // Clean up to avoid leaving nondeterministic absolute paths in the dep-info\n",
+  "    // file in OUT_DIR, which causes nonreproducible builds in build systems\n",
+  "    // that treat the entire OUT_DIR as an artifact.\n",
+  "    if let Err(err) = fs::remove_dir_all(&out_subdir) {\n",
+  "        // libc::ENOTEMPTY\n",
+  "        // Some filesystems (NFSv3) have timing issues under load where '.nfs*'\n",
+  "        // dummy files can continue to get created for a short period after the\n",
+  "        // probe command completes, breaking remove_dir_all.\n",
+  "        // To be replaced with ErrorKind::DirectoryNotEmpty (Rust 1.83+).\n",
+  "        const ENOTEMPTY: i32 = 39;\n",
+  "\n",
+  "        if !(err.kind() == ErrorKind::NotFound\n",
+  "            || (cfg!(target_os = \"linux\") && err.raw_os_error() == Some(ENOTEMPTY)))\n",
+  "        {\n",
+  "            eprintln!(\"Failed to clean up {}: {}\", out_subdir.display(), err);\n",
+  "            process::exit(1);\n",
+  "        }\n",
+  "    }\n",
+  "\n",
+  "    success\n",
+  "}\n",
+  "\n",
+  "fn rustc_minor_version() -> Option<u32> {\n",
+  "    let rustc = cargo_env_var(\"RUSTC\");\n",
+  "    let output = Command::new(rustc).arg(\"--version\").output().ok()?;\n",
+  "    let version = str::from_utf8(&output.stdout).ok()?;\n",
+  "    let mut pieces = version.split('.');\n",
+  "    if pieces.next() != Some(\"rustc 1\") {\n",
+  "        return None;\n",
+  "    }\n",
+  "    pieces.next()?.parse().ok()\n",
+  "}\n",
+  "\n",
+  "fn cargo_env_var(key: &str) -> OsString {\n",
+  "    env::var_os(key).unwrap_or_else(|| {\n",
+  "        eprintln!(\n",
+  "            \"Environment variable $" + "{} is not set during execution of build script\",\n",
+  "            key,\n",
+  "        );\n",
+  "        process::exit(1);\n",
+  "    })\n",
+  "}\n",
+].join('');
+const anyhowProbeSource = [
+  "// This code exercises the surface area that we expect of the Error generic\n",
+  "// member access API. If the current toolchain is able to compile it, then\n",
+  "// anyhow is able to provide backtrace support.\n",
+  "\n",
+  "#![cfg_attr(anyhow_build_probe, feature(error_generic_member_access))]\n",
+  "\n",
+  "use core::error::{self, Error};\n",
+  "use std::backtrace::Backtrace;\n",
+  "\n",
+  "pub use core::error::Request;\n",
+  "\n",
+  "#[cfg(anyhow_build_probe)]\n",
+  "const _: () = {\n",
+  "    use core::fmt::{self, Debug, Display};\n",
+  "\n",
+  "    struct MyError(Backtrace);\n",
+  "\n",
+  "    impl Debug for MyError {\n",
+  "        fn fmt(&self, _formatter: &mut fmt::Formatter) -> fmt::Result {\n",
+  "            unimplemented!()\n",
+  "        }\n",
+  "    }\n",
+  "\n",
+  "    impl Display for MyError {\n",
+  "        fn fmt(&self, _formatter: &mut fmt::Formatter) -> fmt::Result {\n",
+  "            unimplemented!()\n",
+  "        }\n",
+  "    }\n",
+  "\n",
+  "    impl Error for MyError {\n",
+  "        fn provide<'a>(&'a self, request: &mut Request<'a>) {\n",
+  "            provide_ref_backtrace(request, &self.0);\n",
+  "        }\n",
+  "    }\n",
+  "};\n",
+  "\n",
+  "// Include in sccache cache key.\n",
+  "#[cfg(anyhow_build_probe)]\n",
+  "const _: Option<&str> = option_env!(\"RUSTC_BOOTSTRAP\");\n",
+  "\n",
+  "pub fn request_ref_backtrace(err: &dyn Error) -> Option<&Backtrace> {\n",
+  "    request_ref::<Backtrace>(err)\n",
+  "}\n",
+  "\n",
+  "fn request_ref<'a, T>(err: &'a (impl Error + ?Sized)) -> Option<&'a T>\n",
+  "where\n",
+  "    T: 'static + ?Sized,\n",
+  "{\n",
+  "    error::request_ref::<T>(err)\n",
+  "}\n",
+  "\n",
+  "pub fn provide_ref_backtrace<'a>(request: &mut Request<'a>, backtrace: &'a Backtrace) {\n",
+  "    Request::provide_ref(request, backtrace);\n",
+  "}\n",
+  "\n",
+  "pub fn provide<'a>(err: &'a (impl Error + ?Sized), request: &mut Request<'a>) {\n",
+  "    Error::provide(err, request);\n",
+  "}\n",
+].join('');
+
+function anyhowProbeArgs(target: string, triple = 'aarch64-apple-darwin'): string[] {
+  return ['--cfg=anyhow_build_probe', '--edition=2018', '--crate-name=anyhow', '--crate-type=lib', '--cap-lints=allow',
+    '--emit=dep-info,metadata', '--out-dir', join(target, triple === 'aarch64-apple-ios' ? triple : '', 'release/build/anyhow-1111111111111111/out/probe'),
+    'src/nightly.rs', '--target', triple];
+}
+async function anyhowProbeFiles(parent: string, target: string): Promise<string> {
+  const cwd = join(parent, 'anyhow-1.0.103'); await mkdir(join(cwd, 'src'), { recursive: true });
+  await mkdir(anyhowProbeArgs(target)[7]!, { recursive: true });
+  await writeFile(join(cwd, 'Cargo.toml'), '[package]\nname = "anyhow"\nversion = "1.0.103"\nbuild = "build.rs"\n');
+  await writeFile(join(cwd, 'build.rs'), anyhowProbeBuild); await writeFile(join(cwd, 'src/nightly.rs'), anyhowProbeSource); return cwd;
+}
+
+test('capability probe grammar requires exact pinned argv, source identity and owned probe output', async () => {
+  const target = '/owned/target', cwd = '/registry/anyhow-1.0.103', args = anyhowProbeArgs(target);
+  const candidate = capabilityProbeCandidate(args, cwd, target); assert.ok(candidate);
+  const facts = { lock: await readFile(join(root, 'shells/tauri-mobile/src-tauri/Cargo.lock'), 'utf8'),
+    manifest: '[package]\nname = "anyhow"\nversion = "1.0.103"\nbuild = "build.rs"\n',
+    buildSha256: sha256(anyhowProbeBuild), sourceSha256: sha256(anyhowProbeSource) };
+  const receipt = capabilityProbeReceipt(candidate, facts); validateCapabilityProbe(receipt);
+  assert.equal(receipt.argvSha256, sha256(JSON.stringify(args))); assert.equal(receipt.id, 'anyhow@1.0.103:src/nightly.rs');
+  assert.ok(!JSON.stringify(receipt).includes(cwd) && !JSON.stringify(receipt).includes(args[7]!));
+  for (const changed of [{ lock: facts.lock.replace('version = "1.0.103"', 'version = "1.0.104"') },
+    { lock: facts.lock.replace('2a4385e2e34eb35d6b3efe798b9eb88096925d87726c0798709bf56d9ed84af3', '0'.repeat(64)) },
+    { lock: facts.lock + '\n[[package]]\nname = "anyhow"\nversion = "1.0.103"\n' },
+    { manifest: facts.manifest.replace('1.0.103', '1.0.104') }, { buildSha256: '0'.repeat(64) }, { sourceSha256: '0'.repeat(64) }])
+    assert.throws(() => capabilityProbeReceipt(candidate, { ...facts, ...changed }));
+  for (const changed of [[...args, '-Copt-level=3'], [...args, '@private.rsp'], args.map(arg => arg === 'src/nightly.rs' ? 'src/lib.rs' : arg),
+    args.map(arg => arg === args[7] ? '/outside/out/probe' : arg), args.map(arg => arg === args[7] ? '/owned/target/../outside/out/probe' : arg),
+    args.map(arg => arg === '--emit=dep-info,metadata' ? '--emit=link' : arg), args.map(arg => arg === '--cap-lints=allow' ? '--cap-lints=warn' : arg)])
+    assert.equal(capabilityProbeCandidate(changed, cwd, target), null);
+
+  for (const [name, version, cfg, edition, sources] of [
+    ['proc-macro2', '1.0.106', 'procmacro2_build_probe', '2021', ['src/probe/proc_macro_span.rs', 'src/probe/proc_macro_span_location.rs', 'src/probe/proc_macro_span_file.rs']],
+    ['anyhow', '1.0.103', 'anyhow_build_probe', '2018', ['src/nightly.rs']],
+    ['thiserror', '1.0.69', null, '2018', ['build/probe.rs']], ['thiserror', '2.0.18', null, '2018', ['build/probe.rs']],
+  ] as const) for (const source of sources) for (const triple of ['aarch64-apple-ios', 'aarch64-apple-darwin']) for (const profile of ['debug', 'release']) {
+    const expected = [...(cfg ? ['--cfg=' + cfg] : []), '--edition=' + edition, '--crate-name=' + (name === 'proc-macro2' ? 'proc_macro2' : name),
+      '--crate-type=lib', '--cap-lints=allow', '--emit=dep-info,metadata', '--out-dir',
+      join(target, triple === 'aarch64-apple-ios' ? triple : '', profile + '/build/' + name + '-1111111111111111/out/probe'), source, '--target', triple];
+    const matched = capabilityProbeCandidate(expected, '/registry/' + name + '-' + version, target); assert.ok(matched);
+    assert.equal(matched.source, source); assert.equal(matched.argvSha256, sha256(JSON.stringify(expected)));
+  }
+  assert.equal(capabilityProbeCandidate(args, '/registry/anyhow-1.0.104', target), null);
+  assert.equal(capabilityProbeCandidate(args, '/registry/../anyhow-1.0.103', target), null);
+  for (const changed of [{ ...receipt, id: 'anyhow@1.0.104:src/nightly.rs' }, { ...receipt, extra: 'private-value' },
+    { ...receipt, packageChecksum: '0'.repeat(64) }, { ...receipt, buildScriptSha256: '0'.repeat(64) }]) assert.throws(() => validateCapabilityProbe(changed));
+});
+
+test('capability source observation refuses changed files and rechecks after the child boundary', async () => {
+  const parent = join(root, 'plans/295-validation/ios-capability-tests'); await mkdir(parent, { recursive: true });
+  const output = await mkdtemp(join(parent, 'sources-'));
+  try {
+    const target = join(output, 'target'), cwd = await anyhowProbeFiles(output, target), args = anyhowProbeArgs(target);
+    const probe = await observeCapabilityProbe(args, { repo: root, target }, cwd); assert.ok(probe); await probe.recheck();
+    await writeFile(join(cwd, 'src/nightly.rs'), 'changed source'); await assert.rejects(probe.recheck(), /source changed/);
+    await assert.rejects(observeCapabilityProbe(args, { repo: root, target }, cwd), /source changed/);
+    await writeFile(join(cwd, 'src/nightly.rs'), anyhowProbeSource); await writeFile(join(cwd, 'build.rs'), 'changed build');
+    await assert.rejects(observeCapabilityProbe(args, { repo: root, target }, cwd), /build script changed/);
+    await writeFile(join(cwd, 'build.rs'), anyhowProbeBuild); await writeFile(join(cwd, 'Cargo.toml'), '[package]\nname = "anyhow"\nversion = "1.0.104"\nbuild = "build.rs"\n');
+    await assert.rejects(observeCapabilityProbe(args, { repo: root, target }, cwd));
+    await anyhowProbeFiles(output, target); await rm(join(cwd, 'src/nightly.rs')); await symlink(join(cwd, 'build.rs'), join(cwd, 'src/nightly.rs'));
+    await assert.rejects(observeCapabilityProbe(args, { repo: root, target }, cwd), /canonical/);
+    await rm(join(cwd, 'src/nightly.rs')); await writeFile(join(cwd, 'src/nightly.rs'), 'x'.repeat(65537));
+    await assert.rejects(observeCapabilityProbe(args, { repo: root, target }, cwd), /bound/);
+    await anyhowProbeFiles(output, target); await rm(args[7]!, { recursive: true }); await mkdir(join(output, 'escaped-output'));
+    await symlink(join(output, 'escaped-output'), args[7]!);
+    await assert.rejects(observeCapabilityProbe(args, { repo: root, target }, cwd), /canonical/);
   } finally { await rm(output, { recursive: true, force: true }); }
 });
