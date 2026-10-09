@@ -66,7 +66,7 @@ test('public VM Caddy and native nginx preserve routes, custody and model stream
   command(['caddy', 'version']);
   command(['docker', 'version', '--format', '{{.Server.Version}}']);
   const image = read('deploy/docker/web.Dockerfile').match(
-    /^FROM (nginxinc\/nginx-unprivileged:[^\s]+) AS runtime$/m
+    /^FROM (ghcr\.io\/nginx\/nginx-unprivileged:[^\s]+) AS runtime$/m
   )?.[1];
   assert.ok(image, 'The public fixture must use the actual digest-pinned web runtime');
   const directory = mkdtempSync(join(tmpdir(), 'lolly-public-vm-'));
