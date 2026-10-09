@@ -365,15 +365,11 @@
   }
 }
 
-/* Layout is visible without opening the options menu. */
+/* Layout choices in View options. */
 .browse-layout-control { flex: none; width: auto; margin: 0; }
 .browse-layout-control .view-seg-btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2); min-height: var(--chrome-h); padding-inline: var(--sp-3); }
 .browse-layout-control svg { width: var(--ui-size-icon-sm); height: var(--ui-size-icon-sm); }
 .browse-layout-control .view-seg-btn:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
-@media (max-width: 900px) {
-  .gallery-topright .browse-layout-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-  .gallery-topright .browse-layout-control .view-seg-btn { padding-inline: var(--sp-2); min-width: 30px; }
-}
 
 /* Tools List keeps each live preview but lays out one compact row per result. */
 .tool-masonry[data-browse-layout="list"],

@@ -14,6 +14,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { JSDOM } from 'jsdom';
+import { applyProjectsLayout } from './projects-layout.ts';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const strip = (s: string): string => s.replace(/\/\*[\s\S]*?\*\//g, '').split('\n').map(l => { const at = l.search(/(^|[^:])\/\//); return at === -1 ? l : l.slice(0, at === 0 ? 0 : at + 1); }).join('\n');
@@ -50,12 +52,28 @@ test('toggle + bulk persist to the profile and repaint', () => {
 });
 
 test('the favourites strip mounts at the root only, from the starred refs', () => {
-  // List mode skips the hero (plans/133 Part C, C2h) - the gate is favourites AND not the table.
-  assert.match(CODE, /favourites\.size && !list \?/, 'the strip mount is gated on having favourites (and grid mode)');
-  assert.match(CODE, /data-fav-strip/, 'root markup has the strip mount element');
+  // Keep the root strip mounted so returning to Grid restores its live preview nodes.
+  const rootHtml = CODE.slice(CODE.indexOf('function rootHtml()'), CODE.indexOf('function toolsBodyHtml()'));
+  assert.match(rootHtml, /favourites\.size \? `<div class="projects-featured" data-fav-strip>/, 'the root strip mounts only when there are starred refs');
+  assert.equal((CODE.match(/<div class="projects-featured" data-fav-strip>/g) ?? []).length, 1, 'no folder or results view mounts a second strip');
   assert.match(CODE, /function mountFavStrip\(root: HTMLElement\)/, 'a dedicated mount fn');
   assert.match(CODE, /root\.querySelector<HTMLElement>\('\[data-fav-strip\]'\)/, 'finds ITS mount only (exists in rootHtml)');
   assert.match(CODE, /featuredHandle = mountFeaturedRow\(mount, tiles, host, \{/, 'reuses the shared featured strip');
   // favEntries resolves each ref kind
   assert.match(CODE, /const folder = folders\.find\(f => f\.id === ref\)/, 'resolves favourited folders');
+
+  const dom = new JSDOM('<div class="projects"><div class="projects-featured" data-fav-strip><img alt="Starred preview"></div><div class="projects-grid"></div></div>');
+  const previousDocument = globalThis.document;
+  Object.assign(globalThis, { document: dom.window.document });
+  try {
+    const root = dom.window.document.querySelector<HTMLElement>('.projects')!;
+    const mount = root.querySelector<HTMLElement>('[data-fav-strip]')!;
+    const preview = mount.querySelector('img');
+    for (const view of ['preview', 'card', 'list', 'preview'] as const) {
+      applyProjectsLayout(root, view);
+      assert.equal(mount.hidden, view !== 'preview', `${view}: only Grid displays the favourites strip`);
+      assert.equal(root.querySelector('[data-fav-strip]'), mount, 'the same strip returns after a layout switch');
+      assert.equal(mount.querySelector('img'), preview, 'the starred preview stays mounted');
+    }
+  } finally { Object.assign(globalThis, { document: previousDocument }); dom.window.close(); }
 });

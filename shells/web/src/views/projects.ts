@@ -74,7 +74,7 @@ import { startBatchExport } from '../lib/batch-job.ts';
 import { announce } from '../a11y.ts';
 import { mountActionToolbar, actionButtonContent } from '../components/action-button.ts';
 import { listCreateBtns as createButtonsHtml, emptyFolderHtml, projectLearningActionsHtml } from './projects-create.ts';
-import { applyProjectsLayout, projectLayoutAttrs, projectsLayoutControl, wireProjectsLayout } from './projects-layout.ts';
+import { applyProjectsLayout, projectLayoutAttrs } from './projects-layout.ts';
 import { FEATURED_VIEW_STORAGE, liveAnchor, mountProjectsViewOptions, projectsGridAttrs, projectsViewFromUrl, readProjectsViewPrefs, writeProjectsViewPrefs, readFeaturedView, switchFavouritesView } from './projects-view-options.ts';
 import type { BodyPopoverHandle } from '../components/body-popover.ts';
 import { shareProjectFavourite, shareProjectSession } from './projects-sharing.ts';
@@ -568,7 +568,7 @@ export async function mountProjects(
     viewEl.innerHTML = sharedFolder ? shell(titleName, 'projects', '<div data-shared-folder></div>', { inFolder: true }) : folderId == null ? rootHtml() : folderId === TEMPLATES ? shell(t('Templates'), 'projects', tpl.html(query), { inFolder: true }) : folderHtml(folderId);
     const assetId = !sharedFolder ? new URLSearchParams(opts.params || '').get('asset') : null;
     if (assetId) disposeAssetPreview = mountLocalProjectAsset(viewEl, host, folderId, assetId, folders, imageRefs);
-    wire(); wireProjectsLayout(viewEl.querySelector<HTMLElement>('.projects')!, () => viewMode, value => { viewMode = value; saveViewPrefs(); applyProjectsLayout(viewEl, value); });
+    wire(); applyProjectsLayout(viewEl, viewMode);
     const rootToolbar = viewEl.querySelector<HTMLElement>('.projects-roothead, .projects-head');
     if (rootToolbar) clearRootToolbar = mountActionToolbar(rootToolbar);
     shared.afterRender({ query, list: viewMode === 'list', layout: () => viewMode, head: () => listHeadHtml(), sort: sortBy, reversed: sortRev });
@@ -878,7 +878,7 @@ export async function mountProjects(
       <div class="projects${inFolder ? ' projects--folder' : ''}${query ? ' projects--searching' : ''}">
         ${viewTopbarHtml({
           active,
-          right: projectsLayoutControl(viewMode) + projectsTopRight(folderId && folderId !== UNCAT && folderId !== TEMPLATES ? folderId : null),
+          right: projectsTopRight(folderId && folderId !== UNCAT && folderId !== TEMPLATES ? folderId : null),
           // No view-specific class on the cluster: the old `.projects-topright` marker
           // this markup used to carry had no CSS rule and no selector anywhere in the
           // repo, so it went out with the hand-rolled copy.

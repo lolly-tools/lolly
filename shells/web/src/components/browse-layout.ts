@@ -148,7 +148,7 @@ export function layoutSection(group: string, value: BrowseLayout, modes: readonl
     { attr: 'data-layout-mode', extraClass: 'view-seg--layout' }) + extra);
 }
 
-/** Visible layout choices, shared by the top bars and View options. */
+/** Layout choices in View options. */
 export function layoutControlHtml(group: string, value: BrowseLayout, attr = 'data-layout-mode'): string {
   const labels: Record<BrowseLayout, string> = { grid: t('Grid'), card: t('Card'), list: t('List') };
   const icons = { grid: 'grid', card: 'panelLeft', list: 'menuLines' } as const;

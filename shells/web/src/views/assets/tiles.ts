@@ -15,7 +15,7 @@ import { t } from '../../i18n.ts';
 import { isTauriShell } from '../../lib/instance-choice.ts';
 import { announce } from '../../a11y.ts';
 import { viewTopbarHtml } from '../../components/view-topbar.ts';
-import { layoutControlHtml, layoutSection, densityHtml } from '../../components/browse-layout.ts';
+import { layoutSection, densityHtml } from '../../components/browse-layout.ts';
 import { cardSizeHtml, favouritesViewSection, sortSection, viewOptionsButtonHtml } from '../../components/view-options.ts';
 import { loadAssetCategories } from '../../lib/asset-category.ts';
 import { assetBaseId, loadFavouriteAssets, loadHiddenAssets } from '../../lib/asset-favourites.ts';
@@ -259,7 +259,7 @@ export async function reload(cat: CatCtx): Promise<void> {
 export function catalogTopbarHtml(cat: CatCtx): string {
   return viewTopbarHtml({
     active: 'catalog',
-    right: layoutControlHtml('catalog-layout-visible', cat.catLayout, 'data-catlayout') + viewOptionsButtonHtml('cat-viewopts-btn', { expanded: cat.viewOptsOpen }),
+    right: viewOptionsButtonHtml('cat-viewopts-btn', { expanded: cat.viewOptsOpen }),
     popover: `
         <div class="cat-viewopts filter-popover view-options" role="group" aria-label="${escapeText(t('View options'))}"${cat.viewOptsOpen ? '' : ' hidden'}>
           ${favouritesViewSection(cat.favView, `

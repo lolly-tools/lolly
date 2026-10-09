@@ -1,9 +1,37 @@
 // SPDX-License-Identifier: MPL-2.0
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import type { Page } from 'playwright-core';
 import { getBrowser, closeBrowser } from '../packages/node-shell/src/browsers.ts';
 
 const origin = process.env.LOLLY_IMPORT_TEST_URL;
+const viewOptions = {
+  gallery: { button: '.gallery-viewopts', panel: '#filter-popover', hook: 'data-layout-mode' },
+  projects: { button: '.projects-viewopts', panel: '.projects-viewmenu', hook: 'data-vm' },
+  assets: { button: '.cat-viewopts-btn', panel: '.cat-viewopts', hook: 'data-catlayout' },
+} as const;
+type BrowseView = keyof typeof viewOptions;
+
+async function openLayoutOptions(page: Page, view: BrowseView) {
+  const { button, panel: selector, hook } = viewOptions[view];
+  const panel = page.locator(selector);
+  if (!(await panel.isVisible())) await page.locator(button).click();
+  await panel.waitFor({ state: 'visible' });
+  const controls = panel.locator(`[${hook}]`);
+  assert.equal(await controls.count(), 3, 'View options offers Grid, Card and List');
+  assert.equal(await page.locator(`[${hook}]`).count(), 3, 'only one set of layout choices exists');
+  assert.equal(await page.locator('.gallery-topright > .view-seg--layout').count(), 0, 'the toolbar has no duplicate layout choices');
+  return { panel, controls, hook };
+}
+
+async function chooseLayout(page: Page, view: BrowseView, mode: string): Promise<void> {
+  const { panel, hook } = await openLayoutOptions(page, view);
+  const control = panel.locator(`[${hook}="${mode}"]`);
+  await control.click();
+  assert.equal(await control.getAttribute('aria-pressed'), 'true');
+  await page.keyboard.press('Escape');
+  await panel.waitFor({ state: 'hidden' });
+}
 test('visible Grid/Card/List choices reflow real browse views without losing previews, selection or actions', {
   skip: origin ? false : 'set LOLLY_IMPORT_TEST_URL to a local Vite shell', timeout: 180_000,
 }, async () => {
@@ -25,25 +53,34 @@ test('visible Grid/Card/List choices reflow real browse views without losing pre
           await host.state.save('layout-session', { __toolId: 'qr-code', __toolVersion: '1.0.0', __label: 'Layout session', text: 'Layout test' }, 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 48"><rect width="64" height="48" fill="#30a46c"/></svg>'));
           const folder = await createFolderStore(host).create('Layout folder');
           await createFolderStore(host).create('Nested folder', folder.id);
+          const profile = await host.profile.get();
+          profile.favouriteProjects = [folder.id, 'layout-session'];
+          await host.profile.set?.(profile);
           await host.assets._importUserAsset({ id: 'user/vector/1791536400000-layout', type: 'vector', format: 'svg', width: 64, height: 48,
             blob: new Blob(['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 48"><rect width="64" height="48" fill="#30a46c"/></svg>'], { type: 'image/svg+xml' }), meta: { name: 'Layout asset', bytes: 144, addedAt: Date.now(), modifiedAt: Date.now() } });
         });
         for (const surface of [
-          { href: '#/', container: '.tool-masonry', tile: '.gtile', hook: 'data-layout-mode' },
-          { href: '#/u', container: '.tool-masonry', tile: '.gtile', hook: 'data-layout-mode' },
-          { href: '#/p', container: '.projects-grid', tile: '.folder-tile[data-ref="layout-session"]', hook: 'data-project-layout' },
-          { href: '#/a', container: '.catalog', tile: '.cat-tile[data-id="user/vector/1791536400000-layout"]', hook: 'data-catlayout' },
-        ]) {
+          { href: '#/', container: '.tool-masonry', tile: '.gtile', view: 'gallery' },
+          { href: '#/u', container: '.tool-masonry', tile: '.gtile', view: 'gallery' },
+          { href: '#/p', container: '.projects-grid', tile: '.folder-tile[data-ref="layout-session"]', view: 'projects' },
+          { href: '#/a', container: '.catalog', tile: '.cat-tile[data-id="user/vector/1791536400000-layout"]', view: 'assets' },
+        ] as const) {
           await page.goto(`${origin}/${surface.href}`, { waitUntil: 'networkidle' });
-          const controls = page.locator(`.gallery-topright .browse-layout-control [${surface.hook}]`);
-          await controls.first().waitFor();
-          assert.equal(await controls.count(), 3, `${surface.href} exposes three choices`);
+          await page.locator(viewOptions[surface.view].button).waitFor();
+          const { panel, controls } = await openLayoutOptions(page, surface.view);
           for (const control of await controls.all()) {
             assert.equal(await control.isVisible(), true);
-            assert.ok(await control.getAttribute('title'));
+            assert.ok((await control.textContent())?.trim(), 'each choice has a visible name');
             const rect = await control.boundingBox(); assert.ok(rect && rect.x >= 0 && rect.x + rect.width <= (mobile ? 390 : 1440), `${surface.href} control fits`);
           }
+          await page.keyboard.press('Escape'); await panel.waitFor({ state: 'hidden' });
           const container = page.locator(surface.container).first();
+          if (surface.href === '#/p') {
+            const favourite = page.locator('[data-fav-strip]');
+            await favourite.waitFor();
+            await favourite.evaluate(el => { (window as unknown as { layoutFavourite: Element }).layoutFavourite = el; });
+            assert.equal(await favourite.isVisible(), true, 'Grid shows the starred projects');
+          }
           const tile = surface.href.startsWith('#/p') || surface.href === '#/a' ? page.locator(`${surface.container} ${surface.tile}`).first() : page.locator(`${surface.container} > ${surface.tile}:not(.is-filtered)`).first();
           await tile.waitFor();
           await tile.hover();
@@ -52,10 +89,14 @@ test('visible Grid/Card/List choices reflow real browse views without losing pre
           await tile.evaluate(el => { (window as unknown as { layoutNode: Element; layoutPreview: Element | null }).layoutNode = el; (window as unknown as { layoutPreview: Element | null }).layoutPreview = el.querySelector('img, .gcar, .tile-figure, .cat-tile-fig'); });
           const gridRect = await tile.boundingBox(); assert.ok(gridRect);
           for (const mode of ['card', 'list', 'grid']) {
-            await page.locator(`.gallery-topright .browse-layout-control [${surface.hook}="${mode}"]`).click();
+            await chooseLayout(page, surface.view, mode);
             assert.equal(await container.getAttribute('data-browse-layout'), mode === 'grid' ? null : mode);
-            assert.equal(await page.locator(`.gallery-topright .browse-layout-control [${surface.hook}="${mode}"]`).getAttribute('aria-pressed'), 'true');
             assert.equal(await check.getAttribute('aria-pressed'), 'true', 'selection survives the layout switch');
+            if (surface.href === '#/p') {
+              const favourite = page.locator('[data-fav-strip]');
+              assert.equal(await favourite.isVisible(), mode === 'grid', 'the favourites strip is visible only in Grid');
+              assert.equal(await favourite.evaluate(el => (window as unknown as { layoutFavourite: Element }).layoutFavourite === el), true, 'returning to Grid restores the same favourites strip');
+            }
             assert.equal(await tile.evaluate(el => {
               const state = window as unknown as { layoutNode: Element; layoutPreview: Element | null };
               return state.layoutNode === el && state.layoutPreview === el.querySelector('img, .gcar, .tile-figure, .cat-tile-fig');
@@ -66,7 +107,7 @@ test('visible Grid/Card/List choices reflow real browse views without losing pre
             await check.focus(); assert.equal(await check.evaluate(el => el === document.activeElement), true);
             if (surface.href === '#/p') assert.equal(await tile.locator('.tile-menu-btn').count(), 1, 'the existing menu stays available');
           }
-          await page.locator(`.gallery-topright .browse-layout-control [${surface.hook}="list"]`).click();
+          await chooseLayout(page, surface.view, 'list');
           await page.evaluate(() => { document.documentElement.dataset.a11yText = 'large'; document.documentElement.dataset.a11yPreviews = 'hidden'; });
           const rect = await tile.boundingBox(); assert.ok(rect && rect.width > 0 && rect.height > 0);
           assert.equal(await check.getAttribute('aria-pressed'), 'true');
@@ -74,13 +115,16 @@ test('visible Grid/Card/List choices reflow real browse views without losing pre
         }
         // A new local folder is still reachable in each mode and keeps a distinct preference.
         await page.goto(`${origin}/#/p`, { waitUntil: 'networkidle' });
-        await page.locator('.gallery-topright .browse-layout-control [data-project-layout="card"]').click();
+        await chooseLayout(page, 'projects', 'card');
         const folderLink = page.locator('.folder-tile--folder .tile-primary').filter({ hasText: 'Layout folder' });
         await folderLink.click(); await page.locator('.projects-title').waitFor();
-        await page.locator('.gallery-topright .browse-layout-control [data-project-layout="list"]').click();
+        assert.equal(await page.locator('[data-fav-strip]').count(), 0, 'a folder does not mount the root favourites strip');
+        await chooseLayout(page, 'projects', 'list');
         assert.equal(await page.locator('.folder-tile--folder').filter({ hasText: 'Nested folder' }).count(), 1);
         await page.locator('.projects-back').click();
-        await page.locator('.gallery-topright .browse-layout-control [data-project-layout="card"][aria-pressed="true"]').waitFor();
+        const { panel, controls } = await openLayoutOptions(page, 'projects');
+        assert.equal(await controls.filter({ hasText: 'Card' }).getAttribute('aria-pressed'), 'true');
+        await page.keyboard.press('Escape'); await panel.waitFor({ state: 'hidden' });
       } finally { await context.close(); }
     }
   } finally { await closeBrowser(); }
@@ -100,7 +144,7 @@ test('shared project layouts preserve their own selection, presence and folder a
       await route.fulfill({ status: data ? 200 : 404, contentType: 'application/json', body: JSON.stringify(data ?? {}) });
     });
     await page.goto(`${origin}/#/p`, { waitUntil: 'networkidle' });
-    await page.locator('.gallery-topright .browse-layout-control [data-project-layout]').first().waitFor();
+    await page.locator('.projects-viewopts').waitFor();
     await page.evaluate(async () => {
       const { registerSessionSource } = await import('/src/lib/session-source.ts' as string);
       registerSessionSource({ label: 'Shared layout workspace', listProjects: async () => [{ id: 'prj_layout', name: 'Shared layout project', myRole: 'editor', sessionCount: 1 }],
@@ -113,7 +157,7 @@ test('shared project layouts preserve their own selection, presence and folder a
     await tile.hover(); await tile.locator('.tile-check').click({ force: true });
     await tile.evaluate(el => { (window as unknown as { sharedLayoutNode: Element }).sharedLayoutNode = el; });
     for (const mode of ['card', 'list', 'grid']) {
-      await page.locator(`.gallery-topright .browse-layout-control [data-project-layout="${mode}"]`).click();
+      await chooseLayout(page, 'projects', mode);
       assert.equal(await tile.evaluate(el => (window as unknown as { sharedLayoutNode: Element }).sharedLayoutNode === el), true);
       assert.equal(await tile.locator('.tile-check').getAttribute('aria-pressed'), 'true');
       assert.equal(await tile.locator('.collab-tile-avatar[title="Ravan"]').count(), 1, 'the collaborator remains visible');
@@ -124,10 +168,10 @@ test('shared project layouts preserve their own selection, presence and folder a
     await tile.click({ button: 'right' });
     await page.getByRole('menuitem', { name: 'Rename', exact: true }).waitFor();
     await page.keyboard.press('Escape');
-    await page.locator('.gallery-topright .browse-layout-control [data-project-layout="card"]').click();
+    await chooseLayout(page, 'projects', 'card');
     await page.locator('[data-shared-folder] .folder-tile').filter({ hasText: 'Shared subfolder' }).locator('.tile-primary').click();
     await page.waitForFunction(() => new URLSearchParams(location.hash.split('?')[1]).get('folder') === 'fld_layout');
-    await page.locator('.gallery-topright .browse-layout-control [data-project-layout="list"]').click();
+    await chooseLayout(page, 'projects', 'list');
     assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('lolly:projectsViewPrefs') || '{}')['team:prj_layout:fld_layout']?.v), 'list');
     assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('lolly:projectsViewPrefs') || '{}')['team:prj_layout:']?.v), 'card');
   } finally { await context.close(); await closeBrowser(); }
@@ -141,7 +185,7 @@ test('Assets List continues a large upload page without rebuilding selected prev
     const page = await context.newPage();
     await page.addInitScript(() => { for (const key of ['lolly-welcome-dismissed', 'lolly-tips-dismissed', 'lolly-privacy-ack']) localStorage.setItem(key, '1'); });
     await page.goto(`${origin}/#/p`, { waitUntil: 'networkidle' });
-    await page.locator('.gallery-topright .browse-layout-control [data-project-layout]').first().waitFor();
+    await page.locator('.projects-viewopts').waitFor();
     await page.evaluate(async () => {
       const { openDB } = await import('/src/bridge/db.ts' as string), db = await openDB();
       for (let i = 0; i < 135; i++) await db.put('user-assets', { id: `user/vector/1791536400000-page-${i}`, type: 'vector', format: 'svg', width: 64, height: 48,
@@ -152,7 +196,7 @@ test('Assets List continues a large upload page without rebuilding selected prev
     await selected.waitFor();
     await selected.hover(); await selected.locator('.cat-check').click({ force: true });
     await selected.evaluate(el => { (window as unknown as { pagedLayoutNode: Element }).pagedLayoutNode = el; });
-    await page.locator('.gallery-topright .browse-layout-control [data-catlayout="list"]').click();
+    await chooseLayout(page, 'assets', 'list');
     const before = await page.locator('.cat-tile[data-id^="user/"]').count();
     assert.equal(before, 120, 'the first page stays bounded');
     const more = page.locator('[data-cat-more]').first(); await more.click();
