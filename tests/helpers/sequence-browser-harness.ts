@@ -479,14 +479,127 @@ let counters: Counters = zeroCounters();
 let instrumented = false;
 let captureRaw: ((frame: VideoFrame) => void) | null = null;
 
-async function rawFrameHash(source: VideoFrame): Promise<string> {
+const RAW_DIAGNOSTIC_SAMPLES = 4;
+const RAW_DIAGNOSTIC_BYTES = 4 * 1024 * 1024;
+interface RawSample {
+  index: number;
+  hash: string;
+  bytes: Uint8Array | null;
+  meta: {
+    format: string | null; copyFormat: 'RGBA'; codedWidth: number; codedHeight: number;
+    displayWidth: number; displayHeight: number; visibleX: number; visibleY: number; width: number; height: number;
+    offset: number; stride: number;
+    colorSpace: { primaries: string | null; transfer: string | null; matrix: string | null; fullRange: boolean | null };
+  };
+}
+interface RawDiagnosticRun {
+  samples: RawSample[];
+  logs: string[];
+  counters: Counters | null;
+}
+interface RawDiagnosticPair {
+  control: RawDiagnosticRun | null;
+  cached: RawDiagnosticRun | null;
+  bytes: number;
+}
+let rawDiagnosticPair: RawDiagnosticPair | null = null;
+
+function beginRawComparison(): void {
+  rawDiagnosticPair = { control: null, cached: null, bytes: 0 };
+}
+
+function diagnosticWord(value: string | null): string | null {
+  return value != null && /^[a-zA-Z0-9-]{1,24}$/.test(value) ? value : null;
+}
+
+function boundedRawLogs(logs: string[]): string[] {
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
+  return logs.slice(-8).map(line => decoder.decode(encoder.encode(line
+    .replace(/(?:https?:\/\/|data:|blob:)[^\s]+/g, '[url]')).slice(0, 189)));
+}
+
+function retainRawSample(pair: RawDiagnosticPair, run: RawDiagnosticRun, position: number, sample: RawSample): void {
+  if (rawDiagnosticPair !== pair || position >= RAW_DIAGNOSTIC_SAMPLES) return;
+  const size = sample.bytes?.byteLength ?? 0;
+  if (pair.bytes + size > RAW_DIAGNOSTIC_BYTES) sample.bytes = null;
+  else pair.bytes += size;
+  run.samples[position] = sample;
+}
+
+function rawPixelDifference(a: RawSample, b: RawSample): unknown {
+  const left = a.bytes, right = b.bytes;
+  if (!left || !right) return { unavailable: 'retained-byte-limit' };
+  let byteMismatchCount = Math.abs(left.length - right.length);
+  for (let i = 0; i < Math.min(left.length, right.length); i++) if (left[i] !== right[i]) byteMismatchCount++;
+  const valid = (sample: RawSample): boolean => {
+    const { width, height, offset, stride } = sample.meta;
+    return Number.isSafeInteger(width) && width > 0 && Number.isSafeInteger(height) && height > 0
+      && Number.isSafeInteger(offset) && offset >= 0 && Number.isSafeInteger(stride) && stride >= width * 4
+      && offset + (height - 1) * stride + width * 4 <= sample.bytes!.length;
+  };
+  if (!valid(a) || !valid(b) || a.meta.width !== b.meta.width || a.meta.height !== b.meta.height)
+    return { byteMismatchCount, unavailable: 'incompatible-rgba-layout' };
+  const { width, height } = a.meta;
+  let mismatchCount = 0, minX = width, minY = height, maxX = -1, maxY = -1;
+  const channelMismatchCounts = [0, 0, 0, 0], maxChannelDelta = [0, 0, 0, 0];
+  const alphaCounts = { control: { transparent: 0, partial: 0, opaque: 0 }, cached: { transparent: 0, partial: 0, opaque: 0 } };
+  for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+    const ai = a.meta.offset + y * a.meta.stride + x * 4, bi = b.meta.offset + y * b.meta.stride + x * 4;
+    let differs = false;
+    for (let c = 0; c < 4; c++) {
+      const delta = Math.abs(left[ai + c]! - right[bi + c]!);
+      if (delta) { differs = true; channelMismatchCounts[c]!++; }
+      maxChannelDelta[c] = Math.max(maxChannelDelta[c]!, delta);
+    }
+    const controlAlpha = left[ai + 3]!, cachedAlpha = right[bi + 3]!;
+    alphaCounts.control[controlAlpha === 0 ? 'transparent' : controlAlpha === 255 ? 'opaque' : 'partial']++;
+    alphaCounts.cached[cachedAlpha === 0 ? 'transparent' : cachedAlpha === 255 ? 'opaque' : 'partial']++;
+    if (differs) { mismatchCount++; minX = Math.min(minX, x); minY = Math.min(minY, y); maxX = Math.max(maxX, x); maxY = Math.max(maxY, y); }
+  }
+  return {
+    byteMismatchCount, mismatchCount, bounds: mismatchCount ? { minX, minY, maxX, maxY } : null,
+    channelMismatchCounts, maxChannelDelta, maximumChannelDelta: Math.max(...maxChannelDelta),
+    alphaMismatchCount: channelMismatchCounts[3], alphaCounts,
+  };
+}
+
+function takeRawComparison(): unknown | null {
+  const pair = rawDiagnosticPair;
+  rawDiagnosticPair = null;
+  if (!pair?.control || !pair.cached) return null;
+  const control = pair.control, cached = pair.cached;
+  if (control.samples.length === cached.samples.length && control.samples.every((sample, i) => sample.hash === cached.samples[i]?.hash)) return null;
+  return {
+    retainedBytes: pair.bytes, byteLimit: RAW_DIAGNOSTIC_BYTES, sampleLimit: RAW_DIAGNOSTIC_SAMPLES,
+    control: { logs: control.logs, counters: control.counters }, cached: { logs: cached.logs, counters: cached.counters },
+    samples: Array.from({ length: Math.max(control.samples.length, cached.samples.length) }, (_, i) => {
+      const a = control.samples[i], b = cached.samples[i];
+      return { position: i, control: a ? { index: a.index, hash: a.hash, ...a.meta } : null,
+        cached: b ? { index: b.index, hash: b.hash, ...b.meta } : null,
+        difference: a && b ? rawPixelDifference(a, b) : { unavailable: 'missing-sample' } };
+    }),
+  };
+}
+
+async function rawFrameHash(source: VideoFrame, retain?: (sample: Omit<RawSample, 'index'>) => void): Promise<string> {
   const frame = source.clone();
   try {
     const options = { format: 'RGBA' as const };
     const bytes = new Uint8Array(frame.allocationSize(options));
-    await frame.copyTo(bytes, options);
+    const layout = await frame.copyTo(bytes, options);
     const hash = await crypto.subtle.digest('SHA-256', bytes);
-    return [...new Uint8Array(hash)].map(byte => byte.toString(16).padStart(2, '0')).join('');
+    const hex = [...new Uint8Array(hash)].map(byte => byte.toString(16).padStart(2, '0')).join('');
+    if (retain) retain({ bytes, hash: hex, meta: {
+      format: diagnosticWord(frame.format), copyFormat: 'RGBA', codedWidth: frame.codedWidth, codedHeight: frame.codedHeight,
+      displayWidth: frame.displayWidth, displayHeight: frame.displayHeight,
+      visibleX: frame.visibleRect?.x ?? 0, visibleY: frame.visibleRect?.y ?? 0,
+      width: frame.visibleRect?.width ?? frame.codedWidth, height: frame.visibleRect?.height ?? frame.codedHeight,
+      offset: layout[0]?.offset ?? 0, stride: layout[0]?.stride ?? 0,
+      colorSpace: { primaries: diagnosticWord(frame.colorSpace.primaries), transfer: diagnosticWord(frame.colorSpace.transfer),
+        matrix: diagnosticWord(frame.colorSpace.matrix), fullRange: frame.colorSpace.fullRange },
+    } });
+    return hex;
   } finally { frame.close(); }
 }
 
@@ -606,13 +719,21 @@ async function exportSeq(spec: StageSpec, format: 'mp4' | 'webm' | 'gif' | 'apng
   instrument();
   resetCounters();
   const target = buildStage(spec);
-  const { applyClockAtMs, freezeVideos, deviceMemory, worker, gl, breakWorker, heartbeat, fxCacheBytes, rawFrames, ...renderOpts } = opts as Any;
+  const { applyClockAtMs, freezeVideos, deviceMemory, worker, gl, breakWorker, heartbeat, fxCacheBytes, rawFrames, rawDiagnosticSide, ...renderOpts } = opts as Any;
   const undo: (() => void)[] = [];
   const rawHashes: Promise<string>[] = [];
+  const pair = rawDiagnosticPair;
+  const side: 'control' | 'cached' | null = rawDiagnosticSide === 'control' || rawDiagnosticSide === 'cached' ? rawDiagnosticSide : null;
+  const diagnostic: RawDiagnosticRun | null = pair && side && !pair[side] ? { samples: [], logs: [], counters: null } : null;
+  if (diagnostic && pair && side) pair[side] = diagnostic;
   if (Array.isArray(rawFrames)) {
     const indices = new Set<number>(rawFrames.slice(0, 8));
     let index = 0;
-    captureRaw = frame => { if (indices.has(index++)) rawHashes.push(rawFrameHash(frame)); };
+    captureRaw = frame => {
+      const n = index++, position = rawHashes.length;
+      if (indices.has(n)) rawHashes.push(rawFrameHash(frame, diagnostic && pair
+        ? sample => retainRawSample(pair, diagnostic, position, { index: n, ...sample }) : undefined));
+    };
     undo.push(() => { captureRaw = null; });
   }
   if (fxCacheBytes != null) {
@@ -721,14 +842,17 @@ async function exportSeq(spec: StageSpec, format: 'mp4' | 'webm' | 'gif' | 'apng
     const ms = performance.now() - t0;
     const key = put(blob);
     for (const u of undo.reverse()) u();
-    return {
+    const result: ExportRun = {
       key, type: blob.type, size: blob.size, ms, logs, error: null, rawHashes: await Promise.all(rawHashes),
       beat: { ...beat },
       counters: { ...counters },
       frames: stage ? frameTimestamps(stage.totalMs, fps).length : 0, fps,
     };
+    if (diagnostic) { diagnostic.logs = boundedRawLogs(logs); diagnostic.counters = result.counters; }
+    return result;
   } catch (err) {
     for (const u of undo.reverse()) u();
+    if (diagnostic) { diagnostic.logs = boundedRawLogs(logs); diagnostic.counters = { ...counters }; }
     return {
       key: null, type: '', size: 0, ms: performance.now() - t0, logs,
       error: toCodedError(err), stack: (err as Error)?.stack ?? '', beat: { ...beat }, counters: { ...counters },
@@ -1697,7 +1821,7 @@ const goldenDeps: GoldenDeps = { exportSeq, buildStage, blob: (key) => blobs.get
 (globalThis as Any).SEQ = {
   golden: goldenApi(goldenDeps), perf: perfApi(goldenDeps),
   probe, makeClip, truncate, makeBed, makeRampBed, waveformPeaks, exportSeq, buildStage, filmstripCodes,
-  decodeCodes, frameHashes, blobSha, frameDelta, frameSelfDelta, audioRms, hasAudioTrack,
+  decodeCodes, frameHashes, blobSha, frameDelta, frameSelfDelta, audioRms, hasAudioTrack, beginRawComparison, takeRawComparison,
   driveProvider, stalledProvider, elementRotationProbe, alphaWebmProbe, stillAt, cutsAt, fidelity, resetCounters, firstFramePixels,
   blobBytes, blobDiff, trackColors, rowRun, vectorStillAt, exportViaApi, walkToSvg, posedVsHatch,
   constants: { HIGH_WATER, MAX_LIVE_PROVIDERS, CODE_BITS },
