@@ -37,6 +37,7 @@ jobs:
           ref: ${{ github.event.workflow_run.head_sha }}
           persist-credentials: false
           submodules: false
+          fetch-depth: 0
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: '24'
@@ -45,4 +46,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           LOLLY_RELEASE_PUBLIC_KEY_JWK: ${{ vars.LOLLY_RELEASE_PUBLIC_KEY_JWK }}
+          LOLLY_CLASSIFY_WEB_CANDIDATES: ${{ vars.LOLLY_CLASSIFY_WEB_CANDIDATES }}
+          LOLLY_APPLICATION_RELEASE_BASE: ${{ vars.LOLLY_APPLICATION_RELEASE_BASE }}
         run: node scripts/main-web-preparation.ts

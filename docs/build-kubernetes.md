@@ -219,6 +219,43 @@ independent CA, Penpot or MCP services. It requires that commit's successful nor
 main CI and retains the frontend release gate. Main CI can request candidate
 preparation; automatic production promotion is not enabled by that workflow.
 
+The main candidate workflow has an optional changed-path filter. Leave the
+repository variable `LOLLY_CLASSIFY_WEB_CANDIDATES` unset or set to `false` to
+retain its existing behavior. Set it to the literal `true` only with
+`LOLLY_APPLICATION_RELEASE_BASE` set to a reviewed full lowercase commit hash.
+That base must be an ancestor of the exact qualified main candidate. It is a
+comparison base, not a claim about the source running in production. The helper
+never chooses the candidate's parent or a moving branch as a substitute.
+
+With filtering enabled, a clean complete-history checkout must prove that the
+whole range contains only regular web source changes and permitted companion
+tests or the generated web source README. The candidate request and all normal
+CI, release-gate, signing and image qualification checks stay in place. Identical
+committed trees skip preparation; unknown or mixed paths, docs-only or test-only
+ranges, invalid inputs and dirty checkouts return a result requiring manual
+review. A skipped or held preparation does not authorize an artifact reuse or a
+production change. Private shell, pack, engine-pin and runtime compatibility
+still need their own review.
+
+`vendor/application-release-classifier/` contains the classifier and its 45 Git
+fixture tests. Both files are
+byte-exact copies of the reviewed Lolly Work classifier at
+`987d67135a3b0d1026e4e893d69a69b1f4c79d84`. The maintained
+`scripts/data/application-release-classifier-source.json` records the source
+repository, immutable Git objects and SHA-256 hashes. The preparer executes only
+the checked-out copy; it never downloads or runs another repository's moving
+code. To inspect a range locally with Node 24 and Git:
+
+```sh
+node vendor/application-release-classifier/scripts/classify-application-release.ts \
+  --repo /absolute/clean/lolly-checkout \
+  --base FULL_REVIEWED_BASE_COMMIT \
+  --candidate FULL_CANDIDATE_COMMIT
+```
+
+The JSON includes both commit and tree identities, a bounded complete inventory
+and advisory flags. It never grants promotion or artifact-reuse permission.
+
 For Lolly Work, use its [application update operator](https://github.com/lolly-tools/lolly-work/blob/main/deploy/helm/APP-UPDATES.md)
 to review an image-only update against the exact existing Deployment identity.
 Its guarded version 2 can atomically update explicitly selected application and

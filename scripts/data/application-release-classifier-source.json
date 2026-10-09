@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "sourceRepository": "https://github.com/lolly-tools/lolly-work",
+  "sourceCommit": "987d67135a3b0d1026e4e893d69a69b1f4c79d84",
+  "rulesVersion": "application-release-classification-1",
+  "copiesAreByteExact": true,
+  "files": [
+    {
+      "path": "vendor/application-release-classifier/scripts/classify-application-release.ts",
+      "gitBlob": "3c99be74fe3bedbe7e7c0d2791c2e2389e3f57a3",
+      "sha256": "80033b12e514f31920faa9e207ec2be3beedda6a0f9abaac9679519a72563da0",
+      "bytes": 11114,
+      "sourcePath": "scripts/classify-application-release.ts"
+    },
+    {
+      "path": "vendor/application-release-classifier/tests/application-release-classification.test.ts",
+      "gitBlob": "0efe509c7a3ff3026febaa00a5daed0460a62dba",
+      "sha256": "e5730d50d97f7b6e07050a8f2b368d9a69002e2e682f84ed6ad96188faa30196",
+      "bytes": 13893,
+      "sourcePath": "tests/application-release-classification.test.ts"
+    }
+  ],
+  "authority": "Advisory classification only; no artifact reuse or production promotion permission."
+}

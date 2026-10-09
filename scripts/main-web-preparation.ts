@@ -7,6 +7,7 @@ import { closeSync, openSync, readSync, statSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { webGpuReleaseProblems } from './webgpu-release-gate.ts';
+import { classifyApplicationRelease, type ReleaseClassification } from '../vendor/application-release-classifier/scripts/classify-application-release.ts';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const SHA = /^[0-9a-f]{40}$/;
@@ -19,7 +20,10 @@ export type CandidateApi = (request: CandidateRequest) => Promise<unknown>;
 export type MainWebPreparation =
   | { result: 'HELD'; reason: 'release-gate'; problems: string[] }
   | { result: 'SKIPPED'; reason: 'untrusted-trigger' | 'unqualified-run' | 'stale-main' }
-  | { result: 'REQUESTED'; source: string; ciRun: string };
+  | { result: 'HELD'; reason: 'classification-inputs' | 'classification-review'; source: string; ciRun: string;
+      manualReviewRequired: true; classification?: ReleaseClassification }
+  | { result: 'SKIPPED'; reason: 'no-committed-change'; source: string; ciRun: string; classification: ReleaseClassification }
+  | { result: 'REQUESTED'; source: string; ciRun: string; classification?: ReleaseClassification };
 
 function require(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);
@@ -55,6 +59,7 @@ export async function publicCandidatePin(text: string | undefined): Promise<stri
 
 export async function prepareMainWebCandidate(options: {
   root?: string; repository: string; event: unknown | (() => unknown); publicKey?: string; api: CandidateApi;
+  classification?: { enabled?: string; base?: string };
 }): Promise<MainWebPreparation> {
   const root = options.root ?? ROOT;
   const problems = webGpuReleaseProblems(root, 'web');
@@ -77,10 +82,26 @@ export async function prepareMainWebCandidate(options: {
   if (main.ref !== 'refs/heads/main' || object(main.object).type !== 'commit' || object(main.object).sha !== source) {
     return { result: 'SKIPPED', reason: 'stale-main' };
   }
+  let classification: ReleaseClassification | undefined;
+  const enabled = options.classification?.enabled;
+  if (enabled !== undefined && enabled !== '' && enabled !== 'false') {
+    if (enabled !== 'true') return { result: 'HELD', reason: 'classification-inputs', source, ciRun, manualReviewRequired: true };
+    try {
+      classification = classifyApplicationRelease({ repo: root, base: options.classification?.base ?? '', candidate: source });
+    } catch {
+      return { result: 'HELD', reason: 'classification-inputs', source, ciRun, manualReviewRequired: true };
+    }
+    if (classification.classification === 'no-change') {
+      return { result: 'SKIPPED', reason: 'no-committed-change', source, ciRun, classification };
+    }
+    if (classification.classification !== 'web-shell-only') {
+      return { result: 'HELD', reason: 'classification-review', source, ciRun, manualReviewRequired: true, classification };
+    }
+  }
   const body = { ref: 'main', inputs: { build_images: 'true', release_scope: 'web', expected_source: source, ci_run: ciRun, public_key_jwk: publicPin } };
   require(Buffer.byteLength(JSON.stringify(body)) <= 2048, 'Candidate request exceeds its bound');
   await options.api({ method: 'POST', path: `${base}/actions/workflows/deployment-suse.yml/dispatches`, body });
-  return { result: 'REQUESTED', source, ciRun };
+  return { result: 'REQUESTED', source, ciRun, ...(classification ? { classification } : {}) };
 }
 
 /** The only write is the named candidate workflow dispatch; redirects are refused. */
@@ -133,6 +154,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   try {
     const result = await prepareMainWebCandidate({ repository: process.env.GITHUB_REPOSITORY ?? '',
       event: () => eventFile(process.env.GITHUB_EVENT_PATH), publicKey: process.env.LOLLY_RELEASE_PUBLIC_KEY_JWK,
+      classification: { enabled: process.env.LOLLY_CLASSIFY_WEB_CANDIDATES, base: process.env.LOLLY_APPLICATION_RELEASE_BASE },
       api: githubCandidateApi(process.env.GITHUB_REPOSITORY ?? '', process.env.GH_TOKEN) });
     console.log(JSON.stringify(result));
   } catch {
