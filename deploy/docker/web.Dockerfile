@@ -38,9 +38,18 @@
 # checked out for LOLLY_PROFILE=suse.
 # ============================================================================
 
-# ── build stage ─────────────────────────────────────────────────────────────
-FROM node:26-bookworm@sha256:2aaae6d91f99fee84cfc92da9b52c22a185752d247746052bbc3f961e44478c6 AS build
+# ── dependency fetch stage ──────────────────────────────────────────────────
+FROM node:26-bookworm@sha256:2aaae6d91f99fee84cfc92da9b52c22a185752d247746052bbc3f961e44478c6 AS deps
 WORKDIR /src
+RUN npm install --global pnpm@11.26.0
+# Fetch reads the locked graph without executing the root bootstrap lifecycle.
+# Keep workspace settings and the root manifest (including override references).
+# This layer contains no profile content or signing material.
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN pnpm fetch
+
+# ── build stage ─────────────────────────────────────────────────────────────
+FROM deps AS build
 
 # Which brand/profile to bake into the static build (see header). Neutral by
 # default; a public image must not ship the private SUSE pack.
@@ -64,8 +73,7 @@ COPY . .
 # There is no root postinstall to run: content is read from the packs where it
 # lives, and LOLLY_PROFILE above picks which. pnpm-workspace.yaml's allowBuilds
 # list approves the native build scripts (esbuild, onnxruntime-node, fsevents).
-RUN npm install --global pnpm@11.26.0
-RUN pnpm install --frozen-lockfile --prod=false
+RUN pnpm install --offline --frozen-lockfile --prod=false
 
 # Sign the active catalog, validate the public pin, and build verified-only
 # shells/web/dist. Missing keys fail the build; there is no unsigned fallback.

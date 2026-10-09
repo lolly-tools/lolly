@@ -72,7 +72,19 @@ A cooperating page can forward deck navigation during handover. An ordinary page
 
 ## Add the receiver to a page you own
 
-The maintained receiver is exported by the Lolly tool-author SDK as `@lolly-tools/core/present-receiver`. Build your page with the SDK version matching the instance. Set an exact list of origins allowed to frame your page, and call the returned cleanup function when your page unmounts:
+The maintained receiver is exported by the Lolly tool-author SDK as `@lolly-tools/core/present-receiver`. Use an instance revision that includes the receiver protocol, and build the SDK from that same revision. From a clean Lolly checkout with its locked dependencies installed, run:
+
+```sh
+pnpm run pack:core
+```
+
+For SDK 1.1.0, this produces `dist/core-pack/lolly-tools-core-1.1.0.tgz` with compiled JavaScript and TypeScript declarations. Check that `dist/core-pack/manifest.json` records the selected revision in `generatedFrom`. Install the tarball in your page's project, replacing the path with your checkout's absolute path:
+
+```sh
+npm install /path/to/lolly/dist/core-pack/lolly-tools-core-1.1.0.tgz
+```
+
+This route does not depend on SDK 1.1.0 being published to npm. Your page's normal bundler can import the compiled receiver. Set an exact list of origins allowed to frame your page, and call the returned cleanup function when your page unmounts:
 
 ```js
 import { attachPresentReceiver } from '@lolly-tools/core/present-receiver';

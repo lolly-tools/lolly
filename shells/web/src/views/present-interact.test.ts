@@ -138,6 +138,68 @@ test('autoscroll stops for pause and manual takeover; overview releases focus wi
     f.sync(); assert.equal(f.controller.active, f.marker);
   } finally { f.close(); }
 });
+test('reduced motion without stops keeps Start at and leaves no automatic frame work', () => {
+  const f = fixture('auto=focus;start=640;from=0;to=1000;sec=1;rep=loop;ms=0', true);
+  try {
+    f.sync(2, { paused: true }); assert.equal(f.y, 640); assert.equal(f.callbacks.size, 0);
+    f.sync(); f.tick(0); assert.equal(f.y, 640);
+    // A synchronous depth reply can leave one already queued notification frame.
+    f.tick(16); assert.equal(f.callbacks.size, 0);
+    const scrolls = f.calls.filter(([kind]) => kind === 'scroll').length;
+    f.tick(1000); f.sync(); assert.equal(f.y, 640);
+    assert.equal(f.calls.filter(([kind]) => kind === 'scroll').length, scrolls); assert.equal(f.callbacks.size, 0);
+  } finally { f.close(); }
+});
+test('a delayed receiver starts automatic scrolling only after its capabilities and depth arrive', () => {
+  const f = fixture('auto=focus;from=0;to=1000;sec=1;ease=el;ms=0');
+  const readDepth = f.driver.depth;
+  let depthReady = false;
+  f.driver.depth = () => depthReady ? readDepth() : null;
+  Object.assign(f.driver.capabilities, { backend: 'outside', scroll: false, depth: false, checking: true });
+  const notify = () => { for (const callback of f.subscribers) callback(); };
+  try {
+    f.sync(); assert.equal(f.callbacks.size, 0);
+    for (let time = 0; time <= 1500; time += 100) f.tick(time);
+    Object.assign(f.driver.capabilities, { backend: 'receiver', scroll: true, depth: true, checking: false });
+    notify(); f.tick(2000); assert.equal(f.callbacks.size, 0);
+    depthReady = true; notify(); assert.equal(f.callbacks.size, 1);
+    f.tick(20_000); assert.equal(f.y, 0);
+    f.tick(20_100); assert.ok(f.y > 0 && f.y < 1000);
+    for (let time = 20_200; time <= 21_100; time += 100) f.tick(time);
+    assert.equal(f.y, 1000); assert.equal(f.callbacks.size, 0);
+    notify(); f.sync(); assert.equal(f.callbacks.size, 0);
+  } finally { f.close(); }
+});
+test('receiver readiness interruptions freeze elapsed time without restarting a visit', () => {
+  const f = fixture('auto=open;from=0;to=1000;sec=1;ease=el;ms=0');
+  const notify = () => { for (const callback of f.subscribers) callback(); };
+  try {
+    f.sync(); f.tick(0); f.tick(100); const before = f.y; assert.ok(before > 0 && before < 1000);
+    Object.assign(f.driver.capabilities, { backend: 'receiver', scroll: false, checking: true });
+    notify(); f.tick(5000); assert.equal(f.y, before); assert.equal(f.callbacks.size, 0);
+    Object.assign(f.driver.capabilities, { scroll: true, checking: false });
+    notify(); f.tick(10_000); assert.equal(f.y, before);
+    f.tick(10_100); assert.ok(f.y > before && f.y < 1000);
+    f.controller.key(new win.KeyboardEvent('keydown', { key: 'ArrowUp' }));
+    f.tick(10_200); const depth = f.y;
+    notify(); f.tick(10_300); assert.equal(f.y, depth); assert.equal(f.callbacks.size, 0);
+  } finally { f.close(); }
+});
+test('Places and Pan automatic routes do not wait for receiver depth', () => {
+  for (const backend of ['outside', 'receiver'] as const) {
+    const f = fixture('auto=open;mode=places;stops=%23intro,%23end;sec=1;ms=0');
+    f.driver.depth = () => null;
+    Object.assign(f.driver.capabilities, { backend, depth: false, checking: backend === 'outside' });
+    try {
+      f.sync(); f.tick(0); assert.ok(f.calls.some(([kind, value]) => kind === 'scroll' && value === '#intro'));
+      for (let time = 100; time <= 1100; time += 100) f.tick(time);
+      assert.ok(f.calls.some(([kind, value]) => kind === 'scroll' && value === '#end')); assert.equal(f.callbacks.size, 0);
+    } finally { f.close(); }
+  }
+  const pan = fixture('auto=open;mode=pan;len=1400;to=1000;sec=1;ease=el;ms=0');
+  Object.assign(pan.driver.capabilities, { backend: 'outside', checking: true });
+  try { pan.sync(); pan.tick(0); pan.tick(100); assert.ok(pan.y > 0 && pan.y < 1000); } finally { pan.close(); }
+});
 test('kiosk never arms a focus click but still runs arrival scrolling, and teardown cancels work', () => {
   const f = fixture('auto=open;to=1000;sec=1;ease=el', false, true);
   f.sync(); assert.equal(f.controller.active, null); f.tick(0); f.tick(100); assert.ok(f.y > 0);

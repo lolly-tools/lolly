@@ -7825,5 +7825,10 @@
   "When the slide opens": "When the slide opens",
   "While the page has the keyboard, the clicker goes to the page. Click Back to slides to take it back.": "While the page has the keyboard, the clicker goes to the page. Click Back to slides to take it back.",
   "While this page is focused, Up and Down go to the page instead of the slide stack.": "While this page is focused, Up and Down go to the page instead of the slide stack.",
-  "Your workspace blocks this site. The slide shows its picture.": "Your workspace blocks this site. The slide shows its picture."
+  "Your workspace blocks this site. The slide shows its picture.": "Your workspace blocks this site. The slide shows its picture.",
+  "{steps}, and {n} more": "{steps}, and {n} more",
+  "Build: {steps}": "Build: {steps}",
+  "Focus: {steps}": "Focus: {steps}",
+  "Other steps on this slide: {steps}": "Other steps on this slide: {steps}",
+  "No other steps on this slide.": "No other steps on this slide."
 }

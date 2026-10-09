@@ -429,7 +429,7 @@ export async function wireSidebar(tview: ToolViewCtx): Promise<void> {
         ${runtime.manifest.render.urlSync !== false && !exportUiEmpty && !visitorPage && !isIframeMode() ? `<div class="url-budget" id="url-budget-gauge" role="button" tabindex="0" aria-label="${escapeText(t('URL budget'))}" title="${escapeText(t('URL budget'))}" hidden><span class="url-budget-fill" data-gauge-fill></span></div><div class="url-budget-toast" data-gauge-toast role="status" aria-live="polite" hidden></div>` : ''}
         ${showAside && !isIframeMode() ? `<button type="button" class="fullscreen-toggle-float" id="fullscreen-toggle-float" data-tip-below data-tip-align="start" data-tip="${escapeText(t('Expand sidebar'))}" aria-label="${escapeText(t('Expand sidebar'))}">${icon('arrowRight')}</button>` : ''}
         ${
-          hideSidebar && onDevice && !isIframeMode()
+          hideSidebar && onDevice && toolId !== 'rondocode' && !isIframeMode()
             ? `<div class="on-device-badge on-device-badge--float" title="${escapeText(t('This tool runs entirely in your browser. Your file is never uploaded.'))}">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
           <span>${t('Runs on your device - nothing is uploaded')}</span>

@@ -438,7 +438,7 @@ export function wireHistory(tview: ToolViewCtx): void {
   // the user's content is processed locally and never uploaded. It's the single
   // most reassuring thing on screen for someone used to handing files to strangers.
   const onDevice = tview.tool.manifest.privacy === 'on-device'; tview.onDevice = onDevice;
-  const privacyBadge = onDevice
+  const privacyBadge = onDevice && tview.toolId !== 'rondocode'
     ? `<div class="on-device-badge" title="${escapeText(t('This tool runs entirely in your browser. Your file is never uploaded.'))}">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         <span>${t('Runs on your device - nothing is uploaded')}</span>

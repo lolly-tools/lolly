@@ -8,7 +8,7 @@ Part of [Build Guide](/info/build-guide.html).
 
 ## Web shell on Kubernetes (Helm)
 
-The web shell is a **static site** - `pnpm run build:web` produces a `dist/` folder of HTML, CSS, JS, the service worker, the HarfBuzz WASM, fonts, the bundled tool catalog and the `/info` site. Anything that can serve static files can host it (which is why the production site runs behind a CDN). To run it **inside your own Kubernetes cluster** - air-gapped, on-prem or alongside the rest of your platform - the artefacts ship in this repo: `deploy/docker/` bakes `dist/` into an <!--l:nginx-->nginx image, and `deploy/helm/` deploys it. This section is what those files do and how to adapt them; [Deployment](/info/deployment.html) is where each piece runs.
+The web shell is a **static site** - a build produces a `dist/` folder of HTML, CSS, JS, the service worker, the HarfBuzz WASM, fonts, the bundled tool catalog and the `/info` site. Anything that can serve static files can host it. To run it **inside your own Kubernetes cluster** - air-gapped, on-prem or alongside the rest of your platform - the artefacts ship in this repo: `deploy/docker/` bakes `dist/` into an <!--l:nginx-->nginx image, and `deploy/helm/` deploys it. This section is what those files do and how to adapt them; [Deployment](/info/deployment.html) is where each piece runs.
 
 Nothing in the chart is specific to one cluster: it is plain Kubernetes, so it deploys on any conformant distribution - including SUSE's own RKE2 and <!--l:k3s-->k3s - and on any managed service.
 
@@ -39,16 +39,25 @@ docker login        dp.apps.rancher.io -u <username-or-sa-username> -p <access-t
 
 `deploy/docker/web.Dockerfile` does the static build *and* the packaging in one multi-stage build, so there is no separate "run npm, then copy `dist/`" step to perform by hand. The one thing it needs from you: the **build context must be the repo root**. A plain clone already has `community/` and `brands/lolly-start/` checked out, so a `LOLLY_PROFILE=lolly-start` build needs nothing further; building the `suse` profile needs `brands/suse` mounted first (`git submodule update --init --checkout brands/suse`).
 
+Provision the instance's existing P-256 catalog signing key and matching public
+verification key through your trusted build environment. Release builds require
+both keys and the published supported-environment table; an unsigned development
+build is not a release. The [signed image guide](https://github.com/lolly-tools/lolly/blob/main/deploy/docker/README.md)
+describes secret custody, verification and the release gate.
+
 ```bash
-docker build -f deploy/docker/web.Dockerfile \
+docker buildx build --load --no-cache-filter build -f deploy/docker/web.Dockerfile \
   --build-arg LOLLY_PROFILE=lolly-start \
+  --secret id=LOLLY_CATALOG_SIGNING_KEY,env=LOLLY_CATALOG_SIGNING_KEY \
+  --secret id=VITE_CATALOG_PUBLIC_KEY_JWK,env=VITE_CATALOG_PUBLIC_KEY_JWK \
   -t <your-registry>/lolly-web:0.1.0 .
 docker push <your-registry>/lolly-web:0.1.0
 ```
 
-What the two stages do:
+What the three stages do:
 
-- **build** - `node:26-bookworm`, pinned by digest, runs `pnpm install --frozen-lockfile` then the real `pnpm run build:web`. Deliberately not the slim variant: the optional native dependencies (sharp, onnxruntime, resvg, playwright) need build tooling slim doesn't carry.
+- **deps** - `node:26-bookworm`, pinned by digest, fetches the locked dependencies from the package manifest, lockfile and workspace settings. This stage contains no profile content or signing material.
+- **build** - copies the full source, runs the normal bootstrap and frozen offline dependency install, then signs and compiles with `pnpm run build:web:release`. `--no-cache-filter build` keeps signing fresh while allowing the dependency stage to be reused. Native install scripts may still download their own inputs.
 - **runtime** - `nginxinc/nginx-unprivileged`, also digest-pinned, running as uid 101 on port **8080**. `dist/` is copied to `/usr/share/nginx/html`, `deploy/docker/nginx.conf` becomes `conf.d/default.conf` and `deploy/docker/security-headers.conf` is copied beside it.
 
 `--build-arg LOLLY_PROFILE=suse|lolly-start` bakes one brand into the static output - theme colour, PWA chrome and the resolved tool and catalog content. Nothing is read at serve time, which is why the chart needs no pack, config or volume mounted for the web app; changing brand means rebuilding the image and rolling the deployment.
@@ -199,6 +208,29 @@ helm upgrade --install lolly ./deploy/helm -n lolly \
 ```
 
 `NOTES.txt` prints the resulting URLs, which components came up and any secret still missing.
+
+### Routine application updates
+
+Keep the cluster, database, Secrets, storage and hostname in place for a normal
+TypeScript or UI update. Build and qualify the affected application image from an
+exact main commit, then promote its tested digest. The maintained workflow's
+`release_scope=web` prepares the signed public web image without rebuilding the
+independent CA, Penpot or MCP services. It requires that commit's successful normal
+main CI and retains the frontend release gate. Main CI can request candidate
+preparation; automatic production promotion is not enabled by that workflow.
+
+For Lolly Work, use its [application update operator](https://github.com/lolly-tools/lolly-work/blob/main/deploy/helm/APP-UPDATES.md)
+to review an image-only update against the exact existing Deployment identity.
+Its guarded version 2 can atomically update explicitly selected application and
+copy-init images without changing storage or configuration. A private instance
+with a separately mounted shell, tool pack and engine pin needs compatible
+versions of all those inputs; updating the Work server image alone does not update
+its UI. Retain the previous hashed lazy assets for already-open tabs and check
+collaboration after promotion.
+
+These are application release instructions for your own instance. Operators of
+lolly.ing and lolly.tools must use their current production handoff and target
+preflight rather than applying this install example to the live cluster.
 
 ### 6. The optional services
 

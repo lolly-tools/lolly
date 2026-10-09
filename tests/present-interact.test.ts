@@ -184,6 +184,19 @@ test('external pause freezes the supplied elapsed time; reduced motion only jump
   assert.equal(samplePresentInteractAuto(stops, 10_000, context, { reducedMotion: true }).to, 1000);
 });
 
+test('reduced motion without stops holds the authored start and completes every repeat mode', () => {
+  const options = opts('auto=open;start=640;from=0;to=1000;sec=10;ease=el');
+  for (const repeat of ['once', 'loop', 'alternate'] as const) {
+    for (const time of [0, 5000, 20_000]) {
+      assert.deepEqual(samplePresentInteractAuto({ ...options, repeat }, time, context, { reducedMotion: true }),
+        { to: 640, done: true, stopIndex: null, paused: false });
+    }
+  }
+  assert.deepEqual(samplePresentInteractAuto(options, 9000, context, { reducedMotion: true, pausedAtMs: 2000 }),
+    { to: 640, done: true, stopIndex: null, paused: true });
+  assert.equal(samplePresentInteractAuto(options, 5000, context).to, 500);
+});
+
 test('places walk at timed boundaries without pretending to know page geometry', () => {
   const options = opts('auto=open;mode=places;from=%23intro;to=%23end;stops=%23intro,%23middle,%23end;sec=10');
   assert.equal(samplePresentInteractAuto(options, 4999, context).to, '#intro');

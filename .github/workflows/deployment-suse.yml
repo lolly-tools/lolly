@@ -38,8 +38,18 @@ on:
         required: false
         type: boolean
         default: false
+      release_scope:
+        description: Prepare the web image, independent services/docs, or the full existing set
+        required: false
+        type: choice
+        options: [full, web, services-docs]
+        default: full
       expected_source:
         description: Exact reviewed 40-character commit; must match the dispatched ref
+        required: false
+        type: string
+      ci_run:
+        description: Exact successful normal CI push/main run for expected_source; required for build_images
         required: false
         type: string
       archive_run:
@@ -94,6 +104,16 @@ jobs:
             /tests/browser-seccomp.test.ts
             /services/mcp/src/http.ts
             /package.json
+
+      - name: Validate the selected preparation scope
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          RELEASE_SCOPE: ${{ inputs.release_scope }}
+        run: |
+          case "$RELEASE_SCOPE" in
+            full|web|services-docs) ;;
+            *) echo 'Unsupported preparation scope' >&2; exit 1 ;;
+          esac
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
@@ -235,6 +255,18 @@ jobs:
             /tests/model-release.test.ts
             /vercel.json
             /package.json
+            /pnpm-workspace.yaml
+            /packages/core/package.json
+            /packages/node-shell/package.json
+            /packages/docs-render/package.json
+            /packages/audio-dock/package.json
+            /packages/rondo/package.json
+            /engine/package.json
+            /shells/web/package.json
+            /shells/cli/package.json
+            /shells/tui/package.json
+            /services/ca/package.json
+            /services/mcp/package.json
             /.github/workflows/deployment-suse.yml
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
@@ -296,6 +328,73 @@ jobs:
           # Native Caddy/nginx acceptance is explicit and never silently skipped.
           node --test tests/deployment-public-vm.integration.ts
 
+  source-qualification:
+    name: Reviewed main CI source
+    if: github.event_name == 'workflow_dispatch' && inputs.build_images == true
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+    defaults:
+      run:
+        shell: bash
+    env:
+      EXPECTED_SOURCE: ${{ inputs.expected_source }}
+      CI_RUN: ${{ inputs.ci_run }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+          submodules: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Bind the candidate to its completed normal main CI
+        run: |
+          set -euo pipefail
+          [[ "$EXPECTED_SOURCE" =~ ^[a-f0-9]{40}$ ]]
+          [[ "$CI_RUN" =~ ^[1-9][0-9]*$ ]]
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE"
+          test "$GITHUB_SHA" = "$EXPECTED_SOURCE"
+          git merge-base --is-ancestor "$EXPECTED_SOURCE" refs/remotes/origin/main
+          test -z "$(git status --porcelain)"
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$CI_RUN" > "$RUNNER_TEMP/normal-ci-run.json"
+          ci_attempt=$(node --input-type=module -e '
+            import {readFileSync} from "node:fs";
+            const {run_attempt:attempt}=JSON.parse(readFileSync(process.env.RUNNER_TEMP+"/normal-ci-run.json"));
+            if(!Number.isSafeInteger(attempt) || attempt<1) throw Error("Invalid normal CI attempt");
+            process.stdout.write(String(attempt));
+          ')
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$CI_RUN/attempts/$ci_attempt/jobs?per_page=100" > "$RUNNER_TEMP/normal-ci-jobs.json"
+          node --input-type=module <<'JS'
+          import {readFileSync,writeFileSync} from 'node:fs';
+          const root=process.env.RUNNER_TEMP;
+          const run=JSON.parse(readFileSync(root+'/normal-ci-run.json'));
+          const inventory=JSON.parse(readFileSync(root+'/normal-ci-jobs.json'));
+          if(!Number.isSafeInteger(run.id) || run.id<1 || String(run.id)!==process.env.CI_RUN || run.path!=='.github/workflows/ci.yml' || run.event!=='push' || run.head_branch!=='main' || run.head_sha!==process.env.EXPECTED_SOURCE || run.repository?.full_name!==process.env.GITHUB_REPOSITORY || run.head_repository?.full_name!==process.env.GITHUB_REPOSITORY || run.status!=='completed' || run.conclusion!=='success' || !Number.isSafeInteger(run.run_attempt) || run.run_attempt<1) throw Error('Candidate requires its exact successful normal main CI run');
+          const jobs=inventory.jobs;
+          if(!Array.isArray(jobs) || !jobs.length || jobs.length>100 || inventory.total_count!==jobs.length) throw Error('Incomplete normal CI job inventory');
+          const ids=new Set(); let succeeded=0,expectedSkips=0;
+          for(const job of jobs) {
+            if(!Number.isSafeInteger(job.id) || job.id<1 || ids.has(job.id) || job.run_id!==run.id || typeof job.name!=='string' || !job.name.length || job.name.length>256 || job.status!=='completed' || (job.conclusion!=='success' && !(job.name==='verified instance shell' && job.conclusion==='skipped'))) throw Error('Normal CI job did not complete successfully');
+            ids.add(job.id);
+            if(job.conclusion==='success') succeeded++; else expectedSkips++;
+          }
+          if(!succeeded || expectedSkips>1) throw Error('Invalid normal CI success inventory');
+          writeFileSync(root+'/normal-ci-source.json',JSON.stringify({version:1,source:run.head_sha,ciRun:run.id,ciAttempt:run.run_attempt,workflow:run.path,jobCount:jobs.length},null,2));
+          JS
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: normal-main-ci-source-attempt-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/normal-ci-source.json
+          if-no-files-found: error
+          retention-days: 14
+
   # Plan 295 section 1B (Andy, 2026-10-08): "Gate only the web shell". The web
   # shell requires WebGPU at startup, so its image waits for the published
   # supported-environment table (scripts/webgpu-release-gate.ts). The MCP probe
@@ -305,7 +404,8 @@ jobs:
   # free to build. Nothing serves the docs artifact yet (see info-docs).
   web-release-gate:
     name: WebGPU release gate (web shell image only)
-    if: github.event_name == 'workflow_dispatch' && inputs.build_images == true
+    if: github.event_name == 'workflow_dispatch' && inputs.build_images == true && (inputs.release_scope == 'full' || inputs.release_scope == 'web')
+    needs: [source-qualification]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     defaults:
@@ -348,8 +448,8 @@ jobs:
 
   web-image:
     name: Opt-in native public web image (gated on the WebGPU table)
-    if: github.event_name == 'workflow_dispatch' && inputs.build_images == true && needs.web-release-gate.outputs.allowed == 'true'
-    needs: [chart, public-vm, web-release-gate]
+    if: github.event_name == 'workflow_dispatch' && inputs.build_images == true && (inputs.release_scope == 'full' || inputs.release_scope == 'web') && needs.web-release-gate.outputs.allowed == 'true'
+    needs: [chart, public-vm, source-qualification, web-release-gate]
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     permissions:
@@ -361,6 +461,7 @@ jobs:
     env:
       EXPECTED_SOURCE: ${{ inputs.expected_source }}
       VITE_CATALOG_PUBLIC_KEY_JWK: ${{ inputs.public_key_jwk }}
+      EXISTING_PUBLIC_KEY_JWK: ${{ vars.LOLLY_RELEASE_PUBLIC_KEY_JWK }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -386,9 +487,14 @@ jobs:
           mkdir -p "$RUNNER_TEMP/lolly-image-receipts" "$RUNNER_TEMP/lolly-qualified-web"
           node --input-type=module -e '
             import { writeFileSync } from "node:fs";
+            import { createPublicKey } from "node:crypto";
             const key = JSON.parse(process.env.VITE_CATALOG_PUBLIC_KEY_JWK);
+            const existing = JSON.parse(process.env.EXISTING_PUBLIC_KEY_JWK);
             if (key.kty !== "EC" || key.crv !== "P-256" || !key.x || !key.y || key.d !== undefined) throw new Error("Expected existing public P-256 pin");
-            writeFileSync(process.env.RUNNER_TEMP + "/lolly-image-receipts/public.jwk.json", JSON.stringify(key));
+            if (existing.d !== undefined || ["kty","crv","x","y"].some(field => key[field] !== existing[field])) throw new Error("Public pin differs from the existing repository release pin");
+            const pin = {kty:key.kty,crv:key.crv,x:key.x,y:key.y};
+            createPublicKey({key:pin,format:"jwk"});
+            writeFileSync(process.env.RUNNER_TEMP + "/lolly-image-receipts/public.jwk.json", JSON.stringify(pin));
           '
 
       # The image build refuses too (deploy/docker/web.Dockerfile runs
@@ -400,11 +506,32 @@ jobs:
       - name: Build the exact public web image on native amd64
         env:
           LOLLY_CATALOG_SIGNING_KEY: ${{ secrets.LOLLY_CATALOG_SIGNING_KEY }}
+          REGISTRY_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           test "$(uname -m)" = x86_64
           test -n "$LOLLY_CATALOG_SIGNING_KEY"
-          docker buildx build --load --no-cache --platform linux/amd64 \
+          owner=$(printf '%s' "$GITHUB_REPOSITORY_OWNER" | tr '[:upper:]' '[:lower:]')
+          builder="lolly-public-web-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          builder_owned=false
+          cache_key=$(sha256sum package.json pnpm-lock.yaml pnpm-workspace.yaml deploy/docker/web.Dockerfile | sha256sum | cut -d ' ' -f 1)
+          cache="ghcr.io/$owner/lolly-web-deps-cache:neutral-node26-pnpm11-amd64-$cache_key"
+          trap 'if [[ "$builder_owned" == true ]]; then docker buildx rm "$builder" >/dev/null 2>&1 || true; fi; docker logout ghcr.io >/dev/null 2>&1 || true' EXIT
+          printf '%s' "$REGISTRY_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          docker buildx create --name "$builder" --driver docker-container \
+            --driver-opt image=moby/buildkit:v0.34.0@sha256:b059f8d7226d0b326bc871af489a5dddf65e36af4d20d14251b072974d9ee87c
+          builder_owned=true
+          # Export only the dependency-fetch target: no source, brand or signing step.
+          docker buildx build --builder "$builder" --target deps --platform linux/amd64 \
+            --cache-from "type=registry,ref=$cache" \
+            --cache-to "type=registry,ref=$cache,mode=max" \
+            -f deploy/docker/web.Dockerfile .
+          CACHE_REF="$cache" CACHE_KEY="$cache_key" node --input-type=module -e '
+            import {writeFileSync} from "node:fs";
+            writeFileSync(process.env.RUNNER_TEMP+"/lolly-image-receipts/dependency-cache.json",JSON.stringify({version:1,target:"deps",scope:"public-neutral",platform:"linux/amd64",cacheRef:process.env.CACHE_REF,key:process.env.CACHE_KEY,inputs:["package.json","pnpm-lock.yaml","pnpm-workspace.yaml","deploy/docker/web.Dockerfile"],sourceExported:false,signingExported:false,releaseStageCache:false},null,2));
+          '
+          docker buildx build --load --no-cache-filter build --platform linux/amd64 \
+            --builder "$builder" --cache-from "type=registry,ref=$cache" \
             --label "org.opencontainers.image.revision=$EXPECTED_SOURCE" \
             --label "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" \
             --label org.lolly.profile=lolly-start \
@@ -467,13 +594,15 @@ jobs:
             if (image.Config.Labels["org.opencontainers.image.revision"] !== process.env.EXPECTED_SOURCE || image.Os !== "linux" || image.Architecture !== "amd64" || image.RepoDigests.length !== 1) throw new Error("Image/source binding failed");
             const images = { web: { imageId: image.Id, digest: image.RepoDigests[0], platform: "linux/amd64", source: process.env.EXPECTED_SOURCE } };
             writeFileSync(directory + "/web.json", JSON.stringify(images.web, null, 2));
-            writeFileSync(directory + "/release.json", JSON.stringify({ source: process.env.EXPECTED_SOURCE, runId: process.env.GITHUB_RUN_ID, neutralProfile: true, images, candidateRuntimeQualified: false }, null, 2));
+            const runAttempt = Number(process.env.GITHUB_RUN_ATTEMPT);
+            if (!Number.isSafeInteger(runAttempt) || runAttempt < 1) throw new Error("Invalid candidate attempt");
+            writeFileSync(directory + "/release.json", JSON.stringify({ source: process.env.EXPECTED_SOURCE, runId: process.env.GITHUB_RUN_ID, runAttempt, neutralProfile: true, images, candidateRuntimeQualified: false }, null, 2));
           '
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
         with:
-          name: public-candidate-web-receipts
+          name: public-candidate-web-receipts-attempt-${{ github.run_attempt }}
           path: ${{ runner.temp }}/lolly-image-receipts/*.json
           if-no-files-found: warn
           retention-days: 14
@@ -485,8 +614,8 @@ jobs:
   # a registry, and it is kept for one day as the probe's input only.
   probe-web-shell:
     name: Unsigned web shell for the MCP browser probe (never published)
-    if: github.event_name == 'workflow_dispatch' && inputs.build_images == true
-    needs: [chart, public-vm]
+    if: github.event_name == 'workflow_dispatch' && inputs.build_images == true && (inputs.release_scope == 'full' || inputs.release_scope == 'services-docs')
+    needs: [chart, public-vm, source-qualification]
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     permissions:
@@ -537,13 +666,15 @@ jobs:
           tar -czf "$out/web-dist.tar.gz" -C shells/web/dist .
           node --input-type=module -e '
             import { writeFileSync } from "node:fs";
-            writeFileSync(process.env.RUNNER_TEMP + "/lolly-probe-web/source.json", JSON.stringify({ source: process.env.EXPECTED_SOURCE, runId: process.env.GITHUB_RUN_ID, purpose: "MCP browser probe input", signed: false, release: false }, null, 2));
+            const runAttempt = Number(process.env.GITHUB_RUN_ATTEMPT);
+            if (!Number.isSafeInteger(runAttempt) || runAttempt < 1) throw new Error("Invalid candidate attempt");
+            writeFileSync(process.env.RUNNER_TEMP + "/lolly-probe-web/source.json", JSON.stringify({ source: process.env.EXPECTED_SOURCE, runId: process.env.GITHUB_RUN_ID, runAttempt, purpose: "MCP browser probe input", signed: false, release: false }, null, 2));
           '
           (cd "$out" && sha256sum web-dist.tar.gz source.json > SHA256SUMS)
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: unsigned-probe-web-shell
+          name: unsigned-probe-web-shell-attempt-${{ github.run_attempt }}
           path: ${{ runner.temp }}/lolly-probe-web/
           compression-level: 0
           if-no-files-found: error
@@ -553,8 +684,8 @@ jobs:
   # publish on their own. A failed web shell or probe build cannot withhold them.
   service-images:
     name: Opt-in native public service images (CA, Penpot)
-    if: github.event_name == 'workflow_dispatch' && inputs.build_images == true
-    needs: [chart, public-vm]
+    if: github.event_name == 'workflow_dispatch' && inputs.build_images == true && (inputs.release_scope == 'full' || inputs.release_scope == 'services-docs')
+    needs: [chart, public-vm, source-qualification]
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     permissions:
@@ -672,8 +803,8 @@ jobs:
   # for the web image.
   mcp-browser-image:
     name: Opt-in native public MCP browser image (not gated on WebGPU)
-    if: github.event_name == 'workflow_dispatch' && inputs.build_images == true
-    needs: [chart, public-vm, probe-web-shell]
+    if: github.event_name == 'workflow_dispatch' && inputs.build_images == true && (inputs.release_scope == 'full' || inputs.release_scope == 'services-docs')
+    needs: [chart, public-vm, source-qualification, probe-web-shell]
     runs-on: ubuntu-24.04
     timeout-minutes: 90
     permissions:
@@ -726,7 +857,7 @@ jobs:
 
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          name: unsigned-probe-web-shell
+          name: unsigned-probe-web-shell-attempt-${{ github.run_attempt }}
           path: ${{ runner.temp }}/lolly-probe-web-artifact
 
       - name: Unpack the probe web shell built from this source
@@ -737,7 +868,8 @@ jobs:
           node --input-type=module -e '
             import { readFileSync } from "node:fs";
             const receipt = JSON.parse(readFileSync(process.env.RUNNER_TEMP + "/lolly-probe-web-artifact/source.json", "utf8"));
-            if (receipt.source !== process.env.EXPECTED_SOURCE || receipt.runId !== process.env.GITHUB_RUN_ID || receipt.release !== false) throw new Error("The probe web shell is not the unsigned build of the reviewed source from this run");
+            const attempt = Number(process.env.GITHUB_RUN_ATTEMPT);
+            if (!Number.isSafeInteger(attempt) || attempt < 1 || receipt.source !== process.env.EXPECTED_SOURCE || receipt.runId !== process.env.GITHUB_RUN_ID || receipt.runAttempt !== attempt || receipt.release !== false) throw new Error("The probe web shell is not the unsigned build of the reviewed source from this attempt");
           '
           tar -xzf "$artifact/web-dist.tar.gz" -C "$RUNNER_TEMP/lolly-probe-web"
 
@@ -836,13 +968,15 @@ jobs:
             if (image.Config.Labels["org.opencontainers.image.revision"] !== process.env.EXPECTED_SOURCE || image.Os !== "linux" || image.Architecture !== "amd64" || image.RepoDigests.length !== 1) throw new Error("Image/source binding failed");
             const images = { "mcp-browser": { imageId: image.Id, digest: image.RepoDigests[0], platform: "linux/amd64", source: process.env.EXPECTED_SOURCE } };
             writeFileSync(directory + "/mcp-browser.json", JSON.stringify(images["mcp-browser"], null, 2));
-            writeFileSync(directory + "/release.json", JSON.stringify({ source: process.env.EXPECTED_SOURCE, runId: process.env.GITHUB_RUN_ID, neutralProfile: true, images, candidateRuntimeQualified: false }, null, 2));
+            const runAttempt = Number(process.env.GITHUB_RUN_ATTEMPT);
+            if (!Number.isSafeInteger(runAttempt) || runAttempt < 1) throw new Error("Invalid candidate attempt");
+            writeFileSync(directory + "/release.json", JSON.stringify({ source: process.env.EXPECTED_SOURCE, runId: process.env.GITHUB_RUN_ID, runAttempt, neutralProfile: true, images, candidateRuntimeQualified: false }, null, 2));
           '
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
         with:
-          name: public-candidate-mcp-browser-receipts
+          name: public-candidate-mcp-browser-receipts-attempt-${{ github.run_attempt }}
           path: ${{ runner.temp }}/lolly-image-receipts/*.json
           if-no-files-found: warn
           retention-days: 14
@@ -854,8 +988,8 @@ jobs:
   # deploy step serves this artifact in its place (plan 295 section 1B follow-up).
   info-docs:
     name: /info docs site (not gated on WebGPU)
-    if: github.event_name == 'workflow_dispatch' && inputs.build_images == true
-    needs: [chart, public-vm]
+    if: github.event_name == 'workflow_dispatch' && inputs.build_images == true && (inputs.release_scope == 'full' || inputs.release_scope == 'services-docs')
+    needs: [chart, public-vm, source-qualification]
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     permissions:
@@ -937,44 +1071,71 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: '24'
-      # The images qualify in separate jobs, so the run as a whole can fail on the
-      # web image alone. Each exported image is judged by the job that qualified
-      # it: the MCP browser image must have passed, and the web image is exported
-      # only when its own job passed. A skipped web job after a passing gate job
-      # means the WebGPU gate withheld it (the MCP job passing proves chart and
-      # public-vm passed too); any other web outcome is a failure of the web image
-      # itself. transport.json records which of the two kept the web image out.
+      # Export only successful web/MCP jobs from the exact completed source run.
+      # A scope can omit either image; an omitted web gate differs from a gate
+      # that ran successfully and withheld the web image. Failed images stay out.
       - name: Require a completed exact-source qualification
         run: |
           set -euo pipefail
-          [[ "$QUALIFICATION_RUN" =~ ^[0-9]+$ ]]
+          [[ "$QUALIFICATION_RUN" =~ ^[1-9][0-9]*$ ]]
           [[ "$SOURCE_SHA" =~ ^[a-f0-9]{40}$ ]]
           gh api "repos/$GITHUB_REPOSITORY/actions/runs/$QUALIFICATION_RUN" > "$RUNNER_TEMP/run.json"
-          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$QUALIFICATION_RUN/jobs?per_page=100" > "$RUNNER_TEMP/jobs.json"
-          web_state=$(node --input-type=module -e '
-            import {readFileSync} from "node:fs";
-            const run=JSON.parse(readFileSync(process.env.RUNNER_TEMP+"/run.json"));
-            if(run.status!=="completed" || run.head_sha!==process.env.SOURCE_SHA || run.path!==".github/workflows/deployment-suse.yml" || run.event!=="workflow_dispatch") throw Error("Unqualified source/run");
-            const jobs=JSON.parse(readFileSync(process.env.RUNNER_TEMP+"/jobs.json")).jobs;
-            const outcome=(name)=>{const found=jobs.filter((job)=>job.name===name);return found.length===1?(found[0].conclusion??"unfinished"):"missing";};
-            if(outcome("Opt-in native public MCP browser image (not gated on WebGPU)")!=="success") throw Error("The MCP browser image did not qualify in that run");
-            const web=outcome("Opt-in native public web image (gated on the WebGPU table)");
-            const gate=outcome("WebGPU release gate (web shell image only)");
-            console.log(web==="success"?"qualified":web==="skipped"&&gate==="success"?"withheld":"failed:"+web);
+          qualification_attempt=$(node --input-type=module -e '
+            import {readFileSync,writeFileSync} from "node:fs";
+            const root=process.env.RUNNER_TEMP;
+            const run=JSON.parse(readFileSync(root+"/run.json"));
+            if(!Number.isSafeInteger(run.id) || String(run.id)!==process.env.QUALIFICATION_RUN || run.status!=="completed" || run.head_sha!==process.env.SOURCE_SHA || run.path!==".github/workflows/deployment-suse.yml" || run.event!=="workflow_dispatch" || !Number.isSafeInteger(run.run_attempt) || run.run_attempt<1) throw Error("Unqualified source/run attempt");
+            writeFileSync(root+"/qualification-run.json",JSON.stringify({runId:String(run.id),source:run.head_sha,attempt:run.run_attempt}));
+            process.stdout.write(String(run.run_attempt));
           ')
-          echo "WEB_STATE=$web_state" >> "$GITHUB_ENV"
-          gh run download "$QUALIFICATION_RUN" --repo "$GITHUB_REPOSITORY" --name public-candidate-mcp-browser-receipts --dir "$RUNNER_TEMP/receipts/mcp-browser"
-          case "$web_state" in
-            qualified)
-              gh run download "$QUALIFICATION_RUN" --repo "$GITHUB_REPOSITORY" --name public-candidate-web-receipts --dir "$RUNNER_TEMP/receipts/web"
-              ;;
-            withheld)
-              echo '::warning title=Web image withheld::The WebGPU release gate withheld the web shell image in that run (plan 295 P0b). Only the MCP browser image is exported, and transport.json lists web under withheld.'
-              ;;
-            *)
-              echo "::warning title=Web image not qualified::The web image job concluded ${web_state#failed:} in that run. Only the MCP browser image is exported, and transport.json lists web under notQualified."
-              ;;
-          esac
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$QUALIFICATION_RUN/attempts/$qualification_attempt/jobs?per_page=100" > "$RUNNER_TEMP/jobs.json"
+          node --input-type=module <<'JS'
+          import {readFileSync,writeFileSync} from 'node:fs';
+          const root=process.env.RUNNER_TEMP;
+          const run=JSON.parse(readFileSync(root+'/run.json'));
+          const qualification=JSON.parse(readFileSync(root+'/qualification-run.json'));
+          if(qualification.runId!==process.env.QUALIFICATION_RUN || qualification.source!==process.env.SOURCE_SHA || !Number.isSafeInteger(qualification.attempt) || qualification.attempt<1 || run.run_attempt!==qualification.attempt) throw Error('Unqualified source/run attempt');
+          const inventory=JSON.parse(readFileSync(root+'/jobs.json'));
+          const jobs=inventory.jobs;
+          if(!Array.isArray(jobs) || inventory.total_count!==jobs.length || jobs.length>100) throw Error('Incomplete job inventory');
+          const ids=new Set();
+          for(const job of jobs){
+            if(!Number.isSafeInteger(job.id) || job.id<1 || ids.has(job.id) || String(job.run_id)!==qualification.runId || (job.run_attempt!==undefined && job.run_attempt!==qualification.attempt)) throw Error('Job differs from qualification attempt');
+            ids.add(job.id);
+          }
+          const outcome=(name)=>{
+            const found=jobs.filter(job=>job.name===name);
+            if(found.length!==1 || found[0].status!=='completed' || typeof found[0].conclusion!=='string') throw Error('Missing, duplicate or unfinished qualification job');
+            return found[0].conclusion;
+          };
+          for(const name of ['Public chart render and schema checks','Public VM route and security acceptance','Reviewed main CI source']) if(outcome(name)!=='success') throw Error('Deployment prerequisites did not qualify');
+          const web=outcome('Opt-in native public web image (gated on the WebGPU table)');
+          const gate=outcome('WebGPU release gate (web shell image only)');
+          const mcp=outcome('Opt-in native public MCP browser image (not gated on WebGPU)');
+          const probe=outcome('Unsigned web shell for the MCP browser probe (never published)');
+          const selection={qualified:[],withheld:[],notSelected:[],notQualified:{}};
+          if(web==='success') {
+            if(gate!=='success') throw Error('Web image lacks its passing gate');
+            selection.qualified.push('web');
+          } else if(web==='skipped' && gate==='success') selection.withheld.push('web');
+          else if(web==='skipped' && gate==='skipped') selection.notSelected.push('web');
+          else selection.notQualified.web=web;
+          if(mcp==='success') {
+            if(probe!=='success') throw Error('MCP image lacks its exact-source probe shell');
+            selection.qualified.push('mcp-browser');
+          } else if(mcp==='skipped' && probe==='skipped') selection.notSelected.push('mcp-browser');
+          else selection.notQualified['mcp-browser']=mcp;
+          if(!selection.qualified.length) throw Error('No qualified web or MCP image to archive');
+          writeFileSync(root+'/image-selection.json',JSON.stringify(selection));
+          JS
+          for service in $(node --input-type=module -e 'import{readFileSync}from"node:fs";console.log(JSON.parse(readFileSync(process.env.RUNNER_TEMP+"/image-selection.json")).qualified.join(" "))'); do
+            case "$service" in
+              web) artifact="public-candidate-web-receipts-attempt-$qualification_attempt" ;;
+              mcp-browser) artifact="public-candidate-mcp-browser-receipts-attempt-$qualification_attempt" ;;
+              *) exit 1 ;;
+            esac
+            gh run download "$QUALIFICATION_RUN" --repo "$GITHUB_REPOSITORY" --name "$artifact" --dir "$RUNNER_TEMP/receipts/$service"
+          done
       - name: Export the qualified registry content without changing its digest
         run: |
           set -euo pipefail
@@ -989,16 +1150,18 @@ jobs:
           import {createHash} from 'node:crypto';
           import {spawnSync} from 'node:child_process';
           const root=process.env.RUNNER_TEMP;
-          const webState=process.env.WEB_STATE;
-          const qualified=['mcp-browser'];
-          if(webState==='qualified') qualified.push('web');
+          const qualification=JSON.parse(readFileSync(root+'/qualification-run.json'));
+          if(qualification.runId!==process.env.QUALIFICATION_RUN || qualification.source!==process.env.SOURCE_SHA || !Number.isSafeInteger(qualification.attempt) || qualification.attempt<1) throw Error('Invalid qualification attempt');
+          const selection=JSON.parse(readFileSync(root+'/image-selection.json'));
+          const qualified=selection.qualified;
+          if(!Array.isArray(qualified)||!qualified.length||new Set(qualified).size!==qualified.length||qualified.some(service=>!['web','mcp-browser'].includes(service))) throw Error('Invalid archive image selection');
           const releases={};
           for(const service of qualified){
             const release=JSON.parse(readFileSync(root+'/receipts/'+service+'/release.json'));
-            if(release.source!==process.env.SOURCE_SHA || release.runId!==process.env.QUALIFICATION_RUN || !release.neutralProfile) throw Error('Receipt differs');
+            if(release.source!==process.env.SOURCE_SHA || release.runId!==process.env.QUALIFICATION_RUN || release.runAttempt!==qualification.attempt || !release.neutralProfile) throw Error('Receipt differs');
             releases[service]=release;
           }
-          const evidence={version:1,source:process.env.SOURCE_SHA,qualificationRun:process.env.QUALIFICATION_RUN,transportRun:process.env.GITHUB_RUN_ID,withheld:webState==='withheld'?['web']:[],notQualified:webState.startsWith('failed:')?{web:webState.slice(7)}:{},images:{}};
+          const evidence={version:1,source:process.env.SOURCE_SHA,qualificationRun:process.env.QUALIFICATION_RUN,qualificationAttempt:qualification.attempt,transportRun:process.env.GITHUB_RUN_ID,withheld:selection.withheld,notSelected:selection.notSelected,notQualified:selection.notQualified,images:{}};
           async function hash(path){const h=createHash('sha256');for await(const c of createReadStream(path))h.update(c);return h.digest('hex');}
           function run(command,args){const r=spawnSync(command,args,{stdio:'inherit'});if(r.status!==0)throw Error(command+' failed');}
           for(const service of qualified){
@@ -1028,7 +1191,7 @@ jobs:
           JS
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: qualified-public-image-archives
+          name: qualified-public-image-archives-attempt-${{ github.run_attempt }}
           path: ${{ runner.temp }}/archives/
           compression-level: 0
           if-no-files-found: error

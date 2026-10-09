@@ -1,21 +1,21 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Authored Design values into the shared sequence compiler, identical on every host. */
+import type { DesignBoxRowV1 } from '@lolly-tools/core';
 import type { AssetRef, ExportOpts, HostV1 } from './bridge/host-v1.ts';
 import { bytesToBin } from './bytes.ts';
 import { parseColorToSrgb8 } from './css-color.ts';
 import { colorToHex } from './tokens.ts';
-import { parseSvgPath } from './svg-path.ts';
+import { compileDesignRow, lottieCompatNumber as num, type DrawShapeOp } from './design-draw.ts';
+import { admitDesignLottieRow as unsupported, designDrawLottie } from './design-draw-lottie.ts';
 import { imageDimensions } from './penpot-file.ts';
 import { lottieImageMime, readLottie, selectLottie, writeDotLottie } from './dotlottie.ts';
 import { compileLottieSequence, lottieStatic as fixed, type LottieSequenceLayer } from './lottie-sequence.ts';
-import type { LottieObject } from './lottie-model.ts';
 import { applyLottieEdits } from './lottie-edit.ts';
 import { attributionCompanion } from './rights-attribution.ts';
 import { checkCompanionReadback } from './rights-companion.ts';
 import { parseSequenceMarks, sequenceRange } from './sequence-marks.ts';
 
 type Box = Record<string, unknown>;
-const num = (value: unknown, fallback = 0): number => value === '' || value == null || !Number.isFinite(Number(value)) ? fallback : Number(value);
 const yes = (value: unknown): boolean => value === true || value === 'true' || value === '1' || value === 1;
 const authoredTime = (value: unknown): boolean => value !== '' && value != null && Number.isFinite(Number(value));
 const clamp = (n: number, lo: number, hi: number): number => Math.max(lo, Math.min(n, hi));
@@ -29,58 +29,6 @@ async function paint(value: unknown, host: HostV1): Promise<number[] | null> {
   const rgba = parseColorToSrgb8(text);
   if (!rgba) throw new Error(`dotLottie: colour ${String(value)} could not be resolved to a solid paint.`);
   return [rgba[0] / 255, rgba[1] / 255, rgba[2] / 255, rgba[3]];
-}
-function unsupported(box: Box): void {
-  const name = String(box.name || box.id || 'Layer');
-  const fail = (feature: string) => { throw new Error(`${name}: ${feature} is not supported by dotLottie export. Remove it or export video.`); };
-  if (String(box.text ?? '').trim() || box.kind === 'text') fail('text');
-  if (box.pathPaint) fail('independent vector paint');
-  if (box.kind === 'audio' || box.kind === 'camera' || box.kind === '3d') fail(String(box.kind));
-  if (box.kind && !['box', 'path', 'image', 'frame'].includes(String(box.kind))) fail(String(box.kind));
-  for (const field of ['grad', 'clip', 'bindStart', 'bindEnd', 'cls']) if (box[field]) fail(field);
-  for (const field of ['blur', 'bgBlur', 'z', 'rx', 'ry']) if (num(box[field])) fail(field);
-  for (const field of ['shadow', 'blend', 'enter', 'exit', 'hold', 'headStart', 'headEnd', 'split']) if (box[field] && box[field] !== 'none' && box[field] !== 'normal') fail(field);
-  if (yes(box.flipH) || yes(box.flipV)) fail('mirroring');
-  if (num(box.strokeW) > 0 && ((box.strokeDash && box.strokeDash !== 'solid') || box.strokeDashArray)) fail('dashed strokes');
-}
-async function shapes(box: Box, w: number, h: number, host: HostV1): Promise<LottieObject[]> {
-  const out: LottieObject[] = [];
-  const fill = await paint(box.bg, host), stroke = await paint(box.stroke, host);
-  const sw = stroke ? Math.max(0, num(box.strokeW)) : 0;
-  if (box.kind === 'path') {
-    if (!box.path) return [];
-    if (!host.geom) throw new Error('dotLottie path export needs host.geom.');
-    const decoded = host.geom.decodeAuthored(String(box.path));
-    if (!decoded.ok) throw new Error(`Path ${String(box.id)}: ${decoded.message}`);
-    for (const src of decoded.value) {
-      const nodes = src.nodes.map(node => ({ ...node, x: node.x * w, y: node.y * h,
-        ...(node.hInX !== undefined ? { hInX: node.hInX * w } : {}), ...(node.hInY !== undefined ? { hInY: node.hInY * h } : {}),
-        ...(node.hOutX !== undefined ? { hOutX: node.hOutX * w } : {}), ...(node.hOutY !== undefined ? { hOutY: node.hOutY * h } : {}),
-      }));
-      const result = host.geom.fromNodes({ ...src, nodes, decimals: 3 });
-      if (!result.ok) throw new Error(`Path ${String(box.id)}: ${result.message}`);
-      for (const path of parseSvgPath(result.d)) {
-        const vertices: number[][] = [], incoming: number[][] = [], outgoing: number[][] = [];
-        for (const segment of path.segments) {
-          if (segment.op === 'C') {
-            const previous = vertices.at(-1)!;
-            outgoing[outgoing.length - 1] = [segment.x1 - previous[0]!, segment.y1 - previous[1]!];
-          }
-          vertices.push([segment.x, segment.y]);
-          incoming.push(segment.op === 'C' ? [segment.x2 - segment.x, segment.y2 - segment.y] : [0, 0]); outgoing.push([0, 0]);
-        }
-        out.push({ ty: 'sh', ks: fixed({ v: vertices, i: incoming, o: outgoing, c: path.closed }) });
-      }
-    }
-  } else {
-    const ellipse = box.shape === 'circle' || box.shape === 'ellipse';
-    if (!['rect', 'rounded', 'pill', 'circle', 'ellipse', ''].includes(String(box.shape ?? ''))) throw new Error(`${String(box.id)}: unsupported shape ${String(box.shape)}.`);
-    out.push({ ty: ellipse ? 'el' : 'rc', p: fixed([w / 2, h / 2]), s: fixed([Math.max(0, w - sw), Math.max(0, h - sw)]),
-      ...(!ellipse ? { r: fixed(box.shape === 'pill' ? Math.min(w, h) / 2 : box.shape === 'rounded' ? Math.max(0, num(box.radius, 16) - sw / 2) : 0) } : {}), d: 1 });
-  }
-  if (fill) out.push({ ty: 'fl', c: fixed(fill), o: fixed(fill[3]! * 100), r: box.fillRule === 'evenodd' ? 2 : 1 });
-  if (stroke && sw) out.push({ ty: 'st', c: fixed(stroke), o: fixed(stroke[3]! * 100), w: fixed(sw), lc: box.strokeCap === 'round' ? 2 : box.strokeCap === 'square' ? 3 : 1, lj: box.strokeJoin === 'round' ? 2 : box.strokeJoin === 'bevel' ? 3 : 1, ml: 4 });
-  return out;
 }
 /** Freeze before IO; asset bytes resolve through the same pinned refs as other exports. */
 export async function exportDesignLottie(opts: ExportOpts & { fps?: number }, host: HostV1): Promise<Blob> {
@@ -134,7 +82,15 @@ export async function exportDesignLottie(opts: ExportOpts & { fps?: number }, ho
         if (!size || size.w * size.h > 32000000) throw new Error(`${layer.name}: unreadable image or image exceeds 32 million pixels.`);
         layer.content = { kind: 'image', data: `data:${mime};base64,${btoa(bytesToBin(bytes))}`, width: size.w, height: size.h, fit };
       }
-    } else layer.content = { kind: 'shape', shapes: await shapes(box, layer.w, layer.h, host) };
+    } else {
+      const fill = await paint(box.bg, host), stroke = await paint(box.stroke, host);
+      const op = compileDesignRow(box as DesignBoxRowV1, { x: Math.round(num(frame?.x)), y: Math.round(num(frame?.y)) }, {
+        semantics: 'lottie-compat', lottieCompat: { fill, stroke, geom: host.geom },
+      }) as DrawShapeOp;
+      layer.x = op.box.x; layer.y = op.box.y; layer.w = op.box.w; layer.h = op.box.h;
+      layer.rotation = op.pose?.rot ?? 0; layer.opacity = op.opacity / 100;
+      layer.content = { kind: 'shape', shapes: designDrawLottie(op) };
+    }
     layers.push(layer);
   }
   const fps = num(opts.fps, num(values.projectFps, 30));

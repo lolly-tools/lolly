@@ -49,6 +49,15 @@ BuildKit's cache, so a key rotation must rerun signing and compilation. Protect 
 builder and its cache as release infrastructure. Use `--push` instead of `--load`
 only in the authorised publishing workflow, and promote the tested image digest.
 
+The `deps` stage copies only `package.json`, `pnpm-lock.yaml` and
+`pnpm-workspace.yaml`, then uses [pnpm fetch](https://pnpm.io/cli/fetch) to populate
+the locked dependency store. It carries no profile, tool files or signing secrets.
+The `build` stage copies the full checkout and runs the normal bootstrap check,
+workspace linking and `pnpm install --offline --frozen-lockfile --prod=false`
+before compiling and signing. Native dependency install scripts can still download
+their own inputs; this is not a claim that the entire build needs no network.
+An incomplete or invalid store does not waive lockfile integrity or bootstrap.
+
 After a build, verify the signature on `catalog/tools/index.sig.json` against the
 intended public pin and the actual index/tool bytes, and exercise a signed tool in
 the served client. A signed catalog protects tool integrity; SUSE application
@@ -86,8 +95,23 @@ authentication defaults and require actual target export acceptance.
 
 The maintained `deployment-suse.yml` workflow has opt-in native amd64 image
 jobs. Dispatch its exact reviewed ref with `build_images=true`, matching
-`expected_source` and the existing published `public_key_jwk`. Chart and route
-checks run first. The web shell image and the service images then qualify in
+`expected_source`, the exact successful normal main CI run's `ci_run`, and the
+existing published `public_key_jwk`. The source prerequisite requires completed
+successful `ci.yml` push/main CI from this repository at that SHA, with its complete
+job inventory from that exact attempt. It permits only the existing
+`verified instance shell` skip on main; unfinished or failed checks refuse.
+The checkout must match the dispatched SHA and belong to main. The public pin
+must match `LOLLY_RELEASE_PUBLIC_KEY_JWK` in the repository's variables; passing a
+new key through dispatch cannot rotate trust. Choose
+`release_scope=web` for a TypeScript/UI web-image update. This runs chart and route
+checks plus the existing frontend release gate and signed web-image qualification;
+it does not build CA, Penpot, the MCP browser/probe shell or the separate docs
+artifact. `release_scope=services-docs` prepares those independent services and
+docs without running the frontend gate or web-image build. The default `full`
+preserves the existing set. An unknown scope refuses. `build_images=false`
+continues to run checks without publishing images.
+
+Chart and route checks run first. The web shell image and the service images then qualify in
 separate jobs, because only the web shell release waits for the physical
 frontend environment table (plan 295):
 
@@ -130,18 +154,70 @@ frontend environment table (plan 295):
   would do). That step is an open follow-up.
 
 Each image job publishes source-labelled digests to GHCR and retains small
-receipts: `public-candidate-web-receipts`, `public-candidate-service-receipts`
-(CA and Penpot) and `public-candidate-mcp-browser-receipts`. They replace the
+receipts: `public-candidate-web-receipts-attempt-N`,
+`public-candidate-mcp-browser-receipts-attempt-N`, and
+`public-candidate-service-receipts` (CA and Penpot). Here `N` is the candidate
+workflow's positive run attempt. Web/MCP `release.json` records its exact numeric
+`runAttempt` alongside `runId` and source. The unsigned MCP probe uses
+`unsigned-probe-web-shell-attempt-N`, and the MCP job verifies that same attempt
+in its source receipt. The normal-CI proof uses
+`normal-main-ci-source-attempt-N`; its `ciRun` and `ciAttempt` identify the separate
+normal CI run that qualified the source. Independent service/docs artifact
+contracts remain unchanged. The candidate receipt artifacts replace the
 single `public-candidate-image-receipts` artifact, and each `release.json` lists
 only its own job's images, so a consumer of the old artifact name or of
 `images.web` beside the service images needs updating. The offline export
 (`archive_run`) judges each exported image by the job that qualified it, so it
-can carry the MCP browser image without the web image. Its `transport.json` then
-lists `web` under `withheld` when the WebGPU gate held the image back, or under
-`notQualified` with the job's conclusion when the web image job itself failed.
+can carry only the web image from a web-only run, only the MCP browser image,
+or both. It requires the complete job inventory and successful source/chart/route
+prerequisites, then downloads receipts only for successful image jobs. The web
+image still needs its passing gate, and MCP needs its passing exact-source probe
+shell. The archive captures the initially verified positive `run_attempt`, reads
+jobs through `/attempts/N/jobs`, downloads only artifacts with that exact suffix,
+and requires every web/MCP release receipt's `runAttempt` to match. It refuses
+missing or cross-attempt identity instead of falling back to older unbound
+artifacts. A partial rerun cannot borrow missing prerequisite jobs from another
+attempt. The archive artifact is
+`qualified-public-image-archives-attempt-M`, where `M` is the archive workflow's
+own attempt; `transport.json` records the original `qualificationRun` and
+`qualificationAttempt`. Its `transport.json` lists `web` under `withheld` when a completed gate
+held it back, records intentionally omitted images under `notSelected`, and
+records failed/cancelled image jobs under `notQualified`. A failed prerequisite
+that skipped an image is not an intentional omission. A run with neither image
+qualified refuses. Every selected receipt, source label, registry manifest and
+OCI blob still must match; CA/Penpot remain available through their qualified
+registry digests and the docs through their separate artifact.
 These checks do not replace candidate HTTPS, CA enrollment, proxy peer,
 invited-agent or Kubernetes runtime acceptance. A sandbox startup failure is a
 failed qualification; the workflow does not retry with a bypass.
+
+The public web job uses a digest-pinned BuildKit container builder to export and
+reuse only the `deps` target in GHCR. Its cache reference is
+`lolly-web-deps-cache:neutral-node26-pnpm11-amd64-<input-hash>` under the repository
+owner. The hash covers the three dependency inputs and `web.Dockerfile`, so base,
+package-manager and configuration changes select a new cache. Only the trusted
+dispatch job can write it with its existing registry credential. The final image
+imports that dependency cache, uses `--no-cache-filter build`, and exports no build
+cache. Signing, full-source compilation, signature verification, boot qualification
+and final image digest checks remain fresh. `dependency-cache.json` records the
+inputs and scope. Services and the MCP browser image retain `--no-cache`.
+Private profile bytes and signing material must never enter public cache or
+artifact storage; the public cache recipe is not a private Work release recipe.
+No qualified build timing has been measured for this change.
+
+[`main-web-preparation.yml`](../../.github/workflows/main-web-preparation.yml)
+prepares a web-only candidate after successful normal main CI, using
+[`main-web-preparation.ts`](../../scripts/main-web-preparation.ts) to verify the
+completed run and current main SHA before requesting the dispatch. It uses the
+existing repository public pin and holds before dispatch while the plan 295
+frontend release gate is closed. A requested dispatch is not proof that its image
+qualified or that a deployment changed. No production credentials or automatic
+promotion are involved. This workflow does not update a running instance.
+The site's application-only updater can promote the reviewed public image; a
+private Work instance's mounted signed shell, tool pack and engine pin remain
+separate release inputs. Preserve the previous qualified lazy asset graph for
+open tabs and review the matching shell/pack/backend contract before promotion.
+No full infrastructure reinstall is introduced here.
 
 Production MCP needs its approved token/signing-secret references and canonical
 `LOLLY_MCP_PUBLIC_ORIGIN`, plus `LOLLY_RATE_LIMIT_REST_URL` and the matching

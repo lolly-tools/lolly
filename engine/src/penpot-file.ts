@@ -32,11 +32,14 @@
  * matrices `{a..f}`, uuids strings, `null` where a record field is unset.
  * No Handlebars, no ajv, no deps. Fully node:test-able.
  */
+import type { DesignBoxRowV1 } from '@lolly-tools/core';
 import { parseSvgPath, type SubPath, type PathSegment } from './svg-path.ts';
 import { makeGeomApi } from './geom-api.ts';
 import { pathBounds, pathFromSubPaths } from './geom/path.ts';
 import { sanitizeAppliedTokens, buildTokenTypeIndex, isSafeTokenPath } from './penpot-bindings.ts';
 import { clamp } from './clamp.ts';
+import { compileDesignRow } from './design-draw.ts';
+import { designDrawPenpot, isPenpotPrimitiveRow } from './design-draw-penpot.ts';
 
 // ─── constants ────────────────────────────────────────────────────────────────
 
@@ -1316,7 +1319,16 @@ export function boxesToPenpotDoc(boxesIn: unknown, o: BoxesToPenpotOptions): Pen
       const shapeKind = str(b.shape);
       const fills = fillsOf(b, w, h);
       const strokes = strokeOf(b);
-      if (shapeKind === 'ellipse' || shapeKind === 'circle') shape = { ...base, type: 'circle', fills, strokes };
+      if (isPenpotPrimitiveRow(b)) {
+        const stroke = strokes[0];
+        const op = compileDesignRow(b as DesignBoxRowV1, { x: 0, y: 0 }, { semantics: 'penpot-compat', penpotCompat: {
+          fills: fills.map(fill => ({ kind: 'color', color: fill.color!, opacity: fill.opacity })),
+          ...(stroke ? { stroke: { color: stroke.color, opacity: stroke.opacity, width: stroke.width,
+            ...(stroke.capStart ? { cap: stroke.capStart } : {}) } } : {}),
+        } });
+        if (op.op !== 'shape') throw new Error('Penpot primitive compilation did not produce a shape.');
+        shape = { ...base, ...designDrawPenpot(op) };
+      } else if (shapeKind === 'ellipse' || shapeKind === 'circle') shape = { ...base, type: 'circle', fills, strokes };
       else shape = { ...base, type: 'rect', fills, strokes, radius: shapeKind === 'rounded' ? fin(b.radius) : shapeKind === 'pill' ? Math.min(w, h) / 2 : 0 };
     }
     // Applied-token bindings from the box's OWN source refs (plans/222): a fill/

@@ -250,3 +250,27 @@ test('the frame paints the page and clips its rows inside its border, as the boa
   const svg = designDrawSvg(rich, emit);
   assert.ok(svg.indexOf('stroke="#00ff00"') < svg.indexOf('fill="#000000"/></g>') && /<g clip-path="url\(#pc[a-z0-9]+\)"><rect x="10" y="10" width="10" height="10" fill="#000000"\/><\/g>/.test(svg), 'the frame draws first and the rows inside its clip');
 });
+
+
+test('the named Lottie compatibility reading preserves its legacy geometry without changing Design or preview', () => {
+  const row = { id: 'legacy', kind: 'box', shape: 'rounded', radius: '', x: 5.6, y: -4.6, w: 11.4, h: 7.4, opacity: '50%', stroke: '#000', strokeW: 5 };
+  const before = structuredClone(row);
+  const op = compileDesignRow(row, { x: 2, y: -1 }, { semantics: 'lottie-compat', lottieCompat: { fill: [1, 0, 0, 0.25], stroke: [0, 0, 0, 1] } }) as DrawShapeOp;
+  assert.deepEqual(op.box, { x: 4, y: -4, w: 11, h: 7 });
+  assert.deepEqual(op.shape, { kind: 'rect', radius: 13.5 });
+  assert.equal(op.opacity, 100);
+  assert.equal(op.compatibility, 'lottie-native-v1');
+  assert.deepEqual(op.stroke, { color: '#000000', opacity: 1, width: 5, cap: 'butt', join: 'miter' });
+  assert.deepEqual(op.fills, [{ kind: 'color', color: '#ff0000', opacity: 0.25 }]);
+  assert.deepEqual(row, before);
+  const design = compileDesignRow(row, { x: 2, y: -1 }) as DrawShapeOp;
+  assert.deepEqual(design.shape, { kind: 'rect', radius: 0 });
+  assert.equal(design.opacity, 50);
+  assert.equal(design.stroke?.align, 'inside');
+  assert.equal(design.compatibility, undefined);
+  const preview = compileDesignRow(row, { x: 2, y: -1 }, { semantics: 'preview' }) as DrawShapeOp;
+  assert.equal(preview.box.x, 3.5999999999999996);
+  assert.equal(preview.compatibility, undefined);
+  assert.throws(() => compileDesignRow(row, { x: 0, y: 0 }, { semantics: 'lottie-compat' }), /needs resolved paints/);
+  assert.throws(() => compileDesignDraw([row], { width: 100, height: 100 }, { semantics: 'lottie-compat' }), /sequence owns page selection/);
+});

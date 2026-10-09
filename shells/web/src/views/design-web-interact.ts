@@ -12,6 +12,7 @@ import { icon } from '../lib/icons.ts';
 import { fieldFocusToken } from '../lib/collab-field-focus.ts';
 import { colorFieldHtml, resolveColorVar } from '../components/color-field.ts';
 import { getWebPageDriver, type WebPageDriver } from '../lib/web-page-driver.ts';
+import { buildStepOf } from '../lib/motion-appear.ts';
 import type { Box } from './free-canvas-math.ts';
 import type { ModelPort } from './design-ports.ts';
 
@@ -33,6 +34,26 @@ function toggle(key: string, label: string, on: boolean): string {
 }
 const hint = (value: string): string => `<p class="fc-insp-hint">${esc(value)}</p>`;
 const group = (title: string, body: string): string => `<details class="fc-web-interact-group"><summary>${esc(title)}</summary>${body}</details>`;
+
+function slideStepSummary(box: Box, model: ModelPort): string {
+  const build = new Set<number>(), focus = new Set<number>();
+  const frameField = model.frame?.frameField ?? 'frame', idField = model.cfg.idField ?? 'id';
+  for (const other of model.getBoxes()) {
+    if ((other[frameField] ?? '') !== (box[frameField] ?? '') || other.kind === (model.frame?.frameKind ?? 'frame')) continue;
+    if (Number.isFinite(Number(other.build)) && Number(other.build) >= 1) build.add(buildStepOf(other));
+    if (String(other[idField]) !== String(box[idField]) && other.kind === 'web' && active(other) && Number(other.interact) >= 0) {
+      focus.add(Math.min(9999, Math.round(Number(other.interact))));
+    }
+  }
+  const list = (steps: Set<number>): string => {
+    const sorted = [...steps].sort((a, b) => a - b);
+    const shown = sorted.slice(0, 8).map(step => step === 0 ? t('When the slide opens') : String(step)).join(', ');
+    return sorted.length > 8 ? t('{steps}, and {n} more', { steps: shown, n: sorted.length - 8 }) : shown;
+  };
+  const groups = [build.size ? t('Build: {steps}', { steps: list(build) }) : '', focus.size ? t('Focus: {steps}', { steps: list(focus) }) : ''].filter(Boolean);
+  const others = groups.length ? t('Other steps on this slide: {steps}', { steps: groups.join(' · ') }) : t('No other steps on this slide.');
+  return (Math.round(Number(box.interact)) === 0 ? `${t('When the slide opens')}. ` : '') + others;
+}
 
 function stopRows(options: PresentInteractOptions): string {
   return '<ol class="fc-web-stops">' + options.stops.map((depth, index) => `<li>`
@@ -85,6 +106,7 @@ export function webInteractRows(box: Box, colourScope?: HTMLElement): string {
   return `<div class="fc-web-interact">${toggle('enabled', t('Make interactive'), enabled)}`
     + (enabled ? hint(t('The deck keeps the clicker. Up and Down control this page while its highlight is active.'))
       + input('step', t('Focus on click'), box.interact, 'type="number" min="0" max="999" step="1"')
+      + '<p class="fc-insp-hint" data-web-interact-steps></p>'
       + hint(t('0 means when the slide opens. The next click releases the page and continues the deck.'))
       + select('highlight', t('Highlight'), options.highlight, [['ring', t('Ring')], ['spotlight', t('Spotlight')], ['zoom', t('Zoom')], ['none', t('None')]])
       + (options.highlight !== 'none' ? `<div class="fc-row"><span>${t('Highlight colour')}</span>`
@@ -295,12 +317,19 @@ export function wireWebInteract(root: HTMLElement, model: ModelPort, ids: readon
     }
     refreshPreview();
   };
+  const refreshSteps = (): void => {
+    if (disposed) return;
+    const target = root.querySelector<HTMLElement>('[data-web-interact-steps]'), box = current();
+    if (!target) return;
+    target.hidden = !box || !active(box); target.textContent = box && active(box) ? slideStepSummary(box, model) : '';
+  };
+  const unsubscribeModel = model.subscribe(refreshSteps);
   canvas.addEventListener('lolly:web-driver-change', refresh);
-  refresh();
+  refresh(); refreshSteps();
   return () => {
     if (disposed) return;
     for (const detail of details) folds.set(detail.querySelector('summary')?.textContent ?? '', detail.open);
-    disposed = true; unsubscribeDepth?.(); canvas.removeEventListener('lolly:web-driver-change', refresh);
+    disposed = true; unsubscribeDepth?.(); unsubscribeModel(); canvas.removeEventListener('lolly:web-driver-change', refresh);
   };
 }
 

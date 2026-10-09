@@ -11,6 +11,7 @@ import type { AssetRef } from '@lolly-tools/core/host-v1';
 import { loadTool } from '../engine/src/loader.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
 import { makeGeomApi } from '../engine/src/geom-api.ts';
+import { createTokenSet } from '../engine/src/tokens.ts';
 import { exportDesignLottie } from '../engine/src/design-lottie.ts';
 import { readLottie } from '../engine/src/dotlottie.ts';
 import { parseUrlState, serializeUrlState } from '../engine/src/url-mode.ts';
@@ -153,4 +154,19 @@ test('independent vector paint is refused before its colours or transforms can b
   await assert.rejects(exportDesignLottie({ sourceDocument: { toolId: 'design', values: { boxes: [
     { id: 'outlined-heading', kind: 'path', x: 0, y: 0, w: 100, h: 40, pathPaint: '{"version":1}', bg: '#000000' },
   ] } } }, host), /outlined-heading: independent vector paint/);
+});
+
+
+test('native vector evaluation retains the detached authored snapshot while token reads are pending', async () => {
+  const box = { id: 'frozen', kind: 'box', shape: 'rounded', x: 3, y: 4, w: 20, h: 10, radius: 16, bg: '{color.semantic.primary}', opacity: 60 };
+  const host = hostForTest();
+  host.tokens = { get: async () => createTokenSet({}), colors: async () => [], themes: async () => [],
+    resolve: async () => { box.x = 999; box.radius = 999; box.opacity = 1; return '#ff0000'; } };
+  const blob = await exportDesignLottie({ sourceDocument: { toolId: 'design', values: { background: 'transparent', boxes: [box] } } }, host);
+  const layer = readLottie(new Uint8Array(await blob.arrayBuffer())).animations[0]!.animation.layers[0]!;
+  assert.equal(box.x, 999, 'the external source changed during IO');
+  const position = (layer.ks as { p: { x: { k: number }; y: { k: number }; z: { k: number } } }).p;
+  assert.deepEqual([position.x.k, position.y.k, position.z.k], [13, 9, 0]);
+  assert.equal((layer.ks as { o: { k: number } }).o.k, 60);
+  assert.equal(((layer.shapes as { r?: { k: number } }[])[0]!).r!.k, 16);
 });

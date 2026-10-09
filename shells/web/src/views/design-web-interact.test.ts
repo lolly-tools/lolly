@@ -114,3 +114,63 @@ test('Pan preview follows retained depth across repaint, driver changes and disp
     assert.equal(writes, 0);
   } finally { dispose(); driver.destroy(); dom.window.close(); }
 });
+
+test('focus guidance reads only this slide’s other steps and refreshes without authoring or retained listeners', () => {
+  const dom = new JSDOM('<!doctype html><body><main></main><aside></aside></body>', { url: 'https://deck.test/' });
+  const win = dom.window;
+  for (const key of ['window', 'document', 'location', 'HTMLElement', 'HTMLInputElement', 'getComputedStyle']) {
+    (globalThis as Record<string, unknown>)[key] = (win as unknown as Record<string, unknown>)[key];
+  }
+  const root = win.document.querySelector('aside')!, canvas = win.document.querySelector('main')!;
+  let rows: Box[] = [
+    { id: 'demo', kind: 'web', artboard: 'a', build: 2, interact: 0, web: 'https://outside.test/' },
+    { id: 'title', kind: 'text', artboard: 'a', build: 4.6 },
+    { id: 'same-build', kind: 'image', artboard: 'a', build: '2' },
+    { id: 'intro', kind: 'web', artboard: 'a', interact: 0 },
+    { id: 'other-focus', kind: 'web', artboard: 'a', interact: 3 },
+    { id: 'not-web', kind: 'text', artboard: 'a', interact: 8 },
+    { id: 'other-slide', kind: 'web', artboard: 'b', build: 88, interact: 89 },
+    { id: 'frame-row', kind: 'frame', artboard: 'a', build: 99, interact: 99 },
+    ...['junk', '2junk', 'Infinity', '-1', ''].map((value, i) => ({ id: `invalid-${i}`, kind: 'web', artboard: 'a', build: value, interact: value })),
+  ];
+  const listeners = new Set<() => void>();
+  const model: ModelPort = {
+    blockId: 'boxes', cfg: { idField: 'id' } as ModelPort['cfg'],
+    frame: { frameField: 'artboard', frameKind: 'frame', orderField: 'order' },
+    getBoxes: () => rows, commit: () => assert.fail('step guidance cannot commit'), setField: () => assert.fail('step guidance cannot author'),
+    subscribe: listener => { listeners.add(listener); return () => { listeners.delete(listener); }; },
+    getInput: () => undefined, setInput: () => assert.fail('step guidance cannot change document inputs'),
+  };
+  let dispose = () => {};
+  const paint = () => { dispose(); root.innerHTML = webInteractRows(rows[0]!); dispose = wireWebInteract(root, model, ['demo'], canvas); };
+  const guidance = () => root.querySelector<HTMLElement>('[data-web-interact-steps]')!;
+  const notify = () => { for (const listener of [...listeners]) listener(); };
+  try {
+    const original = structuredClone(rows);
+    paint(); assert.equal(listeners.size, 1);
+    assert.match(guidance().textContent!, /^When the slide opens\./);
+    assert.match(guidance().textContent!, /Build: 2, 5/);
+    assert.match(guidance().textContent!, /Focus: When the slide opens, 3/);
+    assert.doesNotMatch(guidance().textContent!, /\b(?:8|88|89|99)\b|junk|Infinity|-1/);
+    assert.deepEqual(rows, original);
+    rows = rows.filter(row => row.id !== 'intro').map(row => row.id === 'demo' ? { ...row, interact: 7 } : row);
+    notify(); assert.doesNotMatch(guidance().textContent!, /When the slide opens|Focus: 3, 7/);
+    assert.match(guidance().textContent!, /Focus: 3/);
+    rows = rows.map(row => row.id === 'demo' ? { ...row, artboard: 'b', build: '' } : row);
+    notify(); assert.match(guidance().textContent!, /Build: 88/); assert.match(guidance().textContent!, /Focus: 89/);
+    rows = [...rows, ...Array.from({ length: 30 }, (_, i) => ({ id: `many-${i}`, kind: 'web', artboard: 'b', build: i + 1, interact: 800 + i }))];
+    notify(); assert.match(guidance().textContent!, /Build: 1, 2, 3, 4, 5, 6, 7, 8, and 23 more/);
+    assert.match(guidance().textContent!, /Focus: 89, 800, 801, 802, 803, 804, 805, 806, and 23 more/);
+    assert.doesNotMatch(guidance().textContent!, /\b829\b/);
+    rows = [{ ...rows[0]!, interact: 0 }]; notify();
+    assert.equal(guidance().textContent, 'When the slide opens. No other steps on this slide.');
+    rows = []; notify(); assert.equal(guidance().hidden, true); assert.equal(guidance().textContent, '');
+    rows = [{ ...original[0]!, interact: 7 }];
+    paint(); assert.equal(listeners.size, 1, 'repaint replaces the previous model subscription');
+    const retained = guidance(), staleListener = [...listeners][0]!;
+    const before = retained.textContent;
+    dispose(); assert.equal(listeners.size, 0);
+    rows = rows.map(row => ({ ...row, build: 42, interact: 42 })); staleListener();
+    assert.equal(retained.textContent, before, 'disposed guidance ignores even a queued model notification');
+  } finally { dispose(); dom.window.close(); }
+});

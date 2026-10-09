@@ -173,16 +173,16 @@ test('the deployment workflow gates the web shell image and no other image or th
   const services = jobs['service-images']!;
   assert.match(jobText(services), /for service in ca penpot; do/);
   assert.match(jobText(services), /deploy\/docker\/\$\{service\}\.Dockerfile/);
-  assert.deepEqual(needsOf(services), ['chart', 'public-vm']);
+  assert.deepEqual(needsOf(services), ['chart', 'public-vm', 'source-qualification']);
   const browser = jobs['mcp-browser-image']!;
   assert.match(jobText(browser), /-f deploy\/docker\/mcp-browser\.Dockerfile/);
-  assert.deepEqual(needsOf(browser), ['chart', 'public-vm', 'probe-web-shell']);
+  assert.deepEqual(needsOf(browser), ['chart', 'public-vm', 'source-qualification', 'probe-web-shell']);
   for (const [id, job] of Object.entries(jobs)) {
     if (id === 'mcp-browser-image') continue;
     assert.ok(!needsOf(job).includes('probe-web-shell'), `${id} must not wait for the probe web shell`);
   }
   assert.match(jobText(jobs['info-docs']!), /pnpm run build:info/);
-  assert.deepEqual(needsOf(jobs['info-docs']!), ['chart', 'public-vm']);
+  assert.deepEqual(needsOf(jobs['info-docs']!), ['chart', 'public-vm', 'source-qualification']);
   assert.match(jobText(jobs['probe-web-shell']!), /"run":"pnpm run build:web"/);
 });
 
@@ -310,6 +310,7 @@ function reachable(entry: string): Set<string> {
 /** The modules that import the gate. A new one has to be placed on one side of the line here. */
 const GATE_IMPORTERS = [
   'scripts/build-release-web.ts',
+  'scripts/main-web-preparation.ts',
   'scripts/release-checklist.ts',
   'scripts/ship.ts',
   'scripts/yunohost-release.ts',

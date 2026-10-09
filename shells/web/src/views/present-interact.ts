@@ -98,11 +98,12 @@ export function mountPresentInteract(config: PresentInteractConfig): PresentInte
     const driver = findDriver(visit.marker);
     if (driver === visit.driver) return;
     visit.unsubscribe?.(); visit.unsubscribe = null;
-    visit.driver = driver;
+    visit.driver = driver; visit.stamp = null;
     if (!driver) return;
     driver.configure(visit.opts); driver.setSlideActive(!state.overview);
     driver.setFocused(current === visit); driver.handKeyboard(current === visit && handed);
     const unsubscribeDepth = driver.subscribe(() => {
+      if (!autoReady(visit)) visit.stamp = null;
       if (visit.stop !== null && !visit.move) {
         const expected = resolvePresentInteractStops(visit.opts.stops, dimensions(visit))[visit.stop]?.y;
         const depth = driver.depth();
@@ -126,7 +127,7 @@ export function mountPresentInteract(config: PresentInteractConfig): PresentInte
       releaseChild(); childDocument = fresh;
       childDocument?.addEventListener('pointerdown', childPointer, true); childDocument?.addEventListener('focusin', childFocus);
     };
-    const restart = (): void => { visit.stop = null; watchChild(); paintSpeaker(); };
+    const restart = (): void => { visit.stop = null; visit.stamp = null; watchChild(); paintSpeaker(); };
     driver.frame.addEventListener('load', restart);
     watchChild(); visit.unsubscribe = () => { unsubscribeDepth(); releaseChild(); driver.frame.removeEventListener('load', restart); };
     if (!(visit.opts.keep && visit.marker.dataset.webLoad === 'keep')) {
@@ -273,9 +274,20 @@ export function mountPresentInteract(config: PresentInteractConfig): PresentInte
     return false;
   }
 
+  function autoReady(visit: Visit): boolean {
+    const driver = visit.driver;
+    if (!driver?.capabilities.scroll) return false;
+    if (driver.capabilities.backend === 'outside') return true;
+    if (driver.capabilities.checking) return false;
+    if (reduced && !visit.opts.stops.length) return true;
+    const place = (depth: PresentInteractDepth): boolean => typeof depth === 'string' && depth.startsWith('#');
+    const places = visit.opts.mode === 'places' && visit.opts.stops.some(place)
+      || place(visit.opts.from) && place(visit.opts.to) && visit.opts.stops.every(place);
+    return places || driver.depth() !== null;
+  }
   function schedule(): void {
     if (destroyed || frameId !== null || state.paused || state.overview) return;
-    if (!visits.some((visit) => visit.driver && (visit.move || (visit.started && !visit.manual && !visit.done && (visit.opts.auto !== 'focus' || current === visit))))) return;
+    if (!visits.some((visit) => visit.driver && (visit.move || (visit.started && !visit.manual && !visit.done && autoReady(visit) && (visit.opts.auto !== 'focus' || current === visit))))) return;
     frameId = requestFrame(tick);
   }
   function tick(now: number): void {
@@ -292,7 +304,7 @@ export function mountPresentInteract(config: PresentInteractConfig): PresentInte
         if (progress >= 1) visit.move = null;
         continue;
       }
-      if (!visit.started || visit.manual || visit.done || (visit.opts.auto === 'focus' && current !== visit)) { visit.stamp = null; continue; }
+      if (!visit.started || visit.manual || visit.done || !autoReady(visit) || (visit.opts.auto === 'focus' && current !== visit)) { visit.stamp = null; continue; }
       if (visit.stamp !== null) visit.elapsed += Math.max(0, Math.min(100, now - visit.stamp));
       visit.stamp = now;
       const sample = samplePresentInteractAuto(visit.opts, visit.elapsed, dimensions(visit), { reducedMotion: reduced });

@@ -30,6 +30,10 @@ import { DICTIONARY_SCRIPT, drawDesignText, textMeasureSpecOfRow, type DesignTex
 import { segmentEmojiText } from './emoji-segment.ts';
 import { decodeAuthoredPaths } from './geom/authored-url.ts';
 import type { Contour } from './geom/path.ts';
+import type { SubPath } from './svg-path.ts';
+import { compileLottieCompatRow } from './design-draw-lottie.ts';
+export { lottieCompatNumber } from './design-draw-lottie.ts';
+import { compilePenpotCompatRow } from './design-draw-penpot.ts';
 import { toCubics } from './geom/spline.ts';
 import { colorToHexString } from './css-color.ts';
 import { gradientSpecStops, parseGradientSpec } from './gradient-spec.ts';
@@ -54,7 +58,9 @@ export interface DrawPose { rot: number; flipH: boolean; flipV: boolean }
 export type DrawShape =
   | { kind: 'rect'; radius: number }
   | { kind: 'ellipse' }
-  | { kind: 'path'; contours: Contour[]; evenOdd: boolean };
+  | { kind: 'path'; contours: Contour[]; evenOdd: boolean;
+    /** Box-local, evaluated SVG commands retained by the legacy Lottie reading for exact quantization and move-only paths. */
+    commands?: SubPath[] };
 
 /** A rectangle or ellipse a picture, or a frame's children, are clipped to. */
 export interface DrawArea { box: DrawBox; shape: Exclude<DrawShape, { kind: 'path' }> }
@@ -143,7 +149,13 @@ export interface DrawWords {
   strikes?: Array<Array<DrawStrike | null>>;
 }
 /** Fills paint in order, under first; the stroke goes with the last fill. */
-export interface DrawShapeOp extends DrawOpBase { op: 'shape'; shape: DrawShape; fills: DrawPaint[]; stroke?: DrawStroke }
+export interface DrawShapeOp extends DrawOpBase {
+  op: 'shape'; shape: DrawShape; fills: DrawPaint[]; stroke?: DrawStroke;
+  /** A target may retain an authored fill rule even on a primitive. */
+  fillRule?: 'evenodd';
+  /** A named internal compatibility reading; absent on Design and preview operations. */
+  compatibility?: 'lottie-native-v1' | 'penpot-native-v1';
+}
 export interface DrawImageOp extends DrawOpBase {
   op: 'image';
   /** The authored asset reference, which a consumer resolves. */
@@ -500,7 +512,11 @@ export interface DesignDrawCompileOpts {
    * existed (radius on a plain rectangle, a centred outline, unrounded geometry), so the
    * rebrand preview stays byte for byte as it was until that is decided on its own.
    */
-  semantics?: 'design' | 'preview';
+  semantics?: 'design' | 'preview' | 'lottie-compat' | 'penpot-compat';
+  /** Resolved paints and the existing geometry authority for the named legacy vector reading only. */
+  lottieCompat?: { fill: readonly number[] | null; stroke: readonly number[] | null; geom?: import('@lolly-tools/core').GeomAPI };
+  /** Paints already resolved by the Penpot producer, preserving its callback order. */
+  penpotCompat?: { fills: DrawPaint[]; stroke?: DrawStroke };
 }
 
 /** CSS `parseFloat`: a leading number, so `50%` reads as 50. */
@@ -545,7 +561,7 @@ function effectsOf(row: DesignBoxRowV1, box: DrawBox, offset: { x: number; y: nu
   const shadow = shadowOf(row, color);
   if (shadow) {
     out.shadow = shadow;
-    if (shadow.target === 'box') out.outline = outlineOf(row, box, opts.semantics);
+    if (shadow.target === 'box') out.outline = outlineOf(row, box, opts.semantics === 'lottie-compat' || opts.semantics === 'penpot-compat' ? 'design' : opts.semantics);
   }
   const blur = clampTo(rowNum(row, 'blur'), 0, 300);
   if (blur > 0) out.blur = Math.round(blur * 10) / 10;
@@ -557,6 +573,8 @@ function effectsOf(row: DesignBoxRowV1, box: DrawBox, offset: { x: number; y: nu
  * `thumbScale` (px per unit) leaves out path contours under a pixel both ways.
  */
 export function compileDesignRow(row: DesignBoxRowV1, offset: { x: number; y: number }, opts: DesignDrawCompileOpts = {}): DrawOp {
+  if (opts.semantics === 'lottie-compat') return compileLottieCompatRow(row, offset, opts.lottieCompat);
+  if (opts.semantics === 'penpot-compat') return compilePenpotCompatRow(row, offset, opts.penpotCompat);
   const design = opts.semantics !== 'preview';
   // Design places a box on whole pixels, at least one pixel each way, turned in tenths of a degree.
   const box: DrawBox = design
@@ -676,6 +694,8 @@ function framePaint(head: DesignBoxRowV1, page: DesignDrawPage, opts: DesignDraw
  * row, which leads them when present; hidden rows draw nothing.
  */
 export function compileDesignDraw(rows: readonly DesignBoxRowV1[], size: { width: number; height: number }, opts: DesignDrawCompileOpts = {}): DesignDrawPage {
+  if (opts.semantics === 'lottie-compat') throw new Error('The Lottie sequence owns page selection; compile its admitted vectors with compileDesignRow.');
+  if (opts.semantics === 'penpot-compat') throw new Error('The Penpot producer owns page selection; compile its admitted primitives with compileDesignRow.');
   const head = rows[0];
   const framed = head !== undefined && rowStr(head, 'kind') === 'frame';
   const round = opts.semantics !== 'preview' ? Math.round : (n: number) => n;

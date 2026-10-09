@@ -230,7 +230,7 @@ export function samplePresentInteractAuto(
   const time = Math.max(0, Number.isFinite(paused ? flags.pausedAtMs : tMs) ? (paused ? flags.pausedAtMs! : tMs) : 0);
   if (options.auto === 'off') return { to: options.start, done: true, stopIndex: null, paused };
   const points = autoPoints(options, context);
-  if (flags.reducedMotion && !options.stops.length) return { to: options.from, done: false, stopIndex: null, paused };
+  if (flags.reducedMotion && !options.stops.length) return { to: options.start, done: true, stopIndex: null, paused };
   const duration = clamp(options.seconds, 1, 600) * 1000;
   const pause = clamp(options.pauseSeconds, 0, 600) * 1000;
   const segments = Math.max(1, points.length - 1);
