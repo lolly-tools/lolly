@@ -110116,9 +110116,45 @@ var init_design_draw_penpot = __esm({
 });
 
 // engine/src/design-draw-pptx.ts
-function isPptxPrimitiveRow(row, origin = { x: 0, y: 0 }, geometry3) {
-  if (!["", "box"].includes(string2(row.kind)) || !["", "rect", "rounded"].includes(string2(row.shape))) return false;
-  for (const field2 of ["grad", "clip", "image", "text", "path", "pathPaint", "headStart", "headEnd", "kf", "enter", "exit", "hold", "matchOf", "strokeDashArray"]) {
+function capturePptxMetadata(row, gradientCaptured) {
+  const prototype = Object.getPrototypeOf(row);
+  if (prototype !== null && prototype !== Object.prototype) return null;
+  const snapshot = /* @__PURE__ */ Object.create(null);
+  for (const field2 of [
+    "id",
+    ...gradientCaptured ? [] : ["kind", "shape", "radius", "strokeW", "rot"],
+    ...GUARDED_CONTENT.filter((field3) => !gradientCaptured || field3 !== "grad"),
+    "shadow",
+    "blend",
+    "strokeDash",
+    "blur",
+    "bgBlur",
+    "rx",
+    "ry",
+    "start",
+    "dur",
+    "lane"
+  ]) {
+    const descriptor = Object.getOwnPropertyDescriptor(row, field2);
+    if (!descriptor) {
+      if (prototype && Object.getOwnPropertyDescriptor(prototype, field2)) return null;
+      continue;
+    }
+    if (!Object.hasOwn(descriptor, "value")) return null;
+    snapshot[field2] = descriptor.value;
+  }
+  return snapshot;
+}
+function capturePptxGradientMetadata(row) {
+  return capturePptxMetadata(row, true);
+}
+function capturePptxSolidMetadata(row) {
+  return capturePptxMetadata(row, false);
+}
+function isPptxPrimitiveRow(row, origin = { x: 0, y: 0 }, geometry3, capturedGradient = false, capture) {
+  if (!["", "box"].includes(capture?.kind ?? string2(row.kind)) || !["", "rect", "rounded"].includes(capture?.shapeKind ?? string2(row.shape))) return false;
+  for (const field2 of GUARDED_CONTENT) {
+    if (field2 === "grad" && capturedGradient) continue;
     if (string2(row[field2]).trim()) return false;
   }
   if (!["", "none"].includes(string2(row.shadow)) || !["", "normal"].includes(string2(row.blend))) return false;
@@ -110126,7 +110162,14 @@ function isPptxPrimitiveRow(row, origin = { x: 0, y: 0 }, geometry3) {
   if (["blur", "bgBlur", "rx", "ry"].some((field2) => number2(row[field2]) !== 0)) return false;
   if (row.start != null || row.dur != null || string2(row.lane) === "seq") return false;
   const coordinates = geometry3 ?? { x: number2(row.x), y: number2(row.y), w: number2(row.w, 1), h: number2(row.h, 1) };
-  return [coordinates.x - origin.x, coordinates.y - origin.y, coordinates.w, coordinates.h, number2(row.radius), number2(row.strokeW)].every((value) => Number.isFinite(emu(value)));
+  return [coordinates.x - origin.x, coordinates.y - origin.y, coordinates.w, coordinates.h, capture?.radius ?? number2(row.radius), capture?.strokeWidth ?? number2(row.strokeW)].every((value) => Number.isFinite(emu(value)));
+}
+function validateLinear(linear) {
+  if (!Number.isFinite(linear.angle) || linear.stops.length < 2) throw new Error("PPTX gradients need finite native angles and at least two stops.");
+  for (const stop of linear.stops) {
+    if (!stop || !Number.isFinite(stop.offset) || stop.offset < 0 || stop.offset > 1) throw new Error("PPTX gradient positions must be in range.");
+    validColor2(stop.color, stop.opacity);
+  }
 }
 function validColor2(color6, alpha) {
   if (!/^#[0-9a-f]{6}$/i.test(color6) || alpha !== void 0 && (!Number.isFinite(alpha) || alpha < 0 || alpha > 1)) {
@@ -110146,16 +110189,25 @@ function validatePaint2(fills, stroke) {
   }
 }
 function compilePptxCompatRow(row, origin, supplied) {
-  if (!isPptxPrimitiveRow(row, origin, supplied?.geometry)) throw new Error("This row needs the legacy native PPTX producer.");
+  if (!isPptxPrimitiveRow(row, origin, supplied?.geometry, !!supplied?.linear, supplied?.capture)) throw new Error("This row needs the legacy native PPTX producer.");
   if (!supplied) throw new Error("The PPTX compatibility reading needs resolved paints.");
   validatePaint2(supplied.fills, supplied.stroke);
-  const rounded = string2(row.shape) === "rounded", rot = number2(row.rot);
+  if (supplied.linear) validateLinear(supplied.linear);
+  const capture = supplied.capture;
+  if (capture && (![capture.radius, capture.strokeWidth, capture.rotation ?? 0, capture.underlayRotation ?? 0].every(Number.isFinite) || !["", "box"].includes(capture.kind) || !["", "rect", "rounded"].includes(capture.shapeKind))) throw new Error("PPTX captured primitive facts are not finite or in range.");
+  const rounded = (capture?.shapeKind ?? string2(row.shape)) === "rounded", rot = capture ? capture.rotation ?? 0 : number2(row.rot);
   const geometry3 = supplied.geometry ?? { x: number2(row.x), y: number2(row.y), w: number2(row.w, 1), h: number2(row.h, 1) };
   return {
     id: string2(row.id),
     op: "shape",
     compatibility: "pptx-native-v1",
-    nativePptx: { rounded },
+    nativePptx: {
+      rounded,
+      ...supplied.linear ? {
+        linear: { angle: supplied.linear.angle, stops: supplied.linear.stops.map((stop) => ({ ...stop })) },
+        ...capture?.underlayRotation !== void 0 ? { underlayRotation: capture.underlayRotation } : {}
+      } : {}
+    },
     box: {
       x: geometry3.x - origin.x,
       y: geometry3.y - origin.y,
@@ -110163,7 +110215,7 @@ function compilePptxCompatRow(row, origin, supplied) {
       h: Math.max(1 / EMU_PER_PX, geometry3.h)
     },
     opacity: 100,
-    shape: { kind: "rect", radius: rounded ? number2(row.radius) : 0 },
+    shape: { kind: "rect", radius: rounded ? capture?.radius ?? number2(row.radius) : 0 },
     ...rot !== 0 ? { pose: { rot, flipH: false, flipV: false } } : {},
     fills: supplied.fills.map((fill2) => ({ ...fill2 })),
     ...supplied.stroke ? { stroke: { ...supplied.stroke } } : {}
@@ -110179,6 +110231,9 @@ function designDrawPptx(op) {
     throw new Error("PPTX primitive geometry is not finite or in range.");
   }
   validatePaint2(op.fills, op.stroke);
+  const native = op.nativePptx;
+  if (native.linear) validateLinear(native.linear);
+  if (native.underlayRotation !== void 0 && (!native.linear || !Number.isFinite(native.underlayRotation))) throw new Error("PPTX gradient underlay rotation must be finite.");
   const fill2 = op.fills[0], stroke = op.stroke;
   if (fill2 && fill2.kind !== "color") throw new Error("PPTX primitive paint must be solid.");
   return {
@@ -110188,12 +110243,31 @@ function designDrawPptx(op) {
     cx: Math.max(1, emu(w)),
     cy: Math.max(1, emu(h)),
     ...op.pose?.rot ? { rot: op.pose.rot } : {},
-    ...fill2 ? { fill: { solid: fill2.color.slice(1), ...fill2.opacity !== void 0 ? { alpha: fill2.opacity } : {} } } : {},
+    ...native.linear ? { fill: { grad: native.linear.stops.map((stop) => ({
+      pos: stop.offset,
+      color: stop.color.slice(1),
+      ...stop.opacity !== void 0 ? { alpha: stop.opacity } : {}
+    })), angle: native.linear.angle } } : fill2 ? { fill: { solid: fill2.color.slice(1), ...fill2.opacity !== void 0 ? { alpha: fill2.opacity } : {} } } : {},
     ...stroke ? { line: { color: stroke.color.slice(1), w: emu(stroke.width), ...stroke.opacity !== void 0 ? { alpha: stroke.opacity } : {} } } : {},
     ...op.nativePptx.rounded ? { radius: emu(op.shape.radius) } : {}
   };
 }
-var string2, number2, emu;
+function designDrawPptxLayers(op) {
+  const top = designDrawPptx(op), native = op.nativePptx, fill2 = op.fills[0];
+  if (!native.linear || !fill2 || fill2.kind !== "color") return [top];
+  const under = {
+    kind: "rect",
+    x: top.x,
+    y: top.y,
+    cx: top.cx,
+    cy: top.cy,
+    ...native.underlayRotation ? { rot: native.underlayRotation } : {},
+    ...native.rounded ? { radius: top.radius } : {},
+    fill: { solid: fill2.color.slice(1), ...fill2.opacity !== void 0 ? { alpha: fill2.opacity } : {} }
+  };
+  return [under, top];
+}
+var string2, number2, emu, GUARDED_CONTENT;
 var init_design_draw_pptx = __esm({
   "engine/src/design-draw-pptx.ts"() {
     "use strict";
@@ -110208,6 +110282,7 @@ var init_design_draw_pptx = __esm({
       return fallback;
     };
     emu = (value) => Math.round(value * EMU_PER_PX);
+    GUARDED_CONTENT = ["grad", "clip", "image", "text", "path", "pathPaint", "headStart", "headEnd", "kf", "enter", "exit", "hold", "matchOf", "strokeDashArray"];
   }
 });
 
@@ -137490,10 +137565,11 @@ async function lowerLayer(ctx, sink, row, origin, binding, masterStyle, master, 
   const strokeHit = ctx.palette.resolve(row.stroke);
   const strokeW = num12(row, "strokeW");
   noteDash(ctx, row);
-  if (isPptxPrimitiveRow(row, origin, geometry3)) {
+  const solidMetadata = capturePptxSolidMetadata(row);
+  if (solidMetadata && isPptxPrimitiveRow(solidMetadata, origin, geometry3)) {
     const foldedFill = fill2 ? withFillAlpha(fill2, opacity) : void 0;
     const line = strokeHit && strokeW > 0 ? lineOf(strokeHit, strokeW, opacity) : void 0;
-    const op = compileDesignRow(row, origin, { semantics: "pptx-compat", pptxCompat: {
+    const op = compileDesignRow(solidMetadata, origin, { semantics: "pptx-compat", pptxCompat: {
       geometry: geometry3,
       fills: foldedFill && "solid" in foldedFill ? [{ kind: "color", color: `#${foldedFill.solid}`, opacity: foldedFill.alpha }] : [],
       ...line ? { stroke: { color: `#${line.color}`, opacity: line.alpha, width: strokeW } } : {}
@@ -137502,8 +137578,27 @@ async function lowerLayer(ctx, sink, row, origin, binding, masterStyle, master, 
     sink.shapes.push(designDrawPptx(op));
     return;
   }
-  const radius = str9(row, "shape") === "rounded" ? { radius: emu2(num12(row, "radius")) } : {};
+  const shapeKind = str9(row, "shape"), radiusPx = shapeKind === "rounded" ? num12(row, "radius") : 0;
+  const radius = shapeKind === "rounded" ? { radius: emu2(radiusPx) } : {};
   const gradFill = linearGradBox(row) ? gradSpecFill(str9(row, "grad").trim(), { flipH: bool(row, "flipH"), flipV: bool(row, "flipV") }) : null;
+  const capture = { kind, shapeKind, radius: radiusPx, strokeWidth: strokeW };
+  const metadata2 = gradFill && "grad" in gradFill ? capturePptxGradientMetadata(row) : null;
+  if (gradFill && "grad" in gradFill && metadata2 && isPptxPrimitiveRow(metadata2, origin, geometry3, true, capture)) {
+    const underlayRotation = fill2 ? rotOf(row).rot : void 0, rotation = rotOf(row).rot;
+    const foldedFill = fill2 ? withFillAlpha(fill2, opacity) : void 0, topFill = withFillAlpha(gradFill, opacity);
+    if (!("grad" in topFill)) throw new Error("PPTX gradient paint did not retain its native stops.");
+    const line = strokeHit && strokeW > 0 ? lineOf(strokeHit, strokeW, opacity) : void 0;
+    const op = compileDesignRow(metadata2, origin, { semantics: "pptx-compat", pptxCompat: {
+      geometry: geometry3,
+      capture: { ...capture, rotation, underlayRotation },
+      fills: foldedFill && "solid" in foldedFill ? [{ kind: "color", color: `#${foldedFill.solid}`, opacity: foldedFill.alpha }] : [],
+      linear: { angle: topFill.angle, stops: topFill.grad.map((stop) => ({ offset: stop.pos, color: `#${stop.color}`, opacity: stop.alpha })) },
+      ...line ? { stroke: { color: `#${line.color}`, opacity: line.alpha, width: strokeW } } : {}
+    } });
+    if (op.op !== "shape") throw new Error("PPTX gradient compilation did not produce a shape.");
+    sink.shapes.push(...designDrawPptxLayers(op));
+    return;
+  }
   if (gradFill && fill2) {
     sink.shapes.push({ kind: "rect", ...box4, ...rotOf(row), fill: withFillAlpha(fill2, opacity), ...radius });
   }

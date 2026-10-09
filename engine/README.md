@@ -226,9 +226,9 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `design-draw-lottie.ts` | 133 | The internal legacy dotLottie vector reading and its operation consumer. | no | `tests/design-draw-lottie.test.ts` | – |
 | `design-draw-pdf.ts` | 512 | Drawing operations written as PDF (plan 295, phase 3, P3d). | no | `tests/design-draw-pdf.test.ts` | – |
 | `design-draw-penpot.ts` | 126 | Penpot's existing flat-primitive and gradient reading, separate from Design's CSS geometry. | no | `tests/design-draw-penpot.test.ts` | – |
-| `design-draw-pptx.ts` | 98 | The native deck's flat-primitive reading, distinct from Design's CSS geometry. | no | `tests/design-draw-pptx.test.ts` | – |
+| `design-draw-pptx.ts` | 161 | The native deck's primitive and linear-gradient reading, distinct from Design's CSS geometry. | no | `tests/design-draw-pptx.test.ts` | – |
 | `design-draw-svg.ts` | 411 | Drawing operations written as SVG (plan 295, phase 3, P3a). | no | indirect | – |
-| `design-draw.ts` | 870 | Authored Design rows compiled into drawing operations (plan 295, phase 3, P3a). | no | `tests/design-draw.test.ts` | – |
+| `design-draw.ts` | 872 | Authored Design rows compiled into drawing operations (plan 295, phase 3, P3a). | no | `tests/design-draw.test.ts` | – |
 | `design-house-rules.ts` | 493 | House rules for a Design document (plan 291 W1 and W3): brand rule records whose kind is one of `DESIGN_HOUSE_RULE_KINDS`, checked layer by layer against the boxes a Design document stores. | yes | `tests/design-house-rules.test.ts` | – |
 | `design-idml.ts` | 147 | Deterministic IDML for static Design text, rectangular/oval frames and still images. | no | indirect | – |
 | `design-layer-ops.ts` | 303 | Design layer edits by stable id (plans/289 D1): `layerOperations` (add, duplicate, remove, reparent, reorder) and `layerPatches` (set fields on one layer). | no | `tests/design-layer-ops.test.ts` | – |

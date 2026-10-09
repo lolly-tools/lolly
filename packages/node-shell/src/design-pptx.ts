@@ -63,7 +63,7 @@ import { contourArea, toSvgPathData, type Contour } from '../../../engine/src/ge
 import { toCubics } from '../../../engine/src/geom/spline.ts';
 import { deltaEOkSrgb } from '../../../engine/src/brand-derive.ts';
 import { compileDesignRow } from '../../../engine/src/design-draw.ts';
-import { designDrawPptx, isPptxPrimitiveRow } from '../../../engine/src/design-draw-pptx.ts';
+import { capturePptxGradientMetadata, capturePptxSolidMetadata, designDrawPptx, designDrawPptxLayers, isPptxPrimitiveRow } from '../../../engine/src/design-draw-pptx.ts';
 import { deckColor, deckTransition, deckWeight, nameStaticFaces, type DeckColorResolver, type DeckNotes, type ShipsFace, type WeightedRun } from './pptx-deck.ts';
 import { deckPicLook, deckPlacePicture, deckSvgBakeRaster, deckSvgIntrinsicSize, gradSpecFill, isLinearGradSpec, PICTURE_FITS, type DeckIntrinsicSize, type PictureFit } from './pptx-deck.ts';
 
@@ -1010,10 +1010,11 @@ async function lowerLayer(
   const strokeHit = ctx.palette.resolve(row.stroke);
   const strokeW = num(row, 'strokeW');
   noteDash(ctx, row);
-  if (isPptxPrimitiveRow(row, origin, geometry)) {
+  const solidMetadata = capturePptxSolidMetadata(row);
+  if (solidMetadata && isPptxPrimitiveRow(solidMetadata, origin, geometry)) {
     const foldedFill = fill ? withFillAlpha(fill, opacity) : undefined;
     const line = strokeHit && strokeW > 0 ? lineOf(strokeHit, strokeW, opacity) : undefined;
-    const op = compileDesignRow(row, origin, { semantics: 'pptx-compat', pptxCompat: {
+    const op = compileDesignRow(solidMetadata, origin, { semantics: 'pptx-compat', pptxCompat: {
       geometry,
       fills: foldedFill && 'solid' in foldedFill ? [{ kind: 'color', color: `#${foldedFill.solid}`, opacity: foldedFill.alpha }] : [],
       ...(line ? { stroke: { color: `#${line.color}`, opacity: line.alpha, width: strokeW } } : {}),
@@ -1022,13 +1023,31 @@ async function lowerLayer(
     sink.shapes.push(designDrawPptx(op));
     return;
   }
-  const radius = str(row, 'shape') === 'rounded' ? { radius: emu(num(row, 'radius')) } : {};
+  const shapeKind = str(row, 'shape'), radiusPx = shapeKind === 'rounded' ? num(row, 'radius') : 0;
+  const radius = shapeKind === 'rounded' ? { radius: emu(radiusPx) } : {};
   // A linear gradient (plan 291 M4). CSS paints the flat fill under the gradient, so a
   // box with both is two rectangles, the fill first; the outline rides the top one. The
   // mirror folds into the gradient's angle and the opacity into its stops.
   const gradFill = linearGradBox(row)
     ? gradSpecFill(str(row, 'grad').trim(), { flipH: bool(row, 'flipH'), flipV: bool(row, 'flipV') })
     : null;
+  const capture = { kind, shapeKind, radius: radiusPx, strokeWidth: strokeW };
+  const metadata = gradFill && 'grad' in gradFill ? capturePptxGradientMetadata(row) : null;
+  if (gradFill && 'grad' in gradFill && metadata && isPptxPrimitiveRow(metadata, origin, geometry, true, capture)) {
+    const underlayRotation = fill ? rotOf(row).rot : undefined, rotation = rotOf(row).rot;
+    const foldedFill = fill ? withFillAlpha(fill, opacity) : undefined, topFill = withFillAlpha(gradFill, opacity);
+    if (!('grad' in topFill)) throw new Error('PPTX gradient paint did not retain its native stops.');
+    const line = strokeHit && strokeW > 0 ? lineOf(strokeHit, strokeW, opacity) : undefined;
+    const op = compileDesignRow(metadata, origin, { semantics: 'pptx-compat', pptxCompat: {
+      geometry, capture: { ...capture, rotation, underlayRotation },
+      fills: foldedFill && 'solid' in foldedFill ? [{ kind: 'color', color: `#${foldedFill.solid}`, opacity: foldedFill.alpha }] : [],
+      linear: { angle: topFill.angle, stops: topFill.grad.map(stop => ({ offset: stop.pos, color: `#${stop.color}`, opacity: stop.alpha })) },
+      ...(line ? { stroke: { color: `#${line.color}`, opacity: line.alpha, width: strokeW } } : {}),
+    } });
+    if (op.op !== 'shape') throw new Error('PPTX gradient compilation did not produce a shape.');
+    sink.shapes.push(...designDrawPptxLayers(op));
+    return;
+  }
   if (gradFill && fill) {
     sink.shapes.push({ kind: 'rect', ...box, ...rotOf(row), fill: withFillAlpha(fill, opacity), ...radius });
   }

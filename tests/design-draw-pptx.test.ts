@@ -3,6 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import { readFileSync } from 'node:fs';
 import { build } from 'esbuild';
 import { designFramesToPptx, type DesignPptxOptsV1, type DesignPptxResultV1 } from '../packages/node-shell/src/design-pptx.ts';
 import { EMU_PER_PX, buildPptxParts, type PptxRect } from '../engine/src/pptx.ts';
@@ -11,8 +12,9 @@ import { seedFrame } from '../engine/src/slide-master.ts';
 import { packPng } from '../engine/src/png.ts';
 import type { DesignBoxRowV1 } from '@lolly-tools/core';
 import { compileDesignDraw, compileDesignRow, type DrawShapeOp } from '../engine/src/design-draw.ts';
-import { designDrawPptx, isPptxPrimitiveRow } from '../engine/src/design-draw-pptx.ts';
+import { capturePptxGradientMetadata, capturePptxSolidMetadata, designDrawPptx, designDrawPptxLayers, isPptxPrimitiveRow } from '../engine/src/design-draw-pptx.ts';
 import { makeGeomApi } from '../engine/src/geom-api.ts';
+import { gradSpecFill } from '../packages/node-shell/src/pptx-deck.ts';
 
 /** Complete producer before P3e-3. This retained source imports no drawing compiler or consumer. */
 const legacySource = `// SPDX-License-Identifier: MPL-2.0
@@ -1557,6 +1559,186 @@ export function slideMasterForExport(
 assert.equal(createHash('sha256').update(legacySource).digest('hex'), 'f8e7c1b606bd4ac2ae9f5926357c5e4bd117f5a2b32b8d26cd4483e34804b88a', 'the retained producer source is immutable');
 const bundled = await build({ stdin: { contents: legacySource, resolveDir: fileURLToPath(new URL('../packages/node-shell/src/', import.meta.url)), sourcefile: 'legacy-design-pptx.ts', loader: 'ts' }, bundle: true, write: false, platform: 'node', format: 'esm' });
 const legacy = (await import(`data:text/javascript;base64,${Buffer.from(bundled.outputFiles![0]!.text).toString('base64')}`)).designFramesToPptx as typeof designFramesToPptx;
+
+/** Exact qualified860 producer, reconstructed with its fixed prior primitive patch, not the new consumer. */
+const qualifiedPrimitivePatch: ReadonlyArray<readonly [string, string]> = [
+  [`import { contourArea, toSvgPathData, type Contour } from '../../../engine/src/geom/path.ts';
+import { toCubics } from '../../../engine/src/geom/spline.ts';
+import { deltaEOkSrgb } from '../../../engine/src/brand-derive.ts';
+import { deckColor, deckTransition, deckWeight, nameStaticFaces, type DeckColorResolver, type DeckNotes, type ShipsFace, type WeightedRun } from './pptx-deck.ts';
+import { deckPicLook, deckPlacePicture, deckSvgBakeRaster, deckSvgIntrinsicSize, gradSpecFill, isLinearGradSpec, PICTURE_FITS, type DeckIntrinsicSize, type PictureFit } from './pptx-deck.ts';
+
+`, `import { contourArea, toSvgPathData, type Contour } from '../../../engine/src/geom/path.ts';
+import { toCubics } from '../../../engine/src/geom/spline.ts';
+import { deltaEOkSrgb } from '../../../engine/src/brand-derive.ts';
+import { compileDesignRow } from '../../../engine/src/design-draw.ts';
+import { designDrawPptx, isPptxPrimitiveRow } from '../../../engine/src/design-draw-pptx.ts';
+import { deckColor, deckTransition, deckWeight, nameStaticFaces, type DeckColorResolver, type DeckNotes, type ShipsFace, type WeightedRun } from './pptx-deck.ts';
+import { deckPicLook, deckPlacePicture, deckSvgBakeRaster, deckSvgIntrinsicSize, gradSpecFill, isLinearGradSpec, PICTURE_FITS, type DeckIntrinsicSize, type PictureFit } from './pptx-deck.ts';
+
+`],
+  [`    ctx.notes.add('an animation was left out of the deck, so its objects arrive in place');
+  }
+  const kind = str(row, 'kind');
+  const box = {
+    x: emu(num(row, 'x') - origin.x),
+    y: emu(num(row, 'y') - origin.y),
+    cx: Math.max(1, emu(num(row, 'w', 1))),
+    cy: Math.max(1, emu(num(row, 'h', 1))),
+  };
+  const opacity = opacityOf(row);
+
+`, `    ctx.notes.add('an animation was left out of the deck, so its objects arrive in place');
+  }
+  const kind = str(row, 'kind');
+  const geometry = { x: num(row, 'x'), y: num(row, 'y'), w: num(row, 'w', 1), h: num(row, 'h', 1) };
+  const box = {
+    x: emu(geometry.x - origin.x),
+    y: emu(geometry.y - origin.y),
+    cx: Math.max(1, emu(geometry.w)),
+    cy: Math.max(1, emu(geometry.h)),
+  };
+  const opacity = opacityOf(row);
+
+`],
+  [`  const strokeHit = ctx.palette.resolve(row.stroke);
+  const strokeW = num(row, 'strokeW');
+  noteDash(ctx, row);
+  const radius = str(row, 'shape') === 'rounded' ? { radius: emu(num(row, 'radius')) } : {};
+  // A linear gradient (plan 291 M4). CSS paints the flat fill under the gradient, so a
+  // box with both is two rectangles, the fill first; the outline rides the top one. The
+`, `  const strokeHit = ctx.palette.resolve(row.stroke);
+  const strokeW = num(row, 'strokeW');
+  noteDash(ctx, row);
+  if (isPptxPrimitiveRow(row, origin, geometry)) {
+    const foldedFill = fill ? withFillAlpha(fill, opacity) : undefined;
+    const line = strokeHit && strokeW > 0 ? lineOf(strokeHit, strokeW, opacity) : undefined;
+    const op = compileDesignRow(row, origin, { semantics: 'pptx-compat', pptxCompat: {
+      geometry,
+      fills: foldedFill && 'solid' in foldedFill ? [{ kind: 'color', color: \`#\${foldedFill.solid}\`, opacity: foldedFill.alpha }] : [],
+      ...(line ? { stroke: { color: \`#\${line.color}\`, opacity: line.alpha, width: strokeW } } : {}),
+    } });
+    if (op.op !== 'shape') throw new Error('PPTX primitive compilation did not produce a shape.');
+    sink.shapes.push(designDrawPptx(op));
+    return;
+  }
+  const radius = str(row, 'shape') === 'rounded' ? { radius: emu(num(row, 'radius')) } : {};
+  // A linear gradient (plan 291 M4). CSS paints the flat fill under the gradient, so a
+  // box with both is two rectangles, the fill first; the outline rides the top one. The
+`],
+ ];
+const qualifiedProducerSource = qualifiedPrimitivePatch.reduce((source, [before, after]) => {
+  assert.equal(source.split(before).length, 2, 'each frozen primitive patch replaces one exact source fragment');
+  return source.replace(before, after);
+}, legacySource);
+assert.equal(createHash('sha256').update(qualifiedProducerSource).digest('hex'), 'd00c022904d824465050925af28f7286ca00ce273aaeeee5f7b2497192bed93b');
+const qualifiedPrimitiveSource = `// SPDX-License-Identifier: MPL-2.0
+/** The native deck's flat-primitive reading, distinct from Design's CSS geometry. */
+import type { DesignBoxRowV1 } from '@lolly-tools/core';
+import type { DesignDrawCompileOpts, DrawBox, DrawPaint, DrawShapeOp, DrawStroke } from './design-draw.ts';
+import { EMU_PER_PX, type PptxRect } from './pptx.ts';
+
+/** Presence is significant: the original native result states even a zero or negative rounded radius. */
+interface PptxPrimitiveOp extends DrawShapeOp { nativePptx: { rounded: boolean } }
+
+const string = (value: unknown): string => typeof value === 'string' ? value : '';
+const number = (value: unknown, fallback = 0): number => {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : fallback;
+  if (typeof value === 'string' && value.trim() !== '') {
+    const result = Number(value);
+    return Number.isFinite(result) ? result : fallback;
+  }
+  return fallback;
+};
+const emu = (value: number): number => Math.round(value * EMU_PER_PX);
+
+/** Page selection, visibility, notes and all other row families remain with the native producer. */
+export function isPptxPrimitiveRow(row: DesignBoxRowV1, origin: { x: number; y: number } = { x: 0, y: 0 }, geometry?: DrawBox): boolean {
+  if (!['', 'box'].includes(string(row.kind)) || !['', 'rect', 'rounded'].includes(string(row.shape))) return false;
+  for (const field of ['grad', 'clip', 'image', 'text', 'path', 'pathPaint', 'headStart', 'headEnd', 'kf', 'enter', 'exit', 'hold', 'matchOf', 'strokeDashArray']) {
+    if (string(row[field]).trim()) return false;
+  }
+  if (!['', 'none'].includes(string(row.shadow)) || !['', 'normal'].includes(string(row.blend))) return false;
+  if (!['', 'solid'].includes(string(row.strokeDash))) return false;
+  if (['blur', 'bgBlur', 'rx', 'ry'].some(field => number(row[field]) !== 0)) return false;
+  if (row.start != null || row.dur != null || string(row.lane) === 'seq') return false;
+  // The old branch still handles values whose EMU conversion exceeds finite arithmetic.
+  const coordinates = geometry ?? { x: number(row.x), y: number(row.y), w: number(row.w, 1), h: number(row.h, 1) };
+  return [coordinates.x - origin.x, coordinates.y - origin.y, coordinates.w, coordinates.h, number(row.radius), number(row.strokeW)]
+    .every(value => Number.isFinite(emu(value)));
+}
+
+function validColor(color: string, alpha?: number): void {
+  if (!/^#[0-9a-f]{6}$/i.test(color) || (alpha !== undefined && (!Number.isFinite(alpha) || alpha < 0 || alpha > 1))) {
+    throw new Error('PPTX primitives need resolved sRGB paint.');
+  }
+}
+function validatePaint(fills: DrawPaint[], stroke?: DrawStroke): void {
+  if (fills.length > 1) throw new Error('PPTX primitives carry at most one solid fill.');
+  for (const fill of fills) {
+    if (fill.kind !== 'color') throw new Error('PPTX primitive paint must be solid.');
+    validColor(fill.color, fill.opacity);
+  }
+  if (!stroke) return;
+  validColor(stroke.color, stroke.opacity);
+  if (!Number.isFinite(stroke.width) || stroke.width <= 0 || !Number.isFinite(emu(stroke.width))
+    || stroke.align || stroke.dash || stroke.cap || stroke.join) {
+    throw new Error('PPTX primitives need the native solid line.');
+  }
+}
+
+/** Keep the producer's Number reading and raw geometry until its one EMU quantization. Paint alpha is already folded. */
+export function compilePptxCompatRow(row: DesignBoxRowV1, origin: { x: number; y: number }, supplied: DesignDrawCompileOpts['pptxCompat']): PptxPrimitiveOp {
+  if (!isPptxPrimitiveRow(row, origin, supplied?.geometry)) throw new Error('This row needs the legacy native PPTX producer.');
+  if (!supplied) throw new Error('The PPTX compatibility reading needs resolved paints.');
+  validatePaint(supplied.fills, supplied.stroke);
+  const rounded = string(row.shape) === 'rounded', rot = number(row.rot);
+  const geometry = supplied.geometry ?? { x: number(row.x), y: number(row.y), w: number(row.w, 1), h: number(row.h, 1) };
+  return {
+    id: string(row.id), op: 'shape', compatibility: 'pptx-native-v1', nativePptx: { rounded },
+    box: { x: geometry.x - origin.x, y: geometry.y - origin.y,
+      w: Math.max(1 / EMU_PER_PX, geometry.w), h: Math.max(1 / EMU_PER_PX, geometry.h) },
+    opacity: 100, shape: { kind: 'rect', radius: rounded ? number(row.radius) : 0 },
+    ...(rot !== 0 ? { pose: { rot, flipH: false, flipV: false } } : {}),
+    fills: supplied.fills.map(fill => ({ ...fill })),
+    ...(supplied.stroke ? { stroke: { ...supplied.stroke } } : {}),
+  };
+}
+
+/** Read only evaluated geometry and paints; no authored row, resolver, master or asset access. */
+export function designDrawPptx(op: DrawShapeOp): PptxRect {
+  if (op.compatibility !== 'pptx-native-v1' || !('nativePptx' in op)
+    || !op.nativePptx || typeof op.nativePptx !== 'object' || !Object.hasOwn(op.nativePptx, 'rounded') || !('rounded' in op.nativePptx)
+    || typeof op.nativePptx.rounded !== 'boolean') throw new Error('PPTX needs its named native-primitive compatibility reading.');
+  if (op.words || op.picture || op.clip || op.blend || op.shadow || op.blur || op.outline || op.fillRule
+    || op.pose?.flipH || op.pose?.flipV || op.shape.kind !== 'rect' || op.opacity !== 100) {
+    throw new Error('PPTX native-primitive evaluation contains unsupported content.');
+  }
+  const { x, y, w, h } = op.box;
+  if (![x, y, w, h, op.shape.radius, op.pose?.rot ?? 0].every(Number.isFinite) || w < 1 / EMU_PER_PX || h < 1 / EMU_PER_PX
+    || ![x, y, w, h, op.shape.radius].every(value => Number.isFinite(emu(value)))) {
+    throw new Error('PPTX primitive geometry is not finite or in range.');
+  }
+  validatePaint(op.fills, op.stroke);
+  const fill = op.fills[0], stroke = op.stroke;
+  if (fill && fill.kind !== 'color') throw new Error('PPTX primitive paint must be solid.');
+  return {
+    kind: 'rect', x: emu(x), y: emu(y), cx: Math.max(1, emu(w)), cy: Math.max(1, emu(h)),
+    ...(op.pose?.rot ? { rot: op.pose.rot } : {}),
+    ...(fill ? { fill: { solid: fill.color.slice(1), ...(fill.opacity !== undefined ? { alpha: fill.opacity } : {}) } } : {}),
+    ...(stroke ? { line: { color: stroke.color.slice(1), w: emu(stroke.width), ...(stroke.opacity !== undefined ? { alpha: stroke.opacity } : {}) } } : {}),
+    ...(op.nativePptx.rounded ? { radius: emu(op.shape.radius) } : {}),
+  };
+}
+`;
+assert.equal(createHash('sha256').update(qualifiedPrimitiveSource).digest('hex'), '5f877ddfa9396fb1a2a3d38cc6f303455da90a1ae6e37b15460b7b2617b088c1');
+const qualifiedBundle = await build({ stdin: { contents: qualifiedProducerSource,
+  resolveDir: fileURLToPath(new URL('../packages/node-shell/src/', import.meta.url)), sourcefile: 'qualified-860-design-pptx.ts', loader: 'ts' },
+  bundle: true, write: false, platform: 'node', format: 'esm', plugins: [{ name: 'frozen-860-primitive', setup(builder) {
+    builder.onLoad({ filter: /design-draw-pptx\.ts$/ }, () => ({ contents: qualifiedPrimitiveSource, loader: 'ts' }));
+  } }] });
+const qualified860 = (await import(`data:text/javascript;base64,${Buffer.from(qualifiedBundle.outputFiles![0]!.text).toString('base64')}`)).designFramesToPptx as typeof designFramesToPptx;
+
 const NOW = '2026-10-09T12:00:00.000Z';
 const master = neutralSlideMaster();
 const tokens: Record<string, string> = { 'color.semantic.text': '#11141f', 'color.semantic.surface': '#ffffff', 'color.semantic.primary': '#30ba78', 'color.semantic.muted': '#889999' };
@@ -1788,4 +1970,331 @@ test('the native bridge reads only the row fields it owns rather than enumeratin
   const op = compileDesignRow(row, { x: 0, y: 0 }, { semantics: 'pptx-compat', pptxCompat: { fills: [], geometry: captured } }) as DrawShapeOp;
   const before = designDrawPptx(op); captured.x = 100;
   assert.deepEqual(designDrawPptx(op), before);
+});
+
+test('native linear gradients retain complete producer results, parts, ordering and malformed refusals', async () => {
+  const specs = ['lin.srgb_30_ff000000-0_00ff0080-40_0000ff-100', 'linear.oklab_450_red-0_blue-100',
+    'lin_-90_ffffff00-20_102030e6-80', 'lin_90_bad-0_bad-100', 'lin_90_red-0',
+    'rad.srgb_ff0000-0_0000ff-100', 'con_30_ff0000-0_0000ff-100', `lin_${'x'.repeat(4097)}`];
+  const rows: DesignBoxRowV1[] = [];
+  for (let index = 0; index < 192; index++) rows.push({
+    id: `gradient-${index}`, kind: 'box', shape: index % 2 ? 'rect' : 'rounded',
+    x: index * 0.375 - 20, y: 12.625, w: index % 7 ? 80.125 : 0.00001, h: 41.375,
+    radius: index % 3 ? 4.125 : -2, grad: specs[index % specs.length]!,
+    bg: index % 3 ? '' : '#abcdef80', stroke: '#11223380', strokeW: index % 5 ? 0.125 : 0,
+    opacity: [0, 33.3333, 99.99, 100, 180, '50%'][index % 6]!,
+    flipH: [true, '1', 'yes', false][index % 4]!, flipV: index % 4 === 1,
+    rot: index % 13 ? 0 : 20,
+  });
+  let seed = 0x295e5;
+  const random = () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; };
+  for (let index = 0; index < 64; index++) {
+    const color = () => Math.floor(random() * 0xffffff).toString(16).padStart(6, '0');
+    rows.push({ id: `seeded-gradient-${index}`, kind: 'box', shape: index % 2 ? 'rect' : 'rounded',
+      x: random() * 100 - 50, y: random() * 100, w: random() * 120, h: random() * 60,
+      radius: random() * 60 - 10, bg: index % 3 ? '' : '#abcdef80', stroke: '#23456780', strokeW: random() * 2,
+      opacity: index % 3 ? random() * 100 : 100, flipH: index % 2 === 1, flipV: index % 4 === 1,
+      grad: `lin.${index % 2 ? 'oklab' : 'srgb'}_${random() * 1080 - 360}_${color()}00-0_${color()}80-${random() * 100}_${color()}ff-100` });
+  }
+  rows.push({ id: 'overflow-gradient', kind: 'box', w: Number.MAX_VALUE, h: 20, grad: 'lin_45_red-0_blue-100' });
+  const before = structuredClone(rows);
+  const configured = (trace: string[]): DesignPptxOptsV1 => {
+    const out = fixture(trace); out.frames[0]!.layers.push(...structuredClone(rows)); return out;
+  };
+  const oldTrace: string[] = [], newTrace: string[] = [];
+  const expected = await legacy(configured(oldTrace)), actual = await designFramesToPptx(configured(newTrace));
+  assert.deepEqual(actual, expected); assert.deepEqual(parts(actual), parts(expected)); assert.deepEqual(newTrace, oldTrace);
+  assert.deepEqual(rows, before);
+  const shapes = expected.slides[0]!.shapes;
+  const topIndex = shapes.findIndex((shape, index) => {
+    const previous = shapes[index - 1];
+    return shape.kind === 'rect' && shape.fill && 'grad' in shape.fill && previous?.kind === 'rect'
+      && previous.fill && 'solid' in previous.fill && previous.fill.solid === 'ABCDEF'
+      && previous.x === shape.x && previous.y === shape.y;
+  });
+  assert.ok(topIndex > 0); assert.equal((shapes[topIndex - 1] as PptxRect).line, undefined);
+  for (const mutation of ['angle', 'stop-alpha', 'stop-order', 'underlay', 'outline'] as const) {
+    const changed = structuredClone(expected), at = topIndex;
+    const shape = changed.slides[0]!.shapes[at]! as PptxRect;
+    assert.ok(shape.fill && 'grad' in shape.fill);
+    if (mutation === 'angle') shape.fill.angle += 1;
+    if (mutation === 'stop-alpha') shape.fill.grad[0]!.alpha = 0.42;
+    if (mutation === 'stop-order') shape.fill.grad.reverse();
+    if (mutation === 'underlay') changed.slides[0]!.shapes.splice(at - 1, 1);
+    if (mutation === 'outline') shape.line = { color: 'FF0000', w: 1 };
+    assert.throws(() => assert.deepEqual(changed, expected), mutation);
+    assert.throws(() => assert.deepEqual(parts(changed), parts(expected)), mutation);
+  }
+});
+
+test('corrected admission restores original gradient reads while qualified860 remains an independent counterexample', async () => {
+  const configured = (reads: Record<string, number>): DesignPptxOptsV1 => {
+    const out = fixture([]), row: DesignBoxRowV1 = { id: 'getter-gradient', kind: 'box', shape: 'rounded',
+      bg: 'var(--getter-base)', stroke: 'var(--getter-stroke)', strokeW: 1.125 };
+    let resolved = false;
+    for (const [key, value] of Object.entries({ x: 120.375, y: 14.125, w: 30.875, h: 20.25, opacity: 100 })) {
+      Object.defineProperty(row, key, { enumerable: true, get() {
+        if (resolved) throw new Error(`early ${key} was reread`); return value;
+      } });
+    }
+    Object.defineProperty(row, 'radius', { enumerable: true, get() { reads.radius = (reads.radius ?? 0) + 1; return 4.125 + reads.radius; } });
+    Object.defineProperty(row, 'rot', { enumerable: true, get() {
+      if (resolved) reads.rotation = (reads.rotation ?? 0) + 1; return 0;
+    } });
+    Object.defineProperty(row, 'grad', { enumerable: true, get() {
+      reads.gradient = (reads.gradient ?? 0) + 1; return 'lin.srgb_30_ff000000-0_0000ff-100';
+    } });
+    out.frames[0]!.layers.push(row);
+    out.cssVars = name => {
+      if (name === '--getter-base') return '#abcdef';
+      if (name === '--getter-stroke') { resolved = true; return '#112233'; }
+      return undefined;
+    };
+    return out;
+  };
+  const expectedReads: Record<string, number> = {}, actualReads: Record<string, number> = {}, baseReads: Record<string, number> = {};
+  const expected = await legacy(configured(expectedReads)), actual = await designFramesToPptx(configured(actualReads));
+  const currentBase = await qualified860(configured(baseReads));
+  assert.deepEqual(actual, expected); assert.deepEqual(parts(actual), parts(expected)); assert.deepEqual(actualReads, expectedReads);
+  assert.deepEqual(actual, currentBase); assert.deepEqual(parts(actual), parts(currentBase));
+  assert.equal(actualReads.radius, 1); assert.equal(actualReads.rotation, 3); assert.equal(actualReads.gradient, 4);
+  assert.equal(baseReads.gradient, 5);
+});
+
+test('changing gradient getters restore original output while the qualified860 five-read difference remains explicit', async () => {
+  const configured = (reads: { gradient: number }): DesignPptxOptsV1 => {
+    const out = fixture([]), row: DesignBoxRowV1 = { id: 'changing-gradient', kind: 'box', x: 120, y: 20, w: 80, h: 40,
+      bg: '#abcdef', stroke: '#112233', strokeW: 1.125, shape: 'rounded', radius: 4.125 };
+    Object.defineProperty(row, 'grad', { enumerable: true, get() {
+      reads.gradient++; return `lin.srgb_${reads.gradient * 17.125}_ff000000-0_0000ff-100`;
+    } });
+    out.frames[0]!.layers.push(row); return out;
+  };
+  const oldReads = { gradient: 0 }, baseReads = { gradient: 0 }, newReads = { gradient: 0 };
+  const original = await legacy(configured(oldReads)), expected = await qualified860(configured(baseReads));
+  const actual = await designFramesToPptx(configured(newReads));
+  assert.deepEqual(actual, original); assert.deepEqual(parts(actual), parts(original)); assert.deepEqual(newReads, oldReads);
+  assert.equal(oldReads.gradient, 4); assert.equal(baseReads.gradient, 5);
+  assert.throws(() => assert.deepEqual(original, expected), 'the prior getter difference remains observable');
+  assert.throws(() => assert.deepEqual(parts(original), parts(expected)), 'the prior difference also reaches native XML');
+});
+
+test('gradient guard snapshots read only bounded data and refuse accessor or inherited metadata without invoking it', () => {
+  const row: DesignBoxRowV1 = { id: 'guard-snapshot', shadow: 'none', clip: '', strokeDash: 'solid', blur: 0 };
+  let reads = 0;
+  Object.defineProperty(row, 'grad', { get() { reads++; throw new Error('the gradient was already captured'); } });
+  Object.defineProperty(row, 'unowned', { enumerable: true, get() { reads++; throw new Error('not guard metadata'); } });
+  const captured = capturePptxGradientMetadata(row); assert.ok(captured);
+  assert.equal(Object.getPrototypeOf(captured), null); assert.equal(captured.shadow, 'none'); assert.equal(reads, 0);
+  row.shadow = 'outer'; assert.equal(captured.shadow, 'none');
+  Object.defineProperty(row, 'shadow', { get() { reads++; return 'none'; } });
+  assert.equal(capturePptxGradientMetadata(row), null); assert.equal(reads, 0);
+  const inherited = Object.create({ get shadow() { reads++; return 'none'; } }) as DesignBoxRowV1;
+  assert.equal(capturePptxGradientMetadata(inherited), null); assert.equal(reads, 0);
+});
+
+test('gradient metadata accessors and inherited guards retain qualified860 reads and legacy output', async () => {
+  for (const field of ['shadow', 'clip', 'id', 'inherited-shadow'] as const) {
+    const configured = (reads: { guard: number }): DesignPptxOptsV1 => {
+      const out = fixture([]), row: DesignBoxRowV1 = { id: `guard-${field}`, kind: 'box', w: 80, h: 40,
+        bg: '#abcdef', grad: 'lin_30_red-0_blue-100' };
+      const key = field === 'inherited-shadow' ? 'shadow' : field;
+      const descriptor = { enumerable: true, get() { reads.guard++; return key === 'shadow' ? 'none' : key === 'id' ? 'guard-id' : ''; } };
+      if (field === 'inherited-shadow') { const prototype = {}; Object.defineProperty(prototype, key, descriptor); Object.setPrototypeOf(row, prototype); }
+      else Object.defineProperty(row, key, descriptor);
+      out.frames[0]!.layers.push(row); return out;
+    };
+    const oldReads = { guard: 0 }, newReads = { guard: 0 }, probe = await compilerProbe();
+    const expected = await qualified860(configured(oldReads)), actual = await probe.designFramesToPptx(configured(newReads));
+    assert.deepEqual(actual, expected, field); assert.deepEqual(parts(actual), parts(expected), field); assert.deepEqual(newReads, oldReads, field);
+    assert.equal(probe.capturedPptxEvaluations.filter(op => op.nativePptx?.linear).length, 0, 'metadata accessors stay on the legacy branch');
+    if (field === 'shadow') assert.equal(newReads.guard, 1);
+  }
+});
+
+test('gradient admission retains captured guard data while legacy late rotation getters run', async () => {
+  const configured = (reads: { rotation: number }): DesignPptxOptsV1 => {
+    const out = fixture([]), row: DesignBoxRowV1 = { id: 'late-guard-mutation', kind: 'box', w: 80, h: 40,
+      bg: '#abcdef', shadow: 'none', grad: 'lin_30_red-0_blue-100' };
+    Object.defineProperty(row, 'rot', { enumerable: true, get() { reads.rotation++; if (reads.rotation >= 4) row.shadow = 'outer'; return 0; } });
+    out.frames[0]!.layers.push(row); return out;
+  };
+  const oldReads = { rotation: 0 }, newReads = { rotation: 0 }, probe = await compilerProbe();
+  const expected = await qualified860(configured(oldReads)), actual = await probe.designFramesToPptx(configured(newReads));
+  assert.deepEqual(actual, expected); assert.deepEqual(parts(actual), parts(expected)); assert.deepEqual(newReads, oldReads);
+  assert.equal(newReads.rotation, 5); assert.deepEqual(probe.capturedPptxEvaluations.filter(op => op.nativePptx?.linear).map(op => op.id), ['late-guard-mutation']);
+});
+
+test('gradient lowering retains early geometry and opacity but resolves gradient and radius after palette callbacks', async () => {
+  const configured = (trace: string[]): DesignPptxOptsV1 => {
+    const out = fixture(trace), original = out.cssVars;
+    const row: DesignBoxRowV1 = { id: 'late-gradient', kind: 'box', shape: 'rounded',
+      x: 31.125, y: 42.375, w: 81.625, h: 55.875, radius: 11.25, opacity: 100,
+      bg: 'var(--gradient-base)', stroke: 'var(--gradient-stroke)', strokeW: 1.125,
+      grad: 'lin.srgb_30_ff000080-0_0000ff-100' };
+    out.frames[0]!.layers.push(row);
+    out.cssVars = name => {
+      if (name === '--gradient-base') { trace.push('gradient:base'); return '#abcdef'; }
+      if (name === '--gradient-stroke') {
+        trace.push('gradient:stroke-mutates'); row.x = 5000; row.y = 5000; row.w = 5000; row.h = 5000; row.opacity = 5;
+        row.radius = 7.625; row.grad = 'lin.srgb_75_ffffff00-0_102030e6-100'; row.flipH = true;
+        return '#11223380';
+      }
+      return original?.(name);
+    };
+    return out;
+  };
+  const oldTrace: string[] = [], newTrace: string[] = [];
+  const expected = await legacy(configured(oldTrace)), actual = await designFramesToPptx(configured(newTrace));
+  assert.deepEqual(actual, expected); assert.deepEqual(parts(actual), parts(expected)); assert.deepEqual(newTrace, oldTrace);
+  assert.equal(oldTrace.filter(item => item === 'gradient:stroke-mutates').length, 1);
+  const gradient = expected.slides[0]!.shapes.at(-1)! as PptxRect;
+  assert.ok(gradient.fill && 'grad' in gradient.fill); assert.equal(gradient.fill.angle, 285);
+  assert.equal(gradient.x, Math.round((31.125 - 100.25) * EMU_PER_PX)); assert.equal(gradient.radius, Math.round(7.625 * EMU_PER_PX));
+});
+
+test('captured native linear gradients enter the drawing compiler rather than the legacy branch', () => {
+  const row: DesignBoxRowV1 = { id: 'gradient-op', kind: 'box', shape: 'rounded', x: 1.125, y: 2.25, w: 80.5, h: 30.75,
+    radius: 7.125, grad: 'lin.srgb_30_ff000000-0_0000ff-100' };
+  const native = gradSpecFill(String(row.grad)); assert.ok(native && 'grad' in native);
+  assert.equal(isPptxPrimitiveRow(row, { x: 0, y: 0 }, undefined, true), true);
+  const supplied = {
+    fills: [{ kind: 'color' as const, color: '#ABCDEF', opacity: 0.85 }],
+    stroke: { color: '#112233', opacity: 0.25, width: 0.125 },
+    linear: { angle: native.angle, stops: native.grad.map(stop => ({ offset: stop.pos, color: `#${stop.color}`, opacity: stop.alpha })) },
+  };
+  const op = compileDesignRow(row, { x: 0, y: 0 }, { semantics: 'pptx-compat', pptxCompat: supplied });
+  assert.equal(op.op, 'shape'); assert.equal(op.compatibility, 'pptx-native-v1');
+  const expected: PptxRect[] = [
+    { kind: 'rect', x: 10716, y: 21431, cx: 766763, cy: 292894, radius: 67866, fill: { solid: 'ABCDEF', alpha: 0.85 } },
+    { kind: 'rect', x: 10716, y: 21431, cx: 766763, cy: 292894, radius: 67866,
+      fill: { grad: [{ pos: 0, color: 'FF0000', alpha: 0 }, { pos: 1, color: '0000FF' }], angle: 30 },
+      line: { color: '112233', w: 1191, alpha: 0.25 } },
+  ];
+  assert.deepEqual(designDrawPptxLayers(op as DrawShapeOp), expected);
+  supplied.linear.angle = 300; supplied.linear.stops[0]!.opacity = 1; supplied.fills[0]!.color = '#000000';
+  assert.deepEqual(designDrawPptxLayers(op as DrawShapeOp), expected, 'the evaluation owns captured paint');
+  const first = designDrawPptxLayers(op as DrawShapeOp);
+  assert.ok(first[1]!.fill && 'grad' in first[1]!.fill); first[1]!.fill.grad[0]!.alpha = 1;
+  assert.deepEqual(designDrawPptxLayers(op as DrawShapeOp), expected, 'emitted stops are detached');
+  const nativeOp = op as DrawShapeOp & { nativePptx: { rounded: boolean; linear: typeof supplied.linear } };
+  for (const bad of [NaN, Infinity]) {
+    const invalid = { ...nativeOp, nativePptx: { ...nativeOp.nativePptx, linear: { ...nativeOp.nativePptx.linear, angle: bad } } };
+    assert.throws(() => designDrawPptxLayers(invalid));
+  }
+  for (const stops of [[], [{ offset: 0, color: '#FF0000', opacity: 0 }],
+    [{ offset: -1, color: '#FF0000' }, { offset: 1, color: '#0000FF' }],
+    [{ offset: 0, color: '#FF0000', opacity: 2 }, { offset: 1, color: '#0000FF' }],
+    [{ offset: 0, color: 'bad' }, { offset: 1, color: '#0000FF' }]]) {
+    const invalid = { ...nativeOp, nativePptx: { ...nativeOp.nativePptx, linear: { angle: 30, stops } } };
+    assert.throws(() => designDrawPptxLayers(invalid));
+  }
+});
+
+let compilerProbeId = 0;
+async function compilerProbe(mutate = false) {
+  const source = readFileSync(new URL('../packages/node-shell/src/design-pptx.ts', import.meta.url), 'utf8');
+  const declaration = "import { compileDesignRow } from '../../../engine/src/design-draw.ts';";
+  assert.equal(source.split(declaration).length, 2, 'the probe instruments the real compiler import once');
+  const contents = source.replace(declaration, "import { compileDesignRow as originalCompileDesignRow } from '../../../engine/src/design-draw.ts';") + `
+export const capturedPptxEvaluations: ReturnType<typeof originalCompileDesignRow>[] = [];
+function compileDesignRow(...args: Parameters<typeof originalCompileDesignRow>) {
+  const op = originalCompileDesignRow(...args);
+  capturedPptxEvaluations.push(op);
+  ${mutate ? "if ('nativePptx' in op && op.nativePptx?.linear) op.nativePptx.linear.angle += 1;" : ''}
+  return op;
+}
+`;
+  const out = await build({ stdin: { contents, resolveDir: fileURLToPath(new URL('../packages/node-shell/src/', import.meta.url)),
+    sourcefile: 'pptx-admission-probe.ts', loader: 'ts' }, bundle: true, write: false, platform: 'node', format: 'esm' });
+  return await import(`data:text/javascript;base64,${Buffer.from(out.outputFiles![0]!.text).toString('base64')}#probe-${++compilerProbeId}`) as {
+    designFramesToPptx: typeof designFramesToPptx;
+    capturedPptxEvaluations: Array<DrawShapeOp & { nativePptx?: { linear?: { angle: number } } }>;
+  };
+}
+
+test('the actual native exporter routes eligible gradients through evaluated layers and consumer mutations are detected', async () => {
+  const rows: DesignBoxRowV1[] = [
+    { id: 'two-layers', kind: 'box', shape: 'rounded', x: 110.125, y: 10.375, w: 80.5, h: 30.75, radius: 4.125,
+      bg: '#abcdef', grad: 'lin.srgb_30_ff000000-0_0000ff-100', stroke: '#112233', strokeW: 1.125 },
+    { id: 'one-layer', kind: 'box', w: 80, h: 40, grad: 'lin.srgb_75_ffffff80-0_000000-100', opacity: 33.3333, flipV: true },
+    { id: 'turned', kind: 'box', w: 80, h: 40, grad: 'lin_30_red-0_blue-100', rot: 15 },
+    { id: 'radial-refused', kind: 'box', w: 80, h: 40, grad: 'rad_red-0_blue-100' },
+    { id: 'translucent-base', kind: 'box', w: 80, h: 40, grad: 'lin_30_red-0_blue-100', bg: '#ffffff', opacity: 50 },
+    { id: 'unreadable-linear', kind: 'box', w: 80, h: 40, grad: 'lin_30_invalid' },
+  ];
+  const configured = (): DesignPptxOptsV1 => { const out = fixture([]); out.frames[0]!.layers.push(...structuredClone(rows)); return out; };
+  const expected = await legacy(configured()), probe = await compilerProbe(), actual = await probe.designFramesToPptx(configured());
+  assert.deepEqual(actual, expected); assert.deepEqual(parts(actual), parts(expected));
+  assert.deepEqual(probe.capturedPptxEvaluations.filter(op => op.nativePptx?.linear).map(op => op.id), ['two-layers', 'one-layer']);
+  const tampered = await (await compilerProbe(true)).designFramesToPptx(configured());
+  assert.throws(() => assert.deepEqual(tampered, expected)); assert.throws(() => assert.deepEqual(parts(tampered), parts(expected)));
+});
+
+test('solid admission restores the frozen producer accessor reads and changing-gradient results', async () => {
+  for (const mode of ['constant-linear', 'changing-linear', 'empty', 'becomes-linear'] as const) {
+    const configured = (reads: { gradient: number }, trace: string[]): DesignPptxOptsV1 => {
+      const out = fixture(trace), row: DesignBoxRowV1 = { id: `corrected-${mode}`, kind: 'box', x: 120.125, y: 20.375,
+        w: 80.5, h: 40.25, bg: '#abcdef', shape: 'rounded', radius: 4.125, stroke: '#112233', strokeW: 1.125 };
+      Object.defineProperty(row, 'grad', { enumerable: true, get() {
+        reads.gradient++;
+        if (mode === 'empty' || (mode === 'becomes-linear' && reads.gradient === 1)) return '';
+        return `lin.srgb_${mode === 'constant-linear' ? 30 : reads.gradient * 17.125}_ff000000-0_0000ff-100`;
+      } });
+      out.frames[0]!.layers.push(row); return out;
+    };
+    const originalReads = { gradient: 0 }, actualReads = { gradient: 0 }, originalTrace: string[] = [], actualTrace: string[] = [];
+    const expected = await legacy(configured(originalReads, originalTrace)), actual = await designFramesToPptx(configured(actualReads, actualTrace));
+    assert.deepEqual(actualReads, originalReads, mode); assert.deepEqual(actual, expected, mode);
+    assert.deepEqual(parts(actual), parts(expected), mode); assert.deepEqual(actualTrace, originalTrace, mode);
+    if (mode === 'constant-linear') assert.equal(actualReads.gradient, 4);
+  }
+});
+
+test('solid descriptors refuse accessor or inherited metadata without probing its value', () => {
+  let reads = 0;
+  const row: DesignBoxRowV1 = { id: 'solid-descriptor', kind: 'box', shape: 'rounded', radius: 4.125, rot: 0, grad: '' };
+  const captured = capturePptxSolidMetadata(row); assert.ok(captured); assert.equal(captured.grad, '');
+  row.radius = 100; assert.equal(captured.radius, 4.125);
+  Object.defineProperty(row, 'grad', { get() { reads++; return ''; } });
+  assert.equal(capturePptxSolidMetadata(row), null); assert.equal(reads, 0);
+  const inherited = Object.create({ get grad() { reads++; return ''; } }) as DesignBoxRowV1;
+  assert.equal(capturePptxSolidMetadata(inherited), null); assert.equal(reads, 0);
+});
+
+test('solid accessor rows retain original geometry, radius, rotation and metadata reads with complete parts', async () => {
+  for (const field of ['radius', 'rot', 'shadow', 'clip', 'id', 'shape', 'kind', 'strokeW', 'inherited-grad'] as const) {
+    const configured = (reads: { value: number }, trace: string[]): DesignPptxOptsV1 => {
+      const out = fixture(trace), row: DesignBoxRowV1 = { id: 'solid-accessor', kind: 'box', shape: 'rounded',
+        x: 120.125, y: 20.375, w: 80.5, h: 40.25, radius: 4.125, bg: '#abcdef', stroke: '#112233', strokeW: 1.125 };
+      const key = field === 'inherited-grad' ? 'grad' : field;
+      const descriptor = { enumerable: true, get() {
+        reads.value++;
+        if (key === 'radius' || key === 'strokeW') return 4.125 + reads.value;
+        if (key === 'rot') return reads.value === 1 ? 0 : 17.125;
+        return key === 'shadow' ? 'none' : key === 'id' ? 'solid-accessor' : key === 'shape' ? 'rounded' : key === 'kind' ? 'box' : '';
+      } };
+      if (field === 'inherited-grad') { const prototype = {}; Object.defineProperty(prototype, key, descriptor); Object.setPrototypeOf(row, prototype); }
+      else Object.defineProperty(row, key, descriptor);
+      out.frames[0]!.layers.push(row); return out;
+    };
+    const oldReads = { value: 0 }, newReads = { value: 0 }, oldTrace: string[] = [], newTrace: string[] = [];
+    const expected = await legacy(configured(oldReads, oldTrace)), actual = await designFramesToPptx(configured(newReads, newTrace));
+    assert.deepEqual(newReads, oldReads, field); assert.deepEqual(actual, expected, field);
+    assert.deepEqual(parts(actual), parts(expected), field); assert.deepEqual(newTrace, oldTrace, field);
+  }
+});
+
+test('plain solid and gradient rows remain exact qualified860 outputs and enter their operation consumers', async () => {
+  const configured = (trace: string[]): DesignPptxOptsV1 => {
+    const out = fixture(trace); out.frames[0]!.layers.push(
+      { id: 'plain-flat', kind: 'box', w: 80, h: 40, bg: '#abcdef' },
+      { id: 'plain-rounded', kind: 'box', shape: 'rounded', radius: -4.125, w: 80.5, h: 40.25, bg: '#abcdef80', stroke: '#11223380', strokeW: 1.125 },
+      { id: 'plain-linear', kind: 'box', w: 80, h: 40, grad: 'lin_30_red-0_blue-100' });
+    return out;
+  };
+  const oldTrace: string[] = [], newTrace: string[] = [], probe = await compilerProbe();
+  const expected = await qualified860(configured(oldTrace)), actual = await probe.designFramesToPptx(configured(newTrace));
+  assert.deepEqual(actual, expected); assert.deepEqual(parts(actual), parts(expected)); assert.deepEqual(newTrace, oldTrace);
+  assert.deepEqual(probe.capturedPptxEvaluations.filter(op => op.id.startsWith('plain-')).map(op => op.id), ['plain-flat', 'plain-rounded', 'plain-linear']);
 });

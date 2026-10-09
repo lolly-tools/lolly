@@ -520,7 +520,9 @@ export interface DesignDrawCompileOpts {
   penpotCompat?: { fills: DrawPaint[]; stroke?: DrawStroke;
     capture?: { geometry: DrawBox; opacity: number; rotation: number; shapeKind: string } };
   /** Native deck paints after the producer folds and rounds alpha, in its original callback order. */
-  pptxCompat?: { fills: DrawPaint[]; stroke?: DrawStroke; geometry?: DrawBox };
+  pptxCompat?: { fills: DrawPaint[]; stroke?: DrawStroke; geometry?: DrawBox;
+    linear?: { angle: number; stops: Array<{ offset: number; color: string; opacity?: number }> };
+    capture?: { kind: string; shapeKind: string; radius: number; strokeWidth: number; rotation?: number; underlayRotation?: number } };
 }
 
 /** CSS `parseFloat`: a leading number, so `50%` reads as 50. */
