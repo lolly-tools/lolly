@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MPL-2.0
-/** The native deck's primitive, linear-gradient and closed-path reading, distinct from Design's CSS geometry. */
+/** The native deck's primitive, linear-gradient and single-path reading, distinct from Design's CSS geometry. */
 import type { DesignBoxRowV1 } from '@lolly-tools/core';
 import type { DesignDrawCompileOpts, DrawBox, DrawPaint, DrawShapeOp, DrawStroke } from './design-draw.ts';
-import { EMU_PER_PX, type PptxPath, type PptxRect } from './pptx.ts';
+import { EMU_PER_PX, type PptxLineEnd, type PptxPath, type PptxRect } from './pptx.ts';
 import { type Contour, toSvgPathData } from './geom/path.ts';
 
 type NativeLinear = NonNullable<NonNullable<DesignDrawCompileOpts['pptxCompat']>['linear']>;
@@ -13,7 +13,7 @@ interface PptxPrimitiveOp extends DrawShapeOp {
   nativePptx: { rounded: boolean; linear?: NativeLinear; underlayRotation?: number };
 }
 interface PptxPathOp extends DrawShapeOp {
-  nativePptx: { path: true };
+  nativePptx: { path: true; open?: true; head?: PptxLineEnd; tail?: PptxLineEnd };
 }
 
 const string = (value: unknown): string => typeof value === 'string' ? value : '';
@@ -75,19 +75,30 @@ export function capturePptxPathMetadata(row: DesignBoxRowV1): DesignBoxRowV1 | n
   }
 }
 
-function finiteClosedPath(contours: Contour[]): boolean {
-  return Array.isArray(contours) && contours.length === 1 && contours[0]?.closed === true
+const NATIVE_HEADS: Readonly<Record<string, PptxLineEnd>> = { triangle: 'triangle', open: 'arrow', circle: 'oval', diamond: 'diamond' };
+
+function finiteSinglePath(contours: Contour[], open = false): boolean {
+  return Array.isArray(contours) && contours.length === 1 && contours[0]?.closed === !open
     && Array.isArray(contours[0].curves) && contours[0].curves.length > 0
     && Array.from(contours[0].curves).every(curve => Array.isArray(curve) && curve.length === 8 && Array.from(curve).every(Number.isFinite));
 }
 
-/** Only one finite closed contour with solid paint enters this native path reading. */
+function finiteNativePath(path: NativePath): boolean {
+  return (path.open === undefined || path.open === true) && finiteSinglePath(path.contours, path.open === true)
+    && [path.head, path.tail].every(end => end === undefined || (path.open === true && Object.values(NATIVE_HEADS).includes(end)));
+}
+
+/** Only one finite contour with solid paint and already-supported native ends enters this reading. */
 export function isPptxPathRow(row: DesignBoxRowV1, origin: { x: number; y: number } = { x: 0, y: 0 }, geometry?: DrawBox, path?: NativePath): boolean {
   const metadata = capturePptxPathMetadata(row);
-  if (!metadata || string(metadata.kind) !== 'path' || !path || !finiteClosedPath(path.contours)
+  if (!metadata || string(metadata.kind) !== 'path' || !path || !finiteNativePath(path)
     || !Number.isFinite(path.rotation ?? 0)) return false;
   for (const field of GUARDED_CONTENT) {
-    if (field !== 'path' && string(metadata[field]).trim()) return false;
+    if (field === 'path') continue;
+    if (path.open === true && (field === 'headStart' || field === 'headEnd')) {
+      const authored = string(metadata[field]), resolved = Object.hasOwn(NATIVE_HEADS, authored) ? NATIVE_HEADS[authored] : undefined;
+      if ((authored.trim() && resolved === undefined) || path[field === 'headStart' ? 'head' : 'tail'] !== resolved) return false;
+    } else if (string(metadata[field]).trim()) return false;
   }
   if (!['', 'none'].includes(string(metadata.shadow)) || !['', 'normal'].includes(string(metadata.blend))
     || !['', 'solid'].includes(string(metadata.strokeDash)) || !['', 'nonzero'].includes(string(metadata.fillRule))) return false;
@@ -172,10 +183,12 @@ export function compilePptxCompatPathRow(row: DesignBoxRowV1, origin: { x: numbe
     throw new Error('This path needs the legacy native PPTX producer.');
   }
   validatePaint(supplied.fills, supplied.stroke);
+  if ((supplied.path.head !== undefined || supplied.path.tail !== undefined) && !supplied.stroke) throw new Error('Native PPTX ends need an open stroked path.');
   const geometry = supplied.geometry ?? { x: number(row.x), y: number(row.y), w: number(row.w, 1), h: number(row.h, 1) };
   const rotation = supplied.path.rotation ?? 0;
   return {
-    id: string(row.id), op: 'shape', compatibility: 'pptx-native-v1', nativePptx: { path: true },
+    id: string(row.id), op: 'shape', compatibility: 'pptx-native-v1', nativePptx: { path: true, ...(supplied.path.open ? { open: true } : {}),
+      ...(supplied.path.head ? { head: supplied.path.head } : {}), ...(supplied.path.tail ? { tail: supplied.path.tail } : {}) },
     box: { x: geometry.x - origin.x, y: geometry.y - origin.y,
       w: Math.max(1 / EMU_PER_PX, geometry.w), h: Math.max(1 / EMU_PER_PX, geometry.h) },
     opacity: 100,
@@ -192,10 +205,17 @@ export function compilePptxCompatPathRow(row: DesignBoxRowV1, origin: { x: numbe
 export function designDrawPptxPath(op: DrawShapeOp): PptxPath {
   if (op.compatibility !== 'pptx-native-v1' || !('nativePptx' in op) || !op.nativePptx
     || typeof op.nativePptx !== 'object' || !Object.hasOwn(op.nativePptx, 'path') || !('path' in op.nativePptx)
-    || op.nativePptx.path !== true || Object.keys(op.nativePptx).length !== 1) throw new Error('PPTX needs its named native-path compatibility reading.');
+    || op.nativePptx.path !== true) throw new Error('PPTX needs its named native-path compatibility reading.');
+  const native = op.nativePptx as PptxPathOp['nativePptx'];
+  const fields = Object.keys(native);
+  if (native.open === undefined ? fields.length !== 1 : native.open !== true || !Object.hasOwn(native, 'open')
+    || fields.some(field => !['path', 'open', 'head', 'tail'].includes(field))) throw new Error('PPTX path metadata contains unsupported content.');
+  if (['head', 'tail'].some(field => Object.hasOwn(native, field) ? native[field as 'head' | 'tail'] === undefined : native[field as 'head' | 'tail'] !== undefined)
+    || !finiteNativePath({ contours: op.shape.kind === 'path' ? op.shape.contours : [], open: native.open, head: native.head, tail: native.tail })
+    || ((native.head !== undefined || native.tail !== undefined) && !op.stroke)) throw new Error('Native PPTX ends need an open stroked path.');
   if (op.words || op.picture || op.clip || op.blend || op.shadow || op.blur || op.outline || op.fillRule
     || op.pose?.flipH || op.pose?.flipV || op.shape.kind !== 'path' || op.shape.evenOdd || op.shape.commands || op.opacity !== 100
-    || !finiteClosedPath(op.shape.contours)) throw new Error('PPTX native-path evaluation contains unsupported content.');
+    || !finiteSinglePath(op.shape.contours, native.open === true)) throw new Error('PPTX native-path evaluation contains unsupported content.');
   const { x, y, w, h } = op.box;
   if (![x, y, w, h, op.pose?.rot ?? 0].every(Number.isFinite) || w < 1 / EMU_PER_PX || h < 1 / EMU_PER_PX
     || ![x, y, w, h].every(value => Number.isFinite(emu(value)))) throw new Error('PPTX path geometry is not finite or in range.');
@@ -207,7 +227,8 @@ export function designDrawPptxPath(op: DrawShapeOp): PptxPath {
     ...(op.pose?.rot ? { rot: op.pose.rot } : {}),
     paths: [{ d: toSvgPathData(op.shape.contours, 1) }],
     ...(fill ? { fill: { solid: fill.color.slice(1), ...(fill.opacity !== undefined ? { alpha: fill.opacity } : {}) } } : {}),
-    ...(stroke ? { line: { color: stroke.color.slice(1), w: emu(stroke.width), ...(stroke.opacity !== undefined ? { alpha: stroke.opacity } : {}) } } : {}),
+    ...(stroke ? { line: { color: stroke.color.slice(1), w: emu(stroke.width), ...(stroke.opacity !== undefined ? { alpha: stroke.opacity } : {}),
+      ...(native.head ? { head: native.head } : {}), ...(native.tail ? { tail: native.tail } : {}) } } : {}),
   };
 }
 

@@ -120,3 +120,23 @@ test('Tier A through the CLI: a master-bound frame with an arrow writes a:tailEn
   assert.match(slide1, /<a:custGeom>/, 'the path is custom geometry');
   assert.match(slide1, /<a:tailEnd type="arrow"\/>/, 'and its open head is the line end');
 });
+
+test('Tier A: every supported open-path end retains exact DrawingML at both ends', async () => {
+  const ends = { triangle: 'triangle', open: 'arrow', circle: 'oval', diamond: 'diamond' } as const;
+  const rows = Object.keys(ends).flatMap((end, index) => [
+    pathRow(`start-${end}`, [[100.125, 100.375 + index * 40], [160.625, 130.875 + index * 40]], { stroke: '#12345680', strokeW: 1.125, headStart: end }),
+    pathRow(`end-${end}`, [[300.125, 100.375 + index * 40], [360.625, 130.875 + index * 40]], { stroke: '#12345680', strokeW: 1.125, headEnd: end }),
+    pathRow(`both-${end}`, [[500.125, 100.375 + index * 40], [560.625, 130.875 + index * 40]], { stroke: '#12345680', strokeW: 1.125, headStart: end, headEnd: end, flipH: 'true', flipV: 'true' }),
+  ]);
+  const out = await designFramesToPptx({ frames: boundFrame(rows), master }), shapes = pathsOf(out.slides[0]!.shapes);
+  assert.equal(shapes.length, rows.length);
+  Object.values(ends).forEach((end, index) => {
+    assert.deepEqual(shapes.slice(index * 3, index * 3 + 3).map(shape => [shape.line?.head, shape.line?.tail]), [[end, undefined], [undefined, end], [end, end]]);
+  });
+  for (const shape of shapes) assert.equal(shape.paths[0]!.d.includes('Z'), false);
+  const xml = buildPptxParts(out.slides, { theme: out.theme, layouts: out.layouts, now: '2026-10-03T00:00:00.000Z' })['ppt/slides/slide1.xml'] as string;
+  assert.equal((xml.match(/<a:headEnd /g) ?? []).length, 8); assert.equal((xml.match(/<a:tailEnd /g) ?? []).length, 8);
+  for (const end of Object.values(ends)) {
+    assert.ok(xml.includes(`<a:ln w="10716"><a:solidFill><a:srgbClr val="123456"><a:alpha val="50200"/></a:srgbClr></a:solidFill><a:headEnd type="${end}"/><a:tailEnd type="${end}"/></a:ln>`), end);
+  }
+});

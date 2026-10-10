@@ -522,7 +522,7 @@ export interface DesignDrawCompileOpts {
   /** Native deck paints after the producer folds and rounds alpha, in its original callback order. */
   pptxCompat?: { fills: DrawPaint[]; stroke?: DrawStroke; geometry?: DrawBox;
     /** Native box-local EMU contours, already decoded and mirrored before paint callbacks. */
-    path?: { contours: Contour[]; rotation?: number };
+    path?: { contours: Contour[]; rotation?: number; open?: true; head?: import('./pptx.ts').PptxLineEnd; tail?: import('./pptx.ts').PptxLineEnd };
     linear?: { angle: number; stops: Array<{ offset: number; color: string; opacity?: number }> };
     capture?: { kind: string; shapeKind: string; radius: number; strokeWidth: number; rotation?: number; underlayRotation?: number } };
 }

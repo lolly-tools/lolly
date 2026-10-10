@@ -956,8 +956,9 @@ async function lowerLayer(
       ...(line ? { line } : {}),
     };
     const metadata = initialMetadata && capturePptxPathMetadata(row);
-    const path = { contours: data.contours, rotation: shape.rot };
-    if (metadata && initialMetadata && data.singleClosed && Object.keys(metadata).length === Object.keys(initialMetadata).length
+    const path = { contours: data.contours, rotation: shape.rot, ...(data.open ? { open: true as const,
+      ...(line?.head ? { head: line.head } : {}), ...(line?.tail ? { tail: line.tail } : {}) } : {}) };
+    if (metadata && initialMetadata && (data.singleClosed || data.open) && Object.keys(metadata).length === Object.keys(initialMetadata).length
       && Object.keys(metadata).every(field => Object.is(metadata[field], initialMetadata[field]))
       && isPptxPathRow(metadata, origin, geometry, path)) {
       const op = compileDesignRow(metadata, origin, { semantics: 'pptx-compat', pptxCompat: {
