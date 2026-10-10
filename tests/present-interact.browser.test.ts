@@ -14,6 +14,8 @@ const browsers = { chromium, webkit, firefox };
 const names = (process.env.LOLLY_PRESENT_INTERACT_BROWSERS ?? 'chromium').split(',');
 for (const name of names) if (!Object.hasOwn(browsers, name)) throw new Error(`Unknown browser ${name}`);
 const primaryEngine = names[0] as keyof typeof browsers;
+const depthProfile = process.env.LOLLY_PRESENT_DEPTH_PROFILE ?? 'native-alignment';
+if (!['exact', 'native-alignment'].includes(depthProfile)) throw new Error(`Unknown depth profile ${depthProfile}`);
 function launchBrowser(name: keyof typeof browsers = primaryEngine) {
   const override = process.env.LOLLY_PRESENT_INTERACT_FIREFOX_OVERRIDE;
   return browsers[name].launch({ headless: true, ...(name === 'firefox' && override ? { args: ['--override', override] } : {}) });
@@ -21,13 +23,16 @@ function launchBrowser(name: keyof typeof browsers = primaryEngine) {
 type ControlWindow = Window & {
   presentation: import('../shells/web/src/views/present-mode.ts').PresentController;
   LollyPresent: typeof import('../shells/web/src/views/present-mode.ts') & Pick<typeof import('../shells/web/src/views/present-web-check.ts'), 'openWebCheck' | 'interactiveCheckRows'>
-    & Pick<typeof import('../shells/web/src/views/design-web-interact.ts'), 'webInteractRows' | 'wireWebInteract'>;
+    & Pick<typeof import('../shells/web/src/views/design-web-interact.ts'), 'webInteractRows' | 'wireWebInteract'>
+    & Pick<typeof import('../shells/web/src/lib/web-page-driver.ts'), 'getWebPageDriver'>;
+  depthTargets: import('../packages/core/src/present-receiver.ts').PresentScrollTarget[];
+  depthDrivers: WeakSet<import('../shells/web/src/lib/web-page-driver.ts').WebPageDriver>;
 };
 const fixtureHeaders = { 'Cross-Origin-Opener-Policy': 'same-origin', 'Cross-Origin-Embedder-Policy': 'credentialless' };
 let presenter: Promise<string> | undefined;
 function presenterBundle(): Promise<string> {
   presenter ??= build({ stdin: { resolveDir: new URL('../', import.meta.url).pathname, loader: 'ts',
-    contents: `export { openPresentMode } from './shells/web/src/views/present-mode.ts'; export { openWebCheck, interactiveCheckRows } from './shells/web/src/views/present-web-check.ts'; export { webInteractRows, wireWebInteract } from './shells/web/src/views/design-web-interact.ts';` },
+    contents: `export { openPresentMode } from './shells/web/src/views/present-mode.ts'; export { openWebCheck, interactiveCheckRows } from './shells/web/src/views/present-web-check.ts'; export { webInteractRows, wireWebInteract } from './shells/web/src/views/design-web-interact.ts'; export { getWebPageDriver } from './shells/web/src/lib/web-page-driver.ts';` },
     bundle: true, write: false, format: 'iife', globalName: 'LollyPresent', platform: 'browser',
     loader: { '.css': 'empty' }, define: { 'import.meta.env': '{}' }, logLevel: 'silent',
   }).then(result => result.outputFiles[0]!.text);
@@ -97,14 +102,76 @@ async function tabTo(page: Page, target: Locator, key = 'Tab'): Promise<void> {
   assert.fail(`${key} did not reach ${await target.getAttribute('aria-label') ?? await target.textContent()}: ${visited.join(' → ')}`);
 }
 
-async function waitDepth(page: Page, frame: Frame, expected: number): Promise<void> {
-  try { await frame.waitForFunction(value => scrollY === value, expected); }
+type Depth = { y: number; surface: number; max: number; dpr: number };
+async function readDepth(frame: Frame): Promise<Depth> {
+  return frame.evaluate(() => ({ y: scrollY, surface: document.scrollingElement!.scrollTop,
+    max: Math.max(0, document.scrollingElement!.scrollHeight - innerHeight), dpr: devicePixelRatio }));
+}
+
+function depthBound(engine: string, scale: number, dpr: number): number {
+  assert.ok(Number.isFinite(scale) && scale > 0 && Number.isFinite(dpr) && dpr > 0, 'measured native geometry is valid');
+  if (engine !== 'firefox' || depthProfile === 'exact') return 0;
+  // Gecko ScrollToCSSPixels permits a half-CSS-pixel destination range. Layer-pixel
+  // alignment and its 60 app units/CSS pixel can change native fractional readback:
+  // https://github.com/mozilla-firefox/firefox/blob/643a34ae6a90f4506bf5bf750530b0c5e8d0ea77/layout/generic/ScrollContainerFrame.cpp#L2247
+  // WPT also tests native alignment at fractional zoom; commands remain exact here.
+  // https://github.com/web-platform-tests/wpt/blob/d98f0cccefe78c03ac00a8340512d5292bf88cc1/css/cssom-view/scroll-offsets-fractional-zoom.html
+  return Math.min(0.5, 0.5 / (scale * dpr) + 1 / 60);
+}
+
+function assertDepth(depth: Depth, expected: number, before: number, bound: number): void {
+  assert.ok([depth.y, depth.surface, depth.max].every(Number.isFinite), 'native depth is finite');
+  assert.equal(depth.y, depth.surface, 'window and scrolling surface agree');
+  assert.ok(depth.y >= 0 && depth.y <= depth.max, 'native depth stays within the page');
+  assert.ok(Math.abs(depth.y - expected) <= bound, `native depth ${depth.y} must reach ${expected} within ${bound} CSS pixels`);
+  assert.ok(expected >= before ? depth.y >= before : depth.y <= before, 'native depth follows the requested direction');
+}
+
+async function traceDepthTargets(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    const win = window as unknown as ControlWindow;
+    const marker = document.querySelector<HTMLElement>('.pr-active .lolly-box-web')!;
+    const driver = win.LollyPresent.getWebPageDriver(marker)!;
+    win.depthTargets = []; win.depthDrivers ??= new WeakSet();
+    if (win.depthDrivers.has(driver)) return;
+    win.depthDrivers.add(driver);
+    const scroll = driver.scrollTo.bind(driver);
+    driver.scrollTo = target => { win.depthTargets.push(target); return scroll(target); };
+  });
+}
+
+async function assertDepthTargets(page: Page, expected: number): Promise<void> {
+  assert.deepEqual(await page.evaluate(() => (window as unknown as ControlWindow).depthTargets), [expected], 'one exact scroll target reaches the real driver');
+}
+
+async function waitDepth(page: Page, frame: Frame, expected: number, before: number, engine: string): Promise<void> {
+  const scale = await (await frame.frameElement()).evaluate(node => {
+    const element = node as HTMLIFrameElement;
+    return element.getBoundingClientRect().height / element.clientHeight;
+  });
+  const bound = depthBound(engine, scale, (await readDepth(frame)).dpr);
+  try {
+    await frame.waitForFunction(({ expected, bound }) => Math.abs(scrollY - expected) <= bound, { expected, bound });
+    // Check the actual native result on successive paints, not just one transient value.
+    for (let paint = 0; paint < 2; paint++) {
+      await frame.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => resolve())));
+      assertDepth(await readDepth(frame), expected, before, bound);
+    }
+  }
   catch (cause) {
     const outer = await page.evaluate(() => ({ active: document.activeElement?.outerHTML.slice(0, 180), stage: document.querySelector('.pr-stage')?.className }));
     const inner = await frame.evaluate(() => ({ y: scrollY, height: innerHeight, active: document.activeElement?.tagName,
       surface: document.scrollingElement?.scrollTop, heard: (window as unknown as { heard: string[] }).heard }));
-    throw new Error(`Expected page depth ${expected}: ${JSON.stringify({ outer, inner })}`, { cause });
+    throw new Error(`Expected page depth ${expected}: ${JSON.stringify({ engine, depthProfile, scale, bound, before, outer, inner })}`, { cause });
   }
+}
+
+async function pressDepth(page: Page, frame: Frame, key: string, expected: number, engine: string = primaryEngine): Promise<void> {
+  await traceDepthTargets(page);
+  const before = (await readDepth(frame)).y;
+  await page.keyboard.press(key);
+  await assertDepthTargets(page, expected);
+  await waitDepth(page, frame, expected, before, engine);
 }
 
 test('fullscreen fallback cycles Tab inside the deck and restores the opener on close', { skip, timeout: 60_000 }, async () => {
@@ -273,7 +340,7 @@ test('Tab activation stays native on presenter controls, while modifiers and bla
     await page.keyboard.press('Enter'); await pause.waitFor();
     assert.deepEqual(await page.evaluate(() => (window as unknown as { editorKeys: string[] }).editorKeys.filter(key => key !== 'Tab')), []);
     for (const [key, depth] of [['ArrowDown', 400], ['ArrowUp', 0], ['ArrowRight', 400], ['ArrowLeft', 0]] as const) {
-      await page.keyboard.press(key); await waitDepth(page, frame, depth);
+      await pressDepth(page, frame, key, depth);
       assert.equal(await page.locator('.pr-embed-focus').count(), 0);
     }
 
@@ -304,7 +371,16 @@ test('Tab activation stays native on presenter controls, while modifiers and bla
       await page.waitForFunction(() => document.activeElement?.classList.contains('pr-stage'));
       assert.equal(await page.locator('.pr-embed-focus').count(), 0);
     }
+    await frame.evaluate(() => {
+      const win = window as unknown as { inputPointer: { trusted: boolean; target: string }[] }; win.inputPointer = [];
+      document.addEventListener('pointerdown', event => {
+        win.inputPointer.push({ trusted: event.isTrusted, target: (event.target as HTMLElement).id });
+      }, { capture: true, once: true });
+    });
+    await (await frame.frameElement()).waitForElementState('stable');
     await frame.locator('#typing').click();
+    assert.deepEqual(await frame.evaluate(() => (window as unknown as { inputPointer: { trusted: boolean; target: string }[] }).inputPointer),
+      [{ trusted: true, target: 'typing' }], 'the native pointer reaches the child input after its parent iframe settles');
     await page.getByRole('button', { name: 'Back to slides', exact: true }).waitFor({ state: 'visible' });
     assert.equal(await frame.evaluate(() => document.activeElement?.id), 'typing');
     await page.getByRole('button', { name: 'Back to slides', exact: true }).click();
@@ -324,28 +400,33 @@ test('Tab activation stays native on presenter controls, while modifiers and bla
     await page.locator('.pr-stage').focus();
 
     for (const selector of ['.pr-tap-prev', '.pr-tap-next']) {
+      const beforeBlackout = await frame.evaluate(() => scrollY);
       await page.keyboard.press('.'); await page.locator('.pr-blackout').waitFor();
       await page.locator(selector).tap(); await page.locator('.pr-blackout').waitFor({ state: 'detached' });
-      assert.equal(await frame.evaluate(() => scrollY), 0); assert.equal(await page.evaluate(() => (window as unknown as ControlWindow).presentation.frameId), 'a');
+      assert.equal(await frame.evaluate(() => scrollY), beforeBlackout); assert.equal(await page.evaluate(() => (window as unknown as ControlWindow).presentation.frameId), 'a');
     }
     await page.evaluate(() => (window as unknown as ControlWindow).presentation.close());
   } finally { await browser.close(); }
 });
 
-test('repeated scroll stops finish the route without changing the focus deep state', { skip, timeout: 60_000 }, async () => {
+test('repeated scroll stops finish the route without changing the focus deep state', { skip, timeout: 60_000 }, async t => {
   const browser = await launchBrowser();
   try {
     const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
     await fixture(page, 'stops=0,400,0,800;walk=1;ms=0');
     const frame = page.frames().find(frame => frame.url().includes('/info/present-interact-demo.html'))!; await frame.waitForSelector('#typing');
+    const boot = await frame.evaluate(() => (window as unknown as { boot: string }).boot);
+    t.diagnostic(`${primaryEngine}: ${depthProfile} native depth profile; exact delegated stop order.`);
     for (const depth of [400, 0, 800]) {
-      await page.keyboard.press('PageDown'); await waitDepth(page, frame, depth);
+      await pressDepth(page, frame, 'PageDown', depth);
       assert.equal(await page.evaluate(() => (window as unknown as ControlWindow).presentation.frameId), 'a');
       assert.equal(await page.locator('.pr-interact-focus').getAttribute('data-interact'), '2');
+      assert.equal(await frame.evaluate(() => (window as unknown as { boot: string }).boot), boot);
     }
     for (const depth of [0, 400, 0]) {
-      await page.keyboard.press('PageUp'); await waitDepth(page, frame, depth);
+      await pressDepth(page, frame, 'PageUp', depth);
       assert.equal(await page.evaluate(() => (window as unknown as ControlWindow).presentation.frameId), 'a');
+      assert.equal(await frame.evaluate(() => (window as unknown as { boot: string }).boot), boot);
     }
     await page.keyboard.press('PageDown'); await page.keyboard.press('PageDown');
     const previousBoot = await frame.evaluate(() => (window as unknown as { boot: string }).boot);
@@ -353,13 +434,52 @@ test('repeated scroll stops finish the route without changing the focus deep sta
     await frame.waitForFunction(before => (window as unknown as { boot: string }).boot !== before, previousBoot);
     await page.locator('.pr-stage').focus();
     for (const depth of [400, 0, 800]) {
-      await page.keyboard.press('PageDown'); await waitDepth(page, frame, depth);
+      await pressDepth(page, frame, 'PageDown', depth);
     }
     await page.keyboard.press('PageDown');
     await page.waitForFunction(() => (window as unknown as ControlWindow).presentation.frameId === 'b');
     await page.keyboard.press('PageUp'); await page.locator('.pr-interact-focus').waitFor();
     assert.equal(await page.locator('.pr-interact-focus').getAttribute('data-interact'), '2');
     await page.evaluate(() => (window as unknown as ControlWindow).presentation.close());
+  } finally { await browser.close(); }
+});
+
+test('the native depth oracle refuses a wrong delegated target and a wrong native stop', { skip, timeout: 60_000 }, async t => {
+  const browser = await launchBrowser();
+  try {
+    const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+    await fixture(page, 'stops=0,400,800;walk=1;ms=0');
+    const frame = page.frames().find(frame => frame.url().includes('/info/present-interact-demo.html'))!;
+    await frame.waitForSelector('#typing');
+    const request = (target: number) => page.evaluate(target => {
+      const win = window as unknown as ControlWindow;
+      const driver = win.LollyPresent.getWebPageDriver(document.querySelector<HTMLElement>('.pr-active .lolly-box-web')!)!;
+      if (!driver.scrollTo(target)) throw new Error('The real driver must accept the negative-control request');
+    }, target);
+    await traceDepthTargets(page); await request(400.6);
+    await assert.rejects(assertDepthTargets(page, 400), /one exact scroll target/);
+    assert.deepEqual(await page.evaluate(() => (window as unknown as ControlWindow).depthTargets), [400.6]);
+
+    await frame.evaluate(() => {
+      const surface = document.scrollingElement!;
+      const original = Object.getOwnPropertyDescriptor(Element.prototype, 'scrollTop')!;
+      Object.defineProperty(surface, 'scrollTop', { configurable: true,
+        get() { return original.get!.call(surface); },
+        set(value) { original.set!.call(surface, value === 400 ? 800 : value); },
+      });
+    });
+    try {
+      await traceDepthTargets(page); await request(400); await assertDepthTargets(page, 400);
+      const actual = await readDepth(frame);
+      const scale = await (await frame.frameElement()).evaluate(node => {
+        const element = node as HTMLIFrameElement;
+        return element.getBoundingClientRect().height / element.clientHeight;
+      });
+      const bound = depthBound(primaryEngine, scale, actual.dpr);
+      assert.ok(actual.y > 799, 'the native setter really moved to the deliberately wrong stop');
+      assert.throws(() => assertDepth(actual, 400, 0, bound), /native depth.*must reach 400/);
+      t.diagnostic(JSON.stringify({ engine: primaryEngine, depthProfile, scale, bound, refusedTarget: 400.6, refusedNativeDepth: actual.y }));
+    } finally { await frame.evaluate(() => Reflect.deleteProperty(document.scrollingElement!, 'scrollTop')); }
   } finally { await browser.close(); }
 });
 
@@ -381,8 +501,7 @@ test('the presenter keeps frame identity through Zoom, speaker view, release and
         await frame.waitForSelector('#typing');
         const boot = await frame.evaluate(() => (window as unknown as { boot: string }).boot);
         await page.waitForFunction(() => document.querySelector('.pr-active')?.classList.contains('pr-interact-zoom'));
-        await page.keyboard.press('PageDown');
-        await frame.waitForFunction(() => scrollY === 400);
+        await pressDepth(page, frame, 'PageDown', 400, name);
         assert.equal(await page.evaluate(() => (window as unknown as ControlWindow).presentation.frameId), 'a');
         assert.equal(await frame.evaluate(() => (window as unknown as { boot: string }).boot), boot);
         const popup = page.waitForEvent('popup'); await page.keyboard.press('s'); const speaker = await popup;
@@ -421,7 +540,7 @@ test('the presenter keeps frame identity through Zoom, speaker view, release and
         assert.equal(await frame.evaluate(() => (window as unknown as { boot: string }).boot), boot);
         await page.keyboard.press('F5'); assert.equal(await frame.evaluate(() => (window as unknown as { boot: string }).boot), boot);
         await page.keyboard.press('.'); await page.locator('.pr-blackout').waitFor(); await page.keyboard.press('.');
-        await page.keyboard.press('PageDown'); await frame.waitForFunction(() => scrollY === 800);
+        await pressDepth(page, frame, 'PageDown', 800, name);
         await page.keyboard.press('PageDown'); await page.waitForFunction(() => (window as unknown as ControlWindow).presentation.frameId === 'b');
         await page.evaluate(() => (window as unknown as ControlWindow).presentation.close());
         assert.equal(await page.locator('.pr-stage').count(), 0); assert.deepEqual(errors, []);
