@@ -110195,14 +110195,21 @@ function capturePptxPathMetadata(row) {
     return null;
   }
 }
-function finiteClosedPath(contours) {
-  return Array.isArray(contours) && contours.length === 1 && contours[0]?.closed === true && Array.isArray(contours[0].curves) && contours[0].curves.length > 0 && Array.from(contours[0].curves).every((curve) => Array.isArray(curve) && curve.length === 8 && Array.from(curve).every(Number.isFinite));
+function finiteSinglePath(contours, open3 = false) {
+  return Array.isArray(contours) && contours.length === 1 && contours[0]?.closed === !open3 && Array.isArray(contours[0].curves) && contours[0].curves.length > 0 && Array.from(contours[0].curves).every((curve) => Array.isArray(curve) && curve.length === 8 && Array.from(curve).every(Number.isFinite));
+}
+function finiteNativePath(path) {
+  return (path.open === void 0 || path.open === true) && finiteSinglePath(path.contours, path.open === true) && [path.head, path.tail].every((end) => end === void 0 || path.open === true && Object.values(NATIVE_HEADS).includes(end));
 }
 function isPptxPathRow(row, origin = { x: 0, y: 0 }, geometry3, path) {
   const metadata2 = capturePptxPathMetadata(row);
-  if (!metadata2 || string2(metadata2.kind) !== "path" || !path || !finiteClosedPath(path.contours) || !Number.isFinite(path.rotation ?? 0)) return false;
+  if (!metadata2 || string2(metadata2.kind) !== "path" || !path || !finiteNativePath(path) || !Number.isFinite(path.rotation ?? 0)) return false;
   for (const field2 of GUARDED_CONTENT) {
-    if (field2 !== "path" && string2(metadata2[field2]).trim()) return false;
+    if (field2 === "path") continue;
+    if (path.open === true && (field2 === "headStart" || field2 === "headEnd")) {
+      const authored = string2(metadata2[field2]), resolved2 = Object.hasOwn(NATIVE_HEADS, authored) ? NATIVE_HEADS[authored] : void 0;
+      if (authored.trim() && resolved2 === void 0 || path[field2 === "headStart" ? "head" : "tail"] !== resolved2) return false;
+    } else if (string2(metadata2[field2]).trim()) return false;
   }
   if (!["", "none"].includes(string2(metadata2.shadow)) || !["", "normal"].includes(string2(metadata2.blend)) || !["", "solid"].includes(string2(metadata2.strokeDash)) || !["", "nonzero"].includes(string2(metadata2.fillRule))) return false;
   if (["blur", "bgBlur", "rx", "ry"].some((field2) => number2(metadata2[field2]) !== 0) || metadata2.start != null || metadata2.dur != null || string2(metadata2.lane) === "seq") return false;
@@ -110284,13 +110291,19 @@ function compilePptxCompatPathRow(row, origin, supplied) {
     throw new Error("This path needs the legacy native PPTX producer.");
   }
   validatePaint2(supplied.fills, supplied.stroke);
+  if ((supplied.path.head !== void 0 || supplied.path.tail !== void 0) && !supplied.stroke) throw new Error("Native PPTX ends need an open stroked path.");
   const geometry3 = supplied.geometry ?? { x: number2(row.x), y: number2(row.y), w: number2(row.w, 1), h: number2(row.h, 1) };
   const rotation = supplied.path.rotation ?? 0;
   return {
     id: string2(row.id),
     op: "shape",
     compatibility: "pptx-native-v1",
-    nativePptx: { path: true },
+    nativePptx: {
+      path: true,
+      ...supplied.path.open ? { open: true } : {},
+      ...supplied.path.head ? { head: supplied.path.head } : {},
+      ...supplied.path.tail ? { tail: supplied.path.tail } : {}
+    },
     box: {
       x: geometry3.x - origin.x,
       y: geometry3.y - origin.y,
@@ -110308,8 +110321,12 @@ function compilePptxCompatPathRow(row, origin, supplied) {
   };
 }
 function designDrawPptxPath(op) {
-  if (op.compatibility !== "pptx-native-v1" || !("nativePptx" in op) || !op.nativePptx || typeof op.nativePptx !== "object" || !Object.hasOwn(op.nativePptx, "path") || !("path" in op.nativePptx) || op.nativePptx.path !== true || Object.keys(op.nativePptx).length !== 1) throw new Error("PPTX needs its named native-path compatibility reading.");
-  if (op.words || op.picture || op.clip || op.blend || op.shadow || op.blur || op.outline || op.fillRule || op.pose?.flipH || op.pose?.flipV || op.shape.kind !== "path" || op.shape.evenOdd || op.shape.commands || op.opacity !== 100 || !finiteClosedPath(op.shape.contours)) throw new Error("PPTX native-path evaluation contains unsupported content.");
+  if (op.compatibility !== "pptx-native-v1" || !("nativePptx" in op) || !op.nativePptx || typeof op.nativePptx !== "object" || !Object.hasOwn(op.nativePptx, "path") || !("path" in op.nativePptx) || op.nativePptx.path !== true) throw new Error("PPTX needs its named native-path compatibility reading.");
+  const native = op.nativePptx;
+  const fields = Object.keys(native);
+  if (native.open === void 0 ? fields.length !== 1 : native.open !== true || !Object.hasOwn(native, "open") || fields.some((field2) => !["path", "open", "head", "tail"].includes(field2))) throw new Error("PPTX path metadata contains unsupported content.");
+  if (["head", "tail"].some((field2) => Object.hasOwn(native, field2) ? native[field2] === void 0 : native[field2] !== void 0) || !finiteNativePath({ contours: op.shape.kind === "path" ? op.shape.contours : [], open: native.open, head: native.head, tail: native.tail }) || (native.head !== void 0 || native.tail !== void 0) && !op.stroke) throw new Error("Native PPTX ends need an open stroked path.");
+  if (op.words || op.picture || op.clip || op.blend || op.shadow || op.blur || op.outline || op.fillRule || op.pose?.flipH || op.pose?.flipV || op.shape.kind !== "path" || op.shape.evenOdd || op.shape.commands || op.opacity !== 100 || !finiteSinglePath(op.shape.contours, native.open === true)) throw new Error("PPTX native-path evaluation contains unsupported content.");
   const { x, y, w, h } = op.box;
   if (![x, y, w, h, op.pose?.rot ?? 0].every(Number.isFinite) || w < 1 / EMU_PER_PX || h < 1 / EMU_PER_PX || ![x, y, w, h].every((value) => Number.isFinite(emu(value)))) throw new Error("PPTX path geometry is not finite or in range.");
   validatePaint2(op.fills, op.stroke);
@@ -110324,7 +110341,13 @@ function designDrawPptxPath(op) {
     ...op.pose?.rot ? { rot: op.pose.rot } : {},
     paths: [{ d: toSvgPathData(op.shape.contours, 1) }],
     ...fill2 ? { fill: { solid: fill2.color.slice(1), ...fill2.opacity !== void 0 ? { alpha: fill2.opacity } : {} } } : {},
-    ...stroke ? { line: { color: stroke.color.slice(1), w: emu(stroke.width), ...stroke.opacity !== void 0 ? { alpha: stroke.opacity } : {} } } : {}
+    ...stroke ? { line: {
+      color: stroke.color.slice(1),
+      w: emu(stroke.width),
+      ...stroke.opacity !== void 0 ? { alpha: stroke.opacity } : {},
+      ...native.head ? { head: native.head } : {},
+      ...native.tail ? { tail: native.tail } : {}
+    } } : {}
   };
 }
 function designDrawPptx(op) {
@@ -110373,7 +110396,7 @@ function designDrawPptxLayers(op) {
   };
   return [under, top];
 }
-var string2, number2, emu, GUARDED_CONTENT;
+var string2, number2, emu, GUARDED_CONTENT, NATIVE_HEADS;
 var init_design_draw_pptx = __esm({
   "engine/src/design-draw-pptx.ts"() {
     "use strict";
@@ -110390,6 +110413,7 @@ var init_design_draw_pptx = __esm({
     };
     emu = (value) => Math.round(value * EMU_PER_PX);
     GUARDED_CONTENT = ["grad", "clip", "image", "text", "path", "pathPaint", "headStart", "headEnd", "kf", "enter", "exit", "hold", "matchOf", "strokeDashArray"];
+    NATIVE_HEADS = { triangle: "triangle", open: "arrow", circle: "oval", diamond: "diamond" };
   }
 });
 
@@ -137630,8 +137654,12 @@ async function lowerLayer(ctx, sink, row, origin, binding, masterStyle, master, 
       ...line ? { line } : {}
     };
     const metadata3 = initialMetadata && capturePptxPathMetadata(row);
-    const path = { contours: data.contours, rotation: shape.rot };
-    if (metadata3 && initialMetadata && data.singleClosed && Object.keys(metadata3).length === Object.keys(initialMetadata).length && Object.keys(metadata3).every((field2) => Object.is(metadata3[field2], initialMetadata[field2])) && isPptxPathRow(metadata3, origin, geometry3, path)) {
+    const path = { contours: data.contours, rotation: shape.rot, ...data.open ? {
+      open: true,
+      ...line?.head ? { head: line.head } : {},
+      ...line?.tail ? { tail: line.tail } : {}
+    } : {} };
+    if (metadata3 && initialMetadata && (data.singleClosed || data.open) && Object.keys(metadata3).length === Object.keys(initialMetadata).length && Object.keys(metadata3).every((field2) => Object.is(metadata3[field2], initialMetadata[field2])) && isPptxPathRow(metadata3, origin, geometry3, path)) {
       const op = compileDesignRow(metadata3, origin, { semantics: "pptx-compat", pptxCompat: {
         geometry: geometry3,
         path,
