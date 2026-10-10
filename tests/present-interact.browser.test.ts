@@ -450,7 +450,7 @@ test('preflight fits a phone and desktop, and clicker learning requires a delibe
       assert.equal(await modal.locator('[data-clicker-result]').evaluate(element => element === document.activeElement), true);
       await page.keyboard.press('Space');
       await modal.locator('[data-clicker-result]').getByText('Space · Next', { exact: true }).waitFor();
-      await page.keyboard.press('Tab'); await page.keyboard.press('Enter');
+      await page.keyboard.press(primaryEngine === 'webkit' ? 'Alt+Tab' : 'Tab'); await page.keyboard.press('Enter');
       await start.waitFor();
       assert.equal(await start.getAttribute('aria-pressed'), 'false', 'Finish test remains keyboard operable');
       await start.click();
