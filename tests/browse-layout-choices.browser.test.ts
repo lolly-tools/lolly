@@ -122,6 +122,10 @@ test('visible Grid/Card/List choices reflow real browse views without losing pre
         await chooseLayout(page, 'projects', 'list');
         assert.equal(await page.locator('.folder-tile--folder').filter({ hasText: 'Nested folder' }).count(), 1);
         await page.locator('.projects-back').click();
+        // Hash navigation awaits the root stores before replacing the folder view.
+        await page.waitForFunction(() => location.hash.split('?')[0] === '#/p'
+          && !document.querySelector('.projects-back')
+          && document.querySelector('.projects-grid')?.getAttribute('data-browse-layout') === 'card');
         const { panel, controls } = await openLayoutOptions(page, 'projects');
         assert.equal(await controls.filter({ hasText: 'Card' }).getAttribute('aria-pressed'), 'true');
         await page.keyboard.press('Escape'); await panel.waitFor({ state: 'hidden' });

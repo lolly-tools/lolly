@@ -10,6 +10,7 @@ import type { DesignDrawPage } from '../engine/src/design-draw.ts';
 import type { DesignRasterResult } from '../shells/web/src/lib/webgpu/design-page.ts';
 import type { renderDesignRaster } from '../shells/web/src/lib/webgpu/design-page.ts';
 import type { prepareDesignRaster } from '../engine/src/design-draw-raster.ts';
+import { DESIGN_RASTER_RECIPE } from '../engine/src/design-draw-raster.ts';
 import { compareInBrowser, type FidelityStats } from './helpers/design-fidelity.ts';
 import { createDesignGpuFixture, designGpuCases, primitiveDrawing } from './helpers/design-webgpu-fixture.ts';
 
@@ -52,8 +53,9 @@ async function pixelDiagnostics(input: { design: string; svg: string; gpu: strin
   }) };
 }
 
-test('opt-in static Design GPU pages preserve real renderer regions and reject comparator faults', { timeout: 90_000 }, async t => {
-  const receipt: Record<string, unknown> = { status: 'not run', stage: 'fixture startup', date: new Date().toISOString(), adapterPolicy: 'unchanged product device service', testAdapter: process.env.LOLLY_WEBGPU_TEST_ADAPTER ?? 'default' };
+test('opt-in static Design GPU pages preserve real renderer regions and reject comparator faults', { timeout: 180_000 }, async t => {
+  const receipt: Record<string, unknown> = { status: 'not run', stage: 'fixture startup', date: new Date().toISOString(), recipe: DESIGN_RASTER_RECIPE,
+    limits: { channel: THRESHOLD, regionShare: REGION_SHARE, coordinateSlack: 0 }, adapterPolicy: 'unchanged product device service', testAdapter: process.env.LOLLY_WEBGPU_TEST_ADAPTER ?? 'default' };
   const record = async () => { if (process.env.LOLLY_DESIGN_GPU_REPORT) { await mkdir(dirname(process.env.LOLLY_DESIGN_GPU_REPORT), { recursive: true }); await writeFile(process.env.LOLLY_DESIGN_GPU_REPORT, JSON.stringify(receipt, null, 2) + '\n'); } };
   const cleanup: Array<{ name: string; close(): Promise<void> }> = [];
   t.after(async () => {
@@ -66,6 +68,7 @@ test('opt-in static Design GPU pages preserve real renderer regions and reject c
   });
   const fixture = await createDesignGpuFixture(); cleanup.push({ name: 'loopback listener', close: fixture.close });
   Object.assign(receipt, { sources: fixture.sourceHashes, origin: fixture.origin });
+  await record();
   const browser = await chromium.launch({ headless: true, ...(process.platform === 'darwin' ? { channel: 'chrome' } : {}) });
   cleanup.push({ name: 'isolated Playwright browser', close: () => browser.close() }); receipt.browser = browser.version();
   const context = await browser.newContext({ deviceScaleFactor: 1 });
@@ -76,11 +79,13 @@ test('opt-in static Design GPU pages preserve real renderer regions and reject c
   const report: Array<Record<string, unknown>> = [];
   const fidelityFailures: Array<{ page: string; reference: string; regions: unknown }> = [];
   for (const { transparent, scaleX, scaleY, key, drawing: p, original } of designGpuCases()) {
+    Object.assign(receipt, { currentPage: key, completedPages: report.length, stage: 'page references' }); await record();
     const width = 320 * scaleX, height = 240 * scaleY, output = { width, height, dpi: 96 * scaleX };
     const design = await context.newPage(); await design.setViewportSize({ width, height }); await design.goto(fixture.origin + '/design/' + key);
     const ground = await design.screenshot({ clip: { x: 0, y: 0, width, height }, omitBackground: true }); await design.close();
     const svg = await context.newPage(); await svg.setViewportSize({ width, height }); await svg.goto(fixture.origin + '/svg/' + key);
     const vector = await svg.screenshot({ clip: { x: 0, y: 0, width, height }, omitBackground: true }); await svg.close();
+    receipt.stage = 'worker raster and PNG encode'; await record();
     const result = await probe.evaluate(async ({ page, output }) => {
       const started = performance.now(), value = await window.designRasterProbe.render(page, output);
       if (!value.ok) return value;
@@ -88,6 +93,8 @@ test('opt-in static Design GPU pages preserve real renderer regions and reject c
     }, { page: p, output });
     assert.ok(result.ok, 'actual worker GPU rendering: ' + JSON.stringify(result));
     assert.equal(result.allocation.liveBytes, 0); assert.equal(result.allocation.created, result.allocation.destroyed);
+    receipt.currentRaster = { identity: result.identity, allocation: result.allocation, completeMs: result.completeMs };
+    receipt.stage = 'RGB region comparisons'; await record();
     const shot = png(new Uint8Array(result.png));
     const regions = [{ id: 'page', x: 0, y: 0, w: width, h: height }, ...p.ops.map(op => {
       // Keep the established four-page regions exact. Extra rotated cases use
@@ -100,8 +107,9 @@ test('opt-in static Design GPU pages preserve real renderer regions and reject c
     const compare = (a: string, b: string) => probe.evaluate<FidelityStats>(`(${compareInBrowser.toString()})(${JSON.stringify(a)},${JSON.stringify(b)},${width},${height},${JSON.stringify(regions)},24)`);
     const designStats = await compare(png(ground), shot), svgStats = await compare(png(vector), shot);
     report.push({ page: key, groundPngSha256: createHash('sha256').update(ground).digest('hex'), svgPngSha256: createHash('sha256').update(vector).digest('hex'), identity: result.identity, completeMs: result.completeMs, allocation: result.allocation, design: designStats, svg: svgStats, rgbaSha256: createHash('sha256').update(new Uint8Array(result.data)).digest('hex'), pngSha256: createHash('sha256').update(new Uint8Array(result.png)).digest('hex') });
+    receipt.pages = report; receipt.stage = 'raw/PNG/reference diagnostics'; await record();
     report[report.length - 1]!.pixels = await probe.evaluate(pixelDiagnostics, { design: png(ground), svg: png(vector), gpu: shot, raw: result.data, width, height, regions });
-    receipt.pages = report; receipt.stage = 'region fidelity'; await record();
+    receipt.stage = 'PNG codec equivalence'; await record();
     for (const [reference, stats] of [['Design', designStats], ['SVG', svgStats]] as const) {
       const regions = failRegions(stats); if (regions.length) fidelityFailures.push({ page: key, reference, regions });
     }
@@ -113,6 +121,7 @@ test('opt-in static Design GPU pages preserve real renderer regions and reject c
     }, { bytes: result.png, raw: result.data, width, height });
     assert.equal(codec.same, true, 'preview and PNG consume the same GPU RGBA without a second renderer');
     if (transparent) {
+      receipt.stage = 'alpha region comparisons'; await record();
       const alpha = await probe.evaluate(async ({ a, b, width, height, regions }) => {
         const read = async (src: string) => { const image = new Image(); image.src = src; await image.decode(); const canvas = new OffscreenCanvas(width, height); const c = canvas.getContext('2d')!; c.drawImage(image, 0, 0); return c.getImageData(0, 0, width, height).data; };
         const [x, y] = await Promise.all([read(a), read(b)]);
@@ -129,6 +138,7 @@ test('opt-in static Design GPU pages preserve real renderer regions and reject c
       report[report.length - 1]!.alpha = alpha;
     }
     if (key === 'opaque-1') {
+      receipt.stage = 'negative controls'; await record();
       const controls: string[] = [];
       for (const fault of ['missing', 'shifted', 'order', 'alpha'] as const) {
         const broken = structuredClone(p);
@@ -142,10 +152,12 @@ test('opt-in static Design GPU pages preserve real renderer regions and reject c
       }
       receipt.negativeControls = controls;
     }
+    receipt.completedPages = report.length; receipt.stage = 'page complete'; await record();
+    t.diagnostic(`${key}: compared Design/SVG RGB and required alpha at ${THRESHOLD}/${REGION_SHARE}; ${fidelityFailures.filter(f => f.page === key).length} failing region groups`);
   }
-  receipt.fidelityFailures = fidelityFailures; await record();
+  receipt.fidelityFailures = fidelityFailures; receipt.stage = 'complete-page fidelity assertion'; await record();
   assert.deepEqual(fidelityFailures, [], `every Design/SVG region and alpha stays within ${THRESHOLD}/${REGION_SHARE} with zero coordinate slack`);
-  receipt.stage = 'actual device lifecycle';
+  receipt.stage = 'actual device lifecycle'; await record();
   const lifecycle = await probe.evaluate(async page => {
     const api = window.designRasterProbe, admission = api.prepareDesignRaster(page); if (!admission.ok) throw new Error('Fixture admission failed');
     const device = await api.requireWebGpu(), info = device.adapterInfo;
@@ -187,6 +199,7 @@ test('opt-in static Design GPU pages preserve real renderer regions and reject c
   assert.equal(lifecycle.created, lifecycle.destroyed); assert.equal(lifecycle.liveBytes, 0);
   assert.equal(lifecycle.outcomes.allocation, 'Injected primitive allocation fault'); assert.equal(lifecycle.outcomes.cancel, 'AbortError'); assert.equal(lifecycle.outcomes.loss, 'WEBGPU_DEVICE_LOST');
   assert.equal(lifecycle.recovered.liveBytes, 0);
+  receipt.stage = 'repeated-operation timings'; await record();
   const timings = await probe.evaluate(async page => {
     const samples: number[] = []; let previous = performance.now(), maxTimerGapMs = 0;
     const timer = setInterval(() => { const now = performance.now(); maxTimerGapMs = Math.max(maxTimerGapMs, now - previous); previous = now; }, 5);
