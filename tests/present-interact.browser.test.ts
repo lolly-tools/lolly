@@ -194,6 +194,46 @@ test('the outside-page inspector makes Places and Pan changes one usable transac
   } finally { await browser.close(); }
 });
 
+for (const name of names) test(`first pointer handover focuses the clicked input before typing (${name})`, { skip, timeout: 60_000 }, async () => {
+  const browser = await launchBrowser(name as keyof typeof browsers);
+  try {
+    const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+    await fixture(page, 'hand=1;ms=0');
+    const frame = page.frames().find(frame => frame.url().includes('/info/present-interact-demo.html'))!;
+    await frame.waitForSelector('#typing');
+    // Exercise the first click in an inactive child, without an earlier Enter handover.
+    if (await page.evaluate(() => !!document.fullscreenElement)) await page.evaluate(() => document.exitFullscreen());
+    await page.waitForFunction(() => !document.fullscreenElement);
+    await page.locator('.pr-stage').focus();
+    assert.ok(await page.evaluate(() => document.hasFocus()));
+    assert.equal(await frame.evaluate(() => document.hasFocus()), false);
+    const boot = await frame.evaluate(() => (window as unknown as { boot: string }).boot);
+    const back = page.getByRole('button', { name: 'Back to slides', exact: true });
+    assert.equal(await page.locator('.pr-embed-focus').count(), 0);
+
+    await frame.locator('#typing').click();
+    await back.waitFor({ state: 'visible' });
+    assert.equal(await frame.evaluate(() => document.activeElement?.id), 'typing');
+    await page.keyboard.type('First-click shared typing');
+    assert.equal(await frame.locator('#typing').inputValue(), 'First-click shared typing');
+    for (const key of ['ArrowLeft', 'ArrowRight']) await page.keyboard.press(key);
+    assert.deepEqual(await frame.evaluate(() => (window as unknown as { heard: string[] }).heard.filter(key => key.startsWith('Arrow'))), ['ArrowLeft', 'ArrowRight']);
+    assert.equal(await page.evaluate(() => (window as unknown as ControlWindow).presentation.frameId), 'a');
+    assert.equal(await frame.evaluate(() => (window as unknown as { boot: string }).boot), boot);
+
+    await back.click();
+    await page.waitForFunction(() => document.activeElement?.classList.contains('pr-stage'));
+    assert.equal(await page.locator('.pr-embed-focus').count(), 0);
+    assert.equal(await frame.evaluate(() => (window as unknown as { boot: string }).boot), boot);
+    await page.keyboard.press('ArrowRight');
+    await page.waitForFunction(() => (window as unknown as ControlWindow).presentation.frameId === 'b');
+    await page.keyboard.press('ArrowLeft');
+    await page.waitForFunction(() => (window as unknown as ControlWindow).presentation.frameId === 'a');
+    assert.equal(await page.locator('.pr-embed-focus').count(), 0);
+    await page.evaluate(() => (window as unknown as ControlWindow).presentation.close());
+  } finally { await browser.close(); }
+});
+
 test('explicit and pointer handover keep Back visible and preserve the clicked child input', { skip, timeout: 60_000 }, async t => {
   const browser = await launchBrowser();
   try {

@@ -113,7 +113,12 @@ export function mountPresentInteract(config: PresentInteractConfig): PresentInte
     });
     let childDocument: Document | null = null;
     const childPointer = (event: PointerEvent): void => {
-      if (event.isTrusted && current === visit && visit.opts.hand) { pointerAt = Date.now(); pointerFrame = driver.frame; onBlur(); }
+      if (event.isTrusted && current === visit && visit.opts.hand) {
+        pointerAt = Date.now(); pointerFrame = driver.frame;
+        // Activate the child before mousedown focuses the clicked control.
+        // A deferred blur handler can spend the first click focusing only the document.
+        handKeyboard(visit);
+      }
     };
     const childFocus = (): void => onBlur();
     const releaseChild = (): void => {
