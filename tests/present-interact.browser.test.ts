@@ -445,7 +445,16 @@ test('preflight fits a phone and desktop, and clicker learning requires a delibe
       await modal.locator('summary').click();
       const bounds = await modal.boundingBox(); assert.ok(bounds && bounds.x >= 0 && bounds.x + bounds.width <= width);
       assert.ok(await modal.evaluate(element => element.scrollWidth <= element.clientWidth + 1), 'dialog has no horizontal overflow');
-      await modal.getByRole('button', { name: 'Start test', exact: true }).click();
+      const start = modal.getByRole('button', { name: 'Start test', exact: true });
+      await start.focus(); await page.keyboard.press('Space');
+      assert.equal(await modal.locator('[data-clicker-result]').evaluate(element => element === document.activeElement), true);
+      await page.keyboard.press('Space');
+      await modal.locator('[data-clicker-result]').getByText('Space · Next', { exact: true }).waitFor();
+      await page.keyboard.press('Tab'); await page.keyboard.press('Enter');
+      await start.waitFor();
+      assert.equal(await start.getAttribute('aria-pressed'), 'false', 'Finish test remains keyboard operable');
+      await start.click();
+      assert.equal(await modal.getByRole('button', { name: 'Remember button', exact: true }).isDisabled(), true);
       await page.keyboard.press('F8'); await modal.locator('[data-clicker-result]').getByText('F8 · No deck action', { exact: true }).waitFor();
       await modal.getByLabel('Remember as').selectOption('next');
       await modal.getByRole('button', { name: 'Remember button', exact: true }).click();

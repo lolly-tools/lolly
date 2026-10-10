@@ -54,3 +54,23 @@ test('reset removes only the clicker preference and typing in a selector remains
     assert.equal(win.localStorage.getItem(CLICKER_STORAGE_KEY), null); assert.equal(win.localStorage.getItem('lolly-other-preference'), 'kept');
   } finally { dispose(); root.remove(); win.localStorage.clear(); }
 });
+
+test('the clicker readout learns Space while focused controls keep native activation', () => {
+  const root = document.createElement('div'); root.innerHTML = clickerPanelHtml(); document.body.append(root); root.querySelector('details')!.open = true;
+  const dispose = wireClickerPanel(root);
+  const button = root.querySelector('[data-clicker-test]') as HTMLButtonElement;
+  const readout = root.querySelector('[data-clicker-result]') as HTMLElement;
+  const send = (target: Element, key: string) => {
+    const event = new win.KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }); target.dispatchEvent(event); return event;
+  };
+  try {
+    button.click(); assert.equal(document.activeElement, readout);
+    assert.equal(send(readout, ' ').defaultPrevented, true); assert.match(readout.textContent!, /Space.*Next/);
+    const action = root.querySelector('select')!; action.value = 'next'; action.dispatchEvent(new win.Event('change'));
+    assert.equal((root.querySelector('[data-clicker-save]') as HTMLButtonElement).disabled, false);
+    button.focus(); assert.equal(send(button, 'Enter').defaultPrevented, false); assert.equal(send(button, ' ').defaultPrevented, false);
+    button.click(); button.click();
+    assert.equal(document.activeElement, readout); assert.equal(readout.textContent, 'Waiting for a button');
+    assert.equal((root.querySelector('[data-clicker-save]') as HTMLButtonElement).disabled, true, 'a new test cannot save a stale button');
+  } finally { dispose(); root.remove(); win.localStorage.clear(); }
+});

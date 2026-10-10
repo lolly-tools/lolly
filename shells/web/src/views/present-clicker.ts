@@ -65,7 +65,7 @@ function keyMeaning(key: string): string {
 export function clickerPanelHtml(): string {
   return `<details class="pwc-clicker"><summary>${t('Test your clicker')}</summary>`
     + `<p>${t('Start the test, then press each button. Choose an action to remember a button on this device.')}</p>`
-    + `<div class="pwc-clicker-result" role="status" aria-live="polite" data-clicker-result>${t('Waiting for a button')}</div>`
+    + `<div class="pwc-clicker-result" role="status" aria-live="polite" tabindex="-1" data-clicker-result>${t('Waiting for a button')}</div>`
     + `<div class="pwc-clicker-actions"><button type="button" class="btn btn--sm" data-clicker-test aria-pressed="false">${t('Start test')}</button>`
     + `<label>${t('Remember as')} <select data-clicker-action aria-label="${t('Remember as')}"><option value="">${t('Choose an action')}</option>`
     + (Object.keys(ACTION_KEYS) as ClickerAction[]).map((action) => `<option value="${action}">${esc(actionLabel(action))}</option>`).join('')
@@ -86,11 +86,17 @@ export function wireClickerPanel(root: HTMLElement): () => void {
   const setTesting = (on: boolean): void => {
     testing = on; test?.setAttribute('aria-pressed', String(on));
     if (test) test.textContent = on ? t('Finish test') : t('Start test');
+    if (on) {
+      last = null; updateSave();
+      if (result) { result.textContent = t('Waiting for a button'); result.focus({ preventScroll: true }); }
+    }
   };
   const updateSave = (): void => { if (save) save.disabled = !last || !ACTIONS.has(action?.value ?? ''); };
   const onKey = (event: KeyboardEvent): void => {
     if (!testing || !panel?.open || event.ctrlKey || event.metaKey || event.altKey || event.key === 'Escape' || event.key === 'Tab') return;
     if ((event.target as Element | null)?.closest?.('select, input, textarea, [contenteditable="true"]')) return;
+    // Leave control activation native; the readout receives the clicker's keys.
+    if (['Enter', ' ', 'Spacebar'].includes(event.key) && (event.target as Element | null)?.closest?.('button, a[href]')) return;
     event.preventDefault(); event.stopImmediatePropagation();
     last = clickerSignature(event); updateSave();
     const label = event.key === ' ' ? t('Space') : `${event.shiftKey ? 'Shift + ' : ''}${event.key}`;
