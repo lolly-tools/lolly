@@ -110151,6 +110151,64 @@ function capturePptxGradientMetadata(row) {
 function capturePptxSolidMetadata(row) {
   return capturePptxMetadata(row, false);
 }
+function capturePptxPathMetadata(row) {
+  try {
+    const prototype = Object.getPrototypeOf(row);
+    if (prototype !== null && prototype !== Object.prototype) return null;
+    const snapshot = /* @__PURE__ */ Object.create(null);
+    for (const field2 of Object.getOwnPropertyNames(row)) {
+      const descriptor = Object.getOwnPropertyDescriptor(row, field2);
+      if (!descriptor || !Object.hasOwn(descriptor, "value")) return null;
+      snapshot[field2] = descriptor.value;
+    }
+    if (prototype && [
+      "id",
+      "hidden",
+      "kind",
+      "path",
+      "bg",
+      "stroke",
+      "opacity",
+      "flipH",
+      "flipV",
+      "fillRule",
+      "x",
+      "y",
+      "w",
+      "h",
+      "rot",
+      "strokeW",
+      ...GUARDED_CONTENT,
+      "shadow",
+      "blend",
+      "strokeDash",
+      "blur",
+      "bgBlur",
+      "rx",
+      "ry",
+      "start",
+      "dur",
+      "lane"
+    ].some((field2) => !Object.hasOwn(snapshot, field2) && Object.getOwnPropertyDescriptor(prototype, field2))) return null;
+    return snapshot;
+  } catch {
+    return null;
+  }
+}
+function finiteClosedPath(contours) {
+  return Array.isArray(contours) && contours.length === 1 && contours[0]?.closed === true && Array.isArray(contours[0].curves) && contours[0].curves.length > 0 && Array.from(contours[0].curves).every((curve) => Array.isArray(curve) && curve.length === 8 && Array.from(curve).every(Number.isFinite));
+}
+function isPptxPathRow(row, origin = { x: 0, y: 0 }, geometry3, path) {
+  const metadata2 = capturePptxPathMetadata(row);
+  if (!metadata2 || string2(metadata2.kind) !== "path" || !path || !finiteClosedPath(path.contours) || !Number.isFinite(path.rotation ?? 0)) return false;
+  for (const field2 of GUARDED_CONTENT) {
+    if (field2 !== "path" && string2(metadata2[field2]).trim()) return false;
+  }
+  if (!["", "none"].includes(string2(metadata2.shadow)) || !["", "normal"].includes(string2(metadata2.blend)) || !["", "solid"].includes(string2(metadata2.strokeDash)) || !["", "nonzero"].includes(string2(metadata2.fillRule))) return false;
+  if (["blur", "bgBlur", "rx", "ry"].some((field2) => number2(metadata2[field2]) !== 0) || metadata2.start != null || metadata2.dur != null || string2(metadata2.lane) === "seq") return false;
+  const coordinates = geometry3 ?? { x: number2(metadata2.x), y: number2(metadata2.y), w: number2(metadata2.w, 1), h: number2(metadata2.h, 1) };
+  return [coordinates.x - origin.x, coordinates.y - origin.y, coordinates.w, coordinates.h, number2(metadata2.strokeW)].every((value) => Number.isFinite(emu(value)));
+}
 function isPptxPrimitiveRow(row, origin = { x: 0, y: 0 }, geometry3, capturedGradient = false, capture) {
   if (!["", "box"].includes(capture?.kind ?? string2(row.kind)) || !["", "rect", "rounded"].includes(capture?.shapeKind ?? string2(row.shape))) return false;
   for (const field2 of GUARDED_CONTENT) {
@@ -110221,6 +110279,54 @@ function compilePptxCompatRow(row, origin, supplied) {
     ...supplied.stroke ? { stroke: { ...supplied.stroke } } : {}
   };
 }
+function compilePptxCompatPathRow(row, origin, supplied) {
+  if (!supplied?.path || supplied.linear || supplied.capture || !isPptxPathRow(row, origin, supplied.geometry, supplied.path)) {
+    throw new Error("This path needs the legacy native PPTX producer.");
+  }
+  validatePaint2(supplied.fills, supplied.stroke);
+  const geometry3 = supplied.geometry ?? { x: number2(row.x), y: number2(row.y), w: number2(row.w, 1), h: number2(row.h, 1) };
+  const rotation = supplied.path.rotation ?? 0;
+  return {
+    id: string2(row.id),
+    op: "shape",
+    compatibility: "pptx-native-v1",
+    nativePptx: { path: true },
+    box: {
+      x: geometry3.x - origin.x,
+      y: geometry3.y - origin.y,
+      w: Math.max(1 / EMU_PER_PX, geometry3.w),
+      h: Math.max(1 / EMU_PER_PX, geometry3.h)
+    },
+    opacity: 100,
+    shape: { kind: "path", evenOdd: false, contours: supplied.path.contours.map((contour) => ({
+      closed: contour.closed,
+      curves: contour.curves.map((curve) => [...curve])
+    })) },
+    ...rotation !== 0 ? { pose: { rot: rotation, flipH: false, flipV: false } } : {},
+    fills: supplied.fills.map((fill2) => ({ ...fill2 })),
+    ...supplied.stroke ? { stroke: { ...supplied.stroke } } : {}
+  };
+}
+function designDrawPptxPath(op) {
+  if (op.compatibility !== "pptx-native-v1" || !("nativePptx" in op) || !op.nativePptx || typeof op.nativePptx !== "object" || !Object.hasOwn(op.nativePptx, "path") || !("path" in op.nativePptx) || op.nativePptx.path !== true || Object.keys(op.nativePptx).length !== 1) throw new Error("PPTX needs its named native-path compatibility reading.");
+  if (op.words || op.picture || op.clip || op.blend || op.shadow || op.blur || op.outline || op.fillRule || op.pose?.flipH || op.pose?.flipV || op.shape.kind !== "path" || op.shape.evenOdd || op.shape.commands || op.opacity !== 100 || !finiteClosedPath(op.shape.contours)) throw new Error("PPTX native-path evaluation contains unsupported content.");
+  const { x, y, w, h } = op.box;
+  if (![x, y, w, h, op.pose?.rot ?? 0].every(Number.isFinite) || w < 1 / EMU_PER_PX || h < 1 / EMU_PER_PX || ![x, y, w, h].every((value) => Number.isFinite(emu(value)))) throw new Error("PPTX path geometry is not finite or in range.");
+  validatePaint2(op.fills, op.stroke);
+  const fill2 = op.fills[0], stroke = op.stroke;
+  if (fill2 && fill2.kind !== "color") throw new Error("PPTX path paint must be solid.");
+  return {
+    kind: "path",
+    x: emu(x),
+    y: emu(y),
+    cx: Math.max(1, emu(w)),
+    cy: Math.max(1, emu(h)),
+    ...op.pose?.rot ? { rot: op.pose.rot } : {},
+    paths: [{ d: toSvgPathData(op.shape.contours, 1) }],
+    ...fill2 ? { fill: { solid: fill2.color.slice(1), ...fill2.opacity !== void 0 ? { alpha: fill2.opacity } : {} } } : {},
+    ...stroke ? { line: { color: stroke.color.slice(1), w: emu(stroke.width), ...stroke.opacity !== void 0 ? { alpha: stroke.opacity } : {} } } : {}
+  };
+}
 function designDrawPptx(op) {
   if (op.compatibility !== "pptx-native-v1" || !("nativePptx" in op) || !op.nativePptx || typeof op.nativePptx !== "object" || !Object.hasOwn(op.nativePptx, "rounded") || !("rounded" in op.nativePptx) || typeof op.nativePptx.rounded !== "boolean") throw new Error("PPTX needs its named native-primitive compatibility reading.");
   if (op.words || op.picture || op.clip || op.blend || op.shadow || op.blur || op.outline || op.fillRule || op.pose?.flipH || op.pose?.flipV || op.shape.kind !== "rect" || op.opacity !== 100) {
@@ -110272,6 +110378,7 @@ var init_design_draw_pptx = __esm({
   "engine/src/design-draw-pptx.ts"() {
     "use strict";
     init_pptx2();
+    init_path();
     string2 = (value) => typeof value === "string" ? value : "";
     number2 = (value, fallback = 0) => {
       if (typeof value === "number") return Number.isFinite(value) ? value : fallback;
@@ -110648,7 +110755,7 @@ function effectsOf(row, box4, offset, opts, color6) {
 function compileDesignRow(row, offset, opts = {}) {
   if (opts.semantics === "lottie-compat") return compileLottieCompatRow(row, offset, opts.lottieCompat);
   if (opts.semantics === "penpot-compat") return compilePenpotCompatRow(row, offset, opts.penpotCompat);
-  if (opts.semantics === "pptx-compat") return compilePptxCompatRow(row, offset, opts.pptxCompat);
+  if (opts.semantics === "pptx-compat") return opts.pptxCompat?.path ? compilePptxCompatPathRow(row, offset, opts.pptxCompat) : compilePptxCompatRow(row, offset, opts.pptxCompat);
   const design = opts.semantics !== "preview";
   const box4 = design ? { x: Math.round(rowNum2(row, "x")) - offset.x, y: Math.round(rowNum2(row, "y")) - offset.y, w: Math.max(1, Math.round(rowNum2(row, "w", 1))), h: Math.max(1, Math.round(rowNum2(row, "h", 1))) } : { x: rowNum2(row, "x") - offset.x, y: rowNum2(row, "y") - offset.y, w: Math.max(0, rowNum2(row, "w")), h: Math.max(0, rowNum2(row, "h")) };
   const rot = design ? Math.round(rowNum2(row, "rot") * 10) / 10 : rowNum2(row, "rot");
@@ -137375,7 +137482,12 @@ function pathDataOf(row, cx2, cy3) {
       return null;
     }
   }
-  return contours.length ? { d: toSvgPathData(contours, 1), contours, open: paths.length === 1 && paths[0].closed !== true } : null;
+  return contours.length ? {
+    d: toSvgPathData(contours, 1),
+    contours,
+    open: paths.length === 1 && paths[0].closed !== true,
+    singleClosed: paths.length === 1 && paths[0].closed === true
+  } : null;
 }
 function fillOf2(ctx, row, key = "bg") {
   const hit = ctx.palette.resolve(row[key]);
@@ -137484,6 +137596,7 @@ async function lowerLayer(ctx, sink, row, origin, binding, masterStyle, master, 
   };
   const opacity = opacityOf(row);
   if (kind === "path") {
+    const initialMetadata = capturePptxPathMetadata(row);
     if (str9(row, "pathPaint").trim() !== "") {
       ctx.notes.add("a multi-colour vector was left out of the deck; ungroup it in Design first");
       return;
@@ -137516,7 +137629,18 @@ async function lowerLayer(ctx, sink, row, origin, binding, masterStyle, master, 
       ...fill3 ? { fill: withFillAlpha(fill3, opacity) } : {},
       ...line ? { line } : {}
     };
-    sink.shapes.push(shape);
+    const metadata3 = initialMetadata && capturePptxPathMetadata(row);
+    const path = { contours: data.contours, rotation: shape.rot };
+    if (metadata3 && initialMetadata && data.singleClosed && Object.keys(metadata3).length === Object.keys(initialMetadata).length && Object.keys(metadata3).every((field2) => Object.is(metadata3[field2], initialMetadata[field2])) && isPptxPathRow(metadata3, origin, geometry3, path)) {
+      const op = compileDesignRow(metadata3, origin, { semantics: "pptx-compat", pptxCompat: {
+        geometry: geometry3,
+        path,
+        fills: shape.fill && "solid" in shape.fill ? [{ kind: "color", color: `#${shape.fill.solid}`, opacity: shape.fill.alpha }] : [],
+        ...line ? { stroke: { color: `#${line.color}`, opacity: line.alpha, width: strokeW2 } } : {}
+      } });
+      if (op.op !== "shape") throw new Error("PPTX path compilation did not produce a shape.");
+      sink.shapes.push(designDrawPptxPath(op));
+    } else sink.shapes.push(shape);
     return;
   }
   if (kind === "image") {
