@@ -5,12 +5,12 @@ This file exists so you can find the code for a feature without reading all of i
 The counts below are GENERATED - `pnpm run build:web-src-readme`, checked in CI by `pnpm run check:web-src-readme`, so they cannot rot the way the hand-measured ones did. They convey proportion; don't cite them as an API.
 
 <!-- web-src-dirs:start -->
-Roughly 739,000 lines of TypeScript, tests included, and 59,000 lines of CSS.
+Roughly 740,000 lines of TypeScript, tests included, and 59,000 lines of CSS.
 
 | Directory | Source | Tests | CSS |
 |---|---|---|---|
 | `views/` | 511 files, 198,872 lines | 248 files, 79,533 lines | 7 files, 1,440 lines |
-| `lib/` | 775 files, 160,424 lines | 446 files, 86,869 lines | 13 files, 1,819 lines |
+| `lib/` | 778 files, 160,683 lines | 446 files, 86,869 lines | 13 files, 1,819 lines |
 | `bridge/` | 213 files, 52,594 lines | 128 files, 26,244 lines | none |
 | `components/` | 118 files, 27,314 lines | 52 files, 13,350 lines | 21 files, 1,268 lines |
 | `org/` | 74 files, 19,798 lines | 53 files, 16,160 lines | none |
