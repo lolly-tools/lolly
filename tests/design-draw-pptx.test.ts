@@ -6,14 +6,15 @@ import { fileURLToPath } from 'node:url';
 import { readFileSync } from 'node:fs';
 import { build } from 'esbuild';
 import { designFramesToPptx, type DesignPptxOptsV1, type DesignPptxResultV1 } from '../packages/node-shell/src/design-pptx.ts';
-import { EMU_PER_PX, buildPptxParts, type PptxRect } from '../engine/src/pptx.ts';
+import { EMU_PER_PX, buildPptxParts, type PptxPath, type PptxRect } from '../engine/src/pptx.ts';
 import { neutralSlideMaster } from '../engine/src/rebrand-design-system.ts';
 import { seedFrame } from '../engine/src/slide-master.ts';
 import { packPng } from '../engine/src/png.ts';
 import type { DesignBoxRowV1 } from '@lolly-tools/core';
 import { compileDesignDraw, compileDesignRow, type DrawShapeOp } from '../engine/src/design-draw.ts';
-import { capturePptxGradientMetadata, capturePptxSolidMetadata, designDrawPptx, designDrawPptxLayers, isPptxPrimitiveRow } from '../engine/src/design-draw-pptx.ts';
+import { capturePptxGradientMetadata, capturePptxSolidMetadata, capturePptxPathMetadata, designDrawPptx, designDrawPptxLayers, designDrawPptxPath, isPptxPrimitiveRow, isPptxPathRow } from '../engine/src/design-draw-pptx.ts';
 import { makeGeomApi } from '../engine/src/geom-api.ts';
+import type { AuthoredPath } from '../engine/src/geom/spline.ts';
 import { gradSpecFill } from '../packages/node-shell/src/pptx-deck.ts';
 
 /** Complete producer before P3e-3. This retained source imports no drawing compiler or consumer. */
@@ -1735,7 +1736,8 @@ assert.equal(createHash('sha256').update(qualifiedPrimitiveSource).digest('hex')
 const qualifiedBundle = await build({ stdin: { contents: qualifiedProducerSource,
   resolveDir: fileURLToPath(new URL('../packages/node-shell/src/', import.meta.url)), sourcefile: 'qualified-860-design-pptx.ts', loader: 'ts' },
   bundle: true, write: false, platform: 'node', format: 'esm', plugins: [{ name: 'frozen-860-primitive', setup(builder) {
-    builder.onLoad({ filter: /design-draw-pptx\.ts$/ }, () => ({ contents: qualifiedPrimitiveSource, loader: 'ts' }));
+    builder.onLoad({ filter: /design-draw-pptx\.ts$/ }, () => ({ contents: qualifiedPrimitiveSource
+      + '\nexport function compilePptxCompatPathRow(): never { throw new Error("The frozen qualified producer has no path compiler."); }\n', loader: 'ts' }));
   } }] });
 const qualified860 = (await import(`data:text/javascript;base64,${Buffer.from(qualifiedBundle.outputFiles![0]!.text).toString('base64')}`)).designFramesToPptx as typeof designFramesToPptx;
 
@@ -2297,4 +2299,356 @@ test('plain solid and gradient rows remain exact qualified860 outputs and enter 
   const expected = await qualified860(configured(oldTrace)), actual = await probe.designFramesToPptx(configured(newTrace));
   assert.deepEqual(actual, expected); assert.deepEqual(parts(actual), parts(expected)); assert.deepEqual(newTrace, oldTrace);
   assert.deepEqual(probe.capturedPptxEvaluations.filter(op => op.id.startsWith('plain-')).map(op => op.id), ['plain-flat', 'plain-rounded', 'plain-linear']);
+});
+
+function nativePath(kind: AuthoredPath['kind'] = 'line', closed = true): AuthoredPath {
+  return { kind, closed, ...(kind === 'catmull-rom' ? { tension: 0.5 } : {}), nodes: [
+    { x: -0.125, y: 0.125, hInX: -0.125, hInY: 0.0625, hOutX: 0.25, hOutY: -0.125 },
+    { x: 0.875, y: -0.0625, hInX: -0.25, hInY: 0.125, hOutX: 0.125, hOutY: 0.25 },
+    { x: 1.0625, y: 0.875, hInX: 0.0625, hInY: -0.25, hOutX: -0.375, hOutY: 0.125 },
+    { x: 0.125, y: 1.125, hInX: 0.25, hInY: -0.0625, hOutX: -0.125, hOutY: -0.375 },
+  ] };
+}
+
+function encodedNativePath(paths: AuthoredPath[] = [nativePath()]): string {
+  const encoded = makeGeomApi().encodeAuthored(paths);
+  assert.ok(encoded.ok); return encoded.value;
+}
+
+function nativePathFixture(rows: DesignBoxRowV1[], trace: string[] = []): DesignPptxOptsV1 {
+  const out = fixture(trace); out.frames[0]!.layers.push(...rows); return out;
+}
+
+function nativePathRow(id: string, fields: DesignBoxRowV1 = {}): DesignBoxRowV1 {
+  return { id, kind: 'path', path: encodedNativePath(), x: 120.375, y: -10.625, w: 80.125, h: 40.375,
+    bg: '#abcdef80', stroke: '#12345680', strokeW: 1.125, opacity: 33.3333, ...fields };
+}
+
+function nativePaths(result: DesignPptxResultV1): PptxPath[] {
+  return result.slides[0]!.shapes.filter((shape): shape is PptxPath => shape.kind === 'path');
+}
+
+test('single closed native paths retain both independent producers across spline, EMU, mirror and alpha cases', async () => {
+  const cases: DesignBoxRowV1[] = [
+    {}, { x: -100.000051, y: -50.125, w: 17.000051, h: 0.333333, flipH: true },
+    { w: 0.000001, h: -5, strokeW: 0.000001, flipV: 'yes', opacity: 0 },
+    { w: -80, h: -40, flipH: '1', flipV: true, opacity: 99.99999, bg: '#abcdef' },
+    { x: '0x10', y: '50%', w: '12.5', h: '7px', strokeW: '0.125', opacity: '42.5', rot: '-12.345' },
+    { bg: 'color.semantic.primary', stroke: 'var(--edge, #abcdef80)', opacity: 100.01, strokeW: 2.125 },
+  ];
+  const rows = (['line', 'cubic', 'catmull-rom', 'bspline'] as const).flatMap(kind => cases.map((fields, index) =>
+    nativePathRow(`native-path-${kind}-${index}`, { path: encodedNativePath([nativePath(kind)]), ...fields })));
+  const configure = (trace: string[]) => nativePathFixture(structuredClone(rows), trace);
+  const originalTrace: string[] = [], qualifiedTrace: string[] = [], actualTrace: string[] = [];
+  const expected = await legacy(configure(originalTrace)), qualified = await qualified860(configure(qualifiedTrace));
+  const actual = await designFramesToPptx(configure(actualTrace));
+  assert.deepEqual(qualified, expected); assert.deepEqual(actual, expected);
+  assert.deepEqual(parts(qualified), parts(expected)); assert.deepEqual(parts(actual), parts(expected));
+  assert.deepEqual(qualifiedTrace, originalTrace); assert.deepEqual(actualTrace, originalTrace);
+  const shapes = nativePaths(expected); assert.equal(shapes.length, rows.length);
+  for (let index = 0; index < shapes.length; index++) {
+    const shape = shapes[index]!; assert.equal(shape.paths.length, 1); assert.match(shape.paths[0]!.d, /^M.+[LC].+Z$/);
+    assert.ok(shape.fill && 'solid' in shape.fill); assert.ok(shape.line);
+    if (index % cases.length === 2) {
+      assert.equal(shape.cx, 1); assert.equal(shape.cy, 1); assert.equal(shape.line.w, 0);
+      assert.equal(shape.fill.alpha, 0); assert.equal(shape.line.alpha, 0);
+    }
+    if (index % cases.length === 0) { assert.equal(shape.fill.alpha, 0.167); assert.equal(shape.line.alpha, 0.167); }
+  }
+  const control = structuredClone(expected), target = nativePaths(control)[0]!;
+  for (const mutate of [
+    (shape: PptxPath) => { shape.x += 1; },
+    (shape: PptxPath) => { shape.paths[0]!.d = shape.paths[0]!.d.replace(/[LC][^LCMZ]+/, ''); },
+    (shape: PptxPath) => { shape.paths[0]!.d = shape.paths[0]!.d.replace(/^M[^ ]+/, 'M1'); },
+    (shape: PptxPath) => { shape.paths[0]!.d = shape.paths[0]!.d.replace(/Z$/, ''); },
+    (shape: PptxPath) => { if (shape.fill && 'solid' in shape.fill) shape.fill.alpha = 0.168; },
+    (shape: PptxPath) => { shape.line!.w += 1; },
+  ]) {
+    const changed = structuredClone(control); mutate(nativePaths(changed)[0]!);
+    assert.throws(() => assert.deepEqual(changed, expected)); assert.throws(() => assert.deepEqual(parts(changed), parts(expected)));
+  }
+  assert.ok(/[LC]/.test(target.paths[0]!.d));
+});
+
+test('native paths retain early decoded geometry and mirrors while palette callbacks precede live stroke and rotation', async () => {
+  const configure = (trace: string[]): DesignPptxOptsV1 => {
+    const row = nativePathRow('callback-native-path', { bg: 'var(--path-fill)', stroke: 'var(--path-stroke)', rot: 0 });
+    const out = nativePathFixture([row], trace), prior = out.cssVars;
+    out.cssVars = css => {
+      if (css === '--path-fill') {
+        trace.push('path-fill'); row.x = 999; row.y = 888; row.w = 777; row.h = 666;
+        row.path = encodedNativePath([nativePath('bspline')]); row.flipH = true; row.flipV = true; row.opacity = 0;
+        row.strokeW = 2.125; row.rot = 11.125; return '#abcdef80';
+      }
+      if (css === '--path-stroke') { trace.push('path-stroke'); row.strokeW = 3.125; row.rot = 17.125; return '#12345680'; }
+      return prior?.(css);
+    };
+    return out;
+  };
+  const originalTrace: string[] = [], qualifiedTrace: string[] = [], actualTrace: string[] = [];
+  const expected = await legacy(configure(originalTrace)), qualified = await qualified860(configure(qualifiedTrace));
+  const actual = await designFramesToPptx(configure(actualTrace));
+  assert.deepEqual(qualified, expected); assert.deepEqual(actual, expected);
+  assert.deepEqual(parts(actual), parts(expected)); assert.deepEqual(parts(qualified), parts(expected));
+  assert.deepEqual(actualTrace, originalTrace); assert.deepEqual(qualifiedTrace, originalTrace);
+  assert.deepEqual(originalTrace.filter(item => item.startsWith('path-')), ['path-fill', 'path-stroke']);
+  const shape = nativePaths(expected)[0]!;
+  assert.equal(shape.x, Math.round(20.125 * EMU_PER_PX)); assert.equal(shape.y, Math.round(9.5 * EMU_PER_PX));
+  assert.equal(shape.cx, Math.round(80.125 * EMU_PER_PX)); assert.equal(shape.cy, Math.round(40.375 * EMU_PER_PX));
+  assert.equal(shape.rot, 17.125); assert.equal(shape.line!.w, Math.round(3.125 * EMU_PER_PX));
+  assert.ok(shape.fill && 'solid' in shape.fill); assert.equal(shape.fill.alpha, 0.167); assert.equal(shape.line!.alpha, 0.167);
+});
+
+test('path accessors and inherited guards keep exact original read and resolver order without descriptor probes', async () => {
+  for (const field of ['path', 'pathPaint', 'fillRule', 'flipH', 'flipV', 'bg', 'stroke', 'strokeW', 'rot', 'w', 'h', 'opacity', 'shadow', 'grad', 'inherited-path'] as const) {
+    const configure = (trace: string[], reads: { value: number }): DesignPptxOptsV1 => {
+      const row = nativePathRow(`accessor-path-${field}`), key = field === 'inherited-path' ? 'path' : field;
+      const descriptor = { enumerable: true, get() {
+        reads.value++; trace.push(`get:${key}:${reads.value}`);
+        if (key === 'path') return encodedNativePath([nativePath(reads.value === 1 ? 'line' : 'cubic')]);
+        if (key === 'flipH' || key === 'flipV') return reads.value % 2 === 1;
+        if (key === 'bg' || key === 'stroke') return reads.value === 1 ? '#abcdef80' : '#12345680';
+        if (key === 'w' || key === 'h' || key === 'strokeW') return 1.125 + reads.value;
+        if (key === 'rot') return reads.value === 1 ? 0 : 17.125;
+        if (key === 'opacity') return 25 + reads.value;
+        return key === 'shadow' ? 'none' : '';
+      } };
+      if (field === 'inherited-path') { const prototype = {}; Object.defineProperty(prototype, key, descriptor); Object.setPrototypeOf(row, prototype); delete row.path; }
+      else Object.defineProperty(row, key, descriptor);
+      return nativePathFixture([row], trace);
+    };
+    const originalReads = { value: 0 }, qualifiedReads = { value: 0 }, actualReads = { value: 0 };
+    const originalTrace: string[] = [], qualifiedTrace: string[] = [], actualTrace: string[] = [];
+    const expected = await legacy(configure(originalTrace, originalReads)), qualified = await qualified860(configure(qualifiedTrace, qualifiedReads));
+    const actual = await designFramesToPptx(configure(actualTrace, actualReads));
+    assert.ok(originalReads.value > 0, field); assert.deepEqual(qualifiedReads, originalReads, field); assert.deepEqual(actualReads, originalReads, field);
+    assert.deepEqual(actualTrace, originalTrace, field); assert.deepEqual(qualifiedTrace, originalTrace, field);
+    assert.deepEqual(actual, expected, field); assert.deepEqual(qualified, expected, field);
+    assert.deepEqual(parts(actual), parts(expected), field); assert.deepEqual(parts(qualified), parts(expected), field);
+  }
+});
+
+test('native path fallback families preserve full results, notes, heads and fixed-time archive output', async () => {
+  const open = encodedNativePath([nativePath('cubic', false)]), multiple = encodedNativePath([nativePath(), nativePath('cubic')]);
+  const rows = [
+    nativePathRow('fallback-open', { path: open, headStart: 'triangle', headEnd: 'circle' }),
+    nativePathRow('fallback-multiple', { path: multiple, fillRule: 'evenodd' }),
+    nativePathRow('fallback-color', { pathPaint: 'color.semantic.primary' }),
+    nativePathRow('fallback-gradient', { grad: 'lin_30_red-0_blue-100' }),
+    nativePathRow('fallback-dashed', { strokeDash: 'dashed' }),
+    nativePathRow('fallback-motion', { enter: 'fade' }),
+    nativePathRow('fallback-shadow', { shadow: 'depth' }),
+    nativePathRow('fallback-bad', { path: '%invalid' }),
+    nativePathRow('fallback-hidden', { hidden: 'yes' }),
+    nativePathRow('fallback-empty', { path: '' }),
+  ];
+  const configure = (trace: string[]) => nativePathFixture(structuredClone(rows), trace);
+  const originalTrace: string[] = [], qualifiedTrace: string[] = [], actualTrace: string[] = [];
+  const expected = await legacy(configure(originalTrace)), qualified = await qualified860(configure(qualifiedTrace));
+  const actual = await designFramesToPptx(configure(actualTrace));
+  assert.deepEqual(qualified, expected); assert.deepEqual(actual, expected);
+  assert.deepEqual(parts(qualified), parts(expected)); assert.deepEqual(parts(actual), parts(expected));
+  assert.deepEqual(qualifiedTrace, originalTrace); assert.deepEqual(actualTrace, originalTrace);
+  assert.ok(expected.notes.some(note => note.includes('dashed outline'))); assert.ok(expected.notes.some(note => note.includes('animation')));
+  assert.ok(expected.notes.some(note => note.includes('multi-colour'))); assert.ok(expected.notes.some(note => note.includes('could not be read')));
+  const shape = nativePaths(expected)[0]!; assert.ok(shape.line?.head); assert.ok(shape.line?.tail);
+  assert.equal(shape.paths[0]!.d.includes('Z'), false);
+});
+
+async function pathCompilerProbe(mutation: 'point' | 'closed' | 'alpha' | 'stroke' | undefined = undefined, original = false) {
+  const source = original ? qualifiedProducerSource : readFileSync(new URL('../packages/node-shell/src/design-pptx.ts', import.meta.url), 'utf8');
+  const declaration = "import { compileDesignRow } from '../../../engine/src/design-draw.ts';";
+  assert.equal(source.split(declaration).length, 2);
+  const mutations = {
+    point: "for (const curve of op.shape.contours[0].curves) for (let i = 0; i < curve.length; i += 2) curve[i] += 1;",
+    closed: 'op.shape.contours[0].closed = false;',
+    alpha: 'op.fills[0].opacity += 0.001;',
+    stroke: 'op.stroke.width += 1 / 9525;',
+  };
+  const contents = source.replace(declaration, "import { compileDesignRow as originalCompileDesignRow } from '../../../engine/src/design-draw.ts';") + `
+export const capturedPptxEvaluations: ReturnType<typeof originalCompileDesignRow>[] = [];
+function compileDesignRow(...args: Parameters<typeof originalCompileDesignRow>) {
+  const op = originalCompileDesignRow(...args);
+  capturedPptxEvaluations.push(op);
+  ${mutation ? `if (op.shape.kind === 'path' && op.id === 'admitted-path-line') { ${mutations[mutation]} }` : ''}
+  return op;
+}
+`;
+  const out = await build({ stdin: { contents, resolveDir: fileURLToPath(new URL('../packages/node-shell/src/', import.meta.url)),
+    sourcefile: 'pptx-path-admission-probe.ts', loader: 'ts' }, bundle: true, write: false, platform: 'node', format: 'esm' });
+  return await import(`data:text/javascript;base64,${Buffer.from(out.outputFiles![0]!.text).toString('base64')}#path-probe-${++compilerProbeId}`) as {
+    designFramesToPptx: typeof designFramesToPptx; capturedPptxEvaluations: DrawShapeOp[];
+  };
+}
+
+test('the real native exporter admits evaluated closed paths and exact compiler mutations cannot pass the producer oracle', async () => {
+  const accepted = (['line', 'cubic', 'catmull-rom', 'bspline'] as const).map(kind =>
+    nativePathRow(`admitted-path-${kind}`, { path: encodedNativePath([nativePath(kind)]) }));
+  accepted.push(nativePathRow('admitted-path-tiny', { w: 0.000001, h: -5, strokeW: 0.000001, opacity: 0, flipH: true, flipV: true }),
+    nativePathRow('admitted-path-no-paint', { bg: '', stroke: '', strokeW: 0 }),
+    nativePathRow('admitted-path-no-line', { strokeW: -1, bg: 'color.semantic.primary' }));
+  const fallback = [
+    nativePathRow('not-admitted-path-open', { path: encodedNativePath([nativePath('line', false)]) }),
+    nativePathRow('not-admitted-path-multiple', { path: encodedNativePath([nativePath(), nativePath('cubic')]) }),
+    nativePathRow('not-admitted-path-evenodd', { fillRule: 'evenodd' }),
+    nativePathRow('not-admitted-path-head', { headStart: 'triangle' }),
+    nativePathRow('not-admitted-path-dash', { strokeDash: 'dotted' }),
+    nativePathRow('not-admitted-path-gradient', { grad: 'lin_30_red-0_blue-100' }),
+    nativePathRow('not-admitted-path-motion', { enter: 'fade' }),
+    nativePathRow('not-admitted-path-sequence', { start: 0, dur: 0, lane: 'seq' }),
+    nativePathRow('not-admitted-path-paint', { pathPaint: 'color.semantic.primary' }),
+    nativePathRow('not-admitted-path-malformed', { path: 'bad' }),
+  ];
+  const configure = (): DesignPptxOptsV1 => {
+    const accessor = nativePathRow('not-admitted-path-accessor');
+    Object.defineProperty(accessor, 'path', { get: () => encodedNativePath() });
+    const inherited = nativePathRow('not-admitted-path-inherited');
+    Object.setPrototypeOf(inherited, { shadow: 'none' });
+    return nativePathFixture([...structuredClone(accepted), ...structuredClone(fallback), accessor, inherited]);
+  };
+  const expected = await legacy(configure()), qualified = await qualified860(configure());
+  const baselineProbe = await pathCompilerProbe(undefined, true), baseline = await baselineProbe.designFramesToPptx(configure());
+  assert.deepEqual(baseline, expected); assert.deepEqual(qualified, expected); assert.deepEqual(parts(baseline), parts(expected));
+  const acceptedIds = accepted.map(row => row.id);
+  assert.throws(() => assert.deepEqual(baselineProbe.capturedPptxEvaluations.filter(op => op.shape.kind === 'path').map(op => op.id), acceptedIds),
+    'the unchanged qualified producer cannot satisfy path admission merely by matching output');
+  const probe = await pathCompilerProbe(), actual = await probe.designFramesToPptx(configure());
+  assert.deepEqual(actual, expected); assert.deepEqual(parts(actual), parts(expected));
+  assert.deepEqual(probe.capturedPptxEvaluations.filter(op => op.shape.kind === 'path').map(op => op.id), acceptedIds);
+  for (const mutation of ['point', 'alpha', 'stroke'] as const) {
+    const tampered = await (await pathCompilerProbe(mutation)).designFramesToPptx(configure());
+    assert.throws(() => assert.deepEqual(tampered, expected), mutation);
+    assert.throws(() => assert.deepEqual(parts(tampered), parts(expected)), mutation);
+  }
+  await assert.rejects((await pathCompilerProbe('closed')).designFramesToPptx(configure()));
+});
+
+test('palette changes to path admission metadata retain the already-read native shape without new compiler reads', async () => {
+  for (const field of ['path', 'shadow', 'strokeDash', 'fillRule', 'enter', 'strokeW', 'kind'] as const) {
+    const configure = (trace: string[]): DesignPptxOptsV1 => {
+      const row = nativePathRow(`callback-guard-path-${field}`, { bg: 'var(--path-guard)' });
+      const out = nativePathFixture([row], trace), prior = out.cssVars;
+      out.cssVars = css => {
+        if (css !== '--path-guard') return prior?.(css);
+        trace.push(`mutate:${field}`);
+        row[field] = field === 'path' ? encodedNativePath([nativePath('cubic')]) : field === 'strokeW' ? 3.125
+          : field === 'shadow' ? 'depth' : field === 'strokeDash' ? 'dashed' : field === 'fillRule' ? 'evenodd' : field === 'kind' ? 'box' : 'fade';
+        return '#abcdef80';
+      };
+      return out;
+    };
+    const originalTrace: string[] = [], actualTrace: string[] = [], qualifiedTrace: string[] = [];
+    const expected = await legacy(configure(originalTrace)), qualified = await qualified860(configure(qualifiedTrace)), probe = await pathCompilerProbe();
+    const actual = await probe.designFramesToPptx(configure(actualTrace));
+    assert.deepEqual(actual, expected, field); assert.deepEqual(qualified, expected, field);
+    assert.deepEqual(parts(actual), parts(expected), field); assert.deepEqual(parts(qualified), parts(expected), field);
+    assert.deepEqual(actualTrace, originalTrace, field); assert.deepEqual(qualifiedTrace, originalTrace, field);
+    assert.deepEqual(probe.capturedPptxEvaluations.filter(op => op.id.startsWith('callback-guard-path-')), [], field);
+  }
+});
+
+test('native path compilation owns EMU contours and emitted records without rereading its supplied facts', () => {
+  const row = nativePathRow('direct-path', { x: 20.125, y: -1.5, w: 100 / EMU_PER_PX, h: 50 / EMU_PER_PX });
+  const supplied = { geometry: { x: 20.125, y: -1.5, w: 100 / EMU_PER_PX, h: 50 / EMU_PER_PX },
+    path: { rotation: -17.125, contours: [{ closed: true, curves: [
+      [0, 0, 0, 0, 100, 0, 100, 0], [100, 0, 100, 0, 100, 50, 100, 50], [100, 50, 100, 50, 0, 0, 0, 0],
+    ] }] }, fills: [{ kind: 'color' as const, color: '#abcdef', opacity: 0.167 }],
+    stroke: { color: '#123456', width: 1 / EMU_PER_PX, opacity: 0.125 } };
+  const typed = supplied as NonNullable<Parameters<typeof compileDesignRow>[2]>['pptxCompat'];
+  assert.ok(isPptxPathRow(row, { x: 0.125, y: -2 }, typed!.geometry, typed!.path));
+  const op = compileDesignRow(row, { x: 0.125, y: -2 }, { semantics: 'pptx-compat', pptxCompat: typed });
+  assert.equal(op.op, 'shape'); assert.equal((op as DrawShapeOp).shape.kind, 'path');
+  const expected: PptxPath = { kind: 'path', x: 190500, y: 4763, cx: 100, cy: 50, rot: -17.125,
+    paths: [{ d: 'M0 0C0 0 100 0 100 0C100 0 100 50 100 50C100 50 0 0 0 0Z' }], fill: { solid: 'abcdef', alpha: 0.167 }, line: { color: '123456', w: 1, alpha: 0.125 } };
+  assert.deepEqual(designDrawPptxPath(op as DrawShapeOp), expected);
+  supplied.path.contours[0]!.curves[0]![0] = 777; supplied.path.contours[0]!.curves.push([1, 2, 3, 4, 5, 6, 7, 8]);
+  supplied.path.rotation = 90; supplied.fills[0]!.color = '#ffffff'; supplied.stroke.opacity = 1; supplied.geometry.x = 999;
+  row.path = 'bad'; row.w = 999; row.bg = '#000000';
+  assert.deepEqual(designDrawPptxPath(op as DrawShapeOp), expected);
+  const emitted = designDrawPptxPath(op as DrawShapeOp); emitted.paths[0]!.d = 'M9 9Z'; emitted.paths.push({ d: 'M0 0Z' });
+  emitted.line!.w = 10; if (emitted.fill && 'solid' in emitted.fill) emitted.fill.solid = 'ffffff';
+  assert.deepEqual(designDrawPptxPath(op as DrawShapeOp), expected);
+  assert.throws(() => designDrawPptx(op as DrawShapeOp)); assert.throws(() => designDrawPptxLayers(op as DrawShapeOp));
+});
+
+test('native path admission and consumer refuse malformed tuples, other readings and unsupported evaluation content', () => {
+  const row = nativePathRow('guarded-path'), raw = { geometry: { x: 1, y: 2, w: 80, h: 40 }, path: {
+    contours: [{ closed: true, curves: [[0, 0, 0, 0, 10, 0, 10, 0], [10, 0, 10, 0, 0, 0, 0, 0]] }], rotation: 0 },
+    fills: [{ kind: 'color' as const, color: '#abcdef', opacity: 0.5 }] };
+  const typed = raw as NonNullable<Parameters<typeof compileDesignRow>[2]>['pptxCompat'];
+  const op = compileDesignRow(row, { x: 0, y: 0 }, { semantics: 'pptx-compat', pptxCompat: typed }) as DrawShapeOp;
+  for (const contours of [[], [{ closed: false, curves: raw.path.contours[0]!.curves }],
+    [...raw.path.contours, ...raw.path.contours], [{ closed: true, curves: [] }],
+    [{ closed: true, curves: [[0, 0, 0, 0, 1, 1, 2]] }], [{ closed: true, curves: [[0, 0, 0, 0, 1, 1, 2, NaN]] }],
+    [{ closed: true, curves: [[0, 0, 0, 0, 1, 1, 2, Infinity]] }],
+    [{ closed: true, curves: [new Array(8)] }], [{ closed: true, curves: new Array(1) }], new Array(1)]) {
+    const path = { ...typed!.path!, contours } as NonNullable<NonNullable<typeof typed>['path']>;
+    assert.equal(isPptxPathRow(row, undefined, raw.geometry, path), false);
+    assert.throws(() => compileDesignRow(row, { x: 0, y: 0 }, { semantics: 'pptx-compat', pptxCompat: { ...typed!, path } }));
+    assert.throws(() => designDrawPptxPath({ ...op, shape: { kind: 'path', evenOdd: false, contours: path.contours } }));
+  }
+  for (const fields of [
+    { compatibility: 'design' }, { opacity: 50 }, { fillRule: 'evenodd' }, { clip: { box: op.box, shape: { kind: 'rect', radius: 0 } } },
+    { shape: { kind: 'rect', radius: 0 } }, { shape: { ...op.shape, evenOdd: true } }, { shape: { ...op.shape, commands: [] } },
+    { nativePptx: { path: false } }, { nativePptx: { rounded: false } }, { nativePptx: { path: true, linear: { angle: 30, stops: [] } } },
+    { pose: { rot: 0, flipH: true, flipV: false } }, { pose: { rot: Infinity, flipH: false, flipV: false } },
+    { box: { ...op.box, w: 0 } }, { box: { ...op.box, h: NaN } }, { box: { ...op.box, x: Number.MAX_VALUE } },
+    { fills: [{ kind: 'color', color: 'var(--private)' }] }, { fills: [{ kind: 'color', color: '#ffffff', opacity: 2 }] },
+    { stroke: { color: '#ffffff', width: 1, align: 'inside' } }, { stroke: { color: '#ffffff', width: -1 } },
+  ]) assert.throws(() => designDrawPptxPath({ ...op, ...fields } as DrawShapeOp));
+  let reads = 0; const accessor = nativePathRow('guard-accessor');
+  Object.defineProperty(accessor, 'path', { get() { reads++; return encodedNativePath(); } });
+  assert.equal(capturePptxPathMetadata(accessor), null); assert.equal(isPptxPathRow(accessor, undefined, raw.geometry, typed!.path), false);
+  const inherited = nativePathRow('guard-inherited'); Object.setPrototypeOf(inherited, { get fillRule() { reads++; return ''; } });
+  assert.equal(capturePptxPathMetadata(inherited), null); assert.equal(reads, 0);
+  const rect = compileDesignRow({ id: 'rect', kind: 'box', w: 80, h: 40 }, { x: 0, y: 0 }, { semantics: 'pptx-compat', pptxCompat: { fills: [] } }) as DrawShapeOp;
+  assert.throws(() => designDrawPptxPath(rect));
+});
+
+test('Proxy descriptor observations are explicit outside the plain-row native path conformance claim', async () => {
+  const configure = (reads: string[], descriptors: string[]) => {
+    const target = nativePathRow('proxy-path');
+    const row = new Proxy(target, {
+      get(value, key, receiver) { reads.push(String(key)); return Reflect.get(value, key, receiver); },
+      ownKeys(value) { descriptors.push('ownKeys'); return Reflect.ownKeys(value); },
+      getPrototypeOf(value) { descriptors.push('prototype'); return Reflect.getPrototypeOf(value); },
+      getOwnPropertyDescriptor(value, key) { descriptors.push(`descriptor:${String(key)}`); return Reflect.getOwnPropertyDescriptor(value, key); },
+    });
+    return nativePathFixture([row]);
+  };
+  const originalReads: string[] = [], originalDescriptors: string[] = [], actualReads: string[] = [], actualDescriptors: string[] = [];
+  const expected = await legacy(configure(originalReads, originalDescriptors)), actual = await designFramesToPptx(configure(actualReads, actualDescriptors));
+  assert.deepEqual(actual, expected); assert.deepEqual(parts(actual), parts(expected)); assert.deepEqual(actualReads, originalReads);
+  assert.equal(originalDescriptors.length, 0); assert.ok(actualDescriptors.includes('ownKeys'));
+  assert.ok(actualDescriptors.some(item => item === 'descriptor:path'), 'descriptor traps are observable even though ordinary property reads match');
+});
+
+test('reflection refusal keeps original path lowering while original authored getter errors remain errors', async () => {
+  for (const trap of ['getPrototypeOf', 'ownKeys', 'getOwnPropertyDescriptor'] as const) {
+    const reflectionError = new Error(`reflection-${trap}`);
+    const configure = (reads: string[]) => {
+      const row = new Proxy(nativePathRow(`refused-proxy-${trap}`), {
+        get(value, key, receiver) { reads.push(String(key)); return Reflect.get(value, key, receiver); },
+        getPrototypeOf(value) { if (trap === 'getPrototypeOf') throw reflectionError; return Reflect.getPrototypeOf(value); },
+        ownKeys(value) { if (trap === 'ownKeys') throw reflectionError; return Reflect.ownKeys(value); },
+        getOwnPropertyDescriptor(value, key) { if (trap === 'getOwnPropertyDescriptor') throw reflectionError; return Reflect.getOwnPropertyDescriptor(value, key); },
+      });
+      assert.equal(capturePptxPathMetadata(row), null);
+      return nativePathFixture([row]);
+    };
+    const originalReads: string[] = [], actualReads: string[] = [], qualifiedReads: string[] = [];
+    const expected = await legacy(configure(originalReads)), qualified = await qualified860(configure(qualifiedReads));
+    const probe = await pathCompilerProbe(), actual = await probe.designFramesToPptx(configure(actualReads));
+    assert.deepEqual(actual, expected, trap); assert.deepEqual(qualified, expected, trap);
+    assert.deepEqual(parts(actual), parts(expected), trap); assert.deepEqual(parts(qualified), parts(expected), trap);
+    assert.deepEqual(actualReads, originalReads, trap); assert.deepEqual(qualifiedReads, originalReads, trap);
+    assert.deepEqual(probe.capturedPptxEvaluations.filter(op => op.shape.kind === 'path'), [], trap);
+  }
+  const authoredError = new Error('authored path getter');
+  const configure = () => {
+    const row = nativePathRow('throwing-authored-path');
+    Object.defineProperty(row, 'path', { get() { throw authoredError; } });
+    return nativePathFixture([row]);
+  };
+  for (const producer of [legacy, qualified860, designFramesToPptx]) await assert.rejects(producer(configure()), error => error === authoredError);
 });

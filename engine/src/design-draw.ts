@@ -34,7 +34,7 @@ import type { SubPath } from './svg-path.ts';
 import { compileLottieCompatRow } from './design-draw-lottie.ts';
 export { lottieCompatNumber } from './design-draw-lottie.ts';
 import { compilePenpotCompatRow } from './design-draw-penpot.ts';
-import { compilePptxCompatRow } from './design-draw-pptx.ts';
+import { compilePptxCompatPathRow, compilePptxCompatRow } from './design-draw-pptx.ts';
 import { toCubics } from './geom/spline.ts';
 import { colorToHexString } from './css-color.ts';
 import { gradientSpecStops, parseGradientSpec } from './gradient-spec.ts';
@@ -521,6 +521,8 @@ export interface DesignDrawCompileOpts {
     capture?: { geometry: DrawBox; opacity: number; rotation: number; shapeKind: string } };
   /** Native deck paints after the producer folds and rounds alpha, in its original callback order. */
   pptxCompat?: { fills: DrawPaint[]; stroke?: DrawStroke; geometry?: DrawBox;
+    /** Native box-local EMU contours, already decoded and mirrored before paint callbacks. */
+    path?: { contours: Contour[]; rotation?: number };
     linear?: { angle: number; stops: Array<{ offset: number; color: string; opacity?: number }> };
     capture?: { kind: string; shapeKind: string; radius: number; strokeWidth: number; rotation?: number; underlayRotation?: number } };
 }
@@ -581,7 +583,8 @@ function effectsOf(row: DesignBoxRowV1, box: DrawBox, offset: { x: number; y: nu
 export function compileDesignRow(row: DesignBoxRowV1, offset: { x: number; y: number }, opts: DesignDrawCompileOpts = {}): DrawOp {
   if (opts.semantics === 'lottie-compat') return compileLottieCompatRow(row, offset, opts.lottieCompat);
   if (opts.semantics === 'penpot-compat') return compilePenpotCompatRow(row, offset, opts.penpotCompat);
-  if (opts.semantics === 'pptx-compat') return compilePptxCompatRow(row, offset, opts.pptxCompat);
+  if (opts.semantics === 'pptx-compat') return opts.pptxCompat?.path
+    ? compilePptxCompatPathRow(row, offset, opts.pptxCompat) : compilePptxCompatRow(row, offset, opts.pptxCompat);
   const design = opts.semantics !== 'preview';
   // Design places a box on whole pixels, at least one pixel each way, turned in tenths of a degree.
   const box: DrawBox = design

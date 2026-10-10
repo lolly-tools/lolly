@@ -63,7 +63,7 @@ import { contourArea, toSvgPathData, type Contour } from '../../../engine/src/ge
 import { toCubics } from '../../../engine/src/geom/spline.ts';
 import { deltaEOkSrgb } from '../../../engine/src/brand-derive.ts';
 import { compileDesignRow } from '../../../engine/src/design-draw.ts';
-import { capturePptxGradientMetadata, capturePptxSolidMetadata, designDrawPptx, designDrawPptxLayers, isPptxPrimitiveRow } from '../../../engine/src/design-draw-pptx.ts';
+import { capturePptxGradientMetadata, capturePptxPathMetadata, capturePptxSolidMetadata, designDrawPptx, designDrawPptxLayers, designDrawPptxPath, isPptxPathRow, isPptxPrimitiveRow } from '../../../engine/src/design-draw-pptx.ts';
 import { deckColor, deckTransition, deckWeight, nameStaticFaces, type DeckColorResolver, type DeckNotes, type ShipsFace, type WeightedRun } from './pptx-deck.ts';
 import { deckPicLook, deckPlacePicture, deckSvgBakeRaster, deckSvgIntrinsicSize, gradSpecFill, isLinearGradSpec, PICTURE_FITS, type DeckIntrinsicSize, type PictureFit } from './pptx-deck.ts';
 
@@ -726,7 +726,7 @@ function foldAlpha(alpha: number | undefined, opacity: number): number | undefin
  * not decode. `open` says the value is one open contour, the only shape with two
  * ends for arrowheads, judged on the decoded value the way the renderer judges a value.
  */
-function pathDataOf(row: DesignBoxRowV1, cx: number, cy: number): { d: string; contours: Contour[]; open: boolean } | null {
+function pathDataOf(row: DesignBoxRowV1, cx: number, cy: number): { d: string; contours: Contour[]; open: boolean; singleClosed: boolean } | null {
   const paths = decodeAuthoredPaths(str(row, 'path'));
   if (!paths || paths.length === 0) return null;
   // A mirrored row is drawn mirrored within its own box, so the deck shape needs no flip.
@@ -752,7 +752,8 @@ function pathDataOf(row: DesignBoxRowV1, cx: number, cy: number): { d: string; c
   }
   // One decimal, not none: `toSvgPathData` trims trailing zeros, and at no decimals it
   // trims them off whole numbers too, so 1524000 EMU would be written as 1524.
-  return contours.length ? { d: toSvgPathData(contours, 1), contours, open: paths.length === 1 && paths[0]!.closed !== true } : null;
+  return contours.length ? { d: toSvgPathData(contours, 1), contours, open: paths.length === 1 && paths[0]!.closed !== true,
+    singleClosed: paths.length === 1 && paths[0]!.closed === true } : null;
 }
 
 /** `true` for a row the render does not paint at all. */
@@ -918,6 +919,7 @@ async function lowerLayer(
   const opacity = opacityOf(row);
 
   if (kind === 'path') {
+    const initialMetadata = capturePptxPathMetadata(row);
     // A path row is custom geometry in the deck (plan 275 decision 32): its nodes
     // lowered to cubics in the shape's own EMU box, its fill and line kept, and its
     // opacity folded into both colours' alpha.
@@ -953,7 +955,19 @@ async function lowerLayer(
       ...(fill ? { fill: withFillAlpha(fill, opacity) } : {}),
       ...(line ? { line } : {}),
     };
-    sink.shapes.push(shape);
+    const metadata = initialMetadata && capturePptxPathMetadata(row);
+    const path = { contours: data.contours, rotation: shape.rot };
+    if (metadata && initialMetadata && data.singleClosed && Object.keys(metadata).length === Object.keys(initialMetadata).length
+      && Object.keys(metadata).every(field => Object.is(metadata[field], initialMetadata[field]))
+      && isPptxPathRow(metadata, origin, geometry, path)) {
+      const op = compileDesignRow(metadata, origin, { semantics: 'pptx-compat', pptxCompat: {
+        geometry, path,
+        fills: shape.fill && 'solid' in shape.fill ? [{ kind: 'color', color: `#${shape.fill.solid}`, opacity: shape.fill.alpha }] : [],
+        ...(line ? { stroke: { color: `#${line.color}`, opacity: line.alpha, width: strokeW } } : {}),
+      } });
+      if (op.op !== 'shape') throw new Error('PPTX path compilation did not produce a shape.');
+      sink.shapes.push(designDrawPptxPath(op));
+    } else sink.shapes.push(shape);
     return;
   }
 
