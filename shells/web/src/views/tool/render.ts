@@ -25,6 +25,7 @@ import { markdownSafeUrl, mountTableCellEditing } from '../../lib/table-canvas-e
 import type { TableEditOpts } from '../../lib/table-canvas-edit.ts';
 import { mountFilmstrip } from '../../lib/page-filmstrip.ts';
 import { mountEmoji } from '../emoji-mount.ts';
+import { revealInitialViewport } from '../tool-initial-viewport.ts';
 import { boundEndpointIds, geometryFastPathPlan } from '../canvas-scene.ts';
 import type { Box } from '../free-canvas-math.ts';
 import { c2paDefaultOn, exportTargetNode, extFor, isCmykFmt, isPrintFmt } from '../tool-actions.ts';
@@ -395,18 +396,23 @@ export function paint(tview: ToolViewCtx): void {
   // boxes model. The inspector invalidates on the synchronous model echo and only
   // resumes its layout/contrast/font checks after this clean-paint signal.
   if (contentPainted && tview.initialCanvasPending) {
-    // The editor and its chrome are mounted before subscription. Fit the newly
-    // painted artboards in this same frame, before any content becomes visible.
-    const userView = tview.stageZoom?.isUserZoomed();
-    tview.stageLayout.refitStage();
-    // Restore against the final fitted geometry, rather than racing mount-time
-    // resize events in a separate animation frame. A gesture during open wins.
-    const linkedView = tview.urlFlags.get('_view');
-    if (linkedView && !userView) {
-      try { tview.stageZoom?.applyView(JSON.parse(linkedView)); } catch { /* unreadable viewport */ }
-    }
-    tview.initialCanvasPending = false;
-    canvasEl!.style.visibility = '';
+    revealInitialViewport(canvasEl!, {
+      signal: tview.mountLifecycle.signal,
+      pending: () => tview.initialCanvasPending,
+      initialize: () => {
+        const userView = tview.stageZoom?.isUserZoomed();
+        tview.stageLayout.refitStage();
+        // Restore after fitting. A gesture during document open takes precedence.
+        const linkedView = tview.urlFlags.get('_view');
+        if (linkedView && !userView) {
+          try { tview.stageZoom?.applyView(JSON.parse(linkedView)); } catch { /* unreadable viewport */ }
+        }
+      },
+      reveal: () => {
+        tview.initialCanvasPending = false;
+        canvasEl!.style.visibility = '';
+      },
+    });
   }
   if (contentPainted) canvasEl?.dispatchEvent(new CustomEvent('lolly-canvas-painted'));
 

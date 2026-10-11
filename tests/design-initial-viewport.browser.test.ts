@@ -16,7 +16,7 @@ test('Design reveals fitted artboards after delayed chrome and hides the outgoin
     origin = server.resolvedUrls!.local[0]!;
   }
   assert.ok(['localhost', '127.0.0.1', '[::1]'].includes(new URL(origin).hostname));
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({ headless: true, ...(process.platform === 'darwin' ? { channel: 'chrome' } : {}) });
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce', serviceWorkers: 'block' });
   const page = await context.newPage();
   const errors: string[] = [];

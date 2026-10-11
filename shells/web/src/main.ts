@@ -356,6 +356,15 @@ let webGpuStop: { error: unknown } | null = null;
  *  the WebGPU check can tell whether a newer navigation started in the meantime. */
 let navigationSeq = 0;
 
+class NavigationSuperseded extends Error {}
+
+/** A lazy view belongs to the navigation that requested its chunk. */
+async function navigationModule<T>(pending: Promise<T>, navigation: number): Promise<T> {
+  const module = await pending;
+  if (navigation !== navigationSeq) throw new NavigationSuperseded();
+  return module;
+}
+
 /** Read through a call so a function that checked it before an await sees a later failure. */
 function webGpuFailed(): boolean { return webGpuStop !== null; }
 
@@ -562,7 +571,7 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
       // bundle every gallery/catalog visitor pays for before first paint. Same
       // dynamic-import pattern as the other views; idle-prefetched below so the
       // first tap into a tool still opens instantly.
-      const { mountTool } = await import('./views/tool.ts');
+      const { mountTool } = await navigationModule(import('./views/tool.ts'), navigation);
       await mountTool(view, host as unknown as Parameters<typeof mountTool>[1], route.toolId, route.params);
       break;
     }
@@ -570,12 +579,12 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
     // fflate) deps; lazy-load them so they stay out of the cold-load bundle that
     // every gallery visitor pays for. Same dynamic-import pattern as /pro below.
     case 'profile': {
-      const { mountProfile } = await import('./views/profile.ts');
+      const { mountProfile } = await navigationModule(import('./views/profile.ts'), navigation);
       await mountProfile(view, host as unknown as Parameters<typeof mountProfile>[1], route.params);
       break;
     }
     case 'dashboard': {
-      const { mountDashboard } = await import('./views/dashboard.ts');
+      const { mountDashboard } = await navigationModule(import('./views/dashboard.ts'), navigation);
       await mountDashboard(view, host, route.params);
       break;
     }
@@ -583,55 +592,55 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
     // engine verifier the CLI `validate` command uses; the view module is named
     // for what it checks (validity), lazy-loaded like the other dashboards.
     case 'verify': {
-      const { mountValid } = await import('./views/valid.ts');
+      const { mountValid } = await navigationModule(import('./views/valid.ts'), navigation);
       await mountValid(view, host, route.params);
       break;
     }
     // /convert - on-device file converter (fonts, SVG⇄SVGZ, raster⇄raster), a
     // verify-like drop→pick→download surface. Lazy-loaded like the other dashboards.
     case 'convert': {
-      const { mountConvert } = await import('./views/convert.ts');
+      const { mountConvert } = await navigationModule(import('./views/convert.ts'), navigation);
       await mountConvert(view, host, route.params);
       break;
     }
     // /data - on-device spreadsheet viewer/editor (xlsx/csv/tsv/json → virtualized
     // grid → edit → download-as). Lazy-loaded like the other dashboards.
     case 'compare': {
-      const { mountCompare } = await import('./views/compare.ts');
+      const { mountCompare } = await navigationModule(import('./views/compare.ts'), navigation);
       mountCompare(view, host);
       break;
     }
     case 'prepare': {
-      const { mountPrepare } = await import('./views/prepare.ts');
+      const { mountPrepare } = await navigationModule(import('./views/prepare.ts'), navigation);
       mountPrepare(view, host);
       break;
     }
     // /rebrand - renovate an old deck for the design system and open it in Design
     // (plan 274). Lazy like the other utility views.
     case 'rebrand': {
-      const { mountRebrand } = await import('./views/rebrand.ts');
+      const { mountRebrand } = await navigationModule(import('./views/rebrand.ts'), navigation);
       await mountRebrand(view, host, route.params ?? '', () => { mountedRouteSig = routeSignature(parseRoute()); });
       break;
     }
     case 'data': {
-      const { mountDataView } = await import('./views/data.ts');
+      const { mountDataView } = await navigationModule(import('./views/data.ts'), navigation);
       await mountDataView(view, host, route.params);
       break;
     }
     // --- Multi-edit: 2–8 saved sessions edited side by side (grid of live
     // canvases + one combined sidebar). Reached from the Projects bulk bar. ---
     case 'multi': {
-      const { mountMultiEdit } = await import('./views/multi-edit.ts');
+      const { mountMultiEdit } = await navigationModule(import('./views/multi-edit.ts'), navigation);
       await mountMultiEdit(view, host as unknown as Parameters<typeof mountMultiEdit>[1], route.params ?? '');
       break;
     }
     // --- /pro batch mode: isolated, lazy-loaded feature. Safe to remove by
     // deleting src/pro/ and this case + the parseRoute branch below. ---
     case 'pro': {
-      const { mountPro } = await import('./pro/index.ts');
+      const { mountPro } = await navigationModule(import('./pro/index.ts'), navigation);
       // The folder overlay is pro-free; inject it (like onBatchRendered) so /pro
       // keeps its "imports only engine/host/siblings" isolation intact.
-      const { openFolderOverlay } = await import('./folder-overlay.ts');
+      const { openFolderOverlay } = await navigationModule(import('./folder-overlay.ts'), navigation);
       const q = new URLSearchParams(route.params || '');
       const sessionSlot = q.get('session');
       // "Bulk from rows" from a tool view: #/batch?tool=<id> starts the batch on that
@@ -705,18 +714,18 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
     // pro-free folder store + folder-export (gated import); safe to keep even if /pro
     // is removed. ---
     case 'history': {
-      const { mountHistory } = await import('./views/history.ts');
+      const { mountHistory } = await navigationModule(import('./views/history.ts'), navigation);
       await mountHistory(view, host, route.params, () => { mountedRouteSig = routeSignature(parseRoute()); });
       break;
     }
     case 'learning': {
-      const { mountLearning } = await import('./views/learning.ts');
+      const { mountLearning } = await navigationModule(import('./views/learning.ts'), navigation);
       await mountLearning(view, host as unknown as Parameters<typeof mountLearning>[1], route.params);
       mountedRouteSig = routeSignature(parseRoute());
       break;
     }
     case 'projects': {
-      const { mountProjects } = await import('./views/projects.ts');
+      const { mountProjects } = await navigationModule(import('./views/projects.ts'), navigation);
       const onBatchRendered = (files: Array<{ name: unknown }>) => {
         recordBatch(files.length);
         bumpMetric('filesRendered', files.length);
@@ -728,7 +737,7 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
     // --- Assets (#/a): a gallery-style view of every asset (catalog + user), plus swatches
     // and downloadable fonts. Lazy-loaded like the other non-gallery views. ---
     case 'catalog': {
-      const { mountCatalog } = await import('./views/assets.ts');
+      const { mountCatalog } = await navigationModule(import('./views/assets.ts'), navigation);
       await mountCatalog(view, host, route.params);
       break;
     }
@@ -737,35 +746,35 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
     // statically pulls the engine's derive/token modules, which the gallery
     // cold-load must not pay for. ---
     case 'start': {
-      const { mountStart } = await import('./views/start.ts');
+      const { mountStart } = await navigationModule(import('./views/start.ts'), navigation);
       await mountStart(view, host as unknown as Parameters<typeof mountStart>[1], route.params ?? '');
       break;
     }
     case 'lab': {
       // Colour Lab (#/lab) - a scrolling single-colour report. Lazy: it pulls the
       // gamut solid and the slice charts, which no other view on a cold path needs.
-      const { mountColorLab } = await import('./views/color-lab.ts');
+      const { mountColorLab } = await navigationModule(import('./views/color-lab.ts'), navigation);
       await mountColorLab(view, host as unknown as Parameters<typeof mountColorLab>[1], route.params ?? '');
       break;
     }
     case 'pdf': {
       // Unpack (#/pdf). Lazy: it pulls the PDF interpreter and pdf-lib,
       // which nothing on the landing path needs.
-      const { mountPdfExtract } = await import('./views/pdf-extract.ts');
+      const { mountPdfExtract } = await navigationModule(import('./views/pdf-extract.ts'), navigation);
       await mountPdfExtract(view, host as unknown as Parameters<typeof mountPdfExtract>[1], route.params);
       break;
     }
     case 'script': {
       // Script audio (#/script) - the writing surface over host.speech. Lazy:
       // nothing on the landing path needs the speech plumbing.
-      const { mountScriptStudio } = await import('./views/script-studio.ts');
+      const { mountScriptStudio } = await navigationModule(import('./views/script-studio.ts'), navigation);
       await mountScriptStudio(view, host as unknown as Parameters<typeof mountScriptStudio>[1], route.params);
       break;
     }
     case 'ask': {
       // Ask Lolly (#/ask) - in-app help over the docs + spotlight providers. Lazy:
       // it pulls the ask pipeline (retrieval, md extraction) that no other route needs.
-      const { mountAsk } = await import('./views/ask.ts');
+      const { mountAsk } = await navigationModule(import('./views/ask.ts'), navigation);
       await mountAsk(view, host as unknown as Parameters<typeof mountAsk>[1], route.params ?? '');
       break;
     }
@@ -773,7 +782,7 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
       // In-app docs reader (#/docs/<slug>) - fetches the built /info page and rehosts its
       // `.docs-content` fragment into #view. Lazy: it pulls no heavy deps, but stays off
       // the cold-load bundle like every other non-gallery view.
-      const { mountDocs } = await import('./views/docs.ts');
+      const { mountDocs } = await navigationModule(import('./views/docs.ts'), navigation);
       await mountDocs(view, host as unknown as Parameters<typeof mountDocs>[1], route.slug, route.lang, route.params ?? '');
       break;
     }
@@ -781,27 +790,27 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
     // for both, shared with the Share dialog's "Start a collab" opener: WebRTC, the QR
     // encoder and the ceremony dialog have no business on any other route. ---
     case 'join': {
-      const { mountJoinRoute } = await import('./collab/join-route.ts');
+      const { mountJoinRoute } = await navigationModule(import('./collab/join-route.ts'), navigation);
       await mountJoinRoute(view, host as unknown as Parameters<typeof mountJoinRoute>[1], route.params ?? '');
       break;
     }
     case 'join-reply': {
       // No host: this tab hands a payload to the tab that owns the ceremony and gets
       // out of the way - it opens no connection and reads no profile of its own.
-      const { mountJoinReplyRoute } = await import('./collab/join-route.ts');
+      const { mountJoinReplyRoute } = await navigationModule(import('./collab/join-route.ts'), navigation);
       await mountJoinReplyRoute(view, route.params ?? '');
       break;
     }
     case 'team': {
       // A team session link. Everything about it is control-plane awareness, so the
       // route only delegates; the module loads when someone follows such a link.
-      const { mountTeamLink } = await import('./org/team-link.ts');
+      const { mountTeamLink } = await navigationModule(import('./org/team-link.ts'), navigation);
       await mountTeamLink(view, route.slug);
       break;
     }
     case 'open': {
       // Lazy: the route only fetches and hands over; the intake is the drop router's.
-      const { mountOpenRoute } = await import('./lib/open-route.ts');
+      const { mountOpenRoute } = await navigationModule(import('./lib/open-route.ts'), navigation);
       await mountOpenRoute(view, host, route.params);
       break;
     }
@@ -809,7 +818,7 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
       // The browsable component library (#/components). Lazy - it's a dev/design
       // surface, off every hot path. Its back pill is the shared one - it names
       // and returns to the view you came from, or the gallery on a cold deep link.
-      const { mountComponents } = await import('./views/components.ts');
+      const { mountComponents } = await navigationModule(import('./views/components.ts'), navigation);
       await mountComponents(view, host as unknown as Parameters<typeof mountComponents>[1], route.params);
       break;
     }
@@ -817,7 +826,7 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
       // The document model specification, read in-app (plan 276 section 1D). Lazy for
       // the same reason as the library above: it is a reading surface nobody passes
       // through on the way to a tool.
-      const { mountDocumentModel } = await import('./views/document-model.ts');
+      const { mountDocumentModel } = await navigationModule(import('./views/document-model.ts'), navigation);
       await mountDocumentModel(view, host, route.slug, route.params ?? '');
       break;
     }
@@ -827,21 +836,22 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
       // The 'Offline Utilities' flag governs the WHOLE view now - off means no
       // tab and no route (a deep link lands on the main gallery).
       if (!flagEnabledSync(UTILITIES_FLAG_ID)) { window.location.replace('#'); return; }
-      const { mountGallery } = await import('./views/gallery.ts');
+      const { mountGallery } = await navigationModule(import('./views/gallery.ts'), navigation);
       await mountGallery(view, host as unknown as Parameters<typeof mountGallery>[1], { only: 'utility', params: route.params });
       break;
     }
     case 'gallery': {
-      const { mountGallery } = await import('./views/gallery.ts');
+      const { mountGallery } = await navigationModule(import('./views/gallery.ts'), navigation);
       await mountGallery(view, host as unknown as Parameters<typeof mountGallery>[1], { params: route.params });
       break;
     }
     default: {
-      const { mountGallery } = await import('./views/gallery.ts');
+      const { mountGallery } = await navigationModule(import('./views/gallery.ts'), navigation);
       await mountGallery(view, host as unknown as Parameters<typeof mountGallery>[1]);
     }
   }
   } catch (err) {
+    if (err instanceof NavigationSuperseded || navigation !== navigationSeq) { fade?.commit(); return; }
     // Fade the outgoing snapshot out either way, so it can't linger over the
     // reload card (or the fresh shell after a stale-chunk reload).
     fade?.commit();
@@ -857,6 +867,8 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
     loading?.close();
     if (routeLoading === loading) routeLoading = null;
   }
+
+  if (navigation !== navigationSeq) { fade?.commit(); return; }
 
   // The startup check failed while this view was still mounting. stopForWebGpu ran
   // before the mount had painted or installed its cleanup, so the mount has just
