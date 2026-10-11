@@ -20,6 +20,8 @@ import { createGateway } from './gateway.ts';
 import { createLiveRelay } from './live-relay.ts';
 import { browserJobStatus, closeBrowser, closeWebShell } from './render.ts';
 import { createUsageBudget } from './usage-budget.ts';
+import { privateFiles } from './file-resources.ts';
+import { resultFiles } from './result-files.ts';
 
 /** @deprecated name kept for back-compat; the gateway now also serves OAuth. */
 export const createMcpHttpHandler = createGateway;
@@ -41,6 +43,8 @@ export function startHttpServer(port = Number(process.env.PORT || 8790)): void {
       dispose();
       await closeBrowser();
       await closeWebShell();
+      await privateFiles.close();
+      await resultFiles.close();
     },
   });
   dispose = relay.mount(lifecycle.server, () => !lifecycle.isDraining());

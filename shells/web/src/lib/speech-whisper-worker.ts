@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { configureTransformerDelivery, modelDirectoryId } from './model-manifest.ts';
 /**
  * Whisper speech-recognition worker - the STT sibling of
  * lib/speech-kokoro-worker.ts, and deliberately its own worker: the two models
@@ -96,6 +97,7 @@ function ensureRuntime(id: number): Promise<AsrPipeline> {
     env.allowRemoteModels = false;
     env.allowLocalModels = true;
     env.localModelPath = `${MODELS_BASE}/models/`;
+    configureTransformerDelivery(env);
     if (env.backends?.onnx?.wasm) env.backends.onnx.wasm.wasmPaths = ORT_HF_BASE;
 
     const loadedByFile = new Map<string, number>();
@@ -107,7 +109,7 @@ function ensureRuntime(id: number): Promise<AsrPipeline> {
       post({ id, progress: { phase: 'download', loaded, total: WHISPER_MODEL_BYTES, fraction: Math.min(1, loaded / WHISPER_MODEL_BYTES) } } satisfies TranscribeWorkerReply);
     };
 
-    const asr = await pipeline('automatic-speech-recognition', WHISPER_MODEL_ID, {
+    const asr = await pipeline('automatic-speech-recognition', modelDirectoryId(WHISPER_MODEL_ID), {
       dtype: 'q8', device: 'wasm', progress_callback: progressCallback,
     });
     return asr as unknown as AsrPipeline;

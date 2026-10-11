@@ -14,11 +14,12 @@ import { PRIVATE_FILE_TOOLS, privateFiles } from './file-resources.ts';
 import { LIVE_TOOLS, callLiveTool } from './live.ts';
 import type { LiveToolBridge } from './live.ts';
 import { AGENT_INSTRUCTIONS, AGENT_TOOLS, callAgentTool } from './agent-connector.ts';
+import { linkLargeResults, type HoldResult } from './result-files.ts';
 
 export { PROTOCOL_VERSION, SERVER_INFO } from './negotiation.ts';
 
 /** Local stdio and invited document endpoints lend the dispatcher a live bridge. */
-export interface DispatchContext { fileScope?: string; protocolVersion?: string; live?: LiveToolBridge; liveOnly?: boolean; invitedLive?: boolean }
+export interface DispatchContext { fileScope?: string; holdResult?: HoldResult; protocolVersion?: string; live?: LiveToolBridge; liveOnly?: boolean; invitedLive?: boolean }
 
 const toolsFor = (context: DispatchContext) => context.invitedLive ? AGENT_TOOLS : context.liveOnly ? LIVE_TOOLS : [...TOOL_DEFS, ...(context.fileScope ? PRIVATE_FILE_TOOLS : []), ...(context.live ? LIVE_TOOLS : [])];
 
@@ -67,10 +68,15 @@ export async function dispatch(req: JsonRpcRequest, context: DispatchContext = {
         if (context.live && params.name.startsWith('lolly_live_')) return done(await callLiveTool(context.live, params.name, params.arguments ?? {}));
         if (params.name.startsWith('files_')) {
           if (!context.fileScope) return fail(id, ERR.INVALID_PARAMS, 'Private files are not enabled for this authenticated scope.');
+          if (params.name === 'files_download') {
+            if (!context.holdResult || typeof params.arguments?.id !== 'string') return fail(id, ERR.INVALID_PARAMS, 'Download links require a single-process HTTP gateway and a file id.');
+            const file = await privateFiles.download(context.fileScope, params.arguments.id);
+            return done({ content: [await context.holdResult(file.bytes, file.mime, file.name)] });
+          }
           const result = await privateFiles.call(context.fileScope, params.name, params.arguments ?? {});
           return done({ content: [{ type: 'text', text: JSON.stringify(result) }] });
         }
-        return done(await callTool(params.name, params.arguments ?? {}));
+        return done(await linkLargeResults(await callTool(params.name, params.arguments ?? {}, context.fileScope ? context.holdResult : undefined), context.fileScope ? context.holdResult : undefined));
       }
       case 'resources/list':
         return done({ resources: RESOURCES });

@@ -46,7 +46,33 @@ are immediately stale (`ttlMs: 0`). Caches must remain within the authenticated
 scope. HTTP responses use `Cache-Control: no-store`. The server returns JSON;
 subscriptions, tasks and client input requests are not advertised. There are no
 protocol sessions or standalone GET streams. Private files use explicit handles
-and the existing authenticated owner scope.
+and the existing authenticated owner scope. HTTP responses default to
+`private, no-store, max-age=0, no-transform` with `CDN-Cache-Control: no-store`;
+public render/proxy responses explicitly select their delivery policy. The
+origin negotiates gzip/Brotli for text over 1 KiB without changing decoded bytes.
+Compressed responses weaken their ETag; they do not claim wire-byte equality
+with the uncompressed representation.
+
+### Private result downloads
+
+`LOLLY_MCP_PRIVATE_FILES=1`, a configured `LOLLY_MCP_TOKEN`, canonical
+`LOLLY_MCP_PUBLIC_ORIGIN`, and a single gateway process enable authenticated
+result links. Set `LOLLY_MCP_REPLICAS=1` explicitly on container deployments.
+The Helm equivalent is `mcp.privateFiles.enabled=true,mcp.replicaCount=1`.
+Do not distribute these process-local handles across replicas; the chart uses
+Recreate updates, and a restart invalidates every held result. The runtime
+disables private files when an explicit replica count is not one. Anonymous
+access and Vercel never offer result links.
+
+Tool outputs over 1 MiB become `resource_link` blocks at
+`/api/mcp/files/<uuid>?dt=...`. `files_download` creates the same link for a
+private handle. GET/HEAD require the currently valid creating bearer and a
+configured-host, exact-path, principal-bound HMAC token that expires at 300
+seconds (no clock-skew grace). Stored bytes are integrity checked before delivery;
+the route never re-renders or signs a file. Files live in a 0700 temporary
+directory with 0600 permissions, bounded owner/global/count quotas and expiry
+cleanup. Hold and download bytes count against the daily budget. Never persist
+these temporary URLs as asset identities or provenance ingredient URLs.
 
 Existing clients can still initialize with `2025-11-25`, `2025-06-18` or
 `2025-03-26`. An unsupported initialize version selects `2025-11-25`; arbitrary

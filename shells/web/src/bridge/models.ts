@@ -34,6 +34,7 @@ import type { ModelFilesOpts, ModelFilesProgress, ModelsAPI } from '@lolly-tools
 import { aiAllowed } from '../lib/ai-policy.ts';
 import { t, tRaw } from '../i18n.ts';
 import { fmtBytes } from '../lib/format.ts';
+import { currentModelStoredFileName } from '../lib/model-manifest.ts';
 import {
   isSingModelFile, isSingPartFile, SING_FAMILY, SING_FILE_BYTES, SING_MODEL_STORE, singRuntimeUrl,
 } from '../lib/sing-models.ts';
@@ -69,7 +70,10 @@ const DEFAULT_DEPS: ModelsDeps = {
     try {
       const { openDB } = await import('./db.ts');
       const db = await openDB();
-      return new Set((await db.getAllKeys(SING_MODEL_STORE)).map(String));
+      return new Set((await db.getAllKeys(SING_MODEL_STORE)).flatMap(key => {
+        const name = currentModelStoredFileName(String(key));
+        return name === undefined ? [] : [name];
+      }));
     } catch {
       return new Set();
     }

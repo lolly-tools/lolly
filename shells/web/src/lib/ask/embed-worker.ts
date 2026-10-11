@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { configureTransformerDelivery, modelDirectoryId } from '../model-manifest.ts';
 /**
  * Ask embed worker (plans/103 M1) - runs the all-MiniLM-L6-v2 q8 embedder
  * off-thread to turn ONE query string into a 384-dim L2-normalised vector.
@@ -62,6 +63,7 @@ function ensureRuntime(id: number): Promise<ExtractorFn> {
     // MODELS_BASE is '' on the web build (→ same-origin '/models/', unchanged); the
     // desktop shell bakes https://lolly.tools so the embed model pulls from there.
     env.localModelPath = `${MODELS_BASE}/models/`;
+    configureTransformerDelivery(env);
     if (env.backends?.onnx?.wasm) env.backends.onnx.wasm.wasmPaths = ORT_HF_BASE;
 
     const loadedByFile = new Map<string, number>();
@@ -73,7 +75,7 @@ function ensureRuntime(id: number): Promise<ExtractorFn> {
       post({ id, progress: { phase: 'download', loaded, total: EMBED_MODEL_BYTES, fraction: Math.min(1, loaded / EMBED_MODEL_BYTES) } } satisfies EmbedWorkerReply);
     };
 
-    const extractor = await pipeline('feature-extraction', EMBED_MODEL_ID, {
+    const extractor = await pipeline('feature-extraction', modelDirectoryId(EMBED_MODEL_ID), {
       dtype: 'q8',
       device: 'wasm',
       progress_callback: progressCallback,

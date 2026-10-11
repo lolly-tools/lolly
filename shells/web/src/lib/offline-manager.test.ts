@@ -7,6 +7,7 @@
  */
 import { test, describe, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 
 // ── Minimal Cache Storage + fetch stand-ins (same shape sw.test.ts fakes) ────
 
@@ -16,17 +17,17 @@ class FakeCache {
     const k = typeof key === 'string' ? k1(key) : k1(key.url ?? '');
     const held = this.entries.get(k);
     if (!held) return undefined;
-    return { headers: { get: (n: string) => held.headers.get(n.toLowerCase()) ?? null } };
+    return new Response(held.body, { headers: Object.fromEntries(held.headers) });
   }
-  async put(key: string | { url?: string }, resp: { _body: string; headers: Headers | Map<string, string> }) {
+  async put(key: string | { url?: string }, resp: { _body?: string; headers: Headers | Map<string, string>; clone?: () => Response }) {
     const k = typeof key === 'string' ? k1(key) : k1(key.url ?? '');
     const headers = new Map<string, string>();
     const h = resp.headers as { forEach?: (fn: (v: string, n: string) => void) => void };
     h.forEach?.((v, n) => headers.set(n.toLowerCase(), v));
-    this.entries.set(k, { body: resp._body, headers });
+    this.entries.set(k, { body: resp.clone ? await resp.clone().text() : resp._body ?? '', headers });
   }
   async keys() { return [...this.entries.keys()].map(url => ({ url: `https://x${url}` })); }
-  async delete(key: { url: string }) { return this.entries.delete(k1(key.url)); }
+  async delete(key: string | { url: string }) { return this.entries.delete(k1(typeof key === 'string' ? key : key.url)); }
 }
 const k1 = (u: string): string => (u.startsWith('http') ? new URL(u).pathname : u);
 
@@ -62,6 +63,7 @@ let fetches: string[] = [];
       'content-length': String(Math.ceil(size / 2)),
     }),
     blob: async () => new Blob([body]),
+    arrayBuffer: async () => new TextEncoder().encode(body).buffer,
     _body: body,
   };
 };
@@ -82,6 +84,45 @@ beforeEach(() => {
 });
 
 describe('offline-manager: downloadList', () => {
+  test('merged immutable metadata keeps speech grouping and fetches only verified versioned bytes', async () => {
+    const { mergeModelsManifest, groupPrecacheFiles } = await import('../../vite.config.js');
+    const url = '/models/kokoro/onnx/model_test.onnx', immutableUrl = '/models/kokoro@1234567890abcdef/onnx/model_test.onnx';
+    const sha256 = createHash('sha256').update('xxxxxxxxxx').digest('hex');
+    const listing = [{ url, immutableUrl, directorySha256: '1234567890abcdef'.repeat(4), size: 10, sha256 }];
+    const groups = groupPrecacheFiles(mergeModelsManifest([{ url: immutableUrl, size: 10 }], listing));
+    assert.deepEqual(groups.speech, [{ ...listing[0]!, hash: sha256 }]);
+    server.set(immutableUrl, 10);
+    const cache = new FakeCache(); cacheStore.set(TRANSFORMERS_CACHE, cache);
+    cache.entries.set(url, { body: 'old-model!', headers: new Map() });
+    await downloadSpeechFiles({ version: 'immutable-test', groups });
+    assert.deepEqual(fetches, [immutableUrl]);
+    assert.equal(cache.entries.get(immutableUrl)!.body, 'xxxxxxxxxx');
+    assert.equal(cache.entries.get(url)!.body, 'old-model!');
+    cache.entries.delete(immutableUrl); fetches = [];
+    await assert.rejects(downloadSpeechFiles({ version: 'corrupt-test', groups: { ...groups, speech: [{ ...groups.speech[0]!, sha256: '0'.repeat(64), hash: '0'.repeat(64) }] } }), /1 of 1 files failed/);
+    assert.deepEqual(fetches, [immutableUrl]);
+    assert.equal(cache.entries.has(immutableUrl), false, 'corrupt bytes never acquire the new version key');
+    assert.equal(cache.entries.get(url)!.body, 'old-model!');
+  });
+
+  test('models verify fresh and cached bytes at immutable keys while retaining old legacy entries', async () => {
+    const path = '/models/example/model.onnx', immutableUrl = '/models/example@1234567890abcdef/model.onnx';
+    const sha256 = createHash('sha256').update('xxxxxxxxxx').digest('hex');
+    const files = [{ url: path, immutableUrl, size: 10, sha256 }];
+    server.set(immutableUrl, 10);
+    await downloadList('models-test', files);
+    assert.deepEqual(fetches, [immutableUrl]);
+    const cache = cacheStore.get('models-test')!;
+    assert.equal(cache.entries.has(path), false); assert.equal(cache.entries.has(immutableUrl), true);
+    fetches = []; await downloadList('models-test', files); assert.deepEqual(fetches, []);
+    cache.entries.set(path, { body: 'old-model!', headers: new Map() });
+    cache.entries.get(immutableUrl)!.body = 'yyyyyyyyyy';
+    await downloadList('models-test', files); assert.deepEqual(fetches, [immutableUrl]);
+    assert.equal(cache.entries.get(immutableUrl)!.body, 'xxxxxxxxxx');
+    assert.equal(cache.entries.get(path)!.body, 'old-model!', 'a changed model must not overwrite a key old clients still read');
+    await assert.rejects(downloadList('models-bad', [{ ...files[0]!, sha256: '0'.repeat(64) }]), /1 of 1 files failed/);
+    assert.equal(cacheStore.get('models-bad')!.entries.size, 0);
+  });
   test('downloads every file, reports byte progress, and lands them in the bucket', async () => {
     server.set('/_app/a.js', 100);
     server.set('/fonts/b.woff2', 50);

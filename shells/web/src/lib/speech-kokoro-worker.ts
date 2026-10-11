@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { configureTransformerDelivery, modelDirectoryId, cachedModelResponse } from './model-manifest.ts';
 /**
  * Kokoro speech-synthesis worker. An 82M-parameter model spending seconds per
  * sentence is real work - it would otherwise freeze the tool being typed into
@@ -144,6 +145,7 @@ function ensureRuntime(id: number): Promise<KokoroRuntime> {
     env.allowRemoteModels = false;
     env.allowLocalModels = true;
     env.localModelPath = `${MODELS_BASE}/models/`;
+    configureTransformerDelivery(env);
     if (env.backends?.onnx?.wasm) env.backends.onnx.wasm.wasmPaths = ORT_HF_BASE;
 
     // One aggregate download meter across the model + tokenizer files. The
@@ -162,8 +164,8 @@ function ensureRuntime(id: number): Promise<KokoroRuntime> {
     };
 
     const [model, tokenizer] = await Promise.all([
-      StyleTextToSpeech2Model.from_pretrained(KOKORO_MODEL_ID, { dtype: 'q8', device: 'wasm', progress_callback: progressCallback }),
-      AutoTokenizer.from_pretrained(KOKORO_MODEL_ID, { progress_callback: progressCallback }),
+      StyleTextToSpeech2Model.from_pretrained(modelDirectoryId(KOKORO_MODEL_ID), { dtype: 'q8', device: 'wasm', progress_callback: progressCallback }),
+      AutoTokenizer.from_pretrained(modelDirectoryId(KOKORO_MODEL_ID), { progress_callback: progressCallback }),
     ]);
     const { phonemize } = await import('phonemizer');
     return {
@@ -183,18 +185,7 @@ async function getVoiceData(voice: string): Promise<Float32Array> {
   const hit = voiceCache.get(voice);
   if (hit) return hit;
   const url = `${MODELS_BASE}/models/kokoro/voices/${voice}.bin`;
-  let resp: Response | undefined;
-  try {
-    const c = await caches.open('lolly-speech');
-    resp = await c.match(url);
-    if (!resp) {
-      resp = await fetch(url);
-      if (resp.ok) await c.put(url, resp.clone());
-    }
-  } catch {
-    // Cache API unavailable (e.g. some incognito iframes) - plain fetch below.
-  }
-  if (!resp) resp = await fetch(url);
+  const resp = await cachedModelResponse(url, 'lolly-speech');
   if (!resp.ok) throw new Error(`voice fetch failed: ${resp.status} for ${url} - run scripts/fetch-kokoro-models.ts`);
   const data = new Float32Array(await resp.arrayBuffer());
   if (data.byteLength !== KOKORO_VOICE_BYTES) {

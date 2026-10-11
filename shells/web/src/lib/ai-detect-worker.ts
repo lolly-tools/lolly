@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { configureTransformerDelivery, modelDirectoryId } from './model-manifest.ts';
 /**
  * AI-text detector worker (plans/126 WP-A) - runs the staged classifier
  * off-thread to estimate whether a text is AI-generated. Everything heavy
@@ -73,6 +74,7 @@ function ensureRuntime(id: number, m: AiDetectModel): Promise<Runtime> {
     env.allowRemoteModels = false;
     env.allowLocalModels = true;
     env.localModelPath = `${MODELS_BASE}/models/`;
+    configureTransformerDelivery(env);
     if (env.backends?.onnx?.wasm) env.backends.onnx.wasm.wasmPaths = ORT_HF_BASE;
 
     // One aggregate download meter across the model files.
@@ -88,8 +90,8 @@ function ensureRuntime(id: number, m: AiDetectModel): Promise<Runtime> {
     // 'q8' resolves to the staged onnx/model_quantized.onnx; wasm for the same
     // reason as reword - one file that runs everywhere.
     const [model, tokenizer] = await Promise.all([
-      AutoModelForSequenceClassification.from_pretrained(m.dir, { dtype: 'q8', device: 'wasm', session_options: { graphOptimizationLevel: 'basic' }, progress_callback }),
-      AutoTokenizer.from_pretrained(m.dir, { progress_callback }),
+      AutoModelForSequenceClassification.from_pretrained(modelDirectoryId(m.dir), { dtype: 'q8', device: 'wasm', session_options: { graphOptimizationLevel: 'basic' }, progress_callback }),
+      AutoTokenizer.from_pretrained(modelDirectoryId(m.dir), { progress_callback }),
     ]);
     return { model: model as unknown as ClassifierLike, tokenize: tokenizer as unknown as TokenizeFnLike };
   })().catch((e) => { runtime = null; runtimeFor = ''; throw e; });

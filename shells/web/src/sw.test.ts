@@ -705,7 +705,7 @@ describe('precache.json grouping (vite.config.js)', () => {
   });
 
   test('mergeModelsManifest fills only the /models/ entries the dist scan is missing', async () => {
-    const { mergeModelsManifest } = await import('../vite.config.js');
+    const { mergeModelsManifest, groupPrecacheFiles } = await import('../vite.config.js');
     const scanned = [
       { url: '/index.html', size: 10 },
       { url: '/models/kokoro/onnx/model_quantized.onnx', size: 999 },   // on disk - scanned truth wins
@@ -715,6 +715,16 @@ describe('precache.json grouping (vite.config.js)', () => {
       { url: '/models/upscale/realesr-general-x4v3.onnx', size: 7 },    // pruned from dist - filled in
       { url: '/_app/evil.js', size: 1 },                              // non-model listing rows are ignored
     ];
+    const integrity = [{ url: '/models/kokoro/onnx/model.onnx', immutableUrl: '/models/kokoro@0123456789abcdef/onnx/model.onnx', directorySha256: '0123456789abcdef'.repeat(4), size: 9, sha256: 'a'.repeat(64) }];
+    const verified = mergeModelsManifest([], integrity);
+    assert.deepEqual(verified, [{ ...integrity[0]!, hash: integrity[0]!.sha256 }],
+      'logical family identity carries the immutable network path and full decoded integrity digest');
+    assert.deepEqual(groupPrecacheFiles(verified).speech, verified,
+      'an immutable delivery mapping keeps the logical speech group visible to offline downloads');
+    assert.deepEqual(mergeModelsManifest([
+      { url: integrity[0]!.url, size: 9 }, { url: integrity[0]!.immutableUrl, size: 9 },
+    ], integrity), verified, 'physical hashed copies do not become duplicate logical files');
+    assert.throws(() => mergeModelsManifest([{ url: integrity[0]!.url, size: 8 }], integrity), /Model manifest size drift/);
     const merged = mergeModelsManifest(scanned, listing);
     assert.deepEqual(merged.map((f: { url: string; size: number }) => `${f.url}:${f.size}`), [
       '/index.html:10',
@@ -731,7 +741,8 @@ describe('precache.json grouping (vite.config.js)', () => {
     assert.equal(precacheNeedsHash('/ort/ort-wasm-simd-threaded.wasm'), false);
     assert.equal(precacheNeedsHash('/ort-hf/1.22.0-dev.20250409-89f8206ba4/ort-wasm-simd-threaded.wasm'), false,
       '/ort-hf/ carries its version in the path, like /ort/ and /models/');
-    assert.equal(precacheNeedsHash('/models/trustmark/decoder_Q.onnx'), false);
+    assert.equal(precacheNeedsHash('/models/trustmark/decoder_Q.onnx'), true,
+      'every model is verified against its full decoded SHA256');
     assert.equal(precacheNeedsHash('/_app/index-abc123.js'), false,
       'the build folder is content-hash-named, so its URL already encodes its bytes');
     assert.equal(precacheNeedsHash('/fonts/Outfit-latin[wght].woff2'), true,

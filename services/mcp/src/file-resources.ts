@@ -94,10 +94,19 @@ export class PrivateFileResources {
     if ((await describeOperationFile(file)).sha256 !== entry.ref.facts.sha256) throw new Error('Saved result integrity check failed.');
     return { uri, mimeType: entry.ref.facts.mime, blob: Buffer.from(await file.arrayBuffer()).toString('base64') };
   }
+  /** Explicit download keeps large handles out of resources/read's inline cap. */
+  async download(owner: string, id: string): Promise<{ bytes: Uint8Array; mime: string; name: string }> {
+    const entry = this.get(owner, id);
+    const file = await readOperationFile(entry.path);
+    if ((await describeOperationFile(file)).sha256 !== entry.ref.facts.sha256) throw new Error('Saved result integrity check failed.');
+    this.get(owner, id);
+    return { bytes: new Uint8Array(await file.arrayBuffer()), mime: entry.ref.facts.mime, name: entry.ref.facts.name };
+  }
 }
 export const PRIVATE_FILE_TOOLS = [
   { name: 'files_import', description: 'Import one private file (canonical base64, up to 4 MB). Later calls use its handle; bytes are never automatically echoed. Expires after one hour or process restart.', inputSchema: { type: 'object', required: ['name', 'base64'], properties: { name: { type: 'string' }, mime: { type: 'string' }, base64: { type: 'string' } } } },
   { name: 'files_list', description: 'List only files imported or generated within this authenticated token/process scope.', inputSchema: { type: 'object', properties: {} } },
+  { name: 'files_download', description: 'Create a five-minute download link for one private handle. Fetch it using this same MCP bearer. Available on a single-process HTTP gateway only.', inputSchema: { type: 'object', required: ['id'], properties: { id: { type: 'string' } }, additionalProperties: false } },
   ...['convert', 'report', 'delete'].map(verb => ({ name: `files_${verb}`, description: verb === 'convert' ? 'Convert a private handle using FileOperationRequestV1: version 1, operation convert, target png/jpeg/webp/avif/csv/tsv/json/xlsx/woff/ttf/otf/pdf-clean/pdf-optimize, options object. Returns exact-byte receipts and a derived handle. Read bytes explicitly at lolly://files/{id}/content (up to 4 MB).' : `${verb === 'delete' ? 'Delete only this private file handle and its stored bytes' : 'Read the file facts and conversion receipt without loading bytes'}.`, inputSchema: { type: 'object', required: verb === 'convert' ? ['id', 'request'] : ['id'], properties: { id: { type: 'string' }, ...(verb === 'convert' ? { request: fileOperationRequestSchemaV1 } : {}) } } })),
 ];
 export const privateFiles = new PrivateFileResources();

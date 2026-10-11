@@ -46,6 +46,7 @@ export function fail(id: JsonRpcResponse['id'], code: number, message: string, d
 export type ContentBlock =
   | { type: 'text'; text: string }
   | { type: 'image'; data: string; mimeType: string }
+  | { type: 'resource_link'; uri: string; name: string; mimeType?: string; size?: number; description?: string }
   | { type: 'resource'; resource: { uri: string; mimeType?: string; text?: string; blob?: string } };
 
 export interface ToolCallResult {

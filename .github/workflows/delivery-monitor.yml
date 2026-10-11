@@ -1,0 +1,158 @@
+# Read-only probes. Model hashing stays off until the configured hosts are
+# published and qualified; enable DELIVERY_MODEL_PROBES_ENABLED afterwards.
+# DELIVERY_MODEL_ORIGINS is a comma-separated list of HTTPS origins. The initial
+# production mapping is lolly.tools and lolli.li, not private /models aliases.
+# Daily immutable hashes cost ~247 GB/month on those two current model hosts.
+# Legacy aliases get HEAD monitoring; full reads require archived references.
+name: Delivery monitor
+
+on:
+  schedule:
+    - cron: '41 5 * * *'
+  workflow_dispatch:
+    inputs:
+      models:
+        description: Immutable model hashes (configured waits for the activation variable)
+        type: choice
+        options: [configured, 'off', 'on']
+        default: configured
+      full_legacy:
+        description: Also qualify legacy bytes against archived expected hashes
+        type: boolean
+        default: false
+      legacy_reference:
+        description: Tracked archived {origin,path,size,sha256} JSON (required for full legacy)
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+
+concurrency:
+  group: delivery-monitor
+  cancel-in-progress: false
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: read
+      issues: write
+    env:
+      ONNXRUNTIME_NODE_INSTALL_CUDA: skip
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: main
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          version: 11.26.0
+          run_install: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '24'
+          cache: pnpm
+
+      - name: Install probe dependencies without building applications
+        run: pnpm install --frozen-lockfile --ignore-scripts --filter @lolly-tools/node-shell...
+
+      - name: Run read-only delivery probes
+        id: probe
+        continue-on-error: true
+        env:
+          MODEL_POLICY: ${{ inputs.models || 'configured' }}
+          MODEL_ENABLED: ${{ vars.DELIVERY_MODEL_PROBES_ENABLED || 'false' }}
+          MODEL_ORIGINS: ${{ vars.DELIVERY_MODEL_ORIGINS || 'https://lolly.tools,https://lolli.li' }}
+          FULL_LEGACY: ${{ inputs.full_legacy || 'false' }}
+          LEGACY_REFERENCE: ${{ inputs.legacy_reference || vars.DELIVERY_LEGACY_REFERENCE_PATH || '' }}
+          BASELINE_SAMPLES: ${{ vars.DELIVERY_BASELINE_SAMPLES_PATH || '' }}
+          # Optional tracked samples refer to these names; values are never arguments.
+          DELIVERY_PRIVATE_COOKIE_A: ${{ secrets.DELIVERY_PRIVATE_COOKIE_A }}
+          DELIVERY_PRIVATE_COOKIE_B: ${{ secrets.DELIVERY_PRIVATE_COOKIE_B }}
+        run: |
+          node --input-type=module <<'JS'
+          import { appendFileSync, existsSync, writeFileSync } from 'node:fs';
+          import { resolve, relative, isAbsolute, join } from 'node:path';
+          import { spawnSync } from 'node:child_process';
+          const fullLegacy = process.env.FULL_LEGACY === 'true';
+          const models = fullLegacy || process.env.MODEL_POLICY === 'on' ||
+            (process.env.MODEL_POLICY === 'configured' && process.env.MODEL_ENABLED === 'true');
+          const scope = fullLegacy ? 'public, models and archived aliases' : models ? 'public and model hosts' : 'public hosts';
+          const receipt = join(process.env.RUNNER_TEMP, 'delivery-receipt.json');
+          const args = ['scripts/edge-probe.ts', '--out', receipt];
+          const tracked = name => {
+            const local = relative(process.cwd(), resolve(name));
+            if (!local || isAbsolute(local) || local === '..' || local.startsWith('../') ||
+                !existsSync(local) || spawnSync('git', ['ls-files', '--error-unmatch', '--', local], { stdio: 'ignore' }).status !== 0)
+              throw new Error('Probe configuration must be a tracked repository file.');
+            return local;
+          };
+          let status = 2;
+          try {
+            if (process.env.BASELINE_SAMPLES) args.push('--samples', tracked(process.env.BASELINE_SAMPLES));
+            if (models) args.push('--models', '--model-origins', process.env.MODEL_ORIGINS);
+            if (fullLegacy) {
+              if (!process.env.LEGACY_REFERENCE) throw new Error('Full legacy qualification requires archived references.');
+              args.push('--full-legacy', '--legacy-reference', tracked(process.env.LEGACY_REFERENCE));
+            }
+            status = spawnSync(process.execPath, args, { stdio: 'inherit' }).status ?? 2;
+          } catch { console.error('Delivery probe configuration failed; no credentials recorded.'); }
+          appendFileSync(process.env.GITHUB_OUTPUT, `status=${status}\nscope=${scope}\nmodels=${models}\n`);
+          writeFileSync(join(process.env.RUNNER_TEMP, 'delivery-run.json'), JSON.stringify({ status, scope, models, fullLegacy }) + '\n');
+          process.exitCode = status;
+          JS
+
+      - name: Publish probe receipts
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: delivery-monitor-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/delivery-receipt.json
+            ${{ runner.temp }}/delivery-run.json
+          retention-days: 14
+          if-no-files-found: warn
+
+      - name: Summarize and maintain the failure issue
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PROBE_STATUS: ${{ steps.probe.outputs.status || '2' }}
+          PROBE_SCOPE: ${{ steps.probe.outputs.scope || 'public hosts' }}
+        run: |
+          node --input-type=module <<'JS'
+          import { readFileSync, writeFileSync, appendFileSync } from 'node:fs';
+          import { join } from 'node:path';
+          import { execFileSync } from 'node:child_process';
+          const title = `Delivery monitoring: ${process.env.PROBE_SCOPE}`;
+          const passed = process.env.PROBE_STATUS === '0';
+          const runUrl = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
+          let report;
+          try { report = JSON.parse(readFileSync(join(process.env.RUNNER_TEMP, 'delivery-receipt.json'), 'utf8')); } catch {}
+          const lines = [`${passed ? 'Passed' : 'Failed'} read-only checks for ${process.env.PROBE_SCOPE}.`, '', `[Run and downloadable receipts](${runUrl})`, '',
+            'Model hashes are enabled only after host activation. Daily legacy HEAD checks monitor status/size; full legacy qualification requires archived hashes.', ''];
+          // Issues contain counts and fixed failure names, never credential probes' URLs/headers.
+          if (report) {
+            const origins = new Map();
+            for (const result of report.results) {
+              const row = origins.get(result.origin) ?? { total: 0, failed: 0, failures: new Set() };
+              row.total++; if (!result.passed) row.failed++;
+              for (const observation of result.observations) for (const failure of observation.failures) row.failures.add(failure);
+              origins.set(result.origin, row);
+            }
+            for (const [origin, row] of origins) lines.push(`- ${origin}: ${row.total - row.failed}/${row.total} passed${row.failed ? `; ${[...row.failures].join(', ')}` : ''}`);
+          } else lines.push('The probe did not produce a receipt. Check the run for setup or configuration failures.');
+          const body = lines.join('\n') + '\n', file = join(process.env.RUNNER_TEMP, 'delivery-issue.md');
+          writeFileSync(file, body); appendFileSync(process.env.GITHUB_STEP_SUMMARY, body);
+          const gh = args => execFileSync('gh', args, { encoding: 'utf8' });
+          const existing = JSON.parse(gh(['issue', 'list', '--repo', process.env.GITHUB_REPOSITORY, '--state', 'open', '--search', `in:title "${title}"`, '--limit', '100', '--json', 'number,title'])).find(issue => issue.title === title);
+          if (!passed) {
+            if (existing) gh(['issue', 'edit', String(existing.number), '--repo', process.env.GITHUB_REPOSITORY, '--body-file', file]);
+            else gh(['issue', 'create', '--repo', process.env.GITHUB_REPOSITORY, '--title', title, '--body-file', file]);
+          } else if (existing) gh(['issue', 'close', String(existing.number), '--repo', process.env.GITHUB_REPOSITORY, '--comment', `This monitoring scope passed: ${runUrl}`]);
+          if (!passed) process.exitCode = 1;
+          JS

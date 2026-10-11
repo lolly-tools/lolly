@@ -11,6 +11,7 @@
  * See README.md for the quickstart and examples/ for a complete tool.
  */
 export type * from './contract.ts';
+export * from './delivery-v1.ts';
 export { attachPresentReceiver, readPresentCommand, readPresentDepth, scrollPresentPage, dispatchPresentKey } from './present-receiver.ts';
 export type { PresentDepth, PresentScrollTarget, PresentArrow, PresentCommand, PresentReceiverOptions } from './present-receiver.ts';
 export * from './file-operation-v1.ts';

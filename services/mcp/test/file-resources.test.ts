@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { PrivateFileResources } from '../src/file-resources.ts';
+import { PrivateFileResources, privateFiles } from '../src/file-resources.ts';
 import { dispatch } from '../src/server.ts';
 type Imported = { file: { id: string; facts: { sha256: string }; derivedFrom?: { id: string } } };
 test('private handles isolate owners, return receipts without bytes, and delete only selected outputs', async () => {
@@ -26,4 +26,22 @@ test('transport dispatch refuses private resources without an explicit authentic
   assert.ok(reply && 'error' in reply);
   const resource = await dispatch({ jsonrpc: '2.0', id: 2, method: 'resources/read', params: { uri: 'lolly://files/00000000-0000-0000-0000-000000000000/content' } });
   assert.ok(resource && 'error' in resource);
+});
+
+test('explicit file download returns exact owned bytes through the HTTP delivery callback', async () => {
+  const bytes = Buffer.from('name,value\na,3');
+  const imported = await privateFiles.call('download-owner', 'files_import', { name: 'table.csv', mime: 'text/csv', base64: bytes.toString('base64') }) as Imported;
+  try {
+    await assert.rejects(privateFiles.download('different-owner', imported.file.id), /not found/);
+    const denied = await dispatch({ jsonrpc: '2.0', id: 3, method: 'tools/call', params: { name: 'files_download', arguments: { id: imported.file.id } } }, { fileScope: 'download-owner' });
+    assert.ok(denied && 'error' in denied);
+    let held = false;
+    const reply = await dispatch({ jsonrpc: '2.0', id: 4, method: 'tools/call', params: { name: 'files_download', arguments: { id: imported.file.id } } }, {
+      fileScope: 'download-owner', holdResult: async (actual, mime, name) => {
+        assert.deepEqual(Buffer.from(actual), bytes); assert.equal(mime, 'text/csv'); assert.equal(name, 'table.csv'); held = true;
+        return { type: 'resource_link', uri: 'https://mcp.example.test/api/mcp/files/test?dt=opaque', name, mimeType: mime };
+      },
+    });
+    assert.equal(held, true); assert.ok(reply && 'result' in reply);
+  } finally { await privateFiles.call('download-owner', 'files_delete', { id: imported.file.id }); }
 });

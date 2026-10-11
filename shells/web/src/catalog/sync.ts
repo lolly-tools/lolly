@@ -21,7 +21,7 @@
 
 import { AssetChecksumError } from '../bridge/assets.ts';
 import { duringAssetSync } from '../lib/asset-sync.ts';
-import { assertToolIndexIntegrity, catalogVerificationRequired } from './integrity.ts';
+import { assertToolIndexIntegrity, catalogVerificationRequired, catalogVerificationAvailable, getCatalogSnapshot, noteCatalogIntegrityFailure } from './integrity.ts';
 import { currentLang, t } from '../i18n.ts';
 import { pinnedAssetIds, refreshPinnedToolFiles } from '../lib/offline-pins.ts';
 import { setBrandTrustedSites } from '../lib/trusted-sites.ts';
@@ -34,6 +34,7 @@ import { runBackgroundTasks } from '../lib/background-tasks.ts';
 const offlineManager = () => import('../lib/offline-manager.ts');
 import { adoptBootFetch, getInstanceBase, initInstanceBase, instanceFetch, instancePath, usesBrowserCors } from '../lib/instance.ts';
 import { CatalogRefusedError, catalogRefused, catalogRefusedBefore, isAccessRefused, noteCatalogAllowed, noteCatalogRefused } from '../lib/catalog-access.ts';
+import type { RenditionSpec } from '../../../../packages/core/src/delivery-v1.ts';
 
 /** One resolvable file for a catalog asset (an entry in an asset's `formats`).
  *  Structurally matches the bridge's AssetFormat so it flows into
@@ -45,6 +46,8 @@ interface AssetFormat {
   /** Byte size stamped by scripts/build-catalog-index.ts - what the offline
    *  download UI prices tags/scopes with before fetching anything. */
   size?: number;
+  /** The full source digest preserves attribution across responsive variants. */
+  rendition?: { of: string; spec: RenditionSpec };
 }
 
 /** A catalog asset's stored metadata, as it arrives in /catalog/assets/index.json
@@ -244,6 +247,7 @@ export async function prepareAssetCatalogFetch(signInRequired?: () => Promise<bo
   await initInstanceBase();
   if (catalogRefused()) return null;
   let origin = getInstanceBase() || window.location.origin;
+  if (catalogVerificationAvailable()) return null; // Signed sync fetches the envelope first.
   try {
     if (signInRequired && catalogRefusedBefore() && await signInRequired().catch(() => false)) {
       noteCatalogRefused();
@@ -292,23 +296,50 @@ export async function syncCatalog(
     ? signInRequired().then(gated => { if (gated) noteCatalogRefused(); return !gated; }, () => true)
     : null;
   try {
-    const assetsReady = duringAssetSync(allowed
-      ? allowed.then(go => go ? syncAssets(host, onAssetsReady, maintenanceGate, preparedAssets) : undefined)
-      : syncAssets(host, onAssetsReady, maintenanceGate, preparedAssets));
+    const runSync = (): Promise<void> => catalogVerificationAvailable()
+      ? syncVerifiedCatalog(host, onAssetsReady, maintenanceGate)
+      : syncAssets(host, onAssetsReady, maintenanceGate, preparedAssets);
+    const assetsReady = duringAssetSync(allowed ? allowed.then(go => go ? runSync() : undefined) : runSync());
     if (allowed && !await allowed) return;
     setOffline(false);
     await Promise.all([
       assetsReady,
-      onAssetsReady ? assetsReady.catch(() => {}).then(() => syncTools(host)) : syncTools(host),
+      catalogVerificationAvailable() ? Promise.resolve() : onAssetsReady ? assetsReady.catch(() => {}).then(() => syncTools(host)) : syncTools(host),
     ]);
   } catch (e) {
     if (e instanceof CatalogRefusedError || catalogRefused()) {
       host.log('info', 'Catalog needs sign-in; not synced');
       return;
     }
+    if (catalogVerificationAvailable()) {
+      // Never paint an unverified localStorage fallback after rejecting a signed pair.
+      delete window.__toolIndex;
+      delete window.__toolIndexSlim;
+      noteCatalogIntegrityFailure(e);
+      host.log('warn', 'Catalog verification failed', { error: String(e) });
+      return;
+    }
     setOffline(true);
     host.log('warn', 'Catalog sync failed; using cached', { error: String(e) });
   }
+}
+
+/** Apply only the complete, durably accepted signed pair; no unsigned offline fallback. */
+async function syncVerifiedCatalog(host: SyncHost, onAssetsReady?: () => unknown, maintenanceGate?: () => Promise<unknown>): Promise<void> {
+  const snapshot = await getCatalogSnapshot(true);
+  if (!snapshot) return;
+  // Legacy envelopes do not cover asset bytes; their transition path stays visibly unchecked.
+  const assets = snapshot.assetText !== undefined ? new Response(snapshot.assetText, { headers: { 'Content-Type': 'application/json' } })
+    : await instanceFetch(instancePath(`${CATALOG_BASE}/assets/index.json`), { cache: 'no-cache' });
+  if (!assets.ok) throw notOk(assets, '/catalog/assets/index.json');
+  await syncAssets(host, onAssetsReady, maintenanceGate, Promise.resolve({ origin: getInstanceBase() || window.location.origin, response: assets }));
+  const index = JSON.parse(snapshot.toolText) as ToolIndex;
+  if (!Array.isArray(index.tools)) throw new Error('The signed tool index has no tools list.');
+  const json = JSON.stringify(index);
+  try { toolIndexDidChange = localStorage.getItem('sbt-tool-index') !== json; localStorage.setItem('sbt-tool-index', json); } catch { /* The verified IDB snapshot is the durable copy. */ }
+  localizeToolIndex(index);
+  window.__toolIndex = index;
+  host.log('info', `Verified catalog: ${index.tools.length} tools`);
 }
 
 /** The error for a catalog response that is not OK: a refusal (401/403) is
@@ -441,7 +472,14 @@ export function loadSlimToolIndex(): Promise<ToolIndex | null> {
       if (catalogRefusedBefore()) return null;
       // The slim index is unsigned. Read the build policy without downloading the
       // full signature envelope; the verified full-index sync loads it when needed.
-      if (catalogVerificationRequired()) return null;
+      if (catalogVerificationRequired()) {
+        const snapshot = await getCatalogSnapshot();
+        if (!snapshot?.slimText) return null;
+        const index = JSON.parse(snapshot.slimText) as ToolIndex;
+        if (!Array.isArray(index.tools) || !index.tools.length) return null;
+        window.__toolIndexSlim = index;
+        return index;
+      }
       // index.html's pre-paint script already started this exact request on a cold
       // visit (see its slim-index note): adopt that response rather than making a
       // second one. Null when there is nothing to adopt - a repeat visitor, a

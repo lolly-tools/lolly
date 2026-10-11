@@ -50,6 +50,86 @@ The switch is per-deployment (`LOLLY_DISABLE_RENDER_GET=1`): on an instance that
 
 **7. Check the services your deployment enables.** [Server Surface](/info/server-surface.html) identifies optional services and links their detailed references. For lolly.work, include its authenticated APIs, collaboration connection, storage and configured providers. A public lolly.tools probe does not test a private organisation instance.
 
+## Verify a delivery release
+
+These checks qualify a specific build and route configuration. The presence of
+the code or a passing source test does not establish that a live deployment
+passes. Use the [deployment guide](/info/deploy-delivery.html) to prepare the
+release and retain a rollback copy.
+
+**Check the signed catalog before its indexes.** In DevTools, watch the catalog
+envelope load before `index.<sha16>.json`. The envelope must cover the exact tool,
+asset and slim index bytes. Repeat the sync: unchanged responses can return 304,
+but the saved bytes must still pass their full hashes. In IndexedDB's profile
+store, `catalog-trust-v1:` records hold the accepted snapshot and sequence
+together. A changed index, forged higher sequence or older signed envelope must
+show a refusal and leave that record unchanged. Run those negative cases against
+a test instance, not a shared production catalog.
+
+**Try offline and interrupted downloads.** First accept a verified catalog and
+download the models you need. Go offline, reload and use a cached tool and model.
+The catalog reports its offline verification state. A plain-HTTP context without
+WebCrypto must say that verification is unavailable rather than claiming it has
+verified the signature. For models, interrupt and resume a download. Watch
+the range request and its validator; the model becomes installed only after its
+decoded size and complete SHA-256 match the manifest. A damaged partial or cached
+model must be discarded or refused, never marked ready. The short URL suffix is
+not the full integrity check.
+
+**Compare identity and compressed bytes.** The release manifest and asset index
+provide full hashes. A reviewed sample file can ask the probe to check them:
+
+```json
+[
+  {
+    "origin": "https://your-instance.example",
+    "path": "/catalog/assets/example.0123456789abcdef.svg",
+    "cls": "public-immutable",
+    "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    "checkConditional": true,
+    "checkRange": true,
+    "requireStrongETag": true,
+    "compress": true
+  }
+]
+```
+
+Replace the illustrative path and hash with the actual release values. Then run:
+
+```bash
+node scripts/edge-probe.ts --samples /path/to/samples.json --out /path/to/private-receipt.json
+```
+
+The probe checks cold responses, warm 304s, identity ranges and the decoded hash
+of both compressed and identity bodies. It also rejects shared-cache evidence on
+private responses and errors. Add samples for two private readers using separate
+`credentialEnv` names and `credentialType: "cookie"` or `"bearer"`; keep the
+credentials in the environment, never the sample URL. Use resources expected to
+differ between those readers, so accidentally sharing a response is detectable.
+Check CSP, COOP, COEP, CORP and Referrer-Policy in the browser as well. These must
+survive the edge and must not disappear on 304 or error responses.
+
+**Verify display renditions and original exports.** Open a rendition in Verify.
+Its own Content Credential must describe resizing or transcoding, retain credits
+and show the signed original as parent, or a source hash when the original has no
+manifest. Reuse the rendition cache on a second build and compare the exact files
+and index bytes. Select that asset in a tool and export: the document must use the
+original format, even when the picker downloaded a smaller WebP for display.
+Edge image optimisation must be off; serving a signed file cannot strip or
+rewrite its credential.
+
+**Check privacy and retention separately.** Every configured delivery hostname
+needs a processor and jurisdiction entry in the instance's privacy notice.
+Same-origin delivery is the default and introduces no new third-party CDN.
+Private refusals and errors must return `private, no-store` and `CDN-Cache-Control:
+no-store`. Principal-bound MCP download links are held in this release; their
+qualification must demonstrate that another bearer cannot fetch a result and
+that the same caller loses access after 300 seconds. Public rendering can remain
+stale at an edge for one day plus seven days while revalidating unless the
+operator changes the release cache key or purges the affected tags. The
+deployment guide states that bound and the release steps; the probe cannot
+establish a host's actual log retention.
+
 ## In the source
 
 Everything above could still be theatre if the deployed code differed from the public code. So check the code - the deployment builds from [the public repository](https://github.com/lolly-tools/lolly):
@@ -116,7 +196,7 @@ The full suite (`pnpm install && pnpm test`) runs several thousand more, includi
 
 A page like this earns trust by naming its own limits:
 
-- **Hosting access logs.** Any server that answers a request can log the request - IP, path, timestamp. You can't verify what a host does or doesn't retain, and neither can we beyond our provider's documented behaviour. That's exactly why the architecture keeps your content off the wire entirely: what never leaves your device can't be logged by anyone.
+- **Hosting access logs.** Any server that answers a request can log the request: IP, path and timestamp. An external probe cannot establish retention. The operator controls logging, rotation and any exports, and must disclose those choices. Local rendering keeps ordinary edits on your device; optional server rendering and shared workspace services have the separate data flows described in the privacy policy.
 - **That the deployment runs this code.** You can verify the source is clean and that the deployed behaviour matches it (the checks above do both ends), but binary-level attestation of a web deployment isn't a thing the web platform offers. The mitigations are the public repo, the enforced tests and the offline check - a tampered deployment that phones home fails check 1 and 2 immediately.
 - **Tool hooks are not sandboxed by default.** A tool's optional logic runs reviewed, in the page's own realm; every tool on lolly.tools is first-party and reviewed before it ships. Worker isolation now ships as a per-tool opt-in - a tool whose manifest sets `isolate: true` runs its hooks off-thread instead - so what you can't verify from outside is narrowing, but the default path is still in-realm and review is still the control. This is stated, not hidden - see the [design boundaries](/info/security.html) section, which has always said so.
 

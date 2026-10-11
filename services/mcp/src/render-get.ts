@@ -70,6 +70,8 @@ import { loadIndex, loadToolCached } from './catalog.ts';
 import { TIER_A, render, normFormat, mimeForFormat, isTextFormat, RenderError } from './render.ts';
 import { MemoryRateLimiter, RateLimitUnavailableError, type RateLimiter } from './rate-limit.ts';
 import { budgetRefusal, type UsageBudget } from './usage-budget.ts';
+import { deliveryHeaders } from './delivery-http.ts';
+import { tag, renderTags } from '../../../packages/core/src/delivery-v1.ts';
 
 export interface RenderGetResponse {
   status: number;
@@ -195,12 +197,33 @@ function closeSlot(etag: string, slot: Slot): void {
 
 const NO_STORE: Record<string, string> = {
   'content-type': 'application/json; charset=utf-8',
-  'cache-control': 'no-store',
+  ...deliveryHeaders('person-private', { tokenBearing: true }),
   'x-robots-tag': 'noindex',
 };
 
 function errorResponse(status: number, error: string, extra: Record<string, string> = {}): RenderGetResponse {
   return { status, headers: { ...NO_STORE, ...extra }, body: JSON.stringify({ error }) };
+}
+
+/** Canonicalize only the transport query. Packed z fields are never unpacked
+ * into a redirect or re-compressed; their original encoded spelling survives. */
+export function canonicalRenderQuery(query: string, ignored: readonly string[]): string {
+  const dropped = new Set(ignored);
+  return query.split('&').filter(Boolean).map((raw, index) => {
+    const pair = new URLSearchParams(raw); const key = pair.keys().next().value ?? '';
+    return { key, index, raw: key === 'z' ? raw : pair.toString() };
+  }).filter(pair => !dropped.has(pair.key)).sort((a, b) => a.key < b.key ? -1 : a.key > b.key ? 1 : a.index - b.index).map(pair => pair.raw).join('&');
+}
+
+/** Public unsigned calendar files use the release clock, not the request clock.
+ * Signed authenticated exports retain the author's original export path. */
+export function stableCalendarBytes(bytes: Uint8Array, generatedAt: string): Uint8Array {
+  const date = new Date(generatedAt);
+  if (!Number.isFinite(date.getTime())) throw new RenderError('The catalog has no valid build time for a public calendar.');
+  const stamp = date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
+  const source = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+  if (!/^BEGIN:VCALENDAR\r?$/m.test(source) || !/^DTSTAMP(?:;[^:\r\n]*)?:/m.test(source)) throw new RenderError('The calendar export is missing its required DTSTAMP.');
+  return new TextEncoder().encode(source.replace(/^DTSTAMP(?:;[^:\r\n]*)?:[^\r\n]*/gm, `DTSTAMP:${stamp}`));
 }
 
 /** width/height/dpi bounds on the (already-expanded) query. Returns an error string or null. */
@@ -272,7 +295,9 @@ export async function renderGet(path: string, query: string, opts: RenderGetOpts
   if (query.length > MAX_QUERY) return errorResponse(400, `Query too long (max ${MAX_QUERY} characters).`);
 
   // Same load-boundary expansion as the app/CLI: packed z= links work here too.
-  const expanded = await expandQuery(query);
+  let expanded: string;
+  try { expanded = await expandQuery(query); }
+  catch { return errorResponse(400, 'Invalid packed render query.'); }
   const params = new URLSearchParams(expanded);
   const dimErr = dimensionError(params, pngRequested);
   if (dimErr) return errorResponse(400, dimErr);
@@ -300,19 +325,19 @@ export async function renderGet(path: string, query: string, opts: RenderGetOpts
   const tool = await loadToolCached(match.toolId).catch(() => null);
   if (!tool) return errorResponse(404, 'not_found');
   const dropped = ignoredParams(params, tool.manifest);
-  if (dropped.length) {
-    for (const key of dropped) params.delete(key);
-    const canonical = params.toString();
+  const canonical = canonicalRenderQuery(query, dropped);
+  if (canonical !== query || fmt !== match.ext) {
     if (canonical.length > MAX_QUERY) return errorResponse(400, `Unknown parameters: ${dropped.join(', ')}.`);
     return {
       status: 308,
       headers: {
-        location: `/tool/${match.toolId}.${match.ext}${canonical ? `?${canonical}` : ''}`,
-        'cache-control': 'public, max-age=3600, s-maxage=86400',
+        location: `/tool/${match.toolId}.${fmt}${canonical ? `?${canonical}` : ''}`,
+        ...deliveryHeaders('public-bounded', { status: 308, tokenBearing: true }),
         'x-robots-tag': 'noindex',
       },
     };
   }
+  for (const key of dropped) params.delete(key);
 
   // Renders are deterministic for their URL (c2pa forced off below), so a strong
   // ETag over (engine + catalog build + canonical URL) is honest. Catalog or
@@ -325,7 +350,9 @@ export async function renderGet(path: string, query: string, opts: RenderGetOpts
     .update(`${ENGINE_VERSION}|${index.version}|${index.generatedAt}|${match.toolId}.${fmt}?${sorted.toString()}`)
     .digest('hex').slice(0, 32)}"`;
   const cacheHeaders: Record<string, string> = {
-    'cache-control': 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800',
+    ...deliveryHeaders('public-bounded', { tokenBearing: true }),
+    'cache-tag': renderTags([tag('x', 'public-bounded'), tag('t', match.toolId), tag('e', ENGINE_VERSION.toLowerCase()), tag('c', createHash('sha256').update(`${index.version}|${index.generatedAt}`).digest('hex').slice(0, 12))], 'comma'),
+    vary: 'Accept-Encoding',
     etag,
     'x-robots-tag': 'noindex',
   };
@@ -373,7 +400,7 @@ export async function renderGet(path: string, query: string, opts: RenderGetOpts
         const state = await opts.budget.check();
         if (!state.ok) {
           const r = budgetRefusal(state);
-          refused = { status: r.status, headers: { ...NO_STORE, ...r.headers }, body: JSON.stringify(r.json) };
+          refused = { status: r.status, headers: { ...r.headers, ...NO_STORE }, body: JSON.stringify(r.json) };
         }
       }
     }
@@ -395,8 +422,14 @@ export async function renderGet(path: string, query: string, opts: RenderGetOpts
   // deployments that configured a browser for the AUTHENTICATED MCP tools.
   let rendered: Rendered;
   try {
-    const result = await render(match.toolId, expanded, { format: fmt, c2pa: { on: false, days: null }, noBrowser: true, maxRasterPixels: MAX_RASTER_PIXELS });
-    rendered = { bytes: result.bytes, mime: result.mime };
+    const renderParams = new URLSearchParams(params);
+    if (fmt === 'ics' && match.toolId === 'calendar-ics' && !renderParams.get('meetingTime')) {
+      const date = new Date(index.generatedAt);
+      if (!Number.isFinite(date.getTime())) throw new RenderError('The catalog has no valid build time for a public calendar.');
+      renderParams.set('meetingTime', `${date.toISOString().slice(0, 10)}T09:00`);
+    }
+    const result = await render(match.toolId, renderParams.toString(), { format: fmt, c2pa: { on: false, days: null }, noBrowser: true, maxRasterPixels: MAX_RASTER_PIXELS });
+    rendered = { bytes: fmt === 'ics' ? stableCalendarBytes(result.bytes, index.generatedAt) : result.bytes, mime: result.mime };
   } catch (e) {
     await opts.budget?.record(0);
     closeSlot(etag, slot);

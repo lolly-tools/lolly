@@ -39,7 +39,11 @@ import { pemToDer } from './x509.ts';
 import { asBufferSource, base64ToBytes, sha256Hex } from './bytes.ts';
 
 const te = new TextEncoder();
-const subtle = globalThis.crypto.subtle;
+const subtle = globalThis.crypto?.subtle;
+function webCrypto(): SubtleCrypto {
+  if (!subtle) throw new Error('catalog integrity: WebCrypto unavailable');
+  return subtle;
+}
 
 export const CATALOG_SIG_ALG = 'ECDSA-P256-SHA256';
 /** Where the envelope lives, relative to the catalog root (sibling of tools/index.json). */
@@ -90,6 +94,17 @@ export interface UnsignedCatalogEnvelope {
   alg: typeof CATALOG_SIG_ALG;
   keyId: string;
   signedAt: string;
+  /** Publisher-monotonic revision; deliberate rollback requires a higher revision. */
+  seq?: number;
+  /** Optional expiry; omitted for catalogs that must remain usable offline. */
+  expiresAt?: string;
+  /** Exact asset and slim index bytes. Missing only for legacy envelopes. */
+  assetIndexHash?: string;
+  slimHash?: string;
+  /** Opaque visibility partition signed by an instance; absent from public catalogs. */
+  catalogScope?: string;
+  /** Full directory hashes; files remain keyed by logical tool id. */
+  toolDirs?: Record<string, string>;
   /** sha256 hex of the exact catalog/tools/index.json bytes. */
   indexHash: string;
   /** '<toolId>/<filename>' → sha256 hex of that file's bytes. */
@@ -143,7 +158,7 @@ export async function jwkThumbprint(jwk: JsonWebKey): Promise<string> {
     throw new Error('catalog integrity: keyId needs an EC JWK with crv/x/y');
   }
   const canonical = canonicalJson({ crv: jwk.crv, kty: jwk.kty, x: jwk.x, y: jwk.y });
-  const digest = new Uint8Array(await subtle.digest('SHA-256', asBufferSource(te.encode(canonical))));
+  const digest = new Uint8Array(await webCrypto().digest('SHA-256', asBufferSource(te.encode(canonical))));
   return bytesToBase64Url(digest);
 }
 
@@ -156,11 +171,11 @@ export async function importSpkiOrJwkPublicKey(key: string | JsonWebKey): Promis
   if (typeof key === 'string') {
     const trimmed = key.trim();
     if (trimmed.startsWith('{')) {
-      return subtle.importKey('jwk', JSON.parse(trimmed) as JsonWebKey, EC_P256, true, ['verify']);
+      return webCrypto().importKey('jwk', JSON.parse(trimmed) as JsonWebKey, EC_P256, true, ['verify']);
     }
-    return subtle.importKey('spki', asBufferSource(pemToDer(trimmed)), EC_P256, true, ['verify']);
+    return webCrypto().importKey('spki', asBufferSource(pemToDer(trimmed)), EC_P256, true, ['verify']);
   }
-  return subtle.importKey('jwk', key, EC_P256, true, ['verify']);
+  return webCrypto().importKey('jwk', key, EC_P256, true, ['verify']);
 }
 
 /**
@@ -173,7 +188,7 @@ export async function signCatalogEnvelope(
   privateKey: CryptoKey,
 ): Promise<CatalogSignatureEnvelope> {
   const bytes = te.encode(canonicalJson(unsigned));
-  const raw = new Uint8Array(await subtle.sign(ECDSA_SHA256, privateKey, asBufferSource(bytes)));
+  const raw = new Uint8Array(await webCrypto().sign(ECDSA_SHA256, privateKey, asBufferSource(bytes)));
   return { ...unsigned, signature: bytesToBase64Url(raw) };
 }
 
@@ -194,6 +209,8 @@ export async function verifyEnvelopeSignature(
   if (typeof envelope.signature !== 'string' || !envelope.signature) {
     return { ok: false, reason: 'envelope has no signature' };
   }
+  const shape = catalogEnvelopeShape(envelope);
+  if (!shape.ok) return shape;
   let sig: Uint8Array;
   try {
     sig = base64UrlToBytes(envelope.signature);
@@ -205,7 +222,7 @@ export async function verifyEnvelopeSignature(
   // post-signing addition or edit must break verification.
   const { signature: _sig, ...unsigned } = envelope;
   const bytes = te.encode(canonicalJson(unsigned));
-  const ok = await subtle.verify(ECDSA_SHA256, publicKey, asBufferSource(sig), asBufferSource(bytes));
+  const ok = await webCrypto().verify(ECDSA_SHA256, publicKey, asBufferSource(sig), asBufferSource(bytes));
   return ok ? { ok: true } : { ok: false, reason: 'signature does not verify against the pinned key' };
 }
 
@@ -249,4 +266,69 @@ export async function verifyToolFile(
     return { ok: false, reason: `"${key}" does not match its signed digest (signed ${expected}, got ${actual})` };
   }
   return { ok: true };
+}
+
+/** A persisted freshness floor, separate from HTTP validators. */
+export interface CatalogWatermark { seq?: number; signedAt: string; }
+const digestPattern = /^[0-9a-f]{64}$/;
+const toolPattern = /^[a-z0-9][a-z0-9-]*$/i;
+
+/** Validate additive fields before they affect URLs, storage keys or freshness. */
+export function catalogEnvelopeShape(envelope: CatalogSignatureEnvelope): IntegrityResult {
+  if (!envelope || typeof envelope !== 'object') return { ok: false, reason: 'envelope missing' };
+  if (!envelope.files || typeof envelope.files !== 'object' || Array.isArray(envelope.files) || Object.keys(envelope.files).length > 100000) return { ok: false, reason: 'invalid signed file map' };
+  for (const [path, digest] of Object.entries(envelope.files)) {
+    if (path.length > 1024 || /[\\%?#\p{White_Space}\p{Cc}]/u.test(path) || path.split('/').some(part => !part || part === '.' || part === '..') || !digestPattern.test(digest)) return { ok: false, reason: 'invalid signed file digest' };
+  }
+  if (!digestPattern.test(envelope.indexHash)) return { ok: false, reason: 'invalid signed tool index hash' };
+  if (typeof envelope.signedAt !== 'string' || !Number.isFinite(Date.parse(envelope.signedAt))) return { ok: false, reason: 'invalid catalog signing time' };
+  if (envelope.seq !== undefined && (!Number.isSafeInteger(envelope.seq) || envelope.seq < 1)) return { ok: false, reason: 'invalid catalog sequence' };
+  if (envelope.expiresAt !== undefined && (typeof envelope.expiresAt !== 'string' || !Number.isFinite(Date.parse(envelope.expiresAt)))) return { ok: false, reason: 'invalid catalog expiry' };
+  for (const value of [envelope.assetIndexHash, envelope.slimHash, envelope.catalogScope]) {
+    if (value !== undefined && !digestPattern.test(value)) return { ok: false, reason: 'invalid signed catalog digest' };
+  }
+  if (envelope.toolDirs !== undefined) {
+    if (!envelope.toolDirs || typeof envelope.toolDirs !== 'object' || Array.isArray(envelope.toolDirs)) return { ok: false, reason: 'invalid tool directory map' };
+    for (const [id, hash] of Object.entries(envelope.toolDirs)) if (!toolPattern.test(id) || !digestPattern.test(hash)) return { ok: false, reason: 'invalid tool directory hash' };
+  }
+  return { ok: true };
+}
+
+/** Monotonic checks apply only after the caller has verified the signature. */
+export function catalogFreshness(envelope: CatalogSignatureEnvelope, previous: CatalogWatermark | null, now = Date.now()): IntegrityResult {
+  const shape = catalogEnvelopeShape(envelope);
+  if (!shape.ok) return shape;
+  if (envelope.expiresAt !== undefined && Date.parse(envelope.expiresAt) <= now) return { ok: false, reason: 'the trusted catalog has expired' };
+  if (previous?.seq !== undefined && (envelope.seq === undefined || envelope.seq < previous.seq)) return { ok: false, reason: 'the catalog offered is older than one already trusted' };
+  if (previous && previous.seq === undefined && Date.parse(envelope.signedAt) < Date.parse(previous.signedAt)) return { ok: false, reason: 'the catalog offered is older than one already trusted' };
+  return { ok: true };
+}
+
+/** Directory identity includes every signed relative filename and its byte hash. */
+export async function toolDirectoryHash(files: Record<string, string>, toolId: string): Promise<string> {
+  if (!toolPattern.test(toolId)) throw new Error('catalog integrity: invalid tool id');
+  const entries = Object.entries(files).filter(([path]) => path.startsWith(toolId + '/'));
+  if (!entries.length) throw new Error('catalog integrity: tool directory has no signed files');
+  const relative: Record<string, string> = Object.create(null);
+  for (const [path, digest] of entries) {
+    const name = path.slice(toolId.length + 1);
+    if (!name || name.includes('\\') || /[%?#]/.test(name) || name.split('/').some(part => !part || part === '.' || part === '..') || !digestPattern.test(digest)) throw new Error('catalog integrity: invalid signed tool path');
+    relative[name] = digest;
+  }
+  return sha256Hex(te.encode(canonicalJson(relative)));
+}
+
+/** Hash addresses are validated before entering a request URL. */
+export function catalogIndexPath(hash: string, kind: 'tools' | 'assets' | 'slim' = 'tools'): string {
+  if (!digestPattern.test(hash)) throw new Error('catalog integrity: invalid index hash');
+  return kind === 'assets' ? `/catalog/assets/index.${hash.slice(0, 16)}.json`
+    : `/catalog/tools/index${kind === 'slim' ? '.slim' : ''}.${hash.slice(0, 16)}.json`;
+}
+
+/** Legacy envelope URLs remain usable for one transition release. */
+export function toolDirectoryPath(envelope: CatalogSignatureEnvelope, toolId: string): string {
+  if (!toolPattern.test(toolId)) throw new Error('catalog integrity: invalid tool id');
+  const hash = envelope.toolDirs?.[toolId];
+  if (hash !== undefined && !digestPattern.test(hash)) throw new Error('catalog integrity: invalid directory hash');
+  return `/tools/${toolId}${hash ? '@' + hash.slice(0, 16) : ''}`;
 }

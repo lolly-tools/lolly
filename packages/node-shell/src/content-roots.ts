@@ -70,6 +70,8 @@ const BASE_PACK = 'community';
  * it has no tool.json and is never listed as a tool.
  */
 const BASE_PACK_DATA_DIRS: ReadonlySet<string> = new Set(['slide-structures']);
+/** Delivery directories hold versions of a logical tool, not extra tool IDs. */
+const PHYSICAL_TOOL_DIRECTORY = /^[a-z0-9-]+@[a-f0-9]{16}$/;
 
 /** The profile name reported for a materialized root (a real tools/ + catalog/ tree,
  *  with no profiles.json to name a profile). See materializedRoots. */
@@ -339,7 +341,7 @@ function planStamp(roots: ContentRoots): string {
   const parts: string[] = [];
   for (const rootAbs of roots.toolRoots) {
     let names: string[] = [];
-    try { names = readdirSync(rootAbs).sort(); } catch { names = ['<missing>']; }
+    try { names = readdirSync(rootAbs).filter(name => !PHYSICAL_TOOL_DIRECTORY.test(name)).sort(); } catch { names = ['<missing>']; }
     parts.push(rootAbs + ':' + names.map((n) => n + (existsSync(join(rootAbs, n, 'tool.json')) ? '+' : '-')).join(','));
   }
   return parts.join('|');
@@ -371,6 +373,7 @@ function buildPlan(roots: ContentRoots): Map<string, { dir: string; base?: strin
     const isBasePack = packRel === BASE_PACK;
     for (const entry of readdirSync(rootAbs)) {
       if (entry.startsWith('.') || entry === 'node_modules') continue;
+      if (PHYSICAL_TOOL_DIRECTORY.test(entry)) continue;
       // Underscore-prefixed dirs are pack infrastructure, not tools - e.g.
       // community/_shared/, the canonical helper corpus that sync-shared-hooks.ts
       // copies into tool hooks.js.

@@ -132,6 +132,36 @@ test('an overlay tool is the per-file union, overlay winning', () => {
   }
 });
 
+test('hashed delivery directories never become logical tools or overlay bases', () => {
+  const root = fixtureRoot();
+  try {
+    write(join(root, 'community/alpha@0123456789abcdef/tool.json'), '{"id":"alpha"}\n');
+    write(join(root, 'community/alpha@fedcba9876543210/tool.json'), '{"id":"alpha"}\n');
+    // Parsing this as an overlay would wrongly look for community/alpha@hash.
+    write(join(root, 'brands/x/tools/alpha@aaaaaaaaaaaaaaaa/tool.json'), '{"id":"alpha","extends":"community"}\n');
+    const roots = contentRoots({ root, profile: 'brand-x' });
+    assert.deepEqual([...toolDirs(roots).keys()].sort(), ['alpha', 'beta', 'gamma']);
+    assert.deepEqual(readToolManifest('alpha', roots), { id: 'alpha', title: 'Brand alpha' });
+    write(join(root, 'community/delta/tool.json'), '{"id":"delta"}\n');
+    assert.equal(toolDirs(roots).has('delta'), true, 'ordinary new tools remain discoverable');
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test('materialized content roots expose each logical tool once beside its physical versions', () => {
+  const source = fixtureRoot(), target = mkdtempSync(join(tmpdir(), 'lolly-delivery-roots-'));
+  try {
+    materializeInto(target, contentRoots({ root: source, profile: 'brand-x' }));
+    write(join(target, 'tools/alpha@0123456789abcdef/tool.json'), '{"id":"alpha"}\n');
+    write(join(target, 'tools/alpha@fedcba9876543210/tool.json'), '{"id":"alpha"}\n');
+    const roots = contentRoots({ root: target });
+    assert.deepEqual([...toolDirs(roots).keys()].sort(), ['alpha', 'beta', 'gamma']);
+    assert.deepEqual(readToolManifest('alpha', roots), { id: 'alpha', title: 'Brand alpha' });
+    assert.equal(toolFile('alpha', 'template.html', roots), join(target, 'tools/alpha/template.html'));
+  } finally {
+    rmSync(source, { recursive: true, force: true }); rmSync(target, { recursive: true, force: true });
+  }
+});
+
 test('the composed manifest drops only the extends line', () => {
   const root = fixtureRoot();
   try {

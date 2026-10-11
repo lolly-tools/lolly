@@ -318,3 +318,27 @@ test('every third-party host in the CSP is one the privacy notice discloses', ()
     assert.ok(named, `CSP allows ${host} but docs/privacy.md never discloses it`);
   }
 });
+
+test('delivery processor disclosure identifies current hosts and the unactivated edge boundary', () => {
+  const privacy = read('docs/privacy.md');
+  assert.match(privacy, /## Delivery hosts and processors/);
+  for (const host of ['lolly.tools', 'lolly.ing']) {
+    const row = privacy.split('\n').find(line => line.startsWith(`| ${host} |`));
+    assert.ok(row, `Missing delivery processor row for ${host}`);
+    assert.match(row, /UpCloud hosting/);
+    assert.match(row, /Frankfurt, Germany/);
+  }
+  const modelHost = privacy.split('\n').find(line => line.startsWith('| lolli.li |'));
+  assert.ok(modelHost, 'Missing separate model object-storage processor row');
+  assert.match(modelHost, /UpCloud Managed Object Storage/);
+  assert.match(modelHost, /Frankfurt, Germany/);
+  assert.match(modelHost, /europe-2/);
+  assert.match(privacy, /No third-party CDN is activated/);
+  assert.match(privacy, /Before adding any CDN or external model host/);
+  assert.match(privacy, /jurisdictions, metadata received, retention/);
+  assert.match(privacy, /Principal-bound MCP download links are held in this release/);
+  assert.match(privacy, /same caller's bearer is required/);
+  assert.match(privacy, /300 seconds/);
+  assert.match(privacy, /Private workspace responses bypass shared caches/);
+  assert.doesNotMatch(privacy, /hosting is Vercel|Vercel's platform default/);
+});

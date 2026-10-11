@@ -35,13 +35,15 @@ import { createRateLimiter, RateLimitUnavailableError, type RateLimiter } from '
 import { budgetRefusal, createUsageBudget, type UsageBudget } from './usage-budget.ts';
 import { LIVE_LIMITS } from '@lolly-tools/core';
 import type { WriteObserver } from '../../shared/http-lifecycle.mjs';
+import { deliveryHeaders, deliveryResponse } from './delivery-http.ts';
+import { bearerPrincipal, privateFileScopeEnabled, resultFiles, type ResultFiles } from './result-files.ts';
 
 const CORS: Record<string, string> = {
   'access-control-allow-origin': '*',
-  'access-control-allow-methods': 'GET, POST, OPTIONS',
-  'access-control-allow-headers': 'content-type, authorization, mcp-session-id, mcp-protocol-version, mcp-method, mcp-name',
+  'access-control-allow-methods': 'GET, HEAD, POST, OPTIONS',
+  'access-control-allow-headers': 'content-type, authorization, if-none-match, mcp-session-id, mcp-protocol-version, mcp-method, mcp-name',
   // Expose the 401 challenge so a browser-side MCP client can read where to auth.
-  'access-control-expose-headers': 'WWW-Authenticate',
+  'access-control-expose-headers': 'WWW-Authenticate, ETag, Content-Disposition, Content-Length',
 };
 
 export const MCP_BODY_MAX = 32 * 1024 * 1024; // room for base64 transform inputs
@@ -140,7 +142,15 @@ export function clientIp(req: IncomingMessage, env: NodeJS.ProcessEnv): string {
   if (env.LOLLY_MCP_TRUST_PROXY !== '1') return peer;
   const trusted = new Set((env.LOLLY_MCP_TRUSTED_PROXIES || '').split(',').map(v => v.trim()).filter(Boolean));
   if (!trusted.has(peer)) return peer;
-  const forwarded = String(req.headers['x-forwarded-for'] || '').split(',')[0]!.trim();
+  // Caddy must overwrite forwarding headers. Walk only the configured trusted
+  // hops from the right; a client-supplied leftmost entry never wins attribution.
+  const chain = String(req.headers['x-forwarded-for'] || '').split(',').map(value => value.trim());
+  let forwarded = peer;
+  for (let index = chain.length - 1; index >= 0 && trusted.has(forwarded); index--) {
+    const next = chain[index]!;
+    if (!isIP(next)) return peer;
+    forwarded = next;
+  }
   return isIP(forwarded) ? forwarded : peer;
 }
 
@@ -207,7 +217,7 @@ async function overBudget(budget: UsageBudget): Promise<Result | null> {
   }
 }
 
-export function createGateway(env: NodeJS.ProcessEnv = process.env, options: { onWrite?: WriteObserver; budget?: UsageBudget } = {}): (req: IncomingMessage, res: ServerResponse) => Promise<void> {
+export function createGateway(env: NodeJS.ProcessEnv = process.env, options: { onWrite?: WriteObserver; budget?: UsageBudget; resultFiles?: ResultFiles } = {}): (req: IncomingMessage, res: ServerResponse) => Promise<void> {
   // Is the MCP configured to actually run on THIS deployment? It needs a shared
   // token / signing secret (or an explicit anonymous opt-in). A deployment with
   // none, for example a blank-brand deployment that carries no LOLLY_MCP_*
@@ -234,7 +244,9 @@ export function createGateway(env: NodeJS.ProcessEnv = process.env, options: { o
   // (usage-budget.ts), so a public deployment's worst-case bill is known.
   const budget = options.budget ?? createUsageBudget(env, 'mcp', options.onWrite);
   const open = openAccess(env);
-  return async (req, res) => {
+  const files = options.resultFiles ?? resultFiles;
+  return async (req, rawResponse) => {
+    const res = deliveryResponse(req, rawResponse);
     const method = req.method || 'GET';
     const url = new URL(req.url || '/', 'http://internal');
     const path = url.pathname.replace(/\/+$/, '') || '/';
@@ -266,7 +278,7 @@ export function createGateway(env: NodeJS.ProcessEnv = process.env, options: { o
     // CSP can show it. SSRF-guarded + rate-limited in image-proxy.ts; a self-
     // hoster disables it with LOLLY_DISABLE_IMAGE_PROXY=1.
     if ((method === 'GET' || method === 'HEAD') && matchImageProxyPath(path)) {
-      const r = await proxyImage(url, { ip: clientIp(req, env), env, rateLimiter: limiter, budget });
+      const r = await proxyImage(url, { ip: clientIp(req, env), env, rateLimiter: limiter, budget, ifNoneMatch: req.headers['if-none-match'] as string | undefined });
       res.writeHead(r.status, { ...CORS, ...r.headers });
       if (method === 'HEAD' || r.body === undefined) res.end();
       else res.end(typeof r.body === 'string' ? r.body : Buffer.from(r.body));
@@ -311,6 +323,29 @@ export function createGateway(env: NodeJS.ProcessEnv = process.env, options: { o
     // `base` was parsed once when the gateway was constructed. It never depends
     // on attacker-controlled Host/Forwarded request headers.
     const publicBase = base;
+
+    // This path is deliberately exact, never matched as an arbitrary suffix.
+    // URL parsing normalises dot segments, so verification also uses the raw path.
+    if (path.startsWith('/api/mcp/files/')) {
+      const unavailable = () => send(res, { status: 404, json: { error: 'not_found' } });
+      if (!privateFileScopeEnabled(env) || open || !['GET', 'HEAD'].includes(method)) return unavailable();
+      const authorization = typeof req.headers.authorization === 'string' ? req.headers.authorization : undefined;
+      if (!(await isAuthorized(authorization, env))) return unavailable();
+      const owner = bearerPrincipal(authorization);
+      const rawPath = (req.url ?? '').split('?')[0]!;
+      if (!owner || rawPath !== path || url.searchParams.getAll('dt').length !== 1 || [...url.searchParams.keys()].some(key => key !== 'dt')) return unavailable();
+      const refusal = await limited(limiter, 'mcp-files', owner, positiveInt(env.LOLLY_MCP_RPM, 120)) || await overBudget(budget);
+      if (refusal) return send(res, refusal);
+      let file: Awaited<ReturnType<ResultFiles['fetch']>>;
+      try { file = await files.fetch(owner, rawPath, url.searchParams.get('dt') ?? '', publicBase, signingSecret(env)); }
+      catch { return unavailable(); }
+      if (!file) return unavailable();
+      await budget.record(method === 'HEAD' ? 0 : file.bytes.byteLength);
+      res.writeHead(200, { ...CORS, ...deliveryHeaders('person-private', { tokenBearing: true }),
+        'content-type': file.mime, etag: file.etag, 'x-content-type-options': 'nosniff',
+        'content-security-policy': 'sandbox', 'content-disposition': `attachment; filename*=UTF-8''${encodeURIComponent(file.name)}` });
+      res.end(method === 'HEAD' ? undefined : file.bytes); return;
+    }
 
     // Open access has no OAuth surface: every caller is admitted, so discovery
     // and the consent flow would only send a client down a dead end.
@@ -400,7 +435,14 @@ export function createGateway(env: NodeJS.ProcessEnv = process.env, options: { o
       const headerError = msg.id === undefined ? null : validateHttpHeaders(msg, req.headers);
       if (headerError) { res.writeHead(400, { ...CORS, 'content-type': 'application/json' }); res.end(JSON.stringify(headerError)); return; }
       if (modern && !String(req.headers['content-type'] ?? '').toLowerCase().startsWith('application/json')) { res.writeHead(415, CORS); res.end(); return; }
-      const response = await dispatch(msg, { protocolVersion, fileScope: env.LOLLY_MCP_PRIVATE_FILES === '1' && env.LOLLY_MCP_TOKEN?.trim() && !env.VERCEL && auth !== 'anonymous' ? principal : undefined });
+      const fileScope = privateFileScopeEnabled(env) && !open ? bearerPrincipal(typeof req.headers.authorization === 'string' ? req.headers.authorization : undefined) ?? undefined : undefined;
+      const response = await dispatch(msg, { protocolVersion, fileScope, ...(fileScope ? { holdResult: async (bytes: Uint8Array, mime: string, name: string) => {
+        const state = await budget.check();
+        if (!state.ok) throw new Error('Private result budget is exhausted. Try the local CLI or wait for the next UTC day.');
+        const finish = options.onWrite?.();
+        try { const link = await files.hold(fileScope, bytes, mime, name, publicBase, signingSecret(env)); await budget.record(bytes.byteLength); finish?.(true); return link; }
+        catch (error) { finish?.(false); throw error; }
+      } } : {}) });
       if (!response) { await budget.record(0); res.writeHead(202, CORS); res.end(); return; } // notification
       const status = modern && response.error ? response.error.code === ERR.METHOD_NOT_FOUND ? 404 : new Set<number>([ERR.HEADER_MISMATCH, ERR.MISSING_CAPABILITY, ERR.UNSUPPORTED_VERSION, ERR.INVALID_PARAMS]).has(response.error.code) ? 400 : 200 : 200;
       let body = JSON.stringify(response);

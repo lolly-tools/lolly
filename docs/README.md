@@ -143,6 +143,7 @@ The Builders sidebar also carries an **About** entry, which renders the repo-roo
 | [adoption-governance.md](adoption-governance.md) | operator | The honest pilot account: current status, who it is for, how adoption is measured, who governs the output. |
 | [cli-signing.md](cli-signing.md) | operator | Setting up a real signing identity for the CLI, so files made from the terminal carry a verifiable name rather than an anonymous on-device key. Its own pathway is Operators; the Builders sidebar carries it too. |
 | [deployment.md](deployment.md) | operator | Where each piece runs: distribute apps, host the PWA, add optional integrations or deploy lolly.work for organisation services. |
+| [deploy-delivery.md](deploy-delivery.md) | operator | Signed catalog delivery, immutable file retention, model integrity, private cache boundaries, optional edges and release qualification. |
 | [configuration.md](configuration.md) | operator | Profiles, brand packs, tool sets and per-tool capabilities as files rather than in-app settings. |
 | [build-guide.md](build-guide.md) | operator | Per-target build steps: CLI binary, desktop app, mobile apps, and the web shell as a container image. |
 | [build-terminal.md](build-terminal.md) | operator | Run the terminal shells from source or package the CLI binary. |

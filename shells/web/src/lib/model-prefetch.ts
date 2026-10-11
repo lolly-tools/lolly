@@ -27,6 +27,7 @@
 
 import { createDebugLogger, createModelFetcher, type FetchProgress } from './ort.ts';
 import { openDB } from '../bridge/db.ts';
+import { modelStoredFileName } from './model-manifest.ts';
 import type { DownloadProgress } from './offline-manager.ts';
 import {
   UPSCALE_MODEL_STORE, UPSCALE_MODEL_DIR, UPSCALE_MODEL_CACHE_VERSION, UPSCALE_MODEL_FILES,
@@ -215,7 +216,7 @@ async function modelStoreBytes(
     const keys = await db.getAllKeys(store);
     let bytes = 0, files = 0;
     for (const k of keys) {
-      const size = sizeByFile.get(String(k));
+      const size = sizeByFile.get(modelStoredFileName(String(k)));
       if (size === undefined && scoped) continue;
       bytes += size ?? 0;
       files++;

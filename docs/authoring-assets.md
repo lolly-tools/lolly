@@ -170,3 +170,80 @@ Those user assets live under the `user/` namespace and do not automatically ente
 ![The Your uploads section in Assets - a drop area that takes files straight from your device into every tool's picker](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dyour-uploads&width=1440&height=900&dpi=192&waitMs=2000&format=svg&walker=1&cropSelector=.cat-group--uploads&dark=1&filename=auth-assets-uploads)
 
 Composed renders - a tool that embeds another tool's output via `composes` (see [Authoring tools](/info/authoring-tools.html)) - surface as ephemeral `AssetRef`s through the same `{{asset id}}` helper, but they are runtime intermediates, not catalog assets.
+
+## Delivery addresses and display renditions
+
+Keep the authored asset ID and source URL stable. A release creates actual copies
+such as `primary.0123456789abcdef.png` and points its extracted index at those
+copies. The suffix is a short address, not the integrity check: the full SHA-256
+in `checksum` must match the decoded bytes. This pass changes the release output,
+not the authored catalog. Old hashed files and legacy URLs remain available for
+older clients. See [Delivery deployment](/info/deploy-delivery.html) for retention.
+
+The signed catalog envelope covers the tool index, asset index and slim index.
+Clients verify the signature first, then fetch the exact hashed indexes. A
+publisher's sequence and the last accepted catalog are stored together; a failed
+download or changed asset index cannot advance that sequence. A version number
+in an asset entry is still required for authoring and review.
+
+**A rendition is a display-sized copy with its own checksum and credentials.**
+The raster ladder uses WebP at widths 320, 640 and 1280, preserves aspect ratio
+and does not upscale a smaller source. Its format entry identifies the original
+by its full source SHA-256, rather than by an asset ID:
+
+```json
+{
+  "format": "webp",
+  "url": "/catalog/renditions/example-640.webp",
+  "checksum": "sha256-...",
+  "size": 12345,
+  "rendition": {
+    "of": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    "spec": { "w": 640, "fit": "inside", "format": "webp", "q": 80 }
+  }
+}
+```
+
+The gallery and picker can use these formats for previews. Choosing or placing
+an asset, downloading the original or exporting a document uses the original
+format. A rendition must never silently replace the source used by a template.
+
+Generate a signed rendition once for each source hash, sizing specification and
+signer version, then retain the bytes in version control or a persistent private
+rendition cache. Signing includes time and random values, so signing again on
+every build would create different files. The generator records resizing or
+transcoding, copies the source's credits and rights, and records an existing
+Content Credential as a `parentOf` ingredient. When the source has no manifest,
+the ingredient records its hash without claiming who created that source.
+
+Signing needs the asset owner's approval and the instance's configured authority.
+The public starter products are already generated; normal releases apply those
+products without issuing another signature:
+
+```bash
+node scripts/build-catalog-renditions.ts --root /path/to/extracted-release
+```
+
+That step checks the signature, source identity and hash, and credit metadata
+before adding the formats. Run it before final catalog signing. For an operator
+using the repository's private-CA wrapper, generation is explicit:
+
+```bash
+LOLLY_PRIVATE_DIR=/path/to/private-ca node scripts/run-private-ca.ts sign-renditions \
+  --root /path/to/extracted-release \
+  --output /path/to/extracted-release/catalog/renditions \
+  --cache /path/to/private-rendition-cache \
+  --source-base https://your-instance.example \
+  --approve-signing
+```
+
+The private directory and cache must be readable only by their owner. Configure
+your own pinned signing authority; the public Lolly authority is not an instance
+credential. Keep signing keys out of release artifacts, logs and ordinary CI.
+
+Serving a signed image, including a preview, OG card or documentation shot,
+must preserve its decoded bytes. Compression of a response is allowed when
+decompression returns those same bytes. Edge image optimisers, metadata stripping,
+resizing and transcoding must be off for these files. Verify a rendition's own
+credential and its parent in [Verify](/info/verify-yourself.html), then check that
+an export using the asset still embeds the original.

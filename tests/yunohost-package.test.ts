@@ -20,9 +20,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync, mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { tmpdir } from 'node:os';
 import { pinManifest, readPin, tarExcludes, tarballName, translatedLocales, parseArgs, RELEASE_HOST } from '../scripts/yunohost-release.ts';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -214,4 +215,37 @@ test('package: the files YunoHost and its catalog expect', () => {
   // Nothing stray in the package root: it is mirrored whole into the app repo.
   const allowed = new Set(['LICENSE', 'README.md', 'conf', 'doc', 'manifest.toml', 'config_panel.toml', 'scripts', 'tests.toml']);
   for (const entry of readdirSync(PKG)) assert.ok(allowed.has(entry), `unexpected ${entry} in deploy/yunohost/`);
+});
+
+test('upgrades retain published hash families and compressed siblings without retaining mutable aliases', t => {
+  const root = mkdtempSync(join(tmpdir(), 'lolly-yuno-retain-'));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  const old = join(root, 'old'), retained = join(root, 'retained'), next = join(root, 'next');
+  for (const directory of [old, retained, next]) mkdirSync(directory);
+  const immutable = ['_app/main.js', '_app/main.js.gz', 'ort-hf/1.24.3/ort.mjs',
+    'models/depth@0123456789abcdef/model.onnx', 'tools/demo@0123456789abcdef/template.html',
+    'catalog/assets/logo.0123456789abcdef.svg', 'catalog/assets/logo.0123456789abcdef.svg.br',
+    'info/shots/demo.0123456789abcdef.webp'];
+  const mutable = ['index.html', 'fonts/plain.woff2', 'models/depth/model.onnx', 'catalog/tools/index.json'];
+  for (const path of [...immutable, ...mutable]) {
+    mkdirSync(dirname(join(old, path)), { recursive: true });
+    writeFileSync(join(old, path), `old bytes for ${path}`);
+  }
+  writeFileSync(join(next, 'index.html'), 'new shell');
+  const run = (body: string) => spawnSync('bash', ['-e', '-c',
+    'domain=lolly.example app=lolly; source "$1"; ynh_die() { printf "%s\\n" "$*" >&2; exit 1; }; ' + body,
+    'retention-fixture', join(PKG, 'scripts/_common.sh'), old, retained, next], { encoding: 'utf8' });
+  const first = run('lolly_capture_immutable "$2" "$3"; lolly_restore_immutable "$3" "$4"');
+  assert.equal(first.status, 0, first.stderr);
+  for (const path of immutable) assert.equal(readFileSync(join(next, path), 'utf8'), `old bytes for ${path}`);
+  for (const path of mutable) assert.equal(existsSync(join(retained, path)), false, path);
+  assert.equal(readFileSync(join(next, 'index.html'), 'utf8'), 'new shell');
+  writeFileSync(join(next, immutable[0]!), 'changed immutable bytes');
+  const collision = run('lolly_restore_immutable "$3" "$4"');
+  assert.notEqual(collision.status, 0);
+  assert.match(collision.stderr, /Immutable release collision/);
+  assert.equal(readFileSync(join(next, immutable[0]!), 'utf8'), 'changed immutable bytes');
+  const upgrade = read('scripts/upgrade');
+  assert.ok(upgrade.indexOf('lolly_capture_immutable') < upgrade.indexOf('ynh_setup_source'));
+  assert.ok(upgrade.indexOf('lolly_restore_immutable') > upgrade.indexOf('ynh_setup_source'));
 });

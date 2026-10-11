@@ -52,3 +52,29 @@ lolly_add_headers_inc() {
     ynh_config_add --template="security-headers.inc" --destination="$headers_inc"
     ynh_config_add --template="any-site-headers.inc" --destination="$any_site_inc"
 }
+
+# Open tabs keep requesting earlier hashes. Capture only immutable families,
+# with hard links when possible, before the source helper replaces the release.
+lolly_capture_immutable() {
+    local lolly_source="$1" lolly_retained="$2" lolly_file lolly_relative lolly_dest
+    while IFS= read -r -d '' lolly_file; do
+        lolly_relative="${lolly_file#"$lolly_source/"}"
+        [[ "$lolly_relative" =~ ^(_app/|ort-hf/[^/]+/|tools/[a-zA-Z0-9-]+@[0-9a-f]{16}/|models/.+@[0-9a-f]{16}/|.*\.[0-9a-f]{16}\.[a-zA-Z0-9]{1,16}(\.(gz|br))?$) ]] || continue
+        lolly_dest="$lolly_retained/$lolly_relative"
+        mkdir -p "$(dirname "$lolly_dest")"
+        ln "$lolly_file" "$lolly_dest" 2>/dev/null || cp -p "$lolly_file" "$lolly_dest"
+    done < <(find "$lolly_source" -type f -print0)
+}
+
+lolly_restore_immutable() {
+    local lolly_retained="$1" lolly_target="$2" lolly_file lolly_relative lolly_dest
+    while IFS= read -r -d '' lolly_file; do
+        lolly_relative="${lolly_file#"$lolly_retained/"}"; lolly_dest="$lolly_target/$lolly_relative"
+        if [[ -e "$lolly_dest" ]]; then
+            cmp -s "$lolly_file" "$lolly_dest" || ynh_die "Immutable release collision: $lolly_relative"
+        else
+            mkdir -p "$(dirname "$lolly_dest")"
+            cp -p "$lolly_file" "$lolly_dest"
+        fi
+    done < <(find "$lolly_retained" -type f -print0)
+}

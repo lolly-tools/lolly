@@ -1,6 +1,14 @@
 {{- if .Values.mcp.enabled -}}
 {{- $c := .Values.mcp -}}
 {{- $labels := dict "root" . "name" "mcp" -}}
+{{- if and $c.privateFiles.enabled (ne (int $c.replicaCount) 1) -}}
+{{- fail "mcp.privateFiles.enabled requires mcp.replicaCount=1: held results are process-local" -}}
+{{- end -}}
+{{- range $c.extraEnv -}}
+{{- if or (eq .name "LOLLY_MCP_PRIVATE_FILES") (eq .name "LOLLY_MCP_REPLICAS") -}}
+{{- fail "Configure private files with mcp.privateFiles.enabled and replicaCount, not extraEnv" -}}
+{{- end -}}
+{{- end -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -9,6 +17,10 @@ metadata:
     {{- include "lolly.componentLabels" $labels | nindent 4 }}
 spec:
   replicas: {{ $c.replicaCount }}
+  {{- if $c.privateFiles.enabled }}
+  strategy:
+    type: Recreate
+  {{- end }}
   selector:
     matchLabels:
       {{- include "lolly.componentSelectorLabels" $labels | nindent 6 }}
@@ -84,6 +96,10 @@ spec:
               value: {{ $c.service.targetPort | quote }}
             - name: LOLLY_MCP_BIND_HOST
               value: "0.0.0.0"
+            - name: LOLLY_MCP_PRIVATE_FILES
+              value: {{ ternary "1" "0" $c.privateFiles.enabled | quote }}
+            - name: LOLLY_MCP_REPLICAS
+              value: {{ $c.replicaCount | quote }}
             {{- with $c.webBase }}
             - name: LOLLY_WEB_BASE
               value: {{ . | quote }}

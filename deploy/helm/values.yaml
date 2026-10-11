@@ -158,6 +158,13 @@ mcp:
 
   replicaCount: 2
 
+  # Private handles/results belong to one process and expire on restart.
+  # Enabling this requires replicaCount: 1; the chart uses Recreate updates.
+  # Configure LOLLY_MCP_TOKEN and PUBLIC_ORIGIN through your own Secret.
+  # Results over 1 MiB use a same-bearer download link that lasts 300 seconds.
+  privateFiles:
+    enabled: false
+
   image:
     #   docker build -f deploy/docker/mcp.Dockerfile -t <registry>/lolly-mcp:0.1.0 .
     repository: ghcr.io/lolly-tools/lolly-mcp

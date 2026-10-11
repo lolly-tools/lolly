@@ -37,6 +37,9 @@ import { isIP } from 'node:net';
 import { isPublicAddress } from './egress.ts';
 import { MemoryRateLimiter, RateLimitUnavailableError, type RateLimiter } from './rate-limit.ts';
 import { budgetRefusal, type UsageBudget } from './usage-budget.ts';
+import { createHash } from 'node:crypto';
+import { deliveryHeaders } from './delivery-http.ts';
+import { tag, renderTags } from '../../../packages/core/src/delivery-v1.ts';
 
 export interface ImageProxyResponse {
   status: number;
@@ -80,7 +83,7 @@ const ALLOWED_TYPES = new Set([
 
 const NO_STORE: Record<string, string> = {
   'content-type': 'application/json; charset=utf-8',
-  'cache-control': 'no-store',
+  ...deliveryHeaders('person-private', { tokenBearing: true }),
   'x-robots-tag': 'noindex',
 };
 
@@ -166,6 +169,22 @@ export interface ImageProxyOpts {
   /** Injectable for tests: DNS resolver and fetch. */
   resolver?: (hostname: string) => Promise<string[]>;
   fetchImpl?: typeof fetch;
+  ifNoneMatch?: string;
+}
+
+const SIGNATURE_PARAM = /^(?:x-amz-.+|signature|sig|token|expires)$/i;
+/** No upstream freshness is invented, and private redirect hops remain private. */
+export function upstreamImagePolicy(url: URL, headers: Headers): { private: boolean; age: number } {
+  const control = headers.get('cache-control') ?? '';
+  const directives = control.split(',').map(value => value.trim().toLowerCase());
+  const secretUrl = [...url.searchParams.keys()].some(key => SIGNATURE_PARAM.test(key));
+  const restricted = secretUrl || headers.has('set-cookie') || directives.some(value => /^(private|no-store)(?:=|$)/.test(value)) || /(?:^|,)\s*(?:\*|cookie|authorization)\s*(?:,|$)/i.test(headers.get('vary') ?? '');
+  const ageFields = directives.filter(value => /^max-age\s*=/.test(value));
+  const match = ageFields.length === 1 ? /^max-age\s*=\s*"?(\d+)"?$/.exec(ageFields[0]!) : null;
+  const upstreamAge = Number(headers.get('age') ?? '0');
+  const age = directives.some(value => /^no-cache(?:=|$)/.test(value)) || !match || !Number.isSafeInteger(Number(match[1])) || !Number.isSafeInteger(upstreamAge) || upstreamAge < 0
+    ? 0 : Math.max(0, Math.min(3600, Number(match[1]) - upstreamAge));
+  return { private: restricted, age };
 }
 
 /**
@@ -198,7 +217,7 @@ export async function proxyImage(reqUrl: URL, opts: ImageProxyOpts): Promise<Ima
     const state = await opts.budget?.check();
     if (state && !state.ok) {
       const r = budgetRefusal(state);
-      return { status: r.status, headers: { ...NO_STORE, ...r.headers }, body: JSON.stringify(r.json) };
+      return { status: r.status, headers: { ...r.headers, ...NO_STORE }, body: JSON.stringify(r.json) };
     }
   } catch (e) {
     if (!(e instanceof RateLimitUnavailableError)) throw e;
@@ -213,6 +232,8 @@ export async function proxyImage(reqUrl: URL, opts: ImageProxyOpts): Promise<Ima
   const deadline = AbortSignal.timeout(OVERALL_TIMEOUT_MS);
   let response: Response;
   let current = parsed;
+  let privateResponse = false;
+  let cacheAge = 3600;
   try {
     for (let hop = 0; ; hop++) {
       assertFetchableShape(current);
@@ -222,6 +243,9 @@ export async function proxyImage(reqUrl: URL, opts: ImageProxyOpts): Promise<Ima
         signal: deadline,
         headers: { accept: 'image/*' },
       });
+      const policy = upstreamImagePolicy(current, response.headers);
+      privateResponse ||= policy.private;
+      cacheAge = Math.min(cacheAge, policy.age);
       const location = response.status >= 300 && response.status < 400 ? response.headers.get('location') : null;
       if (!location) break;
       if (hop >= MAX_REDIRECTS) return errorResponse(502, 'That address redirected too many times.');
@@ -257,18 +281,19 @@ export async function proxyImage(reqUrl: URL, opts: ImageProxyOpts): Promise<Ima
     if (e instanceof TooLarge) return errorResponse(413, `That image is larger than the ${Math.round(maxBytes / 1024 / 1024)} MB limit.`);
     return errorResponse(502, `Couldn't read that image: ${(e as Error).message}`);
   }
-  await opts.budget?.record(bytes.byteLength);
-
-  return {
-    status: 200,
-    headers: {
+  const etag = `"${createHash('sha256').update(bytes).digest('hex')}"`;
+  const headers = {
       'content-type': rawType,
-      'cache-control': 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800',
+      ...deliveryHeaders(privateResponse ? 'person-private' : 'public-bounded', { boundedAgeSec: cacheAge, tokenBearing: true }),
+      etag,
+      vary: 'Accept-Encoding',
+      ...(!privateResponse ? { 'cache-tag': renderTags([tag('x', 'public-bounded'), tag('u', createHash('sha256').update(parsed.toString()).digest('hex').slice(0, 12))], 'comma') } : {}),
       'content-security-policy': 'sandbox',
       'x-content-type-options': 'nosniff',
       'content-disposition': 'inline',
       'x-robots-tag': 'noindex',
-    },
-    body: bytes,
   };
+  const notModified = opts.ifNoneMatch?.split(',').some(value => value.trim() === '*' || value.trim().replace(/^W\//, '') === etag);
+  await opts.budget?.record(notModified ? 0 : bytes.byteLength);
+  return { status: notModified ? 304 : 200, headers, ...(notModified ? {} : { body: bytes }) };
 }

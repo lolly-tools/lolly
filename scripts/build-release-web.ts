@@ -114,7 +114,7 @@ export function main(): void {
   if (isQualificationBuild(process.env)) { qualificationMain(target); return; }
   assertWebGpuReleaseAllowed(ROOT, target === 'web' ? 'web' : 'all');
   validateReleaseEnvironment(process.env);
-  const env = {
+  const env: NodeJS.ProcessEnv = {
     ...process.env,
     LOLLY_RELEASE_BUILD: '1',
     VITE_CATALOG_TRUST_MODE: 'verified',
@@ -123,7 +123,19 @@ export function main(): void {
   if (target === 'web') {
     sign(env);
     run(packageManager, ['run', 'build:web'], env);
+    run(process.execPath, ['scripts/build-catalog-renditions.ts', '--root', 'shells/web/dist'], env);
+    sign(env, [
+      '--tools', 'shells/web/dist/tools',
+      '--index', 'shells/web/dist/catalog/tools/index.json',
+      '--out', 'shells/web/dist/catalog/tools/index.sig.json',
+      '--materialize',
+      ...(env.LOLLY_PREVIOUS_CATALOG_ENVELOPE ? ['--previous-envelope', env.LOLLY_PREVIOUS_CATALOG_ENVELOPE] : []),
+    ]);
     run(process.execPath, ['scripts/verify-release-catalog.ts', '--root', 'shells/web/dist'], env);
+    run(process.execPath, ['scripts/build-delivery.ts', '--root', 'shells/web/dist',
+      ...(env.LOLLY_PREVIOUS_STATIC_RELEASE ? ['--previous', env.LOLLY_PREVIOUS_STATIC_RELEASE] : []),
+      ...(env.VERCEL ? ['--no-compression'] : []),
+    ], env);
     return;
   }
 
@@ -140,6 +152,8 @@ export function main(): void {
     '--tools', `${shellDir}/dist/tools`,
     '--index', `${shellDir}/dist/catalog/tools/index.json`,
     '--out', `${shellDir}/dist/catalog/tools/index.sig.json`,
+    '--materialize',
+    ...(env.LOLLY_PREVIOUS_CATALOG_ENVELOPE ? ['--previous-envelope', env.LOLLY_PREVIOUS_CATALOG_ENVELOPE] : []),
   ]);
 }
 

@@ -60,6 +60,8 @@ import { assertAiAllowed, modelCapability, runAi } from './ai-policy.ts';
 import { openDB } from '../bridge/db.ts';
 import { currentLang } from '../i18n.ts';
 import { MODELS_BASE } from './models-base.ts';
+import { modelNetworkUrl, modelStoredFileName } from './model-manifest.ts';
+import { downloadVerifiedModel, modelPartialCache, verifyModelBytes } from './model-delivery.ts';
 import { UPSCALE_MODEL_STORE, UPSCALE_MODEL_CACHE_VERSION } from './upscale-models.ts';
 import { MATTE_MODEL_STORE, MATTE_MODEL_CACHE_VERSION } from './matte-models.ts';
 import { OCR_MODEL_STORE, OCR_MODEL_CACHE_VERSION } from './ocr-models.ts';
@@ -99,7 +101,7 @@ const PARTS_KEY = 'offline-parts';
  *  content (everything except the content-hash-named /_app/ chunks and the
  *  huge, release-versioned /ort/ + /models/ binaries) - it is what lets a
  *  resume distinguish "current" from "same size, different bytes". */
-export interface ManifestFile { url: string; size: number; hash?: string }
+export interface ManifestFile { url: string; size: number; hash?: string; sha256?: string; immutableUrl?: string; directorySha256?: string }
 
 /** dist/precache.json - emitted by the vite build (see vite.config.js's
  *  precacheManifest plugin). Absent in dev (the dev server has no dist). */
@@ -252,24 +254,26 @@ const SIZE_HEADER = 'x-lolly-manifest-size';
  *  and comparing it to the on-disk manifest size would re-download every file
  *  on every resume). A stale or unstamped entry is treated as absent. */
 async function cachedMatches(cache: Cache, file: ManifestFile): Promise<boolean> {
-  const key = modelFetchUrl(file.url);
+  const key = fileCacheKey(file);
   const held = await cache.match(key);
   if (held) return entryMatches(held, file);
   if (key === file.url) return false;
   // A desktop download from before model files were keyed by their fetch URL sits
   // under the path. Move a current copy to the new key rather than fetch it again,
   // and drop a stale one, so the bucket never holds the same file twice.
-  const old = await cache.match(file.url);
+  const old = await cache.match(modelFetchUrl(file.url)) ?? await cache.match(file.url);
   if (!old) return false;
-  const current = entryMatches(old, file);
+  const current = await entryMatches(old, file);
+  if (file.sha256) return current;
   if (current) await cache.put(key, old);
   await cache.delete(file.url);
   return current;
 }
 
-function entryMatches(held: Response, file: ManifestFile): boolean {
+async function entryMatches(held: Response, file: ManifestFile): Promise<boolean> {
   // /_app/ is the build's content-hashed folder (APP_ASSETS_DIR, shells/web/vite.config.js).
   if (/^\/_app\//.test(file.url)) return true;
+  if (file.sha256) return verifyModelBytes(await held.clone().arrayBuffer(), { size: file.size, sha256: file.sha256 });
   if (file.hash) return held.headers.get(HASH_HEADER) === file.hash;
   const stamped = held.headers.get(SIZE_HEADER);
   return stamped !== null && Number(stamped) === file.size;
@@ -285,6 +289,7 @@ function entryMatches(held: Response, file: ManifestFile): boolean {
 async function putFile(cache: Cache, file: ManifestFile, resp: Response, signal?: AbortSignal): Promise<void> {
   const blob = await resp.blob();
   signal?.throwIfAborted();
+  if (file.sha256 && !await verifyModelBytes(await blob.arrayBuffer(), { size: file.size, sha256: file.sha256 })) throw new Error('Offline model integrity verification failed.');
   const headers = new Headers(resp.headers);
   headers.delete('content-encoding');
   headers.delete('content-range');
@@ -292,7 +297,7 @@ async function putFile(cache: Cache, file: ManifestFile, resp: Response, signal?
   headers.set('content-length', String(blob.size));
   headers.set(SIZE_HEADER, String(blob.size));
   if (file.hash) headers.set(HASH_HEADER, file.hash);
-  await cache.put(modelFetchUrl(file.url), new Response(blob, { status: resp.status, statusText: resp.statusText, headers }));
+  await cache.put(fileCacheKey(file), new Response(blob, { status: resp.status, statusText: resp.statusText, headers }));
 }
 
 const DOWNLOAD_CONCURRENCY = 4;
@@ -312,6 +317,7 @@ const DOWNLOAD_CONCURRENCY = 4;
  *  sweeps compare pathnames, which are the same under either spelling. */
 export const modelFetchUrl = (url: string): string =>
   MODELS_BASE && url.startsWith('/models/') ? MODELS_BASE + url : url;
+const fileCacheKey = (file: ManifestFile): string => modelFetchUrl(file.sha256 && file.immutableUrl ? file.immutableUrl : file.url);
 
 /**
  * Download a manifest file list into a named bucket. Resumable (files already
@@ -345,7 +351,9 @@ export async function downloadList(
         report();
         return;
       }
-      const resp = await fetch(modelFetchUrl(file.url), { signal: downloadSignal });
+      const identity = file.sha256 ? { ...file, sha256: file.sha256 } : undefined;
+      const verified = identity ? await downloadVerifiedModel(identity, modelNetworkUrl(file.immutableUrl ?? file.url), { signal: downloadSignal, partialCache: await modelPartialCache() }) : undefined;
+      const resp = verified ? new Response(verified.bytes, { headers: verified.headers }) : await fetch(modelFetchUrl(file.url), { signal: downloadSignal });
       const ct = resp.headers.get('content-type') ?? '';
       if (!resp.ok || (ct.includes('text/html') && !file.url.endsWith('.html'))) {
         failures.push(file.url);
@@ -431,7 +439,7 @@ export function trustmarkGroupSplit(
  *  durable encoder. Removing Verify must not take the durable model with it (and
  *  the reverse), the same shared-bucket rule the transformers cache follows. */
 export function verifyModelKeys(keys: readonly string[]): string[] {
-  return keys.filter(k => k !== DURABLE_ENCODER_FILE);
+  return keys.filter(k => modelStoredFileName(k) !== DURABLE_ENCODER_FILE);
 }
 
 /**
@@ -530,6 +538,7 @@ export function speechFileLists(manifest: PrecacheManifest): { model: ManifestFi
  *  through its own consent flow before it joins the manifest (Whisper's
  *  staging order) must not be evicted by a Kokoro-only listing. */
 async function pruneSpeechBucket(cacheName: string, files: ManifestFile[]): Promise<void> {
+  if (files.some(file => file.sha256)) return; // old open clients still own their version's keys
   const prefixes = [...new Set(files.map(f => f.url.split('/').slice(0, 3).join('/') + '/'))];
   const keep = new Set(files.map(f => f.url));
   const cache = await caches.open(cacheName);
@@ -589,11 +598,12 @@ export async function downloadSpeech(
  *  bucket rule: 'transformers-cache' now holds the speech models, the reword
  *  model (plans/127) AND the Ask embed model (plans/103 M1), so no part may
  *  delete the whole bucket. */
+const modelAliasPath = (path: string): string => path.replace(/^(\/models\/[a-z0-9-]+)@[a-f0-9]{16}\//, '$1/');
 async function clearCacheDirs(cacheName: string, prefixes: string[]): Promise<void> {
   try {
     const cache = await caches.open(cacheName);
     for (const req of await cache.keys()) {
-      const path = new URL(req.url).pathname;
+      const path = modelAliasPath(new URL(req.url).pathname);
       if (prefixes.some(p => path.startsWith(p))) await cache.delete(req);
     }
   } catch { /* bucket sealed - nothing to clear */ }
@@ -630,7 +640,7 @@ async function cacheDirBytes(cacheName: string, prefixes?: string[]): Promise<{ 
   try {
     const cache = await caches.open(cacheName);
     for (const req of await cache.keys()) {
-      if (prefixes && !prefixes.some(p => new URL(req.url).pathname.startsWith(p))) continue;
+      if (prefixes && !prefixes.some(p => modelAliasPath(new URL(req.url).pathname).startsWith(p))) continue;
       const resp = await cache.match(req);
       if (!resp) continue;
       files++;
@@ -927,7 +937,7 @@ export async function downloadSing(opts: { signal?: AbortSignal; onProgress?: On
   // a part is never recorded as downloaded when the browser kept less than all of
   // its files (the large files are why: lib/ort.ts storableModelBytes).
   const db = await openDB();
-  const kept = new Set((await db.getAllKeys(SING_MODEL_STORE)).map(String));
+  const kept = new Set((await db.getAllKeys(SING_MODEL_STORE)).map(key => modelStoredFileName(String(key))));
   const lost = SING_PART_FILES.filter(f => !kept.has(f));
   if (lost.length) throw new Error(`offline download: the browser did not keep ${lost.length} singing model file(s) (first: ${lost[0]})`);
   const rec: PartRecord = { at: new Date().toISOString(), version: String(SING_MODEL_CACHE_VERSION), bytes: res.bytes, files: res.files };
@@ -988,7 +998,7 @@ export async function removePart(id: OfflinePartId): Promise<void> {
         for (const k of verifyModelKeys(keys.map(String))) await db.delete(DURABLE_MODEL_STORE, k).catch(() => {});
         await db.clear('contentseal-models').catch(() => {});
       } else if (id === 'durable') {
-        await db.delete(DURABLE_MODEL_STORE, DURABLE_ENCODER_FILE).catch(() => {});
+        for (const key of await db.getAllKeys(DURABLE_MODEL_STORE)) if (modelStoredFileName(String(key)) === DURABLE_ENCODER_FILE) await db.delete(DURABLE_MODEL_STORE, key).catch(() => {});
       } else {
         const store = id === 'upscale' ? UPSCALE_MODEL_STORE : id === 'matte' ? MATTE_MODEL_STORE
           : id === 'sing' ? SING_MODEL_STORE : OCR_MODEL_STORE;

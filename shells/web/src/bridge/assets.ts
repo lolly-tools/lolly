@@ -64,6 +64,8 @@ interface AssetFormat {
   size?: number;
   /** Playback length in ms for a video/audio/lottie entry (asset.schema.json). */
   durationMs?: number;
+  /** Signed display derivative; placement and export resolve original formats. */
+  rendition?: { of: string; spec: import('../../../../packages/core/src/delivery-v1.ts').RenditionSpec };
 }
 
 /** A catalog asset's stored metadata (the 'asset-meta' IDB store). */
@@ -271,7 +273,7 @@ let duplicateSeq = 0;
  * with the same asset's resolved ref. Every one of these is written from the
  * entry's own field, after this.
  */
-const RESERVED_META_KEYS: ReadonlySet<string> = new Set(['name', 'tags', 'license', 'attribution', 'rights', 'brandLock']);
+const RESERVED_META_KEYS: ReadonlySet<string> = new Set(['name', 'tags', 'license', 'attribution', 'rights', 'brandLock', 'renditions', 'originalChecksum']);
 
 export function withoutReservedMeta(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
@@ -780,7 +782,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
             // than on the resolved-ref path below.
             ...withoutReservedMeta(m.meta),
             name: m.name, tags: m.tags, _placeholder: !directUrl,
-            formats: m.formats.filter(file => file.format !== 'thumb').map(file => file.format),
+            formats: m.formats.filter(file => file.format !== 'thumb' && !file.rendition).map(file => file.format),
             ...(m.provider ? { provider: m.provider } : {}),
             ...(m.description ? { description: m.description } : {}),
             // The primary format's byte length, straight off the index. A shell
@@ -792,6 +794,11 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
             ...(posterUrl ? { posterUrl } : {}),
             ...(animated ? { animated: true } : {}),
             ...(thumbUrl ? { thumbUrl } : {}),
+            ...(primary?.checksum ? { originalChecksum: primary.checksum } : {}),
+            ...(m.formats.some(file => file.rendition) ? { renditions: m.formats.filter(file => file.rendition).map(file => ({
+              url: file.url, format: file.format, width: file.width, height: file.height,
+              checksum: file.checksum, of: file.rendition!.of,
+            })) } : {}),
             ...(animationUrl ? { animationUrl } : {}),
             ...(m.aiGenerated ? { aiGenerated: m.aiGenerated } : {}),
             ...(m.added ? { added: m.added } : {}),
@@ -1427,7 +1434,9 @@ function authoredDurationMs(format: AssetFormat): number | undefined {
 }
 
 function pickFormat(meta: AssetMetaRecord, requested?: string): AssetFormat {
-  if (!meta.formats.length) throw new Error(`Asset has no files: ${meta.id}`);
+  const originals = meta.formats.filter(f => !f.rendition);
+  if (!originals.length) throw new Error(`Asset has no original files: ${meta.id}`);
+  meta = { ...meta, formats: originals };
   if (requested) {
     const exact = meta.formats.find(f => f.format === requested);
     if (exact) return exact;

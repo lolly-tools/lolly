@@ -150,7 +150,7 @@ const SHARE_TARGET_PATH = '/share-target';
 const SHARE_REDIRECT = '/?share-target=1';
 
 // Every bucket that survives a CACHE-generation bump (activate's keep-list).
-const PERSISTENT_CACHES = [PIN_CACHE, INSTALLED_CACHE, APP_CACHE, ORT_CACHE, ORT_HF_CACHE, INFO_CACHE, TRANSFORMERS_CACHE, SPEECH_CACHE, SHARE_CACHE];
+const PERSISTENT_CACHES = [PIN_CACHE, INSTALLED_CACHE, APP_CACHE, ORT_CACHE, ORT_HF_CACHE, INFO_CACHE, TRANSFORMERS_CACHE, SPEECH_CACHE, SHARE_CACHE, 'lolly-model-downloads'];
 
 // Stable key the app-shell document is cached under for the offline fallback.
 // Every SPA navigation (/, /pro, /tool/...) resolves to the same index.html, so
@@ -232,6 +232,8 @@ const BYPASS_PATTERNS = [
   /^\/catalog\//,
   /^\/api\//,
   /^\/models\//,
+  // Authenticated delivery/object redirects must never enter offline shell caches.
+  /^\/(?:e|o)(?:\/|$)/,
   // /.well-known/ (security.txt, the MCP OAuth metadata routes) is plain-text /
   // JSON policy data: a NAVIGATION to it must not run through the document
   // branch below, which would cache a non-HTML body as the app shell.

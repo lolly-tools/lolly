@@ -1,6 +1,6 @@
 # Privacy Policy
 
-*Last updated: 5 October 2026*
+*Last updated: 11 October 2026*
 
 > **The short version.** Ordinary Lolly editing, rendering and downloads happen on
 > your device and need no account. Features such as sharing, Sync, hosted rendering
@@ -122,7 +122,7 @@ An operator's configured identity and asset providers can add destinations to th
 | A Sandbox demo's web resources | A request for each stylesheet, script, font or image the demo's code links to, with your IP address, to the site that hosts the file. No cookies are sent. Files a fetched stylesheet names (Google Fonts' font files, for example) count as separate sites | Only after you click "Fetch & inline", or for a site in your Trusted sites. "Always trust" beside a file adds its site to that list | The demo runs without those files, and the Sandbox lists each file it could not fetch and why |
 | Add an image from a URL | A request to the exact image address you paste in "Add from URL" (in the asset picker or Assets). The web app's own policy forbids the browser from fetching another site directly, so the request is made for you by a small pass-through on the app's own origin (`/api/fetch-image`), which fetches the image server-side and hands back only the bytes - it stores nothing and forgets the address. It refuses anything that is not a public image address (a private or internal address is blocked). The desktop apps fetch the address directly. A Lolly link you paste is not fetched at all - it renders on your device. The host is not in the policy below, because you choose it at the moment of use | Only when you paste a URL in "Add from URL" and confirm | The operator turns the pass-through off (`LOLLY_DISABLE_IMAGE_PROXY=1`); then only Lolly links, `data:` images and same-origin images can be added in the web app. The desktop apps are unaffected |
 | SEAL signature check | **Nothing.** The web app has no DNS resolver at all - see below | Never | Nothing to block |
-| On-device AI models | Nothing personal - a one-time model-file download from Lolly's model host (`lolli.li`), then cached on your device; no account, no identifier, only the request and your IP | Only when you use a feature that needs a model (Verify deep scan, image upscale, speech, and similar) | That feature waits for the download; everything else still works |
+| On-device AI models | Nothing personal - a model-file download, then cached on your device. Web builds default to the app's own origin; a build can instead name another model host, including Lolly's release host (`lolli.li`) for packaged apps. The destination receives the request and your IP, without an account or model inputs | Only when you use a feature that needs a model (Verify deep scan, image upscale, speech, and similar), or choose to download models for offline use | That feature waits for the download; everything else still works |
 | Remote instance | Whatever the instance you name serves back, over the same catalogue sync described above - plus a version tag on requests to it (shell kind and engine version, the same information a user agent carries), so its operator can see which Lolly versions are in the field. On a managed instance, while you are signed in, that tag also carries a per-device install id so the operator's device list can tell this install apart. The tag accompanies requests to that instance; leaving deletes the id, so a device that reconnects later presents a fresh one. Managed instances also make the authenticated policy and service requests described in the next row. You choose the host at the moment of use, so it is not in the policy below | Only if you explicitly point the shell at another Lolly deployment | Instance switching fails. Your local instance is unaffected |
 | Invite an agent | The invited document's state, requested previews, agent identity and edits pass through the configured live relay (`lolly.ing` on lolly.tools) to the agent you invite. An installed hosted plugin also forwards calls through the lolly.tools connector to the relay selected by the invitation. The connector retains no invitation or active document between calls. The relay holds invitations and pending requests in memory until disconnection or expiry; unused invitations expire after ten minutes and connected invitations after thirty minutes. Your agent provider handles the data it receives under its own policy | Only after you create an invitation in Share and give its instructions to your agent. Read access permits inspection; edit access also permits changes. Pause stops changes, and disconnect or revoke ends access | The agent cannot join or continue; you can keep editing locally |
 | Organisation services with lolly.work | Sign-in identity and device information; policy requests; the shared sessions, collaboration edits, uploaded assets, approval submissions and delivery files you use; allowed usage-event labels when configured. Requests go to your organisation's instance, with sign-in through its identity provider. See [details below](#organisation-services-with-lolly-work) | When connected and signed in: policy refresh and enabled telemetry can run during use; shared work, collabs, review and delivery send content as part of those workflows | Those organisation features cannot complete; local personal work remains separate |
@@ -373,6 +373,50 @@ the tab. Everything happens locally, on your own device and network.
 None of these are used to read, monitor or transmit your browsing beyond that
 one requested capture.
 
+## Delivery hosts and processors
+
+Public catalog files, tools and display renditions use the app's own origin by
+default. Content-addressed names change where a file is fetched, not who receives
+the request. No third-party CDN is activated by this delivery feature. A CDN that
+terminates TLS would receive request metadata, including IP addresses, and any
+cookies or bearer credentials forwarded to it; using the same browser hostname
+does not remove that processor relationship.
+
+The reference services use the following hosting arrangement. This is a hostname
+inventory, not a claim that another organisation's instance uses the same region.
+
+| Hostname or service | Function and recipient | Region and data handling |
+|---|---|---|
+| lolly.tools | Public shell, catalog, rendering and certificate services; UpCloud hosting | Frankfurt, Germany. Request metadata can appear in infrastructure logs; ordinary local editing stays on the device |
+| lolly.ing | Managed workspace and document-agent services; UpCloud hosting | Frankfurt, Germany. Private database and blob storage are on the same host. Accounts, shared content and service records follow the instance administrator's policy |
+| lolli.li | Public release and model files; UpCloud Managed Object Storage, separate from the application cluster | Frankfurt, Germany, in UpCloud's europe-2 object-storage region. A download sends request metadata, not the inputs later processed by the model |
+| Configured identity provider | Google, GitHub or an operator's OIDC provider | Sign-in follows that provider's policy. The instance must disclose the configured hostname, region and transfer arrangements |
+| Configured asset provider | Brandfolder or another operator-selected library | The provider receives permitted library requests. Its source permissions and the instance's policy govern access; the operator must disclose its hostnames and regions |
+| Email enrolment, when configured | Resend delivers the requested sign-in link | Receives the destination email address for that message; its separate processing terms apply |
+
+The reference application services no longer use Vercel, Neon or Upstash as their
+runtime hosting, database or abuse-control store. An operator may still choose
+those services for a different instance. Hosting, identity, asset and email
+providers are separate functions and need separate disclosure.
+The model host's [object-storage region](https://upcloud.com/docs/products/managed-object-storage/availability/)
+is verified separately from the application VM's region.
+
+**Before adding any CDN or external model host**, the administrator must publish
+the processor name, hostname, jurisdictions, metadata received, retention and
+applicable transfer arrangements. See [Delivery deployment](/info/deploy-delivery.html).
+Private workspace responses bypass shared caches. Personal results, access
+refusals and errors use `private, no-store`; a permitted private response can
+revalidate in the reader's browser without becoming public.
+
+**Principal-bound MCP download links are held in this release.** Public MCP
+results continue to use the existing response path. The optional download mode
+must be qualified before enabling it: only an authenticated caller with a file
+scope may receive a link, the same caller's bearer is required to fetch it, and
+the download token expires within 300 seconds. Held output would remain in
+process memory for that interval, count against the caller's budget and be
+discarded on expiry. Anonymous callers must never receive such links. A link's
+token is not authority for another person or agent to read the result.
+
 ## Infrastructure logs
 
 This section describes the public lolly.tools deployment. Its hosting platform
@@ -389,11 +433,11 @@ recipient address, and an error message with no stack trace or URL (a stack coul
 carry an enrolment token). Everything else in the log is the hosting platform's,
 not ours.
 
-For lolly.tools, hosting is Vercel and access-log retention follows Vercel's own
-platform defaults for our plan. We configure no log drain, no long-term log
-export and no analytics or monitoring product on top. We keep no copy of these
-logs ourselves, which also means we have no way to search them for you - see
-[Your rights](#your-rights).
+For lolly.tools, the instance administrator controls request logging, rotation
+and retention on UpCloud. This page does not state an unverified maximum log
+retention period. Contact the controller below for the current schedule and any
+request about server-held logs. An operator of another instance must disclose
+their own settings, including any log exports or additional processors.
 
 ## Legal bases, retention and recipients
 
@@ -406,26 +450,28 @@ its operator must provide those in its own policy.
 | Everything on your device (documents, prefs, cache, counters) | **Not our processing at all** - it never reaches us. Storage on your device is strictly necessary for the service you requested (ePrivacy Art. 5(3)), so it needs no consent | Until you delete it |
 | Your email address during Content Credentials enrolment | **Art. 6(1)(b)**, performance of a service you explicitly requested | Not retained. Present in memory for the duration of the request only |
 | A one-way-derived bucket key made from your IP address, for rate limiting the sign-in endpoints and the public render, image and MCP endpoints | **Art. 6(1)(f)**, our legitimate interest in preventing abuse of a free service and of a third party's email quota. We consider this to pass a balancing test because the raw address is not sent to the limiter, the bucket is used only for abuse control and it expires automatically | About 1 minute in the abuse-control store; not retained afterwards |
-| Hosting access logs (IP, path, timestamp, user agent) | **Art. 6(1)(f)**, our legitimate interest in service security, abuse prevention and diagnosing faults | Vercel's platform default for our plan. We add no drain or export |
+| Hosting access logs (IP, path, timestamp, user agent) | **Art. 6(1)(f)**, our legitimate interest in service security, abuse prevention and diagnosing faults | Administrator-configured rotation and retention; contact the controller for the current schedule |
 
-**Recipients.** The categories of recipient are: our hosting provider (Vercel
-Inc.); our abuse-control store provider, which receives only short-lived,
-one-way-derived bucket keys and never the raw IP address; and - only if you use
-the email sign-in option - a transactional email provider (Resend). If you sign
+**Recipients.** The categories of recipient are: our hosting provider (UpCloud),
+which hosts the application's database and abuse-control store; and, only if you
+use the email sign-in option, a transactional email provider (Resend). The
+abuse-control store receives only short-lived, one-way-derived bucket keys and
+never the raw IP address. If you sign
 in with GitHub, Google or SUSE (id.suse.com), you
 interact with that provider directly under their own privacy policy. They tell
 us a verified email address and nothing else. We share personal data with no one
 else, and we do not sell data, run advertising or profile users.
 
-**Transfers outside the EEA.** Vercel and Resend are US companies. Function
-compute for lolly.tools is pinned to Vercel's Frankfurt (`fra1`) region so
-processing happens in the EU, but as US-headquartered providers they may still
-access data as processors from the US. Those transfers rely on the European
-Commission's Standard Contractual Clauses and/or the EU-US Data Privacy
-Framework, as set out in each provider's data processing agreement. Because the
-personal data reaching these providers is so limited - an email address passed
-through to send one message, ordinary access logs, and a short-lived derived
-abuse-control bucket - the exposure is correspondingly small.
+**Transfers outside the EEA.** The reference application's hosting, database and
+blob storage are in Frankfurt. Optional identity, email and asset providers have
+their own processing locations and terms, which can include access outside the
+EEA. A server's region alone does not establish every recipient's jurisdiction.
+For the applicable provider agreements and transfer arrangements, contact the
+controller; an organisation operating its own instance must publish that
+information for its configured providers before enabling them.
+The European Commission's [Standard Contractual Clauses](https://commission.europa.eu/law/law-topic/data-protection/international-dimension-data-protection/standard-contractual-clauses-scc_en)
+are one available safeguard for applicable transfers; this page does not assert
+that an unverified provider agreement uses them.
 
 **Automated decision-making.** None. There is no profiling and no automated
 decision producing legal or similarly significant effects (Art. 22).
@@ -451,13 +497,11 @@ interests), to **data portability** and - where processing rests on consent - to
 **withdraw that consent at any time**, without affecting the lawfulness of what
 happened before you withdrew it.
 
-For the public lolly.tools services described here, we no longer
-keep an issuance log, so **we hold no personal data about you that we can look up,
-correct, export or delete.** If you write and ask what we have on you, the
-truthful answer is nothing, and we will state it. The one category that exists at
-all is hosting access logs keyed to an IP address, held by our hosting provider
-under their retention defaults. We have no facility to search or selectively
-delete those, and we will tell you that rather than pretend otherwise. Your local records remain accessible on your device. For organisation-held
+The public certificate service keeps no issuance log. Infrastructure logs can
+contain request metadata, so this policy does not promise that the hosting
+environment holds no personal data. Contact the controller for access, erasure
+or another request about those records; we will explain what records exist and
+what action is possible. Your local records remain accessible on your device. For organisation-held
 work, identities, telemetry and audit records, contact your lolly.work operator;
 local export and deletion controls do not manage those copies.
 
@@ -479,6 +523,12 @@ edit - if you want to see what changed, ask (below) or compare against the
 [public source](https://github.com/lolly-tools/lolly/commits/main/docs/privacy.md).
 
 **29 September 2026:** clarified the optional lolly.work service, its organisation-held content, authentication cookies, usage telemetry and audit records, and the separation between local deletion and server retention. These are existing optional workflows, not a new upload requirement for local editing.
+
+**11 October 2026:** replaced the retired Vercel hosting description with the
+UpCloud application hostname inventory, distinguished optional identity and asset
+providers, and described content-addressed delivery and the held MCP download
+mode. No third-party CDN is enabled by this change. Log retention is controlled
+by the administrator rather than a stated Vercel plan default.
 
 ## Who is responsible, and how to reach us
 

@@ -1,0 +1,52 @@
+# Same-origin reference. Set the hostname and local upstreams before use.
+# Caddy terminates TLS; the applications perform their own text compression.
+{$LOLLY_HOST} {
+    @internal {
+        path_regexp internal (^|/)\.
+        not path /.well-known/*
+    }
+    handle @internal {
+        error "Unavailable" 404
+    }
+    @modelMetadata path /models/manifest.json /models/release.json
+    handle @modelMetadata {
+        error "Unavailable" 404
+    }
+    @mcp path /tool/* /api/* /e/* /o/*
+    handle @mcp {
+        reverse_proxy {$LOLLY_MCP_UPSTREAM} {
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Host {host}
+            header_up X-Forwarded-Proto {scheme}
+            header_up X-Real-IP {remote_host}
+            header_up -Forwarded
+            header_down -Cache-Tag
+            header_down -Surrogate-Key
+            header_down -X-Cache-Tag
+            header_down -X-Cache-Tags
+        }
+    }
+    @worker path /sw.js
+    handle @worker {
+        root * {$LOLLY_STATIC_ROOT}
+        header Cache-Control "no-cache, s-maxage=0, no-transform"
+        header CDN-Cache-Control "no-store"
+        header Referrer-Policy "no-referrer"
+        header Service-Worker-Allowed "/"
+        file_server
+    }
+    handle {
+        root * {$LOLLY_STATIC_ROOT}
+        header Cache-Control "public, max-age=0, s-maxage=0, must-revalidate, no-transform"
+        header CDN-Cache-Control "max-age=0, must-revalidate, no-transform"
+        header Referrer-Policy "no-referrer"
+        file_server {
+            precompressed br gzip
+        }
+    }
+    handle_errors {
+        header Cache-Control "private, no-store, max-age=0, no-transform"
+        header CDN-Cache-Control "no-store"
+        respond "Unavailable" {err.status_code}
+    }
+}

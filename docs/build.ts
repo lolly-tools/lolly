@@ -337,6 +337,7 @@ const pages: Page[] = [
   { slug: 'build-kubernetes', title: 'Build the web container and Helm chart', src: 'build-kubernetes.md', pathway: 'operators', description: "Build the web image and deploy the chart with optional services." },
   { slug: 'ios-build',        title: 'Building for iOS',  src: 'ios-build.md',       pathway: 'builders' },
   { slug: 'deployment',       title: 'Deployment',        src: 'deployment.md',      pathway: 'operators' },
+  { slug: 'deploy-delivery', title: 'Delivery deployment', src: 'deploy-delivery.md', pathway: 'operators', description: "Serve public files and private workspace responses safely: signed catalog updates, retained hashed files, model integrity, optional edges and release checks." },
   { slug: 'configuration',    title: 'Configuration',     src: 'configuration.md',   pathway: 'operators', description: "Everything that shapes a Lolly instance: which brand it wears, which tools it exposes, and what each tool may do on the device it runs on." },
   { slug: 'content-credentials-identity', title: 'Content Credentials Identity', src: 'content-credentials-identity.md', pathway: 'trust' },
   { slug: 'content-credentials-engineering', title: 'Content Credentials - Engineering', src: 'content-credentials-engineering.md', pathway: 'trust' },
@@ -655,6 +656,7 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
       { label: 'Ship & operate', items: [
         { slug: 'contributing-setup', label: 'Contributing setup' },
         { slug: 'deployment',    label: 'Deployment' },
+        { slug: 'deploy-delivery', label: 'Delivery deployment' },
         { slug: 'configuration', label: 'Configuration' },
         { slug: 'supported-environments', label: 'Supported environments' },
         { slug: 'about',         label: 'About' } ] },
@@ -683,6 +685,7 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
         { slug: 'adoption-governance', label: 'Adoption & Governance' },
         { slug: 'sovereign-production', label: 'Sovereign production' },
         { slug: 'deployment',    label: 'Deployment' },
+        { slug: 'deploy-delivery', label: 'Delivery deployment' },
         { slug: 'configuration', label: 'Configuration' },
         { slug: 'build-guide',   label: 'Build Guide' } ] },
       { label: 'Build targets', items: [
@@ -5284,7 +5287,7 @@ const FOOTER_SECTIONS: SitemapSection[] = [
   { hub: 'builders', label: 'Run & integrate', slugs: ['tui', 'mcp', 'ai-agents', 'learning-integration', 'design-tool-contract'] },
   { hub: 'builders', label: 'Ship & operate', slugs: ['contributing-setup', 'about'] },
   { hub: 'operators', label: 'Playbooks', slugs: ['sales', 'press', 'marketing', 'legal'] },
-  { hub: 'operators', label: 'Adopt & govern', slugs: ['adoption-governance', 'sovereign-production', 'deployment', 'configuration', 'build-guide'] },
+  { hub: 'operators', label: 'Adopt & govern', slugs: ['adoption-governance', 'sovereign-production', 'deployment', 'deploy-delivery', 'configuration', 'build-guide'] },
   { hub: 'operators', label: 'Build targets', slugs: ['build-terminal', 'build-desktop', 'build-mobile', 'build-obs', 'build-kubernetes', 'ios-build'] },
   { hub: 'trust', label: 'Tenets', slugs: ['tenets', 'status-quo', 'inclusive-design'] },
   { hub: 'trust', label: 'Project perspective', slugs: ['input-not-impersonation', 'content-credentials-identity',
@@ -5413,7 +5416,7 @@ const SIDEBAR_ICON: Record<string, string> = {
   // Builders - run & integrate
   cli: 'code', 'cli-signing': 'seal', tui: 'monitor', mcp: 'server', 'ai-agents': 'sparkle', extension: 'globe',
   // Builders - ship & operate
-  'contributing-setup': 'download', 'build-guide': 'box', 'ios-build': 'box', deployment: 'upload', configuration: 'sliders', about: 'document',
+  'contributing-setup': 'download', 'build-guide': 'box', 'ios-build': 'box', deployment: 'upload', 'deploy-delivery': 'download', configuration: 'sliders', about: 'document',
   // Operators
   'adoption-governance': 'people',
   // Trust - Project perspective

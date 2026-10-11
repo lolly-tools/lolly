@@ -12,9 +12,9 @@
  * /models/ exactly like today. The trailing slash is stripped so callers append
  * `/models/...` uniformly.
  *
- * NOT the speech models: kokoro/whisper stay same-origin by design (the
- * `env.localModelPath = '/models/'` privacy pin in the speech workers, asserted by
- * speech-kokoro-privacy.test.ts). Only the createModelFetcher-sourced detectors move.
+ * Speech and transformer workers use this base too, with remote Hub access
+ * disabled. model-manifest.ts selects physical hashed directories; old aliases
+ * are only reused after their bytes match the required model's full hash.
  *
  * When this is external, CSP connect-src must include the host (see vercel.json), and
  * the deploy MUST pass the same VITE_MODELS_BASE the .vercelignore exclusion assumes.

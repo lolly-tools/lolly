@@ -3055,7 +3055,61 @@ var init_asset_schema = __esm({
                 maximum: 64,
                 description: "Bits per channel of THIS file. Raster containers only (png/tiff/jpeg/webp). SNIFFED, NOT ASSERTED: absent means unknown or not raster - a container that buries depth in codec boxes (heic/avif) stays absent rather than guessing. Never hand-authored: `npm run build:catalog` writes it from a bounded header sniff and `npm run validate:catalog` re-sniffs to catch drift. Depth follows provenance (plans/61-deeprichpixels.md section 10)."
               },
-              durationMs: { type: "integer", minimum: 0, description: "Playback length in milliseconds, for video, audio and lottie assets." }
+              durationMs: { type: "integer", minimum: 0, description: "Playback length in milliseconds, for video, audio and lottie assets." },
+              rendition: {
+                type: "object",
+                additionalProperties: false,
+                required: [
+                  "of",
+                  "spec"
+                ],
+                description: "Signed display derivative of an original file. Placement and export use original formats.",
+                properties: {
+                  of: {
+                    type: "string",
+                    pattern: "^[0-9a-f]{64}$"
+                  },
+                  spec: {
+                    type: "object",
+                    additionalProperties: false,
+                    required: [
+                      "fit",
+                      "format"
+                    ],
+                    properties: {
+                      w: {
+                        type: "integer",
+                        minimum: 1,
+                        maximum: 16384
+                      },
+                      h: {
+                        type: "integer",
+                        minimum: 1,
+                        maximum: 16384
+                      },
+                      fit: {
+                        enum: [
+                          "inside",
+                          "cover"
+                        ]
+                      },
+                      format: {
+                        enum: [
+                          "png",
+                          "jpeg",
+                          "webp",
+                          "avif"
+                        ]
+                      },
+                      q: {
+                        type: "integer",
+                        minimum: 1,
+                        maximum: 100
+                      }
+                    }
+                  }
+                }
+              }
             }
           }
         },
@@ -3516,7 +3570,7 @@ var init_bytes = __esm({
 // engine/src/der-read.ts
 function derTlv(b, i) {
   if (i + 2 > b.length) throw new Error("der: truncated");
-  const tag2 = b[i];
+  const tag3 = b[i];
   let len2 = b[i + 1];
   let j = i + 2;
   if (len2 & 128) {
@@ -3526,7 +3580,7 @@ function derTlv(b, i) {
     for (let x = 0; x < k; x++) len2 = len2 * 256 + b[j++];
   }
   if (j + len2 > b.length) throw new Error("der: length overruns buffer");
-  return { tag: tag2, start: i, contentStart: j, end: j + len2 };
+  return { tag: tag3, start: i, contentStart: j, end: j + len2 };
 }
 function derChildren(b, tlv) {
   const kids2 = [];
@@ -3561,8 +3615,8 @@ function derLen(n7) {
   if (n7 < 65536) return Uint8Array.of(130, n7 >>> 8, n7 & 255);
   return Uint8Array.of(131, n7 >>> 16, n7 >>> 8 & 255, n7 & 255);
 }
-function derWrap(tag2, body) {
-  return concatBytes([Uint8Array.of(tag2), derLen(body.length), body]);
+function derWrap(tag3, body) {
+  return concatBytes([Uint8Array.of(tag3), derLen(body.length), body]);
 }
 function ecdsaRawToDer(raw) {
   const half = raw.length / 2;
@@ -3597,9 +3651,9 @@ function derLen2(n7) {
   if (n7 < 65536) return Uint8Array.of(130, n7 >>> 8, n7 & 255);
   return Uint8Array.of(131, n7 >>> 16, n7 >>> 8 & 255, n7 & 255);
 }
-function der(tag2, ...content2) {
+function der(tag3, ...content2) {
   const body = concatBytes(content2);
-  return concatBytes([Uint8Array.of(tag2), derLen2(body.length), body]);
+  return concatBytes([Uint8Array.of(tag3), derLen2(body.length), body]);
 }
 function derUint(bytes) {
   let i = 0;
@@ -3808,6 +3862,10 @@ var init_x509 = __esm({
 });
 
 // engine/src/catalog-integrity.ts
+function webCrypto() {
+  if (!subtle2) throw new Error("catalog integrity: WebCrypto unavailable");
+  return subtle2;
+}
 function bytesToBase64Url(bytes) {
   let bin = "";
   for (const b of bytes) bin += String.fromCharCode(b);
@@ -3821,22 +3879,22 @@ async function jwkThumbprint(jwk) {
     throw new Error("catalog integrity: keyId needs an EC JWK with crv/x/y");
   }
   const canonical3 = canonicalJson({ crv: jwk.crv, kty: jwk.kty, x: jwk.x, y: jwk.y });
-  const digest2 = new Uint8Array(await subtle2.digest("SHA-256", asBufferSource(te2.encode(canonical3))));
+  const digest2 = new Uint8Array(await webCrypto().digest("SHA-256", asBufferSource(te2.encode(canonical3))));
   return bytesToBase64Url(digest2);
 }
 async function importSpkiOrJwkPublicKey(key) {
   if (typeof key === "string") {
     const trimmed = key.trim();
     if (trimmed.startsWith("{")) {
-      return subtle2.importKey("jwk", JSON.parse(trimmed), EC_P256, true, ["verify"]);
+      return webCrypto().importKey("jwk", JSON.parse(trimmed), EC_P256, true, ["verify"]);
     }
-    return subtle2.importKey("spki", asBufferSource(pemToDer(trimmed)), EC_P256, true, ["verify"]);
+    return webCrypto().importKey("spki", asBufferSource(pemToDer(trimmed)), EC_P256, true, ["verify"]);
   }
-  return subtle2.importKey("jwk", key, EC_P256, true, ["verify"]);
+  return webCrypto().importKey("jwk", key, EC_P256, true, ["verify"]);
 }
 async function signCatalogEnvelope(unsigned, privateKey) {
   const bytes = te2.encode(canonicalJson(unsigned));
-  const raw = new Uint8Array(await subtle2.sign(ECDSA_SHA256, privateKey, asBufferSource(bytes)));
+  const raw = new Uint8Array(await webCrypto().sign(ECDSA_SHA256, privateKey, asBufferSource(bytes)));
   return { ...unsigned, signature: bytesToBase64Url(raw) };
 }
 async function verifyEnvelopeSignature(envelope2, publicKey) {
@@ -3848,6 +3906,8 @@ async function verifyEnvelopeSignature(envelope2, publicKey) {
   if (typeof envelope2.signature !== "string" || !envelope2.signature) {
     return { ok: false, reason: "envelope has no signature" };
   }
+  const shape = catalogEnvelopeShape(envelope2);
+  if (!shape.ok) return shape;
   let sig;
   try {
     sig = base64UrlToBytes(envelope2.signature);
@@ -3857,7 +3917,7 @@ async function verifyEnvelopeSignature(envelope2, publicKey) {
   if (sig.length !== 64) return { ok: false, reason: "signature is not a raw P-256 r||s pair" };
   const { signature: _sig, ...unsigned } = envelope2;
   const bytes = te2.encode(canonicalJson(unsigned));
-  const ok3 = await subtle2.verify(ECDSA_SHA256, publicKey, asBufferSource(sig), asBufferSource(bytes));
+  const ok3 = await webCrypto().verify(ECDSA_SHA256, publicKey, asBufferSource(sig), asBufferSource(bytes));
   return ok3 ? { ok: true } : { ok: false, reason: "signature does not verify against the pinned key" };
 }
 async function verifyCatalogEnvelope(envelope2, indexBytes, publicKey) {
@@ -3881,7 +3941,26 @@ async function verifyToolFile(envelope2, toolId, filename, bytes) {
   }
   return { ok: true };
 }
-var te2, subtle2, CATALOG_SIG_ALG, CATALOG_SIG_PATH, TEXT_TEMPLATE_EXTS, CATALOG_SIGNED_TOOL_FILES, EC_P256, ECDSA_SHA256;
+function catalogEnvelopeShape(envelope2) {
+  if (!envelope2 || typeof envelope2 !== "object") return { ok: false, reason: "envelope missing" };
+  if (!envelope2.files || typeof envelope2.files !== "object" || Array.isArray(envelope2.files) || Object.keys(envelope2.files).length > 1e5) return { ok: false, reason: "invalid signed file map" };
+  for (const [path, digest2] of Object.entries(envelope2.files)) {
+    if (path.length > 1024 || /[\\%?#\p{White_Space}\p{Cc}]/u.test(path) || path.split("/").some((part) => !part || part === "." || part === "..") || !digestPattern.test(digest2)) return { ok: false, reason: "invalid signed file digest" };
+  }
+  if (!digestPattern.test(envelope2.indexHash)) return { ok: false, reason: "invalid signed tool index hash" };
+  if (typeof envelope2.signedAt !== "string" || !Number.isFinite(Date.parse(envelope2.signedAt))) return { ok: false, reason: "invalid catalog signing time" };
+  if (envelope2.seq !== void 0 && (!Number.isSafeInteger(envelope2.seq) || envelope2.seq < 1)) return { ok: false, reason: "invalid catalog sequence" };
+  if (envelope2.expiresAt !== void 0 && (typeof envelope2.expiresAt !== "string" || !Number.isFinite(Date.parse(envelope2.expiresAt)))) return { ok: false, reason: "invalid catalog expiry" };
+  for (const value of [envelope2.assetIndexHash, envelope2.slimHash, envelope2.catalogScope]) {
+    if (value !== void 0 && !digestPattern.test(value)) return { ok: false, reason: "invalid signed catalog digest" };
+  }
+  if (envelope2.toolDirs !== void 0) {
+    if (!envelope2.toolDirs || typeof envelope2.toolDirs !== "object" || Array.isArray(envelope2.toolDirs)) return { ok: false, reason: "invalid tool directory map" };
+    for (const [id2, hash] of Object.entries(envelope2.toolDirs)) if (!toolPattern.test(id2) || !digestPattern.test(hash)) return { ok: false, reason: "invalid tool directory hash" };
+  }
+  return { ok: true };
+}
+var te2, subtle2, CATALOG_SIG_ALG, CATALOG_SIG_PATH, TEXT_TEMPLATE_EXTS, CATALOG_SIGNED_TOOL_FILES, EC_P256, ECDSA_SHA256, digestPattern, toolPattern;
 var init_catalog_integrity = __esm({
   "engine/src/catalog-integrity.ts"() {
     "use strict";
@@ -3891,7 +3970,7 @@ var init_catalog_integrity = __esm({
     init_canonical_json();
     init_bytes();
     te2 = new TextEncoder();
-    subtle2 = globalThis.crypto.subtle;
+    subtle2 = globalThis.crypto?.subtle;
     CATALOG_SIG_ALG = "ECDSA-P256-SHA256";
     CATALOG_SIG_PATH = "tools/index.sig.json";
     TEXT_TEMPLATE_EXTS = [
@@ -3916,6 +3995,8 @@ var init_catalog_integrity = __esm({
     ];
     EC_P256 = { name: "ECDSA", namedCurve: "P-256" };
     ECDSA_SHA256 = { name: "ECDSA", hash: "SHA-256" };
+    digestPattern = /^[0-9a-f]{64}$/;
+    toolPattern = /^[a-z0-9][a-z0-9-]*$/i;
   }
 });
 
@@ -7749,6 +7830,127 @@ var init_chart_spec = __esm({
   }
 });
 
+// packages/core/src/delivery-v1.ts
+function age(value, fallback, ceiling) {
+  if (value === void 0) return fallback;
+  if (!Number.isSafeInteger(value) || value < 0) throw new TypeError("Invalid delivery age");
+  return Math.min(value, ceiling);
+}
+function cachePolicy(cls, opts = {}) {
+  let cacheControl = PRIVATE, cdnCacheControl = "no-store";
+  const status = opts.status ?? 200;
+  if (status < 400) {
+    switch (cls) {
+      case "public-immutable":
+        if ([200, 206, 304].includes(status)) {
+          cacheControl = "public, max-age=31536000, s-maxage=31536000, immutable, no-transform";
+          cdnCacheControl = "max-age=31536000, no-transform";
+        }
+        break;
+      case "public-revalidate":
+        cacheControl = "public, max-age=0, s-maxage=0, must-revalidate, no-transform";
+        cdnCacheControl = "max-age=0, must-revalidate, no-transform";
+        break;
+      case "public-bounded": {
+        const a = age(opts.boundedAgeSec, 3600, 3600);
+        const shared = opts.boundedAgeSec === void 0 ? 86400 : a;
+        const stale = opts.boundedAgeSec === void 0 ? ", stale-while-revalidate=604800" : "";
+        cacheControl = `public, max-age=${a}, s-maxage=${shared}${stale}, no-transform`;
+        cdnCacheControl = `max-age=${shared}${stale}, no-transform`;
+        break;
+      }
+      case "link":
+        cacheControl = `private, max-age=${age(opts.boundedAgeSec, 300, 300)}, no-transform`;
+        break;
+      case "instance-private":
+        cacheControl = opts.boundedAgeSec === void 0 ? "private, no-cache, no-transform" : `private, max-age=${age(opts.boundedAgeSec, 300, 300)}, no-transform`;
+        break;
+      case "person-private":
+        break;
+      default:
+        break;
+    }
+  }
+  return {
+    cacheControl,
+    cdnCacheControl,
+    // Fastly must not see an overriding public Surrogate-Control on a private response.
+    ...cacheControl.startsWith("public,") ? { surrogateControl: cdnCacheControl } : {},
+    validator: opts.signed && cls === "public-bounded" ? "weak" : "strong",
+    ...opts.tokenBearing ? { referrerPolicy: "no-referrer" } : {}
+  };
+}
+function tag(prefix, value) {
+  const result = `${prefix}_${value}`;
+  if (!PREFIXES.has(prefix) || !TAG_VALUE.test(value) || result.length > 80) throw new TypeError("Invalid delivery tag");
+  return result;
+}
+function renderTags(tags3, style) {
+  if (style !== "comma" && style !== "space") throw new TypeError("Invalid tag style");
+  if (tags3.length > 12) throw new RangeError("Too many delivery tags");
+  for (const value of tags3) {
+    if (value?.[1] !== "_" || tag(value[0], value.slice(2)) !== value) throw new TypeError("Invalid delivery tag");
+  }
+  const result = [...new Set(tags3)].join(style === "comma" ? "," : " ");
+  if (result.length > 1e3) throw new RangeError("Delivery tag header exceeds budget");
+  return result;
+}
+function canonicalDeliveryPath(path, pattern) {
+  if (!path.startsWith("/") || path.includes("//") || /[%\\?#]/.test(path) || [...path].some((c) => c.charCodeAt(0) <= 32 || c.charCodeAt(0) >= 127) || path.split("/").some((p) => p === "." || p === "..")) return null;
+  const match = new RegExp(pattern.source, pattern.flags.replace(/[gy]/g, "")).exec(path);
+  return match && match.index === 0 && match[0] === path ? path : null;
+}
+function validHost(host) {
+  if (!host || host !== host.toLowerCase() || /[|\s/?#@\\]/.test(host)) return false;
+  try {
+    return new URL(`https://${host}`).host === host;
+  } catch {
+    return false;
+  }
+}
+function validContext(ctx) {
+  return validHost(ctx.canonicalHost) && (ctx.subject === void 0 || /^[0-9a-f]{64}$/.test(ctx.subject));
+}
+function validClaims(c) {
+  return c.v === 1 && /^[a-z0-9_-]{1,32}$/.test(c.kid) && Number.isSafeInteger(c.exp) && c.exp > 0 && ["link", "instance-private", "person-private"].includes(c.cls);
+}
+function tokenMessage(c, path, ctx) {
+  return new TextEncoder().encode(`lolly-dt1|${ctx.canonicalHost}|${path}|${c.exp}|${c.cls}${ctx.subject === void 0 ? "" : `|${ctx.subject}`}`).buffer;
+}
+function base64url(bytes) {
+  return btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+async function signDeliveryToken(c, path, ctx, key) {
+  if (!validClaims(c) || !validContext(ctx) || !canonicalDeliveryPath(path, /^\/.+$/)) throw new TypeError("Invalid delivery token scope");
+  const signature2 = await crypto.subtle.sign("HMAC", key, tokenMessage(c, path, ctx));
+  return `1.${c.kid}.${c.exp}.${base64url(new Uint8Array(signature2))}`;
+}
+async function verifyDeliveryToken(token2, path, ctx, keys2, now2) {
+  if (!validContext(ctx) || !canonicalDeliveryPath(path, ctx.pattern) || !["link", "instance-private", "person-private"].includes(ctx.cls)) return "scope";
+  if (!Number.isFinite(now2) || !Number.isSafeInteger(ctx.maxSkewSec) || ctx.maxSkewSec < 0 || ctx.maxSkewSec > 60) return "bad";
+  const match = /^1\.([a-z0-9_-]{1,32})\.([1-9][0-9]{0,15})\.([A-Za-z0-9_-]{43})$/.exec(token2);
+  if (!match) return "bad";
+  const c = { v: 1, kid: match[1], exp: Number(match[2]), cls: ctx.cls };
+  const key = keys2.get(c.kid);
+  if (!validClaims(c) || !key) return "bad";
+  try {
+    const raw = Uint8Array.from(atob(match[3].replace(/-/g, "+").replace(/_/g, "/") + "="), (ch) => ch.charCodeAt(0));
+    if (base64url(raw) !== match[3] || !await crypto.subtle.verify("HMAC", key, raw.buffer, tokenMessage(c, path, ctx))) return "bad";
+    return now2 >= c.exp + ctx.maxSkewSec ? "expired" : "ok";
+  } catch {
+    return "bad";
+  }
+}
+var PRIVATE, PREFIXES, TAG_VALUE;
+var init_delivery_v1 = __esm({
+  "packages/core/src/delivery-v1.ts"() {
+    "use strict";
+    PRIVATE = "private, no-store, max-age=0, no-transform";
+    PREFIXES = /* @__PURE__ */ new Set(["x", "r", "t", "e", "c", "a", "h", "u", "k", "p", "f", "s", "b", "o", "y"]);
+    TAG_VALUE = /^[a-z0-9!#$%&'*+.^_`|~-]+$/;
+  }
+});
+
 // packages/core/src/file-v1.ts
 function safeFileName(name, fallback = "file") {
   const clean2 = (value) => value.normalize("NFC").replace(/\\/g, "/").split("/").pop().replace(/[\u0000-\u001f\u007f-\u009f<>:"|?*]/g, "-").replace(/[\u202a-\u202e\u2066-\u2069]/g, "").trim().replace(/[. ]+$/, "");
@@ -8770,6 +8972,7 @@ var init_design_compose_v1 = __esm({
 var init_src = __esm({
   "packages/core/src/index.ts"() {
     "use strict";
+    init_delivery_v1();
     init_file_operation_v1();
     init_host_v1();
     init_apis();
@@ -33985,7 +34188,7 @@ var init_emoji_svg_syntax = __esm({
 });
 
 // engine/src/emoji-svg.ts
-function staticSvgAttribute(name, value, tag2, authoredPaint = false) {
+function staticSvgAttribute(name, value, tag3, authoredPaint = false) {
   value = value.trim();
   if (name === "id") {
     if (!idPattern2.test(value)) throw new Error("Unsupported SVG id.");
@@ -34022,7 +34225,7 @@ function staticSvgAttribute(name, value, tag2, authoredPaint = false) {
     throw new Error("Unsupported SVG clip-path; only a local clipPath reference is supported.");
   }
   if (name === "href") {
-    if (tag2 === "use" && /^#[A-Za-z_][A-Za-z0-9_.-]{0,127}$/.test(value)) return value;
+    if (tag3 === "use" && /^#[A-Za-z_][A-Za-z0-9_.-]{0,127}$/.test(value)) return value;
     throw new Error("Unsupported SVG href; only a local shape reference on use is supported.");
   }
   if (name === "paint-order") {
@@ -34041,7 +34244,7 @@ function staticSvgAttribute(name, value, tag2, authoredPaint = false) {
   if (name === "offset") return value.endsWith("%") ? `${svgScalar(value.slice(0, -1), 0, 100)}%` : svgScalar(value, 0, 1);
   if (units.has(name) || ["stroke-width", "stroke-miterlimit", "stroke-dashoffset"].includes(name)) {
     if ((units.has(name) || ["stroke-width", "stroke-dashoffset"].includes(name)) && value.endsWith("px")) value = value.slice(0, -2);
-    if (tag2.endsWith("Gradient") && value.endsWith("%")) return `${svgScalar(value.slice(0, -1), nonnegative.has(name) ? 0 : void 0)}%`;
+    if (tag3.endsWith("Gradient") && value.endsWith("%")) return `${svgScalar(value.slice(0, -1), nonnegative.has(name) ? 0 : void 0)}%`;
     return svgScalar(value, nonnegative.has(name) ? 0 : name === "stroke-miterlimit" ? 1 : void 0);
   }
   throw new Error(`Unsupported SVG attribute ${name}.`);
@@ -34058,7 +34261,7 @@ function normalize(source, viewBox, parseXml, authoredPaint = false) {
   const changes = /* @__PURE__ */ new Set(["Canonicalized SVG syntax and inline presentation styles.", "Prefixed local SVG ids and paint references for placement."]);
   if (omittedDoctype) changes.add("Omitted the standard SVG 1.1 doctype without loading its external subset.");
   let nodes = 0, totalArguments = 0;
-  function declare(attributes, name, value, tag2, depth, hidden4) {
+  function declare(attributes, name, value, tag3, depth, hidden4) {
     if (name === "enable-background") {
       if (!/^new(?:\s|$)/.test(value.trim())) throw new Error("Unsupported SVG enable-background.");
       changes.add(inert[name]);
@@ -34075,13 +34278,13 @@ function normalize(source, viewBox, parseXml, authoredPaint = false) {
       } else changes.add("Omitted inert display values.");
       return;
     }
-    if (name !== "id" && name !== "transform" && !presentation.has(name) && !tags[tag2].includes(name)) throw new Error(`Unsupported SVG attribute ${name}.`);
-    attributes[name] = staticSvgAttribute(name, value, tag2, authoredPaint);
+    if (name !== "id" && name !== "transform" && !presentation.has(name) && !tags[tag3].includes(name)) throw new Error(`Unsupported SVG attribute ${name}.`);
+    attributes[name] = staticSvgAttribute(name, value, tag3, authoredPaint);
   }
   function walk2(element, depth) {
     if (++nodes > 4096 || depth > 32) throw new Error("SVG exceeds the supported element or depth limit.");
-    const tag2 = element.localName;
-    if (element.namespaceURI !== namespace || element.prefix || !Object.hasOwn(tags, tag2) || tag2 === "svg" !== (depth === 0)) throw new Error(`Unsupported SVG element ${tag2}.`);
+    const tag3 = element.localName;
+    if (element.namespaceURI !== namespace || element.prefix || !Object.hasOwn(tags, tag3) || tag3 === "svg" !== (depth === 0)) throw new Error(`Unsupported SVG element ${tag3}.`);
     if (element.attributes.length > 48) throw new Error("SVG exceeds the supported attribute count.");
     const attributes = {};
     const hidden4 = { value: false };
@@ -34108,7 +34311,7 @@ function normalize(source, viewBox, parseXml, authoredPaint = false) {
         changes.add(`Omitted inert root ${name}.`);
         continue;
       }
-      if (tag2 === "use" && name === "xlink:href" && attr5.namespaceURI === xlinkNamespace) {
+      if (tag3 === "use" && name === "xlink:href" && attr5.namespaceURI === xlinkNamespace) {
         name = "href";
         changes.add("Canonicalized xlink:href to href.");
       } else if (attr5.namespaceURI || attr5.prefix) throw new Error("Unsupported SVG attribute namespace.");
@@ -34117,7 +34320,7 @@ function normalize(source, viewBox, parseXml, authoredPaint = false) {
         continue;
       }
       if (name === "href" && attributes.href !== void 0) throw new Error("Duplicate SVG use reference.");
-      declare(attributes, name, value, tag2, depth, hidden4);
+      declare(attributes, name, value, tag3, depth, hidden4);
     }
     for (const declaration of style.split(";")) {
       if (!declaration.trim()) continue;
@@ -34125,13 +34328,13 @@ function normalize(source, viewBox, parseXml, authoredPaint = false) {
       if (index2 < 1) throw new Error("Malformed SVG style.");
       const name = declaration.slice(0, index2).trim(), value = declaration.slice(index2 + 1).trim();
       if (name !== "id" && name !== "transform" && !presentation.has(name) && !Object.hasOwn(inert, name) && name !== "display") throw new Error(`Unsupported SVG style ${name}.`);
-      declare(attributes, name, value, tag2, depth, hidden4);
+      declare(attributes, name, value, tag3, depth, hidden4);
     }
     if (attributes.id) {
       if (ids2.has(attributes.id)) throw new Error("Duplicate SVG id.");
-      ids2.set(attributes.id, tag2);
+      ids2.set(attributes.id, tag3);
     }
-    if (tag2 === "use" && attributes.href === void 0) throw new Error("SVG use without a reference.");
+    if (tag3 === "use" && attributes.href === void 0) throw new Error("SVG use without a reference.");
     for (const name of Object.keys(referenceTargets)) {
       const id2 = attributes[name] === void 0 ? null : localId(name, attributes[name]);
       if (id2) references.push({ id: id2, targets: referenceTargets[name] });
@@ -34144,9 +34347,9 @@ function normalize(source, viewBox, parseXml, authoredPaint = false) {
       } else if (child.nodeType === 8) changes.add("Omitted XML comments; source bytes remain pinned.");
       else if (child.nodeType !== 3 || child.textContent?.trim()) throw new Error("Unsupported SVG text or node.");
     }
-    const childrenAllowed = tag2.endsWith("Gradient") ? children.every((child) => child.tag === "stop") : tag2 === "clipPath" ? children.every((child) => shapes.has(child.tag) || child.tag === "use") : ["svg", "g", "defs"].includes(tag2) || !children.length;
+    const childrenAllowed = tag3.endsWith("Gradient") ? children.every((child) => child.tag === "stop") : tag3 === "clipPath" ? children.every((child) => shapes.has(child.tag) || child.tag === "use") : ["svg", "g", "defs"].includes(tag3) || !children.length;
     if (!childrenAllowed) throw new Error("Unsupported SVG child structure.");
-    if (!hidden4.value) return { tag: tag2, attributes, children };
+    if (!hidden4.value) return { tag: tag3, attributes, children };
     changes.add("Omitted elements hidden by display none.");
     const kept2 = children.filter((child) => referenceOnly.has(child.tag));
     return kept2.length ? { tag: "defs", attributes: {}, children: kept2 } : null;
@@ -36492,7 +36695,7 @@ function annotateTemplate(source, inputIds) {
   const idInValue = new RegExp(`\\{\\{[^}]*\\b(${idAlt})\\b`);
   const attrRe = /([\w:-]+)\s*=\s*(?:"([^"]*)"|'([^']*)')/g;
   const cssDeclRe = /([\w-]+)\s*:\s*([^;]*)/g;
-  function paintMarker(tag2) {
+  function paintMarker(tag3) {
     const pairs2 = [];
     const seen = /* @__PURE__ */ new Set();
     const add = (prop4, id2) => {
@@ -36502,7 +36705,7 @@ function annotateTemplate(source, inputIds) {
       }
     };
     attrRe.lastIndex = 0;
-    let am = attrRe.exec(tag2);
+    let am = attrRe.exec(tag3);
     while (am) {
       const name = am[1].toLowerCase();
       const value = am[2] ?? am[3] ?? "";
@@ -36522,21 +36725,21 @@ function annotateTemplate(source, inputIds) {
           if (idm) add(prop4, idm[1]);
         }
       }
-      am = attrRe.exec(tag2);
+      am = attrRe.exec(tag3);
     }
     return pairs2.join(";");
   }
-  function annotateTagAttrs(tag2) {
-    if (tag2.startsWith("</") || tag2.startsWith("<!")) return tag2;
-    const m2 = tripleAttr.exec(tag2) || doubleAttr.exec(tag2);
-    if (!m2) return tag2;
-    const canvasAttr = /\sdata-canvas-input=/.test(tag2) ? "" : ` data-canvas-input="${m2[1]}"`;
-    const paint2 = /\sdata-lolly-paint=/.test(tag2) ? "" : paintMarker(tag2);
+  function annotateTagAttrs(tag3) {
+    if (tag3.startsWith("</") || tag3.startsWith("<!")) return tag3;
+    const m2 = tripleAttr.exec(tag3) || doubleAttr.exec(tag3);
+    if (!m2) return tag3;
+    const canvasAttr = /\sdata-canvas-input=/.test(tag3) ? "" : ` data-canvas-input="${m2[1]}"`;
+    const paint2 = /\sdata-lolly-paint=/.test(tag3) ? "" : paintMarker(tag3);
     const paintAttr = paint2 ? ` data-lolly-paint="${paint2}"` : "";
-    if (!canvasAttr && !paintAttr) return tag2;
-    const selfClose = /\/\s*>$/.exec(tag2);
-    const insertAt = selfClose ? tag2.length - selfClose[0].length : tag2.length - 1;
-    const before = tag2.slice(0, insertAt).replace(/\s+$/, "");
+    if (!canvasAttr && !paintAttr) return tag3;
+    const selfClose = /\/\s*>$/.exec(tag3);
+    const insertAt = selfClose ? tag3.length - selfClose[0].length : tag3.length - 1;
+    const before = tag3.slice(0, insertAt).replace(/\s+$/, "");
     return `${before}${canvasAttr}${paintAttr}${selfClose ? " />" : ">"}`;
   }
   const result = [];
@@ -36560,11 +36763,11 @@ function annotateTemplate(source, inputIds) {
         break;
       }
     }
-    const tag2 = annotateTagAttrs(source.slice(tagStart, i));
-    result.push(tag2);
+    const tag3 = annotateTagAttrs(source.slice(tagStart, i));
+    result.push(tag3);
     contentStart = i;
-    const raw = /^<(script|style)(?:\s|>)/i.exec(tag2);
-    if (raw && !tag2.endsWith("/>")) {
+    const raw = /^<(script|style)(?:\s|>)/i.exec(tag3);
+    if (raw && !tag3.endsWith("/>")) {
       const close = new RegExp(`</${raw[1]}\\s*>`, "i").exec(source.slice(i));
       if (close) {
         const rawEnd = i + close.index;
@@ -38891,15 +39094,15 @@ function textInk(markup, color6) {
   const parsed = parseColor(color6);
   const rgb3 = /^#[0-9a-f]{6}([0-9a-f]{2})?$/i.test(color6) ? color6.slice(0, 7) : formatColor({ ...parsed, alpha: 1 });
   const alpha = parsed.alpha;
-  return markup.replace(/<[^>]+>/g, (tag2) => {
-    for (const paint2 of ["fill", "stroke"]) if (tag2.includes(`${paint2}="currentColor"`)) {
-      tag2 = tag2.replace(`${paint2}="currentColor"`, `${paint2}="${rgb3}"`);
+  return markup.replace(/<[^>]+>/g, (tag3) => {
+    for (const paint2 of ["fill", "stroke"]) if (tag3.includes(`${paint2}="currentColor"`)) {
+      tag3 = tag3.replace(`${paint2}="currentColor"`, `${paint2}="${rgb3}"`);
       if (alpha !== 1) {
-        const opacity = new RegExp(` ${paint2}-opacity="([^"]+)"`), match = opacity.exec(tag2), value = Math.round(alpha * Number(match?.[1] ?? 1) * 1e6) / 1e6;
-        tag2 = match ? tag2.replace(opacity, ` ${paint2}-opacity="${value}"`) : tag2.replace(/\/?>$/, (ending) => ` ${paint2}-opacity="${value}"${ending}`);
+        const opacity = new RegExp(` ${paint2}-opacity="([^"]+)"`), match = opacity.exec(tag3), value = Math.round(alpha * Number(match?.[1] ?? 1) * 1e6) / 1e6;
+        tag3 = match ? tag3.replace(opacity, ` ${paint2}-opacity="${value}"`) : tag3.replace(/\/?>$/, (ending) => ` ${paint2}-opacity="${value}"${ending}`);
       }
     }
-    return tag2;
+    return tag3;
   });
 }
 async function prepareParagraphEmoji(request2, style, packs, io, cache4) {
@@ -39916,7 +40119,7 @@ async function applyEmojiToSvgText(root2, style, packs, io, text8, options2 = {}
             advance += shaped.advanceWidth;
           } else if (segment2.kind === "emoji") {
             const m2 = segment2.metrics;
-            const art = segment2.markup.replace(/<svg\b[^>]*>/, (tag2) => tag2.replace(/ (?:width|height|x|y)="[^"]*"/g, "").replace(/<svg\b/, `<svg x="${n(advance)}" y="${n((m2.descentEm - m2.heightEm) * em2)}" width="${n(m2.widthEm * em2)}" height="${n(m2.heightEm * em2)}"`));
+            const art = segment2.markup.replace(/<svg\b[^>]*>/, (tag3) => tag3.replace(/ (?:width|height|x|y)="[^"]*"/g, "").replace(/<svg\b/, `<svg x="${n(advance)}" y="${n((m2.descentEm - m2.heightEm) * em2)}" width="${n(m2.widthEm * em2)}" height="${n(m2.heightEm * em2)}"`));
             add(art, advance, m2.advanceEm * em2 + tracking);
             advance += m2.advanceEm * em2 + tracking;
             pending3.replaced++;
@@ -40119,7 +40322,7 @@ function createEmojiToolText(api, text8, selected) {
           }
         } else if (segment2.kind === "emoji") {
           const m2 = segment2.metrics, y = (m2.descentEm - m2.heightEm) * size;
-          parts.push(segment2.markup.replace(/<svg\b[^>]*>/, (tag2) => tag2.replace(/ (?:width|height|x|y)="[^"]*"/g, "").replace("<svg", `<svg x="${num16(x)}" y="${num16(y)}" width="${num16(m2.widthEm * size)}" height="${num16(m2.heightEm * size)}"`)));
+          parts.push(segment2.markup.replace(/<svg\b[^>]*>/, (tag3) => tag3.replace(/ (?:width|height|x|y)="[^"]*"/g, "").replace("<svg", `<svg x="${num16(x)}" y="${num16(y)}" width="${num16(m2.widthEm * size)}" height="${num16(m2.heightEm * size)}"`)));
           x += m2.advanceEm * size + spacing;
           top = Math.min(top, y);
           bottom = Math.max(bottom, m2.descentEm * size);
@@ -41994,9 +42197,9 @@ function patchMpfEntries(bytes, images) {
   let n7 = 0;
   for (let i = 0; i < count4; i++) {
     const e = ifd + 2 + i * 12;
-    const tag2 = dv.getUint16(e, le);
-    if (tag2 === 45057) n7 = dv.getUint32(e + 8, le);
-    if (tag2 === 45058) entriesAt = h + dv.getUint32(e + 8, le);
+    const tag3 = dv.getUint16(e, le);
+    if (tag3 === 45057) n7 = dv.getUint32(e + 8, le);
+    if (tag3 === 45058) entriesAt = h + dv.getUint32(e + 8, le);
   }
   if (entriesAt < 0 || n7 !== images.length) return false;
   if (!inSeg(entriesAt, n7 * 16)) return false;
@@ -42891,10 +43094,10 @@ function placeMp3(mp3, manifest) {
   const geob = mp3GeobFrame(manifest, ver === 4);
   const content2 = concatBytes([geob, kept2]);
   if (content2.length >= 1 << 28) throw new Error("C2PA embed: ID3v2 tag too large");
-  const tag2 = concatBytes([asciiBytes("ID3"), Uint8Array.of(ver, 0, 0), syncsafe(content2.length), content2]);
+  const tag3 = concatBytes([asciiBytes("ID3"), Uint8Array.of(ver, 0, 0), syncsafe(content2.length), content2]);
   return {
-    out: concatBytes([tag2, mp3.subarray(audioStart)]),
-    exclusions: [{ start: 0, length: tag2.length }]
+    out: concatBytes([tag3, mp3.subarray(audioStart)]),
+    exclusions: [{ start: 0, length: tag3.length }]
   };
 }
 function htmlTagNameAt(bin, at, name) {
@@ -43841,8 +44044,8 @@ var init_c2pa2 = __esm({
     CborTag = class {
       tag;
       value;
-      constructor(tag2, value) {
-        this.tag = tag2;
+      constructor(tag3, value) {
+        this.tag = tag3;
         this.value = value;
       }
     };
@@ -46113,16 +46316,16 @@ function readHtml(bytes) {
   const bin = bytesToBin(bytes);
   const headEnd = headRegionEnd(bin);
   const refs = [];
-  scanHtmlTags(bin, "script", (tag2) => {
-    if ((tag2.attrs.get("type") ?? "").trim().toLowerCase() !== C2PA_ATTACHMENT_MIME) return true;
-    const close = findCloseTag(bin, "script", tag2.afterOpen);
-    refs.push(close ? { kind: "inline", start: tag2.start, end: close.end, base64: bin.slice(tag2.afterOpen, close.start), inHead: tag2.start < headEnd } : { kind: "inline", start: tag2.start, end: bin.length, inHead: tag2.start < headEnd, unterminated: true });
+  scanHtmlTags(bin, "script", (tag3) => {
+    if ((tag3.attrs.get("type") ?? "").trim().toLowerCase() !== C2PA_ATTACHMENT_MIME) return true;
+    const close = findCloseTag(bin, "script", tag3.afterOpen);
+    refs.push(close ? { kind: "inline", start: tag3.start, end: close.end, base64: bin.slice(tag3.afterOpen, close.start), inHead: tag3.start < headEnd } : { kind: "inline", start: tag3.start, end: bin.length, inHead: tag3.start < headEnd, unterminated: true });
     return refs.length < MAX_HTML_REFS;
   });
-  scanHtmlTags(bin, "link", (tag2) => {
-    const rel = (tag2.attrs.get("rel") ?? "").trim().toLowerCase();
+  scanHtmlTags(bin, "link", (tag3) => {
+    const rel = (tag3.attrs.get("rel") ?? "").trim().toLowerCase();
     if (!rel.split(/\s+/).includes("c2pa-manifest")) return true;
-    refs.push({ kind: "link", start: tag2.start, end: tag2.afterOpen, href: tag2.attrs.get("href") ?? "", inHead: tag2.start < headEnd });
+    refs.push({ kind: "link", start: tag3.start, end: tag3.afterOpen, href: tag3.attrs.get("href") ?? "", inHead: tag3.start < headEnd });
     return refs.length < MAX_HTML_REFS;
   });
   refs.sort((a, b) => a.start - b.start);
@@ -47021,11 +47224,11 @@ async function chainsToAnchor(leaf, chainDers, trustAnchors) {
   }
   return null;
 }
-function derWrap2(tag2, body) {
+function derWrap2(tag3, body) {
   let head2;
-  if (body.length < 128) head2 = Uint8Array.of(tag2, body.length);
-  else if (body.length < 256) head2 = Uint8Array.of(tag2, 129, body.length);
-  else head2 = Uint8Array.of(tag2, 130, body.length >>> 8, body.length & 255);
+  if (body.length < 128) head2 = Uint8Array.of(tag3, body.length);
+  else if (body.length < 256) head2 = Uint8Array.of(tag3, 129, body.length);
+  else head2 = Uint8Array.of(tag3, 130, body.length >>> 8, body.length & 255);
   return concatBytes([head2, body]);
 }
 function normalizeRsaSpki(spki) {
@@ -53795,8 +53998,8 @@ function readXmpFields(input, specs) {
     const prefixes = [...namespaces].filter(([, uri]) => uri === namespace2).map(([prefix]) => prefix);
     if (!namespaces.has(fallback)) prefixes.push(fallback);
     for (const prefix of prefixes) {
-      const tag2 = `${prefix}:${property4}`;
-      const re = new RegExp(`<${tag2}(?=[\\s/>])([^<>]*?)>|\\b${tag2}\\s*=\\s*["']([^"']*)["']`, "g");
+      const tag3 = `${prefix}:${property4}`;
+      const re = new RegExp(`<${tag3}(?=[\\s/>])([^<>]*?)>|\\b${tag3}\\s*=\\s*["']([^"']*)["']`, "g");
       let missingClose = false;
       for (let m2 = re.exec(text8); m2; m2 = re.exec(text8)) {
         if (out.length >= 64) return out;
@@ -53805,16 +54008,16 @@ function readXmpFields(input, specs) {
           raw = /[\w-]+:resource\s*=\s*["']([^"']*)["']/.exec(m2[1] ?? "")?.[1];
           if (raw === void 0 && !missingClose && !/\/\s*$/.test(m2[1] ?? "")) {
             const start = m2.index + m2[0].length;
-            const end = text8.indexOf(`</${tag2}`, start);
+            const end = text8.indexOf(`</${tag3}`, start);
             if (end < 0) missingClose = true;
             else {
               raw = text8.slice(start, end);
-              re.lastIndex = end + tag2.length + 2;
+              re.lastIndex = end + tag3.length + 2;
             }
           }
         }
         const value = xmlValue(raw ?? "");
-        if (value && !out.some((f) => f.label === label4 && f.value === value)) out.push({ label: label4, value, group, source: `XMP/RDF ${tag2}`, ...label4 === "Creator" || label4.startsWith("Contact ") ? { sensitive: true } : {} });
+        if (value && !out.some((f) => f.label === label4 && f.value === value)) out.push({ label: label4, value, group, source: `XMP/RDF ${tag3}`, ...label4 === "Creator" || label4.startsWith("Contact ") ? { sensitive: true } : {} });
       }
     }
   }
@@ -54115,12 +54318,12 @@ function readIfd(dv, off, le) {
   let p = off + 2;
   for (let i = 0; i < n7; i++) {
     if (p + 12 > dv.byteLength) break;
-    const tag2 = dv.getUint16(p, le);
+    const tag3 = dv.getUint16(p, le);
     const type = dv.getUint16(p + 2, le);
     const count4 = dv.getUint32(p + 4, le);
     const size = (TYPE_SIZE[type] || 1) * count4;
     const valueOffset = size > 4 ? dv.getUint32(p + 8, le) : p + 8;
-    out.push({ tag: tag2, type, count: count4, size, valueOffset, le });
+    out.push({ tag: tag3, type, count: count4, size, valueOffset, le });
     p += 12;
   }
   return out;
@@ -54401,9 +54604,9 @@ function readMpfIndex(bytes) {
     let entriesAt = -1;
     for (let i = 0; i < count4; i++) {
       const e = ifd + 2 + i * 12;
-      const tag2 = dv.getUint16(e, le);
-      if (tag2 === 45057) declared = dv.getUint32(e + 8, le);
-      else if (tag2 === 45058) entriesAt = h + dv.getUint32(e + 8, le);
+      const tag3 = dv.getUint16(e, le);
+      if (tag3 === 45057) declared = dv.getUint32(e + 8, le);
+      else if (tag3 === 45058) entriesAt = h + dv.getUint32(e + 8, le);
     }
     if (declared < 2 || declared > MAX_MPF_IMAGES) return null;
     if (entriesAt < h || entriesAt + declared * 16 > mpf.end) return null;
@@ -54694,10 +54897,10 @@ function readWav(bytes, out) {
         const size = view.getUint32(q + 4, true);
         if (q + 8 + size > end) break;
         const id2 = String.fromCharCode(...bytes.subarray(q, q + 4));
-        const tag2 = tags3[id2];
-        if (tag2) {
+        const tag3 = tags3[id2];
+        if (tag3) {
           const value = new TextDecoder().decode(bytes.subarray(q + 8, Math.min(q + 8 + size, q + 8 + MAX_VALUE_CHARS))).split("\0")[0].trim();
-          if (value) out.fields.push({ label: tag2[0], value, group: tag2[1], source: `WAV INFO ${id2}`, ...id2 === "IART" ? { sensitive: true } : {} });
+          if (value) out.fields.push({ label: tag3[0], value, group: tag3[1], source: `WAV INFO ${id2}`, ...id2 === "IART" ? { sensitive: true } : {} });
         }
         q += 8 + size + (size & 1);
       }
@@ -54803,13 +55006,13 @@ function detectProducer(handlerNotes, encoder5, hasVideo) {
 function readIlst(bytes, ilst, out) {
   let encoder5 = null;
   for (const entry2 of bmffChildren(bytes, ilst.payload, ilst.end)) {
-    const tag2 = ILST_TAGS[entry2.type];
-    if (!tag2) continue;
+    const tag3 = ILST_TAGS[entry2.type];
+    if (!tag3) continue;
     const text8 = ilstText(bytes, entry2);
     if (!text8) continue;
     if (entry2.type === "\xA9too") encoder5 = text8;
     if (out.fields.length < MAX_FIELDS) {
-      out.fields.push({ label: tag2.label, value: text8, group: tag2.group, ...tag2.sensitive ? { sensitive: true } : {} });
+      out.fields.push({ label: tag3.label, value: text8, group: tag3.group, ...tag3.sensitive ? { sensitive: true } : {} });
     }
   }
   return encoder5;
@@ -59580,7 +59783,7 @@ function finiteContour(c) {
 }
 function buildOffset(c, d, opts) {
   const tol = opts.tol ?? DEFAULT_TOL2;
-  const join30 = opts.join ?? "miter";
+  const join31 = opts.join ?? "miter";
   const miterLimit = opts.miterLimit ?? DEFAULT_MITER_LIMIT;
   const seq = [];
   const corners = [];
@@ -59609,7 +59812,7 @@ function buildOffset(c, d, opts) {
     const pivot = corners[i] ?? { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
     const t0 = cur.dirEnd ?? endTangent2(cur.curve);
     const t1 = next2.dirStart ?? startTangent2(next2.curve);
-    out.push(...joinPieces(a, b, pivot, t0, t1, d, join30, miterLimit));
+    out.push(...joinPieces(a, b, pivot, t0, t1, d, join31, miterLimit));
   }
   return out;
 }
@@ -60492,7 +60695,7 @@ function hbSystem(pts, wrap3, startTh, endTh, ths) {
   const a = new Array(m2).fill(0);
   const b = new Array(m2).fill(1);
   const c = new Array(m2).fill(0);
-  const join30 = (k, prevIx, nextIx) => {
+  const join31 = (k, prevIx, nextIx) => {
     const prev = segs[prevIx], next2 = segs[nextIx];
     const j = hbJoin(prev, next2);
     r5[k] = j.r;
@@ -60501,10 +60704,10 @@ function hbSystem(pts, wrap3, startTh, endTh, ths) {
     c[k] = j.dB * -next2.d01;
   };
   if (wrap3) {
-    for (let k = 0; k < m2; k++) join30(k, (k - 1 + m2) % m2, k);
+    for (let k = 0; k < m2; k++) join31(k, (k - 1 + m2) % m2, k);
     return { r: r5, a, b, c, segs };
   }
-  for (let k = 1; k < m2 - 1; k++) join30(k, k - 1, k);
+  for (let k = 1; k < m2 - 1; k++) join31(k, k - 1, k);
   const first = segs[0];
   if (startTh !== null) {
     r5[0] = mod2pi3(ths[0] - startTh);
@@ -63403,9 +63606,9 @@ function readFontName(name) {
       family2 = family2.slice(0, m2.index);
     }
   }
-  for (const tag2 of ["PSMT", "MT", "PS"]) {
-    if (family2.length > tag2.length + 2 && family2.endsWith(tag2)) {
-      family2 = family2.slice(0, -tag2.length);
+  for (const tag3 of ["PSMT", "MT", "PS"]) {
+    if (family2.length > tag3.length + 2 && family2.endsWith(tag3)) {
+      family2 = family2.slice(0, -tag3.length);
       break;
     }
   }
@@ -66720,7 +66923,7 @@ function toMarkdown(t) {
 }
 function toHtmlTable(t) {
   const esc7 = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  const cells = (r5, tag2) => r5.map((c) => `<${tag2}>${esc7(c)}</${tag2}>`).join("");
+  const cells = (r5, tag3) => r5.map((c) => `<${tag3}>${esc7(c)}</${tag3}>`).join("");
   return `<table><thead><tr>${cells(t.columns, "th")}</tr></thead><tbody>${t.rows.map((r5) => `<tr>${cells(r5, "td")}</tr>`).join("")}</tbody></table>`;
 }
 var init_table_text = __esm({
@@ -66832,10 +67035,10 @@ async function packQuery(query2, opts = {}) {
 }
 async function unpackToken(token2) {
   if (!isPackAvailable() || typeof token2 !== "string" || token2.length < 2 || token2.length > MAX_TOKEN) return null;
-  const tag2 = token2[0];
-  if (tag2 !== TAG_DEFLATE_RAW && tag2 !== TAG_DEFLATE_B32) return null;
+  const tag3 = token2[0];
+  if (tag3 !== TAG_DEFLATE_RAW && tag3 !== TAG_DEFLATE_B32) return null;
   try {
-    const bytes = tag2 === TAG_DEFLATE_B32 ? base32ToBytes(token2.slice(1)) : base64UrlToBytes2(token2.slice(1));
+    const bytes = tag3 === TAG_DEFLATE_B32 ? base32ToBytes(token2.slice(1)) : base64UrlToBytes2(token2.slice(1));
     if (bytes == null) return null;
     return new TextDecoder().decode(await inflateRaw2(bytes));
   } catch {
@@ -67509,8 +67712,8 @@ function buildCarryExifTiff(fields, gps) {
   dv.setUint16(8, n0, true);
   let entry2 = 10;
   let dataOff = 8 + ifd0Size;
-  const writeAscii = (tag2, data) => {
-    dv.setUint16(entry2, tag2, true);
+  const writeAscii = (tag3, data) => {
+    dv.setUint16(entry2, tag3, true);
     dv.setUint16(entry2 + 2, 2, true);
     dv.setUint32(entry2 + 4, data.length, true);
     if (data.length <= 4) tiff.set(data, entry2 + 8);
@@ -67554,8 +67757,8 @@ function buildCarryExifTiff(fields, gps) {
     dv.setUint16(gpsOff, 4, true);
     const dataAt = gpsOff + gpsSize;
     let e = gpsOff + 2;
-    const writeGps = (tag2, type, count4, fill2, inline) => {
-      dv.setUint16(e, tag2, true);
+    const writeGps = (tag3, type, count4, fill2, inline) => {
+      dv.setUint16(e, tag3, true);
       dv.setUint16(e + 2, type, true);
       dv.setUint32(e + 4, count4, true);
       if (inline) tiff.set(inline, e + 8);
@@ -70052,10 +70255,10 @@ function boxOfPoints(pts, m2) {
   return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
 }
 function elementBox(tags3, node, depth) {
-  const tag2 = node.tag;
-  const m2 = parseTransform(attrOf(tag2.attrs, "transform"));
+  const tag3 = node.tag;
+  const m2 = parseTransform(attrOf(tag3.attrs, "transform"));
   if (!m2) return null;
-  const name = tag2.name;
+  const name = tag3.name;
   if (CONTAINER_TAGS.has(name)) {
     if (depth >= SVG_LAYERS_MAX_DEPTH) return null;
     const kids2 = directChildren(tags3, node.ti);
@@ -70070,37 +70273,37 @@ function elementBox(tags3, node, depth) {
     return acc ? transformBox(acc, m2) : null;
   }
   if (name === "rect" || name === "image" || name === "foreignobject" || name === "svg") {
-    const w = numAttr(tag2.attrs, "width", NaN), h = numAttr(tag2.attrs, "height", NaN);
+    const w = numAttr(tag3.attrs, "width", NaN), h = numAttr(tag3.attrs, "height", NaN);
     if (!(w > 0 && h > 0)) return null;
-    return boxOfPoints(rectPts(numAttr(tag2.attrs, "x", 0), numAttr(tag2.attrs, "y", 0), w, h), m2);
+    return boxOfPoints(rectPts(numAttr(tag3.attrs, "x", 0), numAttr(tag3.attrs, "y", 0), w, h), m2);
   }
   if (name === "circle") {
-    const r5 = numAttr(tag2.attrs, "r", NaN);
+    const r5 = numAttr(tag3.attrs, "r", NaN);
     if (!(r5 > 0)) return null;
-    const cx2 = numAttr(tag2.attrs, "cx", 0), cy3 = numAttr(tag2.attrs, "cy", 0);
+    const cx2 = numAttr(tag3.attrs, "cx", 0), cy3 = numAttr(tag3.attrs, "cy", 0);
     return boxOfPoints(rectPts(cx2 - r5, cy3 - r5, 2 * r5, 2 * r5), m2);
   }
   if (name === "ellipse") {
-    const rx = numAttr(tag2.attrs, "rx", NaN), ry = numAttr(tag2.attrs, "ry", NaN);
+    const rx = numAttr(tag3.attrs, "rx", NaN), ry = numAttr(tag3.attrs, "ry", NaN);
     if (!(rx > 0 && ry > 0)) return null;
-    const cx2 = numAttr(tag2.attrs, "cx", 0), cy3 = numAttr(tag2.attrs, "cy", 0);
+    const cx2 = numAttr(tag3.attrs, "cx", 0), cy3 = numAttr(tag3.attrs, "cy", 0);
     return boxOfPoints(rectPts(cx2 - rx, cy3 - ry, 2 * rx, 2 * ry), m2);
   }
   if (name === "line") {
     return boxOfPoints([
-      [numAttr(tag2.attrs, "x1", 0), numAttr(tag2.attrs, "y1", 0)],
-      [numAttr(tag2.attrs, "x2", 0), numAttr(tag2.attrs, "y2", 0)]
+      [numAttr(tag3.attrs, "x1", 0), numAttr(tag3.attrs, "y1", 0)],
+      [numAttr(tag3.attrs, "x2", 0), numAttr(tag3.attrs, "y2", 0)]
     ], m2);
   }
   if (name === "polyline" || name === "polygon") {
-    const nums = (attrOf(tag2.attrs, "points") ?? "").trim().split(/[\s,]+/).map(Number).filter((x) => Number.isFinite(x));
+    const nums = (attrOf(tag3.attrs, "points") ?? "").trim().split(/[\s,]+/).map(Number).filter((x) => Number.isFinite(x));
     if (nums.length < 4) return null;
     const pts = [];
     for (let i = 0; i + 1 < nums.length; i += 2) pts.push([nums[i], nums[i + 1]]);
     return boxOfPoints(pts, m2);
   }
   if (name === "path") {
-    const d = attrOf(tag2.attrs, "d");
+    const d = attrOf(tag3.attrs, "d");
     if (!d) return null;
     const pts = [];
     for (const sub of parseSvgPath(d)) {
@@ -70135,7 +70338,7 @@ function clusterLeaves(idx, boxes, gapScale = 1, sizeRatio = Infinity) {
     }
     return i;
   };
-  const join30 = (a, b) => {
+  const join31 = (a, b) => {
     const ra = find(a), rb = find(b);
     if (ra !== rb) parent[ra] = rb;
   };
@@ -70152,7 +70355,7 @@ function clusterLeaves(idx, boxes, gapScale = 1, sizeRatio = Infinity) {
         const [lo, hi] = area2(ba) < area2(bb) ? [area2(ba), area2(bb)] : [area2(bb), area2(ba)];
         if (hi > lo * sizeRatio) continue;
       }
-      if (boxesOverlap2(grown, bb)) join30(a, b);
+      if (boxesOverlap2(grown, bb)) join31(a, b);
     }
   }
   const byRoot = /* @__PURE__ */ new Map();
@@ -71721,8 +71924,8 @@ function parseWav(bytes) {
   }
   return { channels, sampleRate };
 }
-function sampleReader(view, tag2, bits) {
-  if (tag2 === FMT_FLOAT) {
+function sampleReader(view, tag3, bits) {
+  if (tag3 === FMT_FLOAT) {
     return bits === 64 ? (at) => view.getFloat64(at, true) : (at) => view.getFloat32(at, true);
   }
   switch (bits) {
@@ -71918,13 +72121,13 @@ function cleanAudioPcm(input, sampleRate, opts = {}) {
   const right = channels[1] ?? left;
   const [headL, headR] = limiter.process(left, right);
   const [tailL, tailR] = limiter.flush();
-  const join30 = (a, b) => {
+  const join31 = (a, b) => {
     const out = new Float32Array(a.length + b.length);
     out.set(a);
     out.set(b, a.length);
     return out;
   };
-  const limited2 = [join30(headL, tailL), join30(headR, tailR)];
+  const limited2 = [join31(headL, tailL), join31(headR, tailR)];
   channels = channels.length === 1 ? [limited2[0]] : limited2;
   if (limiter.engaged()) operations.push("Limited true peak to -1 dBTP");
   return {
@@ -74430,19 +74633,19 @@ var init_speech_text = __esm({
 });
 
 // engine/src/midi.ts
-function tag(b, off) {
+function tag2(b, off) {
   return String.fromCharCode(b[off] ?? 0, b[off + 1] ?? 0, b[off + 2] ?? 0, b[off + 3] ?? 0);
 }
 function parseMidi(bytes) {
   const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-  if (bytes.length < 14 || tag(bytes, 0) !== "MThd") throw new Error("not a Standard MIDI File");
+  if (bytes.length < 14 || tag2(bytes, 0) !== "MThd") throw new Error("not a Standard MIDI File");
   const division = dv.getUint16(12);
   const ntracks = dv.getUint16(10);
   let pos = 8 + dv.getUint32(4);
   const notes = [];
   let usPerQuarter = 5e5;
   for (let t = 0; t < ntracks && notes.length < MIDI_MAX_NOTES; t++) {
-    if (pos + 8 > bytes.length || tag(bytes, pos) !== "MTrk") break;
+    if (pos + 8 > bytes.length || tag2(bytes, pos) !== "MTrk") break;
     const len2 = dv.getUint32(pos + 4);
     let p = pos + 8;
     const end = Math.min(p + len2, bytes.length);
@@ -76829,7 +77032,7 @@ function paintPad(paint2, paths, notes) {
     return v;
   };
   const cap = word(paint2.strokeCap, CAPS2, "strokeCap", "round");
-  const join30 = word(paint2.strokeJoin, JOINS2, "strokeJoin", "round");
+  const join31 = word(paint2.strokeJoin, JOINS2, "strokeJoin", "round");
   const headStart = word(paint2.headStart, HEADS, "headStart", "none");
   const headEnd = word(paint2.headEnd, HEADS, "headEnd", "none");
   const asked = [headStart, headEnd].filter((h) => h !== "none");
@@ -76841,7 +77044,7 @@ function paintPad(paint2, paths, notes) {
     else headReach = pathHeadSize(sw) * 0.7 + sw / 2;
     if (asked.includes("bar")) notes.push("a bar head has no PowerPoint line end, so a .pptx leaves it off");
   }
-  const reach2 = Math.max(cap === "square" ? Math.SQRT2 / 2 : 0.5, join30 === "miter" ? MITER_LIMIT / 2 : 0.5);
+  const reach2 = Math.max(cap === "square" ? Math.SQRT2 / 2 : 0.5, join31 === "miter" ? MITER_LIMIT / 2 : 0.5);
   return Math.max(stroke && sw > 0 ? sw * reach2 : 0, headReach);
 }
 function designPathPlacement(geometry3, opts = {}) {
@@ -79709,7 +79912,7 @@ var init_pptx2 = __esm({
     clampInt3 = (v, lo, hi) => Math.max(lo, Math.min(hi, Math.round(v)));
     finInt = (v, fallback = 0) => Number.isFinite(v) ? Math.round(v) : fallback;
     LINE_ENDS = /* @__PURE__ */ new Set(["triangle", "arrow", "oval", "diamond", "stealth"]);
-    lineEndXml = (tag2, end) => end && LINE_ENDS.has(end) ? `<a:${tag2} type="${end}"/>` : "";
+    lineEndXml = (tag3, end) => end && LINE_ENDS.has(end) ? `<a:${tag3} type="${end}"/>` : "";
     lineXml = (line) => line ? `<a:ln w="${Math.max(0, Math.round(line.w))}"><a:solidFill>${clr(line.color, line.alpha)}</a:solidFill>${lineEndXml("headEnd", line.head)}${lineEndXml("tailEnd", line.tail)}</a:ln>` : "";
     xfrmXml = (s) => `<a:xfrm${s.rot ? ` rot="${Math.round((s.rot % 360 + 360) % 360 * 6e4)}"` : ""}${s.flipH === true ? ' flipH="1"' : ""}${s.flipV === true ? ' flipV="1"' : ""}><a:off x="${Math.round(s.x)}" y="${Math.round(s.y)}"/><a:ext cx="${Math.max(1, Math.round(s.cx))}" cy="${Math.max(1, Math.round(s.cy))}"/></a:xfrm>`;
     slideLinkRid = null;
@@ -79721,7 +79924,7 @@ var init_pptx2 = __esm({
     DEFAULT_TABLE_STYLE = "{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}";
     spanOf = (v) => Number.isFinite(v) && v > 1 ? Math.floor(v) : 1;
     EMPTY_TXBODY = "<a:txBody><a:bodyPr/><a:lstStyle/><a:p/></a:txBody>";
-    lnSideXml = (tag2, line) => line ? `<a:${tag2} w="${Math.max(0, Math.round(line.w))}" cap="flat" cmpd="sng" algn="ctr"><a:solidFill>${clr(line.color)}</a:solidFill></a:${tag2}>` : "";
+    lnSideXml = (tag3, line) => line ? `<a:${tag3} w="${Math.max(0, Math.round(line.w))}" cap="flat" cmpd="sng" algn="ctr"><a:solidFill>${clr(line.color)}</a:solidFill></a:${tag3}>` : "";
     MAX_TABLE_COLS = 128;
     MAX_TABLE_ROWS = 512;
     EFFECT_PRESET_IDS = { appear: 1, fly: 2, fade: 10, zoom: 23, zoomOut: 23 };
@@ -79833,8 +80036,8 @@ function num01(raw) {
   const n7 = parseFloat(raw);
   return Number.isFinite(n7) ? Math.min(1, Math.max(0, n7)) : void 0;
 }
-function primitiveToD(tag2, attrs) {
-  if (tag2 === "rect") {
+function primitiveToD(tag3, attrs) {
+  if (tag3 === "rect") {
     const x = numAttr2(attrs, "x", 0), y = numAttr2(attrs, "y", 0);
     const w = numAttr2(attrs, "width", 0), h = numAttr2(attrs, "height", 0);
     if (!(w > 0 && h > 0)) return null;
@@ -79849,30 +80052,30 @@ function primitiveToD(tag2, attrs) {
     if (rx <= 0 || ry <= 0) return `M${x} ${y}H${x + w}V${y + h}H${x}Z`;
     return `M${x + rx} ${y}H${x + w - rx}A${rx} ${ry} 0 0 1 ${x + w} ${y + ry}V${y + h - ry}A${rx} ${ry} 0 0 1 ${x + w - rx} ${y + h}H${x + rx}A${rx} ${ry} 0 0 1 ${x} ${y + h - ry}V${y + ry}A${rx} ${ry} 0 0 1 ${x + rx} ${y}Z`;
   }
-  if (tag2 === "circle") {
+  if (tag3 === "circle") {
     const cx2 = numAttr2(attrs, "cx", 0), cy3 = numAttr2(attrs, "cy", 0), r5 = numAttr2(attrs, "r", 0);
     if (!(r5 > 0)) return null;
     return `M${cx2 - r5} ${cy3}A${r5} ${r5} 0 1 0 ${cx2 + r5} ${cy3}A${r5} ${r5} 0 1 0 ${cx2 - r5} ${cy3}Z`;
   }
-  if (tag2 === "ellipse") {
+  if (tag3 === "ellipse") {
     const cx2 = numAttr2(attrs, "cx", 0), cy3 = numAttr2(attrs, "cy", 0);
     const rx = numAttr2(attrs, "rx", 0), ry = numAttr2(attrs, "ry", 0);
     if (!(rx > 0 && ry > 0)) return null;
     return `M${cx2 - rx} ${cy3}A${rx} ${ry} 0 1 0 ${cx2 + rx} ${cy3}A${rx} ${ry} 0 1 0 ${cx2 - rx} ${cy3}Z`;
   }
-  if (tag2 === "line") {
+  if (tag3 === "line") {
     const x1 = numAttr2(attrs, "x1", 0), y1 = numAttr2(attrs, "y1", 0);
     const x2 = numAttr2(attrs, "x2", 0), y2 = numAttr2(attrs, "y2", 0);
     return `M${x1} ${y1}L${x2} ${y2}`;
   }
-  if (tag2 === "polygon" || tag2 === "polyline") {
+  if (tag3 === "polygon" || tag3 === "polyline") {
     const rawPoints = attrOf2(attrs, "points") ?? "";
     if (rawPoints.length > SVG_CUSTGEOM_MAX_POINTS_CHARS) return null;
     const pts = rawPoints.trim().split(/[\s,]+/).map(Number).filter((x) => Number.isFinite(x));
     if (pts.length < 4) return null;
     let d = `M${pts[0]} ${pts[1]}`;
     for (let i = 2; i + 1 < pts.length; i += 2) d += `L${pts[i]} ${pts[i + 1]}`;
-    return tag2 === "polygon" ? d + "Z" : d;
+    return tag3 === "polygon" ? d + "Z" : d;
   }
   return null;
 }
@@ -80062,12 +80265,12 @@ function lower2(svgText, targetW, targetH, withText) {
   while ((m2 = tagRe.exec(svgText)) !== null) {
     if (++tagCount > SVG_CUSTGEOM_MAX_TAGS) return null;
     const closing = m2[1] === "/";
-    const tag2 = m2[2].toLowerCase();
+    const tag3 = m2[2].toLowerCase();
     const attrsRaw = m2[3] ?? "";
     if (attrsRaw.length > SVG_CUSTGEOM_MAX_ATTR_CHARS) return null;
     if (closing) {
       if (capture) {
-        if (tag2 === "text" && capture.depth === 0) {
+        if (tag3 === "text" && capture.depth === 0) {
           if (!emitText(m2.index)) return null;
         } else capture.depth--;
       }
@@ -80075,8 +80278,8 @@ function lower2(svgText, targetW, targetH, withText) {
       continue;
     }
     const selfClose = /\/\s*$/.test(attrsRaw);
-    const textTagAllowed = withText && (tag2 === "text" || tag2 === "tspan");
-    if (BAIL_TAGS.has(tag2) && !textTagAllowed) return null;
+    const textTagAllowed = withText && (tag3 === "text" || tag3 === "tspan");
+    if (BAIL_TAGS.has(tag3) && !textTagAllowed) return null;
     const parent = stack[stack.length - 1];
     const styleRaw = attrOf2(attrsRaw, "style");
     if (styleRaw != null && styleRaw.length > SVG_CUSTGEOM_MAX_STYLE_CHARS) return null;
@@ -80113,7 +80316,7 @@ function lower2(svgText, targetW, targetH, withText) {
       fill: fillR ?? parent.fill,
       stroke: strokeR ?? parent.stroke,
       strokeWidth: sw ?? parent.strokeWidth,
-      defs: parent.defs || tag2 === "defs",
+      defs: parent.defs || tag3 === "defs",
       groupAlpha: parent.groupAlpha * (num01(style["opacity"] ?? attrOf2(attrsRaw, "opacity")) ?? 1),
       fillOpacity: num01(style["fill-opacity"] ?? attrOf2(attrsRaw, "fill-opacity")) ?? parent.fillOpacity,
       strokeOpacity: num01(style["stroke-opacity"] ?? attrOf2(attrsRaw, "stroke-opacity")) ?? parent.strokeOpacity,
@@ -80126,14 +80329,14 @@ function lower2(svgText, targetW, targetH, withText) {
       underline: decoRaw ? decoRaw.includes("underline") : parent.underline,
       strike: decoRaw ? decoRaw.includes("line-through") : parent.strike
     };
-    if (tag2 === "svg" && !sawSvg) {
+    if (tag3 === "svg" && !sawSvg) {
       sawSvg = true;
       mVb = rootMap(attrsRaw, targetW, targetH);
       if (!mVb) return null;
     }
     const hidden4 = (style["display"] ?? attrOf2(attrsRaw, "display"))?.trim().toLowerCase() === "none";
     if (capture) {
-      if (tag2 !== "tspan") return null;
+      if (tag3 !== "tspan") return null;
       for (const a of ["x", "y", "dx", "dy", "rotate", "textlength"]) {
         if (attrOf2(attrsRaw, a) != null) return null;
       }
@@ -80144,16 +80347,16 @@ function lower2(svgText, targetW, targetH, withText) {
       }
       continue;
     }
-    if (tag2 === "text") {
+    if (tag3 === "text") {
       if (attrOf2(attrsRaw, "rotate") != null || attrOf2(attrsRaw, "textlength") != null) return null;
       if (!selfClose && !hidden4) capture = { start: tagRe.lastIndex, frame, attrs: attrsRaw, style, depth: 0 };
       if (!selfClose) stack.push(frame);
       if (texts.length + shapes2.length > SVG_CUSTGEOM_MAX_SHAPES) return null;
       continue;
     }
-    if (DRAW_TAGS.has(tag2) && !frame.defs && !hidden4) {
-      const d = tag2 === "path" ? attrOf2(attrsRaw, "d") : primitiveToD(tag2, attrsRaw);
-      if (d) emit(d, frame, tag2 === "line");
+    if (DRAW_TAGS.has(tag3) && !frame.defs && !hidden4) {
+      const d = tag3 === "path" ? attrOf2(attrsRaw, "d") : primitiveToD(tag3, attrsRaw);
+      if (d) emit(d, frame, tag3 === "line");
       if (shapes2.length + texts.length > SVG_CUSTGEOM_MAX_SHAPES) return null;
     }
     if (!selfClose) stack.push(frame);
@@ -80398,9 +80601,9 @@ function rewriteTagAttr(xml2, qname, attr5, map) {
   let count4 = 0;
   const tagRe = new RegExp(`<${reEsc(qname)}(?=[\\s/>])[^>]*>`, "g");
   const attrRe = new RegExp(`(\\s${reEsc(attr5)}=")([^"]*)(")`);
-  const text8 = xml2.replace(tagRe, (tag2) => {
+  const text8 = xml2.replace(tagRe, (tag3) => {
     let changed = false;
-    const out = tag2.replace(attrRe, (whole, pre, val, post) => {
+    const out = tag3.replace(attrRe, (whole, pre, val, post) => {
       const nv = map(val);
       if (nv === void 0 || nv === val) return whole;
       changed = true;
@@ -83726,7 +83929,7 @@ function htmlInlines(nodes, depth) {
 }
 function htmlList(items2, ordered) {
   const list4 = (Array.isArray(items2) ? items2 : []).filter((i2) => i2 && typeof i2 === "object");
-  const tag2 = ordered ? "ol" : "ul";
+  const tag3 = ordered ? "ol" : "ul";
   let i = 0;
   const walk2 = (level2) => {
     const lis = [];
@@ -83743,16 +83946,16 @@ function htmlList(items2, ordered) {
       i++;
       lis.push(`<li>${htmlInlines(item2.inlines, 0)}</li>`);
     }
-    return `<${tag2}>${lis.join("")}</${tag2}>`;
+    return `<${tag3}>${lis.join("")}</${tag3}>`;
   };
   return walk2(0);
 }
 function htmlTable(block) {
-  const cell = (c, tag2) => {
+  const cell = (c, tag3) => {
     const colspan = Math.max(1, Math.trunc(c?.colspan ?? 1) || 1);
     const rowspan = Math.max(1, Math.trunc(c?.rowspan ?? 1) || 1);
     const attrs = (colspan > 1 ? ` colspan="${colspan}"` : "") + (rowspan > 1 ? ` rowspan="${rowspan}"` : "");
-    return `<${tag2}${attrs}>${htmlInlines(c?.inlines, 0)}</${tag2}>`;
+    return `<${tag3}${attrs}>${htmlInlines(c?.inlines, 0)}</${tag3}>`;
   };
   const head2 = block.header?.length ? `<thead><tr>${block.header.map((c) => cell(c, "th")).join("")}</tr></thead>` : "";
   const body = (Array.isArray(block.rows) ? block.rows : []).map((r5) => `<tr>${(Array.isArray(r5) ? r5 : []).map((c) => cell(c, "td")).join("")}</tr>`).join("");
@@ -85941,13 +86144,13 @@ function packTiff(pixels2, opts = { width: 0, height: 0 }) {
   const description = opts.description ?? meta.description;
   const enc6 = new TextEncoder();
   const entries = [];
-  const num16 = (tag2, type, n7) => entries.push({ tag: tag2, type, count: 1, n: n7 });
-  const asciiTag = (tag2, s) => {
+  const num16 = (tag3, type, n7) => entries.push({ tag: tag3, type, count: 1, n: n7 });
+  const asciiTag = (tag3, s) => {
     if (!s) return;
     const a = enc6.encode(String(s));
     const d = new Uint8Array(a.length + 1);
     d.set(a, 0);
-    entries.push({ tag: tag2, type: ASCII, count: d.length, data: d });
+    entries.push({ tag: tag3, type: ASCII, count: d.length, data: d });
   };
   const bps = new Uint8Array(spp * 2);
   {
@@ -86915,21 +87118,21 @@ function u325(n7) {
 function u165(n7) {
   return Uint8Array.of(n7 >>> 8 & 255, n7 & 255);
 }
-function eStringArray(tag2, arr) {
-  return { tag: tag2, type: T_STRING_ARRAY, count: arr.length, data: concatBytes(arr.map(cstr)), align: 1 };
+function eStringArray(tag3, arr) {
+  return { tag: tag3, type: T_STRING_ARRAY, count: arr.length, data: concatBytes(arr.map(cstr)), align: 1 };
 }
-function eInt32(tag2, nums) {
-  return { tag: tag2, type: T_INT32, count: nums.length, data: concatBytes(nums.map(u325)), align: 4 };
+function eInt32(tag3, nums) {
+  return { tag: tag3, type: T_INT32, count: nums.length, data: concatBytes(nums.map(u325)), align: 4 };
 }
-function eInt16(tag2, nums) {
-  return { tag: tag2, type: T_INT16, count: nums.length, data: concatBytes(nums.map(u165)), align: 2 };
+function eInt16(tag3, nums) {
+  return { tag: tag3, type: T_INT16, count: nums.length, data: concatBytes(nums.map(u165)), align: 2 };
 }
 function encodeHeader(entries, regionTag) {
   const index2 = [];
   const body = [];
   let dl = 0;
   const il = entries.length + 1;
-  const indexEntry = (tag2, type, offset, count4) => concatBytes([u325(tag2), u325(type), u325(offset), u325(count4)]);
+  const indexEntry = (tag3, type, offset, count4) => concatBytes([u325(tag3), u325(type), u325(offset), u325(count4)]);
   for (const e of entries) {
     if (dl % e.align !== 0) {
       const pad = e.align - dl % e.align;
@@ -87024,9 +87227,9 @@ async function buildRpm(spec) {
   entries.push(eString(TAG_OS, m2.os ?? "linux"));
   entries.push(eString(TAG_ARCH, arch));
   entries.push(eString(TAG_RPMVERSION, "4.18.0"));
-  const addScript = (tag2, progTag, body) => {
+  const addScript = (tag3, progTag, body) => {
     if (!body) return;
-    entries.push(eString(tag2, body));
+    entries.push(eString(tag3, body));
     entries.push(eStringArray(progTag, ["/bin/sh"]));
   };
   addScript(TAG_PREIN, TAG_PREINPROG, m2.prein);
@@ -87169,8 +87372,8 @@ var init_rpm = __esm({
     HASH_SHA256 = 8;
     enc2 = new TextEncoder();
     cstr = (s) => concatBytes([enc2.encode(s), Uint8Array.of(0)]);
-    eString = (tag2, s) => ({ tag: tag2, type: T_STRING, count: 1, data: cstr(s), align: 1 });
-    eI18n = (tag2, s) => ({ tag: tag2, type: T_I18NSTRING, count: 1, data: cstr(s), align: 1 });
+    eString = (tag3, s) => ({ tag: tag3, type: T_STRING, count: 1, data: cstr(s), align: 1 });
+    eI18n = (tag3, s) => ({ tag: tag3, type: T_I18NSTRING, count: 1, data: cstr(s), align: 1 });
   }
 });
 
@@ -87464,7 +87667,7 @@ function woffToSfnt(bytes) {
   const tables = [];
   for (let i = 0; i < numTables; i++) {
     const e = WOFF_HEADER_SIZE + i * WOFF_DIR_ENTRY_SIZE;
-    const tag2 = view.getUint32(e, false);
+    const tag3 = view.getUint32(e, false);
     const offset = view.getUint32(e + 4, false);
     const compLength = view.getUint32(e + 8, false);
     const origLength = view.getUint32(e + 12, false);
@@ -87489,7 +87692,7 @@ function woffToSfnt(bytes) {
     } else {
       data = comp2.slice();
     }
-    tables.push({ tag: tag2, checksum: origChecksum, data });
+    tables.push({ tag: tag3, checksum: origChecksum, data });
   }
   return buildSfnt(flavor, tables);
 }
@@ -87506,7 +87709,7 @@ function sfntToWoff(bytes) {
   const wtables = [];
   for (let i = 0; i < numTables; i++) {
     const e = SFNT_HEADER_SIZE + i * SFNT_DIR_ENTRY_SIZE;
-    const tag2 = view.getUint32(e, false);
+    const tag3 = view.getUint32(e, false);
     const checksum = view.getUint32(e + 4, false);
     const offset = view.getUint32(e + 8, false);
     const origLength = view.getUint32(e + 12, false);
@@ -87517,7 +87720,7 @@ function sfntToWoff(bytes) {
     const zlib = zlibCompress(data);
     const useComp = zlib.length < origLength;
     wtables.push({
-      tag: tag2,
+      tag: tag3,
       comp: useComp ? zlib : data,
       compLength: useComp ? zlib.length : origLength,
       origLength,
@@ -87676,12 +87879,12 @@ function allSheets(store) {
   const re = /<sheet\b[^>]*\/?>/gi;
   let m2;
   while ((m2 = re.exec(wb)) !== null) {
-    const tag2 = m2[0];
-    const rid = attr(tag2, "r:id") || attr(tag2, "id");
+    const tag3 = m2[0];
+    const rid = attr(tag3, "r:id") || attr(tag3, "id");
     if (!rid) continue;
     const target = relTarget(store, rid);
     if (!target) continue;
-    out.push({ name: attr(tag2, "name") || "", path: resolveTarget3("xl", target) });
+    out.push({ name: attr(tag3, "name") || "", path: resolveTarget3("xl", target) });
   }
   return out;
 }
@@ -87710,8 +87913,8 @@ function relTarget(store, rid) {
   const re = /<Relationship\b[^>]*>/g;
   let m2;
   while ((m2 = re.exec(rels)) !== null) {
-    const tag2 = m2[0];
-    if (attr(tag2, "Id") === rid) return attr(tag2, "Target");
+    const tag3 = m2[0];
+    if (attr(tag3, "Id") === rid) return attr(tag3, "Target");
   }
   return null;
 }
@@ -87865,9 +88068,9 @@ function firstElemText(xml2, name) {
   const inner = firstElem(xml2, name);
   return inner ? inner : "";
 }
-function attr(tag2, name) {
+function attr(tag3, name) {
   const re = new RegExp(`\\b${name.replace(/[:]/g, "\\$&")}\\s*=\\s*("([^"]*)"|'([^']*)')`, "i");
-  const m2 = re.exec(tag2);
+  const m2 = re.exec(tag3);
   if (!m2) return null;
   return decodeXml(m2[2] !== void 0 ? m2[2] : m2[3] ?? "");
 }
@@ -88441,14 +88644,14 @@ function readEpub(bytes) {
   const bookTitle = boundedTitle(firstElementText(opf, "title"), "book title");
   const manifest = /* @__PURE__ */ new Map();
   let navPath = "";
-  for (const tag2 of matchTags(opf, "item", EPUB_READ_MAX_MANIFEST_ITEMS, "manifest items")) {
-    const id2 = attr2(tag2, "id");
-    const href = attr2(tag2, "href");
+  for (const tag3 of matchTags(opf, "item", EPUB_READ_MAX_MANIFEST_ITEMS, "manifest items")) {
+    const id2 = attr2(tag3, "id");
+    const href = attr2(tag3, "href");
     if (!id2 || !href) continue;
     const resolved2 = resolvePath(opfDir, href);
-    const properties2 = attr2(tag2, "properties");
+    const properties2 = attr2(tag3, "properties");
     if (manifest.has(id2)) throw new Error(`readEpub: duplicate manifest id "${id2}"`);
-    manifest.set(id2, { href: resolved2, mediaType: attr2(tag2, "media-type"), properties: properties2 });
+    manifest.set(id2, { href: resolved2, mediaType: attr2(tag3, "media-type"), properties: properties2 });
     if (/\bnav\b/.test(properties2)) navPath = resolved2;
   }
   const navLabels = /* @__PURE__ */ new Map();
@@ -88485,33 +88688,33 @@ function htmlToMarkdown(html) {
   let cursor = 0;
   let suppressed;
   for (; ; ) {
-    const tag2 = nextHtmlTag(html, cursor);
-    if (!tag2) {
+    const tag3 = nextHtmlTag(html, cursor);
+    if (!tag3) {
       if (!suppressed) out.push(html.slice(cursor));
       break;
     }
-    if (!suppressed) out.push(html.slice(cursor, tag2.start));
-    const name = localName4(tag2.name);
+    if (!suppressed) out.push(html.slice(cursor, tag3.start));
+    const name = localName4(tag3.name);
     if (suppressed) {
-      if (tag2.closing && name === suppressed) suppressed = void 0;
-      cursor = tag2.end;
+      if (tag3.closing && name === suppressed) suppressed = void 0;
+      cursor = tag3.end;
       continue;
     }
-    if (!tag2.closing && (name === "script" || name === "style")) {
+    if (!tag3.closing && (name === "script" || name === "style")) {
       suppressed = name;
-      cursor = tag2.end;
+      cursor = tag3.end;
       continue;
     }
     if (name === "strong" || name === "b") out.push("**");
     else if (name === "em" || name === "i") out.push("_");
     else if (/^h[1-6]$/.test(name)) {
-      out.push(tag2.closing ? "\n\n" : `
+      out.push(tag3.closing ? "\n\n" : `
 
 ${"#".repeat(Number(name[1]))} `);
-    } else if (name === "li" && !tag2.closing) out.push("\n- ");
+    } else if (name === "li" && !tag3.closing) out.push("\n- ");
     else if (name === "p") out.push("\n\n");
-    else if (name === "br" && !tag2.closing) out.push("\n");
-    cursor = tag2.end;
+    else if (name === "br" && !tag3.closing) out.push("\n");
+    cursor = tag3.end;
   }
   let s = out.join("");
   s = decodeEntities2(s);
@@ -88527,17 +88730,17 @@ function collectNavLabels(navHtml, navDir, out) {
   let anchors = 0;
   let active;
   for (; ; ) {
-    const tag2 = nextHtmlTag(navHtml, cursor);
-    if (!tag2) return;
-    if (localName4(tag2.name) === "a") {
-      if (!tag2.closing) {
+    const tag3 = nextHtmlTag(navHtml, cursor);
+    if (!tag3) return;
+    if (localName4(tag3.name) === "a") {
+      if (!tag3.closing) {
         anchors++;
         if (anchors > EPUB_READ_MAX_NAV_LABELS) {
           throw new Error(`readEpub: navigation has more than ${EPUB_READ_MAX_NAV_LABELS} labels`);
         }
-        active = { href: attr2(navHtml.slice(tag2.start, tag2.end), "href"), labelStart: tag2.end };
+        active = { href: attr2(navHtml.slice(tag3.start, tag3.end), "href"), labelStart: tag3.end };
       } else if (active) {
-        const label4 = plainText(navHtml.slice(active.labelStart, tag2.start));
+        const label4 = plainText(navHtml.slice(active.labelStart, tag3.start));
         const resolved2 = resolvePath(navDir, active.href);
         if (label4.length > EPUB_READ_MAX_TITLE_CHARS) {
           throw new Error(`readEpub: navigation label exceeds ${EPUB_READ_MAX_TITLE_CHARS} characters`);
@@ -88546,7 +88749,7 @@ function collectNavLabels(navHtml, navDir, out) {
         active = void 0;
       }
     }
-    cursor = tag2.end;
+    cursor = tag3.end;
   }
 }
 function textOf3(parts, name) {
@@ -88563,23 +88766,23 @@ function firstElementText(s, name) {
 function firstStartTag(s, name) {
   let cursor = 0;
   for (; ; ) {
-    const tag2 = nextHtmlTag(s, cursor);
-    if (!tag2) return void 0;
-    if (!tag2.closing && localName4(tag2.name) === name) return s.slice(tag2.start, tag2.end);
-    cursor = tag2.end;
+    const tag3 = nextHtmlTag(s, cursor);
+    if (!tag3) return void 0;
+    if (!tag3.closing && localName4(tag3.name) === name) return s.slice(tag3.start, tag3.end);
+    cursor = tag3.end;
   }
 }
 function matchTags(s, name, max, label4) {
   const out = [];
   let cursor = 0;
   for (; ; ) {
-    const tag2 = nextHtmlTag(s, cursor);
-    if (!tag2) return out;
-    if (!tag2.closing && localName4(tag2.name) === name) {
-      out.push(s.slice(tag2.start, tag2.end));
+    const tag3 = nextHtmlTag(s, cursor);
+    if (!tag3) return out;
+    if (!tag3.closing && localName4(tag3.name) === name) {
+      out.push(s.slice(tag3.start, tag3.end));
       if (out.length > max) throw new Error(`readEpub: more than ${max} ${label4}`);
     }
-    cursor = tag2.end;
+    cursor = tag3.end;
   }
 }
 function nextHtmlTag(s, from) {
@@ -88609,24 +88812,24 @@ function firstElementInner(s, wanted) {
   let cursor = 0;
   let open3;
   for (; ; ) {
-    const tag2 = nextHtmlTag(s, cursor);
-    if (!tag2) return void 0;
-    if (!open3 && !tag2.closing && wanted(tag2.name)) open3 = { name: tag2.name, contentStart: tag2.end };
-    else if (open3 && tag2.closing && tag2.name === open3.name) return s.slice(open3.contentStart, tag2.start);
-    cursor = tag2.end;
+    const tag3 = nextHtmlTag(s, cursor);
+    if (!tag3) return void 0;
+    if (!open3 && !tag3.closing && wanted(tag3.name)) open3 = { name: tag3.name, contentStart: tag3.end };
+    else if (open3 && tag3.closing && tag3.name === open3.name) return s.slice(open3.contentStart, tag3.start);
+    cursor = tag3.end;
   }
 }
 function plainText(s) {
   const out = [];
   let cursor = 0;
   for (; ; ) {
-    const tag2 = nextHtmlTag(s, cursor);
-    if (!tag2) {
+    const tag3 = nextHtmlTag(s, cursor);
+    if (!tag3) {
       out.push(s.slice(cursor));
       break;
     }
-    out.push(s.slice(cursor, tag2.start));
-    cursor = tag2.end;
+    out.push(s.slice(cursor, tag3.start));
+    cursor = tag3.end;
   }
   return decodeEntities2(out.join("")).replace(/\s+/g, " ").trim();
 }
@@ -88639,9 +88842,9 @@ function boundedTitle(title, label4) {
   }
   return title;
 }
-function attr2(tag2, name) {
+function attr2(tag3, name) {
   const esc7 = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const m2 = tag2.match(new RegExp(`\\b${esc7}\\s*=\\s*(?:"([^"]*)"|'([^']*)')`, "i"));
+  const m2 = tag3.match(new RegExp(`\\b${esc7}\\s*=\\s*(?:"([^"]*)"|'([^']*)')`, "i"));
   return m2 ? m2[1] ?? m2[2] ?? "" : "";
 }
 function dirOf2(path) {
@@ -90246,12 +90449,12 @@ function decodeFigVectorPath(bytes) {
   const NF = { 0: 0, 1: 2, 2: 2, 3: 4, 4: 6 };
   const LT = { 0: "Z", 1: "M", 2: "L", 3: "Q", 4: "C" };
   while (off < b.length) {
-    const tag2 = dv.getUint8(off);
+    const tag3 = dv.getUint8(off);
     off += 1;
-    const nf = NF[tag2];
+    const nf = NF[tag3];
     if (nf == null) break;
     if (!room(nf)) break;
-    d += LT[tag2];
+    d += LT[tag3];
     for (let k = 0; k < nf; k++) d += (k ? " " : "") + f();
     d += " ";
   }
@@ -92470,22 +92673,22 @@ function parseToUnicode(cmap) {
   const rangeArray = /<([0-9A-Fa-f]+)>\s*<([0-9A-Fa-f]+)>\s*\[([\s\S]*?)\]/g;
   while (mb2 = rangeBlock.exec(cmap)) {
     const body = mb2[1];
-    let rm7;
+    let rm8;
     rangeArray.lastIndex = 0;
     const arrSpans = [];
-    while (rm7 = rangeArray.exec(body)) {
-      const lo = parseInt(rm7[1], 16), hi = parseInt(rm7[2], 16);
-      arrSpans.push([rm7.index, rm7.index + rm7[0].length]);
-      const dsts = rm7[3].match(/<([0-9A-Fa-f]+)>/g) || [];
+    while (rm8 = rangeArray.exec(body)) {
+      const lo = parseInt(rm8[1], 16), hi = parseInt(rm8[2], 16);
+      arrSpans.push([rm8.index, rm8.index + rm8[0].length]);
+      const dsts = rm8[3].match(/<([0-9A-Fa-f]+)>/g) || [];
       for (let k = 0; k <= hi - lo && k < dsts.length; k++) {
         map.set(lo + k, hexToUtf16(dsts[k].replace(/[<>]/g, "")));
       }
     }
     rangeSingle.lastIndex = 0;
-    while (rm7 = rangeSingle.exec(body)) {
-      if (arrSpans.some(([a, b]) => rm7.index >= a && rm7.index < b)) continue;
-      const lo = parseInt(rm7[1], 16), hi = parseInt(rm7[2], 16);
-      const baseHex = rm7[3];
+    while (rm8 = rangeSingle.exec(body)) {
+      if (arrSpans.some(([a, b]) => rm8.index >= a && rm8.index < b)) continue;
+      const lo = parseInt(rm8[1], 16), hi = parseInt(rm8[2], 16);
+      const baseHex = rm8[3];
       const base = parseInt(baseHex, 16);
       const span = Math.min(hi - lo, PDF_MAP_MAX_BF_RANGE - 1);
       for (let k = 0; k <= span; k++) {
@@ -93146,7 +93349,7 @@ function cluster(items2) {
     }
     return i;
   };
-  const join30 = (a, b) => {
+  const join31 = (a, b) => {
     const ra = find(a), rb = find(b);
     if (ra !== rb) parent[ra] = rb;
   };
@@ -93156,7 +93359,7 @@ function cluster(items2) {
     const a = expand(items2[i].rect, gap);
     for (let j = i + 1; j < items2.length; j++) {
       if (find(i) === find(j)) continue;
-      if (overlaps(a, items2[j].rect)) join30(i, j);
+      if (overlaps(a, items2[j].rect)) join31(i, j);
     }
   }
   const collect3 = () => {
@@ -93193,7 +93396,7 @@ function cluster(items2) {
           if (find(ra) === find(rb)) continue;
           const reach2 = Math.min(diagonal(rectA), diagonal(rectB)) * GROUP_REACH;
           if (gapBetween(rectA, rectB) <= Math.max(gap, reach2)) {
-            join30(ra, rb);
+            join31(ra, rb);
             merged = true;
           }
         }
@@ -97418,23 +97621,23 @@ function pathHash(svgOrPathData, tolerance = DEFAULT_PATH_TOLERANCE) {
     const elements = /<\s*(path|rect|circle|ellipse|line|polyline|polygon)\b([^>]*)>/gi;
     let match = elements.exec(source);
     while (match) {
-      const tag2 = (match[1] ?? "").toLowerCase();
+      const tag3 = (match[1] ?? "").toLowerCase();
       const attrs = match[2] ?? "";
-      if (tag2 === "path") {
+      if (tag3 === "path") {
         const data = readAttribute(attrs, "d");
         if (data !== void 0 && data.trim().length > 0) {
           readPathData(data, tokens3);
           tokens3.push({ command: "|" });
         }
-      } else if (tag2 === "polyline" || tag2 === "polygon") {
+      } else if (tag3 === "polyline" || tag3 === "polygon") {
         const points = readAttribute(attrs, "points");
         if (points !== void 0 && points.trim().length > 0) {
-          tokens3.push({ command: tag2 });
+          tokens3.push({ command: tag3 });
           readPoints(points, tokens3);
           tokens3.push({ command: "|" });
         }
       } else {
-        const fields = SHAPE_GEOMETRY[tag2] ?? [];
+        const fields = SHAPE_GEOMETRY[tag3] ?? [];
         const read = [];
         for (const field2 of fields) {
           const raw = readAttribute(attrs, field2.name);
@@ -97444,7 +97647,7 @@ function pathHash(svgOrPathData, tolerance = DEFAULT_PATH_TOLERANCE) {
           read.push(field2.axis ? { value, axis: field2.axis } : { value });
         }
         if (read.length > 0) {
-          tokens3.push({ command: tag2 });
+          tokens3.push({ command: tag3 });
           tokens3.push(...read);
           tokens3.push({ command: "|" });
         }
@@ -98043,18 +98246,18 @@ function evidenceKind(row) {
   return row.evidence[leadingEvidence(row.evidence)]?.signal ?? "origin";
 }
 function nativeTagCode(value) {
-  const tag2 = String(value);
-  if (/table|tbl/i.test(tag2)) return "evidence.native-tag.table";
-  if (/doughnut|donut/i.test(tag2)) return "evidence.native-tag.donut";
-  if (/bar/i.test(tag2)) return "evidence.native-tag.bar";
-  if (/pie/i.test(tag2)) return "evidence.native-tag.pie";
-  if (/area/i.test(tag2)) return "evidence.native-tag.area";
-  if (/scatter|bubble/i.test(tag2)) return "evidence.native-tag.scatter";
-  if (/radar/i.test(tag2)) return "evidence.native-tag.radar";
-  if (/connector/i.test(tag2)) return "evidence.native-tag.connector";
-  if (/line/i.test(tag2)) return "evidence.native-tag.line";
-  if (/chart/i.test(tag2)) return "evidence.native-tag.chart";
-  if (/diagram/i.test(tag2)) return "evidence.native-tag.diagram";
+  const tag3 = String(value);
+  if (/table|tbl/i.test(tag3)) return "evidence.native-tag.table";
+  if (/doughnut|donut/i.test(tag3)) return "evidence.native-tag.donut";
+  if (/bar/i.test(tag3)) return "evidence.native-tag.bar";
+  if (/pie/i.test(tag3)) return "evidence.native-tag.pie";
+  if (/area/i.test(tag3)) return "evidence.native-tag.area";
+  if (/scatter|bubble/i.test(tag3)) return "evidence.native-tag.scatter";
+  if (/radar/i.test(tag3)) return "evidence.native-tag.radar";
+  if (/connector/i.test(tag3)) return "evidence.native-tag.connector";
+  if (/line/i.test(tag3)) return "evidence.native-tag.line";
+  if (/chart/i.test(tag3)) return "evidence.native-tag.chart";
+  if (/diagram/i.test(tag3)) return "evidence.native-tag.diagram";
   return "evidence.native-tag.other";
 }
 function repeatCode(kind) {
@@ -103948,7 +104151,7 @@ function lengthIn(value, at, axis) {
   const n7 = Number(pct2[1]) / 100 * base;
   return Number.isFinite(n7) ? n7 : void 0;
 }
-function outlineOf(el, tag2, at) {
+function outlineOf(el, tag3, at) {
   let unreadable = false;
   const len2 = (name, axis, fallback = 0) => {
     const raw = el.getAttribute(name);
@@ -103961,7 +104164,7 @@ function outlineOf(el, tag2, at) {
     return v;
   };
   let d = "";
-  switch (tag2) {
+  switch (tag3) {
     case "path":
       d = el.getAttribute("d") ?? "";
       break;
@@ -103975,15 +104178,15 @@ function outlineOf(el, tag2, at) {
       const points = raw.split(/[\s,]+/).map(Number);
       if (points.some((v) => !Number.isFinite(v))) return null;
       for (let i = 0; i + 1 < points.length; i += 2) d += `${i ? "L" : "M"}${points[i]} ${points[i + 1]}`;
-      if (d && tag2 === "polygon") d += "Z";
+      if (d && tag3 === "polygon") d += "Z";
       break;
     }
     case "circle":
     case "ellipse": {
       const x = len2("cx", "x");
       const y = len2("cy", "y");
-      const rx = tag2 === "circle" ? len2("r", "d") : len2("rx", "x", el.hasAttribute("ry") ? len2("ry", "y") : 0);
-      const ry = tag2 === "circle" ? rx : len2("ry", "y", el.hasAttribute("rx") ? len2("rx", "x") : 0);
+      const rx = tag3 === "circle" ? len2("r", "d") : len2("rx", "x", el.hasAttribute("ry") ? len2("ry", "y") : 0);
+      const ry = tag3 === "circle" ? rx : len2("ry", "y", el.hasAttribute("rx") ? len2("rx", "x") : 0);
       if (unreadable) return null;
       if (!(rx > 0) || !(ry > 0)) return "";
       d = `M${x - rx} ${y}A${rx} ${ry} 0 1 1 ${x + rx} ${y}A${rx} ${ry} 0 1 1 ${x - rx} ${y}Z`;
@@ -104180,9 +104383,9 @@ function svgItemsOf(svgText, parseXml, opts = {}) {
     if (rule === "evenodd" || rule === "nonzero") own3.fillRule = rule;
     const cap = get3("stroke-linecap");
     if (cap === "butt" || cap === "round" || cap === "square") own3.cap = cap;
-    const join30 = get3("stroke-linejoin");
-    if (join30 === "miter" || join30 === "round" || join30 === "bevel") own3.join = join30;
-    else if (join30 === "miter-clip" || join30 === "arcs") own3.join = "miter";
+    const join31 = get3("stroke-linejoin");
+    if (join31 === "miter" || join31 === "round" || join31 === "bevel") own3.join = join31;
+    else if (join31 === "miter-clip" || join31 === "arcs") own3.join = "miter";
     const dash = get3("stroke-dasharray");
     if (dash !== void 0) {
       const list4 = dash === "none" ? [] : dash.split(/[\s,]+/).map((v) => lengthOf(v, own3.fontSize)).filter((v) => v !== void 0 && v >= 0);
@@ -104220,13 +104423,13 @@ function svgItemsOf(svgText, parseXml, opts = {}) {
       return null;
     }
   };
-  const shapeItem = (el, tag2, state, style) => {
+  const shapeItem = (el, tag3, state, style) => {
     if (!state.visible || state.opacity <= 0) return;
     if (state.blocked) {
       omit(state.blocked);
       return;
     }
-    const d0 = outlineOf(el, tag2, state);
+    const d0 = outlineOf(el, tag3, state);
     if (d0 === null || /NaN|Infinity/.test(d0)) {
       omit("unsupported-element");
       return;
@@ -104248,7 +104451,7 @@ function svgItemsOf(svgText, parseXml, opts = {}) {
       omit("unsupported-paint");
       return;
     }
-    const lineLike = tag2 === "line" || tag2 === "polyline";
+    const lineLike = tag3 === "line" || tag3 === "polyline";
     const nonScaling = prop(el, style, "vector-effect") === "non-scaling-stroke";
     const scale = nonScaling ? 1 : Math.sqrt(Math.abs(state.m[0] * state.m[3] - state.m[1] * state.m[2]));
     const fillAlpha = "hex" in fillPaint ? fillPaint.alpha * state.fillOpacity : 0;
@@ -104263,14 +104466,14 @@ function svgItemsOf(svgText, parseXml, opts = {}) {
     if (d.length > ENCODE_CHECK_CHARS && !encodable(subs, box4)) throw new CapReached();
     const item2 = { kind: "path", d, box: box4 };
     const axisAligned = Math.abs(state.m[1]) < 1e-9 && Math.abs(state.m[2]) < 1e-9;
-    if (axisAligned && tag2 === "rect") {
+    if (axisAligned && tag3 === "rect") {
       item2.shape = "rect";
       const rx = lengthIn(el.getAttribute("rx") ?? el.getAttribute("ry") ?? void 0, state, "x") ?? 0;
       const scaled = Math.min(rx * Math.min(Math.abs(state.m[0]), Math.abs(state.m[3])), box4.w / 2, box4.h / 2);
       if (scaled > 0) item2.rx = round32(scaled);
-    } else if (axisAligned && (tag2 === "ellipse" || tag2 === "circle")) {
+    } else if (axisAligned && (tag3 === "ellipse" || tag3 === "circle")) {
       item2.shape = "ellipse";
-    } else if (tag2 === "line") {
+    } else if (tag3 === "line") {
       item2.shape = "line";
     }
     item2.fill = fills && "hex" in fillPaint ? { hex: fillPaint.hex } : { none: true };
@@ -104346,12 +104549,12 @@ function svgItemsOf(svgText, parseXml, opts = {}) {
     if (++tags3 > SVG_CUSTGEOM_MAX_TAGS) throw new CapReached();
     const ns2 = el.namespaceURI;
     if (ns2 && ns2 !== SVG_NS) return;
-    const tag2 = localOf(el);
-    if (SILENT.has(tag2)) return;
+    const tag3 = localOf(el);
+    if (SILENT.has(tag3)) return;
     const style = styleOf(el);
     const display = prop(el, style, "display");
     if (display === "none") return;
-    if (ANIMATION.has(tag2)) {
+    if (ANIMATION.has(tag3)) {
       omit("unsupported-element");
       return;
     }
@@ -104361,10 +104564,10 @@ function svgItemsOf(svgText, parseXml, opts = {}) {
       return;
     }
     const state = inherit(el, { ...parent, m: m2 }, style);
-    if (tag2 === "g" || tag2 === "a" || tag2 === "svg") {
+    if (tag3 === "g" || tag3 === "a" || tag3 === "svg") {
       if (depth > MAX_DEPTH4) throw new CapReached();
       let inner = state;
-      if (tag2 === "svg" && depth > 0) {
+      if (tag3 === "svg" && depth > 0) {
         const x = lengthIn(el.getAttribute("x") ?? void 0, state, "x") ?? 0;
         const y = lengthIn(el.getAttribute("y") ?? void 0, state, "y") ?? 0;
         const w = lengthIn(el.getAttribute("width") ?? "100%", state, "x");
@@ -104382,22 +104585,22 @@ function svgItemsOf(svgText, parseXml, opts = {}) {
           vh: hasViewBox ? vb[3] : h ?? state.vh
         };
       }
-      if (tag2 === "g" && depth > 0) {
+      if (tag3 === "g" && depth > 0) {
         const name = (el.getAttribute("id") ?? "").trim() || (el.getAttribute("class") ?? "").trim().split(/\s+/)[0] || "";
         if (name) inner = { ...inner, groups: [...inner.groups, name.slice(0, MAX_GROUP_NAME)] };
       }
       for (const child of kids(el)) walk2(child, inner, depth + 1, useDepth, trail);
       return;
     }
-    if (SHAPES2.has(tag2)) {
-      shapeItem(el, tag2, state, style);
+    if (SHAPES2.has(tag3)) {
+      shapeItem(el, tag3, state, style);
       return;
     }
-    if (tag2 === "text") {
+    if (tag3 === "text") {
       textItem(el, state);
       return;
     }
-    if (tag2 === "use") {
+    if (tag3 === "use") {
       const href = (el.getAttribute("href") ?? el.getAttributeNS("http://www.w3.org/1999/xlink", "href") ?? "").trim();
       const target = href.startsWith("#") ? byId.get(href.slice(1)) : void 0;
       if (!target || trail.has(target) || useDepth >= MAX_USE_DEPTH) {
@@ -104440,9 +104643,9 @@ function svgItemsOf(svgText, parseXml, opts = {}) {
   let title;
   let desc;
   for (const child of kids(root2)) {
-    const tag2 = localOf(child);
-    if (tag2 === "title" && title === void 0) title = (child.textContent ?? "").replace(/\s+/g, " ").trim().slice(0, MAX_TITLE) || void 0;
-    if (tag2 === "desc" && desc === void 0) desc = (child.textContent ?? "").replace(/\s+/g, " ").trim().slice(0, MAX_DESC) || void 0;
+    const tag3 = localOf(child);
+    if (tag3 === "title" && title === void 0) title = (child.textContent ?? "").replace(/\s+/g, " ").trim().slice(0, MAX_TITLE) || void 0;
+    if (tag3 === "desc" && desc === void 0) desc = (child.textContent ?? "").replace(/\s+/g, " ").trim().slice(0, MAX_DESC) || void 0;
   }
   try {
     const rootTransform = root2.getAttribute("transform");
@@ -104714,10 +104917,10 @@ function svgLabelHintsOf(svgText, parseXml) {
     }
   }
   for (const child of kids(root2)) {
-    const tag2 = localOf(child);
+    const tag3 = localOf(child);
     const text8 = (child.textContent ?? "").replace(/\s+/g, " ").trim();
-    if (tag2 === "title" && out.title === void 0 && text8) out.title = text8.slice(0, MAX_TITLE);
-    if (tag2 === "desc" && out.desc === void 0 && text8) out.desc = text8.slice(0, MAX_DESC);
+    if (tag3 === "title" && out.title === void 0 && text8) out.title = text8.slice(0, MAX_TITLE);
+    if (tag3 === "desc" && out.desc === void 0 && text8) out.desc = text8.slice(0, MAX_DESC);
   }
   return out;
 }
@@ -106483,7 +106686,7 @@ function pourItems(placements, mode2) {
     while (parent[at] !== at) at = parent[at];
     return at;
   };
-  const join30 = (a, b) => {
+  const join31 = (a, b) => {
     const ra = find(a);
     const rb = find(b);
     if (ra !== rb) parent[Math.max(ra, rb)] = Math.min(ra, rb);
@@ -106495,17 +106698,17 @@ function pourItems(placements, mode2) {
       const ba = boxOf5(a);
       const bb = boxOf5(b);
       if (mode2 === "rows") {
-        if (spanOverlap(ba.y0, ba.y1, bb.y0, bb.y1) >= 0.5) join30(i, j);
+        if (spanOverlap(ba.y0, ba.y1, bb.y0, bb.y1) >= 0.5) join31(i, j);
       } else if (mode2 === "columns") {
-        if (spanOverlap(ba.x0, ba.x1, bb.x0, bb.x1) >= 0.5) join30(i, j);
+        if (spanOverlap(ba.x0, ba.x1, bb.x0, bb.x1) >= 0.5) join31(i, j);
       } else {
         const [upper, lower3, top, bottom] = ba.y0 <= bb.y0 ? [a, b, ba, bb] : [b, a, bb, ba];
         const gap = bottom.y0 - top.y1;
-        if (lower3 !== upper && isLabelText(upper) && !isMarkerText(upper) && !isMarkerText(lower3) && (lower3.text ?? "").trim().length > (upper.text ?? "").trim().length * 1.5 && spanOverlap(ba.x0, ba.x1, bb.x0, bb.x1) >= 0.5 && gap > -0.25 * (top.y1 - top.y0) && gap <= 1.5 * (top.y1 - top.y0)) join30(i, j);
+        if (lower3 !== upper && isLabelText(upper) && !isMarkerText(upper) && !isMarkerText(lower3) && (lower3.text ?? "").trim().length > (upper.text ?? "").trim().length * 1.5 && spanOverlap(ba.x0, ba.x1, bb.x0, bb.x1) >= 0.5 && gap > -0.25 * (top.y1 - top.y0) && gap <= 1.5 * (top.y1 - top.y0)) join31(i, j);
         const marker = isMarkerText(a) ? ba : isMarkerText(b) ? bb : void 0;
         if (marker && spanOverlap(ba.y0, ba.y1, bb.y0, bb.y1) >= 0.5) {
           const across = Math.max(ba.x0, bb.x0) - Math.min(ba.x1, bb.x1);
-          if (across <= 2 * Math.max(marker.x1 - marker.x0, marker.y1 - marker.y0)) join30(i, j);
+          if (across <= 2 * Math.max(marker.x1 - marker.x0, marker.y1 - marker.y0)) join31(i, j);
         }
       }
     }
@@ -112295,21 +112498,21 @@ function imageDimensions(bytes, mtype) {
     return null;
   }
   if (b.length >= 30 && b[0] === 82 && b[1] === 73 && b[2] === 70 && b[3] === 70 && b[8] === 87 && b[9] === 69 && b[10] === 66 && b[11] === 80) {
-    const tag2 = String.fromCharCode(b[12], b[13], b[14], b[15]);
-    if (tag2 === "VP8X") return { w: 1 + (b[24] | b[25] << 8 | b[26] << 16), h: 1 + (b[27] | b[28] << 8 | b[29] << 16) };
-    if (tag2 === "VP8L") {
+    const tag3 = String.fromCharCode(b[12], b[13], b[14], b[15]);
+    if (tag3 === "VP8X") return { w: 1 + (b[24] | b[25] << 8 | b[26] << 16), h: 1 + (b[27] | b[28] << 8 | b[29] << 16) };
+    if (tag3 === "VP8L") {
       const b0 = b[21], b1 = b[22], b2 = b[23], b3 = b[24];
       return { w: 1 + ((b1 & 63) << 8 | b0), h: 1 + ((b3 & 15) << 10 | b2 << 2 | (b1 & 192) >> 6) };
     }
-    if (tag2 === "VP8 ") return { w: (b[26] | b[27] << 8) & 16383, h: (b[28] | b[29] << 8) & 16383 };
+    if (tag3 === "VP8 ") return { w: (b[26] | b[27] << 8) & 16383, h: (b[28] | b[29] << 8) & 16383 };
     return null;
   }
   const looksSvg = mtype === "image/svg+xml" || b.length > 5 && (b[0] === 60 || b[0] === 239 && b[3] === 60);
   if (looksSvg) {
     const head2 = new TextDecoder().decode(b.subarray(0, Math.min(b.length, 4096)));
-    const tag2 = /<svg\b([^>]*)>/i.exec(head2);
-    if (!tag2) return null;
-    const a = parseAttrs2(tag2[1]);
+    const tag3 = /<svg\b([^>]*)>/i.exec(head2);
+    if (!tag3) return null;
+    const a = parseAttrs2(tag3[1]);
     const vb = (a.viewbox ?? "").trim().split(/[\s,]+/).map(Number);
     const vbW = vb.length === 4 && Number.isFinite(vb[2]) ? vb[2] : 0, vbH = vb.length === 4 && Number.isFinite(vb[3]) ? vb[3] : 0;
     const w = parseLen(a.width, vbW, vbW), h = parseLen(a.height, vbH, vbH);
@@ -121639,8 +121842,8 @@ var init_check_fidelity = __esm({
 function sfntVerticalMetrics(bytes) {
   if (bytes.length < 12) return null;
   const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-  const tag2 = dv.getUint32(0);
-  if (tag2 !== 65536 && tag2 !== 1330926671 && tag2 !== 1953658213) return null;
+  const tag3 = dv.getUint32(0);
+  if (tag3 !== 65536 && tag3 !== 1330926671 && tag3 !== 1953658213) return null;
   const count4 = dv.getUint16(4);
   const tables = /* @__PURE__ */ new Map();
   for (let i = 0; i < count4; i++) {
@@ -121752,8 +121955,8 @@ var init_text_shaper_host = __esm({
       if (!list4?.length) return void 0;
       const out = {};
       for (const item2 of list4) {
-        const [tag2, value] = item2.split("=");
-        if (tag2 && Number.isFinite(Number(value))) out[tag2] = Number(value);
+        const [tag3, value] = item2.split("=");
+        if (tag3 && Number.isFinite(Number(value))) out[tag3] = Number(value);
       }
       return out;
     };
@@ -122551,12 +122754,12 @@ var init_de_1996 = __esm({
 
 // engine/src/text-hyphenation.ts
 function textHyphenationLanguage(language = "und") {
-  const tag2 = language.toLowerCase();
-  if (tag2 === "en-gb" || tag2.startsWith("en-gb-")) return "en-gb";
-  if (tag2 === "en" || tag2 === "en-us" || tag2.startsWith("en-us-")) return "en-us";
-  if (tag2 === "de" || tag2 === "de-de" || tag2 === "de-1996") return "de-1996";
-  if (tag2 === "fr" || tag2.startsWith("fr-")) return "fr";
-  if (tag2 === "es" || tag2.startsWith("es-")) return "es";
+  const tag3 = language.toLowerCase();
+  if (tag3 === "en-gb" || tag3.startsWith("en-gb-")) return "en-gb";
+  if (tag3 === "en" || tag3 === "en-us" || tag3.startsWith("en-us-")) return "en-us";
+  if (tag3 === "de" || tag3 === "de-de" || tag3 === "de-1996") return "de-1996";
+  if (tag3 === "fr" || tag3.startsWith("fr-")) return "fr";
+  if (tag3 === "es" || tag3.startsWith("es-")) return "es";
   return null;
 }
 function compile(data) {
@@ -123743,13 +123946,13 @@ function deleteTextStory(snapshot, id2) {
   current.frames = current.frames.filter((frame) => frame.storyId !== id2);
   return admitted2(current);
 }
-function linkTextFrames(snapshot, sourceId, targetId, join30, fresh) {
+function linkTextFrames(snapshot, sourceId, targetId, join31, fresh) {
   const current = admitted2(snapshot), source = owner(current, sourceId), target = owner(current, targetId);
   if (source.id === target.id) throw new TextSourceError("thread-cycle", "These frames already belong to the same story.");
   const affected = [...source.frameIds, ...target.frameIds];
   mutable(current, affected);
   if (current.frames.some((frame) => affected.includes(frame.id) && frame.mode === "path")) throw new TextSourceError("thread-path", "Detach text from its path before linking frames.");
-  if ((target.source || target.frameIds.length > 1) && !join30) throw new TextSourceError("join-required", "Preview and join these stories to retain both sources.");
+  if ((target.source || target.frameIds.length > 1) && !join31) throw new TextSourceError("join-required", "Preview and join these stories to retain both sources.");
   if (target.frameIds[0] !== targetId) throw new TextSourceError("thread-target", "Choose the first frame of the target story.");
   let merged = source;
   if (target.source) {
@@ -123886,9 +124089,9 @@ function previewTextCleanup(story, range, language, options2) {
     if (edits.length >= 512) throw new TextSourceError("cleanup-size", "Select a smaller range to preview typography cleanup.");
     edits.push({ start, end, before: story.source.slice(start, end), after, kind });
   };
-  const tag2 = language.toLowerCase().split("-")[0];
-  if (options2.quotes && ["en", "fr", "de", "es"].includes(tag2)) {
-    const pair = tag2 === "fr" ? ["\xAB\u202F", "\u202F\xBB"] : tag2 === "de" ? ["\u201E", "\u201C"] : ["\u201C", "\u201D"];
+  const tag3 = language.toLowerCase().split("-")[0];
+  if (options2.quotes && ["en", "fr", "de", "es"].includes(tag3)) {
+    const pair = tag3 === "fr" ? ["\xAB\u202F", "\u202F\xBB"] : tag3 === "de" ? ["\u201E", "\u201C"] : ["\u201C", "\u201D"];
     for (const match of source.matchAll(/"([^"\n\r\u2028\u2029]+)"/gu)) {
       add(match.index, match.index + 1, pair[0], "quotes");
       add(match.index + match[0].length - 1, match.index + match[0].length, pair[1], "quotes");
@@ -124093,9 +124296,9 @@ function importVectorPaint(svg, parseXml) {
   const view = (root2.getAttribute("viewBox") ?? "").split(/[\s,]+/).map(Number), width = view[2], height = view[3];
   const paths = [], idMap = new Map(Array.from(doc.getElementsByTagName("*")).filter((el) => el.hasAttribute("id")).map((el) => [el.getAttribute("id"), el]));
   function walk2(element, definition = false, instance = false) {
-    const tag2 = element.localName, attributes = Object.fromEntries(Array.from(element.attributes).map((attr5) => [attr5.name, attr5.value]));
+    const tag3 = element.localName, attributes = Object.fromEntries(Array.from(element.attributes).map((attr5) => [attr5.name, attr5.value]));
     if (instance) delete attributes.id;
-    if (tag2 === "use") {
+    if (tag3 === "use") {
       const target = idMap.get(attributes.href.slice(1));
       if (!target) throw new Error("Missing local vector shape.");
       const x = Number(attributes.x ?? 0), y = Number(attributes.y ?? 0), own3 = attributes.transform ?? "";
@@ -124104,7 +124307,7 @@ function importVectorPaint(svg, parseXml) {
       const child = walk2(target, false, true);
       return { tag: "g", attributes, children: child ? [child] : [] };
     }
-    if (geometry2[tag2]) {
+    if (geometry2[tag3]) {
       if (definition) return null;
       const d = shapePath(element), contours = pathFromSubPaths(parseSvgPath(d)).filter((contour) => contour.curves.length);
       if (!contours.length) return null;
@@ -124113,20 +124316,20 @@ function importVectorPaint(svg, parseXml) {
         paths.push(vectorContourNodes(contour, width, height));
         return index2;
       });
-      for (const key of geometry2[tag2]) delete attributes[key];
+      for (const key of geometry2[tag3]) delete attributes[key];
       return { tag: "path", attributes, contours: indices };
     }
     const children = Array.from(element.children).flatMap((child) => {
-      const node = walk2(child, tag2 === "defs", instance);
+      const node = walk2(child, tag3 === "defs", instance);
       return node ? [node] : [];
     });
-    if (tag2 === "svg") {
+    if (tag3 === "svg") {
       for (const key of ["xmlns", "viewBox", "width", "height", "preserveAspectRatio"]) delete attributes[key];
       const own3 = attributes.transform ?? "";
       attributes.transform = `translate(${-view[0]} ${-view[1]}) ${own3}`.trim();
       return { tag: "g", attributes, children };
     }
-    return { tag: tag2, attributes, children };
+    return { tag: tag3, attributes, children };
   }
   const tree = walk2(root2);
   if (!paths.length) throw new Error("This selection has no visible vector geometry.");
@@ -126130,11 +126333,11 @@ function wrapOp(op, inner) {
 }
 function gradient(paint2) {
   const stops = paint2.stops.map((s) => `<stop offset="${round25(s.offset)}" stop-color="${s.color}"` + (s.opacity < 1 ? ` stop-opacity="${round25(s.opacity)}"` : "") + "/>").join("");
-  const tag2 = paint2.kind === "linear" ? "linearGradient" : "radialGradient";
+  const tag3 = paint2.kind === "linear" ? "linearGradient" : "radialGradient";
   const head2 = paint2.kind === "linear" ? `<linearGradient gradientUnits="userSpaceOnUse" x1="${round25(paint2.x1)}" y1="${round25(paint2.y1)}" x2="${round25(paint2.x2)}" y2="${round25(paint2.y2)}"` : '<radialGradient cx="0.5" cy="0.5" r="0.71"';
-  const body = `${head2}>${stops}</${tag2}>`;
+  const body = `${head2}>${stops}</${tag3}>`;
   const id2 = `lg${contentId(body)}`;
-  return { defs: `<defs>${body.replace(`<${tag2} `, `<${tag2} id="${id2}" `)}</defs>`, paint: `url(#${id2})` };
+  return { defs: `<defs>${body.replace(`<${tag3} `, `<${tag3} id="${id2}" `)}</defs>`, paint: `url(#${id2})` };
 }
 function strokeAttrs(stroke) {
   if (!stroke) return "";
@@ -130350,7 +130553,7 @@ function inkAbove(image, area2, under, lineHeight, threshold, maxLines) {
 function outlinedBoxes(regions) {
   const tolX = OUTLINE_TOLERANCE * regions.width;
   const tolY = OUTLINE_TOLERANCE * regions.height;
-  const join30 = (horizontal) => {
+  const join31 = (horizontal) => {
     const parts = regions.regions.filter((r5) => r5.kind === "rule" && r5.evidence.orientation === (horizontal ? "horizontal" : "vertical")).map((r5) => ({
       from: horizontal ? r5.box.x : r5.box.y,
       to: horizontal ? r5.box.x + r5.box.w : r5.box.y + r5.box.h,
@@ -130380,8 +130583,8 @@ function outlinedBoxes(regions) {
     }
     return out;
   };
-  const rows2 = join30(true);
-  const cols = join30(false);
+  const rows2 = join31(true);
+  const cols = join31(false);
   const found = [];
   for (const top of rows2) {
     for (const bottom of rows2) {
@@ -132885,14 +133088,14 @@ function length(v) {
   return Number.isFinite(n7) && n7 > 0 ? n7 : null;
 }
 function svgDocumentFrame(svg) {
-  const tag2 = rootTag(svg);
-  if (!tag2) return null;
-  const vb = attr3(tag2.attrs, "viewBox");
+  const tag3 = rootTag(svg);
+  if (!tag3) return null;
+  const vb = attr3(tag3.attrs, "viewBox");
   if (vb != null) {
     const n7 = vb.trim().split(/[\s,]+/).map(Number);
     if (n7.length === 4 && n7.every(Number.isFinite) && n7[2] > 0 && n7[3] > 0) return { x: n7[0], y: n7[1], w: n7[2], h: n7[3] };
   }
-  const w = length(attr3(tag2.attrs, "width")), h = length(attr3(tag2.attrs, "height"));
+  const w = length(attr3(tag3.attrs, "width")), h = length(attr3(tag3.attrs, "height"));
   return w && h ? { x: 0, y: 0, w, h } : null;
 }
 function clampRegion(frame, region) {
@@ -132916,17 +133119,17 @@ function viewSize(frame, region, maxSide = 1024, maxZoom = 8) {
   };
 }
 function reframeSvg(svg, region, width, height, overlay = "") {
-  const tag2 = rootTag(svg);
-  if (!tag2) throw new Error("Not an SVG document.");
-  const kept2 = tag2.attrs.replace(/\s(viewBox|width|height|preserveAspectRatio)\s*=\s*("[^"]*"|'[^']*')/gi, "").replace(/(\sstyle\s*=\s*)(["'])([^"']*)\2/i, (_m, pre, q, css2) => `${pre}${q}${css2.replace(/(^|;)\s*(width|height)\s*:[^;]*/gi, "$1").replace(/^;+|;+(?=;)/g, "")}${q}`).replace(/\s+$/, "");
+  const tag3 = rootTag(svg);
+  if (!tag3) throw new Error("Not an SVG document.");
+  const kept2 = tag3.attrs.replace(/\s(viewBox|width|height|preserveAspectRatio)\s*=\s*("[^"]*"|'[^']*')/gi, "").replace(/(\sstyle\s*=\s*)(["'])([^"']*)\2/i, (_m, pre, q, css2) => `${pre}${q}${css2.replace(/(^|;)\s*(width|height)\s*:[^;]*/gi, "$1").replace(/^;+|;+(?=;)/g, "")}${q}`).replace(/\s+$/, "");
   const open3 = `<svg${kept2} viewBox="${fmt2(region.x)} ${fmt2(region.y)} ${fmt2(region.w)} ${fmt2(region.h)}" width="${Math.round(width)}" height="${Math.round(height)}" preserveAspectRatio="none">`;
-  const selfClosing = svg[tag2.end - 2] === "/";
+  const selfClosing = svg[tag3.end - 2] === "/";
   const body = selfClosing ? `${overlay}</svg>` : (() => {
     const close = svg.lastIndexOf("</svg>");
-    if (close < tag2.end) throw new Error("SVG root is not closed.");
-    return `${svg.slice(tag2.end, close)}${overlay}${svg.slice(close)}`;
+    if (close < tag3.end) throw new Error("SVG root is not closed.");
+    return `${svg.slice(tag3.end, close)}${overlay}${svg.slice(close)}`;
   })();
-  return svg.slice(0, tag2.start) + open3 + body;
+  return svg.slice(0, tag3.start) + open3 + body;
 }
 function rasterAsSvg(mime2, base64, width, height) {
   if (!/^image\/[a-z0-9.+-]+$/i.test(mime2)) throw new Error(`Not an image type: ${mime2}`);
@@ -133972,10 +134175,10 @@ async function readIdmlSpreads(files, parse, { warn: warn2 = () => {
   return frames;
 }
 function walkItem(el, parentMatrix, group, ctx) {
-  const tag2 = el.localName;
-  if (!ITEM_TAGS.has(tag2)) return;
+  const tag3 = el.localName;
+  if (!ITEM_TAGS.has(tag3)) return;
   const world = matMul5(parentMatrix, parseItemTransform(el));
-  if (tag2 === "Group") {
+  if (tag3 === "Group") {
     const gid = `group${++ctx.seen.group}`;
     for (const child of Array.from(el.children)) walkItem(child, world, gid, ctx);
     return;
@@ -133986,7 +134189,7 @@ function walkItem(el, parentMatrix, group, ctx) {
   if (geom.w < 1 && geom.h < 1) return;
   const base = { x: geom.x, y: geom.y, w: geom.w, h: geom.h, rot: geom.rot, group };
   const fill2 = resolveColor2(el.getAttribute("FillColor"), ctx.swatches);
-  if (tag2 === "TextFrame") {
+  if (tag3 === "TextFrame") {
     const story = ctx.stories[el.getAttribute("ParentStory") || ""];
     if (story && (story.text || "").trim()) {
       ctx.nodes.push({
@@ -134011,7 +134214,7 @@ function walkItem(el, parentMatrix, group, ctx) {
     return;
   }
   const node = { kind: "box", ...base, fill: fill2 };
-  if (tag2 === "Oval") node.shape = "ellipse";
+  if (tag3 === "Oval") node.shape = "ellipse";
   ctx.nodes.push(node);
 }
 function parseItemTransform(el) {
@@ -136503,7 +136706,7 @@ function planStamp(roots2) {
   for (const rootAbs of roots2.toolRoots) {
     let names = [];
     try {
-      names = readdirSync(rootAbs).sort();
+      names = readdirSync(rootAbs).filter((name) => !PHYSICAL_TOOL_DIRECTORY.test(name)).sort();
     } catch {
       names = ["<missing>"];
     }
@@ -136532,6 +136735,7 @@ function buildPlan(roots2) {
     const isBasePack = packRel === BASE_PACK;
     for (const entry2 of readdirSync(rootAbs)) {
       if (entry2.startsWith(".") || entry2 === "node_modules") continue;
+      if (PHYSICAL_TOOL_DIRECTORY.test(entry2)) continue;
       if (entry2.startsWith("_")) continue;
       if (isBasePack && BASE_PACK_DATA_DIRS.has(entry2)) continue;
       const dir = join2(rootAbs, entry2);
@@ -136821,13 +137025,14 @@ function materializeInto(dest, r5) {
     }
   }
 }
-var BASE_PACK, BASE_PACK_DATA_DIRS, MATERIALIZED, PACKS_DIR, cache3, plans, rootOf;
+var BASE_PACK, BASE_PACK_DATA_DIRS, PHYSICAL_TOOL_DIRECTORY, MATERIALIZED, PACKS_DIR, cache3, plans, rootOf;
 var init_content_roots = __esm({
   "packages/node-shell/src/content-roots.ts"() {
     "use strict";
     init_repo_root();
     BASE_PACK = "community";
     BASE_PACK_DATA_DIRS = /* @__PURE__ */ new Set(["slide-structures"]);
+    PHYSICAL_TOOL_DIRECTORY = /^[a-z0-9-]+@[a-f0-9]{16}$/;
     MATERIALIZED = "materialized";
     PACKS_DIR = "packs";
     cache3 = /* @__PURE__ */ new Map();
@@ -136846,10 +137051,10 @@ function featureSettingsToHb(value) {
   return v.split(",").map((part) => {
     const m2 = part.trim().match(/^["']([A-Za-z0-9]{1,4})["']\s*(\d+|on|off)?$/);
     if (!m2) return null;
-    const tag2 = m2[1];
+    const tag3 = m2[1];
     const raw = m2[2];
     const val = raw == null || raw === "on" ? "1" : raw === "off" ? "0" : raw;
-    return `${tag2}=${val}`;
+    return `${tag3}=${val}`;
   }).filter(Boolean);
 }
 function letterSpacingPx(value) {
@@ -137089,10 +137294,10 @@ function truthy4(v) {
 }
 function deckSvgIntrinsicSize(bytes) {
   const head2 = new TextDecoder().decode(bytes.subarray(0, Math.min(bytes.length, 8192)));
-  const tag2 = /<svg\b([^>]*)>/i.exec(head2);
-  if (!tag2) return null;
+  const tag3 = /<svg\b([^>]*)>/i.exec(head2);
+  if (!tag3) return null;
   const attr5 = (name) => {
-    const m2 = new RegExp(`(?:^|\\s)${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)')`, "i").exec(tag2[1]);
+    const m2 = new RegExp(`(?:^|\\s)${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)')`, "i").exec(tag3[1]);
     return m2 ? m2[1] ?? m2[2] : void 0;
   };
   const length2 = (value) => {
@@ -139486,9 +139691,9 @@ function markPdfArtifactSpans(src) {
   walkPdfOps(src, (op) => {
     if (op.word === "BDC") {
       const props = op.operands[op.operands.length - 1];
-      const tag2 = op.operands[op.operands.length - 2];
+      const tag3 = op.operands[op.operands.length - 2];
       let kind = null;
-      if (tag2?.t === "name" && tag2.v === "Artifact" && props?.t === "dict") {
+      if (tag3?.t === "name" && tag3.v === "Artifact" && props?.t === "dict") {
         const text8 = src.slice(props.start, props.end);
         const subtype = /\/Subtype\s*\/([A-Za-z]+)/.exec(text8)?.[1];
         if (subtype === "Header" || subtype === "Footer") kind = subtype;
@@ -139595,10 +139800,10 @@ function readPdfStructOrder(doc, pageIndex) {
   };
   const walk2 = (node, inheritedPg, depth) => {
     if (depth > MAX_STRUCT_DEPTH || out.length > 4096) return;
-    const tag2 = node instanceof PDFRef ? node.tag : "";
-    if (tag2) {
-      if (seen.has(tag2)) return;
-      seen.add(tag2);
+    const tag3 = node instanceof PDFRef ? node.tag : "";
+    if (tag3) {
+      if (seen.has(tag3)) return;
+      seen.add(tag3);
     }
     const d = dictOf(ctx, node);
     if (!d) return;
@@ -143975,8 +144180,8 @@ function familyOf6(font, theme) {
   if (font === "+mn-lt" || font === "+mn-ea" || font === "+mn-cs") return theme.minorFont ?? font;
   return font;
 }
-function unknownFamily(tag2) {
-  const t = (tag2 ?? "").toLowerCase();
+function unknownFamily(tag3) {
+  const t = (tag3 ?? "").toLowerCase();
   if (t.includes("chart")) return "chart";
   if (t.includes("diagram") || t.includes("smartart")) return "smartart";
   if (t.includes("ole")) return "ole";
@@ -144028,10 +144233,10 @@ function shapeMaterial(object4) {
     object4.line?.widthPt === void 0 ? "" : String(object4.line.widthPt)
   ].join("|");
 }
-function chartMaterial(tag2, data) {
-  if (!data) return tag2;
+function chartMaterial(tag3, data) {
+  if (!data) return tag3;
   const series = (data.series ?? []).map((s) => `${s.name ?? ""}=${s.values.join(",")}`).join(";");
-  return `${tag2}|${data.type ?? ""}|${(data.categories ?? []).join(",")}|${series}`;
+  return `${tag3}|${data.type ?? ""}|${(data.categories ?? []).join(",")}|${series}`;
 }
 function poseRestatesTransform(t) {
   const a = t[0] ?? 1;
@@ -145879,7 +146084,7 @@ var init_pipeline = __esm({
     u24le = (b, at) => u16le(b, at) | (b[at + 2] ?? 0) << 16;
     u32be2 = (b, at) => (u16be2(b, at) << 16 >>> 0) + u16be2(b, at + 2);
     i32le = (b, at) => u16le(b, at) | u16le(b, at + 2) << 16 | 0;
-    tagAt = (b, at, tag2) => [...tag2].every((ch, k) => b[at + k] === ch.charCodeAt(0));
+    tagAt = (b, at, tag3) => [...tag3].every((ch, k) => b[at + k] === ch.charCodeAt(0));
     PNG_SIGNATURE = [137, 80, 78, 71, 13, 10, 26, 10];
     INFLATE_STEP2 = 4096;
     ALGORITHM_VERSION_MAX = 64;
@@ -145968,7 +146173,7 @@ function assetsOf(roots2) {
   return (index2.assets ?? []).filter((a) => !!a && typeof a.id === "string");
 }
 function query(assets, filter) {
-  return assets.filter((asset2) => asset2.deprecated !== true && (filter.type === void 0 || asset2.type === filter.type) && filter.tags.every((tag2) => tagsOf2(asset2).includes(tag2))).sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+  return assets.filter((asset2) => asset2.deprecated !== true && (filter.type === void 0 || asset2.type === filter.type) && filter.tags.every((tag3) => tagsOf2(asset2).includes(tag3))).sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
 }
 function fileOf(asset2, roots2) {
   for (const format of asset2.formats ?? []) {
@@ -146166,7 +146371,7 @@ function readProfileBriefCatalog(opts = {}) {
   const roots2 = rootsFor(opts);
   if (!roots2) return null;
   const assets = safeAssets(roots2);
-  const palette = (tag2) => readJson2(query(assets, { type: "palette", tags: [tag2] })[0], roots2);
+  const palette = (tag3) => readJson2(query(assets, { type: "palette", tags: [tag3] })[0], roots2);
   const master = readMaster(assets, roots2);
   const tokens3 = headTokensAsset(assets);
   const listing = assets.map((a) => {
@@ -148905,10 +149110,10 @@ function count3(n7, one, many = `${one}s`) {
 }
 function walkNameTree(ctx, node, out, seen = /* @__PURE__ */ new Set(), depth = 0) {
   if (depth > MAX_DEPTH5 || out.length >= MAX_ITEMS2) return out;
-  const tag2 = refTag(node);
-  if (tag2) {
-    if (seen.has(tag2)) return out;
-    seen.add(tag2);
+  const tag3 = refTag(node);
+  if (tag3) {
+    if (seen.has(tag3)) return out;
+    seen.add(tag3);
   }
   const d = dictOf2(ctx, node);
   if (!d) return out;
@@ -148974,10 +149179,10 @@ function emptySink() {
 }
 function walkAction(ctx, action, sink, seen, depth = 0) {
   if (depth > MAX_DEPTH5) return;
-  const tag2 = refTag(action);
-  if (tag2) {
-    if (seen.has(tag2)) return;
-    seen.add(tag2);
+  const tag3 = refTag(action);
+  if (tag3) {
+    if (seen.has(tag3)) return;
+    seen.add(tag3);
   }
   const d = dictOf2(ctx, action);
   if (!d) return;
@@ -149053,10 +149258,10 @@ function fieldValue(ctx, v) {
 }
 function walkFields(ctx, node, out, seen, prefix = "", inheritedType = null, depth = 0) {
   if (depth > MAX_DEPTH5 || out.length >= MAX_ITEMS2) return;
-  const tag2 = refTag(node);
-  if (tag2) {
-    if (seen.has(tag2)) return;
-    seen.add(tag2);
+  const tag3 = refTag(node);
+  if (tag3) {
+    if (seen.has(tag3)) return;
+    seen.add(tag3);
   }
   const d = dictOf2(ctx, node);
   if (!d) return;
@@ -149089,13 +149294,13 @@ function collectLayers(ctx, doc) {
   for (const g2 of arrOf(ctx, get2(ctx, ocp, "OCGs")) ?? []) {
     const n7 = strOf(ctx, get2(ctx, g2, "Name")) ?? "(unnamed layer)";
     names.push(n7);
-    const tag2 = refTag(g2);
-    if (tag2) byTag.set(tag2, n7);
+    const tag3 = refTag(g2);
+    if (tag3) byTag.set(tag3, n7);
   }
   const hidden4 = [];
   for (const g2 of arrOf(ctx, get2(ctx, get2(ctx, ocp, "D"), "OFF")) ?? []) {
-    const tag2 = refTag(g2);
-    hidden4.push(tag2 && byTag.get(tag2) || strOf(ctx, get2(ctx, g2, "Name")) || "(unnamed layer)");
+    const tag3 = refTag(g2);
+    hidden4.push(tag3 && byTag.get(tag3) || strOf(ctx, get2(ctx, g2, "Name")) || "(unnamed layer)");
   }
   return { names, hidden: hidden4 };
 }
@@ -149937,9 +150142,9 @@ function textFontInstances(table, axes, name) {
   if (view.getUint16(0) !== 1 || axisCount > 64 || axisSize < 20 || count4 > 1024 || size < 4 + axisCount * 4 || offset + axisCount * axisSize + count4 * size > table.length) return [];
   const tags3 = Array.from({ length: axisCount }, (_, index2) => String.fromCharCode(...table.subarray(offset + index2 * axisSize, offset + index2 * axisSize + 4)));
   return Array.from({ length: count4 }, (_, index2) => {
-    const at = offset + axisCount * axisSize + index2 * size, coordinates = Object.fromEntries(tags3.map((tag2, index3) => [tag2, view.getInt32(at + 4 + index3 * 4) / 65536]));
+    const at = offset + axisCount * axisSize + index2 * size, coordinates = Object.fromEntries(tags3.map((tag3, index3) => [tag3, view.getInt32(at + 4 + index3 * 4) / 65536]));
     return { name: name(view.getUint16(at)), axes: coordinates };
-  }).filter((instance) => instance.name && Object.entries(instance.axes).every(([tag2, value]) => axes[tag2] && value >= axes[tag2].min && value <= axes[tag2].max));
+  }).filter((instance) => instance.name && Object.entries(instance.axes).every(([tag3, value]) => axes[tag3] && value >= axes[tag3].min && value <= axes[tag3].max));
 }
 var init_text_font_instances = __esm({
   "packages/node-shell/src/text-font-instances.ts"() {
@@ -150052,10 +150257,10 @@ function shapeTextRun(hb, font, options2) {
   buffer.setScript(script);
   buffer.setLanguage(language);
   buffer.setClusterLevel(hb.ClusterLevel.MONOTONE_GRAPHEMES);
-  const features = Object.entries(identity2.features).map(([tag2, value]) => {
-    if (!/^[A-Za-z0-9]{4}$/u.test(tag2) || !Number.isSafeInteger(value) || value < 0 || value > 65535) throw new TextSourceError("shape-feature", `Invalid OpenType feature: ${tag2}`);
-    const feature = hb.Feature.fromString(`${tag2}=${value}`);
-    if (!feature) throw new TextSourceError("shape-feature", `Invalid OpenType feature: ${tag2}`);
+  const features = Object.entries(identity2.features).map(([tag3, value]) => {
+    if (!/^[A-Za-z0-9]{4}$/u.test(tag3) || !Number.isSafeInteger(value) || value < 0 || value > 65535) throw new TextSourceError("shape-feature", `Invalid OpenType feature: ${tag3}`);
+    const feature = hb.Feature.fromString(`${tag3}=${value}`);
+    if (!feature) throw new TextSourceError("shape-feature", `Invalid OpenType feature: ${tag3}`);
     return feature;
   });
   hb.shape(font, buffer, features);
@@ -150197,7 +150402,7 @@ function createPinnedTextShaper(read, loadHarfBuzz2 = () => import("harfbuzzjs")
     const hb = await loadHarfBuzz2(), blob = new hb.Blob(bytes), face = new hb.Face(blob, resource.faceIndex);
     if (!face.referenceTable("head") || !face.referenceTable("cmap") || !face.collectUnicodes().length) throw new TextSourceError("font-format", "The font has no readable character map.");
     const axes = {};
-    for (const [tag2, axis] of Object.entries(face.getAxisInfos())) axes[tag2] = { min: axis.min, default: axis.default, max: axis.max, name: face.getName(axis.nameId, "en") || tag2 };
+    for (const [tag3, axis] of Object.entries(face.getAxisInfos())) axes[tag3] = { min: axis.min, default: axis.default, max: axis.max, name: face.getName(axis.nameId, "en") || tag3 };
     const coverage = [];
     for (const cp of [...face.collectUnicodes()].sort((a, b) => a - b)) {
       const last = coverage.at(-1);
@@ -150215,17 +150420,17 @@ function createPinnedTextShaper(read, loadHarfBuzz2 = () => import("harfbuzzjs")
     async shapeRun(request2) {
       if (!Number.isSafeInteger(request2.start) || request2.start < 0) throw new TextSourceError("shape-options", "Invalid text source origin.");
       const entry2 = await load3(request2.font), hb = await loadHarfBuzz2(), axes = {};
-      for (const [tag2, value] of Object.entries(request2.axes ?? {})) {
-        const axis = entry2.info.axes[tag2];
-        if (!axis || !Number.isFinite(value) || value < axis.min || value > axis.max) throw new TextSourceError("font-axis", `Unsupported font axis value: ${tag2}`);
-        axes[tag2] = value;
+      for (const [tag3, value] of Object.entries(request2.axes ?? {})) {
+        const axis = entry2.info.axes[tag3];
+        if (!axis || !Number.isFinite(value) || value < axis.min || value > axis.max) throw new TextSourceError("font-axis", `Unsupported font axis value: ${tag3}`);
+        axes[tag3] = value;
       }
-      for (const [tag2, axis] of Object.entries(entry2.info.axes)) axes[tag2] ??= axis.default;
+      for (const [tag3, axis] of Object.entries(entry2.info.axes)) axes[tag3] ??= axis.default;
       const settings = Object.entries(axes).sort(([a], [b]) => a.localeCompare(b)), key = JSON.stringify(settings);
       let font = entry2.instances.get(key);
       if (!font) {
         font = new hb.Font(entry2.face);
-        font.setVariations(settings.map(([tag2, value]) => new hb.Variation(tag2, value)));
+        font.setVariations(settings.map(([tag3, value]) => new hb.Variation(tag3, value)));
         if (entry2.instances.size >= 32) entry2.instances.delete(entry2.instances.keys().next().value);
         entry2.instances.set(key, font);
       }
@@ -150573,7 +150778,7 @@ function createNodeTextAPI({ repoRoot: repoRoot2, assets, parseXml }) {
       const { face } = await loadFace(fontUrl, repoRoot2);
       const out = {};
       const infos = face.getAxisInfos();
-      for (const [tag2, info] of Object.entries(infos)) out[tag2] = info.default;
+      for (const [tag3, info] of Object.entries(infos)) out[tag3] = info.default;
       return out;
     },
     /**
@@ -151808,20 +152013,20 @@ function readDeepTiff(bytes) {
   const tags3 = /* @__PURE__ */ new Map();
   const sizes = { 1: 1, 2: 1, 3: 2, 4: 4, 5: 8, 7: 1, 9: 4, 11: 4, 12: 8 };
   for (let i = 0; i < count4; i++) {
-    const offset = ifd + 2 + i * 12, tag2 = v.getUint16(offset, le), type = v.getUint16(offset + 2, le), n7 = v.getUint32(offset + 4, le);
+    const offset = ifd + 2 + i * 12, tag3 = v.getUint16(offset, le), type = v.getUint16(offset + 2, le), n7 = v.getUint32(offset + 4, le);
     const unit2 = sizes[type];
     if (!unit2) continue;
     const size = unit2 * n7, at = size <= 4 ? offset + 8 : v.getUint32(offset + 8, le);
-    if (!Number.isSafeInteger(size) || at + size > bytes.length || tags3.has(tag2)) throw new Error("Invalid TIFF field.");
-    tags3.set(tag2, { type, count: n7, at, size });
+    if (!Number.isSafeInteger(size) || at + size > bytes.length || tags3.has(tag3)) throw new Error("Invalid TIFF field.");
+    tags3.set(tag3, { type, count: n7, at, size });
   }
-  const list4 = (tag2, fallback = []) => {
-    const item2 = tags3.get(tag2);
+  const list4 = (tag3, fallback = []) => {
+    const item2 = tags3.get(tag3);
     if (!item2) return fallback;
-    if (![1, 3, 4].includes(item2.type) || item2.count > 65536) throw new Error(`Unsupported TIFF field ${tag2}.`);
+    if (![1, 3, 4].includes(item2.type) || item2.count > 65536) throw new Error(`Unsupported TIFF field ${tag3}.`);
     return Array.from({ length: item2.count }, (_, i) => item2.type === 1 ? bytes[item2.at + i] : item2.type === 3 ? v.getUint16(item2.at + i * 2, le) : v.getUint32(item2.at + i * 4, le));
   };
-  const one = (tag2, fallback = 0) => list4(tag2, [fallback])[0];
+  const one = (tag3, fallback = 0) => list4(tag3, [fallback])[0];
   const width = one(256), height = one(257);
   deepDimensions(width, height);
   const spp = one(277, 1), depth = list4(258, [8]), sample = list4(339, [1]);
@@ -153597,9 +153802,9 @@ async function exportDesignIdml(opts, host) {
       const transform2 = [a, b, -b, a, e, f].map(number7).join(" ");
       const shape = String(box4.shape || "rect");
       if (!["rect", "ellipse", "circle", ""].includes(shape)) throw new Error(`${String(box4.id)}: shape ${shape} is unsupported in IDML export.`);
-      let tag2 = shape === "ellipse" || shape === "circle" ? "Oval" : "Rectangle", extra = "", inside2 = "";
+      let tag3 = shape === "ellipse" || shape === "circle" ? "Oval" : "Rectangle", extra = "", inside2 = "";
       if (kind === "text") {
-        tag2 = "TextFrame";
+        tag3 = "TextFrame";
         const id2 = `story-${++story}`, path2 = `Stories/Story_${id2}.xml`;
         extra = ` ParentStory="${id2}" PreviousTextFrame="n" NextTextFrame="n"`;
         const color6 = await paint2(box4.fg ?? "#000000"), size = num13(box4.fontSize, 48), weight = num13(box4.weight, num13(box4.fontWeight, 500));
@@ -153635,8 +153840,8 @@ async function exportDesignIdml(opts, host) {
         notes.push(`${String(box4.id)}: image bytes are bundled in Links; InDesign may ask to relink that folder.`);
       }
       const fill2 = await paint2(box4.bg), stroke = num13(box4.strokeW) ? await paint2(box4.stroke) : "Swatch/None";
-      const points = pathPoints(w, h, tag2 === "Oval");
-      body += `<${tag2} Self="item-${++item2}" Name="${escapeAdobeXml(String(box4.name || box4.id || "Layer"))}" ItemLayer="layer-1" Visible="true" ContentType="${kind === "text" ? "TextType" : kind === "image" ? "GraphicType" : "Unassigned"}" AppliedObjectStyle="ObjectStyle/$ID/[None]" ItemTransform="${transform2}" FillColor="${fill2}" StrokeColor="${stroke}" StrokeWeight="${number7(num13(box4.strokeW))}"${extra}><Properties><PathGeometry><GeometryPathType PathOpen="false"><PathPointArray>${points}</PathPointArray></GeometryPathType></PathGeometry></Properties>${inside2}</${tag2}>`;
+      const points = pathPoints(w, h, tag3 === "Oval");
+      body += `<${tag3} Self="item-${++item2}" Name="${escapeAdobeXml(String(box4.name || box4.id || "Layer"))}" ItemLayer="layer-1" Visible="true" ContentType="${kind === "text" ? "TextType" : kind === "image" ? "GraphicType" : "Unassigned"}" AppliedObjectStyle="ObjectStyle/$ID/[None]" ItemTransform="${transform2}" FillColor="${fill2}" StrokeColor="${stroke}" StrokeWeight="${number7(num13(box4.strokeW))}"${extra}><Properties><PathGeometry><GeometryPathType PathOpen="false"><PathPointArray>${points}</PathPointArray></GeometryPathType></PathGeometry></Properties>${inside2}</${tag3}>`;
     }
     const path = `Spreads/Spread_${pageIndex + 1}.xml`;
     spreadRefs.push(path);
@@ -159881,24 +160086,24 @@ function isDegenerateSvg(bytes) {
   const s = utf83(bytes);
   const open3 = s.match(/<svg\b[^>]*>/i);
   if (!open3) return false;
-  const tag2 = open3[0];
-  const vb = tag2.match(/viewBox\s*=\s*["']([^"']*)["']/i);
+  const tag3 = open3[0];
+  const vb = tag3.match(/viewBox\s*=\s*["']([^"']*)["']/i);
   let positiveViewBox = false;
   if (vb) {
     const nums = (vb[1].trim().match(/-?\d*\.?\d+(?:e[+-]?\d+)?/gi) ?? []).map(Number);
     positiveViewBox = nums.length === 4 && Number.isFinite(nums[2]) && Number.isFinite(nums[3]) && nums[2] > 0 && nums[3] > 0;
   }
   if (positiveViewBox) return false;
-  const w = attrNum(tag2, "width");
-  const h = attrNum(tag2, "height");
+  const w = attrNum(tag3, "width");
+  const h = attrNum(tag3, "height");
   if (w > 0 && h > 0) return false;
-  const body = s.slice((open3.index ?? 0) + tag2.length).replace(/<\/svg>[\s\S]*$/i, "");
+  const body = s.slice((open3.index ?? 0) + tag3.length).replace(/<\/svg>[\s\S]*$/i, "");
   const stripped = body.replace(NON_DRAWING, "");
   const hasDrawable = /<[a-zA-Z]/.test(stripped);
   return !hasDrawable;
 }
-function attrNum(tag2, name) {
-  const m2 = tag2.match(new RegExp(`${name}\\s*=\\s*["']([^"']*)["']`, "i"));
+function attrNum(tag3, name) {
+  const m2 = tag3.match(new RegExp(`${name}\\s*=\\s*["']([^"']*)["']`, "i"));
   if (!m2) return NaN;
   const n7 = parseFloat(m2[1]);
   return Number.isFinite(n7) ? n7 : NaN;
@@ -160279,8 +160484,8 @@ async function svgDomToIr(svgEl, ctx = {}) {
   const warn2 = (m2) => host?.log?.("warn", `${LABEL.toLowerCase()}: ${m2}`);
   async function visit(el, t, inherited2) {
     if (!el.tagName) return;
-    const tag2 = el.tagName.toLowerCase().replace(/^svg:/, "");
-    if (SKIP.has(tag2)) return;
+    const tag3 = el.tagName.toLowerCase().replace(/^svg:/, "");
+    if (SKIP.has(tag3)) return;
     const et = applyElementTransform(el, t);
     const mapPt = (x, y) => ({
       x: (et.a * x + et.c * y + et.e - vbX) * regX,
@@ -160290,7 +160495,7 @@ async function svgDomToIr(svgEl, ctx = {}) {
     const syLen = Math.hypot(et.c, et.d);
     const gAvg = (sxLen + syLen) / 2;
     const rAvg = (regX + regY) / 2;
-    if (tag2 === "g" || tag2 === "a" || tag2 === "svg") {
+    if (tag3 === "g" || tag3 === "a" || tag3 === "svg") {
       const style2 = parseStyleAttr(el);
       const inh = {
         fill: prop2(el, style2, "fill", inherited2),
@@ -160310,8 +160515,8 @@ async function svgDomToIr(svgEl, ctx = {}) {
     if (elemOpacity < 0.01) return;
     let d = "";
     let forceStrokeOnly = false;
-    if (tag2 === "path") d = el.getAttribute("d") || "";
-    else if (tag2 === "rect") d = rectPath(
+    if (tag3 === "path") d = el.getAttribute("d") || "";
+    else if (tag3 === "rect") d = rectPath(
       len(prop2(el, style, "x"), vbW),
       len(prop2(el, style, "y"), vbH),
       len(prop2(el, style, "width"), vbW),
@@ -160319,17 +160524,17 @@ async function svgDomToIr(svgEl, ctx = {}) {
       len(prop2(el, style, "rx")),
       len(prop2(el, style, "ry") ?? prop2(el, style, "rx"))
     );
-    else if (tag2 === "circle") d = circlePath(len(prop2(el, style, "cx"), vbW), len(prop2(el, style, "cy"), vbH), len(prop2(el, style, "r"), vbW));
-    else if (tag2 === "ellipse") d = ellipsePath(len(prop2(el, style, "cx"), vbW), len(prop2(el, style, "cy"), vbH), len(prop2(el, style, "rx"), vbW), len(prop2(el, style, "ry"), vbH));
-    else if (tag2 === "polygon") d = pointsPath(el.getAttribute("points"), true);
-    else if (tag2 === "polyline") d = pointsPath(el.getAttribute("points"), false);
-    else if (tag2 === "line") {
+    else if (tag3 === "circle") d = circlePath(len(prop2(el, style, "cx"), vbW), len(prop2(el, style, "cy"), vbH), len(prop2(el, style, "r"), vbW));
+    else if (tag3 === "ellipse") d = ellipsePath(len(prop2(el, style, "cx"), vbW), len(prop2(el, style, "cy"), vbH), len(prop2(el, style, "rx"), vbW), len(prop2(el, style, "ry"), vbH));
+    else if (tag3 === "polygon") d = pointsPath(el.getAttribute("points"), true);
+    else if (tag3 === "polyline") d = pointsPath(el.getAttribute("points"), false);
+    else if (tag3 === "line") {
       d = `M${len(prop2(el, style, "x1"), vbW)},${len(prop2(el, style, "y1"), vbH)} L${len(prop2(el, style, "x2"), vbW)},${len(prop2(el, style, "y2"), vbH)}`;
       forceStrokeOnly = true;
-    } else if (tag2 === "text") {
+    } else if (tag3 === "text") {
       await emitText(el, style, { mapPt, gAvg, rAvg, elemOpacity, et });
       return;
-    } else if (tag2 === "image") {
+    } else if (tag3 === "image") {
       const href = el.getAttribute("href") || el.getAttribute("xlink:href") || el.getAttributeNS?.("http://www.w3.org/1999/xlink", "href") || "";
       if (!href) {
         warn2("image with no href (skipped)");
@@ -160357,7 +160562,7 @@ async function svgDomToIr(svgEl, ctx = {}) {
       }
       prims.push({ type: "image", x, y, w, h, pxW: dec.w, pxH: dec.h, rgb: dec.rgb });
       return;
-    } else if (tag2 === "use") {
+    } else if (tag3 === "use") {
       warn2("use elements are not supported (skipped)");
       return;
     } else {
@@ -161096,13 +161301,13 @@ function looksLikeJsonObject(b) {
   return b[i] === 123;
 }
 function sniffContainer2(b) {
-  const tag2 = (at, s) => b.length >= at + s.length && [...s].every((c, i) => b[at + i] === c.charCodeAt(0));
-  if (tag2(0, "RIFF") && tag2(8, "WAVE")) return "wav";
-  if (tag2(0, "OggS")) return "ogg/opus";
-  if (tag2(0, "fLaC")) return "flac";
-  if (tag2(0, "ID3")) return "mp3";
+  const tag3 = (at, s) => b.length >= at + s.length && [...s].every((c, i) => b[at + i] === c.charCodeAt(0));
+  if (tag3(0, "RIFF") && tag3(8, "WAVE")) return "wav";
+  if (tag3(0, "OggS")) return "ogg/opus";
+  if (tag3(0, "fLaC")) return "flac";
+  if (tag3(0, "ID3")) return "mp3";
   if (b.length > 1 && b[0] === 255 && (b[1] & 224) === 224) return "mp3";
-  if (tag2(4, "ftyp")) return "mp4/m4a";
+  if (tag3(4, "ftyp")) return "mp4/m4a";
   if (b.length > 3 && b[0] === 26 && b[1] === 69 && b[2] === 223 && b[3] === 163) return "webm/matroska";
   return null;
 }
@@ -166302,7 +166507,7 @@ function sortEntries(entries, where) {
 function packPresetFiles(roots2) {
   const index2 = readAssetIndex(roots2);
   const assets = (index2.assets ?? []).filter((a) => isRecord4(a) && typeof a.id === "string");
-  return assets.filter((asset2) => asset2.deprecated !== true && asset2.type === "data" && PRESET_ASSET_TAGS.every((tag2) => Array.isArray(asset2.tags) && asset2.tags.includes(tag2))).sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0).map((asset2) => {
+  return assets.filter((asset2) => asset2.deprecated !== true && asset2.type === "data" && PRESET_ASSET_TAGS.every((tag3) => Array.isArray(asset2.tags) && asset2.tags.includes(tag3))).sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0).map((asset2) => {
     let file = null;
     for (const format of asset2.formats ?? []) {
       file = format.url ? contentUrlFile(format.url, roots2) : null;
@@ -172692,6 +172897,137 @@ function isFileTransform(manifest) {
   return true;
 }
 
+// services/mcp/src/result-files.ts
+init_file_v1();
+init_delivery_v1();
+import { createHash as createHash10, createHmac, randomUUID as randomUUID2 } from "node:crypto";
+import { mkdtemp as mkdtemp4, readFile as readFile26, writeFile as writeFile7, unlink, rm as rm6 } from "node:fs/promises";
+import { tmpdir as tmpdir5 } from "node:os";
+import { join as join28 } from "node:path";
+var RESULT_LINK_THRESHOLD = 1024 * 1024;
+var RESULT_TTL_SEC = 300;
+var OWNER_LIMIT = 64 * 1024 * 1024;
+var GLOBAL_LIMIT = 256 * 1024 * 1024;
+var ENTRY_LIMIT = 200;
+var PATH_PATTERN = /^\/api\/mcp\/files\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+function bearerPrincipal(header) {
+  const bearer = /^Bearer\s+(.+)$/i.exec(header ?? "")?.[1]?.trim();
+  return bearer ? createHash10("sha256").update(bearer).digest("hex") : null;
+}
+function privateFileScopeEnabled(env) {
+  return env.LOLLY_MCP_PRIVATE_FILES === "1" && !!env.LOLLY_MCP_TOKEN?.trim() && !env.VERCEL && (env.LOLLY_MCP_REPLICAS === void 0 || env.LOLLY_MCP_REPLICAS === "1");
+}
+var ResultFiles = class {
+  directory;
+  entries = /* @__PURE__ */ new Map();
+  pending = /* @__PURE__ */ new Map();
+  pendingCount = 0;
+  closed = false;
+  expiryTimer;
+  now;
+  constructor(now2 = Date.now) {
+    this.now = now2;
+    this.expiryTimer = setInterval(() => {
+      void this.prune().catch(() => {
+      });
+    }, 3e4);
+    this.expiryTimer.unref();
+  }
+  async prune() {
+    for (const [id2, entry2] of this.entries) if (entry2.expires <= Math.floor(this.now() / 1e3)) {
+      this.entries.delete(id2);
+      await unlink(entry2.file).catch(() => {
+      });
+    }
+  }
+  reserve(owner2, size) {
+    const entries = [...this.entries.values()];
+    const own3 = entries.filter((entry2) => entry2.owner === owner2).reduce((sum, entry2) => sum + entry2.size, 0) + (this.pending.get(owner2) ?? 0);
+    const total = entries.reduce((sum, entry2) => sum + entry2.size, 0) + [...this.pending.values()].reduce((a, b) => a + b, 0);
+    if (this.closed || !owner2 || !Number.isSafeInteger(size) || size <= 0 || size > OWNER_LIMIT || own3 + size > OWNER_LIMIT || total + size > GLOBAL_LIMIT || entries.length + this.pendingCount >= ENTRY_LIMIT) throw new Error("Private result quota reached. Download existing results or wait five minutes.");
+    this.pendingCount++;
+    this.pending.set(owner2, (this.pending.get(owner2) ?? 0) + size);
+    return () => {
+      this.pendingCount--;
+      const left = (this.pending.get(owner2) ?? 0) - size;
+      if (left) this.pending.set(owner2, left);
+      else this.pending.delete(owner2);
+    };
+  }
+  async key(host, secret) {
+    if (!secret) throw new Error("Private result signing is not configured.");
+    const key = createHmac("sha256", secret).update(`edge-token:mcp1:${host}:person-private`).digest();
+    return crypto.subtle.importKey("raw", Uint8Array.from(key).buffer, { name: "HMAC", hash: "SHA-256" }, false, ["sign", "verify"]);
+  }
+  async hold(owner2, bytes, mime2, name, origin, secret) {
+    await this.prune();
+    const release = this.reserve(owner2, bytes.byteLength);
+    const id2 = randomUUID2();
+    const path = `/api/mcp/files/${id2}`;
+    let file;
+    try {
+      const base = new URL(origin);
+      const expires = Math.floor(this.now() / 1e3) + RESULT_TTL_SEC;
+      this.directory ??= mkdtemp4(join28(tmpdir5(), "lolly-mcp-results-"));
+      file = join28(await this.directory, id2);
+      await writeFile7(file, bytes, { flag: "wx", mode: 384 });
+      const digest2 = createHash10("sha256").update(bytes).digest("hex");
+      const dt = await signDeliveryToken({ v: 1, kid: "mcp1", exp: expires, cls: "person-private" }, path, { canonicalHost: base.host, subject: owner2 }, await this.key(base.host, secret));
+      const filename = safeFileName(name);
+      this.entries.set(id2, { owner: owner2, path, file, expires, size: bytes.byteLength, sha256: digest2, mime: /^[\w.+-]+\/[\w.+-]+(?:;[\x20-\x7e]*)?$/.test(mime2) ? mime2 : "application/octet-stream", name: filename });
+      return {
+        type: "resource_link",
+        uri: `${base.origin}${path}?dt=${encodeURIComponent(dt)}`,
+        name: filename,
+        mimeType: mime2,
+        size: bytes.byteLength,
+        description: "Private result. Fetch with this same MCP bearer within five minutes. Download a copy before it expires."
+      };
+    } catch (error2) {
+      if (file) await unlink(file).catch(() => {
+      });
+      throw error2;
+    } finally {
+      release();
+    }
+  }
+  async fetch(owner2, path, token2, origin, secret) {
+    await this.prune();
+    if (!PATH_PATTERN.test(path) || !owner2 || this.closed) return null;
+    const entry2 = this.entries.get(path.slice(path.lastIndexOf("/") + 1));
+    if (!entry2 || entry2.owner !== owner2 || entry2.path !== path) return null;
+    const host = new URL(origin).host;
+    const status = await verifyDeliveryToken(token2, path, { canonicalHost: host, cls: "person-private", pattern: PATH_PATTERN, subject: owner2, maxSkewSec: 0 }, /* @__PURE__ */ new Map([["mcp1", await this.key(host, secret)]]), Math.floor(this.now() / 1e3));
+    if (status !== "ok") return null;
+    const bytes = await readFile26(entry2.file);
+    if (bytes.byteLength !== entry2.size || createHash10("sha256").update(bytes).digest("hex") !== entry2.sha256) throw new Error("Private result integrity check failed.");
+    if (entry2.expires <= Math.floor(this.now() / 1e3)) return null;
+    return { bytes, mime: entry2.mime, name: entry2.name, etag: `"${entry2.sha256}"` };
+  }
+  async close() {
+    this.closed = true;
+    clearInterval(this.expiryTimer);
+    if (this.directory) await rm6(await this.directory, { recursive: true, force: true });
+    this.entries.clear();
+  }
+};
+async function linkLargeResults(result, hold) {
+  if (!hold) return result;
+  const content2 = [];
+  for (const block of result.content) {
+    if (block.type === "image" && block.data.length > Math.floor(RESULT_LINK_THRESHOLD / 3) * 4) {
+      const bytes = Buffer.from(block.data, "base64");
+      content2.push(bytes.byteLength > RESULT_LINK_THRESHOLD ? await hold(bytes, block.mimeType, "result") : block);
+    } else if (block.type === "resource" && (block.resource.blob || block.resource.text)) {
+      const bytes = block.resource.blob ? Buffer.from(block.resource.blob, "base64") : Buffer.from(block.resource.text, "utf8");
+      if (bytes.byteLength > RESULT_LINK_THRESHOLD) content2.push(await hold(bytes, block.resource.mimeType ?? "application/octet-stream", block.resource.uri.split("/").pop()?.split("?")[0] || "result"));
+      else content2.push(block);
+    } else content2.push(block);
+  }
+  return { ...result, content: content2 };
+}
+var resultFiles = new ResultFiles();
+
 // services/mcp/src/tools.ts
 var WEB_BASE = (process.env.LOLLY_WEB_BASE || "https://lolly.tools").replace(/\/$/, "");
 var FILE_ARG4 = {
@@ -173318,7 +173654,7 @@ var resolveDesignForCheck = async (args) => {
   const model2 = buildInputModel(tool.manifest, { initial: resolved2.inputs });
   return { values: { ...resolved2.inputs, boxes: model2.find((item2) => item2.id === "boxes")?.value ?? [] }, manifest: tool.manifest };
 };
-async function callTool(name, args) {
+async function callTool(name, args, holdResult) {
   try {
     switch (name) {
       case "lolly_compile":
@@ -173505,6 +173841,10 @@ Rights: ${result.rights.status}` + result.rights.issues.map((issue2) => `
           songCredentialText(result.songs)
         ].filter(Boolean).join("\n");
         const content2 = [{ type: "text", text: header }];
+        if (holdResult && result.bytes.byteLength > RESULT_LINK_THRESHOLD) {
+          content2.push(await holdResult(result.bytes, result.mime, `${toolId}.${normFormat(result.format)}`));
+          return { content: content2 };
+        }
         const b64 = Buffer.from(result.bytes).toString("base64");
         const fmt4 = normFormat(result.format);
         const RASTER = ["png", "jpg", "webp", "avif", "gif", "apng"];
@@ -173537,7 +173877,7 @@ Rights: ${result.rights.status}` + result.rights.issues.map((issue2) => `
           content: [
             { type: "text", text: `Transformed ${file.name ?? "file"} \u2192 ${res.filename} (${res.bytes.length} bytes, tier ${res.tier}). Not watermarked; no provenance added.${audio ? `
 ${audio}` : ""}` },
-            { type: "resource", resource: { uri: `lolly://transform/${res.filename}`, mimeType: res.mime, blob: Buffer.from(res.bytes).toString("base64") } }
+            holdResult && res.bytes.byteLength > RESULT_LINK_THRESHOLD ? await holdResult(res.bytes, res.mime, res.filename) : { type: "resource", resource: { uri: `lolly://transform/${res.filename}`, mimeType: res.mime, blob: Buffer.from(res.bytes).toString("base64") } }
           ]
         };
       }
@@ -173577,7 +173917,7 @@ ${audio}` : ""}` },
         return {
           content: [
             { type: "text", text: notes.join("\n") },
-            { type: "resource", resource: { uri: `lolly://redact/${res.filename}`, mimeType: res.mime, blob: Buffer.from(res.bytes).toString("base64") } }
+            holdResult && res.bytes.byteLength > RESULT_LINK_THRESHOLD ? await holdResult(res.bytes, res.mime, res.filename) : { type: "resource", resource: { uri: `lolly://redact/${res.filename}`, mimeType: res.mime, blob: Buffer.from(res.bytes).toString("base64") } }
           ]
         };
       }
@@ -173714,8 +174054,8 @@ function readProductionReference(value) {
 init_design_brief();
 init_design_brief2();
 init_src2();
-import { readFile as readFile26 } from "node:fs/promises";
-import { join as join28 } from "node:path";
+import { readFile as readFile27 } from "node:fs/promises";
+import { join as join29 } from "node:path";
 init_schema();
 var RESOURCES = [
   { uri: "lolly://catalog", name: "Tool catalog", description: "The full generated Lolly tool index.", mimeType: "application/json" },
@@ -173740,7 +174080,7 @@ async function tokensResource(uri) {
   const tokenUrl = tokenAsset2.formats[0].url;
   const tokenPath = contentUrl(tokenUrl);
   if (!tokenPath) throw new Error(`Tokens asset ${tokenAsset2.id}: ${tokenUrl} is not in this profile's catalog.`);
-  const doc = JSON.parse(await readFile26(tokenPath, "utf8"));
+  const doc = JSON.parse(await readFile27(tokenPath, "utf8"));
   const set = createTokenSet(doc);
   return { uri, mimeType: "application/json", text: JSON.stringify({ colors: set.colors() }, null, 2) };
 }
@@ -173763,7 +174103,7 @@ async function assetsListing(uri) {
 async function previewResource(uri, id2) {
   for (const file of [`${id2}.svg`, `${id2}.look0.svg`]) {
     try {
-      const text8 = await readFile26(join28(previewsDir(), file), "utf8");
+      const text8 = await readFile27(join29(previewsDir(), file), "utf8");
       return { uri, mimeType: "image/svg+xml", text: text8 };
     } catch {
     }
@@ -173816,17 +174156,17 @@ async function readResource(uri) {
 }
 
 // services/mcp/src/file-resources.ts
-import { mkdtemp as mkdtemp4, writeFile as writeFile7, unlink, rm as rm6 } from "node:fs/promises";
-import { tmpdir as tmpdir5 } from "node:os";
-import { join as join29 } from "node:path";
-import { randomUUID as randomUUID2 } from "node:crypto";
+import { mkdtemp as mkdtemp5, writeFile as writeFile8, unlink as unlink2, rm as rm7 } from "node:fs/promises";
+import { tmpdir as tmpdir6 } from "node:os";
+import { join as join30 } from "node:path";
+import { randomUUID as randomUUID3 } from "node:crypto";
 
 // packages/node-shell/src/file-operations.ts
 init_file_operation_v1();
 init_file_v1();
 import { open as open2 } from "node:fs/promises";
 import { basename as basename4 } from "node:path";
-import { createHash as createHash10 } from "node:crypto";
+import { createHash as createHash11 } from "node:crypto";
 
 // packages/core/src/image-operation-v1.ts
 var DEFAULT_IMAGE_OPTIONS = { maxEdge: 0, quality: 0.92, background: "#ffffff" };
@@ -173950,7 +174290,7 @@ async function describeOperationFile(file, signal) {
   const format = detected === "jpg" ? "jpeg" : detected ?? file.name.split(".").pop()?.toLowerCase() ?? "unknown";
   const jxl = isJxl(bytes) ? (await runJxl({ operation: "probe", bytes }, signal)).info : void 0;
   const dimensions = jxl ? { w: jxl.width, h: jxl.height } : imageDimensions(bytes, file.type);
-  return { name: file.name, format, formatSource: detected ? "detected" : "declared", mime: mime[format] ?? (file.type || "application/octet-stream"), size: file.size, sha256: createHash10("sha256").update(bytes).digest("hex"), ...dimensions ? { width: dimensions.w, height: dimensions.h } : {} };
+  return { name: file.name, format, formatSource: detected ? "detected" : "declared", mime: mime[format] ?? (file.type || "application/octet-stream"), size: file.size, sha256: createHash11("sha256").update(bytes).digest("hex"), ...dimensions ? { width: dimensions.w, height: dimensions.h } : {} };
 }
 async function runNodeFileOperation(file, request2, signal, execution = "device") {
   return executeFileOperationV1(file, request2, {
@@ -174020,8 +174360,8 @@ async function runNodeFileOperation(file, request2, signal, execution = "device"
 init_file_operation_v1();
 init_file_v1();
 var INPUT_LIMIT = 4 * 1024 * 1024;
-var OWNER_LIMIT = 64 * 1024 * 1024;
-var GLOBAL_LIMIT = 256 * 1024 * 1024;
+var OWNER_LIMIT2 = 64 * 1024 * 1024;
+var GLOBAL_LIMIT2 = 256 * 1024 * 1024;
 var TTL_MS = 60 * 60 * 1e3;
 var PrivateFileResources = class {
   directory;
@@ -174029,14 +174369,14 @@ var PrivateFileResources = class {
   reservations = /* @__PURE__ */ new Map();
   pending = 0;
   async close() {
-    if (this.directory) await rm6(await this.directory, { recursive: true, force: true });
+    if (this.directory) await rm7(await this.directory, { recursive: true, force: true });
     this.entries.clear();
     this.reservations.clear();
   }
   async prune() {
     for (const [id2, entry2] of this.entries) if (entry2.expires <= Date.now()) {
       this.entries.delete(id2);
-      await unlink(entry2.path).catch(() => {
+      await unlink2(entry2.path).catch(() => {
       });
     }
   }
@@ -174044,7 +174384,7 @@ var PrivateFileResources = class {
     const entries = [...this.entries.values()];
     const ownerBytes = entries.filter((e) => e.owner === owner2).reduce((n7, e) => n7 + e.ref.facts.size, 0) + (this.reservations.get(owner2) ?? 0);
     const allBytes = entries.reduce((n7, e) => n7 + e.ref.facts.size, 0) + [...this.reservations.values()].reduce((a, b) => a + b, 0);
-    if (ownerBytes + bytes > OWNER_LIMIT || allBytes + bytes > GLOBAL_LIMIT || entries.length + this.pending >= 200) throw new Error("Private file quota reached. Delete unused handles or wait for expiry.");
+    if (ownerBytes + bytes > OWNER_LIMIT2 || allBytes + bytes > GLOBAL_LIMIT2 || entries.length + this.pending >= 200) throw new Error("Private file quota reached. Delete unused handles or wait for expiry.");
     this.pending++;
     this.reservations.set(owner2, (this.reservations.get(owner2) ?? 0) + bytes);
     return () => {
@@ -174061,18 +174401,18 @@ var PrivateFileResources = class {
   }
   async save(owner2, file, role, source, report4) {
     const release = this.reserve(owner2, file.size);
-    const id2 = randomUUID2();
+    const id2 = randomUUID3();
     let path;
     try {
-      this.directory ??= mkdtemp4(join29(tmpdir5(), "lolly-private-files-"));
-      path = join29(await this.directory, id2);
+      this.directory ??= mkdtemp5(join30(tmpdir6(), "lolly-private-files-"));
+      path = join30(await this.directory, id2);
       const facts2 = await describeOperationFile(file);
-      await writeFile7(path, Buffer.from(await file.arrayBuffer()), { flag: "wx", mode: 384 });
+      await writeFile8(path, Buffer.from(await file.arrayBuffer()), { flag: "wx", mode: 384 });
       const ref = { id: id2, version: facts2.sha256, role, facts: facts2, ...source ? { derivedFrom: { id: source.ref.id, version: source.ref.version, sha256: source.ref.facts.sha256 } } : {} };
       this.entries.set(id2, { owner: owner2, ref, expires: Date.now() + TTL_MS, path, report: report4 });
       return ref;
     } catch (error2) {
-      if (path) await unlink(path).catch(() => {
+      if (path) await unlink2(path).catch(() => {
       });
       throw error2;
     } finally {
@@ -174092,7 +174432,7 @@ var PrivateFileResources = class {
     const entry2 = this.get(owner2, args.id);
     if (name === "files_delete") {
       this.entries.delete(entry2.ref.id);
-      await unlink(entry2.path).catch(() => {
+      await unlink2(entry2.path).catch(() => {
       });
       return { deleted: entry2.ref.id };
     }
@@ -174125,10 +174465,19 @@ var PrivateFileResources = class {
     if ((await describeOperationFile(file)).sha256 !== entry2.ref.facts.sha256) throw new Error("Saved result integrity check failed.");
     return { uri, mimeType: entry2.ref.facts.mime, blob: Buffer.from(await file.arrayBuffer()).toString("base64") };
   }
+  /** Explicit download keeps large handles out of resources/read's inline cap. */
+  async download(owner2, id2) {
+    const entry2 = this.get(owner2, id2);
+    const file = await readOperationFile(entry2.path);
+    if ((await describeOperationFile(file)).sha256 !== entry2.ref.facts.sha256) throw new Error("Saved result integrity check failed.");
+    this.get(owner2, id2);
+    return { bytes: new Uint8Array(await file.arrayBuffer()), mime: entry2.ref.facts.mime, name: entry2.ref.facts.name };
+  }
 };
 var PRIVATE_FILE_TOOLS = [
   { name: "files_import", description: "Import one private file (canonical base64, up to 4 MB). Later calls use its handle; bytes are never automatically echoed. Expires after one hour or process restart.", inputSchema: { type: "object", required: ["name", "base64"], properties: { name: { type: "string" }, mime: { type: "string" }, base64: { type: "string" } } } },
   { name: "files_list", description: "List only files imported or generated within this authenticated token/process scope.", inputSchema: { type: "object", properties: {} } },
+  { name: "files_download", description: "Create a five-minute download link for one private handle. Fetch it using this same MCP bearer. Available on a single-process HTTP gateway only.", inputSchema: { type: "object", required: ["id"], properties: { id: { type: "string" } }, additionalProperties: false } },
   ...["convert", "report", "delete"].map((verb) => ({ name: `files_${verb}`, description: verb === "convert" ? "Convert a private handle using FileOperationRequestV1: version 1, operation convert, target png/jpeg/webp/avif/csv/tsv/json/xlsx/woff/ttf/otf/pdf-clean/pdf-optimize, options object. Returns exact-byte receipts and a derived handle. Read bytes explicitly at lolly://files/{id}/content (up to 4 MB)." : `${verb === "delete" ? "Delete only this private file handle and its stored bytes" : "Read the file facts and conversion receipt without loading bytes"}.`, inputSchema: { type: "object", required: verb === "convert" ? ["id", "request"] : ["id"], properties: { id: { type: "string" }, ...verb === "convert" ? { request: fileOperationRequestSchemaV1 } : {} } } }))
 ];
 var privateFiles = new PrivateFileResources();
@@ -174492,10 +174841,15 @@ async function dispatch(req, context = {}) {
         if (context.live && params2.name.startsWith("lolly_live_")) return done(await callLiveTool(context.live, params2.name, params2.arguments ?? {}));
         if (params2.name.startsWith("files_")) {
           if (!context.fileScope) return fail(id2, ERR.INVALID_PARAMS, "Private files are not enabled for this authenticated scope.");
+          if (params2.name === "files_download") {
+            if (!context.holdResult || typeof params2.arguments?.id !== "string") return fail(id2, ERR.INVALID_PARAMS, "Download links require a single-process HTTP gateway and a file id.");
+            const file = await privateFiles.download(context.fileScope, params2.arguments.id);
+            return done({ content: [await context.holdResult(file.bytes, file.mime, file.name)] });
+          }
           const result = await privateFiles.call(context.fileScope, params2.name, params2.arguments ?? {});
           return done({ content: [{ type: "text", text: JSON.stringify(result) }] });
         }
-        return done(await callTool(params2.name, params2.arguments ?? {}));
+        return done(await linkLargeResults(await callTool(params2.name, params2.arguments ?? {}, context.fileScope ? context.holdResult : void 0), context.fileScope ? context.holdResult : void 0));
       }
       case "resources/list":
         return done({ resources: RESOURCES });
@@ -174532,10 +174886,10 @@ async function dispatch(req, context = {}) {
 
 // services/mcp/src/render-get.ts
 init_src2();
-import { createHash as createHash12 } from "node:crypto";
+import { createHash as createHash13 } from "node:crypto";
 
 // services/mcp/src/rate-limit.ts
-import { createHash as createHash11 } from "node:crypto";
+import { createHash as createHash12 } from "node:crypto";
 var RateLimitUnavailableError = class extends Error {
   code = "rate-limit-unavailable";
   constructor(message = "Durable rate limiter is unavailable") {
@@ -174669,7 +175023,7 @@ function createRateLimiter(env, namespace2 = "mcp", onWrite) {
   return new MemoryRateLimiter();
 }
 function digestKey(namespace2, scope2, subject) {
-  return createHash11("sha256").update(namespace2).update("\0").update(scope2).update("\0").update(subject).digest("hex");
+  return createHash12("sha256").update(namespace2).update("\0").update(scope2).update("\0").update(subject).digest("hex");
 }
 function normalizeRestUrl(raw) {
   let url;
@@ -174867,7 +175221,94 @@ function budgetRefusal(state) {
   };
 }
 
+// services/mcp/src/delivery-http.ts
+init_delivery_v1();
+import { brotliCompressSync, gzipSync } from "node:zlib";
+function deliveryHeaders(cls, options2 = {}) {
+  const policy = cachePolicy(cls, options2);
+  return {
+    "cache-control": policy.cacheControl,
+    "cdn-cache-control": policy.cdnCacheControl,
+    ...policy.referrerPolicy ? { "referrer-policy": policy.referrerPolicy } : {}
+  };
+}
+function qualities(header) {
+  const quality = /* @__PURE__ */ new Map();
+  for (const item2 of header.split(",")) {
+    const [name, ...params2] = item2.trim().toLowerCase().split(";");
+    if (!name || quality.has(name)) continue;
+    const q = params2.find((p) => p.trim().startsWith("q="));
+    const raw = q?.trim().slice(2);
+    const value = raw === void 0 ? 1 : /^(?:0(?:\.\d{0,3})?|1(?:\.0{0,3})?)$/.test(raw) ? Number(raw) : 0;
+    quality.set(name, value);
+  }
+  return quality;
+}
+function contentCoding(header) {
+  if (!header) return "identity";
+  const quality = qualities(header);
+  const br = quality.get("br") ?? quality.get("*") ?? 0;
+  const gzip2 = quality.get("gzip") ?? quality.get("*") ?? 0;
+  if ((quality.get("identity") ?? 0) > Math.max(br, gzip2)) return "identity";
+  if (br > 0 && br >= gzip2) return "br";
+  if (gzip2 > 0) return "gzip";
+  return (quality.get("identity") ?? (quality.get("*") === 0 ? 0 : 1)) > 0 ? "identity" : null;
+}
+function identityAllowed(header) {
+  const quality = qualities(header ?? "");
+  return (quality.get("identity") ?? (quality.get("*") === 0 ? 0 : 1)) > 0;
+}
+var textType2 = (type) => /^(?:text\/|application\/(?:[^;]*\+)?(?:json|xml|javascript)(?:;|$)|image\/svg\+xml)/i.test(type);
+function deliveryResponse(req, target) {
+  let status = 200;
+  let headers = {};
+  let ended = false;
+  const accept = typeof req.headers["accept-encoding"] === "string" ? req.headers["accept-encoding"] : void 0;
+  const response = new Proxy(target, { get(object4, name) {
+    if (name === "writeHead") return (code, supplied = {}) => {
+      status = code;
+      headers = Object.fromEntries(Object.entries(supplied).map(([key, value2]) => [key.toLowerCase(), String(value2)]));
+      return response;
+    };
+    if (name === "end") return (body) => {
+      if (ended) return target;
+      ended = true;
+      headers = { ...deliveryHeaders("person-private", { tokenBearing: true }), ...headers };
+      if (/(?:^|,)\s*no-store\s*(?:,|$)/i.test(headers["cache-control"] ?? "")) Object.assign(headers, deliveryHeaders("person-private", { tokenBearing: true }));
+      if (status >= 400) Object.assign(headers, deliveryHeaders("person-private", { status, tokenBearing: true }));
+      const empty2 = req.method === "HEAD" || status === 204 || status === 304;
+      let bytes = body === void 0 ? void 0 : Buffer.from(body);
+      const coding = contentCoding(accept);
+      if (textType2(headers["content-type"] ?? "")) headers.vary = "Accept-Encoding";
+      if (!empty2 && bytes && !headers["content-encoding"] && textType2(headers["content-type"] ?? "")) {
+        if (coding === null) {
+          status = 406;
+          headers = { ...headers, ...deliveryHeaders("person-private", { status: 406 }), "content-type": "application/json; charset=utf-8" };
+          bytes = Buffer.from('{"error":"No acceptable content encoding."}');
+          delete headers.etag;
+        } else if (coding !== "identity" && (bytes.byteLength > 1024 || !identityAllowed(accept))) {
+          bytes = coding === "br" ? brotliCompressSync(bytes) : gzipSync(bytes);
+          headers["content-encoding"] = coding;
+          if (headers.etag && !headers.etag.startsWith("W/")) headers.etag = `W/${headers.etag}`;
+        }
+      }
+      if (status === 304 && headers.etag && String(req.headers["if-none-match"] ?? "").includes(`W/${headers.etag}`)) headers.etag = `W/${headers.etag}`;
+      if (empty2) {
+        delete headers["content-encoding"];
+        delete headers["content-length"];
+      } else if (bytes) headers["content-length"] = String(bytes.byteLength);
+      target.writeHead(status, headers);
+      target.end(empty2 ? void 0 : bytes);
+      return target;
+    };
+    const value = Reflect.get(object4, name, object4);
+    return typeof value === "function" ? value.bind(object4) : value;
+  } });
+  return response;
+}
+
 // services/mcp/src/render-get.ts
+init_delivery_v1();
 var PATH_RE = /\/tool\/([a-z0-9][a-z0-9-]*[a-z0-9])\.([a-z0-9-]{1,12})$/;
 function matchRenderGetPath(path) {
   const m2 = PATH_RE.exec(path);
@@ -174943,11 +175384,27 @@ function closeSlot(etag, slot) {
 }
 var NO_STORE = {
   "content-type": "application/json; charset=utf-8",
-  "cache-control": "no-store",
+  ...deliveryHeaders("person-private", { tokenBearing: true }),
   "x-robots-tag": "noindex"
 };
 function errorResponse(status, error2, extra = {}) {
   return { status, headers: { ...NO_STORE, ...extra }, body: JSON.stringify({ error: error2 }) };
+}
+function canonicalRenderQuery(query2, ignored) {
+  const dropped = new Set(ignored);
+  return query2.split("&").filter(Boolean).map((raw, index2) => {
+    const pair = new URLSearchParams(raw);
+    const key = pair.keys().next().value ?? "";
+    return { key, index: index2, raw: key === "z" ? raw : pair.toString() };
+  }).filter((pair) => !dropped.has(pair.key)).sort((a, b) => a.key < b.key ? -1 : a.key > b.key ? 1 : a.index - b.index).map((pair) => pair.raw).join("&");
+}
+function stableCalendarBytes(bytes, generatedAt) {
+  const date = new Date(generatedAt);
+  if (!Number.isFinite(date.getTime())) throw new RenderError("The catalog has no valid build time for a public calendar.");
+  const stamp3 = date.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
+  const source = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  if (!/^BEGIN:VCALENDAR\r?$/m.test(source) || !/^DTSTAMP(?:;[^:\r\n]*)?:/m.test(source)) throw new RenderError("The calendar export is missing its required DTSTAMP.");
+  return new TextEncoder().encode(source.replace(/^DTSTAMP(?:;[^:\r\n]*)?:[^\r\n]*/gm, `DTSTAMP:${stamp3}`));
 }
 function dimensionError(params2, raster) {
   const rawDpi = params2.get("dpi");
@@ -174992,7 +175449,12 @@ async function renderGet(path, query2, opts) {
     return errorResponse(400, `Format "${fmt4}" needs the browser render tier, which this public endpoint does not run. Available here: ${[...TIER_A].join(", ")} - plus png for SVG-native tools.`);
   }
   if (query2.length > MAX_QUERY) return errorResponse(400, `Query too long (max ${MAX_QUERY} characters).`);
-  const expanded = await expandQuery(query2);
+  let expanded;
+  try {
+    expanded = await expandQuery(query2);
+  } catch {
+    return errorResponse(400, "Invalid packed render query.");
+  }
   const params2 = new URLSearchParams(expanded);
   const dimErr = dimensionError(params2, pngRequested);
   if (dimErr) return errorResponse(400, dimErr);
@@ -175016,24 +175478,26 @@ async function renderGet(path, query2, opts) {
   const tool = await loadToolCached(match.toolId).catch(() => null);
   if (!tool) return errorResponse(404, "not_found");
   const dropped = ignoredParams(params2, tool.manifest);
-  if (dropped.length) {
-    for (const key of dropped) params2.delete(key);
-    const canonical3 = params2.toString();
+  const canonical3 = canonicalRenderQuery(query2, dropped);
+  if (canonical3 !== query2 || fmt4 !== match.ext) {
     if (canonical3.length > MAX_QUERY) return errorResponse(400, `Unknown parameters: ${dropped.join(", ")}.`);
     return {
       status: 308,
       headers: {
-        location: `/tool/${match.toolId}.${match.ext}${canonical3 ? `?${canonical3}` : ""}`,
-        "cache-control": "public, max-age=3600, s-maxage=86400",
+        location: `/tool/${match.toolId}.${fmt4}${canonical3 ? `?${canonical3}` : ""}`,
+        ...deliveryHeaders("public-bounded", { status: 308, tokenBearing: true }),
         "x-robots-tag": "noindex"
       }
     };
   }
+  for (const key of dropped) params2.delete(key);
   const sorted = new URLSearchParams(params2);
   sorted.sort();
-  const etag = `"${createHash12("sha256").update(`${ENGINE_VERSION}|${index2.version}|${index2.generatedAt}|${match.toolId}.${fmt4}?${sorted.toString()}`).digest("hex").slice(0, 32)}"`;
+  const etag = `"${createHash13("sha256").update(`${ENGINE_VERSION}|${index2.version}|${index2.generatedAt}|${match.toolId}.${fmt4}?${sorted.toString()}`).digest("hex").slice(0, 32)}"`;
   const cacheHeaders = {
-    "cache-control": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800",
+    ...deliveryHeaders("public-bounded", { tokenBearing: true }),
+    "cache-tag": renderTags([tag("x", "public-bounded"), tag("t", match.toolId), tag("e", ENGINE_VERSION.toLowerCase()), tag("c", createHash13("sha256").update(`${index2.version}|${index2.generatedAt}`).digest("hex").slice(0, 12))], "comma"),
+    vary: "Accept-Encoding",
     etag,
     "x-robots-tag": "noindex"
   };
@@ -175076,7 +175540,7 @@ async function renderGet(path, query2, opts) {
         const state = await opts.budget.check();
         if (!state.ok) {
           const r5 = budgetRefusal(state);
-          refused = { status: r5.status, headers: { ...NO_STORE, ...r5.headers }, body: JSON.stringify(r5.json) };
+          refused = { status: r5.status, headers: { ...r5.headers, ...NO_STORE }, body: JSON.stringify(r5.json) };
         }
       }
     }
@@ -175095,8 +175559,14 @@ async function renderGet(path, query2, opts) {
   }
   let rendered;
   try {
-    const result = await render(match.toolId, expanded, { format: fmt4, c2pa: { on: false, days: null }, noBrowser: true, maxRasterPixels: MAX_RASTER_PIXELS });
-    rendered = { bytes: result.bytes, mime: result.mime };
+    const renderParams = new URLSearchParams(params2);
+    if (fmt4 === "ics" && match.toolId === "calendar-ics" && !renderParams.get("meetingTime")) {
+      const date = new Date(index2.generatedAt);
+      if (!Number.isFinite(date.getTime())) throw new RenderError("The catalog has no valid build time for a public calendar.");
+      renderParams.set("meetingTime", `${date.toISOString().slice(0, 10)}T09:00`);
+    }
+    const result = await render(match.toolId, renderParams.toString(), { format: fmt4, c2pa: { on: false, days: null }, noBrowser: true, maxRasterPixels: MAX_RASTER_PIXELS });
+    rendered = { bytes: fmt4 === "ics" ? stableCalendarBytes(result.bytes, index2.generatedAt) : result.bytes, mime: result.mime };
   } catch (e) {
     await opts.budget?.record(0);
     closeSlot(etag, slot);
@@ -175117,6 +175587,8 @@ function renderFailure(e) {
 // services/mcp/src/image-proxy.ts
 import { lookup as lookup3 } from "node:dns/promises";
 import { isIP as isIP3 } from "node:net";
+import { createHash as createHash14 } from "node:crypto";
+init_delivery_v1();
 var PATH_RE2 = /\/fetch-image$/;
 function matchImageProxyPath(path) {
   return PATH_RE2.test(path);
@@ -175145,7 +175617,7 @@ var ALLOWED_TYPES = /* @__PURE__ */ new Set([
 ]);
 var NO_STORE2 = {
   "content-type": "application/json; charset=utf-8",
-  "cache-control": "no-store",
+  ...deliveryHeaders("person-private", { tokenBearing: true }),
   "x-robots-tag": "noindex"
 };
 function errorResponse2(status, error2, extra = {}) {
@@ -175214,6 +175686,18 @@ async function readCapped(response, max) {
   }
   return out;
 }
+var SIGNATURE_PARAM = /^(?:x-amz-.+|signature|sig|token|expires)$/i;
+function upstreamImagePolicy(url, headers) {
+  const control2 = headers.get("cache-control") ?? "";
+  const directives = control2.split(",").map((value) => value.trim().toLowerCase());
+  const secretUrl = [...url.searchParams.keys()].some((key) => SIGNATURE_PARAM.test(key));
+  const restricted = secretUrl || headers.has("set-cookie") || directives.some((value) => /^(private|no-store)(?:=|$)/.test(value)) || /(?:^|,)\s*(?:\*|cookie|authorization)\s*(?:,|$)/i.test(headers.get("vary") ?? "");
+  const ageFields = directives.filter((value) => /^max-age\s*=/.test(value));
+  const match = ageFields.length === 1 ? /^max-age\s*=\s*"?(\d+)"?$/.exec(ageFields[0]) : null;
+  const upstreamAge = Number(headers.get("age") ?? "0");
+  const age2 = directives.some((value) => /^no-cache(?:=|$)/.test(value)) || !match || !Number.isSafeInteger(Number(match[1])) || !Number.isSafeInteger(upstreamAge) || upstreamAge < 0 ? 0 : Math.max(0, Math.min(3600, Number(match[1]) - upstreamAge));
+  return { private: restricted, age: age2 };
+}
 async function proxyImage(reqUrl, opts) {
   const env = opts.env ?? process.env;
   if (env.LOLLY_DISABLE_IMAGE_PROXY === "1") return errorResponse2(404, "not_found");
@@ -175241,7 +175725,7 @@ async function proxyImage(reqUrl, opts) {
     const state = await opts.budget?.check();
     if (state && !state.ok) {
       const r5 = budgetRefusal(state);
-      return { status: r5.status, headers: { ...NO_STORE2, ...r5.headers }, body: JSON.stringify(r5.json) };
+      return { status: r5.status, headers: { ...r5.headers, ...NO_STORE2 }, body: JSON.stringify(r5.json) };
     }
   } catch (e) {
     if (!(e instanceof RateLimitUnavailableError)) throw e;
@@ -175252,6 +175736,8 @@ async function proxyImage(reqUrl, opts) {
   const deadline = AbortSignal.timeout(OVERALL_TIMEOUT_MS);
   let response;
   let current = parsed;
+  let privateResponse = false;
+  let cacheAge = 3600;
   try {
     for (let hop = 0; ; hop++) {
       assertFetchableShape(current);
@@ -175261,6 +175747,9 @@ async function proxyImage(reqUrl, opts) {
         signal: deadline,
         headers: { accept: "image/*" }
       });
+      const policy = upstreamImagePolicy(current, response.headers);
+      privateResponse ||= policy.private;
+      cacheAge = Math.min(cacheAge, policy.age);
       const location2 = response.status >= 300 && response.status < 400 ? response.headers.get("location") : null;
       if (!location2) break;
       if (hop >= MAX_REDIRECTS) return errorResponse2(502, "That address redirected too many times.");
@@ -175306,19 +175795,21 @@ async function proxyImage(reqUrl, opts) {
     if (e instanceof TooLarge) return errorResponse2(413, `That image is larger than the ${Math.round(maxBytes / 1024 / 1024)} MB limit.`);
     return errorResponse2(502, `Couldn't read that image: ${e.message}`);
   }
-  await opts.budget?.record(bytes.byteLength);
-  return {
-    status: 200,
-    headers: {
-      "content-type": rawType,
-      "cache-control": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800",
-      "content-security-policy": "sandbox",
-      "x-content-type-options": "nosniff",
-      "content-disposition": "inline",
-      "x-robots-tag": "noindex"
-    },
-    body: bytes
+  const etag = `"${createHash14("sha256").update(bytes).digest("hex")}"`;
+  const headers = {
+    "content-type": rawType,
+    ...deliveryHeaders(privateResponse ? "person-private" : "public-bounded", { boundedAgeSec: cacheAge, tokenBearing: true }),
+    etag,
+    vary: "Accept-Encoding",
+    ...!privateResponse ? { "cache-tag": renderTags([tag("x", "public-bounded"), tag("u", createHash14("sha256").update(parsed.toString()).digest("hex").slice(0, 12))], "comma") } : {},
+    "content-security-policy": "sandbox",
+    "x-content-type-options": "nosniff",
+    "content-disposition": "inline",
+    "x-robots-tag": "noindex"
   };
+  const notModified = opts.ifNoneMatch?.split(",").some((value) => value.trim() === "*" || value.trim().replace(/^W\//, "") === etag);
+  await opts.budget?.record(notModified ? 0 : bytes.byteLength);
+  return { status: notModified ? 304 : 200, headers, ...notModified ? {} : { body: bytes } };
 }
 
 // services/mcp/src/sign.ts
@@ -175583,14 +176074,14 @@ function errorPage(message) {
 }
 
 // services/mcp/src/gateway.ts
-import { createHash as createHash13 } from "node:crypto";
+import { createHash as createHash15 } from "node:crypto";
 init_src();
 var CORS = {
   "access-control-allow-origin": "*",
-  "access-control-allow-methods": "GET, POST, OPTIONS",
-  "access-control-allow-headers": "content-type, authorization, mcp-session-id, mcp-protocol-version, mcp-method, mcp-name",
+  "access-control-allow-methods": "GET, HEAD, POST, OPTIONS",
+  "access-control-allow-headers": "content-type, authorization, if-none-match, mcp-session-id, mcp-protocol-version, mcp-method, mcp-name",
   // Expose the 401 challenge so a browser-side MCP client can read where to auth.
-  "access-control-expose-headers": "WWW-Authenticate"
+  "access-control-expose-headers": "WWW-Authenticate, ETag, Content-Disposition, Content-Length"
 };
 var MCP_BODY_MAX = 32 * 1024 * 1024;
 var VERCEL_MCP_RESPONSE_MAX = 44e5;
@@ -175684,7 +176175,13 @@ function clientIp(req, env) {
   if (env.LOLLY_MCP_TRUST_PROXY !== "1") return peer;
   const trusted = new Set((env.LOLLY_MCP_TRUSTED_PROXIES || "").split(",").map((v) => v.trim()).filter(Boolean));
   if (!trusted.has(peer)) return peer;
-  const forwarded = String(req.headers["x-forwarded-for"] || "").split(",")[0].trim();
+  const chain2 = String(req.headers["x-forwarded-for"] || "").split(",").map((value) => value.trim());
+  let forwarded = peer;
+  for (let index2 = chain2.length - 1; index2 >= 0 && trusted.has(forwarded); index2--) {
+    const next2 = chain2[index2];
+    if (!isIP4(next2)) return peer;
+    forwarded = next2;
+  }
   return isIP4(forwarded) ? forwarded : peer;
 }
 function send(res, r5) {
@@ -175758,7 +176255,9 @@ function createGateway(env = process.env, options2 = {}) {
   const limiter = createRateLimiter(env, "mcp", options2.onWrite);
   const budget3 = options2.budget ?? createUsageBudget(env, "mcp", options2.onWrite);
   const open3 = openAccess(env);
-  return async (req, res) => {
+  const files = options2.resultFiles ?? resultFiles;
+  return async (req, rawResponse) => {
+    const res = deliveryResponse(req, rawResponse);
     const method = req.method || "GET";
     const url = new URL(req.url || "/", "http://internal");
     const path = url.pathname.replace(/\/+$/, "") || "/";
@@ -175786,7 +176285,7 @@ function createGateway(env = process.env, options2 = {}) {
       return;
     }
     if ((method === "GET" || method === "HEAD") && matchImageProxyPath(path)) {
-      const r5 = await proxyImage(url, { ip: clientIp(req, env), env, rateLimiter: limiter, budget: budget3 });
+      const r5 = await proxyImage(url, { ip: clientIp(req, env), env, rateLimiter: limiter, budget: budget3, ifNoneMatch: req.headers["if-none-match"] });
       res.writeHead(r5.status, { ...CORS, ...r5.headers });
       if (method === "HEAD" || r5.body === void 0) res.end();
       else res.end(typeof r5.body === "string" ? r5.body : Buffer.from(r5.body));
@@ -175832,6 +176331,36 @@ function createGateway(env = process.env, options2 = {}) {
       return;
     }
     const publicBase = base;
+    if (path.startsWith("/api/mcp/files/")) {
+      const unavailable = () => send(res, { status: 404, json: { error: "not_found" } });
+      if (!privateFileScopeEnabled(env) || open3 || !["GET", "HEAD"].includes(method)) return unavailable();
+      const authorization = typeof req.headers.authorization === "string" ? req.headers.authorization : void 0;
+      if (!await isAuthorized(authorization, env)) return unavailable();
+      const owner2 = bearerPrincipal(authorization);
+      const rawPath = (req.url ?? "").split("?")[0];
+      if (!owner2 || rawPath !== path || url.searchParams.getAll("dt").length !== 1 || [...url.searchParams.keys()].some((key) => key !== "dt")) return unavailable();
+      const refusal2 = await limited(limiter, "mcp-files", owner2, positiveInt(env.LOLLY_MCP_RPM, 120)) || await overBudget(budget3);
+      if (refusal2) return send(res, refusal2);
+      let file;
+      try {
+        file = await files.fetch(owner2, rawPath, url.searchParams.get("dt") ?? "", publicBase, signingSecret(env));
+      } catch {
+        return unavailable();
+      }
+      if (!file) return unavailable();
+      await budget3.record(method === "HEAD" ? 0 : file.bytes.byteLength);
+      res.writeHead(200, {
+        ...CORS,
+        ...deliveryHeaders("person-private", { tokenBearing: true }),
+        "content-type": file.mime,
+        etag: file.etag,
+        "x-content-type-options": "nosniff",
+        "content-security-policy": "sandbox",
+        "content-disposition": `attachment; filename*=UTF-8''${encodeURIComponent(file.name)}`
+      });
+      res.end(method === "HEAD" ? void 0 : file.bytes);
+      return;
+    }
     if (open3 && !path.endsWith("/mcp")) {
       res.writeHead(404, { ...CORS, "content-type": "application/json" });
       res.end(JSON.stringify({ error: "not_found", path }));
@@ -175895,7 +176424,7 @@ function createGateway(env = process.env, options2 = {}) {
         return;
       }
       const auth = String(req.headers["authorization"] || "anonymous");
-      const principal = open3 ? `ip:${clientIp(req, env)}` : createHash13("sha256").update(auth).digest("hex");
+      const principal = open3 ? `ip:${clientIp(req, env)}` : createHash15("sha256").update(auth).digest("hex");
       const refusal2 = await limited(limiter, "mcp", principal, positiveInt(env.LOLLY_MCP_RPM, open3 ? 60 : 120));
       if (refusal2) return send(res, refusal2);
       const spent = await overBudget(budget3);
@@ -175939,7 +176468,21 @@ function createGateway(env = process.env, options2 = {}) {
         res.end();
         return;
       }
-      const response = await dispatch(msg3, { protocolVersion, fileScope: env.LOLLY_MCP_PRIVATE_FILES === "1" && env.LOLLY_MCP_TOKEN?.trim() && !env.VERCEL && auth !== "anonymous" ? principal : void 0 });
+      const fileScope = privateFileScopeEnabled(env) && !open3 ? bearerPrincipal(typeof req.headers.authorization === "string" ? req.headers.authorization : void 0) ?? void 0 : void 0;
+      const response = await dispatch(msg3, { protocolVersion, fileScope, ...fileScope ? { holdResult: async (bytes, mime2, name) => {
+        const state = await budget3.check();
+        if (!state.ok) throw new Error("Private result budget is exhausted. Try the local CLI or wait for the next UTC day.");
+        const finish2 = options2.onWrite?.();
+        try {
+          const link = await files.hold(fileScope, bytes, mime2, name, publicBase, signingSecret(env));
+          await budget3.record(bytes.byteLength);
+          finish2?.(true);
+          return link;
+        } catch (error2) {
+          finish2?.(false);
+          throw error2;
+        }
+      } } : {} });
       if (!response) {
         await budget3.record(0);
         res.writeHead(202, CORS);

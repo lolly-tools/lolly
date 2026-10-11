@@ -10,9 +10,11 @@ ynh_app_setting_set_default --key=csp_extra_connect_src --value=""
 #=================================================
 ynh_script_progression "Upgrading source files..."
 
-# A static build has nothing to keep between versions: replace it whole so files
-# the new build no longer ships do not linger.
+lolly_retained=$(mktemp -d)
+lolly_capture_immutable "$install_dir" "$lolly_retained"
 ynh_setup_source --dest_dir="$install_dir" --full_replace
+lolly_restore_immutable "$lolly_retained" "$install_dir"
+rm -rf -- "$lolly_retained"
 
 #=================================================
 # REAPPLY SYSTEM CONFIGURATION

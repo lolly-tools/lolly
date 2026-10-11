@@ -91,6 +91,9 @@ COPY deploy/docker/nginx.conf /etc/nginx/conf.d/default.conf
 # The security headers every location includes (nginx drops inherited
 # add_header in any location that sets one of its own).
 COPY deploy/docker/security-headers.conf /etc/nginx/security-headers.conf
+COPY deploy/docker/delivery-maps.conf /etc/nginx/delivery-maps.conf
+COPY deploy/docker/delivery-headers.conf /etc/nginx/delivery-headers.conf
+COPY --from=build /src/shells/web/dist/.delivery-etags.conf /etc/nginx/delivery-etags.conf
 
 # Static site. nginx-unprivileged serves from /usr/share/nginx/html.
 COPY --from=build /src/shells/web/dist /usr/share/nginx/html

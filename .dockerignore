@@ -47,3 +47,7 @@ services/ca/.env
 .worktrees
 .codex-*
 appstore
+
+# Isolated delivery qualification inputs are not application build inputs.
+.delivery-models
+.rendition-source

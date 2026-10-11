@@ -33,14 +33,51 @@ spec:
     - host: {{ .host | quote }}
       http:
         paths:
+          {{- $configured := dict }}
           {{- range .paths }}
+          {{- $_ := set $configured .path true }}
+          {{- $backendName := $fullName }}
+          {{- $backendPort := $svcPort }}
+          {{- if eq $name "web" }}
+          {{- if and $.Values.mcp.enabled (or (eq .path "/tool") (hasPrefix "/tool/" .path) (eq .path "/api/mcp") (hasPrefix "/api/mcp/" .path) (eq .path "/api/fetch-image")) }}
+          {{- $backendName = include "lolly.componentFullname" (dict "root" $ "name" "mcp") }}
+          {{- $backendPort = $.Values.mcp.service.port }}
+          {{- else if and $.Values.ca.enabled (or (eq .path "/api/ca") (hasPrefix "/api/ca/" .path)) }}
+          {{- $backendName = include "lolly.componentFullname" (dict "root" $ "name" "ca") }}
+          {{- $backendPort = $.Values.ca.service.port }}
+          {{- end }}
+          {{- end }}
           - path: {{ .path }}
             pathType: {{ .pathType }}
             backend:
               service:
-                name: {{ $fullName }}
+                name: {{ $backendName }}
                 port:
-                  number: {{ $svcPort }}
+                  number: {{ $backendPort }}
+          {{- end }}
+          {{- if eq $name "web" }}
+          {{- if $.Values.mcp.enabled }}
+          {{- range $path := list "/tool" "/api/mcp" "/api/fetch-image" }}
+          {{- if not (hasKey $configured $path) }}
+          - path: {{ $path }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "lolly.componentFullname" (dict "root" $ "name" "mcp") }}
+                port:
+                  number: {{ $.Values.mcp.service.port }}
+          {{- end }}
+          {{- end }}
+          {{- end }}
+          {{- if and $.Values.ca.enabled (not (hasKey $configured "/api/ca")) }}
+          - path: /api/ca
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "lolly.componentFullname" (dict "root" $ "name" "ca") }}
+                port:
+                  number: {{ $.Values.ca.service.port }}
+          {{- end }}
           {{- end }}
     {{- end }}
 {{- end }}

@@ -13,6 +13,7 @@ const TASKS = {
   server: ['services/ca/server.mjs'],
   'sign-catalog': ['scripts/sign-credentialed-assets.ts', '--ca', '--catalog'],
   'sign-logos': ['scripts/sign-inline-logos.ts'],
+  'sign-renditions': ['scripts/build-catalog-renditions.ts', '--generate'],
 } as const;
 
 export type PrivateCaTask = keyof typeof TASKS;

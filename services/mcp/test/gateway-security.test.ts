@@ -28,7 +28,15 @@ test('client attribution ignores forwarded headers unless the socket peer is exp
   } as unknown as IncomingMessage;
   assert.equal(clientIp(req, {}), '10.0.0.8');
   assert.equal(clientIp(req, { LOLLY_MCP_TRUST_PROXY: '1', LOLLY_MCP_TRUSTED_PROXIES: '10.0.0.7' }), '10.0.0.8');
-  assert.equal(clientIp(req, { LOLLY_MCP_TRUST_PROXY: '1', LOLLY_MCP_TRUSTED_PROXIES: '10.0.0.8' }), '203.0.113.9');
+  assert.equal(clientIp(req, { LOLLY_MCP_TRUST_PROXY: '1', LOLLY_MCP_TRUSTED_PROXIES: '10.0.0.8' }), '10.0.0.1');
+  assert.equal(clientIp(req, { LOLLY_MCP_TRUST_PROXY: '1', LOLLY_MCP_TRUSTED_PROXIES: '10.0.0.8,10.0.0.1' }), '203.0.113.9');
+});
+
+test('two-hop attribution stops at the real client rather than a spoofed leftmost address', () => {
+  const req = { headers: { 'x-forwarded-for': '203.0.113.99, 198.51.100.10, 10.0.0.1' }, socket: { remoteAddress: '10.0.0.8' } } as unknown as IncomingMessage;
+  const env = { LOLLY_MCP_TRUST_PROXY: '1', LOLLY_MCP_TRUSTED_PROXIES: '10.0.0.8,10.0.0.1' };
+  assert.equal(clientIp(req, env), '198.51.100.10');
+  assert.equal(clientIp({ ...req, headers: { 'x-forwarded-for': '203.0.113.99, malformed' } } as unknown as IncomingMessage, env), '10.0.0.8');
 });
 
 test('materialized request bodies receive the same byte cap as streams', async () => {
@@ -47,7 +55,7 @@ test('installed agent route lists tools without account auth and fails closed wh
   const listed = await drive('/api/mcp/agents', {}, request);
   assert.equal(listed.status, 200);
   assert.equal(JSON.parse(listed.body).result.tools.length, 9);
-  assert.equal(listed.headers['cache-control'], 'no-store');
+  assert.equal(listed.headers['cache-control'], 'private, no-store, max-age=0, no-transform');
   assert.equal((await drive('/api/mcp/agents', { LOLLY_MCP_HOSTED: '1' }, request)).status, 503);
   assert.equal((await drive('/api/mcp/agents', { LOLLY_DISABLE_AGENT_CONNECTOR: '1' }, request)).status, 404);
   assert.equal((await drive('/api/mcp/agents', {})).status, 405);

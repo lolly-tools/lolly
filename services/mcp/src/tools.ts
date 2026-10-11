@@ -35,6 +35,7 @@ import { MEASURE_TEXT_TOOL_DEF, callMeasureText } from './measure-text.ts';
 import { COMPOSE_TOOL_DEF, callCompose } from './compose.ts';
 import { callPackage, packageToolDef } from './package.ts';
 import { isFileTransform } from '@lolly-tools/node-shell/transform-tool';
+import { RESULT_LINK_THRESHOLD, type HoldResult } from './result-files.ts';
 
 const WEB_BASE = (process.env.LOLLY_WEB_BASE || 'https://lolly.tools').replace(/\/$/, '');
 
@@ -852,7 +853,7 @@ const resolveDesignForCheck: CheckDesignResolver = async (args) => {
   return { values: { ...resolved.inputs, boxes: model.find((item) => item.id === 'boxes')?.value ?? [] }, manifest: tool.manifest };
 };
 
-export async function callTool(name: string, args: Record<string, unknown>): Promise<ToolCallResult> {
+export async function callTool(name: string, args: Record<string, unknown>, holdResult?: HoldResult): Promise<ToolCallResult> {
   try {
     switch (name) {
       case 'lolly_compile':
@@ -1047,6 +1048,10 @@ export async function callTool(name: string, args: Record<string, unknown>): Pro
         ].filter(Boolean).join('\n');
 
         const content: ContentBlock[] = [{ type: 'text', text: header }];
+        if (holdResult && result.bytes.byteLength > RESULT_LINK_THRESHOLD) {
+          content.push(await holdResult(result.bytes, result.mime, `${toolId}.${normFormat(result.format)}`));
+          return { content };
+        }
         const b64 = Buffer.from(result.bytes).toString('base64');
         const fmt = normFormat(result.format);
         const RASTER = ['png', 'jpg', 'webp', 'avif', 'gif', 'apng'];
@@ -1081,7 +1086,8 @@ export async function callTool(name: string, args: Record<string, unknown>): Pro
         return {
           content: [
             { type: 'text', text: `Transformed ${file.name ?? 'file'} → ${res.filename} (${res.bytes.length} bytes, tier ${res.tier}). Not watermarked; no provenance added.${audio ? `\n${audio}` : ''}` },
-            { type: 'resource', resource: { uri: `lolly://transform/${res.filename}`, mimeType: res.mime, blob: Buffer.from(res.bytes).toString('base64') } },
+            holdResult && res.bytes.byteLength > RESULT_LINK_THRESHOLD ? await holdResult(res.bytes, res.mime, res.filename)
+              : { type: 'resource', resource: { uri: `lolly://transform/${res.filename}`, mimeType: res.mime, blob: Buffer.from(res.bytes).toString('base64') } },
           ],
         };
       }
@@ -1132,7 +1138,8 @@ export async function callTool(name: string, args: Record<string, unknown>): Pro
         return {
           content: [
             { type: 'text', text: notes.join('\n') },
-            { type: 'resource', resource: { uri: `lolly://redact/${res.filename}`, mimeType: res.mime, blob: Buffer.from(res.bytes).toString('base64') } },
+            holdResult && res.bytes.byteLength > RESULT_LINK_THRESHOLD ? await holdResult(res.bytes, res.mime, res.filename)
+              : { type: 'resource', resource: { uri: `lolly://redact/${res.filename}`, mimeType: res.mime, blob: Buffer.from(res.bytes).toString('base64') } },
           ],
         };
       }

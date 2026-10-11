@@ -33,7 +33,8 @@ import { modelCapability, runAi } from './ai-policy.ts';
 // deliberately NOT unified, they're how you trace one detector without the other.
 
 import { openDB } from '../bridge/db.ts';
-import { MODELS_BASE } from './models-base.ts';
+import { modelFile, modelNetworkUrl } from './model-manifest.ts';
+import { downloadVerifiedModel, modelPartialCache, verifyModelBytes } from './model-delivery.ts';
 
 type OrtModule = typeof import('onnxruntime-web');
 
@@ -189,16 +190,20 @@ export function createModelFetcher(
 ): (fileName: string, cacheOnly?: boolean, onProgress?: (p: FetchProgress) => void) => Promise<ArrayBuffer | null> {
   return async function fetchModelBytes(fileName, cacheOnly = false, onProgress) {
     return runAi(modelCapability(dir) ?? 'unclassified', async (signal) => {
+    const legacyUrl = `/models/${dir}/${fileName}`;
+    const identity = modelFile(legacyUrl);
+    const cacheKey = identity?.immutableUrl ?? fileName;
     try {
       const db = await openDB();
-      const cached = await db.get(store, fileName) as CachedModel | undefined;
+      const cached = (await db.get(store, cacheKey) ?? (identity ? await db.get(store, fileName) : undefined)) as CachedModel | undefined;
       if (cached && cached.version === version && cached.bytes) {
         // A large file is stored as a Blob (storableModelBytes); callers get bytes.
         const bytes = cached.bytes instanceof Blob ? await cached.bytes.arrayBuffer() : cached.bytes;
-        if (bytes.byteLength) {
+        if (bytes.byteLength && (!identity || await verifyModelBytes(bytes, identity))) {
           dbg('fetch', { file: fileName, source: 'idb-cache', bytes: bytes.byteLength });
           return bytes;
         }
+        if (cacheKey !== fileName) await db.delete(store, cacheKey);
       }
     } catch {
       // IDB unavailable - fall through to a network-only (uncached) fetch below.
@@ -206,7 +211,19 @@ export function createModelFetcher(
 
     if (cacheOnly) { dbg('fetch', { file: fileName, source: 'cache-only-miss' }); return null; }
 
-    const url = `${MODELS_BASE}/models/${dir}/${fileName}`;
+    const url = modelNetworkUrl(legacyUrl);
+    if (identity) {
+      try {
+        const result = await downloadVerifiedModel(identity, url, { signal, onProgress, partialCache: await modelPartialCache() });
+        try {
+          const db = await openDB(); signal.throwIfAborted();
+          await db.put(store, { bytes: storableModelBytes(result.bytes), version, cachedAt: Date.now() }, cacheKey);
+          await afterCache?.(fileName, db);
+        } catch { /* verified bytes remain usable when device storage is unavailable */ }
+        signal.throwIfAborted();
+        return result.bytes;
+      } catch (error) { dbg('fetch', { file: fileName, url, status: 'integrity-or-network-error', error: (error as Error).message }); return null; }
+    }
     let resp: Response;
     try {
       resp = await fetch(url, { signal });

@@ -10,7 +10,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { renderGet, matchRenderGetPath, _resetRenderGetCaches, MAX_RASTER_PIXELS } from '../src/render-get.ts';
+import { renderGet, matchRenderGetPath, _resetRenderGetCaches, MAX_RASTER_PIXELS, canonicalRenderQuery, stableCalendarBytes } from '../src/render-get.ts';
 import { loadIndex } from '../src/catalog.ts';
 import { createGateway } from '../src/gateway.ts';
 import { MemoryRateLimiter, RateLimitUnavailableError, type RateLimiter } from '../src/rate-limit.ts';
@@ -40,7 +40,8 @@ test('happy path: svg render carries bytes + the cache/robots headers', async ()
   const r = await renderGet('/tool/qr-code.svg', 'url=https%3A%2F%2Fsuse.com', { ip: ip(), env });
   assert.equal(r.status, 200);
   assert.match(r.headers['content-type']!, /^image\/svg\+xml/);
-  assert.equal(r.headers['cache-control'], 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800');
+  assert.equal(r.headers['cache-control'], 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800, no-transform');
+  assert.equal(r.headers['cdn-cache-control'], 'max-age=86400, stale-while-revalidate=604800, no-transform');
   assert.match(r.headers['etag']!, /^"[0-9a-f]{32}"$/);
   assert.equal(r.headers['x-robots-tag'], 'noindex');
   assert.equal(r.headers['content-security-policy'], 'sandbox');
@@ -70,7 +71,7 @@ test('ETag is stable for a URL and If-None-Match yields 304', async () => {
 test('unknown tool is a 404', async () => {
   const r = await renderGet('/tool/no-such-tool-xyz.svg', '', { ip: ip(), env });
   assert.equal(r.status, 404);
-  assert.equal(r.headers['cache-control'], 'no-store');
+  assert.equal(r.headers['cache-control'], 'private, no-store, max-age=0, no-transform');
 });
 
 test('a non-official/community tool is the same 404 (no existence leak)', async () => {
@@ -193,7 +194,7 @@ test('a png raster is bounded by area, not just by edge', async () => {
   assert.match(JSON.parse(r.body as string).error, /raster cap/);
   assert.ok(MAX_RASTER_PIXELS < 5000 * 5000);
   // The same size as svg is text, not a raster: allowed.
-  const svg = await renderGet('/tool/qr-code.svg', 'url=https%3A%2F%2Fsuse.com&width=5000&height=5000', { ip: ip(), env });
+  const svg = await renderGet('/tool/qr-code.svg', 'height=5000&url=https%3A%2F%2Fsuse.com&width=5000', { ip: ip(), env });
   assert.equal(svg.status, 200);
 });
 
@@ -218,14 +219,14 @@ test('a param the render never reads is dropped by a cacheable 308, not rendered
   assert.match(r.headers['cache-control']!, /s-maxage=/);
   assert.equal(limiter.calls.length, 0, 'a redirect spends no render budget');
   // Declared inputs, render params and the _v version marker stay.
-  const kept = await renderGet('/tool/qr-code.svg', 'url=https%3A%2F%2Fsuse.com%2Fkept&width=300&_v=1', { ip: ip(), env });
+  const kept = await renderGet('/tool/qr-code.svg', '_v=1&url=https%3A%2F%2Fsuse.com%2Fkept&width=300', { ip: ip(), env });
   assert.equal(kept.status, 200);
 });
 
 test('`_themes` is a render param here: kept, honoured, and refused when malformed (plan 291 M4)', async () => {
   const q = 'url=https%3A%2F%2Fsuse.com%2Fthemes';
   const light = await renderGet('/tool/qr-code.svg', q, { ip: ip(), env });
-  const dark = await renderGet('/tool/qr-code.svg', `${q}&_themes=${encodeURIComponent('{"":"dark"}')}`, { ip: ip(), env });
+  const dark = await renderGet('/tool/qr-code.svg', `_themes=${encodeURIComponent('{"":"dark"}')}&${q}`, { ip: ip(), env });
   assert.equal(dark.status, 200, 'the theme choice is not dropped by the canonical redirect');
   assert.notEqual(dark.headers.etag, light.headers.etag);
   assert.notDeepEqual(dark.body, light.body, 'the dark theme paints different colours');
@@ -237,22 +238,49 @@ test('`_themes` is a render param here: kept, honoured, and refused when malform
 test('`_themes` with an undeclared choice draws the default theme, and Design is refused in any theme (the docs say both)', async () => {
   const q = 'url=https%3A%2F%2Fsuse.com%2Funknown-theme';
   const plain = await renderGet('/tool/qr-code.svg', q, { ip: ip(), env });
-  const unknown = await renderGet('/tool/qr-code.svg', `${q}&_themes=${encodeURIComponent('{"":"no-such-theme"}')}`, { ip: ip(), env });
+  const unknown = await renderGet('/tool/qr-code.svg', `_themes=${encodeURIComponent('{"":"no-such-theme"}')}&${q}`, { ip: ip(), env });
   assert.equal(unknown.status, 200, 'an undeclared choice is not refused');
   assert.deepEqual(unknown.body, plain.body, 'an undeclared choice paints the default theme');
   // Design needs the browser tier, which this route never runs, so a themed Design
   // link cannot render here; docs/url-parameters.md and the skill send it to the CLI.
   const boxes = encodeURIComponent(JSON.stringify([{ id: 'a', kind: 'frame', x: 0, y: 0, w: 320, h: 180, bg: '{color.semantic.surface}' }]));
-  const design = await renderGet('/tool/design.svg', `boxes=${boxes}&_themes=${encodeURIComponent('{"":"dark"}')}`, { ip: ip(), env });
+  const design = await renderGet('/tool/design.svg', `_themes=${encodeURIComponent('{"":"dark"}')}&boxes=${boxes}`, { ip: ip(), env });
   assert.ok(design.status >= 400, `a themed Design render is refused (got ${design.status})`);
   assert.match(String(design.body), /browser/i);
 });
 
-test('one image asked for in two param orders shares an ETag', async () => {
+test('one image asked for in two param orders converges to one URL and ETag', async () => {
   const a = await renderGet('/tool/qr-code.svg', 'url=https%3A%2F%2Fsuse.com%2Forder&width=300', { ip: ip(), env });
   const b = await renderGet('/tool/qr-code.svg', 'width=300&url=https%3A%2F%2Fsuse.com%2Forder', { ip: ip(), env });
   assert.equal(a.status, 200);
-  assert.equal(a.headers.etag, b.headers.etag);
+  assert.equal(b.status, 308);
+  assert.equal(b.headers.location, '/tool/qr-code.svg?url=https%3A%2F%2Fsuse.com%2Forder&width=300');
+  const canonical = await renderGet('/tool/qr-code.svg', b.headers.location!.split('?')[1]!, { ip: ip(), env });
+  assert.equal(a.headers.etag, canonical.headers.etag);
+});
+
+test('canonicalization preserves packed z bytes and stable duplicate parameter ordering', () => {
+  const packed = 'z=eJx%2B%2FA%3D%3D';
+  assert.equal(canonicalRenderQuery(`width=320&${packed}&height=180&width=640`, []), `height=180&width=320&width=640&${packed}`);
+  assert.equal(canonicalRenderQuery(`${packed}&cachebust=x`, ['cachebust']), packed);
+  assert.equal(canonicalRenderQuery(`z=${'a'.repeat(3900)}&width=320`, []), `width=320&z=${'a'.repeat(3900)}`);
+});
+test('public ICS stamps use catalog build time and never silently accept a missing stamp', () => {
+  const bytes = new TextEncoder().encode('BEGIN:VCALENDAR\r\nBEGIN:VEVENT\r\nDTSTAMP:20260101T000000Z\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n');
+  const result = new TextDecoder().decode(stableCalendarBytes(bytes, '2026-10-11T12:34:56.000Z'));
+  assert.match(result, /DTSTAMP:20261011T123456Z\r\n/);
+  assert.throws(() => stableCalendarBytes(bytes, 'bad-time'), /valid build time/);
+  assert.throws(() => stableCalendarBytes(new TextEncoder().encode('BEGIN:VCALENDAR\r\nEND:VCALENDAR\r\n'), '2026-10-11'), /DTSTAMP/);
+});
+test('actual public calendar bytes stay identical across cold render memos', async () => {
+  _resetRenderGetCaches();
+  const a = await renderGet('/tool/calendar-ics.ics', '', { ip: ip(), env });
+  _resetRenderGetCaches();
+  const b = await renderGet('/tool/calendar-ics.ics', '', { ip: ip(), env });
+  assert.equal(a.status, 200); assert.equal(b.status, 200); assert.deepEqual(a.body, b.body); assert.equal(a.headers.etag, b.headers.etag);
+  const index = await loadIndex();
+  const stamp = new Date(index.generatedAt).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
+  assert.match(new TextDecoder().decode(a.body as Uint8Array), new RegExp(`DTSTAMP:${stamp}`));
 });
 
 test('a spent daily budget answers renders with 503, and a render is recorded against it', async () => {
@@ -274,7 +302,7 @@ test('an unconfigured hosted limiter answers 503 + Retry-After instead of crashi
   const r = await renderGet('/tool/qr-code.svg', 'url=https%3A%2F%2Fsuse.com%2F503', { ip: ip(), env, rateLimiter: unavailable });
   assert.equal(r.status, 503);
   assert.equal(r.headers['retry-after'], '5');
-  assert.equal(r.headers['cache-control'], 'no-store');
+  assert.equal(r.headers['cache-control'], 'private, no-store, max-age=0, no-transform');
 });
 
 // ── gateway routing ──────────────────────────────────────────────────────────

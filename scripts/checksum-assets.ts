@@ -10,10 +10,10 @@
  * size) back into the index. This is the integrity guarantee promised in
  * docs/authoring-assets.md - without it the `checksum` fields are placeholders.
  *
- * This runs at BUILD time only. There is deliberately no runtime verification on
- * the asset-fetch path (it would hash every asset on every load - a runtime cost
- * for no offline-PWA benefit). CI runs `validate-catalog.js`, which recomputes
- * and compares, so a stale checksum fails the build rather than a user's device.
+ * Generation runs at build time; the asset bridge verifies fresh downloads
+ * against these checksums before caching. CI also recomputes them, so a stale
+ * checksum fails the build before publication. The signed catalog envelope
+ * binds the asset index that supplies each checksum.
  *
  * It also stamps each asset's `added` date from the committed map minted by
  * `scripts/gen-asset-added-dates.ts` - maintained exactly like the checksums

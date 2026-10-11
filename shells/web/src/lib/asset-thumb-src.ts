@@ -30,6 +30,8 @@ export interface ThumbSources {
   fallback?: string;
   /** True when `src` is the asset's own SVG. */
   vector: boolean;
+  /** Signed previews only; the ref's original URL stays unchanged. */
+  srcset?: string;
 }
 
 const text = (value: unknown): string => (typeof value === 'string' ? value : '');
@@ -62,6 +64,24 @@ export interface ThumbOptions {
    *  surface that previews the exact bytes chosen (a treated photo is a new
    *  image whose thumb is still the untreated one) passes false. */
   preferThumb?: boolean;
+  /** CSS width for responsive previews; defaults suit grid, card and list tiles. */
+  sizes?: string;
+}
+
+function signedPreviews(ref: AssetRef): Array<{ url: string; width: number }> {
+  if (ref.type !== 'raster' || ref.meta?.animated || !Array.isArray(ref.meta?.renditions)) return [];
+  const checksum = text(ref.meta.originalChecksum);
+  if (!/^sha256-[A-Za-z0-9+/]{43}=$/.test(checksum)) return [];
+  let original: string;
+  try { original = Array.from(atob(checksum.slice(7)), c => c.charCodeAt(0).toString(16).padStart(2, '0')).join(''); } catch { return []; }
+  const previews = ref.meta.renditions.flatMap(value => {
+    if (!value || typeof value !== 'object') return [];
+    const r = value as Record<string, unknown>, url = text(r.url), width = dimension(r.width);
+    if (r.of !== original || r.format !== 'webp' || !width || (ref.width && width > ref.width)
+      || !/^sha256-[A-Za-z0-9+/]{43}=$/.test(text(r.checksum)) || !/^\/catalog\/[A-Za-z0-9._@/+,-]+\.[0-9a-f]{16}\.webp$/.test(url)) return [];
+    return [{ url, width }];
+  });
+  return previews.sort((a, b) => a.width - b.width).filter((r, i, all) => !i || r.width !== all[i - 1]!.width);
 }
 
 /** The tile's source and its fallback, by the rules in the header above. */
@@ -73,6 +93,9 @@ export function thumbSources(ref: AssetRef, opts: ThumbOptions = {}): ThumbSourc
     if (thumb && size !== undefined && size > SVG_TILE_MAX_BYTES) return { src: thumb, vector: false };
     return { src: url, vector: true, ...(thumb && thumb !== url ? { fallback: thumb } : {}) };
   }
+  const previews = opts.preferThumb === false ? [] : signedPreviews(ref);
+  if (previews.length) return { src: (previews.find(p => p.width >= 640) ?? previews.at(-1)!).url,
+    vector: false, srcset: previews.map(p => `${p.url} ${p.width}w`).join(', ') };
   return { src: (opts.preferThumb === false ? '' : thumb) || url, vector: false };
 }
 
@@ -89,12 +112,13 @@ const dimension = (value: unknown): number | undefined => {
  * document-level error listener.
  */
 export function thumbImgHtml(ref: AssetRef, className: string, opts: ThumbOptions = {}): string {
-  const { src, fallback } = thumbSources(ref, opts);
+  const { src, fallback, srcset } = thumbSources(ref, opts);
   const width = dimension(ref.width);
   const height = dimension(ref.height);
   const size = width && height ? ` width="${width}" height="${height}"` : '';
   if (fallback) installThumbFallback();
   return `<img class="${escapeHtml(className)}" src="${escapeHtml(src)}" alt="" loading="lazy" decoding="async"${size}`
+    + `${srcset ? ` srcset="${escapeHtml(srcset)}" sizes="${escapeHtml(opts.sizes ?? '(max-width: 640px) 45vw, 320px')}"` : ''}`
     + `${fallback ? ` data-thumb-fallback="${escapeHtml(fallback)}"` : ''}>`;
 }
 

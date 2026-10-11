@@ -15,7 +15,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { proxyImage, matchImageProxyPath } from '../src/image-proxy.ts';
+import { proxyImage, matchImageProxyPath, upstreamImagePolicy } from '../src/image-proxy.ts';
 import { createGateway } from '../src/gateway.ts';
 import { RateLimitUnavailableError, type RateLimiter } from '../src/rate-limit.ts';
 
@@ -65,7 +65,8 @@ test('happy path: a public image returns bytes + cache / nosniff / sandbox heade
   assert.equal(r.headers['content-type'], 'image/png');
   assert.equal(r.headers['content-security-policy'], 'sandbox');
   assert.equal(r.headers['x-content-type-options'], 'nosniff');
-  assert.match(r.headers['cache-control']!, /s-maxage=86400/);
+  assert.match(r.headers['cache-control']!, /s-maxage=0/);
+  assert.match(r.headers['cache-control']!, /no-transform/);
   assert.ok(r.body instanceof Uint8Array && r.body.byteLength === 4);
   assert.equal(calls.length, 1);
 });
@@ -174,4 +175,44 @@ test('gateway routes /api/fetch-image and adds CORS', async () => {
   await gateway(req, res);
   assert.equal(headers['access-control-allow-origin'], '*');
   assert.equal(status, 422, 'a loopback target is refused through the gateway too');
+});
+
+test('upstream freshness is capped, aged, and never invented', () => {
+  const url = new URL('https://good.example/a.png');
+  for (const [control, age, expected] of [['public, max-age=86400', '0', 3600], ['max-age=120', '30', 90], ['max-age=120', '121', 0], ['no-cache, max-age=120', '0', 0], ['', '0', 0], ['max-age=broken', '0', 0], ['max-age=120, max-age=600', '0', 0], ['max-age=120', 'broken', 0]] as const) {
+    assert.equal(upstreamImagePolicy(url, new Headers({ 'cache-control': control, age })).age, expected);
+  }
+});
+test('private/no-store/cookies and signed URLs stay out of every shared cache', async () => {
+  for (const [query, headers] of [
+    ['', { 'cache-control': 'private, max-age=600' }], ['', { 'cache-control': 'no-store' }],
+    ['', { 'set-cookie': 'session=private', 'cache-control': 'max-age=600' }],
+    ['?X-Amz-Signature=hidden', { 'cache-control': 'public, max-age=600' }],
+    ['?sig=hidden', { 'cache-control': 'public, max-age=600' }],
+    ['?Expires=9999999', { 'cache-control': 'public, max-age=600' }],
+    ['', { vary: 'Cookie', 'cache-control': 'max-age=600' }],
+  ] as const) {
+    const { impl } = fakeFetch(() => new Response(new Uint8Array([1, 2, 3]), { headers: { 'content-type': 'image/png', ...headers } }));
+    const r = await proxyImage(proxyReq(`https://good.example/a.png${query}`), { ip: ip(), env, resolver, fetchImpl: impl });
+    assert.equal(r.status, 200); assert.equal(r.headers['cache-control'], 'private, no-store, max-age=0, no-transform');
+    assert.equal(r.headers['cdn-cache-control'], 'no-store'); assert.equal(r.headers['set-cookie'], undefined); assert.equal(r.headers['cache-tag'], undefined);
+    assert.equal(r.headers['referrer-policy'], 'no-referrer');
+  }
+});
+test('a private redirect hop cannot become a public cached final image', async () => {
+  const { impl } = fakeFetch(url => url.includes('start') ? new Response(null, { status: 302, headers: { location: 'https://good.example/final.png', 'set-cookie': 'upstream=session' } })
+    : new Response(new Uint8Array([1, 2, 3]), { headers: { 'content-type': 'image/png', 'cache-control': 'public, max-age=3600' } }));
+  const r = await proxyImage(proxyReq('https://good.example/start.png'), { ip: ip(), env, resolver, fetchImpl: impl });
+  assert.equal(r.status, 200); assert.equal(r.headers['cdn-cache-control'], 'no-store'); assert.match(r.headers['cache-control']!, /^private,/);
+});
+test('the proxy returns exact source bytes with a byte digest, validator and opaque upstream tag', async () => {
+  const bytes = new Uint8Array([0, 255, 42, 17]);
+  const { impl } = fakeFetch(() => new Response(bytes, { headers: { 'content-type': 'image/png', 'cache-control': 'public, max-age=120' } }));
+  const options = { ip: ip(), env, resolver, fetchImpl: impl };
+  const a = await proxyImage(proxyReq('https://good.example/a.png'), options);
+  assert.deepEqual(a.body, bytes); assert.match(a.headers.etag!, /^"[0-9a-f]{64}"$/);
+  assert.match(a.headers['cache-tag']!, /^x_public-bounded,u_[0-9a-f]{12}$/);
+  assert.equal(a.headers['cache-control'], 'public, max-age=120, s-maxage=120, no-transform');
+  const b = await proxyImage(proxyReq('https://good.example/a.png'), { ...options, ifNoneMatch: a.headers.etag });
+  assert.equal(b.status, 304); assert.equal(b.body, undefined); assert.equal(b.headers.etag, a.headers.etag);
 });

@@ -9,8 +9,22 @@ import type { CatalogSignatureEnvelope } from '../engine/src/catalog-integrity.t
 import {
   importSpkiOrJwkPublicKey,
   verifyCatalogEnvelope,
-  verifyToolFile,
+  verifyToolFile, sha256Hex, catalogIndexPath, toolDirectoryHash, toolDirectoryPath,
 } from '../engine/src/catalog-integrity.ts';
+
+/** Signed metadata never substitutes for checking the actual published originals. */
+function verifyAssetBytes(root: string, text: string): void {
+  const index = JSON.parse(text) as { assets?: Array<{ formats?: Array<{ url: string; checksum: string }>; locales?: Record<string, Array<{ url: string; checksum: string }>> }> };
+  if (!Array.isArray(index.assets)) throw new Error('Signed asset index has no assets list');
+  for (const asset of index.assets) for (const format of [...(asset.formats ?? []), ...Object.values(asset.locales ?? {}).flat()]) {
+    if (!/^sha256-[A-Za-z0-9+/]{43}=$/.test(format.checksum)) throw new Error('Asset format has no SHA-256 checksum');
+    if (!format.url.startsWith('/catalog/')) continue;
+    if (/[\\%?#\p{White_Space}\p{Cc}]/u.test(format.url) || format.url.slice(1).split('/').some(part => !part || part === '.' || part === '..')) throw new Error('Unsafe asset URL');
+    const bytes = readFileSync(contained(root, format.url.slice(1)));
+    const actual = 'sha256-' + createHash('sha256').update(bytes).digest('base64');
+    if (actual !== format.checksum) throw new Error('A catalog asset does not match its checksum');
+  }
+}
 
 function contained(root: string, path: string): string {
   const absolute = realpathSync(resolve(root, path));
@@ -42,6 +56,17 @@ export async function verifyReleaseCatalog(
   const index = readFileSync(contained(root, 'catalog/tools/index.json'));
   const verified = await verifyCatalogEnvelope(envelope, index, publicKey);
   if (!verified.ok) throw new Error('Release catalog signature or index digest did not verify');
+  for (const [digest, kind, path] of [
+    [envelope.indexHash, 'tools', 'catalog/tools/index.json'],
+    [envelope.assetIndexHash, 'assets', 'catalog/assets/index.json'],
+    [envelope.slimHash, 'slim', 'catalog/tools/index.slim.json'],
+  ] as const) {
+    if (!digest) continue;
+    const bytes = readFileSync(contained(root, path));
+    if (await sha256Hex(bytes) !== digest) throw new Error('A catalog index does not match its signed digest');
+    // Hash URLs are required for materialized releases, legacy envelopes remain valid.
+    if (envelope.toolDirs && await sha256Hex(readFileSync(contained(root, catalogIndexPath(digest, kind).slice(1)))) !== digest) throw new Error('A hash-addressed catalog index did not verify');
+  }
   const paths = Object.keys(envelope.files);
   if (paths.length === 0) throw new Error('Release catalog contains no signed tool files');
   const tools = new Set<string>();
@@ -59,8 +84,16 @@ export async function verifyReleaseCatalog(
     const bytes = readFileSync(contained(root, `tools/${path}`));
     const result = await verifyToolFile(envelope, toolId, filename, bytes);
     if (!result.ok) throw new Error('A signed tool file did not verify');
+    if (envelope.toolDirs?.[toolId]) {
+      const addressed = readFileSync(contained(root, `${toolDirectoryPath(envelope, toolId).slice(1)}/${filename}`));
+      if (!(await verifyToolFile(envelope, toolId, filename, addressed)).ok) throw new Error('A hash-addressed tool file did not verify');
+    }
     tools.add(toolId);
   }
+  for (const [id, digest] of Object.entries(envelope.toolDirs ?? {})) {
+    if (await toolDirectoryHash(envelope.files, id) !== digest) throw new Error('A tool directory does not match its signed identity');
+  }
+  if (envelope.assetIndexHash) verifyAssetBytes(root, readFileSync(contained(root, 'catalog/assets/index.json'), 'utf8'));
   return {
     verified: true,
     files: paths.length,

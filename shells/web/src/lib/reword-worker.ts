@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { configureTransformerDelivery, modelDirectoryId } from './model-manifest.ts';
 import { textAssistChunks, textAssistExcerpts, textAssistMessages, finishTextAssist, type TextAssistTask } from '../../../../engine/src/text-assist.ts';
 /**
  * Reword worker (plans/127) - runs SmolLM2-360M-Instruct off-thread to propose
@@ -129,6 +130,7 @@ function tf(): Promise<TfLike> {
     // desktop shell bakes https://lolly.tools so the wasm reword path pulls weights
     // from there. allowRemoteModels stays false - nothing hits the HF hub.
     env.localModelPath = `${MODELS_BASE}/models/`;
+    configureTransformerDelivery(env);
     if (env.backends?.onnx?.wasm) env.backends.onnx.wasm.wasmPaths = ORT_HF_BASE;
     return mod as unknown as TfLike;
   });
@@ -142,7 +144,7 @@ let tokenizerP: Promise<TokenizerLike> | null = null;
 function ensureTokenizer(progress?: ProgressCb): Promise<TokenizerLike> {
   if (!tokenizerP) {
     tokenizerP = tf()
-      .then((m) => m.AutoTokenizer.from_pretrained(REWORD_MODEL_DIR, progress ? { progress_callback: progress } : {}))
+      .then((m) => m.AutoTokenizer.from_pretrained(modelDirectoryId(REWORD_MODEL_DIR), progress ? { progress_callback: progress } : {}))
       .then((t) => t as TokenizerLike)
       .catch((e) => { tokenizerP = null; throw e; });
   }
@@ -205,7 +207,7 @@ function ensureRuntime(id: number): Promise<RewordRuntime> {
     // a sample. The WebGPU tier is the ~260 MB q4f16 export, staged
     // separately when taken up (plans/127 section 6).
     const [model, tokenizer] = await Promise.all([
-      mod.AutoModelForCausalLM.from_pretrained(REWORD_MODEL_DIR, { dtype: 'q4', device: 'wasm', progress_callback: progressCallback }),
+      mod.AutoModelForCausalLM.from_pretrained(modelDirectoryId(REWORD_MODEL_DIR), { dtype: 'q4', device: 'wasm', progress_callback: progressCallback }),
       ensureTokenizer(progressCallback),
     ]);
     return { model: model as ModelLike, tokenizer, wm: watermarkProcessorList(mod) };

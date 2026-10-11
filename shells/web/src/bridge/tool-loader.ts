@@ -27,7 +27,13 @@ const toolCache = new Map<string, Promise<LoadedTool> | LoadedTool>();
  */
 export function makeFetchFile(toolId: string): (path: string) => Promise<string> {
   return async (path: string) => {
-    const resp = await instanceFetch(instancePath(`/tools/${path}`));
+    const integrity = await getToolIntegrity();
+    const { toolDirectoryPath } = integrity ? await import('../../../../engine/src/catalog-integrity.ts') : { toolDirectoryPath: () => '' };
+    const prefix = integrity ? toolDirectoryPath(integrity.envelope, toolId) : `/tools/${toolId}`;
+    const suffix = path.startsWith(toolId + '/') ? path.slice(toolId.length + 1) : path;
+    let resp = await instanceFetch(instancePath(`${prefix}/${suffix}`));
+    // Compatibility is exact-file only and still passes the signed digest verifier.
+    if (resp.status === 404 && prefix !== `/tools/${toolId}`) resp = await instanceFetch(instancePath(`/tools/${path}`));
     if (!resp.ok) throw new Error('tool-not-found');
     const text = await resp.text();
     // A missing file comes back as the SPA shell (a 200), not a 404. That is told
@@ -57,8 +63,18 @@ export async function getTool(toolId: string, artifactDigest?: string): Promise<
       ? loadTool(toolId, installedFetchFile(toolId, artifactDigest || meta?.artifactDigest), {
           lang: currentLang(), trustClass: 'sideloaded-consented',
         })
-      : getToolIntegrity().then((integrity) =>
-          loadTool(toolId, makeFetchFile(toolId), { lang: currentLang(), integrity: integrity ?? undefined })));
+      : getToolIntegrity().then(async (integrity) => {
+          const tool = await loadTool(toolId, makeFetchFile(toolId), { lang: currentLang(), integrity: integrity ?? undefined });
+          if (integrity?.envelope.toolDirs) {
+            // Verify the fetched source first; resolving URLs does not alter signed bytes.
+            const { resolveVerifiedToolReferences } = await import('../catalog/tool-references.ts');
+            tool.template = resolveVerifiedToolReferences(tool.template, integrity.envelope, instancePath);
+            if (tool.styles) tool.styles = resolveVerifiedToolReferences(tool.styles, integrity.envelope, instancePath);
+            if (tool.hooksSource) tool.hooksSource = resolveVerifiedToolReferences(tool.hooksSource, integrity.envelope, instancePath);
+            if (tool.presentationSource) tool.presentationSource = resolveVerifiedToolReferences(tool.presentationSource, integrity.envelope, instancePath);
+          }
+          return tool;
+        }));
   toolCache.set(cacheKey, promise);
   try {
     const tool = await promise;

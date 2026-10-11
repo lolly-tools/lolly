@@ -2,6 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
+import { createHash } from 'node:crypto';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 import { SVG_TILE_MAX_BYTES, installThumbFallback, isSvgRef, swapToFallback, thumbImgHtml, thumbSources, versionedTileUrl } from './asset-thumb-src.ts';
 
@@ -13,6 +14,22 @@ const photo: AssetRef = {
   source: 'library', id: 'lolly/photo/hero', type: 'raster', format: 'jpg', url: '/catalog/assets/hero.jpg', version: '1',
   width: 4000, height: 3000, meta: { name: 'Hero', thumbUrl: '/catalog/assets/hero.thumb.webp', size: 9_000_000 },
 };
+
+test('only parent-matched signed previews provide a responsive tile; exact previews keep the original', () => {
+  const of = createHash('sha256').update('original').digest('hex');
+  const checksum = 'sha256-' + createHash('sha256').update('original').digest('base64');
+  const ref = { ...photo, meta: { ...photo.meta, originalChecksum: checksum, renditions: [320, 640, 1280].map(width => ({
+    of, checksum, width, format: 'webp', url: `/catalog/renditions/out.${width.toString(16).padStart(16, 'a')}.webp`,
+  })) } };
+  const html = thumbImgHtml(ref, 'tile');
+  assert.match(html, /srcset=/); assert.match(html, /320w,.*640w,.*1280w/);
+  assert.match(html, /sizes="\(max-width: 640px\) 45vw, 320px"/);
+  assert.equal(thumbSources(ref, { preferThumb: false }).src, photo.url);
+  const bad = { ...ref, meta: { ...ref.meta, originalChecksum: undefined } };
+  assert.equal(thumbSources(bad).src, photo.meta!.thumbUrl);
+  const wrongParent = { ...ref, meta: { ...ref.meta, renditions: ref.meta.renditions.map(r => ({ ...r, of: 'b'.repeat(64) })) } };
+  assert.equal(thumbSources(wrongParent).src, photo.meta!.thumbUrl);
+});
 
 test('a vector tile draws its own SVG and keeps the raster thumb only as the fallback', () => {
   assert.deepEqual(thumbSources(svg), { src: '/catalog/assets/logo.svg', vector: true, fallback: '/catalog/assets/logo.thumb.webp' });

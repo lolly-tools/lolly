@@ -21,9 +21,9 @@
 // chunk set. This module is reached at boot (bridge/tool-loader.ts, catalog/sync.ts),
 // so the import has to be the lazy one. Both public functions below are already
 // async, so the await is invisible to callers.
-import type { CatalogSignatureEnvelope } from '../../../../engine/src/catalog-integrity.ts';
 import type { ToolIntegrityOpts } from '../../../../engine/src/loader.ts';
 import { instanceFetch, instancePath } from '../lib/instance.ts';
+import type { CatalogSnapshot } from './snapshot.ts';
 import { CatalogRefusedError, isAccessRefused, noteCatalogRefused } from '../lib/catalog-access.ts';
 
 declare global {
@@ -53,7 +53,8 @@ if (TRUST_MODE === 'unsigned-dev' && PINNED_KEY) {
   throw new Error('catalog integrity: unsigned-dev mode must not carry a catalog public key');
 }
 
-let cached: Promise<ToolIntegrityOpts | null> | null = null;
+let cached: Promise<{ snapshot: CatalogSnapshot; integrity: ToolIntegrityOpts } | null> | null = null;
+export const catalogVerificationAvailable = (): boolean => catalogVerificationRequired() && !!globalThis.crypto?.subtle;
 
 /** Whether catalog reads need signature verification, without fetching the envelope. */
 export const catalogVerificationRequired = (): boolean => TRUST_MODE === 'verified';
@@ -62,30 +63,74 @@ export const catalogVerificationRequired = (): boolean => TRUST_MODE === 'verifi
  *  guard, so an unsigned build never fetches the chunk at all. */
 const crypto = () => import('../../../../engine/src/catalog-integrity.ts');
 
-async function load(): Promise<ToolIntegrityOpts | null> {
+async function load(): Promise<{ snapshot: CatalogSnapshot; integrity: ToolIntegrityOpts } | null> {
   if (TRUST_MODE === 'unsigned-dev') {
     markUnsignedDevelopmentBuild();
     return null;
   }
+  if (!globalThis.crypto?.subtle) {
+    markUncheckedCatalog();
+    return null;
+  }
   const publicKey = await (await crypto()).importSpkiOrJwkPublicKey(PINNED_KEY);
-  // Bypasses the service worker's /tools cache by construction (it's under
-  // /catalog, which sw.js deliberately never caches; a remote-instance fetch is
-  // cross-origin, which the SW ignores entirely) - the envelope is always as
-  // fresh as the index it binds. Fetched through the instance base so a
-  // key-pinned build verifies the REMOTE index against the remote's envelope:
-  // an instance signed by a different key fails closed, as it must.
-  const resp = await instanceFetch(instancePath('/catalog/tools/index.sig.json'));
-  // Refused (401/403) means signed out, not a missing envelope: catalog/sync.ts
-  // stops quietly on this error instead of reporting the network as offline.
-  if (isAccessRefused(resp.status)) {
-    noteCatalogRefused();
-    throw new CatalogRefusedError(resp.status, '/catalog/tools/index.sig.json');
+  const [{ fetchSignedCatalogSnapshot }, { readAcceptedCatalog, readLatestAcceptedCatalog, acceptCatalogSnapshot }] = await Promise.all([
+    import('./snapshot.ts'), import('./trust-store.ts'),
+  ]);
+  const origin = new URL(instancePath('/catalog/tools/index.sig.json'), globalThis.location?.href ?? 'http://localhost/').origin;
+  const snapshot = await fetchSignedCatalogSnapshot({
+    publicKey,
+    fetch: async (path, init) => {
+      const resp = await instanceFetch(instancePath(path), init);
+      if (isAccessRefused(resp.status)) {
+        noteCatalogRefused();
+        throw new CatalogRefusedError(resp.status, path);
+      }
+      return resp;
+    },
+    read: scope => readAcceptedCatalog(origin, scope),
+    latest: () => readLatestAcceptedCatalog(origin),
+    accept: (scope, pair) => acceptCatalogSnapshot(origin, scope, pair),
+  });
+  markAcceptedCatalog(snapshot);
+  return { snapshot, integrity: { envelope: snapshot.envelope, publicKey } };
+}
+
+/** Recovery clears the refusal badge only after a complete authenticated pair. */
+function markAcceptedCatalog(snapshot: CatalogSnapshot): void {
+  if (typeof document === 'undefined' || !document.body) return;
+  document.getElementById('lolly-catalog-refused')?.remove();
+  document.getElementById('lolly-unchecked-catalog')?.remove();
+  document.documentElement.dataset.catalogTrust = snapshot.assetText === undefined ? 'partially-verified' : snapshot.offline ? 'verified-offline' : 'verified';
+  if (snapshot.assetText === undefined) trustBadge('lolly-catalog-state', 'Asset catalog integrity unchecked');
+  else if (snapshot.offline) trustBadge('lolly-catalog-state', 'Offline · verified saved catalog');
+  else document.getElementById('lolly-catalog-state')?.remove();
+}
+
+/** A compact status follows the loaded shell theme without shifting its layout. */
+function trustBadge(id: string, message: string, alert = false): void {
+  if (typeof document === 'undefined' || !document.body) return;
+  let badge = document.getElementById(id);
+  if (!badge) {
+    badge = document.createElement('div');
+    badge.id = id;
+    badge.style.cssText = [
+      'position:fixed', 'right:calc(12px + var(--safe-right, 0px))', 'bottom:calc(12px + var(--safe-bottom, 0px))',
+      'z-index:2147483647', 'max-width:calc(100vw - 24px)', 'padding:6px 12px',
+      'border-radius:var(--radius-pill, 999px)', 'border:1px solid hsl(var(--border, 210 15% 50%))',
+      'background:hsl(var(--popover, 210 20% 12%))', 'color:hsl(var(--popover-foreground, 0 0% 100%))',
+      'font:500 12px/1.4 var(--font-brand, system-ui)', 'overflow-wrap:anywhere', 'pointer-events:none',
+    ].join(';');
+    document.body.appendChild(badge);
   }
-  if (!resp.ok) {
-    throw new Error(`catalog integrity: signature envelope missing (HTTP ${resp.status}) but a key is pinned`);
-  }
-  const envelope = await resp.json() as CatalogSignatureEnvelope;
-  return { envelope, publicKey };
+  badge.setAttribute('role', alert ? 'alert' : 'status');
+  badge.textContent = message;
+}
+
+/** Plain HTTP LAN hosts remain usable, with an explicit integrity state. */
+function markUncheckedCatalog(): void {
+  if (typeof document === 'undefined' || !document.body) return;
+  document.documentElement.dataset.catalogTrust = 'unchecked';
+  trustBadge('lolly-unchecked-catalog', 'Catalog integrity unchecked on this connection');
 }
 
 /** Make an unsigned production preview impossible to mistake for a release.
@@ -94,18 +139,7 @@ async function load(): Promise<ToolIntegrityOpts | null> {
 function markUnsignedDevelopmentBuild(): void {
   if (!import.meta.env?.PROD || typeof document === 'undefined' || !document.body) return;
   document.documentElement.dataset.catalogTrust = 'unsigned-dev';
-  if (document.getElementById('lolly-unsigned-catalog')) return;
-  const badge = document.createElement('div');
-  badge.id = 'lolly-unsigned-catalog';
-  badge.setAttribute('role', 'status');
-  badge.textContent = 'Unsigned development catalog';
-  badge.style.cssText = [
-    'position:fixed', 'right:12px', 'bottom:12px', 'z-index:2147483647',
-    'padding:6px 10px', 'border-radius:999px', 'pointer-events:none',
-    'font:600 12px/1.2 system-ui,sans-serif', 'color:#fff',
-    'background:#8b1e1e', 'box-shadow:0 1px 4px rgba(0,0,0,.35)',
-  ].join(';');
-  document.body.appendChild(badge);
+  trustBadge('lolly-unsigned-catalog', 'Unsigned development catalog');
 }
 
 /**
@@ -113,14 +147,19 @@ function markUnsignedDevelopmentBuild(): void {
  * or null when no key is pinned (the unsigned/compat path). Cached; a failed
  * fetch clears the cache so the next sync retries instead of pinning failure.
  */
-export function getToolIntegrity(): Promise<ToolIntegrityOpts | null> {
-  if (!cached) {
-    cached = load().catch((e: unknown) => {
-      cached = null;
-      throw e;
-    });
-  }
+function catalogLoad(refresh = false): Promise<{ snapshot: CatalogSnapshot; integrity: ToolIntegrityOpts } | null> {
+  if (refresh) cached = null;
+  if (!cached) cached = load().catch((error: unknown) => { cached = null; throw error; });
   return cached;
+}
+
+export async function getToolIntegrity(): Promise<ToolIntegrityOpts | null> {
+  return (await catalogLoad())?.integrity ?? null;
+}
+
+/** Sync refreshes the envelope; a cached tool load can reuse the accepted pair. */
+export async function getCatalogSnapshot(refresh = false): Promise<CatalogSnapshot | null> {
+  return (await catalogLoad(refresh))?.snapshot ?? null;
 }
 
 /**
@@ -139,4 +178,12 @@ export async function assertToolIndexIntegrity(indexText: string): Promise<void>
   if (!result.ok) {
     throw new Error(`catalog integrity: tool index rejected - ${result.reason}`);
   }
+}
+
+/** A trust failure remains visible even when a previously accepted catalog is saved. */
+export function noteCatalogIntegrityFailure(error: unknown): void {
+  if (typeof document === 'undefined' || !document.body) return;
+  document.documentElement.dataset.catalogTrust = 'refused';
+  document.getElementById('lolly-catalog-state')?.remove();
+  trustBadge('lolly-catalog-refused', error instanceof Error ? error.message : 'The catalog could not be verified.', true);
 }

@@ -12,7 +12,7 @@ The render path has two tiers, so there are two endpoints with the same tools. T
 
 | Endpoint | Tier | Access | Produces |
 |---|---|---|---|
-| `https://lolly.tools/api/mcp` | **Lightweight** (serverless, no browser) | **Open to anyone.** No token and no sign-in; calls are limited per address and per day (see [Limits on the open endpoint](#limits-on-the-open-endpoint)). | Vector (`svg`/`emf`/`eps`/`eps-cmyk`/`dxf`), data/text formats (`html`/`md`/`txt`/`json`/`csv`/`ics`/`vcf`) and `png` for SVG-native tools. (Print PDF needs the full endpoint's browser.) |
+| `https://lolly.tools/api/mcp` | **Lightweight** (no browser) | **Open to anyone.** No token and no sign-in; calls are limited per address and per day (see [Limits on the open endpoint](#limits-on-the-open-endpoint)). | Vector (`svg`/`emf`/`eps`/`eps-cmyk`/`dxf`), data/text formats (`html`/`md`/`txt`/`json`/`csv`/`ics`/`vcf`) and `png` for SVG-native tools. (Print PDF needs the full endpoint's browser.) |
 | `https://mcp.lolly.tools/mcp` | **Full** (headless browser) | An access token from the operator (OAuth or bearer). | **Everything** - vector, all raster (`png`/`jpg`/`webp`/…), print PDF (incl. CMYK + crop marks) and animation/video (`gif`/`apng`/`webm`/`mp4`). |
 
 Start with the **open** endpoint: it needs no setup and covers every SVG-native tool. The full endpoint is a superset for operators who hold a token. For HTML-layout tools such as `design` and `chart`, for large files and for heavy automation, run Lolly yourself: the [CLI](/info/cli.html) renders every format on your own machine, and the same MCP server runs locally over stdio (see [Connect a client](#connect-a-client)).
@@ -24,7 +24,7 @@ Start with the **open** endpoint: it needs no setup and covers every SVG-native 
 - **60 calls a minute per address.** A `429` carries `Retry-After`.
 - **A daily budget for the whole endpoint**, shared by every caller: a fixed amount of compute and data transfer per UTC day. When the budget is spent, every call returns `503` with `error: daily_budget_reached` and a `Retry-After` that counts down to 00:00 UTC.
 - **PNG up to 1600 x 1600 pixels of area** (enough for 1920 x 1080). A larger request is scaled down to fit, and the render result says so. Ask for `svg` for a file that scales to any size.
-- **4.4 MB per answer**, the platform's response limit less the envelope. A larger result comes back as a tool error that says so, not as a broken response.
+- **Platform response limits where they apply.** A Vercel deployment refuses answers over 4.4 MB with a tool error. Self-hosted deployments use their operator's limits. Anonymous calls never receive a server-held download link.
 - **Decks up to 100 slides** per call, for `lolly_rebrand`, `lolly_read`, `lolly_check` and `lolly_compose`. A PDF counts its pages, and a source deck or inventory given to `lolly_check` or `lolly_compose` is held to the same limit.
 - **Up to 262,144 characters of slide text measured** per `lolly_compose` call, counting each extra measure that `fit: "shrink"` makes. A text slot past that comes back unmeasured with a `compose.fit.unmeasured` note, and the result says how many slots were not measured.
 - **Files up to about 3.2 MiB** each for the tools that take a file, so that a file and its base64 encoding fit in one request. The tool descriptions give the local limit; a refusal here gives this endpoint's exact figure in bytes.
@@ -53,13 +53,27 @@ This is the same "raw render URL" `lolly_build_url` returns - drop it into a REA
 - **No auth, no accounts, no state.** It renders public tool + catalog data only; the inputs are whatever the URL says, and nothing is stored per request. Fetching one of these URLs sends the server nothing but what's written in the URL itself - your on-device documents, sessions and uploads can never appear in one. The inputs are public by construction, so don't put secrets in a shared link. (The [privacy policy](/info/privacy.html) covers this surface in its own words.)
 - **Official and community tools only** - anything else is a 404.
 - **Browser-free formats only**: the vector, float-raster and data set - `svg`, `emf`, `eps`, `eps-cmyk`, `dxf`, `exr`, `hdr`, `penpot`, `html`, `md`, `txt`, `json`, `csv`, `ics`, `vcf` - plus `png` for SVG-native tools such as `qr-code`. Formats that need the browser tier return an honest `400` - use `lolly_render` or the app for those.
-- **Content Credentials are off here**, because a credential is signed with a fresh timestamp and nothing signed is cacheable. With them off, the vector and PNG formats this route serves are byte-stable run to run, which is what makes responses cacheable (a day at the CDN, `ETag` revalidation after that). `ics` is the exception in the list below: RFC 5545 requires a `DTSTAMP`, so an `.ics` differs between any two requests a second apart. A credentialed render is one `lolly_render` call away.
+- **Content Credentials are off here**, because each signing changes the bytes. Public calendar files use the catalog's build time for `DTSTAMP`; an empty Calendar start date uses that build's date at 09:00. Set the event date explicitly when sharing a calendar link. Authenticated `lolly_render` and local exports retain their original export behavior.
 - Renders are **rate-limited per address** and count against the same daily budget as the open MCP endpoint. A `png` is capped at 2048 x 2048 pixels of area.
 - **Themes.** `_themes`, the theme per token group as JSON (`_themes={"":"dark"}`), renders a tool this route can draw, such as `qr-code`, with its token colours in that theme. A value that is not such JSON is a `400`, and a choice the design system does not declare draws that group's default theme with no warning. Design needs the browser tier, so this route refuses a Design document in any theme; export one in each theme with `lolly run <file.lolly> --themes=light,dark` on the CLI.
-- **One URL per image.** A parameter the render never reads (an unknown name, or a reserved one such as `export` or `c2pa` that this route ignores) is removed with a `308` redirect, so the CDN caches one URL for each image.
+- **Canonical URLs.** Parameters are sorted and unused transport parameters are removed with a `308` redirect. A packed `z=` stays packed with its original encoded bytes; the redirect never expands a large document into the URL.
 - Responses are marked **`noindex`**, so search engines don't index your renders.
 
 Operators who don't want a public render surface switch the route off entirely with `LOLLY_DISABLE_RENDER_GET=1` - every `/tool/<id>.<ext>` URL then returns 404.
+
+A shared cache may hold public renders for one day, then serve them stale for up to seven more days while refreshing. Operators who need an immediate update use a release-specific cache key or purge the render's tool, engine and catalog tags. Intermediaries must keep decoded bytes intact. The origin compresses text over 1 KiB when the client accepts gzip or Brotli; compressed responses use weak ETags over the decoded representation.
+
+The image proxy follows its upstream's cache rules, capped at one hour. Private responses, cookies, signature-like URL parameters and private redirect hops prevent shared caching. A source that gives no usable freshness is revalidated rather than assigned a new cache lifetime.
+
+## Private download links for large results
+
+On a self-hosted, authenticated HTTP gateway, an operator can enable `LOLLY_MCP_PRIVATE_FILES=1`, configure `LOLLY_MCP_TOKEN` and `LOLLY_MCP_PUBLIC_ORIGIN`, and run a single replica (`LOLLY_MCP_REPLICAS=1`). With Helm, use `mcp.privateFiles.enabled: true` and `mcp.replicaCount: 1`. The chart refuses multiple replicas and uses a Recreate update because files belong to one process. This feature is off by default, unavailable on Vercel, and never enabled for anonymous callers.
+
+Files over 1 MiB returned by a tool become MCP `resource_link` blocks instead of large base64 payloads. Download the link with the **same MCP bearer** used for the tool request. The link expires after **five minutes**, and a process restart discards the download. A copied link without that bearer grants no access. Store the downloaded file; keep temporary `dt=` URLs out of documents, packs and asset references.
+
+Private file tools also offer `files_download` for an imported or converted handle. `resources/read` keeps its 4 MiB inline limit; the download tool can return a larger result without embedding it in JSON. Handle ownership and integrity checks still apply.
+
+Held results are limited to 64 MiB per bearer, 256 MiB across the gateway and 200 pending or held files. Temporary files use a private directory and are removed after expiry or shutdown. The daily budget counts bytes when held and when downloaded, conservatively using decoded sizes so compression cannot bypass the ceiling. Downloads have `private, no-store`, a byte digest ETag, `no-transform` and `Referrer-Policy: no-referrer`. Signed files are delivered unchanged.
 
 The route's parameters, refusals and headers are described in OpenAPI 3.1 at [`/openapi.json`](/openapi.json); the other machine-readable entry points (the discovery record, `llms.txt`, `llms-full.txt`, `agents.md`) are listed on [AI Agents](/info/ai-agents.html).
 

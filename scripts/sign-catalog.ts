@@ -29,6 +29,10 @@
  *                        (default: resolved from profiles.json via content-roots)
  *   --index <path>       tool index to bind     (default: the active profile's catalog/tools/index.json)
  *   --out <path>         envelope destination   (default: sibling index.sig.json of --index)
+ *   --materialize        publish immutable URLs in an extracted build
+ *   --previous-envelope <path> carry a verified published sequence floor
+ *   --retain <build>     retain a reviewed previous immutable inventory
+ *   --expires-at <ISO>   optional expiry; omitted catalogs work offline indefinitely
  *
  * Deterministic apart from signedAt + signature (ECDSA is randomised); re-run
  * after any tool or index change, BEFORE deploying - a stale envelope makes
@@ -43,13 +47,15 @@ import {
   canonicalJson, sha256Hex, jwkThumbprint, signCatalogEnvelope,
   importSpkiOrJwkPublicKey, verifyCatalogEnvelope,
   CATALOG_SIG_ALG, CATALOG_SIGNED_TOOL_FILES, CATALOG_SIGNED_I18N_SIDECAR,
-  CATALOG_SIGNED_TEMPLATE_FILE,
+  CATALOG_SIGNED_TEMPLATE_FILE, verifyEnvelopeSignature,
 } from '../engine/src/catalog-integrity.ts';
-import type { UnsignedCatalogEnvelope } from '../engine/src/catalog-integrity.ts';
+import type { CatalogSignatureEnvelope, UnsignedCatalogEnvelope } from '../engine/src/catalog-integrity.ts';
 import { pemToDer, derToPem } from '../engine/src/x509.ts';
 import {
   catalogFile, listToolFiles, readToolManifestText, toolDirs, toolFile,
 } from '@lolly-tools/node-shell/content-roots';
+
+import { catalogToolFiles, materializeCatalogDelivery, publishCatalogIndexes, retainCatalogDelivery } from './materialize-catalog-delivery.ts';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const KEYS_DIR = join(ROOT, 'keys');
@@ -64,6 +70,10 @@ interface Args {
   toolsDir: string | null;
   indexPath: string;
   outPath: string | null;
+  materialize: boolean;
+  previousEnvelope: string | null;
+  retain: string | null;
+  expiresAt: string | null;
 }
 
 function parseArgs(argv: string[]): Args {
@@ -73,6 +83,10 @@ function parseArgs(argv: string[]): Args {
     toolsDir: null,
     indexPath: catalogFile('tools/index.json'),
     outPath: null,
+    materialize: false,
+    previousEnvelope: null,
+    retain: null,
+    expiresAt: null,
   };
   for (let i = 0; i < argv.length; i++) {
     const flag = argv[i];
@@ -86,6 +100,13 @@ function parseArgs(argv: string[]): Args {
     else if (flag === '--tools') args.toolsDir = resolve(next());
     else if (flag === '--index') args.indexPath = resolve(next());
     else if (flag === '--out') args.outPath = resolve(next());
+    else if (flag === '--materialize') args.materialize = true;
+    else if (flag === '--previous-envelope') args.previousEnvelope = resolve(next());
+    else if (flag === '--retain') args.retain = resolve(next());
+    else if (flag === '--expires-at') {
+      args.expiresAt = next();
+      if (!Number.isFinite(Date.parse(args.expiresAt)) || Date.parse(args.expiresAt) <= Date.now()) throw new Error('--expires-at must be a future ISO timestamp');
+    }
     else throw new Error(`unknown flag ${flag}`);
   }
   return args;
@@ -143,26 +164,12 @@ function listToolIds(toolsDir: string): string[] {
   return readdirSync(toolsDir)
     .filter(name => {
       const dir = join(toolsDir, name);
-      return statSync(dir).isDirectory() && existsSync(join(dir, 'tool.json'));
+      return /^[a-z0-9][a-z0-9-]*$/i.test(name) && statSync(dir).isDirectory() && existsSync(join(dir, 'tool.json'));
     })
     .sort();
 }
 
-async function run(args: Args): Promise<void> {
-  const privateKey = await importPrivateKey(loadKeyMaterial(args));
-  // Public half from the private JWK: same x/y, minus d - gives the RFC 7638 keyId
-  // and lets the script self-verify what it just signed.
-  const privJwk = await subtle.exportKey('jwk', privateKey);
-  const pubJwk: JsonWebKey = { kty: privJwk.kty, crv: privJwk.crv, x: privJwk.x, y: privJwk.y };
-  const keyId = await jwkThumbprint(pubJwk);
-
-  if (!existsSync(args.indexPath)) {
-    console.error(`✗ tool index not found: ${args.indexPath} - run pnpm run build:catalog first`);
-    process.exit(1);
-  }
-  const indexBytes = readFileSync(args.indexPath);
-  const indexHash = await sha256Hex(indexBytes);
-
+async function signedToolFiles(args: Args): Promise<{ files: Record<string, string>; toolIds: string[] }> {
   const files: Record<string, string> = {};
   let toolIds: string[];
   if (args.toolsDir) {
@@ -229,12 +236,61 @@ async function run(args: Args): Promise<void> {
     }
   }
 
+  if (args.toolsDir) Object.assign(files, catalogToolFiles(args.toolsDir));
+  else for (const id of toolIds) for (const rel of listToolFiles(id)) {
+    if (rel === 'tool.json' || (rel.startsWith('i18n/') && !CATALOG_SIGNED_I18N_SIDECAR.test(rel)) || (rel.startsWith('templates/') && !CATALOG_SIGNED_TEMPLATE_FILE.test(rel))) continue;
+    const path = toolFile(id, rel);
+    if (path) files[`${id}/${rel}`] = await sha256Hex(readFileSync(path));
+  }
+  return { files, toolIds };
+}
+
+async function run(args: Args): Promise<void> {
+  const privateKey = await importPrivateKey(loadKeyMaterial(args));
+  // Public half from the private JWK: same x/y, minus d - gives the RFC 7638 keyId
+  // and lets the script self-verify what it just signed.
+  const privJwk = await subtle.exportKey('jwk', privateKey);
+  const pubJwk: JsonWebKey = { kty: privJwk.kty, crv: privJwk.crv, x: privJwk.x, y: privJwk.y };
+  const keyId = await jwkThumbprint(pubJwk);
+
+  if (!existsSync(args.indexPath)) {
+    console.error(`✗ tool index not found: ${args.indexPath} - run pnpm run build:catalog first`);
+    process.exit(1);
+  }
+  const outPath = args.outPath ?? join(dirname(args.indexPath), 'index.sig.json');
+  const buildRoot = resolve(dirname(args.indexPath), '../..');
+  if (args.materialize && (!args.toolsDir || args.toolsDir !== join(buildRoot, 'tools') || args.indexPath !== join(buildRoot, 'catalog/tools/index.json'))) throw new Error('--materialize requires an explicit extracted build tools/index layout');
+  if (args.retain && !args.materialize) throw new Error('--retain requires --materialize');
+  const retained = args.retain ? retainCatalogDelivery(buildRoot, args.retain) : [];
+  const materialized = args.materialize ? await materializeCatalogDelivery(buildRoot) : null;
+  const indexBytes = readFileSync(args.indexPath);
+  const indexHash = await sha256Hex(indexBytes);
+
+  const { files, toolIds } = await signedToolFiles(args);
+  // A prior envelope is verified against the signing identity before its sequence is used.
+  // Clean release worktrees must provide --previous-envelope to carry the published floor.
+  const previousPath = args.previousEnvelope ?? (existsSync(outPath) ? outPath : null);
+  let seq = 1;
+  if (previousPath) {
+    const previous = JSON.parse(readFileSync(previousPath, 'utf8')) as CatalogSignatureEnvelope;
+    const verification = await verifyEnvelopeSignature(previous, await importSpkiOrJwkPublicKey(pubJwk));
+    if (!verification.ok) throw new Error('Previous catalog envelope did not verify against the signing identity');
+    seq = (previous.seq ?? 0) + 1;
+    if (!Number.isSafeInteger(seq)) throw new Error('Catalog sequence exhausted');
+  }
+  const assetPath = join(dirname(args.indexPath), '../assets/index.json');
+  const slimPath = join(dirname(args.indexPath), 'index.slim.json');
   const unsigned: UnsignedCatalogEnvelope = {
     alg: CATALOG_SIG_ALG,
     keyId,
     signedAt: new Date().toISOString(),
     indexHash,
     files,
+    seq,
+    ...(args.expiresAt ? { expiresAt: args.expiresAt } : {}),
+    ...(existsSync(assetPath) ? { assetIndexHash: await sha256Hex(readFileSync(assetPath)) } : {}),
+    ...(existsSync(slimPath) ? { slimHash: await sha256Hex(readFileSync(slimPath)) } : {}),
+    ...(materialized ? { toolDirs: materialized.toolDirs } : {}),
   };
   const envelope = await signCatalogEnvelope(unsigned, privateKey);
 
@@ -261,7 +317,7 @@ async function run(args: Args): Promise<void> {
     process.exit(1);
   }
 
-  const outPath = args.outPath ?? join(dirname(args.indexPath), 'index.sig.json');
+  if (args.materialize) publishCatalogIndexes(buildRoot, envelope, [...retained, ...(materialized?.files ?? [])]);
   writeFileSync(outPath, JSON.stringify(envelope, null, 2) + '\n');
   console.log(`✓ signed ${toolIds.length} tools (${Object.keys(files).length} files) + index`);
   console.log(`  keyId: ${keyId}`);
