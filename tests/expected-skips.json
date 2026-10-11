@@ -1795,20 +1795,6 @@
       "owner": "tests"
     },
     {
-      "file": "tests/emoji-tools.browser.test.ts",
-      "fullName": "new tools default to Fluent High Contrast and explicit tool links retain their own choice",
-      "reason": "set LOLLY_EXPORT_TEST_URL",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/emoji-tools.browser.test.ts",
-      "fullName": "tool previews draw curved emoji, timed captions and geometry from selected artwork",
-      "reason": "set LOLLY_EXPORT_TEST_URL",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
       "file": "tests/event-kit.browser.test.ts",
       "fullName": "chromium: first delivery failure retains a real downloadable file",
       "reason": "set LOLLY_KIT_TEST_URL to a local web shell",

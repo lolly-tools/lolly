@@ -45,7 +45,7 @@ test('surfaces.md names every MCP tool the server registers', () => {
   const documentedTools = [...surfaces.matchAll(/^\| `(lolly_[a-z_]+)` \|/gm)].map(match => match[1]);
   assert.deepEqual(documentedTools.sort(), tools.sort(), 'MCP tool table must match the registered tools');
   const scoped = surfaces.match(/### Scoped file tools\n([\s\S]*?)\n### Resources/);
-  assert.ok(scoped, 'surfaces.md must describe the scoped file tools');
+  assert.ok(scoped?.[1], 'surfaces.md must describe the scoped file tools');
   const documentedFiles = [...new Set([...scoped[1].matchAll(/`(files_[a-z_]+)`/g)].map(match => match[1]))];
   assert.deepEqual(documentedFiles.sort(), files.sort(), 'scoped file documentation must match the registered tools');
 });

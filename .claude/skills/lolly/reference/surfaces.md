@@ -69,7 +69,10 @@ render.
   endpoints under `/.well-known/`. For HTML-layout tools
   (`design`, `chart`), large files or heavy automation, use the CLI.
 
-### Tools
+### The 21 tools
+
+These tools are available on every connection. An authenticated file scope adds
+the tools described under **Scoped file tools** below.
 
 | Tool | Required | Does |
 |---|---|---|

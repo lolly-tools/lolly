@@ -61,6 +61,8 @@ export function classifyTest(file: string, repo = REPO): TestShard {
   if (/tests\/(?:tauri-security|native-file-associations)\.test\.ts$/.test(normalized)) return 'tauri';
   if (CONFORMANCE.test(normalized)) return 'conformance';
   if (SECURITY.test(normalized)) return 'security';
+  // Browser files need installed browser tools even when their topic is a tool.
+  if (/\.browser\.test\.(?:ts|js)$/.test(normalized)) return 'browser';
   if (TOOLS.test(normalized)) return 'tools';
 
   // Browser-dependent tests have historically used many feature-specific names.

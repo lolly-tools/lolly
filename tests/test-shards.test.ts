@@ -24,4 +24,8 @@ test('transport-specific tests stay in their intended shard', () => {
   assert.equal(classifyTest('shells/web/src/bridge/hook-worker.test.ts'), 'security');
   assert.equal(classifyTest('packages/core/test/mock-host.test.ts'), 'contracts');
   assert.equal(classifyTest('tests/webmcp.browser.test.ts'), 'browser');
+  assert.equal(classifyTest('tests/topbar-tools-navigation.browser.test.ts'), 'browser');
+  assert.equal(classifyTest('tests/emoji-tools.browser.test.ts'), 'browser');
+  assert.equal(classifyTest('tests/action-icons.browser.test.ts'), 'security');
+  assert.equal(classifyTest('tests/hook-worker-isolation.browser.test.ts'), 'security');
 });

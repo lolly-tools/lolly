@@ -11,7 +11,7 @@
  *   - the MCP arguments the docs describe for `lolly_measure_text` and `lolly_package`
  *     are properties of those tools' input schemas;
  *   - the tool count words in docs/mcp.md and the skill's surfaces heading match the
- *     always-on tools the server registers;
+ *     always-on tools the server registers, with scoped file tools counted separately;
  *   - every value a W5 engine module exports is named in the 1.244.0 CHANGELOG;
  *   - the docs say what `--s` takes on a Design run, that a placeholder picture is
  *     drawn only after `lolly package`, and carry no development-branch wording;
@@ -33,6 +33,7 @@ import { DESIGN_COMPOSE_CASES, DESIGN_COMPOSE_EMPHASIS_MODES, DESIGN_COMPOSE_LOG
 import { COMPOSE_BOOL_FLAGS, COMPOSE_VALUE_FLAGS, MEASURE_BOOL_FLAGS, MEASURE_VALUE_FLAGS, PACKAGE_BOOL_FLAGS, PACKAGE_VALUE_FLAGS } from '../shells/cli/src/args.ts';
 import { DESIGN_SESSION_EXPORT_FORMATS, SESSION_RUN_FLAGS, designSessionRunPlan } from '../shells/cli/src/design-session.ts';
 import { TOOL_DEFS } from '../services/mcp/src/tools.ts';
+import { PRIVATE_FILE_TOOLS } from '../services/mcp/src/file-resources.ts';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (rel: string): string => readFileSync(resolve(ROOT, rel), 'utf8');
@@ -216,7 +217,7 @@ test('the MCP arguments the docs describe are in the tools\' input schemas', () 
   for (const arg of ['mode', 'spec', 'inventory', 'source', 'size', 'theme', 'fit']) assert.ok(compose.has(arg), `lolly_compose has no ${arg} argument`);
 });
 
-test('the tool count words match the always-on tools the server registers', () => {
+test('the tool counts distinguish always-on tools from scoped file tools', () => {
   const WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve',
     'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty', 'twenty-one', 'twenty-two'];
   const n = TOOL_DEFS.length;
@@ -225,7 +226,12 @@ test('the tool count words match the always-on tools the server registers', () =
   const curls = [...mcp.matchAll(/a JSON list of the ([a-z-]+) tools/g)].map((m) => m[1]);
   assert.ok(curls.length >= 2, 'docs/mcp.md lost its curl checks');
   for (const word of curls) assert.equal(word, WORDS[n], 'docs/mcp.md curl check counts the wrong number of tools');
-  assert.ok(read('skills/lolly/reference/surfaces.md').includes(`### The ${n} tools`), `surfaces.md should head its tool table "The ${n} tools"`);
+  const surfaces = read('skills/lolly/reference/surfaces.md');
+  assert.ok(surfaces.includes(`### The ${n} tools`), `surfaces.md should head its always-on tool table "The ${n} tools"`);
+  assert.ok(surfaces.includes('These tools are available on every connection.'), 'surfaces.md must distinguish always-on tools from scoped tools');
+  const scoped = surfaces.match(/### Scoped file tools\n([\s\S]*?)\n### Resources/);
+  assert.ok(scoped?.[1], 'surfaces.md must describe the scoped file tools');
+  assert.ok(scoped[1].includes(`${WORDS[PRIVATE_FILE_TOOLS.length]} more tools appear`), 'surfaces.md must count scoped file tools separately');
 });
 
 test('every value the barrel exports from a plans/291 W5 engine module is named under ## 1.244.0 or a later minor', () => {
