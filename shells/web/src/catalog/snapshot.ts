@@ -4,6 +4,7 @@ import {
   catalogFreshness, catalogIndexPath, sha256Hex, verifyEnvelopeSignature,
 } from '../../../../engine/src/catalog-integrity.ts';
 import type { CatalogSignatureEnvelope, CatalogWatermark } from '../../../../engine/src/catalog-integrity.ts';
+import { assetIndexIntegrity } from './asset-integrity.ts';
 
 export interface CatalogSnapshot {
   envelope: CatalogSignatureEnvelope;
@@ -54,14 +55,9 @@ async function catalogText(response: Response): Promise<string> {
 
 const refuse = (reason: string): never => { throw new CatalogTrustError(`Catalog refused: ${reason}`); };
 
-function assetChecksums(text: string): void {
-  const index = JSON.parse(text) as { assets?: Array<{ formats?: Array<{ checksum?: string }>; locales?: Record<string, Array<{ checksum?: string }>> }> };
-  if (!Array.isArray(index.assets)) refuse('the signed asset index has no assets list');
-  for (const asset of index.assets!) {
-    for (const format of [...(asset.formats ?? []), ...Object.values(asset.locales ?? {}).flat()]) {
-      if (typeof format.checksum !== 'string' || !/^sha256-[A-Za-z0-9+/]{43}=$/.test(format.checksum)) refuse('a signed asset format has no SHA-256 checksum');
-    }
-  }
+function assetChecksums(text: string, catalogScope?: string): void {
+  const reason = assetIndexIntegrity(JSON.parse(text), catalogScope);
+  if (reason) refuse(reason);
 }
 
 /** Even durable local copies are checked against the pinned identity before reuse. */
@@ -75,7 +71,7 @@ async function checkedOffline(io: CatalogSnapshotIO, previous: AcceptedCatalog):
   for (const [text, digest] of [[snapshot.toolText, envelope.indexHash], [snapshot.assetText, envelope.assetIndexHash], [snapshot.slimText, envelope.slimHash]] as const) {
     if (digest && (text === undefined || await sha256Hex(new TextEncoder().encode(text)) !== digest)) refuse('the saved catalog bytes do not verify');
   }
-  if (snapshot.assetText !== undefined) assetChecksums(snapshot.assetText);
+  if (snapshot.assetText !== undefined) assetChecksums(snapshot.assetText, envelope.assetIndexHash ? envelope.catalogScope : undefined);
   return { ...snapshot, offline: true };
 }
 
@@ -128,7 +124,7 @@ export async function fetchSignedCatalogSnapshot(io: CatalogSnapshotIO): Promise
         envelope.indexHash, old, old?.envelope.indexHash === envelope.indexHash ? old.toolText : undefined, reload, validators);
       const assetText = envelope.assetIndexHash ? await resource(io, catalogIndexPath(envelope.assetIndexHash, 'assets'), '/catalog/assets/index.json',
         envelope.assetIndexHash, old, old?.envelope.assetIndexHash === envelope.assetIndexHash ? old.assetText : undefined, reload, validators) : undefined;
-      if (assetText !== undefined) assetChecksums(assetText);
+      if (assetText !== undefined) assetChecksums(assetText, envelope.catalogScope);
       const slimText = envelope.slimHash ? await resource(io, catalogIndexPath(envelope.slimHash, 'slim'), '/catalog/tools/index.slim.json',
         envelope.slimHash, old, old?.envelope.slimHash === envelope.slimHash ? old.slimText : undefined, reload, validators) : undefined;
       for (const text of [toolText, slimText]) {

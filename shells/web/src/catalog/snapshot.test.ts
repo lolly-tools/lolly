@@ -50,6 +50,52 @@ test('signature-first snapshot authenticates all indexes before accepting the fl
   assert.equal(h.stored()!.watermark.seq, 2);
 });
 
+test('a scoped signed catalog accepts provider metadata alongside hashed local assets, including offline reuse', async () => {
+  const mixed = JSON.stringify({ assets: [...JSON.parse(assetText).assets, {
+    id: 'ext/cp_brandfolder/asset-123', provider: 'cp_brandfolder', version: '0123456789abcdef',
+    formats: [{ format: 'png', url: '/catalog/ext/cp_brandfolder/asset-123/attachment-123' },
+      { format: 'pdf', url: '/catalog/ext/cp_brandfolder/asset-123/attachment-456' },
+      { format: 'thumb', url: '/catalog/ext/cp_brandfolder/asset-123/thumb' }],
+  }] });
+  const offered = await envelope(2, { catalogScope: 'b'.repeat(64), assetIndexHash: await sha256Hex(bytes(mixed)) });
+  const h = harness(offered), original = h.io.fetch;
+  h.io.fetch = async (path, init) => path === catalogIndexPath(offered.assetIndexHash!, 'assets') ? new Response(mixed) : original(path, init);
+  assert.equal((await fetchSignedCatalogSnapshot(h.io)).assetText, mixed);
+  assert.equal(h.accepts(), 1);
+  h.io.fetch = async () => { throw new TypeError('network unavailable'); };
+  assert.equal((await fetchSignedCatalogSnapshot(h.io)).offline, true);
+  assert.equal(h.accepts(), 1);
+});
+
+test('authentic signatures cannot admit unscoped or spoofed provider rows or advance their trust floor', async () => {
+  for (const change of [{ scope: undefined, url: '/catalog/ext/cp_brandfolder/asset-123/file' },
+    { scope: 'b'.repeat(64), url: 'https://cdn.example/file' },
+    { scope: 'b'.repeat(64), url: '/catalog/ext/other/asset-123/file' },
+    { scope: 'b'.repeat(64), url: '/catalog/ext/cp_brandfolder/asset-123/file', checksum: 'invalid' }]) {
+    const metadata = JSON.stringify({ assets: [{ id: 'ext/cp_brandfolder/asset-123', provider: 'cp_brandfolder',
+      version: '0123456789abcdef', formats: [{ format: 'png', url: change.url, checksum: change.checksum }] }] });
+    const offered = await envelope(2, { catalogScope: change.scope, assetIndexHash: await sha256Hex(bytes(metadata)) });
+    const h = harness(offered), original = h.io.fetch;
+    h.io.fetch = async (path, init) => path === catalogIndexPath(offered.assetIndexHash!, 'assets') ? new Response(metadata) : original(path, init);
+    await assert.rejects(fetchSignedCatalogSnapshot(h.io), CatalogTrustError);
+    assert.equal(h.accepts(), 0);
+    assert.equal(h.stored(), null);
+    assert.equal(h.calls.filter(call => call.path.endsWith('index.sig.json')).length, 1);
+  }
+});
+
+test('a signed scope alone cannot exempt unhashed provider metadata injected into an offline snapshot', async () => {
+  const offered = await envelope(2, { catalogScope: 'b'.repeat(64), assetIndexHash: undefined });
+  const h = harness(offered);
+  h.seed({ watermark: { seq: 2, signedAt: offered.signedAt }, snapshot: { envelope: offered, toolText, slimText,
+    assetText: JSON.stringify({ assets: [{ id: 'ext/cp_brandfolder/asset-123', provider: 'cp_brandfolder',
+      version: '0123456789abcdef', formats: [{ format: 'png', url: '/catalog/ext/cp_brandfolder/asset-123/file' }] }] }),
+    validators: {} } });
+  h.io.fetch = async () => { throw new TypeError('network unavailable'); };
+  await assert.rejects(fetchSignedCatalogSnapshot(h.io), CatalogTrustError);
+  assert.equal(h.accepts(), 0);
+});
+
 test('a stale byte pair gets exactly one reload retry; repeated mismatch never advances trust', async () => {
   const offered = await envelope(), h = harness(offered), original = h.io.fetch;
   h.io.fetch = async (path, init) => path === catalogIndexPath(offered.indexHash) ? new Response('wrong bytes') : original(path, init);
@@ -83,7 +129,7 @@ test('an older signed revision is refused before any index request, without retr
 });
 
 test('a forged sequence, expiry or digest fails the signature and cannot raise the floor', async () => {
-  for (const extra of [{ seq: 900 }, { expiresAt: '2099-01-01T00:00:00.000Z' }, { assetIndexHash: 'f'.repeat(64) }]) {
+  for (const extra of [{ seq: 900 }, { expiresAt: '2099-01-01T00:00:00.000Z' }, { assetIndexHash: 'f'.repeat(64) }, { catalogScope: 'b'.repeat(64) }]) {
     const h = harness({ ...await envelope(), ...extra });
     await assert.rejects(fetchSignedCatalogSnapshot(h.io), CatalogTrustError);
     assert.equal(h.accepts(), 0);

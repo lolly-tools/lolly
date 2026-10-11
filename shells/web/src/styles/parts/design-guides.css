@@ -170,7 +170,7 @@
   height: 20px;
   pointer-events: auto;
   touch-action: none;
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
   background: var(--guide-color, var(--ui-color-action-primary));
   color: var(--ui-color-surface-raised);
   z-index: 1;
@@ -212,7 +212,7 @@
   left: -35px;
   padding: 0 4px;
   border: 1px solid var(--ui-color-focus-ring);
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
   background: var(--ui-color-surface-raised);
   color: var(--ui-color-text-default);
   font:

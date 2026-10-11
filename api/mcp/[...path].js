@@ -177780,6 +177780,17 @@ function errorPage(message) {
 
 // services/mcp/src/gateway.ts
 import { createHash as createHash15 } from "node:crypto";
+
+// services/mcp/src/admission-namespace.ts
+function admissionNamespace(env) {
+  const value = env.LOLLY_MCP_ADMISSION_NAMESPACE ?? "mcp";
+  if (!/^[a-z][a-z0-9_-]{0,63}$/.test(value)) {
+    throw new Error("LOLLY_MCP_ADMISSION_NAMESPACE must be 1-64 lowercase ASCII letters, digits, underscores or hyphens, starting with a letter");
+  }
+  return value;
+}
+
+// services/mcp/src/gateway.ts
 init_src();
 var CORS = {
   "access-control-allow-origin": "*",
@@ -177946,6 +177957,7 @@ async function overBudget(budget3) {
   }
 }
 function createGateway(env = process.env, options2 = {}) {
+  const namespace2 = admissionNamespace(env);
   const mcpEnabled = !!signingSecret(env) || env.LOLLY_MCP_ALLOW_ANONYMOUS === "1";
   let base = null;
   let mcpUnavailable = null;
@@ -177957,8 +177969,8 @@ function createGateway(env = process.env, options2 = {}) {
       console.error(`[mcp] ${mcpUnavailable} - the MCP surface answers 503 until it is set; the public render route is unaffected`);
     }
   }
-  const limiter = createRateLimiter(env, "mcp", options2.onWrite);
-  const budget3 = options2.budget ?? createUsageBudget(env, "mcp", options2.onWrite);
+  const limiter = createRateLimiter(env, namespace2, options2.onWrite);
+  const budget3 = options2.budget ?? createUsageBudget(env, namespace2, options2.onWrite);
   const open3 = openAccess(env);
   const files = options2.resultFiles ?? resultFiles;
   return async (req, rawResponse) => {

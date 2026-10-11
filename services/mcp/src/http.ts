@@ -22,13 +22,14 @@ import { browserJobStatus, closeBrowser, closeWebShell } from './render.ts';
 import { createUsageBudget } from './usage-budget.ts';
 import { privateFiles } from './file-resources.ts';
 import { resultFiles } from './result-files.ts';
+import { admissionNamespace } from './admission-namespace.ts';
 
 /** @deprecated name kept for back-compat; the gateway now also serves OAuth. */
 export const createMcpHttpHandler = createGateway;
 
 export function startHttpServer(port = Number(process.env.PORT || 8790)): void {
   const writes = createWriteTracker();
-  const budget = createUsageBudget(process.env, 'mcp', writes.begin);
+  const budget = createUsageBudget(process.env, admissionNamespace(process.env), writes.begin);
   const handler = createGateway(process.env, { onWrite: writes.begin, budget });
   const relay = createLiveRelay();
   let dispose = (): void => {};

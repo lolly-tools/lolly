@@ -74,6 +74,23 @@ directory with 0600 permissions, bounded owner/global/count quotas and expiry
 cleanup. Hold and download bytes count against the daily budget. Never persist
 these temporary URLs as asset identities or provenance ingredient URLs.
 
+### Separate gateway admission counters
+
+`LOLLY_MCP_ADMISSION_NAMESPACE` optionally separates a gateway's rate limits and
+daily CPU/egress budget on the same Redis-compatible REST store. The default is
+`mcp`, preserving the existing counter keys. For a separate authenticated gateway,
+use a stable distinct value such as `mcp-restricted-v1`; keep the anonymous
+gateway's setting unchanged. Values must start with a lowercase ASCII letter and
+contain 1-64 lowercase letters, digits, underscores or hyphens. Invalid values
+refuse startup, including standalone HTTP and its final accounting flush.
+
+This setting changes counters only. It does not grant authorization, create
+caller identities, isolate backend capacity or make process-local result handles
+portable. Every replica of one gateway must use the same namespace. Changing the
+namespace starts a different counter set and must be an explicit operator choice,
+not a way to reset an exhausted daily budget. Keep the namespace fixed across
+restarts and ordinary releases; final drain accounting uses the same setting.
+
 Existing clients can still initialize with `2025-11-25`, `2025-06-18` or
 `2025-03-26`. An unsupported initialize version selects `2025-11-25`; arbitrary
 versions are never echoed. Legacy requests retain their original result shape
