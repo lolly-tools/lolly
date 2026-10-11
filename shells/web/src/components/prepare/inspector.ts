@@ -26,6 +26,15 @@ const CATEGORY: Record<string, { label: () => string; icon: IconName }> = {
   name: { label: () => t('Names'), icon: 'user' },
   date: { label: () => t('Dates'), icon: 'calendar' },
   custom: { label: () => t('Your values'), icon: 'tag' },
+  'office-properties': { label: () => t('Document properties'), icon: 'document' },
+  'office-comments': { label: () => t('Comments and authors'), icon: 'speech' },
+  'office-revisions': { label: () => t('Tracked changes'), icon: 'history' },
+  'office-hidden': { label: () => t('Hidden document content'), icon: 'eye' },
+  'office-notes': { label: () => t('Speaker notes'), icon: 'document' },
+  'office-links': { label: () => t('External links and connections'), icon: 'link' },
+  'office-names': { label: () => t('Defined names'), icon: 'tag' },
+  'office-caches': { label: () => t('Cached workbook data'), icon: 'table' },
+  'office-embedded': { label: () => t('Embedded objects'), icon: 'document' },
 };
 export function categoryLabel(category: string): string {
   const known = CATEGORY[category];
@@ -120,7 +129,7 @@ export function renderCoverage(side: HTMLElement, inspection: PreparationInspect
       <span class="chip chip--status prep-scope-status" data-status="${htmlEscape(s.status)}">${scopeStatusLabel(s.status)}</span>
       <span class="chip">${htmlEscape(s.format)}</span>
       ${s.limitations.length ? `<details class="prep-scope-notes"><summary>${s.limitations.length} ${s.limitations.length === 1 ? t('note') : t('notes')}</summary>${s.limitations.map(l => `<p>${htmlEscape(l)}</p>`).join('')}</details>` : ''}
-      ${s.id !== s.sourceId ? `<label class="prep-scope-remove"><input type="checkbox" class="field-check" data-remove="${htmlEscape(s.id)}"> ${t('Leave this member out of the copy')}</label>` : ''}
+      ${s.id !== s.sourceId && !s.readOnly ? `<label class="prep-scope-remove"><input type="checkbox" class="field-check" data-remove="${htmlEscape(s.id)}"> ${t('Leave this member out of the copy')}</label>` : ''}
     </li>`).join('')}</ul>`;
   box.hidden = false;
 }

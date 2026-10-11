@@ -4006,7 +4006,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.250.0";
+    ENGINE_VERSION = "1.251.0";
   }
 });
 
@@ -9206,7 +9206,7 @@ function resolveTokenSelection(doc, opts = {}) {
   const active = Array.isArray(meta.activeThemes) ? meta.activeThemes : [];
   const defaults2 = [];
   const choices2 = /* @__PURE__ */ new Map();
-  const enabled3 = /* @__PURE__ */ new Set();
+  const enabled4 = /* @__PURE__ */ new Set();
   let legacyFound = false;
   for (const [group, options2] of groups) {
     const wanted = requested && Object.hasOwn(requested, group) ? requested[group] : void 0;
@@ -9218,7 +9218,7 @@ function resolveTokenSelection(doc, opts = {}) {
     if (!matches4.length) defaults2.push(group);
     choices2.set(group, choice3.id);
     if (record(choice3.raw.selectedTokenSets)) for (const [set, status] of Object.entries(choice3.raw.selectedTokenSets)) {
-      if (status && status !== "disabled") enabled3.add(set);
+      if (status && status !== "disabled") enabled4.add(set);
     }
   }
   if (opts.theme && !legacyFound && groups.size) issue2(`Unknown theme ${opts.theme}; defaults are effective.`);
@@ -9226,10 +9226,10 @@ function resolveTokenSelection(doc, opts = {}) {
     for (const group of Object.keys(requested)) if (!groups.has(group)) issue2(`Unknown theme group ${group}.`);
   }
   const keys2 = tokenSetNames(d) ?? [];
-  for (const set of enabled3) if (!keys2.includes(set)) issue2(`Selected set ${set} is missing.`);
-  let sets = groups.size ? keys2.filter((k) => enabled3.has(k)) : keys2;
+  for (const set of enabled4) if (!keys2.includes(set)) issue2(`Selected set ${set} is missing.`);
+  let sets = groups.size ? keys2.filter((k) => enabled4.has(k)) : keys2;
   if (!groups.size && Array.isArray(meta.activeSets) && meta.activeSets.length) sets = sets.filter((k) => meta.activeSets.includes(k));
-  if (groups.size && !enabled3.size) sets = keys2;
+  if (groups.size && !enabled4.size) sets = keys2;
   if (Array.isArray(meta.tokenSetOrder)) {
     const ordered = meta.tokenSetOrder.filter((s) => typeof s === "string" && sets.includes(s));
     sets = [.../* @__PURE__ */ new Set([...ordered, ...sets])];
@@ -34343,7 +34343,7 @@ function normalize(source, viewBox, parseXml, authoredPaint = false) {
   const changes = /* @__PURE__ */ new Set(["Canonicalized SVG syntax and inline presentation styles.", "Prefixed local SVG ids and paint references for placement."]);
   if (omittedDoctype) changes.add("Omitted the standard SVG 1.1 doctype without loading its external subset.");
   let nodes = 0, totalArguments = 0;
-  function declare(attributes, name, value, tag3, depth, hidden4) {
+  function declare(attributes2, name, value, tag3, depth, hidden4) {
     if (name === "enable-background") {
       if (!/^new(?:\s|$)/.test(value.trim())) throw new Error("Unsupported SVG enable-background.");
       changes.add(inert[name]);
@@ -34361,14 +34361,14 @@ function normalize(source, viewBox, parseXml, authoredPaint = false) {
       return;
     }
     if (name !== "id" && name !== "transform" && !presentation.has(name) && !tags[tag3].includes(name)) throw new Error(`Unsupported SVG attribute ${name}.`);
-    attributes[name] = staticSvgAttribute(name, value, tag3, authoredPaint);
+    attributes2[name] = staticSvgAttribute(name, value, tag3, authoredPaint);
   }
   function walk2(element, depth) {
     if (++nodes > 4096 || depth > 32) throw new Error("SVG exceeds the supported element or depth limit.");
     const tag3 = element.localName;
     if (element.namespaceURI !== namespace || element.prefix || !Object.hasOwn(tags, tag3) || tag3 === "svg" !== (depth === 0)) throw new Error(`Unsupported SVG element ${tag3}.`);
     if (element.attributes.length > 48) throw new Error("SVG exceeds the supported attribute count.");
-    const attributes = {};
+    const attributes2 = {};
     const hidden4 = { value: false };
     let style = "";
     for (const attr5 of Array.from(element.attributes)) {
@@ -34401,8 +34401,8 @@ function normalize(source, viewBox, parseXml, authoredPaint = false) {
         style = value;
         continue;
       }
-      if (name === "href" && attributes.href !== void 0) throw new Error("Duplicate SVG use reference.");
-      declare(attributes, name, value, tag3, depth, hidden4);
+      if (name === "href" && attributes2.href !== void 0) throw new Error("Duplicate SVG use reference.");
+      declare(attributes2, name, value, tag3, depth, hidden4);
     }
     for (const declaration of style.split(";")) {
       if (!declaration.trim()) continue;
@@ -34410,15 +34410,15 @@ function normalize(source, viewBox, parseXml, authoredPaint = false) {
       if (index2 < 1) throw new Error("Malformed SVG style.");
       const name = declaration.slice(0, index2).trim(), value = declaration.slice(index2 + 1).trim();
       if (name !== "id" && name !== "transform" && !presentation.has(name) && !Object.hasOwn(inert, name) && name !== "display") throw new Error(`Unsupported SVG style ${name}.`);
-      declare(attributes, name, value, tag3, depth, hidden4);
+      declare(attributes2, name, value, tag3, depth, hidden4);
     }
-    if (attributes.id) {
-      if (ids2.has(attributes.id)) throw new Error("Duplicate SVG id.");
-      ids2.set(attributes.id, tag3);
+    if (attributes2.id) {
+      if (ids2.has(attributes2.id)) throw new Error("Duplicate SVG id.");
+      ids2.set(attributes2.id, tag3);
     }
-    if (tag3 === "use" && attributes.href === void 0) throw new Error("SVG use without a reference.");
+    if (tag3 === "use" && attributes2.href === void 0) throw new Error("SVG use without a reference.");
     for (const name of Object.keys(referenceTargets)) {
-      const id3 = attributes[name] === void 0 ? null : localId(name, attributes[name]);
+      const id3 = attributes2[name] === void 0 ? null : localId(name, attributes2[name]);
       if (id3) references.push({ id: id3, targets: referenceTargets[name] });
     }
     const children = [];
@@ -34431,7 +34431,7 @@ function normalize(source, viewBox, parseXml, authoredPaint = false) {
     }
     const childrenAllowed = tag3.endsWith("Gradient") ? children.every((child) => child.tag === "stop") : tag3 === "clipPath" ? children.every((child) => shapes.has(child.tag) || child.tag === "use") : ["svg", "g", "defs"].includes(tag3) || !children.length;
     if (!childrenAllowed) throw new Error("Unsupported SVG child structure.");
-    if (!hidden4.value) return { tag: tag3, attributes, children };
+    if (!hidden4.value) return { tag: tag3, attributes: attributes2, children };
     changes.add("Omitted elements hidden by display none.");
     const kept2 = children.filter((child) => referenceOnly.has(child.tag));
     return kept2.length ? { tag: "defs", attributes: {}, children: kept2 } : null;
@@ -34490,15 +34490,15 @@ function emojiSvgMarkup(svg, prefix = "emoji") {
   return serialize(record40.tree, prefix);
 }
 function recolor(node, map) {
-  const attributes = { ...node.attributes };
+  const attributes2 = { ...node.attributes };
   for (const name of paintNames) {
-    const value = attributes[name];
+    const value = attributes2[name];
     if (value === void 0 || !hexPaint.test(value)) continue;
     const next2 = map(value, name);
     if (!hexPaint.test(next2)) throw new Error("Recoloured SVG paint must be a hex colour.");
-    attributes[name] = next2.toLowerCase();
+    attributes2[name] = next2.toLowerCase();
   }
-  return { tag: node.tag, attributes, children: node.children.map((child) => recolor(child, map)) };
+  return { tag: node.tag, attributes: attributes2, children: node.children.map((child) => recolor(child, map)) };
 }
 async function recolorPreparedEmojiSvg(svg, map, change) {
   const record40 = prepared.get(svg);
@@ -34519,15 +34519,15 @@ function singleInk(node, textInk2 = []) {
   return node.children.every((child) => singleInk(child, textInk2));
 }
 function inkTree(node, counted, textInk2 = []) {
-  const attributes = { ...node.attributes };
+  const attributes2 = { ...node.attributes };
   for (const name of paintNames) {
-    const value = attributes[name];
+    const value = attributes2[name];
     if (value !== void 0 && (BLACK_PAINT.test(value) || textInk2.includes(value))) {
-      attributes[name] = "currentColor";
+      attributes2[name] = "currentColor";
       counted.value += 1;
     }
   }
-  return { tag: node.tag, attributes, children: node.children.map((child) => inkTree(child, counted, textInk2)) };
+  return { tag: node.tag, attributes: attributes2, children: node.children.map((child) => inkTree(child, counted, textInk2)) };
 }
 async function inkPreparedEmojiSvg(svg) {
   const record40 = prepared.get(svg);
@@ -61407,11 +61407,11 @@ function parseVectorPaint(value, count4) {
   function visit(node, depth) {
     if (!node || typeof node !== "object" || ++nodes > 4096 || depth > 32 || !Object.hasOwn(tags2, node.tag)) throw new Error("Unsupported vector paint tree.");
     if (!node.attributes || typeof node.attributes !== "object" || Array.isArray(node.attributes) || Object.keys(node.attributes).length > 48) throw new Error("Invalid vector paint attributes.");
-    const attributes = {};
+    const attributes2 = {};
     for (const [name, value2] of Object.entries(node.attributes)) {
       if (typeof value2 === "string") budget3 += value2.length;
       if (typeof value2 !== "string" || !presentation2.includes(name) && !tags2[node.tag].includes(name) || budget3 > 1e6) throw new Error("Unsupported vector paint attribute.");
-      attributes[name] = staticSvgAttribute(name, value2, node.tag, true);
+      attributes2[name] = staticSvgAttribute(name, value2, node.tag, true);
       if (name === "id") {
         if (ids2.has(value2)) throw new Error("Duplicate vector paint id.");
         ids2.set(value2, node.tag);
@@ -61430,7 +61430,7 @@ function parseVectorPaint(value, count4) {
     } else if (node.contours !== void 0) throw new Error("Only vector paths own contours.");
     if (node.children !== void 0 && (!Array.isArray(node.children) || node.children.length > 4096)) throw new Error("Invalid vector paint children.");
     if (["path", "stop"].includes(node.tag) && node.children?.length) throw new Error("This vector paint node cannot have children.");
-    return { tag: node.tag, attributes, ...contours ? { contours } : {}, ...node.children ? { children: node.children.map((child) => visit(child, depth + 1)) } : {} };
+    return { tag: node.tag, attributes: attributes2, ...contours ? { contours } : {}, ...node.children ? { children: node.children.map((child) => visit(child, depth + 1)) } : {} };
   }
   const root2 = visit(paint2.root, 0);
   if (root2.tag !== "g" || used.size !== count4) throw new Error("Vector paint no longer matches its authored contours.");
@@ -66640,8 +66640,8 @@ function resolveCamera(cameras, tMs) {
   const track = pick.track;
   if (track && track.length > 0) {
     const start = typeof pick.start === "number" && Number.isFinite(pick.start) ? pick.start : 0;
-    const local = t - start;
-    const keyed = evaluateKf(track, local, KF_CAMERA_CHANNELS);
+    const local2 = t - start;
+    const keyed = evaluateKf(track, local2, KF_CAMERA_CHANNELS);
     for (const ch of KF_CAMERA_CHANNELS) {
       const val = keyed[ch];
       if (typeof val === "number") pose3[ch] = val;
@@ -70593,8 +70593,8 @@ function matScale(m2) {
 }
 function buildLevel(tags3, nodes, mat, wrappers, clusterGroups, budget3, onSplit) {
   const boxes = nodes.map((nd) => {
-    const local = elementBox(tags3, nd, 0);
-    return local && mat ? transformBox(local, mat) : null;
+    const local2 = elementBox(tags3, nd, 0);
+    return local2 && mat ? transformBox(local2, mat) : null;
   });
   const groupIdx = [];
   const leafIdx = [];
@@ -81018,24 +81018,24 @@ function childElements(el) {
   }
   return out;
 }
-function firstChildByLocal(el, local) {
+function firstChildByLocal(el, local2) {
   const kids2 = el.childNodes;
   for (let i = 0; i < kids2.length; i++) {
     const n7 = kids2[i];
-    if (isElement(n7) && elemLocal(n7) === local) return n7;
+    if (isElement(n7) && elemLocal(n7) === local2) return n7;
   }
   return null;
 }
-function childrenByLocal(el, local) {
-  return childElements(el).filter((c) => elemLocal(c) === local);
+function childrenByLocal(el, local2) {
+  return childElements(el).filter((c) => elemLocal(c) === local2);
 }
-function descendantByLocal(root2, local) {
+function descendantByLocal(root2, local2) {
   let visits = 0;
   const stack = [root2];
   while (stack.length) {
     const el = stack.pop();
     if (++visits > MAX_DFS_VISITS) return null;
-    if (el !== root2 && elemLocal(el) === local) return el;
+    if (el !== root2 && elemLocal(el) === local2) return el;
     const kids2 = el.childNodes;
     for (let i = kids2.length - 1; i >= 0; i--) {
       const n7 = kids2[i];
@@ -81044,14 +81044,14 @@ function descendantByLocal(root2, local) {
   }
   return null;
 }
-function attrByLocal(el, local) {
-  const direct = el.getAttribute(local);
+function attrByLocal(el, local2) {
+  const direct = el.getAttribute(local2);
   if (direct != null) return direct;
   const attrs = el.attributes;
   if (!attrs) return null;
   for (let i = 0; i < attrs.length; i++) {
     const a = attrs[i];
-    if (localName2(a.name, a.localName ?? null) === local) return a.value;
+    if (localName2(a.name, a.localName ?? null) === local2) return a.value;
   }
   return null;
 }
@@ -81360,8 +81360,8 @@ function readCoreProps(store, parseXml) {
   const doc = parsePart(store, "docProps/core.xml", parseXml);
   const root2 = doc?.documentElement;
   if (!root2) return null;
-  const grab = (local) => {
-    const t = descendantByLocal(root2, local)?.textContent?.trim();
+  const grab = (local2) => {
+    const t = descendantByLocal(root2, local2)?.textContent?.trim();
     return t ? t.slice(0, MAX_CORE_PROP_LEN) : void 0;
   };
   const out = {};
@@ -84210,25 +84210,25 @@ function childElements2(el) {
   }
   return out;
 }
-function firstChildByLocal2(el, local) {
+function firstChildByLocal2(el, local2) {
   if (!el) return null;
   const kids2 = el.childNodes;
   for (let i = 0; i < kids2.length; i++) {
     const n7 = kids2[i];
-    if (isElement2(n7) && elemLocal2(n7) === local) return n7;
+    if (isElement2(n7) && elemLocal2(n7) === local2) return n7;
   }
   return null;
 }
-function childrenByLocal2(el, local) {
-  return el ? childElements2(el).filter((c) => elemLocal2(c) === local) : [];
+function childrenByLocal2(el, local2) {
+  return el ? childElements2(el).filter((c) => elemLocal2(c) === local2) : [];
 }
-function descendantByLocal2(root2, local) {
+function descendantByLocal2(root2, local2) {
   let visits = 0;
   const stack = [root2];
   while (stack.length) {
     const el = stack.pop();
     if (++visits > MAX_DFS_VISITS2) return null;
-    if (el !== root2 && elemLocal2(el) === local) return el;
+    if (el !== root2 && elemLocal2(el) === local2) return el;
     const kids2 = el.childNodes;
     for (let i = kids2.length - 1; i >= 0; i--) {
       const n7 = kids2[i];
@@ -84237,15 +84237,15 @@ function descendantByLocal2(root2, local) {
   }
   return null;
 }
-function attrByLocal2(el, local) {
+function attrByLocal2(el, local2) {
   if (!el) return null;
-  const direct = el.getAttribute(local);
+  const direct = el.getAttribute(local2);
   if (direct != null) return direct;
   const attrs = el.attributes;
   if (!attrs) return null;
   for (let i = 0; i < attrs.length; i++) {
     const a = attrs[i];
-    if (localName3(a.name, a.localName ?? null) === local) return a.value;
+    if (localName3(a.name, a.localName ?? null) === local2) return a.value;
   }
   return null;
 }
@@ -84754,10 +84754,10 @@ function walkBody(el, ctx, depth) {
     }
   }
 }
-function collectNotes(ctx, path, local, kind, into) {
+function collectNotes(ctx, path, local2, kind, into) {
   const doc = parsePart2(ctx.store, path, ctx.parseXml);
   if (!doc?.documentElement) return;
-  for (const note2 of childrenByLocal2(doc.documentElement, local)) {
+  for (const note2 of childrenByLocal2(doc.documentElement, local2)) {
     const type = (attrByLocal2(note2, "type") || "").toLowerCase();
     if (type && type !== "normal") continue;
     const id3 = attrByLocal2(note2, "id");
@@ -84862,8 +84862,8 @@ function readCoreProps2(store, parseXml) {
   const doc = parsePart2(store, "docProps/core.xml", parseXml);
   const root2 = doc?.documentElement;
   if (!root2) return null;
-  const grab = (local) => {
-    const t = descendantByLocal2(root2, local)?.textContent?.trim();
+  const grab = (local2) => {
+    const t = descendantByLocal2(root2, local2)?.textContent?.trim();
     return t ? t.slice(0, MAX_CORE_PROP_LEN2) : void 0;
   };
   const out = {};
@@ -105632,14 +105632,14 @@ function svgItemsOf(svgText, parseXml, opts = {}) {
         const w = lengthIn(el.getAttribute("width") ?? "100%", state, "x");
         const h = lengthIn(el.getAttribute("height") ?? "100%", state, "y");
         const vb = (el.getAttribute("viewBox") ?? "").trim().split(/[\s,]+/).map(Number);
-        let local = [1, 0, 0, 1, x, y];
+        let local2 = [1, 0, 0, 1, x, y];
         const hasViewBox = vb.length === 4 && vb.every(Number.isFinite) && vb[2] > 0 && vb[3] > 0;
         if (hasViewBox && w && h) {
-          local = multiplyVectorMatrix(local, [w / vb[2], 0, 0, h / vb[3], -vb[0] * (w / vb[2]), -vb[1] * (h / vb[3])]);
+          local2 = multiplyVectorMatrix(local2, [w / vb[2], 0, 0, h / vb[3], -vb[0] * (w / vb[2]), -vb[1] * (h / vb[3])]);
         }
         inner = {
           ...state,
-          m: multiplyVectorMatrix(state.m, local),
+          m: multiplyVectorMatrix(state.m, local2),
           vw: hasViewBox ? vb[2] : w ?? state.vw,
           vh: hasViewBox ? vb[3] : h ?? state.vh
         };
@@ -111972,11 +111972,11 @@ function clipOf(row, byId, offset) {
   const mw = Math.max(1, rowNum2(m2, "w", 1)), mh = Math.max(1, rowNum2(m2, "h", 1));
   const mcx = rowNum2(m2, "x") + mw / 2 - offset.x, mcy = rowNum2(m2, "y") + mh / 2 - offset.y, mrot = rowNum2(m2, "rot");
   const shape = rowStr2(m2, "shape");
-  const local = shape === "ellipse" || shape === "circle" ? Array.from({ length: 48 }, (_, i) => {
+  const local2 = shape === "ellipse" || shape === "circle" ? Array.from({ length: 48 }, (_, i) => {
     const t = i / 48 * 2 * Math.PI;
     return [cos(t) * mw / 2, sin(t) * mh / 2];
   }) : [[-mw / 2, -mh / 2], [mw / 2, -mh / 2], [mw / 2, mh / 2], [-mw / 2, mh / 2]];
-  return { points: local.map(([x, y]) => {
+  return { points: local2.map(([x, y]) => {
     const w = turn(x, y, mrot);
     return [mcx + w[0], mcy + w[1]];
   }) };
@@ -112993,15 +112993,15 @@ function penpotTokensJson(doc, selection) {
     active = order.filter((n7) => want.has(n7));
     if (!active.length) active = order.slice();
   } else if (chosenNames.length) {
-    const enabled3 = /* @__PURE__ */ new Set();
+    const enabled4 = /* @__PURE__ */ new Set();
     for (const n7 of chosenNames) {
       const t = byName.get(n7);
       if (!t) continue;
       for (const [name, st] of Object.entries(t.selectedTokenSets)) {
-        if (st === "enabled") enabled3.add(name);
+        if (st === "enabled") enabled4.add(name);
       }
     }
-    active = order.filter((n7) => enabled3.has(n7));
+    active = order.filter((n7) => enabled4.has(n7));
     if (!active.length) active = order.slice();
   } else {
     active = order.slice();
@@ -113772,12 +113772,12 @@ function svgToPenpotDoc(svgText, o) {
   const frameFor2 = (parent, t) => {
     const a = t.attrs, st = parseStyle2(a.style);
     const get3 = (k) => st[k] ?? a[k];
-    const local = parseTransform3(a.transform);
-    if (local === null) {
+    const local2 = parseTransform3(a.transform);
+    if (local2 === null) {
       note2("unreadable transform");
       return null;
     }
-    const f = { ...parent, m: mul2(parent.m, local) };
+    const f = { ...parent, m: mul2(parent.m, local2) };
     const fill2 = get3("fill");
     if (fill2 != null) {
       const v = fill2.trim();
@@ -115718,6 +115718,300 @@ var init_prepare_text = __esm({
   }
 });
 
+// engine/src/office-xml.ts
+function entities(value) {
+  if (/&(?!(?:amp|lt|gt|quot|apos|#\d+|#x[\da-f]+);)/i.test(value)) throw new Error("Unsupported XML entity.");
+  return value.replace(/&([^;]*);/g, (_all, entity) => {
+    const predefined = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'" };
+    if (predefined[entity]) return predefined[entity];
+    const point3 = /^#x[\da-f]+$/i.test(entity) ? Number.parseInt(entity.slice(2), 16) : /^#\d+$/.test(entity) ? Number(entity.slice(1)) : NaN;
+    if (!Number.isInteger(point3) || point3 > 1114111 || point3 < 32 && ![9, 10, 13].includes(point3) || point3 >= 55296 && point3 <= 57343 || point3 === 65534 || point3 === 65535) throw new Error("Unsupported XML entity.");
+    return String.fromCodePoint(point3);
+  });
+}
+function attributes(raw) {
+  const attrs = /* @__PURE__ */ Object.create(null);
+  const pattern = /\s+([A-Za-z_][A-Za-z0-9_.:-]*)\s*=\s*(["'])(.*?)\2/sy;
+  let offset = 0, count4 = 0;
+  while (offset < raw.length) {
+    if (/^\s*$/.test(raw.slice(offset))) break;
+    if (++count4 > 128) throw new Error("XML attribute limit reached.");
+    pattern.lastIndex = offset;
+    const match = pattern.exec(raw);
+    if (!match || match[3].includes("<") || Object.hasOwn(attrs, match[1])) throw new Error("Malformed XML attributes.");
+    attrs[match[1]] = entities(match[3]);
+    offset = pattern.lastIndex;
+  }
+  return attrs;
+}
+function readOfficeXml(bytes, budget3) {
+  if (bytes.length > OFFICE_MAX_XML_BYTES) throw new Error("XML part exceeds 2 MiB.");
+  const encoding = bytes[0] === 255 && bytes[1] === 254 ? "utf-16le" : bytes[0] === 254 && bytes[1] === 255 ? "utf-16be" : "utf-8";
+  const xml2 = new TextDecoder(encoding, { fatal: true }).decode(bytes);
+  for (const char of xml2) if (char.charCodeAt(0) < 32 && ![9, 10, 13].includes(char.charCodeAt(0))) throw new Error("Invalid XML characters.");
+  if (/<!\s*(?:DOCTYPE|ENTITY)/i.test(xml2)) throw new Error("XML declarations with entities are unsupported.");
+  const declaration = /^\s*<\?xml\s[^?]*encoding\s*=\s*["']([^"']+)/i.exec(xml2)?.[1]?.toLowerCase();
+  if (declaration && !["utf-8", "utf-16", "utf-16le", "utf-16be"].includes(declaration)) throw new Error("Unsupported XML encoding.");
+  let root2, offset = 0, partNodes = 0, partTokens = 0;
+  const stack = [];
+  const appendText = (text8) => {
+    if (!stack.length) {
+      if (text8.trim()) throw new Error("Text outside XML root.");
+      return;
+    }
+    const node = stack[stack.length - 1].node;
+    node.text += entities(text8);
+  };
+  while (offset < xml2.length) {
+    const start = xml2.indexOf("<", offset);
+    if (start < 0) {
+      appendText(xml2.slice(offset));
+      break;
+    }
+    if (++partTokens > 8e4 || ++budget3.nodes > 2e5) throw new Error("XML structure limit reached.");
+    appendText(xml2.slice(offset, start));
+    const ending = xml2.startsWith("<!--", start) ? "-->" : xml2.startsWith("<?", start) ? "?>" : xml2.startsWith("<![CDATA[", start) ? "]]>" : "";
+    if (ending) {
+      const end2 = xml2.indexOf(ending, start + 2);
+      if (end2 < 0) throw new Error("Unterminated XML section.");
+      if (ending === "]]>") {
+        if (!stack.length) throw new Error("CDATA outside XML root.");
+        stack[stack.length - 1].node.text += xml2.slice(start + 9, end2);
+      }
+      offset = end2 + ending.length;
+      continue;
+    }
+    let end = start + 1, quote = "";
+    for (; end < xml2.length; end++) {
+      if (end - start > 64 * 1024) throw new Error("XML tag length limit reached.");
+      const char = xml2[end];
+      if (quote) {
+        if (char === quote) quote = "";
+      } else if (char === '"' || char === "'") quote = char;
+      else if (char === ">") break;
+    }
+    if (end === xml2.length) throw new Error("Unterminated XML tag.");
+    const tag3 = xml2.slice(start + 1, end);
+    if (tag3.startsWith("/")) {
+      const name = tag3.slice(1).trim();
+      if (stack.pop()?.raw !== name) throw new Error("Mismatched XML tag.");
+    } else {
+      const name = NAME.exec(tag3)?.[0];
+      if (!name || ++partNodes > 4e4 || stack.length >= 96) throw new Error("XML structure limit reached.");
+      const empty2 = /\/\s*$/.test(tag3), rawAttrs = tag3.slice(name.length).replace(/\/\s*$/, "");
+      const node = { name: local(name), attrs: attributes(rawAttrs), children: [], text: "" };
+      if (stack.length) stack[stack.length - 1].node.children.push(node);
+      else {
+        if (root2) throw new Error("Multiple XML roots.");
+        root2 = node;
+      }
+      if (!empty2) stack.push({ raw: name, node });
+    }
+    offset = end + 1;
+  }
+  if (!root2 || stack.length) throw new Error("Incomplete XML document.");
+  return root2;
+}
+function officeNodes(root2) {
+  const nodes = [root2];
+  for (let i = 0; i < nodes.length; i++) nodes.push(...nodes[i].children);
+  return nodes;
+}
+function officeAttr(node, name) {
+  return Object.entries(node.attrs).find(([key]) => local(key) === name)?.[1];
+}
+function officeText(root2) {
+  let text8 = "";
+  for (const node of officeNodes(root2)) {
+    text8 += `${node.text} `;
+    if (text8.length > 2048) return `${text8.slice(0, 2048).trim()}\u2026`;
+  }
+  return text8.trim();
+}
+var OFFICE_MAX_XML_BYTES, NAME, local;
+var init_office_xml = __esm({
+  "engine/src/office-xml.ts"() {
+    "use strict";
+    OFFICE_MAX_XML_BYTES = 2 * 1024 * 1024;
+    NAME = /^[A-Za-z_][A-Za-z0-9_.:-]*/;
+    local = (name) => name.slice(name.lastIndexOf(":") + 1);
+  }
+});
+
+// engine/src/office-census.ts
+function packageFormat(names) {
+  if (names.includes("word/document.xml")) return "docx";
+  if (names.includes("ppt/presentation.xml")) return "pptx";
+  if (names.includes("xl/workbook.xml")) return "xlsx";
+  return void 0;
+}
+function isOfficeSource(bytes, name) {
+  if (OFFICE.test(name) || OLE.every((byte, index2) => bytes[index2] === byte)) return true;
+  if (bytes[0] !== 80 || bytes[1] !== 75) return false;
+  try {
+    const names = readZipMembers(bytes, { maxInputBytes: 32 * 1024 * 1024, maxEntries: 300, maxEntryBytes: 64 * 1024 * 1024, maxTotalBytes: 64 * 1024 * 1024 }).map((member) => member.name);
+    return names.includes("[Content_Types].xml") && packageFormat(names) !== void 0;
+  } catch {
+    return false;
+  }
+}
+function enabled(value) {
+  return value === void 0 || !["0", "false", "off"].includes(value.toLowerCase());
+}
+function inspectXml(part, root2, format, budget3) {
+  const nodes = officeNodes(root2), path = part.path.split("!/").pop();
+  const add = (category, label4, value, location2 = label4) => {
+    if (budget3.findings >= 2e3) {
+      part.status = "partial";
+      if (!part.limitations.includes("The 2,000-finding census limit was reached.")) part.limitations.push("The 2,000-finding census limit was reached.");
+      return;
+    }
+    if (!value) return;
+    budget3.findings++;
+    part.findings.push({ category, label: label4, value: value.slice(0, 2048), location: location2.slice(0, 512) });
+  };
+  if (/^docProps\/(?:core|app|custom)\.xml$/.test(path)) {
+    for (const node of root2.children) {
+      const name = officeAttr(node, "name") ?? node.name;
+      add("office-properties", "Document property", officeText(node), `Property: ${name}`);
+    }
+  }
+  if (path.endsWith(".rels")) {
+    for (const node of nodes.filter((n7) => n7.name === "Relationship")) {
+      if (officeAttr(node, "TargetMode")?.toLowerCase() === "external") add("office-links", "External relationship (not fetched)", officeAttr(node, "Target") ?? "", `Relationship: ${officeAttr(node, "Id") ?? "?"}`);
+    }
+  }
+  if (format === "docx" && path.startsWith("word/")) {
+    for (const node of nodes) {
+      if (node.name === "comment") add("office-comments", "Comment and author", `${officeAttr(node, "author") ?? ""} ${officeAttr(node, "initials") ?? ""} ${officeText(node)}`.trim(), `Comment: ${officeAttr(node, "id") ?? "?"}`);
+      if (["ins", "del", "moveFrom", "moveTo"].includes(node.name) || node.name.endsWith("PrChange")) add("office-revisions", "Tracked change (accept/reject policy required)", `${officeAttr(node, "author") ?? ""} ${officeAttr(node, "date") ?? ""} ${officeText(node)}`.trim() || node.name, `Tracked change: ${officeAttr(node, "id") ?? "?"}`);
+      if (node.name === "r" && officeNodes(node).some((n7) => ["vanish", "webHidden"].includes(n7.name) && enabled(officeAttr(n7, "val")))) add("office-hidden", "Hidden text run", officeText(node) || "Hidden run without text preview");
+    }
+    if (/comments(?:Extended|Extensible|Ids)\.xml$/.test(path)) add("office-comments", "Comment identity or thread data", officeText(root2) || "Comment thread and identity records");
+  }
+  if (format === "pptx" && path.startsWith("ppt/")) {
+    if (/^ppt\/notesSlides\/notesSlide\d+\.xml$/.test(path)) add("office-notes", "Speaker notes", officeText(root2) || "Speaker notes part");
+    if (/^ppt\/slides\/slide\d+\.xml$/.test(path) && !enabled(officeAttr(root2, "show"))) add("office-hidden", "Hidden slide", officeText(root2) || "Hidden slide without text preview");
+    if (/comments|commentAuthors/.test(path)) {
+      for (const node of nodes.filter((n7) => ["cm", "comment", "cmAuthor", "author"].includes(n7.name))) add("office-comments", "Slide comment or author", `${officeAttr(node, "name") ?? ""} ${officeAttr(node, "authorId") ?? ""} ${officeText(node)}`.trim() || "Comment identity record");
+    }
+  }
+  if (format === "xlsx" && path.startsWith("xl/")) {
+    for (const node of nodes) {
+      if (["comment", "threadedComment", "author", "person"].includes(node.name)) add("office-comments", "Cell comment, note or author", `${officeAttr(node, "displayName") ?? ""} ${officeAttr(node, "personId") ?? ""} ${officeText(node)}`.trim() || "Comment identity record", `Cell or identity: ${officeAttr(node, "ref") ?? officeAttr(node, "id") ?? "?"}`);
+      if (node.name === "sheet" && ["hidden", "veryHidden"].includes(officeAttr(node, "state") ?? "")) add("office-hidden", "Hidden sheet (may feed formulas)", officeAttr(node, "name") ?? "Hidden sheet");
+      if (["row", "col"].includes(node.name) && officeAttr(node, "hidden") !== void 0 && enabled(officeAttr(node, "hidden"))) add("office-hidden", `Hidden ${node.name === "row" ? "row" : "column"} (may feed formulas)`, node.name === "row" ? officeAttr(node, "r") ?? "?" : `${officeAttr(node, "min") ?? "?"}:${officeAttr(node, "max") ?? "?"}`);
+      if (node.name === "definedName") add("office-names", "Defined name (may feed formulas)", `${officeAttr(node, "name") ?? ""}: ${officeText(node)}`);
+      if (["connection", "dbPr", "webPr", "olapPr"].includes(node.name)) add("office-links", "Data connection (not opened)", Object.values(node.attrs).join(" ") || officeText(node) || "Data connection record");
+    }
+    if (/^xl\/(externalLinks|pivotCache)\//.test(path) && !path.endsWith(".rels")) add("office-caches", "External-link or pivot cached data", officeText(root2) || "Cached workbook data surface");
+  }
+}
+function inspectPackage(bytes, prefix, declared, depth, budget3, result) {
+  let members;
+  try {
+    members = readZipMembers(bytes, { maxInputBytes: 32 * 1024 * 1024, maxEntries: budget3.maxParts - budget3.parts, maxEntryBytes: 32 * 1024 * 1024, maxTotalBytes: budget3.maxExpanded - budget3.expanded });
+  } catch {
+    result.limitations.push("A package is malformed, encrypted, unsupported or exceeds the part/expansion limits; it was retained without package inspection.");
+    return;
+  }
+  if (members.some((m2) => /(^\/|\\|\0|(?:^|\/)\.\.?\/)/.test(m2.name)) || new Set(members.map((m2) => m2.name.toLowerCase())).size !== members.length) {
+    result.limitations.push("Ambiguous, duplicate or unsafe package part names prevent reliable inspection.");
+    return;
+  }
+  const format = packageFormat(members.map((m2) => m2.name));
+  if (!format || !members.some((m2) => m2.name === "[Content_Types].xml")) {
+    result.limitations.push("The archive does not contain a supported DOCX, PPTX or XLSX package structure.");
+    return;
+  }
+  if (!prefix) result.format = format;
+  if (declared && declared !== format) result.limitations.push("The filename denotes a different or unsupported Office variant. Only a read-only package census was performed.");
+  if (members.some((m2) => /vbaProject\.bin$/i.test(m2.name))) result.limitations.push("Macro content was identified and retained without execution or inspection.");
+  if (members.some((m2) => m2.name.startsWith("_xmlsignatures/"))) result.limitations.push("Package signature parts are retained unchanged. Signatures were not verified.");
+  budget3.parts += members.length;
+  budget3.expanded += members.reduce((total, member) => total + member.size, 0);
+  for (const member of members) {
+    const part = { path: `${prefix}${member.name}`, format: "office-part", status: "uninspected", limitations: [], findings: [] };
+    result.parts.push(part);
+    if (member.flags & 1) {
+      part.limitations.push("Encrypted part retained without decryption.");
+      continue;
+    }
+    if (![0, 8].includes(member.method)) {
+      part.limitations.push("Unsupported part compression; content retained without inspection.");
+      continue;
+    }
+    const xml2 = /\.(xml|rels)$/i.test(member.name), embedded = /\/(embeddings|activeX)\//.test(member.name);
+    if (!xml2 && !embedded) {
+      part.limitations.push("Binary or unrecognized part retained without content inspection.");
+      continue;
+    }
+    if (xml2 && member.size > OFFICE_MAX_XML_BYTES) {
+      part.limitations.push("XML part exceeds the 2 MiB census limit; content retained without inspection.");
+      continue;
+    }
+    let decoded;
+    try {
+      decoded = decodeZipMember(member);
+    } catch {
+      part.limitations.push("Part failed decompression or integrity checks; retained without inspection.");
+      continue;
+    }
+    if (embedded) {
+      if (budget3.findings < 2e3) {
+        budget3.findings++;
+        part.findings.push({ category: "office-embedded", label: "Embedded object (retained)", value: member.name, location: "Embedded object" });
+      }
+      if (decoded[0] === 80 && decoded[1] === 75 && depth < 2 && budget3.parts < budget3.maxParts) {
+        part.status = "partial";
+        part.limitations.push("Nested package inspected within the shared budgets; the embedded object remains unchanged.");
+        inspectPackage(decoded, `${part.path}!/`, "", depth + 1, budget3, result);
+      } else part.limitations.push(depth >= 2 ? "Nested objects beyond two levels are retained without inspection." : "Embedded binary or active content retained without execution or content inspection.");
+      continue;
+    }
+    try {
+      const root2 = readOfficeXml(decoded, budget3);
+      part.status = "inspected";
+      inspectXml(part, root2, format, budget3);
+      part.limitations.push("Read-only package census; arbitrary text and dependency semantics were not inspected.");
+    } catch {
+      part.status = "uninspected";
+      part.findings = [];
+      part.limitations.push("XML is malformed, unsupported or exceeds the structure budget; retained without inspection.");
+    }
+  }
+}
+function inspectOfficePackage(bytes, name, options2 = {}) {
+  const extension = name.split(".").pop()?.toLowerCase() ?? "";
+  const result = { format: extension, limitations: [READ_ONLY, COVERAGE], parts: [], expandedBytes: 0 };
+  if (OLE.every((byte, index2) => bytes[index2] === byte)) {
+    result.format = "office-container";
+    result.limitations.push("Legacy binary or encrypted Office container. Its content is not inspected or decrypted.");
+    return result;
+  }
+  if (["doc", "ppt", "xls", "xlsb"].includes(extension)) {
+    result.limitations.push("Legacy binary Office formats and XLSB are unsupported; content is retained without inspection.");
+    return result;
+  }
+  const budget3 = { parts: 0, expanded: 0, nodes: 0, findings: 0, maxParts: Math.min(300, Math.max(0, options2.maxParts ?? 300)), maxExpanded: Math.min(64 * 1024 * 1024, Math.max(0, options2.maxExpandedBytes ?? 64 * 1024 * 1024)) };
+  inspectPackage(bytes, "", extension, 0, budget3, result);
+  result.expandedBytes = budget3.expanded;
+  result.limitations = [...new Set(result.limitations)];
+  return result;
+}
+var OFFICE, OLE, READ_ONLY, COVERAGE;
+var init_office_census = __esm({
+  "engine/src/office-census.ts"() {
+    "use strict";
+    init_zip();
+    init_office_xml();
+    OFFICE = /\.(docx|pptx|xlsx|docm|pptm|xlsm|dotx|dotm|potx|potm|xltx|xltm|xlsb|doc|ppt|xls)$/i;
+    OLE = [208, 207, 17, 224, 161, 177, 26, 225];
+    READ_ONLY = "Office inspection is read-only. Properties and document content are retained unchanged; no cleaned copy is available.";
+    COVERAGE = "This package census checks supported properties, relationships, comments, notes and hidden-content markers. Visible text, formulas, rendered appearance and arbitrary binary content are not fully inspected.";
+  }
+});
+
 // engine/src/prepare-document.ts
 import { isMap, isSeq, isScalar, isAlias as isAlias2, parseAllDocuments } from "yaml";
 function decodeText2(bytes) {
@@ -115870,6 +116164,23 @@ function openPreparationDocument(bytes, name, sourceId, id3, rules, budget3, dep
     scope2.limitations.push("This file exceeds the 32 MiB preparation limit.");
     return doc;
   }
+  if (isOfficeSource(bytes, name)) {
+    const census = inspectOfficePackage(bytes, name, { maxParts: PREPARE_MAX_SCOPES - budget3.scopes, maxExpandedBytes: PREPARE_MAX_TOTAL - budget3.expanded });
+    scope2.format = census.format;
+    scope2.readOnly = true;
+    scope2.status = census.parts.length ? "partial" : "uninspected";
+    scope2.limitations = census.limitations;
+    budget3.expanded += census.expandedBytes;
+    budget3.scopes += census.parts.length;
+    doc.children = census.parts.map((part, index2) => ({
+      scope: { id: `${id3}:o${index2}`, sourceId, path: `${name}/${part.path}`, format: part.format, status: part.status, limitations: part.limitations, readOnly: true },
+      children: [],
+      units: [],
+      censusFindings: part.findings,
+      write: () => bytes
+    }));
+    return doc;
+  }
   const zip = bytes[0] === 80 && bytes[1] === 75 && (ext === "zip" || ext === "");
   if (zip) {
     scope2.format = "zip";
@@ -115975,6 +116286,7 @@ var init_prepare_document = __esm({
     "use strict";
     init_zip();
     init_prepare_text();
+    init_office_census();
     encoder4 = new TextEncoder();
     decoder5 = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
     PREPARE_MAX_BYTES = 32 * 1024 * 1024;
@@ -116016,6 +116328,21 @@ async function scan(sources, rules, options2 = {}) {
     roots2.push(root2);
     for (const doc of preparationDocuments([root2])) {
       inspection.scopes.push(doc.scope);
+      for (const evidence of doc.censusFindings ?? []) {
+        if (inspection.findings.length >= PREPARE_MAX_FINDINGS) {
+          doc.scope.status = "partial";
+          doc.scope.limitations.push("The 2,000-finding limit was reached.");
+          break;
+        }
+        const key = `office:${evidence.category}:${evidence.value}`;
+        let group = groups.get(key);
+        if (!group) {
+          group = { id: `g${groups.size}`, value: evidence.value, replacement: evidence.value, category: evidence.category, count: 0, readOnly: true };
+          groups.set(key, group);
+        }
+        group.count++;
+        inspection.findings.push({ id: `f${inspection.findings.length}`, scopeId: doc.scope.id, groupId: group.id, rule: "office-census", category: evidence.category, label: evidence.label, uncertain: false, location: evidence.location, value: evidence.value, line: 1, readOnly: true });
+      }
       for (const unit2 of doc.units) {
         if (inspection.findings.length >= PREPARE_MAX_FINDINGS) {
           doc.scope.status = "partial";
@@ -116032,10 +116359,11 @@ async function scan(sources, rules, options2 = {}) {
             doc.scope.status = "partial";
             break;
           }
-          let group = groups.get(span.value);
+          const key = `editable:${span.value}`;
+          let group = groups.get(key);
           if (!group) {
             group = { id: `g${groups.size}`, value: span.value, replacement: `[${span.category.toUpperCase()}_${groups.size + 1}]`, category: span.category, count: 0 };
-            groups.set(span.value, group);
+            groups.set(key, group);
           }
           group.count++;
           const finding3 = { id: `f${inspection.findings.length}`, scopeId: unit2.scopeId, groupId: group.id, rule: span.rule, category: span.category, label: span.label, uncertain: span.uncertain, location: unit2.location, value: span.value, line: unit2.line + unit2.text.slice(0, span.start).split("\n").length - 1 };
@@ -116080,10 +116408,11 @@ async function applyPreparation(sources, inspection, choices2, removeScopes = []
   for (const choice3 of choices2) {
     if (!fresh.inspection.groups.some((g2) => g2.id === choice3.groupId) || chosen.has(choice3.groupId) || typeof choice3.replacement !== "string" || choice3.replacement.length > 4096) throw new Error("Invalid replacement choice.");
     if (choice3.findings && (!Array.isArray(choice3.findings) || choice3.findings.some((id3) => !fresh.inspection.findings.some((f) => f.id === id3 && f.groupId === choice3.groupId)))) throw new Error("A selected occurrence no longer belongs to this group.");
+    if (fresh.inspection.groups.find((g2) => g2.id === choice3.groupId)?.readOnly) throw new Error("Office census findings are read-only. No replacement or cleanup is supported.");
     chosen.set(choice3.groupId, choice3);
   }
   const remove = new Set(removeScopes);
-  for (const id3 of remove) if (!fresh.inspection.scopes.some((s) => s.id === id3 && s.id !== s.sourceId)) throw new Error("Only listed archive members can be removed.");
+  for (const id3 of remove) if (!fresh.inspection.scopes.some((s) => s.id === id3 && s.id !== s.sourceId && !s.readOnly)) throw new Error("Only removable archive members can be removed. Office package parts are read-only.");
   const byUnit = /* @__PURE__ */ new Map();
   const replaced = /* @__PURE__ */ new Map();
   for (const finding3 of fresh.inspection.findings) {
@@ -119080,7 +119409,7 @@ function itemValues2(values, item2) {
     };
   const camera = record16(values.camera);
   const framing = { ...camera };
-  if (enabled(item2.ownFraming))
+  if (enabled2(item2.ownFraming))
     for (const key of ["azimuth", "elevation", "fov", "zoom", "panX", "panY", "panZ"]) {
       if (item2[key] !== void 0 && item2[key] !== "") framing[key] = item2[key];
     }
@@ -119102,7 +119431,7 @@ function itemValues2(values, item2) {
     } : {},
     ...corrections,
     camera: framing,
-    focusDistance: enabled(item2.ownFocus) ? item2.focusDistance : values.focusDistance,
+    focusDistance: enabled2(item2.ownFocus) ? item2.focusDistance : values.focusDistance,
     materialSlotA: item2.roleA || "",
     materialSlotB: item2.roleB || ""
   };
@@ -119123,7 +119452,7 @@ function studioCollectionRows(values) {
       name,
       // Numbered by position, so a delivered set reads in the order the sheet shows.
       filename: `${String(index2 + 1).padStart(2, "0")}-${slug4}.png`,
-      ownFraming: enabled(item2.ownFraming),
+      ownFraming: enabled2(item2.ownFraming),
       values: itemValues2(values, item2)
     };
   });
@@ -119171,13 +119500,13 @@ function studioSheetSize(size) {
     height: Math.max(1, Math.round(size.height * scale))
   };
 }
-var STUDIO_COLLECTION_LIMIT, enabled, STUDIO_SHEET_PIXELS;
+var STUDIO_COLLECTION_LIMIT, enabled2, STUDIO_SHEET_PIXELS;
 var init_studio3d_collection = __esm({
   "engine/src/studio3d-collection.ts"() {
     "use strict";
     init_studio3d_arrangement();
     STUDIO_COLLECTION_LIMIT = 24;
-    enabled = (value) => value === true || value === "true" || value === 1;
+    enabled2 = (value) => value === true || value === "true" || value === 1;
     STUDIO_SHEET_PIXELS = 512;
   }
 });
@@ -119415,7 +119744,7 @@ function choice2(value, choices2, fallback) {
 function color2(value, fallback) {
   return typeof value === "string" && /^#[0-9a-f]{6}$/i.test(value) ? value.toLowerCase() : fallback;
 }
-function enabled2(value, fallback = false) {
+function enabled3(value, fallback = false) {
   if (value === true || value === "true" || value === "1") return true;
   if (value === false || value === "false" || value === "0") return false;
   return fallback;
@@ -119541,8 +119870,8 @@ function arrangementObjects(v) {
         // A row without a scale is a newcomer to a group; 0.6 is the manifest default.
         scale: number6(row.scale, 0.6, 0.1, 5)
       },
-      grounded: enabled2(row.grounded, true),
-      visible: enabled2(row.visible, true),
+      grounded: enabled3(row.grounded, true),
+      visible: enabled3(row.visible, true),
       bindings: { a: String(row.roleA || "").trim(), b: String(row.roleB || "").trim() }
     };
   });
@@ -119629,7 +119958,7 @@ function buildStudioScene(input) {
         intensity: number6(l.intensity, 2, 0, 50),
         position: [number6(l.x, -3, -30, 30), number6(l.y, 6, -30, 30), number6(l.z, 4, -30, 30)],
         size: number6(l.size, 1.5, 0.01, 10),
-        shadows: kind2 !== "area" && enabled2(l.shadows, true)
+        shadows: kind2 !== "area" && enabled3(l.shadows, true)
       };
     });
   }
@@ -119712,7 +120041,7 @@ function buildStudioScene(input) {
         b: String(v.materialSlotB || "").trim()
       },
       glow: number6(v.glow, 0.45, 0, 1),
-      ...enabled2(v.surfaceFinishes) ? {
+      ...enabled3(v.surfaceFinishes) ? {
         surfaces: Object.fromEntries(
           ["a", "b"].map((role) => [
             role,
@@ -119737,7 +120066,7 @@ function buildStudioScene(input) {
       kind: environmentKind,
       url: environmentKind === "image" ? environment.url : "",
       id: environmentKind === "image" ? environment.id : "",
-      background: enabled2(v.environmentBackground),
+      background: enabled3(v.environmentBackground),
       blur: number6(v.environmentBlur, 0.3, 0, 1)
     },
     stage: {
@@ -119785,7 +120114,7 @@ function buildStudioScene(input) {
     cameraMotion: {
       kind: cameraKind,
       ease: choice2(v.cameraEase, ["linear", "smooth", "flow"], "smooth"),
-      loop: enabled2(v.cameraLoop),
+      loop: enabled3(v.cameraLoop),
       amount: cameraAmount,
       keys: studioIsCameraPreset(cameraKind) ? studioCameraPreset(cameraKind, view, cameraAmount) : authoredKeys
     }
@@ -122549,9 +122878,9 @@ function exactAt(board, s, occurrences, work) {
   for (const at of occurrences) {
     const [first, last] = spanAt(board, at, s.key.length);
     if (first < 0) continue;
-    const local = board.lines.slice(Math.max(0, first - 1), last + 2).join(" ");
-    work.left -= 1 + (local.length >> 6);
-    if (containsPhrase(local, s.text)) return true;
+    const local2 = board.lines.slice(Math.max(0, first - 1), last + 2).join(" ");
+    work.left -= 1 + (local2.length >> 6);
+    if (containsPhrase(local2, s.text)) return true;
   }
   return false;
 }
@@ -123744,12 +124073,12 @@ async function prepareTextParagraph(doc, story, paragraph, services, artwork = [
   }
   async function shapeLine(range, trimEnd, outline2) {
     const levels2 = textLineLevels(bidi, { start: semantic.forward.get(range.start), end: semantic.forward.get(range.end) });
-    const local = atoms.slice(atomIndex.get(range.start), atomIndex.get(range.end));
+    const local2 = atoms.slice(atomIndex.get(range.start), atomIndex.get(range.end));
     let visibleEnd = range.end;
-    if (trimEnd) for (let i = local.length - 1; i >= 0 && /^[ \t\u200b]*$/u.test(inlineByOffset.get(local[i].start)?.originalText ?? story.source.slice(local[i].start, local[i].end)); i--) visibleEnd = local[i].start;
+    if (trimEnd) for (let i = local2.length - 1; i >= 0 && /^[ \t\u200b]*$/u.test(inlineByOffset.get(local2[i].start)?.originalText ?? story.source.slice(local2[i].start, local2[i].end)); i--) visibleEnd = local2[i].start;
     const segments = [];
     let levelIndex = 0;
-    for (const atom of local) {
+    for (const atom of local2) {
       while (levels2[levelIndex] && levels2[levelIndex].end <= semantic.forward.get(atom.start)) levelIndex++;
       const level2 = levels2[levelIndex]?.level ?? bidi.base, hidden4 = atom.hidden || atom.start >= visibleEnd;
       const key = JSON.stringify([atom.style, atom.font.id, atom.script, level2, hidden4]);
@@ -124672,9 +125001,9 @@ function positionTextLine(source, paragraphId, original, index2, last, settings,
     for (const caret of piece.carets) if (!line.carets.some((item2) => item2.offset === caret.offset && Math.abs(item2.x - textX - caret.x) < 1e-4))
       line.carets.push({ offset: caret.offset, affinity: caret.offset === piece.end ? "upstream" : "downstream", x: textX + caret.x, y: position.y, height: position.height, angle: 0 });
   }
-  for (const [rule, enabled3, at] of [[settings.ruleBefore, index2 === 0, position.y], [settings.ruleAfter, last, position.y + position.height]]) if (rule && rule.enabled !== false && enabled3) {
+  for (const [rule, enabled4, at] of [[settings.ruleBefore, index2 === 0, position.y], [settings.ruleAfter, last, position.y + position.height]]) if (rule && rule.enabled !== false && enabled4) {
     line.rules ??= [];
-    line.rules.push({ x: left, y: at + (enabled3 && rule === settings.ruleBefore ? -rule.offset - rule.width : rule.offset), width: slot.frame.mode === "auto-width" ? shaped.advance : available, height: rule.width, color: rule.color });
+    line.rules.push({ x: left, y: at + (enabled4 && rule === settings.ruleBefore ? -rule.offset - rule.width : rule.offset), width: slot.frame.mode === "auto-width" ? shaped.advance : available, height: rule.width, color: rule.color });
   }
   if (!line.carets.length) line.carets.push({ offset: shaped.start, affinity: "downstream", x, y: position.y, height: position.height, angle: 0 });
   line.carets.sort((a, b) => a.x - b.x || a.offset - b.offset);
@@ -125312,7 +125641,7 @@ async function textLayoutSvg(layout2, story, frameId, parseXml) {
     }
     for (const inline of line.inlines) {
       const svg = admitTextInlineSvg(inline.svg, parseXml, `${prefix}-${placement2++}`);
-      const fitted = svg.replace(/^<svg([^>]*)>/, (_match, attributes) => `<svg${attributes.replace(/ (width|height)="[^"]*"/g, "")} width="${n5(inline.width)}" height="${n5(inline.height)}"${inline.overflow === "visible" ? ' overflow="visible"' : ""}>`);
+      const fitted = svg.replace(/^<svg([^>]*)>/, (_match, attributes2) => `<svg${attributes2.replace(/ (width|height)="[^"]*"/g, "")} width="${n5(inline.width)}" height="${n5(inline.height)}"${inline.overflow === "visible" ? ' overflow="visible"' : ""}>`);
       const sources = story.inlines.find((item2) => item2.offset === inline.offset)?.emojiSources;
       fragments.push(`<g data-text-start="${n5(inline.offset)}"${sources?.length ? ` data-emoji-vector-sources="${escapeMarkup2(JSON.stringify(sources))}"` : ``} transform="translate(${n5(inline.x)} ${n5(inline.y)}) rotate(${n5(inline.angle)})">${fitted}</g>`);
     }
@@ -125462,16 +125791,16 @@ function importVectorPaint(svg, parseXml) {
   const view = (root2.getAttribute("viewBox") ?? "").split(/[\s,]+/).map(Number), width = view[2], height = view[3];
   const paths = [], idMap = new Map(Array.from(doc.getElementsByTagName("*")).filter((el) => el.hasAttribute("id")).map((el) => [el.getAttribute("id"), el]));
   function walk2(element, definition = false, instance = false) {
-    const tag3 = element.localName, attributes = Object.fromEntries(Array.from(element.attributes).map((attr5) => [attr5.name, attr5.value]));
-    if (instance) delete attributes.id;
+    const tag3 = element.localName, attributes2 = Object.fromEntries(Array.from(element.attributes).map((attr5) => [attr5.name, attr5.value]));
+    if (instance) delete attributes2.id;
     if (tag3 === "use") {
-      const target = idMap.get(attributes.href.slice(1));
+      const target = idMap.get(attributes2.href.slice(1));
       if (!target) throw new Error("Missing local vector shape.");
-      const x = Number(attributes.x ?? 0), y = Number(attributes.y ?? 0), own3 = attributes.transform ?? "";
-      for (const key of ["href", "x", "y", "width", "height"]) delete attributes[key];
-      attributes.transform = `${own3} translate(${x} ${y})`.trim();
+      const x = Number(attributes2.x ?? 0), y = Number(attributes2.y ?? 0), own3 = attributes2.transform ?? "";
+      for (const key of ["href", "x", "y", "width", "height"]) delete attributes2[key];
+      attributes2.transform = `${own3} translate(${x} ${y})`.trim();
       const child = walk2(target, false, true);
-      return { tag: "g", attributes, children: child ? [child] : [] };
+      return { tag: "g", attributes: attributes2, children: child ? [child] : [] };
     }
     if (geometry2[tag3]) {
       if (definition) return null;
@@ -125482,20 +125811,20 @@ function importVectorPaint(svg, parseXml) {
         paths.push(vectorContourNodes(contour, width, height));
         return index2;
       });
-      for (const key of geometry2[tag3]) delete attributes[key];
-      return { tag: "path", attributes, contours: indices };
+      for (const key of geometry2[tag3]) delete attributes2[key];
+      return { tag: "path", attributes: attributes2, contours: indices };
     }
     const children = Array.from(element.children).flatMap((child) => {
       const node = walk2(child, tag3 === "defs", instance);
       return node ? [node] : [];
     });
     if (tag3 === "svg") {
-      for (const key of ["xmlns", "viewBox", "width", "height", "preserveAspectRatio"]) delete attributes[key];
-      const own3 = attributes.transform ?? "";
-      attributes.transform = `translate(${-view[0]} ${-view[1]}) ${own3}`.trim();
-      return { tag: "g", attributes, children };
+      for (const key of ["xmlns", "viewBox", "width", "height", "preserveAspectRatio"]) delete attributes2[key];
+      const own3 = attributes2.transform ?? "";
+      attributes2.transform = `translate(${-view[0]} ${-view[1]}) ${own3}`.trim();
+      return { tag: "g", attributes: attributes2, children };
     }
-    return { tag: tag3, attributes, children };
+    return { tag: tag3, attributes: attributes2, children };
   }
   const tree = walk2(root2);
   if (!paths.length) throw new Error("This selection has no visible vector geometry.");
@@ -125517,10 +125846,10 @@ var init_vector_paint_import = __esm({
 
 // engine/src/text-design-wrap.ts
 function designTextWrap(boxes) {
-  const enabled3 = (value) => [true, "true", 1, "1"].includes(value);
-  const objects = boxes.filter((box4) => box4.textWrap && !enabled3(box4.hidden));
+  const enabled4 = (value) => [true, "true", 1, "1"].includes(value);
+  const objects = boxes.filter((box4) => box4.textWrap && !enabled4(box4.hidden));
   if (!objects.length) return void 0;
-  const pose3 = (box4) => ({ id: String(box4.id), scope: String(box4.frame ?? ""), x: Math.round(Number(box4.x) || 0), y: Math.round(Number(box4.y) || 0), width: Math.max(1, Math.round(Number(box4.w) || 1)), height: Math.max(1, Math.round(Number(box4.h) || 1)), rotation: Math.round((Number(box4.rot) || 0) * 10) / 10, flipX: enabled3(box4.flipH), flipY: enabled3(box4.flipV) });
+  const pose3 = (box4) => ({ id: String(box4.id), scope: String(box4.frame ?? ""), x: Math.round(Number(box4.x) || 0), y: Math.round(Number(box4.y) || 0), width: Math.max(1, Math.round(Number(box4.w) || 1)), height: Math.max(1, Math.round(Number(box4.h) || 1)), rotation: Math.round((Number(box4.rot) || 0) * 10) / 10, flipX: enabled4(box4.flipH), flipY: enabled4(box4.flipV) });
   return { placements: boxes.filter((box4) => box4.textStory).map(pose3), objects: objects.map((box4) => {
     if (typeof box4.textWrap !== "string" || box4.textWrap.length > 4096) throw new Error("The text wrap settings are invalid.");
     const settings = JSON.parse(box4.textWrap);
@@ -133624,9 +133953,9 @@ var init_token_recipes = __esm({
 });
 
 // engine/src/token-merge.ts
-function mergeTokenDocuments(base, local, incoming) {
-  if (![base, local, incoming].every(record29)) throw new Error("Base, local and incoming token documents must be objects.");
-  for (const source of [base, local, incoming]) {
+function mergeTokenDocuments(base, local2, incoming) {
+  if (![base, local2, incoming].every(record29)) throw new Error("Base, local and incoming token documents must be objects.");
+  for (const source of [base, local2, incoming]) {
     let inspected = 0;
     const stack = [{ value: source, depth: 0 }];
     while (stack.length) {
@@ -133650,7 +133979,7 @@ function mergeTokenDocuments(base, local, incoming) {
     conflicts.push({ location: location2, base: structuredClone(b), local: structuredClone(l), incoming: structuredClone(n7) });
     return structuredClone(l);
   }
-  return { document: merge(base, local, incoming, "", 0), conflicts };
+  return { document: merge(base, local2, incoming, "", 0), conflicts };
 }
 var record29, equal;
 var init_token_merge = __esm({
@@ -136612,6 +136941,7 @@ __export(src_exports, {
   inspect: () => inspectDocument,
   inspectChartSpec: () => inspectChartSpec,
   inspectDocument: () => inspectDocument,
+  inspectOfficePackage: () => inspectOfficePackage,
   inspectPreparation: () => inspectPreparation,
   inspectPrivateText: () => inspectPrivateText,
   inspectProduction: () => inspectProduction,
@@ -136650,6 +136980,7 @@ __export(src_exports, {
   isNamedColor: () => isNamedColor,
   isNeutralFraming: () => isNeutralFraming,
   isNonAffineTransform: () => isNonAffineTransform,
+  isOfficeSource: () => isOfficeSource,
   isPackAvailable: () => isPackAvailable,
   isPhysical: () => isPhysical,
   isPptx: () => isPptx,
@@ -137613,6 +137944,7 @@ var init_src2 = __esm({
     init_pdf_artwork();
     init_prepare2();
     init_prepare_text();
+    init_office_census();
     init_prepare_metadata();
     init_compare2();
     init_compare_visual();
@@ -143347,8 +143679,8 @@ function slideGround(built, picture, found, page3) {
   const lead = onGround[0];
   const ink = lead?.object.text?.paras[0]?.runs[0]?.color?.hex;
   if (!lead || !ink || contrastRatio(ink, found.background) >= GROUND_MIN_CONTRAST) return found.background;
-  const local = lineInkColourOf(picture, lead.pictureBox)?.ground;
-  return local && contrastRatio(ink, local) > contrastRatio(ink, found.background) ? local : found.background;
+  const local2 = lineInkColourOf(picture, lead.pictureBox)?.ground;
+  return local2 && contrastRatio(ink, local2) > contrastRatio(ink, found.background) ? local2 : found.background;
 }
 function textOfObject(o) {
   return (o.text?.paras ?? []).map((p) => p.runs.map((r5) => r5.text).join("")).join(" ");
@@ -145262,17 +145594,17 @@ function bytesOf(parts, path) {
   if (raw === void 0) return null;
   return typeof raw === "string" ? new TextEncoder().encode(raw) : raw;
 }
-function elementsByLocal(root2, local) {
+function elementsByLocal(root2, local2) {
   const out = [];
   for (const el of Array.from(root2.getElementsByTagName("*"))) {
-    if (el.localName === local) out.push(el);
+    if (el.localName === local2) out.push(el);
   }
   return out;
 }
-function childrenByLocal3(el, local) {
+function childrenByLocal3(el, local2) {
   const out = [];
   for (const child of Array.from(el.children)) {
-    if (child.localName === local) out.push(child);
+    if (child.localName === local2) out.push(child);
   }
   return out;
 }
@@ -149477,10 +149809,10 @@ function stampZipTimes(bytes, exportedAt) {
     if (entry2 + 46 > out.byteLength || view.getUint32(entry2, true) !== 33639248) fail5(`central entry ${i} is not where the directory says`);
     view.setUint16(entry2 + 12, time, true);
     view.setUint16(entry2 + 14, date, true);
-    const local = view.getUint32(entry2 + 42, true);
-    if (local + 30 > out.byteLength || view.getUint32(local, true) !== 67324752) fail5(`local header ${i} is not where the directory says`);
-    view.setUint16(local + 10, time, true);
-    view.setUint16(local + 12, date, true);
+    const local2 = view.getUint32(entry2 + 42, true);
+    if (local2 + 30 > out.byteLength || view.getUint32(local2, true) !== 67324752) fail5(`local header ${i} is not where the directory says`);
+    view.setUint16(local2 + 10, time, true);
+    view.setUint16(local2 + 12, date, true);
     entry2 += 46 + view.getUint16(entry2 + 28, true) + view.getUint16(entry2 + 30, true) + view.getUint16(entry2 + 32, true);
   }
   return out;
@@ -157633,11 +157965,11 @@ function desktopExecutableCandidates(platform = process.platform, env = process.
     ];
   }
   if (platform === "win32") {
-    const local = env.LOCALAPPDATA || join27(userHome, "AppData", "Local");
+    const local2 = env.LOCALAPPDATA || join27(userHome, "AppData", "Local");
     const programs = env.ProgramFiles || "C:\\Program Files";
     const dirs = [
-      join27(local, "Lolly"),
-      join27(local, "Programs", "Lolly"),
+      join27(local2, "Lolly"),
+      join27(local2, "Programs", "Lolly"),
       join27(programs, "Lolly"),
       ...windowsInstallLocations(env)
     ];
@@ -161692,22 +162024,22 @@ function parseTransformList(str10) {
       const v = a[i];
       return typeof v === "number" && Number.isFinite(v) ? v : d;
     };
-    let local = null;
-    if (fn === "translate") local = { ...IDENTITY6, e: g2(0, 0), f: g2(1, 0) };
+    let local2 = null;
+    if (fn === "translate") local2 = { ...IDENTITY6, e: g2(0, 0), f: g2(1, 0) };
     else if (fn === "scale") {
       const sx = g2(0, 1);
-      local = { ...IDENTITY6, a: sx, d: a.length > 1 ? g2(1, sx) : sx };
+      local2 = { ...IDENTITY6, a: sx, d: a.length > 1 ? g2(1, sx) : sx };
     } else if (fn === "rotate") {
       const rad = g2(0, 0) * Math.PI / 180, cos2 = Math.cos(rad), sin2 = Math.sin(rad);
       const rot = { a: cos2, b: sin2, c: -sin2, d: cos2, e: 0, f: 0 };
       if (a.length >= 3) {
         const cx2 = g2(1, 0), cy3 = g2(2, 0);
-        local = matMul6(matMul6({ ...IDENTITY6, e: cx2, f: cy3 }, rot), { ...IDENTITY6, e: -cx2, f: -cy3 });
-      } else local = rot;
-    } else if (fn === "matrix" && a.length >= 6) local = { a: g2(0, 1), b: g2(1, 0), c: g2(2, 0), d: g2(3, 1), e: g2(4, 0), f: g2(5, 0) };
-    else if (fn === "skewx") local = { ...IDENTITY6, c: Math.tan(g2(0, 0) * Math.PI / 180) };
-    else if (fn === "skewy") local = { ...IDENTITY6, b: Math.tan(g2(0, 0) * Math.PI / 180) };
-    if (local) m2 = matMul6(m2, local);
+        local2 = matMul6(matMul6({ ...IDENTITY6, e: cx2, f: cy3 }, rot), { ...IDENTITY6, e: -cx2, f: -cy3 });
+      } else local2 = rot;
+    } else if (fn === "matrix" && a.length >= 6) local2 = { a: g2(0, 1), b: g2(1, 0), c: g2(2, 0), d: g2(3, 1), e: g2(4, 0), f: g2(5, 0) };
+    else if (fn === "skewx") local2 = { ...IDENTITY6, c: Math.tan(g2(0, 0) * Math.PI / 180) };
+    else if (fn === "skewy") local2 = { ...IDENTITY6, b: Math.tan(g2(0, 0) * Math.PI / 180) };
+    if (local2) m2 = matMul6(m2, local2);
   }
   return m2;
 }
@@ -165559,8 +165891,8 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
     }
     tokensDocCache ??= (async () => {
       if (tokensDocument) return tokensDocument;
-      const local = localRecord ? await readActiveDesignSystemTokens() : null;
-      if (local) return local;
+      const local2 = localRecord ? await readActiveDesignSystemTokens() : null;
+      if (local2) return local2;
       if (!headTokensAsset3) return null;
       return readAssetDoc(headTokensAsset3);
     })().catch(() => null);
@@ -176038,8 +176370,8 @@ function readLiveInvitation(value) {
   if (typeof value !== "string" || value.length > 2048) return null;
   try {
     const url = new URL(value);
-    const local = ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname);
-    if (url.protocol !== "https:" && !(local && url.protocol === "http:")) return null;
+    const local2 = ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname);
+    if (url.protocol !== "https:" && !(local2 && url.protocol === "http:")) return null;
     if (url.username || url.password || url.search || !url.pathname.endsWith("/live/invite")) return null;
     const token2 = new URLSearchParams(url.hash.slice(1)).get("token");
     if (!token2 || !/^[a-zA-Z0-9_-]{43}$/.test(token2)) return null;

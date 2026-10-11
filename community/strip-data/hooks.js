@@ -668,17 +668,45 @@ function residualMetadata(bytes, kind) {
 
 // ─── lifecycle ───────────────────────────────────────────────────────────────
 
+function isOfficeFile(f) {
+  return /\.(docx|pptx|xlsx|docm|pptm|xlsm|dotx|dotm|potx|potm|xltx|xltm|xlsb|doc|ppt|xls)$/i.test(f.name || '')
+    || [0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1].every((b, i) => f.bytes[i] === b);
+}
+
+function isPackageFile(f) { return f.bytes[0] === 0x50 && f.bytes[1] === 0x4b; }
+
+async function officeReport(f, host, base) {
+  const result = { ...base, kind: 'Office', supported: true, inspectOnly: true, nothingFound: true,
+    cleanNote: 'Office files are inspected only. Their content remains unchanged and no cleaned download is available.' };
+  if (!host || !host.prepare || !host.prepare.inspect) return isOfficeFile(f)
+    ? { ...result, cleanNote: 'Office inspection is unavailable in this app. No content was inspected or removed.' }
+    : { ...base, kind: 'Archive', supported: false };
+  try {
+    const inspection = await host.prepare.inspect([{ id: 'office', name: f.name, bytes: f.bytes, mime: f.mime }]);
+    if (!isOfficeFile(f) && !inspection.scopes.some(s => s.id === 'office' && s.readOnly)) return { ...base, kind: 'Archive', supported: false };
+    const findings = inspection.findings.map(finding => ({ label: finding.label, tone: 'warn',
+      detail: `${inspection.scopes.find(s => s.id === finding.scopeId)?.path || ''}: ${finding.location} - ${finding.value}` }));
+    const limitations = [...new Set(inspection.scopes.flatMap(s => s.limitations))];
+    return { ...result, findings, nothingFound: findings.length === 0,
+      metaSummary: `Found ${findings.length} retained item${findings.length === 1 ? '' : 's'}. Office inspection is read-only; nothing was removed.`,
+      cleanNote: limitations.join(' '), tailNote: limitations.join(' ') };
+  } catch {
+    return { ...result, cleanNote: 'Office inspection could not finish. The file may exceed the 32 MiB inspection limit or use an unsupported package. Nothing was removed.' };
+  }
+}
+
 async function patch({ model, host }) {
   const inputs = Object.fromEntries(model.map(i => [i.id, i.value]));
   const f = inputs.source;
   const blank = {
-    hasFile: false, supported: false, pdfUnavailable: false, findings: [], nothingFound: false,
+    hasFile: false, supported: false, pdfUnavailable: false, inspectOnly: false, findings: [], nothingFound: false,
     fileName: '', fileSize: '', kind: '', metaSummary: '', cleanSize: '',
     tailNote: '', cleanNote: '',
   };
   if (!f || !f.bytes) return blank;
 
   const base = { ...blank, hasFile: true, fileName: f.name, fileSize: fmtBytes(f.size) };
+  if (isOfficeFile(f) || isPackageFile(f)) return officeReport(f, host, base);
   const info = classify(f.bytes);
   if (info.kind === 'file') {
     return { ...base, kind: 'file' }; // supported:false → template shows guidance
@@ -748,6 +776,7 @@ async function exportFile({ model, host }) {
   const inputs = Object.fromEntries(model.map(i => [i.id, i.value]));
   const f = inputs.source;
   if (!f || !f.bytes) throw new Error('Choose an image first.');
+  if (isOfficeFile(f) || isPackageFile(f)) throw new Error('Office inspection is read-only. Cleaned Office or archive exports are unavailable.');
 
   // PDF is re-saved (metadata removed) via the shell's PDF capability.
   if (isPdf(f.bytes)) {

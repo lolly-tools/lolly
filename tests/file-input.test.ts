@@ -371,7 +371,7 @@ test('strip-data (svg): strips metadata/comments/editor cruft, keeps the artwork
 test('strip-data (svg): a non-SVG file is reported as such and handed back untouched', async () => {
   const original = svgFile('this is not markup at all', 'notes.txt');
   const rt = await createRuntime(stripDataTool(), BARE_HOST, { source: original });
-  assert.match(rt.getHydrated(), /doesn't look like a supported image/);
+  assert.match(rt.getHydrated(), /This file cannot be inspected here/);
   const { bytes } = await rt.exportFile() as any;
   assert.deepEqual(Array.from(bytes), Array.from(original.bytes)); // byte-for-byte passthrough
 });

@@ -4,8 +4,8 @@
       <div class="exif-empty-icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L7 20"/></svg>
       </div>
-      <h2>Strip hidden data from an image or PDF</h2>
-      <p>Drag a JPEG, PNG, SVG or PDF anywhere onto this area, or choose one below. We'll show you the GPS location, camera, author, editor and document metadata it's carrying - then hand back a clean copy.</p>
+      <h2>Inspect hidden data in an image, PDF or Office file</h2>
+      <p>Choose a JPEG, PNG, SVG or PDF to review metadata and download a cleaned copy. DOCX, PPTX and XLSX inspection shows supported properties, comments, notes, links and hidden content; Office cleaning is not available.</p>
       <button type="button" class="exif-pick" data-file-pick>Choose a file…</button>
       <p class="exif-empty-note">Everything happens in your browser. Your file is never uploaded.</p>
     </div>
@@ -21,8 +21,8 @@
 
       {{#unless supported}}
         <div class="exif-clean-state">
-          <p class="exif-clean">This doesn't look like a supported image.</p>
-          <p class="exif-note">Choose a <code>JPEG</code>, <code>PNG</code> or <code>SVG</code> file.</p>
+          <p class="exif-clean">This file cannot be inspected here.</p>
+          <p class="exif-note">Choose a JPEG, PNG, SVG or PDF, or a supported DOCX, PPTX or XLSX Office package.</p>
         </div>
       {{/unless}}
 
@@ -35,9 +35,9 @@
         {{else}}
           {{#if nothingFound}}
             <div class="exif-clean-state">
-              <p class="exif-clean">This {{kind}} is already clean - no hidden data found.</p>
+              {{#if inspectOnly}}<p class="exif-clean">No supported Office findings were reported. Check the inspection limits below.</p>{{else}}<p class="exif-clean">This {{kind}} is already clean - no hidden data found.</p>{{/if}}
               <p class="exif-note">{{cleanNote}}</p>
-              <button type="button" class="exif-download" data-export-file data-busy-label="Saving…">Download copy{{#if cleanSize}} ({{cleanSize}}){{/if}}</button>
+              {{#unless inspectOnly}}<button type="button" class="exif-download" data-export-file data-busy-label="Saving…">Download copy{{#if cleanSize}} ({{cleanSize}}){{/if}}</button>{{/unless}}
             </div>
           {{/if}}
 
@@ -64,7 +64,7 @@
               {{/each}}
             </ul>
 
-            <button type="button" class="exif-download" data-export-file data-busy-label="Stripping data…">Download clean {{kind}}{{#if cleanSize}} ({{cleanSize}}){{/if}}</button>
+            {{#unless inspectOnly}}<button type="button" class="exif-download" data-export-file data-busy-label="Stripping data…">Download clean {{kind}}{{#if cleanSize}} ({{cleanSize}}){{/if}}</button>{{/unless}}
             <p class="exif-note">{{tailNote}}</p>
           {{/unless}}
         {{/if}}

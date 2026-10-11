@@ -99,6 +99,26 @@ values unless you choose to include them. File history saves the copy, so compar
 after a reload requires selecting the original again and matching its recorded
 SHA-256. Selecting that original for comparison does not save or upload the file.
 
+Strip Hidden Data and Prepare for sharing also inspect DOCX, PPTX and XLSX files
+on your device. Office inspection is read-only: no properties, comments or other
+document content are removed, and Strip Hidden Data offers no cleaned Office
+download. Prepare retains the original bytes and includes any retained findings
+in its counts. Private previews stay behind a reveal control.
+
+| Office format | Package content inspected | Removal supported |
+|---|---|---|
+| DOCX | Core, application and custom properties; comments and authors; tracked-change markers and previews; hidden text runs; external relationships; embedded objects | None |
+| PPTX | Properties; comments and author records; speaker notes; hidden-slide markers; external relationships; embedded objects and supported nested workbooks | None |
+| XLSX | Properties; comments and notes; hidden-sheet, row and column markers; defined names; external relationships and connections; external-link and pivot cache surfaces; embedded objects | None |
+
+The census does not fully inspect visible text, formulas, dependencies, rendered
+appearance or arbitrary binary parts. It supports up to 300 package parts,
+64 MiB of total declared expansion, 2 MiB per XML part and two nested embedded
+package levels. Prepare shares its part and expansion budgets across the whole
+job. Truncated, malformed, encrypted and unsupported content is reported and
+retained. Macro content is identified but never executed; legacy binary Office
+formats and XLSB remain uninspected. External references are never fetched.
+
 ## Every network request the app can make
 
 The table below lists the app's network features. Organisation services are

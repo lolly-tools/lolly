@@ -10,6 +10,9 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
 const EXPECTED: readonly string[] = [
+  // Additive 1.251 bounded, read-only Office package census.
+  'OfficeCensus', 'OfficeCensusFinding', 'OfficeCensusOptions', 'OfficeCensusPart',
+  'inspectOfficePackage', 'isOfficeSource',
   // Additive 1.249 dynamic Design layouts and native Penpot layout interchange.
   'LayoutEvaluation', 'LayoutGrid', 'LayoutMeasure', 'LayoutRequest', 'LayoutSolver',
   'LayoutSolverOutput', 'createDesignLayoutEvaluator', 'createDesignLayoutMeasurer',

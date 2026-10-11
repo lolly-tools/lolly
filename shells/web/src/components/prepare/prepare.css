@@ -176,8 +176,8 @@
 .prep-group-cat { flex: 1 1 auto; min-width: 0; display: inline-flex; align-items: center; gap: var(--sp-2); font-size: var(--fs-md); font-weight: 600; }
 .prep-group-cat svg { flex: none; width: calc(14px * var(--a11y-fs)); height: calc(14px * var(--a11y-fs)); color: var(--ui-color-text-muted); }
 .prep-group-body { display: flex; flex-direction: column; gap: var(--sp-2); margin-block-start: var(--sp-2); padding-inline-start: calc(var(--sp-2) + 18px); }
-.prep-group:has([data-selected]:not(:checked)) { opacity: .65; }
-.prep-group:has([data-selected]:not(:checked)) .prep-group-body { display: none; }
+.prep-group:has([data-selected]:not(:checked):not(:disabled)) { opacity: .65; }
+.prep-group:has([data-selected]:not(:checked):not(:disabled)) .prep-group-body { display: none; }
 .prep-group-value { display: flex; align-items: center; gap: var(--sp-2); min-width: 0; }
 .prep-mask { flex: 1 1 auto; min-width: 0; font-family: var(--ui-type-mono-family); font-size: var(--fs-sm); color: var(--ui-color-text-muted); overflow-wrap: anywhere; }
 .prep-mask.is-revealed { color: var(--ui-color-text-default); }
