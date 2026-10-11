@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-10-11T13:39:35.045Z",
+  "generatedAt": "2026-10-11T16:48:46.170Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -1014,8 +1014,8 @@
     {
       "id": "strip-data",
       "name": "Strip Hidden Data",
-      "description": "Inspect Office hidden content, or remove image and PDF metadata, on your device.",
-      "version": "1.1.0",
+      "description": "Remove selected DOCX properties or image and PDF metadata, and inspect other Office hidden content, on your device.",
+      "version": "1.2.0",
       "status": "official",
       "category": "utility",
       "privacy": "on-device",
@@ -3877,7 +3877,7 @@
       "id": "design",
       "name": "Design",
       "description": "An open canvas for free arrangement - text, images, shapes and live renders from your other Lolly tools, all held to your design system.",
-      "version": "1.47.0",
+      "version": "1.48.0",
       "status": "community",
       "category": "designer",
       "tags": [

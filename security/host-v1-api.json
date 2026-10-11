@@ -885,17 +885,17 @@
     "PreparationScope": {
       "module": "prepare.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "617fab7a6918fc353b30f1bb63f6d14f06ac0dd33c3729174704db5f46a3443d"
+      "sha256": "5f4397696214ac0a694fadf4a3b579d62f554c67df5998129f81a6373e107053"
     },
     "PreparationFinding": {
       "module": "prepare.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "e0a6960daaef12c921b04df0c052cde32b39c7317d02308761c0b4499470def9"
+      "sha256": "c9bb372b770065fe5f8efff115b058284f56fd4e1049991cf8156226500417cc"
     },
     "PreparationGroup": {
       "module": "prepare.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "58ab91e4ba15fc1bd9902db5c3d76701f383167bba4b1cae2e97e6a1c0abfa1d"
+      "sha256": "078345b0f70da6aecb69e5259ab454db0fa515ad6e9f9a17605c60b3490acef5"
     },
     "PreparationInspection": {
       "module": "prepare.ts",
@@ -910,7 +910,7 @@
     "PreparationReport": {
       "module": "prepare.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "f374bea869224a8ec9dc44cae68affbff7dc03ca84b98859beca6fdb772b32f2"
+      "sha256": "c3c18c3167d6121f9516d860d0bad88ff9182f20bdceabe3f1a0c9d5a6e5bde7"
     },
     "PreparationResult": {
       "module": "prepare.ts",

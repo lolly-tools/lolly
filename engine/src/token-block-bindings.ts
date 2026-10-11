@@ -57,6 +57,7 @@ export const RUN_LINKS_KEY = '__runs';
 const DESIGN_LINKS_FIELD = 'tokenLinks';
 const STATUSES = ['linked', 'unresolved', 'incompatible'];
 const HEX6 = /^[0-9a-f]{6}$/;
+const BORDER_STYLE_ADAPTERS: readonly (TokenAdapter | undefined)[] = ['border.style', 'border.dashArray', 'border.dashLength', 'border.gapLength'];
 
 function readLink(value: unknown): BlockTokenBinding | null {
   if (!record(value) || !isAlias(value.ref) || value.ref.length > 1024 || !scalar(value.value)) return null;
@@ -119,6 +120,12 @@ export function reconcileBlockTokenBindings(rows: InputValue[], metadataField: s
     const links = readBlockTokenBindings(row[metadataField]);
     let changed = false;
     for (const [field, link] of Object.entries(links)) if (!link.custom && !sameScalar(row[field], link.value)) {
+      links[field] = { ...link, custom: true }; changed = true;
+    }
+    // Dash overrides and the style form one consumer: an authored dash array wins
+    // over its style keyword, so refreshing the keyword alone would mislabel the link.
+    const customStyles = new Set(Object.values(links).filter(link => link.custom && BORDER_STYLE_ADAPTERS.includes(link.adapter)).map(link => link.ref));
+    for (const [field, link] of Object.entries(links)) if (!link.custom && customStyles.has(link.ref) && BORDER_STYLE_ADAPTERS.includes(link.adapter)) {
       links[field] = { ...link, custom: true }; changed = true;
     }
     return changed ? { ...row, [metadataField]: encodeBindings(links, readBlockRunBindings(row[metadataField])) } as InputValue : row;
@@ -433,11 +440,22 @@ export function resolveBlockTokenBindings(rows: InputValue[], metadataField: str
     if (!Object.keys(links).length) return row;
     const next = { ...row };
     let moved = false;
+    // A border refresh is atomic across its active properties. Incompatible width
+    // or style keeps the entire last usable border, including its colour.
+    const heldBorders = new Map<string, ReturnType<typeof resolveTokenBinding>>();
+    const borderResults = new Map<string, ReturnType<typeof resolveTokenBinding>>();
+    for (const [id, link] of Object.entries(links)) {
+      const field = byId.get(id);
+      if (link.custom || !link.adapter?.startsWith('border.') || !field || id === metadataField) continue;
+      const result = resolveTokenBinding(set?.get(aliasPath(link.ref)!), { ...field, type: field.type ?? 'text', colorTarget, adapter: link.adapter });
+      borderResults.set(id, result);
+      if (result.status !== 'linked') heldBorders.set(link.ref, result);
+    }
     for (const [id, link] of Object.entries(links)) {
       if (link.custom || link.mode === 'tint') continue;
       const field = byId.get(id);
       if (!field || id === metadataField) continue;
-      const result = resolveTokenBinding(set?.get(aliasPath(link.ref)!), { ...field, type: field.type ?? 'text', colorTarget, adapter: link.adapter });
+      const result = link.adapter?.startsWith('border.') && heldBorders.has(link.ref) ? heldBorders.get(link.ref)! : borderResults.get(id) ?? resolveTokenBinding(set?.get(aliasPath(link.ref)!), { ...field, type: field.type ?? 'text', colorTarget, adapter: link.adapter });
       if (result.status === 'linked' && scalar(result.value)) {
         if (next[id] !== result.value) moved = true;
         next[id] = result.value; links[id] = { ref: link.ref, value: result.value, status: 'linked', ...(link.adapter ? { adapter: link.adapter } : {}) };

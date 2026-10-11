@@ -7,8 +7,41 @@ import { join } from 'node:path';
 import { promisify } from 'node:util';
 import { execFile } from 'node:child_process';
 import { storeZip } from '../engine/src/zip.ts';
+import { openDocxMetadata } from '../engine/src/docx-metadata.ts';
 const run = promisify(execFile);
 const cli = new URL('../shells/cli/bin/lolly.ts', import.meta.url).pathname;
+test('CLI DOCX private choices remove one property while strip-hidden-data removes supported properties', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'lolly-docx-'));
+  try {
+    const bytes = new Uint8Array(await readFile(new URL('./fixtures/docx-metadata/metadata.docx', import.meta.url)));
+    const input = join(dir, 'original.docx'), output = join(dir, 'copy.docx'), review = join(dir, 'private.json');
+    await writeFile(input, bytes);
+    await run(process.execPath, [cli, 'prepare', input, `--review-file=${review}`]);
+    const envelope = JSON.parse(await readFile(review, 'utf8'));
+    const author = envelope.inspection.findings.find((f: { label: string; action?: string }) => f.label === 'Author' && f.action === 'remove-property');
+    envelope.choices = [{ groupId: author.groupId, replacement: '' }]; await writeFile(review, JSON.stringify(envelope));
+    const result = await run(process.execPath, [cli, 'prepare', input, `--choices=${review}`, `--output=${output}`]);
+    assert.equal(JSON.parse(result.stdout).replaced, 1); assert(!result.stdout.includes('Private fixture'));
+    const partial = openDocxMetadata(new Uint8Array(await readFile(output)), 'copy.docx');
+    assert(!partial.properties.some(p => p.id === 'core:creator')); assert(partial.properties.some(p => p.value === 'Unselected custom value'));
+    const full = join(dir, 'all-properties.docx');
+    await run(process.execPath, [cli, 'prepare', input, '--strip-hidden-data', `--output=${full}`]);
+    assert.deepEqual(openDocxMetadata(new Uint8Array(await readFile(full)), 'copy.docx').properties, []);
+    assert.deepEqual(new Uint8Array(await readFile(input)), bytes);
+  } finally { await rm(dir, { recursive: true, force: true }); }
+});
+test('CLI DOCX cleanup reports failed guards and retains the original without a cleanup claim', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'lolly-docx-unsupported-'));
+  try {
+    const bytes = storeZip([{ name: 'word/document.xml', bytes: new TextEncoder().encode('<document/>') }]);
+    const input = join(dir, 'unsupported.docx'), output = join(dir, 'copy.docx'); await writeFile(input, bytes);
+    await assert.rejects(run(process.execPath, [cli, 'prepare', input, '--strip-hidden-data', `--output=${output}`]), error => {
+      const result = error as Error & { code: number; stdout: string };
+      assert.equal(result.code, 1); assert(JSON.parse(result.stdout).stages.some((stage: { status: string }) => stage.status === 'failed')); return true;
+    });
+    assert.deepEqual(new Uint8Array(await readFile(output)), bytes);
+  } finally { await rm(dir, { recursive: true, force: true }); }
+});
 test('CLI replace-all keeps read-only Office findings and never proposes unsupported edits', async () => {
   const dir = await mkdtemp(join(tmpdir(), 'lolly-office-'));
   try {

@@ -581,6 +581,10 @@
       "axis",
       "order",
       "track"
+    ],
+    "strip-data:properties": [
+      "id",
+      "remove"
     ]
   }
 }
