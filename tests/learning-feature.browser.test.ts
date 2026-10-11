@@ -4,8 +4,8 @@ import test from 'node:test';
 import { chromium } from 'playwright';
 import { shellSettled } from './helpers/shell-settled.ts';
 
-const origin = process.env.LOLLY_HISTORY_TEST_URL;
-const skip = origin ? false : 'LOLLY_HISTORY_TEST_URL not set (serve the web shell locally)';
+const origin = process.env.LOLLY_HISTORY_TEST_URL || process.env.LOLLY_EXPORT_TEST_URL;
+const skip = origin ? false : 'Set LOLLY_HISTORY_TEST_URL or LOLLY_EXPORT_TEST_URL (serve the web shell locally)';
 if (origin) assert.ok(['localhost', '127.0.0.1', '[::1]'].includes(new URL(origin).hostname));
 
 test('Training and courses starts off, gates Projects and deep links, and preserves opt-in work', { skip, timeout: 120_000 }, async () => {
