@@ -86,9 +86,21 @@ function boundedTable(name: string, grid: string[][], remainingRows: number, rem
   return { table: { name, columns, rows }, truncated, cells };
 }
 
+function pastedDelimiter(text: string): ',' | '\t' {
+  let quoted = false;
+  for (let i = 0; i < text.length; i++) {
+    if (text[i] === '"') {
+      if (quoted && text[i + 1] === '"') i++;
+      else quoted = !quoted;
+    } else if (!quoted && text[i] === '\t') return '\t';
+    else if (!quoted && (text[i] === '\r' || text[i] === '\n')) break;
+  }
+  return ',';
+}
+
 export function comparisonTableTextSource(text: string, identity: ComparisonIdentity, format?: 'csv' | 'tsv'): ComparisonSource {
   if (text.length > MAX_TEXT) throw new Error('Choose table text up to 2 MiB per side.');
-  const decoded = delimitedRows(text.replace(/^\uFEFF/, ''), format === 'tsv' || (!format && text.includes('\t')) ? '\t' : ',');
+  const decoded = delimitedRows(text.replace(/^\uFEFF/, ''), format ? format === 'tsv' ? '\t' : ',' : pastedDelimiter(text));
   const bounded = boundedTable('Table', decoded.rows, MAX_ROWS, MAX_CELLS);
   const partial = decoded.truncated || bounded.truncated;
   return { identity, content: { kind: 'table', tables: [bounded.table] }, fidelity: { level: partial ? 'partial' : 'complete', limitations: partial ? [LIMIT] : [] } };
