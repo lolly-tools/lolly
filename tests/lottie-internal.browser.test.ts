@@ -98,10 +98,30 @@ test('nested layer/property edits, curves, undo, independent duplicates and save
     await page.keyboard.press('Escape');
     await page.locator('.tl-clip').first().click();
     await page.locator('.tl-animation-open').click();
+    // Both panels can stay open on desktop. Editing the existing Sequence must
+    // take priority when a smaller window leaves room for only one of them.
+    const inspector = page.getByRole('button', { name: 'Inspector', exact: true });
+    if (await inspector.getAttribute('aria-pressed') !== 'true') await inspector.click();
     await editor.locator('[data-layer="/0/0"]').click();
+    const narrowName = editor.getByLabel('Layer name', { exact: true });
+    const nameBeforeResize = await narrowName.inputValue();
+    await narrowName.focus();
     await page.setViewportSize({ width: 390, height: 844 });
     await editor.getByLabel('Layer name', { exact: true }).scrollIntoViewIfNeeded();
     assert.ok(await editor.evaluate(el => el.scrollWidth <= el.clientWidth + 2), 'internal controls fit a narrow viewport');
+    for (const width of [1440, 390]) {
+      await page.setViewportSize({ width, height: 844 });
+      await narrowName.scrollIntoViewIfNeeded();
+      assert.equal(await page.locator('.tl-panel').isVisible(), true, 'resizing preserves the open Sequence');
+      assert.equal(await page.locator('.tl-animation-open').getAttribute('aria-expanded'), 'true');
+      assert.equal(await narrowName.inputValue(), nameBeforeResize, 'resizing preserves the selected layer and its authored name');
+    }
+    // A desktop Export tab becomes modal on mobile. Dismiss it before editing
+    // again so the accessibility check never focuses behind an open dialog.
+    const exportDialog = page.getByRole('dialog', { name: 'Export', exact: true });
+    if (await exportDialog.isVisible()) await exportDialog.getByRole('button', { name: 'Close', exact: true }).click();
+    await narrowName.focus();
+    assert.ok(await narrowName.evaluate(el => el === document.activeElement), 'the narrow editor remains keyboard accessible');
     await page.screenshot({ path: '/tmp/lolly-internal-narrow.png' });
   } catch (error) {
     await Promise.allSettled([page.screenshot({ path: '/tmp/lolly-internal-failure.png', timeout: 3000 }), page.content().then(html => writeFile('/tmp/lolly-internal-failure.html', html))]);

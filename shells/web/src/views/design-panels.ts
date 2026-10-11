@@ -92,6 +92,13 @@ export function mountDesignPanels(opts: {
     scheduled = true;
     requestAnimationFrame(() => { scheduled = false; sync(); });
   }
+  // An already-open Sequence can be edited beside the inspector on a wide screen.
+  // Keep that interaction as the active panel when a resize makes them exclusive.
+  const onTimelineInteraction = (event: Event): void => {
+    if ((event.target as Element | null)?.closest?.('.tl-panel')) activate('timeline');
+  };
+  stage.addEventListener('focusin', onTimelineInteraction);
+  stage.addEventListener('pointerdown', onTimelineInteraction, true);
   const observer = new MutationObserver(schedule);
   observer.observe(stage, { attributes: true, attributeFilter: ['class'] });
   const resize = typeof ResizeObserver === 'function' ? new ResizeObserver(schedule) : null;
@@ -107,6 +114,8 @@ export function mountDesignPanels(opts: {
     sheetHeight(height: number) { sheetHeight = height; schedule(); },
     destroy() {
       disposed = true; observer.disconnect(); resize?.disconnect(); actions.remove();
+      stage.removeEventListener('focusin', onTimelineInteraction);
+      stage.removeEventListener('pointerdown', onTimelineInteraction, true);
       canvas.removeEventListener('canvas-resize', schedule);
       window.removeEventListener('resize', schedule);
       window.visualViewport?.removeEventListener('resize', schedule);

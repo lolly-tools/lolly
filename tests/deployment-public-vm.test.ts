@@ -561,9 +561,13 @@ test('Compose browser overlay requires a verified seccomp file and preserves iso
   assert.match(compose, /no-new-privileges:true/);
   assert.doesNotMatch(overlay, /unconfined|privileged:|cap_add|no-sandbox/);
   assert.doesNotMatch(compose, /seccomp=/);
-  const probe = read('deploy/docker/public-image-probe.ts');
+  const entry = read('deploy/docker/public-image-probe.ts');
+  assert.match(entry, /await import\(pathToFileURL\(resolve\(root, 'services\/mcp\/scripts\/native-public-image-probe.ts'\)\)\.href\)/);
+  const probe = read('services/mcp/scripts/native-public-image-probe.ts');
   assert.match(probe, /page.goto\('chrome:\/\/sandbox'\)/);
   assert.match(probe, /Layer 1 Sandbox/);
   assert.match(probe, /Seccomp-BPF sandbox supports TSYNC/);
   assert.match(probe, /for \(const format of \['svg', 'png', 'pdf'\]\)/);
+  assert.match(probe, /const authenticatedResultLinks = await probeResultLinks\(\);[\s\S]*console\.log/);
+  assert.match(read('deploy/docker/mcp-browser.Dockerfile'), /COPY --from=build \/src\/services\/mcp \.\/services\/mcp/);
 });

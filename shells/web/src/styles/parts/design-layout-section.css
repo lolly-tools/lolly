@@ -39,7 +39,7 @@
   min-width: 0;
   flex: 1 1 32px;
   border: 1px solid transparent;
-  border-radius: 6px;
+  border-radius: var(--ui-radius-control);
   padding: 0;
   background: var(--ui-color-surface-muted);
   color: var(--ui-color-text-muted);
@@ -102,7 +102,7 @@
   min-width: 0;
   height: 32px;
   padding-inline-start: 8px;
-  border-radius: 6px;
+  border-radius: var(--ui-radius-control);
   background: var(--ui-color-surface-muted);
   color: var(--ui-color-text-muted);
 }
@@ -160,7 +160,7 @@
 .dl-section .dl-edit-grid {
   appearance: none;
   min-height: 32px;
-  border-radius: 6px;
+  border-radius: var(--ui-radius-control);
   border: 1px solid var(--ui-color-border-default);
   color: var(--ui-color-text-default);
   background: var(--ui-color-surface-muted);
@@ -223,7 +223,7 @@
   height: 32px;
   min-width: 0;
   padding-inline-start: 8px;
-  border-radius: 6px;
+  border-radius: var(--ui-radius-control);
   background: var(--ui-color-surface-muted);
   color: var(--ui-color-text-muted);
 }
@@ -263,7 +263,7 @@
   width: 236px;
   padding: 8px;
   border: 1px solid var(--ui-color-border-default);
-  border-radius: 6px;
+  border-radius: var(--ui-radius-panel);
   background: var(--ui-color-surface-overlay);
   box-shadow: var(--ui-elevation-floating);
 }
@@ -284,7 +284,7 @@
   height: 32px;
   padding: 0 8px;
   border: 1px solid var(--ui-color-border-default);
-  border-radius: 6px;
+  border-radius: var(--ui-radius-control);
   background: var(--ui-color-surface-muted);
 }
 .dl-section .dl-advanced {

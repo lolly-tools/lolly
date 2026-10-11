@@ -36,8 +36,11 @@ export class ResultFiles {
   private closed = false;
   private readonly expiryTimer: ReturnType<typeof setInterval>;
   private readonly now: () => number;
-  constructor(now: () => number = Date.now) {
+  private readonly lifetimeSeconds: number;
+  constructor(now: () => number = Date.now, lifetimeSeconds = RESULT_TTL_SEC) {
+    if (!Number.isSafeInteger(lifetimeSeconds) || lifetimeSeconds < 1 || lifetimeSeconds > RESULT_TTL_SEC) throw new Error('Result lifetime must be an integer from 1 to 300 seconds.');
     this.now = now;
+    this.lifetimeSeconds = lifetimeSeconds;
     this.expiryTimer = setInterval(() => { void this.prune().catch(() => {}); }, 30_000);
     this.expiryTimer.unref();
   }
@@ -65,7 +68,7 @@ export class ResultFiles {
     const id = randomUUID(); const path = `/api/mcp/files/${id}`;
     let file: string | undefined;
     try {
-      const base = new URL(origin); const expires = Math.floor(this.now() / 1000) + RESULT_TTL_SEC;
+      const base = new URL(origin); const expires = Math.floor(this.now() / 1000) + this.lifetimeSeconds;
       this.directory ??= mkdtemp(join(tmpdir(), 'lolly-mcp-results-'));
       file = join(await this.directory, id);
       await writeFile(file, bytes, { flag: 'wx', mode: 0o600 });
