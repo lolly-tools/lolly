@@ -142,20 +142,11 @@ export function attachLangMenu(triggerEl: HTMLElement | null, host: LangSwitchHo
       pop.close();
       void switchLang(host, next);
     });
-    el.addEventListener('keydown', e => {
-      if (!['ArrowUp', 'ArrowDown'].includes(e.key)) return;
-      const i = items.indexOf(document.activeElement as HTMLButtonElement);
-      if (i < 0) return;
-      e.preventDefault();
-      const step = e.key === 'ArrowDown' ? 1 : -1;
-      rove(items[(i + step + items.length) % items.length]!);
-    });
-
     return checked;
     // The popover root is a plain group: role="menu" lives on .lang-menu-list,
     // because a menu may only own menuitem* children - the sort tablist above
     // the list would be an invalid (and SR-invisible) child of the menu itself.
-  }, { className: 'lang-menu', role: 'group', ariaLabel: escape(t('Language')), position });
+  }, { className: 'lang-menu', role: 'group', ariaLabel: escape(t('Language')), position, menuNavigation: { roving: true } });
 
   const onClick = () => { popover.isOpen() ? popover.close(true) : popover.open(); };
   trigger.addEventListener('click', onClick);

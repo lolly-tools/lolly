@@ -9,9 +9,10 @@
  *
  * `render(el, popover)` builds the popover's own content fresh on every open
  * (item lists, current-value checks, etc. can change between opens) and wires
- * whatever internal listeners it needs (item clicks, roving-tabindex arrow keys);
+ * whatever internal listeners it needs (item clicks, specialized control keys);
  * it returns the element that should receive initial focus, or null/undefined to
- * leave focus where it is. The shell only owns the generic lifecycle - callers
+ * leave focus where it is. Opt-in menu navigation shares wrapped directional
+ * focus; the shell also owns the generic lifecycle. Callers
  * keep deciding what the trigger's own click handler does (profile-menu, e.g.,
  * only intercepts the click at a mobile breakpoint).
  *
@@ -36,6 +37,7 @@
 import { trapFocus, type FocusTrap } from '../lib/focus-trap.ts';
 import { registerOverlay, type OverlayEntry } from '../lib/overlay-back.ts';
 import { NAV_EVENTS } from '../utils.ts';
+import { wireMenuNavigation, type MenuNavigationOptions } from './menu-navigation.ts';
 
 export interface BodyPopoverHandle {
   open(): void;
@@ -98,6 +100,8 @@ export interface BodyPopoverOptions {
   trackScroll?: boolean;
   /** Keep expanding content inside the viewport as its measured size changes. */
   trackSize?: boolean;
+  /** Arrow and Home/End focus within actual menu lists in this panel. */
+  menuNavigation?: boolean | MenuNavigationOptions;
   /** Called AFTER a close that actually closed something, whichever route took it:
    *  the caller's own `close()`, Escape, an outside pointerdown, or a route change.
    *  For a caller whose content is not owned by the popover - the timeline inspector
@@ -279,6 +283,7 @@ export function mountBodyPopover(
   let outside: ((e: PointerEvent) => void) | null = null;
   let trap: FocusTrap | null = null;
   let sizeObserver: ResizeObserver | null = null;
+  let releaseMenuNavigation: (() => void) | null = null;
   let openedHref = '';
   /** This popover's place on the shared Back stack while it is open, or null when it
    *  pushed no history entry (see the pointer gate in `open()`). */
@@ -326,6 +331,8 @@ export function mountBodyPopover(
     if (opts.trackScroll) window.removeEventListener('scroll', onScroll, true);
     sizeObserver?.disconnect();
     sizeObserver = null;
+    releaseMenuNavigation?.();
+    releaseMenuNavigation = null;
     NAV_EVENTS.forEach(ev => window.removeEventListener(ev, onNavEvent));
     outside = null;
     trap?.release();
@@ -349,6 +356,7 @@ export function mountBodyPopover(
     if (opts.ariaLabel) el.setAttribute('aria-label', opts.ariaLabel);
     const initialFocus = render(el, handle);
     container.appendChild(el);
+    if (opts.menuNavigation) releaseMenuNavigation = wireMenuNavigation(el, opts.menuNavigation === true ? {} : opts.menuNavigation);
     position(el, anchor);
     if (opts.trackSize && typeof ResizeObserver !== 'undefined') {
       sizeObserver = new ResizeObserver(reposition);

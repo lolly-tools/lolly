@@ -101,6 +101,22 @@ test('a tile menu yields to a context menu already handled by an embedded editor
   h.menu.destroy();
 });
 
+test('context menu keyboard navigation reaches disabled explanations without invoking them', () => {
+  const h = harness();
+  fire(h.tile('a'), 'contextmenu');
+  const menu = h.openMenuEl()!;
+  menu.insertAdjacentHTML('beforeend', menuItemHtml('locked', '', 'Unavailable', { reason: 'Needs permission' }));
+  const item = menu.querySelector<HTMLElement>('[data-act="locked"]')!;
+  fire(h.doc.activeElement as HTMLElement, 'keydown', { key: 'End' });
+  assert.equal(h.doc.activeElement, item);
+  item.click();
+  assert.deepEqual(h.actions, []);
+  assert.equal(h.openMenuEl(), menu);
+  fire(item, 'keydown', { key: 'Home' });
+  assert.equal(h.doc.activeElement, menu.querySelector('[data-act="one"]'));
+  h.menu.destroy();
+});
+
 test('right-click inside a multi-selection opens the BULK menu (role demoted to group)', () => {
   const h = harness();
   h.selected.add('a').add('b');

@@ -92,6 +92,7 @@ interface Fixture {
   stageEl: HTMLElement;
   canvasEl: HTMLElement;
   boxes(): Box[];
+  guides(): unknown;
   commits: () => number;
   destroy(): void;
 }
@@ -109,6 +110,7 @@ function mount(initial: Box[], design = false, canEdit?: () => boolean): Fixture
   canvasEl.getBoundingClientRect = () => rect(0, 0, NATIVE, NATIVE);
 
   const model = new Map<string, unknown>([['boxes', initial]]);
+  if (design) model.set('guides', '1|y=300');
   let commits = 0;
   const subs: Array<() => void> = [];
   const runtime = {
@@ -133,6 +135,7 @@ function mount(initial: Box[], design = false, canEdit?: () => boolean): Fixture
   return {
     stageEl, canvasEl,
     boxes: () => model.get('boxes') as Box[],
+    guides: () => model.get('guides'),
     commits: () => commits,
     destroy() { handle.destroy(); viewEl.remove(); dom.window.document.body.innerHTML = ''; },
   };
@@ -148,6 +151,23 @@ function selectAt(f: Fixture, x: number, y: number): void {
   frames();
 }
 const selectionCount = (f: Fixture): number => f.stageEl.querySelectorAll('.fc-chrome .fc-outline').length;
+
+test('authoring guides follow the canvas edit permission as the writer seat changes', () => {
+  let writable = false;
+  const f = mount([plainBox('a', 100, 100)], true, () => writable);
+  const line = f.stageEl.querySelector<HTMLElement>('.fc-author-guide')!;
+  line.dispatchEvent(pointerEvent('pointerdown', { x: 400, y: 300 }));
+  line.dispatchEvent(pointerEvent('pointerup', { x: 400, y: 350 }));
+  line.focus();
+  line.dispatchEvent(new W.KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+  assert.equal(f.guides(), '1|y=300');
+  assert.equal(f.commits(), 0);
+  writable = true;
+  line.dispatchEvent(new W.KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+  assert.match(String(f.guides()), /301/);
+  assert.equal(f.commits(), 1);
+  f.destroy();
+});
 
 /**
  * A chrome root over the canvas with one focusable control in it, `off` deciding whether

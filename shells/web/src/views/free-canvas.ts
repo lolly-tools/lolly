@@ -925,6 +925,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
         stageEl,
         canvasEl,
         read: () => runtime.getModel().find((model) => model.id === 'guides')?.value,
+        canEdit: opts.canEdit,
         commit: (value) => {
           onDirty?.('guides');
           runtime.setInput('guides', value);

@@ -4,7 +4,7 @@
  * constants and pure helpers that used to sit above initFreeCanvas(). Moved here verbatim so
  * no feature module has to import the orchestrator file. The design tool (free canvas) view.
  */
-import type { Box } from '../free-canvas-math.ts';
+import type { Box, CanvasSnapIndex } from '../free-canvas-math.ts';
 import type { DesignChromeOpts } from '../design-ports.ts';
 import type { SplineKind, SplineNode } from '@lolly/engine';
 
@@ -564,6 +564,7 @@ export type PopItem = PopSep | PopGrid | PopAction;
 export interface GestureBase {
   pointerId: number;
   startClient: Point;
+  snapIndex?: CanvasSnapIndex | null;
   origin?: Point;
 }
 export interface TapGesture extends GestureBase {

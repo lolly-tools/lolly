@@ -338,6 +338,7 @@ export function paintChrome(fc: FcCtx, boxes: Box[], liveRects: Map<number, Rect
     const offIdx = fc.select.selIndices(boxes);
     if (offIdx.length) {
       fc.rail.clearChrome();
+      fc.authoringGuides?.setSelectionBounds(null);
       fc.rail.hideCtxBar();
       fc.document.closeMorePanel();
       fc.chromeKey = '';
@@ -352,6 +353,7 @@ export function paintChrome(fc: FcCtx, boxes: Box[], liveRects: Map<number, Rect
   // format bar tracking the box as the stage pans/zooms.
   if (fc.editing) {
     fc.rail.clearChrome();
+    fc.authoringGuides?.setSelectionBounds(null);
     fc.rail.hideCtxBar();
     fc.textEdit.positionFmtBar();
     return;
@@ -361,6 +363,7 @@ export function paintChrome(fc: FcCtx, boxes: Box[], liveRects: Map<number, Rect
   // reason: the box's frame is not what is being manipulated.
   if (fc.penDraft || fc.penEdit) {
     fc.rail.clearChrome();
+    fc.authoringGuides?.setSelectionBounds(null);
     fc.penTool.penSyncFromModel(boxes);
     if (fc.penDraft || fc.penEdit) {
       fc.penTool.paintPen();
@@ -553,6 +556,10 @@ export function positionChrome(fc: FcCtx,
   // Resolved ONCE per sync: a posed rect costs a `querySelector` per box, and the
   // group branch below would otherwise ask for every one of them a second time.
   const rects = idx.map((i) => chromeRect(fc, boxes, i, liveRects));
+  const bounds = rects.length && (fc.authoringGuides || rects.length > 1)
+    ? aabbOfRects(fc, rects)
+    : null;
+  fc.authoringGuides?.setSelectionBounds(bounds);
   for (let k = 0; k < idx.length; k++) {
     const r = rects[k]!;
     const tl = fc.stage.nativeToStage(r.x, r.y, m);
@@ -566,7 +573,7 @@ export function positionChrome(fc: FcCtx,
   if (idx.length === 1) {
     positionHandles(fc, rects[0]!, m);
   } else if (idx.length > 1) {
-    positionGroupHandles(fc, aabbOfRects(fc, rects), m);
+    positionGroupHandles(fc, bounds!, m);
   }
 }
 export function positionHandles(fc: FcCtx, r: Rect, m: Metrics): void {

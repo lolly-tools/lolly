@@ -248,7 +248,7 @@ export function wireTileContextMenu(opts: TileContextMenuOptions): TileContextMe
     }
     el.addEventListener('click', onMenuClick);
     return pending.quiet ? el : el.querySelector<HTMLElement>('[data-act]');
-  }, { className: opts.className ?? 'folder-menu ctx-menu', position: placeMenu });
+  }, { className: opts.className ?? 'folder-menu ctx-menu', position: placeMenu, menuNavigation: true });
 
   /** Labels the sheet: its own head, or the bulk body's count line when there is none. */
   function labelSheet(el: HTMLElement, head: ContextMenuSheetHead | null, id: string): void {
