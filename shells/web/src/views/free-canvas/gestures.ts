@@ -23,7 +23,7 @@ import { beginCanvasGesture, canvasGestureReady, finishCanvasGesture, flushCanva
 
 // ── pointer gestures on the canvas ───────────────────────────────────────────
 export function beginGesture(fc: FcCtx, e: PointerEvent, g: GestureInit): void {
-  if (fc.opts?.canEdit?.() === false && g.type !== 'marquee') return;
+  if (fc.opts?.canEdit?.() === false && g.type !== 'marquee' || fc.layout && !fc.layout.gestureReady(g.type)) return;
   const { canvasEl } = fc;
   try {
     canvasEl.setPointerCapture(e.pointerId);
@@ -879,7 +879,7 @@ export function applyGestureMove(fc: FcCtx, e: PointerEvent): void {
 export function onGestureEnd(fc: FcCtx, e: PointerEvent): void {
   const { CAM_TILT_DEG_PER_PX, canvasEl, cfg, frameCfg, minSize, timeCfg } = fc;
   if (!fc.gesture || e.pointerId !== fc.gesture.pointerId) return;
-  if (e.type === 'pointercancel' || !canvasGestureReady(fc) || fc.opts?.canEdit?.() === false && fc.gesture.type !== 'marquee') {
+  if (e.type === 'pointercancel' || !canvasGestureReady(fc) || fc.opts?.canEdit?.() === false && fc.gesture.type !== 'marquee' || fc.layout && !fc.layout.gestureReady(fc.gesture.type)) {
     cancelGesture(fc); return;
   }
   const g = fc.gesture;
@@ -1237,7 +1237,7 @@ export function onGestureEnd(fc: FcCtx, e: PointerEvent): void {
       // now ends up in. moveBoxes preserves index order, so g.sel indices stay valid -
       // and only the boxes that actually MOVED are re-bucketed: a posed box's own
       // geometry never changed, so it cannot have crossed a frame edge.
-      fc.select.commit(fc.select.assignFrames(fc.select.cascadeFrameChildren(boxes, next, moveIdx), new Set(moveIdx)));
+      fc.select.commit(fc.layout.drop(boxes, fc.select.assignFrames(fc.select.cascadeFrameChildren(boxes, next, moveIdx), new Set(moveIdx)), moveIdx, e.altKey));
     } else {
       // The press never became a drag, so honour the click's own meaning: narrow the
       // multi-selection to the box that was clicked (plan 179 C4). `ctxSelKey` is reset

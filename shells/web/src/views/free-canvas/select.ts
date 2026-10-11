@@ -37,7 +37,8 @@ export function notifySelection(fc: FcCtx): void {
 export const getBoxes = (fc: FcCtx): Box[] => {
   const { blockId, runtime } = fc;
   const e = runtime.getModel().find((i) => i.id === blockId);
-  return Array.isArray(e?.value) ? e!.value : [];
+  const source = Array.isArray(e?.value) ? e!.value : [];
+  return fc.layout ? fc.layout.project(source) : source;
 };
 export const getBg = (fc: FcCtx): any => { const { bgInputId, runtime } = fc; return runtime.getModel().find((i) => i.id === bgInputId)?.value ?? '#ffffff'; };
 /** The frame-primitive field names as the pure artboard helpers want them. Only
@@ -127,13 +128,25 @@ export function freshId(fc: FcCtx, boxes: Box[]): string {
  *  minted rows without one. Returns the SAME array when nothing was missing, so a
  *  caller commits only on a real change. Inert for a tool with no id field. */
 export const withIds = (fc: FcCtx, boxes: Box[]): Box[] => { const { cfg, hasIdField } = fc; return (hasIdField ? ensureRowIds(boxes, cfg.idField) : boxes); };
-export function commit(fc: FcCtx, nextBoxes: Box[]): void {
-  if (fc.opts?.canEdit?.() === false) return;
+export function commit(fc: FcCtx, nextBoxes: Box[], patch: Record<string, unknown> = {}, label = 'Edit layout'): void {
   const { blockId, onDirty, runtime } = fc;
   if (fc.frameCfg && fc.timeCfg) nextBoxes = retimeSceneMembers(getBoxes(fc), nextBoxes, { ...frameFields(fc), startField: fc.timeCfg.startField });
-  if (fc.storyFlow?.reconcile(nextBoxes)) return;
-  onDirty?.(blockId);
-  runtime.setInput(blockId, withIds(fc, fc.cv.textDocumentInput ? resizeDesignTextFrames(getBoxes(fc), nextBoxes) : nextBoxes));
+  try {
+    if (fc.cv.textDocumentInput) nextBoxes = resizeDesignTextFrames(getBoxes(fc), nextBoxes);
+    const source = runtime.getModel().find(i => i.id === blockId)?.value;
+    if (fc.layout && Array.isArray(source)) nextBoxes = fc.layout.sourceEdit(source, nextBoxes);
+    patch = { ...fc.layout?.trackPatch(nextBoxes), ...patch };
+    if (fc.storyFlow?.reconcile(nextBoxes, patch, label)) return;
+    const next = withIds(fc, nextBoxes);
+    onDirty?.(blockId);
+    if (Object.keys(patch).length) {
+      for (const id of Object.keys(patch)) onDirty?.(id);
+      const values = { ...patch, [blockId]: next };
+      if (fc.history?.commit) void fc.history.commit(values, label).catch(fc.layout.failure);
+      else if (runtime.applyPatch) { fc.history?.changed?.(); void runtime.applyPatch(values).catch(fc.layout.failure); }
+      else throw new Error('This canvas cannot commit layout tracks and layers together.');
+    } else runtime.setInput(blockId, next);
+  } catch (error) { fc.layout.failure(error); }
 }
 // ── frame containment-on-drop (plan 93 F1b-1) ────────────────────────────────
 // Re-bucket the boxes TOUCHED by a gesture (by array index) into the frame their
@@ -152,7 +165,7 @@ export function assignFrames(fc: FcCtx, nextBoxes: Box[], touched: Set<number>):
   const fk = frameCfg.frameKind;
   const frameBoxes = nextBoxes.filter((b) => String(b?.[cfg.kindField]) === fk);
   return nextBoxes.map((b, i) => {
-    if (!touched.has(i) || !b) return b;
+    if (!touched.has(i) || !b || b.layoutOwner) return b;
     if (String(b[cfg.kindField]) === fk) return b; // a frame keeps frame='' (no self-nesting)
     const fid = resolveFrame(b, frameBoxes);
     return String(b[ff] ?? '') === fid ? b : { ...b, [ff]: fid };
@@ -255,7 +268,7 @@ export function cascadeFrameChildren(fc: FcCtx, prev: Box[], next: Box[], sel: n
   }
   if (deltas.size === 0) return next;
   return next.map((b, i) => {
-    if (!b || selSet.has(i) || String(b[cfg.kindField]) === fk) return b;
+    if (!b || selSet.has(i) || b.layoutOwner || String(b[cfg.kindField]) === fk) return b;
     const d = deltas.get(String(b[ff] ?? ''));
     return d
       ? withRect(b, { x: num(b[cfg.xField]) + d.dx, y: num(b[cfg.yField]) + d.dy }, cfg)

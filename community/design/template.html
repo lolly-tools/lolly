@@ -5,6 +5,7 @@
       too (it becomes one board the size of the canvas). Inert for every other format:
       the SVG/PDF/PNG/video walkers all skip <script>. --}}
 <script type="application/json" data-penpot-doc>{{{penpotDocJson}}}</script>
+{{#if layoutError}}<div class="lolly-layout-error" role="alert">{{layoutError}}</div>{{/if}}
 {{#if userCss}}<style>{{{userCss}}}</style>
 {{/if}}{{#if frameMode}}
 {{!-- Native PowerPoint deck model (plan 95 route-a): when frames exist the hook emits
@@ -24,7 +25,7 @@
       [data-pdf-page] and sizes each page independently (renderMultiPagePdf), no bridge change.
       The per-box markup is IDENTICAL to the artboard branch below - only the page wrapping
       and the frame-local left/top override (baked into boxStyle by the hook) are new. --}}
-<div class="lolly-frames"{{{lookup seqAttrs 0}}}{{{rootAttrs}}}>
+<div class="lolly-frames"{{#if layoutReceipt}} data-layout-receipt="{{layoutReceipt}}"{{/if}}{{{lookup seqAttrs 0}}}{{{rootAttrs}}}>
   {{#each frameGroups}}
   {{!-- pageImgHtml is the board's own IMAGE fill (plan 179 A4) - an <img> layer, FIRST inside
         the page so it paints under every member box, and inline-styled so the SVG/PDF walkers
@@ -101,7 +102,7 @@
   </script>
 </div>
 {{else}}
-<div class="artboard" style="background:{{lookup bgStyle 0}}"{{{lookup seqAttrs 0}}}{{{rootAttrs}}}>
+<div class="artboard"{{#if layoutReceipt}} data-layout-receipt="{{layoutReceipt}}"{{/if}} style="background:{{lookup bgStyle 0}}"{{{lookup seqAttrs 0}}}{{{rootAttrs}}}>
   {{!-- Bound-path layer (plan 96 P5): one artboard-sized <svg> built by the engine via
         host.connectors (hooks.js lineLayerFor), holding every path box with an end attached
         to another box, BEHIND the boxes. A FREE path draws inside its own box instead

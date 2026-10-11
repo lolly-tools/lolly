@@ -34,6 +34,7 @@ export interface ApiMethods {
 export const HOST_V1_REQUIRED_APIS: readonly HostRequiredApi[] = ['profile', 'assets', 'state', 'clipboard', 'export'];
 
 export const HOST_V1_METHODS: Record<HostApi, ApiMethods> = {
+  layout: { required: ['evaluate'], optional: [] },
   profile: { required: ['get', 'subscribe'], optional: [] },
   assets: { required: ['get', 'query', 'pick', 'isAvailable'], optional: ['resolveProvider', 'credential', 'bytes', 'add'] },
   state: { required: ['save', 'load', 'list', 'delete'], optional: [] },

@@ -535,6 +535,7 @@ export function onKey(fc: FcCtx, e: KeyboardEvent): void {
   const altSeek = e.altKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight');
   if (nudges[e.key] && fc.selection.size && !altSeek) {
     e.preventDefault();
+    if (fc.layout && !fc.layout.placementReady()) return;
     const step = e.shiftKey ? 10 : 1;
     const [ux, uy] = nudges[e.key]!;
     const boxes = fc.select.getBoxes();
@@ -554,7 +555,7 @@ export function onKey(fc: FcCtx, e: KeyboardEvent): void {
     let next = moveIdx.length ? moveBoxes(boxes, moveIdx, ux * step, uy * step, cfg) : boxes;
     if (kfIds.size && fc.timelinePanel)
       next = fc.timelinePanel.kfPoseWrite(next, [...kfIds], { x: ux * step, y: uy * step });
-    fc.select.commit(fc.select.assignFrames(fc.select.cascadeFrameChildren(boxes, next, moveIdx), new Set(moveIdx)));
+    fc.select.commit(fc.layout.nudge(boxes, fc.select.assignFrames(fc.select.cascadeFrameChildren(boxes, next, moveIdx), new Set(moveIdx)), moveIdx, ux, uy, step));
   }
 }
 // Reposition chrome when the stage pans/zooms/resizes.

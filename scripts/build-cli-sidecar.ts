@@ -71,7 +71,7 @@ import {
   readFileSync, rmSync, statSync, writeFileSync,
 } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
-import { dirname, join, relative, resolve, sep } from 'node:path';
+import { basename, dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
 
@@ -202,6 +202,9 @@ mkdirSync(BIN_DIR, { recursive: true });
 mkdirSync(join(LIB, 'dist'), { recursive: true });
 cpSync(join(REPO, 'packages/node-shell/wasm/jxl'), join(LIB, 'wasm/jxl'), { recursive: true });
 cpSync(join(REPO, 'packages/node-shell/wasm/adobe-psd'), join(LIB, 'wasm/adobe-psd'), { recursive: true });
+cpSync(join(REPO, 'packages/node-shell/wasm/layout-kernel'), join(LIB, 'wasm/layout-kernel'), {
+  recursive: true, filter: (source) => basename(source) !== 'target',
+});
 
 const result = await build({
   // The output names matter: shells/cli/src/tui.ts starts the TUI by looking for

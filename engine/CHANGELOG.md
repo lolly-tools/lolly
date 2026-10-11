@@ -6,6 +6,11 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.249.0
+
+- Add the optional `host.layout.evaluate` capability. Design flex and grid rules use the newer Penpot Rust implementation pinned to `10955f17e27943429a10e90360d0404e3f56e27c`, compiled as a bounded, import-free WASM kernel. Authored rows and grid tracks remain separate from evaluated geometry.
+- Design 1.46 appends dynamic layout fields and a grid-track collection. Existing compact URL field positions stay fixed.
+
 ## 1.248.0
 
 - Outline Design strike-through with ascent from the resolved HarfBuzz font instance and the Design HTML reference's CSS auto policy. SVG and PDF share its validated geometry; missing metrics and underline retain explicit findings.

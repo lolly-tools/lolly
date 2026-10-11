@@ -161,7 +161,43 @@
       "webCss",
       "webHideCookies",
       "interact",
-      "interactOpts"
+      "interactOpts",
+      "layout",
+      "layoutOwner",
+      "layoutOrder",
+      "layoutDirection",
+      "layoutWrap",
+      "layoutGapX",
+      "layoutGapY",
+      "layoutPadTop",
+      "layoutPadRight",
+      "layoutPadBottom",
+      "layoutPadLeft",
+      "layoutAlign",
+      "layoutAlignContent",
+      "layoutJustify",
+      "layoutJustifyItems",
+      "layoutW",
+      "layoutH",
+      "layoutMinW",
+      "layoutMaxW",
+      "layoutMinH",
+      "layoutMaxH",
+      "layoutMarginTop",
+      "layoutMarginRight",
+      "layoutMarginBottom",
+      "layoutMarginLeft",
+      "layoutAbsolute",
+      "layoutSelf",
+      "layoutJustifySelf",
+      "layoutRow",
+      "layoutColumn",
+      "layoutRowSpan",
+      "layoutColumnSpan",
+      "layoutArea",
+      "layoutX",
+      "layoutY",
+      "layoutAngle"
     ],
     "diagram-builder:nodes": [
       "shape",
@@ -538,6 +574,13 @@
       "panZ",
       "focusDistance",
       "name"
+    ],
+    "design:layoutTracks": [
+      "id",
+      "container",
+      "axis",
+      "order",
+      "track"
     ]
   }
 }

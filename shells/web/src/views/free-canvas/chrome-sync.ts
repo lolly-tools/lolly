@@ -45,6 +45,7 @@ export function renderChromeLive(fc: FcCtx): void {
   }
   paintChrome(fc, boxes, rects);
   fc.storyFlowUi?.paint();
+  fc.layout?.paint();
 }
 export function renderChrome(fc: FcCtx): void {
   const boxes = fc.select.getBoxes();
@@ -52,6 +53,7 @@ export function renderChrome(fc: FcCtx): void {
   fc.authoringGuides?.sync();
   paintChrome(fc, boxes, null);
   fc.storyFlowUi?.paint();
+  fc.layout?.paint();
   // Keep the selected connector's highlight + inspector tracking any box move,
   // pan/zoom, or edit (drops the selection if its edge/box has gone).
   if (fc.selectedEdges.size) fc.edges.refreshEdgeChrome();

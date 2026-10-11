@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { layoutOps } from './free-canvas/layout.ts';
 // free-canvas.js - the WYSIWYG direct-manipulation overlay for render.layout:'editor'.
 //
 // This is the ONLY DOM in the free-canvas feature. All geometry lives in the pure,
@@ -221,6 +222,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   fc.fieldPanels = fieldPanelsOps(fc);
   fc.objects = objectsOps(fc);
   fc.ops = opsOps(fc);
+  fc.layout = layoutOps(fc);
   fc.penTool = penToolOps(fc);
   fc.modes = modesOps(fc);
   fc.textEdit = textEditOps(fc);
@@ -1860,7 +1862,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
     // centre OUTSIDE every frame stays '' (assignFrames leaves it), keeping the pasteboard
     // scratchpad. Quiet, like the id stamping below: membership matching position is not a
     // user edit, so no onDirty (no Save-pill flash) and no history entry (no ⌘Z surprise).
-    if (frameCfg) next = fc.select.assignFrames(next, new Set(next.map((_, i) => i)));
+    if (frameCfg && !fc.layout.has(loaded)) next = fc.select.assignFrames(next, new Set(next.map((_, i) => i)));
     // mountTool installs the un-wrapped setter; a mount without it falls back.
     const quiet =
       (runtime as RuntimeApi & { setInputNoHistory?: RuntimeApi['setInput'] }).setInputNoHistory ??
@@ -1942,7 +1944,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
         const boxes = (Array.isArray(res.boxes) ? res.boxes : []) as Box[];
         if (!boxes.length) throw new Error(t('Nothing importable was found in that file.'));
         fc.selection = new Set<string>();
-        fc.select.commit(boxes);
+        fc.select.commit(boxes, res.layoutTracks?.length ? { layoutTracks: res.layoutTracks } : {}, t('Import design'));
         if (setCanvasSize && res.width > 0 && res.height > 0)
           setCanvasSize(res.width, res.height, 'px');
         announce(boxes.length === 1 ? t('Imported 1 object.') : t('Imported {n} objects.', { n: boxes.length }));

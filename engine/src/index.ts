@@ -1204,3 +1204,10 @@ export type { CameraRawPreset } from './camera-raw-preset.ts';
 export { readPremiereXml, writePremiereXml, premiereSequenceValues, framesToSeconds, secondsToFrames } from './premiere-xml.ts';
 export type { InterchangeRate, InterchangeClip, InterchangeSequence } from './premiere-xml.ts';
 export { readIdmlSpreads } from './idml-read.ts';
+
+export { createDesignLayoutEvaluator, hasDesignLayout, validateDesignLayout, designLayoutSourceEdit, parseLayoutTrack } from './design-layout.ts';
+export type { LayoutRequest, LayoutSolver, LayoutSolverOutput, LayoutEvaluation, LayoutMeasure, LayoutGrid } from './design-layout.ts';
+export { penpotChildrenPaintOrder, importPenpotLayouts, exportPenpotLayout, penpotHasLayout } from './penpot-layout.ts';
+export { designLayoutDescendants, remapDesignLayout } from './design-layout.ts';
+
+export { createDesignLayoutMeasurer, resolveDesignLayoutFonts } from './design-layout-resources.ts';

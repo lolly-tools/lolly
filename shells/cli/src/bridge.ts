@@ -692,6 +692,11 @@ export async function createCliBridge(
   host.scan = createNodeScanAPI();
   host.prepare = (await import('@lolly/engine')).createPrepareAPI();
   host.compare = (await import('@lolly/engine')).createCompareAPI();
+  let layout: Promise<import('@lolly-tools/core/host-v1').LayoutAPI> | undefined;
+  host.layout = { evaluate: async request => {
+    layout ??= import('@lolly-tools/node-shell/layout-host-node').then(m => m.createNodeLayout(host.tokens));
+    return (await layout).evaluate(request);
+  } };
   host.textTools = (await import('@lolly-tools/node-shell/text-tools')).createNodeTextTools();
 
   // host.emoji (v1.196) - the pinned emoji packs this profile's catalog mounts,

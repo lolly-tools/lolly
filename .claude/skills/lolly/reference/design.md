@@ -823,6 +823,7 @@ separately below).
 | `exportVisibleText` | - | boolean | false | Export visible text only | - |
 | `sequenceTiming` | - | longtext | `""` | Beat and cue timing | - |
 | `sequenceMotionBlur` | - | longtext | `""` | Temporal motion blur | - |
+| `layoutTracks` | - | blocks | `[]` | Grid tracks | - |
 <!-- /GEN:design-inputs -->
 
 ## The `boxes` layer fields
@@ -956,4 +957,40 @@ are timing. Generated from the `boxes` block.
 | `webHideCookies` | - | boolean | false | Hide cookie banners | - |
 | `interact` | - | number | `""` | Focus on | - |
 | `interactOpts` | - | text | `""` | Interaction settings | - |
+| `layout` | - | select | `none` | layout | `"none"`, `"flex"`, `"grid"` |
+| `layoutOwner` | - | text | `""` | layoutOwner | - |
+| `layoutOrder` | - | number | `""` | layoutOrder | - |
+| `layoutDirection` | - | select | `row` | layoutDirection | `"row"`, `"row-reverse"`, `"column"`, `"column-reverse"` |
+| `layoutWrap` | - | boolean | false | layoutWrap | - |
+| `layoutGapX` | - | number | 0 | layoutGapX | - |
+| `layoutGapY` | - | number | 0 | layoutGapY | - |
+| `layoutPadTop` | - | number | 0 | layoutPadTop | - |
+| `layoutPadRight` | - | number | 0 | layoutPadRight | - |
+| `layoutPadBottom` | - | number | 0 | layoutPadBottom | - |
+| `layoutPadLeft` | - | number | 0 | layoutPadLeft | - |
+| `layoutAlign` | - | select | `start` | layoutAlign | `"start"`, `"center"`, `"end"`, `"stretch"` |
+| `layoutAlignContent` | - | select | `start` | layoutAlignContent | `"start"`, `"center"`, `"end"`, `"stretch"`, `"space-between"`, `"space-around"`, `"space-evenly"` |
+| `layoutJustify` | - | select | `start` | layoutJustify | `"start"`, `"center"`, `"end"`, `"stretch"`, `"space-between"`, `"space-around"`, `"space-evenly"` |
+| `layoutJustifyItems` | - | select | `start` | layoutJustifyItems | `"start"`, `"center"`, `"end"`, `"stretch"` |
+| `layoutW` | - | select | `fixed` | layoutW | `"fixed"`, `"hug"`, `"fill"` |
+| `layoutH` | - | select | `fixed` | layoutH | `"fixed"`, `"hug"`, `"fill"` |
+| `layoutMinW` | - | number | `""` | layoutMinW | - |
+| `layoutMaxW` | - | number | `""` | layoutMaxW | - |
+| `layoutMinH` | - | number | `""` | layoutMinH | - |
+| `layoutMaxH` | - | number | `""` | layoutMaxH | - |
+| `layoutMarginTop` | - | number | `""` | layoutMarginTop | - |
+| `layoutMarginRight` | - | number | `""` | layoutMarginRight | - |
+| `layoutMarginBottom` | - | number | `""` | layoutMarginBottom | - |
+| `layoutMarginLeft` | - | number | `""` | layoutMarginLeft | - |
+| `layoutAbsolute` | - | boolean | false | layoutAbsolute | - |
+| `layoutSelf` | - | select | `auto` | layoutSelf | `"auto"`, `"start"`, `"center"`, `"end"`, `"stretch"` |
+| `layoutJustifySelf` | - | select | `auto` | layoutJustifySelf | `"auto"`, `"start"`, `"center"`, `"end"`, `"stretch"` |
+| `layoutRow` | - | number | `""` | layoutRow | - |
+| `layoutColumn` | - | number | `""` | layoutColumn | - |
+| `layoutRowSpan` | - | number | `""` | layoutRowSpan | - |
+| `layoutColumnSpan` | - | number | `""` | layoutColumnSpan | - |
+| `layoutArea` | - | text | `""` | layoutArea | - |
+| `layoutX` | - | number | `""` | layoutX | - |
+| `layoutY` | - | number | `""` | layoutY | - |
+| `layoutAngle` | - | number | `""` | layoutAngle | - |
 <!-- /GEN:design-boxes -->

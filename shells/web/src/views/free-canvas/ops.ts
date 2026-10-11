@@ -23,7 +23,7 @@ import { bindOp, type FcCtx } from './context.ts';
  *  case where someone typed a box id as their tag; an ordinary tag ("hero") is left
  *  alone, which is what lets a slide and its duplicate morph into each other. */
 export const dupRefFields = (fc: FcCtx): string[] =>
-  { const { cfg, cv } = fc; return [cfg.clipField, cv.linkField, cfg.bindStartField, cfg.bindEndField, 'matchOf'].filter(
+  { const { cfg, cv } = fc; return [cfg.clipField, cv.linkField, cfg.bindStartField, cfg.bindEndField, 'layoutOwner', 'matchOf'].filter(
     (f): f is string => !!f
   ); };
 export function duplicateSelection(fc: FcCtx): void {
@@ -32,6 +32,8 @@ export function duplicateSelection(fc: FcCtx): void {
   const boxes = fc.select.getBoxes();
   const idx = fc.select.selIndices(boxes);
   if (!idx.length) return;
+  if (fc.layout && !fc.layout.placementReady()) return;
+  if (fc.layout?.duplicate()) return;
   // plans/179 A8 - duplicating an ARTBOARD duplicates what is on it. Cloning the frame
   // row alone left an empty page appended last, and because `resolveFrame` answers with
   // the LAST containing frame, the next gesture on any child of the ORIGINAL re-bucketed
@@ -97,13 +99,16 @@ export function deleteSelection(fc: FcCtx): void {
   if (fc.opts?.canEdit?.() === false) return;
   const { cfg, frameCfg } = fc;
   const boxes = fc.select.getBoxes();
-  const sel = new Set(fc.select.selIndices(boxes));
-  if (!sel.size) return;
+  const picked = new Set(fc.select.selIndices(boxes));
+  if (!picked.size) return;
+  const doomed = fc.layout.dynamicScope(boxes, new Set([...picked].map(i => fc.select.idOf(boxes[i], i))));
+  const sel = new Set(boxes.flatMap((box, i) => doomed.has(fc.select.idOf(box, i)) ? [i] : []));
+  const patch = fc.layout.trackPatch(boxes.filter((_, i) => !sel.has(i)));
   fc.selection = new Set<string>();
   const fk = frameCfg?.frameKind;
   const deadFrames = fk ? [...sel].filter((i) => String(boxes[i]?.[cfg.kindField]) === fk) : [];
   if (!frameCfg || !deadFrames.length) {
-    fc.select.commit(boxes.filter((_, i) => !sel.has(i)));
+    fc.select.commit(boxes.filter((_, i) => !sel.has(i)), patch, t('Delete layout'));
     return;
   }
   // plans/179 A7 - deleting an artboard used to orphan its children: they kept pointing
@@ -124,9 +129,9 @@ export function deleteSelection(fc: FcCtx): void {
   // non-frame id matches no page, so widening it only narrows the tally.
   const deadIds = [...sel].map((i) => fc.select.idOf(boxes[i], i)).filter(Boolean);
   const res = rehomeChildrenOfDeletedFrames(seeded, deadIds, ff);
-  const survivors = res.boxes.filter((_, i) => !sel.has(i)); // index-aligned with `boxes`
+  const survivors = res.boxes.filter((_, i) => !sel.has(i));
   const seq = framesInPageOrder(survivors, ff).map((b) => String(b[cfg.idField] ?? ''));
-  fc.select.commit(renumberFrameOrder(survivors, seq, ff));
+  fc.select.commit(renumberFrameOrder(survivors, seq, ff), patch, t('Delete artboard'));
   // One sentence, and it names the outcome the user has to go looking for. With both
   // outcomes in one delete (several artboards at once, the first among them) the
   // pasteboard is the one worth saying: homed items are where you would expect them.

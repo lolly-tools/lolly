@@ -99,6 +99,17 @@ function optionValues(brand: string, fieldId: string): string[] {
 test('boxes.fields tail: z/kf/linkOf then the deck fields - appended, never reordered', () => {
   for (const brand of BRANDS) {
     const fields = fieldsOf(brand);
+    assert.deepEqual(fields.slice(0, 69).map((f) => f.id), [
+      'id', 'kind', 'x', 'y', 'w', 'h', 'rot', 'shape', 'radius', 'bg', 'opacity', 'image',
+      'fit', 'blend', 'text', 'fg', 'fontSize', 'align', 'valign', 'weight', 'font',
+      'lineHeight', 'tracking', 'ligatures', 'alternates', 'group', 'clip', 'pad',
+      'shadow', 'shadowColor', 'shadowX', 'shadowY', 'shadowBlur', 'imgpos', 'fitText',
+      'path', 'stroke', 'strokeW', 'fillRule', 'start', 'dur', 'clipIn', 'speed',
+      'enter', 'exit', 'enterMs', 'exitMs', 'mute', 'lane', 'strokeDash', 'strokeCap',
+      'strokeJoin', 'grad', 'blur', 'strokeDashLen', 'strokeGapLen', 'bgBlur',
+      'enterEase', 'exitEase', 'frame', 'order', 'clipChildren', 'headStart', 'headEnd',
+      'strokeDashArray', 'dashFit', 'bindStart', 'bindEnd', 'route',
+    ], `${brand}: every original field must keep its compact-blocks position`);
     // The historical wire-format tail (pre-presentation): z/kf/linkOf at 69-71, UNMOVED - 
     // so every link shared before the deck fields still decodes into the same columns.
     assert.deepEqual(fields.slice(69, 72).map((f) => f.id), ['z', 'kf', 'linkOf'],
@@ -124,11 +135,20 @@ test('boxes.fields tail: z/kf/linkOf then the deck fields - appended, never reor
     // slots 103-107, and the slide-master binding (plan 274) slots 108-111; no earlier
     // field moves. Text direction follows at slot 112, the token links at 113, and
     // the web page box's link, layout width and load rule (plan 288) at 114-116.
+    // Web styling and interaction fields occupy 117-120; dynamic layout rules
+    // (plan 305) follow at 121-156.
     assert.deepEqual(fields.slice(72).map((f) => f.id),
-      ['presentAudio', 'build', 'state', 'matchOf', 'notes', 'flipH', 'flipV', 'cls', 'gain', 'name', 'ignored', 'split', 'stagger', 'splitOrder', 'hold', 'holdRate', 'rx', 'ry', 'pan', 'duck', 'pitch', 'varispeed', 'fx', 'stackOf', 'hidden', 'locked', 'slideTransition', 'plainText', 'scene', 'animationId', 'animationEdits', 'textStory', 'textFrame', 'pathPaint', 'vectorSource', 'textWrap', 'master', 'role', 'furniture', 'archetype', 'textDirection', 'tokenLinks', 'web', 'webView', 'webLoad', 'webCss', 'webHideCookies', 'interact', 'interactOpts'],
+      ['presentAudio', 'build', 'state', 'matchOf', 'notes', 'flipH', 'flipV', 'cls', 'gain', 'name', 'ignored', 'split', 'stagger', 'splitOrder', 'hold', 'holdRate', 'rx', 'ry', 'pan', 'duck', 'pitch', 'varispeed', 'fx', 'stackOf', 'hidden', 'locked', 'slideTransition', 'plainText', 'scene', 'animationId', 'animationEdits', 'textStory', 'textFrame', 'pathPaint', 'vectorSource', 'textWrap', 'master', 'role', 'furniture', 'archetype', 'textDirection', 'tokenLinks', 'web', 'webView', 'webLoad', 'webCss', 'webHideCookies', 'interact', 'interactOpts',
+        'layout', 'layoutOwner', 'layoutOrder', 'layoutDirection', 'layoutWrap',
+        'layoutGapX', 'layoutGapY', 'layoutPadTop', 'layoutPadRight', 'layoutPadBottom', 'layoutPadLeft',
+        'layoutAlign', 'layoutAlignContent', 'layoutJustify', 'layoutJustifyItems', 'layoutW', 'layoutH',
+        'layoutMinW', 'layoutMaxW', 'layoutMinH', 'layoutMaxH',
+        'layoutMarginTop', 'layoutMarginRight', 'layoutMarginBottom', 'layoutMarginLeft',
+        'layoutAbsolute', 'layoutSelf', 'layoutJustifySelf', 'layoutRow', 'layoutColumn',
+        'layoutRowSpan', 'layoutColumnSpan', 'layoutArea', 'layoutX', 'layoutY', 'layoutAngle'],
       `${brand}: a deck/flip/class field was inserted out of order - appended slots must stay put`);
-    assert.equal(fields.length, 121, `${brand}: expected 121 sub-fields, got ${fields.length}`);
-    assert.equal(fields[fields.length - 1]!.id, 'interactOpts', `${brand}: interactOpts is not the tail`);
+    assert.equal(fields.length, 157, `${brand}: expected 157 sub-fields, got ${fields.length}`);
+    assert.equal(fields[fields.length - 1]!.id, 'layoutAngle', `${brand}: layoutAngle is not the tail`);
     // Ids are unique - an accidental second `linkOf` would give the codec two columns of
     // the same name and the shell would read whichever it found first.
     assert.equal(new Set(fields.map((f) => f.id)).size, fields.length, `${brand}: duplicate sub-field id`);

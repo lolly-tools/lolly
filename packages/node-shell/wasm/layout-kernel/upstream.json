@@ -1,0 +1,40 @@
+{
+  "repository": "https://github.com/penpot/penpot",
+  "revision": "10955f17e27943429a10e90360d0404e3f56e27c",
+  "files": [
+    {
+      "source": "render-wasm/src/shapes/layouts.rs",
+      "destination": "src/shapes/layouts.rs",
+      "upstreamSha256": "0d299c73693465465f1ba3b109d117a9725476aad3ed360a78fc2a195aa03801"
+    },
+    {
+      "source": "render-wasm/src/shapes/modifiers/flex_layout.rs",
+      "destination": "src/shapes/modifiers/flex_layout.rs",
+      "upstreamSha256": "6c37ed78db07c98dc4120f7909c1c69a09f83957b028e58628e17f0ca2167ec1",
+      "adaptations": "Numerical steps retained; redistribution loops gain progress/work refusal guards."
+    },
+    {
+      "source": "render-wasm/src/shapes/modifiers/grid_layout.rs",
+      "destination": "src/shapes/modifiers/grid_layout.rs",
+      "upstreamSha256": "567249d2a6dbe0c32f746b2bfce4c064292257ed5e19a717aef360c0b9bae8aa",
+      "adaptations": "Numerical steps retained; auto span and fractional redistribution loops gain progress/work refusal guards."
+    },
+    {
+      "source": "render-wasm/src/shapes/modifiers/common.rs",
+      "destination": "src/shapes/modifiers/common.rs",
+      "upstreamSha256": "4afe3806300f28aff0fd5abd2e05e826bc96abb96feee31fc85190e95320e46a",
+      "adaptations": "GetBounds trait only; renderer and propagation omitted."
+    },
+    {
+      "source": "render-wasm/src/shapes/modifiers/constraints.rs",
+      "destination": "src/shapes/modifiers/constraints.rs",
+      "upstreamSha256": "e861139cadc6e5ac3bef5b529531519437b26862a6bf4fdc4fea6057074fd785"
+    },
+    {
+      "source": "render-wasm/src/math.rs",
+      "destination": "src/math.rs",
+      "upstreamSha256": "7628739b77587e802f179e0f3cd16d2624674b670b6620190429785270bffb7d",
+      "adaptations": "Skia aliases replaced with scalar shim, bools module and upstream tests omitted."
+    }
+  ]
+}

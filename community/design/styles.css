@@ -204,3 +204,5 @@
      fallback stands there and the export stays deterministic. */
   .lolly-frame-page { --lolly-frame-surface: #2a2f3a; }
 }
+
+.lolly-layout-error { padding:12px; border:1px solid currentColor; color:#b42318; background:#fff; font-size:14px; }

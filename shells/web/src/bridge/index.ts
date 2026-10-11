@@ -268,6 +268,8 @@ export async function createBridge(): Promise<WebHost> {
     characters: async (url) => (await loadText()).characters!(url),
   };
   host.text = textFacade;
+  const loadLayout = memo(async () => (await import('./layout.ts')).createWebLayout(textFacade, host.tokens));
+  host.layout = { evaluate: async request => (await loadLayout()).evaluate(request) };
   registerLazyTextStrikeMetrics(textFacade, loadText);
 
   // on-device PDF metadata inspect + strip/compress (pdf-lib, itself lazy inside).

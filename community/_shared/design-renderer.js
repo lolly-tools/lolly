@@ -3011,7 +3011,7 @@ function storyLayoutFor(key, request) {
 // report says the document is ready to open, and later ones follow at most every
 // STORY_PROGRESS_EVERY_MS. The result itself is assembled in document order, exactly
 // as a single pass built it, so the order of work never changes what is delivered.
-function composeDesignStories(model, inp, exporting, report) {
+function composeDesignStories(model, inp, exporting, report, finish) {
   if (!host.text || typeof host.text.layoutRuns !== 'function') throw new Error('This engine cannot compose this text document.');
   var doc = JSON.parse(inp.textDocument);
   var boxes = Array.isArray(inp.boxes) ? inp.boxes : [];
@@ -3122,13 +3122,80 @@ function composeDesignStories(model, inp, exporting, report) {
       layout.frames.forEach(function (frame) { composed[frame.id] = frame; });
     });
     Object.keys(byId).forEach(function (id) { if (!composed[id]) throw new Error('A text frame has no owning story.'); });
-    var output = compute(model, composed);
-    output.textPreflight = textPreflight;
-    return output;
+    return Promise.resolve(finish ? finish(composed, textPreflight) : compute(model, composed)).then(function(output) {
+      output.textPreflight = textPreflight;
+      return output;
+    });
   });
 }
 
-function compute(model, composed, report) {
+// Layout receipts bind the painted geometry to the current authored rules.
+function designLayoutStamp(value) {
+  var s = JSON.stringify(value), a = 2166136261, b = 2246822507;
+  for (var i = 0; i < s.length; i++) { a = Math.imul(a ^ s.charCodeAt(i), 16777619); b = Math.imul(b ^ s.charCodeAt(i), 3266489909); }
+  return (a >>> 0).toString(16) + ':' + (b >>> 0).toString(16);
+}
+function compute(model, composed, report, exporting) {
+  var inp = inputsFrom(model);
+  var source = Array.isArray(inp.boxes) ? inp.boxes : [];
+  if (!source.some(function(b) { return b && (b.layout === 'flex' || b.layout === 'grid'); })) {
+    var clear = function(out) { out.layoutBoxesJson = ''; out.layoutSourceJson = ''; out.layoutGridsJson = ''; out.layoutReceipt = ''; return out; };
+    var staticResult = computePlaced(model, composed, report);
+    return staticResult && typeof staticResult.then === 'function' ? staticResult.then(clear) : clear(staticResult);
+  }
+  if (!host.layout) throw new Error('This design needs the layout capability. Update the engine before editing or exporting.');
+  var tracks = inp.layoutTracks || [];
+  function evaluate(frames) {
+    var measured = frames ? source.map(function(b) {
+      var f = frames[b.id];
+      return f ? Object.assign({}, b, b.layoutW === 'hug' ? {w:f.width} : {}, b.layoutH === 'hug' ? {h:f.height} : {}) : b;
+    }) : source;
+    return host.layout.evaluate({boxes:measured, tracks:tracks}).then(function(result) {
+      if (result.findings.length) throw new Error(result.findings.map(function(f) { return f.message; }).join('\n'));
+      return result;
+    });
+  }
+  function geometry(result) { return JSON.stringify(result.boxes.map(function(b) { return [b.id,b.x,b.y,b.w,b.h,b.rot]; })); }
+  function placed(result) { return model.map(function(i) { return i.id === 'boxes' ? Object.assign({}, i, {value:result.boxes}) : i; }); }
+  function paint(result, frames, preflight) {
+    var out = computePlaced(placed(result), frames);
+    delete out.boxes;
+    out.layoutBoxesJson = safeJson(result.boxes);
+    out.layoutSourceJson = safeJson(source);
+    out.layoutGridsJson = safeJson(result.grids || []);
+    if (out.penpotDocJson) {
+      var penpot = JSON.parse(out.penpotDocJson), sourceById = Object.create(null);
+      source.forEach(function(b) { sourceById[b.id] = b; });
+      penpot.boxes = penpot.boxes.map(function(b) { return Object.assign({}, sourceById[b.id], {x:b.x,y:b.y,w:b.w,h:b.h,rot:b.rot}); });
+      out.penpotDocJson = safeJson(penpot);
+    }
+    out.layoutReceipt = designLayoutStamp([source,tracks,result.boxes,preflight && preflight.frames]);
+    if (exporting) {
+      var node = exporting.node, roots = node && node.querySelectorAll ? Array.from(node.querySelectorAll('[data-layout-receipt]')) : [];
+      if (node && node.matches && node.matches('[data-layout-receipt]')) roots.push(node);
+      if (!roots.length && node && node.closest) { var root = node.closest('[data-layout-receipt]'); if (root) roots.push(root); }
+      if (!roots.length || roots.some(function(root) { return root.getAttribute('data-layout-receipt') !== out.layoutReceipt; })) throw new Error('Layout is still changing. Wait for the current layout to appear, then export again.');
+      if (exporting.opts.sourceDocument) exporting.opts.sourceDocument.values.boxes = result.boxes;
+    }
+    return out;
+  }
+  function settle(result, pass) {
+    if (!inp.textDocument) return paint(result, composed);
+    var placedModel = placed(result);
+    return composeDesignStories(placedModel, inputsFrom(placedModel), undefined, undefined, function(frames, preflight) {
+      return evaluate(frames).then(function(next) {
+        if (geometry(result) !== geometry(next)) {
+          if (pass >= 7) throw new Error('Text and layout did not settle within eight passes. Review the sizing rules.');
+          return settle(next, pass + 1);
+        }
+        if (exporting) return composeDesignStories(placedModel, inputsFrom(placedModel), exporting, undefined, function(checkedFrames, checkedPreflight) { return paint(result, checkedFrames, checkedPreflight); });
+        return paint(result, frames, preflight);
+      });
+    });
+  }
+  return evaluate(composed).then(function(result) { return settle(result, 0); });
+}
+function computePlaced(model, composed, report) {
   var inp = inputsFrom(model);
   if (inp.textDocument && !composed) return composeDesignStories(model, inp, undefined, report);
   if (!inp.textDocument && Array.isArray(inp.boxes) && inp.boxes.some(function (box) { return box && box.textStory; })) throw new Error('This design is missing its text document.');
@@ -3265,12 +3332,14 @@ function compute(model, composed, report) {
   // camera marker) paints nothing and the writer skips it anyway, so it never reaches
   // the model - a still export must not carry a camera's text even inside a <script>.
   var penpotBoxes = [];
+  var preserveLayout = boxes.some(function(b) { return b && (b.layout === 'flex' || b.layout === 'grid'); });
   for (var pb = 0; pb < boxes.length && penpotBoxes.length < 4000; pb++) {
-    if (boxes[pb] && !isBareBox(boxes[pb]) && !isHiddenBox(boxes[pb])) penpotBoxes.push(boxes[pb]);
+    if (boxes[pb] && !isBareBox(boxes[pb]) && (!isHiddenBox(boxes[pb]) || preserveLayout)) penpotBoxes.push(boxes[pb]);
   }
   var penpotDocJson = composed || boxes.some(function (box) { return box.pathPaint; }) ? null : safeJson({
     background: transparent ? 'transparent' : safeColor(inp.background, '#ffffff'),
     boxes: penpotBoxes,
+    layoutTracks: inp.layoutTracks || [],
   });
   var out = {
     boxStyle: boxStyle,

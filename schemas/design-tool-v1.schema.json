@@ -15,7 +15,10 @@
     "recipes"
   ],
   "properties": {
-    "description": { "type": "string", "maxLength": 2000 },
+    "description": {
+      "type": "string",
+      "maxLength": 2000
+    },
     "schemaVersion": {
       "const": 1
     },
@@ -416,6 +419,45 @@
               },
               "additionalProperties": true
             }
+          },
+          "layoutTracks": {
+            "type": "array",
+            "maxItems": 4096,
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "container",
+                "axis",
+                "order",
+                "track"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "container": {
+                  "type": "string"
+                },
+                "axis": {
+                  "enum": [
+                    "row",
+                    "column"
+                  ]
+                },
+                "order": {
+                  "type": "number"
+                },
+                "track": {
+                  "type": "string",
+                  "pattern": "^(auto|[0-9]+(\\.[0-9]+)?(px|fr|%))$"
+                }
+              }
+            }
+          },
+          "textDocument": {
+            "type": "object"
           }
         }
       }

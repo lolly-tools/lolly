@@ -1860,10 +1860,11 @@ export async function createRuntime(
 
     async export(renderedNode, format, opts = {}) {
       const composedSource = model.some(item => item.id === 'textDocument' && item.value) || !!extras.__lollyTextPreflight;
-      const exportRevision = composedSource ? JSON.stringify([modelToValues(model), emojiStyle]) : null;
+      const layoutSource = !!extras.layoutReceipt || !!extras.__lollyLayoutPreflight;
+      const exportRevision = composedSource || layoutSource ? JSON.stringify([modelToValues(model), emojiStyle]) : null;
       const checkTextRevision = (): void => {
         if (exportRevision !== null && exportRevision !== JSON.stringify([modelToValues(model), emojiStyle]))
-          throw new Error('The text changed while its export was prepared. Wait for layout, then export again.');
+          throw new Error(layoutSource ? 'The layout changed while its export was prepared. Wait for layout, then export again.' : 'The text changed while its export was prepared. Wait for layout, then export again.');
       };
       if ((format === 'html' || format === 'zip') && tool.manifest.render.portable) {
         if (!tool.presentationSource) throw new Error('The portable presentation runtime is missing. Reload the tool before exporting.');
@@ -1886,6 +1887,10 @@ export async function createRuntime(
         const size = designExportSize(tool.manifest.designTool, modelToValues(model), format, opts.width === undefined ? undefined : Number(opts.width), opts.height === undefined ? undefined : Number(opts.height));
         opts = { ...opts, ...size };
         if (!host.export.checkLayout) throw Object.assign(new Error('This tool needs a browser for text layout checks before export.'), { code: 'NEEDS_BROWSER' });
+        if (extras.__lollyLayoutPreflight) {
+          const { checkDesignLayoutReceipt } = await import('./design-tool/layout-preflight.ts');
+          checkDesignLayoutReceipt(extras.__lollyLayoutPreflight, modelToValues(model), renderedNode);
+        }
         if (extras.__lollyTextPreflight) {
           const { checkDesignTextReceipt } = await import('./design-tool/text-preflight.ts');
           checkDesignTextReceipt(extras.__lollyTextPreflight, modelToValues(model), renderedNode);

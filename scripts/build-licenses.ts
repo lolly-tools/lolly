@@ -491,6 +491,11 @@ The Emscripten runtime glue in libopenmpt.mjs is MIT (© Emscripten authors).`;
 // appears in BOTH the full notices and the web-scoped THIRD-PARTY-LICENSES.txt.
 // Any other value appears only in THIRD-PARTY-NOTICES.md - 'desktop' is used by
 // the vendored Flatpak build recipes, which no web bundle carries.
+const PENPOT_LAYOUT_DIR = 'packages/node-shell/wasm/layout-kernel';
+const PENPOT_LAYOUT_UPSTREAM = JSON.parse(
+  readFileSync(join(ROOT, PENPOT_LAYOUT_DIR, 'upstream.json'), 'utf8')
+) as { repository: string; revision: string };
+
 const MANIFEST: {
   vendored: Entry[];
   icons: Entry[];
@@ -539,6 +544,16 @@ const MANIFEST: {
       files: 'packages/node-shell/wasm/adobe-psd/adobe-psd.wasm',
       text: readFileSync(join(ROOT, 'packages/node-shell/wasm/adobe-psd/LICENSES.txt'), 'utf8'),
       note: 'Standalone PhotoCraft PSD crate compiled through a bounded Lolly byte adapter. MIT is elected for dependencies offering that licence choice. Source, modifications and build instructions are in packages/node-shell/wasm/adobe-psd/.',
+      where: 'web',
+    },
+    {
+      name: 'Penpot layout kernel (compiled WASM)',
+      version: PENPOT_LAYOUT_UPSTREAM.revision,
+      spdx: 'MPL-2.0',
+      copyright: 'Copyright (c) KALEIDOS SUBSIDIARY SL',
+      files: `${PENPOT_LAYOUT_DIR}/layout-kernel.wasm`,
+      text: readFileSync(join(ROOT, PENPOT_LAYOUT_DIR, 'LICENSE'), 'utf8').trim(),
+      note: `Flex and grid routines extracted from the newer Penpot Rust renderer: ${PENPOT_LAYOUT_UPSTREAM.repository}/tree/${PENPOT_LAYOUT_UPSTREAM.revision}/render-wasm/. Modified Source Code Form, build instructions, Cargo.lock, license and provenance are available at https://github.com/lolly-tools/lolly/tree/main/${PENPOT_LAYOUT_DIR}/ and included in the @lolly-tools/node-shell package. Adaptations include a scalar Skia shim, bounded progress/refusal guards and a JSON ABI; see README.md and upstream.json.`,
       where: 'web',
     },
     {

@@ -2,8 +2,8 @@
   "id": "design",
   "name": "Design",
   "description": "An open canvas for free arrangement - text, images, shapes and live renders from your other Lolly tools, all held to your design system.",
-  "version": "1.45.0",
-  "engineVersion": "^1.248.0",
+  "version": "1.46.0",
+  "engineVersion": "^1.249.0",
   "status": "community",
   "category": "designer",
   "tags": [
@@ -2362,10 +2362,22 @@
           "default": "slide",
           "showFor": [],
           "options": [
-            { "value": "slide", "label": "With its slide" },
-            { "value": "early", "label": "One slide early" },
-            { "value": "keep", "label": "Keep running" },
-            { "value": "click", "label": "Wait for a click" }
+            {
+              "value": "slide",
+              "label": "With its slide"
+            },
+            {
+              "value": "early",
+              "label": "One slide early"
+            },
+            {
+              "value": "keep",
+              "label": "Keep running"
+            },
+            {
+              "value": "click",
+              "label": "Wait for a click"
+            }
           ],
           "help": "For a WEB PAGE box: when the page loads while presenting. With its slide loads it when the slide appears and unloads it after; One slide early starts it a slide ahead; Keep running holds its state for the rest of the talk; Wait for a click shows the poster until the presenter clicks."
         },
@@ -2403,6 +2415,458 @@
           "maxLength": 1024,
           "showFor": [],
           "help": "Presentation highlight, page keys and scroll settings in the bounded interaction grammar. Appended to preserve compact URL field positions."
+        },
+        {
+          "id": "layout",
+          "type": "select",
+          "label": "layout",
+          "default": "none",
+          "showFor": [],
+          "options": [
+            {
+              "value": "none",
+              "label": "none"
+            },
+            {
+              "value": "flex",
+              "label": "flex"
+            },
+            {
+              "value": "grid",
+              "label": "grid"
+            }
+          ]
+        },
+        {
+          "id": "layoutOwner",
+          "type": "text",
+          "label": "layoutOwner",
+          "default": "",
+          "showFor": []
+        },
+        {
+          "id": "layoutOrder",
+          "type": "number",
+          "label": "layoutOrder",
+          "default": "",
+          "showFor": []
+        },
+        {
+          "id": "layoutDirection",
+          "type": "select",
+          "label": "layoutDirection",
+          "default": "row",
+          "showFor": [],
+          "options": [
+            {
+              "value": "row",
+              "label": "row"
+            },
+            {
+              "value": "row-reverse",
+              "label": "row-reverse"
+            },
+            {
+              "value": "column",
+              "label": "column"
+            },
+            {
+              "value": "column-reverse",
+              "label": "column-reverse"
+            }
+          ]
+        },
+        {
+          "id": "layoutWrap",
+          "type": "boolean",
+          "label": "layoutWrap",
+          "default": false,
+          "showFor": []
+        },
+        {
+          "id": "layoutGapX",
+          "type": "number",
+          "label": "layoutGapX",
+          "default": 0,
+          "showFor": []
+        },
+        {
+          "id": "layoutGapY",
+          "type": "number",
+          "label": "layoutGapY",
+          "default": 0,
+          "showFor": []
+        },
+        {
+          "id": "layoutPadTop",
+          "type": "number",
+          "label": "layoutPadTop",
+          "default": 0,
+          "showFor": []
+        },
+        {
+          "id": "layoutPadRight",
+          "type": "number",
+          "label": "layoutPadRight",
+          "default": 0,
+          "showFor": []
+        },
+        {
+          "id": "layoutPadBottom",
+          "type": "number",
+          "label": "layoutPadBottom",
+          "default": 0,
+          "showFor": []
+        },
+        {
+          "id": "layoutPadLeft",
+          "type": "number",
+          "label": "layoutPadLeft",
+          "default": 0,
+          "showFor": []
+        },
+        {
+          "id": "layoutAlign",
+          "type": "select",
+          "label": "layoutAlign",
+          "default": "start",
+          "showFor": [],
+          "options": [
+            {
+              "value": "start",
+              "label": "start"
+            },
+            {
+              "value": "center",
+              "label": "center"
+            },
+            {
+              "value": "end",
+              "label": "end"
+            },
+            {
+              "value": "stretch",
+              "label": "stretch"
+            }
+          ]
+        },
+        {
+          "id": "layoutAlignContent",
+          "type": "select",
+          "label": "layoutAlignContent",
+          "default": "start",
+          "showFor": [],
+          "options": [
+            {
+              "value": "start",
+              "label": "start"
+            },
+            {
+              "value": "center",
+              "label": "center"
+            },
+            {
+              "value": "end",
+              "label": "end"
+            },
+            {
+              "value": "stretch",
+              "label": "stretch"
+            },
+            {
+              "value": "space-between",
+              "label": "space-between"
+            },
+            {
+              "value": "space-around",
+              "label": "space-around"
+            },
+            {
+              "value": "space-evenly",
+              "label": "space-evenly"
+            }
+          ]
+        },
+        {
+          "id": "layoutJustify",
+          "type": "select",
+          "label": "layoutJustify",
+          "default": "start",
+          "showFor": [],
+          "options": [
+            {
+              "value": "start",
+              "label": "start"
+            },
+            {
+              "value": "center",
+              "label": "center"
+            },
+            {
+              "value": "end",
+              "label": "end"
+            },
+            {
+              "value": "stretch",
+              "label": "stretch"
+            },
+            {
+              "value": "space-between",
+              "label": "space-between"
+            },
+            {
+              "value": "space-around",
+              "label": "space-around"
+            },
+            {
+              "value": "space-evenly",
+              "label": "space-evenly"
+            }
+          ]
+        },
+        {
+          "id": "layoutJustifyItems",
+          "type": "select",
+          "label": "layoutJustifyItems",
+          "default": "start",
+          "showFor": [],
+          "options": [
+            {
+              "value": "start",
+              "label": "start"
+            },
+            {
+              "value": "center",
+              "label": "center"
+            },
+            {
+              "value": "end",
+              "label": "end"
+            },
+            {
+              "value": "stretch",
+              "label": "stretch"
+            }
+          ]
+        },
+        {
+          "id": "layoutW",
+          "type": "select",
+          "label": "layoutW",
+          "default": "fixed",
+          "showFor": [],
+          "options": [
+            {
+              "value": "fixed",
+              "label": "fixed"
+            },
+            {
+              "value": "hug",
+              "label": "hug"
+            },
+            {
+              "value": "fill",
+              "label": "fill"
+            }
+          ]
+        },
+        {
+          "id": "layoutH",
+          "type": "select",
+          "label": "layoutH",
+          "default": "fixed",
+          "showFor": [],
+          "options": [
+            {
+              "value": "fixed",
+              "label": "fixed"
+            },
+            {
+              "value": "hug",
+              "label": "hug"
+            },
+            {
+              "value": "fill",
+              "label": "fill"
+            }
+          ]
+        },
+        {
+          "id": "layoutMinW",
+          "type": "number",
+          "label": "layoutMinW",
+          "default": "",
+          "showFor": []
+        },
+        {
+          "id": "layoutMaxW",
+          "type": "number",
+          "label": "layoutMaxW",
+          "default": "",
+          "showFor": []
+        },
+        {
+          "id": "layoutMinH",
+          "type": "number",
+          "label": "layoutMinH",
+          "default": "",
+          "showFor": []
+        },
+        {
+          "id": "layoutMaxH",
+          "type": "number",
+          "label": "layoutMaxH",
+          "default": "",
+          "showFor": []
+        },
+        {
+          "id": "layoutMarginTop",
+          "type": "number",
+          "label": "layoutMarginTop",
+          "default": "",
+          "showFor": []
+        },
+        {
+          "id": "layoutMarginRight",
+          "type": "number",
+          "label": "layoutMarginRight",
+          "default": "",
+          "showFor": []
+        },
+        {
+          "id": "layoutMarginBottom",
+          "type": "number",
+          "label": "layoutMarginBottom",
+          "default": "",
+          "showFor": []
+        },
+        {
+          "id": "layoutMarginLeft",
+          "type": "number",
+          "label": "layoutMarginLeft",
+          "default": "",
+          "showFor": []
+        },
+        {
+          "id": "layoutAbsolute",
+          "type": "boolean",
+          "label": "layoutAbsolute",
+          "default": false,
+          "showFor": []
+        },
+        {
+          "id": "layoutSelf",
+          "type": "select",
+          "label": "layoutSelf",
+          "default": "auto",
+          "showFor": [],
+          "options": [
+            {
+              "value": "auto",
+              "label": "auto"
+            },
+            {
+              "value": "start",
+              "label": "start"
+            },
+            {
+              "value": "center",
+              "label": "center"
+            },
+            {
+              "value": "end",
+              "label": "end"
+            },
+            {
+              "value": "stretch",
+              "label": "stretch"
+            }
+          ]
+        },
+        {
+          "id": "layoutJustifySelf",
+          "type": "select",
+          "label": "layoutJustifySelf",
+          "default": "auto",
+          "showFor": [],
+          "options": [
+            {
+              "value": "auto",
+              "label": "auto"
+            },
+            {
+              "value": "start",
+              "label": "start"
+            },
+            {
+              "value": "center",
+              "label": "center"
+            },
+            {
+              "value": "end",
+              "label": "end"
+            },
+            {
+              "value": "stretch",
+              "label": "stretch"
+            }
+          ]
+        },
+        {
+          "id": "layoutRow",
+          "type": "number",
+          "label": "layoutRow",
+          "default": "",
+          "showFor": []
+        },
+        {
+          "id": "layoutColumn",
+          "type": "number",
+          "label": "layoutColumn",
+          "default": "",
+          "showFor": []
+        },
+        {
+          "id": "layoutRowSpan",
+          "type": "number",
+          "label": "layoutRowSpan",
+          "default": "",
+          "showFor": []
+        },
+        {
+          "id": "layoutColumnSpan",
+          "type": "number",
+          "label": "layoutColumnSpan",
+          "default": "",
+          "showFor": []
+        },
+        {
+          "id": "layoutArea",
+          "type": "text",
+          "label": "layoutArea",
+          "default": "",
+          "showFor": []
+        },
+        {
+          "id": "layoutX",
+          "type": "number",
+          "label": "layoutX",
+          "default": "",
+          "showFor": []
+        },
+        {
+          "id": "layoutY",
+          "type": "number",
+          "label": "layoutY",
+          "default": "",
+          "showFor": []
+        },
+        {
+          "id": "layoutAngle",
+          "type": "number",
+          "label": "layoutAngle",
+          "default": "",
+          "showFor": []
         }
       ],
       "default": [
@@ -2562,6 +3026,55 @@
       "label": "Temporal motion blur",
       "default": "",
       "showFor": []
+    },
+    {
+      "id": "layoutTracks",
+      "type": "blocks",
+      "label": "Grid tracks",
+      "showIf": {
+        "editingRange": "internal-layout-tracks"
+      },
+      "fields": [
+        {
+          "id": "id",
+          "type": "text",
+          "label": "Track ID"
+        },
+        {
+          "id": "container",
+          "type": "text",
+          "label": "Grid ID"
+        },
+        {
+          "id": "axis",
+          "type": "select",
+          "label": "Axis",
+          "default": "column",
+          "options": [
+            {
+              "value": "column",
+              "label": "Column"
+            },
+            {
+              "value": "row",
+              "label": "Row"
+            }
+          ]
+        },
+        {
+          "id": "order",
+          "type": "number",
+          "label": "Order",
+          "default": 0
+        },
+        {
+          "id": "track",
+          "type": "text",
+          "label": "Track",
+          "default": "1fr"
+        }
+      ],
+      "default": []
     }
   ],
   "openWith": [

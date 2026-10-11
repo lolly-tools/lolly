@@ -35,6 +35,9 @@ interface Site {
 }
 
 const SITES: readonly Site[] = [
+  { file: 'views/free-canvas/select.ts', line: 'void runtime.applyPatch(values).catch(fc.layout.failure);', kind: 'tracked',
+    why: 'a canvas without a transaction port commits layout tracks and layers as one user edit',
+    proof: { file: 'views/free-canvas/select.ts', pattern: /fc\.history\?\.changed\?\.\(\);\s*void runtime\.applyPatch\(values\)\.catch\(fc\.layout\.failure\)/ } },
   { file: 'views/tool-transaction.ts', line: 'const pending = runtime.applyPatch(values);', kind: 'tracked',
     why: 'a grouped command (a text edit, a multi-input change) committed through the undo history',
     proof: { file: 'views/tool/history.ts', pattern: /commitToolTransaction\([^)]*\);[\s\S]{0,120}finally \{ tview\.revisionChanged\(\); \}/ } },

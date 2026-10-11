@@ -979,6 +979,42 @@
         "fuzzCoverage": "`idml-read` mutates an independently assembled ZIP through bounded extraction and the shared reader.",
         "notes": "All spreads and page bounds are retained. Named direct styles and supported text runs are mapped; unsupported formatting is reported. External links are never fetched implicitly."
       }
+    },
+    "packages/node-shell/wasm/layout-kernel/src/lib.rs (layout_solve)": {
+      "fuzzTargets": [
+        "layout-abi"
+      ],
+      "details": {
+        "inputSource": "UTF-8 JSON bytes serialized from imported, collaborative or tool-supplied Design layout requests; the raw WASM ABI is independently callable",
+        "bounds": "`MAX_BYTES = 8 MiB` for owned input and output, one live input buffer; `MAX_ITEMS = 20,000`, `MAX_TRACKS_PER_AXIS = 1,024`, `MAX_GRID_CELLS = 65,536`, `MAX_GRID_SPAN_WORK = 262,144`, `MAX_ALLOCATION_WORK = 262,144`, `MAX_SCALAR = 1e7`; serde_json default recursion limit 128; linked linear memory 32 MiB including 1 MiB stack",
+        "directTests": "`tests/layout-kernel.test.ts`, `tests/layout-fuzz.test.ts`, native crate tests and pinned modern fixtures",
+        "fuzzCoverage": "`layout-abi` sends mutated raw bytes directly through `layout_alloc` and `layout_solve`, reaching `request.rs::solve` and its Rust `serde_json::from_slice` before the modern flex/grid routines",
+        "notes": "Eight valid seeds cover flex wrapping, fill limits, rotations, grid track types and spans. Unknown fields/enums, invalid geometry and excessive work refuse without partial output. The target releases each owned allocation in finally, propagates every refusal and WASM trap, checks finite output geometry and bounds linear memory. Direct tests verify the native goldens and recovery after malformed UTF-8, truncated JSON and schema refusal."
+      }
+    },
+    "engine/src/penpot-layout.ts (importPenpotLayouts)": {
+      "fuzzTargets": [
+        "penpot-layout"
+      ],
+      "details": {
+        "inputSource": "Already-decoded native binfile-v3 shape records and finalized imported boxes from a user Penpot archive",
+        "bounds": "Archive admission in `design-import.ts`: `MAX_IMPORT_BYTES = 100 MiB`, `MAX_ZIP_ENTRY_BYTES = 128 MiB`, `MAX_ZIP_TOTAL_BYTES = 512 MiB`; mapped output uses Design `MAX_LAYOUT_LAYERS = 20,000`, `MAX_LAYOUT_TRACKS = 4,096`, `MAX_LAYOUT_OWNER_RECORDS = 65` and `MAX_LAYOUT_SCALAR = 1e7`",
+        "directTests": "`tests/penpot-layout.test.ts`, `tests/layout-fuzz.test.ts`, `tests/design-import-modes.test.ts`",
+        "fuzzCoverage": "`penpot-layout` mutates writer-produced native flex/grid shape JSON through `penpotChildrenPaintOrder`, `importPenpotLayouts` and the real Design evaluator",
+        "notes": "The existing brand-import target only reaches token and page-census readers. This target covers layout-specific native properties, owner/source identity alignment, typed tracks, grid cell memberships and sizing. Findings are preserved by the mapper and converted to a controlled error by the fuzz caller, matching the web import refusal. Archive inflation itself remains in the existing shell reader."
+      }
+    },
+    "engine/src/design-layout.ts": {
+      "fuzzTargets": [
+        "penpot-layout"
+      ],
+      "details": {
+        "inputSource": "Authored and imported Design layer/track records supplied through `host.layout.evaluate`; grid track strings and placement records may be collaborative or tool-supplied",
+        "bounds": "`MAX_LAYOUT_LAYERS = 20,000`, `MAX_LAYOUT_TRACKS = 4,096`, `MAX_LAYOUT_OWNER_RECORDS = 65`, `MAX_LAYOUT_SCALAR = 1e7`, `MAX_LAYOUT_TEXT_LAYER_CHARS = 65,536`, `MAX_LAYOUT_TEXT_DOCUMENT_CHARS = 1 M`; `MAX_LAYOUT_TRACKS_PER_AXIS = 1,024`, `MAX_LAYOUT_GRID_CELLS = 65,536`, `MAX_LAYOUT_GRID_WORK = 262,144`, `MAX_LAYOUT_PASSES = 16`, `MAX_LAYOUT_REFLOW_WORK = 320,000`; named solver/projection cache ceilings",
+        "directTests": "`tests/design-layout.test.ts`, `tests/layout-fuzz.test.ts`",
+        "fuzzCoverage": "`penpot-layout` reaches `validateDesignLayout`, `parseLayoutTrack`, `designLayoutRequest` placement and `createDesignLayoutEvaluator` with the real WASM solver",
+        "notes": "Generated solver JSON is derived from untrusted layer values rather than being a trusted byte ingress. Ownership, enums, finite dimensions, track grammar and work are admitted before reflow. Findings retain authored rows on refusal; successful geometry is disposable and does not overwrite source intent. Source and cache equivalence have separate focused regressions."
+      }
     }
   }
 }

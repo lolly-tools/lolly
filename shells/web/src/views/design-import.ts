@@ -28,6 +28,9 @@
 
 import { storeUserUpload } from './picker.ts';
 import {
+  importPenpotLayouts,
+  penpotHasLayout,
+  penpotChildrenPaintOrder,
   boxGeomFromBBox,
   finalizeBoxes,
   safeColor,
@@ -76,6 +79,7 @@ interface Inherited { fill: string | null; opacity: number; }
 interface DesignImportResult {
   boxes: unknown[]; width: number; height: number; background: string;
   sequenceValues?: { projectFps: string };
+  layoutTracks?: Array<Record<string, unknown>>;
   fontSubstitutions?: string[];
   /** The map the boxes were finalized with, font vocabulary and all (Penpot
    *  binfile only). Additive: a caller that wants a SECOND pass over the same
@@ -229,6 +233,7 @@ export async function parseDesignFile(
 
 /** One page / slide / board / frame of a design file as an editable frame. */
 export interface DesignImportFrame {
+  layoutTracks?: Array<Record<string, unknown>>;
   name: string;
   width: number;
   height: number;
@@ -272,7 +277,7 @@ export async function parseDesignArtboards(
   }
   const buf = new Uint8Array(await file.arrayBuffer());
   const one = (res: DesignImportResult, name: string): DesignArtboardsResult => ({
-    frames: [{ name, width: res.width, height: res.height, boxes: res.boxes }],
+    frames: [{ name, width: res.width, height: res.height, boxes: res.boxes, layoutTracks: res.layoutTracks }],
     background: res.background || '#ffffff',
     ...(res.map ? { map: res.map } : {}),
   });
@@ -812,11 +817,15 @@ async function parsePenpotBinfile(files: Record<string, Uint8Array>, manifest: a
   }
 
   const imageCache = new Map<string, AssetRef>();
-  const nodes = await penpotItemsToNodes(orderPenpotShapes(shapesById), { host, files, fileId, imageCache, warn });
+  const sourceIds: string[] = [];
+  const nodes = await penpotItemsToNodes(orderPenpotShapes(shapesById), { host, files, fileId, imageCache, warn, srcIds: sourceIds });
   if (!nodes.length) throw new Error('This Penpot file has no importable shapes on its first page.');
 
   const { width, height } = shiftToOrigin(nodes);
-  return { boxes: finalizeBoxes(nodes, map), width, height, background: '#ffffff', map };
+  const finalized = finalizePenpotNodes(nodes, sourceIds, map);
+  const imported = importPenpotLayouts(finalized.boxes, finalized.sourceIds, shapesById);
+  if(imported.findings.length)throw new Error(imported.findings.map(f=>f.message).join('\n')+' Import an SVG copy for positioned artwork.');
+  return { boxes: imported.boxes, layoutTracks: imported.tracks, width, height, background: '#ffffff', map };
 }
 
 function safeJsonParse(text: string): any {
@@ -895,6 +904,11 @@ function markPenpotSubtreeSeen(shapesById: Record<string, any>, id: string, seen
 // children are consumed (marked seen), never painted separately.
 function penpotFlattenStep(shapesById: Record<string, any>, s: any, seen: Set<string>): PenpotVectorGroupItem | null {
   if (String(s.type || '') !== 'group') return null;
+  const pending=[s]; const checked=new Set<string>();
+  for(let n=0;n<pending.length;n++){const member=pending[n];if(!member||checked.has(member.id))continue;checked.add(member.id);
+    if(member.layout==='flex'||member.layout==='grid')return null;
+    for(const child of member.shapes||[])pending.push(shapesById[child]);
+  }
   const svg = penpotGroupToSvg(s, (cid: string) => shapesById[cid]);
   if (!svg) return null;
   for (const k of (Array.isArray(s.shapes) ? s.shapes : [])) markPenpotSubtreeSeen(shapesById, String(k), seen);
@@ -910,9 +924,10 @@ function penpotFlattenStep(shapesById: Record<string, any>, s: any, seen: Set<st
 function orderPenpotShapes(shapesById: Record<string, any>): any[] {
   const out: any[] = [];
   const seen = new Set<string>();
+  const dynamic = penpotHasLayout(shapesById);
   const visit = (id: string) => {
     const s = shapesById[id];
-    if (!s || seen.has(id) || s.hidden === true) return;
+    if (!s || seen.has(id) || s.hidden === true && !dynamic) return;
     seen.add(id);
     const flat = penpotFlattenStep(shapesById, s, seen);
     if (flat) { out.push(flat); return; }
@@ -921,12 +936,25 @@ function orderPenpotShapes(shapesById: Record<string, any>): any[] {
       for (const k of (Array.isArray(s.shapes) ? s.shapes : [])) markPenpotSubtreeSeen(shapesById, String(k), seen);
       return;
     }
-    const kids = Array.isArray(s.shapes) ? s.shapes : [];
+    const kids = penpotChildrenPaintOrder(s, shapesById);
     for (const k of kids) visit(k);
   };
   visit('00000000-0000-0000-0000-000000000000');
   for (const id of Object.keys(shapesById)) visit(id);
   return out;
+}
+
+/** Finalization skips tiny non-text points. Source identities must skip the same nodes. */
+function finalizePenpotNodes(nodes: NonNullable<Parameters<typeof finalizeBoxes>[0]>, sourceIds: readonly string[], map?: DesignMapOptions & { prefix?: unknown }) {
+  const boxes: Array<Record<string, unknown>> = [], retainedIds: string[] = [];
+  for (const [n, node] of nodes.entries()) {
+    const finalized = finalizeBoxes([node], map);
+    if (!finalized.length) continue;
+    finalized[0]!.id = `${map?.prefix ?? 'n'}${boxes.length}`;
+    boxes.push({ ...finalized[0]! });
+    retainedIds.push(sourceIds[n]!);
+  }
+  return { boxes, sourceIds: retainedIds };
 }
 
 // Store one flattened vector-group SVG, deduped by its serialized markup (identical
@@ -1691,13 +1719,13 @@ function boxesHaveMedia(boxes: unknown[]): boolean {
 // transparent background lets the frame's own bg box (or the sequence canvas)
 // show through. Returns null (with a warn) when Design isn't available
 // in this build or the render fails; the caller skips that frame.
-async function bakeSceneAsset(host: HostV1 | undefined, warn: (msg: string) => void, name: string, boxes: unknown[], width: number, height: number): Promise<AssetRef | null> {
+async function bakeSceneAsset(host: HostV1 | undefined, warn: (msg: string) => void, name: string, boxes: unknown[], width: number, height: number, layoutTracks?: Array<Record<string, unknown>>): Promise<AssetRef | null> {
   try {
     const compose = host && host.compose;
     if (!compose || typeof compose.render !== 'function') throw new Error('tool composition isn’t available here');
     const rendered = await compose.render({
       toolId: 'design',
-      inputs: { boxes, background: 'transparent' },
+      inputs: { boxes, background: 'transparent', ...(layoutTracks?.length ? { layoutTracks } : {}) },
       format: 'svg',
       width: Math.max(1, Math.round(width)),
       height: Math.max(1, Math.round(height)),
@@ -1798,7 +1826,7 @@ async function bakeRasterAsset(
 // Bake a list of {name, width, height, boxes} frames, with progress + the scene cap.
 async function bakeFrames(
   host: HostV1 | undefined, warn: (msg: string) => void,
-  frames: Array<{ name: string; width: number; height: number; boxes: unknown[]; enter?: string; enterMs?: number }>,
+  frames: Array<{ name: string; width: number; height: number; boxes: unknown[]; layoutTracks?: Array<Record<string, unknown>>; enter?: string; enterMs?: number }>,
 ): Promise<DesignSceneAsset[]> {
   if (frames.length > MAX_SCENES) {
     warn(`This file has ${frames.length} frames - only the first ${MAX_SCENES} were imported.`);
@@ -1808,7 +1836,7 @@ async function bakeFrames(
   for (let i = 0; i < frames.length; i++) {
     const f = frames[i]!;
     if (frames.length > 1) warn(`Rendering “${f.name}” (${i + 1}/${frames.length})…`);
-    const asset = await bakeSceneAsset(host, warn, f.name, f.boxes, f.width, f.height);
+    const asset = await bakeSceneAsset(host, warn, f.name, f.boxes, f.width, f.height, f.layoutTracks);
     // enter/enterMs only ride along when the source carried a prototype flow, so a
     // file with no interactions produces exactly the object shape it always did.
     if (asset) scenes.push({ name: f.name, asset, ...(f.enter ? { enter: f.enter } : {}), ...(f.enterMs !== undefined ? { enterMs: f.enterMs } : {}) });
@@ -1947,8 +1975,8 @@ async function collectPenpotBinfileFrames(files: Record<string, Uint8Array>, man
 
   // Map an ordered walk (shapes + flatten markers) to nodes - the shared resolver,
   // so this path and the single-page import can't drift.
-  const shapesToNodes = (items: any[]): Promise<any[]> =>
-    penpotItemsToNodes(items, { host, files, fileId, imageCache, warn });
+  const shapesToNodes = (items: any[], srcIds?: string[]): Promise<any[]> =>
+    penpotItemsToNodes(items, { host, files, fileId, imageCache, warn, srcIds });
 
   for (let p = 0; p < pageIds.length; p++) {
     const pid = pageIds[p]!;
@@ -1959,6 +1987,7 @@ async function collectPenpotBinfileFrames(files: Record<string, Uint8Array>, man
     }
     const meta = pageMeta(pid);
     const pageName = (meta && typeof meta.name === 'string' && meta.name) || `Page ${p + 1}`;
+    const dynamic = penpotHasLayout(shapesById);
 
     // DFS one top-level subtree in paint order (container `shapes` arrays).
     // A hidden shape hides its whole subtree - same as Figma's visible:false.
@@ -1970,7 +1999,7 @@ async function collectPenpotBinfileFrames(files: Record<string, Uint8Array>, man
     // already carries its resolved outline, so its operand children are consumed.
     const subtree = (id: string, seen: Set<string>): any[] => {
       const s = shapesById[id];
-      if (!s || seen.has(id) || s.hidden === true) return [];
+      if (!s || seen.has(id) || s.hidden === true && !dynamic) return [];
       seen.add(id);
       const flat = penpotFlattenStep(shapesById, s, seen);
       if (flat) return [flat];
@@ -1979,7 +2008,7 @@ async function collectPenpotBinfileFrames(files: Record<string, Uint8Array>, man
         for (const k of (Array.isArray(s.shapes) ? s.shapes : [])) markPenpotSubtreeSeen(shapesById, String(k), seen);
         return out;
       }
-      for (const k of (Array.isArray(s.shapes) ? s.shapes : [])) out.push(...subtree(k, seen));
+      for (const k of penpotChildrenPaintOrder(s, shapesById)) out.push(...subtree(k, seen));
       return out;
     };
 
@@ -2018,28 +2047,35 @@ async function collectPenpotBinfileFrames(files: Record<string, Uint8Array>, man
       ? flow.ordered.map((id) => byId.get(id)).filter((b): b is (typeof spatial)[number] => Boolean(b))
       : spatial;
     for (const { shape: s, at } of ordered) {
-      const nodes = await shapesToNodes(subtree(s.id, seen));
+      const sourceIds: string[] = [];
+      const nodes = await shapesToNodes(subtree(s.id, seen), sourceIds);
       if (!nodes.length) continue;
       for (const n of nodes) { n.x -= at.x; n.y -= at.y; }
-      const boxes = finalizeBoxes(nodes, map);
+      const finalized = finalizePenpotNodes(nodes, sourceIds, map);
+      const imported = importPenpotLayouts(finalized.boxes, finalized.sourceIds, shapesById);
+      if(imported.findings.length)throw new Error(imported.findings.map(f=>f.message).join('\n'));
+      const boxes=imported.boxes.map(b=>b.kind==='frame'?{...b,kind:'box',frame:''}:b);
       if (!boxes.length) continue;
       const tr = flow.transitions[String(s.id)];
       frames.push({
         name: (typeof s.name === 'string' && s.name) || `Board ${frames.length + 1}`,
         width: Math.max(1, Math.round(at.w)) || 1080,
         height: Math.max(1, Math.round(at.h)) || 1080,
-        boxes,
+        boxes, layoutTracks: imported.tracks,
         ...(tr ? { enter: tr.enter, ...(tr.enterMs !== undefined ? { enterMs: tr.enterMs } : {}) } : {}),
       });
     }
     // Loose shapes only make a scene when the page has NO boards - next to
     // boards they're scratch content and a union-bounds scene of it is noise.
     if (loose.length && !boards.length) {
-      const nodes = await shapesToNodes(loose);
+      const sourceIds: string[] = [];
+      const nodes = await shapesToNodes(loose, sourceIds);
       if (nodes.length) {
         const { width, height } = shiftToOrigin(nodes);
-        const boxes = finalizeBoxes(nodes, map);
-        if (boxes.length) frames.push({ name: pageName, width, height, boxes });
+        const finalized = finalizePenpotNodes(nodes, sourceIds, map);
+        const imported = importPenpotLayouts(finalized.boxes, finalized.sourceIds, shapesById);
+        if (imported.findings.length) throw new Error(imported.findings.map(f => f.message).join('\n'));
+        if (imported.boxes.length) frames.push({ name: pageName, width, height, boxes: imported.boxes, layoutTracks: imported.tracks });
       }
     }
   }

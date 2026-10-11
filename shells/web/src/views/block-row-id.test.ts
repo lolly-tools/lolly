@@ -70,14 +70,20 @@ test('neither migration records an undo step (setInputNoHistory / applyPatch)', 
   // tool, undoing it restores an id-less array where every row answers to ''.
   assert.match(TOOL_SRC, /runtime\.setInputNoHistory = baseSetInput;/, 'the quiet setter still exists');
   // The migration id-stamps AND (plan 112) assigns spatial frame membership before the
-  // commit - `let next = withIds(loaded)`, then `if (frameCfg) next = assignFrames(...)`,
-  // then commits through `quiet` (the setInputNoHistory alias). Bound the block at the
-  // trailing renderChrome() so the assertions don't depend on a fixed char window.
-  const mStart = CANVAS_SRC.search(/let next = (?:fc\.\w+\.)?withIds\((?:fc, )?loaded\);/);
-  const migration = CANVAS_SRC.slice(mStart, CANVAS_SRC.indexOf('renderChrome();', mStart));
+  // commit, then writes through `quiet` (the setInputNoHistory alias). Dynamic layouts
+  // retain source ownership instead of acquiring spatial frame membership on mount.
+  // Bound the block by its loaded rows and the trailing chrome render.
+  const mStart = CANVAS_SRC.indexOf('const loaded = fc.select.getBoxes();');
+  const mEnd = CANVAS_SRC.indexOf('fc.chromeSync.renderChrome();', mStart);
+  assert.ok(mStart >= 0 && mEnd > mStart, 'the canvas mount migration remains identifiable');
+  const migration = CANVAS_SRC.slice(mStart, mEnd);
+  assert.match(migration, /fc\.select\.withIds\(loaded\)/, 'the migration stamps row identity');
+  assert.match(migration, /if\s*\(\s*frameCfg\s*&&\s*!fc\.layout\.has\(loaded\)\s*\)/,
+    'dynamic source ownership survives mount-time frame assignment');
   assert.match(migration, /setInputNoHistory/,
     'free-canvas\'s load-time migration uses the history-free setter');
   assert.match(migration, /\bquiet\(blockId, next\)/,
     'free-canvas\'s migration commits through the quiet setter, never runtime.setInput');
-  assert.equal(/runtime\.setInput\(blockId, next\)/.test(CANVAS_SRC), false);
+  assert.equal(/runtime\.setInput\(blockId, next\)/.test(migration), false,
+    'only a user edit may call the history-recording setter with the next rows');
 });

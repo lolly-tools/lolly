@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import type { DesignToolDraftV1, ArtboardVariantV1, DesignInputV1 } from '@lolly-tools/core/design-tool-v1';
 import { validateDesignTool } from '@lolly-tools/core/design-tool-v1';
+import { hasDesignLayout } from '@lolly/engine';
 import { parseTextDocument,textStyleResolver } from '@lolly/engine';
 import type { Runtime } from '../../../../engine/src/runtime.ts';
 
@@ -15,7 +16,12 @@ export function restoreDesignToolDraft(runtime: Runtime, value: unknown): void {
   try { validateDesignTool(d); setDesignToolDraft(runtime,d); } catch { return; }
 }
 
-export function designVariants(boxes: Array<Record<string, unknown>>, width: number, height: number, background: string, textDocument?:unknown): ArtboardVariantV1[] {
+export function designVariants(boxes: Array<Record<string, unknown>>, width: number, height: number, background: string, textDocument?:unknown, layoutTracks?:unknown): ArtboardVariantV1[] {
+  if (hasDesignLayout(boxes)) {
+    const tracks = Array.isArray(layoutTracks) ? layoutTracks : [];
+    // Keep the authored ownership tree, including layout-bearing artboards.
+    return [{id:'layout-document',label:'Layout document',width,height,background,boxes:structuredClone(boxes),layoutTracks:structuredClone(tracks),...(textDocument?{textDocument:parseTextDocument(textDocument)}:{})}];
+  }
   const document=textDocument?parseTextDocument(textDocument):undefined;
   const attach=(variant:ArtboardVariantV1):ArtboardVariantV1=>{if(!document)return variant;const ids=new Set(variant.boxes.map(box=>String(box.id))),stories=document.stories.filter(story=>story.frameIds.some(id=>ids.has(id)));return {...variant,textDocument:{...structuredClone(document),stories:structuredClone(stories)}};};
   const linkedArtboards=document?.stories.some(story=>new Set(story.frameIds.map(id=>boxes.find(box=>box.id===id)?.frame??'')).size>1);

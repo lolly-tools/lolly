@@ -18,6 +18,7 @@ import { baseHost } from './helpers/host.ts';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const designTool: any = await loadTool('design', (path: string) => readFile(join(ROOT, 'community', path), 'utf8'));
 const boxesField = designTool.manifest.inputs.find((i: { id: string }) => i.id === 'boxes');
+const wireOrder = JSON.parse(await readFile(join(ROOT, 'schemas/blocks-wire-order.json'), 'utf8')) as { inputs: Record<string, string[]> };
 
 const webBox = (extra: Record<string, unknown> = {}) => ({
   id: 'demo', kind: 'web', x: 100, y: 80, w: 960, h: 540, bg: '', shape: 'rounded', text: '',
@@ -41,7 +42,9 @@ test('web keeps its original fields and appends interaction fields', () => {
   const add = boxesField.canvas.addKinds.find((k: { id: string }) => k.id === 'web');
   assert.equal(add.seed.kind, 'web');
   const ids = boxesField.fields.map((f: { id: string }) => f.id);
-  assert.deepEqual(ids.slice(114), ['web', 'webView', 'webLoad', 'webCss', 'webHideCookies', 'interact', 'interactOpts']);
+  assert.deepEqual(ids.slice(114, 121), ['web', 'webView', 'webLoad', 'webCss', 'webHideCookies', 'interact', 'interactOpts']);
+  assert.equal(ids.indexOf('layout'), 121, 'layout starts after the permanent web and interaction field prefix');
+  assert.deepEqual(ids, wireOrder.inputs['design:boxes'], 'the complete field order, including appended layout fields, matches the wire pin');
   for (const id of ['web', 'webView', 'webLoad', 'webCss', 'webHideCookies', 'interact', 'interactOpts']) {
     assert.deepEqual(boxesField.fields.find((f: { id: string }) => f.id === id).showFor, [], `${id} is edited in the inspector, not the sidebar`);
   }

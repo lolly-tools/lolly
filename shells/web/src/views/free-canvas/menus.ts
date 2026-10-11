@@ -246,9 +246,34 @@ export async function importAsArtboards(fc: FcCtx,
     }
   );
   applyFrameExtras(rows, laid, layoutCfg, frameCfg.frameField, frameCfg.orderField, FRAME_NOTES_FIELD);
+  // Each imported page has its own source IDs. The positioned rows use fresh IDs,
+  // so nested owners and track owners must use that page's same identity map.
+  const layoutTracks: Array<Record<string, unknown>> = [];
+  let rowAt = 0;
+  for (const page of laid) {
+    rowAt++; // The artboard wrapper is followed by this page's members.
+    const members = (Array.isArray(page.boxes) ? page.boxes : []).filter(
+      (box): box is Box => !!box && typeof box === 'object'
+    );
+    const mapped = new Map(members.map((box, n) => [String(box[cfg.idField]), String(rows[rowAt + n]![cfg.idField])]));
+    members.forEach((box, n) => {
+      if (!box.layoutOwner) return;
+      const owner = mapped.get(String(box.layoutOwner));
+      if (!owner) throw new Error(t('An imported layout references a missing container.'));
+      rows[rowAt + n]!.layoutOwner = owner;
+      rows[rowAt + n]![frameCfg.frameField] = '';
+    });
+    for (const track of page.layoutTracks || []) {
+      const container = mapped.get(String(track.container));
+      if (!container) throw new Error(t('An imported grid track references a missing container.'));
+      const id = fc.select.freshId([...rows, ...layoutTracks] as Box[]);
+      layoutTracks.push({ ...track, id, container });
+    }
+    rowAt += members.length;
+  }
   if (fc.disposed) return 0;
   fc.selection = new Set<string>();
-  fc.select.commit(rows);
+  fc.select.commit(rows, { layoutTracks }, 'Import artboards');
   focusLaidPage(fc, rows, laid, opts.focusFrameId ?? laid.find((p) => p.focus)?.id, frameCfg.frameKind);
   const first = frames[0]!;
   if (setCanvasSize && first.width > 0 && first.height > 0)
@@ -297,6 +322,7 @@ export interface ArtboardFrameInput {
   width: number;
   height: number;
   boxes: unknown[];
+  layoutTracks?: Array<Record<string, unknown>>;
   background?: string;
   notes?: string;
   extra?: Record<string, string | number | boolean | null>;
@@ -572,6 +598,8 @@ export function openImportPanel(fc: FcCtx, anchor: HTMLElement): void {
         if (!boxes.length) throw new Error(t('Nothing importable was found in that file.'));
         if (res.sequenceValues && !fc.timeCfg) throw new Error(t('Open this timeline in Design to retain clip timing.'));
         fc.selection = new Set<string>();
+        fc.onDirty?.('layoutTracks');
+        void fc.runtime.setInput('layoutTracks', res.layoutTracks || []);
         fc.select.commit(boxes);
         if (res.sequenceValues) {
           fc.onDirty?.('projectFps');

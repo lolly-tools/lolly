@@ -66,6 +66,14 @@
       "owner": "packages/node-shell"
     },
     {
+      "id": "layout-kernel-cargo",
+      "ecosystem": "cargo",
+      "directory": "packages/node-shell/wasm/layout-kernel",
+      "lockfile": "packages/node-shell/wasm/layout-kernel/Cargo.lock",
+      "exposure": "shipped-runtime",
+      "owner": "packages/node-shell"
+    },
+    {
       "id": "pixel-kernel-cargo",
       "ecosystem": "cargo",
       "directory": "packages/node-shell/wasm/pixel-kernel",
