@@ -753,7 +753,7 @@ test('a top bar with no toggles to lend adds no preference rows', () => {
 
 // ══ 8. the filmstrip toggle ═══════════════════════════════════════════════════
 
-test('Pages arrow navigation selects and frames the destination through the real canvas ports', () => {
+test('Artboards arrow navigation selects and frames the destination through the real canvas ports', () => {
   const initial = [frameBox('f2', 600, 1), frameBox('f1', 0, 0)];
   const f = mount(initial);
   const nav = initDesignNavigator({
@@ -770,7 +770,7 @@ test('Pages arrow navigation selects and frames the destination through the real
     }
     const focused: unknown[] = [];
     f.stageEl.addEventListener('fc-focus-rect', event => focused.push((event as CustomEvent).detail));
-    click([...nav.el.querySelectorAll('button')].find(button => button.textContent === 'Pages')!);
+    click([...nav.el.querySelectorAll('button')].find(button => button.textContent === 'Artboards')!);
     click(nav.el.querySelector('[data-nav-row][data-id="f1"]')!);
     for (const [arrow, id, x] of [['ArrowRight', 'f2', 600], ['ArrowUp', 'f1', 0]] as const) {
       document.activeElement!.dispatchEvent(new W.KeyboardEvent('keydown', { key: arrow, bubbles: true }));
