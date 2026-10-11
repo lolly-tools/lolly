@@ -87,6 +87,7 @@ COPY --from=build /src/engine ./engine
 COPY --from=build /src/schemas ./schemas
 COPY --from=build /src/packages/core ./packages/core
 COPY --from=build /src/packages/node-shell ./packages/node-shell
+COPY --from=build /src/packages/rondo ./packages/rondo
 COPY --from=build /src/shells/cli ./shells/cli
 COPY --from=build /src/services/mcp ./services/mcp
 COPY services/shared ./services/shared
@@ -94,6 +95,9 @@ COPY --from=build /src/shells/web/public/fonts ./shells/web/public/fonts
 COPY --from=build /runtime-content/tools ./tools
 COPY --from=build /runtime-content/catalog ./catalog
 COPY LICENSE THIRD-PARTY-NOTICES.md ./
+# Verify the final layout, including workspace links and QuickJS's WASM bytes.
+# The build stage's complete source tree cannot prove the copied runtime closure.
+RUN node --input-type=module -e "await import('./services/mcp/src/server.ts'); const { quickjs } = await import('./packages/rondo/src/index.ts'); await quickjs();"
 RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 
 # The Node base ships a non-root `node` user (uid 1000).

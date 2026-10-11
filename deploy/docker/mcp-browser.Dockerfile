@@ -75,6 +75,7 @@ COPY --from=build /src/engine ./engine
 COPY --from=build /src/schemas ./schemas
 COPY --from=build /src/packages/core ./packages/core
 COPY --from=build /src/packages/node-shell ./packages/node-shell
+COPY --from=build /src/packages/rondo ./packages/rondo
 COPY --from=build /src/shells/cli ./shells/cli
 COPY --from=build /src/services/mcp ./services/mcp
 COPY services/shared ./services/shared
@@ -82,6 +83,9 @@ COPY --from=build /src/shells/web/public/fonts ./shells/web/public/fonts
 COPY --from=build /runtime-content/tools ./tools
 COPY --from=build /runtime-content/catalog ./catalog
 COPY LICENSE THIRD-PARTY-NOTICES.md ./
+# Verify the final layout, including workspace links and QuickJS's WASM bytes.
+# The build stage's complete source tree cannot prove the copied runtime closure.
+RUN node --input-type=module -e "await import('./services/mcp/src/server.ts'); const { quickjs } = await import('./packages/rondo/src/index.ts'); await quickjs();"
 # Install the exact browser's runtime OS dependencies without another download.
 RUN PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 node services/mcp/scripts/install-browser.ts --with-deps \
     && rm -rf /var/lib/apt/lists/* /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
