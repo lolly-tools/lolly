@@ -8,8 +8,8 @@ import { unzipSync, zipSync, strToU8 } from 'fflate';
 import { openDocxMetadata } from '../engine/src/docx-metadata.ts';
 import { docxFixture, pptxFixture, xlsxFixture } from './helpers/compare-file-fixtures.ts';
 import { shellSettled } from './helpers/shell-settled.ts';
-const origin = process.env.LOLLY_HISTORY_TEST_URL;
-const skip = origin ? false : 'LOLLY_HISTORY_TEST_URL not set (serve the web shell locally)';
+const origin = process.env.LOLLY_HISTORY_TEST_URL || process.env.LOLLY_EXPORT_TEST_URL;
+const skip = origin ? false : 'Set LOLLY_HISTORY_TEST_URL or LOLLY_EXPORT_TEST_URL (serve the web shell locally)';
 if (origin) assert.ok(['localhost', '127.0.0.1', '[::1]'].includes(new URL(origin).hostname));
 
 test('table Compare: keyed movement, duplicate fallback, keyboard, mobile and private reports', { skip, timeout: 90_000 }, async () => {
