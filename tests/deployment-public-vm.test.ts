@@ -164,6 +164,17 @@ function workflowJob(workflow: string, id: string): string {
   return next < 0 ? rest : rest.slice(0, next + 1);
 }
 
+test('public VM sparse checkout includes the maintained native image probe', () => {
+  const entry = read('deploy/docker/public-image-probe.ts');
+  const probePath = entry.match(/await import\(pathToFileURL\(resolve\(root, '([^']+)'\)\)\.href\)/)?.[1];
+  assert.ok(probePath, 'the image probe entry point must resolve its maintained source');
+  const job = workflowJob(read('.github/workflows/deployment-suse.yml'), 'public-vm');
+  const checkout = job.match(/sparse-checkout: \|\n((?: {12}[^\n]+\n)+)/)?.[1];
+  assert.ok(checkout, 'the public VM job must declare its sparse checkout');
+  assert.ok(checkout.split('\n').some(line => line.trim() === `/${probePath}`),
+    `the public VM contracts read ${probePath}, so checkout must include that exact file`);
+});
+
 function normalCiSource(alter?: (run: Record<string, unknown>, inventory: { total_count: number; jobs: Record<string, unknown>[] }) => void) {
   const directory = mkdtempSync(join(tmpdir(), 'lolly-normal-ci-'));
   try {
