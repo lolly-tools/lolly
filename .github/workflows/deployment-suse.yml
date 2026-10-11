@@ -248,6 +248,7 @@ jobs:
           sparse-checkout-cone-mode: false
           sparse-checkout: |
             /deploy/docker/
+            /services/mcp/scripts/native-public-image-probe.ts
             /deploy/models-host/
             /scripts/model-release.ts
             /scripts/build-delivery.ts
