@@ -41,6 +41,7 @@
 import { t } from '../i18n.ts';
 import { mountTooltips } from './tooltips.ts';
 import './edge-dock.css';
+import '../components/panel-focus.css';
 import { clamp } from '@lolly/engine';
 
 const STORE_KEY = 'lolly:edge-dock';
