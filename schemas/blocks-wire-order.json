@@ -197,7 +197,8 @@
       "layoutArea",
       "layoutX",
       "layoutY",
-      "layoutAngle"
+      "layoutAngle",
+      "pageId"
     ],
     "diagram-builder:nodes": [
       "shape",
@@ -585,6 +586,11 @@
     "strip-data:properties": [
       "id",
       "remove"
+    ],
+    "design:pages": [
+      "id",
+      "name",
+      "order"
     ]
   }
 }
