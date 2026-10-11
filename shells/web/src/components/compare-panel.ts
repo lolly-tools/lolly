@@ -3,6 +3,7 @@ import type { CompareAPI, ComparisonRequest } from '@lolly-tools/core/host-v1';
 import { mountComparisonResults } from './compare-results.ts';
 import { compareElement as el, compareButton as button } from './compare-elements.ts';
 import { t } from '../i18n.ts';
+import { mountComparisonOptions } from './compare-options.ts';
 import './compare.css';
 
 /** Reused by utility/history. The request is captured; no editor or storage writes. */
@@ -15,18 +16,7 @@ export function mountComparison(root: HTMLElement, api: CompareAPI, input: Compa
   const options = el('div', undefined, 'compare-toolbar'), swap = button('Swap sides'), run = button('Compare again'), cancel = button('Cancel comparison');
   const status = el('p'); status.setAttribute('role', 'status');
   const result = el('div');
-  const textMode = request.before.content.kind === 'text' && request.after.content.kind === 'text';
-  const checkbox = (label: string, checked: boolean, changed: (checked: boolean) => void): void => {
-    const wrap = el('label'), check = el('input'); check.type = 'checkbox'; check.checked = checked; wrap.append(check, document.createTextNode(t(label)));
-    check.addEventListener('change', () => { changed(check.checked); void compare(); }); options.append(wrap);
-  };
-  if (textMode) {
-    const granularity = el('select', undefined, 'field-select'); granularity.setAttribute('aria-label', t('Text comparison detail'));
-    granularity.add(new Option(t('Lines'), 'line')); granularity.add(new Option(t('Words'), 'word')); granularity.value = request.options.granularity ?? 'line';
-    granularity.addEventListener('change', () => { request.options!.granularity = granularity.value === 'word' ? 'word' : 'line'; void compare(); }); options.append(granularity);
-    checkbox('Ignore whitespace', request.options.whitespace === 'ignore', checked => { request.options!.whitespace = checked ? 'ignore' : 'exact'; });
-    checkbox('Ignore case', !!request.options.ignoreCase, checked => { request.options!.ignoreCase = checked; });
-  } else checkbox('Match array items by unique id', request.options.arrayAlignment === 'id', checked => { request.options!.arrayAlignment = checked ? 'id' : 'position'; });
+  mountComparisonOptions(options, request, compare);
   options.append(swap, run, cancel); root.append(identities, options, status, result);
   let active: AbortController | undefined, generation = 0, disposed = false;
   async function compare(): Promise<void> {
