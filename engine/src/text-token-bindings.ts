@@ -19,16 +19,16 @@ export function resolveParagraphTokenBindings(value: TextParagraphStyleV1, set: 
 export function resolveTextDocumentTokenBindings(raw: string, set: TokenSet | undefined): string {
   // An ordinary document incurs no parse, clone or serialization work.
   if (!raw.includes('"tokenLinks"')) return raw;
-  const document = parseTextDocument(raw);
+  const doc = parseTextDocument(raw);
   let changed = false;
   const settings = (value: TextParagraphStyleV1 | undefined) => {
     if (!value?.tokenLinks) return value;
     const next = resolveParagraphTokenBindings(value, set); changed ||= next !== value; return next;
   };
-  const styles = document.styles.map(style => ({ ...style, ...(style.paragraph ? { paragraph: settings(style.paragraph) } : {}) }));
+  const styles = doc.styles.map(style => ({ ...style, ...(style.paragraph ? { paragraph: settings(style.paragraph) } : {}) }));
   const stylesChanged = changed;
-  const next: TextDocumentV1 = { ...document, styles,
-    stories: document.stories.map(story => { const paragraphs = story.paragraphs.map(paragraph => ({ ...paragraph, ...(paragraph.paragraph ? { paragraph: settings(paragraph.paragraph) } : {}) }));
+  const next: TextDocumentV1 = { ...doc, styles,
+    stories: doc.stories.map(story => { const paragraphs = story.paragraphs.map(paragraph => ({ ...paragraph, ...(paragraph.paragraph ? { paragraph: settings(paragraph.paragraph) } : {}) }));
       return { ...story, paragraphs, revision: story.revision + (stylesChanged || paragraphs.some((paragraph, index) => JSON.stringify(paragraph) !== JSON.stringify(story.paragraphs[index])) ? 1 : 0) }; }) };
   return changed ? serializeTextDocument(next) : raw;
 }

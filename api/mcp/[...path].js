@@ -38609,7 +38609,7 @@ function resolveParagraphTokenBindings(value, set) {
 }
 function resolveTextDocumentTokenBindings(raw, set) {
   if (!raw.includes('"tokenLinks"')) return raw;
-  const document2 = parseTextDocument(raw);
+  const doc = parseTextDocument(raw);
   let changed = false;
   const settings = (value) => {
     if (!value?.tokenLinks) return value;
@@ -38617,12 +38617,12 @@ function resolveTextDocumentTokenBindings(raw, set) {
     changed ||= next3 !== value;
     return next3;
   };
-  const styles = document2.styles.map((style) => ({ ...style, ...style.paragraph ? { paragraph: settings(style.paragraph) } : {} }));
+  const styles = doc.styles.map((style) => ({ ...style, ...style.paragraph ? { paragraph: settings(style.paragraph) } : {} }));
   const stylesChanged = changed;
   const next2 = {
-    ...document2,
+    ...doc,
     styles,
-    stories: document2.stories.map((story) => {
+    stories: doc.stories.map((story) => {
       const paragraphs2 = story.paragraphs.map((paragraph) => ({ ...paragraph, ...paragraph.paragraph ? { paragraph: settings(paragraph.paragraph) } : {} }));
       return { ...story, paragraphs: paragraphs2, revision: story.revision + (stylesChanged || paragraphs2.some((paragraph, index2) => JSON.stringify(paragraph) !== JSON.stringify(story.paragraphs[index2])) ? 1 : 0) };
     })
