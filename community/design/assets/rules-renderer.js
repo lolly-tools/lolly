@@ -3162,6 +3162,9 @@ function hierarchyPaintIndices(boxes) {
   var groups = new Map(), members = new Map(), roots = [], result = [], seen = new Set();
   boxes.forEach(function(box, n) { if (box.kind === 'group') groups.set(String(box.id), n); });
   boxes.forEach(function(box, n) { var parent = String(box.group || ''); if (groups.has(parent)) { var list = members.get(parent) || []; list.push(n); members.set(parent, list); } else roots.push(n); });
+  function stackPosition(n) { var children = members.get(String(boxes[n].id)); return boxes[n].kind === 'group' && children && children.length ? Math.min(n, Math.max.apply(null, children)) : n; }
+  roots.sort(function(a,b) { return stackPosition(a)-stackPosition(b); });
+  members.forEach(function(children) { children.sort(function(a,b) { return stackPosition(a)-stackPosition(b); }); });
   var pending = roots.slice().reverse();
   while (pending.length) {
     var n = pending.pop(); if (seen.has(n)) continue;

@@ -230,7 +230,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `design-draw-raster.ts` | 113 | Internal P3f admission. | no | `tests/design-draw-raster.test.ts` | – |
 | `design-draw-svg.ts` | 411 | Drawing operations written as SVG (plan 295, phase 3, P3a). | no | indirect | – |
 | `design-draw.ts` | 875 | Authored Design rows compiled into drawing operations (plan 295, phase 3, P3a). | no | `tests/design-draw.test.ts` | – |
-| `design-hierarchy.ts` | 239 | Document ownership is independent of geometry and the active editor canvas. | yes | `tests/design-hierarchy.test.ts` | – |
+| `design-hierarchy.ts` | 256 | Document ownership is independent of geometry and the active editor canvas. | yes | `tests/design-hierarchy.test.ts` | – |
 | `design-house-rules.ts` | 493 | House rules for a Design document (plan 291 W1 and W3): brand rule records whose kind is one of `DESIGN_HOUSE_RULE_KINDS`, checked layer by layer against the boxes a Design document stores. | yes | `tests/design-house-rules.test.ts` | – |
 | `design-idml.ts` | 147 | Deterministic IDML for static Design text, rectangular/oval frames and still images. | no | indirect | – |
 | `design-layer-ops.ts` | 337 | Design layer edits by stable id (plans/289 D1): `layerOperations` (add, duplicate, remove, reparent, reorder) and `layerPatches` (set fields on one layer). | no | `tests/design-layer-ops.test.ts` | – |

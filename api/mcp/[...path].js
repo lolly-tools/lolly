@@ -77437,6 +77437,12 @@ function designHierarchyIndex(boxes, pages = emptyPages) {
     result.rowsByPage.get(page3)?.push(row);
     if (!result.parent.has(id3)) result.rootsByPage.get(page3)?.push(id3);
   }
+  const positions = new Map(boxes.map((row, n7) => [key(row.id), n7]));
+  const stackPosition = (id3) => {
+    const own3 = positions.get(id3) ?? 0, children = result.children.get(id3);
+    return result.byId.get(id3)?.kind === "group" && children?.length ? Math.min(own3, Math.max(...children.map((child) => positions.get(child) ?? 0))) : own3;
+  };
+  for (const siblings of [...result.children.values(), ...result.rootsByPage.values()]) siblings.sort((a, b) => stackPosition(a) - stackPosition(b));
   let revisions = cache2.get(boxes);
   if (!revisions) {
     revisions = /* @__PURE__ */ new WeakMap();
@@ -77503,13 +77509,24 @@ function migrateDesignHierarchy(boxes, pages = emptyPages) {
       tags3.set(tag3, list4);
     }
   }
+  const siblingDomains = /* @__PURE__ */ new Map();
+  for (const row of boxes) if (row.kind !== "frame") {
+    const domain = JSON.stringify([index2.pageById.get(key(row.id)), index2.parent.get(key(row.id)) || ""]);
+    const positions = siblingDomains.get(domain) || /* @__PURE__ */ new Map();
+    positions.set(key(row.id), positions.size);
+    siblingDomains.set(domain, positions);
+  }
   const replacements = /* @__PURE__ */ new Map(), groups = [], findings = [];
   const used = new Set(index2.byId.keys());
   for (const [tag3, members] of tags3) {
     const pageSet = new Set(members.map((row) => index2.pageById.get(key(row.id))));
     const frameSet = new Set(members.map((row) => key(row.frame)));
-    if (pageSet.size > 1 || frameSet.size > 1 || members.some((row) => key(row.layoutOwner))) {
-      if (findings.length < 256) findings.push({ id: tag3, code: "hierarchy.legacy-group-scope", message: "An old group spans owning containers or contains layout items. Its original membership and clipping are preserved; ungroup those layers before converting." });
+    const ownerSet = new Set(members.map((row) => index2.parent.get(key(row.id)) || ""));
+    const domain = siblingDomains.get(JSON.stringify([[...pageSet][0], [...ownerSet][0]]));
+    const slots = members.map((row) => domain?.get(key(row.id)) ?? -1).filter((n7) => n7 >= 0);
+    const interleaved = slots.length > 0 && slots[slots.length - 1] - slots[0] + 1 !== slots.length;
+    if (pageSet.size > 1 || frameSet.size > 1 || ownerSet.size > 1 || interleaved || members.some((row) => key(row.layoutOwner))) {
+      if (findings.length < 256) findings.push({ id: tag3, code: "hierarchy.legacy-group-scope", message: "An old group spans owning containers, contains layout items or interleaves other artwork. Its original membership and clipping are preserved; ungroup those layers before converting." });
       continue;
     }
     let id3 = tag3;
