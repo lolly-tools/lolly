@@ -31,14 +31,14 @@ import { icon } from '../../icons.ts';
 import { visibleProfileSections } from '../../../views/profile/shared.ts';
 import { DASH_SECTIONS, dashHref } from '../../dashboard-registry.ts';
 import {
-  CATEGORY_FLAGS, JELLY_FLAG, WOBBLY_FLAG, WOBBLY_MESH_FLAG, STRIP_UPLOAD_META_FLAG, PREFLIGHT_FLAG,
+  CATEGORY_FLAGS, JELLY_FLAG, WOBBLY_FLAG, WOBBLY_MESH_FLAG, STRIP_UPLOAD_META_FLAG, PREFLIGHT_FLAG, LEARNING_FLAG,
   flagHidden,
 } from '../../../feature-flags.ts';
 import type { FeatureFlag } from '../../../feature-flags.ts';
 
 // The standalone toggles the profile's Feature flags drawer lists (its flagListHtml
 // order), joined with the gallery category flags below.
-const STANDALONE_FLAGS: readonly FeatureFlag[] = [JELLY_FLAG, WOBBLY_FLAG, WOBBLY_MESH_FLAG, STRIP_UPLOAD_META_FLAG, PREFLIGHT_FLAG];
+const STANDALONE_FLAGS: readonly FeatureFlag[] = [JELLY_FLAG, WOBBLY_FLAG, WOBBLY_MESH_FLAG, STRIP_UPLOAD_META_FLAG, PREFLIGHT_FLAG, LEARNING_FLAG];
 
 // The Accessibility card's four prefs (views/profile.ts A11Y_ROWS - the labels
 // are a copy, pinned against that source by settings.test.ts so a reword there

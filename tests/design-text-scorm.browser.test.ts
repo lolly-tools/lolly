@@ -18,6 +18,9 @@ test('SCORM retains saved Design dimensions and visible composed text',{skip:ori
   await page.addLocatorHandler(page.getByRole('dialog',{name:'Save this render to Assets?',exact:true}),async dialog=>{await dialog.getByRole('button',{name:'Cancel',exact:true}).click();});
   await context.addInitScript(()=>{Object.defineProperty(window,'showSaveFilePicker',{value:undefined});});
   try{
+    await page.goto(`${origin}/#/settings?focus=feature-flags-section`);
+    await page.locator('label[for="ff-training-courses"]').click();
+    await page.waitForFunction(()=>JSON.parse(localStorage.getItem('lolly:featureFlags')||'{}')['training-courses']===true);
     await page.goto(`${origin}/design?${new URLSearchParams({boxes:JSON.stringify(boxes),textDocument:JSON.stringify(doc),background:'#ffffff',width:'640',height:'360',c2pa:'0',imprint:'0',fps:'12',seconds:'1'})}`);await page.locator('svg[data-text-frame="text"]').waitFor();
     const glyphs=await page.locator('svg[data-text-frame="text"] path[data-text-start]').evaluateAll(paths=>paths.map(path=>path.getAttribute('d')!).filter(Boolean));assert.ok(glyphs.length>15);
     await page.locator('[data-topbar="export"]').click();

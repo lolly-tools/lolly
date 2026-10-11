@@ -8,6 +8,7 @@
  * from renderActions() by scripts/split-closure.ts.
  */
 import { motionControlsMarkup } from '../../lib/motion-export-controls.ts';
+import { learningEnabled } from '../../lib/learning-feature.ts';
 import { learningRenditions } from '../../../../../engine/src/learning/delivery.ts';
 import { CMYK_CONDITIONS, DEFAULT_CMYK_CONDITION, HDR_DEFAULTS, OUTPUT_LICENCE_CHOICES, UNITS } from '@lolly/engine';
 import { durableSupport, liveCaptureSupport } from '../../bridge/format-support.js';
@@ -901,7 +902,7 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
   // pixel of the export. Rendered only for a costable job with a card and canShowMoney.
   const costRow = costPanelHtml(); ta.costRow = costRow;
   const secondaryRow = `<div class="export-action-buttons">${copyBtn}${saveBtn}${copyUrlBtn}</div>`; ta.secondaryRow = secondaryRow;
-  const courseBtn = actions.includes('download') && affordance === 'download' && learningRenditions({ ...manifest, render: { ...manifest.render, formats: ta.formats } }).length
+  const courseBtn = learningEnabled() && actions.includes('download') && affordance === 'download' && learningRenditions({ ...manifest, render: { ...manifest.render, formats: ta.formats } }).length
     ? `<button type="button" class="btn" data-course-export>${t('Export course')}</button>` : '';
   const downloadRow = downloadBtn
     ? `<div class="export-action-buttons">${saveAsBtn}${downloadBtn}${courseBtn}</div>`
