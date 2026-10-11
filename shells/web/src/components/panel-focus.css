@@ -1,0 +1,57 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+
+/* Match the input sidebar's focus spotlight in the inspector and docked panels.
+   Fade one level at a time so nested controls never multiply the opacity. */
+.lp-sec-head,
+.lp-rows > *,
+.tool-actions > :not(.export-options-group),
+.tool-actions > .export-options-group > *,
+.tool-actions > .export-file-group > *,
+.docked-panel-body > * {
+  transition: opacity var(--dur-1) ease;
+}
+
+:where(.lp-scroll:has(.lp-sec:focus-within)) .lp-sec:not(:focus-within) > .lp-sec-head,
+:where(.lp-scroll:has(.lp-sec:focus-within)) .lp-rows > :not(:focus-within),
+:where(.tool-actions:focus-within) > :not(:where(.export-options-group)):not(:focus-within),
+:where(.tool-actions:focus-within) > .export-options-group > :not(:focus-within),
+:where(.tool-actions > .export-file-group:focus-within) > :not(:focus-within),
+:where(.docked-panel-body:focus-within) > :not(:focus-within) {
+  opacity: 0.7;
+}
+
+/* Swatches keep their actual colour; only their labels recede. An open picker
+   keeps its containing group solid to preserve its opacity and stacking order. */
+:is(.lp-rows, .tool-actions, .export-options-group, .export-file-group, .docked-panel-body)
+  > :has(.color-trigger, .color-popover:not([hidden])) {
+  opacity: 1;
+}
+.lp-scroll:has(.lp-sec:focus-within) .lp-rows > :not(:focus-within):has(.color-trigger)
+  :is(.lp-label, .fc-row-lbl, .color-trigger-name),
+.lp-scroll:has(.lp-sec:focus-within) .lp-rows > :not(:focus-within):has(.color-trigger)
+  > span:first-child {
+  opacity: 0.7;
+}
+.lp-scroll:has(.lp-sec:focus-within) .lp-rows > :has(.color-popover:not([hidden]))
+  :is(.lp-label, .fc-row-lbl, .color-trigger-name),
+.lp-scroll:has(.lp-sec:focus-within) .lp-rows > :has(.color-popover:not([hidden]))
+  > span:first-child {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-sec-head,
+  .lp-rows > *,
+  .tool-actions > :not(.export-options-group),
+  .tool-actions > .export-options-group > *,
+  .tool-actions > .export-file-group > *,
+  .docked-panel-body > * { transition: none; }
+}
+html[data-a11y-motion="reduce"] :is(
+  .lp-sec-head,
+  .lp-rows > *,
+  .tool-actions > :not(.export-options-group),
+  .tool-actions > .export-options-group > *,
+  .tool-actions > .export-file-group > *,
+  .docked-panel-body > *
+) { transition: none; }
