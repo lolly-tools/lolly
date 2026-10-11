@@ -9,6 +9,8 @@ import { acquireEditorFonts, nativeFontFamily, pinEditorFont } from './text-edit
 import { copyTextFragment, pastedTextHtml, TEXT_CLIPBOARD_MIME } from './text-clipboard.ts';
 import { textTypographyPreview } from './text-typography-preview.ts';
 import { t } from '../i18n.ts';
+import { bindParagraphToken } from '../../../../engine/src/text-token-bindings.ts';
+import type { TokenValue } from '../../../../engine/src/tokens.ts';
 import { hitNativeTextStop } from './text-native-hit.ts';
 import { rebaseTextEdit } from './text-edit-rebase.ts';
 import { patchComposedText } from './text-edit-paint.ts';
@@ -257,6 +259,9 @@ export function mountTextEditor(element: HTMLElement, options: TextEditorOptions
       };
       range = snapTextRange(next.source, { start: mapped(range.start), end: mapped(range.end) }); pendingSelection = range;
       write(next, t('Typography cleanup'));
+    },
+    paragraphToken(field: string, binding?: TokenValue) {
+      pendingSelection = logicalRange(); write(bindParagraphToken(current.document, story, storyParagraphIds(story, logicalRange()), field, binding), binding ? t('Link paragraph token') : t('Make paragraph custom'));
     },
     paragraph(patch: TextParagraphStyleV1, label: string) {
       pendingSelection = logicalRange(); write(formatStoryParagraphs(story, storyParagraphIds(story, logicalRange()), patch), label);

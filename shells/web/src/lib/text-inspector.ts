@@ -8,7 +8,9 @@ import { mountParagraphControls } from './text-paragraph-controls.ts';
 import { mountTextStyleControls } from './text-style-controls.ts';
 import { mountTextTypographyControls } from './text-typography-controls.ts';
 import { mountTextFrameControls } from './text-frame-controls.ts';
-export function mountTextInspector(root: HTMLElement, ids: string[], port: TextPropertyPort, fonts?: FontsPort) {
+import { mountParagraphTokenControls } from './text-paragraph-token-controls.ts';
+import type { HostV1 } from '@lolly-tools/core/host-v1';
+export function mountTextInspector(root: HTMLElement, ids: string[], port: TextPropertyPort, fonts?: FontsPort, tokenHost?: HostV1) {
   let currentState = port.read(ids);
   const readState = () => currentState;
   const refreshers: Array<(state: TextPropertyState) => void> = [];
@@ -47,6 +49,8 @@ export function mountTextInspector(root: HTMLElement, ids: string[], port: TextP
   refreshers.push(state => colorControl.update(state.character.color ?? '#000000', state.mixed.includes('color')));
   const paragraphs = mountParagraphControls(root, () => readState()?.paragraph ?? {}, (value, label) => port.apply(ids, { kind: 'paragraph', value }, label));
   refreshers.push(() => paragraphs.refresh());
+  const tokenControls = tokenHost?.tokens ? mountParagraphTokenControls(root, tokenHost, () => readState()?.paragraph ?? {}, (field, value) => port.apply(ids, { kind: 'paragraph-token', field, value }, value ? t('Link paragraph token') : t('Make paragraph custom')), () => ({ selection: readState()?.paragraphTokenSelection, active: readState()?.paragraphTokenActive, mixed: readState()?.paragraphTokenMixed, restoreRefs: readState()?.paragraphTokenRestores })) : undefined;
+  if (tokenControls) refreshers.push(() => tokenControls.refresh());
   if(port.typography){const advanced=document.createElement('details'),summary=document.createElement('summary');summary.textContent=t('More character settings');advanced.append(summary);root.append(advanced);const controls=mountTextTypographyControls(advanced,port.typography(ids));refreshers.push(()=>controls.refresh());}
   const styles = mountTextStyleControls(root, () => readState()?.styles ?? { styles: [], paragraphOverrides: false, characterOverrides: false }, (value, label) => port.apply(ids, { kind: 'style', value }, label),value=>port.apply(ids,{kind:'style-definition',value},t('Update text style')));
   refreshers.push(() => styles.refresh());
@@ -61,5 +65,5 @@ export function mountTextInspector(root: HTMLElement, ids: string[], port: TextP
   }
   styleTextControls(root);
   const off = port.subscribe(refresh); refresh();
-  return { destroy() { destroyTextControls(root); colorControl.close(); off(); } };
+  return { destroy() { destroyTextControls(root); colorControl.close(); tokenControls?.destroy(); off(); } };
 }

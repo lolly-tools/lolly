@@ -32,8 +32,13 @@ For a selection of several layers, common paint and compatible text groups offer
 | Tool inputs | Numeric inputs, text, long text and compatible select/font-family inputs; existing colour controls retain their own picker. |
 | Design geometry | Declared numeric position, size and rotation properties in a single-layer selection. |
 | Design paint and effects | Colour, opacity, corner radius, stroke width, and individual numeric shadow properties in the existing groups. Colour links use the document's SDR or wide-gamut colour face. |
-| Design legacy text | Font family and declared numeric size, spacing and padding fields. |
-| Remaining consumers | Paragraph text formatting, whole typography/shadow/gradient composites, duration and easing need additional adapters. Resolving a composite in the inspector does not establish a direct property binding. |
+| Design legacy text | Font family and declared numeric size, spacing and padding fields; whole typography projects family, size, weight, tracking and line height in one undo step. |
+| Design composites | A single shadow with zero spread and no inset; a gradient with 2 to 12 resolved sRGB stops, written as a rightward linear gradient. Layered shadows and unsupported gradient values are refused. |
+| Design motion | Duration tokens convert to the field's seconds or milliseconds; easing tokens become validated CSS cubic Bezier controls. |
+| Composed paragraphs | Line height, spacing before/after and start/end/first-line indents, following the existing caret, range or story scope. |
+| Remaining consumers | Whole typography on composed text needs pinned font-resource integration. Border and transition composites need additional adapters. |
+
+Whole composite actions retain a separate reference and adapter on each property. Editing one property preserves the other links. Missing or incompatible source values retain their last literal. Composed paragraphs store their links with paragraph settings; applying a link across paragraphs preserves their other links.
 
 Design keeps links in an appended metadata field alongside ordinary scalar properties. URLs, saved sessions and portable document snapshots retain that field. Opening through the engine refreshes linked properties and preserves intentional overrides and cached fallbacks.
 

@@ -43,6 +43,7 @@ import { hydrate, resolvePaintBindings } from './template.ts';
 import { buildExportMeta } from './metadata.ts';
 import { isTokenValue, isAlias, aliasPath, colorToHex } from './tokens.ts';
 import { resolveBlockTokenBindings } from './token-block-bindings.ts';
+import { resolveTextDocumentTokenBindings } from './text-token-bindings.ts';
 import { resolveNestedRenders } from './compose.ts';
 import { isToolUrl } from './tool-url.ts';
 import { isBakedRef } from './bake.ts';
@@ -2627,7 +2628,9 @@ async function resolveTokenRefs(model: InputModelItem[], host: HostV1, onSet?: (
   const { swatchFace } = await import('./color-face.ts');
   const swatches = new Map((set?.colors?.() ?? []).map(swatch => [swatch.ref, swatch]));
   const target = model.some(input => input.id === 'editingRange' && input.value === 'hdr') ? 'rec2020' : 'srgb';
+  const textInputs = new Set(model.flatMap(input => typeof input.canvas?.textDocumentInput === 'string' ? [input.canvas.textDocumentInput] : []));
   return model.map(input => {
+    if (textInputs.has(input.id) && typeof input.value === 'string') return { ...input, value: resolveTextDocumentTokenBindings(input.value, set) };
     if (input.type === 'blocks' && input.tokenBindingsField && Array.isArray(input.value)) return { ...input, value: resolveBlockTokenBindings(input.value, input.tokenBindingsField, input.fields ?? [], set, target) };
     if (!['color', 'number', 'text', 'longtext', 'select'].includes(input.type)) return input;
     const v = input.value;
