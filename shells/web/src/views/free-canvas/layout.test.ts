@@ -516,7 +516,7 @@ test('deep duplicate remaps owners and typed tracks in one history entry', () =>
 
 test('duplicating a flow child preserves authored sizing and relative rotation', () => {
   const parent = { ...root, rot: 30 },
-    child = { ...a, layoutAngle: 15 },
+    child: Box = { ...a, layoutAngle: 15 },
     f = fixture(
       [parent, child, b],
       [],

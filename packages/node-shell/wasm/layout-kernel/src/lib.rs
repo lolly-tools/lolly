@@ -14,6 +14,13 @@ pub mod error {
 pub use request::solve;
 
 const MAX_BYTES: usize = 8 * 1024 * 1024;
+// Admission ceilings apply before shape, cell and result materialization.
+pub(crate) const MAX_ITEMS: usize = 20_000; // Child records per container.
+pub(crate) const MAX_TRACKS_PER_AXIS: usize = 1_024; // Tracks and cell indices per axis.
+pub(crate) const MAX_GRID_CELLS: usize = 65_536; // Row and column product per container.
+pub(crate) const MAX_GRID_SPAN_WORK: usize = 262_144; // Aggregate active row and column spans.
+pub(crate) const MAX_ALLOCATION_WORK: usize = 262_144; // Redistribution visits per request.
+pub(crate) const MAX_SCALAR: f32 = 1e7; // Finite coordinate, spacing and track magnitude.
 thread_local! {
     // Raw calls can only read and release buffers allocated by this instance.
     static INPUT: std::cell::RefCell<Option<Box<[u8]>>> = const { std::cell::RefCell::new(None) };

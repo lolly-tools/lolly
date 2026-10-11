@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Font role names for layout measurement, matching the canvas's brand font variables. */
 import type { TokenSet, TokensAPI } from '@lolly-tools/core/host-v1';
-import type { TextMeasureFontsV1 } from '@lolly-tools/core/text-measure-v1';
+import type { TextMeasureFontsV1 } from '@lolly-tools/core';
 import {
   measureDesignText,
   TEXT_MEASURE_DEFAULT_FONTS,

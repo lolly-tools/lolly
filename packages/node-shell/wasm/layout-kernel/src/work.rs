@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MPL-2.0
 use std::cell::Cell;
 thread_local! {
-    static LEFT: Cell<usize> = const { Cell::new(262_144) };
+    static LEFT: Cell<usize> = const { Cell::new(crate::MAX_ALLOCATION_WORK) };
     static FAILED: Cell<Option<&'static str>> = const { Cell::new(None) };
 }
-pub fn reset() { LEFT.with(|v|v.set(262_144)); FAILED.with(|v|v.set(None)); }
+pub fn reset() { LEFT.with(|v|v.set(crate::MAX_ALLOCATION_WORK)); FAILED.with(|v|v.set(None)); }
 pub fn checkpoint(before:f32, after:f32, visits:usize, removed:bool) -> bool {
     let failure=if !before.is_finite() || !after.is_finite() {
         Some("Layout allocation became nonfinite.")

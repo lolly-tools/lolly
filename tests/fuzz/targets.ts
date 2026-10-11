@@ -51,6 +51,8 @@ import { contextTokens } from '../../engine/src/brand-context.ts';
  *   - lut-parse     : parseCubeLut / parse3dlLut - the .cube/.3dl colour-grade LUT readers
  *   - docx-read     : readDocx(parts, parseXml) + isDocx, then both doc-md serialisers
  *   - svg-items     : svgItemsOf(svg, parseXml) then vectorItemsToRows and vectorItemsSvg - a drawing read as bounded items (plan 275 decision 32)
+ *   - layout-abi    : raw WASM layout_alloc/layout_solve bytes through Rust serde_json and modern flex/grid routines
+ *   - penpot-layout : importPenpotLayouts + penpotChildrenPaintOrder, then Design request placement/evaluation
  */
 
 import { storeZip } from '../../engine/src/zip.ts';
@@ -141,6 +143,7 @@ import { decodeTrustmarkPayload } from '../../engine/src/trustmark.ts';
 import { contentSealConsensus, CONTENTSEAL_MESSAGE_BITS } from '../../engine/src/contentseal.ts';
 import { zipSync } from 'fflate';
 import { JSDOM } from 'jsdom'; // typed by tests/jsdom.d.ts (no @types/jsdom exists)
+import { invokeLayoutAbi, layoutAbiSeeds, invokePenpotLayoutEvaluation, penpotLayoutSeeds } from './layout-targets.ts';
 
 export interface FuzzTarget {
   name: string;
@@ -2026,7 +2029,19 @@ export const rondoStagedTarget: FuzzTarget = {
   },
 };
 
+export const layoutAbiTarget: FuzzTarget = {
+  name: 'layout-abi',
+  seeds: layoutAbiSeeds,
+  async invoke(bytes) { await invokeLayoutAbi(bytes); },
+};
+export const penpotLayoutTarget: FuzzTarget = {
+  name: 'penpot-layout',
+  seeds: penpotLayoutSeeds,
+  async invoke(bytes) { await invokePenpotLayoutEvaluation(bytes); },
+};
+
 export const ALL_TARGETS: FuzzTarget[] = [
+  layoutAbiTarget, penpotLayoutTarget,
   adobeXmlTarget, adobePsdTarget, idmlReadTarget,
   motionCuesTarget, motionParamsTarget, mcpNegotiationTarget,
   textSourceTarget, textDocumentTarget, textFrameTarget, vectorPaintTarget,

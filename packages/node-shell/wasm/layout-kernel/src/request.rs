@@ -2,6 +2,7 @@
 use std::collections::HashMap;
 use serde::{Deserialize,Serialize};
 use crate::{math::Bounds, scalar::Point, shapes::*};
+use crate::{MAX_ITEMS, MAX_TRACKS_PER_AXIS, MAX_GRID_CELLS, MAX_GRID_SPAN_WORK, MAX_SCALAR};
 
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -39,23 +40,23 @@ fn item(i:&Item)->Result<LayoutItem,String> {
     Ok(LayoutItem{margin_top:i.margin[0],margin_right:i.margin[1],margin_bottom:i.margin[2],margin_left:i.margin[3],h_sizing:sizing(&i.sizing[0])?,v_sizing:sizing(&i.sizing[1])?,min_w:i.min[0],min_h:i.min[1],max_w:i.max[0],max_h:i.max[1],is_absolute:i.absolute,z_index:None,align_self:align_self(&i.align)?})
 }
 fn tracks(input:&[Track])->Result<Vec<GridTrack>,String> {
-    input.iter().map(|t| {if !t.value.is_finite() || t.value<0. || t.value>1e7 || (t.kind=="fr" && t.value==0.) {return Err("Track value must be finite and nonnegative.".into());}
+    input.iter().map(|t| {if !t.value.is_finite() || t.value<0. || t.value>MAX_SCALAR || (t.kind=="fr" && t.value==0.) {return Err("Track value must be finite and nonnegative.".into());}
         Ok(GridTrack{track_type:match t.kind.as_str(){"fixed"=>GridTrackType::Fixed,"percent"=>GridTrackType::Percent,"fr"=>GridTrackType::Flex,"auto"=>GridTrackType::Auto,_=>return Err("Unknown track type.".into())},value:t.value})}).collect()
 }
 fn validate(r:&Request)->Result<(),String> {
-    if r.items.len()>20000 || r.rows.len()>1024 || r.columns.len()>1024 {return Err("Layout exceeds its item or track limit.".into());}
-    if r.bounds.iter().chain(r.padding.iter()).chain(r.gap.iter()).any(|n|!n.is_finite() || n.abs()>1e7) || r.padding.iter().chain(r.gap.iter()).any(|n|*n<0.) {return Err("Invalid layout dimensions or spacing.".into());}
+    if r.items.len()>MAX_ITEMS || r.rows.len()>MAX_TRACKS_PER_AXIS || r.columns.len()>MAX_TRACKS_PER_AXIS {return Err("Layout exceeds its item or track limit.".into());}
+    if r.bounds.iter().chain(r.padding.iter()).chain(r.gap.iter()).any(|n|!n.is_finite() || n.abs()>MAX_SCALAR) || r.padding.iter().chain(r.gap.iter()).any(|n|*n<0.) {return Err("Invalid layout dimensions or spacing.".into());}
     if bounds(r.bounds).width()<0.01 || bounds(r.bounds).height()<0.01 {return Err("Container dimensions must be positive.".into());}
     if r.mode=="grid" {
         if r.rows.is_empty() || r.columns.is_empty() {return Err("Grid needs row and column tracks.".into());}
-        if r.rows.len().saturating_mul(r.columns.len())>65536 {return Err("Grid exceeds its 65,536 cell limit.".into());}
+        if r.rows.len().saturating_mul(r.columns.len())>MAX_GRID_CELLS {return Err("Grid exceeds its 65,536 cell limit.".into());}
         let work=r.items.iter().filter(|i|!i.absolute && !i.hidden).try_fold(0usize,|sum,i|sum.checked_add(i.cell[2]).and_then(|n|n.checked_add(i.cell[3])));
-        if work.is_none_or(|n|n>262144) {return Err("Grid exceeds its span work limit.".into());}
+        if work.is_none_or(|n|n>MAX_GRID_SPAN_WORK) {return Err("Grid exceeds its span work limit.".into());}
     }
     for i in &r.items {
-        if i.bounds.iter().chain(i.margin.iter()).any(|n|!n.is_finite() || n.abs()>1e7) {return Err("Invalid item geometry.".into());}
+        if i.bounds.iter().chain(i.margin.iter()).any(|n|!n.is_finite() || n.abs()>MAX_SCALAR) {return Err("Invalid item geometry.".into());}
         for axis in 0..2 {if i.min[axis].into_iter().chain(i.max[axis]).any(|n|!n.is_finite() || n<0.) || i.min[axis].unwrap_or(0.)>i.max[axis].unwrap_or(f32::MAX) {return Err("Invalid item size limits.".into());}}
-        if r.mode=="grid" && !i.absolute && !i.hidden && (i.cell[0]==0 || i.cell[1]==0 || i.cell[2]==0 || i.cell[3]==0 || i.cell.iter().any(|n|*n>1024) || i.cell[0].saturating_add(i.cell[2])-1>r.rows.len() || i.cell[1].saturating_add(i.cell[3])-1>r.columns.len()) {return Err("Grid cell is outside the declared tracks.".into());}
+        if r.mode=="grid" && !i.absolute && !i.hidden && (i.cell[0]==0 || i.cell[1]==0 || i.cell[2]==0 || i.cell[3]==0 || i.cell.iter().any(|n|*n>MAX_TRACKS_PER_AXIS) || i.cell[0].saturating_add(i.cell[2])-1>r.rows.len() || i.cell[1].saturating_add(i.cell[3])-1>r.columns.len()) {return Err("Grid cell is outside the declared tracks.".into());}
     }
     Ok(())
 }

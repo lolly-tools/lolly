@@ -3,6 +3,23 @@
 import { atan2, cos, hypot, sin } from './geom/portable-math.ts';
 
 type Row = Record<string, unknown>;
+
+// Admission, reflow work and retained cache ceilings.
+const MAX_LAYOUT_LAYERS = 20000; // Layer records per document.
+const MAX_LAYOUT_TRACKS = 4096; // Track records per document.
+const MAX_LAYOUT_OWNER_RECORDS = 65; // Current layer plus 64 ancestor records.
+const MAX_LAYOUT_SCALAR = 1e7; // Finite coordinate, spacing and track magnitude.
+const MAX_LAYOUT_TEXT_LAYER_CHARS = 65536; // UTF-16 units per intrinsic plain-text layer.
+const MAX_LAYOUT_TEXT_DOCUMENT_CHARS = 1000000; // Aggregate intrinsic plain-text UTF-16 units.
+const MAX_LAYOUT_TRACKS_PER_AXIS = 1024; // Tracks and one-based grid cell indices per axis.
+const MAX_LAYOUT_GRID_CELLS = 65536; // Grid cells and auto-placement candidates per container.
+const MAX_LAYOUT_GRID_WORK = 262144; // Occupancy and candidate visits per request.
+const MAX_LAYOUT_PASSES = 16; // Nested reflow passes per evaluation.
+const MAX_LAYOUT_REFLOW_WORK = 320000; // Aggregate member and descendant visits per evaluation.
+const MAX_LAYOUT_SOLVER_CACHE_ENTRIES = 8; // Request results per container.
+const MAX_LAYOUT_SOLVER_CACHE_BYTES = 16 * 1024 * 1024; // Aggregate UTF-16 key bytes.
+const MAX_LAYOUT_PROJECTION_KEY_CHARS = 2 * 1024 * 1024; // UTF-16 key units per projection.
+const MAX_LAYOUT_PROJECTIONS = 2; // Retained whole-document geometry projections.
 export interface LayoutFinding {
   id: string;
   code: string;
@@ -67,7 +84,11 @@ export function parseLayoutTrack(value: unknown): LayoutTrack {
   const s = String(value || 'auto').trim();
   if (s === 'auto') return { kind: 'auto', value: 0 };
   const match = /^(\d+(?:\.\d+)?)(px|fr|%)$/.exec(s);
-  if (!match || Number(match[1]) > 1e7 || (match[2] === 'fr' && Number(match[1]) === 0))
+  if (
+    !match ||
+    Number(match[1]) > MAX_LAYOUT_SCALAR ||
+    (match[2] === 'fr' && Number(match[1]) === 0)
+  )
     throw new Error(`Invalid grid track: ${s}. Use auto, 120px, 1fr or 25%.`);
   return {
     kind: match[2] === 'px' ? 'fixed' : match[2] === '%' ? 'percent' : 'fr',
@@ -96,7 +117,7 @@ export function validateDesignLayout(
   const add = (r: Row, code: string, message: string) =>
     findings.push({ id: id(r), code, message });
   const byId = new Map<string, Row>();
-  if (boxes.length > 20000 || tracks.length > 4096)
+  if (boxes.length > MAX_LAYOUT_LAYERS || tracks.length > MAX_LAYOUT_TRACKS)
     return [
       {
         id: '',
@@ -126,7 +147,7 @@ export function validateDesignLayout(
         break;
       }
       seen.add(o);
-      if (seen.size > 65) {
+      if (seen.size > MAX_LAYOUT_OWNER_RECORDS) {
         add(r, 'layout.depth', 'Layout nesting exceeds 64 levels.');
         break;
       }
@@ -204,7 +225,7 @@ export function validateDesignLayout(
         if (
           r[k] !== '' &&
           r[k] != null &&
-          (!Number.isFinite(Number(r[k])) || Math.abs(Number(r[k])) > 1e7)
+          (!Number.isFinite(Number(r[k])) || Math.abs(Number(r[k])) > MAX_LAYOUT_SCALAR)
         )
           add(r, 'layout.number', `Invalid ${k}.`);
       }
@@ -226,8 +247,8 @@ export function validateDesignLayout(
     (r) => isText(r) && !r.textStory && (mode(r, 'W') === 'hug' || mode(r, 'H') === 'hug')
   );
   if (
-    text.some((r) => String(r.text || '').length > 65536) ||
-    text.reduce((sum, r) => sum + String(r.text || '').length, 0) > 1000000
+    text.some((r) => String(r.text || '').length > MAX_LAYOUT_TEXT_LAYER_CHARS) ||
+    text.reduce((sum, r) => sum + String(r.text || '').length, 0) > MAX_LAYOUT_TEXT_DOCUMENT_CHARS
   )
     findings.push({
       id: '',
@@ -311,7 +332,11 @@ export function designLayoutRequest(
     .map((t) => parseLayoutTrack(t.track));
   if (!cols.length) cols.push({ kind: 'fr', value: 1 });
   if (!rows.length) rows.push({ kind: 'auto', value: 0 });
-  if (cols.length > 1024 || rows.length > 1024 || cols.length * rows.length > 65536)
+  if (
+    cols.length > MAX_LAYOUT_TRACKS_PER_AXIS ||
+    rows.length > MAX_LAYOUT_TRACKS_PER_AXIS ||
+    cols.length * rows.length > MAX_LAYOUT_GRID_CELLS
+  )
     throw new Error('Grid exceeds its track or cell budget.');
   let placementWork = 0;
   const occupied = new Set<string>();
@@ -336,13 +361,14 @@ export function designLayoutRequest(
   if (container.layout === 'grid') {
     const mark = (cell: number[]) => {
       placementWork += cell[2]! * cell[3]!;
-      if (placementWork > 262144) throw new Error('Grid placement exceeds its work budget.');
+      if (placementWork > MAX_LAYOUT_GRID_WORK)
+        throw new Error('Grid placement exceeds its work budget.');
       for (let y = cell[0]!; y < cell[0]! + cell[2]!; y++)
         for (let x = cell[1]!; x < cell[1]! + cell[3]!; x++) occupied.add(`${y}:${x}`);
     };
     for (const [n, item] of items.entries()) {
       if (item.absolute || item.hidden) continue;
-      if (item.cell.some((n) => !Number.isInteger(n) || n < 0 || n > 1024))
+      if (item.cell.some((n) => !Number.isInteger(n) || n < 0 || n > MAX_LAYOUT_TRACKS_PER_AXIS))
         throw new Error('Grid placement must use whole numbers between 1 and 1024.');
       if (item.cell[0] && item.cell[1]) {
         mark(item.cell);
@@ -356,8 +382,9 @@ export function designLayoutRequest(
       if (!item.cell[0] || !item.cell[1]) {
         let found = false;
         const columnFirst = container.layoutDirection === 'column';
-        for (let k = 0; k < 65536; k++) {
-          if (++placementWork > 262144) throw new Error('Grid placement exceeds its work budget.');
+        for (let k = 0; k < MAX_LAYOUT_GRID_CELLS; k++) {
+          if (++placementWork > MAX_LAYOUT_GRID_WORK)
+            throw new Error('Grid placement exceeds its work budget.');
           const y = columnFirst ? (k % rows.length) + 1 : Math.floor(k / cols.length) + 1;
           const x = columnFirst ? Math.floor(k / rows.length) + 1 : (k % cols.length) + 1;
           if ((item.cell[0] && item.cell[0] !== y) || (item.cell[1] && item.cell[1] !== x))
@@ -368,7 +395,8 @@ export function designLayoutRequest(
           )
             continue;
           placementWork += item.cell[2]! * item.cell[3]!;
-          if (placementWork > 262144) throw new Error('Grid placement exceeds its work budget.');
+          if (placementWork > MAX_LAYOUT_GRID_WORK)
+            throw new Error('Grid placement exceeds its work budget.');
           let free = true;
           for (let yy = y; yy < y + item.cell[2]!; yy++)
             for (let xx = x; xx < x + item.cell[3]!; xx++)
@@ -385,7 +413,7 @@ export function designLayoutRequest(
       }
       const lastRow = item.cell[0]! + item.cell[2]! - 1,
         lastCol = item.cell[1]! + item.cell[3]! - 1;
-      if (lastRow > 1024 || lastCol > 1024)
+      if (lastRow > MAX_LAYOUT_TRACKS_PER_AXIS || lastCol > MAX_LAYOUT_TRACKS_PER_AXIS)
         throw new Error('Grid exceeds the 1,024 track limit per axis.');
       while (rows.length < lastRow) rows.push({ kind: 'auto', value: 0 });
       while (cols.length < lastCol) cols.push({ kind: 'auto', value: 0 });
@@ -567,14 +595,15 @@ export function createDesignLayoutEvaluator(solve: LayoutSolver, measure?: Layou
         memo.delete(k);
       }
     try {
-      for (; passes < 16; passes++) {
+      for (; passes < MAX_LAYOUT_PASSES; passes++) {
         const before = boxes.map((r) => [r.x, r.y, r.w, r.h, r.rot].join(','));
         for (const c of containers) {
           const index = byId.get(id(c))!;
           const container = boxes[index]!;
           const members = children.get(id(c)) || [];
           work += members.length + 1;
-          if (work > 320000) throw new Error('Layout exceeds its aggregate reflow work budget.');
+          if (work > MAX_LAYOUT_REFLOW_WORK)
+            throw new Error('Layout exceeds its aggregate reflow work budget.');
           for (const n of members) {
             const row = boxes[n]!;
             if (row.layoutAngle !== '' && row.layoutAngle != null)
@@ -617,7 +646,7 @@ export function createDesignLayoutEvaluator(solve: LayoutSolver, measure?: Layou
               const image = r.image as Row,
                 iw = Number(image.width),
                 ih = Number(image.height);
-              if (![iw, ih].every((n) => Number.isFinite(n) && n > 0 && n <= 1e7))
+              if (![iw, ih].every((n) => Number.isFinite(n) && n > 0 && n <= MAX_LAYOUT_SCALAR))
                 throw new Error(
                   'An image with content sizing needs its intrinsic width and height. Reopen or replace the asset.'
                 );
@@ -648,7 +677,10 @@ export function createDesignLayoutEvaluator(solve: LayoutSolver, measure?: Layou
               (mode(r, 'W') !== 'hug' && mode(r, 'H') !== 'hug')
             )
               continue;
-            const measured = await measure(r, mode(r, 'W') === 'hug' ? 1e7 : number(r.w, 100));
+            const measured = await measure(
+              r,
+              mode(r, 'W') === 'hug' ? MAX_LAYOUT_SCALAR : number(r.w, 100)
+            );
             boxes[n] = {
               ...r,
               ...(mode(r, 'W') === 'hug' ? { w: Math.max(0.01, measured.width) } : {}),
@@ -670,12 +702,12 @@ export function createDesignLayoutEvaluator(solve: LayoutSolver, measure?: Layou
           if (!answer) {
             answer = solve(req);
             solved++;
-            if (entries.size >= 8) {
+            if (entries.size >= MAX_LAYOUT_SOLVER_CACHE_ENTRIES) {
               const first = entries.keys().next().value!;
               memoBytes -= first.length * 2;
               entries.delete(first);
             }
-            if (memoBytes + key.length * 2 > 16 * 1024 * 1024) {
+            if (memoBytes + key.length * 2 > MAX_LAYOUT_SOLVER_CACHE_BYTES) {
               memo.clear();
               memoBytes = 0;
               entries = new Map();
@@ -724,7 +756,7 @@ export function createDesignLayoutEvaluator(solve: LayoutSolver, measure?: Layou
                 dy = number(nextChild.y) - number(old.y);
               const pending = [...(children.get(id(old)) || [])];
               for (let q = 0; q < pending.length; q++) {
-                if (++work > 320000)
+                if (++work > MAX_LAYOUT_REFLOW_WORK)
                   throw new Error('Layout exceeds its aggregate reflow work budget.');
                 const child = pending[q]!,
                   r = boxes[child]!;
@@ -755,7 +787,7 @@ export function createDesignLayoutEvaluator(solve: LayoutSolver, measure?: Layou
         }
       inheritVisibility(boxes, byId);
       const gridResults = [...grids.values()];
-      if (geometryKey.length < 2 * 1024 * 1024) {
+      if (geometryKey.length < MAX_LAYOUT_PROJECTION_KEY_CHARS) {
         const geometry = new Map<string, Row>();
         for (const row of boxes)
           if (participating.has(id(row)))
@@ -768,7 +800,8 @@ export function createDesignLayoutEvaluator(solve: LayoutSolver, measure?: Layou
               ...(row.layoutOwner && 'frame' in row ? { frame: row.frame } : {}),
               ...(row.hidden !== source[byId.get(id(row))!]!.hidden ? { hidden: row.hidden } : {}),
             });
-        if (projections.size >= 2) projections.delete(projections.keys().next().value!);
+        if (projections.size >= MAX_LAYOUT_PROJECTIONS)
+          projections.delete(projections.keys().next().value!);
         projections.set(geometryKey, { geometry, grids: gridResults });
       }
       return { boxes, findings: [], passes: passes + 1, solved, grids: copyGrids(gridResults) };
