@@ -11,7 +11,7 @@ import { t, tRaw } from '../../i18n.ts';
 import { helpTip } from '../../components/help-tip.ts';
 import { escape as escapeText } from '../../utils.ts';
 import { announce } from '../../a11y.ts';
-import { CATEGORY_FLAGS, CONNECTOR_FLAGS, JELLY_FLAG, NEUROSPICY_FLAG, PERFORMANCE_UI_FLAG, PERF_HUD_FLAG, PREFLIGHT_FLAG, PRIVATE_COLLAB_FLAG, STRIP_UPLOAD_META_FLAG, WOBBLY_FLAG, WOBBLY_MESH_FLAG, applyPerfUi, flagHidden, isFlagOn, setFlagMirror } from '../../feature-flags.ts';
+import { CATEGORY_FLAGS, CONNECTOR_FLAGS, JELLY_FLAG, LEARNING_FLAG, NEUROSPICY_FLAG, PERFORMANCE_UI_FLAG, PERF_HUD_FLAG, PREFLIGHT_FLAG, PRIVATE_COLLAB_FLAG, STRIP_UPLOAD_META_FLAG, WOBBLY_FLAG, WOBBLY_MESH_FLAG, applyPerfUi, flagHidden, isFlagOn, setFlagMirror } from '../../feature-flags.ts';
 import type { FeatureFlag } from '../../feature-flags.ts';
 import { mountPerfHud, unmountPerfHud } from '../../lib/perf-hud.ts';
 import { ensureJelly } from '../../lib/jelly.ts';
@@ -110,6 +110,7 @@ export const flagListHtml = (pv: ProfileViewCtx): string => { const { jellyHidde
             ${flagRow(pv, PERF_HUD_FLAG)}
             ${flagRow(pv, STRIP_UPLOAD_META_FLAG)}
             ${flagRow(pv, PREFLIGHT_FLAG)}
+            ${flagRow(pv, LEARNING_FLAG)}
             ${flagRow(pv, PRIVATE_COLLAB_FLAG)}
             <li class="feature-flag-divider" aria-hidden="true"></li>
             ${/* The connectors fold into one cluster that starts closed, so the

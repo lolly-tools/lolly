@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { requireLearningFeature } from './learning-feature.ts';
 import { mountModal } from '../components/modal.ts';
 import { escape as htmlEscape } from '../utils.ts';
 import { getExportPolicy, exportAffordance } from './export-policy.ts';
@@ -44,6 +45,7 @@ export async function startLearningCourse(
   host: PickerHost,
   selection: LearningSelection
 ): Promise<void> {
+  requireLearningFeature();
   let closed = false;
   const modal = mountModal<void>(
     '<div class="learning-dialog-content" data-learning-panel><header class="learning-modal-header"><h2>Review course content</h2></header><div class="learning-modal-body"><p role="status">Collecting selected content...</p></div><footer class="learning-modal-footer"><button type="button" class="btn btn--ghost" data-course-close>Cancel</button></footer></div>',

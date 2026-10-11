@@ -2381,3 +2381,19 @@ test('licence: a declared licence opens Content protection so it is visible', ()
   assert.equal(select.value, 'CC0-1.0');
   assert.equal((h.panel.querySelector('[data-protection-body]') as HTMLElement).style.display, 'flex');
 });
+
+test('course export controls and SCORM choices appear only after training opt-in', async () => {
+  const { LEARNING_FLAG, setFlagMirror } = await import('../feature-flags.ts');
+  setFlagMirror(LEARNING_FLAG.id, false);
+  try {
+    const off = mount({ seqMs: null, formats: ['png', 'scorm'] });
+    assert.equal(off.panel.querySelector('[data-course-export]'), null);
+    assert.equal(off.panel.querySelector('option[value="scorm"]'), null);
+    setFlagMirror(LEARNING_FLAG.id, true);
+    const on = mount({ seqMs: null, formats: ['png', 'scorm'] });
+    assert.ok(on.panel.querySelector('[data-course-export]'));
+    assert.ok(on.panel.querySelector('option[value="scorm"]'));
+  } finally {
+    setFlagMirror(LEARNING_FLAG.id, false);
+  }
+});

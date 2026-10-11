@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
+import { isFlagOnSync, LEARNING_FLAG } from '../feature-flags.ts';
+import type { FeatureFlag } from '../feature-flags.ts';
 /**
  * Capabilities content - a human-readable map of what Lolly can actually do,
  * as data. Extracted from the old Capabilities view so the merged Dashboard
@@ -74,11 +76,13 @@ const ICONS = {
 
 /** One named feature line within a card. */
 export interface CapFeature {
+  featureFlag?: FeatureFlag;
   name: string;
   desc: string;
 }
 /** One feature-group card: an icon, a title, and its stacked list of features. */
 export interface CapCard {
+  featureFlag?: FeatureFlag;
   icon: string;
   title: string;
   features: CapFeature[];
@@ -203,7 +207,7 @@ export const CAPABILITY_SECTIONS: CapSection[] = [
         { name: 'An old deck, your design system', desc: 'Bring a PowerPoint or PDF deck someone else made. <a href="#/rebrand">Rebrand</a> proposes your colours, fonts, logo and layouts for each slide, with the old decoration and page furniture taken out.' },
         { name: 'You decide, then it builds', desc: 'Every suggestion is a proposal you keep or change before anything is made, and the result opens in Design as editable slides. The source deck is never changed.' },
       ] },
-      { icon: ICONS.course, title: 'Training courses', keywords: 'course training learning lms scorm xapi tin can cmi5 moodle canvas litmos lesson quiz elearning module website', features: [
+      { featureFlag: LEARNING_FLAG, icon: ICONS.course, title: 'Training courses', keywords: 'course training learning lms scorm xapi tin can cmi5 moodle canvas litmos lesson quiz elearning module website', features: [
         { name: 'A course from your project', desc: 'Arrange lessons from your saved designs, slides, video and audio, add practice quizzes that give feedback and can be retried, preview it as a learner would, and download a versioned zip. No Lolly account is needed to build one.' },
         { name: 'Any LMS, or your own website', desc: 'Packages for SCORM 1.2 and SCORM 2004 (4th edition), experimental Tin Can and cmi5, or a static website where progress stays in the learner’s browser.' },
       ] },
@@ -333,7 +337,7 @@ export const CAPABILITY_SECTIONS: CapSection[] = [
         { name: 'PowerPoint (PPTX)', desc: 'Multi-page and layout tools export an editable deck - each page decomposed into native text boxes, real shapes, and extractable images and vectors (logos embedded as real SVG). Built to hand a colleague content they can edit and reuse, not a flat screenshot.' },
         { name: 'HTML · MD · TXT', desc: 'HTML pastes formatted into mail clients; Markdown and plain text for content.' },
         { name: 'Word (DOCX) · OpenDocument (ODT) · EPUB', desc: 'Writing leaves as real editable text: a .docx for Word and Google Docs, an .odt for LibreOffice, or a reflowable EPUB 3 e-book for Apple Books, Kobo and every other e-reader.' },
-        { name: 'SCORM course package', desc: 'A Design deck becomes a zip every learning management system imports (SCORM 1.2): a launch page that steps through the slides and reports completion, the slides themselves, and a narrated film of the speaker notes, read by an on-device voice, with captions.' },
+        { featureFlag: LEARNING_FLAG, name: 'SCORM course package', desc: 'A Design deck becomes a zip every learning management system imports (SCORM 1.2): a launch page that steps through the slides and reports completion, the slides themselves, and a narrated film of the speaker notes, read by an on-device voice, with captions.' },
         { name: 'JSON · CSV · ICS · VCF', desc: 'Structured data straight from the input model - calendar invites, contacts, tabular and machine-readable payloads.' },
       ] },
       { icon: ICONS.font, title: 'Fonts', keywords: 'font ttf otf woff webfont convert wrap unwrap truetype opentype cff', features: [
@@ -609,3 +613,14 @@ export const CAPABILITY_SECTIONS: CapSection[] = [
     ],
   },
 ];
+
+/** Resolve opt-in descriptions when the capabilities view opens. */
+export function visibleCapabilitySections(): CapSection[] {
+  return CAPABILITY_SECTIONS.map(section => ({
+    ...section,
+    cards: section.cards.filter(card => !card.featureFlag || isFlagOnSync(card.featureFlag)).map(card => ({
+      ...card,
+      features: card.features.filter(feature => !feature.featureFlag || isFlagOnSync(feature.featureFlag)),
+    })),
+  }));
+}

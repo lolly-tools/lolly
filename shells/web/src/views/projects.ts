@@ -28,6 +28,7 @@ import { mountLocalProjectAsset, localProjectAssetHref, setProjectViewTitle } fr
  */
 import { escape } from '../utils.ts';
 import { t, tRaw } from '../i18n.ts';
+import { learningEnabled } from '../lib/learning-feature.ts';
 import { icon } from '../lib/icons.ts';
 import { groupSelectionInFolder } from './projects-folder-create.ts';
 import { createFolderStore, childFolders, folderPath, descendantFolderIds, FOLDER_COLORS } from '../folders.ts';
@@ -933,7 +934,7 @@ export async function mountProjects(
     rootSelector: '.projects',
     count: () => selected.size,
     actions: [
-      { id: 'course', icon: COURSE_ICON, label: () => t('Export course'), hidden: () => inTemplates() },
+      { id: 'course', icon: COURSE_ICON, label: () => t('Export course'), hidden: () => !learningEnabled() || inTemplates() },
       { id: 'render', icon: RENDER_ICON, label: () => t('Render selection'), extraClass: 'projects-render projects-bulk-render', hidden: () => inTemplates() },
       { id: 'edit', icon: EDIT_ICON, label: () => t('Edit together'), title: () => t('Open the selected sessions side by side with one combined sidebar'), hidden: () => !editableSelection() },
       { id: 'sheet', icon: SHEET_ICON, label: () => t('Edit as sheet'), title: () => t('Open the whole selection as rows in the batch grid - no size limit'), hidden: () => !sheetableSelection() },
@@ -1510,7 +1511,7 @@ export async function mountProjects(
         menuItem('move-folder', MOVE_ICON, t('Move to…')),
         clip(),
         canPaste ? menuItem('paste-into', PASTE_ICON, t('Paste here')) : '',
-        menuItem('course-folder', COURSE_ICON, t('Export course')),
+        learningEnabled() ? menuItem('course-folder', COURSE_ICON, t('Export course')) : '',
         menuItem('render', RENDER_ICON, t('Render folder'), { render: true }),
         menuItem('download-project', DOWNLOAD_ICON, t('Download project (.lolly)')),
         menuItem('download-folder', DOWNLOAD_ICON, t('Download originals')),
@@ -1520,7 +1521,7 @@ export async function mountProjects(
         menuItem('delete', TRASH_ICON, t('Move to Trash'), { danger: true }),
       ].join('');
     }
-    if (kind === 'image') return menuItem('course-image', COURSE_ICON, t('Export course')) + projectAssetMenu(imageRefs.get(ref), fav(), clip());
+    if (kind === 'image') return (learningEnabled() ? menuItem('course-image', COURSE_ICON, t('Export course')) : '') + projectAssetMenu(imageRefs.get(ref), fav(), clip());
     // A batch session is a multi-row group with no single tool URL, so it can't be
     // shared as a link - offer Share only for single-tool sessions.
     const canShare = !isBatchSlot(ref);
@@ -1537,7 +1538,7 @@ export async function mountProjects(
       canShare ? menuItem('share-with-rules', SHARE_ICON, t('Share with rules')) : '',
       canShare ? menuItem('share', SHARE_ICON, t('Share link')) : '',
       menuItem('info', INFO_ICON, t('Get info')),
-      menuItem('course-session', COURSE_ICON, t('Export course')),
+      learningEnabled() ? menuItem('course-session', COURSE_ICON, t('Export course')) : '',
       menuItem('render-session', RENDER_ICON, t('Render'), { render: true }),
       menuItem('delete-session', TRASH_ICON, t('Move to Trash'), { danger: true }),
     ].join('');
@@ -2550,18 +2551,10 @@ export async function mountProjects(
 
   // ── render a whole folder as one nested batch zip (gated /pro import) ────────
   async function exportCourse(kind?: string, ref?: string): Promise<void> {
-    closeMenu();
-    const { startLearningCourse } = await import('../lib/learning-entry.ts');
-    const id = kind === 'folder' ? ref : folderId;
-    const folder = folders.find(f => f.id === id);
-    await startLearningCourse(host as unknown as import('./picker.ts').PickerHost, {
-      title: kind === 'folder' ? folder?.name || 'Learning module' : undefined,
-      projectId: folder?.id,
-      folders,
-      folderIds: kind === 'folder' ? (ref === UNCAT ? [] : [ref!]) : kind ? [] : topLevelSelectedFolders(),
-      sessionRefs: kind === 'session' ? [ref!] : kind === 'folder' ? (ref === UNCAT ? uncategorised().map(e => e.slot) : []) : kind ? [] : selectedByKind('session'),
-      assetRefs: kind === 'image' ? [ref!] : kind ? [] : selectedByKind('image'),
-    });
+    const { exportProjectCourse } = await import('./projects-learning.ts');
+    await exportProjectCourse(host as unknown as PickerHost, {
+      kind, ref, folderId, folders, uncategorised, selectedByKind, topLevelSelectedFolders,
+    }, closeMenu);
   }
 
   async function renderFolder(id: string): Promise<void> {
