@@ -26,6 +26,8 @@ export interface TextTabV1 {
   leader?: string;
 }
 export interface TextParagraphStyleV1 {
+  /** Cached scalar paragraph links; local edits preserve the reference for restoration. */
+  tokenLinks?: string;
   character?: TextCharacterV1;
   direction?: TextDirection;
   language?: string;

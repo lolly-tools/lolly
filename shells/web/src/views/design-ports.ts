@@ -21,13 +21,17 @@ export interface TextPropertyState {
   character: TextCharacterV1;
   mixed: string[];
   paragraph: TextParagraphStyleV1;
+  paragraphTokenSelection?: string;
+  paragraphTokenMixed?: string[];
+  paragraphTokenActive?: Record<string, import('../../../../engine/src/token-block-bindings.ts').BlockTokenBinding>;
+  paragraphTokenRestores?: Record<string, string>;
   frame: TextFrameV1;
   family: string;
   styles: TextStyleControlState;
   linked: boolean;
   appliedScale: number;
 }
-export type TextPropertyCommand = { kind: 'character'; value: TextCharacterV1 } | { kind: 'paragraph'; value: TextParagraphStyleV1 } | { kind: 'style'; value: TextStyleCommand } | { kind: 'span'; value: TextSpanPatch } |
+export type TextPropertyCommand = { kind: 'paragraph-token'; field: string; value?: import('../../../../engine/src/tokens.ts').TokenValue } | { kind: 'character'; value: TextCharacterV1 } | { kind: 'paragraph'; value: TextParagraphStyleV1 } | { kind: 'style'; value: TextStyleCommand } | { kind: 'span'; value: TextSpanPatch } |
   { kind: 'frame'; value: Partial<TextFrameV1> } | {kind:'style-definition';value:import('@lolly-tools/core').TextNamedStyleV1} | { kind: 'font'; family?: string; weight?: number; italic?: boolean };
 export interface TextPropertyPort {
   typography?(ids:string[]):import('../lib/text-typography-controls.ts').TextTypographyPort;

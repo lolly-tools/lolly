@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Style resolution is shared by composition, controls and typed text insertion. */
 import type { TextCharacterV1, TextDocumentV1, TextNamedStyleV1, TextParagraphStyleV1, TextParagraphV1, TextStoryV1 } from '@lolly-tools/core';
+import { readBlockTokenBindings } from './token-block-bindings.ts';
 import { TextSourceError } from './text-source.ts';
 export function mergeTextCharacter(base: TextCharacterV1, override: TextCharacterV1 = {}): TextCharacterV1 {
   return { ...base, ...override, ...(base.axes || override.axes ? { axes: { ...base.axes, ...override.axes } } : {}),
     ...(base.features || override.features ? { features: { ...base.features, ...override.features } } : {}) };
 }
 function mergeParagraph(base: TextParagraphStyleV1, override: TextParagraphStyleV1 = {}): TextParagraphStyleV1 {
-  return { ...base, ...override, character: mergeTextCharacter(base.character ?? {}, override.character) };
+  return { ...base, ...override, character: mergeTextCharacter(base.character ?? {}, override.character),
+    ...(base.tokenLinks || override.tokenLinks ? { tokenLinks: JSON.stringify({ ...readBlockTokenBindings(base.tokenLinks), ...readBlockTokenBindings(override.tokenLinks) }) } : {}) };
 }
 export function textStyleResolver(doc: TextDocumentV1) {
   const styles = new Map(doc.styles.map(style => [style.id, style]));

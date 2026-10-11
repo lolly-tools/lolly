@@ -408,7 +408,8 @@ test('token actions keep mixed values, one transaction and the open property acr
     assert.match(slot.textContent!, /Mixed values/);
     const custom = slot.querySelector<HTMLButtonElement>('[data-token-custom]')!;
     custom.focus(); click(custom);
-    await new Promise(resolve => setTimeout(resolve, 0));
+    for (let attempt = 0; custom.isConnected && attempt < 100; attempt++) await new Promise(resolve => setTimeout(resolve, 5));
+    assert.equal(custom.isConnected, false, 'the settled action repaints its token controls');
     assert.equal(h.arrays.length, 1);
     assert.deepEqual(h.boxes().slice(1).map(box => box.opacity), [30, 40]);
     assert.ok(h.boxes().slice(1).every(box => readBlockTokenBindings(box.tokenLinks).opacity?.custom));

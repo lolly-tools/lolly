@@ -388,6 +388,10 @@
         },
         "ruleAfter": {
           "$ref": "#/$defs/rule"
+        },
+        "tokenLinks": {
+          "type": "string",
+          "maxLength": 32768
         }
       },
       "required": [],

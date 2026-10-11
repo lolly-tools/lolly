@@ -6,6 +6,12 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.250.0
+
+- Design token consumers can project typography and a single shadow into existing scalar properties, serialize 2 to 12 sRGB gradient stops as a rightward linear gradient, and adapt duration units and cubic Bezier controls. Unrepresentable values retain their cached literal with a reason. Each property keeps its own reference and adapter through local overrides and reopening.
+- Portable paragraph settings add bounded `tokenLinks` metadata. Paragraph spacing, indents and line height refresh through the shared runtime before composition and export. Selected paragraphs keep their other links when a new property is linked.
+- Design 1.47 exposes whole typography and shadow actions for legacy layers, gradient links, duration and easing links, and paragraph token controls for composed text. Whole typography on composed text remains pending font-resource integration.
+
 ## 1.249.0
 
 - Add the optional `host.layout.evaluate` capability. Design flex and grid rules use the newer Penpot Rust implementation pinned to `10955f17e27943429a10e90360d0404e3f56e27c`, compiled as a bounded, import-free WASM kernel. Authored rows and grid tracks remain separate from evaluated geometry.
