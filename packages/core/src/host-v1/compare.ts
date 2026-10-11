@@ -8,18 +8,38 @@ export interface ComparisonIdentity {
 }
 export interface ComparisonSource {
   readonly identity: ComparisonIdentity;
-  readonly content: { readonly kind: 'text'; readonly text: string } | { readonly kind: 'structure'; readonly value: unknown };
+  readonly content: { readonly kind: 'text'; readonly text: string } | { readonly kind: 'structure'; readonly value: unknown }
+    | { readonly kind: 'table'; readonly tables: readonly ComparisonTable[] }
+    | { readonly kind: 'document'; readonly units: readonly ComparisonDocumentUnit[] };
   /** Exact retained bytes only. Never substitute a current asset for an old version. */
   readonly bytes?: Uint8Array;
   readonly fidelity?: { readonly level: 'complete' | 'partial' | 'unavailable'; readonly limitations: readonly string[] };
 }
+export type ComparisonCell = string | number | boolean | null;
+/** Column labels and cached cell values, without formula execution or formatting. */
+export interface ComparisonTable {
+  readonly name: string;
+  readonly columns: readonly string[];
+  readonly rows: readonly (readonly ComparisonCell[])[];
+}
+/** Extracted reading units. A provider supplies an ID only when the format retains one. */
+export interface ComparisonDocumentUnit {
+  readonly id?: string;
+  readonly text: string;
+  readonly label?: string;
+  readonly location?: Pick<ComparisonLocation, 'page' | 'slide' | 'block'>;
+}
 export interface ComparisonOptions {
-  mode?: 'text' | 'structure';
+  mode?: 'text' | 'structure' | 'table' | 'document';
   granularity?: 'line' | 'word';
   whitespace?: 'exact' | 'ignore';
   ignoreCase?: boolean;
   /** Ordered arrays by default; stable IDs must be explicitly selected. */
   arrayAlignment?: 'position' | 'id';
+  /** An exact, unique column label on both sides. Omission compares rows by position. */
+  tableRowKey?: string;
+  /** Text uses unique exact-content anchors and explains positional fallback. */
+  documentAlignment?: 'position' | 'id' | 'text';
   ignoreRootMetadata?: boolean;
   maxChanges?: number;
   maxWork?: number;
@@ -34,6 +54,12 @@ export interface ComparisonLocation {
   path: Array<string | number>;
   line?: number;
   offset?: number;
+  table?: string;
+  row?: number;
+  column?: string;
+  page?: number;
+  slide?: number;
+  block?: number;
 }
 export interface ComparisonChange {
   kind: 'added' | 'removed' | 'changed' | 'moved';
@@ -47,13 +73,14 @@ export interface ComparisonResult {
   version: 1;
   before: ComparisonIdentity;
   after: ComparisonIdentity;
-  mode: 'text' | 'structure';
+  mode: 'text' | 'structure' | 'table' | 'document';
   options: ComparisonOptions;
   equality: 'identical-bytes' | 'equivalent-content' | 'different' | 'undetermined';
   byteEquality: 'equal' | 'different' | 'unknown';
   appearance: 'not-compared';
   completeness: 'complete' | 'partial';
-  alignment: 'line' | 'word' | 'object-keys-ordered-arrays' | 'stable-id';
+  alignment: 'line' | 'word' | 'object-keys-ordered-arrays' | 'stable-id'
+    | 'table-key' | 'table-position' | 'document-id' | 'document-text' | 'document-position';
   summary: { added: number; removed: number; changed: number; moved: number; total: number };
   changes: ComparisonChange[];
   detailsTruncated: boolean;

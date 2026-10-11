@@ -6,6 +6,11 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.254.0
+
+- Shared immutable comparison adds tables and extracted document units through the existing Compare API. Unique sheet and column labels align by name; row keys are explicitly selected, while missing, blank or duplicate keys retain positional comparison with an explanation.
+- Retained document IDs support moves. Exact extracted-text anchors locate insertions and removals, and unmatched units disclose positional pairing. Page, slide, block and cell locations remain attached to each source. Work, text, cells and details are bounded; incomplete sources cannot establish equality. Appearance and source dependencies remain outside this content comparison.
+
 ## 1.253.0
 
 - Add bounded border-token consumer adapters for colour, absolute width and solid, dashed or dotted stroke style. Active border properties refresh together; incompatible source values retain the complete cached border. Relative widths and custom stroke styles remain unsupported.
