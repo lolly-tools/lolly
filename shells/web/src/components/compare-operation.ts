@@ -7,7 +7,7 @@ import { mountComparison } from './compare-panel.ts';
 import { mountVisualComparison } from './compare-visual-panel.ts';
 import { compareElement as el, compareButton as button } from './compare-elements.ts';
 import { t } from '../i18n.ts';
-import { mountPdfComparisonMode } from './compare-file-mode.ts';
+import { mountOperationComparisonMode } from './compare-file-mode.ts';
 
 /** The caller closes this review when its input or output snapshot becomes stale. */
 export function openOperationComparison(host: HostV1, after: File, options: { before?: File; expected?: FileFactsV1 } = {}): () => void {
@@ -38,7 +38,7 @@ export function openOperationComparison(host: HostV1, after: File, options: { be
     }
   };
   const modes = el('div', undefined, 'compare-toolbar');
-  mountPdfComparisonMode(modes, [options.before?.name.split('.').pop() ?? options.expected?.format, after.name.split('.').pop()], value => {
+  mountOperationComparisonMode(modes, [options.before?.name.split('.').pop() ?? options.expected?.format, after.name.split('.').pop()], value => {
     mode = value; if (selectedBefore) void compare(selectedBefore, !options.before);
   }); modal.el.insertBefore(modes, status);
   if (options.before) void compare(options.before, false);

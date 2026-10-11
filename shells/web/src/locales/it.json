@@ -7898,5 +7898,7 @@
   "This table is not UTF-8 CSV or TSV.": "This table is not UTF-8 CSV or TSV.",
   "Units without unique exact-text anchors were paired in remaining order. Edited units have no reliable move identity.": "Units without unique exact-text anchors were paired in remaining order. Edited units have no reliable move identity.",
   "XLSX comparison uses the first row as column labels and cached cell values. Formulas are not evaluated; formatting, charts and empty trailing rows or cells are not compared.": "XLSX comparison uses the first row as column labels and cached cell values. Formulas are not evaluated; formatting, charts and empty trailing rows or cells are not compared.",
-  "This XLSX has missing, external, duplicate or unsupported worksheet relationships. Choose a workbook whose sheets are stored under xl/worksheets/.": "This XLSX has missing, external, duplicate or unsupported worksheet relationships. Choose a workbook whose sheets are stored under xl/worksheets/."
+  "This XLSX has missing, external, duplicate or unsupported worksheet relationships. Choose a workbook whose sheets are stored under xl/worksheets/.": "This XLSX has missing, external, duplicate or unsupported worksheet relationships. Choose a workbook whose sheets are stored under xl/worksheets/.",
+  "DOCX comparison": "DOCX comparison",
+  "Document properties": "Document properties"
 }

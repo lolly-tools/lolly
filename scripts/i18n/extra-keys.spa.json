@@ -322,5 +322,7 @@
   "Text alignment uses exact extracted content; it does not establish a stable page, slide or block identity.",
   "Missing or duplicate unit IDs were compared by position. No reliable ID match was invented.",
   "Document units were compared by position. Insertions can shift later units.",
-  "This XLSX has missing, external, duplicate or unsupported worksheet relationships. Choose a workbook whose sheets are stored under xl/worksheets/."
+  "This XLSX has missing, external, duplicate or unsupported worksheet relationships. Choose a workbook whose sheets are stored under xl/worksheets/.",
+  "DOCX comparison",
+  "Document properties"
 ]

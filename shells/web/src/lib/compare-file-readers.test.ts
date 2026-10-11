@@ -4,6 +4,9 @@ import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
 import { PDFDocument, StandardFonts } from 'pdf-lib';
 import { zipSync, unzipSync, strToU8 } from 'fflate';
+import { readFileSync } from 'node:fs';
+import { createPrepareAPI } from '../../../../engine/src/prepare.ts';
+import { openDocxMetadata } from '../../../../engine/src/docx-metadata.ts';
 import { packPng } from '../../../../engine/src/png.ts';
 import { comparisonFileSource, comparisonTextSource } from './compare-sources.ts';
 import { comparisonAssetPair, assetComparisonMode } from './compare-asset-sources.ts';
@@ -22,6 +25,10 @@ test('CSV and TSV retain quoted multiline cells, exact values and blank records'
   const source = comparisonTextSource('id,note\r\na,"first\r\nsecond ""quoted"""\r\n,\r\nb, café \r\n', identity, 'table');
   assert.deepEqual(table(source)[0]!.rows, [['a', 'first\r\nsecond "quoted"'], ['', ''], ['b', ' café ']]);
   assert.deepEqual(table(comparisonTextSource('id\tnote\na\t"one\ntwo"\n\t\nb\tc', identity, 'table'))[0]!.rows, [['a', 'one\ntwo'], ['', ''], ['b', 'c']]);
+  assert.deepEqual(table(comparisonTextSource('id,note\na,"one\t""quoted""\ntwo"', identity, 'table'))[0]!.rows, [['a', 'one\t"quoted"\ntwo']]);
+  assert.deepEqual(table(comparisonTextSource('id,note\na,one\ttwo', identity, 'table'))[0]!.rows, [['a', 'one\ttwo']]);
+  assert.deepEqual(table(comparisonTextSource('id,"multi\nline\theader"\na,one\ttwo', identity, 'table'))[0]!.columns, ['id', 'multi\nline\theader']);
+  assert.deepEqual(table(comparisonTextSource('id\tnote\na\t"one\t""quoted"""', identity, 'table'))[0]!.rows, [['a', 'one\t"quoted"']]);
   for (const text of ['id,note\na,"unclosed', 'id,note\na,"closed"invalid', 'id,note\na,"closed""']) assert.throws(() => comparisonTextSource(text, identity, 'table'), /invalid quoting/);
   await assert.rejects(comparisonFileSource(new File([new Uint8Array([255])], 'bad.csv'), 'table'), /UTF-8/);
   await assert.rejects(comparisonFileSource(new File(['\0'], 'bad.csv'), 'table'), /Choose an XLSX/);
@@ -72,6 +79,25 @@ test('DOCX blocks have no invented page or stable ID and preserve insertion/remo
   assert.ok(document(before).every(unit => unit.id === undefined && unit.location?.page === undefined));
   const result = compareSources({ version: 1, before, after }); assert.equal(result.equality, 'different'); assert.equal(result.summary.changed, 1); assert.equal(result.summary.added, 1);
   assert.doesNotMatch(comparisonReport(result), /CONFIDENTIAL|before.docx|block/);
+});
+test('DOCX operations retain property review by default and expose body text explicitly for inspect-only files', async () => {
+  const bytes = new Uint8Array(readFileSync(new URL('../../../../tests/fixtures/docx-metadata/metadata.docx', import.meta.url)));
+  const host = createMockHost(); host.prepare = createPrepareAPI();
+  const cleaned = openDocxMetadata(bytes, 'before.docx').remove(['core:creator']);
+  const files = [new File([bytes as BlobPart], 'before.docx'), new File([Uint8Array.from(cleaned).buffer], 'after.docx')];
+  const properties = await operationComparisonPair(files[0]!, files[1]!, host); if (properties.mode === 'visual') assert.fail();
+  assert.equal(properties.mode, 'json'); assert.equal(properties.request.before.content.kind, 'structure');
+  assert.equal(compareSources(properties.request).summary.removed, 1);
+  const body = await operationComparisonPair(files[0]!, files[1]!, host, undefined, 'document'); if (body.mode === 'visual') assert.fail();
+  assert.equal(body.mode, 'document'); assert.deepEqual(document(body.request.before), document(body.request.after));
+  assert.equal(compareSources(body.request).summary.total, 0);
+  const parts = unzipSync(docxFixture(['CONFIDENTIAL_BODY', 'Anchor']));
+  parts['word/document.xml'] = strToU8(new TextDecoder().decode(parts['word/document.xml']).replace('<w:body>', '<w:body><w:fldSimple w:instr="AUTHOR"/>'));
+  const inspected = new File([zipSync(parts) as BlobPart], 'inspect-only.docx');
+  await assert.rejects(operationComparisonPair(inspected, inspected, host), /inspect-only/);
+  const explicit = await operationComparisonPair(inspected, inspected, createMockHost(), undefined, 'document'); if (explicit.mode === 'visual') assert.fail();
+  assert.equal(explicit.mode, 'document'); assert.match(document(explicit.request.before)[0]!.text, /CONFIDENTIAL_BODY/);
+  assert.equal(host.inspect.state.size, 0); assert.equal(host.inspect.logs.length, 0);
 });
 test('PPTX preserves native slide IDs for related revisions and reports moved/edited slides', async () => {
   const before = await comparisonFileSource(new File([pptxFixture([{ id: 256, text: 'A' }, { id: 257, text: 'B' }]) as BlobPart], 'before.pptx'), 'document');
