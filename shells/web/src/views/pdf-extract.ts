@@ -620,6 +620,7 @@ export async function mountPdfExtract(viewEl: HTMLElement, host: HostV1, _params
         <h1 class="plat-title">${t('Unpack')}</h1>
         <div class="plat-header-text">
           <p class="plat-sub">${t('Pull the words, images, fonts, colours and attachments out of a design file and keep what you need. PDF, SVG, InDesign, Penpot, Figma, PowerPoint and Photoshop, all on this device; the file is never uploaded.')}</p>
+          <a class="btn" href="#/compare?mode=document">${t('Compare document text')}</a>
         </div>
       </header>
 

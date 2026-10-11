@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: MPL-2.0
 import type { AssetRef, HostV1 } from '@lolly-tools/core/host-v1';
-import { comparisonFileSource } from './compare-sources.ts';
+import { comparisonFileSource, type ContentComparisonMode } from './compare-sources.ts';
 import { comparisonVisualSource, VISUAL_FORMATS } from './compare-visual-sources.ts';
 export interface ComparisonAsset { id: string; format?: string; version?: string; label?: string }
 const TEXT_FORMATS = new Set(['txt', 'md', 'markdown', 'csv', 'tsv', 'json', 'har', 'yaml', 'yml', 'xml', 'html', 'css', 'js', 'ts', 'log', 'ini', 'toml']);
-export function assetComparisonMode(refs: readonly Pick<AssetRef, 'format'>[]): 'visual' | 'json' | 'text' | undefined {
+export function assetComparisonMode(refs: readonly Pick<AssetRef, 'format'>[]): 'visual' | ContentComparisonMode | undefined {
   if (refs.length !== 2) return undefined;
   const formats = refs.map(r => r.format.toLowerCase());
   if (formats.every(f => VISUAL_FORMATS.has(f))) return 'visual';
+  if (formats.every(f => ['csv', 'tsv', 'xlsx'].includes(f))) return 'table';
+  if (formats.every(f => ['docx', 'pptx', 'pdf'].includes(f))) return 'document';
   if (formats.every(f => f === 'json' || f === 'har')) return 'json';
   if (formats.every(f => TEXT_FORMATS.has(f))) return 'text';
   return undefined;
@@ -31,11 +33,11 @@ export async function comparisonAssetFile(source: ComparisonAsset, host: HostV1,
   const label = source.label ?? String(ref.meta?.name || ref.id), format = ref.format.toLowerCase();
   return { file: new File([bytes as BlobPart], `source.${format}`), identity: { id: ref.id, kind: 'asset', label, revision: ref.version }, format };
 }
-export async function comparisonAssetPair(sources: readonly ComparisonAsset[], host: HostV1, signal?: AbortSignal) {
+export async function comparisonAssetPair(sources: readonly ComparisonAsset[], host: HostV1, signal?: AbortSignal, override?: 'document') {
   if (sources.length !== 2) throw new Error('Select two compatible assets.');
   const files = await Promise.all(sources.map(source => comparisonAssetFile(source, host, signal)));
-  const mode = assetComparisonMode(files);
-  if (!mode) throw new Error('Choose two images/PDFs or two text/JSON assets.');
+  const mode = override ?? assetComparisonMode(files);
+  if (!mode) throw new Error('Choose two compatible text, JSON, table, document or image assets.');
   if (mode === 'visual') {
     const pair = await Promise.all(files.map(({ file, identity }) => comparisonVisualSource(file, host, signal, identity)));
     return { mode, request: { version: 1 as const, before: pair[0]!, after: pair[1]! } };

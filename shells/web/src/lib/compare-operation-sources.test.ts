@@ -32,7 +32,7 @@ test('history requires the recorded original and refuses a same-size substitutio
 
 test('operation comparison refuses unsupported or oversized pairs without claiming equality', async () => {
   const host = createMockHost();
-  await assert.rejects(operationComparisonPair(new File(['x'], 'original.docx'), new File(['x'], 'copy.docx'), host), /not supported/);
+  await assert.rejects(operationComparisonPair(new File(['x'], 'original.doc'), new File(['x'], 'copy.doc'), host), /not supported/);
   await assert.rejects(operationComparisonPair(new File([new Uint8Array(2 * 1024 * 1024 + 1)], 'large.txt'), new File(['x'], 'small.txt'), host), /2 MiB/);
   const controller = new AbortController(); controller.abort();
   await assert.rejects(operationComparisonPair(new File(['x'], 'a.txt'), new File(['x'], 'b.txt'), host, controller.signal), { name: 'AbortError' });
