@@ -280,12 +280,27 @@
     "ComparisonSource": {
       "module": "compare.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "102abfc69486d6468baa6af2d7cb12474ebe7d15b0a4d16627323de047fcb662"
+      "sha256": "553c0f8a83e9f46cb38b7f8396341a06f82117a627fb9a15434861e87d613754"
+    },
+    "ComparisonCell": {
+      "module": "compare.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "4a151bdf514aa0275016a9d4d2dc916ef87192f41c85ecd6dc967461fe30f23d"
+    },
+    "ComparisonTable": {
+      "module": "compare.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "fc1e21a9f3c17578b4fd3dba564e750df63a70e12997a8c15531f806e05da319"
+    },
+    "ComparisonDocumentUnit": {
+      "module": "compare.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "0152b3575ebdf3f476395bf05df77406b53831f9a55da5f10110442737f434cd"
     },
     "ComparisonOptions": {
       "module": "compare.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "7d4f669a21275071943b2a7b521e3a97842e448bb4f92865fa12fe3e4b938012"
+      "sha256": "9968e1efb27ca5244deb7df9b03e779980d8bb49a905eb10228f7a34d2511e71"
     },
     "ComparisonRequest": {
       "module": "compare.ts",
@@ -295,7 +310,7 @@
     "ComparisonLocation": {
       "module": "compare.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "3127fa994e56e1ac7ee26e5e4f26b71fafa13bf70f0045d38a3595c4fedfbc91"
+      "sha256": "5a95f1a3861bbc3121b854d2ce223aac06c91bc309038ffb84f028a0e74090c3"
     },
     "ComparisonChange": {
       "module": "compare.ts",
@@ -305,7 +320,7 @@
     "ComparisonResult": {
       "module": "compare.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "481b05aaeafe975852926a1ea32351bd82f6c9b8632dda6f1ce095a56fb558bd"
+      "sha256": "163ecbade6f83d6165716d552266ed63b19dff9624e66eb18f1a4c549f22e47b"
     },
     "CompareAPI": {
       "module": "compare.ts",

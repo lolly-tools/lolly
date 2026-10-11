@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: MPL-2.0
-/** Shared bounded comparison results for supplied immutable text or structure snapshots. */
+/** Shared bounded comparison of supplied immutable content snapshots. */
 import type { CompareAPI, ComparisonRequest, ComparisonResult } from '@lolly-tools/core/host-v1';
 import { comparisonBudget, COMPARE_MAX_TEXT } from './compare-budget.ts';
 import { compareStructure } from './compare-structure.ts';
 import { compareText } from './compare-text.ts';
 import { compareVisualSources } from './compare-visual.ts';
+import { compareTables } from './compare-tables.ts';
+import { compareDocumentUnits } from './compare-document.ts';
 export { compareStructure } from './compare-structure.ts';
 export { comparisonBudget } from './compare-budget.ts';
 
@@ -14,7 +16,10 @@ export function compareSources(request: ComparisonRequest, signal?: AbortSignal)
   if (request.version !== 1) throw new Error('Unsupported comparison version.');
   const { before, after } = request, options = { ...request.options };
   const budget = comparisonBudget(options, signal);
-  const mode = options.mode ?? (before.content.kind === 'structure' && after.content.kind === 'structure' ? 'structure' : 'text');
+  const mode = options.mode ?? (before.content.kind === after.content.kind ? before.content.kind : 'text');
+  let alignment: ComparisonResult['alignment'] = mode === 'text' ? options.granularity ?? 'line'
+    : mode === 'table' ? 'table-position' : mode === 'document' ? 'document-position'
+      : options.arrayAlignment === 'id' ? 'stable-id' : 'object-keys-ordered-arrays';
   let byteEquality: ComparisonResult['byteEquality'] = 'unknown';
   if (before.bytes && after.bytes) {
     if (before.bytes.length > COMPARE_MAX_TEXT || after.bytes.length > COMPARE_MAX_TEXT) budget.limitations.add('Byte equality was not checked above 2 MiB.');
@@ -30,12 +35,16 @@ export function compareSources(request: ComparisonRequest, signal?: AbortSignal)
     compareText(before.content.text, after.content.text, options, budget);
   } else if (mode === 'structure' && before.content.kind === 'structure' && after.content.kind === 'structure') {
     compareStructure(before.content.value, after.content.value, options, budget);
+  } else if (mode === 'table' && before.content.kind === 'table' && after.content.kind === 'table') {
+    alignment = compareTables(before.content.tables, after.content.tables, options, budget);
+  } else if (mode === 'document' && before.content.kind === 'document' && after.content.kind === 'document') {
+    alignment = compareDocumentUnits(before.content.units, after.content.units, options, budget);
   } else budget.limit('The selected mode does not match both sources.');
   const different = budget.summary.total > 0;
   return { version: 1, before: { ...before.identity }, after: { ...after.identity }, mode, options,
     equality: different ? 'different' : budget.partial ? 'undetermined' : byteEquality === 'equal' ? 'identical-bytes' : 'equivalent-content',
     byteEquality, appearance: 'not-compared', completeness: budget.partial ? 'partial' : 'complete',
-    alignment: mode === 'text' ? options.granularity ?? 'line' : options.arrayAlignment === 'id' ? 'stable-id' : 'object-keys-ordered-arrays',
+    alignment,
     summary: budget.summary, changes: budget.changes, detailsTruncated: budget.detailsTruncated, limitations: [...budget.limitations] };
 }
 export function createCompareAPI(): CompareAPI {

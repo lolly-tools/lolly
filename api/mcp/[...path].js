@@ -4006,7 +4006,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.253.0";
+    ENGINE_VERSION = "1.254.0";
   }
 });
 
@@ -7370,12 +7370,12 @@ function distinctColors(n7, opts = {}) {
   const baseC = clamp(anchor?.c ?? 0.12, 0.08, 0.2);
   const baseH = anchor?.h ?? 250;
   const chosen = [];
-  const add = (c) => {
+  const add3 = (c) => {
     const hex3 = oklchToHex(c);
     const lab = oklchToLab(hexToOklch(hex3));
     chosen.push({ hex: hex3, lab });
   };
-  add(anchor ?? { l: baseL, c: baseC, h: baseH });
+  add3(anchor ?? { l: baseL, c: baseC, h: baseH });
   const pool = [];
   const seen = new Set(chosen.map((c) => c.hex));
   for (const dc of [1, 0.55]) {
@@ -10518,83 +10518,83 @@ function designToolPolicy(d) {
 }
 function validateDesignTool(d, reserved = []) {
   const issues = [];
-  const add = (code, message, inputId, layerId) => {
+  const add3 = (code, message, inputId, layerId) => {
     issues.push({ code, message, inputId, layerId });
   };
-  if (d.schemaVersion !== 1) add("version", "This rules version is not supported.");
-  if (!/^[a-z0-9][a-z0-9-]{2,95}$/.test(d.id)) add("identity", "Use a valid permanent tool id.");
-  if (!d.name.trim() || !/^\d+\.\d+\.\d+$/.test(d.version)) add("identity", "Add a name and a three-part version.");
-  if (d.description !== void 0 && (typeof d.description !== "string" || d.description.length > 2e3)) add("description", "Keep the instructions within 2000 characters.");
-  if (!["sidebar", "on-canvas"].includes(d.presentation)) add("presentation", "Choose Sidebar or On-canvas.");
-  if (!d.formats.length || d.formats.some((f) => !["png", "svg", "pdf"].includes(f))) add("formats", "Choose PNG, SVG or PDF.");
-  if (!d.variants.length || d.variants.length > 24 || d.inputs.length > 64 || d.choices.length > 4 || d.recipes.length > 64) add("limits", "Use up to 24 artboards, 64 inputs and four choices.");
+  if (d.schemaVersion !== 1) add3("version", "This rules version is not supported.");
+  if (!/^[a-z0-9][a-z0-9-]{2,95}$/.test(d.id)) add3("identity", "Use a valid permanent tool id.");
+  if (!d.name.trim() || !/^\d+\.\d+\.\d+$/.test(d.version)) add3("identity", "Add a name and a three-part version.");
+  if (d.description !== void 0 && (typeof d.description !== "string" || d.description.length > 2e3)) add3("description", "Keep the instructions within 2000 characters.");
+  if (!["sidebar", "on-canvas"].includes(d.presentation)) add3("presentation", "Choose Sidebar or On-canvas.");
+  if (!d.formats.length || d.formats.some((f) => !["png", "svg", "pdf"].includes(f))) add3("formats", "Choose PNG, SVG or PDF.");
+  if (!d.variants.length || d.variants.length > 24 || d.inputs.length > 64 || d.choices.length > 4 || d.recipes.length > 64) add3("limits", "Use up to 24 artboards, 64 inputs and four choices.");
   const variants = new Map(d.variants.map((v) => [v.id, v]));
-  if (variants.size !== d.variants.length || !variants.has(d.defaultVariant)) add("artboards", "Choose a valid default artboard and unique artboard ids.");
+  if (variants.size !== d.variants.length || !variants.has(d.defaultVariant)) add3("artboards", "Choose a valid default artboard and unique artboard ids.");
   for (const v of d.variants) {
-    if (!/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$/.test(v.id) || ![v.width, v.height].every((n7) => Number.isFinite(n7) && n7 >= 1 && n7 <= 16384)) add("artboard-size", "Artboards need a size between 1 and 16384 pixels.");
-    if (v.boxes.length > 1e3 || new Set(v.boxes.map((b) => b.id)).size !== v.boxes.length) add("layers", "Layers need unique, permanent ids.");
+    if (!/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$/.test(v.id) || ![v.width, v.height].every((n7) => Number.isFinite(n7) && n7 >= 1 && n7 <= 16384)) add3("artboard-size", "Artboards need a size between 1 and 16384 pixels.");
+    if (v.boxes.length > 1e3 || new Set(v.boxes.map((b) => b.id)).size !== v.boxes.length) add3("layers", "Layers need unique, permanent ids.");
   }
   const fields2 = new Map(d.inputs.map((f) => [f.input.id, f]));
   const choiceIds = new Set(d.choices.map((c) => c.inputId));
-  if (fields2.size !== d.inputs.length || choiceIds.size !== d.choices.length) add("duplicate-id", "Each input and choice needs a unique id.");
+  if (fields2.size !== d.inputs.length || choiceIds.size !== d.choices.length) add3("duplicate-id", "Each input and choice needs a unique id.");
   const owners = /* @__PURE__ */ new Map();
   const choiceOwners = /* @__PURE__ */ new Map();
   const defaultOwners = /* @__PURE__ */ new Map();
   const checkTarget = (t, owner3, type) => {
     if (!own(propertyTypes, t.property)) {
-      add("property", "This property cannot be made editable.", owner3, t.layerId);
+      add3("property", "This property cannot be made editable.", owner3, t.layerId);
       return;
     }
     const layer = variants.get(t.variantId)?.boxes.find((b) => b.id === t.layerId);
-    if (!layer) add("missing-layer", "The linked object was removed. Relink this input.", owner3, t.layerId);
-    if (type && !propertyTypes[t.property].includes(type)) add("type", "The input type does not match its property.", owner3, t.layerId);
+    if (!layer) add3("missing-layer", "The linked object was removed. Relink this input.", owner3, t.layerId);
+    if (type && !propertyTypes[t.property].includes(type)) add3("type", "The input type does not match its property.", owner3, t.layerId);
     const prior = owners.get(keyOf(t));
-    if (prior && prior !== owner3) add("ownership", "Two controls change the same property. Choose one owner.", owner3, t.layerId);
+    if (prior && prior !== owner3) add3("ownership", "Two controls change the same property. Choose one owner.", owner3, t.layerId);
     owners.set(keyOf(t), owner3);
   };
   for (const f of d.inputs) {
     const i = f.input;
-    if (!idPattern.test(i.id) || badKeys.has(i.id) || internal.has(i.id) || reserved.includes(i.id) || i.id.startsWith("__")) add("input-id", "Use a unique input id that is not a reserved setting.", i.id);
-    if (!["text", "longtext", "number", "select", "color", "asset", "vector", ...d.sourceTool ? ["boolean", "url", "date", "time", "datetime-local"] : []].includes(i.type)) add("input-type", "This input type is not supported in a locked tool.", i.id);
-    if (i.type === "select" && (!i.options?.length || i.options.some((o) => !o.value || !o.label) || new Set(i.options.map((o) => o.value)).size !== i.options.length)) add("options", "Give each option a label and a unique value.", i.id);
-    if (i.type === "number" && (![i.min, i.max, i.step, i.default].every((n7) => typeof n7 === "number" && Number.isFinite(n7)) || Number(i.min) > Number(i.max) || Number(i.step) <= 0)) add("range", "Set a finite minimum, maximum, default and positive step.", i.id);
-    if (i.type === "asset" && i.assetType !== "image") add("media", "Editable images must use the image asset type.", i.id);
+    if (!idPattern.test(i.id) || badKeys.has(i.id) || internal.has(i.id) || reserved.includes(i.id) || i.id.startsWith("__")) add3("input-id", "Use a unique input id that is not a reserved setting.", i.id);
+    if (!["text", "longtext", "number", "select", "color", "asset", "vector", ...d.sourceTool ? ["boolean", "url", "date", "time", "datetime-local"] : []].includes(i.type)) add3("input-type", "This input type is not supported in a locked tool.", i.id);
+    if (i.type === "select" && (!i.options?.length || i.options.some((o) => !o.value || !o.label) || new Set(i.options.map((o) => o.value)).size !== i.options.length)) add3("options", "Give each option a label and a unique value.", i.id);
+    if (i.type === "number" && (![i.min, i.max, i.step, i.default].every((n7) => typeof n7 === "number" && Number.isFinite(n7)) || Number(i.min) > Number(i.max) || Number(i.step) <= 0)) add3("range", "Set a finite minimum, maximum, default and positive step.", i.id);
+    if (i.type === "asset" && i.assetType !== "image") add3("media", "Editable images must use the image asset type.", i.id);
     if (i.type === "vector") {
       const axes = i.fields;
-      if (!axes?.length || axes.length > 3 || new Set(axes.map((a) => a.id)).size !== axes.length || axes.some((a) => !["x", "y", "zoom"].includes(a.id) || ![a.min, a.max, a.step].every(Number.isFinite) || a.min > a.max || a.step <= 0 || a.min < (a.id === "zoom" ? 1 : 0) || a.max > (a.id === "zoom" ? 1e3 : 100))) add("framing-range", "Set valid X/Y percentages and a bounded zoom range.", i.id);
+      if (!axes?.length || axes.length > 3 || new Set(axes.map((a) => a.id)).size !== axes.length || axes.some((a) => !["x", "y", "zoom"].includes(a.id) || ![a.min, a.max, a.step].every(Number.isFinite) || a.min > a.max || a.step <= 0 || a.min < (a.id === "zoom" ? 1 : 0) || a.max > (a.id === "zoom" ? 1e3 : 100))) add3("framing-range", "Set valid X/Y percentages and a bounded zoom range.", i.id);
     }
-    if (!f.targets.length && !d.sourceTool?.inputs[i.id] && !choiceIds.has(i.id) && !d.recipes.some((r5) => r5.parts.some((p) => "inputId" in p && p.inputId === i.id))) add("unlinked", "Link this input to an object.", i.id);
-    if (f.common && (f.common.key === "headshot" ? i.type !== "asset" : !["text", "longtext"].includes(i.type))) add("common-type", "Use an image for a headshot and text for other common fields.", i.id);
-    if (f.image && (i.type !== "asset" || [f.image.minWidth, f.image.minHeight].some((n7) => n7 !== void 0 && (!Number.isInteger(n7) || n7 < 1 || n7 > 32768)) || f.image.formats && (!f.image.formats.length || f.image.formats.some((format) => !["png", "jpeg", "webp", "avif", "svg"].includes(format))))) add("image-rule", "Choose image formats and positive minimum pixel dimensions.", i.id);
-    if (f.common?.source === "profile" && (!["person", "recipient", "presenter"].includes(f.common.subject) || !["firstname", "lastname", "email"].includes(f.common.key))) add("profile", "Profile prefill is only available for a person\u2019s name or email.", i.id);
+    if (!f.targets.length && !d.sourceTool?.inputs[i.id] && !choiceIds.has(i.id) && !d.recipes.some((r5) => r5.parts.some((p) => "inputId" in p && p.inputId === i.id))) add3("unlinked", "Link this input to an object.", i.id);
+    if (f.common && (f.common.key === "headshot" ? i.type !== "asset" : !["text", "longtext"].includes(i.type))) add3("common-type", "Use an image for a headshot and text for other common fields.", i.id);
+    if (f.image && (i.type !== "asset" || [f.image.minWidth, f.image.minHeight].some((n7) => n7 !== void 0 && (!Number.isInteger(n7) || n7 < 1 || n7 > 32768)) || f.image.formats && (!f.image.formats.length || f.image.formats.some((format) => !["png", "jpeg", "webp", "avif", "svg"].includes(format))))) add3("image-rule", "Choose image formats and positive minimum pixel dimensions.", i.id);
+    if (f.common?.source === "profile" && (!["person", "recipient", "presenter"].includes(f.common.subject) || !["firstname", "lastname", "email"].includes(f.common.key))) add3("profile", "Profile prefill is only available for a person\u2019s name or email.", i.id);
     for (const target2 of f.targets) {
       checkTarget(target2, i.id, i.type);
-      if (target2.text && (!(target2.text.min > 0) || !Number.isFinite(target2.text.max) || target2.text.max < target2.text.min)) add("text-fit", "Review this object\u2019s font-size range.", i.id, target2.layerId);
+      if (target2.text && (!(target2.text.min > 0) || !Number.isFinite(target2.text.max) || target2.text.max < target2.text.min)) add3("text-fit", "Review this object\u2019s font-size range.", i.id, target2.layerId);
     }
-    if (f.text && (!(f.text.min > 0) || !Number.isFinite(f.text.max) || f.text.min > f.text.max || f.text.maxLines !== void 0 && (!Number.isInteger(f.text.maxLines) || f.text.maxLines < 1))) add("text-fit", "Set a valid font-size range and line limit.", i.id);
+    if (f.text && (!(f.text.min > 0) || !Number.isFinite(f.text.max) || f.text.min > f.text.max || f.text.maxLines !== void 0 && (!Number.isInteger(f.text.maxLines) || f.text.maxLines < 1))) add3("text-fit", "Set a valid font-size range and line limit.", i.id);
   }
   if (d.sourceTool) {
     const entries = Object.entries(d.sourceTool.inputs);
     if (!d.sourceTool.id || !d.sourceTool.version || entries.length !== d.inputs.length || new Set(entries.map(([, id3]) => id3)).size !== entries.length || entries.some(([id3, source]) => !fields2.has(id3) || !source || badKeys.has(source) || source.startsWith("__")))
-      add("source-inputs", "Choose distinct inputs from the source tool.");
+      add3("source-inputs", "Choose distinct inputs from the source tool.");
   }
   let combinations = 1;
   let artboardSelectors = 0;
   for (const c of d.choices) {
     const field2 = fields2.get(c.inputId);
-    if (field2?.input.type !== "select" || field2.targets.length) add("choice", "A choice needs its own select input.", c.inputId);
+    if (field2?.input.type !== "select" || field2.targets.length) add3("choice", "A choice needs its own select input.", c.inputId);
     combinations *= c.options.length;
-    if (!c.options.length || new Set(c.options.map((o) => o.value)).size !== c.options.length) add("choice-options", "Give each choice option a unique value.", c.inputId);
+    if (!c.options.length || new Set(c.options.map((o) => o.value)).size !== c.options.length) add3("choice-options", "Give each choice option a unique value.", c.inputId);
     if (c.options.some((o) => o.variantId)) artboardSelectors++;
     const choiceTargets = /* @__PURE__ */ new Set();
     for (const o of c.options) {
-      if (!field2?.input.options?.some((p) => p.value === o.value)) add("choice-option", "Declare each choice option in the input.", c.inputId);
-      if (o.variantId && !variants.has(o.variantId)) add("choice-artboard", "Choose an existing artboard.", c.inputId);
+      if (!field2?.input.options?.some((p) => p.value === o.value)) add3("choice-option", "Declare each choice option in the input.", c.inputId);
+      if (o.variantId && !variants.has(o.variantId)) add3("choice-artboard", "Choose an existing artboard.", c.inputId);
       for (const id3 of /* @__PURE__ */ new Set([...o.fixedInputs ?? [], ...Object.keys(o.defaults ?? {})])) {
         const target2 = fields2.get(id3);
-        if (!target2 || choiceIds.has(id3)) add("choice-field", "Choose an existing content input.", c.inputId);
+        if (!target2 || choiceIds.has(id3)) add3("choice-field", "Choose an existing content input.", c.inputId);
         const prior = defaultOwners.get(id3);
-        if (prior && prior !== c.inputId) add("ownership", "Two choices set the same input. Choose one owner.", id3);
+        if (prior && prior !== c.inputId) add3("ownership", "Two choices set the same input. Choose one owner.", id3);
         defaultOwners.set(id3, c.inputId);
         if (target2 && own(o.defaults || {}, id3)) for (const issue2 of validateDesignValues({ ...designToolPolicy(d), choices: [], inputs: [target2] }, { [id3]: o.defaults[id3] })) issues.push(issue2);
       }
@@ -10602,22 +10602,22 @@ function validateDesignTool(d, reserved = []) {
       for (const w of o.writes) {
         const k = keyOf(w);
         const choiceOwner = choiceOwners.get(k);
-        if (choiceOwner && choiceOwner !== c.inputId) add("ownership", "Two choices control the same property.", c.inputId, w.layerId);
+        if (choiceOwner && choiceOwner !== c.inputId) add3("ownership", "Two choices control the same property.", c.inputId, w.layerId);
         choiceOwners.set(k, c.inputId);
-        if (writes.has(k)) add("choice-write", "An option cannot write the same property twice.", c.inputId, w.layerId);
+        if (writes.has(k)) add3("choice-write", "An option cannot write the same property twice.", c.inputId, w.layerId);
         writes.add(k);
         const reader = owners.get(k);
-        if (reader && reader !== c.inputId && !(o.fixedInputs ?? []).includes(reader)) add("ownership", "This option and a reader input both control this property.", reader, w.layerId);
+        if (reader && reader !== c.inputId && !(o.fixedInputs ?? []).includes(reader)) add3("ownership", "This option and a reader input both control this property.", reader, w.layerId);
         if (!reader) checkTarget(w, c.inputId);
         choiceTargets.add(k);
       }
     }
   }
-  if (combinations > 128 || artboardSelectors > 1) add("choice-limits", "Use one artboard choice and up to 128 option combinations.");
+  if (combinations > 128 || artboardSelectors > 1) add3("choice-limits", "Use one artboard choice and up to 128 option combinations.");
   for (const r5 of d.recipes) {
-    if (r5.target.property !== "text" || !r5.parts.length || r5.parts.length > 16) add("recipe", "Joined text needs a text target and up to 16 parts.");
+    if (r5.target.property !== "text" || !r5.parts.length || r5.parts.length > 16) add3("recipe", "Joined text needs a text target and up to 16 parts.");
     checkTarget(r5.target, `recipe:${keyOf(r5.target)}`, "text");
-    for (const p of r5.parts) if ("inputId" in p && !["text", "longtext"].includes(fields2.get(p.inputId)?.input.type ?? "")) add("recipe-input", "Joined text can use only declared text inputs.", p.inputId);
+    for (const p of r5.parts) if ("inputId" in p && !["text", "longtext"].includes(fields2.get(p.inputId)?.input.type ?? "")) add3("recipe-input", "Joined text can use only declared text inputs.", p.inputId);
   }
   for (const issue2 of validateDesignValues(designToolPolicy(d), {}, true)) issues.push(issue2);
   return issues;
@@ -36025,12 +36025,12 @@ function evaluateCreativeUses(input) {
   uses.forEach((use, index2) => {
     const work = byId.get(use.work);
     const codes = [];
-    const add = (issue2) => {
+    const add3 = (issue2) => {
       issues.push(issue2);
       codes.push(issue2.code);
     };
     if (!work) {
-      add({
+      add3({
         code: "licence.unknown",
         work: use.work,
         summary: "This use names a work with no record, so nothing about it is known.",
@@ -36049,7 +36049,7 @@ function evaluateCreativeUses(input) {
     const changes = changesFor(use, detail);
     for (const change of changes) allChanges.add(change);
     if (licence.declarations.length > 1 && !licence.resolved) {
-      add({
+      add3({
         code: "licence.grant-conflict",
         work: work.id,
         summary: `Two licence declarations disagree: ${licence.declarations.join(" and ")}.`,
@@ -36059,7 +36059,7 @@ function evaluateCreativeUses(input) {
     }
     const recognised = licence.normalised?.id ?? null;
     if (licence.cumulative.length) {
-      add({
+      add3({
         code: "licence.unknown",
         work: work.id,
         summary: `This source states cumulative terms, which are recorded and not yet interpreted together: ${licence.cumulative.join("; ")}.`,
@@ -36069,7 +36069,7 @@ function evaluateCreativeUses(input) {
       unresolved.push(`${work.id}: cumulative terms recorded, not yet interpreted`);
     } else if (!profile?.reviewed) {
       const conditions = profile?.conditions ?? [];
-      add({
+      add3({
         code: "licence.unknown",
         work: work.id,
         summary: !recognised ? "Source licence not recorded." : conditions.length ? `Conditions recorded, not yet interpreted: ${conditions.join(", ")}.` : `This licence is recorded and not yet interpreted: ${recognised}.`,
@@ -36078,7 +36078,7 @@ function evaluateCreativeUses(input) {
       });
       unresolved.push(!recognised ? `${work.id}: licence not recorded` : conditions.length ? `${work.id}: ${recognised} conditions recorded, not yet interpreted` : `${work.id}: ${recognised} recorded, not yet interpreted`);
     } else if (licence.unselectedChoice) {
-      add({
+      add3({
         code: "licence.unknown",
         work: work.id,
         summary: "This source offers a choice of licence and none is selected.",
@@ -36092,7 +36092,7 @@ function evaluateCreativeUses(input) {
       obligation = roleObligation(profile, use.role);
       for (const limit2 of profile.limits) {
         if (!limitMatches(limit2, input.context, use, classification)) continue;
-        add({
+        add3({
           code: "licence.use-not-covered",
           work: work.id,
           summary: limit2.summary,
@@ -36105,7 +36105,7 @@ function evaluateCreativeUses(input) {
       }
     }
     if (use.role === "source-distribution" && profile?.redistributeSource !== "permitted-with-notices") {
-      add({
+      add3({
         code: "source.redistribution-unknown",
         work: work.id,
         summary: "Permission to pass on the source file itself is not recorded.",
@@ -36120,7 +36120,7 @@ function evaluateCreativeUses(input) {
       const creators = partyNames(work.creators);
       const licenceUrl = publicLocator(licence.normalised?.url ?? licence.evidence?.url);
       if (!creators || !licenceUrl) {
-        add({
+        add3({
           code: "attribution.source-missing",
           work: work.id,
           summary: "This work needs a credit and part of it is not recorded.",
@@ -36131,7 +36131,7 @@ function evaluateCreativeUses(input) {
       }
       const notice = noticeFor(work, licence, changes, true, profile.attribution, detail);
       if (profile.noticeRequired && !notice.noticeText) {
-        add({
+        add3({
           code: "attribution.source-missing",
           work: work.id,
           summary: "This licence asks for a notice text to travel with the work and none is recorded.",
@@ -36149,7 +36149,7 @@ function evaluateCreativeUses(input) {
       const permission = decisionFor(decisions, work.id, "separate-permission", situation);
       const compatible = decision2?.licence && profile.compatibleOutputLicences.some((entry2) => entry2.id === decision2.licence);
       if (!compatible && !permission) {
-        add({
+        add3({
           code: "licence.adaptation-choice",
           work: work.id,
           summary: "If you share this adaptation, it needs a compatible licence.",
@@ -36802,7 +36802,7 @@ function annotateTemplate(source, inputIds) {
   function paintMarker(tag3) {
     const pairs2 = [];
     const seen = /* @__PURE__ */ new Set();
-    const add = (prop4, id3) => {
+    const add3 = (prop4, id3) => {
       if (!seen.has(prop4)) {
         seen.add(prop4);
         pairs2.push(`${prop4}:${id3}`);
@@ -36819,14 +36819,14 @@ function annotateTemplate(source, inputIds) {
         while (dm) {
           const prop4 = PAINT_CSS[dm[1].toLowerCase()];
           const idm = prop4 ? idInValue.exec(dm[2] ?? "") : null;
-          if (prop4 && idm) add(prop4, idm[1]);
+          if (prop4 && idm) add3(prop4, idm[1]);
           dm = cssDeclRe.exec(value);
         }
       } else {
         const prop4 = PAINT_ATTR[name];
         if (prop4) {
           const idm = idInValue.exec(value);
-          if (idm) add(prop4, idm[1]);
+          if (idm) add3(prop4, idm[1]);
         }
       }
       am = attrRe.exec(tag3);
@@ -40249,7 +40249,7 @@ async function applyEmojiToSvgText(root2, style, packs, io, text8, options2 = {}
         const parts = [];
         const curveText = line.tagName.toLowerCase() === "textpath";
         const pieces = [];
-        const add = (markup2, x2, width) => {
+        const add3 = (markup2, x2, width) => {
           if (curveText) pieces.push({ markup: markup2, x: x2, advance: width });
           else parts.push(markup2);
         };
@@ -40268,17 +40268,17 @@ async function applyEmojiToSvgText(root2, style, packs, io, text8, options2 = {}
             if (shaped.notdef) throw new Error("The selected font does not cover this SVG text.");
             if (curveText) {
               if (!shaped.clusters) throw new Error("SVG text paths need cluster outlines.");
-              for (const cluster2 of shaped.clusters) add(`<path fill="${escapeXml(fill2)}" transform="translate(${n(advance)} 0)" d="${escapeXml(cluster2.d)}"/>`, advance + cluster2.x, cluster2.advance);
-            } else add(`<path fill="${escapeXml(fill2)}" transform="translate(${n(advance)} 0)" d="${escapeXml(shaped.d)}"/>`, advance, shaped.advanceWidth);
+              for (const cluster2 of shaped.clusters) add3(`<path fill="${escapeXml(fill2)}" transform="translate(${n(advance)} 0)" d="${escapeXml(cluster2.d)}"/>`, advance + cluster2.x, cluster2.advance);
+            } else add3(`<path fill="${escapeXml(fill2)}" transform="translate(${n(advance)} 0)" d="${escapeXml(shaped.d)}"/>`, advance, shaped.advanceWidth);
             advance += shaped.advanceWidth;
           } else if (segment2.kind === "emoji") {
             const m2 = segment2.metrics;
             const art = segment2.markup.replace(/<svg\b[^>]*>/, (tag3) => tag3.replace(/ (?:width|height|x|y)="[^"]*"/g, "").replace(/<svg\b/, `<svg x="${n(advance)}" y="${n((m2.descentEm - m2.heightEm) * em2)}" width="${n(m2.widthEm * em2)}" height="${n(m2.heightEm * em2)}"`));
-            add(art, advance, m2.advanceEm * em2 + tracking);
+            add3(art, advance, m2.advanceEm * em2 + tracking);
             advance += m2.advanceEm * em2 + tracking;
             pending3.replaced++;
           } else {
-            add(`<rect x="${n(advance + em2 * 0.1)}" y="${n(-em2 * 0.75)}" width="${n(em2 * 0.7)}" height="${n(em2 * 0.8)}" fill="none" stroke="${escapeXml(fill2)}" stroke-width="${n(em2 * 0.05)}"/>`, advance, em2);
+            add3(`<rect x="${n(advance + em2 * 0.1)}" y="${n(-em2 * 0.75)}" width="${n(em2 * 0.7)}" height="${n(em2 * 0.8)}" fill="none" stroke="${escapeXml(fill2)}" stroke-width="${n(em2 * 0.05)}"/>`, advance, em2);
             advance += em2;
             pending3.unresolved++;
           }
@@ -59422,7 +59422,7 @@ function polyCubicSource(curves2) {
     momentIntegrals(t0, t1) {
       const a = at(t0), z = at(t1);
       const raw = { a: 0, x: 0, y: 0 };
-      const add = (c, u0, u1) => {
+      const add3 = (c, u0, u1) => {
         if (u1 <= u0) return;
         const m2 = rawMomentsCubic(subCubic(c, u0, u1));
         raw.a += m2.a;
@@ -59430,11 +59430,11 @@ function polyCubicSource(curves2) {
         raw.y += m2.y;
       };
       if (a.i === z.i) {
-        add(curves2[a.i], a.u, z.u);
+        add3(curves2[a.i], a.u, z.u);
       } else {
-        add(curves2[a.i], a.u, 1);
-        for (let i = a.i + 1; i < z.i; i++) add(curves2[i], 0, 1);
-        add(curves2[z.i], 0, z.u);
+        add3(curves2[a.i], a.u, 1);
+        for (let i = a.i + 1; i < z.i; i++) add3(curves2[i], 0, 1);
+        add3(curves2[z.i], 0, z.u);
       }
       const s = evalCubic(curves2[a.i], a.u), e = evalCubic(curves2[z.i], z.u);
       return chordFrameMoments(raw, s.x, s.y, e.x - s.x, e.y - s.y);
@@ -60526,25 +60526,25 @@ function solveRun(pts, wrap3) {
   else for (let j = 1; j < m2; j++) bend[j] = mod2pi2(rawPhi[j] - rawPhi[j - 1]);
   const A = Array.from({ length: m2 }, () => new Array(m2).fill(0));
   const r5 = new Array(m2).fill(0);
-  const add = (row, col, v) => {
+  const add3 = (row, col, v) => {
     A[row][(col % m2 + m2) % m2] += v;
   };
   const g2 = (j) => {
     const lL = len2[((j - 1) % nSeg + nSeg) % nSeg], lR = len2[j % nSeg];
-    add(j, j - 1, 1 / lL);
-    add(j, j, 3 / lL + 3 / lR);
-    add(j, j + 1, 1 / lR);
+    add3(j, j - 1, 1 / lL);
+    add3(j, j, 3 / lL + 3 / lR);
+    add3(j, j + 1, 1 / lR);
     r5[j] = -bend[((j - 1) % m2 + m2) % m2] / lL - 3 * bend[j % m2] / lR;
   };
   if (wrap3) {
     for (let j = 0; j < m2; j++) g2(j);
   } else {
-    add(0, 0, 3);
-    add(0, 1, 1);
+    add3(0, 0, 3);
+    add3(0, 1, 1);
     r5[0] = 0;
     for (let j = 1; j < m2 - 1; j++) g2(j);
-    add(m2 - 1, m2 - 2, 1);
-    add(m2 - 1, m2 - 1, 3);
+    add3(m2 - 1, m2 - 2, 1);
+    add3(m2 - 1, m2 - 1, 3);
     r5[m2 - 1] = -bend[m2 - 2];
   }
   const thetaSol = solveDense(A, r5);
@@ -62557,7 +62557,7 @@ function inspectTokenDocument(doc, opts = {}) {
   const diagnostics = [...selection.diagnostics];
   let nodes = 0;
   let truncated = selection.diagnostics.some((i) => i.code === "limit");
-  function walk2(node, type, path, location2, set, depth) {
+  function walk2(node, type, path, location4, set, depth) {
     if (!record6(node)) return;
     if (depth > 48) {
       truncated = true;
@@ -62572,7 +62572,7 @@ function inspectTokenDocument(doc, opts = {}) {
       }
       if (key.startsWith("$") || !record6(child)) continue;
       const p = path ? `${path}.${key}` : key;
-      const loc = `${location2}/${pointer(key)}`;
+      const loc = `${location4}/${pointer(key)}`;
       if ("$value" in child) {
         const sources = definitions.get(p) ?? [];
         sources.push({ set, location: loc, type: typeof child.$type === "string" ? child.$type : inherited2, value: structuredClone(child.$value), active: set === null || selection.sets.includes(set), ...typeof child.$description === "string" ? { description: child.$description } : {}, ...record6(child.$extensions) ? { extensions: structuredClone(child.$extensions) } : {} });
@@ -68004,14 +68004,14 @@ function carryIntoJpeg(bytes, tiff, xmp) {
 function carryIntoPng(bytes, fields2, tiff, xmp) {
   const chunks = [];
   if (tiff) chunks.push(pngChunk("eXIf", tiff));
-  const textPairs = [
+  const textPairs2 = [
     ["Description", fields2.description],
     ["Author", fields2.author],
     ["Copyright", fields2.copyright],
     ["Software", fields2.software],
     ["Creation Time", fields2["capture date"]]
   ];
-  for (const [k, v] of textPairs) if (v) chunks.push(iTXtChunk(k, v));
+  for (const [k, v] of textPairs2) if (v) chunks.push(iTXtChunk(k, v));
   if (xmp) chunks.push(iTXtChunk("XML:com.adobe.xmp", xmp));
   if (!chunks.length) return null;
   return insertPngChunksAfterIhdr(bytes, chunks);
@@ -91125,14 +91125,14 @@ function designSceneAssetIds(query2, manifest) {
   const values = designSceneDecode(query2, manifest);
   const out = [];
   const seen = /* @__PURE__ */ new Set();
-  const add = (raw) => {
+  const add3 = (raw) => {
     if (!raw || seen.has(raw)) return;
     seen.add(raw);
     out.push(raw);
   };
   for (const input of manifest.inputs ?? []) {
     if (input.type === "asset") {
-      add(idOf2(values[input.id]));
+      add3(idOf2(values[input.id]));
       continue;
     }
     if (input.type !== "blocks") continue;
@@ -91143,7 +91143,7 @@ function designSceneAssetIds(query2, manifest) {
     for (const row of rows2) {
       if (!row || typeof row !== "object" || Array.isArray(row)) continue;
       const record40 = row;
-      for (const field2 of assetFields) add(idOf2(record40[field2.id]));
+      for (const field2 of assetFields) add3(idOf2(record40[field2.id]));
     }
   }
   return out;
@@ -96411,10 +96411,10 @@ function applyGrainVignette(data, width, height, p, frameIndex, refLongEdge) {
         const nv = (l00 * (1 - gfx) + l10 * gfx) * (1 - gfy) + (l01 * (1 - gfx) + l11 * gfx) * gfy;
         const lum2 = (LUM_R * r5 + LUM_G * g5 + LUM_B * b5) / 255;
         const gw2 = 4 * lum2 * (1 - lum2);
-        const add = nv * gAmt * (0.35 + 0.65 * gw2);
-        r5 += add;
-        g5 += add;
-        b5 += add;
+        const add3 = nv * gAmt * (0.35 + 0.65 * gw2);
+        r5 += add3;
+        g5 += add3;
+        b5 += add3;
       }
       if (vAmt > 0) {
         const dx2 = x3 - cx2;
@@ -97394,7 +97394,7 @@ function validateDesignLayout(boxes, tracks = []) {
       }
     ];
   const findings = [];
-  const add = (r5, code, message) => findings.push({ id: id(r5), code, message });
+  const add3 = (r5, code, message) => findings.push({ id: id(r5), code, message });
   const byId = /* @__PURE__ */ new Map();
   if (boxes.length > MAX_LAYOUT_LAYERS || tracks.length > MAX_LAYOUT_TRACKS)
     return [
@@ -97406,34 +97406,34 @@ function validateDesignLayout(boxes, tracks = []) {
     ];
   for (const r5 of boxes) {
     if (!id(r5) || byId.has(id(r5)))
-      add(r5, "layout.identity", "Layout requires unique permanent layer IDs.");
+      add3(r5, "layout.identity", "Layout requires unique permanent layer IDs.");
     byId.set(id(r5), r5);
   }
   for (const r5 of boxes) {
     if (r5.layoutOwner && r5.frame)
-      add(
+      add3(
         r5,
         "layout.owner-conflict",
         "A nested layer must have one owner. Clear its artboard pointer."
       );
     if (r5.layoutOwner && !hasDesignLayout([byId.get(String(r5.layoutOwner)) || {}]))
-      add(r5, "layout.owner-missing", "The layout owner is missing or has no layout.");
+      add3(r5, "layout.owner-missing", "The layout owner is missing or has no layout.");
     const seen = /* @__PURE__ */ new Set([id(r5)]);
     let o = owner(r5);
     while (o) {
       if (seen.has(o)) {
-        add(r5, "layout.owner-cycle", "Layout ownership contains a cycle.");
+        add3(r5, "layout.owner-cycle", "Layout ownership contains a cycle.");
         break;
       }
       seen.add(o);
       if (seen.size > MAX_LAYOUT_OWNER_RECORDS) {
-        add(r5, "layout.depth", "Layout nesting exceeds 64 levels.");
+        add3(r5, "layout.depth", "Layout nesting exceeds 64 levels.");
         break;
       }
       o = owner(byId.get(o) || {});
     }
     if (r5.layout && !["none", "flex", "grid"].includes(String(r5.layout)))
-      add(r5, "layout.mode", "Unknown layout mode.");
+      add3(r5, "layout.mode", "Unknown layout mode.");
     if (r5.layoutOwner || hasDesignLayout([r5]) || hasDesignLayout([byId.get(owner(r5)) || {}])) {
       for (const [key, choices2] of Object.entries({
         layoutDirection: ["row", "row-reverse", "column", "column-reverse"],
@@ -97460,7 +97460,7 @@ function validateDesignLayout(boxes, tracks = []) {
         layoutSelf: ["auto", "start", "center", "end", "stretch"],
         layoutJustifySelf: ["auto", "start", "center", "end", "stretch"]
       }))
-        if (r5[key] && !choices2.includes(String(r5[key]))) add(r5, "layout.enum", `Unknown ${key}.`);
+        if (r5[key] && !choices2.includes(String(r5[key]))) add3(r5, "layout.enum", `Unknown ${key}.`);
       for (const k of [
         "w",
         "h",
@@ -97471,7 +97471,7 @@ function validateDesignLayout(boxes, tracks = []) {
         "layoutPadBottom",
         "layoutPadLeft"
       ])
-        if (number(r5[k]) < 0) add(r5, "layout.negative", `${k} must be nonnegative.`);
+        if (number(r5[k]) < 0) add3(r5, "layout.negative", `${k} must be nonnegative.`);
       for (const k of [
         "x",
         "y",
@@ -97502,15 +97502,15 @@ function validateDesignLayout(boxes, tracks = []) {
         "layoutAngle"
       ]) {
         if (r5[k] !== "" && r5[k] != null && (!Number.isFinite(Number(r5[k])) || Math.abs(Number(r5[k])) > MAX_LAYOUT_SCALAR))
-          add(r5, "layout.number", `Invalid ${k}.`);
+          add3(r5, "layout.number", `Invalid ${k}.`);
       }
       for (const axis of ["W", "H"]) {
         if (!["fixed", "hug", "fill"].includes(mode(r5, axis)))
-          add(r5, "layout.sizing", "Unknown layout size rule.");
+          add3(r5, "layout.sizing", "Unknown layout size rule.");
         const min = number(r5[`layoutMin${axis}`]);
         const max = number(r5[`layoutMax${axis}`], Infinity);
         if (min < 0 || max < min)
-          add(
+          add3(
             r5,
             "layout.limits",
             "A minimum size must be nonnegative and cannot exceed its maximum."
@@ -97530,17 +97530,17 @@ function validateDesignLayout(boxes, tracks = []) {
   const trackIds = /* @__PURE__ */ new Set();
   for (const t of tracks) {
     if (!id(t) || trackIds.has(id(t)))
-      add(t, "layout.track-id", "Grid tracks require unique permanent IDs.");
+      add3(t, "layout.track-id", "Grid tracks require unique permanent IDs.");
     trackIds.add(id(t));
     if (byId.get(String(t.container))?.layout !== "grid")
-      add(t, "layout.track-owner", "A track must belong to an existing grid.");
+      add3(t, "layout.track-owner", "A track must belong to an existing grid.");
     if (!["row", "column"].includes(String(t.axis)))
-      add(t, "layout.track-axis", "A track axis must be row or column.");
-    if (!Number.isFinite(number(t.order))) add(t, "layout.track-order", "Invalid track order.");
+      add3(t, "layout.track-axis", "A track axis must be row or column.");
+    if (!Number.isFinite(number(t.order))) add3(t, "layout.track-order", "Invalid track order.");
     try {
       parseLayoutTrack(t.track);
     } catch (e) {
-      add(t, "layout.track", String(e.message));
+      add3(t, "layout.track", String(e.message));
     }
   }
   return findings;
@@ -98068,9 +98068,9 @@ function topLeft(row) {
 function importPenpotLayouts(boxes, sourceIds, shapes2) {
   const findings = [], tracks = [];
   if (!penpotHasLayout(shapes2)) return { boxes, tracks, findings };
-  const add = (id3, code, message) => findings.push({ id: String(id3 || ""), code, message });
+  const add3 = (id3, code, message) => findings.push({ id: String(id3 || ""), code, message });
   if (sourceIds.length !== boxes.length || new Set(sourceIds).size !== sourceIds.length) {
-    add("", "penpot.layout.identity", "Penpot source identities are not aligned with imported layers.");
+    add3("", "penpot.layout.identity", "Penpot source identities are not aligned with imported layers.");
     return { boxes, tracks, findings };
   }
   const mapped = new Map(sourceIds.map((sourceId, n7) => [sourceId, boxes[n7]]));
@@ -98078,7 +98078,7 @@ function importPenpotLayouts(boxes, sourceIds, shapes2) {
     const shape = shapes2[sourceId];
     if (shape?.layout !== "flex" && shape?.layout !== "grid") continue;
     for (const child of Array.isArray(shape.shapes) ? shape.shapes : []) {
-      if (!mapped.has(String(child))) add(sourceId, "penpot.layout.child", "A layout layer could not be retained during import.");
+      if (!mapped.has(String(child))) add3(sourceId, "penpot.layout.child", "A layout layer could not be retained during import.");
     }
   }
   const result = boxes.map((box4, n7) => {
@@ -98089,7 +98089,7 @@ function importPenpotLayouts(boxes, sourceIds, shapes2) {
     if (shape.hidden === true) row.hidden = true;
     if (parent.layout === "flex" || parent.layout === "grid") {
       const parentBox = mapped.get(String(shape.parentId));
-      if (!parentBox) add(box4.id, "penpot.layout.owner", "A layout container was not retained during import.");
+      if (!parentBox) add3(box4.id, "penpot.layout.owner", "A layout container was not retained during import.");
       else {
         row.layoutOwner = parentBox.id;
         row.frame = "";
@@ -98103,9 +98103,9 @@ function importPenpotLayouts(boxes, sourceIds, shapes2) {
       }
       const at = Array.isArray(parent.shapes) ? parent.shapes.indexOf(sourceId) : -1;
       row.layoutOrder = parent.layout === "flex" && at >= 0 ? parent.shapes.length - at - 1 : at;
-      if (at === -1) add(box4.id, "penpot.layout.membership", "The layout parent and children records disagree.");
+      if (at === -1) add3(box4.id, "penpot.layout.membership", "The layout parent and children records disagree.");
       if (shape.type === "group" && Array.isArray(shape.shapes) && shape.shapes.some((child) => mapped.has(String(child)))) {
-        add(box4.id, "penpot.layout.group", "A group in a dynamic layout must be imported as one vector asset. Ungroup its contents in Penpot before importing.");
+        add3(box4.id, "penpot.layout.group", "A group in a dynamic layout must be imported as one vector asset. Ungroup its contents in Penpot before importing.");
       }
     } else if (mapped.has(String(shape.frameId))) {
       const frame = mapped.get(String(shape.frameId)), frameShape = shapes2[String(shape.frameId)];
@@ -98143,7 +98143,7 @@ function importPenpotLayouts(boxes, sourceIds, shapes2) {
           const list4 = Array.isArray(shape[key]) ? shape[key] : [];
           list4.forEach((track, order) => {
             const type = String(track.type), value = num8(track.value);
-            if (!["auto", "flex", "percent", "fixed"].includes(type)) add(box4.id, "penpot.layout.track", `Unsupported Penpot track type: ${type}.`);
+            if (!["auto", "flex", "percent", "fixed"].includes(type)) add3(box4.id, "penpot.layout.track", `Unsupported Penpot track type: ${type}.`);
             tracks.push({
               id: `${box4.id}:${axis}:${order}`,
               container: box4.id,
@@ -98166,21 +98166,21 @@ function importPenpotLayouts(boxes, sourceIds, shapes2) {
     for (const raw of cells) {
       const cell = record11(raw), children = Array.isArray(cell.shapes) ? cell.shapes : [];
       if (!children.length) {
-        if (cell.areaName || cell.position === "manual" || cell.position === "area") add(sourceId, "penpot.layout.empty-cell", "Empty named or manually placed grid cells cannot be represented in this document.");
+        if (cell.areaName || cell.position === "manual" || cell.position === "area") add3(sourceId, "penpot.layout.empty-cell", "Empty named or manually placed grid cells cannot be represented in this document.");
         continue;
       }
-      if (children.length > 1) add(sourceId, "penpot.layout.cell-count", "A grid cell with more than one layer cannot be represented in this document.");
+      if (children.length > 1) add3(sourceId, "penpot.layout.cell-count", "A grid cell with more than one layer cannot be represented in this document.");
       for (const childId of children) {
         const box4 = mapped.get(String(childId)), row = box4 && resultMap.get(box4.id);
         if (!row) {
-          add(sourceId, "penpot.layout.cell", "A grid cell references a shape that could not be imported.");
+          add3(sourceId, "penpot.layout.cell", "A grid cell references a shape that could not be imported.");
           continue;
         }
         if (row.layoutOwner !== mapped.get(sourceId)?.id) {
-          add(row.id, "penpot.layout.cell-owner", "A grid cell and the shape parent disagree.");
+          add3(row.id, "penpot.layout.cell-owner", "A grid cell and the shape parent disagree.");
           continue;
         }
-        if (assigned.has(String(childId))) add(row.id, "penpot.layout.cell-duplicate", "A layer is assigned to more than one grid cell.");
+        if (assigned.has(String(childId))) add3(row.id, "penpot.layout.cell-duplicate", "A layer is assigned to more than one grid cell.");
         assigned.add(String(childId));
         Object.assign(row, {
           layoutRow: cell.position === "manual" || cell.position === "area" ? cell.row : 0,
@@ -98816,7 +98816,7 @@ function vectorColourUses(object4) {
   const sy = items2.viewBox.h > 0 ? object4.box.h / items2.viewBox.h : 1;
   const byKey = /* @__PURE__ */ new Map();
   const seriesIndex = /* @__PURE__ */ new Map();
-  const add = (channel5, hex3, weight) => {
+  const add3 = (channel5, hex3, weight) => {
     let useId;
     if (channel5 === "series") {
       let n7 = seriesIndex.get(hex3);
@@ -98840,20 +98840,20 @@ function vectorColourUses(object4) {
   for (const item2 of items2.items) {
     if (item2.kind === "text") {
       const hex4 = fillHex(item2);
-      if (hex4) add("text", hex4, Math.max(1, item2.text.length) * item2.size * item2.size * sx * sy * 0.5);
+      if (hex4) add3("text", hex4, Math.max(1, item2.text.length) * item2.size * item2.size * sx * sy * 0.5);
       continue;
     }
     const area2 = Math.max(0, item2.box.w * sx) * Math.max(0, item2.box.h * sy);
     const hex3 = fillHex(item2);
     if (hex3) {
-      if (item2.series) add("series", hex3, area2);
-      else if (isGlyphRun(item2, items2.viewBox.h, hex3)) add("text", hex3, area2);
-      else add("fill", hex3, area2);
+      if (item2.series) add3("series", hex3, area2);
+      else if (isGlyphRun(item2, items2.viewBox.h, hex3)) add3("text", hex3, area2);
+      else add3("fill", hex3, area2);
     }
     const stroke = item2.stroke?.color.hex ? normal(item2.stroke.color.hex) : void 0;
     if (stroke && item2.stroke) {
       const length2 = item2.shape === "line" ? Math.hypot(item2.box.w * sx, item2.box.h * sy) : 2 * (item2.box.w * sx + item2.box.h * sy);
-      add("stroke", stroke, length2 * Math.max(1, item2.stroke.width * Math.sqrt(sx * sy)));
+      add3("stroke", stroke, length2 * Math.max(1, item2.stroke.width * Math.sqrt(sx * sy)));
     }
   }
   return [...byKey.values()].map((use) => ({ ...use, weight: Math.round(use.weight * 1e3) / 1e3 })).sort((a, b) => a.useId < b.useId ? -1 : a.useId > b.useId ? 1 : 0);
@@ -102021,19 +102021,19 @@ function lightnessOf2(hex3) {
 }
 function masterTokenPaths(master) {
   const out = /* @__PURE__ */ new Map();
-  const add = (tokenPath, use) => {
+  const add3 = (tokenPath, use) => {
     if (!tokenPath) return;
     const uses = out.get(tokenPath) ?? /* @__PURE__ */ new Set();
     uses.add(use);
     out.set(tokenPath, uses);
   };
   for (const archetype of master.archetypes) {
-    add(archetype.background?.tokenPath, "ground");
-    for (const placeholder of archetype.placeholders) add(placeholder.style?.fgTokenPath, "ink");
+    add3(archetype.background?.tokenPath, "ground");
+    for (const placeholder of archetype.placeholders) add3(placeholder.style?.fgTokenPath, "ink");
   }
   for (const piece of master.furniture) {
-    add(piece.tokenPath, piece.kind === "rect" ? "fill" : "bar");
-    add(piece.style?.fgTokenPath, "ink");
+    add3(piece.tokenPath, piece.kind === "rect" ? "fill" : "bar");
+    add3(piece.style?.fgTokenPath, "ink");
   }
   return new Map([...out.entries()].sort((a, b) => compareCodeUnits(a[0], b[0])));
 }
@@ -104750,7 +104750,7 @@ function deriveOrigin(master, archetype, layers, ordinals, opts) {
     return { x: Math.round(opts.x), y: Math.round(opts.y) };
   }
   const counts = /* @__PURE__ */ new Map();
-  const add = (box4, row, index2) => {
+  const add3 = (box4, row, index2) => {
     const lx = rowNumber(row, "x");
     const ly = rowNumber(row, "y");
     if (lx === null || ly === null) return;
@@ -104765,13 +104765,13 @@ function deriveOrigin(master, archetype, layers, ordinals, opts) {
     const furnitureId = rowText(row, "furniture");
     if (furnitureId) {
       const f = master.furniture.find((item2) => item2.id === furnitureId);
-      if (f) add(f.box, row, index2);
+      if (f) add3(f.box, row, index2);
       return;
     }
     const role = rowText(row, "role");
     if (!role) return;
     const ph = placeholdersFor(archetype, role)[ordinals.get(index2) ?? 0];
-    if (ph) add(ph.box, row, index2);
+    if (ph) add3(ph.box, row, index2);
   });
   let best = null;
   for (const candidate of counts.values()) {
@@ -115652,7 +115652,7 @@ function inspectPrivateText(text8, rules = [], field2) {
   if (text8.length > PREPARE_MAX_TEXT) throw new Error("Text inspection is limited to 1 MiB per value.");
   const spans = [];
   let truncated = false;
-  const add = (start, end, category, label4, rule, uncertain = false, encoding) => {
+  const add3 = (start, end, category, label4, rule, uncertain = false, encoding) => {
     if (end <= start || spans.some((s) => start < s.end && s.start < end)) return;
     if (spans.length >= PREPARE_MAX_FINDINGS) {
       truncated = true;
@@ -115669,19 +115669,19 @@ function inspectPrivateText(text8, rules = [], field2) {
   };
   if (field2 && sensitiveField(field2, rules) && text8.trim()) {
     const prefix = /^(?:Bearer|Basic)\s+/i.exec(text8)?.[0].length ?? 0;
-    add(prefix, text8.length, "credential", "Sensitive field", "sensitive-field");
+    add3(prefix, text8.length, "credential", "Sensitive field", "sensitive-field");
     return { spans, truncated };
   }
   const match = (pattern, category, label4, rule) => {
     for (const m2 of text8.matchAll(pattern)) {
-      add(m2.index, m2.index + m2[0].length, category, label4, rule);
+      add3(m2.index, m2.index + m2[0].length, category, label4, rule);
       if (truncated) break;
     }
   };
   match(/-----BEGIN (?:RSA |EC |OPENSSH |DSA |ENCRYPTED )?PRIVATE KEY-----[\s\S]*?(?:-----END (?:RSA |EC |OPENSSH |DSA |ENCRYPTED )?PRIVATE KEY-----|$)/g, "credential", "Private key", "private-key");
   match(/\b(?:gh[pousr]_[A-Za-z0-9]{20,255}|github_pat_[A-Za-z0-9_]{20,255}|AKIA[A-Z0-9]{16}|sk-(?:proj-)?[A-Za-z0-9_-]{20,255}|xox[baprs]-[A-Za-z0-9-]{12,255})\b/g, "credential", "Credential-shaped value", "credential-shape");
   match(/\beyJ[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/g, "credential", "Signed token", "jwt");
-  for (const m2 of text8.matchAll(/\b(?:Bearer|Basic)\s+([A-Za-z0-9_+./=-]{4,})/gi)) add(m2.index + m2[0].length - m2[1].length, m2.index + m2[0].length, "credential", "Authorization value", "authorization");
+  for (const m2 of text8.matchAll(/\b(?:Bearer|Basic)\s+([A-Za-z0-9_+./=-]{4,})/gi)) add3(m2.index + m2[0].length - m2[1].length, m2.index + m2[0].length, "credential", "Authorization value", "authorization");
   const assignments = /(?:^|[\s?&;,{])["']?([\w-]{1,80})["']?\s*[:=]\s*(?:"([^"\r\n]*)"|'([^'\r\n]*)'|([^\s&,;}\r\n]+))/g;
   for (; ; ) {
     const m2 = assignments.exec(text8);
@@ -115693,7 +115693,7 @@ function inspectPrivateText(text8, rules = [], field2) {
     const v = m2[2] ?? m2[3] ?? m2[4] ?? "";
     if (!v) continue;
     const offset = m2[0].lastIndexOf(v);
-    add(m2.index + offset, m2.index + offset + v.length, "credential", "Sensitive assignment", "assignment", false, /[?&=]/.test(m2[0]) && /%[0-9a-f]{2}/i.test(v) ? "url" : void 0);
+    add3(m2.index + offset, m2.index + offset + v.length, "credential", "Sensitive assignment", "assignment", false, /[?&=]/.test(m2[0]) && /%[0-9a-f]{2}/i.test(v) ? "url" : void 0);
   }
   for (const query2 of text8.matchAll(/[?&][^=&#\s]{1,80}=([^&#\s]+)/g)) {
     const raw = query2[1];
@@ -115707,16 +115707,16 @@ function inspectPrivateText(text8, rules = [], field2) {
     const custom = rules.find((r5) => r5.kind === "literal" && decoded.includes(r5.value));
     if (!personal && !custom) continue;
     const start = query2.index + query2[0].length - raw.length;
-    add(start, start + raw.length, personal?.kind ?? "custom", "Query parameter value", personal ? `pii-${personal.kind}` : custom.id, personal?.maybe ?? false, "url");
+    add3(start, start + raw.length, personal?.kind ?? "custom", "Query parameter value", personal ? `pii-${personal.kind}` : custom.id, personal?.maybe ?? false, "url");
   }
   for (const rule of rules) if (rule.kind === "literal") {
     for (let offset = text8.indexOf(rule.value); offset >= 0; offset = text8.indexOf(rule.value, offset + rule.value.length)) {
-      add(offset, offset + rule.value.length, "custom", rule.label || "Your value", rule.id);
+      add3(offset, offset + rule.value.length, "custom", rule.label || "Your value", rule.id);
       if (truncated) break;
     }
   }
   for (const hit of piiFindings(text8)) {
-    add(hit.start, hit.end, hit.kind, hit.label ?? hit.kind, `pii-${hit.kind}`, hit.maybe);
+    add3(hit.start, hit.end, hit.kind, hit.label ?? hit.kind, `pii-${hit.kind}`, hit.maybe);
     if (truncated) break;
   }
   return { spans: spans.sort((a, b) => a.start - b.start), truncated };
@@ -115926,7 +115926,7 @@ function enabled(value) {
 }
 function inspectXml(part, root2, format, budget3) {
   const nodes = officeNodes(root2), path = part.path.split("!/").pop();
-  const add = (category, label4, value, location2 = label4) => {
+  const add3 = (category, label4, value, location4 = label4) => {
     if (budget3.findings >= 2e3) {
       part.status = "partial";
       if (!part.limitations.includes("The 2,000-finding census limit was reached.")) part.limitations.push("The 2,000-finding census limit was reached.");
@@ -115934,45 +115934,45 @@ function inspectXml(part, root2, format, budget3) {
     }
     if (!value) return;
     budget3.findings++;
-    part.findings.push({ category, label: label4, value: value.slice(0, 2048), location: location2.slice(0, 512) });
+    part.findings.push({ category, label: label4, value: value.slice(0, 2048), location: location4.slice(0, 512) });
   };
   if (/^docProps\/(?:core|app|custom)\.xml$/.test(path)) {
     for (const node of root2.children) {
       const name = officeAttr(node, "name") ?? node.name;
       const before = part.findings.length;
-      add("office-properties", "Document property", officeText(node), `Property: ${name}`);
+      add3("office-properties", "Document property", officeText(node), `Property: ${name}`);
       if (part.findings.length > before) part.findings[part.findings.length - 1].propertyStart = node.start;
     }
   }
   if (path.endsWith(".rels")) {
     for (const node of nodes.filter((n7) => n7.name === "Relationship")) {
-      if (officeAttr(node, "TargetMode")?.toLowerCase() === "external") add("office-links", "External relationship (not fetched)", officeAttr(node, "Target") ?? "", `Relationship: ${officeAttr(node, "Id") ?? "?"}`);
+      if (officeAttr(node, "TargetMode")?.toLowerCase() === "external") add3("office-links", "External relationship (not fetched)", officeAttr(node, "Target") ?? "", `Relationship: ${officeAttr(node, "Id") ?? "?"}`);
     }
   }
   if (format === "docx" && path.startsWith("word/")) {
     for (const node of nodes) {
-      if (node.name === "comment") add("office-comments", "Comment and author", `${officeAttr(node, "author") ?? ""} ${officeAttr(node, "initials") ?? ""} ${officeText(node)}`.trim(), `Comment: ${officeAttr(node, "id") ?? "?"}`);
-      if (["ins", "del", "moveFrom", "moveTo"].includes(node.name) || node.name.endsWith("PrChange")) add("office-revisions", "Tracked change (accept/reject policy required)", `${officeAttr(node, "author") ?? ""} ${officeAttr(node, "date") ?? ""} ${officeText(node)}`.trim() || node.name, `Tracked change: ${officeAttr(node, "id") ?? "?"}`);
-      if (node.name === "r" && officeNodes(node).some((n7) => ["vanish", "webHidden"].includes(n7.name) && enabled(officeAttr(n7, "val")))) add("office-hidden", "Hidden text run", officeText(node) || "Hidden run without text preview");
+      if (node.name === "comment") add3("office-comments", "Comment and author", `${officeAttr(node, "author") ?? ""} ${officeAttr(node, "initials") ?? ""} ${officeText(node)}`.trim(), `Comment: ${officeAttr(node, "id") ?? "?"}`);
+      if (["ins", "del", "moveFrom", "moveTo"].includes(node.name) || node.name.endsWith("PrChange")) add3("office-revisions", "Tracked change (accept/reject policy required)", `${officeAttr(node, "author") ?? ""} ${officeAttr(node, "date") ?? ""} ${officeText(node)}`.trim() || node.name, `Tracked change: ${officeAttr(node, "id") ?? "?"}`);
+      if (node.name === "r" && officeNodes(node).some((n7) => ["vanish", "webHidden"].includes(n7.name) && enabled(officeAttr(n7, "val")))) add3("office-hidden", "Hidden text run", officeText(node) || "Hidden run without text preview");
     }
-    if (/comments(?:Extended|Extensible|Ids)\.xml$/.test(path)) add("office-comments", "Comment identity or thread data", officeText(root2) || "Comment thread and identity records");
+    if (/comments(?:Extended|Extensible|Ids)\.xml$/.test(path)) add3("office-comments", "Comment identity or thread data", officeText(root2) || "Comment thread and identity records");
   }
   if (format === "pptx" && path.startsWith("ppt/")) {
-    if (/^ppt\/notesSlides\/notesSlide\d+\.xml$/.test(path)) add("office-notes", "Speaker notes", officeText(root2) || "Speaker notes part");
-    if (/^ppt\/slides\/slide\d+\.xml$/.test(path) && !enabled(officeAttr(root2, "show"))) add("office-hidden", "Hidden slide", officeText(root2) || "Hidden slide without text preview");
+    if (/^ppt\/notesSlides\/notesSlide\d+\.xml$/.test(path)) add3("office-notes", "Speaker notes", officeText(root2) || "Speaker notes part");
+    if (/^ppt\/slides\/slide\d+\.xml$/.test(path) && !enabled(officeAttr(root2, "show"))) add3("office-hidden", "Hidden slide", officeText(root2) || "Hidden slide without text preview");
     if (/comments|commentAuthors/.test(path)) {
-      for (const node of nodes.filter((n7) => ["cm", "comment", "cmAuthor", "author"].includes(n7.name))) add("office-comments", "Slide comment or author", `${officeAttr(node, "name") ?? ""} ${officeAttr(node, "authorId") ?? ""} ${officeText(node)}`.trim() || "Comment identity record");
+      for (const node of nodes.filter((n7) => ["cm", "comment", "cmAuthor", "author"].includes(n7.name))) add3("office-comments", "Slide comment or author", `${officeAttr(node, "name") ?? ""} ${officeAttr(node, "authorId") ?? ""} ${officeText(node)}`.trim() || "Comment identity record");
     }
   }
   if (format === "xlsx" && path.startsWith("xl/")) {
     for (const node of nodes) {
-      if (["comment", "threadedComment", "author", "person"].includes(node.name)) add("office-comments", "Cell comment, note or author", `${officeAttr(node, "displayName") ?? ""} ${officeAttr(node, "personId") ?? ""} ${officeText(node)}`.trim() || "Comment identity record", `Cell or identity: ${officeAttr(node, "ref") ?? officeAttr(node, "id") ?? "?"}`);
-      if (node.name === "sheet" && ["hidden", "veryHidden"].includes(officeAttr(node, "state") ?? "")) add("office-hidden", "Hidden sheet (may feed formulas)", officeAttr(node, "name") ?? "Hidden sheet");
-      if (["row", "col"].includes(node.name) && officeAttr(node, "hidden") !== void 0 && enabled(officeAttr(node, "hidden"))) add("office-hidden", `Hidden ${node.name === "row" ? "row" : "column"} (may feed formulas)`, node.name === "row" ? officeAttr(node, "r") ?? "?" : `${officeAttr(node, "min") ?? "?"}:${officeAttr(node, "max") ?? "?"}`);
-      if (node.name === "definedName") add("office-names", "Defined name (may feed formulas)", `${officeAttr(node, "name") ?? ""}: ${officeText(node)}`);
-      if (["connection", "dbPr", "webPr", "olapPr"].includes(node.name)) add("office-links", "Data connection (not opened)", Object.values(node.attrs).join(" ") || officeText(node) || "Data connection record");
+      if (["comment", "threadedComment", "author", "person"].includes(node.name)) add3("office-comments", "Cell comment, note or author", `${officeAttr(node, "displayName") ?? ""} ${officeAttr(node, "personId") ?? ""} ${officeText(node)}`.trim() || "Comment identity record", `Cell or identity: ${officeAttr(node, "ref") ?? officeAttr(node, "id") ?? "?"}`);
+      if (node.name === "sheet" && ["hidden", "veryHidden"].includes(officeAttr(node, "state") ?? "")) add3("office-hidden", "Hidden sheet (may feed formulas)", officeAttr(node, "name") ?? "Hidden sheet");
+      if (["row", "col"].includes(node.name) && officeAttr(node, "hidden") !== void 0 && enabled(officeAttr(node, "hidden"))) add3("office-hidden", `Hidden ${node.name === "row" ? "row" : "column"} (may feed formulas)`, node.name === "row" ? officeAttr(node, "r") ?? "?" : `${officeAttr(node, "min") ?? "?"}:${officeAttr(node, "max") ?? "?"}`);
+      if (node.name === "definedName") add3("office-names", "Defined name (may feed formulas)", `${officeAttr(node, "name") ?? ""}: ${officeText(node)}`);
+      if (["connection", "dbPr", "webPr", "olapPr"].includes(node.name)) add3("office-links", "Data connection (not opened)", Object.values(node.attrs).join(" ") || officeText(node) || "Data connection record");
     }
-    if (/^xl\/(externalLinks|pivotCache)\//.test(path) && !path.endsWith(".rels")) add("office-caches", "External-link or pivot cached data", officeText(root2) || "Cached workbook data surface");
+    if (/^xl\/(externalLinks|pivotCache)\//.test(path) && !path.endsWith(".rels")) add3("office-caches", "External-link or pivot cached data", officeText(root2) || "Cached workbook data surface");
   }
 }
 function inspectPackage(bytes, prefix, declared, depth, budget3, result) {
@@ -116181,14 +116181,14 @@ function openDocxMetadata(bytes, name, limits = {}) {
       if (matching.length !== 1 || matching[0].attrs.TargetMode || target(matching[0].attrs.Target ?? "") !== path || overrides.find((n7) => n7.attrs.PartName === `/${path}`)?.attrs.ContentType !== spec.type || root2?.name !== spec.root || root2.namespace !== spec.namespace) throw new Error("Unsupported property declaration.");
       const seen = /* @__PURE__ */ new Set(), customNames = /* @__PURE__ */ new Set();
       for (const node of root2.children) {
-        let id3, label4, location2;
+        let id3, label4, location4;
         if (path === "docProps/core.xml") {
           const field2 = CORE[node.name];
           if (!field2 || node.namespace !== field2.namespace) continue;
           if (node.children.length) throw new Error("Unsupported core property value.");
           id3 = `core:${node.name}`;
           label4 = field2.label;
-          location2 = `Property: ${node.name}`;
+          location4 = `Property: ${node.name}`;
         } else {
           if (node.namespace !== CUSTOM || node.name !== "property") continue;
           if (!/^\d{1,10}$/.test(node.attrs.pid ?? "") || Number(node.attrs.pid) < 2 || Number(node.attrs.pid) > 2147483647 || !node.attrs.name || node.attrs.name.length > 256 || node.attrs.fmtid?.toUpperCase() !== "{D5CDD505-2E9C-101B-9397-08002B2CF9AE}") throw new Error("Unsupported custom property identity.");
@@ -116196,11 +116196,11 @@ function openDocxMetadata(bytes, name, limits = {}) {
           customNames.add(node.attrs.name);
           id3 = `custom:${Number(node.attrs.pid)}`;
           label4 = "Custom property";
-          location2 = `Custom property: ${node.attrs.name}`;
+          location4 = `Custom property: ${node.attrs.name}`;
         }
         if (seen.has(id3)) throw new Error("Ambiguous property identity.");
         seen.add(id3);
-        part.properties.push({ id: id3, part: path, label: label4, location: location2, value: officeText(node), offset: node.start, start: node.start, end: node.end });
+        part.properties.push({ id: id3, part: path, label: label4, location: location4, value: officeText(node), offset: node.start, start: node.start, end: node.end });
         if ([...propertyParts.values()].reduce((n7, p) => n7 + p.properties.length, 0) > 2e3) throw new Error("Property count limit reached.");
       }
     }
@@ -116313,16 +116313,16 @@ function textDocument(doc, bytes, text8, structured, json, rules, budget3) {
     return low;
   };
   const edits = [];
-  const add = (value, start, end, location2, field2, encode) => {
+  const add3 = (value, start, end, location4, field2, encode) => {
     if (value.length > PREPARE_MAX_TEXT || ++budget3.units > 2e4) {
       doc.scope.status = "partial";
       return;
     }
     const id3 = `${doc.scope.id}:u${doc.units.length}`;
-    doc.units.push({ id: id3, scopeId: doc.scope.id, text: value, field: field2, location: location2, line: lineAt2(start) });
+    doc.units.push({ id: id3, scopeId: doc.scope.id, text: value, field: field2, location: location4, line: lineAt2(start) });
     edits.push({ id: id3, start, end, encode });
   };
-  if (!structured) add(text8, 0, text8.length, "Text", void 0, (s) => s);
+  if (!structured) add3(text8, 0, text8.length, "Text", void 0, (s) => s);
   else {
     if (json) JSON.parse(text8);
     const documents = parseAllDocuments(text8, { prettyErrors: false, logLevel: "silent", strict: true, uniqueKeys: true, intAsBigInt: true, stringKeys: true });
@@ -116376,8 +116376,8 @@ function textDocument(doc, bytes, text8, structured, json, rules, budget3) {
           if (decoded === void 0) {
             doc.scope.status = "partial";
             doc.scope.limitations.push("A base64 body is binary, invalid or too large to inspect.");
-          } else add(decoded, start, end, `${path} (decoded body)`, void 0, (v) => encode(encodeBase64(v)));
-        } else add(value, start, end, path, field2 && sensitiveField(field2, rules) ? field2 : void 0, encode);
+          } else add3(decoded, start, end, `${path} (decoded body)`, void 0, (v) => encode(encodeBase64(v)));
+        } else add3(value, start, end, path, field2 && sensitiveField(field2, rules) ? field2 : void 0, encode);
       }
     }
     if (!json) {
@@ -116390,7 +116390,7 @@ function textDocument(doc, bytes, text8, structured, json, rules, budget3) {
           continue;
         }
         const newline = text8.indexOf("\n", offset), end = newline < 0 ? text8.length : newline;
-        add(text8.slice(offset, end), offset, end, "Comment", void 0, (s) => s);
+        add3(text8.slice(offset, end), offset, end, "Comment", void 0, (s) => s);
         offset = text8.indexOf("#", end);
       }
     }
@@ -117104,7 +117104,7 @@ function compareText(before, after, options2, budget3) {
   for (let i2 = n7 - 1; i2 >= 0; i2--) for (let j2 = m2 - 1; j2 >= 0; j2--)
     dp[i2 * cols + j2] = a[start + i2].key === b[start + j2].key ? 1 + dp[(i2 + 1) * cols + j2 + 1] : Math.max(dp[(i2 + 1) * cols + j2], dp[i2 * cols + j2 + 1]);
   let i = 0, j = 0;
-  const location2 = (token2) => ({ path: [], line: token2.line, offset: token2.offset });
+  const location4 = (token2) => ({ path: [], line: token2.line, offset: token2.offset });
   while (i < n7 || j < m2) {
     if (i < n7 && j < m2 && a[start + i].key === b[start + j].key) {
       i++;
@@ -117120,8 +117120,8 @@ function compareText(before, after, options2, budget3) {
     const av = comparisonValue(left.map((t) => t.text).join("")), bv = comparisonValue(right.map((t) => t.text).join(""));
     budget3.add({
       kind: !left.length ? "added" : !right.length ? "removed" : "changed",
-      ...left.length ? { before: location2(left[0]), beforeValue: av.text } : {},
-      ...right.length ? { after: location2(right[0]), afterValue: bv.text } : {},
+      ...left.length ? { before: location4(left[0]), beforeValue: av.text } : {},
+      ...right.length ? { after: location4(right[0]), afterValue: bv.text } : {},
       valueTruncated: av.truncated || bv.truncated
     });
   }
@@ -117243,13 +117243,296 @@ var init_compare_visual = __esm({
   }
 });
 
+// engine/src/compare-alignment.ts
+function uniqueComparisonKeys(keys2) {
+  const index2 = /* @__PURE__ */ new Map();
+  for (let i = 0; i < keys2.length; i++) {
+    const key = keys2[i];
+    if (!key || index2.has(key)) return void 0;
+    index2.set(key, i);
+  }
+  return index2;
+}
+function stationaryComparisonIndices(pairs2) {
+  const common = pairs2.filter((pair) => pair.before !== void 0 && pair.after !== void 0);
+  const tails = [], prior = new Int32Array(common.length).fill(-1);
+  for (let i = 0; i < common.length; i++) {
+    let low = 0, high = tails.length;
+    while (low < high) {
+      const middle = low + high >>> 1;
+      if (common[tails[middle]].after < common[i].after) low = middle + 1;
+      else high = middle;
+    }
+    if (low) prior[i] = tails[low - 1];
+    tails[low] = i;
+  }
+  const stable = /* @__PURE__ */ new Set();
+  for (let i = tails.at(-1) ?? -1; i >= 0; i = prior[i]) stable.add(common[i].before);
+  return stable;
+}
+function keyedComparisonPairs(before, after) {
+  const pairs2 = [];
+  for (const [key, index2] of before) pairs2.push({ before: index2, after: after.get(key) });
+  const stable = stationaryComparisonIndices(pairs2);
+  for (const pair of pairs2) if (pair.after !== void 0 && pair.before !== void 0 && !stable.has(pair.before)) pair.moved = true;
+  for (const [key, index2] of after) if (!before.has(key)) pairs2.push({ after: index2 });
+  return pairs2;
+}
+function positionalComparisonPairs(before, after) {
+  return Array.from({ length: Math.max(before, after) }, (_, index2) => ({ before: index2 < before ? index2 : void 0, after: index2 < after ? index2 : void 0 }));
+}
+var init_compare_alignment = __esm({
+  "engine/src/compare-alignment.ts"() {
+    "use strict";
+  }
+});
+
+// engine/src/compare-tables.ts
+function withinLimits(tables, budget3) {
+  if (tables.length > 32) {
+    budget3.limit("Only 32 tables per source can be compared.");
+    return false;
+  }
+  let cells = 0, chars = 0;
+  for (const table of tables) {
+    if (typeof table.name !== "string" || table.name.length > 1024 || table.columns.length > 512 || table.rows.length > 1e4) {
+      budget3.limit("A table exceeds the name, 512-column or 10,000-row limit.");
+      return false;
+    }
+    chars += table.name.length;
+    for (const label4 of table.columns) {
+      if (typeof label4 !== "string") {
+        budget3.limit("Table column labels must be text.");
+        return false;
+      }
+      chars += label4.length;
+    }
+    for (const row of table.rows) {
+      if (!budget3.spend() || row.length > table.columns.length) {
+        budget3.limit("Some table cells have no declared column or exceed the work limit.");
+        return false;
+      }
+      cells += table.columns.length;
+      if (cells > 1e5) {
+        budget3.limit("Table content exceeds the 100,000-cell comparison limit.");
+        return false;
+      }
+      for (const cell of row) {
+        if (typeof cell === "string") chars += cell.length;
+        else if (!(cell === null || typeof cell === "boolean" || typeof cell === "number" && Number.isFinite(cell))) {
+          budget3.limit("Only text, finite numbers, booleans and empty table cells are supported.");
+          return false;
+        }
+      }
+      if (chars > COMPARE_MAX_TEXT) {
+        budget3.limit("Table text exceeds the 2 MiB comparison limit.");
+        return false;
+      }
+    }
+    if (chars > COMPARE_MAX_TEXT) {
+      budget3.limit("Table text exceeds the 2 MiB comparison limit.");
+      return false;
+    }
+  }
+  return true;
+}
+function add(budget3, kind, before, after, left, right) {
+  const a = comparisonValue(before), b = comparisonValue(after);
+  budget3.add({ kind, ...left ? { before: left, beforeValue: a.text } : {}, ...right ? { after: right, afterValue: b.text } : {}, valueTruncated: a.truncated || b.truncated });
+}
+function rowKeys(table, label4) {
+  const columns = table.columns.map((value, index2) => value === label4 ? index2 : -1).filter((index2) => index2 !== -1);
+  if (columns.length !== 1) return void 0;
+  const keys2 = table.rows.map((row) => {
+    const value = row[columns[0]];
+    return value === null || value === void 0 || value === "" ? "" : `${typeof value}:${String(value)}`;
+  });
+  return uniqueComparisonKeys(keys2);
+}
+function compareTable(before, after, options2, budget3) {
+  const leftColumns = uniqueComparisonKeys(before.columns), rightColumns = uniqueComparisonKeys(after.columns);
+  const columns = leftColumns && rightColumns ? keyedComparisonPairs(leftColumns, rightColumns) : positionalComparisonPairs(before.columns.length, after.columns.length);
+  if (!leftColumns || !rightColumns) budget3.limitations.add("Blank or duplicate column labels were compared by column position.");
+  for (const pair of columns) {
+    if (!budget3.spend()) return false;
+    const a = pair.before === void 0 ? void 0 : before.columns[pair.before], b = pair.after === void 0 ? void 0 : after.columns[pair.after];
+    const left = pair.before === void 0 ? void 0 : location2(before, void 0, pair.before), right = pair.after === void 0 ? void 0 : location2(after, void 0, pair.after);
+    if (pair.moved) add(budget3, "moved", a, b, left, right);
+    if (a !== b) add(budget3, a === void 0 ? "added" : b === void 0 ? "removed" : "changed", a, b, left, right);
+  }
+  const leftKeys = options2.tableRowKey ? rowKeys(before, options2.tableRowKey) : void 0, rightKeys = options2.tableRowKey ? rowKeys(after, options2.tableRowKey) : void 0;
+  const keyed = !!(leftKeys && rightKeys);
+  if (options2.tableRowKey && !keyed) budget3.limitations.add("The selected row key is missing, blank or duplicated. Every row in that table was compared by position; ambiguous rows were not matched by key.");
+  const rows2 = keyed ? keyedComparisonPairs(leftKeys, rightKeys) : positionalComparisonPairs(before.rows.length, after.rows.length);
+  for (const pair of rows2) {
+    if (!budget3.spend()) return keyed;
+    const a = pair.before === void 0 ? void 0 : before.rows[pair.before], b = pair.after === void 0 ? void 0 : after.rows[pair.after];
+    const left = pair.before === void 0 ? void 0 : location2(before, pair.before), right = pair.after === void 0 ? void 0 : location2(after, pair.after);
+    if (!a || !b) {
+      add(budget3, a ? "removed" : "added", a, b, left, right);
+      continue;
+    }
+    if (pair.moved) add(budget3, "moved", a, b, left, right);
+    for (const column of columns) {
+      if (!budget3.spend()) return keyed;
+      const av = column.before === void 0 ? void 0 : a[column.before], bv = column.after === void 0 ? void 0 : b[column.after];
+      if (av === bv) continue;
+      add(
+        budget3,
+        av === void 0 ? "added" : bv === void 0 ? "removed" : "changed",
+        av,
+        bv,
+        column.before === void 0 ? void 0 : location2(before, pair.before, column.before),
+        column.after === void 0 ? void 0 : location2(after, pair.after, column.after)
+      );
+    }
+  }
+  return keyed;
+}
+function compareTables(before, after, options2, budget3) {
+  if (!withinLimits(before, budget3) || !withinLimits(after, budget3)) return "table-position";
+  const left = uniqueComparisonKeys(before.map((table) => table.name)), right = uniqueComparisonKeys(after.map((table) => table.name));
+  const pairs2 = left && right ? keyedComparisonPairs(left, right) : positionalComparisonPairs(before.length, after.length);
+  if (!left || !right) budget3.limitations.add("Blank or duplicate table names were compared by table position.");
+  let allKeyed = !!options2.tableRowKey;
+  for (const pair of pairs2) {
+    if (!budget3.spend()) break;
+    const a = pair.before === void 0 ? void 0 : before[pair.before], b = pair.after === void 0 ? void 0 : after[pair.after];
+    if (!a || !b) {
+      add(budget3, a ? "removed" : "added", a, b, a ? location2(a) : void 0, b ? location2(b) : void 0);
+      continue;
+    }
+    if (pair.moved) add(budget3, "moved", a.name, b.name, location2(a), location2(b));
+    if (a.name !== b.name) add(budget3, "changed", a.name, b.name, location2(a), location2(b));
+    if (!compareTable(a, b, options2, budget3)) allKeyed = false;
+  }
+  return allKeyed ? "table-key" : "table-position";
+}
+var location2;
+var init_compare_tables = __esm({
+  "engine/src/compare-tables.ts"() {
+    "use strict";
+    init_compare_budget();
+    init_compare_alignment();
+    location2 = (table, row, column) => ({ path: [table.name, ...row === void 0 ? [] : [row], ...column === void 0 ? [] : [column]], table: table.name, ...row === void 0 ? {} : { row: row + 1 }, ...column === void 0 ? {} : { column: table.columns[column] || String(column + 1) } });
+  }
+});
+
+// engine/src/compare-document.ts
+function withinLimits2(units2, budget3) {
+  if (units2.length > 2e4) {
+    budget3.limit("Document content exceeds the 20,000-unit comparison limit.");
+    return false;
+  }
+  let chars = 0;
+  for (const unit2 of units2) {
+    if (!budget3.spend()) return false;
+    if (typeof unit2.text !== "string" || unit2.id !== void 0 && (typeof unit2.id !== "string" || unit2.id.length > 1024) || unit2.label !== void 0 && (typeof unit2.label !== "string" || unit2.label.length > 1024)) {
+      budget3.limit("Document units need bounded text labels and IDs.");
+      return false;
+    }
+    chars += unit2.text.length + (unit2.id?.length ?? 0) + (unit2.label?.length ?? 0);
+    if (chars > COMPARE_MAX_TEXT) {
+      budget3.limit("Document text exceeds the 2 MiB comparison limit.");
+      return false;
+    }
+  }
+  return true;
+}
+function normalText(text8, options2) {
+  let key = options2.whitespace === "ignore" ? text8.replace(/\s+/g, " ").trim() : text8;
+  if (options2.ignoreCase) key = key.toLowerCase();
+  return key;
+}
+function textPairs(before, after, options2, budget3) {
+  const index2 = (units2) => {
+    const result = /* @__PURE__ */ new Map();
+    units2.forEach((unit2, i) => {
+      const key = normalText(unit2.text, options2);
+      const group = result.get(key);
+      if (group) group.push(i);
+      else result.set(key, [i]);
+    });
+    return result;
+  };
+  const left = index2(before), right = index2(after), matchedLeft = /* @__PURE__ */ new Set(), matchedRight = /* @__PURE__ */ new Set(), pairs2 = [];
+  let ambiguous = false;
+  for (const [key, indices] of left) {
+    const other = right.get(key);
+    if (!key || indices.length > 1 || (other?.length ?? 0) > 1) {
+      ambiguous = true;
+      continue;
+    }
+    if (other?.length !== 1) continue;
+    const a2 = indices[0], b2 = other[0];
+    pairs2.push({ before: a2, after: b2 });
+    matchedLeft.add(a2);
+    matchedRight.add(b2);
+  }
+  if ([...right].some(([key, indices]) => !key || indices.length > 1)) ambiguous = true;
+  pairs2.sort((a2, b2) => a2.before - b2.before);
+  const stationary = stationaryComparisonIndices(pairs2);
+  for (const pair of pairs2) if (!stationary.has(pair.before)) pair.moved = true;
+  const a = before.map((_, i) => i).filter((i) => !matchedLeft.has(i)), b = after.map((_, i) => i).filter((i) => !matchedRight.has(i));
+  for (let i = 0; i < Math.max(a.length, b.length); i++) pairs2.push({ before: a[i], after: b[i] });
+  if (a.length || b.length) budget3.limitations.add("Units without unique exact-text anchors were paired in remaining order. Edited units have no reliable move identity.");
+  if (ambiguous) budget3.limitations.add("Blank or repeated unit text is ambiguous and was not matched as a unique text anchor.");
+  budget3.limitations.add("Text alignment uses exact extracted content; it does not establish a stable page, slide or block identity.");
+  return pairs2.sort((a2, b2) => (a2.before ?? before.length + a2.after) - (b2.before ?? before.length + b2.after));
+}
+function add2(budget3, kind, before, after, left, right) {
+  const a = comparisonValue(before?.text), b = comparisonValue(after?.text);
+  budget3.add({ kind, ...left ? { before: left, beforeValue: a.text } : {}, ...right ? { after: right, afterValue: b.text } : {}, valueTruncated: a.truncated || b.truncated });
+}
+function compareDocumentUnits(before, after, options2, budget3) {
+  if (!withinLimits2(before, budget3) || !withinLimits2(after, budget3)) return "document-position";
+  let alignment = options2.documentAlignment ?? "text";
+  let pairs2;
+  if (alignment === "id") {
+    const left = uniqueComparisonKeys(before.map((unit2) => unit2.id ?? "")), right = uniqueComparisonKeys(after.map((unit2) => unit2.id ?? ""));
+    if (left && right) pairs2 = keyedComparisonPairs(left, right);
+    else {
+      alignment = "position";
+      pairs2 = positionalComparisonPairs(before.length, after.length);
+      budget3.limitations.add("Missing or duplicate unit IDs were compared by position. No reliable ID match was invented.");
+    }
+  } else if (alignment === "text") pairs2 = textPairs(before, after, options2, budget3);
+  else pairs2 = positionalComparisonPairs(before.length, after.length);
+  if (alignment === "position") budget3.limitations.add("Document units were compared by position. Insertions can shift later units.");
+  for (const pair of pairs2) {
+    if (!budget3.spend()) break;
+    const a = pair.before === void 0 ? void 0 : before[pair.before], b = pair.after === void 0 ? void 0 : after[pair.after];
+    const left = a ? location3(a, pair.before) : void 0, right = b ? location3(b, pair.after) : void 0;
+    if (!a || !b) {
+      add2(budget3, a ? "removed" : "added", a, b, left, right);
+      continue;
+    }
+    if (pair.moved) add2(budget3, "moved", a, b, left, right);
+    compareText(a.text, b.text, options2, { ...budget3, add(change) {
+      budget3.add({ ...change, ...change.before ? { before: { ...change.before, ...left, path: [...left.path, ...change.before.path] } } : {}, ...change.after ? { after: { ...change.after, ...right, path: [...right.path, ...change.after.path] } } : {} });
+    } });
+  }
+  return `document-${alignment}`;
+}
+var location3;
+var init_compare_document = __esm({
+  "engine/src/compare-document.ts"() {
+    "use strict";
+    init_compare_budget();
+    init_compare_text();
+    init_compare_alignment();
+    location3 = (unit2, index2) => ({ path: [unit2.label || "Unit", index2], ...unit2.location });
+  }
+});
+
 // engine/src/compare.ts
 function compareSources(request2, signal) {
   signal?.throwIfAborted();
   if (request2.version !== 1) throw new Error("Unsupported comparison version.");
   const { before, after } = request2, options2 = { ...request2.options };
   const budget3 = comparisonBudget(options2, signal);
-  const mode3 = options2.mode ?? (before.content.kind === "structure" && after.content.kind === "structure" ? "structure" : "text");
+  const mode3 = options2.mode ?? (before.content.kind === after.content.kind ? before.content.kind : "text");
+  let alignment = mode3 === "text" ? options2.granularity ?? "line" : mode3 === "table" ? "table-position" : mode3 === "document" ? "document-position" : options2.arrayAlignment === "id" ? "stable-id" : "object-keys-ordered-arrays";
   let byteEquality = "unknown";
   if (before.bytes && after.bytes) {
     if (before.bytes.length > COMPARE_MAX_TEXT || after.bytes.length > COMPARE_MAX_TEXT) budget3.limitations.add("Byte equality was not checked above 2 MiB.");
@@ -117264,6 +117547,10 @@ function compareSources(request2, signal) {
     compareText(before.content.text, after.content.text, options2, budget3);
   } else if (mode3 === "structure" && before.content.kind === "structure" && after.content.kind === "structure") {
     compareStructure(before.content.value, after.content.value, options2, budget3);
+  } else if (mode3 === "table" && before.content.kind === "table" && after.content.kind === "table") {
+    alignment = compareTables(before.content.tables, after.content.tables, options2, budget3);
+  } else if (mode3 === "document" && before.content.kind === "document" && after.content.kind === "document") {
+    alignment = compareDocumentUnits(before.content.units, after.content.units, options2, budget3);
   } else budget3.limit("The selected mode does not match both sources.");
   const different = budget3.summary.total > 0;
   return {
@@ -117276,7 +117563,7 @@ function compareSources(request2, signal) {
     byteEquality,
     appearance: "not-compared",
     completeness: budget3.partial ? "partial" : "complete",
-    alignment: mode3 === "text" ? options2.granularity ?? "line" : options2.arrayAlignment === "id" ? "stable-id" : "object-keys-ordered-arrays",
+    alignment,
     summary: budget3.summary,
     changes: budget3.changes,
     detailsTruncated: budget3.detailsTruncated,
@@ -117297,6 +117584,8 @@ var init_compare2 = __esm({
     init_compare_structure();
     init_compare_text();
     init_compare_visual();
+    init_compare_tables();
+    init_compare_document();
   }
 });
 
@@ -118716,33 +119005,33 @@ function checkLearningModule(module) {
   if (!module.lessons.some((l) => l.required))
     findings.push({ severity: "error", message: "Add at least one required lesson." });
   for (const lesson of module.lessons) {
-    const add = (severity, message, blockId) => findings.push({ severity, message, lessonId: lesson.id, ...blockId ? { blockId } : {} });
-    if (!lesson.title.trim()) add("error", "Give this lesson a title.");
-    if (!lesson.blocks.length) add("error", "Add content to this lesson.");
+    const add3 = (severity, message, blockId) => findings.push({ severity, message, lessonId: lesson.id, ...blockId ? { blockId } : {} });
+    if (!lesson.title.trim()) add3("error", "Give this lesson a title.");
+    if (!lesson.blocks.length) add3("error", "Add content to this lesson.");
     for (const block of lesson.blocks) {
       if (block.kind === "text" && !(block.richText ? learningRichTextPlain(block.richText) : block.text)?.trim())
-        add("error", "Write the lesson text or remove the empty text.", block.id);
+        add3("error", "Write the lesson text or remove the empty text.", block.id);
       if (!["text", "quiz"].includes(block.kind) && !block.source)
-        add("error", "Choose a source for this content.", block.id);
+        add3("error", "Choose a source for this content.", block.id);
       if (block.quiz) {
         const q = block.quiz;
-        if (!q.prompt.trim()) add("error", "Write the quiz question.", block.id);
+        if (!q.prompt.trim()) add3("error", "Write the quiz question.", block.id);
         if (q.options.some((o) => !o.text.trim()))
-          add("error", "Write every answer option.", block.id);
+          add3("error", "Write every answer option.", block.id);
         const correct = q.options.filter((o) => o.correct).length;
         if (!correct || q.mode !== "multiple" && correct !== 1)
-          add(
+          add3(
             "error",
             q.mode === "multiple" ? "Choose at least one correct answer." : "Choose one correct answer.",
             block.id
           );
         if (new Set(q.options.map((o) => o.text.trim().toLowerCase())).size !== q.options.length)
-          add("error", "Give each answer option different text.", block.id);
+          add3("error", "Give each answer option different text.", block.id);
       }
       if (["image", "slides"].includes(block.kind) && !block.description?.trim() && !block.decorative)
-        add("review", "Add an explanation for this visual content.", block.id);
+        add3("review", "Add an explanation for this visual content.", block.id);
       if (["video", "audio"].includes(block.kind) && !block.transcript?.trim() && !block.captions?.trim())
-        add("review", "Review captions and a written alternative for this media.", block.id);
+        add3("review", "Review captions and a written alternative for this media.", block.id);
     }
   }
   return findings;
@@ -118887,7 +119176,7 @@ async function compileLearningModule(input, releaseId, resolve8, hash, onProgres
     throw new Error(failures.map((f) => f.message).join(" "));
   const files = {};
   let total = 0;
-  const add = async (bytes, mime2, ext) => {
+  const add3 = async (bytes, mime2, ext) => {
     if (!bytes.length) throw new Error("A required content file is empty.");
     checkCancelled();
     const digest2 = await hash(bytes);
@@ -118945,13 +119234,13 @@ async function compileLearningModule(input, releaseId, resolve8, hash, onProgres
                 `${lesson.title}: unsupported ${block.kind} format ${mime2}. Export a supported media file first.`
               );
             checkSignature(part.bytes, mime2);
-            compiled2.files.push(await add(part.bytes, mime2, extension));
+            compiled2.files.push(await add3(part.bytes, mime2, extension));
           }
         }
         if (block.captions?.trim()) {
           if (!/^WEBVTT(?:\s|$)/.test(block.captions.trimStart()))
             throw new Error(`${lesson.title}: captions must start with WEBVTT.`);
-          compiled2.captionFile = await add(
+          compiled2.captionFile = await add3(
             new TextEncoder().encode(block.captions),
             "text/vtt",
             "vtt"
@@ -119018,14 +119307,14 @@ function learningRenditions(manifest) {
     return [];
   const formats = manifest.render?.formats || [];
   const choices2 = [];
-  const add = (kind, options2, label4) => {
+  const add3 = (kind, options2, label4) => {
     const format = options2.find((f) => formats.includes(f));
     if (format) choices2.push({ kind, format, label: label4 });
   };
-  add("slides", ["png", "jpg", "jpeg", "webp"], "Still pages");
-  add("video", ["mp4", "webm"], "Video with motion");
-  add("audio", ["mp3", "wav", "m4a", "opus"], "Audio");
-  add("resource", ["pdf", "txt"], "Downloadable resource");
+  add3("slides", ["png", "jpg", "jpeg", "webp"], "Still pages");
+  add3("video", ["mp4", "webm"], "Video with motion");
+  add3("audio", ["mp3", "wav", "m4a", "opus"], "Audio");
+  add3("resource", ["pdf", "txt"], "Downloadable resource");
   return choices2;
 }
 function learningSummary(module) {
@@ -120860,7 +121149,7 @@ function checkBrandDesign(boxes, doc, opts = {}) {
     if (row.hidden === true || row.hidden === "true") continue;
     const id3 = typeof row.id === "string" ? row.id : "";
     const label4 = String(row.name || (typeof row.text === "string" ? row.text.slice(0, 40) : "") || id3 || "Layer");
-    const add = (field2, kind, status, value, suggestion, after) => {
+    const add3 = (field2, kind, status, value, suggestion, after) => {
       findings.push({
         id: `brand.${kind}.${id3}.${field2}`,
         layerId: id3,
@@ -120879,7 +121168,7 @@ function checkBrandDesign(boxes, doc, opts = {}) {
       if (!raw || raw === "transparent" || raw === "none") continue;
       const path = aliasPath(raw) ?? (record21(row[field2]) ? valueText(row[field2]).replace(/^\{|\}$/g, "") : null);
       if (path) {
-        if (!tokens3.has(path) || tokens3.get(path)?.type !== "color" || !parseColor(String(tokens3.resolve(path)))) add(field2, "reference", "unknown", raw);
+        if (!tokens3.has(path) || tokens3.get(path)?.type !== "color" || !parseColor(String(tokens3.resolve(path)))) add3(field2, "reference", "unknown", raw);
         else checked.colors++;
         continue;
       }
@@ -120893,11 +121182,11 @@ function checkBrandDesign(boxes, doc, opts = {}) {
         }
       }
       if (!parsed || parsed.alpha < 1) {
-        add(field2, "color", "unknown", raw);
+        add3(field2, "color", "unknown", raw);
         continue;
       }
       if (!palette.length) {
-        add(field2, "color", "unknown", raw);
+        add3(field2, "color", "unknown", raw);
         continue;
       }
       checked.colors++;
@@ -120912,17 +121201,17 @@ function checkBrandDesign(boxes, doc, opts = {}) {
       }
       if (!closest2) continue;
       if (closest2.distance < 1e-6) continue;
-      add(field2, "color", "review", raw, closest2.value, `{${closest2.path}}`);
+      add3(field2, "color", "review", raw, closest2.value, `{${closest2.path}}`);
     }
     if (row.text) {
       const font = valueText(row.font) || "sans";
       const role = { sans: "font.brand", display: "font.display", mono: "font.mono" }[font];
       const path = aliasPath(font) ?? role;
       const resolved2 = path ? tokens3.resolve(path) : font;
-      if (!allowedFonts.size || typeof resolved2 !== "string" || path && !tokens3.has(path)) add("font", "font", "unknown", font);
+      if (!allowedFonts.size || typeof resolved2 !== "string" || path && !tokens3.has(path)) add3("font", "font", "unknown", font);
       else {
         checked.fonts++;
-        if (!allowedFonts.has(family(resolved2))) add("font", "font", "review", font, context.fonts[0]?.value, tokens3.has("font.brand") ? "sans" : void 0);
+        if (!allowedFonts.has(family(resolved2))) add3("font", "font", "review", font, context.fonts[0]?.value, tokens3.has("font.brand") ? "sans" : void 0);
       }
     }
     const image = valueText(row.image) || (record21(row.image) && typeof row.image.id === "string" ? row.image.id : "");
@@ -120930,19 +121219,19 @@ function checkBrandDesign(boxes, doc, opts = {}) {
     if (image && upload) {
       uploads++;
       const look2 = parseTreatedAssetId(image).treatment;
-      if (look2 && Array.isArray(opts.treatments) && !opts.treatments.includes(look2)) add("image", "reference", "unknown", image);
+      if (look2 && Array.isArray(opts.treatments) && !opts.treatments.includes(look2)) add3("image", "reference", "unknown", image);
     } else if (image) {
       const assetId2 = aliasPath(image) ? tokens3.resolve(image) : image;
-      if (!allowedAssets.size && !catalogAssets.size || typeof assetId2 !== "string") add("image", "asset", "unknown", image);
+      if (!allowedAssets.size && !catalogAssets.size || typeof assetId2 !== "string") add3("image", "asset", "unknown", image);
       else {
         checked.assets++;
         const base = stripAssetModifiers(assetId2);
         const theme = parseThemedAssetId(assetId2).theme;
         const treatment = parseTreatedAssetId(assetId2).treatment;
         const exact = allowedAssets.has(assetId2);
-        if (!exact && !allowedAssets.has(base) && !catalogAssets.has(base)) add("image", "asset", "review", image);
-        else if (!exact && theme && theme !== AUTO_ASSET_THEME && Array.isArray(opts.iconThemes) && !opts.iconThemes.includes(theme)) add("image", "reference", "unknown", image);
-        else if (!exact && treatment && Array.isArray(opts.treatments) && !opts.treatments.includes(treatment)) add("image", "reference", "unknown", image);
+        if (!exact && !allowedAssets.has(base) && !catalogAssets.has(base)) add3("image", "asset", "review", image);
+        else if (!exact && theme && theme !== AUTO_ASSET_THEME && Array.isArray(opts.iconThemes) && !opts.iconThemes.includes(theme)) add3("image", "reference", "unknown", image);
+        else if (!exact && treatment && Array.isArray(opts.treatments) && !opts.treatments.includes(treatment)) add3("image", "reference", "unknown", image);
       }
     }
   }
@@ -121143,7 +121432,7 @@ function checkDesignHouseRules(boxes, rules, doc, opts = {}) {
     }
     const p = record22(rule.parameters) ? rule.parameters : {};
     const requirement = rule.requirement === "required" ? "required" : "advisory";
-    const add = (row, field2, value, expected, detail) => {
+    const add3 = (row, field2, value, expected, detail) => {
       const artboardId = artboardOf(row);
       findings.push({
         ruleId: rule.id,
@@ -121180,12 +121469,12 @@ function checkDesignHouseRules(boxes, rules, doc, opts = {}) {
         if (!inTarget(row)) continue;
         const weights = weightsOf(row);
         if (!allowed.includes(weights.own)) {
-          add(row, "weight", weights.own, list2(allowed), `This text is set at weight ${weights.own}${row.weight === void 0 ? " (the Design default)" : ""}; allowed: ${list2(allowed)}.`);
+          add3(row, "weight", weights.own, list2(allowed), `This text is set at weight ${weights.own}${row.weight === void 0 ? " (the Design default)" : ""}; allowed: ${list2(allowed)}.`);
           continue;
         }
         const off = weights.runs.filter((w) => !allowed.includes(w));
         if (off.length) {
-          add(row, "text", off.join(", "), list2(allowed), `${weights.bold ? "Bold runs" : "Runs"} in this text paint at weight ${list2(off)}; allowed: ${list2(allowed)}. State an allowed weight on the run instead, such as {w${allowed[allowed.length - 1]}|...}.`);
+          add3(row, "text", off.join(", "), list2(allowed), `${weights.bold ? "Bold runs" : "Runs"} in this text paint at weight ${list2(off)}; allowed: ${list2(allowed)}. State an allowed weight on the run instead, such as {w${allowed[allowed.length - 1]}|...}.`);
         }
       }
     } else if (rule.kind === "text-case") {
@@ -121197,7 +121486,7 @@ function checkDesignHouseRules(boxes, rules, doc, opts = {}) {
       const exemptWords = new Set(strings2(p.exemptWords));
       for (const { row } of texts) {
         if (!inTarget(row)) continue;
-        if (setInCapitals(textOf7(row), exemptWords)) add(row, "text", void 0, void 0, "This text is set in capitals.");
+        if (setInCapitals(textOf7(row), exemptWords)) add3(row, "text", void 0, void 0, "This text is set in capitals.");
       }
     } else if (rule.kind === "text-align") {
       const align = typeof p.align === "string" ? p.align : "";
@@ -121217,7 +121506,7 @@ function checkDesignHouseRules(boxes, rules, doc, opts = {}) {
         if (archetype && exemptArchetypes.some((a) => matches2(a, archetype))) continue;
         if (p.exemptNumeric === true && NUMERIC_TEXT.test(textOf7(row))) continue;
         const value = typeof row.align === "string" && row.align ? row.align : DESIGN_DEFAULT_ALIGN;
-        if (value !== align) add(row, "align", value, align, `This text is ${value === "center" ? "centred" : `${value}-aligned`}; use ${align}.`);
+        if (value !== align) add3(row, "align", value, align, `This text is ${value === "center" ? "centred" : `${value}-aligned`}; use ${align}.`);
       }
     } else if (rule.kind === "color-pairing") {
       if (p.source !== void 0 && p.source !== "token-extension") {
@@ -121242,7 +121531,7 @@ function checkDesignHouseRules(boxes, rules, doc, opts = {}) {
           if (fgNames.some((n7) => policy.text.includes(n7))) continue;
           const graphicOnly = fgNames.some((n7) => policy.graphic.includes(n7));
           const fg = label(fgNames[0]);
-          add(
+          add3(
             row,
             "fg",
             colour.raw,
@@ -121270,7 +121559,7 @@ function checkDesignHouseRules(boxes, rules, doc, opts = {}) {
         if (row.kind === "path" || row.kind === "frame" || !rounded(row)) continue;
         const stroke = colourOf2(layout2, valueText2(row.stroke));
         if (stroke && num11(row.strokeW, 0) > 0 && !neutral.has(stroke)) {
-          add(
+          add3(
             row,
             "stroke",
             valueText2(row.stroke),
@@ -121291,7 +121580,7 @@ function checkDesignHouseRules(boxes, rules, doc, opts = {}) {
           const horizontal = sh <= stripMax && sh < h / 4 && sw >= w / 2 && (Math.abs(sy - y) <= tol || Math.abs(sy + sh - (y + h)) <= tol);
           const vertical = sw <= stripMax && sw < w / 4 && sh >= h / 2 && (Math.abs(sx - x) <= tol || Math.abs(sx + sw - (x + w)) <= tol);
           if (horizontal || vertical) {
-            add(
+            add3(
               strip,
               "bg",
               valueText2(strip.bg),
@@ -121309,7 +121598,7 @@ function checkDesignHouseRules(boxes, rules, doc, opts = {}) {
         if (row.kind === "path") continue;
         const style = typeof row.strokeDash === "string" && row.strokeDash ? row.strokeDash : typeof row.strokeDashArray === "string" && row.strokeDashArray.trim() ? "dashed" : "";
         if (!style || !styles.includes(style) || num11(row.strokeW, 0) <= 0 || !colourOf2(layout2, valueText2(row.stroke))) continue;
-        add(row, "strokeDash", style, "solid", `A ${style} border is reserved for ${meaning}.`);
+        add3(row, "strokeDash", style, "solid", `A ${style} border is reserved for ${meaning}.`);
       }
     } else if (rule.kind === "logo-surface") {
       const fromCatalog = (names) => names.map((n7) => catalogLogos[n7]).filter((v) => typeof v === "string");
@@ -121344,7 +121633,7 @@ function checkDesignHouseRules(boxes, rules, doc, opts = {}) {
         }
         const allowed = kind === "photo" ? photo : kind === "dark" ? dark : light;
         if (allowed.length && !allowed.includes(id3)) {
-          add(row, "image", id3, list2(allowed), `The logo ${id3} sits on a ${kind === "photo" ? "photograph" : `${kind} surface`}; use ${list2(allowed)}.`);
+          add3(row, "image", id3, list2(allowed), `The logo ${id3} sits on a ${kind === "photo" ? "photograph" : `${kind} surface`}; use ${list2(allowed)}.`);
         }
       }
     }
@@ -121530,7 +121819,7 @@ function masterSection(master, resolve8, asset2) {
 }
 function typeSection(master, fonts, rules) {
   const roles = /* @__PURE__ */ new Map();
-  const add = (role, size, weight, align) => {
+  const add3 = (role, size, weight, align) => {
     const r5 = roles.get(role) ?? { sizes: [], weights: [], aligns: [] };
     if (typeof size === "number") r5.sizes.push(size);
     r5.weights.push(weight ?? "unset");
@@ -121540,10 +121829,10 @@ function typeSection(master, fonts, rules) {
   for (const a of master.archetypes) {
     for (const p of a.placeholders) {
       if (p.kind !== "text") continue;
-      add(p.role, roleFontSize(master, p.role, p.style), p.style?.weight, p.style?.align);
+      add3(p.role, roleFontSize(master, p.role, p.style), p.style?.weight, p.style?.align);
     }
   }
-  for (const f of master.furniture) if (f.style && (f.kind === "page-number" || f.kind === "footer")) add(f.kind, f.style.fontSize, f.style.weight, f.style.align);
+  for (const f of master.furniture) if (f.style && (f.kind === "page-number" || f.kind === "footer")) add3(f.kind, f.style.fontSize, f.style.weight, f.style.align);
   return {
     families: fonts,
     size: master.size,
@@ -121985,13 +122274,13 @@ function designForensicPages(boxes, opts = {}) {
     const kept2 = [];
     let length2 = 0;
     for (const line of lines) {
-      const add = line.text.length + (kept2.length ? 1 : 0);
-      if (kept2.length >= LINE_LIMIT || length2 + add > TEXT_LIMIT) {
+      const add3 = line.text.length + (kept2.length ? 1 : 0);
+      if (kept2.length >= LINE_LIMIT || length2 + add3 > TEXT_LIMIT) {
         complete = false;
         notes.push("lines");
         break;
       }
-      length2 += add;
+      length2 += add3;
       line.index = kept2.length;
       kept2.push(line);
     }
@@ -122484,8 +122773,8 @@ async function forensicReport(bytes, pages, coverage, models = [], additional = 
         shapes: []
       };
       for (const f of forensicNumberingFindings(whole)) {
-        f.locations = f.locations.flatMap((location2) => {
-          const span = location2.span;
+        f.locations = f.locations.flatMap((location4) => {
+          const span = location4.span;
           let offset = 0;
           for (const page3 of pages) {
             if (span.index >= offset && span.index < offset + page3.text.length)
@@ -122539,16 +122828,16 @@ async function forensicReport(bytes, pages, coverage, models = [], additional = 
         measurements: { rawMean: m2.rawMean, threshold: m2.threshold, complete: m2.complete }
       });
   for (const f of findings)
-    for (const location2 of f.locations) {
-      const page3 = pages.find((p) => p.id === location2.page);
-      if (!location2.box && location2.span && page3?.lines.length) {
+    for (const location4 of f.locations) {
+      const page3 = pages.find((p) => p.id === location4.page);
+      if (!location4.box && location4.span && page3?.lines.length) {
         let offset = 0;
         for (const line of page3.lines) {
           const start = page3.text.indexOf(line.text, offset);
           if (start < 0) continue;
           offset = start + line.text.length;
-          if (start < location2.span.index + location2.span.length && offset > location2.span.index) {
-            location2.box = line.box;
+          if (start < location4.span.index + location4.span.length && offset > location4.span.index) {
+            location4.box = line.box;
             break;
           }
         }
@@ -122638,13 +122927,13 @@ async function verifyForensicReport(report4, bytes) {
       (p) => !p || !str10(p.id) || !str10(p.text) || !num17(p.width) || !num17(p.height) || p.width < 0 || p.height < 0 || typeof p.complete !== "boolean" || !["digital", "ocr"].includes(p.source) || !array(p.lines, 1e4) || !array(p.shapes, 1e3) || p.lines.some((l) => !str10(l.text) || !unit2(l.confidence) || !box4(l.box)) || p.shapes.some((s) => !box4(s.box) || !num17(s.radius) || !str10(s.fill))
     ))
       return false;
-    const location2 = (l) => {
+    const location4 = (l) => {
       const page3 = l && report4.pages.find((p) => p.id === l.page);
       return !!page3 && (!l.box || box4(l.box)) && (!l.span || integer2(l.span.index, page3.text.length) && integer2(l.span.length, page3.text.length - l.span.index));
     };
     if (!array(report4.findings, 4096) || new Set(report4.findings.map((f) => f.id)).size !== report4.findings.length || report4.findings.some(
-      (f) => !f || ![f.id, f.rule, f.family, f.version, f.label, f.detail, f.method].every(str10) || !["text", "layout"].includes(f.modality) || !["heuristic", "observed"].includes(f.confidenceBasis) || !unit2(f.confidence) || !["weak-clue", "specific-artifact", "context-excluded"].includes(f.contribution) || !array(f.alternatives, 100) || !f.alternatives.every(str10) || !array(f.locations, 1e4) || !f.locations.every(location2) || !measurement2(f.measurements) || f.observations && (!array(f.observations, 1e4) || f.observations.some(
-        (o) => !str10(o.method) || !unit2(o.confidence) || !measurement2(o.measurements) || !array(o.locations, 1e4) || !o.locations.every(location2)
+      (f) => !f || ![f.id, f.rule, f.family, f.version, f.label, f.detail, f.method].every(str10) || !["text", "layout"].includes(f.modality) || !["heuristic", "observed"].includes(f.confidenceBasis) || !unit2(f.confidence) || !["weak-clue", "specific-artifact", "context-excluded"].includes(f.contribution) || !array(f.alternatives, 100) || !f.alternatives.every(str10) || !array(f.locations, 1e4) || !f.locations.every(location4) || !measurement2(f.measurements) || f.observations && (!array(f.observations, 1e4) || f.observations.some(
+        (o) => !str10(o.method) || !unit2(o.confidence) || !measurement2(o.measurements) || !array(o.locations, 1e4) || !o.locations.every(location4)
       ))
     ))
       return false;
@@ -122662,8 +122951,8 @@ async function verifyForensicReport(report4, bytes) {
       return false;
     if (!array(report4.models, 100) || report4.models.some(
       (m2) => !m2 || ![m2.model, m2.version].every(str10) || !unit2(m2.rawMean) || !unit2(m2.threshold) || typeof m2.complete !== "boolean" || !array(m2.windows, 128) || m2.windows.some(
-        (w) => !integer2(w.tokens, 1e5) || !unit2(w.rawScore) || !location2({ page: m2.page, span: w })
-      ) || m2.chunks !== void 0 && (!array(m2.chunks, 128) || m2.chunks.some((c) => !unit2(c.rawScore) || !location2({ page: m2.page, span: c }))) || m2.chunkThreshold !== void 0 && !unit2(m2.chunkThreshold) || m2.chunkFloor !== void 0 && !unit2(m2.chunkFloor) || m2.chunkVersion !== void 0 && !str10(m2.chunkVersion)
+        (w) => !integer2(w.tokens, 1e5) || !unit2(w.rawScore) || !location4({ page: m2.page, span: w })
+      ) || m2.chunks !== void 0 && (!array(m2.chunks, 128) || m2.chunks.some((c) => !unit2(c.rawScore) || !location4({ page: m2.page, span: c }))) || m2.chunkThreshold !== void 0 && !unit2(m2.chunkThreshold) || m2.chunkFloor !== void 0 && !unit2(m2.chunkFloor) || m2.chunkVersion !== void 0 && !str10(m2.chunkVersion)
     ))
       return false;
     if (!array(report4.origins, 100) || report4.origins.some(
@@ -122857,13 +123146,13 @@ function checkFindingsFromForensic(finding3, opts = {}) {
     const located = observation.locations.find((l) => l.box) ?? observation.locations[0];
     const layerIds = [];
     let artboardId;
-    for (const location2 of observation.locations) {
-      const ref = location2.box ? opts.refs?.get(location2.box) : void 0;
+    for (const location4 of observation.locations) {
+      const ref = location4.box ? opts.refs?.get(location4.box) : void 0;
       if (ref) {
         for (const id3 of ref.layerIds) if (!layerIds.includes(id3)) layerIds.push(id3);
         artboardId ??= ref.artboardId;
       }
-      artboardId ??= opts.pageArtboards?.get(location2.page) || void 0;
+      artboardId ??= opts.pageArtboards?.get(location4.page) || void 0;
     }
     const evidence = {
       ...observation.measurements,
@@ -125880,7 +126169,7 @@ function previewTextCleanup(story, range, language, options2) {
   assertTextRange(story.source, range);
   const edits = [], source = story.source.slice(range.start, range.end), boundaries = textBoundaries(story.source);
   const protectedRanges = [...story.spans.filter((span) => span.literal), ...[...story.source.matchAll(/(?:https?:\/\/|www\.)[^\s]+|`[^`\n]+`/gu)].map((match) => ({ start: match.index, end: match.index + match[0].length }))];
-  const add = (start, end, after, kind) => {
+  const add3 = (start, end, after, kind) => {
     start += range.start;
     end += range.start;
     if (!boundaries.has(start) || !boundaries.has(end)) return;
@@ -125892,13 +126181,13 @@ function previewTextCleanup(story, range, language, options2) {
   if (options2.quotes && ["en", "fr", "de", "es"].includes(tag3)) {
     const pair = tag3 === "fr" ? ["\xAB\u202F", "\u202F\xBB"] : tag3 === "de" ? ["\u201E", "\u201C"] : ["\u201C", "\u201D"];
     for (const match of source.matchAll(/"([^"\n\r\u2028\u2029]+)"/gu)) {
-      add(match.index, match.index + 1, pair[0], "quotes");
-      add(match.index + match[0].length - 1, match.index + match[0].length, pair[1], "quotes");
+      add3(match.index, match.index + 1, pair[0], "quotes");
+      add3(match.index + match[0].length - 1, match.index + match[0].length, pair[1], "quotes");
     }
-    for (const match of source.matchAll(new RegExp("(?<=\\p{L})'(?=\\p{L})", "gu"))) add(match.index, match.index + 1, "\u2019", "quotes");
+    for (const match of source.matchAll(new RegExp("(?<=\\p{L})'(?=\\p{L})", "gu"))) add3(match.index, match.index + 1, "\u2019", "quotes");
   }
-  if (options2.spaces) for (const match of source.matchAll(/(?<=\S) {2,}(?=\S)/gu)) add(match.index, match.index + match[0].length, " ", "spaces");
-  if (options2.discretionary) for (const match of source.matchAll(/[\u00ad\u200b]/gu)) add(match.index, match.index + 1, "", "discretionary");
+  if (options2.spaces) for (const match of source.matchAll(/(?<=\S) {2,}(?=\S)/gu)) add3(match.index, match.index + match[0].length, " ", "spaces");
+  if (options2.discretionary) for (const match of source.matchAll(/[\u00ad\u200b]/gu)) add3(match.index, match.index + 1, "", "discretionary");
   return { storyId: story.id, revision: story.revision, range: { ...range }, edits: edits.sort((a, b) => a.start - b.start) };
 }
 function applyTextCleanup(story, preview) {
@@ -131720,7 +132009,7 @@ function fillMasked(image, boxes) {
   if (!marked) return { image: { width: w, height: h, data }, reads: 0 };
   const sum = new Float32Array(w * h * 3);
   const weight = new Float32Array(w * h);
-  const add = (p, from, d) => {
+  const add3 = (p, from, d) => {
     const k = 1 / (d * d);
     const i = from * 4;
     sum[p * 3] = (sum[p * 3] ?? 0) + k * (image.data[i] ?? 0);
@@ -131740,8 +132029,8 @@ function fillMasked(image, boxes) {
       while (x < w && on2[y * w + x]) x++;
       for (let k = start; k < x; k++) {
         reads++;
-        if (start > 0) add(y * w + k, y * w + start - 1, k - start + 1);
-        if (x < w) add(y * w + k, y * w + x, x - k);
+        if (start > 0) add3(y * w + k, y * w + start - 1, k - start + 1);
+        if (x < w) add3(y * w + k, y * w + x, x - k);
       }
     }
   }
@@ -131756,8 +132045,8 @@ function fillMasked(image, boxes) {
       while (y < h && on2[y * w + x]) y++;
       for (let k = start; k < y; k++) {
         reads++;
-        if (start > 0) add(k * w + x, (start - 1) * w + x, k - start + 1);
-        if (y < h) add(k * w + x, y * w + x, y - k);
+        if (start > 0) add3(k * w + x, (start - 1) * w + x, k - start + 1);
+        if (y < h) add3(k * w + x, y * w + x, y - k);
       }
     }
   }
@@ -133734,9 +134023,9 @@ function validProductionPixels(p) {
   return !!p && Number.isSafeInteger(p.width) && p.width > 0 && Number.isSafeInteger(p.height) && p.height > 0 && p.width * p.height <= PRODUCTION_MAX_PIXELS && (p.rgba instanceof Uint8Array || p.rgba instanceof Uint8ClampedArray) && p.rgba.length === p.width * p.height * 4;
 }
 function compareProductionPixels(a, b, policy, signal) {
-  const check = (id3, location2, pass, reason2, actual, expected) => ({
+  const check = (id3, location4, pass, reason2, actual, expected) => ({
     id: id3,
-    location: location2,
+    location: location4,
     state: pass === void 0 ? "undetermined" : pass ? "pass" : "fail",
     method: "decoded-pixels",
     reason: reason2,
@@ -133866,33 +134155,33 @@ var init_motion = __esm({
 // engine/src/production/report.ts
 function evaluateProductionFacts(contract2, facts2) {
   const checks = [];
-  const add = (id3, actual, expected, method, location2 = "artifact") => {
+  const add3 = (id3, actual, expected, method, location4 = "artifact") => {
     const pass = actual === void 0 ? void 0 : typeof actual === "number" && typeof expected === "number" ? Number.isFinite(actual) && Math.abs(actual - expected) <= Number.EPSILON * 8 * Math.max(1, Math.abs(expected)) : actual === expected;
     checks.push({
       id: id3,
       state: pass === void 0 ? "undetermined" : pass ? "pass" : "fail",
       method,
-      location: location2,
+      location: location4,
       reason: actual === void 0 ? "fact-unavailable" : "exact-requirement",
       waivable: false,
       ...actual === void 0 ? {} : { actual: typeof actual === "boolean" ? String(actual) : actual },
       expected: typeof expected === "boolean" ? String(expected) : expected
     });
   };
-  add("format", facts2.format, contract2.format, "artifact-parser");
-  add("readability", facts2.readable, true, contract2.profile === "lolly/production-motion-v1" ? "decoded-media" : "artifact-parser");
-  add("width", facts2.width, contract2.width, "artifact-parser");
-  add("height", facts2.height, contract2.height, "artifact-parser");
+  add3("format", facts2.format, contract2.format, "artifact-parser");
+  add3("readability", facts2.readable, true, contract2.profile === "lolly/production-motion-v1" ? "decoded-media" : "artifact-parser");
+  add3("width", facts2.width, contract2.width, "artifact-parser");
+  add3("height", facts2.height, contract2.height, "artifact-parser");
   if (contract2.profile === "lolly/production-still-v1") {
-    add("pages", facts2.pages, contract2.pages, "artifact-parser");
-    if (contract2.alpha !== "any") add("alpha", facts2.opaque, contract2.alpha === "opaque", "decoded-pixels");
+    add3("pages", facts2.pages, contract2.pages, "artifact-parser");
+    if (contract2.alpha !== "any") add3("alpha", facts2.opaque, contract2.alpha === "opaque", "decoded-pixels");
   } else checks.push(...motionProductionChecks(contract2, facts2));
-  if (contract2.sourceSha256) add("source", facts2.sourceSha256, contract2.sourceSha256, "resolved-structure");
-  if (contract2.contextSha256) add("context", facts2.contextSha256, contract2.contextSha256, "resolved-structure");
+  if (contract2.sourceSha256) add3("source", facts2.sourceSha256, contract2.sourceSha256, "resolved-structure");
+  if (contract2.contextSha256) add3("context", facts2.contextSha256, contract2.contextSha256, "resolved-structure");
   for (const r5 of contract2.requirements) {
     const map = r5.kind === "text" ? facts2.text : r5.kind === "link" ? facts2.links : r5.kind === "node" ? facts2.nodes : r5.kind === "input" ? facts2.inputs : facts2.resources;
     const value = map && Object.hasOwn(map, r5.location) ? map[r5.location] : void 0;
-    add(`requirement.${r5.id}`, value, r5.expected, r5.kind === "resource" ? "resolved-resource" : r5.kind === "input" ? "resolved-structure" : "artifact-parser", r5.location);
+    add3(`requirement.${r5.id}`, value, r5.expected, r5.kind === "resource" ? "resolved-resource" : r5.kind === "input" ? "resolved-structure" : "artifact-parser", r5.location);
   }
   return checks;
 }
@@ -134270,17 +134559,17 @@ function mergeTokenDocuments(base, local2, incoming) {
   }
   let nodes = 0;
   const conflicts = [];
-  function merge(b, l, n7, location2, depth) {
+  function merge(b, l, n7, location4, depth) {
     if (++nodes > 2e4 || depth > 48) throw new Error("The source merge exceeded its scan limit.");
     if (equal(l, n7) || equal(b, n7)) return structuredClone(l);
     if (equal(b, l)) return structuredClone(n7);
     if (record29(l) && record29(n7) && (!b || record29(b)) && !("$value" in l) && !("$value" in n7)) {
       return Object.fromEntries([.../* @__PURE__ */ new Set([...Object.keys(record29(b) ? b : {}), ...Object.keys(l), ...Object.keys(n7)])].flatMap((k) => {
-        const value = merge(record29(b) ? b[k] : void 0, l[k], n7[k], `${location2}/${k.replaceAll("~", "~0").replaceAll("/", "~1")}`, depth + 1);
+        const value = merge(record29(b) ? b[k] : void 0, l[k], n7[k], `${location4}/${k.replaceAll("~", "~0").replaceAll("/", "~1")}`, depth + 1);
         return value === void 0 ? [] : [[k, value]];
       }));
     }
-    conflicts.push({ location: location2, base: structuredClone(b), local: structuredClone(l), incoming: structuredClone(n7) });
+    conflicts.push({ location: location4, base: structuredClone(b), local: structuredClone(l), incoming: structuredClone(n7) });
     return structuredClone(l);
   }
   return { document: merge(base, local2, incoming, "", 0), conflicts };
@@ -134820,10 +135109,10 @@ function supportedValue(type, value) {
   if (type === "shadow" && "inset" in value) return typeof value.inset === "boolean";
   return true;
 }
-function withTokenSourceValue(doc, location2, value) {
+function withTokenSourceValue(doc, location4, value) {
   if (!record30(doc)) throw new Error("A token document is required.");
-  const keys2 = location2.split("/").slice(1).map((k) => k.replaceAll("~1", "/").replaceAll("~0", "~"));
-  if (!location2.startsWith("/") || !keys2.length || keys2.length > 48 || keys2.some((k) => ["__proto__", "prototype", "constructor"].includes(k))) throw new Error("The token source location is invalid.");
+  const keys2 = location4.split("/").slice(1).map((k) => k.replaceAll("~1", "/").replaceAll("~0", "~"));
+  if (!location4.startsWith("/") || !keys2.length || keys2.length > 48 || keys2.some((k) => ["__proto__", "prototype", "constructor"].includes(k))) throw new Error("The token source location is invalid.");
   const copy = structuredClone(doc);
   let node = copy, type = copy.$type;
   for (const key of keys2) {
@@ -140809,12 +141098,12 @@ function msg(err) {
 function pdfContentString(ctx, pageNode, content2) {
   const c = ctx.lookup(getKey(ctx, pageNode, "Contents"));
   const parts = [];
-  const add = (ref) => {
+  const add3 = (ref) => {
     const t = pdfWalkText({ ctx, content: content2 }, ref);
     if (t != null) parts.push(t);
   };
-  if (c instanceof PDFArray) c.asArray().forEach(add);
-  else add(getKey(ctx, pageNode, "Contents"));
+  if (c instanceof PDFArray) c.asArray().forEach(add3);
+  else add3(getKey(ctx, pageNode, "Contents"));
   return parts.join("\n");
 }
 async function loadPdfDocument(bytes) {
@@ -145289,7 +145578,7 @@ var init_source_psd = __esm({
 // engine/src/vector-text.ts
 function edgesOf(d, map) {
   const edges = [];
-  const add = (ax, ay, bx, by) => {
+  const add3 = (ax, ay, bx, by) => {
     if (ay === by) return;
     edges.push(ay < by ? { x0: ax, y0: ay, x1: bx, y1: by, dir: 1 } : { x0: bx, y0: by, x1: ax, y1: ay, dir: -1 });
   };
@@ -145300,7 +145589,7 @@ function edgesOf(d, map) {
     let py = 0;
     for (const seg4 of sub.segments) {
       if (seg4.op === "M") {
-        if (px3 !== sx || py !== sy) add(px3, py, sx, sy);
+        if (px3 !== sx || py !== sy) add3(px3, py, sx, sy);
         [sx, sy] = map(seg4.x, seg4.y);
         px3 = sx;
         py = sy;
@@ -145308,7 +145597,7 @@ function edgesOf(d, map) {
       }
       if (seg4.op === "L") {
         const [x, y] = map(seg4.x, seg4.y);
-        add(px3, py, x, y);
+        add3(px3, py, x, y);
         px3 = x;
         py = y;
         continue;
@@ -145325,14 +145614,14 @@ function edgesOf(d, map) {
         const u = 1 - t;
         const x = u * u * u * px3 + 3 * u * u * t * c1x + 3 * u * t * t * c2x + t * t * t * ex;
         const y = u * u * u * py + 3 * u * u * t * c1y + 3 * u * t * t * c2y + t * t * t * ey;
-        add(lx, ly, x, y);
+        add3(lx, ly, x, y);
         lx = x;
         ly = y;
       }
       px3 = ex;
       py = ey;
     }
-    if (px3 !== sx || py !== sy) add(px3, py, sx, sy);
+    if (px3 !== sx || py !== sy) add3(px3, py, sx, sy);
   }
   return edges;
 }
@@ -145455,18 +145744,18 @@ function wordsOf4(text8) {
 function phrasesOf(hints, items2) {
   const out = [];
   const seen = /* @__PURE__ */ new Set();
-  const add = (raw) => {
+  const add3 = (raw) => {
     const text8 = raw?.replace(/\s+/g, " ").trim();
     if (!text8 || text8.length > 300 || seen.has(text8)) return;
     seen.add(text8);
     out.push(text8);
   };
-  for (const name of hints?.names ?? []) add(name);
-  for (const item2 of items2.items) add(item2.series);
-  add(hints?.title ?? items2.title);
+  for (const name of hints?.names ?? []) add3(name);
+  for (const item2 of items2.items) add3(item2.series);
+  add3(hints?.title ?? items2.title);
   for (const sentence of (hints?.desc ?? items2.desc ?? "").split(/(?<=[.!?])\s+/)) {
-    add(sentence.replace(/[.]$/, ""));
-    for (const part of sentence.split(/\s+[\u00b7\u2022|]\s+/)) add(part.replace(/[.]$/, ""));
+    add3(sentence.replace(/[.]$/, ""));
+    for (const part of sentence.split(/\s+[\u00b7\u2022|]\s+/)) add3(part.replace(/[.]$/, ""));
   }
   return out;
 }
@@ -151191,7 +151480,7 @@ function pageDicts(doc) {
 }
 function scanPdfStructure(doc) {
   const out = [];
-  const add = (label4, detail, tone = "") => {
+  const add3 = (label4, detail, tone = "") => {
     const d = clip2(detail);
     if (d) out.push({ label: label4, detail: d, tone });
   };
@@ -151206,7 +151495,7 @@ function scanPdfStructure(doc) {
     const files = collectAttachments(ctx, doc, pages);
     if (files.length) {
       const shown = files.map((f) => f.bytes ? `${f.name} (${bytesLabel(f.bytes)})` : f.name);
-      add("Attachments", `${count3(files.length, "embedded file")} - ${list3(shown)}`, "warn");
+      add3("Attachments", `${count3(files.length, "embedded file")} - ${list3(shown)}`, "warn");
     }
   } catch {
   }
@@ -151219,16 +151508,16 @@ function scanPdfStructure(doc) {
     const act = collectActions(ctx, doc, pages, fields2);
     const scripts = uniq(act.scripts);
     if (scripts.length) {
-      add("JavaScript", `${count3(scripts.length, "script")} - runs when the document is opened or used \xB7 ${clip2(scripts[0], 160)}`, "warn");
+      add3("JavaScript", `${count3(scripts.length, "script")} - runs when the document is opened or used \xB7 ${clip2(scripts[0], 160)}`, "warn");
     }
     if (act.launches.length) {
-      add("Launch actions", `${count3(act.launches.length, "action")} that opens an external program or file - ${list3(uniq(act.launches))}`, "warn");
+      add3("Launch actions", `${count3(act.launches.length, "action")} that opens an external program or file - ${list3(uniq(act.launches))}`, "warn");
     }
     if (act.submits.length) {
-      add("Form submission", `Sends filled values to ${list3(uniq(act.submits))}`, "warn");
+      add3("Form submission", `Sends filled values to ${list3(uniq(act.submits))}`, "warn");
     }
     if (act.remotes.length) {
-      add("Remote documents", `Jumps into ${list3(uniq(act.remotes))}`, "warn");
+      add3("Remote documents", `Jumps into ${list3(uniq(act.remotes))}`, "warn");
     }
     if (act.uris.length) {
       const urls = uniq(act.uris);
@@ -151239,7 +151528,7 @@ function scanPdfStructure(doc) {
           return "";
         }
       }));
-      add("Links", hosts.length ? `${count3(urls.length, "outbound link")} to ${list3(hosts)}` : `${count3(urls.length, "outbound link")} - ${list3(urls)}`);
+      add3("Links", hosts.length ? `${count3(urls.length, "outbound link")} to ${list3(hosts)}` : `${count3(urls.length, "outbound link")} - ${list3(urls)}`);
       for (const url of urls.filter((u) => u.length <= 2048).slice(0, 64)) {
         out.push({ label: "Link", detail: url, tone: "" });
       }
@@ -151249,14 +151538,14 @@ function scanPdfStructure(doc) {
   try {
     const filled2 = fields2.filter((f) => f.type !== "Sig" && f.value);
     if (filled2.length) {
-      add("Form values", `${count3(filled2.length, "filled field")} - ${list3(filled2.map((f) => `${f.name || "(unnamed)"}: ${f.value}`))}`, "warn");
+      add3("Form values", `${count3(filled2.length, "filled field")} - ${list3(filled2.map((f) => `${f.name || "(unnamed)"}: ${f.value}`))}`, "warn");
     }
     const signatures = fields2.filter((f) => f.type === "Sig" && f.dict.get(PDFName2.of("V")) != null);
     if (signatures.length) {
-      add("Digital signature", `${count3(signatures.length, "signed field")} - re-saving this file invalidates it`);
+      add3("Digital signature", `${count3(signatures.length, "signed field")} - re-saving this file invalidates it`);
     }
     if (get2(ctx, doc.catalog.get(PDFName2.of("AcroForm")), "XFA")) {
-      add("XFA form", "Carries an XFA form definition - an XML form layer beyond the visible page");
+      add3("XFA form", "Carries an XFA form definition - an XML form layer beyond the visible page");
     }
   } catch {
   }
@@ -151271,20 +151560,20 @@ function scanPdfStructure(doc) {
       const parts = [count3(markup.length, "annotation")];
       if (authors.length) parts.push(`by ${list3(authors)}`);
       if (comments.length) parts.push(`\xB7 ${clip2(comments[0], 120)}`);
-      add("Annotations", parts.join(" "), authors.length || comments.length ? "warn" : "");
+      add3("Annotations", parts.join(" "), authors.length || comments.length ? "warn" : "");
     }
   } catch {
   }
   try {
     const { names, hidden: hidden4 } = collectLayers(ctx, doc);
     if (hidden4.length) {
-      add("Hidden layers", `${count3(hidden4.length, "layer")} present but switched off - ${list3(hidden4)}`, "warn");
+      add3("Hidden layers", `${count3(hidden4.length, "layer")} present but switched off - ${list3(hidden4)}`, "warn");
     } else if (names.length) {
-      add("Layers", `${count3(names.length, "layer")} - ${list3(names)}`);
+      add3("Layers", `${count3(names.length, "layer")} - ${list3(names)}`);
     }
   } catch {
   }
-  if (pages.length) add("Pages", count3(pages.length, "page"));
+  if (pages.length) add3("Pages", count3(pages.length, "page"));
   return out;
 }
 var MAX_DEPTH5, MAX_ITEMS2, LIST_CAP, DETAIL_CAP, NON_MARKUP;
@@ -151374,7 +151663,7 @@ async function analyzePdf(bytes) {
   const { PDFDocument: PDFDocument4, PDFName: PDFName6 } = await import("pdf-lib");
   const doc = await PDFDocument4.load(bytes, PDF_LOAD_OPTS);
   const findings = [];
-  const add = (label4, detail, tone = "") => {
+  const add3 = (label4, detail, tone = "") => {
     const d = detail == null ? "" : String(detail).trim();
     if (d) findings.push({ label: label4, detail: d, tone });
   };
@@ -151385,27 +151674,27 @@ async function analyzePdf(bytes) {
     } catch {
       v = null;
     }
-    add(f.label, Array.isArray(v) ? v.join(", ") : v, f.tone);
+    add3(f.label, Array.isArray(v) ? v.join(", ") : v, f.tone);
   }
   try {
-    add("Created", isoDate2(doc.getCreationDate()));
+    add3("Created", isoDate2(doc.getCreationDate()));
   } catch {
   }
   try {
-    add("Modified", isoDate2(doc.getModificationDate()));
+    add3("Modified", isoDate2(doc.getModificationDate()));
   } catch {
   }
   const xmp = readXmpText(doc, PDFName6);
   if (xmp != null) {
     const who = xmpField(xmp, /<dc:creator>[\s\S]*?<rdf:li[^>]*>([\s\S]*?)<\/rdf:li>/i) || xmpField(xmp, /<xmp:CreatorTool>([\s\S]*?)<\/xmp:CreatorTool>/i);
-    add("XMP metadata", who ? `XMP packet - ${who}` : "embedded XMP packet", "warn");
-    for (const field2 of xmlProvenanceFields(xmp)) add(field2.source ?? field2.label, field2.value);
+    add3("XMP metadata", who ? `XMP packet - ${who}` : "embedded XMP packet", "warn");
+    for (const field2 of xmlProvenanceFields(xmp)) add3(field2.source ?? field2.label, field2.value);
   }
   const header = new TextDecoder("latin1").decode(bytes.subarray(0, 64 * 1024));
   let commentCount = 0;
   for (const match of header.matchAll(/^%{1,2}\s*((?:Creator|Producer|Generator)\s*:\s*[^\r\n]+|(?:Created|Made|Generated|Exported)\s+(?:with|by|using)\s+[^\r\n]+)/gim)) {
     if (commentCount++ >= 8) break;
-    add("PDF generator comment", match[1].slice(0, 2048));
+    add3("PDF generator comment", match[1].slice(0, 2048));
   }
   try {
     const { scanPdfStructure: scanPdfStructure2 } = await Promise.resolve().then(() => (init_pdf_structure(), pdf_structure_exports));
@@ -155616,20 +155905,20 @@ function lottieLayer(source, address) {
 }
 function lottieTracks(layer) {
   const tracks = [];
-  const add = (id3, name, value, scalar5, staticOnly = false, color6 = false) => {
+  const add3 = (id3, name, value, scalar5, staticOnly = false, color6 = false) => {
     if (!value || typeof value !== "object" || Array.isArray(value)) return;
     tracks.push({ id: id3, name, property: value, scalar: scalar5, staticOnly, color: color6 });
   };
   const transform2 = layer.ks && typeof layer.ks === "object" && !Array.isArray(layer.ks) ? layer.ks : {};
   const position = transform2.p;
   if (position && typeof position === "object" && !Array.isArray(position) && position.s) {
-    add("p.x", "Position X", position.x, true);
-    add("p.y", "Position Y", position.y, true);
-  } else add("p", "Position", position, false);
-  add("a", "Anchor", transform2.a, false);
-  add("s", "Scale", transform2.s, false);
-  add("r", "Rotation", transform2.r, true);
-  add("o", "Opacity", transform2.o, true);
+    add3("p.x", "Position X", position.x, true);
+    add3("p.y", "Position Y", position.y, true);
+  } else add3("p", "Position", position, false);
+  add3("a", "Anchor", transform2.a, false);
+  add3("s", "Scale", transform2.s, false);
+  add3("r", "Rotation", transform2.r, true);
+  add3("o", "Opacity", transform2.o, true);
   function shapes2(items2, prefix, names, depth) {
     if (!Array.isArray(items2) || depth > 32) return;
     items2.forEach((item2, index2) => {
@@ -155637,9 +155926,9 @@ function lottieTracks(layer) {
       if (shape.ty === "gr") shapes2(shape.it, id3, [...names, name], depth + 1);
       if (shape.ty === "fl" || shape.ty === "st") {
         const label4 = [...names, name].join(" / ");
-        add(`${id3}/c`, `${label4}: Color`, shape.c, false, true, true);
-        add(`${id3}/o`, `${label4}: Opacity`, shape.o, true, true);
-        if (shape.ty === "st") add(`${id3}/w`, `${label4}: Width`, shape.w, true, true);
+        add3(`${id3}/c`, `${label4}: Color`, shape.c, false, true, true);
+        add3(`${id3}/o`, `${label4}: Opacity`, shape.o, true, true);
+        if (shape.ty === "st") add3(`${id3}/w`, `${label4}: Width`, shape.w, true, true);
       }
     });
   }
@@ -155958,7 +156247,7 @@ async function exportDesignIdml(opts, host) {
   if (pages.length > 256) throw new Error("IDML export exceeds the spread limit.");
   const entries = [], encoder5 = new TextEncoder();
   let bytesTotal = 0;
-  const add = (name, content2) => {
+  const add3 = (name, content2) => {
     const bytes2 = typeof content2 === "string" ? encoder5.encode(content2) : content2;
     bytesTotal += bytes2.length;
     if (bytesTotal > 128 * 1024 * 1024) throw new Error("IDML export exceeds 128 MB.");
@@ -155998,7 +156287,7 @@ async function exportDesignIdml(opts, host) {
   }
   let item2 = 0, story = 0, image = 0;
   const spreadRefs = [], storyRefs = [];
-  add("mimetype", "application/vnd.adobe.indesign-idml-package");
+  add3("mimetype", "application/vnd.adobe.indesign-idml-package");
   for (const [pageIndex, frame] of pages.entries()) {
     const width = num14(frame.w, 1920), height = num14(frame.h, 1080);
     if (width <= 0 || height <= 0 || width > 3e5 || height > 3e5) throw new Error("IDML page dimensions are invalid.");
@@ -156039,7 +156328,7 @@ async function exportDesignIdml(opts, host) {
           }
           paras.push(`<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/$ID/[No paragraph style]" Justification="${align}">${runs2 || "<CharacterStyleRange><Content/></CharacterStyleRange>"}<CharacterStyleRange><Br/></CharacterStyleRange></ParagraphStyleRange>`);
         }
-        add(path2, wrap2("Story", `<Story Self="${id3}"><StoryPreference StoryOrientation="Horizontal" StoryDirection="LeftToRightDirection" FrameType="TextFrameType"/>${paras.join("")}</Story>`));
+        add3(path2, wrap2("Story", `<Story Self="${id3}"><StoryPreference StoryOrientation="Horizontal" StoryDirection="LeftToRightDirection" FrameType="TextFrameType"/>${paras.join("")}</Story>`));
         storyRefs.push(path2);
         inside2 += '<TextFramePreference TextColumnCount="1" VerticalJustification="TopAlign"><Properties><InsetSpacing type="list"><ListItem type="unit">0</ListItem><ListItem type="unit">0</ListItem><ListItem type="unit">0</ListItem><ListItem type="unit">0</ListItem></InsetSpacing></Properties></TextFramePreference>';
         if (box4.valign && box4.valign !== "top" || num14(box4.pad)) notes.push(`${String(box4.id)}: text padding and vertical alignment use IDML defaults.`);
@@ -156051,7 +156340,7 @@ async function exportDesignIdml(opts, host) {
         const size = imageDimensions(bytes2, ext === "jpg" ? "image/jpeg" : "image/png");
         if (!size || !ext) throw new Error(`${String(box4.id)}: use PNG or JPEG for IDML.`);
         const path2 = `Links/image-${++image}.${ext}`;
-        add(path2, bytes2);
+        add3(path2, bytes2);
         const scale = box4.fit === "cover" ? Math.max(w / size.w, h / size.h) : Math.min(w / size.w, h / size.h);
         inside2 += `<Image Self="image-${image}" ItemTransform="${[scale, 0, 0, scale, (w - size.w * scale) / 2, (h - size.h * scale) / 2].map(number8).join(" ")}"><Properties><GraphicBounds Left="0" Top="0" Right="${size.w}" Bottom="${size.h}"/></Properties><Link Self="link-${image}" LinkResourceURI="${path2}" LinkResourceFormat="$ID/${ext === "jpg" ? "JPEG" : "PNG"}" StoredState="Normal" LinkClassID="35906" LinkClientID="257" ShowInUI="true" CanEmbed="true" CanPackage="true" ImportPolicy="NoAutoImport" ExportPolicy="NoAutoExport"/></Image>`;
         notes.push(`${String(box4.id)}: image bytes are bundled in Links; InDesign may ask to relink that folder.`);
@@ -156062,17 +156351,17 @@ async function exportDesignIdml(opts, host) {
     }
     const path = `Spreads/Spread_${pageIndex + 1}.xml`;
     spreadRefs.push(path);
-    add(path, wrap2("Spread", `<Spread Self="spread-${pageIndex + 1}" PageCount="1" BindingLocation="0" ItemTransform="1 0 0 1 0 0"><Page Self="page-${pageIndex + 1}" Name="${pageIndex + 1}" AppliedMaster="n" GeometricBounds="0 0 ${number8(height)} ${number8(width)}" ItemTransform="1 0 0 1 0 0"/>${body}</Spread>`));
+    add3(path, wrap2("Spread", `<Spread Self="spread-${pageIndex + 1}" PageCount="1" BindingLocation="0" ItemTransform="1 0 0 1 0 0"><Page Self="page-${pageIndex + 1}" Name="${pageIndex + 1}" AppliedMaster="n" GeometricBounds="0 0 ${number8(height)} ${number8(width)}" ItemTransform="1 0 0 1 0 0"/>${body}</Spread>`));
   }
-  add("Resources/Graphic.xml", wrap2("Graphic", `<Swatch Self="Swatch/None" Name="$ID/None"/>${[...colors].map(([rgb3, id3]) => `<Color Self="${id3}" Name="${id3}" Model="Process" Space="RGB" ColorValue="${rgb3}"/>`).join("")}`));
-  add("Resources/Styles.xml", wrap2("Styles", '<RootParagraphStyleGroup><ParagraphStyle Self="ParagraphStyle/$ID/[No paragraph style]" Name="$ID/[No paragraph style]"/></RootParagraphStyleGroup><RootCharacterStyleGroup><CharacterStyle Self="CharacterStyle/$ID/[No character style]" Name="$ID/[No character style]"/></RootCharacterStyleGroup><RootObjectStyleGroup><ObjectStyle Self="ObjectStyle/$ID/[None]" Name="$ID/[None]"/></RootObjectStyleGroup>'));
-  add("Resources/Preferences.xml", wrap2("Preferences", `<DocumentPreference PageWidth="${number8(num14(pages[0]?.w, 1920))}" PageHeight="${number8(num14(pages[0]?.h, 1080))}" FacingPages="false"/>`));
-  add("designmap.xml", xml(`<?aid style="50" type="document" readerVersion="6.0" featureSet="257" product="16.0(0)"?><Document xmlns:idPkg="${ns}" DOMVersion="16.0" Self="lolly-document" Name="Lolly.indd" ActiveLayer="layer-1" ZeroPoint="0 0" StoryList="${Array.from({ length: story }, (_, i) => `story-${i + 1}`).join(" ")}"><idPkg:Graphic src="Resources/Graphic.xml"/><idPkg:Styles src="Resources/Styles.xml"/><idPkg:Preferences src="Resources/Preferences.xml"/><Layer Self="layer-1" Name="Lolly" Visible="true" Locked="false" Printable="true"/>${spreadRefs.map((p) => `<idPkg:Spread src="${p}"/>`).join("")}${storyRefs.map((p) => `<idPkg:Story src="${p}"/>`).join("")}</Document>`));
+  add3("Resources/Graphic.xml", wrap2("Graphic", `<Swatch Self="Swatch/None" Name="$ID/None"/>${[...colors].map(([rgb3, id3]) => `<Color Self="${id3}" Name="${id3}" Model="Process" Space="RGB" ColorValue="${rgb3}"/>`).join("")}`));
+  add3("Resources/Styles.xml", wrap2("Styles", '<RootParagraphStyleGroup><ParagraphStyle Self="ParagraphStyle/$ID/[No paragraph style]" Name="$ID/[No paragraph style]"/></RootParagraphStyleGroup><RootCharacterStyleGroup><CharacterStyle Self="CharacterStyle/$ID/[No character style]" Name="$ID/[No character style]"/></RootCharacterStyleGroup><RootObjectStyleGroup><ObjectStyle Self="ObjectStyle/$ID/[None]" Name="$ID/[None]"/></RootObjectStyleGroup>'));
+  add3("Resources/Preferences.xml", wrap2("Preferences", `<DocumentPreference PageWidth="${number8(num14(pages[0]?.w, 1920))}" PageHeight="${number8(num14(pages[0]?.h, 1080))}" FacingPages="false"/>`));
+  add3("designmap.xml", xml(`<?aid style="50" type="document" readerVersion="6.0" featureSet="257" product="16.0(0)"?><Document xmlns:idPkg="${ns}" DOMVersion="16.0" Self="lolly-document" Name="Lolly.indd" ActiveLayer="layer-1" ZeroPoint="0 0" StoryList="${Array.from({ length: story }, (_, i) => `story-${i + 1}`).join(" ")}"><idPkg:Graphic src="Resources/Graphic.xml"/><idPkg:Styles src="Resources/Styles.xml"/><idPkg:Preferences src="Resources/Preferences.xml"/><Layer Self="layer-1" Name="Lolly" Visible="true" Locked="false" Printable="true"/>${spreadRefs.map((p) => `<idPkg:Spread src="${p}"/>`).join("")}${storyRefs.map((p) => `<idPkg:Story src="${p}"/>`).join("")}</Document>`));
   const report4 = [...new Set(notes)];
   host.log("warn", report4.join(" "));
-  add("lolly-interchange.json", JSON.stringify({ format: "idml", subset: "static-text-shape-raster", notes: report4 }));
-  if (opts.rights) for (const file of attributionCompanion(opts.rights.plan).files) add(file.name, file.text);
-  if (opts.meta) add("lolly-metadata.json", JSON.stringify(opts.meta));
+  add3("lolly-interchange.json", JSON.stringify({ format: "idml", subset: "static-text-shape-raster", notes: report4 }));
+  if (opts.rights) for (const file of attributionCompanion(opts.rights.plan).files) add3(file.name, file.text);
+  if (opts.meta) add3("lolly-metadata.json", JSON.stringify(opts.meta));
   const bytes = storeZip(entries, { mimetypeFirst: true });
   if (opts.rights?.onReceipt) opts.rights.onReceipt(await checkCompanionReadback(bytes, opts.rights.plan, opts.rights.fingerprint));
   return new Blob([bytes], { type: "application/vnd.adobe.indesign-idml-package" });
@@ -156114,7 +156403,7 @@ async function exportDesignPremiere(opts, host) {
   const width = num15(frame?.w, num15(opts.width, 1920)), height = num15(frame?.h, num15(opts.height, 1080));
   const encoder5 = new TextEncoder(), entries = [], clips2 = [], sources = [], seen = /* @__PURE__ */ new Map();
   let total = 0;
-  const add = (name, bytes2) => {
+  const add3 = (name, bytes2) => {
     total += bytes2.length;
     if (total > 256 * 1024 * 1024) throw new Error("Premiere interchange package exceeds 256 MB.");
     entries.push({ name, bytes: bytes2 });
@@ -156140,7 +156429,7 @@ async function exportDesignPremiere(opts, host) {
       opts.signal?.throwIfAborted();
       path = `Media/source-${seen.size + 1}.${extension}`;
       seen.set(ref.id, path);
-      add(path, bytes2);
+      add3(path, bytes2);
       sources.push({ id: ref.id, path, mime: format });
     }
     const kind = ref.type === "audio" ? "audio" : "video", track = kind === "audio" ? audioTrack++ : videoTrack++;
@@ -156153,10 +156442,10 @@ async function exportDesignPremiere(opts, host) {
   }
   if (!clips2.length) throw new Error("Add timed media clips before exporting Premiere XML.");
   const duration = Math.max(...clips2.map((c) => c.end));
-  add("sequence.xml", encoder5.encode(writePremiereXml({ name: String(values.title || "Lolly sequence"), rate: rate3, width, height, duration, clips: clips2, notes })));
-  add("lolly-interchange.json", encoder5.encode(JSON.stringify({ format: "xmeml", rate: rate3, clips: clips2, sources, notes: [...new Set(notes)] }, null, 2)));
-  if (opts.rights) for (const file of attributionCompanion(opts.rights.plan).files) add(file.name, encoder5.encode(file.text));
-  if (opts.meta) add("lolly-metadata.json", encoder5.encode(JSON.stringify(opts.meta)));
+  add3("sequence.xml", encoder5.encode(writePremiereXml({ name: String(values.title || "Lolly sequence"), rate: rate3, width, height, duration, clips: clips2, notes })));
+  add3("lolly-interchange.json", encoder5.encode(JSON.stringify({ format: "xmeml", rate: rate3, clips: clips2, sources, notes: [...new Set(notes)] }, null, 2)));
+  if (opts.rights) for (const file of attributionCompanion(opts.rights.plan).files) add3(file.name, encoder5.encode(file.text));
+  if (opts.meta) add3("lolly-metadata.json", encoder5.encode(JSON.stringify(opts.meta)));
   const bytes = storeZip(entries);
   host.log("warn", [...new Set(notes)].join(" "));
   if (opts.rights?.onReceipt) opts.rights.onReceipt(await checkCompanionReadback(bytes, opts.rights.plan, opts.rights.fingerprint));
@@ -159466,7 +159755,7 @@ async function readPptxBrand(bytes) {
   deck.slides.forEach((slide, i) => {
     const n7 = i + 1;
     const frame = `slide-${n7}`;
-    const add = (row) => {
+    const add3 = (row) => {
       rows2.push({ frame, ...row });
       slideOf.set(String(row.id), n7);
     };
@@ -159480,10 +159769,10 @@ async function readPptxBrand(bytes) {
       if (node.type === "shape") {
         const bg = node.gradient ? null : hexOf7(node.fill);
         const stroke = node.lineGradient ? null : hexOf7(node.line);
-        if (bg || stroke) add({ id: id3, kind: "box", name, ...bg ? { bg } : {}, ...stroke ? { stroke } : {} });
+        if (bg || stroke) add3({ id: id3, kind: "box", name, ...bg ? { bg } : {}, ...stroke ? { stroke } : {} });
       } else if (node.type === "text") {
         const bg = node.gradient ? null : hexOf7(node.fill);
-        if (bg) add({ id: `${id3}-fill`, kind: "box", name, bg });
+        if (bg) add3({ id: `${id3}-fill`, kind: "box", name, bg });
         const seen = /* @__PURE__ */ new Map();
         for (const para of node.paras) for (const run3 of para.runs) {
           const fg = hexOf7(run3.color);
@@ -159491,7 +159780,7 @@ async function readPptxBrand(bytes) {
           if (!seen.has(fg)) seen.set(fg, run3.text.trim().slice(0, 40));
         }
         let k = 0;
-        for (const [fg, text8] of seen) add({ id: `${id3}-run${++k}`, kind: "text", name, text: text8, fg });
+        for (const [fg, text8] of seen) add3({ id: `${id3}-run${++k}`, kind: "text", name, text: text8, fg });
       }
     });
   });
@@ -164521,12 +164810,12 @@ function decodedText2(ctx, o) {
 function contentString(ctx, pageNode) {
   const c = ctx.lookup(getKey2(ctx, pageNode, "Contents"));
   const parts = [];
-  const add = (ref) => {
+  const add3 = (ref) => {
     const t = decodedText2(ctx, ref);
     if (t != null) parts.push(t);
   };
-  if (c instanceof PDFArray5) c.asArray().forEach(add);
-  else add(getKey2(ctx, pageNode, "Contents"));
+  if (c instanceof PDFArray5) c.asArray().forEach(add3);
+  else add3(getKey2(ctx, pageNode, "Contents"));
   return parts.join("\n");
 }
 var RESOURCE_NODE_BUDGET = 4096;
@@ -177759,12 +178048,12 @@ async function proxyImage(reqUrl, opts) {
       const policy = upstreamImagePolicy(current, response.headers);
       privateResponse ||= policy.private;
       cacheAge = Math.min(cacheAge, policy.age);
-      const location2 = response.status >= 300 && response.status < 400 ? response.headers.get("location") : null;
-      if (!location2) break;
+      const location4 = response.status >= 300 && response.status < 400 ? response.headers.get("location") : null;
+      if (!location4) break;
       if (hop >= MAX_REDIRECTS) return errorResponse2(502, "That address redirected too many times.");
       let next2;
       try {
-        next2 = new URL(location2, current);
+        next2 = new URL(location4, current);
       } catch {
         return errorResponse2(502, "That address redirected to an invalid location.");
       }

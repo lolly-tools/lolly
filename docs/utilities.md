@@ -91,6 +91,48 @@ are preserved. Partial delivery reports successful copies separately from failur
 In the TUI, press **P** from Tools; add file paths, inspect, choose replacements,
 review coverage with Tab, and download the resulting copies. Escape cancels work.
 
+## Compare - `#/compare`
+
+Compare two captured sources on this device: text, JSON, CSV/TSV/XLSX tables,
+DOCX/PPTX/PDF extracted text, or image and PDF-page previews. The same comparison
+panel opens from Assets and file-operation review, including a saved copy with a
+reselected original whose hash must match. Sources stay unchanged. Comparison
+does not merge, apply edits, save the inputs, or send their contents to a service.
+
+For tables, the first row supplies column labels. Worksheets match by unique
+name, and columns match by unique label. **Row key** chooses a common column;
+unique nonblank values detect moved, inserted and removed rows. Missing,
+duplicate or blank keys fall back visibly to row position, retaining every
+ambiguous row. CSV and TSV preserve quoted multiline cells and blank records.
+XLSX uses cached values without evaluating formulas or comparing formatting.
+Each side is bounded to 16 sheets, 10,000 rows, 256 columns and 100,000 cells;
+CSV and TSV text is limited to 2 MiB. **Compare table files** on Spreadsheet
+opens this mode.
+
+For documents, **Document alignment** uses reading position, exact text anchors,
+or retained slide IDs from related PowerPoint revisions. Exact text anchors
+detect unique moved units and pair edited gaps by position, with a visible
+fallback for repeated text. DOCX units are body blocks and footnotes, never
+invented pages or stable IDs. PPTX units include slide text, tables and speaker
+notes. PDF units contain each page's extracted text; geometry may determine
+reading order. Scans have no text without OCR, which Compare does not run.
+**Compare document text** on Unpack opens this mode. Two PDFs in Assets or
+file-operation review keep the visual default and offer **Extracted document
+text** as an explicit alternative.
+DOCX file-operation review compares supported document properties by default,
+so metadata cleanup remains visible. Its **DOCX comparison** control also offers
+**Extracted document text**, including documents that are inspect-only for
+property cleanup. Text review does not compare document properties.
+
+Office and PDF files are limited to 32 MiB per side. Office archives must fit
+8 MiB per part, 64 MiB expanded overall and 4,096 archive entries. Document text is limited to 2,000
+blocks, 200 slides, 64 PDF pages and 2 MiB per side. Skipped or unread content is
+reported as partial; matching retained text cannot establish full equality.
+Appearance, formulas, drawings, charts and asset dependencies are outside content
+comparison. Changed values start folded, and a downloaded report contains only
+the summary until **Include source names, paths and values** is selected.
+The inputs never enter the address bar or a default report.
+
 ## Spreadsheet - `#/data`
 
 Open, read and lightly edit a spreadsheet with no Excel, no LibreOffice and no internet. Drop an `.xlsx`, `.csv`, `.tsv` or `.json`, or choose one; a multi-sheet workbook gets a tab bar and you can switch sheets without re-picking the file. Cells are editable in place, and **Download as** writes the grid as it stands - CSV, Excel, JSON or TSV.
