@@ -53,6 +53,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
 import { build, type InlineConfig, type Plugin } from 'vite';
+import { rondoBundleOptions } from './lib/rondo-bundle-options.ts';
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const pkg = path.join(repo, 'packages/rondo');
@@ -247,7 +248,7 @@ async function bundleApp(workletCode: string): Promise<{ js: string; css: string
       assetsInlineLimit: () => true,
       reportCompressedSize: false,
       lib: { entry: path.join(app, 'src/main.ts'), formats: ['es'], fileName: 'app' },
-      rolldownOptions: { output: { codeSplitting: false } },
+      rolldownOptions: rondoBundleOptions(),
     },
   }));
   const outputs = (Array.isArray(res) ? res : [res]).flatMap((r) => ('output' in r ? r.output : []));
@@ -270,7 +271,7 @@ async function main(): Promise<void> {
       minify: true,
       reportCompressedSize: false,
       lib: { entry: path.join(app, 'src/audio/worklet/processor.ts'), formats: ['es'], fileName: 'worklet' },
-      rolldownOptions: { output: { codeSplitting: false } },
+      rolldownOptions: rondoBundleOptions(),
     },
   }));
   const boot = await bundle(base({
@@ -281,7 +282,7 @@ async function main(): Promise<void> {
       minify: true,
       reportCompressedSize: false,
       lib: { entry: path.join(pkg, 'editor/boot.ts'), formats: ['iife'], name: 'lollyRondoBoot', fileName: 'boot' },
-      rolldownOptions: { output: { codeSplitting: false } },
+      rolldownOptions: rondoBundleOptions(),
     },
   }));
   const { js, css } = await bundleApp(worklet);
