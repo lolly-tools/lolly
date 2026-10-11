@@ -1027,6 +1027,60 @@
         "fuzzCoverage": "`design-guides` mutates writer-derived v1, legacy JSON and v2 text through parseDesignGuides, parseGuideRecords, both canonical writers and guideSnapTargets without mounting DOM",
         "notes": "Eight seeds cover angles, disabled snapping, colors, 80-character IDs, finite 1e308/MAX_VALUE coordinates and more than 1,000 records. Invariants check finite snap geometry, sorted legacy axes, stable admitted identities and canonical reparse. The v1-to-v2 reparse check respects the existing first-1,000-row rule rather than imposing a v1 cap. Unexpected errors propagate; output invariant violations use the discovery runner finding class. UI creation stops at the persisted v2 capacity; standalone writers remain uncapped."
       }
+    },
+    "engine/src/design-hierarchy.ts": {
+      "fuzzTargets": [
+        "design-hierarchy"
+      ],
+      "details": {
+        "inputSource": "Design boxes and pages from compact URL blocks, saved .lolly documents, collaborative edits and native Penpot imports",
+        "bounds": "20,000 layers, 256 pages, 64 ancestors, IDs of 160 UTF-16 units, names of 1,000 units, finite geometry magnitudes at most 1e7, and at most 256 reported findings; indexes and migration results are weakly cached by immutable input-array revision",
+        "directTests": "`tests/design-hierarchy.test.ts`, `tests/design-hierarchy-fuzz.test.ts`, `tests/design-hierarchy-import.browser.test.ts`",
+        "fuzzCoverage": "`design-hierarchy` mutates writer-derived legacy-group migration and nested/page document JSON through graph admission, cached indexes, ancestor/descendant traversal, bounds, flags and canonical reparse",
+        "notes": "Existing anonymous group tags remain readable. Conversion is atomic and refuses mixed board/page scopes, dynamic-layout membership or interleaved artwork with reported findings, preserving original clipping and ownership. Safe tags become explicit records without moving artwork. Explicit ownership diagnoses duplicate identities, missing parents/pages, cycles and cross-page links. Pages are editor canvases containing artboards, separate from PDF pages. Archive byte/inflation limits remain in the shell reader; scalar limits are independent of transport byte limits."
+      }
+    },
+    "packages/core/src/lolly-features.ts": {
+      "fuzzTargets": ["lolly-hierarchy"],
+      "details": {
+        "inputSource": "Parsed .lolly session values, project sessions, templates and bundled Design input manifests",
+        "bounds": "One shared budget of 200,000 inspected or queued values; iterative traversal with cycle detection; exhausting the scan conservatively requires reader 7",
+        "directTests": "`tests/design-hierarchy-lolly.test.ts`, `tests/design-hierarchy-lolly-fuzz.test.ts`",
+        "fuzzCoverage": "`lolly-hierarchy` mutates real web and Node writer ZIP files through the shared feature scan and semantic reader gates",
+        "notes": "This detector identifies feature requirements, not graph validity. Nonempty Design pages/pageId values, real group records and hierarchy input declarations require reader 7; flat legacy tags retain existing gates. Missing, lowered or nonnumeric gates are refused after payload parsing. Model graph admission remains in design-hierarchy.ts."
+      }
+    },
+    "shells/web/src/lib/lolly-pack.ts": {
+      "fuzzTargets": ["lolly-hierarchy"],
+      "details": {
+        "inputSource": "Portable .lolly share ZIPs carrying saved sessions, project folders, templates and bundled tools",
+        "bounds": "Existing unzip limits remain 512 MiB per part and 2 GiB total; projects admit at most 2,000 sessions and 500 folders; templates retain their existing 200-record cap; feature detection has one 200,000-value budget",
+        "directTests": "`shells/web/src/lib/lolly-pack.test.ts`, `shells/web/src/lib/lolly-project.test.ts`, `tests/design-hierarchy-lolly.test.ts`, `tests/design-hierarchy-lolly-fuzz.test.ts`",
+        "fuzzCoverage": "`lolly-hierarchy` checks writer-derived session, project, template and tool files, logical readback and deliberate feature-gate deletion/downgrade after transport mutation",
+        "notes": "Reader 7 preserves hierarchy values; integrity verification precedes semantic gate detection. Fuzz invariants cover payload preservation and gate refusal, not exhaustive ZIP admission, collaborative state or rendering fidelity. The Node reader may reject corrupt ZIP framing that the browser inflater tolerates."
+      }
+    },
+    "packages/node-shell/src/lolly-file.ts": {
+      "fuzzTargets": ["lolly-hierarchy"],
+      "details": {
+        "inputSource": "Portable .lolly session and reusable-tool ZIPs opened by Node shells",
+        "bounds": "Engine ZIP reader caps input and total inflated bytes at 512 MiB, each entry at 256 MiB and inventory at 10,000 entries; shared semantic feature detection inspects at most 200,000 values",
+        "directTests": "`tests/design-lolly.test.ts`, `tests/design-tool.test.ts`, `tests/design-hierarchy-lolly.test.ts`, `tests/design-hierarchy-lolly-fuzz.test.ts`",
+        "fuzzCoverage": "`lolly-hierarchy` opens web and packageDesign writer files and rejects deliberately downgraded hierarchy session, template and tool gates",
+        "notes": "Reader 7 admits canonical groups and pages in saved sessions. Project folders remain an explicit app-only refusal; renovation files retain their separate reader. CRC and integrity checks precede returned payloads. Full graph validity and rendering are separate model contracts."
+      }
+    },
+    "engine/src/design-layer-ops.ts": {
+      "fuzzTargets": [
+        "design-hierarchy"
+      ],
+      "details": {
+        "inputSource": "Stable-ID layerOperations and layerPatches from MCP and the live editor agent bridge, over existing Design layer records",
+        "bounds": "The hierarchy adapter admits 20,000 layer records, 256 explicit pages, 64 ancestors and finite scalar geometry up to 1e7; operations are ordered transactions over copied rows and reject ambiguous identities, missing clone IDs, cycles and cross-domain reorder",
+        "directTests": "`tests/design-layer-ops.test.ts`, `services/mcp/test/design-agent.test.ts`, `tests/design-hierarchy-fuzz.test.ts`",
+        "fuzzCoverage": "`design-hierarchy` mutates document JSON and derived or supplied operation/patch lists through nested duplicate, cascade remove, reparent, reorder validation and final graph admission",
+        "notes": "The existing three-argument operations API remains valid; optional page metadata provides page-definition validation. Without explicit metadata, page IDs are inferred only for ownership-coherence checks. Grid and linked-story duplication require document metadata and are refused by the row-only API; group geometry patches require the canvas transform path. These are visible refusals, not partial edits."
+      }
     }
   }
 }

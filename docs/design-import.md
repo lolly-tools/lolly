@@ -47,9 +47,19 @@ Select a container in Design and open **Dynamic layout** in the inspector. Choos
 
 Grid tracks accept `auto`, pixel sizes such as `120px`, fractions such as `1fr`, and percentages such as `25%`. Layers can occupy a specific row and column, span several cells, or share an occupied named area. Drag a child to change its flow order or grid cell. Hold Alt while dropping to detach the child. Spacing handles on the canvas edit padding and gaps.
 
-Native Penpot imports retain supported flex and grid rules, including nested ownership. The solver uses Penpot's modern Rust implementation. Native exports carry editable rules and membership. Empty named areas, cells containing several shapes, grouped children that cannot remain editable, and skewed computed rectangles produce a finding. Review those findings before continuing.
+Native Penpot imports retain supported flex and grid rules, including nested ownership. The solver uses Penpot's modern Rust implementation. Native exports carry editable rules and membership. A group participates in its parent's layout as one fixed-size item; its descendants keep their internal positions. Group fill and hug sizing and skewed computed rectangles produce a finding. Review those findings before continuing.
 
 Layout rules travel in saved sessions, templates and generated tools. Files containing dynamic layouts require `.lolly` reader version 6. SVG, PDF and raster exports use the settled geometry; an export waits for the latest layout to appear or asks you to retry. No website code is generated.
+
+## Groups and pages
+
+Design sessions support named pages, each with its own artboards and nested groups. Use **Pages** above the layer tree to add, rename, reorder, duplicate or remove a page. Switching pages restores your selection and canvas view without changing the saved document or another collaborator's page. Projects and their folders continue to organize sessions.
+
+Groups appear as named containers in the layer tree. Select a group to move, rotate, resize, duplicate or delete its descendants together. Enter a group to select its contents; Escape returns to its parent. Hidden and locked groups apply those flags to their descendants. Grouping and ungrouping preserve the artwork's position and form one undo step.
+
+Native Penpot document imports preserve all named pages and ordinary nested groups. Groups with opacity, blend, mask or other collective effects become an SVG asset when the importer can preserve their appearance; unsupported combinations report an error. These effects cannot be edited as native group properties.
+
+Saved sessions, URLs, templates and `.lolly` files carry the full document. Hierarchy files require `.lolly` reader version 7. Document exports use every page and artboard, including empty pages; choosing a specific artboard still exports that artboard. Native Penpot archives support up to 6,000 shapes and refuse larger documents with a clear error. The editor supports up to 20,000 layers and 256 pages, with the layer tree keeping a bounded number of rows mounted.
 
 ## It conforms to the brand
 

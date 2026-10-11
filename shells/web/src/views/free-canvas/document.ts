@@ -11,7 +11,7 @@ import { activeFrameIdFor, clampBoxToCanvas, nextFrameOrder, num, seedBox, seedF
 import type { Box, Rect as MathRect } from '../free-canvas-math.ts';
 import type { CanvasRect } from '../design-ports.ts';
 import { frameThumb, iconRow, opt, posGridHtml, segHtml, segRow, tiltRow, wireSegs } from '../free-canvas-fields.ts';
-import { toCssPx } from '@lolly/engine';
+import { designHierarchyAncestors, designHierarchyIndex, designHierarchyPageBoxes, toCssPx } from '@lolly/engine';
 import { escape as escapeText } from '../../utils.ts';
 import { t, tRaw } from '../../i18n.ts';
 import { colorFieldHtml, wireColorField } from '../../components/color-field.ts';
@@ -87,19 +87,24 @@ export const toUnitVal = (fc: FcCtx, n: number, from: string, to: string): numbe
   n > 0 ? Math.round(((n * pxPerUnit(fc, from)) / pxPerUnit(fc, to)) * 100) / 100 : n;
 // The artboard the size UI targets: the selected frame-kind box, else the primary
 // (lowest order, then leftmost) one. −1 when the doc has no artboards.
+export function pageBoxes(fc: FcCtx, boxes = fc.select.getBoxes()): Box[] {
+  const page = fc.opts?.getActivePage?.();
+  return page ? designHierarchyPageBoxes(designHierarchyIndex(boxes, fc.opts?.getDesignPages?.()), page) as Box[] : boxes;
+}
 export function activeFrameIndex(fc: FcCtx, boxes: Box[]): number {
   const { cfg, frameCfg } = fc;
   if (!frameCfg) return -1;
   const fk = frameCfg.frameKind;
   const of = frameCfg.orderField;
+  const allowed = new Set(pageBoxes(fc, boxes));
   for (const i of fc.select.selIndices(boxes)) {
     const b = boxes[i];
-    if (b && String(b[cfg.kindField]) === fk) return i;
+    if (b && allowed.has(b) && String(b[cfg.kindField]) === fk) return i;
   }
   let best = -1;
   for (let i = 0; i < boxes.length; i++) {
     const b = boxes[i];
-    if (!b || String(b[cfg.kindField]) !== fk) continue;
+    if (!b || !allowed.has(b) || String(b[cfg.kindField]) !== fk) continue;
     if (best < 0) {
       best = i;
       continue;
@@ -133,8 +138,17 @@ export function frameClientRect(fc: FcCtx, fb: Box | undefined): DOMRect | null 
  *  resolution `emitActiveArtboard` publishes (a selected board, else the board owning
  *  the selection, else the primary one). */
 export function activeArtboardId(fc: FcCtx): string {
-  const boxes = fc.select.getBoxes();
-  return fc.select.hasFrames(boxes) ? activeFrameIdFor(boxes, fc.selection, fc.select.frameFields()) : '';
+  const all = fc.select.getBoxes(), boxes = pageBoxes(fc, all);
+  if (!fc.select.hasFrames(boxes)) return '';
+  const selection = new Set(fc.selection);
+  if (fc.hierarchy.enabled()) {
+    const index = designHierarchyIndex(all, fc.opts?.getDesignPages?.());
+    for (const id of fc.selection) {
+      const frame = designHierarchyAncestors(index, id).find(parent => index.byId.get(parent)?.kind === fc.frameCfg?.frameKind);
+      if (frame) selection.add(frame);
+    }
+  }
+  return activeFrameIdFor(boxes, selection, fc.select.frameFields());
 }
 /** Pan/zoom the stage onto one artboard - exactly what a filmstrip cell's click does. */
 export function focusArtboard(fc: FcCtx, id: string): void {
@@ -161,7 +175,7 @@ export function focusArtboard(fc: FcCtx, id: string): void {
 // centre, or source + 24), so nothing can be "fully lost"; the clamp applies
 // only to no-frames docs, where the canvas IS the artboard.
 export const clampToWorkArea = (fc: FcCtx, box: Box): Box =>
-  { const { cfg, frameCfg } = fc; return frameCfg && fc.select.getBoxes().some((b) => b && String(b[cfg.kindField]) === frameCfg.frameKind)
+  { const { cfg, frameCfg } = fc; return frameCfg && pageBoxes(fc).some((b) => b && String(b[cfg.kindField]) === frameCfg.frameKind)
     ? box
     : clampBoxToCanvas(box, cfg, fc.helpers.canvasWH()); };
 export function applyDocSize(fc: FcCtx, w: number, h: number, unit = fc.sizeUnit): void {
@@ -567,8 +581,10 @@ export function withNewFrameOrder(fc: FcCtx, boxes: Box[], box: Box): { boxes: B
   if (!frameCfg?.orderField) return { boxes, box };
   if (String(box[cfg.kindField]) !== frameCfg.frameKind) return { boxes, box };
   const ff = fc.select.frameFields();
-  const seeded = seedFrameOrders(boxes, ff);
-  return { boxes: seeded, box: { ...box, [ff.orderField]: nextFrameOrder(seeded, ff) } };
+  const page = fc.opts?.getActivePage?.(), scoped = pageBoxes(fc, boxes), seeded = seedFrameOrders(scoped, ff);
+  const mapped = new Map(seeded.map(row => [String(row[cfg.idField]), row]));
+  return { boxes: page ? boxes.map(row => mapped.get(String(row[cfg.idField])) ?? row) : seeded,
+    box: { ...box, ...(page ? { pageId: page } : {}), [ff.orderField]: nextFrameOrder(seeded, ff) } };
 }
 /**
  * ── Instant artboard (plan 112, inclusive-design) ─────────────────────────────
@@ -595,7 +611,7 @@ export function addArtboard(fc: FcCtx): void {
   // The FIRST artboard sits at the origin - it coincides with the export frame (so it isn't
   // dimmed by the pasteboard scrim) and wraps any loose content that's already there. Later
   // artboards line up to the RIGHT of the furthest existing frame.
-  const frames = boxes.filter((b) => b != null && String(b[cfg.kindField]) === fk);
+  const frames = pageBoxes(fc, boxes).filter((b) => b != null && String(b[cfg.kindField]) === fk);
   const x = frames.length
     ? frames.reduce((m, b) => Math.max(m, num(b[cfg.xField]) + num(b[cfg.wField])), 0) + gap
     : 0;
@@ -785,7 +801,7 @@ export function openFramesPanel(fc: FcCtx, anchor: HTMLElement): void {
 
   // Frames in the SAME page order the hook uses: order asc, x asc tie-break.
   const framesInOrder = (): Box[] =>
-    fc.select.getBoxes()
+    pageBoxes(fc)
       .filter((b) => String(b?.[cfg.kindField]) === fk)
       .sort((a, b) => num(a?.[of]) - num(b?.[of]) || num(a?.[xF]) - num(b?.[xF]));
 
@@ -933,6 +949,7 @@ export function documentOps(fc: FcCtx) {
     pxPerUnit: bindOp(fc, pxPerUnit),
     toUnitVal: bindOp(fc, toUnitVal),
     activeFrameIndex: bindOp(fc, activeFrameIndex),
+    pageBoxes: bindOp(fc, pageBoxes),
     frameClientRect: bindOp(fc, frameClientRect),
     activeArtboardId: bindOp(fc, activeArtboardId),
     focusArtboard: bindOp(fc, focusArtboard),

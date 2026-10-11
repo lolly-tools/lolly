@@ -114,7 +114,7 @@ export const DESIGN_OPERATION_ARG = {
           newId: { type: 'string', description: 'New stable id for the clone.' },
           childIds: {
             type: 'object',
-            description: 'When duplicating a non-empty artboard, a complete old child id to new child id map.',
+            description: 'When duplicating a non-empty group or artboard, a complete old descendant id to new descendant id map. Containers requiring grid or text-story metadata must use the canvas duplicate action.',
             additionalProperties: { type: 'string' },
           },
           beforeId: { type: 'string', description: 'Place the clone before this sibling id.' },
@@ -128,7 +128,7 @@ export const DESIGN_OPERATION_ARG = {
         properties: {
           op: { const: 'remove' },
           id: { type: 'string', description: 'Existing stable layer id.' },
-          cascade: { type: 'boolean', description: 'Required to remove a non-empty artboard and all of its child layers.' },
+          cascade: { type: 'boolean', description: 'Required to remove a non-empty group or artboard and all of its descendant layers.' },
         },
         required: ['op', 'id'],
         additionalProperties: false,
@@ -144,10 +144,13 @@ export const DESIGN_OPERATION_ARG = {
               { type: 'null', description: 'Move the layer to the pasteboard.' },
             ],
           },
+          parentId: { type: ['string', 'null'], description: 'Destination group, artboard or layout container; null moves to the page pasteboard. Choose this or artboardId.' },
+          pageId: { type: 'string', description: 'An existing editor page. Moving a container carries its descendants.' },
           beforeId: { type: 'string', description: 'Place the moved layer before this destination sibling id.' },
           afterId: { type: 'string', description: 'Place the moved layer after this destination sibling id.' },
         },
-        required: ['op', 'id', 'artboardId'],
+        required: ['op', 'id'],
+        oneOf: [{ required: ['artboardId'] }, { required: ['parentId'] }],
         additionalProperties: false,
       },
       {
@@ -608,7 +611,7 @@ function applyDesignLayerOperations(
   const boxesInput = manifest.inputs?.find((input) => input.id === 'boxes' && input.type === 'blocks');
   const fieldDefault = (id: string, fallback: unknown): unknown =>
     boxesInput?.fields?.find((field) => field.id === id)?.default ?? fallback;
-  const applied = applyAuthoredLayerOperations(designRows(manifest, inputs, 'layerOperations') as DesignRow[], value, fieldDefault, authoring);
+  const applied = applyAuthoredLayerOperations(designRows(manifest, inputs, 'layerOperations') as DesignRow[], value, fieldDefault, { ...authoring, pages: Array.isArray(inputs.pages) ? inputs.pages : undefined });
   notes.push(...applied.notes);
   return { ...inputs, boxes: applied.rows };
 }
@@ -625,7 +628,7 @@ function applyDesignLayerPatches(
   if (value === undefined) return inputs;
   if (toolId !== 'design') throw new Error('layerPatches is available only for the Design tool.');
   if (!Array.isArray(value)) throw new Error('layerPatches must be an array.');
-  const applied = applyAuthoredLayerPatches(designRows(manifest, inputs, 'layerPatches') as DesignRow[], value, authoring);
+  const applied = applyAuthoredLayerPatches(designRows(manifest, inputs, 'layerPatches') as DesignRow[], value, { ...authoring, pages: Array.isArray(inputs.pages) ? inputs.pages : undefined });
   notes.push(...applied.notes);
   return { ...inputs, boxes: applied.rows };
 }

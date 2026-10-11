@@ -681,7 +681,9 @@ export function freshGroupId(fc: FcCtx, boxes: Box[]): string {
   return g;
 }
 export function groupSelection(fc: FcCtx): void {
+  if (fc.hierarchy?.group()) return;
   const { cfg } = fc;
+  if (fc.opts?.canEdit?.() === false) return;
   if (!cfg.groupField) return;
   const boxes = fc.select.getBoxes();
   const idx = fc.select.selIndices(boxes);
@@ -692,7 +694,9 @@ export function groupSelection(fc: FcCtx): void {
   fc.select.commit(boxes.map((b, i) => (set.has(i) ? { ...b, [cfg.groupField]: g } : b)));
 }
 export function ungroupSelection(fc: FcCtx): void {
+  if (fc.hierarchy?.ungroup()) return;
   const { cfg } = fc;
+  if (fc.opts?.canEdit?.() === false) return;
   if (!cfg.groupField) return;
   const boxes = fc.select.getBoxes();
   const set = new Set(fc.select.selIndices(boxes));
@@ -914,7 +918,7 @@ export function releaseClip(fc: FcCtx): void {
 }
 export const selHasGroup = (fc: FcCtx) => {
   const bx = fc.select.getBoxes();
-  return fc.select.selIndices(bx).some((i) => fc.select.groupOf(bx[i]));
+  return fc.select.selIndices(bx).some((i) => fc.select.groupOf(bx[i]) || fc.hierarchy?.isGroup(bx[i]));
 };
 export const selHasClip = (fc: FcCtx) => {
   const { cfg } = fc;
@@ -924,7 +928,7 @@ export const selHasClip = (fc: FcCtx) => {
 // ── z-order / align / distribute ─────────────────────────────────────────────
 export function applyZ(fc: FcCtx, op: string): void {
   const boxes = fc.select.getBoxes();
-  const idx = fc.select.selIndices(boxes);
+  const idx = fc.hierarchy?.transformIndices(boxes) || fc.select.selIndices(boxes);
   if (!idx.length) return;
   fc.select.commit(reorderZ(boxes, idx, op as ZOp));
 }

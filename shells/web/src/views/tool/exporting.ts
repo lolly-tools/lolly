@@ -208,8 +208,17 @@ export function resolveExportFormat(tview: ToolViewCtx): void {
   tview.exportedSinceEdit = false;
 }
 
+export async function mountDocumentExport(tview: ToolViewCtx) {
+  const pageValues = tview.runtime.getModel().find(item => item.id === 'pages')?.value;
+  if (tview.toolId !== 'design' || !Array.isArray(pageValues) || pageValues.length <= 1) return undefined;
+  await tview.runtime.whenSettled();
+  const renderer = await import('../../pro/render-export.ts');
+  return renderer.mountDocumentExport(tview.tool, tview.host, tview.runtime, { width: tview.nativeW, height: tview.nativeH });
+}
+
 export function exportingOps(tview: ToolViewCtx) {
   return {
+    mountDocumentExport: bindOp(tview, mountDocumentExport),
     exportUnscaled: <T>(fn: (report?: ExportReport) => Promise<T>, opts: ExportUnscaledOpts = {}): Promise<T> => exportUnscaled<T>(tview, fn, opts),
     exportUnscaledRaw: bindOp(tview, exportUnscaledRaw),
     resolveExportFormat: bindOp(tview, resolveExportFormat),

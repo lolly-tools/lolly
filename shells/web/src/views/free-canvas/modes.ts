@@ -312,7 +312,8 @@ export function pasteAimedHere(fc: FcCtx): boolean {
  */
 export function copyScope(fc: FcCtx, boxes: Box[], idx: number[]): Set<string> {
   const { cfg, frameCfg } = fc;
-  const selected = fc.layout.dynamicScope(boxes, new Set(idx.map(n => fc.select.idOf(boxes[n], n))));
+  const picked = new Set(idx.map(n => fc.select.idOf(boxes[n], n)));
+  const selected = fc.layout.dynamicScope(boxes, fc.hierarchy?.scopeIds(boxes, picked) || picked);
   const take = new Set(boxes.flatMap((b,n)=>selected.has(String(b.id))?[n]:[]));
   const fk = frameCfg?.frameKind;
   if (fk) {
@@ -326,7 +327,8 @@ export function copyScope(fc: FcCtx, boxes: Box[], idx: number[]): Set<string> {
       });
   }
   // Static frame copying includes its nested dynamic containers as well.
-  return fc.layout.dynamicScope(boxes, new Set([...take].map(i => fc.select.idOf(boxes[i], i))));
+  const ids = new Set([...take].map(i => fc.select.idOf(boxes[i], i)));
+  return fc.layout.dynamicScope(boxes, fc.hierarchy?.scopeIds(boxes, ids) || ids);
 }
 export function copyRows(fc: FcCtx, boxes: Box[], idx: number[]): Box[] {
   const { cfg } = fc;
@@ -424,7 +426,10 @@ export function pasteObjects(fc: FcCtx, payload: LayoutClipboard): void {
   const isFrameRow = (s: Box): boolean => !!fk && String(s[cfg.kindField]) === fk;
   let boxes = fc.select.getBoxes();
   if (ff && rows.some(isFrameRow)) boxes = seedFrameOrders(boxes, ff); // legacy docs get an order first
+  const groupCopy = rows.some(row => fc.hierarchy?.isGroup(row));
+  const placeCopy = (row: Box): Box => groupCopy ? row : fc.document.clampToWorkArea(row);
   const clones: Box[] = [];
+  const mintId = fc.hierarchy?.idFactory(boxes);
   const copies = new Map<string,string>();
   const nextSel = new Set<string>();
   const pageIds = new Map<string, string>(); // pasted frame id → its copy's id
@@ -443,7 +448,7 @@ export function pasteObjects(fc: FcCtx, payload: LayoutClipboard): void {
     if (!isFrameRow(src)) continue;
     const r = boxRect(src, cfg);
     const x = Math.round(Number.isFinite(deckRight) ? deckRight + FRAME_DUP_GAP : r.x);
-    const id = fc.select.freshId(boxes.concat(clones));
+    const id = mintId ? mintId() : fc.select.freshId(boxes.concat(clones));
     const clone: Box = {
       ...src,
       [cfg.idField]: id,
@@ -463,7 +468,7 @@ export function pasteObjects(fc: FcCtx, payload: LayoutClipboard): void {
   }
   for (const src of rows) {
     if (isFrameRow(src)) continue;
-    const id = fc.select.freshId(boxes.concat(clones));
+    const id = mintId ? mintId() : fc.select.freshId(boxes.concat(clones));
     const r = boxRect(src, cfg);
     const owner = ff ? String(src[ff.frameField] ?? '') : '';
     const dx = owner ? pageShift.get(owner) : undefined;
@@ -473,7 +478,7 @@ export function pasteObjects(fc: FcCtx, payload: LayoutClipboard): void {
     const nudge = isTimedRow(src) ? 0 : 24;
     const clone: Box =
       dx == null
-        ? fc.document.clampToWorkArea({
+        ? placeCopy({
             ...src,
             [cfg.idField]: id,
             [cfg.xField]: Math.round(r.x + nudge),
@@ -503,8 +508,9 @@ export function pasteObjects(fc: FcCtx, payload: LayoutClipboard): void {
   if (layoutTracks.length) patch.layoutTracks = [...fc.layout.tracks(), ...layoutTracks];
   // With a whole page pasted the selection is that PAGE, not its contents - the same
   // answer Cmd+D gives, so the next gesture moves the slide.
-  const selected = pageIds.size ? new Set(pageIds.values()) : nextSel;
-  const appended = [...boxes, ...clones];
+  const ready = fc.hierarchy?.remapCopies(clones, copies) || clones;
+  const selected = pageIds.size ? new Set(pageIds.values()) : fc.hierarchy?.rootCopySelection(ready, nextSel) || nextSel;
+  const appended = [...boxes, ...ready];
   if (!timeCfg || !clones.some(isTimedRow)) {
     void fc.storyFlow.paste(payload,appended,copies,selected,patch);
     return;

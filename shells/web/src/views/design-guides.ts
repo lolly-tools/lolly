@@ -5,6 +5,8 @@
 // Copyright (c) KALEIDOS SUBSIDIARY SL
 /** Rulers and persistent authoring guides for the Design canvas. */
 
+import { announce } from '../a11y.ts';
+import { t } from '../i18n.ts';
 import { createGuideInteractions } from './design-guides-interactions.ts';
 import { createGuideView } from './design-guides-view.ts';
 import {
@@ -147,6 +149,28 @@ export function serializeGuideRecords(guides: readonly DesignGuide[]): string {
     : '';
 }
 
+/** Legacy documents above the v2 reader limit keep their complete axis geometry. */
+export function serializeGuideEdit(guides: readonly DesignGuide[]): string {
+  if (guides.length <= MAX_DESIGN_GUIDE_RECORDS) return serializeGuideRecords(guides);
+  if (
+    guides.some(
+      (guide) =>
+        guide.color || !guide.snap || ![0, 90].includes(((guide.rotation % 180) + 180) % 180)
+    )
+  ) {
+    throw new Error(
+      t('Reduce this document to 1,000 guides before changing guide angle, colour or snapping.')
+    );
+  }
+  const targets = guideSnapTargets(guides);
+  if ((targets.x?.length || 0) + (targets.y?.length || 0) !== guides.length) {
+    throw new Error(
+      t('Keep guide positions distinct while this document has more than 1,000 guides.')
+    );
+  }
+  return serializeDesignGuides({ x: [...(targets.x || [])], y: [...(targets.y || [])] });
+}
+
 export function guideSnapTargets(guides: readonly DesignGuide[]): SnapLines {
   const x: number[] = [],
     y: number[] = [];
@@ -177,9 +201,18 @@ function select(g: GuideContext, id: string | null): void {
 }
 function commit(g: GuideContext, next: DesignGuide[]): void {
   if (!guideCanEdit(g)) return;
-  const normalised = next.map(normaliseGuide),
-    value = serializeGuideRecords(normalised);
-  if (value !== serializeGuideRecords(g.guides)) {
+  const normalised = next.map(normaliseGuide);
+  let value: string;
+  try {
+    value = serializeGuideEdit(normalised);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (g.opts.onError) g.opts.onError(message);
+    else announce(message);
+    g.view.paint();
+    return;
+  }
+  if (serializeGuideRecords(normalised) !== serializeGuideRecords(g.guides)) {
     if (g.drag) {
       const selection = g.selectedId;
       g.interaction.cancel();

@@ -21,6 +21,7 @@
 
 import { createHash } from 'node:crypto';
 import { assetDependency, readZip } from '@lolly/engine';
+import { lollyFeatureReader } from '../../core/src/lolly-features.ts';
 
 /** One font face the session's render depended on, by identity. Mirrors `LollyFontEntry`
  *  in shells/web/src/lib/lolly-pack.ts - `sha256` is the SRI digest of the WHOLE source
@@ -73,7 +74,7 @@ export interface LollyFileContents {
 
 /** The format tag and reader gate, kept identical to lolly-pack.ts's constants. */
 const LOLLY_FILE_FORMAT = 'lolly-share';
-const LOLLY_READER_VERSION = 6;
+const LOLLY_READER_VERSION = 7;
 /** The gate a file carrying a renovation project asks for. The session reader above
  *  stays at 2 and refuses a renovation by name; `readRenovationLollyFile` is the one
  *  that understands the part, so it is the one that admits to reader 4. */
@@ -142,7 +143,7 @@ export function readLollyFile(bytes: Uint8Array, opts: { allowTool?: boolean } =
   if (manifest.kind === 'tool') {
     if (!opts.allowTool) throw new Error('This is a reusable tool. Use lolly run file.lolly to render it.');
     const bundle = manifest.bundledTool;
-    if (![2, 6].includes(manifest.minReader ?? 0) || !manifest.integrity || !bundle?.files?.length || bundle.id !== manifest.tool.id || files.has('session.json')) throw new Error('This tool file has an invalid payload.');
+    if (![2, 6, 7].includes(manifest.minReader ?? 0) || !manifest.integrity || !bundle?.files?.length || bundle.id !== manifest.tool.id || files.has('session.json')) throw new Error('This tool file has an invalid payload.');
     const paths = new Set<string>();
     for (const entry of bundle.files) {
       if (!/^tool\/[\w./-]+$/.test(entry.path) || entry.path.split('/').some(p => p === '.' || p === '..') || paths.has(entry.path) || !files.has(entry.path) || !manifest.integrity[entry.path]) throw new Error('This tool file has an invalid or unverified part.');
@@ -151,13 +152,23 @@ export function readLollyFile(bytes: Uint8Array, opts: { allowTool?: boolean } =
     if ([...files.keys()].some(path => path.startsWith('tool/') && !paths.has(path)) || !paths.has('tool/tool.json') || !paths.has('tool/template.html')) throw new Error('This tool file has an incomplete inventory.');
     const tool = parseJson(files.get('tool/tool.json')) as {id?:string;version?:string} | null;
     if (tool?.id !== bundle.id || bundle.version && tool.version !== bundle.version) throw new Error('This tool file has inconsistent identity.');
+    verifyFeatureReader(manifest, { toolManifest: tool });
     return {manifest,session:{},files};
   }
   const session = parseJson(files.get('session.json'));
   if (!session || typeof session !== 'object') {
     throw new Error('This .lolly file carries no readable session.json.');
   }
+  verifyFeatureReader(manifest, { session, templates: parseJson(files.get('templates.json')),
+    toolManifest: manifest.bundledTool ? parseJson(files.get('tool/tool.json')) : undefined });
   return { manifest, session: session as Record<string, unknown>, files };
+}
+
+function verifyFeatureReader(manifest: LollyFileManifest, sources: Parameters<typeof lollyFeatureReader>[0]): void {
+  const required = lollyFeatureReader({ ...sources, toolId: manifest.tool.id });
+  if (required > 1 && (typeof manifest.minReader !== 'number' || manifest.minReader < required)) {
+    throw new Error(`This .lolly file has an invalid Design feature reader gate (requires reader ${required}).`);
+  }
 }
 
 /** A renovation project read off a `.lolly` (plan 274 section 3.5). The parts are the

@@ -34,6 +34,7 @@
  */
 import { exportPenpotLayout } from './penpot-layout.ts';
 import { hasDesignLayout, validateDesignLayout } from './design-layout.ts';
+import { designHierarchyIndex } from './design-hierarchy.ts';
 import type { DesignBoxRowV1 } from '@lolly-tools/core';
 import { parseSvgPath, type SubPath, type PathSegment } from './svg-path.ts';
 import { makeGeomApi } from './geom-api.ts';
@@ -995,6 +996,8 @@ export interface BoxesToPenpotOptions {
   /** The no-frames artboard size (the tool's render box). */
   canvas: { w: number; h: number };
   layoutTracks?: Array<Record<string, unknown>>;
+  /** Editor pages contain independent canvases, each with its own artboards. */
+  pages?: Array<Record<string, unknown>>;
   /** The no-frames artboard background. */
   background?: string;
   /** What the Design tool's `sans` / `mono` font keys resolve to (the brand's faces). */
@@ -1271,7 +1274,7 @@ export function boxesToPenpotDoc(boxesIn: unknown, o: BoxesToPenpotOptions): Pen
 
   const lowerBox = (b: Box): PenpotIrShape | null => {
     const kind = str(b.kind) || 'box';
-    if (kind === 'audio' || kind === 'camera' || kind === 'frame') return null;
+    if (kind === 'audio' || kind === 'camera' || kind === 'frame' || kind === 'group') return null;
     const x = fin(b.x), y = fin(b.y), w = Math.max(1, fin(b.w, 1)), h = Math.max(1, fin(b.h, 1));
     const base: PenpotIrShapeBase = { name: nameOf(b, kind), x, y, w, h };
     const effectCapture = effects(b, base);
@@ -1406,6 +1409,55 @@ export function boxesToPenpotDoc(boxesIn: unknown, o: BoxesToPenpotOptions): Pen
     }
     return shape;
   };
+
+  if (o.pages?.length || boxes.some(box => box.kind === 'group' || box.pageId)) {
+    if (boxes.length + (o.pages?.length || 1) > MAX_SHAPES) throw new Error('Native Penpot export supports up to 6,000 layers including generated artboards. Keep the full source as a .lolly document or split the design into smaller files.');
+    // One indexed ownership graph drives every page; group contents are never solved twice.
+    const source = boxes.map(box => box.layoutOwner || box.group ? { ...box, frame: '' } : box);
+    const index = designHierarchyIndex(source, o.pages);
+    const findings = [...index.findings, ...(hasDesignLayout(source) ? validateDesignLayout(source, o.layoutTracks) : [])];
+    if (findings.length) throw new Error(findings.map(finding => finding.message).join('\n'));
+    const paintIndex = new Map(boxes.map((box, n) => [String(box.id), n]));
+    const lowerTree = (box: Box): PenpotIrShape | null => {
+      let children = (index.children.get(String(box.id)) || []).map(id => byId.get(id)!);
+      if (hasDesignLayout([box])) children = children.slice().sort((a, b) => fin(a.layoutOrder) - fin(b.layoutOrder));
+      let shape: PenpotIrShape | null;
+      if (box.kind === 'group') {
+        shape = { type: 'group', name: nameOf(box, 'Group'), x: fin(box.x), y: fin(box.y), w: Math.max(.01, fin(box.w, 1)), h: Math.max(.01, fin(box.h, 1)),
+          children: children.map(lowerTree).filter((child): child is PenpotIrShape => child !== null) };
+        effects(box, shape);
+      } else if (box.kind === 'frame' || hasDesignLayout([box])) {
+        const primitive = box.kind === 'frame' ? null : lowerBox(box);
+        if (primitive && primitive.type !== 'rect') throw new Error('A dynamic layout container must be a rectangle or an artboard for Penpot export.');
+        const fill = parsePenpotColor(color(box.bg) ?? 'transparent');
+        if (box.layout === 'flex') children = [...children].reverse();
+        shape = { ...(primitive || {}), type: 'board', name: nameOf(box, 'Artboard'), x: fin(box.x), y: fin(box.y), w: Math.max(.01, fin(box.w, 1)), h: Math.max(.01, fin(box.h, 1)),
+          fills: primitive?.fills || (fill ? [{ color: fill.hex, opacity: fill.alpha }] : []),
+          ...(box.kind === 'frame' ? { strokes: strokeOf(box).map(stroke => ({ ...stroke, alignment: 'inner' as const })) } : {}),
+          children: children.map(lowerTree).filter((child): child is PenpotIrShape => child !== null),
+          showContent: box.kind === 'frame' ? box.clipChildren === false : box.clipChildren !== true };
+        effects(box, shape);
+      } else shape = lowerBox(box);
+      if (shape) {
+        shape.sourceId = String(box.id);
+        shape.hidden = box.hidden === true || box.hidden === 'true';
+        const props = exportPenpotLayout(box, children, o.layoutTracks || []);
+        shape.layoutProperties = box.layoutOwner ? { ...props, layoutItemZIndex: paintIndex.get(String(box.id)) } : props;
+      }
+      return shape;
+    };
+    const pages = index.pages.map(page => {
+      const roots = (index.rootsByPage.get(page.id) || []).map(id => byId.get(id)!);
+      let shapes = roots.map(lowerTree).filter((shape): shape is PenpotIrShape => shape !== null);
+      if (!roots.some(box => box.kind === 'frame')) {
+        const fill = parsePenpotColor(color(o.background) ?? 'transparent');
+        shapes = [{ type: 'board', name: 'Artboard', x: 0, y: 0, w: Math.max(1, fin(o.canvas.w, 1)), h: Math.max(1, fin(o.canvas.h, 1)),
+          fills: fill ? [{ color: fill.hex, opacity: fill.alpha }] : [], children: shapes }];
+      }
+      return { name: page.name, shapes };
+    });
+    return { name: o.name, pages, media, tokens: o.tokens, palette: o.palette, typographies: o.typographies, googleFamilies: google, generatedBy: o.generatedBy };
+  }
 
   const frames = boxes
     .map((b, idx) => ({ b, idx }))

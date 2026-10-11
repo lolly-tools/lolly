@@ -287,11 +287,16 @@ export function wireSendTargets(ta: ActionsCtx): void {
         fmt === 'docx' ||
         fmt === 'odt' ||
         ta.formatRules.isAnimatedFmt(fmt);
-      const sendNode = multiPage ? exportTargetNode(canvasEl) : flatExportNode(canvasEl);
-      const blob = await exportUnscaled(() => runtime.export(sendNode, fmt, opts), {
-        shutter: true,
-        size: ta.dims.exportPixels(sendDims),
-      });
+      const documentExport = multiPage ? await ta.experience.exportDocument?.() : undefined;
+      let blob: Blob;
+      try {
+        const source = documentExport?.canvas ?? canvasEl;
+        const sendNode = multiPage ? exportTargetNode(source) : flatExportNode(source);
+        blob = await exportUnscaled(() => (documentExport?.runtime ?? runtime).export(sendNode, fmt, opts), {
+          shutter: true,
+          size: ta.dims.exportPixels(sendDims),
+        });
+      } finally { documentExport?.destroy(); }
       label.textContent = t('Sending…');
       const out = await target.send({
         bytes: new Uint8Array(await blob.arrayBuffer()),

@@ -164,6 +164,7 @@ interface PenpotDocModel {
   background: string | undefined;
   boxes: Array<Record<string, unknown>>;
   layoutTracks: Array<Record<string, unknown>>;
+  pages: Array<Record<string, unknown>>;
 }
 
 /** Read the tool-authored raw document off the stage, or null to fall through to
@@ -179,7 +180,9 @@ function readPenpotDocModel(node: Element): PenpotDocModel | null {
     if (!Array.isArray(boxes)) return null;
     const bg = (raw as { background?: unknown }).background;
     const layoutTracks = (raw as { layoutTracks?: unknown }).layoutTracks;
+    const pages = (raw as { pages?: unknown }).pages;
     return {
+      pages: Array.isArray(pages) ? pages.filter((page): page is Record<string, unknown> => !!page && typeof page === 'object' && !Array.isArray(page)) : [],
       background: typeof bg === 'string' && bg.trim() ? bg.trim() : undefined,
       boxes: boxes.filter((b): b is Record<string, unknown> => !!b && typeof b === 'object' && !Array.isArray(b)),
       layoutTracks: Array.isArray(layoutTracks) ? layoutTracks.filter((track): track is Record<string, unknown> => !!track && typeof track === 'object' && !Array.isArray(track)) : [],
@@ -377,6 +380,7 @@ export async function renderPenpot(node: Element, opts: ExportOpts): Promise<Blo
         ...shared,
         canvas: stageSize(node),
         background: model.background,
+        pages: model.pages,
         layoutTracks: Array.isArray(model.layoutTracks) ? model.layoutTracks : [],
         fonts: brand.fonts,
         mediaFor: (box) => media.get(String(box.id ?? '')) ?? null,

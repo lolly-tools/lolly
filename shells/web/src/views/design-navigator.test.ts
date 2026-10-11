@@ -1059,7 +1059,7 @@ for (const skin of ['column', 'strip'] as const) {
     const f = mount(THREE, { skin });
     try {
       const pages = [...f.nav.el.querySelectorAll<HTMLButtonElement>('.fc-nav-modes button')]
-        .find(button => button.textContent === 'Pages');
+        .find(button => button.textContent === 'Artboards');
       if (pages) click(pages);
       f.rowById('f1').focus();
       for (const [arrow, id] of [
@@ -1090,7 +1090,7 @@ test('clicking a page keeps keyboard focus through selection and later thumbnail
   const f = mount(THREE);
   try {
     const pages = [...f.nav.el.querySelectorAll<HTMLButtonElement>('.fc-nav-modes button')]
-      .find(button => button.textContent === 'Pages')!;
+      .find(button => button.textContent === 'Artboards')!;
     click(pages);
     click(f.rowById('f2'));
     assert.equal(document.activeElement, f.rowById('f2'));
@@ -1110,7 +1110,7 @@ test('arrows from the Pages and Layers view buttons continue from the active art
   try {
     const mode = (name: string): HTMLButtonElement => [...f.nav.el.querySelectorAll<HTMLButtonElement>('.fc-nav-modes button')]
       .find(button => button.textContent === name)!;
-    const pages = mode('Pages'); click(pages); pages.focus();
+    const pages = mode('Artboards'); click(pages); pages.focus();
     key(pages, 'ArrowDown');
     assert.equal(f.c.focused.at(-1), 'f2');
     assert.equal(document.activeElement, f.rowById('f2'));
@@ -1660,7 +1660,7 @@ test('Layers and Pages switch the same document navigation without duplicating v
   const f=mount(WITH_KIDS,{active:'f1'});
   const buttons=[...f.nav.el.querySelectorAll<HTMLButtonElement>('.fc-nav-modes button')];
   assert.equal(f.nav.el.querySelector<HTMLElement>('.fc-nav-list')!.hidden,true);
-  click(buttons.find(button=>button.textContent==='Pages')!);
+  click(buttons.find(button=>button.textContent==='Artboards')!);
   assert.equal(f.nav.el.querySelector<HTMLElement>('.fc-nav-list')!.hidden,false);
   assert.equal(f.nav.el.querySelector<HTMLElement>('.fc-nav-layers')!.hidden,true);
   click(buttons.find(button=>button.textContent==='Layers')!);
@@ -1673,7 +1673,7 @@ test('switching navigator views keeps each list scroll position', () => {
   try {
     const body = f.nav.el.querySelector<HTMLElement>('.fc-nav-body')!;
     const buttons = [...f.nav.el.querySelectorAll<HTMLButtonElement>('.fc-nav-modes button')];
-    const pages = buttons.find(button => button.textContent === 'Pages')!;
+    const pages = buttons.find(button => button.textContent === 'Artboards')!;
     const layers = buttons.find(button => button.textContent === 'Layers')!;
     body.scrollTop = 120;
     click(pages);
@@ -1735,5 +1735,75 @@ test('reordering displayed group members preserves omitted siblings in their ori
     key(collapsed.querySelector('summary')!,'ArrowLeft');
     const row=f.layerEls().find(row=>row.dataset.id==='b')!; key(row,'ArrowDown',{altKey:true});
     assert.deepEqual(f.c.reorderChildren.at(-1),{frameId:'f1',ids:['b','hidden','a']});
+  } finally { f.nav.destroy(); }
+});
+
+test('named groups retain nested ownership, select containers and reuse untouched rows', () => {
+  const f = mount([
+    { id: 'f1', kind: 'frame', name: 'Board', w: 800, h: 450 },
+    { id: 'outer', kind: 'group', name: 'Card', frame: 'f1' },
+    { id: 'inner', kind: 'group', name: 'Title', group: 'outer' },
+    { id: 'leaf', kind: 'text', text: 'Hello', group: 'inner' },
+    { id: 'outside', kind: 'box', frame: 'f1' },
+  ] as Box[]);
+  try {
+    assert.deepEqual(f.layerIds(), ['outside', 'outer', 'inner', 'leaf']);
+    const outer = f.nav.el.querySelector<HTMLDetailsElement>('[data-object-group="outer"]')!;
+    const inner = outer.querySelector<HTMLDetailsElement>('[data-object-group="inner"]')!;
+    assert.ok(inner, 'a first-class group is nested inside its owner');
+    assert.equal(outer.querySelector('.fc-nav-layer-name')?.textContent, 'Card');
+    const leaf = f.layerEls().find(row => row.dataset.id === 'leaf')!;
+    click(f.layerEls().find(row => row.dataset.id === 'outer')!);
+    assert.deepEqual(f.selection.get(), ['outer'], 'container selection keeps its stable identity');
+    f.model.setField(['outside'], 'hidden', true);
+    assert.equal(f.layerEls().find(row => row.dataset.id === 'leaf'), leaf, 'an unrelated edit retains the leaf DOM');
+    const row = f.layerEls().find(row => row.dataset.id === 'inner')!;
+    key(row, 'F2');
+    const input = row.querySelector<HTMLInputElement>('[data-nav-name-input]')!;
+    assert.ok(input); input.value = 'Heading'; key(input, 'Enter');
+    assert.equal(f.boxById('inner').name, 'Heading');
+    assert.equal(f.boxById('leaf').group, 'inner');
+    key(outer.querySelector('summary')!, 'ArrowLeft');
+    assert.deepEqual(f.layerIds(), ['outside', 'outer']);
+    f.model.setField(['outside'], 'hidden', false);
+    assert.equal(f.nav.el.querySelector<HTMLDetailsElement>('[data-object-group="outer"]')!.open, false);
+  } finally { f.nav.destroy(); }
+});
+
+test('a 5,000-layer expanded group mounts a bounded window and keyboard reaches the final row', () => {
+  const boxes = [{ id: 'g', kind: 'group', name: 'Many layers' }, ...Array.from({ length: 5000 }, (_, i) => ({ id: `layer-${i}`, kind: 'box', group: 'g' }))] as Box[];
+  const f = mount(boxes);
+  try {
+    const list = f.nav.el.querySelector<HTMLElement>('.fc-nav-layer-list')!;
+    assert.ok(list.classList.contains('is-windowed'));
+    assert.ok(f.layerEls().length <= 120, 'DOM work is bounded by the viewport rather than document size');
+    const group = f.layerEls().find(row => row.dataset.id === 'g')!;
+    key(group, 'End');
+    assert.equal((document.activeElement as HTMLElement).dataset.id, 'layer-0');
+    assert.ok(f.layerEls().length <= 120);
+    assert.equal(f.model.getBoxes().length, 5001, 'virtual navigation does not change document data');
+    f.model.commit([{ id: 'single', kind: 'box', name: 'Small page' }] as Box[]);
+    list.dispatchEvent(new W.Event('scroll')); frames();
+    assert.deepEqual(f.layerIds(), ['single'], 'leaving a large page clears its window before later scroll events');
+  } finally { f.nav.destroy(); }
+});
+
+test('reordering a nested group changes only direct siblings in one document commit', () => {
+  const f = mount([
+    { id: 'f1', kind: 'frame', w: 800, h: 450 },
+    { id: 'outer', kind: 'group', name: 'Card', frame: 'f1' },
+    { id: 'a', kind: 'box', group: 'outer', x: 10, y: 20 },
+    { id: 'inner', kind: 'group', name: 'Nested', group: 'outer', x: 30, y: 40 },
+    { id: 'leaf', kind: 'box', group: 'inner', x: 50, y: 60 },
+    { id: 'outside', kind: 'box', frame: 'f1', x: 70, y: 80 },
+  ] as Box[]);
+  try {
+    const initial = new Map(f.model.getBoxes().map(box => [String(box.id), box]));
+    const row = f.layerEls().find(layer => layer.dataset.id === 'inner')!;
+    key(row, 'ArrowDown', { altKey: true });
+    assert.equal(f.c.commits.length, 1);
+    assert.deepEqual(f.model.getBoxes().map(box => box.id), ['f1', 'outer', 'inner', 'a', 'leaf', 'outside']);
+    for (const box of f.model.getBoxes()) assert.equal(box, initial.get(String(box.id)));
+    assert.equal(f.boxById('leaf').group, 'inner');
   } finally { f.nav.destroy(); }
 });

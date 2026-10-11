@@ -8,6 +8,7 @@ import {
   MAX_DESIGN_GUIDE_RECORDS,
   parseGuideRecords,
   serializeGuideRecords,
+  serializeGuideEdit,
   guideSnapTargets,
   parseDesignGuides,
   rulerStep,
@@ -208,10 +209,12 @@ function guideFixture(initial = '1|x=100;y=200', canEdit?: () => boolean) {
   canvas.getBoundingClientRect = () => rect(100, 100, 500, 400);
   let value = initial;
   const commits: string[] = [];
+  const errors: string[] = [];
   let inspections = 0;
   const handle = mountDesignGuides({
     stageEl: stage,
     canvasEl: canvas,
+    onError: message => errors.push(message),
     canEdit,
     read: () => value,
     commit: (next) => {
@@ -237,6 +240,7 @@ function guideFixture(initial = '1|x=100;y=200', canEdit?: () => boolean) {
     pending: () => frames.size,
     value: () => value,
     inspections: () => inspections,
+    errors,
     restore: (next: string) => {
       value = next;
       handle.sync();
@@ -997,5 +1001,44 @@ test('existing guides still move and edit at capacity, and removal makes room fo
   ruler.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
   assert.equal(f.commits.length, 4);
   assert.equal(parseGuideRecords(f.value()).length, MAX_DESIGN_GUIDE_RECORDS);
+  f.handle.destroy();
+});
+
+
+test('large legacy guide edits keep the complete axis set readable without increasing the v2 limit', () => {
+  const source = serializeDesignGuides({ x: Array.from({ length: 1005 }, (_, i) => i * 2), y: [7, 11] });
+  const guides = parseGuideRecords(source), edited = guides.map(guide => guide.id === 'x0' ? { ...guide, x: -25 } : guide);
+  const wire = serializeGuideEdit(edited);
+  assert.ok(wire.startsWith('1|'));
+  assert.equal(parseGuideRecords(wire).length, 1007);
+  assert.deepEqual(guideSnapTargets(parseGuideRecords(wire)), guideSnapTargets(edited));
+  assert.equal(parseGuideRecords(serializeGuideRecords(edited)).length, MAX_DESIGN_GUIDE_RECORDS, 'v2 keeps its existing bounded reader');
+  assert.throws(() => serializeGuideEdit(edited.map(guide => guide.id === 'x0' ? { ...guide, rotation: 45 } : guide)), /1,000 guides/);
+  assert.throws(() => serializeGuideEdit(edited.map(guide => guide.id === 'x0' ? { ...guide, snap: false } : guide)), /1,000 guides/);
+  assert.throws(() => serializeGuideEdit(edited.map(guide => guide.id === 'x0' ? { ...guide, color: '#ff00cc' } : guide)), /1,000 guides/);
+});
+
+test('drag and deletion retain every legacy guide, while rich edits explain the remaining limit', () => {
+  const source = serializeDesignGuides({ x: Array.from({ length: 1002 }, (_, i) => i * 2), y: [] });
+  const f = guideFixture(source);
+  const line = f.handle.el.querySelector<HTMLElement>('[data-guide-id="x0"]')!;
+  f.pointer(line, 'pointerdown', 100, 250); f.pointer(line, 'pointerup', 100, 250);
+  assert.equal(f.commits.length, 0, 'a plain selection does not create an undo entry');
+  f.pointer(line, 'pointerdown', 100, 250); f.pointer(line, 'pointermove', 103.5, 250); f.pointer(line, 'pointerup', 103.5, 250);
+  assert.equal(f.commits.length, 1, 'a distinct drag preserves all legacy guides');
+  assert.equal(parseGuideRecords(f.value()).length, 1002);
+  f.pointer(line, 'pointerdown', 103.5, 250); f.pointer(line, 'pointermove', 110, 250); f.pointer(line, 'pointerup', 110, 250);
+  assert.equal(f.commits.length, 1, 'a colliding legacy position is refused without losing a guide');
+  assert.equal(f.errors.length, 1);
+  f.handle.update('x0', { x: -5 });
+  assert.ok(f.value().startsWith('1|')); assert.equal(parseGuideRecords(f.value()).length, 1002);
+  f.handle.update('x0', { rotation: 45 });
+  assert.equal(f.commits.length, 2); assert.match(f.errors.at(-1)!, /1,000 guides/); assert.equal(f.handle.selected()?.rotation, 90);
+  f.handle.remove('x1');
+  assert.ok(f.value().startsWith('1|')); assert.equal(parseGuideRecords(f.value()).length, 1001);
+  f.handle.remove('x2');
+  assert.ok(f.value().startsWith('2|')); assert.equal(parseGuideRecords(f.value()).length, 1000);
+  f.handle.update('x0', { rotation: 45 });
+  assert.equal(parseGuideRecords(f.value()).find(guide => guide.id === 'x0')!.rotation, 45);
   f.handle.destroy();
 });

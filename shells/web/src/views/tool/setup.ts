@@ -644,6 +644,7 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
   observeProductionExport(tview.host, toolId, () => tview.runtime?.getModel() ?? []);
   const runtime: ToolRuntime = await createRuntime(tview.tool, tview.host, tview.initialValues, {
     progressiveInit,
+    ...(toolId === 'design' ? { viewState: { pageId: 'page-1' } } : {}),
     tokenSelection: tview.openedSession.url.tokenSelection,
     ...(emojiStyle === undefined ? {} : { emojiStyle }),
   }); tview.runtime = runtime;
@@ -899,6 +900,7 @@ export function mountActions(tview: ToolViewCtx): void {
       portable: true, historyBase: openedSession.cursor,
       // A thunk: session wiring assigns tview.openSaveAs after this mount runs.
       openSaveAs: () => { void tview.openSaveAs?.(); },
+      exportDocument: toolId === 'design' ? () => tview.exporting.mountDocumentExport() : undefined,
       current: toolId === 'design' ? () => tview.session.currentDesignOutcome() : undefined,
       sessionMeta: () => ({ ...(getDesignPublication(runtime) ? {__designPublication:getDesignPublication(runtime)} : {}), ...(getRebrandHandoff(runtime) ? { [REBRAND_HANDOFF_MARKER]: getRebrandHandoff(runtime) } : {}), ...(getDesignToolSource(runtime) ? { __designToolSource: getDesignToolSource(runtime) } : {}), ...(tview.tool.artifactDigest ? { __toolArtifact: tview.tool.artifactDigest } : {}), ...(getDesignToolDraft(runtime) ? { __designTool: getDesignToolDraft(runtime) } : {}), ...(toolId === 'design' ? { __workspace_intent: tview.designIntent } : {}),
         ...(tview.presentationScene ? { __presentation: tview.presentationScene } : {}),

@@ -6,6 +6,12 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.254.0
+
+- Add local runtime view state to hook contexts. `setViewState` refreshes computed rendering while preserving canonical inputs; saved values, undo history and collaboration records keep the complete document.
+- Add bounded Design hierarchy indexing, validation, legacy group migration and reparenting. Design 1.49 adds named pages and stable nested group nodes, shared by the canvas, navigator and native Penpot import/export. Group descendants retain document coordinates. Only the active editor page is painted; detached exports render all pages.
+- Layout groups participate as one fixed-size flow item. Unsupported group compositing imports as a vector asset when the existing serializer can preserve appearance; other unsupported composite groups are refused with a visible explanation.
+
 ## 1.253.0
 
 - Add bounded border-token consumer adapters for colour, absolute width and solid, dashed or dotted stroke style. Active border properties refresh together; incompatible source values retain the complete cached border. Relative widths and custom stroke styles remain unsupported.

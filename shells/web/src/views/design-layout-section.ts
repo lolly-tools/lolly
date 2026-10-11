@@ -146,9 +146,9 @@ function sizingRows(rows: Box[], model: ModelPort): string {
       value: 'fill',
       label: `Fill ${label}`,
       icon: 'fill-content',
-      disabled: rows.some((row) => !dynamicOwner(row, model)),
+      disabled: rows.some((row) => row.kind === 'group' || !dynamicOwner(row, model)),
     },
-    { value: 'hug', label: `Hug ${label}`, icon: 'hug-content' },
+    { value: 'hug', label: `Hug ${label}`, icon: 'hug-content', disabled: rows.some(row => row.kind === 'group') },
   ];
   return `<div class="dl-sizing"><div class="dl-labeled-row"><span>Width</span>${segments(rows, 'layoutW', 'Width sizing', choices('width'), 'fixed')}</div><div class="dl-labeled-row"><span>Height</span>${segments(rows, 'layoutH', 'Height sizing', choices('height'), 'fixed', true)}</div></div>`;
 }

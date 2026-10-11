@@ -50,6 +50,8 @@ type Rec = Record<string, unknown>;
 type Point = { x: number; y: number };
 
 export interface DesignAuthoringOptions {
+  /** Canonical editor pages used to validate ownership operations and patches. */
+  pages?: readonly unknown[];
   /** Named styles over the brief's (a document's `$styles`). An id the brief also has extends the brief's style. */
   styles?: Record<string, DesignTextStyleV1>;
   /** A `designBrief` result. Null or absent: the built-in styles, and colours by contrast. */
@@ -1018,7 +1020,7 @@ export function applyAuthoredLayerOperations(
     return v === undefined ? fallback : v;
   };
   if (!Array.isArray(ops)) {
-    if (base === '/layerOperations') applyLayerOperations(rows, ops, defaults);
+    if (base === '/layerOperations') applyLayerOperations(rows, ops, defaults, { pages: opts.pages });
     throw new Error(`${base}: layerOperations must be an array.`);
   }
   let current = rows.slice() as Rec[];
@@ -1044,7 +1046,7 @@ export function applyAuthoredLayerOperations(
       batch = expanded.rows.length === 1 ? [{ ...op, layer: expanded.rows[0] }] : expanded.rows.map((layer) => ({ op: 'add', layer }));
     }
     try {
-      current = applyLayerOperations(current, batch, defaults) as Rec[];
+      current = applyLayerOperations(current, batch, defaults, { pages: opts.pages }) as Rec[];
     } catch (err) {
       rethrowAt(err, /^\/layerOperations\/\d+/, at);
     }
@@ -1117,7 +1119,7 @@ export function applyAuthoredLayerPatches(
 ): { rows: Record<string, unknown>[]; notes: DesignAuthoringNote[] } {
   const base = opts.pointer ?? '/layerPatches';
   if (!Array.isArray(patches)) {
-    if (base === '/layerPatches') applyLayerPatches(rows, patches);
+    if (base === '/layerPatches') applyLayerPatches(rows, patches, { pages: opts.pages });
     throw new Error(`${base}: layerPatches must be an array.`);
   }
   let current = rows.slice() as Rec[];
@@ -1141,7 +1143,7 @@ export function applyAuthoredLayerPatches(
       }
     }
     try {
-      current = applyLayerPatches(current, [next]) as Rec[];
+      current = applyLayerPatches(current, [next], { pages: opts.pages }) as Rec[];
     } catch (err) {
       rethrowAt(err, /^\/layerPatches\/0/, at);
     }

@@ -29,6 +29,7 @@
 import { storeUserUpload } from './picker.ts';
 import {
   importPenpotLayouts,
+  validateDesignHierarchy,
   penpotHasLayout,
   penpotChildrenPaintOrder,
   boxGeomFromBBox,
@@ -80,6 +81,7 @@ interface DesignImportResult {
   boxes: unknown[]; width: number; height: number; background: string;
   sequenceValues?: { projectFps: string };
   layoutTracks?: Array<Record<string, unknown>>;
+  pages?: Array<{ id: string; name: string; order: number }>;
   fontSubstitutions?: string[];
   /** The map the boxes were finalized with, font vocabulary and all (Penpot
    *  binfile only). Additive: a caller that wants a SECOND pass over the same
@@ -152,8 +154,8 @@ const PENPOT_NS_CANDIDATES = [
  */
 export async function parseDesignFile(
   file: File | Blob,
-  { host, log, interactive, map }: {
-    host?: HostV1; log?: (msg: string) => void; interactive?: boolean; map?: DesignMapOptions;
+  { host, log, interactive, map, preserveHierarchy }: {
+    host?: HostV1; log?: (msg: string) => void; interactive?: boolean; map?: DesignMapOptions; preserveHierarchy?: boolean;
   } = {},
 ): Promise<DesignImportResult> {
   const warn: (msg: string) => void = typeof log === 'function' ? log : () => {};
@@ -215,7 +217,7 @@ export async function parseDesignFile(
       return parseIdmlZip(files, { host, warn, map, interactive });
     }
     if (files['canvas.fig']) return parseFig(files, { host, warn, map });
-    return parsePenpotZip(files, { host, warn, interactive, map });
+    return parsePenpotZip(files, { host, warn, interactive, map, preserveHierarchy });
   }
 
   // Otherwise treat the bytes as SVG text.
@@ -746,14 +748,14 @@ async function storeZipImage(host: HostV1 | undefined, zipFiles: Record<string, 
 // Penpot ZIP
 // ---------------------------------------------------------------------------
 
-async function parsePenpotZip(files: Record<string, Uint8Array>, { host, warn, interactive, map }: { host: HostV1 | undefined; warn: (msg: string) => void; interactive?: boolean; map?: DesignMapOptions }): Promise<DesignImportResult> {
+async function parsePenpotZip(files: Record<string, Uint8Array>, { host, warn, interactive, map, preserveHierarchy }: { host: HostV1 | undefined; warn: (msg: string) => void; interactive?: boolean; map?: DesignMapOptions; preserveHierarchy?: boolean }): Promise<DesignImportResult> {
   // The current Penpot `.penpot` export (binfile-v3) is a ZIP of per-shape JSON - no
   // page SVGs. Detect it by its manifest and shape-file layout and parse the JSON.
   const manifest = files['manifest.json'] ? safeJsonParse(strFromU8(files['manifest.json'])) : null;
   const isExportFiles = manifest && typeof manifest.type === 'string' && /export-files/.test(manifest.type);
   const hasShapeJson = Object.keys(files).some((p) => /\/pages\/[^/]+\/[^/]+\.json$/i.test(p));
   if (isExportFiles && hasShapeJson) {
-    return parsePenpotBinfile(files, manifest, { host, warn, interactive, map });
+    return parsePenpotBinfile(files, manifest, { host, warn, interactive, map, preserveHierarchy });
   }
 
   // Legacy path: the standard SVG export (a ZIP of page SVGs with penpot: metadata),
@@ -783,7 +785,7 @@ async function parsePenpotZip(files: Record<string, Uint8Array>, { host, warn, i
 // data (selrect + rotation), so the pure engine mapper (penpotShapeToNode) does the
 // shape→box work; here we only walk the file structure, order shapes, load embedded
 // media, and frame the result.
-async function parsePenpotBinfile(files: Record<string, Uint8Array>, manifest: any, { host, warn, interactive, map }: { host: HostV1 | undefined; warn: (msg: string) => void; interactive?: boolean; map?: DesignMapOptions }): Promise<DesignImportResult> {
+async function parsePenpotBinfile(files: Record<string, Uint8Array>, manifest: any, { host, warn, interactive, map, preserveHierarchy }: { host: HostV1 | undefined; warn: (msg: string) => void; interactive?: boolean; map?: DesignMapOptions; preserveHierarchy?: boolean }): Promise<DesignImportResult> {
   const fileId = Array.isArray(manifest.files) && manifest.files[0] ? manifest.files[0].id : null;
   if (!fileId) throw new Error('This Penpot file has no importable file.');
 
@@ -807,6 +809,42 @@ async function parsePenpotBinfile(files: Record<string, Uint8Array>, manifest: a
     return meta && Number.isFinite(meta.index) ? meta.index : 0;
   };
   const pageIds = [...pageShapes.keys()].sort((a, b) => pageIndex(a) - pageIndex(b));
+  if (preserveHierarchy) {
+    if (pageIds.length > 256) throw new Error('A Design document supports up to 256 pages.');
+    const boxes: Array<Record<string, unknown>> = [], layoutTracks: Array<Record<string, unknown>> = [];
+    const pages: Array<{ id: string; name: string; order: number }> = [];
+    const imageCache = new Map<string, AssetRef>();
+    let width = 1, height = 1;
+    for (const [order, pageId] of pageIds.entries()) {
+      const meta = files[`${pageDir}${pageId}.json`] ? safeJsonParse(strFromU8(files[`${pageDir}${pageId}.json`]!)) : null;
+      pages.push({ id: pageId, name: typeof meta?.name === 'string' ? meta.name : `Page ${order + 1}`, order });
+      const shapesById: Record<string, Record<string, unknown>> = Object.create(null);
+      let shapeCount = 0;
+      for (const path of pageShapes.get(pageId)!) {
+        const shape = safeJsonParse(strFromU8(files[path]!));
+        if (!shape?.id) continue;
+        if (shapesById[shape.id]) throw new Error('A Penpot page contains duplicate layer identities.');
+        if (++shapeCount > 20001) throw new Error('A Design document supports up to 20,000 layers.');
+        shapesById[shape.id] = shape;
+      }
+      const sourceIds: string[] = [];
+      const nodes = await penpotItemsToNodes(orderPenpotShapes(shapesById, true), { host, files, fileId, imageCache, warn, srcIds: sourceIds, preserveHierarchy: true });
+      // Keep document-global positions. Independent pages may use the same coordinates.
+      const finalized = finalizePenpotNodes(nodes, sourceIds, { ...map, prefix: `p${order}-n` });
+      const imported = importPenpotLayouts(finalized.boxes, finalized.sourceIds, shapesById, { preserveHierarchy: true });
+      if (imported.findings.length) throw new Error(imported.findings.map(f => f.message).join('\n'));
+      for (const box of imported.boxes) {
+        box.pageId = pageId; boxes.push(box);
+        width = Math.max(width, Number(box.x) + Number(box.w));
+        height = Math.max(height, Number(box.y) + Number(box.h));
+      }
+      layoutTracks.push(...imported.tracks);
+      if (boxes.length > 20000) throw new Error('A Design document supports up to 20,000 layers.');
+    }
+    const findings = validateDesignHierarchy(boxes, pages);
+    if (findings.length) throw new Error(findings.map(f => f.message).join('\n'));
+    return { boxes, pages, layoutTracks, width: Math.max(1, Math.ceil(width)), height: Math.max(1, Math.ceil(height)), background: '#ffffff', map };
+  }
   const pageId = pageIds[0]!;
   if (pageIds.length > 1) warn(`Imported the first of ${pageIds.length} pages.`);
 
@@ -893,21 +931,26 @@ interface PenpotVectorGroupItem { __vectorGroupSvg: string; shape: any; }
 // Mark a whole subtree consumed so a flattened group's shapes never double-paint
 // (and the orphan sweep can't revisit them).
 function markPenpotSubtreeSeen(shapesById: Record<string, any>, id: string, seen: Set<string>): void {
-  if (seen.has(id)) return;
-  seen.add(id);
-  const s = shapesById[id];
-  for (const k of (s && Array.isArray(s.shapes) ? s.shapes : [])) markPenpotSubtreeSeen(shapesById, String(k), seen);
+  const pending = [id];
+  for (let n = 0; n < pending.length; n++) {
+    const current = pending[n]!; if (seen.has(current)) continue;
+    seen.add(current); const shape = shapesById[current];
+    for (const child of (shape && Array.isArray(shape.shapes) ? shape.shapes : [])) if (!seen.has(String(child))) pending.push(String(child));
+  }
 }
 
 // Try to flatten a `group` subtree into one vector-group marker; null → walk per-shape.
 // A `bool`'s `content` already carries the resolved boolean outline, so its operand
 // children are consumed (marked seen), never painted separately.
-function penpotFlattenStep(shapesById: Record<string, any>, s: any, seen: Set<string>): PenpotVectorGroupItem | null {
+function penpotFlattenStep(shapesById: Record<string, any>, s: any, seen: Set<string>, strict = false): PenpotVectorGroupItem | null {
   if (String(s.type || '') !== 'group') return null;
-  const pending=[s]; const checked=new Set<string>();
-  for(let n=0;n<pending.length;n++){const member=pending[n];if(!member||checked.has(member.id))continue;checked.add(member.id);
+  const pending=[{member:s,depth:0}]; const checked=new Set<string>();
+  for(let n=0;n<pending.length;n++){const {member,depth}=pending[n]!;if(!member||checked.has(member.id))continue;checked.add(member.id);
     if(member.layout==='flex'||member.layout==='grid')return null;
-    for(const child of member.shapes||[])pending.push(shapesById[child]);
+    if(strict && (depth>64 || member!==s && member.blendMode && member.blendMode!=='normal'
+      || member.type==='group' && (Array.isArray(member.shadow) && member.shadow.some((shadow: {hidden?:boolean}|null)=>shadow && shadow.hidden!==true)
+        || penpotBackgroundBlurPx(member)>0 || member!==s && member.blur && member.blur.hidden!==true && Number(member.blur.value)>0))) return null;
+    for(const child of member.shapes||[])pending.push({member:shapesById[child],depth:depth+1});
   }
   const svg = penpotGroupToSvg(s, (cid: string) => shapesById[cid]);
   if (!svg) return null;
@@ -921,23 +964,29 @@ function penpotFlattenStep(shapesById: Record<string, any>, s: any, seen: Set<st
 // subtree in Penpot - importing it visible was a fidelity bug, so it prunes here.
 // (`hideInViewer` is NOT pruned on this path: it's visible in Penpot's editor, and
 // this import feeds an editor.) All-vector groups collapse to one flatten marker.
-function orderPenpotShapes(shapesById: Record<string, any>): any[] {
+function orderPenpotShapes(shapesById: Record<string, any>, preserveHierarchy = false): any[] {
   const out: any[] = [];
   const seen = new Set<string>();
   const dynamic = penpotHasLayout(shapesById);
-  const visit = (id: string) => {
-    const s = shapesById[id];
-    if (!s || seen.has(id) || s.hidden === true && !dynamic) return;
-    seen.add(id);
-    const flat = penpotFlattenStep(shapesById, s, seen);
-    if (flat) { out.push(flat); return; }
-    out.push(s);
-    if (String(s.type || '') === 'bool' && typeof s.content === 'string' && s.content) {
-      for (const k of (Array.isArray(s.shapes) ? s.shapes : [])) markPenpotSubtreeSeen(shapesById, String(k), seen);
-      return;
+  const visit = (start: string) => {
+    const pending = [{ id: start, depth: 0 }];
+    while (pending.length) {
+      const { id, depth } = pending.pop()!, shape = shapesById[id];
+      if (!shape || seen.has(id) || shape.hidden === true && !dynamic && !preserveHierarchy) continue;
+      if (preserveHierarchy && depth > 64) throw new Error('Penpot layer ownership exceeds 64 ancestors.');
+      seen.add(id);
+      const composited = preserveHierarchy && shape.type === 'group' && (shape.maskedGroup === true || shape.opacity != null && Number(shape.opacity) !== 1 || shape.blendMode && shape.blendMode !== 'normal' || Array.isArray(shape.shadow) && shape.shadow.length || shape.blur && shape.blur.hidden !== true && Number(shape.blur.value) > 0);
+      const flat = !preserveHierarchy || composited ? penpotFlattenStep(shapesById, shape, seen, preserveHierarchy) : null;
+      if (composited && !flat) throw new Error('A masked or composited group with text, images or unsupported effects cannot be imported as editable layers. Import an SVG copy to retain its appearance.');
+      if (flat) { out.push(flat); continue; }
+      out.push(shape);
+      if (String(shape.type || '') === 'bool' && typeof shape.content === 'string' && shape.content) {
+        for (const child of (Array.isArray(shape.shapes) ? shape.shapes : [])) markPenpotSubtreeSeen(shapesById, String(child), seen);
+        continue;
+      }
+      const children = penpotChildrenPaintOrder(shape, shapesById);
+      for (let n = children.length - 1; n >= 0; n--) pending.push({ id: children[n]!, depth: depth + 1 });
     }
-    const kids = penpotChildrenPaintOrder(s, shapesById);
-    for (const k of kids) visit(k);
   };
   visit('00000000-0000-0000-0000-000000000000');
   for (const id of Object.keys(shapesById)) visit(id);
@@ -979,7 +1028,7 @@ async function storePenpotVectorSvg(host: HostV1 | undefined, svg: string, cache
 // (_vectorPath, mirroring the Figma resolveFigMedia call), and flattened groups.
 async function penpotItemsToNodes(
   items: any[],
-  { host, files, fileId, imageCache, warn, srcIds }: {
+  { host, files, fileId, imageCache, warn, srcIds, preserveHierarchy }: {
     host: HostV1 | undefined; files: Record<string, Uint8Array>; fileId: string;
     imageCache: Map<string, AssetRef>; warn: (msg: string) => void;
     /** Optional out-param: the source shape id of every node pushed, in step with
@@ -987,6 +1036,7 @@ async function penpotItemsToNodes(
      *  two stay aligned - that is what lets the template pass map a component's
      *  slots back to the boxes they end up as (see parseDesignTemplates). */
     srcIds?: string[];
+    preserveHierarchy?: boolean;
   },
 ): Promise<any[]> {
   const nodes: any[] = [];
@@ -1008,6 +1058,7 @@ async function penpotItemsToNodes(
     }
     if (item && (item as PenpotVectorGroupItem).__vectorGroupSvg) {
       const { __vectorGroupSvg: svg, shape: g } = item as PenpotVectorGroupItem;
+      if (preserveHierarchy) warn('A masked or composited group was imported as one vector image to retain its appearance.');
       // A flattened group is one baked SVG asset, so a background blur on the group
       // itself has nowhere to land (the per-shape route keeps it; this one can't).
       if (penpotBackgroundBlurPx(g) > 0 && !warnedBgBlur) {
@@ -1015,7 +1066,7 @@ async function penpotItemsToNodes(
         warn(BG_BLUR_WARN);
       }
       const ref = await storePenpotVectorSvg(host, svg, imageCache, warn);
-      if (!ref) continue; // storage failed → the group is dropped (children were consumed)
+      if (!ref) { if (preserveHierarchy) throw new Error('The composited group image could not be stored.'); continue; }
       const sel = (g.selrect && typeof g.selrect === 'object') ? g.selrect : g;
       const op = Number.isFinite(+g.opacity) ? Math.min(1, Math.max(0, +g.opacity)) : 1;
       nodes.push({
@@ -1025,6 +1076,7 @@ async function penpotItemsToNodes(
         w: Number(sel.width) || 1, h: Number(sel.height) || 1,
         rot: Number(g.rotation) || 0,
         opacity: Math.round(op * 100),
+        ...(preserveHierarchy && g.blendMode ? { blend: String(g.blendMode) } : {}),
         // ROOT-group layer blur rides the image box (like root opacity); leaf blurs
         // are already baked inside the flattened SVG as feGaussianBlur defs.
         ...(g.blur?.type === 'layer-blur' && g.blur.hidden !== true && Number(g.blur.value) > 0
@@ -1034,7 +1086,7 @@ async function penpotItemsToNodes(
       continue;
     }
     let node: any = null;
-    try { node = penpotShapeToNode(item); } catch { node = null; }
+    try { node = penpotShapeToNode(item, { preserveHierarchy }); } catch { node = null; }
     if (!node) continue;
     // Background blur survives on the kinds whose painted region IS the box rect
     // (plain boxes and image fills), where it becomes the `bgBlur` field. Text shapes

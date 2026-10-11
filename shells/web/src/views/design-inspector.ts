@@ -812,6 +812,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     // The groups that DO stay read every row, so a value the rows disagree about shows
     // as mixed instead of as the first box's.
     if (ids.length > 1) return { kind: 'multi', ids, box, rows, secs: orderByBand([...(rows.length === ids.length && rows.every(row => kindOf(row) === 'text') ? ['text' as const] : []), ...paintSecs(false)]) };
+    if (kindOf(box) === 'group') return { kind: 'object', ids, box, rows, secs: orderByBand(['object', 'arrange', 'motion', ...(declaredField('layout') ? ['dynamicLayout' as const] : [])]) };
     if (frame && kindOf(box) === frame.frameKind) return { kind: 'frame', ids, box, rows, secs: orderByBand(['artboard', 'present', 'motion', ...(declaredField('layout') ? ['dynamicLayout' as const] : [])]) };
     const secs: InspectorSection[] = [];
     const hasText = kindOf(box) === 'text' || (!!cfg.textField && String(box[cfg.textField] ?? '') !== '');
@@ -1487,10 +1488,9 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
         + (blend.length ? blend : BLEND_FALLBACK.map((m) => [m, t(m[0]!.toUpperCase() + m.slice(1).replace('-', ' '))] as [string, string]))
           .map(([v, l]) => opt(v, l, differs(rows, cfg.blendField) ? null : (fv(b, cfg.blendField) ?? 'normal'))).join('')
         + '</select>') : '')
-      + (cfg.radiusField ? sliderRow(FIELD_GLYPH.radius, t('Corner radius'), 'radius', cfg.radiusField, radius, radiusOf(b), 0, 200, { unit: 'px' }) : '')
-      + (shapeChoices.length && cfg.shapeField ? segRow(FIELD_GLYPH.shRounded, t('Shape'), segHtml(cfg.shapeField, fv(b, cfg.shapeField) ?? 'rect', shapeChoices, t('Shape'))) : '');
+      + (kindOf(b) !== 'group' && cfg.radiusField ? sliderRow(FIELD_GLYPH.radius, t('Corner radius'), 'radius', cfg.radiusField, radius, radiusOf(b), 0, 200, { unit: 'px' }) : '')
+      + (kindOf(b) !== 'group' && shapeChoices.length && cfg.shapeField ? segRow(FIELD_GLYPH.shRounded, t('Shape'), segHtml(cfg.shapeField, fv(b, cfg.shapeField) ?? 'rect', shapeChoices, t('Shape'))) : '');
   }
-
   function shadowBody(b: Box, rows: Box[]): string {
     const shadowChoices = shadowChoicesFrom(fieldDefs, cfg.shadowField);
     const shadowCur = String(fv(b, cfg.shadowField) ?? 'none');

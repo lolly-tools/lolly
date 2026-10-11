@@ -29,6 +29,7 @@
 
 import { strToU8 } from 'fflate';
 import type { Profile, UserTemplateRecord } from '@lolly-tools/core/host-v1';
+import { lollyFeatureReader, LOLLY_LAYOUT_MIN_READER, LOLLY_HIERARCHY_MIN_READER } from '../../../../packages/core/src/lolly-features.ts';
 import { mapTextFontAssets } from '../../../../engine/src/text-assets.ts';
 import { assetDependency, encodeAssetVersion } from '../../../../engine/src/asset-version.ts';
 import { ensureSceneManifest } from '../bridge/asset-dependencies.ts';
@@ -65,9 +66,9 @@ export const LOLLY_FILE_FORMAT = 'lolly-share' as const;
 export const LOLLY_FILE_VERSION = 1;
 /** Readers gate on this, never `formatVersion` - additive parts stay compatible. */
 export const LOLLY_MIN_READER = 1;
-export const LOLLY_READER_VERSION = 6;
+export const LOLLY_READER_VERSION = 7;
 /** Dynamic layout rules must remain editable when a file is reopened. */
-export const LOLLY_LAYOUT_MIN_READER = 6;
+export { LOLLY_LAYOUT_MIN_READER, LOLLY_HIERARCHY_MIN_READER };
 /** Older emoji hosts hide later subsets behind the first pack with the same pin. */
 export const LOLLY_EMOJI_SUBSET_MIN_READER = 5;
 /** A project file (a folder tree and its sessions) needs a reader that knows the
@@ -611,22 +612,6 @@ function assetPath(dir: string, base: string, format: string, mime: string, take
  * supplied by the caller. Reuses `lib/bundle.ts` for the envelope exactly as
  * `data-transfer.ts` does, so integrity + `minReader` behave identically.
  */
-/** A bounded scan covers sessions, project sessions and starting-point values. */
-function carriesDynamicLayout(value: unknown): boolean {
-  const stack: unknown[] = [value], seen = new Set<object>();
-  let visited = 0;
-  while (stack.length) {
-    if (++visited > 200000) return true;
-    const item = stack.pop();
-    if (!item || typeof item !== 'object' || seen.has(item) || ArrayBuffer.isView(item) || item instanceof Blob) continue;
-    seen.add(item);
-    const record = item as Record<string, unknown>;
-    if (record.layout === 'flex' || record.layout === 'grid') return true;
-    for (const child of Object.values(record)) stack.push(child);
-  }
-  return false;
-}
-
 export async function buildLollyFile(input: LollyBuildInput): Promise<LollyBuildResult> {
   input = await prepareLollyEmoji(input);
   if (input.kind === 'tool' && (!input.tool || input.session != null || input.templates?.length || input.designSystem || input.renovation)) throw new Error('A tool file carries exactly one tool, without a saved session or design-system install.');
@@ -798,14 +783,14 @@ export async function buildLollyFile(input: LollyBuildInput): Promise<LollyBuild
     const count = asset.meta?.emojiArtworkCount, emoji = asset.meta?.emoji as { glyphs?: number } | undefined;
     return typeof count === 'number' && typeof emoji?.glyphs === 'number' && count < emoji.glyphs;
   });
-  const layout = carriesDynamicLayout({session:input.session,project:input.project,templates:input.templates});
   const toolManifestBytes = input.tool?.files['tool.json'];
   const toolManifest = toolManifestBytes ? JSON.parse(toolManifestBytes instanceof Blob ? await toolManifestBytes.text() : new TextDecoder().decode(toolManifestBytes)) : null;
-  const layoutTool = Array.isArray(toolManifest?.requires) && toolManifest.requires.includes('layout');
+  const featureReader = lollyFeatureReader({ toolId: input.toolId,
+    session: project || input.kind === 'tool' ? null : input.session, project, templates, toolManifest });
   const manifest: LollyManifest = {
     format: LOLLY_FILE_FORMAT,
     formatVersion: LOLLY_FILE_VERSION,
-    minReader: layout || layoutTool ? LOLLY_LAYOUT_MIN_READER : hasEmojiSubsets ? LOLLY_EMOJI_SUBSET_MIN_READER : renovation ? LOLLY_RENOVATION_MIN_READER : input.kind === 'project' ? LOLLY_PROJECT_MIN_READER : input.kind === 'tool' ? 2 : 1,
+    minReader: featureReader > 1 ? featureReader : hasEmojiSubsets ? LOLLY_EMOJI_SUBSET_MIN_READER : renovation ? LOLLY_RENOVATION_MIN_READER : input.kind === 'project' ? LOLLY_PROJECT_MIN_READER : input.kind === 'tool' ? 2 : 1,
     app: input.appVersion ?? 'Lolly',
     ...(input.engineVersion ? { engineVersion: input.engineVersion } : {}),
     kind: input.kind ?? 'session',
@@ -1341,6 +1326,11 @@ export async function readLollyFile(bytes: ArrayBuffer | Uint8Array): Promise<Lo
   // integrity map already vouched for its bytes, and a file whose manifest lost the
   // count would otherwise hand back templates it plainly carries.
   const templates = files[TEMPLATES_PART] ? readTemplatesPart(readJson(files, TEMPLATES_PART)) : [];
+  const featureReader = lollyFeatureReader({ toolId: manifest.tool.id, session, project, templates,
+    toolManifest: manifest.bundledTool ? readJson(files, 'tool/tool.json') : undefined });
+  if (typeof manifest.minReader !== 'number' || manifest.minReader < featureReader) {
+    if (featureReader > 1) throw new Error(`This .lolly file has an invalid Design feature reader gate (requires reader ${featureReader}).`);
+  }
   return { manifest, session, templates, files: files as Record<string, Uint8Array>, ...(designSystem !== undefined ? { designSystem } : {}), ...(project ? { project } : {}), ...(renovation ? { renovation } : {}) };
 }
 

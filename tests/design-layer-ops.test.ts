@@ -41,3 +41,43 @@ test('mistakes are refused with the JSON path at fault', () => {
   assert.throws(() => applyLayerPatches(rows(), [{ id: 'ghost', set: {} }]), /does not exist/);
   assert.throws(() => applyLayerOperations(rows(), { op: 'add' }), /must be an array/);
 });
+const nestedRows = (): Record<string,unknown>[] => [
+  {id:'board',kind:'frame',pageId:'p1'},
+  {id:'group',kind:'group',frame:'board',pageId:'p1'},
+  {id:'inner',kind:'group',group:'group',pageId:'p1'},
+  {id:'a',kind:'box',group:'inner',pageId:'p1',bindEnd:'b'},
+  {id:'b',kind:'box',group:'group',pageId:'p1',clip:'a'},
+  {id:'other',kind:'group',pageId:'p2'},
+];
+const hierarchyPages = [{id:'p1',name:'First'},{id:'p2',name:'Second'}];
+test('agent duplicates a nested group with remapped ownership and internal binding references', () => {
+  const out=applyLayerOperations(nestedRows(),[{op:'duplicate',id:'group',newId:'copy',childIds:{inner:'copy-inner',a:'copy-a',b:'copy-b'}}],undefined,{pages:hierarchyPages}) as Record<string,unknown>[];
+  assert.equal(out.find(row=>row.id==='copy-inner')?.group,'copy');
+  assert.equal(out.find(row=>row.id==='copy-a')?.group,'copy-inner');
+  assert.equal(out.find(row=>row.id==='copy-a')?.bindEnd,'copy-b');
+  assert.equal(out.find(row=>row.id==='copy-b')?.clip,'copy-a');
+  assert.equal(out.find(row=>row.id==='copy')?.frame,'board');
+  assert.throws(()=>applyLayerOperations(nestedRows(),[{op:'duplicate',id:'group',newId:'copy'}]),/childIds/);
+});
+test('agent artboard cascade includes group-owned descendants with an empty artboard pointer', () => {
+  assert.throws(()=>applyLayerOperations(nestedRows(),[{op:'remove',id:'board'}]),/cascade/);
+  const out=applyLayerOperations(nestedRows(),[{op:'remove',id:'board',cascade:true}],undefined,{pages:hierarchyPages}) as Record<string,unknown>[];
+  assert.deepEqual(out.map(row=>row.id),['other']);
+});
+test('agent reparent carries page membership and refuses cyclic or cross-domain ownership', () => {
+  const out=applyLayerOperations(nestedRows(),[{op:'reparent',id:'group',parentId:'other'}],undefined,{pages:hierarchyPages}) as Record<string,unknown>[];
+  assert.equal(out.find(row=>row.id==='group')?.group,'other');
+  for(const id of ['group','inner','a','b']) assert.equal(out.find(row=>row.id===id)?.pageId,'p2');
+  assert.throws(()=>applyLayerOperations(nestedRows(),[{op:'reparent',id:'group',parentId:'inner'}],undefined,{pages:hierarchyPages}),/own subtree/);
+  assert.throws(()=>applyLayerOperations(nestedRows(),[{op:'reorder',id:'inner',afterId:'other'}],undefined,{pages:hierarchyPages}),/sibling/);
+});
+test('agent sibling reorder moves the entire group subtree together', () => {
+  const source: Record<string,unknown>[]=nestedRows().map(row=>({...row,pageId:'p1'})); source[5]!.frame='board';
+  const out=applyLayerOperations(source,[{op:'reorder',id:'group',afterId:'other'}]) as Record<string,unknown>[];
+  assert.deepEqual(out.map(row=>row.id),['board','other','group','inner','a','b']);
+});
+test('agent duplication refuses incomplete document metadata and group patches refuse detached geometry', () => {
+  for(const patch of [{layout:'grid'},{textStory:'story'}]) assert.throws(()=>applyLayerOperations([{id:'g',kind:'group'},{id:'child',kind:'box',group:'g',...patch}],[{op:'duplicate',id:'g',newId:'copy',childIds:{child:'copy-child'}}]),/document metadata/);
+  assert.throws(()=>applyLayerPatches(nestedRows(),[{id:'group',set:{x:500}}],{pages:hierarchyPages}),/canvas transform/);
+  assert.throws(()=>applyLayerPatches(nestedRows(),[{id:'group',set:{group:'inner'}}],{pages:hierarchyPages}),/cycle/);
+});

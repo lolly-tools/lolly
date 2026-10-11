@@ -658,3 +658,24 @@ html[data-a11y-motion="reduce"] .fc-nav-dot-btn { transition: none; }
   .fc-nav-object-group > summary { position: static; }
   .fc-nav-object-group.is-active-group > summary { background: var(--ui-color-selection-surface); }
 }
+
+.fc-nav-document-pages { border-bottom: 1px solid var(--ui-color-border-default); padding-bottom: var(--sp-2); margin-bottom: var(--sp-2); }
+.fc-nav-pages-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); }
+.fc-nav-pages-head h3 { margin: 0; font-size: var(--fs-sm); font-weight: 600; }
+.fc-nav-document-page-list { max-height: 180px; overflow: auto; overscroll-behavior: contain; }
+.fc-nav-document-page { display: flex; align-items: center; height: 30px; gap: var(--sp-1); }
+.fc-nav-page-select { flex: 1; min-width: 0; border: 0; border-radius: var(--ui-radius-control); background: transparent; color: var(--ui-color-text-muted); text-align: start; padding: var(--sp-2); font: inherit; font-size: var(--fs-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+.fc-nav-page-select[aria-selected='true'] { background: var(--ui-color-selection-surface); color: var(--ui-color-text-default); }
+.fc-nav-page-select:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
+.fc-nav-layer-list.is-windowed { max-height: 55vh; overflow: auto; overscroll-behavior: contain; }
+.fc-nav-layer-list.is-windowed > .fc-nav-layer-item { height: 32px; }
+.fc-nav-tree-toggle { flex: none; width: 18px; height: 24px; background: transparent; color: var(--ui-color-text-muted); border: 0; cursor: pointer; }
+.fc-nav-tree-toggle[aria-expanded='true'] { rotate: 90deg; }
+.fc-nav-object-group > summary > .fc-nav-layer-item { flex: 1; min-width: 0; }
+.fc-nav-window-space { flex: none; pointer-events: none; }
+.fc-nav-list.is-windowed { max-height: 55vh; overflow: auto; gap: 0; overscroll-behavior: contain; }
+.fc-nav-list.is-windowed > .fc-nav-item { height: 44px; }
+.fc-nav-parent-search { margin: var(--sp-2); width: calc(100% - var(--sp-4)); }
+.fc-nav-parent-results { max-height: 280px; overflow: auto; }
+.fc-nav-modes .btn { background: transparent; color: var(--ui-color-text-muted); box-shadow: none; }
+.fc-nav-modes .btn[aria-pressed='true'] { background: var(--ui-color-selection-surface); color: var(--ui-color-text-default); }

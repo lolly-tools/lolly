@@ -38,6 +38,7 @@ import {
   restoreRebrandHandoff,
   type DesignHandoffFrameV1,
 } from './design-handoff.ts';
+import { dupRefFields } from '../../views/free-canvas/ops.ts';
 import { importAsArtboards } from '../../views/free-canvas/menus.ts';
 import type { FcCtx } from '../../views/free-canvas/context.ts';
 import type { Box } from '../../views/free-canvas-math.ts';
@@ -568,6 +569,7 @@ function canvas(): Canvas {
   // the handful of it `importAsArtboards` reads. Same pattern as slide-masters.test.ts.
   const fc = {
     disposed: false,
+    cv: {},
     cfg: {
       idField: 'id',
       kindField: 'kind',
@@ -590,6 +592,7 @@ function canvas(): Canvas {
     importMap: {},
     pendingImport: null,
     selection: new Set<string>(),
+    ops: { dupRefFields: () => dupRefFields(fc) },
     setCanvasSize: () => {},
     select: {
       freshId: () => `mint-${++state.minted}`,

@@ -95,6 +95,10 @@ export function onDblClick(fc: FcCtx, e: MouseEvent): void {
     fc.penTool.penFinishDraw();
     return;
   }
+  const groupPoint = fc.stage.clientToNative(e.clientX, e.clientY);
+  const groupBoxes = fc.select.getBoxes();
+  const groupHit = fc.select.selectHit(groupBoxes, groupPoint.x, groupPoint.y);
+  if (groupHit >= 0 && !e.altKey && fc.hierarchy?.drillIn(groupBoxes, fc.select.idOf(groupBoxes[groupHit], groupHit))) { e.preventDefault(); return; }
   // On a committed path box it ENTERS node editing, the same way a double-click enters a
   // text edit on a text box (see startTextEdit); one mode per kind of content.
   if (vectorCfg && !fc.penEdit) {
@@ -273,7 +277,7 @@ export function onFrameLabelPointerDown(fc: FcCtx, e: PointerEvent): void {
   fc.selection = new Set(fc.select.selectionForHit(boxes, index, true));
   fc.chromeSync.renderChrome();
   if (fc.frameCfg?.lockedField && boolOf(boxes[index]?.[fc.frameCfg.lockedField], false)) return;
-  const sel = fc.select.selIndices(boxes);
+  const sel = fc.hierarchy?.transformIndices(boxes) || fc.select.selIndices(boxes);
   beginGesture(fc, e, { type: 'move', sel, start: new Map(sel.map(i => [i, boxRect(boxes[i], fc.cfg)])),
     selAABB: selectionAABB(boxes, sel, fc.cfg), others: otherAABBs(fc, boxes, new Set(sel)) });
   e.stopPropagation();
@@ -421,7 +425,6 @@ export function onCanvasPointerDown(fc: FcCtx, e: PointerEvent): void {
   const hit = fc.select.selectHit(boxes, nat.x, nat.y); // artboard-aware: a child over a frame wins; the frame takes an empty-area/edge click
   if (hit >= 0) {
     fc.edges.deselectEdge(); // picking a card drops any connector selection
-    const id = fc.select.idOf(boxes[hit], hit);
     const additive = e.shiftKey || e.metaKey || e.ctrlKey || fc.multiTapMode;
     const hitSel = fc.select.selectionForHit(boxes, hit, e.altKey); // whole group, or Alt = just this box
     // A plain click on a box that is ALREADY in a multi-selection means "just this one"
@@ -433,7 +436,7 @@ export function onCanvasPointerDown(fc: FcCtx, e: PointerEvent): void {
     if (additive) {
       const anyIn = hitSel.some((x) => fc.selection.has(x));
       for (const x of hitSel) anyIn ? fc.selection.delete(x) : fc.selection.add(x);
-    } else if (!fc.selection.has(id)) {
+    } else if (!hitSel.some(selected => fc.selection.has(selected))) {
       fc.selection = new Set(hitSel);
     } else if (fc.selection.size > hitSel.length) {
       narrow = hitSel;
@@ -441,7 +444,7 @@ export function onCanvasPointerDown(fc: FcCtx, e: PointerEvent): void {
     fc.chromeSync.renderChrome();
     // Start a move for the whole current selection.
     const start = new Map<number, Rect>();
-    const sel = fc.select.selIndices(boxes);
+    const sel = fc.hierarchy?.transformIndices(boxes) || fc.select.selIndices(boxes);
     for (const i of sel) start.set(i, boxRect(boxes[i], cfg));
     beginGesture(fc, e, {
       type: 'move',
@@ -1203,7 +1206,7 @@ export function onGestureEnd(fc: FcCtx, e: PointerEvent): void {
       const kept = frameCfg
         ? filterMarqueeFrames(boxes, raw, rect, { ...cfg, frameKind: frameCfg.frameKind })
         : raw;
-      const hits = kept.map((i: number) => fc.select.idOf(boxes[i], i));
+      const hits = fc.hierarchy?.selectionIds(boxes, kept) || kept.map((i: number) => fc.select.idOf(boxes[i], i));
       const edgeHits = fc.edges.edgesInRect(rect);
       if (g.additive) {
         for (const id of hits) fc.selection.add(id);
@@ -1408,7 +1411,7 @@ export function otherAABBs(fc: FcCtx, boxes: Box[], exclude: Set<number>): AABB[
   const hideF = frameCfg?.hiddenField;
   for (let i = 0; i < boxes.length; i++) {
     if (exclude.has(i)) continue;
-    if (hideF && boolOf(boxes[i]?.[hideF], false)) continue;
+    if (hideF && boolOf(boxes[i]?.[hideF], false) || fc.hierarchy && !fc.hierarchy.selectable(boxes, fc.select.idOf(boxes[i], i))) continue;
     out.push(boxAABB(boxes[i], cfg));
   }
   return out;

@@ -32,9 +32,9 @@ function topLeft(row: Row): [number, number] {
 }
 
 /** Source IDs must be aligned with the finalized boxes, including skipped degenerate nodes. */
-export function importPenpotLayouts(boxes: Row[], sourceIds: readonly string[], shapes: Record<string, Row>) {
+export function importPenpotLayouts(boxes: Row[], sourceIds: readonly string[], shapes: Record<string, Row>, options: { preserveHierarchy?: boolean } = {}) {
   const findings: LayoutFinding[] = [], tracks: Row[] = [];
-  if (!penpotHasLayout(shapes)) return { boxes, tracks, findings };
+  if (!penpotHasLayout(shapes) && !options.preserveHierarchy && !boxes.some(box => box.kind === 'group')) return { boxes, tracks, findings };
   const add = (id: unknown, code: string, message: string) => findings.push({ id: String(id || ''), code, message });
   if (sourceIds.length !== boxes.length || new Set(sourceIds).size !== sourceIds.length) {
     add('', 'penpot.layout.identity', 'Penpot source identities are not aligned with imported layers.');
@@ -54,7 +54,14 @@ export function importPenpotLayouts(boxes: Row[], sourceIds: readonly string[], 
     if (typeof shape.name === 'string') row.name = shape.name;
     if (shape.type === 'frame') row.kind = String(shape.parentId) === ROOT ? 'frame' : 'box';
     if (shape.hidden === true) row.hidden = true;
-    if (parent.layout === 'flex' || parent.layout === 'grid') {
+    if (parent.type === 'group' && mapped.get(String(shape.parentId))?.kind === 'group') {
+      const parentBox = mapped.get(String(shape.parentId));
+      if (!parentBox) add(box.id, 'penpot.hierarchy.owner', 'An owning group was not retained during import.');
+      else {
+        row.group = parentBox.id; row.frame = ''; row.layoutOwner = '';
+        if (!Array.isArray(parent.shapes) || !parent.shapes.includes(sourceId)) add(box.id, 'penpot.hierarchy.membership', 'The group parent and children records disagree.');
+      }
+    } else if (parent.layout === 'flex' || parent.layout === 'grid') {
       const parentBox = mapped.get(String(shape.parentId));
       if (!parentBox) add(box.id, 'penpot.layout.owner', 'A layout container was not retained during import.');
       else {
@@ -71,9 +78,9 @@ export function importPenpotLayouts(boxes: Row[], sourceIds: readonly string[], 
       const at = Array.isArray(parent.shapes) ? parent.shapes.indexOf(sourceId) : -1;
       row.layoutOrder = parent.layout === 'flex' && at >= 0 ? (parent.shapes as unknown[]).length - at - 1 : at;
       if (at === -1) add(box.id, 'penpot.layout.membership', 'The layout parent and children records disagree.');
-      if (shape.type === 'group' && Array.isArray(shape.shapes) && shape.shapes.some(child => mapped.has(String(child)))) {
-        add(box.id, 'penpot.layout.group', 'A group in a dynamic layout must be imported as one vector asset. Ungroup its contents in Penpot before importing.');
-      }
+      if (shape.type === 'group' && box.kind !== 'group' && Array.isArray(shape.shapes) && shape.shapes.some(child => mapped.has(String(child))))
+        add(box.id, 'penpot.layout.group', 'A group in a dynamic layout must be retained as a group or one vector asset.');
+
     } else if (mapped.has(String(shape.frameId))) {
       const frame = mapped.get(String(shape.frameId))!, frameShape = shapes[String(shape.frameId)];
       if (frameShape?.type === 'frame' && String(frameShape.parentId) === ROOT) row.frame = frame.id;

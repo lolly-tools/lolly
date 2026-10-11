@@ -283,6 +283,7 @@ export function onKey(fc: FcCtx, e: KeyboardEvent): void {
       fc.edges.deselectEdge();
       return;
     }
+    if (fc.hierarchy?.leaveScope()) { e.preventDefault(); return; }
     if (fc.selection.size) {
       e.preventDefault();
       fc.selection = new Set<string>();
@@ -513,7 +514,7 @@ export function onKey(fc: FcCtx, e: KeyboardEvent): void {
   if (e.key === 'a' && (e.metaKey || e.ctrlKey)) {
     e.preventDefault();
     const boxes = fc.select.getBoxes();
-    fc.selection = new Set(boxes.map((b, i) => fc.select.idOf(b, i)));
+    fc.selection = new Set(fc.hierarchy?.enabled() ? fc.hierarchy.selectionIds(boxes, boxes.map((_, i) => i)) : boxes.map((b, i) => fc.select.idOf(b, i)));
     fc.chromeSync.renderChrome();
     return;
   }
@@ -544,7 +545,7 @@ export function onKey(fc: FcCtx, e: KeyboardEvent): void {
     // whose centre crosses a frame edge must re-bucket. cascadeFrameChildren + assignFrames
     // over the selected indices only - no-op on frameless tools (Design), so a
     // no-frame nudge stays byte-identical to the old moveBoxes-only path.
-    const idx = fc.select.selIndices(boxes);
+    const idx = fc.hierarchy?.transformIndices(boxes) || fc.select.selIndices(boxes);
     // …and the SAME playhead-contextual split, for the same reason (plans/104 section 8).
     // The nudge is the keyboard equivalent of the drag: on a diamond, dragging a box
     // poses the keyframe, so nudging it by the same pixel must pose it too - or the

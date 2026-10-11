@@ -23,7 +23,7 @@ import { bindOp, type FcCtx } from './context.ts';
  *  case where someone typed a box id as their tag; an ordinary tag ("hero") is left
  *  alone, which is what lets a slide and its duplicate morph into each other. */
 export const dupRefFields = (fc: FcCtx): string[] =>
-  { const { cfg, cv } = fc; return [cfg.clipField, cv.linkField, cfg.bindStartField, cfg.bindEndField, 'layoutOwner', 'matchOf'].filter(
+  { const { cfg, cv } = fc; return [cfg.clipField, cv.linkField, cfg.bindStartField, cfg.bindEndField, 'layoutOwner', cfg.groupField, 'matchOf'].filter(
     (f): f is string => !!f
   ); };
 export function duplicateSelection(fc: FcCtx): void {
@@ -33,6 +33,7 @@ export function duplicateSelection(fc: FcCtx): void {
   const idx = fc.select.selIndices(boxes);
   if (!idx.length) return;
   if (fc.layout && !fc.layout.placementReady()) return;
+  if (fc.hierarchy?.duplicateSelection()) return;
   if (fc.layout?.duplicate()) return;
   // plans/179 A8 - duplicating an ARTBOARD duplicates what is on it. Cloning the frame
   // row alone left an empty page appended last, and because `resolveFrame` answers with
@@ -99,7 +100,7 @@ export function deleteSelection(fc: FcCtx): void {
   if (fc.opts?.canEdit?.() === false) return;
   const { cfg, frameCfg } = fc;
   const boxes = fc.select.getBoxes();
-  const picked = new Set(fc.select.selIndices(boxes));
+  const picked = new Set(fc.hierarchy?.transformIndices(boxes) || fc.select.selIndices(boxes));
   if (!picked.size) return;
   const doomed = fc.layout.dynamicScope(boxes, new Set([...picked].map(i => fc.select.idOf(boxes[i], i))));
   const sel = new Set(boxes.flatMap((box, i) => doomed.has(fc.select.idOf(box, i)) ? [i] : []));
@@ -108,7 +109,8 @@ export function deleteSelection(fc: FcCtx): void {
   const fk = frameCfg?.frameKind;
   const deadFrames = fk ? [...sel].filter((i) => String(boxes[i]?.[cfg.kindField]) === fk) : [];
   if (!frameCfg || !deadFrames.length) {
-    fc.select.commit(boxes.filter((_, i) => !sel.has(i)), patch, t('Delete layout'));
+    const kept = boxes.filter((_, i) => !sel.has(i));
+    fc.select.commit(fc.hierarchy?.cleanDeletedReferences(boxes, kept) || kept, patch, t('Delete layout'));
     return;
   }
   // plans/179 A7 - deleting an artboard used to orphan its children: they kept pointing

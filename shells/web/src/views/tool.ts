@@ -46,7 +46,7 @@ import { exportSizeDriver } from './export-size.ts';
 import { exportFormatDriver } from './export-format.ts';
 import type { historyParticipation } from './tool-revision-history.ts';
 import type { ToolManifest } from '../../../../engine/src/loader.js';
-import type { BarSeq, ExportExperience, ViewEl, WebToolHost } from './tool/shared.ts';
+import type { BarSeq, ExportExperience, ToolRuntime, ViewEl, WebToolHost } from './tool/shared.ts';
 import { readToolDocument } from './tool/shared.ts';
 import type { ToolViewCtx } from './tool/context.ts';
 import { historyOps } from './tool/history.ts';
@@ -115,6 +115,8 @@ export interface FlatpickrHost extends HTMLInputElement {
 /** Session-only metadata that belongs beside `__export_*`, never in tool inputs. */
 export interface ActionsExperience extends Partial<ReturnType<typeof historyParticipation>> {
   current?: () => ExportExperience;
+  /** A full-document render for downloads when the editor shows one page. */
+  exportDocument?: () => Promise<{ canvas: HTMLElement; runtime: ToolRuntime; destroy(): void } | undefined>;
   sessionMeta?: () => Record<string, unknown>;
   /** Open the document "Save as" dialog - the same one the render pill opens. */
   openSaveAs?: () => void;

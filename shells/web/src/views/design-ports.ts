@@ -78,6 +78,28 @@ export interface ArtboardPort {
   onChange(cb: (id: string) => void): () => void;
 }
 
+/** A page owns an independent canvas within one saved Design session. */
+export interface DesignPage {
+  id: string;
+  name: string;
+  order?: number;
+}
+
+/** Document writes are atomic; the active page is the viewer's local editor state. */
+export interface DesignPagePort {
+  get(): DesignPage[];
+  active(): string;
+  setActive(id: string): void;
+  /** Full document, including inactive pages. */
+  getBoxes(): Box[];
+  commit(pages: DesignPage[], boxes: Box[], label?: string): void;
+  /** Clone/remove related timeline, layout and text records in the same document write. */
+  duplicate(id: string): void;
+  remove(id: string): void;
+  onChange(cb: () => void): () => void;
+  canEdit?(): boolean;
+}
+
 /** The frame-primitive field map the Design manifest declares (`canvas.frameField` etc.). */
 export interface FramePort {
   frameField: string;
@@ -116,6 +138,7 @@ export type FrameThumb = (frameBox: Box, maxW: number, maxH: number) => HTMLElem
 
 /** Verbs the navigator delegates to the overlay (it owns no model surgery beyond rename and reorder). */
 export interface NavigatorActions {
+  enterGroup?(id: string): void;
   duplicateFrame(id: string): void;
   deleteFrame(id: string): void;
   addArtboardAfter(id: string): void;
@@ -246,6 +269,7 @@ export interface CanvasRect { x: number; y: number; w: number; h: number }
  */
 export interface DesignCanvasPorts {
   selection: SelectionPort;
+  pages?: DesignPagePort;
   guides?: DesignGuidePort;
   artboard: ArtboardPort;
   thumb: FrameThumb;

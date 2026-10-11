@@ -53,6 +53,10 @@ export function designLiveEditor(d: DesignLiveDeps): LiveEditor {
     engine: d.engine,
     surface: d.surface,
     rows,
+    pages: () => {
+      const value = d.runtime.getModel().find(item => item.id === 'pages')?.value;
+      return Array.isArray(value) ? value : undefined;
+    },
     size: d.size,
     selection: d.selection,
     fieldDefault(id, fallback) {
