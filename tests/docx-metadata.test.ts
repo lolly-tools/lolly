@@ -17,6 +17,14 @@ function replace(path: string, bytes: Uint8Array, original: Uint8Array = fixture
   const changed = members(storeZip([{ name: path, bytes }]))[0]!;
   return storeZipMembers(members(original).map(m => m.name === path ? changed : m));
 }
+function linkedHeader(path: string, type = 'application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml', defaultType = false): Uint8Array {
+  const header = '<w:hdr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:p><w:fldSimple w:instr="DOCPROPERTY &quot;Private project&quot;"/></w:p></w:hdr>';
+  let input = storeZipMembers([...members(), ...members(storeZip([{ name: path, bytes: utf8(header) }]))]);
+  const declaration = defaultType ? `<Default Extension="${path.split('.').pop()}" ContentType="${type}"/>` : `<Override PartName="/${path}" ContentType="${type}"/>`;
+  input = replace('[Content_Types].xml', utf8(text(part('[Content_Types].xml', input)).replace('</Types>', `${declaration}</Types>`)), input);
+  input = replace('word/_rels/document.xml.rels', utf8(text(part('word/_rels/document.xml.rels', input)).replace('</Relationships>', `<Relationship Id="outsideHeader" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/header" Target="../${path}"/></Relationships>`)), input);
+  return replace('word/document.xml', utf8(text(part('word/document.xml', input)).replace('<w:sectPr>', '<w:sectPr><w:headerReference w:type="default" r:id="outsideHeader"/>')), input);
+}
 function independentXml(bytes: Uint8Array): void {
   const native = XmlDocument.fromBuffer(bytes); native.dispose();
   const dom = new JSDOM(text(bytes), { contentType: 'application/xml' }); dom.window.close();
@@ -136,12 +144,26 @@ test('signatures, macros, ambiguous names, renamed packages and failed limits re
 });
 
 test('property-dependent headers outside the conventional word directory refuse cleanup', () => {
-  const header = '<w:hdr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:p><w:fldSimple w:instr="DOCPROPERTY &quot;Private project&quot;"/></w:p></w:hdr>';
-  let input = storeZipMembers([...members(), ...members(storeZip([{ name: 'header1.xml', bytes: utf8(header) }]))]);
-  input = replace('[Content_Types].xml', utf8(text(part('[Content_Types].xml', input)).replace('</Types>', '<Override PartName="/header1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml"/></Types>')), input);
-  input = replace('word/_rels/document.xml.rels', utf8(text(part('word/_rels/document.xml.rels', input)).replace('</Relationships>', '<Relationship Id="outsideHeader" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/header" Target="../header1.xml"/></Relationships>')), input);
-  input = replace('word/document.xml', utf8(text(part('word/document.xml', input)).replace('<w:sectPr>', '<w:sectPr><w:headerReference w:type="default" r:id="outsideHeader"/>')), input);
+  const input = linkedHeader('header1.xml');
   const doc = openDocxMetadata(input, 'file.docx'); assert.equal(doc.supported, false); assert(doc.limitations.some(l => l.includes('fields can display')));
+});
+
+test('Word XML relationship targets with binary names remain inspect-only regardless of their declared type', () => {
+  for (const type of ['application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml', 'application/octet-stream']) {
+    const input = linkedHeader('header1.bin', type);
+    independentXml(part('header1.bin', input));
+    const doc = openDocxMetadata(input, 'file.docx'); assert.equal(doc.supported, false); assert(doc.limitations.some(l => l.includes('Word XML relationship target')));
+  }
+});
+
+test('unconventional XML part overrides and defaults refuse cleanup even without a known Word relation', () => {
+  for (const defaultType of [false, true]) for (const contentType of ['application/xml', 'application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml']) {
+    const entry = readZipMembers(storeZip([{ name: 'unknown.bin', bytes: utf8('<unknown/>') }]))[0]!;
+    let input = storeZipMembers([...members(), entry]);
+    const declaration = defaultType ? `<Default Extension="bin" ContentType="${contentType}"/>` : `<Override PartName="/unknown.bin" ContentType="${contentType}"/>`;
+    input = replace('[Content_Types].xml', utf8(text(part('[Content_Types].xml', input)).replace('</Types>', `${declaration}</Types>`)), input);
+    const doc = openDocxMetadata(input, 'file.docx'); assert.equal(doc.supported, false); assert(doc.limitations.some(l => l.includes('unconventional filename')));
+  }
 });
 
 test('XML-bound property content controls refuse cleanup despite cached display text', () => {

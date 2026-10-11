@@ -125,6 +125,10 @@ Office packages remain inspect-only. Files with property-dependent Word fields o
 XML-bound content controls also remain inspect-only: removing a property could change
 the displayed document when Word updates those bindings. Cached field text cannot
 establish that the next rendering will retain the same appearance.
+XML parts with unconventional filename extensions and Word XML relationship targets
+that cannot be safely inspected also remain inspect-only, including incorrectly
+declared header or footer parts. This includes SVG parts declared as XML with a
+`.svg` extension in this first cleanup delivery.
 
 Property parts, their declarations, unrelated package members, XML comments and ZIP
 comments are retained. Cleanup applies the census limits and checks every member's

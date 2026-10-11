@@ -116096,6 +116096,20 @@ function target(value) {
   if (!path || /[\\\0?#%]/.test(path) || path.split("/").some((p) => !p || p === "." || p === "..")) throw new Error("Unsupported package target.");
   return path;
 }
+function wordXmlTarget(path, value, mode3, members) {
+  if (mode3 || !value || /[\\\0?#%]/.test(value) || !/\.(?:xml|rels)$/i.test(value)) return false;
+  const source = path === "_rels/.rels" ? "" : /^(.*)\/_rels\/[^/]+\.rels$/i.exec(path)?.[1];
+  if (source === void 0) return false;
+  const pieces = value.startsWith("/") ? [] : source.split("/").filter(Boolean);
+  for (const piece of value.replace(/^\//, "").split("/")) {
+    if (!piece || piece === ".") continue;
+    if (piece === "..") {
+      if (!pieces.length) return false;
+      pieces.pop();
+    } else pieces.push(piece);
+  }
+  return members.has(pieces.join("/"));
+}
 function openDocxMetadata(bytes, name, limits = {}) {
   const unsupported = (reason2) => ({ supported: false, properties: [], limitations: [reason2, ...LIMITS2], remove: () => {
     throw new Error("DOCX metadata cleanup is unavailable for this file.");
@@ -116107,11 +116121,16 @@ function openDocxMetadata(bytes, name, limits = {}) {
     if (members.some((m2) => /(?:vba|macro|_xmlsignatures)(?:[^/]*\/|[^/]*$)/i.test(m2.name))) return unsupported("Macro or signature parts were identified. This file remains inspect-only.");
     if (members.some((m2) => m2.flags & 1 || ![0, 8].includes(m2.method))) return unsupported("Encrypted or unsupported ZIP members prevent DOCX metadata cleanup.");
     const comment = zipComment(bytes, members), budget3 = { nodes: 0 }, trees = /* @__PURE__ */ new Map(), propertyParts = /* @__PURE__ */ new Map();
+    const memberNames = new Set(members.map((member) => member.name));
     for (const member of members) {
       const decoded = decodeZipMember(member);
       if (!/\.(?:xml|rels)$/i.test(member.name)) continue;
       const root2 = validateXml(decoded, budget3);
-      if (member.name.endsWith(".rels") && officeNodes(root2).some((node) => node.namespace === RELS && /macro|vba|signature/i.test(node.attrs.Type ?? ""))) return unsupported("Macro or signature relationships prevent DOCX metadata cleanup.");
+      if (/\.rels$/i.test(member.name)) for (const node of officeNodes(root2).filter((node2) => node2.namespace === RELS && node2.name === "Relationship")) {
+        const type = node.attrs.Type ?? "";
+        if (/macro|vba|signature/i.test(type)) return unsupported("Macro or signature relationships prevent DOCX metadata cleanup.");
+        if ((type.startsWith(OFFICE2) || type.startsWith("http://purl.oclc.org/ooxml/officeDocument/relationships/")) && WORD_XML_RELATIONS.has(type.slice(type.lastIndexOf("/") + 1)) && !wordXmlTarget(member.name, node.attrs.Target ?? "", node.attrs.TargetMode, memberNames)) return unsupported("A Word XML relationship target cannot be safely inspected. This file remains inspect-only.");
+      }
       if (member.name === "[Content_Types].xml" || member.name === "_rels/.rels" || member.name === "word/document.xml" || Object.hasOwn(PARTS, member.name)) trees.set(member.name, root2);
       const nodes = officeNodes(root2).filter((n7) => n7.namespace === WORD).sort((a, b) => a.start - b.start);
       if (nodes.some((node) => node.name === "dataBinding")) return unsupported("XML-bound content controls can display document properties. Metadata cleanup is unavailable for this file; the properties and bound content are retained.");
@@ -116122,8 +116141,11 @@ function openDocxMetadata(bytes, name, limits = {}) {
     const types = trees.get("[Content_Types].xml"), relationships = trees.get("_rels/.rels"), doc = trees.get("word/document.xml");
     if (types?.name !== "Types" || types.namespace !== TYPES || relationships?.name !== "Relationships" || relationships.namespace !== RELS || doc?.name !== "document" || doc.namespace !== WORD) throw new Error("Unsupported DOCX structure.");
     const overrides = types.children.filter((n7) => n7.namespace === TYPES && n7.name === "Override");
+    const defaults2 = types.children.filter((n7) => n7.namespace === TYPES && n7.name === "Default");
     const rels = relationships.children.filter((n7) => n7.namespace === RELS && n7.name === "Relationship");
-    if (new Set(overrides.map((n7) => n7.attrs.PartName)).size !== overrides.length || new Set(rels.map((n7) => n7.attrs.Id)).size !== rels.length) throw new Error("Ambiguous package declarations.");
+    if (new Set(overrides.map((n7) => n7.attrs.PartName)).size !== overrides.length || new Set(defaults2.map((n7) => n7.attrs.Extension?.toLowerCase())).size !== defaults2.length || new Set(rels.map((n7) => n7.attrs.Id)).size !== rels.length) throw new Error("Ambiguous package declarations.");
+    const xmlType = (type) => /(?:\+xml|^(?:application|text)\/xml)(?:\s*;|$)/i.test(type);
+    if (overrides.some((n7) => xmlType(n7.attrs.ContentType ?? "") && !/\.(?:xml|rels)$/i.test(n7.attrs.PartName ?? "")) || defaults2.some((n7) => xmlType(n7.attrs.ContentType ?? "") && !/^(?:xml|rels)$/i.test(n7.attrs.Extension ?? ""))) return unsupported("XML parts with unconventional filename extensions are not supported for DOCX metadata cleanup. This file remains inspect-only.");
     if (types.children.some((n7) => /macro|vba|signature/i.test(n7.attrs.ContentType ?? ""))) return unsupported("Macro-enabled or signed package declarations prevent DOCX metadata cleanup.");
     const main = rels.filter((n7) => n7.attrs.Type === `${OFFICE2}officeDocument`);
     if (main.length !== 1 || main[0].attrs.TargetMode || target(main[0].attrs.Target ?? "") !== "word/document.xml" || overrides.find((n7) => n7.attrs.PartName === "/word/document.xml")?.attrs.ContentType !== MAIN_TYPE) throw new Error("Unsupported main document declaration.");
@@ -116190,7 +116212,7 @@ function openDocxMetadata(bytes, name, limits = {}) {
     return unsupported("This DOCX package is malformed, unsupported or exceeds the cleanup limits. It remains inspect-only.");
   }
 }
-var CP, DC, TERMS, CUSTOM, RELS, TYPES, WORD, OFFICE2, CORE_REL, MAIN_TYPE, PARTS, CORE, LIMITS2;
+var CP, DC, TERMS, CUSTOM, RELS, TYPES, WORD, OFFICE2, CORE_REL, WORD_XML_RELATIONS, MAIN_TYPE, PARTS, CORE, LIMITS2;
 var init_docx_metadata = __esm({
   "engine/src/docx-metadata.ts"() {
     "use strict";
@@ -116205,6 +116227,7 @@ var init_docx_metadata = __esm({
     WORD = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
     OFFICE2 = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/";
     CORE_REL = "http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties";
+    WORD_XML_RELATIONS = /* @__PURE__ */ new Set(["officeDocument", "header", "footer", "comments", "footnotes", "endnotes", "glossaryDocument", "styles", "stylesWithEffects", "numbering", "settings", "fontTable", "webSettings", "people"]);
     MAIN_TYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml";
     PARTS = {
       "docProps/core.xml": { namespace: CP, root: "coreProperties", relation: CORE_REL, type: "application/vnd.openxmlformats-package.core-properties+xml" },

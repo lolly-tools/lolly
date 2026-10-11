@@ -12,6 +12,7 @@ const TYPES = 'http://schemas.openxmlformats.org/package/2006/content-types';
 const WORD = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
 const OFFICE = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/';
 const CORE_REL = 'http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties';
+const WORD_XML_RELATIONS = new Set(['officeDocument', 'header', 'footer', 'comments', 'footnotes', 'endnotes', 'glossaryDocument', 'styles', 'stylesWithEffects', 'numbering', 'settings', 'fontTable', 'webSettings', 'people']);
 const MAIN_TYPE = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml';
 const PARTS = {
   'docProps/core.xml': { namespace: CP, root: 'coreProperties', relation: CORE_REL, type: 'application/vnd.openxmlformats-package.core-properties+xml' },
@@ -65,6 +66,18 @@ function target(value: string): string {
   if (!path || /[\\\0?#%]/.test(path) || path.split('/').some(p => !p || p === '.' || p === '..')) throw new Error('Unsupported package target.');
   return path;
 }
+function wordXmlTarget(path: string, value: string, mode: string | undefined, members: Set<string>): boolean {
+  if (mode || !value || /[\\\0?#%]/.test(value) || !/\.(?:xml|rels)$/i.test(value)) return false;
+  const source = path === '_rels/.rels' ? '' : /^(.*)\/_rels\/[^/]+\.rels$/i.exec(path)?.[1];
+  if (source === undefined) return false;
+  const pieces = value.startsWith('/') ? [] : source.split('/').filter(Boolean);
+  for (const piece of value.replace(/^\//, '').split('/')) {
+    if (!piece || piece === '.') continue;
+    if (piece === '..') { if (!pieces.length) return false; pieces.pop(); }
+    else pieces.push(piece);
+  }
+  return members.has(pieces.join('/'));
+}
 
 /** A failed guard leaves the Office census available and exposes no edit handles. */
 export function openDocxMetadata(bytes: Uint8Array, name: string, limits: { maxParts?: number; maxExpandedBytes?: number } = {}): DocxMetadataDocument {
@@ -76,11 +89,16 @@ export function openDocxMetadata(bytes: Uint8Array, name: string, limits: { maxP
     if (members.some(m => /(?:vba|macro|_xmlsignatures)(?:[^/]*\/|[^/]*$)/i.test(m.name))) return unsupported('Macro or signature parts were identified. This file remains inspect-only.');
     if (members.some(m => m.flags & 1 || ![0, 8].includes(m.method))) return unsupported('Encrypted or unsupported ZIP members prevent DOCX metadata cleanup.');
     const comment = zipComment(bytes, members), budget = { nodes: 0 }, trees = new Map<string, OfficeXmlNode>(), propertyParts = new Map<string, PropertyPart>();
+    const memberNames = new Set(members.map(member => member.name));
     for (const member of members) {
       const decoded = decodeZipMember(member);
       if (!/\.(?:xml|rels)$/i.test(member.name)) continue;
       const root = validateXml(decoded, budget);
-      if (member.name.endsWith('.rels') && officeNodes(root).some(node => node.namespace === RELS && /macro|vba|signature/i.test(node.attrs.Type ?? ''))) return unsupported('Macro or signature relationships prevent DOCX metadata cleanup.');
+      if (/\.rels$/i.test(member.name)) for (const node of officeNodes(root).filter(node => node.namespace === RELS && node.name === 'Relationship')) {
+        const type = node.attrs.Type ?? '';
+        if (/macro|vba|signature/i.test(type)) return unsupported('Macro or signature relationships prevent DOCX metadata cleanup.');
+        if ((type.startsWith(OFFICE) || type.startsWith('http://purl.oclc.org/ooxml/officeDocument/relationships/')) && WORD_XML_RELATIONS.has(type.slice(type.lastIndexOf('/') + 1)) && !wordXmlTarget(member.name, node.attrs.Target ?? '', node.attrs.TargetMode, memberNames)) return unsupported('A Word XML relationship target cannot be safely inspected. This file remains inspect-only.');
+      }
       if (member.name === '[Content_Types].xml' || member.name === '_rels/.rels' || member.name === 'word/document.xml' || Object.hasOwn(PARTS, member.name)) trees.set(member.name, root);
       const nodes = officeNodes(root).filter(n => n.namespace === WORD).sort((a, b) => a.start - b.start);
       if (nodes.some(node => node.name === 'dataBinding')) return unsupported('XML-bound content controls can display document properties. Metadata cleanup is unavailable for this file; the properties and bound content are retained.');
@@ -91,8 +109,11 @@ export function openDocxMetadata(bytes: Uint8Array, name: string, limits: { maxP
     const types = trees.get('[Content_Types].xml'), relationships = trees.get('_rels/.rels'), doc = trees.get('word/document.xml');
     if (types?.name !== 'Types' || types.namespace !== TYPES || relationships?.name !== 'Relationships' || relationships.namespace !== RELS || doc?.name !== 'document' || doc.namespace !== WORD) throw new Error('Unsupported DOCX structure.');
     const overrides = types.children.filter(n => n.namespace === TYPES && n.name === 'Override');
+    const defaults = types.children.filter(n => n.namespace === TYPES && n.name === 'Default');
     const rels = relationships.children.filter(n => n.namespace === RELS && n.name === 'Relationship');
-    if (new Set(overrides.map(n => n.attrs.PartName)).size !== overrides.length || new Set(rels.map(n => n.attrs.Id)).size !== rels.length) throw new Error('Ambiguous package declarations.');
+    if (new Set(overrides.map(n => n.attrs.PartName)).size !== overrides.length || new Set(defaults.map(n => n.attrs.Extension?.toLowerCase())).size !== defaults.length || new Set(rels.map(n => n.attrs.Id)).size !== rels.length) throw new Error('Ambiguous package declarations.');
+    const xmlType = (type: string): boolean => /(?:\+xml|^(?:application|text)\/xml)(?:\s*;|$)/i.test(type);
+    if (overrides.some(n => xmlType(n.attrs.ContentType ?? '') && !/\.(?:xml|rels)$/i.test(n.attrs.PartName ?? '')) || defaults.some(n => xmlType(n.attrs.ContentType ?? '') && !/^(?:xml|rels)$/i.test(n.attrs.Extension ?? ''))) return unsupported('XML parts with unconventional filename extensions are not supported for DOCX metadata cleanup. This file remains inspect-only.');
     if (types.children.some(n => /macro|vba|signature/i.test(n.attrs.ContentType ?? ''))) return unsupported('Macro-enabled or signed package declarations prevent DOCX metadata cleanup.');
     const main = rels.filter(n => n.attrs.Type === `${OFFICE}officeDocument`);
     if (main.length !== 1 || main[0]!.attrs.TargetMode || target(main[0]!.attrs.Target ?? '') !== 'word/document.xml' || overrides.find(n => n.attrs.PartName === '/word/document.xml')?.attrs.ContentType !== MAIN_TYPE) throw new Error('Unsupported main document declaration.');
