@@ -6,8 +6,21 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
 import { execFile } from 'node:child_process';
+import { storeZip } from '../engine/src/zip.ts';
 const run = promisify(execFile);
 const cli = new URL('../shells/cli/bin/lolly.ts', import.meta.url).pathname;
+test('CLI replace-all keeps read-only Office findings and never proposes unsupported edits', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'lolly-office-'));
+  try {
+    const bytes = storeZip(['[Content_Types].xml', 'word/document.xml', 'docProps/core.xml'].map((name, i) => ({ name, bytes: new TextEncoder().encode(i === 2 ? '<props><creator>Private Office Author</creator></props>' : '<root/>') })));
+    const input = join(dir, 'input.docx'), output = join(dir, 'copy.docx'), review = join(dir, 'private.json');
+    await writeFile(input, bytes);
+    const result = await run(process.execPath, [cli, 'prepare', input, '--replace-all', `--output=${output}`, `--review-file=${review}`]);
+    const report = JSON.parse(result.stdout); assert.equal(report.replaced, 0); assert(report.remaining > 0);
+    assert(!result.stdout.includes('Private Office Author')); assert.deepEqual(await readFile(output), Buffer.from(bytes));
+    const envelope = JSON.parse(await readFile(review, 'utf8')); assert.deepEqual(envelope.choices, []); assert(envelope.inspection.findings.every((f: { readOnly?: boolean }) => f.readOnly));
+  } finally { await rm(dir, { recursive: true, force: true }); }
+});
 test('CLI default report is advisory and value-free; explicit private review binds edits to source bytes', async () => {
   const dir = await mkdtemp(join(tmpdir(), 'lolly-prepare-'));
   try {

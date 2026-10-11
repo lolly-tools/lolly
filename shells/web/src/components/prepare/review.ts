@@ -35,19 +35,19 @@ export function renderPreparationReview(root: HTMLElement, inspection: Preparati
     <div class="prep-groups" data-groups>${groups.map(g => {
       const findings = inspection.findings.filter(f => f.groupId === g.id);
       const uncertain = findings.length > 0 && findings.every(f => f.uncertain);
-      const checked = !categories || categories.includes(g.category) ? ' checked' : '';
+      const checked = !g.readOnly && (!categories || categories.includes(g.category)) ? ' checked' : '';
       return `<div class="prep-group" role="group" aria-label="${htmlEscape(categoryLabel(g.category))}" data-group="${g.id}" data-group-category="${htmlEscape(g.category)}">
-        <label class="prep-group-row"><input type="checkbox" class="field-check" data-selected${checked}><span class="prep-group-cat">${categoryIcon(g.category)}${htmlEscape(categoryLabel(g.category))}</span>${uncertain ? `<span class="chip chip--flag">${t('Uncertain')}</span>` : ''}<span class="chip chip--count">${g.count}</span></label>
+        <label class="prep-group-row"><input type="checkbox" class="field-check" data-selected${checked}${g.readOnly ? ' disabled' : ''}><span class="prep-group-cat">${categoryIcon(g.category)}${htmlEscape(categoryLabel(g.category))}</span>${g.readOnly ? `<span class="chip chip--flag">${t('Inspect only')}</span>` : ''}${uncertain ? `<span class="chip chip--flag">${t('Uncertain')}</span>` : ''}<span class="chip chip--count">${g.count}</span></label>
         <div class="prep-group-body">
           <div class="prep-group-value"><code class="prep-mask" data-mask>${htmlEscape(maskValue(g.value))}</code><button type="button" class="prep-icon-btn" data-reveal aria-pressed="false" aria-label="${t('Reveal value')}">${icon('eye')}</button></div>
-          <label class="prep-group-repl"><span class="field-label">${t('Replace with')}</span><input class="field-input field-input--sm field-input--mono" data-replacement maxlength="4096" value="${htmlEscape(g.replacement)}" autocomplete="off" spellcheck="false"></label>
-          <details class="prep-occ"><summary>${findings.length} ${findings.length === 1 ? t('occurrence') : t('occurrences')}</summary>${findings.map(f => `<label class="prepare-occurrence"><input type="checkbox" class="field-check" data-finding="${f.id}" checked><span><span class="prep-occ-path">${htmlEscape(inspection.scopes.find(s => s.id === f.scopeId)?.path ?? '')}</span> <span class="prep-occ-loc">${htmlEscape(f.location)} · ${t('line')} ${f.line}${f.uncertain ? ` · ${t('uncertain')}` : ''}</span></span></label>`).join('')}</details>
+          ${g.readOnly ? `<p class="prep-hint">${t('Retained unchanged. Office cleanup is not available; inspect the document before sharing.')}</p>` : `<label class="prep-group-repl"><span class="field-label">${t('Replace with')}</span><input class="field-input field-input--sm field-input--mono" data-replacement maxlength="4096" value="${htmlEscape(g.replacement)}" autocomplete="off" spellcheck="false"></label>`}
+          <details class="prep-occ"><summary>${findings.length} ${findings.length === 1 ? t('occurrence') : t('occurrences')}</summary>${findings.map(f => `<label class="prepare-occurrence"><input type="checkbox" class="field-check" data-finding="${f.id}"${f.readOnly ? ' disabled' : ' checked'}><span><span class="prep-occ-path">${htmlEscape(inspection.scopes.find(s => s.id === f.scopeId)?.path ?? '')}</span> <span class="prep-occ-loc">${htmlEscape(f.label)} · ${htmlEscape(f.location)}${f.readOnly ? '' : ` · ${t('line')} ${f.line}`}${f.uncertain ? ` · ${t('uncertain')}` : ''}</span></span></label>`).join('')}</details>
         </div>
       </div>`;
     }).join('') || `<p class="prep-hint">${t('No pattern suggestions. Read the content yourself before sharing it.')}</p>`}</div>`;
   root.replaceChildren(box);
 
-  const groupBoxes = (): HTMLInputElement[] => [...box.querySelectorAll<HTMLInputElement>('[data-selected]')];
+  const groupBoxes = (): HTMLInputElement[] => [...box.querySelectorAll<HTMLInputElement>('[data-selected]:not(:disabled)')];
   const syncCategories = (): void => {
     box.querySelectorAll<HTMLButtonElement>('[data-category]').forEach(button => {
       const boxes = groupBoxes().filter(b => b.closest<HTMLElement>('[data-group]')!.dataset.groupCategory === button.dataset.category);
@@ -81,7 +81,7 @@ export function renderPreparationReview(root: HTMLElement, inspection: Preparati
 }
 
 export function preparationChoices(root: HTMLElement): PreparationChoice[] {
-  return [...root.querySelectorAll<HTMLElement>('[data-group]')].filter(el => el.querySelector<HTMLInputElement>('[data-selected]')!.checked).map(el => ({
+  return [...root.querySelectorAll<HTMLElement>('[data-group]')].filter(el => { const input = el.querySelector<HTMLInputElement>('[data-selected]')!; return input.checked && !input.disabled; }).map(el => ({
     groupId: el.dataset.group!, replacement: el.querySelector<HTMLInputElement>('[data-replacement]')!.value,
     findings: [...el.querySelectorAll<HTMLInputElement>('[data-finding]:checked')].map(i => i.dataset.finding!),
   }));

@@ -29,6 +29,8 @@ export interface PreparationScope {
   format: string;
   status: 'inspected' | 'partial' | 'uninspected';
   limitations: string[];
+  /** Package census scopes cannot be selectively removed or rewritten. */
+  readOnly?: boolean;
 }
 export interface PreparationFinding {
   id: string;
@@ -42,6 +44,8 @@ export interface PreparationFinding {
   location: string;
   value: string;
   line: number;
+  /** Inspection evidence only; this finding has no supported replacement. */
+  readOnly?: boolean;
 }
 export interface PreparationGroup {
   id: string;
@@ -49,6 +53,7 @@ export interface PreparationGroup {
   replacement: string;
   category: string;
   count: number;
+  readOnly?: boolean;
 }
 export interface PreparationInspection {
   version: 1;

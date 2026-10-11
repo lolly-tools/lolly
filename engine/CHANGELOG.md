@@ -6,6 +6,11 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.251.0
+
+- Add bounded, read-only DOCX/PPTX/XLSX package inspection through Prepare for sharing: document properties, comments and authors, tracked changes, notes, hidden-content markers, relationships, connections, cache surfaces and embedded objects. Shared ZIP and XML budgets retain unsupported, encrypted, malformed and active content without execution or external lookup.
+- Add optional `readOnly` fields to preparation findings, groups and scopes. Apply refuses unsupported replacements and package-part removal; retained Office findings remain in content-free summary counts. Strip Hidden Data uses the same census and refuses cleaned Office/archive exports, including renamed Office packages.
+
 ## 1.250.0
 
 - Design token consumers can project typography and a single shadow into existing scalar properties, serialize 2 to 12 sRGB gradient stops as a rightward linear gradient, and adapt duration units and cubic Bezier controls. Unrepresentable values retain their cached literal with a reason. Each property keeps its own reference and adapter through local overrides and reopening.

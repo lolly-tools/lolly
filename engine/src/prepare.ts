@@ -41,16 +41,25 @@ async function scan(sources: PreparationSource[], rules: PreparationRule[], opti
     roots.push(root);
     for (const doc of preparationDocuments([root])) {
       inspection.scopes.push(doc.scope);
+      for (const evidence of doc.censusFindings ?? []) {
+        if (inspection.findings.length >= PREPARE_MAX_FINDINGS) { doc.scope.status = 'partial'; doc.scope.limitations.push('The 2,000-finding limit was reached.'); break; }
+        const key = `office:${evidence.category}:${evidence.value}`;
+        let group = groups.get(key);
+        if (!group) { group = { id: `g${groups.size}`, value: evidence.value, replacement: evidence.value, category: evidence.category, count: 0, readOnly: true }; groups.set(key, group); }
+        group.count++;
+        inspection.findings.push({ id: `f${inspection.findings.length}`, scopeId: doc.scope.id, groupId: group.id, rule: 'office-census', category: evidence.category, label: evidence.label, uncertain: false, location: evidence.location, value: evidence.value, line: 1, readOnly: true });
+      }
       for (const unit of doc.units) {
         if (inspection.findings.length >= PREPARE_MAX_FINDINGS) { doc.scope.status = 'partial'; doc.scope.limitations.push('The 2,000-finding limit was reached.'); break; }
         const found = inspectPrivateText(unit.text, rules, unit.field);
         if (found.truncated) { doc.scope.status = 'partial'; doc.scope.limitations.push('The finding limit was reached.'); }
         for (const span of found.spans) {
           if (inspection.findings.length >= PREPARE_MAX_FINDINGS) { doc.scope.status = 'partial'; break; }
-          let group = groups.get(span.value);
+          const key = `editable:${span.value}`;
+          let group = groups.get(key);
           if (!group) {
             group = { id: `g${groups.size}`, value: span.value, replacement: `[${span.category.toUpperCase()}_${groups.size + 1}]`, category: span.category, count: 0 };
-            groups.set(span.value, group);
+            groups.set(key, group);
           }
           group.count++;
           const finding: PreparationFinding = { id: `f${inspection.findings.length}`, scopeId: unit.scopeId, groupId: group.id, rule: span.rule, category: span.category, label: span.label, uncertain: span.uncertain, location: unit.location, value: span.value, line: unit.line + unit.text.slice(0, span.start).split('\n').length - 1 };
@@ -98,10 +107,11 @@ export async function applyPreparation(sources: PreparationSource[], inspection:
   for (const choice of choices) {
     if (!fresh.inspection.groups.some(g => g.id === choice.groupId) || chosen.has(choice.groupId) || typeof choice.replacement !== 'string' || choice.replacement.length > 4096) throw new Error('Invalid replacement choice.');
     if (choice.findings && (!Array.isArray(choice.findings) || choice.findings.some(id => !fresh.inspection.findings.some(f => f.id === id && f.groupId === choice.groupId)))) throw new Error('A selected occurrence no longer belongs to this group.');
+    if (fresh.inspection.groups.find(g => g.id === choice.groupId)?.readOnly) throw new Error('Office census findings are read-only. No replacement or cleanup is supported.');
     chosen.set(choice.groupId, choice);
   }
   const remove = new Set(removeScopes);
-  for (const id of remove) if (!fresh.inspection.scopes.some(s => s.id === id && s.id !== s.sourceId)) throw new Error('Only listed archive members can be removed.');
+  for (const id of remove) if (!fresh.inspection.scopes.some(s => s.id === id && s.id !== s.sourceId && !s.readOnly)) throw new Error('Only removable archive members can be removed. Office package parts are read-only.');
   const byUnit = new Map<string, { unit: PreparationUnit; edits: { span: PrivateSpan; replacement: string }[] }>();
   const replaced = new Map<string, number>();
   for (const finding of fresh.inspection.findings) {

@@ -33,7 +33,7 @@ export function renderPreparationOutputs(root: HTMLElement, result: PreparationR
   const changed = result.report.outputs.filter(o => o.changed).length;
   const summary = changed
     ? `${result.report.replaced} ${result.report.replaced === 1 ? t('occurrence changed or removed across') : t('occurrences changed or removed across')} ${changed} ${changed === 1 ? t('copy') : t('copies')}.`
-    : t('Nothing needed changing. The copies match your originals.');
+    : t('The copies match your originals. Review retained findings and coverage notes before sharing.');
   root.innerHTML = `<header class="prep-card-head"><h2 class="prep-card-title">${t('Prepared copies')}</h2><p class="prep-card-sub">${htmlEscape(summary)} ${t('Copies stay in this view until you leave.')}</p></header>
     ${result.report.stages?.some(s => s.status === 'failed') ? `<p class="prep-alert" role="alert">${t('Some changes could not be made. The affected files were kept for review; the other copies are ready.')}</p>` : ''}
     <div class="prep-outputs"></div>`;
