@@ -93,6 +93,12 @@ a private review file containing original values, only when explicitly requested
 with `--review-file`. Clearing or leaving a browser preparation view releases its
 working state; this is not a promise of forensic erasure from browser or OS memory.
 
+Prepared copies and completed file operations use the shared Compare controls.
+Removed values start collapsed. Comparison reports omit source names, paths and
+values unless you choose to include them. File history saves the copy, so comparing
+after a reload requires selecting the original again and matching its recorded
+SHA-256. Selecting that original for comparison does not save or upload the file.
+
 ## Every network request the app can make
 
 The table below lists the app's network features. Organisation services are
