@@ -1,4 +1,3 @@
-{{#if layoutError}}<div class="lolly-layout-error" role="alert">{{layoutError}}</div>{{/if}}
 {{!-- Penpot document model (plan 178 section 3.2): the RAW boxes, which the `penpot`
       export bridge lowers into a .penpot design file - paths, ellipses, rotation,
       gradients, blur and shadow included, all of which the deck model below drops.
@@ -6,6 +5,7 @@
       too (it becomes one board the size of the canvas). Inert for every other format:
       the SVG/PDF/PNG/video walkers all skip <script>. --}}
 <script type="application/json" data-penpot-doc>{{{penpotDocJson}}}</script>
+{{#if layoutError}}<div class="lolly-layout-error" role="alert">{{layoutError}}</div>{{/if}}
 {{#if userCss}}<style>{{{userCss}}}</style>
 {{/if}}{{#if frameMode}}
 {{!-- Native PowerPoint deck model (plan 95 route-a): when frames exist the hook emits

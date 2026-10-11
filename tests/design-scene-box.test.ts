@@ -155,10 +155,19 @@ test('the add menu offers a 3D scene whose seed is a scene box', () => {
 test('scene is field 101 of design:boxes and the wire-order pin ratcheted with it', () => {
   const current: string[] = boxesField.fields.map((f: { id: string }) => f.id);
   const pinned = wireOrder.inputs['design:boxes']!;
-  assert.equal(current.length, 121, 'interactive fields follow the original web page fields');
+  assert.equal(current.length, 157, 'layout fields follow the interactive fields');
   assert.equal(current[113], 'tokenLinks');
   assert.deepEqual(current.slice(114, 117), ['web', 'webView', 'webLoad'], 'plan 288: the web page box fields follow');
-  assert.deepEqual(current.slice(117), ['webCss', 'webHideCookies', 'interact', 'interactOpts']);
+  assert.deepEqual(current.slice(117, 121), ['webCss', 'webHideCookies', 'interact', 'interactOpts']);
+  assert.deepEqual(current.slice(121), [
+    'layout', 'layoutOwner', 'layoutOrder', 'layoutDirection', 'layoutWrap',
+    'layoutGapX', 'layoutGapY', 'layoutPadTop', 'layoutPadRight', 'layoutPadBottom', 'layoutPadLeft',
+    'layoutAlign', 'layoutAlignContent', 'layoutJustify', 'layoutJustifyItems', 'layoutW', 'layoutH',
+    'layoutMinW', 'layoutMaxW', 'layoutMinH', 'layoutMaxH',
+    'layoutMarginTop', 'layoutMarginRight', 'layoutMarginBottom', 'layoutMarginLeft',
+    'layoutAbsolute', 'layoutSelf', 'layoutJustifySelf', 'layoutRow', 'layoutColumn',
+    'layoutRowSpan', 'layoutColumnSpan', 'layoutArea', 'layoutX', 'layoutY', 'layoutAngle',
+  ], 'plan 305: layout fields are appended after every existing wire field');
   assert.equal(current[103], 'textStory');
   assert.equal(current[104], 'textFrame');
   assert.deepEqual(current.slice(105, 108), ['pathPaint', 'vectorSource', 'textWrap']);

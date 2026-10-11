@@ -45,7 +45,7 @@ PDF imports preserve clipping and supported effects inside transparent SVG artwo
 
 Select a container in Design and open **Dynamic layout** in the inspector. Choose **flex** for rows, columns and wrapping, or **grid** for tracks and cells. Set gaps, padding and alignment there. Child layers can keep a fixed size, grow to their content, or fill the available space. Absolute placement attaches a child without including it in the flow.
 
-Grid tracks accept `auto`, pixel sizes such as `120px`, fractions such as `1fr`, and percentages such as `25%`. Layers can occupy a specific row and column, span several cells, or share an occupied named area. Drag a child to change its flow order or grid cell. Hold Alt while dropping to detach it. Spacing handles on the canvas edit padding and gaps.
+Grid tracks accept `auto`, pixel sizes such as `120px`, fractions such as `1fr`, and percentages such as `25%`. Layers can occupy a specific row and column, span several cells, or share an occupied named area. Drag a child to change its flow order or grid cell. Hold Alt while dropping to detach the child. Spacing handles on the canvas edit padding and gaps.
 
 Native Penpot imports retain supported flex and grid rules, including nested ownership. The solver uses Penpot's modern Rust implementation. Native exports carry editable rules and membership. Empty named areas, cells containing several shapes, grouped children that cannot remain editable, and skewed computed rectangles produce a finding. Review those findings before continuing.
 

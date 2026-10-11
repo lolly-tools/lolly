@@ -10,6 +10,13 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
 const EXPECTED: readonly string[] = [
+  // Additive 1.249 dynamic Design layouts and native Penpot layout interchange.
+  'LayoutEvaluation', 'LayoutGrid', 'LayoutMeasure', 'LayoutRequest', 'LayoutSolver',
+  'LayoutSolverOutput', 'createDesignLayoutEvaluator', 'createDesignLayoutMeasurer',
+  'designLayoutDescendants', 'designLayoutSourceEdit', 'exportPenpotLayout',
+  'hasDesignLayout', 'importPenpotLayouts', 'parseLayoutTrack',
+  'penpotChildrenPaintOrder', 'penpotHasLayout', 'remapDesignLayout',
+  'resolveDesignLayoutFonts', 'validateDesignLayout',
   // Additive 1.246 rondocode song types and the algorithmic source type (plan 301).
   'ALGORITHMIC_SOURCE_TYPE', 'RondoLang', 'RondoRenderFacts', 'RondoSourceV1',
   // Additive Adobe interchange readers and sequence conversion APIs.
