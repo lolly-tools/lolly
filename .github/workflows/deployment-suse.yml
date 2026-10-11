@@ -248,6 +248,7 @@ jobs:
           sparse-checkout-cone-mode: false
           sparse-checkout: |
             /deploy/docker/
+            /services/mcp/scripts/native-public-image-probe.ts
             /deploy/models-host/
             /scripts/model-release.ts
             /scripts/build-delivery.ts
@@ -271,7 +272,6 @@ jobs:
             /shells/tui/package.json
             /services/ca/package.json
             /services/mcp/package.json
-            /services/mcp/scripts/native-public-image-probe.ts
             /.github/workflows/deployment-suse.yml
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7

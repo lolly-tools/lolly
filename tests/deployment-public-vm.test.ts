@@ -566,6 +566,8 @@ test('candidate receipt writers and the unsigned MCP probe bind a positive exact
 });
 
 test('Compose browser overlay requires a verified seccomp file and preserves isolation', () => {
+  const workflow = read('.github/workflows/deployment-suse.yml');
+  assert.match(workflowJob(workflow, 'public-vm'), /\/services\/mcp\/scripts\/native-public-image-probe\.ts/);
   const overlay = read('deploy/docker/public-browser.compose.yml');
   assert.match(overlay, /seccomp=\$\{LOLLY_PUBLIC_BROWSER_SECCOMP_FILE:\?Set the verified/);
   assert.doesNotMatch(overlay, /no-new-privileges/);
