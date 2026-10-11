@@ -32,7 +32,12 @@ function parameters(e: DesignRasterEvaluation): Float32Array<ArrayBuffer> {
   e.ops.forEach((p, index) => {
     const at = index * 16, angle = p.pose[0] * Math.PI / 180;
     data.set(p.box, at); data.set(p.color, at + 4);
-    data.set([p.radius, p.shape === 'ellipse' ? 1 : 0, Math.cos(angle), Math.sin(angle), p.pose[1] ? -1 : 1, p.pose[2] ? -1 : 1, 0, 0], at + 8);
+    // An inscribed circular contour has maximum error r * (1 - cos(pi / (4n))).
+    // The largest output radius bounds that error after rotation or unequal scaling.
+    const radius = (p.shape === 'ellipse' ? Math.max(p.box[2], p.box[3]) / 2 : p.radius)
+      * Math.max(e.pixelWidth / e.width, e.pixelHeight / e.height);
+    const segments = radius > 1 / 16 ? Math.max(4, Math.ceil(Math.PI / 4 / Math.acos(1 - 1 / (16 * radius)))) : 4;
+    data.set([p.radius, p.shape === 'ellipse' ? 1 : 0, Math.cos(angle), Math.sin(angle), p.pose[1] ? -1 : 1, p.pose[2] ? -1 : 1, segments, Math.cos(Math.PI / (4 * segments))], at + 8);
   });
   return data;
 }

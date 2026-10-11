@@ -6,7 +6,9 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { test } from 'node:test';
 import { chromium } from 'playwright';
+import type { DesignBoxRowV1 } from '@lolly-tools/core';
 import type { DesignDrawPage } from '../engine/src/design-draw.ts';
+import { compileDesignDraw } from '../engine/src/design-draw.ts';
 import type { DesignRasterResult } from '../shells/web/src/lib/webgpu/design-page.ts';
 import type { renderDesignRaster } from '../shells/web/src/lib/webgpu/design-page.ts';
 import type { prepareDesignRaster } from '../engine/src/design-draw-raster.ts';
@@ -27,6 +29,40 @@ declare global { interface Window { designRasterProbe: RasterProbe } }
 const THRESHOLD = 24, REGION_SHARE = .005;
 const png = (bytes: Uint8Array) => `data:image/png;base64,${Buffer.from(bytes).toString('base64')}`;
 const failRegions = (stats: FidelityStats) => stats.regions.filter(r => r.pixels && r.differing / r.pixels > REGION_SHARE);
+
+test('finite subpixel rectangles preserve both edges and exact quarter-pixel coverage', { timeout: 30_000 }, async () => {
+  const fixture = await createDesignGpuFixture();
+  let browser: Awaited<ReturnType<typeof chromium.launch>> | undefined;
+  try {
+    browser = await chromium.launch({ headless: true, ...(process.platform === 'darwin' ? { channel: 'chrome' } : {}) });
+    const context = await browser.newContext({ deviceScaleFactor: 1 });
+    const probe = await context.newPage(); await probe.goto(fixture.origin); await probe.waitForFunction(() => !!window.designRasterProbe);
+    try {
+      for (const vertical of [true, false]) for (const doubled of [false, true]) {
+        const rows: DesignBoxRowV1[] = [{ id: 'frame', kind: 'frame', w: 64, h: 48, bg: '#ffffff00' },
+          { id: 'thin', frame: 'frame', kind: 'box', x: vertical ? 10.375 : 10, y: vertical ? 10 : 10.375,
+            w: vertical ? .25 : 20, h: vertical ? 20 : .25, bg: '#e03131' }];
+        const drawing = compileDesignDraw(rows, { width: 64, height: 48 }, { effects: true, colors: 'resolved' });
+        // Authored rows use whole-pixel boxes; admitted drawing operations can
+        // retain fractional geometry supplied by another drawing producer.
+        drawing.ops[0]!.box = { x: vertical ? 10.375 : 10, y: vertical ? 10 : 10.375,
+          w: vertical ? .25 : 20, h: vertical ? 20 : .25 };
+        const width = vertical && doubled ? 128 : 64, height = !vertical && doubled ? 96 : 48;
+        const value = await probe.evaluate(async ({ drawing, width, height }) => {
+          const v = await window.designRasterProbe.render(drawing, { width, height });
+          return v.ok ? { ...v, data: Array.from(v.data) } : v;
+        }, { drawing, width, height });
+        assert.ok(value.ok); assert.equal(value.allocation.liveBytes, 0);
+        for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+          const minor = vertical ? x : y, major = vertical ? y : x;
+          const covered = major >= 10 && major < 30 && (doubled ? minor === 20 || minor === 21 : minor === 10);
+          assert.equal(value.data[(y * width + x) * 4 + 3], covered ? 64 : 0,
+            `${vertical ? 'vertical' : 'horizontal'}, ${doubled ? 'unequal 2x output' : '1x'} at ${x},${y}`);
+        }
+      }
+    } finally { await probe.evaluate(() => window.designRasterProbe.close()); await context.close(); }
+  } finally { await browser?.close(); await fixture.close(); }
+});
 
 /** Observe all four byte sources without modifying the established comparator. */
 async function pixelDiagnostics(input: { design: string; svg: string; gpu: string; raw: number[]; width: number; height: number; regions: Array<{ id: string; x: number; y: number; w: number; h: number }> }) {
@@ -75,6 +111,11 @@ test('opt-in static Design GPU pages preserve real renderer regions and reject c
   cleanup.push({ name: 'fresh isolated context', close: () => context.close() });
   const probe = await context.newPage(); await probe.goto(fixture.origin); await probe.waitForFunction(() => !!window.designRasterProbe);
   cleanup.push({ name: 'owned module worker', close: async () => { if (!probe.isClosed()) await probe.evaluate(() => window.designRasterProbe.close()); } });
+  receipt.mainThreadAdapterBeforeAssertions = await probe.evaluate(async () => {
+    const device = await window.designRasterProbe.requireWebGpu(), info = device.adapterInfo;
+    return { vendor: info.vendor, architecture: info.architecture, device: info.device, description: info.description, fallback: info.isFallbackAdapter };
+  });
+  await record();
   receipt.stage = 'worker GPU acquisition';
   const report: Array<Record<string, unknown>> = [];
   const fidelityFailures: Array<{ page: string; reference: string; regions: unknown }> = [];

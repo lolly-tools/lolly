@@ -19,38 +19,191 @@ struct Vertex { @builtin(position) position: vec4<f32>, @location(0) @interpolat
   result.index = index;
   return result;
 }
-fn inside(point: vec2<f32>, p: Primitive) -> bool {
+fn localPoint(point: vec2<f32>, p: Primitive) -> vec2<f32> {
   let delta = point - p.box.xy - p.box.zw * 0.5;
-  let local = vec2<f32>(p.shape.z * delta.x + p.shape.w * delta.y,
+  return vec2<f32>(p.shape.z * delta.x + p.shape.w * delta.y,
                       -p.shape.w * delta.x + p.shape.z * delta.y) * p.mirror.xy;
+}
+fn curveDistance(local: vec2<f32>, p: Primitive) -> f32 {
   let half = p.box.zw * 0.5;
-  if p.shape.y > 0.5 { let unit = local / half; return dot(unit, unit) <= 1.0; }
+  // This ellipse bound cannot skip a pixel that intersects the curve: the
+  // normalized radius changes by at most distance / the smaller radius.
+  if p.shape.y > 0.5 { return (length(local / half) - 1.0) * min(half.x, half.y); }
   let q = abs(local) - half + vec2<f32>(p.shape.x);
-  return length(max(q, vec2<f32>(0))) + min(max(q.x, q.y), 0.0) <= p.shape.x;
+  return length(max(q, vec2<f32>(0))) + min(max(q.x, q.y), 0.0) - p.shape.x;
+}
+fn curveInside(local: vec2<f32>, p: Primitive) -> bool {
+  var unit = abs(local) / (p.box.zw * 0.5);
+  if p.shape.y < 0.5 {
+    let q = abs(local) - p.box.zw * 0.5 + vec2<f32>(p.shape.x);
+    if min(q.x, q.y) <= 0.0 { return max(q.x, q.y) <= p.shape.x; }
+    unit = q / p.shape.x;
+  }
+  let sector = min(floor(atan2(unit.y, unit.x) * (2.0 / 3.14159265359) * p.mirror.z), p.mirror.z - 1.0);
+  let angle = (sector + 0.5) * (3.14159265359 * 0.5 / p.mirror.z);
+  return dot(unit, vec2<f32>(cos(angle), sin(angle))) <= p.mirror.w;
+}
+fn rectangleCoverage(pixel: vec2<f32>, p: Primitive) -> f32 {
+  // Clip the whole output pixel against all four finite edges. A nearest-edge
+  // ramp loses corner coverage and overstates rectangles narrower than a pixel.
+  // Coordinates stay near the pixel centre to avoid cancelling large areas.
+  let step = size.page / size.pixels;
+  let centre = localPoint(pixel * step, p);
+  let reach = vec2<f32>(abs(p.shape.z) * step.x + abs(p.shape.w) * step.y,
+                        abs(p.shape.w) * step.x + abs(p.shape.z) * step.y) * 0.5;
+  let half = p.box.zw * 0.5;
+  if all(abs(centre) + reach <= half) { return 1.0; }
+  if any(abs(centre) - reach >= half) { return 0.0; }
+  let signs = array<vec2<f32>, 4>(vec2<f32>(-0.5,-0.5), vec2<f32>(0.5,-0.5),
+                                vec2<f32>(0.5,0.5), vec2<f32>(-0.5,0.5));
+  var polygon: array<vec2<f32>, 8>;
+  var count = 4u;
+  for (var i = 0u; i < 4u; i++) {
+    let offset = signs[i] * step;
+    polygon[i] = vec2<f32>(p.shape.z * offset.x + p.shape.w * offset.y,
+                          -p.shape.w * offset.x + p.shape.z * offset.y) * p.mirror.xy;
+  }
+  for (var edge = 0u; edge < 4u; edge++) {
+    if count == 0u { return 0.0; }
+    let axis = edge / 2u;
+    let direction = select(-1.0, 1.0, edge % 2u == 1u);
+    let bound = p.box.zw[axis] * 0.5 - direction * centre[axis];
+    var next: array<vec2<f32>, 8>;
+    var n = 0u;
+    var previous = polygon[count - 1u];
+    var previousDistance = direction * previous[axis] - bound;
+    for (var i = 0u; i < count; i++) {
+      let current = polygon[i];
+      let distance = direction * current[axis] - bound;
+      if (distance < 0.0 && previousDistance > 0.0) || (distance > 0.0 && previousDistance < 0.0) {
+        next[n] = mix(previous, current, previousDistance / (previousDistance - distance)); n++;
+      }
+      if distance <= 0.0 { next[n] = current; n++; }
+      previous = current; previousDistance = distance;
+    }
+    polygon = next; count = n;
+  }
+  var twiceArea = 0.0;
+  for (var i = 0u; i < count; i++) {
+    let a = polygon[i]; let b = polygon[(i + 1u) % count];
+    twiceArea += a.x * b.y - a.y * b.x;
+  }
+  return clamp(abs(twiceArea) * 0.5 / (step.x * step.y), 0.0, 1.0);
+}
+fn stripPixelArea(points: array<vec2<f32>, 4>) -> f32 {
+  var polygon: array<vec2<f32>, 8>;
+  for (var i = 0u; i < 4u; i++) { polygon[i] = points[i]; }
+  var count = 4u;
+  // The strip already lies inside this pixel's Y interval. Clip both X edges.
+  for (var side = 0u; side < 2u; side++) {
+    if count == 0u { return 0.0; }
+    let direction = select(-1.0, 1.0, side == 1u);
+    let bound = f32(side);
+    var next: array<vec2<f32>, 8>;
+    var n = 0u;
+    var previous = polygon[count - 1u];
+    var previousDistance = direction * previous.x - bound;
+    for (var i = 0u; i < count; i++) {
+      let current = polygon[i];
+      let distance = direction * current.x - bound;
+      if (distance < 0.0 && previousDistance > 0.0) || (distance > 0.0 && previousDistance < 0.0) {
+        next[n] = mix(previous, current, previousDistance / (previousDistance - distance)); n++;
+      }
+      if distance <= 0.0 { next[n] = current; n++; }
+      previous = current; previousDistance = distance;
+    }
+    polygon = next; count = n;
+  }
+  var twiceArea = 0.0;
+  for (var i = 0u; i < count; i++) {
+    let a = polygon[i]; let b = polygon[(i + 1u) % count];
+    twiceArea += a.x * b.y - a.y * b.x;
+  }
+  return abs(twiceArea) * 0.5;
+}
+fn scanlineRectangleCoverage(pixel: vec2<f32>, p: Primitive) -> f32 {
+  // Quantized rows may move a finite edge across a pixel. Preserve the original
+  // rectangle's empty support and full interior before estimating partial rows.
+  let finite = rectangleCoverage(pixel, p);
+  if finite == 0.0 || finite == 1.0 { return finite; }
+  // Experimental analytic row quantization: endpoint Y uses quarter pixels;
+  // each row's left/right intersections use sixteenth pixels. All math remains
+  // on the GPU; no native rasterizer or per-fixture mask is consulted.
+  let step = size.page / size.pixels;
+  let half = p.box.zw * 0.5;
+  let origin = floor(pixel);
+  let signs = array<vec2<f32>, 4>(vec2<f32>(-0.5,-0.5), vec2<f32>(0.5,-0.5),
+                                vec2<f32>(0.5,0.5), vec2<f32>(-0.5,0.5));
+  var points: array<vec2<f32>, 4>;
+  var cuts = array<f32, 6>(0.0, 1.0, 0.0, 0.0, 0.0, 0.0);
+  for (var i = 0u; i < 4u; i++) {
+    let local = signs[i] * p.box.zw * p.mirror.xy;
+    let point = (p.box.xy + half + vec2<f32>(p.shape.z * local.x - p.shape.w * local.y,
+                                             p.shape.w * local.x + p.shape.z * local.y)) / step;
+    let endpoint = trunc(point * 256.0) / 256.0;
+    points[i] = vec2<f32>(endpoint.x, floor(endpoint.y * 4.0 + 0.5) * 0.25) - origin;
+    cuts[i + 2u] = clamp(points[i].y, 0.0, 1.0);
+  }
+  for (var i = 0u; i < 6u; i++) { for (var j = i + 1u; j < 6u; j++) {
+    if cuts[j] < cuts[i] { let old = cuts[i]; cuts[i] = cuts[j]; cuts[j] = old; }
+  } }
+  var coverage = 0.0;
+  for (var strip = 0u; strip < 5u; strip++) {
+    let top = cuts[strip]; let bottom = cuts[strip + 1u];
+    if top == bottom { continue; }
+    let middle = (top + bottom) * 0.5;
+    var ends: array<vec2<f32>, 2>;
+    var count = 0u;
+    for (var edge = 0u; edge < 4u; edge++) {
+      let a = points[edge]; let b = points[(edge + 1u) % 4u];
+      if min(a.y, b.y) < middle && middle < max(a.y, b.y) && count < 2u {
+        let slope = (b.x - a.x) / (b.y - a.y);
+        ends[count] = floor((a.x + slope * (vec2<f32>(top, bottom) - a.y)) * 16.0 + 0.5) / 16.0;
+        count++;
+      }
+    }
+    if count != 2u { continue; }
+    if ends[0].x + ends[0].y > ends[1].x + ends[1].y {
+      let old = ends[0]; ends[0] = ends[1]; ends[1] = old;
+    }
+    coverage += stripPixelArea(array<vec2<f32>, 4>(vec2<f32>(ends[0].x, top),
+      vec2<f32>(ends[1].x, top), vec2<f32>(ends[1].y, bottom), vec2<f32>(ends[0].y, bottom)));
+  }
+  return clamp(coverage, 0.0, 1.0);
 }
 @fragment fn fragment(v: Vertex) -> @location(0) vec4<f32> {
   let p = ops[v.index];
+  let scanlineRectangle = p.shape.y < 0.5 && p.shape.x == 0.0
+    && abs(p.shape.z) > 0.00001 && abs(p.shape.w) > 0.00001;
   var coverage = 0.0;
   if p.shape.y < 0.5 && p.shape.x == 0.0 {
-    // Plain rectangle edges use a one-pixel signed-distance ramp. Fixed-grid
-    // sampling creates isolated low-alpha pixels outside rotated edges; after
-    // RGBA8 source-over and straight readback those disagree with Design/SVG.
-    // Normal lengths express each local edge distance in output pixels, even
-    // when output X/Y scales differ. Rounded rectangles/ellipses stay sampled.
-    let pixelStep = size.page / size.pixels;
-    let delta = v.position.xy * pixelStep - p.box.xy - p.box.zw * 0.5;
-    let local = vec2<f32>(p.shape.z * delta.x + p.shape.w * delta.y,
-                        -p.shape.w * delta.x + p.shape.z * delta.y) * p.mirror.xy;
-    let edgeScale = vec2<f32>(length(vec2<f32>(p.shape.z * pixelStep.x, p.shape.w * pixelStep.y)),
-                             length(vec2<f32>(p.shape.w * pixelStep.x, p.shape.z * pixelStep.y)));
-    let q = (abs(local) - p.box.zw * 0.5) / edgeScale;
-    let distance = length(max(q, vec2<f32>(0))) + min(max(q.x, q.y), 0.0);
-    coverage = clamp(0.5 - distance, 0.0, 1.0);
+    if scanlineRectangle { coverage = scanlineRectangleCoverage(v.position.xy, p); }
+    else { coverage = rectangleCoverage(v.position.xy, p); }
   } else {
-    for (var y = 0u; y < 4u; y++) { for (var x = 0u; x < 4u; x++) {
-      let offset = (vec2<f32>(f32(x), f32(y)) + 0.5) / 4.0 - 0.5;
-      if inside((v.position.xy + offset) * size.page / size.pixels, p) { coverage += 1.0 / 16.0; }
-    } }
+    let step = size.page / size.pixels;
+    let distance = curveDistance(localPoint(v.position.xy * step, p), p);
+    let reach = length(step) * 0.5 + max(step.x, step.y) / 16.0;
+    if distance <= -reach { coverage = 1.0; }
+    else if distance < reach {
+      for (var y = 0u; y < 8u; y++) { for (var x = 0u; x < 8u; x++) {
+        let offset = (vec2<f32>(f32(x), f32(y)) + 0.5) / 8.0 - 0.5;
+        if curveInside(localPoint((v.position.xy + offset) * step, p), p) { coverage += 1.0 / 64.0; }
+      } }
+    }
+  }
+  if scanlineRectangle {
+    // Byte paint premultiplication precedes the byte coverage multiplication.
+    let paint8 = floor(p.color * 255.0 + 0.5);
+    let rgb8 = floor(paint8.rgb * (paint8.a / 255.0) + 0.5);
+    let aa = min(255.0, floor(clamp(coverage, 0.0, 1.0) * 256.0));
+    return floor(vec4<f32>(rgb8, paint8.a) * ((aa + 1.0) / 256.0)) / 255.0;
+  }
+  // Experimental opaque solid coverage: match byte-scaled source paint before
+  // the RGBA8 attachment rounds it. Translucent paint keeps its existing path.
+  if p.color.a == 1.0 {
+    let aa = floor(clamp(coverage, 0.0, 1.0) * 255.0 + 0.5);
+    let rgb8 = floor(floor(p.color.rgb * 255.0 + 0.5) * ((aa + 1.0) / 256.0));
+    return vec4<f32>(rgb8 / 255.0, aa / 255.0);
   }
   let alpha = p.color.a * coverage;
   return vec4<f32>(p.color.rgb * alpha, alpha);
