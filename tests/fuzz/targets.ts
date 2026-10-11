@@ -53,6 +53,7 @@ import { contextTokens } from '../../engine/src/brand-context.ts';
  *   - svg-items     : svgItemsOf(svg, parseXml) then vectorItemsToRows and vectorItemsSvg - a drawing read as bounded items (plan 275 decision 32)
  *   - layout-abi    : raw WASM layout_alloc/layout_solve bytes through Rust serde_json and modern flex/grid routines
  *   - penpot-layout : importPenpotLayouts + penpotChildrenPaintOrder, then Design request placement/evaluation
+ *   - design-guides : v1/v2 guide text/JSON, canonical reparse and finite snap targets without DOM
  */
 
 import { storeZip } from '../../engine/src/zip.ts';
@@ -144,6 +145,7 @@ import { contentSealConsensus, CONTENTSEAL_MESSAGE_BITS } from '../../engine/src
 import { zipSync } from 'fflate';
 import { JSDOM } from 'jsdom'; // typed by tests/jsdom.d.ts (no @types/jsdom exists)
 import { invokeLayoutAbi, layoutAbiSeeds, invokePenpotLayoutEvaluation, penpotLayoutSeeds } from './layout-targets.ts';
+import { designGuideSeeds, invokeDesignGuides } from './design-guides-target.ts';
 
 export interface FuzzTarget {
   name: string;
@@ -2039,9 +2041,14 @@ export const penpotLayoutTarget: FuzzTarget = {
   seeds: penpotLayoutSeeds,
   async invoke(bytes) { await invokePenpotLayoutEvaluation(bytes); },
 };
+export const designGuidesTarget: FuzzTarget = {
+  name: 'design-guides',
+  seeds: designGuideSeeds,
+  async invoke(bytes) { invokeDesignGuides(bytes); },
+};
 
 export const ALL_TARGETS: FuzzTarget[] = [
-  layoutAbiTarget, penpotLayoutTarget,
+  layoutAbiTarget, penpotLayoutTarget, designGuidesTarget,
   adobeXmlTarget, adobePsdTarget, idmlReadTarget,
   motionCuesTarget, motionParamsTarget, mcpNegotiationTarget,
   textSourceTarget, textDocumentTarget, textFrameTarget, vectorPaintTarget,

@@ -59,10 +59,21 @@ test('guide preview work stays bounded on a canvas with 1,000 guides', { skip, t
         sameGuide: target === stage.querySelector('[data-guide-id="g0"]'),
         commitsAfterRelease: 0,
         finalPosition: 0,
+        guideCountAfterCreationAttempts: 0,
+        commitsAfterCreationAttempts: 0,
       };
       pointer('pointerup', 379);
       result.commitsAfterRelease = commits;
       result.finalPosition = JSON.parse(value.slice(2))[0][2];
+      const ruler = stage.querySelector<HTMLElement>('.fc-ruler-x')!;
+      for (const [type, y] of [['pointerdown', 10], ['pointermove', 300], ['pointerup', 300]] as const) {
+        ruler.dispatchEvent(new PointerEvent(type, {
+          bubbles: true, cancelable: true, pointerId: 8, button: 0, clientX: 400, clientY: y,
+        }));
+      }
+      ruler.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+      result.guideCountAfterCreationAttempts = stage.querySelectorAll('.fc-author-guide').length;
+      result.commitsAfterCreationAttempts = commits;
       handle.destroy(); stage.remove();
       return result;
     });
@@ -75,6 +86,8 @@ test('guide preview work stays bounded on a canvas with 1,000 guides', { skip, t
     assert.equal(result.finalPosition, 279);
     assert.equal(result.sameTick, true);
     assert.equal(result.sameGuide, true);
+    assert.equal(result.guideCountAfterCreationAttempts, 1000);
+    assert.equal(result.commitsAfterCreationAttempts, 1);
   } finally { await browser.close(); }
 });
 

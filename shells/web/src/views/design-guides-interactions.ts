@@ -8,6 +8,7 @@ import { t } from '../i18n.ts';
 import type { DesignGuide } from './design-ports.ts';
 import {
   guideAxis,
+  MAX_DESIGN_GUIDE_RECORDS,
   guideCanEdit,
   guideNumber,
   guideOverRuler,
@@ -146,7 +147,13 @@ function start(
   measured?: GuideLayout
 ): void {
   const { g } = state;
-  if (event.button !== 0 || g.drag || !g.visible) return;
+  if (
+    event.button !== 0 ||
+    g.drag ||
+    !g.visible ||
+    (isNew && g.guides.length >= MAX_DESIGN_GUIDE_RECORDS)
+  )
+    return;
   if (!guideCanEdit(g)) {
     if (!isNew) {
       g.model.select(guide.id);
@@ -335,7 +342,7 @@ function onRulerKey(state: InteractionState, event: KeyboardEvent): void {
   event.preventDefault();
   event.stopPropagation();
   const { g } = state;
-  if (!guideCanEdit(g) || !g.visible) return;
+  if (!guideCanEdit(g) || !g.visible || g.guides.length >= MAX_DESIGN_GUIDE_RECORDS) return;
   const layout = g.view.measure(),
     vertical = event.currentTarget === g.view.left;
   const minX = Math.max(layout.canvas.left, layout.stage.left + layout.leftInset + 22);
@@ -379,7 +386,13 @@ function wire(state: InteractionState): void {
     { view } = g;
   for (const ruler of [view.top, view.left]) {
     listen(state, ruler, 'pointerdown', ((event: PointerEvent) => {
-      if (!guideCanEdit(g) || event.button !== 0 || g.drag) return;
+      if (
+        !guideCanEdit(g) ||
+        event.button !== 0 ||
+        g.drag ||
+        g.guides.length >= MAX_DESIGN_GUIDE_RECORDS
+      )
+        return;
       const layout = view.measure();
       start(
         state,

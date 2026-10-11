@@ -7,6 +7,8 @@
 import type { DesignGuide } from './design-ports.ts';
 
 export const GUIDE_RULER_SIZE = 22;
+/** Persisted v2 records are bounded; authoring must not exceed the readable prefix. */
+export const MAX_DESIGN_GUIDE_RECORDS = 1000;
 export interface GuideSelectionBounds {
   minX: number;
   minY: number;

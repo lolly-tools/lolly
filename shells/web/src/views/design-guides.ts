@@ -9,12 +9,14 @@ import { createGuideInteractions } from './design-guides-interactions.ts';
 import { createGuideView } from './design-guides-view.ts';
 import {
   guideCanEdit,
+  MAX_DESIGN_GUIDE_RECORDS,
   roundGuideValue,
   type DesignGuidesOptions,
   type GuideContext,
   type GuideSelectionBounds,
 } from './design-guides-shared.ts';
 export type { DesignGuidesOptions, GuideSelectionBounds } from './design-guides-shared.ts';
+export { MAX_DESIGN_GUIDE_RECORDS } from './design-guides-shared.ts';
 export { rulerStep } from './design-guides-rulers.ts';
 import type { DesignGuide, DesignGuidePort } from './design-ports.ts';
 import type { SnapLines } from './free-canvas-math.ts';
@@ -98,7 +100,7 @@ export function parseGuideRecords(value: unknown): DesignGuide[] {
     const rows: unknown = JSON.parse(source.slice(2));
     if (!Array.isArray(rows)) return [];
     const ids = new Set<string>();
-    return rows.slice(0, 1000).flatMap((row): DesignGuide[] => {
+    return rows.slice(0, MAX_DESIGN_GUIDE_RECORDS).flatMap((row): DesignGuide[] => {
       if (!Array.isArray(row)) return [];
       const [id, x, y, rotation, color, snap] = row;
       if (typeof id !== 'string' || !/^[\w-]{1,80}$/.test(id) || ids.has(id)) return [];

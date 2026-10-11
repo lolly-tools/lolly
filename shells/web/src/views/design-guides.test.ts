@@ -5,6 +5,7 @@ import { test } from 'node:test';
 import { JSDOM } from 'jsdom';
 import {
   mountDesignGuides,
+  MAX_DESIGN_GUIDE_RECORDS,
   parseGuideRecords,
   serializeGuideRecords,
   guideSnapTargets,
@@ -890,4 +891,111 @@ test('horizontal guide exact entry is upright beside the left ruler and rotation
     style.remove();
     f.handle.destroy();
   }
+});
+
+function guideRecordWire(count: number): string {
+  return serializeGuideRecords(
+    Array.from({ length: count }, (_, i) => ({
+      id: `guide${i}`,
+      x: i,
+      y: 0,
+      rotation: 90,
+      color: '',
+      snap: true,
+    }))
+  );
+}
+
+test('ruler pointer and keyboard creation at persisted capacity do not preview, measure or commit', () => {
+  const initial = guideRecordWire(MAX_DESIGN_GUIDE_RECORDS),
+    f = guideFixture(initial);
+  let reads = 0,
+    notifications = 0;
+  const stageRect = f.stage.getBoundingClientRect,
+    canvasRect = f.canvas.getBoundingClientRect;
+  f.stage.getBoundingClientRect = () => {
+    reads++;
+    return stageRect();
+  };
+  f.canvas.getBoundingClientRect = () => {
+    reads++;
+    return canvasRect();
+  };
+  f.handle.onChange(() => {
+    notifications++;
+  });
+  for (const axis of ['x', 'y']) {
+    const ruler = f.handle.el.querySelector<HTMLElement>(`.fc-ruler-${axis}`)!;
+    f.pointer(ruler, 'pointerdown', axis === 'x' ? 300 : 10, axis === 'x' ? 10 : 300);
+    f.pointer(ruler, 'pointermove', 400, 400);
+    f.pointer(ruler, 'pointerup', 400, 400);
+    ruler.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true })
+    );
+    ruler.dispatchEvent(
+      new KeyboardEvent('keydown', { key: ' ', bubbles: true, cancelable: true })
+    );
+  }
+  assert.equal(f.pending(), 0);
+  assert.equal(reads, 0);
+  assert.equal(notifications, 0);
+  assert.equal(f.commits.length, 0);
+  assert.equal(f.value(), initial);
+  assert.equal(f.handle.el.querySelectorAll('.fc-author-guide').length, MAX_DESIGN_GUIDE_RECORDS);
+  assert.equal(f.handle.el.querySelector('.fc-guide-pill'), null);
+  assert.equal(f.handle.selected(), null);
+  f.handle.destroy();
+});
+
+test('both creation paths can author the final readable record and then stop at capacity', () => {
+  for (const keyboard of [false, true]) {
+    const f = guideFixture(guideRecordWire(MAX_DESIGN_GUIDE_RECORDS - 1));
+    const ruler = f.handle.el.querySelector<HTMLElement>('.fc-ruler-x')!;
+    if (keyboard)
+      ruler.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    else {
+      f.pointer(ruler, 'pointerdown', 300, 10);
+      f.pointer(ruler, 'pointerup', 300, 300);
+    }
+    const id = f.handle.selected()!.id,
+      restored = parseGuideRecords(f.value());
+    assert.equal(f.commits.length, 1);
+    assert.equal(restored.length, MAX_DESIGN_GUIDE_RECORDS);
+    assert.ok(
+      restored.some((guide) => guide.id === id),
+      'the new guide remains readable after reload'
+    );
+    f.pointer(ruler, 'pointerdown', 300, 10);
+    f.pointer(ruler, 'pointerup', 300, 400);
+    ruler.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    assert.equal(f.commits.length, 1);
+    assert.equal(f.pending(), 0);
+    assert.equal(f.handle.selected()?.id, id);
+    f.handle.destroy();
+  }
+});
+
+test('existing guides still move and edit at capacity, and removal makes room for creation', () => {
+  const f = guideFixture(guideRecordWire(MAX_DESIGN_GUIDE_RECORDS));
+  const line = f.handle.el.querySelector('.fc-author-guide[data-guide-id="guide0"]')!;
+  f.pointer(line, 'pointerdown', 100, 250);
+  f.pointer(line, 'pointerup', 150, 250);
+  assert.equal(f.handle.selected()?.x, 100);
+  assert.equal(f.commits.length, 1);
+  assert.equal(f.handle.el.querySelector('.fc-author-guide[data-guide-id="guide0"]'), line);
+  const lastId = `guide${MAX_DESIGN_GUIDE_RECORDS - 1}`,
+    input = openGuideEditor(f, lastId);
+  input.value = '1001.5';
+  input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+  assert.equal(f.commits.length, 2);
+  assert.equal(f.handle.selected()?.x, 1001.5);
+  const restored = parseGuideRecords(f.value());
+  assert.equal(restored.length, MAX_DESIGN_GUIDE_RECORDS);
+  assert.equal(restored.find((guide) => guide.id === lastId)?.x, 1001.5);
+  f.handle.remove('guide0');
+  const ruler = f.handle.el.querySelector<HTMLElement>('.fc-ruler-x')!;
+  ruler.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+  assert.equal(f.commits.length, 4);
+  assert.equal(parseGuideRecords(f.value()).length, MAX_DESIGN_GUIDE_RECORDS);
+  f.handle.destroy();
 });
