@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
-/** Set LOLLY_LAYOUT_TEST_URL to exercise layout intent through the real Design UI. */
+/** Use a local Vite shell to exercise layout intent through the real Design UI. */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
@@ -7,7 +7,10 @@ import type { Page } from 'playwright';
 import type { CanvasCommitEl } from '../shells/web/src/lib/canvas-commit.ts';
 import { webGpuLaunchArgs } from '../packages/node-shell/src/webgpu-launch.ts';
 
-const origin = process.env.LOLLY_LAYOUT_TEST_URL;
+const origin =
+  process.env.LOLLY_LAYOUT_TEST_URL ??
+  process.env.LOLLY_IMPORT_TEST_URL ??
+  process.env.LOLLY_EXPORT_TEST_URL;
 async function source(
   page: Page
 ): Promise<{ boxes: Array<Record<string, unknown>>; tracks: Array<Record<string, unknown>> }> {
@@ -41,7 +44,7 @@ async function undo(page: Page): Promise<void> {
 }
 
 test('Design inspector, layout gestures and undo commit authored intent while the canvas reflows', {
-  skip: origin ? false : 'Serve the web shell and set LOLLY_LAYOUT_TEST_URL.',
+  skip: origin ? false : 'Set LOLLY_IMPORT_TEST_URL or LOLLY_EXPORT_TEST_URL to a local Vite shell.',
   timeout: 150_000,
 }, async () => {
   const browser = await chromium.launch({

@@ -157,9 +157,12 @@ test('static imports keep the original rows and static exports add no layout att
   }
 });
 
-const browserOrigin = process.env.LOLLY_LAYOUT_TEST_URL;
+const browserOrigin =
+  process.env.LOLLY_LAYOUT_TEST_URL ??
+  process.env.LOLLY_IMPORT_TEST_URL ??
+  process.env.LOLLY_EXPORT_TEST_URL;
 test('browser Penpot parser and artboard import keep dynamic owners and track identities across pages', {
-  skip: browserOrigin ? false : 'Serve the worktree web shell and set LOLLY_LAYOUT_TEST_URL.', timeout: 90_000,
+  skip: browserOrigin ? false : 'Set LOLLY_IMPORT_TEST_URL or LOLLY_EXPORT_TEST_URL to a local Vite shell.', timeout: 90_000,
 }, async () => {
   const rows = [layer('grid', { kind: 'frame', w: 400, h: 200, layout: 'grid' }), layer('item', { layoutOwner: 'grid', layoutW: 'fill' }),
     layer('flex', { kind: 'frame', x: 500, w: 300, h: 200, layout: 'flex' }), layer('flexitem', { layoutOwner: 'flex' })];

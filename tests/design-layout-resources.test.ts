@@ -192,9 +192,12 @@ test('intrinsic measurement retains small successes and retries oversized or fai
   assert.ok(calls > afterFailure);
 });
 
-const browserOrigin = process.env.LOLLY_LAYOUT_TEST_URL;
+const browserOrigin =
+  process.env.LOLLY_LAYOUT_TEST_URL ??
+  process.env.LOLLY_IMPORT_TEST_URL ??
+  process.env.LOLLY_EXPORT_TEST_URL;
 test('web intrinsic sizing follows active token changes and invalidates projections after font registry changes', {
-  skip: browserOrigin ? false : 'Serve the worktree web shell and set LOLLY_LAYOUT_TEST_URL.',
+  skip: browserOrigin ? false : 'Set LOLLY_IMPORT_TEST_URL or LOLLY_EXPORT_TEST_URL to a local Vite shell.',
   timeout: 90_000,
 }, async () => {
   const { chromium } = await import('playwright'),
@@ -224,7 +227,7 @@ test('web intrinsic sizing follows active token changes and invalidates projecti
         const host = await createWebLayout(createTextAPI(), tokens);
         const first = await host.evaluate(source),
           cached = await host.evaluate(source);
-        family = 'SUSE Mono';
+        family = 'Outfit';
         const changed = await host.evaluate(source);
         const changedCached = await host.evaluate(source);
         bustFontRegistry();
