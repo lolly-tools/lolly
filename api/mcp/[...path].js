@@ -4006,7 +4006,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.252.0";
+    ENGINE_VERSION = "1.253.0";
   }
 });
 
@@ -9633,13 +9633,19 @@ var init_units = __esm({
 // engine/src/token-consumer-adapters.ts
 function adaptTokenEntry(entry2, adapter) {
   const make = (type, value) => ({ ...entry2, type, value });
-  if (adapter.startsWith("typography") || adapter.startsWith("shadow")) {
+  if (adapter.startsWith("typography") || adapter.startsWith("shadow") || adapter.startsWith("border")) {
     const [kind, field2] = adapter.split(".");
     if (entry2.type !== kind || !record2(entry2.value)) return "This consumer needs a single resolved composite token.";
     const value = entry2.value;
     if (kind === "shadow") {
       const spread = value.spread;
       if (value.inset === true || spread !== void 0 && spread !== "0px" && spread !== 0 && !(record2(spread) && spread.value === 0 && spread.unit === "px")) return "This shadow consumer cannot represent spread, inset or multiple shadows.";
+    }
+    if (kind === "border") {
+      if (!["solid", "dashed", "dotted"].includes(String(value.style)) || typeof value.style !== "string") return "This border consumer supports solid, dashed or dotted strokes only.";
+      if (field2 === "dashArray") return make("string", "");
+      if (field2 === "dashLength" || field2 === "gapLength") return make("number", 0);
+      if (field2 === "style") return make("string", value.style === "solid" ? "" : value.style);
     }
     if (!field2) return Object.keys(fields[kind]).every((key) => value[key] !== void 0) ? make("string", JSON.stringify(value)) : "The composite is missing a required property.";
     if (value[field2] === void 0) return "The composite property has no resolved value.";
@@ -9675,12 +9681,13 @@ var init_token_consumer_adapters = __esm({
     init_tokens2();
     init_color_face();
     init_gradient_spec();
-    TOKEN_ADAPTERS = ["typography", "typography.fontFamily", "typography.fontSize", "typography.fontWeight", "typography.letterSpacing", "typography.lineHeight", "shadow", "shadow.color", "shadow.offsetX", "shadow.offsetY", "shadow.blur", "duration-ms", "duration-s", "cubic-bezier", "gradient", "ratio"];
+    TOKEN_ADAPTERS = ["typography", "typography.fontFamily", "typography.fontSize", "typography.fontWeight", "typography.letterSpacing", "typography.lineHeight", "shadow", "shadow.color", "shadow.offsetX", "shadow.offsetY", "shadow.blur", "border", "border.color", "border.width", "border.style", "border.dashArray", "border.dashLength", "border.gapLength", "duration-ms", "duration-s", "cubic-bezier", "gradient", "ratio"];
     isTokenAdapter = (value) => typeof value === "string" && TOKEN_ADAPTERS.includes(value);
     record2 = (value) => !!value && typeof value === "object" && !Array.isArray(value);
     fields = {
       typography: { fontFamily: "fontFamily", fontSize: "dimension", fontWeight: "number", letterSpacing: "dimension", lineHeight: "number" },
-      shadow: { color: "color", offsetX: "dimension", offsetY: "dimension", blur: "dimension" }
+      shadow: { color: "color", offsetX: "dimension", offsetY: "dimension", blur: "dimension" },
+      border: { color: "color", width: "dimension", style: "string" }
     };
   }
 });
@@ -9689,9 +9696,9 @@ var init_token_consumer_adapters = __esm({
 function resolveTokenBinding(entry2, consumer) {
   if (!entry2 || isAlias(entry2.value)) return { status: "unresolved", reason: "The token has no resolved value." };
   const bad = (reason2) => ({ status: "incompatible", reason: reason2 });
-  if (consumer.adapter === "typography" || consumer.adapter === "shadow") {
+  if (consumer.adapter === "typography" || consumer.adapter === "shadow" || consumer.adapter === "border") {
     const kind = consumer.adapter;
-    const targets = kind === "typography" ? [["fontFamily", "text"], ["fontSize", "number"], ["fontWeight", "number"], ["letterSpacing", "number"], ["lineHeight", "number"]] : [["color", "color"], ["offsetX", "number"], ["offsetY", "number"], ["blur", "number"]];
+    const targets = kind === "typography" ? [["fontFamily", "text"], ["fontSize", "number"], ["fontWeight", "number"], ["letterSpacing", "number"], ["lineHeight", "number"]] : kind === "border" ? [["color", "color"], ["width", "number"], ["style", "text"]] : [["color", "color"], ["offsetX", "number"], ["offsetY", "number"], ["blur", "number"]];
     for (const [key, type] of targets) {
       const result = resolveTokenBinding(entry2, { type, adapter: `${kind}.${key}`, colorTarget: consumer.colorTarget });
       if (result.status !== "linked") return result;
@@ -9715,7 +9722,7 @@ function resolveTokenBinding(entry2, consumer) {
       if (!dim) return bad("This field needs an absolute dimension. Relative units need an explicit reference context.");
       value = toCssPx(dim);
     } else return bad("This numeric field accepts number or absolute dimension tokens.");
-    if (!Number.isFinite(value) || consumer.min !== void 0 && value < consumer.min || consumer.max !== void 0 && value > consumer.max) return bad("The resolved value is outside this field range.");
+    if (!Number.isFinite(value) || consumer.adapter === "border.width" && value < 0 || consumer.min !== void 0 && value < consumer.min || consumer.max !== void 0 && value > consumer.max) return bad("The resolved value is outside this field range.");
   } else if (["text", "longtext", "select"].includes(consumer.type)) {
     if (consumer.adapter === "typography.fontWeight" && typeof entry2.value === "number" && Number.isFinite(entry2.value)) entry2 = { ...entry2, type: "string", value: String(entry2.value) };
     if (!["string", "fontFamily"].includes(entry2.type ?? "")) return bad("This field accepts string or font-family tokens.");
@@ -9796,6 +9803,11 @@ function reconcileBlockTokenBindings(rows2, metadataField) {
     const links = readBlockTokenBindings(row[metadataField]);
     let changed = false;
     for (const [field2, link] of Object.entries(links)) if (!link.custom && !sameScalar(row[field2], link.value)) {
+      links[field2] = { ...link, custom: true };
+      changed = true;
+    }
+    const customStyles = new Set(Object.values(links).filter((link) => link.custom && BORDER_STYLE_ADAPTERS.includes(link.adapter)).map((link) => link.ref));
+    for (const [field2, link] of Object.entries(links)) if (!link.custom && customStyles.has(link.ref) && BORDER_STYLE_ADAPTERS.includes(link.adapter)) {
       links[field2] = { ...link, custom: true };
       changed = true;
     }
@@ -10065,11 +10077,20 @@ function resolveBlockTokenBindings(rows2, metadataField, fields2, set, colorTarg
     if (!Object.keys(links).length) return row;
     const next2 = { ...row };
     let moved = false;
+    const heldBorders = /* @__PURE__ */ new Map();
+    const borderResults = /* @__PURE__ */ new Map();
+    for (const [id3, link] of Object.entries(links)) {
+      const field2 = byId.get(id3);
+      if (link.custom || !link.adapter?.startsWith("border.") || !field2 || id3 === metadataField) continue;
+      const result = resolveTokenBinding(set?.get(aliasPath(link.ref)), { ...field2, type: field2.type ?? "text", colorTarget, adapter: link.adapter });
+      borderResults.set(id3, result);
+      if (result.status !== "linked") heldBorders.set(link.ref, result);
+    }
     for (const [id3, link] of Object.entries(links)) {
       if (link.custom || link.mode === "tint") continue;
       const field2 = byId.get(id3);
       if (!field2 || id3 === metadataField) continue;
-      const result = resolveTokenBinding(set?.get(aliasPath(link.ref)), { ...field2, type: field2.type ?? "text", colorTarget, adapter: link.adapter });
+      const result = link.adapter?.startsWith("border.") && heldBorders.has(link.ref) ? heldBorders.get(link.ref) : borderResults.get(id3) ?? resolveTokenBinding(set?.get(aliasPath(link.ref)), { ...field2, type: field2.type ?? "text", colorTarget, adapter: link.adapter });
       if (result.status === "linked" && scalar(result.value)) {
         if (next2[id3] !== result.value) moved = true;
         next2[id3] = result.value;
@@ -10096,7 +10117,7 @@ function withBlockTokenBinding(row, metadataField, field2, value, adapter) {
   if (links[field2]) links[field2] = { ...links[field2], custom: true };
   return { ...row, [field2]: value, [metadataField]: encodeBindings(links, runs2) };
 }
-var record3, scalar, sameScalar, safeField, RUN_LINKS_KEY, DESIGN_LINKS_FIELD, STATUSES, HEX62, VAR_RE, RUN_RE, seg, NEEDS_VAR;
+var record3, scalar, sameScalar, safeField, RUN_LINKS_KEY, DESIGN_LINKS_FIELD, STATUSES, HEX62, BORDER_STYLE_ADAPTERS, VAR_RE, RUN_RE, seg, NEEDS_VAR;
 var init_token_block_bindings = __esm({
   "engine/src/token-block-bindings.ts"() {
     "use strict";
@@ -10113,6 +10134,7 @@ var init_token_block_bindings = __esm({
     DESIGN_LINKS_FIELD = "tokenLinks";
     STATUSES = ["linked", "unresolved", "incompatible"];
     HEX62 = /^[0-9a-f]{6}$/;
+    BORDER_STYLE_ADAPTERS = ["border.style", "border.dashArray", "border.dashLength", "border.gapLength"];
     VAR_RE = /^\s*var\(\s*--brand-token-([0-9a-f]+)\s*(?:,\s*([\s\S]*?))?\s*\)\s*$/i;
     RUN_RE = /\{([^|{}]+)\|/g;
     seg = (key) => String(key).replace(/~/g, "~0").replace(/\//g, "~1");
