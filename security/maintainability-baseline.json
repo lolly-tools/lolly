@@ -71,7 +71,7 @@
     },
     "shells/web/src/views/design-inspector.ts": {
       "lines": 1567,
-      "largestFunctionLines": 2076,
+      "largestFunctionLines": 2063,
       "importFanIn": 1,
       "importFanOut": 20,
       "typeEscapes": 0

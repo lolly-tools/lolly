@@ -495,6 +495,12 @@ const PENPOT_LAYOUT_DIR = 'packages/node-shell/wasm/layout-kernel';
 const PENPOT_LAYOUT_UPSTREAM = JSON.parse(
   readFileSync(join(ROOT, PENPOT_LAYOUT_DIR, 'upstream.json'), 'utf8')
 ) as { repository: string; revision: string };
+const PENPOT_LAYOUT_UI_DIR = 'shells/web/src/views/design-layout-section.penpot';
+const PENPOT_LAYOUT_UI_UPSTREAM: {
+  repository: string;
+  revision: string;
+  files: { destinations: string[] }[];
+} = JSON.parse(readFileSync(join(ROOT, PENPOT_LAYOUT_UI_DIR, 'upstream.json'), 'utf8'));
 
 const MANIFEST: {
   vendored: Entry[];
@@ -554,6 +560,16 @@ const MANIFEST: {
       files: `${PENPOT_LAYOUT_DIR}/layout-kernel.wasm`,
       text: readFileSync(join(ROOT, PENPOT_LAYOUT_DIR, 'LICENSE'), 'utf8').trim(),
       note: `Flex and grid routines extracted from the newer Penpot Rust renderer: ${PENPOT_LAYOUT_UPSTREAM.repository}/tree/${PENPOT_LAYOUT_UPSTREAM.revision}/render-wasm/. Modified Source Code Form, build instructions, Cargo.lock, license and provenance are available at https://github.com/lolly-tools/lolly/tree/main/${PENPOT_LAYOUT_DIR}/ and included in the @lolly-tools/node-shell package. Adaptations include a scalar Skia shim, bounded progress/refusal guards and a JSON ABI; see README.md and upstream.json.`,
+      where: 'web',
+    },
+    {
+      name: 'Penpot layout sidebar (adapted source and icons)',
+      version: PENPOT_LAYOUT_UI_UPSTREAM.revision,
+      spdx: 'MPL-2.0',
+      copyright: 'Copyright (c) KALEIDOS SUBSIDIARY SL',
+      files: [...new Set(PENPOT_LAYOUT_UI_UPSTREAM.files.flatMap(file => file.destinations))].sort(byCodepoint).join(', '),
+      text: readFileSync(join(ROOT, PENPOT_LAYOUT_UI_DIR, 'LICENSE'), 'utf8').trim(),
+      note: `Modern Penpot flex and grid sidebar controls, styles and icons adapted from ${PENPOT_LAYOUT_UI_UPSTREAM.repository}/tree/${PENPOT_LAYOUT_UI_UPSTREAM.revision}/frontend/. Occupied-cell track editing adapts helpers from ${PENPOT_LAYOUT_UI_UPSTREAM.repository}/blob/${PENPOT_LAYOUT_UI_UPSTREAM.revision}/common/src/app/common/types/shape/layout.cljc. Modified Source Code Form is available at https://github.com/lolly-tools/lolly/tree/main/shells/web/src/views/ and https://github.com/lolly-tools/lolly/tree/main/shells/web/src/styles/parts/. Exact source snapshots, hashes, adaptation details and the full MPL license are available at https://github.com/lolly-tools/lolly/tree/main/${PENPOT_LAYOUT_UI_DIR}/; see PROVENANCE.md and upstream.json.`,
       where: 'web',
     },
     {

@@ -1,0 +1,309 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * Copyright (c) KALEIDOS SUBSIDIARY SL
+ * Adapted from Penpot's layout_container, layout_item and grid_cell styles.
+ */
+.dl-section {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 12px 4px;
+  min-width: 0;
+}
+.dl-section > * {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+.dl-section svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+}
+.dl-section .dl-rotated {
+  transform: rotate(90deg);
+}
+.dl-section .dl-segments {
+  display: flex;
+  gap: 4px;
+  min-width: 0;
+}
+.dl-section .dl-button {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  min-width: 0;
+  flex: 1 1 32px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 0;
+  background: var(--ui-color-surface-muted);
+  color: var(--ui-color-text-muted);
+  cursor: pointer;
+}
+.dl-section .dl-button:hover {
+  background: var(--ui-color-selection-surface);
+  color: var(--ui-color-text-default);
+}
+.dl-section .dl-button[aria-pressed="true"] {
+  background: var(--ui-color-selection-surface);
+  color: var(--ui-color-action-primary);
+}
+.dl-section .dl-button[aria-pressed="mixed"] {
+  border-style: dashed;
+  border-color: var(--ui-color-border-default);
+}
+.dl-section .dl-button:disabled,
+.dl-section input:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.dl-section button:focus-visible,
+.dl-section input:focus-visible,
+.dl-section select:focus-visible,
+.dl-section summary:focus-visible {
+  outline: 2px solid var(--ui-color-focus-ring);
+  outline-offset: 2px;
+}
+.dl-section .dl-text-button {
+  padding-inline: 8px;
+  font: inherit;
+}
+.dl-section .dl-first-row {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 4fr) minmax(24px, 1fr);
+  gap: 4px;
+}
+.dl-section .dl-grid-first-row {
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr) minmax(0, 3fr);
+}
+.dl-section .dl-distribution {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 4px;
+}
+.dl-section .dl-distribution .dl-segments {
+  grid-column: span 6;
+}
+.dl-section .dl-pair,
+.dl-section .dl-sides {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+}
+.dl-section .dl-number {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  height: 32px;
+  padding-inline-start: 8px;
+  border-radius: 6px;
+  background: var(--ui-color-surface-muted);
+  color: var(--ui-color-text-muted);
+}
+.dl-section input,
+.dl-section select {
+  font: inherit;
+  color: var(--ui-color-text-default);
+}
+.dl-section .dl-number input {
+  appearance: textfield;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 0 6px 6px 0;
+  background: transparent;
+}
+.dl-section input::-webkit-inner-spin-button,
+.dl-section input::-webkit-outer-spin-button {
+  appearance: none;
+  margin: 0;
+}
+.dl-section .dl-spacing {
+  display: grid;
+  gap: 4px;
+}
+.dl-section .dl-spacing-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 4px;
+  min-height: 24px;
+  color: var(--ui-color-text-muted);
+}
+.dl-section .dl-spacing-heading .dl-button {
+  flex: 0 0 32px;
+}
+.dl-section .dl-labeled-row {
+  display: grid;
+  grid-template-columns: 1fr 3fr;
+  align-items: center;
+  gap: 4px;
+  color: var(--ui-color-text-muted);
+}
+.dl-section .dl-sizing {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+.dl-section .dl-sizing .dl-labeled-row {
+  grid-template-columns: 1fr;
+  gap: 4px;
+}
+.dl-section .dl-edit-grid {
+  appearance: none;
+  min-height: 32px;
+  border-radius: 6px;
+  border: 1px solid var(--ui-color-border-default);
+  color: var(--ui-color-text-default);
+  background: var(--ui-color-surface-muted);
+  font: inherit;
+  cursor: pointer;
+}
+.dl-section .dl-grid-editor {
+  display: grid;
+  gap: 12px;
+}
+.dl-section .dl-track-section {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 32px;
+  align-items: start;
+  gap: 4px;
+}
+.dl-section details {
+  min-width: 0;
+}
+.dl-section summary {
+  cursor: pointer;
+  min-height: 32px;
+  align-content: center;
+  color: var(--ui-color-text-muted);
+}
+.dl-section .dl-track-section > details > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-inline: 4px;
+}
+.dl-section .dl-track-section > details > summary::before {
+  content: "›";
+  flex-shrink: 0;
+}
+.dl-section .dl-track-section > details[open] > summary::before {
+  transform: rotate(90deg);
+}
+.dl-section .dl-track-summary {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  text-align: end;
+}
+.dl-section .dl-track-list {
+  display: grid;
+  gap: 4px;
+}
+.dl-section .dl-track {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 32px 24px;
+  gap: 4px;
+}
+.dl-section .dl-track-input {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 32px;
+  min-width: 0;
+  padding-inline-start: 8px;
+  border-radius: 6px;
+  background: var(--ui-color-surface-muted);
+  color: var(--ui-color-text-muted);
+}
+.dl-section .dl-track-input input {
+  min-width: 0;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: 0 4px;
+  height: 32px;
+}
+.dl-section .dl-track-input select {
+  width: 64px;
+  flex-shrink: 0;
+  border: 0;
+  border-radius: 0 6px 6px 0;
+  background: var(--ui-color-surface-muted);
+  height: 32px;
+  padding: 0 4px;
+}
+.dl-section .dl-track-more {
+  position: relative;
+}
+.dl-section .dl-track-more summary {
+  display: flex;
+  list-style: none;
+  width: 24px;
+}
+.dl-section .dl-track-more summary::-webkit-details-marker {
+  display: none;
+}
+.dl-section .dl-track-popover {
+  position: absolute;
+  z-index: 3;
+  top: 36px;
+  right: 0;
+  width: 236px;
+  padding: 8px;
+  border: 1px solid var(--ui-color-border-default);
+  border-radius: 6px;
+  background: var(--ui-color-surface-overlay);
+  box-shadow: var(--ui-elevation-floating);
+}
+.dl-section .dl-track-order {
+  display: flex;
+  gap: 4px;
+  margin-block: 4px;
+}
+.dl-section .dl-track-expression {
+  display: grid;
+  gap: 4px;
+}
+.dl-section .dl-track-expression input,
+.dl-section .dl-area input {
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--ui-color-border-default);
+  border-radius: 6px;
+  background: var(--ui-color-surface-muted);
+}
+.dl-section .dl-advanced {
+  padding-block-start: 4px;
+  border-top: 1px solid var(--ui-color-border-default);
+}
+.dl-section .dl-grid-placement {
+  display: grid;
+  gap: 8px;
+}
+.dl-section .dl-small-label {
+  display: block;
+  color: var(--ui-color-text-muted);
+  margin-block: 8px 4px;
+}
+.dl-section .dl-area {
+  display: grid;
+  gap: 4px;
+}
+.dl-section [hidden] {
+  display: none;
+}

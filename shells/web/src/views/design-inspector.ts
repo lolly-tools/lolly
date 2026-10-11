@@ -3,7 +3,8 @@ import { webInteractRows, wireWebInteract, commitWebInteractColour } from './des
 import { mountTextInspector } from '../lib/text-inspector.ts';
 import { wireWebPlayback } from './design-web-playback.ts';
 // SPDX-License-Identifier: MPL-2.0
-import { layoutInspectorControls, layoutInspectorSignature, layoutSectionRows, wireLayoutTracks, LAYOUT_FIELDS } from './design-layout-section.ts';
+import '../styles/parts/design-layout-section.css';
+import { layoutInspectorControls, layoutInspectorSignature, layoutSectionRows, wireLayoutControls, layoutFocusKey, LAYOUT_FIELDS } from './design-layout-section.ts';
 /**
  * The Design editor's INSPECTOR column - plan 179 M3, slice (c).
  *
@@ -578,8 +579,26 @@ function sceneSummary(query: string): { subject: string; studio: string } {
 const q = (s: unknown): string =>
   (typeof CSS !== 'undefined' && typeof CSS.escape === 'function') ? CSS.escape(String(s)) : String(s).replace(/["\\]/g, '\\$&');
 
+function inspectorFocusKey(scroll: HTMLElement, node: Element | null, q: (value: unknown) => string): string | null {
+    if (!node || !scroll.contains(node)) return null;
+    const layoutKey = layoutFocusKey(node as HTMLElement);
+    if (layoutKey) return layoutKey;
+    const d = (node as HTMLElement).dataset;
+    const tokenSection = node.closest<HTMLElement>('[data-token-section]');
+    if (tokenSection) return `[data-token-section="${q(tokenSection.dataset.tokenSection)}"] ${node.hasAttribute('data-design-token-property') ? '[data-design-token-property]' : 'summary'}`;
+    const seg = node.closest<HTMLElement>('.fc-seg');
+    if (seg && d?.v != null) return `.fc-seg[data-seg="${q(seg.dataset.seg)}"] .fc-seg-btn[data-v="${q(d.v)}"]`;
+    for (const attr of ['fld', 'doc', 'nf', 'dm', 'mp', 'arr', 'act', 'head', 'webInteract', 'webStop'] as const) {
+      if (d?.[attr] != null) return `[data-${attr.replace(/[A-Z]/g, c => `-${c.toLowerCase()}`)}="${q(d[attr])}"]`;
+    }
+    const cf = node.closest<HTMLElement>('[data-color-field]');
+    if (cf) return `[data-color-field="${q(cf.dataset.colorField)}"] .color-trigger`;
+    return null;
+  }
+
+
 function wireInspectorSelects(root: HTMLElement, model: ModelPort, ids: string[], write: (field: string | undefined, value: unknown) => void): void {
-  wireLayoutTracks(root, model, ids);
+  wireLayoutControls(root, model, ids);
   root.querySelectorAll<HTMLSelectElement>('select[data-fld]').forEach((select) => {
     select.addEventListener('change', () => write(select.dataset.fld, select.dataset.kind === 'num' ? Number(select.value) : select.value));
   });
@@ -1875,20 +1894,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
    * when a rebuild runs (a text field defers its own rebuild, so it never reaches
    * here and no caret offset has to be carried).
    */
-  function focusKey(node: Element | null): string | null {
-    if (!node || !scroll.contains(node)) return null;
-    const d = (node as HTMLElement).dataset;
-    const tokenSection = node.closest<HTMLElement>('[data-token-section]');
-    if (tokenSection) return `[data-token-section="${q(tokenSection.dataset.tokenSection)}"] ${node.hasAttribute('data-design-token-property') ? '[data-design-token-property]' : 'summary'}`;
-    const seg = node.closest<HTMLElement>('.fc-seg');
-    if (seg && d?.v != null) return `.fc-seg[data-seg="${q(seg.dataset.seg)}"] .fc-seg-btn[data-v="${q(d.v)}"]`;
-    for (const attr of ['fld', 'doc', 'nf', 'dm', 'mp', 'arr', 'act', 'head', 'webInteract', 'webStop'] as const) {
-      if (d?.[attr] != null) return `[data-${attr.replace(/[A-Z]/g, c => `-${c.toLowerCase()}`)}="${q(d[attr])}"]`;
-    }
-    const cf = node.closest<HTMLElement>('[data-color-field]');
-    if (cf) return `[data-color-field="${q(cf.dataset.colorField)}"] .color-trigger`;
-    return null;
-  }
+  const focusKey = (node: Element | null): string | null => inspectorFocusKey(scroll, node, q);
 
   let textMounted: ReturnType<typeof mountTextInspector> | null = null;
   let webInteractDispose: (() => void) | null = null;

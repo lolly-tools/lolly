@@ -1,0 +1,687 @@
+{
+  "repository": "https://github.com/penpot/penpot",
+  "revision": "10955f17e27943429a10e90360d0404e3f56e27c",
+  "license": "MPL-2.0",
+  "licenseSha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+  "copyright": "Copyright (c) KALEIDOS SUBSIDIARY SL",
+  "files": [
+    {
+      "source": "frontend/src/app/main/ui/workspace/sidebar/options/menus/layout_container.cljs",
+      "upstreamSha256": "b5217de3598a07c4af49a9835e6e7a99e2d1e3e8fc015293331c888c0ff81a1e",
+      "snapshot": "upstream/frontend/src/app/main/ui/workspace/sidebar/options/menus/layout_container.cljs",
+      "destinations": [
+        "shells/web/src/views/design-layout-section.ts",
+        "shells/web/src/views/design-layout-controls.ts",
+        "shells/web/src/views/design-layout-tracks.ts"
+      ],
+      "adaptations": "Modern flex and grid control groups, gap and padding modes, and grid track editing translated from ClojureScript/Rumext into TypeScript inspector controls and existing ModelPort edits."
+    },
+    {
+      "source": "frontend/src/app/main/ui/workspace/sidebar/options/menus/layout_container.scss",
+      "upstreamSha256": "d24c02a053872b18f10ef6ef03b88401945859548da4193c56416af56ada8476",
+      "snapshot": "upstream/frontend/src/app/main/ui/workspace/sidebar/options/menus/layout_container.scss",
+      "destinations": [
+        "shells/web/src/styles/parts/design-layout-section.css"
+      ],
+      "adaptations": "Container control grids, paired inputs and spacing adapted to scoped CSS and the web shell theme variables."
+    },
+    {
+      "source": "frontend/src/app/main/ui/workspace/sidebar/options/menus/layout_item.cljs",
+      "upstreamSha256": "90cfbaf6268c353c1d55d9e4757d12ffbc469bd2849976f127ac09c8c505f4df",
+      "snapshot": "upstream/frontend/src/app/main/ui/workspace/sidebar/options/menus/layout_item.cljs",
+      "destinations": [
+        "shells/web/src/views/design-layout-section.ts",
+        "shells/web/src/views/design-layout-controls.ts"
+      ],
+      "adaptations": "Item sizing, alignment, margins and absolute positioning controls translated into the TypeScript inspector and compound ModelPort edits."
+    },
+    {
+      "source": "frontend/src/app/main/ui/workspace/sidebar/options/menus/layout_item.scss",
+      "upstreamSha256": "03ffdd7d790e148cf678821b91ae82b53058d7a70a7e1a9a305963fba8288011",
+      "snapshot": "upstream/frontend/src/app/main/ui/workspace/sidebar/options/menus/layout_item.scss",
+      "destinations": [
+        "shells/web/src/styles/parts/design-layout-section.css"
+      ],
+      "adaptations": "Item control grids, paired margin inputs and spacing adapted to scoped CSS and the web shell theme variables."
+    },
+    {
+      "source": "frontend/src/app/main/ui/workspace/sidebar/options/menus/grid_cell.cljs",
+      "upstreamSha256": "8e5456c0ab3741ca2a5512b9af8af5a898b51078076f19d5187e500dada8f21b",
+      "snapshot": "upstream/frontend/src/app/main/ui/workspace/sidebar/options/menus/grid_cell.cljs",
+      "destinations": [
+        "shells/web/src/views/design-layout-section.ts"
+      ],
+      "adaptations": "Grid cell placement and span controls translated into TypeScript controls over the supported Design layout fields."
+    },
+    {
+      "source": "frontend/src/app/main/ui/workspace/sidebar/options/menus/grid_cell.scss",
+      "upstreamSha256": "8f45a3489a2577d532b06a7a1b695a8c032b064f5857cd27aba479cb2a0f458e",
+      "snapshot": "upstream/frontend/src/app/main/ui/workspace/sidebar/options/menus/grid_cell.scss",
+      "destinations": [
+        "shells/web/src/styles/parts/design-layout-section.css"
+      ],
+      "adaptations": "Grid cell segmented control arrangements adapted to scoped CSS and the web shell theme variables."
+    },
+    {
+      "source": "frontend/resources/images/icons/add.svg",
+      "upstreamSha256": "eeaf6dae0d893971ee0a50c8e5905185ef2a5d05a2760b578a6460a425497508",
+      "snapshot": "upstream/frontend/resources/images/icons/add.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/align-content-column-around.svg",
+      "upstreamSha256": "62d1d2e861de150919bdc3272bbd9c30a2ffd4c488941dcc3eaa0a2ef5106da0",
+      "snapshot": "upstream/frontend/resources/images/icons/align-content-column-around.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/align-content-column-between.svg",
+      "upstreamSha256": "1b34d3e06376be903a9b7c395bcfd981f3279ba99750fbd77513c8a012e6982d",
+      "snapshot": "upstream/frontend/resources/images/icons/align-content-column-between.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/align-content-column-center.svg",
+      "upstreamSha256": "9d24d54c2fb3c4104a63e42db117e07299b25be76792fcf661e03362eab649ca",
+      "snapshot": "upstream/frontend/resources/images/icons/align-content-column-center.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/align-content-column-end.svg",
+      "upstreamSha256": "f6e572f398bc87c6b35aafffc35d50e2c657bedf264c7c9b0f09da08b96946de",
+      "snapshot": "upstream/frontend/resources/images/icons/align-content-column-end.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/align-content-column-evenly.svg",
+      "upstreamSha256": "04a4ee49f0f75730148826631e47224a54a9d5e7133e51c388d1bea9c6eea315",
+      "snapshot": "upstream/frontend/resources/images/icons/align-content-column-evenly.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/align-content-column-start.svg",
+      "upstreamSha256": "8a60258cc17edca7017374be32de9da49846d7773559ffadeb0b062dee40b92f",
+      "snapshot": "upstream/frontend/resources/images/icons/align-content-column-start.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/align-content-column-stretch.svg",
+      "upstreamSha256": "5eaf791c3022461993fc62dbc56db4d56eb4152b83369e14196b8261deb208d6",
+      "snapshot": "upstream/frontend/resources/images/icons/align-content-column-stretch.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/align-content-row-around.svg",
+      "upstreamSha256": "ff672f98f8c489e7914ea3c9bafd17d1023b61cc3ff0cd34d5154bbd3fec2a5a",
+      "snapshot": "upstream/frontend/resources/images/icons/align-content-row-around.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/align-content-row-between.svg",
+      "upstreamSha256": "3bfea6e6f950248869b3f2a80cce0eb6a866564910632126f0b44372a0929515",
+      "snapshot": "upstream/frontend/resources/images/icons/align-content-row-between.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/align-content-row-center.svg",
+      "upstreamSha256": "0c2e51e45e545bfcc2849c8c7988ba8a7c4d3f9e1b797b0a8b88fcf357eabf1a",
+      "snapshot": "upstream/frontend/resources/images/icons/align-content-row-center.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/align-content-row-end.svg",
+      "upstreamSha256": "e7452c25fdabe7bb007d1e52f6f8e3078c16a194d6cd42adce0bede02ecb61de",
+      "snapshot": "upstream/frontend/resources/images/icons/align-content-row-end.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/align-content-row-evenly.svg",
+      "upstreamSha256": "e994589bc0baa3a40bbb497e08c3a698743329474ca21155e1db722c6ac5b6b9",
+      "snapshot": "upstream/frontend/resources/images/icons/align-content-row-evenly.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/align-content-row-start.svg",
+      "upstreamSha256": "3adff02d201ced9ebe7da1f23ccaf6f21af557463b164944a922a5aa316f6a87",
+      "snapshot": "upstream/frontend/resources/images/icons/align-content-row-start.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/align-content-row-stretch.svg",
+      "upstreamSha256": "278844c9032228de9299ce8de2652da016538741e408468f3e69ae5c9e06c079",
+      "snapshot": "upstream/frontend/resources/images/icons/align-content-row-stretch.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/align-items-column-center.svg",
+      "upstreamSha256": "cb2585e5b852fbf1c98e7acf4a8c6330e49be28a3cb8182c7d98cdf2dab35149",
+      "snapshot": "upstream/frontend/resources/images/icons/align-items-column-center.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/align-items-column-end.svg",
+      "upstreamSha256": "6c41874ee2a8dbe2b88b0d893a2c33eb6f660b40a3726ac5027047edee395825",
+      "snapshot": "upstream/frontend/resources/images/icons/align-items-column-end.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/align-items-column-start.svg",
+      "upstreamSha256": "a77ba4660ec9d4854c110f795f736180dac83f6aad607e7fe290d3ce13c00b40",
+      "snapshot": "upstream/frontend/resources/images/icons/align-items-column-start.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/align-items-row-center.svg",
+      "upstreamSha256": "2c440e8c1debcf3c445560c1cf0aaa910ada9c2ac095f941df905f845f2ad304",
+      "snapshot": "upstream/frontend/resources/images/icons/align-items-row-center.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/align-items-row-end.svg",
+      "upstreamSha256": "3f1e2ae195f17ae7904d2a6242b13c531f0a417aee50371dfe3699d643bcfca6",
+      "snapshot": "upstream/frontend/resources/images/icons/align-items-row-end.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/align-items-row-start.svg",
+      "upstreamSha256": "1b25bd0954ad9bc80dcf1fa7fe76b0c3dfeffd051cc24fc71b283cbb472c5fe8",
+      "snapshot": "upstream/frontend/resources/images/icons/align-items-row-start.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/align-self-column-bottom.svg",
+      "upstreamSha256": "a87fbccab5e4b9845a71e412e2c5f4023ecfc47f3710e1deac3b745393413ee2",
+      "snapshot": "upstream/frontend/resources/images/icons/align-self-column-bottom.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/align-self-column-center.svg",
+      "upstreamSha256": "dbb2d729caf17bd74e6c5d630d03bf5f3d6b351bac1dacffc7c1c5a93da29d4a",
+      "snapshot": "upstream/frontend/resources/images/icons/align-self-column-center.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/align-self-column-stretch.svg",
+      "upstreamSha256": "9af1d4ea071e52250e90b10375f202f25a38ad2222040b252859f4ec11c5e9f4",
+      "snapshot": "upstream/frontend/resources/images/icons/align-self-column-stretch.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/align-self-column-top.svg",
+      "upstreamSha256": "327a6a3a92620b7b4ef75e5ab5f103b4383a6810dc6544c02c589bd986ae08bf",
+      "snapshot": "upstream/frontend/resources/images/icons/align-self-column-top.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/align-self-row-center.svg",
+      "upstreamSha256": "a3ab40f8af6b0ec96baa80a857e43153f75df839a483efeee61daca69d9362ae",
+      "snapshot": "upstream/frontend/resources/images/icons/align-self-row-center.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/align-self-row-left.svg",
+      "upstreamSha256": "4efbfa24450d0769c890fa0715300681ce073186680fba34cd5e3bd00094bfcf",
+      "snapshot": "upstream/frontend/resources/images/icons/align-self-row-left.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/align-self-row-right.svg",
+      "upstreamSha256": "87a570a1a78af7e57c20f95ab950e35f3008d4a271cf6b06eff6522055bda7d0",
+      "snapshot": "upstream/frontend/resources/images/icons/align-self-row-right.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/align-self-row-stretch.svg",
+      "upstreamSha256": "db504547a2c1c758db844d1d490f0931e62c28b60aae03e15407c7eadcc2513b",
+      "snapshot": "upstream/frontend/resources/images/icons/align-self-row-stretch.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/column-reverse.svg",
+      "upstreamSha256": "50e7c52ac53b94d6b667c4e17a2bfd3d0ed6b6336ea174968bcba60c5f40824c",
+      "snapshot": "upstream/frontend/resources/images/icons/column-reverse.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/column.svg",
+      "upstreamSha256": "5028b2b6b2985618efaaa3e0c499befa34c3a53c5953b4d9edb3b77ec0fee4dd",
+      "snapshot": "upstream/frontend/resources/images/icons/column.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/fill-content.svg",
+      "upstreamSha256": "b123b30592e0227858e82cebe789c820da71a93817c32c359d1b546b3cf80be4",
+      "snapshot": "upstream/frontend/resources/images/icons/fill-content.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/fixed-width.svg",
+      "upstreamSha256": "0e1f02f7d23ff0d20f278052efdf32f9b1264e96328c0c7ed38d7a318f827fa5",
+      "snapshot": "upstream/frontend/resources/images/icons/fixed-width.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/flex-horizontal.svg",
+      "upstreamSha256": "372815a5bbb8eae67188363024d8c7abd227b4232376de0ead441da6465a91d7",
+      "snapshot": "upstream/frontend/resources/images/icons/flex-horizontal.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/flex-vertical.svg",
+      "upstreamSha256": "62ff7c6d37b14fd8c5699686981ce1697074e125a3dacf714e40bea7fa8da6aa",
+      "snapshot": "upstream/frontend/resources/images/icons/flex-vertical.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/gap-horizontal.svg",
+      "upstreamSha256": "195270eeb33c9752581b4974b232fd3283b4688b247ed0972ee702bab628da03",
+      "snapshot": "upstream/frontend/resources/images/icons/gap-horizontal.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/gap-vertical.svg",
+      "upstreamSha256": "690a7e02e5f917defa072555b209fde21a0e2c1238d09849a090173b217d9ad6",
+      "snapshot": "upstream/frontend/resources/images/icons/gap-vertical.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/grid-row.svg",
+      "upstreamSha256": "9cde329de12f1afc2e613b2790f260647c5e85e33c6ab75cbc082aa6b04a6c19",
+      "snapshot": "upstream/frontend/resources/images/icons/grid-row.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/hug-content.svg",
+      "upstreamSha256": "d80e88be3a2238e94d94573a7ca368439d3a47ead59e6d31b7cd0c8d5092aede",
+      "snapshot": "upstream/frontend/resources/images/icons/hug-content.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/justify-content-column-around.svg",
+      "upstreamSha256": "db7ee3227af4579f983dcffe24a1df4b2747da289b1414f0bfdc2b7bdbc16531",
+      "snapshot": "upstream/frontend/resources/images/icons/justify-content-column-around.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/justify-content-column-between.svg",
+      "upstreamSha256": "7e50747575edbadeb60c26426effc427733ee42653d0e5e43a1bf6951545f8b1",
+      "snapshot": "upstream/frontend/resources/images/icons/justify-content-column-between.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/justify-content-column-center.svg",
+      "upstreamSha256": "c19a9835da833e5e254d3b52a3479af5d11fcffac2c2367e66dce9dbf6f0281e",
+      "snapshot": "upstream/frontend/resources/images/icons/justify-content-column-center.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/justify-content-column-end.svg",
+      "upstreamSha256": "c2ff02691655457c583a2e71a33112596dea63318fcb9258a3f7a1e174128bbd",
+      "snapshot": "upstream/frontend/resources/images/icons/justify-content-column-end.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/justify-content-column-evenly.svg",
+      "upstreamSha256": "59aae429c535cd1056083001a64cf0a91209b3811176830c13053bd8a5f29a47",
+      "snapshot": "upstream/frontend/resources/images/icons/justify-content-column-evenly.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/justify-content-column-start.svg",
+      "upstreamSha256": "c8ad42b0f745b658add77d519c6bef8a2e374292467d73dc43ce46e9b628c2bb",
+      "snapshot": "upstream/frontend/resources/images/icons/justify-content-column-start.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/justify-content-row-around.svg",
+      "upstreamSha256": "dcf1003cddae8cbe88c36e99de1e3c8f68ce238ecf3e274d8a5b785ccddde343",
+      "snapshot": "upstream/frontend/resources/images/icons/justify-content-row-around.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/justify-content-row-between.svg",
+      "upstreamSha256": "34a7e95491d97beb560ce886b6ad9c4a8702e702581e2a9e82bf4439b1e83810",
+      "snapshot": "upstream/frontend/resources/images/icons/justify-content-row-between.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/justify-content-row-center.svg",
+      "upstreamSha256": "ea5af9f174f2a74b0a9a77f66985d7cac0027131e12cae8e86843bde93c1bb8e",
+      "snapshot": "upstream/frontend/resources/images/icons/justify-content-row-center.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/justify-content-row-end.svg",
+      "upstreamSha256": "797fcbb4a4e311ea87f692093d2e6495bec30f53463f8befd691338aaa56c8d6",
+      "snapshot": "upstream/frontend/resources/images/icons/justify-content-row-end.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/justify-content-row-evenly.svg",
+      "upstreamSha256": "077a4a0c33bb930e52c55065ad3f795acfc1349beaf4ef33e42c097e8c8fdece",
+      "snapshot": "upstream/frontend/resources/images/icons/justify-content-row-evenly.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/justify-content-row-start.svg",
+      "upstreamSha256": "5d2e24fbd52df078d5461693424a39c678d2e54b5e77ca6b9946c185834487eb",
+      "snapshot": "upstream/frontend/resources/images/icons/justify-content-row-start.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/margin-bottom.svg",
+      "upstreamSha256": "5bfd55e4ea580839e0cff80bb93f4404aa6831ee6877a4306b22b3477b2d53ee",
+      "snapshot": "upstream/frontend/resources/images/icons/margin-bottom.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/margin-left-right.svg",
+      "upstreamSha256": "a8dd3e75a9999c86871466abc59c4a67c2145de4ebf43dd5bc2785c064e14821",
+      "snapshot": "upstream/frontend/resources/images/icons/margin-left-right.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/margin-left.svg",
+      "upstreamSha256": "45dc72da97f8049013ac8d6c4b3983c9d9098cd3c5f791d10c511fe36fd6410b",
+      "snapshot": "upstream/frontend/resources/images/icons/margin-left.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/margin-right.svg",
+      "upstreamSha256": "6f96a279c23791bbe24c0f9d5b2d2ce6b043252fc7e1722a582e2b1888d01efc",
+      "snapshot": "upstream/frontend/resources/images/icons/margin-right.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/margin-top-bottom.svg",
+      "upstreamSha256": "7256cf1f6e5a7c4d3b0b16b88ae9ce13b4a215cfcc34bdf2eebcd587eed74d92",
+      "snapshot": "upstream/frontend/resources/images/icons/margin-top-bottom.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/margin-top.svg",
+      "upstreamSha256": "20543970d74f0a80c292684dd392dbe0c6eaf23ef5ec70beb10efe8f9ada7c44",
+      "snapshot": "upstream/frontend/resources/images/icons/margin-top.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/padding-bottom.svg",
+      "upstreamSha256": "abca08b03b2dad2e29397ae0b750b3e49e3a0926a6fd8aba60daba96425170a2",
+      "snapshot": "upstream/frontend/resources/images/icons/padding-bottom.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/padding-extended.svg",
+      "upstreamSha256": "93c15b683a86495c8b5d69552bb478215acb36e6be1e8190fb80ae7281298b73",
+      "snapshot": "upstream/frontend/resources/images/icons/padding-extended.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/padding-left-right.svg",
+      "upstreamSha256": "aebf7f8f909452f1cb8c1d826765db186948adc88f34d4bc511ef1b228654999",
+      "snapshot": "upstream/frontend/resources/images/icons/padding-left-right.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/padding-left.svg",
+      "upstreamSha256": "7510a441377e18f1f47b353da16d0bb983cbaaf74845e30336d3c71edf653363",
+      "snapshot": "upstream/frontend/resources/images/icons/padding-left.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/padding-right.svg",
+      "upstreamSha256": "2ed9c8571b3afb22aa460be87b2756ff59b519278e7dbae24d5dd3f44818f242",
+      "snapshot": "upstream/frontend/resources/images/icons/padding-right.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/padding-top-bottom.svg",
+      "upstreamSha256": "7d61dc677b0046b2ef352b999f89a44b1424987aff540cca33d046136ff24491",
+      "snapshot": "upstream/frontend/resources/images/icons/padding-top-bottom.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/padding-top.svg",
+      "upstreamSha256": "85d2776f0855c767812b4b92a867bfe27ce00c5f8c48b6c6a62ea6406da1311a",
+      "snapshot": "upstream/frontend/resources/images/icons/padding-top.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/remove.svg",
+      "upstreamSha256": "f1ce34135396523378d77fcabc84a3c8159b81c719a7e22e50c0b3bfb4cce80c",
+      "snapshot": "upstream/frontend/resources/images/icons/remove.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/row-reverse.svg",
+      "upstreamSha256": "1ba1e7de7b3a5d40f0919a5900f2df285336d008806ff0432fe6b05c6f7e25de",
+      "snapshot": "upstream/frontend/resources/images/icons/row-reverse.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/wrap.svg",
+      "upstreamSha256": "490bc5c1a4dd227ab21f54d45fe2b8dafa90103e0debeae8a042486a6f122372",
+      "snapshot": "upstream/frontend/resources/images/icons/wrap.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "frontend/resources/images/icons/menu.svg",
+      "upstreamSha256": "ef50cc2ba5775e43b2f0dde8e0f1994a523d9e6ff83f68f7788b175a0872d822",
+      "snapshot": "upstream/frontend/resources/images/icons/menu.svg",
+      "destinations": [
+        "shells/web/src/views/design-layout-icons.ts"
+      ],
+      "adaptations": "SVG bytes embedded unchanged in the icon map. The render helper adds accessibility attributes and an optional rotation class."
+    },
+    {
+      "source": "common/src/app/common/types/shape/layout.cljc",
+      "upstreamSha256": "fce118d75018645100caf34128a80d351e2d88c3e4d680de99c0f6749a2e00a9",
+      "snapshot": "upstream/common/src/app/common/types/shape/layout.cljc",
+      "destinations": [
+        "shells/web/src/views/design-layout-track-placement.ts"
+      ],
+      "adaptations": "Occupied explicit-cell behavior adapted from add-grid-track, make-remove-cell, make-decrease-track-num, remove-grid-row, remove-grid-column, remove-cell-areas, remove-cell-areas-after, swap-track-content and reorder-grid-track. Automatic children retain Design automatic placement intent; the adapter represents occupied explicit cells."
+    }
+  ]
+}

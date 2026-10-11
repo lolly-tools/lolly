@@ -42,6 +42,40 @@ async function undo(page: Page): Promise<void> {
   await page.locator('#tool-canvas').focus();
   await page.keyboard.press('ControlOrMeta+z');
 }
+async function editTracks(
+  page: Page,
+  axis: 'column' | 'row',
+  definitions: Array<{ value: number; unit: 'px' | 'fr' }>
+): Promise<void> {
+  const editor = page.locator('[data-layout-grid-editor]');
+  if (!(await editor.isVisible())) await page.locator('[data-layout-edit-grid]').click();
+  const section = page.locator(`details[data-layout-track-section="${axis}"]`);
+  if (!(await section.evaluate((element) => (element as HTMLDetailsElement).open)))
+    await section.locator('summary').click();
+  for (let count = (await source(page)).tracks.filter((track) => track.axis === axis).length;
+    count < definitions.length; count++) {
+    await page.locator(`[data-layout-track-action="add"][data-layout-axis="${axis}"]`).click();
+    await page.waitForFunction(({ axis, count }) => {
+      const tracks = (document.getElementById('tool-canvas') as CanvasCommitEl).__lollyModel!()
+        .find((input) => input.id === 'layoutTracks')!.value as Array<Record<string, unknown>>;
+      return tracks.filter((track) => track.axis === axis).length === count + 1;
+    }, { axis, count });
+  }
+  const ids = (await source(page)).tracks.filter((track) => track.axis === axis).map((track) => track.id);
+  for (const [index, definition] of definitions.entries()) {
+    const selector = `[data-layout-axis="${axis}"][data-layout-track-id="${ids[index]}"]`;
+    await page.locator(`select[data-layout-track-unit]${selector}`).selectOption(definition.unit);
+    const input = page.locator(`input[data-layout-track-value]${selector}`);
+    await input.fill(String(definition.value));
+    await input.press('Tab');
+    await page.waitForFunction(({ id, expected }) => {
+      const tracks = (document.getElementById('tool-canvas') as CanvasCommitEl).__lollyModel!()
+        .find((input) => input.id === 'layoutTracks')!.value as Array<Record<string, unknown>>;
+      return tracks.find((track) => track.id === id)?.track === expected;
+    }, { id: ids[index], expected: `${definition.value}${definition.unit}` });
+  }
+  assert.deepEqual((await source(page)).tracks.filter((track) => track.axis === axis).map((track) => track.id), ids);
+}
 
 test('Design inspector, layout gestures and undo commit authored intent while the canvas reflows', {
   skip: origin ? false : 'Set LOLLY_IMPORT_TEST_URL or LOLLY_EXPORT_TEST_URL to a local Vite shell.',
@@ -108,7 +142,21 @@ test('Design inspector, layout gestures and undo commit authored intent while th
     const original = await source(page);
     assert.equal(await left('a'), 10);
     assert.equal(await left('b'), 102);
-    await page.locator('select[data-fld="layoutDirection"]').selectOption('column');
+    assert.equal(await page.locator('[data-layout-advanced]').evaluate((element) => (element as HTMLDetailsElement).open), false);
+    const padding = page.locator('input[data-layout-number="padding-vertical"]');
+    if (!(await padding.isVisible())) await page.locator('button[data-layout-ui="padding"]').click();
+    await padding.fill('16');
+    await padding.press('Tab');
+    await settled(page, 'root', 'layoutPadTop', 16);
+    await settled(page, 'root', 'layoutPadBottom', 16);
+    await undo(page);
+    await page.waitForFunction(() => {
+      const rows = (document.getElementById('tool-canvas') as CanvasCommitEl).__lollyModel!()
+        .find((input) => input.id === 'boxes')!.value as Array<Record<string, unknown>>;
+      const root = rows.find((row) => row.id === 'root')!;
+      return root.layoutPadTop === undefined && root.layoutPadBottom === undefined;
+    });
+    await page.locator('button[data-layout-field="layoutDirection"][data-layout-value="column"]').click();
     await settled(page, 'root', 'layoutDirection', 'column');
     await page.waitForFunction(
       () => parseFloat((document.querySelector('[data-box-id="b"]') as HTMLElement).style.top) > 0
@@ -167,11 +215,9 @@ test('Design inspector, layout gestures and undo commit authored intent while th
     await undo(page);
     await settled(page, 'b', 'layoutW', 'fill');
     await page.locator('[data-jump-artboard="root"]').first().click();
-    await page.locator('select[data-fld="layout"]').selectOption('grid');
+    await page.locator('button[data-layout-field="layout"][data-layout-value="grid"]').click();
     await settled(page, 'root', 'layout', 'grid');
-    const columns = page.locator('[data-layout-tracks="column"]');
-    await columns.fill('120px 1fr');
-    await columns.press('Tab');
+    await editTracks(page, 'column', [{ value: 120, unit: 'px' }, { value: 1, unit: 'fr' }]);
     await page.waitForFunction(
       () =>
         (document.getElementById('tool-canvas') as CanvasCommitEl).__lollyModel!().find(
@@ -185,9 +231,7 @@ test('Design inspector, layout gestures and undo commit authored intent while th
       ['120px', '1fr']
     );
     assert.equal(new Set(tracks.map((track) => track.id)).size, 2);
-    const rowInput = page.locator('[data-layout-tracks="row"]');
-    await rowInput.fill('80px 1fr');
-    await rowInput.press('Tab');
+    await editTracks(page, 'row', [{ value: 80, unit: 'px' }, { value: 1, unit: 'fr' }]);
     await page.waitForFunction(
       () => document.querySelectorAll('.fc-layout-overlay polygon').length === 4
     );
@@ -201,6 +245,15 @@ test('Design inspector, layout gestures and undo commit authored intent while th
     await settled(page, 'b', 'layoutRow', 2);
     await settled(page, 'b', 'layoutColumn', 2);
     assert.equal((await source(page)).boxes[2]!.y, original.boxes[2]!.y);
+    const placed = await source(page);
+    await page.locator('[data-jump-artboard="root"]').first().click();
+    const firstColumn = placed.tracks.find((track) => track.axis === 'column' && track.order === 0)!;
+    await page.locator(`button[data-layout-track-action="remove"][data-layout-track-id="${firstColumn.id}"]`).click();
+    await settled(page, 'b', 'layoutColumn', 1);
+    assert.equal((await source(page)).tracks.length, placed.tracks.length - 1);
+    await undo(page);
+    await settled(page, 'b', 'layoutColumn', 2);
+    assert.deepEqual((await source(page)).tracks, placed.tracks);
     await undo(page);
     await page.waitForFunction(
       () =>

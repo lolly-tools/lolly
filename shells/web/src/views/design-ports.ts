@@ -97,7 +97,7 @@ export interface ModelPort {
   cfg: BoxFieldConfig;
   frame: FramePort | null;
   getBoxes(): Box[];
-  commit(next: Box[]): void;
+  commit(next: Box[], patch?: Record<string, unknown>, label?: string): void;
   /** Write one field across the given ids in a single commit. */
   setField(ids: string[], field: string, value: unknown): void;
   /** Subscribe to model changes (the runtime's subscribe); returns the unsubscribe. */
