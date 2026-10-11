@@ -4,24 +4,32 @@ import type { TokenEntry } from './bridge/host-v1.ts';
 import { toSwatch } from './tokens.ts';
 import { swatchFace } from './color-face.ts';
 import { formatGradientSpec, MAX_GRADIENT_STOPS } from './gradient-spec.ts';
-export const TOKEN_ADAPTERS = ['typography', 'typography.fontFamily', 'typography.fontSize', 'typography.fontWeight', 'typography.letterSpacing', 'typography.lineHeight', 'shadow', 'shadow.color', 'shadow.offsetX', 'shadow.offsetY', 'shadow.blur', 'duration-ms', 'duration-s', 'cubic-bezier', 'gradient', 'ratio'] as const;
+export const TOKEN_ADAPTERS = ['typography', 'typography.fontFamily', 'typography.fontSize', 'typography.fontWeight', 'typography.letterSpacing', 'typography.lineHeight', 'shadow', 'shadow.color', 'shadow.offsetX', 'shadow.offsetY', 'shadow.blur', 'border', 'border.color', 'border.width', 'border.style', 'border.dashArray', 'border.dashLength', 'border.gapLength', 'duration-ms', 'duration-s', 'cubic-bezier', 'gradient', 'ratio'] as const;
 export type TokenAdapter = typeof TOKEN_ADAPTERS[number];
 export const isTokenAdapter = (value: unknown): value is TokenAdapter => typeof value === 'string' && (TOKEN_ADAPTERS as readonly string[]).includes(value);
 const record = (value: unknown): value is Record<string, unknown> => !!value && typeof value === 'object' && !Array.isArray(value);
 const fields: Record<string, Record<string, string>> = {
   typography: { fontFamily: 'fontFamily', fontSize: 'dimension', fontWeight: 'number', letterSpacing: 'dimension', lineHeight: 'number' },
   shadow: { color: 'color', offsetX: 'dimension', offsetY: 'dimension', blur: 'dimension' },
+  border: { color: 'color', width: 'dimension', style: 'string' },
 };
 /** No implicit unit context, layered shadow truncation or gradient stop truncation. */
 export function adaptTokenEntry(entry: TokenEntry, adapter: TokenAdapter): TokenEntry | string {
   const make = (type: string, value: unknown): TokenEntry => ({ ...entry, type, value });
-  if (adapter.startsWith('typography') || adapter.startsWith('shadow')) {
+  if (adapter.startsWith('typography') || adapter.startsWith('shadow') || adapter.startsWith('border')) {
     const [kind, field] = adapter.split('.');
     if (entry.type !== kind || !record(entry.value)) return 'This consumer needs a single resolved composite token.';
     const value = entry.value;
     if (kind === 'shadow') {
       const spread = value.spread;
       if (value.inset === true || spread !== undefined && spread !== '0px' && spread !== 0 && !(record(spread) && spread.value === 0 && spread.unit === 'px')) return 'This shadow consumer cannot represent spread, inset or multiple shadows.';
+    }
+    if (kind === 'border') {
+      if (!['solid', 'dashed', 'dotted'].includes(String(value.style)) || typeof value.style !== 'string') return 'This border consumer supports solid, dashed or dotted strokes only.';
+      // Clear more specific dash settings on the same portable link transaction.
+      if (field === 'dashArray') return make('string', '');
+      if (field === 'dashLength' || field === 'gapLength') return make('number', 0);
+      if (field === 'style') return make('string', value.style === 'solid' ? '' : value.style);
     }
     if (!field) return Object.keys(fields[kind!]!).every(key => value[key] !== undefined) ? make('string', JSON.stringify(value)) : 'The composite is missing a required property.';
     if (value[field] === undefined) return 'The composite property has no resolved value.';

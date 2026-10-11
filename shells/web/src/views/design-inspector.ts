@@ -314,6 +314,14 @@ export interface DesignInspectorHandle {
 /** `model.cfg` as the overlay actually resolves it - every optional field name present. */
 type Cfg = BoxFieldConfig & Record<string, string | undefined>;
 
+function strokeStyleRow(fields: readonly BlockFieldSpec[], cfg: Cfg, b: Box, rows: Box[], render: (label: string, field: string, choices: Array<[string, string]>, cur: unknown, mixed: boolean) => string): string {
+  const field = fields.find(field => field.id === cfg.strokeDashField);
+  if (!field || field.showFor?.length && rows.some(row => !field.showFor!.includes(String(row[cfg.kindField ?? 'kind'])))) return '';
+  const choices = (field.options ?? []).map(option => [String(option.value), t(String(option.label ?? option.value))] as [string, string]);
+  const value = b[field.id] ?? field.default ?? '';
+  return choices.length ? render(t('Stroke style'), field.id, choices, value, rows.some(row => String(row[field.id] ?? field.default ?? '') !== String(value))) : '';
+}
+
 /**
  * The three field names M4 added to the tool's `canvas` block. Both spellings the
  * overlay uses for the per-frame transition are accepted, so this column works whichever
@@ -389,9 +397,9 @@ interface FlagFields { trans?: string; hidden?: string; locked?: string }
 const WATCHED: Record<InspectorSection, (c: Cfg, m: FlagFields) => Array<string | undefined>> = {
   document: () => [],
   guide: () => [],
-  artboard: (c, m) => [c.labelField, c.wField, c.hField, c.fillField, c.gradField, c.strokeField, c.strokeWField, c.clipChildrenField, c.orderField, m.trans],
+  artboard: (c, m) => [c.labelField, c.wField, c.hField, c.fillField, c.gradField, c.strokeField, c.strokeWField, c.strokeDashField, c.strokeDashArrayField, 'strokeDashLen', 'strokeGapLen', c.clipChildrenField, c.orderField, m.trans],
   object: (c, m) => [c.xField, c.yField, c.wField, c.hField, c.rotationField, 'cls', m.hidden, m.locked],
-  fill: (c) => [c.fillField, c.gradField, c.strokeField, c.strokeWField],
+  fill: (c) => [c.fillField, c.gradField, c.strokeField, c.strokeWField, c.strokeDashField, c.strokeDashArrayField, 'strokeDashLen', 'strokeGapLen'],
   appearance: (c) => [c.opacityField, c.blendField, c.radiusField, c.shapeField],
   shadow: (c) => [c.shadowField, c.shadowColorField, c.shadowXField, c.shadowYField, c.shadowBlurField],
   tilt: (c) => [c.rxField, c.ryField],
@@ -1396,7 +1404,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
         : '')
       + (cfg.fillField && actions.useAsInput ? doorBtn(t('Use fill as input'), 'input-fill', 'sliders') : '')
       + (cfg.strokeField ? colorRow(t('Stroke'), 'fc-insp-stroke', fv(b, cfg.strokeField)) : '')
-      + (cfg.strokeWField ? ctrlRow(FIELD_GLYPH.strokeIc, t('Stroke width'), numCell('', cfg.strokeWField, sw, { name: t('Stroke width'), min: 0, max: 400, unit: 'px' })) : '')
+      + (cfg.strokeWField ? ctrlRow(FIELD_GLYPH.strokeIc, t('Stroke width'), numCell('', cfg.strokeWField, sw, { name: t('Stroke width'), min: 0, max: 400, unit: 'px' })) : '') + strokeStyleRow(fieldDefs as BlockFieldSpec[], cfg, b, [b], selectRow)
       + (clipF ? toggleRow(t('Clip children'), clipF, boolOf(b[clipF], true)) : '')
       + transitionRows(b)
       // Speaker notes moved to the Present section (plans/180), beside the button that
@@ -1458,7 +1466,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       + (cfg.strokeWField
         ? ctrlRow(FIELD_GLYPH.strokeIc, t('Stroke width'),
           numCell('', cfg.strokeWField, agree(rows, strokeW), { name: t('Stroke width'), min: 0, max: 400, unit: 'px' }))
-        : '');
+        : '') + strokeStyleRow(fieldDefs as BlockFieldSpec[], cfg, b, rows, selectRow);
   }
 
   const opacityOf = (b: Box): number => Math.round(clampN(fv(b, cfg.opacityField), 100, 0, 100));

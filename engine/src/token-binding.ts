@@ -22,9 +22,9 @@ export interface TokenBindingResult { status: 'linked' | 'unresolved' | 'incompa
 export function resolveTokenBinding(entry: TokenEntry | undefined, consumer: TokenConsumer): TokenBindingResult {
   if (!entry || isAlias(entry.value)) return { status: 'unresolved', reason: 'The token has no resolved value.' };
   const bad = (reason: string): TokenBindingResult => ({ status: 'incompatible', reason });
-  if (consumer.adapter === 'typography' || consumer.adapter === 'shadow') {
+  if (consumer.adapter === 'typography' || consumer.adapter === 'shadow' || consumer.adapter === 'border') {
     const kind = consumer.adapter;
-    const targets = kind === 'typography' ? [['fontFamily', 'text'], ['fontSize', 'number'], ['fontWeight', 'number'], ['letterSpacing', 'number'], ['lineHeight', 'number']] : [['color', 'color'], ['offsetX', 'number'], ['offsetY', 'number'], ['blur', 'number']];
+    const targets = kind === 'typography' ? [['fontFamily', 'text'], ['fontSize', 'number'], ['fontWeight', 'number'], ['letterSpacing', 'number'], ['lineHeight', 'number']] : kind === 'border' ? [['color', 'color'], ['width', 'number'], ['style', 'text']] : [['color', 'color'], ['offsetX', 'number'], ['offsetY', 'number'], ['blur', 'number']];
     for (const [key, type] of targets) {
       const result = resolveTokenBinding(entry, { type: type!, adapter: `${kind}.${key}` as TokenAdapter, colorTarget: consumer.colorTarget });
       if (result.status !== 'linked') return result;
@@ -48,7 +48,7 @@ export function resolveTokenBinding(entry: TokenEntry | undefined, consumer: Tok
       if (!dim) return bad('This field needs an absolute dimension. Relative units need an explicit reference context.');
       value = toCssPx(dim);
     } else return bad('This numeric field accepts number or absolute dimension tokens.');
-    if (!Number.isFinite(value) || (consumer.min !== undefined && value < consumer.min) || (consumer.max !== undefined && value > consumer.max)) return bad('The resolved value is outside this field range.');
+    if (!Number.isFinite(value) || consumer.adapter === 'border.width' && value < 0 || (consumer.min !== undefined && value < consumer.min) || (consumer.max !== undefined && value > consumer.max)) return bad('The resolved value is outside this field range.');
   } else if (['text', 'longtext', 'select'].includes(consumer.type)) {
     if (consumer.adapter === 'typography.fontWeight' && typeof entry.value === 'number' && Number.isFinite(entry.value)) entry = { ...entry, type: 'string', value: String(entry.value) };
     if (!['string', 'fontFamily'].includes(entry.type ?? '')) return bad('This field accepts string or font-family tokens.');

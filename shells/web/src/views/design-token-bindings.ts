@@ -46,7 +46,11 @@ export function mountDesignTokenBindings(root: HTMLElement, options: DesignToken
   const idOf = (row: Record<string, unknown>, index: number): string => String(row[model.cfg.idField] ?? index);
   const rows = () => model.getBoxes().filter((row, index) => ids.has(idOf(row, index)));
   const cfg = model.cfg as typeof model.cfg & Record<string, string | undefined>;
-  const properties = designTokenProperties(options.fields, options.fieldIds, cfg);
+  const properties = designTokenProperties(options.fields, options.fieldIds, cfg).filter(property => {
+    if (!property.adapter?.startsWith('border')) return true;
+    const paintTargets = property.targets.filter(target => !['border.dashArray', 'border.dashLength', 'border.gapLength'].includes(target.adapter ?? ''));
+    return paintTargets.every(target => !target.field.showFor?.length || rows().every(row => target.field.showFor!.includes(String(row[cfg.kindField ?? 'kind']))));
+  });
   const fields = properties.map(property => property.field);
   if (!fields.length || !host.tokens || !ids.size) return Object.assign(() => {}, { busy: () => false });
   const linked = rows().some(row => fields.some(field => readBlockTokenBindings(row[metadataField])[field.id]));
@@ -68,20 +72,23 @@ export function mountDesignTokenBindings(root: HTMLElement, options: DesignToken
     const field = fields.find(candidate => candidate.id === picker.value)!;
     const before = rows();
     const property = properties.find(candidate => candidate.field.id === field.id)!;
+    const borderStyle = property.adapter === 'border' || property.adapter === 'border.style';
     const links = before.map(row => {
       const all = readBlockTokenBindings(row[metadataField]);
       const group = property.targets.map(target => all[target.field.id]);
-      return group.every(link => link && link.ref === group[0]?.ref && link.custom === group[0]?.custom) ? group[0] : undefined;
+      return group.every(link => link && link.ref === group[0]?.ref && (borderStyle || link.custom === group[0]?.custom)) ? { ...group[0]!, ...(borderStyle && group.some(link => link?.custom) ? { custom: true } : {}) } : undefined;
     });
-    const active = links.find(link => link && !link.custom);
-    const stamp = JSON.stringify(before.map((row, index) => [String(row[model.cfg.idField] ?? index), row[field.id], row[metadataField]]));
-    const mixed = new Set(before.map((row, index) => JSON.stringify([row[field.id], links[index]]))).size > 1;
+    const active = borderStyle && links.some(link => link?.custom) ? undefined : links.find(link => link && !link.custom);
+    const snapshot = (selected: Box[]): string => JSON.stringify(selected.map((row, index) => [String(row[model.cfg.idField] ?? index), ...property.targets.map(target => row[target.field.id]), row[metadataField]]));
+    const stamp = snapshot(before);
+    const mixed = new Set(before.map((row, index) => JSON.stringify([property.targets.map(target => row[target.field.id]), links[index]]))).size > 1;
     const restores = links.filter(link => link?.custom).map(link => link!.ref);
+    const restoreRef = borderStyle && restores.length && links.every(link => link?.ref === restores[0]) ? restores[0] : restores.length === before.length && new Set(restores).size === 1 ? restores[0] : undefined;
     const value = active ? { ...active } : before[0]?.[field.id] ?? field.default ?? '';
     const input = { ...field, id: `layer-${field.id}`, type: field.type ?? 'text', value, isDirty: false, control: 'text-input' } as InputModelItem;
     disposeField = mountTokenBindingField(fieldRoot, input, host, async next => {
       const current = rows();
-      if (stamp !== JSON.stringify(current.map((row, index) => [String(row[model.cfg.idField] ?? index), row[field.id], row[metadataField]]))) throw new Error(t('These layer values changed. Select the property again before linking.'));
+      if (stamp !== snapshot(current)) throw new Error(t('These layer values changed. Select the property again before linking.'));
       const set = isTokenValue(next) ? await host.tokens?.get() : undefined;
       if (disposed || generation !== currentGeneration) return;
       const values = property.targets.map(target => {
@@ -92,7 +99,7 @@ export function mountDesignTokenBindings(root: HTMLElement, options: DesignToken
         if (resolved.status !== 'linked') throw new Error(resolved.reason);
         return { ...target, adapter, value: { ref: next.ref, value: resolved.value } };
       });
-      if (stamp !== JSON.stringify(rows().map((row, index) => [String(row[model.cfg.idField] ?? index), row[field.id], row[metadataField]]))) throw new Error(t('These layer values changed. Select the property again before linking.'));
+      if (stamp !== snapshot(rows())) throw new Error(t('These layer values changed. Select the property again before linking.'));
       const nextRows = model.getBoxes().map((row, index) => {
         if (!ids.has(idOf(row, index))) return row;
         let result = row;
@@ -101,7 +108,7 @@ export function mountDesignTokenBindings(root: HTMLElement, options: DesignToken
         return result;
       });
       return options.commit ? options.commit(nextRows, isTokenValue(next) ? t('Link token') : t('Make custom')) : model.commit(nextRows);
-    }, { onPendingChange: busy => { pending += busy ? 1 : -1; if (!busy) options.onSettled?.(); }, consumer: { ...field, type: field.type ?? 'text', adapter: property.adapter }, fallbackAdapter: property.targets.length === 1 ? links[0]?.adapter : undefined, mixed, restoreRef: restores.length === before.length && new Set(restores).size === 1 ? restores[0] : undefined, colorTarget });
+    }, { onPendingChange: busy => { pending += busy ? 1 : -1; if (!busy) options.onSettled?.(); }, consumer: { ...field, type: field.type ?? 'text', adapter: property.adapter }, fallbackAdapter: property.targets.length === 1 ? links[0]?.adapter : undefined, mixed, restoreRef, colorTarget });
   }
   picker.addEventListener('change', render); render();
   return Object.assign(() => { disposed = true; remember(); disposeField?.(); disclosure.removeEventListener('toggle', remember); picker.removeEventListener('change', render); root.replaceChildren(); }, { busy: () => pending > 0 });

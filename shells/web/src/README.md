@@ -9,7 +9,7 @@ Roughly 748,000 lines of TypeScript, tests included, and 60,000 lines of CSS.
 
 | Directory | Source | Tests | CSS |
 |---|---|---|---|
-| `views/` | 526 files, 202,507 lines | 253 files, 82,064 lines | 7 files, 1,440 lines |
+| `views/` | 526 files, 202,529 lines | 254 files, 82,165 lines | 7 files, 1,440 lines |
 | `lib/` | 784 files, 161,245 lines | 451 files, 87,246 lines | 13 files, 1,819 lines |
 | `bridge/` | 214 files, 52,726 lines | 128 files, 26,244 lines | none |
 | `components/` | 120 files, 27,467 lines | 53 files, 13,561 lines | 22 files, 1,326 lines |
@@ -68,7 +68,7 @@ Do not be ambushed by these. The largest source files, by line count:
 | 3,009 | `lib/rebrand/controller.ts` | yes |
 | 2,924 | `views/projects.ts` | none |
 | 2,844 | `views/gallery.ts` | none |
-| 2,668 | `views/design-inspector.ts` | yes |
+| 2,676 | `views/design-inspector.ts` | yes |
 | 2,640 | `views/deck-editor.ts` | yes |
 | 2,557 | `views/timeline-math.ts` | yes |
 | 2,510 | `views/design-import.ts` | **none** |

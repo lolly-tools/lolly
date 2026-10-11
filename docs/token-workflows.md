@@ -34,11 +34,14 @@ For a selection of several layers, common paint and compatible text groups offer
 | Design paint and effects | Colour, opacity, corner radius, stroke width, and individual numeric shadow properties in the existing groups. Colour links use the document's SDR or wide-gamut colour face. |
 | Design legacy text | Font family and declared numeric size, spacing and padding fields; whole typography projects family, size, weight, tracking and line height in one undo step. |
 | Design composites | A single shadow with zero spread and no inset; a gradient with 2 to 12 resolved sRGB stops, written as a rightward linear gradient. Layered shadows and unsupported gradient values are refused. |
+| Design borders | Whole borders project colour, absolute width and solid, dashed or dotted style in one undo step. Custom stroke styles and relative widths are refused. |
 | Design motion | Duration tokens convert to the field's seconds or milliseconds; easing tokens become validated CSS cubic Bezier controls. |
 | Composed paragraphs | Line height, spacing before/after and start/end/first-line indents, following the existing caret, range or story scope. |
-| Remaining consumers | Whole typography on composed text needs pinned font-resource integration. Border and transition composites need additional adapters. |
+| Remaining consumers | Whole typography on composed text needs pinned font-resource integration. Transition composites need additional adapters. |
 
 Whole composite actions retain a separate reference and adapter on each property. Editing one property preserves the other links. Missing or incompatible source values retain their last literal. Composed paragraphs store their links with paragraph settings; applying a link across paragraphs preserves their other links.
+
+Border and stroke-style links clear an authored dash array and custom dash/gap lengths in the same transaction, so the linked style reaches the renderer. Editing any of these dash settings makes the style consumer custom while colour and width can still follow their tokens. **Make custom** retains the rendered values. **Restore link** rechecks the source and clears the local dash overrides; undo restores those overrides together. An incompatible border refresh retains all active properties from its last usable source.
 
 Design keeps links in an appended metadata field alongside ordinary scalar properties. URLs, saved sessions and portable document snapshots retain that field. Opening through the engine refreshes linked properties and preserves intentional overrides and cached fallbacks.
 
@@ -70,4 +73,4 @@ Missing or changed bytes for these new font pins fail visibly. Portable snapshot
 
 The workspace uses the app's semantic colours, shared cards and disclosures, native `.field-*` editors, button styles, change summary and modal lifecycle. The reference list is paged at 100 rows, and details remain readable on narrow screens. Components contains the production workspace, captured context strip, and linked-field examples in linked, custom, unresolved, mixed and read-only states. Tool inputs use one existing three-dot menu, and Design retains its existing property groups. Applying a link change closes the input menu and returns focus to the same field's menu button. Reopening reads the current link status. Source inspection keeps Close visible while scrolling; closing the inspector returns to the input menu, and Escape closes the menu back to its button.
 
-Download the [Beacon example system](/examples/beacon.tokens.json) to try independent appearance and density choices, retained custom vocabulary and semantic aliases.
+Download the [Beacon example system](/examples/beacon.tokens.json) to try independent appearance and density choices, retained custom vocabulary and semantic aliases. Its `border.exampleOutline` changes colour and stroke style with appearance, and width with density.
