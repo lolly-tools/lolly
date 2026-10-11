@@ -130,7 +130,8 @@ test('scanned PDF pages and capped DOCX blocks remain partial even when extracte
   assert.equal(document(capped).length, 2000); assert.equal(capped.fidelity?.level, 'partial'); assert.equal(compareSources({ version: 1, before: capped, after: capped }).equality, 'undetermined');
 });
 test('Office parsing refuses macros, invalid XML and expansion limits with sanitized errors; cancellation aborts', async () => {
-  for (const parts of [{ 'word/document.xml': strToU8('<secret broken') }, { 'word/document.xml': strToU8('<document/>'), 'word/vbaProject.bin': new Uint8Array([1]) }, { 'word/document.xml': strToU8('<!DOCTYPE document [<!ENTITY x "SECRET">]><document/>') }, { 'word/document.xml': new Uint8Array(8 * 1024 * 1024 + 1) }]) {
+  const fixtures: Record<string, Uint8Array>[] = [{ 'word/document.xml': strToU8('<secret broken') }, { 'word/document.xml': strToU8('<document/>'), 'word/vbaProject.bin': new Uint8Array([1]) }, { 'word/document.xml': strToU8('<!DOCTYPE document [<!ENTITY x "SECRET">]><document/>') }, { 'word/document.xml': new Uint8Array(8 * 1024 * 1024 + 1) }];
+  for (const parts of fixtures) {
     await assert.rejects(comparisonFileSource(new File([zipSync(parts) as BlobPart], 'secret.docx'), 'document'), error => error instanceof Error && !/secret|SECRET|document.xml/.test(error.message));
   }
   const controller = new AbortController(); const pending = comparisonFileSource(new File([xlsxFixture([{ name: 'A', rows: [['id'], ['a']] }]) as BlobPart], 'a.xlsx'), 'table', controller.signal); controller.abort();
