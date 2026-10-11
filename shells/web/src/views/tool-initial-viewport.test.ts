@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { JSDOM } from 'jsdom';
-import { revealInitialViewport } from './tool-initial-viewport.ts';
+import { revealInitialViewport, waitForInitialViewport } from './tool-initial-viewport.ts';
 
 function fixture() {
   const dom = new JSDOM('<div id="canvas"></div>', { pretendToBeVisual: true });
@@ -95,4 +95,43 @@ test('a render error or removed canvas cannot be revealed by an earlier successf
     assert.equal(h.read().reveals, 0);
     assert.equal(h.frames.size + h.timers.size, 0);
   }
+});
+
+test('export readiness waits for the bounded reveal during continuous camera motion', async t => {
+  const h = fixture(); t.after(h.close);
+  h.canvas.style.visibility = 'hidden';
+  revealInitialViewport(h.canvas, { ...h.options, reveal: () => { h.options.reveal(); h.canvas.style.visibility = ''; } });
+  let captured = false;
+  const exportReady = waitForInitialViewport(h.canvas, h.controller.signal).then(() => {
+    assert.equal(h.canvas.style.visibility, '');
+    captured = true;
+  });
+  for (let i = 0; i < 30; i++) { h.move(i * 5); h.tick(); }
+  await Promise.resolve();
+  assert.equal(captured, false, 'quiescent artwork must not be exported while the opening fit hides it');
+  [...h.timers.values()][0]!();
+  await exportReady;
+  assert.equal(captured, true);
+  assert.equal(h.frames.size + h.timers.size, 0);
+});
+
+test('an export waiting for opening rejects when its document is disposed or removed', async t => {
+  for (const action of ['abort', 'remove'] as const) {
+    const h = fixture(); t.after(h.close);
+    revealInitialViewport(h.canvas, h.options);
+    const rejected = assert.rejects(waitForInitialViewport(h.canvas, h.controller.signal), { name: 'AbortError' });
+    if (action === 'abort') h.controller.abort(); else { h.canvas.remove(); h.tick(); }
+    await rejected;
+    assert.equal(h.read().reveals, 0);
+    assert.equal(h.frames.size + h.timers.size, 0);
+  }
+});
+
+test('export readiness preserves authored hidden content after opening', async t => {
+  const h = fixture(); t.after(h.close);
+  h.canvas.style.visibility = 'hidden';
+  await waitForInitialViewport(h.canvas, h.controller.signal);
+  assert.equal(h.canvas.style.visibility, 'hidden');
+  h.controller.abort();
+  await assert.rejects(waitForInitialViewport(null, h.controller.signal), { name: 'AbortError' });
 });

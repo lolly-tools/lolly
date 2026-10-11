@@ -10,6 +10,7 @@
 import { hasVideoParams } from '@lolly/engine';
 import { mergeExportPrefs } from '../../lib/export-prefs.ts';
 import { withStudioExport } from '../../lib/studio-export-guard.ts';
+import { waitForInitialViewport } from '../tool-initial-viewport.ts';
 import { marksFromCsv } from './shared.ts';
 import type { ExportDefaults, ExportReport, PrintMarks } from './shared.ts';
 import { bindOp, type ToolViewCtx } from './context.ts';
@@ -51,6 +52,9 @@ export async function exportUnscaledRaw<T>(tview: ToolViewCtx,
   // the canvas DOM directly, so force any pending paint to land first - otherwise
   // we'd capture the frame before the latest keystroke.
   tview.render.flushRender();
+  // The opening fit hides the canvas briefly. SVG capture correctly skips hidden
+  // artwork, so both manual and URL-driven exports must wait for this chrome state.
+  await waitForInitialViewport(canvasEl, tview.mountLifecycle.signal);
   // Embeds (lolly.tools/tool/… URLs) hydrate fire-and-forget on each render;
   // wait for the latest pass so export reads resolved blobs, not the placeholder.
   await tview.embedsPending;
@@ -71,6 +75,7 @@ export async function exportUnscaledRaw<T>(tview: ToolViewCtx,
   await tview.vizPending;
   await tview.studioPending;
   if (tview.studioError) throw tview.studioError;
+  await waitForInitialViewport(canvasEl, tview.mountLifecycle.signal);
   // A studio scene draws its export frame first, and a frame that fails while the export
   // runs fails the export (the frame clock only logs it).
   // Full-bleed tools (hideSidebar: export:false utilities and canvas-layout tools) have
