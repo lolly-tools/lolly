@@ -159,7 +159,11 @@ export async function penpotLayoutSeeds(): Promise<Uint8Array[]> {
             { id: 'r1', container: 'root', axis: 'row', order: 0, track: 'auto' },
           ]
         : [];
-    const doc = boxesToPenpotDoc(boxes, { canvas: { w: 400, h: 200 }, layoutTracks: tracks });
+    const doc = boxesToPenpotDoc(boxes, {
+      name: 'Layout fuzz seed',
+      canvas: { w: 400, h: 200 },
+      layoutTracks: tracks,
+    });
     const archive = buildPenpotEntries(doc, {
       uuid: seededPenpotUuid(305),
       now: () => '2026-10-11T12:00:00.000Z',
