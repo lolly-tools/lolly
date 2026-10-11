@@ -48,6 +48,23 @@ test('XLSX checks sparse grid bounds and unsupported prefixed parts before recta
   const missing = await comparisonFileSource(new File([zipSync(parts) as BlobPart], 'missing-cache.xlsx'), 'table');
   assert.equal(missing.fidelity?.level, 'partial'); assert.equal(compareSources({ version: 1, before: missing, after: missing }).equality, 'undetermined');
 });
+test('XLSX refuses unresolved, duplicate, external and custom worksheet relationships before importing any sheet', async () => {
+  const initial = xlsxFixture([{ name: 'A', rows: [['id'], ['one']] }, { name: 'Private missing sheet', rows: [['id'], ['two']] }]);
+  for (const variant of ['missing', 'duplicate', 'external', 'custom'] as const) {
+    const parts = unzipSync(initial), decoder = new TextDecoder();
+    let rels = decoder.decode(parts['xl/_rels/workbook.xml.rels']);
+    if (variant === 'missing') rels = rels.replace(/<Relationship Id="rId2"[^>]*\/>/, '');
+    if (variant === 'duplicate') rels = rels.replace('</Relationships>', '<Relationship Id="rId2" Type="http://example/worksheet" Target="worksheets/sheet2.xml"/></Relationships>');
+    if (variant === 'external') rels = rels.replace('Id="rId2"', 'Id="rId2" TargetMode="External"');
+    if (variant === 'custom') {
+      rels = rels.replace('worksheets/sheet2.xml', '../custom/grid.xml');
+      parts['custom/grid.xml'] = strToU8('<worksheet><sheetData><row r="10000"><c r="XFD10000"><v>1</v></c></row></sheetData></worksheet>');
+    }
+    parts['xl/_rels/workbook.xml.rels'] = strToU8(rels);
+    await assert.rejects(comparisonFileSource(new File([zipSync(parts) as BlobPart], 'private.xlsx'), 'table'), error => error instanceof Error
+      && /worksheet relationships/.test(error.message) && !/Private missing|rId2|custom\/grid/.test(error.message));
+  }
+});
 test('DOCX blocks have no invented page or stable ID and preserve insertion/removal alignment', async () => {
   const before = await comparisonFileSource(new File([docxFixture(['Anchor', 'CONFIDENTIAL_REMOVED', 'End']) as BlobPart], 'before.docx'), 'document');
   const after = await comparisonFileSource(new File([docxFixture(['Anchor', 'Inserted', 'End', 'Tail']) as BlobPart], 'after.docx'), 'document');
