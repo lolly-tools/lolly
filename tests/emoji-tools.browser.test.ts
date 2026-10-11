@@ -31,9 +31,12 @@ test('tool previews draw curved emoji, timed captions and geometry from selected
     const page=await context.newPage();page.setDefaultTimeout(45000);
     const visit=async(id:string,params:Record<string,string>)=>page.goto(`${origin}/t/${id}?${new URLSearchParams({...params,emoji:'twemoji/color@17.0.3',c2pa:'0',imprint:'0'})}`);
     await visit('work-avatar',{text:'Hello 😀 ❤️'});
-    await page.waitForFunction(()=>document.querySelectorAll('.wa-text [data-lolly-emoji-svg] > g svg').length===2);
-    assert.equal(await page.locator('.wa-text [data-emoji-layout-issue]').count(),0);
-    assert.equal(await page.locator('.wa-text [data-lolly-emoji-svg] > g svg').count(),2);
+    // The async emoji pass can rebuild the artwork between separate DOM reads.
+    const preview=await page.waitForFunction(()=>{
+      const art=document.querySelectorAll('.wa-text [data-lolly-emoji-svg] > g svg').length;
+      return art===2?{art,issues:document.querySelectorAll('.wa-text [data-emoji-layout-issue]').length}:false;
+    });
+    assert.deepEqual(await preview.jsonValue(),{art:2,issues:0});
     const tip=page.getByRole('button',{name:'Got it',exact:true});if(await tip.isVisible())await tip.click();
     await page.locator('.wa-root').screenshot({path:'/tmp/lolly-work-avatar-emoji-verified.png'});
     await visit('audiogram',{transcript:'1\n00:00:00,000 --> 00:00:02,000\nHello 😀\n\n2\n00:00:02,000 --> 00:00:04,000\nBye ❤️',captions:'true'});
