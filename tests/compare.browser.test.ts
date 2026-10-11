@@ -5,13 +5,15 @@ import { chromium } from 'playwright';
 import { shellSettled } from './helpers/shell-settled.ts';
 const origin = process.env.LOLLY_HISTORY_TEST_URL;
 const skip = origin ? false : 'LOLLY_HISTORY_TEST_URL not set (serve the web shell locally)';
-if (origin) assert.ok(['localhost', '127.0.0.1', '[::1]'].includes(new URL(origin).hostname));
+const operationOrigin = origin ?? process.env.LOLLY_EXPORT_TEST_URL;
+const operationSkip = operationOrigin ? false : 'set LOLLY_EXPORT_TEST_URL or LOLLY_HISTORY_TEST_URL';
+for (const localOrigin of [origin, operationOrigin]) if (localOrigin) assert.ok(['localhost', '127.0.0.1', '[::1]'].includes(new URL(localOrigin).hostname));
 
-test('Prepare comparison masks removed values, exports a private summary and closes stale review', { skip, timeout: 90_000 }, async () => {
+test('Prepare comparison masks removed values, exports a private summary and closes stale review', { skip: operationSkip, timeout: 90_000 }, async () => {
   const browser = await chromium.launch();
   const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
   try {
-    await page.goto(`${origin}/#/prepare`, { waitUntil: 'networkidle' }); await shellSettled(page);
+    await page.goto(`${operationOrigin}/#/prepare`, { waitUntil: 'networkidle' }); await shellSettled(page);
     const input = page.locator('[data-text]');
     await input.fill('password=CONFIDENTIAL_REMOVED');
     await page.locator('[data-compare]').click();
@@ -33,10 +35,10 @@ test('Prepare comparison masks removed values, exports a private summary and clo
   } finally { await browser.close(); }
 });
 
-test('Saved operation comparison verifies a reselected original without retaining it', { skip, timeout: 90_000 }, async () => {
+test('Saved operation comparison verifies a reselected original without retaining it', { skip: operationSkip, timeout: 90_000 }, async () => {
   const browser = await chromium.launch(), page = await browser.newPage();
   try {
-    await page.goto(`${origin}/#/compare`, { waitUntil: 'networkidle' }); await shellSettled(page);
+    await page.goto(`${operationOrigin}/#/compare`, { waitUntil: 'networkidle' }); await shellSettled(page);
     await page.evaluate(async () => {
       const hostPath = '/src/lib/host-ref.ts', panelPath = '/src/components/compare-operation.ts';
       const host = (await import(hostPath)).getHostRef();
