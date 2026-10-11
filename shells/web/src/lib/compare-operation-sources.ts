@@ -26,12 +26,12 @@ export async function verifyComparisonOriginal(file: File, expected: FileFactsV1
 export async function operationComparisonPair(before: File, after: File, host: HostV1, signal?: AbortSignal): Promise<OperationComparisonPair> {
   signal?.throwIfAborted();
   if ([before, after].every(file => /\.docx$/i.test(file.name))) {
-    if (!host.prepare || before.size > 32 * 1024 * 1024 || after.size > 32 * 1024 * 1024) throw new Error('DOCX property review is unavailable for this pair.');
+    if (!host.prepare || before.size > 32 * 1024 * 1024 || after.size > 32 * 1024 * 1024) throw new Error('DOCX property review is not supported for this pair.');
     const sides: ComparisonSource[] = [];
     for (const [index, file] of [before, after].entries()) {
       const bytes = new Uint8Array(await file.arrayBuffer()); signal?.throwIfAborted();
       const inspection = await host.prepare.inspect([{ id: 'document', name: file.name, bytes }]); signal?.throwIfAborted();
-      if (!inspection.scopes.find(s => s.id === 'document')?.actions?.includes('remove-property')) throw new Error('DOCX property review is unavailable for this file. It remains inspect-only.');
+      if (!inspection.scopes.find(s => s.id === 'document')?.actions?.includes('remove-property')) throw new Error('DOCX property review is not supported for this file. It remains inspect-only.');
       const findings = inspection.findings.filter(f => f.action === 'remove-property');
       if (findings.some(f => !f.propertyId) || new Set(findings.map(f => f.propertyId)).size !== findings.length) throw new Error('DOCX property identities could not be verified.');
       const properties = Object.fromEntries(findings.map(f => [f.propertyId!, { label: f.label, location: f.location, value: f.value }]));
