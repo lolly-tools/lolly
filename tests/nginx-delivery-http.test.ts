@@ -25,7 +25,8 @@ test(`actual ${configuration} preserves validators, decoded signatures, ranges a
   const port = address.port;
   await new Promise<void>(done => allocator.close(() => done()));
   const bytes = Buffer.from('const signed = "original";\n'.repeat(1000));
-  for (const name of ['index.html', 'sw.js', '_app/app.js', 'catalog/tools/index.json']) {
+  const longAssetPath = `catalog/assets/${'variant'.repeat(28)}.0123456789abcdef.svg`;
+  for (const name of ['index.html', 'sw.js', '_app/app.js', 'catalog/tools/index.json', longAssetPath]) {
     mkdirSync(resolve(root, name, '..'), { recursive: true }); writeFileSync(join(root, name), bytes);
   }
   prepareStaticDelivery(root);
@@ -56,6 +57,11 @@ test(`actual ${configuration} preserves validators, decoded signatures, ranges a
     const identity = await get('/_app/app.js', { 'accept-encoding': 'identity' });
     assert.equal(identity.status, 200); assert.deepEqual(identity.bytes, bytes);
     assert.equal(identity.headers.etag, `"${sha(bytes)}"`);
+    const longAsset = await get(`/${longAssetPath}`, { 'accept-encoding': 'identity' });
+    assert.equal(longAsset.status, 200);
+    assert.deepEqual(longAsset.bytes, bytes);
+    assert.equal(longAsset.headers.etag, identity.headers.etag);
+    assert.equal((await get(`/${longAssetPath}`, { 'if-none-match': longAsset.headers.etag! })).status, 304);
     assert.equal(identity.headers['last-modified'], undefined);
     assert.equal((await get('/_app/app.js', { 'if-modified-since': 'Wed, 01 Jan 2050 00:00:00 GMT' })).status, 200);
     assert.match(identity.headers['cache-control']!, /immutable, no-transform/);

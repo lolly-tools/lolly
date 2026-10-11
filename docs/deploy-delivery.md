@@ -131,6 +131,30 @@ interrupted download can retain a partial copy, but resume must validate its
 range and final whole-file hash before making it available offline. A 16-character
 URL suffix, response header or completed progress bar cannot replace that check.
 
+Public model responses use constant `Access-Control-Allow-Origin: *`, including
+requests without an `Origin` header, and never send `Access-Control-Allow-Credentials`
+or `Set-Cookie`. This keeps the public cache key independent of the reader's
+origin; only `Accept-Encoding` may vary. Configure the object store to allow
+anonymous GET and HEAD requests and expose `ETag`, `Content-Range` and
+`Accept-Ranges` so browsers can validate resumed downloads. The publisher and
+delivery probe explicitly omit credentials and refuse redirects. Their origin
+matrix includes packaged applications (`Origin: null`), lolly.tools, lolly.ing,
+an unrelated web origin and a request with no `Origin`. Small files are hashed
+from every variant. Large files are hashed once; the other variants check the
+same strong ETag and declared size with HEAD. Those metadata observations do not
+claim an additional whole-file hash.
+
+S3-compatible CORS can reflect the requested origin. That permits anonymous
+access when it matches, but a changing CORS response needs `Vary: Origin` under
+the [Fetch cache guidance](https://fetch.spec.whatwg.org/#cors-protocol-and-http-caches).
+It fails this deployment's constant, path-only public cache policy even with
+that extra `Vary`. On 2026-10-11, the lolli.li object-storage responses reflected
+the tested origins without `Vary: Origin`; this is a recorded qualification gap,
+not an approved exception. Publish through a boundary that returns the constant
+wildcard, and qualify its actual responses before activating new model URLs.
+Changing a bucket's allowed origins alone does not prove that its delivered
+headers satisfy this requirement. Keep existing aliases and additive objects.
+
 Principal-bound MCP result downloads remain held pending qualification. Do not
 enable them as an anonymous output cache. A qualified deployment must bind the
 token to the authenticated caller and require that caller's bearer on download,

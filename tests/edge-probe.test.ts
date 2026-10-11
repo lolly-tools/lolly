@@ -58,7 +58,7 @@ test('legacy HEAD monitoring checks declared size without claiming a byte hash',
 });
 test('cold decoded bytes, conditional 304 and strong If-Range are checked independently', async () => {
   const body = 'model bytes', policy = cachePolicy('public-immutable'), sha256 = createHash('sha256').update(body).digest('hex');
-  const headers = { 'cache-control': policy.cacheControl, 'cdn-cache-control': policy.cdnCacheControl, etag: `"${sha256}"`, 'access-control-allow-origin': '*' };
+  const headers = { 'cache-control': policy.cacheControl, 'cdn-cache-control': policy.cdnCacheControl, etag: `"${sha256}"`, 'access-control-allow-origin': '*', 'access-control-expose-headers': 'ETag, Content-Range, Accept-Ranges' };
   let calls = 0;
   const result = await probeSample({ origin: 'https://models.test', path: '/models/test@1234567890abcdef/a.onnx', cls: 'public-immutable', size: body.length, sha256, checkRange: true, checkConditional: true, requireCors: true }, async (_input, init) => {
     calls++; const sent = new Headers(init?.headers);
@@ -100,4 +100,47 @@ test('SVG credential stripping compares the host body while raw-byte hashes rema
   const policy = cachePolicy('public-revalidate');
   const result = await probeSample({ origin: 'https://public.test', path: '/signed.svg', cls: 'public-revalidate', stripC2pa: 'svg', strippedSha256: createHash('sha256').update(plain).digest('hex') }, async () => new Response(signed, { headers: { 'cache-control': policy.cacheControl, 'cdn-cache-control': policy.cdnCacheControl } }));
   assert.equal(result.passed, true); assert.notEqual(result.observations[0]!.decodedSha256, result.observations[0]!.credentialStrippedSha256);
+});
+
+test('CORS receipts distinguish access from unsafe reflection and record public response headers', async () => {
+  const policy = cachePolicy('public-immutable'), body = '{}';
+  const result = await probeSample({ origin: 'https://models.test', path: '/models/test@1234567890abcdef/config.json', cls: 'public-immutable', requireCors: true, corsOrigins: ['null', 'https://lolly.ing', 'https://lolly.tools'], sha256: createHash('sha256').update(body).digest('hex') }, async (_input, init) => {
+    assert.equal(init?.credentials, 'omit'); assert.equal(init?.redirect, 'manual');
+    const headers = new Headers(init?.headers); assert.equal(headers.has('cookie'), false); assert.equal(headers.has('authorization'), false);
+    return new Response(body, { headers: { 'cache-control': policy.cacheControl, 'cdn-cache-control': policy.cdnCacheControl, ...(headers.has('origin') ? { 'access-control-allow-origin': headers.get('origin')! } : {}) } });
+  });
+  assert.equal(result.passed, false);
+  assert.ok(result.observations[0]!.failures.includes('cors-reflection-missing-vary'));
+  assert.ok(result.observations[0]!.failures.includes('cors-nonconstant-origin'));
+  assert.equal(result.observations[0]!.headers?.['access-control-allow-origin'], 'null');
+  assert.equal(result.observations[0]!.headers?.['access-control-allow-credentials'], null);
+  assert.ok(result.observations[0]!.checks?.some(check => check.origin === null && check.failures.includes('cors-origin')));
+});
+
+test('small-file CORS matrix checks real bytes from extra origins and the no-Origin request', async () => {
+  const policy = cachePolicy('public-immutable'), body = '{}', origins: Array<string | null> = [];
+  const options = { origin: 'https://models.test', path: '/models/test@1234567890abcdef/config.json', cls: 'public-immutable' as const, requireCors: true, corsOrigins: ['null', 'https://lolly.ing', 'https://lolly.tools'], sha256: createHash('sha256').update(body).digest('hex') };
+  const fetcher: typeof fetch = async (_input, init) => {
+    origins.push(new Headers(init?.headers).get('origin'));
+    return new Response(body, { headers: { 'cache-control': policy.cacheControl, 'cdn-cache-control': policy.cdnCacheControl, 'access-control-allow-origin': '*' } });
+  };
+  const result = await probeSample(options, fetcher);
+  assert.equal(result.passed, true); assert.deepEqual(origins, ['null', 'https://lolly.ing', 'https://lolly.tools', null]);
+  assert.ok(result.observations[0]!.checks?.every(check => check.kind === 'cors-full-bytes'));
+  const changed = await probeSample(options, async (input, init) => {
+    const response = await fetcher(input, init);
+    return new Headers(init?.headers).get('origin') === 'https://lolly.tools' ? new Response('[]', { headers: response.headers }) : response;
+  });
+  assert.equal(changed.passed, false); assert.ok(changed.observations[0]!.failures.includes('cors-origin-bytes'));
+});
+
+test('daily legacy CORS checks remain HEAD metadata observations with unchanged strong validators', async () => {
+  const policy = cachePolicy('public-revalidate');
+  const result = await probeSample({ origin: 'https://models.test', path: '/models/test/config.json', cls: 'public-revalidate', method: 'HEAD', monitoringOnly: true, size: 12, requireCors: true, corsOrigins: ['null', 'https://lolly.ing'] }, async (_input, init) => {
+    assert.equal(init?.method, 'HEAD');
+    return new Response(null, { headers: { 'cache-control': policy.cacheControl, 'cdn-cache-control': policy.cdnCacheControl, 'access-control-allow-origin': '*', 'content-length': '12', etag: '"legacy"' } });
+  });
+  assert.equal(result.passed, true); assert.equal(result.monitoringOnly, true);
+  assert.equal(result.observations[0]!.decodedSha256, undefined);
+  assert.ok(result.observations[0]!.checks?.every(check => check.kind === 'cors-head-metadata'));
 });

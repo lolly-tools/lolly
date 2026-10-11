@@ -2,6 +2,7 @@
 // Run explicitly in the deployment qualification lane, with Caddy and Docker.
 import assert from 'node:assert/strict';
 import { type ChildProcess, spawn, spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { once } from 'node:events';
 import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer, type IncomingMessage, request, type Server } from 'node:http';
@@ -9,6 +10,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
+import { nginxDeliveryMaps, prepareStaticDelivery } from '../scripts/build-delivery.ts';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const read = (path: string) => readFileSync(join(root, path), 'utf8');
@@ -36,7 +38,7 @@ async function unusedPort(): Promise<number> {
   );
   return port;
 }
-async function ready(url: string, diagnostics: () => string): Promise<void> {
+async function ready(url: string, diagnostics: () => string, exited?: () => boolean): Promise<void> {
   const deadline = Date.now() + 30_000;
   while (Date.now() < deadline) {
     try {
@@ -44,9 +46,28 @@ async function ready(url: string, diagnostics: () => string): Promise<void> {
     } catch {
       /* The fixture may still be starting. */
     }
+    if (exited?.()) assert.fail(`Fixture exited before becoming ready at ${url}: ${diagnostics()}`);
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
   assert.fail(`Fixture did not become ready at ${url}: ${diagnostics()}`);
+}
+function containerDiagnostics(container: string): string {
+  const state = spawnSync('docker', ['inspect', '--format', '{{json .State}}', container], { encoding: 'utf8', timeout: 5000 });
+  const logs = spawnSync('docker', ['logs', container], { encoding: 'utf8', timeout: 5000 });
+  return [state.stdout, state.stderr, logs.stdout, logs.stderr].join('\n').trim();
+}
+async function rawGet(url: string, headers: Record<string, string> = {}) {
+  return new Promise<{ status: number; headers: import('node:http').IncomingHttpHeaders; bytes: Buffer }>((resolve, reject) => {
+    const call = request(url, { headers }, response => {
+      const chunks: Buffer[] = [];
+      response.on('data', chunk => chunks.push(Buffer.from(chunk)));
+      response.once('error', reject);
+      response.once('end', () => resolve({ status: response.statusCode!, headers: response.headers, bytes: Buffer.concat(chunks) }));
+    });
+    call.once('error', reject);
+    call.setTimeout(5000, () => call.destroy(new Error('Static fixture request timed out')));
+    call.end();
+  });
 }
 async function stop(child: ChildProcess | undefined): Promise<void> {
   if (!child || child.exitCode !== null || child.signalCode !== null) return;
@@ -106,9 +127,11 @@ test('public VM Caddy and native nginx preserve routes, custody and model stream
     'models/specimen.onnx',
     Uint8Array.from({ length: 64 }, (_, i) => i)
   );
+  put('models/specimen@0123456789abcdef/weights.onnx', Uint8Array.from({ length: 64 }, (_, i) => i));
   put('models/.lolly-model-release.json', 'OPERATOR METADATA');
-  put('_app/app-hash.js', 'hashed app');
+  put('_app/app-hash.js', 'const signedBytes = "unchanged";\n'.repeat(1000));
   put('ort-hf/runtime.wasm', 'wasm');
+  put('ort-hf/1.22.0/runtime.wasm', 'wasm');
   put('ort/runtime.wasm', 'wasm');
   put('fonts/specimen.woff2', 'font');
   put('catalog/fonts/specimen.woff2', 'font');
@@ -122,6 +145,9 @@ test('public VM Caddy and native nginx preserve routes, custody and model stream
     put(path, '{}');
   put('sw.js', 'service worker');
   put('manifest.webmanifest', '{}');
+  prepareStaticDelivery(site);
+  const deliveryMaps = join(directory, 'delivery-maps.conf');
+  writeFileSync(deliveryMaps, nginxDeliveryMaps(), { mode: 0o644 });
   let caddy: ChildProcess | undefined;
   let caddyLog = '';
   const container = `lolly-public-fixture-${process.pid}-${Date.now()}`;
@@ -133,7 +159,6 @@ test('public VM Caddy and native nginx preserve routes, custody and model stream
         'docker',
         'run',
         '--detach',
-        '--rm',
         '--name',
         container,
         '--read-only',
@@ -157,19 +182,26 @@ test('public VM Caddy and native nginx preserve routes, custody and model stream
         `${join(root, 'deploy/docker/public.nginx.conf')}:/etc/nginx/conf.d/default.conf:ro`,
         '--volume',
         `${join(root, 'deploy/docker/security-headers.conf')}:/etc/nginx/security-headers.conf:ro`,
+        '--volume',
+        `${join(root, 'deploy/docker/delivery-headers.conf')}:/etc/nginx/delivery-headers.conf:ro`,
+        '--volume',
+        `${deliveryMaps}:/etc/nginx/delivery-maps.conf:ro`,
+        '--volume',
+        `${join(site, '.delivery-etags.conf')}:/etc/nginx/delivery-etags.conf:ro`,
         image,
       ],
       60_000
     );
     const ports = JSON.parse(
       command(['docker', 'inspect', container, '--format', '{{json .NetworkSettings.Ports}}'])
-    ) as Record<string, { HostIp: string; HostPort: string }[]>;
-    const published = ports['8080/tcp']?.find((item) => item.HostIp === '127.0.0.1');
-    assert.ok(published, 'nginx fixture must only publish on loopback');
+    ) as Record<string, { HostIp: string; HostPort: string }[]> | null;
+    const published = ports?.['8080/tcp']?.find((item) => item.HostIp === '127.0.0.1');
+    assert.ok(published, `nginx fixture must only publish on loopback: ${containerDiagnostics(container)}`);
     const nginxPort = Number(published.HostPort);
-    await ready(`http://127.0.0.1:${nginxPort}/healthz`, () =>
-      command(['docker', 'logs', container])
-    );
+    await ready(`http://127.0.0.1:${nginxPort}/healthz`, () => containerDiagnostics(container), () => {
+      const state = spawnSync('docker', ['inspect', '--format', '{{.State.Running}}', container], { encoding: 'utf8', timeout: 5000 });
+      return state.status !== 0 || state.stdout.trim() !== 'true';
+    });
     command(['docker', 'exec', container, 'nginx', '-t']);
 
     const apiPorts: number[] = [];
@@ -258,7 +290,7 @@ test('public VM Caddy and native nginx preserve routes, custody and model stream
     caddy.stdout?.on('data', record);
     caddy.stderr?.on('data', record);
     const base = `http://127.0.0.1:${port}`;
-    await ready(`${base}/healthz`, () => caddyLog);
+    await ready(`${base}/healthz`, () => caddyLog, () => caddy!.exitCode !== null || caddy!.signalCode !== null);
 
     await t.test(
       'fixed aliases, translated docs and discovery serve their actual files',
@@ -331,31 +363,23 @@ test('public VM Caddy and native nginx preserve routes, custody and model stream
       }
     );
     await t.test('cache and security policies survive all static response locations', async () => {
+      const revalidate = 'public, max-age=0, s-maxage=0, must-revalidate, no-transform';
+      const immutable = 'public, max-age=31536000, s-maxage=31536000, immutable, no-transform';
       for (const [path, cache] of [
-        ['/', 'public, max-age=0, must-revalidate'],
-        ['/?proof=kept', 'public, max-age=0, must-revalidate'],
-        ['/index.html', 'public, max-age=0, must-revalidate'],
-        ['/client-route', 'public, max-age=0, must-revalidate'],
-        ['/_app/app-hash.js', 'public, max-age=31536000, immutable'],
-        ['/ort-hf/runtime.wasm', 'public, max-age=31536000, immutable'],
-        ['/ort/runtime.wasm', 'public, max-age=86400, stale-while-revalidate=604800'],
-        ['/fonts/specimen.woff2', 'public, max-age=86400, stale-while-revalidate=604800'],
-        ['/catalog/fonts/specimen.woff2', 'public, max-age=86400, stale-while-revalidate=604800'],
-        [
-          '/catalog/previews/specimen.svg',
-          'public, max-age=0, s-maxage=3600, stale-while-revalidate=86400',
-        ],
-        ['/catalog/tools/index.json', 'public, max-age=0, must-revalidate'],
-        ['/catalog/tools/index.slim.json', 'public, max-age=0, must-revalidate'],
-        ['/catalog/assets/index.json', 'public, max-age=0, must-revalidate'],
-        ['/sw.js', 'public, max-age=0, must-revalidate'],
-        ['/precache.json', 'public, max-age=0, must-revalidate'],
-        ['/manifest.webmanifest', 'public, max-age=0, must-revalidate'],
-        ['/info/proof.c2pa', 'public, max-age=0, must-revalidate'],
+        ['/', revalidate], ['/?proof=kept', revalidate], ['/index.html', revalidate],
+        ['/client-route', revalidate], ['/_app/app-hash.js', immutable],
+        ['/ort-hf/1.22.0/runtime.wasm', immutable], ['/ort-hf/runtime.wasm', revalidate],
+        ['/models/specimen@0123456789abcdef/weights.onnx', immutable],
+        ['/ort/runtime.wasm', revalidate], ['/fonts/specimen.woff2', revalidate],
+        ['/catalog/fonts/specimen.woff2', revalidate], ['/catalog/previews/specimen.svg', revalidate],
+        ['/catalog/tools/index.json', revalidate], ['/catalog/tools/index.slim.json', revalidate],
+        ['/catalog/assets/index.json', revalidate], ['/sw.js', 'no-cache, s-maxage=0, no-transform'],
+        ['/precache.json', revalidate], ['/manifest.webmanifest', revalidate], ['/info/proof.c2pa', revalidate],
       ] as const) {
         const response = await fetch(`${base}${path}`);
         assert.equal(response.status, 200, path);
         assert.equal(response.headers.get('cache-control'), cache, path);
+        assert.equal(response.headers.get('cdn-cache-control'), path === '/sw.js' ? 'no-store' : cache === immutable ? 'max-age=31536000, no-transform' : 'max-age=0, must-revalidate, no-transform', path);
         assert.equal(response.headers.get('cross-origin-embedder-policy'), 'credentialless', path);
         assert.match(
           response.headers.get('content-security-policy') ?? '',
@@ -368,7 +392,7 @@ test('public VM Caddy and native nginx preserve routes, custody and model stream
         assert.equal(response.status, 200, path);
         assert.equal(
           response.headers.get('cache-control'),
-          'public, max-age=0, must-revalidate',
+          revalidate,
           path
         );
         assert.equal(await response.text(), '', path);
@@ -381,6 +405,37 @@ test('public VM Caddy and native nginx preserve routes, custody and model stream
       assert.ok(!usual.includes("frame-src 'self' blob: https: "));
       assert.ok(any.includes("frame-src 'self' blob: https: "));
       assert.ok(usual.includes('wss://public.example'));
+    });
+    await t.test('Caddy preserves decoded custody and coding-specific full-byte validators', async () => {
+      const sha = (bytes: Uint8Array) => createHash('sha256').update(bytes).digest('hex');
+      const source = readFileSync(join(site, '_app/app-hash.js'));
+      const identity = await rawGet(`${base}/_app/app-hash.js`, { 'accept-encoding': 'identity' });
+      assert.equal(identity.status, 200); assert.deepEqual(identity.bytes, source);
+      assert.equal(identity.headers.etag, `"${sha(source)}"`);
+      const gzip = await rawGet(`${base}/_app/app-hash.js`, { 'accept-encoding': 'gzip' });
+      assert.equal(gzip.status, 200); assert.equal(gzip.headers['content-encoding'], 'gzip');
+      assert.deepEqual(gzip.bytes, readFileSync(join(site, '_app/app-hash.js.gz')));
+      assert.equal(gzip.headers.etag, `"${sha(gzip.bytes)}"`);
+      assert.notEqual(gzip.headers.etag, identity.headers.etag);
+      const decoded = await fetch(`${base}/_app/app-hash.js`, { headers: { 'accept-encoding': 'gzip' } });
+      assert.deepEqual(Buffer.from(await decoded.arrayBuffer()), source);
+      for (const [coding, tag] of [['identity', identity.headers.etag], ['gzip', gzip.headers.etag]] as const) {
+        const unchanged = await rawGet(`${base}/_app/app-hash.js`, { 'accept-encoding': coding, 'if-none-match': tag! });
+        assert.equal(unchanged.status, 304); assert.equal(unchanged.bytes.length, 0);
+        assert.equal(unchanged.headers.etag, tag);
+      }
+      assert.equal((await rawGet(`${base}/_app/app-hash.js`, { 'accept-encoding': 'gzip', 'if-none-match': identity.headers.etag! })).status, 200);
+      for (const path of ['/catalog/previews/specimen.svg', '/info/proof.c2pa']) {
+        const response = await rawGet(base + path, { 'accept-encoding': 'identity' });
+        const bytes = readFileSync(join(site, path.slice(1)));
+        assert.deepEqual(response.bytes, bytes); assert.equal(response.headers.etag, `"${sha(bytes)}"`);
+      }
+      for (const path of ['/models/specimen@0123456789abcdef/missing.onnx', '/catalog/missing.json', '/_app/missing.js']) {
+        const missing = await fetch(base + path);
+        assert.equal(missing.status, 404);
+        assert.equal(missing.headers.get('cache-control'), 'private, no-store, max-age=0, no-transform');
+        assert.equal(missing.headers.get('cdn-cache-control'), 'no-store');
+      }
     });
     await t.test(
       'native model GET, HEAD, Range and conditional requests stay bounded and same-origin',
@@ -410,11 +465,17 @@ test('public VM Caddy and native nginx preserve routes, custody and model stream
         );
         const etag = head.headers.get('etag');
         assert.ok(etag);
+        assert.equal(etag, `"${createHash('sha256').update(Uint8Array.from({ length: 64 }, (_, i) => i)).digest('hex')}"`);
         assert.equal(
           (await fetch(`${base}/models/specimen.onnx`, { headers: { 'if-none-match': etag } }))
             .status,
           304
         );
+        const heldRange = await fetch(`${base}/models/specimen.onnx`, { headers: { range: 'bytes=5-9', 'if-range': etag } });
+        assert.equal(heldRange.status, 206);
+        assert.deepEqual(new Uint8Array(await heldRange.arrayBuffer()), Uint8Array.from([5, 6, 7, 8, 9]));
+        const changedRange = await fetch(`${base}/models/specimen.onnx`, { headers: { range: 'bytes=5-9', 'if-range': '"wrong"' } });
+        assert.equal(changedRange.status, 200); assert.equal((await changedRange.arrayBuffer()).byteLength, 64);
         assert.equal((await fetch(`${base}/models/specimen.onnx`, { method: 'POST' })).status, 405);
       }
     );

@@ -6,6 +6,7 @@ import { pathToFileURL } from 'node:url';
 import { cachePolicy } from '../packages/core/src/delivery-v1.ts';
 import type { DeliveryClass } from '../packages/core/src/delivery-v1.ts';
 import { measureProbeBody } from './lib/edge-probe-bytes.ts';
+import { modelCorsFailures, modelCorsOrigins, PUBLIC_MODEL_CORS_ORIGINS } from './lib/model-cors.ts';
 
 export interface ProbeSample {
   origin: string;
@@ -24,6 +25,8 @@ export interface ProbeSample {
   strippedSha256?: string;
   timeoutMs?: number;
   requireCors?: boolean;
+  /** Extra anonymous browser origins; the no-Origin variant is always included. */
+  corsOrigins?: readonly string[];
   compress?: boolean;
   method?: 'GET' | 'HEAD';
   monitoringOnly?: boolean;
@@ -32,9 +35,9 @@ export interface ProbeObservation {
   reader: number; coding: string; failures: string[]; status?: number;
   headers?: Record<string, string | null>; decodedSize?: number; decodedSha256?: string;
   credentialStrippedSha256?: string; declaredSize?: number;
-  checks?: Array<{ kind: string; status: number; failures: string[] }>;
+  checks?: Array<{ kind: string; status: number; failures: string[]; origin?: string | null }>;
 }
-const FIELDS = ['cache-control', 'cdn-cache-control', 'etag', 'content-encoding', 'content-length', 'content-type', 'cache-status', 'age', 'vary', 'content-security-policy', 'cross-origin-opener-policy', 'cross-origin-embedder-policy', 'referrer-policy', 'accept-ranges'] as const;
+const FIELDS = ['cache-control', 'cdn-cache-control', 'etag', 'content-encoding', 'content-length', 'content-type', 'cache-status', 'age', 'vary', 'content-security-policy', 'cross-origin-opener-policy', 'cross-origin-embedder-policy', 'referrer-policy', 'accept-ranges', 'access-control-allow-origin', 'access-control-allow-credentials', 'access-control-expose-headers'] as const;
 const PRIVATE = new Set<DeliveryClass>(['link', 'instance-private', 'person-private']);
 const strong = (tag: string | null | undefined): tag is string => !!tag && /^"[^"\r\n]+"$/.test(tag);
 const secretQuery = /^(dt|token|pw|password|authorization|cookie|x-amz-.+|signature|sig)$/i;
@@ -49,13 +52,15 @@ export async function probeSample(sample: ProbeSample, fetcher = fetch) {
   const readers = credentials.length ? credentials : [undefined];
   const timeout = sample.timeoutMs ?? (sample.size && sample.size > 50 * 1024 * 1024 ? 180_000 : 30_000);
   const observations: ProbeObservation[] = [];
-  const checkHeaders = (response: Response, failures: string[]) => {
+  if (sample.corsOrigins && (!sample.requireCors || names.length)) throw new Error('Model CORS origins require an anonymous CORS sample');
+  const corsOrigins = sample.corsOrigins ? modelCorsOrigins(sample.corsOrigins) : undefined;
+  const checkHeaders = (response: Response, failures: string[], requestOrigin: string | null = 'null') => {
     const headers = Object.fromEntries(FIELDS.map(k => [k, response.headers.get(k)]));
     const expected = cachePolicy(sample.cls, { status: response.status, boundedAgeSec: sample.boundedAgeSec });
     if (headers['cache-control'] !== expected.cacheControl && !(sample.path === '/sw.js' && headers['cache-control'] === 'no-cache, s-maxage=0, no-transform')) failures.push('cache-control');
     if (headers['cdn-cache-control'] !== (sample.path === '/sw.js' ? 'no-store' : expected.cdnCacheControl)) failures.push('cdn-cache-control');
     if (headers.vary && headers.vary.toLowerCase() !== 'accept-encoding') failures.push('vary');
-    if (sample.requireCors && response.headers.get('access-control-allow-origin') !== '*') failures.push('cors');
+    if (sample.requireCors) failures.push(...modelCorsFailures(response.headers, requestOrigin, [...(sample.requireStrongETag ? ['etag'] : []), ...(sample.checkRange ? ['etag', 'content-range', 'accept-ranges'] : [])]));
     if (['cache-tag', 'surrogate-key', 'x-cache-tag', 'x-cache-tags'].some(name => response.headers.has(name))) failures.push('exposed-cache-tags');
     if (PRIVATE.has(sample.cls) || response.status >= 400) {
       if (PRIVATE.has(sample.cls) && headers['referrer-policy'] !== 'no-referrer') failures.push('private-referrer');
@@ -68,7 +73,7 @@ export async function probeSample(sample: ProbeSample, fetcher = fetch) {
     try {
       const credential = readers[reader];
       const requestHeaders: Record<string, string> = { 'Accept-Encoding': coding, ...(sample.requireCors ? { Origin: 'null' } : {}), ...(credential ? { [sample.credentialType === 'cookie' ? 'Cookie' : 'Authorization']: sample.credentialType === 'cookie' ? credential : `Bearer ${credential}` } : {}) };
-      const request = (extra: Record<string, string> = {}) => fetcher(url, { method: sample.method ?? 'GET', headers: { ...requestHeaders, ...extra }, redirect: 'manual', signal: AbortSignal.timeout(timeout), cache: 'no-cache' });
+      const request = (extra: Record<string, string> = {}) => fetcher(url, { method: sample.method ?? 'GET', headers: { ...requestHeaders, ...extra }, credentials: 'omit', redirect: 'manual', signal: AbortSignal.timeout(timeout), cache: 'no-cache' });
       const response = await request();
       const measured = await measureProbeBody(response, sample.stripC2pa);
       const failures: string[] = [], headers = checkHeaders(response, failures);
@@ -81,7 +86,23 @@ export async function probeSample(sample: ProbeSample, fetcher = fetch) {
       if (sample.strippedSha256 && sample.strippedSha256 !== measured.strippedSha256) failures.push('credential-stripped-sha256');
       if (sample.compress && coding !== 'identity' && measured.size > 1024 && !['gzip', 'br'].includes(headers['content-encoding'] ?? '')) failures.push('origin-compression');
       if (sample.requireStrongETag && !strong(headers.etag)) failures.push('strong-etag');
-      const checks: Array<{ kind: string; status: number; failures: string[] }> = [];
+      const checks: NonNullable<ProbeObservation['checks']> = [];
+      if (corsOrigins && coding === 'identity') for (const origin of [...corsOrigins.filter(value => value !== 'null'), null]) {
+        const problems: string[] = [], full = !head && measured.size <= 1024 * 1024;
+        const variant = await fetcher(url, { method: full ? 'GET' : 'HEAD', headers: { 'Accept-Encoding': 'identity', ...(origin === null ? {} : { Origin: origin }) }, credentials: 'omit', redirect: 'manual', signal: AbortSignal.timeout(timeout), cache: 'no-cache' });
+        checkHeaders(variant, problems, origin);
+        if (variant.status !== 200) problems.push('cors-origin-status');
+        const body = await measureProbeBody(variant);
+        if (full) { if (body.sha256 !== measured.sha256 || body.size !== measured.size) problems.push('cors-origin-bytes'); }
+        else {
+          if (body.size) problems.push('cors-head-body');
+          if (variant.headers.get('content-length') !== String(head ? declaredSize : measured.size)) problems.push('cors-origin-size');
+          if (!strong(headers.etag) || variant.headers.get('etag') !== headers.etag) problems.push('cors-origin-validator');
+        }
+        if (variant.headers.has('content-encoding')) problems.push('cors-identity-encoding');
+        checks.push({ kind: full ? 'cors-full-bytes' : 'cors-head-metadata', origin, status: variant.status, failures: problems });
+        failures.push(...problems);
+      }
       if (response.status === 200 && sample.checkConditional) {
         const problems: string[] = [];
         if (!headers.etag) problems.push('etag-absent');
@@ -145,9 +166,9 @@ export function modelProbeSamples(manifest: Array<{ url: string; size: number; s
     const reference = options.legacyReferences?.find(item => item.origin === origin && item.path === file.url);
     if (options.fullLegacy && (!reference || !/^[a-f0-9]{64}$/.test(reference.sha256) || !Number.isSafeInteger(reference.size))) throw new Error('Full legacy qualification needs an archived alias digest and size for every host/path');
     return [
-      { origin, path: file.immutableUrl, cls: 'public-immutable' as const, size: file.size, sha256: file.sha256, checkConditional: true, checkRange: true, requireStrongETag: true, requireCors: true },
+      { origin, path: file.immutableUrl, cls: 'public-immutable' as const, size: file.size, sha256: file.sha256, checkConditional: true, checkRange: true, requireStrongETag: true, requireCors: true, corsOrigins: PUBLIC_MODEL_CORS_ORIGINS },
       // Aliases are retained for old releases and can intentionally hold earlier bytes.
-      { origin, path: file.url, cls: 'public-revalidate' as const, checkConditional: true, checkRange: !!options.fullLegacy, requireStrongETag: true, requireCors: true, size: reference?.size ?? file.size, ...(options.fullLegacy ? { sha256: reference!.sha256 } : { method: 'HEAD' as const, monitoringOnly: true }) },
+      { origin, path: file.url, cls: 'public-revalidate' as const, checkConditional: true, checkRange: !!options.fullLegacy, requireStrongETag: true, requireCors: true, corsOrigins: PUBLIC_MODEL_CORS_ORIGINS, size: reference?.size ?? file.size, ...(options.fullLegacy ? { sha256: reference!.sha256 } : { method: 'HEAD' as const, monitoringOnly: true }) },
     ];
   }));
 }

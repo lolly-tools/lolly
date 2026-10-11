@@ -69,7 +69,7 @@ render.
   endpoints under `/.well-known/`. For HTML-layout tools
   (`design`, `chart`), large files or heavy automation, use the CLI.
 
-### The 21 tools
+### Tools
 
 | Tool | Required | Does |
 |---|---|---|
@@ -158,11 +158,12 @@ See `design.md` for the worked examples and the authoring keys.
 
 ### Scoped file tools
 
-When the connection has an authenticated file scope, five more tools appear, for
+When the connection has an authenticated file scope, six more tools appear, for
 importing a private file once and operating on its handle: `files_import`,
-`files_list`, `files_convert`, `files_report`, `files_delete`. Bytes stay in the
+`files_list`, `files_download`, `files_convert`, `files_report`, `files_delete`. Bytes stay in the
 scope (4 MB per file, one-hour TTL) and are read back explicitly at
-`lolly://files/{id}/content`.
+`lolly://files/{id}/content`. The download tool creates a five-minute link on a
+single-process HTTP gateway; fetching the link needs the same MCP bearer token.
 
 ### Resources
 

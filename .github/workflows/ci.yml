@@ -272,6 +272,29 @@ jobs:
           done
           exit 1
 
+      - name: Install reference proxies for actual HTTP checks
+        if: matrix.shard == 'unit:engine'
+        timeout-minutes: 10
+        env:
+          CADDY_VERSION: '2.11.7'
+          CADDY_LINUX_AMD64_SHA256: 727b91701a392de6ebc5027509f548bf39979e5216340d0faed8fa5e69c84f8b
+        run: |
+          set -euo pipefail
+          archive="$RUNNER_TEMP/lolly-reference-caddy.tar.gz"
+          curl --fail --silent --show-error --location --retry 3 \
+            --output "$archive" \
+            "https://github.com/caddyserver/caddy/releases/download/v${CADDY_VERSION}/caddy_${CADDY_VERSION}_linux_amd64.tar.gz"
+          printf '%s  %s\n' "$CADDY_LINUX_AMD64_SHA256" "$archive" | sha256sum --check
+          mkdir -p "$RUNNER_TEMP/lolly-reference-proxies"
+          tar -xzf "$archive" -C "$RUNNER_TEMP/lolly-reference-proxies" caddy
+          "$RUNNER_TEMP/lolly-reference-proxies/caddy" version
+          echo "$RUNNER_TEMP/lolly-reference-proxies" >> "$GITHUB_PATH"
+          if ! command -v nginx >/dev/null; then
+            sudo timeout -k 30 240 apt-get update
+            sudo timeout -k 30 300 apt-get install -y --no-install-recommends nginx
+          fi
+          nginx -v
+
       - name: Install PDF production inspection tools
         if: matrix.shard == 'unit:engine' || matrix.shard == 'browser'
         timeout-minutes: 10

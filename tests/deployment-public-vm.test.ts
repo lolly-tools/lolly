@@ -91,6 +91,24 @@ test('public web image relay setting is optional and public content remains the 
   assert.match(dockerfile, /id=VITE_CATALOG_PUBLIC_KEY_JWK[^\n]*required=true/);
 });
 
+test('public VM HTTP fixture prepares and mounts the complete maintained delivery configuration', () => {
+  const fixture = read('tests/deployment-public-vm.integration.ts');
+  assert.match(fixture, /import \{ nginxDeliveryMaps, prepareStaticDelivery \} from '\.\.\/scripts\/build-delivery\.ts'/);
+  assert.match(fixture, /prepareStaticDelivery\(site\)/);
+  assert.match(fixture, /writeFileSync\(deliveryMaps, nginxDeliveryMaps\(\)/);
+  for (const name of ['security-headers', 'delivery-headers', 'delivery-maps', 'delivery-etags']) {
+    assert.ok(fixture.includes(`/etc/nginx/${name}.conf:ro`), `fixture mount missing ${name}`);
+  }
+  assert.match(fixture, /join\(site, '\.delivery-etags\.conf'\)/);
+  assert.doesNotMatch(fixture, /'--rm',/, 'early-exit logs survive until the explicit fixture cleanup');
+  assert.match(fixture, /Fixture exited before becoming ready/);
+  const workflow = read('.github/workflows/deployment-suse.yml');
+  const job = workflowJob(workflow, 'public-vm');
+  for (const dependency of ['/scripts/build-delivery.ts', '/packages/core/src/delivery-v1.ts']) {
+    assert.ok(job.includes(dependency), `sparse fixture checkout missing ${dependency}`);
+  }
+});
+
 test('web dependency fetch is source-independent but bootstrap, linking and signing always use full source', () => {
   const instructions = read('deploy/docker/web.Dockerfile').replace(/^\s*#.*$/gm, '');
   const stages = instructions.split(/^FROM /m).slice(1);

@@ -140,7 +140,7 @@ function nginxConfig(temporary: string, port: number, upstream: number): string 
   return `pid ${temporary}/nginx.pid;\nerror_log ${temporary}/error.log;\nevents {}\nhttp { access_log off; proxy_temp_path ${temporary}/proxy; ${reference} }\n`;
 }
 
-test('reference Nginx cache preserves bytes, isolates cookies and strips spoofing across two hops', { skip: !available(nginx, '-v') }, async () => {
+test('reference Nginx cache preserves bytes, isolates cookies and strips spoofing across two hops', { skip: available(nginx, '-v') ? false : 'Nginx executable is unavailable' }, async () => {
   const temporary = mkdtempSync(join(tmpdir(), 'lolly-reference-nginx-'));
   const fixture = originFixture(), originPort = await listen(fixture.server);
   const proxies: ReturnType<typeof launch>[] = [];
@@ -209,7 +209,7 @@ async function checkCaddyFiles(port: number, bytes: Buffer): Promise<void> {
   assert.equal(sw.headers['cdn-cache-control'], 'no-store'); assert.equal(sw.headers['service-worker-allowed'], '/');
 }
 
-test('reference Caddy preserves proxy privacy and bytes, conservative static policy and real missing responses', { skip: !available(caddy, 'version') }, async () => {
+test('reference Caddy preserves proxy privacy and bytes, conservative static policy and real missing responses', { skip: available(caddy, 'version') ? false : 'Caddy executable is unavailable' }, async () => {
   const temporary = mkdtempSync(join(tmpdir(), 'lolly-reference-caddy-')), root = join(temporary, 'site'); mkdirSync(root);
   writeFileSync(join(root, 'asset.svg'), signedBytes);
   writeFileSync(join(root, 'asset.svg.gz'), gzipSync(signedBytes)); writeFileSync(join(root, 'asset.svg.br'), brotliCompressSync(signedBytes));

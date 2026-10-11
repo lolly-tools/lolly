@@ -15,7 +15,16 @@ const dom = new JSDOM('<!doctype html><html><body></body></html>', {
 globalThis.window = dom.window as unknown as typeof globalThis.window;
 globalThis.document = dom.window.document;
 
-const { jellyNavSupportedInCurrentShell, viewToggle } = await import('./view-toggle.ts');
+const { jellyNavSupportedInCurrentShell, viewToggle, VIEW_TOGGLE_HREFS } = await import('./view-toggle.ts');
+
+test('Tools uses an explicit gallery route on every browse tab and in the animated switcher', () => {
+  assert.equal(VIEW_TOGGLE_HREFS.tools, '#/tools');
+  for (const active of ['tools', 'utilities', 'catalog', 'projects'] as const) {
+    const wrapper = dom.window.document.createElement('div');
+    wrapper.innerHTML = viewToggle(active);
+    assert.equal(wrapper.querySelector('[data-vt="tools"]')?.getAttribute('href'), '#/tools');
+  }
+});
 
 test('the animated Jelly view switcher remains available in an ordinary browser', () => {
   delete (window as typeof window & { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__;

@@ -4,7 +4,7 @@
  * utilities view, the projects view and the Assets view. Two coordinated forms:
  *
  * - Native links (`viewToggle()`, rendered by every listing view's topbar):
- *   pure markup - real hash links (`#` tools, `#/u` utilities, `#/p` projects,
+ *   pure markup - real hash links (`#/tools` tools, `#/u` utilities, `#/p` projects,
  *   `#/a` Assets), so the router's hashchange listener handles navigation; no
  *   JS wiring. Desktop shows icon+label; on mobile the label hides and the
  *   toggle shrinks to icons (topbar.css). The Utilities tab only renders while
@@ -41,7 +41,7 @@ import { icon } from '../lib/icons.ts';
 import { isTauriShell } from '../lib/instance-choice.ts';
 import { jellyActive } from '../lib/jelly.ts';
 import { playSfx } from '../lib/sfx.ts';
-import { escape } from '../utils.ts';
+import { escape as escapeHtml } from '../utils.ts';
 
 export type ViewToggleKey = 'tools' | 'utilities' | 'projects' | 'catalog';
 
@@ -63,7 +63,8 @@ const ICONS: Record<ViewToggleKey, string> = {
 // key → hash target. The jelly segments carry these as their submitted values,
 // so the persistent control's change handler is just `location.hash = value`.
 export const VIEW_TOGGLE_HREFS: Record<ViewToggleKey, string> = {
-  tools: '#',
+  // A bare hash would reopen a tool when browse views retain its pathname.
+  tools: '#/tools',
   utilities: '#/u',
   projects: '#/p',
   catalog: '#/a',
@@ -91,12 +92,12 @@ export function viewToggle(active: ViewToggleKey): string {
     `<a href="${href}" class="view-toggle-opt${active === key ? ' is-active' : ''}"` +
     // The active tab is a no-op navigation → stays silent; the others play the "navigate"
     // swish (data-sfx is read by the app-wide sfx delegation in lib/sfx.ts).
-    `${active === key ? ' aria-current="page"' : ' data-sfx="navigate"'} data-vt="${key}" aria-label="${escape(label)}">` +
+    `${active === key ? ' aria-current="page"' : ' data-sfx="navigate"'} data-vt="${key}" aria-label="${escapeHtml(label)}">` +
     `<span class="view-toggle-ic" aria-hidden="true">${ICONS[key]}</span>` +
-    `<span class="view-toggle-label">${escape(label)}</span>` +
+    `<span class="view-toggle-label">${escapeHtml(label)}</span>` +
     `</a>`;
   return `
-    <nav class="view-toggle" aria-label="${escape(t('Switch between Tools, Utilities, Projects and Assets'))}">
+    <nav class="view-toggle" aria-label="${escapeHtml(t('Switch between Tools, Utilities, Projects and Assets'))}">
       ${activeKeys().map(k => opt(k, VIEW_TOGGLE_HREFS[k], t(LABELS[k]))).join('\n      ')}
     </nav>`;
 }
@@ -144,7 +145,7 @@ function injectJellyIcons(seg: HTMLElement, keys: readonly ViewToggleKey[]): voi
 }
 
 function segmentsHtml(keys: ViewToggleKey[]): string {
-  return keys.map(k => `<jelly-segment value="${VIEW_TOGGLE_HREFS[k]}">${escape(t(LABELS[k]))}</jelly-segment>`).join('');
+  return keys.map(k => `<jelly-segment value="${VIEW_TOGGLE_HREFS[k]}">${escapeHtml(t(LABELS[k]))}</jelly-segment>`).join('');
 }
 
 /**
@@ -172,7 +173,7 @@ export function syncJellyNavToggle(active: ViewToggleKey | null): void {
       playSfx('navigate');
       // Navigate immediately - this control survives the route swap, so the
       // pill's slide plays out across it with no handoff.
-      location.hash = value === '#' ? '' : value;
+      location.hash = value;
     });
   }
   // (Re)build the segments only when the tab set changes (the Utilities flag),
@@ -183,7 +184,7 @@ export function syncJellyNavToggle(active: ViewToggleKey | null): void {
     // the wrapper's 3px padding made the pill taller than the sibling icon FABs
     // (2.9em). 2.5rem host + the 3px rim ≈ 46px, matching them. Inline so it can't
     // lose the cascade to the shadow default; the tab paddings ride in projects.css.
-    jellyNav.innerHTML = `<jelly-segmented class="view-toggle-seg" style="height:2.5rem" value="${VIEW_TOGGLE_HREFS[active]}" label="${escape(t('Switch between Tools, Utilities, Projects and Assets'))}">${segmentsHtml(keys)}</jelly-segmented>`;
+    jellyNav.innerHTML = `<jelly-segmented class="view-toggle-seg" style="height:2.5rem" value="${VIEW_TOGGLE_HREFS[active]}" label="${escapeHtml(t('Switch between Tools, Utilities, Projects and Assets'))}">${segmentsHtml(keys)}</jelly-segmented>`;
   } else {
     // Steering the value attribute re-syncs the control and the pill ANIMATES
     // from wherever it is - including a route change driven by the native

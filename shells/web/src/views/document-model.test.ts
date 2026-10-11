@@ -410,8 +410,8 @@ test('main.ts imports the specification browser lazily, on its own route', () =>
   const main = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '../main.ts'), 'utf8');
   assert.match(main, /case 'document-model':/, 'the route has a mount case');
   assert.match(
-    main, /await import\('\.\/views\/document-model\.ts'\)/,
-    'and the view is reached by a dynamic import, so it stays off the cold-load bundle',
+    main, /await navigationModule\(import\('\.\/views\/document-model\.ts'\), navigation\)/,
+    'the lazy import stays off the cold-load bundle and rejects stale navigation',
   );
   assert.doesNotMatch(
     main, /^import[^\n]*from '\.\/views\/document-model\.ts';/m,

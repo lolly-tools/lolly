@@ -155,11 +155,15 @@ test('the worker fetches weights ONLY through the shared MODELS_BASE fetcher', (
   assert.ok(!/https?:\/\//.test(codeOnly), 'no absolute http(s) URL outside comments');
 });
 
-test('the shared fetcher builds its URL from MODELS_BASE', () => {
+test('the shared fetcher resolves verified model URLs through MODELS_BASE', () => {
   const ort = readFileSync(join(LIB_DIR, 'ort.ts'), 'utf8');
-  assert.match(ort, /import\s*\{\s*MODELS_BASE\s*\}\s*from\s*'\.\/models-base\.ts'/);
-  assert.match(ort, /const url = `\$\{MODELS_BASE\}\/models\/\$\{dir\}\/\$\{fileName\}`/,
-    'every model byte comes from ${MODELS_BASE}/models/<dir>/<file>');
+  const resolver = readFileSync(join(LIB_DIR, 'model-manifest.ts'), 'utf8');
+  assert.match(ort, /import\s*\{\s*modelFile,\s*modelNetworkUrl\s*\}\s*from\s*'\.\/model-manifest\.ts'/);
+  assert.match(ort, /const url = modelNetworkUrl\(legacyUrl\)/,
+    'model downloads use the verified manifest resolver');
+  assert.match(resolver, /import\s*\{\s*MODELS_BASE\s*\}\s*from\s*'\.\/models-base\.ts'/);
+  assert.match(resolver, /target\.startsWith\('\/models\/'\) \? MODELS_BASE \+ target : target/,
+    'the configured model host prefixes resolved model paths');
 });
 
 

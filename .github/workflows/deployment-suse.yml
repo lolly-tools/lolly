@@ -250,6 +250,10 @@ jobs:
             /deploy/docker/
             /deploy/models-host/
             /scripts/model-release.ts
+            /scripts/build-delivery.ts
+            /scripts/lib/mounted-model-delivery.ts
+            /scripts/gen-models-manifest.ts
+            /packages/core/src/delivery-v1.ts
             /tests/deployment-public-vm.test.ts
             /tests/deployment-public-vm.integration.ts
             /tests/model-release.test.ts

@@ -38,19 +38,16 @@ test('generated tables and the .claude mirror are current', () => {
 
 test('surfaces.md names every MCP tool the server registers', () => {
   const surfaces = skill('reference/surfaces.md');
-  const names = [
-    ...TOOL_DEFS.map((t: { name: string }) => t.name),
-    ...PRIVATE_FILE_TOOLS.map((t: { name: string }) => t.name),
-  ];
-  // The 21 always-on tools plus the 5 scoped file tools; a change to either set
-  // must be reflected in the skill. (14 became 17 with the looking tools,
-  // plans/289: lolly_look, lolly_sample_color, lolly_trace_edges; 17 became 19
-  // with lolly_read and lolly_check, plan 291; 19 became 20 with lolly_measure_text,
-  // plan 291 W5; 20 became 21 with lolly_compose, plan 291 W6.)
-  assert.equal(names.length, 26, `expected 26 MCP tool names, saw ${names.length}: ${names.join(', ')}`);
-  for (const name of names) {
-    assert.ok(surfaces.includes(`\`${name}\``), `surfaces.md does not document MCP tool ${name}`);
-  }
+  const tools = TOOL_DEFS.map((t: { name: string }) => t.name);
+  const files = PRIVATE_FILE_TOOLS.map((t: { name: string }) => t.name);
+  const names = [...tools, ...files];
+  assert.equal(new Set(names).size, names.length, 'registered MCP tool names must be unique');
+  const documentedTools = [...surfaces.matchAll(/^\| `(lolly_[a-z_]+)` \|/gm)].map(match => match[1]);
+  assert.deepEqual(documentedTools.sort(), tools.sort(), 'MCP tool table must match the registered tools');
+  const scoped = surfaces.match(/### Scoped file tools\n([\s\S]*?)\n### Resources/);
+  assert.ok(scoped, 'surfaces.md must describe the scoped file tools');
+  const documentedFiles = [...new Set([...scoped[1].matchAll(/`(files_[a-z_]+)`/g)].map(match => match[1]))];
+  assert.deepEqual(documentedFiles.sort(), files.sort(), 'scoped file documentation must match the registered tools');
 });
 
 // Pull the worked links out of the single ```text block under "Ten worked links".

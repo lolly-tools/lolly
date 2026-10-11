@@ -7,6 +7,7 @@ import { homedir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { fileSha256, type ModelManifestEntry } from './gen-models-manifest.ts';
+import { modelCorsFailures, modelCorsOrigins } from './lib/model-cors.ts';
 
 export interface ModelInventoryObservation {
   /** Configured public origin for later public qualification. */
@@ -21,6 +22,8 @@ export interface ModelInventoryObservation {
 export interface ModelPublisherOptions {
   endpoint: string; region: string; bucket: string; publicBase: string; access: string; secret: string;
   sourceRoot: string; dryRun?: boolean; fetcher?: typeof fetch; log?: (message: string) => void;
+  /** Browser consumers to check anonymously, in addition to a no-Origin request. */
+  corsOrigins?: readonly string[];
   /** Archive inventory bytes already read; this hook never requests another copy. */
   observeInventory?: (observation: Readonly<ModelInventoryObservation>) => void | Promise<void>;
 }
@@ -47,11 +50,40 @@ async function responseDigest(response: Response): Promise<{ sha256: string; siz
   return { sha256: hash.digest('hex'), size };
 }
 const mime = (key: string) => key.endsWith('.json') ? 'application/json' : key.endsWith('.txt') ? 'text/plain; charset=utf-8' : 'application/octet-stream';
+function publicModelUrl(publicBase: string, path: string): URL {
+  const base = new URL(publicBase), url = new URL(path, base);
+  if (!['https:', 'http:'].includes(base.protocol) || base.username || base.password || base.search || base.hash || base.pathname !== '/' || url.origin !== base.origin || url.search || url.hash) throw new Error('Public model verification requires an origin and a plain path');
+  return url;
+}
+/** Read small files fully from every origin. For large weights, one full hash is
+ * followed by HEAD checks against the same strong validator and declared size. */
+export async function verifyPublicModel(file: Pick<ModelManifestEntry, 'size' | 'sha256'>, path: string, opts: Pick<ModelPublisherOptions, 'publicBase' | 'fetcher' | 'corsOrigins'>): Promise<void> {
+  const url = publicModelUrl(opts.publicBase, path);
+  const fetcher = opts.fetcher ?? fetch, origins: Array<string | null> = [...modelCorsOrigins(opts.corsOrigins), null];
+  let etag: string | null = null;
+  for (const [index, origin] of origins.entries()) {
+    const head = index > 0 && file.size > 1024 * 1024;
+    const probe = await fetcher(url.href, { method: head ? 'HEAD' : 'GET', headers: { 'accept-encoding': 'identity', ...(origin === null ? {} : { origin }) }, credentials: 'omit', redirect: 'manual', cache: 'no-cache', signal: AbortSignal.timeout(file.size > 50 * 1024 * 1024 ? 180_000 : 30_000) });
+    const failures = modelCorsFailures(probe.headers, origin, ['etag', 'content-range', 'accept-ranges']);
+    if (probe.status !== 200) failures.push('status');
+    if (probe.headers.has('content-encoding')) failures.push('identity-encoding');
+    if (head) {
+      if (!etag || !/^"[^"\r\n]+"$/.test(etag) || probe.headers.get('etag') !== etag) failures.push('origin-validator');
+      if (probe.headers.get('content-length') !== String(file.size)) failures.push('origin-size');
+    }
+    if (failures.length) { await probe.body?.cancel(); throw new Error(`Public model/CORS verification failed: ${path} (${origin ?? 'no Origin'}: ${failures.join(', ')})`); }
+    if (head) { await probe.body?.cancel(); continue; }
+    const actual = await responseDigest(probe);
+    if (actual.sha256 !== file.sha256 || actual.size !== file.size) throw new Error(`Public model digest mismatch: ${path} (${origin ?? 'no Origin'})`);
+    etag ??= probe.headers.get('etag');
+  }
+}
 /** GET hashes existing objects. If-None-Match:* also prevents races with another
  * publisher between verification and PUT. No key is overwritten or deleted. */
 export async function publishModels(entries: readonly ModelManifestEntry[], opts: ModelPublisherOptions): Promise<void> {
   const fetcher = opts.fetcher ?? fetch, log = opts.log ?? console.log;
-  const origin = new URL(opts.publicBase).origin;
+  const origin = publicModelUrl(opts.publicBase, '/').origin;
+  modelCorsOrigins(opts.corsOrigins);
   for (const file of entries) {
     const family = /^\/models\/([a-z0-9-]+)\//.exec(file.url)?.[1];
     if (!family || !/^[a-f0-9]{64}$/.test(file.directorySha256) || file.immutableUrl !== file.url.replace(`/models/${family}/`, `/models/${family}@${file.directorySha256.slice(0, 16)}/`)) throw new Error('Invalid model directory mapping');
@@ -80,10 +112,7 @@ export async function publishModels(entries: readonly ModelManifestEntry[], opts
         if (!uploaded.ok) throw new Error(`Model PUT failed: ${uploaded.status} for ${url}; no overwrite was attempted`);
       }
       if (opts.dryRun) continue;
-      const probe = await fetcher(`${opts.publicBase}${url}`, { headers: { origin: 'null' }, cache: 'no-cache' });
-      if (!probe.ok || probe.headers.get('access-control-allow-origin') !== '*') throw new Error(`Public model/CORS verification failed: ${url}`);
-      const actual = await responseDigest(probe);
-      if (actual.sha256 !== file.sha256 || actual.size !== file.size) throw new Error(`Public model digest mismatch: ${url}`);
+      await verifyPublicModel(file, url, opts);
       log(`Published and verified ${url}`);
     }
   }
@@ -99,6 +128,6 @@ export async function publishModelsCli(): Promise<void> {
   const privateDir = process.env.LOLLY_PRIVATE_DIR ?? join(homedir(), 'Build/lolly-private');
   const creds = JSON.parse(await readFile(join(privateDir, 'lolly/release-s3.json'), 'utf8')) as { access_key_id: string; secret_access_key: string };
   if (!creds.access_key_id || !creds.secret_access_key) throw new Error('Missing private model publication credentials');
-  await publishModels(entries, { sourceRoot: resolve(sourceRoot), endpoint: process.env.LOLLY_MODELS_S3_ENDPOINT ?? 'https://dq0o8.upcloudobjects.com', region: process.env.LOLLY_MODELS_S3_REGION ?? 'europe-2', bucket: process.env.LOLLY_MODELS_S3_BUCKET ?? 'lolly', publicBase: process.env.LOLLY_MODELS_PUBLIC_BASE ?? 'https://lolli.li', access: creds.access_key_id, secret: creds.secret_access_key, dryRun: process.argv.includes('--dry-run') });
+  await publishModels(entries, { sourceRoot: resolve(sourceRoot), endpoint: process.env.LOLLY_MODELS_S3_ENDPOINT ?? 'https://dq0o8.upcloudobjects.com', region: process.env.LOLLY_MODELS_S3_REGION ?? 'europe-2', bucket: process.env.LOLLY_MODELS_S3_BUCKET ?? 'lolly', publicBase: process.env.LOLLY_MODELS_PUBLIC_BASE ?? 'https://lolli.li', access: creds.access_key_id, secret: creds.secret_access_key, dryRun: process.argv.includes('--dry-run'), ...(process.env.LOLLY_MODELS_CORS_ORIGINS ? { corsOrigins: process.env.LOLLY_MODELS_CORS_ORIGINS.split(',') } : {}) });
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) await publishModelsCli();
