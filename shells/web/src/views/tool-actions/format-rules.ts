@@ -7,6 +7,7 @@
  * a value (an event listener), goes through `ta.<module>.<fn>`. Extracted verbatim
  * from renderActions() by scripts/split-closure.ts.
  */
+import { learningEnabled } from '../../lib/learning-feature.ts';
 import { deriveExportFilename } from '@lolly/engine';
 import { t } from '../../i18n.ts';
 import { getExportPolicy } from '../../lib/export-policy.ts';
@@ -197,7 +198,7 @@ export function readDeepExport(ta: ActionsCtx): void {
   // float formats (exr/hdr) on-device even without the Node float rasteriser - so the
   // Pro <optgroup> opens for it here (e.g. Bitmap Studio's EXR/Radiance masters).
   const toolDeepExport = !!manifest.hooks?.exportStill && !!host.codec; ta.toolDeepExport = toolDeepExport;
-  const capFormats = manifest.render.formats.filter((f) => keepFormat(f, toolDeepExport)); ta.capFormats = capFormats;
+  const capFormats = manifest.render.formats.filter((f) => (f !== 'scorm' || learningEnabled()) && keepFormat(f, toolDeepExport)); ta.capFormats = capFormats;
   // Org format policy (lib/export-policy.ts formatsFor): a cooperative narrowing
   // overlay, exactly like a choice input's allow list - intersected with the
   // capability-filtered set, applied only when at least one declared format

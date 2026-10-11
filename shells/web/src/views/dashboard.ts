@@ -438,7 +438,7 @@ async function capabilitiesSection(): Promise<string> {
   // `caps` string namespace it's keyed by. Both are lazy: this panel is one
   // tab of one view, and its ~300 prose strings have no business in the boot
   // bundle.
-  const [{ CAPABILITY_SECTIONS }] = await Promise.all([
+  const [{ visibleCapabilitySections }] = await Promise.all([
     import('../lib/capabilities-data.ts'),
     loadNamespace('caps'),
   ]);
@@ -448,7 +448,8 @@ async function capabilitiesSection(): Promise<string> {
   // at a glance. data-dash-collapse wires the shared fold sound cue.
   // A section's summary also carries its card count: the folded state otherwise
   // gives no clue whether opening it reveals one card or eight.
-  const groups = CAPABILITY_SECTIONS.map((s, idx) => `
+  const sections = visibleCapabilitySections();
+  const groups = sections.map((s, idx) => `
     <details class="dash-cap-group" id="${s.id}" data-flag="${escape(s.flag)}"${idx === 0 ? ' open' : ''}>
       <summary class="dash-cap-group-head">
         <span class="dash-cap-group-icon" aria-hidden="true">${s.icon}</span>
@@ -469,7 +470,7 @@ async function capabilitiesSection(): Promise<string> {
   // It is deliberately NOT wrapped in a <form>: an Enter keypress inside a
   // lone text input in a form triggers implicit submission and would reload
   // the view.
-  const totalCards = CAPABILITY_SECTIONS.reduce((n, s) => n + s.cards.length, 0);
+  const totalCards = sections.reduce((n, s) => n + s.cards.length, 0);
   const search = `
       <div class="dash-cap-search">
         <span class="dash-cap-search-icon" aria-hidden="true">${SEARCH_GLYPH}</span>

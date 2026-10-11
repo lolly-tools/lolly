@@ -55,3 +55,23 @@ test('compact fields retain native disclosure semantics and explain a rejected c
   assert.equal(root.querySelector('[role="status"]')!.textContent, 'The selection changed.');
   dispose(); dom.window.close();
 });
+
+
+test('overlapping token actions remain pending until every lookup finishes', async () => {
+  const dom = new JSDOM('<main></main>');
+  Object.assign(globalThis, { window: dom.window, document: dom.window.document, AbortController: dom.window.AbortController });
+  const root = dom.window.document.querySelector<HTMLElement>('main')!;
+  const finishes: Array<(value: ReturnType<typeof createTokenSet>) => void> = [];
+  const host = { tokens: { get: () => new Promise<ReturnType<typeof createTokenSet>>(resolve => { finishes.push(resolve); }) } } as HostV1;
+  const pending: boolean[] = [];
+  const dispose = mountTokenBindingField(root, { id: 'gap', type: 'number', value: 12 } as InputModelItem, host, () => {}, { restoreRef: '{gap}', onPendingChange: value => { pending.push(value); } });
+  const button = root.querySelector<HTMLButtonElement>('[data-token-restore]')!;
+  button.click(); button.click();
+  assert.deepEqual(pending, [true]);
+  const set = createTokenSet({ gap: { $type: 'number', $value: 36 } });
+  finishes[0]!(set); await new Promise(resolve => setTimeout(resolve, 0));
+  assert.deepEqual(pending, [true]);
+  finishes[1]!(set); await new Promise(resolve => setTimeout(resolve, 0));
+  assert.deepEqual(pending, [true, false]);
+  dispose(); dom.window.close();
+});

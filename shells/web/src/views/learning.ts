@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { showLearningFeatureGate } from '../lib/learning-feature.ts';
 import { updateRouteParams } from '../lib/url-state.ts';
 import type { LearningCtx } from './learning/context.ts';
 import type { LearningBlock, LearningRelease, LearningTarget } from '@lolly-tools/core/learning-v1';
@@ -23,6 +24,7 @@ export async function mountLearning(
   host: PickerHost,
   params = ''
 ): Promise<void> {
+  if (showLearningFeatureGate(root)) return;
   const query = new URLSearchParams(params);
   const requested = query.get('slot');
   if (requested && !requested.startsWith(LEARNING_SLOT_PREFIX))

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import { escape as escapeHtml } from '../utils.ts';
 import { t } from '../i18n.ts';
+import { learningEnabled } from '../lib/learning-feature.ts';
 import { icon } from '../lib/icons.ts';
 import { actionButtonContent } from '../components/action-button.ts';
 import { FOLDER_ICON } from '../folder-tiles.ts';
@@ -43,6 +44,7 @@ export function emptyFolderHtml(isUncat: boolean): string {
 /** Learning and Batch actions retain the folder as their return destination. */
 export function projectLearningActionsHtml(folderId: string | null, batchFrom: string | null): string {
   const query = batchFrom ? `?from=${encodeURIComponent(batchFrom)}` : '';
-  const course = folderId ? `<button type="button" class="btn btn--labelled projects-create-btn" data-course-folder="${escapeHtml(folderId)}">${actionButtonContent(t('Export course'), 'graduationCap')}</button>` : '';
-  return `${course}<a class="btn btn--labelled projects-create-btn" href="#/learning${query}">${actionButtonContent(t('Create learning module'), 'graduationCap')}</a><a href="#/batch${query}" class="btn btn--labelled projects-batch-btn" title="${escapeHtml(t('Batch'))}">${actionButtonContent(t('Batch'), 'table')}</a>`;
+  const course = learningEnabled() && folderId ? `<button type="button" class="btn btn--labelled projects-create-btn" data-course-folder="${escapeHtml(folderId)}">${actionButtonContent(t('Export course'), 'graduationCap')}</button>` : '';
+  const learning = learningEnabled() ? `<a class="btn btn--labelled projects-create-btn" href="#/learning${query}">${actionButtonContent(t('Create learning module'), 'graduationCap')}</a>` : '';
+  return `${course}${learning}<a href="#/batch${query}" class="btn btn--labelled projects-batch-btn" title="${escapeHtml(t('Batch'))}">${actionButtonContent(t('Batch'), 'table')}</a>`;
 }

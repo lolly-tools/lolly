@@ -1,5 +1,7 @@
 # Create a training course for a website or LMS
 
+Training and courses starts off. Open **Settings > Feature flags** and turn on **Training and courses** to show learning modules and course exports. Turning the feature off keeps saved modules and course versions; turn it on again to continue editing.
+
 Use a **learning module** to turn a Lolly project into a course for a website or a learning management system (LMS). Arrange lessons, add your saved designs and imported media, check the learner experience, then download a versioned ZIP.
 
 For LMS delivery, the customer LMS enrols learners and records completion. For website delivery, learners open a static page and progress stays in their browser. You do not need a Lolly Work account to build a package. The draft and saved package versions live on your device.

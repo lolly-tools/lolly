@@ -7830,5 +7830,8 @@
   "Build: {steps}": "Build: {steps}",
   "Focus: {steps}": "Focus: {steps}",
   "Other steps on this slide: {steps}": "Other steps on this slide: {steps}",
-  "No other steps on this slide.": "No other steps on this slide."
+  "No other steps on this slide.": "No other steps on this slide.",
+  "Training and courses": "Training and courses",
+  "Adds learning modules and course exports to Projects and tool export panels. Turn it on to build lessons, practice quizzes and LMS or website packages. Turning it off keeps your saved modules and course versions.": "Adds learning modules and course exports to Projects and tool export panels. Turn it on to build lessons, practice quizzes and LMS or website packages. Turning it off keeps your saved modules and course versions.",
+  "Turn on Training and courses in Settings to use this feature.": "Turn on Training and courses in Settings to use this feature."
 }

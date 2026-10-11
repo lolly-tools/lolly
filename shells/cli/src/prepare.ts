@@ -63,14 +63,14 @@ export async function prepareCli(paths: string[], flags: Record<string, string>)
   try {
     const options = { signal: controller.signal, progress: (p: { completed: number; total: number }) => { if (process.stderr.isTTY && flags.quiet !== '1') process.stderr.write(`Inspecting ${p.completed}/${p.total}\n`); } };
     let inspection = await inspectPreparation(sources, rules, options);
-    let choices: PreparationChoice[] = isOn(flags['replace-all']) ? inspection.groups.filter(g => !recipe || recipe.categories.includes(g.category)).map(g => ({ groupId: g.id, replacement: g.replacement })) : [];
+    let choices: PreparationChoice[] = isOn(flags['replace-all']) ? inspection.groups.filter(g => !g.readOnly && (!recipe || recipe.categories.includes(g.category))).map(g => ({ groupId: g.id, replacement: g.replacement })) : [];
     let removeScopes: string[] = [];
     if (flags.choices) {
       const review = await readJson(flags.choices) as { inspection: PreparationInspection; choices: PreparationChoice[]; removeScopes?: string[] };
       if (!review?.inspection || !Array.isArray(review.choices)) throw usageError('Use a private review envelope produced with --review-file.');
       inspection = review.inspection; choices = review.choices; removeScopes = review.removeScopes ?? [];
     }
-    if (flags['review-file']) await writeFile(flags['review-file'], JSON.stringify({ inspection, choices: inspection.groups.map(g => ({ groupId: g.id, replacement: g.replacement })), removeScopes: [] }, null, 2), { flag: 'wx', mode: 0o600 });
+    if (flags['review-file']) await writeFile(flags['review-file'], JSON.stringify({ inspection, choices: inspection.groups.filter(g => !g.readOnly).map(g => ({ groupId: g.id, replacement: g.replacement })), removeScopes: [] }, null, 2), { flag: 'wx', mode: 0o600 });
     if (flags['save-recipe']) await writeFile(flags['save-recipe'], JSON.stringify(preparationRecipe(recipe?.categories ?? [...new Set(inspection.groups.map(g => g.category))], rules), null, 2), { flag: 'wx', mode: 0o600 });
     let result = await applyPreparation(sources, inspection, choices, removeScopes, options);
     if (isOn(flags['strip-hidden-data'])) {

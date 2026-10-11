@@ -137,6 +137,14 @@ export const STRIP_UPLOAD_META_FLAG: FeatureFlag = {
   info: 'Removes EXIF, location (GPS) and other embedded metadata from images you upload. Content Credentials (C2PA provenance) are always preserved - a signed or AI-generated image keeps its credential either way. A credit another person embedded goes with the rest of the metadata, so record it on the asset if the work is theirs.',
 };
 
+// Course authoring and packaging are opt-in on each device.
+export const LEARNING_FLAG: FeatureFlag = {
+  id: 'training-courses',
+  label: 'Training and courses',
+  default: false,
+  info: 'Adds learning modules and course exports to Projects and tool export panels. Turn it on to build lessons, practice quizzes and LMS or website packages. Turning it off keeps your saved modules and course versions.',
+};
+
 // Opt-IN (default OFF): the export panel's "Before you export" prepress card. A
 // personal toggle since 2026-08-06 (it was control-plane-only before): anyone who
 // prints can turn it on, and the DEFAULT stays off so an individual exporting a
@@ -357,7 +365,7 @@ export function hydrateFeatureFlags(profile: Profile | null | undefined): void {
   // entry - which is what makes a fresh device read it as on (PRIVATE_COLLAB_FLAG
   // since 2026-08-10; it stays in this list because the list is "every standalone
   // flag", not "every opt-in one").
-  for (const f of [NEUROSPICY_FLAG, JELLY_FLAG, WOBBLY_FLAG, WOBBLY_MESH_FLAG, STRIP_UPLOAD_META_FLAG, PREFLIGHT_FLAG, PRIVATE_COLLAB_FLAG, NEARBY_DISCOVERY_FLAG, PERFORMANCE_UI_FLAG, PERF_HUD_FLAG]) {
+  for (const f of [NEUROSPICY_FLAG, JELLY_FLAG, WOBBLY_FLAG, WOBBLY_MESH_FLAG, STRIP_UPLOAD_META_FLAG, PREFLIGHT_FLAG, LEARNING_FLAG, PRIVATE_COLLAB_FLAG, NEARBY_DISCOVERY_FLAG, PERFORMANCE_UI_FLAG, PERF_HUD_FLAG]) {
     if (eff[f.id] === undefined && f.default === false) eff[f.id] = false;
   }
   try { localStorage.setItem(FLAG_MIRROR_KEY, JSON.stringify(eff)); } catch { /* best-effort */ }

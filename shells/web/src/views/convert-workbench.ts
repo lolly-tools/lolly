@@ -18,7 +18,7 @@ import { runSavedFileOperation } from '../lib/saved-file-operation.ts';
 import { attachFileResultActions } from './file-result-actions.ts';
 
 export interface ConvertSource { file: File; bytes: Uint8Array; kind: string; targets: Target[] }
-interface Completed { blob: Blob; name: string; report: FileOperationReportV1; operationId: string }
+interface Completed { blob: Blob; name: string; report: FileOperationReportV1; operationId: string; original: File }
 
 export function mountConvertWorkbench(root: HTMLElement, sources: ConvertSource[], host: HostV1, initialTarget?: string): () => void {
   const first = sources[0]!;
@@ -157,7 +157,7 @@ export function mountConvertWorkbench(root: HTMLElement, sources: ConvertSource[
         void navigator.share({ files: [shareFile] }).catch(error => { if (error?.name !== 'AbortError') setStatus(t('Sharing failed. You can still download the file.')); });
       });
     }
-    attachFileResultActions(card.querySelector<HTMLElement>('.convert-output-info')!, item.operationId, facts, host, setStatus);
+    attachFileResultActions(card.querySelector<HTMLElement>('.convert-output-info')!, item.operationId, facts, host, setStatus, item.original);
     outputList.append(card);
     zipButton.hidden = completed.length < 2;
   }
@@ -208,7 +208,7 @@ export function mountConvertWorkbench(root: HTMLElement, sources: ConvertSource[
         else {
           succeeded++;
           if (active) {
-            const item = { blob: outcome.output, name: outcome.output.name, report: outcome.report, operationId: member.operationId };
+            const item = { blob: outcome.output, name: outcome.output.name, report: outcome.report, operationId: member.operationId, original: source.file };
             completed.push(item); appendOutput(item);
           }
         }

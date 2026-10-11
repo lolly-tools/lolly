@@ -414,7 +414,7 @@ const WATCHED: Record<InspectorSection, (c: Cfg, m: FlagFields) => Array<string 
   // `build` and `lane` have no cfg key of their own (the manifest names them literally,
   // as `notes` and `cls` are named), and the Appears control is derived from all four of
   // build/start/dur/lane - so a build step written anywhere else has to move this memo.
-  motion: (c) => [c.startField, c.durField, c.enterField, c.exitField, c.enterMsField, c.exitMsField, c.holdField, c.splitField, c.kfField, 'build', 'lane'],
+  motion: (c) => [c.startField, c.durField, c.enterField, c.exitField, c.enterMsField, c.exitMsField, c.holdField, c.splitField, c.kfField, 'enterEase', 'exitEase', 'build', 'lane'],
   // `notes` is here rather than in Artboard: the Present section is where a slide's
   // speaker notes are edited (plans/180), and the narration status is read off them.
   present: () => ['build', 'presentAudio', 'matchOf', 'state', 'stackOf', 'notes'],
@@ -605,7 +605,7 @@ function wireInspectorSelects(root: HTMLElement, model: ModelPort, ids: string[]
 }
 
 export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorHandle {
-  let tokenDisposers: (() => void)[] = [];
+  let tokenDisposers: ReturnType<typeof mountDesignTokenBindings>[] = [];
   const tokenUiState = new Map<string, { open?: boolean; field?: string }>();
   const { canvasEl, model, selection, artboard, actions, fonts, narration } = opts;
   let voiceList: SpeechVoiceInfo[] | null = null;   // the bridge's voices, fetched once per column
@@ -2039,7 +2039,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     wireHelpTips(el);
     linkHelpDescriptions(scroll);
     const textSlot = scroll.querySelector<HTMLElement>('[data-composed-inspector]');
-    if (textSlot && actions.text) textMounted = mountTextInspector(textSlot, g.ids, actions.text, fonts);
+    if (textSlot && actions.text) textMounted = mountTextInspector(textSlot, g.ids, actions.text, fonts, opts.tokens?.host);
     mountToolPanel(g);
     wire();
     if (model.collection && renderedIds[0]) {
@@ -2054,7 +2054,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       if (!parent || parent.hasAttribute('data-deferred')) continue;
       const slot = document.createElement('div'); slot.dataset.tokenSection = sec; parent.append(slot);
       if (!tokenUiState.has(sec)) tokenUiState.set(sec, {});
-      tokenDisposers.push(mountDesignTokenBindings(slot, { ...opts.tokens, model, ids: [...g.ids], fields: fieldDefs as BlockFieldSpec[], fieldIds: WATCHED[sec](cfg, m4), state: tokenUiState.get(sec) }));
+      tokenDisposers.push(mountDesignTokenBindings(slot, { ...opts.tokens, model, ids: [...g.ids], fields: fieldDefs as BlockFieldSpec[], fieldIds: WATCHED[sec](cfg, m4), state: tokenUiState.get(sec), onSettled: settle }));
     }
     if (g.secs.includes('document')) scheduleMountedAudit();
     // Put the user back on the control they were operating. `preventScroll` because a
@@ -2396,12 +2396,8 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
   }
 
   /**
-   * True while a rebuild would destroy the thing the user is standing in.
-   *
-   * The caret is one such thing; a LIVE SCRUB on a number cell or a slider is the
-   * second, and an
-   * OPEN COLOUR POPOVER is the third, and it is the
-   * one that made the pickers single-click. The picker emits on every change - each
+   * Keep the caret, scrub, colour popover and pending token action mounted.
+   * An open colour popover made the pickers single-click. The picker emits on every change - each
    * swatch click, each slider `input` - so the commit's own model echo came straight
    * back here and the column's one raw-HTML write deleted the popover the user was
    * working in (with its mode tabs, alpha row, eyedropper and sliders), one gesture
@@ -2419,6 +2415,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
    */
   function heldOpen(): boolean {
     return typingHere()
+      || tokenDisposers.some(dispose => dispose.busy())
       || !!toolPanel?.handle?.busy()
       || numMounted.some((h) => h.scrubbing())
       || rangeDrag
@@ -2473,6 +2470,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     const g = gate();
     const sig = signature(g);
     if (!force && sig === lastSig) return;
+    if (g.ids.join(',') !== renderedIds.join(',')) { tokenDisposers.forEach(dispose => { dispose(); }); tokenDisposers = []; }
     if (heldOpen()) { pendingRebuild = true; armSettle(); return; }
     lastSig = sig;
     pendingRebuild = false;

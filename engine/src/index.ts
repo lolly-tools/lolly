@@ -907,6 +907,8 @@ export { TAR_MAX_ARCHIVE_BYTES, TAR_MAX_MEMBERS, TAR_MAX_PAYLOAD_BYTES } from '.
 export { PDF_ARTWORK_MAX_CANDIDATES } from './pdf-artwork.ts';
 export { createPrepareAPI, inspectPreparation, applyPreparation, preparationDigest, preparationRecipe, readPreparationRecipe } from './prepare.ts';
 export { inspectPrivateText, validatePreparationRules } from './prepare-text.ts';
+export { inspectOfficePackage, isOfficeSource } from './office-census.ts';
+export type { OfficeCensus, OfficeCensusPart, OfficeCensusFinding, OfficeCensusOptions } from './office-census.ts';
 
 export { applyPreparationMetadata } from './prepare-metadata.ts';
 

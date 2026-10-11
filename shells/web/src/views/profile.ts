@@ -15,7 +15,7 @@ import { chromeFollowsDesignSystem } from '../lib/chrome-follow.ts';
 import { captureNeutralPinned } from '../lib/capture-neutral.ts';
 import { icon } from '../lib/icons.ts';
 import { getMetrics } from '../metrics.ts';
-import { CATEGORY_FLAGS, CONNECTOR_FLAGS, JELLY_FLAG, PERFORMANCE_UI_FLAG, PERF_HUD_FLAG, PREFLIGHT_FLAG, PRIVATE_COLLAB_FLAG, STRIP_UPLOAD_META_FLAG, WOBBLY_FLAG, WOBBLY_MESH_FLAG, isFlagOn } from '../feature-flags.ts';
+import { CATEGORY_FLAGS, CONNECTOR_FLAGS, JELLY_FLAG, LEARNING_FLAG, PERFORMANCE_UI_FLAG, PERF_HUD_FLAG, PREFLIGHT_FLAG, PRIVATE_COLLAB_FLAG, STRIP_UPLOAD_META_FLAG, WOBBLY_FLAG, WOBBLY_MESH_FLAG, isFlagOn } from '../feature-flags.ts';
 import { ensureJelly } from '../lib/jelly.ts';
 import { getInstanceBase } from '../lib/instance.ts';
 import { isTauriShell } from '../lib/instance-choice.ts';
@@ -158,7 +158,7 @@ export async function mountProfile(viewEl: HTMLElement, host: ProfileHost, param
   try { pv.openState = JSON.parse(localStorage.getItem(OPEN_KEY) || '{}') || {}; } catch { /* storage blocked */ }
 
   // Every flag the list below renders, for the card's folded summary to count the
-  // switched-off ones. The standalone eight are spelled out rather than mapped
+  // switched-off ones. The standalone flags are spelled out rather than mapped
   // because the list's own rows are hand-written (dividers and a group heading sit
   // between them) and two feature tests pin those call sites by name - keep the two
   // in step when a flag joins or leaves the list.
@@ -170,7 +170,7 @@ export async function mountProfile(viewEl: HTMLElement, host: ProfileHost, param
   const LISTED_FLAGS = [
     ...CATEGORY_FLAGS,
     ...(jellyHidden ? [] : [JELLY_FLAG]),
-    WOBBLY_FLAG, WOBBLY_MESH_FLAG, PERFORMANCE_UI_FLAG, PERF_HUD_FLAG, STRIP_UPLOAD_META_FLAG, PREFLIGHT_FLAG, PRIVATE_COLLAB_FLAG,
+    WOBBLY_FLAG, WOBBLY_MESH_FLAG, PERFORMANCE_UI_FLAG, PERF_HUD_FLAG, STRIP_UPLOAD_META_FLAG, PREFLIGHT_FLAG, LEARNING_FLAG, PRIVATE_COLLAB_FLAG,
     ...CONNECTOR_FLAGS,
   ]; pv.LISTED_FLAGS = LISTED_FLAGS;
 

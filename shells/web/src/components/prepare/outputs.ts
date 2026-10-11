@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * The prepared copies: one card per output in the main column, each with its own
- * download, copy, library and send actions and a before/after comparison for text.
+ * download, copy, library and send actions and a shared before/after comparison.
  * The report that describes the run lives in the inspection panel (inspector.ts).
  */
 import type { HostV1, PreparationSource, PreparationResult } from '@lolly-tools/core/host-v1';
@@ -28,23 +28,21 @@ async function retainResult(source: PreparationSource, host: HostV1, checksum: s
   await api._uploadUserAsset({ id: `user/prepared/${version}`, version, type: 'data', format: source.name.split('.').pop() || 'bin',
     blob: preparedFile(source), checksum, meta: { name: source.name, tags: ['prepared'], sourceBytesRetained: false } }, { expectedVersion: null });
 }
-function rowsFor(text: string): number {
-  return Math.max(4, Math.min(14, text.split('\n').length + 1));
-}
-
 export function renderPreparationOutputs(root: HTMLElement, result: PreparationResult, originals: PreparationSource[], host: HostV1): () => void {
   const cleanups: (() => void)[] = [];
   const changed = result.report.outputs.filter(o => o.changed).length;
   const summary = changed
     ? `${result.report.replaced} ${result.report.replaced === 1 ? t('occurrence changed or removed across') : t('occurrences changed or removed across')} ${changed} ${changed === 1 ? t('copy') : t('copies')}.`
-    : t('Nothing needed changing. The copies match your originals.');
+    : t('The copies match your originals. Review retained findings and coverage notes before sharing.');
   root.innerHTML = `<header class="prep-card-head"><h2 class="prep-card-title">${t('Prepared copies')}</h2><p class="prep-card-sub">${htmlEscape(summary)} ${t('Copies stay in this view until you leave.')}</p></header>
     ${result.report.stages?.some(s => s.status === 'failed') ? `<p class="prep-alert" role="alert">${t('Some changes could not be made. The affected files were kept for review; the other copies are ready.')}</p>` : ''}
     <div class="prep-outputs"></div>`;
   const list = root.querySelector<HTMLElement>('.prep-outputs')!;
   for (const [i, output] of result.outputs.entries()) {
     const section = document.createElement('article'); section.className = 'prep-output';
-    const before = preview(originals[i]!), after = preview(output), file = preparedFile(output);
+    const after = preview(output), file = preparedFile(output);
+    let closeComparison: (() => void) | undefined, disposed = false;
+    cleanups.push(() => { disposed = true; closeComparison?.(); });
     const isChanged = result.report.outputs[i]!.changed;
     const canShare = host.export.canShare?.({ mime: file.type, filename: file.name });
     section.innerHTML = `<div class="prep-output-head">
@@ -57,9 +55,7 @@ export function renderPreparationOutputs(root: HTMLElement, result: PreparationR
           ${canShare ? `<button type="button" class="btn btn--sm btn--ghost" data-send>${icon('share')}${t('Send to…')}</button>` : ''}
         </div>
       </div>
-      ${after !== null
-        ? `<details class="prep-compare"${isChanged && after.length < 20000 ? ' open' : ''}><summary>${t('Compare original and copy')}</summary><div class="prep-compare-grid"><label><span class="field-label">${t('Original')}</span><textarea class="field-input" readonly spellcheck="false" rows="${rowsFor(before ?? '')}">${htmlEscape(before ?? '')}</textarea></label><label><span class="field-label">${t('Copy')}</span><textarea class="field-input" readonly spellcheck="false" rows="${rowsFor(after)}">${htmlEscape(after)}</textarea></label></div></details>`
-        : `<p class="prep-hint">${t('Binary content is not previewed here. Check the coverage notes and open the copy in its own viewer.')}</p>`}
+      <button type="button" class="btn btn--sm btn--ghost" data-compare>${t('Compare original and copy')}</button>
       <p class="prep-status" role="status" data-status></p>`;
     const status = section.querySelector<HTMLElement>('[data-status]')!;
     const action = (selector: string, fn: () => Promise<void>): void => { section.querySelector<HTMLButtonElement>(selector)?.addEventListener('click', async event => {
@@ -67,6 +63,11 @@ export function renderPreparationOutputs(root: HTMLElement, result: PreparationR
       try { await fn(); } catch { status.textContent = t('Could not complete this action. The result remains available; try again.'); }
       finally { button.disabled = false; }
     }); };
+    action('[data-compare]', async () => {
+      const { openOperationComparison } = await import('../compare-operation.ts');
+      if (disposed) return;
+      closeComparison?.(); closeComparison = openOperationComparison(host, file, { before: preparedFile(originals[i]!) });
+    });
     action('[data-download]', async () => {
       const outcome = await deliverFile(host, file, file.name);
       attachDeliveryResult(section, status, { blob: file, filename: file.name, label: file.name }, host, outcome, { ready: t('Copy ready.'), saved: t('Copy saved.') });

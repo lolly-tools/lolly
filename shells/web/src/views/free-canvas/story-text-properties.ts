@@ -3,6 +3,7 @@
 import { formatStoryRange, formatStoryParagraphs, textStyleResolver, styleTextRange, defineTextStyle } from '@lolly/engine';
 import type { TextCharacterV1 } from '@lolly-tools/core';
 import type { TextPropertyCommand, TextPropertyPort, TextPropertyState } from '../design-ports.ts';
+import { bindParagraphToken, paragraphTokenState } from '../../../../../engine/src/text-token-bindings.ts';
 import { textTypographyPreview } from '../../lib/text-typography-preview.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { pinEditorFont } from '../../lib/text-editor-fonts.ts';
@@ -28,7 +29,8 @@ export function read(fc: FcCtx, ids: string[]): TextPropertyState | null {
   const styles = { styles: snapshot.document.styles, paragraph: paragraph.style??story.defaultStyle, character: selectedSpan?.style,characterFormat:character,paragraphFormat:resolver.paragraph(story,paragraph),
     paragraphOverrides: !!paragraph.paragraph && Object.keys(paragraph.paragraph).length > 0,
     characterOverrides: stories.some(item => item.spans.some(span => !!span.character && (!active || span.end > active.range.start && span.start <= active.range.end))) };
-  return { scope: active ? active.range.start === active.range.end ? 'caret' : 'range' : 'story', storyIds, character, mixed: [...mixed], paragraph: resolver.paragraph(story, paragraph), frame: frames[0]!, styles, appliedScale:active ? active.layout?.frames.find(frame=>frame.id===ids[0])?.appliedScale??1 : frames[0]!.shrink ? fc.storyText.peek({document:snapshot.document,storyId:story.id,frames:snapshot.frames.filter(frame=>frame.storyId===story.id)})?.layout.frames.find(frame=>frame.id===ids[0])?.appliedScale??1 : 1, linked:stories.some(story=>story.frameIds.length>1), family: snapshot.document.fonts.find(font => font.id === character.font)?.family ?? '' };
+  const tokenState = paragraphTokenState(snapshot.document, stories, active?.range);
+  return { paragraphTokenSelection: tokenState.selection, paragraphTokenActive: tokenState.active, paragraphTokenMixed: tokenState.mixed, paragraphTokenRestores: tokenState.restoreRefs, scope: active ? active.range.start === active.range.end ? 'caret' : 'range' : 'story', storyIds, character, mixed: [...mixed], paragraph: tokenState.paragraph, frame: frames[0]!, styles, appliedScale:active ? active.layout?.frames.find(frame=>frame.id===ids[0])?.appliedScale??1 : frames[0]!.shrink ? fc.storyText.peek({document:snapshot.document,storyId:story.id,frames:snapshot.frames.filter(frame=>frame.storyId===story.id)})?.layout.frames.find(frame=>frame.id===ids[0])?.appliedScale??1 : 1, linked:stories.some(story=>story.frameIds.length>1), family: snapshot.document.fonts.find(font => font.id === character.font)?.family ?? '' };
 }
 function family(fc: FcCtx, value: string): string {
   const probe = document.createElement('span'); probe.style.fontFamily = fc.helpers.fontStackFor(value); fc.canvasEl.append(probe);
@@ -39,7 +41,8 @@ export async function apply(fc: FcCtx, ids: string[], command: TextPropertyComma
     const state = read(fc, ids); if (!state) return;
     const active = ids.length === 1 && fc.editing?.id === ids[0] ? fc.editing?.composed?.editor : undefined;
     if (active) {
-      if (command.kind === 'character') active.format(command.value, label);
+      if (command.kind === 'paragraph-token') active.paragraphToken(command.field, command.value);
+      else if (command.kind === 'character') active.format(command.value, label);
       else if (command.kind === 'paragraph') active.paragraph(command.value, label);
       else if (command.kind === 'frame') active.setFrame(command.value);
       else if (command.kind === 'style-definition') active.defineStyle(command.value);
@@ -58,6 +61,7 @@ export async function apply(fc: FcCtx, ids: string[], command: TextPropertyComma
     }
     snapshot.document.stories = snapshot.document.stories.map(story => !state.storyIds.includes(story.id) ? story : value
       ? story.source ? formatStoryRange(story, { start: 0, end: story.source.length }, { character: value }) : formatStoryParagraphs(story, story.paragraphs.map(paragraph => paragraph.id), { character: { ...state.character, ...value } })
+      : command.kind === 'paragraph-token' ? bindParagraphToken(snapshot.document, story, story.paragraphs.map(p => p.id), command.field, command.value)
       : command.kind === 'paragraph' ? formatStoryParagraphs(story, story.paragraphs.map(paragraph => paragraph.id), command.value)
       : command.kind === 'style' ? styleTextRange(snapshot.document, story, { start: 0, end: story.source.length }, command.value)
       : command.kind === 'span' ? formatStoryRange(story, { start: 0, end: story.source.length }, command.value) : story);

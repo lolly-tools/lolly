@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 import type { ActionsCtx } from './context.ts';
+import { requireLearningFeature } from '../../lib/learning-feature.ts';
 import { announce } from '../../a11y.ts';
 import { learningRenditions } from '../../../../../engine/src/learning/delivery.ts';
 import type { PickerHost } from '../picker.ts';
@@ -8,6 +9,7 @@ export function learningOps(ta: ActionsCtx) {
   return { open: () => open(ta), wire: () => wire(ta) };
 }
 export async function open(ta: ActionsCtx): Promise<void> {
+  requireLearningFeature();
   if (
     ta.affordance !== 'download' ||
     !learningRenditions({ ...ta.manifest, render: { ...ta.manifest.render, formats: ta.formats } })

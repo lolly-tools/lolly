@@ -4,6 +4,7 @@ import { isMap, isSeq, isScalar, isAlias, parseAllDocuments } from 'yaml';
 import type { PreparationRule, PreparationScope } from '@lolly-tools/core/host-v1';
 import { readZipMembers, decodeZipMember, storeZipMembers, storeZip, type ZipRawMember } from './zip.ts';
 import { PREPARE_MAX_TEXT, sensitiveField } from './prepare-text.ts';
+import { inspectOfficePackage, isOfficeSource, type OfficeCensusFinding } from './office-census.ts';
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true });
@@ -17,6 +18,7 @@ export interface PreparationDocument {
   scope: PreparationScope;
   children: PreparationDocument[];
   units: PreparationUnit[];
+  censusFindings?: OfficeCensusFinding[];
   write(values: Map<string, string>, remove: Set<string>): Uint8Array;
 }
 export interface PreparationBudget { scopes: number; expanded: number; units: number }
@@ -124,6 +126,17 @@ export function openPreparationDocument(bytes: Uint8Array, name: string, sourceI
   const doc: PreparationDocument = { scope, children: [], units: [], write: () => bytes };
   if (!counted && ++budget.scopes > PREPARE_MAX_SCOPES) { scope.limitations.push('The 300-member inspection limit was reached.'); return doc; }
   if (bytes.length > PREPARE_MAX_BYTES) { scope.limitations.push('This file exceeds the 32 MiB preparation limit.'); return doc; }
+  if (isOfficeSource(bytes, name)) {
+    const census = inspectOfficePackage(bytes, name, { maxParts: PREPARE_MAX_SCOPES - budget.scopes, maxExpandedBytes: PREPARE_MAX_TOTAL - budget.expanded });
+    scope.format = census.format; scope.readOnly = true;
+    scope.status = census.parts.length ? 'partial' : 'uninspected'; scope.limitations = census.limitations;
+    budget.expanded += census.expandedBytes; budget.scopes += census.parts.length;
+    doc.children = census.parts.map((part, index) => ({
+      scope: { id: `${id}:o${index}`, sourceId, path: `${name}/${part.path}`, format: part.format, status: part.status, limitations: part.limitations, readOnly: true },
+      children: [], units: [], censusFindings: part.findings, write: () => bytes,
+    }));
+    return doc;
+  }
   const zip = bytes[0] === 0x50 && bytes[1] === 0x4b && (ext === 'zip' || ext === '');
   if (zip) {
     scope.format = 'zip';

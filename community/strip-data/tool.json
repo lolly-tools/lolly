@@ -1,13 +1,13 @@
 {
   "id": "strip-data",
   "name": "Strip Hidden Data",
-  "description": "Reveal and remove hidden metadata from images and PDFs - on your device.",
-  "version": "1.0.1",
-  "engineVersion": "^1.0.0",
+  "description": "Inspect Office hidden content, or remove image and PDF metadata, on your device.",
+  "version": "1.1.0",
+  "engineVersion": "^1.251.0",
   "status": "official",
   "category": "utility",
   "privacy": "on-device",
-  "tags": ["privacy", "exif", "metadata", "gps", "image", "photo", "strip", "clean", "jpeg", "png", "svg", "vector", "pdf", "document", "inkscape", "illustrator"],
+  "tags": ["privacy", "exif", "metadata", "gps", "image", "photo", "strip", "clean", "jpeg", "png", "svg", "vector", "pdf", "document", "office", "docx", "pptx", "xlsx", "inkscape", "illustrator"],
   "a11yLabel": "Hidden-data report for {{fileName}}",
   "render": {
     "width": 760,
@@ -25,11 +25,11 @@
   "inputs": [
     {
       "id": "source",
-      "label": "Image or PDF",
+      "label": "Image, PDF or Office file",
       "type": "file",
-      "accept": ["image/jpeg", "image/png", "image/svg+xml", "application/pdf", ".jpg", ".jpeg", ".png", ".svg", ".pdf"],
+      "accept": ["image/jpeg", "image/png", "image/svg+xml", "application/pdf", ".jpg", ".jpeg", ".png", ".svg", ".pdf", ".docx", ".pptx", ".xlsx", ".docm", ".pptm", ".xlsm", ".doc", ".ppt", ".xls", ".xlsb"],
       "maxSize": 52428800,
-      "help": "A JPEG, PNG, SVG or PDF. It's read in your browser and never leaves your device."
+      "help": "Images and PDFs support metadata removal. Office files up to 32 MiB support read-only inspection. Your file stays on this device."
     }
   ]
 }

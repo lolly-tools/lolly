@@ -5,7 +5,59 @@ import { chromium } from 'playwright';
 import { shellSettled } from './helpers/shell-settled.ts';
 const origin = process.env.LOLLY_HISTORY_TEST_URL;
 const skip = origin ? false : 'LOLLY_HISTORY_TEST_URL not set (serve the web shell locally)';
-if (origin) assert.ok(['localhost', '127.0.0.1', '[::1]'].includes(new URL(origin).hostname));
+const operationOrigin = origin ?? process.env.LOLLY_EXPORT_TEST_URL;
+const operationSkip = operationOrigin ? false : 'set LOLLY_EXPORT_TEST_URL or LOLLY_HISTORY_TEST_URL';
+for (const localOrigin of [origin, operationOrigin]) if (localOrigin) assert.ok(['localhost', '127.0.0.1', '[::1]'].includes(new URL(localOrigin).hostname));
+
+test('Prepare comparison masks removed values, exports a private summary and closes stale review', { skip: operationSkip, timeout: 90_000 }, async () => {
+  const browser = await chromium.launch();
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  try {
+    await page.goto(`${operationOrigin}/#/prepare`, { waitUntil: 'networkidle' }); await shellSettled(page);
+    const input = page.locator('[data-text]');
+    await input.fill('password=CONFIDENTIAL_REMOVED');
+    await page.locator('[data-compare]').click();
+    const dialog = page.getByRole('dialog', { name: 'Compare original and copy' });
+    await dialog.getByText('1 change found', { exact: true }).waitFor();
+    assert.equal(await dialog.locator('.compare-change[open]').count(), 0);
+    await dialog.getByRole('checkbox', { name: 'Show changed values' }).check();
+    await dialog.locator('.compare-pair pre', { hasText: 'CONFIDENTIAL_REMOVED' }).waitFor();
+    const download = page.waitForEvent('download');
+    await dialog.getByRole('button', { name: 'Download comparison report' }).click();
+    const stream = await (await download).createReadStream();
+    let report = ''; for await (const chunk of stream!) report += chunk.toString();
+    assert.doesNotMatch(report, /CONFIDENTIAL|replacement|text.txt/);
+    await input.evaluate(el => { (el as HTMLTextAreaElement).value = 'password=new-value'; el.dispatchEvent(new Event('input', { bubbles: true })); });
+    await dialog.waitFor({ state: 'detached' });
+    assert.equal(await page.locator('[data-compare]').count(), 0);
+    const storage = await page.evaluate(() => JSON.stringify({ local: { ...localStorage }, session: { ...sessionStorage }, url: location.href }));
+    assert.doesNotMatch(storage, /CONFIDENTIAL_REMOVED|new-value/);
+  } finally { await browser.close(); }
+});
+
+test('Saved operation comparison verifies a reselected original without retaining it', { skip: operationSkip, timeout: 90_000 }, async () => {
+  const browser = await chromium.launch(), page = await browser.newPage();
+  try {
+    await page.goto(`${operationOrigin}/#/compare`, { waitUntil: 'networkidle' }); await shellSettled(page);
+    await page.evaluate(async () => {
+      const hostPath = '/src/lib/host-ref.ts', panelPath = '/src/components/compare-operation.ts';
+      const host = (await import(hostPath)).getHostRef();
+      const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('before'));
+      const sha256 = [...new Uint8Array(digest)].map(value => value.toString(16).padStart(2, '0')).join('');
+      (await import(panelPath)).openOperationComparison(host, new File(['after'], 'copy.txt'), { expected: { name: 'original.txt', mime: 'text/plain', format: 'txt', size: 6, sha256 } });
+    });
+    const dialog = page.getByRole('dialog', { name: 'Compare original and copy' });
+    const choose = dialog.getByLabel('Choose the original file');
+    await choose.setInputFiles({ name: 'original.txt', mimeType: 'text/plain', buffer: Buffer.from('SECRET') });
+    await dialog.getByText('That file does not match the recorded original.').waitFor();
+    assert.equal(await dialog.locator('.compare-change').count(), 0);
+    await choose.setInputFiles({ name: 'renamed.txt', mimeType: 'text/plain', buffer: Buffer.from('before') });
+    await dialog.getByText('1 change found', { exact: true }).waitFor();
+    await dialog.getByRole('button', { name: 'Close comparison' }).click();
+    const storage = await page.evaluate(() => JSON.stringify({ local: { ...localStorage }, session: { ...sessionStorage }, url: location.href }));
+    assert.doesNotMatch(storage, /SECRET|renamed.txt/);
+  } finally { await browser.close(); }
+});
 
 test('Compare utility: real worker, keyboard, files, report privacy and mobile layout', { skip, timeout: 90_000 }, async () => {
   const browser = await chromium.launch();

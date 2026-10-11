@@ -150,3 +150,9 @@ test('every dashboard hit href takes a deep-link form applyDeepLink understands'
     else assert.ok(DASH_SECTIONS.some((s) => s.id === m![2]), `${h.href} names a registry section id`);
   }
 });
+
+
+test('training and courses can be found as an opt-in Settings flag', async () => {
+  const hits = await search('Training and courses');
+  assert.ok(hits.some(hit => hit.title === 'Training and courses' && hit.href === '#/settings?focus=feature-flags-section'));
+});

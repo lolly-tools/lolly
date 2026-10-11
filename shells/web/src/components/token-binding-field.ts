@@ -3,15 +3,26 @@ import type { HostV1 } from '@lolly-tools/core/host-v1';
 import type { InputModelItem, InputValue } from '../../../../engine/src/inputs.ts';
 import { flattenValue } from '../../../../engine/src/inputs.ts';
 import { isTokenValue, aliasPath } from '../../../../engine/src/tokens.ts';
-import { resolveTokenBinding } from '../../../../engine/src/token-binding.ts';
+import { resolveTokenBinding, type TokenConsumer } from '../../../../engine/src/token-binding.ts';
 import { escape as esc } from '../utils.ts';
 import { t } from '../i18n.ts';
 import { icon } from '../lib/icons.ts';
+import type { TokenEntry } from '../../../../engine/src/bridge/host-v1.ts';
+import type { TokenAdapter } from '../../../../engine/src/token-consumer-adapters.ts';
 
 /** Adds link actions around the caller's existing typed editor; never edits source tokens. */
-export function mountTokenBindingField(root: HTMLElement, input: InputModelItem, host: Pick<HostV1, 'tokens'>, commit: (value: InputValue) => void | Promise<void>, options: { readOnly?: boolean; mixed?: boolean; restoreRef?: string; compact?: boolean; colorTarget?: 'srgb' | 'rec2020' } = {}): () => void {
+export function mountTokenBindingField(root: HTMLElement, input: InputModelItem, host: Pick<HostV1, 'tokens'>, commit: (value: InputValue) => void | Promise<void>, options: { consumer?: TokenConsumer; fallbackAdapter?: TokenAdapter; readOnly?: boolean; mixed?: boolean; restoreRef?: string; compact?: boolean; colorTarget?: 'srgb' | 'rec2020'; onPendingChange?: (pending: boolean) => void } = {}): () => void {
+  const resolve = (entry: TokenEntry | undefined) => {
+    const consumer = { ...input, ...options.consumer, colorTarget: options.colorTarget };
+    const result = resolveTokenBinding(entry, consumer);
+    return result.status !== 'linked' && options.fallbackAdapter ? resolveTokenBinding(entry, { ...consumer, adapter: options.fallbackAdapter }) : result;
+  };
   const abort = new AbortController();
-  let disposed = false;
+  let disposed = false, pending = 0;
+  async function duringAction(work: () => Promise<void>): Promise<void> {
+    if (++pending === 1) options.onPendingChange?.(true);
+    try { await work(); } finally { if (--pending === 0) options.onPendingChange?.(false); }
+  }
   const linked = isTokenValue(input.value) ? input.value : null;
   const state = linked ? (input.value as { status?: string }).status ?? 'linked' : 'custom';
   root.classList.add('token-binding-field');
@@ -38,41 +49,44 @@ export function mountTokenBindingField(root: HTMLElement, input: InputModelItem,
     try {
       const set = await host.tokens?.get();
       if (disposed || !root.isConnected || options.readOnly) return;
-      const value = resolveTokenBinding(set?.get(aliasPath(ref) ?? ref), { ...input, colorTarget: options.colorTarget });
-      if (value.status === 'linked') await apply({ ref: `{${aliasPath(ref) ?? ref}}`, value: value.value });
+      const value = resolve(set?.get(aliasPath(ref) ?? ref));
+      if (value.status === 'linked') await apply({ ref: `{${aliasPath(ref) ?? ref}}`, value: value.value, ...(value.adapter ? { adapter: value.adapter } : {}) });
       else message.textContent = value.reason ?? t('This token cannot be linked here.');
     } catch { if (!disposed) message.textContent = t('Tokens could not be read.'); }
   }
   root.addEventListener('click', async event => {
     const target = (event.target as HTMLElement).closest('button');
-    if (target?.hasAttribute('data-token-custom') && !options.readOnly) await apply(flattenValue(input.value));
-    if (target?.hasAttribute('data-token-restore') && options.restoreRef) await link(options.restoreRef);
-    if (target?.hasAttribute('data-token-inspect')) {
-      try {
-        const { openTokenInspector } = await import('./token-workspace.ts');
-        if (!disposed && root.isConnected) {
-          target.focus({ preventScroll: true });
-          await openTokenInspector(host, aliasPath(linked?.ref) ?? linked?.ref, () => !disposed && root.isConnected);
-        }
-      } catch (error) { if (!disposed) message.textContent = error instanceof Error ? error.message : t('Tokens could not be read.'); }
-    }
-    if (target?.hasAttribute('data-token-choose')) {
-      message.textContent = t('Reading compatible tokens…');
-      try {
-        const set = await host.tokens?.get();
-        if (disposed || !root.isConnected || options.readOnly) return;
-        const entries = set?.query().filter(e => resolveTokenBinding(e, { ...input, colorTarget: options.colorTarget }).status === 'linked') ?? [];
-        chooser.innerHTML = `<option value="">${t('Choose a token')}</option>${entries.slice(0, 2000).map(e => `<option value="${esc(e.path)}">${esc(e.path)}</option>`).join('')}`;
-        root.querySelector<HTMLElement>('[data-token-options]')!.hidden = false;
-        message.textContent = entries.length > 2000 ? t('Showing the first 2000 compatible tokens. Inspect the system to search all tokens.') : entries.length ? '' : t('No compatible tokens in this context.');
-        chooser.focus();
-      } catch { if (!disposed) message.textContent = t('Tokens could not be read.'); }
-    }
+    if (!target || !['data-token-custom', 'data-token-restore', 'data-token-inspect', 'data-token-choose'].some(attr => target.hasAttribute(attr))) return;
+    await duringAction(async () => {
+      if (target?.hasAttribute('data-token-custom') && !options.readOnly) await apply(flattenValue(input.value));
+      if (target?.hasAttribute('data-token-restore') && options.restoreRef) await link(options.restoreRef);
+      if (target?.hasAttribute('data-token-inspect')) {
+        try {
+          const { openTokenInspector } = await import('./token-workspace.ts');
+          if (!disposed && root.isConnected) {
+            target.focus({ preventScroll: true });
+            await openTokenInspector(host, aliasPath(linked?.ref) ?? linked?.ref, () => !disposed && root.isConnected);
+          }
+        } catch (error) { if (!disposed) message.textContent = error instanceof Error ? error.message : t('Tokens could not be read.'); }
+      }
+      if (target?.hasAttribute('data-token-choose')) {
+        message.textContent = t('Reading compatible tokens…');
+        try {
+          const set = await host.tokens?.get();
+          if (disposed || !root.isConnected || options.readOnly) return;
+          const entries = set?.query().filter(e => resolve(e).status === 'linked') ?? [];
+          chooser.innerHTML = `<option value="">${t('Choose a token')}</option>${entries.slice(0, 2000).map(e => `<option value="${esc(e.path)}">${esc(e.path)}</option>`).join('')}`;
+          root.querySelector<HTMLElement>('[data-token-options]')!.hidden = false;
+          message.textContent = entries.length > 2000 ? t('Showing the first 2000 compatible tokens. Inspect the system to search all tokens.') : entries.length ? '' : t('No compatible tokens in this context.');
+          chooser.focus();
+        } catch { if (!disposed) message.textContent = t('Tokens could not be read.'); }
+      }
+    });
   }, { signal: abort.signal });
   chooser.addEventListener('change', async () => {
     const path = chooser.value;
     if (!path) return;
-    await link(path);
+    await duringAction(() => link(path));
   }, { signal: abort.signal });
   return () => { disposed = true; abort.abort(); root.replaceChildren(); };
 }

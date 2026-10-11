@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Immutable story commands. All logical offsets are UTF-16 grapheme boundaries. */
 import { emojiGraphemes } from './emoji-segment.ts';
+import { reconcileBlockTokenBindings } from './token-block-bindings.ts';
+import type { InputValue } from './inputs.ts';
 import type { TextBreakV1, TextCharacterV1, TextInlineV1, TextParagraphStyleV1, TextParagraphV1, TextRangeV1, TextSpanV1, TextStoryV1 } from '@lolly-tools/core';
 import { assertTextRange, paragraphRanges, snapTextRange, sourceBreaks, TextSourceError } from './text-source.ts';
 
@@ -136,6 +138,6 @@ export function formatStoryParagraphs(story: TextStoryV1, ids: readonly string[]
     if (!selected.has(paragraph.id)) return paragraph;
     const settings: Record<string, unknown> = { ...paragraph.paragraph };
     for (const [key, value] of Object.entries(patch)) { if (value === null) delete settings[key]; else if (value !== undefined) settings[key] = structuredClone(value); }
-    return { ...paragraph, paragraph: settings };
+    return { ...paragraph, paragraph: reconcileBlockTokenBindings([settings as InputValue], 'tokenLinks')[0] as TextParagraphStyleV1 };
   }) };
 }
