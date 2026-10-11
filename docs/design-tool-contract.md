@@ -14,6 +14,8 @@ A resolved `DesignToolDefinitionV1` adds a compiler version, renderer digest, sc
 
 Generated hooks run with the existing strict sideload worker. They rebuild a variant from its immutable definition, then apply one atomic choice and input evaluation. There is no privileged in-realm fallback. Text inputs are literal; a text recipe joins declared text inputs and literal separators without evaluating code.
 
+Dynamic variants retain authored boxes and an optional `layoutTracks` collection. The compiler validates ownership and track records and uses the same modern Rust solver through `host.layout`. Content controls can change intrinsic text and image sizes without replacing authored geometry. Computed positions are disposable, and export receipts bind the painted layout to the current input values.
+
 ## Tools derived from saved sessions
 
 Engine 1.201 adds optional `sourceTool` provenance to the existing rules policy: source id, source version and a mapping from public input ids to original input ids. `engine/src/design-tool/session-compiler.ts` compiles a captured original manifest, template, styles and hooks. The shell prepares the source bundle, resolves assets, embeds fonts and pins token values. Fixed values are private renderer data; only public aliases are declared as inputs.
@@ -34,7 +36,7 @@ The public `designTool` manifest policy carries the ordered rules, choice declar
 
 ## Package and revisions
 
-`lolly-share` adds `kind: "tool"` with `minReader: 2`. It requires a complete, integrity-covered bundled tool and excludes `session.json`, saved templates and a design-system import. Existing session writers remain on reader version 1. Both the web and Node readers check identity, inventory, paths and digests before installation or use.
+`lolly-share` adds `kind: "tool"` with `minReader: 2`. It requires a complete, integrity-covered bundled tool and excludes `session.json`, saved templates and a design-system import. Static session writers remain on reader version 1. Files containing dynamic layout rules require reader version 6; generated tools with those rules also require `host.layout` and engine 1.249. Both the web and Node readers check identity, inventory, paths and digests before installation or use.
 
 Installed Design tools use immutable cache paths under `/tools/<id>/.revisions/<digest>/`. A metadata transaction publishes the revision and current discovery pointer after its files are staged. The same version with different bytes is refused. Saved tool sessions carry `__toolArtifact`; batch and folder rows carry `artifactDigest`. Loading and resharing resolve those exact bytes, not the latest pointer.
 

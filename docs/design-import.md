@@ -41,6 +41,16 @@ The importer maps design layers onto the free canvas's box model, keeping as muc
 
 PDF imports preserve clipping and supported effects inside transparent SVG artwork. Source text uses character-code advances to join compatible fragments; separate styles and distant columns stay separate. Cropped text, missing full fonts, approximate CMYK colours and unsupported effects need review. The **Share with rules** route preserves source font names and offers explicit repair; it does not silently substitute brand fonts. See [Create a tool](create-a-tool.md) for source comparison and font replacement.
 
+## Dynamic layouts
+
+Select a container in Design and open **Dynamic layout** in the inspector. Choose **flex** for rows, columns and wrapping, or **grid** for tracks and cells. Set gaps, padding and alignment there. Child layers can keep a fixed size, grow to their content, or fill the available space. Absolute placement attaches a child without including it in the flow.
+
+Grid tracks accept `auto`, pixel sizes such as `120px`, fractions such as `1fr`, and percentages such as `25%`. Layers can occupy a specific row and column, span several cells, or share an occupied named area. Drag a child to change its flow order or grid cell. Hold Alt while dropping to detach it. Spacing handles on the canvas edit padding and gaps.
+
+Native Penpot imports retain supported flex and grid rules, including nested ownership. The solver uses Penpot's modern Rust implementation. Native exports carry editable rules and membership. Empty named areas, cells containing several shapes, grouped children that cannot remain editable, and skewed computed rectangles produce a finding. Review those findings before continuing.
+
+Layout rules travel in saved sessions, templates and generated tools. Files containing dynamic layouts require `.lolly` reader version 6. SVG, PDF and raster exports use the settled geometry; an export waits for the latest layout to appear or asks you to retry. No website code is generated.
+
 ## It conforms to the brand
 
 This is the point of importing rather than pasting a screenshot: the result is a **governed** layout, not a foreign artboard.

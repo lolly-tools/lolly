@@ -73,7 +73,7 @@ export interface LollyFileContents {
 
 /** The format tag and reader gate, kept identical to lolly-pack.ts's constants. */
 const LOLLY_FILE_FORMAT = 'lolly-share';
-const LOLLY_READER_VERSION = 2;
+const LOLLY_READER_VERSION = 6;
 /** The gate a file carrying a renovation project asks for. The session reader above
  *  stays at 2 and refuses a renovation by name; `readRenovationLollyFile` is the one
  *  that understands the part, so it is the one that admits to reader 4. */
@@ -142,7 +142,7 @@ export function readLollyFile(bytes: Uint8Array, opts: { allowTool?: boolean } =
   if (manifest.kind === 'tool') {
     if (!opts.allowTool) throw new Error('This is a reusable tool. Use lolly run file.lolly to render it.');
     const bundle = manifest.bundledTool;
-    if (manifest.minReader !== 2 || !manifest.integrity || !bundle?.files?.length || bundle.id !== manifest.tool.id || files.has('session.json')) throw new Error('This tool file has an invalid payload.');
+    if (![2, 6].includes(manifest.minReader ?? 0) || !manifest.integrity || !bundle?.files?.length || bundle.id !== manifest.tool.id || files.has('session.json')) throw new Error('This tool file has an invalid payload.');
     const paths = new Set<string>();
     for (const entry of bundle.files) {
       if (!/^tool\/[\w./-]+$/.test(entry.path) || entry.path.split('/').some(p => p === '.' || p === '..') || paths.has(entry.path) || !files.has(entry.path) || !manifest.integrity[entry.path]) throw new Error('This tool file has an invalid or unverified part.');

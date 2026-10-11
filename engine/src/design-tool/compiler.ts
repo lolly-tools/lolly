@@ -3,6 +3,7 @@ import type { DesignToolDefinitionV1 } from '@lolly-tools/core/design-tool-v1';
 import { designToolPolicy, validateDesignTool } from '@lolly-tools/core/design-tool-v1';
 import type { ToolManifest } from '../loader.ts';
 import { parseTextDocument } from '../text-story-document.ts';
+import { validateDesignLayout } from '../design-layout.ts';
 import { RESERVED } from '../url-mode.ts';
 
 export interface CompiledDesignTool {
@@ -14,23 +15,56 @@ export interface CompiledDesignTool {
 export function compileDesignTool(
   definition: DesignToolDefinitionV1,
   renderer: { source: string; styles: string },
-  assets: Record<string, Uint8Array> = {},
+  assets: Record<string, Uint8Array> = {}
 ): CompiledDesignTool {
-  for(const variant of definition.variants)if(variant.textDocument)parseTextDocument(variant.textDocument);
-  const composed=definition.variants.some(variant=>variant.textDocument?.stories.length);
+  for (const variant of definition.variants)
+    if (variant.textDocument) parseTextDocument(variant.textDocument);
+  const dynamic = definition.variants.some((variant) =>
+    variant.boxes.some((box) => box.layout === 'flex' || box.layout === 'grid')
+  );
+  for (const variant of definition.variants)
+    if (variant.boxes.some((box) => box.layout === 'flex' || box.layout === 'grid')) {
+      const issues = validateDesignLayout(variant.boxes, variant.layoutTracks || []);
+      if (issues.length) throw new Error(issues.map((f) => f.message).join('\n'));
+    }
+  const composed = definition.variants.some((variant) => variant.textDocument?.stories.length);
   const findings = validateDesignTool(definition, [...RESERVED]);
-  if (findings.length) throw new Error(findings.map(f => f.message).join('\n'));
-  for (const dep of definition.dependencies) if (!assets[dep.path]) throw new Error(`Missing dependency: ${dep.path}`);
-  for (const path of Object.keys(assets)) if (!/^assets\/[\w./-]+$/.test(path) || path.split('/').includes('..')) throw new Error('Invalid dependency path.');
-  const first = definition.variants.find(v => v.id === definition.defaultVariant)!;
+  if (findings.length) throw new Error(findings.map((f) => f.message).join('\n'));
+  for (const dep of definition.dependencies)
+    if (!assets[dep.path]) throw new Error(`Missing dependency: ${dep.path}`);
+  for (const path of Object.keys(assets))
+    if (!/^assets\/[\w./-]+$/.test(path) || path.split('/').includes('..'))
+      throw new Error('Invalid dependency path.');
+  const first = definition.variants.find((v) => v.id === definition.defaultVariant)!;
   const policy = designToolPolicy(definition);
   const manifest = {
-    id: definition.id, name: definition.name, version: definition.version,
-    engineVersion: composed?'^1.217.0':'^1.199.0', description: definition.description || 'Share your design with your rules.',
-    category: 'designer', tags: ['design', 'template'], status: 'community', isolate: true,
-    render: { width: first.width, height: first.height, formats: definition.formats, dims: false, units: false },
+    id: definition.id,
+    name: definition.name,
+    version: definition.version,
+    engineVersion: dynamic ? '^1.249.0' : composed ? '^1.217.0' : '^1.199.0',
+    description: definition.description || 'Share your design with your rules.',
+    category: 'designer',
+    tags: ['design', 'template'],
+    status: 'community',
+    isolate: true,
+    render: {
+      width: first.width,
+      height: first.height,
+      formats: definition.formats,
+      dims: false,
+      units: false,
+    },
     designTool: policy,
-    inputs: [...definition.inputs].sort((a, b) => Number(a.input.section === 'More options') - Number(b.input.section === 'More options')).map(f => ({ ...f.input, ...(f.common?.source === 'profile' ? { bindToProfile: f.common.key } : {}) })),
+    inputs: [...definition.inputs]
+      .sort(
+        (a, b) =>
+          Number(a.input.section === 'More options') - Number(b.input.section === 'More options')
+      )
+      .map((f) => ({
+        ...f.input,
+        ...(f.common?.source === 'profile' ? { bindToProfile: f.common.key } : {}),
+      })),
+    ...(dynamic ? { requires: ['layout'] } : {}),
     hooks: { onInit: true, onInput: true },
   } as ToolManifest;
   const json = JSON.stringify(definition).replace(/</g, '\\u003c');
@@ -38,9 +72,15 @@ export function compileDesignTool(
   return {
     manifest,
     files: {
-      'tool.json': JSON.stringify(manifest, null, 2), 'hooks.js': hooks,
-      'template.html': CONSUMER_TEMPLATE, 'styles.css': `${renderer.styles}\n${definition.css}\n${CONSUMER_STYLES}`,
-      'compilation.json': JSON.stringify({ compilerVersion: 1, rendererDigest: definition.rendererDigest, dependencies: definition.dependencies }),
+      'tool.json': JSON.stringify(manifest, null, 2),
+      'hooks.js': hooks,
+      'template.html': CONSUMER_TEMPLATE,
+      'styles.css': `${renderer.styles}\n${definition.css}\n${CONSUMER_STYLES}`,
+      'compilation.json': JSON.stringify({
+        compilerVersion: 1,
+        rendererDigest: definition.rendererDigest,
+        dependencies: definition.dependencies,
+      }),
       ...assets,
     },
   };
@@ -51,7 +91,7 @@ async function renderLocked(ctx) {
   var supplied = inputsFrom(ctx.model.filter(function(i) { return i.isDirty || i.bindToProfile; }));
   var result = LollyDesignRules.evaluateDesignTool(lockedDefinition, supplied);
   var v = result.variant;
-  var model = [{id:'boxes',value:v.boxes},{id:'background',value:v.background},{id:'textDocument',value:v.textDocument?JSON.stringify(v.textDocument):''}];
+  var model = [{id:'boxes',value:v.boxes},{id:'layoutTracks',value:v.layoutTracks || []},{id:'background',value:v.background},{id:'textDocument',value:v.textDocument?JSON.stringify(v.textDocument):''}];
   var computed = await compute(model);
   var rows = v.boxes.map(function(b,i) {
     var rule = result.textRules[b.id];
@@ -64,12 +104,14 @@ async function renderLocked(ctx) {
   });
   return Object.assign({}, result.values, {designRows:rows, designWidth:v.width, designHeight:v.height,
     designBackground:v.background, designIssues:result.findings, connectorSvg:computed.connectorSvg,
+    layoutReceipt:computed.layoutReceipt,
+    __lollyLayoutPreflight:computed.layoutReceipt ? {values:Object.keys(result.values).sort().map(function(id){return [id,result.values[id]];}),stamp:computed.layoutReceipt} : null,
     __lollyTextPreflight:computed.textPreflight ? { values:Object.keys(result.values).sort().map(function(id){return [id,result.values[id]];}), frames:computed.textPreflight.frames, issues:computed.textPreflight.issues } : null});
 }
 function onInit(ctx) { return renderLocked(ctx); }
 function onInput(ctx) { return renderLocked(ctx); }
 `;
-const CONSUMER_TEMPLATE = `<div class="artboard lolly-locked-design" style="width:{{designWidth}}px;height:{{designHeight}}px;background:{{designBackground}}" data-design-width="{{designWidth}}" data-design-height="{{designHeight}}">
+const CONSUMER_TEMPLATE = `<div data-layout-receipt="{{layoutReceipt}}" class="artboard lolly-locked-design" style="width:{{designWidth}}px;height:{{designHeight}}px;background:{{designBackground}}" data-design-width="{{designWidth}}" data-design-height="{{designHeight}}">
 <div class="lolly-conn-wrap">{{{connectorSvg}}}</div>
 {{#each designRows}}{{#unless hidden}}
 <div class="lolly-box" data-design-layer="{{id}}" data-framing="{{framingId}}" data-fit-group="{{fitGroup}}" data-image-min-width="{{imageMinWidth}}" data-image-min-height="{{imageMinHeight}}" data-image-formats="{{imageFormats}}" data-public-input="{{input}}" style="{{style}}" data-design-fit="{{fit}}" data-fit-min="{{min}}" data-fit-max="{{max}}" data-fit-lines="{{lines}}">

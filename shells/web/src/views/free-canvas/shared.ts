@@ -317,6 +317,7 @@ export interface ModelItem {
   value: any;
 }
 export interface RuntimeApi {
+  getHydratedText?(str: string): string;
   peekTextLayout?(request: import('@lolly-tools/core').TextLayoutRequestV1): import('@lolly/engine').TextLayoutReceipt | null;
   layoutText?(request: import('@lolly-tools/core').TextLayoutRequestV1): Promise<import('@lolly-tools/core').TextLayoutV1>;
   getModel(): ModelItem[];
@@ -1101,4 +1102,213 @@ export interface TouchPt {
 /** railSession is an ES module binding now: importers read it live and write it through here. */
 export function setRailSession(value: { left: number; top: number } | null): void { railSession = value; }
 
-export type LayoutClipboard = Box[] | { version: 2; boxes: Box[]; textDocument: string };
+export type LayoutClipboard = Box[] | { version: 2; boxes: Box[]; textDocument: string; layoutTracks?: Array<Record<string, unknown>> };
+
+/** Evaluated grid tracks carry the newer layout solver's world-space anchors. */
+export interface GridProjection {
+  id: string;
+  columns: number[][];
+  rows: number[][];
+  cells?: Array<{ id: string; row: number; column: number; rowSpan: number; columnSpan: number }>;
+}
+const on = (value: unknown): boolean => value === true || value === 'true' || value === 1 || value === '1';
+const scalar = (value: unknown): number => Number(value || 0);
+const key = (row: Box): string => String(row.id || '');
+const isContainer = (row: Box | undefined): boolean => row?.layout === 'flex' || row?.layout === 'grid';
+const ownership = (row: Box): string => String(row.layoutOwner || row.frame || '');
+/** A child's NW point expressed in its parent's rotated axes. */
+export function relativePlacement(
+  child: Box,
+  parent: Box
+): { layoutX: number; layoutY: number; layoutAngle: number } {
+  const p = basis(parent),
+    c = basis(child);
+  const dx = c.x - p.x,
+    dy = c.y - p.y;
+  return {
+    layoutX: dx * p.ux + dy * p.uy,
+    layoutY: dx * p.vx + dy * p.vy,
+    layoutAngle: scalar(child.rot) - scalar(parent.rot),
+  };
+}
+export function basis(row: Box) {
+  const angle = (scalar(row.rot) * Math.PI) / 180,
+    ux = Math.cos(angle),
+    uy = Math.sin(angle),
+    vx = -uy,
+    vy = ux;
+  const w = scalar(row.w),
+    h = scalar(row.h);
+  return {
+    x: scalar(row.x) + w / 2 - (ux * w) / 2 - (vx * h) / 2,
+    y: scalar(row.y) + h / 2 - (uy * w) / 2 - (vy * h) / 2,
+    ux,
+    uy,
+    vx,
+    vy,
+  };
+}
+export function localPoint(parent: Box, x: number, y: number): { x: number; y: number } {
+  const p = basis(parent),
+    dx = x - p.x,
+    dy = y - p.y;
+  return { x: dx * p.ux + dy * p.uy, y: dx * p.vx + dy * p.vy };
+}
+export function worldPoint(parent: Box, x: number, y: number): { x: number; y: number } {
+  const p = basis(parent);
+  return { x: p.x + x * p.ux + y * p.vx, y: p.y + x * p.uy + y * p.vy };
+}
+function nearestTrack(
+  parent: Box,
+  tracks: number[][],
+  axis: 'x' | 'y',
+  x: number,
+  y: number
+): number {
+  const point = localPoint(parent, x, y)[axis];
+  let result = 0,
+    distance = Infinity;
+  tracks.forEach((track, index) => {
+    const start = localPoint(parent, track[0]!, track[1]!)[axis],
+      end = localPoint(parent, track[2]!, track[3]!)[axis];
+    const d = point < start ? start - point : point > end ? point - end : 0;
+    if (d < distance) {
+      result = index + 1;
+      distance = d;
+    }
+  });
+  return result;
+}
+export function gridCellAt(
+  parent: Box,
+  grid: GridProjection,
+  x: number,
+  y: number
+): { layoutRow: number; layoutColumn: number } {
+  return {
+    layoutColumn: nearestTrack(parent, grid.columns, 'x', x, y),
+    layoutRow: nearestTrack(parent, grid.rows, 'y', x, y),
+  };
+}
+export function gridCellPolygon(
+  parent: Box,
+  grid: GridProjection,
+  row: number,
+  column: number
+): Array<{ x: number; y: number }> {
+  const c = grid.columns[column - 1],
+    r = grid.rows[row - 1];
+  if (!c || !r) return [];
+  const x1 = localPoint(parent, c[0]!, c[1]!).x,
+    x2 = localPoint(parent, c[2]!, c[3]!).x;
+  const y1 = localPoint(parent, r[0]!, r[1]!).y,
+    y2 = localPoint(parent, r[2]!, r[3]!).y;
+  return [
+    [x1, y1],
+    [x2, y1],
+    [x2, y2],
+    [x1, y2],
+  ].map(([x, y]) => worldPoint(parent, x!, y!));
+}
+
+/** Delete only dynamic scopes. Static artboards retain their established rehome behavior. */
+export function dynamicScope(boxes: Box[], selected: ReadonlySet<string>): Set<string> {
+  const byId = new Map(boxes.map((b) => [key(b), b])),
+    result = new Set(selected),
+    pending = [...selected];
+  for (let n = 0; n < pending.length; n++) {
+    const parent = pending[n]!;
+    if (!isContainer(byId.get(parent))) continue;
+    for (const child of boxes)
+      if (ownership(child) === parent && !result.has(key(child))) {
+        result.add(key(child));
+        pending.push(key(child));
+      }
+  }
+  return result;
+}
+export function containingFrame(row: Box, boxes: Map<string, Box>): string {
+  let id = ownership(row);
+  const visited = new Set<string>();
+  while (id && !visited.has(id)) {
+    visited.add(id);
+    const parent = boxes.get(id);
+    if (!parent) return '';
+    if (parent.kind === 'frame') return id;
+    id = ownership(parent);
+  }
+  return '';
+}
+export function materialize(row: Box, shown: Box | undefined, frame: string): Box {
+  return {
+    ...row,
+    x: shown?.x ?? row.x,
+    y: shown?.y ?? row.y,
+    w: shown?.w ?? row.w,
+    h: shown?.h ?? row.h,
+    rot: shown?.rot ?? row.rot,
+    layoutOwner: '',
+    frame,
+  };
+}
+
+/** Infer a flow insertion from the moved item's center, in the container's axes. */
+export function flowOrder(
+  boxes: Box[],
+  parent: Box,
+  moving: ReadonlySet<string>,
+  at: Box
+): Map<string, number> {
+  const vertical = String(parent.layoutDirection || 'row').startsWith('column'),
+    reverse = String(parent.layoutDirection).endsWith('reverse');
+  const center = localPoint(
+    parent,
+    scalar(at.x) + scalar(at.w) / 2,
+    scalar(at.y) + scalar(at.h) / 2
+  );
+  const siblings = boxes.filter(
+    (r) => ownership(r) === key(parent) && !on(r.layoutAbsolute) && !on(r.hidden)
+  );
+  const stable = siblings
+    .map((r, i) => ({ r, i }))
+    .sort((a, b) => scalar(a.r.layoutOrder ?? a.i) - scalar(b.r.layoutOrder ?? b.i) || a.i - b.i)
+    .map((p) => p.r);
+  const kept = stable.filter((r) => !moving.has(key(r))),
+    moved = stable.filter((r) => moving.has(key(r)));
+  const point = (r: Box) =>
+    localPoint(parent, scalar(r.x) + scalar(r.w) / 2, scalar(r.y) + scalar(r.h) / 2);
+  let atIndex = kept.findIndex((r) => {
+    const p = point(r),
+      main = vertical ? 'y' : 'x',
+      cross = vertical ? 'x' : 'y';
+    if (
+      on(parent.layoutWrap) &&
+      Math.abs(center[cross] - p[cross]) > (vertical ? scalar(r.w) : scalar(r.h)) / 2
+    )
+      return center[cross] < p[cross];
+    return reverse ? center[main] > p[main] : center[main] < p[main];
+  });
+  if (atIndex < 0) atIndex = kept.length;
+  kept.splice(atIndex, 0, ...moved);
+  return new Map(kept.map((r, n) => [key(r), n]));
+}
+
+
+/** Preview the same insertion routing the eventual flex commit will use. */
+export function flowDropMarker(parent: Box, boxes: Box[], moving: ReadonlySet<string>, at: Box): Point[] {
+  const order = flowOrder(boxes, parent, moving, at), slot = order.get(String(at.id));
+  if (slot == null) return [];
+  const siblings = boxes.filter(row => order.has(key(row)) && !moving.has(key(row))).sort((a, b) => order.get(key(a))! - order.get(key(b))!);
+  const next = siblings.find(row => order.get(key(row))! > slot), target = next || siblings.at(-1);
+  if (!target) return [];
+  const vertical = String(parent.layoutDirection || 'row').startsWith('column'), reverse = String(parent.layoutDirection).endsWith('reverse');
+  const points = [[0, 0], [scalar(target.w), 0], [scalar(target.w), scalar(target.h)], [0, scalar(target.h)]].map(([x, y]) => {
+    const world = worldPoint(target, x!, y!); return localPoint(parent, world.x, world.y);
+  });
+  const xs = points.map(point => point.x), ys = points.map(point => point.y);
+  const main = vertical ? ys : xs, cross = vertical ? xs : ys;
+  const before = Boolean(next) !== reverse, edge = before ? Math.min(...main) : Math.max(...main);
+  const gap = scalar(parent[vertical ? 'layoutGapY' : 'layoutGapX']) / 2;
+  const coordinate = edge + (before ? -gap : gap);
+  return [Math.min(...cross), Math.max(...cross)].map(value => vertical ? worldPoint(parent, value, coordinate) : worldPoint(parent, coordinate, value));
+}

@@ -424,10 +424,13 @@ export async function faceSourceBytes(face: VectorFontFace): Promise<Uint8Array 
 }
 
 /** Discover newly mounted font faces without revoking URLs an export is using. */
-export function refreshFontRegistry(): void { registryPromise = null; }
+let fontRegistryRevision = 0;
+export function fontRegistryGeneration(): number { return fontRegistryRevision; }
+export function refreshFontRegistry(): void { fontRegistryRevision++; registryPromise = null; }
 
 /** Drop the cached registry (and every decoded face) after an install/removal. */
 export function bustFontRegistry(): void {
+  fontRegistryRevision++;
   registryPromise = null;
   for (const url of sfntUrls.values()) URL.revokeObjectURL(url);
   sfntUrls.clear();

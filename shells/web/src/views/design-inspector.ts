@@ -3,6 +3,7 @@ import { webInteractRows, wireWebInteract, commitWebInteractColour } from './des
 import { mountTextInspector } from '../lib/text-inspector.ts';
 import { wireWebPlayback } from './design-web-playback.ts';
 // SPDX-License-Identifier: MPL-2.0
+import { layoutInspectorControls, layoutInspectorSignature, layoutSectionRows, wireLayoutTracks, LAYOUT_FIELDS } from './design-layout-section.ts';
 /**
  * The Design editor's INSPECTOR column - plan 179 M3, slice (c).
  *
@@ -153,7 +154,7 @@ const DOCK_ID = 'inspector';
  */
 export type InspectorSection =
   | 'document' | 'artboard' | 'object' | 'text' | 'image' | 'tool' | 'scene' | 'web' | 'motion' | 'present'
-  | 'fill' | 'appearance' | 'shadow' | 'tilt' | 'arrange' | 'guide';
+  | 'fill' | 'appearance' | 'shadow' | 'tilt' | 'arrange' | 'guide' | 'dynamicLayout';
 
 /**
  * The five bands every section belongs to, in the order they are laid out
@@ -394,6 +395,7 @@ const WATCHED: Record<InspectorSection, (c: Cfg, m: FlagFields) => Array<string 
   shadow: (c) => [c.shadowField, c.shadowColorField, c.shadowXField, c.shadowYField, c.shadowBlurField],
   tilt: (c) => [c.rxField, c.ryField],
   arrange: () => [],
+  dynamicLayout: () => LAYOUT_FIELDS,
   text: (c) => [c.textField, c.fontField, c.fontSizeField, c.weightField, c.lineHeightField, c.trackingField,
     c.ligaturesField, c.alternatesField, c.fitTextField, c.alignField, c.valignField, c.padField, c.textColorField],
   image: (c) => [c.imageField, c.fitField, c.imgPosField],
@@ -443,6 +445,7 @@ const SECTION_META: Record<InspectorSection, { title: () => string; glyph: IconN
   // `layers` is the Layers panel's own glyph. Arrange is about order, so it takes
   // the order glyph and the two stop meaning each other.
   arrange: { title: () => t('Arrange'), glyph: 'orderFront', band: 'layout' },
+  dynamicLayout: { title: () => t('Dynamic layout'), glyph: 'grid', band: 'layout' },
   text: { title: () => t('Text'), glyph: 'font', band: 'content' },
   image: { title: () => t('Image'), glyph: 'image', band: 'content' },
   // A box whose picture is another Lolly tool's render: that tool's own settings.
@@ -479,7 +482,7 @@ export const SECTIONS_KEY = 'lolly-design-inspector-sections';
  */
 const DEFAULT_OPEN: Record<InspectorSection, boolean> = {
   document: true, guide: true, artboard: true, object: false, fill: true, appearance: false,
-  shadow: false, tilt: false, arrange: false,
+  shadow: false, tilt: false, arrange: false, dynamicLayout: true,
   text: true, image: true, tool: true, scene: true, web: true, motion: false, present: false,
 };
 
@@ -569,6 +572,17 @@ function sceneSummary(query: string): { subject: string; studio: string } {
     || '';
   const parts = [source ? (SCENE_SOURCE_LABEL[source]?.() ?? source) : '', detail.slice(0, 80)].filter(Boolean);
   return { subject: parts.join(' · '), studio: (q.get('studio') ?? '').trim() };
+}
+
+/** `CSS.escape` where the platform has it (jsdom does not), for a manifest field name. */
+const q = (s: unknown): string =>
+  (typeof CSS !== 'undefined' && typeof CSS.escape === 'function') ? CSS.escape(String(s)) : String(s).replace(/["\\]/g, '\\$&');
+
+function wireInspectorSelects(root: HTMLElement, model: ModelPort, ids: string[], write: (field: string | undefined, value: unknown) => void): void {
+  wireLayoutTracks(root, model, ids);
+  root.querySelectorAll<HTMLSelectElement>('select[data-fld]').forEach((select) => {
+    select.addEventListener('change', () => write(select.dataset.fld, select.dataset.kind === 'num' ? Number(select.value) : select.value));
+  });
 }
 
 export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorHandle {
@@ -771,7 +785,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     // The groups that DO stay read every row, so a value the rows disagree about shows
     // as mixed instead of as the first box's.
     if (ids.length > 1) return { kind: 'multi', ids, box, rows, secs: orderByBand([...(rows.length === ids.length && rows.every(row => kindOf(row) === 'text') ? ['text' as const] : []), ...paintSecs(false)]) };
-    if (frame && kindOf(box) === frame.frameKind) return { kind: 'frame', ids, box, rows, secs: orderByBand(['artboard', 'present', 'motion']) };
+    if (frame && kindOf(box) === frame.frameKind) return { kind: 'frame', ids, box, rows, secs: orderByBand(['artboard', 'present', 'motion', ...(declaredField('layout') ? ['dynamicLayout' as const] : [])]) };
     const secs: InspectorSection[] = [];
     const hasText = kindOf(box) === 'text' || (!!cfg.textField && String(box[cfg.textField] ?? '') !== '');
     if (hasText) secs.push('text');
@@ -790,6 +804,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       secs.push(kindOf(box) !== 'webcam' && toolLinkOf(box) && actions.mountToolSettings ? 'tool' : 'image');
     }
     secs.push('object', ...paintSecs(true));
+    if (declaredField('layout')) secs.push('dynamicLayout');
     secs.push('motion');
     // …and Present LAST, for the three per-box fields only a box can carry (see
     // presentBody). One box at a time: `build` and `matchOf` are per-object answers,
@@ -1841,6 +1856,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     if (sec === 'shadow') return shadowBody(b, rows);
     if (sec === 'tilt') return tiltBody(b);
     if (sec === 'arrange') return arrangeGrid(g.ids.length);
+    if (sec === 'dynamicLayout') return layoutSectionRows(b, model, layoutInspectorControls({ textRow, toggleRow, numRow, selectRow }), g.ids);
     if (sec === 'text') return textBody(b, g.rows);
     if (sec === 'image') return imageBody(b);
     if (sec === 'scene') return sceneBody(b);
@@ -1852,10 +1868,6 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
   }
 
   // ── render ──────────────────────────────────────────────────────────────────
-
-  /** `CSS.escape` where the platform has it (jsdom does not), for a manifest field name. */
-  const q = (s: unknown): string =>
-    (typeof CSS !== 'undefined' && typeof CSS.escape === 'function') ? CSS.escape(String(s)) : String(s).replace(/["\\]/g, '\\$&');
 
   /**
    * A selector that re-finds the focused control after a rebuild - its FIELD identity,
@@ -2140,9 +2152,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       },
     });
 
-    scroll.querySelectorAll<HTMLSelectElement>('select[data-fld]').forEach((sel) => {
-      sel.addEventListener('change', () => write(sel.dataset.fld, sel.dataset.kind === 'num' ? Number(sel.value) : sel.value));
-    });
+    wireInspectorSelects(scroll, model, [...renderedIds], write);
     wireWebPlayback(scroll, () => parseWebEmbed(String(fv(boxesById(renderedIds)[0] ?? {}, F_WEB) ?? ''), { appOrigin: location.origin }), link => write(F_WEB, link));
     webInteractDispose = wireWebInteract(scroll, model, [...renderedIds], canvasEl);
 
@@ -2322,6 +2332,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
   function signature(g: Gate): string {
     const watched: unknown[] = [documentView, g.rows.map(row => fv(row, F_NAME)), model.getInput('editingRange'), opts.videoWorkspace?.() === true, g.kind === 'guide' ? g.guide : null, model.getInput('documentUnit')];
     if (opts.tokens) watched.push(g.rows.map(row => row[opts.tokens!.metadataField]));
+    if (g.secs.includes('dynamicLayout')) watched.push(layoutInspectorSignature(model, g.ids, cfg.idField, F_NAME));
     for (const sec of g.secs) {
       // EVERY selected row, not just the first. A paint group's cells read them all to
       // decide whether to show a number or "Mixed", so a change to the second box's

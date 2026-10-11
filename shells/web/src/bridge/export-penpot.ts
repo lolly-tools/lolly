@@ -160,7 +160,11 @@ async function mediaFromUrl(url: string, name: string, id = penpotUuid()): Promi
 
 // ─── producer 1: the Design tool's own boxes ──────────────────────────────────
 
-interface PenpotDocModel { background: string | undefined; boxes: Array<Record<string, unknown>> }
+interface PenpotDocModel {
+  background: string | undefined;
+  boxes: Array<Record<string, unknown>>;
+  layoutTracks: Array<Record<string, unknown>>;
+}
 
 /** Read the tool-authored raw document off the stage, or null to fall through to
  *  the vector render. Untrusted JSON: shape-checked, never assumed. */
@@ -174,9 +178,11 @@ function readPenpotDocModel(node: Element): PenpotDocModel | null {
     const boxes = (raw as { boxes?: unknown }).boxes;
     if (!Array.isArray(boxes)) return null;
     const bg = (raw as { background?: unknown }).background;
+    const layoutTracks = (raw as { layoutTracks?: unknown }).layoutTracks;
     return {
       background: typeof bg === 'string' && bg.trim() ? bg.trim() : undefined,
       boxes: boxes.filter((b): b is Record<string, unknown> => !!b && typeof b === 'object' && !Array.isArray(b)),
+      layoutTracks: Array.isArray(layoutTracks) ? layoutTracks.filter((track): track is Record<string, unknown> => !!track && typeof track === 'object' && !Array.isArray(track)) : [],
     };
   } catch { return null; }
 }
@@ -371,6 +377,7 @@ export async function renderPenpot(node: Element, opts: ExportOpts): Promise<Blo
         ...shared,
         canvas: stageSize(node),
         background: model.background,
+        layoutTracks: Array.isArray(model.layoutTracks) ? model.layoutTracks : [],
         fonts: brand.fonts,
         mediaFor: (box) => media.get(String(box.id ?? '')) ?? null,
         resolveColor: colors.resolve,

@@ -125,7 +125,11 @@
     "./adobe-psd.wasm": "./wasm/adobe-psd/adobe-psd.wasm",
     "./pdfx": "./src/pdfx.ts",
     "./pdf-finishing": "./src/pdf-finishing.ts",
-    "./design-ops-pdf": "./src/design-ops-pdf.ts"
+    "./design-ops-pdf": "./src/design-ops-pdf.ts",
+    "./layout-kernel": "./src/layout-kernel.ts",
+    "./layout-kernel-node": "./src/layout-kernel-node.ts",
+    "./layout-kernel.wasm": "./wasm/layout-kernel/layout-kernel.wasm",
+    "./layout-host-node": "./src/layout-host-node.ts"
   },
   "files": [
     "src",

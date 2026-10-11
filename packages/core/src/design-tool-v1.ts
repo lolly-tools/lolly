@@ -61,6 +61,7 @@ export interface ArtboardVariantV1 {
   background: string;
   boxes: Array<Record<string, unknown>>;
   textDocument?: TextDocumentV1;
+  layoutTracks?: Array<Record<string, unknown>>;
 }
 /** A captured tool renderer, with public fields mapped to its original inputs. */
 export interface DesignSourceToolV1 { id: string; version: string; inputs: Record<string, string> }
@@ -98,7 +99,7 @@ export interface DesignToolPolicyV1 {
   presentation: 'sidebar' | 'on-canvas';
   inputs: DesignInputV1[];
   choices: DesignChoiceV1[];
-  variants: Array<Omit<ArtboardVariantV1, 'boxes' | 'background' | 'textDocument'>>;
+  variants: Array<Omit<ArtboardVariantV1, 'boxes' | 'background' | 'textDocument' | 'layoutTracks'>>;
   defaultVariant: string;
   formats: Array<'png' | 'svg' | 'pdf'>;
   sourceTool?: DesignSourceToolV1;
@@ -110,7 +111,7 @@ const propertyTypes: Record<DesignPropertyV1, string[]> = {
   fit: ['select'], imageFraming: ['vector'],
 };
 const badKeys = new Set(['__proto__', 'prototype', 'constructor']);
-const internal = new Set(['boxes', 'textDocument', 'exportVisibleText', 'customCss', 'background', 'transparentBg', 'font', 'fontSize', 'boxStyle', 'textStyle', 'mediaHtml', 'textHtml', 'designRows', 'designWidth', 'designHeight', 'designBackground', 'designIssues']);
+const internal = new Set(['boxes', 'layoutTracks', 'layoutReceipt', 'layoutBoxesJson', 'layoutSourceJson', 'layoutGridsJson', 'textDocument', 'exportVisibleText', 'customCss', 'background', 'transparentBg', 'font', 'fontSize', 'boxStyle', 'textStyle', 'mediaHtml', 'textHtml', 'designRows', 'designWidth', 'designHeight', 'designBackground', 'designIssues']);
 const idPattern = /^[a-zA-Z][a-zA-Z0-9_-]{0,63}$/;
 const own = (o: object, k: string): boolean => Object.hasOwn(o, k);
 const keyOf = (t: DesignTargetV1): string => `${t.variantId}/${t.layerId}/${t.property}`;

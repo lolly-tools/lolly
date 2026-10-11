@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
+import type { LayoutAPI } from './layout.ts';
+
 import type { TextToolsAPI } from './text-tools.ts';
 
 import type { AssetsAPI } from './assets.ts';
@@ -91,6 +93,8 @@ import type { VizAPI } from './viz.ts';
  */
 
 export interface HostV1 {
+  layout?: LayoutAPI;
+
   /** Portable text transformations and inspection (v1.191). */
   textTools?: TextToolsAPI;
 

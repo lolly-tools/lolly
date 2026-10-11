@@ -5,7 +5,7 @@
     "HOST_V1_OPTIONAL_APIS": {
       "module": "apis.ts",
       "kind": "FirstStatement",
-      "sha256": "402a89511c25077459606e6382d270c1e79c4db34e90735b1a37f609980eec12"
+      "sha256": "c0a825ebe1ba058347bf463860dd10789cf7880d215313013a6ad27f28af7066"
     },
     "HostApiName": {
       "module": "apis.ts",
@@ -525,7 +525,7 @@
     "HostV1": {
       "module": "host.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "d934cec44502b50b949154dfb857bbdc8bd057e6516258f7032d15545a726302"
+      "sha256": "3ed6f7704aa666ba28f5958adef24440da12aebaf2e586252df5b5ca8d874170"
     },
     "Capability": {
       "module": "host.ts",
@@ -586,6 +586,11 @@
       "module": "layers.ts",
       "kind": "InterfaceDeclaration",
       "sha256": "34aa7b50f48871edf62d72015a3f248c4d843c030c695d1fc3124db061194963"
+    },
+    "LayoutAPI": {
+      "module": "layout.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "4159bbdc64d49fc0bb221155ea748c446f6f32433f0166baf00a683cd40e579d"
     },
     "LiftAPI": {
       "module": "lift.ts",

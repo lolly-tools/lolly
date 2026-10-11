@@ -1,0 +1,4956 @@
+{
+  "revision": "10955f17e27943429a10e90360d0404e3f56e27c",
+  "oracle": "native extraction of modern Penpot routines; not full renderer parity",
+  "cases": [
+    {
+      "name": "flex-row",
+      "request": {
+        "mode": "flex",
+        "direction": "row",
+        "wrap": false,
+        "bounds": [
+          10.0,
+          20.0,
+          210.0,
+          20.0,
+          210.0,
+          120.0,
+          10.0,
+          120.0
+        ],
+        "padding": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "gap": [
+          5,
+          5
+        ],
+        "align": "start",
+        "align_content": "start",
+        "justify": "start",
+        "justify_items": "start",
+        "sizing": [
+          "fixed",
+          "fixed"
+        ],
+        "items": [
+          {
+            "bounds": [
+              0.0,
+              0.0,
+              20.0,
+              0.0,
+              20.0,
+              10.0,
+              0.0,
+              10.0
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          {
+            "bounds": [
+              40.0,
+              50.0,
+              70.0,
+              50.0,
+              70.0,
+              70.0,
+              40.0,
+              70.0
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          }
+        ],
+        "columns": [],
+        "rows": []
+      },
+      "expected": {
+        "bounds": [
+          [
+            10.0,
+            20.0,
+            210.0,
+            20.0,
+            210.0,
+            120.0,
+            10.0,
+            120.0
+          ],
+          [
+            20.0,
+            30.0,
+            40.0,
+            30.0,
+            40.0,
+            40.0,
+            20.0,
+            40.0
+          ],
+          [
+            45.0,
+            30.0,
+            75.0,
+            30.0,
+            75.0,
+            50.0,
+            45.0,
+            50.0
+          ]
+        ]
+      }
+    },
+    {
+      "name": "flex-column",
+      "request": {
+        "mode": "flex",
+        "direction": "column",
+        "wrap": false,
+        "bounds": [
+          10.0,
+          20.0,
+          210.0,
+          20.0,
+          210.0,
+          120.0,
+          10.0,
+          120.0
+        ],
+        "padding": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "gap": [
+          5,
+          5
+        ],
+        "align": "start",
+        "align_content": "start",
+        "justify": "start",
+        "justify_items": "start",
+        "sizing": [
+          "fixed",
+          "fixed"
+        ],
+        "items": [
+          {
+            "bounds": [
+              0.0,
+              0.0,
+              20.0,
+              0.0,
+              20.0,
+              10.0,
+              0.0,
+              10.0
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          {
+            "bounds": [
+              40.0,
+              50.0,
+              70.0,
+              50.0,
+              70.0,
+              70.0,
+              40.0,
+              70.0
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          }
+        ],
+        "columns": [],
+        "rows": []
+      },
+      "expected": {
+        "bounds": [
+          [
+            10.0,
+            20.0,
+            210.0,
+            20.0,
+            210.0,
+            120.0,
+            10.0,
+            120.0
+          ],
+          [
+            20.0,
+            30.0,
+            40.0,
+            30.0,
+            40.0,
+            40.0,
+            20.0,
+            40.0
+          ],
+          [
+            20.0,
+            45.0,
+            50.0,
+            45.0,
+            50.0,
+            65.0,
+            20.0,
+            65.0
+          ]
+        ]
+      }
+    },
+    {
+      "name": "flex-row-reverse",
+      "request": {
+        "mode": "flex",
+        "direction": "row-reverse",
+        "wrap": false,
+        "bounds": [
+          10.0,
+          20.0,
+          210.0,
+          20.0,
+          210.0,
+          120.0,
+          10.0,
+          120.0
+        ],
+        "padding": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "gap": [
+          5,
+          5
+        ],
+        "align": "start",
+        "align_content": "start",
+        "justify": "start",
+        "justify_items": "start",
+        "sizing": [
+          "fixed",
+          "fixed"
+        ],
+        "items": [
+          {
+            "bounds": [
+              0.0,
+              0.0,
+              20.0,
+              0.0,
+              20.0,
+              10.0,
+              0.0,
+              10.0
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          {
+            "bounds": [
+              40.0,
+              50.0,
+              70.0,
+              50.0,
+              70.0,
+              70.0,
+              40.0,
+              70.0
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          }
+        ],
+        "columns": [],
+        "rows": []
+      },
+      "expected": {
+        "bounds": [
+          [
+            10.0,
+            20.0,
+            210.0,
+            20.0,
+            210.0,
+            120.0,
+            10.0,
+            120.0
+          ],
+          [
+            55.0,
+            30.0,
+            75.0,
+            30.0,
+            75.0,
+            40.0,
+            55.0,
+            40.0
+          ],
+          [
+            20.0,
+            30.0,
+            50.0,
+            30.0,
+            50.0,
+            50.0,
+            20.0,
+            50.0
+          ]
+        ]
+      }
+    },
+    {
+      "name": "flex-column-reverse",
+      "request": {
+        "mode": "flex",
+        "direction": "column-reverse",
+        "wrap": false,
+        "bounds": [
+          10.0,
+          20.0,
+          210.0,
+          20.0,
+          210.0,
+          120.0,
+          10.0,
+          120.0
+        ],
+        "padding": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "gap": [
+          5,
+          5
+        ],
+        "align": "start",
+        "align_content": "start",
+        "justify": "start",
+        "justify_items": "start",
+        "sizing": [
+          "fixed",
+          "fixed"
+        ],
+        "items": [
+          {
+            "bounds": [
+              0.0,
+              0.0,
+              20.0,
+              0.0,
+              20.0,
+              10.0,
+              0.0,
+              10.0
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          {
+            "bounds": [
+              40.0,
+              50.0,
+              70.0,
+              50.0,
+              70.0,
+              70.0,
+              40.0,
+              70.0
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          }
+        ],
+        "columns": [],
+        "rows": []
+      },
+      "expected": {
+        "bounds": [
+          [
+            10.0,
+            20.0,
+            210.0,
+            20.0,
+            210.0,
+            120.0,
+            10.0,
+            120.0
+          ],
+          [
+            20.0,
+            55.0,
+            40.0,
+            55.0,
+            40.0,
+            65.0,
+            20.0,
+            65.0
+          ],
+          [
+            20.0,
+            30.0,
+            50.0,
+            30.0,
+            50.0,
+            50.0,
+            20.0,
+            50.0
+          ]
+        ]
+      }
+    },
+    {
+      "name": "flex-center",
+      "request": {
+        "mode": "flex",
+        "direction": "row",
+        "wrap": false,
+        "bounds": [
+          10.0,
+          20.0,
+          210.0,
+          20.0,
+          210.0,
+          120.0,
+          10.0,
+          120.0
+        ],
+        "padding": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "gap": [
+          5,
+          5
+        ],
+        "align": "start",
+        "align_content": "start",
+        "justify": "center",
+        "justify_items": "start",
+        "sizing": [
+          "fixed",
+          "fixed"
+        ],
+        "items": [
+          {
+            "bounds": [
+              0.0,
+              0.0,
+              20.0,
+              0.0,
+              20.0,
+              10.0,
+              0.0,
+              10.0
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          {
+            "bounds": [
+              40.0,
+              50.0,
+              70.0,
+              50.0,
+              70.0,
+              70.0,
+              40.0,
+              70.0
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          }
+        ],
+        "columns": [],
+        "rows": []
+      },
+      "expected": {
+        "bounds": [
+          [
+            10.0,
+            20.0,
+            210.0,
+            20.0,
+            210.0,
+            120.0,
+            10.0,
+            120.0
+          ],
+          [
+            82.5,
+            30.0,
+            102.5,
+            30.0,
+            102.5,
+            40.0,
+            82.5,
+            40.0
+          ],
+          [
+            107.5,
+            30.0,
+            137.5,
+            30.0,
+            137.5,
+            50.0,
+            107.5,
+            50.0
+          ]
+        ]
+      }
+    },
+    {
+      "name": "flex-end",
+      "request": {
+        "mode": "flex",
+        "direction": "row",
+        "wrap": false,
+        "bounds": [
+          10.0,
+          20.0,
+          210.0,
+          20.0,
+          210.0,
+          120.0,
+          10.0,
+          120.0
+        ],
+        "padding": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "gap": [
+          5,
+          5
+        ],
+        "align": "start",
+        "align_content": "start",
+        "justify": "end",
+        "justify_items": "start",
+        "sizing": [
+          "fixed",
+          "fixed"
+        ],
+        "items": [
+          {
+            "bounds": [
+              0.0,
+              0.0,
+              20.0,
+              0.0,
+              20.0,
+              10.0,
+              0.0,
+              10.0
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          {
+            "bounds": [
+              40.0,
+              50.0,
+              70.0,
+              50.0,
+              70.0,
+              70.0,
+              40.0,
+              70.0
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          }
+        ],
+        "columns": [],
+        "rows": []
+      },
+      "expected": {
+        "bounds": [
+          [
+            10.0,
+            20.0,
+            210.0,
+            20.0,
+            210.0,
+            120.0,
+            10.0,
+            120.0
+          ],
+          [
+            145.0,
+            30.0,
+            165.0,
+            30.0,
+            165.0,
+            40.0,
+            145.0,
+            40.0
+          ],
+          [
+            170.0,
+            30.0,
+            200.0,
+            30.0,
+            200.0,
+            50.0,
+            170.0,
+            50.0
+          ]
+        ]
+      }
+    },
+    {
+      "name": "flex-space-between",
+      "request": {
+        "mode": "flex",
+        "direction": "row",
+        "wrap": false,
+        "bounds": [
+          10.0,
+          20.0,
+          210.0,
+          20.0,
+          210.0,
+          120.0,
+          10.0,
+          120.0
+        ],
+        "padding": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "gap": [
+          5,
+          5
+        ],
+        "align": "start",
+        "align_content": "start",
+        "justify": "space-between",
+        "justify_items": "start",
+        "sizing": [
+          "fixed",
+          "fixed"
+        ],
+        "items": [
+          {
+            "bounds": [
+              0.0,
+              0.0,
+              20.0,
+              0.0,
+              20.0,
+              10.0,
+              0.0,
+              10.0
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          {
+            "bounds": [
+              40.0,
+              50.0,
+              70.0,
+              50.0,
+              70.0,
+              70.0,
+              40.0,
+              70.0
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          }
+        ],
+        "columns": [],
+        "rows": []
+      },
+      "expected": {
+        "bounds": [
+          [
+            10.0,
+            20.0,
+            210.0,
+            20.0,
+            210.0,
+            120.0,
+            10.0,
+            120.0
+          ],
+          [
+            20.0,
+            30.0,
+            40.0,
+            30.0,
+            40.0,
+            40.0,
+            20.0,
+            40.0
+          ],
+          [
+            170.0,
+            30.0,
+            200.0,
+            30.0,
+            200.0,
+            50.0,
+            170.0,
+            50.0
+          ]
+        ]
+      }
+    },
+    {
+      "name": "flex-space-around",
+      "request": {
+        "mode": "flex",
+        "direction": "row",
+        "wrap": false,
+        "bounds": [
+          10.0,
+          20.0,
+          210.0,
+          20.0,
+          210.0,
+          120.0,
+          10.0,
+          120.0
+        ],
+        "padding": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "gap": [
+          5,
+          5
+        ],
+        "align": "start",
+        "align_content": "start",
+        "justify": "space-around",
+        "justify_items": "start",
+        "sizing": [
+          "fixed",
+          "fixed"
+        ],
+        "items": [
+          {
+            "bounds": [
+              0.0,
+              0.0,
+              20.0,
+              0.0,
+              20.0,
+              10.0,
+              0.0,
+              10.0
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          {
+            "bounds": [
+              40.0,
+              50.0,
+              70.0,
+              50.0,
+              70.0,
+              70.0,
+              40.0,
+              70.0
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          }
+        ],
+        "columns": [],
+        "rows": []
+      },
+      "expected": {
+        "bounds": [
+          [
+            10.0,
+            20.0,
+            210.0,
+            20.0,
+            210.0,
+            120.0,
+            10.0,
+            120.0
+          ],
+          [
+            52.5,
+            30.0,
+            72.5,
+            30.0,
+            72.5,
+            40.0,
+            52.5,
+            40.0
+          ],
+          [
+            137.5,
+            30.0,
+            167.5,
+            30.0,
+            167.5,
+            50.0,
+            137.5,
+            50.0
+          ]
+        ]
+      }
+    },
+    {
+      "name": "flex-space-evenly",
+      "request": {
+        "mode": "flex",
+        "direction": "row",
+        "wrap": false,
+        "bounds": [
+          10.0,
+          20.0,
+          210.0,
+          20.0,
+          210.0,
+          120.0,
+          10.0,
+          120.0
+        ],
+        "padding": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "gap": [
+          5,
+          5
+        ],
+        "align": "start",
+        "align_content": "start",
+        "justify": "space-evenly",
+        "justify_items": "start",
+        "sizing": [
+          "fixed",
+          "fixed"
+        ],
+        "items": [
+          {
+            "bounds": [
+              0.0,
+              0.0,
+              20.0,
+              0.0,
+              20.0,
+              10.0,
+              0.0,
+              10.0
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          {
+            "bounds": [
+              40.0,
+              50.0,
+              70.0,
+              50.0,
+              70.0,
+              70.0,
+              40.0,
+              70.0
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          }
+        ],
+        "columns": [],
+        "rows": []
+      },
+      "expected": {
+        "bounds": [
+          [
+            10.0,
+            20.0,
+            210.0,
+            20.0,
+            210.0,
+            120.0,
+            10.0,
+            120.0
+          ],
+          [
+            63.333332,
+            30.0,
+            83.33333,
+            30.0,
+            83.33333,
+            40.0,
+            63.333332,
+            40.0
+          ],
+          [
+            126.666664,
+            30.0,
+            156.66666,
+            30.0,
+            156.66666,
+            50.0,
+            126.666664,
+            50.0
+          ]
+        ]
+      }
+    },
+    {
+      "name": "flex-wrap",
+      "request": {
+        "mode": "flex",
+        "direction": "row",
+        "wrap": true,
+        "bounds": [
+          10.0,
+          20.0,
+          90.0,
+          20.0,
+          90.0,
+          110.0,
+          10.0,
+          110.0
+        ],
+        "padding": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "gap": [
+          5,
+          5
+        ],
+        "align": "start",
+        "align_content": "space-between",
+        "justify": "start",
+        "justify_items": "start",
+        "sizing": [
+          "fixed",
+          "fixed"
+        ],
+        "items": [
+          {
+            "bounds": [
+              0.0,
+              0.0,
+              35.0,
+              0.0,
+              35.0,
+              15.0,
+              0.0,
+              15.0
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          {
+            "bounds": [
+              0.0,
+              0.0,
+              35.0,
+              0.0,
+              35.0,
+              15.0,
+              0.0,
+              15.0
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          {
+            "bounds": [
+              0.0,
+              0.0,
+              35.0,
+              0.0,
+              35.0,
+              15.0,
+              0.0,
+              15.0
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          {
+            "bounds": [
+              0.0,
+              0.0,
+              35.0,
+              0.0,
+              35.0,
+              15.0,
+              0.0,
+              15.0
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          }
+        ],
+        "columns": [],
+        "rows": []
+      },
+      "expected": {
+        "bounds": [
+          [
+            10.0,
+            20.0,
+            90.0,
+            20.0,
+            90.0,
+            110.0,
+            10.0,
+            110.0
+          ],
+          [
+            20.0,
+            30.0,
+            55.0,
+            30.0,
+            55.0,
+            45.0,
+            20.0,
+            45.0
+          ],
+          [
+            20.0,
+            50.0,
+            55.0,
+            50.0,
+            55.0,
+            65.0,
+            20.0,
+            65.0
+          ],
+          [
+            20.0,
+            70.0,
+            55.0,
+            70.0,
+            55.0,
+            85.0,
+            20.0,
+            85.0
+          ],
+          [
+            20.0,
+            90.0,
+            55.0,
+            90.0,
+            55.0,
+            105.0,
+            20.0,
+            105.0
+          ]
+        ]
+      }
+    },
+    {
+      "name": "flex-fill-limits",
+      "request": {
+        "mode": "flex",
+        "direction": "row",
+        "wrap": false,
+        "bounds": [
+          10.0,
+          20.0,
+          210.0,
+          20.0,
+          210.0,
+          120.0,
+          10.0,
+          120.0
+        ],
+        "padding": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "gap": [
+          5,
+          5
+        ],
+        "align": "start",
+        "align_content": "start",
+        "justify": "start",
+        "justify_items": "start",
+        "sizing": [
+          "fixed",
+          "fixed"
+        ],
+        "items": [
+          {
+            "bounds": [
+              0.0,
+              0.0,
+              20.0,
+              0.0,
+              20.0,
+              10.0,
+              0.0,
+              10.0
+            ],
+            "sizing": [
+              "fill",
+              "fill"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              30,
+              10
+            ],
+            "max": [
+              60,
+              40
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          {
+            "bounds": [
+              0.0,
+              0.0,
+              20.0,
+              0.0,
+              20.0,
+              10.0,
+              0.0,
+              10.0
+            ],
+            "sizing": [
+              "fill",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              20,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          }
+        ],
+        "columns": [],
+        "rows": []
+      },
+      "expected": {
+        "bounds": [
+          [
+            10.0,
+            20.0,
+            210.0,
+            20.0,
+            210.0,
+            120.0,
+            10.0,
+            120.0
+          ],
+          [
+            20.0,
+            30.0,
+            80.0,
+            30.0,
+            80.0,
+            70.0,
+            20.0,
+            70.0
+          ],
+          [
+            85.0,
+            30.0,
+            200.0,
+            30.0,
+            200.0,
+            40.0,
+            85.0,
+            40.0
+          ]
+        ]
+      }
+    },
+    {
+      "name": "flex-hidden-absolute",
+      "request": {
+        "mode": "flex",
+        "direction": "row",
+        "wrap": false,
+        "bounds": [
+          10.0,
+          20.0,
+          210.0,
+          20.0,
+          210.0,
+          120.0,
+          10.0,
+          120.0
+        ],
+        "padding": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "gap": [
+          5,
+          5
+        ],
+        "align": "start",
+        "align_content": "start",
+        "justify": "start",
+        "justify_items": "start",
+        "sizing": [
+          "fixed",
+          "fixed"
+        ],
+        "items": [
+          {
+            "bounds": [
+              0.0,
+              0.0,
+              20.0,
+              0.0,
+              20.0,
+              10.0,
+              0.0,
+              10.0
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": true,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          {
+            "bounds": [
+              321.0,
+              123.0,
+              338.0,
+              123.0,
+              338.0,
+              147.0,
+              321.0,
+              147.0
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": true,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          {
+            "bounds": [
+              0.0,
+              0.0,
+              20.0,
+              0.0,
+              20.0,
+              10.0,
+              0.0,
+              10.0
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          }
+        ],
+        "columns": [],
+        "rows": []
+      },
+      "expected": {
+        "bounds": [
+          [
+            10.0,
+            20.0,
+            210.0,
+            20.0,
+            210.0,
+            120.0,
+            10.0,
+            120.0
+          ],
+          [
+            0.0,
+            0.0,
+            20.0,
+            0.0,
+            20.0,
+            10.0,
+            0.0,
+            10.0
+          ],
+          [
+            321.0,
+            123.0,
+            338.0,
+            123.0,
+            338.0,
+            147.0,
+            321.0,
+            147.0
+          ],
+          [
+            20.0,
+            30.0,
+            40.0,
+            30.0,
+            40.0,
+            40.0,
+            20.0,
+            40.0
+          ]
+        ]
+      }
+    },
+    {
+      "name": "flex-hug-both",
+      "request": {
+        "mode": "flex",
+        "direction": "row",
+        "wrap": false,
+        "bounds": [
+          10.0,
+          20.0,
+          210.0,
+          20.0,
+          210.0,
+          120.0,
+          10.0,
+          120.0
+        ],
+        "padding": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "gap": [
+          5,
+          5
+        ],
+        "align": "start",
+        "align_content": "start",
+        "justify": "start",
+        "justify_items": "start",
+        "sizing": [
+          "hug",
+          "hug"
+        ],
+        "items": [
+          {
+            "bounds": [
+              0.0,
+              0.0,
+              20.0,
+              0.0,
+              20.0,
+              10.0,
+              0.0,
+              10.0
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              4,
+              6,
+              8,
+              10
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          {
+            "bounds": [
+              0.0,
+              0.0,
+              20.0,
+              0.0,
+              20.0,
+              10.0,
+              0.0,
+              10.0
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "center",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          }
+        ],
+        "columns": [],
+        "rows": []
+      },
+      "expected": {
+        "bounds": [
+          [
+            10.0,
+            20.0,
+            91.0,
+            20.0,
+            91.0,
+            62.0,
+            10.0,
+            62.0
+          ],
+          [
+            30.0,
+            34.0,
+            50.0,
+            34.0,
+            50.0,
+            44.0,
+            30.0,
+            44.0
+          ],
+          [
+            61.0,
+            36.0,
+            81.0,
+            36.0,
+            81.0,
+            46.0,
+            61.0,
+            46.0
+          ]
+        ]
+      }
+    },
+    {
+      "name": "flex-empty",
+      "request": {
+        "mode": "flex",
+        "direction": "row",
+        "wrap": false,
+        "bounds": [
+          10.0,
+          20.0,
+          210.0,
+          20.0,
+          210.0,
+          120.0,
+          10.0,
+          120.0
+        ],
+        "padding": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "gap": [
+          5,
+          5
+        ],
+        "align": "start",
+        "align_content": "start",
+        "justify": "start",
+        "justify_items": "start",
+        "sizing": [
+          "hug",
+          "hug"
+        ],
+        "items": [],
+        "columns": [],
+        "rows": []
+      },
+      "expected": {
+        "bounds": [
+          [
+            10.0,
+            20.0,
+            210.0,
+            20.0,
+            210.0,
+            120.0,
+            10.0,
+            120.0
+          ]
+        ]
+      }
+    },
+    {
+      "name": "flex-zero-child",
+      "request": {
+        "mode": "flex",
+        "direction": "row",
+        "wrap": false,
+        "bounds": [
+          10.0,
+          20.0,
+          210.0,
+          20.0,
+          210.0,
+          120.0,
+          10.0,
+          120.0
+        ],
+        "padding": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "gap": [
+          5,
+          5
+        ],
+        "align": "start",
+        "align_content": "start",
+        "justify": "start",
+        "justify_items": "start",
+        "sizing": [
+          "fixed",
+          "fixed"
+        ],
+        "items": [
+          {
+            "bounds": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          }
+        ],
+        "columns": [],
+        "rows": []
+      },
+      "expected": {
+        "bounds": [
+          [
+            10.0,
+            20.0,
+            210.0,
+            20.0,
+            210.0,
+            120.0,
+            10.0,
+            120.0
+          ],
+          [
+            20.0,
+            30.0,
+            20.0,
+            30.0,
+            20.0,
+            30.0,
+            20.0,
+            30.0
+          ]
+        ]
+      }
+    },
+    {
+      "name": "flex-rotated-parent",
+      "request": {
+        "mode": "flex",
+        "direction": "row",
+        "wrap": false,
+        "bounds": [
+          50.0,
+          70.0,
+          217.7341135890848,
+          178.9278070030054,
+          163.27021008758211,
+          262.7948637975478,
+          -4.463903501502706,
+          153.8670567945424
+        ],
+        "padding": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "gap": [
+          5,
+          5
+        ],
+        "align": "start",
+        "align_content": "start",
+        "justify": "start",
+        "justify_items": "start",
+        "sizing": [
+          "fixed",
+          "fixed"
+        ],
+        "items": [
+          {
+            "bounds": [
+              1.0,
+              2.0,
+              17.773411358908483,
+              12.892780700300541,
+              12.327021008758212,
+              21.279486379754783,
+              -4.446390350150271,
+              10.386705679454241
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          {
+            "bounds": [
+              3.0,
+              4.0,
+              17.544288607390115,
+              30.238591214181874,
+              0.051894464602199264,
+              39.934783619108615,
+              -14.492394142787916,
+              13.696192404926743
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          }
+        ],
+        "columns": [],
+        "rows": []
+      },
+      "expected": {
+        "bounds": [
+          [
+            50.0,
+            70.0,
+            217.73412,
+            178.92781,
+            163.2702,
+            262.79486,
+            -4.4639034,
+            153.86705
+          ],
+          [
+            52.94032,
+            83.833084,
+            69.71373,
+            94.72586,
+            64.26734,
+            103.11257,
+            47.493927,
+            92.21979
+          ],
+          [
+            81.781715,
+            102.562904,
+            96.326004,
+            128.8015,
+            78.83361,
+            138.49768,
+            64.28932,
+            112.259094
+          ]
+        ]
+      }
+    },
+    {
+      "name": "flex-rotated-fill",
+      "request": {
+        "mode": "flex",
+        "direction": "row",
+        "wrap": false,
+        "bounds": [
+          50.0,
+          70.0,
+          217.7341135890848,
+          178.9278070030054,
+          163.27021008758211,
+          262.7948637975478,
+          -4.463903501502706,
+          153.8670567945424
+        ],
+        "padding": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "gap": [
+          5,
+          5
+        ],
+        "align": "start",
+        "align_content": "start",
+        "justify": "start",
+        "justify_items": "start",
+        "sizing": [
+          "fixed",
+          "fixed"
+        ],
+        "items": [
+          {
+            "bounds": [
+              1.0,
+              2.0,
+              17.773411358908483,
+              12.892780700300541,
+              12.327021008758212,
+              21.279486379754783,
+              -4.446390350150271,
+              10.386705679454241
+            ],
+            "sizing": [
+              "fill",
+              "fill"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          }
+        ],
+        "columns": [],
+        "rows": []
+      },
+      "expected": {
+        "bounds": [
+          [
+            50.0,
+            70.0,
+            217.73412,
+            178.92781,
+            163.2702,
+            262.79486,
+            -4.4639034,
+            153.86705
+          ],
+          [
+            52.94035,
+            83.83305,
+            203.90103,
+            181.86809,
+            160.32991,
+            248.96175,
+            9.369221,
+            150.92671
+          ]
+        ]
+      }
+    },
+    {
+      "name": "grid-fixed",
+      "request": {
+        "mode": "grid",
+        "direction": "row",
+        "wrap": false,
+        "bounds": [
+          10.0,
+          20.0,
+          210.0,
+          20.0,
+          210.0,
+          120.0,
+          10.0,
+          120.0
+        ],
+        "padding": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "gap": [
+          5,
+          5
+        ],
+        "align": "start",
+        "align_content": "start",
+        "justify": "start",
+        "justify_items": "start",
+        "sizing": [
+          "fixed",
+          "fixed"
+        ],
+        "items": [
+          {
+            "bounds": [
+              0.0,
+              0.0,
+              20.0,
+              0.0,
+              20.0,
+              10.0,
+              0.0,
+              10.0
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          {
+            "bounds": [
+              0.0,
+              0.0,
+              20.0,
+              0.0,
+              20.0,
+              10.0,
+              0.0,
+              10.0
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              2,
+              2,
+              1,
+              1
+            ]
+          }
+        ],
+        "columns": [
+          {
+            "kind": "fixed",
+            "value": 70
+          },
+          {
+            "kind": "fixed",
+            "value": 100
+          }
+        ],
+        "rows": [
+          {
+            "kind": "fixed",
+            "value": 50
+          },
+          {
+            "kind": "fixed",
+            "value": 30
+          }
+        ]
+      },
+      "expected": {
+        "bounds": [
+          [
+            10.0,
+            20.0,
+            210.0,
+            20.0,
+            210.0,
+            120.0,
+            10.0,
+            120.0
+          ],
+          [
+            20.0,
+            30.0,
+            40.0,
+            30.0,
+            40.0,
+            40.0,
+            20.0,
+            40.0
+          ],
+          [
+            95.0,
+            85.0,
+            115.0,
+            85.0,
+            115.0,
+            95.0,
+            95.0,
+            95.0
+          ]
+        ],
+        "columns": [
+          [
+            20.0,
+            20.0,
+            90.0,
+            20.0,
+            70.0
+          ],
+          [
+            95.0,
+            20.0,
+            195.0,
+            20.0,
+            100.0
+          ]
+        ],
+        "rows": [
+          [
+            10.0,
+            30.0,
+            10.0,
+            80.0,
+            50.0
+          ],
+          [
+            10.0,
+            85.0,
+            10.0,
+            115.0,
+            30.0
+          ]
+        ]
+      }
+    },
+    {
+      "name": "grid-fr-percent-auto",
+      "request": {
+        "mode": "grid",
+        "direction": "row",
+        "wrap": false,
+        "bounds": [
+          10.0,
+          20.0,
+          330.0,
+          20.0,
+          330.0,
+          220.0,
+          10.0,
+          220.0
+        ],
+        "padding": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "gap": [
+          5,
+          5
+        ],
+        "align": "start",
+        "align_content": "start",
+        "justify": "start",
+        "justify_items": "start",
+        "sizing": [
+          "fixed",
+          "fixed"
+        ],
+        "items": [
+          {
+            "bounds": [
+              0.0,
+              0.0,
+              20.0,
+              0.0,
+              20.0,
+              10.0,
+              0.0,
+              10.0
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          {
+            "bounds": [
+              0.0,
+              0.0,
+              20.0,
+              0.0,
+              20.0,
+              10.0,
+              0.0,
+              10.0
+            ],
+            "sizing": [
+              "fill",
+              "fill"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              2,
+              2,
+              1,
+              2
+            ]
+          }
+        ],
+        "columns": [
+          {
+            "kind": "percent",
+            "value": 25
+          },
+          {
+            "kind": "fr",
+            "value": 1
+          },
+          {
+            "kind": "fr",
+            "value": 2
+          }
+        ],
+        "rows": [
+          {
+            "kind": "auto",
+            "value": 0
+          },
+          {
+            "kind": "fr",
+            "value": 1
+          }
+        ]
+      },
+      "expected": {
+        "bounds": [
+          [
+            10.0,
+            20.0,
+            330.0,
+            20.0,
+            330.0,
+            220.0,
+            10.0,
+            220.0
+          ],
+          [
+            20.0,
+            30.0,
+            40.0,
+            30.0,
+            40.0,
+            40.0,
+            20.0,
+            40.0
+          ],
+          [
+            100.0,
+            45.0,
+            320.0,
+            45.0,
+            320.0,
+            210.0,
+            100.0,
+            210.0
+          ]
+        ],
+        "columns": [
+          [
+            20.0,
+            20.0,
+            95.0,
+            20.0,
+            75.0
+          ],
+          [
+            100.0,
+            20.0,
+            171.66666,
+            20.0,
+            71.666664
+          ],
+          [
+            176.66666,
+            20.0,
+            320.0,
+            20.0,
+            143.33333
+          ]
+        ],
+        "rows": [
+          [
+            10.0,
+            30.0,
+            10.0,
+            40.0,
+            10.0
+          ],
+          [
+            10.0,
+            45.0,
+            10.0,
+            210.0,
+            165.0
+          ]
+        ]
+      }
+    },
+    {
+      "name": "grid-span-auto",
+      "request": {
+        "mode": "grid",
+        "direction": "row",
+        "wrap": false,
+        "bounds": [
+          10.0,
+          20.0,
+          210.0,
+          20.0,
+          210.0,
+          120.0,
+          10.0,
+          120.0
+        ],
+        "padding": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "gap": [
+          5,
+          5
+        ],
+        "align": "start",
+        "align_content": "start",
+        "justify": "start",
+        "justify_items": "start",
+        "sizing": [
+          "fixed",
+          "fixed"
+        ],
+        "items": [
+          {
+            "bounds": [
+              0.0,
+              0.0,
+              140.0,
+              0.0,
+              140.0,
+              20.0,
+              0.0,
+              20.0
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              2
+            ]
+          }
+        ],
+        "columns": [
+          {
+            "kind": "auto",
+            "value": 0
+          },
+          {
+            "kind": "auto",
+            "value": 0
+          }
+        ],
+        "rows": [
+          {
+            "kind": "fixed",
+            "value": 50
+          },
+          {
+            "kind": "fixed",
+            "value": 30
+          }
+        ]
+      },
+      "expected": {
+        "bounds": [
+          [
+            10.0,
+            20.0,
+            210.0,
+            20.0,
+            210.0,
+            120.0,
+            10.0,
+            120.0
+          ],
+          [
+            20.0,
+            30.0,
+            160.0,
+            30.0,
+            160.0,
+            50.0,
+            20.0,
+            50.0
+          ]
+        ],
+        "columns": [
+          [
+            20.0,
+            20.0,
+            90.00001,
+            20.0,
+            70.00001
+          ],
+          [
+            95.00001,
+            20.0,
+            165.00002,
+            20.0,
+            70.00001
+          ]
+        ],
+        "rows": [
+          [
+            10.0,
+            30.0,
+            10.0,
+            80.0,
+            50.0
+          ],
+          [
+            10.0,
+            85.0,
+            10.0,
+            115.0,
+            30.0
+          ]
+        ]
+      }
+    },
+    {
+      "name": "grid-span-fr",
+      "request": {
+        "mode": "grid",
+        "direction": "row",
+        "wrap": false,
+        "bounds": [
+          10.0,
+          20.0,
+          210.0,
+          20.0,
+          210.0,
+          120.0,
+          10.0,
+          120.0
+        ],
+        "padding": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "gap": [
+          5,
+          5
+        ],
+        "align": "start",
+        "align_content": "start",
+        "justify": "start",
+        "justify_items": "start",
+        "sizing": [
+          "fixed",
+          "fixed"
+        ],
+        "items": [
+          {
+            "bounds": [
+              0.0,
+              0.0,
+              150.0,
+              0.0,
+              150.0,
+              20.0,
+              0.0,
+              20.0
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              2
+            ]
+          }
+        ],
+        "columns": [
+          {
+            "kind": "fr",
+            "value": 1
+          },
+          {
+            "kind": "fr",
+            "value": 3
+          }
+        ],
+        "rows": [
+          {
+            "kind": "fixed",
+            "value": 50
+          },
+          {
+            "kind": "fixed",
+            "value": 30
+          }
+        ]
+      },
+      "expected": {
+        "bounds": [
+          [
+            10.0,
+            20.0,
+            210.0,
+            20.0,
+            210.0,
+            120.0,
+            10.0,
+            120.0
+          ],
+          [
+            20.0,
+            30.0,
+            170.0,
+            30.0,
+            170.0,
+            50.0,
+            20.0,
+            50.0
+          ]
+        ],
+        "columns": [
+          [
+            20.0,
+            20.0,
+            63.75,
+            20.0,
+            43.75
+          ],
+          [
+            68.75,
+            20.0,
+            200.0,
+            20.0,
+            131.25
+          ]
+        ],
+        "rows": [
+          [
+            10.0,
+            30.0,
+            10.0,
+            80.0,
+            50.0
+          ],
+          [
+            10.0,
+            85.0,
+            10.0,
+            115.0,
+            30.0
+          ]
+        ]
+      }
+    },
+    {
+      "name": "grid-self-align",
+      "request": {
+        "mode": "grid",
+        "direction": "row",
+        "wrap": false,
+        "bounds": [
+          10.0,
+          20.0,
+          210.0,
+          20.0,
+          210.0,
+          120.0,
+          10.0,
+          120.0
+        ],
+        "padding": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "gap": [
+          5,
+          5
+        ],
+        "align": "center",
+        "align_content": "start",
+        "justify": "start",
+        "justify_items": "end",
+        "sizing": [
+          "fixed",
+          "fixed"
+        ],
+        "items": [
+          {
+            "bounds": [
+              0.0,
+              0.0,
+              20.0,
+              0.0,
+              20.0,
+              10.0,
+              0.0,
+              10.0
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          {
+            "bounds": [
+              0.0,
+              0.0,
+              20.0,
+              0.0,
+              20.0,
+              10.0,
+              0.0,
+              10.0
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              2,
+              4,
+              6,
+              8
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "end",
+            "justify": "center",
+            "cell": [
+              2,
+              2,
+              1,
+              1
+            ]
+          }
+        ],
+        "columns": [
+          {
+            "kind": "fixed",
+            "value": 70
+          },
+          {
+            "kind": "fixed",
+            "value": 100
+          }
+        ],
+        "rows": [
+          {
+            "kind": "fixed",
+            "value": 50
+          },
+          {
+            "kind": "fixed",
+            "value": 30
+          }
+        ]
+      },
+      "expected": {
+        "bounds": [
+          [
+            10.0,
+            20.0,
+            210.0,
+            20.0,
+            210.0,
+            120.0,
+            10.0,
+            120.0
+          ],
+          [
+            70.0,
+            50.0,
+            90.0,
+            50.0,
+            90.0,
+            60.0,
+            70.0,
+            60.0
+          ],
+          [
+            135.0,
+            111.0,
+            155.0,
+            111.0,
+            155.0,
+            121.0,
+            135.0,
+            121.0
+          ]
+        ],
+        "columns": [
+          [
+            20.0,
+            20.0,
+            90.0,
+            20.0,
+            70.0
+          ],
+          [
+            95.0,
+            20.0,
+            195.0,
+            20.0,
+            100.0
+          ]
+        ],
+        "rows": [
+          [
+            10.0,
+            30.0,
+            10.0,
+            80.0,
+            50.0
+          ],
+          [
+            10.0,
+            85.0,
+            10.0,
+            115.0,
+            30.0
+          ]
+        ]
+      }
+    },
+    {
+      "name": "grid-distributed",
+      "request": {
+        "mode": "grid",
+        "direction": "row",
+        "wrap": false,
+        "bounds": [
+          10.0,
+          20.0,
+          510.0,
+          20.0,
+          510.0,
+          270.0,
+          10.0,
+          270.0
+        ],
+        "padding": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "gap": [
+          5,
+          5
+        ],
+        "align": "start",
+        "align_content": "space-around",
+        "justify": "space-between",
+        "justify_items": "start",
+        "sizing": [
+          "fixed",
+          "fixed"
+        ],
+        "items": [
+          {
+            "bounds": [
+              0.0,
+              0.0,
+              20.0,
+              0.0,
+              20.0,
+              10.0,
+              0.0,
+              10.0
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          {
+            "bounds": [
+              0.0,
+              0.0,
+              20.0,
+              0.0,
+              20.0,
+              10.0,
+              0.0,
+              10.0
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              2,
+              2,
+              1,
+              1
+            ]
+          }
+        ],
+        "columns": [
+          {
+            "kind": "fixed",
+            "value": 70
+          },
+          {
+            "kind": "fixed",
+            "value": 100
+          }
+        ],
+        "rows": [
+          {
+            "kind": "fixed",
+            "value": 50
+          },
+          {
+            "kind": "fixed",
+            "value": 30
+          }
+        ]
+      },
+      "expected": {
+        "bounds": [
+          [
+            10.0,
+            20.0,
+            510.0,
+            20.0,
+            510.0,
+            270.0,
+            10.0,
+            270.0
+          ],
+          [
+            20.0,
+            67.5,
+            40.0,
+            67.5,
+            40.0,
+            77.5,
+            20.0,
+            77.5
+          ],
+          [
+            400.0,
+            192.5,
+            420.0,
+            192.5,
+            420.0,
+            202.5,
+            400.0,
+            202.5
+          ]
+        ],
+        "columns": [
+          [
+            20.0,
+            20.0,
+            90.0,
+            20.0,
+            70.0
+          ],
+          [
+            400.0,
+            20.0,
+            500.0,
+            20.0,
+            100.0
+          ]
+        ],
+        "rows": [
+          [
+            10.0,
+            67.5,
+            10.0,
+            117.5,
+            50.0
+          ],
+          [
+            10.0,
+            192.5,
+            10.0,
+            222.5,
+            30.0
+          ]
+        ]
+      }
+    },
+    {
+      "name": "grid-hug",
+      "request": {
+        "mode": "grid",
+        "direction": "row",
+        "wrap": false,
+        "bounds": [
+          10.0,
+          20.0,
+          210.0,
+          20.0,
+          210.0,
+          120.0,
+          10.0,
+          120.0
+        ],
+        "padding": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "gap": [
+          5,
+          5
+        ],
+        "align": "start",
+        "align_content": "start",
+        "justify": "start",
+        "justify_items": "start",
+        "sizing": [
+          "hug",
+          "hug"
+        ],
+        "items": [
+          {
+            "bounds": [
+              0.0,
+              0.0,
+              20.0,
+              0.0,
+              20.0,
+              10.0,
+              0.0,
+              10.0
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          {
+            "bounds": [
+              0.0,
+              0.0,
+              20.0,
+              0.0,
+              20.0,
+              10.0,
+              0.0,
+              10.0
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              2,
+              2,
+              1,
+              1
+            ]
+          }
+        ],
+        "columns": [
+          {
+            "kind": "auto",
+            "value": 0
+          },
+          {
+            "kind": "auto",
+            "value": 0
+          }
+        ],
+        "rows": [
+          {
+            "kind": "auto",
+            "value": 0
+          },
+          {
+            "kind": "auto",
+            "value": 0
+          }
+        ]
+      },
+      "expected": {
+        "bounds": [
+          [
+            10.0,
+            20.0,
+            75.0,
+            20.0,
+            75.0,
+            65.0,
+            10.0,
+            65.0
+          ],
+          [
+            20.0,
+            30.0,
+            40.0,
+            30.0,
+            40.0,
+            40.0,
+            20.0,
+            40.0
+          ],
+          [
+            45.0,
+            45.0,
+            65.0,
+            45.0,
+            65.0,
+            55.0,
+            45.0,
+            55.0
+          ]
+        ],
+        "columns": [
+          [
+            20.0,
+            20.0,
+            40.0,
+            20.0,
+            20.0
+          ],
+          [
+            45.0,
+            20.0,
+            65.0,
+            20.0,
+            20.0
+          ]
+        ],
+        "rows": [
+          [
+            10.0,
+            30.0,
+            10.0,
+            40.0,
+            10.0
+          ],
+          [
+            10.0,
+            45.0,
+            10.0,
+            55.0,
+            10.0
+          ]
+        ]
+      }
+    },
+    {
+      "name": "grid-empty",
+      "request": {
+        "mode": "grid",
+        "direction": "row",
+        "wrap": false,
+        "bounds": [
+          10.0,
+          20.0,
+          210.0,
+          20.0,
+          210.0,
+          120.0,
+          10.0,
+          120.0
+        ],
+        "padding": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "gap": [
+          5,
+          5
+        ],
+        "align": "start",
+        "align_content": "start",
+        "justify": "start",
+        "justify_items": "start",
+        "sizing": [
+          "fixed",
+          "fixed"
+        ],
+        "items": [],
+        "columns": [
+          {
+            "kind": "fixed",
+            "value": 70
+          },
+          {
+            "kind": "fixed",
+            "value": 100
+          }
+        ],
+        "rows": [
+          {
+            "kind": "fixed",
+            "value": 50
+          },
+          {
+            "kind": "fixed",
+            "value": 30
+          }
+        ]
+      },
+      "expected": {
+        "bounds": [
+          [
+            10.0,
+            20.0,
+            210.0,
+            20.0,
+            210.0,
+            120.0,
+            10.0,
+            120.0
+          ]
+        ],
+        "columns": [
+          [
+            20.0,
+            20.0,
+            90.0,
+            20.0,
+            70.0
+          ],
+          [
+            95.0,
+            20.0,
+            195.0,
+            20.0,
+            100.0
+          ]
+        ],
+        "rows": [
+          [
+            10.0,
+            30.0,
+            10.0,
+            80.0,
+            50.0
+          ],
+          [
+            10.0,
+            85.0,
+            10.0,
+            115.0,
+            30.0
+          ]
+        ]
+      }
+    },
+    {
+      "name": "grid-zero-track",
+      "request": {
+        "mode": "grid",
+        "direction": "row",
+        "wrap": false,
+        "bounds": [
+          10.0,
+          20.0,
+          210.0,
+          20.0,
+          210.0,
+          120.0,
+          10.0,
+          120.0
+        ],
+        "padding": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "gap": [
+          5,
+          5
+        ],
+        "align": "start",
+        "align_content": "start",
+        "justify": "start",
+        "justify_items": "start",
+        "sizing": [
+          "fixed",
+          "fixed"
+        ],
+        "items": [
+          {
+            "bounds": [
+              0.0,
+              0.0,
+              20.0,
+              0.0,
+              20.0,
+              10.0,
+              0.0,
+              10.0
+            ],
+            "sizing": [
+              "fill",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          }
+        ],
+        "columns": [
+          {
+            "kind": "fixed",
+            "value": 0
+          },
+          {
+            "kind": "fixed",
+            "value": 50
+          }
+        ],
+        "rows": [
+          {
+            "kind": "fixed",
+            "value": 50
+          },
+          {
+            "kind": "fixed",
+            "value": 30
+          }
+        ]
+      },
+      "expected": {
+        "bounds": [
+          [
+            10.0,
+            20.0,
+            210.0,
+            20.0,
+            210.0,
+            120.0,
+            10.0,
+            120.0
+          ],
+          [
+            20.0,
+            30.0,
+            20.01,
+            30.0,
+            20.01,
+            40.0,
+            20.0,
+            40.0
+          ]
+        ],
+        "columns": [
+          [
+            20.0,
+            20.0,
+            20.0,
+            20.0,
+            0.0
+          ],
+          [
+            25.0,
+            20.0,
+            75.0,
+            20.0,
+            50.0
+          ]
+        ],
+        "rows": [
+          [
+            10.0,
+            30.0,
+            10.0,
+            80.0,
+            50.0
+          ],
+          [
+            10.0,
+            85.0,
+            10.0,
+            115.0,
+            30.0
+          ]
+        ]
+      }
+    },
+    {
+      "name": "grid-rotated-parent",
+      "request": {
+        "mode": "grid",
+        "direction": "row",
+        "wrap": false,
+        "bounds": [
+          50.0,
+          70.0,
+          217.7341135890848,
+          178.9278070030054,
+          163.27021008758211,
+          262.7948637975478,
+          -4.463903501502706,
+          153.8670567945424
+        ],
+        "padding": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "gap": [
+          5,
+          5
+        ],
+        "align": "start",
+        "align_content": "start",
+        "justify": "start",
+        "justify_items": "start",
+        "sizing": [
+          "fixed",
+          "fixed"
+        ],
+        "items": [
+          {
+            "bounds": [
+              1.0,
+              2.0,
+              17.773411358908483,
+              12.892780700300541,
+              12.327021008758212,
+              21.279486379754783,
+              -4.446390350150271,
+              10.386705679454241
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          {
+            "bounds": [
+              3.0,
+              4.0,
+              17.544288607390115,
+              30.238591214181874,
+              0.051894464602199264,
+              39.934783619108615,
+              -14.492394142787916,
+              13.696192404926743
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              2,
+              2,
+              1,
+              1
+            ]
+          }
+        ],
+        "columns": [
+          {
+            "kind": "fixed",
+            "value": 70
+          },
+          {
+            "kind": "fixed",
+            "value": 100
+          }
+        ],
+        "rows": [
+          {
+            "kind": "fixed",
+            "value": 50
+          },
+          {
+            "kind": "fixed",
+            "value": 30
+          }
+        ]
+      },
+      "expected": {
+        "bounds": [
+          [
+            50.0,
+            70.0,
+            217.73412,
+            178.92781,
+            163.2702,
+            262.79486,
+            -4.4639034,
+            153.86705
+          ],
+          [
+            52.94031,
+            83.83309,
+            69.71372,
+            94.725876,
+            64.267334,
+            103.11258,
+            47.49392,
+            92.219795
+          ],
+          [
+            93.76009,
+            175.92175,
+            108.30438,
+            202.16034,
+            90.81199,
+            211.85654,
+            76.2677,
+            185.61795
+          ]
+        ],
+        "columns": [
+          [
+            58.386703,
+            75.44639,
+            117.09364,
+            113.57112,
+            70.0
+          ],
+          [
+            121.286995,
+            116.29432,
+            205.15405,
+            170.75822,
+            100.0
+          ]
+        ],
+        "rows": [
+          [
+            44.553608,
+            78.3867,
+            17.321651,
+            120.32024,
+            50.0
+          ],
+          [
+            14.598455,
+            124.51359,
+            -1.7407169,
+            149.6737,
+            30.0
+          ]
+        ]
+      }
+    },
+    {
+      "name": "grid-rotated-child-fill",
+      "request": {
+        "mode": "grid",
+        "direction": "row",
+        "wrap": false,
+        "bounds": [
+          50.0,
+          70.0,
+          217.7341135890848,
+          178.9278070030054,
+          163.27021008758211,
+          262.7948637975478,
+          -4.463903501502706,
+          153.8670567945424
+        ],
+        "padding": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "gap": [
+          5,
+          5
+        ],
+        "align": "start",
+        "align_content": "start",
+        "justify": "start",
+        "justify_items": "start",
+        "sizing": [
+          "fixed",
+          "fixed"
+        ],
+        "items": [
+          {
+            "bounds": [
+              1.0,
+              2.0,
+              10.696192404926743,
+              19.492394142787916,
+              1.9499953335327849,
+              24.340490345251286,
+              -7.746197071393958,
+              6.848096202463371
+            ],
+            "sizing": [
+              "fill",
+              "fill"
+            ],
+            "margin": [
+              2,
+              4,
+              6,
+              8
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          }
+        ],
+        "columns": [
+          {
+            "kind": "fixed",
+            "value": 70
+          },
+          {
+            "kind": "fixed",
+            "value": 100
+          }
+        ],
+        "rows": [
+          {
+            "kind": "fixed",
+            "value": 50
+          },
+          {
+            "kind": "fixed",
+            "value": 30
+          }
+        ]
+      },
+      "expected": {
+        "bounds": [
+          [
+            50.0,
+            70.0,
+            217.73412,
+            178.92781,
+            163.2702,
+            262.79486,
+            -4.4639034,
+            153.86705
+          ],
+          [
+            68.77638,
+            96.50187,
+            95.414345,
+            139.61,
+            74.11247,
+            150.04645,
+            47.474503,
+            106.938324
+          ]
+        ],
+        "columns": [
+          [
+            58.386703,
+            75.44639,
+            117.09364,
+            113.57112,
+            70.0
+          ],
+          [
+            121.286995,
+            116.29432,
+            205.15405,
+            170.75822,
+            100.0
+          ]
+        ],
+        "rows": [
+          [
+            44.553608,
+            78.3867,
+            17.321651,
+            120.32024,
+            50.0
+          ],
+          [
+            14.598455,
+            124.51359,
+            -1.7407169,
+            149.6737,
+            30.0
+          ]
+        ]
+      }
+    },
+    {
+      "name": "flex-f32-stall",
+      "request": {
+        "mode": "flex",
+        "direction": "row",
+        "wrap": false,
+        "bounds": [
+          -5000000.0,
+          0.0,
+          7000001.0,
+          0.0,
+          7000001.0,
+          100.0,
+          -5000000.0,
+          100.0
+        ],
+        "padding": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "gap": [
+          0,
+          0
+        ],
+        "align": "start",
+        "align_content": "start",
+        "justify": "start",
+        "justify_items": "start",
+        "sizing": [
+          "fixed",
+          "fixed"
+        ],
+        "items": [
+          {
+            "bounds": [
+              0.0,
+              0.0,
+              20.0,
+              0.0,
+              20.0,
+              10.0,
+              0.0,
+              10.0
+            ],
+            "sizing": [
+              "fill",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              4000000,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          {
+            "bounds": [
+              0.0,
+              0.0,
+              20.0,
+              0.0,
+              20.0,
+              10.0,
+              0.0,
+              10.0
+            ],
+            "sizing": [
+              "fill",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              4000000,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          {
+            "bounds": [
+              0.0,
+              0.0,
+              20.0,
+              0.0,
+              20.0,
+              10.0,
+              0.0,
+              10.0
+            ],
+            "sizing": [
+              "fill",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              4000000,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          }
+        ],
+        "columns": [],
+        "rows": []
+      },
+      "expected": {
+        "error": "Layout allocation made no progress at f32 precision."
+      }
+    },
+    {
+      "name": "grid-zero-fr",
+      "request": {
+        "mode": "grid",
+        "direction": "row",
+        "wrap": false,
+        "bounds": [
+          10.0,
+          20.0,
+          210.0,
+          20.0,
+          210.0,
+          120.0,
+          10.0,
+          120.0
+        ],
+        "padding": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "gap": [
+          5,
+          5
+        ],
+        "align": "start",
+        "align_content": "start",
+        "justify": "start",
+        "justify_items": "start",
+        "sizing": [
+          "fixed",
+          "fixed"
+        ],
+        "items": [
+          {
+            "bounds": [
+              0.0,
+              0.0,
+              20.0,
+              0.0,
+              20.0,
+              10.0,
+              0.0,
+              10.0
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          {
+            "bounds": [
+              40.0,
+              50.0,
+              70.0,
+              50.0,
+              70.0,
+              70.0,
+              40.0,
+              70.0
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          }
+        ],
+        "columns": [
+          {
+            "kind": "fr",
+            "value": 0
+          }
+        ],
+        "rows": [
+          {
+            "kind": "auto",
+            "value": 0
+          }
+        ]
+      },
+      "expected": {
+        "error": "Track value must be finite and nonnegative."
+      }
+    },
+    {
+      "name": "grid-huge-cell",
+      "request": {
+        "mode": "grid",
+        "direction": "row",
+        "wrap": false,
+        "bounds": [
+          10.0,
+          20.0,
+          210.0,
+          20.0,
+          210.0,
+          120.0,
+          10.0,
+          120.0
+        ],
+        "padding": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "gap": [
+          5,
+          5
+        ],
+        "align": "start",
+        "align_content": "start",
+        "justify": "start",
+        "justify_items": "start",
+        "sizing": [
+          "fixed",
+          "fixed"
+        ],
+        "items": [
+          {
+            "bounds": [
+              0.0,
+              0.0,
+              20.0,
+              0.0,
+              20.0,
+              10.0,
+              0.0,
+              10.0
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              4294967295,
+              1,
+              4294967295,
+              1
+            ]
+          },
+          {
+            "bounds": [
+              40.0,
+              50.0,
+              70.0,
+              50.0,
+              70.0,
+              70.0,
+              40.0,
+              70.0
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          }
+        ],
+        "columns": [
+          {
+            "kind": "fr",
+            "value": 1
+          }
+        ],
+        "rows": [
+          {
+            "kind": "auto",
+            "value": 0
+          }
+        ]
+      },
+      "expected": {
+        "error": "Grid exceeds its span work limit."
+      }
+    }
+  ]
+}

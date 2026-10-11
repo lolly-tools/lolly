@@ -183,7 +183,8 @@
     "build:adobe-psd": "node scripts/build-adobe-psd.ts",
     "fetch:adobe-corpus": "node scripts/adobe-corpus.ts --fetch",
     "verify:adobe-corpus": "node scripts/adobe-corpus.ts",
-    "build:motion-starters": "node scripts/build-motion-starters.ts"
+    "build:motion-starters": "node scripts/build-motion-starters.ts",
+    "build:layout-kernel": "node scripts/build-layout-kernel.ts"
   },
   "dependencies": {
     "@resvg/resvg-js": "^2.6.2",

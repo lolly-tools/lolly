@@ -16,6 +16,7 @@ import type { OnionPaintState, OnionSkinHandle } from '../onion-skin.ts';
 import type { MotionPathHandle } from '../motion-path.ts';
 import type { openDesignShortcuts } from '../design-shortcuts.ts';
 import type { DesignGuidesHandle } from '../design-guides.ts';
+import type { layoutOps } from './layout.ts';
 import type { DesignStyleSnapshot } from '../design-style-clipboard.ts';
 import type { AddKind, BlockFieldDef, CanvasCfg, ConnectCfg, Corner, EditingState, EditorMode, FieldCfg, FmtBar, FontOption, Gesture, InitFreeCanvasOpts, Metrics, ModelItem, PenPart, Point, PopItem, StageBox, TouchPt } from './shared.ts';
 import type { WobbleHandle } from '../../lib/wobble.ts';
@@ -62,6 +63,7 @@ import type { editorStateOps } from './editor-state.ts';
 import type { LoadedMaster, MasterStatus, slideMastersOps } from './slide-masters.ts';
 
 export interface FcCtx {
+  layout: ReturnType<typeof layoutOps>;
   cameraCapture: ReturnType<typeof cameraCaptureOps>;
   rules?: import('../design-rules.ts').DesignRulesHandle;
   // ---- state (was: closure variables of initFreeCanvas) ----

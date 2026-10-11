@@ -312,7 +312,8 @@ export function pasteAimedHere(fc: FcCtx): boolean {
  */
 export function copyRows(fc: FcCtx, boxes: Box[], idx: number[]): Box[] {
   const { cfg, frameCfg } = fc;
-  const take = new Set(idx);
+  const selected = fc.layout.dynamicScope(boxes, new Set(idx.map(n => fc.select.idOf(boxes[n], n))));
+  const take = new Set(boxes.flatMap((b,n)=>selected.has(String(b.id))?[n]:[]));
   const fk = frameCfg?.frameKind;
   if (fk) {
     const ff = fc.select.frameFields();
@@ -324,9 +325,16 @@ export function copyRows(fc: FcCtx, boxes: Box[], idx: number[]): Box[] {
         if (b && pages.has(String(b[ff.frameField] ?? ''))) take.add(i);
       });
   }
-  return [...take]
-    .sort((a, b) => a - b)
-    .map((i) => ({ ...boxes[i], [cfg.idField]: fc.select.idOf(boxes[i], i) }));
+  // Static frame copying includes its nested dynamic containers as well.
+  const scope = fc.layout.dynamicScope(boxes, new Set([...take].map(i => fc.select.idOf(boxes[i], i))));
+  const raw = fc.runtime.getModel().find(i => i.id === fc.blockId)?.value;
+  const sources = new Map<string, Box>((Array.isArray(raw) ? raw : boxes).map((row: Box, i: number) => [fc.select.idOf(row, i), row]));
+  return boxes.flatMap((row, i): Box[] => {
+    const id = fc.select.idOf(row, i); if (!scope.has(id)) return [];
+    const source = sources.get(id) || row;
+    if (row.layoutOwner && !scope.has(String(row.layoutOwner))) return [{ ...row, [cfg.idField]: id, layoutOwner: '' }];
+    return [{ ...row, ...(row.layoutOwner ? source : {}), [cfg.idField]: id, ...(row.layoutOwner ? { frame: '' } : {}) }];
+  });
 }
 export function onCopy(fc: FcCtx, e: ClipboardEvent): void {
   if (fc.disposed || fc.editing) return; // editing → native text copy
@@ -475,12 +483,22 @@ export function pasteObjects(fc: FcCtx, payload: LayoutClipboard): void {
     nextSel.add(id);
   }
   if (!clones.length) return;
+  const incomingTracks = !Array.isArray(payload) ? payload.layoutTracks || [] : [];
+  const patch: Record<string, unknown> = {};
+  for (let i = 0; i < clones.length; i++) {
+    const clone = clones[i]!;
+    if (clone.layoutOwner) clone.layoutOwner = copies.get(String(clone.layoutOwner)) || '';
+    if (clone.layoutOwner) clone.frame = '';
+    for (const field of fc.ops.dupRefFields()) if (field !== 'layoutOwner' && copies.has(String(clone[field]))) clone[field] = copies.get(String(clone[field]));
+  }
+  const layoutTracks = incomingTracks.filter(track => copies.has(String(track.container))).map(track => ({ ...track, container: copies.get(String(track.container)), id: fc.select.freshId(boxes.concat(clones)) }));
+  if (layoutTracks.length) patch.layoutTracks = [...fc.layout.tracks(), ...layoutTracks];
   // With a whole page pasted the selection is that PAGE, not its contents - the same
   // answer Cmd+D gives, so the next gesture moves the slide.
   const selected = pageIds.size ? new Set(pageIds.values()) : nextSel;
   const appended = [...boxes, ...clones];
   if (!timeCfg || !clones.some(isTimedRow)) {
-    void fc.storyFlow.paste(payload,appended,copies,selected);
+    void fc.storyFlow.paste(payload,appended,copies,selected,patch);
     return;
   }
   // The clones still carry their sources' start. Left like that, a copied main-row clip
@@ -494,7 +512,7 @@ export function pasteObjects(fc: FcCtx, payload: LayoutClipboard): void {
   const ids = clones.map((c) => String(c[cfg.idField] ?? ''));
   void import('../timeline-math.ts').then(({ placePasted }) => {
     if (fc.disposed) return;
-    void fc.storyFlow.paste(payload,placePasted(appended,timeCfg,ids,at),copies,selected).then(()=>panel?.selectAndReveal([...fc.selection]));
+    void fc.storyFlow.paste(payload,placePasted(appended,timeCfg,ids,at),copies,selected,patch).then(()=>panel?.selectAndReveal([...fc.selection]));
   });
 }
 // ── paste-to-create ──────────────────────────────────────────────────────────

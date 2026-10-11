@@ -10,32 +10,39 @@ import { t } from '../../i18n.ts';
 import { bindOp, type FcCtx } from './context.ts';
 const fresh = () => `text-${crypto.randomUUID()}`;
 function failure(error: unknown): void { announce(error instanceof Error ? error.message : String(error)); }
-export async function commit(fc: FcCtx, snapshot: TextThreadSnapshot, boxes: Box[], label: string): Promise<void> {
+export async function commit(fc: FcCtx, snapshot: TextThreadSnapshot, boxes: Box[], label: string, patch: Record<string, unknown> = {}, sourceReady = false): Promise<void> {
+  const shown = new Map(fc.select.getBoxes().map(box => [String(box[fc.cfg.idField]), box]));
   const frames = new Map(snapshot.frames.map(frame => [frame.id,frame]));
   const next = boxes.map(box => {
     const frame = frames.get(String(box[fc.cfg.idField])); if (!frame) return box;
     const {id:_id,storyId,width,height,hidden:_hidden,locked:_locked,...settings} = frame;
-    return {...box,[fc.cv.textStoryField!]:storyId,[fc.cv.textFrameField!]:JSON.stringify(settings),[fc.cfg.wField]:width,[fc.cfg.hField]:height};
+    const previous = shown.get(String(box[fc.cfg.idField]));
+    return {...box,[fc.cv.textStoryField!]:storyId,[fc.cv.textFrameField!]:JSON.stringify(settings),
+      [fc.cfg.wField]:sourceReady && width === previous?.[fc.cfg.wField] ? box[fc.cfg.wField] : width,
+      [fc.cfg.hField]:sourceReady && height === previous?.[fc.cfg.hField] ? box[fc.cfg.hField] : height};
   });
-  const serialized = serializeTextDocument(snapshot.document); readDesignText(serialized,next);
-  fc.onDirty?.(fc.blockId); fc.onDirty?.(fc.cv.textDocumentInput!);
-  await fc.history!.commit!({[fc.blockId]:next,[fc.cv.textDocumentInput!]:serialized},label);
+  const raw = fc.runtime.getModel().find(i => i.id === fc.blockId)?.value;
+  const source = !sourceReady && Array.isArray(raw) ? fc.layout.sourceEdit(raw, next) : next;
+  const values = { ...fc.layout.trackPatch(source), ...patch, [fc.blockId]: source, [fc.cv.textDocumentInput!]: serializeTextDocument(snapshot.document) };
+  readDesignText(String(values[fc.cv.textDocumentInput!]), source);
+  for (const id of Object.keys(values)) fc.onDirty?.(id);
+  await fc.history!.commit!(values, label);
 }
 /** Deleting an ordinary box needs no text transaction; deleting a frame retains its story. */
-export function reconcile(fc: FcCtx, boxes: Box[]): boolean {
+export function reconcile(fc: FcCtx, boxes: Box[], patch: Record<string, unknown> = {}, label = t('Delete text frames')): boolean {
   if (!fc.storyText.available()) return false;
   const before = fc.select.getBoxes(), ids = new Set(boxes.map(box => String(box[fc.cfg.idField])));
   const deleted = before.filter(box => box[fc.cv.textStoryField!] && !ids.has(String(box[fc.cfg.idField]))).map(box => String(box[fc.cfg.idField]));
   if (!deleted.length) return false;
-  try { const snapshot = removeTextFrames(fc.storyText.read(),deleted); void commit(fc,snapshot,boxes,t('Delete text frames')).catch(failure); }
+  try { const snapshot = removeTextFrames(fc.storyText.read(),deleted); void commit(fc,snapshot,boxes,label,patch,true).catch(failure); }
   catch (error) { failure(error); }
   return true;
 }
-export async function duplicate(fc: FcCtx, boxes: Box[], copies: ReadonlyMap<string,string>, selected: Set<string>): Promise<void> {
+export async function duplicate(fc: FcCtx, boxes: Box[], copies: ReadonlyMap<string,string>, selected: Set<string>, patch: Record<string, unknown> = {}): Promise<void> {
   try {
     const original = JSON.stringify(fc.select.getBoxes()), snapshot = fc.storyText.read(), source = JSON.stringify(snapshot);
     const textCopies = new Map([...copies].filter(([id]) => snapshot.frames.some(frame => frame.id === id)));
-    if (!textCopies.size) { fc.selection = selected; fc.select.commit(boxes); return; }
+    if (!textCopies.size) { fc.selection = selected; fc.select.commit(boxes, patch); return; }
     const layouts = new Map<string,TextLayoutV1>();
     let partial = false;
     for (const story of snapshot.document.stories) {
@@ -44,26 +51,29 @@ export async function duplicate(fc: FcCtx, boxes: Box[], copies: ReadonlyMap<str
     }
     const next = await duplicateTextFrames(snapshot,textCopies,layouts,fresh);
     if (fc.disposed || JSON.stringify(fc.select.getBoxes()) !== original || JSON.stringify(fc.storyText.read()) !== source) throw new Error(t('The text changed while the copy was prepared. Try again.'));
-    const pending=commit(fc,next,boxes,partial ? t('Duplicate visible text') : t('Duplicate text story'));fc.selection=selected;fc.chromeSync.renderChrome();await pending;
+    const pending=commit(fc,next,boxes,partial ? t('Duplicate visible text') : t('Duplicate text story'), patch);fc.selection=selected;fc.chromeSync.renderChrome();await pending;
     if (partial) fc.stage.flash(t('Copied the visible text from the selected frames into independent stories.'));
   } catch (error) { failure(error); }
 }
 export function capture(fc: FcCtx, rows: Box[]): LayoutClipboard {
-  if (!rows.some(box=>box[fc.cv.textStoryField!])) return rows;
+  const trackRows=fc.runtime.getModel().find(i=>i.id==='layoutTracks')?.value;
+  const idsForLayout=new Set(rows.map(r=>String(r.id)));
+  const layoutTracks=Array.isArray(trackRows)?trackRows.filter(t=>idsForLayout.has(String(t.container))):[];
+  if (!rows.some(box=>box[fc.cv.textStoryField!])) return layoutTracks.length?{version:2,boxes:rows,textDocument:'',layoutTracks}:rows;
   const snapshot=fc.storyText.read(),ids=new Set(rows.map(box=>String(box[fc.cfg.idField]))),receipts=new Map<string,TextLayoutReceipt>();
   for(const story of snapshot.document.stories) if(story.frameIds.some(id=>ids.has(id)) && !story.frameIds.every(id=>ids.has(id))) {
     const receipt=fc.storyText.peek({document:snapshot.document,storyId:story.id,frames:snapshot.frames.filter(frame=>frame.storyId===story.id)});
     if(receipt) receipts.set(story.id,receipt);
   }
   const document=captureTextFrames(snapshot,ids,receipts,fresh), owners=new Map(document.stories.flatMap(story=>story.frameIds.map(id=>[id,story.id])));
-  return {version:2,boxes:rows.map(box=>owners.has(String(box[fc.cfg.idField]))?{...box,[fc.cv.textStoryField!]:owners.get(String(box[fc.cfg.idField]))}:box),textDocument:serializeTextDocument(document)};
+  return {version:2,boxes:rows.map(box=>owners.has(String(box[fc.cfg.idField]))?{...box,[fc.cv.textStoryField!]:owners.get(String(box[fc.cfg.idField]))}:box),textDocument:serializeTextDocument(document),layoutTracks};
 }
-export async function paste(fc: FcCtx, payload: LayoutClipboard, boxes: Box[], copies: ReadonlyMap<string,string>, selected: Set<string>): Promise<void> {
+export async function paste(fc: FcCtx, payload: LayoutClipboard, boxes: Box[], copies: ReadonlyMap<string,string>, selected: Set<string>, patch: Record<string, unknown> = {}): Promise<void> {
   try {
-    if(Array.isArray(payload)) {if(payload.some(box=>box[fc.cv.textStoryField!]))throw new Error(t('This clipboard is missing its text stories. Copy the text again.'));fc.select.commit(boxes);}
+    if(Array.isArray(payload)||!payload.textDocument) {if((Array.isArray(payload)?payload:payload.boxes).some(box=>box[fc.cv.textStoryField!]))throw new Error(t('This clipboard is missing its text stories. Copy the text again.'));fc.select.commit(boxes, patch, t('Paste layout'));}
     else {
       const source=readDesignText(payload.textDocument,payload.boxes), snapshot=pasteTextFrames(fc.storyText.read(),source,copies,fresh);
-      const pending=commit(fc,snapshot,boxes,t('Paste text frames'));fc.selection=selected;fc.chromeSync.renderChrome();await pending;return;
+      const pending=commit(fc,snapshot,boxes,t('Paste text frames'),patch);fc.selection=selected;fc.chromeSync.renderChrome();await pending;return;
     }
     fc.selection=selected;fc.chromeSync.renderChrome();
   } catch(error) {failure(error);}

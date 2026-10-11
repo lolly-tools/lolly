@@ -1,3 +1,4 @@
+import { hasDesignLayout } from '@lolly/engine';
 import { designSelection } from '@lolly-tools/core/design-tool-v1';
 import { wireSyntaxRequests } from '../../lib/syntax-preview.ts';
 // SPDX-License-Identifier: MPL-2.0
@@ -12,6 +13,7 @@ import { wireSyntaxRequests } from '../../lib/syntax-preview.ts';
 import { C2PA_FORMATS, DEFAULT_CMYK_CONDITION, VIDEO_CODEC_STRINGS, hasVideoParams, normalizeTableValue } from '@lolly/engine';
 import { t } from '../../i18n.ts';
 import { cacheCanvasTranslations, patchCanvasTranslations } from '../canvas-translation.ts';
+import { projectCanvasLayoutBoxes } from '../canvas-layout-projection.ts';
 import { contentPatchPlan } from '../canvas-content-plan.ts';
 import { patchCanvasContent } from '../canvas-content.ts';
 import { livePalette } from '../../lib/live-palette.ts';
@@ -137,12 +139,15 @@ export function paint(tview: ToolViewCtx): void {
   // template differs by the planned left/top changes. Other changes repaint.
   // Advance the model baseline only after the patch or full paint succeeds.
   const prevBoxes = tview.lastPaintedBoxes;
-  const curBoxes: Box[] | null =
+  const sourceBoxes: Box[] | null =
     fastCfgPaint && canvasEditInput
       ? ((model.find((i) => i.id === canvasEditInput.id)?.value as Box[] | undefined) ?? null)
       : null;
+  const curBoxes = sourceBoxes && hasDesignLayout(sourceBoxes)
+    ? projectCanvasLayoutBoxes(sourceBoxes, tview.runtime.getHydratedText('{{{layoutBoxesJson}}}'), tview.runtime.getHydratedText('{{{layoutSourceJson}}}'))
+    : sourceBoxes;
   let geomSkipped = false;
-  if (fastCfgPaint && prevBoxes && curBoxes) {
+  if (fastCfgPaint && prevBoxes && curBoxes && !hasDesignLayout(prevBoxes) && !hasDesignLayout(curBoxes)) {
     const plan = geometryFastPathPlan(prevBoxes, curBoxes, {
       ...fastCfgPaint,
       connectorEndpointIds: boundEndpointIds(curBoxes, {

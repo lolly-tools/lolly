@@ -32,6 +32,8 @@
  * matrices `{a..f}`, uuids strings, `null` where a record field is unset.
  * No Handlebars, no ajv, no deps. Fully node:test-able.
  */
+import { exportPenpotLayout } from './penpot-layout.ts';
+import { hasDesignLayout, validateDesignLayout } from './design-layout.ts';
 import type { DesignBoxRowV1 } from '@lolly-tools/core';
 import { parseSvgPath, type SubPath, type PathSegment } from './svg-path.ts';
 import { makeGeomApi } from './geom-api.ts';
@@ -164,6 +166,8 @@ export interface PenpotIrParagraph {
   runs: PenpotIrTextRun[];
 }
 interface PenpotIrShapeBase {
+  sourceId?: string;
+  layoutProperties?: Record<string, unknown>;
   name?: string;
   /** Page (absolute) px, top-left origin, the UNROTATED box. */
   x: number; y: number; w: number; h: number;
@@ -557,6 +561,10 @@ function baseRecord(
     fills: (sh.fills ?? []).map((f) => fillRecord(f, media, warn)).filter((f): f is Rec => !!f),
     strokes: (sh.strokes ?? []).map(strokeRecord).filter((s): s is Rec => !!s),
   };
+  if (sh.layoutProperties) for (const [key,value] of Object.entries(sh.layoutProperties)) {
+    if (!/^layout(?:Item|Gap|Padding|Align|Justify|Flex|Wrap|Grid)/.test(key) && key !== 'layout') throw new Error(`Invalid Penpot layout property: ${key}`);
+    rec[key] = value;
+  }
   if (sh.opacity != null && fin(sh.opacity, 1) < 1) rec.opacity = r4(clamp(fin(sh.opacity, 1), 0, 1));
   if (sh.blend && sh.blend !== 'normal' && BLEND_MODES.has(sh.blend)) rec.blendMode = sh.blend;
   if (sh.hidden) rec.hidden = true;
@@ -675,10 +683,12 @@ export function buildPenpotEntries(doc: PenpotDoc, opts: PenpotBuildOptions = {}
     put(`files/${fileId}/pages/${pageId}.json`, pageRec);
 
     const topIds: string[] = [];
+    const sourceIds = new Map<string,string>();
     const emit = (sh: PenpotIrShape, parentId: string, frameId: string, depth: number): string | null => {
       if (shapeCount >= MAX_SHAPES) { warn('shape ceiling reached; remaining shapes dropped'); return null; }
       if (depth > 64) { warn('nesting ceiling reached; shape dropped'); return null; }
       const id = uuid();
+      if (sh.sourceId) sourceIds.set(sh.sourceId,id);
       const nameOf = (fallback: string): string => fallback;
       let rec: Rec;
       switch (sh.type) {
@@ -691,6 +701,14 @@ export function buildPenpotEntries(doc: PenpotDoc, opts: PenpotBuildOptions = {}
           const kids: string[] = [];
           for (const child of sh.children) { const cid = emit(child, id, id, depth + 1); if (cid) kids.push(cid); }
           rec.shapes = kids;
+          if (Array.isArray(rec.layoutGridCells)) {
+            rec.layoutGridCells = Object.fromEntries(rec.layoutGridCells.map(raw => {
+              const cell = raw as Rec, cellId = uuid();
+              const refs = (cell.shapes as string[]).map(source => sourceIds.get(source));
+              if (refs.some(ref => !ref || !kids.includes(ref))) throw new Error('A grid cell references a layer that could not be exported as its direct child.');
+              return [cellId, { ...cell, id: cellId, shapes: refs }];
+            }));
+          }
           break;
         }
         case 'group': {
@@ -976,6 +994,7 @@ export interface BoxesToPenpotOptions {
   name: string;
   /** The no-frames artboard size (the tool's render box). */
   canvas: { w: number; h: number };
+  layoutTracks?: Array<Record<string, unknown>>;
   /** The no-frames artboard background. */
   background?: string;
   /** What the Design tool's `sans` / `mono` font keys resolve to (the brand's faces). */
@@ -1393,7 +1412,53 @@ export function boxesToPenpotDoc(boxesIn: unknown, o: BoxesToPenpotOptions): Pen
     .filter(({ b }) => str(b.kind) === 'frame')
     .sort((p, q) => (fin(p.b.order) - fin(q.b.order)) || (fin(p.b.x) - fin(q.b.x)) || (p.idx - q.idx));
   const shapes: PenpotIrShape[] = [];
-  if (frames.length) {
+  if (hasDesignLayout(boxes)) {
+    // The render projection may carry derived artboard links. Native hierarchy
+    // uses the authored layout owner, so the projection never becomes a second owner.
+    const source = boxes.map(box => box.layoutOwner ? { ...box, frame: '' } : box);
+    const findings = validateDesignLayout(source, o.layoutTracks);
+    if (findings.length) throw new Error(findings.map(f => f.message).join('\n'));
+    const childrenOf = (box: Box) => boxes.filter(child => String(child.layoutOwner || child.frame || '') === String(box.id))
+      .sort((a, b) => fin(a.layoutOrder) - fin(b.layoutOrder));
+    const paintIndex = new Map(boxes.map((box, index) => [String(box.id), index]));
+    const visited = new Set<string>();
+    const lowerTree = (box: Box): PenpotIrShape | null => {
+      visited.add(String(box.id));
+      const children = childrenOf(box), props = exportPenpotLayout(box, children, o.layoutTracks || []);
+      let shape: PenpotIrShape | null;
+      if (box.kind === 'frame' || hasDesignLayout([box])) {
+        const primitive = box.kind === 'frame' ? null : lowerBox(box);
+        if (primitive && primitive.type !== 'rect') throw new Error('A dynamic layout container must be a rectangle or an artboard for Penpot export.');
+        const fill = parsePenpotColor(color(box.bg) ?? 'transparent');
+        const nativeChildren = box.layout === 'flex' ? [...children].reverse() : children;
+        shape = { ...(primitive || {}), type: 'board', name: nameOf(box, 'Layout'),
+          x: fin(box.x), y: fin(box.y), w: Math.max(.01, fin(box.w, 1)), h: Math.max(.01, fin(box.h, 1)),
+          fills: primitive?.fills || (fill ? [{ color: fill.hex, opacity: fill.alpha }] : []),
+          ...(box.kind === 'frame' ? { strokes: strokeOf(box).map(stroke => ({ ...stroke, alignment: 'inner' as const })) } : {}),
+          children: nativeChildren.map(lowerTree).filter((child): child is PenpotIrShape => child !== null),
+          showContent: box.kind === 'frame' ? box.clipChildren === false : box.clipChildren !== true };
+        effects(box, shape);
+      } else shape = lowerBox(box);
+      if (!shape && box.layoutOwner) throw new Error(`Layout layer ${String(box.id)} cannot be represented as an editable Penpot shape.`);
+      if (shape) {
+        shape.sourceId = String(box.id);
+        shape.layoutProperties = box.layoutOwner ? { ...props, layoutItemZIndex: paintIndex.get(String(box.id)) } : props;
+        shape.hidden = box.hidden === true;
+      }
+      return shape;
+    };
+    const roots = boxes.filter(box => !box.layoutOwner && (!box.frame || !byId.has(String(box.frame))));
+    if (roots.some(box => box.kind === 'frame')) {
+      for (const box of roots) { const shape = lowerTree(box); if (shape) shapes.push(shape); }
+    } else {
+      const fill = parsePenpotColor(color(o.background) ?? 'transparent');
+      shapes.push({ type: 'board', name: 'Artboard', x: 0, y: 0,
+        w: Math.max(1, fin(o.canvas.w, 1)), h: Math.max(1, fin(o.canvas.h, 1)),
+        fills: fill ? [{ color: fill.hex, opacity: fill.alpha }] : [],
+        children: roots.map(lowerTree).filter((shape): shape is PenpotIrShape => shape !== null) });
+    }
+    if (boxes.some(box => !visited.has(String(box.id)))) throw new Error('The document contains layers outside its exportable layout hierarchy.');
+  } else if (frames.length) {
     const frameIds = new Set(frames.map(({ b, idx }) => (str(b.id) || String(idx))));
     for (const { b: fb, idx } of frames) {
       const fid = str(fb.id) || String(idx);
