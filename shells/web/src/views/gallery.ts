@@ -2255,7 +2255,7 @@ export interface UtilityView {
  */
 const utilityViews = (speechOk: boolean): UtilityView[] => [{
   id: 'compare', href: '#/compare', icon: 'document', name: t('Compare'),
-  description: t('Compare text, JSON, images, PDFs and saved versions locally. See what changed without changing either source.'),
+  description: t('Compare text, JSON, tables, documents, images, PDFs and saved versions locally. See what changed without changing either source.'),
 }, {
   id: 'prepare',
   href: '#/prepare',

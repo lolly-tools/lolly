@@ -2,10 +2,20 @@
 import type { ComparisonChange, ComparisonResult } from '@lolly-tools/core/host-v1';
 import { comparisonReport } from '../lib/compare-report.ts';
 import { compareElement as el, compareButton as button } from './compare-elements.ts';
-import { t } from '../i18n.ts';
+import { t, tRaw } from '../i18n.ts';
 import { deliverBlob } from '../lib/download-recovery.ts';
 
-const position = (location: ComparisonChange['before']): string => location?.line ? t('Line {line}', { line: location.line }) : location?.path.length ? location.path.map(String).join(' · ') : t('Document');
+const position = (location: ComparisonChange['before']): string => {
+  if (!location) return t('Document');
+  const parts: string[] = [];
+  if (location.table !== undefined) parts.push(location.table);
+  if (location.row !== undefined) parts.push(tRaw('Row {row}', { row: location.row }));
+  if (location.column !== undefined) parts.push(location.column);
+  if (location.page !== undefined) parts.push(tRaw('Page {page}', { page: location.page }));
+  if (location.slide !== undefined) parts.push(tRaw('Slide {slide}', { slide: location.slide }));
+  if (location.block !== undefined) parts.push(tRaw('Block {block}', { block: location.block }));
+  return parts.length ? parts.join(' · ') : location.line ? t('Line {line}', { line: location.line }) : location.path.length ? location.path.map(String).join(' · ') : t('Document');
+};
 export function mountComparisonResults(root: HTMLElement, result: ComparisonResult): void {
   root.replaceChildren();
   const summary = el('p', result.equality === 'different' ? (result.summary.total === 1 ? t('1 change found') : t('{n} changes found', { n: result.summary.total }))

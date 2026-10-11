@@ -119,7 +119,7 @@ type Route =
   | { name: 'convert'; params?: string }
   | { name: 'prepare' }
   | { name: 'rebrand'; params?: string }
-  | { name: 'compare' }
+  | { name: 'compare'; params?: string }
   | { name: 'data'; params?: string }
   | { name: 'pro'; params?: string }
   | { name: 'learning'; params?: string }
@@ -607,7 +607,7 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
     // grid → edit → download-as). Lazy-loaded like the other dashboards.
     case 'compare': {
       const { mountCompare } = await navigationModule(import('./views/compare.ts'), navigation);
-      mountCompare(view, host);
+      mountCompare(view, host, route.params);
       break;
     }
     case 'prepare': {
@@ -2047,7 +2047,7 @@ function parseRoute(): Route {
     }
     if (parts[0] === 'verify' || parts[0] === 'valid' || parts[0] === 'v') return { name: 'verify', params: query || '' };
     if (parts[0] === 'convert') return { name: 'convert', params: query || '' }; // on-device file converter
-    if (parts[0] === 'compare') return { name: 'compare' };
+    if (parts[0] === 'compare') return { name: 'compare', params: query || '' };
     if (parts[0] === 'prepare') return { name: 'prepare' };
     if (parts[0] === 'rebrand') return { name: 'rebrand', params: query || '' }; // renovate a deck (plan 274)
     if (parts[0] === 'data') return { name: 'data', params: query || '' }; // on-device spreadsheet viewer/editor
