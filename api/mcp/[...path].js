@@ -8797,7 +8797,8 @@ var init_design_v1 = __esm({
       "frame",
       "3d",
       "web",
-      "webcam"
+      "webcam",
+      "group"
     ];
     KINDS = new Set(DESIGN_LAYER_KINDS);
     REQUIRES_MOUNT = ["text-overflow", "computed-contrast", "resolved-fonts"];

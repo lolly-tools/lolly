@@ -10,6 +10,14 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
 const EXPECTED: readonly string[] = [
+  // Additive 1.254 Design hierarchy and transient editor view state.
+  'DEFAULT_DESIGN_PAGE', 'DESIGN_HIERARCHY_LIMITS', 'DesignHierarchyError',
+  'DesignHierarchyFinding', 'DesignHierarchyIndex', 'DesignHierarchyRow', 'DesignPage',
+  'RuntimeViewState', 'designHierarchyAncestors', 'designHierarchyBounds',
+  'designHierarchyDescendants', 'designHierarchyFlags', 'designHierarchyIndex',
+  'designHierarchyPageBoxes', 'migrateDesignHierarchy', 'refreshDesignGroupBounds',
+  'remapDesignHierarchy', 'reparentDesignHierarchy', 'resolveDesignPages',
+  'validateDesignHierarchy',
   // Additive 1.251 bounded, read-only Office package census.
   'OfficeCensus', 'OfficeCensusFinding', 'OfficeCensusOptions', 'OfficeCensusPart',
   'inspectOfficePackage', 'isOfficeSource',

@@ -110,7 +110,7 @@ function boxEl(html: string, id: string): HTMLElement {
 
 test('"3d" is a Design layer kind, appended and never reordered', () => {
   assert.deepEqual([...DESIGN_LAYER_KINDS],
-    ['box', 'text', 'image', 'path', 'audio', 'camera', 'frame', '3d', 'web', 'webcam'],
+    ['box', 'text', 'image', 'path', 'audio', 'camera', 'frame', '3d', 'web', 'webcam', 'group'],
     'DESIGN_LAYER_KINDS is append-only: an existing wire value must never move');
   const kinds = boxesField.fields.find((f: { id: string }) => f.id === 'kind');
   assert.deepEqual(kinds.options.map((o: { value: string }) => o.value),
@@ -155,7 +155,7 @@ test('the add menu offers a 3D scene whose seed is a scene box', () => {
 test('scene is field 101 of design:boxes and the wire-order pin ratcheted with it', () => {
   const current: string[] = boxesField.fields.map((f: { id: string }) => f.id);
   const pinned = wireOrder.inputs['design:boxes']!;
-  assert.equal(current.length, 157, 'layout fields follow the interactive fields');
+  assert.equal(current.length, 158, 'pageId follows the existing layout fields');
   assert.equal(current[113], 'tokenLinks');
   assert.deepEqual(current.slice(114, 117), ['web', 'webView', 'webLoad'], 'plan 288: the web page box fields follow');
   assert.deepEqual(current.slice(117, 121), ['webCss', 'webHideCookies', 'interact', 'interactOpts']);
@@ -167,6 +167,7 @@ test('scene is field 101 of design:boxes and the wire-order pin ratcheted with i
     'layoutMarginTop', 'layoutMarginRight', 'layoutMarginBottom', 'layoutMarginLeft',
     'layoutAbsolute', 'layoutSelf', 'layoutJustifySelf', 'layoutRow', 'layoutColumn',
     'layoutRowSpan', 'layoutColumnSpan', 'layoutArea', 'layoutX', 'layoutY', 'layoutAngle',
+    'pageId',
   ], 'plan 305: layout fields are appended after every existing wire field');
   assert.equal(current[103], 'textStory');
   assert.equal(current[104], 'textFrame');
