@@ -16,6 +16,10 @@
 // purely in native pixels.
 
 import type { InputValue } from '../../../../engine/src/inputs.ts';
+import { matchesCanvasSnapIndex, queryCanvasSnapAxis } from './canvas-snap-index.ts';
+import type { CanvasSnapIndex, IndexedSnapPick } from './canvas-snap-index.ts';
+export { createCanvasSnapIndex } from './canvas-snap-index.ts';
+export type { CanvasSnapIndex } from './canvas-snap-index.ts';
 // The lift ladder is written in MAGNIFICATION and stored as depth; the engine owns
 // the conversion (plans/104 section 4.3 - `eff` and `z` are only the same sentence at one
 // perspective, so nobody re-types the formula).
@@ -1348,30 +1352,42 @@ function pickSnap(edges: number[], targets: SnapTarget[], threshold: number): Sn
   return best;
 }
 
+function moveSnapPick(pick: IndexedSnapPick | null, min: number, max: number): SnapPick | null {
+  if (!pick) return null;
+  return { d: pick.d, line: pick.line, span: pick.object ? [Math.min(min, pick.min), Math.max(max, pick.max)] : [pick.min, pick.max] };
+}
+
 /**
  * Snap a rigidly-translating selection: `active` and `others` are AABBs
  * {minX,minY,maxX,maxY}. Returns { dx, dy, guides:[{x1,y1,x2,y2}] } - the extra
  * translation that lands an edge/centre on a target, plus guide segments.
  */
-export function snapMove(active: AABB, others: AABB[], canvas: Canvas, threshold: number, lines: SnapLines = {}): SnapMoveResult {
+export function snapMove(active: AABB, others: AABB[], canvas: Canvas, threshold: number, lines: SnapLines = {}, index?: CanvasSnapIndex | null): SnapMoveResult {
   const acx = (active.minX + active.maxX) / 2, acy = (active.minY + active.maxY) / 2;
-  const xTargets: SnapTarget[] = [
-    { v: 0, span: [0, canvas.h] }, { v: canvas.w / 2, span: [0, canvas.h] }, { v: canvas.w, span: [0, canvas.h] },
-  ];
-  const yTargets: SnapTarget[] = [
-    { v: 0, span: [0, canvas.w] }, { v: canvas.h / 2, span: [0, canvas.w] }, { v: canvas.h, span: [0, canvas.w] },
-  ];
-  for (const o of others) {
-    const ocx = (o.minX + o.maxX) / 2, ocy = (o.minY + o.maxY) / 2;
-    const yspan: [number, number] = [Math.min(active.minY, o.minY), Math.max(active.maxY, o.maxY)];
-    const xspan: [number, number] = [Math.min(active.minX, o.minX), Math.max(active.maxX, o.maxX)];
-    xTargets.push({ v: o.minX, span: yspan }, { v: ocx, span: yspan }, { v: o.maxX, span: yspan });
-    yTargets.push({ v: o.minY, span: xspan }, { v: ocy, span: xspan }, { v: o.maxY, span: xspan });
+  let bx: SnapPick | null;
+  let by: SnapPick | null;
+  if (matchesCanvasSnapIndex(index, others, canvas) && [active.minX, acx, active.maxX, active.minY, acy, active.maxY, threshold].every(Number.isFinite)) {
+    bx = moveSnapPick(queryCanvasSnapAxis(index, 'x', [active.minX, acx, active.maxX], threshold, lines.x), active.minY, active.maxY);
+    by = moveSnapPick(queryCanvasSnapAxis(index, 'y', [active.minY, acy, active.maxY], threshold, lines.y), active.minX, active.maxX);
+  } else {
+    const xTargets: SnapTarget[] = [
+      { v: 0, span: [0, canvas.h] }, { v: canvas.w / 2, span: [0, canvas.h] }, { v: canvas.w, span: [0, canvas.h] },
+    ];
+    const yTargets: SnapTarget[] = [
+      { v: 0, span: [0, canvas.w] }, { v: canvas.h / 2, span: [0, canvas.w] }, { v: canvas.h, span: [0, canvas.w] },
+    ];
+    for (const o of others) {
+      const ocx = (o.minX + o.maxX) / 2, ocy = (o.minY + o.maxY) / 2;
+      const yspan: [number, number] = [Math.min(active.minY, o.minY), Math.max(active.maxY, o.maxY)];
+      const xspan: [number, number] = [Math.min(active.minX, o.minX), Math.max(active.maxX, o.maxX)];
+      xTargets.push({ v: o.minX, span: yspan }, { v: ocx, span: yspan }, { v: o.maxX, span: yspan });
+      yTargets.push({ v: o.minY, span: xspan }, { v: ocy, span: xspan }, { v: o.maxY, span: xspan });
+    }
+    for (const x of lines.x ?? []) if (Number.isFinite(x)) xTargets.push({ v: x, span: [0, canvas.h] });
+    for (const y of lines.y ?? []) if (Number.isFinite(y)) yTargets.push({ v: y, span: [0, canvas.w] });
+    bx = pickSnap([active.minX, acx, active.maxX], xTargets, threshold);
+    by = pickSnap([active.minY, acy, active.maxY], yTargets, threshold);
   }
-  for (const x of lines.x ?? []) if (Number.isFinite(x)) xTargets.push({ v: x, span: [0, canvas.h] });
-  for (const y of lines.y ?? []) if (Number.isFinite(y)) yTargets.push({ v: y, span: [0, canvas.w] });
-  const bx = pickSnap([active.minX, acx, active.maxX], xTargets, threshold);
-  const by = pickSnap([active.minY, acy, active.maxY], yTargets, threshold);
   const diagonal = snapAngled(
     [active.minX, acx, active.maxX].flatMap(x => [active.minY, acy, active.maxY].map(y => ({ x, y }))),
     lines, threshold, canvas
@@ -1389,17 +1405,24 @@ export function snapMove(active: AABB, others: AABB[], canvas: Canvas, threshold
  * follows the pointer, so snapping the pointer aligns the moving edge).
  * Returns { x, y, guides }.
  */
-export function snapPoint(px: number, py: number, others: AABB[], canvas: Canvas, threshold: number, lines: SnapLines = {}): SnapPointResult {
-  const xTargets: SnapTarget[] = [{ v: 0 }, { v: canvas.w / 2 }, { v: canvas.w }];
-  const yTargets: SnapTarget[] = [{ v: 0 }, { v: canvas.h / 2 }, { v: canvas.h }];
-  for (const o of others) {
-    xTargets.push({ v: o.minX }, { v: (o.minX + o.maxX) / 2 }, { v: o.maxX });
-    yTargets.push({ v: o.minY }, { v: (o.minY + o.maxY) / 2 }, { v: o.maxY });
+export function snapPoint(px: number, py: number, others: AABB[], canvas: Canvas, threshold: number, lines: SnapLines = {}, index?: CanvasSnapIndex | null): SnapPointResult {
+  let bx: SnapPick | null;
+  let by: SnapPick | null;
+  if (matchesCanvasSnapIndex(index, others, canvas) && [px, py, threshold].every(Number.isFinite)) {
+    bx = queryCanvasSnapAxis(index, 'x', [px], threshold, lines.x);
+    by = queryCanvasSnapAxis(index, 'y', [py], threshold, lines.y);
+  } else {
+    const xTargets: SnapTarget[] = [{ v: 0 }, { v: canvas.w / 2 }, { v: canvas.w }];
+    const yTargets: SnapTarget[] = [{ v: 0 }, { v: canvas.h / 2 }, { v: canvas.h }];
+    for (const o of others) {
+      xTargets.push({ v: o.minX }, { v: (o.minX + o.maxX) / 2 }, { v: o.maxX });
+      yTargets.push({ v: o.minY }, { v: (o.minY + o.maxY) / 2 }, { v: o.maxY });
+    }
+    for (const x of lines.x ?? []) if (Number.isFinite(x)) xTargets.push({ v: x });
+    for (const y of lines.y ?? []) if (Number.isFinite(y)) yTargets.push({ v: y });
+    bx = pickSnap([px], xTargets, threshold);
+    by = pickSnap([py], yTargets, threshold);
   }
-  for (const x of lines.x ?? []) if (Number.isFinite(x)) xTargets.push({ v: x });
-  for (const y of lines.y ?? []) if (Number.isFinite(y)) yTargets.push({ v: y });
-  const bx = pickSnap([px], xTargets, threshold);
-  const by = pickSnap([py], yTargets, threshold);
   const diagonal = snapAngled([{ x: px, y: py }], lines, threshold, canvas);
   if (diagonal && (!bx && !by || Math.hypot(diagonal.dx, diagonal.dy) < Math.hypot(bx?.d ?? 0, by?.d ?? 0))) {
     return { x: px + diagonal.dx, y: py + diagonal.dy, guides: diagonal.guides };

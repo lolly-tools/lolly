@@ -1,0 +1,68 @@
+{
+  "repository": "https://github.com/penpot/penpot",
+  "revision": "10955f17e27943429a10e90360d0404e3f56e27c",
+  "license": "MPL-2.0",
+  "licenseSha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+  "copyright": "Copyright (c) KALEIDOS SUBSIDIARY SL",
+  "files": [
+    {
+      "source": "frontend/src/app/main/ui/components/context_menu_a11y.cljs",
+      "upstreamSha256": "3e3b94436717ef4c37e78b3fd9b07eee2b07684a860e76639afc8053a55da1be",
+      "snapshot": "upstream/frontend/src/app/main/ui/components/context_menu_a11y.cljs",
+      "destinations": [
+        "shells/web/src/components/menu-navigation.ts"
+      ],
+      "adaptations": "Wrapped Up/Down and first-item focus navigation translated into a local delegated menu keyboard listener. Native activation and existing popover dismissal remain in Lolly."
+    },
+    {
+      "source": "frontend/src/app/main/ui/ds/controls/select.cljs",
+      "upstreamSha256": "d5dbffb4e5fa4eddad16e18772d2aba6e3ceaaedbeaada25351f1550d8f0266a",
+      "snapshot": "upstream/frontend/src/app/main/ui/ds/controls/select.cljs",
+      "destinations": [
+        "shells/web/src/components/menu-navigation.ts"
+      ],
+      "adaptations": "Modern focus-change and nearest option scrolling behavior adapted to native menuitem focus and scrollIntoView. Existing language and design-system menus reuse this helper."
+    },
+    {
+      "source": "frontend/src/app/worker/snap.cljs",
+      "upstreamSha256": "1a6e65a862625be0dbf98070b62f7a803aec4bde5464ca15268c8d3d7b278581",
+      "snapshot": "upstream/frontend/src/app/worker/snap.cljs",
+      "destinations": [
+        "shells/web/src/views/canvas-snap-index.ts"
+      ],
+      "adaptations": "Prepared per-axis target buckets adapted from make-insert-tree-data and query patterns into sorted arrays built lazily on the first eligible snap query and reused during the gesture. Original Lolly target insertion ordinals remain tie breakers; worker and Rx transports are not copied."
+    },
+    {
+      "source": "frontend/src/app/main/snap.cljs",
+      "upstreamSha256": "c0a2394459ff7ea4a7a540cef44524e1758ab76ea6d19b4dde66e14e2325978c",
+      "snapshot": "upstream/frontend/src/app/main/snap.cljs",
+      "destinations": [
+        "shells/web/src/views/canvas-snap-index.ts"
+      ],
+      "adaptations": "Bounded axis query pattern adapted from snap-accuracy-ranges and closest-snap to binary searches for nearest targets within the existing screen-scaled threshold. Lolly retains angled guides and existing target visibility and locking semantics."
+    },
+    {
+      "source": "frontend/src/app/main/ui/workspace/viewport/guides.cljs",
+      "upstreamSha256": "fa2ee2c6e617f0401ec4283368b90742f294fa37763674aff8cef7fc86eece47",
+      "snapshot": "upstream/frontend/src/app/main/ui/workspace/viewport/guides.cljs",
+      "destinations": [
+        "shells/web/src/views/design-guides.ts",
+        "shells/web/src/views/design-guides-view.ts",
+        "shells/web/src/views/design-guides-interactions.ts",
+        "shells/web/src/styles/parts/design-guides.css"
+      ],
+      "adaptations": "Modern WASM viewport guide-pill-axis, guide-pill and guide-overlay interaction behavior adapted to native keyed DOM feedback, a three-screen-pixel drag threshold and a lazy coordinate editor. Lolly retains document coordinates and angled guides; frame-bound guide ownership is not copied."
+    },
+    {
+      "source": "render-wasm/src/render/ui/rulers.rs",
+      "upstreamSha256": "a29f5f8485f53e78be75e0ad6c6c3a33e73964ebfc67a9678c1f07fc8eee290c",
+      "snapshot": "upstream/render-wasm/src/render/ui/rulers.rs",
+      "destinations": [
+        "shells/web/src/views/design-guides-rulers.ts",
+        "shells/web/src/views/design-guides-shared.ts",
+        "shells/web/src/styles/parts/design-guides.css"
+      ],
+      "adaptations": "Modern draw_selection_x/y bands, endpoint label spacing, outer masks and format_label adapted from the Rust UI overlay to keyed DOM feedback at constant screen size. Lolly retains its existing 1/2/5 tick intervals and cached tick geometry; the legacy SVG ruler is not a reuse origin."
+    }
+  ]
+}

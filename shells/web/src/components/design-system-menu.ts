@@ -26,13 +26,6 @@ export function attachDesignSystemMenu(trigger: HTMLElement, host: SwitchHost): 
           item.focus();
         };
         if (selected) rove(selected);
-        el.addEventListener('keydown', event => {
-          if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
-          event.preventDefault();
-          const index = items.indexOf(document.activeElement as HTMLButtonElement);
-          const next = event.key === 'Home' ? 0 : event.key === 'End' ? items.length - 1 : (index + (event.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
-          if (items[next]) rove(items[next]);
-        });
         el.addEventListener('click', async event => {
           const button = (event.target as Element).closest<HTMLButtonElement>('[data-system]');
           if (!button || switching) return;
@@ -61,7 +54,7 @@ export function attachDesignSystemMenu(trigger: HTMLElement, host: SwitchHost): 
       }
     })();
   }, {
-    className: 'profile-menu design-system-menu', ariaLabel: t('Design system'), trackSize: true,
+    className: 'profile-menu design-system-menu', ariaLabel: t('Design system'), trackSize: true, menuNavigation: { roving: true },
     onClose: () => { generation++; },
   });
   const open = () => { if (!switching) menu.isOpen() ? menu.close(true) : menu.open(); };

@@ -501,6 +501,12 @@ const PENPOT_LAYOUT_UI_UPSTREAM: {
   revision: string;
   files: { destinations: string[] }[];
 } = JSON.parse(readFileSync(join(ROOT, PENPOT_LAYOUT_UI_DIR, 'upstream.json'), 'utf8'));
+const PENPOT_CANVAS_UX_DIR = 'shells/web/src/views/design-canvas-ux.penpot';
+const PENPOT_CANVAS_UX_UPSTREAM: {
+  repository: string;
+  revision: string;
+  files: { destinations: string[] }[];
+} = JSON.parse(readFileSync(join(ROOT, PENPOT_CANVAS_UX_DIR, 'upstream.json'), 'utf8'));
 
 const MANIFEST: {
   vendored: Entry[];
@@ -570,6 +576,16 @@ const MANIFEST: {
       files: [...new Set(PENPOT_LAYOUT_UI_UPSTREAM.files.flatMap(file => file.destinations))].sort(byCodepoint).join(', '),
       text: readFileSync(join(ROOT, PENPOT_LAYOUT_UI_DIR, 'LICENSE'), 'utf8').trim(),
       note: `Modern Penpot flex and grid sidebar controls, styles and icons adapted from ${PENPOT_LAYOUT_UI_UPSTREAM.repository}/tree/${PENPOT_LAYOUT_UI_UPSTREAM.revision}/frontend/. Occupied-cell track editing adapts helpers from ${PENPOT_LAYOUT_UI_UPSTREAM.repository}/blob/${PENPOT_LAYOUT_UI_UPSTREAM.revision}/common/src/app/common/types/shape/layout.cljc. Modified Source Code Form is available at https://github.com/lolly-tools/lolly/tree/main/shells/web/src/views/ and https://github.com/lolly-tools/lolly/tree/main/shells/web/src/styles/parts/. Exact source snapshots, hashes, adaptation details and the full MPL license are available at https://github.com/lolly-tools/lolly/tree/main/${PENPOT_LAYOUT_UI_DIR}/; see PROVENANCE.md and upstream.json.`,
+      where: 'web',
+    },
+    {
+      name: 'Penpot canvas and menu interactions (adapted source)',
+      version: PENPOT_CANVAS_UX_UPSTREAM.revision,
+      spdx: 'MPL-2.0',
+      copyright: 'Copyright (c) KALEIDOS SUBSIDIARY SL',
+      files: [...new Set(PENPOT_CANVAS_UX_UPSTREAM.files.flatMap(file => file.destinations))].sort(byCodepoint).join(', '),
+      text: readFileSync(join(ROOT, PENPOT_CANVAS_UX_DIR, 'LICENSE'), 'utf8').trim(),
+      note: `Menu keyboard navigation, newer WASM viewport guide interactions, Rust ruler overlay geometry and per-axis snap query patterns adapted from ${PENPOT_CANVAS_UX_UPSTREAM.repository}/tree/${PENPOT_CANVAS_UX_UPSTREAM.revision}/. Modified Source Code Form is available at https://github.com/lolly-tools/lolly/tree/main/shells/web/src/components/, https://github.com/lolly-tools/lolly/tree/main/shells/web/src/views/ and https://github.com/lolly-tools/lolly/tree/main/shells/web/src/styles/parts/. Exact source snapshots, hashes, adaptation details and the full MPL license are available at https://github.com/lolly-tools/lolly/tree/main/${PENPOT_CANVAS_UX_DIR}/; see PROVENANCE.md and upstream.json.`,
       where: 'web',
     },
     {

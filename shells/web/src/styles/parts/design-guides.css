@@ -1,4 +1,8 @@
 /* SPDX-License-Identifier: MPL-2.0 */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * Copyright (c) KALEIDOS SUBSIDIARY SL */
 /* Design's export-hidden rulers and persistent authoring guides. */
 
 .fc-authoring-guides {
@@ -73,7 +77,9 @@
   opacity: 0.65;
   vector-effect: non-scaling-stroke;
 }
-.fc-ruler line[y1="7"]{opacity:1 }
+.fc-ruler line[y1="7"] {
+  opacity: 1;
+}
 .fc-ruler text {
   fill: currentColor;
   font:
@@ -101,8 +107,12 @@
   transform-origin: 0 5px;
   cursor: move;
 }
-.fc-author-guide-x { cursor: col-resize; }
-.fc-author-guide-y { cursor: row-resize; }
+.fc-author-guide-x {
+  cursor: col-resize;
+}
+.fc-author-guide-y {
+  cursor: row-resize;
+}
 .fc-author-guide::before {
   content: "";
   position: absolute;
@@ -112,7 +122,9 @@
   height: 1px;
   background: currentColor;
   /* Both light and dark edges keep the guide legible on artwork of any colour. */
-  box-shadow: 0 -1px 0 #fff, 0 1px 0 #0008;
+  box-shadow:
+    0 -1px 0 #fff,
+    0 1px 0 #0008;
 }
 .fc-author-guide:hover::before,
 .fc-author-guide:focus-visible::before,
@@ -120,7 +132,9 @@
 .fc-author-guide.is-dragging::before {
   height: 2px;
 }
-.fc-author-guide:focus-visible { outline: none; }
+.fc-author-guide:focus-visible {
+  outline: none;
+}
 .fc-authoring-guides.is-guide-dragging {
   cursor: grabbing;
 }
@@ -128,7 +142,8 @@
 @media (min-width: 641px) {
   /* When the navigator collapses, the floating tools sit beside its rail. Keep
      their usual 10px gap beyond the ruler; docked columns are already reserved. */
-  .tool-stage:not(.has-tl-reserve):has(> .fc-authoring-guides:not([hidden])) > .fc-toolbar-dock:not(.is-detached) {
+  .tool-stage:not(.has-tl-reserve):has(> .fc-authoring-guides:not([hidden]))
+  > .fc-toolbar-dock:not(.is-detached) {
     padding-left: calc(22px + 10px + var(--vv-left, 0px));
   }
 }
@@ -141,4 +156,173 @@
 
 .tool-view.is-chrome-hidden .fc-authoring-guides {
   display: none !important;
+}
+
+/* Coordinate pills follow guide-pill-axis at a constant 34 by 20 screen pixels. */
+.fc-guide-pills {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.fc-guide-pill {
+  position: absolute;
+  width: 34px;
+  height: 20px;
+  pointer-events: auto;
+  touch-action: none;
+  border-radius: 4px;
+  background: var(--guide-color, var(--ui-color-action-primary));
+  color: var(--ui-color-surface-raised);
+  z-index: 1;
+}
+.fc-guide-pill[hidden],
+.fc-guide-pill button[hidden] {
+  display: none;
+}
+.fc-guide-pill-y {
+  transform: rotate(-90deg);
+}
+.fc-guide-coordinate {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0 2px;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  color: inherit;
+  font:
+    11px ui-monospace,
+    SFMono-Regular,
+    monospace;
+  cursor: move;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fc-guide-coordinate:focus-visible {
+  outline: 2px solid var(--ui-color-focus-ring);
+  outline-offset: 2px;
+}
+.fc-guide-pill input {
+  box-sizing: border-box;
+  width: 104px;
+  height: 24px;
+  position: absolute;
+  top: -2px;
+  left: -35px;
+  padding: 0 4px;
+  border: 1px solid var(--ui-color-focus-ring);
+  border-radius: 4px;
+  background: var(--ui-color-surface-raised);
+  color: var(--ui-color-text-default);
+  font:
+    11px ui-monospace,
+    SFMono-Regular,
+    monospace;
+  pointer-events: auto;
+}
+.fc-guide-pill.is-guide-removing {
+  width: 48px;
+  opacity: 0.8;
+}
+.fc-author-guide.is-guide-removing::before {
+  opacity: 0.35;
+}
+.fc-authoring-guides.is-guide-removing {
+  cursor: no-drop;
+}
+.fc-ruler:focus-visible {
+  outline: 2px solid var(--ui-color-focus-ring);
+  outline-offset: -2px;
+}
+
+/* Modern rulers.rs draws outer 100px masks, a 30% band, then symmetric end labels. */
+.fc-ruler-selection {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.fc-ruler-selection[hidden] {
+  display: none;
+}
+.fc-ruler-selection-band,
+.fc-ruler-selection-mask,
+.fc-ruler-selection span {
+  position: absolute;
+}
+.fc-ruler-selection-band {
+  background: var(--ui-color-action-primary);
+  opacity: 0.3;
+}
+.fc-ruler-selection-x .fc-ruler-selection-band {
+  top: 0;
+  height: 22px;
+}
+.fc-ruler-selection-y .fc-ruler-selection-band {
+  left: 0;
+  width: 22px;
+}
+.fc-ruler-selection-mask {
+  opacity: 0.8;
+}
+.fc-ruler-selection-x .fc-ruler-selection-mask {
+  top: 0;
+  width: 100px;
+  height: 22px;
+}
+.fc-ruler-selection-y .fc-ruler-selection-mask {
+  left: 0;
+  height: 100px;
+  width: 22px;
+}
+.fc-ruler-selection-x .is-before {
+  background: linear-gradient(to right, transparent, var(--ui-color-surface-raised) 40%);
+}
+.fc-ruler-selection-x .is-after {
+  background: linear-gradient(to right, var(--ui-color-surface-raised) 60%, transparent);
+}
+.fc-ruler-selection-y .is-before {
+  background: linear-gradient(to bottom, transparent, var(--ui-color-surface-raised) 40%);
+}
+.fc-ruler-selection-y .is-after {
+  background: linear-gradient(to bottom, var(--ui-color-surface-raised) 60%, transparent);
+}
+.fc-ruler-selection span {
+  color: var(--ui-color-action-primary);
+  white-space: nowrap;
+  font:
+    12px ui-monospace,
+    SFMono-Regular,
+    monospace;
+}
+.fc-ruler-selection-x span {
+  top: 2px;
+}
+.fc-ruler-selection-x [data-selection-edge="min"] {
+  transform: translateX(-100%);
+}
+.fc-ruler-selection-y span {
+  left: 2px;
+  transform-origin: 0 0;
+}
+.fc-ruler-selection-y [data-selection-edge="min"] {
+  transform: rotate(-90deg);
+}
+.fc-ruler-selection-y [data-selection-edge="max"] {
+  transform: rotate(-90deg) translateX(-100%);
+}
+
+/* Exact entry stays upright and opens into the canvas, independent of pill rotation. */
+.fc-guide-pill.is-editing {
+  transform: none;
+  background: transparent;
+  z-index: 2;
+}
+.fc-guide-pill-x.is-editing input {
+  top: 24px;
+}
+.fc-guide-pill-y.is-editing input,
+.fc-guide-pill-angled.is-editing input {
+  left: 36px;
 }

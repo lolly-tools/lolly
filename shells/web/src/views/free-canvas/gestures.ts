@@ -7,8 +7,8 @@
  * a value (an event listener), goes through `fc.<module>.<fn>`. Extracted verbatim
  * from initFreeCanvas() by scripts/split-closure.ts.
  */
-import { boxAABB, boxRect, filterMarqueeFrames, moveBoxes, normAngle, normDragRect, num, rectCentre, resizeRect, rotateGroup, scaleGroup, seedBox, selectionAABB, snapAngle, snapMove, snapPoint, withRect } from '../free-canvas-math.ts';
-import type { AABB as MathAABB, Box, Rect as MathRect } from '../free-canvas-math.ts';
+import { boxAABB, boxRect, createCanvasSnapIndex, filterMarqueeFrames, moveBoxes, normAngle, normDragRect, num, rectCentre, resizeRect, rotateGroup, scaleGroup, seedBox, selectionAABB, snapAngle, snapMove, snapPoint, withRect } from '../free-canvas-math.ts';
+import type { AABB as MathAABB, Box, CanvasSnapIndex, Rect as MathRect } from '../free-canvas-math.ts';
 import { pickMarquee, pickTopmost } from '../canvas-scene.ts';
 import { boxOutlineKind } from '../vector-ops.ts';
 import { closesOnClick, convertKind, dragHandle, frameToLocal, kindReadsHandles, lowerAuthored, moveNodes, nearestOnPath, nodeAt, pullHandles } from '../free-canvas-pen.ts';
@@ -32,6 +32,7 @@ export function beginGesture(fc: FcCtx, e: PointerEvent, g: GestureInit): void {
   }
   fc.gesture = {
     ...g,
+    snapIndex: undefined,
     pointerId: e.pointerId,
     startClient: { x: e.clientX, y: e.clientY },
   } as Gesture;
@@ -40,6 +41,12 @@ export function beginGesture(fc: FcCtx, e: PointerEvent, g: GestureInit): void {
   fc.textEdit.setFramesClipped(false);
   fc.frameOffCache = new Map(); // frame offsets are stable during a drag - cache to avoid per-move reflow
   beginCanvasGesture(fc);
+}
+function gestureSnapIndex(fc: FcCtx): CanvasSnapIndex | null {
+  const gesture = fc.gesture;
+  if (!gesture || gesture.type !== 'create' && gesture.type !== 'move' && gesture.type !== 'resize') return null;
+  if (gesture.snapIndex === undefined) gesture.snapIndex = createCanvasSnapIndex(gesture.others, fc.helpers.canvasWH());
+  return gesture.snapIndex;
 }
 export function endGesture(fc: FcCtx, committed = false): void {
   finishCanvasGesture(fc, committed);
@@ -746,7 +753,8 @@ export function applyGestureMove(fc: FcCtx, e: PointerEvent): void {
       fc.gesture.others as MathAABB[],
       fc.helpers.canvasWH(),
       snapThreshNative(fc),
-      fc.authoringGuides?.snapTargets()
+      fc.authoringGuides?.snapTargets(),
+      gestureSnapIndex(fc)
     );
     const corner = { x: snap.x, y: snap.y };
     drawGuides(fc, snap.guides);
@@ -779,7 +787,8 @@ export function applyGestureMove(fc: FcCtx, e: PointerEvent): void {
         fc.gesture.others as MathAABB[],
         fc.helpers.canvasWH(),
         snapThreshNative(fc),
-        fc.authoringGuides?.snapTargets()
+        fc.authoringGuides?.snapTargets(),
+        gestureSnapIndex(fc)
       );
       mdx = dxN + snap.dx;
       mdy = dyN + snap.dy;
@@ -817,7 +826,8 @@ export function applyGestureMove(fc: FcCtx, e: PointerEvent): void {
         fc.gesture.others as MathAABB[],
         fc.helpers.canvasWH(),
         snapThreshNative(fc),
-        fc.authoringGuides?.snapTargets()
+        fc.authoringGuides?.snapTargets(),
+        gestureSnapIndex(fc)
       );
       sdx += snap.x - nat.x;
       sdy += snap.y - nat.y;

@@ -1015,6 +1015,18 @@
         "fuzzCoverage": "`penpot-layout` reaches `validateDesignLayout`, `parseLayoutTrack`, `designLayoutRequest` placement and `createDesignLayoutEvaluator` with the real WASM solver",
         "notes": "Generated solver JSON is derived from untrusted layer values rather than being a trusted byte ingress. Ownership, enums, finite dimensions, track grammar and work are admitted before reflow. Findings retain authored rows on refusal; successful geometry is disposable and does not overwrite source intent. Source and cache equivalence have separate focused regressions."
       }
+    },
+    "shells/web/src/views/design-guides.ts": {
+      "fuzzTargets": [
+        "design-guides"
+      ],
+      "details": {
+        "inputSource": "Authored, restored or shared Design guide text, including direct gd URL parameters and decoded z/zx state; legacy x/y JSON and compact v1/v2 wires",
+        "bounds": "v1 has no local input-length or record-count cap. v2 parses JSON before considering only the first MAX_DESIGN_GUIDE_RECORDS = 1,000 array rows; IDs match [\\w-]{1,80} and are unique; coordinates and rotation must be finite numbers. Packed z/zx transport separately enforces url-pack.ts MAX_TOKEN = 64 KiB and MAX_UNPACKED = 256 KiB; these limits do not apply to direct gd or codec callers.",
+        "directTests": "`tests/design-guides-fuzz.test.ts`, `shells/web/src/views/design-guides.test.ts`, `tests/design-guides.browser.test.ts`",
+        "fuzzCoverage": "`design-guides` mutates writer-derived v1, legacy JSON and v2 text through parseDesignGuides, parseGuideRecords, both canonical writers and guideSnapTargets without mounting DOM",
+        "notes": "Eight seeds cover angles, disabled snapping, colors, 80-character IDs, finite 1e308/MAX_VALUE coordinates and more than 1,000 records. Invariants check finite snap geometry, sorted legacy axes, stable admitted identities and canonical reparse. The v1-to-v2 reparse check respects the existing first-1,000-row rule rather than imposing a v1 cap. Unexpected errors propagate; output invariant violations use the discovery runner finding class. UI creation stops at the persisted v2 capacity; standalone writers remain uncapped."
+      }
     }
   }
 }
