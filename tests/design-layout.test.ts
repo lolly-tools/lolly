@@ -10,7 +10,10 @@ import {
 import { loadLayoutKernel } from '../packages/node-shell/src/layout-kernel-node.ts';
 import { ReferenceCanvasDoc } from '../packages/core/src/canvas-op-v1.ts';
 const solve = await loadLayoutKernel();
-const box = (id: string, patch: Record<string, unknown> = {}): Record<string, unknown> & { id: string } => ({
+const box = (
+  id: string,
+  patch: Record<string, unknown> = {}
+): Record<string, unknown> & { id: string } => ({
   id,
   kind: 'box',
   x: 0,
@@ -226,4 +229,78 @@ test('whole projection cache keeps content updates and invalidates resource revi
   assert.equal(updated.boxes[3]!.text, 'new');
   const refreshed = await evaluate(source, [], 2);
   assert.ok(refreshed.passes > 0);
+});
+
+test('projection cache tracks visibility, ownership and artboard kind on static ancestors', async () => {
+  const evaluate = createDesignLayoutEvaluator(solve);
+  const initial = [
+    box('page', { kind: 'frame', hidden: true }),
+    box('other-page', { kind: 'frame', hidden: true }),
+    box('wrapper', { frame: 'page' }),
+    root({ frame: 'wrapper' }),
+    child('a'),
+  ];
+  const check = async (source: ReturnType<typeof box>[]) => {
+    const before = JSON.stringify(source);
+    const cached = await evaluate(source);
+    const fresh = await good(source);
+    assert.deepEqual(cached.findings, []);
+    assert.deepEqual(
+      { boxes: cached.boxes, grids: cached.grids },
+      { boxes: fresh.boxes, grids: fresh.grids }
+    );
+    assert.equal(JSON.stringify(source), before);
+    assert.deepEqual(designLayoutSourceEdit(source, cached.boxes, cached.boxes), source);
+    return cached;
+  };
+  assert.equal((await check(initial)).boxes[4]!.hidden, true);
+  const visible = initial.map((r) => (r.id === 'page' ? { ...r, hidden: false } : r));
+  assert.equal((await check(visible)).boxes[4]!.hidden, undefined);
+  const artboard = visible.map((r) => (r.id === 'wrapper' ? { ...r, kind: 'frame' } : r));
+  assert.equal((await check(artboard)).boxes[4]!.frame, 'wrapper');
+  const moved = artboard.map((r) => (r.id === 'wrapper' ? { ...r, frame: 'other-page' } : r));
+  assert.equal((await check(moved)).boxes[4]!.hidden, true);
+  assert.equal((await check(initial)).boxes[4]!.hidden, true);
+});
+
+test('materialized static frame members follow outer layout movement without scaling', async () => {
+  for (const rot of [0, 90])
+    for (const fill of [false, true]) {
+      const evaluate = createDesignLayoutEvaluator(solve);
+      const source = [
+        root({ h: 200, rot }),
+        child('before', { w: 100, h: 100, rot, layoutOrder: 0 }),
+        child('nested', {
+          kind: 'frame',
+          x: 100,
+          y: 0,
+          w: 100,
+          h: 100,
+          rot,
+          layout: 'none',
+          layoutOrder: 1,
+          ...(fill ? { layoutW: 'fill', layoutH: 'fill' } : {}),
+        }),
+        box('leaf', { x: 110, y: 10, w: 20, h: 20, rot: 17, frame: 'nested' }),
+      ];
+      for (const layoutPadLeft of [0, 50, 100, 50]) {
+        const authored = source.map((r) => (r.id === 'root' ? { ...r, layoutPadLeft } : r));
+        const before = JSON.stringify(authored);
+        const result = await evaluate(authored);
+        assert.deepEqual(result.findings, [], `rotation ${rot}, fill ${fill}`);
+        const frame = result.boxes[2]!,
+          leaf = result.boxes[3]!;
+        near(Number(leaf.x) - Number(frame.x), 10);
+        near(Number(leaf.y) - Number(frame.y), 10);
+        assert.equal(leaf.w, 20);
+        assert.equal(leaf.h, 20);
+        assert.equal(leaf.rot, 17);
+        near(frame.w, fill ? 300 - layoutPadLeft : 100);
+        near(frame.h, fill ? 200 : 100);
+        assert.deepEqual(result.boxes, (await good(authored)).boxes);
+        assert.deepEqual(result.boxes, (await evaluate(authored)).boxes);
+        assert.equal(JSON.stringify(authored), before);
+        assert.deepEqual(designLayoutSourceEdit(authored, result.boxes, result.boxes), authored);
+      }
+    }
 });

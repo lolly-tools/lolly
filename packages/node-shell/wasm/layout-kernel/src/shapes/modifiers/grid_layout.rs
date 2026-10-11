@@ -393,7 +393,10 @@ fn set_fr_value(
                 break;
             }
 
+            // Lolly admission: retain the reduction and refuse stalled fractional redistribution.
+            let before_space = fr_value;
             fr_value += pending / free_frs as f32;
+            if !crate::work::checkpoint(before_space, fr_value, tracks.len(), false) { break; }
         }
     }
 

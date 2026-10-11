@@ -76,6 +76,11 @@ mod tests {
                 Err(message)=>serde_json::json!({"error":message}),
             };
             assert_eq!(actual,case["expected"],"{}",case["name"]);
+            if case["expected"]["error"].is_string() {
+                let valid=serde_json::to_vec(&corpus["cases"][0]["request"]).unwrap();
+                let recovered=serde_json::from_slice::<serde_json::Value>(&solve(&valid).unwrap()).unwrap();
+                assert_eq!(recovered,corpus["cases"][0]["expected"],"{}: refusal recovers",case["name"]);
+            }
         }
     }
     #[test]

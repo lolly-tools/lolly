@@ -310,7 +310,7 @@ export function pasteAimedHere(fc: FcCtx): boolean {
  * pasted an empty board. Ids are written explicitly so `pasteObjects` can re-point a
  * child at the copy of its own page even when the tool stores no id on the row.
  */
-export function copyRows(fc: FcCtx, boxes: Box[], idx: number[]): Box[] {
+export function copyScope(fc: FcCtx, boxes: Box[], idx: number[]): Set<string> {
   const { cfg, frameCfg } = fc;
   const selected = fc.layout.dynamicScope(boxes, new Set(idx.map(n => fc.select.idOf(boxes[n], n))));
   const take = new Set(boxes.flatMap((b,n)=>selected.has(String(b.id))?[n]:[]));
@@ -326,14 +326,21 @@ export function copyRows(fc: FcCtx, boxes: Box[], idx: number[]): Box[] {
       });
   }
   // Static frame copying includes its nested dynamic containers as well.
-  const scope = fc.layout.dynamicScope(boxes, new Set([...take].map(i => fc.select.idOf(boxes[i], i))));
+  return fc.layout.dynamicScope(boxes, new Set([...take].map(i => fc.select.idOf(boxes[i], i))));
+}
+export function copyRows(fc: FcCtx, boxes: Box[], idx: number[]): Box[] {
+  const { cfg } = fc;
+  const scope = copyScope(fc, boxes, idx);
+  if (boxes.some(row => scope.has(String(row.id)) && row.layoutOwner && !scope.has(String(row.layoutOwner))))
+    fc.layout.requirePlacement();
   const raw = fc.runtime.getModel().find(i => i.id === fc.blockId)?.value;
   const sources = new Map<string, Box>((Array.isArray(raw) ? raw : boxes).map((row: Box, i: number) => [fc.select.idOf(row, i), row]));
   return boxes.flatMap((row, i): Box[] => {
     const id = fc.select.idOf(row, i); if (!scope.has(id)) return [];
     const source = sources.get(id) || row;
     if (row.layoutOwner && !scope.has(String(row.layoutOwner))) return [{ ...row, [cfg.idField]: id, layoutOwner: '' }];
-    return [{ ...row, ...(row.layoutOwner ? source : {}), [cfg.idField]: id, ...(row.layoutOwner ? { frame: '' } : {}) }];
+    const authoredLayout = row.layoutOwner || row.layout === 'flex' || row.layout === 'grid';
+    return [{ ...row, ...(authoredLayout ? source : {}), [cfg.idField]: id, ...(row.layoutOwner ? { frame: '' } : {}) }];
   });
 }
 export function onCopy(fc: FcCtx, e: ClipboardEvent): void {
@@ -411,6 +418,7 @@ export function pasteObjects(fc: FcCtx, payload: LayoutClipboard): void {
   if (!Array.isArray(picked) || !picked.length) return;
   const rows = (picked as unknown[]).filter((s): s is Box => !!s && typeof s === 'object');
   if (!rows.length) return;
+  if (fc.layout && !fc.layout.placementReady()) return;
   const fk = frameCfg?.frameKind;
   const ff = frameCfg ? fc.select.frameFields() : null;
   const isFrameRow = (s: Box): boolean => !!fk && String(s[cfg.kindField]) === fk;
@@ -541,6 +549,7 @@ export function modesOps(fc: FcCtx) {
     pasteSelectionStyle: bindOp(fc, pasteSelectionStyle),
     pasteAimedHere: bindOp(fc, pasteAimedHere),
     copyRows: bindOp(fc, copyRows),
+    copyScope: bindOp(fc, copyScope),
     onCopy: bindOp(fc, onCopy),
     cutSelection: bindOp(fc, cutSelection),
     onCut: bindOp(fc, onCut),

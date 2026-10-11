@@ -134,6 +134,7 @@
   "files": [
     "src",
     "wasm/adobe-psd",
+    "wasm/layout-kernel",
     "README.md"
   ],
   "scripts": {

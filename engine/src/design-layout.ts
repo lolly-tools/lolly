@@ -507,6 +507,14 @@ export function createDesignLayoutEvaluator(solve: LayoutSolver, measure?: Layou
           pending.push(child);
         }
       }
+    const ancestors = new Set<string>();
+    for (const container of containers) {
+      let o = owner(container);
+      while (o) {
+        if (!participating.has(o)) ancestors.add(o);
+        o = owner(boxes[byId.get(o)!] || {});
+      }
+    }
     const geometryKey = JSON.stringify([
       resourceRevision,
       source
@@ -535,6 +543,7 @@ export function createDesignLayoutEvaluator(solve: LayoutSolver, measure?: Layou
             shape.push(['image', r.image]);
           return shape;
         }),
+      source.filter((r) => ancestors.has(id(r))).map((r) => [id(r), owner(r), r.hidden, r.kind]),
       tracks,
     ]);
     const cached = projections.get(geometryKey);
@@ -706,8 +715,11 @@ export function createDesignLayoutEvaluator(solve: LayoutSolver, measure?: Layou
             const old = boxes[n]!;
             const nextChild = fromCorners(old, result[i + 1]!);
             boxes[n] = nextChild;
-            // Absolute descendants follow their container's translation without entering flow.
-            if (hasDesignLayout([old]) && (nextChild.x !== old.x || nextChild.y !== old.y)) {
+            // Moving a frame or layout container carries descendants without scaling them.
+            if (
+              (old.kind === 'frame' || hasDesignLayout([old])) &&
+              (nextChild.x !== old.x || nextChild.y !== old.y)
+            ) {
               const dx = number(nextChild.x) - number(old.x),
                 dy = number(nextChild.y) - number(old.y);
               const pending = [...(children.get(id(old)) || [])];
@@ -753,7 +765,7 @@ export function createDesignLayoutEvaluator(solve: LayoutSolver, measure?: Layou
               w: row.w,
               h: row.h,
               rot: row.rot,
-              ...(row.layoutOwner ? { frame: row.frame } : {}),
+              ...(row.layoutOwner && 'frame' in row ? { frame: row.frame } : {}),
               ...(row.hidden !== source[byId.get(id(row))!]!.hidden ? { hidden: row.hidden } : {}),
             });
         if (projections.size >= 2) projections.delete(projections.keys().next().value!);

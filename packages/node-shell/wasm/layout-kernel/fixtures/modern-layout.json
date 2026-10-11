@@ -4951,6 +4951,103 @@
       "expected": {
         "error": "Grid exceeds its span work limit."
       }
+    },
+    {
+      "name": "grid-f32-fractional-redistribution-stall",
+      "request": {
+        "mode": "grid",
+        "direction": "row",
+        "wrap": false,
+        "bounds": [
+          0,
+          0,
+          100,
+          0,
+          100,
+          100,
+          0,
+          100
+        ],
+        "padding": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "gap": [
+          0,
+          0
+        ],
+        "align": "start",
+        "align_content": "start",
+        "justify": "start",
+        "justify_items": "start",
+        "sizing": [
+          "fixed",
+          "fixed"
+        ],
+        "items": [
+          {
+            "bounds": [
+              0,
+              0,
+              80,
+              0,
+              80,
+              10,
+              0,
+              10
+            ],
+            "sizing": [
+              "fixed",
+              "fixed"
+            ],
+            "margin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "min": [
+              null,
+              null
+            ],
+            "max": [
+              null,
+              null
+            ],
+            "absolute": false,
+            "hidden": false,
+            "align": "auto",
+            "justify": "auto",
+            "cell": [
+              1,
+              1,
+              1,
+              1
+            ]
+          }
+        ],
+        "columns": [
+          {
+            "kind": "fr",
+            "value": 1e-08
+          },
+          {
+            "kind": "fr",
+            "value": 1e-08
+          }
+        ],
+        "rows": [
+          {
+            "kind": "fixed",
+            "value": 100
+          }
+        ]
+      },
+      "expected": {
+        "error": "Layout allocation made no progress at f32 precision."
+      }
     }
   ]
 }

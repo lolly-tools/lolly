@@ -110,8 +110,8 @@ const placementFields = ['x', 'y', 'w', 'h', 'rot'] as const;
 const placementWait = () =>
   t('Wait for the layout to finish rendering before changing layer placement.');
 
-/** Pointer and keyboard placement must start and finish against a current receipt. */
-export function placementReady(fc: FcCtx): boolean {
+/** Commands that read placement need the receipt for the current authored source. */
+export function requirePlacement(fc: FcCtx): void {
   const source = fc.runtime.getModel().find((input) => input.id === fc.blockId)?.value;
   if (
     fc.blockId !== 'boxes' ||
@@ -119,9 +119,18 @@ export function placementReady(fc: FcCtx): boolean {
     !sourceHasLayout(source) ||
     project(fc, source) !== source
   )
+    return;
+  throw new Error(placementWait());
+}
+/** Pointer and keyboard placement must start and finish against a current receipt. */
+export function placementReady(fc: FcCtx): boolean {
+  try {
+    requirePlacement(fc);
     return true;
-  fc.layout.failure(new Error(placementWait()));
-  return false;
+  } catch (error) {
+    fc.layout.failure(error);
+    return false;
+  }
 }
 export function gestureReady(fc: FcCtx, type: string): boolean {
   return !['move', 'resize', 'rotate', 'gscale', 'grotate'].includes(type) || placementReady(fc);
@@ -131,7 +140,10 @@ function needsEvaluatedPlacement(source: Box[], proposed: Box[]): boolean {
     containers = new Set(source.filter(isContainer).map(key));
   for (const row of proposed) {
     const old = originals.get(key(row));
-    if (!old) continue;
+    if (!old) {
+      if (placementFields.some((field) => row[field] != null && row[field] !== '')) return true;
+      continue;
+    }
     if (
       (isContainer(old) && !isContainer(row)) ||
       String(old.layoutOwner || '') !== String(row.layoutOwner || '') ||
@@ -224,10 +236,11 @@ function rowIntent(fc: FcCtx, state: SourceEditState, initial: Box): Box {
     ) {
       const placement = relativePlacement(wanted, parentShown!);
       if (absolute || attached) {
-        row.layoutX = placement.layoutX;
-        row.layoutY = placement.layoutY;
+        if (old || row.layoutX == null || row.layoutX === '') row.layoutX = placement.layoutX;
+        if (old || row.layoutY == null || row.layoutY === '') row.layoutY = placement.layoutY;
       }
-      row.layoutAngle = placement.layoutAngle;
+      if (old || row.layoutAngle == null || row.layoutAngle === '')
+        row.layoutAngle = placement.layoutAngle;
     }
     if (
       !absolute &&
@@ -284,6 +297,7 @@ export function sourceEdit(fc: FcCtx, source: Box[], proposed: Box[]): Box[] {
     originals = new Map(source.map((r) => [key(r), r])),
     visible = new Map(evaluated.map((r) => [key(r), r]));
   if (
+    sourceHasLayout(source) &&
     evaluated === source &&
     needsEvaluatedPlacement(source, proposed) &&
     !validateDesignLayout(source, tracks(fc)).length
@@ -491,9 +505,10 @@ export function nudge(
 /** A deep copy includes tracks and all descendants but preserves paint order. */
 export function duplicate(fc: FcCtx): boolean {
   const boxes = fc.select.getBoxes();
-  const selected = fc.modes.copyRows(boxes, fc.select.selIndices(boxes)),
-    pickedIds = new Set(selected.map(key));
+  const pickedIds = fc.modes.copyScope(boxes, fc.select.selIndices(boxes)),
+    selected = boxes.filter((row) => pickedIds.has(key(row)));
   if (!selected.some((b) => isContainer(b) || b.layoutOwner)) return false;
+  if (!placementReady(fc)) return true;
   const raw = fc.runtime.getModel().find((i) => i.id === fc.blockId)?.value as Box[];
   const sourceMap = new Map((Array.isArray(raw) ? raw : boxes).map((r) => [key(r), r]));
   const pool = boxes.slice(),
@@ -517,9 +532,19 @@ export function duplicate(fc: FcCtx): boolean {
       original = selected[n]!;
     for (const field of refs)
       if (copies.has(String(original[field]))) row[field] = copies.get(String(original[field]));
-    if (!pickedIds.has(String(original.layoutOwner))) {
+    if (!original.layoutOwner) {
       row.x = scalar(original.x) + dx;
       row.y = scalar(original.y) + (isPage ? 0 : 24);
+    } else if (!pickedIds.has(String(original.layoutOwner)) && on(original.layoutAbsolute)) {
+      const parent = boxes.find((box) => key(box) === String(original.layoutOwner));
+      if (parent)
+        Object.assign(
+          row,
+          relativePlacement(
+            { ...original, x: scalar(original.x) + dx, y: scalar(original.y) + (isPage ? 0 : 24) },
+            parent
+          )
+        );
     }
     if (row.kind === 'frame')
       row.order =
@@ -780,6 +805,7 @@ export function layoutOps(fc: FcCtx) {
   return {
     has: sourceHasLayout,
     placementReady: bindOp(fc, placementReady),
+    requirePlacement: bindOp(fc, requirePlacement),
     gestureReady: bindOp(fc, gestureReady),
     project: bindOp(fc, project),
     sourceEdit: bindOp(fc, sourceEdit),

@@ -25,6 +25,11 @@ test('modern native extraction goldens reproduce exactly in WASM with owned resu
     const original = structuredClone(row.request);
     if (row.expected.error) {
       assert.throws(() => solve(row.request), { message: row.expected.error }, row.name);
+      assert.deepEqual(
+        solve(request()),
+        corpus.cases[0]!.expected,
+        `${row.name}: refusal recovers`
+      );
     } else {
       const result = solve(row.request);
       assert.deepEqual(result, row.expected, row.name);

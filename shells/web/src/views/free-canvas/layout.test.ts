@@ -514,6 +514,120 @@ test('deep duplicate remaps owners and typed tracks in one history entry', () =>
   assert.equal(f.tracks().length, 2);
 });
 
+test('duplicating a flow child preserves authored sizing and relative rotation', () => {
+  const parent = { ...root, rot: 30 },
+    child = { ...a, layoutAngle: 15 },
+    f = fixture(
+      [parent, child, b],
+      [],
+      [parent, { ...shown[1], rot: 45, layoutAngle: 15 }, shown[2]!]
+    );
+  f.fc.selection = new Set(['a']);
+  f.fc.ops.duplicateSelection();
+  assert.equal(f.errors.length, 0);
+  assert.equal(f.writes.length, 1);
+  const clone = f.boxes()[3]!;
+  assert.notEqual(clone.id, child.id);
+  assert.deepEqual(
+    [
+      clone.w,
+      clone.h,
+      clone.layoutW,
+      clone.layoutOwner,
+      clone.frame,
+      clone.layoutAngle,
+      clone.x,
+      clone.y,
+    ],
+    [child.w, child.h, 'fill', 'root', '', 15, child.x, child.y]
+  );
+  f.fc.history!.undo();
+  assert.deepEqual(f.boxes(), [parent, child, b]);
+  f.fc.history!.redo();
+  assert.deepEqual(f.boxes()[3], clone);
+});
+
+test('duplicate waits for current placement and clears the painted hug frame after rendering', () => {
+  const page: Box = { ...root, kind: 'frame', w: 100, layoutW: 'hug', order: 0 },
+    painted = { ...page, w: 300 },
+    f = fixture([page, a, b], [], [painted, shown[1]!, shown[2]!]);
+  f.fc.selection = new Set(['root']);
+  f.fc.select.commit(
+    f.fc.select.getBoxes().map((row) => (row.id === 'root' ? { ...row, layoutGapX: 5 } : row))
+  );
+  const pending = copy(f.boxes());
+  f.fc.ops.duplicateSelection();
+  assert.equal(f.writes.length, 1);
+  assert.deepEqual(f.boxes(), pending);
+  assert.deepEqual([...f.fc.selection], ['root']);
+  assert.match(f.errors[0]!, /finish rendering/);
+  f.setReceipt([{ ...painted, layoutGapX: 5 }, shown[1]!, shown[2]!]);
+  f.fc.ops.duplicateSelection();
+  assert.equal(f.writes.length, 2);
+  const clone = f.boxes()[3]!;
+  assert.deepEqual([clone.x, clone.w, clone.layoutW], [366, 100, 'hug']);
+  assert.equal(f.boxes()[4]!.w, a.w);
+  f.fc.history!.undo();
+  assert.deepEqual(f.boxes(), pending);
+  f.fc.history!.redo();
+  assert.deepEqual(f.boxes()[3], clone);
+});
+
+test('clipboard intent retains authored hug sizes while detached copies and new placement wait', () => {
+  const page: Box = { ...root, kind: 'frame', w: 100, layoutW: 'hug', order: 0 },
+    painted = { ...page, w: 300 },
+    f = fixture([page, a, b], [], [painted, shown[1]!, shown[2]!]);
+  f.fc.select.commit(
+    f.fc.select.getBoxes().map((row) => (row.id === 'root' ? { ...row, layoutGapX: 5 } : row))
+  );
+  assert.throws(() => f.fc.modes.copyRows(f.fc.select.getBoxes(), [1]), /finish rendering/);
+  const copied = f.fc.modes.copyRows(f.fc.select.getBoxes(), [0]);
+  assert.deepEqual([copied[0]!.w, copied[1]!.w], [100, a.w]);
+  f.fc.modes.pasteObjects(copied);
+  f.fc.select.commit([
+    ...f.fc.select.getBoxes(),
+    { id: 'new', kind: 'box', x: 40, y: 40, w: 30, h: 30 },
+  ]);
+  assert.equal(
+    f.writes.length,
+    1,
+    'neither paste nor direct new-row placement bypasses the stale guard'
+  );
+  f.setReceipt([{ ...painted, layoutGapX: 5 }, shown[1]!, shown[2]!]);
+  f.fc.modes.pasteObjects(copied);
+  assert.equal(f.writes.length, 2);
+  const clone = f.boxes()[3]!;
+  assert.deepEqual([clone.x, clone.w, clone.layoutW], [366, 100, 'hug']);
+  assert.equal(f.boxes()[4]!.w, a.w);
+});
+
+test('duplicating an absolute child offsets its local intent in rotated parent axes', () => {
+  const parent: Box = { ...root, x: 0, y: 0, w: 100, h: 100, rot: 90 },
+    child: Box = { ...a, layoutAbsolute: true, layoutX: 10, layoutY: 20, layoutAngle: 0 },
+    painted: Box = { ...child, x: 45, y: 15, rot: 90 },
+    f = fixture([parent, child], [], [parent, painted]);
+  f.fc.selection = new Set(['a']);
+  f.fc.ops.duplicateSelection();
+  assert.equal(f.errors.length, 0);
+  const clone = f.boxes()[2]!;
+  assert.ok(Math.abs(Number(clone.layoutX) - 34) < 1e-9);
+  assert.ok(Math.abs(Number(clone.layoutY) + 4) < 1e-9);
+  assert.deepEqual(
+    [clone.w, clone.h, clone.layoutAngle, clone.x, clone.y],
+    [child.w, child.h, 0, child.x, child.y]
+  );
+});
+
+test('pasting the first layout into a static document needs no previous layout receipt', () => {
+  const f = fixture([]);
+  f.fc.modes.pasteObjects([root, a]);
+  assert.equal(f.errors.length, 0);
+  assert.equal(f.writes.length, 1);
+  assert.equal(f.boxes().length, 2);
+  assert.equal(f.boxes()[1]!.layoutOwner, f.boxes()[0]!.id);
+  assert.deepEqual([f.boxes()[1]!.w, f.boxes()[1]!.layoutW], [a.w, 'fill']);
+});
+
 test('copy detaches a lone flow child and paste remaps a full nested layout and tracks', async () => {
   const f = fixture([gridRoot, a, b], [track], [gridRoot, shown[1]!, shown[2]!]);
   const single = f.fc.modes.copyRows(f.fc.select.getBoxes(), [1]);

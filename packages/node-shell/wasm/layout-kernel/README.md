@@ -78,10 +78,10 @@ layout-reference` accepts one JSON request per stdin line and emits one answer
 per line. It can be used to regenerate the reference answers in
 [fixtures/modern-layout.json](fixtures/modern-layout.json).
 
-The fixture contains 28 finite modern layout cases and three refusal cases,
+The fixture contains 28 finite modern layout cases and four refusal cases,
 including rotated parents, rotated child fill, margins, wrapping, reverse flow,
 size limits, grid spans, fixed/auto/fr/percent tracks, hug containers, hidden and
-absolute children, empty layouts and an f32 redistribution stall. Native and
+absolute children, empty layouts and flex/grid f32 redistribution stalls. Native and
 WASM outputs must agree exactly for these captured requests. Independent tests
 also check simple anchors and rotated grid fill extents, without using captured
 answers as those assertions.

@@ -17,7 +17,7 @@
       "source": "render-wasm/src/shapes/modifiers/grid_layout.rs",
       "destination": "src/shapes/modifiers/grid_layout.rs",
       "upstreamSha256": "567249d2a6dbe0c32f746b2bfce4c064292257ed5e19a717aef360c0b9bae8aa",
-      "adaptations": "Numerical steps retained; redistribution loops gain progress/work refusal guards."
+      "adaptations": "Numerical steps retained; auto span and fractional redistribution loops gain progress/work refusal guards."
     },
     {
       "source": "render-wasm/src/shapes/modifiers/common.rs",

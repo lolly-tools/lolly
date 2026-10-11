@@ -32,6 +32,7 @@ export function duplicateSelection(fc: FcCtx): void {
   const boxes = fc.select.getBoxes();
   const idx = fc.select.selIndices(boxes);
   if (!idx.length) return;
+  if (fc.layout && !fc.layout.placementReady()) return;
   if (fc.layout?.duplicate()) return;
   // plans/179 A8 - duplicating an ARTBOARD duplicates what is on it. Cloning the frame
   // row alone left an empty page appended last, and because `resolveFrame` answers with
