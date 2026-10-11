@@ -5,6 +5,26 @@ import { comparisonOfficeParts, comparisonXml } from './compare-office-parts.ts'
 const MAX_TEXT = 2 * 1024 * 1024, MAX_ROWS = 10_000, MAX_COLUMNS = 256, MAX_CELLS = 100_000, MAX_SHEETS = 16;
 const LIMIT = 'Table reading is limited to 16 sheets, 10,000 rows, 256 columns and 100,000 cells per side. Unread cells may differ.';
 const UNSUPPORTED = 'This XLSX uses prefixed XML, unsupported cell references or a grid wider than 256 columns. Choose an unprefixed workbook with a smaller grid.';
+const UNVERIFIED = 'This XLSX has missing, external, duplicate or unsupported worksheet relationships. Choose a workbook whose sheets are stored under xl/worksheets/.';
+
+function verifyWorksheetRelationships(parts: Record<string, Uint8Array>): number {
+  const workbook = parts['xl/workbook.xml'], rels = parts['xl/_rels/workbook.xml.rels'];
+  if (!workbook || !rels) throw new Error(UNVERIFIED);
+  const declared = Array.from(comparisonXml(new TextDecoder().decode(workbook)).getElementsByTagNameNS('*', 'sheet'));
+  const relations = Array.from(comparisonXml(new TextDecoder().decode(rels)).getElementsByTagNameNS('*', 'Relationship'));
+  const ids = new Set<string>(), targets = new Set<string>();
+  if (!declared.length) throw new Error(UNVERIFIED);
+  for (const sheet of declared) {
+    const id = sheet.getAttribute('r:id') || sheet.getAttribute('id');
+    const matches = relations.filter(relation => relation.getAttribute('Id') === id);
+    if (!id || ids.has(id) || matches.length !== 1) throw new Error(UNVERIFIED); ids.add(id);
+    const relation = matches[0]!, target = relation.getAttribute('Target')?.replace(/^\/xl\//, ''), mode = relation.getAttribute('TargetMode');
+    if ((mode && mode !== 'Internal') || !/\/worksheet$/.test(relation.getAttribute('Type') ?? '') || !target
+      || !/^worksheets\/[^/]+\.xml$/.test(target) || !parts[`xl/${target}`] || targets.has(target)) throw new Error(UNVERIFIED);
+    targets.add(target);
+  }
+  return declared.length;
+}
 
 function sheetWidth(document: Document): number {
   let width = 1;
@@ -89,6 +109,7 @@ export async function comparisonTableBytes(bytes: Uint8Array, identity: Comparis
     const { listXlsxSheets, readXlsx } = await import('../../../../engine/src/xlsx-import.ts');
     signal?.throwIfAborted();
     const parts = await comparisonOfficeParts(bytes, signal);
+    const declaredCount = verifyWorksheetRelationships(parts);
     const shared = parts['xl/sharedStrings.xml'];
     const sharedCount = shared ? comparisonXml(new TextDecoder().decode(shared)).getElementsByTagNameNS('*', 'si').length : 0;
     for (const [path, part] of Object.entries(parts)) {
@@ -106,7 +127,7 @@ export async function comparisonTableBytes(bytes: Uint8Array, identity: Comparis
         if (cell.getElementsByTagNameNS('*', 'f').length && value === undefined) partial = true;
       }
     }
-    const sheets = listXlsxSheets(bytes); partial ||= sheets.length > MAX_SHEETS;
+    const sheets = listXlsxSheets(bytes); if (sheets.length !== declaredCount) throw new Error(UNVERIFIED); partial ||= sheets.length > MAX_SHEETS;
     for (const sheet of sheets.slice(0, MAX_SHEETS)) {
       await new Promise<void>(resolve => setTimeout(resolve, 0)); signal?.throwIfAborted();
       const safeRows = Math.floor((MAX_CELLS - cellCount) / width);
@@ -117,7 +138,7 @@ export async function comparisonTableBytes(bytes: Uint8Array, identity: Comparis
       partial ||= read.truncated || bounded.truncated;
     }
     if (!sheets.length) throw new Error('missing workbook');
-  } catch (error) { signal?.throwIfAborted(); if (error instanceof Error && error.message === UNSUPPORTED) throw error; throw new Error('This XLSX could not be read within the table limits. Choose a valid, smaller workbook.'); }
+  } catch (error) { signal?.throwIfAborted(); if (error instanceof Error && [UNSUPPORTED, UNVERIFIED].includes(error.message)) throw error; throw new Error('This XLSX could not be read within the table limits. Choose a valid, smaller workbook.'); }
   if (partial) limitations.push(LIMIT);
   if (partial) limitations.push('Some table cells may be unread or have no cached formula value. Equality could not be established for the complete workbook.');
   return { identity, bytes, content: { kind: 'table', tables }, fidelity: { level: partial ? 'partial' : 'complete', limitations } };
