@@ -6,6 +6,11 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.252.0
+
+- Add guarded removal of selected DOCX core and custom properties through Prepare, Strip Hidden Data and the CLI. Property elements are removed by namespace and source range; unrelated ZIP members, property parts, relationships and package declarations are retained. Copies are inspected again and summary reports omit private values and paths.
+- Add optional preparation property actions and stable property identities. Supported DOCX operations use the shared property comparison with explicit limits; document appearance is not certified. Macro-enabled, signed, encrypted, malformed, over-budget, renamed and nested packages remain inspect-only, as do files with property-dependent Word fields or XML-bound content controls.
+
 ## 1.251.0
 
 - Add bounded, read-only DOCX/PPTX/XLSX package inspection through Prepare for sharing: document properties, comments and authors, tracked changes, notes, hidden-content markers, relationships, connections, cache surfaces and embedded objects. Shared ZIP and XML budgets retain unsupported, encrypted, malformed and active content without execution or external lookup.

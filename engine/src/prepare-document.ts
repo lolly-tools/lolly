@@ -4,7 +4,8 @@ import { isMap, isSeq, isScalar, isAlias, parseAllDocuments } from 'yaml';
 import type { PreparationRule, PreparationScope } from '@lolly-tools/core/host-v1';
 import { readZipMembers, decodeZipMember, storeZipMembers, storeZip, type ZipRawMember } from './zip.ts';
 import { PREPARE_MAX_TEXT, sensitiveField } from './prepare-text.ts';
-import { inspectOfficePackage, isOfficeSource, type OfficeCensusFinding } from './office-census.ts';
+import { inspectOfficePackage, isOfficeSource, OFFICE_READ_ONLY, type OfficeCensusFinding } from './office-census.ts';
+import { openDocxMetadata } from './docx-metadata.ts';
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true });
@@ -13,6 +14,7 @@ export const PREPARE_MAX_TOTAL = 64 * 1024 * 1024;
 export const PREPARE_MAX_SCOPES = 300;
 export interface PreparationUnit {
   id: string; scopeId: string; text: string; field?: string; location: string; line: number;
+  action?: 'remove-property'; label?: string; propertyId?: string;
 }
 export interface PreparationDocument {
   scope: PreparationScope;
@@ -127,14 +129,29 @@ export function openPreparationDocument(bytes: Uint8Array, name: string, sourceI
   if (!counted && ++budget.scopes > PREPARE_MAX_SCOPES) { scope.limitations.push('The 300-member inspection limit was reached.'); return doc; }
   if (bytes.length > PREPARE_MAX_BYTES) { scope.limitations.push('This file exceeds the 32 MiB preparation limit.'); return doc; }
   if (isOfficeSource(bytes, name)) {
-    const census = inspectOfficePackage(bytes, name, { maxParts: PREPARE_MAX_SCOPES - budget.scopes, maxExpandedBytes: PREPARE_MAX_TOTAL - budget.expanded });
+    const limits = { maxParts: PREPARE_MAX_SCOPES - budget.scopes, maxExpandedBytes: PREPARE_MAX_TOTAL - budget.expanded };
+    const census = inspectOfficePackage(bytes, name, limits);
+    const metadata = depth === 0 && census.format === 'docx' ? openDocxMetadata(bytes, name, limits) : undefined;
     scope.format = census.format; scope.readOnly = true;
     scope.status = census.parts.length ? 'partial' : 'uninspected'; scope.limitations = census.limitations;
+    if (metadata) scope.limitations = [...scope.limitations.filter(l => !metadata.supported || l !== OFFICE_READ_ONLY), ...metadata.limitations];
+    if (metadata?.supported) scope.actions = ['remove-property'];
     budget.expanded += census.expandedBytes; budget.scopes += census.parts.length;
-    doc.children = census.parts.map((part, index) => ({
-      scope: { id: `${id}:o${index}`, sourceId, path: `${name}/${part.path}`, format: part.format, status: part.status, limitations: part.limitations, readOnly: true },
-      children: [], units: [], censusFindings: part.findings, write: () => bytes,
-    }));
+    const propertyUnits = new Map<string, string>();
+    doc.children = census.parts.map((part, index) => {
+      const childId = `${id}:o${index}`;
+      const properties = metadata?.supported ? metadata.properties.filter(p => p.part === part.path) : [];
+      const units = properties.map(p => { const unitId = `${childId}:p${p.id}`; propertyUnits.set(unitId, p.id); return { id: unitId, scopeId: childId, text: p.value, location: p.location, line: 1, action: 'remove-property' as const, label: p.label, propertyId: p.id }; });
+      return {
+        scope: { id: childId, sourceId, path: `${name}/${part.path}`, format: part.format, status: part.status, limitations: part.limitations, readOnly: true },
+        children: [], units, censusFindings: part.findings.filter(f => !properties.some(p => p.offset === f.propertyStart)), write: () => bytes,
+      };
+    });
+    if (metadata?.supported) doc.write = values => {
+      const selected: string[] = [];
+      for (const [unitId, propertyId] of propertyUnits) if (values.has(unitId)) { if (values.get(unitId) !== '') throw new Error('DOCX properties support removal only.'); selected.push(propertyId); }
+      return metadata.remove(selected);
+    };
     return doc;
   }
   const zip = bytes[0] === 0x50 && bytes[1] === 0x4b && (ext === 'zip' || ext === '');

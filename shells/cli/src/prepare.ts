@@ -37,8 +37,8 @@ export async function savePreparationCopies(result: PreparationResult, directory
 }
 const HELP = `lolly prepare <file…> [--replace-all] [--recipe=recipe.json] [--output=copy|--out-dir=directory]
   With no transformation flag: inspect and print a value-free JSON report. Findings do not fail the command.
-  --replace-all       Apply suggested replacements (or recipe-selected categories).
-  --strip-hidden-data Remove metadata from supported PDF/JPEG/PNG/SVG copies; failures retain files and are reported.
+  --replace-all       Apply suggested replacements and DOCX property removals (or recipe-selected categories).
+  --strip-hidden-data Remove supported DOCX core/custom properties or PDF/JPEG/PNG/SVG metadata; failed DOCX guards retain files and are reported.
   --rules=file        Local JSON array of {id,label,kind:"literal"|"field",value} rules.
   --review-file=file  Explicitly save a PRIVATE review envelope with values, choices and source hashes.
   --choices=file      Apply an edited review envelope; stale source bytes are rejected.
@@ -70,10 +70,19 @@ export async function prepareCli(paths: string[], flags: Record<string, string>)
       if (!review?.inspection || !Array.isArray(review.choices)) throw usageError('Use a private review envelope produced with --review-file.');
       inspection = review.inspection; choices = review.choices; removeScopes = review.removeScopes ?? [];
     }
+    if (isOn(flags['strip-hidden-data'])) for (const group of inspection.groups.filter(g => g.action === 'remove-property')) {
+      if (!choices.some(choice => choice.groupId === group.id)) choices.push({ groupId: group.id, replacement: '' });
+    }
     if (flags['review-file']) await writeFile(flags['review-file'], JSON.stringify({ inspection, choices: inspection.groups.filter(g => !g.readOnly).map(g => ({ groupId: g.id, replacement: g.replacement })), removeScopes: [] }, null, 2), { flag: 'wx', mode: 0o600 });
     if (flags['save-recipe']) await writeFile(flags['save-recipe'], JSON.stringify(preparationRecipe(recipe?.categories ?? [...new Set(inspection.groups.map(g => g.category))], rules), null, 2), { flag: 'wx', mode: 0o600 });
     let result = await applyPreparation(sources, inspection, choices, removeScopes, options);
     if (isOn(flags['strip-hidden-data'])) {
+      for (const source of sources.filter(s => /\.docx$/i.test(s.name))) {
+        if (inspection.scopes.find(scope => scope.id === source.id)?.actions?.includes('remove-property')) continue;
+        result.report.stages ??= [];
+        result.report.stages.push({ sourceId: source.id, operation: 'remove-properties', status: 'failed', inputSha256: inspection.sources.find(s => s.id === source.id)!.sha256, outputSha256: result.inspection.sources.find(s => s.id === source.id)!.sha256,
+          limitations: ['This DOCX file remains inspect-only. Its format, package limits or document fields prevent metadata cleanup. The original is retained.'] });
+      }
       const { createPdfAPI } = await import('@lolly-tools/node-shell/pdf');
       result = await applyPreparationMetadata(result, sources.filter(s => /\.(pdf|png|jpe?g|svg)$/i.test(s.name)).map(s => s.id), createPdfAPI(), options);
     }

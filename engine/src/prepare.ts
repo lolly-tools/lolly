@@ -10,6 +10,7 @@ interface Scan {
   inspection: PreparationInspection;
   roots: PreparationDocument[];
   spans: Map<string, { unit: PreparationUnit; span: PrivateSpan }>;
+  properties: Map<string, PreparationUnit>;
 }
 const GENERAL_LIMITS = ['File and archive member names are not inspected.', 'Pattern suggestions can miss confidential information and can be wrong. Review the result.', 'No online credential validation or external reference lookup was performed.'];
 export async function preparationDigest(bytes: Uint8Array): Promise<string> {
@@ -31,6 +32,7 @@ async function scan(sources: PreparationSource[], rules: PreparationRule[], opti
   const inspection: PreparationInspection = { version: 1, sources: [], scopes: [], findings: [], groups: [], rules };
   const roots: PreparationDocument[] = [];
   const spans = new Map<string, { unit: PreparationUnit; span: PrivateSpan }>();
+  const properties = new Map<string, PreparationUnit>();
   const groups = new Map<string, PreparationGroup>();
   const budget = { scopes: 0, expanded: 0, units: 0 };
   for (const [index, source] of sources.entries()) {
@@ -51,6 +53,12 @@ async function scan(sources: PreparationSource[], rules: PreparationRule[], opti
       }
       for (const unit of doc.units) {
         if (inspection.findings.length >= PREPARE_MAX_FINDINGS) { doc.scope.status = 'partial'; doc.scope.limitations.push('The 2,000-finding limit was reached.'); break; }
+        if (unit.action === 'remove-property') {
+          const group: PreparationGroup = { id: `g${groups.size}`, value: unit.text, replacement: '', category: 'office-properties', count: 1, action: 'remove-property' };
+          groups.set(`property:${unit.id}`, group);
+          const finding: PreparationFinding = { id: `f${inspection.findings.length}`, scopeId: unit.scopeId, groupId: group.id, rule: 'docx-property', category: 'office-properties', label: unit.label ?? 'Document property', uncertain: false, location: unit.location, value: unit.text, line: 1, action: 'remove-property', propertyId: unit.propertyId };
+          inspection.findings.push(finding); properties.set(finding.id, unit); continue;
+        }
         const found = inspectPrivateText(unit.text, rules, unit.field);
         if (found.truncated) { doc.scope.status = 'partial'; doc.scope.limitations.push('The finding limit was reached.'); }
         for (const span of found.spans) {
@@ -74,7 +82,7 @@ async function scan(sources: PreparationSource[], rules: PreparationRule[], opti
   options.signal?.throwIfAborted();
   inspection.groups = [...groups.values()];
   inspection.scopes.forEach(scope => { scope.limitations = [...new Set(scope.limitations)]; });
-  return { inspection, roots, spans };
+  return { inspection, roots, spans, properties };
 }
 
 export async function inspectPreparation(sources: PreparationSource[], rules: PreparationRule[] = [], options?: PreparationOptions): Promise<PreparationInspection> {
@@ -108,22 +116,26 @@ export async function applyPreparation(sources: PreparationSource[], inspection:
     if (!fresh.inspection.groups.some(g => g.id === choice.groupId) || chosen.has(choice.groupId) || typeof choice.replacement !== 'string' || choice.replacement.length > 4096) throw new Error('Invalid replacement choice.');
     if (choice.findings && (!Array.isArray(choice.findings) || choice.findings.some(id => !fresh.inspection.findings.some(f => f.id === id && f.groupId === choice.groupId)))) throw new Error('A selected occurrence no longer belongs to this group.');
     if (fresh.inspection.groups.find(g => g.id === choice.groupId)?.readOnly) throw new Error('Office census findings are read-only. No replacement or cleanup is supported.');
+    if (fresh.inspection.groups.find(g => g.id === choice.groupId)?.action === 'remove-property' && choice.replacement !== '') throw new Error('DOCX document properties support removal only.');
     chosen.set(choice.groupId, choice);
   }
   const remove = new Set(removeScopes);
   for (const id of remove) if (!fresh.inspection.scopes.some(s => s.id === id && s.id !== s.sourceId && !s.readOnly)) throw new Error('Only removable archive members can be removed. Office package parts are read-only.');
   const byUnit = new Map<string, { unit: PreparationUnit; edits: { span: PrivateSpan; replacement: string }[] }>();
   const replaced = new Map<string, number>();
+  const propertyValues = new Map<string, string>();
   for (const finding of fresh.inspection.findings) {
     const choice = chosen.get(finding.groupId);
-    if (choice?.replacement === finding.value) continue;
+    if (choice?.replacement === finding.value && !finding.action) continue;
     if (!choice || choice.findings && !choice.findings.includes(finding.id)) continue;
+    const property = fresh.properties.get(finding.id);
+    if (property) { propertyValues.set(property.id, ''); replaced.set(finding.scopeId, (replaced.get(finding.scopeId) ?? 0) + 1); continue; }
     const entry = fresh.spans.get(finding.id)!;
     const group = byUnit.get(entry.unit.id) ?? { unit: entry.unit, edits: [] };
     group.edits.push({ span: entry.span, replacement: choice.replacement }); byUnit.set(entry.unit.id, group);
     replaced.set(finding.scopeId, (replaced.get(finding.scopeId) ?? 0) + 1);
   }
-  const values = new Map([...byUnit].map(([id, { unit, edits }]) => [id, replacePrivateSpans(unit.text, edits)]));
+  const values = new Map([...propertyValues, ...[...byUnit].map(([id, { unit, edits }]) => [id, replacePrivateSpans(unit.text, edits)] as [string, string])]);
   const outputs: PreparationSource[] = [], failed = new Set<string>();
   for (const [index, root] of fresh.roots.entries()) {
     options.signal?.throwIfAborted();
@@ -154,6 +166,12 @@ export async function applyPreparation(sources: PreparationSource[], inspection:
     ...(failed.size ? { stages: [...failed].map(sourceId => ({ sourceId, operation: 'replace-values' as const, status: 'failed' as const, inputSha256: fresh.inspection.sources.find(s => s.id === sourceId)!.sha256, outputSha256: after.sources.find(s => s.id === sourceId)!.sha256, limitations: ['Selected changes failed. Original retained.'] })) } : {}),
   };
   report.replaced = report.scopes.reduce((n, s) => n + s.replaced, 0);
+  for (const root of fresh.roots) {
+    const selected = fresh.inspection.findings.filter(f => f.action === 'remove-property' && chosen.has(f.groupId) && (!chosen.get(f.groupId)!.findings || chosen.get(f.groupId)!.findings!.includes(f.id)) && fresh.inspection.scopes.find(s => s.id === f.scopeId)?.sourceId === root.scope.sourceId);
+    if (!selected.length) continue;
+    report.stages ??= [];
+    report.stages.push({ sourceId: root.scope.sourceId, operation: 'remove-properties', status: failed.has(root.scope.sourceId) ? 'failed' : 'completed', inputSha256: fresh.inspection.sources.find(s => s.id === root.scope.sourceId)!.sha256, outputSha256: after.sources.find(s => s.id === root.scope.sourceId)!.sha256, before: selected.length, after: failed.has(root.scope.sourceId) ? selected.length : 0, limitations: ['Only selected DOCX document properties were requested for removal. Other Office content is retained.', 'The output properties were inspected again; document appearance is not certified by the property census.'] });
+  }
   return { outputs, report, inspection: after };
 }
 

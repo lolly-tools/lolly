@@ -100,14 +100,14 @@ after a reload requires selecting the original again and matching its recorded
 SHA-256. Selecting that original for comparison does not save or upload the file.
 
 Strip Hidden Data and Prepare for sharing also inspect DOCX, PPTX and XLSX files
-on your device. Office inspection is read-only: no properties, comments or other
-document content are removed, and Strip Hidden Data offers no cleaned Office
-download. Prepare retains the original bytes and includes any retained findings
-in its counts. Private previews stay behind a reveal control.
+on your device. Supported DOCX files can remove selected core and custom properties
+from a new copy. Unselected properties, application properties, comments, revisions,
+links, hidden content and embedded objects are retained. Other Office content remains
+inspect-only. Private previews stay behind a reveal control.
 
 | Office format | Package content inspected | Removal supported |
 |---|---|---|
-| DOCX | Core, application and custom properties; comments and authors; tracked-change markers and previews; hidden text runs; external relationships; embedded objects | None |
+| DOCX | Core, application and custom properties; comments and authors; tracked-change markers and previews; hidden text runs; external relationships; embedded objects | Selected author, last saved by, created/modified/last printed dates, title, subject, description, keywords and custom properties |
 | PPTX | Properties; comments and author records; speaker notes; hidden-slide markers; external relationships; embedded objects and supported nested workbooks | None |
 | XLSX | Properties; comments and notes; hidden-sheet, row and column markers; defined names; external relationships and connections; external-link and pivot cache surfaces; embedded objects | None |
 
@@ -118,6 +118,22 @@ package levels. Prepare shares its part and expansion budgets across the whole
 job. Truncated, malformed, encrypted and unsupported content is reported and
 retained. Macro content is identified but never executed; legacy binary Office
 formats and XLSB remain uninspected. External references are never fetched.
+
+DOCX cleanup supports the transitional DOCX package format with canonical core and
+custom property parts. Signed, macro-enabled, encrypted, malformed, renamed or nested
+Office packages remain inspect-only. Files with property-dependent Word fields or
+XML-bound content controls also remain inspect-only: removing a property could change
+the displayed document when Word updates those bindings. Cached field text cannot
+establish that the next rendering will retain the same appearance.
+
+Property parts, their declarations, unrelated package members, XML comments and ZIP
+comments are retained. Cleanup applies the census limits and checks every member's
+integrity before writing. The resulting properties are inspected again. The shared
+operation Compare shows supported property differences with values collapsed by
+default; this property review does not compare visible text or rendered appearance.
+The CLI's `prepare --strip-hidden-data` removes supported DOCX properties, while an
+explicit private review envelope can select individual properties. A failed cleanup
+guard retains the file and is reported as a failed operation.
 
 ## Every network request the app can make
 

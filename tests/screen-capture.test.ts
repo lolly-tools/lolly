@@ -533,7 +533,7 @@ test('ENGINE_VERSION is 1.251.0', () => {
   // 1.248.0 adds pure presentation interaction settings; capture is unchanged.
   // 1.249.0 adds dynamic Design layouts and host.layout.evaluate.
   // 1.250.0 adds composite and paragraph token bindings.
-  assert.equal(ENGINE_VERSION, '1.251.0');
+  assert.equal(ENGINE_VERSION, '1.252.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

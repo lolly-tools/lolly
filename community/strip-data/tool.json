@@ -1,9 +1,9 @@
 {
   "id": "strip-data",
   "name": "Strip Hidden Data",
-  "description": "Inspect Office hidden content, or remove image and PDF metadata, on your device.",
-  "version": "1.1.0",
-  "engineVersion": "^1.251.0",
+  "description": "Remove selected DOCX properties or image and PDF metadata, and inspect other Office hidden content, on your device.",
+  "version": "1.2.0",
+  "engineVersion": "^1.252.0",
   "status": "official",
   "category": "utility",
   "privacy": "on-device",
@@ -29,7 +29,17 @@
       "type": "file",
       "accept": ["image/jpeg", "image/png", "image/svg+xml", "application/pdf", ".jpg", ".jpeg", ".png", ".svg", ".pdf", ".docx", ".pptx", ".xlsx", ".docm", ".pptm", ".xlsm", ".doc", ".ppt", ".xls", ".xlsb"],
       "maxSize": 52428800,
-      "help": "Images and PDFs support metadata removal. Office files up to 32 MiB support read-only inspection. Your file stays on this device."
+      "help": "Images, PDFs and supported DOCX properties support metadata removal. Other Office content remains inspect-only. Your file stays on this device."
+    },
+    {
+      "id": "properties",
+      "label": "Document property choices",
+      "type": "blocks",
+      "default": [],
+      "fields": [
+        { "id": "id", "label": "Property", "type": "text" },
+        { "id": "remove", "label": "Remove property", "type": "boolean", "default": false }
+      ]
     }
   ]
 }

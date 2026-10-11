@@ -5,7 +5,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L7 20"/></svg>
       </div>
       <h2>Inspect hidden data in an image, PDF or Office file</h2>
-      <p>Choose a JPEG, PNG, SVG or PDF to review metadata and download a cleaned copy. DOCX, PPTX and XLSX inspection shows supported properties, comments, notes, links and hidden content; Office cleaning is not available.</p>
+      <p>Choose a JPEG, PNG, SVG or PDF to remove metadata, or a supported DOCX to remove selected core and custom properties from a new copy. Other Office content remains inspect-only.</p>
       <button type="button" class="exif-pick" data-file-pick>Choose a file…</button>
       <p class="exif-empty-note">Everything happens in your browser. Your file is never uploaded.</p>
     </div>
@@ -56,6 +56,12 @@
             </label>
 
             <ul class="exif-findings">
+              {{#each officeProperties}}
+                <li class="exif-finding warn">
+                  <label class="exif-finding-label"><input type="checkbox" data-input-id="properties" data-input-row-id="{{rowId}}" data-input-field="remove" {{#if remove}}checked{{/if}}> Remove {{label}}</label>
+                  <span class="exif-finding-detail">{{detail}}</span>
+                </li>
+              {{/each}}
               {{#each findings}}
                 <li class="exif-finding {{tone}}">
                   <span class="exif-finding-label">{{label}}</span>
@@ -63,6 +69,10 @@
                 </li>
               {{/each}}
             </ul>
+
+            {{#if officeMetadata}}
+              {{#if propertySelected}}<button type="button" class="exif-download" data-export-file data-busy-label="Removing properties…">Download DOCX copy</button>{{else}}<p class="exif-note">Select a property to remove. Unselected properties and other Office content are retained.</p>{{/if}}
+            {{/if}}
 
             {{#unless inspectOnly}}<button type="button" class="exif-download" data-export-file data-busy-label="Stripping data…">Download clean {{kind}}{{#if cleanSize}} ({{cleanSize}}){{/if}}</button>{{/unless}}
             <p class="exif-note">{{tailNote}}</p>

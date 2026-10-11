@@ -99,7 +99,7 @@ class PreparationPanel {
             <button type="button" class="btn btn--sm" data-inspect>${t('Inspect now')}</button>
             <p class="prep-status" role="status" aria-live="polite" data-status></p>
           </div>
-          <p class="prep-limits">${t('Text, JSON, YAML, HAR and ZIP are inspected. DOCX, PPTX and XLSX support read-only hidden-content inspection. PDF, PNG, JPG and SVG can have hidden metadata removed. Up to 100 files, 32 MiB each and 64 MiB in total; text inspection stops at 1 MiB per file.')}</p>
+          <p class="prep-limits">${t('Text, JSON, YAML, HAR and ZIP are inspected. Supported DOCX files can have selected core and custom properties removed; other Office findings remain inspect-only. PDF, PNG, JPG and SVG can have hidden metadata removed. Up to 100 files, 32 MiB each and 64 MiB in total; text inspection stops at 1 MiB per file.')}</p>
         </section>
         <section class="card prep-card prep-copies" data-output aria-label="${t('Prepared copies')}" hidden></section>
         <p class="prep-footnote">${t('Originals, private values and replacement maps stay in this view’s memory. They are not saved to history, links or recipes. Leaving or clearing this view releases its working state.')}</p>

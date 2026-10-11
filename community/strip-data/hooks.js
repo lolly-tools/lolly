@@ -675,7 +675,8 @@ function isOfficeFile(f) {
 
 function isPackageFile(f) { return f.bytes[0] === 0x50 && f.bytes[1] === 0x4b; }
 
-async function officeReport(f, host, base) {
+let officeSourceKey = '';
+async function officeReport(f, host, base, selected) {
   const result = { ...base, kind: 'Office', supported: true, inspectOnly: true, nothingFound: true,
     cleanNote: 'Office files are inspected only. Their content remains unchanged and no cleaned download is available.' };
   if (!host || !host.prepare || !host.prepare.inspect) return isOfficeFile(f)
@@ -684,9 +685,22 @@ async function officeReport(f, host, base) {
   try {
     const inspection = await host.prepare.inspect([{ id: 'office', name: f.name, bytes: f.bytes, mime: f.mime }]);
     if (!isOfficeFile(f) && !inspection.scopes.some(s => s.id === 'office' && s.readOnly)) return { ...base, kind: 'Archive', supported: false };
-    const findings = inspection.findings.map(finding => ({ label: finding.label, tone: 'warn',
+    const editable = inspection.scopes.find(s => s.id === 'office')?.actions?.includes('remove-property') && host.prepare.apply;
+    const prefix = inspection.sources[0].sha256, key = `${f.name}:${prefix}`, same = key === officeSourceKey;
+    officeSourceKey = key;
+    const properties = editable ? inspection.groups.filter(g => g.action === 'remove-property').map(group => ({
+      id: `${prefix}:${group.id}`, remove: same && Array.isArray(selected) && selected.some(row => row.id === `${prefix}:${group.id}` && row.remove === true),
+    })) : [];
+    const officeProperties = properties.map(row => {
+      const finding = inspection.findings.find(finding => row.id === `${prefix}:${finding.groupId}`);
+      return { rowId: row.id, remove: row.remove, label: finding.label, detail: `${finding.location} - ${finding.value}` };
+    });
+    const findings = inspection.findings.filter(f => f.action !== 'remove-property').map(finding => ({ label: finding.label, tone: 'warn',
       detail: `${inspection.scopes.find(s => s.id === finding.scopeId)?.path || ''}: ${finding.location} - ${finding.value}` }));
     const limitations = [...new Set(inspection.scopes.flatMap(s => s.limitations))];
+    if (editable) return { ...result, properties, officeProperties, officeMetadata: true, propertySelected: properties.some(row => row.remove), findings, nothingFound: false,
+      metaSummary: `Review ${properties.length} removable document propert${properties.length === 1 ? 'y' : 'ies'}. Select properties to remove from a new DOCX copy.`,
+      cleanNote: limitations.join(' '), tailNote: limitations.join(' ') };
     return { ...result, findings, nothingFound: findings.length === 0,
       metaSummary: `Found ${findings.length} retained item${findings.length === 1 ? '' : 's'}. Office inspection is read-only; nothing was removed.`,
       cleanNote: limitations.join(' '), tailNote: limitations.join(' ') };
@@ -700,13 +714,15 @@ async function patch({ model, host }) {
   const f = inputs.source;
   const blank = {
     hasFile: false, supported: false, pdfUnavailable: false, inspectOnly: false, findings: [], nothingFound: false,
+    officeMetadata: false, officeProperties: [], propertySelected: false, properties: [],
     fileName: '', fileSize: '', kind: '', metaSummary: '', cleanSize: '',
     tailNote: '', cleanNote: '',
   };
-  if (!f || !f.bytes) return blank;
+  if (!f || !f.bytes) { officeSourceKey = ''; return blank; }
 
   const base = { ...blank, hasFile: true, fileName: f.name, fileSize: fmtBytes(f.size) };
-  if (isOfficeFile(f) || isPackageFile(f)) return officeReport(f, host, base);
+  if (isOfficeFile(f) || isPackageFile(f)) return officeReport(f, host, base, inputs.properties);
+  officeSourceKey = '';
   const info = classify(f.bytes);
   if (info.kind === 'file') {
     return { ...base, kind: 'file' }; // supported:false → template shows guidance
@@ -776,7 +792,18 @@ async function exportFile({ model, host }) {
   const inputs = Object.fromEntries(model.map(i => [i.id, i.value]));
   const f = inputs.source;
   if (!f || !f.bytes) throw new Error('Choose an image first.');
-  if (isOfficeFile(f) || isPackageFile(f)) throw new Error('Office inspection is read-only. Cleaned Office or archive exports are unavailable.');
+  if (isOfficeFile(f) || isPackageFile(f)) {
+    if (!host?.prepare?.inspect || !host.prepare.apply) throw new Error('Office inspection is read-only. DOCX metadata cleanup is unavailable.');
+    const sources = [{ id: 'office', name: f.name, bytes: f.bytes, mime: f.mime }];
+    const inspection = await host.prepare.inspect(sources);
+    if (!inspection.scopes.find(s => s.id === 'office')?.actions?.includes('remove-property')) throw new Error('Office inspection is read-only for this file. DOCX metadata cleanup is unavailable.');
+    const prefix = inspection.sources[0].sha256, key = `${f.name}:${prefix}`;
+    const choices = inspection.groups.filter(group => group.action === 'remove-property' && Array.isArray(inputs.properties) && inputs.properties.some(row => row.id === `${prefix}:${group.id}` && row.remove === true)).map(group => ({ groupId: group.id, replacement: '' }));
+    if (key !== officeSourceKey || !choices.length) throw new Error('Select document properties from the current inspection before downloading a copy.');
+    const result = await host.prepare.apply(sources, inspection, choices);
+    if (result.report.stages?.some(stage => stage.status === 'failed') || result.report.replaced !== choices.length || !result.report.outputs[0]?.changed) throw new Error('Selected properties could not be removed and verified. Nothing was downloaded.');
+    return { bytes: result.outputs[0].bytes, mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', filename: (f.name || 'document.docx').replace(/\.docx$/i, '-prepared.docx') };
+  }
 
   // PDF is re-saved (metadata removed) via the shell's PDF capability.
   if (isPdf(f.bytes)) {
