@@ -6,6 +6,11 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.253.0
+
+- Add bounded border-token consumer adapters for colour, absolute width and solid, dashed or dotted stroke style. Active border properties refresh together; incompatible source values retain the complete cached border. Relative widths and custom stroke styles remain unsupported.
+- Design 1.48 links whole borders and individual stroke styles through the existing selection and undo path. Dash arrays and authored dash/gap lengths clear with the link, remain custom after local edits, and restore in the same transaction. Scalar rendering, saved URLs and portable token metadata remain compatible with earlier hosts.
+
 ## 1.252.0
 
 - Add guarded removal of selected DOCX core and custom properties through Prepare, Strip Hidden Data and the CLI. Property elements are removed by namespace and source range; unrelated ZIP members, property parts, relationships and package declarations are retained. Copies are inspected again and summary reports omit private values and paths.
