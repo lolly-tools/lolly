@@ -29,8 +29,10 @@ export interface PreparationScope {
   format: string;
   status: 'inspected' | 'partial' | 'uninspected';
   limitations: string[];
-  /** Package census scopes cannot be selectively removed or rewritten. */
+  /** Blocks arbitrary package-member removal or rewriting; explicit property actions may still be supported. */
   readOnly?: boolean;
+  /** Explicit supported operations; readOnly still blocks arbitrary member edits. */
+  actions?: 'remove-property'[];
 }
 export interface PreparationFinding {
   id: string;
@@ -46,6 +48,10 @@ export interface PreparationFinding {
   line: number;
   /** Inspection evidence only; this finding has no supported replacement. */
   readOnly?: boolean;
+  /** A supported property can be removed, rather than replaced with text. */
+  action?: 'remove-property';
+  /** Stable property identity within this source, retained across property removals. */
+  propertyId?: string;
 }
 export interface PreparationGroup {
   id: string;
@@ -54,6 +60,8 @@ export interface PreparationGroup {
   category: string;
   count: number;
   readOnly?: boolean;
+  /** An empty replacement removes a selected property; other replacements are refused. */
+  action?: 'remove-property';
 }
 export interface PreparationInspection {
   version: 1;
@@ -79,7 +87,7 @@ export interface PreparationReport {
   replaced: number;
   remaining: number;
   limitations: string[];
-  stages?: { sourceId: string; operation: 'strip-hidden-data' | 'redact' | 'replace-values'; status: 'completed' | 'failed'; inputSha256: string; outputSha256: string; before?: number; after?: number; limitations: string[] }[];
+  stages?: { sourceId: string; operation: 'strip-hidden-data' | 'redact' | 'replace-values' | 'remove-properties'; status: 'completed' | 'failed'; inputSha256: string; outputSha256: string; before?: number; after?: number; limitations: string[] }[];
 }
 export interface PreparationResult {
   outputs: PreparationSource[];

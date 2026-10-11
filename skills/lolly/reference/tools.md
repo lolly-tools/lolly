@@ -105,7 +105,7 @@ On-device file utilities: bytes in, bytes out. Most take the user's own file
 | `scan-code` | Scan | utility | png | - | - | Read QR codes and barcodes on-device, with nothing sent to any cloud. |
 | `screencap` | Screen Capture | utility | png, jpg, webp, avif, tiff | - | screen, microphone | Screenshot or record your whole screen, a window, or a browser tab. |
 | `sign` | Sign | utility | pdf | - | - | Place your signature on a PDF, optionally add a Content Credential and lock the result. |
-| `strip-data` | Strip Hidden Data | utility | jpg, png, svg, penpot, pdf | - | - | Inspect Office hidden content, or remove image and PDF metadata, on your device. |
+| `strip-data` | Strip Hidden Data | utility | jpg, png, svg, penpot, pdf | - | - | Remove selected DOCX properties or image and PDF metadata, and inspect other Office hidden content, on your device. |
 | `text-helper` | Text | utility | html | textTools | - | Find, edit, understand and transform text. |
 | `trim` | Trim | utility | mp4, webm, gif, m4a, opus, wav | - | - | Cut an audio or video clip, change its container, mute it or extract its audio on your device. |
 | `url-shot` | URL Screenshot | utility | png, jpg, webp, svg, penpot, pdf, webm, mp4, avif, tiff, gif | - | capture | Any web page, at any scroll depth, with custom CSS. |

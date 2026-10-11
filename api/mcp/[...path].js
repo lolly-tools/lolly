@@ -9,9 +9,9 @@ var __esm = (fn, res, err) => function __init() {
     throw err = [e], e;
   }
 };
-var __export = (target, all) => {
+var __export = (target2, all) => {
   for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
+    __defProp(target2, name, { get: all[name], enumerable: true });
 };
 
 // packages/core/src/asset-open-v1.ts
@@ -4006,7 +4006,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.251.0";
+    ENGINE_VERSION = "1.252.0";
   }
 });
 
@@ -6227,12 +6227,12 @@ function evalCurve(c, x) {
 }
 function invertCurve(c, y) {
   if (c.kind === "identity") return clamp013(y);
-  const target = clamp013(y);
+  const target2 = clamp013(y);
   let lo = 0;
   let hi = 1;
   for (let i = 0; i < MAX_CURVE_INVERT_STEPS; i++) {
     const mid3 = (lo + hi) / 2;
-    if (evalCurve(c, mid3) < target) lo = mid3;
+    if (evalCurve(c, mid3) < target2) lo = mid3;
     else hi = mid3;
   }
   return (lo + hi) / 2;
@@ -9046,9 +9046,9 @@ function colorCss(value) {
   const parsed = parseColor(source);
   return parsed ? formatColor(parsed) : null;
 }
-function swatchFace(swatch, target = "srgb") {
-  if (target === "srgb") return swatch.value;
-  const targets = target === "rec2020" ? ["rec2020", "display-p3"] : ["display-p3"];
+function swatchFace(swatch, target2 = "srgb") {
+  if (target2 === "srgb") return swatch.value;
+  const targets = target2 === "rec2020" ? ["rec2020", "display-p3"] : ["display-p3"];
   for (const key of targets) {
     const face = swatch.faces?.[key];
     if (typeof face === "string") {
@@ -9075,13 +9075,13 @@ function readFaces(ext) {
   if (!isRec(ext)) return out;
   const faces = ext.faces;
   if (!isRec(faces)) return out;
-  for (const [target, raw] of Object.entries(faces)) {
-    if (!target || !isRec(raw)) continue;
+  for (const [target2, raw] of Object.entries(faces)) {
+    if (!target2 || !isRec(raw)) continue;
     const v = raw.value;
     const label4 = raw.label;
     const value = normaliseFaceValue(v);
     if (value === null) continue;
-    out.set(target, { value, ...typeof label4 === "string" && label4 ? { label: label4 } : {} });
+    out.set(target2, { value, ...typeof label4 === "string" && label4 ? { label: label4 } : {} });
   }
   return out;
 }
@@ -9092,11 +9092,11 @@ function normaliseFaceValue(v) {
   }
   return null;
 }
-function writeFace(ns2, target, face) {
+function writeFace(ns2, target2, face) {
   const faces = isRec(ns2.faces) ? ns2.faces : null;
   if (face === null) {
     if (faces) {
-      delete faces[target];
+      delete faces[target2];
       if (Object.keys(faces).length === 0) delete ns2.faces;
     }
     return ns2;
@@ -9104,33 +9104,33 @@ function writeFace(ns2, target, face) {
   const map = faces ?? (ns2.faces = {});
   const value = normaliseFaceValue(face.value);
   if (value === null) return ns2;
-  map[target] = { value, ...face.label ? { label: face.label } : {} };
+  map[target2] = { value, ...face.label ? { label: face.label } : {} };
   return ns2;
 }
 function colorFaces(canonical3, targets, stored, derive) {
   const out = [];
   const seen = /* @__PURE__ */ new Set();
-  for (const { target, label: label4 } of targets) {
-    seen.add(target);
-    const override = stored.get(target);
-    const derived = derive(canonical3, target);
+  for (const { target: target2, label: label4 } of targets) {
+    seen.add(target2);
+    const override = stored.get(target2);
+    const derived = derive(canonical3, target2);
     if (!override) {
       if (derived === null) continue;
-      out.push({ target, value: derived, origin: "auto", ...label4 ? { label: label4 } : {} });
+      out.push({ target: target2, value: derived, origin: "auto", ...label4 ? { label: label4 } : {} });
       continue;
     }
     const drift = derived === null ? void 0 : faceDrift(override.value, derived);
     out.push({
-      target,
+      target: target2,
       value: override.value,
       origin: "set",
       ...label4 || override.label ? { label: label4 ?? override.label } : {},
       ...drift === void 0 ? {} : { drift }
     });
   }
-  for (const [target, face] of stored) {
-    if (seen.has(target)) continue;
-    out.push({ target, value: face.value, origin: "set", ...face.label ? { label: face.label } : {} });
+  for (const [target2, face] of stored) {
+    if (seen.has(target2)) continue;
+    out.push({ target: target2, value: face.value, origin: "set", ...face.label ? { label: face.label } : {} });
   }
   return out;
 }
@@ -9347,18 +9347,18 @@ function resolveAliases(map) {
     if (resolving.size >= 128 || resolving.has(path)) return e.value;
     resolving.add(path);
     if (isAlias(e.value)) {
-      const target = aliasPath(e.value);
-      if (target != null) {
-        const tv = resolve8(target);
+      const target2 = aliasPath(e.value);
+      if (target2 != null) {
+        const tv = resolve8(target2);
         if (tv !== void 0) {
           e.value = tv;
-          const inherited2 = map.get(target)?.extensions?.[TOKEN_EXT];
+          const inherited2 = map.get(target2)?.extensions?.[TOKEN_EXT];
           const own3 = e.extensions?.[TOKEN_EXT];
           if (isRecord(inherited2) && inherited2.faces && (!isRecord(own3) || !own3.faces)) {
             e.extensions = { ...e.extensions, [TOKEN_EXT]: { ...isRecord(own3) ? own3 : {}, faces: inherited2.faces } };
           }
           if (e.type == null) {
-            const te11 = map.get(target);
+            const te11 = map.get(target2);
             if (te11) e.type = te11.type;
           }
         }
@@ -9369,9 +9369,9 @@ function resolveAliases(map) {
         if (++nodes > 4096 || depth > 32) return value;
         if (isAlias(value)) {
           if (!expected) return value;
-          const target = aliasPath(value);
-          const resolved2 = resolve8(target);
-          const actual = map.get(target)?.type;
+          const target2 = aliasPath(value);
+          const resolved2 = resolve8(target2);
+          const actual = map.get(target2)?.type;
           if (actual && actual !== expected) return value;
           return resolved2 === void 0 || isAlias(resolved2) ? value : resolved2;
         }
@@ -9475,7 +9475,7 @@ function facesOf(ext) {
   const stored = readFaces(ext);
   if (!stored.size) return {};
   const faces = {};
-  for (const [target, f] of stored) faces[target] = f.value;
+  for (const [target2, f] of stored) faces[target2] = f.value;
   return { faces };
 }
 function prettify(slug4) {
@@ -9988,40 +9988,40 @@ function normaliseRow(row, index2, metadataField, fields2, set, colorTarget, opt
         newRuns[hex3] = { ref: link.ref, value: link.value, status: colour.status, reason: colour.reason };
         continue;
       }
-      const target = colour.hex.slice(1);
-      if (target === hex3 || lowered.has(target) && newRuns[target]?.ref === link.ref) {
-        if (target !== hex3) {
-          remap.set(hex3, target);
+      const target2 = colour.hex.slice(1);
+      if (target2 === hex3 || lowered.has(target2) && newRuns[target2]?.ref === link.ref) {
+        if (target2 !== hex3) {
+          remap.set(hex3, target2);
           claimed.delete(hex3);
         }
-        newRuns[target] = { ref: link.ref, value: `#${target}`, status: "linked" };
+        newRuns[target2] = { ref: link.ref, value: `#${target2}`, status: "linked" };
         continue;
       }
       claimed.delete(hex3);
-      movers.push({ hex: hex3, link, target });
+      movers.push({ hex: hex3, link, target: target2 });
     }
     const blocked2 = /* @__PURE__ */ new Set();
     for (let again = true; again; ) {
       again = false;
       const targets = /* @__PURE__ */ new Set();
-      for (const { hex: hex3, target } of movers) {
+      for (const { hex: hex3, target: target2 } of movers) {
         if (blocked2.has(hex3)) continue;
-        if (claimed.has(target) || targets.has(target)) {
+        if (claimed.has(target2) || targets.has(target2)) {
           blocked2.add(hex3);
           claimed.add(hex3);
           again = true;
           break;
         }
-        targets.add(target);
+        targets.add(target2);
       }
     }
-    for (const { hex: hex3, link, target } of movers) {
+    for (const { hex: hex3, link, target: target2 } of movers) {
       if (blocked2.has(hex3)) {
-        newRuns[hex3] = { ref: link.ref, value: `#${hex3}`, status: "incompatible", reason: `Another run colour in this text already resolves to #${target}, so this run kept #${hex3}.` };
+        newRuns[hex3] = { ref: link.ref, value: `#${hex3}`, status: "incompatible", reason: `Another run colour in this text already resolves to #${target2}, so this run kept #${hex3}.` };
         continue;
       }
-      remap.set(hex3, target);
-      newRuns[target] = { ref: link.ref, value: `#${target}`, status: "linked" };
+      remap.set(hex3, target2);
+      newRuns[target2] = { ref: link.ref, value: `#${target2}`, status: "linked" };
     }
     if (refHex.size || remap.size) text8 = rewriteRuns(text8, new Map([...refHex]), remap);
     if (text8 !== row.text) {
@@ -10545,9 +10545,9 @@ function validateDesignTool(d, reserved = []) {
     if (f.common && (f.common.key === "headshot" ? i.type !== "asset" : !["text", "longtext"].includes(i.type))) add("common-type", "Use an image for a headshot and text for other common fields.", i.id);
     if (f.image && (i.type !== "asset" || [f.image.minWidth, f.image.minHeight].some((n7) => n7 !== void 0 && (!Number.isInteger(n7) || n7 < 1 || n7 > 32768)) || f.image.formats && (!f.image.formats.length || f.image.formats.some((format) => !["png", "jpeg", "webp", "avif", "svg"].includes(format))))) add("image-rule", "Choose image formats and positive minimum pixel dimensions.", i.id);
     if (f.common?.source === "profile" && (!["person", "recipient", "presenter"].includes(f.common.subject) || !["firstname", "lastname", "email"].includes(f.common.key))) add("profile", "Profile prefill is only available for a person\u2019s name or email.", i.id);
-    for (const target of f.targets) {
-      checkTarget(target, i.id, i.type);
-      if (target.text && (!(target.text.min > 0) || !Number.isFinite(target.text.max) || target.text.max < target.text.min)) add("text-fit", "Review this object\u2019s font-size range.", i.id, target.layerId);
+    for (const target2 of f.targets) {
+      checkTarget(target2, i.id, i.type);
+      if (target2.text && (!(target2.text.min > 0) || !Number.isFinite(target2.text.max) || target2.text.max < target2.text.min)) add("text-fit", "Review this object\u2019s font-size range.", i.id, target2.layerId);
     }
     if (f.text && (!(f.text.min > 0) || !Number.isFinite(f.text.max) || f.text.min > f.text.max || f.text.maxLines !== void 0 && (!Number.isInteger(f.text.maxLines) || f.text.maxLines < 1))) add("text-fit", "Set a valid font-size range and line limit.", i.id);
   }
@@ -10569,12 +10569,12 @@ function validateDesignTool(d, reserved = []) {
       if (!field2?.input.options?.some((p) => p.value === o.value)) add("choice-option", "Declare each choice option in the input.", c.inputId);
       if (o.variantId && !variants.has(o.variantId)) add("choice-artboard", "Choose an existing artboard.", c.inputId);
       for (const id3 of /* @__PURE__ */ new Set([...o.fixedInputs ?? [], ...Object.keys(o.defaults ?? {})])) {
-        const target = fields2.get(id3);
-        if (!target || choiceIds.has(id3)) add("choice-field", "Choose an existing content input.", c.inputId);
+        const target2 = fields2.get(id3);
+        if (!target2 || choiceIds.has(id3)) add("choice-field", "Choose an existing content input.", c.inputId);
         const prior = defaultOwners.get(id3);
         if (prior && prior !== c.inputId) add("ownership", "Two choices set the same input. Choose one owner.", id3);
         defaultOwners.set(id3, c.inputId);
-        if (target && own(o.defaults || {}, id3)) for (const issue2 of validateDesignValues({ ...designToolPolicy(d), choices: [], inputs: [target] }, { [id3]: o.defaults[id3] })) issues.push(issue2);
+        if (target2 && own(o.defaults || {}, id3)) for (const issue2 of validateDesignValues({ ...designToolPolicy(d), choices: [], inputs: [target2] }, { [id3]: o.defaults[id3] })) issues.push(issue2);
       }
       const writes = /* @__PURE__ */ new Set();
       for (const w of o.writes) {
@@ -34740,9 +34740,9 @@ function nearest(lab, chroma, palette) {
 function treatOklab(lab, treatment, palette) {
   const chroma = chromaOf(lab);
   if (treatment.mode === "mono") {
-    const target2 = palette[0];
-    const scale = target2.chroma > 0 ? Math.min(1, chroma / target2.chroma) : 0;
-    return [lab[0], target2.lab[1] * scale, target2.lab[2] * scale];
+    const target3 = palette[0];
+    const scale = target3.chroma > 0 ? Math.min(1, chroma / target3.chroma) : 0;
+    return [lab[0], target3.lab[1] * scale, target3.lab[2] * scale];
   }
   if (treatment.mode === "duotone") {
     const first = palette[0];
@@ -34756,13 +34756,13 @@ function treatOklab(lab, treatment, palette) {
       dark.lab[2] + position * (light.lab[2] - dark.lab[2])
     ];
   }
-  const target = nearest(lab, chroma, palette).lab;
-  if (treatment.mode === "snap") return target;
+  const target2 = nearest(lab, chroma, palette).lab;
+  if (treatment.mode === "snap") return target2;
   const strength = treatment.strengthBps / 1e4;
   return [
-    lab[0] + strength * (target[0] - lab[0]),
-    lab[1] + strength * (target[1] - lab[1]),
-    lab[2] + strength * (target[2] - lab[2])
+    lab[0] + strength * (target2[0] - lab[0]),
+    lab[1] + strength * (target2[1] - lab[1]),
+    lab[2] + strength * (target2[2] - lab[2])
   ];
 }
 function isProtectedEmojiMeaning(meaning, protect) {
@@ -41169,11 +41169,11 @@ function refusedSegments(text8) {
   if (at < text8.length) segments.push({ kind: "text", text: text8.slice(at) });
   return segments;
 }
-function insertMarkup(doc, parent, target, html) {
+function insertMarkup(doc, parent, target2, html) {
   const container = doc.createElement("span");
   container.innerHTML = html;
-  for (const child of Array.from(container.childNodes)) parent.insertBefore(child, target);
-  parent.removeChild(target);
+  for (const child of Array.from(container.childNodes)) parent.insertBefore(child, target2);
+  parent.removeChild(target2);
 }
 async function applyEmojiToDom(root2, style, packs, io, options2 = {}) {
   const doc = documentFor(root2);
@@ -41496,14 +41496,14 @@ function labToXyzD50(L, a, b) {
   const zr = fz ** 3 > LAB_E2 ? fz ** 3 : (116 * fz - 16) / LAB_K2;
   return [xr * D50_WHITE3[0], yr * D50_WHITE3[1], zr * D50_WHITE3[2]];
 }
-function convertSpace(frame, target) {
+function convertSpace(frame, target2) {
   assertSpace(frame.space);
-  assertSpace(target);
-  if (frame.space === target) return frame;
+  assertSpace(target2);
+  if (frame.space === target2) return frame;
   const srcLab = frame.space === "lab";
-  const dstLab = target === "lab";
+  const dstLab = target2 === "lab";
   const matSrc = frame.space === "lab" ? "xyz-d50" : frame.space;
-  const matDst = target === "lab" ? "xyz-d50" : target;
+  const matDst = target2 === "lab" ? "xyz-d50" : target2;
   const M2 = matSrc === matDst ? null : mul3(FROM_XYZ_D65[matDst], TO_XYZ_D65[matSrc]);
   const src = frame.data;
   const out = new Float32Array(src.length);
@@ -41526,7 +41526,7 @@ function convertSpace(frame, target) {
     out[i + 2] = z;
     out[i + 3] = src[i + 3];
   }
-  return { width: frame.width, height: frame.height, data: out, space: target };
+  return { width: frame.width, height: frame.height, data: out, space: target2 };
 }
 var PIXEL_SPACES, srgbToLinear3, linearToSrgb3, LINEAR_LUT, clamp015, F16, mul3, SRGB_TO_XYZ_D65, XYZ_D65_TO_SRGB, P3_TO_XYZ_D65, XYZ_D65_TO_P3, REC2020_TO_XYZ_D65, XYZ_D65_TO_REC2020, XYZ_D65_TO_D50, XYZ_D50_TO_D65, TO_XYZ_D65, FROM_XYZ_D65, D50_WHITE3, LAB_K2, LAB_E2;
 var init_pixels = __esm({
@@ -50367,11 +50367,11 @@ async function resolveTokenRefs(model2, host, onSet) {
   onSet?.(set);
   const { swatchFace: swatchFace2 } = await Promise.resolve().then(() => (init_color_face(), color_face_exports));
   const swatches = new Map((set?.colors?.() ?? []).map((swatch) => [swatch.ref, swatch]));
-  const target = model2.some((input) => input.id === "editingRange" && input.value === "hdr") ? "rec2020" : "srgb";
+  const target2 = model2.some((input) => input.id === "editingRange" && input.value === "hdr") ? "rec2020" : "srgb";
   const textInputs = new Set(model2.flatMap((input) => typeof input.canvas?.textDocumentInput === "string" ? [input.canvas.textDocumentInput] : []));
   return model2.map((input) => {
     if (textInputs.has(input.id) && typeof input.value === "string") return { ...input, value: resolveTextDocumentTokenBindings(input.value, set) };
-    if (input.type === "blocks" && input.tokenBindingsField && Array.isArray(input.value)) return { ...input, value: resolveBlockTokenBindings(input.value, input.tokenBindingsField, input.fields ?? [], set, target) };
+    if (input.type === "blocks" && input.tokenBindingsField && Array.isArray(input.value)) return { ...input, value: resolveBlockTokenBindings(input.value, input.tokenBindingsField, input.fields ?? [], set, target2) };
     if (!["color", "number", "text", "longtext", "select"].includes(input.type)) return input;
     const v = input.value;
     const ref = isTokenValue(v) ? v.ref : ["color", "number"].includes(input.type) && isAlias(v) ? v : null;
@@ -50382,7 +50382,7 @@ async function resolveTokenRefs(model2, host, onSet) {
       return { ...input, value: { ref, value: bound.status === "linked" ? bound.value : isTokenValue(v) ? v.value : void 0, status: bound.status, ...bound.reason ? { reason: bound.reason } : {} } };
     }
     const resolved2 = set?.resolve(ref);
-    if (resolved2 !== void 0) return { ...input, value: { ref, value: swatches.has(ref) ? swatchFace2(swatches.get(ref), target) : colorToHex(resolved2) } };
+    if (resolved2 !== void 0) return { ...input, value: { ref, value: swatches.has(ref) ? swatchFace2(swatches.get(ref), target2) : colorToHex(resolved2) } };
     return { ...input, value: isTokenValue(v) ? v : { ref, value: void 0 } };
   });
 }
@@ -52010,12 +52010,12 @@ var init_motion_sampling = __esm({
         }
         this.count++;
       }
-      finish(target) {
-        if (!this.count || target.length !== this.sum.length) throw new RangeError("Motion blur has no matching samples.");
-        for (let i = 0; i < target.length; i += 4) {
+      finish(target2) {
+        if (!this.count || target2.length !== this.sum.length) throw new RangeError("Motion blur has no matching samples.");
+        for (let i = 0; i < target2.length; i += 4) {
           const alpha = this.sum[i + 3];
-          for (let c = 0; c < 3; c++) target[i + c] = alpha ? encoded(Math.max(0, Math.min(1, this.sum[i + c] / alpha))) : 0;
-          target[i + 3] = Math.round(alpha / this.count * 255);
+          for (let c = 0; c < 3; c++) target2[i + c] = alpha ? encoded(Math.max(0, Math.min(1, this.sum[i + c] / alpha))) : 0;
+          target2[i + 3] = Math.round(alpha / this.count * 255);
         }
         this.sum.fill(0);
         this.count = 0;
@@ -54163,8 +54163,8 @@ function readXmpFields(input, specs) {
   const out = [];
   const namespaces = /* @__PURE__ */ new Map();
   for (const m2 of text8.matchAll(/xmlns:([\w-]+)\s*=\s*["']([^"']+)["']/g)) namespaces.set(m2[1], m2[2]);
-  for (const [fallback, namespace2, property4, group, label4] of specs) {
-    const prefixes = [...namespaces].filter(([, uri]) => uri === namespace2).map(([prefix]) => prefix);
+  for (const [fallback, namespace3, property4, group, label4] of specs) {
+    const prefixes = [...namespaces].filter(([, uri]) => uri === namespace3).map(([prefix]) => prefix);
     if (!namespaces.has(fallback)) prefixes.push(fallback);
     for (const prefix of prefixes) {
       const tag3 = `${prefix}:${property4}`;
@@ -56113,21 +56113,21 @@ async function compileDocument(tool, inputs, opts) {
     runtime.destroy();
   }
 }
-function validateDocument(target) {
-  if (target.kind === "manifest") {
-    const r5 = validateManifest(target.value);
+function validateDocument(target2) {
+  if (target2.kind === "manifest") {
+    const r5 = validateManifest(target2.value);
     return { ok: r5.valid, errors: r5.errors, warnings: [] };
   }
-  if (target.kind === "recipe") {
+  if (target2.kind === "recipe") {
     try {
-      parseUrlState(target.value, target.manifest);
+      parseUrlState(target2.value, target2.manifest);
       return valid();
     } catch (e) {
       return invalid("/", e);
     }
   }
-  if (target.kind === "document") {
-    const v = target.value;
+  if (target2.kind === "document") {
+    const v = target2.value;
     const errors2 = [];
     if (!v || typeof v !== "object") errors2.push({ path: "/", message: "document must be an object" });
     else {
@@ -56137,10 +56137,10 @@ function validateDocument(target) {
     }
     return { ok: !errors2.length, errors: errors2, warnings: [] };
   }
-  const known = new Set((target.manifest.inputs ?? []).map((i) => i.id));
-  const errors = Object.keys(target.value).filter((k) => !known.has(k)).map((k) => ({ path: `/${k}`, message: "unknown input" }));
-  for (const input of target.manifest.inputs ?? []) {
-    const value = target.value[input.id];
+  const known = new Set((target2.manifest.inputs ?? []).map((i) => i.id));
+  const errors = Object.keys(target2.value).filter((k) => !known.has(k)).map((k) => ({ path: `/${k}`, message: "unknown input" }));
+  for (const input of target2.manifest.inputs ?? []) {
+    const value = target2.value[input.id];
     if (value === void 0) {
       if (input.required) errors.push({ path: `/${input.id}`, message: "is required" });
       continue;
@@ -59160,9 +59160,9 @@ function srcArcTable(d) {
   }
   return { cum, total: acc };
 }
-function arcInvert(c, tab, target) {
+function arcInvert(c, tab, target2) {
   if (!(tab.total > 0)) return 0;
-  const s = Math.min(Math.max(target, 0), tab.total);
+  const s = Math.min(Math.max(target2, 0), tab.total);
   let lo = 0, hi = ARC_SPANS;
   while (hi - lo > 1) {
     const m2 = lo + hi >> 1;
@@ -62608,11 +62608,11 @@ function inspectTokenDocument(doc, opts = {}) {
       if (declaredEdges > TOKEN_INSPECTION_LIMIT) break;
     }
   }
-  for (const token2 of tokens3) for (const target of token2.references) {
-    const ref = byPath.get(target);
+  for (const token2 of tokens3) for (const target2 of token2.references) {
+    const ref = byPath.get(target2);
     if (ref?.source) {
       ref.usedBy.push(token2.path);
-    } else token2.diagnostics.push({ code: "missing", path: token2.path, message: `Reference ${target} has no active definition.` });
+    } else token2.diagnostics.push({ code: "missing", path: token2.path, message: `Reference ${target2} has no active definition.` });
   }
   for (const token2 of tokens3) for (const use of tokenReferenceUses(token2.authored, token2.type)) {
     const actual = byPath.get(use.path)?.type;
@@ -72272,17 +72272,17 @@ function cleanAudioPcm(input, sampleRate, opts = {}) {
     channels = channels.map((channel5) => Float32Array.from(channel5.subarray(from, to)));
     operations.push(`Trimmed ${(trimmedSamples / sampleRate).toFixed(2)} seconds of edge silence`);
   }
-  const target = opts.normalize === "off" || opts.normalize == null ? null : Number(opts.normalize);
-  if (target != null) {
+  const target2 = opts.normalize === "off" || opts.normalize == null ? null : Number(opts.normalize);
+  if (target2 != null) {
     const measured = integratedLoudness(channels, sampleRate);
     if (measured != null) {
-      const gain = normalizeGain(measured, target);
+      const gain = normalizeGain(measured, target2);
       channels = channels.map((channel5) => {
         const out = new Float32Array(channel5.length);
         for (let i = 0; i < out.length; i++) out[i] = channel5[i] * gain;
         return out;
       });
-      operations.push(`Normalised to ${target} LUFS`);
+      operations.push(`Normalised to ${target2} LUFS`);
     }
   }
   const limiter = createTruePeakLimiter({ rate: sampleRate, ceilingDb: -1 });
@@ -76068,12 +76068,12 @@ function gaussianShadowBands(blur2, alpha, bands) {
   let acc = 0;
   for (let i = 0; i < n7; i++) {
     const outer = reach2 - i * step;
-    const target = alpha * (1 - normalCdf((outer - step / 2) / sigma));
-    if (target <= acc) continue;
-    const a = (target - acc) / (1 - acc);
+    const target2 = alpha * (1 - normalCdf((outer - step / 2) / sigma));
+    if (target2 <= acc) continue;
+    const a = (target2 - acc) / (1 - acc);
     if (a > 5e-4) {
       out.push({ outset: outer, alpha: Math.min(1, a) });
-      acc = target;
+      acc = target2;
     }
   }
   return out;
@@ -77328,13 +77328,13 @@ function sameReorderDomain(a, b) {
   return String(a.frame ?? "") === String(b.frame ?? "");
 }
 function reorderDesignRow(rows2, id3, anchor, path) {
-  const target = rowAt(rows2, id3, `${path}/id`);
+  const target2 = rowAt(rows2, id3, `${path}/id`);
   const relative2 = rowAt(rows2, anchor.id, `${path}/${anchor.side}Id`);
-  if (target.index === relative2.index) throw new Error(`${path}: a layer cannot be reordered relative to itself.`);
-  if (!sameReorderDomain(target.row, relative2.row))
+  if (target2.index === relative2.index) throw new Error(`${path}: a layer cannot be reordered relative to itself.`);
+  if (!sameReorderDomain(target2.row, relative2.row))
     throw new Error(`${path}: reorder targets must be sibling layers or two artboards.`);
-  const isFrame2 = target.row.kind === "frame";
-  const parent = String(target.row.frame ?? "");
+  const isFrame2 = target2.row.kind === "frame";
+  const parent = String(target2.row.frame ?? "");
   const domain = rows2.map((row, index2) => ({ row, index: index2 })).filter(({ row }) => {
     if (!row || typeof row !== "object" || Array.isArray(row)) return false;
     const r5 = row;
@@ -77345,15 +77345,15 @@ function reorderDesignRow(rows2, id3, anchor, path) {
     const bv = typeof b.row[field3] === "number" ? b.row[field3] : b.index;
     return av - bv || a.index - b.index;
   }).map(({ row }) => row);
-  const movingAt = domain.indexOf(target.row);
+  const movingAt = domain.indexOf(target2.row);
   domain.splice(movingAt, 1);
   const anchorAt = domain.indexOf(relative2.row);
-  domain.splice(anchorAt + (anchor.side === "after" ? 1 : 0), 0, target.row);
+  domain.splice(anchorAt + (anchor.side === "after" ? 1 : 0), 0, target2.row);
   const field2 = isFrame2 ? "order" : "z";
   domain.forEach((row, index2) => {
     row[field2] = index2;
   });
-  const [moving] = rows2.splice(target.index, 1);
+  const [moving] = rows2.splice(target2.index, 1);
   const anchorNow = rows2.indexOf(relative2.row);
   rows2.splice(anchorNow + (anchor.side === "after" ? 1 : 0), 0, moving);
 }
@@ -77456,11 +77456,11 @@ function applyLayerOperations(sourceRows, value, fieldDefault = (_id, fallback) 
       continue;
     }
     if (op === "remove") {
-      const target = rowAt(rows2, record40.id, `${path}/id`);
-      const children = target.row.kind === "frame" ? rows2.filter((row) => row && typeof row === "object" && !Array.isArray(row) && row.frame === target.row.id) : [];
+      const target2 = rowAt(rows2, record40.id, `${path}/id`);
+      const children = target2.row.kind === "frame" ? rows2.filter((row) => row && typeof row === "object" && !Array.isArray(row) && row.frame === target2.row.id) : [];
       if (children.length && record40.cascade !== true)
-        throw new Error(`${path}/cascade: artboard "${String(target.row.id)}" has ${children.length} child layer${children.length === 1 ? "" : "s"}; pass cascade:true to remove them.`);
-      const removeIds = /* @__PURE__ */ new Set([target.row.id, ...children.map((row) => row.id)]);
+        throw new Error(`${path}/cascade: artboard "${String(target2.row.id)}" has ${children.length} child layer${children.length === 1 ? "" : "s"}; pass cascade:true to remove them.`);
+      const removeIds = /* @__PURE__ */ new Set([target2.row.id, ...children.map((row) => row.id)]);
       for (let rowIndex2 = rows2.length - 1; rowIndex2 >= 0; rowIndex2--) {
         const row = rows2[rowIndex2];
         if (row && typeof row === "object" && !Array.isArray(row) && removeIds.has(row.id)) rows2.splice(rowIndex2, 1);
@@ -77468,8 +77468,8 @@ function applyLayerOperations(sourceRows, value, fieldDefault = (_id, fallback) 
       continue;
     }
     if (op === "reparent") {
-      const target = rowAt(rows2, record40.id, `${path}/id`);
-      if (target.row.kind === "frame")
+      const target2 = rowAt(rows2, record40.id, `${path}/id`);
+      if (target2.row.kind === "frame")
         throw new Error(`${path}/id: artboards cannot be reparented.`);
       const artboardId = record40.artboardId;
       if (artboardId !== null && (typeof artboardId !== "string" || !artboardId.trim()))
@@ -77479,15 +77479,15 @@ function applyLayerOperations(sourceRows, value, fieldDefault = (_id, fallback) 
         if (destination.row.kind !== "frame")
           throw new Error(`${path}/artboardId: layer "${artboardId}" is not an artboard.`);
       }
-      target.row.frame = artboardId ?? "";
+      target2.row.frame = artboardId ?? "";
       const anchor = optionalAnchorOf(record40, path);
       if (anchor) {
-        reorderDesignRow(rows2, String(target.row.id), anchor, path);
+        reorderDesignRow(rows2, String(target2.row.id), anchor, path);
       } else {
-        const parent = String(target.row.frame ?? "");
-        const siblings = rows2.filter((row) => row && typeof row === "object" && !Array.isArray(row) && row !== target.row && row.kind !== "frame" && String(row.frame ?? "") === parent);
-        target.row.z = siblings.reduce((max, sibling) => Math.max(max, typeof sibling.z === "number" ? sibling.z : -1), -1) + 1;
-        const [moving] = rows2.splice(target.index, 1);
+        const parent = String(target2.row.frame ?? "");
+        const siblings = rows2.filter((row) => row && typeof row === "object" && !Array.isArray(row) && row !== target2.row && row.kind !== "frame" && String(row.frame ?? "") === parent);
+        target2.row.z = siblings.reduce((max, sibling) => Math.max(max, typeof sibling.z === "number" ? sibling.z : -1), -1) + 1;
+        const [moving] = rows2.splice(target2.index, 1);
         let lastSibling = -1;
         rows2.forEach((row, rowIndex2) => {
           if (siblings.includes(row)) lastSibling = rowIndex2;
@@ -78438,15 +78438,15 @@ function applyAuthoredLayerOperations(rows2, ops, fieldDefault = (_field, fallba
   if (ctx) notes.push(...finishNotes(ctx));
   return { rows: current, notes };
 }
-function lowerPatchSet(ctx, set, target, pointer2) {
+function lowerPatchSet(ctx, set, target2, pointer2) {
   for (const key of dollarKeys(set)) {
     if (!PATCH_KEYS.has(key)) throw new Error(`${pointer2}/${seg2(key)}: a patch takes only the authoring keys ${[...PATCH_KEYS].join(", ")}.`);
   }
-  const kind = typeof set.kind === "string" ? set.kind : typeof target.kind === "string" ? target.kind : "box";
+  const kind = typeof set.kind === "string" ? set.kind : typeof target2.kind === "string" ? target2.kind : "box";
   const isPath = PATH_KEYS.some((k) => set[k] !== void 0);
   if (set.$style !== void 0 && kind !== "text") throw new Error(`${pointer2}/$style: only text rows take a text style (this row is kind ${kind}).`);
   if (isPath && kind !== "path") throw new Error(`${pointer2}/${PATH_KEYS.find((k) => set[k] !== void 0)}: path geometry belongs on kind path rows (this row is kind ${kind}).`);
-  const frameId = set.frame ?? target.frame;
+  const frameId = set.frame ?? target2.frame;
   let origin = { x: 0, y: 0 };
   if (set.$in !== void 0) {
     if (set.$in !== frameId) throw new Error(`${pointer2}/$in: the layer is in artboard "${String(frameId ?? "")}"; move it with a reparent operation, then patch it in its artboard.`);
@@ -78456,25 +78456,25 @@ function lowerPatchSet(ctx, set, target, pointer2) {
   const out = {};
   for (const [key, value] of Object.entries(set)) if (!key.startsWith("$")) out[key] = value;
   if (isPath) {
-    Object.assign(out, placePath(ctx, set, origin, { ...target, ...out }, (key) => `${pointer2}/${seg2(key)}`));
+    Object.assign(out, placePath(ctx, set, origin, { ...target2, ...out }, (key) => `${pointer2}/${seg2(key)}`));
   } else if (set.$in !== void 0) {
     if (set.x !== void 0) out.x = tidy2(origin.x + numberAt(set.x, `${pointer2}/x`));
     if (set.y !== void 0) out.y = tidy2(origin.y + numberAt(set.y, `${pointer2}/y`));
   }
   if (set.$style !== void 0) {
-    const ownBg = out.bg !== void 0 ? out.bg : target.bg;
+    const ownBg = out.bg !== void 0 ? out.bg : target2.bg;
     const { style } = resolvedTextFields(ctx, set.$style, frame, ownBg, pointer2, `${pointer2}/$style`);
     for (const key of STYLE_ROW_FIELDS) if (out[key] === void 0 && style[key] !== void 0) out[key] = style[key];
-    if (style.italic === true) out.text = italicText(out.text ?? target.text, `${pointer2}/$style`);
+    if (style.italic === true) out.text = italicText(out.text ?? target2.text, `${pointer2}/$style`);
     if (set.fg === void 0) checkContrast(ctx, out.fg, frame, ownBg, pointer2);
   }
   if (kind === "text" && typeof out.weight === "number") out.weight = String(out.weight);
-  const merged = { ...target, ...out };
+  const merged = { ...target2, ...out };
   if (set.$tint !== void 0 || colourRefsFor(ctx, merged)) {
     const keyAt = (key) => `${pointer2}/${seg2(key)}`;
     if (set.$tint !== void 0) tintRow(ctx, merged, set.$tint, keyAt);
     const lowered = lowerColours(ctx, merged, keyAt);
-    for (const key of [...COLOUR_FIELDS, "grad", "text", "tokenLinks"]) if (lowered[key] !== target[key] || out[key] !== void 0) {
+    for (const key of [...COLOUR_FIELDS, "grad", "text", "tokenLinks"]) if (lowered[key] !== target2[key] || out[key] !== void 0) {
       if (lowered[key] !== void 0) out[key] = lowered[key];
     }
   }
@@ -78496,16 +78496,16 @@ function applyAuthoredLayerPatches(rows2, patches, opts = {}) {
     const at = `${base}/${index2}`;
     let next2 = patch;
     const matches4 = record9(patch) ? current.filter((row) => record9(row) && row.id === patch.id) : [];
-    const target = matches4.length === 1 ? matches4[0] : void 0;
-    if (record9(patch) && (hasDollar(patch.set) || colourRefsFor(opts, patch.set)) && target) {
+    const target2 = matches4.length === 1 ? matches4[0] : void 0;
+    if (record9(patch) && (hasDollar(patch.set) || colourRefsFor(opts, patch.set)) && target2) {
       if (ctx) ctx.frames = collectFrames(current, opts.existing);
       else ctx = makeCtx(current, opts, "/$theme");
-      next2 = { ...patch, set: lowerPatchSet(ctx, patch.set, target, `${at}/set`) };
+      next2 = { ...patch, set: lowerPatchSet(ctx, patch.set, target2, `${at}/set`) };
     }
-    if (target && target.kind === "frame" && record9(patch) && record9(patch.set) && (patch.set.x !== void 0 || patch.set.y !== void 0)) {
-      const children = current.filter((row) => record9(row) && row.kind !== "frame" && row.frame === target.id).length;
+    if (target2 && target2.kind === "frame" && record9(patch) && record9(patch.set) && (patch.set.x !== void 0 || patch.set.y !== void 0)) {
+      const children = current.filter((row) => record9(row) && row.kind !== "frame" && row.frame === target2.id).length;
       if (children) {
-        notes.push({ path: `${at}/set`, code: "authoring.frame.children", message: `Artboard "${String(target.id)}" moved; its ${children} layer${children === 1 ? "" : "s"} keep their canvas position. Move them too, or author them with $in after the move.` });
+        notes.push({ path: `${at}/set`, code: "authoring.frame.children", message: `Artboard "${String(target2.id)}" moved; its ${children} layer${children === 1 ? "" : "s"} keep their canvas position. Move them too, or author them with $in after the move.` });
       }
     }
     try {
@@ -79820,9 +79820,9 @@ function slideRelsXml(slideIdx, media, hasNotes = false, linkTargets = [], layou
   if (hasNotes) rels += `<Relationship Id="rId${media.length + 2}" Type="${REL}/notesSlide" Target="../notesSlides/notesSlide${slideIdx + 1}.xml"/>`;
   if (audio) {
     const rid = audioRids(media.length, hasNotes);
-    const target = `../media/${audioName(slideIdx, audio.ext)}`;
-    rels += `<Relationship Id="${rid.link}" Type="${REL}/audio" Target="${target}"/>`;
-    rels += `<Relationship Id="${rid.embed}" Type="${REL}/media" Target="${target}"/>`;
+    const target2 = `../media/${audioName(slideIdx, audio.ext)}`;
+    rels += `<Relationship Id="${rid.link}" Type="${REL}/audio" Target="${target2}"/>`;
+    rels += `<Relationship Id="${rid.embed}" Type="${REL}/media" Target="${target2}"/>`;
     rels += `<Relationship Id="${rid.icon}" Type="${REL}/image" Target="../media/${AUDIO_ICON_NAME}"/>`;
   }
   if (video) {
@@ -81134,10 +81134,10 @@ function baseOf(path) {
   const i = path.lastIndexOf("/");
   return i < 0 ? path : path.slice(i + 1);
 }
-function resolveTarget(baseDir, target) {
-  if (!target) return target;
-  if (target.startsWith("/")) return target.slice(1);
-  const segs = (baseDir ? baseDir.split("/") : []).concat(target.split("/"));
+function resolveTarget(baseDir, target2) {
+  if (!target2) return target2;
+  if (target2.startsWith("/")) return target2.slice(1);
+  const segs = (baseDir ? baseDir.split("/") : []).concat(target2.split("/"));
   const out = [];
   for (const s of segs) {
     if (s === "" || s === ".") continue;
@@ -81160,10 +81160,10 @@ function parseRels(store, partPath, parseXml) {
     if (elemLocal(rel) !== "Relationship") continue;
     const id3 = attrByLocal(rel, "Id") || "";
     const type = attrByLocal(rel, "Type") || "";
-    const target = attrByLocal(rel, "Target") || "";
+    const target2 = attrByLocal(rel, "Target") || "";
     const mode3 = attrByLocal(rel, "TargetMode") || "";
     const external = mode3.toLowerCase() === "external";
-    out.push({ id: id3, type, external, target: external ? target : resolveTarget(baseDir, target) });
+    out.push({ id: id3, type, external, target: external ? target2 : resolveTarget(baseDir, target2) });
     if (out.length > 1e5) break;
   }
   return out;
@@ -83411,8 +83411,8 @@ var init_scorm = __esm({
 });
 
 // engine/src/design-text.ts
-function escapeMarkup(s, target) {
-  if (target === "gfm") return s.replace(/\\/g, "\\\\").replace(/\*/g, "\\*");
+function escapeMarkup(s, target2) {
+  if (target2 === "gfm") return s.replace(/\\/g, "\\\\").replace(/\*/g, "\\*");
   return s.replace(/([*_])/g, "\\$1");
 }
 function hugMarkers(text8, open3, close = open3) {
@@ -84306,10 +84306,10 @@ function parsePart2(store, path, parseXml) {
   if (elemLocal2(root2) === "parsererror") return null;
   return doc;
 }
-function resolveTarget2(baseDir, target) {
-  if (!target) return target;
-  if (target.startsWith("/")) return target.slice(1);
-  const segs = (baseDir ? baseDir.split("/") : []).concat(target.split("/"));
+function resolveTarget2(baseDir, target2) {
+  if (!target2) return target2;
+  if (target2.startsWith("/")) return target2.slice(1);
+  const segs = (baseDir ? baseDir.split("/") : []).concat(target2.split("/"));
   const out = [];
   for (const s of segs) {
     if (s === "" || s === ".") continue;
@@ -84325,10 +84325,10 @@ function parseRels2(store, parseXml) {
   for (const rel of childElements2(doc.documentElement)) {
     if (elemLocal2(rel) !== "Relationship") continue;
     const id3 = attrByLocal2(rel, "Id") || "";
-    const target = attrByLocal2(rel, "Target") || "";
+    const target2 = attrByLocal2(rel, "Target") || "";
     const external = (attrByLocal2(rel, "TargetMode") || "").toLowerCase() === "external";
     if (id3) {
-      byId.set(id3, { external, target: external ? target : resolveTarget2("word", target) });
+      byId.set(id3, { external, target: external ? target2 : resolveTarget2("word", target2) });
     }
     if (byId.size > MAX_RELS) break;
   }
@@ -87753,13 +87753,13 @@ function fontConversionTargets(bytes) {
   }
   return [];
 }
-function convertFontContainer(bytes, target) {
-  if (!fontConversionTargets(bytes).some((kind2) => kind2 === target)) {
+function convertFontContainer(bytes, target2) {
+  if (!fontConversionTargets(bytes).some((kind2) => kind2 === target2)) {
     throw new Error("That font conversion is not supported. TTF and OTF use different outlines; choose WOFF or the source outline format.");
   }
   const kind = sfntKind(bytes);
-  if (kind === target) return bytes;
-  return target === "woff" ? sfntToWoff(bytes) : woffToSfnt(bytes);
+  if (kind === target2) return bytes;
+  return target2 === "woff" ? sfntToWoff(bytes) : woffToSfnt(bytes);
 }
 function tableChecksum(data) {
   let sum = 0;
@@ -88051,9 +88051,9 @@ function allSheets(store) {
     const tag3 = m2[0];
     const rid = attr(tag3, "r:id") || attr(tag3, "id");
     if (!rid) continue;
-    const target = relTarget(store, rid);
-    if (!target) continue;
-    out.push({ name: attr(tag3, "name") || "", path: resolveTarget3("xl", target) });
+    const target2 = relTarget(store, rid);
+    if (!target2) continue;
+    out.push({ name: attr(tag3, "name") || "", path: resolveTarget3("xl", target2) });
   }
   return out;
 }
@@ -88087,10 +88087,10 @@ function relTarget(store, rid) {
   }
   return null;
 }
-function resolveTarget3(baseDir, target) {
-  if (!target) return target;
-  if (target.startsWith("/")) return target.slice(1);
-  const segs = (baseDir ? baseDir.split("/") : []).concat(target.split("/"));
+function resolveTarget3(baseDir, target2) {
+  if (!target2) return target2;
+  if (target2.startsWith("/")) return target2.slice(1);
+  const segs = (baseDir ? baseDir.split("/") : []).concat(target2.split("/"));
   const out = [];
   for (const s of segs) {
     if (s === "" || s === ".") continue;
@@ -89174,10 +89174,10 @@ function normaliseBlock(b) {
 function relId(ctx) {
   return `rId${++ctx.nextRel}`;
 }
-function addRel(ctx, type, target, external) {
+function addRel(ctx, type, target2, external) {
   const id3 = relId(ctx);
   ctx.rels.push(
-    `<Relationship Id="${id3}" Type="${REL2}/${type}" Target="${xmlEsc4(target)}"${external ? ' TargetMode="External"' : ""}/>`
+    `<Relationship Id="${id3}" Type="${REL2}/${type}" Target="${xmlEsc4(target2)}"${external ? ' TargetMode="External"' : ""}/>`
   );
   return id3;
 }
@@ -96770,8 +96770,8 @@ function mapFontsToBrand(families, brandFonts) {
     const key = normFamilyKey(raw);
     if (!key) continue;
     const cls = FONT_CLASS[key] ?? "sans";
-    const target = targetForClass(cls, brandFonts);
-    if (typeof target === "string" && target.length > 0) out.set(raw, target);
+    const target2 = targetForClass(cls, brandFonts);
+    if (typeof target2 === "string" && target2.length > 0) out.set(raw, target2);
   }
   return out;
 }
@@ -98092,8 +98092,8 @@ function importPenpotLayouts(boxes, sourceIds, shapes2) {
     if (row.layoutOwner || shape.layout === "flex" || shape.layout === "grid") {
       row.layoutW = sizing(shape.layoutItemHSizing);
       row.layoutH = sizing(shape.layoutItemVSizing);
-      for (const [source, target] of [["layoutItemMinW", "layoutMinW"], ["layoutItemMaxW", "layoutMaxW"], ["layoutItemMinH", "layoutMinH"], ["layoutItemMaxH", "layoutMaxH"]]) {
-        if (shape[source] != null) row[target] = shape[source];
+      for (const [source, target2] of [["layoutItemMinW", "layoutMinW"], ["layoutItemMaxW", "layoutMaxW"], ["layoutItemMinH", "layoutMinH"], ["layoutItemMaxH", "layoutMaxH"]]) {
+        if (shape[source] != null) row[target2] = shape[source];
       }
       if (shape.layoutItemAbsolute === true) row.layoutAbsolute = true;
       if (shape.layoutItemAlignSelf) row.layoutSelf = shape.layoutItemAlignSelf;
@@ -98183,8 +98183,8 @@ function exportPenpotLayout(row, children, tracks) {
     props.layoutItemMargin = Object.fromEntries(SIDES.map((side2, n7) => [`m${n7 + 1}`, num8(row[`layoutMargin${side2}`])]));
     if (row.layoutAbsolute === true) props.layoutItemAbsolute = true;
     if (row.layoutSelf && row.layoutSelf !== "auto") props.layoutItemAlignSelf = row.layoutSelf;
-    for (const [target, source] of [["layoutItemMinW", "layoutMinW"], ["layoutItemMaxW", "layoutMaxW"], ["layoutItemMinH", "layoutMinH"], ["layoutItemMaxH", "layoutMaxH"]]) {
-      if (row[source] !== "" && row[source] != null) props[target] = Number(row[source]);
+    for (const [target2, source] of [["layoutItemMinW", "layoutMinW"], ["layoutItemMaxW", "layoutMaxW"], ["layoutItemMinH", "layoutMinH"], ["layoutItemMaxH", "layoutMaxH"]]) {
+      if (row[source] !== "" && row[source] != null) props[target2] = Number(row[source]);
     }
   }
   if (!hasDesignLayout([row])) return props;
@@ -102058,8 +102058,8 @@ function mirroredRampStep(tokenPath, light, mode3) {
   if (!lightSteps || !modeSteps || lightSteps.length < 2) return void 0;
   const at = lightSteps.indexOf(stepPath);
   if (at < 0) return void 0;
-  const target = lightSteps[lightSteps.length - 1 - at];
-  return target !== void 0 && mode3[target] !== void 0 ? target : void 0;
+  const target2 = lightSteps[lightSteps.length - 1 - at];
+  return target2 !== void 0 && mode3[target2] !== void 0 ? target2 : void 0;
 }
 function primaryRamp(colors) {
   const ramps = rampsOf(colors);
@@ -102085,9 +102085,9 @@ function darkFallbackRemap(light, master) {
   const rows2 = /* @__PURE__ */ new Map();
   for (const [tokenPath, uses] of all) {
     const slot = themeSlotOf(tokenPath, light);
-    const target = slot ? targets[slot] : void 0;
-    if (target) {
-      rows2.set(tokenPath, target);
+    const target2 = slot ? targets[slot] : void 0;
+    if (target2) {
+      rows2.set(tokenPath, target2);
       continue;
     }
     if (slot || !uses.has("ground") && !uses.has("fill") && !uses.has("ink")) continue;
@@ -102190,27 +102190,27 @@ function repairFurniture(out, grounds, colors, field2, need) {
       if (at < 0 || ground === void 0) continue;
       const pieces = new Map(out.furniture.map((one) => [one.id, one]));
       const backdrop = backdropAt(archetype, pieces, colors, ground, furnitureCentre(piece.box), at);
-      const target = need(piece, archetype, backdrop, current) ?? current;
-      const list4 = byTarget.get(target) ?? [];
+      const target2 = need(piece, archetype, backdrop, current) ?? current;
+      const list4 = byTarget.get(target2) ?? [];
       list4.push(archetype);
-      byTarget.set(target, list4);
+      byTarget.set(target2, list4);
     }
     if (byTarget.size === 0 || byTarget.size === 1 && byTarget.has(current)) continue;
-    const set = (one, target) => {
-      if (field2 === "fill") one.tokenPath = target;
-      else one.style = { ...one.style, fgTokenPath: target };
+    const set = (one, target2) => {
+      if (field2 === "fill") one.tokenPath = target2;
+      else one.style = { ...one.style, fgTokenPath: target2 };
     };
     const targets = [...byTarget.keys()];
     const inPlace = byTarget.has(current) ? current : targets[0];
     const taken = new Set(out.furniture.map((one) => one.id));
-    for (const target of targets) {
-      if (target === inPlace) continue;
+    for (const target2 of targets) {
+      if (target2 === inPlace) continue;
       const copy = structuredClone(piece);
       copy.id = copyId(piece.id, taken);
       taken.add(copy.id);
-      set(copy, target);
+      set(copy, target2);
       out.furniture.push(copy);
-      for (const archetype of byTarget.get(target) ?? []) {
+      for (const archetype of byTarget.get(target2) ?? []) {
         archetype.furniture = (archetype.furniture ?? []).map((id3) => id3 === piece.id ? copy.id : id3);
       }
     }
@@ -102628,9 +102628,9 @@ function mapFonts(input) {
     ...faces.mono === void 0 ? {} : { mono: faces.mono }
   });
   for (const from of rest2) {
-    const target = classed.get(from) ?? faces.brand;
-    const carried = !faces.available || faces.available.length === 0 || faces.available.some((family2) => normaliseFamily(family2) === normaliseFamily(target));
-    out.push({ from, to: carried ? target : faces.brand, source: "class" });
+    const target2 = classed.get(from) ?? faces.brand;
+    const carried = !faces.available || faces.available.length === 0 || faces.available.some((family2) => normaliseFamily(family2) === normaliseFamily(target2));
+    out.push({ from, to: carried ? target2 : faces.brand, source: "class" });
   }
   return out.sort((a, b) => compareCodeUnits(a.from, b.from));
 }
@@ -103722,9 +103722,9 @@ function setSlidesIncluded(plan, slideIds, include) {
   return { plan: { ...base.plan, slides }, touched, skipped: base.skipped };
 }
 function moveSlide(plan, slideId, delta) {
-  const target = plan.slides.find((slide) => slide.id === slideId);
-  if (!target) return { plan, touched: [], skipped: [{ id: slideId, reason: "unknown" }] };
-  if (!target.include) return { plan, touched: [], skipped: [{ id: slideId, reason: "excluded" }] };
+  const target2 = plan.slides.find((slide) => slide.id === slideId);
+  if (!target2) return { plan, touched: [], skipped: [{ id: slideId, reason: "unknown" }] };
+  if (!target2.include) return { plan, touched: [], skipped: [{ id: slideId, reason: "excluded" }] };
   const included = effectiveSlideOrder(plan).filter((slide) => slide.include).map((slide) => slide.id);
   const from = included.indexOf(slideId);
   const step = Number.isFinite(delta) ? Math.trunc(delta) : 0;
@@ -103822,9 +103822,9 @@ function resetSlideDecisions(plan, slideIds, opts = {}) {
   return { plan: { ...plan, slides, decisions }, touched, skipped };
 }
 function setObjectText(plan, objectId, text8) {
-  const target = rowIndex(plan).get(objectId);
-  if (!target) return { plan, touched: [], skipped: [{ id: objectId, reason: "unknown" }] };
-  if (target.locked) return { plan, touched: [], skipped: [{ id: objectId, reason: "locked" }] };
+  const target2 = rowIndex(plan).get(objectId);
+  if (!target2) return { plan, touched: [], skipped: [{ id: objectId, reason: "unknown" }] };
+  if (target2.locked) return { plan, touched: [], skipped: [{ id: objectId, reason: "locked" }] };
   const next2 = mapRows(plan, (row) => {
     if (row.id !== objectId) return row;
     const out = { ...row };
@@ -103856,7 +103856,7 @@ function slidesSharingSourceLayout(source, slideId) {
   if (layout2 === void 0) return [slide.id];
   return source.slides.filter((one) => one.origin.layout === layout2).map((one) => one.id);
 }
-function setColorTarget(plan, useIds, target, lock) {
+function setColorTarget(plan, useIds, target2, lock) {
   const wanted = new Set(useIds);
   const known = new Set(plan.colors.map((row) => row.useId));
   const colors = plan.colors.map((row) => {
@@ -103866,9 +103866,9 @@ function setColorTarget(plan, useIds, target, lock) {
     delete next2.toPath;
     delete next2.locked;
     delete next2.unresolved;
-    if (target) {
-      next2.to = target.hex;
-      if (target.path !== void 0) next2.toPath = target.path;
+    if (target2) {
+      next2.to = target2.hex;
+      if (target2.path !== void 0) next2.toPath = target2.path;
       if (lock ?? true) next2.locked = true;
     }
     return next2;
@@ -104094,8 +104094,8 @@ function buildDeckTheme(id3, source, opts = {}) {
     for (const [tokenPath, uses] of all) {
       const own3 = themeSlotOf(tokenPath, light);
       if (own3) {
-        const target = targets[own3];
-        if (target) rows2.set(tokenPath, target);
+        const target2 = targets[own3];
+        if (target2) rows2.set(tokenPath, target2);
         continue;
       }
       const hex3 = light[tokenPath];
@@ -105661,8 +105661,8 @@ function svgItemsOf(svgText, parseXml, opts = {}) {
     }
     if (tag3 === "use") {
       const href = (el.getAttribute("href") ?? el.getAttributeNS("http://www.w3.org/1999/xlink", "href") ?? "").trim();
-      const target = href.startsWith("#") ? byId.get(href.slice(1)) : void 0;
-      if (!target || trail.has(target) || useDepth >= MAX_USE_DEPTH) {
+      const target2 = href.startsWith("#") ? byId.get(href.slice(1)) : void 0;
+      if (!target2 || trail.has(target2) || useDepth >= MAX_USE_DEPTH) {
         omit("unsupported-element");
         return;
       }
@@ -105671,11 +105671,11 @@ function svgItemsOf(svgText, parseXml, opts = {}) {
       const y = lengthIn(el.getAttribute("y") ?? void 0, state, "y") ?? 0;
       const placed2 = { ...state, m: multiplyVectorMatrix(state.m, [1, 0, 0, 1, x, y]) };
       const next2 = new Set(trail);
-      next2.add(target);
-      if (localOf(target) === "symbol") {
-        for (const child of kids(target)) walk2(child, placed2, depth + 1, useDepth + 1, next2);
+      next2.add(target2);
+      if (localOf(target2) === "symbol") {
+        for (const child of kids(target2)) walk2(child, placed2, depth + 1, useDepth + 1, next2);
       } else {
-        walk2(target, placed2, depth + 1, useDepth + 1, next2);
+        walk2(target2, placed2, depth + 1, useDepth + 1, next2);
       }
       return;
     }
@@ -106544,9 +106544,9 @@ function paintSourceFill(row, object4) {
   if (spec) row.grad = spec;
   else if (object4.fill?.hex) row.bg = object4.fill.hex;
 }
-function withRowAlpha(current, target) {
+function withRowAlpha(current, target2) {
   const alpha = /^#?[0-9a-fA-F]{6}([0-9a-fA-F]{2})$/.exec(current.trim())?.[1];
-  const base = target.trim().replace(/^#/, "").slice(0, 6);
+  const base = target2.trim().replace(/^#/, "").slice(0, 6);
   return alpha ? `#${base}${alpha.toLowerCase()}` : `#${base}`;
 }
 function authorPlaceholder(boxBase, labelBase, text8, style) {
@@ -107912,8 +107912,8 @@ function compileTheme(input, opts) {
   const toSide = (dark, shippedOnly) => {
     const moves = /* @__PURE__ */ new Map();
     if (!colors) return moves;
-    const target = extremeGroundPath(colors.colors, input.master, dark);
-    if (target === void 0) return moves;
+    const target2 = extremeGroundPath(colors.colors, input.master, dark);
+    if (target2 === void 0) return moves;
     for (const archetype of input.master.archetypes) {
       if (shippedOnly) {
         const before = archetypeGround(archetype, shipped);
@@ -107921,7 +107921,7 @@ function compileTheme(input, opts) {
       }
       const now2 = archetypeGround(archetype, colors.colors);
       if (now2 && bgIsDark(now2) === dark) continue;
-      moves.set(archetype.id, target);
+      moves.set(archetype.id, target2);
     }
     return moves;
   };
@@ -108087,9 +108087,9 @@ function compileRenovated(input) {
   const mappedColour = (objectId, hex3) => {
     for (const mapping of plan.colors) {
       if (!mapping.affects.includes(objectId) || hex62(mapping.from) !== hex62(hex3)) continue;
-      const target = colourTargetOf(mapping, groundOfObject(objectId), ds.tokens, theming.themed);
-      if (target && /^#?[0-9a-fA-F]{6}/.test(target.trim())) {
-        const written = `#${hex62(target)}`;
+      const target2 = colourTargetOf(mapping, groundOfObject(objectId), ds.tokens, theming.themed);
+      if (target2 && /^#?[0-9a-fA-F]{6}/.test(target2.trim())) {
+        const written = `#${hex62(target2)}`;
         if (!mappedFrom.has(`${objectId}|${written}`)) mappedFrom.set(`${objectId}|${written}`, `#${hex62(hex3)}`);
         return written;
       }
@@ -108359,24 +108359,24 @@ function compileRenovated(input) {
     ordered.forEach((placement2, k) => {
       const cell = cells[k];
       if (!cell) return;
-      let target = row;
+      let target2 = row;
       if (k > 0) {
-        target = { id: `${slotId}.cell-${k + 1}`, kind: "image", name: `${rowStr(row, "name")} ${k + 1}` };
+        target2 = { id: `${slotId}.cell-${k + 1}`, kind: "image", name: `${rowStr(row, "name")} ${k + 1}` };
         const frame = rowStr(row, "frame");
-        if (frame) target.frame = frame;
+        if (frame) target2.frame = frame;
         const masterId = rowStr(row, "master");
-        if (masterId) target.master = masterId;
-        build2.extras.push(target);
+        if (masterId) target2.master = masterId;
+        build2.extras.push(target2);
       }
-      target.x = cell.x;
-      target.y = cell.y;
-      target.w = cell.w;
-      target.h = cell.h;
-      target.image = placement2.image ?? "";
-      target.fit = "contain";
-      delete target.alt;
-      if (placement2.object.alt) target.alt = placement2.object.alt;
-      out.set(placement2.object.id, rowStr(target, "id"));
+      target2.x = cell.x;
+      target2.y = cell.y;
+      target2.w = cell.w;
+      target2.h = cell.h;
+      target2.image = placement2.image ?? "";
+      target2.fit = "contain";
+      delete target2.alt;
+      if (placement2.object.alt) target2.alt = placement2.object.alt;
+      out.set(placement2.object.id, rowStr(target2, "id"));
     });
     slot.taken = true;
     const first = ordered[0];
@@ -109112,19 +109112,19 @@ function compileRenovated(input) {
     let queue2 = [...surplusWords, ...surplusPictures, ...gridQueue];
     while (queue2.length > 0) {
       const first = queue2[0];
-      const target = continuationArchetype(master, build2.archetype, needOf(first));
-      if (!target) {
+      const target2 = continuationArchetype(master, build2.archetype, needOf(first));
+      if (!target2) {
         trayReasons.set(first.object.id, "no-role-in-master");
         queue2 = queue2.slice(1);
         continue;
       }
-      const pictureTurn = target.need === "image";
+      const pictureTurn = target2.need === "image";
       if (added >= MAX_CONTINUATION_FRAMES || continuationCount >= deckLimit || pictureTurn && pictureContinuations >= pictureLimit) {
         const reason2 = added >= MAX_CONTINUATION_FRAMES ? "continuation-limit" : "deck-continuation-limit";
         for (const p of queue2) trayReasons.set(p.object.id, reason2);
         break;
       }
-      const extra = addBuild(slide, target.id, `${name} (${added + 2})`, added + 1);
+      const extra = addBuild(slide, target2.id, `${name} (${added + 2})`, added + 1);
       const placedHere = [];
       const repeats2 = repeatOnto(extra);
       let left = [];
@@ -109571,9 +109571,9 @@ function compileRenovated(input) {
     return slideId === void 0 ? void 0 : slideGround2.get(slideId);
   };
   for (const mapping of plan.colors) {
-    const target = colourTargetOf(mapping, void 0, ds.tokens, theming.themed);
+    const target2 = colourTargetOf(mapping, void 0, ds.tokens, theming.themed);
     const anyGround = Object.values(mapping.byGround ?? {}).some((entry2) => entry2 !== void 0 && Boolean(entry2.to || entry2.toPath));
-    if (!target && !(anyGround && slideGround2.size > 0)) {
+    if (!target2 && !(anyGround && slideGround2.size > 0)) {
       addEntry(report4, {
         code: "colour.unresolved",
         message: `The ${colourNoun(mapping)} has no target that meets its constraints, so the layers it names keep the colour they have.`,
@@ -109584,7 +109584,7 @@ function compileRenovated(input) {
     let touched = 0;
     let masterInk = 0;
     let firstLayer = "";
-    let named = target;
+    let named = target2;
     const conflicts = [];
     for (const objectId of [...mapping.affects].sort()) {
       if (!editable.has(objectId)) continue;
@@ -109592,7 +109592,7 @@ function compileRenovated(input) {
         const row = rowsById.get(layerId);
         if (!row) continue;
         const ground = groundOfLayer(layerId);
-        const layerTarget = ground ? colourTargetOf(mapping, ground, ds.tokens, theming.themed) : target;
+        const layerTarget = ground ? colourTargetOf(mapping, ground, ds.tokens, theming.themed) : target2;
         if (!layerTarget) continue;
         if (vectorRowIds.has(layerId)) {
           const isText3 = rowStr(row, "kind") === "text";
@@ -111982,17 +111982,17 @@ function clipOf(row, byId, offset) {
   }) };
 }
 function shadowOf(row, color6) {
-  const target = rowStr2(row, "shadow");
-  if (target === "depth") {
+  const target2 = rowStr2(row, "shadow");
+  if (target2 === "depth") {
     const dz = clampTo(rowNum2(row, "z"), -300, 900);
     const tint2 = color6("#00000055");
     return tint2 ? { target: "content", dx: 0, dy: Math.round(dz * 0.15 * 100) / 100, blur: Math.round(clampTo(10 + dz * 0.2, 0, 300) * 100) / 100, ...tint2 } : void 0;
   }
-  if (target !== "box" && target !== "text" && target !== "content") return void 0;
+  if (target2 !== "box" && target2 !== "text" && target2 !== "content") return void 0;
   const tint = color6(rowStr2(row, "shadowColor") || "#00000055") ?? color6("#00000055");
   if (!tint) return void 0;
   return {
-    target,
+    target: target2,
     dx: Math.round(clampTo(rowNum2(row, "shadowX"), -300, 300)),
     dy: Math.round(clampTo(rowNum2(row, "shadowY"), -300, 300)),
     blur: Math.round(clampTo(rowNum2(row, "shadowBlur", 10), 0, 300)),
@@ -115719,27 +115719,38 @@ var init_prepare_text = __esm({
 });
 
 // engine/src/office-xml.ts
+function namespace2(frame, name, attribute = false) {
+  const pieces = name.split(":");
+  if (pieces.length > 2 || pieces.some((p) => !/^[A-Za-z_][A-Za-z0-9_.-]*$/.test(p))) throw new Error("Malformed qualified XML name.");
+  if (attribute && pieces.length === 1) return "";
+  const prefix = pieces.length === 2 ? pieces[0] : "";
+  if (prefix === "xml") return XML_NAMESPACE;
+  for (let current = frame; current; current = current.parent) {
+    if (Object.hasOwn(current.values, prefix)) return current.values[prefix];
+  }
+  return prefix ? void 0 : "";
+}
 function entities(value) {
-  if (/&(?!(?:amp|lt|gt|quot|apos|#\d+|#x[\da-f]+);)/i.test(value)) throw new Error("Unsupported XML entity.");
+  if (/&(?!(?:amp|lt|gt|quot|apos|#\d+|#x[\da-fA-F]+);)/.test(value)) throw new Error("Unsupported XML entity.");
   return value.replace(/&([^;]*);/g, (_all, entity) => {
     const predefined = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'" };
     if (predefined[entity]) return predefined[entity];
-    const point3 = /^#x[\da-f]+$/i.test(entity) ? Number.parseInt(entity.slice(2), 16) : /^#\d+$/.test(entity) ? Number(entity.slice(1)) : NaN;
+    const point3 = /^#x[\da-fA-F]+$/.test(entity) ? Number.parseInt(entity.slice(2), 16) : /^#\d+$/.test(entity) ? Number(entity.slice(1)) : NaN;
     if (!Number.isInteger(point3) || point3 > 1114111 || point3 < 32 && ![9, 10, 13].includes(point3) || point3 >= 55296 && point3 <= 57343 || point3 === 65534 || point3 === 65535) throw new Error("Unsupported XML entity.");
     return String.fromCodePoint(point3);
   });
 }
 function attributes(raw) {
   const attrs = /* @__PURE__ */ Object.create(null);
-  const pattern = /\s+([A-Za-z_][A-Za-z0-9_.:-]*)\s*=\s*(["'])(.*?)\2/sy;
+  const pattern = /[\t\n\r ]+([A-Za-z_][A-Za-z0-9_.:-]*)[\t\n\r ]*=[\t\n\r ]*(["'])(.*?)\2/sy;
   let offset = 0, count4 = 0;
   while (offset < raw.length) {
-    if (/^\s*$/.test(raw.slice(offset))) break;
+    if (SPACE2.test(raw.slice(offset))) break;
     if (++count4 > 128) throw new Error("XML attribute limit reached.");
     pattern.lastIndex = offset;
     const match = pattern.exec(raw);
     if (!match || match[3].includes("<") || Object.hasOwn(attrs, match[1])) throw new Error("Malformed XML attributes.");
-    attrs[match[1]] = entities(match[3]);
+    attrs[match[1]] = entities(match[3].replace(/\r\n?/g, "\n").replace(/[\t\n]/g, " "));
     offset = pattern.lastIndex;
   }
   return attrs;
@@ -115748,15 +115759,19 @@ function readOfficeXml(bytes, budget3) {
   if (bytes.length > OFFICE_MAX_XML_BYTES) throw new Error("XML part exceeds 2 MiB.");
   const encoding = bytes[0] === 255 && bytes[1] === 254 ? "utf-16le" : bytes[0] === 254 && bytes[1] === 255 ? "utf-16be" : "utf-8";
   const xml2 = new TextDecoder(encoding, { fatal: true }).decode(bytes);
-  for (const char of xml2) if (char.charCodeAt(0) < 32 && ![9, 10, 13].includes(char.charCodeAt(0))) throw new Error("Invalid XML characters.");
+  for (const char of xml2) {
+    const point3 = char.codePointAt(0);
+    if (point3 < 32 && ![9, 10, 13].includes(point3) || point3 >= 55296 && point3 <= 57343 || point3 === 65534 || point3 === 65535) throw new Error("Invalid XML characters.");
+  }
   if (/<!\s*(?:DOCTYPE|ENTITY)/i.test(xml2)) throw new Error("XML declarations with entities are unsupported.");
   const declaration = /^\s*<\?xml\s[^?]*encoding\s*=\s*["']([^"']+)/i.exec(xml2)?.[1]?.toLowerCase();
-  if (declaration && !["utf-8", "utf-16", "utf-16le", "utf-16be"].includes(declaration)) throw new Error("Unsupported XML encoding.");
+  if (declaration && (encoding === "utf-8" ? declaration !== "utf-8" : !["utf-16", encoding].includes(declaration))) throw new Error("Unsupported XML encoding.");
   let root2, offset = 0, partNodes = 0, partTokens = 0;
   const stack = [];
   const appendText = (text8) => {
+    if (text8.includes("]]>")) throw new Error("Malformed XML character data.");
     if (!stack.length) {
-      if (text8.trim()) throw new Error("Text outside XML root.");
+      if (!SPACE2.test(text8)) throw new Error("Text outside XML root.");
       return;
     }
     const node = stack[stack.length - 1].node;
@@ -115774,6 +115789,12 @@ function readOfficeXml(bytes, budget3) {
     if (ending) {
       const end2 = xml2.indexOf(ending, start + 2);
       if (end2 < 0) throw new Error("Unterminated XML section.");
+      if (ending === "-->" && (xml2.slice(start + 4, end2).includes("--") || xml2.slice(start + 4, end2).endsWith("-"))) throw new Error("Malformed XML comment.");
+      if (ending === "?>") {
+        const instruction = xml2.slice(start + 2, end2), target2 = NAME.exec(instruction)?.[0];
+        if (!target2 || !/^(?:[\t\n\r ]|$)/.test(instruction.slice(target2.length))) throw new Error("Malformed XML instruction.");
+        if (target2.toLowerCase() === "xml" && (target2 !== "xml" || start !== 0 || !/^xml[\t\n\r ]+version[\t\n\r ]*=[\t\n\r ]*(["'])1\.0\1(?:[\t\n\r ]+encoding[\t\n\r ]*=[\t\n\r ]*(["'])[A-Za-z][A-Za-z0-9._-]*\2)?(?:[\t\n\r ]+standalone[\t\n\r ]*=[\t\n\r ]*(["'])(?:yes|no)\3)?[\t\n\r ]*$/.test(instruction))) throw new Error("Malformed XML declaration.");
+      }
       if (ending === "]]>") {
         if (!stack.length) throw new Error("CDATA outside XML root.");
         stack[stack.length - 1].node.text += xml2.slice(start + 9, end2);
@@ -115793,19 +115814,39 @@ function readOfficeXml(bytes, budget3) {
     if (end === xml2.length) throw new Error("Unterminated XML tag.");
     const tag3 = xml2.slice(start + 1, end);
     if (tag3.startsWith("/")) {
-      const name = tag3.slice(1).trim();
-      if (stack.pop()?.raw !== name) throw new Error("Mismatched XML tag.");
+      const close = /^\/([A-Za-z_][A-Za-z0-9_.:-]*)[\t\n\r ]*$/.exec(tag3);
+      if (!close) throw new Error("Malformed closing tag.");
+      const name = close[1];
+      const opened = stack.pop();
+      if (opened?.raw !== name) throw new Error("Mismatched XML tag.");
+      opened.node.end = end + 1;
     } else {
       const name = NAME.exec(tag3)?.[0];
       if (!name || ++partNodes > 4e4 || stack.length >= 96) throw new Error("XML structure limit reached.");
-      const empty2 = /\/\s*$/.test(tag3), rawAttrs = tag3.slice(name.length).replace(/\/\s*$/, "");
-      const node = { name: local(name), attrs: attributes(rawAttrs), children: [], text: "" };
+      const empty2 = tag3.endsWith("/"), rawAttrs = tag3.slice(name.length).replace(/\/$/, "");
+      if (name === "xmlns" || name.startsWith("xmlns:")) throw new Error("Reserved XML name.");
+      const attrs = attributes(rawAttrs), declarations = /* @__PURE__ */ Object.create(null);
+      for (const [key, value] of Object.entries(attrs)) if (key === "xmlns" || key.startsWith("xmlns:")) {
+        const prefix = key === "xmlns" ? "" : key.slice(6);
+        if (prefix && !/^[A-Za-z_][A-Za-z0-9_.-]*$/.test(prefix) || prefix === "xmlns" || value === XMLNS_NAMESPACE || prefix === "xml" && value !== XML_NAMESPACE || prefix !== "xml" && value === XML_NAMESPACE || prefix && !value) throw new Error("Invalid XML namespace declaration.");
+        declarations[prefix] = value;
+      }
+      const frame = { parent: stack.at(-1)?.namespaces, values: declarations };
+      const attributeNamespaces = /* @__PURE__ */ Object.create(null), expanded = /* @__PURE__ */ new Set();
+      for (const key of Object.keys(attrs)) {
+        const uri = key === "xmlns" || key.startsWith("xmlns:") ? XMLNS_NAMESPACE : namespace2(frame, key, true);
+        const identity2 = `${uri ?? key}:${local(key)}`;
+        if (expanded.has(identity2)) throw new Error("Duplicate qualified XML attribute.");
+        expanded.add(identity2);
+        attributeNamespaces[key] = uri;
+      }
+      const node = { name: local(name), qname: name, namespace: namespace2(frame, name), attrs, attributeNamespaces, children: [], text: "", start, end: end + 1 };
       if (stack.length) stack[stack.length - 1].node.children.push(node);
       else {
         if (root2) throw new Error("Multiple XML roots.");
         root2 = node;
       }
-      if (!empty2) stack.push({ raw: name, node });
+      if (!empty2) stack.push({ raw: name, node, namespaces: frame });
     }
     offset = end + 1;
   }
@@ -115828,13 +115869,16 @@ function officeText(root2) {
   }
   return text8.trim();
 }
-var OFFICE_MAX_XML_BYTES, NAME, local;
+var OFFICE_MAX_XML_BYTES, NAME, SPACE2, local, XML_NAMESPACE, XMLNS_NAMESPACE;
 var init_office_xml = __esm({
   "engine/src/office-xml.ts"() {
     "use strict";
     OFFICE_MAX_XML_BYTES = 2 * 1024 * 1024;
     NAME = /^[A-Za-z_][A-Za-z0-9_.:-]*/;
+    SPACE2 = /^[\t\n\r ]*$/;
     local = (name) => name.slice(name.lastIndexOf(":") + 1);
+    XML_NAMESPACE = "http://www.w3.org/XML/1998/namespace";
+    XMLNS_NAMESPACE = "http://www.w3.org/2000/xmlns/";
   }
 });
 
@@ -115873,7 +115917,9 @@ function inspectXml(part, root2, format, budget3) {
   if (/^docProps\/(?:core|app|custom)\.xml$/.test(path)) {
     for (const node of root2.children) {
       const name = officeAttr(node, "name") ?? node.name;
+      const before = part.findings.length;
       add("office-properties", "Document property", officeText(node), `Property: ${name}`);
+      if (part.findings.length > before) part.findings[part.findings.length - 1].propertyStart = node.start;
     }
   }
   if (path.endsWith(".rels")) {
@@ -115983,7 +116029,7 @@ function inspectPackage(bytes, prefix, declared, depth, budget3, result) {
 }
 function inspectOfficePackage(bytes, name, options2 = {}) {
   const extension = name.split(".").pop()?.toLowerCase() ?? "";
-  const result = { format: extension, limitations: [READ_ONLY, COVERAGE], parts: [], expandedBytes: 0 };
+  const result = { format: extension, limitations: [OFFICE_READ_ONLY, COVERAGE], parts: [], expandedBytes: 0 };
   if (OLE.every((byte, index2) => bytes[index2] === byte)) {
     result.format = "office-container";
     result.limitations.push("Legacy binary or encrypted Office container. Its content is not inspected or decrypted.");
@@ -115999,7 +116045,7 @@ function inspectOfficePackage(bytes, name, options2 = {}) {
   result.limitations = [...new Set(result.limitations)];
   return result;
 }
-var OFFICE, OLE, READ_ONLY, COVERAGE;
+var OFFICE, OLE, OFFICE_READ_ONLY, COVERAGE;
 var init_office_census = __esm({
   "engine/src/office-census.ts"() {
     "use strict";
@@ -116007,8 +116053,198 @@ var init_office_census = __esm({
     init_office_xml();
     OFFICE = /\.(docx|pptx|xlsx|docm|pptm|xlsm|dotx|dotm|potx|potm|xltx|xltm|xlsb|doc|ppt|xls)$/i;
     OLE = [208, 207, 17, 224, 161, 177, 26, 225];
-    READ_ONLY = "Office inspection is read-only. Properties and document content are retained unchanged; no cleaned copy is available.";
+    OFFICE_READ_ONLY = "Office inspection is read-only. Properties and document content are retained unchanged; no cleaned copy is available.";
     COVERAGE = "This package census checks supported properties, relationships, comments, notes and hidden-content markers. Visible text, formulas, rendered appearance and arbitrary binary content are not fully inspected.";
+  }
+});
+
+// engine/src/docx-metadata.ts
+function validateXml(bytes, budget3) {
+  const root2 = readOfficeXml(bytes, budget3);
+  for (const node of officeNodes(root2)) if (node.namespace === void 0 || Object.values(node.attributeNamespaces).some((uri) => uri === void 0)) throw new Error("Unbound XML namespace.");
+  return root2;
+}
+function propertyText(bytes) {
+  return new TextDecoder(bytes[0] === 255 && bytes[1] === 254 ? "utf-16le" : bytes[0] === 254 && bytes[1] === 255 ? "utf-16be" : "utf-8", { fatal: true }).decode(bytes);
+}
+function encodePropertyText(text8, original) {
+  const utf16 = original[0] === 255 && original[1] === 254 || original[0] === 254 && original[1] === 255;
+  if (utf16) {
+    const output2 = new Uint8Array(2 + text8.length * 2), view = new DataView(output2.buffer);
+    output2.set(original.subarray(0, 2));
+    for (let i = 0; i < text8.length; i++) view.setUint16(2 + i * 2, text8.charCodeAt(i), original[0] === 255);
+    return output2;
+  }
+  const body = new TextEncoder().encode(text8);
+  if (original[0] !== 239 || original[1] !== 187 || original[2] !== 191) return body;
+  const output = new Uint8Array(body.length + 3);
+  output.set(original.subarray(0, 3));
+  output.set(body, 3);
+  return output;
+}
+function zipComment(bytes, members) {
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
+  for (let end = bytes.length - 22; end >= Math.max(0, bytes.length - 65557); end--) {
+    if (view.getUint32(end, true) !== 101010256 || end + 22 + view.getUint16(end + 20, true) !== bytes.length) continue;
+    if (view.getUint16(end + 10, true) !== members.length || view.getUint32(end + 12, true) !== members.reduce((n7, m2) => n7 + m2.central.length, 0) || view.getUint32(end + 16, true) + view.getUint32(end + 12, true) !== end) continue;
+    return bytes.slice(end + 22);
+  }
+  throw new Error("Unsupported ZIP trailer.");
+}
+function target(value) {
+  const path = value.startsWith("/") ? value.slice(1) : value;
+  if (!path || /[\\\0?#%]/.test(path) || path.split("/").some((p) => !p || p === "." || p === "..")) throw new Error("Unsupported package target.");
+  return path;
+}
+function wordXmlTarget(path, value, mode3, members) {
+  if (mode3 || !value || /[\\\0?#%]/.test(value) || !/\.(?:xml|rels)$/i.test(value)) return false;
+  const source = path === "_rels/.rels" ? "" : /^(.*)\/_rels\/[^/]+\.rels$/i.exec(path)?.[1];
+  if (source === void 0) return false;
+  const pieces = value.startsWith("/") ? [] : source.split("/").filter(Boolean);
+  for (const piece of value.replace(/^\//, "").split("/")) {
+    if (!piece || piece === ".") continue;
+    if (piece === "..") {
+      if (!pieces.length) return false;
+      pieces.pop();
+    } else pieces.push(piece);
+  }
+  return members.has(pieces.join("/"));
+}
+function openDocxMetadata(bytes, name, limits = {}) {
+  const unsupported = (reason2) => ({ supported: false, properties: [], limitations: [reason2, ...LIMITS2], remove: () => {
+    throw new Error("DOCX metadata cleanup is unavailable for this file.");
+  } });
+  if (!/\.docx$/i.test(name)) return unsupported("Metadata cleanup supports DOCX files only; this Office file remains inspect-only.");
+  try {
+    const members = readZipMembers(bytes, { maxInputBytes: 32 * 1024 * 1024, maxEntries: Math.min(300, limits.maxParts ?? 300), maxEntryBytes: 32 * 1024 * 1024, maxTotalBytes: Math.min(64 * 1024 * 1024, limits.maxExpandedBytes ?? 64 * 1024 * 1024) });
+    if (new Set(members.map((m2) => m2.name.toLowerCase())).size !== members.length || members.some((m2) => /(^\/|\\|\0|(?:^|\/)\.\.?\/)/.test(m2.name))) throw new Error("Ambiguous package names.");
+    if (members.some((m2) => /(?:vba|macro|_xmlsignatures)(?:[^/]*\/|[^/]*$)/i.test(m2.name))) return unsupported("Macro or signature parts were identified. This file remains inspect-only.");
+    if (members.some((m2) => m2.flags & 1 || ![0, 8].includes(m2.method))) return unsupported("Encrypted or unsupported ZIP members prevent DOCX metadata cleanup.");
+    const comment = zipComment(bytes, members), budget3 = { nodes: 0 }, trees = /* @__PURE__ */ new Map(), propertyParts = /* @__PURE__ */ new Map();
+    const memberNames = new Set(members.map((member) => member.name));
+    for (const member of members) {
+      const decoded = decodeZipMember(member);
+      if (!/\.(?:xml|rels)$/i.test(member.name)) continue;
+      const root2 = validateXml(decoded, budget3);
+      if (/\.rels$/i.test(member.name)) for (const node of officeNodes(root2).filter((node2) => node2.namespace === RELS && node2.name === "Relationship")) {
+        const type = node.attrs.Type ?? "";
+        if (/macro|vba|signature/i.test(type)) return unsupported("Macro or signature relationships prevent DOCX metadata cleanup.");
+        if ((type.startsWith(OFFICE2) || type.startsWith("http://purl.oclc.org/ooxml/officeDocument/relationships/")) && WORD_XML_RELATIONS.has(type.slice(type.lastIndexOf("/") + 1)) && !wordXmlTarget(member.name, node.attrs.Target ?? "", node.attrs.TargetMode, memberNames)) return unsupported("A Word XML relationship target cannot be safely inspected. This file remains inspect-only.");
+      }
+      if (member.name === "[Content_Types].xml" || member.name === "_rels/.rels" || member.name === "word/document.xml" || Object.hasOwn(PARTS, member.name)) trees.set(member.name, root2);
+      const nodes = officeNodes(root2).filter((n7) => n7.namespace === WORD).sort((a, b) => a.start - b.start);
+      if (nodes.some((node) => node.name === "dataBinding")) return unsupported("XML-bound content controls can display document properties. Metadata cleanup is unavailable for this file; the properties and bound content are retained.");
+      const instructions = nodes.filter((n7) => n7.name === "instrText").map((n7) => n7.text).join("") + nodes.filter((n7) => n7.name === "fldSimple").map((n7) => Object.entries(n7.attrs).filter(([key]) => key.endsWith(":instr") && n7.attributeNamespaces[key] === WORD).map(([, value]) => value).join("")).join("");
+      if (/(?:DOCPROPERTY|AUTHOR|TITLE|SUBJECT|KEYWORDS|COMMENTS|CREATEDATE|SAVEDATE|PRINTDATE|LASTSAVEDBY|REVNUM)/i.test(instructions)) return unsupported("Document fields can display document properties. Metadata cleanup is unavailable for this file; the properties and field content are retained.");
+      if (Object.hasOwn(PARTS, member.name)) propertyParts.set(member.name, { member, bytes: decoded, text: propertyText(decoded), properties: [] });
+    }
+    const types = trees.get("[Content_Types].xml"), relationships = trees.get("_rels/.rels"), doc = trees.get("word/document.xml");
+    if (types?.name !== "Types" || types.namespace !== TYPES || relationships?.name !== "Relationships" || relationships.namespace !== RELS || doc?.name !== "document" || doc.namespace !== WORD) throw new Error("Unsupported DOCX structure.");
+    const overrides = types.children.filter((n7) => n7.namespace === TYPES && n7.name === "Override");
+    const defaults2 = types.children.filter((n7) => n7.namespace === TYPES && n7.name === "Default");
+    const rels = relationships.children.filter((n7) => n7.namespace === RELS && n7.name === "Relationship");
+    if (new Set(overrides.map((n7) => n7.attrs.PartName)).size !== overrides.length || new Set(defaults2.map((n7) => n7.attrs.Extension?.toLowerCase())).size !== defaults2.length || new Set(rels.map((n7) => n7.attrs.Id)).size !== rels.length) throw new Error("Ambiguous package declarations.");
+    const xmlType = (type) => /(?:\+xml|^(?:application|text)\/xml)(?:\s*;|$)/i.test(type);
+    if (overrides.some((n7) => xmlType(n7.attrs.ContentType ?? "") && !/\.(?:xml|rels)$/i.test(n7.attrs.PartName ?? "")) || defaults2.some((n7) => xmlType(n7.attrs.ContentType ?? "") && !/^(?:xml|rels)$/i.test(n7.attrs.Extension ?? ""))) return unsupported("XML parts with unconventional filename extensions are not supported for DOCX metadata cleanup. This file remains inspect-only.");
+    if (types.children.some((n7) => /macro|vba|signature/i.test(n7.attrs.ContentType ?? ""))) return unsupported("Macro-enabled or signed package declarations prevent DOCX metadata cleanup.");
+    const main = rels.filter((n7) => n7.attrs.Type === `${OFFICE2}officeDocument`);
+    if (main.length !== 1 || main[0].attrs.TargetMode || target(main[0].attrs.Target ?? "") !== "word/document.xml" || overrides.find((n7) => n7.attrs.PartName === "/word/document.xml")?.attrs.ContentType !== MAIN_TYPE) throw new Error("Unsupported main document declaration.");
+    for (const [path, spec] of Object.entries(PARTS)) {
+      const matching = rels.filter((n7) => n7.attrs.Type === spec.relation);
+      const part = propertyParts.get(path), root2 = trees.get(path);
+      if (!part) {
+        if (matching.length) throw new Error("Missing property part.");
+        continue;
+      }
+      if (matching.length !== 1 || matching[0].attrs.TargetMode || target(matching[0].attrs.Target ?? "") !== path || overrides.find((n7) => n7.attrs.PartName === `/${path}`)?.attrs.ContentType !== spec.type || root2?.name !== spec.root || root2.namespace !== spec.namespace) throw new Error("Unsupported property declaration.");
+      const seen = /* @__PURE__ */ new Set(), customNames = /* @__PURE__ */ new Set();
+      for (const node of root2.children) {
+        let id3, label4, location2;
+        if (path === "docProps/core.xml") {
+          const field2 = CORE[node.name];
+          if (!field2 || node.namespace !== field2.namespace) continue;
+          if (node.children.length) throw new Error("Unsupported core property value.");
+          id3 = `core:${node.name}`;
+          label4 = field2.label;
+          location2 = `Property: ${node.name}`;
+        } else {
+          if (node.namespace !== CUSTOM || node.name !== "property") continue;
+          if (!/^\d{1,10}$/.test(node.attrs.pid ?? "") || Number(node.attrs.pid) < 2 || Number(node.attrs.pid) > 2147483647 || !node.attrs.name || node.attrs.name.length > 256 || node.attrs.fmtid?.toUpperCase() !== "{D5CDD505-2E9C-101B-9397-08002B2CF9AE}") throw new Error("Unsupported custom property identity.");
+          if (customNames.has(node.attrs.name)) throw new Error("Ambiguous custom property name.");
+          customNames.add(node.attrs.name);
+          id3 = `custom:${Number(node.attrs.pid)}`;
+          label4 = "Custom property";
+          location2 = `Custom property: ${node.attrs.name}`;
+        }
+        if (seen.has(id3)) throw new Error("Ambiguous property identity.");
+        seen.add(id3);
+        part.properties.push({ id: id3, part: path, label: label4, location: location2, value: officeText(node), offset: node.start, start: node.start, end: node.end });
+        if ([...propertyParts.values()].reduce((n7, p) => n7 + p.properties.length, 0) > 2e3) throw new Error("Property count limit reached.");
+      }
+    }
+    const properties2 = [...propertyParts.values()].flatMap((p) => p.properties.map(({ start: _start, end: _end, ...property4 }) => property4));
+    const remove = (ids2) => {
+      if (!Array.isArray(ids2) || ids2.length > 2e3 || new Set(ids2).size !== ids2.length || ids2.some((id3) => !properties2.some((p) => p.id === id3))) throw new Error("Invalid DOCX property choice. Inspect again.");
+      if (!ids2.length) return bytes;
+      const selected = new Set(ids2), replacements = /* @__PURE__ */ new Map();
+      for (const [path, part] of propertyParts) {
+        const edits = part.properties.filter((p) => selected.has(p.id));
+        if (!edits.length) continue;
+        let text8 = part.text;
+        for (const edit of edits.sort((a, b) => b.start - a.start)) text8 = text8.slice(0, edit.start) + text8.slice(edit.end);
+        const output2 = encodePropertyText(text8, part.bytes);
+        validateXml(output2, { nodes: 0 });
+        replacements.set(path, readZipMembers(storeZip([{ name: path, bytes: output2 }]))[0]);
+      }
+      const output = storeZipMembers(members.map((m2) => replacements.get(m2.name) ?? m2));
+      const copied = new Uint8Array(output.length + comment.length);
+      copied.set(output);
+      copied.set(comment, output.length);
+      new DataView(copied.buffer).setUint16(output.length - 2, comment.length, true);
+      if (copied.length > 32 * 1024 * 1024) throw new Error("DOCX result exceeds the size limit.");
+      const after = openDocxMetadata(copied, name, limits);
+      const identity2 = (items2) => items2.map(({ offset: _offset, ...property4 }) => property4);
+      if (!after.supported || JSON.stringify(identity2(after.properties)) !== JSON.stringify(identity2(properties2.filter((p) => !selected.has(p.id))))) throw new Error("DOCX property removal could not be verified.");
+      return copied;
+    };
+    return { supported: true, properties: properties2, limitations: LIMITS2, remove };
+  } catch {
+    return unsupported("This DOCX package is malformed, unsupported or exceeds the cleanup limits. It remains inspect-only.");
+  }
+}
+var CP, DC, TERMS, CUSTOM, RELS, TYPES, WORD, OFFICE2, CORE_REL, WORD_XML_RELATIONS, MAIN_TYPE, PARTS, CORE, LIMITS2;
+var init_docx_metadata = __esm({
+  "engine/src/docx-metadata.ts"() {
+    "use strict";
+    init_zip();
+    init_office_xml();
+    CP = "http://schemas.openxmlformats.org/package/2006/metadata/core-properties";
+    DC = "http://purl.org/dc/elements/1.1/";
+    TERMS = "http://purl.org/dc/terms/";
+    CUSTOM = "http://schemas.openxmlformats.org/officeDocument/2006/custom-properties";
+    RELS = "http://schemas.openxmlformats.org/package/2006/relationships";
+    TYPES = "http://schemas.openxmlformats.org/package/2006/content-types";
+    WORD = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
+    OFFICE2 = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/";
+    CORE_REL = "http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties";
+    WORD_XML_RELATIONS = /* @__PURE__ */ new Set(["officeDocument", "header", "footer", "comments", "footnotes", "endnotes", "glossaryDocument", "styles", "stylesWithEffects", "numbering", "settings", "fontTable", "webSettings", "people"]);
+    MAIN_TYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml";
+    PARTS = {
+      "docProps/core.xml": { namespace: CP, root: "coreProperties", relation: CORE_REL, type: "application/vnd.openxmlformats-package.core-properties+xml" },
+      "docProps/custom.xml": { namespace: CUSTOM, root: "Properties", relation: `${OFFICE2}custom-properties`, type: "application/vnd.openxmlformats-officedocument.custom-properties+xml" }
+    };
+    CORE = {
+      creator: { namespace: DC, label: "Author" },
+      lastModifiedBy: { namespace: CP, label: "Last saved by" },
+      created: { namespace: TERMS, label: "Created date" },
+      modified: { namespace: TERMS, label: "Modified date" },
+      lastPrinted: { namespace: CP, label: "Last printed date" },
+      title: { namespace: DC, label: "Title" },
+      subject: { namespace: DC, label: "Subject" },
+      keywords: { namespace: CP, label: "Keywords" },
+      description: { namespace: DC, label: "Description" }
+    };
+    LIMITS2 = ["Only selected DOCX core and custom properties can be removed. Comments, revisions, links, hidden content and embedded objects are retained.", "Other properties, XML comments, package names and ZIP comments are retained. No result is certified free of private information."];
   }
 });
 
@@ -116165,20 +116401,42 @@ function openPreparationDocument(bytes, name, sourceId, id3, rules, budget3, dep
     return doc;
   }
   if (isOfficeSource(bytes, name)) {
-    const census = inspectOfficePackage(bytes, name, { maxParts: PREPARE_MAX_SCOPES - budget3.scopes, maxExpandedBytes: PREPARE_MAX_TOTAL - budget3.expanded });
+    const limits = { maxParts: PREPARE_MAX_SCOPES - budget3.scopes, maxExpandedBytes: PREPARE_MAX_TOTAL - budget3.expanded };
+    const census = inspectOfficePackage(bytes, name, limits);
+    const metadata2 = depth === 0 && census.format === "docx" ? openDocxMetadata(bytes, name, limits) : void 0;
     scope2.format = census.format;
     scope2.readOnly = true;
     scope2.status = census.parts.length ? "partial" : "uninspected";
     scope2.limitations = census.limitations;
+    if (metadata2) scope2.limitations = [...scope2.limitations.filter((l) => !metadata2.supported || l !== OFFICE_READ_ONLY), ...metadata2.limitations];
+    if (metadata2?.supported) scope2.actions = ["remove-property"];
     budget3.expanded += census.expandedBytes;
     budget3.scopes += census.parts.length;
-    doc.children = census.parts.map((part, index2) => ({
-      scope: { id: `${id3}:o${index2}`, sourceId, path: `${name}/${part.path}`, format: part.format, status: part.status, limitations: part.limitations, readOnly: true },
-      children: [],
-      units: [],
-      censusFindings: part.findings,
-      write: () => bytes
-    }));
+    const propertyUnits = /* @__PURE__ */ new Map();
+    doc.children = census.parts.map((part, index2) => {
+      const childId = `${id3}:o${index2}`;
+      const properties2 = metadata2?.supported ? metadata2.properties.filter((p) => p.part === part.path) : [];
+      const units2 = properties2.map((p) => {
+        const unitId = `${childId}:p${p.id}`;
+        propertyUnits.set(unitId, p.id);
+        return { id: unitId, scopeId: childId, text: p.value, location: p.location, line: 1, action: "remove-property", label: p.label, propertyId: p.id };
+      });
+      return {
+        scope: { id: childId, sourceId, path: `${name}/${part.path}`, format: part.format, status: part.status, limitations: part.limitations, readOnly: true },
+        children: [],
+        units: units2,
+        censusFindings: part.findings.filter((f) => !properties2.some((p) => p.offset === f.propertyStart)),
+        write: () => bytes
+      };
+    });
+    if (metadata2?.supported) doc.write = (values) => {
+      const selected = [];
+      for (const [unitId, propertyId] of propertyUnits) if (values.has(unitId)) {
+        if (values.get(unitId) !== "") throw new Error("DOCX properties support removal only.");
+        selected.push(propertyId);
+      }
+      return metadata2.remove(selected);
+    };
     return doc;
   }
   const zip = bytes[0] === 80 && bytes[1] === 75 && (ext === "zip" || ext === "");
@@ -116287,6 +116545,7 @@ var init_prepare_document = __esm({
     init_zip();
     init_prepare_text();
     init_office_census();
+    init_docx_metadata();
     encoder4 = new TextEncoder();
     decoder5 = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
     PREPARE_MAX_BYTES = 32 * 1024 * 1024;
@@ -116318,6 +116577,7 @@ async function scan(sources, rules, options2 = {}) {
   const inspection = { version: 1, sources: [], scopes: [], findings: [], groups: [], rules };
   const roots2 = [];
   const spans = /* @__PURE__ */ new Map();
+  const properties2 = /* @__PURE__ */ new Map();
   const groups = /* @__PURE__ */ new Map();
   const budget3 = { scopes: 0, expanded: 0, units: 0 };
   for (const [index2, source] of sources.entries()) {
@@ -116348,6 +116608,14 @@ async function scan(sources, rules, options2 = {}) {
           doc.scope.status = "partial";
           doc.scope.limitations.push("The 2,000-finding limit was reached.");
           break;
+        }
+        if (unit2.action === "remove-property") {
+          const group = { id: `g${groups.size}`, value: unit2.text, replacement: "", category: "office-properties", count: 1, action: "remove-property" };
+          groups.set(`property:${unit2.id}`, group);
+          const finding3 = { id: `f${inspection.findings.length}`, scopeId: unit2.scopeId, groupId: group.id, rule: "docx-property", category: "office-properties", label: unit2.label ?? "Document property", uncertain: false, location: unit2.location, value: unit2.text, line: 1, action: "remove-property", propertyId: unit2.propertyId };
+          inspection.findings.push(finding3);
+          properties2.set(finding3.id, unit2);
+          continue;
         }
         const found = inspectPrivateText(unit2.text, rules, unit2.field);
         if (found.truncated) {
@@ -116380,7 +116648,7 @@ async function scan(sources, rules, options2 = {}) {
   inspection.scopes.forEach((scope2) => {
     scope2.limitations = [...new Set(scope2.limitations)];
   });
-  return { inspection, roots: roots2, spans };
+  return { inspection, roots: roots2, spans, properties: properties2 };
 }
 async function inspectPreparation(sources, rules = [], options2) {
   return (await scan(sources, rules, options2)).inspection;
@@ -116409,23 +116677,31 @@ async function applyPreparation(sources, inspection, choices2, removeScopes = []
     if (!fresh.inspection.groups.some((g2) => g2.id === choice3.groupId) || chosen.has(choice3.groupId) || typeof choice3.replacement !== "string" || choice3.replacement.length > 4096) throw new Error("Invalid replacement choice.");
     if (choice3.findings && (!Array.isArray(choice3.findings) || choice3.findings.some((id3) => !fresh.inspection.findings.some((f) => f.id === id3 && f.groupId === choice3.groupId)))) throw new Error("A selected occurrence no longer belongs to this group.");
     if (fresh.inspection.groups.find((g2) => g2.id === choice3.groupId)?.readOnly) throw new Error("Office census findings are read-only. No replacement or cleanup is supported.");
+    if (fresh.inspection.groups.find((g2) => g2.id === choice3.groupId)?.action === "remove-property" && choice3.replacement !== "") throw new Error("DOCX document properties support removal only.");
     chosen.set(choice3.groupId, choice3);
   }
   const remove = new Set(removeScopes);
   for (const id3 of remove) if (!fresh.inspection.scopes.some((s) => s.id === id3 && s.id !== s.sourceId && !s.readOnly)) throw new Error("Only removable archive members can be removed. Office package parts are read-only.");
   const byUnit = /* @__PURE__ */ new Map();
   const replaced = /* @__PURE__ */ new Map();
+  const propertyValues = /* @__PURE__ */ new Map();
   for (const finding3 of fresh.inspection.findings) {
     const choice3 = chosen.get(finding3.groupId);
-    if (choice3?.replacement === finding3.value) continue;
+    if (choice3?.replacement === finding3.value && !finding3.action) continue;
     if (!choice3 || choice3.findings && !choice3.findings.includes(finding3.id)) continue;
+    const property4 = fresh.properties.get(finding3.id);
+    if (property4) {
+      propertyValues.set(property4.id, "");
+      replaced.set(finding3.scopeId, (replaced.get(finding3.scopeId) ?? 0) + 1);
+      continue;
+    }
     const entry2 = fresh.spans.get(finding3.id);
     const group = byUnit.get(entry2.unit.id) ?? { unit: entry2.unit, edits: [] };
     group.edits.push({ span: entry2.span, replacement: choice3.replacement });
     byUnit.set(entry2.unit.id, group);
     replaced.set(finding3.scopeId, (replaced.get(finding3.scopeId) ?? 0) + 1);
   }
-  const values = new Map([...byUnit].map(([id3, { unit: unit2, edits }]) => [id3, replacePrivateSpans(unit2.text, edits)]));
+  const values = new Map([...propertyValues, ...[...byUnit].map(([id3, { unit: unit2, edits }]) => [id3, replacePrivateSpans(unit2.text, edits)])]);
   const outputs = [], failed2 = /* @__PURE__ */ new Set();
   for (const [index2, root2] of fresh.roots.entries()) {
     options2.signal?.throwIfAborted();
@@ -116467,6 +116743,12 @@ async function applyPreparation(sources, inspection, choices2, removeScopes = []
     ...failed2.size ? { stages: [...failed2].map((sourceId) => ({ sourceId, operation: "replace-values", status: "failed", inputSha256: fresh.inspection.sources.find((s) => s.id === sourceId).sha256, outputSha256: after.sources.find((s) => s.id === sourceId).sha256, limitations: ["Selected changes failed. Original retained."] })) } : {}
   };
   report4.replaced = report4.scopes.reduce((n7, s) => n7 + s.replaced, 0);
+  for (const root2 of fresh.roots) {
+    const selected = fresh.inspection.findings.filter((f) => f.action === "remove-property" && chosen.has(f.groupId) && (!chosen.get(f.groupId).findings || chosen.get(f.groupId).findings.includes(f.id)) && fresh.inspection.scopes.find((s) => s.id === f.scopeId)?.sourceId === root2.scope.sourceId);
+    if (!selected.length) continue;
+    report4.stages ??= [];
+    report4.stages.push({ sourceId: root2.scope.sourceId, operation: "remove-properties", status: failed2.has(root2.scope.sourceId) ? "failed" : "completed", inputSha256: fresh.inspection.sources.find((s) => s.id === root2.scope.sourceId).sha256, outputSha256: after.sources.find((s) => s.id === root2.scope.sourceId).sha256, before: selected.length, after: failed2.has(root2.scope.sourceId) ? selected.length : 0, limitations: ["Only selected DOCX document properties were requested for removal. Other Office content is retained.", "The output properties were inspected again; document appearance is not certified by the property census."] });
+  }
   return { outputs, report: report4, inspection: after };
 }
 function createPrepareAPI() {
@@ -118076,9 +118358,9 @@ ${signals.findings.map((f) => f.label).join("\n")}`;
     case "table": {
       const value = parseTableText(text8);
       if (!value) throw new Error("Paste CSV, TSV or a Markdown table.");
-      const target = s("format", "markdown");
-      out = target === "html" ? toHtmlTable(value) : target === "tsv" ? toTsv(value) : toMarkdown(value);
-      format = target === "markdown" ? "md" : target;
+      const target2 = s("format", "markdown");
+      out = target2 === "html" ? toHtmlTable(value) : target2 === "tsv" ? toTsv(value) : toMarkdown(value);
+      format = target2 === "markdown" ? "md" : target2;
       break;
     }
     case "rot13":
@@ -118773,8 +119055,8 @@ var init_delivery = __esm({
 });
 
 // engine/src/learning/preflight.ts
-function learningExportKey(module, target, settings) {
-  return JSON.stringify([{ ...module, revision: 0 }, target, settings]);
+function learningExportKey(module, target2, settings) {
+  return JSON.stringify([{ ...module, revision: 0 }, target2, settings]);
 }
 function checkLearningExportSize(bytes, maxMB) {
   if (!Number.isFinite(maxMB) || maxMB < 0)
@@ -118786,12 +119068,12 @@ function checkLearningExportSize(bytes, maxMB) {
       `The package is ${(bytes / 1e6).toFixed(2)} MB, above the ${maxMB} MB destination limit. Reduce media size or split the course, then check again.`
     );
 }
-function learningHandoff(target) {
-  if (!LEARNING_TARGETS.some((t) => t.id === target))
+function learningHandoff(target2) {
+  if (!LEARNING_TARGETS.some((t) => t.id === target2))
     throw new Error("Unsupported course destination.");
-  if (target === "static")
+  if (target2 === "static")
     return "Extract the ZIP and upload all files together to an HTTP(S) website. Open index.html or embed that page in an iframe. Keep relative paths intact. Test navigation, media, completion and reopening in the intended browser. Progress is per course version, path and browser profile. No learner account, server record or cross-device resume is provided. Keep an existing version at its existing path to preserve its browser progress.";
-  return `Import the unopened ZIP into a test course in your ${target === "cmi5" ? "cmi5-compatible" : target === "tincan" ? "Tin Can-compatible" : target === "scorm2004" ? "SCORM 2004 4th Edition-compatible" : "SCORM 1.2-compatible"} LMS. Test launch, every media item, completion, close and resume, then assign learners. No score or pass mark is sent. Tenant compatibility still requires testing. ${["tincan", "cmi5"].includes(target) ? "This target is experimental; launch must supply learner identity, registration and temporary LRS authorization." : ""} Customers choose when to replace an earlier package; replacing it can affect existing attempts according to the LMS.`;
+  return `Import the unopened ZIP into a test course in your ${target2 === "cmi5" ? "cmi5-compatible" : target2 === "tincan" ? "Tin Can-compatible" : target2 === "scorm2004" ? "SCORM 2004 4th Edition-compatible" : "SCORM 1.2-compatible"} LMS. Test launch, every media item, completion, close and resume, then assign learners. No score or pass mark is sent. Tenant compatibility still requires testing. ${["tincan", "cmi5"].includes(target2) ? "This target is experimental; launch must supply learner identity, registration and temporary LRS authorization." : ""} Customers choose when to replace an earlier package; replacing it can affect existing attempts according to the LMS.`;
 }
 var init_preflight3 = __esm({
   "engine/src/learning/preflight.ts"() {
@@ -119194,15 +119476,15 @@ function studioCameraPreset(kind, view, amount = 1) {
   }
 }
 function studioCameraKeyFromView(values) {
-  const camera = record14(values.camera), target = record14(values.target);
+  const camera = record14(values.camera), target2 = record14(values.target);
   return {
     azimuth: num10(camera.azimuth, 25),
     elevation: num10(camera.elevation, 14),
     fov: num10(camera.fov, 29),
     zoom: num10(camera.zoom, 1),
-    panX: num10(num10(target.x, 0) + num10(camera.panX, 0), 0),
-    panY: num10(num10(target.y, 1.6) + num10(camera.panY, 0), 1.6),
-    panZ: num10(num10(target.z, 0) + num10(camera.panZ, 0), 0),
+    panX: num10(num10(target2.x, 0) + num10(camera.panX, 0), 0),
+    panY: num10(num10(target2.y, 1.6) + num10(camera.panY, 0), 1.6),
+    panZ: num10(num10(target2.z, 0) + num10(camera.panZ, 0), 0),
     focusDistance: num10(values.focusDistance, 0)
   };
 }
@@ -119230,7 +119512,7 @@ function studioCameraFromKey(values, which) {
   const wanted = typeof which === "string" ? which.trim().toLowerCase() : "";
   const key = typeof which === "number" ? rows2[which] : wanted ? rows2.find((row) => studioCameraKeyName(row).toLowerCase() === wanted) : void 0;
   if (!key) throw new Error("That camera key does not exist.");
-  const target = record14(values.target);
+  const target2 = record14(values.target);
   return [
     {
       id: "camera",
@@ -119239,9 +119521,9 @@ function studioCameraFromKey(values, which) {
         elevation: num10(key.elevation, 14),
         fov: num10(key.fov, 29),
         zoom: num10(key.zoom, 1),
-        panX: num10(num10(key.panX, 0) - num10(target.x, 0), 0),
-        panY: num10(num10(key.panY, 1.6) - num10(target.y, 1.6), 0),
-        panZ: num10(num10(key.panZ, 0) - num10(target.z, 0), 0)
+        panX: num10(num10(key.panX, 0) - num10(target2.x, 0), 0),
+        panY: num10(num10(key.panY, 1.6) - num10(target2.y, 1.6), 0),
+        panZ: num10(num10(key.panZ, 0) - num10(target2.z, 0), 0)
       }
     },
     { id: "focusDistance", value: num10(key.focusDistance, 0) }
@@ -119512,8 +119794,8 @@ var init_studio3d_collection = __esm({
 });
 
 // engine/src/studio3d-lights.ts
-function studioOrbitLight(position, azimuthDegrees, elevationDegrees, target = STUDIO_LIGHT_TARGET) {
-  const dx = position[0] - target[0], dy = position[1] - target[1], dz = position[2] - target[2];
+function studioOrbitLight(position, azimuthDegrees, elevationDegrees, target2 = STUDIO_LIGHT_TARGET) {
+  const dx = position[0] - target2[0], dy = position[1] - target2[1], dz = position[2] - target2[2];
   const radius = Math.max(0.5, Math.hypot(dx, dy, dz));
   const azimuth = Math.atan2(dx, dz) + azimuthDegrees * Math.PI / 180;
   const elevation = Math.max(
@@ -119521,19 +119803,19 @@ function studioOrbitLight(position, azimuthDegrees, elevationDegrees, target = S
     Math.min(88 * Math.PI / 180, Math.asin(dy / radius) + elevationDegrees * Math.PI / 180)
   );
   return [
-    clampRange(target[0] + Math.sin(azimuth) * Math.cos(elevation) * radius),
-    clampRange(target[1] + Math.sin(elevation) * radius),
-    clampRange(target[2] + Math.cos(azimuth) * Math.cos(elevation) * radius)
+    clampRange(target2[0] + Math.sin(azimuth) * Math.cos(elevation) * radius),
+    clampRange(target2[1] + Math.sin(elevation) * radius),
+    clampRange(target2[2] + Math.cos(azimuth) * Math.cos(elevation) * radius)
   ];
 }
-function studioScaleLightDistance(position, factor, target = STUDIO_LIGHT_TARGET) {
-  const d = [position[0] - target[0], position[1] - target[1], position[2] - target[2]];
+function studioScaleLightDistance(position, factor, target2 = STUDIO_LIGHT_TARGET) {
+  const d = [position[0] - target2[0], position[1] - target2[1], position[2] - target2[2]];
   const radius = Math.max(0.5, Math.hypot(d[0], d[1], d[2]));
   const next2 = Math.max(1, Math.min(STUDIO_LIGHT_RANGE, radius * factor)) / radius;
   return [
-    clampRange(target[0] + d[0] * next2),
-    clampRange(target[1] + d[1] * next2),
-    clampRange(target[2] + d[2] * next2)
+    clampRange(target2[0] + d[0] * next2),
+    clampRange(target2[1] + d[1] * next2),
+    clampRange(target2[2] + d[2] * next2)
   ];
 }
 function studioPlaceableLights(scene) {
@@ -119962,7 +120244,7 @@ function buildStudioScene(input) {
       };
     });
   }
-  const camera = record17(v.camera), shape = record17(v.shape), transform2 = record17(v.transform), target = record17(v.target);
+  const camera = record17(v.camera), shape = record17(v.shape), transform2 = record17(v.transform), target2 = record17(v.target);
   const backdrop = asset(v.backdropImage);
   const background = color2(v.background, secondary);
   const environmentKind = choice2(
@@ -120000,9 +120282,9 @@ function buildStudioScene(input) {
     fov: number6(camera.fov, 29, 15, 80),
     zoom: number6(camera.zoom, 1, 0.05, 3),
     target: [
-      number6(target.x, 0, -5, 5) + number6(camera.panX, 0, -20, 20),
-      number6(target.y, 1.6, -5, 10) + number6(camera.panY, 0, -20, 20),
-      number6(target.z, 0, -5, 5) + number6(camera.panZ, 0, -20, 20)
+      number6(target2.x, 0, -5, 5) + number6(camera.panX, 0, -20, 20),
+      number6(target2.y, 1.6, -5, 10) + number6(camera.panY, 0, -20, 20),
+      number6(target2.z, 0, -5, 5) + number6(camera.panZ, 0, -20, 20)
     ],
     focus: number6(v.focusDistance, 0, 0, 500),
     aperture: projection === "perspective" && v.depthOfField === true ? number6(v.aperture, 0.12, 0.01, 0.5) : 0
@@ -120655,9 +120937,9 @@ function applyBrandFix(boxes, fix) {
   if (!Array.isArray(boxes) || !["bg", "fg", "stroke", "font"].includes(fix.field)) return null;
   const matches4 = boxes.filter((row) => record21(row) && row.id === fix.layerId);
   if (matches4.length !== 1) return null;
-  const target = matches4[0];
-  if (target.locked === true || target.locked === "true" || JSON.stringify(target[fix.field]) !== JSON.stringify(fix.before)) return null;
-  return boxes.map((row) => row === target ? { ...row, [fix.field]: fix.after } : row);
+  const target2 = matches4[0];
+  if (target2.locked === true || target2.locked === "true" || JSON.stringify(target2[fix.field]) !== JSON.stringify(fix.before)) return null;
+  return boxes.map((row) => row === target2 ? { ...row, [fix.field]: fix.after } : row);
 }
 var record21, valueText, family;
 var init_brand_check = __esm({
@@ -120854,15 +121136,15 @@ function checkDesignHouseRules(boxes, rules, doc, opts = {}) {
       });
     };
     const exemptRoles = strings2(p.exemptRoles);
-    const target = typeof p.target === "string" ? p.target : "text";
+    const target2 = typeof p.target === "string" ? p.target : "text";
     const inTarget = (row) => {
       const role = typeof row.role === "string" ? row.role : "";
       if (role && exemptRoles.includes(role)) return false;
       if (typeof row.furniture === "string" && row.furniture) return false;
       const roles = strings2(p.roles);
-      if (roles.length) return roles.includes(role) || target === "headline" && !role && isHeadline(layout2, row);
-      if (target === "headline") return isHeadline(layout2, row);
-      if (target === "body") return !isHeadline(layout2, row);
+      if (roles.length) return roles.includes(role) || target2 === "headline" && !role && isHeadline(layout2, row);
+      if (target2 === "headline") return isHeadline(layout2, row);
+      if (target2 === "body") return !isHeadline(layout2, row);
       return true;
     };
     if (rule.kind === "text-weight") {
@@ -123056,7 +123338,7 @@ function checkFidelity(inventory2, boxes, opts = {}) {
   const targets = inventory2.slides.map((_slide, slideIndex) => {
     const words3 = slideStrings[slideIndex].flatMap((s) => s.words);
     const counts = countsOf(words3);
-    let target = -1;
+    let target2 = -1;
     let bestScore = 0;
     boards.forEach((board2, i) => {
       if (work.left <= 0) return;
@@ -123064,12 +123346,12 @@ function checkFidelity(inventory2, boxes, opts = {}) {
       const score2 = similarityOfCounts(counts, words3.length, board2.wordCounts, board2.wordTotal) - (used.has(i) ? 0.01 : 0);
       if (score2 > bestScore) {
         bestScore = score2;
-        target = i;
+        target2 = i;
       }
     });
-    if (target < 0 && slideIndex < boards.length && !used.has(slideIndex)) target = slideIndex;
-    if (target >= 0) used.add(target);
-    const board = target >= 0 ? boards[target] : void 0;
+    if (target2 < 0 && slideIndex < boards.length && !used.has(slideIndex)) target2 = slideIndex;
+    if (target2 >= 0) used.add(target2);
+    const board = target2 >= 0 ? boards[target2] : void 0;
     mapping.push(board ? board.id || null : null);
     return board;
   });
@@ -124354,7 +124636,7 @@ function chooseParagraphBreaks(graph, greedy) {
   if (mode3 === "standard" && !short?.enabled || greedy.length < 2) return { ends: greedy, limited: false };
   if (candidates2.length > 2048 || greedy.length > 128) return { ends: greedy, limited: true };
   const targetLines = mode3 === "balanced" ? greedy.length : null;
-  const final = candidates2.length - 1, total = measure3(0, final), target = total / greedy.length;
+  const final = candidates2.length - 1, total = measure3(0, final), target2 = total / greedy.length;
   let frontier = /* @__PURE__ */ new Map([[0, { end: 0, hyphens: 0, cost: 0 }]]), winner, work = 0;
   const maximum = targetLines ?? Math.min(final, greedy.length + 8);
   const spacing = settings.wordSpacing ?? { min: 0.8, ideal: 1, max: 1.5 };
@@ -124374,7 +124656,7 @@ function chooseParagraphBreaks(graph, greedy) {
         if (candidate.hyphen && hyphens > (settings.hyphenation?.consecutive ?? 2)) continue;
         if (targetLines && end === final !== (line === targetLines - 1)) continue;
         const last = end === final;
-        let cost = mode3 === "balanced" ? ((natural - target) / room) ** 2 : last && settings.lastAlign !== "justify" ? 0 : fit.cost;
+        let cost = mode3 === "balanced" ? ((natural - target2) / room) ** 2 : last && settings.lastAlign !== "justify" ? 0 : fit.cost;
         if (mode3 === "standard" && greedy[line] !== end) cost += 0.05;
         if (candidate.hyphen) cost += 0.035 + previous2.hyphens * 0.06;
         if (last && line > 0 && short?.enabled) {
@@ -125442,16 +125724,16 @@ function deleteTextStory(snapshot, id3) {
   return admitted2(current);
 }
 function linkTextFrames(snapshot, sourceId, targetId, join32, fresh) {
-  const current = admitted2(snapshot), source = owner2(current, sourceId), target = owner2(current, targetId);
-  if (source.id === target.id) throw new TextSourceError("thread-cycle", "These frames already belong to the same story.");
-  const affected = [...source.frameIds, ...target.frameIds];
+  const current = admitted2(snapshot), source = owner2(current, sourceId), target2 = owner2(current, targetId);
+  if (source.id === target2.id) throw new TextSourceError("thread-cycle", "These frames already belong to the same story.");
+  const affected = [...source.frameIds, ...target2.frameIds];
   mutable(current, affected);
   if (current.frames.some((frame) => affected.includes(frame.id) && frame.mode === "path")) throw new TextSourceError("thread-path", "Detach text from its path before linking frames.");
-  if ((target.source || target.frameIds.length > 1) && !join32) throw new TextSourceError("join-required", "Preview and join these stories to retain both sources.");
-  if (target.frameIds[0] !== targetId) throw new TextSourceError("thread-target", "Choose the first frame of the target story.");
+  if ((target2.source || target2.frameIds.length > 1) && !join32) throw new TextSourceError("join-required", "Preview and join these stories to retain both sources.");
+  if (target2.frameIds[0] !== targetId) throw new TextSourceError("thread-target", "Choose the first frame of the target story.");
   let merged = source;
-  if (target.source) {
-    const imported = importTextFragment(current.document, sliceTextDocument(current.document, target, { start: 0, end: target.source.length }), fresh);
+  if (target2.source) {
+    const imported = importTextFragment(current.document, sliceTextDocument(current.document, target2, { start: 0, end: target2.source.length }), fresh);
     const insertion = imported.insertion, separator2 = "\n";
     merged = replaceStoryRange(source, { start: source.source.length, end: source.source.length }, {
       source: separator2 + insertion.source,
@@ -125462,8 +125744,8 @@ function linkTextFrames(snapshot, sourceId, targetId, join32, fresh) {
     }, { paragraphId: fresh }).story;
   } else merged = { ...source, revision: source.revision + 1 };
   const at = source.frameIds.indexOf(sourceId) + 1;
-  merged = { ...merged, frameIds: [...source.frameIds.slice(0, at), ...target.frameIds, ...source.frameIds.slice(at)] };
-  current.document.stories = current.document.stories.filter((story) => story.id !== target.id).map((story) => story.id === source.id ? merged : story);
+  merged = { ...merged, frameIds: [...source.frameIds.slice(0, at), ...target2.frameIds, ...source.frameIds.slice(at)] };
+  current.document.stories = current.document.stories.filter((story) => story.id !== target2.id).map((story) => story.id === source.id ? merged : story);
   current.frames = current.frames.map((frame) => affected.includes(frame.id) ? { ...frame, storyId: source.id, mode: "fixed", shrink: void 0 } : frame);
   return admitted2(current);
 }
@@ -125794,12 +126076,12 @@ function importVectorPaint(svg, parseXml) {
     const tag3 = element.localName, attributes2 = Object.fromEntries(Array.from(element.attributes).map((attr5) => [attr5.name, attr5.value]));
     if (instance) delete attributes2.id;
     if (tag3 === "use") {
-      const target = idMap.get(attributes2.href.slice(1));
-      if (!target) throw new Error("Missing local vector shape.");
+      const target2 = idMap.get(attributes2.href.slice(1));
+      if (!target2) throw new Error("Missing local vector shape.");
       const x = Number(attributes2.x ?? 0), y = Number(attributes2.y ?? 0), own3 = attributes2.transform ?? "";
       for (const key of ["href", "x", "y", "width", "height"]) delete attributes2[key];
       attributes2.transform = `${own3} translate(${x} ${y})`.trim();
-      const child = walk2(target, false, true);
+      const child = walk2(target2, false, true);
       return { tag: "g", attributes: attributes2, children: child ? [child] : [] };
     }
     if (geometry2[tag3]) {
@@ -128411,8 +128693,8 @@ function boldBreaksRules(brief, role) {
     if (!allowed.length || allowed.includes("700")) continue;
     if (strings3(p.exemptRoles).includes(role)) continue;
     const roles = strings3(p.roles);
-    const target = typeof p.target === "string" ? p.target : "text";
-    const covers4 = roles.length ? roles.includes(role) : target === "headline" ? HEADLINE_RULE_ROLES.has(role) : target === "body" ? !HEADLINE_RULE_ROLES.has(role) : true;
+    const target2 = typeof p.target === "string" ? p.target : "text";
+    const covers4 = roles.length ? roles.includes(role) : target2 === "headline" ? HEADLINE_RULE_ROLES.has(role) : target2 === "body" ? !HEADLINE_RULE_ROLES.has(role) : true;
     if (covers4) return typeof rule.id === "string" ? rule.id : "text-weight";
   }
   return null;
@@ -130170,17 +130452,17 @@ function fromRead(id3, read, heading, body, pics, ctx) {
   }
   if (matched.repeat) {
     const capacity = cellRefs(matched).length;
-    let target = matched;
+    let target2 = matched;
     if (sourceCells.length > capacity) {
       const flow = flowFor(sourceCells.length, "columns", grid.rows === 1);
       const found = flow ? ctx.view.find(flow) : void 0;
-      if (found) target = found;
+      if (found) target2 = found;
     }
-    titleInto(target, heading, slots);
+    titleInto(target2, heading, slots);
     const counted = /(?:^|-)grid-\d+x\d+$/.test(read.structure) && countedCells(sourceCells);
-    const filled2 = fillCells(target, counted ? sourceCells.map(withoutCounter) : sourceCells, ctx);
-    const why = (target === matched ? `The slide reads as ${read.structure}: ${matched.name}, one cell per source group.` : `The slide reads as ${read.structure}, more cells than ${matched.name} holds: a content-sized layout (${target.name}).`) + (counted ? ` The cells are numbered 1 to ${sourceCells.length} in reading order, so the numbers only count them: they are left out as decorative numbering (compose lists them in its edits, for --edits-out).` : "");
-    return { archetype: target.id, slots, cells: filled2.cells, why, extraText: filled2.extraText, extraPics: [...filled2.extraPics, ...loosePics] };
+    const filled2 = fillCells(target2, counted ? sourceCells.map(withoutCounter) : sourceCells, ctx);
+    const why = (target2 === matched ? `The slide reads as ${read.structure}: ${matched.name}, one cell per source group.` : `The slide reads as ${read.structure}, more cells than ${matched.name} holds: a content-sized layout (${target2.name}).`) + (counted ? ` The cells are numbered 1 to ${sourceCells.length} in reading order, so the numbers only count them: they are left out as decorative numbering (compose lists them in its edits, for --edits-out).` : "");
+    return { archetype: target2.id, slots, cells: filled2.cells, why, extraText: filled2.extraText, extraPics: [...filled2.extraPics, ...loosePics] };
   }
   const title = titleInto(matched, heading, slots);
   const refs = slotRefs(matched).filter((r5) => r5.key !== title?.key);
@@ -130658,8 +130940,8 @@ function fitSurface(points) {
         const row = ata[i];
         if (row) for (let j = 0; j < 6; j++) row[j] = (row[j] ?? 0) + ti * (t[j] ?? 0);
         for (let ch = 0; ch < 3; ch++) {
-          const target = atb[ch];
-          if (target) target[i] = (target[i] ?? 0) + ti * (p.c[ch] ?? 0);
+          const target2 = atb[ch];
+          if (target2) target2[i] = (target2[i] ?? 0) + ti * (p.c[ch] ?? 0);
         }
       }
     }
@@ -131061,9 +131343,9 @@ function runPass(pass, page3, maxCandidates) {
     const upright = !flat && bw <= thick && bh >= vMin && evenAlong(pre.labels, id3, count4, b, gw, false);
     const grid = !flat && !upright && (bw >= hMin || bh >= vMin) && b.cells / (bw * bh) < GRID_MAX_FILL;
     if (!flat && !upright && !grid) return;
-    const target = flat ? hRule : upright ? vRule : sparse;
+    const target2 = flat ? hRule : upright ? vRule : sparse;
     for (let cy3 = b.y0; cy3 <= b.y1; cy3++) {
-      for (let cx2 = b.x0; cx2 <= b.x1; cx2++) if (pre.labels[cy3 * gw + cx2] === id3) target[cy3 * gw + cx2] = 1;
+      for (let cx2 = b.x0; cx2 <= b.x1; cx2++) if (pre.labels[cy3 * gw + cx2] === id3) target2[cy3 * gw + cx2] = 1;
     }
   });
   const hGrid = ruleCells(sparse, count4, gw, gh, hMin, thick, true);
@@ -131384,9 +131666,9 @@ function mergeCandidates(list4) {
     const standing = [];
     for (const rule of rules) {
       const host = next2.findIndex((region) => insideShare2(rule.box, region.box) >= RULE_ABSORB_SHARE);
-      const target = host >= 0 ? next2[host] : void 0;
-      if (target) {
-        next2[host] = absorb(target, rule);
+      const target2 = host >= 0 ? next2[host] : void 0;
+      if (target2) {
+        next2[host] = absorb(target2, rule);
         changed = true;
       } else {
         standing.push(rule);
@@ -133386,21 +133668,21 @@ var init_motion_cues = __esm({
     init_keyframes2();
     idOk = (id3) => typeof id3 === "string" && /^[\w-]{1,80}$/.test(id3);
     finite5 = (n7) => typeof n7 === "number" && Number.isFinite(n7);
-    fieldOf = (target) => ({ start: "start", enterEnd: "enterMs", exitStart: "exitMs", keyframe: "kf" })[target];
+    fieldOf = (target2) => ({ start: "start", enterEnd: "enterMs", exitStart: "exitMs", keyframe: "kf" })[target2];
   }
 });
 
 // engine/src/motion-report.ts
-function motionReport(facts2, target = {}, extra = []) {
-  if (!target || typeof target !== "object" || Array.isArray(target)) throw new Error("Motion targets must be an object.");
-  for (const [key, value] of Object.entries(target)) {
+function motionReport(facts2, target2 = {}, extra = []) {
+  if (!target2 || typeof target2 !== "object" || Array.isArray(target2)) throw new Error("Motion targets must be an object.");
+  for (const [key, value] of Object.entries(target2)) {
     if (key === "audio" && typeof value === "boolean") continue;
     if (!["width", "height", "seconds", "fps", "loudness", "truePeakMax"].includes(key) || typeof value !== "number" || !Number.isFinite(value)) throw new Error(`Invalid motion target: ${key}`);
     if (["width", "height", "seconds", "fps"].includes(key) && value <= 0) throw new Error(`Motion target ${key} must be positive.`);
   }
   const checks = [];
   for (const id3 of ["width", "height", "seconds", "fps", "audio", "loudness", "truePeak"]) {
-    const measured = facts2[id3], want = id3 === "truePeak" ? target.truePeakMax : target[id3];
+    const measured = facts2[id3], want = id3 === "truePeak" ? target2.truePeakMax : target2[id3];
     if (measured === void 0) {
       checks.push({ id: id3, status: "not-run", target: want, reason: "No measurement from this decoder." });
       continue;
@@ -134710,13 +134992,13 @@ function hexRgb3(hex3) {
   return [parseInt(h.slice(0, 2), 16) / 255, parseInt(h.slice(2, 4), 16) / 255, parseInt(h.slice(4, 6), 16) / 255];
 }
 function nearestSwatch(hex3, swatches) {
-  const target = hexRgb3(hex3);
-  if (!target) return null;
+  const target2 = hexRgb3(hex3);
+  if (!target2) return null;
   let best = null;
   for (const swatch of swatches) {
     const rgb3 = typeof swatch?.value === "string" ? hexRgb3(swatch.value) : null;
     if (!rgb3) continue;
-    const deltaE = deltaEOkSrgb(target, rgb3);
+    const deltaE = deltaEOkSrgb(target2, rgb3);
     if (!best || deltaE < best.deltaE) best = { swatch, deltaE, verdict: "different" };
   }
   if (!best) return null;
@@ -145615,11 +145897,11 @@ function relIdOf(el) {
   }
   return null;
 }
-function resolveTarget4(fromPart, target) {
-  if (target.startsWith("/")) return target.slice(1);
+function resolveTarget4(fromPart, target2) {
+  if (target2.startsWith("/")) return target2.slice(1);
   const dir = fromPart.slice(0, fromPart.lastIndexOf("/"));
   const segments = dir.split("/").filter(Boolean);
-  for (const piece of target.split("/")) {
+  for (const piece of target2.split("/")) {
     if (piece === "" || piece === ".") continue;
     if (piece === "..") segments.pop();
     else segments.push(piece);
@@ -149185,8 +149467,8 @@ function decodeDataUrl2(url) {
   if (/;base64$/i.test(meta)) return new Uint8Array(Buffer.from(payload, "base64"));
   return new Uint8Array(Buffer.from(decodeURIComponent(payload), "utf8"));
 }
-async function assetBytes(target, opts = {}) {
-  const url = typeof target === "string" ? target : target.original?.url ?? target.url;
+async function assetBytes(target2, opts = {}) {
+  const url = typeof target2 === "string" ? target2 : target2.original?.url ?? target2.url;
   if (!url) throw new Error("asset has no url");
   if (url.startsWith("data:")) return decodeDataUrl2(url);
   if (url.startsWith("file:")) return new Uint8Array(await readFile4(fileURLToPath3(url)));
@@ -150773,21 +151055,21 @@ function walkAction(ctx, action, sink, seen, depth = 0) {
     }
     case "Launch": {
       const f = d.get(PDFName2.of("F"));
-      const target = strOf(ctx, f) || strOf(ctx, get2(ctx, f, "UF")) || strOf(ctx, get2(ctx, f, "F")) || strOf(ctx, get2(ctx, d.get(PDFName2.of("Win")), "F"));
-      sink.launches.push(target || "(unnamed target)");
+      const target2 = strOf(ctx, f) || strOf(ctx, get2(ctx, f, "UF")) || strOf(ctx, get2(ctx, f, "F")) || strOf(ctx, get2(ctx, d.get(PDFName2.of("Win")), "F"));
+      sink.launches.push(target2 || "(unnamed target)");
       break;
     }
     case "SubmitForm": {
       const f = d.get(PDFName2.of("F"));
-      const target = strOf(ctx, f) || strOf(ctx, get2(ctx, f, "UF")) || strOf(ctx, get2(ctx, f, "F"));
-      sink.submits.push(target || "(unnamed endpoint)");
+      const target2 = strOf(ctx, f) || strOf(ctx, get2(ctx, f, "UF")) || strOf(ctx, get2(ctx, f, "F"));
+      sink.submits.push(target2 || "(unnamed endpoint)");
       break;
     }
     case "GoToR":
     case "GoToE": {
       const f = d.get(PDFName2.of("F"));
-      const target = strOf(ctx, f) || strOf(ctx, get2(ctx, f, "UF")) || strOf(ctx, get2(ctx, f, "F"));
-      sink.remotes.push(target || "(unnamed document)");
+      const target2 = strOf(ctx, f) || strOf(ctx, get2(ctx, f, "UF")) || strOf(ctx, get2(ctx, f, "F"));
+      sink.remotes.push(target2 || "(unnamed document)");
       break;
     }
   }
@@ -151014,9 +151296,9 @@ function removePdfMetadata(document2) {
     if (seen.size > 5e5) throw new Error("PDF metadata cleaning exceeds the supported object limit.");
     if (object4 instanceof PDFRef3) {
       reachable.add(object4.toString());
-      const target = context.lookup(object4);
-      if (!target) throw new Error("PDF metadata cleaning found an unresolved document reference.");
-      pending3.push(target);
+      const target2 = context.lookup(object4);
+      if (!target2) throw new Error("PDF metadata cleaning found an unresolved document reference.");
+      pending3.push(target2);
     } else if (object4 instanceof PDFStream) pending3.push(object4.dict);
     else if (object4 instanceof PDFDict3) {
       object4.delete(PDFName3.of("Metadata"));
@@ -151298,7 +151580,7 @@ function splitPageGroups(expression, pageCount) {
   if (!source) return Array.from({ length: pageCount }, (_, i) => [i + 1]);
   return source.split(",").map((part) => parsePdfPageExpression(part.trim(), pageCount));
 }
-async function copyPdfInfo(source, target) {
+async function copyPdfInfo(source, target2) {
   const copy = (read, write) => {
     try {
       const value = read();
@@ -151306,20 +151588,20 @@ async function copyPdfInfo(source, target) {
     } catch {
     }
   };
-  copy(() => source.getTitle(), (value) => target.setTitle(value));
-  copy(() => source.getAuthor(), (value) => target.setAuthor(value));
-  copy(() => source.getSubject(), (value) => target.setSubject(value));
-  copy(() => source.getCreator(), (value) => target.setCreator(value));
-  copy(() => source.getProducer(), (value) => target.setProducer(value));
-  copy(() => source.getCreationDate(), (value) => target.setCreationDate(value));
-  copy(() => source.getModificationDate(), (value) => target.setModificationDate(value));
-  copy(() => source.getKeywords(), (value) => target.setKeywords(value.split(/\s*,\s*/).filter(Boolean)));
+  copy(() => source.getTitle(), (value) => target2.setTitle(value));
+  copy(() => source.getAuthor(), (value) => target2.setAuthor(value));
+  copy(() => source.getSubject(), (value) => target2.setSubject(value));
+  copy(() => source.getCreator(), (value) => target2.setCreator(value));
+  copy(() => source.getProducer(), (value) => target2.setProducer(value));
+  copy(() => source.getCreationDate(), (value) => target2.setCreationDate(value));
+  copy(() => source.getModificationDate(), (value) => target2.setModificationDate(value));
+  copy(() => source.getKeywords(), (value) => target2.setKeywords(value.split(/\s*,\s*/).filter(Boolean)));
   try {
     const { PDFName: PDFName6 } = await import("pdf-lib");
     const xmp = readXmpText(source, PDFName6);
     if (xmp && /^\s*(?:<\?xpacket|<x:xmpmeta|<rdf:RDF)/i.test(xmp)) {
-      const stream = target.context.stream(new TextEncoder().encode(xmp), { Type: "Metadata", Subtype: "XML" });
-      target.catalog.set(PDFName6.of("Metadata"), target.context.register(stream));
+      const stream = target2.context.stream(new TextEncoder().encode(xmp), { Type: "Metadata", Subtype: "XML" });
+      target2.catalog.set(PDFName6.of("Metadata"), target2.context.register(stream));
     }
   } catch {
   }
@@ -153179,7 +153461,7 @@ async function blobBytes(v) {
   if (v && typeof v.arrayBuffer === "function") return new Uint8Array(await v.arrayBuffer());
   return null;
 }
-function installNodeCanvas(win, target = globalThis) {
+function installNodeCanvas(win, target2 = globalThis) {
   if (!isCanvasAvailable()) return false;
   const mod = createRequire3(import.meta.url)("@napi-rs/canvas");
   const proto = win?.HTMLCanvasElement?.prototype;
@@ -153218,7 +153500,7 @@ function installNodeCanvas(win, target = globalThis) {
       }
     };
   }
-  const URLCtor = target["URL"];
+  const URLCtor = target2["URL"];
   if (URLCtor && typeof URLCtor.createObjectURL !== "function") {
     let n7 = 0;
     URLCtor.createObjectURL = (blob) => {
@@ -153230,7 +153512,7 @@ function installNodeCanvas(win, target = globalThis) {
       blobUrls.delete(url);
     };
   }
-  if (typeof target["Image"] !== "function") {
+  if (typeof target2["Image"] !== "function") {
     class NodeImage {
       width = 0;
       height = 0;
@@ -153262,17 +153544,17 @@ function installNodeCanvas(win, target = globalThis) {
         })();
       }
     }
-    target["Image"] = NodeImage;
+    target2["Image"] = NodeImage;
   }
-  if (typeof target["createImageBitmap"] !== "function") {
-    target["createImageBitmap"] = async (src) => {
+  if (typeof target2["createImageBitmap"] !== "function") {
+    target2["createImageBitmap"] = async (src) => {
       const bytes = await blobBytes(src);
       const canvas = bytes ? await decodeToCanvas(bytes) : null;
       if (!canvas) throw new Error("createImageBitmap: these bytes are not a decodable image here.");
       return canvas;
     };
   }
-  if (typeof target["ImageData"] !== "function") target["ImageData"] = mod.ImageData;
+  if (typeof target2["ImageData"] !== "function") target2["ImageData"] = mod.ImageData;
   return true;
 }
 var fontsRegistered, canvasModule, sharpModule3, MIME_BY_MAGIC, BACKING, blobUrls;
@@ -153855,19 +154137,19 @@ function blendChannel(a, b, mode3) {
       return b;
   }
 }
-function drawDeep(target, layer) {
+function drawDeep(target2, layer) {
   const { frame, opacity = 1, blend: blend2 = "source-over", mask } = layer;
   if (!DEEP_BLENDS.includes(blend2)) throw new Error(`HDR compositing does not support ${blend2}.`);
   if (!Number.isFinite(opacity) || opacity < 0 || opacity > 1) throw new Error("Invalid HDR layer opacity.");
-  if (mask && mask.length !== target.width * target.height) throw new Error("Invalid HDR coverage mask.");
+  if (mask && mask.length !== target2.width * target2.height) throw new Error("Invalid HDR coverage mask.");
   const [a, b, c, d, e, f] = layer.matrix ?? [1, 0, 0, 1, 0, 0];
   if (![a, b, c, d, e, f].every(Number.isFinite)) throw new Error("Invalid HDR layer transform.");
   const determinant = a * d - b * c;
   if (Math.abs(determinant) < 1e-12 || !opacity) return;
-  const source = convertSpace(frame, target.space), src = source.data, dst = target.data;
+  const source = convertSpace(frame, target2.space), src = source.data, dst = target2.data;
   const corners2 = [[e, f], [a * frame.width + e, b * frame.width + f], [c * frame.height + e, d * frame.height + f], [a * frame.width + c * frame.height + e, b * frame.width + d * frame.height + f]];
   const left = Math.max(0, Math.floor(Math.min(...corners2.map((p) => p[0])))), top = Math.max(0, Math.floor(Math.min(...corners2.map((p) => p[1]))));
-  const right = Math.min(target.width, Math.ceil(Math.max(...corners2.map((p) => p[0])))), bottom = Math.min(target.height, Math.ceil(Math.max(...corners2.map((p) => p[1]))));
+  const right = Math.min(target2.width, Math.ceil(Math.max(...corners2.map((p) => p[0])))), bottom = Math.min(target2.height, Math.ceil(Math.max(...corners2.map((p) => p[1]))));
   for (let y = top; y < bottom; y++) for (let x = left; x < right; x++) {
     const sx = (d * (x + 0.5 - e) - c * (y + 0.5 - f)) / determinant, sy = (-b * (x + 0.5 - e) + a * (y + 0.5 - f)) / determinant;
     if (sx < 0 || sx >= frame.width || sy < 0 || sy >= frame.height) continue;
@@ -153883,8 +154165,8 @@ function drawDeep(target, layer) {
     }
     if (!sa) continue;
     for (let ch = 0; ch < 3; ch++) rgb3[ch] = rgb3[ch] / sa;
-    sa *= opacity * (mask ? mask[y * target.width + x] / 255 : 1);
-    const at = (y * target.width + x) * 4, da = clamp9(dst[at + 3]), outA = blend2 === "plus-lighter" ? Math.min(1, sa + da) : sa + da * (1 - sa);
+    sa *= opacity * (mask ? mask[y * target2.width + x] / 255 : 1);
+    const at = (y * target2.width + x) * 4, da = clamp9(dst[at + 3]), outA = blend2 === "plus-lighter" ? Math.min(1, sa + da) : sa + da * (1 - sa);
     for (let ch = 0; ch < 3; ch++) {
       const back = dst[at + ch], front = rgb3[ch];
       const premul = blend2 === "plus-lighter" ? front * sa + back * da : (1 - sa) * da * back + (1 - da) * sa * front + sa * da * blendChannel(back, front, blend2);
@@ -155352,8 +155634,8 @@ function revisionFrom(encoded2) {
 }
 function applyEdit(source, raw) {
   const edit = lottieObject(raw, "Animation edit");
-  const target = lottieObject(edit.target, "Layer address");
-  const layer = lottieLayer(source, target);
+  const target2 = lottieObject(edit.target, "Layer address");
+  const layer = lottieLayer(source, target2);
   if (edit.kind === "layer") {
     const patch = lottieObject(edit.patch, "Layer edit");
     for (const [field2, value2] of Object.entries(patch)) {
@@ -157518,7 +157800,7 @@ import { promisify as promisify2 } from "node:util";
 import { mkdtemp, writeFile as writeFile4, rm as rm3 } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join as join23 } from "node:path";
-async function inspectMotionBytes(bytes, target = {}, binaries = { probe: "ffprobe", decode: "ffmpeg" }, options2 = {}) {
+async function inspectMotionBytes(bytes, target2 = {}, binaries = { probe: "ffprobe", decode: "ffmpeg" }, options2 = {}) {
   options2.signal?.throwIfAborted();
   if (!bytes.length || bytes.length > 256 * 1024 * 1024) throw new Error("Motion inspection accepts 1 byte to 256 MiB.");
   const directory = await mkdtemp(join23(tmpdir(), "lolly-motion-check-")), path = join23(directory, "delivery");
@@ -157539,9 +157821,9 @@ async function inspectMotionBytes(bytes, target = {}, binaries = { probe: "ffpro
       facts2.audio = streams.some((stream) => stream.codec_type === "audio");
     } catch (error2) {
       options2.signal?.throwIfAborted();
-      return motionReport(facts2, target, [{ id: "container", status: "not-run", reason: `ffprobe unavailable or could not read this file: ${error2.message}` }]);
+      return motionReport(facts2, target2, [{ id: "container", status: "not-run", reason: `ffprobe unavailable or could not read this file: ${error2.message}` }]);
     }
-    if (!facts2.seconds || facts2.seconds > 3600) return motionReport(facts2, target, [{ id: "decoded-analysis", status: "not-run", reason: "Decoding requires a known duration of at most one hour." }]);
+    if (!facts2.seconds || facts2.seconds > 3600) return motionReport(facts2, target2, [{ id: "decoded-analysis", status: "not-run", reason: "Decoding requires a known duration of at most one hour." }]);
     const args = ["-hide_banner", "-nostdin", ...options2.strict ? ["-xerror", "-err_detect", "explode", "-abort_on", "empty_output_stream"] : [], "-protocol_whitelist", "file,pipe", "-i", path];
     if (facts2.width) args.push("-vf", "blackdetect=d=0.5:pix_th=0.03,freezedetect=n=-50dB:d=1");
     if (facts2.audio) args.push("-af", `${options2.strict ? "ashowinfo," : ""}ebur128=peak=true,silencedetect=n=-50dB:d=1`);
@@ -157579,7 +157861,7 @@ async function inspectMotionBytes(bytes, target = {}, binaries = { probe: "ffpro
       options2.signal?.throwIfAborted();
       checks.push({ id: "decoded-analysis", status: "not-run", reason: `ffmpeg unavailable or decoding failed: ${error2.message}` });
     }
-    return motionReport(facts2, target, checks);
+    return motionReport(facts2, target2, checks);
   } finally {
     await rm3(directory, { recursive: true, force: true });
   }
@@ -161397,11 +161679,11 @@ async function unsignedPdf(bytes, signal) {
   signal?.throwIfAborted();
   return document2;
 }
-async function runPdfFileOperation(bytes, target, signal) {
+async function runPdfFileOperation(bytes, target2, signal) {
   const document2 = await unsignedPdf(bytes, signal);
-  const output = target === "pdf-clean" ? (await stripPdf(bytes)).bytes : await document2.save({ useObjectStreams: true, addDefaultPage: false, updateFieldAppearances: false });
+  const output = target2 === "pdf-clean" ? (await stripPdf(bytes)).bytes : await document2.save({ useObjectStreams: true, addDefaultPage: false, updateFieldAppearances: false });
   signal?.throwIfAborted();
-  return target === "pdf-optimize" && output.byteLength >= bytes.byteLength ? bytes : output;
+  return target2 === "pdf-optimize" && output.byteLength >= bytes.byteLength ? bytes : output;
 }
 async function splitPdfPages(bytes, signal) {
   const source = await unsignedPdf(bytes, signal);
@@ -163130,15 +163412,15 @@ async function runDriveSteps(page3, steps, opts = {}) {
       continue;
     }
     const selector = step.kind === "press" ? step.selector : step.selector;
-    const target = page3.locator(selector).first();
-    await target.waitFor({ state: "visible", timeout: DRIVE_TIMEOUT_MS });
-    const box4 = step.kind === "drag" || step.kind !== "press" && step.at ? await target.boundingBox() : null;
+    const target2 = page3.locator(selector).first();
+    await target2.waitFor({ state: "visible", timeout: DRIVE_TIMEOUT_MS });
+    const box4 = step.kind === "drag" || step.kind !== "press" && step.at ? await target2.boundingBox() : null;
     const at = step.kind === "press" ? void 0 : step.at;
     const position = box4 && at ? { x: box4.width * at[0], y: box4.height * at[1] } : void 0;
     switch (step.kind) {
       case "click":
         try {
-          await target.click({
+          await target2.click({
             button: step.button === "right" ? "right" : "left",
             clickCount: step.count && step.count > 1 ? step.count : 1,
             ...position ? { position } : {}
@@ -163149,16 +163431,16 @@ async function runDriveSteps(page3, steps, opts = {}) {
           const pointerSpecific = step.button === "right" || (step.count ?? 1) > 1 || Boolean(position);
           if (!opts.clickFallback || pointerSpecific || !actionabilityTimeout) throw e;
           opts.onClickFallback?.(selector, msg3.split("\n")[0].trim());
-          await target.evaluate((el) => {
+          await target2.evaluate((el) => {
             el.click();
           });
         }
         break;
       case "hover":
-        await target.hover(position ? { position } : {});
+        await target2.hover(position ? { position } : {});
         break;
       case "press":
-        await target.focus();
+        await target2.focus();
         await page3.keyboard.press(step.keys);
         break;
       case "drag": {
@@ -163247,9 +163529,9 @@ async function captureUrl(params2, format, dims, opts = {}) {
       for (let attempt2 = 0; attempt2 < 10; attempt2++) {
         const settled = await page3.evaluate((d) => {
           const max = Math.max(0, document.body.scrollHeight - window.innerHeight);
-          const target = Math.min(max, d > 1 ? d : d * max);
-          window.scrollTo(0, target);
-          return Math.abs(window.scrollY - target) < 4;
+          const target2 = Math.min(max, d > 1 ? d : d * max);
+          window.scrollTo(0, target2);
+          return Math.abs(window.scrollY - target2) < 4;
         }, params2.scrollDepth).catch(() => true);
         await page3.waitForTimeout(300);
         if (settled && attempt2 >= 1) break;
@@ -163600,12 +163882,12 @@ async function runModel(session, input, w, h) {
     h: Number(dims[dims.length - 2])
   };
 }
-async function finalize(rgb3, src, needAlpha, target) {
+async function finalize(rgb3, src, needAlpha, target2) {
   if (needAlpha) {
-    const scaledSrc = await resizeRgba(src, target.outW, target.outH);
+    const scaledSrc = await resizeRgba(src, target2.outW, target2.outH);
     for (let i = 3; i < rgb3.data.length; i += 4) rgb3.data[i] = scaledSrc.data[i];
   }
-  const out = target.downscale ? await resizeRgba(rgb3, target.finalW, target.finalH) : rgb3;
+  const out = target2.downscale ? await resizeRgba(rgb3, target2.finalW, target2.finalH) : rgb3;
   return { width: out.width, height: out.height, data: out.data };
 }
 async function sessionFor(id3, file) {
@@ -163626,10 +163908,10 @@ async function runRealEsrgan(frame, model2, opts) {
   const src = { width: w, height: h, data: frame.data };
   const needAlpha = hasAlpha2(frame.data);
   const scale = model2.scale;
-  const target = planTarget(w, h, scale, opts);
+  const target2 = planTarget(w, h, scale, opts);
   const T = tileEdgeFor("cpu", deviceMemoryGb());
   const tiles = planTiles(w, h, T);
-  const out = { width: target.outW, height: target.outH, data: new Uint8ClampedArray(target.outW * target.outH * 4) };
+  const out = { width: target2.outW, height: target2.outH, data: new Uint8ClampedArray(target2.outW * target2.outH * 4) };
   let idx = 0;
   for (const { cx: cx2, cy: cy3, cw, ch, px0, py0, pw, ph } of tiles) {
     checkSignal(opts.signal);
@@ -163649,21 +163931,21 @@ async function runRealEsrgan(frame, model2, opts) {
     idx++;
     opts.onProgress?.({ phase: "inference", tile: idx, tiles: tiles.length, fraction: idx / tiles.length });
   }
-  return finalize(out, src, needAlpha, target);
+  return finalize(out, src, needAlpha, target2);
 }
 async function runGfpgan(frame, model2, opts) {
   const faceSession = await sessionFor(model2.id, UPSCALE_MODEL_FILES[model2.id]);
   if (!faceSession) refuseMissing("upscale", model2.name, model2.approxBytes);
   const { width: w, height: h } = frame;
   const src = { width: w, height: h, data: frame.data };
-  const target = planTarget(w, h, model2.scale, opts);
+  const target2 = planTarget(w, h, model2.scale, opts);
   const general = upscaleModel("realesr-general-x4v3");
   let background;
   if (general && modelFileExists("upscale", UPSCALE_MODEL_FILES[general.id])) {
     background = await runRealEsrgan(frame, general, { ...opts, model: general.id });
   } else {
     checkSignal(opts.signal);
-    const enlarged = await resizeRgba(src, target.finalW, target.finalH);
+    const enlarged = await resizeRgba(src, target2.finalW, target2.finalH);
     background = { width: enlarged.width, height: enlarged.height, data: enlarged.data };
   }
   checkSignal(opts.signal);
@@ -166013,7 +166295,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
     // v1.183: bytes behind a ref. This bridge inlines catalog files as data:
     // urls, so most reads never touch the disk; http(s) rides the tool's own
     // allowlist through host.net, never an open fetch.
-    bytes: (target) => assetBytes(target, { netFetch: (url) => host.net ? host.net.fetch(url) : Promise.reject(new Error("no host.net")) }),
+    bytes: (target2) => assetBytes(target2, { netFetch: (url) => host.net ? host.net.fetch(url) : Promise.reject(new Error("no host.net")) }),
     async resolveProvider(ref) {
       if (ref.provider === "catalog" || ref.provider === "library") {
         try {
@@ -166713,9 +166995,9 @@ async function applyBrandVars(el, host) {
     if (css2) el.style.setProperty(`--brand-${slot}`, css2);
   }
   const { swatchFace: swatchFace2, tokenColorVar: tokenColorVar2 } = await Promise.resolve().then(() => (init_color_face(), color_face_exports));
-  const target = el.matches('[data-editing-range="hdr"]') || el.querySelector('[data-editing-range="hdr"]') ? "rec2020" : "srgb";
+  const target2 = el.matches('[data-editing-range="hdr"]') || el.querySelector('[data-editing-range="hdr"]') ? "rec2020" : "srgb";
   for (const swatch of await host.tokens.colors()) {
-    const value = swatchFace2(swatch, target);
+    const value = swatchFace2(swatch, target2);
     el.style.setProperty(tokenColorVar2(swatch.ref), value);
     const semantic = /^color\.semantic\.([a-z-]+)$/.exec(swatch.path);
     if (semantic) el.style.setProperty("--brand-" + semantic[1], value);
@@ -167626,16 +167908,16 @@ async function renderTierB(toolId, query2, fmt4, o) {
       const inputIds = o.production === void 0 ? [] : parseProductionSpec(o.production).requirements.filter((r5) => r5.kind === "input").map((r5) => r5.location);
       const observeInputs = await observeProductionInputs(page3, toolId, inputIds);
       await installBrowserEgressPolicy(page3, base);
-      let target = url;
+      let target2 = url;
       if (designSession) {
         const opened = await openSessionInPage(page3, base, designSession.bytes, "Design.lolly", { timeoutMs: 12e4 }).catch((error2) => {
           throw new RenderError(`The web shell could not open the document: ${shortenUrls(error2 instanceof Error ? error2.message : String(error2))}`);
         });
-        target = exportUrl(base, "design", sessionQuery(opened.slot, query2), fmt4, o);
+        target2 = exportUrl(base, "design", sessionQuery(opened.slot, query2), fmt4, o);
       }
       waiting = await waitForExport(page3, fmt4);
       const downloadP = waiting.result;
-      await page3.goto(target, { waitUntil: "commit", timeout: 3e4 });
+      await page3.goto(target2, { waitUntil: "commit", timeout: 3e4 });
       let download;
       try {
         download = await downloadP;
@@ -175922,26 +176204,26 @@ async function encodeToTargetBytes(encode, options2, signal) {
   }
   return best;
 }
-function conversionFindings(kind, target) {
+function conversionFindings(kind, target2) {
   const warning = (code, message) => ({ code, severity: "warning", message });
-  if (target === "jxl-recompress") return [warning("jpeg-reconstruction", "The complete original JPEG, including metadata, is retained. Restoration is checked byte for byte before the copy is saved. Compression savings are not guaranteed.")];
-  if (target === "jpeg-original") return [warning("jpeg-restored", "Restores the original encoded JPEG and its metadata without rendering new pixels.")];
-  if (kind === "jxl") return [warning("jxl-sdr-view", "This conversion uses the oriented 8-bit sRGB view of the JPEG XL source. The original file remains unchanged."), ...conversionFindings("raster", target)];
+  if (target2 === "jxl-recompress") return [warning("jpeg-reconstruction", "The complete original JPEG, including metadata, is retained. Restoration is checked byte for byte before the copy is saved. Compression savings are not guaranteed.")];
+  if (target2 === "jpeg-original") return [warning("jpeg-restored", "Restores the original encoded JPEG and its metadata without rendering new pixels.")];
+  if (kind === "jxl") return [warning("jxl-sdr-view", "This conversion uses the oriented 8-bit sRGB view of the JPEG XL source. The original file remains unchanged."), ...conversionFindings("raster", target2)];
   if (kind === "text") return [warning("text-markdown-document", "Formats UTF-8 text using the existing Markdown document exporter. Headings, lists and emphasis may become document structure. Source metadata and content credentials are not carried.")];
-  if (target === "pdf-split") return [warning("pdf-static-pages", "One PDF per page in a ZIP. Page artwork and sizes are copied. Document metadata, bookmarks and structure tags are not carried. Signed or password-protected sources, forms, attachments, annotations and actions are refused.")];
-  if (target === "pdf-pages-png") return [warning("pdf-page-images", "One PNG per page in a ZIP, at one pixel per PDF point. Text and shapes become pixels. Rendering uses Lolly\u2019s PDF interpreter; pages with reported unsupported features fail. Review fonts and appearance. Source metadata and content credentials are not carried.")];
-  if (target === "pdf-clean") return [warning("pdf-descriptive-metadata", "Removes descriptive Info/XMP metadata, not attachments, comments, form values, scripts or hidden content. This is not redaction."), warning("pdf-rewrite", "Rewrites the PDF without rasterizing pages. Signed and password-protected PDFs are refused.")];
-  if (target === "pdf-optimize") return [warning("pdf-structural-only", "Structural compression only: images are not downsampled. Keeps the original bytes if the rewrite is larger; savings are not guaranteed."), warning("pdf-rewrite", "Signed and password-protected PDFs are refused. Check the finished document before delivery.")];
-  if (kind === "raster" || ["svg", "svgz"].includes(kind) && !["svg", "svgz"].includes(target)) {
+  if (target2 === "pdf-split") return [warning("pdf-static-pages", "One PDF per page in a ZIP. Page artwork and sizes are copied. Document metadata, bookmarks and structure tags are not carried. Signed or password-protected sources, forms, attachments, annotations and actions are refused.")];
+  if (target2 === "pdf-pages-png") return [warning("pdf-page-images", "One PNG per page in a ZIP, at one pixel per PDF point. Text and shapes become pixels. Rendering uses Lolly\u2019s PDF interpreter; pages with reported unsupported features fail. Review fonts and appearance. Source metadata and content credentials are not carried.")];
+  if (target2 === "pdf-clean") return [warning("pdf-descriptive-metadata", "Removes descriptive Info/XMP metadata, not attachments, comments, form values, scripts or hidden content. This is not redaction."), warning("pdf-rewrite", "Rewrites the PDF without rasterizing pages. Signed and password-protected PDFs are refused.")];
+  if (target2 === "pdf-optimize") return [warning("pdf-structural-only", "Structural compression only: images are not downsampled. Keeps the original bytes if the rewrite is larger; savings are not guaranteed."), warning("pdf-rewrite", "Signed and password-protected PDFs are refused. Check the finished document before delivery.")];
+  if (kind === "raster" || ["svg", "svgz"].includes(kind) && !["svg", "svgz"].includes(target2)) {
     const findings = [
       warning("metadata-not-carried", "Image re-encoding does not carry over source metadata or content credentials."),
       warning("colour-not-verified", "Renderer-converted colour. CMYK, spot colours, HDR and print fidelity are not verified.")
     ];
     if (kind !== "raster") findings.push(warning("vector-rasterized", "The SVG becomes pixels. Text and shapes will no longer be editable vectors."));
-    if (target === "jxl" || target === "jxl-lossless") findings.push(warning("sdr-render", target === "jxl-lossless" ? "Lossless encoding of the rendered 8-bit sRGB pixels. Resizing, colour conversion and canvas rendering can change source samples." : "Lossy encoding of the rendered 8-bit sRGB pixels. Alpha is encoded losslessly."));
-    if (target === "jpeg") findings.push(warning("alpha-flattened", "JPEG cannot keep transparency. Transparent areas use your chosen background colour."));
-    if (target === "pdf") findings.push(warning("image-pdf", "One image on one PDF page; not editable vector artwork. One pixel becomes one PDF point."));
-    if (target === "ico") findings.push(warning("icon-size", "The icon is reduced to at most 256 \xD7 256 pixels."));
+    if (target2 === "jxl" || target2 === "jxl-lossless") findings.push(warning("sdr-render", target2 === "jxl-lossless" ? "Lossless encoding of the rendered 8-bit sRGB pixels. Resizing, colour conversion and canvas rendering can change source samples." : "Lossy encoding of the rendered 8-bit sRGB pixels. Alpha is encoded losslessly."));
+    if (target2 === "jpeg") findings.push(warning("alpha-flattened", "JPEG cannot keep transparency. Transparent areas use your chosen background colour."));
+    if (target2 === "pdf") findings.push(warning("image-pdf", "One image on one PDF page; not editable vector artwork. One pixel becomes one PDF point."));
+    if (target2 === "ico") findings.push(warning("icon-size", "The icon is reduced to at most 256 \xD7 256 pixels."));
     return findings;
   }
   if (["pdf", "docx", "pptx"].includes(kind)) return [
@@ -175950,8 +176232,8 @@ function conversionFindings(kind, target) {
   ];
   if (["csv", "tsv", "xlsx", "json"].includes(kind)) return [
     warning("values-only", "Converts cell values, not formatting or formulas. Excel input uses the first sheet."),
-    ...target === "json" ? [warning("json-headers", "Column headings become object keys. Duplicate or empty headings are refused.")] : [],
-    ...target === "tsv" ? [warning("tsv-whitespace", "Tabs and line breaks within cells become spaces.")] : []
+    ...target2 === "json" ? [warning("json-headers", "Column headings become object keys. Duplicate or empty headings are refused.")] : [],
+    ...target2 === "tsv" ? [warning("tsv-whitespace", "Tabs and line breaks within cells become spaces.")] : []
   ];
   if (["ttf", "otf", "woff"].includes(kind)) return [warning("font-container", "Keeps the outline format. Font licensing and embedding rights are not verified; WOFF wrapper metadata is not carried into an unpacked font.")];
   return [];
@@ -176717,9 +176999,9 @@ function restStoreConfig(env) {
   }
   return null;
 }
-function createRateLimiter(env, namespace2 = "mcp", onWrite) {
+function createRateLimiter(env, namespace3 = "mcp", onWrite) {
   const store = restStoreConfig(env);
-  if (store) return new RedisRestRateLimiter({ ...store, namespace: namespace2, onWrite });
+  if (store) return new RedisRestRateLimiter({ ...store, namespace: namespace3, onWrite });
   const hosted = !!env.VERCEL || env.LOLLY_MCP_HOSTED === "1" || env.NODE_ENV === "production";
   if (hosted && env.LOLLY_ALLOW_IN_MEMORY_RATE_LIMIT !== "1") {
     console.warn(`[rate-limit] ${UNCONFIGURED_REASON}`);
@@ -176727,8 +177009,8 @@ function createRateLimiter(env, namespace2 = "mcp", onWrite) {
   }
   return new MemoryRateLimiter();
 }
-function digestKey(namespace2, scope2, subject) {
-  return createHash12("sha256").update(namespace2).update("\0").update(scope2).update("\0").update(subject).digest("hex");
+function digestKey(namespace3, scope2, subject) {
+  return createHash12("sha256").update(namespace3).update("\0").update(scope2).update("\0").update(subject).digest("hex");
 }
 function normalizeRestUrl(raw) {
   let url;
@@ -176904,10 +177186,10 @@ var RedisRestUsageBudget = class extends MeteredBudget {
     return { cpuMs: Number(result[0]), egressBytes: Number(result[1]) };
   }
 };
-function createUsageBudget(env, namespace2 = "mcp", onWrite) {
+function createUsageBudget(env, namespace3 = "mcp", onWrite) {
   const limits = budgetLimits(env);
   const store = restStoreConfig(env);
-  if (store) return new RedisRestUsageBudget({ ...store, namespace: namespace2, limits, onWrite });
+  if (store) return new RedisRestUsageBudget({ ...store, namespace: namespace3, limits, onWrite });
   if (limits.cpuMs || limits.egressBytes) {
     const hosted = !!env.VERCEL || env.LOLLY_MCP_HOSTED === "1" || env.NODE_ENV === "production";
     if (hosted) console.warn("[usage-budget] no durable store is configured, so the daily budget is counted per instance");
@@ -176964,19 +177246,19 @@ function identityAllowed(header) {
   return (quality.get("identity") ?? (quality.get("*") === 0 ? 0 : 1)) > 0;
 }
 var textType2 = (type) => /^(?:text\/|application\/(?:[^;]*\+)?(?:json|xml|javascript)(?:;|$)|image\/svg\+xml)/i.test(type);
-function deliveryResponse(req, target) {
+function deliveryResponse(req, target2) {
   let status = 200;
   let headers = {};
   let ended = false;
   const accept = typeof req.headers["accept-encoding"] === "string" ? req.headers["accept-encoding"] : void 0;
-  const response = new Proxy(target, { get(object4, name) {
+  const response = new Proxy(target2, { get(object4, name) {
     if (name === "writeHead") return (code, supplied = {}) => {
       status = code;
       headers = Object.fromEntries(Object.entries(supplied).map(([key, value2]) => [key.toLowerCase(), String(value2)]));
       return response;
     };
     if (name === "end") return (body) => {
-      if (ended) return target;
+      if (ended) return target2;
       ended = true;
       headers = { ...deliveryHeaders("person-private", { tokenBearing: true }), ...headers };
       if (/(?:^|,)\s*no-store\s*(?:,|$)/i.test(headers["cache-control"] ?? "")) Object.assign(headers, deliveryHeaders("person-private", { tokenBearing: true }));
@@ -177002,9 +177284,9 @@ function deliveryResponse(req, target) {
         delete headers["content-encoding"];
         delete headers["content-length"];
       } else if (bytes) headers["content-length"] = String(bytes.byteLength);
-      target.writeHead(status, headers);
-      target.end(empty2 ? void 0 : bytes);
-      return target;
+      target2.writeHead(status, headers);
+      target2.end(empty2 ? void 0 : bytes);
+      return target2;
     };
     const value = Reflect.get(object4, name, object4);
     return typeof value === "function" ? value.bind(object4) : value;
@@ -177406,12 +177688,12 @@ function upstreamImagePolicy(url, headers) {
 async function proxyImage(reqUrl, opts) {
   const env = opts.env ?? process.env;
   if (env.LOLLY_DISABLE_IMAGE_PROXY === "1") return errorResponse2(404, "not_found");
-  const target = reqUrl.searchParams.get("url");
-  if (!target) return errorResponse2(400, "Pass ?url=<image URL>.");
-  if (target.length > MAX_URL_LEN) return errorResponse2(400, `URL too long (max ${MAX_URL_LEN} characters).`);
+  const target2 = reqUrl.searchParams.get("url");
+  if (!target2) return errorResponse2(400, "Pass ?url=<image URL>.");
+  if (target2.length > MAX_URL_LEN) return errorResponse2(400, `URL too long (max ${MAX_URL_LEN} characters).`);
   let parsed;
   try {
-    parsed = new URL(target);
+    parsed = new URL(target2);
   } catch {
     return errorResponse2(400, "That doesn't look like a URL.");
   }

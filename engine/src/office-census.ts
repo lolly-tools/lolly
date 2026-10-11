@@ -3,7 +3,7 @@
 import { decodeZipMember, readZipMembers, type ZipRawMember } from './zip.ts';
 import { OFFICE_MAX_XML_BYTES, officeAttr, officeNodes, officeText, readOfficeXml, type OfficeXmlNode } from './office-xml.ts';
 
-export interface OfficeCensusFinding { category: string; label: string; value: string; location: string }
+export interface OfficeCensusFinding { category: string; label: string; value: string; location: string; propertyStart?: number }
 export interface OfficeCensusPart {
   path: string; format: string; status: 'inspected' | 'partial' | 'uninspected'; limitations: string[]; findings: OfficeCensusFinding[];
 }
@@ -11,7 +11,7 @@ export interface OfficeCensus { format: string; limitations: string[]; parts: Of
 export interface OfficeCensusOptions { maxParts?: number; maxExpandedBytes?: number }
 const OFFICE = /\.(docx|pptx|xlsx|docm|pptm|xlsm|dotx|dotm|potx|potm|xltx|xltm|xlsb|doc|ppt|xls)$/i;
 const OLE = [0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1];
-const READ_ONLY = 'Office inspection is read-only. Properties and document content are retained unchanged; no cleaned copy is available.';
+export const OFFICE_READ_ONLY = 'Office inspection is read-only. Properties and document content are retained unchanged; no cleaned copy is available.';
 const COVERAGE = 'This package census checks supported properties, relationships, comments, notes and hidden-content markers. Visible text, formulas, rendered appearance and arbitrary binary content are not fully inspected.';
 interface CensusBudget { parts: number; expanded: number; nodes: number; findings: number; maxParts: number; maxExpanded: number }
 function packageFormat(names: string[]): string | undefined {
@@ -42,7 +42,9 @@ function inspectXml(part: OfficeCensusPart, root: OfficeXmlNode, format: string,
   if (/^docProps\/(?:core|app|custom)\.xml$/.test(path)) {
     for (const node of root.children) {
       const name = officeAttr(node, 'name') ?? node.name;
+      const before = part.findings.length;
       add('office-properties', 'Document property', officeText(node), `Property: ${name}`);
+      if (part.findings.length > before) part.findings[part.findings.length - 1]!.propertyStart = node.start;
     }
   }
   if (path.endsWith('.rels')) {
@@ -121,7 +123,7 @@ function inspectPackage(bytes: Uint8Array, prefix: string, declared: string, dep
 
 export function inspectOfficePackage(bytes: Uint8Array, name: string, options: OfficeCensusOptions = {}): OfficeCensus {
   const extension = name.split('.').pop()?.toLowerCase() ?? '';
-  const result: OfficeCensus = { format: extension, limitations: [READ_ONLY, COVERAGE], parts: [], expandedBytes: 0 };
+  const result: OfficeCensus = { format: extension, limitations: [OFFICE_READ_ONLY, COVERAGE], parts: [], expandedBytes: 0 };
   if (OLE.every((byte, index) => bytes[index] === byte)) {
     result.format = 'office-container';
     result.limitations.push('Legacy binary or encrypted Office container. Its content is not inspected or decrypted.'); return result;

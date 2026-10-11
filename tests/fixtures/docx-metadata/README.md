@@ -1,0 +1,19 @@
+# DOCX metadata fixture
+
+`metadata.docx` is an authentic Office Open XML package exported by LibreOffice
+Writer 26.2.3.2 from the authored `metadata.fodt` source. Its visible content includes a
+styled heading, a paragraph with bold text and a two-cell table. Its core and custom
+properties contain synthetic private values. No property-dependent fields or bound
+content controls are present.
+
+Generate with an isolated LibreOffice user profile:
+
+```sh
+soffice -env:UserInstallation=file:///absolute/fixture-profile --headless --convert-to docx --outdir tests/fixtures/docx-metadata tests/fixtures/docx-metadata/metadata.fodt
+```
+
+The tests use libxml2 and JSDOM as independent XML readers, verify selected removal,
+and compare every unrelated raw ZIP member with the original. Untouched property
+elements are compared as source text. UTF-8/UTF-16 BOM variants and malformed inputs
+are generated in memory. Application reopening and rendering evidence is recorded
+in plan 228; the unit suite does not require LibreOffice.

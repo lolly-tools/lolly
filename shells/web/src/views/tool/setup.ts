@@ -1,4 +1,5 @@
 import { swatchFace } from '../../../../../engine/src/color-face.ts';
+import { canvasBlockBooleanValue } from '../../lib/canvas-block-input.ts';
 import { RESULT_CONTEXT_PARAMS } from '../../lib/tool-url-state.ts';
 import { getDesignPublication, restoreDesignPublication } from '../../lib/design-tool-publication.ts';
 import { getRebrandHandoff, restoreRebrandHandoff, REBRAND_HANDOFF_MARKER } from '../../lib/rebrand/design-handoff.ts';
@@ -1357,6 +1358,13 @@ export async function mountLiveControls(tview: ToolViewCtx): Promise<void> {
       if (!ctl) return;
       const id = ctl.dataset.inputId;
       if (!id) return;
+      if (ctl.dataset.inputRowId && ctl.dataset.inputField) {
+        const rows = canvasBlockBooleanValue(runtime.getModel().find(item => item.id === id), ctl.dataset.inputRowId, ctl.dataset.inputField, ctl.checked);
+        if (ctl.type !== 'checkbox' || rows === undefined) return;
+        runtime.setInput(id, rows);
+        tview.session.markUserDirty(id);
+        return;
+      }
       const value =
         ctl.type === 'checkbox'
           ? ctl.checked

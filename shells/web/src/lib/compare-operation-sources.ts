@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
-import type { ComparisonRequest, HostV1, VisualComparisonRequest } from '@lolly-tools/core/host-v1';
+import type { ComparisonRequest, ComparisonSource, HostV1, VisualComparisonRequest } from '@lolly-tools/core/host-v1';
 import type { FileFactsV1 } from '@lolly-tools/core/file-v1';
 import { assetComparisonMode } from './compare-asset-sources.ts';
 import { comparisonFileSource } from './compare-sources.ts';
@@ -25,6 +25,21 @@ export async function verifyComparisonOriginal(file: File, expected: FileFactsV1
 /** Files are immutable snapshots. Decoding and comparison use the existing shared paths. */
 export async function operationComparisonPair(before: File, after: File, host: HostV1, signal?: AbortSignal): Promise<OperationComparisonPair> {
   signal?.throwIfAborted();
+  if ([before, after].every(file => /\.docx$/i.test(file.name))) {
+    if (!host.prepare || before.size > 32 * 1024 * 1024 || after.size > 32 * 1024 * 1024) throw new Error('DOCX property review is not supported for this pair.');
+    const sides: ComparisonSource[] = [];
+    for (const [index, file] of [before, after].entries()) {
+      const bytes = new Uint8Array(await file.arrayBuffer()); signal?.throwIfAborted();
+      const inspection = await host.prepare.inspect([{ id: 'document', name: file.name, bytes }]); signal?.throwIfAborted();
+      if (!inspection.scopes.find(s => s.id === 'document')?.actions?.includes('remove-property')) throw new Error('DOCX property review is not supported for this file. It remains inspect-only.');
+      const findings = inspection.findings.filter(f => f.action === 'remove-property');
+      if (findings.some(f => !f.propertyId) || new Set(findings.map(f => f.propertyId)).size !== findings.length) throw new Error('DOCX property identities could not be verified.');
+      const properties = Object.fromEntries(findings.map(f => [f.propertyId!, { label: f.label, location: f.location, value: f.value }]));
+      sides.push({ identity: { id: index ? 'docx-copy' : 'docx-original', kind: 'file', label: index ? 'Copy document properties' : 'Original document properties' }, bytes,
+        content: { kind: 'structure', value: properties }, fidelity: { level: 'partial', limitations: ['Only supported DOCX core and custom properties are compared. Visible content, rendered appearance and other package data are not compared.'] } });
+    }
+    return { mode: 'json', request: { version: 1, before: sides[0]!, after: sides[1]!, options: { mode: 'structure' } } };
+  }
   const mode = assetComparisonMode([before, after].map(file => ({ format: file.name.split('.').pop()?.toLowerCase() ?? '' })));
   if (!mode) throw new Error('Comparison supports text, JSON, images and PDF pages. This file pair is not supported.');
   if (mode === 'visual') {
