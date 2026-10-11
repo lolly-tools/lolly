@@ -10,3 +10,12 @@ export function mountPdfComparisonMode(root: HTMLElement, formats: readonly (str
   select.add(new Option(t('Images / PDF pages'), 'visual')); select.add(new Option(t('Extracted document text'), 'document'));
   label.append(select); root.append(label); select.addEventListener('change', () => changed(select.value === 'document' ? 'document' : undefined));
 }
+
+/** Operation review retains DOCX properties by default, including metadata-only changes. */
+export function mountOperationComparisonMode(root: HTMLElement, formats: readonly (string | undefined)[], changed: (mode?: 'document') => void): void {
+  if (formats.length !== 2 || !formats.every(format => format?.toLowerCase() === 'docx')) { mountPdfComparisonMode(root, formats, changed); return; }
+  const label = el('label', t('DOCX comparison')), select = el('select', undefined, 'field-select');
+  select.setAttribute('aria-label', t('DOCX comparison'));
+  select.add(new Option(t('Document properties'), 'properties')); select.add(new Option(t('Extracted document text'), 'document'));
+  label.append(select); root.append(label); select.addEventListener('change', () => changed(select.value === 'document' ? 'document' : undefined));
+}

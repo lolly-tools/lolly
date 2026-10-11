@@ -3,6 +3,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 import { PDFDocument, StandardFonts } from 'pdf-lib';
+import { readFileSync } from 'node:fs';
+import { unzipSync, zipSync, strToU8 } from 'fflate';
+import { openDocxMetadata } from '../engine/src/docx-metadata.ts';
 import { docxFixture, pptxFixture, xlsxFixture } from './helpers/compare-file-fixtures.ts';
 import { shellSettled } from './helpers/shell-settled.ts';
 const origin = process.env.LOLLY_HISTORY_TEST_URL;
@@ -99,5 +102,48 @@ test('file entry adapters and saved operation use the same engine results and ca
     await dialog.getByLabel('Row key').waitFor(); await dialog.getByLabel('Row key').selectOption('id'); await dialog.getByText('2 changes found', { exact: true }).waitFor();
     await dialog.getByRole('button', { name: 'Close comparison' }).click();
     const storage = await page.evaluate(() => JSON.stringify({ local: { ...localStorage }, session: { ...sessionStorage }, url: location.href })); assert.doesNotMatch(storage, /CONFIDENTIAL|renamed.xlsx/);
+  } finally { await browser.close(); }
+});
+
+test('DOCX operation Compare preserves property cleanup and offers explicit body text for inspect-only documents', { skip, timeout: 90_000 }, async () => {
+  const browser = await chromium.launch(), page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
+  const metadata = new Uint8Array(readFileSync(new URL('./fixtures/docx-metadata/metadata.docx', import.meta.url)));
+  const cleaned = openDocxMetadata(metadata, 'original.docx').remove(['core:creator']);
+  const open = async (before: Uint8Array, after: Uint8Array): Promise<void> => {
+    await page.evaluate(async ({ before, after }) => {
+      const hostPath = '/src/lib/host-ref.ts', panelPath = '/src/components/compare-operation.ts';
+      const bytes = (value: string) => Uint8Array.from(atob(value), char => char.charCodeAt(0));
+      (await import(panelPath)).openOperationComparison((await import(hostPath)).getHostRef(), new File([bytes(after)], 'copy.docx'), { before: new File([bytes(before)], 'original.docx') });
+    }, { before: Buffer.from(before).toString('base64'), after: Buffer.from(after).toString('base64') });
+  };
+  try {
+    await page.goto(`${origin}/#/compare`, { waitUntil: 'networkidle' }); await shellSettled(page); await open(metadata, cleaned);
+    const dialog = page.getByRole('dialog', { name: 'Compare original and copy' }), mode = dialog.getByLabel('DOCX comparison', { exact: true });
+    await dialog.getByText('1 change found', { exact: true }).waitFor(); assert.equal(await mode.inputValue(), 'properties');
+    assert.equal(await dialog.locator('.compare-change[open]').count(), 0);
+    await mode.selectOption('document'); await dialog.getByLabel('Document alignment', { exact: true }).waitFor();
+    await dialog.getByText('The compared content is equivalent with these options.', { exact: true }).waitFor();
+    assert.equal(await dialog.locator('.compare-change').count(), 0);
+    await mode.selectOption('properties'); await dialog.getByText('1 change found', { exact: true }).waitFor();
+    await dialog.getByRole('button', { name: 'Close comparison' }).click();
+    const guarded = (text: string) => {
+      const parts = unzipSync(docxFixture([text, 'Anchor']));
+      parts['word/document.xml'] = strToU8(new TextDecoder().decode(parts['word/document.xml']).replace('<w:body>', '<w:body><w:fldSimple w:instr="AUTHOR"/>'));
+      return zipSync(parts);
+    };
+    await open(guarded('CONFIDENTIAL_BODY_REMOVED'), guarded('PRIVATE_C_BODY_COPY'));
+    await dialog.getByText('DOCX property review is not supported for this file. It remains inspect-only.', { exact: true }).waitFor();
+    await mode.selectOption('document'); await dialog.getByText('1 change found', { exact: true }).waitFor();
+    assert.match(await dialog.locator('.compare-change summary').innerText(), /Block 1/);
+    assert.doesNotMatch(await dialog.locator('.compare-change summary').innerText(), /Page/);
+    const download = page.waitForEvent('download'); await dialog.getByRole('button', { name: 'Download comparison report' }).click();
+    const stream = await (await download).createReadStream(); let report = ''; for await (const chunk of stream!) report += chunk.toString();
+    assert.doesNotMatch(report, /CONFIDENTIAL|PRIVATE_C_|original.docx|copy.docx/);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+    await page.screenshot({ path: 'plans/229-compare-evidence/docx-operation-mobile.png', fullPage: true });
+    await dialog.getByRole('button', { name: 'Close comparison' }).click();
+    const storage = await page.evaluate(() => JSON.stringify({ local: { ...localStorage }, session: { ...sessionStorage }, url: location.href }));
+    assert.doesNotMatch(storage, /CONFIDENTIAL_BODY_REMOVED|PRIVATE_C_BODY_COPY/); assert.deepEqual(errors, []);
   } finally { await browser.close(); }
 });

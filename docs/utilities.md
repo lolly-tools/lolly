@@ -119,6 +119,10 @@ reading order. Scans have no text without OCR, which Compare does not run.
 **Compare document text** on Unpack opens this mode. Two PDFs in Assets or
 file-operation review keep the visual default and offer **Extracted document
 text** as an explicit alternative.
+DOCX file-operation review compares supported document properties by default,
+so metadata cleanup remains visible. Its **DOCX comparison** control also offers
+**Extracted document text**, including documents that are inspect-only for
+property cleanup. Text review does not compare document properties.
 
 Office and PDF files are limited to 32 MiB per side. Office archives must fit
 8 MiB per part, 64 MiB expanded overall and 4,096 archive entries. Document text is limited to 2,000
