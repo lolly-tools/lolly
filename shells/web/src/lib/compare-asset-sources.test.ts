@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import type { HostV1, AssetRef } from '@lolly-tools/core/host-v1';
-import { assetComparisonMode, comparisonAssetFile, comparisonAssetPair, comparisonAssetRef } from './compare-asset-sources.ts';
+import { assetComparisonMode, comparisonAssetFile, comparisonAssetPair, comparisonAssetRef, captureComparisonAssets, capturedAssetComparisonPair } from './compare-asset-sources.ts';
 import { visualComparisonReport } from './compare-visual-report.ts';
 import { compareVisualSources } from '../../../../engine/src/compare-visual.ts';
 const ref: AssetRef = { id: 'user/upload/private', source: 'user', type: 'text', format: 'txt', version: 'current', url: 'blob:current', meta: { name: 'CONFIDENTIAL' } };
@@ -29,4 +29,30 @@ test('visual reports omit names by default and always omit pixels, masks and sou
   assert.doesNotMatch(visualComparisonReport(result), /CONFIDENTIAL|private-id|77|88|99|mask|rgba/);
   assert.match(visualComparisonReport(result, true), /CONFIDENTIAL/);
   assert.doesNotMatch(visualComparisonReport(result, true), /mask|rgba|"bytes"/);
+});
+test('YAML mode uses resolved formats and captured current bytes through explicit Text fallback', async () => {
+  let current = 'count: 2\n', reads = 0, resolutions = 0;
+  const host = { assets: {
+    get: async (id: string, options: { version?: string }) => { resolutions++; return { ...ref, id, format: options.version ? 'yml' : 'yaml', version: options.version ?? 'current-at-capture' }; },
+    bytes: async (asset: AssetRef) => { reads++; return new TextEncoder().encode(asset.version === 'old' ? 'count: 1\n' : current); },
+  } } as unknown as HostV1;
+  const captured = await captureComparisonAssets([{ id: 'source', version: 'old' }, { id: 'source' }], host);
+  assert.deepEqual(captured.map(source => source.format), ['yml', 'yaml']);
+  assert.deepEqual(captured.map(source => source.identity.revision), ['old', 'current-at-capture']);
+  current = 'count: 999\n';
+  const semantic = await capturedAssetComparisonPair(captured, host), fallback = await capturedAssetComparisonPair(captured, host, undefined, 'text');
+  if (semantic.mode === 'visual' || fallback.mode === 'visual') assert.fail();
+  assert.equal(semantic.mode, 'yaml'); assert.deepEqual(semantic.request.options, { mode: 'structure' });
+  assert.deepEqual(semantic.request.after.content, { kind: 'yaml', text: 'count: 2\n' });
+  assert.equal(fallback.mode, 'text'); assert.deepEqual(fallback.request.after.content, { kind: 'text', text: 'count: 2\n' });
+  assert.deepEqual(fallback.request.after.bytes, semantic.request.after.bytes);
+  assert.deepEqual(fallback.request.after.identity, semantic.request.after.identity);
+  assert.equal(resolutions, 2); assert.equal(reads, 2);
+  assert.equal(assetComparisonMode([{ format: 'JSON' }, { format: 'yml' }]), 'yaml');
+  assert.equal(assetComparisonMode([{ format: 'yaml' }, { format: 'yaml' }]), 'yaml');
+  assert.equal(assetComparisonMode([{ format: 'json' }, { format: 'har' }]), 'json');
+  assert.equal(assetComparisonMode([{ format: 'yaml' }, { format: 'txt' }]), 'text');
+  const controller = new AbortController(); controller.abort();
+  await assert.rejects(capturedAssetComparisonPair(captured, host, controller.signal, 'text'), { name: 'AbortError' });
+  assert.equal(reads, 2);
 });

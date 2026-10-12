@@ -913,6 +913,7 @@ export type { OfficeCensus, OfficeCensusPart, OfficeCensusFinding, OfficeCensusO
 export { applyPreparationMetadata } from './prepare-metadata.ts';
 
 export { compareSources, createCompareAPI } from './compare.ts';
+export { readComparisonYaml, type ComparisonYamlReadResult } from './compare-yaml.ts';
 export { compareVisualSources, renderComparisonPage } from './compare-visual.ts';
 
 export { createTextToolsAPI, runTextTool } from './text-tools.ts';

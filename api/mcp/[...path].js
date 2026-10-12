@@ -4006,7 +4006,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.255.0";
+    ENGINE_VERSION = "1.256.0";
   }
 });
 
@@ -43448,19 +43448,19 @@ function stripArmorBlock(bin, label4) {
   }
   return bin.slice(0, lineStart) + bin.slice(lineEnd);
 }
-function placeArmor(bytes, manifest, syntax) {
+function placeArmor(bytes, manifest, syntax2) {
   const bin = bytesToBin(bytes);
   if (/\r(?!\n)/.test(bin)) {
-    throw new Error(`C2PA embed: this ${syntax.label} uses bare CR line endings, which section A.9.4 does not support - convert it to LF or CRLF first`);
+    throw new Error(`C2PA embed: this ${syntax2.label} uses bare CR line endings, which section A.9.4 does not support - convert it to LF or CRLF first`);
   }
-  const base = stripArmorBlock(bin, syntax.label);
+  const base = stripArmorBlock(bin, syntax2.label);
   if (!base.trim()) {
-    throw new Error(`C2PA embed: refusing to place a manifest block in an empty ${syntax.label} - the exclusion would cover the whole file and the hard binding would bind nothing`);
+    throw new Error(`C2PA embed: refusing to place a manifest block in an empty ${syntax2.label} - the exclusion would cover the whole file and the hard binding would bind nothing`);
   }
   const eol = bin.includes("\r\n") && !/(^|[^\r])\n/.test(bin) ? "\r\n" : "\n";
   const introduced = !base.endsWith("\n");
   const head2 = introduced ? base + eol : base;
-  const block = `${syntax.prefix}${ARMOR_BEGIN} ${C2PA_DATA_URI}${btoa(bytesToBin(manifest))} ${ARMOR_END}${syntax.suffix}`;
+  const block = `${syntax2.prefix}${ARMOR_BEGIN} ${C2PA_DATA_URI}${btoa(bytesToBin(manifest))} ${ARMOR_END}${syntax2.suffix}`;
   const out = head2 + block + eol;
   const start = head2.length - (introduced ? eol.length : 1);
   return { out: binToBytes(out), exclusions: [{ start, length: out.length - start }] };
@@ -117990,13 +117990,228 @@ var init_compare_document = __esm({
   }
 });
 
+// engine/src/compare-yaml.ts
+import { Composer, CST, Lexer, Parser, isAlias as isAlias3, isMap as isMap2, isScalar as isScalar2, isSeq as isSeq2 } from "yaml";
+function checkString(text8, maxBytes, signal) {
+  let bytes = 0;
+  for (let i = 0; i < text8.length; i++) {
+    if (!(i % 4096)) signal?.throwIfAborted();
+    const code = text8.charCodeAt(i);
+    if (code >= 55296 && code <= 56319) {
+      const low = text8.charCodeAt(++i);
+      if (!(low >= 56320 && low <= 57343)) throw new Refusal(INVALID);
+      bytes += 4;
+    } else if (code >= 56320 && code <= 57343) throw new Refusal(INVALID);
+    else bytes += code < 128 ? 1 : code < 2048 ? 2 : 3;
+    if (bytes > maxBytes) throw new Refusal(LIMIT);
+  }
+}
+function syntax(text8, signal) {
+  const parser3 = new Parser(), tokens3 = [];
+  let count4 = 0, documents = 0;
+  const accept = (token2) => {
+    if (token2.type === "document" && ++documents > 1) throw new Refusal(SINGLE);
+    tokens3.push(token2);
+  };
+  for (const lexeme of new Lexer().lex(text8)) {
+    signal?.throwIfAborted();
+    if (++count4 > MAX_TOKENS || !Array.isArray(parser3.stack) || parser3.stack.length > MAX_STACK) throw new Refusal(LIMIT);
+    for (const token2 of parser3.next(lexeme)) accept(token2);
+    if (parser3.stack.length > MAX_STACK) throw new Refusal(LIMIT);
+  }
+  for (const token2 of parser3.end()) accept(token2);
+  if (documents !== 1) throw new Refusal(SINGLE);
+  return tokens3;
+}
+function checkSyntax(tokens3, signal) {
+  const queue2 = tokens3.map((token2) => ({ token: token2, depth: -1 }));
+  let nodes = 0;
+  while (queue2.length) {
+    signal?.throwIfAborted();
+    const { token: token2, depth } = queue2.pop();
+    if (token2.type === "alias" || token2.type === "anchor") throw new Refusal(REFERENCES);
+    if (token2.type === "tag" || token2.type === "directive" || token2.type === "directive-line") throw new Refusal(TAGS);
+    if (token2.type === "error" || token2.type === "flow-error-end") throw new Refusal(INVALID);
+    const scalar5 = CST.isScalar(token2), collection = CST.isCollection(token2);
+    if (scalar5 || collection) {
+      if (++nodes > MAX_NODES4 || depth > MAX_DEPTH5) throw new Refusal(LIMIT);
+      if (scalar5) {
+        checkString(token2.source, MAX_SCALAR, signal);
+        const raw = token2.source.trim();
+        if (token2.type === "scalar" && NUMBER_SOURCE.test(raw)) {
+          if (raw.length > MAX_NUMBER) throw new Refusal(LIMIT);
+          const value = Number(raw), coefficient = raw.split(/[eE]/)[0];
+          if (!Number.isFinite(value) || Number.isInteger(value) && !Number.isSafeInteger(value) || value === 0 && /[1-9]/.test(coefficient)) throw new Refusal(NUMBERS);
+        }
+      }
+    }
+    const add3 = (child, childDepth = depth) => {
+      if (child) queue2.push({ token: child, depth: childDepth });
+    };
+    if (token2.type === "document") {
+      if (!token2.value) throw new Refusal(SINGLE);
+      for (const child of token2.start) add3(child);
+      add3(token2.value, 0);
+      for (const child of token2.end ?? []) add3(child);
+    } else if (collection) {
+      if (token2.items.length > MAX_NODES4) throw new Refusal(LIMIT);
+      if (token2.type === "flow-collection") {
+        add3(token2.start);
+        for (const child of token2.end) add3(child);
+      }
+      for (const item2 of token2.items) {
+        for (const child of item2.start) add3(child);
+        if ("key" in item2) add3(item2.key, depth + 1);
+        if ("sep" in item2) for (const child of item2.sep ?? []) add3(child);
+        add3(item2.value, depth + 1);
+      }
+    } else if (token2.type === "block-scalar") {
+      for (const child of token2.props) add3(child);
+    } else if ("end" in token2) {
+      for (const child of token2.end ?? []) add3(child);
+    }
+  }
+}
+function plainData(node, signal) {
+  let result, nodes = 0;
+  const queue2 = [{ node, depth: 0, assign: (value) => {
+    result = value;
+  } }];
+  while (queue2.length) {
+    signal?.throwIfAborted();
+    const entry2 = queue2.pop(), current = entry2.node;
+    if (++nodes > MAX_NODES4 || entry2.depth > MAX_DEPTH5) throw new Refusal(LIMIT);
+    if (current === null || current === void 0) {
+      entry2.assign(null);
+      continue;
+    }
+    if (isAlias3(current)) throw new Refusal(REFERENCES);
+    if (!isMap2(current) && !isSeq2(current) && !isScalar2(current)) throw new Refusal(INVALID);
+    if (current.anchor) throw new Refusal(REFERENCES);
+    if (current.tag) throw new Refusal(TAGS);
+    if (isMap2(current)) {
+      const value = /* @__PURE__ */ Object.create(null), keys2 = /* @__PURE__ */ new Set();
+      nodes += current.items.length;
+      if (nodes > MAX_NODES4) throw new Refusal(LIMIT);
+      entry2.assign(value);
+      for (const pair of current.items) {
+        if (!isScalar2(pair.key) || typeof pair.key.value !== "string") throw new Refusal(KEYS2);
+        const key2 = pair.key.value;
+        checkString(key2, MAX_SCALAR, signal);
+        if (keys2.has(key2)) throw new Refusal(KEYS2);
+        if (key2 === "<<") throw new Refusal(MERGE);
+        keys2.add(key2);
+        queue2.push({ node: pair.value, depth: entry2.depth + 1, assign: (child) => {
+          value[key2] = child;
+        } });
+      }
+    } else if (isSeq2(current)) {
+      if (current.items.length > MAX_NODES4) throw new Refusal(LIMIT);
+      const value = new Array(current.items.length);
+      entry2.assign(value);
+      current.items.forEach((child, index2) => {
+        queue2.push({ node: child, depth: entry2.depth + 1, assign: (item2) => {
+          value[index2] = item2;
+        } });
+      });
+    } else {
+      const value = current.value;
+      if (typeof value === "bigint") {
+        if (value < BigInt(Number.MIN_SAFE_INTEGER) || value > BigInt(Number.MAX_SAFE_INTEGER)) throw new Refusal(NUMBERS);
+        entry2.assign(Number(value));
+      } else if (typeof value === "number") {
+        if (!Number.isFinite(value) || Number.isInteger(value) && !Number.isSafeInteger(value)) throw new Refusal(NUMBERS);
+        entry2.assign(value);
+      } else if (typeof value === "string") {
+        checkString(value, MAX_SCALAR, signal);
+        entry2.assign(value);
+      } else if (value === null || typeof value === "boolean") entry2.assign(value);
+      else throw new Refusal(INVALID);
+    }
+  }
+  return result;
+}
+function readComparisonYaml(text8, signal) {
+  signal?.throwIfAborted();
+  try {
+    if (typeof text8 !== "string") throw new Refusal(INVALID);
+    checkString(text8, COMPARE_MAX_TEXT, signal);
+    const tokens3 = syntax(text8, signal);
+    checkSyntax(tokens3, signal);
+    const composer = new Composer({
+      version: "1.2",
+      schema: "core",
+      customTags: [],
+      resolveKnownTags: false,
+      merge: false,
+      uniqueKeys: false,
+      stringKeys: false,
+      intAsBigInt: true,
+      strict: true,
+      prettyErrors: false,
+      logLevel: "silent"
+    });
+    const documents = [...composer.compose(tokens3, false, text8.length)];
+    signal?.throwIfAborted();
+    if (documents.length !== 1 || documents[0].contents === null) throw new Refusal(SINGLE);
+    const doc = documents[0];
+    if (doc.errors.length || doc.warnings.length) throw new Refusal(INVALID);
+    return { ok: true, value: plainData(doc.contents, signal) };
+  } catch (error2) {
+    signal?.throwIfAborted();
+    if (error2 instanceof Error && error2.name === "AbortError") throw error2;
+    return { ok: false, limitation: error2 instanceof Refusal ? error2.limitation : INVALID };
+  }
+}
+var MAX_TOKENS, MAX_STACK, MAX_DEPTH5, MAX_NODES4, MAX_SCALAR, MAX_NUMBER, NUMBER_SOURCE, INVALID, LIMIT, SINGLE, REFERENCES, TAGS, KEYS2, MERGE, NUMBERS, Refusal;
+var init_compare_yaml = __esm({
+  "engine/src/compare-yaml.ts"() {
+    "use strict";
+    init_compare_budget();
+    MAX_TOKENS = 1e5;
+    MAX_STACK = 128;
+    MAX_DEPTH5 = 64;
+    MAX_NODES4 = 2e4;
+    MAX_SCALAR = 64 * 1024;
+    MAX_NUMBER = 128;
+    NUMBER_SOURCE = /^(?:[-+]?[0-9]+|0o[0-7]+|0x[0-9a-fA-F]+|[-+]?(?:\.[0-9]+|[0-9]+(?:\.[0-9]*)?)[eE][-+]?[0-9]+|[-+]?(?:\.[0-9]+|[0-9]+\.[0-9]*))$/;
+    INVALID = "This YAML is malformed or unsupported for structure comparison. Choose Text mode.";
+    LIMIT = "This YAML exceeds the structure reading limits. Choose Text mode.";
+    SINGLE = "YAML structure comparison needs one nonempty document. Choose Text mode.";
+    REFERENCES = "YAML anchors and aliases are not supported in structure comparison. Choose Text mode.";
+    TAGS = "YAML tags and directives are not supported in structure comparison. Choose Text mode.";
+    KEYS2 = "YAML structure comparison needs unique string keys. Choose Text mode.";
+    MERGE = "YAML merge keys are not supported in structure comparison. Choose Text mode.";
+    NUMBERS = "YAML structure comparison needs finite numbers and safe integers. Choose Text mode.";
+    Refusal = class extends Error {
+      limitation;
+      constructor(limitation) {
+        super(limitation);
+        this.limitation = limitation;
+      }
+    };
+  }
+});
+
 // engine/src/compare.ts
+function normalizeYaml(source, signal) {
+  if (source.content.kind !== "yaml") return source;
+  if (source.fidelity?.level === "unavailable") return { ...source, content: { kind: "structure", value: null } };
+  const read = readComparisonYaml(source.content.text, signal);
+  return { ...source, content: { kind: "structure", value: read.ok ? read.value : null }, fidelity: {
+    level: read.ok ? source.fidelity?.level ?? "complete" : "unavailable",
+    limitations: [...source.fidelity?.limitations ?? [], read.ok ? "YAML data values are compared. Comments, key order, quoting and formatting are outside this comparison." : read.limitation]
+  } };
+}
 function compareSources(request2, signal) {
   signal?.throwIfAborted();
   if (request2.version !== 1) throw new Error("Unsupported comparison version.");
-  const { before, after } = request2, options2 = { ...request2.options };
+  const options2 = { ...request2.options };
+  const applicable = options2.mode === void 0 || options2.mode === "structure";
+  const before = applicable ? normalizeYaml(request2.before, signal) : request2.before;
+  const after = applicable ? normalizeYaml(request2.after, signal) : request2.after;
   const budget3 = comparisonBudget(options2, signal);
-  const mode3 = options2.mode ?? (before.content.kind === after.content.kind ? before.content.kind : "text");
+  const mode3 = options2.mode ?? (before.content.kind === after.content.kind && before.content.kind !== "yaml" ? before.content.kind : "text");
   let alignment = mode3 === "text" ? options2.granularity ?? "line" : mode3 === "table" ? "table-position" : mode3 === "document" ? "document-position" : options2.arrayAlignment === "id" ? "stable-id" : "object-keys-ordered-arrays";
   let byteEquality = "unknown";
   if (before.bytes && after.bytes) {
@@ -118051,6 +118266,7 @@ var init_compare2 = __esm({
     init_compare_visual();
     init_compare_tables();
     init_compare_document();
+    init_compare_yaml();
   }
 });
 
@@ -138386,6 +138602,7 @@ __export(src_exports, {
   readBlockTokenBindings: () => readBlockTokenBindings,
   readBrandStyleEvidence: () => readBrandStyleEvidence,
   readCameraRawPreset: () => readCameraRawPreset,
+  readComparisonYaml: () => readComparisonYaml,
   readDesignSystemIdentity: () => readDesignSystemIdentity,
   readDesignText: () => readDesignText,
   readDocx: () => readDocx,
@@ -139020,6 +139237,7 @@ var init_src2 = __esm({
     init_office_census();
     init_prepare_metadata();
     init_compare2();
+    init_compare_yaml();
     init_compare_visual();
     init_text_tools2();
     init_text_syntax();
@@ -151813,7 +152031,7 @@ function count3(n7, one, many = `${one}s`) {
   return `${n7} ${n7 === 1 ? one : many}`;
 }
 function walkNameTree(ctx, node, out, seen = /* @__PURE__ */ new Set(), depth = 0) {
-  if (depth > MAX_DEPTH5 || out.length >= MAX_ITEMS2) return out;
+  if (depth > MAX_DEPTH6 || out.length >= MAX_ITEMS2) return out;
   const tag3 = refTag(node);
   if (tag3) {
     if (seen.has(tag3)) return out;
@@ -151882,7 +152100,7 @@ function emptySink() {
   return { scripts: [], uris: [], launches: [], submits: [], remotes: [] };
 }
 function walkAction(ctx, action, sink, seen, depth = 0) {
-  if (depth > MAX_DEPTH5) return;
+  if (depth > MAX_DEPTH6) return;
   const tag3 = refTag(action);
   if (tag3) {
     if (seen.has(tag3)) return;
@@ -151961,7 +152179,7 @@ function fieldValue(ctx, v) {
   return null;
 }
 function walkFields(ctx, node, out, seen, prefix = "", inheritedType = null, depth = 0) {
-  if (depth > MAX_DEPTH5 || out.length >= MAX_ITEMS2) return;
+  if (depth > MAX_DEPTH6 || out.length >= MAX_ITEMS2) return;
   const tag3 = refTag(node);
   if (tag3) {
     if (seen.has(tag3)) return;
@@ -152113,11 +152331,11 @@ function scanPdfStructure(doc) {
   if (pages.length) add3("Pages", count3(pages.length, "page"));
   return out;
 }
-var MAX_DEPTH5, MAX_ITEMS2, LIST_CAP, DETAIL_CAP, NON_MARKUP;
+var MAX_DEPTH6, MAX_ITEMS2, LIST_CAP, DETAIL_CAP, NON_MARKUP;
 var init_pdf_structure = __esm({
   "packages/node-shell/src/pdf-structure.ts"() {
     "use strict";
-    MAX_DEPTH5 = 32;
+    MAX_DEPTH6 = 32;
     MAX_ITEMS2 = 500;
     LIST_CAP = 8;
     DETAIL_CAP = 400;
@@ -160410,7 +160628,7 @@ function passiveForensicSvg(source, parse = (source2) => new DOMParser().parseFr
       partial = true;
       continue;
     }
-    if (!TAGS.has(el.localName.toLowerCase())) {
+    if (!TAGS2.has(el.localName.toLowerCase())) {
       el.remove();
       partial = true;
       continue;
@@ -160546,13 +160764,13 @@ function passiveForensicSvg(source, parse = (source2) => new DOMParser().parseFr
   }
   return { svg: serialize2(root2), width, height, lines, shapes: shapes2.slice(0, 64), partial };
 }
-var TAGS, ATTRS;
+var TAGS2, ATTRS;
 var init_forensic_svg = __esm({
   "packages/node-shell/src/forensic-svg.ts"() {
     "use strict";
     init_src2();
     init_bytes();
-    TAGS = new Set(
+    TAGS2 = new Set(
       "svg g defs rect path circle ellipse polygon polyline line text tspan image clipPath linearGradient radialGradient stop".toLowerCase().split(" ")
     );
     ATTRS = new Set(

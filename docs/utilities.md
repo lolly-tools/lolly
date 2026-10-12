@@ -93,11 +93,27 @@ review coverage with Tab, and download the resulting copies. Escape cancels work
 
 ## Compare - `#/compare`
 
-Compare two captured sources on this device: text, JSON, CSV/TSV/XLSX tables,
+Compare two captured sources on this device: text, JSON, YAML, CSV/TSV/XLSX tables,
 DOCX/PPTX/PDF extracted text, or image and PDF-page previews. The same comparison
 panel opens from Assets and file-operation review, including a saved copy with a
 reselected original whose hash must match. Sources stay unchanged. Comparison
 does not merge, apply edits, save the inputs, or send their contents to a service.
+
+**YAML structure** compares one YAML 1.2 data document. Mapping keys match by
+name, independently of their order; arrays keep the selected position or stable
+ID rule. Strings, booleans, null and finite numbers are supported. Integers must
+fit JavaScript's safe integer range, and mapping keys must be unique strings.
+Quoted values stay strings; dates and words such as `yes` and `on` stay strings.
+Comments, quoting and formatting are outside this comparison. Choose **Text**
+to review those differences using the same captured sources.
+
+Tags, directives, anchors, aliases, merge keys, multiple or empty documents and
+unsupported values are refused with an explanation. Refused or over-budget
+content cannot establish equality. Each side is limited to 2 MiB of UTF-8 text,
+64 nesting levels, 20,000 data and key nodes, and 64 KiB per scalar. Additional
+token and parser limits bound work before values are constructed. Assets and
+file-operation review offer the same YAML and Text choices; changing modes does
+not fetch a newer asset or change the original files.
 
 For tables, the first row supplies column labels. Worksheets match by unique
 name, and columns match by unique label. **Row key** chooses a common column;

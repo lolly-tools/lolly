@@ -6,6 +6,11 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.256.0
+
+- Shared comparison accepts raw YAML snapshots and parses one bounded YAML 1.2 data document before using the existing structure comparator. Mapping keys match by name; arrays retain their selected ordering rule. Comments and formatting remain available through Text comparison.
+- Guarded parsing refuses tags, directives, anchors, aliases, merge keys, duplicate or non-string mapping keys, unsafe numbers and unsupported or over-budget content. Refusals remain incomplete and cannot establish equality. Sources stay unchanged; reports keep their private default.
+
 ## 1.255.0
 
 - Add local runtime view state to hook contexts. `setViewState` refreshes computed rendering while preserving canonical inputs; saved values, undo history and collaboration records keep the complete document.
