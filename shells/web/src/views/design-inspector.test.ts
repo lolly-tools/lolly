@@ -394,6 +394,42 @@ test('interaction controls reject numeric bounds and display the document accent
   } finally { h.handle.destroy(); }
 });
 
+test('closing or removing the inspector cancels final token resolution and reopening uses the new selection', async () => {
+  const curve = 'cubic-bezier(0.2,0.8,0.4,1)';
+  const set = createTokenSet({ arrival: { $type: 'transition', $value: { duration: { value: 800, unit: 'ms' }, delay: { value: 0, unit: 'ms' }, timingFunction: [0.2, 0.8, 0.4, 1] } } });
+  for (const remove of [false, true]) {
+    let calls = 0, finish: (value: typeof set) => void = () => {};
+    const pending = new Promise<typeof set>(resolve => { finish = resolve; });
+    const host = { tokens: { get: () => ++calls === 2 ? pending : Promise.resolve(set) } } as HostV1;
+    let first = withBlockTokenBinding({ ...BOXES[1]!, id: 'a', enterMs: 800, enterEase: curve }, 'tokenLinks', 'enterMs', { ref: '{arrival}', value: 800 }, 'transition.duration-ms');
+    first = withBlockTokenBinding(first, 'tokenLinks', 'enterEase', { ref: '{arrival}', value: curve }, 'transition.timingFunction');
+    first = withBlockTokenBinding(first, 'tokenLinks', 'enterMs', 900);
+    const h = mount([BOXES[0]!, first, { ...BOXES[1]!, id: 'b', enterMs: 400, enterEase: '' }], { fields: [...FIELDS, { id: 'enterMs', type: 'number', min: 100, max: 3000 }, { id: 'enterEase', type: 'text' }], tokens: { host, metadataField: 'tokenLinks' } });
+    try {
+      h.select(['a']); h.handle.reveal('motion'); await new Promise(resolve => setTimeout(resolve, 0));
+      const slot = h.el.querySelector<HTMLElement>('[data-token-section="motion"]')!;
+      slot.querySelector<HTMLDetailsElement>('details')!.open = true;
+      const property = slot.querySelector<HTMLSelectElement>('[data-design-token-property]')!; property.value = '__transition'; fire(property, 'change');
+      const restore = slot.querySelector<HTMLButtonElement>('[data-token-restore]')!; restore.focus(); click(restore);
+      await new Promise(resolve => setTimeout(resolve, 0)); assert.equal(calls, 2); assert.equal(h.arrays.length, 0);
+      const before = structuredClone(h.boxes());
+      if (remove) h.el.remove(); else h.handle.setOpen(false);
+      h.select(['b']); finish(set); await new Promise(resolve => setTimeout(resolve, 0));
+      assert.equal(h.arrays.length, 0); assert.equal(h.commits.length, 0); assert.deepEqual(h.boxes(), before);
+      if (remove) document.getElementById('stage')!.append(h.el);
+      h.handle.reveal('motion'); await new Promise(resolve => setTimeout(resolve, 0));
+      const reopened = h.el.querySelector<HTMLElement>('[data-token-section="motion"]')!;
+      reopened.querySelector<HTMLDetailsElement>('details')!.open = true;
+      const selector = reopened.querySelector<HTMLSelectElement>('[data-design-token-property]')!; selector.value = '__transition'; fire(selector, 'change');
+      click(reopened.querySelector('[data-token-choose]')!); await new Promise(resolve => setTimeout(resolve, 0));
+      const picker = reopened.querySelector<HTMLSelectElement>('[data-token-options] select')!; picker.value = 'arrival'; fire(picker, 'change');
+      click(reopened.querySelector('[data-token-link]')!); await new Promise(resolve => setTimeout(resolve, 0));
+      assert.equal(h.arrays.length, 1); assert.deepEqual(h.boxes().find(row => row.id === 'a'), before.find(row => row.id === 'a'));
+      assert.deepEqual([h.boxes().find(row => row.id === 'b')!.enterMs, h.boxes().find(row => row.id === 'b')!.enterEase], [800, curve]);
+    } finally { h.handle.destroy(); }
+  }
+});
+
 test('token actions keep mixed values, one transaction and the open property across repaint', async () => {
   const host = { tokens: { get: async () => createTokenSet({ opacity: { $type: 'number', $value: 28 } }) } } as unknown as HostV1;
   const first = withBlockTokenBinding({ ...BOXES[1]! }, 'tokenLinks', 'opacity', { ref: '{a}', value: 30 });
