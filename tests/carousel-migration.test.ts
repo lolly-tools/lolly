@@ -175,6 +175,15 @@ test('non-carousel record (no page geometry) is returned UNCHANGED', () => {
   assert.equal(migrateCarouselToFrames(noBoxes), noBoxes); // boxes not an array → unchanged
 });
 
+test('Design page lists preserve flat documents when reopened', () => {
+  for (const pages of [[], [{ id: 'page-1', name: 'Page 1' }]]) {
+    const record = { pages, boxes: [{ id: 'text', kind: 'text', x: 100, y: 100, w: 550, h: 180 }] };
+    const before = JSON.stringify(record);
+    assert.equal(migrateCarouselToFrames(record), record);
+    assert.equal(JSON.stringify(record), before);
+  }
+});
+
 test('input record + its boxes are never mutated', () => {
   const rec = makeRecord();
   const snapshot = JSON.stringify(rec);

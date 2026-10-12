@@ -71,8 +71,15 @@ test('Adobe layout loop preset reaches the canvas and a finished video', { skip:
     await page.locator('.tl-panel').waitFor({ timeout: 15000 });
     const state = parseUrlState(await expandQuery(new URL(page.url()).searchParams.toString()), design.manifest);
     const rows = state.values.boxes as Record<string, InputValue>[];
-    assert.equal(rows.length, 3); assert.ok(rows.every(box => String(box.kf).includes('t6000')));
-    assert.equal(rows[0]!.kf, rows[1]!.kf, 'imported group shares a track');
+    const artwork = rows.filter(box => box.kind !== 'group');
+    const groups = rows.filter(box => box.kind === 'group');
+    assert.deepEqual(artwork.map(box => String(box.id)), ids, 'all imported artwork survives hierarchy conversion');
+    assert.equal(groups.length, 1, 'the imported group becomes one structural container');
+    assert.equal(rows.length, 4);
+    assert.equal(artwork[0]!.group, groups[0]!.id);
+    assert.equal(artwork[1]!.group, groups[0]!.id);
+    assert.ok(artwork.every(box => String(box.kf).includes('t6000')));
+    assert.equal(artwork[0]!.kf, artwork[1]!.kf, 'imported group shares a track');
     const output = process.env.LOLLY_ADOBE_TEST_OUTPUT ?? 'plans/artifacts/297';
     await mkdir(output, { recursive: true });
     await page.screenshot({ path: `${output}/imported-layout-loop.png` });

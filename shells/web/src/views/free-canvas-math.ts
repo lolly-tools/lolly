@@ -2105,6 +2105,7 @@ function carouselFramePrefix(existingIds: Set<string>, count: number): string {
  * ADDITIVE + defensive. Returns the record UNCHANGED when:
  *   • it is not an object, or has no `boxes` array;
  *   • its boxes already contain ANY kind:'frame' box (already a Design doc / already migrated);
+ *   • its pages field is Design's page list rather than a carousel page count;
  *   • it is not carousel-shaped (none of pages / pageW / pageH present).
  * The input record and its boxes/box objects are never mutated.
  */
@@ -2116,6 +2117,9 @@ export function migrateCarouselToFrames(record: CarouselRecord): CarouselRecord 
   if (boxes.some((b) => b != null && typeof b === 'object' && String((b as Box).kind) === 'frame')) return record;
   // Defensive: a non-carousel record (no page geometry at all) is left alone.
   const rec = record as { pages?: unknown; pageW?: unknown; pageH?: unknown; background?: unknown; transparentBg?: unknown };
+  // Design stores its logical pages as a list. Treating that list as a legacy
+  // carousel count would add three artboards on every flat-document reload.
+  if (Array.isArray(rec.pages)) return record;
   if (rec.pages == null && rec.pageW == null && rec.pageH == null) return record;
 
   const count = clampNum(Math.round(num(rec.pages as InputValue, 3)), 1, 6);
