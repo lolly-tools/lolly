@@ -287,6 +287,49 @@ test('canonical app declarations and extended DigSig are required for every DOCX
   assert(text(part('docProps/app.xml', openDocxMetadata(unrelated, 'file.docx').remove(['app:Company']))).includes('xmlns:s="urn:unrelated">Retained'));
 });
 
+test('content-type Overrides reject ASCII-case duplicates while one valid case alias remains supported', () => {
+  const types = text(part('[Content_Types].xml', extendedFixture));
+  for (const path of ['word/document.xml', 'docProps/core.xml', 'docProps/custom.xml', 'docProps/app.xml']) {
+    const declaration = types.match(/<Override\b[^>]*\/>/g)!.find(node => node.includes(`PartName="/${path}"`))!;
+    assert(declaration);
+    const alias = declaration.replace(`/${path}`, `/${path.toUpperCase()}`);
+    const duplicate = replace('[Content_Types].xml', utf8(types.replace('</Types>', `${alias}</Types>`)), extendedFixture);
+    const rejected = openDocxMetadata(duplicate, 'private-input.docx');
+    assert.equal(rejected.supported, false); assert.deepEqual(rejected.properties, []);
+    assert.throws(() => rejected.remove(['app:Company']), /unavailable/);
+    assert.doesNotMatch(JSON.stringify(rejected.limitations), /private-input|Private fixture|DOCPROPS/);
+    const valid = replace('[Content_Types].xml', utf8(types.replace(declaration, alias)), extendedFixture);
+    const doc = openDocxMetadata(valid, 'file.docx'); assert.equal(doc.supported, true);
+    assert.equal(doc.remove([]), valid);
+    const copy = doc.remove(['app:Company']);
+    assert(!openDocxMetadata(copy, 'copy.docx').properties.some(property => property.id === 'app:Company'));
+    assert.deepEqual(part('[Content_Types].xml', copy), part('[Content_Types].xml', valid));
+    for (const member of members(valid)) if (member.name !== 'docProps/app.xml') {
+      const retained = members(copy).find(current => current.name === member.name)!;
+      assert.deepEqual(retained.local, member.local, member.name); assert.deepEqual(retained.compressed, member.compressed, member.name);
+    }
+  }
+});
+
+test('recognized absent property parts refuse orphan Overrides even without their relationship', () => {
+  const types = text(part('[Content_Types].xml', extendedFixture)), rels = text(part('_rels/.rels', extendedFixture));
+  for (const path of ['docProps/core.xml', 'docProps/custom.xml', 'docProps/app.xml']) {
+    const withoutRelationship = rels.replace(/<Relationship\b[^>]*\/>/g, node => node.includes(`Target="${path}"`) ? '' : node);
+    assert.notEqual(withoutRelationship, rels);
+    const orphan = storeZipMembers(members(replace('_rels/.rels', utf8(withoutRelationship), extendedFixture)).filter(member => member.name !== path));
+    for (const partName of [path, path.toUpperCase()]) {
+      const input = replace('[Content_Types].xml', utf8(types.replace(`PartName="/${path}"`, `PartName="/${partName}"`)), orphan);
+      const before = input.slice(), doc = openDocxMetadata(input, 'private-input.docx');
+      assert.equal(doc.supported, false); assert.deepEqual(doc.properties, []);
+      assert.throws(() => doc.remove(['app:Company']), /unavailable/); assert.deepEqual(input, before);
+      assert.doesNotMatch(JSON.stringify(doc.limitations), /private-input|Private fixture|docProps/);
+    }
+    const optionalAbsent = replace('[Content_Types].xml', utf8(types.replace(/<Override\b[^>]*\/>/g, node => node.includes(`PartName="/${path}"`) ? '' : node)), orphan);
+    const supported = openDocxMetadata(optionalAbsent, 'file.docx'); assert.equal(supported.supported, true); assert.equal(supported.remove([]), optionalAbsent);
+    assert(!supported.properties.some(property => property.part === path));
+  }
+});
+
 test('Company and Manager fields or bound controls remain inspect-only despite cached display text', () => {
   const body = text(part('word/document.xml', extendedFixture));
   for (const name of ['Company', 'Manager']) for (const markup of [
