@@ -53,8 +53,12 @@ test('carousel PNGs retain lower-page text at different editor zoom levels and r
       assert.ok(lowerTextPixels > 15_000, `lower-page text missing at zoom ${zoom}: ${lowerTextPixels} pixels`);
       // Delivery can immediately start a saved-history thumbnail in the same
       // export queue. Wait for that capture to hand the editor view back too.
-      await page.waitForFunction(transform => (document.querySelector('#tool-canvas-outer') as HTMLElement)?.style.transform === transform, before);
-      assert.equal(await view(), before, 'the editor view returns after export');
+      const restored = await page.waitForFunction(transform => {
+        const current = (document.querySelector('#tool-canvas-outer') as HTMLElement)?.style.transform;
+        return current === transform ? current : null;
+      }, before);
+      assert.equal(await restored.jsonValue(), before, 'the editor view returns after export');
+      await restored.dispose();
     }
   } finally { await context.close(); await closeBrowser(); }
 });

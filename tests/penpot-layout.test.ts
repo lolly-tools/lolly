@@ -174,16 +174,17 @@ test('browser Penpot parser and artboard import keep dynamic owners and track id
     const page = await browser.newPage();
     await page.goto(browserOrigin!);
     const result = await page.evaluate(async bytes => {
-      const parserPath = '/src/views/design-import.ts', bridgePath = '/src/bridge/index.ts', menuPath = '/src/views/free-canvas/menus.ts';
-      const [{ parseDesignFile, parseDesignArtboards }, { createBridge }, { importAsArtboards }] = await Promise.all([
-        import(parserPath), import(bridgePath), import(menuPath),
+      const parserPath = '/src/views/design-import.ts', bridgePath = '/src/bridge/index.ts', menuPath = '/src/views/free-canvas/menus.ts', opsPath = '/src/views/free-canvas/ops.ts';
+      const [{ parseDesignFile, parseDesignArtboards }, { createBridge }, { importAsArtboards }, { dupRefFields }] = await Promise.all([
+        import(parserPath), import(bridgePath), import(menuPath), import(opsPath),
       ]);
       const host = await createBridge(), file = new File([new Uint8Array(bytes)], 'layouts.penpot');
       const single = await parseDesignFile(file, { host, interactive: false });
       const artboards = await parseDesignArtboards(file, { host, interactive: false });
       let committed: Record<string, unknown>[] = [], trackRows: Record<string, unknown>[] = [], serial = 0;
       const cfg = { idField: 'id', kindField: 'kind', xField: 'x', yField: 'y', wField: 'w', hField: 'h', rotationField: 'rot', fillField: 'bg' };
-      const fc = { frameCfg: { frameField: 'frame', frameKind: 'frame', orderField: 'order' }, cfg, host, addKinds: [{ id: 'frame', seed: { kind: 'frame' } }],
+      const fc = { frameCfg: { frameField: 'frame', frameKind: 'frame', orderField: 'order' }, cfg, cv: {}, host, addKinds: [{ id: 'frame', seed: { kind: 'frame' } }],
+        ops: { dupRefFields: () => dupRefFields(fc) },
         nameField: 'name', disposed: false, select: { freshId: () => `added:${++serial}`,
           commit: (boxes: Record<string, unknown>[], extra: { layoutTracks: Record<string, unknown>[] }) => { committed = boxes; trackRows = extra.layoutTracks; } } };
       await importAsArtboards(fc, file, () => {});

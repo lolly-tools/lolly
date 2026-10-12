@@ -45,6 +45,7 @@ import { createSequenceTime } from '../../shells/web/src/bridge/sequence-dom.ts'
 // plans/268 SI-00: preview-versus-export golden frames and the performance probes. A
 // module of its own, handed what it needs, so this file does not grow again.
 import { goldenApi, perfApi, type GoldenDeps } from './sequence-golden-harness.ts';
+import { newSourceCaptureDiagnostics, observeSourceCaptures, type SourceCaptureDiagnostics } from './sequence-capture-diagnostics.ts';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Any = any;
@@ -496,6 +497,7 @@ interface RawDiagnosticRun {
   samples: RawSample[];
   logs: string[];
   counters: Counters | null;
+  source: SourceCaptureDiagnostics;
 }
 interface RawDiagnosticPair {
   control: RawDiagnosticRun | null;
@@ -564,15 +566,18 @@ function rawPixelDifference(a: RawSample, b: RawSample): unknown {
   };
 }
 
-function takeRawComparison(): unknown | null {
+function takeRawComparison(includeEqual = false): unknown | null {
   const pair = rawDiagnosticPair;
   rawDiagnosticPair = null;
   if (!pair?.control || !pair.cached) return null;
   const control = pair.control, cached = pair.cached;
-  if (control.samples.length === cached.samples.length && control.samples.every((sample, i) => sample.hash === cached.samples[i]?.hash)) return null;
+  const rawEqual = control.samples.length === cached.samples.length && control.samples.every((sample, i) => sample.hash === cached.samples[i]?.hash);
+  if (rawEqual && includeEqual !== true) return null;
   return {
+    rawEqual,
     retainedBytes: pair.bytes, byteLimit: RAW_DIAGNOSTIC_BYTES, sampleLimit: RAW_DIAGNOSTIC_SAMPLES,
-    control: { logs: control.logs, counters: control.counters }, cached: { logs: cached.logs, counters: cached.counters },
+    control: { logs: control.logs, counters: control.counters, source: control.source },
+    cached: { logs: cached.logs, counters: cached.counters, source: cached.source },
     samples: Array.from({ length: Math.max(control.samples.length, cached.samples.length) }, (_, i) => {
       const a = control.samples[i], b = cached.samples[i];
       return { position: i, control: a ? { index: a.index, hash: a.hash, ...a.meta } : null,
@@ -719,12 +724,13 @@ async function exportSeq(spec: StageSpec, format: 'mp4' | 'webm' | 'gif' | 'apng
   instrument();
   resetCounters();
   const target = buildStage(spec);
-  const { applyClockAtMs, freezeVideos, deviceMemory, worker, gl, breakWorker, heartbeat, fxCacheBytes, rawFrames, rawDiagnosticSide, ...renderOpts } = opts as Any;
+  const { applyClockAtMs, freezeVideos, deviceMemory, worker, gl, breakWorker, heartbeat, fxCacheBytes, rawFrames, rawDiagnosticSide, captureSourceDiagnostic, ...renderOpts } = opts as Any;
   const undo: (() => void)[] = [];
   const rawHashes: Promise<string>[] = [];
   const pair = rawDiagnosticPair;
   const side: 'control' | 'cached' | null = rawDiagnosticSide === 'control' || rawDiagnosticSide === 'cached' ? rawDiagnosticSide : null;
-  const diagnostic: RawDiagnosticRun | null = pair && side && !pair[side] ? { samples: [], logs: [], counters: null } : null;
+  const diagnostic: RawDiagnosticRun | null = pair && side && !pair[side]
+    ? { samples: [], logs: [], counters: null, source: newSourceCaptureDiagnostics() } : null;
   if (diagnostic && pair && side) pair[side] = diagnostic;
   if (Array.isArray(rawFrames)) {
     const indices = new Set<number>(rawFrames.slice(0, 8));
@@ -837,7 +843,12 @@ async function exportSeq(spec: StageSpec, format: 'mp4' | 'webm' | 'gif' | 'apng
     undo.push(() => cancelAnimationFrame(raf));
   }
   const t0 = performance.now();
+  let restoreCaptures: (() => void) | undefined;
   try {
+    if (diagnostic && captureSourceDiagnostic === true) {
+      const module = await import('dom-to-image-more');
+      restoreCaptures = observeSourceCaptures(module.default ?? module, diagnostic.source);
+    }
     const blob = await renderSequence(target, format, renderOpts, host);
     const ms = performance.now() - t0;
     const key = put(blob);
@@ -858,7 +869,7 @@ async function exportSeq(spec: StageSpec, format: 'mp4' | 'webm' | 'gif' | 'apng
       error: toCodedError(err), stack: (err as Error)?.stack ?? '', beat: { ...beat }, counters: { ...counters },
       frames: stage ? frameTimestamps(stage.totalMs, fps).length : 0, fps,
     };
-  }
+  } finally { restoreCaptures?.(); }
 }
 
 /**

@@ -590,10 +590,34 @@ describe('plans/104 P3 - the Lift-layers exit demo', { skip: gate ?? false, conc
         const onPixels = on.key ? await S.frameHashes(on.key, idx, fps) : [];
         const offPixels = off.key ? await S.frameHashes(off.key, idx, fps) : [];
         console.info(`${prefix} sampled-frame decoding completed`);
+        const rawMismatch = S.takeRawComparison();
+        let sourceDiagnostic: unknown = null;
+        if (rawMismatch && !off.error && !on.error) {
+          // Source readback can flush native canvases. Keep it out of the original
+          // oracle and use it only to explain that already-failed comparison.
+          const control = new AbortController();
+          const deadline = setTimeout(() => control.abort(), 30_000);
+          S.beginRawComparison();
+          try {
+            const diagnosticOff = await S.exportSeq(spec, 'mp4', {
+              fps, width, fxCacheBytes: 0, rawFrames: idx, rawDiagnosticSide: 'control',
+              captureSourceDiagnostic: true, signal: control.signal,
+            });
+            const diagnosticOn = control.signal.aborted ? null : await S.exportSeq(spec, 'mp4', {
+              fps, width, rawFrames: idx, rawDiagnosticSide: 'cached',
+              captureSourceDiagnostic: true, signal: control.signal,
+            });
+            sourceDiagnostic = { diagnosticOnly: true, originalFailurePreserved: true,
+              timedOut: control.signal.aborted, controlRefused: !!diagnosticOff.error,
+              cachedRefused: !diagnosticOn || !!diagnosticOn.error, comparison: S.takeRawComparison(true) };
+          } catch {
+            sourceDiagnostic = { diagnosticOnly: true, originalFailurePreserved: true, refused: true };
+          } finally { clearTimeout(deadline); S.takeRawComparison(); }
+        }
         return {
           on: { err: on.error, size: on.size, ms: on.ms, raw: on.rawHashes, pix: onPixels },
           off: { err: off.error, size: off.size, ms: off.ms, raw: off.rawHashes, pix: offPixels },
-          rawMismatch: S.takeRawComparison(),
+          rawMismatch, sourceDiagnostic,
         };
       } finally { S.takeRawComparison(); }
     }, { spec, fps: GATE_FPS, width: GATE_WIDTH, last: LAST, prefix: SHADOW_STAGE_PREFIX });
@@ -605,6 +629,7 @@ describe('plans/104 P3 - the Lift-layers exit demo', { skip: gate ?? false, conc
     assert.equal(r.off.err, null, `the uncached control failed: ${JSON.stringify(r.off.err)}`);
     assert.equal(r.on.err, null, `the cached render failed: ${JSON.stringify(r.on.err)}`);
     if (r.rawMismatch) say(`[lift-shadow raw mismatch] ${JSON.stringify(r.rawMismatch)}`);
+    if (r.sourceDiagnostic) say(`[lift-shadow source diagnostic only] ${JSON.stringify(r.sourceDiagnostic)}`);
     // Exact RGBA at VideoEncoder.encode isolates the cache from lossy encoding.
     // The software CI encoder does not promise repeatable quantization or bytes.
     assert.equal(r.on.raw?.length, 4, 'all four cached source frames were captured');
@@ -717,7 +742,7 @@ interface RunLike {
 }
 interface SeqApi {
   beginRawComparison(): void;
-  takeRawComparison(): unknown | null;
+  takeRawComparison(includeEqual?: boolean): unknown | null;
   exportSeq(spec: unknown, format: 'mp4' | 'webm' | 'gif' | 'apng', opts?: Record<string, unknown>): Promise<RunLike>;
   exportViaApi(spec: unknown, format: string, opts?: Record<string, unknown>): Promise<RunLike>;
   blobBytes(key: string): Promise<string>;
