@@ -280,7 +280,7 @@
     "ComparisonSource": {
       "module": "compare.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "553c0f8a83e9f46cb38b7f8396341a06f82117a627fb9a15434861e87d613754"
+      "sha256": "d71225c8e06ff31cc26968408d010e1d05a4255c4bec329ba2ec072fbc6ae271"
     },
     "ComparisonCell": {
       "module": "compare.ts",
