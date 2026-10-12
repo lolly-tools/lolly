@@ -2,6 +2,7 @@
 /** Portable feature gates shared by the browser writer and Node reader. */
 export const LOLLY_LAYOUT_MIN_READER = 6;
 export const LOLLY_HIERARCHY_MIN_READER = 7;
+export const LOLLY_GROUP_FEATURES_MIN_READER = 8;
 
 export interface LollyFeatureSources {
   toolId?: string;
@@ -9,6 +10,26 @@ export interface LollyFeatureSources {
   project?: unknown;
   templates?: unknown;
   toolManifest?: unknown;
+}
+
+function recordReader(row: Record<string, unknown>, design: boolean, declaration: boolean): number {
+  let reader = row.layout === 'flex' || row.layout === 'grid' ||
+    declaration && Array.isArray(row.requires) && row.requires.includes('layout') ? LOLLY_LAYOUT_MIN_READER : 1;
+  if (design && row.kind === 'group' && (
+    row.opacity != null && row.opacity !== '' && (
+      !['number', 'string'].includes(typeof row.opacity) || Number(row.opacity) !== 100
+    ) || !!row.blend && row.blend !== 'normal' ||
+    !!row.layoutW && row.layoutW !== 'fixed' || !!row.layoutH && row.layoutH !== 'fixed'
+  )) return LOLLY_GROUP_FEATURES_MIN_READER;
+  if (design && (row.kind === 'group' || typeof row.pageId === 'string' && !!row.pageId.trim() ||
+    Array.isArray(row.pages) && row.pages.length > 0 ||
+    declaration && (row.id === 'pages' && row.type === 'blocks' ||
+      row.id === 'pageId' && row.type === 'text' ||
+      row.id === 'kind' && Array.isArray(row.options) && row.options.some(option =>
+        !!option && typeof option === 'object' && (option as Record<string, unknown>).value === 'group')))) {
+    reader = Math.max(reader, LOLLY_HIERARCHY_MIN_READER);
+  }
+  return reader;
 }
 
 /** Inspect carried values and declarations within a single bounded budget. */
@@ -22,7 +43,7 @@ export function lollyFeatureReader(sources: LollyFeatureSources): number {
   const seen = new WeakMap<object, number>();
   let visited = 0, pending = stack.length, reader = 1;
   while (stack.length) {
-    if (++visited > 200000) return LOLLY_HIERARCHY_MIN_READER;
+    if (++visited > 200000) return LOLLY_GROUP_FEATURES_MIN_READER;
     const item = stack.pop()!;
     const value = item.value;
     if (!value || typeof value !== 'object' || ArrayBuffer.isView(value) || value instanceof Blob) continue;
@@ -35,18 +56,22 @@ export function lollyFeatureReader(sources: LollyFeatureSources): number {
     const mode = 1 << (Number(design) + 2 * Number(item.declaration));
     if ((seen.get(value) || 0) & mode) continue;
     seen.set(value, (seen.get(value) || 0) | mode);
-    if (row.layout === 'flex' || row.layout === 'grid' ||
-      item.declaration && Array.isArray(row.requires) && row.requires.includes('layout')) reader = LOLLY_LAYOUT_MIN_READER;
-    if (design && (row.kind === 'group' || typeof row.pageId === 'string' && !!row.pageId.trim() ||
-      Array.isArray(row.pages) && row.pages.length > 0 ||
-      item.declaration && (row.id === 'pages' && row.type === 'blocks' ||
-        row.id === 'pageId' && row.type === 'text' ||
-        row.id === 'kind' && Array.isArray(row.options) && row.options.some(option =>
-          !!option && typeof option === 'object' && (option as Record<string, unknown>).value === 'group')))) {
-      return LOLLY_HIERARCHY_MIN_READER;
+    reader = Math.max(reader, recordReader(row, design, item.declaration));
+    if (reader === LOLLY_GROUP_FEATURES_MIN_READER) return reader;
+    // Canonical layer records are flat. Their paint, text and keyframe payloads
+    // cannot introduce another layer; inspect row features without walking them.
+    const flatBoxes = design && !item.declaration && Array.isArray(row.boxes);
+    if (flatBoxes) {
+      for (const box of row.boxes as unknown[]) {
+        if (++visited > 200000) return LOLLY_GROUP_FEATURES_MIN_READER;
+        if (!box || typeof box !== 'object' || Array.isArray(box)) continue;
+        reader = Math.max(reader, recordReader(box as Record<string, unknown>, true, false));
+        if (reader === LOLLY_GROUP_FEATURES_MIN_READER) return reader;
+      }
     }
-    for (const child of Object.values(row)) {
-      if (++pending > 200000) return LOLLY_HIERARCHY_MIN_READER;
+    for (const [key, child] of Object.entries(row)) {
+      if (flatBoxes && key === 'boxes') continue;
+      if (++pending > 200000) return LOLLY_GROUP_FEATURES_MIN_READER;
       stack.push({ value: child, design, declaration: item.declaration });
     }
   }

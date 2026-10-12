@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { hierarchyOps } from './hierarchy.ts';
+import { hierarchyOps, cascadeGroupEdits } from './hierarchy.ts';
 import { selectOps } from './select.ts';
 import { objectsOps } from './objects.ts';
 import { modesOps } from './modes.ts';
@@ -382,6 +382,69 @@ test('precision and arrange group edits carry unchanged children while preservin
   f.fc.select.commit(f.boxes().map((row) => (row.id === 'outer' ? { ...row, rot: 90 } : row)));
   assert.equal(f.boxes().find((row) => row.id === 'a')!.rot, 90);
   assert.equal(f.writes.length, 3);
+});
+
+test('group style, name and sizing intent edits preserve authored geometry and hidden descendants', () => {
+  const f = fixture([
+    group('g', { x: 0, y: 0, w: 100, h: 100 }),
+    leaf('visible', 20, { group: 'g', y: 30, w: 40, h: 50 }),
+    leaf('hidden', 500, { group: 'g', y: 500, w: 100, h: 100, hidden: true }),
+  ]);
+  const initial = copy(f.boxes());
+  for (const patch of [{ name: 'Card', opacity: 50 }, { layoutW: 'hug' }, { layoutH: 'hug' }, { layoutW: 'fill' }]) {
+    f.fc.select.commit(f.boxes().map(row => row.id === 'g' ? { ...row, ...patch } : row));
+    const saved = f.boxes();
+    assert.deepEqual(['x','y','w','h'].map(field => saved[0]![field]), [0,0,100,100]);
+    assert.deepEqual(saved.slice(1), initial.slice(1));
+  }
+  assert.equal(f.boxes()[0]!.layoutW, 'fill'); assert.equal(f.boxes()[0]!.layoutH, 'hug');
+});
+
+test('intentional group resize retains its allocated rectangle rather than shrinking to partial content', () => {
+  const f = fixture([group('g', { x: 0, y: 0, w: 100, h: 100 }), leaf('a', 20, { group: 'g', w: 50, h: 100, y: 0 })]);
+  f.fc.select.commit(f.boxes().map(row => row.id === 'g' ? { ...row, w: 200 } : row));
+  assert.deepEqual(['x','y','w','h'].map(field => f.boxes()[0]![field]), [0,0,200,200]);
+  assert.equal(f.boxes()[1]!.x, 40); assert.equal(f.boxes()[1]!.w, 100);
+});
+
+test('actual nested member geometry and ownership edits refit ordinary ancestor groups', () => {
+  const f = fixture([group('outer', { w: 100, h: 100 }), group('inner', { group: 'outer', w: 100, h: 100 }), leaf('a', 20, { group: 'inner', w: 40, h: 50, y: 30 }), leaf('b', 100, { group: 'outer', w: 20, h: 10, y: 90 })]);
+  f.fc.select.commit(f.boxes().map(row => row.id === 'a' ? { ...row, x: 40 } : row));
+  assert.equal(f.boxes().find(row => row.id === 'inner')!.x, 40);
+  assert.equal(f.boxes().find(row => row.id === 'inner')!.w, 40);
+  assert.equal(f.boxes().find(row => row.id === 'outer')!.w, 80);
+  f.fc.select.commit(f.boxes().map(row => row.id === 'b' ? { ...row, group: '' } : row));
+  assert.equal(f.boxes().find(row => row.id === 'outer')!.w, 40);
+});
+
+test('numeric width resize scales coherent group and descendant geometry at the painted origin', () => {
+  const f = fixture([group('g', { x: 20, y: 30, w: 80, h: 70, layoutW: 'hug', layoutH: 'hug' }),
+    leaf('a', 20, { group: 'g', y: 30, w: 40, h: 50 }), leaf('edge', 80, { group: 'g', y: 90, w: 20, h: 10 })]);
+  const before = f.boxes(), after = cascadeGroupEdits(f.fc, before, before.map(row => row.id === 'g' ? { ...row, w: 160 } : row));
+  assert.deepEqual(['x','y','w','h'].map(field => after[0]![field]), [20,30,160,140]);
+  assert.equal(after[0]!.layoutH, 'hug');
+  assert.deepEqual(['x','y','w','h'].map(field => after[1]![field]), [20,30,80,100]);
+  assert.deepEqual(['x','y','w','h'].map(field => after[2]![field]), [140,150,40,20]);
+});
+
+test('requested group sizing axes distinguish one numeric dimension, both dimensions and intent-only edits', () => {
+  const f = fixture([group('g', { w: 80, h: 70, layoutW: 'hug', layoutH: 'hug' }), leaf('a', 0, { group: 'g' })]);
+  const before = f.boxes();
+  const propose = (patch: Box) => before.map(row => row.id === 'g' ? { ...row, ...patch } : row);
+  assert.deepEqual([...f.fc.hierarchy.groupSizeAxes(propose({ w: 160 })).get('g')!], ['W']);
+  assert.deepEqual([...f.fc.hierarchy.groupSizeAxes(propose({ h: 140 })).get('g')!], ['H']);
+  assert.deepEqual([...f.fc.hierarchy.groupSizeAxes(propose({ w: 160, h: 140 })).get('g')!], ['W','H']);
+  assert.equal(f.fc.hierarchy.groupSizeAxes(propose({ layoutW: 'fixed', name: 'Card', opacity: 50 })).size, 0);
+  assert.equal(f.writes.length, 0);
+});
+
+test('ordinary group refit skips an unrelated managed group with a large descendant envelope', () => {
+  const f = fixture([group('g'), leaf('a', 0, { group: 'g' }),
+    group('managed', { layoutW: 'fill' }), leaf('left', -7_500_000, { group: 'managed' }), leaf('right', 7_500_000, { group: 'managed' })]);
+  const managed = copy(f.boxes().find(row => row.id === 'managed'));
+  f.fc.select.commit(f.boxes().map(row => row.id === 'a' ? { ...row, x: 20 } : row));
+  assert.equal(f.boxes().find(row => row.id === 'g')!.x, 20);
+  assert.deepEqual(f.boxes().find(row => row.id === 'managed'), managed);
 });
 
 test('deleting nested content clears remaining clipping and endpoint bindings atomically', () => {

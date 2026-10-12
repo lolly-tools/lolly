@@ -229,10 +229,10 @@ export function remapDesignHierarchy(boxes: readonly DesignHierarchyRow[], copie
   });
 }
 /** Refit containers after committed child edits in each group's own rotated axes. */
-export function refreshDesignGroupBounds(boxes: readonly DesignHierarchyRow[], pages: readonly unknown[] = emptyPages): DesignHierarchyRow[] {
+export function refreshDesignGroupBounds(boxes: readonly DesignHierarchyRow[], pages: readonly unknown[] = emptyPages, groupIds?: ReadonlySet<string>): DesignHierarchyRow[] {
   const index = designHierarchyIndex(boxes, pages), changed = new Map<string, DesignHierarchyRow>();
   for (const [id, group] of index.byId) {
-    if (group.kind !== 'group') continue;
+    if (group.kind !== 'group' || groupIds && !groupIds.has(id)) continue;
     const angle = number(group.rot) * Math.PI / 180, c = cos(angle), s = sin(angle);
     let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity;
     for (const childId of designHierarchyDescendants(index, new Set([id]))) {

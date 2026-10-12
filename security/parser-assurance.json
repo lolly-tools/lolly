@@ -1044,10 +1044,10 @@
       "fuzzTargets": ["lolly-hierarchy"],
       "details": {
         "inputSource": "Parsed .lolly session values, project sessions, templates and bundled Design input manifests",
-        "bounds": "One shared budget of 200,000 inspected or queued values; iterative traversal with cycle detection; exhausting the scan conservatively requires reader 7",
+        "bounds": "One shared budget of 200,000 inspected or queued values; iterative traversal with cycle detection; canonical flat box records are inspected once without traversing opaque text and paint payloads; exhausting the scan conservatively requires reader 8",
         "directTests": "`tests/design-hierarchy-lolly.test.ts`, `tests/design-hierarchy-lolly-fuzz.test.ts`",
         "fuzzCoverage": "`lolly-hierarchy` mutates real web and Node writer ZIP files through the shared feature scan and semantic reader gates",
-        "notes": "This detector identifies feature requirements, not graph validity. Nonempty Design pages/pageId values, real group records and hierarchy input declarations require reader 7; flat legacy tags retain existing gates. Missing, lowered or nonnumeric gates are refused after payload parsing. Model graph admission remains in design-hierarchy.ts."
+        "notes": "This detector identifies feature requirements, not graph validity. Nonempty Design pages/pageId values, real group records and hierarchy input declarations require reader 7; group opacity, blend and non-fixed sizing require reader 8. Flat legacy tags retain existing gates. Missing, lowered or nonnumeric gates are refused after payload parsing. Model graph admission remains in design-hierarchy.ts."
       }
     },
     "shells/web/src/lib/lolly-pack.ts": {
@@ -1057,7 +1057,7 @@
         "bounds": "Existing unzip limits remain 512 MiB per part and 2 GiB total; projects admit at most 2,000 sessions and 500 folders; templates retain their existing 200-record cap; feature detection has one 200,000-value budget",
         "directTests": "`shells/web/src/lib/lolly-pack.test.ts`, `shells/web/src/lib/lolly-project.test.ts`, `tests/design-hierarchy-lolly.test.ts`, `tests/design-hierarchy-lolly-fuzz.test.ts`",
         "fuzzCoverage": "`lolly-hierarchy` checks writer-derived session, project, template and tool files, logical readback and deliberate feature-gate deletion/downgrade after transport mutation",
-        "notes": "Reader 7 preserves hierarchy values; integrity verification precedes semantic gate detection. Fuzz invariants cover payload preservation and gate refusal, not exhaustive ZIP admission, collaborative state or rendering fidelity. The Node reader may reject corrupt ZIP framing that the browser inflater tolerates."
+        "notes": "Reader 7 preserves ordinary hierarchy values and reader 8 supports group opacity, blend and sizing; integrity verification precedes semantic gate detection. Fuzz invariants cover payload preservation and gate refusal, not exhaustive ZIP admission, collaborative state or rendering fidelity. The Node reader may reject corrupt ZIP framing that the browser inflater tolerates."
       }
     },
     "packages/node-shell/src/lolly-file.ts": {
@@ -1067,7 +1067,7 @@
         "bounds": "Engine ZIP reader caps input and total inflated bytes at 512 MiB, each entry at 256 MiB and inventory at 10,000 entries; shared semantic feature detection inspects at most 200,000 values",
         "directTests": "`tests/design-lolly.test.ts`, `tests/design-tool.test.ts`, `tests/design-hierarchy-lolly.test.ts`, `tests/design-hierarchy-lolly-fuzz.test.ts`",
         "fuzzCoverage": "`lolly-hierarchy` opens web and packageDesign writer files and rejects deliberately downgraded hierarchy session, template and tool gates",
-        "notes": "Reader 7 admits canonical groups and pages in saved sessions. Project folders remain an explicit app-only refusal; renovation files retain their separate reader. CRC and integrity checks precede returned payloads. Full graph validity and rendering are separate model contracts."
+        "notes": "Reader 7 admits canonical groups and pages in saved sessions; reader 8 admits group opacity, blend and sizing. Project folders remain an explicit app-only refusal; renovation files retain their separate reader. CRC and integrity checks precede returned payloads. Full graph validity and rendering are separate model contracts."
       }
     },
     "engine/src/design-layer-ops.ts": {

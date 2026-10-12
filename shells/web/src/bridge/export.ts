@@ -2,7 +2,7 @@
 import { anchorSave } from './anchor-save.ts';
 import { sequenceExportRequest } from './export-sequence-request.ts';
 import { snapshotMotion } from './export-motion-snapshot.ts';
-import { stripCanvasAnnotations } from './export-canvas-annotations.ts';
+import { stripCanvasAnnotations, detachExportHidden } from './export-canvas-annotations.ts';
 import { wantsDeepExport, hdrTune } from './export-deep-choice.ts';
 /**
  * ExportAPI - converts a rendered DOM node to a file format.
@@ -62,6 +62,7 @@ import { renderPptx, sourceAuthorOf } from './export-pptx.ts';
 import { domToRichDoc, domToDocBlocks } from './doc-blocks.ts';
 import { insertWebpMeta, insertAvifExif, iccWanted, insertPngPhys, insertPngMeta, insertPngXmp, insertPngCicp, insertPngIcc, patchJpegDpi, insertJpegExif, insertJpegXmp, insertJpegIcc, setAvifCicp, injectSvgMeta, inflateBytes, deflateBytes, withGifComment } from './export-image-meta.ts';
 import { pureRotationDeg, buildCmykPaletteMap, cmykKey, applyTextTransform, parseSvgColor, blendSvgWithWhite, drawSvgPathToPdf, svgLen, withPdfRotation, withPdfMatrix, pdfApplyClip, withPdfAlpha, pdfFillCssBackground, clipOuterShadowsOfTranslucentBox, pdfRoundedRect, pdfGradientSpec, fillPdfShading, withPdfRoundedClip, sampleGradientMidpoint, borderDashArray, withPdfClipRect, assignSpotResourceNames, substitutePdfRgb, OVERPRINT_GS_DEFS, paletteHitKey } from './export-pdf-vector.ts';
+import { paintDesignGroupPage } from './export-group-compositing.ts';
 import type { PaletteHit, BrandPaletteEntry } from './export-pdf-vector.ts';
 import { applyPdfX } from './export-pdfx.ts';
 import { printGeometryForSize, provenanceLabels, setPageBoxes, drawPrintMarks, finishPdfX as finishSharedPdfX, encryptPdfStrong } from '@lolly-tools/node-shell/pdf-finishing';
@@ -3194,6 +3195,7 @@ const RASTER_DPI = 200;
 // than building a re-parentable node tree, so the same fix is a different (and
 // larger) piece of work. Nothing regresses - PDF keeps the order it always had.
 async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, regionW: number, regionH: number, convertPaths = true, onProgress?: (done: number, total: number) => void, rasterFallback = true, imprint?: ImprintState, signal?: AbortSignal): Promise<void> {
+  if (await paintDesignGroupPage(pdf, node, { x: ox, y: oy, w: regionW, h: regionH }, { rasterFallback, dpi: RASTER_DPI, maxPixels: MAX_RASTER_PX }, (root, w, h) => rasterizeNodeToDataUrl(root, w, h, undefined, imprint))) return;
   const rect0 = node.getBoundingClientRect();
   const scaleX = regionW / rect0.width;
   const scaleY = regionH / rect0.height;
@@ -3209,7 +3211,6 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
   };
   // Tracks which font variants have been registered in this PDF instance.
   const registeredFonts = new Set();
-
   // Cooperative yielding: the vector walk + host.text.toPath (HarfBuzz) shaping
   // below runs fully synchronously and janks the UI for the whole export on a
   // complex document. Mirror the CMYK pixel pass - every YIELD_NODES elements,
@@ -6727,54 +6728,6 @@ function addWatermarkOverlay(node: HTMLElement): () => void {
   };
 }
 
-// Editor-only chrome (size previews, guides, safe-area overlays) opts out of EVERY
-// export by tagging itself [data-export-hide]. We detach those nodes for the
-// duration of the render and put them back exactly where they were - so no export
-// path (raster, SVG, PDF, …) can pick them up regardless of how it reads the DOM,
-// and the live editor is untouched afterwards. Mirrors the watermark overlay's
-// add/remove-in-finally discipline above.
-//
-// ⚑ ONE EXEMPTION: `[data-cam]` - the plans/104 section 5.4 CAMERA MARKER. It wears
-// `data-export-hide` for the same reason everything else here does (nothing may draw
-// it), but it is not chrome: it is the MODEL element both evaluators key their camera
-// branch off. `layerKind` (sequence-plan) and `readTiming` (sequence-dom) ask the LIVE
-// tree for `[data-cam]` INSIDE the render - the compositor when it parses the stage,
-// and `renderSequenceCuts` when its session poses each cut - so detaching it deletes
-// the camera out from under them mid-export. Measured before this exemption existed,
-// on a 4 s push-in over four layers at z 0/80/160/240: through `renderSequence`
-// directly every layer parallaxed (40.2 / 47.1 / 55.7 / 66.4 px, matching the engine
-// to 0.4 px); through THIS funnel - the one every real export takes - all four moved
-// 0.0 px and the file fell from 230,632 B to 35,691 B, because a still picture
-// compresses to nothing. The contact sheet showed the second half of the same wound:
-// with no `[data-cam]` to find, the camera BOX stopped being `kind: 'camera'` and was
-// posed as an ordinary lifted layer, its dolly track read as depth.
-// Leaving it attached costs nothing: every walker skips `display: none` (both
-// design copies ship `.lolly-box-cam { display: none }` in styles.css), the
-// marker has no fill and no children, and the plates loop skips `camera` layers by
-// kind. Keyed on the ATTRIBUTE, not the class, because the attribute is what the
-// hooks promise and what both evaluators match on.
-function detachExportHidden(node: Element): () => void {
-  if (!node?.querySelectorAll) return () => {};
-  const marked = [...node.querySelectorAll('[data-export-hide]:not([data-cam])')]
-    // Keep only the outermost when nested, so each re-insertion parent still exists.
-    .filter(el => !el.parentElement?.closest('[data-export-hide]:not([data-cam])'));
-  const slots = marked.map(el => ({ el, parent: el.parentNode, next: el.nextSibling }));
-  slots.forEach(({ el }) => el.remove());
-  // Restore in REVERSE document order: a marked node's saved `next` may be ANOTHER
-  // marked node (an editor stage's .fc-overlay / .fc-toolbar-dock / .tl-panel are
-  // adjacent siblings), and every one of them is detached before any is put back - 
-  // forward order then throws insertBefore's NotFoundError. Going backwards puts
-  // the reference sibling in first. The parentNode re-check covers the other way
-  // the anchor rots: the live tool re-rendering during the awaits inside a render.
-  return () => {
-    for (let i = slots.length - 1; i >= 0; i--) {
-      const { el, parent, next } = slots[i]!;
-      if (!parent) continue;
-      const ref = next && next.parentNode === parent ? next : null;
-      (parent as any).insertBefore(el, ref);
-    }
-  };
-}
 
 // ── Text-based export formats ─────────────────────────────────────────────────
 

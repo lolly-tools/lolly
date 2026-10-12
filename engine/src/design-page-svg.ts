@@ -156,6 +156,10 @@ export async function designPageDrawing(values: Record<string, unknown>, frameId
     ...(host.resolveColor ? { resolveColor: host.resolveColor } : {}),
     ...(host.fonts ? { fonts: host.fonts } : {}),
   });
+  if (Array.isArray(values.boxes) && !page.findings.some(finding => finding.feature === 'group-compositing')) {
+    const group = values.boxes.find(row => row && typeof row === 'object' && row.kind === 'group');
+    if (group) page.findings.push({ id: String(group.id || ''), feature: 'group-compositing' });
+  }
   await layoutDesignDrawText(page, host.shaper);
   if (host.toPath) await outlineDesignDrawText(page, host.toPath, host.strikeMetrics);
   const pictures = new Map<string, { bytes: Uint8Array; mime: string }>();

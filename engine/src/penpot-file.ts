@@ -1423,6 +1423,7 @@ export function boxesToPenpotDoc(boxesIn: unknown, o: BoxesToPenpotOptions): Pen
       if (hasDesignLayout([box])) children = children.slice().sort((a, b) => fin(a.layoutOrder) - fin(b.layoutOrder));
       let shape: PenpotIrShape | null;
       if (box.kind === 'group') {
+        if (box.clip || box.shadow && box.shadow !== 'none' || fin(box.blur) > 0 || fin(box.bgBlur) > 0) throw new Error('Group masks, shadows and blur need an SVG copy for faithful Penpot export.');
         shape = { type: 'group', name: nameOf(box, 'Group'), x: fin(box.x), y: fin(box.y), w: Math.max(.01, fin(box.w, 1)), h: Math.max(.01, fin(box.h, 1)),
           children: children.map(lowerTree).filter((child): child is PenpotIrShape => child !== null) };
         effects(box, shape);

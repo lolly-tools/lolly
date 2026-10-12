@@ -66,7 +66,7 @@ export const LOLLY_FILE_FORMAT = 'lolly-share' as const;
 export const LOLLY_FILE_VERSION = 1;
 /** Readers gate on this, never `formatVersion` - additive parts stay compatible. */
 export const LOLLY_MIN_READER = 1;
-export const LOLLY_READER_VERSION = 7;
+export const LOLLY_READER_VERSION = 8;
 /** Dynamic layout rules must remain editable when a file is reopened. */
 export { LOLLY_LAYOUT_MIN_READER, LOLLY_HIERARCHY_MIN_READER };
 /** Older emoji hosts hide later subsets behind the first pack with the same pin. */

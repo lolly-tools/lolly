@@ -36,12 +36,49 @@ test('hierarchical Design shares preserve pages, nested ownership and global geo
   const session = document();
   const built = await buildLollyFile({ toolId: 'design', session, userAssets: [] });
   assert.equal(LOLLY_HIERARCHY_MIN_READER, 7);
-  assert.equal(LOLLY_READER_VERSION, 7);
+  assert.equal(LOLLY_READER_VERSION, 8);
   assert.equal(built.manifest.minReader, 7);
   const bytes = await bytesOf(built);
   assert.deepEqual((await readLollyFile(bytes)).session, session);
   assert.deepEqual(readNode(bytes).session, session);
   assert.ok(built.manifest.integrity?.['session.json']);
+});
+
+test('collective group effects and content sizing require reader 8 in both file readers', async () => {
+  for (const fields of [{ opacity: 50 }, { opacity: 0 }, { blend: 'multiply' }, { layoutW: 'fill' }, { layoutH: 'hug' }]) {
+    const session = document();
+    Object.assign(session.boxes[1]!, fields);
+    const built = await buildLollyFile({ toolId: 'design', session, userAssets: [] });
+    assert.equal(built.manifest.minReader, 8);
+    const bytes = await bytesOf(built);
+    assert.deepEqual((await readLollyFile(bytes)).session, session);
+    assert.deepEqual(readNode(bytes).session, session);
+    for (const reader of [7, undefined, '8']) {
+      await assert.rejects(readLollyFile(forgeReader(bytes, reader)), /reader gate.*reader 8/);
+      assert.throws(() => readNode(forgeReader(bytes, reader)), /reader gate.*reader 8/);
+    }
+  }
+});
+
+test('group feature gates inspect later rows, projects and templates without downgrading', () => {
+  const advanced = { kind: 'group', opacity: 50 };
+  for (const boxes of [[{ kind: 'group' }, advanced], [advanced, { kind: 'box', layout: 'flex' }]]) {
+    assert.equal(lollyFeatureReader({ toolId: 'design', session: { boxes } }), 8);
+    assert.equal(lollyFeatureReader({ project: { sessions: [{ toolId: 'design', data: { boxes } }] } }), 8);
+    assert.equal(lollyFeatureReader({ templates: [{ toolId: 'design', values: { boxes } }] }), 8);
+  }
+  assert.equal(lollyFeatureReader({ toolId: 'design', session: { boxes: [{ kind: 'group', opacity: 100, blend: 'normal', layoutW: 'fixed', layoutH: 'fixed' }, { layout: 'flex' }] } }), 7);
+  assert.equal(lollyFeatureReader({ toolId: 'chart', session: { boxes: [advanced] } }), 1);
+});
+
+test('large ordinary hierarchy files retain reader 7 and inspect the final layer for new features', () => {
+  const boxes: Record<string, unknown>[] = Array.from({ length: 20000 }, (_, n) => ({
+    id: `b${n}`, kind: n === 0 ? 'group' : 'box', group: n === 0 ? '' : 'b0',
+    ...Object.fromEntries(Array.from({ length: 158 }, (_, field) => [`field${field}`, field])),
+  }));
+  assert.equal(lollyFeatureReader({ toolId: 'design', session: { boxes } }), 7);
+  boxes[boxes.length - 1] = { kind: 'group', opacity: 50 };
+  assert.equal(lollyFeatureReader({ toolId: 'design', session: { boxes } }), 8);
 });
 
 test('Node Design packaging writes a hierarchy gate and preserves named pages and group records', async () => {
@@ -142,7 +179,7 @@ test('bundled Design input declarations require reader 7 without authored hierar
 test('the shared feature scan handles cycles and refuses to underdeclare an exhausted scan budget', () => {
   const cycle: Record<string, unknown> = { boxes: [] }; cycle.self = cycle;
   assert.equal(lollyFeatureReader({ toolId: 'design', session: cycle }), 1);
-  assert.equal(lollyFeatureReader({ toolId: 'design', session: { boxes: Array.from({ length: 200001 }, () => 0) } }), 7);
+  assert.equal(lollyFeatureReader({ toolId: 'design', session: { boxes: Array.from({ length: 200001 }, () => 0) } }), 8);
   assert.equal(lollyFeatureReader({ toolManifest: { id: 'custom', inputs: [{ id: 'boxes',
     canvas: { groupField: 'group', textDocumentInput: 'textDocument' },
     fields: [{ id: 'kind', options: [{ value: 'group' }] }],

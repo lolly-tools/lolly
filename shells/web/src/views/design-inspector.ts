@@ -812,7 +812,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     // The groups that DO stay read every row, so a value the rows disagree about shows
     // as mixed instead of as the first box's.
     if (ids.length > 1) return { kind: 'multi', ids, box, rows, secs: orderByBand([...(rows.length === ids.length && rows.every(row => kindOf(row) === 'text') ? ['text' as const] : []), ...paintSecs(false)]) };
-    if (kindOf(box) === 'group') return { kind: 'object', ids, box, rows, secs: orderByBand(['object', 'arrange', 'motion', ...(declaredField('layout') ? ['dynamicLayout' as const] : [])]) };
+    if (kindOf(box) === 'group') return { kind: 'object', ids, box, rows, secs: orderByBand([...(cfg.opacityField || cfg.blendField ? ['appearance' as const] : []), 'object', 'arrange', 'motion', ...(declaredField('layout') ? ['dynamicLayout' as const] : [])]) };
     if (frame && kindOf(box) === frame.frameKind) return { kind: 'frame', ids, box, rows, secs: orderByBand(['artboard', 'present', 'motion', ...(declaredField('layout') ? ['dynamicLayout' as const] : [])]) };
     const secs: InspectorSection[] = [];
     const hasText = kindOf(box) === 'text' || (!!cfg.textField && String(box[cfg.textField] ?? '') !== '');

@@ -975,7 +975,7 @@ function orderPenpotShapes(shapesById: Record<string, any>, preserveHierarchy = 
       if (!shape || seen.has(id) || shape.hidden === true && !dynamic && !preserveHierarchy) continue;
       if (preserveHierarchy && depth > 64) throw new Error('Penpot layer ownership exceeds 64 ancestors.');
       seen.add(id);
-      const composited = preserveHierarchy && shape.type === 'group' && (shape.maskedGroup === true || shape.opacity != null && Number(shape.opacity) !== 1 || shape.blendMode && shape.blendMode !== 'normal' || Array.isArray(shape.shadow) && shape.shadow.length || shape.blur && shape.blur.hidden !== true && Number(shape.blur.value) > 0);
+      const composited = preserveHierarchy && shape.type === 'group' && (shape.maskedGroup === true || Array.isArray(shape.shadow) && shape.shadow.some((shadow: { hidden?: boolean } | null) => shadow && shadow.hidden !== true) || shape.blur && shape.blur.hidden !== true && Number(shape.blur.value) > 0 || penpotBackgroundBlurPx(shape) > 0);
       const flat = !preserveHierarchy || composited ? penpotFlattenStep(shapesById, shape, seen, preserveHierarchy) : null;
       if (composited && !flat) throw new Error('A masked or composited group with text, images or unsupported effects cannot be imported as editable layers. Import an SVG copy to retain its appearance.');
       if (flat) { out.push(flat); continue; }

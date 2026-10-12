@@ -1128,8 +1128,8 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
 
     // mix-blend-mode: SVG carries it natively, so blend the vector content on `g`
     // rather than rasterising it (SVG output only; PDF/EMF/EPS still raster it).
-    if (style.mixBlendMode && style.mixBlendMode !== 'normal') {
-      g.setAttribute('style', `mix-blend-mode:${style.mixBlendMode}`);
+    if (style.mixBlendMode && style.mixBlendMode !== 'normal' || style.isolation === 'isolate') {
+      g.setAttribute('style', [style.mixBlendMode && style.mixBlendMode !== 'normal' ? `mix-blend-mode:${style.mixBlendMode}` : '', style.isolation === 'isolate' ? 'isolation:isolate' : ''].filter(Boolean).join(';'));
     }
 
     // filter: drop-shadow(…) → keep vector via a chain of <feDropShadow> on `g`

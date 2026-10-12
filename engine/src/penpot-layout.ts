@@ -85,7 +85,7 @@ export function importPenpotLayouts(boxes: Row[], sourceIds: readonly string[], 
       const frame = mapped.get(String(shape.frameId))!, frameShape = shapes[String(shape.frameId)];
       if (frameShape?.type === 'frame' && String(frameShape.parentId) === ROOT) row.frame = frame.id;
     }
-    if (row.layoutOwner || shape.layout === 'flex' || shape.layout === 'grid') {
+    if (row.layoutOwner || row.kind === 'group' || shape.layout === 'flex' || shape.layout === 'grid') {
       row.layoutW = sizing(shape.layoutItemHSizing);
       row.layoutH = sizing(shape.layoutItemVSizing);
       for (const [source, target] of [['layoutItemMinW', 'layoutMinW'], ['layoutItemMaxW', 'layoutMaxW'], ['layoutItemMinH', 'layoutMinH'], ['layoutItemMaxH', 'layoutMaxH']] as const) {
@@ -152,7 +152,7 @@ export function importPenpotLayouts(boxes: Row[], sourceIds: readonly string[], 
 /** Native editable attributes. The archive writer replaces source layer IDs with UUIDs. */
 export function exportPenpotLayout(row: Row, children: readonly Row[], tracks: readonly Row[]): Row {
   const props: Row = {};
-  if (row.layoutOwner || hasDesignLayout([row])) {
+  if (row.layoutOwner || row.kind === 'group' || hasDesignLayout([row])) {
     props.layoutItemHSizing = ppSizing(row.layoutW); props.layoutItemVSizing = ppSizing(row.layoutH);
     props.layoutItemMarginType = 'multiple';
     props.layoutItemMargin = Object.fromEntries(SIDES.map((side, n) => [`m${n + 1}`, num(row[`layoutMargin${side}`])]));

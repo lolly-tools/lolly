@@ -6,6 +6,12 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.257.0
+
+- Design 1.50 supports group fill sizing through the modern Penpot solver and intrinsic bounds for group Hug sizing. Descendant transforms remain derived geometry; a resize that would require skew is refused atomically.
+- Group opacity and blend modes remain editable through nested compositing, including Penpot imports and exports. SVG retains group scopes; PDF pages with collective group effects use a faithful raster fallback and refuse when that fallback is disabled.
+- Saved group effects and non-fixed group sizing require `.lolly` reader 8. Ordinary groups, named pages and legacy flat documents retain their prior reader gates.
+
 ## 1.256.0
 
 - Shared comparison accepts raw YAML snapshots and parses one bounded YAML 1.2 data document before using the existing structure comparator. Mapping keys match by name; arrays retain their selected ordering rule. Comments and formatting remain available through Text comparison.

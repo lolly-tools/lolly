@@ -714,6 +714,7 @@ interface PenpotShape {
   rotation?: unknown;
   opacity?: unknown;
   fills?: unknown;
+  blendMode?: unknown;
   strokes?: unknown;
   content?: unknown;
   transform?: unknown;
@@ -1228,7 +1229,8 @@ export function penpotShapeToNode(shape: unknown, options: { preserveHierarchy?:
   const shapeOp = num(sh.opacity, 1);
   const fills: PenpotFill[] = Array.isArray(sh.fills) ? (sh.fills as PenpotFill[]) : [];
 
-  if (type === 'group' && options.preserveHierarchy) return { kind: 'group', x, y, w, h, rot, fill: '', opacity: clamp(Math.round(shapeOp * 100), 0, 100) };
+  if (type === 'group' && options.preserveHierarchy) return { kind: 'group', x, y, w, h, rot, fill: '', opacity: clamp(Math.round(shapeOp * 100), 0, 100),
+    blend: BLENDS[String(sh.blendMode)] ? String(sh.blendMode) : 'normal' };
 
   // Text - rich content tree (reuse the shared parser; it handles camelCase keys).
   if (type === 'text' && sh.content) {

@@ -43,6 +43,7 @@ import { initSearchBar, applySearchBarRoute } from './components/search-bar.ts';
 import { initSpotlightBoot } from './components/spotlight-boot.ts';
 import { ensureJelly, jellyEnabled } from './lib/jelly.ts';
 import { applyCaptureNeutral } from './lib/capture-neutral.ts';
+import { wireViewPrewarmIntent } from './lib/view-prewarm-intent.ts';
 import { peekNeuroDemo } from './lib/neuro-demo-peek.ts';
 import { syncJellyNavToggle, UTILITIES_FLAG_ID, type ViewToggleKey } from './components/view-toggle.ts';
 import { installGlobalReveal } from './lib/reveal.ts';
@@ -1894,23 +1895,13 @@ async function boot(): Promise<void> {
   const views = new Set(warmSecondary.values()).size;
   const warmedViews = new Set<() => void>();
   let toolWarmed = false;
-  const warmOnIntent = (e: Event): void => {
-    const el = e.target instanceof Element ? e.target : null;
-    if (!el) return;
+  const warmOnIntent = (el: Element): void => {
     if (!toolWarmed && el.closest?.('a[href*="tool/"]')) { toolWarmed = true; warmTool(); }
     const route = intentRoute(el);
     const warm = route ? warmSecondary.get(route) : undefined;
     if (warm && !warmedViews.has(warm)) { warmedViews.add(warm); warm(); }
-    // Once there is nothing left to warm, stop walking ancestors on every pointer
-    // move: these fire for the life of the page and the work is finished.
-    if (!toolWarmed || warmedViews.size < views) return;
-    document.removeEventListener('pointerover', warmOnIntent, { capture: true });
-    document.removeEventListener('pointerdown', warmOnIntent, { capture: true });
-    document.removeEventListener('focusin', warmOnIntent, { capture: true });
   };
-  document.addEventListener('pointerover', warmOnIntent, { capture: true, passive: true });
-  document.addEventListener('pointerdown', warmOnIntent, { capture: true, passive: true });
-  document.addEventListener('focusin', warmOnIntent, { capture: true });
+  wireViewPrewarmIntent(document, warmOnIntent, () => toolWarmed && warmedViews.size >= views);
 
   // Re-render on any route change. hashchange covers legacy #/… links and external
   // deep links; popstate covers History-API back/forward across /t/<id> tool entries;

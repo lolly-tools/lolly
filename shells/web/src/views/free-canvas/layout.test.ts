@@ -195,6 +195,22 @@ test('projection receipts follow source identity and reject stale or malformed g
   assert.equal(f.fc.select.getBoxes(), f.boxes());
 });
 
+test('standalone Hug groups use immutable layout receipts and wait for their current source', () => {
+  const source: Box[] = [
+    { id: 'g', kind: 'group', x: 0, y: 0, w: 100, h: 100, layoutW: 'hug', layoutH: 'hug' },
+    { id: 'leaf', kind: 'box', group: 'g', x: 20, y: 30, w: 40, h: 50 },
+  ];
+  const projected = [{ ...source[0], x: 20, y: 30, w: 40, h: 50 } as Box, source[1]!];
+  const f = fixture(source, [], projected);
+  assert.deepEqual(f.fc.select.getBoxes(), projected);
+  assert.deepEqual(f.boxes(), source);
+  f.fc.layout.requirePlacement();
+  f.extras.layoutSourceJson = 'stale';
+  assert.deepEqual(f.fc.select.getBoxes(), source);
+  assert.throws(() => f.fc.layout.requirePlacement(), /finish rendering/);
+  assert.equal(f.writes.length, 0);
+});
+
 test('pending layout receipts reject pose-dependent edits without writing authored positions', () => {
   const loose: Box = { id: 'loose', x: 400, y: 20, w: 20, h: 20 };
   const cases: Array<[string, string, Partial<Box>]> = [

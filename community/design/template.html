@@ -34,11 +34,13 @@
         hard against the page tag so an image-less page is byte-identical to before. --}}
   <div class="lolly-frame-page" data-pdf-page data-frame-id="{{frameId}}"{{{frameDurAttr}}}{{{frameStateAttr}}}{{{frameNotesAttr}}}{{{frameStackAttr}}}{{{frameNameAttr}}}{{{frameTransitionAttr}}}{{{pageTimeAttrs}}} style="{{pageStyle}}">{{{pageImgHtml}}}
     {{#each children}}
+    {{{groupBefore}}}
     <div class="lolly-box{{cls}}" data-canvas-input="boxes:{{flatIndex}}" data-box-id="{{default id flatIndex}}" data-fit="{{fit}}" style="{{boxStyle}}"{{{timeAttrs}}}{{{lockAttr}}}{{{buildAttr}}}{{{matchAttr}}}>
       {{{pathHtml}}}
       {{{mediaHtml}}}
       <div class="lolly-box-text" style="{{textStyle}}">{{{textHtml}}}</div>
     </div>
+    {{{groupAfter}}}
     {{/each}}
   </div>
   {{/each}}
@@ -49,11 +51,13 @@
         already carries global left/top). renderMultiPagePdf/exportPaged walk [data-pdf-page]
         only, so these are visible while editing yet absent from the exported pages. --}}
   {{#each pasteboard}}
+  {{{groupBefore}}}
   <div class="lolly-box{{cls}}" data-canvas-input="boxes:{{flatIndex}}" data-box-id="{{default id flatIndex}}" data-fit="{{fit}}" style="{{boxStyle}}"{{{timeAttrs}}}{{{lockAttr}}}>
     {{{pathHtml}}}
     {{{mediaHtml}}}
     <div class="lolly-box-text" style="{{textStyle}}">{{{textHtml}}}</div>
   </div>
+  {{{groupAfter}}}
   {{/each}}
   {{/if}}
   {{!-- The text-fit pass, scoped to the frames wrapper (mirrors the artboard copy below):
@@ -117,6 +121,7 @@
         Every other surface (frame pages, the pasteboard, the deck, the Penpot document)
         filters in hooks.js instead. --}}
   {{#each renderBoxes}}
+  {{{groupBefore}}}
   {{#unless (lookup ../boxHide flatIndex)}}
   <div class="lolly-box{{lookup ../boxCls flatIndex}}" data-canvas-input="boxes:{{flatIndex}}" data-box-id="{{default id flatIndex}}" data-fit="{{lookup ../boxFit flatIndex}}" style="{{lookup ../boxStyle flatIndex}}"{{{lookup ../timeAttrs flatIndex}}}{{{lookup ../lockAttrs flatIndex}}}>
     {{{lookup ../pathHtml flatIndex}}}
@@ -124,6 +129,7 @@
     <div class="lolly-box-text" style="{{lookup ../textStyle flatIndex}}">{{{lookup ../textHtml flatIndex}}}</div>
   </div>
   {{/unless}}
+  {{{groupAfter}}}
   {{/each}}
 
   {{!-- ── the text-fit pass ────────────────────────────────────────────────────────

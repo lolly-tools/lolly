@@ -77593,10 +77593,10 @@ function remapDesignHierarchy(boxes, copies) {
     return next2;
   });
 }
-function refreshDesignGroupBounds(boxes, pages = emptyPages) {
+function refreshDesignGroupBounds(boxes, pages = emptyPages, groupIds) {
   const index2 = designHierarchyIndex(boxes, pages), changed = /* @__PURE__ */ new Map();
   for (const [id3, group] of index2.byId) {
-    if (group.kind !== "group") continue;
+    if (group.kind !== "group" || groupIds && !groupIds.has(id3)) continue;
     const angle = number(group.rot) * Math.PI / 180, c = cos(angle), s = sin(angle);
     let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity;
     for (const childId of designHierarchyDescendants(index2, /* @__PURE__ */ new Set([id3]))) {
@@ -90610,7 +90610,17 @@ function penpotShapeToNode(shape, options2 = {}) {
   const rot = num7(sh.rotation, 0);
   const shapeOp = num7(sh.opacity, 1);
   const fills = Array.isArray(sh.fills) ? sh.fills : [];
-  if (type === "group" && options2.preserveHierarchy) return { kind: "group", x, y, w, h, rot, fill: "", opacity: clamp(Math.round(shapeOp * 100), 0, 100) };
+  if (type === "group" && options2.preserveHierarchy) return {
+    kind: "group",
+    x,
+    y,
+    w,
+    h,
+    rot,
+    fill: "",
+    opacity: clamp(Math.round(shapeOp * 100), 0, 100),
+    blend: BLENDS[String(sh.blendMode)] ? String(sh.blendMode) : "normal"
+  };
   if (type === "text" && sh.content) {
     const info = parsePenpotContent(sh.content);
     const node2 = {
@@ -97797,8 +97807,8 @@ function validateDesignLayout(boxes, tracks = []) {
   for (const r5 of boxes) {
     if (r5.group && byId.get(String(r5.group))?.kind === "group" && r5.layoutOwner)
       add3(r5, "layout.owner-conflict", "A grouped layer cannot also have a layout owner.");
-    if (r5.kind === "group" && (mode(r5, "W") !== "fixed" || mode(r5, "H") !== "fixed"))
-      add3(r5, "layout.group-sizing", "Groups use fixed sizing. Resize the group or use a layout container for fill and content sizing.");
+    if (r5.kind === "group" && (mode(r5, "W") === "fill" || mode(r5, "H") === "fill") && !hasDesignLayout([byId.get(parentOf2(r5)) || {}]))
+      add3(r5, "layout.group-sizing", "Group fill sizing requires a flex or grid owner.");
     if (r5.kind === "group" && hasDesignLayout([r5]))
       add3(r5, "layout.group-container", "Use an artboard or box as a dynamic layout container.");
     if (r5.layoutOwner && r5.frame)
@@ -97825,7 +97835,7 @@ function validateDesignLayout(boxes, tracks = []) {
     }
     if (r5.layout && !["none", "flex", "grid"].includes(String(r5.layout)))
       add3(r5, "layout.mode", "Unknown layout mode.");
-    if (r5.layoutOwner || hasDesignLayout([r5]) || hasDesignLayout([byId.get(parentOf2(r5)) || {}])) {
+    if (r5.layoutOwner || hasDesignLayout([r5]) || r5.kind === "group" || hasDesignLayout([byId.get(parentOf2(r5)) || {}])) {
       for (const [key2, choices2] of Object.entries({
         layoutDirection: ["row", "row-reverse", "column", "column-reverse"],
         layoutAlign: ["start", "center", "end", "stretch"],
@@ -97959,6 +97969,75 @@ function fromCorners(r5, b) {
     h,
     rot: Math.abs(rot - original) < 1e-4 ? original : Math.abs(rot) < 1e-4 ? 0 : rot
   };
+}
+function checkedGroupGeometry(row) {
+  if (["x", "y", "w", "h", "rot"].some((field2) => !Number.isFinite(number2(row[field2])) || Math.abs(number2(row[field2])) > MAX_LAYOUT_SCALAR))
+    throw new Error("Group sizing exceeds the finite geometry limit.");
+  return row;
+}
+function measureGroupBounds(group, boxes, children, visit) {
+  if (on2(group.hidden)) return group;
+  const origin = corners(group), angle = number2(group.rot) * Math.PI / 180, c = cos(angle), s = sin(angle);
+  let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity;
+  const pending3 = [...children.get(id(group)) || []];
+  for (let at = 0; at < pending3.length; at++) {
+    visit();
+    const row = boxes[pending3[at]];
+    if (on2(row.hidden)) continue;
+    if (row.kind !== "group") {
+      const points = corners(row);
+      for (let p = 0; p < points.length; p += 2) {
+        const dx = points[p] - origin[0], dy = points[p + 1] - origin[1];
+        const u = dx * c + dy * s, v = -dx * s + dy * c;
+        left = Math.min(left, u);
+        right = Math.max(right, u);
+        top = Math.min(top, v);
+        bottom = Math.max(bottom, v);
+      }
+    }
+    pending3.push(...children.get(id(row)) || []);
+  }
+  if (left === Infinity) {
+    left = top = right = bottom = 0;
+  }
+  const huggingW = mode(group, "W") === "hug", huggingH = mode(group, "H") === "hug";
+  const extent2 = (axis, value) => {
+    const max = number2(group[`layoutMax${axis}`], Infinity);
+    if (max < 0.01) throw new Error("Group content sizing needs a maximum size of at least 0.01.");
+    return Math.max(0.01, Math.min(max, Math.max(number2(group[`layoutMin${axis}`]), value)));
+  };
+  const w = huggingW ? extent2("W", right - left) : number2(group.w, 100), h = huggingH ? extent2("H", bottom - top) : number2(group.h, 100);
+  const x0 = origin[0] + (huggingW ? left * c : 0) - (huggingH ? top * s : 0);
+  const y0 = origin[1] + (huggingW ? left * s : 0) + (huggingH ? top * c : 0);
+  return checkedGroupGeometry({ ...group, x: x0 + c * w / 2 - s * h / 2 - w / 2, y: y0 + s * w / 2 + c * h / 2 - h / 2, w, h });
+}
+function settleGroupGeometry(before, after) {
+  const next2 = { ...after };
+  for (const field2 of ["x", "y", "w", "h"]) if (before[field2] != null && Math.abs(number2(before[field2]) - number2(after[field2])) < 1e-4) next2[field2] = before[field2];
+  return next2;
+}
+function carryGroupGeometry(before, after, boxes, children, visit) {
+  if (["x", "y", "w", "h", "rot"].every((field2) => before[field2] === after[field2])) return;
+  if ([before, after].some((row) => number2(row.w, 100) <= 0 || number2(row.h, 100) <= 0)) throw new Error("Group sizing requires nonzero bounds.");
+  const old = corners(before), next2 = corners(after), ux = old[2] - old[0], uy = old[3] - old[1], vx = old[6] - old[0], vy = old[7] - old[1];
+  const det = ux * vy - uy * vx;
+  if (!Number.isFinite(det) || Math.abs(det) < 1e-12) throw new Error("Group sizing requires nonzero bounds.");
+  const pending3 = [...children.get(id(before)) || []];
+  for (let at = 0; at < pending3.length; at++) {
+    visit();
+    const index2 = pending3[at], row = boxes[index2], points = corners(row), mapped = [];
+    for (let p = 0; p < points.length; p += 2) {
+      const dx = points[p] - old[0], dy = points[p + 1] - old[1], u = (dx * vy - dy * vx) / det, v = (dy * ux - dx * uy) / det;
+      mapped.push(next2[0] + u * (next2[2] - next2[0]) + v * (next2[6] - next2[0]), next2[1] + u * (next2[3] - next2[1]) + v * (next2[7] - next2[1]));
+    }
+    try {
+      boxes[index2] = checkedGroupGeometry(fromCorners(row, mapped));
+    } catch (error2) {
+      if (error2 instanceof Error && error2.message.includes("skewed rectangle")) throw new Error(`Group sizing would shear rotated layer "${id(row)}". Use fixed sizing or align its rotation with the group.`);
+      throw error2;
+    }
+    pending3.push(...children.get(id(row)) || []);
+  }
 }
 function designLayoutRequest(container, children, tracks) {
   const cols = tracks.filter((t) => t.container === container.id && t.axis === "column").sort(
@@ -98104,7 +98183,8 @@ function createDesignLayoutEvaluator(solve3, measure3) {
         solved: 0,
         grids: []
       };
-    if (!hasDesignLayout(source))
+    const intrinsicGroups = source.filter((row) => row?.kind === "group" && (mode(row, "W") === "hug" || mode(row, "H") === "hug"));
+    if (!hasDesignLayout(source) && !intrinsicGroups.length)
       return { boxes: source, findings: [], passes: 0, solved: 0, grids: [] };
     const findings = validateDesignLayout(source, tracks);
     if (findings.length)
@@ -98135,7 +98215,7 @@ function createDesignLayoutEvaluator(solve3, measure3) {
       return d;
     };
     containers.sort((a, b) => depth(b) - depth(a));
-    const participating = new Set(containers.map(id)), pending3 = [...participating];
+    const participating = new Set([...containers, ...intrinsicGroups].map(id)), pending3 = [...participating];
     for (let n7 = 0; n7 < pending3.length; n7++)
       for (const index2 of children.get(pending3[n7]) || []) {
         const child = id(boxes[index2]);
@@ -98145,7 +98225,7 @@ function createDesignLayoutEvaluator(solve3, measure3) {
         }
       }
     const ancestors = /* @__PURE__ */ new Set();
-    for (const container of containers) {
+    for (const container of [...containers, ...intrinsicGroups]) {
       let o = owner3(container);
       while (o) {
         if (!participating.has(o)) ancestors.add(o);
@@ -98181,6 +98261,9 @@ function createDesignLayoutEvaluator(solve3, measure3) {
       };
     inheritVisibility(boxes, byId);
     let solved = 0, passes2 = 0, work = 0;
+    const visit = () => {
+      if (++work > MAX_LAYOUT_REFLOW_WORK) throw new Error("Layout exceeds its aggregate reflow work budget.");
+    };
     const grids = /* @__PURE__ */ new Map();
     const active = new Set(containers.map(id));
     for (const k of memo2.keys())
@@ -98191,6 +98274,10 @@ function createDesignLayoutEvaluator(solve3, measure3) {
     try {
       for (; passes2 < MAX_LAYOUT_PASSES; passes2++) {
         const before = boxes.map((r5) => [r5.x, r5.y, r5.w, r5.h, r5.rot].join(","));
+        for (const group of intrinsicGroups) {
+          const n7 = byId.get(id(group));
+          boxes[n7] = measureGroupBounds(boxes[n7], boxes, children, visit);
+        }
         for (const c of containers) {
           const index2 = byId.get(id(c));
           const container = boxes[index2];
@@ -98212,6 +98299,7 @@ function createDesignLayoutEvaluator(solve3, measure3) {
                 y: ny + ss * w / 2 + cc * h / 2 - h / 2
               };
             }
+            if (row.kind === "group") carryGroupGeometry(row, boxes[n7], boxes, children, visit);
           }
           for (const n7 of members) {
             let r5 = boxes[n7];
@@ -98292,9 +98380,11 @@ function createDesignLayoutEvaluator(solve3, measure3) {
           boxes[index2] = next2;
           for (const [i, n7] of members.entries()) {
             const old = boxes[n7];
-            const nextChild = fromCorners(old, result[i + 1]);
+            const answerChild = fromCorners(old, result[i + 1]);
+            const nextChild = old.kind === "group" ? settleGroupGeometry(old, answerChild) : answerChild;
             boxes[n7] = nextChild;
-            if ((old.kind === "frame" || old.kind === "group" || hasDesignLayout([old])) && (nextChild.x !== old.x || nextChild.y !== old.y)) {
+            if (old.kind === "group") carryGroupGeometry(old, nextChild, boxes, children, visit);
+            if ((old.kind === "frame" || hasDesignLayout([old])) && (nextChild.x !== old.x || nextChild.y !== old.y)) {
               const dx = number2(nextChild.x) - number2(old.x), dy = number2(nextChild.y) - number2(old.y);
               const pending4 = [...children.get(id(old)) || []];
               for (let q = 0; q < pending4.length; q++) {
@@ -98356,20 +98446,25 @@ function createDesignLayoutEvaluator(solve3, measure3) {
     }
   };
 }
-function designLayoutSourceEdit(source, evaluated, proposed) {
+function designLayoutSourceEdit(source, evaluated, proposed, options2 = {}) {
   const src = new Map(source.map((r5) => [id(r5), r5])), prev = new Map(evaluated.map((r5) => [id(r5), r5]));
+  const changedGroups = new Set(proposed.filter((row) => src.get(id(row))?.kind === "group" && prev.has(id(row)) && ["x", "y", "w", "h", "rot"].some((field2) => row[field2] !== prev.get(id(row))[field2])).map(id));
+  const hierarchy = changedGroups.size ? designHierarchyIndex(source) : null;
+  const groupIntents = new Set([...changedGroups].filter((group) => !hierarchy || !designHierarchyAncestors(hierarchy, group).some((ancestor) => changedGroups.has(ancestor))));
+  const materialized = hierarchy ? designHierarchyDescendants(hierarchy, groupIntents) : /* @__PURE__ */ new Set();
   return proposed.map((r5) => {
     const old = src.get(id(r5)), shown = prev.get(id(r5));
     if (!old || !shown) return r5;
     const next2 = { ...r5 };
     for (const k of ["x", "y", "w", "h", "rot", "frame", "hidden"])
-      if (r5[k] === shown[k]) {
+      if (r5[k] === shown[k] && (!materialized.has(id(r5)) || k === "frame" || k === "hidden")) {
         if (k in old) next2[k] = old[k];
         else delete next2[k];
       }
-    if (old.layoutOwner || old.layout === "flex" || old.layout === "grid" || src.get(owner(old))?.layout === "flex" || src.get(owner(old))?.layout === "grid") {
-      if (r5.w !== shown.w) next2.layoutW = "fixed";
-      if (r5.h !== shown.h) next2.layoutH = "fixed";
+    if ((!materialized.has(id(r5)) || groupIntents.has(id(r5))) && (old.layoutOwner || old.kind === "group" || old.layout === "flex" || old.layout === "grid" || src.get(owner(old))?.layout === "flex" || src.get(owner(old))?.layout === "grid")) {
+      const requested = old.kind === "group" ? options2.groupSizeAxes?.get(id(r5)) : void 0;
+      if (r5.w !== shown.w && (!requested || requested.has("W"))) next2.layoutW = "fixed";
+      if (r5.h !== shown.h && (!requested || requested.has("H"))) next2.layoutH = "fixed";
     }
     return next2;
   });
@@ -98505,7 +98600,7 @@ function importPenpotLayouts(boxes, sourceIds, shapes2, options2 = {}) {
       const frame = mapped.get(String(shape.frameId)), frameShape = shapes2[String(shape.frameId)];
       if (frameShape?.type === "frame" && String(frameShape.parentId) === ROOT) row.frame = frame.id;
     }
-    if (row.layoutOwner || shape.layout === "flex" || shape.layout === "grid") {
+    if (row.layoutOwner || row.kind === "group" || shape.layout === "flex" || shape.layout === "grid") {
       row.layoutW = sizing(shape.layoutItemHSizing);
       row.layoutH = sizing(shape.layoutItemVSizing);
       for (const [source, target2] of [["layoutItemMinW", "layoutMinW"], ["layoutItemMaxW", "layoutMaxW"], ["layoutItemMinH", "layoutMinH"], ["layoutItemMaxH", "layoutMaxH"]]) {
@@ -98592,7 +98687,7 @@ function importPenpotLayouts(boxes, sourceIds, shapes2, options2 = {}) {
 }
 function exportPenpotLayout(row, children, tracks) {
   const props = {};
-  if (row.layoutOwner || hasDesignLayout([row])) {
+  if (row.layoutOwner || row.kind === "group" || hasDesignLayout([row])) {
     props.layoutItemHSizing = ppSizing(row.layoutW);
     props.layoutItemVSizing = ppSizing(row.layoutH);
     props.layoutItemMarginType = "multiple";
@@ -112585,6 +112680,10 @@ function compileDesignDraw(rows2, size, opts = {}) {
   }
   for (const row of rows2) {
     const kind = rowStr2(row, "kind");
+    if (kind === "group") {
+      page3.findings.push({ id: rowStr2(row, "id"), feature: "group-compositing" });
+      continue;
+    }
     if (kind === "frame" || hidden4(row)) continue;
     if (design && (kind === "audio" || kind === "camera")) continue;
     if (design && kind === "path" && (rowStr2(row, "bindStart") || rowStr2(row, "bindEnd"))) {
@@ -113783,6 +113882,7 @@ function boxesToPenpotDoc(boxesIn, o) {
       if (hasDesignLayout([box4])) children = children.slice().sort((a, b) => fin2(a.layoutOrder) - fin2(b.layoutOrder));
       let shape;
       if (box4.kind === "group") {
+        if (box4.clip || box4.shadow && box4.shadow !== "none" || fin2(box4.blur) > 0 || fin2(box4.bgBlur) > 0) throw new Error("Group masks, shadows and blur need an SVG copy for faithful Penpot export.");
         shape = {
           type: "group",
           name: nameOf4(box4, "Group"),
@@ -139908,6 +140008,14 @@ var init_content_roots = __esm({
 });
 
 // packages/core/src/lolly-features.ts
+function recordReader(row, design, declaration) {
+  let reader = row.layout === "flex" || row.layout === "grid" || declaration && Array.isArray(row.requires) && row.requires.includes("layout") ? LOLLY_LAYOUT_MIN_READER : 1;
+  if (design && row.kind === "group" && (row.opacity != null && row.opacity !== "" && (!["number", "string"].includes(typeof row.opacity) || Number(row.opacity) !== 100) || !!row.blend && row.blend !== "normal" || !!row.layoutW && row.layoutW !== "fixed" || !!row.layoutH && row.layoutH !== "fixed")) return LOLLY_GROUP_FEATURES_MIN_READER;
+  if (design && (row.kind === "group" || typeof row.pageId === "string" && !!row.pageId.trim() || Array.isArray(row.pages) && row.pages.length > 0 || declaration && (row.id === "pages" && row.type === "blocks" || row.id === "pageId" && row.type === "text" || row.id === "kind" && Array.isArray(row.options) && row.options.some((option) => !!option && typeof option === "object" && option.value === "group")))) {
+    reader = Math.max(reader, LOLLY_HIERARCHY_MIN_READER);
+  }
+  return reader;
+}
 function lollyFeatureReader(sources) {
   const stack = [
     { value: sources.session, design: sources.toolId === "design", declaration: false },
@@ -139918,7 +140026,7 @@ function lollyFeatureReader(sources) {
   const seen = /* @__PURE__ */ new WeakMap();
   let visited = 0, pending3 = stack.length, reader = 1;
   while (stack.length) {
-    if (++visited > 2e5) return LOLLY_HIERARCHY_MIN_READER;
+    if (++visited > 2e5) return LOLLY_GROUP_FEATURES_MIN_READER;
     const item2 = stack.pop();
     const value = item2.value;
     if (!value || typeof value !== "object" || ArrayBuffer.isView(value) || value instanceof Blob) continue;
@@ -139929,23 +140037,32 @@ function lollyFeatureReader(sources) {
     const mode3 = 1 << Number(design) + 2 * Number(item2.declaration);
     if ((seen.get(value) || 0) & mode3) continue;
     seen.set(value, (seen.get(value) || 0) | mode3);
-    if (row.layout === "flex" || row.layout === "grid" || item2.declaration && Array.isArray(row.requires) && row.requires.includes("layout")) reader = LOLLY_LAYOUT_MIN_READER;
-    if (design && (row.kind === "group" || typeof row.pageId === "string" && !!row.pageId.trim() || Array.isArray(row.pages) && row.pages.length > 0 || item2.declaration && (row.id === "pages" && row.type === "blocks" || row.id === "pageId" && row.type === "text" || row.id === "kind" && Array.isArray(row.options) && row.options.some((option) => !!option && typeof option === "object" && option.value === "group")))) {
-      return LOLLY_HIERARCHY_MIN_READER;
+    reader = Math.max(reader, recordReader(row, design, item2.declaration));
+    if (reader === LOLLY_GROUP_FEATURES_MIN_READER) return reader;
+    const flatBoxes = design && !item2.declaration && Array.isArray(row.boxes);
+    if (flatBoxes) {
+      for (const box4 of row.boxes) {
+        if (++visited > 2e5) return LOLLY_GROUP_FEATURES_MIN_READER;
+        if (!box4 || typeof box4 !== "object" || Array.isArray(box4)) continue;
+        reader = Math.max(reader, recordReader(box4, true, false));
+        if (reader === LOLLY_GROUP_FEATURES_MIN_READER) return reader;
+      }
     }
-    for (const child of Object.values(row)) {
-      if (++pending3 > 2e5) return LOLLY_HIERARCHY_MIN_READER;
+    for (const [key2, child] of Object.entries(row)) {
+      if (flatBoxes && key2 === "boxes") continue;
+      if (++pending3 > 2e5) return LOLLY_GROUP_FEATURES_MIN_READER;
       stack.push({ value: child, design, declaration: item2.declaration });
     }
   }
   return reader;
 }
-var LOLLY_LAYOUT_MIN_READER, LOLLY_HIERARCHY_MIN_READER;
+var LOLLY_LAYOUT_MIN_READER, LOLLY_HIERARCHY_MIN_READER, LOLLY_GROUP_FEATURES_MIN_READER;
 var init_lolly_features = __esm({
   "packages/core/src/lolly-features.ts"() {
     "use strict";
     LOLLY_LAYOUT_MIN_READER = 6;
     LOLLY_HIERARCHY_MIN_READER = 7;
+    LOLLY_GROUP_FEATURES_MIN_READER = 8;
   }
 });
 
@@ -141649,7 +141766,7 @@ var init_lolly_file = __esm({
     init_src2();
     init_lolly_features();
     LOLLY_FILE_FORMAT = "lolly-share";
-    LOLLY_READER_VERSION = 7;
+    LOLLY_READER_VERSION = 8;
     LOLLY_RENOVATION_MIN_READER = 4;
     RENOVATION_PROJECT_PART = "renovation/project.json";
     RENOVATION_PART_KINDS = ["sourceDeck", "census", "plan", "compiled"];
@@ -157782,6 +157899,10 @@ async function designPageDrawing(values, frameId, host, opts = {}) {
     ...host.resolveColor ? { resolveColor: host.resolveColor } : {},
     ...host.fonts ? { fonts: host.fonts } : {}
   });
+  if (Array.isArray(values.boxes) && !page3.findings.some((finding3) => finding3.feature === "group-compositing")) {
+    const group = values.boxes.find((row) => row && typeof row === "object" && row.kind === "group");
+    if (group) page3.findings.push({ id: String(group.id || ""), feature: "group-compositing" });
+  }
   await layoutDesignDrawText(page3, host.shaper);
   if (host.toPath) await outlineDesignDrawText(page3, host.toPath, host.strikeMetrics);
   const pictures = /* @__PURE__ */ new Map();
@@ -167670,7 +167791,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
       if (format === "svg" || format === "svgz") {
         const svg = rootSvgOf(node);
         if (!svg) {
-          if (designOpsReason) throw new Error(`This Design page needs a browser engine for ${format.toUpperCase()} because ${designOpsReason}`);
+          if (designOpsReason) throw Object.assign(new Error(`This Design page needs a browser engine for ${format.toUpperCase()} because ${designOpsReason}`), { code: "NEEDS_BROWSER" });
           throw new Error("SVG export requires the template's root drawable to be an <svg> (HTML-layout tools need a browser engine - use the desktop app or the web shell)");
         }
         const dw = parseDimension(opts.width);

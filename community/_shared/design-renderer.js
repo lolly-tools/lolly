@@ -2386,7 +2386,7 @@ function frameGroupsFor(boxes, ext) {
     // the frame's own timeline enter/exit and derive nothing.
     var ftr = (fb && fb.slideTransition != null) ? String(fb.slideTransition) : '';
     var frameTransitionAttr = FRAME_TRANSITION_RE.test(ftr) ? ' data-frame-transition="' + ftr + '"' : '';
-    return { pageStyle: pageStyle, pageImgHtml: pageImgHtml, pageTimeAttrs: pageTimeAttrs, children: children, frameId: fid, frameDurAttr: frameDurAttr, frameStateAttr: frameStateAttr, frameNotesAttr: frameNotesAttr, frameStackAttr: frameStackAttr, frameNameAttr: frameNameAttr, frameTransitionAttr: frameTransitionAttr };
+    return { pageStyle: pageStyle, pageImgHtml: pageImgHtml, pageTimeAttrs: pageTimeAttrs, children: hierarchyMarkupEntries(boxes, children), frameId: fid, frameDurAttr: frameDurAttr, frameStateAttr: frameStateAttr, frameNotesAttr: frameNotesAttr, frameStackAttr: frameStackAttr, frameNameAttr: frameNameAttr, frameTransitionAttr: frameTransitionAttr };
   });
 }
 
@@ -2427,7 +2427,7 @@ function pasteboardFor(boxes, ext) {
       textHtml: ext.textHtml[j],
     });
   }
-  return loose;
+  return hierarchyMarkupEntries(boxes, loose);
 }
 
 // ── native PowerPoint deck model (plan 95 route-a, "route a") ──────────────────
@@ -3157,6 +3157,44 @@ function hierarchyPaintIndices(boxes) {
   }
   return result;
 }
+var hierarchyMarkupCache = new WeakMap();
+// Group wrappers share their frame's coordinate origin; child geometry stays global.
+function hierarchyMarkupEntries(boxes, entries) {
+  var byId = hierarchyMarkupCache.get(boxes);
+  if (!byId) {
+    byId = new Map();
+    boxes.forEach(function(box) { if (box && box.id) byId.set(String(box.id), box); });
+    hierarchyMarkupCache.set(boxes, byId);
+  }
+  var prior = [], painted = [];
+  entries.forEach(function(entry) {
+    var box = boxes[entry.flatIndex], chain = [], current = box, depth = 0;
+    if (!box || box.kind === 'group' || box.kind === 'frame' || isHiddenBox(box)) { painted.push(entry); return; }
+    while (current && depth++ < 65) {
+      var group = byId.get(String(current.group || ''));
+      var owner = group && group.kind === 'group' ? group : byId.get(String(current.layoutOwner || current.frame || ''));
+      if (!owner || owner.kind === 'frame') break;
+      if (owner.kind === 'group') chain.unshift(owner);
+      current = owner;
+    }
+    var common = 0;
+    while (common < prior.length && common < chain.length && prior[common].id === chain[common].id) common++;
+    var before = '</div>'.repeat(prior.length - common);
+    for (var n = common; n < chain.length; n++) {
+      var g = chain[n], op = clamp(num(g.opacity, 100), 0, 100) / 100;
+      var blend = Object.prototype.hasOwnProperty.call(BLENDS, String(g.blend)) ? String(g.blend) : '';
+      var css = 'position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;';
+      if (op !== 1 || blend) css += 'isolation:isolate;';
+      if (op !== 1) css += 'opacity:' + op + ';';
+      if (blend) css += 'mix-blend-mode:' + blend + ';';
+      before += '<div data-design-group="' + esc(String(g.id)) + '" data-box-id="' + esc(String(g.id)) + '" style="' + css + '">';
+    }
+    painted.push(Object.assign({}, entry, { groupBefore: before, groupAfter: '' }));
+    prior = chain;
+  });
+  if (painted.length) painted[painted.length - 1].groupAfter = '</div>'.repeat(prior.length);
+  return painted;
+}
 function hierarchyProjection(boxes, pages, view) {
   if (!boxes.some(function(b) { return b && (b.kind === 'group' || b.pageId); }) && (!pages || !pages.length)) return boxes;
   if (boxes.length > 20000 || pages && pages.length > 256) throw new Error('A document supports up to 20,000 layers and 256 pages.');
@@ -3181,7 +3219,7 @@ function hierarchyProjection(boxes, pages, view) {
       seen.add(id);
       if (boolVal(current.hidden, false)) row.hidden = true;
       if (boolVal(current.locked, false)) row.locked = true;
-      if (current.kind === 'group' && (num(current.opacity, 100) !== 100 || current.blend && current.blend !== 'normal')) throw new Error('Group opacity and blending require a composited image. Import an SVG copy to retain that appearance.');
+      if (current.kind === 'group' && (current.clip || current.shadow && current.shadow !== 'none' || num(current.blur, 0) > 0 || num(current.bgBlur, 0) > 0)) throw new Error('Group masks, shadows and blur require a composited image. Import an SVG copy to retain that appearance.');
       if (current.kind === 'frame' && current !== b && !frame) frame = id;
       var declared = String(current.pageId || '');
       if (declared) {
@@ -3199,10 +3237,13 @@ function hierarchyProjection(boxes, pages, view) {
     return row;
   });
 }
+function needsLayoutEvaluation(rows) {
+  return rows.some(function(b) { return b && (b.layout === 'flex' || b.layout === 'grid' || b.kind === 'group' && (b.layoutW === 'hug' || b.layoutH === 'hug')); });
+}
 function compute(model, composed, report, exporting, view) {
   var inp = inputsFrom(model);
   var source = Array.isArray(inp.boxes) ? inp.boxes : [];
-  if (!source.some(function(b) { return b && (b.layout === 'flex' || b.layout === 'grid'); })) {
+  if (!needsLayoutEvaluation(source)) {
     var clear = function(out) { out.layoutBoxesJson = ''; out.layoutSourceJson = ''; out.layoutGridsJson = ''; out.layoutReceipt = ''; return out; };
     var staticResult = computePlaced(model, composed, report, view);
     return staticResult && typeof staticResult.then === 'function' ? staticResult.then(clear) : clear(staticResult);
@@ -3436,7 +3477,7 @@ function computePlaced(model, composed, report, view) {
     pages: inp.pages || [],
   });
   var out = {
-    renderBoxes: hierarchyPaintIndices(boxes).map(function(index) { return {id:boxes[index].id,flatIndex:index}; }),
+    renderBoxes: hierarchyMarkupEntries(boxes, hierarchyPaintIndices(boxes).map(function(index) { return {id:boxes[index].id,flatIndex:index}; })),
     boxStyle: boxStyle,
     textStyle: textStyle,
     textHtml: textHtml,

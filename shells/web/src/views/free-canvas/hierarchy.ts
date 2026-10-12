@@ -334,6 +334,22 @@ export function cleanDeletedReferences(fc: FcCtx, before: Box[], after: Box[]): 
 const placementFields = ['x', 'y', 'w', 'h', 'rot'] as const;
 const placementChanged = (before: Box, after: Box): boolean =>
   placementFields.some((field) => Number(before[field] || 0) !== Number(after[field] || 0));
+/** Capture requested axes before proportional group geometry is materialized. */
+export function groupSizeAxes(fc: FcCtx, proposed: Box[]): ReadonlyMap<string, ReadonlySet<'W' | 'H'>> {
+  const result = new Map<string, ReadonlySet<'W' | 'H'>>();
+  if (!enabled(fc)) return result;
+  const before = indexOf(fc, fc.select.getBoxes());
+  for (const row of proposed) {
+    if (!isGroup(fc, row)) continue;
+    const id = String(row.id), previous = before.byId.get(id);
+    if (!previous) continue;
+    const axes = new Set<'W' | 'H'>();
+    if (Math.abs(Number(row.w || 0) - Number(previous.w || 0)) > 1e-8) axes.add('W');
+    if (Math.abs(Number(row.h || 0) - Number(previous.h || 0)) > 1e-8) axes.add('H');
+    if (axes.size) result.set(id, axes);
+  }
+  return result;
+}
 /** Precision and arrange commands edit a group record; carry unchanged children once. */
 export function cascadeGroupEdits(fc: FcCtx, before: Box[], after: Box[]): Box[] {
   const hierarchy = indexOf(fc, before),
@@ -409,14 +425,38 @@ export function prepareCommit(fc: FcCtx, boxes: Box[], pages = pagesOf(fc)): Box
   const raw = fc.runtime.getModel().find((input) => input.id === fc.blockId)?.value;
   const known = new Set((Array.isArray(raw) ? raw : []).map((row: Box) => String(row.id)));
   const page = fc.opts?.getActivePage?.();
-  boxes = cascadeGroupEdits(fc, fc.select.getBoxes(), boxes);
+  const before = fc.select.getBoxes();
+  boxes = cascadeGroupEdits(fc, before, boxes);
   boxes = cleanDeletedReferences(fc, Array.isArray(raw) ? raw : [], boxes);
   const next = page
     ? boxes.map((box) =>
         !known.has(String(box.id)) && !box.pageId ? { ...box, pageId: page } : box
       )
     : boxes;
-  return refreshDesignGroupBounds(projectSource(fc, next, pages), pages) as Box[];
+  return refitEditedGroups(fc, before, projectSource(fc, next, pages), pages);
+}
+
+/** Intent edits keep authored geometry; ordinary ancestors refit after member edits. */
+function refitEditedGroups(fc: FcCtx, before: Box[], after: Box[], pages = pagesOf(fc)): Box[] {
+  const old = indexOf(fc, before), current = designHierarchyIndex(after, pages);
+  const refit = new Set<string>(), explicit = new Set<string>();
+  for (const row of after) {
+    const id = String(row.id), previous = old.byId.get(id) as Box | undefined;
+    if (isGroup(fc, row) && (!previous || placementChanged(previous, row))) explicit.add(id);
+    if (previous && !placementChanged(previous, row) &&
+      ['group', 'frame', 'layoutOwner'].every(field => String(previous[field] || '') === String(row[field] || ''))) continue;
+    for (const parent of [...designHierarchyAncestors(old, id), ...designHierarchyAncestors(current, id)]) refit.add(parent);
+  }
+  for (const [id] of old.byId) if (!current.byId.has(id)) {
+    for (const parent of designHierarchyAncestors(old, id)) refit.add(parent);
+  }
+  const eligible = new Set([...refit].filter(id => {
+    const row = current.byId.get(id);
+    return row?.kind === 'group' && !explicit.has(id) &&
+      !['fill', 'hug'].includes(String(row.layoutW)) && !['fill', 'hug'].includes(String(row.layoutH));
+  }));
+  if (!eligible.size) return after;
+  return refreshDesignGroupBounds(after, pages, eligible) as Box[];
 }
 
 /** All copies share one identity map, including clipping and connector references. */
@@ -544,6 +584,7 @@ export function hierarchyOps(fc: FcCtx) {
     duplicatePage: bindOp(fc, duplicatePage),
     removePage: bindOp(fc, removePage),
     prepareCommit: bindOp(fc, prepareCommit),
+    groupSizeAxes: bindOp(fc, groupSizeAxes),
     enabled: bindOp(fc, enabled),
     isGroup: bindOp(fc, isGroup),
     projectSource: bindOp(fc, projectSource),

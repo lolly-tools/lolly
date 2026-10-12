@@ -61,6 +61,13 @@ export async function lollyHierarchySeeds(): Promise<Uint8Array[]> {
   ] };
   const requests: Parameters<typeof buildLollyFile>[0][] = [
     { toolId: 'design', session, userAssets: [] },
+    { toolId: 'design', session: { ...session, boxes: [session.boxes[0],
+      { ...session.boxes[0], id: 'alpha', opacity: 50, blend: 'multiply' },
+      { ...session.boxes[1], group: 'alpha' },
+    ] }, userAssets: [] },
+    { toolId: 'design', session: { ...session, boxes: [
+      { ...session.boxes[0], layoutW: 'fill', layoutH: 'hug' }, session.boxes[1],
+    ] }, userAssets: [] },
     { kind: 'project', toolId: LOLLY_PROJECT_TOOL_ID, session: null, userAssets: [], project: {
       name: 'Project', folders: [{ id: 'root', name: 'Project', parentId: null, items: [{ type: 'session', ref: 'one' }] }],
       sessions: [{ key: 'one', toolId: 'design', data: session }],

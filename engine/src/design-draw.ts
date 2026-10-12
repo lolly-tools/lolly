@@ -191,7 +191,7 @@ export type DrawFeature =
   | 'line-height' | 'tracking' | 'text-layout-estimate' | 'non-static-kind' | 'border-style' | 'bound-path' | 'frame-paint'
   | 'fit-text' | 'text-direction' | 'text-unlaid' | 'text-decoration' | 'text-unoutlined' | 'image-motion' | 'image-unsized'
   | 'text-emoji' | 'text-dictionary' | 'text-fallback-face' | 'image-oversize' | 'image-unread' | 'color-unresolved'
-  | 'pdf-shadow' | 'pdf-blur' | 'pdf-live-text' | 'pdf-image-format' | 'pdf-preview-op';
+  | 'pdf-shadow' | 'pdf-blur' | 'pdf-live-text' | 'pdf-image-format' | 'pdf-preview-op' | 'group-compositing';
 export interface DrawFinding { id: string; feature: DrawFeature }
 
 export interface DesignDrawPage {
@@ -731,6 +731,7 @@ export function compileDesignDraw(rows: readonly DesignBoxRowV1[], size: { width
   }
   for (const row of rows) {
     const kind = rowStr(row, 'kind');
+    if (kind === 'group') { page.findings.push({ id: rowStr(row, 'id'), feature: 'group-compositing' }); continue; }
     if (kind === 'frame' || hidden(row)) continue;
     // Audio and camera boxes leave no mark on the page; a bound connector is routed, not drawn as authored.
     if (design && (kind === 'audio' || kind === 'camera')) continue;

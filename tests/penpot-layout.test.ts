@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { zipSync, unzipSync, strToU8, strFromU8 } from 'fflate';
 import { buildPenpotEntries, boxesToPenpotDoc, seededPenpotUuid, PENPOT_ROOT_ID } from '../engine/src/penpot-file.ts';
 import { finalizeBoxes, penpotShapeToNode } from '../engine/src/design-map.ts';
-import { importPenpotLayouts, penpotChildrenPaintOrder } from '../engine/src/penpot-layout.ts';
+import { exportPenpotLayout, importPenpotLayouts, penpotChildrenPaintOrder } from '../engine/src/penpot-layout.ts';
 import { createDesignLayoutEvaluator } from '../engine/src/design-layout.ts';
 import { loadLayoutKernel } from '../packages/node-shell/src/layout-kernel-node.ts';
 
@@ -203,4 +203,28 @@ test('browser Penpot parser and artboard import keep dynamic owners and track id
     assert.equal(new Set(result.trackRows.map(track => track.id)).size, 2);
     for (const track of result.trackRows) assert.equal(byId.get(track.container)?.layout, 'grid');
   } finally { await browser.close(); }
+});
+
+test('native group item sizing preserves fill, intrinsic auto, limits and descendant ownership', () => {
+  const shapes: Record<string,Row>={root:{id:'root',type:'frame',parentId:PENPOT_ROOT_ID,layout:'flex',shapes:['group'],selrect:{x:0,y:0,width:400,height:200}},
+    group:{id:'group',type:'group',parentId:'root',shapes:['leaf'],layoutItemHSizing:'fill',layoutItemVSizing:'auto',layoutItemMinW:180,layoutItemMaxW:240},
+    leaf:{id:'leaf',type:'rect',parentId:'group'}};
+  const result=importPenpotLayouts([layer('r',{kind:'frame',w:400,h:200}),layer('g',{kind:'group'}),layer('l')],['root','group','leaf'],shapes,{preserveHierarchy:true});
+  assert.deepEqual(result.findings,[]); const g=result.boxes[1]!,leaf=result.boxes[2]!;
+  assert.equal(g.layoutOwner,'r'); assert.equal(g.layoutW,'fill'); assert.equal(g.layoutH,'hug'); assert.equal(g.layoutMinW,180); assert.equal(g.layoutMaxW,240);
+  assert.equal(leaf.group,'g'); assert.equal(leaf.layoutOwner,'');
+});
+
+test('native standalone and nested group intrinsic sizing retain editable item attributes without a layout container', () => {
+  const shapes: Record<string,Row>={group:{id:'group',type:'group',parentId:PENPOT_ROOT_ID,shapes:['nested'],layoutItemHSizing:'auto',layoutItemVSizing:'fix',layoutItemMaxW:80},
+    nested:{id:'nested',type:'group',parentId:'group',shapes:['leaf'],layoutItemHSizing:'auto',layoutItemVSizing:'auto'},leaf:{id:'leaf',type:'rect',parentId:'nested'}};
+  const result=importPenpotLayouts([layer('g',{kind:'group'}),layer('n',{kind:'group'}),layer('l')],['group','nested','leaf'],shapes,{preserveHierarchy:true});
+  assert.deepEqual(result.findings,[]); assert.equal(result.boxes[0]!.layoutW,'hug'); assert.equal(result.boxes[0]!.layoutH,'fixed'); assert.equal(result.boxes[0]!.layoutMaxW,80);
+  assert.equal(result.boxes[1]!.layoutW,'hug'); assert.equal(result.boxes[1]!.layoutH,'hug'); assert.equal(result.boxes[1]!.group,'g');
+});
+
+test('native group sizing export writes item sizing and limits without creating a second layout owner', () => {
+  const props=exportPenpotLayout(layer('g',{kind:'group',layoutW:'hug',layoutH:'fixed',layoutMinW:30,layoutMaxW:80}),[],[]);
+  assert.equal(props.layoutItemHSizing,'auto'); assert.equal(props.layoutItemVSizing,'fix'); assert.equal(props.layoutItemMinW,30); assert.equal(props.layoutItemMaxW,80);
+  assert.equal(props.layout,undefined); assert.equal(props.layoutGridCells,undefined);
 });

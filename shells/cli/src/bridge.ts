@@ -1099,7 +1099,7 @@ function rootSvgOf(node: Element | null): Element | null {
       if (format === 'svg' || format === 'svgz') {
         const svg = rootSvgOf(node);
         if (!svg) {
-          if (designOpsReason) throw new Error(`This Design page needs a browser engine for ${format.toUpperCase()} because ${designOpsReason}`);
+          if (designOpsReason) throw Object.assign(new Error(`This Design page needs a browser engine for ${format.toUpperCase()} because ${designOpsReason}`), { code: 'NEEDS_BROWSER' });
           throw new Error('SVG export requires the template\'s root drawable to be an <svg> (HTML-layout tools need a browser engine - use the desktop app or the web shell)');
         }
         // Honour requested dimensions (incl. physical units like "210mm"): set

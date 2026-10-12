@@ -684,3 +684,20 @@ test('grid distribution mirrors upstream stretch choices and keeps evenly availa
     f.dom.window.close();
   }
 });
+
+test('group sizing enables intrinsic hug everywhere and fill only with a dynamic owner', () => {
+  for (const owned of [false,true]) {
+    const g: Box={id:'g',kind:'group',...(owned?{layoutOwner:'grid'}:{})},f=fixture([grid,g],[]);
+    try {
+      f.render('g');
+      for(const axis of ['W','H']) {
+        const fill=f.root.querySelector<HTMLButtonElement>(`[data-layout-field="layout${axis}"][data-layout-value="fill"]`)!;
+        const hug=f.root.querySelector<HTMLButtonElement>(`[data-layout-field="layout${axis}"][data-layout-value="hug"]`)!;
+        assert.equal(fill.disabled,!owned); assert.equal(hug.disabled,false);
+        hug.click(); assert.equal(f.boxes().find(row=>row.id==='g')![`layout${axis}`],'hug');
+      }
+      assert.equal(f.root.querySelector<HTMLButtonElement>('[data-layout-field="layout"][data-layout-value="flex"]')!.disabled,true);
+      assert.ok(f.root.querySelector('[data-fld="layoutMinW"]')); assert.ok(f.root.querySelector('[data-fld="layoutMaxH"]'));
+    } finally {f.dom.window.close();}
+  }
+});

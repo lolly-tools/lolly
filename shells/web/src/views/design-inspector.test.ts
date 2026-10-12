@@ -534,6 +534,27 @@ test('a frame shows Artboard / Present / Motion - never Object or Text', () => {
   h.handle.destroy();
 });
 
+test('group appearance edits apply once to the group while descendant paint remains unchanged', () => {
+  const group = { id: 'g', kind: 'group', x: 0, y: 0, w: 100, h: 100, opacity: 100, blend: 'normal' } as Box;
+  const child = { ...BOXES[1]!, id: 'child', group: 'g', opacity: 80, blend: 'screen' } as Box;
+  const h = mount([group, child]);
+  try {
+    h.select(['g']);
+    assert.ok(secs(h).includes('appearance'));
+    assert.equal(h.el.querySelector('[data-fld="radius"]'), null);
+    assert.equal(h.el.querySelector('[data-fld="shape"]'), null);
+    assert.equal(h.el.querySelector('[data-fld="bg"]'), null);
+    typeNum(h, 'opacity', '50');
+    const blend = h.el.querySelector<HTMLSelectElement>('[data-fld="blend"]')!;
+    blend.value = 'multiply'; fire(blend, 'change');
+    assert.deepEqual(h.commits.map(commit => [commit.ids, commit.field, commit.value]), [
+      [['g'], 'opacity', 50], [['g'], 'blend', 'multiply'],
+    ]);
+    assert.deepEqual(h.boxes()[1], child);
+    assert.equal(h.noHistory, 0);
+  } finally { h.handle.destroy(); }
+});
+
 test('a plain box shows Object and its paint groups, then Motion + Present; no Text and no Image', () => {
   const h = mount();
   h.select(['b1']);

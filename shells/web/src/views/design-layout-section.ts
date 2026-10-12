@@ -146,9 +146,9 @@ function sizingRows(rows: Box[], model: ModelPort): string {
       value: 'fill',
       label: `Fill ${label}`,
       icon: 'fill-content',
-      disabled: rows.some((row) => row.kind === 'group' || !dynamicOwner(row, model)),
+      disabled: rows.some((row) => !dynamicOwner(row, model)),
     },
-    { value: 'hug', label: `Hug ${label}`, icon: 'hug-content', disabled: rows.some(row => row.kind === 'group') },
+    { value: 'hug', label: `Hug ${label}`, icon: 'hug-content' },
   ];
   return `<div class="dl-sizing"><div class="dl-labeled-row"><span>Width</span>${segments(rows, 'layoutW', 'Width sizing', choices('width'), 'fixed')}</div><div class="dl-labeled-row"><span>Height</span>${segments(rows, 'layoutH', 'Height sizing', choices('height'), 'fixed', true)}</div></div>`;
 }
@@ -256,7 +256,7 @@ function advancedRows(b: Box, model: ModelPort, c: Controls, ids: string[]): str
       b[field] || fallback,
       values.map((value) => ({ value, label: value.replace('space-', '') }))
     );
-  if (dynamicOwner(b, model) || b.layout === 'flex' || b.layout === 'grid')
+  if (dynamicOwner(b, model) || b.kind === 'group' || b.layout === 'flex' || b.layout === 'grid')
     for (const axis of ['W', 'H'])
       html +=
         num(`Min ${axis === 'W' ? 'width' : 'height'}`, `layoutMin${axis}`) +
@@ -299,13 +299,13 @@ export function layoutSectionRows(
     'Layout',
     [
       { value: 'none', label: 'None' },
-      { value: 'flex', label: 'Flex' },
-      { value: 'grid', label: 'Grid' },
+      { value: 'flex', label: 'Flex', disabled: rows.some(row => row.kind === 'group') },
+      { value: 'grid', label: 'Grid', disabled: rows.some(row => row.kind === 'group') },
     ],
     'none'
   );
   if (b.layout === 'flex' || b.layout === 'grid') html += containerRows(b, model, ids, rows);
-  if (dynamicOwner(b, model) || b.layout === 'flex' || b.layout === 'grid')
+  if (dynamicOwner(b, model) || b.kind === 'group' || b.layout === 'flex' || b.layout === 'grid')
     html += sizingRows(rows, model);
   if (dynamicOwner(b, model)) html += itemRows(b, model, ids, rows);
   html += `<details class="dl-advanced" data-layout-advanced${state.advanced ? ' open' : ''}><summary>Advanced</summary>${advancedRows(b, model, c, ids)}</details>`;

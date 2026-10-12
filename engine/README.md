@@ -233,16 +233,16 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `design-draw-pptx.ts` | 275 | The native deck's primitive, linear-gradient and single-path reading, distinct from Design's CSS geometry. | no | `tests/design-draw-pptx.test.ts` | – |
 | `design-draw-raster.ts` | 113 | Internal P3f admission. | no | `tests/design-draw-raster.test.ts` | – |
 | `design-draw-svg.ts` | 411 | Drawing operations written as SVG (plan 295, phase 3, P3a). | no | indirect | – |
-| `design-draw.ts` | 875 | Authored Design rows compiled into drawing operations (plan 295, phase 3, P3a). | no | `tests/design-draw.test.ts` | – |
+| `design-draw.ts` | 876 | Authored Design rows compiled into drawing operations (plan 295, phase 3, P3a). | no | `tests/design-draw.test.ts` | – |
 | `design-hierarchy.ts` | 256 | Document ownership is independent of geometry and the active editor canvas. | yes | `tests/design-hierarchy.test.ts` | – |
 | `design-house-rules.ts` | 493 | House rules for a Design document (plan 291 W1 and W3): brand rule records whose kind is one of `DESIGN_HOUSE_RULE_KINDS`, checked layer by layer against the boxes a Design document stores. | yes | `tests/design-house-rules.test.ts` | – |
 | `design-idml.ts` | 147 | Deterministic IDML for static Design text, rectangular/oval frames and still images. | no | indirect | – |
 | `design-layer-ops.ts` | 337 | Design layer edits by stable id (plans/289 D1): `layerOperations` (add, duplicate, remove, reparent, reorder) and `layerPatches` (set fields on one layer). | no | `tests/design-layer-ops.test.ts` | – |
 | `design-layout-resources.ts` | 80 | Font role names for layout measurement, matching the canvas's brand font variables. | yes | `tests/design-layout-resources.test.ts` | – |
-| `design-layout.ts` | 893 | Design's layout adapter. | yes | `tests/design-layout.test.ts` | – |
+| `design-layout.ts` | 977 | Design's layout adapter. | yes | `tests/design-layout.test.ts` | – |
 | `design-lottie.ts` | 105 | Authored Design values into the shared sequence compiler, identical on every host. | no | `tests/design-lottie.test.ts` | – |
-| `design-map.ts` | 2172 | Design-file → Design boxes (pure mapper). | yes | `tests/design-map.test.ts` | – |
-| `design-page-svg.ts` | 224 | A Design page exported as SVG from drawing operations (plan 295, phase 3, P3d). | no | `tests/design-page-svg.test.ts` | – |
+| `design-map.ts` | 2174 | Design-file → Design boxes (pure mapper). | yes | `tests/design-map.test.ts` | – |
+| `design-page-svg.ts` | 228 | A Design page exported as SVG from drawing operations (plan 295, phase 3, P3d). | no | `tests/design-page-svg.test.ts` | – |
 | `design-path-author.ts` | 256 | Absolute path geometry to a stored Design path row (plan 291 W5). | yes | `tests/design-path-author.test.ts` | – |
 | `design-premiere.ts` | 62 | Authored media clips into a Premiere XML package with original media bytes. | no | indirect | – |
 | `design-scene.ts` | 149 | The Design scene grammar - what a `kind:'3d'` box's `scene` field holds, and the only place that grammar lives (plan 265 milestone 3, decision Q17). | yes | indirect | – |
@@ -395,7 +395,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `pdf-text.ts` | 1260 | PDF text reconstruction: positioned glyph runs to reading-ordered prose. | yes | `tests/pdf-text.test.ts` | – |
 | `pdfx.ts` | 288 | PDF/X-4 metadata authority: pure strings + small descriptor objects, no PDF byte-wrangling. | yes | `tests/pdfx.test.ts` | – |
 | `penpot-bindings.ts` | 216 | Applied-token bindings for the `.penpot` writer (plans/222). | yes | indirect | – |
-| `penpot-file.ts` | 2305 | `.penpot` writer - a Lolly document (plus the brand's tokens) → the binfile-v3 archive Penpot itself exports and imports (plans/178). | yes | `tests/penpot-file.test.ts` | – |
+| `penpot-file.ts` | 2306 | `.penpot` writer - a Lolly document (plus the brand's tokens) → the binfile-v3 archive Penpot itself exports and imports (plans/178). | yes | `tests/penpot-file.test.ts` | – |
 | `penpot-layout.ts` | 188 | Current binfile-v3 layout properties. | yes | `tests/penpot-layout.test.ts` | yes |
 | `photo-look.ts` | 452 | Brand photo looks baked into raster pixels (plan 291 W7). | yes | `tests/photo-look.test.ts` | – |
 | `photo-treatment.ts` | 277 |  | yes | indirect | – |

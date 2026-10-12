@@ -48,7 +48,8 @@ const safeJson = (value: unknown): string =>
 function sourceHasLayout(source: Box[]): boolean {
   const found = activeSources.get(source);
   if (found !== undefined) return found;
-  const active = hasDesignLayout(source);
+  const active = hasDesignLayout(source) || source.some(row =>
+    row.kind === 'group' && (row.layoutW === 'hug' || row.layoutH === 'hug'));
   activeSources.set(source, active);
   return active;
 }
@@ -290,8 +291,8 @@ function applyFlowMoves(fc: FcCtx, state: SourceEditState): void {
   }
 }
 
-export function sourceEdit(fc: FcCtx, source: Box[], proposed: Box[]): Box[] {
-  if (fc.blockId !== 'boxes' || (!sourceHasLayout(source) && !hasDesignLayout(proposed)))
+export function sourceEdit(fc: FcCtx, source: Box[], proposed: Box[], groupSizeAxes?: ReadonlyMap<string, ReadonlySet<'W' | 'H'>>): Box[] {
+  if (fc.blockId !== 'boxes' || (!sourceHasLayout(source) && !sourceHasLayout(proposed)))
     return proposed;
   const evaluated = project(fc, source),
     originals = new Map(source.map((r) => [key(r), r])),
@@ -304,7 +305,7 @@ export function sourceEdit(fc: FcCtx, source: Box[], proposed: Box[]): Box[] {
   )
     throw new Error(placementWait());
   const requested = new Map(proposed.map((r) => [key(r), r]));
-  const next = designLayoutSourceEdit(source, evaluated, proposed) as Box[];
+  const next = designLayoutSourceEdit(source, evaluated, proposed, { groupSizeAxes }) as Box[];
   const byId = new Map(next.map((r) => [key(r), r]));
   const disabled = new Set(
     source

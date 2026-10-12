@@ -133,12 +133,13 @@ export const withIds = (fc: FcCtx, boxes: Box[]): Box[] => { const { cfg, hasIdF
 export function commit(fc: FcCtx, nextBoxes: Box[], patch: Record<string, unknown> = {}, label = 'Edit layout'): void {
   const { blockId, onDirty, runtime } = fc;
   if (fc.opts?.canEdit?.() === false) return;
+  const groupSizeAxes = fc.hierarchy?.groupSizeAxes?.(nextBoxes);
   if (fc.frameCfg && fc.timeCfg) nextBoxes = retimeSceneMembers(getBoxes(fc), nextBoxes, { ...frameFields(fc), startField: fc.timeCfg.startField });
   try {
   nextBoxes = fc.hierarchy?.prepareCommit(nextBoxes, Array.isArray(patch.pages) ? patch.pages as import('@lolly/engine').DesignPage[] : undefined) || nextBoxes;
     if (fc.cv.textDocumentInput) nextBoxes = resizeDesignTextFrames(getBoxes(fc), nextBoxes);
     const source = runtime.getModel().find(i => i.id === blockId)?.value;
-    if (fc.layout && Array.isArray(source)) nextBoxes = fc.layout.sourceEdit(source, nextBoxes);
+    if (fc.layout && Array.isArray(source)) nextBoxes = fc.layout.sourceEdit(source, nextBoxes, groupSizeAxes);
     patch = { ...fc.layout?.trackPatch(nextBoxes), ...patch };
     if (fc.storyFlow?.reconcile(nextBoxes, patch, label)) return;
     const next = withIds(fc, nextBoxes);

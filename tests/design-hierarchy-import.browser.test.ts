@@ -33,7 +33,34 @@ test('Design document import retains all named pages, artboards and nested group
   } finally { await closeBrowser(); }
 });
 
-test('a composited vector group imports once with collective opacity and an explicit flattening notice', {skip:origin?false:'Set LOLLY_IMPORT_TEST_URL to a local Vite shell.',timeout:90000}, async () => {
+test('an unsupported opaque masked group keeps the vector-image fallback and collective opacity', {skip:origin?false:'Set LOLLY_IMPORT_TEST_URL to a local Vite shell.',timeout:90000}, async () => {
+  const built=buildPenpotEntries({name:'Masked document',pages:[{name:'Masked',shapes:[{type:'board',x:0,y:0,w:200,h:100,children:[
+    {type:'group',name:'Masked group',x:0,y:0,w:150,h:100,masked:true,opacity:.5,children:[
+      {type:'rect',name:'Mask',x:0,y:0,w:100,h:100,fills:[{color:'#000000'}]},
+      {type:'rect',name:'Red',x:0,y:0,w:100,h:100,fills:[{color:'#ff0000'}]},
+      {type:'rect',name:'Blue',x:50,y:0,w:100,h:100,fills:[{color:'#0000ff'}]},
+    ]},
+  ]}]}]},{uuid:seededPenpotUuid(3061)});
+  const zipped=zipSync(Object.fromEntries(Object.entries(built.entries).map(([path,value])=>[path,typeof value==='string'?strToU8(value):value]))),browser=await getBrowser();
+  try {
+    const page=await browser.newPage(); await page.goto(origin!,{waitUntil:'domcontentloaded'});
+    const result=await page.evaluate(async bytes=>{
+      const path='/src/views/design-import.ts',bridgePath='/src/bridge/index.ts';
+      const {parseDesignFile}=await import(path),{createBridge}=await import(bridgePath),host=await createBridge(),warnings:string[]=[];
+      const imported=await parseDesignFile(new File([new Uint8Array(bytes)],'masked.penpot'),{host,preserveHierarchy:true,log:(message:string)=>warnings.push(message)});
+      const image=imported.boxes.find((row:{kind:string})=>row.kind==='image');
+      return {boxes:imported.boxes,warnings,svg:image?.image?.url?await(await fetch(image.image.url)).text():''};
+    },[...zipped]);
+    const image=result.boxes.filter((row:{kind:string})=>row.kind==='image');
+    assert.equal(image.length,1);assert.equal(image[0].opacity,50);
+    assert.ok(!result.boxes.some((row:{kind:string})=>row.kind==='group'));
+    assert.match(result.svg,/<clipPath/);assert.ok(!result.svg.includes('opacity="0.5"'));
+    assert.ok(result.warnings.some((message:string)=>/one vector image/.test(message)));
+    await page.close();
+  } finally {await closeBrowser();}
+});
+
+test('a composited vector group retains editable children and collective opacity', {skip:origin?false:'Set LOLLY_IMPORT_TEST_URL to a local Vite shell.',timeout:90000}, async () => {
   const rows=[box('composite',{kind:'group',opacity:50,pageId:'p1',x:0,y:0,w:150,h:100}),box('red',{group:'composite',pageId:'p1',x:0,y:0,w:100,h:100,bg:'#ff0000'}),box('blue',{group:'composite',pageId:'p1',x:50,y:0,w:100,h:100,bg:'#0000ff'})];
   const built=buildPenpotEntries(boxesToPenpotDoc(rows,{name:'Collective opacity',canvas:{w:200,h:100},pages:[{id:'p1',name:'Artwork'}]}),{uuid:seededPenpotUuid(306)});
   const zipped=zipSync(Object.fromEntries(Object.entries(built.entries).map(([path,value])=>[path,typeof value==='string'?strToU8(value):value]))),browser=await getBrowser();
@@ -47,10 +74,11 @@ test('a composited vector group imports once with collective opacity and an expl
       const svg=image?.image?.url ? await (await fetch(image.image.url)).text() : '';
       return {boxes:imported.boxes,svg,warnings};
     },[...zipped]);
-    const images=result.boxes.filter((row:{kind:string})=>row.kind==='image'); assert.equal(images.length,1);
-    assert.equal(images[0].opacity,50); assert.ok(!result.boxes.some((row:{kind:string})=>row.kind==='group'));
-    assert.equal((result.svg.match(/<rect /g)||[]).length,2); assert.ok(!result.svg.includes('opacity="0.5"'));
-    assert.ok(result.warnings.some((message:string)=>/one vector image/.test(message)));
+    const groups=result.boxes.filter((row:{kind:string})=>row.kind==='group'); assert.equal(groups.length,1);
+    assert.equal(groups[0].opacity,50); assert.equal(result.boxes.filter((row:{kind:string})=>row.kind==='image').length,0);
+    const children=result.boxes.filter((row:{group?:string})=>row.group===groups[0].id);
+    assert.equal(children.length,2); assert.ok(children.every((row:{opacity:number})=>row.opacity===100));
+    assert.ok(!result.warnings.some((message:string)=>/one vector image/.test(message)));
     await page.close();
   } finally {await closeBrowser();}
 });

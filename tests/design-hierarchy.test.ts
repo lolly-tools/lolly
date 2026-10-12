@@ -119,8 +119,14 @@ test('detached full render gives overlapping loose pages independent export surf
   assert.equal(source[0]!.frame,undefined);
 });
 
-test('collective group opacity refuses leaf alpha approximation', () => {
-  assert.throws(() => compute(model([box('g',{kind:'group',pageId:'p1',opacity:50}),box('a',{group:'g'}),box('b',{group:'g'})])), /composited image/);
+test('collective group opacity wraps unchanged leaf alpha once', () => {
+  const source = [box('g',{kind:'group',pageId:'p1',opacity:50}),box('a',{group:'g',opacity:80}),box('b',{group:'g'})];
+  const out = compute(model(source));
+  assert.match(out.frameGroups[0].children[0].groupBefore, /data-design-group="g"[^>]*opacity:0\.5/);
+  assert.match(out.boxStyle[1], /opacity:0\.8/);
+  assert.ok(!out.boxStyle[2].includes('opacity:'));
+  assert.equal(source[1]!.opacity,80);
+  assert.equal(out.frameGroups[0].children.at(-1).groupAfter,'</div>');
 });
 test('legacy tags across artboards remain readable and report conversion issues without changing clipping', () => {
   const source=[box('f1',{kind:'frame'}),box('f2',{kind:'frame'}),box('a',{group:'old-tag',frame:'f1'}),box('b',{group:'old-tag',frame:'f2'})];
@@ -174,4 +180,15 @@ test('interleaved legacy tags keep original independent paint order and report a
   assert.match(migrated.findings[0]!.message,/interleaves/);
   const painted=compute([{id:'boxes',value:migrated.boxes}]);
   assert.deepEqual(painted.renderBoxes.map((row:{id:string})=>row.id),['a','between','b']);
+});
+
+test('filtered group refit visits one ancestor and preserves unrelated managed group geometry', () => {
+  const source=[box('small',{kind:'group'}),box('leaf',{group:'small',x:30,y:40,w:50,h:60}),
+    box('managed',{kind:'group',layoutW:'hug'}),box('far-left',{group:'managed',x:-5e6,w:5e6}),box('far-right',{group:'managed',x:5e6,w:5e6})];
+  const before=structuredClone(source);
+  const fitted=refreshDesignGroupBounds(source,undefined,new Set(['small']));
+  assert.deepEqual(['x','y','w','h'].map(field=>fitted[0]![field]),[30,40,50,60]);
+  assert.equal(fitted[2],source[2]); assert.deepEqual(source,before);
+  assert.equal(refreshDesignGroupBounds(source,undefined,new Set()),source);
+  assert.throws(()=>refreshDesignGroupBounds(source),/geometry limit/);
 });

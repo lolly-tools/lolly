@@ -74,7 +74,7 @@ export interface LollyFileContents {
 
 /** The format tag and reader gate, kept identical to lolly-pack.ts's constants. */
 const LOLLY_FILE_FORMAT = 'lolly-share';
-const LOLLY_READER_VERSION = 7;
+const LOLLY_READER_VERSION = 8;
 /** The gate a file carrying a renovation project asks for. The session reader above
  *  stays at 2 and refuses a renovation by name; `readRenovationLollyFile` is the one
  *  that understands the part, so it is the one that admits to reader 4. */
