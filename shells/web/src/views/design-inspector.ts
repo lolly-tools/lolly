@@ -428,7 +428,7 @@ const WATCHED: Record<InspectorSection, (c: Cfg, m: FlagFields) => Array<string 
   // `build` and `lane` have no cfg key of their own (the manifest names them literally,
   // as `notes` and `cls` are named), and the Appears control is derived from all four of
   // build/start/dur/lane - so a build step written anywhere else has to move this memo.
-  motion: (c) => [c.startField, c.durField, c.enterField, c.exitField, c.enterMsField, c.exitMsField, c.holdField, c.splitField, c.kfField, 'enterEase', 'exitEase', 'build', 'lane'],
+  motion: (c) => [c.startField, c.durField, c.enterField, c.exitField, c.enterMsField, c.exitMsField, c.holdField, c.splitField, c.kfField, c.enterEaseField ?? 'enterEase', 'exitEase', 'build', 'lane'],
   // `notes` is here rather than in Artboard: the Present section is where a slide's
   // speaker notes are edited (plans/180), and the narration status is read off them.
   present: () => ['build', 'presentAudio', 'matchOf', 'state', 'stackOf', 'notes'],
@@ -2068,7 +2068,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       if (!parent || parent.hasAttribute('data-deferred')) continue;
       const slot = document.createElement('div'); slot.dataset.tokenSection = sec; parent.append(slot);
       if (!tokenUiState.has(sec)) tokenUiState.set(sec, {});
-      tokenDisposers.push(mountDesignTokenBindings(slot, { ...opts.tokens, model, ids: [...g.ids], fields: fieldDefs as BlockFieldSpec[], fieldIds: WATCHED[sec](cfg, m4), state: tokenUiState.get(sec), onSettled: settle }));
+      tokenDisposers.push(mountDesignTokenBindings(slot, { ...opts.tokens, model, ids: [...g.ids], fields: fieldDefs as BlockFieldSpec[], fieldIds: WATCHED[sec](cfg, m4), state: tokenUiState.get(sec), onSettled: settle, isCurrent: () => !destroyed && open && JSON.stringify(gate().ids) === JSON.stringify(g.ids) }));
     }
     if (g.secs.includes('document')) scheduleMountedAudit();
     // Put the user back on the control they were operating. `preventScroll` because a
@@ -2476,11 +2476,10 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
 
   function sync(force = false): void {
     if (destroyed) return;
-    // A CLOSED column paints nothing. The three subscriptions stay live - they are how
-    // it knows what to paint when it opens - but a rebuild behind `hidden` costs a full
-    // innerHTML plus a re-mount of the real colour picker (which reads computed styles)
-    // for something nobody can see. Dropping the memo makes the next open paint fresh.
-    if (!open) { lastSig = null; pendingRebuild = false; disarmSettle(); return; }
+    // Closing cancels token actions and resets the memo. Disposal invalidates a
+    // pending lookup even if this column reopens. Subscriptions stay live so
+    // reopening paints the current selection.
+    if (!open) { tokenDisposers.forEach(dispose => { dispose(); }); tokenDisposers = []; lastSig = null; pendingRebuild = false; disarmSettle(); return; }
     const g = gate();
     const sig = signature(g);
     if (!force && sig === lastSig) return;
@@ -2559,6 +2558,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     if (open === b) return;
     open = b;
     paintOpen();
+    if (!open) sync();
     opts.onOpenChange?.(open);
     if (open) sync(true);
   }
