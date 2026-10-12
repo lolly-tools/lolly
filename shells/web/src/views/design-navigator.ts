@@ -61,9 +61,15 @@ import { mergeLayerOrder, mountLayerGroups } from './design-layer-groups.ts';
 import type { Box, BoxFieldConfig } from './free-canvas-math.ts';
 import { framesAreSequenced, num, renumberFrameOrder } from './free-canvas-math.ts';
 import { thumbnailWork } from './design-thumbnail-work.ts';
+import { mountDesignPages, moveArtboardToPage } from './design-pages.ts';
+import { designHierarchyIndex, designHierarchyPageBoxes } from '../../../../engine/src/design-hierarchy.ts';
+import { openDesignLayerMenu } from './design-layer-menu.ts';
+import { navigatorWindow } from './design-navigator-window.ts';
+import { reorderHierarchyChildren } from './design-layer-order.ts';
+import type { BodyPopoverHandle } from '../components/body-popover.ts';
 import type {
   ArtboardPort, FramePort, FrameThumb, ModelPort, NarrationActions, NarrationStatus,
-  NavigatorActions, SelectionPort,
+  NavigatorActions, SelectionPort, DesignPagePort,
 } from './design-ports.ts';
 import type { IconName } from '../lib/icons.ts';
 import { icon } from '../lib/icons.ts';
@@ -164,6 +170,7 @@ export interface DesignNavigatorOpts {
   artboard: ArtboardPort;
   thumb: FrameThumb;
   actions: NavigatorActions;
+  pages?: DesignPagePort;
   /**
    * Notes to voice (plans/180 section 8). Absent - a host with no speech bridge - and the
    * row's dot falls back to what it has always said: this slide has speaker notes.
@@ -224,6 +231,7 @@ function kindWord(kind: string): string {
     case 'path': return t('Path');
     case 'line': return t('Line');
     case 'box': return t('Box');
+    case 'group': return t('Group');
     case 'camera': return t('Scene camera');
     case 'webcam': return t('Camera');
     case 'table': return t('Table');
@@ -244,6 +252,7 @@ function kindIcon(kind: string): IconName {
     case 'path': return 'penTool';
     case 'line': return 'pen';
     case 'box': return 'box';
+    case 'group': return 'folder';
     case 'camera': return 'camera';
     case 'webcam': return 'camera';
     case 'table': return 'table';
@@ -337,6 +346,11 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
   const skin = opts.skin === 'strip' ? 'strip' : 'column';
   const cfg = model.cfg as NavCfg;
   const frameCfg = model.frame as NavFrameCfg | null;
+  function visibleBoxes(): Box[] {
+    if (!opts.pages) return model.getBoxes();
+    const boxes = opts.pages.getBoxes(), pages = opts.pages.get();
+    return designHierarchyPageBoxes(designHierarchyIndex(boxes, pages), opts.pages.active()) as Box[];
+  }
 
   // Field names, resolved once. Everything below reads through F, never a literal.
   const F = {
@@ -368,6 +382,7 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
   let activeSig = '\u0000';      // memo for the cheap is-active repaint
   let dragSuppressClick = false;
   let destroyed = false;
+  let layerMenu: BodyPopoverHandle | null = null;
 
   /**
    * Where the focus must land after the rebuild one of OUR writes triggers, armed for
@@ -419,15 +434,29 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
   // can read as selected, or a screen reader is told a single-select list is lying.
   listEl.setAttribute('aria-multiselectable', 'true');
   listEl.setAttribute('data-nav-list', 'frames');
+  const frameRows = new Map<string, { signature: string; node: HTMLElement }>();
+  const frameWindow = navigatorWindow(listEl, (value: { box: Box; index: number; signature: string }) => {
+    const id = fieldStr(value.box, F.id), cached = frameRows.get(id);
+    if (cached?.signature === value.signature) return cached.node;
+    const node = buildFrameRow(value.box, value.index, value.signature); frameRows.set(id, { signature: value.signature, node });
+    if (frameRows.size > 256) {
+      const oldest = [...frameRows].find(([key, row]) => key !== id && !row.node.isConnected)?.[0];
+      if (oldest) frameRows.delete(oldest);
+    }
+    return node;
+  }, { height: 44, limit: skin === 'strip' ? Number.MAX_SAFE_INTEGER : 120 });
   const emptyEl = make('p', 'fc-nav-empty', t('No artboards yet.'));
   emptyEl.hidden = true;
+  const addArtboardBtn = make('button', 'btn btn--sm fc-nav-add-artboard', t('Add artboard'));
+  addArtboardBtn.type = 'button'; addArtboardBtn.dataset.addPageArtboard = '';
+  addArtboardBtn.onclick = () => { if (opts.pages?.canEdit?.() !== false) actions.addArtboardAfter(''); };
   // A document with boxes and no artboards (plans/184 R15): one press draws an artboard
   // around everything, and each loose layer's row carries the same verb for itself.
   const makeAllBtn = make('button', 'btn btn--sm fc-nav-make-all', t('Make an artboard around everything'));
   makeAllBtn.type = 'button';
   makeAllBtn.hidden = true;
   makeAllBtn.addEventListener('click', () => {
-    const ids = looseOf(model.getBoxes()).map((b) => fieldStr(b, F.id)).filter(Boolean);
+    const ids = looseOf(visibleBoxes()).map((b) => fieldStr(b, F.id)).filter(Boolean);
     if (ids.length) actions.makeArtboard?.(ids);
   });
   const layersEl = make('section', 'fc-nav-layers');
@@ -467,10 +496,11 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
 
   head.append(titleEl, toggleBtn);
   layersEl.append(layersHead, layersList);
-  bodyEl.append(listEl, emptyEl, makeAllBtn);
+  bodyEl.append(listEl, emptyEl, addArtboardBtn, makeAllBtn);
   if (skin === 'column') bodyEl.append(layersEl);
   else layersEl.hidden = true;
-  const layerGroups = skin === 'column' ? mountLayerGroups({host:bodyEl,pages:listEl,section:layersEl,list:layersList,heading:layersHead,id:b=>fieldStr(b,F.id),name:(b,i)=>frameName(b,i),children:b=>childrenOf(model.getBoxes(),fieldStr(b,F.id)),row:buildLayerRow,jump:selectFrame,group:b=>fieldStr(b,cfg.groupField||'group'),select:ids=>selection.set(ids)}) : null;
+  const layerGroups = skin === 'column' ? mountLayerGroups({host:bodyEl,pages:listEl,section:layersEl,list:layersList,heading:layersHead,id:b=>fieldStr(b,F.id),name:(b,i)=>frameName(b,i),children:b=>childrenOf(visibleBoxes(),fieldStr(b,F.id)),row:buildLayerRow,jump:selectFrame,group:b=>fieldStr(b,cfg.groupField||'group'),select:ids=>selection.set(ids)}) : null;
+  const documentPages = skin === 'column' && opts.pages ? mountDesignPages(bodyEl, opts.pages) : null;
   el.append(head);
   if (skin === 'column') el.append(railSlot);
   el.append(bodyEl);
@@ -478,6 +508,9 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
 
   // ── model reads ─────────────────────────────────────────────────────────────
   const isFrame = (b: Box | undefined): boolean => !!b && fieldStr(b, F.kind) === F.frameKind;
+  let childrenRevision: Box[] | null = null;
+  let frameChildren = new Map<string, Box[]>();
+  let childFrame = new Map<string, string>();
 
   /** Frames in PAGE order: order asc, x asc - the tie-break the tool's hook uses. */
   function framesOf(boxes: Box[]): Box[] {
@@ -517,7 +550,23 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
   /** The children of a frame, in ARRAY order (first paints first / sits at the back). */
   function childrenOf(boxes: Box[], frameId: string): Box[] {
     if (!frameId) return [];
-    return boxes.filter((b) => !!b && !isFrame(b) && fieldStr(b, F.frame) === frameId);
+    if (childrenRevision !== boxes) {
+      childrenRevision = boxes; frameChildren = new Map(); childFrame = new Map();
+      const hierarchy = boxes.some(box => box?.[F.kind] === 'group') ? designHierarchyIndex(boxes) : null;
+      for (const box of boxes) {
+        if (!box || isFrame(box)) continue;
+        let owner = fieldStr(box, F.frame);
+        if (hierarchy) {
+          owner = hierarchy.parent.get(fieldStr(box, F.id)) || '';
+          const seen = new Set<string>();
+          while (owner && !isFrame(hierarchy.byId.get(owner) as Box) && !seen.has(owner)) { seen.add(owner); owner = hierarchy.parent.get(owner) || ''; }
+        }
+        if (!owner) continue;
+        childFrame.set(fieldStr(box, F.id), owner);
+        const children = frameChildren.get(owner) ?? []; children.push(box); frameChildren.set(owner, children);
+      }
+    }
+    return frameChildren.get(frameId) ?? [];
   }
 
   /** Every box that is not a frame - the layers of a document that has no artboards. */
@@ -561,6 +610,7 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
    */
   function pageHashes(boxes: Box[]): Map<string, number> {
     const out = new Map<string, number>();
+    childrenOf(boxes, fieldStr(boxes.find(isFrame), F.id));
     for (const b of boxes) {
       if (!b) continue;
       if (isFrame(b)) {
@@ -568,7 +618,7 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
         if (id) out.set(id, hashBox(out.get(id) ?? 5381, b));
         continue;
       }
-      const fid = fieldStr(b, F.frame);
+      const fid = childFrame.get(fieldStr(b, F.id)) || fieldStr(b, F.frame);
       if (fid) out.set(fid, hashBox(out.get(fid) ?? 5381, b));
     }
     return out;
@@ -588,6 +638,7 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
       String(b[F.hidden] ?? ''), String(b[F.locked] ?? ''), String(b[F.trans] ?? ''), String(i),
       // …and the page's own content, which is what the THUMBNAIL is a picture of.
       String(page),
+      String(model.getInput('transition') ?? ''), String(model.getInput('autoAdvance') ?? ''),
     ].join(':');
   }
 
@@ -616,7 +667,7 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
   }
 
   function moveFrame(id: string, delta: number): void {
-    const boxes = model.getBoxes();
+    const boxes = visibleBoxes();
     const ids = framesOf(boxes).map((b) => fieldStr(b, F.id));
     const next = moveInSeq(ids, id, delta);
     if (next.join('|') === ids.join('|')) return;
@@ -688,7 +739,7 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
    */
   function previewTransition(id: string): void {
     if (previewing) return;
-    const frames = framesOf(model.getBoxes());
+    const frames = framesOf(visibleBoxes());
     const at = frames.findIndex((b) => fieldStr(b, F.id) === id);
     const here = at >= 0 ? frames[at] : undefined;
     const next = at >= 0 ? frames[at + 1] : undefined;
@@ -751,6 +802,7 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
   }
 
   function focusFrameControl({ id, area }: FrameControl, scroll = true): void {
+    if (area === 'pages') frameWindow.reveal(framesOf(visibleBoxes()).findIndex(box => fieldStr(box, F.id) === id), false);
     const escaped = cssId(id);
     const selector = area === 'pages' ? `.fc-nav-row[data-id="${escaped}"]`
       : area === 'parents' ? `[data-jump-artboard="${escaped}"]`
@@ -763,7 +815,7 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
 
   /** Keep keyboard focus in the navigator while the stage frames the destination. */
   function navigateFrame(from: FrameControl, delta: number): void {
-    const ids = framesOf(model.getBoxes()).map(b => fieldStr(b, F.id));
+    const ids = framesOf(visibleBoxes()).map(b => fieldStr(b, F.id));
     const index = ids.indexOf(from.id);
     if (index < 0) return;
     const id = ids[Math.max(0, Math.min(ids.length - 1, index + delta))];
@@ -870,7 +922,7 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
 
   function openRowMenu(id: string, row: HTMLElement, index: number): void {
     closeMenu();
-    const boxes = model.getBoxes();
+    const boxes = visibleBoxes();
     const frames = framesOf(boxes);
     const ids = frames.map((b) => fieldStr(b, F.id));
     const at = ids.indexOf(id);
@@ -917,6 +969,13 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
     });
     item(t('Move up'), 'chevronDown', true, at <= 0, () => moveFrame(id, -1));
     item(t('Move down'), 'chevronDown', false, at < 0 || at >= ids.length - 1, () => moveFrame(id, 1));
+    if (opts.pages) for (const page of opts.pages.get()) {
+      if (page.id === opts.pages.active()) continue;
+      item(tRaw('Move to {name}', { name: page.name }), null, false, opts.pages.canEdit?.() === false, () => {
+        const pages = opts.pages!.get();
+        opts.pages!.commit(pages, moveArtboardToPage(opts.pages!.getBoxes(), id, page.id, pages), tRaw('Move artboard to page'));
+      });
+    }
     menu.addEventListener('keydown', (ev: KeyboardEvent) => {
       const items = [...menu.querySelectorAll<HTMLButtonElement>('.fc-nav-menu-item:not([disabled])')];
       const here = items.indexOf(document.activeElement as HTMLButtonElement);
@@ -940,17 +999,17 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
 
   // ── rename ──────────────────────────────────────────────────────────────────
   function startRename(id: string, row: HTMLElement, index: number): void {
-    if (renamingId) return;
+    if (renamingId || opts.pages?.canEdit?.() === false) return;
     const nameEl = row.querySelector<HTMLElement>('[data-nav-name]');
     if (!nameEl) return;
     renamingId = id;
-    const boxes = model.getBoxes();
+    const boxes = visibleBoxes();
     const b = boxes.find((x) => fieldStr(x, F.id) === id);
     const input = make('input', 'fc-nav-name-input');
     input.type = 'text';
     input.value = b ? String(b[F.label] ?? '') : '';
-    input.placeholder = `${tRaw('Artboard')} ${index + 1}`;
-    input.setAttribute('aria-label', isDeck(boxes, framesOf(boxes)) ? tRaw('Rename slide') : tRaw('Rename artboard'));
+    input.placeholder = b && !isFrame(b) ? kindWord(fieldStr(b, F.kind)) : `${tRaw('Artboard')} ${index + 1}`;
+    input.setAttribute('aria-label', b && !isFrame(b) ? tRaw('Rename layer') : isDeck(boxes, framesOf(boxes)) ? tRaw('Rename slide') : tRaw('Rename artboard'));
     input.setAttribute('data-nav-name-input', '');
     let done = false;
     const finish = (commit: boolean): void => {
@@ -961,7 +1020,7 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
       input.replaceWith(nameEl);
       if (commit && b && value !== String(b[F.label] ?? '')) renameFrame(id, value);
       else render();
-      const back = listEl.querySelector<HTMLElement>(`[data-nav-row][data-id="${cssId(id)}"]`);
+      const back = el.querySelector<HTMLElement>(`[data-nav-row][data-id="${cssId(id)}"]`);
       back?.focus();
     };
     input.addEventListener('keydown', (ev: KeyboardEvent) => {
@@ -1075,7 +1134,12 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
    * verb, so a host that has not wired it makes every layer reorder a silent no-op.
    */
   function commitLayerOrder(displayIds: string[]): boolean {
-    const first = model.getBoxes().find(b => fieldStr(b,F.id) === displayIds[0]);
+    const boxes = model.getBoxes(), first = boxes.find(b => fieldStr(b,F.id) === displayIds[0]);
+    const hierarchy = designHierarchyIndex(boxes, opts.pages?.get());
+    if (first && (hierarchy.byId.get(fieldStr(first, cfg.groupField || 'group'))?.kind === 'group' || first.layoutOwner)) {
+      model.commit(reorderHierarchyChildren(boxes, [...displayIds].reverse(), opts.pages?.get()), undefined, tRaw('Reorder layers'));
+      return true;
+    }
     const frameId = first ? fieldStr(first,F.frame) : artboard.active();
     if (!frameId || !actions.reorderChildren) return false;
     actions.reorderChildren(frameId, mergeLayerOrder(childrenOf(model.getBoxes(),frameId).map(b=>fieldStr(b,F.id)), [...displayIds].reverse()));
@@ -1084,7 +1148,8 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
 
   function moveLayer(id: string, delta: number): void {
     const group = layersList.querySelector<HTMLElement>(`[data-nav-row][data-id="${cssId(id)}"]`)?.closest<HTMLElement>('[data-layer-group]') || layersList;
-    const rows = rowsOf(group);
+    const boxes = model.getBoxes(), hierarchy = designHierarchyIndex(boxes, opts.pages?.get()), parent = hierarchy.parent.get(id);
+    const rows = rowsOf(group).filter(row => hierarchy.parent.get(row.dataset.id || '') === parent);
     const ids = rows.map((r) => r.dataset.id ?? '');
     const next = moveInSeq(ids, id, delta);
     if (next.join('|') === ids.join('|')) return;
@@ -1276,14 +1341,15 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
     }
     const named = String(b[F.label] ?? '').trim();
     const label = named || layerTextLabel(String(b[F.text] ?? '')) || kindWord(kind);
-    row.append(make('span', 'fc-nav-layer-name', label));
+    const name = make('span', 'fc-nav-layer-name', label); name.dataset.navName = ''; row.append(name);
     // The state, in the row's own text. The toggles are outside the option (see
     // `flagBtn`), so without this a hidden layer is announced exactly like a visible one.
     const state = [hidden ? t('Hidden') : '', locked ? t('Locked') : ''].filter(Boolean).join(', ');
     if (state) row.append(make('span', 'fc-nav-layer-state', state));
     const when = timeChip(b);
     if (when) row.append(when);
-    row.addEventListener('click', () => {
+    row.addEventListener('click', event => {
+      event.preventDefault();
       if (dragSuppressClick) { dragSuppressClick = false; return; }
       const parent = fieldStr(b,F.frame);
       if(parent && parent !== artboard.active())artboard.focus(parent);
@@ -1293,6 +1359,8 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
       row.addEventListener('pointerdown', (ev: Event) => beginDrag(ev as MouseEvent, id, list, 'layers'));
     }
     row.addEventListener('keydown', (ev: KeyboardEvent) => onRowKey(ev, id, row, i, list, 'layers'));
+    row.addEventListener('dblclick', event => { event.preventDefault(); event.stopPropagation(); if (kind === 'group' && actions.enterGroup) enterLayerGroup(id); else startRename(id, row, i); });
+    row.addEventListener('contextmenu', event => { event.preventDefault(); openLayerMenu(id, row, i); });
 
     const item = make('div', 'fc-nav-layer-item');
     item.setAttribute('role', 'presentation');
@@ -1306,6 +1374,12 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
     // A loose layer (no artboard anywhere) can become the first one's contents.
     if (loose && actions.makeArtboard) item.append(verbBtn(kindIcon(F.frameKind), t('Make artboard'), () => actions.makeArtboard?.([id])));
     return item;
+  }
+
+  function openLayerMenu(id: string, row: HTMLElement, index: number): void {
+    closeMenu(); layerMenu?.close(false);
+    layerMenu = openDesignLayerMenu({ row, id, model, pages: opts.pages?.get(), canEdit: () => opts.pages?.canEdit?.() !== false,
+      rename: () => startRename(id, row, index) });
   }
 
   /** A row-side verb: the flag button's shape without a pressed state. */
@@ -1331,6 +1405,8 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
     ev.preventDefault();
     ev.stopPropagation();
   }
+
+  function enterLayerGroup(id: string): void { layerGroups?.expand(id); actions.enterGroup?.(id); }
 
   /** One keyboard contract for both lists: move focus, select, rename, reorder, menu. */
   function onRowKey(ev: KeyboardEvent, id: string, row: HTMLElement, index: number, list: HTMLElement, kind: 'frames' | 'layers'): void {
@@ -1360,13 +1436,14 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
     if (back) { swallow(ev); step(-1); return; }
     if (ev.key === 'Home') { swallow(ev); step(-rows.length); return; }
     if (ev.key === 'End') { swallow(ev); step(rows.length); return; }
-    if (kind === 'frames' && (ev.key === 'F2' || ev.key === 'Enter')) {
+    if (ev.key === 'F2' || (kind === 'frames' && ev.key === 'Enter')) {
       // Enter/F2 renames (the row's own editable thing); Space is "go to this board".
       swallow(ev);
       startRename(id, row, index);
       return;
     }
     if (ev.key === ' ') { swallow(ev); if (kind === 'frames') selectFrame(id); else row.click(); return; }
+    if (kind === 'layers' && ev.key === 'Enter') { swallow(ev); enterLayerGroup(id); return; }
     // The two flag toggles beside a layer row, and the transition preview beside a frame
     // row, are all `tabIndex = -1` (see `flagBtn` and the chip): they are announced on
     // the row and operated from it. Without these three keys the capabilities were
@@ -1378,6 +1455,7 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
       swallow(ev);
       openRowMenu(id, row, index);
     }
+    if (kind === 'layers' && (ev.key === 'ContextMenu' || (ev.shiftKey && ev.key === 'F10'))) { swallow(ev); openLayerMenu(id, row, index); }
   }
 
   /** Flip one layer flag from whatever the model currently holds. */
@@ -1444,7 +1522,7 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
     // A live drag owns the rows it is dragging between, and a rename owns its input:
     // a rebuild under either drops the very node the gesture is holding.
     if (destroyed || renamingId || drag?.live) return;
-    const boxes = model.getBoxes();
+    const boxes = visibleBoxes();
     const frames = framesOf(boxes);
     const deck = isDeck(boxes, frames);
     const activeId = artboard.active();
@@ -1465,6 +1543,7 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
     const heldFrame = el.contains(document.activeElement) ? frameControlAt(document.activeElement) : null;
     listSig = sig;
     closeMenu();
+    layerMenu?.close(false); layerMenu = null;
 
     // ONE WORD PER DOCUMENT. The title's Slides/Artboards rule is the document's
     // vocabulary, not the heading's: the row menu already followed it, and the list's
@@ -1476,6 +1555,8 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
       ? t('No artboards. Every box is a loose layer, listed below.')
       : (deck ? t('No slides yet.') : t('No artboards yet.'));
     makeAllBtn.hidden = !(loose && kids.length > 0 && skin === 'column' && !!actions.makeArtboard);
+    addArtboardBtn.hidden = frames.length > 0;
+    addArtboardBtn.disabled = opts.pages?.canEdit?.() === false;
     toggleBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
     toggleBtn.setAttribute('aria-label', open ? tRaw('Hide navigator') : tRaw('Show navigator'));
     toggleBtn.title = open ? tRaw('Hide navigator') : tRaw('Show navigator');
@@ -1486,7 +1567,8 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
     // Frame rows.
     const keep = new Set(frames.map((b) => fieldStr(b, F.id)));
     for (const id of [...thumbs.keys()]) if (!keep.has(id)) thumbs.delete(id);
-    listEl.replaceChildren(...frames.map((b, i) => buildFrameRow(b, i, sigs[i]!)));
+    for (const id of frameRows.keys()) if (!keep.has(id)) frameRows.delete(id);
+    frameWindow.set(frames.map((box, index) => ({ box, index, signature: sigs[index]! })));
     emptyEl.hidden = frames.length > 0;
     listEl.hidden = frames.length === 0;
 
@@ -1505,7 +1587,8 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
       return li;
     }));
 
-    layerGroups?.render(frames, kids.filter(b => !frames.some(frame => fieldStr(frame,F.id) === fieldStr(b,F.frame))), activeId);
+    const framed = new Set(frames.flatMap(frame => childrenOf(boxes, fieldStr(frame, F.id))).map(box => fieldStr(box, F.id)));
+    layerGroups?.render(frames, kids.filter(box => !framed.has(fieldStr(box, F.id))), activeId);
 
     paintActive(true);
     // A write of ours rebuilds the row the user is standing on, so hand the focus (and
@@ -1705,6 +1788,8 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
   toggleBtn.addEventListener('click', () => setOpen(!open));
   el.addEventListener('keydown', onFrameControlKey, true);
   el.addEventListener('keydown', onRootKey);
+  const onEnterGroup = (event: Event): void => { enterLayerGroup((event as CustomEvent<string>).detail); };
+  el.addEventListener('design-enter-group', onEnterGroup);
 
   // ── mount ───────────────────────────────────────────────────────────────────
   applyOpenState();
@@ -1714,6 +1799,7 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
   const offModel = model.subscribe(() => render());
   const offSel = selection.onChange(() => paintActive());
   const offArt = artboard.onChange(() => { listSig = '\u0000'; render(); });
+  const offPages = opts.pages?.onChange(() => { listSig = '\u0000'; render(); });
   opts.onWidthChange?.(widthNow());
 
   return {
@@ -1731,6 +1817,8 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
       // it in its own dock on its next reserve write, and on its own teardown.
       for (const kid of [...railSlot.children]) stageEl.appendChild(kid);
       closeMenu();
+      layerMenu?.close(false); layerMenu = null;
+      el.removeEventListener('design-enter-group', onEnterGroup);
       onDragCancel();
       document.removeEventListener('pointermove', onDragMove, true);
       document.removeEventListener('pointerup', onDragEnd, true);
@@ -1739,7 +1827,11 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
       offModel();
       offSel();
       offArt();
+      offPages?.();
+      documentPages?.destroy();
+      layerGroups?.destroy();
       thumbWork.dispose();
+      frameWindow.destroy(); frameRows.clear();
       thumbs.clear();
       el.remove();
     },

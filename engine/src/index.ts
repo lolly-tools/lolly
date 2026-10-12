@@ -40,7 +40,7 @@ export type {
   InRealmOnlyHookName, HookInitDoneMsg, HookInvokeDoneMsg, HookReportMsg, HookHostCallMsg, HookLogMsg, HookWorkerOut,
   HookWorkerPort, HookWorkerCoreOpts,
 } from './hook-worker-core.ts';
-export type { HookExecutor, Hooks } from './runtime.ts';
+export type { HookExecutor, Hooks, RuntimeViewState } from './runtime.ts';
 // Emoji (1.196): the runtime draws every emoji in a rendered tree from the
 // chosen pinned pack. TYPES ONLY here on purpose - the pinned Unicode tables are
 // half a megabyte, so the modules themselves stay behind the runtime's dynamic
@@ -1213,3 +1213,6 @@ export { penpotChildrenPaintOrder, importPenpotLayouts, exportPenpotLayout, penp
 export { designLayoutDescendants, remapDesignLayout } from './design-layout.ts';
 
 export { createDesignLayoutMeasurer, resolveDesignLayoutFonts } from './design-layout-resources.ts';
+
+export { DesignHierarchyError, DEFAULT_DESIGN_PAGE, DESIGN_HIERARCHY_LIMITS, resolveDesignPages, designHierarchyIndex, validateDesignHierarchy, designHierarchyPageBoxes, designHierarchyAncestors, designHierarchyDescendants, designHierarchyFlags, designHierarchyBounds, migrateDesignHierarchy, reparentDesignHierarchy, remapDesignHierarchy, refreshDesignGroupBounds } from './design-hierarchy.ts';
+export type { DesignPage, DesignHierarchyRow, DesignHierarchyFinding, DesignHierarchyIndex } from './design-hierarchy.ts';

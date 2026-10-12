@@ -824,6 +824,7 @@ separately below).
 | `sequenceTiming` | - | longtext | `""` | Beat and cue timing | - |
 | `sequenceMotionBlur` | - | longtext | `""` | Temporal motion blur | - |
 | `layoutTracks` | - | blocks | `[]` | Grid tracks | - |
+| `pages` | - | blocks | `[]` | Pages | - |
 <!-- /GEN:design-inputs -->
 
 ## The `boxes` layer fields
@@ -837,7 +838,7 @@ are timing. Generated from the `boxes` block.
 | ID | Alias | Type | Default | What it does | Allowed values |
 |---|---|---|---|---|---|
 | `id` | - | text | - |  | - |
-| `kind` | - | select | `box` | Kind | `"box"`, `"text"`, `"image"`, `"path"`, `"audio"`, `"camera"`, `"frame"`, `"3d"`, `"web"`, `"webcam"` |
+| `kind` | - | select | `box` | Kind | `"box"`, `"text"`, `"image"`, `"path"`, `"audio"`, `"camera"`, `"frame"`, `"3d"`, `"web"`, `"webcam"`, `"group"` |
 | `x` | - | number | 120 | X | - |
 | `y` | - | number | 120 | Y | - |
 | `w` | - | number | 320 | Width | - |
@@ -993,4 +994,5 @@ are timing. Generated from the `boxes` block.
 | `layoutX` | - | number | `""` | layoutX | - |
 | `layoutY` | - | number | `""` | layoutY | - |
 | `layoutAngle` | - | number | `""` | layoutAngle | - |
+| `pageId` | - | text | `""` | Page ID | - |
 <!-- /GEN:design-boxes -->

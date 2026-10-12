@@ -1129,14 +1129,16 @@ test('template: pathHtml is emitted raw inside .lolly-box in both variants', () 
     const tpl = readFileSync(join(toolDir(brand), 'template.html'), 'utf8');
     // Raw ({{{ }}}) because it is markup - which is why hooks.js escapes every
     // interpolated value itself.
-    assert.ok(tpl.includes('{{{lookup ../pathHtml @index}}}'), `${brand}: template does not emit pathHtml`);
+    assert.ok(tpl.includes('{{#each renderBoxes}}'), `${brand}: template does not use hierarchy paint order`);
+    assert.ok(tpl.includes('data-canvas-input="boxes:{{flatIndex}}"'), `${brand}: rendered boxes lose their canonical input index`);
+    assert.ok(tpl.includes('{{{lookup ../pathHtml flatIndex}}}'), `${brand}: template does not emit pathHtml`);
     // Inside the box div, and BEFORE the media/text so the shape paints behind them.
     // A PREFIX match: the class attribute also carries the per-box `cls` tokens
-    // (`class="lolly-box{{lookup ../boxCls @index}}"`, plan 112 M4), so the old exact
+    // (`class="lolly-box{{lookup ../boxCls flatIndex}}"`, plan 112 M4), so the old exact
     // string stopped existing the day authors could name their own classes.
     const box = tpl.indexOf('class="lolly-box');
-    const path = tpl.indexOf('{{{lookup ../pathHtml @index}}}');
-    const media = tpl.indexOf('{{{lookup ../mediaHtml @index}}}');
+    const path = tpl.indexOf('{{{lookup ../pathHtml flatIndex}}}');
+    const media = tpl.indexOf('{{{lookup ../mediaHtml flatIndex}}}');
     assert.ok(box >= 0 && box < path && path < media, `${brand}: pathHtml is in the wrong place`);
     const css = readFileSync(join(toolDir(brand), 'styles.css'), 'utf8');
     assert.ok(/\.lolly-box-path\s*\{/.test(css), `${brand}: styles.css has no .lolly-box-path rule`);

@@ -348,3 +348,16 @@ test('a human edit or changed authority during asset preparation refuses the age
     session.close();
   }
 });
+
+test('live hierarchy edits use declared empty pages and reject undefined pages atomically', async () => {
+  const editor = fakeEditor([{id:'title',kind:'text',pageId:'first',x:0,y:0,w:100,h:20,text:'Hello'}]);
+  editor.pages = () => [{id:'first',name:'First'},{id:'empty',name:'Empty'}];
+  const session = createLiveSession(editor); await hello(session);
+  const moved = await call(session,'document.apply',{layerOperations:[{op:'reparent',id:'title',parentId:null,pageId:'empty'}]});
+  assert.equal(moved.error,undefined);
+  assert.equal((editor.rows()[0] as Record<string,unknown>).pageId,'empty');
+  const before = editor.rows();
+  const refused = await call(session,'document.apply',{layerPatches:[{id:'title',set:{pageId:'missing',$style:{fontSize:24}}}]});
+  assert.match(refused.error.message,/owning page is missing/);
+  assert.deepEqual(editor.rows(),before); assert.equal(editor.stack.length,1);
+});

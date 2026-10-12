@@ -256,7 +256,11 @@ export interface HookReportOpts {
 export type HookReport = (patch: Record<string, unknown>, opts?: HookReportOpts) => void;
 
 /** The lifecycle context every hook receives. */
+export type RuntimeViewState = Readonly<Record<string, InputValue>>;
+
 interface HookContext {
+  /** Local presentation choices, excluded from saved input values. */
+  view?: RuntimeViewState;
   lang?: string;
   model: InputModelItem[];
   host: HostV1;
@@ -312,6 +316,9 @@ export interface Runtime {
    * a selection `_themes` would refuse.
    */
   setTokenSelection(selection: Record<string, string>): Promise<void>;
+  /** Refresh a local view without changing document inputs or writing storage. */
+  setViewState?(values: RuntimeViewState): Promise<void>;
+  getViewState?(): RuntimeViewState | undefined;
   getModel(): InputModelItem[];
   getHydrated(): string;
   /** Hydrate an arbitrary template string against the same context (e.g. manifest.a11yLabel). */
@@ -526,6 +533,8 @@ export async function createRuntime(
   host: HostV1,
   initialState: Record<string, InputValue> = {},
   opts: {
+    /** Local presentation state. Leave absent for full-document renders. */
+    viewState?: RuntimeViewState;
     composeStack?: readonly string[];
     hookExecutor?: HookExecutor;
     /** Let onInit end its own wait (v1.228): a `report(patch, { ready: true })` mounts
@@ -625,6 +634,7 @@ export async function createRuntime(
   // Monotonic id so an out-of-order (slow) nested render from an earlier
   // setInput can't overwrite a newer value's render - see setInput below.
   let setInputSeq = 0;
+  let viewState = opts.viewState ? Object.freeze(structuredClone(opts.viewState)) : undefined;
 
   const profile = await host.profile.get();
   const hookLang = tool.lang || profile.lang || 'en';
@@ -799,7 +809,7 @@ export async function createRuntime(
     if (onInit) {
       try {
         const progressive = opts.progressiveInit === true;
-        const patch = await runHook('onInit', report => onInit({ model: modelForHooks(model), lang: hookLang, host, report, ...(progressive ? { progressive } : {}) }), applyLatePatch, progressive);
+        const patch = await runHook('onInit', report => onInit({ model: modelForHooks(model), view: viewState, lang: hookLang, host, report, ...(progressive ? { progressive } : {}) }), applyLatePatch, progressive);
         if (patch) ({ model, extras } = mergePatch(model, extras, patch, inputIds));
       } catch (e) {
         // Record the failure (not just log it) so the shell can show a canvas-error
@@ -917,7 +927,7 @@ export async function createRuntime(
     return source.subscribe((level) => {
       if (pending || generation !== levelGeneration || destroyed) return;
       pending = true;
-      Promise.resolve(onLevel({ level, model: modelForHooks(model), lang: hookLang, host }))
+      Promise.resolve(onLevel({ level, model: modelForHooks(model), view: viewState, lang: hookLang, host }))
         .then((patch) => {
           if (patch && meterUnsub && generation === levelGeneration && !destroyed) {
             ({ model, extras } = mergePatch(model, extras, patch, inputIds)); emit();
@@ -1345,7 +1355,7 @@ export async function createRuntime(
         // rejection escaping into the shell and failing the view's mount.
         let patch: unknown;
         try {
-          patch = await runHook('onInput', report => hooks!.onInput!({id:'__emoji', value:null, model:modelForHooks(model), host, report}), late => {
+          patch = await runHook('onInput', report => hooks!.onInput!({id:'__emoji', value:null, model:modelForHooks(model), view: viewState, host, report}), late => {
             if (generation === emojiStyleGeneration && seq === setInputSeq) applyLatePatch(late);
           });
         } catch (e) {
@@ -1409,7 +1419,7 @@ export async function createRuntime(
       const onFrame = hooks?.onFrame;
       if (!onFrame) return null;
       try {
-        const patch = await onFrame({ frame, model: modelForHooks(model), lang: hookLang, host });
+        const patch = await onFrame({ frame, model: modelForHooks(model), view: viewState, lang: hookLang, host });
         if (patch) ({ model, extras } = mergePatch(model, extras, patch, inputIds));
         return getHydrated();
       } catch (e) {
@@ -1419,6 +1429,31 @@ export async function createRuntime(
     },
     pauseLive() { livePaused = true; },
     resumeLive() { livePaused = false; },
+
+    getViewState: () => viewState,
+    async setViewState(values) {
+      viewState = Object.freeze(structuredClone(values));
+      const seq = ++setInputSeq;
+      const applyViewPatch = (patch: unknown): void => {
+        if (!patch || typeof patch !== 'object' || Array.isArray(patch)) return;
+        const computed = Object.fromEntries(Object.entries(patch).filter(([id]) => !inputIds.has(id)));
+        ({ model, extras } = mergePatch(model, extras, computed, inputIds));
+      };
+      const onInput = hooks?.onInput;
+      if (onInput) {
+        try {
+          const patch = await runHook('onInput', report => onInput({
+            id: '__view', value: null, model: modelForHooks(model), view: viewState,
+            lang: hookLang, host, report,
+          }), late => { if (seq === setInputSeq) { applyViewPatch(late); emit(); } });
+          if (seq !== setInputSeq) return;
+          if (patch) applyViewPatch(patch);
+        } catch (error) {
+          host.log('warn', `onInput ${(error as Error).message}`, { toolId: tool.manifest.id });
+        }
+      }
+      if (seq === setInputSeq) emit();
+    },
 
     async setInput(id, value, options) {
       if (tool.manifest.designTool) {
@@ -1448,7 +1483,7 @@ export async function createRuntime(
       const onInput = hooks?.onInput;
       if (onInput) {
         try {
-          const patch = await runHook('onInput', report => onInput({ id, value: flattenValue(value), model: modelForHooks(model), lang: hookLang, host, report }), applyLatePatch);
+          const patch = await runHook('onInput', report => onInput({ id, value: flattenValue(value), model: modelForHooks(model), view: viewState, lang: hookLang, host, report }), applyLatePatch);
           if (patch) {
             ({ model, extras } = mergePatch(model, extras, patch, inputIds));
             emit(); // re-emit with the hook's patch so the final state is correct
@@ -1541,7 +1576,7 @@ export async function createRuntime(
       if (onInput) {
         for (const { id, value } of applied) {
           try {
-            const patch = await runHook('onInput', report => onInput({ id, value, model: modelForHooks(model), lang: hookLang, host, report }), applyLatePatch);
+            const patch = await runHook('onInput', report => onInput({ id, value, model: modelForHooks(model), view: viewState, lang: hookLang, host, report }), applyLatePatch);
             if (patch) ({ model, extras } = mergePatch(model, extras, patch, inputIds));
           } catch (e) {
             host.log('warn', `onInput ${(e as Error).message}`, { toolId: tool.manifest.id });
@@ -1628,7 +1663,7 @@ export async function createRuntime(
       if (onInput) {
         for (const item of changed) {
           try {
-            const patch = await runHook('onInput', report => onInput({ id: item.id, value: flattenValue(item.value), model: modelForHooks(model), lang: hookLang, host, report }), applyLatePatch);
+            const patch = await runHook('onInput', report => onInput({ id: item.id, value: flattenValue(item.value), model: modelForHooks(model), view: viewState, lang: hookLang, host, report }), applyLatePatch);
             if (patch) ({ model, extras } = mergePatch(model, extras, patch, inputIds));
           } catch (e) {
             host.log('warn', `onInput ${(e as Error).message}`, { toolId: tool.manifest.id });
@@ -1689,7 +1724,7 @@ export async function createRuntime(
       const subscribeLive = () => media.subscribe((frame) => {
         if (framePending || livePaused) return; // busy, or an export drive owns the canvas → drop
         framePending = true;
-        Promise.resolve(onFrame({ frame, model: modelForHooks(model), lang: hookLang, host }))
+        Promise.resolve(onFrame({ frame, model: modelForHooks(model), view: viewState, lang: hookLang, host }))
           .then((patch) => {
             // Guard liveUnsub so a frame in flight when stopLive() ran can't repaint.
             // A SENSOR frame drove the render → its essence is now a live camera
@@ -1840,7 +1875,7 @@ export async function createRuntime(
       // Errors (including a HOOK_BUDGET_MS timeout) propagate - the shell shows
       // the transform's failure to the user; there's no degraded fallback here.
       const out = await runHook('exportFile',
-        () => exportFileHook({ model: modelForHooks(model), lang: hookLang, host, opts }),
+        () => exportFileHook({ model: modelForHooks(model), view: viewState, lang: hookLang, host, opts }),
       ) as ExportFileResult | ExportFileResult[] | null | undefined;
       const placed = toolEmoji?.census;
       if (placed?.length) emojiCensus = [...emojiCensus.filter(source => !placed.some(next => next.pack.checksum === source.pack.checksum && next.assetId === source.assetId)), ...placed];

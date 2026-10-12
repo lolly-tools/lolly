@@ -24,6 +24,7 @@ export interface DesignGuidesOptions {
   canEdit?(): boolean;
   onSelect?(): void;
   onInspect?(): void;
+  onError?(message: string): void;
 }
 export interface GuideLayout {
   stage: DOMRect;

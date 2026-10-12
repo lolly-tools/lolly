@@ -112,16 +112,16 @@
   <div class="lolly-conn-wrap">{{{connectorSvg}}}</div>
   {{!-- A HIDDEN layer (plan 179 M4) is not drawn and not exported, so it is skipped here
         rather than styled away: `boxHide` is '1' for a hidden row, and the whole element
-        is absent from the markup. The loop still walks the RAW boxes input, so @index -
-        which data-canvas-input carries back to the editor - keeps naming the same row.
+        is absent from the markup. The render order keeps each source flatIndex, so data-canvas-input still names
+        the same authored row while nested groups paint together.
         Every other surface (frame pages, the pasteboard, the deck, the Penpot document)
         filters in hooks.js instead. --}}
-  {{#each boxes}}
-  {{#unless (lookup ../boxHide @index)}}
-  <div class="lolly-box{{lookup ../boxCls @index}}" data-canvas-input="boxes:{{@index}}" data-box-id="{{default id @index}}" data-fit="{{lookup ../boxFit @index}}" style="{{lookup ../boxStyle @index}}"{{{lookup ../timeAttrs @index}}}{{{lookup ../lockAttrs @index}}}>
-    {{{lookup ../pathHtml @index}}}
-    {{{lookup ../mediaHtml @index}}}
-    <div class="lolly-box-text" style="{{lookup ../textStyle @index}}">{{{lookup ../textHtml @index}}}</div>
+  {{#each renderBoxes}}
+  {{#unless (lookup ../boxHide flatIndex)}}
+  <div class="lolly-box{{lookup ../boxCls flatIndex}}" data-canvas-input="boxes:{{flatIndex}}" data-box-id="{{default id flatIndex}}" data-fit="{{lookup ../boxFit flatIndex}}" style="{{lookup ../boxStyle flatIndex}}"{{{lookup ../timeAttrs flatIndex}}}{{{lookup ../lockAttrs flatIndex}}}>
+    {{{lookup ../pathHtml flatIndex}}}
+    {{{lookup ../mediaHtml flatIndex}}}
+    <div class="lolly-box-text" style="{{lookup ../textStyle flatIndex}}">{{{lookup ../textHtml flatIndex}}}</div>
   </div>
   {{/unless}}
   {{/each}}

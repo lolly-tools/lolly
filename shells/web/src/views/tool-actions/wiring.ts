@@ -587,7 +587,7 @@ export function wireCostRows(ta: ActionsCtx): void {
 }
 
 export function wireApprovalAndActions(ta: ActionsCtx): void {
-  const { canvasEl, desktopExport, el, experience, exportDefaults, exportUnscaled, formatEl, formats, hasToolAudioInput, host, isDesignTool, manifest, pkgInner, runtime } = ta;
+  const { canvasEl: liveCanvasEl, desktopExport, el, experience, exportDefaults, exportUnscaled, formatEl, formats, hasToolAudioInput, host, isDesignTool, manifest, pkgInner, runtime: liveRuntime } = ta;
   // The "Request approval" CTA (present in place of Download only when the export
   // policy withheld download but permits a request - see `affordance` above). Routes
   // through the generic opener seam (src/lib/approval-request.ts), which a control
@@ -635,6 +635,11 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
         el.querySelector<HTMLElement>('[data-lolly-download]')?.click();
         return;
       }
+      let documentExport: Awaited<ReturnType<NonNullable<typeof experience.exportDocument>>>;
+      try {
+        documentExport = await experience.exportDocument?.();
+        const canvasEl = documentExport?.canvas ?? liveCanvasEl;
+        const runtime = documentExport?.runtime ?? liveRuntime;
       // Carousel / paged tool: a STILL-image download becomes one image PER PAGE, zipped.
       // (PDF already fans out to a multi-page document via renderMultiPagePdf; animated /
       // html / zip formats keep their own paths.) Each [data-pdf-page] frame is exported
@@ -1289,7 +1294,7 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
             },
             { shutter: true, detail: t('Speaker notes handout'), onCancel: cancelExport }
           );
-          await deliver(downloadedBlob, `${outputBase}.pdf`);
+          await deliver(downloadedBlob!, `${outputBase}.pdf`);
         } else if (fmt === 'scorm') {
           const { buildScormPackage, collectScormFonts } = await import(
             '../../bridge/export-scorm.ts'
@@ -1786,6 +1791,11 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
         .catch(() => {
           /* the ask is an extra, never a failure path */
         });
+      } catch (error) {
+        restoreDownload(); btn.toggleAttribute('disabled', false); btn.removeAttribute('aria-busy');
+        announce(error instanceof Error ? error.message : t('The document could not be rendered.'), { assertive: true });
+      } finally { documentExport?.destroy(); }
+
     }
   );
 

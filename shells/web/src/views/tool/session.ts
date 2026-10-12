@@ -43,6 +43,17 @@ import type { EmojiControlMount, InspectorEmojiPort } from '../design-inspector.
 import { createDocumentThemeController } from '../../lib/document-theme.ts';
 import { mountToolSiteEditor } from '../tool-site-tools.ts';
 
+async function createPageController(tview: ToolViewCtx) {
+  if (tview.runtime.manifest.id !== 'design') return undefined;
+  const { createDesignPagePort } = await import('../design-page-port.ts');
+  return createDesignPagePort(tview.runtime, {
+    canEdit: () => !tview.collabHandle || tview.collabHandle.role === 'writer',
+    stage: () => tview.stageZoom,
+    flush: () => tview.render.flushRender(),
+    onError: error => tview.host.log('warn', `Page change failed: ${String(error)}`),
+  });
+}
+
 async function resolveDesignFont(tview: ToolViewCtx, style: FontStyleSlice, text: string): Promise<boolean> {
   return fontCoversText(style, text, tview.host.text);
 }
@@ -357,7 +368,6 @@ export async function bakeFraming(tview: ToolViewCtx, key: string): Promise<void
   if (!el) return;
   const frameW = el.offsetWidth,
     frameH = el.offsetHeight;
-
   // Read the framing values, the fit, and the asset slot to replace - the same
   // two shapes the overlay resolves, kept here rather than exported from it
   // because this side also needs to WRITE the asset back.
@@ -471,8 +481,7 @@ export async function bakeFraming(tview: ToolViewCtx, key: string): Promise<void
     announce(t('That image couldn’t be saved. The framing is unchanged.'), { assertive: true });
   }
 }
-/** Live editing: the runtime subscriptions, the canvas edit tools and the collab wiring. */
-export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
+/** Live editing: the runtime subscriptions, the canvas edit tools and the collab wiring. */export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
   if (tview.runtime.getHydrated().includes('data-text-workspace') && tview.contentEl?.parentElement) {
     const { mountTextWorkspace } = await import('../text.ts');
     if (tview.mountLifecycle.disposed) return;
@@ -481,7 +490,6 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
     const cleanup = await mountTextWorkspace({ container: content.parentElement!, runtime: tview.runtime, host: tview.host, onDirty: tview.session.markUserDirty, history: tview.actionsApi?.history, meta: (read) => { tview.documentMeta = read; } });
     tview.mountLifecycle.add('text-workspace', () => { cleanup(); content.style.removeProperty('display'); });
   }
-
   const { TOOL_URL_BASE, actionsApi, actionsEl, backPillOpts, barSeq, brandVarsReady, canBulk, canSaveSession, canvasEditInput, canvasEl, collabHandle, contentEl, deckEditInput, deckLayout, docEditInput, documentLayout, editorLayout, fixedCanvasMode, frameCfg, hasTemplates, isPresent, mountLifecycle, nativeH, nativeW, outerEl, pagesCfg, pagesMode, presentAddress, profileToggle, renderFab, runtime, slot, soundToggle, stageEl, templateMeta, templateParam, templateSeededIds, themeToggle, toolId, transcribeSpec, urlFlags, urlHeight, urlWidth, viewEl } = tview;
   (
     globalThis as {
@@ -522,7 +530,6 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
       return null;
     }
   };
-
   // Copy-URL now lives in the actions bar (renderActions), alongside the export
   // buttons - its format/filename/dimension inputs are in the same element. The Share
   // dialog also offers a `.lolly` download (plans/114) when the tool has a session.
@@ -539,7 +546,6 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
     mountLifecycle.add('export share controls', mountExportShare(actionsEl, () =>
       shareDialogOptions(runtime, actionsEl, tview.tool.manifest, lolly)));
   }
-
   // ── Templates, the person's own (plans/226 WP-1) ────────────────────────────────────
   // Three surfaces read the same per-tool list - the Save as… dialog's "Update ‹name›"
   // targets, the sidebar header's Templates button, and the mid-session chooser - so it
@@ -567,7 +573,6 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
   /** Open the "Save as…" dialog, optionally on its template card. Assigned below when
    *  this tool can save at all; the Design Lolly menu's rows spend it through the ports. */
   let openSaveAs: ((focus?: 'project' | 'template') => Promise<void>) | null = null;
-
   // The render pill's Save half: an in-place quick-save. It reuses the exact same
   // export-aware save routine as the popup's Save button (performSave), but unlike
   // that button it does NOT navigate away - it's a checkpoint affordance. performSave
@@ -753,7 +758,6 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
       void quickSave();
     });
   }
-
   // New from template (plans/142 WP-1, universal since plans/226 WP-1): re-open the Start
   // chooser mid-session. Unlike the fresh-open seed (applyPatch, deliberately outside the
   // history), a mid-session pick REPLACES live content, so it applies through the
@@ -843,7 +847,6 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
   templatesBtn?.addEventListener('click', () => {
     void openTemplatesMidSession();
   });
-
   // Darkroom's "Grade a video…" (plans/130): the tool authors the look and publishes
   // it as the `videoLook` hook extra (a baked .cube, key-guarded); the shell owns the
   // video pipeline. This button joins them - pick a video, hand the baked look plus
@@ -947,7 +950,6 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
       }
     });
   }
-
   // Transcribe (engine 1.150, render.transcribe). The whole affordance from one
   // declaration: listen to the named audio/video input, write cues into the named
   // text input. The heavy part is a background job (lib/stt-job.ts) whose toast
@@ -1263,7 +1265,10 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
           if (!viewEl.isConnected) return;
           openAgentConnect({ viewEl, link: () => agentLink, setLink: (link) => { agentLink = link; }, editor });
         };
+        const pageController = await createPageController(tview);
         const fc = initFreeCanvas({
+          getActivePage: pageController ? pageController.port.active : undefined,
+          getDesignPages: pageController ? pageController.port.get : undefined,
           viewEl,
           stageEl,
           canvasEl,
@@ -1438,8 +1443,11 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
             dirtyRef: tview.renderSaveBtn,
           },
         } as Parameters<typeof initFreeCanvas>[0]);
-
-
+        if (pageController) {
+          pageController.bind(fc);
+          fc.design.pages = pageController.port;
+          mountLifecycle.add('design pages', () => pageController.destroy());
+        }
         // ── The Design chrome: top bar + navigator + inspector (plan 179 M1-M3) ──────
         //
         // Lazily imported alongside the overlay, not statically, so a tool that never
@@ -1687,6 +1695,7 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
               canvasEl,
               skin: 'column',
               model: design.model,
+              pages: design.pages,
               selection: design.selection,
               artboard: design.artboard,
               thumb: design.thumb,

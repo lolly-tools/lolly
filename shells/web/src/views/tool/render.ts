@@ -586,18 +586,20 @@ export function paint(tview: ToolViewCtx): void {
         }
         tview.exporting.exportUnscaled(
           () =>
-            { const { exportSourceNode, runtime } = tview;
-              // `s=` picks one artboard of a framed document: export that page at its own
-              // size (the panel's fan-out does the same), not the whole stage.
-              const page = addressedFramePage(exportSourceNode, fmt, tview.presentAddress);
-              if (page) {
-                if (!((urlWidth ?? 0) > 0)) expOpts.width = page.offsetWidth;
-                if (!((urlHeight ?? 0) > 0)) expOpts.height = page.offsetHeight;
-              }
-              return runtime
-              .export(page ?? exportTargetNode(exportSourceNode), fmt, expOpts)
-              .then((blob) => tview.host.export.download(blob, `${name}.${extFor(fmt, blob)}`))
-              .catch((err) => console.error('Auto-export failed:', err)); },
+            (async () => {
+              const documentExport = await tview.exporting.mountDocumentExport();
+              try {
+                const exportSourceNode = documentExport?.canvas ?? tview.exportSourceNode;
+                const runtime = documentExport?.runtime ?? tview.runtime;
+                const page = addressedFramePage(exportSourceNode, fmt, tview.presentAddress);
+                if (page) {
+                  if (!((urlWidth ?? 0) > 0)) expOpts.width = page.offsetWidth;
+                  if (!((urlHeight ?? 0) > 0)) expOpts.height = page.offsetHeight;
+                }
+                const blob = await runtime.export(page ?? exportTargetNode(exportSourceNode), fmt, expOpts);
+                await tview.host.export.download(blob, `${name}.${extFor(fmt, blob)}`);
+              } finally { documentExport?.destroy(); }
+            })(),
           // A deep link names its own size, so this export knows what it renders at: a tool
           // whose detail follows the output is built for the link's size, not the preview.
           { size: exportPixelSize(expOpts) }

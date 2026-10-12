@@ -370,7 +370,7 @@ function webLabelOf(link) {
 // predicate so every "paints nothing" site (fill, gradient, clip, blur, shadow, text)
 // stays in one vocabulary and a new bare kind is added in exactly one place.
 function isBareBox(b) {
-  return isAudioBox(b) || isCameraBox(b);
+  return isAudioBox(b) || isCameraBox(b) || String(b && b.kind) === 'group';
 }
 
 // ── the two layer flags (plan 179 M4) ────────────────────────────────────────
@@ -389,7 +389,7 @@ function isBareBox(b) {
 // 'false' is truthy in JS - the trap every other boolean field here reads through the
 // same helper to avoid.
 function isHiddenBox(b) {
-  return !!b && boolVal(b.hidden, false);
+  return !!b && (boolVal(b.hidden, false) || b.__offPage === true);
 }
 function isLockedBox(b) {
   return !!b && boolVal(b.locked, false);
@@ -2232,6 +2232,7 @@ function frameGroupsFor(boxes, ext) {
   // seedFrameOrder() uses so a headless render matches the editor's frame numbering.
   frameEntries.sort(function (a, b) { return (a.order - b.order) || (a.x - b.x); });
 
+  var paintOrder = hierarchyPaintIndices(boxes);
   return frameEntries.map(function (fe) {
     var fb = fe.box;
     // Round exactly as boxCss does, so a child's frame-local left/top lines up with the
@@ -2311,9 +2312,9 @@ function frameGroupsFor(boxes, ext) {
       fshadow;
     var pageImgHtml = frameImgFor(fb, frad);
     var children = [];
-    for (var j = 0; j < boxes.length; j++) {
-      var cb = boxes[j];
-      if (!cb || String(cb.kind) === 'frame') continue;              // a frame is a page, never a child
+    for (var at = 0; at < paintOrder.length; at++) {
+      var j = paintOrder[at], cb = boxes[j];
+      if (!cb || String(cb.kind) === 'frame' || String(cb.kind) === 'group') continue;              // a frame is a page, never a child
       if (String(cb.frame == null ? '' : cb.frame) !== fid) continue; // scratch / other frame omitted
       if (isHiddenBox(cb)) continue;                                  // hidden: not drawn, not exported
       // Frame-local position OVERRIDES the global left/top already in boxStyle[j]: a
@@ -2423,9 +2424,10 @@ function pasteboardFor(boxes, ext) {
     frameIds[(fb.id != null && fb.id !== '') ? String(fb.id) : String(f)] = true;
   }
   var loose = [];
-  for (var j = 0; j < boxes.length; j++) {
-    var cb = boxes[j];
-    if (!cb || String(cb.kind) === 'frame') continue;           // a frame is a page, never loose
+  var paintOrder = hierarchyPaintIndices(boxes);
+  for (var at = 0; at < paintOrder.length; at++) {
+    var j = paintOrder[at], cb = boxes[j];
+    if (!cb || String(cb.kind) === 'frame' || String(cb.kind) === 'group') continue;           // a frame is a page, never loose
     if (frameIds[String(cb.frame == null ? '' : cb.frame)]) continue; // belongs to a page → rendered inside it
     if (isHiddenBox(cb)) continue;                               // hidden: not drawn, not exported
     loose.push({
@@ -2902,7 +2904,7 @@ function resolveFrameTransition(frameValue, docTransition) {
   return own;
 }
 
-function deckModelFor(boxes, byId, docTransition) {
+function deckModelFor(boxes, byId, docTransition, pages) {
   var frameEntries = [];
   for (var f = 0; f < boxes.length; f++) {
     var fb = boxes[f];
@@ -2911,20 +2913,22 @@ function deckModelFor(boxes, byId, docTransition) {
     frameEntries.push({ box: fb, idx: f, order: num(fb.order, 0), x: num(fb.x, 0) });
   }
   if (!frameEntries.length) return undefined;
-  frameEntries.sort(function (a, b) { return (a.order - b.order) || (a.x - b.x); });
+  var pageOrder = new Map((pages || []).map(function(page, n) { return [String(page.id), n]; }));
+  frameEntries.sort(function (a, b) { return ((pageOrder.get(String(a.box.pageId)) || 0) - (pageOrder.get(String(b.box.pageId)) || 0)) || (a.order - b.order) || (a.x - b.x); });
 
   var first = frameEntries[0].box;
   var size = { w: Math.max(1, Math.round(num(first.w, 1))), h: Math.max(1, Math.round(num(first.h, 1))) };
 
+  var paintOrder = hierarchyPaintIndices(boxes);
   var slides = frameEntries.map(function (fe) {
     var fbx = fe.box;
     var fx = Math.round(num(fbx.x, 0));
     var fy = Math.round(num(fbx.y, 0));
     var fid = (fbx.id != null && fbx.id !== '') ? String(fbx.id) : String(fe.idx);
     var elements = [];
-    for (var j = 0; j < boxes.length; j++) {
-      var cb = boxes[j];
-      if (!cb || String(cb.kind) === 'frame') continue;               // a frame is a page, never a child
+    for (var at = 0; at < paintOrder.length; at++) {
+      var j = paintOrder[at], cb = boxes[j];
+      if (!cb || String(cb.kind) === 'frame' || String(cb.kind) === 'group') continue;               // a frame is a page, never a child
       if (String(cb.frame == null ? '' : cb.frame) !== fid) continue; // scratch / other frame omitted
       if (isHiddenBox(cb)) continue;                                   // hidden: not drawn, not exported
       var lx = Math.round(num(cb.x, 0)) - fx;
@@ -3028,7 +3032,7 @@ function storyLayoutFor(key, request) {
 // report says the document is ready to open, and later ones follow at most every
 // STORY_PROGRESS_EVERY_MS. The result itself is assembled in document order, exactly
 // as a single pass built it, so the order of work never changes what is delivered.
-function composeDesignStories(model, inp, exporting, report, finish) {
+function composeDesignStories(model, inp, exporting, report, finish, view) {
   if (!host.text || typeof host.text.layoutRuns !== 'function') throw new Error('This engine cannot compose this text document.');
   var doc = JSON.parse(inp.textDocument);
   var boxes = Array.isArray(inp.boxes) ? inp.boxes : [];
@@ -3099,7 +3103,7 @@ function composeDesignStories(model, inp, exporting, report, finish) {
         var now = Date.now();
         if (now - started < STORY_PROGRESS_FIRST_MS || reports && now - lastReport < STORY_PROGRESS_EVERY_MS) return;
         reports++; lastReport = now;
-        report(compute(model, composedSoFar()), reports === 1 ? { ready: true } : undefined);
+        report(compute(model, composedSoFar(), undefined, undefined, view), reports === 1 ? { ready: true } : undefined);
       });
     });
   }, Promise.resolve()).then(function () {
@@ -3139,7 +3143,7 @@ function composeDesignStories(model, inp, exporting, report, finish) {
       layout.frames.forEach(function (frame) { composed[frame.id] = frame; });
     });
     Object.keys(byId).forEach(function (id) { if (!composed[id]) throw new Error('A text frame has no owning story.'); });
-    return Promise.resolve(finish ? finish(composed, textPreflight) : compute(model, composed)).then(function(output) {
+    return Promise.resolve(finish ? finish(composed, textPreflight) : compute(model, composed, undefined, undefined, view)).then(function(output) {
       output.textPreflight = textPreflight;
       return output;
     });
@@ -3152,12 +3156,72 @@ function designLayoutStamp(value) {
   for (var i = 0; i < s.length; i++) { a = Math.imul(a ^ s.charCodeAt(i), 16777619); b = Math.imul(b ^ s.charCodeAt(i), 3266489909); }
   return (a >>> 0).toString(16) + ':' + (b >>> 0).toString(16);
 }
-function compute(model, composed, report, exporting) {
+// Ownership changes only the render projection; source rows keep their own flags.
+function hierarchyPaintIndices(boxes) {
+  if (!boxes.some(function(box) { return box && box.kind === 'group'; })) return boxes.map(function(_box, n) { return n; });
+  var groups = new Map(), members = new Map(), roots = [], result = [], seen = new Set();
+  boxes.forEach(function(box, n) { if (box.kind === 'group') groups.set(String(box.id), n); });
+  boxes.forEach(function(box, n) { var parent = String(box.group || ''); if (groups.has(parent)) { var list = members.get(parent) || []; list.push(n); members.set(parent, list); } else roots.push(n); });
+  function stackPosition(n) { var children = members.get(String(boxes[n].id)); return boxes[n].kind === 'group' && children && children.length ? Math.min(n, Math.max.apply(null, children)) : n; }
+  roots.sort(function(a,b) { return stackPosition(a)-stackPosition(b); });
+  members.forEach(function(children) { children.sort(function(a,b) { return stackPosition(a)-stackPosition(b); }); });
+  var pending = roots.slice().reverse();
+  while (pending.length) {
+    var n = pending.pop(); if (seen.has(n)) continue;
+    seen.add(n); result.push(n);
+    var children = members.get(String(boxes[n].id)) || [];
+    for (var j = children.length - 1; j >= 0; j--) pending.push(children[j]);
+  }
+  return result;
+}
+function hierarchyProjection(boxes, pages, view) {
+  if (!boxes.some(function(b) { return b && (b.kind === 'group' || b.pageId); }) && (!pages || !pages.length)) return boxes;
+  if (boxes.length > 20000 || pages && pages.length > 256) throw new Error('A document supports up to 20,000 layers and 256 pages.');
+  var byId = new Map(), pageIds = new Set(), first = pages && pages.length ? String(pages[0].id) : 'page-1';
+  (pages || []).forEach(function(page) {
+    var id = String(page && page.id || '');
+    if (!id || id.length > 160 || pageIds.has(id)) throw new Error('Pages require unique permanent IDs.');
+    pageIds.add(id);
+  });
+  if (!pageIds.size) pageIds.add(first);
+  var active = view && view.pageId != null ? String(view.pageId) : '';
+  if (active && !pageIds.has(active)) active = first;
+  boxes.forEach(function(b) {
+    if (!b || !b.id || byId.has(String(b.id))) throw new Error('Layers require unique permanent IDs.');
+    byId.set(String(b.id), b);
+  });
+  return boxes.map(function(b) {
+    var row = Object.assign({}, b), seen = new Set(), current = b, page = '', frame = '';
+    while (current) {
+      var id = String(current.id);
+      if (seen.has(id) || seen.size > 64) throw new Error('Layer ownership contains a cycle or exceeds 64 ancestors.');
+      seen.add(id);
+      if (boolVal(current.hidden, false)) row.hidden = true;
+      if (boolVal(current.locked, false)) row.locked = true;
+      if (current.kind === 'group' && (num(current.opacity, 100) !== 100 || current.blend && current.blend !== 'normal')) throw new Error('Group opacity and blending require a composited image. Import an SVG copy to retain that appearance.');
+      if (current.kind === 'frame' && current !== b && !frame) frame = id;
+      var declared = String(current.pageId || '');
+      if (declared) {
+        if (!pageIds.has(declared) || page && page !== declared) throw new Error('A layer and its ancestors must belong to one existing page.');
+        page = declared;
+      }
+      var group = byId.get(String(current.group || ''));
+      var owner = group && group.kind === 'group' ? group.id : current.layoutOwner || current.frame;
+      current = owner ? byId.get(String(owner)) : null;
+      if (owner && !current) throw new Error('The owning layer is missing.');
+    }
+    row.pageId = page || first;
+    if (frame) row.frame = frame;
+    if (active && row.pageId !== active) row.__offPage = true;
+    return row;
+  });
+}
+function compute(model, composed, report, exporting, view) {
   var inp = inputsFrom(model);
   var source = Array.isArray(inp.boxes) ? inp.boxes : [];
   if (!source.some(function(b) { return b && (b.layout === 'flex' || b.layout === 'grid'); })) {
     var clear = function(out) { out.layoutBoxesJson = ''; out.layoutSourceJson = ''; out.layoutGridsJson = ''; out.layoutReceipt = ''; return out; };
-    var staticResult = computePlaced(model, composed, report);
+    var staticResult = computePlaced(model, composed, report, view);
     return staticResult && typeof staticResult.then === 'function' ? staticResult.then(clear) : clear(staticResult);
   }
   if (!host.layout) throw new Error('This design needs the layout capability. Update the engine before editing or exporting.');
@@ -3175,7 +3239,7 @@ function compute(model, composed, report, exporting) {
   function geometry(result) { return JSON.stringify(result.boxes.map(function(b) { return [b.id,b.x,b.y,b.w,b.h,b.rot]; })); }
   function placed(result) { return model.map(function(i) { return i.id === 'boxes' ? Object.assign({}, i, {value:result.boxes}) : i; }); }
   function paint(result, frames, preflight) {
-    var out = computePlaced(placed(result), frames);
+    var out = computePlaced(placed(result), frames, undefined, view);
     delete out.boxes;
     out.layoutBoxesJson = safeJson(result.boxes);
     out.layoutSourceJson = safeJson(source);
@@ -3205,18 +3269,40 @@ function compute(model, composed, report, exporting) {
           if (pass >= 7) throw new Error('Text and layout did not settle within eight passes. Review the sizing rules.');
           return settle(next, pass + 1);
         }
-        if (exporting) return composeDesignStories(placedModel, inputsFrom(placedModel), exporting, undefined, function(checkedFrames, checkedPreflight) { return paint(result, checkedFrames, checkedPreflight); });
+        if (exporting) return composeDesignStories(placedModel, inputsFrom(placedModel), exporting, undefined, function(checkedFrames, checkedPreflight) { return paint(result, checkedFrames, checkedPreflight); }, view);
         return paint(result, frames, preflight);
       });
-    });
+    }, view);
   }
   return evaluate(composed).then(function(result) { return settle(result, 0); });
 }
-function computePlaced(model, composed, report) {
+// Detached document exports give loose editor pages their own PDF/PPTX surface.
+function exportPageProjection(boxes, pages, inp, view) {
+  if (!pages || !pages.length || view && view.pageId != null) return boxes;
+  var frames = new Set(), ids = new Set(), sizes = new Map(), owners = new Map(), added = [];
+  boxes.forEach(function(box) {
+    ids.add(String(box.id));
+    var pageId = String(box.pageId), size = sizes.get(pageId) || [num(view && view.width, num(inp.width, 1080)), num(view && view.height, num(inp.height, 1080))];
+    size[0] = Math.max(size[0], num(box.x, 0) + num(box.w, 0)); size[1] = Math.max(size[1], num(box.y, 0) + num(box.h, 0)); sizes.set(pageId, size);
+    if (box.kind === 'frame') frames.add(pageId);
+  });
+  pages.forEach(function(page, order) {
+    var pageId = String(page.id);
+    if (frames.has(pageId)) return;
+    var id = '__page-export:' + pageId;
+    while (ids.has(id)) id += '_';
+    ids.add(id); owners.set(pageId, id);
+    var size = sizes.get(pageId) || [num(view && view.width, num(inp.width, 1080)), num(view && view.height, num(inp.height, 1080))];
+    added.push({ id: id, kind: 'frame', pageId: pageId, name: page.name, x: 0, y: 0, w: size[0], h: size[1], order: order, bg: inp.transparentBg === true ? 'transparent' : inp.background, clipChildren: true });
+  });
+  return boxes.map(function(box) { var frame = owners.get(String(box.pageId)); return frame ? Object.assign({}, box, { frame: frame }) : box; }).concat(added);
+}
+function computePlaced(model, composed, report, view) {
   var inp = inputsFrom(model);
-  if (inp.textDocument && !composed) return composeDesignStories(model, inp, undefined, report);
+  if (inp.textDocument && !composed) return composeDesignStories(model, inp, undefined, report, undefined, view);
   if (!inp.textDocument && Array.isArray(inp.boxes) && inp.boxes.some(function (box) { return box && box.textStory; })) throw new Error('This design is missing its text document.');
-  var boxes = Array.isArray(inp.boxes) ? inp.boxes : [];
+  var authoredBoxes = Array.isArray(inp.boxes) ? inp.boxes : [];
+  var boxes = hierarchyProjection(authoredBoxes, inp.pages, view);
   var resizedText = false;
   if (composed) boxes = boxes.map(function (box) {
     var frame = box && composed[box.id];
@@ -3268,7 +3354,7 @@ function computePlaced(model, composed, report) {
   //     expressible there; every other surface below filters in this file instead.
   //   lockAttrs - the editor-only ' data-locked="1"' stamp. It changes no pixel: the
   //     canvas overlay reads it to refuse a hit-test, and nothing else reads it at all.
-  var boxHide = boxes.map(function (b) { return isHiddenBox(b) ? '1' : ''; });
+  var boxHide = boxes.map(function (b) { return isHiddenBox(b) || b.kind === 'group' ? '1' : ''; });
   var lockAttrs = boxes.map(function (b) { return isLockedBox(b) ? ' data-locked="1"' : ''; });
   // Time model (phase 1 - inert data; nothing reads these attributes yet, the
   // phase-2 panel does). timeAttrs is index-aligned with boxStyle/boxFit/etc.
@@ -3325,10 +3411,16 @@ function computePlaced(model, composed, report) {
   // chooser swapping a framed blank canvas for the frameless Video template) kept
   // rendering its old empty artboard forever, and nothing drawn ever painted.
   // null is stored, and {{#if frameGroups}} reads it as absent.
-  var frameGroups = frameGroupsFor(boxes, frameArrays) || null;
+  var pageBoxes = exportPageProjection(boxes, inp.pages, inp, view);
+  var frameGroups = frameGroupsFor(pageBoxes, frameArrays) || null;
+  if (frameGroups && inp.pages && inp.pages.length) {
+    var pageOrder = new Map(inp.pages.map(function(page, n) { return [String(page.id), n]; }));
+    var framePage = new Map(pageBoxes.filter(function(box) { return box.kind === 'frame'; }).map(function(box) { return [String(box.id), String(box.pageId)]; }));
+    frameGroups.sort(function(a, b) { return (pageOrder.get(framePage.get(a.frameId)) || 0) - (pageOrder.get(framePage.get(b.frameId)) || 0); });
+  }
   // Pasteboard only when frames exist: without a frame the single {{else}} artboard
   // renders every box already, so it stays null and no loose copy is emitted.
-  var pasteboard = frameGroups ? pasteboardFor(boxes, frameArrays) : null;
+  var pasteboard = frameGroups ? pasteboardFor(pageBoxes, frameArrays) : null;
   // Native-pptx deck model (plan 95 route-a): emitted ONLY when frames exist, so a
   // no-frames design stays byte-identical and uses export-pptx's DOM-walk fallback.
   // `deckJson` collides with no input id (inputs: background/transparentBg/connectors/
@@ -3336,7 +3428,7 @@ function computePlaced(model, composed, report) {
   // {{{deckJson}}} into <script data-pptx-deck>, exactly like deck-studio.
   // `frameGroups.length` rather than bare truthiness: frames every one of which is hidden
   // give an EMPTY page list, and a deck with no slides is no deck.
-  var deckJson = (!composed && !boxes.some(function (box) { return box.pathPaint; }) && frameGroups && frameGroups.length) ? safeJson(deckModelFor(boxes, byId, inp.transition)) : null;
+  var deckJson = (!composed && !boxes.some(function (box) { return box.pathPaint; }) && frameGroups && frameGroups.length) ? safeJson(deckModelFor(pageBoxes, byId, inp.transition, inp.pages)) : null;
   // Penpot document model (plan 178 section 3.2). The RAW boxes, not the deck: a .penpot
   // file carries paths, ellipses, rotation, gradients, blur and shadow, all of which the
   // deck lowering drops by design, so the export bridge lowers the boxes themselves
@@ -3344,21 +3436,24 @@ function computePlaced(model, composed, report) {
   // unlike deckJson - a frameless artboard becomes one board the size of the canvas.
   // `penpotDocJson` collides with no input id (background/customCss/transition/boxes),
   // so the runtime routes it to extras and the template reads {{{penpotDocJson}}}.
-  // Capped: past 4000 boxes the archive stops being something Penpot opens happily,
-  // and the writer has its own shape ceiling behind this one. A bare box (audio bed,
+  // Legacy snapshots keep their 4000-row cap. Page/group documents keep all bounded
+  // rows; the native writer refuses its lower shape ceiling before building an archive. A bare box (audio bed,
   // camera marker) paints nothing and the writer skips it anyway, so it never reaches
   // the model - a still export must not carry a camera's text even inside a <script>.
   var penpotBoxes = [];
-  var preserveLayout = boxes.some(function(b) { return b && (b.layout === 'flex' || b.layout === 'grid'); });
-  for (var pb = 0; pb < boxes.length && penpotBoxes.length < 4000; pb++) {
-    if (boxes[pb] && !isBareBox(boxes[pb]) && (!isHiddenBox(boxes[pb]) || preserveLayout)) penpotBoxes.push(boxes[pb]);
+  var preserveLayout = !!(inp.pages && inp.pages.length) || authoredBoxes.some(function(b) { return b && (b.layout === 'flex' || b.layout === 'grid' || b.kind === 'group'); });
+  var hierarchyLimit = inp.pages && inp.pages.length || authoredBoxes.some(function(box) { return box.kind === 'group'; }) ? 20000 : 4000;
+  for (var pb = 0; pb < authoredBoxes.length && penpotBoxes.length < hierarchyLimit; pb++) {
+    if (authoredBoxes[pb] && (!isBareBox(authoredBoxes[pb]) || authoredBoxes[pb].kind === 'group') && (!isHiddenBox(authoredBoxes[pb]) || preserveLayout)) penpotBoxes.push(authoredBoxes[pb]);
   }
   var penpotDocJson = composed || boxes.some(function (box) { return box.pathPaint; }) ? null : safeJson({
     background: transparent ? 'transparent' : safeColor(inp.background, '#ffffff'),
     boxes: penpotBoxes,
     layoutTracks: inp.layoutTracks || [],
+    pages: inp.pages || [],
   });
   var out = {
+    renderBoxes: hierarchyPaintIndices(boxes).map(function(index) { return {id:boxes[index].id,flatIndex:index}; }),
     boxStyle: boxStyle,
     textStyle: textStyle,
     textHtml: textHtml,
@@ -3399,6 +3494,6 @@ function computePlaced(model, composed, report) {
   // key. The keys are ASSIGNED, never set to undefined: the runtime's patch merge keys off
   // key PRESENCE, so `{ boxes: undefined }` does not mean "no opinion", it blanks the
   // input - and a hook that blanks `boxes` on every render empties the whole document.
-  if (resizedText) out.boxes = boxes;
+  if (resizedText) out.boxes = authoredBoxes.map(function(box, i) { return composed && composed[box.id] ? Object.assign({}, box, {w:boxes[i].w,h:boxes[i].h}) : box; });
   return out;
 }

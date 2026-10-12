@@ -108,3 +108,11 @@ test('a touched row that breaks the Design manifest is refused whole; an old odd
   const good = JSON.parse(await session.handle(req(3, 'document.apply', { layerPatches: [{ id: 'a', set: { x: 4 } }] })));
   assert.equal(good.result.changed, true, 'the old odd row is not part of this edit');
 });
+
+test('the live adapter reads canonical pages including empty canvases on each edit', () => {
+  const {model,editor} = setup();
+  model.push({id:'pages',value:[{id:'first',name:'First'},{id:'empty',name:'Empty'}]});
+  assert.deepEqual(editor.pages?.(),model[2]!.value);
+  model[2]!.value=[{id:'first',name:'Renamed'}];
+  assert.deepEqual(editor.pages?.(),model[2]!.value);
+});

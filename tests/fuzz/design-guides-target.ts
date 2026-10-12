@@ -6,6 +6,7 @@ import {
   parseGuideRecords,
   serializeDesignGuides,
   serializeGuideRecords,
+  serializeGuideEdit,
 } from '../../shells/web/src/views/design-guides.ts';
 import type { DesignGuide } from '../../shells/web/src/views/design-ports.ts';
 import type { SnapLines } from '../../shells/web/src/views/free-canvas-math.ts';
@@ -62,6 +63,18 @@ export function invokeDesignGuides(bytes: Uint8Array): void {
 
   const records = parseGuideRecords(text);
   assertDesignGuideOutput(records, guideSnapTargets(records));
+  const axisOnly = records.every(
+    (guide) => !guide.color && guide.snap && [0, 90].includes(((guide.rotation % 180) + 180) % 180)
+  );
+  if (records.length <= MAX_DESIGN_GUIDE_RECORDS || axisOnly) {
+    const editWire = serializeGuideEdit(records);
+    const editRestored = parseGuideRecords(editWire);
+    invariant(editRestored.length === records.length, 'editable wire lost guide records');
+    invariant(
+      JSON.stringify(guideSnapTargets(editRestored)) === JSON.stringify(guideSnapTargets(records)),
+      'editable wire changed snap geometry'
+    );
+  }
   const canonical = serializeGuideRecords(records);
   const restored = parseGuideRecords(canonical);
   assertDesignGuideOutput(restored, guideSnapTargets(restored));

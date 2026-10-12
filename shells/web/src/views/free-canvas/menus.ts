@@ -257,6 +257,10 @@ export async function importAsArtboards(fc: FcCtx,
     );
     const mapped = new Map(members.map((box, n) => [String(box[cfg.idField]), String(rows[rowAt + n]![cfg.idField])]));
     members.forEach((box, n) => {
+      for (const field of [cfg.groupField, ...fc.ops.dupRefFields()]) {
+        const value = String(box[field] || '');
+        if (mapped.has(value)) rows[rowAt + n]![field] = mapped.get(value);
+      }
       if (!box.layoutOwner) return;
       const owner = mapped.get(String(box.layoutOwner));
       if (!owner) throw new Error(t('An imported layout references a missing container.'));
@@ -592,18 +596,16 @@ export function openImportPanel(fc: FcCtx, anchor: HTMLElement): void {
             status.textContent = m;
           },
           interactive: true,
+          preserveHierarchy: !!fc.opts.getDesignPages,
           map: importMap,
         });
         const boxes = (Array.isArray(res.boxes) ? res.boxes : []) as Box[];
         if (!boxes.length) throw new Error(t('Nothing importable was found in that file.'));
         if (res.sequenceValues && !fc.timeCfg) throw new Error(t('Open this timeline in Design to retain clip timing.'));
         fc.selection = new Set<string>();
-        fc.onDirty?.('layoutTracks');
-        void fc.runtime.setInput('layoutTracks', res.layoutTracks || []);
-        fc.select.commit(boxes);
+        fc.select.commit(boxes, { layoutTracks: res.layoutTracks || [], ...(res.pages ? { pages: res.pages } : {}), ...(res.sequenceValues ? { projectFps: res.sequenceValues.projectFps } : {}) }, t('Import design'));
+        fc.hierarchyScope = '';
         if (res.sequenceValues) {
-          fc.onDirty?.('projectFps');
-          await fc.runtime.setInput('projectFps', res.sequenceValues.projectFps);
           fc.timeline.openTimeline();
         }
         if (setCanvasSize && res.width > 0 && res.height > 0)

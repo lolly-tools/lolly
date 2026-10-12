@@ -2,8 +2,8 @@
   "id": "design",
   "name": "Design",
   "description": "An open canvas for free arrangement - text, images, shapes and live renders from your other Lolly tools, all held to your design system.",
-  "version": "1.48.0",
-  "engineVersion": "^1.253.0",
+  "version": "1.49.0",
+  "engineVersion": "^1.255.0",
   "status": "community",
   "category": "designer",
   "tags": [
@@ -699,6 +699,10 @@
               "value": "webcam",
               "label": "Camera",
               "repeatable": true
+            },
+            {
+              "value": "group",
+              "label": "Group"
             }
           ]
         },
@@ -2867,6 +2871,13 @@
           "label": "layoutAngle",
           "default": "",
           "showFor": []
+        },
+        {
+          "id": "pageId",
+          "type": "text",
+          "label": "Page ID",
+          "default": "",
+          "showFor": []
         }
       ],
       "default": [
@@ -3072,6 +3083,34 @@
           "type": "text",
           "label": "Track",
           "default": "1fr"
+        }
+      ],
+      "default": []
+    },
+    {
+      "id": "pages",
+      "type": "blocks",
+      "label": "Pages",
+      "showIf": {
+        "editingRange": "internal-pages"
+      },
+      "fields": [
+        {
+          "id": "id",
+          "type": "text",
+          "label": "Page ID"
+        },
+        {
+          "id": "name",
+          "type": "text",
+          "label": "Name",
+          "default": "Page"
+        },
+        {
+          "id": "order",
+          "type": "number",
+          "label": "Order",
+          "default": 0
         }
       ],
       "default": []

@@ -57,6 +57,8 @@ function onFrame({ frame, model, host }) {
 
 Declared hooks must be flagged in the manifest's `hooks` object (`{ "onInit": true, ... }`) - a manifest with no `hooks` object never loads hooks.js at all, and the flags are what validation and shell affordances (e.g. the transform-download wiring for `exportFile`) read.
 
+Engine v1.254 adds optional `ctx.view` for local presentation choices. Design uses `ctx.view.pageId` to render the viewer's chosen page while `ctx.model` retains the full document. A shell can call `runtime.setViewState()` to refresh that view through `onInput` with `id: '__view'`; patches from this refresh can update computed extras, but cannot write declared inputs. View state stays outside saved sessions, URLs, undo and collaboration. One-shot document renders leave `pageId` absent to render every page.
+
 ### Shared helper regions (`community/_shared/`)
 
 hooks.js must stay **self-contained** (no `import`/`require` - tools are data), so helpers that several tools need (the filter overlay block, `canRaster`, `loadImage`, `esc`, `clamp`, `safeColor`) are maintained once in `community/_shared/*.js` and copied byte-for-byte into each consumer between marker comments:

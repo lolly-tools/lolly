@@ -26,7 +26,7 @@ test('Design inspection accepts persisted webcam markers and posters without liv
   assert.equal(JSON.stringify(rows), saved);
   assert.ok(report.layers.every((layer) => !('stream' in layer)));
   assert.deepEqual([...DESIGN_LAYER_KINDS], [
-    'box', 'text', 'image', 'path', 'audio', 'camera', 'frame', '3d', 'web', 'webcam',
+    'box', 'text', 'image', 'path', 'audio', 'camera', 'frame', '3d', 'web', 'webcam', 'group',
   ]);
 });
 
@@ -127,4 +127,14 @@ test('Design inspection accepts numeric block values restored from a URL', () =>
   const strings = Object.fromEntries(Object.entries(numeric).map(([k, v]) => [k, typeof v === 'number' ? String(v) : v]));
   assert.deepEqual(inspectDesignV1([strings]), inspectDesignV1([numeric]));
   assert.equal(inspectDesignV1([{ ...strings, w: '640px' }]).valid, false);
+});
+
+test('Design inspection accepts stable group records without changing source ownership', () => {
+  const rows = [{id:'g',kind:'group',pageId:'first',x:0,y:0,w:100,h:40}, {id:'child',kind:'box',group:'g',pageId:'first',x:0,y:0,w:100,h:40}];
+  const before = structuredClone(rows);
+  const report = inspectDesignV1(rows);
+  assert.equal(report.valid,true);
+  assert.deepEqual(report.findings,[]);
+  assert.equal(report.layers[0]!.kind,'group');
+  assert.deepEqual(rows,before);
 });

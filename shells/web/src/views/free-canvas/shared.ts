@@ -405,6 +405,9 @@ export interface InitFreeCanvasOpts {
   onDirty?(id: string): void;
   /** Current document authority; absent for an ordinary device document. */
   canEdit?(): boolean;
+  /** Active Design page; absent keeps the complete canvas interactive. */
+  getActivePage?(): string | undefined;
+  getDesignPages?(): import('@lolly/engine').DesignPage[];
   editTool?(url: string, mode?: string): Promise<any>;
   setCanvasSize?(w: number, h: number, unit?: string): void;
   /** Keeps Design's persisted document unit/DPI and the export bar in lockstep. */

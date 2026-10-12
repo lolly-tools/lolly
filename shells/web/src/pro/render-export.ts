@@ -18,9 +18,11 @@ import { createToolRuntime as createRuntime } from '../lib/mount-runtime.ts';
 import { csvToMarks } from '../lib/print-marks-csv.ts';
 import { type StudioExportHooks, withStudioExport } from '../lib/studio-export-guard.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
+import { modelToValues } from '../../../../engine/src/inputs.ts';
 import type { InputValue, InputModelItem } from '../../../../engine/src/inputs.ts';
 import type { CanvasCommitEl } from '../lib/canvas-commit.ts';
-import type { ToolManifest } from '../../../../engine/src/loader.ts';
+import type { Runtime } from '../../../../engine/src/runtime.ts';
+import type { LoadedTool, ToolManifest } from '../../../../engine/src/loader.ts';
 import type { Unit } from '../../../../engine/src/units.ts';
 
 // Absolute short-form tool URL - `https://lolly.tools/t/<id>?<inputs>`, the human
@@ -487,6 +489,33 @@ export async function renderRowToBlob(row: BatchRow, host: HostV1, { format, wid
 
 /** A preview uses the same hydration, brand scope and clock as the editor/export.
  * Only Design is admitted: arbitrary tools may own live resources or globals. */
+/** Mount every document page through the normal offscreen render lifecycle. */
+export async function mountDocumentExport(tool: LoadedTool, host: HostV1, source: Runtime, size?: { width: number; height: number }) {
+  const runtime = await createRuntime(tool, withToolNet(host, tool.manifest), modelToValues(source.getModel()), {
+    tokenSelection: source.tokenSelection, emojiStyle: source.emoji.style,
+    viewState: size ? { width: size.width, height: size.height } : undefined,
+  });
+  runtime.setRightsDecisions(source.rightsDecisions());
+  runtime.setOutputLicence(source.outputLicence());
+  let ownedStage: ExportStage | undefined;
+  try {
+    const { stage, canvas } = await mountToolCanvas(tool.styles, runtime.getHydrated(), {
+      layoutW: size?.width ?? tool.manifest.render.width,
+      fixedHeight: size?.height ?? tool.manifest.render.height,
+      host, getModel: () => runtime.getModel(), mountEmoji: el => runtime.applyEmojiToDom(el),
+    });
+    ownedStage = stage;
+    let disposed = false;
+    return {
+      canvas, runtime,
+      destroy() {
+        if (disposed) return; disposed = true;
+        stage._lottieCleanup?.(); stage.remove(); runtime.destroy();
+      },
+    };
+  } catch (error) { ownedStage?._lottieCleanup?.(); ownedStage?.remove(); runtime.destroy(); throw error; }
+}
+
 export async function mountTemplateMotion(host: HostV1, toolId: string, values: Record<string, InputValue>, size?: { width: number; height: number }) {
   if (toolId !== 'design') throw new Error('Live template motion is available for Design.');
   const tool = await getTool(toolId);

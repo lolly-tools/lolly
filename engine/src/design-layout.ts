@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Design's layout adapter. Authored rows stay flat; solver output is disposable. */
 import { atan2, cos, hypot, sin } from './geom/portable-math.ts';
+import { designHierarchyIndex } from './design-hierarchy.ts';
 
 type Row = Record<string, unknown>;
 
@@ -75,6 +76,8 @@ const on = (v: unknown): boolean => v === true || v === 'true' || v === 1 || v =
 const number = (v: unknown, fallback = 0): number => (v === '' || v == null ? fallback : Number(v));
 const mode = (r: Row, axis: 'W' | 'H'): string => String(r[`layout${axis}`] || 'fixed');
 const owner = (r: Row): string => String(r.layoutOwner || r.frame || '');
+const hierarchyOwner = (r: Row, byId: ReadonlyMap<string, Row>): string =>
+  byId.get(String(r.group || ''))?.kind === 'group' ? String(r.group) : owner(r);
 const id = (r: Row): string => String(r.id || '');
 const isText = (r: Row): boolean =>
   r.kind === 'text' || (typeof r.text === 'string' && r.text.length > 0);
@@ -130,7 +133,14 @@ export function validateDesignLayout(
       add(r, 'layout.identity', 'Layout requires unique permanent layer IDs.');
     byId.set(id(r), r);
   }
+  const parentOf = (r: Row) => hierarchyOwner(r, byId);
   for (const r of boxes) {
+    if (r.group && byId.get(String(r.group))?.kind === 'group' && r.layoutOwner)
+      add(r, 'layout.owner-conflict', 'A grouped layer cannot also have a layout owner.');
+    if (r.kind === 'group' && (mode(r, 'W') !== 'fixed' || mode(r, 'H') !== 'fixed'))
+      add(r, 'layout.group-sizing', 'Groups use fixed sizing. Resize the group or use a layout container for fill and content sizing.');
+    if (r.kind === 'group' && hasDesignLayout([r]))
+      add(r, 'layout.group-container', 'Use an artboard or box as a dynamic layout container.');
     if (r.layoutOwner && r.frame)
       add(
         r,
@@ -140,7 +150,7 @@ export function validateDesignLayout(
     if (r.layoutOwner && !hasDesignLayout([byId.get(String(r.layoutOwner)) || {}]))
       add(r, 'layout.owner-missing', 'The layout owner is missing or has no layout.');
     const seen = new Set<string>([id(r)]);
-    let o = owner(r);
+    let o = parentOf(r);
     while (o) {
       if (seen.has(o)) {
         add(r, 'layout.owner-cycle', 'Layout ownership contains a cycle.');
@@ -151,11 +161,11 @@ export function validateDesignLayout(
         add(r, 'layout.depth', 'Layout nesting exceeds 64 levels.');
         break;
       }
-      o = owner(byId.get(o) || {});
+      o = parentOf(byId.get(o) || {});
     }
     if (r.layout && !['none', 'flex', 'grid'].includes(String(r.layout)))
       add(r, 'layout.mode', 'Unknown layout mode.');
-    if (r.layoutOwner || hasDesignLayout([r]) || hasDesignLayout([byId.get(owner(r)) || {}])) {
+    if (r.layoutOwner || hasDesignLayout([r]) || hasDesignLayout([byId.get(parentOf(r)) || {}])) {
       for (const [key, choices] of Object.entries({
         layoutDirection: ['row', 'row-reverse', 'column', 'column-reverse'],
         layoutAlign: ['start', 'center', 'end', 'stretch'],
@@ -454,14 +464,14 @@ export type LayoutMeasure = (
 
 function inheritVisibility(boxes: Row[], byId: Map<string, number>): void {
   for (const row of boxes) {
-    let o = owner(row);
+    let o = String(row.group && boxes[byId.get(String(row.group))!]?.kind === 'group' ? row.group : owner(row));
     while (o) {
       const ancestor = boxes[byId.get(o)!];
       if (on(ancestor?.hidden)) {
         row.hidden = true;
         break;
       }
-      o = owner(ancestor || {});
+      o = String(ancestor?.group && boxes[byId.get(String(ancestor.group))!]?.kind === 'group' ? ancestor.group : owner(ancestor || {}));
     }
   }
 }
@@ -501,6 +511,7 @@ export function createDesignLayoutEvaluator(solve: LayoutSolver, measure?: Layou
       return { boxes: source as Row[], findings, passes: 0, solved: 0, grids: [] };
     const boxes = source.map((r) => ({ ...r }));
     const byId = new Map(boxes.map((r, n) => [id(r), n]));
+    const owner = (r: Row): string => boxes[byId.get(String(r.group || ''))!]?.kind === 'group' ? String(r.group) : String(r.layoutOwner || r.frame || '');
     const children = new Map<string, number[]>();
     for (const [n, r] of boxes.entries()) {
       const o = owner(r);
@@ -552,7 +563,7 @@ export function createDesignLayoutEvaluator(solve: LayoutSolver, measure?: Layou
             .filter(
               (k) =>
                 k.startsWith('layout') ||
-                ['id', 'x', 'y', 'w', 'h', 'rot', 'frame', 'hidden', 'kind', 'textStory'].includes(
+                ['id', 'x', 'y', 'w', 'h', 'rot', 'frame', 'group', 'hidden', 'kind', 'textStory'].includes(
                   k
                 )
             )
@@ -749,7 +760,7 @@ export function createDesignLayoutEvaluator(solve: LayoutSolver, measure?: Layou
             boxes[n] = nextChild;
             // Moving a frame or layout container carries descendants without scaling them.
             if (
-              (old.kind === 'frame' || hasDesignLayout([old])) &&
+              (old.kind === 'frame' || old.kind === 'group' || hasDesignLayout([old])) &&
               (nextChild.x !== old.x || nextChild.y !== old.y)
             ) {
               const dx = number(nextChild.x) - number(old.x),
@@ -774,7 +785,7 @@ export function createDesignLayoutEvaluator(solve: LayoutSolver, measure?: Layou
         );
       // Existing renderers receive artboard membership as a derived projection.
       for (const r of boxes)
-        if (r.layoutOwner) {
+        if (r.layoutOwner || boxes[byId.get(String(r.group))!]?.kind === 'group') {
           let o = owner(r);
           while (o) {
             const p = boxes[byId.get(o)!];
@@ -797,7 +808,7 @@ export function createDesignLayoutEvaluator(solve: LayoutSolver, measure?: Layou
               w: row.w,
               h: row.h,
               rot: row.rot,
-              ...(row.layoutOwner && 'frame' in row ? { frame: row.frame } : {}),
+              ...((row.layoutOwner || row.group) && 'frame' in row ? { frame: row.frame } : {}),
               ...(row.hidden !== source[byId.get(id(row))!]!.hidden ? { hidden: row.hidden } : {}),
             });
         if (projections.size >= MAX_LAYOUT_PROJECTIONS)
@@ -854,23 +865,11 @@ export function designLayoutDescendants(
   rows: readonly Row[],
   selected: ReadonlySet<string>
 ): Set<string> {
-  const result = new Set(selected),
-    children = new Map<string, string[]>();
-  for (const row of rows) {
-    const o = owner(row);
-    if (o) {
-      const list = children.get(o) || [];
-      list.push(id(row));
-      children.set(o, list);
-    }
-  }
-  const pending = [...result];
+  const result = new Set(selected), pending = [...result];
+  const index = designHierarchyIndex(rows);
   for (let n = 0; n < pending.length; n++)
-    for (const child of children.get(pending[n]!) || [])
-      if (!result.has(child)) {
-        result.add(child);
-        pending.push(child);
-      }
+    for (const child of index.children.get(pending[n]!) || [])
+      if (!result.has(child)) { result.add(child); pending.push(child); }
   return result;
 }
 export function remapDesignLayout(

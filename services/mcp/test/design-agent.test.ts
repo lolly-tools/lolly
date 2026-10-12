@@ -375,3 +375,11 @@ test('unknown templates and presets fail loudly', async () => {
   assert.equal(missingPreset.isError, true);
   assert.match(missingPreset.content[0]!.text!, /Preset not found/);
 });
+
+test('MCP hierarchy operations use declared empty pages and refuse unknown ownership', async () => {
+  const inputs={pages:[{id:'first',name:'First'},{id:'empty',name:'Empty'}],boxes:[{id:'layer',kind:'box',pageId:'first',x:0,y:0,w:100,h:100}]};
+  const moved=await call('lolly_validate',{toolId:'design',inputs,layerOperations:[{op:'reparent',id:'layer',parentId:null,pageId:'empty'}]});
+  assert.equal(moved.isError,undefined); assert.equal(JSON.parse(moved.content[0]!.text!).ok,true);
+  const refused=await call('lolly_validate',{toolId:'design',inputs,layerPatches:[{id:'layer',set:{pageId:'missing'}}]});
+  assert.equal(refused.isError,true); assert.match(refused.content[0]!.text!,/owning page is missing/);
+});

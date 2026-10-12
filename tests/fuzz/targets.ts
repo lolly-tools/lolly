@@ -146,6 +146,8 @@ import { zipSync } from 'fflate';
 import { JSDOM } from 'jsdom'; // typed by tests/jsdom.d.ts (no @types/jsdom exists)
 import { invokeLayoutAbi, layoutAbiSeeds, invokePenpotLayoutEvaluation, penpotLayoutSeeds } from './layout-targets.ts';
 import { designGuideSeeds, invokeDesignGuides } from './design-guides-target.ts';
+import { designHierarchySeeds, invokeDesignHierarchy } from './design-hierarchy-target.ts';
+import { lollyHierarchySeeds, invokeLollyHierarchy } from './lolly-hierarchy-target.ts';
 
 export interface FuzzTarget {
   name: string;
@@ -2047,8 +2049,11 @@ export const designGuidesTarget: FuzzTarget = {
   async invoke(bytes) { invokeDesignGuides(bytes); },
 };
 
+export const designHierarchyTarget: FuzzTarget = { name: 'design-hierarchy', seeds: designHierarchySeeds, async invoke(bytes) { invokeDesignHierarchy(bytes); } };
+export const lollyHierarchyTarget: FuzzTarget = { name: 'lolly-hierarchy', seeds: lollyHierarchySeeds, async invoke(bytes) { await invokeLollyHierarchy(bytes); } };
+
 export const ALL_TARGETS: FuzzTarget[] = [
-  layoutAbiTarget, penpotLayoutTarget, designGuidesTarget,
+  layoutAbiTarget, penpotLayoutTarget, designGuidesTarget, designHierarchyTarget, lollyHierarchyTarget,
   adobeXmlTarget, adobePsdTarget, idmlReadTarget,
   motionCuesTarget, motionParamsTarget, mcpNegotiationTarget,
   textSourceTarget, textDocumentTarget, textFrameTarget, vectorPaintTarget,

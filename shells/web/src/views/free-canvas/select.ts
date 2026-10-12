@@ -38,7 +38,8 @@ export const getBoxes = (fc: FcCtx): Box[] => {
   const { blockId, runtime } = fc;
   const e = runtime.getModel().find((i) => i.id === blockId);
   const source = Array.isArray(e?.value) ? e!.value : [];
-  return fc.layout ? fc.layout.project(source) : source;
+  const rows = fc.hierarchy?.projectSource(source) || source;
+  return fc.layout ? fc.layout.project(rows) : rows;
 };
 export const getBg = (fc: FcCtx): any => { const { bgInputId, runtime } = fc; return runtime.getModel().find((i) => i.id === bgInputId)?.value ?? '#ffffff'; };
 /** The frame-primitive field names as the pure artboard helpers want them. Only
@@ -91,6 +92,7 @@ export const groupMemberIds = (fc: FcCtx, boxes: Box[], g: string): string[] =>
 // The ids selected when box `i` is clicked: its whole group (if any), unless
 // `soloBox` (Alt-click) drills in to just that one box.
 export function selectionForHit(fc: FcCtx, boxes: Box[], i: number, soloBox: boolean): string[] {
+  if (fc.hierarchy?.enabled()) return fc.hierarchy.selectHitIds(boxes, idOf(fc, boxes[i], i), soloBox);
   const g = groupOf(fc, boxes[i]);
   return soloBox || !g ? [idOf(fc, boxes[i], i)] : groupMemberIds(fc, boxes, g);
 }
@@ -130,8 +132,10 @@ export function freshId(fc: FcCtx, boxes: Box[]): string {
 export const withIds = (fc: FcCtx, boxes: Box[]): Box[] => { const { cfg, hasIdField } = fc; return (hasIdField ? ensureRowIds(boxes, cfg.idField) : boxes); };
 export function commit(fc: FcCtx, nextBoxes: Box[], patch: Record<string, unknown> = {}, label = 'Edit layout'): void {
   const { blockId, onDirty, runtime } = fc;
+  if (fc.opts?.canEdit?.() === false) return;
   if (fc.frameCfg && fc.timeCfg) nextBoxes = retimeSceneMembers(getBoxes(fc), nextBoxes, { ...frameFields(fc), startField: fc.timeCfg.startField });
   try {
+  nextBoxes = fc.hierarchy?.prepareCommit(nextBoxes, Array.isArray(patch.pages) ? patch.pages as import('@lolly/engine').DesignPage[] : undefined) || nextBoxes;
     if (fc.cv.textDocumentInput) nextBoxes = resizeDesignTextFrames(getBoxes(fc), nextBoxes);
     const source = runtime.getModel().find(i => i.id === blockId)?.value;
     if (fc.layout && Array.isArray(source)) nextBoxes = fc.layout.sourceEdit(source, nextBoxes);
@@ -158,16 +162,18 @@ export function commit(fc: FcCtx, nextBoxes: Box[], patch: Record<string, unknow
 // (no spurious new object → no needless re-render churn). `touched` are indices into
 // `nextBoxes`; every gesture that calls this preserves index alignment (append for
 // create, in-place map for move/resize/scale), so indices stay valid.
-export function assignFrames(fc: FcCtx, nextBoxes: Box[], touched: Set<number>): Box[] {
+export function assignFrames(fc: FcCtx, nextBoxes: Box[], touched: Set<number>, preserveExisting = false): Box[] {
   const { cfg, frameCfg } = fc;
   if (!frameCfg) return nextBoxes;
   const ff = frameCfg.frameField;
   const fk = frameCfg.frameKind;
   const frameBoxes = nextBoxes.filter((b) => String(b?.[cfg.kindField]) === fk);
   return nextBoxes.map((b, i) => {
-    if (!touched.has(i) || !b || b.layoutOwner) return b;
+    if (!touched.has(i) || !b || b.layoutOwner || fc.hierarchy?.enabled() && b.group) return b;
     if (String(b[cfg.kindField]) === fk) return b; // a frame keeps frame='' (no self-nesting)
-    const fid = resolveFrame(b, frameBoxes);
+    const candidates = fc.hierarchy?.frameCandidates(nextBoxes, b, frameBoxes) || frameBoxes;
+    if (preserveExisting && candidates.some(frame => String(frame[cfg.idField]) === String(b[ff]))) return b;
+    const fid = resolveFrame(b, candidates);
     return String(b[ff] ?? '') === fid ? b : { ...b, [ff]: fid };
   });
 }
@@ -351,11 +357,12 @@ export function seqHiddenSkip(fc: FcCtx, boxes: Box[]): ((i: number) => boolean)
   const { cfg, frameCfg, timeCfg } = fc;
   const hideF = frameCfg?.hiddenField;
   const lockF = frameCfg?.lockedField;
-  if (!timeCfg && !hideF && !lockF) return undefined;
+  if (!timeCfg && !hideF && !lockF && !fc.hierarchy?.enabled()) return undefined;
   return (i: number) => {
   const { timeCfg } = fc;
     const b = boxes[i];
     if (!b) return false;
+    if (fc.hierarchy?.acquisitionSkip(boxes, idOf(fc, b, i))) return true;
     if (hideF && boolOf(b[hideF], false)) return true;
     if (lockF && boolOf(b[lockF], false)) return true;
     if (!timeCfg) return false;

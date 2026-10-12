@@ -31,6 +31,8 @@ export interface LiveEditor {
   engine: string;
   surface: 'desktop' | 'web';
   rows(): unknown[];
+  /** Canonical page definitions, including empty pages. */
+  pages?(): readonly unknown[] | undefined;
   size(): { width: number; height: number };
   selection(): string[];
   /** A new layer's field default, from the manifest. */
@@ -169,16 +171,17 @@ export function createLiveSession(editor: LiveEditor, opts: LiveSessionOpts = {}
     let rows: unknown[];
     const before = editor.rows();
     const size = editor.size();
+    const pages = editor.pages?.();
     try {
       rows = before;
       // Authoring keys use the design system currently rendering this editor.
       const authored = hasDesignAuthoring(ops) || hasDesignAuthoring(patches);
       if (ops) {
         rows = authored
-          ? applyAuthoredLayerOperations(rows as Record<string, unknown>[], ops, (field, fallback) => editor.fieldDefault(field, fallback), { brief: context?.brief ?? null }).rows
-          : applyLayerOperations(rows, ops, (field, fallback) => editor.fieldDefault(field, fallback));
+          ? applyAuthoredLayerOperations(rows as Record<string, unknown>[], ops, (field, fallback) => editor.fieldDefault(field, fallback), { brief: context?.brief ?? null, pages }).rows
+          : applyLayerOperations(rows, ops, (field, fallback) => editor.fieldDefault(field, fallback), { pages });
       }
-      if (patches) rows = authored ? applyAuthoredLayerPatches(rows as Record<string, unknown>[], patches, { brief: context?.brief ?? null }).rows : applyLayerPatches(rows, patches);
+      if (patches) rows = authored ? applyAuthoredLayerPatches(rows as Record<string, unknown>[], patches, { brief: context?.brief ?? null, pages }).rows : applyLayerPatches(rows, patches, { pages });
     } catch (error) {
       return liveError(id, LIVE_ERRORS.refused, error instanceof Error ? error.message : String(error));
     }

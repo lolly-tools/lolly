@@ -53,6 +53,7 @@ import { layoutOps } from './free-canvas/layout.ts';
 // ships one and users still lose work to it: letting time change the selection
 // destroys work.
 
+import { hierarchyOps } from './free-canvas/hierarchy.ts';
 import { mountDesignRules } from './design-rules.ts';
 import { registerCollabSurface } from '../lib/collab-surface.ts';
 import { canvasProjection } from './canvas-projection.ts';
@@ -168,6 +169,9 @@ export { placePopover } from './free-canvas-popover.ts';
 
 
 interface FreeCanvasHandle {
+  duplicatePage(id: string): Promise<string | undefined>;
+  removePage(id: string): void;
+  pageChanged(): void;
   destroy(): void;
   /** The live editor state in the `_ui` wire field names: what a link here would carry. */
   uiState(): { sel: string[]; t?: number; panel?: string; page?: string; timeline?: boolean };
@@ -206,6 +210,8 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   const fc = {} as FcCtx;
   fc.helpers = helpersOps(fc);
   fc.select = selectOps(fc);
+  fc.hierarchy = hierarchyOps(fc);
+  fc.hierarchyScope = '';
   fc.timeline = timelineOps(fc);
   fc.catalogIntake = catalogIntakeOps(fc);
   fc.fileDrop = fileDropOps(fc);
@@ -922,6 +928,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   const GUIDE_VISIBILITY_KEY = 'lolly-design-guides-visible'; fc.GUIDE_VISIBILITY_KEY = GUIDE_VISIBILITY_KEY;
   fc.authoringGuides = guideInput
     ? mountDesignGuides({
+        onError: fc.stage.flash,
         stageEl,
         canvasEl,
         read: () => runtime.getModel().find((model) => model.id === 'guides')?.value,
@@ -1447,12 +1454,12 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
    *  are part of the SCENE, set in the studio, so a second caption typed on the canvas is
    *  two places to write the same sentence. A row that already carries text keeps the
    *  inspector's Text section, which is where such a caption is repaired or cleared. */
-  const NO_TEXT_KINDS = new Set(['frame', 'audio', 'camera', 'webcam', '3d', 'web']); fc.NO_TEXT_KINDS = NO_TEXT_KINDS;
+  const NO_TEXT_KINDS = new Set(['frame', 'group', 'audio', 'camera', 'webcam', '3d', 'web']); fc.NO_TEXT_KINDS = NO_TEXT_KINDS;
   /** Kinds that paint no picture from the image field. (An `audio` box DOES use it - that
    *  field is where its track lives - and a frame page paints it as the board's fill.) A
    *  `3d` box paints through the studio's renderer, and the hook returns its scene marker
    *  before ever reading the image field, so an image set here would never be drawn. */
-  const NO_IMAGE_KINDS = new Set(['camera', 'webcam', '3d']); fc.NO_IMAGE_KINDS = NO_IMAGE_KINDS;
+  const NO_IMAGE_KINDS = new Set(['group', 'camera', 'webcam', '3d']); fc.NO_IMAGE_KINDS = NO_IMAGE_KINDS;
 
   /**
    * The DOLLY, coalesced (section 8: "wheel coalesces one commit per pause").
@@ -1863,7 +1870,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
     // centre OUTSIDE every frame stays '' (assignFrames leaves it), keeping the pasteboard
     // scratchpad. Quiet, like the id stamping below: membership matching position is not a
     // user edit, so no onDirty (no Save-pill flash) and no history entry (no ⌘Z surprise).
-    if (frameCfg && !fc.layout.has(loaded)) next = fc.select.assignFrames(next, new Set(next.map((_, i) => i)));
+    if (frameCfg && !fc.layout.has(loaded)) next = fc.select.assignFrames(next, new Set(next.map((_, i) => i)), true);
     // mountTool installs the un-wrapped setter; a mount without it falls back.
     const quiet =
       (runtime as RuntimeApi & { setInputNoHistory?: RuntimeApi['setInput'] }).setInputNoHistory ??
@@ -2045,6 +2052,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   }; fc.artboardPort = artboardPort;
 
   const navigatorActions: NavigatorActions = {
+    enterGroup: fc.hierarchy.enterGroup,
     duplicateFrame: (id) => fc.editorState.withFrameSelected(id, fc.ops.duplicateSelection),
     deleteFrame: (id) => fc.editorState.withFrameSelected(id, fc.ops.deleteSelection),
     addArtboardAfter: fc.editorState.addArtboardAfter,
@@ -2241,6 +2249,9 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
 
   return {
     design: designPorts,
+    duplicatePage: fc.hierarchy.duplicatePage,
+    removePage: fc.hierarchy.removePage,
+    pageChanged: fc.hierarchy.pageChanged,
     destroy() {
       fc.cameraCapture.destroy();
       unwireFileDrop();

@@ -79,7 +79,8 @@ export function emitActiveArtboard(fc: FcCtx): void {
   // guard: a no-frames document still has a `background` to re-show after an undo.
   fc.toolbox.syncBgField();
   if (!frameCfg) return;
-  const boxes = fc.select.getBoxes();
+  const allBoxes = fc.select.getBoxes();
+  const boxes = fc.document?.pageBoxes?.(allBoxes) || allBoxes;
   const fk = frameCfg.frameKind;
   const frames = boxes.filter((b) => b && String(b[cfg.kindField]) === fk);
   // With artboards in the doc the canvas rect is only the pasteboard - this class
@@ -93,7 +94,7 @@ export function emitActiveArtboard(fc: FcCtx): void {
   // slide 1. `activeFrameIdFor` is the same resolution the rail's fill swatch uses -
   // a selected artboard, else the one owning the selected box, else primary - so the
   // swatch you just painted and the page you just exported can never disagree.
-  const activeId = activeFrameIdFor(boxes, fc.selection, fc.select.frameFields());
+  const activeId = fc.document?.activeArtboardId?.() || activeFrameIdFor(boxes, fc.selection, fc.select.frameFields());
   // Ahead of the `activeArtboardKey` dedupe below, which also folds in the PLAYHEAD's
   // artboard and the two sizes - none of which change which board the editor is "on".
   notifyActiveArtboard(fc, frames.length ? activeId : '');
@@ -294,8 +295,9 @@ export function paintChrome(fc: FcCtx, boxes: Box[], liveRects: Map<number, Rect
   // The one place a selection change is announced (see selListeners) - BEFORE the
   // text-edit / pen early returns, so a listener never misses a change made in
   // those modes. Inert (returns immediately) when nothing is listening.
+  fc.hierarchy?.retainSelection(boxes);
   fc.select.notifySelection();
-  syncFrameLabels(fc, boxes);
+  syncFrameLabels(fc, fc.document?.pageBoxes?.(boxes) || boxes);
   // M2 - reposition the frame scrim only when the artboard geometry changed (pan/
   // zoom/resize set scrimDirty); a box drag/hover/selection change never moves it.
   const movedStage = fc.scrimDirty;
@@ -377,7 +379,9 @@ export function paintChrome(fc: FcCtx, boxes: Box[], liveRects: Map<number, Rect
   }
   if (fc.penChromeKey) fc.rail.clearPenChrome();
   fc.penTool.paintPen();
-  const idx = fc.select.selIndices(boxes);
+  const selectedIndices = fc.select.selIndices(boxes);
+  const hasGroup = selectedIndices.some(i => fc.hierarchy?.isGroup(boxes[i]));
+  const idx = hasGroup ? fc.hierarchy.transformIndices(boxes) : selectedIndices;
   const m = fc.stage.metrics();
   // Gradient handles sit UNDER the selection chrome in z-order but are painted here
   // so they track the same pan/zoom sync (and self-exit if their box went away).
@@ -406,10 +410,10 @@ export function paintChrome(fc: FcCtx, boxes: Box[], liveRects: Map<number, Rect
   // the model and left the swatch showing the colour that had just been undone, which is
   // the one state a colour control must never be in. The signature is the handful of
   // fields the bar actually paints, so an opacity drag or a text edit still costs nothing.
-  const ctxKey = idx.length ? `${key}|${fc.contextBar.ctxValueSig(boxes, idx)}` : '';
+  const ctxKey = idx.length ? `${key}|${fc.contextBar.ctxValueSig(boxes, selectedIndices)}` : '';
   if (ctxKey !== fc.ctxSelKey) {
     fc.ctxSelKey = ctxKey;
-    if (idx.length) fc.contextBar.rebuildCtxBar(boxes, idx);
+    if (idx.length) fc.contextBar.rebuildCtxBar(boxes, selectedIndices);
     else {
       fc.rail.hideCtxBar();
       fc.document.closeMorePanel();
@@ -424,7 +428,7 @@ export function paintChrome(fc: FcCtx, boxes: Box[], liveRects: Map<number, Rect
     if (btn) fc.gradient.openGradPanel(btn);
   }
   if (idx.length) fc.keys.positionCtxBar(boxes, idx, liveRects, m);
-  fc.keys.updateToolbarState(idx.length);
+  fc.keys.updateToolbarState(selectedIndices.length);
   syncBoxA11y(fc);
   // A doc holding only empty ARTBOARDS is still content-empty - keep inviting the
   // first card until a non-frame box exists (a blank Design now seeds Artboard 1).
@@ -704,7 +708,7 @@ export function onGroupHandleDown(fc: FcCtx, e: PointerEvent, name: Corner | 'ro
   e.stopPropagation();
   if (e.button > 0) return;
   const boxes = fc.select.getBoxes();
-  const sel = fc.select.selIndices(boxes);
+  const sel = fc.hierarchy?.transformIndices(boxes) || fc.select.selIndices(boxes);
   if (sel.length < 2) return;
   const a = groupAABBNative(fc, sel, boxes, null);
   const centre = { x: (a.minX + a.maxX) / 2, y: (a.minY + a.maxY) / 2 };

@@ -69,6 +69,7 @@
  */
 
 import { createHash } from 'node:crypto';
+import { lollyFeatureReader } from '../../../core/src/lolly-features.ts';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -1497,7 +1498,7 @@ export async function buildDesignLolly(input: DesignLollyInputV1): Promise<Desig
   const manifest = {
     format: 'lolly-share',
     formatVersion: 1,
-    minReader: 1,
+    minReader: lollyFeatureReader({ toolId: DESIGN_TOOL_ID, session: input.session.values }),
     app: `Lolly ${ENGINE_VERSION}`,
     engineVersion: ENGINE_VERSION,
     kind: 'session',

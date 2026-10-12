@@ -25,6 +25,7 @@ export const DESIGN_LAYER_KINDS = [
   '3d',
   'web',
   'webcam',
+  'group',
 ] as const;
 
 export type DesignLayerKindV1 = (typeof DESIGN_LAYER_KINDS)[number];

@@ -624,7 +624,7 @@ export function bgTarget(fc: FcCtx): { frameId: string; value: unknown; tip: str
   const { cfg, frameCfg } = fc;
   if (frameCfg && cfg.fillField) {
     const boxes = fc.select.getBoxes();
-    const fid = fc.select.hasFrames(boxes) ? activeFrameIdFor(boxes, fc.selection, fc.select.frameFields()) : '';
+    const fid = fc.select.hasFrames(boxes) ? fc.document?.activeArtboardId?.() || activeFrameIdFor(boxes, fc.selection, fc.select.frameFields()) : '';
     if (fid) {
       const fb = boxes.find((b, i) => fc.select.idOf(b, i) === fid);
       return {

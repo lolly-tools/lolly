@@ -159,7 +159,7 @@ export interface DesignNode {
 /** A full Design box row (every field present and defaulted). */
 interface Box {
   id: string;
-  kind: 'box' | 'text' | 'image';
+  kind: 'box' | 'text' | 'image' | 'group';
   x: number;
   y: number;
   w: number;
@@ -408,8 +408,8 @@ export function nodeToBox(
   const n: DesignNode = node || {};
   const o = opts || {};
   const id = o.id != null ? String(o.id) : '';
-  const kind: 'box' | 'text' | 'image' = n.kind === 'text' ? 'text' : (n.kind === 'image' ? 'image' : 'box');
-  const seed = SEED[kind];
+  const kind: 'box' | 'text' | 'image' | 'group' = n.kind === 'group' ? 'group' : n.kind === 'text' ? 'text' : (n.kind === 'image' ? 'image' : 'box');
+  const seed = SEED[kind === 'group' ? 'box' : kind];
   const sc = o.seedColors || {};
   const seedBg = kind === 'box' ? (sc.boxBg ?? seed.bg)
     : kind === 'image' ? (sc.imageBg ?? seed.bg)
@@ -1212,7 +1212,7 @@ export function penpotGroupToSvg(group: unknown, lookup: (id: string) => unknown
  * @param {object} shape a parsed `<shape-id>.json`.
  * @returns {object|null}
  */
-export function penpotShapeToNode(shape: unknown): DesignNode | null {
+export function penpotShapeToNode(shape: unknown, options: { preserveHierarchy?: boolean } = {}): DesignNode | null {
   if (!shape || typeof shape !== 'object') return null;
   const sh = shape as PenpotShape;
   // The all-zeros root frame is the infinite-canvas origin (size ~0.01), not a shape.
@@ -1227,6 +1227,8 @@ export function penpotShapeToNode(shape: unknown): DesignNode | null {
   const rot = num(sh.rotation, 0);
   const shapeOp = num(sh.opacity, 1);
   const fills: PenpotFill[] = Array.isArray(sh.fills) ? (sh.fills as PenpotFill[]) : [];
+
+  if (type === 'group' && options.preserveHierarchy) return { kind: 'group', x, y, w, h, rot, fill: '', opacity: clamp(Math.round(shapeOp * 100), 0, 100) };
 
   // Text - rich content tree (reuse the shared parser; it handles camelCase keys).
   if (type === 'text' && sh.content) {
