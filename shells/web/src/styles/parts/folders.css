@@ -98,6 +98,8 @@
   display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover;
   background: var(--ui-color-surface-muted);
 }
+/* Keep a shared-session click on its anchor while its decorative preview hydrates. */
+a.tile-primary[data-open-team-session] > .tile-cover { pointer-events: none; }
 .tile-cover--batch, .tile-cover--empty {
   display: flex; align-items: center; justify-content: center;
   color: var(--ui-color-text-muted);
