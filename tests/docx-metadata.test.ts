@@ -7,8 +7,10 @@ import { XmlDocument } from 'libxml2-wasm';
 import { openDocxMetadata } from '../engine/src/docx-metadata.ts';
 import { readZipMembers, decodeZipMember, storeZip, storeZipMembers } from '../engine/src/zip.ts';
 import { inspectPreparation, applyPreparation } from '../engine/src/prepare.ts';
+import { withExtendedFixtureProperties } from './fixtures/docx-metadata/generate-extended.ts';
 
 const fixture = new Uint8Array(readFileSync(new URL('./fixtures/docx-metadata/metadata.docx', import.meta.url)));
+const extendedFixture = new Uint8Array(readFileSync(new URL('./fixtures/docx-metadata/extended-properties.docx', import.meta.url)));
 const utf8 = (text: string): Uint8Array => new TextEncoder().encode(text);
 const members = (bytes: Uint8Array = fixture) => readZipMembers(bytes);
 const part = (path: string, bytes: Uint8Array = fixture): Uint8Array => decodeZipMember(members(bytes).find(m => m.name === path)!);
@@ -190,4 +192,122 @@ test('Prepare removal choices are source-bound, granular, removal-only and value
   await assert.rejects(applyPreparation([{ ...source, bytes: result.outputs[0]!.bytes }], inspection, [{ groupId: group.id, replacement: '' }]), /changed/);
   const nested = await inspectPreparation([{ id: 'zip', name: 'bundle.zip', bytes: storeZip([{ name: 'file.docx', bytes: fixture }]) }]);
   assert(nested.groups.every(g => g.readOnly));
+});
+
+test('the maintained extended fixture derives only its app part from the authored Writer source', () => {
+  assert.deepEqual(withExtendedFixtureProperties(fixture), extendedFixture);
+  const doc = openDocxMetadata(extendedFixture, 'file.docx'); assert.equal(doc.supported, true);
+  assert.equal(doc.properties.find(p => p.id === 'app:Company')?.value, 'Private fixture company');
+  assert.equal(doc.properties.find(p => p.id === 'app:Manager')?.value, 'Private fixture manager');
+  for (const member of members()) if (member.name !== 'docProps/app.xml') {
+    const current = members(extendedFixture).find(m => m.name === member.name)!;
+    assert.deepEqual(current.local, member.local, member.name); assert.deepEqual(current.compressed, member.compressed, member.name);
+  }
+  independentXml(part('docProps/app.xml', extendedFixture));
+});
+
+test('Company and Manager can be removed individually or together while other app data stays exact', () => {
+  const retained = '<HyperlinkBase>https://example.invalid/private-base/</HyperlinkBase><DocSecurity>4</DocSecurity><HeadingPairs><vt:vector size="2" baseType="variant"><vt:variant><vt:lpstr>Private heading</vt:lpstr></vt:variant><vt:variant><vt:i4>1</vt:i4></vt:variant></vt:vector></HeadingPairs>';
+  const app = text(part('docProps/app.xml', extendedFixture)).replace('</Properties>', `${retained}</Properties>`);
+  const input = replace('docProps/app.xml', utf8(app), extendedFixture), original = input.slice();
+  const doc = openDocxMetadata(input, 'file.docx'); assert.equal(doc.supported, true);
+  for (const selected of [['app:Company'], ['app:Manager'], ['app:Company', 'app:Manager']]) {
+    const output = doc.remove(selected), after = openDocxMetadata(output, 'copy.docx'); assert.equal(after.supported, true);
+    assert(after.properties.every(p => !selected.includes(p.id)));
+    let expected = app;
+    for (const id of selected) { const name = id.slice(4); expected = expected.replace(new RegExp(`<${name}>[^<]*</${name}>`), ''); }
+    assert.equal(text(part('docProps/app.xml', output)), expected);
+    independentXml(part('docProps/app.xml', output));
+    for (const member of members(input)) if (member.name !== 'docProps/app.xml') {
+      const current = members(output).find(m => m.name === member.name)!;
+      assert.deepEqual(current.local, member.local, member.name); assert.deepEqual(current.compressed, member.compressed, member.name);
+    }
+    assert.deepEqual(after.properties.filter(p => !p.id.startsWith('app:')), doc.properties.filter(p => !p.id.startsWith('app:')));
+    for (const id of ['app:Company', 'app:Manager']) if (!selected.includes(id)) assert.deepEqual(after.properties.find(p => p.id === id)?.value, doc.properties.find(p => p.id === id)?.value);
+  }
+  assert.equal(doc.remove([]), input); assert.deepEqual(input, original);
+  assert.throws(() => doc.remove(['app:Application']), /Invalid DOCX/);
+  for (const path of ['[Content_Types].xml', '_rels/.rels']) assert.deepEqual(part(path, doc.remove(['app:Company', 'app:Manager'])), part(path, input));
+});
+
+test('extended-property surgery retains UTF-8 and UTF-16 BOMs and all unselected XML text', () => {
+  const app = text(part('docProps/app.xml', extendedFixture));
+  const encodings = [utf16(app.replace(/encoding="UTF-8"/i, 'encoding="UTF-16"'), true), utf16(app.replace(/encoding="UTF-8"/i, 'encoding="UTF-16"'), false)];
+  const bom = new Uint8Array(utf8(app).length + 3); bom.set([0xef, 0xbb, 0xbf]); bom.set(utf8(app), 3); encodings.push(bom);
+  for (const encoded of encodings) {
+    const input = replace('docProps/app.xml', encoded, extendedFixture), doc = openDocxMetadata(input, 'file.docx'); assert.equal(doc.supported, true);
+    const output = doc.remove(['app:Company']), result = part('docProps/app.xml', output);
+    assert.deepEqual(result.subarray(0, encoded[0] === 0xef ? 3 : 2), encoded.subarray(0, encoded[0] === 0xef ? 3 : 2));
+    assert.equal(text(result), text(encoded).replace(/<Company>[^<]*<\/Company>/, '')); independentXml(result);
+    assert.equal(openDocxMetadata(output, 'copy.docx').properties.find(p => p.id === 'app:Manager')?.value, 'Private fixture manager');
+  }
+});
+
+test('extended properties use expanded namespaces, ignore spoofs and reject ambiguous or structured strings', () => {
+  const app = text(part('docProps/app.xml', extendedFixture)), uri = 'http://schemas.openxmlformats.org/officeDocument/2006/extended-properties';
+  const aliases = app.replace('<Company>', `<alias:Company xmlns:alias="${uri}">`).replace('</Company>', '</alias:Company>').replace('<Manager>', `<alias:Manager xmlns:alias="${uri}">`).replace('</Manager>', '</alias:Manager>');
+  const input = replace('docProps/app.xml', utf8(aliases), extendedFixture), doc = openDocxMetadata(input, 'file.docx'); assert.equal(doc.supported, true);
+  const output = doc.remove(['app:Company']); assert(!openDocxMetadata(output, 'copy.docx').properties.some(p => p.id === 'app:Company')); independentXml(part('docProps/app.xml', output));
+  const spoof = app.replace('<Company>', '<fake:Company xmlns:fake="urn:unrelated">').replace('</Company>', '</fake:Company>');
+  const guarded = openDocxMetadata(replace('docProps/app.xml', utf8(spoof), extendedFixture), 'file.docx'); assert.equal(guarded.supported, true); assert(!guarded.properties.some(p => p.id === 'app:Company'));
+  assert.equal(text(part('docProps/app.xml', guarded.remove(['app:Manager']))), spoof.replace(/<Manager>[^<]*<\/Manager>/, ''));
+  for (const name of ['Company', 'Manager']) {
+    const duplicate = app.replace('</Properties>', `<alias:${name} xmlns:alias="${uri}">Duplicate</alias:${name}></Properties>`);
+    assert.equal(openDocxMetadata(replace('docProps/app.xml', utf8(duplicate), extendedFixture), 'file.docx').supported, false);
+    const structured = app.replace(`<${name}>`, `<${name}><vt:lpwstr>`).replace(`</${name}>`, `</vt:lpwstr></${name}>`);
+    assert.equal(openDocxMetadata(replace('docProps/app.xml', utf8(structured), extendedFixture), 'file.docx').supported, false);
+    const attribute = app.replace(`<${name}>`, `<${name} unexpected="value">`);
+    assert.equal(openDocxMetadata(replace('docProps/app.xml', utf8(attribute), extendedFixture), 'file.docx').supported, false);
+  }
+  const empty = app.replace(/<Company>[^<]*<\/Company>/, '<Company/>');
+  assert(!openDocxMetadata(openDocxMetadata(replace('docProps/app.xml', utf8(empty), extendedFixture), 'file.docx').remove(['app:Company']), 'copy.docx').properties.some(p => p.id === 'app:Company'));
+});
+
+test('canonical app declarations and extended DigSig are required for every DOCX cleanup', () => {
+  const app = text(part('docProps/app.xml', extendedFixture));
+  const types = text(part('[Content_Types].xml', extendedFixture)), rels = text(part('_rels/.rels', extendedFixture));
+  for (const [path, changed] of [
+    ['docProps/app.xml', app.replace('http://schemas.openxmlformats.org/officeDocument/2006/extended-properties', 'urn:unrelated')],
+    ['[Content_Types].xml', types.replace('application/vnd.openxmlformats-officedocument.extended-properties+xml', 'application/xml')],
+    ['_rels/.rels', rels.replace('http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties', 'urn:unrelated')],
+    ['_rels/.rels', rels.replace('Target="docProps/app.xml"', 'Target="docProps/missing.xml"')],
+    ['_rels/.rels', rels.replace('Target="docProps/app.xml"', 'Target="docProps/app.xml" TargetMode="External"')],
+    ['_rels/.rels', rels.replace('Target="docProps/app.xml"', 'Target="docProps/app.xml" TargetMode=""')],
+    ['_rels/.rels', rels.replace(/<Relationship\b[^>]*Target="docProps\/app.xml"[^>]*\/>/, match => match.replace(/\bId="[^"]*"/, 'Id=""'))],
+    ['_rels/.rels', rels.replace(/<Relationship\b[^>]*Target="docProps\/app.xml"[^>]*\/>/, match => match.replace(/\bId="[^"]*"/, 'Id="not a name"'))],
+  ]) assert.equal(openDocxMetadata(replace(path!, utf8(changed!), extendedFixture), 'file.docx').supported, false);
+  const missing = storeZipMembers(members(extendedFixture).filter(m => m.name !== 'docProps/app.xml'));
+  assert.equal(openDocxMetadata(missing, 'file.docx').supported, false);
+  for (const signature of ['<DigSig>U2lnbmF0dXJl</DigSig>', '<DigSig/>', '<s:DigSig xmlns:s="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"/>']) {
+    const signed = replace('docProps/app.xml', utf8(app.replace('</Properties>', `${signature}</Properties>`)), extendedFixture), doc = openDocxMetadata(signed, 'file.docx');
+    assert.equal(doc.supported, false); assert(doc.limitations.some(l => l.includes('digital-signature'))); assert.throws(() => doc.remove(['core:creator']), /unavailable/);
+  }
+  const unrelated = replace('docProps/app.xml', utf8(app.replace('</Properties>', '<s:DigSig xmlns:s="urn:unrelated">Retained</s:DigSig></Properties>')), extendedFixture);
+  assert.equal(openDocxMetadata(unrelated, 'file.docx').supported, true);
+  assert(text(part('docProps/app.xml', openDocxMetadata(unrelated, 'file.docx').remove(['app:Company']))).includes('xmlns:s="urn:unrelated">Retained'));
+});
+
+test('Company and Manager fields or bound controls remain inspect-only despite cached display text', () => {
+  const body = text(part('word/document.xml', extendedFixture));
+  for (const name of ['Company', 'Manager']) for (const markup of [
+    `<w:fldSimple w:instr=" DOCPROPERTY ${name} "><w:r><w:t>Cached ${name}</w:t></w:r></w:fldSimple>`,
+    `<w:p><w:r><w:instrText> DOCPRO</w:instrText></w:r><w:hyperlink><w:r><w:instrText>PERTY ${name} </w:instrText></w:r></w:hyperlink><w:r><w:t>Cached ${name}</w:t></w:r></w:p>`,
+    `<w:sdt><w:sdtPr><w:dataBinding w:prefixMappings="xmlns:ap='http://schemas.openxmlformats.org/officeDocument/2006/extended-properties'" w:xpath="/ap:Properties/ap:${name}" w:storeItemID="{66666666-1111-2222-3333-444444444444}"/></w:sdtPr><w:sdtContent><w:p><w:r><w:t>Cached ${name}</w:t></w:r></w:p></w:sdtContent></w:sdt>`,
+  ]) {
+    const input = replace('word/document.xml', utf8(body.replace('<w:body>', `<w:body>${markup}`)), extendedFixture), doc = openDocxMetadata(input, 'file.docx');
+    independentXml(part('word/document.xml', input)); assert.equal(doc.supported, false); assert.throws(() => doc.remove([`app:${name}`]), /unavailable/);
+  }
+});
+
+test('extended Prepare choices stay granular and source-bound with private reports and byte-identical no-op', async () => {
+  const source = { id: 'doc', name: 'private-extended.docx', bytes: extendedFixture }, inspection = await inspectPreparation([source]);
+  const fields = ['app:Company', 'app:Manager'].map(id => inspection.findings.find(f => f.propertyId === id && f.action === 'remove-property')!);
+  assert(fields.every(field => field?.groupId)); assert.notEqual(fields[0]!.groupId, fields[1]!.groupId);
+  const unchanged = await applyPreparation([source], inspection, []); assert.deepEqual(unchanged.outputs[0]!.bytes, extendedFixture); assert.equal(unchanged.report.replaced, 0);
+  const choices = [{ groupId: fields[0]!.groupId, replacement: '' }], result = await applyPreparation([source], inspection, choices);
+  assert.equal(result.report.replaced, 1); assert(!result.inspection.findings.some(f => f.propertyId === 'app:Company'));
+  assert(result.inspection.findings.some(f => f.propertyId === 'app:Manager' && f.value === 'Private fixture manager'));
+  assert.doesNotMatch(JSON.stringify(result.report), /Private fixture|private-extended|docProps/);
+  await assert.rejects(applyPreparation([{ ...source, bytes: result.outputs[0]!.bytes }], inspection, choices), /changed/);
+  assert.deepEqual(source.bytes, extendedFixture);
 });
