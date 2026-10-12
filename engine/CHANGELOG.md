@@ -6,6 +6,11 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.258.0
+
+- Design layers can link Enter duration and geometry easing to one zero-delay transition token. Compatible values apply together, preserve token references through save and reload, and support per-field custom values and whole-transition Restore in one undo step.
+- Transition refresh validates the complete source and every active target before writing. Invalid sources retain cached values, and pending inspector actions are cancelled when the inspector closes or selection changes. Opacity keeps its existing preset easing.
+
 ## 1.257.0
 
 - Design 1.50 supports group fill sizing through the modern Penpot solver and intrinsic bounds for group Hug sizing. Descendant transforms remain derived geometry; a resize that would require skew is refused atomically.

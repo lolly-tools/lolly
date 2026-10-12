@@ -4014,7 +4014,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.257.0";
+    ENGINE_VERSION = "1.258.0";
   }
 });
 
@@ -9642,6 +9642,22 @@ var init_units = __esm({
 // engine/src/token-consumer-adapters.ts
 function adaptTokenEntry(entry2, adapter) {
   const make = (type, value) => ({ ...entry2, type, value });
+  if (adapter === "transition" || adapter === "transition.duration-ms" || adapter === "transition.timingFunction") {
+    if (entry2.type !== "transition" || !record2(entry2.value)) return "This consumer needs a single resolved composite token.";
+    const value = entry2.value;
+    if (["duration", "delay", "timingFunction"].some((field2) => value[field2] === void 0)) return "The composite is missing a required property.";
+    const duration = adaptTokenEntry(make("duration", value.duration), "duration-ms");
+    if (typeof duration === "string") return duration;
+    const delay = adaptTokenEntry(make("duration", value.delay), "duration-ms");
+    if (typeof delay === "string") return delay;
+    if (typeof duration.value !== "number" || !Number.isFinite(duration.value) || typeof delay.value !== "number" || !Number.isFinite(delay.value)) return "The resolved value is outside this field range.";
+    if (delay.value !== 0) return "This layer timing control cannot apply a delay. Choose a transition with zero delay.";
+    const curve = adaptTokenEntry(make("cubicBezier", value.timingFunction), "cubic-bezier");
+    if (typeof curve === "string") return curve;
+    if (adapter === "transition.duration-ms") return duration;
+    if (adapter === "transition.timingFunction") return curve;
+    return make("string", JSON.stringify(value));
+  }
   if (adapter.startsWith("typography") || adapter.startsWith("shadow") || adapter.startsWith("border")) {
     const [kind, field2] = adapter.split(".");
     if (entry2.type !== kind || !record2(entry2.value)) return "This consumer needs a single resolved composite token.";
@@ -9661,12 +9677,12 @@ function adaptTokenEntry(entry2, adapter) {
     return make(fields[kind][field2], value[field2]);
   }
   if (adapter === "duration-ms" || adapter === "duration-s") {
-    if (entry2.type !== "duration" || !record2(entry2.value) || !["ms", "s"].includes(String(entry2.value.unit)) || typeof entry2.value.value !== "number" || !Number.isFinite(entry2.value.value) || entry2.value.value < 0) return "Duration tokens need a finite nonnegative value in ms or s.";
+    if (entry2.type !== "duration" || !record2(entry2.value) || entry2.value.unit !== "ms" && entry2.value.unit !== "s" || typeof entry2.value.value !== "number" || !Number.isFinite(entry2.value.value) || entry2.value.value < 0) return "Duration tokens need a finite nonnegative value in ms or s.";
     return make("number", entry2.value.value * (entry2.value.unit === "s" ? 1e3 : 1) / (adapter === "duration-s" ? 1e3 : 1));
   }
   if (adapter === "cubic-bezier") {
     const v = entry2.value;
-    if (entry2.type !== "cubicBezier" || !Array.isArray(v) || v.length !== 4 || !v.every((n7) => typeof n7 === "number" && Number.isFinite(n7) && Math.abs(n7) <= 100) || v[0] < 0 || v[0] > 1 || v[2] < 0 || v[2] > 1) return "A cubic Bezier token needs four finite controls, with x controls between 0 and 1.";
+    if (entry2.type !== "cubicBezier" || !Array.isArray(v) || v.length !== 4 || ![0, 1, 2, 3].every((i) => Object.hasOwn(v, i) && typeof v[i] === "number" && Number.isFinite(v[i]) && Math.abs(v[i]) <= 100) || v[0] < 0 || v[0] > 1 || v[2] < 0 || v[2] > 1) return "A cubic Bezier token needs four finite controls, with x controls between 0 and 1.";
     return make("string", `cubic-bezier(${v.join(",")})`);
   }
   if (adapter === "ratio") return entry2.type === "number" && typeof entry2.value === "number" && Number.isFinite(entry2.value) ? entry2 : "Line height needs a unitless number token.";
@@ -9690,7 +9706,7 @@ var init_token_consumer_adapters = __esm({
     init_tokens2();
     init_color_face();
     init_gradient_spec();
-    TOKEN_ADAPTERS = ["typography", "typography.fontFamily", "typography.fontSize", "typography.fontWeight", "typography.letterSpacing", "typography.lineHeight", "shadow", "shadow.color", "shadow.offsetX", "shadow.offsetY", "shadow.blur", "border", "border.color", "border.width", "border.style", "border.dashArray", "border.dashLength", "border.gapLength", "duration-ms", "duration-s", "cubic-bezier", "gradient", "ratio"];
+    TOKEN_ADAPTERS = ["typography", "typography.fontFamily", "typography.fontSize", "typography.fontWeight", "typography.letterSpacing", "typography.lineHeight", "shadow", "shadow.color", "shadow.offsetX", "shadow.offsetY", "shadow.blur", "border", "border.color", "border.width", "border.style", "border.dashArray", "border.dashLength", "border.gapLength", "transition", "transition.duration-ms", "transition.timingFunction", "duration-ms", "duration-s", "cubic-bezier", "gradient", "ratio"];
     isTokenAdapter = (value) => typeof value === "string" && TOKEN_ADAPTERS.includes(value);
     record2 = (value) => !!value && typeof value === "object" && !Array.isArray(value);
     fields = {
@@ -9705,6 +9721,12 @@ var init_token_consumer_adapters = __esm({
 function resolveTokenBinding(entry2, consumer) {
   if (!entry2 || isAlias(entry2.value)) return { status: "unresolved", reason: "The token has no resolved value." };
   const bad = (reason2) => ({ status: "incompatible", reason: reason2 });
+  if (consumer.adapter === "transition") {
+    const duration = resolveTokenBinding(entry2, { type: "number", adapter: "transition.duration-ms", min: consumer.min, max: consumer.max });
+    if (duration.status !== "linked") return duration;
+    const curve = resolveTokenBinding(entry2, { type: "text", adapter: "transition.timingFunction", maxLength: consumer.maxLength });
+    if (curve.status !== "linked") return curve;
+  }
   if (consumer.adapter === "typography" || consumer.adapter === "shadow" || consumer.adapter === "border") {
     const kind = consumer.adapter;
     const targets = kind === "typography" ? [["fontFamily", "text"], ["fontSize", "number"], ["fontWeight", "number"], ["letterSpacing", "number"], ["lineHeight", "number"]] : kind === "border" ? [["color", "color"], ["width", "number"], ["style", "text"]] : [["color", "color"], ["offsetX", "number"], ["offsetY", "number"], ["blur", "number"]];
@@ -9754,6 +9776,10 @@ var init_token_binding = __esm({
 });
 
 // engine/src/token-block-bindings.ts
+function atomicBindingGroup(link) {
+  const family2 = link.adapter?.startsWith("border.") ? "border" : link.adapter?.startsWith("transition.") ? "transition" : void 0;
+  return family2 ? `${family2}:${link.ref}` : void 0;
+}
 function readLink(value) {
   if (!record3(value) || !isAlias(value.ref) || value.ref.length > 1024 || !scalar(value.value)) return null;
   return {
@@ -10086,20 +10112,23 @@ function resolveBlockTokenBindings(rows2, metadataField, fields2, set, colorTarg
     if (!Object.keys(links).length) return row;
     const next2 = { ...row };
     let moved = false;
-    const heldBorders = /* @__PURE__ */ new Map();
-    const borderResults = /* @__PURE__ */ new Map();
+    const heldGroups = /* @__PURE__ */ new Map();
+    const atomicResults = /* @__PURE__ */ new Map();
+    const entries = /* @__PURE__ */ new Map();
     for (const [id3, link] of Object.entries(links)) {
-      const field2 = byId.get(id3);
-      if (link.custom || !link.adapter?.startsWith("border.") || !field2 || id3 === metadataField) continue;
-      const result = resolveTokenBinding(set?.get(aliasPath(link.ref)), { ...field2, type: field2.type ?? "text", colorTarget, adapter: link.adapter });
-      borderResults.set(id3, result);
-      if (result.status !== "linked") heldBorders.set(link.ref, result);
+      const field2 = byId.get(id3), group = atomicBindingGroup(link);
+      if (link.custom || !group || !field2 || id3 === metadataField) continue;
+      if (!entries.has(link.ref)) entries.set(link.ref, set?.get(aliasPath(link.ref)));
+      const result = resolveTokenBinding(entries.get(link.ref), { ...field2, type: field2.type ?? "text", colorTarget, adapter: link.adapter });
+      atomicResults.set(id3, result);
+      if (result.status !== "linked") heldGroups.set(group, result);
     }
     for (const [id3, link] of Object.entries(links)) {
       if (link.custom || link.mode === "tint") continue;
       const field2 = byId.get(id3);
       if (!field2 || id3 === metadataField) continue;
-      const result = link.adapter?.startsWith("border.") && heldBorders.has(link.ref) ? heldBorders.get(link.ref) : borderResults.get(id3) ?? resolveTokenBinding(set?.get(aliasPath(link.ref)), { ...field2, type: field2.type ?? "text", colorTarget, adapter: link.adapter });
+      const group = atomicBindingGroup(link);
+      const result = group && heldGroups.has(group) ? heldGroups.get(group) : atomicResults.get(id3) ?? resolveTokenBinding(set?.get(aliasPath(link.ref)), { ...field2, type: field2.type ?? "text", colorTarget, adapter: link.adapter });
       if (result.status === "linked" && scalar(result.value)) {
         if (next2[id3] !== result.value) moved = true;
         next2[id3] = result.value;
