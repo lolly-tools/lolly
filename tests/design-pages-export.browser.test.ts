@@ -6,7 +6,7 @@ import { chromium } from 'playwright';
 import { webGpuLaunchArgs } from '../packages/node-shell/src/webgpu-launch.ts';
 import type { Runtime } from '../engine/src/runtime.ts';
 
-const origin = process.env.LOLLY_HIERARCHY_TEST_URL;
+const origin = process.env.LOLLY_HIERARCHY_TEST_URL ?? process.env.LOLLY_IMPORT_TEST_URL ?? process.env.LOLLY_EXPORT_TEST_URL;
 test('detached Design export contains every page while the editor keeps its active page', { skip: origin ? false : 'Set LOLLY_HIERARCHY_TEST_URL to a local web shell.', timeout: 120_000 }, async () => {
   const browser = await chromium.launch({ headless: true, args: webGpuLaunchArgs('software') });
   try {

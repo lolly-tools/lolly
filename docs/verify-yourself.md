@@ -122,10 +122,16 @@ rewrite its credential.
 needs a processor and jurisdiction entry in the instance's privacy notice.
 Same-origin delivery is the default and introduces no new third-party CDN.
 Private refusals and errors must return `private, no-store` and `CDN-Cache-Control:
-no-store`. Principal-bound MCP download links are held in this release; their
-qualification must demonstrate that another bearer cannot fetch a result and
-that the same caller loses access after 300 seconds. Public rendering can remain
-stale at an edge for one day plus seven days while revalidating unless the
+no-store`. Optional principal-bound MCP download links require an authenticated,
+single-replica gateway and operator enablement; anonymous MCP replies stay inline.
+The planned `mcp.lolly.tools` endpoint uses UpCloud in Frankfurt, and activation
+is pending. Before enabling it, demonstrate that the same validated render
+bearer can fetch the result, another bearer cannot, and access ends within
+300 seconds. Verify expiry cleanup of private temporary files, invalidation on
+restart, decoded-byte daily-budget accounting and `Referrer-Policy: no-referrer`.
+These checks qualify that configured gateway, not an anonymous result cache.
+Public rendering can remain stale at an edge for one day plus seven days while
+revalidating unless the
 operator changes the release cache key or purges the affected tags. The
 deployment guide states that bound and the release steps; the probe cannot
 establish a host's actual log retention.

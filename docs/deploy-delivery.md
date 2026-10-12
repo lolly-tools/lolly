@@ -46,7 +46,7 @@ public file's caching policy.
 | Public bounded | Default: one hour in the browser, one day at an edge, up to seven days stale while revalidating | Public unsigned `/tool/` renders. Image proxy responses use the upstream's permitted age, capped at one hour |
 | Instance private | Browser revalidation by default, or an explicit lifetime of at most 300 seconds; shared caches must not store the response | Authorised catalogs and instance files where reuse is permitted |
 | Person private | `private, no-store, max-age=0, no-transform`; shared caches also receive `no-store` | Personal results, refusals and errors |
-| Link | Private, at most 300 seconds, never shared-cached; token-bearing requests use `no-referrer` | Optional principal-bound download links, held in this release |
+| Link | Private, at most 300 seconds, never shared-cached; token-bearing requests use `no-referrer` | Optional principal-bound downloads on an operator-enabled authenticated single-replica MCP gateway |
 
 The service worker is separately revalidated and never shared-cached. Public
 validators describe the exact representation: compressed and identity responses
@@ -155,12 +155,27 @@ wildcard, and qualify its actual responses before activating new model URLs.
 Changing a bucket's allowed origins alone does not prove that its delivered
 headers satisfy this requirement. Keep existing aliases and additive objects.
 
-Principal-bound MCP result downloads remain held pending qualification. Do not
-enable them as an anonymous output cache. A qualified deployment must bind the
-token to the authenticated caller and require that caller's bearer on download,
-expire held memory within 300 seconds and use a single gateway replica or session
-affinity. Private workspace editing and invited document agents are separate
-services.
+Principal-bound MCP result downloads are an optional capability, off by default.
+An operator enables `LOLLY_MCP_PRIVATE_FILES=1`, configures an authenticated
+gateway and its fixed `LOLLY_MCP_PUBLIC_ORIGIN`, and runs one replica
+(`LOLLY_MCP_REPLICAS=1`, or Helm's `mcp.privateFiles.enabled: true` with
+`mcp.replicaCount: 1`). Use a Recreate update: ownership and result lookup belong
+to that process, and a restart invalidates its existing links.
+
+The reference restricted hostname is planned as `mcp.lolly.tools`, using the
+same UpCloud processor in Frankfurt. Activation is pending. Publish its hostname
+and data handling before enabling it; no third-party CDN is added. Preserve the
+existing anonymous gateway's inline response mode.
+
+Qualification must show that a result link is bound to the same validated bearer
+used for its render, refuses another bearer and expires within 300 seconds.
+Output bytes use private temporary files, with expiry pruning and clean-shutdown
+removal; the lookup and ownership state remain in memory. Verify per-bearer and
+gateway holding limits, daily CPU and decoded-byte accounting for holds and
+downloads, restart invalidation, and private refusals as well as successful
+responses. Require `private, no-store` and `Referrer-Policy: no-referrer`; do not
+turn this into an anonymous output cache. Private workspace editing and invited
+document agents are separate services.
 
 ## Disclose and qualify before enabling an edge
 

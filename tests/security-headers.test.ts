@@ -336,9 +336,30 @@ test('delivery processor disclosure identifies current hosts and the unactivated
   assert.match(privacy, /No third-party CDN is activated/);
   assert.match(privacy, /Before adding any CDN or external model host/);
   assert.match(privacy, /jurisdictions, metadata received, retention/);
-  assert.match(privacy, /Principal-bound MCP download links are held in this release/);
+  assert.match(privacy, /Optional principal-bound MCP download links/);
   assert.match(privacy, /same caller's bearer is required/);
   assert.match(privacy, /300 seconds/);
   assert.match(privacy, /Private workspace responses bypass shared caches/);
   assert.doesNotMatch(privacy, /hosting is Vercel|Vercel's platform default/);
+});
+
+test('optional restricted MCP disclosure names the processor before activation and preserves private output boundaries', () => {
+  const privacy = read('docs/privacy.md');
+  const row = privacy.split('\n').find(line => line.startsWith('| mcp.lolly.tools |'));
+  assert.ok(row, 'The separate restricted hostname must be disclosed before activation');
+  assert.match(row, /Planned optional authenticated MCP/);
+  assert.match(row, /UpCloud hosting/);
+  assert.match(row, /Frankfurt, Germany/);
+  assert.match(row, /same hosting processor/);
+  assert.match(row, /Activation pending/);
+  const flow = privacy.split('**Optional principal-bound MCP download links.**')[1]?.split('## Infrastructure logs')[0];
+  assert.ok(flow, 'Private result handling needs its own bounded disclosure');
+  const text = flow.replace(/\s+/g, ' ');
+  for (const pattern of [/off by default/, /anonymous gateway .*inline results and never issues these links/,
+    /authenticated, single-replica/, /validated bearer from the render call/, /expires within 300 seconds/,
+    /gateway memory/, /private temporary files/, /pruned after expiry/, /clean shutdown/,
+    /restart invalidates existing links/, /Daily CPU and decoded-byte budgets/,
+    /private, no-store/, /Referrer-Policy: no-referrer/, /activation is pending/,
+    /no third-party CDN/]) assert.match(text, pattern);
+  assert.doesNotMatch(privacy, /MCP download links are held in this release/);
 });

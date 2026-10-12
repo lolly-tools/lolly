@@ -296,8 +296,10 @@ Self-hosting Lolly and don't want a public render surface? Set
 
 Lolly can also be reached by an AI agent over the Model Context Protocol - an
 operator-run endpoint (lolly.tools runs one; anyone can self-host their own,
-including fully air-gapped). It shares the render path's no-accounts posture,
-plus the tools that necessarily handle file bytes:
+including fully air-gapped). The existing anonymous endpoint shares the render
+path's no-accounts posture and uses inline responses. Those inline calls handle
+file bytes as follows; the optional authenticated result-link mode has the
+separate temporary-output handling described under Delivery hosts and processors:
 
 - <!--i:cpu--> **`lolly_transform`** (run an on-device utility server-side, on the calling
   agent's behalf), **`lolly_verify`** (check Content Credentials), **`lolly_redact`**
@@ -325,10 +327,10 @@ plus the tools that necessarily handle file bytes:
   Its calls are limited per address and by a daily budget: the address becomes
   a one-way-derived bucket key in the abuse-control store, as on the sign-in
   endpoints below, and the budget counts only CPU time and bytes sent, with no
-  address. `mcp.lolly.tools` takes a shared token the operator issues to clients
-  they trust, or stateless OAuth 2.1: short-lived signed tokens verified against
-  a shared secret, nothing stored server-side and the token itself is never
-  written to a log or a render URL.
+  address. The planned optional restricted endpoint at `mcp.lolly.tools` uses a
+  bearer token the operator issues to trusted clients, or stateless OAuth 2.1:
+  short-lived signed tokens verified against a shared secret. Activation is
+  pending. The bearer token itself is never written to a log or a render URL.
 
 ## Content Credentials identity (a sign-in you have to start yourself)
 
@@ -435,6 +437,7 @@ inventory, not a claim that another organisation's instance uses the same region
 |---|---|---|
 | lolly.tools | Public shell, catalog, rendering and certificate services; UpCloud hosting | Frankfurt, Germany. Request metadata can appear in infrastructure logs; ordinary local editing stays on the device |
 | lolly.ing | Managed workspace and document-agent services; UpCloud hosting | Frankfurt, Germany. Private database and blob storage are on the same host. Accounts, shared content and service records follow the instance administrator's policy |
+| mcp.lolly.tools | Planned optional authenticated MCP gateway and private result downloads; UpCloud hosting | Frankfurt, Germany, using the same hosting processor. Activation pending. The gateway receives request metadata and the parameters or files explicitly sent by its caller |
 | lolli.li | Public release and model files; UpCloud Managed Object Storage, separate from the application cluster | Frankfurt, Germany, in UpCloud's europe-2 object-storage region. A download sends request metadata, not the inputs later processed by the model |
 | Configured identity provider | Google, GitHub or an operator's OIDC provider | Sign-in follows that provider's policy. The instance must disclose the configured hostname, region and transfer arrangements |
 | Configured asset provider | Brandfolder or another operator-selected library | The provider receives permitted library requests. Its source permissions and the instance's policy govern access; the operator must disclose its hostnames and regions |
@@ -454,14 +457,24 @@ Private workspace responses bypass shared caches. Personal results, access
 refusals and errors use `private, no-store`; a permitted private response can
 revalidate in the reader's browser without becoming public.
 
-**Principal-bound MCP download links are held in this release.** Public MCP
-results continue to use the existing response path. The optional download mode
-must be qualified before enabling it: only an authenticated caller with a file
-scope may receive a link, the same caller's bearer is required to fetch it, and
-the download token expires within 300 seconds. Held output would remain in
-process memory for that interval, count against the caller's budget and be
-discarded on expiry. Anonymous callers must never receive such links. A link's
-token is not authority for another person or agent to read the result.
+**Optional principal-bound MCP download links.** An operator can enable this
+capability on an authenticated, single-replica gateway after qualification. It is
+off by default. The existing anonymous gateway at `lolly.tools/api/mcp` continues
+to return inline results and never issues these links. The planned restricted
+hostname is `mcp.lolly.tools`, on the same UpCloud processor in Frankfurt;
+activation is pending and this disclosure does not claim a live result-link
+service. It introduces no third-party CDN.
+
+Only an authenticated caller with a file scope may receive a link. The same caller's bearer is required
+to fetch it: use the validated bearer from the render
+call, rather than another token for the same account. The grant expires within
+300 seconds. Ownership and result lookup stay in gateway memory; output bytes
+use private temporary files, pruned after expiry or removed on clean shutdown.
+A gateway restart invalidates existing links. Held results are limited to 64 MiB
+per bearer, 256 MiB across the gateway and 200 pending or held files. Daily CPU
+and decoded-byte budgets also count results when held and downloaded. Responses
+use `private, no-store` and `Referrer-Policy: no-referrer`. A link's token alone is
+not authority for another person or agent to read the result.
 
 ## Infrastructure logs
 

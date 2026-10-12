@@ -27,10 +27,46 @@ const json = (body: unknown, status = 200): Response =>
 
 const { createInstanceSessionSource, teamProjectOptions, SESSION_BODY_LIMIT, COLLAB_ACTIVE, saveErrorCode } = await import('./session-source.ts');
 const { registerSessionSource, getSessionWriter, _clearSessionSourceForTests } = await import('../lib/session-source.ts');
+const { noteProjectOpened } = await import('./opened-projects.ts');
 const src = createInstanceSessionSource('Acme');
 let config: { can?: Record<string, boolean>; sharing?: { groups?: unknown } } | null = null;
 const writable = createInstanceSessionSource('Acme', () => config);
 const writer = writable.write!;
+
+test('opening keeps one nonblocking POST and drains its ignored response without requiring a successful status', async () => {
+  for (const status of [200, 404]) {
+    calls.length = 0;
+    let emitted = 0;
+    let closed = false;
+    const response = new Response(new ReadableStream<Uint8Array>({
+      pull(controller) {
+        if (emitted === 2) { closed = true; controller.close(); return; }
+        emitted++; controller.enqueue(new TextEncoder().encode('ignored'));
+      },
+    }), { status });
+    router = () => response;
+    assert.equal(noteProjectOpened('prj drain'), undefined, 'navigation does not await the response');
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(response.bodyUsed, true);
+    assert.equal(emitted, 2, 'the body is read to EOF');
+    assert.equal(closed, true, 'the producer emitted its real EOF');
+    assert.equal(response.body!.locked, false, 'the drain released the stream after EOF');
+    assert.deepEqual(calls, [{ url: '/api/v1/projects/prj%20drain/opened', method: 'POST', body: undefined, contentType: null }]);
+  }
+});
+
+test('opening still suppresses transport and response-stream failures without another request', async () => {
+  for (const fail of ['transport', 'stream']) {
+    calls.length = 0;
+    router = () => {
+      if (fail === 'transport') throw new Error('offline');
+      return new Response(new ReadableStream({ start(controller) { controller.error(new Error('short response')); } }));
+    };
+    assert.doesNotThrow(() => noteProjectOpened('prj failure'));
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(calls.length, 1);
+  }
+});
 
 test('label is carried through for the section heading', () => {
   assert.equal(src.label, 'Acme');

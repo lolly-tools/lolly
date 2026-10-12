@@ -377,7 +377,11 @@ export function createInstanceSessionSource(label: string, config?: () => TeamWr
   // Each opening goes to the workspace for the person's own recent list. Nothing waits
   // on the answer: an older workspace without the route simply keeps no such list.
   onProjectOpenedRecord((projectId) => {
-    void instanceFetch(instancePath(`/api/v1/projects/${encodeURIComponent(projectId)}/opened`), { method: 'POST' }).catch(() => {});
+    void instanceFetch(instancePath(`/api/v1/projects/${encodeURIComponent(projectId)}/opened`), { method: 'POST' })
+      // Consume the ignored response to EOF without keeping its body. In HTTP/2,
+      // an unread response can leave the browser request lifecycle unfinished.
+      .then(response => response.body?.pipeTo(new WritableStream({ write() {} })))
+      .catch(() => {});
   });
   return {
     label,
