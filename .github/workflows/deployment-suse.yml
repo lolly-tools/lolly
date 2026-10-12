@@ -116,7 +116,7 @@ jobs:
             *) echo 'Unsupported preparation scope' >&2; exit 1 ;;
           esac
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: '24'
           package-manager-cache: false
@@ -275,7 +275,7 @@ jobs:
             /services/mcp/package.json
             /.github/workflows/deployment-suse.yml
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: '24'
           package-manager-cache: false
@@ -356,7 +356,7 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
           submodules: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: '24'
           package-manager-cache: false
@@ -394,7 +394,7 @@ jobs:
           if(!succeeded || expectedSkips>1) throw Error('Invalid normal CI success inventory');
           writeFileSync(root+'/normal-ci-source.json',JSON.stringify({version:1,source:run.head_sha,ciRun:run.id,ciAttempt:run.run_attempt,workflow:run.path,jobCount:jobs.length},null,2));
           JS
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: normal-main-ci-source-attempt-${{ github.run_attempt }}
           path: ${{ runner.temp }}/normal-ci-source.json
@@ -428,7 +428,7 @@ jobs:
           persist-credentials: false
           submodules: false
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: '26'
           package-manager-cache: false
@@ -475,7 +475,7 @@ jobs:
           persist-credentials: false
           submodules: false
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: '26'
           package-manager-cache: false
@@ -605,7 +605,7 @@ jobs:
             writeFileSync(directory + "/release.json", JSON.stringify({ source: process.env.EXPECTED_SOURCE, runId: process.env.GITHUB_RUN_ID, runAttempt, neutralProfile: true, images, candidateRuntimeQualified: false }, null, 2));
           '
 
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
           name: public-candidate-web-receipts-attempt-${{ github.run_attempt }}
@@ -645,7 +645,7 @@ jobs:
           version: 11.26.0
           run_install: false
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: '24'
           package-manager-cache: false
@@ -679,7 +679,7 @@ jobs:
           '
           (cd "$out" && sha256sum web-dist.tar.gz source.json > SHA256SUMS)
 
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: unsigned-probe-web-shell-attempt-${{ github.run_attempt }}
           path: ${{ runner.temp }}/lolly-probe-web/
@@ -710,7 +710,7 @@ jobs:
           persist-credentials: false
           submodules: false
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: '26'
           package-manager-cache: false
@@ -797,7 +797,7 @@ jobs:
             writeFileSync(directory + "/release.json", JSON.stringify({ source: process.env.EXPECTED_SOURCE, runId: process.env.GITHUB_RUN_ID, neutralProfile: true, images, candidateRuntimeQualified: false }, null, 2));
           '
 
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
           name: public-candidate-service-receipts
@@ -830,7 +830,7 @@ jobs:
           persist-credentials: false
           submodules: false
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: '26'
           package-manager-cache: false
@@ -862,7 +862,7 @@ jobs:
             -f deploy/docker/mcp-browser.Dockerfile \
             -t "lolly-candidate-mcp-browser:$EXPECTED_SOURCE" .
 
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: unsigned-probe-web-shell-attempt-${{ github.run_attempt }}
           path: ${{ runner.temp }}/lolly-probe-web-artifact
@@ -925,7 +925,7 @@ jobs:
             writeFileSync(directory + "/unqualified.json", JSON.stringify({ source: process.env.EXPECTED_SOURCE, runId: process.env.GITHUB_RUN_ID, qualified: false, promotionAllowed: false, purpose: "candidate-only kernel/sandbox diagnosis", files }, null, 2));
           '
 
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: failure() && steps.native_probe.outcome == 'failure'
         with:
           name: unqualified-public-browser-diagnosis
@@ -980,7 +980,7 @@ jobs:
             writeFileSync(directory + "/release.json", JSON.stringify({ source: process.env.EXPECTED_SOURCE, runId: process.env.GITHUB_RUN_ID, runAttempt, neutralProfile: true, images, candidateRuntimeQualified: false }, null, 2));
           '
 
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
           name: public-candidate-mcp-browser-receipts-attempt-${{ github.run_attempt }}
@@ -1019,7 +1019,7 @@ jobs:
           version: 11.26.0
           run_install: false
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: '24'
           package-manager-cache: false
@@ -1054,7 +1054,7 @@ jobs:
           '
           (cd "$out" && sha256sum info.tar.gz source.json > SHA256SUMS)
 
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: public-info-docs
           path: ${{ runner.temp }}/lolly-info-docs/
@@ -1075,7 +1075,7 @@ jobs:
       QUALIFICATION_RUN: ${{ inputs.archive_run }}
       SOURCE_SHA: ${{ inputs.expected_source }}
     steps:
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: '24'
       # Export only successful web/MCP jobs from the exact completed source run.
@@ -1196,7 +1196,7 @@ jobs:
           }
           writeFileSync(root+'/archives/transport.json',JSON.stringify(evidence,null,2));
           JS
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: qualified-public-image-archives-attempt-${{ github.run_attempt }}
           path: ${{ runner.temp }}/archives/
