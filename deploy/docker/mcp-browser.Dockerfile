@@ -6,7 +6,7 @@
 # Supply LOLLY_WEB_BASE at runtime and qualify Chromium's sandbox on the target.
 # No anonymous access or sandbox bypass is enabled by this image.
 
-FROM node:26-bookworm-slim@sha256:662933cf47f013bc8e4beb31a6116448427a82057ba7c42c97e4c5ba766504c2 AS build
+FROM node:26-bookworm-slim@sha256:86f07bc9c5dce4578cf37e5a418b7bfc7f817cda25cde66e2b66e95ed86c4567 AS build
 WORKDIR /src
 RUN apt-get update && apt-get install --no-install-recommends -y ca-certificates \
     && rm -rf /var/lib/apt/lists/*
@@ -56,7 +56,7 @@ RUN env -u PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD node services/mcp/scripts/install-br
 RUN rm -rf services/mcp/deploy services/mcp/test
 
 # ── runtime stage ───────────────────────────────────────────────────────────
-FROM node:26-bookworm-slim@sha256:662933cf47f013bc8e4beb31a6116448427a82057ba7c42c97e4c5ba766504c2 AS runtime
+FROM node:26-bookworm-slim@sha256:86f07bc9c5dce4578cf37e5a418b7bfc7f817cda25cde66e2b66e95ed86c4567 AS runtime
 WORKDIR /app
 ENV PLAYWRIGHT_BROWSERS_PATH=/opt/lolly-browsers
 ENV NODE_ENV=production

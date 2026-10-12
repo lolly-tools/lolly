@@ -39,7 +39,7 @@
 # ============================================================================
 
 # ── dependency fetch stage ──────────────────────────────────────────────────
-FROM node:26-bookworm@sha256:2aaae6d91f99fee84cfc92da9b52c22a185752d247746052bbc3f961e44478c6 AS deps
+FROM node:26-bookworm@sha256:f1233c415b41ffcf237c717b3dea92e9d4ea006e0e4c71edcb790605d74f5404 AS deps
 WORKDIR /src
 RUN npm install --global pnpm@11.26.0
 # Fetch reads the locked graph without executing the root bootstrap lifecycle.
