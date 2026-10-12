@@ -2001,13 +2001,13 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
     });
   }
 
-  /** `model.cfg`, plus the two tilt field names that live on the CANVAS block rather than
-   *  the resolved geometry config (see openMorePanel) - a column asking for `rxField`
-   *  must get the same answer the panel does. */
+  /** Inspector fields retain their canvas declaration alongside resolved geometry. */
   const portCfg = {
     ...cfg,
     rxField: cv.rxField || undefined,
     ryField: cv.ryField || undefined,
+    enterMsField: cv.enterMsField || undefined,
+    enterEaseField: cv.enterEaseField || undefined,
   } as unknown as ModelPort['cfg']; fc.portCfg = portCfg;
 
   const modelPort: ModelPort = {

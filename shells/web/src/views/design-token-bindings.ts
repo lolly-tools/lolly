@@ -47,14 +47,15 @@ export function mountDesignTokenBindings(root: HTMLElement, options: DesignToken
   const rows = () => model.getBoxes().filter((row, index) => ids.has(idOf(row, index)));
   const cfg = model.cfg as typeof model.cfg & Record<string, string | undefined>;
   const properties = designTokenProperties(options.fields, options.fieldIds, cfg).filter(property => {
+    if (property.adapter === 'transition') return ids.size === 1 && rows().length === 1 && String(rows()[0]![cfg.kindField ?? 'kind']) !== (model.frame?.frameKind ?? 'frame');
     if (!property.adapter?.startsWith('border')) return true;
     const paintTargets = property.targets.filter(target => !['border.dashArray', 'border.dashLength', 'border.gapLength'].includes(target.adapter ?? ''));
     return paintTargets.every(target => !target.field.showFor?.length || rows().every(row => target.field.showFor!.includes(String(row[cfg.kindField ?? 'kind']))));
   });
   const fields = properties.map(property => property.field);
   if (!fields.length || !host.tokens || !ids.size) return Object.assign(() => {}, { busy: () => false });
-  const linked = rows().some(row => fields.some(field => readBlockTokenBindings(row[metadataField])[field.id]));
-  root.innerHTML = `<details class="design-token-links"><summary>${t('Token links')}${linked ? ` · ${t('In use')}` : ''}</summary><p class="fc-insp-hint">${ids.size === 1 ? t('Changes apply to this layer.') : t('Changes apply to all {n} selected layers in one undo step.', { n: ids.size })}</p><label>${t('Property')}<select class="field-select" data-design-token-property>${fields.map(field => `<option value="${esc(field.id)}">${esc(field.label ?? field.id)}</option>`).join('')}</select></label><div data-design-token-field></div></details>`;
+  const linked = rows().some(row => properties.some(property => property.targets.some(target => readBlockTokenBindings(row[metadataField])[target.field.id])));
+  root.innerHTML = `<details class="design-token-links"><summary>${t('Token links')}${linked ? ` · ${t('In use')}` : ''}</summary><p class="fc-insp-hint">${ids.size === 1 ? t('Changes apply to this layer.') : t('Changes apply to all {n} selected layers in one undo step.', { n: ids.size })}</p><label>${t('Property')}<select class="field-select" data-design-token-property>${fields.map(field => `<option value="${esc(field.id)}">${esc(t(field.label ?? field.id))}</option>`).join('')}</select></label><div data-design-token-field></div></details>`;
   let disposed = false, generation = 0, pending = 0;
   let disposeField: (() => void) | undefined;
   const picker = root.querySelector<HTMLSelectElement>('[data-design-token-property]')!;
@@ -73,17 +74,18 @@ export function mountDesignTokenBindings(root: HTMLElement, options: DesignToken
     const before = rows();
     const property = properties.find(candidate => candidate.field.id === field.id)!;
     const borderStyle = property.adapter === 'border' || property.adapter === 'border.style';
+    const groupRestore = borderStyle || property.adapter === 'transition';
     const links = before.map(row => {
       const all = readBlockTokenBindings(row[metadataField]);
       const group = property.targets.map(target => all[target.field.id]);
-      return group.every(link => link && link.ref === group[0]?.ref && (borderStyle || link.custom === group[0]?.custom)) ? { ...group[0]!, ...(borderStyle && group.some(link => link?.custom) ? { custom: true } : {}) } : undefined;
+      return group.every(link => link && link.ref === group[0]?.ref && (groupRestore || link.custom === group[0]?.custom)) ? { ...group[0]!, ...(groupRestore && group.some(link => link?.custom) ? { custom: true } : {}) } : undefined;
     });
-    const active = borderStyle && links.some(link => link?.custom) ? undefined : links.find(link => link && !link.custom);
-    const snapshot = (selected: Box[]): string => JSON.stringify(selected.map((row, index) => [String(row[model.cfg.idField] ?? index), ...property.targets.map(target => row[target.field.id]), row[metadataField]]));
+    const active = groupRestore && links.some(link => link?.custom) ? undefined : links.find(link => link && !link.custom);
+    const snapshot = (selected: Box[]): string => JSON.stringify(selected.map((row, index) => [String(row[model.cfg.idField] ?? index), ...property.targets.map(target => row[target.field.id]), row[metadataField], ...(property.adapter === 'transition' ? [row[cfg.kindField ?? 'kind']] : [])]));
     const stamp = snapshot(before);
     const mixed = new Set(before.map((row, index) => JSON.stringify([property.targets.map(target => row[target.field.id]), links[index]]))).size > 1;
     const restores = links.filter(link => link?.custom).map(link => link!.ref);
-    const restoreRef = borderStyle && restores.length && links.every(link => link?.ref === restores[0]) ? restores[0] : restores.length === before.length && new Set(restores).size === 1 ? restores[0] : undefined;
+    const restoreRef = groupRestore && restores.length && links.every(link => link?.ref === restores[0]) ? restores[0] : restores.length === before.length && new Set(restores).size === 1 ? restores[0] : undefined;
     const value = active ? { ...active } : before[0]?.[field.id] ?? field.default ?? '';
     const input = { ...field, id: `layer-${field.id}`, type: field.type ?? 'text', value, isDirty: false, control: 'text-input' } as InputModelItem;
     disposeField = mountTokenBindingField(fieldRoot, input, host, async next => {
@@ -94,7 +96,7 @@ export function mountDesignTokenBindings(root: HTMLElement, options: DesignToken
       const values = property.targets.map(target => {
         if (!isTokenValue(next)) return { ...target, value: undefined };
         const candidate = (next as { adapter?: unknown }).adapter;
-        const adapter = target.adapter ?? (isTokenAdapter(candidate) ? candidate : undefined);
+        const adapter = property.targets.length === 1 && isTokenAdapter(candidate) ? candidate : target.adapter ?? (isTokenAdapter(candidate) ? candidate : undefined);
         const resolved = resolveTokenBinding(set?.get(aliasPath(next.ref)!), { ...target.field, type: target.field.type ?? 'text', adapter, colorTarget });
         if (resolved.status !== 'linked') throw new Error(resolved.reason);
         return { ...target, adapter, value: { ref: next.ref, value: resolved.value } };
@@ -108,7 +110,12 @@ export function mountDesignTokenBindings(root: HTMLElement, options: DesignToken
         return result;
       });
       return options.commit ? options.commit(nextRows, isTokenValue(next) ? t('Link token') : t('Make custom')) : model.commit(nextRows);
-    }, { onPendingChange: busy => { pending += busy ? 1 : -1; if (!busy) options.onSettled?.(); }, consumer: { ...field, type: field.type ?? 'text', adapter: property.adapter }, fallbackAdapter: property.targets.length === 1 ? links[0]?.adapter : undefined, mixed, restoreRef, colorTarget });
+    }, { onPendingChange: busy => { pending += busy ? 1 : -1; if (!busy) options.onSettled?.(); }, consumer: { ...field, type: field.type ?? 'text', adapter: property.adapter }, fallbackAdapter: property.targets.length === 1 ? links[0]?.adapter : undefined, mixed, restoreRef, colorTarget, ...(property.adapter === 'transition' ? { candidateType: 'transition' } : {}) });
+    if (property.adapter === 'transition') {
+      const hint = document.createElement('p'); hint.className = 'fc-insp-hint';
+      hint.textContent = t('Applies Enter duration and geometry easing. Opacity keeps the preset easing.');
+      fieldRoot.append(hint);
+    }
   }
   picker.addEventListener('change', render); render();
   return Object.assign(() => { disposed = true; remember(); disposeField?.(); disclosure.removeEventListener('toggle', remember); picker.removeEventListener('change', render); root.replaceChildren(); }, { busy: () => pending > 0 });

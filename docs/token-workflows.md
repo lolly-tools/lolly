@@ -35,13 +35,28 @@ For a selection of several layers, common paint and compatible text groups offer
 | Design legacy text | Font family and declared numeric size, spacing and padding fields; whole typography projects family, size, weight, tracking and line height in one undo step. |
 | Design composites | A single shadow with zero spread and no inset; a gradient with 2 to 12 resolved sRGB stops, written as a rightward linear gradient. Layered shadows and unsupported gradient values are refused. |
 | Design borders | Whole borders project colour, absolute width and solid, dashed or dotted style in one undo step. Custom stroke styles and relative widths are refused. |
-| Design motion | Duration tokens convert to the field's seconds or milliseconds; easing tokens become validated CSS cubic Bezier controls. |
+| Design motion | Duration tokens convert to the field's seconds or milliseconds; easing tokens become validated CSS cubic Bezier controls. A zero-delay transition links Enter duration and geometry easing for one non-frame layer. |
 | Composed paragraphs | Line height, spacing before/after and start/end/first-line indents, following the existing caret, range or story scope. |
-| Remaining consumers | Whole typography on composed text needs pinned font-resource integration. Transition composites need additional adapters. |
+| Remaining consumers | Whole typography on composed text needs pinned font-resource integration. Transition delay, Exit and frame/deck consumers remain follow-ups. |
 
 Whole composite actions retain a separate reference and adapter on each property. Editing one property preserves the other links. Missing or incompatible source values retain their last literal. Composed paragraphs store their links with paragraph settings; applying a link across paragraphs preserves their other links.
 
 Border and stroke-style links clear an authored dash array and custom dash/gap lengths in the same transaction, so the linked style reaches the renderer. Editing any of these dash settings makes the style consumer custom while colour and width can still follow their tokens. **Make custom** retains the rendered values. **Restore link** rechecks the source and clears the local dash overrides; undo restores those overrides together. An incompatible border refresh retains all active properties from its last usable source.
+
+In a layer's **Motion** group, choose **Enter transition** inside **Token links**.
+Choose a candidate, review its status, then use **Link token** to apply duration and
+easing in one undo step. A transition must have zero delay, a duration within the
+Enter field's 100 to 3000 ms range, and a valid cubic Bezier curve. Unsupported
+candidates remain visible with an explanation and a disabled Link action. Selecting
+a candidate changes nothing. The curve governs the Enter preset's geometry;
+opacity keeps the preset's existing behavior. Timeline placement stays separate.
+
+Editing one linked field makes that field custom. A valid active easing link can
+still refresh while duration remains custom. If any active transition projection
+is incompatible or unresolved, all active properties keep their cached values.
+**Restore link** for the whole transition rechecks both fields and applies them
+together; an unsupported source leaves the layer unchanged. Links, custom values
+and Restore metadata survive saved URLs and sessions.
 
 Design keeps links in an appended metadata field alongside ordinary scalar properties. URLs, saved sessions and portable document snapshots retain that field. Opening through the engine refreshes linked properties and preserves intentional overrides and cached fallbacks.
 
