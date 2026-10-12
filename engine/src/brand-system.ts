@@ -1,13 +1,18 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Reads portable brand vocabulary and rule records without claiming enforcement. */
-import Ajv from 'ajv';
+import Ajv, { type ValidateFunction } from 'ajv';
 import schema from '@lolly-tools/core/schema/brand-system-v1.schema.json' with { type: 'json' };
 import type { BrandSystemV1 } from '@lolly-tools/core/brand-system-v1';
 import { TOKEN_EXT } from './token-ext.ts';
 
-const validate = new Ajv({ allErrors: false }).compile<BrandSystemV1>(schema);
+let validator: ValidateFunction<BrandSystemV1> | undefined;
+function schemaValidator(): ValidateFunction<BrandSystemV1> {
+  if (!validator) validator = new Ajv({ allErrors: false }).compile<BrandSystemV1>(schema);
+  return validator;
+}
 /** Checks structure and local references only. No rule kind is enforced by this reader. */
 export function readBrandSystem(value: unknown): BrandSystemV1 | null {
+  const validate = schemaValidator();
   if (!validate(value)) return null;
   const unique = (items: { id: string }[]): boolean => new Set(items.map(v => v.id)).size === items.length;
   if (![value.roles, value.bindings, value.rules, value.guide?.groups ?? []].every(unique)) return null;

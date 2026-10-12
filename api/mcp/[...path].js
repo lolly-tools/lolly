@@ -3434,7 +3434,18 @@ var init_ratecard_schema = __esm({
 
 // engine/src/validate.ts
 import Ajv from "ajv/dist/2020.js";
+function schemas() {
+  if (!ajv) {
+    const instance = new Ajv({ allErrors: true, strict: false });
+    instance.addSchema(tool_schema_default);
+    instance.addSchema(asset_schema_default);
+    instance.addSchema(asset_ref_schema_default);
+    ajv = instance;
+  }
+  return ajv;
+}
 function validateManifest(manifest) {
+  if (!validateTool) validateTool = schemas().compile(tool_schema_default);
   const ok3 = validateTool(manifest);
   const errors = ok3 ? [] : (validateTool.errors ?? []).map(formatError);
   if (ok3) for (const [index2, input] of (manifest.inputs ?? []).entries()) {
@@ -3473,13 +3484,10 @@ var init_validate = __esm({
     init_asset_schema();
     init_asset_ref_schema();
     init_ratecard_schema();
-    ajv = new Ajv({ allErrors: true, strict: false });
-    ajv.addSchema(tool_schema_default);
-    ajv.addSchema(asset_schema_default);
-    ajv.addSchema(asset_ref_schema_default);
-    validateTool = ajv.compile(tool_schema_default);
-    rateCardValidator = ajv.compile(ratecard_schema_default);
-    validateRateCard = (doc) => rateCardValidator(doc);
+    validateRateCard = (doc) => {
+      if (!rateCardValidator) rateCardValidator = schemas().compile(ratecard_schema_default);
+      return rateCardValidator(doc);
+    };
   }
 });
 
@@ -34072,7 +34080,7 @@ __export(emoji_pack_exports, {
   verifyEmojiArtwork: () => verifyEmojiArtwork
 });
 import Ajv3 from "ajv/dist/2020.js";
-function schemas() {
+function schemas2() {
   if (!validators) {
     const ajv4 = new Ajv3({ strict: true, allErrors: false, ownProperties: true });
     validators = { pack: ajv4.compile(emoji_pack_v1_schema_default), style: ajv4.compile(emoji_style_v1_schema_default), pin: ajv4.compile(emoji_style_v1_schema_default.$defs.pin) };
@@ -34083,7 +34091,7 @@ function emojiPackPinKey(pin) {
   return JSON.stringify([pin.id, pin.pin.version, pin.checksum]);
 }
 function validateEmojiStyle(value) {
-  if (!schemas().style(value)) return { code: "invalid-style", message: "Unsupported or malformed emoji style." };
+  if (!schemas2().style(value)) return { code: "invalid-style", message: "Unsupported or malformed emoji style." };
   const style = value;
   const pins = [style.primary, ...style.fallbacks];
   if (pins.some((pin) => !immutableVersion(pin.pin.version)) || new Set(pins.map(emojiPackPinKey)).size !== pins.length) {
@@ -34102,7 +34110,7 @@ function sourceUrlsValid(source) {
   });
 }
 async function readEmojiPack(bytes, expected) {
-  if (!schemas().pin(expected) || !immutableVersion(expected.pin.version)) return failure("invalid-pack", "An exact emoji pack pin is required.");
+  if (!schemas2().pin(expected) || !immutableVersion(expected.pin.version)) return failure("invalid-pack", "An exact emoji pack pin is required.");
   if (!bytes.length || bytes.byteLength > EMOJI_PACK_MAX_BYTES) return failure("invalid-pack", "Emoji manifest exceeds the supported byte limit.");
   const pin = clone(expected);
   const snapshot = new Uint8Array(bytes);
@@ -34117,7 +34125,7 @@ async function readEmojiPack(bytes, expected) {
     const header = value;
     if (header.schemaVersion !== 1 || header.minimumReader !== 1 || header.unicodeVersion !== "17.0") return failure("unsupported-pack", "This emoji manifest requires an unsupported reader or Unicode version.");
   }
-  if (!schemas().pack(value)) return failure("invalid-pack", "Emoji manifest does not satisfy its schema.");
+  if (!schemas2().pack(value)) return failure("invalid-pack", "Emoji manifest does not satisfy its schema.");
   const manifest = value;
   if (manifest.id !== pin.id || manifest.version !== pin.pin.version) return failure("integrity-mismatch", "Emoji manifest identity differs from its saved pin.");
   if (!sourceUrlsValid(manifest.source)) return failure("invalid-pack", "Emoji source URLs are invalid or contain private credentials.");
@@ -38419,6 +38427,10 @@ var init_text_source = __esm({
 
 // engine/src/text-story-document.ts
 import { Ajv as Ajv4 } from "ajv";
+function schemaValidator() {
+  if (!validator) validator = new Ajv4({ allErrors: false, strict: true, ownProperties: true }).compile(text_document_v1_schema_default);
+  return validator;
+}
 function unique(items2, id3, label4) {
   const map = /* @__PURE__ */ new Map();
   for (const item2 of items2) {
@@ -38506,6 +38518,7 @@ function parseTextDocument(input) {
   } catch {
     return error("document-json", "The text document is not valid JSON.");
   }
+  const validate = schemaValidator();
   if (!validate(value)) return error("document-schema", `Invalid text document at ${validate.errors?.[0]?.instancePath || "/"}: ${validate.errors?.[0]?.message ?? "schema mismatch"}`);
   const doc = value;
   unique(doc.stories, (story) => story.id, "story");
@@ -38545,7 +38558,7 @@ function createTextStory(id3, source, paragraphId, newline = "paragraph") {
   const breaks = sourceBreaks(source, newline);
   return { version: 1, id: id3, revision: 0, source, breaks, spans: [], inlines: [], frameIds: [], paragraphs: paragraphRanges(source, breaks).map((range, i) => ({ ...range, id: paragraphId(i) })) };
 }
-var TEXT_DOCUMENT_MAX_BYTES, validate, error;
+var TEXT_DOCUMENT_MAX_BYTES, validator, error;
 var init_text_story_document = __esm({
   "engine/src/text-story-document.ts"() {
     "use strict";
@@ -38553,7 +38566,6 @@ var init_text_story_document = __esm({
     init_text_source();
     init_css_color();
     TEXT_DOCUMENT_MAX_BYTES = 8 * 1024 * 1024;
-    validate = new Ajv4({ allErrors: false, strict: true, ownProperties: true }).compile(text_document_v1_schema_default);
     error = (code, message) => {
       throw new TextSourceError(code, message);
     };
@@ -40719,6 +40731,10 @@ var init_text_frame_v1_schema = __esm({
 
 // engine/src/text-frame.ts
 import { Ajv as Ajv5 } from "ajv";
+function schemaValidator2() {
+  if (!validator2) validator2 = new Ajv5({ strict: true, ownProperties: true }).compile(text_frame_v1_schema_default);
+  return validator2;
+}
 function textFrameKey(frame) {
   const { inset, columns, path, grid } = frame;
   return JSON.stringify([
@@ -40740,7 +40756,8 @@ function textFrameKey(frame) {
   ]);
 }
 function parseTextFrame(value) {
-  if (!validate2(value)) throw new TextSourceError("frame-schema", `Invalid text frame at ${validate2.errors?.[0]?.instancePath || "/"}: ${validate2.errors?.[0]?.message ?? "schema mismatch"}`);
+  const validate = schemaValidator2();
+  if (!validate(value)) throw new TextSourceError("frame-schema", `Invalid text frame at ${validate.errors?.[0]?.instancePath || "/"}: ${validate.errors?.[0]?.message ?? "schema mismatch"}`);
   if (value.mode === "path" && !value.path || value.mode !== "path" && value.path) throw new TextSourceError("frame-path", "Path settings must belong to a path text frame.");
   if (value.path) {
     svgPath(value.path.d);
@@ -40752,7 +40769,7 @@ function parseTextFrame(value) {
     throw new TextSourceError("frame-inset", "Insets and gutters must leave room for text.");
   return structuredClone(value);
 }
-var validate2;
+var validator2;
 var init_text_frame = __esm({
   "engine/src/text-frame.ts"() {
     "use strict";
@@ -40761,7 +40778,6 @@ var init_text_frame = __esm({
     init_emoji_text_path();
     init_svg_path();
     init_emoji_svg_syntax();
-    validate2 = new Ajv5({ strict: true, ownProperties: true }).compile(text_frame_v1_schema_default);
   }
 });
 
@@ -41069,12 +41085,17 @@ __export(emoji_source_records_exports, {
   readEmojiSourceRecords: () => readEmojiSourceRecords
 });
 import { Ajv as Ajv6 } from "ajv";
+function schemaValidator3() {
+  if (!validator3) validator3 = new Ajv6({ strict: true, ownProperties: true }).compile(emoji_source_records_v1_schema_default);
+  return validator3;
+}
 function readEmojiSourceRecords(value) {
   if (typeof value === "string") {
     if (value.length > 2 * 1024 * 1024) throw new Error("The recorded emoji sources exceed the supported size.");
     value = JSON.parse(value);
   }
-  if (!validate3(value)) throw new Error("The recorded emoji sources are invalid.");
+  const validate = schemaValidator3();
+  if (!validate(value)) throw new Error("The recorded emoji sources are invalid.");
   return structuredClone(value);
 }
 function mergeEmojiSourceRecords(sources) {
@@ -41086,12 +41107,11 @@ function mergeEmojiSourceRecords(sources) {
   }
   return [...result.values()];
 }
-var validate3;
+var validator3;
 var init_emoji_source_records = __esm({
   "engine/src/emoji-source-records.ts"() {
     "use strict";
     init_emoji_source_records_v1_schema();
-    validate3 = new Ajv6({ strict: true, ownProperties: true }).compile(emoji_source_records_v1_schema_default);
   }
 });
 
@@ -62557,8 +62577,13 @@ var init_brand_system_v1_schema = __esm({
 
 // engine/src/brand-system.ts
 import Ajv7 from "ajv";
+function schemaValidator4() {
+  if (!validator4) validator4 = new Ajv7({ allErrors: false }).compile(brand_system_v1_schema_default);
+  return validator4;
+}
 function readBrandSystem(value) {
-  if (!validate4(value)) return null;
+  const validate = schemaValidator4();
+  if (!validate(value)) return null;
   const unique3 = (items2) => new Set(items2.map((v) => v.id)).size === items2.length;
   if (![value.roles, value.bindings, value.rules, value.guide?.groups ?? []].every(unique3)) return null;
   const roles = new Set(value.roles.map((v) => v.id));
@@ -62575,13 +62600,12 @@ function brandSystemOf(doc) {
   if (!vendor || typeof vendor !== "object") return null;
   return readBrandSystem(vendor.brandSystem);
 }
-var validate4;
+var validator4;
 var init_brand_system = __esm({
   "engine/src/brand-system.ts"() {
     "use strict";
     init_brand_system_v1_schema();
     init_token_ext();
-    validate4 = new Ajv7({ allErrors: false }).compile(brand_system_v1_schema_default);
   }
 });
 
@@ -69946,7 +69970,7 @@ function breaksAreValid(breaks) {
   }
   return true;
 }
-function parseRateCard(input, digest2, validate5) {
+function parseRateCard(input, digest2, validate) {
   if (digest2 === EXAMPLE_RATECARD_DIGEST) return { error: "example-card" };
   let doc;
   try {
@@ -69955,7 +69979,7 @@ function parseRateCard(input, digest2, validate5) {
     return { error: "not-a-rate-card" };
   }
   if (!isObject(doc) || doc.$format !== "lolly-ratecard") return { error: "not-a-rate-card" };
-  if (!validate5(doc)) return { error: "not-a-rate-card" };
+  if (!validate(doc)) return { error: "not-a-rate-card" };
   const currency = doc.currency;
   try {
     new Intl.NumberFormat(void 0, { style: "currency", currency });
@@ -119329,13 +119353,13 @@ ${signals.findings.map((f) => f.label).join("\n")}`;
     case "schema": {
       const { default: Ajv9 } = await import("ajv");
       const ajv4 = new Ajv9({ allErrors: true, strict: true, validateFormats: false });
-      const validate5 = ajv4.compile(JSON.parse(s("schema")));
-      const valid2 = validate5(JSON.parse(text8));
-      out = valid2 ? "Valid against this schema." : JSON.stringify(validate5.errors, null, 2);
+      const validate = ajv4.compile(JSON.parse(s("schema")));
+      const valid2 = validate(JSON.parse(text8));
+      out = valid2 ? "Valid against this schema." : JSON.stringify(validate.errors, null, 2);
       notes.push(
         "JSON Schema draft-07. External references are not fetched. Format annotations are not validated."
       );
-      details = { valid: valid2, errors: validate5.errors };
+      details = { valid: valid2, errors: validate.errors };
       break;
     }
     case "jwt": {
@@ -148896,10 +148920,10 @@ async function loadSchemaValidator() {
   const schema = JSON.parse(readFileSync2(schemaFile, "utf8"));
   const { default: Ajv9 } = await import("ajv/dist/2020.js");
   const ajv4 = new Ajv9({ allErrors: true, strict: false });
-  const validate5 = ajv4.compile(schema);
+  const validate = ajv4.compile(schema);
   return (doc) => {
-    if (validate5(doc)) return structuralPlanProblems(doc);
-    return (validate5.errors ?? []).map((error2) => `${error2.instancePath || "/"} ${error2.message ?? "is not valid"}`);
+    if (validate(doc)) return structuralPlanProblems(doc);
+    return (validate.errors ?? []).map((error2) => `${error2.instancePath || "/"} ${error2.message ?? "is not valid"}`);
   };
 }
 async function planProblems(doc) {
@@ -171169,8 +171193,8 @@ var schemaCheck = null;
 async function planSchemaProblems(doc) {
   schemaCheck ??= (async () => {
     const { default: Ajv2020 } = await import("ajv/dist/2020.js");
-    const validate5 = new Ajv2020({ allErrors: true, strict: false }).compile(rebrand_plan_v1_schema_default);
-    return (value) => validate5(value) ? [] : (validate5.errors ?? []).map((error2) => `${error2.instancePath || "/"} ${error2.message ?? "is not valid"}`);
+    const validate = new Ajv2020({ allErrors: true, strict: false }).compile(rebrand_plan_v1_schema_default);
+    return (value) => validate(value) ? [] : (validate.errors ?? []).map((error2) => `${error2.instancePath || "/"} ${error2.message ?? "is not valid"}`);
   })();
   return (await schemaCheck)(doc);
 }
@@ -173833,8 +173857,8 @@ var inventoryCheck = null;
 async function inventoryProblems(doc) {
   inventoryCheck ??= (async () => {
     const { default: Ajv2020 } = await import("ajv/dist/2020.js");
-    const validate5 = new Ajv2020({ allErrors: true, strict: false }).compile(content_inventory_v1_schema_default);
-    return (value) => validate5(value) ? [] : (validate5.errors ?? []).map((e) => `${e.instancePath || "/"} ${e.message ?? "is not valid"}`);
+    const validate = new Ajv2020({ allErrors: true, strict: false }).compile(content_inventory_v1_schema_default);
+    return (value) => validate(value) ? [] : (validate.errors ?? []).map((e) => `${e.instancePath || "/"} ${e.message ?? "is not valid"}`);
   })();
   return (await inventoryCheck)(doc);
 }
@@ -177935,8 +177959,8 @@ async function requestAgentRelay(invitation, path, body) {
   });
 }
 async function callAgentTool(name, args, transport = requestAgentRelay) {
-  const validate5 = validators2.get(name);
-  if (!validate5?.(args)) return { isError: true, content: [{ type: "text", text: "Use this tool's declared fields, including invitation on every call and documentId, ifRevision and transactionId when editing." }] };
+  const validate = validators2.get(name);
+  if (!validate?.(args)) return { isError: true, content: [{ type: "text", text: "Use this tool's declared fields, including invitation on every call and documentId, ifRevision and transactionId when editing." }] };
   const invitation = readLiveInvitation(args.invitation);
   if (!invitation) return { isError: true, content: [{ type: "text", text: "Ask the person for the complete invitation from Share > Invite an agent." }] };
   const params2 = { ...args };

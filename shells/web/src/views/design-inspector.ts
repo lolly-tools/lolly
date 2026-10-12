@@ -157,6 +157,12 @@ export type InspectorSection =
   | 'document' | 'artboard' | 'object' | 'text' | 'image' | 'tool' | 'scene' | 'web' | 'motion' | 'present'
   | 'fill' | 'appearance' | 'shadow' | 'tilt' | 'arrange' | 'guide' | 'dynamicLayout';
 
+function commonPaintSections(rows: Box[], kindField: string | undefined, sections: InspectorSection[]): InspectorSection[] {
+  return rows.some(row => kindField && row[kindField] === 'group')
+    ? sections.filter(section => section === 'appearance' || section === 'arrange')
+    : sections;
+}
+
 /**
  * The five bands every section belongs to, in the order they are laid out
  * (plans/273). A band is NOT a fold: it is a labelled run of sections, so the
@@ -811,7 +817,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     // for more than one box, only the paint groups that mean the same thing across them.
     // The groups that DO stay read every row, so a value the rows disagree about shows
     // as mixed instead of as the first box's.
-    if (ids.length > 1) return { kind: 'multi', ids, box, rows, secs: orderByBand([...(rows.length === ids.length && rows.every(row => kindOf(row) === 'text') ? ['text' as const] : []), ...paintSecs(false)]) };
+    if (ids.length > 1) return { kind: 'multi', ids, box, rows, secs: orderByBand([...(rows.length === ids.length && rows.every(row => kindOf(row) === 'text') ? ['text' as const] : []), ...commonPaintSections(rows, cfg.kindField, paintSecs(false))]) };
     if (kindOf(box) === 'group') return { kind: 'object', ids, box, rows, secs: orderByBand([...(cfg.opacityField || cfg.blendField ? ['appearance' as const] : []), 'object', 'arrange', 'motion', ...(declaredField('layout') ? ['dynamicLayout' as const] : [])]) };
     if (frame && kindOf(box) === frame.frameKind) return { kind: 'frame', ids, box, rows, secs: orderByBand(['artboard', 'present', 'motion', ...(declaredField('layout') ? ['dynamicLayout' as const] : [])]) };
     const secs: InspectorSection[] = [];
@@ -1488,8 +1494,8 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
         + (blend.length ? blend : BLEND_FALLBACK.map((m) => [m, t(m[0]!.toUpperCase() + m.slice(1).replace('-', ' '))] as [string, string]))
           .map(([v, l]) => opt(v, l, differs(rows, cfg.blendField) ? null : (fv(b, cfg.blendField) ?? 'normal'))).join('')
         + '</select>') : '')
-      + (kindOf(b) !== 'group' && cfg.radiusField ? sliderRow(FIELD_GLYPH.radius, t('Corner radius'), 'radius', cfg.radiusField, radius, radiusOf(b), 0, 200, { unit: 'px' }) : '')
-      + (kindOf(b) !== 'group' && shapeChoices.length && cfg.shapeField ? segRow(FIELD_GLYPH.shRounded, t('Shape'), segHtml(cfg.shapeField, fv(b, cfg.shapeField) ?? 'rect', shapeChoices, t('Shape'))) : '');
+      + (rows.every(row => kindOf(row) !== 'group') && cfg.radiusField ? sliderRow(FIELD_GLYPH.radius, t('Corner radius'), 'radius', cfg.radiusField, radius, radiusOf(b), 0, 200, { unit: 'px' }) : '')
+      + (rows.every(row => kindOf(row) !== 'group') && shapeChoices.length && cfg.shapeField ? segRow(FIELD_GLYPH.shRounded, t('Shape'), segHtml(cfg.shapeField, fv(b, cfg.shapeField) ?? 'rect', shapeChoices, t('Shape'))) : '');
   }
   function shadowBody(b: Box, rows: Box[]): string {
     const shadowChoices = shadowChoicesFrom(fieldDefs, cfg.shadowField);

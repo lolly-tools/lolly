@@ -555,6 +555,24 @@ test('group appearance edits apply once to the group while descendant paint rema
   } finally { h.handle.destroy(); }
 });
 
+test('selections containing groups offer only shared appearance properties and arrangement', () => {
+  for (const mixed of [false, true]) {
+    const first = mixed ? BOXES[1]! : { id: 'g1', kind: 'group', opacity: 80 } as Box;
+    const group = { id: 'g2', kind: 'group', opacity: 100 } as Box;
+    const h = mount([first, group]);
+    try {
+      h.select([String(first.id), 'g2']);
+      assert.deepEqual(secs(h), ['appearance', 'arrange']);
+      for (const field of ['bg', 'shadow', 'radius', 'shape']) assert.equal(h.el.querySelector(`[data-fld="${field}"]`), null);
+      typeNum(h, 'opacity', '50');
+      assert.equal(h.commits.length, 1);
+      assert.deepEqual(h.commits[0]!.ids, [String(first.id), 'g2']);
+      assert.equal(h.commits[0]!.field, 'opacity');
+      assert.ok(h.boxes().every(row => row.opacity === 50));
+    } finally { h.handle.destroy(); }
+  }
+});
+
 test('a plain box shows Object and its paint groups, then Motion + Present; no Text and no Image', () => {
   const h = mount();
   h.select(['b1']);

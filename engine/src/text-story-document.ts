@@ -1,13 +1,17 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Text document admission and exact source round trips. */
-import { Ajv } from 'ajv';
+import { Ajv, type ValidateFunction } from 'ajv';
 import schema from '../../schemas/text-document-v1.schema.json' with { type: 'json' };
 import type { TextCharacterV1, TextDocumentV1, TextNamedStyleV1, TextParagraphStyleV1, TextStoryV1 } from '@lolly-tools/core';
 import { assertTextRange, paragraphRanges, sourceBreaks, textBoundaries, TextSourceError } from './text-source.ts';
 import { parseColor } from './css-color.ts';
 
 export const TEXT_DOCUMENT_MAX_BYTES = 8 * 1024 * 1024;
-const validate = new Ajv({ allErrors: false, strict: true, ownProperties: true }).compile<TextDocumentV1>(schema);
+let validator: ValidateFunction<TextDocumentV1> | undefined;
+function schemaValidator(): ValidateFunction<TextDocumentV1> {
+  if (!validator) validator = new Ajv({ allErrors: false, strict: true, ownProperties: true }).compile<TextDocumentV1>(schema);
+  return validator;
+}
 const error = (code: string, message: string): never => { throw new TextSourceError(code, message); };
 function unique<T>(items: readonly T[], id: (item: T) => string, label: string): Map<string, T> {
   const map = new Map<string, T>();
@@ -90,6 +94,7 @@ export function parseTextDocument(input: unknown): TextDocumentV1 {
   if (typeof json !== 'string' || json.length * 3 > TEXT_DOCUMENT_MAX_BYTES && new TextEncoder().encode(json).byteLength > TEXT_DOCUMENT_MAX_BYTES) return error('document-size', 'The text document exceeds the supported size.');
   try { value = typeof input === 'string' ? JSON.parse(json) : input; }
   catch { return error('document-json', 'The text document is not valid JSON.'); }
+  const validate = schemaValidator();
   if (!validate(value)) return error('document-schema', `Invalid text document at ${validate.errors?.[0]?.instancePath || '/'}: ${validate.errors?.[0]?.message ?? 'schema mismatch'}`);
   const doc = value;
   unique(doc.stories, story => story.id, 'story');

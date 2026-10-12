@@ -1,13 +1,17 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Bounded text frame admission, separate from the story's immutable source. */
-import { Ajv } from 'ajv';
+import { Ajv, type ValidateFunction } from 'ajv';
 import type { TextFrameV1 } from '@lolly-tools/core';
 import schema from '../../schemas/text-frame-v1.schema.json' with { type: 'json' };
 import { TextSourceError } from './text-source.ts';
 import { emojiTextPath } from './emoji-text-path.ts';
 import { parseSvgPath } from './svg-path.ts';
 import { svgPath } from './emoji-svg-syntax.ts';
-const validate = new Ajv({ strict:true, ownProperties:true }).compile<TextFrameV1>(schema);
+let validator: ValidateFunction<TextFrameV1> | undefined;
+function schemaValidator(): ValidateFunction<TextFrameV1> {
+  if (!validator) validator = new Ajv({ strict:true, ownProperties:true }).compile<TextFrameV1>(schema);
+  return validator;
+}
 export function textFrameKey(frame: TextFrameV1): string {
   const { inset,columns,path,grid } = frame;
   return JSON.stringify([frame.id,frame.storyId,frame.width,frame.height,frame.mode,[inset.top,inset.right,inset.bottom,inset.left],
@@ -15,6 +19,7 @@ export function textFrameKey(frame: TextFrameV1): string {
     frame.hidden ?? false,frame.locked ?? false,frame.shrink?.minSize,path && [path.d,path.start,path.end,path.baseline,path.flip,path.reverse,path.fit,path.guide]]);
 }
 export function parseTextFrame(value: unknown): TextFrameV1 {
+  const validate = schemaValidator();
   if (!validate(value)) throw new TextSourceError('frame-schema', `Invalid text frame at ${validate.errors?.[0]?.instancePath || '/'}: ${validate.errors?.[0]?.message ?? 'schema mismatch'}`);
   if (value.mode === 'path' && !value.path || value.mode !== 'path' && value.path) throw new TextSourceError('frame-path', 'Path settings must belong to a path text frame.');
   if(value.path) {
