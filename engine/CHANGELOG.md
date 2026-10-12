@@ -6,6 +6,11 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.259.0
+
+- Supported DOCX metadata cleanup can remove selected Company and Manager string properties from the canonical extended-properties part. Namespace and source-range deletion retain other application properties, package declarations and unrelated ZIP members. Strip Hidden Data 1.3 exposes the selections through the existing review and copy flow.
+- Extended digital-signature data, duplicate or structured approved values, malformed package declarations and property-dependent Word fields or bound controls remain inspect-only. Copies are inspected again; property comparison includes these fields while preserving private report defaults. Existing unsupported Office formats and hidden content remain outside cleanup.
+
 ## 1.258.0
 
 - Design layers can link Enter duration and geometry easing to one zero-delay transition token. Compatible values apply together, preserve token references through save and reload, and support per-field custom values and whole-transition Restore in one undo step.

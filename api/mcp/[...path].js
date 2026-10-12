@@ -4014,7 +4014,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.258.0";
+    ENGINE_VERSION = "1.259.0";
   }
 });
 
@@ -116783,20 +116783,24 @@ function openDocxMetadata(bytes, name, limits = {}) {
     const overrides = types.children.filter((n7) => n7.namespace === TYPES && n7.name === "Override");
     const defaults2 = types.children.filter((n7) => n7.namespace === TYPES && n7.name === "Default");
     const rels = relationships.children.filter((n7) => n7.namespace === RELS && n7.name === "Relationship");
-    if (new Set(overrides.map((n7) => n7.attrs.PartName)).size !== overrides.length || new Set(defaults2.map((n7) => n7.attrs.Extension?.toLowerCase())).size !== defaults2.length || new Set(rels.map((n7) => n7.attrs.Id)).size !== rels.length) throw new Error("Ambiguous package declarations.");
+    const overridesByName = new Map(overrides.map((n7) => [n7.attrs.PartName?.replace(/[A-Z]/g, (char) => char.toLowerCase()), n7]));
+    if (overridesByName.size !== overrides.length || new Set(defaults2.map((n7) => n7.attrs.Extension?.toLowerCase())).size !== defaults2.length || new Set(rels.map((n7) => n7.attrs.Id)).size !== rels.length) throw new Error("Ambiguous package declarations.");
     const xmlType = (type) => /(?:\+xml|^(?:application|text)\/xml)(?:\s*;|$)/i.test(type);
     if (overrides.some((n7) => xmlType(n7.attrs.ContentType ?? "") && !/\.(?:xml|rels)$/i.test(n7.attrs.PartName ?? "")) || defaults2.some((n7) => xmlType(n7.attrs.ContentType ?? "") && !/^(?:xml|rels)$/i.test(n7.attrs.Extension ?? ""))) return unsupported("XML parts with unconventional filename extensions are not supported for DOCX metadata cleanup. This file remains inspect-only.");
     if (types.children.some((n7) => /macro|vba|signature/i.test(n7.attrs.ContentType ?? ""))) return unsupported("Macro-enabled or signed package declarations prevent DOCX metadata cleanup.");
     const main = rels.filter((n7) => n7.attrs.Type === `${OFFICE2}officeDocument`);
-    if (main.length !== 1 || main[0].attrs.TargetMode || target(main[0].attrs.Target ?? "") !== "word/document.xml" || overrides.find((n7) => n7.attrs.PartName === "/word/document.xml")?.attrs.ContentType !== MAIN_TYPE) throw new Error("Unsupported main document declaration.");
+    if (main.length !== 1 || main[0].attrs.TargetMode || target(main[0].attrs.Target ?? "") !== "word/document.xml" || overridesByName.get("/word/document.xml")?.attrs.ContentType !== MAIN_TYPE) throw new Error("Unsupported main document declaration.");
     for (const [path, spec] of Object.entries(PARTS)) {
       const matching = rels.filter((n7) => n7.attrs.Type === spec.relation);
       const part = propertyParts.get(path), root2 = trees.get(path);
+      const declaration = overridesByName.get(`/${path.toLowerCase()}`);
       if (!part) {
-        if (matching.length) throw new Error("Missing property part.");
+        if (matching.length || declaration) throw new Error("Missing property part.");
         continue;
       }
-      if (matching.length !== 1 || matching[0].attrs.TargetMode || target(matching[0].attrs.Target ?? "") !== path || overrides.find((n7) => n7.attrs.PartName === `/${path}`)?.attrs.ContentType !== spec.type || root2?.name !== spec.root || root2.namespace !== spec.namespace) throw new Error("Unsupported property declaration.");
+      if (matching.length !== 1 || matching[0].attrs.TargetMode || target(matching[0].attrs.Target ?? "") !== path || declaration?.attrs.ContentType !== spec.type || root2?.name !== spec.root || root2.namespace !== spec.namespace) throw new Error("Unsupported property declaration.");
+      if (path === "docProps/app.xml" && (!/^[A-Za-z_][A-Za-z0-9_.-]*$/.test(matching[0].attrs.Id ?? "") || matching[0].attrs.TargetMode !== void 0)) throw new Error("Unsupported extended property relationship.");
+      if (path === "docProps/app.xml" && root2.children.some((node) => node.namespace === EXTENDED && node.name === "DigSig")) return unsupported("Extended digital-signature data prevents DOCX metadata cleanup. This file remains inspect-only.");
       const seen = /* @__PURE__ */ new Set(), customNames = /* @__PURE__ */ new Set();
       for (const node of root2.children) {
         let id3, label4, location4;
@@ -116806,6 +116810,12 @@ function openDocxMetadata(bytes, name, limits = {}) {
           if (node.children.length) throw new Error("Unsupported core property value.");
           id3 = `core:${node.name}`;
           label4 = field2.label;
+          location4 = `Property: ${node.name}`;
+        } else if (path === "docProps/app.xml") {
+          if (node.namespace !== EXTENDED || !Object.hasOwn(EXTENDED_FIELDS, node.name)) continue;
+          if (node.children.length || Object.keys(node.attrs).some((key2) => key2 !== "xmlns" && !key2.startsWith("xmlns:"))) throw new Error("Unsupported extended property value.");
+          id3 = `app:${node.name}`;
+          label4 = EXTENDED_FIELDS[node.name];
           location4 = `Property: ${node.name}`;
         } else {
           if (node.namespace !== CUSTOM || node.name !== "property") continue;
@@ -116852,7 +116862,7 @@ function openDocxMetadata(bytes, name, limits = {}) {
     return unsupported("This DOCX package is malformed, unsupported or exceeds the cleanup limits. It remains inspect-only.");
   }
 }
-var CP, DC, TERMS, CUSTOM, RELS, TYPES, WORD, OFFICE2, CORE_REL, WORD_XML_RELATIONS, MAIN_TYPE, PARTS, CORE, LIMITS2;
+var CP, DC, TERMS, CUSTOM, EXTENDED, RELS, TYPES, WORD, OFFICE2, CORE_REL, WORD_XML_RELATIONS, MAIN_TYPE, PARTS, CORE, EXTENDED_FIELDS, LIMITS2;
 var init_docx_metadata = __esm({
   "engine/src/docx-metadata.ts"() {
     "use strict";
@@ -116862,6 +116872,7 @@ var init_docx_metadata = __esm({
     DC = "http://purl.org/dc/elements/1.1/";
     TERMS = "http://purl.org/dc/terms/";
     CUSTOM = "http://schemas.openxmlformats.org/officeDocument/2006/custom-properties";
+    EXTENDED = "http://schemas.openxmlformats.org/officeDocument/2006/extended-properties";
     RELS = "http://schemas.openxmlformats.org/package/2006/relationships";
     TYPES = "http://schemas.openxmlformats.org/package/2006/content-types";
     WORD = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
@@ -116871,7 +116882,8 @@ var init_docx_metadata = __esm({
     MAIN_TYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml";
     PARTS = {
       "docProps/core.xml": { namespace: CP, root: "coreProperties", relation: CORE_REL, type: "application/vnd.openxmlformats-package.core-properties+xml" },
-      "docProps/custom.xml": { namespace: CUSTOM, root: "Properties", relation: `${OFFICE2}custom-properties`, type: "application/vnd.openxmlformats-officedocument.custom-properties+xml" }
+      "docProps/custom.xml": { namespace: CUSTOM, root: "Properties", relation: `${OFFICE2}custom-properties`, type: "application/vnd.openxmlformats-officedocument.custom-properties+xml" },
+      "docProps/app.xml": { namespace: EXTENDED, root: "Properties", relation: `${OFFICE2}extended-properties`, type: "application/vnd.openxmlformats-officedocument.extended-properties+xml" }
     };
     CORE = {
       creator: { namespace: DC, label: "Author" },
@@ -116884,7 +116896,8 @@ var init_docx_metadata = __esm({
       keywords: { namespace: CP, label: "Keywords" },
       description: { namespace: DC, label: "Description" }
     };
-    LIMITS2 = ["Only selected DOCX core and custom properties can be removed. Comments, revisions, links, hidden content and embedded objects are retained.", "Other properties, XML comments, package names and ZIP comments are retained. No result is certified free of private information."];
+    EXTENDED_FIELDS = { Company: "Company", Manager: "Manager" };
+    LIMITS2 = ["Only selected DOCX core/custom properties and Company/Manager extended properties can be removed. Comments, revisions, links, hidden content and embedded objects are retained.", "Other properties, XML comments, package names and ZIP comments are retained. No result is certified free of private information."];
   }
 });
 
