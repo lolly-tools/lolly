@@ -3,9 +3,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { chromium } from 'playwright';
 
-const origin = process.env.LOLLY_GALLERY_TEST_URL;
+const origin = process.env.LOLLY_GALLERY_TEST_URL ?? process.env.LOLLY_IMPORT_TEST_URL ?? process.env.LOLLY_EXPORT_TEST_URL;
 test('native layout hover stays idle while deliberate pointer and keyboard intent prewarm', {
-  skip: origin ? false : 'Set LOLLY_GALLERY_TEST_URL to the local Vite shell.', timeout: 30_000,
+  skip: origin ? false : 'Set LOLLY_GALLERY_TEST_URL, LOLLY_IMPORT_TEST_URL or LOLLY_EXPORT_TEST_URL to the local Vite shell.', timeout: 30_000,
 }, async () => {
   const browser = await chromium.launch({ headless: true });
   try {

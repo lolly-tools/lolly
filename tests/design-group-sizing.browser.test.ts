@@ -5,7 +5,8 @@ import { chromium, type Page } from 'playwright';
 import type { CanvasCommitEl } from '../shells/web/src/lib/canvas-commit.ts';
 import { webGpuLaunchArgs } from '../packages/node-shell/src/webgpu-launch.ts';
 
-const origin = process.env.LOLLY_LAYOUT_TEST_URL ?? process.env.LOLLY_HIERARCHY_TEST_URL;
+const origin = process.env.LOLLY_LAYOUT_TEST_URL ?? process.env.LOLLY_HIERARCHY_TEST_URL
+  ?? process.env.LOLLY_IMPORT_TEST_URL ?? process.env.LOLLY_EXPORT_TEST_URL;
 const skip = origin ? false : 'Set LOLLY_LAYOUT_TEST_URL to a local web shell.';
 async function boxes(page: Page): Promise<Record<string, unknown>[]> {
   return page.evaluate(() => (document.getElementById('tool-canvas') as CanvasCommitEl).__lollyModel!()
