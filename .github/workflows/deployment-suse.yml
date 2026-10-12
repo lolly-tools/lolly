@@ -631,6 +631,7 @@ jobs:
     env:
       EXPECTED_SOURCE: ${{ inputs.expected_source }}
       LOLLY_PROFILE: lolly-start
+      ONNXRUNTIME_NODE_INSTALL_CUDA: skip
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
