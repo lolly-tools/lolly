@@ -341,5 +341,13 @@
   "YAML structure comparison needs unique string keys. Choose Text mode.",
   "YAML merge keys are not supported in structure comparison. Choose Text mode.",
   "YAML structure comparison needs finite numbers and safe integers. Choose Text mode.",
-  "YAML data values are compared. Comments, key order, quoting and formatting are outside this comparison."
+  "YAML data values are compared. Comments, key order, quoting and formatting are outside this comparison.",
+  "Enter transition",
+  "Transition tokens",
+  "Incompatible",
+  "Showing the first 2000 transition tokens. Inspect the system to search all tokens.",
+  "No transition tokens in this context.",
+  "Applies Enter duration and geometry easing. Opacity keeps the preset easing.",
+  "This layer timing control cannot apply a delay. Choose a transition with zero delay.",
+  "Reading transition tokens…"
 ]

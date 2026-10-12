@@ -1208,7 +1208,7 @@
   "shells/web/src/views/free-canvas-tools.test.ts": 2,
   "shells/web/src/views/free-canvas-touch-place.test.ts": 1,
   "shells/web/src/views/free-canvas-vector.test.ts": 1,
-  "shells/web/src/views/free-canvas.ts": 27,
+  "shells/web/src/views/free-canvas.ts": 26,
   "shells/web/src/views/free-canvas/archetype-thumb.ts": 3,
   "shells/web/src/views/free-canvas/chrome-sync.ts": 2,
   "shells/web/src/views/free-canvas/connectors.ts": 3,

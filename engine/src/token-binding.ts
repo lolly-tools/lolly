@@ -22,6 +22,12 @@ export interface TokenBindingResult { status: 'linked' | 'unresolved' | 'incompa
 export function resolveTokenBinding(entry: TokenEntry | undefined, consumer: TokenConsumer): TokenBindingResult {
   if (!entry || isAlias(entry.value)) return { status: 'unresolved', reason: 'The token has no resolved value.' };
   const bad = (reason: string): TokenBindingResult => ({ status: 'incompatible', reason });
+  if (consumer.adapter === 'transition') {
+    const duration = resolveTokenBinding(entry, { type: 'number', adapter: 'transition.duration-ms', min: consumer.min, max: consumer.max });
+    if (duration.status !== 'linked') return duration;
+    const curve = resolveTokenBinding(entry, { type: 'text', adapter: 'transition.timingFunction', maxLength: consumer.maxLength });
+    if (curve.status !== 'linked') return curve;
+  }
   if (consumer.adapter === 'typography' || consumer.adapter === 'shadow' || consumer.adapter === 'border') {
     const kind = consumer.adapter;
     const targets = kind === 'typography' ? [['fontFamily', 'text'], ['fontSize', 'number'], ['fontWeight', 'number'], ['letterSpacing', 'number'], ['lineHeight', 'number']] : kind === 'border' ? [['color', 'color'], ['width', 'number'], ['style', 'text']] : [['color', 'color'], ['offsetX', 'number'], ['offsetY', 'number'], ['blur', 'number']];
