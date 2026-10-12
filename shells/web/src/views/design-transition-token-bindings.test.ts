@@ -18,11 +18,11 @@ const transition = (duration = 800, delay = 0, timingFunction = [0.2, 0.8, 0.4, 
 const set = createTokenSet({ motion: transition(), delayed: transition(800, 100), long: transition(3001), short: transition(99), badCurve: transition(800, 0, [1.1, 0, 0.4, 1]), min: transition(100), max: transition(3000), scalar: { $type: 'duration', $value: { value: 600, unit: 'ms' } } });
 const initial = (): Box => ({ id: 'a', kind: 'box', enter: 'rise', enterMs: 400, enterEase: '', exit: 'fade', exitMs: 300, exitEase: 'ease-in', start: 2, dur: 6, build: 3, lane: 'art' });
 const tick = () => new Promise(resolve => setTimeout(resolve, 0));
-function harness(initialRows = [initial()], host = { tokens: { get: async () => set } } as HostV1, declared = fields) {
+function harness(initialRows = [initial()], host = { tokens: { get: async () => set } } as HostV1, declared = fields, enterFields = { duration: 'enterMs', easing: 'enterEase' }) {
   let rows = initialRows, commits = 0;
   const past: Box[][] = [], future: Box[][] = [];
   const root = document.createElement('div'); document.body.append(root);
-  const model: ModelPort = { blockId: 'boxes', cfg: { idField: 'id', xField: 'x', yField: 'y', wField: 'w', hField: 'h', rotationField: 'rot', kindField: 'kind', enterMsField: 'enterMs', enterEaseField: 'enterEase' } as BoxFieldConfig, frame: { frameField: 'frame', frameKind: 'frame', orderField: 'order' }, getBoxes: () => rows, commit: next => { past.push(rows); future.length = 0; rows = next; commits++; }, setField: () => {}, subscribe: () => () => {}, getInput: () => 'sdr', setInput: () => {} };
+  const model: ModelPort = { blockId: 'boxes', cfg: { idField: 'id', xField: 'x', yField: 'y', wField: 'w', hField: 'h', rotationField: 'rot', kindField: 'kind', enterMsField: enterFields.duration, enterEaseField: enterFields.easing } as BoxFieldConfig, frame: { frameField: 'frame', frameKind: 'frame', orderField: 'order' }, getBoxes: () => rows, commit: next => { past.push(rows); future.length = 0; rows = next; commits++; }, setField: () => {}, subscribe: () => () => {}, getInput: () => 'sdr', setInput: () => {} };
   let dispose = () => {}, selected = initialRows.map(row => String(row.id));
   const mount = (ids = selected) => { dispose(); selected = ids; dispose = mountDesignTokenBindings(root, { host, metadataField: 'links', fields: declared, fieldIds: declared.map(field => field.id), model, ids }); };
   mount();
@@ -70,6 +70,27 @@ test('delayed, out-of-range and malformed transitions stay visible with Link dis
     const picker = await h.candidates(); assert.ok(![...picker.options].some(option => option.value === 'scalar'));
     for (const id of ['min', 'max']) { const button = await h.choose(id); assert.equal(button.disabled, false); }
   } finally { h.destroy(); }
+});
+
+test('whole candidates honor the aliased easing length limit without limiting their serialized transition', async () => {
+  const curve = 'cubic-bezier(0.2,0.8,0.4,1)';
+  for (const maxLength of [5, curve.length, curve.length + 1]) {
+    const declared: Array<BlockFieldSpec & { maxLength?: number }> = [{ id: 'inTime', type: 'number', min: 100, max: 3000 }, { id: 'inCurve', type: 'text', maxLength }];
+    const before = { ...initial(), inTime: 400, inCurve: '' };
+    const h = harness([before], undefined, declared, { duration: 'inTime', easing: 'inCurve' });
+    try {
+      h.property(); const button = await h.choose(); assert.equal(button.disabled, maxLength < curve.length); assert.equal(h.commits(), 0);
+      button.click(); await tick();
+      if (maxLength < curve.length) {
+        assert.equal(h.commits(), 0); assert.deepEqual(h.rows(), [before]);
+        assert.match(h.root.querySelector('[data-token-message]')!.textContent!, /exceeds this field length limit/);
+        assert.match(h.root.querySelector<HTMLSelectElement>('[data-token-options] select')!.selectedOptions[0]!.text, /Incompatible/);
+      } else {
+        assert.equal(h.commits(), 1); assert.deepEqual([h.rows()[0]!.inTime, h.rows()[0]!.inCurve], [800, curve]);
+        assert.deepEqual({ ...h.rows()[0], inTime: 400, inCurve: '', links: undefined }, { ...before, links: undefined });
+      }
+    } finally { h.destroy(); }
+  }
 });
 
 test('individual duration remains custom through refresh and whole Restore replaces both fields in one undo step', async () => {
@@ -151,4 +172,15 @@ test('a pending Enter action refuses changed duration or frame kind and cancels 
       if (change !== 'selection') assert.match(h.root.textContent!, /These layer values changed/);
     } finally { h.destroy(); }
   }
+});
+
+test('removing a token root during final resolution cancels the write even before disposal', async () => {
+  let calls = 0, finish: (value: typeof set) => void = () => {};
+  const pending = new Promise<typeof set>(resolve => { finish = resolve; });
+  const h = harness([initial()], { tokens: { get: () => ++calls === 3 ? pending : Promise.resolve(set) } } as HostV1);
+  try {
+    h.property(); (await h.choose()).click(); await tick(); assert.equal(calls, 3);
+    h.root.remove(); finish(set); await tick();
+    assert.equal(h.commits(), 0); assert.deepEqual(h.rows(), [initial()]);
+  } finally { h.destroy(); }
 });

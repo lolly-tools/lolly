@@ -3,7 +3,7 @@ import type { HostV1 } from '@lolly-tools/core/host-v1';
 import type { InputModelItem, InputValue } from '../../../../engine/src/inputs.ts';
 import { flattenValue } from '../../../../engine/src/inputs.ts';
 import { isTokenValue, aliasPath } from '../../../../engine/src/tokens.ts';
-import { resolveTokenBinding, type TokenConsumer } from '../../../../engine/src/token-binding.ts';
+import { resolveTokenBinding, type TokenConsumer, type TokenBindingResult } from '../../../../engine/src/token-binding.ts';
 import { escape as esc } from '../utils.ts';
 import { t } from '../i18n.ts';
 import { icon } from '../lib/icons.ts';
@@ -11,11 +11,12 @@ import type { TokenEntry } from '../../../../engine/src/bridge/host-v1.ts';
 import type { TokenAdapter } from '../../../../engine/src/token-consumer-adapters.ts';
 
 /** Adds link actions around the caller's existing typed editor; never edits source tokens. */
-export function mountTokenBindingField(root: HTMLElement, input: InputModelItem, host: Pick<HostV1, 'tokens'>, commit: (value: InputValue) => void | Promise<void>, options: { consumer?: TokenConsumer; fallbackAdapter?: TokenAdapter; readOnly?: boolean; mixed?: boolean; restoreRef?: string; compact?: boolean; colorTarget?: 'srgb' | 'rec2020'; candidateType?: 'transition'; onPendingChange?: (pending: boolean) => void } = {}): () => void {
+export function mountTokenBindingField(root: HTMLElement, input: InputModelItem, host: Pick<HostV1, 'tokens'>, commit: (value: InputValue) => void | Promise<void>, options: { consumer?: TokenConsumer; fallbackAdapter?: TokenAdapter; candidatePreflight?: (entry: TokenEntry | undefined) => TokenBindingResult | undefined; readOnly?: boolean; mixed?: boolean; restoreRef?: string; compact?: boolean; colorTarget?: 'srgb' | 'rec2020'; candidateType?: 'transition'; onPendingChange?: (pending: boolean) => void } = {}): () => void {
   const resolve = (entry: TokenEntry | undefined) => {
     const consumer = { ...input, ...options.consumer, colorTarget: options.colorTarget };
-    const result = resolveTokenBinding(entry, consumer);
-    return result.status !== 'linked' && options.fallbackAdapter ? resolveTokenBinding(entry, { ...consumer, adapter: options.fallbackAdapter }) : result;
+    const primary = resolveTokenBinding(entry, consumer);
+    const result = primary.status !== 'linked' && options.fallbackAdapter ? resolveTokenBinding(entry, { ...consumer, adapter: options.fallbackAdapter }) : primary;
+    return result.status === 'linked' ? options.candidatePreflight?.(entry) ?? result : result;
   };
   const abort = new AbortController();
   let disposed = false, pending = 0;
