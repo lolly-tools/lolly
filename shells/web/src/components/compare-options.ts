@@ -37,5 +37,7 @@ export function mountComparisonOptions(root: HTMLElement, request: ComparisonReq
     granularity.addEventListener('change', () => { options.granularity = granularity.value === 'word' ? 'word' : 'line'; void compare(); }); root.append(granularity);
     checkbox('Ignore whitespace', options.whitespace === 'ignore', checked => { options.whitespace = checked ? 'ignore' : 'exact'; });
     checkbox('Ignore case', !!options.ignoreCase, checked => { options.ignoreCase = checked; });
-  } else checkbox('Match array items by unique id', options.arrayAlignment === 'id', checked => { options.arrayAlignment = checked ? 'id' : 'position'; });
+  } else if (['structure', 'yaml'].includes(before.kind) && ['structure', 'yaml'].includes(after.kind)) {
+    checkbox('Match array items by unique id', options.arrayAlignment === 'id', checked => { options.arrayAlignment = checked ? 'id' : 'position'; });
+  }
 }

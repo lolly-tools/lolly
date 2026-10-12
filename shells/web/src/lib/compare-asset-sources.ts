@@ -1,8 +1,13 @@
 // SPDX-License-Identifier: MPL-2.0
 import type { AssetRef, HostV1 } from '@lolly-tools/core/host-v1';
-import { comparisonFileSource, type ContentComparisonMode } from './compare-sources.ts';
+import { comparisonFileSource, comparisonRequest, yamlComparisonFormats, type ContentComparisonMode, type ContentComparisonOverride } from './compare-sources.ts';
 import { comparisonVisualSource, VISUAL_FORMATS } from './compare-visual-sources.ts';
 export interface ComparisonAsset { id: string; format?: string; version?: string; label?: string }
+export interface CapturedComparisonAsset {
+  readonly file: File;
+  readonly identity: { id: string; kind: 'asset'; label: string; revision?: string };
+  readonly format: string;
+}
 const TEXT_FORMATS = new Set(['txt', 'md', 'markdown', 'csv', 'tsv', 'json', 'har', 'yaml', 'yml', 'xml', 'html', 'css', 'js', 'ts', 'log', 'ini', 'toml']);
 export function assetComparisonMode(refs: readonly Pick<AssetRef, 'format'>[]): 'visual' | ContentComparisonMode | undefined {
   if (refs.length !== 2) return undefined;
@@ -11,6 +16,7 @@ export function assetComparisonMode(refs: readonly Pick<AssetRef, 'format'>[]): 
   if (formats.every(f => ['csv', 'tsv', 'xlsx'].includes(f))) return 'table';
   if (formats.every(f => ['docx', 'pptx', 'pdf'].includes(f))) return 'document';
   if (formats.every(f => f === 'json' || f === 'har')) return 'json';
+  if (yamlComparisonFormats(formats)) return 'yaml';
   if (formats.every(f => TEXT_FORMATS.has(f))) return 'text';
   return undefined;
 }
@@ -18,7 +24,7 @@ export function assetComparisonMode(refs: readonly Pick<AssetRef, 'format'>[]): 
 export function comparisonAssetRef(ref: AssetRef): ComparisonAsset {
   return { id: ref.id, format: ref.pin?.format ?? ref.format, version: ref.pin?.version ?? ref.version, label: String(ref.meta?.name || ref.id) };
 }
-export async function comparisonAssetFile(source: ComparisonAsset, host: HostV1, signal?: AbortSignal): Promise<{ file: File; identity: { id: string; kind: 'asset'; label: string; revision?: string }; format: string }> {
+export async function comparisonAssetFile(source: ComparisonAsset, host: HostV1, signal?: AbortSignal): Promise<CapturedComparisonAsset> {
   signal?.throwIfAborted();
   let ref: AssetRef;
   try { ref = await host.assets.get(source.id, { format: source.format, version: source.version }); }
@@ -33,15 +39,23 @@ export async function comparisonAssetFile(source: ComparisonAsset, host: HostV1,
   const label = source.label ?? String(ref.meta?.name || ref.id), format = ref.format.toLowerCase();
   return { file: new File([bytes as BlobPart], `source.${format}`), identity: { id: ref.id, kind: 'asset', label, revision: ref.version }, format };
 }
-export async function comparisonAssetPair(sources: readonly ComparisonAsset[], host: HostV1, signal?: AbortSignal, override?: 'document') {
+export async function captureComparisonAssets(sources: readonly ComparisonAsset[], host: HostV1, signal?: AbortSignal): Promise<readonly CapturedComparisonAsset[]> {
   if (sources.length !== 2) throw new Error('Select two compatible assets.');
-  const files = await Promise.all(sources.map(source => comparisonAssetFile(source, host, signal)));
+  return Promise.all(sources.map(source => comparisonAssetFile(source, host, signal)));
+}
+/** Mode changes read the captured Files, never a newer current asset. */
+export async function capturedAssetComparisonPair(files: readonly CapturedComparisonAsset[], host: HostV1, signal?: AbortSignal, override?: ContentComparisonOverride) {
+  if (files.length !== 2) throw new Error('Select two compatible assets.');
+  signal?.throwIfAborted();
   const mode = override ?? assetComparisonMode(files);
-  if (!mode) throw new Error('Choose two compatible text, JSON, table, document or image assets.');
+  if (!mode) throw new Error('Choose two compatible text, JSON, YAML, table, document or image assets.');
   if (mode === 'visual') {
     const pair = await Promise.all(files.map(({ file, identity }) => comparisonVisualSource(file, host, signal, identity)));
     return { mode, request: { version: 1 as const, before: pair[0]!, after: pair[1]! } };
   }
   const pair = await Promise.all(files.map(async ({ file, identity }) => ({ ...await comparisonFileSource(file, mode, signal), identity })));
-  return { mode, request: { version: 1 as const, before: pair[0]!, after: pair[1]! } };
+  return { mode, request: comparisonRequest(pair[0]!, pair[1]!, mode) };
+}
+export async function comparisonAssetPair(sources: readonly ComparisonAsset[], host: HostV1, signal?: AbortSignal, override?: ContentComparisonOverride) {
+  return capturedAssetComparisonPair(await captureComparisonAssets(sources, host, signal), host, signal, override);
 }
