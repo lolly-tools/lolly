@@ -197,3 +197,35 @@ test('catalog YAML fallback reuses captured current and pinned bytes after provi
     await privateState(page, requests); assert.deepEqual(errors, []);
   } finally { await browser.close(); }
 });
+
+test('unknown-format history reveals YAML controls only after verifying the selected original and keeps exact fallback bytes', { skip, timeout: 90_000 }, async () => {
+  const browser = await chromium.launch(), page = await browser.newPage();
+  try {
+    await watchWorkers(page); await page.goto(`${origin}/#/compare`, { waitUntil: 'networkidle' }); await shellSettled(page);
+    await page.evaluate(async ({ after, size, sha256 }) => {
+      const hostPath = '/src/lib/host-ref.ts', panelPath = '/src/components/compare-operation.ts';
+      (await import(panelPath)).openOperationComparison((await import(hostPath)).getHostRef(), new File([after], 'CONFIDENTIAL_YAML_saved-copy.yaml'), {
+        expected: { name: 'CONFIDENTIAL_YAML_recorded-original.bin', mime: '', format: 'unknown', size, sha256 },
+      });
+    }, { after: yamlRefusedAfter, size: Buffer.byteLength(yamlRefusedBefore), sha256: digest(yamlRefusedBefore) });
+    const dialog = page.getByRole('dialog', { name: 'Compare original and copy' }), mode = dialog.getByLabel('YAML comparison', { exact: true });
+    assert.equal(await mode.count(), 0);
+    await dialog.getByLabel('Choose the original file').setInputFiles(file(yamlRefusedBefore.replace('root:', 'ROOT:'), 'wrong.yaml'));
+    await dialog.getByText('That file does not match the recorded original.', { exact: true }).waitFor();
+    assert.equal(await mode.count(), 0); assert.equal(await page.evaluate(() => window.__yamlWorkers.length), 0);
+    await dialog.getByLabel('Choose the original file').setInputFiles(file(yamlRefusedBefore, 'CONFIDENTIAL_YAML_selected-original.yaml'));
+    await mode.waitFor(); assert.equal(await mode.inputValue(), 'yaml'); await refused(dialog);
+    const yaml = await lastWorker(page); assert.equal(yaml.beforeKind, 'yaml'); assert.equal(yaml.afterKind, 'yaml');
+    assert.equal(yaml.beforeHash, digest(yamlRefusedBefore)); assert.equal(yaml.afterHash, digest(yamlRefusedAfter));
+    assert.doesNotMatch(await report(dialog, page), /PRIVATE_YAML_|CONFIDENTIAL_YAML_|limitations|anchors/);
+    await mode.selectOption('text'); await dialog.locator('.compare-change').first().waitFor(); const text = await lastWorker(page);
+    assert.equal(text.result?.mode, 'text'); assert.equal(text.result?.completeness, 'complete'); assert.deepEqual(text.result!.limitations, []);
+    assert.equal(text.beforeHash, yaml.beforeHash); assert.equal(text.afterHash, yaml.afterHash);
+    assert.doesNotMatch(await report(dialog, page), /PRIVATE_YAML_|CONFIDENTIAL_YAML_|saved-copy|selected-original/);
+    await mode.selectOption('yaml'); await refused(dialog); const again = await lastWorker(page);
+    assert.equal(again.beforeHash, yaml.beforeHash); assert.equal(again.afterHash, yaml.afterHash);
+    await mode.selectOption('text'); await dialog.locator('.compare-change').first().waitFor(); const final = await lastWorker(page);
+    assert.equal(final.beforeHash, yaml.beforeHash); assert.equal(final.afterHash, yaml.afterHash);
+    await dialog.getByRole('button', { name: 'Close comparison', exact: true }).click();
+  } finally { await browser.close(); }
+});
