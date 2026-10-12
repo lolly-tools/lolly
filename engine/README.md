@@ -259,7 +259,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `doc-md.ts` | 415 | doc-md.ts - the two serialisers over `doc-model.ts`: GFM markdown, and the HTML projection a rich-text editor ingests. | yes | `tests/doc-md.test.ts` | – |
 | `doc-model.ts` | 77 | doc-model.ts - the ONE block model every document reader produces and every document serialiser consumes. | yes | indirect | – |
 | `document-api.ts` | 229 | Stable, transport-neutral document/compiler verbs. | yes | `tests/document-api.test.ts` | – |
-| `docx-metadata.ts` | 168 | Selected DOCX property removal without reconstructing document content. | no | `tests/docx-metadata.test.ts` | – |
+| `docx-metadata.ts` | 179 | Selected DOCX property removal without reconstructing document content. | no | `tests/docx-metadata.test.ts` | – |
 | `docx-read.ts` | 1031 | docx-read.ts: PARSE an unzipped .docx part map into `doc-model.ts` blocks. | yes | `tests/docx-read.test.ts` | yes |
 | `docx.ts` | 815 | DOCX (Word / WordprocessingML OOXML) builder. | yes | `tests/docx.test.ts` | – |
 | `dotlottie.ts` | 130 | dotLottie v1/v2 and raw JSON, with exact source bytes retained by the caller. | no | indirect | – |
