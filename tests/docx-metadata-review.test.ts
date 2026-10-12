@@ -129,3 +129,26 @@ test('extended Prepare values stay concealed until reveal and operation comparis
   assert.equal(result.appearance, 'not-compared'); assert.equal(result.completeness, 'partial');
   assert.doesNotMatch(JSON.stringify(result.before), /private-extended/);
 });
+
+test('property comparison discloses capped previews without claiming equality for a changed tail', async () => {
+  const company = (tail: string): Uint8Array => {
+    const members = readZipMembers(extendedBytes);
+    const app = members.find(member => member.name === 'docProps/app.xml')!;
+    const xml = new TextDecoder().decode(decodeZipMember(app)).replace('Private fixture company', 'x'.repeat(2048) + tail);
+    const replacement = readZipMembers(storeZip([{ name: app.name, bytes: new TextEncoder().encode(xml) }]))[0]!;
+    return storeZipMembers(members.map(member => member.name === app.name ? replacement : member));
+  };
+  const host = createMockHost();
+  host.prepare = createPrepareAPI();
+  const before = company('first private tail');
+  const after = company('second private tail');
+  const pair = await operationComparisonPair(new File([Uint8Array.from(before).buffer], 'before.docx'), new File([Uint8Array.from(after).buffer], 'after.docx'), host);
+  assert.equal(pair.mode, 'json');
+  if (pair.mode !== 'json') throw new Error('Expected property review');
+  const result = compareSources(pair.request);
+  assert.equal(result.byteEquality, 'different');
+  assert.equal(result.equality, 'undetermined');
+  assert.equal(result.completeness, 'partial');
+  assert.equal(result.summary.total, 0);
+  assert.ok(result.limitations.some(message => message.includes('2048 characters') && message.includes('unavailable')));
+});

@@ -114,17 +114,19 @@ export function openDocxMetadata(bytes: Uint8Array, name: string, limits: { maxP
     const overrides = types.children.filter(n => n.namespace === TYPES && n.name === 'Override');
     const defaults = types.children.filter(n => n.namespace === TYPES && n.name === 'Default');
     const rels = relationships.children.filter(n => n.namespace === RELS && n.name === 'Relationship');
-    if (new Set(overrides.map(n => n.attrs.PartName)).size !== overrides.length || new Set(defaults.map(n => n.attrs.Extension?.toLowerCase())).size !== defaults.length || new Set(rels.map(n => n.attrs.Id)).size !== rels.length) throw new Error('Ambiguous package declarations.');
+    const overridesByName = new Map(overrides.map(n => [n.attrs.PartName?.replace(/[A-Z]/g, char => char.toLowerCase()), n]));
+    if (overridesByName.size !== overrides.length || new Set(defaults.map(n => n.attrs.Extension?.toLowerCase())).size !== defaults.length || new Set(rels.map(n => n.attrs.Id)).size !== rels.length) throw new Error('Ambiguous package declarations.');
     const xmlType = (type: string): boolean => /(?:\+xml|^(?:application|text)\/xml)(?:\s*;|$)/i.test(type);
     if (overrides.some(n => xmlType(n.attrs.ContentType ?? '') && !/\.(?:xml|rels)$/i.test(n.attrs.PartName ?? '')) || defaults.some(n => xmlType(n.attrs.ContentType ?? '') && !/^(?:xml|rels)$/i.test(n.attrs.Extension ?? ''))) return unsupported('XML parts with unconventional filename extensions are not supported for DOCX metadata cleanup. This file remains inspect-only.');
     if (types.children.some(n => /macro|vba|signature/i.test(n.attrs.ContentType ?? ''))) return unsupported('Macro-enabled or signed package declarations prevent DOCX metadata cleanup.');
     const main = rels.filter(n => n.attrs.Type === `${OFFICE}officeDocument`);
-    if (main.length !== 1 || main[0]!.attrs.TargetMode || target(main[0]!.attrs.Target ?? '') !== 'word/document.xml' || overrides.find(n => n.attrs.PartName === '/word/document.xml')?.attrs.ContentType !== MAIN_TYPE) throw new Error('Unsupported main document declaration.');
+    if (main.length !== 1 || main[0]!.attrs.TargetMode || target(main[0]!.attrs.Target ?? '') !== 'word/document.xml' || overridesByName.get('/word/document.xml')?.attrs.ContentType !== MAIN_TYPE) throw new Error('Unsupported main document declaration.');
     for (const [path, spec] of Object.entries(PARTS)) {
       const matching = rels.filter(n => n.attrs.Type === spec.relation);
       const part = propertyParts.get(path), root = trees.get(path);
-      if (!part) { if (matching.length) throw new Error('Missing property part.'); continue; }
-      if (matching.length !== 1 || matching[0]!.attrs.TargetMode || target(matching[0]!.attrs.Target ?? '') !== path || overrides.find(n => n.attrs.PartName === `/${path}`)?.attrs.ContentType !== spec.type || root?.name !== spec.root || root.namespace !== spec.namespace) throw new Error('Unsupported property declaration.');
+      const declaration = overridesByName.get(`/${path.toLowerCase()}`);
+      if (!part) { if (matching.length || declaration) throw new Error('Missing property part.'); continue; }
+      if (matching.length !== 1 || matching[0]!.attrs.TargetMode || target(matching[0]!.attrs.Target ?? '') !== path || declaration?.attrs.ContentType !== spec.type || root?.name !== spec.root || root.namespace !== spec.namespace) throw new Error('Unsupported property declaration.');
       if (path === 'docProps/app.xml' && (!/^[A-Za-z_][A-Za-z0-9_.-]*$/.test(matching[0]!.attrs.Id ?? '') || matching[0]!.attrs.TargetMode !== undefined)) throw new Error('Unsupported extended property relationship.');
       if (path === 'docProps/app.xml' && root.children.some(node => node.namespace === EXTENDED && node.name === 'DigSig')) return unsupported('Extended digital-signature data prevents DOCX metadata cleanup. This file remains inspect-only.');
       const seen = new Set<string>(), customNames = new Set<string>();
