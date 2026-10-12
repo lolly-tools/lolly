@@ -29,8 +29,10 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
 import { JSDOM } from 'jsdom';
+import type { HostV1 } from '@lolly-tools/core/host-v1';
+import { createTokenSet } from '../../../../engine/src/tokens.ts';
 import type { Box } from './free-canvas-math.ts';
-import { ARRANGE_OPS } from './design-inspector.ts';
+import { ARRANGE_OPS, initDesignInspector } from './design-inspector.ts';
 
 // The timeline panel imports its own stylesheet and free-canvas reaches it through a
 // dynamic import; Node has no idea what a .css module is (Vite resolves it for real).
@@ -47,7 +49,7 @@ const W = dom.window as unknown as typeof globalThis & {
 };
 for (const k of [
   'window', 'document', 'HTMLElement', 'Element', 'KeyboardEvent', 'Event', 'CustomEvent',
-  'MouseEvent', 'Node', 'getComputedStyle', 'MutationObserver',
+  'MouseEvent', 'Node', 'getComputedStyle', 'MutationObserver', 'AbortController',
 ]) {
   (globalThis as Record<string, unknown>)[k] = (dom.window as unknown as Record<string, unknown>)[k];
 }
@@ -79,6 +81,7 @@ function canvasCfg(): Record<string, unknown> {
     // gated on all of them being declared.
     startField: 'start', durField: 'dur', clipInField: 'clipIn', speedField: 'speed',
     enterField: 'enter', exitField: 'exit', enterMsField: 'enterMs', exitMsField: 'exitMs',
+    enterEaseField: 'enterEase',
     muteField: 'mute', laneField: 'lane',
     addKinds: [
       { id: 'box', label: 'Box', seed: { kind: 'box' } },
@@ -98,6 +101,7 @@ interface MountOpts {
   withHistory?: boolean;
   withTime?: boolean;
   withImport?: boolean;
+  enterFields?: { duration: string; easing: string };
 }
 
 interface Fixture {
@@ -139,9 +143,10 @@ function mount(initial: Box[] = [], o: MountOpts = {}): Fixture {
     subscribe(fn: () => void) { subs.push(fn); return () => { subs.splice(subs.indexOf(fn), 1); }; },
   };
   const cfg = canvasCfg();
+  if (o.enterFields) { cfg.enterMsField = o.enterFields.duration; cfg.enterEaseField = o.enterFields.easing; }
   if (!o.withTime) {
     for (const k of ['startField', 'durField', 'clipInField', 'speedField', 'enterField',
-      'exitField', 'enterMsField', 'exitMsField', 'muteField', 'laneField']) delete cfg[k];
+      'exitField', 'enterMsField', 'enterEaseField', 'exitMsField', 'muteField', 'laneField']) delete cfg[k];
   }
   if (o.withImport) cfg.import = { formats: ['svg', 'penpot', 'pdf'] };
   const handle = initFreeCanvas({
@@ -226,6 +231,34 @@ test('handle.design carries every member of DesignCanvasPorts', () => {
     assert.ok(d.fonts.weights(d.fonts.options()[0]![0]).length > 0, 'and so does the weight select');
     assert.deepEqual(d.fields, [], 'fields mirrors the manifest declarations (none in this fixture)');
   } finally { f.destroy(); }
+});
+
+test('the actual canvas ports expose declared Enter aliases to the Motion token controls', async () => {
+  const before = { ...childBox('a', 'f1', 20), inTime: 400, inCurve: '', start: 2, dur: 6, build: 3, lane: 'art' };
+  const f = mount([frameBox('f1', 0, 0), before], { withTime: true, enterFields: { duration: 'inTime', easing: 'inCurve' } });
+  const set = createTokenSet({ arrival: { $type: 'transition', $value: { duration: { value: 800, unit: 'ms' }, delay: { value: 0, unit: 'ms' }, timingFunction: [0.2, 0.8, 0.4, 1] } } });
+  const inspector = initDesignInspector({ canvasEl: f.canvasEl, model: f.design.model, selection: f.design.selection, artboard: f.design.artboard, actions: f.design.inspectorActions, fonts: f.design.fonts, fields: [{ id: 'inTime', type: 'number', min: 100, max: 3000 }, { id: 'inCurve', type: 'text' }], tokens: { host: { tokens: { get: async () => set } } as HostV1, metadataField: 'links' } });
+  f.stageEl.append(inspector.el);
+  try {
+    const cfg = f.design.model.cfg as typeof f.design.model.cfg & Record<string, string | undefined>;
+    assert.equal(cfg.enterMsField, 'inTime'); assert.equal(cfg.enterEaseField, 'inCurve');
+    f.design.selection.set(['a']); inspector.reveal('motion'); await settle();
+    const slot = inspector.el.querySelector<HTMLElement>('[data-token-section="motion"]')!;
+    const properties = slot.querySelector<HTMLSelectElement>('[data-design-token-property]')!;
+    assert.ok([...properties.options].some(option => option.value === '__transition'));
+    slot.querySelector<HTMLDetailsElement>('details')!.open = true; properties.focus();
+    properties.value = '__transition'; properties.dispatchEvent(new W.Event('change'));
+    click(slot.querySelector('[data-token-choose]')!); await settle();
+    const picker = slot.querySelector<HTMLSelectElement>('[data-token-options] select')!;
+    picker.value = 'arrival'; picker.dispatchEvent(new W.Event('change'));
+    assert.equal(f.commits(), 0); click(slot.querySelector('[data-token-link]')!); await settle();
+    const row = f.boxes().find(box => box.id === 'a')!;
+    assert.equal(f.commits(), 1); assert.deepEqual([row.inTime, row.inCurve], [800, 'cubic-bezier(0.2,0.8,0.4,1)']);
+    assert.deepEqual({ ...row, inTime: 400, inCurve: '', links: undefined }, { ...before, links: undefined });
+    assert.equal(row.enterMs, undefined); assert.equal(row.enterEase, undefined);
+  } finally { inspector.destroy(); f.destroy(); }
+  const untimed = mount([before]);
+  try { const cfg = untimed.design.model.cfg as typeof untimed.design.model.cfg & Record<string, string | undefined>; assert.equal(cfg.enterMsField, undefined); assert.equal(cfg.enterEaseField, undefined); } finally { untimed.destroy(); }
 });
 
 test('inspectorActions.arrange accepts every name the inspector column offers', () => {

@@ -428,7 +428,7 @@ const WATCHED: Record<InspectorSection, (c: Cfg, m: FlagFields) => Array<string 
   // `build` and `lane` have no cfg key of their own (the manifest names them literally,
   // as `notes` and `cls` are named), and the Appears control is derived from all four of
   // build/start/dur/lane - so a build step written anywhere else has to move this memo.
-  motion: (c) => [c.startField, c.durField, c.enterField, c.exitField, c.enterMsField, c.exitMsField, c.holdField, c.splitField, c.kfField, 'enterEase', 'exitEase', 'build', 'lane'],
+  motion: (c) => [c.startField, c.durField, c.enterField, c.exitField, c.enterMsField, c.exitMsField, c.holdField, c.splitField, c.kfField, c.enterEaseField ?? 'enterEase', 'exitEase', 'build', 'lane'],
   // `notes` is here rather than in Artboard: the Present section is where a slide's
   // speaker notes are edited (plans/180), and the narration status is read off them.
   present: () => ['build', 'presentAudio', 'matchOf', 'state', 'stackOf', 'notes'],

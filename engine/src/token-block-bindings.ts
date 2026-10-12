@@ -28,7 +28,7 @@
  * which is the whole point of storing literals.
  */
 import type { BlockFieldSpec, InputValue } from './inputs.ts';
-import type { TokenSet } from './bridge/host-v1.ts';
+import type { TokenEntry, TokenSet } from './bridge/host-v1.ts';
 import { aliasPath, isAlias, isTokenValue } from './tokens.ts';
 import { resolveTokenBinding } from './token-binding.ts';
 import { canonicalJson } from './canonical-json.ts';
@@ -58,6 +58,12 @@ const DESIGN_LINKS_FIELD = 'tokenLinks';
 const STATUSES = ['linked', 'unresolved', 'incompatible'];
 const HEX6 = /^[0-9a-f]{6}$/;
 const BORDER_STYLE_ADAPTERS: readonly (TokenAdapter | undefined)[] = ['border.style', 'border.dashArray', 'border.dashLength', 'border.gapLength'];
+
+/** Distinct composite consumers must not share a held result just because refs match. */
+function atomicBindingGroup(link: BlockTokenBinding): string | undefined {
+  const family = link.adapter?.startsWith('border.') ? 'border' : link.adapter?.startsWith('transition.') ? 'transition' : undefined;
+  return family ? `${family}:${link.ref}` : undefined;
+}
 
 function readLink(value: unknown): BlockTokenBinding | null {
   if (!record(value) || !isAlias(value.ref) || value.ref.length > 1024 || !scalar(value.value)) return null;
@@ -440,22 +446,25 @@ export function resolveBlockTokenBindings(rows: InputValue[], metadataField: str
     if (!Object.keys(links).length) return row;
     const next = { ...row };
     let moved = false;
-    // A border refresh is atomic across its active properties. Incompatible width
-    // or style keeps the entire last usable border, including its colour.
-    const heldBorders = new Map<string, ReturnType<typeof resolveTokenBinding>>();
-    const borderResults = new Map<string, ReturnType<typeof resolveTokenBinding>>();
+    // Validate active composite projections before writing any of their literals.
+    // One invalid target holds the group's usable cache while custom fields stay local.
+    const heldGroups = new Map<string, ReturnType<typeof resolveTokenBinding>>();
+    const atomicResults = new Map<string, ReturnType<typeof resolveTokenBinding>>();
+    const entries = new Map<string, TokenEntry | undefined>();
     for (const [id, link] of Object.entries(links)) {
-      const field = byId.get(id);
-      if (link.custom || !link.adapter?.startsWith('border.') || !field || id === metadataField) continue;
-      const result = resolveTokenBinding(set?.get(aliasPath(link.ref)!), { ...field, type: field.type ?? 'text', colorTarget, adapter: link.adapter });
-      borderResults.set(id, result);
-      if (result.status !== 'linked') heldBorders.set(link.ref, result);
+      const field = byId.get(id), group = atomicBindingGroup(link);
+      if (link.custom || !group || !field || id === metadataField) continue;
+      if (!entries.has(link.ref)) entries.set(link.ref, set?.get(aliasPath(link.ref)!));
+      const result = resolveTokenBinding(entries.get(link.ref), { ...field, type: field.type ?? 'text', colorTarget, adapter: link.adapter });
+      atomicResults.set(id, result);
+      if (result.status !== 'linked') heldGroups.set(group, result);
     }
     for (const [id, link] of Object.entries(links)) {
       if (link.custom || link.mode === 'tint') continue;
       const field = byId.get(id);
       if (!field || id === metadataField) continue;
-      const result = link.adapter?.startsWith('border.') && heldBorders.has(link.ref) ? heldBorders.get(link.ref)! : borderResults.get(id) ?? resolveTokenBinding(set?.get(aliasPath(link.ref)!), { ...field, type: field.type ?? 'text', colorTarget, adapter: link.adapter });
+      const group = atomicBindingGroup(link);
+      const result = group && heldGroups.has(group) ? heldGroups.get(group)! : atomicResults.get(id) ?? resolveTokenBinding(set?.get(aliasPath(link.ref)!), { ...field, type: field.type ?? 'text', colorTarget, adapter: link.adapter });
       if (result.status === 'linked' && scalar(result.value)) {
         if (next[id] !== result.value) moved = true;
         next[id] = result.value; links[id] = { ref: link.ref, value: result.value, status: 'linked', ...(link.adapter ? { adapter: link.adapter } : {}) };

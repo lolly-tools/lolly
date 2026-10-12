@@ -6,7 +6,7 @@ import type { BoxFieldConfig } from './free-canvas-math.ts';
 export interface DesignTokenProperty { field: BlockFieldSpec; targets: Array<{ field: BlockFieldSpec; adapter?: TokenAdapter }>; adapter?: TokenAdapter }
 export function designTokenProperties(fields: readonly BlockFieldSpec[], visible: readonly (string | undefined)[], cfg: BoxFieldConfig & Record<string, string | undefined>): DesignTokenProperty[] {
   const selected = fields.filter(field => visible.includes(field.id));
-  const adapterFor = (id: string): TokenAdapter | undefined => id === cfg.gradField ? 'gradient' : [cfg.enterMsField, cfg.exitMsField].includes(id) ? 'duration-ms' : id === cfg.durField ? 'duration-s' : ['enterEase', 'exitEase'].includes(id) ? 'cubic-bezier' : undefined;
+  const adapterFor = (id: string): TokenAdapter | undefined => id === cfg.gradField ? 'gradient' : [cfg.enterMsField, cfg.exitMsField].includes(id) ? 'duration-ms' : id === cfg.durField ? 'duration-s' : [cfg.enterEaseField ?? 'enterEase', cfg.exitEaseField ?? 'exitEase'].includes(id) ? 'cubic-bezier' : undefined;
   const dashTargets = [[cfg.strokeDashArrayField, 'border.dashArray'], [cfg.strokeDashLenField ?? 'strokeDashLen', 'border.dashLength'], [cfg.strokeGapLenField ?? 'strokeGapLen', 'border.gapLength']].flatMap(([id, adapter]) => {
     const field = fields.find(field => field.id === id);
     return field ? [{ field, adapter: adapter as TokenAdapter }] : [];
@@ -22,5 +22,12 @@ export function designTokenProperties(fields: readonly BlockFieldSpec[], visible
     const targets = pairs.map(([id, key]) => ({ field: selected.find(field => field.id === id), adapter: `${kind}.${key}` as TokenAdapter }));
     if (targets.every(target => target.field)) result.push({ field: { id: `__${kind}`, type: 'text', label }, adapter: kind, targets: [...targets as DesignTokenProperty['targets'], ...(kind === 'border' ? dashTargets : [])] });
   }
+  const duration = selected.find(field => field.id === cfg.enterMsField);
+  const easing = selected.find(field => field.id === (cfg.enterEaseField ?? 'enterEase'));
+  if (duration?.type === 'number' && easing?.type === 'text') result.push({
+    field: { id: '__transition', type: 'text', label: 'Enter transition', min: duration.min, max: duration.max },
+    adapter: 'transition',
+    targets: [{ field: duration, adapter: 'transition.duration-ms' }, { field: easing, adapter: 'transition.timingFunction' }],
+  });
   return result;
 }
