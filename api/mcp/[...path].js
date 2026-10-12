@@ -3436,7 +3436,7 @@ var init_ratecard_schema = __esm({
 import Ajv from "ajv/dist/2020.js";
 function schemas() {
   if (!ajv) {
-    const instance = new Ajv({ allErrors: true, strict: false });
+    const instance = new Ajv({ allErrors: true, strict: false, code: { optimize: false } });
     instance.addSchema(tool_schema_default);
     instance.addSchema(asset_schema_default);
     instance.addSchema(asset_ref_schema_default);
@@ -4014,7 +4014,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.256.0";
+    ENGINE_VERSION = "1.257.0";
   }
 });
 

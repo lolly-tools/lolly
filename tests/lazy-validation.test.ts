@@ -11,9 +11,15 @@ import { readFileSync } from 'node:fs';
 import Ajv from 'ajv';
 import Ajv2020 from 'ajv/dist/2020.js';
 const calls = [];
+const manifestValidators = new Set();
 const compilers = [Ajv, Ajv2020].map(ctor => [ctor, ctor.prototype.compile]);
 for (const [ctor, compile] of compilers) ctor.prototype.compile = function(schema, ...args) {
   calls.push(schema.$id ?? schema.title);
+  if (['https://lolly.tools/schemas/tool.schema.json', 'https://lolly.tools/schemas/ratecard.schema.json'].includes(schema.$id)) {
+    assert.equal(this.opts.code.optimize, 0);
+    assert.equal(this.opts.validateSchema, true);
+    manifestValidators.add(this);
+  }
   return compile.call(this, schema, ...args);
 };
 const story = await import('./engine/src/text-story-document.ts');
@@ -86,6 +92,8 @@ if (process.argv[1] === 'manifest') {
   checkManifest();
 }
 assert.equal(calls.length, 6, 'the six actual validation schemas compile once each');
+assert.equal(manifestValidators.size, 1, 'manifest and rate-card keep their shared Ajv instance');
+for (const validator of manifestValidators) assert.throws(() => validator.compile({ type: 'invalid' }), /schema is invalid/);
 `;
 
 for (const first of ['manifest', 'rate-card']) {

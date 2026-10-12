@@ -580,7 +580,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `units.ts` | 98 | Physical unit conversions for output dimensions - platform-agnostic, no DOM. | yes | `tests/units.test.ts` | – |
 | `url-mode.ts` | 1127 | URL mode. | yes | indirect | – |
 | `url-pack.ts` | 360 | Packed URL state - the compact transport for large tool state. | yes | `tests/url-pack.test.ts` | yes |
-| `validate.ts` | 94 | Validates a tool manifest against the JSON Schema. | yes | indirect | – |
+| `validate.ts` | 96 | Validates a tool manifest against the JSON Schema. | yes | indirect | – |
 | `vector-paint-import.ts` | 61 | Lower admitted static artwork into editable contours and a separate paint tree. | yes | indirect | – |
 | `vector-paint-parts.ts` | 30 | Separate paint groups only where inherited compositing can remain exact. | no | indirect | – |
 | `vector-paint.ts` | 108 | Paint trees reference authored contours; geometry has exactly one writable source. | yes | `tests/vector-paint.test.ts` | yes |

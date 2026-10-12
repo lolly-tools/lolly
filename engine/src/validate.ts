@@ -34,7 +34,9 @@ export interface ValidationResult {
 let ajv: Ajv2020 | undefined;
 function schemas(): Ajv2020 {
   if (!ajv) {
-    const instance: Ajv2020 = new (Ajv as any)({ allErrors: true, strict: false });
+    // The large manifest schema compiles faster without Ajv's code optimizer.
+    // Validators stay cached, and schema validation keeps its default checks.
+    const instance: Ajv2020 = new (Ajv as any)({ allErrors: true, strict: false, code: { optimize: false } });
     instance.addSchema(toolSchema);
     instance.addSchema(assetSchema);
     instance.addSchema(assetRefSchema);
