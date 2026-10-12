@@ -5,7 +5,7 @@
 .asset-sources[hidden] { display: none; }
 .asset-source-tree [role=treeitem] { outline: none; }
 .asset-source-row { display: flex; align-items: center; gap: 6px; min-height: 36px; border-radius: var(--ui-radius-control, 4px); cursor: pointer; font-size: var(--ui-type-caption, 13px); padding:0 4px; }
-.asset-source-row > span:first-of-type { flex: 1; overflow-wrap: anywhere; }
+.asset-source-row > span:first-of-type { flex: 1; overflow-wrap: anywhere; padding-inline-start: 5px; }
 [role=treeitem][aria-selected=true] > .asset-source-row { background: var(--ui-color-selection-surface, var(--ui-color-surface-hover)); }
 [role=treeitem]:focus-visible > .asset-source-row { outline: 2px solid var(--ui-color-action-primary); outline-offset: -2px; }
 .asset-source-disclosure { padding: 4px; min-width: 24px; }

@@ -244,7 +244,6 @@
   flex-direction: column;
   background: hsl(var(--card) / .8);
   backdrop-filter: blur(5px);
-  border-right: 1px solid hsl(var(--border));
   transition: width var(--dur-2) ease;
   /* overflow-x hidden so the contents (frozen at the open width via --sb-open-w,
      see .sidebar-body) CLIP rather than reflow as the panel width-collapses - a
@@ -2320,10 +2319,11 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
      tight numeric strip rather than a second full-size field. min-height keeps the
      drag/tap target usable at 2px padding. */
   padding: 2px 6px 2px 19px;       /* left room for the scrub character */
-  min-height: 26px;
+  min-height: 32px;
   background: hsl(var(--background));
   color: hsl(var(--foreground));
   border: 1px solid hsl(var(--input));
+  box-shadow: inset 0 .5px 7px #0003, inset 0 0 0 1px #00000005, 0 1px var(--ui-color-surface-muted);
   border-radius: 0;
   border-right-width: 0;           /* collapse internal dividers */
   font: inherit;
