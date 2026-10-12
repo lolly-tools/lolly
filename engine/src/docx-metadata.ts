@@ -7,6 +7,7 @@ const CP = 'http://schemas.openxmlformats.org/package/2006/metadata/core-propert
 const DC = 'http://purl.org/dc/elements/1.1/';
 const TERMS = 'http://purl.org/dc/terms/';
 const CUSTOM = 'http://schemas.openxmlformats.org/officeDocument/2006/custom-properties';
+const EXTENDED = 'http://schemas.openxmlformats.org/officeDocument/2006/extended-properties';
 const RELS = 'http://schemas.openxmlformats.org/package/2006/relationships';
 const TYPES = 'http://schemas.openxmlformats.org/package/2006/content-types';
 const WORD = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
@@ -17,6 +18,7 @@ const MAIN_TYPE = 'application/vnd.openxmlformats-officedocument.wordprocessingm
 const PARTS = {
   'docProps/core.xml': { namespace: CP, root: 'coreProperties', relation: CORE_REL, type: 'application/vnd.openxmlformats-package.core-properties+xml' },
   'docProps/custom.xml': { namespace: CUSTOM, root: 'Properties', relation: `${OFFICE}custom-properties`, type: 'application/vnd.openxmlformats-officedocument.custom-properties+xml' },
+  'docProps/app.xml': { namespace: EXTENDED, root: 'Properties', relation: `${OFFICE}extended-properties`, type: 'application/vnd.openxmlformats-officedocument.extended-properties+xml' },
 };
 const CORE: Record<string, { namespace: string; label: string }> = {
   creator: { namespace: DC, label: 'Author' }, lastModifiedBy: { namespace: CP, label: 'Last saved by' },
@@ -25,7 +27,8 @@ const CORE: Record<string, { namespace: string; label: string }> = {
   subject: { namespace: DC, label: 'Subject' }, keywords: { namespace: CP, label: 'Keywords' },
   description: { namespace: DC, label: 'Description' },
 };
-const LIMITS = ['Only selected DOCX core and custom properties can be removed. Comments, revisions, links, hidden content and embedded objects are retained.', 'Other properties, XML comments, package names and ZIP comments are retained. No result is certified free of private information.'];
+const EXTENDED_FIELDS: Record<string, string> = { Company: 'Company', Manager: 'Manager' };
+const LIMITS = ['Only selected DOCX core/custom properties and Company/Manager extended properties can be removed. Comments, revisions, links, hidden content and embedded objects are retained.', 'Other properties, XML comments, package names and ZIP comments are retained. No result is certified free of private information.'];
 export interface DocxMetadataProperty { id: string; part: string; label: string; location: string; value: string; offset: number }
 export interface DocxMetadataInspection { supported: boolean; properties: DocxMetadataProperty[]; limitations: string[] }
 interface PropertyRange extends DocxMetadataProperty { start: number; end: number }
@@ -122,6 +125,8 @@ export function openDocxMetadata(bytes: Uint8Array, name: string, limits: { maxP
       const part = propertyParts.get(path), root = trees.get(path);
       if (!part) { if (matching.length) throw new Error('Missing property part.'); continue; }
       if (matching.length !== 1 || matching[0]!.attrs.TargetMode || target(matching[0]!.attrs.Target ?? '') !== path || overrides.find(n => n.attrs.PartName === `/${path}`)?.attrs.ContentType !== spec.type || root?.name !== spec.root || root.namespace !== spec.namespace) throw new Error('Unsupported property declaration.');
+      if (path === 'docProps/app.xml' && (!/^[A-Za-z_][A-Za-z0-9_.-]*$/.test(matching[0]!.attrs.Id ?? '') || matching[0]!.attrs.TargetMode !== undefined)) throw new Error('Unsupported extended property relationship.');
+      if (path === 'docProps/app.xml' && root.children.some(node => node.namespace === EXTENDED && node.name === 'DigSig')) return unsupported('Extended digital-signature data prevents DOCX metadata cleanup. This file remains inspect-only.');
       const seen = new Set<string>(), customNames = new Set<string>();
       for (const node of root.children) {
         let id: string, label: string, location: string;
@@ -130,6 +135,10 @@ export function openDocxMetadata(bytes: Uint8Array, name: string, limits: { maxP
           if (!field || node.namespace !== field.namespace) continue;
           if (node.children.length) throw new Error('Unsupported core property value.');
           id = `core:${node.name}`; label = field.label; location = `Property: ${node.name}`;
+        } else if (path === 'docProps/app.xml') {
+          if (node.namespace !== EXTENDED || !Object.hasOwn(EXTENDED_FIELDS, node.name)) continue;
+          if (node.children.length || Object.keys(node.attrs).some(key => key !== 'xmlns' && !key.startsWith('xmlns:'))) throw new Error('Unsupported extended property value.');
+          id = `app:${node.name}`; label = EXTENDED_FIELDS[node.name]!; location = `Property: ${node.name}`;
         } else {
           if (node.namespace !== CUSTOM || node.name !== 'property') continue;
           if (!/^\d{1,10}$/.test(node.attrs.pid ?? '') || Number(node.attrs.pid) < 2 || Number(node.attrs.pid) > 2147483647 || !node.attrs.name || node.attrs.name.length > 256 || node.attrs.fmtid?.toUpperCase() !== '{D5CDD505-2E9C-101B-9397-08002B2CF9AE}') throw new Error('Unsupported custom property identity.');
