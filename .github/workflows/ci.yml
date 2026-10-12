@@ -248,9 +248,20 @@ jobs:
 
       - name: Install Firefox and WebKit for geometry qualification
         if: matrix.shard == 'browser' && matrix.partition == '2/4'
+        timeout-minutes: 20
         env:
           PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.browsers
-        run: node node_modules/playwright/cli.js install --with-deps firefox webkit
+        run: |
+          node_bin="$(command -v node)"
+          for attempt in 1 2 3; do
+            if [ "$attempt" -gt 1 ]; then sudo timeout -k 10 120 dpkg --configure -a || true; fi
+            if sudo timeout -k 30 240 apt-get update &&
+              sudo timeout -k 30 600 "$node_bin" node_modules/playwright/cli.js install-deps firefox webkit &&
+              timeout -k 30 300 "$node_bin" node_modules/playwright/cli.js install firefox webkit; then exit 0; fi
+            echo "::warning::Firefox and WebKit install attempt $attempt failed or stalled"
+            sleep 15
+          done
+          exit 1
 
       - name: Require one geometry answer in Chromium, Firefox and WebKit
         if: matrix.shard == 'browser' && matrix.partition == '2/4'
