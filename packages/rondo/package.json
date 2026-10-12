@@ -13,20 +13,20 @@
     "./generated/render.mjs": "./generated/render.mjs"
   },
   "dependencies": {
-    "@jitl/quickjs-wasmfile-release-sync": "0.31.0",
-    "quickjs-emscripten-core": "0.31.0"
+    "@jitl/quickjs-wasmfile-release-sync": "0.32.0",
+    "quickjs-emscripten-core": "0.32.0"
   },
   "devDependencies": {
     "@codemirror/autocomplete": "^6.20.3",
     "@codemirror/commands": "^6.10.4",
     "@codemirror/lang-javascript": "^6.2.5",
-    "@codemirror/language": "^6.12.4",
+    "@codemirror/language": "^6.13.1",
     "@codemirror/lint": "^6.9.7",
     "@codemirror/search": "^6.7.1",
     "@codemirror/state": "^6.7.1",
-    "@codemirror/view": "^6.43.6",
+    "@codemirror/view": "^6.43.14",
     "@lezer/highlight": "^1.2.3",
-    "acorn": "^8.15.0",
+    "acorn": "^8.19.0",
     "acorn-walk": "^8.3.4",
     "pako": "^3.0.1",
     "prettier": "^3.9.6"

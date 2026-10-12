@@ -33,7 +33,7 @@
     "fflate": "^0.8.3",
     "handlebars": "^4.7.10",
     "prettier": "^3.9.9",
-    "smol-toml": "^1.9.0",
+    "smol-toml": "^1.9.1",
     "sql-formatter": "^15.9.0",
     "terser": "^5.51.2",
     "yaml": "2.9.1"

@@ -146,14 +146,14 @@
     "@lolly/engine": "workspace:*",
     "@resvg/resvg-js": "^2.6.2",
     "fflate": "^0.8.3",
-    "harfbuzzjs": "^1.6.2",
+    "harfbuzzjs": "^1.6.3",
     "libxml2-wasm": "^0.7.2",
     "pdf-lib": "^1.17.1",
-    "playwright-core": "^1.49.0",
+    "playwright-core": "^1.64.0",
     "woff2-encoder": "2.0.0"
   },
   "optionalDependencies": {
-    "@huggingface/transformers": "^4.3.0",
+    "@huggingface/transformers": "^4.3.1",
     "@napi-rs/canvas": "^1.0.10",
     "onnxruntime-node": "^1.30.0",
     "phonemizer": "^1.2.1",
