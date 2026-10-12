@@ -5,6 +5,7 @@ import { createRuntime } from '../../../../engine/src/runtime.ts';
 import { modelToValues } from '../../../../engine/src/inputs.ts';
 import type { HostV1 } from '../../../../engine/src/bridge/host-v1.ts';
 import type { LoadedTool } from '../../../../engine/src/loader.ts';
+import { createNetAPI } from '../../../../packages/node-shell/src/net.ts';
 import { createDesignPagePort } from './design-page-port.ts';
 
 const host = { version: '1', profile: { get: async () => ({}) }, log() {} } as unknown as HostV1;
@@ -18,8 +19,8 @@ const tool: LoadedTool = {
 };
 const settle = () => new Promise<void>(resolve => setImmediate(resolve));
 async function fixture(editable = true, initialPage = 'one', gate?: Promise<unknown>) {
-  const mountedTool = gate ? { ...tool, hooksSource: tool.hooksSource + ' function onInput(ctx){ctx.report({visible:ctx.view.pageId});return host.net.fetch();}' } : tool;
-  const mountedHost = gate ? { ...host, net: { fetch: () => gate } } as unknown as HostV1 : host;
+  const mountedTool = gate ? { ...tool, hooksSource: tool.hooksSource + ' function onInput(ctx){ctx.report({visible:ctx.view.pageId});return host.net.fetch("https://design-pages.test/patch");}' } : tool;
+  const mountedHost = gate ? { ...host, net: createNetAPI({ allowlist: ['https://design-pages.test/patch'] }) } as unknown as HostV1 : host;
   const runtime = await createRuntime(mountedTool, mountedHost, { pages: [{ id: 'one', name: 'One' }, { id: 'two', name: 'Two' }] }, { viewState: { pageId: initialPage } });
   let selection = ['first'], viewport = { scale: 2, x: 10, y: 20 }, writes = 0, changes = 0, flushes = 0;
   const selectionListeners = new Set<(ids: string[]) => void>();
@@ -69,9 +70,11 @@ test('readonly viewers can navigate; removed active pages recover to an existing
   } finally { f.destroy(); }
 });
 
-test('late page rendering preserves a newer selection and pan from the viewer', async () => {
+test('late page rendering preserves a newer selection and pan from the viewer', async t => {
   let release!: (patch: unknown) => void;
-  const gate = new Promise(resolve => { release = resolve; }), f = await fixture(true, 'one', gate);
+  const gate = new Promise(resolve => { release = resolve; });
+  t.mock.method(globalThis, 'fetch', async () => new Response(JSON.stringify(await gate), { headers: { 'content-type': 'application/json' } }));
+  const f = await fixture(true, 'one', gate);
   try {
     f.controller.port.setActive('two'); await settle();
     assert.equal(f.runtime.getHydrated(), 'two', 'progressive hooks can expose the new page before their final result');

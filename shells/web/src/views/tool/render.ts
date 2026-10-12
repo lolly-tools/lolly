@@ -584,7 +584,7 @@ export function paint(tview: ToolViewCtx): void {
             expOpts.provenance = urlMarks.provenance;
           }
         }
-        tview.exporting.exportUnscaled(
+        return tview.exporting.exportUnscaled(
           () =>
             (async () => {
               const documentExport = await tview.exporting.mountDocumentExport();

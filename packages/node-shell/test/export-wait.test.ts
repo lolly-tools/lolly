@@ -73,6 +73,20 @@ test('an explicit export failure reaches the caller immediately and removes list
   assert.equal(page.eventNames().length, 0);
 });
 
+test('the web host warning prefix preserves an auto-export refusal and cleans up immediately', async context => {
+  context.mock.timers.enable({ apis: ['setTimeout'] });
+  const page = new FakePage(), waiting = await waitForExport(page.asPage(), 'png', 60_000);
+  for (const text of ['Unrelated browser warning', 'A message mentioning Auto-export failed: later', '[info] Auto-export failed: unrelated']) {
+    page.emit('console', { text: () => text });
+  }
+  const message = '[warn] Auto-export did not start: RangeError: Every sample must be before the timeline end (3s).';
+  page.emit('console', { text: () => message });
+  await assert.rejects(waiting.result, { message });
+  assert.equal(page.eventNames().length, 0);
+  context.mock.timers.tick(60_000);
+  waiting.dispose();
+});
+
 test('a shell that cannot start WebGPU fails the wait at once with its reason (plan 295)', async () => {
   const page = new FakePage(), waiting = await waitForExport(page.asPage(), 'png');
   page.emit('console', { text: () => '[lolly] WebGPU is required and unavailable: Lolly requires WebGPU. Use an up-to-date browser or app with graphics acceleration enabled.' });

@@ -74,7 +74,7 @@ export async function waitForExport(page: Page, format: string, idleMs = exportI
     // The shell also says so when its WebGPU startup check fails (plan 295): it then
     // mounts no tool, so no export will ever start and waiting out the idle limit
     // would only hide the reason.
-    if (/^(?:Auto-export (?:failed|did not start)|\[lolly\] WebGPU is required and unavailable):/.test(text)) fail(new Error(text));
+    if (/^(?:(?:\[warn\] )?Auto-export (?:failed|did not start)|\[lolly\] WebGPU is required and unavailable):/.test(text)) fail(new Error(text));
   };
   sink.current = onProgress;
   page.on('console', exportError); page.on('download', downloaded); page.on('close', closed); page.on('crash', crashed);
