@@ -8,7 +8,7 @@ import type { Locator, Page } from 'playwright';
 import { getBrowser, closeBrowser } from '../packages/node-shell/src/browsers.ts';
 import { settleEditor } from '../packages/node-shell/src/open-session.ts';
 import type { CanvasCommitEl } from '../shells/web/src/lib/canvas-commit.ts';
-import type { HostV1 } from '../engine/src/bridge/host-v1.ts';
+import type { HostV1, TokenSet } from '../engine/src/bridge/host-v1.ts';
 
 const origin = process.env.LOLLY_EXPORT_TEST_URL;
 const skip = origin ? false : 'set LOLLY_EXPORT_TEST_URL';
@@ -92,13 +92,13 @@ async function holdFinalTokenRead(page: Page): Promise<void> {
     const { getHostRef } = await import(path);
     const api = (getHostRef() as HostV1).tokens!;
     const original = api.get;
-    const state = { started: false, release: () => {} };
+    const state = { started: false, finished: false, release: () => {} };
     let calls = 0;
     api.get = options => {
       if (++calls !== 2) return original.call(api, options);
       api.get = original;
       state.started = true;
-      return new Promise((resolve, reject) => { state.release = () => { original.call(api, options).then(resolve, reject); }; });
+      return new Promise<TokenSet>((resolve, reject) => { state.release = () => { original.call(api, options).then(resolve, reject); }; }).finally(() => { state.finished = true; });
     };
     (window as unknown as { __transitionRead: typeof state }).__transitionRead = state;
   });
@@ -106,6 +106,7 @@ async function holdFinalTokenRead(page: Page): Promise<void> {
 
 async function releaseTokenRead(page: Page): Promise<void> {
   await page.evaluate(() => (window as unknown as { __transitionRead: { release(): void } }).__transitionRead.release());
+  await page.waitForFunction(() => (window as unknown as { __transitionRead: { finished: boolean } }).__transitionRead.finished);
   await settleEditor(page, 30_000);
 }
 
@@ -286,4 +287,59 @@ test('phone transition controls reject delayed refresh and cancel captured frame
     await values(page, 750);
     assert.equal((await row(page, 'b')).enterMs, 500);
   } finally { await context.close(); await closeBrowser(); }
+});
+
+test('closing a floating or phone inspector cancels pending Restore across selection changes and permits reopening', { skip, timeout: 180_000 }, async () => {
+  const browser = await getBrowser({ graphics: 'auto' });
+  try {
+    for (const width of [1440, 390]) {
+      const context = await browser.newContext({ serviceWorkers: 'block', viewport: { width, height: width === 390 ? 844 : 1000 }, hasTouch: width === 390 });
+      try {
+        await context.addInitScript(() => {
+          if (location.protocol === 'http:') localStorage.setItem('lolly:designInspectorFloat', JSON.stringify({ mode: 'floating' }));
+        });
+        const page = await context.newPage();
+        await mount(page);
+        const slot = await link(page);
+        const duration = page.locator('input[data-nf="f:enterMs"]');
+        await duration.fill('0.9');
+        await duration.press('Enter');
+        await values(page, 900);
+        await customState(page, true, false);
+        await motion(page);
+        await slot.locator('[data-design-token-property]').selectOption('__transition');
+        const beforeA = await row(page);
+        const beforeB = await row(page, 'b');
+        const inspector = page.locator('.fc-insp');
+        assert.equal(await inspector.evaluate(el => el.classList.contains('is-compact-sheet')), width === 390);
+        if (width === 1440) assert.equal(await inspector.evaluate(el => el.classList.contains('is-floating')), true);
+        const captured = await inspector.elementHandle();
+        assert.ok(captured);
+        await holdFinalTokenRead(page);
+        await slot.locator('[data-token-restore]').click();
+        await page.waitForFunction(() => (window as unknown as { __transitionRead: { started: boolean } }).__transitionRead.started);
+        await page.getByRole('button', { name: 'Hide inspector', exact: true }).click();
+        assert.equal(await captured.evaluate(el => !el.isConnected || (el as HTMLElement).hidden), true);
+        await select(page, ['b']);
+        await releaseTokenRead(page);
+        assert.deepEqual(await row(page), beforeA, `${width}: original layer and cached link metadata stay unchanged`);
+        assert.deepEqual(await row(page, 'b'), beforeB, `${width}: new selection receives no stale write`);
+        const reopened = await motion(page);
+        await reopened.locator('[data-design-token-property]').selectOption('__transition');
+        await reopened.locator('[data-token-choose]').click();
+        await reopened.locator('[data-token-options] select').selectOption('verification.enter');
+        assert.equal(await reopened.locator('[data-token-link]').isEnabled(), true);
+        await reopened.locator('[data-token-link]').click();
+        await page.waitForFunction(curve => {
+          const value = ((document.getElementById('tool-canvas') as CanvasCommitEl).__lollyModel!().find(input => input.id === 'boxes')!.value as Array<Record<string, unknown>>).find(value => value.id === 'b');
+          return value?.enterMs === 750 && value?.enterEase === curve;
+        }, linear);
+        const restored = JSON.parse(String((await row(page, 'b')).tokenLinks));
+        assert.equal(restored.enterMs.adapter, 'transition.duration-ms');
+        assert.equal(restored.enterEase.adapter, 'transition.timingFunction');
+        assert.ok(!restored.enterMs.custom && !restored.enterEase.custom);
+        assert.deepEqual(await row(page), beforeA, `${width}: reopened controls apply only to the new layer`);
+      } finally { await context.close(); }
+    }
+  } finally { await closeBrowser(); }
 });

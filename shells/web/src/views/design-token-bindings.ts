@@ -37,6 +37,7 @@ export interface DesignTokenBindingOptions {
   ids: readonly string[];
   state?: { open?: boolean; field?: string };
   onSettled?: () => void;
+  isCurrent?: () => boolean;
   commit?: (rows: Box[], label: string) => void | Promise<void>;
 }
 
@@ -57,6 +58,7 @@ export function mountDesignTokenBindings(root: HTMLElement, options: DesignToken
   const linked = rows().some(row => properties.some(property => property.targets.some(target => readBlockTokenBindings(row[metadataField])[target.field.id])));
   root.innerHTML = `<details class="design-token-links"><summary>${t('Token links')}${linked ? ` · ${t('In use')}` : ''}</summary><p class="fc-insp-hint">${ids.size === 1 ? t('Changes apply to this layer.') : t('Changes apply to all {n} selected layers in one undo step.', { n: ids.size })}</p><label>${t('Property')}<select class="field-select" data-design-token-property>${fields.map(field => `<option value="${esc(field.id)}">${esc(t(field.label ?? field.id))}</option>`).join('')}</select></label><div data-design-token-field></div></details>`;
   let disposed = false, generation = 0, pending = 0;
+  const isCurrent = (): boolean => !disposed && root.isConnected && options.isCurrent?.() !== false;
   let disposeField: (() => void) | undefined;
   const picker = root.querySelector<HTMLSelectElement>('[data-design-token-property]')!;
   const fieldRoot = root.querySelector<HTMLElement>('[data-design-token-field]')!;
@@ -89,18 +91,21 @@ export function mountDesignTokenBindings(root: HTMLElement, options: DesignToken
     const value = active ? { ...active } : before[0]?.[field.id] ?? field.default ?? '';
     const input = { ...field, id: `layer-${field.id}`, type: field.type ?? 'text', value, isDirty: false, control: 'text-input' } as InputModelItem;
     disposeField = mountTokenBindingField(fieldRoot, input, host, async next => {
+      if (!isCurrent()) return;
       const current = rows();
       if (stamp !== snapshot(current)) throw new Error(t('These layer values changed. Select the property again before linking.'));
       const set = isTokenValue(next) ? await host.tokens?.get() : undefined;
-      if (disposed || generation !== currentGeneration) return;
+      if (!isCurrent() || generation !== currentGeneration) return;
+      const entry = isTokenValue(next) ? set?.get(aliasPath(next.ref)!) : undefined;
       const values = property.targets.map(target => {
         if (!isTokenValue(next)) return { ...target, value: undefined };
         const candidate = (next as { adapter?: unknown }).adapter;
         const adapter = property.targets.length === 1 && isTokenAdapter(candidate) ? candidate : target.adapter ?? (isTokenAdapter(candidate) ? candidate : undefined);
-        const resolved = resolveTokenBinding(set?.get(aliasPath(next.ref)!), { ...target.field, type: target.field.type ?? 'text', adapter, colorTarget });
+        const resolved = resolveTokenBinding(entry, { ...target.field, type: target.field.type ?? 'text', adapter, colorTarget });
         if (resolved.status !== 'linked') throw new Error(resolved.reason);
         return { ...target, adapter, value: { ref: next.ref, value: resolved.value } };
       });
+      if (!isCurrent() || generation !== currentGeneration) return;
       if (stamp !== snapshot(rows())) throw new Error(t('These layer values changed. Select the property again before linking.'));
       const nextRows = model.getBoxes().map((row, index) => {
         if (!ids.has(idOf(row, index))) return row;
@@ -110,7 +115,7 @@ export function mountDesignTokenBindings(root: HTMLElement, options: DesignToken
         return result;
       });
       return options.commit ? options.commit(nextRows, isTokenValue(next) ? t('Link token') : t('Make custom')) : model.commit(nextRows);
-    }, { onPendingChange: busy => { pending += busy ? 1 : -1; if (!busy) options.onSettled?.(); }, consumer: { ...field, type: field.type ?? 'text', adapter: property.adapter }, fallbackAdapter: property.targets.length === 1 ? links[0]?.adapter : undefined, mixed, restoreRef, colorTarget, ...(property.adapter === 'transition' ? { candidateType: 'transition' } : {}) });
+    }, { onPendingChange: busy => { pending += busy ? 1 : -1; if (!busy) options.onSettled?.(); }, consumer: { ...field, type: field.type ?? 'text', adapter: property.adapter }, fallbackAdapter: property.targets.length === 1 ? links[0]?.adapter : undefined, mixed, restoreRef, colorTarget, ...(property.adapter === 'transition' ? { candidateType: 'transition', candidatePreflight: entry => property.targets.map(target => resolveTokenBinding(entry, { ...target.field, type: target.field.type ?? 'text', adapter: target.adapter, colorTarget })).find(result => result.status !== 'linked') } : {}) });
     if (property.adapter === 'transition') {
       const hint = document.createElement('p'); hint.className = 'fc-insp-hint';
       hint.textContent = t('Applies Enter duration and geometry easing. Opacity keeps the preset easing.');
