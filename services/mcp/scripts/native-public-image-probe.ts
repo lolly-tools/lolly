@@ -8,6 +8,7 @@ import { createRequire } from 'node:module';
 import { join, relative, resolve, sep } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import { probeResultLinks } from './native-result-links-probe.ts';
+import { assertNativeCatalogClosure } from './native-catalog-closure.ts';
 
 const root = resolve(process.env.LOLLY_IMAGE_ROOT || '/app');
 const canonicalOrigin = 'https://public.example';
@@ -112,11 +113,7 @@ try {
   const webIndex = JSON.parse(await readFile(join(webRoot, 'catalog/tools/index.json'), 'utf8'));
   const { listTools } = await import(`${root}/services/mcp/src/catalog.ts`);
   const recipes = await listTools();
-  assert.equal(recipes.length, 67);
-  assert.deepEqual(
-    recipes.map((tool: { id: string }) => tool.id),
-    webIndex.tools.map((tool: { id: string }) => tool.id)
-  );
+  assertNativeCatalogClosure(recipes, webIndex.tools);
   // The web shell beside this image is the unsigned build of the same source:
   // since plan 295 section 1B the web image is gated on WebGPU qualification and
   // the service images are not, so no release signature is there to list the
