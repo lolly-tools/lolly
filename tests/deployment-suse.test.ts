@@ -1,12 +1,18 @@
 // SPDX-License-Identifier: MPL-2.0
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, readdirSync, rmSync } from 'node:fs';
+import { mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 const chart = fileURLToPath(new URL('../deploy/helm/', import.meta.url));
+const productVersion = JSON.parse(
+  readFileSync(
+    new URL('../shells/tauri-desktop/src-tauri/tauri.conf.json', import.meta.url),
+    'utf8'
+  )
+).version as string;
 const lean = `${chart}profiles/lean.yaml`;
 const components = ['web', 'mcp', 'ca'] as const;
 type Component = (typeof components)[number];
@@ -102,13 +108,21 @@ test('public chart keeps default replicas, tags, volumes and backend opt-in', { 
     assert.equal(spec.replicas, 2);
     assert.equal(
       singleContainer(spec.template.spec).image,
-      `ghcr.io/lolly-tools/lolly-${component}:0.1.0`
+      `ghcr.io/lolly-tools/lolly-${component}:${productVersion}`
     );
     for (const volume of spec.template.spec.volumes) assert.deepEqual(volume.emptyDir, {});
     assert.equal(
       singleContainer(spec.template.spec).resources.requests['ephemeral-storage'],
       undefined
     );
+  }
+});
+
+test('public charts identify the maintained Lolly product release', () => {
+  for (const path of ['Chart.yaml', 'profiles/sovereign/Chart.yaml']) {
+    const metadata = readFileSync(`${chart}${path}`, 'utf8');
+    const appVersion = /^appVersion: "([^"]+)"$/m.exec(metadata)?.[1];
+    assert.equal(appVersion, productVersion, path);
   }
 });
 
