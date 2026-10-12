@@ -133,6 +133,7 @@ function isGnuTar(): boolean {
 
 /** Pack dist into the tarball. System tar, streaming: the dist is hundreds of MB. */
 export function packDist(dist: string, outFile: string, excludes: string[]): void {
+  if (existsSync(outFile)) throw new Error(`Release archive already exists: ${outFile}`);
   if (!existsSync(join(dist, 'index.html'))) throw new Error(`${dist} has no index.html - build the web shell first (--build)`);
   if (!existsSync(join(dist, 'precache.json'))) throw new Error(`${dist} has no precache.json - the "Available offline" list would read empty`);
   if (!existsSync(join(dist, 'info', 'index.html'))) throw new Error(`${dist} has no info/index.html - in-app docs would 404`);
@@ -174,7 +175,7 @@ export async function main(argv = process.argv.slice(2)): Promise<void> {
   // before the supported-environment table is published (plan 295 P0b), and it is
   // never built from a WebGPU qualification build.
   assertNotQualificationBuild(process.env, 'the YunoHost release');
-  assertWebGpuReleaseAllowed();
+  assertWebGpuReleaseAllowed(ROOT, 'web');
   const version = args.version ?? upstreamVersion();
   const profile = activeProfile();
   if (profile === 'suse') throw new Error("content profile is 'suse' (private pack) - build with LOLLY_PROFILE=lolly-start; the YunoHost tarball is public");

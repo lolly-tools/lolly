@@ -14,7 +14,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { copyFileSync, existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, symlinkSync, writeFileSync, realpathSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, relative, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -116,6 +116,44 @@ test('web-only qualification allows a web artifact while the default and package
     const pendingBrowser = WEB_QUALIFIED.replace('| Firefox | Not supported: no adapter |', '| Firefox | Pending |');
     assert.match(supportedEnvironmentProblems(pendingBrowser, 'web')[0]!, /^Firefox:/);
     assert.deepEqual(supportedEnvironmentProblems(WEB_QUALIFIED.split('\n').filter(row => !row.includes('| Safari (WebKit) |')).join('\n'), 'web'), ['no row for Safari (WebKit)']);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test('the real YunoHost producer selects web scope while native targets remain held', () => {
+  const root = tree(GATED_MAIN, WEB_QUALIFIED);
+  try {
+    for (const dir of ['scripts', 'packages/node-shell/src', 'node_modules/@lolly-tools', 'brand/tools', 'brand/catalog', 'shells/web/dist/info', 'shells/web/src/locales', 'deploy/yunohost']) {
+      mkdirSync(join(root, dir), { recursive: true });
+    }
+    for (const name of ['yunohost-release.ts', 'webgpu-release-gate.ts', 'webgpu-qualification.ts']) {
+      copyFileSync(new URL(`../scripts/${name}`, import.meta.url), join(root, 'scripts', name));
+    }
+    for (const name of ['content-roots.ts', 'repo-root.ts']) {
+      copyFileSync(new URL(`../packages/node-shell/src/${name}`, import.meta.url), join(root, 'packages/node-shell/src', name));
+    }
+    writeFileSync(join(root, 'package.json'), '{"type":"module"}\n');
+    writeFileSync(join(root, 'packages/node-shell/package.json'), '{"name":"@lolly-tools/node-shell","type":"module","exports":{"./content-roots":"./src/content-roots.ts"}}\n');
+    symlinkSync(join(root, 'packages/node-shell'), join(root, 'node_modules/@lolly-tools/node-shell'), 'dir');
+    writeFileSync(join(root, 'profiles.json'), JSON.stringify({ default: 'lolly-start', profiles: { 'lolly-start': { tools: ['brand/tools'], catalog: 'brand/catalog' } } }));
+    writeFileSync(join(root, 'shells/web/src/locales/en.json'), '{}\n');
+    for (const name of ['index.html', 'precache.json', 'info/index.html']) writeFileSync(join(root, 'shells/web/dist', name), 'fixture');
+    const manifest = join(root, 'deploy/yunohost/manifest.toml');
+    writeFileSync(manifest, `version = "0.1.0~ynh1"\nurl = "https://fixture.invalid/old.tar.gz"\nsha256 = "${'0'.repeat(64)}"\n`);
+    const run = (file: string, args: string[], env = {}) => spawnSync(process.execPath, [realpathSync(join(root, 'scripts', file)), ...args], {
+      cwd: root, encoding: 'utf8', timeout: 10_000, env: { PATH: process.env.PATH, LOLLY_PROFILE: 'lolly-start', ...env },
+    });
+    const native = run('webgpu-release-gate.ts', []);
+    assert.equal(native.status, 1); assert.match(native.stderr, /all artifact scope[\s\S]*Windows app/);
+    const args = ['--version', '1.1.0', '--ynh-rev', '2', '--out', join(root, 'artifacts')];
+    const web = run('yunohost-release.ts', args);
+    assert.equal(web.status, 0, web.stderr + web.stdout);
+    assert.ok(existsSync(join(root, 'artifacts/lolly-web-1.1.0-ynh2.tar.gz')));
+    assert.match(readFileSync(manifest, 'utf8'), /version = "1.1.0~ynh2"/);
+    const qualification = run('yunohost-release.ts', args, { LOLLY_WEBGPU_QUALIFICATION_BUILD: '1' });
+    assert.equal(qualification.status, 1); assert.match(qualification.stderr, /never published/);
+    writeFileSync(join(root, SUPPORTED_ENVIRONMENTS_PATH), WEB_QUALIFIED.replace('| Firefox | Not supported: no adapter |', '| Firefox | Pending |'));
+    const pending = run('yunohost-release.ts', args);
+    assert.equal(pending.status, 1); assert.match(pending.stderr, /web artifact scope[\s\S]*Firefox/);
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 

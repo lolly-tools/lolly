@@ -24,7 +24,7 @@ import { existsSync, readFileSync, readdirSync, statSync, mkdtempSync, mkdirSync
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { pinManifest, readPin, tarExcludes, tarballName, translatedLocales, parseArgs, RELEASE_HOST } from '../scripts/yunohost-release.ts';
+import { pinManifest, readPin, tarExcludes, tarballName, translatedLocales, parseArgs, packDist, RELEASE_HOST } from '../scripts/yunohost-release.ts';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const PKG = join(ROOT, 'deploy', 'yunohost');
@@ -82,6 +82,20 @@ test('release script: the cut mirrors the desktop trim (models out, English docs
   assert.equal(ex[0], './models');
   for (const code of locales) assert.ok(ex.includes(`./info/${code}`));
   assert.ok(!ex.includes('./info/en'));
+});
+
+test('release script: packing refuses an existing archive without changing it', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'lolly-yunohost-pack-'));
+  try {
+    const dist = join(dir, 'dist'), out = join(dir, 'held.tar.gz');
+    mkdirSync(join(dist, 'info'), { recursive: true });
+    for (const name of ['index.html', 'precache.json', 'info/index.html']) writeFileSync(join(dist, name), 'fixture');
+    packDist(dist, out, []);
+    const held = readFileSync(out);
+    assert.ok(held.length > 0);
+    assert.throws(() => packDist(dist, out, []), /archive already exists/);
+    assert.deepEqual(readFileSync(out), held, 'the complete original archive stays unchanged');
+  } finally { rmSync(dir, { recursive: true, force: true }); }
 });
 
 test('release script: argument parsing', () => {
