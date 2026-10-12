@@ -30,6 +30,31 @@ test('CLI DOCX private choices remove one property while strip-hidden-data remov
     assert.deepEqual(new Uint8Array(await readFile(input)), bytes);
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
+test('CLI Company and Manager choices preserve the unselected field and reject stale review files', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'lolly-docx-extended-'));
+  try {
+    const bytes = new Uint8Array(await readFile(new URL('./fixtures/docx-metadata/extended-properties.docx', import.meta.url)));
+    const input = join(dir, 'original.docx'), output = join(dir, 'company-copy.docx'), review = join(dir, 'private.json');
+    await writeFile(input, bytes); await run(process.execPath, [cli, 'prepare', input, `--review-file=${review}`]);
+    const envelope = JSON.parse(await readFile(review, 'utf8'));
+    const company = envelope.inspection.findings.find((f: { propertyId?: string }) => f.propertyId === 'app:Company');
+    const manager = envelope.inspection.findings.find((f: { propertyId?: string }) => f.propertyId === 'app:Manager');
+    assert(company && manager); assert.notEqual(company.groupId, manager.groupId);
+    envelope.choices = [{ groupId: company.groupId, replacement: '' }]; await writeFile(review, JSON.stringify(envelope));
+    const result = await run(process.execPath, [cli, 'prepare', input, `--choices=${review}`, `--output=${output}`]);
+    assert.equal(JSON.parse(result.stdout).replaced, 1); assert.doesNotMatch(result.stdout, /Private fixture company|Private fixture manager/);
+    const copy = new Uint8Array(await readFile(output)), after = openDocxMetadata(copy, 'copy.docx');
+    assert(!after.properties.some(p => p.id === 'app:Company')); assert.equal(after.properties.find(p => p.id === 'app:Manager')?.value, 'Private fixture manager');
+    await writeFile(input, copy);
+    await assert.rejects(run(process.execPath, [cli, 'prepare', input, `--choices=${review}`, `--output=${join(dir, 'stale.docx')}`]), error => {
+      const result = error as Error & { code: number; stderr: string }; assert.equal(result.code, 1); assert.doesNotMatch(result.stderr, /Private fixture/); return true;
+    });
+    await writeFile(input, bytes);
+    const all = join(dir, 'all-copy.docx'), report = await run(process.execPath, [cli, 'prepare', input, '--strip-hidden-data', `--output=${all}`]);
+    const cleared = openDocxMetadata(new Uint8Array(await readFile(all)), 'copy.docx'); assert.deepEqual(cleared.properties, []);
+    assert.doesNotMatch(report.stdout, /Private fixture company|Private fixture manager/); assert.deepEqual(new Uint8Array(await readFile(input)), bytes);
+  } finally { await rm(dir, { recursive: true, force: true }); }
+});
 test('CLI DOCX cleanup reports failed guards and retains the original without a cleanup claim', async () => {
   const dir = await mkdtemp(join(tmpdir(), 'lolly-docx-unsupported-'));
   try {

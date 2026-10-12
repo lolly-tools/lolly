@@ -12,6 +12,17 @@ Generate with an isolated LibreOffice user profile:
 soffice -env:UserInstallation=file:///absolute/fixture-profile --headless --convert-to docx --outdir tests/fixtures/docx-metadata tests/fixtures/docx-metadata/metadata.fodt
 ```
 
+`extended-properties.docx` derives from that authored Writer package. Its maintained
+generator adds only `Company` and `Manager` elements to `docProps/app.xml`, with the
+synthetic values `Private fixture company` and `Private fixture manager`. The original
+`metadata.docx`, visible document content and all other package members stay unchanged.
+LibreOffice does not supply these fields in the base export, so this seeding step is
+explicit:
+
+```sh
+node tests/fixtures/docx-metadata/generate-extended.ts
+```
+
 The tests use libxml2 and JSDOM as independent XML readers, verify selected removal,
 and compare every unrelated raw ZIP member with the original. Untouched property
 elements are compared as source text. UTF-8/UTF-16 BOM variants and malformed inputs
