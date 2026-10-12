@@ -150285,7 +150285,7 @@ async function waitForExport(page3, format, idleMs = exportIdleTimeout(format)) 
   const crashed = () => fail5(new Error("The export page crashed before producing a file."));
   const exportError = (message) => {
     const text8 = message.text();
-    if (/^(?:Auto-export (?:failed|did not start)|\[lolly\] WebGPU is required and unavailable):/.test(text8)) fail5(new Error(text8));
+    if (/^(?:(?:\[warn\] )?Auto-export (?:failed|did not start)|\[lolly\] WebGPU is required and unavailable):/.test(text8)) fail5(new Error(text8));
   };
   sink.current = onProgress;
   page3.on("console", exportError);

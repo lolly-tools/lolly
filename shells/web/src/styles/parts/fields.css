@@ -658,7 +658,8 @@ input.field-range.is-upgraded { display: none; }
   width: 1.5px;
   height: 4px;
   border-radius: 1px;
-  background: hsl(var(--muted-foreground) / 0.3);
+  background: var(--ui-color-surface-muted);
+
   transform: translateX(-50%);
 }
 

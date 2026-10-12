@@ -154,7 +154,7 @@
    These are collapsible .cat-group sections now (see groupSection in catalog.ts); their
    bodies keep the panel-* styling below. A divider on the first sets the reference zone
    apart from the asset categories above. */
-.catalog .cat-group--ref { margin-top: 2.4rem; padding-top: 1.4rem; border-top: 1px solid hsl(var(--border)); }
+.catalog .cat-group--ref { margin-top: 2.4rem; padding-top: 1.4rem;}
 .cat-panel-desc { font-size: var(--fs-lg); color: hsl(var(--muted-foreground)); margin: 0 0 1.2rem; max-width: 60ch; }
 .cat-panel-subhead { font-size: calc(.95rem * var(--a11y-fs)); font-weight: 700; margin: 1.4rem 0 .6rem; }
 .cat-panel-foot { font-size: var(--fs-lg); color: hsl(var(--muted-foreground)); margin-top: 1.2rem; }

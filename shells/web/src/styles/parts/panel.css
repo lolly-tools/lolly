@@ -149,7 +149,6 @@ input.lp-head-name:focus {
   display: flex;
   gap: var(--sp-1);
   padding: var(--sp-2) var(--sp-3);
-  border-bottom: 1px solid var(--ui-color-surface-overlay);
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -365,7 +364,7 @@ html[data-a11y-motion="reduce"] .lp-caret::before { transition: none; }
 .lp-rows {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-3);
+  gap: var(--sp-6);
   padding: var(--sp-1) var(--sp-3) var(--sp-4);
 }
 .lp-rows[hidden] { display: none; }
@@ -547,7 +546,8 @@ html[data-a11y-text="large"] .lp-row--wide > .lp-control { grid-column: 1 / -1; 
   width: 100%;
   min-width: 0;
   padding-inline: var(--sp-3);
-  border: 1px solid var(--ui-color-border-default);
+  border: 0;
+  box-shadow:var(--ui-effect-bevel), var(--ui-elevation-control);
   border-radius: var(--ui-radius-control);
   background: var(--ui-color-surface-canvas);
   color: var(--ui-color-text-default);
@@ -707,7 +707,7 @@ html[data-a11y-text="large"] .lp-row--wide > .lp-control { grid-column: 1 / -1; 
    fold (Emoji, Narration). A heading, never the caption rule beside it: those
    two shared one class and so read as one thing in adjacent rows. */
 .lp-subhead {
-  margin: var(--sp-2) 0 0;
+  margin: var(--sp-8) 0 0;
   font-size: var(--ui-type-field);
   font-weight: var(--ui-type-weight-label);
   text-transform: uppercase;

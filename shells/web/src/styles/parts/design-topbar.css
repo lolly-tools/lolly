@@ -105,7 +105,7 @@
    parts/a11y.css): most of these buttons are a glyph plus a hidden label, so the
    glyph IS the type as far as a largeText reader is concerned. */
 .dtb-ic { display: inline-flex; }
-.dtb-ic svg { display: block; width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); }
+.dtb-ic svg { display: block; stroke-width:1.5px; width: calc(16px * var(--a11y-fs)); height: calc(16px * var(--a11y-fs)); }
 .dtb-btn:hover:not(:disabled) { background: var(--ui-color-surface-muted); }
 .dtb-btn:active:not(:disabled) { filter: brightness(0.94); }
 .dtb-btn:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
