@@ -348,6 +348,7 @@ test('public VM Caddy and native nginx preserve routes, custody and model stream
           '/ort/missing.wasm',
           '/ort-hf/missing.wasm',
           '/_app/missing.js',
+          '/tools/missing@0000000000000000/missing.js',
           '/models/missing.onnx',
           '/fonts/missing.woff2',
           '/t/missing',
@@ -430,7 +431,7 @@ test('public VM Caddy and native nginx preserve routes, custody and model stream
         const bytes = readFileSync(join(site, path.slice(1)));
         assert.deepEqual(response.bytes, bytes); assert.equal(response.headers.etag, `"${sha(bytes)}"`);
       }
-      for (const path of ['/models/specimen@0123456789abcdef/missing.onnx', '/catalog/missing.json', '/_app/missing.js']) {
+      for (const path of ['/models/specimen@0123456789abcdef/missing.onnx', '/catalog/missing.json', '/_app/missing.js', '/tools/missing@0000000000000000/missing.js']) {
         const missing = await fetch(base + path);
         assert.equal(missing.status, 404);
         assert.equal(missing.headers.get('cache-control'), 'private, no-store, max-age=0, no-transform');

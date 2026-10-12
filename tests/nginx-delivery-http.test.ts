@@ -30,7 +30,8 @@ test(`actual ${configuration} preserves validators, decoded signatures, ranges a
   const port = await unusedPort(), innerPort = await unusedPort();
   const bytes = Buffer.from('const signed = "original";\n'.repeat(1000));
   const longAssetPath = `catalog/assets/${'variant'.repeat(28)}.0123456789abcdef.svg`;
-  for (const name of ['index.html', 'sw.js', '_app/app.js', 'catalog/tools/index.json', longAssetPath]) {
+  const toolPath = 'tools/example@0123456789abcdef/hooks.js';
+  for (const name of ['index.html', 'sw.js', '_app/app.js', 'catalog/tools/index.json', 'view/tools.html', toolPath, longAssetPath]) {
     mkdirSync(resolve(root, name, '..'), { recursive: true }); writeFileSync(join(root, name), bytes);
   }
   const modelPaths = ['models/specimen.onnx', 'models/specimen@0123456789abcdef/weights.onnx'];
@@ -115,11 +116,20 @@ test(`actual ${configuration} preserves validators, decoded signatures, ranges a
     assert.equal(rootPage.status, 200, JSON.stringify(rootPage.headers));
     assert.equal(typeof rootPage.headers.etag, 'string', JSON.stringify(rootPage.headers));
     assert.equal((await get('/', { 'if-none-match': rootPage.headers.etag! })).status, 304);
-    for (const path of ['/_app/missing.js', '/models/demo@aaaaaaaaaaaaaaaa/missing.onnx', '/catalog/missing.json', '/api/missing', '/tool/missing', '/info/missing.png']) {
+    const toolsPage = await get('/tools');
+    assert.equal(toolsPage.status, 200);
+    assert.deepEqual(toolsPage.bytes, bytes);
+    const toolAsset = await get(`/${toolPath}`);
+    assert.equal(toolAsset.status, 200);
+    assert.deepEqual(toolAsset.bytes, bytes);
+    assert.equal(toolAsset.headers.etag, `"${sha(bytes)}"`);
+    assert.match(toolAsset.headers['cache-control']!, /immutable/);
+    for (const path of ['/_app/missing.js', '/models/demo@aaaaaaaaaaaaaaaa/missing.onnx', '/catalog/missing.json', '/api/missing', '/tool/missing', '/info/missing.png', '/tools/missing@0000000000000000/missing.js']) {
       const missing = await get(path);
       assert.equal(missing.status, 404, path);
       assert.match(missing.headers['cache-control']!, /private, no-store/);
       assert.equal(missing.headers['cdn-cache-control'], 'no-store');
+      assert.equal(missing.headers.etag, undefined);
     }
     if (configuration === 'public.nginx.conf') {
       const corsNames = ['access-control-allow-origin', 'access-control-allow-methods', 'access-control-allow-headers', 'access-control-expose-headers'];

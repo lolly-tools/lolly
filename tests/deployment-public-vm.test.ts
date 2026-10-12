@@ -44,7 +44,7 @@ test('public VM preserves every fixed static alias in the public route contract'
 });
 
 test('public VM refuses missing reserved static files and hides operator metadata', () => {
-  for (const prefix of ['info', 'catalog', 'icons', 't', 'view']) {
+  for (const prefix of ['info', 'catalog', 'icons', 't', 'view', 'tools']) {
     const location = nginx.match(new RegExp(`location /${prefix}/ \\{([^}]+)\\}`));
     assert.ok(location?.[1]?.includes('=404;'), prefix);
     assert.ok(!location?.[1]?.includes('/index.html;'), prefix);
