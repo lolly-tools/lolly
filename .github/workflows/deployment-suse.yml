@@ -103,6 +103,7 @@ jobs:
             /deploy/docker/seccomp/
             /tests/browser-seccomp.test.ts
             /services/mcp/src/http.ts
+            /shells/tauri-desktop/src-tauri/tauri.conf.json
             /package.json
 
       - name: Validate the selected preparation scope
