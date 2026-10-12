@@ -5,13 +5,15 @@ import { mkdir, writeFile, readFile } from 'node:fs/promises';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { PDFDocument } from 'pdf-lib';
 import { chromium } from 'playwright';
 import { webGpuLaunchArgs } from '../packages/node-shell/src/webgpu-launch.ts';
 
 const run = promisify(execFile);
 const origin = process.env.LOLLY_HIERARCHY_TEST_URL ?? process.env.LOLLY_IMPORT_TEST_URL;
-const artifacts = process.env.LOLLY_GROUP_TEST_ARTIFACTS ?? '/Users/andy/Build/lolly/plans/artifacts/306-followup';
+const artifacts = process.env.LOLLY_GROUP_TEST_ARTIFACTS
+  ?? fileURLToPath(new URL('../plans/artifacts/browser-journeys/design-group-compositing/', import.meta.url));
 const cases = [
   { id: 'collective', outer: 50, inner: 100, blend: 'normal', background: '#ffffff', expected: [[255,128,128],[128,128,255],[128,128,255]] },
   { id: 'nested', outer: 50, inner: 50, blend: 'normal', background: '#ffffff', expected: [[255,128,128],[191,128,191],[191,191,255]] },
