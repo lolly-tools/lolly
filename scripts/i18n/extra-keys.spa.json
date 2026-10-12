@@ -324,5 +324,22 @@
   "Document units were compared by position. Insertions can shift later units.",
   "This XLSX has missing, external, duplicate or unsupported worksheet relationships. Choose a workbook whose sheets are stored under xl/worksheets/.",
   "DOCX comparison",
-  "Document properties"
+  "Document properties",
+  "YAML structure",
+  "YAML comparison",
+  "Compare one YAML 1.2 data document per side. Comments and formatting are not compared. Choose Text to review them.",
+  "Compare text, JSON, YAML, tables, documents, images or PDFs on this device. Your sources stay unchanged.",
+  "Compare text, JSON, YAML, tables, documents, images, PDFs and saved versions locally. See what changed without changing either source.",
+  "This file contains binary data. Choose a text, JSON or YAML file.",
+  "Choose two compatible text, JSON, YAML, table, document or image assets.",
+  "Comparison supports text, JSON, YAML, tables, documents, images and PDF pages. This file pair is not supported.",
+  "This YAML is malformed or unsupported for structure comparison. Choose Text mode.",
+  "This YAML exceeds the structure reading limits. Choose Text mode.",
+  "YAML structure comparison needs one nonempty document. Choose Text mode.",
+  "YAML anchors and aliases are not supported in structure comparison. Choose Text mode.",
+  "YAML tags and directives are not supported in structure comparison. Choose Text mode.",
+  "YAML structure comparison needs unique string keys. Choose Text mode.",
+  "YAML merge keys are not supported in structure comparison. Choose Text mode.",
+  "YAML structure comparison needs finite numbers and safe integers. Choose Text mode.",
+  "YAML data values are compared. Comments, key order, quoting and formatting are outside this comparison."
 ]

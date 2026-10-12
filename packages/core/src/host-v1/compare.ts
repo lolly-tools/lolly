@@ -9,6 +9,8 @@ export interface ComparisonIdentity {
 export interface ComparisonSource {
   readonly identity: ComparisonIdentity;
   readonly content: { readonly kind: 'text'; readonly text: string } | { readonly kind: 'structure'; readonly value: unknown }
+    /** Raw YAML is read as ordinary data within the comparison job. Refusals never imply equality. */
+    | { readonly kind: 'yaml'; readonly text: string }
     | { readonly kind: 'table'; readonly tables: readonly ComparisonTable[] }
     | { readonly kind: 'document'; readonly units: readonly ComparisonDocumentUnit[] };
   /** Exact retained bytes only. Never substitute a current asset for an old version. */

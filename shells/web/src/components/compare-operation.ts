@@ -2,6 +2,7 @@
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import type { FileFactsV1 } from '@lolly-tools/core/file-v1';
 import { operationComparisonPair, verifyComparisonOriginal } from '../lib/compare-operation-sources.ts';
+import type { ContentComparisonOverride } from '../lib/compare-sources.ts';
 import { mountModal } from './modal.ts';
 import { mountComparison } from './compare-panel.ts';
 import { mountVisualComparison } from './compare-visual-panel.ts';
@@ -12,7 +13,7 @@ import { mountOperationComparisonMode } from './compare-file-mode.ts';
 /** The caller closes this review when its input or output snapshot becomes stale. */
 export function openOperationComparison(host: HostV1, after: File, options: { before?: File; expected?: FileFactsV1 } = {}): () => void {
   let active: AbortController | undefined, dispose: (() => void) | undefined, closed = false;
-  let selectedBefore: File | undefined = options.before, mode: 'document' | undefined;
+  let selectedBefore: File | undefined = options.before, mode: ContentComparisonOverride | undefined;
   const modal = mountModal('', { className: 'modal compare-modal', ariaLabel: t('Compare original and copy'), onClose: () => {
     closed = true; active?.abort(); dispose?.();
   } });
@@ -38,7 +39,7 @@ export function openOperationComparison(host: HostV1, after: File, options: { be
     }
   };
   const modes = el('div', undefined, 'compare-toolbar');
-  mountOperationComparisonMode(modes, [options.before?.name.split('.').pop() ?? options.expected?.format, after.name.split('.').pop()], value => {
+  mode = mountOperationComparisonMode(modes, [options.before?.name.split('.').pop() ?? options.expected?.format, after.name.split('.').pop()], value => {
     mode = value; if (selectedBefore) void compare(selectedBefore, !options.before);
   }); modal.el.insertBefore(modes, status);
   if (options.before) void compare(options.before, false);

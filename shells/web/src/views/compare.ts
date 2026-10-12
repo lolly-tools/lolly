@@ -6,18 +6,18 @@ import { mountComparison } from '../components/compare-panel.ts';
 import { mountVisualComparison } from '../components/compare-visual-panel.ts';
 import { comparisonVisualSource } from '../lib/compare-visual-sources.ts';
 import { compareElement as el, compareButton as button } from '../components/compare-elements.ts';
-import { comparisonFileSource, comparisonTextSource, type ContentComparisonMode } from '../lib/compare-sources.ts';
+import { comparisonFileSource, comparisonTextSource, comparisonRequest, YAML_COMPARISON_NOTE, type ContentComparisonMode } from '../lib/compare-sources.ts';
 import { t } from '../i18n.ts';
 
 export function mountCompare(view: HTMLElement & { _cleanup?: () => void }, host: HostV1, params = ''): void {
   document.title = `${t('Compare')} - Lolly`;
   view.innerHTML = backHomeHtml(); mountBackPill(view); mountHomeFab(view);
   const page = el('section', undefined, 'compare-page');
-  page.append(el('h1', t('Compare')), el('p', t('Compare text, JSON, tables, documents, images or PDFs on this device. Your sources stay unchanged.')));
+  page.append(el('h1', t('Compare')), el('p', t('Compare text, JSON, YAML, tables, documents, images or PDFs on this device. Your sources stay unchanged.')));
   const mode = el('select', undefined, 'field-select'); mode.setAttribute('aria-label', t('Comparison mode'));
-  mode.add(new Option(t('Text'), 'text')); mode.add(new Option(t('JSON structure'), 'json')); mode.add(new Option(t('Tables: CSV / TSV / XLSX'), 'table'));
+  mode.add(new Option(t('Text'), 'text')); mode.add(new Option(t('JSON structure'), 'json')); mode.add(new Option(t('YAML structure'), 'yaml')); mode.add(new Option(t('Tables: CSV / TSV / XLSX'), 'table'));
   mode.add(new Option(t('Document text: DOCX / PPTX / PDF'), 'document')); mode.add(new Option(t('Images / PDF pages'), 'visual')); page.append(mode);
-  const initialMode = new URLSearchParams(params).get('mode'); if (initialMode && ['text', 'json', 'table', 'document', 'visual'].includes(initialMode)) mode.value = initialMode;
+  const initialMode = new URLSearchParams(params).get('mode'); if (initialMode && ['text', 'json', 'yaml', 'table', 'document', 'visual'].includes(initialMode)) mode.value = initialMode;
   const note = el('p', undefined, 'compare-note'); page.append(note);
   const sources = el('div', undefined, 'compare-sources');
   const inputs: Array<{ text: HTMLTextAreaElement; file: File | undefined; label: HTMLElement }> = [];
@@ -42,7 +42,7 @@ export function mountCompare(view: HTMLElement & { _cleanup?: () => void }, host
   const invalidate = (): void => { generation++; pending?.abort(); dispose?.(); dispose = undefined; status.textContent = ''; cancelLoad.hidden = true; run.disabled = !host.compare; };
   const showMode = (): void => {
     for (const input of inputs) input.text.hidden = mode.value === 'visual' || mode.value === 'document';
-    note.textContent = mode.value === 'table' ? t('The first row supplies column labels. Paste CSV or TSV, or choose files. XLSX uses cached values and matches sheets by unique name.')
+    note.textContent = mode.value === 'yaml' ? t(YAML_COMPARISON_NOTE) : mode.value === 'table' ? t('The first row supplies column labels. Paste CSV or TSV, or choose files. XLSX uses cached values and matches sheets by unique name.')
       : mode.value === 'document' ? t('Choose DOCX, PPTX or PDF files. Compare extracted text by reading position, retained slide IDs or exact text anchors. DOCX blocks do not represent pages; PDF scans need OCR, which is not run here.') : '';
   };
   showMode(); mode.addEventListener('change', () => { invalidate(); showMode(); });
@@ -66,7 +66,7 @@ export function mountCompare(view: HTMLElement & { _cleanup?: () => void }, host
         ? comparisonFileSource(input.file, selectedMode, controller.signal)
         : comparisonTextSource(input.text.value, { id: `text-${i}`, kind: 'text', label: i ? t('After text') : t('Before text') }, selectedMode === 'document' ? 'text' : selectedMode)));
       if (token !== generation) return;
-      status.textContent = ''; dispose = mountComparison(results, host.compare, { version: 1, before: pair[0]!, after: pair[1]! });
+      status.textContent = ''; dispose = mountComparison(results, host.compare, comparisonRequest(pair[0]!, pair[1]!, selectedMode));
     } catch (error) { if (token === generation) status.textContent = error instanceof Error ? error.message : t('Choose two compatible sources.'); controller.abort(); }
     finally { if (token === generation) { run.disabled = false; cancelLoad.hidden = true; } }
   });

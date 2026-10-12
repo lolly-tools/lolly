@@ -1,22 +1,37 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Shared bounded comparison of supplied immutable content snapshots. */
-import type { CompareAPI, ComparisonRequest, ComparisonResult } from '@lolly-tools/core/host-v1';
+import type { CompareAPI, ComparisonRequest, ComparisonResult, ComparisonSource } from '@lolly-tools/core/host-v1';
 import { comparisonBudget, COMPARE_MAX_TEXT } from './compare-budget.ts';
 import { compareStructure } from './compare-structure.ts';
 import { compareText } from './compare-text.ts';
 import { compareVisualSources } from './compare-visual.ts';
 import { compareTables } from './compare-tables.ts';
 import { compareDocumentUnits } from './compare-document.ts';
+import { readComparisonYaml } from './compare-yaml.ts';
 export { compareStructure } from './compare-structure.ts';
 export { comparisonBudget } from './compare-budget.ts';
 
-/** No storage, parsing, rendering or logging; providers supply immutable snapshots. */
+function normalizeYaml(source: ComparisonSource, signal?: AbortSignal): ComparisonSource {
+  if (source.content.kind !== 'yaml') return source;
+  if (source.fidelity?.level === 'unavailable') return { ...source, content: { kind: 'structure', value: null } };
+  const read = readComparisonYaml(source.content.text, signal);
+  return { ...source, content: { kind: 'structure', value: read.ok ? read.value : null }, fidelity: {
+    level: read.ok ? source.fidelity?.level ?? 'complete' : 'unavailable',
+    limitations: [...source.fidelity?.limitations ?? [], read.ok
+      ? 'YAML data values are compared. Comments, key order, quoting and formatting are outside this comparison.' : read.limitation],
+  } };
+}
+
+/** No storage, rendering or logging; YAML reading is bounded within this job. */
 export function compareSources(request: ComparisonRequest, signal?: AbortSignal): ComparisonResult {
   signal?.throwIfAborted();
   if (request.version !== 1) throw new Error('Unsupported comparison version.');
-  const { before, after } = request, options = { ...request.options };
+  const options = { ...request.options };
+  const applicable = options.mode === undefined || options.mode === 'structure';
+  const before = applicable ? normalizeYaml(request.before, signal) : request.before;
+  const after = applicable ? normalizeYaml(request.after, signal) : request.after;
   const budget = comparisonBudget(options, signal);
-  const mode = options.mode ?? (before.content.kind === after.content.kind ? before.content.kind : 'text');
+  const mode = options.mode ?? (before.content.kind === after.content.kind && before.content.kind !== 'yaml' ? before.content.kind : 'text');
   let alignment: ComparisonResult['alignment'] = mode === 'text' ? options.granularity ?? 'line'
     : mode === 'table' ? 'table-position' : mode === 'document' ? 'document-position'
       : options.arrayAlignment === 'id' ? 'stable-id' : 'object-keys-ordered-arrays';
