@@ -38,7 +38,7 @@ import { sourceIngredientsFor } from './rights-attribution.ts';
 import type { SourceDetailV1 } from './rights-attribution.ts';
 import { evaluateCreativeUses } from './rights-evaluate.ts';
 import { outputLicenceId, outputLicenceNotice } from './rights-profiles.ts';
-import { buildInputModel, updateInput, modelToValues, modelForHooks, flattenValue, summarizeInputs, normalizeTableValue, tokenBindingsOf, type InputWriteOptions } from './inputs.ts';
+import { buildInputModel, updateInput, modelToValues, modelForHooks, flattenValue, summarizeInputDigests, matchesShowIf, normalizeTableValue, tokenBindingsOf, type InputWriteOptions } from './inputs.ts';
 import { hydrate, resolvePaintBindings } from './template.ts';
 import { buildExportMeta } from './metadata.ts';
 import { isTokenValue, isAlias, aliasPath, colorToHex } from './tokens.ts';
@@ -2107,7 +2107,7 @@ export async function createRuntime(
       // surfaced by the shell in the tools.lolly.export assertion so an inspected
       // asset shows what it was made from. Cheap + best-effort; skipped otherwise.
       const stampProvenance = opts.c2pa && !isOnDevice;
-      const c2paInputs = stampProvenance ? summarizeInputs(model) : undefined;
+      const c2paInputs = stampProvenance ? await summarizeInputDigests(model) : undefined;
       // Live-capture provenance: declare the origin honestly when this session's
       // render came from a device sensor (a filter's live camera frame, or a
       // recorder take). Biased against over-claiming - see the flag tracking above.
@@ -2125,18 +2125,15 @@ export async function createRuntime(
         : undefined;
       // Text-added provenance: honest ONLY when rendered text sits over an OPENED
       // asset (an ingredient is present) - a genuine edit on someone else's image.
-      // From-scratch text is the work's own content; it rides in the digest above,
-      // never as a fabricated edit step. `sample` teases the step; the full copy is
-      // in the digest. bindToProfile text (a pre-filled name) is attribution, not
-      // added content - excluded, matching summarizeInputs.
+      // Profile fields and inactive controls do not contribute a text edit step.
       let c2paTextAdded: { sample?: string } | undefined;
       if (stampProvenance && ingredients?.length) {
         const textItem = model.find(i =>
           (i.type === 'text' || i.type === 'longtext') && !i.bindToProfile &&
+          matchesShowIf(i.showIf, modelToValues(model)) &&
           String(flattenValue(i.value) ?? '').trim());
         if (textItem) {
-          const s = String(flattenValue(textItem.value)).trim();
-          c2paTextAdded = { sample: s.length > 48 ? s.slice(0, 47) + '…' : s };
+          c2paTextAdded = {};
         }
       }
       // AI-upscale provenance: a placed asset produced on-device by host.upscale

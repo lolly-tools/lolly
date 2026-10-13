@@ -1955,23 +1955,8 @@ function describeDimensions(d: ExportDims): string {
   return `${w} × ${h} px`;
 }
 
-// Export environment for the `tools.lolly.export` assertion: the "where / when /
-// how big / from what" record. Browser ENGINE family + major version and OS
-// family (deliberately far short of a fingerprint), the export date, the output
-// size, and the runtime-supplied scalar-input digest - enough that an inspected
-// asset tells its own story without leaking a device fingerprint.
+// Export surface, date, dimensions and runtime-supplied input fingerprints.
 function c2paEnvironment(format: string, opts: ExportOpts, dimensions?: string): Record<string, unknown> {
-  const ua = navigator.userAgent || '';
-  let engine = 'unknown';
-  let m: RegExpExecArray | null;
-  if ((m = /Firefox\/(\d+)/.exec(ua))) engine = `Gecko ${m[1]}`;
-  else if ((m = /Chrome\/(\d+)/.exec(ua))) engine = `Chromium ${m[1]}`;
-  else if ((m = /Version\/(\d+).*Safari/.exec(ua))) engine = `WebKit ${m[1]}`;
-  const os = /Android/.test(ua) ? 'Android'
-    : /iPhone|iPad|iPod/.test(ua) ? 'iOS'
-    : /Mac/.test(ua) ? 'macOS'
-    : /Windows/.test(ua) ? 'Windows'
-    : /Linux|CrOS/.test(ua) ? 'Linux' : 'unknown';
   const inputs = opts.c2paInputs && Object.keys(opts.c2paInputs).length ? opts.c2paInputs : undefined;
   return {
     ...(opts.meta?.tool ? { tool: opts.meta.tool } : {}),
@@ -1982,8 +1967,6 @@ function c2paEnvironment(format: string, opts: ExportOpts, dimensions?: string):
     ...(opts.meta?.toolVersion ? { toolVersion: opts.meta.toolVersion } : {}),
     format: String(format),
     surface: 'web',
-    engine,
-    os,
     date: new Date().toISOString(),
     ...(dimensions ? { dimensions } : {}),
     ...(inputs ? { inputs } : {}),

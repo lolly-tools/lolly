@@ -12,7 +12,9 @@
  * puts that chain in the manifest's x5chain and a verifier pinning the issuing root
  * reads the file as trusted.
  */
-import { summarizeInputs, ENGINE_VERSION, collectAiIngredientDeclarations, exportActionSteps } from '@lolly/engine';
+import { createHash } from 'node:crypto';
+import { summarizeInputs, matchesShowIf, ENGINE_VERSION, collectAiIngredientDeclarations, exportActionSteps } from '@lolly/engine';
+import { modelToValues, flattenValue } from '../../../engine/src/inputs.ts';
 import type { embedC2pa, C2paSigner } from '@lolly/engine';
 import type { Profile } from '@lolly-tools/core/host-v1';
 
@@ -74,7 +76,12 @@ export function buildExportC2paOpts(o: BuildExportC2paOpts): ExportC2paOpts {
   const { surface, manifest, model, format, dims = {}, profile = {} } = o;
   const days = o.days ?? 30;
   const name = manifest.name || manifest.id;
-  const inputs = summarizeInputs(model);
+  const values = modelToValues([...model]);
+  const eligible = new Set(Object.keys(summarizeInputs(model.filter(item => matchesShowIf(item.showIf, values)))));
+  const inputs = Object.fromEntries(model.filter(item => eligible.has(item.id)).map(item => [
+    item.id,
+    `sha256:${createHash('sha256').update(JSON.stringify([item.type, flattenValue(item.value), item.unit ?? ''])).digest('hex')}`,
+  ]));
   const unit = dims.unit || 'px';
   const sizeLine = (typeof dims.width === 'number' && dims.width > 0 && typeof dims.height === 'number' && dims.height > 0)
     ? (unit !== 'px' ? `${dims.width} × ${dims.height} ${unit} @ ${dims.dpi || 300} DPI` : `${dims.width} × ${dims.height} px`)
@@ -93,7 +100,7 @@ export function buildExportC2paOpts(o: BuildExportC2paOpts): ExportC2paOpts {
     claimGenerator: 'Lolly lolly.tools',
     generatorInfo: { name: 'Lolly', version: ENGINE_VERSION },
     environment: {
-      surface, engine: `node ${process.version}`, os: process.platform,
+      surface,
       format, tool: name,
       date: new Date().toISOString(),
       ...(sizeLine ? { dimensions: sizeLine } : {}),

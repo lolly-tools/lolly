@@ -10362,7 +10362,13 @@ function buildInputModel(manifest, { profile = {}, initial = {} } = {}) {
   const declared = manifest.inputs ?? [];
   const synthetic = syntheticInputs(manifest);
   return [...declared, ...synthetic].map((input) => {
-    const value = resolveInitialValue(input, profile, initial);
+    let value = resolveInitialValue(input, profile, initial);
+    if (input.type === "color" || input.type === "blocks") {
+      const fallback = defaultForType(input.type);
+      const base = { ...input, value: fallback, isDirty: false, control: pickControl(input) };
+      base.value = constrain(base, input.default ?? fallback);
+      value = constrain(base, value);
+    }
     const savedLinks = initial.__tokenLinks;
     const previous2 = savedLinks && typeof savedLinks === "object" && !Array.isArray(savedLinks) && Object.hasOwn(savedLinks, input.id) ? savedLinks[input.id] : void 0;
     return {
@@ -10469,6 +10475,7 @@ function updateInput(model2, id3, value, options2) {
   });
 }
 function constrain(input, value, options2) {
+  if (input.type === "color") return constrainColour(value, input.value);
   if (["number", "text", "longtext", "select"].includes(input.type) && isTokenValue(value)) return value;
   if (input.type === "number" && isAlias(value)) return value;
   if (input.type === "select") {
@@ -10488,10 +10495,15 @@ function constrain(input, value, options2) {
   }
   if (input.type === "blocks") {
     if (!Array.isArray(value)) return input.value;
-    if (!input.tokenBindingsField) return value;
-    if (options2?.tokenSet && options2.refreshTokenLinks) return resolveBlockTokenBindings(value, input.tokenBindingsField, input.fields ?? [], options2.tokenSet, options2.colorTarget ?? "srgb");
-    const reconciled = reconcileBlockTokenBindings(value, input.tokenBindingsField);
-    return normaliseDesignColourRefs(reconciled, blockColourFields(input.fields ?? []), options2?.tokenSet, options2?.colorTarget ?? "srgb", { metadataField: input.tokenBindingsField, refresh: false });
+    let rows2 = value;
+    if (input.tokenBindingsField) {
+      if (options2?.tokenSet && options2.refreshTokenLinks) rows2 = resolveBlockTokenBindings(rows2, input.tokenBindingsField, input.fields ?? [], options2.tokenSet, options2.colorTarget ?? "srgb");
+      else {
+        const reconciled = reconcileBlockTokenBindings(rows2, input.tokenBindingsField);
+        rows2 = normaliseDesignColourRefs(reconciled, blockColourFields(input.fields ?? []), options2?.tokenSet, options2?.colorTarget ?? "srgb", { metadataField: input.tokenBindingsField, refresh: false });
+      }
+    }
+    return constrainBlockColours(input, rows2);
   }
   if (input.type === "text" || input.type === "longtext") {
     if (typeof value !== "string") return input.value;
@@ -10537,6 +10549,48 @@ function constrain(input, value, options2) {
   }
   return value;
 }
+function colourLiteral(value, depth = 0) {
+  if (typeof value !== "string" || value.length > 1024 || /[<>"'&;\\\p{Cc}]/u.test(value)) return null;
+  const text9 = value.trim();
+  if (text9 === "" || /^(?:none|currentcolor)$/i.test(text9)) return text9;
+  if (/^(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(text9)) return "#" + text9;
+  if (parseColor(text9)) return text9;
+  const variable = /^var\(\s*--[a-z0-9_-]+\s*(?:,\s*([\s\S]+))?\)$/i.exec(text9);
+  return variable && depth < 4 && (variable[1] === void 0 || colourLiteral(variable[1], depth + 1) !== null) ? text9 : null;
+}
+function constrainColour(value, fallback) {
+  if (value === null) return null;
+  if (isTokenValue(value)) {
+    if (!value.ref || value.ref.length > 1024) return fallback;
+    if (value.value === void 0 || value.value === null) return value;
+    const cached2 = colourLiteral(value.value);
+    return cached2 !== null ? cached2 === value.value ? value : { ...value, value: cached2 } : { ...value, value: void 0 };
+  }
+  if (isAlias(value) && value.length <= 1024) return { ref: value };
+  return colourLiteral(value) ?? fallback;
+}
+function constrainBlockColours(input, rows2) {
+  const fields2 = blockColourFields(input.fields ?? []);
+  if (!fields2.length) return rows2;
+  const previous2 = Array.isArray(input.value) ? input.value : [];
+  let changed = false;
+  const next2 = rows2.map((row, index2) => {
+    if (!isObjectValue(row) || Array.isArray(row)) return row;
+    let result = row;
+    const old = previous2[index2];
+    for (const field2 of fields2) {
+      if (row[field2] === void 0) continue;
+      const prior = isObjectValue(old) && !Array.isArray(old) ? colourLiteral(flattenValue(old[field2] ?? "")) ?? "" : "";
+      const colour = flattenValue(constrainColour(row[field2], prior));
+      if (colour === row[field2]) continue;
+      if (result === row) result = { ...row };
+      result[field2] = colour;
+      changed = true;
+    }
+    return result;
+  });
+  return changed ? next2 : rows2;
+}
 function modelToValues(model2) {
   const out = {};
   for (const i of model2) out[i.id] = flattenValue(i.value);
@@ -10566,6 +10620,21 @@ function modelForHooks(model2) {
     const v = flattenValue(i.value);
     return v === i.value ? i : { ...i, value: v };
   });
+}
+async function summarizeInputDigests(model2, { maxEntries = 24 } = {}) {
+  const values = modelToValues([...model2]);
+  const eligible = model2.filter((item2) => item2 && SUMMARISABLE_TYPES.has(item2.type) && !item2.bindToProfile && matchesShowIf(item2.showIf, values));
+  const out = {};
+  for (const item2 of eligible) {
+    if (Object.keys(out).length >= maxEntries) break;
+    const value = flattenValue(item2.value);
+    if (!["string", "number", "boolean"].includes(typeof value) || !String(value).trim()) continue;
+    try {
+      out[item2.id] = `sha256:${await sha256Hex(new TextEncoder().encode(JSON.stringify([item2.type, value, item2.unit ?? ""])))}`;
+    } catch {
+    }
+  }
+  return out;
 }
 function flattenValue(v) {
   if (!isTokenValue(v)) return v;
@@ -10606,6 +10675,8 @@ var init_inputs = __esm({
   "engine/src/inputs.ts"() {
     "use strict";
     init_tokens2();
+    init_css_color();
+    init_bytes();
     init_token_block_bindings();
     DEFAULT_FILE_MAX_BYTES = 100 * 1024 * 1024;
     SUMMARISABLE_TYPES = /* @__PURE__ */ new Set([
@@ -50205,7 +50276,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
         ingredients = [...ingredients ?? [], ...sourceIngredientsFor(frozen.works, frozen.uses, frozen.details)];
       }
       const stampProvenance = opts2.c2pa && !isOnDevice;
-      const c2paInputs = stampProvenance ? summarizeInputs(model2) : void 0;
+      const c2paInputs = stampProvenance ? await summarizeInputDigests(model2) : void 0;
       const capCamera = liveCameraShown || recordedCamera;
       const c2paCapture = stampProvenance && (recordedScreen || capCamera || recordedMic) ? {
         ...recordedScreen ? { screen: true } : {},
@@ -50214,10 +50285,9 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       } : void 0;
       let c2paTextAdded;
       if (stampProvenance && ingredients?.length) {
-        const textItem = model2.find((i) => (i.type === "text" || i.type === "longtext") && !i.bindToProfile && String(flattenValue(i.value) ?? "").trim());
+        const textItem = model2.find((i) => (i.type === "text" || i.type === "longtext") && !i.bindToProfile && matchesShowIf(i.showIf, modelToValues(model2)) && String(flattenValue(i.value) ?? "").trim());
         if (textItem) {
-          const s = String(flattenValue(textItem.value)).trim();
-          c2paTextAdded = { sample: s.length > 48 ? s.slice(0, 47) + "\u2026" : s };
+          c2paTextAdded = {};
         }
       }
       let c2paAiUpscale;
@@ -150696,7 +150766,7 @@ var init_webgpu_launch = __esm({
 });
 
 // packages/node-shell/src/production-browser.ts
-import { createHash as createHash4 } from "node:crypto";
+import { createHash as createHash5 } from "node:crypto";
 async function observeProductionInputs(page3, toolId, ids2) {
   const requested = [...new Set(ids2)];
   const observations = [];
@@ -150721,7 +150791,7 @@ async function observeProductionInputs(page3, toolId, ids2) {
   }
   return (bytes2) => {
     if (overflow) return void 0;
-    const digest2 = createHash4("sha256").update(bytes2).digest("hex");
+    const digest2 = createHash5("sha256").update(bytes2).digest("hex");
     const matches3 = observations.filter((value) => value.artifactSha256 === digest2);
     if (!matches3.length || matches3.some((value) => JSON.stringify(value.inputs) !== JSON.stringify(matches3[0].inputs))) return void 0;
     return matches3[0].inputs;
@@ -151108,7 +151178,7 @@ __export(content_inventory_exports, {
   mediaFileName: () => mediaFileName,
   readContentInventory: () => readContentInventory
 });
-import { createHash as createHash5 } from "node:crypto";
+import { createHash as createHash6 } from "node:crypto";
 import { readFile as readFile6, stat as stat2 } from "node:fs/promises";
 import { join as join9 } from "node:path";
 async function inventoryXmlParser() {
@@ -151127,7 +151197,7 @@ function mediaFileName(sha2563, mime2) {
   return `${sha2563}.${MIME_EXT2[mime2.toLowerCase()] ?? "bin"}`;
 }
 function sha256Hex3(bytes2) {
-  return createHash5("sha256").update(bytes2).digest("hex");
+  return createHash6("sha256").update(bytes2).digest("hex");
 }
 function sameBytes(a, b) {
   if (a.length !== b.length) return false;
@@ -151382,7 +151452,7 @@ __export(design_lolly_exports, {
   packageTime: () => packageTime,
   stampZipTimes: () => stampZipTimes
 });
-import { createHash as createHash6 } from "node:crypto";
+import { createHash as createHash7 } from "node:crypto";
 import { readdir as readdir2, readFile as readFile7 } from "node:fs/promises";
 import { join as join10 } from "node:path";
 function mediaHashPrefixOfKey(key2) {
@@ -151862,7 +151932,7 @@ var init_design_lolly = __esm({
     init_lolly_file();
     init_pipeline();
     record32 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
-    sha256Hex4 = (bytes2) => createHash6("sha256").update(bytes2).digest("hex");
+    sha256Hex4 = (bytes2) => createHash7("sha256").update(bytes2).digest("hex");
     plural3 = (n7, one, many = `${one}s`) => `${n7} ${n7 === 1 ? one : many}`;
     MEDIA_REF_RE = /^user\/media\/([0-9a-f]{64})$/;
     HASH_KEY_RE = /^[a-z][a-z0-9+.-]*:([0-9a-f]{8,64})$/i;
@@ -161356,7 +161426,7 @@ var init_forensic2 = __esm({
 });
 
 // packages/node-shell/src/check.ts
-import { createHash as createHash8 } from "node:crypto";
+import { createHash as createHash9 } from "node:crypto";
 function fidelityNote(compared) {
   const excepted = compared.fidelity.excepted?.length ?? 0;
   return (excepted ? ` ${excepted === 1 ? "1 string is recorded as a deliberate edit" : `${excepted} strings are recorded as deliberate edits`} (excepted, not passed).` : "") + (compared.complete ? "" : " The comparison stopped at one of its limits, so the family is partial (see fidelity.coverage.partial).");
@@ -162356,7 +162426,7 @@ var init_check = __esm({
       const n7 = typeof v === "string" && v.trim() !== "" ? Number(v) : v;
       return typeof n7 === "number" && Number.isFinite(n7) ? n7 : fallback;
     };
-    sha2562 = (bytes2) => createHash8("sha256").update(bytes2).digest("hex");
+    sha2562 = (bytes2) => createHash9("sha256").update(bytes2).digest("hex");
     zero = () => ({ error: 0, warn: 0, info: 0 });
     familyState = (state, reason2) => ({
       state,
@@ -163475,11 +163545,18 @@ init_raster3();
 
 // packages/node-shell/src/c2pa-opts.ts
 init_src2();
+init_inputs();
+import { createHash as createHash4 } from "node:crypto";
 function buildExportC2paOpts(o) {
   const { surface, manifest, model: model2, format, dims = {}, profile = {} } = o;
   const days = o.days ?? 30;
   const name = manifest.name || manifest.id;
-  const inputs = summarizeInputs(model2);
+  const values = modelToValues([...model2]);
+  const eligible = new Set(Object.keys(summarizeInputs(model2.filter((item2) => matchesShowIf(item2.showIf, values)))));
+  const inputs = Object.fromEntries(model2.filter((item2) => eligible.has(item2.id)).map((item2) => [
+    item2.id,
+    `sha256:${createHash4("sha256").update(JSON.stringify([item2.type, flattenValue(item2.value), item2.unit ?? ""])).digest("hex")}`
+  ]));
   const unit2 = dims.unit || "px";
   const sizeLine = typeof dims.width === "number" && dims.width > 0 && typeof dims.height === "number" && dims.height > 0 ? unit2 !== "px" ? `${dims.width} \xD7 ${dims.height} ${unit2} @ ${dims.dpi || 300} DPI` : `${dims.width} \xD7 ${dims.height} px` : void 0;
   const aiIngredients = collectAiIngredientDeclarations(model2);
@@ -163489,8 +163566,6 @@ function buildExportC2paOpts(o) {
     generatorInfo: { name: "Lolly", version: ENGINE_VERSION },
     environment: {
       surface,
-      engine: `node ${process.version}`,
-      os: process.platform,
       format,
       tool: name,
       date: (/* @__PURE__ */ new Date()).toISOString(),
@@ -164385,7 +164460,7 @@ import { isAbsolute, join as join13 } from "node:path";
 import { Worker as Worker3 } from "node:worker_threads";
 import { existsSync as existsSync8 } from "node:fs";
 import { fileURLToPath as fileURLToPath6 } from "node:url";
-import { createHash as createHash7 } from "node:crypto";
+import { createHash as createHash8 } from "node:crypto";
 
 // packages/rondo/src/limits.ts
 var RONDO_LIMITS = Object.freeze({
@@ -164634,7 +164709,7 @@ function runWorker2(job, caps, timeoutMs, limitText) {
   });
 }
 var secondsText = (ms) => ms < 1e4 ? (ms / 1e3).toFixed(1) : String(Math.round(ms / 1e3));
-var digestOf = (song) => createHash7("sha256").update(`${song.lang}\0${song.code}`).digest("hex");
+var digestOf = (song) => createHash8("sha256").update(`${song.lang}\0${song.code}`).digest("hex");
 var copyOf = (k) => ({
   ...k,
   channels: [k.channels[0].slice(), k.channels[1].slice()],
@@ -164651,7 +164726,7 @@ async function renderRondoSong(song, opts = {}) {
     throw new RondoAudioError(`This host renders songs up to ${maxSeconds} s long; ${seconds} s was asked for.`, "rondo.limits.seconds");
   }
   const key2 = `${digestOf(song)}|${seconds ?? "natural"}|${maxSeconds}`;
-  const sourceDigest = createHash7("sha256").update(rondoSourceBytes(song)).digest("hex");
+  const sourceDigest = createHash8("sha256").update(rondoSourceBytes(song)).digest("hex");
   const report4 = (k, cached2) => ({
     sampleRate: k.sampleRate,
     channels: k.channels,
@@ -175928,7 +176003,7 @@ init_src2();
 init_src();
 init_file_v1();
 init_design_lolly();
-import { createHash as createHash9 } from "node:crypto";
+import { createHash as createHash10 } from "node:crypto";
 
 // schemas/design-package-v1.schema.json
 var design_package_v1_schema_default = {
@@ -176434,7 +176509,7 @@ async function callPackage(args, resolveDesign, env = process.env, limits = PACK
       } catch (err) {
         throw new ToolCodeError("input.unsupported", `The compiled document could not be packaged: ${err instanceof Error ? err.message : String(err)}`);
       }
-      const sha2563 = createHash9("sha256").update(packed2.bytes).digest("hex");
+      const sha2563 = createHash10("sha256").update(packed2.bytes).digest("hex");
       const name2 = "document.lolly";
       const structured = { legacy: true, manifest: packed2.manifest, bytes: packed2.bytes.byteLength, sha256: sha2563 };
       const block2 = { type: "resource", resource: { uri: resourceUri2("package", sha2563, name2), mimeType: LOLLY_MIME2, blob: Buffer.from(packed2.bytes).toString("base64") } };
@@ -176499,7 +176574,7 @@ function isFileTransform(manifest) {
 // services/mcp/src/result-files.ts
 init_file_v1();
 init_delivery_v1();
-import { createHash as createHash10, createHmac, randomUUID as randomUUID2 } from "node:crypto";
+import { createHash as createHash11, createHmac, randomUUID as randomUUID2 } from "node:crypto";
 import { mkdtemp as mkdtemp4, readFile as readFile27, writeFile as writeFile7, unlink, rm as rm6 } from "node:fs/promises";
 import { tmpdir as tmpdir5 } from "node:os";
 import { join as join29 } from "node:path";
@@ -176511,7 +176586,7 @@ var ENTRY_LIMIT = 200;
 var PATH_PATTERN = /^\/api\/mcp\/files\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 function bearerPrincipal(header) {
   const bearer = /^Bearer\s+(.+)$/i.exec(header ?? "")?.[1]?.trim();
-  return bearer ? createHash10("sha256").update(bearer).digest("hex") : null;
+  return bearer ? createHash11("sha256").update(bearer).digest("hex") : null;
 }
 function privateFileScopeEnabled(env) {
   return env.LOLLY_MCP_PRIVATE_FILES === "1" && !!env.LOLLY_MCP_TOKEN?.trim() && !env.VERCEL && (env.LOLLY_MCP_REPLICAS === void 0 || env.LOLLY_MCP_REPLICAS === "1");
@@ -176573,7 +176648,7 @@ var ResultFiles = class {
       this.directory ??= mkdtemp4(join29(tmpdir5(), "lolly-mcp-results-"));
       file = join29(await this.directory, id3);
       await writeFile7(file, bytes2, { flag: "wx", mode: 384 });
-      const digest2 = createHash10("sha256").update(bytes2).digest("hex");
+      const digest2 = createHash11("sha256").update(bytes2).digest("hex");
       const dt = await signDeliveryToken({ v: 1, kid: "mcp1", exp: expires, cls: "person-private" }, path, { canonicalHost: base.host, subject: owner3 }, await this.key(base.host, secret));
       const filename = safeFileName(name);
       this.entries.set(id3, { owner: owner3, path, file, expires, size: bytes2.byteLength, sha256: digest2, mime: /^[\w.+-]+\/[\w.+-]+(?:;[\x20-\x7e]*)?$/.test(mime2) ? mime2 : "application/octet-stream", name: filename });
@@ -176602,7 +176677,7 @@ var ResultFiles = class {
     const status = await verifyDeliveryToken(token2, path, { canonicalHost: host, cls: "person-private", pattern: PATH_PATTERN, subject: owner3, maxSkewSec: 0 }, /* @__PURE__ */ new Map([["mcp1", await this.key(host, secret)]]), Math.floor(this.now() / 1e3));
     if (status !== "ok") return null;
     const bytes2 = await readFile27(entry2.file);
-    if (bytes2.byteLength !== entry2.size || createHash10("sha256").update(bytes2).digest("hex") !== entry2.sha256) throw new Error("Private result integrity check failed.");
+    if (bytes2.byteLength !== entry2.size || createHash11("sha256").update(bytes2).digest("hex") !== entry2.sha256) throw new Error("Private result integrity check failed.");
     if (entry2.expires <= Math.floor(this.now() / 1e3)) return null;
     return { bytes: bytes2, mime: entry2.mime, name: entry2.name, etag: `"${entry2.sha256}"` };
   }
@@ -177787,7 +177862,7 @@ init_file_operation_v1();
 init_file_v1();
 import { open as open2 } from "node:fs/promises";
 import { basename as basename4 } from "node:path";
-import { createHash as createHash11 } from "node:crypto";
+import { createHash as createHash12 } from "node:crypto";
 
 // packages/core/src/image-operation-v1.ts
 var DEFAULT_IMAGE_OPTIONS = { maxEdge: 0, quality: 0.92, background: "#ffffff" };
@@ -177911,7 +177986,7 @@ async function describeOperationFile(file, signal) {
   const format = detected === "jpg" ? "jpeg" : detected ?? file.name.split(".").pop()?.toLowerCase() ?? "unknown";
   const jxl = isJxl(bytes2) ? (await runJxl({ operation: "probe", bytes: bytes2 }, signal)).info : void 0;
   const dimensions = jxl ? { w: jxl.width, h: jxl.height } : imageDimensions(bytes2, file.type);
-  return { name: file.name, format, formatSource: detected ? "detected" : "declared", mime: mime[format] ?? (file.type || "application/octet-stream"), size: file.size, sha256: createHash11("sha256").update(bytes2).digest("hex"), ...dimensions ? { width: dimensions.w, height: dimensions.h } : {} };
+  return { name: file.name, format, formatSource: detected ? "detected" : "declared", mime: mime[format] ?? (file.type || "application/octet-stream"), size: file.size, sha256: createHash12("sha256").update(bytes2).digest("hex"), ...dimensions ? { width: dimensions.w, height: dimensions.h } : {} };
 }
 async function runNodeFileOperation(file, request2, signal, execution = "device") {
   return executeFileOperationV1(file, request2, {
@@ -178513,10 +178588,10 @@ async function dispatch(req, context = {}) {
 
 // services/mcp/src/render-get.ts
 init_src2();
-import { createHash as createHash13 } from "node:crypto";
+import { createHash as createHash14 } from "node:crypto";
 
 // services/mcp/src/rate-limit.ts
-import { createHash as createHash12 } from "node:crypto";
+import { createHash as createHash13 } from "node:crypto";
 var RateLimitUnavailableError = class extends Error {
   code = "rate-limit-unavailable";
   constructor(message = "Durable rate limiter is unavailable") {
@@ -178650,7 +178725,7 @@ function createRateLimiter(env, namespace3 = "mcp", onWrite) {
   return new MemoryRateLimiter();
 }
 function digestKey(namespace3, scope2, subject) {
-  return createHash12("sha256").update(namespace3).update("\0").update(scope2).update("\0").update(subject).digest("hex");
+  return createHash13("sha256").update(namespace3).update("\0").update(scope2).update("\0").update(subject).digest("hex");
 }
 function normalizeRestUrl(raw) {
   let url;
@@ -179120,10 +179195,10 @@ async function renderGet(path, query2, opts) {
   for (const key2 of dropped) params2.delete(key2);
   const sorted = new URLSearchParams(params2);
   sorted.sort();
-  const etag = `"${createHash13("sha256").update(`${ENGINE_VERSION}|${index2.version}|${index2.generatedAt}|${match.toolId}.${fmt4}?${sorted.toString()}`).digest("hex").slice(0, 32)}"`;
+  const etag = `"${createHash14("sha256").update(`${ENGINE_VERSION}|${index2.version}|${index2.generatedAt}|${match.toolId}.${fmt4}?${sorted.toString()}`).digest("hex").slice(0, 32)}"`;
   const cacheHeaders = {
     ...deliveryHeaders("public-bounded", { tokenBearing: true }),
-    "cache-tag": renderTags([tag("x", "public-bounded"), tag("t", match.toolId), tag("e", ENGINE_VERSION.toLowerCase()), tag("c", createHash13("sha256").update(`${index2.version}|${index2.generatedAt}`).digest("hex").slice(0, 12))], "comma"),
+    "cache-tag": renderTags([tag("x", "public-bounded"), tag("t", match.toolId), tag("e", ENGINE_VERSION.toLowerCase()), tag("c", createHash14("sha256").update(`${index2.version}|${index2.generatedAt}`).digest("hex").slice(0, 12))], "comma"),
     vary: "Accept-Encoding",
     etag,
     "x-robots-tag": "noindex"
@@ -179212,7 +179287,7 @@ function renderFailure(e) {
 }
 
 // services/mcp/src/image-proxy.ts
-import { createHash as createHash14 } from "node:crypto";
+import { createHash as createHash15 } from "node:crypto";
 init_delivery_v1();
 var PATH_RE2 = /\/fetch-image$/;
 function matchImageProxyPath(path) {
@@ -179321,13 +179396,13 @@ async function proxyImage(reqUrl, opts) {
     if (name === "TimeoutError" || name === "AbortError") return errorResponse2(504, "That address took too long to answer.");
     return errorResponse2(502, `Couldn't fetch that URL: ${e.message}`);
   }
-  const etag = `"${createHash14("sha256").update(bytes2).digest("hex")}"`;
+  const etag = `"${createHash15("sha256").update(bytes2).digest("hex")}"`;
   const headers = {
     "content-type": rawType,
     ...deliveryHeaders(privateResponse ? "person-private" : "public-bounded", { boundedAgeSec: cacheAge, tokenBearing: true }),
     etag,
     vary: "Accept-Encoding",
-    ...!privateResponse ? { "cache-tag": renderTags([tag("x", "public-bounded"), tag("u", createHash14("sha256").update(parsed.toString()).digest("hex").slice(0, 12))], "comma") } : {},
+    ...!privateResponse ? { "cache-tag": renderTags([tag("x", "public-bounded"), tag("u", createHash15("sha256").update(parsed.toString()).digest("hex").slice(0, 12))], "comma") } : {},
     "content-security-policy": "sandbox",
     "x-content-type-options": "nosniff",
     "content-disposition": "inline",
@@ -179600,7 +179675,7 @@ function errorPage(message) {
 }
 
 // services/mcp/src/gateway.ts
-import { createHash as createHash15 } from "node:crypto";
+import { createHash as createHash16 } from "node:crypto";
 
 // services/mcp/src/admission-namespace.ts
 function admissionNamespace(env) {
@@ -179962,7 +180037,7 @@ function createGateway(env = process.env, options2 = {}) {
         return;
       }
       const auth = String(req.headers["authorization"] || "anonymous");
-      const principal = open3 ? `ip:${clientIp(req, env)}` : createHash15("sha256").update(auth).digest("hex");
+      const principal = open3 ? `ip:${clientIp(req, env)}` : createHash16("sha256").update(auth).digest("hex");
       const refusal2 = await limited(limiter, "mcp", principal, positiveInt(env.LOLLY_MCP_RPM, open3 ? 60 : 120));
       if (refusal2) return send(res, refusal2);
       const spent = await overBudget(budget3);

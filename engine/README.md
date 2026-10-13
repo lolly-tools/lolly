@@ -352,7 +352,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `image-cloud.ts` | 274 | An image's colours as a point cloud in OKLCH, plus what the distribution says. | yes | `tests/image-cloud.test.ts` | – |
 | `image-meta.ts` | 1111 | Image-metadata byte stampers and the metadata-carry core - DOM-free, shared by the web export bridge and the Node shells. | yes | indirect | – |
 | `inpaint.ts` | 422 | Telea inpainting: fill a brushed-out region of an RGBA frame from the pixels around it, by fast marching inward from the region boundary. | yes | `tests/inpaint.test.ts` | – |
-| `inputs.ts` | 884 | Builds a runtime input model from a tool manifest. | yes | indirect | – |
+| `inputs.ts` | 952 | Builds a runtime input model from a tool manifest. | yes | indirect | – |
 | `jpeg-segments.ts` | 372 | JPEG marker-segment walker and writer - one shared primitive, DOM-free. | no | `tests/jpeg-segments.test.ts` | – |
 | `jxl-container.ts` | 43 | Bounded uncompressed metadata boxes. | no | indirect | – |
 | `jxl.ts` | 37 | JPEG XL identity and bounded operation policy. | no | `tests/jxl.test.ts` | yes |
@@ -463,7 +463,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `rondo-source.test.ts` | 100 | rondo-source.ts: song files, share links rondocode itself writes (made with pako, as upstream does), canonical bytes, and the ceilings on every untrusted path. | no | none | – |
 | `rondo-source.ts` | 206 | rondo-source.ts: a rondocode song as an asset's bytes. | yes | indirect | yes |
 | `rpm.ts` | 443 | RPM v4 package writer - the container half of a `.rpm`. | yes | `tests/rpm.test.ts` | – |
-| `runtime.ts` | 2823 |  | yes | indirect | – |
+| `runtime.ts` | 2820 |  | yes | indirect | – |
 | `scorm.ts` | 627 | SCORM packaging - the pure half (plans/180 section 6). | yes | `tests/scorm.test.ts` | – |
 | `seal.ts` | 756 | SEAL (hackerfactor.com) signature verifier - pure, DOM-free (globalThis.crypto only, like c2pa-verify.ts / x509.ts). | yes | `tests/seal.test.ts` | yes |
 | `semver-range.ts` | 112 | Minimal SemVer range satisfaction - enough to enforce a tool manifest's `engineVersion` against the running ENGINE_VERSION (loader.ts, P0-3). | yes | `tests/semver-range.test.ts` | – |

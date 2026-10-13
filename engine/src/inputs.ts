@@ -15,6 +15,7 @@ import { isTokenValue, isAlias, aliasPath } from './tokens.ts';
 import type { TokenValue } from './tokens.ts';
 import type { AssetRef, InputFile, TokenSet } from './bridge/host-v1.ts';
 import { parseColor } from './css-color.ts';
+import { sha256Hex } from './bytes.ts';
 import { blockColourFields, normaliseDesignColourRefs, reconcileBlockTokenBindings, resolveBlockTokenBindings } from './token-block-bindings.ts';
 
 /** An input's declared type (schemas/tool.schema.json `$defs/input.type`). */
@@ -814,11 +815,7 @@ export function tokenRestoreRefsOf(model: readonly InputModelItem[]): Record<str
   return Object.fromEntries(model.filter(input => !isTokenValue(input.value) && isAlias(input.restoreTokenRef)).map(input => [input.id, input.restoreTokenRef!]));
 }
 
-// Input types whose value is worth recording in export provenance ("what was this
-// rendered from"). Deliberately excludes the user's own uploads (asset/file) and
-// repeating groups (blocks/vector) - bulky or not a legible entry. Text AND
-// longtext ARE recorded: the exact rendered copy is a tamper-relevant signal, so
-// it belongs in the credential (stored in full, bounded by TEXT_VALUE_CAP below).
+// Scalar types available to local summaries and export fingerprints.
 const SUMMARISABLE_TYPES = new Set<string>([
   'text', 'longtext', 'number', 'boolean', 'color', 'select', 'url', 'date', 'time', 'datetime-local',
 ]);
@@ -829,8 +826,7 @@ const TEXT_VALUE_CAP = 4000;
 
 /**
  * A compact, human-readable digest of a tool's scalar inputs - id → short string
- * - for embedding in export provenance (the C2PA `tools.lolly.export`
- * assertion), so an inspected asset answers "what was this made from": the
+ * for local display, so a summary answers "what was this made from": the
  * colours, sizes, toggles and short text it was rendered with.
  *
  * Privacy-aware: skips uploads and repeating groups (see {@link SUMMARISABLE_TYPES})
@@ -873,6 +869,26 @@ export function modelForHooks(model: InputModelItem[]): InputModelItem[] {
     const v = flattenValue(i.value);
     return v === i.value ? i : { ...i, value: v };
   });
+}
+
+/** Scalar input fingerprints for export credentials. */
+export async function summarizeInputDigests(
+  model: readonly InputModelItem[],
+  { maxEntries = 24 }: { maxEntries?: number } = {},
+): Promise<Record<string, string>> {
+  const values = modelToValues([...model]);
+  const eligible = model.filter(item => item && SUMMARISABLE_TYPES.has(item.type)
+    && !item.bindToProfile && matchesShowIf(item.showIf, values));
+  const out: Record<string, string> = {};
+  for (const item of eligible) {
+    if (Object.keys(out).length >= maxEntries) break;
+    const value = flattenValue(item.value);
+    if (!['string', 'number', 'boolean'].includes(typeof value) || !String(value).trim()) continue;
+    try {
+      out[item.id] = `sha256:${await sha256Hex(new TextEncoder().encode(JSON.stringify([item.type, value, item.unit ?? ''])))}`;
+    } catch { /* optional enrichment */ }
+  }
+  return out;
 }
 
 // A token-backed value hydrates from its resolved or cached scalar.
