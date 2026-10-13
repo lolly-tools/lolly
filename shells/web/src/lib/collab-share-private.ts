@@ -47,6 +47,7 @@ import type { CollabTarget } from './collab-availability.ts';
 import { hasConnection } from './provider-connections.ts';
 import { t } from '../i18n.ts';
 import { announce } from '../a11y.ts';
+import { helpTip } from '../components/help-tip.ts';
 
 // The rendezvous providers (plans/138 Tier C), hardcoded here so the gate stays a
 // LIGHT check on the boot path - importing lib/collab-rendezvous.ts (which pulls the
@@ -82,18 +83,14 @@ export function buildPrivateCollabShareSection(ctx: ShareSectionContext): HTMLEl
   heading.textContent = t('Private collab');
 
   const row = document.createElement('div');
-  row.style.cssText = 'display:flex;align-items:baseline;gap:.5rem;flex-wrap:wrap';
-  const note = document.createElement('span');
-  note.className = 'share-shortest-note';
-  // Hyphen, not an em-dash - house copy rule; the catalog keys moved with it.
-  note.textContent = t('Invite one other device to co-edit this session directly - no account, no server.');
-  row.appendChild(note);
+  row.className = 'share-option help-tip-host';
+  const tip = helpTip(t('Invite one other device to co-edit this session directly, without an account or server.'));
+  row.innerHTML = tip.button + tip.pop;
 
   const btn = document.createElement('button');
   btn.type = 'button';
   btn.className = 'btn btn--sm';
   btn.dataset.act = 'start-private-collab';
-  btn.style.cssText = 'margin-top:.5rem';
   btn.textContent = t('Start a collab');
 
   // The other end of the same feature, and the reason this row has two buttons: an
@@ -108,7 +105,8 @@ export function buildPrivateCollabShareSection(ctx: ShareSectionContext): HTMLEl
   join.style.cssText = 'margin-top:.5rem;margin-left:.4rem';
   join.textContent = t('Join with a code');
 
-  section.append(heading, row, btn, join);
+  row.prepend(btn);
+  section.append(heading, row, join);
 
   // Third door (plans/138 Tier C): pair over a cloud you both already have connected -
   // signalling rides a shared-store rendezvous instead of a QR/link. Only shown when

@@ -131,6 +131,7 @@ export function wireHelpTips(scope: HelpScope): void {
     if (e.key !== 'Escape') return;
     const pop = scope.querySelector<HTMLElement>('.help-tip-pop:not([hidden])');
     if (!pop) return;
+    e.preventDefault();
     closePop(pop);
     e.stopPropagation();
   };

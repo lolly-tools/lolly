@@ -2,6 +2,7 @@
 import type { Runtime } from '../../../../engine/src/runtime.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { mountBodyPopover } from '../components/body-popover.ts';
+import { helpTip } from '../components/help-tip.ts';
 import { mountTokenInputActions } from './input-token-actions.ts';
 import { registerShareSection } from './share-sections.ts';
 import { launchRulesCopy, shareCurrentWithRules } from './rules-launch.ts';
@@ -18,11 +19,12 @@ export function mountRulesEntrypoints(runtime: Runtime, inputs: HTMLElement | nu
   };
   const unregister = registerShareSection(context => {
     if (manifest.designTool || context.toolId !== manifest.id) return null;
-    const section = document.createElement('section'); section.className = 'share-row';
+    const section = document.createElement('section'); section.className = 'share-row share-option help-tip-host';
     const button = document.createElement('button'); button.type = 'button'; button.className = 'btn'; button.textContent = t('Share as a reusable tool');
     button.addEventListener('click', () => { context.close?.(); share(); });
-    const note = document.createElement('p'); note.textContent = t('Choose a few inputs people may edit. Deliver a portable .lolly file.');
-    section.append(button, note); return section;
+    const tip = helpTip(t('Choose which inputs recipients can edit, then share a reusable tool as a .lolly file.'));
+    section.innerHTML = tip.button + tip.pop;
+    section.prepend(button); return section;
   });
   let active: ReturnType<typeof mountBodyPopover> | undefined;
   let activeButton: HTMLElement | undefined;

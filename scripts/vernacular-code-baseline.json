@@ -720,7 +720,7 @@
   "shells/web/src/lib/collab-session.test.ts": 6,
   "shells/web/src/lib/collab-session.ts": 14,
   "shells/web/src/lib/collab-share-private.test.ts": 1,
-  "shells/web/src/lib/collab-share-private.ts": 3,
+  "shells/web/src/lib/collab-share-private.ts": 2,
   "shells/web/src/lib/collab-tile-state.test.ts": 2,
   "shells/web/src/lib/collab-tile-state.ts": 3,
   "shells/web/src/lib/color-formats.test.ts": 1,

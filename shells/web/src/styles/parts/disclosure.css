@@ -49,11 +49,8 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 12px;
-  border: 0;
-  border-radius: var(--ui-radius-panel);
-  background: color-mix(in srgb, var(--ui-color-surface-muted) 45%, transparent);
+  gap: var(--sp-4);
+  padding: var(--sp-6);
 }
 
 .section-card-summary,
@@ -112,21 +109,16 @@
   pseudo stay local deltas */
   display: flex;
   align-items: center;
-  gap: 7px;
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--ui-color-text-muted);
+  gap: var(--sp-3);
+  font-size: var(--ui-type-section);
+  font-weight: var(--ui-type-weight-section);
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--ui-color-text-default);
 }
 .section-card-icon,
 .cmyk-icon, .audio-icon, .pdfpass-icon, .c2pa-icon, .print-icon, .protection-icon, .hdr-icon {   /* tool-chrome.css */
-  /* Chrome icon scale (tokens.css) - the mark grows with the 11px uppercase
-     head it sits beside, for all eight of the families that share this block. */
-  width: var(--fs-lg);
-  height: var(--fs-lg);
-  flex: 0 0 auto;
-  color: var(--ui-color-action-primary);
+  flex: none;
 }
 .section-card__hint,
 .cmyk-hint, .pdfpass-hint, .c2pa-hint, .print-hint {   /* tool-chrome.css */
@@ -136,7 +128,10 @@
   color: var(--ui-color-border-default);
 }
 
-/* Shared tool-sidebar and Share-panel disclosure. */
+/* One section surface for tool inputs, Export, Share and the inspector. */
+.section-card,
+.export-audio,
+.lp-sec,
 .input-section {
   /* A container, not a control: the bevel and a resting drop draw its edge (the
      section owns no border) and the corner is one step larger than the fields
@@ -158,6 +153,8 @@
      The ring switches instantly instead (the box-shadow halo carries the motion). */
   min-width: 0; /* grid item: allow shrink so inner controls can truncate */
 }
+.section-card.is-open,
+.lp-sec:has(> .lp-sec-head[aria-expanded="true"]),
 .input-section[open] {
   box-shadow: var(--ui-effect-bevel), var(--ui-elevation-floating);
 }
@@ -189,8 +186,17 @@
 /* An optional glyph before the head (manifest render.sectionIcons): on the chrome
    icon scale like every other mark, muted like the word beside it. */
 .input-section-title { display: inline-flex; align-items: center; gap: var(--sp-3); min-width: 0; }
-.input-section-icon { display: inline-flex; flex: none; opacity: .8; }
-.input-section-icon svg { width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); }
+.input-section-icon { display: inline-flex; flex: none; }
+.input-section-icon svg,
+.lp-sec-head > svg,
+.section-card-icon,
+.cmyk-icon, .audio-icon, .pdfpass-icon, .c2pa-icon, .print-icon, .protection-icon, .hdr-icon {
+  width: var(--ui-size-icon-md);
+  height: var(--ui-size-icon-md);
+  color: var(--ui-color-text-muted);
+  opacity: .75;
+  stroke-width: 1.5px;
+}
 
 .input-section-summary:hover {
   color: hsl(var(--primary));
@@ -202,9 +208,16 @@
    wrapper - its own box-shadow paints outside its border box, unclipped - using
    the same border + halo idiom as a focused <select> / text field. */
 .input-section-summary:focus-visible { outline: none; }
+.section-card:has(> :is(.protection-head, .pdfpass-head, .section-card-head):focus-visible),
+.lp-sec:has(> .lp-sec-head:focus-visible),
 .input-section:has(.input-section-summary:focus-visible) {
   overflow: visible;
   box-shadow: var(--ui-edge-faint), var(--ui-effect-focus-halo);
+}
+
+/* Tips and colour controls can extend beyond the section's rounded surface. */
+:is(.input-section, .section-card, .lp-sec, .export-audio):has(.help-tip-btn:hover, .help-tip-btn:focus-visible, .help-tip-pop:not([hidden]), .color-picker-field.is-open) {
+  overflow: visible;
 }
 
 .input-section-summary::-webkit-details-marker { display: none; }

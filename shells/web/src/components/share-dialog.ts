@@ -16,6 +16,7 @@ import { announce } from '../a11y.ts';
 import { packQuery, unpackToken, isPackAvailable, PACK_PARAM, packEncrypted, isEncryptAvailable, ENC_PARAM } from '@lolly/engine';
 import { mountModal } from './modal.ts';
 import { createShareSection } from './share-section.ts';
+import { helpTip, linkHelpDescriptions, unwireHelpTips, wireHelpTips } from './help-tip.ts';
 import { icon } from '../lib/icons.ts';
 import { t } from '../i18n.ts';
 import {
@@ -201,7 +202,11 @@ export interface ShareDialogOpts {
  * @param {string} [o.title]       dialog heading
  */
 export function openShareDialog(opts: ShareDialogOpts): HTMLDialogElement {
-  return renderShareSurface(opts, content => mountModal<void>(content, { className: 'share-dialog', onClose: opts.onClose }), true) as HTMLDialogElement;
+  const dialog = renderShareSurface(opts, content => mountModal<void>(content, {
+    className: 'share-dialog',
+    onClose: () => { unwireHelpTips(dialog); opts.onClose?.(); },
+  }), true) as HTMLDialogElement;
+  return dialog;
 }
 
 const panelSectionStates = new WeakMap<HTMLElement, Map<string, boolean>>();
@@ -232,6 +237,8 @@ function shareSectionHtml(title: string, iconName: string, className: string, co
 
 /** The same controls in a docked panel, without a second modal or focus theft. */
 export function mountSharePanel(container: HTMLElement, opts: ShareDialogOpts, onClose?: () => void): () => void {
+  const previous = container.querySelector<HTMLElement>(':scope > .export-share-surface');
+  if (previous) unwireHelpTips(previous);
   const states = panelSectionStates.get(container) ?? new Map<string, boolean>();
   panelSectionStates.set(container, states);
   const surface = renderShareSurface(opts, content => {
@@ -239,9 +246,15 @@ export function mountSharePanel(container: HTMLElement, opts: ShareDialogOpts, o
     el.className = 'export-share-surface';
     el.innerHTML = content;
     container.replaceChildren(el);
-    return { el, close: () => { if (onClose) onClose(); else el.remove(); } };
+    return { el, close: () => { unwireHelpTips(el); if (onClose) onClose(); else el.remove(); } };
   }, false, states);
-  return () => { rememberSectionStates(surface, states); surface.remove(); };
+  return () => { rememberSectionStates(surface, states); unwireHelpTips(surface); surface.remove(); };
+}
+
+/** Keep the checkbox label separate from its info button. */
+function shareOption(title: string, control: string, description: string, attributes = '', link?: { href: string; text: string }): string {
+  const tip = helpTip(t(description), link);
+  return `<div class="share-option help-tip-host" ${attributes}><label class="field-toggle">${control}<span>${escape(t(title))}</span></label>${tip.button}${tip.pop}</div>`;
 }
 
 function renderShareSurface(
@@ -273,6 +286,7 @@ function renderShareSurface(
   // this checked through the same allowlisted converter the native intake uses;
   // a fallback/non-Lolly caller never gets offered a scheme link it cannot open.
   const appLinkable = !!toLollyAppLink(shareUrlFromParts(baseParts, toolId));
+  const fileTip = helpTip(t('A .lolly file carries the saved design and files Lolly can include. Prepare the file to see its size, included files and external references.'));
   const content = `
     <div class="share-dialog-body">
       <h2>${escape(title)}</h2>
@@ -293,56 +307,32 @@ function renderShareSurface(
       <p class="share-warning" data-share-warning role="status" hidden></p>
       ${showImageNote ? `<p class="share-note">
         <span class="share-note-ico" aria-hidden="true">${icon('plane', { size: 18 })}</span>
-        <span>Only the <b>inputs</b>, <b>settings</b>, <b>tool</b> selection, and <b>catalog assets</b> travel in this link. <br><b>images</b> or <b>files</b> you added from <b>this device stay here</b> <i>- you'll need to share those separately</i>.</span>
+        <span>${escape(t('Images and files added from this device stay here. Share them separately.'))}</span>
       </p>` : ''}
       ${lolly ? shareSectionHtml(t('Editable file'), 'package', 'share-file-section', `<div class="share-file">
-        <div class="share-file-text">
-          <span class="share-file-note">A .lolly file carries the saved design and every file Lolly is allowed to include. Its exact size and any external references appear here when prepared.</span>
-          <span class="share-file-note" data-lolly-summary hidden></span>
-        </div>
-        <div class="share-file-btns">
+        <div class="share-file-btns help-tip-host">
           ${jellyActive()
-            ? `<jelly-button class="share-file-btn" data-lolly-download label="Download .lolly">Download .lolly</jelly-button>`
-            : `<button type="button" class="btn share-file-btn" data-lolly-download>Download .lolly</button>`}
+            ? `<jelly-button class="share-file-btn" data-lolly-download aria-describedby="${fileTip.id}" label="Download .lolly">Download .lolly</jelly-button>`
+            : `<button type="button" class="btn share-file-btn" data-lolly-download aria-describedby="${fileTip.id}">Download .lolly</button>`}
           ${lolly.share
             ? (jellyActive()
                 ? `<jelly-button class="share-file-btn" data-lolly-share label="Send to…">Send to…</jelly-button>`
                 : `<button type="button" class="btn share-file-btn" data-lolly-share>Send to…</button>`)
             : ''}
+          ${fileTip.button}${fileTip.pop}
         </div>
-        ${lolly.toolOffer ? `<label class="share-file-tool" data-lolly-tool-wrap hidden>
-          <input type="checkbox" data-lolly-tool>
-          <span data-lolly-tool-label>Include the tool</span>
-        </label>` : ''}
+        <span class="share-file-note" data-lolly-summary hidden></span>
+        ${lolly.toolOffer ? shareOption('Include the tool', '<input type="checkbox" class="field-check" data-lolly-tool>', 'Lets the file open on devices without this tool or its catalog.', 'data-lolly-tool-wrap hidden') : ''}
         <div class="share-file-licensed" data-lolly-licensed hidden></div>
       </div>`, 'data-share-file') : ''}
       ${shareSectionHtml(t('Link options'), 'link', 'share-link-options', `
-          ${appLinkable ? `
-          <label class="share-shortest" data-app-link-row>
-            <input type="checkbox" class="field-check" data-app-link>
-            <span class="share-shortest-text">
-              <strong>Open in the installed app</strong>
-              <span class="share-shortest-note">Uses <code>lolly://</code> with the same parameters. It needs Lolly installed. <a href="/info/build/url-mode.html#the-lolly-scheme" target="_blank" rel="noopener">URI guide</a></span>
-            </span>
-          </label>` : ''}
-          <label class="share-shortest" data-shortest-row hidden>
-            <input type="checkbox" class="field-check" data-shortest>
-            <span class="share-shortest-text">
-              <strong>Shortest link</strong>
-              <span class="share-shortest-note" data-shortest-note></span>
-            </span>
-          </label>
+          ${appLinkable ? shareOption('Open in the installed app', '<input type="checkbox" class="field-check" data-app-link>', 'The recipient needs Lolly installed to open this link.', 'data-app-link-row', { href: '/info/build/url-mode.html#the-lolly-scheme', text: t('URI guide') }) : ''}
+          ${shareOption('Shortest link', '<input type="checkbox" class="field-check" data-shortest>', 'Compresses the link while keeping the same inputs and settings.', 'data-shortest-row hidden')}
           ${encryptable ? `
-          <label class="share-shortest" data-encrypt-row>
-            <input type="checkbox" class="field-check" data-encrypt>
-            <span class="share-shortest-text">
-              <strong>Password-protect this link</strong>
-              <span class="share-shortest-note">Encrypts the whole link (AES-256). The recipient types a password to open it - no server.</span>
-            </span>
-          </label>
-          <div data-encrypt-body hidden style="margin:-.2rem 0 .2rem 1.7rem">
+          ${shareOption('Password-protect this link', '<input type="checkbox" class="field-check" data-encrypt>', 'Encrypts the link on this device. The recipient needs your password to open the saved inputs and settings.', 'data-encrypt-row')}
+          <div class="share-password" data-encrypt-body hidden>
             <input type="password" class="field-input" data-encrypt-pw aria-label="Password to protect this link" autocomplete="off" spellcheck="false" placeholder="Set a password">
-            <span class="share-shortest-note" style="display:block;margin-top:.3rem">The password is <b>not</b> in the link - share it separately, and note it can't be recovered if lost.</span>
+            <span class="share-shortest-note">${escape(t('Share the password separately. It cannot be recovered if lost.'))}</span>
           </div>` : ''}
           ${version ? `<label class="share-toggle-row field-toggle"><input type="checkbox" class="field-check" data-flag="_v"> Pin this tool version (${escape(String(version))})</label>` : ''}
         <fieldset class="share-toggles" data-link-behaviour>
@@ -375,6 +365,8 @@ function renderShareSurface(
   `;
   const modal = mount(content);
   const dialog = modal.el;
+  wireHelpTips(dialog);
+  linkHelpDescriptions(dialog);
   const states = sectionStates ?? new Map<string, boolean>();
   restoreSectionStates(dialog, states);
   dialog.addEventListener('toggle', event => {
@@ -390,7 +382,6 @@ function renderShareSurface(
   const checkboxes  = [...dialog.querySelectorAll<HTMLInputElement>('input[data-flag]')];
   const shortestRow = dialog.querySelector<HTMLElement>('[data-shortest-row]')!;
   const shortestCb  = dialog.querySelector<HTMLInputElement>('[data-shortest]')!;
-  const shortestNote = dialog.querySelector<HTMLElement>('[data-shortest-note]');
   const appLinkCb   = dialog.querySelector<HTMLInputElement>('[data-app-link]');
   const warnEl      = dialog.querySelector<HTMLElement>('[data-share-warning]')!;
   // Packed token for the current state - filled in async once we know it helps.
@@ -504,7 +495,6 @@ function renderShareSurface(
       const packedLen   = shareUrlFromParts([`${PACK_PARAM}=${token}`], toolId).length;
       if (packedLen >= readableLen) return;             // packing wouldn't help - don't offer it
       packedToken = token;
-      if (shortestNote) shortestNote.textContent = `${readableLen} → ${packedLen} characters`;
       shortestRow.hidden = false;
       if (readableLen >= AUTO_PACK_MIN) shortestCb.checked = true;   // auto-adopt for big states
       renderVerdict(packedLen);   // the packed form is the shortest we can offer
@@ -611,10 +601,6 @@ function renderShareSurface(
   if (lolly?.toolOffer && toolCheck) {
     lolly.toolOffer().then((offer) => {
       toolCheck.checked = offer.suggested;
-      const label = dialog.querySelector('[data-lolly-tool-label]');
-      if (label) label.textContent = offer.trust === 'custom'
-        ? 'Include the tool - opens on devices that don’t have it'
-        : 'Include the tool (opens even without the catalog)';
       dialog.querySelector('[data-lolly-tool-wrap]')?.removeAttribute('hidden');
     }).catch(() => { /* no offer ⇒ the toggle stays hidden, tool travels by reference */ });
   }

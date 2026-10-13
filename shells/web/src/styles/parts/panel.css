@@ -183,6 +183,7 @@ input.lp-head-name:focus {
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
+  padding-inline: var(--sp-3);
   padding-bottom: calc(var(--sp-6) + var(--safe-bottom, 0px));
 }
 /* The scroll container takes focus programmatically when a reveal lands, so it
@@ -275,8 +276,8 @@ input.lp-head-name:focus {
 
 /* ── section ───────────────────────────────────────────────────────────────── */
 
-.lp-sec { border-top: 1px solid color-mix(in srgb, var(--ui-color-border-default) 55%, transparent); }
-.lp-band > .lp-sec:first-of-type { border-top: 0; }
+.lp-band { display: flex; flex-direction: column; gap: var(--sp-5); }
+.lp-band + .lp-band { margin-top: var(--sp-5); }
 
 /* A real <button>: keyboard reachable, aria-expanded carries the state, and the
    whole strip is the hit area. The grid is what pins the caret. */
@@ -287,7 +288,7 @@ input.lp-head-name:focus {
   align-items: center;
   gap: var(--sp-3);
   min-height: var(--ui-size-target);
-  padding: var(--sp-2) var(--sp-3);
+  padding: var(--sp-5) var(--sp-6);
   border: 0;
   background: transparent;
   color: var(--ui-color-text-default);
@@ -297,13 +298,8 @@ input.lp-head-name:focus {
   text-align: start;
   cursor: pointer;
 }
-.lp-sec-head:hover { background: color-mix(in srgb, var(--ui-color-surface-muted) 55%, transparent); }
-.lp-sec-head:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
-.lp-sec-head > svg {
-  width: var(--ui-size-icon-md);
-  height: var(--ui-size-icon-md);
-  color: var(--ui-color-text-muted);
-}
+.lp-sec-head:hover { color: var(--ui-color-action-primary); background: hsl(var(--background) / .1); }
+.lp-sec-head:focus-visible { outline: none; }
 .lp-sec-head > .lp-sec-name {
   min-width: 0;
   overflow: hidden;
@@ -365,7 +361,7 @@ html[data-a11y-motion="reduce"] .lp-caret::before { transition: none; }
   display: flex;
   flex-direction: column;
   gap: var(--sp-6);
-  padding: var(--sp-1) var(--sp-3) var(--sp-4);
+  padding: var(--sp-7) var(--sp-6) var(--sp-6);
 }
 .lp-rows[hidden] { display: none; }
 

@@ -197,9 +197,46 @@ test('the modal and docked panel use identical disclosure anatomy', () => {
   dom.window.HTMLDialogElement.prototype.close = function () { this.open = false; };
   const c = mount();
   const dlg = openShareDialog(OPTS);
-  assert.equal(dlg.querySelector('[data-link-options]')?.outerHTML, c.querySelector('[data-link-options]')?.outerHTML);
+  const anatomy = (surface: HTMLElement): string => surface.querySelector('[data-link-options]')!.outerHTML.replace(/helptip-\d+/g, 'helptip-id');
+  assert.equal(anatomy(dlg), anatomy(c));
   dlg.querySelector<HTMLButtonElement>('.share-done')!.click();
   assert.equal(dlg.isConnected, false);
+});
+
+test('Share info buttons describe controls without changing the choice, and Escape only closes the tip', () => {
+  _clearShareSectionsForTests();
+  const c = mount();
+  const row = c.querySelector<HTMLElement>('[data-encrypt-row]')!;
+  const choice = row.querySelector<HTMLInputElement>('input')!;
+  const button = row.querySelector<HTMLButtonElement>('.help-tip-btn')!;
+  const pop = row.querySelector<HTMLElement>('.help-tip-pop')!;
+  assert.equal(button.closest('label'), null);
+  assert.equal(choice.getAttribute('aria-describedby'), pop.id);
+  assert.equal(pop.hidden, true);
+  button.click();
+  assert.equal(choice.checked, false);
+  assert.equal(button.getAttribute('aria-expanded'), 'true');
+  assert.equal(pop.hidden, false);
+  const escapeEvent = new dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
+  button.dispatchEvent(escapeEvent);
+  assert.equal(escapeEvent.defaultPrevented, true, 'native dialog dismissal must not consume this Escape');
+  assert.equal(pop.hidden, true);
+  assert.equal(document.activeElement, button);
+  assert.ok(c.isConnected);
+});
+
+test('disposing or rebuilding a docked Share surface releases its help listeners', () => {
+  _clearShareSectionsForTests();
+  const c = document.createElement('div'); document.body.replaceChildren(c);
+  const dispose = mountSharePanel(c, OPTS);
+  const previous = c.firstElementChild as HTMLElement & { _helpTipsWired?: boolean };
+  assert.equal(previous._helpTipsWired, true);
+  const disposeNext = mountSharePanel(c, OPTS);
+  assert.equal(previous._helpTipsWired, undefined);
+  dispose();
+  const next = c.firstElementChild as HTMLElement & { _helpTipsWired?: boolean };
+  disposeNext();
+  assert.equal(next._helpTipsWired, undefined);
 });
 
 test('a recommended editable file opens, and delivery reveals its contents receipt', async () => {

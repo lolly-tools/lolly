@@ -385,23 +385,15 @@ html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-3 { animati
   vertical-align: middle;
   white-space: nowrap;
 }
-.share-file-text { display: flex; flex-direction: column; gap: 2px; flex: 1 1 180px; min-width: 0; }
-.share-file-text strong { font-size: var(--fs-md); }
+.share-option { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); min-width: 0; }
+.share-option > .field-toggle { flex: 1; min-width: 0; }
+.share-option > .help-tip-btn { margin: 0; }
+.share-option[hidden], .share-password[hidden] { display: none; }
+.share-password { display: flex; flex-direction: column; gap: var(--sp-3); }
 .share-file-note { font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); line-height: 1.4; }
-.share-file-btns { display:flex; gap:var(--sp-2); flex-wrap:wrap; }
+.share-file-btns { display:flex; align-items:center; gap:var(--sp-2); flex-wrap:wrap; }
 .share-file-btn { flex: 0 0 auto; }
-/* "Include the tool" toggle - revealed once its offer resolves (see share-dialog.ts). */
-.share-file-tool {
-  flex: 1 1 100%;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: var(--fs-sm);
-  color: hsl(var(--muted-foreground));
-  cursor: pointer;
-}
-.share-file-tool[hidden] { display: none; }
-.share-file-tool input { flex: 0 0 auto; }
+[data-lolly-tool-wrap] { flex: 1 1 100%; }
 .share-file-licensed { flex: 1 1 100%; }
 .share-file-licensed[hidden] { display: none; }
 .share-file-warn {
@@ -414,25 +406,6 @@ html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-3 { animati
   line-height: 1.45;
 }
 .share-file-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-/* "Shortest link" - shown only when packing beats the readable URL (JS toggles
-   [hidden]). A prominent accented row: it changes what the link IS, not just an
-   on-visit flag like the ones in the fieldset below. */
-.share-shortest {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 10px 12px;
-  border: 1px solid hsl(var(--primary) / 0.4);
-  border-radius: var(--radius);
-  background: hsl(var(--primary) / 0.06);
-  cursor: pointer;
-  font-size: var(--fs-md);
-}
-.share-shortest[hidden] { display: none; }
-/* The box is `.field-check`; only the optical nudge onto the first text line
-   (this row is align-items: flex-start, two lines tall) stays here. */
-.share-shortest input[type="checkbox"] { margin-top: 2px; }
-.share-shortest-text { display: flex; flex-direction: column; gap: 1px; }
 .share-shortest-note {
   font-size: var(--fs-sm);
   color: hsl(var(--muted-foreground));

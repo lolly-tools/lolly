@@ -161,7 +161,7 @@ html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
 .tool-actions {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-5);
+  gap: var(--sp-6);
   padding: 14px 0;
   border-top: 1px solid hsl(var(--border));
   margin-top: auto;
@@ -213,14 +213,14 @@ html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
 .export-setting-head > .field-toggle { min-width: 0; flex: 1; }
 .tool-actions :is(.section-card-head, .protection-head, .pdfpass-head, .print-head, .notes-handout-head, .c2pa-head, .video-quality-head, .export-video-options > summary) {
   font-size: var(--ui-type-section);
-  font-weight: 500;
+  font-weight: var(--ui-type-weight-section);
   text-transform: none;
   letter-spacing: 0;
   min-width: 0;
   color: var(--ui-color-text-default);
 }
 .tool-actions .section-card-head { padding: 0; box-shadow: none; }
-.notes-handout-head { display: inline-flex; align-items: center; gap: var(--sp-2); }
+.notes-handout-head { display: inline-flex; align-items: center; gap: var(--sp-3); }
 .tool-actions .export-preflight .preflight-open {
   display: grid;
   grid-template-columns: var(--ui-size-icon-sm) minmax(0, 1fr) var(--ui-size-icon-sm);
@@ -865,10 +865,7 @@ html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
 .export-options-group { display: contents; }
 .tool-actions .export-settings { flex-direction: column; align-items: stretch; }
 .tool-actions .export-settings > .export-option { width: 100%; border: 0; padding: var(--sp-3); background: hsl(var(--muted) / .5); }
-.tool-actions .protection-body > .section-card { background: none; border-radius: 0; padding-inline: 0; box-shadow: none; }
-.tool-actions .protection-body :is(.c2pa-head, .section-card-head) { text-transform: none; letter-spacing: 0; font-weight: 500; }
-.tool-actions .protection-body { gap: var(--sp-3); }
-.tool-actions .protection-body > .section-card + .section-card { border-top: 1px solid hsl(var(--border)); padding-top: var(--sp-3); }
+.tool-actions .protection-body { gap: var(--sp-6); }
 
 /* Tier 3.5 - "Before you export" (views/export-preflight.ts). The one export
    card that is a STATEMENT rather than a setting, so it sits last, below every

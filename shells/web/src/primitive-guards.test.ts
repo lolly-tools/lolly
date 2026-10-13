@@ -1750,6 +1750,10 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // parsed in an inert template to add readonly/disabled attributes, then handed back
   // to the same sidebar render. Nothing new is interpolated.
   'lib/input-readonly.ts': 1,
+  // Share explanations use only helpTip's shell-authored button and popup markup.
+  // helpTip escapes its translated text; action buttons are appended as DOM nodes.
+  'lib/collab-share-private.ts': 1,
+  'lib/rules-entrypoints.ts': 1,
 };
 
 test('R10: raw-HTML sinks are a pinned inventory, not a growing one', () => {

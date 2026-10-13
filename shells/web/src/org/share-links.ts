@@ -28,6 +28,7 @@ import type { OrgConfig } from './index.ts';
 import { t, tRaw } from '../i18n.ts';
 import { escape } from '../utils.ts';
 import { announce } from '../a11y.ts';
+import { helpTip } from '../components/help-tip.ts';
 
 // ── Pure helpers (exported for tests) ─────────────────────────────────────────
 
@@ -174,15 +175,16 @@ export function buildInstanceShareSection(ctx: ShareSectionContext, config: OrgC
 
   // ── Rendered link ───────────────────────────────────────────────────────────
   if (rows.rendered) {
+    const tip = helpTip(t('A link that opens the rendered image directly.'));
     const row = document.createElement('div');
     row.className = 'share-instance-row';
     row.style.marginBottom = rows.guest ? '.9rem' : '0';
     row.innerHTML =
-      `<div style="display:flex;align-items:baseline;gap:.5rem;flex-wrap:wrap">` +
+      `<div class="share-option help-tip-host">` +
         `<strong style="font-weight:650">${escape(t('Rendered link'))}</strong>` +
         `<button type="button" class="btn btn--sm" data-act="mint-rendered">${escape(t('Get link'))}</button>` +
-      `</div>` +
-      `<span class="share-shortest-note" style="display:block;margin-top:.2rem">${escape(t('A link whose URL serves the rendered image itself, and stays current.'))}</span>`;
+        tip.button + tip.pop +
+      `</div>`;
     const result = makeResultRow(ctx.copy);
     const err = makeErrorLine();
     row.append(result.el, err.el);
@@ -209,6 +211,7 @@ export function buildInstanceShareSection(ctx: ShareSectionContext, config: OrgC
 
   // ── Guest access ────────────────────────────────────────────────────────────
   if (rows.guest) {
+    const tip = helpTip(t('The recipient can edit this tool until access expires. Their saves land with you.'));
     const row = document.createElement('div');
     row.className = 'share-instance-row';
     // TTL options (hours); 72h is the default per the contract.
@@ -218,10 +221,10 @@ export function buildInstanceShareSection(ctx: ShareSectionContext, config: OrgC
       { h: 168, label: t('7 days') },
     ];
     row.innerHTML =
-      `<div style="display:flex;align-items:baseline;gap:.5rem;flex-wrap:wrap">` +
+      `<div class="share-option help-tip-host">` +
         `<strong style="font-weight:650">${escape(t('Guest access'))}</strong>` +
+        tip.button + tip.pop +
       `</div>` +
-      `<span class="share-shortest-note" style="display:block;margin:.2rem 0 .5rem">${escape(t('The recipient can edit this tool for the chosen period; their saves land with you.'))}</span>` +
       `<div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">` +
         `<label style="display:inline-flex;align-items:center;gap:.35rem;font-size:13px">${escape(t('Expires in'))} ` +
           `<select data-guest-ttl class="field-select field-select--sm field-select--auto">` +
