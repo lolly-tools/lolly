@@ -14,6 +14,7 @@
 import { isTokenValue, isAlias, aliasPath } from './tokens.ts';
 import type { TokenValue } from './tokens.ts';
 import type { AssetRef, InputFile, TokenSet } from './bridge/host-v1.ts';
+import { parseColor } from './css-color.ts';
 import { blockColourFields, normaliseDesignColourRefs, reconcileBlockTokenBindings, resolveBlockTokenBindings } from './token-block-bindings.ts';
 
 /** An input's declared type (schemas/tool.schema.json `$defs/input.type`). */
@@ -478,7 +479,13 @@ export function buildInputModel(
   const synthetic = syntheticInputs(manifest);
 
   return [...declared, ...synthetic].map(input => {
-    const value = resolveInitialValue(input, profile, initial);
+    let value = resolveInitialValue(input, profile, initial);
+    if (input.type === 'color' || input.type === 'blocks') {
+      const fallback = defaultForType(input.type);
+      const base = { ...input, value: fallback, isDirty: false, control: pickControl(input) };
+      base.value = constrain(base, input.default ?? fallback);
+      value = constrain(base, value);
+    }
     const savedLinks = initial.__tokenLinks;
     const previous = savedLinks && typeof savedLinks === 'object' && !Array.isArray(savedLinks) && Object.hasOwn(savedLinks, input.id) ? (savedLinks as Record<string, InputValue>)[input.id] : undefined;
     return {
@@ -642,17 +649,14 @@ export function updateInput(model: InputModelItem[], id: string, value: InputVal
  *
  * NOT a policy engine: it enforces what the manifest DECLARES (an enum's options, a
  * number's range, a string's maxLength) and the value SHAPE each type is defined to
- * hold. Two types are deliberately shape-blind, because their legitimate values are
- * object-shaped and resolved elsewhere in the lifecycle: `asset` (an AssetRef, or a
- * `{_unresolved}` stub that resolveAssetRefs completes) and `color` (a plain hex, or
- * a `{ref}` token value that resolveTokenRefs completes). A caller that accepts
- * values from a peer must therefore still gate those two by declared type at ITS
- * boundary - the web shell's collab plumbing does, in lib/collab-plumbing.ts.
+ * hold. Assets retain their reference shapes until resolveAssetRefs completes.
+ * Colours accept supported paint syntax and token references with valid caches.
  *
  * Hook patches do NOT come through here (runtime.ts's mergePatch is the tool's own
  * trust boundary - a hook may compute anything for its own tool).
  */
 function constrain(input: InputModelItem, value: InputValue, options?: InputWriteOptions): InputValue {
+  if (input.type === 'color') return constrainColour(value, input.value);
   if (['number', 'text', 'longtext', 'select'].includes(input.type) && isTokenValue(value)) return value;
   if (input.type === 'number' && isAlias(value)) return value;
   if (input.type === 'select') {
@@ -688,12 +692,15 @@ function constrain(input: InputModelItem, value: InputValue, options?: InputWrit
     // every consumer that iterates it (template `{{#each}}`, the sidebar panel, the
     // collab row projection), so it keeps the prior value.
     if (!Array.isArray(value)) return input.value;
-    if (!input.tokenBindingsField) return value;
-    if (options?.tokenSet && options.refreshTokenLinks) return resolveBlockTokenBindings(value, input.tokenBindingsField, input.fields ?? [], options.tokenSet, options.colorTarget ?? 'srgb');
-    const reconciled = reconcileBlockTokenBindings(value, input.tokenBindingsField);
-    // Write time (plan 291 W4): a reference just written is lowered here, so a live patch,
-    // an MCP set or a brand-check fix never stores an alias the renderer paints as nothing.
-    return normaliseDesignColourRefs(reconciled, blockColourFields(input.fields ?? []), options?.tokenSet, options?.colorTarget ?? 'srgb', { metadataField: input.tokenBindingsField, refresh: false });
+    let rows = value;
+    if (input.tokenBindingsField) {
+      if (options?.tokenSet && options.refreshTokenLinks) rows = resolveBlockTokenBindings(rows, input.tokenBindingsField, input.fields ?? [], options.tokenSet, options.colorTarget ?? 'srgb');
+      else {
+        const reconciled = reconcileBlockTokenBindings(rows, input.tokenBindingsField);
+        rows = normaliseDesignColourRefs(reconciled, blockColourFields(input.fields ?? []), options?.tokenSet, options?.colorTarget ?? 'srgb', { metadataField: input.tokenBindingsField, refresh: false });
+      }
+    }
+    return constrainBlockColours(input, rows);
   }
   if (input.type === 'text' || input.type === 'longtext') {
     if (typeof value !== 'string') return input.value;
@@ -745,6 +752,51 @@ function constrain(input: InputModelItem, value: InputValue, options?: InputWrit
     return out;
   }
   return value;
+}
+
+function colourLiteral(value: unknown, depth = 0): string | null {
+  if (typeof value !== 'string' || value.length > 1024 || /[<>"'&;\\\p{Cc}]/u.test(value)) return null;
+  const text = value.trim();
+  if (text === '' || /^(?:none|currentcolor)$/i.test(text)) return text;
+  if (/^(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(text)) return '#' + text;
+  if (parseColor(text)) return text;
+  const variable = /^var\(\s*--[a-z0-9_-]+\s*(?:,\s*([\s\S]+))?\)$/i.exec(text);
+  return variable && depth < 4 && (variable[1] === undefined || colourLiteral(variable[1], depth + 1) !== null) ? text : null;
+}
+
+function constrainColour(value: InputValue, fallback: InputValue): InputValue {
+  if (value === null) return null;
+  if (isTokenValue(value)) {
+    if (!value.ref || value.ref.length > 1024) return fallback;
+    if (value.value === undefined || value.value === null) return value;
+    const cached = colourLiteral(value.value);
+    return cached !== null ? cached === value.value ? value : { ...value, value: cached } : { ...value, value: undefined };
+  }
+  if (isAlias(value) && value.length <= 1024) return { ref: value };
+  return colourLiteral(value) ?? fallback;
+}
+
+function constrainBlockColours(input: InputModelItem, rows: InputValue[]): InputValue[] {
+  const fields = blockColourFields(input.fields ?? []);
+  if (!fields.length) return rows;
+  const previous = Array.isArray(input.value) ? input.value : [];
+  let changed = false;
+  const next = rows.map((row, index) => {
+    if (!isObjectValue(row) || Array.isArray(row)) return row;
+    let result = row;
+    const old = previous[index];
+    for (const field of fields) {
+      if (row[field] === undefined) continue;
+      const prior = isObjectValue(old) && !Array.isArray(old) ? colourLiteral(flattenValue(old[field] ?? '')) ?? '' : '';
+      const colour = flattenValue(constrainColour(row[field]!, prior));
+      if (colour === row[field]) continue;
+      if (result === row) result = { ...row };
+      result[field] = colour;
+      changed = true;
+    }
+    return result;
+  });
+  return changed ? next : rows;
 }
 
 /** Flatten the model into a plain { id: value } object for template hydration.
