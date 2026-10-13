@@ -491,6 +491,10 @@ export async function bakeFraming(tview: ToolViewCtx, key: string): Promise<void
     tview.mountLifecycle.add('text-workspace', () => { cleanup(); content.style.removeProperty('display'); });
   }
   const { TOOL_URL_BASE, actionsApi, actionsEl, backPillOpts, barSeq, brandVarsReady, canBulk, canSaveSession, canvasEditInput, canvasEl, collabHandle, contentEl, deckEditInput, deckLayout, docEditInput, documentLayout, editorLayout, fixedCanvasMode, frameCfg, hasTemplates, isPresent, mountLifecycle, nativeH, nativeW, outerEl, pagesCfg, pagesMode, presentAddress, profileToggle, renderFab, runtime, slot, soundToggle, stageEl, templateMeta, templateParam, templateSeededIds, themeToggle, toolId, transcribeSpec, urlFlags, urlHeight, urlWidth, viewEl } = tview;
+  const documentId = `doc:${globalThis.crypto.randomUUID()}`;
+  const { mountToolAgentGuidance, mountToolAgentInvitations, finishToolAgentShare } = await import('../tool-agent-guidance.ts');
+  await mountToolAgentGuidance(tview, documentId);
+  let agentInvitationsReady: Promise<void> | undefined;
   (
     globalThis as {
       __lollyCaptureMotion?: (fmt?: string, opts?: MotionCaptureOpts) => Promise<string | null>;
@@ -1190,7 +1194,6 @@ export async function bakeFraming(tview: ToolViewCtx, key: string): Promise<void
         // code (agentLink); in the desktop app the app listens while Allow AI control
         // is on and this view answers (desktopServing). Both end with the view.
         const desktopAgents = isTauriShell() && !isTauriMobileShell();
-        const documentId = `doc:${globalThis.crypto.randomUUID()}`;
         let agentLink: import('../../lib/live-agent-connect.ts').AgentLink | null = null;
         let desktopServing: import('../../lib/live-agent-desktop.ts').DesktopServing | null = null;
         let desktopPill: import('../agent-connect.ts').AgentPill | null = null;
@@ -1224,12 +1227,7 @@ export async function bakeFraming(tview: ToolViewCtx, key: string): Promise<void
         if (desktopAgents && toolId === 'design' && !isPresent) {
           void import('../../lib/live-agent-desktop.ts').then(({ allowAiControl }) => { if (allowAiControl()) void startDesktopServing().catch(() => {}); });
         }
-        const agentInvitationsReady = toolId === 'design' && !isPresent
-          ? Promise.all([import('../agent-share.ts'), import('../../lib/agent-invitation-host.ts'), liveEditorFactory()]).then(([{ installAgentInvitations }, { agentRelayBase }, editor]) => {
-              const base = agentRelayBase();
-              if (base && viewEl.isConnected) mountLifecycle.add('agent-invitations', installAgentInvitations(runtime, viewEl, base, editor));
-            })
-          : Promise.resolve();
+        agentInvitationsReady = mountToolAgentInvitations(tview, liveEditorFactory);
         const openAgentLink = async (): Promise<void> => {
           const { agentRelayBase } = await import('../../lib/agent-invitation-host.ts');
           if (agentRelayBase()) {
@@ -2061,6 +2059,7 @@ export async function bakeFraming(tview: ToolViewCtx, key: string): Promise<void
       })
       .catch((err: unknown) => console.error('[deck-builder] deck editor failed to load:', err));
   }
+  await finishToolAgentShare(tview, documentId, agentInvitationsReady, () => showShareDialog(runtime, actionsEl, tview.tool.manifest));
 }
 
 export function sessionOps(tview: ToolViewCtx) {

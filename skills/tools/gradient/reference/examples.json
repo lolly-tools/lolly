@@ -1,0 +1,118 @@
+[
+  {
+    "label": "Sunset haze",
+    "values": {
+      "count": 3,
+      "color1": "#ff9a8b",
+      "color2": "#f2a65a",
+      "color3": "#ffd3bd",
+      "blend": "screen",
+      "spread": 95,
+      "blur": 10,
+      "grain": 30
+    }
+  },
+  {
+    "label": "Aurora night",
+    "values": {
+      "count": 4,
+      "color1": "#22d3ee",
+      "color2": "#a78bfa",
+      "color3": "#10b981",
+      "color4": "#0b1021",
+      "blend": "screen",
+      "spread": 110,
+      "blur": 8,
+      "grain": 60
+    }
+  },
+  {
+    "label": "Silk flow",
+    "values": {
+      "mode": "flow",
+      "count": 4,
+      "color1": "#0ea5e9",
+      "color2": "#a78bfa",
+      "color3": "#f472b6",
+      "color4": "#0b1021",
+      "flowSpeed": 24,
+      "waveScale": 100,
+      "waveAmp": 70,
+      "angle": 35,
+      "seed": 12
+    }
+  },
+  {
+    "label": "Stained glass",
+    "values": {
+      "mode": "subdivide",
+      "count": 4,
+      "color1": "#0ea5e9",
+      "color2": "#1e3a8a",
+      "color3": "#f2a65a",
+      "color4": "#0f766e",
+      "rows": 4,
+      "cols": 4,
+      "curvature": 70,
+      "detail": 1,
+      "grain": 0
+    }
+  },
+  {
+    "label": "Studio mesh",
+    "values": {
+      "mode": "mesh",
+      "count": 4,
+      "color1": "#6d5bd8",
+      "color2": "#e0679f",
+      "color3": "#2fb6a3",
+      "color4": "#f6f1e7",
+      "rows": 3,
+      "cols": 3,
+      "curvature": 60
+    }
+  },
+  {
+    "label": "Freeform pool",
+    "values": {
+      "mode": "warp",
+      "count": 5,
+      "color1": "#f472b6",
+      "color2": "#60a5fa",
+      "color3": "#facc15",
+      "color4": "#34d399",
+      "color5": "#f97316",
+      "spread": 95
+    }
+  },
+  {
+    "label": "Paper grain",
+    "values": {
+      "count": 2,
+      "color1": "#f5efe6",
+      "color2": "#e2e8f0",
+      "blend": "normal",
+      "spread": 140,
+      "blur": 20,
+      "grain": 100,
+      "grainBlend": "overlay"
+    }
+  },
+  {
+    "label": "Live backdrop",
+    "values": {
+      "count": 4,
+      "color1": "#eef2f7",
+      "color2": "#cfe0f5",
+      "color3": "#dcd6f7",
+      "color4": "#f7e6d8",
+      "blend": "normal",
+      "spread": 110,
+      "blur": 16,
+      "grain": 25,
+      "animate": true,
+      "speed": 16,
+      "distance": 80
+    }
+  }
+]

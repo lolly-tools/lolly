@@ -72,7 +72,9 @@ export function mountExportShare(root: HTMLElement, options: () => ShareDialogOp
   let disposed = false;
   const refresh = (): void => {
     const opts = options();
-    const next = JSON.stringify([opts.baseParts, opts.currentFormat, opts.fidelity, canExportLolly(opts.toolId ?? '')]);
+    const document = opts.document?.();
+    const next = JSON.stringify([opts.baseParts, opts.currentFormat, opts.fidelity, canExportLolly(opts.toolId ?? ''),
+      !!document?.agentInvitation, document?.agentGuidance?.documentId, document?.agentGuidance?.toolId, document?.agentGuidance?.toolVersion]);
     if (dispose && signature === next) return;
     signature = next;
     dispose?.();

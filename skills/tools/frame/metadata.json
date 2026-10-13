@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "toolId": "frame",
+  "toolVersion": "1.1.2",
+  "toolVersionRange": "1.1.2",
+  "skillRevision": "1",
+  "origin": "generated",
+  "references": [
+    "reference/inputs.json",
+    "reference/examples.json"
+  ],
+  "files": {
+    "SKILL.md": {
+      "sha256": "23d217c03bbc6cb0c019fa1cadd2cd9eaba5c3359e5da8ca6a8cf96e03533f1f",
+      "bytes": 1893
+    },
+    "reference/inputs.json": {
+      "sha256": "d8ac483f2cf4a2643f862938d6d804dccfd77f782b94192ab912637d0f1cea95",
+      "bytes": 4432
+    },
+    "reference/examples.json": {
+      "sha256": "b4d6a15154ffd7b9ff5694155a14250e3f43ff7f2c47b701da5ea1c83e86c26e",
+      "bytes": 2078
+    }
+  }
+}

@@ -10,7 +10,7 @@ import { join } from 'node:path';
 import { designBrief } from '../../../engine/src/design-brief.ts';
 import { briefCatalogSummary, readProfileBriefCatalog, readProfileTokenDocument } from '@lolly-tools/node-shell/design-brief';
 import { createTokenSet, pickHeadAssetId } from '@lolly/engine';
-import { assetIndex, contentUrl, previewsDir } from './paths.ts';
+import { assetIndex, contentUrl, previewsDir, REPO_ROOT } from './paths.ts';
 import { loadIndex, loadToolCached } from './catalog.ts';
 import { toolInputSchema } from './schema.ts';
 import { withHost } from './host.ts';
@@ -23,6 +23,7 @@ export interface ResourceContent {
 }
 
 export const RESOURCES = [
+  { uri: 'lolly://skill', name: 'Lolly skill', description: 'Shared Lolly workflows and design-system setup. Tool guidance is available through lolly://tool/{id}/skill.', mimeType: 'text/markdown' },
   { uri: 'lolly://catalog', name: 'Tool catalog', description: 'The full generated Lolly tool index.', mimeType: 'application/json' },
   { uri: 'lolly://assets', name: 'Brand asset listing', description: 'Every catalog asset id with its type, name, tags and formats - the ids lolly://asset/{id} resolves.', mimeType: 'application/json' },
   { uri: 'lolly://design-context', name: 'Design context', description: 'The effective design system with resolved tokens, recorded source observations, coverage and explicit brand rules, plus the brief: approved colour pairings, type per role, logos per surface, icons and their themes, media families, the slide master and machine-checkable house rules. Read-only.', mimeType: 'application/json' },
@@ -30,6 +31,8 @@ export const RESOURCES = [
 ];
 
 export const RESOURCE_TEMPLATES = [
+  { uriTemplate: 'lolly://skill/{path}', name: 'Shared skill reference', description: 'A Markdown or JSON reference from the overall Lolly skill.', mimeType: 'text/markdown' },
+  { uriTemplate: 'lolly://tool/{id}/skill', name: 'Tool skill', description: 'Compatible guidance for the actual tool revision in this server profile, including references and version metadata.', mimeType: 'application/json' },
   { uriTemplate: 'lolly://tool/{id}', name: 'Tool details', description: 'A tool manifest summary + input JSON Schema + examples.', mimeType: 'application/json' },
   { uriTemplate: 'lolly://tool/{id}/preview', name: 'Tool preview', description: "The tool's committed catalog preview (SVG), where one exists.", mimeType: 'image/svg+xml' },
   { uriTemplate: 'lolly://asset/{id}', name: 'Brand asset', description: 'A catalog asset (logo, palette, font) resolved to bytes.', mimeType: 'application/octet-stream' },
@@ -132,6 +135,16 @@ export function designContextResource(uri = 'lolly://design-context'): ResourceC
 }
 
 export async function readResource(uri: string): Promise<ResourceContent> {
+  if (uri === 'lolly://skill') return { uri, mimeType: 'text/markdown', text: await readFile(join(REPO_ROOT, 'skills/lolly/SKILL.md'), 'utf8') };
+  const sharedSkillMatch = /^lolly:\/\/skill\/((?:reference|examples)\/(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9_-]+\.(?:md|json))$/.exec(uri);
+  if (sharedSkillMatch) return { uri, mimeType: uri.endsWith('.json') ? 'application/json' : 'text/markdown',
+    text: await readFile(join(REPO_ROOT, 'skills/lolly', sharedSkillMatch[1]!), 'utf8') };
+  const skillMatch = /^lolly:\/\/tool\/([a-z0-9-]+)\/skill$/.exec(uri);
+  if (skillMatch) {
+    const tool = await loadToolCached(skillMatch[1]!);
+    const skill = await tool.readSkill!();
+    return { uri, mimeType: 'application/json', text: JSON.stringify(skill, null, 2) };
+  }
   if (uri === 'lolly://catalog') {
     const idx = await loadIndex();
     return { uri, mimeType: 'application/json', text: JSON.stringify(idx, null, 2) };

@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "toolId": "rondocode",
+  "toolVersion": "1.0.0",
+  "toolVersionRange": "1.0.0",
+  "skillRevision": "1",
+  "origin": "generated",
+  "references": [
+    "reference/inputs.json"
+  ],
+  "files": {
+    "SKILL.md": {
+      "sha256": "0ec222309f1d19fcb1a04fc97ae4707114d5465bca2059e56e4b97d1f518d1ac",
+      "bytes": 1797
+    },
+    "reference/inputs.json": {
+      "sha256": "40e71b55c68711e86dea1a8cef80f22f2a5ea71e1921be75c271b87ae5718910",
+      "bytes": 1454
+    }
+  }
+}

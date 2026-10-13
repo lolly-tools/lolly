@@ -1,0 +1,228 @@
+[
+  {
+    "id": "image",
+    "label": "Screenshot",
+    "type": "asset",
+    "assetType": "image",
+    "allowUpload": true,
+    "help": "Drop in a screen grab. Without one the frame shows a plain placeholder screen."
+  },
+  {
+    "id": "imageFraming",
+    "label": "Zoom & position",
+    "framingFor": "image",
+    "help": "Drag the image on the canvas to move it, scroll to zoom and hold Alt while dragging to correct converging verticals. Or set the numbers here.",
+    "type": "vector",
+    "fields": [
+      {
+        "id": "zoom",
+        "label": "Zoom",
+        "min": 100,
+        "max": 400,
+        "step": 1,
+        "default": 100
+      },
+      {
+        "id": "x",
+        "label": "X",
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "default": 50
+      },
+      {
+        "id": "y",
+        "label": "Y",
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "default": 50
+      },
+      {
+        "id": "rotate",
+        "label": "Rotate",
+        "min": -180,
+        "max": 180,
+        "step": 0.5,
+        "default": 0
+      },
+      {
+        "id": "pitch",
+        "label": "Vertical",
+        "min": -45,
+        "max": 45,
+        "step": 0.5,
+        "default": 0
+      },
+      {
+        "id": "yaw",
+        "label": "Horizontal",
+        "min": -45,
+        "max": 45,
+        "step": 0.5,
+        "default": 0
+      }
+    ]
+  },
+  {
+    "id": "frame",
+    "label": "Frame",
+    "type": "select",
+    "default": "browser",
+    "options": [
+      {
+        "value": "browser",
+        "label": "Browser window"
+      },
+      {
+        "value": "phone",
+        "label": "Phone"
+      },
+      {
+        "value": "laptop",
+        "label": "Laptop"
+      },
+      {
+        "value": "none",
+        "label": "No frame"
+      }
+    ]
+  },
+  {
+    "id": "windowStyle",
+    "label": "Window buttons",
+    "type": "select",
+    "default": "nuremberg",
+    "showIf": {
+      "frame": "browser"
+    },
+    "help": "Which desktop the buttons imitate. Nuremberg is GNOME Adwaita, Cupertino is macOS and Redmond is Windows.",
+    "options": [
+      {
+        "value": "cupertino",
+        "label": "Cupertino"
+      },
+      {
+        "value": "redmond",
+        "label": "Redmond"
+      },
+      {
+        "value": "nuremberg",
+        "label": "Nuremberg"
+      }
+    ]
+  },
+  {
+    "id": "url",
+    "label": "Address",
+    "type": "url",
+    "default": "https://lolly.tools",
+    "showIf": {
+      "frame": "browser"
+    },
+    "help": "Shown in the address bar. The protocol is dropped."
+  },
+  {
+    "id": "title",
+    "label": "Title",
+    "type": "text",
+    "default": "",
+    "placeholder": "Tab or status title"
+  },
+  {
+    "id": "backdrop",
+    "section": "Backdrop",
+    "label": "Style",
+    "type": "select",
+    "default": "gradient",
+    "options": [
+      {
+        "value": "gradient",
+        "label": "Gradient"
+      },
+      {
+        "value": "solid",
+        "label": "Solid colour"
+      },
+      {
+        "value": "transparent",
+        "label": "Transparent"
+      }
+    ]
+  },
+  {
+    "id": "background",
+    "section": "Backdrop",
+    "label": "Colour",
+    "type": "color",
+    "default": "{color.semantic.primary}",
+    "showIf": {
+      "backdrop": [
+        "gradient",
+        "solid"
+      ]
+    }
+  },
+  {
+    "id": "color2",
+    "section": "Backdrop",
+    "label": "Second colour",
+    "type": "color",
+    "default": "{color.semantic.secondary}",
+    "showIf": {
+      "backdrop": "gradient"
+    }
+  },
+  {
+    "id": "padding",
+    "section": "Layout",
+    "label": "Padding",
+    "type": "number",
+    "display": "slider",
+    "default": 72,
+    "min": 0,
+    "max": 200,
+    "step": 4
+  },
+  {
+    "id": "scale",
+    "section": "Layout",
+    "label": "Frame size",
+    "type": "number",
+    "display": "slider",
+    "default": 78,
+    "min": 50,
+    "max": 100,
+    "step": 1,
+    "help": "Frame width as a percentage of the canvas."
+  },
+  {
+    "id": "radius",
+    "section": "Layout",
+    "label": "Corner radius",
+    "type": "number",
+    "display": "slider",
+    "default": 16,
+    "min": 0,
+    "max": 48,
+    "step": 1
+  },
+  {
+    "id": "shadow",
+    "section": "Layout",
+    "label": "Shadow",
+    "type": "number",
+    "display": "slider",
+    "default": 55,
+    "min": 0,
+    "max": 100,
+    "step": 1
+  },
+  {
+    "id": "dark",
+    "section": "Layout",
+    "label": "Dark frame",
+    "type": "boolean",
+    "default": false
+  }
+]

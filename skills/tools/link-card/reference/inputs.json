@@ -1,0 +1,133 @@
+[
+  {
+    "id": "brandLogo",
+    "label": "Design system logo",
+    "type": "boolean",
+    "default": true,
+    "help": "Use a logo from the active design system. Turn off to leave the logo out."
+  },
+  {
+    "id": "url",
+    "label": "Link",
+    "type": "url",
+    "required": true,
+    "default": "https://atlasfield.io/notes/quiet-interfaces",
+    "help": "The page this card points at. Only the site is printed, without the protocol, so a long address stays out of the artwork."
+  },
+  {
+    "id": "heading",
+    "label": "Title",
+    "type": "text",
+    "default": "Quiet interfaces do more with less",
+    "help": "The page title. Nothing here fetches the page, so type it in."
+  },
+  {
+    "id": "body",
+    "label": "Description",
+    "type": "longtext",
+    "default": "A field note on restraint - fewer controls, clearer defaults, and what happens when a product stops shouting.",
+    "help": "The line under the title. Two lines is the most that reads well at thumbnail size."
+  },
+  {
+    "id": "siteName",
+    "label": "Site name",
+    "type": "text",
+    "default": "Atlas Field",
+    "help": "Printed in the chip beside the address. Its first letter is the monogram on the chip."
+  },
+  {
+    "id": "image",
+    "label": "Thumbnail",
+    "type": "asset",
+    "assetType": "image",
+    "allowUpload": true,
+    "help": "Drop in a picture, or paste a Lolly URL Screenshot link to grab the page itself. Leave it empty and the card prints a monogram panel."
+  },
+  {
+    "id": "imageFraming",
+    "label": "Zoom & position",
+    "type": "vector",
+    "help": "Zoom scales the thumbnail up. X and Y pan it inside its panel. Drag a label or type a value.",
+    "fields": [
+      {
+        "id": "zoom",
+        "label": "Zoom",
+        "min": 100,
+        "max": 400,
+        "step": 1,
+        "default": 100
+      },
+      {
+        "id": "x",
+        "label": "X",
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "default": 50
+      },
+      {
+        "id": "y",
+        "label": "Y",
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "default": 50
+      }
+    ]
+  },
+  {
+    "id": "layout",
+    "label": "Size",
+    "type": "select",
+    "default": "og-horizontal",
+    "help": "Where the card is going. Picking one sets the export size, so the file comes out at the size the platform wants.",
+    "options": [
+      {
+        "value": "og-horizontal",
+        "label": "Open Graph · 1200 × 630",
+        "width": 1200,
+        "height": 630,
+        "unit": "px"
+      },
+      {
+        "value": "square",
+        "label": "Square · 1080 × 1080",
+        "width": 1080,
+        "height": 1080,
+        "unit": "px"
+      },
+      {
+        "value": "twitter-summary",
+        "label": "Summary card · 1200 × 600",
+        "width": 1200,
+        "height": 600,
+        "unit": "px"
+      }
+    ]
+  },
+  {
+    "id": "color",
+    "section": "Look",
+    "label": "Ink",
+    "type": "color",
+    "group": "Look",
+    "default": "{color.semantic.text}"
+  },
+  {
+    "id": "background",
+    "section": "Look",
+    "label": "Card",
+    "type": "color",
+    "group": "Look",
+    "default": "{color.semantic.surface}"
+  },
+  {
+    "id": "accent",
+    "section": "Look",
+    "label": "Accent",
+    "type": "color",
+    "group": "Look",
+    "default": "{color.semantic.primary}",
+    "help": "The chip, the rule under the title, and the monogram panel that stands in for a missing thumbnail."
+  }
+]

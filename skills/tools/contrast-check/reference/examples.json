@@ -1,0 +1,42 @@
+[
+  {
+    "label": "Mid grey on white fails",
+    "values": {
+      "color": "#9aa3ab",
+      "background": "#ffffff",
+      "mode": "pair",
+      "textSize": "normal",
+      "sample": "Light grey reads well until it does not"
+    }
+  },
+  {
+    "label": "Ink on paper, AAA",
+    "values": {
+      "color": "#14171a",
+      "background": "#f7f7f5",
+      "mode": "pair",
+      "textSize": "normal",
+      "sample": "Readable at every size"
+    }
+  },
+  {
+    "label": "Large text on sand",
+    "values": {
+      "color": "#7a5b3a",
+      "background": "#f4ece0",
+      "mode": "pair",
+      "textSize": "large",
+      "sample": "Headlines carry a lower bar"
+    }
+  },
+  {
+    "label": "Whole brand palette",
+    "values": {
+      "color": "#14171a",
+      "background": "#ffffff",
+      "mode": "palette",
+      "metric": "wcag",
+      "textSize": "normal"
+    }
+  }
+]

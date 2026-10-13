@@ -1,0 +1,43 @@
+[
+  {
+    "label": "Ink bloom",
+    "values": {
+      "scene": "ink",
+      "seed": 17,
+      "intensity": 1.45,
+      "speed": 0.75
+    }
+  },
+  {
+    "label": "Headline swarm",
+    "values": {
+      "scene": "swarm",
+      "text": "SYNTH",
+      "particles": 200000,
+      "intensity": 1.5,
+      "speed": 0.7,
+      "seed": 11
+    }
+  },
+  {
+    "label": "Kaleidoscope",
+    "values": {
+      "scene": "field",
+      "symmetry": 8,
+      "intensity": 1.5,
+      "speed": 1.4,
+      "seed": 3
+    }
+  },
+  {
+    "label": "Slow drift",
+    "values": {
+      "scene": "field",
+      "symmetry": 1,
+      "intensity": 1.2,
+      "speed": 0.45,
+      "seed": 5,
+      "rampRotate": 40
+    }
+  }
+]

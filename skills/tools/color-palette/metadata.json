@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "toolId": "color-palette",
+  "toolVersion": "2.3.4",
+  "toolVersionRange": "2.3.4",
+  "skillRevision": "1",
+  "origin": "generated",
+  "references": [
+    "reference/inputs.json",
+    "reference/examples.json"
+  ],
+  "files": {
+    "SKILL.md": {
+      "sha256": "9b28b6da483c5782f90fc93927d8b35ab08cd1f35ee29270ce75565c65f70695",
+      "bytes": 1952
+    },
+    "reference/inputs.json": {
+      "sha256": "a4fff533eb9f7d09095cf4fafecaa07194258a2dcf8f8737f0746dd3bdedd38e",
+      "bytes": 4355
+    },
+    "reference/examples.json": {
+      "sha256": "008c481e88dbd394f73b520be42f6435fa3f33456385e1e73cf044f278a07db5",
+      "bytes": 1578
+    }
+  }
+}

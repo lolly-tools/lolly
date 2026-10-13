@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "toolId": "signature",
+  "toolVersion": "1.0.0",
+  "toolVersionRange": "1.0.0",
+  "skillRevision": "1",
+  "origin": "generated",
+  "references": [
+    "reference/inputs.json",
+    "reference/examples.json"
+  ],
+  "files": {
+    "SKILL.md": {
+      "sha256": "bd639a6102dedddca5a2d9d9880c358bda1258507e98cb60be74e3414f8839ef",
+      "bytes": 1749
+    },
+    "reference/inputs.json": {
+      "sha256": "c44a9a6c5f93b5e3a49554bbd0451d0ddf44823a8823efa9f4d8d83c4db7f97e",
+      "bytes": 1773
+    },
+    "reference/examples.json": {
+      "sha256": "504e51369f7aea2c8ce79c9d01e00ec6b4b0ecff85e9297b74fb74a85752dbad",
+      "bytes": 1497
+    }
+  }
+}

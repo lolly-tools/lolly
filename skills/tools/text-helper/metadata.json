@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "toolId": "text-helper",
+  "toolVersion": "2.0.0",
+  "toolVersionRange": "2.0.0",
+  "skillRevision": "1",
+  "origin": "generated",
+  "references": [
+    "reference/inputs.json"
+  ],
+  "files": {
+    "SKILL.md": {
+      "sha256": "f3eeccdb4ff7a38cc82f97270d2585df09707de11620a4d7349c0bbc15ed8b06",
+      "bytes": 1766
+    },
+    "reference/inputs.json": {
+      "sha256": "d3ed28298379d80bc89fdaf9682a51493198c5667e4e6e5f8be9f3e256b1efc7",
+      "bytes": 749
+    }
+  }
+}

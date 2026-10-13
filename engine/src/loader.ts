@@ -30,6 +30,7 @@ import type { CatalogSignatureEnvelope, IntegrityResult } from './catalog-integr
 import type { Lang } from './lang.ts';
 import { ENGINE_VERSION } from './version.ts';
 import { satisfiesRange } from './semver-range.ts';
+import { readToolSkill, type ToolSkillV1 } from '@lolly-tools/core/tool-skill-v1';
 
 /** `render` block of a tool manifest. The canonical shape lives in the
  *  tool-author SDK (`@lolly-tools/core` {@link RenderSpec}, mirroring
@@ -81,6 +82,8 @@ export type ToolTrustClass =
 
 /** A normalised, loaded tool: everything the runtime needs to mount it. */
 export interface LoadedTool {
+  /** Optional guidance read from the same verified source as this loaded revision. */
+  readSkill?: () => Promise<ToolSkillV1>;
   /** Host-selected language for hook copy and portable output. */
   lang?: Lang;
   artifactDigest?: string;
@@ -483,7 +486,19 @@ export async function loadTool(toolId: string, fetchFile: ToolFetchFile, opts: L
     }
   }
 
+  let pendingSkill: Promise<ToolSkillV1> | undefined;
+  const readSkill = () => pendingSkill ??= readToolSkill(manifest, async filename => {
+    // Signed catalogs determine file presence; do not request unsigned sidecars.
+    if (integrity && !integrity.envelope.files[`${toolId}/${filename}`]) return null;
+    const value = await tryFetch(fetchFile, `${toolId}/${filename}`);
+    if (integrity) await assertFileIntegrity(integrity, toolId, filename, value);
+    return value;
+  }, satisfiesRange).catch(error => {
+    pendingSkill = undefined;
+    throw error;
+  });
   return {
+    readSkill,
     ...(opts.lang ? { lang: opts.lang } : {}),
     trustClass,
     manifest,

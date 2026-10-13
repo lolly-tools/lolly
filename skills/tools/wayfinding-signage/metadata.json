@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "toolId": "wayfinding-signage",
+  "toolVersion": "1.2.2",
+  "toolVersionRange": "1.2.2",
+  "skillRevision": "1",
+  "origin": "generated",
+  "references": [
+    "reference/inputs.json"
+  ],
+  "files": {
+    "SKILL.md": {
+      "sha256": "d3947c2281a84326af04f2aafaec655843d4a88bf180bf982ee392a50e040fcc",
+      "bytes": 1720
+    },
+    "reference/inputs.json": {
+      "sha256": "b36d460cd28ac0253485dc0c5b9876a665e2fdd9c348fbcde2e56e058d9186b6",
+      "bytes": 5297
+    }
+  }
+}

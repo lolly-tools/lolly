@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "toolId": "spatial-photo",
+  "toolVersion": "0.1.4",
+  "toolVersionRange": "0.1.4",
+  "skillRevision": "1",
+  "origin": "generated",
+  "references": [
+    "reference/inputs.json"
+  ],
+  "files": {
+    "SKILL.md": {
+      "sha256": "b63012e948571cb9eac7da48a35ad1451a5b95b7994e1dfcdff111326f7ae1cc",
+      "bytes": 1774
+    },
+    "reference/inputs.json": {
+      "sha256": "a1630a35d82de7e4c53af4a892f0c980f8e938ea8adbd2b2fb088cefb96c8e76",
+      "bytes": 3666
+    }
+  }
+}

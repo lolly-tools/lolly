@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "toolId": "audiogram",
+  "toolVersion": "2.7.4",
+  "toolVersionRange": "2.7.4",
+  "skillRevision": "1",
+  "origin": "generated",
+  "references": [
+    "reference/inputs.json",
+    "reference/examples.json"
+  ],
+  "files": {
+    "SKILL.md": {
+      "sha256": "797e8ce6fd8c319f53ea016856c4df0d04f04e2f34f1694241e8c33502248992",
+      "bytes": 2083
+    },
+    "reference/inputs.json": {
+      "sha256": "a6ea173b82854213588cee71333a8dc90db4485272f1614c119b442257633555",
+      "bytes": 20571
+    },
+    "reference/examples.json": {
+      "sha256": "f83fcf2d8c1259cac4ab2357df3b45a546a64c8019ee5af7c0044c6d24b5299c",
+      "bytes": 1459
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "toolId": "clean",
+  "toolVersion": "1.0.1",
+  "toolVersionRange": "1.0.1",
+  "skillRevision": "1",
+  "origin": "generated",
+  "references": [
+    "reference/inputs.json"
+  ],
+  "files": {
+    "SKILL.md": {
+      "sha256": "602d354f6f3f96959795372503be4b879cc98f293247b567f03ba14d1759f6a2",
+      "bytes": 1662
+    },
+    "reference/inputs.json": {
+      "sha256": "01bb8d17559cbc40f97a9bf03a6cf56b595966ed434553a99935aec8cb2c2122",
+      "bytes": 1784
+    }
+  }
+}

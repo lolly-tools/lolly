@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "toolId": "asset-export",
+  "toolVersion": "1.1.0",
+  "toolVersionRange": "1.1.0",
+  "skillRevision": "1",
+  "origin": "generated",
+  "references": [
+    "reference/inputs.json",
+    "reference/examples.json"
+  ],
+  "files": {
+    "SKILL.md": {
+      "sha256": "8f4e28486cc5cf5a0a2310e5853fece5772060f9ef61025e69c0836007ccec26",
+      "bytes": 1785
+    },
+    "reference/inputs.json": {
+      "sha256": "ae3523684b77b7850b26933e94b4d945854bee2f17e6271e291bdf1e9f42189a",
+      "bytes": 1360
+    },
+    "reference/examples.json": {
+      "sha256": "42df84aa57cc855dfb8fa48808b17c66c3fcb4e7fcd050b49a100d2c059d2fb1",
+      "bytes": 757
+    }
+  }
+}

@@ -1112,8 +1112,7 @@ export function wireBulkRows(tview: ToolViewCtx): void {
   // (see plans/43-deep-linking.md) - each new one reads its flag here or in its view.
   // A live collab mount clears the flags instead of opening anything (shareDeepLink).
   const shareLink = shareDeepLink(urlFlags, !!tview.collabHandle);
-  if (shareLink?.kind === 'open') requestAnimationFrame(() => showShareDialog(runtime, actionsEl, tview.tool.manifest));
-  else if (shareLink) clearShareDeepLink(urlFlags, shareLink.changes);
+  if (shareLink?.kind === 'clear') clearShareDeepLink(urlFlags, shareLink.changes);
 }
 
 export function wireBackPill(tview: ToolViewCtx): void {

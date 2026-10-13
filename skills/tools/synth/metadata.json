@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "toolId": "synth",
+  "toolVersion": "0.2.4",
+  "toolVersionRange": "0.2.4",
+  "skillRevision": "1",
+  "origin": "generated",
+  "references": [
+    "reference/inputs.json",
+    "reference/examples.json"
+  ],
+  "files": {
+    "SKILL.md": {
+      "sha256": "b500a471ba721b830c05440999ce7240c84a7dc4efd7820e8300de6be64f295e",
+      "bytes": 2152
+    },
+    "reference/inputs.json": {
+      "sha256": "3716604efd72576372e0e638557bfb6c58859e52f4b96f8926de5f2666ede961",
+      "bytes": 4722
+    },
+    "reference/examples.json": {
+      "sha256": "5dd727bc0634f41a2745637ef1f315edb622262ff0858165373e6129a9dcc791",
+      "bytes": 695
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "toolId": "convert-image",
+  "toolVersion": "1.1.1",
+  "toolVersionRange": "1.1.1",
+  "skillRevision": "1",
+  "origin": "generated",
+  "references": [
+    "reference/inputs.json"
+  ],
+  "files": {
+    "SKILL.md": {
+      "sha256": "fc8d93a118f7c652b4e1c156ad838a84c516321073fb3282c79514f607bad445",
+      "bytes": 1700
+    },
+    "reference/inputs.json": {
+      "sha256": "15a9ce613258ad6373e5796de8b537293ec570aa7599e952d3ffa04856fab572",
+      "bytes": 1963
+    }
+  }
+}

@@ -1,0 +1,346 @@
+[
+  {
+    "id": "city",
+    "label": "City",
+    "type": "select",
+    "default": "nuremberg",
+    "help": "Add more cities offline with scripts/build-street-clips.ts - no API at render time.",
+    "options": [
+      {
+        "value": "amsterdam",
+        "label": "Amsterdam"
+      },
+      {
+        "value": "athens",
+        "label": "Athens"
+      },
+      {
+        "value": "bangkok",
+        "label": "Bangkok"
+      },
+      {
+        "value": "barcelona",
+        "label": "Barcelona"
+      },
+      {
+        "value": "beijing",
+        "label": "Beijing"
+      },
+      {
+        "value": "berlin",
+        "label": "Berlin"
+      },
+      {
+        "value": "brisbane",
+        "label": "Brisbane"
+      },
+      {
+        "value": "brussels",
+        "label": "Brussels"
+      },
+      {
+        "value": "budapest",
+        "label": "Budapest"
+      },
+      {
+        "value": "buenosaires",
+        "label": "Buenos Aires"
+      },
+      {
+        "value": "cairo",
+        "label": "Cairo"
+      },
+      {
+        "value": "capetown",
+        "label": "Cape Town"
+      },
+      {
+        "value": "chicago",
+        "label": "Chicago"
+      },
+      {
+        "value": "copenhagen",
+        "label": "Copenhagen"
+      },
+      {
+        "value": "delhi",
+        "label": "Delhi"
+      },
+      {
+        "value": "dubai",
+        "label": "Dubai"
+      },
+      {
+        "value": "dublin",
+        "label": "Dublin"
+      },
+      {
+        "value": "edinburgh",
+        "label": "Edinburgh"
+      },
+      {
+        "value": "helsinki",
+        "label": "Helsinki"
+      },
+      {
+        "value": "hongkong",
+        "label": "Hong Kong"
+      },
+      {
+        "value": "istanbul",
+        "label": "Istanbul"
+      },
+      {
+        "value": "kualalumpur",
+        "label": "Kuala Lumpur"
+      },
+      {
+        "value": "lisbon",
+        "label": "Lisbon"
+      },
+      {
+        "value": "london",
+        "label": "London"
+      },
+      {
+        "value": "losangeles",
+        "label": "Los Angeles"
+      },
+      {
+        "value": "madrid",
+        "label": "Madrid"
+      },
+      {
+        "value": "mexicocity",
+        "label": "Mexico City"
+      },
+      {
+        "value": "moscow",
+        "label": "Moscow"
+      },
+      {
+        "value": "mumbai",
+        "label": "Mumbai"
+      },
+      {
+        "value": "munich",
+        "label": "Munich"
+      },
+      {
+        "value": "newyork",
+        "label": "New York"
+      },
+      {
+        "value": "noosa",
+        "label": "Noosa"
+      },
+      {
+        "value": "nuremberg",
+        "label": "Nuremberg"
+      },
+      {
+        "value": "oslo",
+        "label": "Oslo"
+      },
+      {
+        "value": "paris",
+        "label": "Paris"
+      },
+      {
+        "value": "prague",
+        "label": "Prague"
+      },
+      {
+        "value": "provo",
+        "label": "Provo"
+      },
+      {
+        "value": "riodejaneiro",
+        "label": "Rio de Janeiro"
+      },
+      {
+        "value": "rome",
+        "label": "Rome"
+      },
+      {
+        "value": "sanfrancisco",
+        "label": "San Francisco"
+      },
+      {
+        "value": "saopaulo",
+        "label": "São Paulo"
+      },
+      {
+        "value": "seoul",
+        "label": "Seoul"
+      },
+      {
+        "value": "shanghai",
+        "label": "Shanghai"
+      },
+      {
+        "value": "singapore",
+        "label": "Singapore"
+      },
+      {
+        "value": "stockholm",
+        "label": "Stockholm"
+      },
+      {
+        "value": "sydney",
+        "label": "Sydney"
+      },
+      {
+        "value": "tokyo",
+        "label": "Tokyo"
+      },
+      {
+        "value": "toronto",
+        "label": "Toronto"
+      },
+      {
+        "value": "vancouver",
+        "label": "Vancouver"
+      },
+      {
+        "value": "vienna",
+        "label": "Vienna"
+      },
+      {
+        "value": "warsaw",
+        "label": "Warsaw"
+      },
+      {
+        "value": "washington",
+        "label": "Washington, DC"
+      },
+      {
+        "value": "zurich",
+        "label": "Zurich"
+      }
+    ]
+  },
+  {
+    "id": "theme",
+    "label": "Theme",
+    "type": "select",
+    "default": "light",
+    "options": [
+      {
+        "value": "light",
+        "label": "Light"
+      },
+      {
+        "value": "dark",
+        "label": "Dark"
+      }
+    ]
+  },
+  {
+    "id": "minorRoadWeight",
+    "section": "Roads & water",
+    "label": "Minor road weight",
+    "type": "number",
+    "display": "slider",
+    "default": 6.02,
+    "min": 0.25,
+    "max": 24,
+    "step": 0.01,
+    "help": "Stroke thickness of minor streets (service, residential, tertiary)."
+  },
+  {
+    "id": "majorRoadWeight",
+    "section": "Roads & water",
+    "label": "Major road weight",
+    "type": "number",
+    "display": "slider",
+    "default": 5.46,
+    "min": 0.25,
+    "max": 24,
+    "step": 0.01,
+    "help": "Stroke thickness of major roads (secondary, primary, motorway)."
+  },
+  {
+    "id": "showWater",
+    "section": "Roads & water",
+    "label": "Show water",
+    "type": "boolean",
+    "default": true
+  },
+  {
+    "id": "waterWeight",
+    "section": "Roads & water",
+    "label": "Waterway weight",
+    "type": "number",
+    "display": "slider",
+    "default": 6.72,
+    "min": 0.25,
+    "max": 30,
+    "step": 0.01,
+    "help": "Stroke thickness of rivers and streams. Crank it up to make waterways more prominent."
+  },
+  {
+    "id": "roadColor",
+    "section": "Roads & water",
+    "label": "Road colour",
+    "type": "color",
+    "default": "{color.semantic.primary}",
+    "help": "Leave empty to use the theme's default."
+  },
+  {
+    "id": "waterColor",
+    "section": "Roads & water",
+    "label": "Water colour",
+    "type": "color",
+    "default": "{color.semantic.secondary}",
+    "help": "Leave empty to use the theme's default."
+  },
+  {
+    "id": "background",
+    "label": "Background",
+    "type": "color",
+    "default": "transparent",
+    "help": "Leave empty to use the theme's default."
+  },
+  {
+    "id": "route",
+    "section": "Route",
+    "label": "Route (GPX)",
+    "type": "longtext",
+    "rows": 4,
+    "default": "",
+    "dataSource": {
+      "accept": ".gpx,application/gpx+xml,.txt"
+    },
+    "placeholder": "<gpx>…</gpx>",
+    "help": "Add a GPX file: the track draws over the map, waypoints become dots. The map frames it until you pan or zoom."
+  },
+  {
+    "id": "routeColor",
+    "section": "Route",
+    "label": "Route colour",
+    "type": "color",
+    "default": "",
+    "help": "The track line and its start and end dots. Leave empty for the theme route colour, which stands out from the roads."
+  },
+  {
+    "id": "routeWidth",
+    "section": "Route",
+    "label": "Route weight",
+    "type": "number",
+    "display": "slider",
+    "default": 3,
+    "min": 0.5,
+    "max": 16,
+    "step": 0.1,
+    "help": "Stroke thickness of the route line."
+  },
+  {
+    "id": "view",
+    "label": "Map viewport",
+    "type": "text",
+    "default": "",
+    "placeholder": "Pan or zoom to set",
+    "help": "Auto-saved when you pan or zoom. Clear to reset to the default framing."
+  }
+]

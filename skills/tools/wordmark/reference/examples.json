@@ -1,0 +1,46 @@
+[
+  {
+    "label": "Brand semibold",
+    "values": {
+      "text": "Aurora",
+      "weight": 600,
+      "size": 160,
+      "color": "#0c322c"
+    },
+    "theme": "light"
+  },
+  {
+    "label": "Hairline, wide-tracked",
+    "values": {
+      "text": "ATELIER",
+      "weight": 100,
+      "tracking": 24,
+      "size": 140,
+      "color": "#1a1a2e"
+    },
+    "theme": "light"
+  },
+  {
+    "label": "Black, tight",
+    "values": {
+      "text": "Bold&Co",
+      "weight": 900,
+      "tracking": -2,
+      "size": 180,
+      "color": "#111111"
+    },
+    "theme": "light"
+  },
+  {
+    "label": "Mono reverse",
+    "values": {
+      "text": "lolly.tools",
+      "font": "mono",
+      "weight": 500,
+      "tracking": 4,
+      "size": 120,
+      "color": "#ffffff"
+    },
+    "theme": "dark"
+  }
+]

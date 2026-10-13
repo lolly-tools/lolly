@@ -1,0 +1,116 @@
+[
+  {
+    "label": "Three numbered steps",
+    "values": {
+      "annotStyle": "solid",
+      "accent": "{color.semantic.primary}",
+      "strokeWidth": 4,
+      "annotations": [
+        {
+          "kind": "pin",
+          "x": 11,
+          "y": 21,
+          "text": "Pick a template"
+        },
+        {
+          "kind": "pin",
+          "x": 52,
+          "y": 37,
+          "text": "Set the words"
+        },
+        {
+          "kind": "pin",
+          "x": 84,
+          "y": 76,
+          "text": "Download"
+        }
+      ]
+    }
+  },
+  {
+    "label": "Point at it and say why",
+    "values": {
+      "annotStyle": "sketchy",
+      "accent": "#d9480f",
+      "strokeWidth": 5,
+      "annotations": [
+        {
+          "kind": "box",
+          "x": 46,
+          "y": 22,
+          "w": 30,
+          "h": 27
+        },
+        {
+          "kind": "arrow",
+          "x": 22,
+          "y": 78,
+          "w": 22,
+          "h": -22
+        },
+        {
+          "kind": "callout",
+          "x": 8,
+          "y": 80,
+          "w": 34,
+          "h": 13,
+          "text": "This panel moved"
+        }
+      ]
+    }
+  },
+  {
+    "label": "Spotlight one detail",
+    "values": {
+      "annotStyle": "solid",
+      "accent": "#f2b705",
+      "strokeWidth": 3,
+      "annotations": [
+        {
+          "kind": "spotlight",
+          "x": 44,
+          "y": 20,
+          "w": 34,
+          "h": 31
+        },
+        {
+          "kind": "pin",
+          "x": 47,
+          "y": 24,
+          "text": ""
+        }
+      ]
+    }
+  },
+  {
+    "label": "Highlighter pass",
+    "values": {
+      "annotStyle": "solid",
+      "accent": "#0d7a5f",
+      "strokeWidth": 3,
+      "annotations": [
+        {
+          "kind": "highlight",
+          "x": 9,
+          "y": 33,
+          "w": 27,
+          "h": 6
+        },
+        {
+          "kind": "highlight",
+          "x": 9,
+          "y": 44,
+          "w": 21,
+          "h": 6
+        },
+        {
+          "kind": "box",
+          "x": 45,
+          "y": 60,
+          "w": 32,
+          "h": 19
+        }
+      ]
+    }
+  }
+]

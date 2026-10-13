@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "toolId": "chart",
+  "toolVersion": "1.26.1",
+  "toolVersionRange": "1.26.1",
+  "skillRevision": "1",
+  "origin": "generated",
+  "references": [
+    "reference/inputs.json",
+    "reference/examples.json"
+  ],
+  "files": {
+    "SKILL.md": {
+      "sha256": "240b77b58b45e1d0149928d1985ca4e8eee47ca8417942f64c0a9610d0be6885",
+      "bytes": 5869
+    },
+    "reference/inputs.json": {
+      "sha256": "e3c45a5fd4b40fa1bb1150e2583b8bf4bd4b56821684602f7c509df955f91c3d",
+      "bytes": 73997
+    },
+    "reference/examples.json": {
+      "sha256": "34ac002356bcc4e4c9657d198f456322d77813c4aae4a2b9634dbf57f14f9571",
+      "bytes": 2384
+    }
+  }
+}

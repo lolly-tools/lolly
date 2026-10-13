@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "toolId": "countdown-timer",
+  "toolVersion": "1.0.0",
+  "toolVersionRange": "1.0.0",
+  "skillRevision": "1",
+  "origin": "generated",
+  "references": [
+    "reference/inputs.json"
+  ],
+  "files": {
+    "SKILL.md": {
+      "sha256": "1b65e72b514c70866aa356897263cd8bd9f98e0b149536e72e4db4e44f764344",
+      "bytes": 1399
+    },
+    "reference/inputs.json": {
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "bytes": 3
+    }
+  }
+}

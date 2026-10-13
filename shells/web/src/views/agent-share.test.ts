@@ -2,11 +2,14 @@
 import test, { type TestContext } from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
-import { buildAgentShareSection, agentInstructions, installAgentInvitations } from './agent-share.ts';
-import { agentInvitationHost, type AgentInvitationHost } from '../lib/agent-invitation-host.ts';
+import { buildAgentShareSection, agentGuidanceInstructions, agentInstructions, installAgentGuidance, installAgentInvitations } from './agent-share.ts';
+import { agentInvitationHost, type AgentGuidanceHost, type AgentInvitationHost } from '../lib/agent-invitation-host.ts';
 import { agentRosterFor } from '../lib/agent-collaborators.ts';
 import type { LiveEditor } from '../lib/live-agent.ts';
 import { LIVE_PROTOCOL } from '@lolly-tools/core';
+import type { ToolSkillV1 } from '@lolly-tools/core/tool-skill-v1';
+import { _setBaseForTests } from '../lib/instance.ts';
+import type { ShareDocument } from '../lib/share-sections.ts';
 
 const dom = new JSDOM('<!doctype html><body></body>', { url: 'http://localhost/t/design', pretendToBeVisual: true });
 Object.assign(globalThis, { window: dom.window, document: dom.window.document, getComputedStyle: dom.window.getComputedStyle.bind(dom.window), MutationObserver: dom.window.MutationObserver, requestAnimationFrame: dom.window.requestAnimationFrame.bind(dom.window) });
@@ -153,7 +156,7 @@ function invitationFixture(context: TestContext, readOnly = false, attachImmedia
   const editor: LiveEditor = { documentId: 'doc:share', tool: 'design', engine: 'test', surface: 'web', rows: () => [], selection: () => [], size: () => ({ width: 100, height: 100 }), fieldDefault: (_id, fallback) => fallback, commit: async () => null, topEntry: () => null, undo() {}, look: async () => ({ svg: '<svg/>', width: 100, height: 100 }), readOnly: () => readOnly };
   const dispose = installAgentInvitations(runtime, view, 'https://relay.example/live', () => editor);
   context.after(() => { dispose(); view.remove(); });
-  return { host: agentInvitationHost(runtime)!, view, sockets, permissions, dispose };
+  return { host: agentInvitationHost(runtime)!, runtime, editor, view, sockets, permissions, dispose };
 }
 
 test('the invited alias joins People, regardless of a client self-report, and revocation removes it', async context => {
@@ -205,9 +208,166 @@ test('saved documents offer no live invite, and instructions carry the supplied 
   const value = agentInstructions(`https://relay.example/live/invite#token=${'a'.repeat(43)}`, 'edit');
   assert.match(value, /invitation: https:\/\/relay.example\/live\/invite#token=/);
   assert.ok(value.includes(`https://relay.example/live/mcp with Authorization: Bearer ${'a'.repeat(43)}`));
-  assert.match(value, /transactionId/); assert.match(value, /childIds/); assert.match(value, /\$in/);
+  assert.match(value, /transactionId/); assert.doesNotMatch(value, /childIds|\$in/);
+  assert.match(value, /discover this editor's adapter/);
   assert.match(value, /https:\/\/lolly.tools\/api\/mcp\/agents/);
   assert.match(value, /Pasting this invitation alone cannot install tools/);
   assert.match(value, /same invitation on every hosted tool call/);
   assert.match(agentInstructions('invitation', 'read'), /allows reading only/);
+});
+
+function skill(toolId = 'darkroom', toolVersion = '1.2.3', markdown = '# Installed Darkroom guidance\nUse the declared controls.'): ToolSkillV1 {
+  return { toolId, toolVersion, toolVersionRange: toolVersion, skillRevision: '1', origin: 'authored', markdown,
+    references: ['reference/inputs.json', 'skill/retouch.md'], files: { 'reference/inputs.json': '[{"id":"exposure","type":"number","min":-3,"max":3}]' } };
+}
+
+function guidance(toolId = 'darkroom', toolVersion = '1.2.3'): AgentGuidanceHost {
+  return { documentId: `doc:${toolId}`, toolId, toolVersion, facts: `Tool ${toolId}, version ${toolVersion}; exposure is a number.`, active: () => true, skill: async () => skill(toolId, toolVersion) };
+}
+
+test('every mounted tool has a named guidance handoff when no live host is available', async context => {
+  let fetches = 0;
+  context.mock.method(globalThis, 'fetch', async () => { fetches++; throw new Error('unexpected network call'); });
+  const copied: string[] = [];
+  const guide = guidance();
+  const doc = { inputs: {}, toolVersion: guide.toolVersion, agentGuidance: guide };
+  const section = buildAgentShareSection({ toolId: guide.toolId, baseParts: ['exposure=1'], copy: async text => { copied.push(text); }, document: () => doc })!;
+  document.body.appendChild(section);
+  try {
+    assert.match(section.querySelector('summary')!.textContent!, /Agent instructions/);
+    assert.equal(section.querySelector('select'), null, 'guidance does not imply a live access grant');
+    assert.equal(section.querySelectorAll('button').length, 1);
+    section.open = true;
+    assert.equal(fetches, 0, 'opening the disclosure does not resolve skills or mint invitations');
+    const name = section.querySelector('input')!; name.value = 'Photo assistant'; name.dispatchEvent(new dom.window.Event('input'));
+    section.querySelector('button')!.click(); await tick();
+    assert.equal(fetches, 0);
+    assert.match(copied[0]!, /requested name is "Photo assistant"/);
+    assert.match(copied[0]!, /http:\/\/localhost\/info\/skills\/lolly\/SKILL.md/);
+    assert.match(copied[0]!, /http:\/\/localhost\/info\/skills\/tools\/darkroom\/SKILL.md/);
+    assert.match(copied[0]!, /http:\/\/localhost\/tools\/darkroom\/skill\/retouch.md/);
+    assert.doesNotMatch(copied[0]!, /skill\/skill\//);
+    assert.match(copied[0]!, /Installed Darkroom guidance/);
+    assert.match(copied[0]!, /"exposure".*"max":3/);
+    assert.match(copied[0]!, /http:\/\/localhost\/t\/darkroom\?exposure=1/);
+    assert.match(copied[0]!, /contains no invitation or permission/);
+    assert.match(section.querySelector('[role="status"]')!.textContent!, /Live document access is not included/);
+  } finally { section.remove(); }
+});
+
+test('two tools carry their own identities and installed skills on the same instance', async () => {
+  dom.window.history.replaceState(null, '', '/t/darkroom');
+  const first = guidance('darkroom', '2.1.0'); const second = guidance('diagram-builder', '3.0.0');
+  const a = agentGuidanceInstructions({ ...first, skill: await first.skill() }, [], 'Photo assistant');
+  const b = agentGuidanceInstructions({ ...second, skill: await second.skill() }, [], 'Diagram assistant');
+  assert.match(a, /Tool: "darkroom", version "2\.1\.0"/); assert.doesNotMatch(a, /diagram-builder/);
+  assert.match(b, /Tool: "diagram-builder", version "3\.0\.0"/); assert.doesNotMatch(b, /tools\/darkroom/);
+});
+
+test('read invitations contain identity and skill facts without an embedded edit procedure', async () => {
+  const guide = guidance();
+  const toolSkill = skill('darkroom', '1.2.3', 'Use lolly_live_apply with layerPatches to edit the canvas.');
+  const instructions = agentInstructions('invitation', 'read', 'Reader', { ...guide, adapter: 'inputs', skill: toolSkill });
+  assert.match(instructions, /inputSchema, inputValues, editableInputIds and omittedInputs/);
+  assert.match(instructions, /Current tool facts \(inspection only\)/);
+  assert.match(instructions, /documentId, tool and toolVersion/);
+  assert.match(instructions, /allows reading only/);
+  assert.doesNotMatch(instructions, /lolly_live_apply|layerPatches|layerOperations|childIds|\$in|undo step/);
+});
+
+test('live input instructions and layer instructions use only their matching adapter', async () => {
+  const guide = guidance();
+  const input = agentInstructions('invitation', 'edit', 'Photo assistant', { ...guide, adapter: 'inputs', skill: await guide.skill() });
+  assert.match(input, /Supply inputValues as an object keyed by editableInputIds/);
+  assert.doesNotMatch(input, /lolly_live_find|layerPatches|layerOperations|childIds|\$in/);
+  const layers = guidance('design', '1.0.0');
+  const layer = agentInstructions('invitation', 'edit', 'Design assistant', { ...layers, adapter: 'layers', skill: await layers.skill() });
+  assert.match(layer, /lolly_live_find/); assert.match(layer, /layerPatches and layerOperations/);
+  assert.match(layer, /childIds/); assert.match(layer, /\$in/);
+});
+
+test('switching documents during async skill resolution fails before any clipboard write', async () => {
+  let resolveSkill: (value: ToolSkillV1) => void = () => {};
+  const guide = { ...guidance(), skill: () => new Promise<ToolSkillV1>(done => { resolveSkill = done; }) };
+  let current = { inputs: {}, toolVersion: guide.toolVersion, agentGuidance: guide as AgentGuidanceHost };
+  let copies = 0;
+  const section = buildAgentShareSection({ toolId: guide.toolId, baseParts: [], copy: async () => { copies++; }, document: () => current })!;
+  document.body.appendChild(section);
+  try {
+    section.querySelector('button')!.click(); await tick();
+    current = { ...current, agentGuidance: guidance('diagram-builder') };
+    resolveSkill(skill()); await tick();
+    assert.equal(copies, 0);
+    assert.match(section.querySelector('[role="status"]')!.textContent!, /document changed/);
+    assert.equal(section.querySelector('button')!.disabled, false);
+  } finally { section.remove(); }
+});
+
+test('an incompatible resolved skill cannot be copied', async () => {
+  const guide = { ...guidance(), skill: async () => skill('darkroom', '0.1.0') };
+  let copies = 0;
+  const section = buildAgentShareSection({ baseParts: [], copy: async () => { copies++; }, document: () => ({ inputs: {}, agentGuidance: guide }) })!;
+  document.body.appendChild(section);
+  try {
+    section.querySelector('button')!.click(); await tick();
+    assert.equal(copies, 0); assert.match(section.querySelector('[role="status"]')!.textContent!, /tool changed/);
+  } finally { section.remove(); }
+});
+
+test('live copying reads installed guidance before minting a grant and checks its document', async context => {
+  const fixture = invitationFixture(context);
+  const guide = guidance('design', '1.0.0'); guide.documentId = 'doc:share';
+  fixture.editor.toolVersion = '1.0.0'; fixture.editor.adapter = 'layers';
+  let resolves = 0;
+  guide.skill = async () => { resolves++; return skill('design', '1.0.0'); };
+  const unset = installAgentGuidance(fixture.runtime, guide); context.after(unset);
+  assert.equal(resolves, 0); assert.equal(fixture.permissions.length, 0);
+  const result = await fixture.host.create('read', 'Reader');
+  assert.equal(resolves, 1); assert.deepEqual(fixture.permissions, ['read']);
+  assert.match(result.instructions, /Current tool facts/); assert.match(result.instructions, /doc:share/);
+  guide.documentId = 'doc:changed';
+  await assert.rejects(fixture.host.create('read', 'Reader'), /tool changed/);
+  assert.deepEqual(fixture.permissions, ['read'], 'the mismatched identity minted no grant');
+});
+
+test('skill, setup and authored references follow a configured instance and deployment path', async () => {
+  _setBaseForTests('https://instance.example/lolly');
+  try {
+    const guide = guidance();
+    const instructions = agentGuidanceInstructions({ ...guide, skill: await guide.skill() }, ['exposure=2']);
+    assert.match(instructions, /https:\/\/instance\.example\/lolly\/info\/skills\/lolly\/SKILL.md/);
+    assert.match(instructions, /https:\/\/instance\.example\/lolly\/info\/skills\/tools\/darkroom\/SKILL.md/);
+    assert.match(instructions, /https:\/\/instance\.example\/lolly\/tools\/darkroom\/skill\/retouch.md/);
+    assert.match(instructions, /https:\/\/instance\.example\/lolly\/t\/darkroom\?exposure=2/);
+    assert.doesNotMatch(instructions, /localhost|lolly\.tools|\/reference\/inputs\.json/);
+    const section = buildAgentShareSection({ baseParts: [], copy: async () => {}, document: () => ({ inputs: {}, agentGuidance: guide }) })!;
+    assert.equal(section.querySelector('a')!.href, 'https://instance.example/lolly/info/build/mcp.html#install-lolly-in-chatgpt');
+  } finally { _setBaseForTests(''); }
+});
+
+test('a guidance draft keeps its name when live access appears and preserves an explicit read choice', () => {
+  const guide = guidance();
+  const doc: ShareDocument = { inputs: {}, agentGuidance: guide };
+  const options = { baseParts: [], copy: async () => {}, document: () => doc };
+  let section = buildAgentShareSection(options)!;
+  const name = section.querySelector('input')!; name.value = 'Photo assistant'; name.dispatchEvent(new dom.window.Event('input'));
+  const host: AgentInvitationHost = { canEdit: () => true, create: async () => ({ instructions: 'invitation', expiresAt: 0 }), revoke() {} };
+  doc.agentInvitation = host;
+  section = buildAgentShareSection(options)!;
+  assert.match(section.querySelector('summary')!.textContent!, /Invite an agent/);
+  assert.equal(section.querySelector('input')!.value, 'Photo assistant');
+  assert.equal(section.querySelector('select')!.value, 'edit', 'a newly available live editor gets its intended default');
+  const access = section.querySelector('select')!; access.value = 'read'; access.dispatchEvent(new dom.window.Event('change'));
+  delete doc.agentInvitation;
+  buildAgentShareSection(options);
+  doc.agentInvitation = host;
+  section = buildAgentShareSection(options)!;
+  assert.equal(section.querySelector('select')!.value, 'read', 'a selected read scope survives a temporary host absence');
+});
+
+test('embedded actual guidance has a fixed size bound', async () => {
+  const guide = guidance();
+  const instructions = agentGuidanceInstructions({ ...guide, skill: skill('darkroom', '1.2.3', 'x'.repeat(60_000)) }, []);
+  assert.ok(instructions.length < 15_000);
+  assert.match(instructions, /Excerpt ends here/);
 });

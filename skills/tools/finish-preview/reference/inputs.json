@@ -1,0 +1,193 @@
+[
+  {
+    "id": "image",
+    "label": "Artwork",
+    "type": "asset",
+    "assetType": "raster",
+    "allowUpload": true,
+    "help": "Pick artwork or upload your own. It's processed on your device - the pixels never leave the browser."
+  },
+  {
+    "id": "finish",
+    "label": "Type",
+    "section": "Finish",
+    "type": "select",
+    "default": "foil-gold",
+    "options": [
+      {
+        "value": "foil-gold",
+        "label": "Gold foil"
+      },
+      {
+        "value": "foil-silver",
+        "label": "Silver foil"
+      },
+      {
+        "value": "foil-holographic",
+        "label": "Holographic foil"
+      },
+      {
+        "value": "spot-uv-gloss",
+        "label": "Spot UV gloss"
+      },
+      {
+        "value": "emboss",
+        "label": "Emboss"
+      },
+      {
+        "value": "deboss",
+        "label": "Deboss"
+      },
+      {
+        "value": "soft-touch-matte",
+        "label": "Soft-touch matte"
+      }
+    ],
+    "help": "The physical finish to simulate. Foils and spot UV fill the mask; emboss and deboss raise or sink its edges; soft-touch mattes everything outside the mask."
+  },
+  {
+    "id": "strength",
+    "label": "Strength",
+    "section": "Finish",
+    "type": "number",
+    "display": "slider",
+    "default": 80,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "help": "How strongly the finish reads on screen. Preview only - the exported plate is always full-strength ink."
+  },
+  {
+    "id": "sheen",
+    "label": "Sheen animation",
+    "section": "Finish",
+    "type": "boolean",
+    "default": true,
+    "help": "Sweep a light band across foil and spot UV, like tilting the sheet. Automatically stilled when you prefer reduced motion; stills never bake a mid-sweep frame."
+  },
+  {
+    "id": "angle",
+    "label": "Sweep angle",
+    "section": "Finish",
+    "type": "number",
+    "display": "slider",
+    "default": 35,
+    "min": 0,
+    "max": 360,
+    "step": 5,
+    "help": "Direction of the foil grain and sheen sweep."
+  },
+  {
+    "id": "maskSource",
+    "label": "Mask from",
+    "section": "Mask",
+    "type": "select",
+    "default": "light",
+    "options": [
+      {
+        "value": "whole",
+        "label": "Whole image"
+      },
+      {
+        "value": "light",
+        "label": "Light areas"
+      },
+      {
+        "value": "dark",
+        "label": "Dark areas"
+      },
+      {
+        "value": "colour",
+        "label": "By colour"
+      }
+    ],
+    "help": "Where the finish goes. Light and dark areas split the artwork by perceptual lightness; By colour matches areas near a chosen colour."
+  },
+  {
+    "id": "maskColor",
+    "label": "Match colour",
+    "section": "Mask",
+    "type": "color",
+    "default": "{color.semantic.primary}",
+    "showIf": {
+      "maskSource": "colour"
+    },
+    "help": "Areas perceptually close to this colour join the mask."
+  },
+  {
+    "id": "threshold",
+    "label": "Threshold",
+    "section": "Mask",
+    "type": "number",
+    "display": "slider",
+    "default": 60,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "help": "Lightness cut-off for light and dark masks, or match radius for By colour. Ignored for Whole image."
+  },
+  {
+    "id": "softness",
+    "label": "Edge softness",
+    "section": "Mask",
+    "type": "number",
+    "display": "slider",
+    "default": 4,
+    "min": 0,
+    "max": 20,
+    "step": 0.5,
+    "help": "Feathers the mask edge. 0 is a hard cut - the plate always exports hard-edged either way."
+  },
+  {
+    "id": "fit",
+    "label": "Artwork fit",
+    "section": "Output",
+    "type": "select",
+    "default": "contain",
+    "options": [
+      {
+        "value": "contain",
+        "label": "Contain (whole image)"
+      },
+      {
+        "value": "cover",
+        "label": "Cover (fill, crop edges)"
+      }
+    ]
+  },
+  {
+    "id": "width",
+    "label": "Width",
+    "type": "number",
+    "default": 1000,
+    "min": 1,
+    "max": 8000,
+    "group": "export"
+  },
+  {
+    "id": "height",
+    "label": "Height",
+    "type": "number",
+    "default": 1000,
+    "min": 1,
+    "max": 8000,
+    "group": "export"
+  },
+  {
+    "id": "bgColor",
+    "label": "Background",
+    "section": "Output",
+    "type": "color",
+    "default": "{color.semantic.surface}",
+    "help": "Fill behind the artwork when it doesn't cover the frame."
+  },
+  {
+    "id": "plateView",
+    "label": "Plate view (printer-ready)",
+    "section": "Plate",
+    "group": "export",
+    "type": "boolean",
+    "default": false,
+    "help": "Switch to the deliverable: the finish mask as pure black on white with an overprint label. Send this file to the print house, not the shiny preview."
+  }
+]

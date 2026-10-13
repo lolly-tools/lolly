@@ -1,0 +1,165 @@
+[
+  {
+    "id": "certKind",
+    "label": "Kind",
+    "type": "select",
+    "urlKey": "k",
+    "default": "completion",
+    "help": "Sets the wording: the title and the line above what the certificate is for.",
+    "options": [
+      {
+        "value": "completion",
+        "label": "Completion"
+      },
+      {
+        "value": "achievement",
+        "label": "Achievement"
+      },
+      {
+        "value": "award",
+        "label": "Award"
+      },
+      {
+        "value": "appreciation",
+        "label": "Appreciation"
+      }
+    ]
+  },
+  {
+    "id": "pageSize",
+    "label": "Sheet",
+    "type": "select",
+    "urlKey": "ps",
+    "default": "a4-landscape",
+    "help": "Sets the sheet proportion and the exported page size.",
+    "options": [
+      {
+        "value": "a4-landscape",
+        "label": "A4 landscape · 297 × 210 mm",
+        "width": 297,
+        "height": 210,
+        "unit": "mm"
+      },
+      {
+        "value": "letter-landscape",
+        "label": "US Letter landscape · 11 × 8.5 in",
+        "width": 11,
+        "height": 8.5,
+        "unit": "in"
+      },
+      {
+        "value": "screen",
+        "label": "Screen · 1600 × 1131 px",
+        "width": 1600,
+        "height": 1131,
+        "unit": "px"
+      }
+    ]
+  },
+  {
+    "id": "heading",
+    "label": "Title",
+    "type": "text",
+    "default": "",
+    "maxLength": 60,
+    "placeholder": "Certificate of Completion",
+    "help": "Leave empty to follow the Kind above."
+  },
+  {
+    "id": "firstname",
+    "label": "First name",
+    "type": "text",
+    "default": "Ana",
+    "maxLength": 60,
+    "bindToProfile": "firstname"
+  },
+  {
+    "id": "lastname",
+    "label": "Last name",
+    "type": "text",
+    "default": "Kovač",
+    "maxLength": 60,
+    "bindToProfile": "lastname"
+  },
+  {
+    "id": "awardtopic",
+    "label": "Course or award",
+    "type": "text",
+    "default": "Container Fundamentals",
+    "maxLength": 120,
+    "help": "What the certificate is for - a course title, an award name, or the contribution being recognised."
+  },
+  {
+    "id": "awarddate",
+    "label": "Date",
+    "type": "date",
+    "default": "2026-06-18",
+    "help": "Printed in full above the date line, e.g. 18 June 2026."
+  },
+  {
+    "id": "presenter",
+    "label": "Signed by",
+    "type": "text",
+    "default": "Maya Lindqvist",
+    "maxLength": 60,
+    "section": "Signature",
+    "help": "The name printed above the signature line. Leave empty to drop the whole signature column."
+  },
+  {
+    "id": "presenterTitle",
+    "label": "Their role",
+    "type": "text",
+    "default": "Programme Director",
+    "maxLength": 60,
+    "section": "Signature"
+  },
+  {
+    "id": "company",
+    "label": "Issued by",
+    "type": "text",
+    "default": "Northwind Institute",
+    "maxLength": 80,
+    "section": "Issuer",
+    "help": "Printed at the top when the design system ships no logo, or under it when it does."
+  },
+  {
+    "id": "brandLogo",
+    "label": "Logo",
+    "type": "boolean",
+    "default": true,
+    "section": "Issuer",
+    "help": "Place the active design system's logo at the top - the light or dark version to suit the paper colour. Falls back to the Issued by line when the design system ships no logo."
+  },
+  {
+    "id": "serial",
+    "label": "Reference",
+    "type": "text",
+    "default": "",
+    "maxLength": 60,
+    "section": "Issuer",
+    "placeholder": "No. 2026-0413",
+    "help": "Optional small line at the foot of the sheet. Plain text, exactly as typed - the tool never makes one up."
+  },
+  {
+    "id": "color",
+    "label": "Ink",
+    "type": "color",
+    "default": "{color.semantic.text}",
+    "section": "Colour"
+  },
+  {
+    "id": "background",
+    "label": "Paper",
+    "type": "color",
+    "default": "{color.semantic.surface}",
+    "section": "Colour"
+  },
+  {
+    "id": "accent",
+    "label": "Accent",
+    "type": "color",
+    "default": "{color.semantic.primary}",
+    "section": "Colour",
+    "help": "Colours the border rules and the recipient's name."
+  }
+]

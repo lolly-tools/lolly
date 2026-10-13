@@ -183,7 +183,7 @@ export type {
 
 // live-v1 - plan 289 D1: an agent working in a running Design editor (desktop listener or paired tab).
 export { LIVE_PROTOCOL, LIVE_METHODS, LIVE_LIMITS, LIVE_ERRORS, parseLiveRequest, liveResult, liveError } from './live-v1.ts';
-export type { LiveMethodV1, LiveRequestV1, LiveReplyV1, LiveHelloResultV1, LiveDocumentV1, LiveApplyParamsV1, LiveLookResultV1 } from './live-v1.ts';
+export type { LiveMethodV1, LiveRequestV1, LiveReplyV1, LiveHelloResultV1, LiveDocumentV1, LiveApplyParamsV1, LiveLookResultV1, LiveAdapterV1, LiveCapabilitiesV1, LiveInputStateV1 } from './live-v1.ts';
 export type { AgentPresence, AgentChange, AgentChangeTarget } from './agent-presence-v1.ts';
 
 export type { LearningRichNode, LearningQuiz, LearningProgressEventV1, LearningTarget, LearningSource, LearningBlock, LearningLesson, LearningModule, LearningFile, LearningContentBlock, LearningContent, LearningAttempt, LearningFinding, LearningRelease } from './learning-v1.ts';

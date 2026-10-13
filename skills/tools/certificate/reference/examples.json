@@ -1,0 +1,56 @@
+[
+  {
+    "label": "Course completion",
+    "values": {
+      "certKind": "completion",
+      "firstname": "Ana",
+      "lastname": "Kovač",
+      "awardtopic": "Container Fundamentals",
+      "awarddate": "2026-06-18",
+      "presenter": "Maya Lindqvist",
+      "presenterTitle": "Programme Director",
+      "company": "Northwind Institute"
+    }
+  },
+  {
+    "label": "Award",
+    "values": {
+      "certKind": "award",
+      "firstname": "Tomás",
+      "lastname": "Herrera",
+      "awardtopic": "The 2026 Innovation Award",
+      "awarddate": "2026-05-09",
+      "presenter": "Ingrid Sorensen",
+      "presenterTitle": "Chair of the Jury",
+      "company": "Northwind Institute",
+      "serial": "No. 2026-0413"
+    }
+  },
+  {
+    "label": "Appreciation",
+    "values": {
+      "certKind": "appreciation",
+      "firstname": "Priya",
+      "lastname": "Nair",
+      "awardtopic": "Two years of volunteering",
+      "awarddate": "2026-03-02",
+      "presenter": "Jonas Weber",
+      "presenterTitle": "Community Lead",
+      "company": "Riverside Library"
+    }
+  },
+  {
+    "label": "Achievement on screen",
+    "values": {
+      "certKind": "achievement",
+      "pageSize": "screen",
+      "firstname": "Lena",
+      "lastname": "Fischer",
+      "awardtopic": "Top of the 2026 cohort",
+      "awarddate": "2026-07-24",
+      "presenter": "Maya Lindqvist",
+      "presenterTitle": "Programme Director",
+      "company": "Northwind Institute"
+    }
+  }
+]

@@ -1,0 +1,511 @@
+[
+  {
+    "id": "locations",
+    "label": "Places",
+    "type": "blocks",
+    "default": [
+      {
+        "place": "London, GB"
+      },
+      {
+        "place": "Nuremberg, DE"
+      },
+      {
+        "place": "Prague, CZ"
+      },
+      {
+        "place": "Sofia, BG"
+      },
+      {
+        "place": "San Francisco, US"
+      },
+      {
+        "place": "Noosa, AU"
+      }
+    ],
+    "help": "Type a city or IANA timezone in the first column; press Enter for the next row. The other columns are optional: add a country code for an ambiguous city (London, GB), and move rows to set the tour route. Coordinates and a timezone override the lookup.",
+    "fields": [
+      {
+        "id": "label",
+        "label": "Label",
+        "type": "text",
+        "default": ""
+      },
+      {
+        "id": "place",
+        "label": "City",
+        "type": "text",
+        "default": "",
+        "placeholder": "London, GB / Europe/London"
+      },
+      {
+        "id": "timezone",
+        "label": "Timezone",
+        "type": "text",
+        "default": "",
+        "placeholder": "Europe/London"
+      },
+      {
+        "id": "annotation",
+        "label": "Note",
+        "type": "text",
+        "default": ""
+      },
+      {
+        "id": "color",
+        "label": "Colour",
+        "type": "color",
+        "default": ""
+      },
+      {
+        "id": "spread",
+        "label": "Fill region",
+        "type": "boolean",
+        "default": false
+      },
+      {
+        "id": "longitude",
+        "label": "Longitude",
+        "type": "text",
+        "default": "",
+        "placeholder": "-0.12"
+      },
+      {
+        "id": "latitude",
+        "label": "Latitude",
+        "type": "text",
+        "default": "",
+        "placeholder": "51.51"
+      }
+    ],
+    "tableColumns": [
+      "place",
+      "label",
+      "annotation",
+      "timezone",
+      "color",
+      "spread",
+      "longitude",
+      "latitude"
+    ]
+  },
+  {
+    "id": "heading",
+    "label": "Headline",
+    "type": "text",
+    "default": "",
+    "section": "Story"
+  },
+  {
+    "id": "eyebrow",
+    "label": "Overline",
+    "help": "A short line above the headline, such as a series name.",
+    "type": "text",
+    "default": "",
+    "section": "Story"
+  },
+  {
+    "id": "annotation",
+    "label": "Description",
+    "type": "longtext",
+    "default": "",
+    "section": "Story"
+  },
+  {
+    "id": "footer",
+    "label": "Footer line",
+    "help": "A closing line under the map, such as a call to action.",
+    "type": "text",
+    "default": "",
+    "section": "Story"
+  },
+  {
+    "id": "timeMode",
+    "display": "segmented",
+    "label": "Time",
+    "type": "select",
+    "default": "now",
+    "section": "Time",
+    "options": [
+      {
+        "value": "now",
+        "label": "Live now"
+      },
+      {
+        "value": "fixed",
+        "label": "Scheduled moment"
+      }
+    ]
+  },
+  {
+    "id": "eventTime",
+    "label": "Scheduled date & time",
+    "type": "datetime-local",
+    "default": "",
+    "section": "Time",
+    "help": "Interpreted in the reference timezone, never the browser timezone."
+  },
+  {
+    "id": "referenceZone",
+    "label": "Reference timezone",
+    "type": "text",
+    "default": "",
+    "section": "Time",
+    "help": "Optional reference clock. IANA identifier, e.g. Europe/London. Scheduled times use UTC when blank."
+  },
+  {
+    "id": "ambiguity",
+    "label": "Repeated autumn hour",
+    "type": "select",
+    "default": "earlier",
+    "section": "Time",
+    "options": [
+      {
+        "value": "earlier",
+        "label": "First occurrence"
+      },
+      {
+        "value": "later",
+        "label": "Second occurrence"
+      }
+    ]
+  },
+  {
+    "id": "eventMinutes",
+    "label": "Event duration (minutes)",
+    "type": "number",
+    "default": 60,
+    "section": "Time",
+    "min": 1,
+    "max": 1440,
+    "step": 1,
+    "display": "slider"
+  },
+  {
+    "id": "clockStyle",
+    "display": "segmented",
+    "label": "Clock display",
+    "type": "select",
+    "default": "24",
+    "section": "Time",
+    "options": [
+      {
+        "value": "24",
+        "label": "24 hour"
+      },
+      {
+        "value": "12",
+        "label": "12 hour"
+      }
+    ]
+  },
+  {
+    "id": "composition",
+    "label": "Composition",
+    "type": "select",
+    "default": "artwork",
+    "section": "Map",
+    "options": [
+      {
+        "value": "artwork",
+        "label": "Map and details"
+      },
+      {
+        "value": "map",
+        "label": "Map only"
+      }
+    ],
+    "help": "Map only keeps locations for pins, regions and camera tours, while hiding the headline, reference clock, location cards and footer."
+  },
+  {
+    "id": "mapFit",
+    "label": "Map framing",
+    "type": "select",
+    "default": "width",
+    "section": "Map",
+    "options": [
+      {
+        "value": "width",
+        "label": "Fill width"
+      },
+      {
+        "value": "fit",
+        "label": "Fit whole map"
+      }
+    ],
+    "help": "Fill width uses the available canvas width and crops vertically when needed. Fit whole map keeps the full globe or projection in view. Zoom remains adjustable."
+  },
+  {
+    "id": "renderer",
+    "label": "Map renderer",
+    "type": "select",
+    "default": "vector",
+    "section": "Map",
+    "options": [
+      {
+        "value": "vector",
+        "label": "Vector atlas"
+      },
+      {
+        "value": "webgl",
+        "label": "WebGL globe"
+      }
+    ]
+  },
+  {
+    "id": "projection",
+    "label": "Projection",
+    "type": "select",
+    "default": "globe",
+    "section": "Map",
+    "options": [
+      {
+        "value": "globe",
+        "label": "Globe"
+      },
+      {
+        "value": "equalEarth",
+        "label": "Equal Earth"
+      },
+      {
+        "value": "naturalEarth",
+        "label": "Natural Earth"
+      },
+      {
+        "value": "equirectangular",
+        "label": "Equirectangular"
+      },
+      {
+        "value": "mercator",
+        "label": "Mercator"
+      }
+    ]
+  },
+  {
+    "id": "unfold",
+    "label": "Unfold globe to projection",
+    "type": "number",
+    "default": 1,
+    "section": "Map",
+    "min": 0,
+    "max": 1,
+    "step": 0.01,
+    "display": "slider",
+    "help": "Blends the globe into the chosen flat projection, on the WebGL renderer. It does nothing while Projection is set to Globe."
+  },
+  {
+    "id": "view",
+    "label": "View",
+    "type": "text",
+    "default": "15,22,0,1",
+    "section": "View",
+    "help": "Longitude, latitude, roll and zoom. Drag the map to rotate, shift-drag to roll, scroll to zoom."
+  },
+  {
+    "id": "fov",
+    "label": "Camera field of view",
+    "type": "number",
+    "default": 40,
+    "section": "View",
+    "min": 20,
+    "max": 80,
+    "step": 1,
+    "display": "slider"
+  },
+  {
+    "id": "tilt",
+    "label": "Map tilt",
+    "type": "number",
+    "default": 0,
+    "section": "View",
+    "min": -65,
+    "max": 65,
+    "step": 1,
+    "display": "slider",
+    "help": "WebGL camera tilt, also available when the map is unfolded."
+  },
+  {
+    "id": "showGrid",
+    "label": "Graticule",
+    "type": "boolean",
+    "default": true,
+    "section": "Map detail"
+  },
+  {
+    "id": "showBorders",
+    "label": "Country borders",
+    "type": "boolean",
+    "default": true,
+    "section": "Map detail"
+  },
+  {
+    "id": "showNight",
+    "label": "Day and night shading",
+    "type": "boolean",
+    "default": true,
+    "section": "Map detail"
+  },
+  {
+    "id": "showLabels",
+    "label": "Labels on map",
+    "type": "boolean",
+    "default": true,
+    "section": "Map detail"
+  },
+  {
+    "id": "showConnections",
+    "label": "Connections between places",
+    "type": "boolean",
+    "default": true,
+    "section": "Map detail"
+  },
+  {
+    "id": "regionOpacity",
+    "label": "Region colour strength",
+    "type": "number",
+    "default": 0.45,
+    "section": "Map detail",
+    "min": 0,
+    "max": 1,
+    "step": 0.05,
+    "display": "slider"
+  },
+  {
+    "id": "theme",
+    "label": "Theme",
+    "type": "select",
+    "default": "midnight",
+    "section": "Colour",
+    "options": [
+      {
+        "value": "midnight",
+        "label": "Midnight"
+      },
+      {
+        "value": "paper",
+        "label": "Paper"
+      },
+      {
+        "value": "brand",
+        "label": "Design system colour"
+      },
+      {
+        "value": "minimal",
+        "label": "Quiet atlas"
+      }
+    ]
+  },
+  {
+    "id": "accent",
+    "label": "Accent",
+    "type": "color",
+    "default": "{color.semantic.primary}",
+    "section": "Colour"
+  },
+  {
+    "id": "background",
+    "label": "Background override",
+    "type": "color",
+    "default": "",
+    "section": "Colour"
+  },
+  {
+    "id": "ink",
+    "label": "Text override",
+    "type": "color",
+    "default": "",
+    "section": "Colour"
+  },
+  {
+    "id": "titleSize",
+    "label": "Headline size",
+    "type": "number",
+    "default": 68,
+    "section": "Type and size",
+    "min": 24,
+    "max": 120,
+    "step": 1,
+    "display": "slider"
+  },
+  {
+    "id": "titleWeight",
+    "label": "Headline weight",
+    "type": "number",
+    "default": 500,
+    "section": "Type and size",
+    "min": 100,
+    "max": 900,
+    "step": 100,
+    "display": "slider"
+  },
+  {
+    "id": "labelSize",
+    "label": "Map label size",
+    "type": "number",
+    "default": 15,
+    "section": "Type and size",
+    "min": 10,
+    "max": 30,
+    "step": 1,
+    "display": "slider"
+  },
+  {
+    "id": "mapScale",
+    "label": "Map size",
+    "type": "number",
+    "default": 1,
+    "section": "Type and size",
+    "min": 0.5,
+    "max": 1.5,
+    "step": 0.05,
+    "display": "slider"
+  },
+  {
+    "id": "motion",
+    "label": "Animation",
+    "type": "select",
+    "default": "still",
+    "section": "Motion",
+    "options": [
+      {
+        "value": "still",
+        "label": "Still"
+      },
+      {
+        "value": "tour",
+        "label": "Tour places"
+      },
+      {
+        "value": "orbit",
+        "label": "World orbit"
+      },
+      {
+        "value": "unfold",
+        "label": "Unfold & return"
+      }
+    ]
+  },
+  {
+    "id": "duration",
+    "label": "Loop seconds",
+    "type": "number",
+    "default": 12,
+    "section": "Motion",
+    "min": 2,
+    "max": 120,
+    "step": 1,
+    "display": "slider",
+    "help": "Set the export duration to the same length so the loop repeats without a visible jump."
+  },
+  {
+    "id": "tourHold",
+    "label": "Hold at each place",
+    "type": "number",
+    "default": 0.35,
+    "section": "Motion",
+    "min": 0,
+    "max": 0.8,
+    "step": 0.05,
+    "display": "slider"
+  }
+]

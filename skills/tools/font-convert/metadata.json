@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "toolId": "font-convert",
+  "toolVersion": "1.0.0",
+  "toolVersionRange": "1.0.0",
+  "skillRevision": "1",
+  "origin": "generated",
+  "references": [
+    "reference/inputs.json"
+  ],
+  "files": {
+    "SKILL.md": {
+      "sha256": "9c4a8b6d30aeed7a55b4f6eb7eba2c2481535b9cc38889ed0ac9fb43ecefa801",
+      "bytes": 1586
+    },
+    "reference/inputs.json": {
+      "sha256": "df57ce08a157f371e776716d6a209bb5d013e87b78cfd17b978807039db24f99",
+      "bytes": 850
+    }
+  }
+}

@@ -6,12 +6,21 @@ description: >-
   route, the MCP server, the CLI, the GitHub render action, and the lolly-work
   API. Use when the task is to make an image, chart, poster, deck, QR code, print
   file, motion piece or on-device file transform, or to drive a Lolly tool by URL,
-  MCP or CLI.
+  MCP or CLI. Also use for setting up, importing, selecting or matching a design
+  system, and for diagram workflows.
   Covers the three document tools whose input is structured (chart, design,
   deck-studio) and how to edit a Design document by stable layer id.
 ---
 
 # Driving Lolly
+
+For setup or brand matching, read `reference/design-system.md`. Each tool also
+has compatible guidance: `/info/skills/tools/<id>/SKILL.md` on the current
+instance, or MCP `lolly://tool/{id}/skill`. The public index is
+`/info/skills/tools/index.json`. An invitation embeds guidance from the actual
+loaded tool, including private or installed tools; use that revision rather than
+substituting another instance's public artifact. Load only the current tool and
+the shared references needed for the task. Guidance grants no document access.
 
 Lolly generates on-brand assets from simple inputs. Tools are data (a manifest
 plus a template): the same tool runs unchanged through a URL, the render route,

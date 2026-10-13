@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "toolId": "design",
+  "toolVersion": "1.50.0",
+  "toolVersionRange": "^1.50.0",
+  "skillRevision": "1.0.0",
+  "origin": "authored",
+  "references": [
+    "reference/inputs.json",
+    "reference/examples.json",
+    "skill/workflow.md"
+  ],
+  "files": {
+    "SKILL.md": {
+      "sha256": "c506b5a399620e11ff6f616f7abbf86a0356ba4500f54f86ed52d6dca8b4c6ab",
+      "bytes": 1088
+    },
+    "reference/inputs.json": {
+      "sha256": "a57fc5bd6711ee889396ac8d80ef6cba7a91e4b9d12c5aac7e2fafe819f8bedc",
+      "bytes": 81249
+    },
+    "reference/examples.json": {
+      "sha256": "67a30a640dd968188a19806c339d7274747807aa6536217a7f31dca6d695f101",
+      "bytes": 2975
+    },
+    "skill/workflow.md": {
+      "sha256": "08b4e2cedbdcaf0d3608adcb5ac8c20eca32291d131621732c81a1da2a761d52",
+      "bytes": 1309
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "toolId": "filter",
+  "toolVersion": "1.5.0",
+  "toolVersionRange": "1.5.0",
+  "skillRevision": "1",
+  "origin": "generated",
+  "references": [
+    "reference/inputs.json",
+    "reference/examples.json"
+  ],
+  "files": {
+    "SKILL.md": {
+      "sha256": "34347c0566193b209f5fce10ff94010b37c3eb840938ef6e00d9315ae6dc545a",
+      "bytes": 5289
+    },
+    "reference/inputs.json": {
+      "sha256": "ee85c31ec04bebcb4af5714b71d54b7b1ab2e752f3fffdff074490d89041eaf6",
+      "bytes": 53029
+    },
+    "reference/examples.json": {
+      "sha256": "a4dc5d5805e4070d40ca07b2a857c00d8ded31da5f810c72a807f25c72f759ef",
+      "bytes": 815
+    }
+  }
+}

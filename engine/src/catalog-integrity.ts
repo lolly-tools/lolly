@@ -66,7 +66,7 @@ export const TEXT_TEMPLATE_EXTS = [
 /** Fixed tool-directory filenames covered by the signature. Together with the
  *  i18n sidecars (below), exactly the set loadTool can fetch. */
 export const CATALOG_SIGNED_TOOL_FILES: readonly string[] = [
-  'tool.json', 'template.html', 'styles.css', 'hooks.js', 'presentation.js',
+  'tool.json', 'template.html', 'styles.css', 'hooks.js', 'presentation.js', 'SKILL.md', 'skill.json',
   ...TEXT_TEMPLATE_EXTS.map((ext) => `template.${ext}`),
 ];
 /** Per-tool i18n sidecars (`i18n/<lang>.json`) are signed too - but they're

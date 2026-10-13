@@ -1,0 +1,58 @@
+[
+  {
+    "id": "src",
+    "label": "Asset",
+    "type": "asset",
+    "help": "The asset to render. Pick one from your library, or paste a lolly.tools tool link. Vector assets stay vector through SVG and PDF; raster assets embed as images."
+  },
+  {
+    "id": "fit",
+    "display": "segmented",
+    "label": "Fit",
+    "type": "select",
+    "default": "contain",
+    "options": [
+      {
+        "value": "contain",
+        "label": "Contain"
+      },
+      {
+        "value": "cover",
+        "label": "Cover"
+      }
+    ],
+    "help": "Contain shows the whole asset inside the frame; Cover fills the frame and may crop the edges."
+  },
+  {
+    "id": "width",
+    "label": "Width",
+    "type": "number",
+    "default": 1000,
+    "min": 1,
+    "max": 8000,
+    "group": "export"
+  },
+  {
+    "id": "height",
+    "label": "Height",
+    "type": "number",
+    "default": 1000,
+    "min": 1,
+    "max": 8000,
+    "group": "export"
+  },
+  {
+    "id": "background",
+    "label": "Background",
+    "type": "color",
+    "default": "{color.semantic.surface}",
+    "help": "The colour behind the asset. Turn on \"Transparent background\" to drop it."
+  },
+  {
+    "id": "transparentBg",
+    "label": "Transparent background",
+    "type": "boolean",
+    "default": false,
+    "help": "Drop the background fill so the asset exports on transparency (PNG/SVG/WebP)."
+  }
+]

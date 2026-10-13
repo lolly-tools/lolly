@@ -30,7 +30,7 @@ import { isTextEditingTarget } from '../../lib/typing-target.ts';
 import type { EmojiParamPair } from '../../lib/emoji-prefs.ts';
 import { isCmykFmt, isPrintFmt, printEnabled, readBleed, readMarks } from '../tool-actions.ts';
 import { isIframeMode } from '../../lib/iframe-mode.ts';
-import { agentInvitationHost } from '../../lib/agent-invitation-host.ts';
+import { agentGuidanceHost, agentInvitationHost } from '../../lib/agent-invitation-host.ts';
 import { leaveQuestion } from '../tool-leave.ts';
 import { escape as escapeText } from '../../utils.ts';
 
@@ -844,7 +844,8 @@ export function readToolDocument(runtime: Runtime, exportScope: HTMLElement | nu
   const label = exportScope?.querySelector<HTMLInputElement>('[data-action="filename"]')?.value.trim();
   const emoji = toolEmojiParams();
   const agentInvitation = agentInvitationHost(runtime);
-  return { inputs: sessionInputValues(runtime), toolVersion: manifest.version, ...(agentInvitation ? { agentInvitation } : {}), ...(label ? { label } : {}), ...(emoji ? { emoji: { ...emoji } } : {}) };
+  const agentGuidance = agentGuidanceHost(runtime);
+  return { inputs: sessionInputValues(runtime), toolVersion: manifest.version, ...(agentInvitation ? { agentInvitation } : {}), ...(agentGuidance ? { agentGuidance } : {}), ...(label ? { label } : {}), ...(emoji ? { emoji: { ...emoji } } : {}) };
 }
 
 export function shareDialogOptions(

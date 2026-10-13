@@ -6014,6 +6014,12 @@ async function build() {
     cpSync(skillSrc, resolve(outDir, 'skills', 'lolly'), { recursive: true });
     console.log('✓  /info/skills/lolly (agent skill: SKILL.md + references)');
   }
+  const toolSkillsSrc = resolve(repoRoot, 'skills', 'tools');
+  if (existsSync(toolSkillsSrc)) {
+    rmSync(resolve(outDir, 'skills', 'tools'), { recursive: true, force: true });
+    cpSync(toolSkillsSrc, resolve(outDir, 'skills', 'tools'), { recursive: true });
+    console.log('✓  /info/skills/tools (public tool guidance + versioned index)');
+  }
 
   // Docs screenshots - committed baselines captured by `pnpm run docs:shots` from
   // the url-shot recipe links inline in docs/*.md (neutral lolly-start brand;

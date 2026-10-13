@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "toolId": "redact",
+  "toolVersion": "1.6.1",
+  "toolVersionRange": "1.6.1",
+  "skillRevision": "1",
+  "origin": "generated",
+  "references": [
+    "reference/inputs.json"
+  ],
+  "files": {
+    "SKILL.md": {
+      "sha256": "278faeb5feb53dfc6721c7e64bbd08bf620eec9c44bbb76b77470dd38d1783f8",
+      "bytes": 1843
+    },
+    "reference/inputs.json": {
+      "sha256": "794f43fad07c0ce4bf2e042975ba681bc09641bea089136a0c00c026f8c856c3",
+      "bytes": 4765
+    }
+  }
+}

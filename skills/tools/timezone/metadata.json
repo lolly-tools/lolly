@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "toolId": "timezone",
+  "toolVersion": "1.1.0",
+  "toolVersionRange": "1.1.0",
+  "skillRevision": "1",
+  "origin": "generated",
+  "references": [
+    "reference/inputs.json",
+    "reference/examples.json"
+  ],
+  "files": {
+    "SKILL.md": {
+      "sha256": "8c7838cd4041619e6480985cd15df2923bf7ca8342425408d6049ca39ba792e1",
+      "bytes": 2659
+    },
+    "reference/inputs.json": {
+      "sha256": "38cbbc84b405e415a9804452b8260edaae1fded080eb48e344fa9b66f8be1cfd",
+      "bytes": 10503
+    },
+    "reference/examples.json": {
+      "sha256": "42f61bd3205296e8128687705ef7dc071c0039c6ba573c4c1200c27c0912025a",
+      "bytes": 6234
+    }
+  }
+}

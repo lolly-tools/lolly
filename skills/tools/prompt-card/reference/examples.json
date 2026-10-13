@@ -1,0 +1,33 @@
+[
+  {
+    "label": "Two-column brief",
+    "values": {
+      "columns": "2",
+      "text": "You are a naming consultant.\n\nGiven a product description, propose five names.\n\nRules:\n- one or two syllables\n- easy to say out loud\n- nothing that collides with a trademark\n- a one-line rationale for each",
+      "width": 1280,
+      "height": 800
+    }
+  },
+  {
+    "label": "Compact card",
+    "values": {
+      "columns": "1",
+      "padding": 64,
+      "lineHeight": 1.5,
+      "text": "Summarise this thread in three bullet points.\n\nKeep every number exactly as written. If a decision was made, state it first.",
+      "width": 1024,
+      "height": 640
+    }
+  },
+  {
+    "label": "Tall checklist",
+    "values": {
+      "columns": "1",
+      "keepLines": true,
+      "paraGap": 1.4,
+      "text": "Release checklist:\n\n1. Changelog written\n2. Screenshots refreshed\n3. Version bumped\n4. Tags pushed\n5. Announcement drafted",
+      "width": 900,
+      "height": 1200
+    }
+  }
+]

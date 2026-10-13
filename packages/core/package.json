@@ -67,7 +67,8 @@
     "./design-compose-v1": "./src/design-compose-v1.ts",
     "./schema/design-compose-v1.schema.json": "./schema/design-compose-v1.schema.json",
     "./present-receiver": "./src/present-receiver.ts",
-    "./delivery-v1": "./src/delivery-v1.ts"
+    "./delivery-v1": "./src/delivery-v1.ts",
+    "./tool-skill-v1": "./src/tool-skill-v1.ts"
   },
   "files": [
     "src",

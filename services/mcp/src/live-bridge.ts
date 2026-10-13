@@ -24,7 +24,7 @@
 import { randomInt, timingSafeEqual } from 'node:crypto';
 import type { IncomingMessage } from 'node:http';
 import type { WebSocket, WebSocketServer } from 'ws';
-import { LIVE_ERRORS, LIVE_LIMITS, LIVE_PROTOCOL, type LiveReplyV1 } from '@lolly-tools/core';
+import { LIVE_ERRORS, LIVE_LIMITS, LIVE_PROTOCOL, type LiveReplyV1, type LiveHelloResultV1, type LiveCapabilitiesV1 } from '@lolly-tools/core';
 import { callLiveServer, readLiveServer, type RenderServer } from '@lolly-tools/node-shell/desktop-renderer';
 import { readLiveInvitation, type LiveInvitation } from '@lolly-tools/core/live-invite-v1';
 import { closeRemoteLive, remoteLiveRequest } from './live-remote.ts';
@@ -84,9 +84,23 @@ export interface LiveStatus {
   surface?: LiveSurface;
   code?: string;
   /** What the editor said in hello: tool, engine. */
-  editor?: { tool: string; engine: string; documentId?: string };
+  editor?: Pick<LiveHelloResultV1, 'tool' | 'engine' | 'documentId' | 'toolVersion' | 'adapter' | 'mode' | 'capabilities'>;
   /** Why the last connection ended, if one did. */
   ended?: string;
+}
+
+function editorMetadata(value: Record<string, unknown>): Partial<NonNullable<LiveStatus['editor']>> {
+  const metadata: Partial<NonNullable<LiveStatus['editor']>> = {};
+  if (typeof value.toolVersion === 'string' && value.toolVersion.length <= 128) metadata.toolVersion = value.toolVersion;
+  if (value.adapter === 'layers' || value.adapter === 'inputs') metadata.adapter = value.adapter;
+  if (value.mode === 'read' || value.mode === 'edit') metadata.mode = value.mode;
+  const raw = value.capabilities;
+  if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+    const caps = raw as Record<string, unknown>;
+    const keys = ['read', 'edit', 'inputValues', 'layerOperations', 'layerPatches', 'find', 'look', 'undo', 'artboardAlternatives'];
+    if (caps.read === true && keys.every(key => typeof caps[key] === 'boolean') && Array.isArray(caps.authoring) && caps.authoring.length <= 32 && caps.authoring.every(value => typeof value === 'string' && value.length <= 64)) metadata.capabilities = Object.fromEntries([...keys.map(key => [key, caps[key]]), ['authoring', [...caps.authoring]]]) as unknown as LiveCapabilitiesV1;
+  }
+  return metadata;
 }
 
 export interface LiveBridgeOpts {
@@ -157,8 +171,8 @@ export class LiveBridge {
     try {
       const reply = await remoteLiveRequest(invitation, ++this.seq, 'hello', { protocol: LIVE_PROTOCOL, client: client || this.opts.clientName?.() || 'AI agent' });
       if (reply.error) throw new LiveBridgeError(reply.error.message, reply.error.code);
-      const result = reply.result as { tool: string; engine: string; documentId: string };
-      this.editor = { tool: result.tool, engine: result.engine, documentId: result.documentId };
+      const result = reply.result as { tool: string; engine: string; documentId: string; [key: string]: unknown };
+      this.editor = { tool: result.tool, engine: result.engine, documentId: result.documentId, ...editorMetadata(result) };
       return this.status();
     } catch (error) { this.remote = null; throw error; }
   }
@@ -224,8 +238,8 @@ export class LiveBridge {
   private wake(): void { for (const w of [...this.waiters]) w(); }
 
   private async hello(): Promise<void> {
-    const result = await this.request('hello', { protocol: LIVE_PROTOCOL, client: this.opts.clientName?.() || 'AI agent' }) as { tool?: unknown; engine?: unknown; documentId?: string };
-    this.editor = { tool: String(result?.tool ?? ''), engine: String(result?.engine ?? ''), ...(result.documentId ? { documentId: result.documentId } : {}) };
+    const result = await this.request('hello', { protocol: LIVE_PROTOCOL, client: this.opts.clientName?.() || 'AI agent' }) as { tool?: unknown; engine?: unknown; documentId?: string; [key: string]: unknown };
+    this.editor = { tool: String(result?.tool ?? ''), engine: String(result?.engine ?? ''), ...(result.documentId ? { documentId: result.documentId } : {}), ...editorMetadata(result) };
   }
 
   private send(method: string, params?: Record<string, unknown>): Promise<LiveReplyV1> {

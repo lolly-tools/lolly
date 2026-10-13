@@ -1,0 +1,41 @@
+[
+  {
+    "label": "Teal & orange cinema",
+    "values": {
+      "filmLook": "teal-orange",
+      "vignette": 22,
+      "halation": 18
+    }
+  },
+  {
+    "label": "Faded matte + grain",
+    "values": {
+      "filmLook": "matte",
+      "grain": 45,
+      "vignette": 28
+    }
+  },
+  {
+    "label": "Brand duotone",
+    "values": {
+      "treatment": "duotone",
+      "treatmentAmount": 85
+    }
+  },
+  {
+    "label": "Classic black & white",
+    "values": {
+      "filmLook": "bw",
+      "grain": 35,
+      "vignette": 24,
+      "contrast": 12
+    }
+  },
+  {
+    "label": "Vivid slide LUT",
+    "values": {
+      "lutSource": "preset",
+      "lutPreset": "slide-vivid"
+    }
+  }
+]

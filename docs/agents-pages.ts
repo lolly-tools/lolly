@@ -121,6 +121,7 @@ export const MCP_TOOLS: readonly string[] = [
 
 export const MCP_RESOURCES: readonly string[] = [
   'lolly://catalog', 'lolly://assets', 'lolly://tokens', 'lolly://design-context',
+  'lolly://skill', 'lolly://skill/{path}', 'lolly://tool/{id}/skill',
   'lolly://tool/{id}', 'lolly://tool/{id}/preview', 'lolly://asset/{id}',
 ];
 
@@ -526,6 +527,8 @@ For the full parameter contract, the tool table and worked examples, load the sk
 
 - ${u}/info/skills/lolly/SKILL.md, with reference files under ${u}/info/skills/lolly/reference/
 - In the repository: \`skills/lolly/\`
+- Tool guidance: ${u}/info/skills/tools/<id>/SKILL.md and metadata.json; discover public coverage in ${u}/info/skills/tools/index.json.
+- MCP: \`lolly://skill\` and \`lolly://tool/{id}/skill\` resolve shared and current-profile guidance. A document invitation embeds the actual loaded tool's guidance and supplies access separately.
 `;
 }
 

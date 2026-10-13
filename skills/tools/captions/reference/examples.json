@@ -1,0 +1,31 @@
+[
+  {
+    "label": "Interview - bar captions",
+    "values": {
+      "style": "bar",
+      "position": "bottom",
+      "time": 1.2,
+      "transcript": "1\n00:00:00,200 --> 00:00:02,400\nCaptions are how most people meet your work.\n\n2\n00:00:02,600 --> 00:00:05,000\nDrop in an SRT file, or transcribe the clip on your device.\n\n3\n00:00:05,200 --> 00:00:07,800\nNothing is uploaded, and nothing is invented."
+    }
+  },
+  {
+    "label": "Field notes - outline over VTT",
+    "values": {
+      "style": "outline",
+      "position": "bottom",
+      "time": 1,
+      "showTimecodes": true,
+      "transcript": "WEBVTT\n\nNOTE Recorded on the field day.\n\nintro\n00:00:00.000 --> 00:00:02.500\n<v Ana>Every clip should carry its words.\n\n00:00:02.700 --> 00:00:05.600 line:90%\nSubtitles travel further than sound does."
+    }
+  },
+  {
+    "label": "Karaoke - word by word",
+    "values": {
+      "style": "karaoke",
+      "position": "centre",
+      "time": 1.5,
+      "fontSize": 72,
+      "transcript": "1\n00:00:00,000 --> 00:00:03,000\nSing along with every single word.\n\n2\n00:00:03,200 --> 00:00:06,000\nThe line lights up as it is spoken."
+    }
+  }
+]

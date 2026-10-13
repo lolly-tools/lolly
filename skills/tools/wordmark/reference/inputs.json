@@ -1,0 +1,86 @@
+[
+  {
+    "id": "text",
+    "label": "Text",
+    "type": "text",
+    "required": true,
+    "default": "Wordmark",
+    "maxLength": 120
+  },
+  {
+    "id": "font",
+    "display": "segmented",
+    "label": "Font",
+    "type": "select",
+    "default": "brand",
+    "options": [
+      {
+        "value": "brand",
+        "label": "Design system"
+      },
+      {
+        "value": "mono",
+        "label": "Mono"
+      }
+    ]
+  },
+  {
+    "id": "weight",
+    "label": "Weight",
+    "type": "number",
+    "display": "slider",
+    "default": 600,
+    "min": 100,
+    "max": 900,
+    "step": 100
+  },
+  {
+    "id": "tracking",
+    "display": "slider",
+    "label": "Tracking",
+    "type": "number",
+    "default": 0,
+    "min": -20,
+    "max": 60,
+    "step": 1,
+    "help": "Letter-spacing in px at the set size."
+  },
+  {
+    "id": "size",
+    "display": "slider",
+    "label": "Size",
+    "type": "number",
+    "default": 160,
+    "min": 40,
+    "max": 400,
+    "step": 10,
+    "help": "Font size the outlines are shaped at - tracking is relative to this."
+  },
+  {
+    "id": "color",
+    "label": "Colour",
+    "type": "color",
+    "default": "{color.semantic.text}"
+  },
+  {
+    "id": "features",
+    "label": "OpenType features",
+    "type": "select",
+    "default": "none",
+    "help": "Standard keeps the font's default shaping, ligatures included. No ligatures keeps pairs like fi apart; stylistic alternates swap in the font's alternate letterforms.",
+    "options": [
+      {
+        "value": "none",
+        "label": "Standard"
+      },
+      {
+        "value": "liga-off",
+        "label": "No ligatures"
+      },
+      {
+        "value": "salt",
+        "label": "Stylistic alternates"
+      }
+    ]
+  }
+]

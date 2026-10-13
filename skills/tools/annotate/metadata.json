@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "toolId": "annotate",
+  "toolVersion": "1.0.2",
+  "toolVersionRange": "1.0.2",
+  "skillRevision": "1",
+  "origin": "generated",
+  "references": [
+    "reference/inputs.json",
+    "reference/examples.json"
+  ],
+  "files": {
+    "SKILL.md": {
+      "sha256": "32efa5c68bc83eac6272e7bef5b76eef191053b2d021422d5ebe39581a6567c6",
+      "bytes": 1868
+    },
+    "reference/inputs.json": {
+      "sha256": "2874b5f2a5d18d884eb93414ab63c1bebb38c6587b13a651cb676a1bcd662819",
+      "bytes": 5560
+    },
+    "reference/examples.json": {
+      "sha256": "992b57e41e6f71708a0f07f04e23a25cc99cd34f7e333141cc744058564b1fe4",
+      "bytes": 2094
+    }
+  }
+}

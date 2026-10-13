@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "toolId": "wordmark",
+  "toolVersion": "1.0.2",
+  "toolVersionRange": "1.0.2",
+  "skillRevision": "1",
+  "origin": "generated",
+  "references": [
+    "reference/inputs.json",
+    "reference/examples.json"
+  ],
+  "files": {
+    "SKILL.md": {
+      "sha256": "67661ec7a869f1ec7daf8ea6e680e92a23c80f2ecf2745d3185e7bb7d77e8541",
+      "bytes": 1819
+    },
+    "reference/inputs.json": {
+      "sha256": "c5ce9c61f984751e027ba587f9d9cec5affcc1487bfd90a59cac299a336c2ad5",
+      "bytes": 1712
+    },
+    "reference/examples.json": {
+      "sha256": "af862ba3531f4a1737a3f3cb8f41695c938a9d0a69943ec31c8cfaac341c0337",
+      "bytes": 792
+    }
+  }
+}

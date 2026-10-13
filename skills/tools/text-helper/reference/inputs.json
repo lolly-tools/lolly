@@ -1,0 +1,44 @@
+[
+  {
+    "id": "body",
+    "type": "longtext",
+    "label": "Text",
+    "default": ""
+  },
+  {
+    "id": "operation",
+    "type": "text",
+    "label": "Action",
+    "default": "identity"
+  },
+  {
+    "id": "settings",
+    "type": "longtext",
+    "label": "Action options (JSON)",
+    "default": "{}"
+  },
+  {
+    "id": "source",
+    "type": "longtext",
+    "label": "Source information (JSON)",
+    "default": "{}"
+  },
+  {
+    "id": "language",
+    "type": "text",
+    "label": "Syntax language",
+    "default": "auto"
+  },
+  {
+    "id": "characterRecents",
+    "type": "longtext",
+    "label": "Recent characters",
+    "default": "[]"
+  },
+  {
+    "id": "workspaceMode",
+    "type": "text",
+    "label": "Workspace mode",
+    "default": ""
+  }
+]

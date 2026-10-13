@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "toolId": "contrast-check",
+  "toolVersion": "1.2.1",
+  "toolVersionRange": "1.2.1",
+  "skillRevision": "1",
+  "origin": "generated",
+  "references": [
+    "reference/inputs.json",
+    "reference/examples.json"
+  ],
+  "files": {
+    "SKILL.md": {
+      "sha256": "665178c759f8f51a325bd8abae41f9fb83f38373a2f8382dc6bfb99f3c29dd1a",
+      "bytes": 1809
+    },
+    "reference/inputs.json": {
+      "sha256": "dd53e825720757d4a971f2298019d959a09c6711fb71edb7ef5ebccd3ca47db7",
+      "bytes": 1982
+    },
+    "reference/examples.json": {
+      "sha256": "fcffb130f3e11ab92f8d51716319c4862f835eab261f84b4c8eae2e0b4f799e0",
+      "bytes": 870
+    }
+  }
+}

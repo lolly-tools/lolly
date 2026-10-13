@@ -1,0 +1,52 @@
+[
+  {
+    "label": "Minimal",
+    "values": {
+      "look": "minimal",
+      "source": "text",
+      "diagramType": "process",
+      "flowDir": "right",
+      "dsl": "Discover -> Design -> Build -> Share"
+    }
+  },
+  {
+    "label": "Editorial",
+    "values": {
+      "look": "editorial",
+      "source": "text",
+      "diagramType": "process",
+      "flowDir": "right",
+      "dsl": "Discover -> Design -> Build -> Share"
+    }
+  },
+  {
+    "label": "Soft depth",
+    "values": {
+      "look": "soft",
+      "source": "text",
+      "diagramType": "process",
+      "flowDir": "right",
+      "dsl": "Discover -> Design -> Build -> Share"
+    }
+  },
+  {
+    "label": "Flow",
+    "values": {
+      "look": "flow",
+      "source": "text",
+      "diagramType": "process",
+      "flowDir": "right",
+      "dsl": "Discover -> Design -> Build -> Share"
+    }
+  },
+  {
+    "label": "Studio",
+    "values": {
+      "look": "studio",
+      "source": "text",
+      "diagramType": "process",
+      "flowDir": "right",
+      "dsl": "Discover -> Design -> Build -> Share"
+    }
+  }
+]
