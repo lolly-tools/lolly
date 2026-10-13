@@ -33,7 +33,6 @@
   background: hsl(var(--background) / .82);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
-  border-top: 1px solid hsl(var(--border));
 }
 /* The singleton bar hides via the [hidden] attribute on editing routes - this must
    out-specify the display:flex above (an author display beats the UA's [hidden]

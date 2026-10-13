@@ -473,7 +473,7 @@ strong{font-weight:600}
    needs the identical look without every call-site adding the class by hand. */
 .btn,
 .tool-actions button:not(.btn),
-.docs-listen, .docs-edition {                     /* docs/build.ts - /info's Listen and print-edition controls */
+.docs-edition {                                   /* docs/build.ts - /info's print-edition control */
   text-decoration: none;
   padding: 5px 14px;
   background: var(--ui-color-surface-canvas);
@@ -929,7 +929,7 @@ section[id]{scroll-margin-top:calc(var(--site-bar-h) + 2.65rem)}
 [data-theme="dark"] .site-fab--theme .icon-moon,[data-theme="brand"] .site-fab--theme .icon-brand{display:block}
 .site-fab--search{display:none}
 /* Pressed and current states the system colours would otherwise flatten. */
-@media(forced-colors:active){.site-sheet .profile-menu-seg[aria-pressed="true"]{outline:2px solid Highlight;outline-offset:-2px}.site-sheet .site-sheet-sections .docs-pathway.active{outline:2px solid Highlight;outline-offset:-2px}.docs-listen,.docs-edition{border:1px solid ButtonText}}
+@media(forced-colors:active){.site-sheet .profile-menu-seg[aria-pressed="true"]{outline:2px solid Highlight;outline-offset:-2px}.site-sheet .site-sheet-sections .docs-pathway.active{outline:2px solid Highlight;outline-offset:-2px}.docs-edition{border:1px solid ButtonText}}
 /* Launch App: the app's primary button (buttons.css .btn.btn--primary, the shape
    of the bottom bar's Verify) with the app's arrow, mirrored for right-to-left. */
 .site-launch{display:inline-flex;align-items:center;justify-content:center;gap:6px;flex:none;box-sizing:border-box;min-height:var(--chrome-h);font-weight:600}
@@ -2820,17 +2820,17 @@ html[data-theme="dark"] .fmt-dialog-unsup{background:rgba(254,124,63,.13)}
    one, so it has to be out-specified rather than tied with. */
 .docs-masthead h1{margin:0;padding:0;border-bottom:0;color:var(--dark);font-size:clamp(2.25rem,3.4vw,3rem);font-weight:300;line-height:1.15}
 /* The title row: the page's h1 (the in-app reader's title size and weight) with
-   Listen beside it as an app button, on the title's last line rather than over
-   the article's first. On a phone Listen wraps under the title. */
+   a page's print edition beside it as an app button, on the title's last line
+   rather than over the article's first. On a phone the button wraps under the title. */
 .mast-title{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1rem 2rem}
 .mast-title h1{flex:1 1 18rem;min-width:0}
-.mast-title .listen-bar{margin:0 0 .35rem}
+.mast-title .docs-edition-bar{margin:0 0 .35rem}
 /* The pathways strip at the top of the band (docs-chrome.css, which also makes it
    one scrolling line on a phone, with its edge fades). */
 .docs-mast-inner .docs-pathways{margin:0}
 @media(max-width:640px){
   .mast-title{gap:.75rem}
-  .mast-title .listen-bar{margin:0}
+  .mast-title .docs-edition-bar{margin:0}
 }
 /* ── The strip band (wrapPage, pathwaysBand) ─────────────────────────────────
    A page with no masthead (a format or conversion page, a specification chapter,
@@ -2842,7 +2842,7 @@ html[data-theme="dark"] .fmt-dialog-unsup{background:rgba(254,124,63,.13)}
 .docs-strip-band .docs-pathways{margin:0}
 .docs-strip-band .docs-mast-inner{flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.75rem 2rem}
 .docs-strip-band .docs-pathways{flex:1 1 auto;min-width:0}
-.docs-strip-band .listen-bar{margin:0}
+.docs-strip-band .docs-edition-bar{margin:0}
 .docs-strip-band--flow{padding-block:1.75rem .5rem;background:var(--page)}
 .docs-strip-band--wide .docs-mast-inner{max-width:calc(1120px + 3rem);padding-inline:1.5rem}
 @media(max-width:768px){.docs-strip-band{padding-top:calc(var(--site-bar-h) + 1.25rem)}.docs-strip-band--flow{padding-top:1.25rem}}
@@ -3288,9 +3288,6 @@ button.shot-cred-copy{border:0;background:none;padding:.1em .35em;font:inherit;f
 .doc-jump-nav a{display:block;padding:.32rem .5rem;border-radius:6px;font-size:.875rem;line-height:1.35;color:var(--text);text-decoration:none}
 .doc-jump-nav a:hover{background:#30ba7818;color:var(--green);text-decoration:none}
 .doc-jump-top{margin-top:.25rem;border-top:1px solid var(--border);padding-top:.45rem;color:var(--muted)}
-/* The docs player dock owns this corner while it is open (html.ldp-open, fixed at
-   the same 16px). One control per corner - the reader is listening, not scanning. */
-html.ldp-open .doc-jump{display:none}
 @media(prefers-reduced-motion:reduce){.doc-jump-btn{transition:none}}
 @media print{.doc-jump{display:none}}
 .docs-content h1{font-size:3rem;color:var(--dark);line-height:1.15;margin-bottom:2rem;padding-bottom:2rem;border-bottom:1px solid var(--border); font-weight:300;}
@@ -3461,21 +3458,14 @@ footer .founded-badge{margin-top:.5rem}
    always reads LTR - isolate it so surrounding RTL prose doesn't scramble
    leading/trailing punctuation. Mirrors the SPA's parts/rtl.css. */
 [dir="rtl"] pre,[dir="rtl"] code,[dir="rtl"] kbd,[dir="rtl"] samp{direction:ltr;text-align:left;unicode-bidi:isolate}
-.listen-bar{display:flex;justify-content:flex-end;gap:8px;margin:0 0 -8px}
-.listen-bar-float{position:fixed;right:16px;bottom:16px;z-index:89;margin:0}
-/* Phones only: docked under the top nav while the landing hero owns the screen, so the
-   pill never sits on a hero CTA (plans/168 WP-6; the class comes from NAV_SOLID_JS). */
-@media(max-width:600px){.listen-bar-float.over-hero{bottom:auto;top:calc(var(--site-bar-h) + 8px)}}
-/* Listen and the print edition beside it are the app's button (buttons.css aliases
-   both onto .btn: canvas fill, bevel, control elevation, panel radius, body type),
-   finger-sized, with the app's glyph and the minutes in the muted ink. In the band
-   they sit in the title row (.mast-title); on the landing Listen floats. */
-.docs-listen,.docs-edition{display:inline-flex;align-items:center;gap:7px;min-height:var(--ui-size-target);box-sizing:border-box;font-weight:600;line-height:1.2}
-.docs-listen:hover,.docs-edition:hover{background:var(--ui-color-surface-muted);text-decoration:none}
-.docs-listen:focus-visible,.docs-edition:focus-visible{outline:2px solid var(--ui-color-focus-ring);outline-offset:2px}
-.docs-listen svg,.docs-edition svg{width:16px;height:16px}
-.docs-listen .listen-mins,.docs-edition .listen-mins{font-weight:400;color:var(--ui-color-text-muted)}
-.docs-listen.is-loading{opacity:.6;pointer-events:none}
+
+.docs-edition-bar{display:flex;justify-content:flex-end;gap:8px;margin:0 0 -8px}
+.docs-edition{display:inline-flex;align-items:center;gap:7px;min-height:var(--ui-size-target);box-sizing:border-box;font-weight:600;line-height:1.2}
+.docs-edition:hover{background:var(--ui-color-surface-muted);text-decoration:none}
+.docs-edition:focus-visible{outline:2px solid var(--ui-color-focus-ring);outline-offset:2px}
+.docs-edition svg{width:16px;height:16px}
+.docs-edition .docs-edition-size{font-weight:400;color:var(--ui-color-text-muted)}
+
 /* SPDX-License-Identifier: MPL-2.0 */
 /* ── Docs reading components (plan 277 step 3) ─────────────────────────────
    One stylesheet for both readers: docs/build.ts reads it verbatim into the /info
@@ -3586,7 +3576,7 @@ footer .founded-badge{margin-top:.5rem}
 .docs-content li > pre { margin-block: 10px 4px; }
 /* The bar is static markup with no text of its own: the label is the block's
    data-label, shown through generated content so it never enters the page text
-   that search, the model index and narration read. The enhancer adds Copy. */
+   that search and the model index read. The enhancer adds Copy. */
 .docs-content .doc-code-bar {
   display: flex;
   align-items: center;

@@ -23,8 +23,8 @@
 .app-history-action:active:not(:disabled) { translate: 0 1px; }
 
 /* View choices lead the controls; filters share a quieter second row. */
-.app-history-controls { padding: .5rem 1rem 1rem; border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-card); background: var(--ui-color-surface-raised); }
-.app-history-tabs { display: flex; gap: .4rem; border-block-end: 1px solid var(--ui-color-border-default); padding-block-end: .5rem; margin-block-end: 1rem; }
+.app-history-controls { padding: .5rem 1rem 1rem; border-radius: var(--ui-radius-card); background: var(--ui-color-surface-raised); }
+.app-history-tabs { display: flex; gap: .4rem; padding-block-end: .5rem; margin-block-end: 1rem; }
 .app-history-tabs .btn { background: transparent; box-shadow: none; padding-inline: 1rem; color: var(--ui-color-text-muted); font-weight: 600; }
 .app-history-tabs [aria-pressed=true] { color: var(--ui-color-action-primary); background: var(--ui-color-selection-surface); box-shadow: var(--ui-effect-selected); }
 .app-history-filters { display: flex; flex-wrap: wrap; align-items: end; gap: .75rem; }
@@ -80,7 +80,7 @@
 .app-history-day-heading { flex: 1; min-width: 0; }
 .app-history-day-heading h2 { font-size: var(--ui-type-heading); line-height: 1.2; letter-spacing: -.025em; margin: 0 0 .25rem; }
 .app-history-day-date { color: var(--ui-color-text-muted); font-size: var(--ui-type-caption); line-height: 1.5; }
-.app-history-day-count { flex: none; color: var(--ui-color-text-muted); font-size: var(--ui-type-caption); padding: .4rem .65rem;  border-radius: var(--ui-radius-pill); }
+.app-history-day-count { flex: none; color: var(--ui-color-text-muted); font-size: var(--ui-type-caption); padding: .4rem .65rem; border-radius: var(--ui-radius-pill); }
 .app-history-day-chevron { display: inline-flex; justify-content: center; align-items: center; flex: none; width: 2rem; height: 2rem; border-radius: var(--ui-radius-round); color: var(--ui-color-text-muted); rotate: -90deg; transition: rotate var(--ui-motion-feedback); }
 .app-history-day[open] > summary > .app-history-day-chevron, .app-history-period[open] > summary > .app-history-day-chevron { rotate: 0deg; }
 .app-history-day-entries { margin-inline-start: 2.75rem; padding: 1rem 0 .1rem 1.5rem; border-inline-start: 1px solid var(--ui-color-border-default); }

@@ -31,6 +31,7 @@
   position: fixed;
   z-index: 10002;
   max-width: calc(100vw - 16px);
+  box-shadow: var(--ui-elevation-floating);
 }
 
 .emoji-pop unicode-emoji-picker,
