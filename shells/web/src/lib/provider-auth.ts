@@ -24,14 +24,27 @@
  */
 
 import { t } from '../i18n.ts';
-import { instanceFetch } from './instance.ts';
+import { nativeConnectorFetch } from './instance.ts';
+import { approveWebConnector, ConnectorOriginError, createConnectorGuard, nativeConnectorOrigins } from './connector-policy.ts';
 import { isTauriShell, isTauriMobileShell } from './instance-choice.ts';
 
 /** Provider API fetch: plain fetch on the web (the provider must answer CORS,
  *  noted per driver), the CORS-free Tauri HTTP client on the desktop shells -
  *  where the webview origin would otherwise fail every provider's CORS policy. */
-export const providerFetch: typeof fetch = (input, init) =>
-  isTauriShell() ? instanceFetch(String(input), init) : fetch(input, init);
+export const providerFetch: typeof fetch = async (input, init) => {
+  const url = input instanceof Request ? input.url : String(input);
+  if (isTauriShell()) {
+    const origins = nativeConnectorOrigins();
+    await createConnectorGuard(async () => '', true, origins)(url);
+    const request = input instanceof Request ? new Request(input, init) : new Request(url, init);
+    try { return await nativeConnectorFetch(request, origins); } catch (error) {
+      if (String(error).includes('Connector origin is not configured.')) throw new ConnectorOriginError();
+      throw error;
+    }
+  }
+  await approveWebConnector(url);
+  return fetch(input, { ...init, redirect: 'error' });
+};
 
 /** What the return page delivers (public/oauth-return.html): the fragment
  *  (token grants) and the query string (code grants), verbatim. */

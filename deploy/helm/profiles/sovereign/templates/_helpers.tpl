@@ -70,3 +70,26 @@ helm.sh/chart: {{ printf "%s-%s" .root.Chart.Name .root.Chart.Version | quote }}
 {{- end -}}
 {{- end -}}
 {{- end }}
+
+{{- define "sovereign.connectorNginx" -}}
+{{- $extra := list -}}
+{{- range .Values.connectorOrigins -}}
+{{- if not (regexMatch "^https://[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+(:[1-9][0-9]{0,4})?$" .) -}}
+{{- fail "connectorOrigins must contain exact HTTPS DNS origins without paths or wildcards" -}}
+{{- end -}}
+{{- $port := regexFind ":[0-9]+$" . | trimPrefix ":" -}}
+{{- if and $port (gt (atoi $port) 65535) -}}{{- fail "connectorOrigins port is out of range" -}}{{- end -}}
+{{- $host := regexReplaceAll ":[0-9]+$" (trimPrefix "https://" .) "" -}}
+{{- if or (gt (len $host) 253) (regexMatch "^[0-9.]+$" $host) -}}{{- fail "connectorOrigins requires exact DNS hosts" -}}{{- end -}}
+{{- range splitList "." $host -}}
+{{- if gt (len .) 63 -}}{{- fail "connectorOrigins DNS label is too long" -}}{{- end -}}
+{{- end -}}
+{{- $extra = append $extra . -}}
+{{- end -}}
+{{- if gt (len (join " " $extra)) 8192 -}}{{- fail "connectorOrigins is too large" -}}{{- end -}}
+{{- $config := .Files.Get "files/public.nginx.conf" -}}
+{{- if $extra -}}
+{{- $config = replace "; img-src" (printf " %s; img-src" (join " " $extra)) $config -}}
+{{- end -}}
+{{- $config -}}
+{{- end -}}

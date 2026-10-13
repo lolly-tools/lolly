@@ -1,10 +1,11 @@
 import { defineConfig } from 'vite';
+import { connectorDevPolicy } from '../../scripts/vite-connector-policy.mjs';
 import { resolve, dirname } from 'node:path';
 import { existsSync } from 'node:fs';
 import {
   embedContentPlugins, injectModelsBase, resolveEmbedMode,
 } from '../tauri-shared/vite-embed.mjs';
-import { tauriCspMeta } from '../tauri-shared/vite-csp.mjs';
+import { tauriCspMeta, TAURI_CSP } from '../tauri-shared/vite-csp.mjs';
 import { webGpuProductProbe } from '../tauri-shared/webgpu-product-probe.mjs';
 // Borrowed from the web shell's config, which owns the format. See the plugin list.
 import { precacheManifest, APP_ASSETS_DIR } from '../web/vite.config.js';
@@ -88,6 +89,7 @@ export default defineConfig({
   root: webShell,
   publicDir: resolve(webShell, 'public'),
   plugins: [
+    connectorDevPolicy(TAURI_CSP),
     // The app's Content Security Policy rides in as a <meta> tag: with a CSP in
     // tauri.conf.json, Tauri's codegen re-serialises every .html asset - the tool
     // templates included - and the signed digests no longer match.
@@ -131,7 +133,10 @@ export default defineConfig({
   // Tells the shared web code it runs in the mobile app (isTauriMobileShell in
   // shells/web/src/lib/instance-choice.ts), where some desktop-only paths, such as
   // the loopback sign-in, cannot work.
-  define: { 'import.meta.env.VITE_LOLLY_APP_SHELL': JSON.stringify('tauri-mobile') },
+  define: {
+    'import.meta.env.VITE_CONNECTOR_ORIGINS': JSON.stringify(process.env.VITE_CONNECTOR_ORIGINS ?? ''),
+    'import.meta.env.VITE_LOLLY_APP_SHELL': JSON.stringify('tauri-mobile'),
+  },
   // The dev server pre-bundles deps with esbuild, whose default target rejects
   // harfbuzzjs's top-level await (text-to-path WASM). Without this the dev server
   // boots then crashes as soon as a module pulls in harfbuzz.

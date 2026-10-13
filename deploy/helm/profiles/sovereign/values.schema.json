@@ -3,6 +3,16 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
+    "connectorOrigins": {
+      "type": "array",
+      "maxItems": 64,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "maxLength": 280,
+        "pattern": "^https://[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+(:[1-9][0-9]{0,4})?$"
+      }
+    },
     "manageNamespaces": {
       "type": "boolean"
     },

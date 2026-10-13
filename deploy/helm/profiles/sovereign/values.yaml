@@ -2,6 +2,8 @@
 # Existing top-level chart defaults and private Work workloads are untouched.
 manageNamespaces: false
 clusterDomain: cluster.local
+# Exact HTTPS origins for optional connector storage and service endpoints.
+connectorOrigins: []
 imagePullSecrets: []
 public:
   host: ""

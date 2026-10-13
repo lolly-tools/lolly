@@ -337,6 +337,7 @@ const pages: Page[] = [
   { slug: 'build-obs', title: 'Build with Open Build Service', src: 'build-obs.md', pathway: 'operators', description: "Plan OBS recipes for Lolly artifacts and their dependencies." },
   { slug: 'build-kubernetes', title: 'Build the web container and Helm chart', src: 'build-kubernetes.md', pathway: 'operators', description: "Build the web image and deploy the chart with optional services." },
   { slug: 'ios-build',        title: 'Building for iOS',  src: 'ios-build.md',       pathway: 'builders' },
+  { slug: 'connector-origins', title: 'Configure connector origins', src: 'connector-origins.md', pathway: 'operators', description: 'Exact HTTPS connector origins, deployment headers and native request policy.' },
   { slug: 'deployment',       title: 'Deployment',        src: 'deployment.md',      pathway: 'operators' },
   { slug: 'deploy-delivery', title: 'Delivery deployment', src: 'deploy-delivery.md', pathway: 'operators', description: "Serve public files and private workspace responses safely: signed catalog updates, retained hashed files, model integrity, optional edges and release checks." },
   { slug: 'configuration',    title: 'Configuration',     src: 'configuration.md',   pathway: 'operators', description: "Everything that shapes a Lolly instance: which brand it wears, which tools it exposes, and what each tool may do on the device it runs on." },
@@ -657,6 +658,7 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
         { slug: 'ios-build',     label: 'Building for iOS' } ] },
       { label: 'Ship & operate', items: [
         { slug: 'contributing-setup', label: 'Contributing setup' },
+        { slug: 'connector-origins', label: 'Connector origins' },
         { slug: 'deployment',    label: 'Deployment' },
         { slug: 'deploy-delivery', label: 'Delivery deployment' },
         { slug: 'configuration', label: 'Configuration' },

@@ -283,7 +283,7 @@ test('privileged and long-lived workload credentials are refused before signing'
   assert.equal(calls, 0);
 });
 
-test('browser enrollment persists a nonextractable key, validates before storing and revokes with device proof', { skip: process.env.LOLLY_CA_BROWSER_TESTS !== '1' }, async () => {
+test('browser enrollment persists a nonextractable key, validates before storing and revokes with device proof', { skip: process.env.LOLLY_CA_BROWSER_TESTS !== '1' && 'Set LOLLY_CA_BROWSER_TESTS=1 for managed enrollment browser checks.' }, async () => {
   const { createServer } = await import('node:http');
   const { build } = await import('esbuild');
   const { chromium } = await import('playwright-core');

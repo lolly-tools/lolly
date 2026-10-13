@@ -143,3 +143,40 @@ test('native sessions remain bound to the instance that issued them', async (ctx
   await setInstanceSession('lw_session=late-session', 'https://first.example');
   assert.equal(hasInstanceSession(), false);
 });
+
+test('shell readers lower native byte and time bounds before IPC', async ctx => {
+  const savedWindow = Object.getOwnPropertyDescriptor(globalThis, 'window');
+  const savedLocation = Object.getOwnPropertyDescriptor(globalThis, 'location');
+  const requests: Array<{ timeoutMs?: number; maxResponseBytes?: number }> = [];
+  Object.defineProperty(globalThis, 'location', { configurable: true, value: { origin: 'https://shell.example' } });
+  Object.defineProperty(globalThis, 'window', { configurable: true, value: {
+    __TAURI_INTERNALS__: { invoke: async (_command: string, args: { request: typeof requests[number] }) => {
+      requests.push(args.request);
+      return { status: 200, statusText: 'OK', url: 'https://remote.example/file', headers: [], body: [] };
+    } },
+  } });
+  ctx.after(() => {
+    for (const [key, value] of [['window', savedWindow], ['location', savedLocation]] as const) {
+      if (value) Object.defineProperty(globalThis, key, value);
+      else Reflect.deleteProperty(globalThis, key);
+    }
+  });
+  await instanceFetch('https://remote.example/file', undefined, { timeoutMs: 15000, maxResponseBytes: 32 * 1024 * 1024 });
+  assert.equal(requests[0]!.timeoutMs, 15000);
+  assert.equal(requests[0]!.maxResponseBytes, 32 * 1024 * 1024);
+  await instanceFetch('https://remote.example/media');
+  assert.equal(requests[1]!.timeoutMs, undefined);
+  assert.equal(requests[1]!.maxResponseBytes, undefined);
+  await assert.rejects(instanceFetch('https://remote.example/file', undefined, { maxResponseBytes: 0 }), /positive integers/);
+  const abort = new AbortController(); abort.abort();
+  await assert.rejects(instanceFetch('https://remote.example/file', { signal: abort.signal }), { name: 'AbortError' });
+  assert.equal(requests.length, 2);
+  let browserFallback = 0;
+  await instanceFetch('https://shell.example/catalog/file', {}, { fallbackFetch: async (_url, init) => {
+    browserFallback++;
+    assert.ok(new Headers(init?.headers).has('x-lolly-client'));
+    return new Response('verified bytes');
+  } });
+  assert.equal(browserFallback, 1);
+  assert.equal(requests.length, 2);
+});

@@ -29,26 +29,28 @@
  * WebView there is no ancestor to refuse.
  *
  * Dev (`tauri dev` / `tauri ios dev`) loads the dev server directly, where
- * Tauri never applied a policy either, so the plugin is build-only: dev keeps
- * the unrestricted page it always had. tests/tauri-csp.test.ts pins all of
- * this so the config key cannot quietly come back.
+ * the connection policy is supplied by the shared development-server plugin.
+ * This meta plugin remains build-only. tests/tauri-csp.test.ts keeps the
+ * codegen configuration disabled so signed asset bytes remain unchanged.
  */
+
+import { connectSources, parseConnectorOrigins } from '../../packages/core/src/connector-origins.ts';
 
 export const TAURI_CSP = [
   "default-src 'self' customprotocol: asset:",
   // blob: is the Rondocode editor's AudioWorklet module, made from a blob: URL in
   // its opaque-origin frame; worklets follow script-src, not worker-src.
   "script-src 'self' blob: 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval'",
-  "style-src 'self' 'unsafe-inline'",
-  "connect-src 'self' ipc: http://ipc.localhost https: data: blob:",
+  "style-src 'self' blob: 'unsafe-inline'",
+  `connect-src ${connectSources(parseConnectorOrigins(process.env.VITE_CONNECTOR_ORIGINS ?? ''), true)}`,
   "img-src 'self' asset: http://asset.localhost https: data: blob:",
   "media-src 'self' asset: http://asset.localhost https: data: blob:",
   "font-src 'self' asset: http://asset.localhost https: data: blob:",
   "worker-src 'self' blob:",
   "child-src 'self' blob:",
   // Web page boxes in Design (plan 288): the desktop app may frame any https page and
-  // this machine's own dev servers. connect-src above already reaches https:, so a frame
-  // opens no new way for data to leave.
+  // this machine's own dev servers. This frame policy is independent of connection
+  // permissions and does not provide a complete data-egress boundary.
   "frame-src 'self' blob: https: http://localhost:* http://127.0.0.1:*",
   "object-src 'none'",
   "base-uri 'none'",
