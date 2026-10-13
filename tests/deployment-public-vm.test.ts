@@ -429,7 +429,7 @@ test('public preparation scopes keep full as the default and web updates indepen
 
 const archiveNames = {
   chart: 'Public chart render and schema checks', route: 'Public VM route and security acceptance',
-  source: 'Reviewed main CI source',
+  source: 'Reviewed main CI source', services: 'Opt-in native public service images (CA, Penpot)',
   web: 'Opt-in native public web image (gated on the WebGPU table)', gate: 'WebGPU release gate (web shell image only)',
   mcp: 'Opt-in native public MCP browser image (not gated on WebGPU)', probe: 'Unsigned web shell for the MCP browser probe (never published)',
 };
@@ -438,7 +438,7 @@ function archiveSelection(outcomes: Partial<Record<keyof typeof archiveNames, st
   const directory = mkdtempSync(join(tmpdir(), 'lolly-image-selection-'));
   try {
     const run = { id: 123, run_attempt: 2, status: 'completed', head_sha: archiveSource, path: '.github/workflows/deployment-suse.yml', event: 'workflow_dispatch' };
-    const jobs = Object.entries(archiveNames).map(([id, name], index) => ({ id: index + 1, run_id: 123, run_attempt: 2, name, status: 'completed', conclusion: outcomes[id as keyof typeof archiveNames] ?? 'success' }));
+    const jobs = Object.entries(archiveNames).map(([id, name], index) => ({ id: index + 1, run_id: 123, run_attempt: 2, name, status: 'completed', conclusion: outcomes[id as keyof typeof archiveNames] ?? (id === 'services' ? 'skipped' : 'success') }));
     const inventory = { total_count: jobs.length, jobs: jobs as Record<string, unknown>[] };
     alter?.(run, inventory);
     writeFileSync(join(directory, 'run.json'), JSON.stringify(run)); writeFileSync(join(directory, 'jobs.json'), JSON.stringify(inventory));
@@ -460,19 +460,19 @@ function archiveSelection(outcomes: Partial<Record<keyof typeof archiveNames, st
 
 test('archive selection exports only the observed qualified web and MCP subset', () => {
   const full = archiveSelection({}); assert.equal(full.status, 0, full.stderr);
-  assert.deepEqual(full.selection, { qualified: ['web', 'mcp-browser'], withheld: [], notSelected: [], notQualified: {} });
+  assert.deepEqual(full.selection, { qualified: ['web', 'mcp-browser'], withheld: [], notSelected: ['ca', 'penpot'], notQualified: {} });
   const web = archiveSelection({ mcp: 'skipped', probe: 'skipped' }); assert.equal(web.status, 0, web.stderr);
-  assert.deepEqual(web.selection, { qualified: ['web'], withheld: [], notSelected: ['mcp-browser'], notQualified: {} });
+  assert.deepEqual(web.selection, { qualified: ['web'], withheld: [], notSelected: ['mcp-browser', 'ca', 'penpot'], notQualified: {} });
   const services = archiveSelection({ web: 'skipped', gate: 'skipped' }); assert.equal(services.status, 0, services.stderr);
-  assert.deepEqual(services.selection, { qualified: ['mcp-browser'], withheld: [], notSelected: ['web'], notQualified: {} });
+  assert.deepEqual(services.selection, { qualified: ['mcp-browser'], withheld: [], notSelected: ['web', 'ca', 'penpot'], notQualified: {} });
   const withheld = archiveSelection({ web: 'skipped' }); assert.equal(withheld.status, 0, withheld.stderr);
-  assert.deepEqual(withheld.selection, { qualified: ['mcp-browser'], withheld: ['web'], notSelected: [], notQualified: {} });
+  assert.deepEqual(withheld.selection, { qualified: ['mcp-browser'], withheld: ['web'], notSelected: ['ca', 'penpot'], notQualified: {} });
   const failedWeb = archiveSelection({ web: 'failure' }); assert.equal(failedWeb.status, 0, failedWeb.stderr);
   assert.deepEqual(failedWeb.selection?.notQualified, { web: 'failure' });
   const cancelledMcp = archiveSelection({ mcp: 'cancelled' }); assert.equal(cancelledMcp.status, 0, cancelledMcp.stderr);
   assert.deepEqual(cancelledMcp.selection?.qualified, ['web']); assert.deepEqual(cancelledMcp.selection?.notQualified, { 'mcp-browser': 'cancelled' });
   const failedProbe = archiveSelection({ mcp: 'skipped', probe: 'failure' }); assert.equal(failedProbe.status, 0, failedProbe.stderr);
-  assert.deepEqual(failedProbe.selection?.qualified, ['web']); assert.deepEqual(failedProbe.selection?.notSelected, []);
+  assert.deepEqual(failedProbe.selection?.qualified, ['web']); assert.deepEqual(failedProbe.selection?.notSelected, ['ca', 'penpot']);
   assert.deepEqual(failedProbe.selection?.notQualified, { 'mcp-browser': 'skipped' });
 });
 
@@ -535,6 +535,61 @@ test('archive receipt admission refuses missing and cross-attempt release identi
       const result: SpawnSyncReturns<string> = spawnSync(process.execPath, ['--input-type=module', '-e', script], { env: { ...process.env, RUNNER_TEMP: root, SOURCE_SHA: archiveSource, QUALIFICATION_RUN: '123' }, encoding: 'utf8', timeout: 5000 });
       assert.equal(result.status === 0, accepted, `${name}: ${result.stderr}`);
       if (accepted) assert.deepEqual(JSON.parse(result.stdout), { attempt: 2, qualified: ['web', 'mcp-browser'] });
+    }
+  } finally { rmSync(directory, { recursive: true, force: true }); }
+});
+
+
+test('archive selection includes each qualified service and keeps failures out', () => {
+  const all = archiveSelection({ services: 'success' });
+  assert.equal(all.status, 0, all.stderr);
+  assert.deepEqual(all.selection?.qualified, ['web', 'mcp-browser', 'ca', 'penpot']);
+  const only = archiveSelection({ web: 'skipped', gate: 'skipped', mcp: 'skipped', probe: 'skipped', services: 'success' });
+  assert.equal(only.status, 0, only.stderr);
+  assert.deepEqual(only.selection?.qualified, ['ca', 'penpot']);
+  const failure = archiveSelection({ services: 'failure' });
+  assert.equal(failure.status, 0, failure.stderr);
+  assert.deepEqual(failure.selection?.qualified, ['web', 'mcp-browser']);
+  assert.deepEqual(failure.selection?.notQualified, { ca: 'failure', penpot: 'failure' });
+});
+
+test('service archive receipts bind attempts while accepting only unambiguous legacy first runs', () => {
+  const job = workflowJob(read('.github/workflows/deployment-suse.yml'), 'archive-qualified-images');
+  const programs = [...job.matchAll(/node --input-type=module <<'JS'\n([\s\S]*?)\n\s+JS/g)];
+  const script = programs[1]![1]!.split('const evidence=')[0]!;
+  const directory = mkdtempSync(join(tmpdir(), 'lolly-service-attempt-'));
+  try {
+    const cases: [number, unknown, boolean][] = [[1, undefined, true], [2, undefined, false], [2, 2, true], [2, 1, false], [2, '2', false], [1, 0, false]];
+    for (const [attempt, receiptAttempt, allowed] of cases) {
+      const root = mkdtempSync(join(directory, 'case-'));
+      writeFileSync(join(root, 'qualification-run.json'), JSON.stringify({ runId: '123', source: archiveSource, attempt }));
+      writeFileSync(join(root, 'image-selection.json'), JSON.stringify({ qualified: ['ca', 'penpot'] }));
+      for (const service of ['ca', 'penpot']) {
+        const dir = join(root, 'receipts', service); mkdirSync(dir, { recursive: true });
+        writeFileSync(join(dir, 'release.json'), JSON.stringify({ runId: '123', source: archiveSource, runAttempt: receiptAttempt, neutralProfile: true, images: { ca: {}, penpot: {} } }));
+      }
+      const result = spawnSync(process.execPath, ['--input-type=module', '-e', script], { env: { ...process.env, RUNNER_TEMP: root, SOURCE_SHA: archiveSource, QUALIFICATION_RUN: '123' }, encoding: 'utf8', timeout: 5000 });
+      assert.equal(result.status === 0, allowed, `${attempt}/${receiptAttempt}: ${result.stderr}`);
+    }
+  } finally { rmSync(directory, { recursive: true, force: true }); }
+});
+
+
+test('service receipt writers bind a positive exact attempt and both image identities', () => {
+  const job = workflowJob(read('.github/workflows/deployment-suse.yml'), 'service-images');
+  const publish = job.slice(job.indexOf('- name: Publish only qualified image digests'));
+  const script = publish.match(/node --input-type=module -e '\n([\s\S]*?)\n\s+'/)?.[1]; assert.ok(script);
+  const directory = mkdtempSync(join(tmpdir(), 'lolly-service-receipts-'));
+  try {
+    for (const attempt of ['1', '2', '', '0', '1.5']) {
+      const root = mkdtempSync(join(directory, 'case-')); const receipts = join(root, 'lolly-image-receipts'); mkdirSync(receipts);
+      for (const service of ['ca', 'penpot']) writeFileSync(join(receipts, `${service}.json`), JSON.stringify({ Id: `sha256:${'a'.repeat(64)}`, Config: { Labels: { 'org.opencontainers.image.revision': archiveSource } }, Os: 'linux', Architecture: 'amd64', RepoDigests: [`ghcr.io/owner/lolly-${service}@sha256:${'b'.repeat(64)}`] }));
+      const result = spawnSync(process.execPath, ['--input-type=module', '-e', script], { env: { ...process.env, RUNNER_TEMP: root, EXPECTED_SOURCE: archiveSource, GITHUB_RUN_ID: '123', GITHUB_RUN_ATTEMPT: attempt }, encoding: 'utf8', timeout: 5000 });
+      assert.equal(result.status === 0, ['1', '2'].includes(attempt), result.stderr);
+      if (result.status === 0) {
+        const release = JSON.parse(readFileSync(join(receipts, 'release.json'), 'utf8'));
+        assert.equal(release.runAttempt, Number(attempt)); assert.deepEqual(Object.keys(release.images), ['ca', 'penpot']);
+      }
     }
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });
