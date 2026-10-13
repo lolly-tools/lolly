@@ -1,0 +1,757 @@
+[
+  {
+    "id": "code",
+    "label": "Text",
+    "type": "longtext",
+    "default": "const greet = (name) => {\n  console.log(`Hello, ${name}!`);\n  return name;\n};\n\ngreet('World');",
+    "placeholder": "Paste code or plain text here..."
+  },
+  {
+    "id": "language",
+    "label": "Language",
+    "type": "select",
+    "default": "javascript",
+    "options": [
+      {
+        "value": "auto",
+        "label": "Auto detect"
+      },
+      {
+        "value": "javascript",
+        "label": "JavaScript"
+      },
+      {
+        "value": "typescript",
+        "label": "TypeScript"
+      },
+      {
+        "value": "python",
+        "label": "Python"
+      },
+      {
+        "value": "rust",
+        "label": "Rust"
+      },
+      {
+        "value": "go",
+        "label": "Go"
+      },
+      {
+        "value": "css",
+        "label": "CSS"
+      },
+      {
+        "value": "html",
+        "label": "HTML"
+      },
+      {
+        "value": "bash",
+        "label": "Bash / Shell"
+      },
+      {
+        "value": "dockerfile",
+        "label": "Dockerfile"
+      },
+      {
+        "value": "json",
+        "label": "JSON"
+      },
+      {
+        "value": "plain",
+        "label": "Plain text"
+      }
+    ]
+  },
+  {
+    "id": "scale",
+    "label": "Size",
+    "type": "number",
+    "display": "slider",
+    "default": 100,
+    "min": 70,
+    "max": 200,
+    "step": 5,
+    "section": "Text"
+  },
+  {
+    "id": "lineHeight",
+    "label": "Line height",
+    "type": "number",
+    "display": "slider",
+    "default": 1.7,
+    "min": 0.75,
+    "max": 2,
+    "step": 0.05,
+    "section": "Text"
+  },
+  {
+    "id": "lineNumbers",
+    "display": "pill",
+    "label": "Line numbers",
+    "type": "boolean",
+    "default": true,
+    "section": "Text"
+  },
+  {
+    "id": "blinkCursor",
+    "display": "pill",
+    "label": "Blink cursor",
+    "help": "A blinking caret for a still scene preview. Animated scenes manage the caret as part of the interaction.",
+    "type": "boolean",
+    "default": false,
+    "section": "Text"
+  },
+  {
+    "id": "textOverflow",
+    "label": "Long text",
+    "type": "select",
+    "default": "fit",
+    "options": [
+      {
+        "value": "fit",
+        "label": "Fit the whole snippet"
+      },
+      {
+        "value": "scroll",
+        "label": "Scroll with the caret"
+      }
+    ],
+    "section": "Text",
+    "help": "Scrolling keeps text at a readable size while the window stays fixed."
+  },
+  {
+    "id": "wrapText",
+    "label": "Wrap long lines",
+    "type": "boolean",
+    "display": "pill",
+    "default": false,
+    "section": "Text"
+  },
+  {
+    "id": "fileName",
+    "label": "Filename",
+    "type": "text",
+    "urlKey": "name",
+    "default": "",
+    "placeholder": "snippet.js",
+    "help": "Shown in the window title bar. Spaces are fine (e.g. My Component.tsx).",
+    "section": "Title bar"
+  },
+  {
+    "id": "titleScale",
+    "section": "Title bar",
+    "label": "Title size",
+    "type": "number",
+    "display": "slider",
+    "help": "Scales the window title bar text (and its icon) independently of the code.",
+    "default": 100,
+    "min": 50,
+    "max": 200,
+    "step": 5
+  },
+  {
+    "id": "titleIcon",
+    "section": "Title bar",
+    "label": "Icon",
+    "type": "asset",
+    "assetType": "image",
+    "allowUpload": true,
+    "help": "Optional logo or glyph shown in the window title bar, before the filename. Drop in a logo to make the frame yours."
+  },
+  {
+    "id": "iconScale",
+    "section": "Title bar",
+    "label": "Icon size",
+    "type": "number",
+    "display": "slider",
+    "help": "Scales just the title bar icon, on top of the title size.",
+    "default": 100,
+    "min": 50,
+    "max": 250,
+    "step": 5
+  },
+  {
+    "id": "windowStyle",
+    "label": "Frame style",
+    "type": "select",
+    "default": "nuremberg",
+    "help": "Which desktop the buttons imitate. Nuremberg is GNOME Adwaita, Cupertino is macOS and Redmond is Windows.",
+    "options": [
+      {
+        "value": "cupertino",
+        "label": "Cupertino"
+      },
+      {
+        "value": "redmond",
+        "label": "Redmond"
+      },
+      {
+        "value": "nuremberg",
+        "label": "Nuremberg"
+      }
+    ],
+    "section": "Title bar"
+  },
+  {
+    "id": "showWindow",
+    "display": "pill",
+    "label": "Window chrome",
+    "type": "boolean",
+    "default": true,
+    "section": "Title bar"
+  },
+  {
+    "id": "theme",
+    "label": "Theme",
+    "type": "select",
+    "default": "suse-dark",
+    "options": [
+      {
+        "value": "suse-dark",
+        "label": "Design system dark"
+      },
+      {
+        "value": "suse-light",
+        "label": "Design system light"
+      },
+      {
+        "value": "github-dark",
+        "label": "GitHub dark"
+      },
+      {
+        "value": "nord",
+        "label": "Nord"
+      }
+    ],
+    "section": "Look"
+  },
+  {
+    "id": "shadow",
+    "display": "pill",
+    "label": "Drop shadow",
+    "type": "boolean",
+    "default": true,
+    "section": "Look"
+  },
+  {
+    "id": "calloutMode",
+    "section": "Callouts",
+    "label": "Comment callouts",
+    "type": "select",
+    "default": "off",
+    "help": "Turn trailing end-of-line comments into pill callouts pointing at the line, instead of dim inline text. Animated scenes keep comments inline.",
+    "options": [
+      {
+        "value": "off",
+        "label": "Off"
+      },
+      {
+        "value": "all",
+        "label": "Every trailing comment"
+      },
+      {
+        "value": "tags",
+        "label": "Tags only (TODO, FIXME…)"
+      },
+      {
+        "value": "custom",
+        "label": "Custom prefix"
+      }
+    ]
+  },
+  {
+    "id": "calloutPrefix",
+    "section": "Callouts",
+    "showIf": {
+      "calloutMode": "custom"
+    },
+    "label": "Callout prefixes",
+    "type": "text",
+    "default": "",
+    "placeholder": "TODO, FIXME, @param",
+    "help": "Comma-separated. Only trailing comments starting with one of these become callouts."
+  },
+  {
+    "id": "calloutFont",
+    "section": "Callouts",
+    "label": "Callout text",
+    "type": "select",
+    "default": "mono",
+    "help": "Font for callout pills. Markdown in the comment is honoured: **bold**, __bold__, *italic*, _italic_.",
+    "options": [
+      {
+        "value": "mono",
+        "label": "Mono"
+      },
+      {
+        "value": "mono-italic",
+        "label": "Mono italic"
+      },
+      {
+        "value": "brand",
+        "label": "Design system sans"
+      },
+      {
+        "value": "brand-italic",
+        "label": "Design system italic"
+      }
+    ]
+  },
+  {
+    "id": "scene",
+    "label": "Scene",
+    "type": "select",
+    "default": "still",
+    "options": [
+      {
+        "value": "still",
+        "label": "Still image"
+      },
+      {
+        "value": "typing",
+        "label": "Type and hold"
+      },
+      {
+        "value": "demo",
+        "label": "Open, type and close"
+      },
+      {
+        "value": "autocomplete",
+        "label": "Accept a suggestion"
+      },
+      {
+        "value": "replace",
+        "label": "Select and replace"
+      },
+      {
+        "value": "custom",
+        "label": "Custom steps"
+      }
+    ],
+    "section": "Interaction",
+    "help": "Choose an interaction, then adjust its timing. Preview controls appear below the window."
+  },
+  {
+    "id": "typingSeconds",
+    "label": "Typing time (seconds)",
+    "type": "number",
+    "display": "slider",
+    "default": 6,
+    "min": 0.2,
+    "max": 30,
+    "step": 0.1,
+    "section": "Interaction",
+    "showIf": {
+      "scene": [
+        "typing",
+        "demo",
+        "autocomplete",
+        "replace"
+      ]
+    }
+  },
+  {
+    "id": "readSeconds",
+    "label": "Reading pause (seconds)",
+    "type": "number",
+    "display": "slider",
+    "default": 2,
+    "min": 0,
+    "max": 30,
+    "step": 0.5,
+    "section": "Interaction",
+    "showIf": {
+      "scene": [
+        "typing",
+        "demo",
+        "autocomplete",
+        "replace"
+      ]
+    }
+  },
+  {
+    "id": "typingStyle",
+    "label": "Text arrival",
+    "type": "select",
+    "default": "natural",
+    "options": [
+      {
+        "value": "natural",
+        "label": "Natural typing"
+      },
+      {
+        "value": "steady",
+        "label": "Steady typing"
+      },
+      {
+        "value": "word",
+        "label": "Word by word"
+      },
+      {
+        "value": "line",
+        "label": "Line by line"
+      },
+      {
+        "value": "paste",
+        "label": "Paste at once"
+      }
+    ],
+    "section": "Interaction",
+    "showIf": {
+      "scene": [
+        "typing",
+        "demo",
+        "autocomplete",
+        "replace",
+        "custom"
+      ]
+    }
+  },
+  {
+    "id": "ending",
+    "label": "Ending",
+    "type": "select",
+    "default": "close",
+    "options": [
+      {
+        "value": "close",
+        "label": "Click close"
+      },
+      {
+        "value": "hold",
+        "label": "Leave open"
+      }
+    ],
+    "section": "Interaction",
+    "showIf": {
+      "scene": [
+        "demo",
+        "autocomplete",
+        "replace"
+      ]
+    }
+  },
+  {
+    "id": "completeAfter",
+    "label": "Type before suggestion (%)",
+    "type": "number",
+    "display": "slider",
+    "default": 35,
+    "min": 0,
+    "max": 95,
+    "step": 5,
+    "section": "Interaction",
+    "showIf": {
+      "scene": "autocomplete"
+    },
+    "help": "The rest of your text appears as a suggestion and is accepted with Tab."
+  },
+  {
+    "id": "selectText",
+    "label": "Text to select",
+    "type": "text",
+    "default": "World",
+    "section": "Interaction",
+    "showIf": {
+      "scene": "replace"
+    },
+    "help": "Selects the first exact match, including spaces and case."
+  },
+  {
+    "id": "replacementText",
+    "label": "Replacement",
+    "type": "longtext",
+    "default": "Lolly",
+    "section": "Interaction",
+    "showIf": {
+      "scene": "replace"
+    },
+    "help": "Replaces the selected text. Leave empty to delete the selection."
+  },
+  {
+    "id": "showPointer",
+    "label": "Show mouse pointer",
+    "type": "boolean",
+    "display": "pill",
+    "default": true,
+    "section": "Interaction",
+    "showIf": {
+      "scene": [
+        "typing",
+        "demo",
+        "autocomplete",
+        "replace",
+        "custom"
+      ]
+    }
+  },
+  {
+    "id": "cursorSize",
+    "label": "Cursor size",
+    "type": "number",
+    "display": "slider",
+    "default": 100,
+    "min": 50,
+    "max": 250,
+    "step": 10,
+    "section": "Interaction",
+    "help": "Scales the mouse pointer and its text-selection shape. The caret follows the text size.",
+    "showIf": {
+      "showPointer": true,
+      "scene": [
+        "typing",
+        "demo",
+        "autocomplete",
+        "replace",
+        "custom"
+      ]
+    }
+  },
+  {
+    "id": "clickRing",
+    "label": "Show click rings",
+    "type": "boolean",
+    "display": "pill",
+    "default": false,
+    "section": "Interaction",
+    "showIf": {
+      "scene": [
+        "typing",
+        "demo",
+        "autocomplete",
+        "replace",
+        "custom"
+      ]
+    }
+  },
+  {
+    "id": "entryMotion",
+    "label": "Opening motion",
+    "type": "select",
+    "default": "scale",
+    "options": [
+      {
+        "value": "scale",
+        "label": "Grow into place"
+      },
+      {
+        "value": "fade",
+        "label": "Fade in"
+      },
+      {
+        "value": "slide",
+        "label": "Slide up"
+      },
+      {
+        "value": "none",
+        "label": "Appear"
+      }
+    ],
+    "section": "Interaction",
+    "showIf": {
+      "scene": [
+        "demo",
+        "autocomplete",
+        "replace",
+        "custom"
+      ]
+    }
+  },
+  {
+    "id": "exitMotion",
+    "label": "Closing motion",
+    "type": "select",
+    "default": "scale",
+    "options": [
+      {
+        "value": "scale",
+        "label": "Shrink away"
+      },
+      {
+        "value": "fade",
+        "label": "Fade out"
+      },
+      {
+        "value": "slide",
+        "label": "Slide down"
+      },
+      {
+        "value": "none",
+        "label": "Disappear"
+      }
+    ],
+    "section": "Interaction",
+    "showIf": {
+      "scene": [
+        "demo",
+        "autocomplete",
+        "replace",
+        "custom"
+      ]
+    }
+  },
+  {
+    "id": "posterAt",
+    "label": "Still frame (seconds)",
+    "type": "number",
+    "display": "slider",
+    "default": -1,
+    "min": -1,
+    "max": 120,
+    "step": 0.1,
+    "section": "Interaction",
+    "showIf": {
+      "scene": [
+        "typing",
+        "demo",
+        "autocomplete",
+        "replace",
+        "custom"
+      ]
+    },
+    "help": "-1 uses the finished text before closing. Another value chooses an exact scene time for still exports."
+  },
+  {
+    "id": "startFilled",
+    "label": "Start with text visible",
+    "type": "boolean",
+    "display": "pill",
+    "default": false,
+    "section": "Scene steps",
+    "showIf": {
+      "scene": "custom"
+    }
+  },
+  {
+    "id": "steps",
+    "label": "Steps",
+    "type": "blocks",
+    "section": "Scene steps",
+    "showIf": {
+      "scene": "custom"
+    },
+    "labelledFields": true,
+    "rowActions": true,
+    "help": "Up to 24 steps. Empty Type text uses the main text. Select finds the first exact match; Replace edits that selection. Each step has its own duration.",
+    "default": [
+      {
+        "action": "open",
+        "seconds": 0.5
+      },
+      {
+        "action": "click",
+        "seconds": 0.8
+      },
+      {
+        "action": "type",
+        "seconds": 6
+      },
+      {
+        "action": "wait",
+        "seconds": 2
+      },
+      {
+        "action": "close",
+        "seconds": 1
+      }
+    ],
+    "fields": [
+      {
+        "id": "action",
+        "label": "Action",
+        "type": "select",
+        "default": "wait",
+        "options": [
+          {
+            "value": "open",
+            "label": "Open window"
+          },
+          {
+            "value": "click",
+            "label": "Click text"
+          },
+          {
+            "value": "type",
+            "label": "Type text"
+          },
+          {
+            "value": "wait",
+            "label": "Wait"
+          },
+          {
+            "value": "select",
+            "label": "Select text"
+          },
+          {
+            "value": "replace",
+            "label": "Replace selection"
+          },
+          {
+            "value": "complete",
+            "label": "Accept suggestion"
+          },
+          {
+            "value": "close",
+            "label": "Close window"
+          }
+        ]
+      },
+      {
+        "id": "text",
+        "label": "Text or selection",
+        "type": "text",
+        "default": "",
+        "showIf": {
+          "action": [
+            "type",
+            "select",
+            "replace",
+            "complete"
+          ]
+        }
+      },
+      {
+        "id": "seconds",
+        "label": "Seconds",
+        "type": "number",
+        "default": 1,
+        "min": 0,
+        "max": 30,
+        "step": 0.1
+      }
+    ]
+  },
+  {
+    "id": "windowRotate",
+    "label": "Rotation",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": -15,
+    "max": 15,
+    "step": 1,
+    "section": "Window pose"
+  },
+  {
+    "id": "windowTiltX",
+    "label": "Tilt up or down",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": -25,
+    "max": 25,
+    "step": 1,
+    "section": "Window pose"
+  },
+  {
+    "id": "windowTiltY",
+    "label": "Tilt left or right",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": -25,
+    "max": 25,
+    "step": 1,
+    "section": "Window pose"
+  }
+]

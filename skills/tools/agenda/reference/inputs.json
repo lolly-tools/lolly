@@ -1,0 +1,814 @@
+[
+  {
+    "id": "title",
+    "label": "Event",
+    "type": "text",
+    "default": "Northwind Summit 2026",
+    "maxLength": 90,
+    "placeholder": "e.g. Northwind Summit 2026",
+    "help": "Printed at the head of every layout, and used as the exported file name."
+  },
+  {
+    "id": "subtitle",
+    "label": "Venue or strapline",
+    "type": "text",
+    "default": "Riverside Conference Centre",
+    "maxLength": 120,
+    "placeholder": "e.g. Riverside Conference Centre",
+    "help": "One line under the event name. A venue, a city, or the line the programme is sold on."
+  },
+  {
+    "id": "sessions",
+    "label": "Sessions",
+    "type": "table",
+    "urlKey": "ss",
+    "help": "Edit programme opens the grid and session form. Review imports before adding or replacing rows. Keep Session ID when revising a session. A blank End means one hour; use End date for an overnight session.",
+    "default": {
+      "columns": [
+        "Date",
+        "Start",
+        "End",
+        "Title",
+        "Speaker",
+        "Track",
+        "Room",
+        "Kind",
+        "Note",
+        "Session ID"
+      ],
+      "rows": [
+        [
+          "2026-10-14",
+          "09:00",
+          "09:45",
+          "Building in the open",
+          "Maya Lindqvist",
+          "",
+          "Auditorium",
+          "keynote",
+          "Doors open at 08:30",
+          "northwind-2026-1"
+        ],
+        [
+          "2026-10-14",
+          "10:00",
+          "10:45",
+          "Design tokens that survive a rebrand",
+          "Ana Kovač",
+          "Design",
+          "Hall A",
+          "session",
+          "",
+          "northwind-2026-2"
+        ],
+        [
+          "2026-10-14",
+          "10:00",
+          "10:45",
+          "Containers without the drama",
+          "Tomás Herrera",
+          "Platform",
+          "Hall B",
+          "session",
+          "",
+          "northwind-2026-3"
+        ],
+        [
+          "2026-10-14",
+          "10:00",
+          "11:30",
+          "Your first accessible component",
+          "Priya Nair",
+          "Practice",
+          "Studio 1",
+          "workshop",
+          "Bring a laptop",
+          "northwind-2026-4"
+        ],
+        [
+          "2026-10-14",
+          "10:45",
+          "11:15",
+          "Coffee",
+          "",
+          "",
+          "Foyer",
+          "break",
+          "",
+          "northwind-2026-5"
+        ],
+        [
+          "2026-10-14",
+          "11:15",
+          "12:00",
+          "Type on screen, type in print",
+          "Lena Fischer",
+          "Design",
+          "Hall A",
+          "session",
+          "",
+          "northwind-2026-6"
+        ],
+        [
+          "2026-10-14",
+          "11:15",
+          "12:00",
+          "Observability on a budget",
+          "Jonas Weber",
+          "Platform",
+          "Hall B",
+          "session",
+          "",
+          "northwind-2026-7"
+        ],
+        [
+          "2026-10-14",
+          "12:00",
+          "13:00",
+          "Lunch",
+          "",
+          "",
+          "Foyer",
+          "break",
+          "",
+          "northwind-2026-8"
+        ],
+        [
+          "2026-10-14",
+          "13:00",
+          "13:45",
+          "Contrast and the people who need it",
+          "Ingrid Sorensen",
+          "Design",
+          "Hall A",
+          "session",
+          "",
+          "northwind-2026-9"
+        ],
+        [
+          "2026-10-14",
+          "14:00",
+          "14:45",
+          "Closing panel: what we ship next",
+          "",
+          "",
+          "Auditorium",
+          "keynote",
+          "",
+          "northwind-2026-10"
+        ],
+        [
+          "2026-10-14",
+          "17:00",
+          "19:00",
+          "Drinks at the riverside bar",
+          "",
+          "",
+          "Foyer",
+          "social",
+          "Everyone welcome",
+          "northwind-2026-11"
+        ]
+      ]
+    },
+    "tableEditor": {
+      "title": "Edit programme",
+      "fields": [
+        {
+          "key": "date",
+          "label": "Date",
+          "editor": "date",
+          "aliases": [
+            "day"
+          ],
+          "primary": true,
+          "required": true,
+          "column": "Date"
+        },
+        {
+          "key": "start",
+          "label": "Start",
+          "editor": "time",
+          "aliases": [
+            "starts",
+            "from",
+            "begins",
+            "time"
+          ],
+          "primary": true,
+          "required": true,
+          "dateField": "date",
+          "column": "Start"
+        },
+        {
+          "key": "end",
+          "label": "End",
+          "editor": "time",
+          "aliases": [
+            "ends",
+            "to",
+            "until",
+            "finish"
+          ],
+          "primary": true,
+          "required": false,
+          "dateField": "endDate",
+          "column": "End"
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "editor": "text",
+          "aliases": [
+            "session",
+            "what",
+            "name",
+            "talk"
+          ],
+          "primary": true,
+          "required": true,
+          "column": "Title"
+        },
+        {
+          "key": "room",
+          "label": "Room",
+          "editor": "choice",
+          "aliases": [
+            "where",
+            "venue",
+            "place",
+            "location"
+          ],
+          "primary": true,
+          "required": false,
+          "column": "Room"
+        },
+        {
+          "key": "speaker",
+          "label": "Speaker",
+          "editor": "text",
+          "aliases": [
+            "speakers",
+            "who",
+            "presenter",
+            "host"
+          ],
+          "primary": false,
+          "required": false,
+          "column": "Speaker"
+        },
+        {
+          "key": "track",
+          "label": "Track",
+          "editor": "choice",
+          "aliases": [
+            "stream",
+            "strand",
+            "room track"
+          ],
+          "primary": false,
+          "required": false,
+          "column": "Track"
+        },
+        {
+          "key": "kind",
+          "label": "Kind",
+          "editor": "choice",
+          "aliases": [
+            "type",
+            "category"
+          ],
+          "primary": false,
+          "required": false,
+          "choices": [
+            "session",
+            "keynote",
+            "workshop",
+            "break",
+            "social"
+          ],
+          "column": "Kind"
+        },
+        {
+          "key": "note",
+          "label": "Note",
+          "editor": "text",
+          "aliases": [
+            "notes",
+            "detail",
+            "details",
+            "description"
+          ],
+          "primary": false,
+          "required": false,
+          "column": "Note"
+        },
+        {
+          "key": "id",
+          "label": "Session ID",
+          "editor": "text",
+          "aliases": [
+            "id",
+            "uid"
+          ],
+          "primary": false,
+          "required": false,
+          "identity": true,
+          "column": "Session ID"
+        },
+        {
+          "key": "endDate",
+          "label": "End date",
+          "editor": "date",
+          "aliases": [
+            "end day",
+            "finish date"
+          ],
+          "primary": false,
+          "required": false,
+          "column": "End date"
+        },
+        {
+          "key": "link",
+          "label": "Link",
+          "editor": "url",
+          "aliases": [
+            "url",
+            "website"
+          ],
+          "primary": false,
+          "required": false,
+          "column": "Link"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "editor": "choice",
+          "aliases": [
+            "state"
+          ],
+          "primary": false,
+          "required": false,
+          "choices": [
+            "scheduled",
+            "rescheduled",
+            "cancelled"
+          ],
+          "column": "Status"
+        },
+        {
+          "key": "image",
+          "label": "Image",
+          "editor": "url",
+          "aliases": [
+            "photo",
+            "portrait",
+            "image url"
+          ],
+          "primary": false,
+          "required": false,
+          "column": "Image"
+        }
+      ],
+      "diagnostics": "diagnostics",
+      "preview": {
+        "date": "date",
+        "time": "start",
+        "input": "now"
+      }
+    }
+  },
+  {
+    "id": "layout",
+    "label": "Layout",
+    "type": "select",
+    "urlKey": "ly",
+    "default": "overview",
+    "help": "Choose a screen scene, a browsable page or a printable programme. Screen scenes rotate automatically and give long titles time to read.",
+    "options": [
+      {
+        "value": "overview",
+        "label": "Programme overview"
+      },
+      {
+        "value": "departures",
+        "label": "Departures"
+      },
+      {
+        "value": "board",
+        "label": "Now and next"
+      },
+      {
+        "value": "spotlight",
+        "label": "Session spotlight"
+      },
+      {
+        "value": "chapters",
+        "label": "Track chapters"
+      },
+      {
+        "value": "rooms",
+        "label": "Room wall"
+      },
+      {
+        "value": "ribbon",
+        "label": "Wide ribbon"
+      },
+      {
+        "value": "page",
+        "label": "Interactive page"
+      },
+      {
+        "value": "grid",
+        "label": "Timetable"
+      },
+      {
+        "value": "list",
+        "label": "Programme list"
+      },
+      {
+        "value": "intermission",
+        "label": "Intermission"
+      },
+      {
+        "value": "closing",
+        "label": "Event close"
+      },
+      {
+        "value": "soon",
+        "label": "Starting soon"
+      }
+    ]
+  },
+  {
+    "id": "style",
+    "label": "Programme style",
+    "type": "select",
+    "default": "editorial",
+    "options": [
+      {
+        "value": "editorial",
+        "label": "Editorial · tinted track cards"
+      },
+      {
+        "value": "minimal",
+        "label": "Minimal · ink and rules"
+      },
+      {
+        "value": "night",
+        "label": "Night · dark programme"
+      },
+      {
+        "value": "swiss",
+        "label": "Swiss"
+      },
+      {
+        "value": "broadcast",
+        "label": "Broadcast"
+      },
+      {
+        "value": "gallery",
+        "label": "Gallery"
+      },
+      {
+        "value": "festival",
+        "label": "Festival"
+      },
+      {
+        "value": "quiet",
+        "label": "Quiet"
+      }
+    ],
+    "help": "All styles keep the active design system's type and track colours. Night gives foyer screens a dark background; Minimal uses less ink on paper."
+  },
+  {
+    "id": "now",
+    "label": "Reference time",
+    "type": "datetime-local",
+    "default": "",
+    "help": "Optional event-local time. Screens and snapshots hold this moment; rehearsal videos advance from it."
+  },
+  {
+    "id": "tz",
+    "label": "Time zone",
+    "type": "text",
+    "default": "",
+    "maxLength": 60,
+    "placeholder": "e.g. Europe/Berlin",
+    "help": "Choose an IANA zone such as Europe/London for screens and calendar exports. Legacy links with a blank zone keep floating event times."
+  },
+  {
+    "id": "showSpeakers",
+    "display": "pill",
+    "label": "Show speakers",
+    "type": "boolean",
+    "default": true,
+    "section": "What to show"
+  },
+  {
+    "id": "showRooms",
+    "display": "pill",
+    "label": "Show rooms",
+    "type": "boolean",
+    "default": true,
+    "section": "What to show"
+  },
+  {
+    "id": "compact",
+    "display": "pill",
+    "label": "Tighter spacing",
+    "type": "boolean",
+    "default": false,
+    "section": "What to show",
+    "help": "Smaller type and less air between rows, for a programme too long for one sheet."
+  },
+  {
+    "id": "plenaryLabel",
+    "label": "Name for sessions with no track",
+    "type": "text",
+    "default": "",
+    "maxLength": 40,
+    "placeholder": "Plenary",
+    "section": "What to show",
+    "help": "A session with an empty Track cell belongs to everybody: it spans every column of the timetable and is listed under this name."
+  },
+  {
+    "id": "nowLabel",
+    "label": "Heading for what is on",
+    "type": "text",
+    "default": "",
+    "maxLength": 24,
+    "placeholder": "Now",
+    "section": "Board headings",
+    "showIf": {
+      "layout": "board"
+    }
+  },
+  {
+    "id": "nextLabel",
+    "label": "Heading for what follows",
+    "type": "text",
+    "default": "",
+    "maxLength": 24,
+    "placeholder": "Next",
+    "section": "Board headings",
+    "showIf": {
+      "layout": "board"
+    }
+  },
+  {
+    "id": "roomFilter",
+    "label": "Room on this screen",
+    "type": "text",
+    "default": "",
+    "section": "Screen content",
+    "help": "Optional room name from the table. Blank shows every room."
+  },
+  {
+    "id": "trackFilter",
+    "label": "Track on this screen",
+    "type": "text",
+    "default": "",
+    "section": "Screen content",
+    "help": "Optional track name. Sessions with no track still appear for everyone."
+  },
+  {
+    "id": "eventDay",
+    "label": "Day on this screen",
+    "type": "date",
+    "default": "",
+    "section": "Screen content",
+    "help": "Blank shows every day."
+  },
+  {
+    "id": "message",
+    "label": "Screen message",
+    "type": "text",
+    "default": "",
+    "maxLength": 300,
+    "section": "Screen content",
+    "help": "Optional welcome, intermission or closing message."
+  },
+  {
+    "id": "backdrop",
+    "label": "Background",
+    "type": "select",
+    "default": "depth",
+    "section": "Presentation",
+    "options": [
+      {
+        "value": "silk",
+        "label": "Silk field"
+      },
+      {
+        "value": "planes",
+        "label": "Colour planes"
+      },
+      {
+        "value": "paper",
+        "label": "Paper and ink"
+      },
+      {
+        "value": "clear",
+        "label": "Clear surface"
+      },
+      {
+        "value": "luminous",
+        "label": "Luminous"
+      },
+      {
+        "value": "contours",
+        "label": "Contours"
+      },
+      {
+        "value": "pattern",
+        "label": "Brand pattern"
+      },
+      {
+        "value": "depth",
+        "label": "Soft depth"
+      },
+      {
+        "value": "image",
+        "label": "Image"
+      }
+    ]
+  },
+  {
+    "id": "motion",
+    "label": "Motion",
+    "type": "select",
+    "default": "calm",
+    "section": "Presentation",
+    "options": [
+      {
+        "value": "off",
+        "label": "Still"
+      },
+      {
+        "value": "calm",
+        "label": "Calm"
+      },
+      {
+        "value": "expressive",
+        "label": "Expressive"
+      },
+      {
+        "value": "broadcast",
+        "label": "Broadcast"
+      },
+      {
+        "value": "editorial",
+        "label": "Editorial"
+      }
+    ]
+  },
+  {
+    "id": "distance",
+    "label": "Reading distance",
+    "type": "select",
+    "default": "room",
+    "section": "Presentation",
+    "options": [
+      {
+        "value": "desk",
+        "label": "At a desk"
+      },
+      {
+        "value": "room",
+        "label": "Across a room"
+      },
+      {
+        "value": "hall",
+        "label": "Across a hall"
+      }
+    ]
+  },
+  {
+    "id": "clockMode",
+    "label": "Video time",
+    "type": "select",
+    "default": "snapshot",
+    "section": "Presentation",
+    "options": [
+      {
+        "value": "snapshot",
+        "label": "Snapshot at reference time"
+      },
+      {
+        "value": "evergreen",
+        "label": "Evergreen programme"
+      },
+      {
+        "value": "rehearsal",
+        "label": "Rehearsal from reference time"
+      }
+    ]
+  },
+  {
+    "id": "pptxMode",
+    "label": "PowerPoint content",
+    "type": "select",
+    "default": "editable",
+    "section": "Presentation",
+    "options": [
+      {
+        "value": "editable",
+        "label": "Editable text and shapes"
+      },
+      {
+        "value": "animated",
+        "label": "Embedded video and readable slides"
+      }
+    ]
+  },
+  {
+    "id": "dwell",
+    "label": "Minimum scene duration",
+    "type": "number",
+    "default": 12,
+    "min": 5,
+    "max": 120,
+    "step": 1,
+    "section": "Presentation",
+    "help": "Seconds. A long title automatically extends its scene so every word can be read."
+  },
+  {
+    "id": "panSpeed",
+    "label": "Title travel speed",
+    "type": "number",
+    "default": 45,
+    "min": 15,
+    "max": 100,
+    "step": 5,
+    "section": "Presentation",
+    "help": "Pixels per second at 1080p. Text holds at both ends."
+  },
+  {
+    "id": "logo",
+    "label": "Event logo",
+    "type": "asset",
+    "section": "Presentation",
+    "allowUpload": true,
+    "help": "Choose the brand logo variant that belongs on the selected surface."
+  },
+  {
+    "id": "backgroundImage",
+    "label": "Background image",
+    "type": "asset",
+    "allowUpload": true,
+    "section": "Presentation"
+  },
+  {
+    "id": "backgroundIntensity",
+    "label": "Background intensity",
+    "type": "number",
+    "default": 0.3,
+    "min": 0,
+    "max": 1,
+    "step": 0.05,
+    "section": "Presentation"
+  },
+  {
+    "id": "variation",
+    "label": "Background variation",
+    "type": "number",
+    "default": 1,
+    "min": 1,
+    "max": 1000,
+    "step": 1,
+    "section": "Presentation"
+  },
+  {
+    "id": "strictPalette",
+    "label": "Use only design system colours",
+    "type": "boolean",
+    "default": false,
+    "section": "Presentation"
+  },
+  {
+    "id": "kitVideo",
+    "label": "Include video in event kit",
+    "type": "boolean",
+    "default": false,
+    "section": "Presentation",
+    "help": "ZIP includes the programme, room screens, contact sheet, PDF, poster and calendar. Enable this to include one programme MP4. Rooms share the same source revision."
+  },
+  {
+    "id": "eventId",
+    "label": "Event ID",
+    "type": "text",
+    "default": "",
+    "maxLength": 100,
+    "section": "Event details",
+    "help": "A permanent calendar identity for this event. Created on the first programme edit. Keep it when publishing revisions; use a new value for another event."
+  },
+  {
+    "id": "sceneOrder",
+    "label": "Scene order",
+    "type": "longtext",
+    "default": "",
+    "section": "Advanced presentation",
+    "help": "Optional Session IDs in the order to show them, one per line. Unlisted sessions follow in programme order."
+  }
+]

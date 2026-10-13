@@ -209,6 +209,8 @@ export async function pinTool(toolId: string, prefetchAssets?: PrefetchAssets): 
   const wants: Array<[path: string, required: boolean]> = [
     ['template.html', true],
     ['styles.css', false],
+    ['SKILL.md', false],
+    ['skill.json', false],
   ];
   // A tool that declares hooks and loses them renders wrong output - for a pin
   // that's a hard failure, unlike the loader's silent tryFetch degrade.
@@ -228,6 +230,21 @@ export async function pinTool(toolId: string, prefetchAssets?: PrefetchAssets): 
     return r ? r.text() : null;
   };
   const sources = await Promise.all([readBack('template.html'), readBack('styles.css'), readBack('hooks.js')]);
+  const skillSource = await readBack('skill.json');
+  if (skillSource) {
+    try {
+      const { isToolSkillReference } = await import('@lolly-tools/core/tool-skill-v1');
+      const references = JSON.parse(skillSource).references;
+      if (Array.isArray(references) && references.length <= 16) {
+        for (const path of references) {
+          if (typeof path !== 'string' || !isToolSkillReference(path)) continue;
+          const size = await pinFile(cache, `${base}/${path}`, true);
+          bytes += size;
+          if (size > 0) files++;
+        }
+      }
+    } catch { /* optional guidance can be generated from the pinned manifest */ }
+  }
   const localSizes = await Promise.all(localAssetPaths(toolId, sources).map(url => pinFile(cache, url, false)));
   bytes += localSizes.reduce((n, s) => n + s, 0);
   files += localSizes.filter(s => s > 0).length;

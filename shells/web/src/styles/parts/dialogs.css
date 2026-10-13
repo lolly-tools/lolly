@@ -360,22 +360,17 @@ html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-3 { animati
 .share-file {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--sp-4);
   flex-wrap: wrap;
-  padding: 11px 12px;
-  border: 1px solid hsl(var(--primary) / 0.4);
-  border-radius: var(--radius);
-  background: hsl(var(--primary) / 0.06);
 }
 /* The verdict routes here (dropped content, or a link too long to pass around): a stronger
    accent halo + a "Recommended" tag, so the eye lands on the vehicle that actually carries
    everything. Toggled by share-dialog.ts (.is-recommended); the calm default stands otherwise. */
-.share-file.is-recommended {
-  border-color: hsl(var(--primary) / 0.85);
+.share-file-section.is-recommended {
   background: hsl(var(--primary) / 0.12);
-  box-shadow: 0 0 0 1px hsl(var(--primary) / 0.5);
+  box-shadow: var(--ui-effect-bevel), 0 0 0 1px hsl(var(--primary) / 0.5);
 }
-.share-file.is-recommended .share-file-text strong::after {
+.share-file-section.is-recommended .input-section-title::after {
   content: "Recommended";
   margin-inline-start: 8px;
   padding: 1px 7px;
@@ -393,6 +388,7 @@ html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-3 { animati
 .share-file-text { display: flex; flex-direction: column; gap: 2px; flex: 1 1 180px; min-width: 0; }
 .share-file-text strong { font-size: var(--fs-md); }
 .share-file-note { font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); line-height: 1.4; }
+.share-file-btns { display:flex; gap:var(--sp-2); flex-wrap:wrap; }
 .share-file-btn { flex: 0 0 auto; }
 /* "Include the tool" toggle - revealed once its offer resolves (see share-dialog.ts). */
 .share-file-tool {
@@ -442,59 +438,18 @@ html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-3 { animati
   color: hsl(var(--muted-foreground));
   font-variant-numeric: tabular-nums;
 }
-/* Collapsible "Link options" / "Link behaviour" groups. */
-.share-section {
-  border: 1px solid hsl(var(--border));
-  border-radius: var(--radius);
-}
-.share-section > summary {
-  padding: 10px 14px;
-  font-size: var(--fs-md);
-  font-weight: 600;
-  color: hsl(var(--foreground));
-  cursor: pointer;
-  list-style: none;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.share-section > summary::-webkit-details-marker { display: none; }
-.share-section > summary::before {
-  content: "›";
-  display: inline-block;
-  font-size: calc(15px * var(--a11y-fs));
-  line-height: 1;
-  color: hsl(var(--muted-foreground));
-  transition: transform 0.15s;
-}
-.share-section[open] > summary::before { transform: rotate(90deg); }
-.share-section-body {
-  padding: 0 14px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
+.share-extra-sections,
+.share-lead-sections { display:flex; flex-direction:column; gap:var(--ui-space-control-block); }
+.share-extra-sections:empty { display:none; }
+.share-credit-row { display:flex; align-items:center; flex-wrap:wrap; gap:var(--sp-3); margin:0; font-size:var(--fs-sm); color:hsl(var(--muted-foreground)); }
 /* Row layout (flex/centre/8px gap/pointer) + the tick itself now come from the
    shared `.field-toggle` + `.field-check` primitive (parts/fields.css); the type
    size is this dialog's own delta. */
 .share-toggle-row { font-size: var(--fs-md); }
 /* Inside a collapsible section the fieldset drops its own border - the section owns it. */
-.share-section > .share-toggles {
+.share-section-body > .share-toggles {
   border: 0;
-  padding: 0 14px 12px;
-}
-/* Inside a section the summary already names the group visually, so the legend is
-   hidden - but VISUALLY, not with `display: none`, which would drop it from the
-   accessibility tree and leave the shell's only <fieldset> unnamed. Same
-   declarations as `.visually-hidden` (parts/base.css). */
-.share-section > .share-toggles legend {
-  position: absolute;
-  width: 1px; height: 1px;
-  margin: -1px; padding: 0; border: 0;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  clip-path: inset(50%);
-  white-space: nowrap;
+  padding: 0;
 }
 .share-toggles {
   border: 1px solid hsl(var(--border));

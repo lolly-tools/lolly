@@ -1,0 +1,276 @@
+[
+  {
+    "id": "eventName",
+    "label": "Event name",
+    "type": "text",
+    "default": "",
+    "placeholder": " "
+  },
+  {
+    "id": "people",
+    "label": "Team members",
+    "type": "blocks",
+    "fields": [
+      {
+        "id": "name",
+        "label": "Name",
+        "placeholder": "e.g. Ana Kovac"
+      },
+      {
+        "id": "city",
+        "label": "City",
+        "placeholder": "e.g. Berlin"
+      }
+    ],
+    "default": [
+      {
+        "name": "",
+        "city": ""
+      }
+    ]
+  },
+  {
+    "id": "titleWeight",
+    "label": "Title weight",
+    "type": "number",
+    "display": "slider",
+    "min": 100,
+    "max": 900,
+    "step": 100,
+    "default": 500,
+    "help": "Font weight of the event title (100 Thin to 900 Black)."
+  },
+  {
+    "id": "city",
+    "label": "Host city",
+    "type": "text",
+    "default": "Nuremberg",
+    "placeholder": "e.g. Nuremberg",
+    "help": "The city where the meeting originates - sets the time zone for the time below.",
+    "notice": "City names are looked up at open-meteo.com to find their time zone. Only the name is sent, and each answer stays on your device for offline reuse."
+  },
+  {
+    "id": "meetingTime",
+    "label": "Meeting date & time",
+    "type": "datetime-local",
+    "default": "",
+    "help": "Local date and time in the host city. Ignored while Live clock is on."
+  },
+  {
+    "id": "liveClock",
+    "label": "Live clock",
+    "type": "boolean",
+    "default": false,
+    "help": "Show the current time everywhere and keep ticking - leave it open as a world-clock widget."
+  },
+  {
+    "id": "theme",
+    "label": "Theme",
+    "type": "select",
+    "default": "light",
+    "options": [
+      {
+        "value": "dark",
+        "label": "Dark"
+      },
+      {
+        "value": "light",
+        "label": "Light"
+      },
+      {
+        "value": "green",
+        "label": "Design system"
+      }
+    ]
+  },
+  {
+    "id": "layout",
+    "label": "Layout",
+    "type": "select",
+    "default": "landscape",
+    "options": [
+      {
+        "value": "landscape",
+        "label": "Landscape"
+      },
+      {
+        "value": "portrait",
+        "label": "Portrait"
+      },
+      {
+        "value": "square",
+        "label": "Square"
+      }
+    ]
+  },
+  {
+    "id": "projection",
+    "section": "Map",
+    "label": "Map projection",
+    "type": "select",
+    "group": "map",
+    "default": "geoOrthographic",
+    "options": [
+      {
+        "value": "geoNaturalEarth1",
+        "label": "Natural Earth"
+      },
+      {
+        "value": "geoEqualEarth",
+        "label": "Equal Earth"
+      },
+      {
+        "value": "geoMercator",
+        "label": "Mercator"
+      },
+      {
+        "value": "geoOrthographic",
+        "label": "Orthographic"
+      },
+      {
+        "value": "geoAzimuthalEqualArea",
+        "label": "Azimuthal Equal Area"
+      },
+      {
+        "value": "geoEquirectangular",
+        "label": "Equirectangular"
+      },
+      {
+        "value": "geoStereographic",
+        "label": "Stereographic"
+      }
+    ]
+  },
+  {
+    "id": "showNight",
+    "section": "Map",
+    "label": "Night overlay",
+    "type": "boolean",
+    "group": "map",
+    "default": true
+  },
+  {
+    "id": "showGraticule",
+    "section": "Map",
+    "label": "Graticule lines",
+    "type": "boolean",
+    "group": "map",
+    "default": false
+  },
+  {
+    "id": "showBorders",
+    "section": "Map",
+    "label": "Country borders",
+    "type": "boolean",
+    "group": "map",
+    "default": false
+  },
+  {
+    "id": "landColor",
+    "section": "Map",
+    "label": "Land colour",
+    "type": "color",
+    "group": "map",
+    "default": ""
+  },
+  {
+    "id": "oceanColor",
+    "section": "Map",
+    "label": "Ocean colour",
+    "type": "color",
+    "group": "map",
+    "default": "transparent"
+  },
+  {
+    "id": "mapZoom",
+    "section": "Map",
+    "label": "Map viewport",
+    "type": "text",
+    "group": "map",
+    "default": "2.2511%2C-348.76%2C-147.81",
+    "placeholder": "Pan or zoom the map to set",
+    "help": "Auto-saved when you pan or zoom. Clear to reset to default view."
+  },
+  {
+    "id": "pinColor",
+    "section": "Pins and labels",
+    "label": "Pin colour",
+    "type": "color",
+    "group": "map",
+    "default": ""
+  },
+  {
+    "id": "pinShape",
+    "section": "Pins and labels",
+    "label": "Pin shape",
+    "type": "select",
+    "group": "map",
+    "default": "circle",
+    "options": [
+      {
+        "value": "circle",
+        "label": "Circle"
+      },
+      {
+        "value": "diamond",
+        "label": "Diamond"
+      },
+      {
+        "value": "square",
+        "label": "Square"
+      }
+    ]
+  },
+  {
+    "id": "pinSize",
+    "section": "Pins and labels",
+    "label": "Pin size",
+    "type": "number",
+    "display": "slider",
+    "group": "map",
+    "default": 1,
+    "min": 0.01,
+    "max": 3,
+    "step": 0.01
+  },
+  {
+    "id": "labelSize",
+    "section": "Pins and labels",
+    "label": "Label size",
+    "type": "number",
+    "display": "slider",
+    "group": "map",
+    "default": 1,
+    "min": 0.01,
+    "max": 4,
+    "step": 0.01
+  },
+  {
+    "id": "showNameInPin",
+    "section": "Pins and labels",
+    "label": "Show name on pin",
+    "type": "boolean",
+    "group": "map",
+    "default": false
+  },
+  {
+    "id": "hideCity",
+    "section": "Pins and labels",
+    "label": "Remove city from label",
+    "type": "boolean",
+    "group": "map",
+    "default": false
+  },
+  {
+    "id": "fontSize",
+    "section": "Pins and labels",
+    "label": "Card text size",
+    "type": "number",
+    "display": "slider",
+    "group": "map",
+    "default": 1,
+    "min": 0.7,
+    "max": 1.5,
+    "step": 0.05
+  }
+]

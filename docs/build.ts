@@ -301,6 +301,7 @@ const pages: Page[] = [
   { slug: 'determinism',      title: 'Determinism',       src: 'determinism.md',     pathway: 'builders', description: "Same inputs, same file: one render path behind every shell, what is byte-reproducible and what is not, and the receipts for both." },
   { slug: 'reproducibility',  title: 'Reproducibility',   src: 'reproducibility.md', pathway: 'builders', description: "The URL is the artifact: every input travels as parameters, so a link re-renders next year, and the limits of what a bare link can carry." },
   { slug: 'authoring-tools',  title: 'Authoring Tools',   src: 'authoring-tools.md', pathway: 'builders', description: "Author a Lolly tool: the manifest, the template, the optional hooks, and the invariants that keep one tool running unchanged in the browser, on the desktop and in the terminal." },
+  { slug: 'tool-skills', title: 'Tool Skills', src: 'tool-skills.md', pathway: 'builders', description: 'Publish compatible tool guidance and supply the overall and current-tool skills through agent invitations.' },
   { slug: 'tool-manifest', title: 'Tool manifests', src: 'tool-manifest.md', pathway: 'builders', description: "Declare identity, rendering, examples and a short walkthrough." },
   { slug: 'tool-inputs', title: 'Tool inputs', src: 'tool-inputs.md', pathway: 'builders', description: "Choose input types, visibility, profile prefills and common meanings." },
   { slug: 'tool-structured-inputs', title: 'Structured inputs and canvas controls', src: 'tool-structured-inputs.md', pathway: 'builders', description: "Build repeating groups, editor canvases and bounded image framing." },
@@ -610,6 +611,7 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
         { slug: 'reproducibility', label: 'Reproducibility' } ] },
       { label: 'Author tools', items: [
         { slug: 'authoring-tools', label: 'Overview' },
+        { slug: 'tool-skills', label: 'Agent guidance' },
         { slug: 'tool-manifest', label: 'Manifest' },
         { slug: 'tool-inputs', label: 'Inputs' },
         { slug: 'tool-structured-inputs', label: 'Structured inputs' },
@@ -5279,7 +5281,7 @@ const FOOTER_SECTIONS: SitemapSection[] = [
   { hub: 'creators', label: 'Post', slugs: ['formats', 'exporting'] },
   { hub: 'builders', label: 'Architecture', slugs: ['overview', 'design-tokens', 'token-workflows', 'glossary', 'document-model'] },
   { hub: 'builders', label: 'Concepts', slugs: ['constraints', 'determinism', 'reproducibility'] },
-  { hub: 'builders', label: 'Author tools', slugs: ['authoring-tools', 'tool-manifest', 'tool-inputs', 'tool-structured-inputs', 'tool-files'] },
+  { hub: 'builders', label: 'Author tools', slugs: ['authoring-tools', 'tool-skills', 'tool-manifest', 'tool-inputs', 'tool-structured-inputs', 'tool-files'] },
   { hub: 'builders', label: 'Render and share tools', slugs: ['tool-rendering', 'tool-starters', 'tool-hooks', 'tool-composition', 'tool-publishing'] },
   { hub: 'builders', label: 'Reference', slugs: ['authoring-assets', 'text-composition-engine', 'host-api'] },
   { hub: 'builders', label: 'URL mode', slugs: ['url-mode', 'url-inputs', 'url-parameters', 'url-export', 'url-app-links'] },
@@ -5412,7 +5414,7 @@ const SIDEBAR_ICON: Record<string, string> = {
   'build-terminal': 'box', 'build-desktop': 'box', 'build-mobile': 'box', 'build-obs': 'box', 'build-kubernetes': 'box',
   'production-checks': 'check', 'cli-rendering': 'code', 'cli-files': 'code', 'cli-automation': 'code', 'cli-reference': 'code',
   'url-inputs': 'link', 'url-parameters': 'link', 'url-export': 'link', 'url-app-links': 'link',
-  'tool-manifest': 'wrench', 'tool-inputs': 'wrench', 'tool-structured-inputs': 'wrench', 'tool-files': 'wrench', 'tool-rendering': 'wrench', 'tool-starters': 'wrench', 'tool-hooks': 'wrench', 'tool-composition': 'wrench', 'tool-publishing': 'wrench',
+  'tool-skills': 'wrench', 'tool-manifest': 'wrench', 'tool-inputs': 'wrench', 'tool-structured-inputs': 'wrench', 'tool-files': 'wrench', 'tool-rendering': 'wrench', 'tool-starters': 'wrench', 'tool-hooks': 'wrench', 'tool-composition': 'wrench', 'tool-publishing': 'wrench',
   // Builders - run & integrate
   cli: 'code', 'cli-signing': 'seal', tui: 'monitor', mcp: 'server', 'ai-agents': 'sparkle', extension: 'globe',
   // Builders - ship & operate
@@ -6013,6 +6015,12 @@ async function build() {
     rmSync(resolve(outDir, 'skills', 'lolly'), { recursive: true, force: true });
     cpSync(skillSrc, resolve(outDir, 'skills', 'lolly'), { recursive: true });
     console.log('✓  /info/skills/lolly (agent skill: SKILL.md + references)');
+  }
+  const toolSkillsSrc = resolve(repoRoot, 'skills', 'tools');
+  if (existsSync(toolSkillsSrc)) {
+    rmSync(resolve(outDir, 'skills', 'tools'), { recursive: true, force: true });
+    cpSync(toolSkillsSrc, resolve(outDir, 'skills', 'tools'), { recursive: true });
+    console.log('✓  /info/skills/tools (public tool guidance + versioned index)');
   }
 
   // Docs screenshots - committed baselines captured by `pnpm run docs:shots` from

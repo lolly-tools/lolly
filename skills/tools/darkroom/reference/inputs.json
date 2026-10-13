@@ -1,0 +1,2028 @@
+[
+  {
+    "id": "image",
+    "label": "Image",
+    "type": "asset",
+    "assetType": "image",
+    "allowUpload": true,
+    "help": "Pick a photo or SVG, or upload your own - vectors are rasterised on selection. Everything is processed on your device - the pixels never leave the browser. Leave empty to grade the lorikeet portrait that ships with the catalogue, or choose Use camera to grade a live feed."
+  },
+  {
+    "id": "imageFraming",
+    "label": "Zoom & position",
+    "framingFor": "image",
+    "help": "Drag the photo on the canvas to move it, scroll to zoom, and hold Alt while dragging to correct converging verticals. Or drag a label / type a value here.",
+    "type": "vector",
+    "fields": [
+      {
+        "id": "zoom",
+        "label": "Zoom",
+        "min": 100,
+        "max": 400,
+        "step": 1,
+        "default": 100
+      },
+      {
+        "id": "x",
+        "label": "X",
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "default": 50
+      },
+      {
+        "id": "y",
+        "label": "Y",
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "default": 50
+      },
+      {
+        "id": "rotate",
+        "label": "Rotate",
+        "min": -180,
+        "max": 180,
+        "step": 0.5,
+        "default": 0
+      },
+      {
+        "id": "pitch",
+        "label": "Vertical",
+        "min": -45,
+        "max": 45,
+        "step": 0.5,
+        "default": 0
+      },
+      {
+        "id": "yaw",
+        "label": "Horizontal",
+        "min": -45,
+        "max": 45,
+        "step": 0.5,
+        "default": 0
+      }
+    ]
+  },
+  {
+    "id": "imageFit",
+    "label": "Fit",
+    "type": "select",
+    "attachTo": "image",
+    "display": "icon-toggle",
+    "default": "cover",
+    "options": [
+      {
+        "value": "cover",
+        "label": "Fill",
+        "icon": "fitCover"
+      },
+      {
+        "value": "contain",
+        "label": "Fit",
+        "icon": "fitContain"
+      }
+    ]
+  },
+  {
+    "section": "Editing range",
+    "id": "editingRange",
+    "label": "Editing range",
+    "type": "select",
+    "default": "sdr",
+    "options": [
+      {
+        "value": "sdr",
+        "label": "Standard"
+      },
+      {
+        "value": "hdr",
+        "label": "HDR"
+      }
+    ],
+    "help": "HDR keeps original precision and highlights while grading. The preview is tone mapped for SDR. Choose HDR separately when exporting. Up to 8 megapixels."
+  },
+  {
+    "id": "layers",
+    "label": "Layers",
+    "section": "Layers",
+    "type": "blocks",
+    "urlKey": "l",
+    "labelledFields": true,
+    "itemLabel": "Layer",
+    "dropToAdd": {
+      "field": "img",
+      "accept": "image/*"
+    },
+    "help": "Bottom to top - later layers paint on top. Drop a PSD or XCF on the canvas (or use the gallery) to import a whole file; the composite feeds the grade below.",
+    "default": [],
+    "fields": [
+      {
+        "id": "img",
+        "label": "Image",
+        "type": "asset",
+        "assetType": "raster",
+        "allowUpload": true
+      },
+      {
+        "id": "x",
+        "label": "X",
+        "type": "number",
+        "default": 0,
+        "help": "Left edge, in canvas pixels. Negative moves off-canvas."
+      },
+      {
+        "id": "y",
+        "label": "Y",
+        "type": "number",
+        "default": 0,
+        "help": "Top edge, in canvas pixels."
+      },
+      {
+        "id": "o",
+        "label": "Opacity",
+        "type": "number",
+        "display": "slider",
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "default": 100
+      },
+      {
+        "id": "v",
+        "label": "Visible",
+        "type": "boolean",
+        "default": true
+      },
+      {
+        "id": "b",
+        "label": "Blend",
+        "type": "select",
+        "default": "",
+        "options": [
+          {
+            "value": "",
+            "label": "Normal"
+          },
+          {
+            "value": "multiply",
+            "label": "Multiply"
+          },
+          {
+            "value": "screen",
+            "label": "Screen"
+          },
+          {
+            "value": "overlay",
+            "label": "Overlay"
+          },
+          {
+            "value": "darken",
+            "label": "Darken"
+          },
+          {
+            "value": "lighten",
+            "label": "Lighten"
+          },
+          {
+            "value": "color-dodge",
+            "label": "Colour dodge"
+          },
+          {
+            "value": "color-burn",
+            "label": "Colour burn"
+          },
+          {
+            "value": "hard-light",
+            "label": "Hard light"
+          },
+          {
+            "value": "soft-light",
+            "label": "Soft light"
+          },
+          {
+            "value": "difference",
+            "label": "Difference"
+          },
+          {
+            "value": "exclusion",
+            "label": "Exclusion"
+          },
+          {
+            "value": "hue",
+            "label": "Hue"
+          },
+          {
+            "value": "saturation",
+            "label": "Saturation"
+          },
+          {
+            "value": "color",
+            "label": "Colour"
+          },
+          {
+            "value": "luminosity",
+            "label": "Luminosity"
+          }
+        ]
+      },
+      {
+        "id": "n",
+        "label": "Name",
+        "type": "text",
+        "default": ""
+      },
+      {
+        "id": "g",
+        "label": "Group",
+        "type": "text",
+        "default": "",
+        "help": "Folder path from the imported file (kept for PSD export)."
+      }
+    ]
+  },
+  {
+    "id": "temperature",
+    "label": "Temperature",
+    "section": "Develop",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": -100,
+    "max": 100,
+    "step": 1,
+    "help": "White balance: negative cools the image toward blue, positive warms it toward amber."
+  },
+  {
+    "id": "tint",
+    "label": "Tint",
+    "section": "Develop",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": -100,
+    "max": 100,
+    "step": 1,
+    "help": "White balance: negative shifts toward green, positive toward magenta."
+  },
+  {
+    "id": "exposure",
+    "label": "Exposure",
+    "section": "Develop",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": -3,
+    "max": 3,
+    "step": 0.05,
+    "help": "Brightness in photographic stops (EV), applied in linear light like a camera."
+  },
+  {
+    "id": "contrast",
+    "label": "Contrast",
+    "section": "Develop",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": -100,
+    "max": 100,
+    "step": 1,
+    "help": "A smooth S-curve around mid-grey - push the tones apart or flatten them."
+  },
+  {
+    "id": "highlights",
+    "label": "Highlights",
+    "section": "Develop",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": -100,
+    "max": 100,
+    "step": 1,
+    "help": "Recover blown skies (negative) or push the bright end brighter (positive)."
+  },
+  {
+    "id": "shadows",
+    "label": "Shadows",
+    "section": "Develop",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": -100,
+    "max": 100,
+    "step": 1,
+    "help": "Lift detail out of the darks (positive) or deepen them (negative)."
+  },
+  {
+    "id": "saturation",
+    "label": "Saturation",
+    "section": "Develop",
+    "type": "number",
+    "display": "slider",
+    "default": 100,
+    "min": 0,
+    "max": 200,
+    "step": 1,
+    "help": "0 = greyscale · 100 = original · 200 = vivid."
+  },
+  {
+    "id": "vibrance",
+    "label": "Vibrance",
+    "section": "Develop",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": -100,
+    "max": 100,
+    "step": 1,
+    "help": "Smart saturation: boosts muted colours first and eases off where colour is already rich."
+  },
+  {
+    "id": "dehaze",
+    "label": "Dehaze",
+    "section": "Develop",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": -100,
+    "max": 100,
+    "step": 1,
+    "urlKey": "dhz",
+    "help": "Cuts through haze: deeper blacks, more contrast and more colour. Negative values add a soft, hazy lift."
+  },
+  {
+    "id": "levelsChannel",
+    "label": "Levels channel",
+    "section": "Levels & curves",
+    "type": "select",
+    "display": "segmented",
+    "default": "rgb",
+    "urlKey": "lvc",
+    "options": [
+      {
+        "value": "rgb",
+        "label": "RGB"
+      },
+      {
+        "value": "red",
+        "label": "Red"
+      },
+      {
+        "value": "green",
+        "label": "Green"
+      },
+      {
+        "value": "blue",
+        "label": "Blue"
+      }
+    ],
+    "help": "Which channel the five Levels sliders below adjust. Each colour channel is applied first, then RGB, as in Photoshop."
+  },
+  {
+    "id": "levelsInBlack",
+    "label": "Input black",
+    "section": "Levels & curves",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": 0,
+    "max": 253,
+    "step": 1,
+    "urlKey": "lv0",
+    "showIf": {
+      "levelsChannel": "rgb"
+    },
+    "help": "Every level at or below this becomes the output black."
+  },
+  {
+    "id": "levelsGamma",
+    "label": "Midtones",
+    "section": "Levels & curves",
+    "type": "number",
+    "display": "slider",
+    "default": 1,
+    "min": 0.1,
+    "max": 5,
+    "step": 0.01,
+    "urlKey": "lv1",
+    "showIf": {
+      "levelsChannel": "rgb"
+    },
+    "help": "Gamma for the midtones. Above 1 brightens them, below 1 darkens them."
+  },
+  {
+    "id": "levelsInWhite",
+    "label": "Input white",
+    "section": "Levels & curves",
+    "type": "number",
+    "display": "slider",
+    "default": 255,
+    "min": 2,
+    "max": 255,
+    "step": 1,
+    "urlKey": "lv2",
+    "showIf": {
+      "levelsChannel": "rgb"
+    },
+    "help": "Every level at or above this becomes the output white."
+  },
+  {
+    "id": "levelsOutBlack",
+    "label": "Output black",
+    "section": "Levels & curves",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": 0,
+    "max": 255,
+    "step": 1,
+    "urlKey": "lv3",
+    "showIf": {
+      "levelsChannel": "rgb"
+    },
+    "help": "The level the darkest tones map to. Raise it for a faded black."
+  },
+  {
+    "id": "levelsOutWhite",
+    "label": "Output white",
+    "section": "Levels & curves",
+    "type": "number",
+    "display": "slider",
+    "default": 255,
+    "min": 0,
+    "max": 255,
+    "step": 1,
+    "urlKey": "lv4",
+    "showIf": {
+      "levelsChannel": "rgb"
+    },
+    "help": "The level the lightest tones map to. Lower it to soften the highlights."
+  },
+  {
+    "id": "levelsRedInBlack",
+    "label": "Input black",
+    "section": "Levels & curves",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": 0,
+    "max": 253,
+    "step": 1,
+    "urlKey": "lv5",
+    "showIf": {
+      "levelsChannel": "red"
+    },
+    "help": "Every level at or below this becomes the output black."
+  },
+  {
+    "id": "levelsRedGamma",
+    "label": "Midtones",
+    "section": "Levels & curves",
+    "type": "number",
+    "display": "slider",
+    "default": 1,
+    "min": 0.1,
+    "max": 5,
+    "step": 0.01,
+    "urlKey": "lv6",
+    "showIf": {
+      "levelsChannel": "red"
+    },
+    "help": "Gamma for the midtones. Above 1 brightens them, below 1 darkens them."
+  },
+  {
+    "id": "levelsRedInWhite",
+    "label": "Input white",
+    "section": "Levels & curves",
+    "type": "number",
+    "display": "slider",
+    "default": 255,
+    "min": 2,
+    "max": 255,
+    "step": 1,
+    "urlKey": "lv7",
+    "showIf": {
+      "levelsChannel": "red"
+    },
+    "help": "Every level at or above this becomes the output white."
+  },
+  {
+    "id": "levelsRedOutBlack",
+    "label": "Output black",
+    "section": "Levels & curves",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": 0,
+    "max": 255,
+    "step": 1,
+    "urlKey": "lv8",
+    "showIf": {
+      "levelsChannel": "red"
+    },
+    "help": "The level the darkest tones map to. Raise it for a faded black."
+  },
+  {
+    "id": "levelsRedOutWhite",
+    "label": "Output white",
+    "section": "Levels & curves",
+    "type": "number",
+    "display": "slider",
+    "default": 255,
+    "min": 0,
+    "max": 255,
+    "step": 1,
+    "urlKey": "lv9",
+    "showIf": {
+      "levelsChannel": "red"
+    },
+    "help": "The level the lightest tones map to. Lower it to soften the highlights."
+  },
+  {
+    "id": "levelsGreenInBlack",
+    "label": "Input black",
+    "section": "Levels & curves",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": 0,
+    "max": 253,
+    "step": 1,
+    "urlKey": "lv10",
+    "showIf": {
+      "levelsChannel": "green"
+    },
+    "help": "Every level at or below this becomes the output black."
+  },
+  {
+    "id": "levelsGreenGamma",
+    "label": "Midtones",
+    "section": "Levels & curves",
+    "type": "number",
+    "display": "slider",
+    "default": 1,
+    "min": 0.1,
+    "max": 5,
+    "step": 0.01,
+    "urlKey": "lv11",
+    "showIf": {
+      "levelsChannel": "green"
+    },
+    "help": "Gamma for the midtones. Above 1 brightens them, below 1 darkens them."
+  },
+  {
+    "id": "levelsGreenInWhite",
+    "label": "Input white",
+    "section": "Levels & curves",
+    "type": "number",
+    "display": "slider",
+    "default": 255,
+    "min": 2,
+    "max": 255,
+    "step": 1,
+    "urlKey": "lv12",
+    "showIf": {
+      "levelsChannel": "green"
+    },
+    "help": "Every level at or above this becomes the output white."
+  },
+  {
+    "id": "levelsGreenOutBlack",
+    "label": "Output black",
+    "section": "Levels & curves",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": 0,
+    "max": 255,
+    "step": 1,
+    "urlKey": "lv13",
+    "showIf": {
+      "levelsChannel": "green"
+    },
+    "help": "The level the darkest tones map to. Raise it for a faded black."
+  },
+  {
+    "id": "levelsGreenOutWhite",
+    "label": "Output white",
+    "section": "Levels & curves",
+    "type": "number",
+    "display": "slider",
+    "default": 255,
+    "min": 0,
+    "max": 255,
+    "step": 1,
+    "urlKey": "lv14",
+    "showIf": {
+      "levelsChannel": "green"
+    },
+    "help": "The level the lightest tones map to. Lower it to soften the highlights."
+  },
+  {
+    "id": "levelsBlueInBlack",
+    "label": "Input black",
+    "section": "Levels & curves",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": 0,
+    "max": 253,
+    "step": 1,
+    "urlKey": "lv15",
+    "showIf": {
+      "levelsChannel": "blue"
+    },
+    "help": "Every level at or below this becomes the output black."
+  },
+  {
+    "id": "levelsBlueGamma",
+    "label": "Midtones",
+    "section": "Levels & curves",
+    "type": "number",
+    "display": "slider",
+    "default": 1,
+    "min": 0.1,
+    "max": 5,
+    "step": 0.01,
+    "urlKey": "lv16",
+    "showIf": {
+      "levelsChannel": "blue"
+    },
+    "help": "Gamma for the midtones. Above 1 brightens them, below 1 darkens them."
+  },
+  {
+    "id": "levelsBlueInWhite",
+    "label": "Input white",
+    "section": "Levels & curves",
+    "type": "number",
+    "display": "slider",
+    "default": 255,
+    "min": 2,
+    "max": 255,
+    "step": 1,
+    "urlKey": "lv17",
+    "showIf": {
+      "levelsChannel": "blue"
+    },
+    "help": "Every level at or above this becomes the output white."
+  },
+  {
+    "id": "levelsBlueOutBlack",
+    "label": "Output black",
+    "section": "Levels & curves",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": 0,
+    "max": 255,
+    "step": 1,
+    "urlKey": "lv18",
+    "showIf": {
+      "levelsChannel": "blue"
+    },
+    "help": "The level the darkest tones map to. Raise it for a faded black."
+  },
+  {
+    "id": "levelsBlueOutWhite",
+    "label": "Output white",
+    "section": "Levels & curves",
+    "type": "number",
+    "display": "slider",
+    "default": 255,
+    "min": 0,
+    "max": 255,
+    "step": 1,
+    "urlKey": "lv19",
+    "showIf": {
+      "levelsChannel": "blue"
+    },
+    "help": "The level the lightest tones map to. Lower it to soften the highlights."
+  },
+  {
+    "id": "levelsAuto",
+    "label": "Auto levels",
+    "section": "Levels & curves",
+    "type": "boolean",
+    "default": false,
+    "urlKey": "lva",
+    "help": "Stretches each colour channel to this photo's own range, clipping its darkest and lightest 0.1%. The photo is measured again every time, so one look adapts to every photo in a batch. The Levels sliders adjust on top. Not used in HDR editing or with the live camera."
+  },
+  {
+    "id": "curveChannel",
+    "label": "Curve channel",
+    "section": "Levels & curves",
+    "type": "select",
+    "display": "segmented",
+    "default": "rgb",
+    "urlKey": "cvc",
+    "options": [
+      {
+        "value": "rgb",
+        "label": "RGB"
+      },
+      {
+        "value": "red",
+        "label": "Red"
+      },
+      {
+        "value": "green",
+        "label": "Green"
+      },
+      {
+        "value": "blue",
+        "label": "Blue"
+      }
+    ],
+    "help": "Which tone curve to edit. Each colour channel's curve is applied first, then the RGB curve."
+  },
+  {
+    "id": "curveRgb",
+    "label": "RGB curve",
+    "section": "Levels & curves",
+    "type": "text",
+    "display": "curve",
+    "default": "",
+    "maxLength": 200,
+    "urlKey": "cv0",
+    "showIf": {
+      "curveChannel": "rgb"
+    },
+    "help": "Click the square to add a point, then drag points into place. Drag a point off the square, or press Delete, to remove that point. Each point is an input and an output level from 0 to 255, written as 0-0_64-48_255-255; empty is a straight line."
+  },
+  {
+    "id": "curveRed",
+    "label": "Red curve",
+    "section": "Levels & curves",
+    "type": "text",
+    "display": "curve",
+    "default": "",
+    "maxLength": 200,
+    "urlKey": "cv1",
+    "showIf": {
+      "curveChannel": "red"
+    },
+    "help": "Click the square to add a point, then drag points into place. Drag a point off the square, or press Delete, to remove that point. Each point is an input and an output level from 0 to 255, written as 0-0_64-48_255-255; empty is a straight line."
+  },
+  {
+    "id": "curveGreen",
+    "label": "Green curve",
+    "section": "Levels & curves",
+    "type": "text",
+    "display": "curve",
+    "default": "",
+    "maxLength": 200,
+    "urlKey": "cv2",
+    "showIf": {
+      "curveChannel": "green"
+    },
+    "help": "Click the square to add a point, then drag points into place. Drag a point off the square, or press Delete, to remove that point. Each point is an input and an output level from 0 to 255, written as 0-0_64-48_255-255; empty is a straight line."
+  },
+  {
+    "id": "curveBlue",
+    "label": "Blue curve",
+    "section": "Levels & curves",
+    "type": "text",
+    "display": "curve",
+    "default": "",
+    "maxLength": 200,
+    "urlKey": "cv3",
+    "showIf": {
+      "curveChannel": "blue"
+    },
+    "help": "Click the square to add a point, then drag points into place. Drag a point off the square, or press Delete, to remove that point. Each point is an input and an output level from 0 to 255, written as 0-0_64-48_255-255; empty is a straight line."
+  },
+  {
+    "id": "hslMode",
+    "label": "Colour mix",
+    "section": "HSL / Colour",
+    "type": "select",
+    "display": "segmented",
+    "default": "hue",
+    "options": [
+      {
+        "value": "hue",
+        "label": "Hue"
+      },
+      {
+        "value": "saturation",
+        "label": "Saturation"
+      },
+      {
+        "value": "luminance",
+        "label": "Luminance"
+      }
+    ],
+    "help": "A Lightroom-style HSL mixer. Pick which property to adjust, then push each colour band. Hue rotates that band, Saturation makes it richer or greyer, Luminance brightens or darkens it. Only colours near each band move - greys stay put - and the whole mix bakes into the .cube LUT."
+  },
+  {
+    "id": "hslHueRed",
+    "label": "Red",
+    "section": "HSL / Colour",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": -100,
+    "max": 100,
+    "step": 1,
+    "urlKey": "mh0",
+    "showIf": {
+      "hslMode": [
+        "hue"
+      ]
+    },
+    "help": "Rotate the red band. 0 leaves it untouched."
+  },
+  {
+    "id": "hslHueOrange",
+    "label": "Orange",
+    "section": "HSL / Colour",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": -100,
+    "max": 100,
+    "step": 1,
+    "urlKey": "mh1",
+    "showIf": {
+      "hslMode": [
+        "hue"
+      ]
+    },
+    "help": "Rotate the orange band. 0 leaves it untouched."
+  },
+  {
+    "id": "hslHueYellow",
+    "label": "Yellow",
+    "section": "HSL / Colour",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": -100,
+    "max": 100,
+    "step": 1,
+    "urlKey": "mh2",
+    "showIf": {
+      "hslMode": [
+        "hue"
+      ]
+    },
+    "help": "Rotate the yellow band. 0 leaves it untouched."
+  },
+  {
+    "id": "hslHueGreen",
+    "label": "Green",
+    "section": "HSL / Colour",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": -100,
+    "max": 100,
+    "step": 1,
+    "urlKey": "mh3",
+    "showIf": {
+      "hslMode": [
+        "hue"
+      ]
+    },
+    "help": "Rotate the green band. 0 leaves it untouched."
+  },
+  {
+    "id": "hslHueAqua",
+    "label": "Aqua",
+    "section": "HSL / Colour",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": -100,
+    "max": 100,
+    "step": 1,
+    "urlKey": "mh4",
+    "showIf": {
+      "hslMode": [
+        "hue"
+      ]
+    },
+    "help": "Rotate the aqua band. 0 leaves it untouched."
+  },
+  {
+    "id": "hslHueBlue",
+    "label": "Blue",
+    "section": "HSL / Colour",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": -100,
+    "max": 100,
+    "step": 1,
+    "urlKey": "mh5",
+    "showIf": {
+      "hslMode": [
+        "hue"
+      ]
+    },
+    "help": "Rotate the blue band. 0 leaves it untouched."
+  },
+  {
+    "id": "hslHuePurple",
+    "label": "Purple",
+    "section": "HSL / Colour",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": -100,
+    "max": 100,
+    "step": 1,
+    "urlKey": "mh6",
+    "showIf": {
+      "hslMode": [
+        "hue"
+      ]
+    },
+    "help": "Rotate the purple band. 0 leaves it untouched."
+  },
+  {
+    "id": "hslHueMagenta",
+    "label": "Magenta",
+    "section": "HSL / Colour",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": -100,
+    "max": 100,
+    "step": 1,
+    "urlKey": "mh7",
+    "showIf": {
+      "hslMode": [
+        "hue"
+      ]
+    },
+    "help": "Rotate the magenta band. 0 leaves it untouched."
+  },
+  {
+    "id": "hslSatRed",
+    "label": "Red",
+    "section": "HSL / Colour",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": -100,
+    "max": 100,
+    "step": 1,
+    "urlKey": "ms0",
+    "showIf": {
+      "hslMode": [
+        "saturation"
+      ]
+    },
+    "help": "Saturate the red band. 0 leaves it untouched."
+  },
+  {
+    "id": "hslSatOrange",
+    "label": "Orange",
+    "section": "HSL / Colour",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": -100,
+    "max": 100,
+    "step": 1,
+    "urlKey": "ms1",
+    "showIf": {
+      "hslMode": [
+        "saturation"
+      ]
+    },
+    "help": "Saturate the orange band. 0 leaves it untouched."
+  },
+  {
+    "id": "hslSatYellow",
+    "label": "Yellow",
+    "section": "HSL / Colour",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": -100,
+    "max": 100,
+    "step": 1,
+    "urlKey": "ms2",
+    "showIf": {
+      "hslMode": [
+        "saturation"
+      ]
+    },
+    "help": "Saturate the yellow band. 0 leaves it untouched."
+  },
+  {
+    "id": "hslSatGreen",
+    "label": "Green",
+    "section": "HSL / Colour",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": -100,
+    "max": 100,
+    "step": 1,
+    "urlKey": "ms3",
+    "showIf": {
+      "hslMode": [
+        "saturation"
+      ]
+    },
+    "help": "Saturate the green band. 0 leaves it untouched."
+  },
+  {
+    "id": "hslSatAqua",
+    "label": "Aqua",
+    "section": "HSL / Colour",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": -100,
+    "max": 100,
+    "step": 1,
+    "urlKey": "ms4",
+    "showIf": {
+      "hslMode": [
+        "saturation"
+      ]
+    },
+    "help": "Saturate the aqua band. 0 leaves it untouched."
+  },
+  {
+    "id": "hslSatBlue",
+    "label": "Blue",
+    "section": "HSL / Colour",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": -100,
+    "max": 100,
+    "step": 1,
+    "urlKey": "ms5",
+    "showIf": {
+      "hslMode": [
+        "saturation"
+      ]
+    },
+    "help": "Saturate the blue band. 0 leaves it untouched."
+  },
+  {
+    "id": "hslSatPurple",
+    "label": "Purple",
+    "section": "HSL / Colour",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": -100,
+    "max": 100,
+    "step": 1,
+    "urlKey": "ms6",
+    "showIf": {
+      "hslMode": [
+        "saturation"
+      ]
+    },
+    "help": "Saturate the purple band. 0 leaves it untouched."
+  },
+  {
+    "id": "hslSatMagenta",
+    "label": "Magenta",
+    "section": "HSL / Colour",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": -100,
+    "max": 100,
+    "step": 1,
+    "urlKey": "ms7",
+    "showIf": {
+      "hslMode": [
+        "saturation"
+      ]
+    },
+    "help": "Saturate the magenta band. 0 leaves it untouched."
+  },
+  {
+    "id": "hslLumRed",
+    "label": "Red",
+    "section": "HSL / Colour",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": -100,
+    "max": 100,
+    "step": 1,
+    "urlKey": "ml0",
+    "showIf": {
+      "hslMode": [
+        "luminance"
+      ]
+    },
+    "help": "Brighten the red band. 0 leaves it untouched."
+  },
+  {
+    "id": "hslLumOrange",
+    "label": "Orange",
+    "section": "HSL / Colour",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": -100,
+    "max": 100,
+    "step": 1,
+    "urlKey": "ml1",
+    "showIf": {
+      "hslMode": [
+        "luminance"
+      ]
+    },
+    "help": "Brighten the orange band. 0 leaves it untouched."
+  },
+  {
+    "id": "hslLumYellow",
+    "label": "Yellow",
+    "section": "HSL / Colour",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": -100,
+    "max": 100,
+    "step": 1,
+    "urlKey": "ml2",
+    "showIf": {
+      "hslMode": [
+        "luminance"
+      ]
+    },
+    "help": "Brighten the yellow band. 0 leaves it untouched."
+  },
+  {
+    "id": "hslLumGreen",
+    "label": "Green",
+    "section": "HSL / Colour",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": -100,
+    "max": 100,
+    "step": 1,
+    "urlKey": "ml3",
+    "showIf": {
+      "hslMode": [
+        "luminance"
+      ]
+    },
+    "help": "Brighten the green band. 0 leaves it untouched."
+  },
+  {
+    "id": "hslLumAqua",
+    "label": "Aqua",
+    "section": "HSL / Colour",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": -100,
+    "max": 100,
+    "step": 1,
+    "urlKey": "ml4",
+    "showIf": {
+      "hslMode": [
+        "luminance"
+      ]
+    },
+    "help": "Brighten the aqua band. 0 leaves it untouched."
+  },
+  {
+    "id": "hslLumBlue",
+    "label": "Blue",
+    "section": "HSL / Colour",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": -100,
+    "max": 100,
+    "step": 1,
+    "urlKey": "ml5",
+    "showIf": {
+      "hslMode": [
+        "luminance"
+      ]
+    },
+    "help": "Brighten the blue band. 0 leaves it untouched."
+  },
+  {
+    "id": "hslLumPurple",
+    "label": "Purple",
+    "section": "HSL / Colour",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": -100,
+    "max": 100,
+    "step": 1,
+    "urlKey": "ml6",
+    "showIf": {
+      "hslMode": [
+        "luminance"
+      ]
+    },
+    "help": "Brighten the purple band. 0 leaves it untouched."
+  },
+  {
+    "id": "hslLumMagenta",
+    "label": "Magenta",
+    "section": "HSL / Colour",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": -100,
+    "max": 100,
+    "step": 1,
+    "urlKey": "ml7",
+    "showIf": {
+      "hslMode": [
+        "luminance"
+      ]
+    },
+    "help": "Brighten the magenta band. 0 leaves it untouched."
+  },
+  {
+    "id": "bwMode",
+    "label": "Convert to black & white",
+    "section": "Black & white",
+    "type": "boolean",
+    "default": false,
+    "urlKey": "bw",
+    "help": "Converts to grey the way Photoshop's Black & White does: each family of colours has its own brightness, so reds and greens stay apart instead of flattening into one grey."
+  },
+  {
+    "id": "bwReds",
+    "label": "Reds",
+    "section": "Black & white",
+    "type": "number",
+    "display": "slider",
+    "default": 40,
+    "min": -200,
+    "max": 300,
+    "step": 1,
+    "urlKey": "bw0",
+    "showIf": {
+      "bwMode": true
+    },
+    "help": "How bright reds become in grey, as a percentage. The default is Photoshop's."
+  },
+  {
+    "id": "bwYellows",
+    "label": "Yellows",
+    "section": "Black & white",
+    "type": "number",
+    "display": "slider",
+    "default": 60,
+    "min": -200,
+    "max": 300,
+    "step": 1,
+    "urlKey": "bw1",
+    "showIf": {
+      "bwMode": true
+    },
+    "help": "How bright yellows become in grey, as a percentage. The default is Photoshop's."
+  },
+  {
+    "id": "bwGreens",
+    "label": "Greens",
+    "section": "Black & white",
+    "type": "number",
+    "display": "slider",
+    "default": 40,
+    "min": -200,
+    "max": 300,
+    "step": 1,
+    "urlKey": "bw2",
+    "showIf": {
+      "bwMode": true
+    },
+    "help": "How bright greens become in grey, as a percentage. The default is Photoshop's."
+  },
+  {
+    "id": "bwCyans",
+    "label": "Cyans",
+    "section": "Black & white",
+    "type": "number",
+    "display": "slider",
+    "default": 60,
+    "min": -200,
+    "max": 300,
+    "step": 1,
+    "urlKey": "bw3",
+    "showIf": {
+      "bwMode": true
+    },
+    "help": "How bright cyans become in grey, as a percentage. The default is Photoshop's."
+  },
+  {
+    "id": "bwBlues",
+    "label": "Blues",
+    "section": "Black & white",
+    "type": "number",
+    "display": "slider",
+    "default": 20,
+    "min": -200,
+    "max": 300,
+    "step": 1,
+    "urlKey": "bw4",
+    "showIf": {
+      "bwMode": true
+    },
+    "help": "How bright blues become in grey, as a percentage. The default is Photoshop's."
+  },
+  {
+    "id": "bwMagentas",
+    "label": "Magentas",
+    "section": "Black & white",
+    "type": "number",
+    "display": "slider",
+    "default": 80,
+    "min": -200,
+    "max": 300,
+    "step": 1,
+    "urlKey": "bw5",
+    "showIf": {
+      "bwMode": true
+    },
+    "help": "How bright magentas become in grey, as a percentage. The default is Photoshop's."
+  },
+  {
+    "id": "bwTint",
+    "label": "Tint",
+    "section": "Black & white",
+    "type": "boolean",
+    "default": false,
+    "urlKey": "bwt",
+    "showIf": {
+      "bwMode": true
+    },
+    "help": "Colours the grey while keeping its tones, for a sepia or cyanotype print."
+  },
+  {
+    "id": "bwTintHue",
+    "label": "Tint hue",
+    "section": "Black & white",
+    "type": "number",
+    "display": "slider",
+    "default": 35,
+    "min": 0,
+    "max": 360,
+    "step": 1,
+    "urlKey": "bwh",
+    "showIf": {
+      "bwMode": true,
+      "bwTint": true
+    },
+    "help": "The tint's hue in degrees. 35 is a warm sepia; around 210 is a cyanotype blue."
+  },
+  {
+    "id": "bwTintSat",
+    "label": "Tint strength",
+    "section": "Black & white",
+    "type": "number",
+    "display": "slider",
+    "default": 25,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "urlKey": "bws",
+    "showIf": {
+      "bwMode": true,
+      "bwTint": true
+    },
+    "help": "How strongly the tint colours the grey."
+  },
+  {
+    "id": "cbRange",
+    "label": "Tones",
+    "section": "Colour balance",
+    "type": "select",
+    "display": "segmented",
+    "default": "midtones",
+    "urlKey": "cbr",
+    "options": [
+      {
+        "value": "shadows",
+        "label": "Shadows"
+      },
+      {
+        "value": "midtones",
+        "label": "Midtones"
+      },
+      {
+        "value": "highlights",
+        "label": "Highlights"
+      }
+    ],
+    "help": "Which tonal range the three sliders below shift. Each range fades into the next, so a shift never bands."
+  },
+  {
+    "id": "cbShadowsCR",
+    "label": "Cyan to red",
+    "section": "Colour balance",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": -100,
+    "max": 100,
+    "step": 1,
+    "urlKey": "cb0",
+    "showIf": {
+      "cbRange": "shadows"
+    },
+    "help": "Negative moves this range towards cyan, positive towards red."
+  },
+  {
+    "id": "cbShadowsMG",
+    "label": "Magenta to green",
+    "section": "Colour balance",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": -100,
+    "max": 100,
+    "step": 1,
+    "urlKey": "cb1",
+    "showIf": {
+      "cbRange": "shadows"
+    },
+    "help": "Negative moves this range towards magenta, positive towards green."
+  },
+  {
+    "id": "cbShadowsYB",
+    "label": "Yellow to blue",
+    "section": "Colour balance",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": -100,
+    "max": 100,
+    "step": 1,
+    "urlKey": "cb2",
+    "showIf": {
+      "cbRange": "shadows"
+    },
+    "help": "Negative moves this range towards yellow, positive towards blue."
+  },
+  {
+    "id": "cbMidtonesCR",
+    "label": "Cyan to red",
+    "section": "Colour balance",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": -100,
+    "max": 100,
+    "step": 1,
+    "urlKey": "cb3",
+    "showIf": {
+      "cbRange": "midtones"
+    },
+    "help": "Negative moves this range towards cyan, positive towards red."
+  },
+  {
+    "id": "cbMidtonesMG",
+    "label": "Magenta to green",
+    "section": "Colour balance",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": -100,
+    "max": 100,
+    "step": 1,
+    "urlKey": "cb4",
+    "showIf": {
+      "cbRange": "midtones"
+    },
+    "help": "Negative moves this range towards magenta, positive towards green."
+  },
+  {
+    "id": "cbMidtonesYB",
+    "label": "Yellow to blue",
+    "section": "Colour balance",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": -100,
+    "max": 100,
+    "step": 1,
+    "urlKey": "cb5",
+    "showIf": {
+      "cbRange": "midtones"
+    },
+    "help": "Negative moves this range towards yellow, positive towards blue."
+  },
+  {
+    "id": "cbHighlightsCR",
+    "label": "Cyan to red",
+    "section": "Colour balance",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": -100,
+    "max": 100,
+    "step": 1,
+    "urlKey": "cb6",
+    "showIf": {
+      "cbRange": "highlights"
+    },
+    "help": "Negative moves this range towards cyan, positive towards red."
+  },
+  {
+    "id": "cbHighlightsMG",
+    "label": "Magenta to green",
+    "section": "Colour balance",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": -100,
+    "max": 100,
+    "step": 1,
+    "urlKey": "cb7",
+    "showIf": {
+      "cbRange": "highlights"
+    },
+    "help": "Negative moves this range towards magenta, positive towards green."
+  },
+  {
+    "id": "cbHighlightsYB",
+    "label": "Yellow to blue",
+    "section": "Colour balance",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": -100,
+    "max": 100,
+    "step": 1,
+    "urlKey": "cb8",
+    "showIf": {
+      "cbRange": "highlights"
+    },
+    "help": "Negative moves this range towards yellow, positive towards blue."
+  },
+  {
+    "id": "cbPreserve",
+    "label": "Preserve luminosity",
+    "section": "Colour balance",
+    "type": "boolean",
+    "default": true,
+    "urlKey": "cbp",
+    "help": "Keeps each pixel's brightness as it was, so only its colour moves."
+  },
+  {
+    "id": "filmLook",
+    "label": "Film look",
+    "section": "Film look",
+    "type": "select",
+    "default": "none",
+    "options": [
+      {
+        "value": "none",
+        "label": "None (as shot)"
+      },
+      {
+        "value": "chrome",
+        "label": "Chrome slide"
+      },
+      {
+        "value": "portrait",
+        "label": "Warm portrait"
+      },
+      {
+        "value": "teal-orange",
+        "label": "Teal & orange"
+      },
+      {
+        "value": "bleach",
+        "label": "Bleach bypass"
+      },
+      {
+        "value": "matte",
+        "label": "Faded matte"
+      },
+      {
+        "value": "cross",
+        "label": "Cross process"
+      },
+      {
+        "value": "night",
+        "label": "Blue hour"
+      },
+      {
+        "value": "bw",
+        "label": "Black & white"
+      },
+      {
+        "value": "bw-hard",
+        "label": "B&W high contrast"
+      },
+      {
+        "value": "sepia",
+        "label": "Sepia"
+      }
+    ],
+    "help": "Original film-inspired looks built from open, procedural curves - no sampled stock, so they're safe to ship anywhere."
+  },
+  {
+    "id": "presetStrength",
+    "label": "Look strength",
+    "section": "Film look",
+    "type": "number",
+    "display": "slider",
+    "default": 100,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "showIf": {
+      "filmLook": [
+        "chrome",
+        "portrait",
+        "teal-orange",
+        "bleach",
+        "matte",
+        "cross",
+        "night",
+        "bw",
+        "bw-hard",
+        "sepia"
+      ]
+    },
+    "help": "Blend between the untouched image (0) and the full look (100)."
+  },
+  {
+    "id": "lutSource",
+    "label": "LUT source",
+    "section": "LUT",
+    "type": "select",
+    "default": "none",
+    "options": [
+      {
+        "value": "none",
+        "label": "None"
+      },
+      {
+        "value": "preset",
+        "label": "Open preset LUT"
+      },
+      {
+        "value": "custom",
+        "label": "Upload your own"
+      }
+    ],
+    "help": "Preset LUTs are open looks you can apply and also download (CC0, or CC BY where a creator is credited). Choose Upload for your own commercial or personal LUTs - those stay on your device and never travel in a share link, so a preset is what makes a look shareable in a URL."
+  },
+  {
+    "id": "lutPreset",
+    "label": "Preset",
+    "section": "LUT",
+    "type": "select",
+    "default": "slide-standard",
+    "options": [
+      {
+        "value": "slide-standard",
+        "label": "Standard slide"
+      },
+      {
+        "value": "slide-vivid",
+        "label": "Vivid slide"
+      },
+      {
+        "value": "chrome-muted",
+        "label": "Muted chrome"
+      },
+      {
+        "value": "mono-fine",
+        "label": "Fine mono (B&W)"
+      },
+      {
+        "value": "suse7-slog3-heavy",
+        "label": "SUSE7 S-Log3 (Heavy)"
+      }
+    ],
+    "showIf": {
+      "lutSource": [
+        "preset"
+      ]
+    },
+    "help": "Open, on-device LUTs. The film-emulation looks are CC0 (no attribution needed); SUSE7 S-Log3 (Heavy) is a cinema grade for Sony S-Log3 footage, © SUSE by Peter Chamalian, under CC BY 4.0 (credit SUSE · Peter Chamalian). Applied with tetrahedral interpolation, and downloadable below for any editor."
+  },
+  {
+    "id": "lutFile",
+    "label": "LUT file (.cube / .3dl)",
+    "section": "LUT",
+    "type": "file",
+    "accept": [
+      ".cube",
+      ".3dl",
+      "text/plain"
+    ],
+    "maxSize": 16777216,
+    "showIf": {
+      "lutSource": [
+        "custom"
+      ]
+    },
+    "help": "Load your own colour LUT - Adobe/IRIDAS .cube (1D or 3D) or Autodesk .3dl. Applied on your device with tetrahedral interpolation, after Develop and the film look. Your file never leaves the browser, and an uploaded LUT is not part of a share link."
+  },
+  {
+    "id": "lutIntensity",
+    "label": "LUT intensity",
+    "section": "LUT",
+    "type": "number",
+    "display": "slider",
+    "default": 100,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "showIf": {
+      "lutSource": [
+        "preset",
+        "custom"
+      ]
+    },
+    "help": "Blend between the un-LUTted image (0) and the full LUT (100)."
+  },
+  {
+    "id": "downloadPresetLut",
+    "label": "Download this LUT (.cube)",
+    "section": "LUT",
+    "type": "boolean",
+    "default": false,
+    "showIf": {
+      "lutSource": [
+        "preset"
+      ]
+    },
+    "help": "Save the selected open preset as a .cube for DaVinci Resolve, Premiere, Final Cut or Photoshop. These LUTs are public domain (CC0) - see the tool's NOTICE. The switch flips itself back off."
+  },
+  {
+    "id": "bakeSize",
+    "label": "Baked LUT size",
+    "section": "LUT",
+    "type": "select",
+    "default": "33",
+    "options": [
+      {
+        "value": "17",
+        "label": "17³ - small"
+      },
+      {
+        "value": "33",
+        "label": "33³ - standard"
+      },
+      {
+        "value": "65",
+        "label": "65³ - fine"
+      }
+    ],
+    "help": "Grid size of the .cube this tool bakes. 33 is the industry default and loads everywhere."
+  },
+  {
+    "id": "bakeLut",
+    "label": "Download look as .cube",
+    "section": "LUT",
+    "type": "boolean",
+    "default": false,
+    "help": "Bakes the whole colour pipeline - Develop, film look, the preset or uploaded LUT and colour treatment - into one .cube LUT for DaVinci Resolve, Premiere, Final Cut or Photoshop, and downloads it. The switch flips itself back off. Texture effects (grain, vignette…) are spatial and can't live in a LUT."
+  },
+  {
+    "id": "treatment",
+    "label": "Treatment",
+    "section": "Colour treatment",
+    "type": "select",
+    "default": "none",
+    "options": [
+      {
+        "value": "none",
+        "label": "None"
+      },
+      {
+        "value": "tint",
+        "label": "Colour wash"
+      },
+      {
+        "value": "duotone",
+        "label": "Duotone"
+      },
+      {
+        "value": "gradient",
+        "label": "Gradient map (3 stops)"
+      },
+      {
+        "value": "split",
+        "label": "Split tone"
+      }
+    ],
+    "help": "Colour treatments seeded from the design system palette. Leave the colours below empty to auto-pick from its tokens; set them to override."
+  },
+  {
+    "id": "treatmentAmount",
+    "label": "Treatment amount",
+    "section": "Colour treatment",
+    "type": "number",
+    "display": "slider",
+    "default": 80,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "showIf": {
+      "treatment": [
+        "tint",
+        "duotone",
+        "gradient",
+        "split"
+      ]
+    },
+    "help": "Blend between the untreated image (0) and the full treatment (100)."
+  },
+  {
+    "id": "treatShadow",
+    "label": "Shadow colour",
+    "section": "Colour treatment",
+    "type": "color",
+    "default": "",
+    "showIf": {
+      "treatment": [
+        "tint",
+        "duotone",
+        "gradient",
+        "split"
+      ]
+    },
+    "help": "Empty = auto: the darkest colour in the design system palette."
+  },
+  {
+    "id": "treatMid",
+    "label": "Midtone colour",
+    "section": "Colour treatment",
+    "type": "color",
+    "default": "",
+    "showIf": {
+      "treatment": [
+        "gradient"
+      ]
+    },
+    "help": "Empty = auto: the most colourful swatch in the design system palette."
+  },
+  {
+    "id": "treatHighlight",
+    "label": "Highlight colour",
+    "section": "Colour treatment",
+    "type": "color",
+    "default": "",
+    "showIf": {
+      "treatment": [
+        "duotone",
+        "gradient",
+        "split"
+      ]
+    },
+    "help": "Empty = auto: the lightest colour in the design system palette."
+  },
+  {
+    "id": "grain",
+    "label": "Film grain",
+    "section": "Texture",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "help": "Seeded, luminance-weighted monochrome grain - strongest in the midtones, like real stock."
+  },
+  {
+    "id": "grainSize",
+    "label": "Grain size",
+    "section": "Texture",
+    "type": "number",
+    "display": "slider",
+    "default": 1.6,
+    "min": 1,
+    "max": 4,
+    "step": 0.1,
+    "help": "Clump size of the grain in pixels."
+  },
+  {
+    "id": "vignette",
+    "label": "Vignette",
+    "section": "Texture",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "help": "Gently darken the corners to pull the eye inward."
+  },
+  {
+    "id": "bloom",
+    "label": "Bloom",
+    "section": "Texture",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "help": "Soft glow spilling from the brightest areas."
+  },
+  {
+    "id": "halation",
+    "label": "Halation",
+    "section": "Texture",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "help": "The warm red-orange halo film prints around hot highlights."
+  },
+  {
+    "id": "fringe",
+    "label": "Colour fringing",
+    "section": "Texture",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "help": "Lens-style colour fringing that grows toward the corners."
+  },
+  {
+    "id": "sharpen",
+    "label": "Sharpen",
+    "section": "Texture",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "help": "Unsharp-mask crispness. A little goes a long way."
+  },
+  {
+    "id": "dust",
+    "label": "Dust & scratches",
+    "section": "Texture",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "help": "Seeded specks, fibres and hairline scratches - the imperfections of a well-loved print."
+  },
+  {
+    "id": "seed",
+    "label": "Seed",
+    "section": "Texture",
+    "type": "number",
+    "default": 7,
+    "min": 1,
+    "max": 9999,
+    "step": 1,
+    "help": "Re-rolls the grain and dust patterns. The same seed always gives the same result."
+  },
+  {
+    "id": "splitPreview",
+    "label": "Before / after split",
+    "section": "View",
+    "type": "boolean",
+    "default": false,
+    "help": "Lay the untouched image over the graded result behind a divider you can drag and rotate. A raster export bakes the divider exactly as placed - handy for approval decks."
+  },
+  {
+    "id": "histogram",
+    "label": "Histogram",
+    "section": "View",
+    "type": "boolean",
+    "default": false,
+    "help": "Live RGB + luminance histogram over the canvas. Screen only - never part of the export."
+  },
+  {
+    "id": "width",
+    "label": "Width",
+    "type": "number",
+    "default": 1080,
+    "min": 1,
+    "max": 8000,
+    "group": "export"
+  },
+  {
+    "id": "height",
+    "label": "Height",
+    "type": "number",
+    "default": 1080,
+    "min": 1,
+    "max": 8000,
+    "group": "export"
+  }
+]

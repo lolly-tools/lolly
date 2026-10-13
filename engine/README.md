@@ -366,7 +366,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `learning/preflight.ts` | 33 |  | yes | `tests/preflight.test.ts` | – |
 | `learning/progress.ts` | 128 |  | yes | indirect | – |
 | `linux-pack.ts` | 153 | linux-pack.ts - the content-aware layer over `rpm.ts`. | yes | `tests/linux-pack.test.ts` | – |
-| `loader.ts` | 533 | Tool loader. | yes | indirect | – |
+| `loader.ts` | 548 | Tool loader. | yes | indirect | – |
 | `logo-variant.ts` | 141 | Which logo goes on this background (plan 274 section 3.4). | yes | `tests/logo-variant.test.ts` | – |
 | `lottie-edit.ts` | 181 | Instance-local revisions over immutable Lottie source documents. | no | `tests/lottie-edit.test.ts` | – |
 | `lottie-model.ts` | 113 | Bounded, platform-independent admission of linear Lottie compositions. | no | indirect | – |

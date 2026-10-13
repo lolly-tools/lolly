@@ -1,0 +1,62 @@
+[
+  {
+    "id": "title",
+    "label": "Name",
+    "type": "text",
+    "default": "Voice note",
+    "maxLength": 60,
+    "help": "Shown on the recording card and used for the saved file."
+  },
+  {
+    "id": "targetLevel",
+    "label": "Target level",
+    "type": "select",
+    "default": "normal",
+    "help": "What counts as 'just right' for the coaching prompts.",
+    "options": [
+      {
+        "value": "soft",
+        "label": "Soft · close mic"
+      },
+      {
+        "value": "normal",
+        "label": "Normal · speech"
+      },
+      {
+        "value": "loud",
+        "label": "Loud · room"
+      }
+    ]
+  },
+  {
+    "id": "showTips",
+    "label": "Coaching tips",
+    "type": "boolean",
+    "default": true,
+    "help": "Live prompts like 'get closer' or 'ease off'."
+  },
+  {
+    "id": "theme",
+    "label": "Card style",
+    "type": "select",
+    "display": "segmented",
+    "default": "dark",
+    "options": [
+      {
+        "value": "dark",
+        "label": "Dark"
+      },
+      {
+        "value": "light",
+        "label": "Light"
+      }
+    ]
+  },
+  {
+    "id": "accent",
+    "label": "Accent",
+    "type": "color",
+    "default": "",
+    "help": "Leave it empty to follow the primary colour from the design system."
+  }
+]

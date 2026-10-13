@@ -1,0 +1,80 @@
+[
+  {
+    "id": "shot",
+    "label": "Screenshot",
+    "type": "asset",
+    "assetType": "raster",
+    "allowUpload": true,
+    "help": "Pick an image to crop, or use the Screenshot button above the canvas if your browser supports screen capture."
+  },
+  {
+    "id": "crop",
+    "label": "Crop",
+    "type": "vector",
+    "help": "Region of the shot to export, as a percentage. Drag on the canvas to set it.",
+    "fields": [
+      {
+        "id": "x",
+        "label": "X",
+        "symbol": "X",
+        "min": 0,
+        "max": 100,
+        "step": 0.01,
+        "default": 0
+      },
+      {
+        "id": "y",
+        "label": "Y",
+        "symbol": "Y",
+        "min": 0,
+        "max": 100,
+        "step": 0.01,
+        "default": 0
+      },
+      {
+        "id": "w",
+        "label": "Width",
+        "symbol": "W",
+        "min": 0.01,
+        "max": 100,
+        "step": 0.01,
+        "default": 100
+      },
+      {
+        "id": "h",
+        "label": "Height",
+        "symbol": "H",
+        "min": 0.01,
+        "max": 100,
+        "step": 0.01,
+        "default": 100
+      }
+    ]
+  },
+  {
+    "id": "title",
+    "label": "Recording name",
+    "section": "Recording",
+    "type": "text",
+    "default": "screen-recording",
+    "help": "Filename for a saved screen recording."
+  },
+  {
+    "id": "systemAudio",
+    "display": "pill",
+    "label": "System audio",
+    "section": "Recording",
+    "type": "boolean",
+    "default": true,
+    "help": "Record the sound from the shared screen or tab. Whole-system sound works in Chrome on Windows and ChromeOS; elsewhere you may get only the tab's audio, or none at all."
+  },
+  {
+    "id": "micNarration",
+    "display": "pill",
+    "label": "Microphone",
+    "section": "Recording",
+    "type": "boolean",
+    "default": false,
+    "help": "Also record your microphone so you can talk over the take."
+  }
+]

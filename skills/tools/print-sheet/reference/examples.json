@@ -1,0 +1,58 @@
+[
+  {
+    "label": "QR codes, 3 x 3 to cut apart",
+    "values": {
+      "sheet": "a4",
+      "rows": 3,
+      "cols": 3,
+      "gap": 6,
+      "margin": 12,
+      "ticks": true,
+      "tickShape": "rect",
+      "fill": "repeat",
+      "cells": [
+        {
+          "art": {
+            "id": "https://lolly.tools/tool/qr-code.svg?url=https%3A%2F%2Flolly.tools"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "label": "Badges, 2 x 2 on A4",
+    "values": {
+      "sheet": "a4",
+      "rows": 2,
+      "cols": 2,
+      "gap": 5,
+      "margin": 10,
+      "ticks": true,
+      "tickShape": "rect"
+    }
+  },
+  {
+    "label": "Stickers, 3 x 3 round-cut",
+    "values": {
+      "sheet": "a4",
+      "rows": 3,
+      "cols": 3,
+      "gap": 6,
+      "margin": 12,
+      "ticks": true,
+      "tickShape": "round-rect"
+    }
+  },
+  {
+    "label": "Cards, 2 x 5 on A4",
+    "values": {
+      "sheet": "a4",
+      "rows": 5,
+      "cols": 2,
+      "gap": 4,
+      "margin": 10,
+      "ticks": true,
+      "tickShape": "rect"
+    }
+  }
+]

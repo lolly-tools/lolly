@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "toolId": "work-avatar",
+  "toolVersion": "1.2.3",
+  "toolVersionRange": "1.2.3",
+  "skillRevision": "1",
+  "origin": "generated",
+  "references": [
+    "reference/inputs.json",
+    "reference/examples.json"
+  ],
+  "files": {
+    "SKILL.md": {
+      "sha256": "f3f4035362cb29a09abf8bfd5131e038ec30cb02a6c9f3ba575cd11d4a53105d",
+      "bytes": 2536
+    },
+    "reference/inputs.json": {
+      "sha256": "4bb25c869d3d13901e6a20981e62ea3771352c492ea73d83fae7c7d8a3c8f8a1",
+      "bytes": 10110
+    },
+    "reference/examples.json": {
+      "sha256": "9a73ef28025676d613f2abef3cf334c55b43d7764d155ec262b05bcd8ef71ba2",
+      "bytes": 843
+    }
+  }
+}

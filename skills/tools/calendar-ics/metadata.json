@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "toolId": "calendar-ics",
+  "toolVersion": "1.2.3",
+  "toolVersionRange": "1.2.3",
+  "skillRevision": "1",
+  "origin": "generated",
+  "references": [
+    "reference/inputs.json"
+  ],
+  "files": {
+    "SKILL.md": {
+      "sha256": "091668a8542ef46a0b6760455853412f00c9f653c03532029159cd68293db3b7",
+      "bytes": 1794
+    },
+    "reference/inputs.json": {
+      "sha256": "df70c15ce09b6939dc954bdfaebbc670459d1b39a2dde8d30a0fc10d9d27209c",
+      "bytes": 4516
+    }
+  }
+}

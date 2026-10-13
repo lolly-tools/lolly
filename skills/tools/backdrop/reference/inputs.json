@@ -1,0 +1,483 @@
+[
+  {
+    "id": "effect",
+    "label": "Effect",
+    "type": "select",
+    "default": "metaballs",
+    "help": "Every effect moves and takes the design system's colours. Silk flow, Prism bloom and Liquid contours bring a MilkDrop-inspired play of light and colour.",
+    "options": [
+      {
+        "value": "metaballs",
+        "label": "Metaballs",
+        "badge": "orbs",
+        "formats": [
+          "png",
+          "jpg",
+          "webp",
+          "avif",
+          "webm",
+          "mp4",
+          "gif"
+        ],
+        "icon": "opacity"
+      },
+      {
+        "value": "smoke-ring",
+        "label": "Smoke ring",
+        "badge": "orbs",
+        "formats": [
+          "png",
+          "jpg",
+          "webp",
+          "avif",
+          "webm",
+          "mp4",
+          "gif"
+        ],
+        "icon": "ring"
+      },
+      {
+        "value": "voronoi",
+        "label": "Voronoi",
+        "badge": "orbs",
+        "formats": [
+          "png",
+          "jpg",
+          "webp",
+          "avif",
+          "webm",
+          "mp4",
+          "gif"
+        ],
+        "icon": "hexagon"
+      },
+      {
+        "value": "neuro-noise",
+        "label": "Neuro noise",
+        "badge": "noise",
+        "formats": [
+          "png",
+          "jpg",
+          "webp",
+          "avif",
+          "webm",
+          "mp4",
+          "gif"
+        ],
+        "icon": "neuroBeat"
+      },
+      {
+        "value": "perlin-noise",
+        "label": "Perlin",
+        "badge": "noise",
+        "formats": [
+          "png",
+          "jpg",
+          "webp",
+          "avif",
+          "webm",
+          "mp4",
+          "gif"
+        ],
+        "icon": "waves"
+      },
+      {
+        "value": "dithering",
+        "label": "Dither",
+        "badge": "noise",
+        "formats": [
+          "png",
+          "jpg",
+          "webp",
+          "avif",
+          "webm",
+          "mp4",
+          "gif"
+        ],
+        "icon": "grid"
+      },
+      {
+        "value": "warp",
+        "label": "Warp",
+        "badge": "flow",
+        "formats": [
+          "png",
+          "jpg",
+          "webp",
+          "avif",
+          "webm",
+          "mp4",
+          "gif"
+        ],
+        "icon": "wind"
+      },
+      {
+        "value": "spiral",
+        "label": "Spiral",
+        "badge": "flow",
+        "formats": [
+          "png",
+          "jpg",
+          "webp",
+          "avif",
+          "webm",
+          "mp4",
+          "gif"
+        ],
+        "icon": "lollipop"
+      },
+      {
+        "value": "swirl",
+        "label": "Swirl",
+        "badge": "flow",
+        "formats": [
+          "png",
+          "jpg",
+          "webp",
+          "avif",
+          "webm",
+          "mp4",
+          "gif"
+        ],
+        "icon": "refresh"
+      },
+      {
+        "value": "silk-flow",
+        "label": "Silk flow",
+        "badge": "flux",
+        "formats": [
+          "png",
+          "jpg",
+          "webp",
+          "avif",
+          "webm",
+          "mp4",
+          "gif"
+        ],
+        "icon": "filterLines"
+      },
+      {
+        "value": "prism-bloom",
+        "label": "Prism bloom",
+        "badge": "flux",
+        "formats": [
+          "png",
+          "jpg",
+          "webp",
+          "avif",
+          "webm",
+          "mp4",
+          "gif"
+        ],
+        "icon": "sparkle"
+      },
+      {
+        "value": "liquid-contours",
+        "label": "Liquid contours",
+        "badge": "flux",
+        "formats": [
+          "png",
+          "jpg",
+          "webp",
+          "avif",
+          "webm",
+          "mp4",
+          "gif"
+        ],
+        "icon": "droplet"
+      },
+      {
+        "value": "dot-orbit",
+        "label": "Dot orbit",
+        "badge": "dots",
+        "formats": [
+          "png",
+          "jpg",
+          "webp",
+          "avif",
+          "webm",
+          "mp4",
+          "gif"
+        ],
+        "icon": "grip"
+      },
+      {
+        "value": "god-rays",
+        "label": "God rays",
+        "badge": "light",
+        "formats": [
+          "png",
+          "jpg",
+          "webp",
+          "avif",
+          "webm",
+          "mp4",
+          "gif"
+        ],
+        "icon": "sunburst"
+      },
+      {
+        "value": "color-panels",
+        "label": "Panels",
+        "badge": "light",
+        "formats": [
+          "png",
+          "jpg",
+          "webp",
+          "avif",
+          "webm",
+          "mp4",
+          "gif"
+        ],
+        "icon": "dashboard"
+      },
+      {
+        "value": "pulsing-border",
+        "label": "Pulse frame",
+        "badge": "light",
+        "formats": [
+          "png",
+          "jpg",
+          "webp",
+          "avif",
+          "webm",
+          "mp4",
+          "gif"
+        ],
+        "icon": "fitArtboard"
+      }
+    ]
+  },
+  {
+    "id": "count",
+    "label": "Number of colours",
+    "type": "number",
+    "display": "slider",
+    "default": 2,
+    "min": 1,
+    "max": 6,
+    "step": 1,
+    "help": "How many swatches feed the effect. Two-colour effects (Neuro, Perlin, Dither, Spiral) use the first one or two."
+  },
+  {
+    "id": "color1",
+    "label": "Colour 1",
+    "type": "color",
+    "default": "{color.semantic.secondary}"
+  },
+  {
+    "id": "color2",
+    "label": "Colour 2",
+    "type": "color",
+    "default": "{color.semantic.primary}",
+    "showIf": {
+      "count": [
+        2,
+        3,
+        4,
+        5,
+        6
+      ]
+    }
+  },
+  {
+    "id": "color3",
+    "label": "Colour 3",
+    "type": "color",
+    "default": "{color.semantic.secondary}",
+    "showIf": {
+      "count": [
+        3,
+        4,
+        5,
+        6
+      ]
+    }
+  },
+  {
+    "id": "color4",
+    "label": "Colour 4",
+    "type": "color",
+    "default": "{color.semantic.primary}",
+    "showIf": {
+      "count": [
+        4,
+        5,
+        6
+      ]
+    }
+  },
+  {
+    "id": "color5",
+    "label": "Colour 5",
+    "type": "color",
+    "default": "{color.semantic.secondary}",
+    "showIf": {
+      "count": [
+        5,
+        6
+      ]
+    }
+  },
+  {
+    "id": "color6",
+    "label": "Colour 6",
+    "type": "color",
+    "default": "{color.semantic.primary}",
+    "showIf": {
+      "count": [
+        6
+      ]
+    }
+  },
+  {
+    "id": "background",
+    "label": "Background",
+    "type": "color",
+    "default": "{color.semantic.primary}",
+    "help": "The field behind the effect. Dark grounds make the colours glow; try the design system's surface for a calmer wash."
+  },
+  {
+    "id": "brandInfluence",
+    "display": "segmented",
+    "label": "Palette influence",
+    "type": "select",
+    "default": "full",
+    "showIf": {
+      "effect": [
+        "silk-flow",
+        "prism-bloom",
+        "liquid-contours"
+      ]
+    },
+    "options": [
+      {
+        "value": "off",
+        "label": "Off"
+      },
+      {
+        "value": "subtle",
+        "label": "Subtle"
+      },
+      {
+        "value": "strong",
+        "label": "Strong"
+      },
+      {
+        "value": "full",
+        "label": "Full"
+      }
+    ],
+    "help": "How strongly the design system's swatches shape the colour. Strong keeps a little spectral shimmer; the default Full follows the palette most closely, preserving shadows and luminous edges. Off reveals the original spectrum."
+  },
+  {
+    "id": "intensity",
+    "label": "Intensity",
+    "section": "Character",
+    "type": "number",
+    "display": "slider",
+    "default": 65,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "help": "The effect's main character dial - ball size, ray strength, twist, distortion - tuned per effect so 50 is the designed look."
+  },
+  {
+    "id": "density",
+    "label": "Density",
+    "section": "Character",
+    "type": "number",
+    "display": "slider",
+    "default": 40,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "showIf": {
+      "effect": [
+        "metaballs",
+        "neuro-noise",
+        "perlin-noise",
+        "warp",
+        "spiral",
+        "swirl",
+        "silk-flow",
+        "prism-bloom",
+        "liquid-contours",
+        "dot-orbit",
+        "voronoi",
+        "smoke-ring",
+        "god-rays",
+        "color-panels",
+        "pulsing-border"
+      ]
+    },
+    "help": "The effect's secondary dial - how many, how tight, how detailed."
+  },
+  {
+    "id": "scale",
+    "label": "Scale",
+    "section": "Character",
+    "type": "number",
+    "display": "slider",
+    "default": 200,
+    "min": 25,
+    "max": 400,
+    "step": 5,
+    "help": "Zoom of the whole field - higher magnifies the shapes, lower packs more of them in."
+  },
+  {
+    "id": "rotation",
+    "label": "Rotation",
+    "section": "Character",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": 0,
+    "max": 360,
+    "step": 5
+  },
+  {
+    "id": "speed",
+    "label": "Speed",
+    "section": "Motion",
+    "type": "number",
+    "display": "slider",
+    "default": 100,
+    "min": 0,
+    "max": 300,
+    "step": 5,
+    "showIf": {
+      "effect": [
+        "metaballs",
+        "neuro-noise",
+        "perlin-noise",
+        "warp",
+        "spiral",
+        "swirl",
+        "silk-flow",
+        "prism-bloom",
+        "liquid-contours",
+        "dot-orbit",
+        "voronoi",
+        "smoke-ring",
+        "god-rays",
+        "color-panels",
+        "pulsing-border",
+        "dithering"
+      ]
+    },
+    "help": "Playback speed, as a percentage of each effect's designed pace. 0 freezes the live canvas; a video export still moves. Clips do not loop cleanly - pick a length in the export bar where the cut sits well."
+  },
+  {
+    "id": "phase",
+    "label": "Moment",
+    "section": "Motion",
+    "type": "number",
+    "display": "slider",
+    "default": 35,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "help": "Scrub through the animation to choose the exact frame a still export captures - and where playback starts. Defaults past the start because several effects are still gathering themselves at moment 0."
+  }
+]

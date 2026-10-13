@@ -16,12 +16,14 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { JSDOM } from 'jsdom';
+import type { ToolViewCtx } from './tool/context.ts';
 
 const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'https://instance.test/t/frame' });
 globalThis.window = dom.window as unknown as typeof globalThis.window;
 globalThis.document = dom.window.document;
 globalThis.location = dom.window.location as unknown as Location;
 globalThis.HTMLElement = dom.window.HTMLElement as unknown as typeof HTMLElement;
+globalThis.CustomEvent = dom.window.CustomEvent as unknown as typeof CustomEvent;
 
 const { clearShareDeepLink, shareDeepLink } = await import('./export-share.ts');
 const { replaceRouteUrl, routeParams } = await import('../lib/url-state.ts');
@@ -87,4 +89,35 @@ test('the tool view reads the Share deep link only through shareDeepLink, with i
   assert.match(feature, /shareDeepLink\(urlFlags, !!tview\.collabHandle\)/);
   assert.match(feature, /clearShareDeepLink\(urlFlags, shareLink\.changes\)/, 'the clear reaches the mount\'s flags, not only the bar');
   assert.doesNotMatch(feature, /get\('_dialog'\) === 'share'/, 'no second reader that would open the dialog over a live collab');
+});
+
+test('a cold ?share=1 opens after agent guidance and the mounted editor are ready', () => {
+  const here = dirname(fileURLToPath(import.meta.url));
+  const setup = readFileSync(join(here, 'tool', 'setup.ts'), 'utf8');
+  const session = readFileSync(join(here, 'tool', 'session.ts'), 'utf8');
+  const agents = readFileSync(join(here, 'tool-agent-guidance.ts'), 'utf8');
+  assert.deepEqual(shareDeepLink(new URLSearchParams('share=1'), false), { kind: 'open' });
+  assert.doesNotMatch(setup, /requestAnimationFrame\(\(\) => showShareDialog/);
+  assert.match(session, /await mountToolAgentGuidance\(tview, documentId\)/);
+  assert.match(session, /await finishToolAgentShare\(tview, documentId, agentInvitationsReady, \(\) => showShareDialog\(runtime, actionsEl, tview\.tool\.manifest\)\)/);
+  assert.match(agents, /await ready;[\s\S]*shareDeepLink\(tview\.urlFlags, !!tview\.collabHandle\)\?\.kind === 'open'[\s\S]*open\(\)/);
+});
+
+test('?share=1 waits for the editor promise before opening the mounted Share controller', async () => {
+  const { finishToolAgentShare } = await import('./tool-agent-guidance.ts');
+  const viewEl = document.createElement('main'); const actionsEl = document.createElement('div');
+  viewEl.append(actionsEl); document.body.replaceChildren(viewEl);
+  let opened = 0;
+  actionsEl.addEventListener('lolly:share-open', event => { event.preventDefault(); opened++; });
+  let resolveReady: () => void = () => {};
+  const ready = new Promise<void>(done => { resolveReady = done; });
+  const tview = { viewEl, actionsEl, mountLifecycle: { disposed: false }, urlFlags: flags('share=1'), runtime: {}, tool: { manifest: {} } } as unknown as ToolViewCtx;
+  const pending = finishToolAgentShare(tview, 'doc:startup', ready, () => {
+    actionsEl.dispatchEvent(new CustomEvent('lolly:share-open', { cancelable: true }));
+  });
+  await new Promise(done => setImmediate(done));
+  assert.equal(opened, 0, 'the startup request cannot create an early generic modal');
+  resolveReady(); await pending;
+  assert.equal(opened, 1, 'the ready request reaches the mounted dock controller');
+  viewEl.remove();
 });

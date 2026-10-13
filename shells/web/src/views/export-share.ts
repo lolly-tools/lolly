@@ -72,7 +72,9 @@ export function mountExportShare(root: HTMLElement, options: () => ShareDialogOp
   let disposed = false;
   const refresh = (): void => {
     const opts = options();
-    const next = JSON.stringify([opts.baseParts, opts.currentFormat, opts.fidelity, canExportLolly(opts.toolId ?? '')]);
+    const document = opts.document?.();
+    const next = JSON.stringify([opts.baseParts, opts.currentFormat, opts.fidelity, canExportLolly(opts.toolId ?? ''),
+      !!document?.agentInvitation, document?.agentGuidance?.documentId, document?.agentGuidance?.toolId, document?.agentGuidance?.toolVersion]);
     if (dispose && signature === next) return;
     signature = next;
     dispose?.();
@@ -109,8 +111,11 @@ export function mountExportShare(root: HTMLElement, options: () => ShareDialogOp
   const sync = (): void => {
     const portable = select?.value === 'lolly';
     root.classList.toggle('export-is-lolly', portable);
-    if (portable) open();
-    else if (panel) refresh();
+    if (portable) {
+      open();
+      const file = body.querySelector<HTMLDetailsElement>('details[data-share-file]');
+      if (file) file.open = true;
+    } else if (panel) refresh();
   };
   const onDownload = (event: Event): void => {
     if (select?.value !== 'lolly') return;

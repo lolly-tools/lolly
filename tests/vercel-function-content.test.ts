@@ -23,6 +23,7 @@ test('MCP includes compressed emoji packs without also forcing raw bundles into 
   }
   for (const required of [
     'profiles.json', 'community/emoji-packs/index.json',
+    'skills/lolly/SKILL.md', 'skills/lolly/reference/design-system.md',
     'community/agenda/tool.json', 'community/agenda/presentation.js',
     'community/street-map/data/example.json', 'community/_shared/design-renderer.js',
     'brands/lolly-start/tools/voice-recorder/tool.json',
@@ -40,4 +41,5 @@ test('MCP includes compressed emoji packs without also forcing raw bundles into 
     'shells/web/public/fonts/SUSEMono[wght].ttf',
   ]) assert.equal(matchesGlob(required, includeFiles), true, required);
   assert.equal(matchesGlob('brands/suse/catalog/assets/index.json', includeFiles), false);
+  assert.equal(matchesGlob('brands/lolly-start/catalog/previews/agenda.png', includeFiles), false, 'compact SVG/JSON preview glob must not include PNG thumbnails');
 });

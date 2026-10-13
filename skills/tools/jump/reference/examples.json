@@ -1,0 +1,182 @@
+[
+  {
+    "label": "Aurora front door",
+    "values": {
+      "heading": "Northwind Studio",
+      "subheading": "Everything we make, one link.",
+      "style": "aurora",
+      "accent": "#2563eb",
+      "background": "#0b1020",
+      "color": "#eef2ff",
+      "links": {
+        "columns": [
+          "URL",
+          "Name",
+          "Emoji"
+        ],
+        "rows": [
+          [
+            "https://example.com/work",
+            "Portfolio",
+            ""
+          ],
+          [
+            "https://example.com/book",
+            "Book a session",
+            ""
+          ],
+          [
+            "https://example.com/news",
+            "Newsletter",
+            ""
+          ],
+          [
+            "https://example.com/hello",
+            "Contact",
+            ""
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "label": "Front page",
+    "values": {
+      "heading": "Ana Kovac",
+      "subheading": "Writing, photography and the occasional talk.",
+      "style": "editorial",
+      "accent": "#b91c1c",
+      "background": "#faf7f2",
+      "color": "#1c1917",
+      "links": {
+        "columns": [
+          "URL",
+          "Name",
+          "Emoji"
+        ],
+        "rows": [
+          [
+            "https://example.com/essays",
+            "Writing",
+            ""
+          ],
+          [
+            "https://example.com/photos",
+            "Photography",
+            ""
+          ],
+          [
+            "https://example.com/talks",
+            "Talks",
+            ""
+          ],
+          [
+            "https://example.com/now",
+            "Now",
+            ""
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "label": "Playroom",
+    "values": {
+      "heading": "Pick a door",
+      "subheading": "",
+      "style": "orbit",
+      "accent": "#7c3aed",
+      "background": "#faf9fd",
+      "color": "#1c1730",
+      "links": {
+        "columns": [
+          "URL",
+          "Name",
+          "Emoji"
+        ],
+        "rows": [
+          [
+            "https://example.com/game",
+            "Play",
+            "🎮"
+          ],
+          [
+            "https://example.com/music",
+            "Listen",
+            "🎧"
+          ],
+          [
+            "https://example.com/shop",
+            "Shop",
+            "🛍️"
+          ],
+          [
+            "https://example.com/chat",
+            "Chat",
+            "💬"
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "label": "Conference talk",
+    "values": {
+      "heading": "Thanks for listening",
+      "subheading": "The slides, the paper and the demo from today's talk.",
+      "style": "cards",
+      "accent": "#0d7a5f",
+      "background": "#f5f7f4",
+      "color": "#132019",
+      "links": {
+        "columns": [
+          "URL",
+          "Name",
+          "Emoji"
+        ],
+        "rows": [
+          [
+            "https://example.com/talk/slides",
+            "Slides (PDF)",
+            ""
+          ],
+          [
+            "https://example.com/talk/paper",
+            "The paper",
+            ""
+          ],
+          [
+            "https://example.com/talk/demo",
+            "Live demo",
+            ""
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "label": "Forwarder",
+    "values": {
+      "heading": "Redirecting",
+      "subheading": "One link that forwards you on.",
+      "onVisit": "gate",
+      "accent": "#2563eb",
+      "background": "#f6f8fc",
+      "color": "#16202b",
+      "links": {
+        "columns": [
+          "URL",
+          "Name",
+          "Emoji"
+        ],
+        "rows": [
+          [
+            "https://example.com/live",
+            "Destination",
+            ""
+          ]
+        ]
+      }
+    }
+  }
+]

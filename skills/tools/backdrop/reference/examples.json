@@ -1,0 +1,78 @@
+[
+  {
+    "label": "Lava lamp",
+    "values": {
+      "effect": "metaballs",
+      "count": 4,
+      "intensity": 55,
+      "density": 45
+    }
+  },
+  {
+    "label": "Cathedral rays",
+    "values": {
+      "effect": "god-rays",
+      "count": 4,
+      "intensity": 60,
+      "density": 45
+    }
+  },
+  {
+    "label": "Neural drift",
+    "values": {
+      "effect": "neuro-noise",
+      "intensity": 50,
+      "density": 40,
+      "speed": 80
+    }
+  },
+  {
+    "label": "Smoke halo",
+    "values": {
+      "effect": "smoke-ring",
+      "count": 2,
+      "intensity": 55,
+      "density": 40,
+      "speed": 80
+    }
+  },
+  {
+    "label": "Velvet warp",
+    "values": {
+      "effect": "warp",
+      "count": 4,
+      "intensity": 45,
+      "density": 65
+    }
+  },
+  {
+    "label": "Liquid silk",
+    "values": {
+      "effect": "silk-flow",
+      "count": 3,
+      "intensity": 60,
+      "density": 45,
+      "speed": 70
+    }
+  },
+  {
+    "label": "Prismatic bloom",
+    "values": {
+      "effect": "prism-bloom",
+      "count": 4,
+      "intensity": 60,
+      "density": 55,
+      "speed": 65
+    }
+  },
+  {
+    "label": "Mercury contours",
+    "values": {
+      "effect": "liquid-contours",
+      "count": 3,
+      "intensity": 65,
+      "density": 40,
+      "speed": 70
+    }
+  }
+]

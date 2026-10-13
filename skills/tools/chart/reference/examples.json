@@ -1,0 +1,82 @@
+[
+  {
+    "label": "Trend line",
+    "values": {
+      "chartType": "line",
+      "heading": "Signups are compounding",
+      "data": "Month,Signups,Churned\nJan,120,30\nFeb,150,32\nMar,210,28\nApr,260,35\nMay,330,31\nJun,410,29",
+      "showPoints": true,
+      "palette": "cool"
+    }
+  },
+  {
+    "label": "Donut of segments",
+    "values": {
+      "chartType": "donut",
+      "data": "Segment,Share\nEnterprise,38\nSMB,27\nPartner,20\nSelf-serve,15",
+      "palette": "warm",
+      "showValues": true,
+      "legendPosition": "rc"
+    }
+  },
+  {
+    "label": "Stacked bars",
+    "values": {
+      "chartType": "bar",
+      "stackMode": "stacked",
+      "data": "Quarter,North,South,East\nQ1,42,28,12\nQ2,49,35,18\nQ3,55,41,24\nQ4,61,48,31",
+      "palette": "mono",
+      "cornerRadius": 4
+    }
+  },
+  {
+    "label": "Radar profile",
+    "values": {
+      "chartType": "radar",
+      "data": "Axis,Design,Engineering\nStrategy,7,5\nCraft,8,9\nSpeed,6,8\nRigour,7,9\nStory,9,6",
+      "fillOpacity": 40,
+      "palette": "diverging"
+    }
+  },
+  {
+    "label": "Waffle share",
+    "values": {
+      "chartType": "waffle",
+      "data": "Status,Count\nDone,68\nIn progress,22\nBlocked,10",
+      "palette": "warm"
+    }
+  },
+  {
+    "label": "Survey word cloud",
+    "values": {
+      "chartType": "wordcloud",
+      "data": "Response,Count\nStrongly agree,42\nAgree,31\nIt depends on the context,26\nNeutral,18\nDisagree,11\nStrongly disagree,7\nPrefer not to say,4",
+      "palette": "suse"
+    }
+  },
+  {
+    "label": "Real 3-D bars",
+    "values": {
+      "renderMode": "scene",
+      "chartType": "bar",
+      "sceneType": "bar3d",
+      "chartStyle": "studio-3d",
+      "heading": "Responses by team and wave",
+      "data": "Team,First wave,Second wave,Final wave\nDesign,42,51,63\nEngineering,58,66,74\nSales,33,47,59\nSupport,27,39,52",
+      "motionPreset": "reveal-orbit",
+      "cameraProjection": "orthographic"
+    }
+  },
+  {
+    "label": "Brand terrain",
+    "values": {
+      "renderMode": "scene",
+      "chartType": "heatmap",
+      "sceneType": "surface3d",
+      "chartStyle": "glass-3d",
+      "heading": "Demand surface",
+      "data": "Hour,Monday,Tuesday,Wednesday,Thursday,Friday\n08:00,12,18,14,17,22\n10:00,23,31,28,35,42\n12:00,46,55,61,58,68\n14:00,38,49,53,57,63\n16:00,29,41,47,51,58\n18:00,18,27,33,39,46",
+      "motionPreset": "orbit"
+    }
+  }
+]

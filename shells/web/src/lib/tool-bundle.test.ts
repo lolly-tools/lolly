@@ -11,6 +11,9 @@ test('unsigned tool bundles carry recursive literal media/library dependencies a
     ['hooks.js', 'var library = "/tools/demo/lib/draw.js";'],
     ['lib/draw.js', 'var art = "/tools/demo/assets/second.svg";'],
     ['assets/photo.svg', '<svg/>'], ['assets/second.svg', '<svg/>'],
+    ['SKILL.md', '---\nname: lolly-demo\ndescription: Use Demo.\n---\n'],
+    ['skill.json', JSON.stringify({ version: 1, toolId: 'demo', toolVersionRange: '1.0.0', skillRevision: '1', references: ['skill/workflow.md'] })],
+    ['skill/workflow.md', 'Operate the installed tool.'],
   ]);
   globalThis.fetch = async input => {
     const path = String(input).split('/tools/demo/')[1] ?? '';
@@ -22,6 +25,10 @@ test('unsigned tool bundles carry recursive literal media/library dependencies a
     const result = await resolveToolBundle('demo', manifest);
     assert.ok(result); assert.equal(result.trust, 'custom');
     assert.ok(result.files['assets/photo.svg']); assert.ok(result.files['lib/draw.js']); assert.ok(result.files['assets/second.svg']);
+    assert.ok(result.files['SKILL.md']); assert.ok(result.files['skill.json']); assert.ok(result.files['skill/workflow.md']);
+    source.delete('skill/workflow.md');
+    assert.equal(await resolveToolBundle('demo', manifest), null, 'declared guidance references must remain portable');
+    source.set('skill/workflow.md', 'Operate the installed tool.');
     source.delete('assets/second.svg');
     assert.equal(await resolveToolBundle('demo', manifest), null, 'do not claim a selected tool is portable when a known dependency is missing');
     source.set('assets/second.svg', '<svg/>'); source.delete('hooks.js');

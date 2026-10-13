@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "toolId": "snippet",
+  "toolVersion": "1.6.2",
+  "toolVersionRange": "1.6.2",
+  "skillRevision": "1",
+  "origin": "generated",
+  "references": [
+    "reference/inputs.json",
+    "reference/examples.json"
+  ],
+  "files": {
+    "SKILL.md": {
+      "sha256": "cf38b387c19f2a08192c106301f641b3188d37178831b3dbc6a34be114052d92",
+      "bytes": 2665
+    },
+    "reference/inputs.json": {
+      "sha256": "11b19b6aa5e52a08edb950ee6426d84d9b8831fa26692e2201a8c40879ac51c2",
+      "bytes": 15502
+    },
+    "reference/examples.json": {
+      "sha256": "3e49db88a6dee6689f66a99c5ccf963e123a508ae5c897bfffe92fc6fa5a6d55",
+      "bytes": 723
+    }
+  }
+}

@@ -31,7 +31,8 @@ g.localStorage = dom.window.localStorage;
 g.requestAnimationFrame = (cb: FrameRequestCallback) => setTimeout(() => cb(0), 0);
 g.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
 
-const { mountSharePanel } = await import('./share-dialog.ts');
+const { mountSharePanel, openShareDialog } = await import('./share-dialog.ts');
+const { createShareSection } = await import('./share-section.ts');
 const { registerShareSection, _clearShareSectionsForTests } = await import('../lib/share-sections.ts');
 
 const OPTS = { toolId: 'qr-code', baseParts: ['url=https%3A%2F%2Fexample.com'], manifest: { render: { formats: ['svg'] } } };
@@ -119,4 +120,139 @@ test('an async lead section mounts when it resolves; a throwing builder is skipp
   await new Promise((r) => setTimeout(r, 0));
   assert.equal(c.querySelector('.share-lead-sections')?.firstElementChild?.getAttribute('data-name'), 'late');
   _clearShareSectionsForTests();
+});
+
+test('the primary link remains visible while options use the sidebar disclosure', () => {
+  _clearShareSectionsForTests();
+  const c = mount();
+  const options = c.querySelector<HTMLDetailsElement>('[data-link-options]')!;
+  assert.equal(options.open, false);
+  assert.ok(options.matches('details.input-section'));
+  assert.ok(options.querySelector('.input-section-summary .input-section-title .input-section-icon svg'));
+  assert.ok(options.querySelector('.input-section-body [data-link-behaviour] legend'));
+  assert.ok(options.querySelector('.share-credit-btn'));
+  assert.equal(c.querySelector('.share-copy-btn')?.closest('details'), null);
+  assert.equal(c.querySelectorAll('details').length, 1, 'link behavior and encoding share one disclosure');
+});
+
+test('link flags still update and fullscreen disables the export-panel flag', () => {
+  _clearShareSectionsForTests();
+  const c = mount();
+  const full = c.querySelector<HTMLInputElement>('[data-flag="full"]')!;
+  const options = c.querySelector<HTMLInputElement>('[data-flag="options"]')!;
+  options.checked = true;
+  options.dispatchEvent(new dom.window.Event('change'));
+  assert.match(c.querySelector<HTMLInputElement>('.share-link-field')!.value, /[?&]options(?:&|$)/);
+  full.checked = true;
+  full.dispatchEvent(new dom.window.Event('change'));
+  assert.equal(options.disabled, true);
+  assert.equal(options.checked, false);
+  const link = c.querySelector<HTMLInputElement>('.share-link-field')!.value;
+  assert.match(link, /[?&]full(?:&|$)/);
+  assert.doesNotMatch(link, /[?&]options(?:&|$)/);
+});
+
+test('registered headings become disclosures without losing control listeners', () => {
+  _clearShareSectionsForTests();
+  let presses = 0;
+  registerShareSection(() => {
+    const node = section('editable');
+    node.className = 'custom-share';
+    const heading = document.createElement('h3'); heading.textContent = 'Invite people';
+    const action = document.createElement('button'); action.addEventListener('click', () => { presses++; });
+    node.append(heading, action);
+    return node;
+  });
+  const c = mount();
+  const group = c.querySelector<HTMLDetailsElement>('.share-registered-section')!;
+  assert.equal(group.open, false);
+  assert.match(group.querySelector('summary')!.textContent!, /Invite people/);
+  assert.equal(group.querySelector('h3'), null);
+  group.querySelector<HTMLButtonElement>('button')!.click();
+  assert.equal(presses, 1);
+});
+
+test('section choices survive docked rebuilds and stay separate between panels', async () => {
+  _clearShareSectionsForTests();
+  registerShareSection(async () => createShareSection('Invite an agent', 'aiSpark', { className: 'example-agent' }).section);
+  const container = document.createElement('div'); document.body.replaceChildren(container);
+  let dispose = mountSharePanel(container, OPTS);
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  container.querySelector<HTMLDetailsElement>('[data-link-options]')!.open = true;
+  container.querySelector<HTMLDetailsElement>('.example-agent')!.open = true;
+  dispose();
+  dispose = mountSharePanel(container, { ...OPTS, baseParts: ['url=changed'] });
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  assert.equal(container.querySelector<HTMLDetailsElement>('[data-link-options]')!.open, true);
+  assert.equal(container.querySelector<HTMLDetailsElement>('.example-agent')!.open, true, 'async sections restore their own state');
+  const other = document.createElement('div'); document.body.append(other);
+  const disposeOther = mountSharePanel(other, OPTS);
+  assert.equal(other.querySelector<HTMLDetailsElement>('[data-link-options]')!.open, false);
+  dispose(); disposeOther();
+});
+
+test('the modal and docked panel use identical disclosure anatomy', () => {
+  _clearShareSectionsForTests();
+  dom.window.HTMLDialogElement.prototype.showModal = function () { this.open = true; };
+  dom.window.HTMLDialogElement.prototype.close = function () { this.open = false; };
+  const c = mount();
+  const dlg = openShareDialog(OPTS);
+  assert.equal(dlg.querySelector('[data-link-options]')?.outerHTML, c.querySelector('[data-link-options]')?.outerHTML);
+  dlg.querySelector<HTMLButtonElement>('.share-done')!.click();
+  assert.equal(dlg.isConnected, false);
+});
+
+test('a recommended editable file opens, and delivery reveals its contents receipt', async () => {
+  _clearShareSectionsForTests();
+  const saves: string[] = [];
+  const container = document.createElement('div'); document.body.replaceChildren(container);
+  mountSharePanel(container, {
+    ...OPTS,
+    fidelity: { faithful: false, excludedAssets: [{ id: 'user/image', label: 'Uploaded image' }], droppedScalars: [], droppedBlocks: [] },
+    lolly: {
+      build: async () => ({ blob: new Blob(['saved design']), filename: 'design.lolly', summary: {
+        assetCount: 1, byReferenceCount: 0, totalBytes: 12, hasLicensed: false, licensedExcluded: 0, credits: false, toolFiles: 0,
+      } }),
+      save: async (_blob, filename) => { saves.push(filename); },
+    },
+  });
+  const file = container.querySelector<HTMLDetailsElement>('[data-share-file]')!;
+  assert.equal(file.open, true);
+  assert.ok(file.classList.contains('is-recommended'));
+  file.open = false;
+  file.querySelector<HTMLButtonElement>('[data-lolly-download]')!.click();
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  assert.equal(file.open, true, 'programmatic delivery opens its receipt and any inclusion choice');
+  assert.deepEqual(saves, ['design.lolly']);
+  assert.match(file.querySelector('[data-lolly-summary]')!.textContent!, /1 embedded file/);
+});
+
+test('clipboard failure rejects for sections and reports failure on the copy buttons', async () => {
+  _clearShareSectionsForTests();
+  let copy: ((text: string) => Promise<void>) | undefined;
+  registerShareSection(ctx => { copy = ctx.copy; return null; });
+  const c = mount();
+  const field = c.querySelector<HTMLInputElement>('.share-link-field')!;
+  field.focus();
+  const previousClipboard = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
+  const previousExec = document.execCommand;
+  Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async () => { throw new Error('unavailable'); } } });
+  document.execCommand = () => false;
+  try {
+    assert.ok(copy);
+    await assert.rejects(copy('agent instructions'), /Could not copy to the clipboard/);
+    assert.equal(document.querySelector('textarea'), null);
+    assert.equal(document.activeElement, field);
+    const primary = c.querySelector<HTMLButtonElement>('.share-copy-btn')!;
+    const credit = c.querySelector<HTMLButtonElement>('.share-credit-btn')!;
+    primary.click(); credit.click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.equal(primary.textContent, 'Could not copy');
+    assert.equal(credit.textContent, 'Could not copy');
+    assert.equal(document.querySelector('textarea'), null);
+  } finally {
+    document.execCommand = previousExec;
+    if (previousClipboard) Object.defineProperty(navigator, 'clipboard', previousClipboard);
+    else Reflect.deleteProperty(navigator, 'clipboard');
+  }
 });

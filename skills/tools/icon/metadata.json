@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "toolId": "icon",
+  "toolVersion": "1.1.3",
+  "toolVersionRange": "1.1.3",
+  "skillRevision": "1",
+  "origin": "generated",
+  "references": [
+    "reference/inputs.json"
+  ],
+  "files": {
+    "SKILL.md": {
+      "sha256": "42c1901a49d395afc0f656331c733e406de5b7af6ad3b165477c49fb0dda76f8",
+      "bytes": 1857
+    },
+    "reference/inputs.json": {
+      "sha256": "ccf1d968f8d1c8cde19c83fd814abc5d8007d8c2f47f41f7129a7e683b25ecb3",
+      "bytes": 4901
+    }
+  }
+}

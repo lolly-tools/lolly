@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "toolId": "scan-code",
+  "toolVersion": "0.1.1",
+  "toolVersionRange": "0.1.1",
+  "skillRevision": "1",
+  "origin": "generated",
+  "references": [
+    "reference/inputs.json"
+  ],
+  "files": {
+    "SKILL.md": {
+      "sha256": "abfc76f052669e55578ac3ed6667d2fe58d025f615f172276b88ba7d44d7c746",
+      "bytes": 1764
+    },
+    "reference/inputs.json": {
+      "sha256": "5e856aee15e30af24a00e49f443e138d269843201738fa6d55ceef4e24fcef6b",
+      "bytes": 1604
+    }
+  }
+}

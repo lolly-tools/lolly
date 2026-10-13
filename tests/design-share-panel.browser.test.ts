@@ -18,7 +18,8 @@ test('Share has its own live tab, downloads an editable file and adapts to phone
     await page.locator('[data-topbar="export"]').click();
     await page.locator('[data-topbar="share"]').click();
     const panel = page.locator('[data-panel="share"]');
-    await panel.locator('[data-lolly-download]').waitFor({ state: 'visible' });
+    await panel.locator('[data-share-file] > summary').waitFor({ state: 'visible' });
+    assert.equal(await panel.locator('[data-share-file]').evaluate(element => (element as HTMLDetailsElement).open), false, 'the file section starts collapsed for an ordinary share');
     assert.equal(await page.locator('dialog.share-dialog').count(), 0);
     assert.equal(await page.locator('#edge-dock-tab-share').getAttribute('aria-selected'), 'true');
     assert.equal(await page.locator('#edge-dock-tab-export').count(), 1);
@@ -31,12 +32,13 @@ test('Share has its own live tab, downloads an editable file and adapts to phone
     await page.waitForFunction(before => document.querySelector<HTMLInputElement>('[data-panel="share"] .share-link-field')?.value !== before, before);
     const shared = new URLSearchParams(await expandQuery(new URL(await field.inputValue()).search.slice(1)));
     assert.match(shared.get('bx') ?? '', /^shape,box,181,100,/, 'the link carries the moved object');
-    await panel.locator('[data-link-behaviour] > summary').click();
+    await panel.locator('[data-link-options] > summary').click();
     await panel.locator('[data-flag="full"]').check();
     await page.locator('#edge-dock-tab-export').click();
     await page.locator('#edge-dock-tab-export').press('ArrowRight');
     assert.equal(await page.locator('#edge-dock-tab-share').getAttribute('aria-selected'), 'true');
     assert.equal(await panel.locator('[data-flag="full"]').isChecked(), true, 'tab switching keeps link choices');
+    await panel.locator('[data-share-file] > summary').click();
     const downloadReady = page.waitForEvent('download');
     await panel.locator('[data-lolly-download]').click();
     const download = await downloadReady;

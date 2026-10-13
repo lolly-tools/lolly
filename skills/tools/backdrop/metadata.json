@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "toolId": "backdrop",
+  "toolVersion": "1.1.2",
+  "toolVersionRange": "1.1.2",
+  "skillRevision": "1",
+  "origin": "generated",
+  "references": [
+    "reference/inputs.json",
+    "reference/examples.json"
+  ],
+  "files": {
+    "SKILL.md": {
+      "sha256": "390fe189bdaccd0c0f42f5cd89c624870e29ae06bc5a3c04e383589a918bc365",
+      "bytes": 2143
+    },
+    "reference/inputs.json": {
+      "sha256": "03ed9252d65cbe047d8f0a12d17b6256f37ce82846952499dfdc9d86961e00d9",
+      "bytes": 9902
+    },
+    "reference/examples.json": {
+      "sha256": "6ac9a779f8b1f95a016b155be252d2596560978d126b336e1773cc91953ba888",
+      "bytes": 1287
+    }
+  }
+}

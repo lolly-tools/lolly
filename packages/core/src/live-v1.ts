@@ -74,6 +74,32 @@ export interface LiveHelloResultV1 {
   /** Which surface answered. */
   surface: 'desktop' | 'web';
   documentId?: string;
+  toolVersion?: string;
+  adapter?: LiveAdapterV1;
+  mode?: 'edit' | 'read';
+  capabilities?: LiveCapabilitiesV1;
+}
+
+export type LiveAdapterV1 = 'layers' | 'inputs';
+export interface LiveCapabilitiesV1 {
+  read: true;
+  edit: boolean;
+  inputValues: boolean;
+  layerOperations: boolean;
+  layerPatches: boolean;
+  find: boolean;
+  look: boolean;
+  undo: boolean;
+  artboardAlternatives: boolean;
+  authoring: string[];
+}
+
+/** Runtime input syntax and safe values; uploaded files never travel here. */
+export interface LiveInputStateV1 {
+  inputSchema: Record<string, unknown>;
+  inputValues: Record<string, unknown>;
+  editableInputIds: string[];
+  omittedInputs: Array<{ id: string; reason: 'file' | 'upload' | 'non-json' }>;
 }
 
 export interface LiveDocumentV1 {
@@ -86,6 +112,15 @@ export interface LiveDocumentV1 {
   selection: string[];
   /** Changes whenever the document changes, so an agent can tell a stale read. */
   revision: string;
+  tool?: string;
+  toolVersion?: string;
+  adapter?: LiveAdapterV1;
+  mode?: 'edit' | 'read';
+  capabilities?: LiveCapabilitiesV1;
+  inputSchema?: LiveInputStateV1['inputSchema'];
+  inputValues?: LiveInputStateV1['inputValues'];
+  editableInputIds?: LiveInputStateV1['editableInputIds'];
+  omittedInputs?: LiveInputStateV1['omittedInputs'];
 }
 
 export interface LiveApplyParamsV1 {
@@ -94,6 +129,8 @@ export interface LiveApplyParamsV1 {
   transactionId?: string;
   layerOperations?: unknown[];
   layerPatches?: unknown[];
+  /** A patch of declared, JSON-safe input ids, when the adapter advertises support. */
+  inputValues?: Record<string, unknown>;
   /** A short note for the history entry, after "AI agent: ". */
   label?: string;
   /** Refuse the edit unless the document is still at this revision. */

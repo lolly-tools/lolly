@@ -1,0 +1,224 @@
+[
+  {
+    "id": "url",
+    "label": "URL",
+    "type": "url",
+    "required": true,
+    "default": "https://lolly.tools",
+    "help": "The page to capture. Captured at export time in a real browser engine."
+  },
+  {
+    "id": "scrollDepth",
+    "section": "Capture",
+    "label": "Scroll depth",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": 0,
+    "max": 1,
+    "step": 0.05,
+    "help": "How far down the page to scroll before capturing. 0 = top, 1 = bottom. For a video, this is where the pan starts."
+  },
+  {
+    "id": "scrollTo",
+    "section": "Capture",
+    "label": "Scroll to (video)",
+    "type": "number",
+    "display": "slider",
+    "default": 1,
+    "min": 0,
+    "max": 1,
+    "step": 0.05,
+    "help": "Video export only: pan down to this depth over the clip - a scroll of the page from 'Scroll depth' to here. Set it equal to 'Scroll depth' for a still hold. Ignored for image formats."
+  },
+  {
+    "id": "zoom",
+    "section": "Capture",
+    "label": "Zoom",
+    "type": "number",
+    "display": "slider",
+    "default": 1,
+    "min": 0.25,
+    "max": 5,
+    "step": 0.25,
+    "help": "Browser zoom level - magnifies the page before the shot (like Ctrl/Cmd +), so even a bitmap capture is enlarged and crisp rather than upscaled. 1 = 100%."
+  },
+  {
+    "id": "waitMs",
+    "section": "Capture",
+    "label": "Settle delay (ms)",
+    "type": "number",
+    "default": 500,
+    "min": 0,
+    "max": 15000,
+    "step": 100,
+    "help": "Time to wait after load (and after scrolling) before the shot - lets fonts, images and animations settle."
+  },
+  {
+    "id": "css",
+    "section": "Capture",
+    "label": "Custom CSS",
+    "type": "longtext",
+    "rows": 6,
+    "default": "",
+    "help": "CSS injected into the page before the screenshot - e.g. hide a cookie banner (.cookie-bar { display: none }) or restyle elements."
+  },
+  {
+    "id": "cropTop",
+    "section": "Crop",
+    "label": "Top",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": 0,
+    "max": 0.9,
+    "step": 0.01,
+    "help": "Trim in from the top edge, as a 0–0.9 fraction of the height. Raster (png/jpg/svg) only."
+  },
+  {
+    "id": "cropRight",
+    "section": "Crop",
+    "label": "Right",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": 0,
+    "max": 0.9,
+    "step": 0.01,
+    "help": "Trim in from the right edge, as a 0–0.9 fraction of the width."
+  },
+  {
+    "id": "cropBottom",
+    "section": "Crop",
+    "label": "Bottom",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": 0,
+    "max": 0.9,
+    "step": 0.01,
+    "help": "Trim in from the bottom edge, as a 0–0.9 fraction of the height."
+  },
+  {
+    "id": "cropLeft",
+    "section": "Crop",
+    "label": "Left",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": 0,
+    "max": 0.9,
+    "step": 0.01,
+    "help": "Trim in from the left edge, as a 0–0.9 fraction of the width."
+  },
+  {
+    "id": "recolor",
+    "section": "Colour",
+    "label": "Recolour",
+    "type": "select",
+    "default": "none",
+    "options": [
+      {
+        "value": "none",
+        "label": "Original colours"
+      },
+      {
+        "value": "invert",
+        "label": "Invert (keep hues)"
+      },
+      {
+        "value": "grayscale",
+        "label": "Greyscale"
+      },
+      {
+        "value": "sepia",
+        "label": "Sepia"
+      },
+      {
+        "value": "hue",
+        "label": "Hue shift"
+      },
+      {
+        "value": "tint",
+        "label": "Tint (swap to a colour)"
+      }
+    ],
+    "help": "Recolour the whole page before capture. 'Hue shift' rotates every colour by the angle below; 'Tint' desaturates then washes it in the tint colour."
+  },
+  {
+    "id": "hue",
+    "section": "Colour",
+    "label": "Hue angle",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": 0,
+    "max": 360,
+    "step": 5,
+    "help": "Degrees to rotate every colour by when Recolour is 'Hue shift'."
+  },
+  {
+    "id": "tintColor",
+    "section": "Colour",
+    "label": "Tint colour",
+    "type": "color",
+    "default": "{color.semantic.primary}",
+    "help": "The colour the page is washed in when Recolour is 'Tint'."
+  },
+  {
+    "id": "compare",
+    "section": "Compare",
+    "label": "Compare viewports",
+    "type": "select",
+    "default": "single",
+    "options": [
+      {
+        "value": "single",
+        "label": "Single frame"
+      },
+      {
+        "value": "side",
+        "label": "Desktop and phone, side by side"
+      },
+      {
+        "value": "overlap",
+        "label": "Phone over the desktop corner"
+      }
+    ],
+    "help": "Capture the same page twice - once at the export size, once at the phone viewport below - and lay both out in one frame. Still formats only; a webm/mp4 scroll pan stays a single desktop frame."
+  },
+  {
+    "id": "mobileWidth",
+    "section": "Compare",
+    "label": "Phone width",
+    "type": "number",
+    "default": 390,
+    "min": 200,
+    "max": 2000,
+    "step": 1,
+    "showIf": {
+      "compare": [
+        "side",
+        "overlap"
+      ]
+    },
+    "help": "Viewport width for the second capture, in px. 390 is a current iPhone / Pixel class device."
+  },
+  {
+    "id": "mobileHeight",
+    "section": "Compare",
+    "label": "Phone height",
+    "type": "number",
+    "default": 844,
+    "min": 200,
+    "max": 4000,
+    "step": 1,
+    "showIf": {
+      "compare": [
+        "side",
+        "overlap"
+      ]
+    },
+    "help": "Viewport height for the second capture, in px. It also sets the phone frame's proportions."
+  }
+]

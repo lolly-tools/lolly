@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "toolId": "booth-studio",
+  "toolVersion": "0.3.1",
+  "toolVersionRange": "0.3.1",
+  "skillRevision": "1",
+  "origin": "generated",
+  "references": [
+    "reference/inputs.json"
+  ],
+  "files": {
+    "SKILL.md": {
+      "sha256": "d7220aa4586362e892d2d7539136c7654025cf757894fd0c09cb4b53a2fec200",
+      "bytes": 2745
+    },
+    "reference/inputs.json": {
+      "sha256": "9dbdaafebcb47dd0cefc80ae43cb0b0d67b8a8a17b5fabebfbc153ed24ad8318",
+      "bytes": 21237
+    }
+  }
+}

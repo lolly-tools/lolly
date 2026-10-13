@@ -20,7 +20,8 @@ import test from 'node:test';
 const here = import.meta.dirname;
 const read = (rel: string): string => readFileSync(join(here, rel), 'utf8');
 const panel = read('parts/panel.css');
-const tool = read('parts/tool.css');
+const disclosure = read('parts/disclosure.css');
+const tool = `${read('parts/tool.css')}\n${disclosure}`;
 const inspector = read('parts/design-inspector.css');
 const vocabulary = JSON.parse(read('../../../../schemas/section-vocabulary.json')) as {
   bands: Array<{ id: string; title: string; glyph: string }>;
@@ -58,6 +59,16 @@ test('the caret is a grid column, so a section action cannot move it', () => {
     'the head is a grid whose LAST column is the caret');
   assert.doesNotMatch(/\.lp-sec-head\s*\{[^}]*\}/su.exec(panel)?.[0] ?? '', /display:\s*flex/u,
     'a flex head is how the caret moved 72px on whichever section had an action');
+});
+
+test('Share uses the sidebar disclosure without requiring the tool view stylesheet', () => {
+  assert.match(read('app.css'), /@import '\.\/parts\/disclosure\.css'\s+layer\(primitives\)/u);
+  for (const selector of ['.input-section {', '.input-section-summary {', '.input-section-body {']) {
+    assert.ok(disclosure.includes(selector), `${selector} is available before any tool view opens`);
+    assert.ok(!read('parts/tool.css').split('\n').includes(selector), `${selector} has one shared definition`);
+  }
+  assert.match(disclosure, /\.input-section:has\(\.input-section-summary:focus-visible\)\s*\{[^}]*var\(--ui-effect-focus-halo\)/su);
+  assert.match(disclosure, /html\[data-a11y-motion="reduce"\] \.input-section-summary::after\s*\{\s*transition: none/u);
 });
 
 test('density is a container query, not a panel identity', () => {

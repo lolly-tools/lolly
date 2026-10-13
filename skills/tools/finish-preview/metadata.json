@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "toolId": "finish-preview",
+  "toolVersion": "1.1.1",
+  "toolVersionRange": "1.1.1",
+  "skillRevision": "1",
+  "origin": "generated",
+  "references": [
+    "reference/inputs.json",
+    "reference/examples.json"
+  ],
+  "files": {
+    "SKILL.md": {
+      "sha256": "a8e79465c91982dc8947b22a6aaf883d96384267d6f2a3de0f62067d728e71dd",
+      "bytes": 2113
+    },
+    "reference/inputs.json": {
+      "sha256": "3eae5657a888ca1c2211d7c8ededd158f4a0d3326356ace25da09ede614ba19e",
+      "bytes": 4612
+    },
+    "reference/examples.json": {
+      "sha256": "6e9b2a03845bf4fbd6153d3802b044aebebfb90c683c7e28c8a8658c1ac8ae8d",
+      "bytes": 635
+    }
+  }
+}

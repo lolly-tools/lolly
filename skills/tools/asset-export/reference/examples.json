@@ -1,0 +1,41 @@
+[
+  {
+    "label": "Whole asset, brand surface",
+    "values": {
+      "src": {
+        "source": "library",
+        "id": "lolly/demo/lolly-spin",
+        "_unresolved": true
+      },
+      "fit": "contain",
+      "width": 1000,
+      "height": 1000
+    }
+  },
+  {
+    "label": "Filled square crop",
+    "values": {
+      "src": {
+        "source": "library",
+        "id": "lolly/demo/lolly-spin",
+        "_unresolved": true
+      },
+      "fit": "cover",
+      "width": 1000,
+      "height": 1000
+    }
+  },
+  {
+    "label": "Wide banner",
+    "values": {
+      "src": {
+        "source": "library",
+        "id": "lolly/demo/lolly-spin",
+        "_unresolved": true
+      },
+      "fit": "contain",
+      "width": 1600,
+      "height": 600
+    }
+  }
+]

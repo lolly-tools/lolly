@@ -1,0 +1,147 @@
+[
+  {
+    "id": "data",
+    "label": "Plans and features",
+    "type": "table",
+    "urlKey": "t",
+    "help": "The first column holds feature names, every other column is a plan. The first row is the price line for each plan. Name a row Tagline (a one-line subtitle per plan), Button (each plan's own button text - put a price there for a buy button like $9/mo, or leave a cell empty for no button under that plan), or Link (each plan's destination, so its button becomes a real link) and it drops out of the feature list. Every other row is a feature. In a cell: yes, y, true, check, tick or a check mark draws a tick; no, n, false, x, cross, - or a cross mark draws a cross; a leading >, <, ^ or v becomes an arrow; anything else prints as text. Paste a table straight from your spreadsheet to replace the whole grid.",
+    "default": {
+      "columns": [
+        "Feature",
+        "Starter",
+        "Team",
+        "Enterprise"
+      ],
+      "rows": [
+        [
+          "Price",
+          "$9 / month",
+          "$29 / month",
+          "Talk to us"
+        ],
+        [
+          "Tagline",
+          "For solo work",
+          "For growing teams",
+          "For the whole org"
+        ],
+        [
+          "Projects",
+          "3",
+          "Unlimited",
+          "Unlimited"
+        ],
+        [
+          "Team members",
+          "1",
+          "Up to 20",
+          "Unlimited"
+        ],
+        [
+          "Shared brand kit",
+          "no",
+          "yes",
+          "yes"
+        ],
+        [
+          "PDF and SVG export",
+          "yes",
+          "yes",
+          "yes"
+        ],
+        [
+          "Single sign-on",
+          "no",
+          "no",
+          "yes"
+        ],
+        [
+          "Support",
+          "Community",
+          "Email, next day",
+          "> Named contact"
+        ]
+      ]
+    }
+  },
+  {
+    "id": "heading",
+    "label": "Heading",
+    "type": "text",
+    "default": "Simple, transparent pricing",
+    "maxLength": 80,
+    "section": "Text"
+  },
+  {
+    "id": "subheading",
+    "label": "Sub-heading",
+    "type": "text",
+    "default": "Every plan includes the whole toolkit. Pay for the seats and support you need.",
+    "maxLength": 160,
+    "section": "Text"
+  },
+  {
+    "id": "cta",
+    "label": "Button label",
+    "type": "text",
+    "default": "Get started",
+    "maxLength": 40,
+    "help": "The button under every plan. A Button row in the table overrides it per plan; a Link row turns the buttons into real links. Leave this empty (and add no Button row) to drop the button row.",
+    "section": "Text"
+  },
+  {
+    "id": "highlight",
+    "label": "Featured plan",
+    "type": "number",
+    "display": "slider",
+    "default": 2,
+    "min": 0,
+    "max": 8,
+    "step": 1,
+    "help": "Which plan column to pick out, counting from 1. Use 0 for no featured plan.",
+    "section": "Highlight"
+  },
+  {
+    "id": "highlightLabel",
+    "label": "Featured label",
+    "type": "text",
+    "default": "Most popular",
+    "maxLength": 32,
+    "section": "Highlight"
+  },
+  {
+    "id": "background",
+    "label": "Background",
+    "type": "color",
+    "default": "{color.semantic.surface}",
+    "help": "The text colour follows this automatically: dark ink on a light sheet, light ink on a dark one.",
+    "section": "Look"
+  },
+  {
+    "id": "accent",
+    "label": "Accent",
+    "type": "color",
+    "default": "{color.semantic.primary}",
+    "help": "Colours the ticks and the featured plan.",
+    "section": "Look"
+  },
+  {
+    "id": "layout",
+    "display": "segmented",
+    "label": "Layout",
+    "type": "select",
+    "default": "cards",
+    "options": [
+      {
+        "value": "cards",
+        "label": "Cards"
+      },
+      {
+        "value": "grid",
+        "label": "Comparison grid"
+      }
+    ],
+    "help": "Cards gives each plan its own panel. Comparison grid is flat, with a hairline under every feature row.",
+    "section": "Look"
+  }
+]

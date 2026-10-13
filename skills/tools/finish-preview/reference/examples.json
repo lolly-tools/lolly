@@ -1,0 +1,36 @@
+[
+  {
+    "label": "Gold foil highlights",
+    "values": {
+      "finish": "foil-gold",
+      "maskSource": "light",
+      "threshold": 62
+    }
+  },
+  {
+    "label": "Holographic shadows",
+    "values": {
+      "finish": "foil-holographic",
+      "maskSource": "dark",
+      "threshold": 45
+    }
+  },
+  {
+    "label": "Blind emboss",
+    "values": {
+      "finish": "emboss",
+      "maskSource": "dark",
+      "threshold": 50,
+      "sheen": false
+    }
+  },
+  {
+    "label": "The plate itself",
+    "values": {
+      "finish": "spot-uv-gloss",
+      "maskSource": "light",
+      "threshold": 62,
+      "plateView": true
+    }
+  }
+]

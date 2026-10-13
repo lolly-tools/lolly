@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "toolId": "diagram-builder",
+  "toolVersionRange": "^1.8.1",
+  "skillRevision": "1.0.0",
+  "references": ["skill/workflow.md"]
+}

@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "toolId": "design",
+  "toolVersionRange": "^1.50.0",
+  "skillRevision": "1.0.0",
+  "references": ["skill/workflow.md"]
+}

@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "toolId": "diagram-builder",
+  "toolVersion": "1.8.1",
+  "toolVersionRange": "^1.8.1",
+  "skillRevision": "1.0.0",
+  "origin": "authored",
+  "references": [
+    "reference/inputs.json",
+    "reference/examples.json",
+    "skill/workflow.md"
+  ],
+  "files": {
+    "SKILL.md": {
+      "sha256": "d6d2694c7b41a9ae48f3e4e86d428c21db58c57842bd65f1fd4b1297f67bb480",
+      "bytes": 1597
+    },
+    "reference/inputs.json": {
+      "sha256": "88c23bef4c0cb9bd7c024d317566f9889627a8dbf9e22ebfbd359207fbca9a8d",
+      "bytes": 46731
+    },
+    "reference/examples.json": {
+      "sha256": "eb09bff921a1ed67cc88c99aec8a8ad1c501e5078d9ab1b614d20128c7b880ac",
+      "bytes": 1069
+    },
+    "skill/workflow.md": {
+      "sha256": "69d128781b1d6040ad87728d8a75b0f726a2244089afc2645c0fdecb03896114",
+      "bytes": 1801
+    }
+  }
+}

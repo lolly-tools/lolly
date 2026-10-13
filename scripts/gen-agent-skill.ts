@@ -31,6 +31,7 @@ import {
 } from 'node:fs';
 import { resolve, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { generatePublicToolSkills } from './lib/tool-skills.ts';
 
 const repoRoot = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const skillDir = resolve(repoRoot, 'skills', 'lolly');
@@ -244,6 +245,9 @@ if (existsSync(mirrorDir)) {
     }
   }
 }
+
+const toolSkillDrift = await generatePublicToolSkills(repoRoot, check);
+if (toolSkillDrift.length) { drift = true; report.push(...toolSkillDrift); }
 
 if (check && drift) {
   console.error('✗ agent skill is out of date. Run: node scripts/gen-agent-skill.ts');

@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "toolId": "growth",
+  "toolVersion": "1.1.3",
+  "toolVersionRange": "1.1.3",
+  "skillRevision": "1",
+  "origin": "generated",
+  "references": [
+    "reference/inputs.json",
+    "reference/examples.json"
+  ],
+  "files": {
+    "SKILL.md": {
+      "sha256": "4e0cc72147ef95d31517616266bc294a49f2474138d45899b21a33aae22d1b46",
+      "bytes": 2044
+    },
+    "reference/inputs.json": {
+      "sha256": "033eab259067c6b9e8e3c9b842248e8af835f87d07f65ee1fcd52cc5a7f162fc",
+      "bytes": 3775
+    },
+    "reference/examples.json": {
+      "sha256": "0e8e84502cfb970ffdf5c784151a9dec711c1e7c2db89a41e8d04fe06a9a61d1",
+      "bytes": 911
+    }
+  }
+}

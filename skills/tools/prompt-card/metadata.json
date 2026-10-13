@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "toolId": "prompt-card",
+  "toolVersion": "1.0.1",
+  "toolVersionRange": "1.0.1",
+  "skillRevision": "1",
+  "origin": "generated",
+  "references": [
+    "reference/inputs.json",
+    "reference/examples.json"
+  ],
+  "files": {
+    "SKILL.md": {
+      "sha256": "7193234ad1518818e75b92c83dad4d545177bbca80506ebb16b4569482b596ca",
+      "bytes": 1972
+    },
+    "reference/inputs.json": {
+      "sha256": "5facec73574130ed27b61c30ee08f333af736a16d16a8dadb72c5b9ad40041d9",
+      "bytes": 3263
+    },
+    "reference/examples.json": {
+      "sha256": "efaaad5a7d8c76fe5d85f2f806c48d3229f1488d1e13bb1f97910f2e564dce43",
+      "bytes": 992
+    }
+  }
+}

@@ -1,0 +1,63 @@
+[
+  {
+    "label": "Podcast quote - bars",
+    "values": {
+      "title": "Slow is smooth, smooth is fast",
+      "subtitle": "The Build Notes podcast · Ep. 41",
+      "style": "bars"
+    }
+  },
+  {
+    "label": "Interview - captioned",
+    "values": {
+      "title": "In her own words",
+      "subtitle": "Field notes · episode 12",
+      "style": "wave",
+      "transcript": "1\n00:00:00,200 --> 00:00:03,400\nWe started with one question.\n\n2\n00:00:03,600 --> 00:00:07,000\nWhat would you build if nothing had to scale?\n"
+    }
+  },
+  {
+    "label": "Broadcast - wave",
+    "values": {
+      "title": "Morning briefing",
+      "subtitle": "Live weekdays · 06:00",
+      "style": "wave"
+    }
+  },
+  {
+    "label": "Release - ring",
+    "values": {
+      "title": "New episode out now",
+      "subtitle": "Listen anywhere",
+      "style": "ring"
+    }
+  },
+  {
+    "label": "Music - spectrum",
+    "values": {
+      "title": "Tide Pool",
+      "subtitle": "Out now everywhere",
+      "style": "spectrum",
+      "layout": "overlay"
+    }
+  },
+  {
+    "label": "Ridgeline",
+    "values": {
+      "title": "Signal",
+      "subtitle": "A year of listening",
+      "style": "ridge",
+      "layout": "center"
+    }
+  },
+  {
+    "label": "MilkDrop revival",
+    "values": {
+      "title": "Turn it up",
+      "subtitle": "MilkDrop, twenty years on",
+      "style": "milkdrop",
+      "layout": "overlay",
+      "vizLook": "stock:geiss-thumb-drum"
+    }
+  }
+]

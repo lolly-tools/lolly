@@ -1,0 +1,55 @@
+[
+  {
+    "label": "Halftone dots",
+    "values": {
+      "effect": "halftone",
+      "ht_shape": "circle"
+    }
+  },
+  {
+    "label": "Duotone",
+    "values": {
+      "effect": "duotone"
+    }
+  },
+  {
+    "label": "Scanline CRT",
+    "values": {
+      "effect": "scanline"
+    }
+  },
+  {
+    "label": "Voronoi cells",
+    "values": {
+      "effect": "voronoi",
+      "vo_cells": 220
+    }
+  },
+  {
+    "label": "Misprint",
+    "values": {
+      "effect": "imperfections"
+    }
+  },
+  {
+    "label": "Dither",
+    "values": {
+      "effect": "dither",
+      "di_palette": "handheld4"
+    }
+  },
+  {
+    "label": "ASCII art",
+    "values": {
+      "effect": "ascii"
+    }
+  },
+  {
+    "label": "Glitch",
+    "values": {
+      "effect": "glitch",
+      "gl_sortThreshold": 55,
+      "gl_blockAmount": 30
+    }
+  }
+]

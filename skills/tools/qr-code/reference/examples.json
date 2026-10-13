@@ -1,0 +1,86 @@
+[
+  {
+    "label": "Ink on paper",
+    "values": {
+      "url": "https://lolly.tools",
+      "color": "#1a1a2e",
+      "background": "#faf7f2"
+    }
+  },
+  {
+    "label": "Brand primary, joined modules",
+    "values": {
+      "url": "https://lolly.tools",
+      "color": "{color.semantic.primary}",
+      "background": "{color.semantic.surface}",
+      "join": true
+    }
+  },
+  {
+    "label": "Guest Wi-Fi card",
+    "values": {
+      "payload": "wifi",
+      "ssid": "Studio Guest",
+      "wifiKey": "welcome-2026",
+      "wifiSecurity": "WPA",
+      "color": "#134e4a",
+      "background": "#f0fdfa",
+      "ecl": "Q"
+    }
+  },
+  {
+    "label": "Contact card",
+    "values": {
+      "payload": "vcard",
+      "firstname": "Ana",
+      "lastname": "Kovac",
+      "company": "Northwind Studio",
+      "jobTitle": "Creative Director",
+      "email": "ana@example.com",
+      "phone": "+61 400 000 000",
+      "url": "https://example.com/ana",
+      "color": "#3f3f46",
+      "background": "#fafaf9",
+      "ecl": "Q"
+    }
+  },
+  {
+    "label": "Night mode",
+    "values": {
+      "url": "https://lolly.tools/gallery",
+      "color": "#93c5fd",
+      "background": "#0b1021",
+      "padding": 6
+    }
+  },
+  {
+    "label": "High-redundancy seal",
+    "values": {
+      "url": "https://lolly.tools/#/valid",
+      "ecl": "H",
+      "padding": 2,
+      "join": true,
+      "color": "#0f766e",
+      "background": "#ecfdf5"
+    }
+  },
+  {
+    "label": "Food batch, GS1 Data Matrix",
+    "values": {
+      "payload": "gs1",
+      "gs1Carrier": "gs1datamatrix",
+      "value": "(01)09521234543213(17)270831(10)LOT42",
+      "color": "#7c2d12",
+      "background": "#fff7ed"
+    }
+  },
+  {
+    "label": "Carton, ITF-14",
+    "values": {
+      "payload": "itf14",
+      "value": "1931234567890",
+      "color": "#1a1a2e",
+      "background": "#faf7f2"
+    }
+  }
+]

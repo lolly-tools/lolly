@@ -30,10 +30,10 @@ function fakeEditor(): LiveEditor {
 }
 
 /** A tab: connects, sends the code, then answers each request through a real session. */
-function tab(port: number, code: string, origin = 'https://lolly.tools'): Promise<{ socket: WebSocket; paired: boolean; status?: number }> {
+function tab(port: number, code: string, origin = 'https://lolly.tools', editor = fakeEditor()): Promise<{ socket: WebSocket; paired: boolean; status?: number }> {
   return new Promise((resolve) => {
     const socket = new WebSocket(`ws://127.0.0.1:${port}`, { origin });
-    const session = createLiveSession(fakeEditor());
+    const session = createLiveSession(editor);
     let paired = false;
     socket.on('unexpected-response', (_req, res) => resolve({ socket, paired: false, status: res.statusCode }));
     socket.on('error', () => resolve({ socket, paired: false }));
@@ -67,6 +67,21 @@ test('origins: Lolly\'s site, a named self-hosted one and localhost pair; any ot
   assert.deepEqual(extra, ['https://lolly.example.org']);
   assert.ok(liveOriginAllowed('https://lolly.example.org', extra));
   assert.equal(normaliseSecret('ab0o-il1x'), 'AB0011' + '1X');
+});
+
+test('connect and status retain validated adapter, tool version, mode and capability discovery', async () => {
+  const editor = fakeEditor();
+  editor.adapter = 'inputs'; editor.tool = 'caption'; editor.toolVersion = '1.0.0'; editor.readOnly = () => true;
+  editor.inputs = () => ({ inputSchema: { type: 'object', properties: { caption: { type: 'string' } } }, inputValues: { caption: 'Hello' }, editableInputIds: ['caption'], omittedInputs: [] });
+  const bridge = new LiveBridge({ readDesktop: () => null });
+  const pairing = await bridge.connect('web');
+  const view = await tab(portOf(pairing.code!), secretOf(pairing.code!), 'https://lolly.tools', editor);
+  try {
+    await bridge.waitConnected(2000); await until(() => !!bridge.status().editor);
+    const discovered = bridge.status().editor!;
+    assert.equal(discovered.adapter, 'inputs'); assert.equal(discovered.toolVersion, '1.0.0'); assert.equal(discovered.mode, 'read');
+    assert.equal(discovered.capabilities!.read, true); assert.equal(discovered.capabilities!.edit, false); assert.equal(discovered.capabilities!.layerOperations, false); assert.deepEqual(discovered.capabilities!.authoring, []);
+  } finally { bridge.close(); view.socket.close(); }
 });
 
 test('a tab pairs with the code, answers hello, and serves document, apply, look and undo', async () => {
@@ -137,7 +152,7 @@ test('desktop: the app\'s advert is preferred, every frame carries the token', a
       if (buf.length < 4 || buf.length < 4 + buf.readUInt32BE(0)) return;
       const frame = JSON.parse(buf.subarray(4, 4 + buf.readUInt32BE(0)).toString('utf8'));
       seen.push({ token: frame.token, method: frame.request.method });
-      const reply = Buffer.from(JSON.stringify({ jsonrpc: '2.0', id: frame.request.id, result: { protocol: 'live-v1', tool: 'design', engine: '1.244.0', surface: 'desktop' } }));
+      const reply = Buffer.from(JSON.stringify({ jsonrpc: '2.0', id: frame.request.id, result: { protocol: 'live-v1', tool: 'design', engine: '1.244.0', surface: 'desktop', adapter: 'unknown', mode: 'superuser', toolVersion: 5, capabilities: { read: 'yes' } } }));
       const head = Buffer.alloc(4); head.writeUInt32BE(reply.length, 0);
       socket.end(Buffer.concat([head, reply]));
     });
@@ -148,6 +163,7 @@ test('desktop: the app\'s advert is preferred, every frame carries the token', a
   const status = await bridge.connect('auto');
   assert.equal(status.state, 'connected');
   assert.equal(status.surface, 'desktop');
+  assert.deepEqual(status.editor, { tool: 'design', engine: '1.244.0' });
   assert.deepEqual(seen, [{ token: 'secret-token', method: 'hello' }]);
   bridge.close();
   server.close();

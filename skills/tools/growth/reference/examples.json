@@ -1,0 +1,49 @@
+[
+  {
+    "label": "Rosette",
+    "values": {
+      "seedShape": "ring",
+      "symmetry": "radial-6",
+      "density": 40,
+      "steps": 110,
+      "weight": 3,
+      "seed": 12
+    }
+  },
+  {
+    "label": "Snowflake",
+    "values": {
+      "seedShape": "line",
+      "symmetry": "radial-6",
+      "density": 28,
+      "steps": 160,
+      "weight": 3,
+      "seed": 3
+    }
+  },
+  {
+    "label": "Grown wordmark",
+    "values": {
+      "seedShape": "text",
+      "text": "GROW",
+      "density": 74,
+      "steps": 120,
+      "weight": 2,
+      "seed": 21
+    }
+  },
+  {
+    "label": "Plotter paper",
+    "values": {
+      "seedShape": "burst",
+      "background": "{color.semantic.surface}",
+      "color1": "{color.semantic.secondary}",
+      "color2": "{color.semantic.text}",
+      "color3": "{color.spectrum.teal}",
+      "density": 46,
+      "steps": 300,
+      "weight": 2,
+      "seed": 7
+    }
+  }
+]

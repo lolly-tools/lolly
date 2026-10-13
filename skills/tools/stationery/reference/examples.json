@@ -1,0 +1,40 @@
+[
+  {
+    "label": "Card front, teal edge",
+    "values": {
+      "piece": "business-card-front",
+      "color": "#17232b",
+      "background": "#ffffff",
+      "accent": "#1f5f52"
+    }
+  },
+  {
+    "label": "Card back, accent field",
+    "values": {
+      "piece": "business-card-back",
+      "color": "#17232b",
+      "background": "#ffffff",
+      "accent": "#1f5f52",
+      "tagline": "Design that keeps its promises."
+    }
+  },
+  {
+    "label": "Letterhead on warm paper",
+    "values": {
+      "piece": "letterhead",
+      "color": "#241d16",
+      "background": "#faf6ef",
+      "accent": "#8a5a2b"
+    }
+  },
+  {
+    "label": "Compliments slip",
+    "values": {
+      "piece": "comp-slip",
+      "color": "#17232b",
+      "background": "#f7f8fa",
+      "accent": "#1f5f52",
+      "tagline": "With compliments"
+    }
+  }
+]

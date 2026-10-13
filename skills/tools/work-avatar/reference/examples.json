@@ -1,0 +1,41 @@
+[
+  {
+    "label": "Three-quarter gradient ring",
+    "values": {
+      "text": "#OPEN SOURCE ADVOCATE"
+    }
+  },
+  {
+    "label": "Half ring, mono photo",
+    "values": {
+      "ringStyle": "half",
+      "treatment": "mono",
+      "text": "#POWERED BY OPEN SOURCE",
+      "textAnchor": "middle",
+      "textPosition": 50
+    }
+  },
+  {
+    "label": "Full ring, duotone, heart",
+    "values": {
+      "ringStyle": "full",
+      "treatment": "duotone",
+      "ringGradient": false,
+      "text": "#I ♥ OPEN SOURCE",
+      "textAnchor": "middle",
+      "textPosition": 50
+    }
+  },
+  {
+    "label": "Full ring, text on top",
+    "values": {
+      "ringStyle": "full",
+      "ringGradient": false,
+      "textSide": "outside",
+      "text": "#SPEAKER",
+      "textAnchor": "middle",
+      "textPosition": 50,
+      "textSize": 70
+    }
+  }
+]

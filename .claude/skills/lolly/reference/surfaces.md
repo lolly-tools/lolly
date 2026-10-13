@@ -172,6 +172,14 @@ single-process HTTP gateway; fetching the link needs the same MCP bearer token.
 
 Read-only context, no render:
 
+- `lolly://skill`: the overall Lolly skill.
+- `lolly://skill/{path}`: a shared reference, such as
+  `lolly://skill/reference/design-system.md`.
+- `lolly://tool/{id}/skill`: guidance for this server's actual loaded tool version,
+  with compatibility, revision and references. Public files also appear at
+  `/info/skills/tools/<id>/SKILL.md`; private or installed revisions use their
+  bundled guidance. Skills do not grant document permissions.
+
 - `lolly://catalog`: the full generated tool index.
 - `lolly://assets`: the brand asset listing.
 - `lolly://tokens`: the brand design tokens.

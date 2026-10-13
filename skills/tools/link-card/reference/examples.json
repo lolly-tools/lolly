@@ -1,0 +1,42 @@
+[
+  {
+    "label": "Open Graph, light",
+    "values": {
+      "layout": "og-horizontal",
+      "color": "#17232b",
+      "background": "#ffffff",
+      "accent": "#1f5f52"
+    }
+  },
+  {
+    "label": "Square, warm paper",
+    "values": {
+      "layout": "square",
+      "heading": "Field notes, collected",
+      "body": "Six months of small decisions, written down while they were still fresh enough to argue about.",
+      "color": "#241d16",
+      "background": "#faf6ef",
+      "accent": "#8a5a2b"
+    }
+  },
+  {
+    "label": "Summary card, cool grey",
+    "values": {
+      "layout": "twitter-summary",
+      "heading": "Release 4.2 is out",
+      "body": "Faster exports, a calmer sidebar, and print sizes that are finally true to the millimetre.",
+      "color": "#14181b",
+      "background": "#f4f6f7",
+      "accent": "#2b5f9e"
+    }
+  },
+  {
+    "label": "Ink card",
+    "values": {
+      "layout": "og-horizontal",
+      "color": "#f4f6f7",
+      "background": "#14181b",
+      "accent": "#7fd1b9"
+    }
+  }
+]

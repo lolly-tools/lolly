@@ -1,0 +1,176 @@
+[
+  {
+    "id": "scene",
+    "label": "Scene",
+    "section": "Scene",
+    "type": "select",
+    "default": "ink",
+    "help": "Which simulation is playing.",
+    "options": [
+      {
+        "value": "ink",
+        "label": "Fluid ink"
+      },
+      {
+        "value": "swarm",
+        "label": "Particle swarm"
+      },
+      {
+        "value": "field",
+        "label": "Feedback field"
+      },
+      {
+        "value": "camera",
+        "label": "Live camera"
+      }
+    ]
+  },
+  {
+    "id": "symmetry",
+    "label": "Symmetry",
+    "section": "Scene",
+    "type": "number",
+    "display": "slider",
+    "default": 6,
+    "min": 1,
+    "max": 12,
+    "step": 1,
+    "showIf": {
+      "scene": [
+        "field",
+        "camera"
+      ]
+    },
+    "help": "How many mirrored wedges the picture is folded into, kaleidoscope fashion. Set it to 1 to leave the picture unfolded."
+  },
+  {
+    "id": "audio",
+    "label": "Music",
+    "section": "Scene",
+    "type": "asset",
+    "assetType": "audio",
+    "allowUpload": true,
+    "help": "The picture moves to this track: bass feeds the ink and onsets kick the swirl. It is analysed on your device, never leaves the browser, and the same clip always drives the same picture. A video export runs the length of the track and carries it as the soundtrack."
+  },
+  {
+    "id": "text",
+    "label": "Headline",
+    "section": "Scene",
+    "type": "text",
+    "default": "SYNTH",
+    "maxLength": 60,
+    "showIf": {
+      "scene": [
+        "swarm"
+      ]
+    },
+    "help": "The swarm flies at the outline of these letters, set in the design system's font. Leave it empty for a ring."
+  },
+  {
+    "id": "logo",
+    "label": "Logo",
+    "section": "Scene",
+    "type": "asset",
+    "showIf": {
+      "scene": [
+        "swarm"
+      ]
+    },
+    "help": "Pick a logo and the swarm flies at its silhouette instead of the headline. It is sampled at a fixed size and threshold, so the same logo always gives the same shape."
+  },
+  {
+    "id": "particles",
+    "label": "Particles",
+    "section": "Scene",
+    "type": "number",
+    "display": "slider",
+    "default": 160000,
+    "min": 1000,
+    "max": 200000,
+    "step": 1000,
+    "showIf": {
+      "scene": [
+        "swarm"
+      ]
+    },
+    "help": "How many specks are in the air. Fewer is lighter on an older machine."
+  },
+  {
+    "id": "live",
+    "label": "Play it",
+    "section": "Scene",
+    "type": "boolean",
+    "default": true,
+    "help": "Let your pointer push the picture around, and play it from a MIDI controller if you have one. Each note strikes a splat of ink, low notes to the left and high to the right; the knob map is fixed: CC1 is Intensity, CC2 is Speed, CC3 is Symmetry, CC74 is Colour rotation. MIDI access is requested only while playing in this tool view, never for gallery previews or background exports. Safari has no Web MIDI, so there the pointer is all you get. Turn it off to leave the picture on its own loop while you set up an export."
+  },
+  {
+    "id": "color1",
+    "label": "Colour 1",
+    "section": "Colour",
+    "type": "color",
+    "default": "{color.semantic.primary}",
+    "help": "The ramp runs Colour 1 to Colour 3 through OKLab, so the blend stays perceptual."
+  },
+  {
+    "id": "color2",
+    "label": "Colour 2",
+    "section": "Colour",
+    "type": "color",
+    "default": "{color.semantic.secondary}"
+  },
+  {
+    "id": "color3",
+    "label": "Colour 3",
+    "section": "Colour",
+    "type": "color",
+    "default": "{color.semantic.surface}"
+  },
+  {
+    "id": "rampRotate",
+    "label": "Colour rotation",
+    "section": "Colour",
+    "type": "number",
+    "display": "slider",
+    "default": 0,
+    "min": 0,
+    "max": 360,
+    "step": 5,
+    "unit": "deg",
+    "help": "Turns the whole ramp around the OKLab hue circle, so a piece can be re-tinted without picking three new colours. Lightness is untouched, and the contrast stays the same. MIDI CC74 turns this one."
+  },
+  {
+    "id": "intensity",
+    "label": "Intensity",
+    "section": "Motion",
+    "type": "number",
+    "display": "slider",
+    "default": 1.35,
+    "min": 0,
+    "max": 2,
+    "step": 0.05,
+    "help": "How much ink is injected and how hard it is pushed."
+  },
+  {
+    "id": "speed",
+    "label": "Speed",
+    "section": "Motion",
+    "type": "number",
+    "display": "slider",
+    "default": 1,
+    "min": 0.1,
+    "max": 4,
+    "step": 0.05,
+    "help": "How fast the field evolves. The loop stays the same length."
+  },
+  {
+    "id": "seed",
+    "label": "Seed",
+    "section": "Motion",
+    "type": "number",
+    "default": 7,
+    "min": 0,
+    "max": 999999,
+    "step": 1,
+    "help": "Picks the arrangement of ink sources. The same seed always replays the same piece."
+  }
+]

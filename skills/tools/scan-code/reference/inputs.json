@@ -1,0 +1,72 @@
+[
+  {
+    "id": "mode",
+    "display": "segmented",
+    "label": "Source",
+    "type": "select",
+    "default": "camera",
+    "help": "Point the camera at a code, scan a saved image, or paste a code's text to inspect it. Whatever the source, the code is read on this device - nothing is uploaded.",
+    "options": [
+      {
+        "value": "camera",
+        "label": "Camera"
+      },
+      {
+        "value": "image",
+        "label": "Image"
+      },
+      {
+        "value": "paste",
+        "label": "Text"
+      }
+    ]
+  },
+  {
+    "id": "image",
+    "label": "Image",
+    "type": "file",
+    "accept": [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "image/gif",
+      ".jpg",
+      ".jpeg",
+      ".png",
+      ".webp",
+      ".gif"
+    ],
+    "maxSize": 26214400,
+    "showIf": {
+      "mode": "image"
+    },
+    "help": "A photo or screenshot containing a code. The bytes stay in memory on this device."
+  },
+  {
+    "id": "paste",
+    "label": "Code text",
+    "type": "longtext",
+    "rows": 3,
+    "default": "",
+    "showIf": {
+      "mode": "paste"
+    },
+    "help": "Paste the exact text a scanner returned, to inspect it with the same safety checks without pointing a camera."
+  },
+  {
+    "id": "keepHistory",
+    "label": "Remember recent scans",
+    "type": "boolean",
+    "default": false,
+    "help": "Keeps a short list you can look back at, cleared with one tap. Passwords and other secrets are never kept."
+  },
+  {
+    "id": "beep",
+    "label": "Beep on scan",
+    "type": "boolean",
+    "default": true,
+    "showIf": {
+      "mode": "camera"
+    }
+  }
+]

@@ -26,7 +26,7 @@ export async function resolveToolBundle(
   const integ = await getToolIntegrity().catch(() => null);
   const signed = integ?.envelope?.files ?? null;
 
-  const rels = new Set<string>(['tool.json', 'template.html', 'styles.css', 'icon.svg']);
+  const rels = new Set<string>(['tool.json', 'template.html', 'styles.css', 'icon.svg', 'SKILL.md', 'skill.json']);
   const hooks = manifest.hooks as { module?: boolean } | undefined;
   if (hooks && hooks.module !== true) rels.add('hooks.js');
   for (const ext of ['ics', 'vcf', 'csv', 'md'])
@@ -89,6 +89,15 @@ export async function resolveToolBundle(
       continue;
     }
     files[rel] = bytes;
+    if (rel === 'skill.json') {
+      try {
+        const { isToolSkillReference } = await import('@lolly-tools/core/tool-skill-v1');
+        const references = JSON.parse(new TextDecoder().decode(bytes)).references;
+        if (Array.isArray(references) && references.length <= 16) for (const path of references) {
+          if (typeof path === 'string' && isToolSkillReference(path)) { rels.add(path); requiredAssets.add(path); }
+        }
+      } catch { /* invalid optional guidance falls back to the manifest */ }
+    }
     // Unsigned local builds have no signed file inventory. Reuse the offline
     // pin scanner to carry literal tool-local media/libraries recursively.
     if (TOOL_TEXT_FILE.test(rel)) for (const path of localAssetPaths(toolId, [new TextDecoder().decode(bytes)])) {

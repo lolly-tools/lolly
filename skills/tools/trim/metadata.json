@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "toolId": "trim",
+  "toolVersion": "1.0.1",
+  "toolVersionRange": "1.0.1",
+  "skillRevision": "1",
+  "origin": "generated",
+  "references": [
+    "reference/inputs.json"
+  ],
+  "files": {
+    "SKILL.md": {
+      "sha256": "1a6ca99c68d077f71f9cea58c274dd545139f5e6d66c475089f0ad8cbf10bc4e",
+      "bytes": 1681
+    },
+    "reference/inputs.json": {
+      "sha256": "6d81c3c20877c7c6ee22864b247625179f064048564d153603434d5e2ad3c772",
+      "bytes": 1611
+    }
+  }
+}

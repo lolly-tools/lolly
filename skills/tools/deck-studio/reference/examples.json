@@ -1,0 +1,41 @@
+[
+  {
+    "label": "Boardroom title",
+    "values": {
+      "deck": [
+        {
+          "layout": "title",
+          "heading": "Quarterly business review",
+          "subtitle": "FY26 · Q3",
+          "accent": "#0f766e"
+        }
+      ]
+    }
+  },
+  {
+    "label": "Quote slide",
+    "values": {
+      "deck": [
+        {
+          "layout": "quote",
+          "heading": "Make the easy path the on-brand path",
+          "subtitle": "Design ops",
+          "accent": "#f2a65a"
+        }
+      ]
+    }
+  },
+  {
+    "label": "Section break",
+    "values": {
+      "deck": [
+        {
+          "layout": "section",
+          "heading": "Roadmap",
+          "subtitle": "What lands next quarter",
+          "accent": "#7c2d12"
+        }
+      ]
+    }
+  }
+]

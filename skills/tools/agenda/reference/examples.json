@@ -1,0 +1,15 @@
+[
+  {
+    "label": "Programme list",
+    "values": {
+      "layout": "list"
+    }
+  },
+  {
+    "label": "Now and next",
+    "values": {
+      "layout": "board",
+      "now": "2026-10-14T10:05"
+    }
+  }
+]

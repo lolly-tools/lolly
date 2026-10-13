@@ -1,0 +1,36 @@
+[
+  {
+    "label": "Typing demo",
+    "values": {
+      "code": "console.log(\"Hello\");",
+      "language": "javascript",
+      "scene": "demo",
+      "typingSeconds": 6,
+      "readSeconds": 2,
+      "windowRotate": -2
+    }
+  },
+  {
+    "label": "Autocomplete",
+    "values": {
+      "code": "Make text feel alive.",
+      "language": "plain",
+      "scene": "autocomplete",
+      "completeAfter": 35,
+      "typingSeconds": 3,
+      "readSeconds": 3
+    }
+  },
+  {
+    "label": "Edit a word",
+    "values": {
+      "code": "Hello, World!",
+      "language": "plain",
+      "scene": "replace",
+      "selectText": "World",
+      "replacementText": "Lolly",
+      "typingSeconds": 1.5,
+      "readSeconds": 2
+    }
+  }
+]

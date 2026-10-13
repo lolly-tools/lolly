@@ -1,0 +1,93 @@
+[
+  {
+    "id": "source",
+    "label": "Audio or video",
+    "type": "file",
+    "accept": [
+      "audio/*",
+      "video/*",
+      ".mp4",
+      ".mov",
+      ".webm",
+      ".mkv",
+      ".wav",
+      ".mp3",
+      ".m4a",
+      ".ogg",
+      ".opus"
+    ],
+    "maxSize": 1073741824,
+    "help": "Read and converted locally. Large files can take a while when an exact cut needs re-encoding."
+  },
+  {
+    "id": "start",
+    "label": "Start (seconds)",
+    "type": "number",
+    "default": 0,
+    "min": 0,
+    "step": 0.01
+  },
+  {
+    "id": "end",
+    "label": "End (seconds)",
+    "type": "number",
+    "default": 0,
+    "min": 0,
+    "step": 0.01,
+    "help": "0 means the end of the file."
+  },
+  {
+    "id": "container",
+    "label": "Container",
+    "type": "select",
+    "default": "keep",
+    "options": [
+      {
+        "value": "keep",
+        "label": "Keep source container"
+      },
+      {
+        "value": "mp4",
+        "label": "MP4"
+      },
+      {
+        "value": "webm",
+        "label": "WebM"
+      },
+      {
+        "value": "gif",
+        "label": "GIF · up to 15 seconds"
+      }
+    ]
+  },
+  {
+    "id": "mute",
+    "label": "Remove audio",
+    "type": "boolean",
+    "default": false
+  },
+  {
+    "id": "audioOnly",
+    "label": "Extract audio",
+    "type": "select",
+    "default": "off",
+    "options": [
+      {
+        "value": "off",
+        "label": "No"
+      },
+      {
+        "value": "m4a",
+        "label": "M4A"
+      },
+      {
+        "value": "opus",
+        "label": "Opus"
+      },
+      {
+        "value": "wav",
+        "label": "WAV"
+      }
+    ]
+  }
+]

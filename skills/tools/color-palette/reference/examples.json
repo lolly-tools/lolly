@@ -1,0 +1,85 @@
+[
+  {
+    "label": "Ocean triad",
+    "values": {
+      "seed": "#2563eb",
+      "harmony": "triad-3",
+      "steps": 7,
+      "neutrals": true
+    }
+  },
+  {
+    "label": "Terracotta complement",
+    "values": {
+      "seed": "#c2410c",
+      "harmony": "complement",
+      "steps": 9,
+      "neutrals": true
+    }
+  },
+  {
+    "label": "Forest tetrad",
+    "values": {
+      "seed": "#166534",
+      "harmony": "tetrad-4",
+      "steps": 7,
+      "neutrals": false
+    }
+  },
+  {
+    "label": "Contrast ramp on white",
+    "values": {
+      "seed": "#2563eb",
+      "harmony": "triad-3",
+      "steps": 6,
+      "neutrals": true,
+      "mode": "contrast",
+      "bg": "#ffffff",
+      "contrastCurve": "even"
+    }
+  },
+  {
+    "label": "Text-first on ink",
+    "values": {
+      "seed": "#22d3ee",
+      "harmony": "adjacent-3",
+      "steps": 5,
+      "neutrals": false,
+      "mode": "contrast",
+      "bg": "#0b1220",
+      "contrastCurve": "text"
+    }
+  },
+  {
+    "label": "Custom Lc steps",
+    "values": {
+      "seed": "#16a34a",
+      "harmony": "complement",
+      "steps": 6,
+      "neutrals": true,
+      "mode": "contrast",
+      "bg": "#f8fafc",
+      "lcTargets": "15,30,45,60,75,90"
+    }
+  },
+  {
+    "label": "Contrast grid",
+    "values": {
+      "seed": "#2563eb",
+      "harmony": "triad-3",
+      "steps": 6,
+      "neutrals": true,
+      "grid": true
+    }
+  },
+  {
+    "label": "Deuteranopia preview",
+    "values": {
+      "seed": "#c2410c",
+      "harmony": "triad-3",
+      "steps": 7,
+      "neutrals": true,
+      "vision": "deutan"
+    }
+  }
+]

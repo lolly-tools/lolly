@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "toolId": "meeting-planner",
+  "toolVersion": "1.2.3",
+  "toolVersionRange": "1.2.3",
+  "skillRevision": "1",
+  "origin": "generated",
+  "references": [
+    "reference/inputs.json"
+  ],
+  "files": {
+    "SKILL.md": {
+      "sha256": "98827a0956459d73886070ec13c91c5daeab701ff6c097f37677f3beeb046c39",
+      "bytes": 2063
+    },
+    "reference/inputs.json": {
+      "sha256": "c6427f15bc91487eb0d174b63c8e50782fdae9a2a11c6cfb4e53206aad7e2c7f",
+      "bytes": 5627
+    }
+  }
+}

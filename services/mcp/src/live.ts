@@ -42,17 +42,19 @@ const QUERY = {
   limit: { type: 'integer', minimum: 1, maximum: 500 },
 };
 const STATUS_OUTPUT = { type: 'object', properties: { state: { type: 'string', enum: ['idle', 'pairing', 'connected'] }, surface: { type: 'string' }, code: { type: 'string' }, editor: { type: 'object' }, ended: { type: 'string' } }, required: ['state'], additionalProperties: false };
-const DOCUMENT_OUTPUT = { type: 'object', properties: { documentId: { type: 'string' }, revision: { type: 'string' }, rows: { type: 'array', items: { type: 'object' } }, width: { type: 'number' }, height: { type: 'number' }, selection: { type: 'array', items: { type: 'string' } }, total: { type: 'integer' }, nextOffset: { type: 'integer' } }, required: ['rows', 'width', 'height', 'selection', 'revision'], additionalProperties: false };
-const APPLY_OUTPUT = { type: 'object', properties: { documentId: { type: 'string' }, changed: { type: 'boolean' }, revision: { type: 'string' }, currentRevision: { type: 'string' }, layers: { type: 'integer' }, changedIds: { type: 'array', items: { type: 'string' } }, label: { type: 'string' }, transactionId: { type: 'string' }, replayed: { type: 'boolean' } }, required: ['changed', 'revision', 'layers'], additionalProperties: false };
+const INPUT_OUTPUT = { inputSchema: { type: 'object' }, inputValues: { type: 'object' }, editableInputIds: { type: 'array', items: { type: 'string' } }, omittedInputs: { type: 'array', items: { type: 'object', properties: { id: { type: 'string' }, reason: { type: 'string', enum: ['file', 'upload', 'non-json'] } }, required: ['id', 'reason'], additionalProperties: false } } };
+const EDITOR_OUTPUT = { tool: { type: 'string' }, toolVersion: { type: 'string' }, adapter: { type: 'string', enum: ['layers', 'inputs'] }, mode: { type: 'string', enum: ['read', 'edit'] }, capabilities: { type: 'object' } };
+const DOCUMENT_OUTPUT = { type: 'object', properties: { ...INPUT_OUTPUT, ...EDITOR_OUTPUT, documentId: { type: 'string' }, revision: { type: 'string' }, rows: { type: 'array', items: { type: 'object' } }, width: { type: 'number' }, height: { type: 'number' }, selection: { type: 'array', items: { type: 'string' } }, total: { type: 'integer' }, nextOffset: { type: 'integer' } }, required: ['rows', 'width', 'height', 'selection', 'revision'], additionalProperties: false };
+const APPLY_OUTPUT = { type: 'object', properties: { documentId: { type: 'string' }, changed: { type: 'boolean' }, revision: { type: 'string' }, currentRevision: { type: 'string' }, layers: { type: 'integer' }, changedIds: { type: 'array', items: { type: 'string' } }, changedInputIds: { type: 'array', items: { type: 'string' } }, label: { type: 'string' }, transactionId: { type: 'string' }, replayed: { type: 'boolean' } }, required: ['changed', 'revision', 'layers'], additionalProperties: false };
 
 export const LIVE_TOOLS = [
   {
     name: 'lolly_live_connect',
     outputSchema: STATUS_OUTPUT,
-    description: 'Connect to the Design document the person has open in Lolly, so you can read it, edit it and look at it while they watch. '
+    description: 'Connect to the tool document the person has open in Lolly. Read its context to discover supported inspection and editing operations. '
       + 'With an invitation copied from Share, joins that document remotely. On its scoped MCP endpoint, give only client. '
       + 'In the desktop app this connects at once when the person has turned on Allow AI control. Otherwise in a browser it returns a pairing code: '
-      + 'ask the person to open Design, choose Connect an AI agent in the Lolly menu and type the code, then call lolly_live_status with wait.',
+      + 'ask the person to open their tool, choose Connect an AI agent in the Lolly menu and type the code, then call lolly_live_status with wait.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -72,7 +74,7 @@ export const LIVE_TOOLS = [
   {
     name: 'lolly_live_document',
     outputSchema: DOCUMENT_OUTPUT,
-    description: 'The open Design document: its rows (layers, with the stable ids that layerOperations and layerPatches address), canvas size, the person\'s selection and a revision string.',
+    description: 'The actual open tool, adapter, capabilities, inputSchema and safe current inputValues, canvas size and revision. Layer editors also return rows and selected layer ids. Uploaded file bytes are omitted.',
     inputSchema: { type: 'object', properties: QUERY, additionalProperties: false },
   },
   {
@@ -83,20 +85,21 @@ export const LIVE_TOOLS = [
   },
   {
     name: 'lolly_live_context',
-    outputSchema: { type: 'object', properties: { documentId: { type: 'string' }, revision: { type: 'string' }, tool: { type: 'string' }, brief: { type: 'object' }, capabilities: { type: 'object' }, layerFields: { type: 'array' } }, required: ['documentId', 'revision', 'tool', 'capabilities'], additionalProperties: true },
-    description: 'The connected editor\'s active design system, exact layer field definitions, selection, document id, revision and editing capabilities. Read before creating text, images or artboard alternatives.',
+    outputSchema: { type: 'object', properties: { ...INPUT_OUTPUT, ...EDITOR_OUTPUT, documentId: { type: 'string' }, revision: { type: 'string' }, brief: { type: 'object' }, layerFields: { type: 'array' } }, required: ['documentId', 'revision', 'tool', 'capabilities'], additionalProperties: true },
+    description: 'The connected tool\'s actual input schema, safe values, adapter, permissions and current design system. Read before editing. Layer editors also provide exact layer fields and authoring guidance.',
     inputSchema: { type: 'object', properties: { documentId: { type: 'string' } }, additionalProperties: false },
   },
   {
     name: 'lolly_live_apply',
     outputSchema: APPLY_OUTPUT,
-    description: 'Edit the open document with layerOperations (add, duplicate, remove, reparent, reorder) and layerPatches ({ id, set }), the same vocabulary lolly_render takes. '
-      + 'All of it applies as ONE undo step labelled with your label, or none of it does. Pass ifRevision from lolly_live_document to refuse the edit if the person changed the document since.',
+    description: 'Edit declared JSON-safe inputs with inputValues, or use layerOperations and layerPatches on a layer editor. Discover supported operations in lolly_live_context. Files and uploaded bytes cannot be supplied through inputValues. '
+      + 'Use one input patch or one layer edit batch per apply. The change is one labelled undo step. Pass ifRevision from lolly_live_document to refuse a stale edit.',
     inputSchema: {
       type: 'object',
       properties: {
         layerOperations: { ...DESIGN_OPERATION_ARG, maxItems: 500 },
         layerPatches: { ...DESIGN_PATCH_ARG, maxItems: 500 },
+        inputValues: { type: 'object', maxProperties: 500, description: 'A patch keyed by stable ids from inputSchema and editableInputIds. Values must match the runtime schema and contain no uploaded bytes.' },
         label: { type: 'string', maxLength: 80, description: 'What the edit does, shown in the person\'s history (for example "Align the headings").' },
         ifRevision: { type: 'string' },
         documentId: { type: 'string' },
@@ -140,7 +143,7 @@ export function statusText(s: LiveStatus): string {
       + 'Read the document with lolly_live_document, edit with lolly_live_apply, check with lolly_live_look.';
   }
   if (s.state === 'pairing') {
-    return `Waiting for the person to pair. Ask them to open Design in Lolly, choose Connect an AI agent in the Lolly menu, and type this code: ${s.code}\n`
+    return `Waiting for the person to pair. Ask them to open their tool in Lolly, choose Connect an AI agent in the Lolly menu, and type this code: ${s.code}\n`
       + 'Then call lolly_live_status with wait (up to 120 seconds). The code works once.';
   }
   return `Not connected.${s.ended ? ` ${s.ended}` : ''} Call lolly_live_connect to start.`;
@@ -163,8 +166,8 @@ export async function callLiveTool(bridge: LiveToolBridge, name: string, args: R
       }
       case 'lolly_live_find':
       case 'lolly_live_document': {
-        const doc = await bridge.request(name === 'lolly_live_find' ? 'document.find' : 'document.get', args) as { rows?: unknown[]; width?: number; height?: number; selection?: string[] };
-        const summary = `${doc.rows?.length ?? 0} rows, canvas ${doc.width} x ${doc.height}, ${doc.selection?.length ? `selected: ${doc.selection.join(', ')}` : 'nothing selected'}.`;
+        const doc = await bridge.request(name === 'lolly_live_find' ? 'document.find' : 'document.get', args) as { rows?: unknown[]; width?: number; height?: number; selection?: string[]; adapter?: string; inputValues?: Record<string, unknown> };
+        const summary = doc.adapter === 'inputs' ? `${Object.keys(doc.inputValues ?? {}).length} safe inputs, canvas ${doc.width} x ${doc.height}. Read inputSchema and capabilities before editing.` : `${doc.rows?.length ?? 0} rows, canvas ${doc.width} x ${doc.height}, ${doc.selection?.length ? `selected: ${doc.selection.join(', ')}` : 'nothing selected'}.`;
         return text(summary, doc);
       }
       case 'lolly_live_context': {
@@ -173,10 +176,13 @@ export async function callLiveTool(bridge: LiveToolBridge, name: string, args: R
       }
       case 'lolly_live_apply': {
         const params: Record<string, unknown> = {};
-        for (const key of ['layerOperations', 'layerPatches', 'label', 'ifRevision', 'documentId', 'transactionId']) if (args[key] !== undefined) params[key] = args[key];
-        const result = await bridge.request('document.apply', params) as { changed?: boolean; revision?: string; layers?: number };
+        const allowed = ['layerOperations', 'layerPatches', 'inputValues', 'label', 'ifRevision', 'documentId', 'transactionId'];
+        const extra = Object.keys(args).find(key => !allowed.includes(key));
+        if (extra) return failure(`lolly_live_apply: unknown field "${extra}".`);
+        for (const key of allowed) if (args[key] !== undefined) params[key] = args[key];
+        const result = await bridge.request('document.apply', params) as { changed?: boolean; revision?: string; layers?: number; changedInputIds?: string[] };
         return text(result.changed
-          ? `Applied as one undo step. The document has ${result.layers} rows; revision ${result.revision}.`
+          ? result.changedInputIds ? `Applied as one undo step. Changed inputs: ${result.changedInputIds.join(', ')}; revision ${result.revision}.` : `Applied as one undo step. The document has ${result.layers} rows; revision ${result.revision}.`
           : `Nothing changed; no undo step was made. Revision ${result.revision}.`, result);
       }
       case 'lolly_live_look': {

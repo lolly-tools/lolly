@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "toolId": "pricing-table",
+  "toolVersion": "1.1.1",
+  "toolVersionRange": "1.1.1",
+  "skillRevision": "1",
+  "origin": "generated",
+  "references": [
+    "reference/inputs.json",
+    "reference/examples.json"
+  ],
+  "files": {
+    "SKILL.md": {
+      "sha256": "2dc5c9aec44eb1dd211fddda2fd09a9eeaa5912463ce11534bac0da05cae1f90",
+      "bytes": 1829
+    },
+    "reference/inputs.json": {
+      "sha256": "e9ae2ddf5a8825ce91ad2de17cab6624a42c440baf3b2039d9d0ec19d18089e2",
+      "bytes": 3928
+    },
+    "reference/examples.json": {
+      "sha256": "d0b6d2ce1973c5b51df4f0a3628466dac5cf825711a07a5f2688d6f4e91d573c",
+      "bytes": 5472
+    }
+  }
+}

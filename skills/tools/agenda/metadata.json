@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "toolId": "agenda",
+  "toolVersion": "1.3.0",
+  "toolVersionRange": "1.3.0",
+  "skillRevision": "1",
+  "origin": "generated",
+  "references": [
+    "reference/inputs.json",
+    "reference/examples.json"
+  ],
+  "files": {
+    "SKILL.md": {
+      "sha256": "a585850bd7c3ce42b39fbe5473f226d1ef1e7470cdf8f364912b0567a00e281d",
+      "bytes": 2440
+    },
+    "reference/inputs.json": {
+      "sha256": "39e7bff819c8252c168f55cc5b6327c53bae93d78d08ea0ca4a82dc582a6f32c",
+      "bytes": 18283
+    },
+    "reference/examples.json": {
+      "sha256": "b280d1ed0c6f835a722062732b15410c6b22d6371d8ca668a0fe8b28bd117103",
+      "bytes": 205
+    }
+  }
+}

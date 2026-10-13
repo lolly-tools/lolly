@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "toolId": "claim",
+  "toolVersion": "2.0.1",
+  "toolVersionRange": "2.0.1",
+  "skillRevision": "1",
+  "origin": "generated",
+  "references": [
+    "reference/inputs.json"
+  ],
+  "files": {
+    "SKILL.md": {
+      "sha256": "c8da7e38efcf833458178b58e54d7a22855c5658742fb19220a0612d889ed11e",
+      "bytes": 1840
+    },
+    "reference/inputs.json": {
+      "sha256": "6692efc0b03e04b3649fb0546c35d4747ad6c85a453ad21e040688967d9a3749",
+      "bytes": 3774
+    }
+  }
+}

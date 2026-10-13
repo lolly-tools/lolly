@@ -1,0 +1,52 @@
+[
+  {
+    "id": "html",
+    "type": "longtext",
+    "label": "HTML",
+    "default": "",
+    "help": "The HTML pane. Lives in the synced model so a live pairing session shares it; the editor UI is on the canvas, not in a sidebar."
+  },
+  {
+    "id": "css",
+    "type": "longtext",
+    "label": "CSS",
+    "default": ""
+  },
+  {
+    "id": "js",
+    "type": "longtext",
+    "label": "JavaScript",
+    "default": ""
+  },
+  {
+    "id": "head",
+    "type": "longtext",
+    "label": "Persistent head",
+    "default": "",
+    "help": "Markup added to the <head> of every preview (meta, fonts, base styles, library <script>/<link>). Now travels with the pen rather than being saved per-device."
+  },
+  {
+    "id": "mode",
+    "type": "select",
+    "label": "JS language",
+    "default": "none",
+    "options": [
+      {
+        "value": "none",
+        "label": "Plain JS"
+      },
+      {
+        "value": "jsx",
+        "label": "JSX (React)"
+      },
+      {
+        "value": "ts",
+        "label": "TypeScript"
+      },
+      {
+        "value": "tsx",
+        "label": "TSX (React + TS)"
+      }
+    ]
+  }
+]

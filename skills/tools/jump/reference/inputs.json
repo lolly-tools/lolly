@@ -1,0 +1,182 @@
+[
+  {
+    "id": "style",
+    "label": "Style",
+    "type": "select",
+    "urlKey": "st",
+    "section": "Style",
+    "default": "cinema",
+    "help": "Scroll cinema opens full-height with one scene per link. Aurora glass, Front page, Cover story and Playroom are expressive landing pages built from the design system's colours and type; Buttons, Cards and Minimal are plain lists.",
+    "options": [
+      {
+        "value": "cinema",
+        "label": "Scroll cinema"
+      },
+      {
+        "value": "aurora",
+        "label": "Aurora glass"
+      },
+      {
+        "value": "editorial",
+        "label": "Front page"
+      },
+      {
+        "value": "mural",
+        "label": "Cover story"
+      },
+      {
+        "value": "orbit",
+        "label": "Playroom"
+      },
+      {
+        "value": "buttons",
+        "label": "Buttons"
+      },
+      {
+        "value": "cards",
+        "label": "Cards"
+      },
+      {
+        "value": "minimal",
+        "label": "Minimal"
+      }
+    ]
+  },
+  {
+    "id": "mood",
+    "display": "segmented",
+    "label": "Mood",
+    "type": "select",
+    "urlKey": "m",
+    "section": "Style",
+    "default": "calm",
+    "help": "How far the page moves. Each style animates something different, and the plain lists do not move at all. A visitor who asks for reduced motion always gets the still page.",
+    "options": [
+      {
+        "value": "calm",
+        "label": "Calm"
+      },
+      {
+        "value": "bold",
+        "label": "Bold"
+      },
+      {
+        "value": "electric",
+        "label": "Electric"
+      }
+    ]
+  },
+  {
+    "id": "color",
+    "label": "Text colour",
+    "type": "color",
+    "urlKey": "ink",
+    "section": "Style",
+    "default": "{color.semantic.text}",
+    "help": "The page reads in both colour schemes: whichever pair of text and background you set, the other one is derived from it, and a visitor sees the one their device asks for."
+  },
+  {
+    "id": "background",
+    "label": "Background",
+    "type": "color",
+    "urlKey": "pp",
+    "section": "Style",
+    "default": "{color.semantic.surface}"
+  },
+  {
+    "id": "accent",
+    "label": "Accent",
+    "type": "color",
+    "urlKey": "ac",
+    "section": "Style",
+    "default": "{color.semantic.primary}",
+    "help": "Colours the buttons, the glass glow and the link marks."
+  },
+  {
+    "id": "footer",
+    "label": "Show the Lolly line",
+    "type": "boolean",
+    "urlKey": "ft",
+    "section": "Style",
+    "default": true,
+    "help": "A visible \"Made with Lolly\" line closing the animated styles. Nothing is embedded in the link either way - turning it off simply removes the line."
+  },
+  {
+    "id": "links",
+    "label": "Links",
+    "type": "table",
+    "urlKey": "l",
+    "columnEditors": [
+      "url",
+      "text",
+      "emoji"
+    ],
+    "help": "Up to ten links, one per row. The address goes first; a blank name shows the site's own name, and a tap in the Emoji column picks a glyph. Nothing is stored on a server: the whole page travels inside the share link.",
+    "default": {
+      "columns": [
+        "URL",
+        "Name",
+        "Emoji"
+      ],
+      "rows": []
+    }
+  },
+  {
+    "id": "heading",
+    "label": "Heading",
+    "type": "text",
+    "urlKey": "t",
+    "default": "",
+    "maxLength": 60,
+    "placeholder": "Find us everywhere"
+  },
+  {
+    "id": "subheading",
+    "label": "Sub-heading",
+    "type": "text",
+    "urlKey": "sub",
+    "default": "",
+    "maxLength": 120,
+    "placeholder": "One link for all of it."
+  },
+  {
+    "id": "avatar",
+    "label": "Portrait",
+    "type": "asset",
+    "assetType": "image",
+    "allowUpload": true,
+    "urlKey": "av",
+    "help": "A face or logo above the heading. A catalog or design system asset travels as a tiny reference, so the share link stays short; an uploaded picture only opens on this device unless the link is packed."
+  },
+  {
+    "id": "backdrop",
+    "label": "Backdrop",
+    "type": "asset",
+    "assetType": "image",
+    "allowUpload": true,
+    "urlKey": "bg",
+    "help": "A full-bleed picture behind the page. The Cover story style builds its whole opening from it; Aurora dims it under the glass. Catalog and design system assets keep the share link tiny."
+  },
+  {
+    "id": "onVisit",
+    "label": "On visit",
+    "type": "select",
+    "urlKey": "go",
+    "default": "page",
+    "help": "\"Forward\" turns the page into a redirect to the first link - a URL forwarder. Add a password in the Share dialog for a password-gated forwarder. \"Forward after a human check\" adds a press-and-hold step first, so a casual bot following the link does not sail straight through. The check is a speed bump, not proof: whoever holds a link without a password can still read where it points.",
+    "options": [
+      {
+        "value": "page",
+        "label": "Show the links page"
+      },
+      {
+        "value": "forward",
+        "label": "Forward to the first link"
+      },
+      {
+        "value": "gate",
+        "label": "Forward after a human check"
+      }
+    ]
+  }
+]

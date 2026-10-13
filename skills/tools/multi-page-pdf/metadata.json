@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "toolId": "multi-page-pdf",
+  "toolVersion": "1.1.3",
+  "toolVersionRange": "1.1.3",
+  "skillRevision": "1",
+  "origin": "generated",
+  "references": [
+    "reference/inputs.json"
+  ],
+  "files": {
+    "SKILL.md": {
+      "sha256": "c0936d9cef96a65c9c34a965d053bb5fd7e2a0842a1f07a785f3e96099174f2d",
+      "bytes": 2190
+    },
+    "reference/inputs.json": {
+      "sha256": "2bbdd52a41016a7831f492b4e2fa686efcbe8a2ecc725a8912f051bbd6681166",
+      "bytes": 14280
+    }
+  }
+}

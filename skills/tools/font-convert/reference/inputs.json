@@ -1,0 +1,39 @@
+[
+  {
+    "id": "source",
+    "label": "Font file",
+    "type": "file",
+    "accept": [
+      "font/ttf",
+      "font/otf",
+      "font/woff",
+      ".ttf",
+      ".otf",
+      ".woff",
+      ".ttc"
+    ],
+    "maxSize": 52428800,
+    "help": "A TrueType (.ttf), OpenType (.otf) or WOFF font. It's read in your browser and never leaves your device."
+  },
+  {
+    "id": "target",
+    "label": "Convert to",
+    "type": "select",
+    "default": "woff",
+    "options": [
+      {
+        "value": "ttf",
+        "label": "TrueType (.ttf)"
+      },
+      {
+        "value": "otf",
+        "label": "OpenType (.otf)"
+      },
+      {
+        "value": "woff",
+        "label": "Web font (.woff)"
+      }
+    ],
+    "help": "The container to convert into. The glyph outlines are unchanged; only the wrapper differs. WOFF2 is read but not written yet."
+  }
+]
