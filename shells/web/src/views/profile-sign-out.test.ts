@@ -65,7 +65,7 @@ type ProfileViewCtx = import('./profile/context.ts').ProfileViewCtx;
 const ORG_CONFIG_KEY = 'lolly:org-config:same-origin';
 
 /** Boot the org seam as `who`, with the logout route answering `logout`. */
-async function boot(who: 'member' | 'admin' | 'guest' | 'none' | 'no-instance', logout: () => Response = () => new Response(null, { status: 204 })): Promise<void> {
+async function boot(who: 'member' | 'admin' | 'guest' | 'none' | 'no-instance', logout: () => Response = () => new Response(null, { status: 204 }), providerLogoutPath?: string): Promise<void> {
   _resetOrgForTests();
   store.clear();
   router = (url) => {
@@ -74,7 +74,7 @@ async function boot(who: 'member' | 'admin' | 'guest' | 'none' | 'no-instance', 
     if (url.includes('/api/auth/session')) {
       if (who === 'guest') return json({ kind: 'guest', guest: {} });
       if (who === 'none') return new Response('', { status: 401 });
-      return json({ kind: 'member', user: { sub: 'u1', email: 'ana@acme.test', role: who === 'admin' ? 'admin' : 'member' } });
+      return json({ kind: 'member', providerLogoutPath, user: { sub: 'u1', email: 'ana@acme.test', role: who === 'admin' ? 'admin' : 'member' } });
     }
     if (url.includes('/api/v1/org-config')) return json({ instance: { name: 'Acme' }, inboxUnread: 0 });
     if (url.includes('/api/auth/logout')) return logout();
@@ -174,4 +174,12 @@ test('a failed Sign out says so under the row, keeps the person signed in and re
     assert.ok(store.has(ORG_CONFIG_KEY), `${label}: nothing was forgotten`);
     assert.equal(orgMemberSignedIn(), true, `${label}: still signed in`);
   }
+});
+
+
+test('provider sign-out accepts only the known instance path and leaves ordinary sign-out available', async () => {
+  await boot('member', undefined, '/api/auth/logout-provider');
+  assert.equal(orgProfileAccount()?.providerLogoutHref, '/api/auth/logout-provider');
+  await boot('member', undefined, 'https://untrusted.example/logout');
+  assert.equal(orgProfileAccount()?.providerLogoutHref, undefined);
 });

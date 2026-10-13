@@ -1,5 +1,12 @@
 # Signed web images
 
+For a managed organisation installation, use the
+[Work enterprise identity runbook](https://github.com/lolly-tools/lolly-work/blob/main/docs/enterprise-identity.md)
+with the Work deployment guide. This repository's static chart does not install
+Work. For optional certificate identity, follow the
+[CA deployment and lifecycle procedure](../../services/ca/README.md#deploy-and-maintain-managed-identity),
+including verified-email compatibility and the installed JWT verifier dependency.
+
 The web image uses `pnpm run build:web:release`: it signs the selected profile's
 catalog and embeds the matching public verification key and verified trust mode
 in the client. Unsigned `build:web` output is for development and previews.
@@ -78,7 +85,7 @@ extracted root. It does not verify application access or the image's provenance.
 ## Optional service images
 
 CA, MCP and Penpot use the pinned Node Alpine base and explicit OpenSSL updates used
-by Work. CA carries only its dependency-free handler and certificate helpers;
+by Work. CA carries its handler, certificate helpers and the locked `jose` verifier;
 it does not need the tool packs or browser model files. Its health route is active
 only when the CA is configured. Successful liveness does not verify the issuer,
 root-key custody or enrollment flow.

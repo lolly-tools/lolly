@@ -21,18 +21,37 @@
 # The Helm chart wires these from a Secret. Health is liveness, not OIDC readiness.
 # ============================================================================
 
+FROM node:26-alpine@sha256:143494b1da2945f061539253adc65e4f1569ddf07da2d384c022c791a9d90a4a AS dependencies
+WORKDIR /src
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY engine/package.json ./engine/package.json
+COPY packages/core/package.json ./packages/core/package.json
+COPY packages/node-shell/package.json ./packages/node-shell/package.json
+COPY packages/docs-render/package.json ./packages/docs-render/package.json
+COPY packages/audio-dock/package.json ./packages/audio-dock/package.json
+COPY packages/rondo/package.json ./packages/rondo/package.json
+COPY shells/web/package.json ./shells/web/package.json
+COPY shells/cli/package.json ./shells/cli/package.json
+COPY shells/tui/package.json ./shells/tui/package.json
+COPY services/ca/package.json ./services/ca/package.json
+COPY services/mcp/package.json ./services/mcp/package.json
+RUN npm install --global pnpm@11.26.0
+RUN pnpm --filter @lolly/ca-service install --prod --frozen-lockfile --ignore-scripts
+
 FROM node:26-alpine@sha256:143494b1da2945f061539253adc65e4f1569ddf07da2d384c022c791a9d90a4a AS runtime
 WORKDIR /app
 RUN apk add --no-cache libcrypto3=3.5.8-r0 libssl3=3.5.8-r0
 ENV NODE_ENV=production
 ENV PORT=8787
 
-# The CA has no third-party runtime dependencies. Preserve its relative engine
-# imports without carrying private tool packs, web models or package managers.
+# Copy only the CA verifier dependency from the frozen workspace install.
+# Preserve relative engine imports without tool packs, models or package managers.
+COPY --from=dependencies /src/node_modules/jose ./node_modules/jose
 COPY services/ca ./services/ca
 COPY services/shared ./services/shared
 COPY engine/src/x509.ts engine/src/bytes.ts engine/src/der-read.ts ./engine/src/
 COPY LICENSE ./LICENSE
+RUN node --input-type=module -e "await import('./services/ca/lib/oidc.mjs');"
 RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 
 USER node

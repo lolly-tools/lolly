@@ -326,6 +326,7 @@ function accountRowHtml(account: ProfileViewCtx['account'], signOut: ProfileView
           <span style="display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px">
             ${inbox ? `<button type="button" class="btn" id="instance-inbox-btn" style="min-height:var(--ui-size-target)">${inboxLabel(inbox.count())}</button>` : ''}
             ${account?.member && account.securityHref ? `<a class="btn" id="instance-security-link" href="${escapeText(account.securityHref)}" style="min-height:var(--ui-size-target);display:inline-flex;align-items:center;gap:var(--sp-2)">${icon('lock', { size: 16 })}<span>${t('Account security')}</span></a>` : ''}
+            ${account?.providerLogoutHref ? `<a class="btn" id="instance-provider-signout" href="${escapeText(account.providerLogoutHref)}">${t('Sign out of identity provider')}</a>` : ''}
             ${signOut ? `<button type="button" class="btn" id="instance-signout-btn" style="min-height:var(--ui-size-target)">${t('Sign out')}</button>` : ''}
           </span>
         </div>`;

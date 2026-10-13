@@ -253,7 +253,11 @@ importers:
         specifier: ^3.9.6
         version: 3.9.9
 
-  services/ca: {}
+  services/ca:
+    dependencies:
+      jose:
+        specifier: ^6.2.12
+        version: 6.2.12
 
   services/mcp:
     dependencies:
@@ -1049,7 +1053,7 @@ packages:
     resolution: {integrity: sha512-a6tXzFcIbIIdnqumQ7W8Oxd8W/KAPkAKYpoxpD9nDgxZ24ywgxG5pK/8G9W5pOFUygS7gWHQhPv8cwRB44/8yg==}
     engines: {node: '>=20'}
     peerDependencies:
-      '@modelcontextprotocol/client': ^2.0.0
+      '@modelcontextprotocol/client': 2.2.0
       '@modelcontextprotocol/core': ^2.0.0
       '@modelcontextprotocol/server': ^2.0.0
       react: ^19.2.8
@@ -2272,6 +2276,9 @@ packages:
 
   isoformat@0.2.1:
     resolution: {integrity: sha512-tFLRAygk9NqrRPhJSnNGh7g7oaVWDwR0wKh/GM2LgmPa50Eg4UfyaCO4I8k6EqJHl1/uh2RAD6g06n5ygEnrjQ==}
+
+  jose@6.2.12:
+    resolution: {integrity: sha512-9NiFmJEex0sy2Dk58j2UGBSHgUs2ypF9eZSu4L6vjOX3Dp96Sw1F3uL+H+D1sx02jZZdzUT0HgvCy59CuvXcWw==}
 
   jose@6.2.3:
     resolution: {integrity: sha512-YYVDInQKFJfR/xa3ojUTl8c2KoTwiL1R5Wg9YCydwH0x0B9grbzlg5HC7mMjCtUJjbQ/YnGEZIhI5tCgfTb4Hw==}
@@ -4583,6 +4590,8 @@ snapshots:
   isexe@2.0.0: {}
 
   isoformat@0.2.1: {}
+
+  jose@6.2.12: {}
 
   jose@6.2.3: {}
 

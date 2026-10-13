@@ -33,6 +33,30 @@ Use lolly.work's [installation guide](https://github.com/lolly-tools/lolly-work/
 
 For users, link to [Use Lolly at your organisation](/info/organisation.html). For the change in data handling, read [Server Surface](/info/server-surface.html#organisation-services-with-lolly-work) and [Privacy](/info/privacy.html#organisation-services-with-lolly-work).
 
+### Managed enterprise identity
+
+Use Work's [Enterprise identity deployment runbook](https://github.com/lolly-tools/lolly-work/blob/main/docs/enterprise-identity.md)
+for the exact IdP registration, admission, optional MFA assurance, SCIM mappings,
+logout acceptance checks, migrations and credential rotation. Serve the Lolly
+shell and Work on the same HTTPS origin and keep the authentication routes ahead
+of any SPA fallback. Register Work's `/api/auth/callback` at the IdP; do not point
+organisation sign-in at the Content Credentials CA.
+
+Ordinary **Sign out** ends the local browser session. The updated shell Profile
+and Work console offer a separate **Sign out of identity provider** action with a
+confirmation. Session-specific back-channel logout needs `sid` in both ID and
+logout tokens; it also revokes devices and renewals derived from that session.
+SCIM/admin suspension remains the control for all of a person's access. Linked
+identity standing remains thirty days, so reliable offboarding is part of the
+managed installation.
+
+Release the updated Work service and shell together. Work's logout migration must
+run before the service rollout. Previous cookies lack the new session binding;
+expire or revoke them before relying on targeted logout. Keep database, secrets,
+configuration and pinned image recovery procedures together with the deployment.
+A static Lolly image has no organisation identity service of its own, and the
+standalone MCP shared-secret OAuth adapter does not provide per-user Work SSO.
+
 ### UpCloud and Evroc
 
 Both providers have OpenTofu and Terraform foundations for an operator-managed VM.

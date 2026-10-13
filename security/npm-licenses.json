@@ -406,6 +406,7 @@
   "is-wsl@3.1.1": "MIT",
   "isexe@2.0.0": "ISC",
   "isoformat@0.2.1": "ISC",
+  "jose@6.2.12": "MIT",
   "jose@6.2.3": "MIT",
   "jsdom@26.1.0": "MIT",
   "json-schema-to-ts@3.1.1": "MIT",

@@ -1,5 +1,11 @@
 # Content Credentials identity - verified signing for on-device C2PA
 
+Operators deploying the optional CA should follow the
+[managed identity deployment procedure](https://github.com/lolly-tools/lolly/blob/main/services/ca/README.md#deploy-and-maintain-managed-identity)
+for provider registration, strict verified-email policy, client secrets, upgrades
+and signing-key rotation. Organisation SSO and SCIM belong to Lolly Work, with a
+separate client and lifecycle.
+
 > **The short version.** Every image, PDF, or video you export from Lolly can carry a
 > **Content Credential** - a signed [C2PA](https://c2pa.org) manifest, created
 > entirely on your device - that proves the file hasn't been altered since it left
