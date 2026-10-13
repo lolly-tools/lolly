@@ -68,7 +68,7 @@ inputs:
       Reviewed source commit of lolly-tools/lolly to render with. The default
       is immutable; supply a different commit explicitly to update the engine.
     required: false
-    default: 'fb6899c5ec69f3b9e0e99367fdcb109ade7ba6a4'
+    default: '18108292e1899d6d684efc274d03fc78bb5dd325'
   profile-root:
     description: >-
       Optional workspace-relative path of a brand-pack profile root - a directory

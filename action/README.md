@@ -42,7 +42,7 @@ link carries, so anything you can render in the browser you can regenerate in CI
 | `format` | `svg` | Export format for the single render. Batch rows carry their own `format` column. |
 | `out-dir` | `./lolly-out` | Workspace-relative output directory (created if missing). |
 | `browser` | `false` | `'true'` installs the scoped Chromium (`lolly install-browser --with-deps`) **and** builds the web shell - required for raster/pdf/video of HTML-layout tools. See [The browser tier](#the-browser-tier). |
-| `lolly-ref` | `fb6899c5ec69f3b9e0e99367fdcb109ade7ba6a4` | Reviewed source commit to render with. Supply a different commit explicitly when updating the engine. |
+| `lolly-ref` | `18108292e1899d6d684efc274d03fc78bb5dd325` | Reviewed source commit to render with. Supply a different commit explicitly when updating the engine. |
 | `profile-root` | - | Workspace-relative path of a brand-pack profile root (`tools/` + `catalog/` with a built `catalog/tools/index.json`). Exported as `LOLLY_ROOT`. See [Brand packs](#brand-packs-profile-root). |
 | `token` | `github.token` | Token for the lolly checkout. `lolly-tools/lolly` is **public**, so the default always works - pass a PAT only to render from a private fork/mirror. |
 
