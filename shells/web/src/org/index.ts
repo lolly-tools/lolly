@@ -102,7 +102,7 @@ export interface OrgUser {
 }
 
 export type Session =
-  | { kind: 'member'; user: OrgUser }
+  | { kind: 'member'; user: OrgUser; providerLogoutPath?: string }
   | { kind: 'guest'; guest: Record<string, unknown> };
 
 /** One field's policy as the control plane declares it (mapped to a generic
@@ -432,6 +432,7 @@ function workspaceName(): string {
  * no name; a name that is only the address again is dropped, so the card says it once.
  */
 export function orgProfileAccount(): {
+  providerLogoutHref?: string;
   securityHref?: string;
   workspace: string;
   member: { email: string; name: string } | null;
@@ -444,6 +445,7 @@ export function orgProfileAccount(): {
   const email = cleanText(session.user.email, 254) || cleanText(fieldOf(fromConfig, 'email'), 254);
   const name = cleanText(session.user.name) || cleanText(fieldOf(fromConfig, 'name'));
   return {
+    ...(!isTauriShell() && session.providerLogoutPath === '/api/auth/logout-provider' ? { providerLogoutHref: instancePath('/api/auth/logout-provider') } : {}),
     ...(authState.passkeyManagementPath === '/api/auth/security' ? { securityHref: instancePath('/api/auth/security') } : {}),
     workspace: workspaceName(),
     member: { email, name: name.toLowerCase() === email.toLowerCase() ? '' : name },

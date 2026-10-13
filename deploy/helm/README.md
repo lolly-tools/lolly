@@ -1,5 +1,12 @@
 # Public Lolly Helm chart
 
+For a managed organisation installation, use the
+[Work enterprise identity runbook](https://github.com/lolly-tools/lolly-work/blob/main/docs/enterprise-identity.md)
+with the Work deployment guide. This repository's static chart does not install
+Work. For optional certificate identity, follow the
+[CA deployment and lifecycle procedure](../../services/ca/README.md#deploy-and-maintain-managed-identity),
+including verified-email compatibility and the installed JWT verifier dependency.
+
 This chart deploys the static web shell and optional MCP and credential authority
 services. It runs on Kubernetes, including K3s and RKE2. The default configuration
 keeps two replicas per enabled service. Cluster nodes, ingress, certificates and

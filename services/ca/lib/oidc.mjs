@@ -5,18 +5,17 @@
  *
  * Google and SUSE (id.suse.com - Keycloak) share the generic OIDC path: discovery document
  * (cached in module scope), PKCE S256 + client secret, and an id_token
- * verified against the provider's JWKS (RS256 via WebCrypto). An unverified
+ * verified against the provider's JWKS (RS256 via jose). An unverified
  * JWT decode is not acceptable here - the email claim goes straight into a
  * certificate SAN, so the signature is checked before the claim is believed.
  * GitHub is plain OAuth: token exchange, then the /user/emails API for a
  * primary + verified address.
  */
 
+import { createLocalJWKSet, decodeProtectedHeader, jwtVerify } from 'jose';
+
 const te = new TextEncoder();
 const subtle = globalThis.crypto.subtle;
-
-const b64uBytes = (str) => new Uint8Array(Buffer.from(String(str), 'base64url'));
-const b64uJson = (str) => JSON.parse(Buffer.from(String(str), 'base64url').toString('utf8'));
 
 export const OAUTH_PROVIDERS = ['github', 'google', 'suse'];
 
@@ -33,30 +32,64 @@ export function configuredProviders(env) {
 /** Loose-but-useful email shape check (also used by /email/start). */
 export const looksLikeEmail = (v) => typeof v === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 
-// ─── discovery + JWKS cache ───────────────────────────────────────────────────
-// Module scope: long enough for a serverless instance's lifetime, refreshed
-// hourly on a warm local server. Failed fetches are evicted immediately.
+const jsonCache = new Map();
+const CACHE_TTL_MS = 600_000;
 
-const jsonCache = new Map(); // url → { at, promise }
-const CACHE_TTL_MS = 3600_000;
-
-function cachedJson(url) {
-  const hit = jsonCache.get(url);
-  if (hit && Date.now() - hit.at < CACHE_TTL_MS) return hit.promise;
-  const promise = fetch(url, { headers: { accept: 'application/json' } }).then((r) => {
-    if (!r.ok) throw new Error(`${url} → HTTP ${r.status}`);
-    return r.json();
-  });
-  promise.catch(() => jsonCache.delete(url));
-  jsonCache.set(url, { at: Date.now(), promise });
-  return promise;
+function secureUrl(value, issuer = false) {
+  const u = new URL(value);
+  if (u.protocol !== 'https:' || u.username || u.password || u.hash || (issuer && u.search)) throw new Error('invalid OIDC endpoint URL');
+  return u;
 }
 
-const GOOGLE_DISCOVERY = 'https://accounts.google.com/.well-known/openid-configuration';
+async function fetchJson(url, init = {}) {
+  secureUrl(url);
+  const res = await fetch(url, { ...init, redirect: 'error', signal: AbortSignal.timeout(10_000) });
+  if (!res.ok) throw new Error(`identity provider request failed: ${res.status}`);
+  const reader = res.body?.getReader();
+  if (!reader) throw new Error('empty identity provider response');
+  const chunks = [];
+  let size = 0;
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.byteLength;
+      if (size > 1024 * 1024) throw new Error('identity provider response too large');
+      chunks.push(value);
+    }
+  } finally { await reader.cancel().catch(() => {}); }
+  return JSON.parse(Buffer.concat(chunks).toString('utf8'));
+}
 
-function discoveryUrl(provider, env) {
-  if (provider === 'google') return GOOGLE_DISCOVERY;
-  return `${String(env.SUSE_ISSUER || '').replace(/\/$/, '')}/.well-known/openid-configuration`;
+async function cachedJson(url, kid) {
+  const hit = jsonCache.get(url);
+  if (hit && Date.now() - hit.at < CACHE_TTL_MS) {
+    const doc = await hit.promise;
+    if (!kid || doc.keys?.some(k => k.kid === kid)) return doc;
+  }
+  const promise = fetchJson(url);
+  const entry = { at: Date.now(), promise };
+  jsonCache.set(url, entry);
+  try { return await promise; } catch (error) {
+    if (jsonCache.get(url) === entry) jsonCache.delete(url);
+    throw error;
+  }
+}
+
+function issuerOf(provider, env) {
+  return provider === 'google' ? 'https://accounts.google.com' : String(env.SUSE_ISSUER || '');
+}
+
+async function discover(provider, env) {
+  const issuer = issuerOf(provider, env);
+  secureUrl(issuer, true);
+  const doc = await cachedJson(`${issuer.replace(/\/+$/, '')}/.well-known/openid-configuration`);
+  if (!doc || doc.issuer !== issuer) throw new Error('OIDC discovery issuer mismatch');
+  for (const key of ['authorization_endpoint', 'token_endpoint', 'jwks_uri']) {
+    if (typeof doc[key] !== 'string') throw new Error(`OIDC discovery missing ${key}`);
+    secureUrl(doc[key]);
+  }
+  return doc;
 }
 
 /** RFC 7636 S256 code challenge for a base64url verifier string. */
@@ -76,7 +109,7 @@ export async function buildAuthorizeUrl(provider, env, { redirectUri, state, non
     u.searchParams.set('state', state);
     return u.href;
   }
-  const disco = await cachedJson(discoveryUrl(provider, env));
+  const disco = await discover(provider, env);
   const u = new URL(disco.authorization_endpoint);
   u.searchParams.set('client_id', provider === 'google' ? env.GOOGLE_CLIENT_ID : env.SUSE_CLIENT_ID);
   u.searchParams.set('redirect_uri', redirectUri);
@@ -92,48 +125,41 @@ export async function buildAuthorizeUrl(provider, env, { redirectUri, state, non
 // ─── id_token verification (google + suse) ────────────────────────────────────
 
 async function verifyIdToken(idToken, { jwksUri, issuer, clientId, nonce }) {
-  const parts = String(idToken).split('.');
-  if (parts.length !== 3) throw new Error('id_token is not a JWT');
-  const [h64, p64, s64] = parts;
-  const header = b64uJson(h64);
-  if (header.alg !== 'RS256') throw new Error(`unsupported id_token alg: ${header.alg}`);
-  const jwks = await cachedJson(jwksUri);
-  const keys = Array.isArray(jwks.keys) ? jwks.keys : [];
-  const jwk = keys.find((k) => k.kid === header.kid) || keys.find((k) => k.kty === 'RSA' && (k.use || 'sig') === 'sig');
-  if (!jwk) throw new Error('no matching key in the provider JWKS');
-  const key = await subtle.importKey('jwk', { kty: 'RSA', n: jwk.n, e: jwk.e }, { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['verify']);
-  const ok = await subtle.verify('RSASSA-PKCS1-v1_5', key, b64uBytes(s64), te.encode(`${h64}.${p64}`));
-  if (!ok) throw new Error('id_token signature does not verify');
-  const claims = b64uJson(p64);
-  if (claims.iss !== issuer) throw new Error(`id_token issuer mismatch: ${claims.iss}`);
-  const aud = Array.isArray(claims.aud) ? claims.aud : [claims.aud];
-  if (!aud.includes(clientId)) throw new Error('id_token audience mismatch');
-  if (typeof claims.exp !== 'number' || claims.exp * 1000 < Date.now()) throw new Error('id_token expired');
-  if (nonce && claims.nonce !== nonce) throw new Error('id_token nonce mismatch');
+  const header = decodeProtectedHeader(idToken);
+  if (header.alg !== 'RS256') throw new Error('unsupported id_token algorithm');
+  const jwks = await cachedJson(jwksUri, header.kid);
+  const { payload: claims } = await jwtVerify(idToken, createLocalJWKSet(jwks), {
+    algorithms: ['RS256'], issuer, audience: clientId,
+    requiredClaims: ['iss', 'sub', 'aud', 'exp', 'iat'],
+  });
+  if (typeof claims.sub !== 'string' || !claims.sub || !Number.isFinite(claims.iat) || !Number.isFinite(claims.exp)) throw new Error('invalid required id_token claims');
+  const audiences = Array.isArray(claims.aud) ? claims.aud : [claims.aud];
+  if (audiences.some(a => a !== clientId)) throw new Error('untrusted id_token audience');
+  if (claims.azp !== undefined && claims.azp !== clientId) throw new Error('id_token authorized party mismatch');
+  if (claims.iat * 1000 > Date.now() + 300_000) throw new Error('id_token issued in the future');
+  if (!nonce || claims.nonce !== nonce) throw new Error('id_token nonce mismatch');
   return claims;
 }
 
 async function exchangeOidc(provider, env, { code, redirectUri, pkceVerifier, nonce }) {
-  const disco = await cachedJson(discoveryUrl(provider, env));
+  const disco = await discover(provider, env);
   const clientId = provider === 'google' ? env.GOOGLE_CLIENT_ID : env.SUSE_CLIENT_ID;
   const clientSecret = provider === 'google' ? env.GOOGLE_CLIENT_SECRET : env.SUSE_CLIENT_SECRET;
-  const res = await fetch(disco.token_endpoint, {
-    method: 'POST',
-    headers: { 'content-type': 'application/x-www-form-urlencoded', accept: 'application/json' },
-    body: new URLSearchParams({
-      grant_type: 'authorization_code',
-      code,
-      redirect_uri: redirectUri,
-      client_id: clientId,
-      client_secret: clientSecret,
-      code_verifier: pkceVerifier,
-    }),
-  });
-  const tok = await res.json().catch(() => ({}));
-  if (!res.ok || !tok.id_token) {
-    throw new Error(tok.error_description || tok.error || `${provider} token exchange failed (HTTP ${res.status})`);
-  }
-  return verifyIdToken(tok.id_token, { jwksUri: disco.jwks_uri, issuer: disco.issuer, clientId, nonce });
+  const body = new URLSearchParams({ grant_type: 'authorization_code', code, redirect_uri: redirectUri,
+    client_id: clientId, code_verifier: pkceVerifier });
+  const method = env[provider === 'google' ? 'GOOGLE_TOKEN_AUTH_METHOD' : 'SUSE_TOKEN_AUTH_METHOD'] || 'client_secret_post';
+  if (!['client_secret_post', 'client_secret_basic'].includes(method)) throw new Error('unsupported client authentication method');
+  if (disco.token_endpoint_auth_methods_supported && (!Array.isArray(disco.token_endpoint_auth_methods_supported)
+    || !disco.token_endpoint_auth_methods_supported.includes(method))) throw new Error('IdP does not support configured client authentication');
+  const headers = { 'content-type': 'application/x-www-form-urlencoded', accept: 'application/json' };
+  if (method === 'client_secret_basic') {
+    const form = v => new URLSearchParams({ v }).toString().slice(2);
+    headers.authorization = `Basic ${Buffer.from(`${form(clientId)}:${form(clientSecret)}`).toString('base64')}`;
+    body.delete('client_id');
+  } else body.set('client_secret', clientSecret);
+  const tok = await fetchJson(disco.token_endpoint, { method: 'POST', headers, body });
+  if (!tok.id_token) throw new Error('identity provider returned no id_token');
+  return verifyIdToken(tok.id_token, { jwksUri: disco.jwks_uri, issuer: issuerOf(provider, env), clientId, nonce });
 }
 
 // ─── GitHub (plain OAuth, email via the REST API) ─────────────────────────────
@@ -161,13 +187,10 @@ async function githubEmail(env, { code, redirectUri }) {
   if (emailsRes.ok) {
     const list = await emailsRes.json();
     if (Array.isArray(list)) {
-      const best = list.find((e) => e.primary && e.verified) || list.find((e) => e.verified);
+      const best = list.find((e) => e.primary && e.verified === true) || list.find((e) => e.verified === true);
       if (best && looksLikeEmail(best.email)) return best.email;
     }
   }
-  const userRes = await gh('/user'); // fallback: the public profile email
-  const user = userRes.ok ? await userRes.json() : {};
-  if (looksLikeEmail(user.email)) return user.email;
   throw new Error('GitHub account has no verified email');
 }
 
@@ -182,14 +205,10 @@ export async function fetchVerifiedEmail(provider, env, { code, redirectUri, pkc
     if (!looksLikeEmail(claims.email)) throw new Error('Google id_token carries no email');
     return claims.email;
   }
-  // suse (id.suse.com, Keycloak): require the `email` claim. Some IdP tenants
-  // omit email_verified, so we reject only an explicit false rather than
-  // demanding true. We do NOT
-  // fall back to `preferred_username` - OIDC Core says it MAY be any string and
-  // the RP must not treat it as verified or unique, so it must never become a
-  // cert-bound identity. A tenant that only issues preferred_username should be
-  // configured to release the `email` scope/claim instead.
-  if (claims.email_verified === false) throw new Error('account email is not verified');
+  const policy = env.SUSE_EMAIL_VERIFICATION || 'claim';
+  if (!['claim', 'trusted'].includes(policy)) throw new Error('invalid SUSE email verification policy');
+  // A managed issuer may omit the claim only when its operator explicitly trusts its email directory.
+  if (claims.email_verified !== true && !(policy === 'trusted' && claims.email_verified === undefined)) throw new Error('account email is not verified');
   if (!looksLikeEmail(claims.email)) throw new Error('id_token carries no verified email claim');
   return claims.email;
 }
