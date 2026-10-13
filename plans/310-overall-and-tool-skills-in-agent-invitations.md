@@ -11,7 +11,7 @@ An invitation from an open tool supplies two levels of guidance: Lolly's overall
 
 Every tool receives a useful baseline skill generated from its manifest. Richer tools add authored guidance. An agent loads only the current tool's guidance and the shared references needed for its task, rather than every tool skill at once.
 
-The Share panel uses icon-bearing native disclosures based on `details.input-section` in `#tool-sidebar`. Invite an agent includes an Agent name field. Those UI changes are being implemented now; publishing and automatically supplying the skill pair remains the plan described here.
+The Share panel uses icon-bearing native disclosures based on `details.input-section` in `#tool-sidebar`. Invite an agent includes an Agent name field. Those UI changes are implemented in [draft PR 247](https://github.com/lolly-tools/lolly/pull/247); publishing and automatically supplying the skill pair remains the plan described here.
 
 ## Current evidence
 
@@ -106,11 +106,11 @@ Acceptance: a simple tool can be inspected/updated through its real input model 
 
 Use the existing summary/title/icon/body class structure and shell icon set. Keep the primary Copy link action easy to reach. Put link behavior/options, editable files and applicable feature blocks in concise collapsible sections. Registered sections keep their existing order and listeners.
 
-Invite an agent contains Agent name, Agent access, the copy action and a subordinate setup link. Keep revoke/end controls recognizable. Preserve the drafted name for the same invitation host across panel rebuilds without writing it into tool inputs or global persisted state. Retain existing invitation expiry, revocation and connection limits.
+Invite an agent contains Agent name, Agent access, the copy action and a subordinate setup link. Keep revoke/end controls recognizable. Preserve the drafted name and access choice for the same invitation host across panel rebuilds without writing them into tool inputs or global persisted state. Enforce the host's current read/edit capability after a downgrade. Retain existing invitation expiry, revocation and connection limits.
 
 Preserve disclosure choices during docked-panel refreshes, keyboard focus and readable status/error text. Validate narrow panels, large text, keyboard operation and modal/docked parity against the native input-section reference. Icons accompany text and are decorative to assistive technology.
 
-The current implementation work owns the presentation and naming changes. It does not publish tool skills or expand live support. Skills deliveries A-C follow their own acceptance checks.
+PR 247 implements presentation, naming and access-choice persistence. It does not publish tool skills or expand live support. Skills deliveries A-C follow their own acceptance checks. Browser verification is recorded in [the local evidence](artifacts/310-share-panel/verification.md).
 
 ## Validation, order and completion
 
