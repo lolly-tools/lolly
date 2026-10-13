@@ -1,12 +1,8 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * lib/document-scope.ts: the scope chip seam (plan 75 section 5.1, G1).
- *
- * Dormant first: with no provider and no external session source there is no chip, no
- * scoped save and no scoped leave question, so the shell is what it was. Then a
- * workspace with no claim says "On this device", and a provider that claims the
- * mounted document draws its own chip, menu and chrome, takes Save, and asks its own
- * leave question, until the claim or the mount ends.
+ * Document ownership without a stage overlay. Unclaimed mounts retain the ordinary
+ * device save and leave prompt; claimed mounts keep provider lifecycle, scoped Save
+ * and Leave behavior without rendering the former chip or its menu.
  *
  * Run directly:  node --import ./tests/css-stub.mjs --test shells/web/src/lib/document-scope.test.ts
  */
@@ -48,9 +44,6 @@ function makeMount(view: HTMLElement, over: Partial<Mount> = {}): Mount {
   };
 }
 
-const chipText = (view: HTMLElement): string =>
-  [...view.querySelectorAll<HTMLElement>('.document-scope-chip:not([hidden])')].map((el) => el.textContent ?? '').join('|');
-
 test('dormant: no provider and no workspace draws nothing and routes nothing', async () => {
   scope._resetDocumentScopeForTests();
   const view = makeView();
@@ -58,7 +51,6 @@ test('dormant: no provider and no workspace draws nothing and routes nothing', a
   const stop = scope.mountDocumentScope(makeMount(view));
   await settle();
   assert.equal(view.innerHTML, before, 'the tool view is byte-identical');
-  assert.equal(scope.documentScopeChip(), null);
   assert.equal(scope.saveInDocumentScope('poster'), null, 'Save saves on this device as before');
   assert.equal(scope.documentLeavePrompt(), null, 'the ordinary leave dialog');
   assert.equal(scope.documentScopeClaimed('poster'), false);
@@ -66,43 +58,44 @@ test('dormant: no provider and no workspace draws nothing and routes nothing', a
   view.remove();
 });
 
-test('a workspace with no claim says "On this device", as plain status text', async () => {
+test('a workspace with no claim leaves the tool stage unchanged', async () => {
   scope._resetDocumentScopeForTests();
   const off = registerSessionSource({
     label: 'lolly.ing', listProjects: async () => [], listSessions: async () => [], fetchSession: async () => null,
   });
   const view = makeView();
+  const before = view.innerHTML;
   const stop = scope.mountDocumentScope(makeMount(view));
   await settle();
-  assert.equal(chipText(view), 'On this device');
-  const chip = view.querySelector('#tool-stage .document-scope [role="status"]');
-  assert.ok(chip, 'on the stage, as a status line: there is no menu to open');
-  assert.equal(view.querySelector('.document-scope button:not([hidden])'), null);
+  assert.equal(view.innerHTML, before, 'no overlay obscures the tool controls');
+  assert.equal(scope.documentScopeClaimed(), false);
+  assert.equal(scope.documentLeavePrompt(), null);
   assert.equal(scope.saveInDocumentScope('poster'), null, 'nothing claims it, so Save stays on this device');
   stop();
-  assert.equal(view.querySelector('.document-scope'), null, 'the mount took its chip with it');
+  assert.equal(view.querySelector('.document-scope'), null);
   off();
   view.remove();
 });
 
-test('a claiming provider: its chip, menu, save, leave question and chrome, for as long as it claims', async () => {
+test('a claiming provider keeps save, leave and attach behavior without a chip or menu', async () => {
   scope._resetDocumentScopeForTests();
   let claims = true;
   let saves = 0;
-  let unsaved = false;
   const attached: string[] = [];
-  const ran: string[] = [];
+  let menuReads = 0;
   const off = scope.registerDocumentScope({
     chip: (m) => claims ? { label: 'Brand refresh · Can edit', role: 'edit', ...(m.unsaved() ? { state: 'Not saved yet' } : {}) } : null,
     save: async () => { saves++; return true; },
     leavePrompt: () => 'Save changes to Brand refresh?',
-    menu: () => [{ id: 'copy-link', label: 'Copy team link', run: () => ran.push('copy-link') }],
+    menu: () => { menuReads++; return []; },
     attach: (m) => { attached.push(`on:${m.toolId}`); return () => attached.push('off'); },
   });
   const view = makeView();
-  const stop = scope.mountDocumentScope(makeMount(view, { unsaved: () => unsaved }));
+  const before = view.innerHTML;
+  const stop = scope.mountDocumentScope(makeMount(view));
   await settle();
-  assert.equal(chipText(view), 'Brand refresh · Can edit');
+  assert.equal(view.innerHTML, before);
+  assert.equal(menuReads, 0, 'the removed menu is never requested');
   assert.deepEqual(attached, ['on:poster']);
   assert.equal(scope.documentScopeClaimed('poster'), true);
   assert.equal(scope.documentScopeClaimed('chart'), false, 'only the mounted tool');
@@ -111,29 +104,22 @@ test('a claiming provider: its chip, menu, save, leave question and chrome, for 
   assert.equal(saves, 1);
   assert.equal(scope.saveInDocumentScope('chart'), null, 'another tool is not this mount');
 
-  // An edit redraws the state ('lolly-session-status' does not bubble; it is caught on the way down).
-  unsaved = true;
+  // A non-bubbling edit event still refreshes the provider attachment.
+  claims = false;
   view.querySelector('#tool-canvas')!.dispatchEvent(new dom.window.Event('lolly-session-status'));
   await settle();
-  assert.equal(chipText(view), 'Brand refresh · Can editNot saved yet');
+  assert.deepEqual(attached, ['on:poster', 'off']);
+  claims = true;
+  scope.notifyDocumentScopeChange();
+  assert.deepEqual(attached, ['on:poster', 'off', 'on:poster']);
 
-  // The menu: a real button with a keyboard menu.
-  const button = view.querySelector<HTMLButtonElement>('.document-scope-chip--menu')!;
-  assert.equal(button.getAttribute('aria-haspopup'), 'menu');
-  button.click();
-  const item = view.querySelector<HTMLButtonElement>('[role="menuitem"][data-scope-item="copy-link"]')!;
-  assert.equal(button.getAttribute('aria-expanded'), 'true');
-  assert.equal(document.activeElement, item, 'focus moves into the menu');
-  item.click();
-  assert.deepEqual(ran, ['copy-link']);
-  assert.equal(button.getAttribute('aria-expanded'), 'false');
-
-  // The claim ends (a viewer made their own copy): chrome detached, chip gone.
+  // The claim ends (a viewer made their own copy): provider detached.
   claims = false;
   scope.notifyDocumentScopeChange();
   await settle();
-  assert.deepEqual(attached, ['on:poster', 'off']);
-  assert.equal(chipText(view), '', 'no workspace source here, so no "On this device" either');
+  assert.deepEqual(attached, ['on:poster', 'off', 'on:poster', 'off']);
+  assert.equal(view.innerHTML, before, 'scope changes do not add a stage overlay');
+  assert.equal(menuReads, 0);
   assert.equal(scope.saveInDocumentScope('poster'), null);
   stop();
   off();
@@ -170,7 +156,8 @@ test('one provider failing is its own: the next is still asked', async () => {
     const view = makeView();
     const stop = scope.mountDocumentScope(makeMount(view));
     await settle();
-    assert.equal(chipText(view), 'Second');
+    assert.equal(scope.documentScopeClaimed('poster'), true);
+    assert.equal(view.querySelector('.document-scope'), null);
     stop();
     view.remove();
   } finally {
