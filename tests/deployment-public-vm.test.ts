@@ -582,7 +582,7 @@ test('service archive receipts bind attempts while accepting only unambiguous le
         const dir = join(root, 'receipts', service); mkdirSync(dir, { recursive: true });
         writeFileSync(join(dir, 'release.json'), JSON.stringify({ runId: '123', source: archiveSource, runAttempt: receiptAttempt, neutralProfile: true, images: { ca: {}, penpot: {} } }));
       }
-      const result = spawnSync(process.execPath, ['--input-type=module', '-e', script], { env: { ...process.env, RUNNER_TEMP: root, SOURCE_SHA: archiveSource, QUALIFICATION_RUN: '123' }, encoding: 'utf8', timeout: 5000 });
+      const result: SpawnSyncReturns<string> = spawnSync(process.execPath, ['--input-type=module', '-e', script], { env: { ...process.env, RUNNER_TEMP: root, SOURCE_SHA: archiveSource, QUALIFICATION_RUN: '123' }, encoding: 'utf8', timeout: 5000 });
       assert.equal(result.status === 0, allowed, `${attempt}/${receiptAttempt}: ${result.stderr}`);
     }
   } finally { rmSync(directory, { recursive: true, force: true }); }
@@ -598,7 +598,7 @@ test('service receipt writers bind a positive exact attempt and both image ident
     for (const attempt of ['1', '2', '', '0', '1.5']) {
       const root = mkdtempSync(join(directory, 'case-')); const receipts = join(root, 'lolly-image-receipts'); mkdirSync(receipts);
       for (const service of ['ca', 'penpot']) writeFileSync(join(receipts, `${service}.json`), JSON.stringify({ Id: `sha256:${'a'.repeat(64)}`, Config: { Labels: { 'org.opencontainers.image.revision': archiveSource } }, Os: 'linux', Architecture: 'amd64', RepoDigests: [`ghcr.io/owner/lolly-${service}@sha256:${'b'.repeat(64)}`] }));
-      const result = spawnSync(process.execPath, ['--input-type=module', '-e', script], { env: { ...process.env, RUNNER_TEMP: root, EXPECTED_SOURCE: archiveSource, GITHUB_RUN_ID: '123', GITHUB_RUN_ATTEMPT: attempt }, encoding: 'utf8', timeout: 5000 });
+      const result: SpawnSyncReturns<string> = spawnSync(process.execPath, ['--input-type=module', '-e', script], { env: { ...process.env, RUNNER_TEMP: root, EXPECTED_SOURCE: archiveSource, GITHUB_RUN_ID: '123', GITHUB_RUN_ATTEMPT: attempt }, encoding: 'utf8', timeout: 5000 });
       assert.equal(result.status === 0, ['1', '2'].includes(attempt), result.stderr);
       if (result.status === 0) {
         const release = JSON.parse(readFileSync(join(receipts, 'release.json'), 'utf8'));
