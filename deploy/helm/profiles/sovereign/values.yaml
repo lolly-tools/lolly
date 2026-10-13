@@ -70,6 +70,21 @@ components:
       limits: {cpu: "1", memory: 768Mi, ephemeral-storage: 128Mi}
     tmpSize: 64Mi
   ca:
+    issuerMode: legacy-root
+    managed:
+      address: ""
+      mount: ""
+      namespace: ""
+      auth: kubernetes
+      serviceAccountName: ""
+      kubernetesMount: ""
+      kubernetesRole: ""
+      kubernetesAudience: ""
+      credentialSecret: ""
+      revocationCredentialSecret: ""
+      trustJson: ""
+      rolesJson: ""
+      egress: []
     image: {repository: ghcr.io/lolly-tools/lolly-ca, digest: ""}
     port: 8787
     uid: 1000

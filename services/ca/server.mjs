@@ -8,6 +8,7 @@
 import { createHttpLifecycle, createWriteTracker } from '../shared/http-lifecycle.mjs';
 import { createCaHandler } from './handler.mjs';
 import { configuredProviders } from './lib/oidc.mjs';
+import { issuerMode } from './lib/managed-enroll.mjs';
 
 const port = Number(process.env.PORT || 8787);
 
@@ -29,7 +30,9 @@ lifecycle.server.listen(port, () => {
   console.log(`  providers: ${providers.length ? providers.join(', ') : 'none configured'}`);
   if (!process.env.CA_SERVICE_SECRET)
     console.warn('  WARNING: CA_SERVICE_SECRET is not set - auth and enrollment will fail');
-  if (!process.env.CA_ROOT_CERT_PEM || !process.env.CA_ROOT_KEY_PEM) {
+  let mode;
+  try { mode = issuerMode(process.env); } catch { console.warn('  Certificate issuer mode is not configured'); }
+  if (mode === 'legacy-root' && (!process.env.CA_ROOT_CERT_PEM || !process.env.CA_ROOT_KEY_PEM)) {
     console.warn(
       '  WARNING: CA root is not configured - /enroll will fail (run scripts/gen-root.mjs)'
     );

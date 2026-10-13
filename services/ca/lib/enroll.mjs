@@ -9,6 +9,8 @@
 
 import { issueLeafCert, pemToDer, derToPem } from '../../../engine/src/x509.ts';
 import { b64uToBytes, verifyEnrollToken } from './tokens.mjs';
+import { verifyEnrollmentRequest } from '../../../engine/src/enrollment.ts';
+import { issuerMode, managedEnroll } from './managed-enroll.mjs';
 
 const te = new TextEncoder();
 const subtle = globalThis.crypto.subtle;
@@ -43,34 +45,29 @@ function leafDays(env, requested) {
   return Math.min(days, max);
 }
 
-// NO ISSUANCE LOG - deliberately. Don't add one back without reading this.
-//
-// This used to write one JSON line per issuance (email, provider, a serial
-// hash, expiry) to stdout - i.e. into the host's function logs - plus an
-// optional webhook POST. That line was the single place in the entire Lolly
-// system where a piece of personal data came to rest on a server, and it is
-// gone: enrollment now reads an email out of a verified token, puts it in a
-// certificate the user's own device receives, and retains nothing.
-//
-// The tradeoff is real and accepted: there is no server-side record that a
-// given certificate was ever issued, so a misissued one cannot be traced from
-// our side. Leaf certificates are short-lived by construction (7/30/90/365
-// days, clamped by CA_CERT_MAX_DAYS) and simply expire, which is the mitigation
-// we rely on instead of an audit trail.
-//
-// If you are self-hosting and your own compliance regime REQUIRES an issuance
-// audit log, add it here - but note you then become the controller of that
-// personal data, with the retention and access obligations that follow.
+// Legacy issuance retains no identity inventory. Managed issuance uses shared
+// one-use admission and delegates certificate custody to the provider.
 
 /**
  * The full enrollment: token → PoP → leaf. Returns a { status, json } result
  * the handler writes verbatim (and tests call directly, no socket).
  */
-export async function enroll({ token, spki, pop, days } = {}, env) {
+export async function enroll(body = {}, env, deps = {}) {
+  let mode;
+  try { mode = issuerMode(env); } catch { return { status: 503, json: { error: 'Certificate issuer mode is not configured' } }; }
+  if (mode === 'vault-pki') return managedEnroll(body, env, deps);
+  const { token, spki, pop, days, csr, version } = body;
   if (!token || !spki || !pop) return { status: 400, json: { error: 'token, spki and pop are required' } };
   const t = await verifyEnrollToken(String(token), env.CA_SERVICE_SECRET);
   if (!t.ok) return { status: 401, json: { error: t.error } };
-  const p = await verifyPop({ token: String(token), spki, pop });
+  let p;
+  if (version === 2) {
+    try {
+      const spkiDer = b64uToBytes(spki);
+      await verifyEnrollmentRequest(b64uToBytes(csr), spkiDer, b64uToBytes(pop), String(token));
+      p = { ok: true, spkiDer };
+    } catch { p = { ok: false, error: 'Enrollment proof does not verify' }; }
+  } else p = await verifyPop({ token: String(token), spki, pop });
   if (!p.ok) return { status: 401, json: { error: p.error } };
   if (!env.CA_ROOT_CERT_PEM || !env.CA_ROOT_KEY_PEM) return { status: 500, json: { error: 'CA root is not configured' } };
 
@@ -94,6 +91,8 @@ export async function enroll({ token, spki, pop, days } = {}, env) {
   return {
     status: 200,
     json: {
+      version: version === 2 ? 2 : 1,
+      issuerMode: 'legacy-root',
       cert: certPem,
       chain: [certPem, derToPem(caCertDer, 'CERTIFICATE')], // leaf-first, root normalised
       identity: { email: t.payload.email, provider: t.payload.provider },

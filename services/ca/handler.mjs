@@ -21,9 +21,12 @@
 
 import { buildAuthorizeUrl, configuredProviders, fetchVerifiedEmail, looksLikeEmail, OAUTH_PROVIDERS } from './lib/oidc.mjs';
 import { isIP } from 'node:net';
+import { derToPem as certificatePemBase } from '../../engine/src/x509.ts';
+const certificatePem = root => certificatePemBase(root, 'CERTIFICATE');
 import { mintEnrollToken, randomB64u, signValue, verifyValue } from './lib/tokens.mjs';
 import { completionPage, errorPage } from './lib/pages.mjs';
 import { enroll } from './lib/enroll.mjs';
+import { issuerMode, managedPolicy, managedCrl, managedRevocationChallenge, managedRevoke } from './lib/managed-enroll.mjs';
 import { createRateLimiter, RateLimitUnavailableError } from './lib/rate-limit.mjs';
 
 const STATE_COOKIE = 'lolly_ca_state';
@@ -91,17 +94,31 @@ export function isAllowedOrigin(origin, env) {
 // ─── routes ───────────────────────────────────────────────────────────────────
 
 export function routeHealth(env) {
+  let mode;
+  let managed;
+  try { mode = issuerMode(env); if (mode === 'vault-pki') managed = managedPolicy(env); } catch { mode = 'unconfigured'; }
+  const configured = configuredProviders(env);
+  if (mode !== 'legacy-root') for (const provider of Object.keys(configured)) configured[provider] = configured[provider] && !!managed?.trust.providers[provider];
   return {
     status: 200,
     json: {
       ok: true,
-      devProvider: env.CA_DEV_FAKE_PROVIDER === '1',
-      configured: configuredProviders(env),
+      devProvider: env.CA_DEV_FAKE_PROVIDER === '1' && (mode === 'legacy-root' || !!managed?.trust.providers.dev),
+      configured,
+      enrollmentVersion: 2,
+      issuerMode: mode,
+      ...(managed ? { defaultLifetimeSeconds: managed.trust.defaultLifetimeSeconds, maxLifetimeSeconds: managed.trust.maxLifetimeSeconds } : {}),
     },
   };
 }
 
 export function routeRootPem(env) {
+  try {
+    if (issuerMode(env) === 'vault-pki') {
+      const { trust } = managedPolicy(env);
+      return { status: 200, body: trust.roots.map(root => certificatePem(root)).join(''), type: 'text/plain; charset=utf-8' };
+    }
+  } catch { return { status: 503, body: 'Certificate trust is not configured\n', type: 'text/plain; charset=utf-8' }; }
   if (!env.CA_ROOT_CERT_PEM) {
     return { status: 404, body: 'CA root certificate is not configured on this deployment\n', type: 'text/plain; charset=utf-8' };
   }
@@ -118,6 +135,7 @@ const stateCookie = (value, redirectUri, maxAge = STATE_TTL_SECONDS) =>
  */
 export async function routeAuth(env, { provider, origin, redirectUri }) {
   if (!isAllowedOrigin(origin, env)) return { status: 403, json: { error: 'origin is not allowlisted' } };
+  try { if (issuerMode(env) === 'vault-pki' && !managedPolicy(env).trust.providers[provider]) return { status: 403, json: { error: 'provider is outside enrollment policy' } }; } catch { return { status: 503, json: { error: 'enrollment policy is not configured' } }; }
   if (provider === 'dev') {
     if (env.CA_DEV_FAKE_PROVIDER !== '1') return { status: 404, json: { error: 'unknown provider' } };
     const token = await mintEnrollToken({ email: 'dev@example.com', provider: 'dev' }, env.CA_SERVICE_SECRET);
@@ -171,6 +189,7 @@ export async function routeCallback(env, { provider, query, cookieHeader, redire
 
 /** Magic-link start: mint a token for { email, provider: 'email' } and send it via Resend. */
 export async function routeEmailStart(env, body, ip) {
+  try { if (issuerMode(env) === 'vault-pki' && !managedPolicy(env).trust.providers.email) return { status: 403, json: { error: 'provider is outside enrollment policy' } }; } catch { return { status: 503, json: { error: 'enrollment policy is not configured' } }; }
   const email = typeof body?.email === 'string' ? body.email.trim() : '';
   const origin = body?.origin;
   if (!isAllowedOrigin(origin, env)) return { status: 403, json: { error: 'origin is not allowlisted' } };
@@ -256,8 +275,10 @@ function redirectUriFor(req, provider) {
 async function readJsonBody(req) {
   if (req.body !== undefined && req.body !== null) {
     if (Buffer.isBuffer(req.body) || typeof req.body === 'string') {
+      if (Buffer.byteLength(req.body) > BODY_CAP) throw Object.assign(new Error('request body too large'), { statusCode: 413 });
       try { return JSON.parse(String(req.body)); } catch { return null; }
     }
+    if (Buffer.byteLength(JSON.stringify(req.body)) > BODY_CAP) throw Object.assign(new Error('request body too large'), { statusCode: 413 });
     return req.body;
   }
   const chunks = [];
@@ -312,6 +333,11 @@ async function route(env, req, url, path, limiter) {
   const m = req.method;
   if (m === 'GET' && path === '/api/ca/health') return routeHealth(env);
   if (m === 'GET' && path === '/api/ca/root.pem') return routeRootPem(env);
+  const crl = m === 'GET' && path.match(/^\/api\/ca\/issuer\/([A-Za-z0-9_-]{1,100})\/crl$/);
+  if (crl) {
+    const refusal = await admission(limiter, 'crl', clientIp(req, env), positiveInt(env.CA_ENROLL_RPM, 30));
+    return refusal ?? managedCrl(env, crl[1]);
+  }
   const auth = m === 'GET' && path.match(/^\/api\/ca\/auth\/([a-z0-9_-]+)$/);
   if (auth) {
     const refusal = await admission(limiter, 'auth', clientIp(req, env), positiveInt(env.CA_AUTH_RPM, 30));
@@ -333,7 +359,9 @@ async function route(env, req, url, path, limiter) {
       redirectUri: redirectUriFor(req, cb[1]),
     });
   }
-  if (m === 'POST' && (path === '/api/ca/email/start' || path === '/api/ca/enroll')) {
+  if (m === 'POST' && (path === '/api/ca/email/start' || path === '/api/ca/enroll' || path === '/api/ca/revoke/challenge' || path === '/api/ca/revoke')) {
+    const origin = req.headers.origin;
+    if (origin && !isAllowedOrigin(origin, env)) return { status: 403, json: { error: 'origin is not allowlisted' } };
     const ip = clientIp(req, env);
     const routeLimit = path === '/api/ca/enroll'
       ? positiveInt(env.CA_ENROLL_RPM, 30)
@@ -347,6 +375,8 @@ async function route(env, req, url, path, limiter) {
       return { status: err.statusCode || 400, json: { error: err.message } };
     }
     if (path === '/api/ca/enroll') return enroll(body || {}, env);
+    if (path === '/api/ca/revoke/challenge') return managedRevocationChallenge(env, body || {});
+    if (path === '/api/ca/revoke') return managedRevoke(env, body || {});
     const email = typeof body?.email === 'string' ? body.email.trim().toLowerCase() : 'invalid';
     const emailRefusal = await admission(limiter, 'email-address', email, positiveInt(env.CA_EMAIL_PER_ADDRESS_RPM, 1));
     return emailRefusal ?? routeEmailStart(env, body || {}, ip);
@@ -361,7 +391,7 @@ export function createCaHandler(env = process.env, { onWrite } = {}) {
   // blank-brand deployment with no CA_* secrets - should not
   // serve a CA surface (health/root.pem/enroll) that can only dead-end; 404
   // every route so the endpoint cleanly doesn't exist.
-  const caEnabled = !!(env.CA_SERVICE_SECRET || env.CA_ROOT_KEY_PEM);
+  const caEnabled = !!(env.CA_SERVICE_SECRET || env.CA_ISSUER_MODE === 'vault-pki' || env.CA_ROOT_KEY_PEM);
   const limiter = caEnabled ? createRateLimiter(env, onWrite) : null;
   return async function caHandler(req, res) {
     try {
@@ -385,11 +415,9 @@ export function createCaHandler(env = process.env, { onWrite } = {}) {
         return;
       }
       writeResult(res, await route(env, req, url, path, limiter), cors);
-    } catch (err) {
-      // Message only, never the error object: a stack or a fetch error can carry
-      // the request URL, and enrollment URLs carry a short-lived (10-minute)
-      // stateless HMAC token - time-bounded, not single-use.
-      console.error('ca handler error:', err?.message || 'unknown');
+    } catch {
+      // Provider errors may contain identity values or credentials.
+      console.error('ca handler failed');
       try {
         res.writeHead(500, { 'content-type': 'application/json; charset=utf-8' });
         res.end(JSON.stringify({ error: 'internal error' }));

@@ -1,6 +1,7 @@
 {{- if .Values.ca.enabled -}}
 {{- $c := .Values.ca -}}
 {{- $labels := dict "root" . "name" "ca" -}}
+{{- include "lolly.ca.managedValidate" . -}}
 {{- $secretName := include "lolly.ca.secretName" . -}}
 apiVersion: apps/v1
 kind: Deployment
@@ -30,7 +31,7 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "lolly.serviceAccountName" . }}
+      serviceAccountName: {{ if eq $c.config.issuerMode "vault-pki" }}{{ $c.config.managed.serviceAccountName }}{{ else }}{{ include "lolly.serviceAccountName" . }}{{ end }}
       automountServiceAccountToken: {{ .Values.serviceAccount.automountServiceAccountToken }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
@@ -83,6 +84,11 @@ spec:
               value: "production"
             - name: PORT
               value: {{ $c.service.targetPort | quote }}
+            - name: CA_ISSUER_MODE
+              value: {{ $c.config.issuerMode | quote }}
+            {{- if eq $c.config.issuerMode "vault-pki" }}
+            {{- include "lolly.ca.managedEnv" $c.config.managed | nindent 12 }}
+            {{- end }}
             # ── Non-secret CA config ──────────────────────────────────────────
             {{- with $c.config.allowedOrigins }}
             - name: CA_ALLOWED_ORIGINS
@@ -118,6 +124,7 @@ spec:
                 secretKeyRef:
                   name: {{ $secretName }}
                   key: CA_SERVICE_SECRET
+            {{- if eq $c.config.issuerMode "legacy-root" }}
             - name: CA_ROOT_KEY_PEM
               valueFrom:
                 secretKeyRef:
@@ -128,6 +135,7 @@ spec:
                 secretKeyRef:
                   name: {{ $secretName }}
                   key: CA_ROOT_CERT_PEM
+            {{- end }}
             - name: GITHUB_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
@@ -156,9 +164,15 @@ spec:
           resources:
             {{- toYaml $c.resources | nindent 12 }}
           volumeMounts:
+            {{- if eq $c.config.issuerMode "vault-pki" }}
+            {{- include "lolly.ca.managedMounts" $c.config.managed | nindent 12 }}
+            {{- end }}
             - name: tmp
               mountPath: /tmp
       volumes:
+        {{- if eq $c.config.issuerMode "vault-pki" }}
+        {{- include "lolly.ca.managedVolumes" $c.config.managed | nindent 8 }}
+        {{- end }}
         - name: tmp
           emptyDir:
             {{- include "lolly.emptyDir" $c.tmp | nindent 12 }}

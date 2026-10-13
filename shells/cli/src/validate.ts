@@ -52,6 +52,7 @@
  * verdict-based exit codes entirely ("just tell me what is in this file").
  */
 
+import { loadEnrollmentTrust } from '@lolly-tools/node-shell/enrollment-trust';
 import { readFile } from 'node:fs/promises';
 import { verifyC2pa, resolveVerdict, defaultTrustAnchors, c2paTrustAnchors, LOLLY_CA_ROOT_PEM } from '@lolly/engine';
 import type { DeepScanResult } from '@lolly-tools/node-shell/webshell-render';
@@ -204,7 +205,8 @@ export async function validateFile(
       record: json ? { file: filePath, ok: false, error: { code: 'USAGE', exit: EXIT.USAGE, kind: 'INPUT_UNREADABLE', message } } : null,
     };
   }
-  const report = await verifyC2pa(bytes, { trustAnchors: anchors });
+  const managed = await loadEnrollmentTrust();
+  const report = await verifyC2pa(bytes, { trustAnchors: [...anchors, ...(managed?.trust.roots ?? [])], ...(managed ? { enrollmentTrust: managed.trust, enrollmentCrls: managed.crls } : {}) });
 
   // --metadata: the file report (contract section 6b) - "what else is in this file", on top of
   // "is the credential intact". One implementation, in @lolly-tools/node-shell/inspect,

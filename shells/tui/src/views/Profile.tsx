@@ -4,6 +4,7 @@
  * declare bindToProfile and, with "embed in exports" on, ride along in export
  * provenance. Edits save immediately.
  */
+import { loadEnrollmentTrust } from '@lolly-tools/node-shell/enrollment-trust';
 import { useEffect, useState } from 'react';
 import { Box, Text, useInput } from 'ink';
 import TextInput from 'ink-text-input';
@@ -153,7 +154,8 @@ export function Profile({ bridge, onNav, onQuit }: { bridge: TuiBridge; onNav: (
         const abs = p.startsWith('~') && (p.length === 1 || p[1] === '/') ? homedir() + p.slice(1) : p;
         const bytes = new Uint8Array(await readFile(abs));
         const trust = await loadTrustAnchors(process.env.LOLLY_TRUST_ANCHOR, profile);
-        const report = await verifyC2pa(bytes, { trustAnchors: trust.anchors });
+        const managed = await loadEnrollmentTrust();
+        const report = await verifyC2pa(bytes, { trustAnchors: [...trust.anchors, ...(managed?.trust.roots ?? [])], ...(managed ? { enrollmentTrust: managed.trust, enrollmentCrls: managed.crls } : {}) });
         const v = resolveVerdict(report);
         const lines: VLine[] = [];
         const push = (text: string, tone: VLine['tone'] = 'fg'): void => { lines.push({ text, tone }); };

@@ -36,6 +36,7 @@
  */
 
 import { readFile } from 'node:fs/promises';
+import { loadEnrollmentTrust } from './enrollment-trust.ts';
 import {
   extractFileMetadata, hasResidualMetadata, isStrippableFormat,
   extractPageText, joinPageText, findHiddenTextInPages, describeHiddenText,
@@ -201,7 +202,8 @@ export async function inspectBytes(bytes: Uint8Array, options: InspectOptions = 
         includeLollyRoot: opts.credential.includeLollyRoot ?? false,
         extra: opts.credential.trustAnchors ?? [],
       });
-      report = await verifyC2pa(bytes, { trustAnchors: anchors });
+      const managed = await loadEnrollmentTrust();
+      report = await verifyC2pa(bytes, { trustAnchors: [...anchors, ...(managed?.trust.roots ?? [])], ...(managed ? { enrollmentTrust: managed.trust, enrollmentCrls: managed.crls } : {}) });
     } catch (err) {
       out.errors.push(`Content Credentials could not be checked (${msg(err)})`);
     }

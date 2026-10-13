@@ -130,7 +130,8 @@
     "./layout-kernel": "./src/layout-kernel.ts",
     "./layout-kernel-node": "./src/layout-kernel-node.ts",
     "./layout-kernel.wasm": "./wasm/layout-kernel/layout-kernel.wasm",
-    "./layout-host-node": "./src/layout-host-node.ts"
+    "./layout-host-node": "./src/layout-host-node.ts",
+    "./enrollment-trust": "./src/enrollment-trust.ts"
   },
   "files": [
     "src",
