@@ -21,7 +21,7 @@ const host: HostV1 = {
   assets: { get: async id => { throw new Error(`No fixture asset ${id}`); }, query: async () => [], pick: async () => null, isAvailable: async () => false },
   state: { load: async () => null, save: async () => {}, list: async () => [], delete: async () => {} },
   clipboard: { writeText: async () => {}, writeImage: async () => ({ method: 'clipboard' }) },
-  export: { render: async () => new Blob(['<svg/>']), download: async () => {}, file: async () => {} },
+  export: { render: async () => new Blob(['<svg/>']), download: async () => {}, file: async () => {}, imprint: async bytes => bytes },
 };
 
 async function realTool(context: TestContext, id = 'qr-code') {
