@@ -15,14 +15,14 @@ import type { NetAPI } from '@lolly-tools/core/host-v1';
 // above any tile, API, or font payload a tool legitimately pulls.
 const MAX_RESPONSE_BYTES = 64 * 1024 * 1024;
 
-export function createNetAPI({ allowlist = [] }: { allowlist?: readonly string[] }): NetAPI {
+export function createNetAPI({ allowlist = [], fetchImpl }: { allowlist?: readonly string[]; fetchImpl?: NetAPI['fetch'] }): NetAPI {
   return {
     async fetch(url, init) {
-      const allowed = allowlist.some(pattern => matches(pattern, url));
+      const allowed = allowlist.some(pattern => matchesNetworkUrl(pattern, url));
       if (!allowed) {
         throw new Error(`Tool tried to fetch disallowed URL: ${url}`);
       }
-      return capResponse(await fetch(url, init), MAX_RESPONSE_BYTES);
+      return capResponse(await (fetchImpl ?? fetch)(url, init), MAX_RESPONSE_BYTES);
     },
   };
 }
@@ -47,7 +47,7 @@ function capResponse(res: Response, cap: number): Response {
   return new Response(counted, { status: res.status, statusText: res.statusText, headers: res.headers });
 }
 
-function matches(pattern: string, url: string): boolean {
+export function matchesNetworkUrl(pattern: string, url: string): boolean {
   // Simple prefix match for now. Supports trailing wildcards: "https://api.example.com/*".
   // The prefix must end at a path separator. The manifest schema requires the "/*" form,
   // and this enforces the same boundary for hand-fed allowlists (CLI/TUI opts). So an
