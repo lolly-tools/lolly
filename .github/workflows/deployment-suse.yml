@@ -45,7 +45,7 @@ on:
         options: [full, web, services-docs]
         default: full
       expected_source:
-        description: Exact reviewed 40-character commit; must match the dispatched ref
+        description: Exact reviewed application commit; image builds must match the dispatched ref
         required: false
         type: string
       ci_run:
@@ -56,6 +56,12 @@ on:
         description: Successful qualification run to export for offline node import
         required: false
         type: string
+      archive_images:
+        description: Export only this already-qualified image subset; never builds images
+        required: false
+        type: choice
+        options: [all, web, mcp-browser, services]
+        default: all
       public_key_jwk:
         description: Existing published public P-256 JWK; never a replacement or private key
         required: false
@@ -787,6 +793,8 @@ jobs:
           node --input-type=module -e '
             import { readFileSync, writeFileSync } from "node:fs";
             const directory = process.env.RUNNER_TEMP + "/lolly-image-receipts";
+            const runAttempt = Number(process.env.GITHUB_RUN_ATTEMPT);
+            if (!Number.isSafeInteger(runAttempt) || runAttempt < 1) throw new Error("Invalid run attempt");
             const images = {};
             for (const service of ["ca", "penpot"]) {
               const image = JSON.parse(readFileSync(directory + "/" + service + ".json", "utf8"));
@@ -794,13 +802,13 @@ jobs:
               images[service] = { imageId: image.Id, digest: image.RepoDigests[0], platform: "linux/amd64", source: process.env.EXPECTED_SOURCE };
               writeFileSync(directory + "/" + service + ".json", JSON.stringify(images[service], null, 2));
             }
-            writeFileSync(directory + "/release.json", JSON.stringify({ source: process.env.EXPECTED_SOURCE, runId: process.env.GITHUB_RUN_ID, neutralProfile: true, images, candidateRuntimeQualified: false }, null, 2));
+            writeFileSync(directory + "/release.json", JSON.stringify({ source: process.env.EXPECTED_SOURCE, runId: process.env.GITHUB_RUN_ID, runAttempt, neutralProfile: true, images, candidateRuntimeQualified: false }, null, 2));
           '
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
-          name: public-candidate-service-receipts
+          name: public-candidate-service-receipts-attempt-${{ github.run_attempt }}
           path: ${{ runner.temp }}/lolly-image-receipts/*.json
           if-no-files-found: warn
           retention-days: 14
@@ -1073,13 +1081,14 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
       QUALIFICATION_RUN: ${{ inputs.archive_run }}
+      ARCHIVE_IMAGES: ${{ inputs.archive_images }}
       SOURCE_SHA: ${{ inputs.expected_source }}
     steps:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: '24'
-      # Export only successful web/MCP jobs from the exact completed source run.
-      # A scope can omit either image; an omitted web gate differs from a gate
+      # Export successful image jobs from the exact completed source run.
+      # A scope can omit images; an omitted web gate differs from a gate
       # that ran successfully and withheld the web image. Failed images stay out.
       - name: Require a completed exact-source qualification
         run: |
@@ -1132,16 +1141,35 @@ jobs:
             selection.qualified.push('mcp-browser');
           } else if(mcp==='skipped' && probe==='skipped') selection.notSelected.push('mcp-browser');
           else selection.notQualified['mcp-browser']=mcp;
-          if(!selection.qualified.length) throw Error('No qualified web or MCP image to archive');
+          const services=outcome('Opt-in native public service images (CA, Penpot)');
+          if(services==='success') selection.qualified.push('ca','penpot');
+          else if(services==='skipped') selection.notSelected.push('ca','penpot');
+          else { selection.notQualified.ca=services; selection.notQualified.penpot=services; }
+          const filter=process.env.ARCHIVE_IMAGES||'all';
+          const subsets={all:null,web:['web'],'mcp-browser':['mcp-browser'],services:['ca','penpot']};
+          if(!Object.hasOwn(subsets,filter)) throw Error('Unknown archive image subset');
+          const requested=subsets[filter];
+          if(requested) {
+            if(requested.some(service=>!selection.qualified.includes(service))) throw Error('Requested archive image did not qualify');
+            selection.notSelected.push(...selection.qualified.filter(service=>!requested.includes(service)));
+            selection.qualified=selection.qualified.filter(service=>requested.includes(service));
+          }
+          if(!selection.qualified.length) throw Error('No qualified image to archive');
           writeFileSync(root+'/image-selection.json',JSON.stringify(selection));
           JS
           for service in $(node --input-type=module -e 'import{readFileSync}from"node:fs";console.log(JSON.parse(readFileSync(process.env.RUNNER_TEMP+"/image-selection.json")).qualified.join(" "))'); do
             case "$service" in
               web) artifact="public-candidate-web-receipts-attempt-$qualification_attempt" ;;
               mcp-browser) artifact="public-candidate-mcp-browser-receipts-attempt-$qualification_attempt" ;;
+              ca|penpot) artifact="public-candidate-service-receipts-attempt-$qualification_attempt" ;;
               *) exit 1 ;;
             esac
-            gh run download "$QUALIFICATION_RUN" --repo "$GITHUB_REPOSITORY" --name "$artifact" --dir "$RUNNER_TEMP/receipts/$service"
+            if ! gh run download "$QUALIFICATION_RUN" --repo "$GITHUB_REPOSITORY" --name "$artifact" --dir "$RUNNER_TEMP/receipts/$service"; then
+              # Older service receipts had no attempt field or suffix. Only the
+              # first, never-rerun qualification can identify those unambiguously.
+              [[ "$service" =~ ^(ca|penpot)$ && "$qualification_attempt" == 1 ]]
+              gh run download "$QUALIFICATION_RUN" --repo "$GITHUB_REPOSITORY" --name public-candidate-service-receipts --dir "$RUNNER_TEMP/receipts/$service"
+            fi
           done
       - name: Export the qualified registry content without changing its digest
         run: |
@@ -1161,11 +1189,16 @@ jobs:
           if(qualification.runId!==process.env.QUALIFICATION_RUN || qualification.source!==process.env.SOURCE_SHA || !Number.isSafeInteger(qualification.attempt) || qualification.attempt<1) throw Error('Invalid qualification attempt');
           const selection=JSON.parse(readFileSync(root+'/image-selection.json'));
           const qualified=selection.qualified;
-          if(!Array.isArray(qualified)||!qualified.length||new Set(qualified).size!==qualified.length||qualified.some(service=>!['web','mcp-browser'].includes(service))) throw Error('Invalid archive image selection');
+          if(!Array.isArray(qualified)||!qualified.length||new Set(qualified).size!==qualified.length||qualified.some(service=>!['web','mcp-browser','ca','penpot'].includes(service))) throw Error('Invalid archive image selection');
           const releases={};
           for(const service of qualified){
             const release=JSON.parse(readFileSync(root+'/receipts/'+service+'/release.json'));
-            if(release.source!==process.env.SOURCE_SHA || release.runId!==process.env.QUALIFICATION_RUN || release.runAttempt!==qualification.attempt || !release.neutralProfile) throw Error('Receipt differs');
+            if(service==='ca' || service==='penpot') {
+              const legacyFirstAttempt=release.runAttempt===undefined && qualification.attempt===1;
+              if(release.source!==process.env.SOURCE_SHA || release.runId!==process.env.QUALIFICATION_RUN || !release.neutralProfile || (release.runAttempt!==qualification.attempt && !legacyFirstAttempt) || Object.keys(release.images??{}).sort().join(',')!=='ca,penpot') throw Error('Service receipt differs');
+            } else {
+              if(release.source!==process.env.SOURCE_SHA || release.runId!==process.env.QUALIFICATION_RUN || release.runAttempt!==qualification.attempt || !release.neutralProfile) throw Error('Receipt differs');
+            }
             releases[service]=release;
           }
           const evidence={version:1,source:process.env.SOURCE_SHA,qualificationRun:process.env.QUALIFICATION_RUN,qualificationAttempt:qualification.attempt,transportRun:process.env.GITHUB_RUN_ID,withheld:selection.withheld,notSelected:selection.notSelected,notQualified:selection.notQualified,images:{}};

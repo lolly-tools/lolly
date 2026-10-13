@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * org/team-scope.ts: a team document's scope chip, Save, leave question and view-only
+ * org/team-scope.ts: a team document's Save, leave question and view-only
  * mode (plan 75 G1, G2 and J5/J6), driven through the real seams: the origin module
  * (org/team-session-origin.ts), the scope seam (lib/document-scope.ts), the input
  * policy's document layer and a session source whose writer records every call.
@@ -105,11 +105,6 @@ async function open(role: string | undefined, inputs: Record<string, unknown> = 
   return h;
 }
 
-const chip = (el: HTMLElement): string => el.querySelector('.document-scope-label')?.textContent ?? '';
-const chipState = (el: HTMLElement): string => {
-  const state = el.querySelector<HTMLElement>('.document-scope-state');
-  return state && !state.hidden ? state.textContent ?? '' : '';
-};
 const choose = async (selector: string): Promise<void> => {
   await settle(5);
   const dialog = document.querySelector('dialog');
@@ -117,11 +112,12 @@ const choose = async (selector: string): Promise<void> => {
   dialog!.querySelector<HTMLElement>(selector)!.click();
 };
 
-test('an editor: the chip names the project, Save writes back with the revision it was opened at', async () => {
+test('an editor: Save writes back with the revision it was opened at without a stage overlay', async () => {
   const { calls, off } = source();
   const h = await open('editor');
   await settle();
-  assert.equal(chip(h.el), 'Brand refresh · Can edit');
+  assert.equal(h.el.querySelector('.document-scope'), null);
+  assert.equal(scope.documentScopeClaimed('poster'), true);
   assert.equal(scope.documentLeavePrompt(), 'Save changes to Brand refresh?');
   assert.equal(policy.getInputPolicy('poster', 'headline'), undefined, 'an editor\'s inputs are editable');
   assert.equal(await scope.saveInDocumentScope('poster'), true);
@@ -129,7 +125,7 @@ test('an editor: the chip names the project, Save writes back with the revision 
   assert.deepEqual(calls.update[0], { id: 'sess-1', projectId: 'proj-9', inputs: { headline: 'Hello' }, meta: { label: 'Spring poster' }, rev: 3 }, 'compare-and-set on rev 3');
   assert.equal(origin.activeTeamSessionOrigin('poster')?.rev, 4, 'the next save quotes the new revision');
   await settle();
-  assert.equal(chipState(h.el), 'Saved just now');
+  assert.equal(h.el.querySelector('.document-scope'), null, 'saving does not create an overlay');
   h.stop();
   off();
 });
@@ -168,7 +164,7 @@ test('a viewer: read-only inputs, a banner, and Save offers a copy instead of wr
   const h = await open('viewer');
   assert.equal(policy.getInputPolicy('poster', 'headline')?.readable, true, 'locked before the first sidebar draw');
   await settle();
-  assert.equal(chip(h.el), 'Brand refresh · View only');
+  assert.equal(h.el.querySelector('.document-scope'), null);
   const banner = h.el.querySelector('.viewer-banner');
   assert.ok(banner, 'the banner is up');
   assert.equal(banner!.querySelector('.viewer-banner-text')?.textContent, 'View only. Changes can’t be saved to Brand refresh.');
@@ -209,7 +205,7 @@ test('a viewer\'s copy into a project they can edit opens with its new scope, in
   assert.equal(now?.sessionId, 'sess-new');
   assert.equal(now?.role, 'editor');
   await settle();
-  assert.equal(chip(h.el), 'Drafts · Can edit');
+  assert.equal(scope.documentLeavePrompt(), 'Save changes to Drafts?');
   assert.equal(h.el.querySelector('.viewer-banner'), null, 'no longer view only');
   assert.equal(policy.getInputPolicy('poster', 'headline'), undefined);
   assert.equal(h.el.querySelector('[readonly]'), null, 'the inputs work again without waiting for a redraw');
@@ -227,7 +223,8 @@ test('a viewer\'s copy on this device makes the document this device\'s', async 
   assert.equal(h.deviceSaves, 1);
   assert.equal(origin.activeTeamSessionOrigin('poster'), null);
   await settle();
-  assert.equal(chip(h.el), 'On this device');
+  assert.equal(scope.documentScopeClaimed('poster'), false);
+  assert.equal(h.el.querySelector('.document-scope'), null);
   assert.equal(h.el.querySelector('.viewer-banner'), null);
   h.stop();
   off();
@@ -237,7 +234,6 @@ test('a workspace role that cannot edit: the workspace variant, for any project 
   const { off } = source({ canEdit: false });
   const h = await open('editor');
   await settle();
-  assert.equal(chip(h.el), 'Brand refresh · View only (workspace role)');
   assert.equal(h.el.querySelector('.viewer-banner-text')?.textContent,
     'Your role on lolly.ing lets you view only. Ask an admin of lolly.ing to change your role.');
   assert.equal(policy.getInputPolicy('poster', 'headline')?.readable, true);
@@ -269,7 +265,6 @@ test('inside a live work collab the room saves: Save says so and sends nothing',
   const leave = origin.noteTeamSessionLive('sess-1');
   scope.notifyDocumentScopeChange();
   await settle();
-  assert.equal(chipState(h.el), '', 'no save state to say');
   assert.equal(scope.documentLeavePrompt(), null, 'and no "Save changes to…" on leaving');
   assert.equal(await scope.saveInDocumentScope('poster'), true);
   assert.equal(calls.update.length, 0, 'the instance would refuse a save from outside the room');
@@ -285,7 +280,7 @@ test('a commenter, and a role this shell does not know, open the document view-o
     assert.equal(origin.activeTeamSessionOrigin('poster')?.role, carried, `${role}: carried as ${carried}`);
     assert.equal(policy.getInputPolicy('poster', 'headline')?.readable, true, `${role}: read-only from the first draw`);
     await settle();
-    assert.equal(chip(h.el), 'Brand refresh · View only');
+    assert.equal(h.el.querySelector('.document-scope'), null);
     assert.equal(scope.documentLeavePrompt(), null, 'no "Save changes to…", so Leave without saving discards');
     assert.equal(await scope.saveInDocumentScope('poster'), false);
     assert.equal(calls.update.length, 0, 'no Save is offered, so none is refused with a 403');
