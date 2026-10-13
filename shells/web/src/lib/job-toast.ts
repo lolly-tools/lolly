@@ -42,6 +42,7 @@ import { getFloatCluster } from './float-cluster.ts';
 import { t, tRaw } from '../i18n.ts';
 import { isFlagOnSync, perfHudOn, WOBBLY_FLAG } from '../feature-flags.ts';
 import type { WobbleHandle } from './wobble.ts';
+import { safeHref } from '../utils.ts';
 
 let root: HTMLElement | null = null;
 /** Wobbly-windows deform for the drag; self-gating, owns `transform` only. Null until
@@ -315,7 +316,7 @@ function resultLinkHtml(j: Job): string {
   const label = r && typeof r === 'object' && typeof r.label === 'string' ? r.label : '';
   if (!label) return '';
   const url = r && typeof (r as { url?: unknown }).url === 'string' ? (r as { url: string }).url : '';
-  return url
+  return url && safeHref(url)
     ? `<a class="job-row-note" href="${ESC(url)}" target="_blank" rel="noopener">${ESC(label)}</a>`
     : `<span class="job-row-note">${ESC(label)}</span>`;
 }
