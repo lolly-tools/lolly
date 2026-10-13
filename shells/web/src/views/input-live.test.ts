@@ -15,11 +15,14 @@ let sequence = 0;
 const call = async (session: ReturnType<typeof createLiveSession>, method: string, params?: unknown) => JSON.parse(await session.handle(JSON.stringify({ jsonrpc: '2.0', id: ++sequence, method, ...(params ? { params } : {}) })));
 const hello = (session: ReturnType<typeof createLiveSession>) => call(session, 'hello', { protocol: 'live-v1', client: 'Input helper' });
 
-const host = {
+const host: HostV1 = {
   version: '1', shell: 'web', capabilities: [], log() {},
-  profile: { get: async () => ({}) }, assets: { get: async () => null, query: async () => [] },
-  state: { load: async () => null, save: async () => {}, list: async () => [] }, clipboard: {}, export: {},
-} as unknown as HostV1;
+  profile: { get: async () => ({}), subscribe: () => () => {} },
+  assets: { get: async id => { throw new Error(`No fixture asset ${id}`); }, query: async () => [], pick: async () => null, isAvailable: async () => false },
+  state: { load: async () => null, save: async () => {}, list: async () => [], delete: async () => {} },
+  clipboard: { writeText: async () => {}, writeImage: async () => ({ method: 'clipboard' }) },
+  export: { render: async () => new Blob(['<svg/>']), download: async () => {}, file: async () => {} },
+};
 
 async function realTool(context: TestContext, id = 'qr-code') {
   const tool = await loadTool(id, path => readFile(new URL(`../../../../community/${path}`, import.meta.url), 'utf8'));

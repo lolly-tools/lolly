@@ -24,7 +24,7 @@
 import { randomInt, timingSafeEqual } from 'node:crypto';
 import type { IncomingMessage } from 'node:http';
 import type { WebSocket, WebSocketServer } from 'ws';
-import { LIVE_ERRORS, LIVE_LIMITS, LIVE_PROTOCOL, type LiveReplyV1, type LiveHelloResultV1, type LiveCapabilitiesV1 } from '@lolly-tools/core';
+import { LIVE_ERRORS, LIVE_LIMITS, LIVE_PROTOCOL, type LiveReplyV1, type LiveHelloResultV1 } from '@lolly-tools/core';
 import { callLiveServer, readLiveServer, type RenderServer } from '@lolly-tools/node-shell/desktop-renderer';
 import { readLiveInvitation, type LiveInvitation } from '@lolly-tools/core/live-invite-v1';
 import { closeRemoteLive, remoteLiveRequest } from './live-remote.ts';
@@ -98,7 +98,12 @@ function editorMetadata(value: Record<string, unknown>): Partial<NonNullable<Liv
   if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
     const caps = raw as Record<string, unknown>;
     const keys = ['read', 'edit', 'inputValues', 'layerOperations', 'layerPatches', 'find', 'look', 'undo', 'artboardAlternatives'];
-    if (caps.read === true && keys.every(key => typeof caps[key] === 'boolean') && Array.isArray(caps.authoring) && caps.authoring.length <= 32 && caps.authoring.every(value => typeof value === 'string' && value.length <= 64)) metadata.capabilities = Object.fromEntries([...keys.map(key => [key, caps[key]]), ['authoring', [...caps.authoring]]]) as unknown as LiveCapabilitiesV1;
+    if (caps.read === true && keys.every(key => typeof caps[key] === 'boolean') && Array.isArray(caps.authoring) && caps.authoring.length <= 32 && caps.authoring.every(value => typeof value === 'string' && value.length <= 64)) metadata.capabilities = {
+      read: true, edit: caps.edit as boolean, inputValues: caps.inputValues as boolean,
+      layerOperations: caps.layerOperations as boolean, layerPatches: caps.layerPatches as boolean,
+      find: caps.find as boolean, look: caps.look as boolean, undo: caps.undo as boolean,
+      artboardAlternatives: caps.artboardAlternatives as boolean, authoring: [...caps.authoring],
+    };
   }
   return metadata;
 }
