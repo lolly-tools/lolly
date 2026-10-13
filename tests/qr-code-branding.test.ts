@@ -43,6 +43,18 @@ async function warnings(vals: Record<string, unknown>): Promise<string[]> {
   return (s || '').split('\n').map((l) => l.trim()).filter(Boolean);
 }
 
+test('QR hooks use fallback paints for unsupported colour values', { skip: SKIP }, async () => {
+  const host = baseHost();
+  const hook = new Function('host', tool.hooksSource + '\nreturn { onInit };')(host);
+  const model = tool.manifest.inputs.map((input: any) => ({ ...input, value:
+    input.id === 'url' ? URL : ['color', 'background', 'eyeColor', 'color2'].includes(input.id) ? 'invalid " paint' : input.default,
+  }));
+  const result = await hook.onInit({ model, host });
+  assert.equal(result.qrError, '');
+  assert.ok(!result.svgContent.includes('invalid'));
+  assert.match(result.svgContent, /fill:#111111/);
+});
+
 // ─── Export-safety: the branded path must emit only what svg-ir understands ──
 // (M/L/H/V/C/Z + solid fills + <image>). An SVG arc `A` or a <linearGradient>
 // paint server renders in a browser but is DROPPED on PNG/PDF export.

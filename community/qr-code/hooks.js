@@ -889,6 +889,13 @@ function _summary(args, kind, content) {
 var _memoKey = null;
 var _memoResult = null;
 
+function _qbColour(value, fallback) {
+  if (typeof value !== 'string') return fallback;
+  var colour = value.trim();
+  if (/^(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(colour)) return '#' + colour;
+  return /^#(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$|^[a-z]+$|^(?:rgb|rgba|hsl|hsla|hwb|lab|lch|oklab|oklch|color)\([a-z0-9.,%\s/+-]+\)$/i.test(colour) ? colour : fallback;
+}
+
 function compute(args, host) {
   var transparentBg = args.transparentBg;
   _transparentBg = Boolean(transparentBg);
@@ -904,10 +911,13 @@ function compute(args, host) {
 
   // Gradient fill (plans/162 Part 3, WP-H): sample an OKLab ramp into per-module
   // solid bands (see _qbRenderBranded). Only when the second colour parses.
-  var fg = args.color || '#111111';
+  var fg = _qbColour(args.color, '#111111');
+  var bg = _qbColour(args.background, '#ffffff');
+  var eyeColor = args.eyeColor ? _qbColour(args.eyeColor, '') : '';
+  var secondColor = _qbColour(args.color2, '');
   var gradStops = null;
-  if (args.fill === 'gradient' && _qbHexToRgb(fg) && _qbHexToRgb(args.color2)) {
-    gradStops = _qbRamp(fg, args.color2, host, 14);
+  if (args.fill === 'gradient' && _qbHexToRgb(fg) && _qbHexToRgb(secondColor)) {
+    gradStops = _qbRamp(fg, secondColor, host, 14);
   }
 
   // Brand mark (WP-I): a resolved logo forces ecl High so the ~30% redundancy
@@ -921,8 +931,8 @@ function compute(args, host) {
   // Scannability guardrail (WP-K1): pure checks over the styling that just ran.
   var scanWarnings = _qbScanWarnings({
     fg: fg,
-    bg: _transparentBg ? '#ffffff' : (args.background || '#ffffff'),
-    eyeColor: args.eyeColor,
+    bg: _transparentBg ? '#ffffff' : bg,
+    eyeColor: eyeColor,
     gradStops: gradStops,
     padding: args.padding,
     hasLogo: hasLogo,
@@ -942,13 +952,13 @@ function compute(args, host) {
       var qr = new QRCode({
         content:     content,
         color:       fg,
-        background:  _transparentBg ? 'none' : (args.background || '#ffffff'),
+        background:  _transparentBg ? 'none' : bg,
         ecl:         eclEff,             // WP-I - raised to H when a logo is present
         padding:     Number.isFinite(Number(args.padding)) ? Math.max(0, Math.round(Number(args.padding))) : 4,
         join:        Boolean(args.join),
         moduleShape: args.moduleShape,   // plans/162 Part 3 - branded styling (opt-in)
         eyeShape:    args.eyeShape,
-        eyeColor:    args.eyeColor,
+        eyeColor:    eyeColor,
         gradStops:   gradStops,          // WP-H - null unless fill=gradient
         gradType:    args.gradientType,
         gradAngle:   args.angle,
@@ -956,7 +966,7 @@ function compute(args, host) {
         logoScale:   args.logoScale,
         logoPad:     args.logoPad,
         logoShape:   args.logoShape,
-        bg:          _transparentBg ? '#ffffff' : (args.background || '#ffffff'),
+        bg:          _transparentBg ? '#ffffff' : bg,
         frame:       args.frame,         // WP-J - 'none' unless a frame is chosen
         frameText:   args.frameText,
         width:       600,
