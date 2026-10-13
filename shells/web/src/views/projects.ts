@@ -1814,7 +1814,7 @@ export async function mountProjects(
       `<button type="button" class="folder-color-dot${isOn(o.hex) ? ' is-on' : ''}" data-style-color="${escape(o.hex)}" style="background:${escape(o.hex)}" title="${escape(o.label)}" aria-label="${escape(tRaw('Colour {color}', { color: o.label }))}" aria-pressed="${isOn(o.hex)}"></button>`).join('');
     const modal = mountModal<void>(`
       <div class="folder-style-body">
-        <h2>${tRaw('Colour and icon for "{name}"', { name: folder.name })}</h2>
+        <h2>${t('Colour and icon for "{name}"', { name: folder.name })}</h2>
         <div class="folder-style-row" role="group" aria-label="${escape(t('Folder colour'))}">
           ${dots}
           <button type="button" class="btn btn--sm" data-style-color="">${t('No colour')}</button>

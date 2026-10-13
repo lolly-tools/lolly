@@ -39,6 +39,7 @@ import { escape as escapeHtml } from '../utils.ts';
 import { isTypingTarget } from '../lib/typing-target.ts';
 import { createDeckCompositionUI, appendCompositionThumb, compositionTextBoxes } from '../lib/deck-composition-ui.ts';
 import { markdownDeckRows } from '../lib/deck-markdown.ts';
+import { confirmDialog } from '../components/confirm-dialog.ts';
 
 // ── types ────────────────────────────────────────────────────────────────────
 
@@ -693,9 +694,12 @@ export function makeMediaResolver(resolve: (path: string) => string | null, budg
 
 /** Route paste text to the right parser: a pptxgenjs script → the pptxgen importer; JSON if it
  *  starts with { or [ ; else Markdown. */
-export function parseDeck(text: string): Slide[] {
+export function parseDeck(text: string, options: { allowScript?: boolean } = {}): Slide[] {
   const t = text.trim();
-  if (isPptxGenSource(t)) return parsePptxGenDeck(t);
+  if (isPptxGenSource(t)) {
+    if (options.allowScript !== true) throw new Error('Deck scripts need approval before they run.');
+    return parsePptxGenDeck(t);
+  }
   return t.startsWith('{') || t.startsWith('[') ? parseJsonDeck(t) : parseMarkdownDeck(t);
 }
 
@@ -2521,12 +2525,24 @@ export function initDeckEditor(opts: InitDeckEditorOpts): DeckEditorHandle {
     go.addEventListener('click', async () => {
       const text = ta.value.trim();
       if (!text) { closeLoad(); return; }
+      const script = isPptxGenSource(text);
+      if (script) {
+        const currentPop = loadPop;
+        go.disabled = true;
+        const approved = await confirmDialog({
+          title: 'Run this deck script?',
+          message: 'This file contains JavaScript. Running it can access your Lolly data and connected accounts. Only run code you have reviewed and trust.',
+          confirmLabel: 'Run script',
+        });
+        go.disabled = false;
+        if (!approved || loadPop !== currentPop) return;
+      }
       let slides: Slide[];
-      try { slides = parseDeck(text); }
+      try { slides = parseDeck(text, { allowScript: script }); }
       catch (e) { showErr('Could not parse that - check the Markdown / JSON / pptxgenjs. ' + (e as Error).message); return; }
       if (!slides.length) { showErr('No slides found in that input.'); return; }
       // A pptxgenjs import arrives with its own colours - re-theme them to the brand palette.
-      if (isPptxGenSource(text)) { try { slides = await brandifyDeck(slides); } catch { /* keep the imported colours */ } }
+      if (script) { try { slides = await brandifyDeck(slides); } catch { /* keep the imported colours */ } }
       commitDeck(slides);
       setActive(0);
       closeLoad();

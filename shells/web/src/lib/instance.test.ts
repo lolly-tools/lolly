@@ -10,7 +10,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { normalizeInstanceBase, instancePath, getInstanceBase, _setBaseForTests, setInstallTag, clientHeaderValue } from './instance.ts';
+import { normalizeInstanceBase, instancePath, getInstanceBase, _setBaseForTests, setInstallTag, clientHeaderValue, setInstanceSession, hasInstanceSession, instanceFetch } from './instance.ts';
 
 // ── normalizeInstanceBase ────────────────────────────────────────────────────
 
@@ -108,4 +108,38 @@ test('setInstallTag: anything outside the header grammar is refused, not escaped
     setInstallTag(bad);
     assert.equal(clientHeaderValue(), untagged, `refused: ${JSON.stringify(bad)}`);
   }
+});
+
+test('native sessions remain bound to the instance that issued them', async (ctx) => {
+  const savedWindow = Object.getOwnPropertyDescriptor(globalThis, 'window');
+  const savedLocation = Object.getOwnPropertyDescriptor(globalThis, 'location');
+  const requests: Array<{ url: string; headers: Array<[string, string]> }> = [];
+  Object.defineProperty(globalThis, 'location', { configurable: true, value: { origin: 'https://shell.example' } });
+  Object.defineProperty(globalThis, 'window', { configurable: true, value: {
+    __TAURI_INTERNALS__: { invoke: async (_command: string, args: { request: typeof requests[number] }) => {
+      requests.push(args.request);
+      return { status: 200, statusText: 'OK', url: args.request.url, headers: [], body: [] };
+    } },
+  } });
+  ctx.after(async () => {
+    await setInstanceSession(null);
+    _setBaseForTests('');
+    if (savedWindow) Object.defineProperty(globalThis, 'window', savedWindow);
+    else Reflect.deleteProperty(globalThis, 'window');
+    if (savedLocation) Object.defineProperty(globalThis, 'location', savedLocation);
+    else Reflect.deleteProperty(globalThis, 'location');
+  });
+  _setBaseForTests('https://first.example');
+  await setInstanceSession('lw_session=test-session');
+  assert.ok(hasInstanceSession());
+  await instanceFetch('https://first.example/api/v1/session');
+  assert.equal(new Headers(requests.at(-1)!.headers).get('cookie'), 'lw_session=test-session');
+  await instanceFetch('https://other.example/catalog/assets/index.json');
+  assert.equal(new Headers(requests.at(-1)!.headers).get('cookie'), null);
+  _setBaseForTests('https://second.example');
+  assert.equal(hasInstanceSession(), false);
+  await instanceFetch('https://second.example/api/v1/session');
+  assert.equal(new Headers(requests.at(-1)!.headers).get('cookie'), null);
+  await setInstanceSession('lw_session=late-session', 'https://first.example');
+  assert.equal(hasInstanceSession(), false);
 });

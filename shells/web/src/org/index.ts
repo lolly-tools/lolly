@@ -928,6 +928,7 @@ function wireDeviceCodeSignIn(slot: HTMLElement): void {
   };
 
   async function start(): Promise<void> {
+    const signInBase = getInstanceBase();
     note(t('Asking this instance for a code…'));
     const res = await safeFetch('/api/v1/auth/device', { method: 'POST' }, PROBE_TIMEOUT_MS * 4);
     const started = await jsonBody<DeviceStart>(res);
@@ -947,6 +948,7 @@ function wireDeviceCodeSignIn(slot: HTMLElement): void {
 
     const poll = async (): Promise<void> => {
       if (!slot.isConnected) return; // gate replaced (navigation) - stop quietly
+      if (getInstanceBase() !== signInBase) return;
       if (Date.now() > deadline) { note(t('That code expired.'), true); return; }
       const claim = await jsonBody<{ status: string; cookie?: string }>(
         await safeFetch('/api/v1/auth/device/token', {
@@ -956,9 +958,10 @@ function wireDeviceCodeSignIn(slot: HTMLElement): void {
         }),
       );
       if (claim?.status === 'approved' && claim.cookie) {
+        if (getInstanceBase() !== signInBase) return;
         // Park the session pair for the Rust transport (instance.ts scopes it
         // to the instance origin), then reboot into the signed-in app.
-        await setInstanceSession(claim.cookie);
+        await setInstanceSession(claim.cookie, signInBase);
         if (status) status.textContent = t('Signed in - loading…');
         location.reload();
         return;

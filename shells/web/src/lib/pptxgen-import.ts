@@ -18,25 +18,10 @@
  * in **inches** on the declared layout - the deck tool converts to native box
  * units at import time via `inchesToNative`.
  *
- * ── SECURITY ────────────────────────────────────────────────────────────────
- * The script is run with `new Function("require","module","exports", source)`.
- * This is the SAME trust model as pasting content into a tool: the bytes are the
- * user's own file, executed in the user's own session - we are not running third
- * -party code. We reduce blast radius by design:
- *
- *   • The ONLY thing we ever pass to `new Function` is the user-provided `source`.
- *     We never `eval`/`Function` anything derived from network or disk.
- *   • The `require` we inject resolves ONLY `"pptxgenjs"` (to the capturing mock).
- *     Every other `require(...)` throws - so `require("fs")` / `require("https")`
- *     / `require("child_process")` are unavailable; there is no node `require`
- *     in scope to reach the filesystem or network.
- *   • The mock never touches the real DOM, filesystem, or network. `writeFile`
- *     et al. are inert thenables so a trailing `.writeFile().then()` won't throw.
- *
- * A script can still reference ambient globals of whatever realm it runs in
- * (that is inherent to in-realm execution and identical to running pasted code);
- * true isolation is a Worker/sandbox concern handled elsewhere. Slides are capped
- * at {@link MAX_SLIDES} so a runaway `for` loop can't grow the model unbounded.
+ * Imported scripts execute against a capturing mock. The caller must obtain
+ * explicit approval before running source. The require shim exposes pptxgenjs
+ * only; it does not isolate ambient browser globals. writeFile is inert, and
+ * captured slides are capped at {@link MAX_SLIDES}.
  */
 
 /** Maximum slides captured from one script; extras are silently dropped. */
