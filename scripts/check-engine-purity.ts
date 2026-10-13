@@ -96,6 +96,8 @@ const ALLOWED_PACKAGES = new Set([
   // Plan 291: the check report and the content inventory. Types and constants only.
   '@lolly-tools/core/check-v1',
   '@lolly-tools/core/content-inventory-v1',
+  // Manifest guidance only; optional file reads are injected by the shell loader.
+  '@lolly-tools/core/tool-skill-v1',
   // engine/package.json dep (declared 2026-08-05, allowlist missed at the time).
   // Pure JS zip/gzip codec, no DOM/fs/network - same platform-agnostic bar as
   // handlebars/ajv above. Used directly by epub.ts (zipSync), font-convert.ts

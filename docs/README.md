@@ -99,6 +99,7 @@ security posture).
 | [determinism.md](determinism.md) | end user | The determinism concept page: same inputs, same file, one render path behind every shell, and what is byte-reproducible against what is not. |
 | [reproducibility.md](reproducibility.md) | end user | The reproducibility concept page: the URL as the artifact, what travels in a link and what a bare link cannot carry. |
 | [authoring-tools.md](authoring-tools.md) | tool author | The tool anatomy (`tool.json`, template, hooks), the input types, and publishing via the generated catalog index. |
+| [tool-skills.md](tool-skills.md) | tool author | Compatible tool guidance, portable references and delivery through agent invitations. |
 | [tool-manifest.md](tool-manifest.md) | tool author | Declare identity, rendering, examples and a short walkthrough. |
 | [tool-inputs.md](tool-inputs.md) | tool author | Choose input types, visibility, profile prefills and common meanings. |
 | [tool-structured-inputs.md](tool-structured-inputs.md) | tool author | Build repeating groups, editor canvases and bounded image framing. |
