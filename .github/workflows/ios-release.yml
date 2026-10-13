@@ -16,7 +16,7 @@
 # shells/tauri-mobile/src-tauri/tauri.conf.json first (each App Store build needs
 # a higher CFBundleVersion), commit, then run this.
 #
-# Required repo secrets:
+# Required signing secrets (configure the protected release environments):
 #   IOS_DIST_CERT_P12       base64 of an Apple Distribution cert .p12 (cert + private key)
 #   IOS_DIST_CERT_PASSWORD  the .p12 export password
 #   ASC_KEY_P8              base64 of the App Store Connect API key .p8
@@ -36,20 +36,37 @@ on:
         type: boolean
         default: true
 
+permissions:
+  contents: read
+
 concurrency:
   group: ios-release
   cancel-in-progress: false
 
 jobs:
+  frontend:
+    uses: ./.github/workflows/release-frontend.yml
+    with:
+      target: tauri-mobile
+      public_key_jwk: ${{ vars.VITE_CATALOG_PUBLIC_KEY_JWK }}
+    secrets:
+      LOLLY_CATALOG_SIGNING_KEY: ${{ secrets.LOLLY_CATALOG_SIGNING_KEY }}
+
   build:
+    needs: frontend
+    if: ${{ always() && !cancelled() && needs.frontend.result == 'success' }}
+    environment: release-native-signing
     runs-on: macos-15   # released (non-beta) macOS — the whole point
     timeout-minutes: 75
     env:
+      LOLLY_RELEASE_FRONTEND_PHASE: verified-artifact
+      VITE_CATALOG_PUBLIC_KEY_JWK: ${{ vars.VITE_CATALOG_PUBLIC_KEY_JWK }}
       LOLLY_PROFILE: lolly-start
       LOLLY_EMBED_CATALOG: profile
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
+          persist-credentials: false
           submodules: recursive   # brands/suse is `update = none` → skipped; falls back to lolly-start
 
       - name: Select the newest GM Xcode (needs iOS 26+ SDK)
@@ -87,6 +104,20 @@ jobs:
 
       - name: Install mobile-shell deps (not an npm workspace)
         run: pnpm -C shells/tauri-mobile install --frozen-lockfile
+
+      - name: Download signed source catalog
+        if: needs.frontend.result == 'success'
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: release-source-catalog-tauri-mobile
+          path: brands/lolly-start/catalog/tools
+
+      - name: Download signed frontend
+        if: needs.frontend.result == 'success'
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: release-frontend-tauri-mobile
+          path: shells/tauri-mobile/dist
 
       - name: Import Apple Distribution certificate
         env:
@@ -129,7 +160,6 @@ jobs:
         run: pnpm run tauri ios build --export-method app-store-connect --ci --verbose
         env:
           ONNXRUNTIME_NODE_INSTALL_CUDA: skip
-          LOLLY_CATALOG_SIGNING_KEY: ${{ secrets.LOLLY_CATALOG_SIGNING_KEY }}
           VITE_CATALOG_PUBLIC_KEY_JWK: ${{ vars.VITE_CATALOG_PUBLIC_KEY_JWK }}
           # The docs (build:info, 27 locales) + vite build blow past Node's default
           # heap on the 7 GB runner. Give V8 more room (exit 134 = V8 OOM, not OS OOM).

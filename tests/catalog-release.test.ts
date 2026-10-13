@@ -138,10 +138,12 @@ test('native builds refuse a missing or incomplete MilkDrop artist pack', async 
   assert.doesNotThrow(() => check.writeBundle({}));
 });
 
-test('hosted Tauri release workflows provide signing material to the build hook', () => {
+test('hosted Tauri workflows consume an independently signed frontend', () => {
   for (const workflow of ['flatpak.yml', 'linux-arm64.yml', 'ios-release.yml']) {
     const source = readFileSync(new URL(`../.github/workflows/${workflow}`, import.meta.url), 'utf8');
-    assert.match(source, /LOLLY_CATALOG_SIGNING_KEY:\s*\$\{\{ secrets\.LOLLY_CATALOG_SIGNING_KEY \}\}/);
+    assert.match(source, /uses: \.\/\.github\/workflows\/release-frontend\.yml/);
+    assert.match(source, /LOLLY_RELEASE_FRONTEND_PHASE: verified-artifact/);
+    assert.doesNotMatch(source, /^ {10}LOLLY_CATALOG_SIGNING_KEY:/m);
     assert.match(source, /VITE_CATALOG_PUBLIC_KEY_JWK:\s*\$\{\{ vars\.VITE_CATALOG_PUBLIC_KEY_JWK \}\}/);
   }
 });

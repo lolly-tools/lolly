@@ -459,6 +459,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
   web-image:
+    environment: release-catalog-signing
     name: Opt-in native public web image (gated on the WebGPU table)
     if: github.event_name == 'workflow_dispatch' && inputs.build_images == true && (inputs.release_scope == 'full' || inputs.release_scope == 'web') && needs.web-release-gate.outputs.allowed == 'true'
     needs: [chart, public-vm, source-qualification, web-release-gate]
