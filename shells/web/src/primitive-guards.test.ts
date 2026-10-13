@@ -850,7 +850,10 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // warning + two buttons whose only interpolations are a NUMBER (the licensed-asset
   // count, Math.max-clamped) and fixed literal fragments ('it'/'them', 'asset'/'assets')
   // chosen by ternaries on that number - no user text reaches the sink.
-  'components/share-dialog.ts': 2, // +1 2026-09-08: the export-panel share surface (mountSharePanel) fills with the same shell-composed markup as the modal path
+  // Reviewed 2026-10-13: shareSectionHtml wraps existing shell markup for the
+  // editable-file and link-options cards. Dynamic labels are escaped or DOM text;
+  // the wrapper receives no document content, tool HTML or invitation secret.
+  'components/share-dialog.ts': 3,
   // Reviewed 2026-09-20: fixed registry icons only, with literal names and sizes.
   // Panel titles and labels use textContent; no user or tool values enter these sinks.
   'components/docked-panel.ts': 1,
@@ -1974,7 +1977,8 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // 300 to 299: help-tip paint is shared by the component and uses semantic elevation.
     // Shared surfaces replace repeated paint in the pending editor and report work.
     // 263 to 262: the docs reading components print with an outline, not a shadow.
-    pin: 260,
+    // 260 to 259: the recommended Share file card uses the semantic bevel.
+    pin: 259,
     count: (t) => [...t.matchAll(/box-shadow:\s*([^;}]+)/g)]
       .map(m => m[1]!.trim())
       .filter(v => v !== 'none' && !/var\(--(?:ui-(?:edge|elevation|effect)|shadow|edge|ring-focus|bevel)/.test(v)).length,
@@ -2007,7 +2011,8 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // gallery, editor and inspector sheets moved onto var(--fs-2xs..xl).
     // 442 → 426: the component library uses the semantic type hierarchy.
     // 426 to 425: project titles use the shared object title scale.
-    pin: 425,
+    // 425 to 424: Share headings use the shared section type role.
+    pin: 424,
     count: (t) => (t.match(/font-size:\s*calc\(\s*[\d.]+(?:px|rem)\s*\*\s*var\(--a11y-fs\)\s*\)/g) ?? []).length,
     fix: 'use var(--fs-2xs..xl) - the multiplier is inside the token, so the largeText contract holds by construction',
   },

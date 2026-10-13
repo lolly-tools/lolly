@@ -109,8 +109,11 @@ export function mountExportShare(root: HTMLElement, options: () => ShareDialogOp
   const sync = (): void => {
     const portable = select?.value === 'lolly';
     root.classList.toggle('export-is-lolly', portable);
-    if (portable) open();
-    else if (panel) refresh();
+    if (portable) {
+      open();
+      const file = body.querySelector<HTMLDetailsElement>('details[data-share-file]');
+      if (file) file.open = true;
+    } else if (panel) refresh();
   };
   const onDownload = (event: Event): void => {
     if (select?.value !== 'lolly') return;

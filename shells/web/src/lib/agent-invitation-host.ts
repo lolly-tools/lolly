@@ -2,7 +2,7 @@
 import { readLiveRelay } from '@lolly-tools/core/live-invite-v1';
 export interface AgentInvitationHost {
   canEdit(): boolean;
-  create(permission: 'edit' | 'read'): Promise<{ instructions: string; expiresAt: number }>;
+  create(permission: 'edit' | 'read', agentName?: string): Promise<{ instructions: string; expiresAt: number }>;
   revoke(): void;
 }
 const hosts = new WeakMap<object, AgentInvitationHost>();

@@ -1513,122 +1513,14 @@ span.flatpickr-weekday {
 }
 
 /* ─── Collapsible input section ─────────────────────────────────────────── */
-/* Same disclosure family as the shared `.section-card` fold primitive
-   (disclosure.css, component audit rec 7) - a <details>/<summary> that folds
-   a body - but every rule below is a real, deliberate local delta: the
-   summary's height matches a sidebar <select> (so a collapsed section lines
-   up with the dropdowns beside it), its own CSS-triangle chevron (not the
-   shared SVG one), and `overflow: clip` + the `:has()` focus-ring promotion
-   just below are hard-won fixes for bugs specific to this dense, nested
-   sidebar context (see the comments on each). Composing them onto the shared
-   primitive would either lose one of those fixes or force a visual parity
-   this dense a context never asked for, so `.input-section` keeps its own
-   rules rather than taking the literal `section-card` class. */
+/* disclosure.css owns the base .input-section used here and in Share.
+   Sidebar band gutters and manifest-selected dense grids stay local. */
 
 /* The band divider inside the tool sidebar (panel.css owns its type; this is the
    sidebar's own gutter and the negative first-child margin that keeps the first
    label tight against the top of the column). */
 .tool-inputs > .lp-band-label { padding-inline: var(--sp-2); }
 .tool-inputs > .lp-band-label:first-child { padding-top: 0; }
-
-.input-section {
-  /* A container, not a control: the bevel and a resting drop draw its edge (the
-     section owns no border) and the corner is one step larger than the fields
-     inside it, so the group and its controls never read as the same object. An
-     open section lifts to the floating drop just below. */
-  border: 0; box-shadow: var(--ui-effect-bevel), var(--ui-elevation-control);
-  border-radius: var(--ui-radius-card);
-  /* Clip content to the rounded corners with `overflow: clip` - NOT clip-path and
-     NOT overflow:hidden. `overflow: clip` clips only DESCENDANTS (never the element's
-     own border/box-shadow), so the border stays solid + continuous in every state -
-     unlike clip-path, which clipped the 1px border itself and let a hovered summary's
-     opaque fill break it at the rounded corners. It also creates no stacking context
-     (clip-path did - that trapped the colour popover below sibling sections) and is
-     NOT a scroll container (unlike overflow:hidden), so the popover un-clip toggle
-     below can flip it to `visible` without any scroll thrash. */
-  overflow: clip;
-  /* No border-color transition: Chromium can leave a :has()-triggered transition
-     stuck at its start value, so the focus-ring border below would never paint.
-     The ring switches instantly instead (the box-shadow halo carries the motion). */
-  min-width: 0; /* grid item: allow shrink so inner controls can truncate */
-}
-.input-section[open] {
-  box-shadow: var(--ui-effect-bevel), var(--ui-elevation-floating);
-}
-
-.input-section-summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--sp-5) var(--sp-6);
-  /* Match a sidebar <select>'s height (39.5px) so a collapsed section lines up
-     with the dropdowns in the input list - minus the section's 2px border. */
-  min-height: var(--ui-size-target);
-  /* The section head is its own tier, and it is told apart from the eyebrow by
-     SIZE and CASE, not by a weight step (plans/273). The previous attempt kept
-     both at 11px uppercase and tracked and separated them by 700 against 600 and
-     .82 ink against muted; measured on the page, Chart's WHAT TO SHOW and its
-     COLOUR & STYLE read at one tier, and the only thing telling them apart was
-     the card ring. A group name is a NAME - sentence case, larger, full ink. The
-     eyebrow over one control stays the house uppercase mark, one size smaller
-     than the name above it. */
-  font-size: var(--ui-type-section);
-  font-weight: var(--ui-type-weight-section);
-  letter-spacing: normal;
-  color: var(--ui-color-text-default);
-  cursor: pointer;
-  user-select: none;
-  list-style: none;
-}
-/* An optional glyph before the head (manifest render.sectionIcons): on the chrome
-   icon scale like every other mark, muted like the word beside it. */
-.input-section-title { display: inline-flex; align-items: center; gap: var(--sp-3); min-width: 0; }
-.input-section-icon { display: inline-flex; flex: none; opacity: .8; }
-.input-section-icon svg { width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); }
-
-.input-section-summary:hover {
-  color: hsl(var(--primary));
-  background-color: hsl(var(--background) / .1);
-}
-
-/* Keyboard focus ring. The section's overflow:hidden would clip an outline or
-   box-shadow on the focused <summary>, so promote the ring to the section
-   wrapper - its own box-shadow paints outside its border box, unclipped - using
-   the same border + halo idiom as a focused <select> / text field. */
-.input-section-summary:focus-visible { outline: none; }
-.input-section:has(.input-section-summary:focus-visible) {
-  box-shadow: var(--ui-edge-faint), var(--ui-effect-focus-halo);
-}
-
-.input-section-summary::-webkit-details-marker { display: none; }
-
-.input-section-summary::after {
-  content: '';
-  display: block;
-  /* The open/closed caret is the summary's only non-text part and the sole cue
-     that a section folds, so it takes the same factor as the summary's words.
-     The 1.5px strokes deliberately do NOT scale: a hairline is a hairline at any
-     type size, and thickening it reads as a bolder rule, not a bigger arrow. */
-  width: calc(8px * var(--a11y-fs));
-  height: calc(8px * var(--a11y-fs));
-  border-right: 1.5px solid currentColor;
-  border-bottom: 1.5px solid currentColor;
-  transform: rotate(-45deg);
-  transition: transform var(--dur-1) ease;
-  flex-shrink: 0;
-}
-
-.input-section[open] .input-section-summary::after {
-  transform: rotate(45deg);
-}
-
-.input-section-body {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-4);
-  /* On the scale, and on the summary's own 12px gutter above it. */
-  padding: var(--sp-7) var(--sp-6) var(--sp-6);
-}
 
 /* Dense sections (opt-in via manifest render.denseSections) - a pro tool with
    many short controls (sliders, selects, numbers) fits roughly twice as many per

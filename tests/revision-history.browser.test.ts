@@ -104,7 +104,8 @@ test('Design auto checkpoint, right History tab, and editable file export are wi
   const errors: string[] = [];
   page.on('pageerror', error => errors.push(error.message));
   try {
-    await page.goto(`${origin}/#/tool/design`, { waitUntil: 'networkidle' }); await shellSettled(page);
+    const inputs = new URLSearchParams({ width: '640', height: '360', boxes: JSON.stringify([{ id: 'history-shape', kind: 'box', x: 80, y: 80, w: 160, h: 120, bg: '#118855' }]) });
+    await page.goto(`${origin}/t/design?${inputs}`, { waitUntil: 'networkidle' }); await shellSettled(page);
     await page.locator('[data-topbar="history"]').waitFor();
     await page.keyboard.press('Escape');
     const filename = page.locator('[data-topbar="name"]');
@@ -119,7 +120,7 @@ test('Design auto checkpoint, right History tab, and editable file export are wi
     if (await page.locator('[data-fmt-show-all]').isVisible()) await page.locator('[data-fmt-show-all]').click();
     await page.locator('[data-fmt="lolly"]').click();
     await page.locator('[data-lolly-download]').waitFor({ state: 'visible' });
-    assert.ok(await page.locator('.export-share-surface').innerText().then(text => text.includes('Link behaviour')));
+    assert.equal(await page.locator('[data-link-options] > summary').innerText(), 'Link options');
     assert.equal(await page.locator('[data-action="download"]').isVisible(), false);
     await page.screenshot({ path: shot('build-export-lolly.png') });
     const download = page.waitForEvent('download');

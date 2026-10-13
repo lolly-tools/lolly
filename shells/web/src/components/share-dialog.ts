@@ -15,6 +15,9 @@ import { bumpMetric } from '../metrics.ts';
 import { announce } from '../a11y.ts';
 import { packQuery, unpackToken, isPackAvailable, PACK_PARAM, packEncrypted, isEncryptAvailable, ENC_PARAM } from '@lolly/engine';
 import { mountModal } from './modal.ts';
+import { createShareSection } from './share-section.ts';
+import { icon } from '../lib/icons.ts';
+import { t } from '../i18n.ts';
 import {
   mountShareSection, shareSectionBuilders, shareSectionOrder, shareSectionPlacement,
   type ShareSectionContext, type ShareSectionPlacement,
@@ -61,12 +64,17 @@ async function copyToClipboard(text: string): Promise<void> {
   try {
     await navigator.clipboard.writeText(text);
   } catch {
+    const previousFocus = document.activeElement as HTMLElement | null;
     const ta = Object.assign(document.createElement('textarea'), { value: text });
     Object.assign(ta.style, { position: 'fixed', opacity: '0', pointerEvents: 'none' });
     document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    ta.remove();
+    try {
+      ta.select();
+      if (!document.execCommand?.('copy')) throw new Error(t('Could not copy to the clipboard.'));
+    } finally {
+      ta.remove();
+      if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
+    }
   }
 }
 
@@ -196,22 +204,51 @@ export function openShareDialog(opts: ShareDialogOpts): HTMLDialogElement {
   return renderShareSurface(opts, content => mountModal<void>(content, { className: 'share-dialog', onClose: opts.onClose }), true) as HTMLDialogElement;
 }
 
+const panelSectionStates = new WeakMap<HTMLElement, Map<string, boolean>>();
+
+function rememberSectionStates(surface: HTMLElement, states: Map<string, boolean>): void {
+  for (const section of surface.querySelectorAll<HTMLDetailsElement>('details[data-share-section]')) {
+    states.set(section.dataset.shareSection!, section.open);
+  }
+}
+
+function restoreSectionStates(surface: HTMLElement, states?: Map<string, boolean>): void {
+  if (!states) return;
+  const sections = [...surface.querySelectorAll<HTMLDetailsElement>('details[data-share-section]')];
+  if (surface.matches('details[data-share-section]')) sections.unshift(surface as HTMLDetailsElement);
+  for (const section of sections) {
+    const open = states.get(section.dataset.shareSection!);
+    if (open !== undefined) section.open = open;
+  }
+}
+
+function shareSectionHtml(title: string, iconName: string, className: string, content: string, dataName: string): string {
+  const { section, body } = createShareSection(title, iconName, { className });
+  section.setAttribute(dataName, '');
+  // Only shell-authored markup from this module, with dynamic values escaped, belongs here.
+  body.innerHTML = content;
+  return section.outerHTML;
+}
+
 /** The same controls in a docked panel, without a second modal or focus theft. */
 export function mountSharePanel(container: HTMLElement, opts: ShareDialogOpts, onClose?: () => void): () => void {
+  const states = panelSectionStates.get(container) ?? new Map<string, boolean>();
+  panelSectionStates.set(container, states);
   const surface = renderShareSurface(opts, content => {
     const el = document.createElement('div');
     el.className = 'export-share-surface';
     el.innerHTML = content;
     container.replaceChildren(el);
     return { el, close: () => { if (onClose) onClose(); else el.remove(); } };
-  }, false);
-  return () => surface.remove();
+  }, false, states);
+  return () => { rememberSectionStates(surface, states); surface.remove(); };
 }
 
 function renderShareSurface(
   { toolId, baseParts = [], manifest = {}, currentFormat = '', title = 'Share this tool', fidelity, lolly, document: readDocument }: ShareDialogOpts,
   mount: (content: string) => { el: HTMLElement; close(): void },
   autofocus: boolean,
+  sectionStates?: Map<string, boolean>,
 ): HTMLElement {
   // The readable query we'd pack (tool state + export settings) - WITHOUT the on-visit
   // flags, which stay readable outside the pack and merge on load.
@@ -236,11 +273,6 @@ function renderShareSurface(
   // this checked through the same allowlisted converter the native intake uses;
   // a fallback/non-Lolly caller never gets offered a scheme link it cannot open.
   const appLinkable = !!toLollyAppLink(shareUrlFromParts(baseParts, toolId));
-  // The "Link options" section holds shortest-link / password / pin-version. Only render it
-  // when at least one of those can apply (shortest may still resolve async, so gate on
-  // pack-availability rather than the not-yet-known packed length).
-  const showLinkOptions = appLinkable || !!version || encryptable || (isPackAvailable() && !!baseQuery);
-
   const content = `
     <div class="share-dialog-body">
       <h2>${escape(title)}</h2>
@@ -259,21 +291,12 @@ function renderShareSurface(
             ? `<button type="button" class="btn share-qr-btn" title="${escape('Open the QR Code tool with this link - for posters, slides and print')}">QR</button>` : ''}
       </div>
       <p class="share-warning" data-share-warning role="status" hidden></p>
-      ${/* V2 (plans/143, Andy: "lolly is part of the composite art of any
-          work"): the OPT-IN visible half of attribution. The credential layer
-          always records Lolly; this row lets a sharer carry the credit into a
-          caption with one click - never embedded into the artwork itself. */''}
-      <p class="share-credit-row" style="display:flex;align-items:center;gap:8px;margin:.4rem 0 0;font-size:.85em;color:hsl(var(--muted-foreground))">
-        <span>Made with Lolly · lolly.tools</span>
-        <button type="button" class="btn btn--sm share-credit-btn" title="${escape('Copy a caption crediting Lolly, with this link')}">Copy credit</button>
-      </p>
       ${showImageNote ? `<p class="share-note">
-        <span class="share-note-ico" aria-hidden="true">🛫</span>
+        <span class="share-note-ico" aria-hidden="true">${icon('plane', { size: 18 })}</span>
         <span>Only the <b>inputs</b>, <b>settings</b>, <b>tool</b> selection, and <b>catalog assets</b> travel in this link. <br><b>images</b> or <b>files</b> you added from <b>this device stay here</b> <i>- you'll need to share those separately</i>.</span>
       </p>` : ''}
-      ${lolly ? `<div class="share-file" data-share-file>
+      ${lolly ? shareSectionHtml(t('Editable file'), 'package', 'share-file-section', `<div class="share-file">
         <div class="share-file-text">
-          <strong>Send it as a file</strong>
           <span class="share-file-note">A .lolly file carries the saved design and every file Lolly is allowed to include. Its exact size and any external references appear here when prepared.</span>
           <span class="share-file-note" data-lolly-summary hidden></span>
         </div>
@@ -292,11 +315,8 @@ function renderShareSurface(
           <span data-lolly-tool-label>Include the tool</span>
         </label>` : ''}
         <div class="share-file-licensed" data-lolly-licensed hidden></div>
-      </div>` : ''}
-      ${showLinkOptions ? `
-      <details class="share-section" data-link-options>
-        <summary>Link options</summary>
-        <div class="share-section-body">
+      </div>`, 'data-share-file') : ''}
+      ${shareSectionHtml(t('Link options'), 'link', 'share-link-options', `
           ${appLinkable ? `
           <label class="share-shortest" data-app-link-row>
             <input type="checkbox" class="field-check" data-app-link>
@@ -325,11 +345,7 @@ function renderShareSurface(
             <span class="share-shortest-note" style="display:block;margin-top:.3rem">The password is <b>not</b> in the link - share it separately, and note it can't be recovered if lost.</span>
           </div>` : ''}
           ${version ? `<label class="share-toggle-row field-toggle"><input type="checkbox" class="field-check" data-flag="_v"> Pin this tool version (${escape(String(version))})</label>` : ''}
-        </div>
-      </details>` : ''}
-      <details class="share-section" data-link-behaviour>
-        <summary>Link behaviour</summary>
-        <fieldset class="share-toggles">
+        <fieldset class="share-toggles" data-link-behaviour>
           <legend>When the recipient opens the link…</legend>
           ${canExport
             ? '<label class="field-toggle"><input type="checkbox" class="field-check" data-flag="full"> Open in fullscreen (hide controls)</label>'
@@ -341,7 +357,14 @@ function renderShareSurface(
           ${canExport ? `<label class="field-toggle"><input type="checkbox" class="field-check" data-flag="export"> Download automatically when opened</label>` : ''}
           ${showCopy ? `<label class="field-toggle"><input type="checkbox" class="field-check" data-flag="copy"> ${escape(copyLabel)}</label>` : ''}
         </fieldset>
-      </details>
+        ${/* V2 (plans/143, Andy: "lolly is part of the composite art of any
+            work"): the OPT-IN visible half of attribution. The credential layer
+            always records Lolly; this row lets a sharer carry the credit into a
+            caption with one click - never embedded into the artwork itself. */''}
+        <p class="share-credit-row">
+          <span>Made with Lolly · lolly.tools</span>
+          <button type="button" class="btn btn--sm share-credit-btn" title="${escape('Copy a caption crediting Lolly, with this link')}">Copy credit</button>
+        </p>`, 'data-link-options')}
       <div class="share-extra-sections" data-extra-sections></div>
       <div class="share-dialog-actions">
         ${jellyActive()
@@ -352,13 +375,18 @@ function renderShareSurface(
   `;
   const modal = mount(content);
   const dialog = modal.el;
+  const states = sectionStates ?? new Map<string, boolean>();
+  restoreSectionStates(dialog, states);
+  dialog.addEventListener('toggle', event => {
+    const section = event.target as HTMLDetailsElement;
+    if (section.tagName === 'DETAILS' && section.dataset.shareSection) states.set(section.dataset.shareSection, section.open);
+  }, true);
 
   const field       = dialog.querySelector<HTMLInputElement>('.share-link-field')!;
   const fullCb      = dialog.querySelector<HTMLInputElement>('[data-flag="full"]');
   const optionsCb   = dialog.querySelector<HTMLInputElement>('[data-flag="options"]');
   const optionsRow  = dialog.querySelector<HTMLElement>('[data-options-row]');
-  // All on-visit flag checkboxes, wherever they live - the behaviour toggles sit in the
-  // "Link behaviour" section, "Pin this tool version" (_v) in "Link options".
+  // On-visit flags and pin-version share the Link options disclosure.
   const checkboxes  = [...dialog.querySelectorAll<HTMLInputElement>('input[data-flag]')];
   const shortestRow = dialog.querySelector<HTMLElement>('[data-shortest-row]')!;
   const shortestCb  = dialog.querySelector<HTMLInputElement>('[data-shortest]')!;
@@ -387,8 +415,12 @@ function renderShareSurface(
   // The .lolly card (when present) gets an accent halo + a "Recommended" cue whenever the
   // verdict routes the user to it - a dropped-content link OR one so long it's impractical
   // to pass around. Toggled off again for a clean/merely-long link so it stays meaningful.
-  const fileCard = dialog.querySelector<HTMLElement>('[data-share-file]');
-  const highlightLolly = (on: boolean) => { if (fileCard) fileCard.classList.toggle('is-recommended', on && !!lolly); };
+  const fileCard = dialog.querySelector<HTMLDetailsElement>('[data-share-file]');
+  const highlightLolly = (on: boolean) => {
+    if (!fileCard) return;
+    fileCard.classList.toggle('is-recommended', on && !!lolly);
+    if (on && !states.has(fileCard.dataset.shareSection!)) fileCard.open = true;
+  };
   const renderVerdict = (bestLen: number) => {
     const lost = fidelity && !fidelity.faithful ? fidelity : null;
     // Past the browser hard cap even the packed link is impractical - the same red
@@ -516,10 +548,16 @@ function renderShareSurface(
   for (const cb of checkboxes) cb.addEventListener('change', () => { syncFullWins(); refresh(); });
 
   dialog.querySelector<HTMLButtonElement>('.share-copy-btn')!.addEventListener('click', async function (this: HTMLButtonElement) {
-    await copyToClipboard(field.value);
+    const prev = this.textContent;
+    try { await copyToClipboard(field.value); }
+    catch {
+      this.textContent = t('Could not copy');
+      announce(t('Could not copy to the clipboard.'), { assertive: true });
+      setTimeout(() => { this.textContent = prev; }, 1500);
+      return;
+    }
     bumpMetric('linksCopied');
     announce('Shareable link copied');
-    const prev = this.textContent;
     this.textContent = 'Copied!';
     setTimeout(() => { this.textContent = prev; }, 1500);
   });
@@ -550,9 +588,15 @@ function renderShareSurface(
   // "Copy credit" (plans/143 V2): a ready caption for wherever the work is
   // posted - the credit travels BESIDE the artwork, opt-in, one click.
   dialog.querySelector<HTMLButtonElement>('.share-credit-btn')?.addEventListener('click', async function (this: HTMLButtonElement) {
-    await copyToClipboard(`Made with Lolly · lolly.tools\n${field.value}`);
-    announce('Credit caption copied');
     const prev = this.textContent;
+    try { await copyToClipboard(`Made with Lolly · lolly.tools\n${field.value}`); }
+    catch {
+      this.textContent = t('Could not copy');
+      announce(t('Could not copy to the clipboard.'), { assertive: true });
+      setTimeout(() => { this.textContent = prev; }, 1500);
+      return;
+    }
+    announce('Credit caption copied');
     this.textContent = 'Copied!';
     setTimeout(() => { this.textContent = prev; }, 1500);
   });
@@ -598,7 +642,7 @@ function renderShareSurface(
   if (autofocus) { field.focus(); field.select(); }
   else dialog.querySelector<HTMLElement>('.share-dialog-actions')!.hidden = true;
 
-  mountRegisteredSections(dialog, { toolId, baseParts, currentFormat: currentFmt, copy: copyToClipboard, close: () => modal.close(), ...(readDocument ? { document: readDocument } : {}) });
+  mountRegisteredSections(dialog, { toolId, baseParts, currentFormat: currentFmt, copy: copyToClipboard, close: () => modal.close(), ...(readDocument ? { document: readDocument } : {}) }, states);
 
   return dialog;
 }
@@ -619,7 +663,7 @@ function renderShareSurface(
  * other section, and a lead section when the dialog has no own link row to lead,
  * goes after the dialog's own rows, where they always went.
  */
-function mountRegisteredSections(dialog: HTMLElement, ctx: ShareSectionContext): void {
+function mountRegisteredSections(dialog: HTMLElement, ctx: ShareSectionContext, states: Map<string, boolean>): void {
   const extraHost = dialog.querySelector<HTMLElement>('[data-extra-sections]');
   const builders = shareSectionBuilders();
   if (!extraHost || !builders.length) return;
@@ -644,7 +688,10 @@ function mountRegisteredSections(dialog: HTMLElement, ctx: ShareSectionContext):
     // The place is settled before the builder runs, so a section told it leads does.
     const placement: ShareSectionPlacement = shareSectionPlacement(build) === 'lead' && ownRow ? 'lead' : 'after';
     const mount = (node: HTMLElement | null): void => {
-      if (node) mountShareSection(hostFor(placement), node, shareSectionOrder(build));
+      if (!node) return;
+      const section = disclosureForRegisteredSection(node);
+      restoreSectionStates(section, states);
+      mountShareSection(hostFor(placement), section, shareSectionOrder(build));
     };
     try {
       const built = build(placement === 'lead' ? { ...ctx, placement } : ctx);
@@ -654,6 +701,21 @@ function mountRegisteredSections(dialog: HTMLElement, ctx: ShareSectionContext):
       else mount(built);
     } catch { /* a section that fails to build simply doesn't appear */ }
   }
+}
+
+/** Keep a builder's controls and event listeners inside the shared disclosure. */
+function disclosureForRegisteredSection(node: HTMLElement): HTMLElement {
+  if (node.matches('details.input-section')) return node;
+  const heading = node.querySelector<HTMLElement>(':scope > h3');
+  if (!heading?.textContent) return node;
+  const { section, body } = createShareSection(heading.textContent, 'share', { className: 'share-registered-section' });
+  section.dataset.shareSection = `registry:${node.className || heading.textContent}`;
+  heading.remove();
+  node.style.marginTop = '';
+  node.style.paddingTop = '';
+  node.style.borderTop = '';
+  body.append(node);
+  return section;
 }
 
 /**
@@ -697,6 +759,8 @@ function wireLollyDelivery(
   };
 
   btn.addEventListener('click', async () => {
+    const section = btn.closest<HTMLDetailsElement>('details.share-section');
+    if (section) section.open = true;
     if (licensedEl) { licensedEl.hidden = true; licensedEl.textContent = ''; }
     busy(true, 'Preparing…');
     const withTool = includeTool();
