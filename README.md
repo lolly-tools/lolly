@@ -114,7 +114,7 @@ git clone https://github.com/lolly-tools/lolly.git && cd lolly && ./setup.sh
 
 `./setup.sh` installs the prerequisites (git, Node), runs `pnpm install` and builds a content profile - then tells you what to run next. SUSE devs add `--suse` to mount the private brand pack. Full details, the manual path and troubleshooting are in **[INSTALL.md](INSTALL.md)**.
 
-Prefer to do it by hand? It's a plain clone. You need Node >=22.18 or >=24 (see `.nvmrc`): older Node fails `pnpm install`, because the scripts run TypeScript directly via native type-stripping. INSTALL.md has the table.
+Prefer to do it by hand? It's a plain clone. Use Node 26 for development and primary CI (see `.nvmrc`). The package minimum remains 22.18; Node 24 compatibility and native qualification workflows are retained. Older Node fails `pnpm install`, because the scripts run TypeScript directly via native type-stripping. INSTALL.md has the table.
 
 ```bash
 git clone https://github.com/lolly-tools/lolly.git

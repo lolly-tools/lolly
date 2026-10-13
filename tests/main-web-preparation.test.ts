@@ -219,7 +219,7 @@ test('workflow uses only successful main CI, immutable checkout and the minimal 
   assert.deepEqual(job.steps[0].with, { ref: `\${{ github.event.workflow_run.head_sha }}`, 'persist-credentials': false, submodules: false, 'fetch-depth': 0 });
   assert.match(job.steps[0].uses, /^actions\/checkout@[0-9a-f]{40}$/);
   assert.match(job.steps[1].uses, /^actions\/setup-node@[0-9a-f]{40}$/);
-  assert.deepEqual(job.steps[1].with, { 'node-version': '24', 'package-manager-cache': false });
+  assert.deepEqual(job.steps[1].with, { 'node-version': '26', 'package-manager-cache': false });
   assert.deepEqual(job.steps[2].env, { GH_TOKEN: `\${{ github.token }}`, LOLLY_RELEASE_PUBLIC_KEY_JWK: `\${{ vars.LOLLY_RELEASE_PUBLIC_KEY_JWK }}`,
     LOLLY_CLASSIFY_WEB_CANDIDATES: `\${{ vars.LOLLY_CLASSIFY_WEB_CANDIDATES }}`,
     LOLLY_APPLICATION_RELEASE_BASE: `\${{ vars.LOLLY_APPLICATION_RELEASE_BASE }}` });

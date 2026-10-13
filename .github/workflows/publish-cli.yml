@@ -33,7 +33,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '24'
+          node-version: '26'
       # The smoke consumer renders a real tool, so it needs a catalog to point
       # LOLLY_ROOT at: `pnpm install` builds this checkout's profile views (the public
       # clone has no brands/suse, so it falls back to lolly-start).
