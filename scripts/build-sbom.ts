@@ -54,6 +54,7 @@ import { createHash } from 'node:crypto';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { byCodepoint, readPnpmLock } from './lib/pnpm-lock.ts';
+import { readVendorInventory, verifyVendorInventory } from './lib/vendor-artifacts.ts';
 
 // ─── CycloneDX component shapes (partial - only the fields this tool emits) ───
 interface Hash {
@@ -91,6 +92,8 @@ const OUT_PATH = join(ROOT, 'sbom.cdx.json');
 
 const rootPkg = readJson('package.json');
 const lock = readPnpmLock(ROOT);
+const vendorInventory = readVendorInventory(ROOT);
+verifyVendorInventory(ROOT, vendorInventory);
 
 // ─── SRI integrity → CycloneDX hashes ───────────────────────────────────────
 // Lockfile integrity is base64 SRI ("sha512-<base64>"); CycloneDX wants the
@@ -305,6 +308,23 @@ addCargoCrates('shells/tauri-desktop/src-tauri/Cargo.lock');
 addCargoCrates('shells/tauri-mobile/src-tauri/Cargo.lock');
 addCargoCrates('packages/node-shell/wasm/skera/Cargo.lock');
 addCargoCrates('packages/node-shell/wasm/adobe-psd/Cargo.lock');
+
+for (const artifact of vendorInventory.artifacts) {
+  const purl = artifact.name.startsWith('@') ? purlFor(artifact.name, artifact.version) : `pkg:generic/${artifact.name}@${artifact.version}`;
+  const component: Component = byPurl.get(purl) ?? { type: 'library', 'bom-ref': purl, name: artifact.name, version: artifact.version, purl };
+  component.scope = 'required';
+  component.licenses = licensesFromString(artifact.license);
+  component.hashes = [{ alg: 'SHA-256', content: artifact.sha256 }];
+  component.externalReferences = [{ type: 'vcs', url: artifact.repository }, { type: 'distribution', url: artifact.source }];
+  component.properties = [{ name: 'lolly:vendored', value: artifact.path }, { name: 'lolly:local-changes', value: String(artifact.localChanges) }];
+  byPurl.set(purl, component);
+}
+for (const tree of vendorInventory.sourceTrees) {
+  const component = byPurl.get(`pkg:cargo/${tree.name}@${tree.version}`);
+  if (!component) throw new Error('Vendor source override is absent from the dependency graph');
+  component.hashes = [{ alg: 'SHA-256', content: createHash('sha256').update(JSON.stringify(Object.entries(tree.files).sort(([a], [b]) => byCodepoint(a, b)))).digest('hex') }];
+  component.properties = [...(component.properties ?? []), { name: 'lolly:vendored', value: tree.path }, { name: 'lolly:upstream-commit', value: tree.upstreamCommit }, { name: 'lolly:source-archive-sha256', value: tree.sourceArchiveSha256 }, { name: 'lolly:local-changes', value: 'true' }];
+}
 
 const components = [...byPurl.values()].sort((a, b) => byCodepoint(a.purl, b.purl));
 
