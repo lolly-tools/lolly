@@ -440,6 +440,23 @@ function env(): LiveMountEnvironment {
 
 // ── The mount ─────────────────────────────────────────────────────────────────
 
+function connectionPlan(conn: CollabConnection, toolId: string): MountPlan {
+  return {
+    toolId, handle: conn.handle, ephemeral: conn.ephemeral,
+    close: () => { conn.close(); }, state: null, stateSpent: false,
+    handleSpent: false, watch: null, beam: beamLinkOf(conn), ui: null,
+  };
+}
+
+/** Prepare a Work connection for the caller's next navigation, without a remount. */
+export function armWorkCollabMount(conn: CollabConnection): boolean {
+  if (!conn.toolId || conn.role !== 'member' || conn.ephemeral) {
+    conn.close();
+    return false;
+  }
+  return armPlan(connectionPlan(conn, conn.toolId));
+}
+
 /**
  * Turn a live connection into a mounted, co-editing tool.
  *
@@ -470,18 +487,7 @@ export async function mountLiveCollab(conn: CollabConnection): Promise<void> {
     });
   }
 
-  const plan: MountPlan = {
-    toolId,
-    handle: conn.handle,
-    ephemeral: conn.ephemeral,
-    close: () => { conn.close(); },
-    state: null,
-    stateSpent: false,
-    handleSpent: false,
-    watch: null,
-    beam: beamLinkOf(conn),
-    ui: null,
-  };
+  const plan = connectionPlan(conn, toolId);
 
   try {
     // section 11.17: one interception point, armed BEFORE the route is entered so the mount

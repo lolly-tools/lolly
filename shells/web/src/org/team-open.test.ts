@@ -18,7 +18,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { decodeAssetVersion } from '@lolly/engine';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
-import { openTeamSession, teamSessionAddress, teamSessionRole } from './team-open.ts';
+import { openTeamSession, teamSessionAddress, teamSessionHash, teamSessionRole } from './team-open.ts';
 import { onReviewTarget, takeReviewTarget } from '../lib/review-target.ts';
 import { registerSessionSource } from '../lib/session-source.ts';
 import { readFileSync } from 'node:fs';
@@ -71,6 +71,24 @@ test('the emoji set the session draws with rides along, and an empty model opens
   const hash = teamSessionAddress('frame', [] as unknown as Model, { emoji: { emoji: 'noto', emojifx: 'original' } });
   assert.equal(query(hash).get('emoji'), 'noto');
   assert.equal(teamSessionAddress('frame', [] as unknown as Model), '#/tool/frame');
+});
+
+test('building a large session address preserves inputs without initializing or rendering the tool', async () => {
+  const rows = Array.from({ length: 3000 }, (_, i) => ({ id: `row-${i}`, heading: `Heading ${i}`, photo: teamImage }));
+  const manifest = { id: 'deck', inputs: [
+    { id: 'slides', type: 'blocks', fields: [{ id: 'id', type: 'text' }, { id: 'heading', type: 'text' }, { id: 'photo', type: 'asset' }] },
+    { id: 'author', type: 'text', bindToProfile: 'firstname' },
+    { id: 'size', type: 'vector', fields: [{ id: 'w', type: 'number', min: 1, max: 100, default: 10 }] },
+  ] };
+  let profiles = 0;
+  const hash = await teamSessionHash({ profile: { get: async () => { profiles++; return { firstname: 'Andy' }; } } } as unknown as HostV1,
+    { toolId: 'deck', inputs: { slides: rows, size: { w: 200 } } },
+    async () => ({ manifest, template: '', hooks: { onInit: () => { throw new Error('Address construction ran onInit'); } } }) as never);
+  assert.equal(profiles, 1);
+  assert.equal(query(hash).get('author'), 'Andy');
+  assert.equal(query(hash).get('size.w'), '100');
+  assert.match(query(hash).get('slides')!, /Heading%202999/);
+  assert.match(query(hash).get('slides')!, /user%2Fteam%2Ffil_abc/);
 });
 
 // ── A thread named by the open ──────────────────────────────────────────────────

@@ -4,6 +4,29 @@ import assert from 'node:assert/strict';
 import { ReferenceCanvasDoc } from '@lolly-tools/core/canvas-op-v1';
 import { attachCollabPlumbing } from './collab-plumbing.ts';
 
+test('an unchanged large snapshot skips layout while later edits still follow the room clock', async () => {
+  const doc = new ReferenceCanvasDoc('local');
+  const rows = Array.from({ length: 3000 }, (_, i) => ({ id: `row-${i}`, x: i, text: `Story ${i}` }));
+  for (const row of rows) doc.apply({ k: 'add', col: 'rows', id: row.id, row: { text: row.text, x: row.x }, orderKey: row.id.padEnd(12, '0'), origin: { client: 'server', clock: 1 } });
+  const ordered = doc.state().collections!.get('rows')!.order.map(id => rows.find(row => row.id === id)!);
+  const model = [{ id: 'rows', type: 'blocks', canvas: { idField: 'id' }, fields: [{ id: 'id' }, { id: 'x', type: 'number' }, { id: 'text', type: 'text' }], value: ordered },
+    { id: 'title', type: 'text', value: 'Current' }];
+  let layouts = 0; const emitted: number[] = [];
+  const runtime = { getModel: () => model as never, setInput: async (id: string, value: unknown) => { model.find(item => item.id === id)!.value = value as never; },
+    applyPatch: async (values: Record<string, unknown>) => { layouts++; for (const item of model) if (Object.hasOwn(values, item.id)) item.value = values[item.id] as never; } };
+  const plumbing = attachCollabPlumbing(runtime, { adapter: doc, raf: fn => fn(), onOps: ops => emitted.push(...ops.map(op => op.origin.clock)) })!;
+  plumbing.applySnapshot({ ops: [], clock: 9000 }); await Promise.resolve();
+  assert.equal(layouts, 0, 'snapshot replay must not run the layout hooks again');
+  assert.equal(model[0]!.value, ordered, 'keep the existing row objects');
+  await runtime.setInput('title', 'Edited');
+  assert.ok(emitted[0]! > 9000);
+  plumbing.applyRemotePatch([{ k: 'geom', col: 'rows', id: 'row-0', fields: { x: 25 }, origin: { client: 'server', clock: 10000 } }]);
+  await Promise.resolve();
+  assert.equal(layouts, 1);
+  assert.equal((model[0]!.value as typeof rows).find(row => row.id === 'row-0')!.x, 25);
+  plumbing.detach();
+});
+
 test('hidden-tab backlog folds into the document and paints one current projection', async () => {
   const doc = new ReferenceCanvasDoc('local');
   doc.apply({ k: 'add', col: 'rows', id: 'a', row: { x: 0 }, orderKey: 'a', origin: { client: 'remote', clock: 0 } });

@@ -223,6 +223,18 @@ function isScalar(v: unknown): v is Scalar {
   return v === null || typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean';
 }
 
+/** Snapshots rebuild arrays even when every authored value is already current. */
+function sameProjectedValue(left: unknown, right: unknown): boolean {
+  if (Object.is(left, right)) return true;
+  if (!left || !right || typeof left !== 'object' || typeof right !== 'object') return false;
+  if (Array.isArray(left) !== Array.isArray(right)) return false;
+  if (Array.isArray(left) && Array.isArray(right) && left.length !== right.length) return false;
+  const a = left as Record<string, unknown>, b = right as Record<string, unknown>;
+  const keys = Object.keys(a);
+  return keys.length === Object.keys(b).length && keys.every(key =>
+    Object.hasOwn(b, key) && sameProjectedValue(a[key], b[key]));
+}
+
 /**
  * The input types whose whole value IS a scalar, and therefore the only ones a
  * `param` op may land in. The header's rule ("object-valued inputs do NOT cross")
@@ -831,6 +843,11 @@ export function attachCollabPlumbing(
     }
     if (textProjection && !textProjection.validate(values, ops)) { blockedProjection = true; return; }
     blockedProjection = false;
+    if (replace) {
+      const current = new Map(model().map(item => [item.id, item.value]));
+      values = Object.fromEntries(Object.entries(values).filter(([id, value]) => !sameProjectedValue(current.get(id), value)));
+      if (!Object.keys(values).length) return;
+    }
     // The guard is held across the SYNCHRONOUS part of the apply only. That is the
     // whole re-entrancy window - applyPatch lands every value in the model before
     // its first await - and releasing it there means a keystroke the user makes
