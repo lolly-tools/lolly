@@ -1,30 +1,12 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * document-scope - where the document on screen belongs, said in a chip on the stage,
- * and what Save, Cmd-S and a Leave with unsaved changes mean there (plan 75 section
- * 5.1, G1).
- *
- * A neutral seam, the sibling of lib/share-sections.ts and lib/session-source.ts: the
- * tool view announces each mount here ({@link mountDocumentScope}) and asks it before a
- * save ({@link saveInDocumentScope}) and a leave ({@link documentLeavePrompt}); a
- * provider registered by whoever knows where documents can live (a workspace's
- * control plane, org/team-scope.ts) claims the documents that are its own. The
- * registry is EMPTY by default and nothing claims anything, so:
- *
- *  - with no provider and no external session source, no chip is drawn, Save saves on
- *    this device and the leave prompt is the one it always was: the shell is
- *    byte-identical to one without this file;
- *  - with an external session source registered (a workspace) and no claim, the chip
- *    says "On this device", so a person who also has team documents can tell the two
- *    apart at a glance.
- *
- * The provider's copy arrives already localised; this file adds only "On this device".
- * The chip itself (components/document-scope-chip.ts) is imported the first time there
- * is a chip to draw, so a deployment without a workspace never loads that component.
+ * Document ownership, Save routing and Leave with unsaved changes (plan 75 section
+ * 5.1, G1). A tool view announces each mount here and asks before saving or leaving.
+ * Providers claim their documents and attach scope-specific behavior, such as the
+ * read-only layer. An unclaimed document uses the ordinary device save and leave
+ * prompt. This registry does not add controls to the tool stage.
  */
 import type { ShareDocument } from './share-sections.ts';
-import { getSessionSource } from './session-source.ts';
-import { tRaw } from '../i18n.ts';
 
 /** What the person may do with the document where it belongs. */
 export type DocumentScopeRole = 'device' | 'edit' | 'view';
@@ -40,7 +22,7 @@ export interface DocumentScopeChip {
 /** One mounted tool, as the tool view hands it over. */
 export interface DocumentScopeMount {
   readonly toolId: string;
-  /** The tool view's root element: the chip goes on its stage, a banner above its inputs. */
+  /** The tool view's root element, where a provider may attach a read-only banner. */
   readonly view: HTMLElement;
   /** The document as a save elsewhere sends it: the values a local save keeps. */
   document(): ShareDocument;
@@ -80,7 +62,7 @@ const listeners = new Set<() => void>();
 /** The mount the tool view announced last, until its teardown. */
 let mounted: DocumentScopeMount | null = null;
 
-/** Tell every mounted chip to read its provider again (a save finished, a role came in). */
+/** Tell every mounted scope to read its provider again (a save finished, a role came in). */
 export function notifyDocumentScopeChange(): void {
   for (const fn of [...listeners]) {
     try { fn(); } catch (e) { console.error(e); }
@@ -119,14 +101,6 @@ function claim(mount: DocumentScopeMount): { provider: DocumentScopeProvider; ch
   return null;
 }
 
-/** The chip for `mount`: a provider's, else "On this device" on a workspace, else none. */
-export function documentScopeChip(mount: DocumentScopeMount | null = mounted): DocumentScopeChip | null {
-  if (!mount) return null;
-  const claimed = claim(mount);
-  if (claimed) return claimed.chip;
-  return getSessionSource() ? { label: tRaw('On this device'), role: 'device' } : null;
-}
-
 /** The mounted document of `toolId`, when the tool view announced that mount. */
 function mountOf(toolId: string | undefined): DocumentScopeMount | null {
   return mounted && (!toolId || mounted.toolId === toolId) ? mounted : null;
@@ -161,29 +135,20 @@ export function documentLeavePrompt(): string | null {
   try { return claimed.provider.leavePrompt(mount); } catch (e) { console.error(e); return null; }
 }
 
-/** What the chip component draws with (implemented by components/document-scope-chip.ts). */
-export interface DocumentScopeChipView {
-  update(chip: DocumentScopeChip, menu: readonly DocumentScopeMenuItem[]): void;
-  destroy(): void;
-}
-
 /**
  * Announce a tool mount. The tool view calls this once its stage is laid out and calls
- * the returned teardown with the rest of the mount's. Draws the chip when there is one,
- * runs the claiming provider's `attach`, and keeps both current: when a provider
- * registers or reports a change, when the document is edited, saved or exported, and
- * when the address changes. Dormant (no chip, no provider) it costs three listeners.
+ * the returned teardown with the rest of the mount's. Runs the claiming provider's
+ * `attach` and keeps it current when a provider registers or reports a change, when
+ * the document is edited, saved or exported, and when the address changes.
  */
 export function mountDocumentScope(mount: DocumentScopeMount): () => void {
   mounted = mount;
-  let view: DocumentScopeChipView | null = null;
-  let loading = false;
   let ended = false;
   let attachedTo: DocumentScopeProvider | null = null;
   let detach: (() => void) | null = null;
   let pending = false;
 
-  const draw = (): void => {
+  const refresh = (): void => {
     if (ended || mounted !== mount) return;
     const claimed = claim(mount);
     const provider = claimed?.provider ?? null;
@@ -193,41 +158,23 @@ export function mountDocumentScope(mount: DocumentScopeMount): () => void {
       attachedTo = provider;
       try { detach = provider?.attach?.(mount) ?? null; } catch (e) { console.error(e); }
     }
-    const chip = claimed?.chip ?? documentScopeChip(mount);
-    if (!chip) {
-      view?.destroy();
-      view = null;
-      return;
-    }
-    let menu: DocumentScopeMenuItem[] = [];
-    try { menu = provider?.menu?.(mount) ?? []; } catch (e) { console.error(e); }
-    if (view) { view.update(chip, menu); return; }
-    if (loading) return;
-    loading = true;
-    void import('../components/document-scope-chip.ts').then(({ createDocumentScopeChip }) => {
-      loading = false;
-      if (ended || mounted !== mount || view) return;
-      const stage = mount.view.querySelector<HTMLElement>('#tool-stage') ?? mount.view;
-      view = createDocumentScopeChip(stage);
-      draw();
-    }).catch((e: unknown) => { loading = false; console.error(e); });
   };
-  // Edits, saves and address writes arrive in bursts; one draw per frame is enough.
+  // Edits, saves and address writes arrive in bursts; one refresh per frame is enough.
   const schedule = (): void => {
     if (pending || ended) return;
     pending = true;
-    const run = (): void => { pending = false; draw(); };
+    const run = (): void => { pending = false; refresh(); };
     if (typeof globalThis.requestAnimationFrame === 'function') globalThis.requestAnimationFrame(run);
     else setTimeout(run, 16);
   };
-  const off = onDocumentScopeChange(draw);
+  const off = onDocumentScopeChange(refresh);
   // The tool view's dirty flag changes on the canvas ('lolly-session-status', which does
   // not bubble, so it is caught on the way down), and a save or export announces itself
   // from the actions panel ('lolly:export-complete', which bubbles).
   mount.view.addEventListener('lolly-session-status', schedule, true);
   mount.view.addEventListener('lolly:export-complete', schedule);
   globalThis.addEventListener?.('lolly:url-state', schedule);
-  draw();
+  refresh();
   return () => {
     if (ended) return;
     ended = true;
@@ -238,8 +185,6 @@ export function mountDocumentScope(mount: DocumentScopeMount): () => void {
     if (mounted === mount) mounted = null;
     try { detach?.(); } catch (e) { console.error(e); }
     detach = null;
-    view?.destroy();
-    view = null;
   };
 }
 
