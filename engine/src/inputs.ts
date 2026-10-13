@@ -219,6 +219,8 @@ export interface InputSpec {
   required?: boolean;
   default?: InputValue;
   bindToProfile?: string;
+  /** Personal content omitted from generated links until reviewed for sharing. */
+  sharePrivacy?: 'personal';
   /** Embed this input's value into the export's provenance metadata under the named
    *  field (EXIF/XMP/PNG text + the C2PA manifest), overriding the profile-derived
    *  default. 'copyright'/'license' are USER-ASSERTED IP fields with no profile

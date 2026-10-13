@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { personalShareFields } from '../../lib/share-privacy.ts';
 /**
  * Module-level declarations of tool.ts that its feature modules use: the types,
  * constants and pure helpers that used to sit above mountTool(). Moved here verbatim so
@@ -867,7 +868,7 @@ export function shareDialogOptions(
   // Sections that save the document elsewhere (lib/share-sections.ts) read it when they
   // save, not now.
   const readDocument = (): ShareDocument => readToolDocument(runtime, exportScope, manifest);
-  return { toolId, baseParts: parts.filter(part => part !== 'format=lolly'), manifest,
+  return { toolId, personalFields: personalShareFields(runtime.getModel()), baseParts: parts.filter(part => part !== 'format=lolly'), manifest,
     currentFormat: currentFormat === 'lolly' ? '' : currentFormat, fidelity, lolly, document: readDocument };
 }
 

@@ -1387,6 +1387,11 @@
         "default": {
           "description": "Type-appropriate default value."
         },
+        "sharePrivacy": {
+          "type": "string",
+          "enum": ["personal"],
+          "description": "Personal content omitted from generated links until reviewed for sharing."
+        },
         "bindToProfile": {
           "type": "string",
           "description": "If set, pre-fills from the user profile field of this name (e.g. 'firstname', 'headshot'). User can override."

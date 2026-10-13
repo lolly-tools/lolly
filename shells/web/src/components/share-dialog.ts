@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { partitionShareParts, type PersonalShareField, type SharePrivacyInput } from '../lib/share-privacy.ts';
 /**
  * The Share-link dialog - a ready-to-copy link plus toggles for the on-visit behaviour
  * flags (fullscreen / export panel / auto-download / copy-on-visit / pin-version) and an
@@ -102,7 +103,7 @@ function shareUrlFromParts(parts: readonly string[], toolId?: string): string {
 }
 
 /** An input field (top-level, or a `blocks` sub-field) - we only need its type. */
-interface ShareInput {
+interface ShareInput extends SharePrivacyInput {
   type?: string;
   fields?: readonly { type?: string }[];
 }
@@ -166,6 +167,8 @@ export interface ShareDialogOpts {
   toolId?: string;
   /** query parts (tool inputs + optional export settings) */
   baseParts?: readonly string[];
+  /** Locally reviewed values that require an explicit choice before entering a link. */
+  personalFields?: readonly PersonalShareField[];
   /** the tool manifest (drives which toggles are offered) */
   manifest?: ShareManifest;
   /** the export format the link should imply (for copy-on-visit) */
@@ -245,14 +248,18 @@ export function mountSharePanel(container: HTMLElement, opts: ShareDialogOpts, o
 }
 
 function renderShareSurface(
-  { toolId, baseParts = [], manifest = {}, currentFormat = '', title = 'Share this tool', fidelity, lolly, document: readDocument }: ShareDialogOpts,
+  { toolId, baseParts: initialParts = [], personalFields = [], manifest = {}, currentFormat = '', title = 'Share this tool', fidelity, lolly, document: readDocument }: ShareDialogOpts,
   mount: (content: string) => { el: HTMLElement; close(): void },
   autofocus: boolean,
   sectionStates?: Map<string, boolean>,
 ): HTMLElement {
   // The readable query we'd pack (tool state + export settings) - WITHOUT the on-visit
   // flags, which stay readable outside the pack and merge on load.
-  const baseQuery = baseParts.join('&');
+  const partition = partitionShareParts(initialParts, manifest.inputs ?? []);
+  const baseParts = partition.publicParts.slice();
+  const publicParts = baseParts.slice();
+  const personal = [...new Map([...partition.personal, ...personalFields].map(field => [field.id, field])).values()];
+  let baseQuery = baseParts.join('&');
 
   // Only offer toggles the tool can actually honour.
   const canExport  = manifest.render?.export !== false && (manifest.render?.formats?.length ?? 0) > 0;
@@ -268,7 +275,7 @@ function renderShareSurface(
   // (the Projects per-session share reconstructs state and can't measure the drops).
   const showImageNote = hasImageInput(manifest) && !fidelity;
   // Offer password-protection only when there's state to encrypt and WebCrypto is present.
-  const encryptable = isEncryptAvailable() && !!baseQuery;
+  const encryptable = isEncryptAvailable() && (!!baseQuery || personal.length > 0);
   // A tool's canonical /t/<id> share URL always has an installed-app twin. Keep
   // this checked through the same allowlisted converter the native intake uses;
   // a fallback/non-Lolly caller never gets offered a scheme link it cannot open.
@@ -290,6 +297,10 @@ function renderShareSurface(
           (window.__toolIndex?.tools ?? []).some(t => t.id === 'qr-code')
             ? `<button type="button" class="btn share-qr-btn" title="${escape('Open the QR Code tool with this link - for posters, slides and print')}">QR</button>` : ''}
       </div>
+      ${personal.length ? `<fieldset class="share-personal-review"><legend>Review personal fields</legend>
+        <p>These values stay out of the link unless you select them. Anyone with the link can read included values. Shortening a link does not hide its contents.</p>
+        ${personal.map((field, index) => `<label><input type="checkbox" data-personal-field="${index}"> Include ${escape(field.label)}</label><textarea readonly aria-label="${escape(field.label)} value" rows="3">${escape(field.value)}</textarea>`).join('')}
+      </fieldset>` : ''}
       <p class="share-warning" data-share-warning role="status" hidden></p>
       ${showImageNote ? `<p class="share-note">
         <span class="share-note-ico" aria-hidden="true">${icon('plane', { size: 18 })}</span>
@@ -452,7 +463,7 @@ function renderShareSurface(
       highlightLolly(false);
     }
   };
-  const readableLen = shareUrlFromParts(baseParts, toolId).length;
+  let readableLen = shareUrlFromParts(baseParts, toolId).length;
   renderVerdict(readableLen);   // best guess until the packed length lands
 
   const flagParts = () => {
@@ -498,19 +509,28 @@ function renderShareSurface(
   // Compute the packed form once. Only offer "Shortest link" when the codec is
   // available AND it actually beats the readable link; auto-check it when the
   // readable link is long enough to risk the URL ceiling.
-  if (isPackAvailable() && baseQuery) {
+  let packReq = 0;
+  const recomputePack = () => {
+    const mine = ++packReq;
+    packedToken = null;
+    shortestCb.checked = false;
+    shortestRow.hidden = true;
+    readableLen = shareUrlFromParts(baseParts, toolId).length;
+    renderVerdict(readableLen);
+    if (!isPackAvailable() || !baseQuery) return;
     packQuery(baseQuery).then(token => {
-      if (!token || !dialog.isConnected) return;
-      const packedLen   = shareUrlFromParts([`${PACK_PARAM}=${token}`], toolId).length;
-      if (packedLen >= readableLen) return;             // packing wouldn't help - don't offer it
+      if (!token || mine !== packReq || !dialog.isConnected) return;
+      const packedLen = shareUrlFromParts([`${PACK_PARAM}=${token}`], toolId).length;
+      if (packedLen >= readableLen) return;
       packedToken = token;
       if (shortestNote) shortestNote.textContent = `${readableLen} → ${packedLen} characters`;
       shortestRow.hidden = false;
-      if (readableLen >= AUTO_PACK_MIN) shortestCb.checked = true;   // auto-adopt for big states
-      renderVerdict(packedLen);   // the packed form is the shortest we can offer
+      if (readableLen >= AUTO_PACK_MIN) shortestCb.checked = true;
+      renderVerdict(packedLen);
       refresh();
-    }).catch(() => { /* leave the readable link */ });
-  }
+    }).catch(() => {});
+  };
+  recomputePack();
   shortestCb?.addEventListener('change', refresh);
   appLinkCb?.addEventListener('change', refresh);
 
@@ -522,8 +542,8 @@ function renderShareSurface(
   const recomputeEnc = () => {
     if (encryptBody) encryptBody.hidden = !encryptCb?.checked;
     const pw = encryptPw?.value ?? '';
-    if (!encryptCb?.checked || !pw) { encToken = null; refresh(); return; }
     const mine = ++encReq;
+    if (!encryptCb?.checked || !pw) { encToken = null; refresh(); return; }
     packEncrypted(baseQuery, pw).then(tok => {
       if (mine !== encReq || !dialog.isConnected) return;   // superseded or closed
       encToken = tok;
@@ -532,10 +552,25 @@ function renderShareSurface(
   };
   encryptCb?.addEventListener('change', () => { encToken = null; recomputeEnc(); });
   encryptPw?.addEventListener('input', () => {
+    encReq++;
     encToken = null; refresh();                 // show "Generating…" immediately
     clearTimeout(encDebounce);
     encDebounce = setTimeout(recomputeEnc, 250);
   });
+
+  for (const checkbox of dialog.querySelectorAll<HTMLInputElement>('[data-personal-field]')) {
+    checkbox.addEventListener('change', () => {
+      const selected = [...dialog.querySelectorAll<HTMLInputElement>('[data-personal-field]:checked')]
+        .flatMap(input => personal[Number(input.dataset.personalField)]?.parts ?? []);
+      baseParts.splice(0, baseParts.length, ...publicParts, ...selected);
+      baseQuery = baseParts.join('&');
+      encToken = null;
+      clearTimeout(encDebounce);
+      recomputePack();
+      recomputeEnc();
+      refresh();
+    });
+  }
 
   // `full` collapses the sidebar, so the export panel has nowhere to anchor - 
   // full wins, exactly as the URL handling and CSS do. Reflect that here.

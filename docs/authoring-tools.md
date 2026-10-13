@@ -69,3 +69,14 @@ The binding must name an asset, file, text or longtext input. File limits and ac
 Editor bindings use supported shell adapters: `canvas` places image references on a blank canvas, `timeline` places timed media and opens Sequence, and `text` uses the Text editor's existing source-aware handoff. These declarations contain no route strings or executable methods. Tools without opening declarations remain valid and do not appear through guessed input bindings. The web shell checks the actual loaded manifest again before opening.
 
 Assets also offers Convert, which lists transformations supported by the source and device before showing their settings. Conversion support comes from concrete file operations, separately from `openWith` and `render.formats`. Declaring an export format does not claim that the tool can convert arbitrary files into that format. Existing on-device utility conversion keeps its watermark and provenance policy. PDF page splitting produces a ZIP of static single-page PDFs; PDF page rendering produces a ZIP of PNG images. Their fidelity notes and refusal conditions appear before conversion.
+
+### Personal values in links
+
+Declare `sharePrivacy: "personal"` on an input whose content needs review before
+sharing. The web shell omits that input from generated links and automatic
+address updates, then offers a separate choice in the Share dialog. Inputs bound
+to profile fields follow the same policy automatically. Explicit URL and CLI
+values still load, and local saved sessions retain the values.
+
+A tool relying on this declaration must require engine 1.261.0 or later. The
+property does not encrypt an input, alter an export or sanitize its content.
