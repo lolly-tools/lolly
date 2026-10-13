@@ -29,7 +29,7 @@
  * frame out, one reply frame back, then the socket closes. It is defined in
  * `shells/tauri-desktop/src-tauri/src/render_server.rs`, which serves it.
  */
-import { constants, existsSync, accessSync, readFileSync, statSync } from 'node:fs';
+import { constants, existsSync, accessSync, statSync, lstatSync, openSync, fstatSync, readSync, closeSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
 import { basename, delimiter, join } from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
@@ -294,10 +294,28 @@ function processAlive(pid: number): boolean {
 }
 
 function readTextOrNull(path: string): string | null {
+  let descriptor: number | undefined;
   try {
-    return readFileSync(path, 'utf8');
+    const before = lstatSync(path, { bigint: true });
+    if (!before.isFile() || before.isSymbolicLink() || before.size > 8192n) return null;
+    if (process.platform !== 'win32' && ((before.mode & 0o077n) !== 0n
+      || (typeof process.getuid === 'function' && before.uid !== BigInt(process.getuid())))) return null;
+    descriptor = openSync(path, constants.O_RDONLY | (constants.O_NOFOLLOW ?? 0) | (constants.O_NONBLOCK ?? 0));
+    const opened = fstatSync(descriptor, { bigint: true });
+    if (!opened.isFile() || opened.size > 8192n || before.dev !== opened.dev || before.ino !== opened.ino) return null;
+    if (process.platform !== 'win32' && ((opened.mode & 0o077n) !== 0n || opened.uid !== before.uid)) return null;
+    const buffer = Buffer.alloc(8193);
+    let used = 0;
+    while (used < buffer.length) {
+      const count = readSync(descriptor, buffer, used, buffer.length - used, null);
+      if (count === 0) break;
+      used += count;
+    }
+    return used <= 8192 ? buffer.subarray(0, used).toString('utf8') : null;
   } catch {
     return null;
+  } finally {
+    if (descriptor !== undefined) closeSync(descriptor);
   }
 }
 

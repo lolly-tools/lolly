@@ -19,6 +19,7 @@ webgpu-probe = []
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
+libc = "0.2"
 # tray-icon: the clipboard-lens tray (src/desktop_integration/tray.rs, plans/174 #5).
 tauri = { version = "2", features = ["tray-icon"] }
 tauri-plugin-fs = "2"
@@ -113,3 +114,6 @@ objc2-web-kit = { version = "0.3", default-features = false, features = ["std", 
 
 [patch.crates-io]
 glib = { path = "../../../vendor/glib" }
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61", features = ["Win32_Storage_FileSystem", "Win32_Foundation"] }

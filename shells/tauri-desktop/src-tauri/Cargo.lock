@@ -2676,6 +2676,7 @@ dependencies = [
  "ashpd",
  "base64 0.22.1",
  "headless_chrome",
+ "libc",
  "mdns-sd",
  "notify",
  "objc2",
@@ -2700,6 +2701,7 @@ dependencies = [
  "tokenizers",
  "tokio",
  "url",
+ "windows-sys 0.61.2",
  "zbus",
 ]
 

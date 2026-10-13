@@ -13,7 +13,8 @@
 //! return Err("unsupported"), which the TS side treats as feature-absent, never
 //! as a failure to show the user.
 
-use std::collections::{HashSet, VecDeque};
+use std::collections::VecDeque;
+use crate::file_custody::{open_delivered, read_delivered, DirectoryGrant};
 use std::path::PathBuf;
 use std::sync::{
     atomic::{AtomicBool, Ordering},
@@ -43,7 +44,7 @@ pub struct DesktopEvent {
 #[derive(Default)]
 pub struct DesktopEvents {
     queue: Mutex<Vec<DesktopEvent>>,
-    delivered_paths: Mutex<HashSet<PathBuf>>,
+    delivered_paths: Mutex<VecDeque<(PathBuf, std::fs::File)>>,
 }
 
 impl DesktopEvents {
@@ -59,26 +60,25 @@ impl DesktopEvents {
     }
 
     fn push_path(&self, kind: &str, path: PathBuf) {
+        let Ok(file) = open_delivered(&path) else { return };
+        self.push_file(kind, path, file, None);
+    }
+
+    fn push_file(&self, kind: &str, path: PathBuf, file: std::fs::File, target: Option<&str>) {
         if let Ok(mut p) = self.delivered_paths.lock() {
-            p.insert(path.clone());
+            p.retain(|(key, _)| key != &path);
+            while p.len() >= 256 { p.pop_front(); }
+            p.push_back((path.clone(), file));
+        } else { return; }
+        if let Ok(mut q) = self.queue.lock() {
+            if q.len() >= 256 { q.remove(0); }
+            q.push(DesktopEvent { kind: kind.into(), value: path.to_string_lossy().into_owned(), target: target.map(str::to_string) });
         }
-        self.push(kind, path.to_string_lossy().into_owned());
     }
 
     fn push_target_path(&self, kind: &str, path: PathBuf, target: &str) {
-        if let Ok(mut p) = self.delivered_paths.lock() {
-            p.insert(path.clone());
-        }
-        if let Ok(mut q) = self.queue.lock() {
-            if q.len() > 256 {
-                q.drain(0..128);
-            }
-            q.push(DesktopEvent {
-                kind: kind.into(),
-                value: path.to_string_lossy().into_owned(),
-                target: Some(target.into()),
-            });
-        }
+        let Ok(file) = open_delivered(&path) else { return };
+        self.push_file(kind, path, file, Some(target));
     }
 }
 
@@ -192,15 +192,10 @@ pub fn desktop_poll_events(events: State<'_, DesktopEvents>) -> Vec<DesktopEvent
 #[tauri::command]
 pub fn desktop_read_file(events: State<'_, DesktopEvents>, path: String) -> Result<Vec<u8>, String> {
     let p = PathBuf::from(&path);
-    let allowed = events
-        .delivered_paths
-        .lock()
-        .map(|s| s.contains(&p))
-        .unwrap_or(false);
-    if !allowed {
-        return Err("path was not delivered by the desktop".into());
-    }
-    std::fs::read(&p).map_err(|e| e.to_string())
+    let mut files = events.delivered_paths.lock().map_err(|e| e.to_string())?;
+    let index = files.iter().position(|(key, _)| key == &p).ok_or("path was not delivered by the desktop")?;
+    let (_, mut file) = files.remove(index).ok_or("The delivered file is no longer available.")?;
+    read_delivered(&mut file)
 }
 
 #[tauri::command]
@@ -407,13 +402,9 @@ pub fn desktop_hotfolder_set(
 ) -> Result<(), String> {
     use notify::Watcher;
     let mut slot = hot.0.lock().map_err(|e| e.to_string())?;
-    // Dropping the previous watcher stops it; replacement is wholesale.
-    *slot = None;
-    let Some(path) = path else { return Ok(()) };
-    let dir = PathBuf::from(&path);
-    if !dir.is_dir() {
-        return Err(format!("not a directory: {path}"));
-    }
+    let Some(path) = path else { *slot = None; return Ok(()) };
+    let grant = DirectoryGrant::open(&PathBuf::from(&path))?;
+    let dir = grant.path.clone();
     let handle = app.clone();
     let mut watcher = notify::recommended_watcher(move |res: notify::Result<notify::Event>| {
         let Ok(event) = res else { return };
@@ -431,8 +422,8 @@ pub fn desktop_hotfolder_set(
         }
         let events: State<'_, DesktopEvents> = handle.state();
         for p in event.paths {
-            if p.is_file() {
-                events.push_path("hotfolderFile", p);
+            if let Ok(file) = grant.open_child(&p) {
+                events.push_file("hotfolderFile", p, file, None);
             }
         }
     })
