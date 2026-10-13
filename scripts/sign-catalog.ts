@@ -55,7 +55,7 @@ import {
   catalogFile, listToolFiles, readToolManifestText, toolDirs, toolFile,
 } from '@lolly-tools/node-shell/content-roots';
 
-import { catalogToolFiles, materializeCatalogDelivery, publishCatalogIndexes, retainCatalogDelivery } from './materialize-catalog-delivery.ts';
+import { catalogPublicResources, catalogToolFiles, materializeCatalogDelivery, publishCatalogIndexes, retainCatalogDelivery } from './materialize-catalog-delivery.ts';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const KEYS_DIR = join(ROOT, 'keys');
@@ -267,6 +267,7 @@ async function run(args: Args): Promise<void> {
   const indexHash = await sha256Hex(indexBytes);
 
   const { files, toolIds } = await signedToolFiles(args);
+  const resources = catalogPublicResources(buildRoot);
   // A prior envelope is verified against the signing identity before its sequence is used.
   // Clean release worktrees must provide --previous-envelope to carry the published floor.
   const previousPath = args.previousEnvelope ?? (existsSync(outPath) ? outPath : null);
@@ -285,7 +286,7 @@ async function run(args: Args): Promise<void> {
     keyId,
     signedAt: new Date().toISOString(),
     indexHash,
-    files,
+    files, resources,
     seq,
     ...(args.expiresAt ? { expiresAt: args.expiresAt } : {}),
     ...(existsSync(assetPath) ? { assetIndexHash: await sha256Hex(readFileSync(assetPath)) } : {}),

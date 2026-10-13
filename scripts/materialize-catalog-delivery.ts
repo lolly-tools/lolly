@@ -99,6 +99,28 @@ function rewriteReferences(text: string, addresses: Map<string, string>): string
   return text.replace(/\/(?:catalog\/(?:previews|og)\/|info\/shots\/|tools\/)[A-Za-z0-9_./@+,-]+/g, path => addresses.get(path) ?? path);
 }
 
+/** Full byte digests for public previews, including their generated look bundle. */
+export function catalogPublicResources(rootPath: string): Record<string, string> {
+  const root = realpathSync(rootPath), resources: Record<string, string> = {};
+  let count = 0;
+  const walk = (directory: string, depth: number): void => {
+    if (!existsSync(directory)) return;
+    if (depth > 32) throw new Error('Public resource directory is too deep');
+    for (const entry of readdirSync(directory, { withFileTypes: true })) {
+      if (entry.isSymbolicLink()) throw new Error('Public resource directory contains a symbolic link');
+      const path = join(directory, entry.name);
+      if (entry.isDirectory()) { walk(path, depth + 1); continue; }
+      if (!entry.isFile()) throw new Error('Public resource directory contains a non-regular file');
+      if (!/\.(svg|png|webp|avif|jpe?g|gif|webm|mp4|json)$/i.test(entry.name)) continue;
+      const logical = relative(root, path).split(sep).join('/');
+      if (!safe(logical) || ++count > 20000) throw new Error('Public resource inventory is invalid or oversized');
+      resources['/' + logical] = sha(readFileSync(path));
+    }
+  };
+  for (const path of ['catalog/previews', 'catalog/og', 'info/shots']) walk(pathIn(root, path), 0);
+  return resources;
+}
+
 /** Immutable preview, social-card and documentation-shot copies from an extracted build. */
 function publicImageAddresses(root: string): { addresses: Map<string, string>; files: CatalogDeliveryFile[] } {
   const addresses = new Map<string, string>(), files: CatalogDeliveryFile[] = [];

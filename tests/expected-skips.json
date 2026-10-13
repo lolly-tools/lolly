@@ -3459,6 +3459,13 @@
       "reason": "brands/suse is not checked out, so the suse profile cannot be resolved here",
       "capability": "brand:suse",
       "owner": "tests"
+    },
+    {
+      "file": "tests/tool-resource.browser.test.ts",
+      "fullName": "browser tool libraries execute only after their requested bytes verify",
+      "reason": "requires LOLLY_BROWSER_TESTS=1 and a local Chrome installation",
+      "capability": "browser",
+      "owner": "shells/web"
     }
   ]
 }

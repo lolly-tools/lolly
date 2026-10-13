@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { installToolByteVerification } from '../catalog/tool-bytes.ts';
 /**
  * Pre-rendered preview-look bundle (client side).
  *
@@ -36,6 +37,7 @@ interface BundleEntry { src?: string; sig?: string }
 let bundlePromise: Promise<Record<string, BundleEntry>> | null = null;
 
 export function loadPreviewBundle(): Promise<Record<string, BundleEntry>> {
+  installToolByteVerification();
   if (!bundlePromise) {
     bundlePromise = instanceFetch(instancePath('/catalog/previews/bundle.json'))
       .then((r) => (r.ok ? (r.json() as Promise<Record<string, BundleEntry>>) : {}))

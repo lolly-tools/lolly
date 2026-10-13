@@ -88,6 +88,22 @@
       "lockfile": "packages/node-shell/wasm/portable-math/Cargo.lock",
       "exposure": "shipped-runtime",
       "owner": "packages/node-shell"
+    },
+    {
+      "id": "tauri-glib-iterator-probe-cargo",
+      "ecosystem": "cargo",
+      "directory": "shells/tauri-desktop/src-tauri/probes/glib-iterator",
+      "lockfile": "shells/tauri-desktop/src-tauri/probes/glib-iterator/Cargo.lock",
+      "exposure": "build-toolchain",
+      "owner": "shells/tauri-desktop"
+    },
+    {
+      "id": "tauri-isolated-capture-probe-cargo",
+      "ecosystem": "cargo",
+      "directory": "shells/tauri-desktop/src-tauri/probes/isolated-capture",
+      "lockfile": "shells/tauri-desktop/src-tauri/probes/isolated-capture/Cargo.lock",
+      "exposure": "build-toolchain",
+      "owner": "shells/tauri-desktop"
     }
   ]
 }

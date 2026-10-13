@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
+import { catalogVerificationRequired } from '../catalog/integrity.ts';
+import { verifiedResourceURL, isCatalogResourceURL } from '../catalog/tool-bytes.ts';
 /**
  * A tool's committed preview element, shared by the gallery tiles and the asset picker,
  * plus the ONE playback policy every motion thumbnail on every surface obeys.
@@ -96,10 +98,12 @@ export function previewMedia(
   eager = false,
   anim?: string | null,
 ): string {
+  const source = catalogVerificationRequired() && isCatalogResourceURL(src)
+    ? `data-verified-preview="${escapeHtml(src)}"` : `src="${escapeHtml(src)}"`;
   if (isHtmlPreview(src)) {
     // No fetchpriority on the iframe: it isn't an LCP candidate (its own document paints
     // the art), and the attribute has no defined effect on a frame's subresources.
-    return `<iframe class="${cls}" src="${escapeHtml(src)}" tabindex="-1" aria-hidden="true" loading="${eager ? 'eager' : 'lazy'}" scrolling="no" sandbox="allow-same-origin" style="border:0;background:transparent;pointer-events:none;${iframeSize}"></iframe>`;
+    return `<iframe class="${cls}" ${source} tabindex="-1" aria-hidden="true" loading="${eager ? 'eager' : 'lazy'}" scrolling="no" sandbox="allow-same-origin" style="border:0;background:transparent;pointer-events:none;${iframeSize}"></iframe>`;
   }
   // data-motion-poster repeats the static src rather than reading it back at pause time:
   // the raster branch OVERWRITES src with the APNG, so by then the element no longer knows
@@ -107,7 +111,7 @@ export function previewMedia(
   const motion = anim
     ? ` data-motion="${motionKind(anim)}" data-motion-src="${escapeHtml(anim)}" data-motion-poster="${escapeHtml(src)}"`
     : '';
-  return `<img class="${cls}" src="${escapeHtml(src)}" alt="" aria-hidden="true" loading="${eager ? 'eager' : 'lazy'}"${eager ? ' fetchpriority="high"' : ''} decoding="async"${motion}>`;
+  return `<img class="${cls}" ${source} alt="" aria-hidden="true" loading="${eager ? 'eager' : 'lazy'}"${eager ? ' fetchpriority="high"' : ''} decoding="async"${motion}>`;
 }
 
 /**
@@ -164,6 +168,17 @@ export function playMotionPreview(el: HTMLElement, explicit = false): void {
   // tagName, not `instanceof HTMLVideoElement`: the element belongs to the document's
   // realm, which is not this module's realm under jsdom or inside an iframe, and there the
   // constructor identity check silently answers false for a real <video>.
+  const pendingSource = el.tagName === 'VIDEO' ? el.getAttribute('src') : el.dataset.motionSrc;
+  if (catalogVerificationRequired() && pendingSource && isCatalogResourceURL(pendingSource)) {
+    if (el.dataset.motionVerifying) return;
+    el.dataset.motionVerifying = 'true';
+    void verifiedResourceURL(pendingSource).then(url => {
+      if (el.tagName === 'VIDEO') el.setAttribute('src', url); else el.dataset.motionSrc = url;
+      delete el.dataset.motionVerifying;
+      if (playing === el && el.isConnected) playMotionPreview(el, explicit);
+    }).catch(() => { delete el.dataset.motionVerifying; showPreviewRefusal(el); stopMotionPreview(el); });
+    return;
+  }
   if (el.tagName === 'VIDEO') { startVideo(el as HTMLVideoElement); return; }
   const motionSrc = el.dataset.motionSrc;
   if (!motionSrc) return;
@@ -448,4 +463,59 @@ export function armMotionPreviews(root: Element, { hover = true, isCurrent = () 
       syncControls(false);
     },
   };
+}
+
+
+function showPreviewRefusal(element: HTMLElement): void {
+  element.removeAttribute('src');
+  element.dataset.previewRefused = 'true';
+  element.setAttribute('aria-label', 'Preview unavailable: resource verification failed.');
+  element.removeAttribute('aria-hidden');
+  element.title = 'Preview unavailable: resource verification failed.';
+  const container = element.parentElement;
+  if (container && !container.querySelector('[data-preview-verification-note]')) {
+    const note = element.ownerDocument.createElement('span');
+    note.dataset.previewVerificationNote = '';
+    note.textContent = 'Preview unavailable';
+    container.appendChild(note);
+  }
+}
+let activePreviewReads = 0;
+const previewWaiters: (() => void)[] = [];
+async function previewRead(read: () => Promise<string>): Promise<string> {
+  if (activePreviewReads >= 4) {
+    if (previewWaiters.length >= 512) throw new Error('Preview reads are busy.');
+    await new Promise<void>(resolve => previewWaiters.push(resolve));
+  } else activePreviewReads++;
+  try { return await read(); }
+  finally { const next = previewWaiters.shift(); if (next) next(); else activePreviewReads--; }
+}
+export async function hydrateVerifiedPreviews(root: ParentNode, read: (url: string) => Promise<string> = verifiedResourceURL): Promise<void> {
+  const elements = [...root.querySelectorAll<HTMLElement>('[data-verified-preview]')];
+  if ((root as Node).nodeType === 1 && (root as Element).hasAttribute('data-verified-preview')) elements.unshift(root as HTMLElement);
+  await Promise.all(elements.map(async element => {
+    const source = element.dataset.verifiedPreview;
+    if (!source || element.dataset.previewVerifying) return;
+    element.dataset.previewVerifying = 'true';
+    try {
+      const url = await previewRead(() => read(source));
+      if (element.isConnected && element.dataset.verifiedPreview === source) {
+        element.setAttribute('src', url);
+        if (element.dataset.motionPoster) element.dataset.motionPoster = url;
+        delete element.dataset.verifiedPreview;
+      }
+    } catch { if (element.isConnected) showPreviewRefusal(element); }
+    finally { delete element.dataset.previewVerifying; }
+  }));
+}
+let previewObserver: MutationObserver | undefined;
+export function installVerifiedPreviews(): void {
+  if (!catalogVerificationRequired() || previewObserver) return;
+  void hydrateVerifiedPreviews(document);
+  previewObserver = new MutationObserver(records => {
+    for (const record of records) for (const node of record.addedNodes) {
+      if (node.nodeType === 1) void hydrateVerifiedPreviews(node as Element);
+    }
+  });
+  previewObserver.observe(document.documentElement, { childList: true, subtree: true });
 }

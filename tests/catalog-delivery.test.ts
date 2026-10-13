@@ -134,6 +134,7 @@ test('signer increments a verified floor and release verification checks address
   const base = mkdtempSync(join(tmpdir(), 'lolly-catalog-signed-build-'));
   try {
     const root = join(base, 'build'); fixture(root);
+    file(root, 'catalog/previews/demo.svg', '<svg xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10"/></svg>');
     const pair = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify']);
     const privateKey = JSON.stringify(await crypto.subtle.exportKey('jwk', pair.privateKey));
     const publicKey = JSON.stringify(await crypto.subtle.exportKey('jwk', pair.publicKey));
@@ -147,6 +148,13 @@ test('signer increments a verified floor and release verification checks address
     const second = JSON.parse(readFileSync(join(root, 'catalog/tools/index.sig.json'), 'utf8')) as CatalogSignatureEnvelope;
     assert.equal(second.seq, first.seq! + 1);
     assert.equal((await verifyReleaseCatalog(root, publicKey)).verified, true);
+    const previewPath = Object.keys(second.resources ?? {}).find(path => path.startsWith('/catalog/previews/') && path.endsWith('.svg'))!;
+    assert.ok(previewPath);
+    const previewBytes = readFileSync(join(root, previewPath.slice(1)), 'utf8');
+    assert.equal(second.resources![previewPath], await sha256Hex(new TextEncoder().encode(previewBytes)));
+    tamper(join(root, previewPath.slice(1)), 'changed preview fixture');
+    await assert.rejects(verifyReleaseCatalog(root, publicKey), /public resource did not verify/);
+    tamper(join(root, previewPath.slice(1)), previewBytes);
     const assets = JSON.parse(readFileSync(join(root, 'catalog/assets/index.json'), 'utf8'));
     tamper(join(root, assets.assets[0].formats[0].url.slice(1)), 'altered original');
     await assert.rejects(verifyReleaseCatalog(root, publicKey), /asset does not match/);
