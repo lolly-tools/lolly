@@ -46,6 +46,8 @@ export interface CaptureAPI {
 }
 
 export interface CaptureSpec {
+  /** Use a fresh session and a public-only network reader. Unsupported hosts refuse. */
+  isolation?: 'isolated-public';
   /** The URL to load and capture. */
   url: string;
   /** Viewport width in px. The engine resolves physical units before calling. */

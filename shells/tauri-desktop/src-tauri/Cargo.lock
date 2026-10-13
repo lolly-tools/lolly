@@ -2676,6 +2676,7 @@ version = "1.1.0"
 dependencies = [
  "arboard",
  "ashpd",
+ "base64 0.22.1",
  "headless_chrome",
  "mdns-sd",
  "notify",
@@ -2697,7 +2698,9 @@ dependencies = [
  "tauri-plugin-single-instance",
  "tauri-plugin-updater",
  "tauri-plugin-window-state",
+ "tempfile",
  "tokenizers",
+ "tokio",
  "url",
  "zbus",
 ]

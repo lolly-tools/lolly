@@ -57,6 +57,9 @@ serde_json = "1"
 # Protocol to screenshot arbitrary URLs. Requires Chrome/Chromium installed.
 # CDP returns screenshots already base64-encoded, so no separate base64 dep.
 headless_chrome = "1"
+base64 = "0.22"
+tempfile = "3"
+tokio = { version = "1", features = ["rt-multi-thread", "time", "sync"] }
 # Native ONNX Runtime for the reword generator (src/reword.rs), the only native
 # inference left here - background removal dropped its native path when the full
 # BiRefNet was removed from the catalogue, so every matte model now runs on the

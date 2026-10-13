@@ -1428,6 +1428,7 @@ function rootSvgOf(node: Element | null): Element | null {
   // this - but this fulfils the 'capture' capability for the hook + non-CLI callers.)
   host.capture = {
     async page(spec) {
+      if (spec.isolation) throw new Error('This host does not provide isolated public page capture.');
       const { bytes, mime } = await captureUrl(
         {
           url: spec.url, scrollDepth: spec.scrollDepth ?? 0, waitMs: spec.waitMs ?? 500,
