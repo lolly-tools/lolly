@@ -175,7 +175,7 @@ test('public VM sparse checkout includes the maintained native image probe', () 
     `the public VM contracts read ${probePath}, so checkout must include that exact file`);
 });
 
-function normalCiSource(alter?: (run: Record<string, unknown>, inventory: { total_count: number; jobs: Record<string, unknown>[] }) => void) {
+function normalCiSource(alter?: (run: Record<string, unknown>, inventory: { total_count: number; jobs: Record<string, unknown>[] }) => void, images = 'all') {
   const directory = mkdtempSync(join(tmpdir(), 'lolly-normal-ci-'));
   try {
     const run = { id: 123, run_attempt: 2, status: 'completed', conclusion: 'success', head_sha: archiveSource, head_branch: 'main', event: 'push', path: '.github/workflows/ci.yml', repository: { full_name: 'owner/lolly' }, head_repository: { full_name: 'owner/lolly' } };
@@ -434,7 +434,7 @@ const archiveNames = {
   mcp: 'Opt-in native public MCP browser image (not gated on WebGPU)', probe: 'Unsigned web shell for the MCP browser probe (never published)',
 };
 const archiveSource = 'a'.repeat(40);
-function archiveSelection(outcomes: Partial<Record<keyof typeof archiveNames, string>>, alter?: (run: Record<string, unknown>, inventory: { total_count: number; jobs: Record<string, unknown>[] }) => void) {
+function archiveSelection(outcomes: Partial<Record<keyof typeof archiveNames, string>>, alter?: (run: Record<string, unknown>, inventory: { total_count: number; jobs: Record<string, unknown>[] }) => void, images = 'all') {
   const directory = mkdtempSync(join(tmpdir(), 'lolly-image-selection-'));
   try {
     const run = { id: 123, run_attempt: 2, status: 'completed', head_sha: archiveSource, path: '.github/workflows/deployment-suse.yml', event: 'workflow_dispatch' };
@@ -444,7 +444,7 @@ function archiveSelection(outcomes: Partial<Record<keyof typeof archiveNames, st
     writeFileSync(join(directory, 'run.json'), JSON.stringify(run)); writeFileSync(join(directory, 'jobs.json'), JSON.stringify(inventory));
     const job = workflowJob(read('.github/workflows/deployment-suse.yml'), 'archive-qualified-images');
     const preflight = job.match(/node --input-type=module -e '\n([\s\S]*?)\n\s+'/)?.[1]; assert.ok(preflight);
-    const env = { ...process.env, RUNNER_TEMP: directory, SOURCE_SHA: archiveSource, QUALIFICATION_RUN: '123' };
+    const env = { ...process.env, RUNNER_TEMP: directory, SOURCE_SHA: archiveSource, QUALIFICATION_RUN: '123', ARCHIVE_IMAGES: images };
     const initial = spawnSync(process.execPath, ['--input-type=module', '-e', preflight], { env, encoding: 'utf8', timeout: 5000 });
     if (initial.status !== 0) return { status: initial.status, stderr: initial.stderr, selection: null };
     assert.equal(initial.stdout, '2');
@@ -551,6 +551,20 @@ test('archive selection includes each qualified service and keeps failures out',
   assert.equal(failure.status, 0, failure.stderr);
   assert.deepEqual(failure.selection?.qualified, ['web', 'mcp-browser']);
   assert.deepEqual(failure.selection?.notQualified, { ca: 'failure', penpot: 'failure' });
+});
+
+
+test('archive filters export only requested qualified images and refuse missing qualification', () => {
+  for (const [filter, wanted] of [['web', ['web']], ['mcp-browser', ['mcp-browser']], ['services', ['ca', 'penpot']]] as const) {
+    const result = archiveSelection({ services: 'success' }, undefined, filter);
+    assert.equal(result.status, 0, result.stderr);
+    assert.deepEqual(result.selection?.qualified, wanted);
+    assert.equal(new Set([...(result.selection?.qualified ?? []), ...(result.selection?.notSelected ?? [])]).size, 4);
+  }
+  for (const [filter, outcomes] of [['services', { services: 'failure' }], ['web', { web: 'skipped', gate: 'skipped' }], ['mcp-browser', { mcp: 'failure' }], ['unknown', {}]] as const) {
+    const result = archiveSelection(outcomes, undefined, filter);
+    assert.notEqual(result.status, 0, `${filter}: unqualified filter must refuse`);
+  }
 });
 
 test('service archive receipts bind attempts while accepting only unambiguous legacy first runs', () => {

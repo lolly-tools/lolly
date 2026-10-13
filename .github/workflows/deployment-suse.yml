@@ -45,7 +45,7 @@ on:
         options: [full, web, services-docs]
         default: full
       expected_source:
-        description: Exact reviewed 40-character commit; must match the dispatched ref
+        description: Exact reviewed application commit; image builds must match the dispatched ref
         required: false
         type: string
       ci_run:
@@ -56,6 +56,12 @@ on:
         description: Successful qualification run to export for offline node import
         required: false
         type: string
+      archive_images:
+        description: Export only this already-qualified image subset; never builds images
+        required: false
+        type: choice
+        options: [all, web, mcp-browser, services]
+        default: all
       public_key_jwk:
         description: Existing published public P-256 JWK; never a replacement or private key
         required: false
@@ -1075,6 +1081,7 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
       QUALIFICATION_RUN: ${{ inputs.archive_run }}
+      ARCHIVE_IMAGES: ${{ inputs.archive_images }}
       SOURCE_SHA: ${{ inputs.expected_source }}
     steps:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
@@ -1138,6 +1145,15 @@ jobs:
           if(services==='success') selection.qualified.push('ca','penpot');
           else if(services==='skipped') selection.notSelected.push('ca','penpot');
           else { selection.notQualified.ca=services; selection.notQualified.penpot=services; }
+          const filter=process.env.ARCHIVE_IMAGES||'all';
+          const subsets={all:null,web:['web'],'mcp-browser':['mcp-browser'],services:['ca','penpot']};
+          if(!Object.hasOwn(subsets,filter)) throw Error('Unknown archive image subset');
+          const requested=subsets[filter];
+          if(requested) {
+            if(requested.some(service=>!selection.qualified.includes(service))) throw Error('Requested archive image did not qualify');
+            selection.notSelected.push(...selection.qualified.filter(service=>!requested.includes(service)));
+            selection.qualified=selection.qualified.filter(service=>requested.includes(service));
+          }
           if(!selection.qualified.length) throw Error('No qualified image to archive');
           writeFileSync(root+'/image-selection.json',JSON.stringify(selection));
           JS
