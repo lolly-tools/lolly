@@ -15,10 +15,19 @@ source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
 target="${1:-tumbleweed}"
 case "$target" in
-  tumbleweed) base="opensuse/tumbleweed"; image="lolly-rpm-tumbleweed"; dist="" ;;
-  leap16)     base="opensuse/leap:16.0";  image="lolly-rpm-leap16";     dist=".leap16" ;;
+  tumbleweed) base_arg="BASE";      dist="" ;;
+  leap16)     base_arg="LEAP_BASE"; dist=".leap16" ;;
   *) die "unknown target '$target' (expected: tumbleweed | leap16)" ;;
 esac
+
+builder_file="$release_dir/containers/Dockerfile.rpm"
+base="${LOLLY_RPM_BASE:-$(sed -n "s/^ARG ${base_arg}=//p" "$builder_file")}"
+[[ "$base" =~ ^[a-z0-9][a-z0-9._:/-]*@sha256:[a-f0-9]{64}$ ]] \
+  || die "RPM base must be an image reference pinned with @sha256 and a full digest"
+# Each base and recipe gets a distinct local builder cache.
+recipe_digest="$(shasum -a 256 "$builder_file" | cut -d ' ' -f 1)"
+builder_digest="$(printf '%s:%s' "$base" "$recipe_digest" | shasum -a 256 | cut -d ' ' -f 1)"
+image="lolly-rpm-$target-$builder_digest"
 
 SRC="$DESKTOP/rpm/out"
 [ -f "$SRC/lolly-desktop-${VERSION}.tar.zst" ] \
@@ -27,8 +36,10 @@ SRC="$DESKTOP/rpm/out"
 if ! docker image inspect "$image" >/dev/null 2>&1; then
   step "Building $image"
   docker build -t "$image" --build-arg "BASE=$base" \
-    -f "$release_dir/containers/Dockerfile.rpm" "$release_dir/containers"
+    -f "$builder_file" "$release_dir/containers"
 fi
+image="$(docker image inspect --format '{{.Id}}' "$image")"
+[[ "$image" =~ ^sha256:[a-f0-9]{64}$ ]] || die "could not resolve an immutable RPM builder image ID"
 
 TOP="$CACHE/rpmbuild-$target"
 step "rpmbuild $target (dist='${dist:-<none>}')"

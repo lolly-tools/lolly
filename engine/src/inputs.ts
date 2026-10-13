@@ -791,7 +791,7 @@ function constrainBlockColours(input: InputModelItem, rows: InputValue[]): Input
     for (const field of fields) {
       if (row[field] === undefined) continue;
       const prior = isObjectValue(old) && !Array.isArray(old) ? colourLiteral(flattenValue(old[field] ?? '')) ?? '' : '';
-      const colour = flattenValue(constrainColour(row[field]!, prior));
+      const colour = constrainColour(row[field]!, prior);
       if (colour === row[field]) continue;
       if (result === row) result = { ...row };
       result[field] = colour;

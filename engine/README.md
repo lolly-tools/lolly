@@ -167,7 +167,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `camera-raw-preset.ts` | 46 | Explicit Camera Raw settings mapped to Darkroom's existing input values. | yes | indirect | – |
 | `canonical-json.ts` | 19 | Deterministic JSON with sorted object keys and preserved array order. | no | none | – |
 | `captions.ts` | 187 | Captions - spoken-word timings in, subtitle cues out. | yes | `tests/captions.test.ts` | – |
-| `catalog-integrity.ts` | 334 | Catalog signing + runtime integrity verification - the SOVEREIGNTY.md "catalog origin is a trust anchor" gap, closed. | yes | `tests/catalog-integrity.test.ts` | – |
+| `catalog-integrity.ts` | 343 | Catalog signing + runtime integrity verification - the SOVEREIGNTY.md "catalog origin is a trust anchor" gap, closed. | yes | `tests/catalog-integrity.test.ts` | – |
 | `chart-spec.ts` | 387 | Pure ChartSpecV1 helpers. | yes | `tests/chart-spec.test.ts` | – |
 | `check-fidelity.ts` | 1035 | Fidelity of a Design document to the deck it recreates (plan 291, W1). | yes | `tests/check-fidelity.test.ts` | – |
 | `chroma-key.test.ts` | 97 | engine/src/chroma-key.ts - the perceptual (OKLab) colour-range key behind the video-matte "Colour key" method (plans/124 WP-G). | no | none | – |
@@ -353,7 +353,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `image-cloud.ts` | 274 | An image's colours as a point cloud in OKLCH, plus what the distribution says. | yes | `tests/image-cloud.test.ts` | – |
 | `image-meta.ts` | 1111 | Image-metadata byte stampers and the metadata-carry core - DOM-free, shared by the web export bridge and the Node shells. | yes | indirect | – |
 | `inpaint.ts` | 422 | Telea inpainting: fill a brushed-out region of an RGBA frame from the pixels around it, by fast marching inward from the region boundary. | yes | `tests/inpaint.test.ts` | – |
-| `inputs.ts` | 952 | Builds a runtime input model from a tool manifest. | yes | indirect | – |
+| `inputs.ts` | 954 | Builds a runtime input model from a tool manifest. | yes | indirect | – |
 | `jpeg-segments.ts` | 372 | JPEG marker-segment walker and writer - one shared primitive, DOM-free. | no | `tests/jpeg-segments.test.ts` | – |
 | `jxl-container.ts` | 43 | Bounded uncompressed metadata boxes. | no | indirect | – |
 | `jxl.ts` | 37 | JPEG XL identity and bounded operation policy. | no | `tests/jxl.test.ts` | yes |

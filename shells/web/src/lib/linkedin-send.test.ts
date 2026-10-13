@@ -28,8 +28,14 @@ import { cachedToken, getConnection, resetConnectionsForTests, saveConnection } 
 import type { AuthorizeVia } from './provider-auth.ts';
 
 const realFetch = globalThis.fetch;
+const realLocation = Object.getOwnPropertyDescriptor(globalThis, 'location');
+const fixtureOrigin = 'https://connector-shell.example';
+const fixturePolicy = "connect-src 'self' https://www.linkedin.com https://api.linkedin.com https://upload.linkedin.example";
 
-beforeEach(() => resetConnectionsForTests());
+beforeEach(() => {
+  resetConnectionsForTests();
+  Object.defineProperty(globalThis, 'location', { configurable: true, value: { origin: fixtureOrigin, href: `${fixtureOrigin}/` } });
+});
 afterEach(() => {
   resetConnectionsForTests();
   setLinkedInClient(null);
@@ -37,6 +43,8 @@ afterEach(() => {
   setOneDriveClientId(null);
   setOneDriveDesktopClientId(null);
   globalThis.fetch = realFetch;
+  if (realLocation) Object.defineProperty(globalThis, 'location', realLocation);
+  else Reflect.deleteProperty(globalThis, 'location');
 });
 
 interface Route { match: string; status?: number; json?: unknown; headers?: Record<string, string> }
@@ -48,6 +56,9 @@ function stubFetch(routes: Route[]) {
   const calls: Array<{ url: string; init?: RequestInit }> = [];
   globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
+    if (url === `${fixtureOrigin}/index.html` && init?.method === 'HEAD') {
+      return new Response(null, { headers: { 'Content-Security-Policy': fixturePolicy } });
+    }
     calls.push({ url, init });
     const route = routes.find((r) => url.includes(r.match));
     if (!route) return new Response('not stubbed', { status: 500 });

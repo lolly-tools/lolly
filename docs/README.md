@@ -109,6 +109,7 @@ security posture).
 | [tool-hooks.md](tool-hooks.md) | tool author | Add portable behavior, live media, recording, speech and allowed network access. |
 | [tool-composition.md](tool-composition.md) | tool author | Compose tools and resolve brand-specific logos and overlays. |
 | [tool-publishing.md](tool-publishing.md) | tool author | Validate, distribute, test and translate a reusable tool. |
+| [catalog-resource-reading.md](catalog-resource-reading.md) | tool publisher | Signed resource coverage and bounded client reads. |
 | [authoring-assets.md](authoring-assets.md) | tool author | Catalog assets: the `type` enum from `schemas/asset.schema.json`, asset anatomy, versioning and the permanent-id rule. |
 | [host-api.md](host-api.md) | tool author | The `HostV1` capability bridge every tool calls into, and which shell implements what. |
 | [url-mode.md](url-mode.md) | tool author | Expressing any tool state as URL parameters, the reserved params, and the compact-encoding opt-ins. |

@@ -28,6 +28,8 @@ test('signed frontend entrypoints refuse before signing when WebGPU qualificatio
   mkdirSync(join(dir, 'scripts'), { recursive: true });
   mkdirSync(join(dir, 'shells', 'web', 'src'), { recursive: true });
   mkdirSync(join(dir, 'docs'), { recursive: true });
+  mkdirSync(join(dir, 'packages/core/src'), { recursive: true });
+  writeFileSync(join(dir, 'packages/core/src/connector-origins.ts'), readFileSync(new URL('../packages/core/src/connector-origins.ts', import.meta.url)));
   for (const file of ['build-release-web.ts', 'webgpu-release-gate.ts', 'webgpu-qualification.ts']) {
     writeFileSync(join(dir, 'scripts', file), readFileSync(new URL(`../scripts/${file}`, import.meta.url)));
   }

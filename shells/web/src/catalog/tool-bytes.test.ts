@@ -34,7 +34,8 @@ test('bounded child streams cancel before returning oversized bytes', async () =
 });
 test('signed resource maps require safe public resource names and full digests', () => {
   assert.equal(catalogEnvelopeShape(envelope).ok, true);
-  for (const resources of [{ '/catalog/previews/../fixture.svg': sha('fixture') }, { '/catalog/previews/fixture.svg': 'a'.repeat(16) }, { '/unlisted/fixture.svg': sha('fixture') }]) assert.equal(catalogEnvelopeShape({ ...envelope, resources }).ok, false);
+  const invalidResources: Array<Record<string, string>> = [{ '/catalog/previews/../fixture.svg': sha('fixture') }, { '/catalog/previews/fixture.svg': 'a'.repeat(16) }, { '/unlisted/fixture.svg': sha('fixture') }];
+  for (const resources of invalidResources) assert.equal(catalogEnvelopeShape({ ...envelope, resources }).ok, false);
 });
 
 

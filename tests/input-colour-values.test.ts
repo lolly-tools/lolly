@@ -82,3 +82,14 @@ test('URL and runtime batch writes validate colours before lifecycle hooks', asy
   await runtime.setInput('paint', '#778899');
   assert.equal(runtime.getHydrated(), '#778899');
 });
+
+test('block colour references keep their identity and validate cached paint', () => {
+  const reference = { ref: '{color.primary}', value: '#123456' };
+  const rows = [{ paint: reference, label: 'linked' }];
+  const model = buildInputModel(manifest, { initial: { rows } });
+  assert.equal((model[1]!.value as typeof rows)[0]!.paint, reference);
+  for (const value of invalid) {
+    const changed = updateInput(model, 'rows', [{ paint: { ...reference, value }, label: 'changed' }]);
+    assert.deepEqual(changed[1]!.value, [{ paint: { ref: reference.ref, value: undefined }, label: 'changed' }]);
+  }
+});

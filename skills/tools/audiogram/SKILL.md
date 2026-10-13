@@ -5,7 +5,7 @@ description: "Operate the Lolly Audiogram tool (audiogram) using its declared in
 
 # Audiogram
 
-Tool ID: `audiogram`. Tool version: `2.7.4`. Engine range: `^1.214.0`.
+Tool ID: `audiogram`. Tool version: `2.7.5`. Engine range: `>=1.261.0 <2.0.0`.
 
 Turn a voice clip or song into a video in your design system's colours that actually moves with the sound - bars, spectrum, ring, ridgeline or scope, ready for social.
 

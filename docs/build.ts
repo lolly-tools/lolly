@@ -337,6 +337,7 @@ const pages: Page[] = [
   { slug: 'build-obs', title: 'Build with Open Build Service', src: 'build-obs.md', pathway: 'operators', description: "Plan OBS recipes for Lolly artifacts and their dependencies." },
   { slug: 'build-kubernetes', title: 'Build the web container and Helm chart', src: 'build-kubernetes.md', pathway: 'operators', description: "Build the web image and deploy the chart with optional services." },
   { slug: 'ios-build',        title: 'Building for iOS',  src: 'ios-build.md',       pathway: 'builders' },
+  { slug: 'catalog-resource-reading', title: 'Read verified catalog resources', src: 'catalog-resource-reading.md', pathway: 'builders', description: 'Signed resource coverage, bounded reads and verified client resource delivery.' },
   { slug: 'connector-origins', title: 'Configure connector origins', src: 'connector-origins.md', pathway: 'operators', description: 'Exact HTTPS connector origins, deployment headers and native request policy.' },
   { slug: 'deployment',       title: 'Deployment',        src: 'deployment.md',      pathway: 'operators' },
   { slug: 'deploy-delivery', title: 'Delivery deployment', src: 'deploy-delivery.md', pathway: 'operators', description: "Serve public files and private workspace responses safely: signed catalog updates, retained hashed files, model integrity, optional edges and release checks." },
@@ -622,7 +623,8 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
         { slug: 'tool-starters', label: 'Starting points' },
         { slug: 'tool-hooks', label: 'Hooks and capabilities' },
         { slug: 'tool-composition', label: 'Composition' },
-        { slug: 'tool-publishing', label: 'Publish and localize' } ] },
+        { slug: 'tool-publishing', label: 'Publish and localize' },
+        { slug: 'catalog-resource-reading', label: 'Verified catalog resources' } ] },
       { label: 'Reference', items: [
         { slug: 'authoring-assets', label: 'Authoring Assets' },
         { slug: 'text-composition-engine', label: 'Authored text composition' },
@@ -5284,14 +5286,14 @@ const FOOTER_SECTIONS: SitemapSection[] = [
   { hub: 'builders', label: 'Architecture', slugs: ['overview', 'design-tokens', 'token-workflows', 'glossary', 'document-model'] },
   { hub: 'builders', label: 'Concepts', slugs: ['constraints', 'determinism', 'reproducibility'] },
   { hub: 'builders', label: 'Author tools', slugs: ['authoring-tools', 'tool-skills', 'tool-manifest', 'tool-inputs', 'tool-structured-inputs', 'tool-files'] },
-  { hub: 'builders', label: 'Render and share tools', slugs: ['tool-rendering', 'tool-starters', 'tool-hooks', 'tool-composition', 'tool-publishing'] },
+  { hub: 'builders', label: 'Render and share tools', slugs: ['tool-rendering', 'tool-starters', 'tool-hooks', 'tool-composition', 'tool-publishing', 'catalog-resource-reading'] },
   { hub: 'builders', label: 'Reference', slugs: ['authoring-assets', 'text-composition-engine', 'host-api'] },
   { hub: 'builders', label: 'URL mode', slugs: ['url-mode', 'url-inputs', 'url-parameters', 'url-export', 'url-app-links'] },
   { hub: 'builders', label: 'CLI', slugs: ['cli', 'cli-rendering', 'cli-files', 'cli-automation', 'production-checks', 'cli-reference', 'cli-signing'] },
   { hub: 'builders', label: 'Run & integrate', slugs: ['tui', 'mcp', 'ai-agents', 'learning-integration', 'design-tool-contract'] },
   { hub: 'builders', label: 'Ship & operate', slugs: ['contributing-setup', 'about'] },
   { hub: 'operators', label: 'Playbooks', slugs: ['sales', 'press', 'marketing', 'legal'] },
-  { hub: 'operators', label: 'Adopt & govern', slugs: ['adoption-governance', 'sovereign-production', 'deployment', 'deploy-delivery', 'configuration', 'build-guide'] },
+  { hub: 'operators', label: 'Adopt & govern', slugs: ['adoption-governance', 'sovereign-production', 'deployment', 'deploy-delivery', 'configuration', 'connector-origins', 'build-guide'] },
   { hub: 'operators', label: 'Build targets', slugs: ['build-terminal', 'build-desktop', 'build-mobile', 'build-obs', 'build-kubernetes', 'ios-build'] },
   { hub: 'trust', label: 'Tenets', slugs: ['tenets', 'status-quo', 'inclusive-design'] },
   { hub: 'trust', label: 'Project perspective', slugs: ['input-not-impersonation', 'content-credentials-identity',
@@ -5420,7 +5422,7 @@ const SIDEBAR_ICON: Record<string, string> = {
   // Builders - run & integrate
   cli: 'code', 'cli-signing': 'seal', tui: 'monitor', mcp: 'server', 'ai-agents': 'sparkle', extension: 'globe',
   // Builders - ship & operate
-  'contributing-setup': 'download', 'build-guide': 'box', 'ios-build': 'box', deployment: 'upload', 'deploy-delivery': 'download', configuration: 'sliders', about: 'document',
+  'contributing-setup': 'download', 'build-guide': 'box', 'ios-build': 'box', deployment: 'upload', 'connector-origins': 'globe', 'catalog-resource-reading': 'shield', 'deploy-delivery': 'download', configuration: 'sliders', about: 'document',
   // Operators
   'adoption-governance': 'people',
   // Trust - Project perspective

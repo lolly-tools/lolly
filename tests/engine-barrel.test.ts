@@ -10,6 +10,11 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
 const EXPECTED: readonly string[] = [
+  // Additive 1.261 managed enrollment and issuer status validation.
+  'EnrollmentPolicy', 'EnrollmentProviderPolicy', 'EnrollmentTrustBundle', 'VerifiedCrl',
+  'createEnrollmentCsr', 'enrollmentProofMessage', 'parseEnrollmentTrustBundle',
+  'revocationProofMessage', 'validateEnrollmentChain', 'validateEnrollmentCrl',
+  'validateManagedCredential', 'verifyEnrollmentRequest',
   // Additive 1.254 Design hierarchy and transient editor view state.
   'DEFAULT_DESIGN_PAGE', 'DESIGN_HIERARCHY_LIMITS', 'DesignHierarchyError',
   'DesignHierarchyFinding', 'DesignHierarchyIndex', 'DesignHierarchyRow', 'DesignPage',

@@ -18,11 +18,19 @@ import { parseServerUrl, mastodonSendTarget } from './mastodon-send.ts';
 import { resetConnectionsForTests, saveConnection } from './provider-connections.ts';
 
 const realFetch = globalThis.fetch;
+const realLocation = Object.getOwnPropertyDescriptor(globalThis, 'location');
+const fixtureOrigin = 'https://connector-shell.example';
+const fixturePolicy = "connect-src 'self' https://discord.com https://bsky.social https://mastodon.social";
 
-beforeEach(() => resetConnectionsForTests());
+beforeEach(() => {
+  resetConnectionsForTests();
+  Object.defineProperty(globalThis, 'location', { configurable: true, value: { origin: fixtureOrigin, href: `${fixtureOrigin}/` } });
+});
 afterEach(() => {
   resetConnectionsForTests();
   globalThis.fetch = realFetch;
+  if (realLocation) Object.defineProperty(globalThis, 'location', realLocation);
+  else Reflect.deleteProperty(globalThis, 'location');
 });
 
 /** One canned JSON response per URL-substring, recorded as it is served. */
@@ -30,6 +38,9 @@ function stubFetch(routes: Array<{ match: string; status?: number; json?: unknow
   const calls: Array<{ url: string; init?: RequestInit }> = [];
   globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
+    if (url === `${fixtureOrigin}/index.html` && init?.method === 'HEAD') {
+      return new Response(null, { headers: { 'Content-Security-Policy': fixturePolicy } });
+    }
     calls.push({ url, init });
     const route = routes.find(r => url.includes(r.match));
     if (!route) return new Response('not stubbed', { status: 500 });

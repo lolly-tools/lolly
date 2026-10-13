@@ -4,7 +4,7 @@
 # in (see release/build-deb.sh), so the container only supplies the webkit2gtk /
 # GTK development headers that a Tauri link needs. Ubuntu 24.04 matches the CI
 # runner, so a local .deb and a CI .deb are built against the same libc/webkit.
-FROM ubuntu:24.04
+FROM ubuntu:24.04@sha256:534baea6a22c03a63003dbc8dbe78fe34bc0d7e595d9a9dc9834884ff530eb55
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
       libwebkit2gtk-4.1-dev \

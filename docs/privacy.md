@@ -369,28 +369,42 @@ If you do enrol, here is exactly what happens:
    address is not sent to that store. The bucket expires after about a minute
    and is not used for tracking. Ordinary hosting access logs are separate and
    described below.
-4. **The certificate service issues a short-lived certificate** (7, 30, 90 or 365
-   days, your choice, capped by the operator's policy) binding your verified
-   email to the public half of the keypair generated on your device. The private
-   half never leaves your browser.
-5. **Nothing about the issuance is recorded.** The certificate service keeps no
-   issuance log: not your email, not the provider, not a serial number, not a
-   timestamp. No database, no log line, no webhook. Your email address exists in
-   the request only long enough to be written into the certificate that your own
-   device receives, and then it is gone from our side entirely.
-6. **After that, signing is offline again** for the certificate's whole lifetime.
-   Exporting a file never contacts the certificate service - only enrolling did.
+4. **The certificate service issues a certificate binding your verified email
+   to your device's public key.** The browser's private key stays on the device.
+   Legacy hosted enrollment offers 7, 30, 90 or 365 days, capped by the operator.
+   Managed organisation enrollment uses a 24-hour default and a seven-day
+   maximum, with an independently configured root and issuer trust policy.
+   The client sends a public-key certificate request and a bound possession
+   proof; the managed service delegates signing to its approved Vault issuer.
+   No device private key is sent to either service.
+5. **Retention depends on the issuer mode.** Legacy hosted issuance keeps no
+   identity inventory or issuance log. Managed enrollment uses a shared one-use
+   admission store, holding only a keyed authentication identifier and request
+   digest for at most ten minutes. It stores no identity inventory or
+   certificate-response cache in the enrollment application. The managed PKI
+   provider, its audit devices, gateways and backups have separate data flows.
+   Even with ordinary issuance storage disabled, certificate-based revocation
+   can retain the certificate, including its email identity. Revocation serials
+   and audit identifiers can remain linkable. The organisation must approve
+   that inventory, access and retention before enabling managed enrollment.
+6. **Cryptographic signing remains local.** Legacy signing needs no certificate
+   service request during an export. Managed identities also require a fresh,
+   signed revocation list from the configured issuer. The client can use a
+   cached list within its approved freshness window; refreshing status can
+   contact the certificate service during an export. Missing, expired or
+   invalid status prevents use of the managed signing identity. Revocation
+   requires authenticated device proof; no API asks for the device private key.
 
-**The tradeoff, stated plainly.** An earlier version of this service did log each
-issuance, so that a misissued or compromised certificate could be traced. We
-removed it to avoid retaining personal data in this certificate service.
-Organisation identity and audit records in lolly.work are separate and follow
-the operator's retention policy. What we give up is server-side traceability: if a certificate is
-misused we cannot look up who obtained it. Certificates are short-lived by
-design - 7 to 365 days, your choice, capped by the operator - and expire on their
-own, which is the mitigation we rely on instead. Self-hosters whose own
-obligations require an audit log can add one, and become the controller of that
-data by doing so.
+The legacy service's lack of an identity inventory means it cannot look up who
+obtained a certificate or automatically revoke that person's certificates.
+Managed deployments have a different lifecycle: the device can request
+revocation, and the operator can withdraw an issuer through its independently
+managed trust policy. Directory-driven offboarding needs an approved
+identity-to-certificate inventory or another qualified operator procedure; that
+mapping is not supplied automatically. Original organisation audit records,
+PKI records, recipients and backups follow their separately approved policies.
+See the [certificate service design](https://github.com/lolly-tools/lolly/blob/main/services/ca/README.md)
+for issuer custody, provider retention and qualification boundaries.
 
 ## The browser extension
 
@@ -509,7 +523,7 @@ its operator must provide those in its own policy.
 | Processing | Legal basis (GDPR Art. 6) | Retained for |
 |---|---|---|
 | Everything on your device (documents, prefs, cache, counters) | **Not our processing at all** - it never reaches us. Storage on your device is strictly necessary for the service you requested (ePrivacy Art. 5(3)), so it needs no consent | Until you delete it |
-| Your email address during Content Credentials enrolment | **Art. 6(1)(b)**, performance of a service you explicitly requested | Not retained. Present in memory for the duration of the request only |
+| Your email address during legacy hosted Content Credentials enrolment | **Art. 6(1)(b)**, performance of a service you explicitly requested | No identity inventory or issuance log in the legacy service; the email is used during the request and included in your certificate. Managed organisation PKI, audit and revocation retention follow its operator's approved policy |
 | A one-way-derived bucket key made from your IP address, for rate limiting the sign-in endpoints and the public render, image and MCP endpoints | **Art. 6(1)(f)**, our legitimate interest in preventing abuse of a free service and of a third party's email quota. We consider this to pass a balancing test because the raw address is not sent to the limiter, the bucket is used only for abuse control and it expires automatically | About 1 minute in the abuse-control store; not retained afterwards |
 | Hosting access logs (IP, path, timestamp, user agent) | **Art. 6(1)(f)**, our legitimate interest in service security, abuse prevention and diagnosing faults | Administrator-configured rotation and retention; contact the controller for the current schedule |
 

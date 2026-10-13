@@ -12,8 +12,7 @@
 #
 # Triggers on version tags (v*) and manual dispatch. A dispatch with the
 # webgpu_qualification input builds for plan 295 P0b: unsigned, marked not for release.
-# Keep the container tag (gnome-50)
-# in lockstep with `runtime-version: '50'` in the manifest.
+# Review the pinned GNOME-50 container with `runtime-version: '50'` in the manifest.
 name: Flatpak (Linux)
 
 on:
@@ -187,7 +186,7 @@ jobs:
     needs: build-deb
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-50
+      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-50@sha256:1de59efef01a946d9f28f1ec3458bf6f61dcee3507d7fecdd473f8134da4ec77
       options: --privileged
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7

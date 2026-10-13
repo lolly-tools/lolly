@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "captions",
-  "toolVersion": "1.0.3",
-  "toolVersionRange": "1.0.3",
+  "toolVersion": "1.0.4",
+  "toolVersionRange": "1.0.4",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -11,12 +11,12 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "df1842066282dc826c515de7f9715f5e8c5c486256b62f67a01a7cf3618544d1",
-      "bytes": 1934
+      "sha256": "4052f80e6ed0748e5854f44dd247afe295e86659ae74fe6c428f8eeb893b8be6",
+      "bytes": 1941
     },
     "reference/inputs.json": {
-      "sha256": "e601e1c09b4c63faefd0e658d7790402e897ab2ebd4a53d286f74713e5560051",
-      "bytes": 3635
+      "sha256": "f7382e5efd4b5553a01f27f27074fe2ba446a4fb47ca7affe8033798c1596627",
+      "bytes": 3667
     },
     "reference/examples.json": {
       "sha256": "4c08760b40644bf5523ae05f29e43fb45c11cfce2e9e2ca798d7c1d85be9a39e",

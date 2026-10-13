@@ -611,6 +611,7 @@
   },
   {
     "id": "transcript",
+    "sharePrivacy": "personal",
     "section": "Captions",
     "label": "Transcript",
     "type": "longtext",

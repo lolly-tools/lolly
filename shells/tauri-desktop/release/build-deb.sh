@@ -13,15 +13,31 @@
 # dist/ in the default 'neutral' mode and silently drops the tool previews.
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
-IMAGE="${LOLLY_DEB_IMAGE:-lolly-deb-builder}"
+builder_file="$release_dir/containers/Dockerfile.deb"
+if [ -n "${LOLLY_DEB_IMAGE:-}" ]; then
+  IMAGE="$LOLLY_DEB_IMAGE"
+  [[ "$IMAGE" =~ ^sha256:[a-f0-9]{64}$ || "$IMAGE" =~ ^[a-z0-9][a-z0-9._:/-]*@sha256:[a-f0-9]{64}$ ]] \
+    || die "DEB builder must be an image reference pinned with @sha256 or a full local image ID"
+else
+  recipe_digest="$(shasum -a 256 "$builder_file" | cut -d ' ' -f 1)"
+  IMAGE="lolly-deb-builder-$recipe_digest"
+fi
 export CARGO_TARGET_DIR="${CARGO_TARGET_DIR:-$CACHE/cargo-target-deb}"
 
 assert_public_profile
 
 if ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
-  step "Building $IMAGE"
-  docker build -t "$IMAGE" -f "$release_dir/containers/Dockerfile.deb" "$release_dir/containers"
+  if [ -n "${LOLLY_DEB_IMAGE:-}" ]; then
+    [[ "$IMAGE" == *@sha256:* ]] || die "local DEB builder image ID is unavailable"
+    step "Pulling $IMAGE"
+    docker pull "$IMAGE"
+  else
+    step "Building $IMAGE"
+    docker build -t "$IMAGE" -f "$builder_file" "$release_dir/containers"
+  fi
 fi
+IMAGE="$(docker image inspect --format '{{.Id}}' "$IMAGE")"
+[[ "$IMAGE" =~ ^sha256:[a-f0-9]{64}$ ]] || die "could not resolve an immutable DEB builder image ID"
 
 step "Building signed frontend (profile mode) on the host"
 ( cd "$DESKTOP" && LOLLY_EMBED_CATALOG=profile pnpm run build:frontend:release )

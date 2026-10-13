@@ -9,6 +9,7 @@
   },
   {
     "id": "transcript",
+    "sharePrivacy": "personal",
     "label": "Transcript",
     "type": "longtext",
     "rows": 8,
