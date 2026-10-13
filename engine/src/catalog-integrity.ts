@@ -109,6 +109,8 @@ export interface UnsignedCatalogEnvelope {
   indexHash: string;
   /** '<toolId>/<filename>' → sha256 hex of that file's bytes. */
   files: Record<string, string>;
+  /** Exact public preview and documentation resource paths mapped to byte digests. */
+  resources?: Record<string, string>;
 }
 
 /** The signed catalog envelope, as written to catalog/tools/index.sig.json. */
@@ -279,6 +281,13 @@ export function catalogEnvelopeShape(envelope: CatalogSignatureEnvelope): Integr
   if (!envelope.files || typeof envelope.files !== 'object' || Array.isArray(envelope.files) || Object.keys(envelope.files).length > 100000) return { ok: false, reason: 'invalid signed file map' };
   for (const [path, digest] of Object.entries(envelope.files)) {
     if (path.length > 1024 || /[\\%?#\p{White_Space}\p{Cc}]/u.test(path) || path.split('/').some(part => !part || part === '.' || part === '..') || !digestPattern.test(digest)) return { ok: false, reason: 'invalid signed file digest' };
+  }
+  if (envelope.resources !== undefined) {
+    if (!envelope.resources || typeof envelope.resources !== 'object' || Array.isArray(envelope.resources) || Object.keys(envelope.resources).length > 20000) return { ok: false, reason: 'invalid signed resource map' };
+    for (const [path, digest] of Object.entries(envelope.resources)) {
+      if (!/^\/(?:catalog\/(?:previews|og)|info\/shots)\//.test(path) || path.length > 1024 || /[\\%?#\p{White_Space}\p{Cc}]/u.test(path)
+        || path.slice(1).split('/').some(part => !part || part === '.' || part === '..') || !digestPattern.test(digest)) return { ok: false, reason: 'invalid signed resource digest' };
+    }
   }
   if (!digestPattern.test(envelope.indexHash)) return { ok: false, reason: 'invalid signed tool index hash' };
   if (typeof envelope.signedAt !== 'string' || !Number.isFinite(Date.parse(envelope.signedAt))) return { ok: false, reason: 'invalid catalog signing time' };

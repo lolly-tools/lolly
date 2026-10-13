@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
+import { installToolByteVerification } from './catalog/tool-bytes.ts';
+import { installVerifiedPreviews } from './lib/preview-media.ts';
 /**
  * Web shell entry.
  *
@@ -1120,6 +1122,8 @@ function startBootCatalog(host: Awaited<ReturnType<typeof createBridge>>, coldGa
 }
 
 async function boot(): Promise<void> {
+  installToolByteVerification();
+  installVerifiedPreviews();
   // WebGPU is a hard requirement (plan 295), checked alongside boot rather than before
   // it: a cold software adapter can take seconds, and the gallery must not wait for one
   // to paint. navigate() holds every route that can run a tool until the check passes;

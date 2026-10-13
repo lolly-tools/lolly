@@ -22,6 +22,8 @@ test('every authoritative npm/Cargo lock has an audit owner', () => {
     'pnpm-lock.yaml',
     'shells/tauri-desktop/pnpm-lock.yaml',
     'shells/tauri-desktop/src-tauri/Cargo.lock',
+    'shells/tauri-desktop/src-tauri/probes/glib-iterator/Cargo.lock',
+    'shells/tauri-desktop/src-tauri/probes/isolated-capture/Cargo.lock',
     'shells/tauri-mobile/pnpm-lock.yaml',
     'shells/tauri-mobile/src-tauri/Cargo.lock',
   ]);
