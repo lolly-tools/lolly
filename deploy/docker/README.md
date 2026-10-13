@@ -7,80 +7,63 @@ Work. For optional certificate identity, follow the
 [CA deployment and lifecycle procedure](../../services/ca/README.md#deploy-and-maintain-managed-identity),
 including verified-email compatibility and the installed JWT verifier dependency.
 
-The web image uses `pnpm run build:web:release`: it signs the selected profile's
-catalog and embeds the matching public verification key and verified trust mode
-in the client. Unsigned `build:web` output is for development and previews.
+The web image consumes a prebuilt frontend signed for its exact source commit,
+content profile and public verification key. The Docker build verifies every
+artifact file, its catalog and the web release gate before copying the output to
+nginx. It installs no frontend dependencies, runs no compiler and receives no
+private signing key. Ordinary unsigned output is for development and previews.
 
-Use a checkout that carries the content the profile needs. The community tools and
-the `lolly-start` brand are directories in this repository; for SUSE, mount the private
-`brands/suse` submodule and select `LOLLY_PROFILE=suse`. Build a reviewed release from a
-clean checkout and record its source commit, the `brands/suse` pointer if one was used,
-and the image digest.
+Prepare release artifacts in separate jobs using `release-frontend.yml`:
 
-Provision the deployment's P-256 signing key through the approved secret store.
-`LOLLY_CATALOG_SIGNING_KEY` holds PKCS8 PEM or private JWK JSON;
-`VITE_CATALOG_PUBLIC_KEY_JWK` holds the matching **public** JWK JSON.
-With those environment variables supplied by the build runner:
+1. A protected signer checks the reviewed source and release gate, then signs the
+   source catalog using only the reviewed Node helpers.
+2. A compiler job installs the locked dependencies, verifies that source catalog
+   and uses `LOLLY_RELEASE_FRONTEND_PHASE=build`. It has the public pin and build
+   settings, including `VITE_REQUIRE_AI_POLICY` and `VITE_LIVE_RELAY`, but no
+   private signing material or signing environment.
+3. A fresh protected job signs and verifies the output catalog, prepares static
+   delivery files, then signs the complete frontend receipt. It runs no package
+   installation or compiler. Upload the complete artifact with hidden files,
+   including `.well-known` and `.delivery-etags.conf`.
+4. A packaging job receives only that artifact and its public pin. Use the exact
+   reviewed checkout and source SHA; the receipt binds source, target, profile
+   and the complete output inventory. Record the image digest and qualification
+   receipts together.
+
+Configure `release-catalog-signing` with the approved reviewer list and source
+restrictions, disable bypass, and move the catalog key into that environment.
+Workflow declarations alone do not configure GitHub environment protection or
+remove existing repository secrets. A single approved reviewer from the list
+can approve each signing job. Signing jobs receive `LOLLY_CATALOG_SIGNING_KEY`
+(PKCS8 PEM or private JWK); other jobs receive only the matching public
+`VITE_CATALOG_PUBLIC_KEY_JWK`. Never put a private key in an image build argument,
+context or BuildKit mount. The source context excludes local keys and dotenv
+files.
+
+With an approved artifact directory, the public pin and its reviewed source SHA:
 
 ```sh
-docker buildx build --load --no-cache-filter build \
+docker buildx build --load --no-cache-filter verify \
   -f deploy/docker/web.Dockerfile \
-  --build-arg LOLLY_PROFILE=suse \
-  --build-arg VITE_REQUIRE_AI_POLICY=true \
-  --secret id=LOLLY_CATALOG_SIGNING_KEY,env=LOLLY_CATALOG_SIGNING_KEY \
-  --secret id=VITE_CATALOG_PUBLIC_KEY_JWK,env=VITE_CATALOG_PUBLIC_KEY_JWK \
+  --build-context "release-frontend=/approved/frontend" \
+  --build-arg "LOLLY_RELEASE_SOURCE=<reviewed-commit-sha>" \
+  --build-arg LOLLY_PROFILE=lolly-start \
+  --build-arg "VITE_CATALOG_PUBLIC_KEY_JWK=$VITE_CATALOG_PUBLIC_KEY_JWK" \
   -t <registry>/lolly-web:<release> .
 ```
 
-For file-based secret injection, replace `env=...` with `src=/secure/path/to/file`
-on the corresponding `--secret` argument. Never pass the private key as a build
-argument, add it with `COPY`, or commit it. The Docker context excludes `keys/`,
-PEM/key files and dotenv files. The public key is deliberately present in the
-served JavaScript; the private key must remain confined to the trusted builder.
+The [named context](https://docs.docker.com/build/concepts/context/#named-contexts)
+is separate from the source checkout. The verification stage rejects changed,
+additional, missing or symbolic-link files, a different source/profile/key, and
+an absent delivery configuration. `--no-cache-filter verify` repeats verification
+on each packaging run. No source or dependency cache is exported by the image
+job. Use `--push` only in the authorised publishing workflow and promote the
+qualified digest.
 
-The internal example requires a fresh Work AI policy before supported AI paths
-can run, including the first boot without a reachable control plane. Keep Work's
-`policy.ai.enabled=false` for the proposed first production release. This Vite
-setting is compiled into the shell; setting an environment variable on running
-nginx does not retrofit it. Public standalone builds may leave it false. Promote
-the matching updated shell and Work together and retire old client artifacts.
-
-Both inputs are required on an uncached build. Malformed/private public pins and
-mismatched key pairs are rejected by the release builder/signer. BuildKit secrets
-are exposed only during the release step, after dependency installation. The
-Dockerfile uses secret environment mounts, supported by frontend 1.10 or newer.
-See the [Docker secret mount reference](https://docs.docker.com/reference/dockerfile/#run---mounttypesecret).
-
-Keep `--no-cache-filter build` for release builds: secret contents do not invalidate
-BuildKit's cache, so a key rotation must rerun signing and compilation. Protect the
-builder and its cache as release infrastructure. Use `--push` instead of `--load`
-only in the authorised publishing workflow, and promote the tested image digest.
-
-The `deps` stage copies only `package.json`, `pnpm-lock.yaml` and
-`pnpm-workspace.yaml`, then uses [pnpm fetch](https://pnpm.io/cli/fetch) to populate
-the locked dependency store. It carries no profile, tool files or signing secrets.
-The `build` stage copies the full checkout and runs the normal bootstrap check,
-workspace linking and `pnpm install --offline --frozen-lockfile --prod=false`
-before compiling and signing. Native dependency install scripts can still download
-their own inputs; this is not a claim that the entire build needs no network.
-An incomplete or invalid store does not waive lockfile integrity or bootstrap.
-
-After a build, verify the signature on `catalog/tools/index.sig.json` against the
-intended public pin and the actual index/tool bytes, and exercise a signed tool in
-the served client. A signed catalog protects tool integrity; SUSE application
-access still needs the approved Work/identity/ingress configuration. When a new
-image replaces the staging candidate, refresh the relevant test evidence before CAB.
-
-The release command verifies the built catalog before succeeding. To repeat the
-check on `catalog/tools` and `tools` extracted from the final runtime image:
-
-```sh
-node scripts/verify-release-catalog.ts --root /path/to/extracted-dist \
-  --public-key /path/to/expected-public.jwk.json
-```
-
-This checks every signed tool file and refuses paths or symlinks escaping the
-extracted root. It does not verify application access or the image's provenance.
+Managed installations must compile the approved AI policy setting into their
+artifact before signing; changing nginx environment variables does not alter
+that setting. Promote the matching shell and Work together and retire old client
+artifacts. Public standalone builds may leave the policy requirement false.
 
 ## Optional service images
 
@@ -124,9 +107,10 @@ frontend environment table (plan 295):
 
 - **Web image** (`web-image`). It runs only when the WebGPU release gate
   (`scripts/webgpu-release-gate.ts`) allows it, and refuses again before its
-  build. The repository's `LOLLY_CATALOG_SIGNING_KEY` secret reaches only its
-  BuildKit signing step; the release builder verifies that its public key matches
-  the supplied pin, and the job verifies the image catalog against that pin.
+  build. Protected source and artifact signer jobs surround an independent
+  frontend compiler. The image job receives only the signed frontend and public
+  pin, verifies its receipt before packaging, then verifies the extracted image
+  bytes and catalog again before boot qualification and publication.
   While `docs/supported-environments.md` is unpublished the gate withholds this
   image, the run still succeeds, and a warning says so.
 - **CA and Penpot images** (`service-images`). They never ask the gate and
@@ -198,19 +182,12 @@ These checks do not replace candidate HTTPS, CA enrollment, proxy peer,
 invited-agent or Kubernetes runtime acceptance. A sandbox startup failure is a
 failed qualification; the workflow does not retry with a bypass.
 
-The public web job uses a digest-pinned BuildKit container builder to export and
-reuse only the `deps` target in GHCR. Its cache reference is
-`lolly-web-deps-cache:neutral-node26-pnpm11-amd64-<input-hash>` under the repository
-owner. The hash covers the three dependency inputs and `web.Dockerfile`, so base,
-package-manager and configuration changes select a new cache. Only the trusted
-dispatch job can write it with its existing registry credential. The final image
-imports that dependency cache, uses `--no-cache-filter build`, and exports no build
-cache. Signing, full-source compilation, signature verification, boot qualification
-and final image digest checks remain fresh. `dependency-cache.json` records the
-inputs and scope. Services and the MCP browser image retain `--no-cache`.
-Private profile bytes and signing material must never enter public cache or
-artifact storage; the public cache recipe is not a private Work release recipe.
-No qualified build timing has been measured for this change.
+The public web job uses a digest-pinned BuildKit container builder solely to
+verify and package its prebuilt signed frontend. It exports no dependency or
+source cache. The frontend compiler can use the lockfile-scoped package cache
+through `setup-node`; the private key exists only in separate protected signing
+jobs. Receipt verification, catalog verification, boot qualification and final
+image digest checks remain fresh for every dispatch.
 
 [`main-web-preparation.yml`](../../.github/workflows/main-web-preparation.yml)
 prepares a web-only candidate after successful normal main CI, using

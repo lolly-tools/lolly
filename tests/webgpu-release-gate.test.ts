@@ -250,17 +250,19 @@ test('the deployment workflow gates the web shell image and no other image or th
   assert.match(gate.outputs?.allowed ?? '', /^\$\{\{ steps\.gate\.outputs\.allowed \}\}$/);
 
   // The web image waits for the gate, then refuses again on its own checkout before
-  // it builds, and the image build itself runs the gated wrapper.
+  // it builds, and the image build independently rechecks the gate.
   assert.ok(needsOf(web).includes('web-release-gate'));
   assert.match(web.if ?? '', /needs\.web-release-gate\.outputs\.allowed == 'true'/);
   const refuse = web.steps.findIndex((step) => step.run?.trim() === WEB_GATE_STEP);
   const build = web.steps.findIndex((step) => step.run?.includes('-f deploy/docker/web.Dockerfile'));
   assert.ok(refuse >= 0 && build > refuse, 'the web job refuses before it builds');
-  assert.match(repoFile('deploy/docker/web.Dockerfile'), /^\s+pnpm run build:web:release$/m);
+  assert.match(repoFile('deploy/docker/web.Dockerfile'), /node scripts\/webgpu-release-gate.ts --scope web/);
+  assert.ok(needsOf(jobs['web-frontend']!).includes('web-release-gate'));
+  assert.ok(needsOf(web).includes('web-frontend'));
 
   // Every other job: no gate, no gated build, and no dependency on either web job.
   for (const [id, job] of Object.entries(jobs)) {
-    if (id === 'web-release-gate' || id === 'web-image') continue;
+    if (['web-release-gate', 'web-frontend', 'web-image'].includes(id)) continue;
     assert.doesNotMatch(jobText(job), GATED_BUILD, `${id} must not run the WebGPU gate or a gated build`);
     assert.ok(!needsOf(job).some((need) => need === 'web-release-gate' || need === 'web-image'), `${id} must not wait for the web image`);
   }
