@@ -1,6 +1,6 @@
 # 310 - Overall and tool-specific skills in agent invitations
 
-Status: PLANNED. Skill delivery and wider live-tool support are proposed; the accompanying share-panel UI work is a separate implementation.
+Status: COMPLETE. Implemented, merged into remote and local main, and verified on the existing development server.
 Date: 2026-10-13
 Scope: Lolly's standard skill, a skill for each tool, and their delivery through Share > Invite an agent > Copy agent instructions.
 Companions: [308 - Design-system setup](308-standard-lolly-skill-design-system-setup.md), [309 - Diagram workflows](309-standard-lolly-skill-diagram-workflows.md), [307 - Diagram builder quality](307-diagram-builder-semantic-layout-and-quality.md).
@@ -11,7 +11,7 @@ An invitation from an open tool supplies two levels of guidance: Lolly's overall
 
 Every tool receives a useful baseline skill generated from its manifest. Richer tools add authored guidance. An agent loads only the current tool's guidance and the shared references needed for its task, rather than every tool skill at once.
 
-The Share panel uses icon-bearing native disclosures based on `details.input-section` in `#tool-sidebar`. Invite an agent includes an Agent name field. Those UI changes are implemented in [draft PR 247](https://github.com/lolly-tools/lolly/pull/247); publishing and automatically supplying the skill pair remains the plan described here.
+The Share panel uses icon-bearing native disclosures based on `details.input-section` in `#tool-sidebar`. Invite an agent includes an Agent name field. Those UI changes are included in [PR 247](https://github.com/lolly-tools/lolly/pull/247). [PR 248](https://github.com/lolly-tools/lolly/pull/248) includes that history and implements skill delivery and live input support.
 
 ## Current evidence
 
@@ -110,7 +110,7 @@ Invite an agent contains Agent name, Agent access, the copy action and a subordi
 
 Preserve disclosure choices during docked-panel refreshes, keyboard focus and readable status/error text. Validate narrow panels, large text, keyboard operation and modal/docked parity against the native input-section reference. Icons accompany text and are decorative to assistive technology.
 
-PR 247 implements presentation, naming and access-choice persistence. It does not publish tool skills or expand live support. Skills deliveries A-C follow their own acceptance checks. Browser verification is recorded in [the local evidence](artifacts/310-share-panel/verification.md).
+PR 247 supplies presentation, naming and access-choice persistence. PR 248 supplies the skills and input adapter, including the preceding UI history. Final verification is recorded in [the existing-server evidence](artifacts/310-share-panel/final-post310-verification.md).
 
 ## Validation, order and completion
 
@@ -119,3 +119,26 @@ Start with A's generated coverage and authored pilots for Design and Diagrams. D
 Check generated skills, input/URL examples, version/hash agreement, public/private separation, copy payloads, stale async results, permissions, name escaping, offline references and all supported editor adapters. Run behavioral cases where two tools and two documents are open simultaneously.
 
 Complete the skill addition when each mounted tool has compatible discoverable guidance, Copy agent instructions supplies the correct overall/tool pair, and agents operate the actual open tool without invented commands or widened access. The UI work can ship before those skill-delivery contracts are complete.
+
+## Execution record - 2026-10-13
+
+Implemented A-D in branch `feat/tool-skills-agent-sharing-20261013`, currently at `7fa30ea87`. Local main contains the implementation and the current remote main identity updates. The existing development server on port 5173 remains running with its original PID. Its pre-existing private catalog file bytes and modes are unchanged.
+
+- A: all 68 public tools have generated skills, exact input definitions, declared examples where available, version compatibility, revisions and SHA-256 metadata. Design and Diagrams have authored `SKILL.md`, `skill.json` and portable workflow references. Other mounted, private or installed tools receive their actual manifest baseline.
+- B: public paths are `/info/skills/lolly/SKILL.md` and `/info/skills/tools/<id>/SKILL.md`, with metadata and an index. MCP provides `lolly://skill`, `lolly://skill/{path}` and `lolly://tool/{id}/skill`. Lazy tool-source resolution checks compatibility and signed bytes. Bundles and offline pins carry authored guidance; public generation explicitly excludes private packs.
+- C: every mounted tool supplies named guidance. Live invitations include tool/document identity, chosen permission, quoted client name, current-instance references and bounded installed guidance. Read copies contain facts and inspection instructions. Guidance-only copies explicitly contain no document grant. Startup Share waits for editor readiness.
+- D: an additive JSON input adapter uses actual runtime validation and history. Revisions, stale async checks, transaction replay and undo are enforced. File/upload bytes are omitted; unsupported SVG previews are not advertised. Design retains its layer adapter.
+
+Validation: 45 browser checks passed on the actual existing `localhost:5173` server, with zero console/page errors. These include Darkroom, QR, Design and Diagrams, exact versions and reference hashes, names in People, read refusal, actual input edits, retries and undo, startup readiness and narrow layouts. The isolated candidate passed 40 checks. Invitation transport and clipboard were mocked within fresh browser contexts; no real external invitation was created. The original Design sharing browser journey also passed.
+
+Other checks: 72 sharing/skill/loader/MCP contracts, 18 new/extended input/MCP cases, 29 existing live/layer cases, complete TypeScript checks, skill-validator coverage for all 68 public artifacts, both mounted-profile catalogs, production build and entry bundle budget, lint and wording ratchets, generated inventories, staged secrets scan, and report-only branch hygiene. Public generation remains identical when `LOLLY_PROFILE=suse` is selected.
+
+Limits: hosted services have not been deployed. A file-only tool remains inspection-only through the input adapter, and file bytes require separately supported routes. Exact private binary fingerprints stream bytes without exposing them, but cost O(file size) on revision reads. Plans 307-309 retain their proposed engine/type expansion and additional evaluation work.
+
+CI follow-up: the first current-main run found a missing required `imprint` method in the newly typed test host fixture. Commit `e867fda97` completes that fixture. Full TypeScript checks and the 18 affected tests pass; production behavior is unchanged. The fresh CI run is `38408018190`.
+
+Publication qualification: commit `7fa30ea87` registers the portable SDK import, adds the tool-guidance page to the docs navigation/footer/index, and keeps the Vercel content glob within its 256-character limit. All later typecheck-job gates pass locally, as do the docs build and 13 navigation/packaging/wording tests. CI run `38411165888` checks the current head.
+
+Final merge: [PR 248](https://github.com/lolly-tools/lolly/pull/248) merged at 2026-10-13 14:54 UTC as `a0d96abaa102b043bd21ce85d04c0a647b94603b`, with all 22 CI checks passing. Its complete history also merged [PR 247](https://github.com/lolly-tools/lolly/pull/247). Local main matches origin/main.
+
+The existing server remains PID 79294 on port 5173. The two pre-existing private catalog files and the three later uncommitted sharing-style/rules edits retain their exact bytes and modes. A further 320px visual check of the current working-tree styling passed all four checks without browser errors. Worktrees with verification evidence remain locked; report-only hygiene performs no cleanup.
