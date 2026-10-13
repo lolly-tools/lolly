@@ -391,20 +391,9 @@ pub fn advert_json(port: u16, token: &str, version: &str) -> serde_json::Value {
 }
 
 pub(crate) fn write_advert(path: &std::path::Path, port: u16, token: &str, version: &str) -> Result<(), String> {
-    if let Some(parent) = path.parent() {
-        std::fs::create_dir_all(parent).map_err(|e| format!("could not create {}: {e}", parent.display()))?;
-    }
     let body = serde_json::to_vec_pretty(&advert_json(port, token, version))
         .map_err(|e| format!("could not encode {}: {e}", path.display()))?;
-    std::fs::write(path, body).map_err(|e| format!("could not write {}: {e}", path.display()))?;
-    // The token is a credential for this machine's own renderer. Nobody else's
-    // account needs to read it.
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        let _ = std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o600));
-    }
-    Ok(())
+    crate::file_custody::write_private_atomic(path, &body)
 }
 
 /// Remove the advert. Called on the ordinary exit and on the idle exit, so a dead

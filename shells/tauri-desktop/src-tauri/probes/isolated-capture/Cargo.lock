@@ -760,11 +760,14 @@ version = "0.1.0"
 dependencies = [
  "base64",
  "headless_chrome",
+ "libc",
  "reqwest",
+ "serde",
  "serde_json",
  "tempfile",
  "tokio",
  "url",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]

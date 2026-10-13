@@ -1729,6 +1729,8 @@ dependencies = [
  "tauri-build",
  "tauri-plugin-fs",
  "tauri-plugin-lolly-auth",
+ "tokio",
+ "url",
 ]
 
 [[package]]
