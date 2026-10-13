@@ -9,13 +9,13 @@ Roughly 753,000 lines of TypeScript, tests included, and 60,000 lines of CSS.
 
 | Directory | Source | Tests | CSS |
 |---|---|---|---|
-| `views/` | 534 files, 204,302 lines | 259 files, 83,872 lines | 7 files, 1,440 lines |
-| `lib/` | 789 files, 161,750 lines | 453 files, 87,665 lines | 13 files, 1,819 lines |
+| `views/` | 534 files, 204,307 lines | 259 files, 83,872 lines | 7 files, 1,440 lines |
+| `lib/` | 790 files, 161,802 lines | 454 files, 87,698 lines | 13 files, 1,819 lines |
 | `bridge/` | 217 files, 52,860 lines | 130 files, 26,320 lines | none |
-| `components/` | 122 files, 27,585 lines | 53 files, 13,753 lines | 21 files, 1,233 lines |
-| `org/` | 74 files, 19,807 lines | 53 files, 16,191 lines | none |
+| `components/` | 122 files, 27,620 lines | 53 files, 13,771 lines | 21 files, 1,233 lines |
+| `org/` | 74 files, 19,822 lines | 53 files, 16,228 lines | none |
 | `collab/` | 20 files, 13,532 lines | 22 files, 14,132 lines | none |
-| `pro/` | 22 files, 8,568 lines | 11 files, 1,738 lines | 3 files, 1,226 lines |
+| `pro/` | 22 files, 8,570 lines | 11 files, 1,738 lines | 3 files, 1,226 lines |
 | `catalog/` | 6 files, 1,339 lines | 6 files, 819 lines | none |
 | `ext/` | 2 files, 136 lines | 1 file, 86 lines | none |
 | `styles/` | none | 7 files, 1,461 lines | 130 files, 54,200 lines |
@@ -61,7 +61,7 @@ Do not be ambushed by these. The largest source files, by line count:
 | 6,866 | `bridge/export.ts` | yes, but mostly gated. `export-audio-bed.test.ts` imports `bedStartOffset` and `connectMusic` directly and always runs; the SVG and PDF emission is covered by ten `chromiumOrSkip()` suites (`export-m3`, `export-paint-order`, `export-stroke-paint`, `export-shadow-fidelity`, `export-pdf-shadow-fidelity`, `export-emf-eps-shadow`, `export-atomic-inline`, `export-backdrop-blur`, `export-form-controls`, `export-text-emission`) that esbuild-bundle the real `renderSvgFromHtml` and drive it in Chromium, and which **self-skip** when no Chromium is installed. `export-text-emission` is the newest and covers the `<path>`-vs-`<text>` decision layer specifically; unlike the SUSE-gated golden suite it is brand-independent, so it runs on `lolly-start` too. |
 | 3,973 | `views/valid.ts` | `valid-verdict.test.ts` only |
 | 3,859 | `views/tool-inputs.ts` | none |
-| 3,778 | `views/picker.ts` | partial - the format and embeddability rules are extracted to `picker-formats.ts` and covered by `picker-formats.test.ts`, plus `picker-initial-tab.test.ts`; the 3,000-line panel body is not. |
+| 3,779 | `views/picker.ts` | partial - the format and embeddability rules are extracted to `picker-formats.ts` and covered by `picker-formats.test.ts`, plus `picker-initial-tab.test.ts`; the 3,000-line panel body is not. |
 | 3,654 | `views/color-lab.ts` | yes |
 | 3,187 | `bridge/sequence-render.ts` | yes |
 | 3,063 | `bridge/export-svg-walker.ts` | **none** |

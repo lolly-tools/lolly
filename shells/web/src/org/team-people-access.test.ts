@@ -384,3 +384,40 @@ test("the Projects view's shared section carries the switch for managers only", 
   off();
   assert.equal(view.querySelector('.team-archived'), null, 'the cleanup takes the switch away');
 });
+
+
+test('custom group rows and capped instance audience are read-only inherited access', async () => {
+  reset();
+  router = (url) => url.endsWith('/members') ? json({ ...LIST,
+    effective: [{ userId: 'custom-peer', name: 'Peer', role: 'viewer', via: 'custom-group', group: 'Design team' }],
+    instanceAudience: { role: 'commenter' }, message: { workspace: 'Acme', providers: [] },
+  }) : new Response('', { status: 404 });
+  const panel = buildPeoplePanel({ projectId: 'p1', policy: null });
+  document.body.append(panel);
+  await settle();
+  const peer = row(panel, 'custom-peer');
+  assert.equal(peer.dataset.via, 'custom-group');
+  assert.match(peer.textContent!, /Viewer · via Design team/);
+  assert.equal(peer.querySelector('select, [data-act="people-remove"], .share-access-member'), null);
+  assert.equal(panel.querySelector('[data-instance-audience]')?.textContent, 'Everyone in Acme · Commenter');
+});
+
+test('audience parser refuses stronger roles and older responses need no summary', () => {
+  for (const role of ['owner', 'manager', 'none', 'bogus']) {
+    assert.equal(peopleFromBody({ ...LIST, instanceAudience: { role } })?.instanceAudience, undefined);
+  }
+  assert.equal(peopleFromBody(LIST)?.instanceAudience, undefined);
+  assert.deepEqual(peopleFromBody({ ...LIST, instanceAudience: { role: 'viewer' } })?.instanceAudience, { role: 'viewer' });
+});
+
+test('viewer receives no inherited group rows or instance summary UI', async () => {
+  reset();
+  router = (url) => url.endsWith('/members') ? json({ ...LIST, myRole: 'viewer',
+    effective: [{ userId: 'custom-peer', name: 'Peer', role: 'viewer', via: 'custom-group', group: 'Design team' }],
+    instanceAudience: { role: 'commenter' },
+  }) : new Response('', { status: 404 });
+  const panel = buildPeoplePanel({ projectId: 'p1', policy: null });
+  document.body.append(panel);
+  await settle();
+  assert.equal(panel.querySelector('[data-via="custom-group"], [data-instance-audience]'), null);
+});
