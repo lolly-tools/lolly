@@ -1,0 +1,10 @@
+body { margin: 0; color: #172329; background: #fafcfd; font: 15px/1.5 system-ui, sans-serif; }
+main { padding: 24px; }
+h1 { margin: 0 0 16px; font-size: 24px; }
+p { margin: 12px 0; }
+.url { padding: 12px; background: #edf1f3; border-radius: 6px; overflow-wrap: anywhere; }
+.actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
+button { padding: 10px 16px; border: 1px solid #73838b; border-radius: 6px; background: white; color: inherit; font: inherit; cursor: pointer; }
+#approve { background: #145a45; border-color: #145a45; color: white; }
+button:disabled { opacity: .5; cursor: default; }
+button:focus-visible { outline: 3px solid #2672cb; outline-offset: 3px; }

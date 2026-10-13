@@ -211,7 +211,7 @@ test('the real extension collector measures bounded styles without carrying page
   const capsSource = source.match(/const SITE_CAPS = (\{[\s\S]*?\n\});/)?.[1];
   assert.ok(capsSource);
   const caps = vm.runInNewContext(`(${capsSource})`);
-  const collector = source.slice(source.indexOf('async function collectSite(caps)'));
+  const collector = source.slice(source.indexOf('async function collectSite(caps, expectedOrigin)'));
   const browser = await chromium.launch({ headless: true, channel: process.env.LOLLY_BROWSER_CHANNEL });
   try {
     const page = await browser.newPage();
@@ -219,7 +219,7 @@ test('the real extension collector measures bounded styles without carrying page
     await page.goto(`${origin}/brand-capture-fixture`);
     const result = await page.evaluate(async ({ collector, caps }) => {
       const collect = new Function(`return (${collector})`)();
-      return (await collect(caps)).styles;
+      return (await collect(caps, location.origin)).styles;
     }, { collector, caps });
     assert.equal(result.mode, 'computed');
     assert.equal(result.sampled, 200);

@@ -71,6 +71,8 @@
     "format": "biome format --write",
     "pack:engine": "node scripts/pack-engine.ts",
     "pack:core": "node scripts/pack-core.ts",
+    "pack:chrome-extension": "node scripts/pack-chrome-extension.ts",
+    "pack:chrome-extension:dev": "node scripts/pack-chrome-extension.ts --dev",
     "pack:cli": "node scripts/pack-cli.ts",
     "build:cli-sidecar": "node scripts/build-cli-sidecar.ts",
     "gen:chrome-tokens": "node scripts/gen-chrome-tokens.ts",

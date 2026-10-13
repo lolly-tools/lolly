@@ -611,3 +611,11 @@ test('scanWebsite: a hostile page degrades, it does not throw', async () => {
   assert.ok(Array.isArray(result.census.colors));
   assert.ok(Array.isArray(result.logoCandidates));
 });
+
+test('scanWebsite gives extension approval time without changing native budgets', async () => {
+  for (const [kind, expected] of [['extension', 90_000], ['native', 60_000]] as const) {
+    const transport = fakeTransport({ html: PAGE, finalUrl: 'https://acme.com/' }, kind);
+    await scanWebsite(transport, 'acme.com');
+    assert.equal(transport.calls[0]?.timeoutMs, expected);
+  }
+});
