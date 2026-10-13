@@ -60,7 +60,7 @@ The script installs these for you when it can; here's what it needs and how to g
 
 **Why Node 22.18+?** The repo's scripts run TypeScript sources directly (`node scripts/foo.ts`),
 which relies on Node's unflagged type-stripping - added in Node **22.18** (the 22 LTS line)
-and **24**. `.nvmrc` pins `22`. Node 20 and early 22.x will fail `pnpm install`.
+and **24**. `.nvmrc` selects **26** for development and primary CI. Node 24 remains supported; the package minimum is still 22.18. Node 20 and early 22.x will fail `pnpm install`.
 
 If your distro's packaged Node is older than 22.18, use [**nvm**](https://github.com/nvm-sh/nvm),
 which honours `.nvmrc`:
@@ -68,7 +68,7 @@ which honours `.nvmrc`:
 ```bash
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
 # reopen your shell, then in the repo:
-nvm install                # reads .nvmrc → installs + selects Node 22
+nvm install                # reads .nvmrc → installs + selects Node 26
 ./setup.sh --skip-node     # setup, leaving Node to nvm
 ```
 

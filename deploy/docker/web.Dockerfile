@@ -39,7 +39,7 @@
 # ============================================================================
 
 # ── dependency fetch stage ──────────────────────────────────────────────────
-FROM node:26-bookworm@sha256:2aaae6d91f99fee84cfc92da9b52c22a185752d247746052bbc3f961e44478c6 AS deps
+FROM node:26-bookworm@sha256:f1233c415b41ffcf237c717b3dea92e9d4ea006e0e4c71edcb790605d74f5404 AS deps
 WORKDIR /src
 RUN npm install --global pnpm@11.26.0
 # Fetch reads the locked graph without executing the root bootstrap lifecycle.
@@ -84,7 +84,7 @@ RUN --mount=type=secret,id=LOLLY_CATALOG_SIGNING_KEY,env=LOLLY_CATALOG_SIGNING_K
 
 # ── runtime stage ───────────────────────────────────────────────────────────
 # nginx-unprivileged runs as uid 101 (non-root) and listens on 8080 by default.
-FROM ghcr.io/nginx/nginx-unprivileged:1.31-alpine@sha256:b54ac358b83fc6c965793fd271839b4ea4cdb6e99895bb19618cbc2ca152d972 AS runtime
+FROM ghcr.io/nginx/nginx-unprivileged:1.31-alpine@sha256:884e0b7f42f303641b0f4e78755aea647521dca0b89ca3be7992ad78b5c07434 AS runtime
 
 # Our server config replaces the stock default.conf.
 COPY deploy/docker/nginx.conf /etc/nginx/conf.d/default.conf
