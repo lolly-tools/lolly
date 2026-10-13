@@ -148,16 +148,13 @@ test('hosted Tauri workflows consume an independently signed frontend', () => {
   }
 });
 
-test('web container requires signed release inputs without baking keys into image configuration', () => {
+test('web container verifies signed artifacts using only public material', () => {
   const source = readFileSync(new URL('../deploy/docker/web.Dockerfile', import.meta.url), 'utf8');
   const instructions = source.replace(/^\s*#.*$/gm, '').replace(/\\\n\s*/g, ' ');
-  const release = instructions.split('\n').find(line => /^RUN .*pnpm run build:web:release\s*$/.test(line));
-  assert.ok(release, 'the deployed image must use the signed release command');
-  for (const key of ['LOLLY_CATALOG_SIGNING_KEY', 'VITE_CATALOG_PUBLIC_KEY_JWK']) {
-    assert.ok(release.includes(`--mount=type=secret,id=${key},env=${key},required=true`));
-    assert.doesNotMatch(instructions, new RegExp(`^(?:ARG|ENV)\\s+${key}\\b`, 'm'));
-  }
-  assert.doesNotMatch(instructions, /^RUN\b.*pnpm run build:web\s*$/m);
+  assert.match(instructions, /node scripts\/release-frontend-receipt.ts --verify web release-frontend/);
+  assert.match(instructions, /node scripts\/verify-release-catalog.ts --root release-frontend/);
+  assert.match(instructions, /^ARG VITE_CATALOG_PUBLIC_KEY_JWK$/m);
+  assert.doesNotMatch(instructions, /LOLLY_CATALOG_SIGNING_KEY|type=secret|pnpm|npm|build:web/);
 });
 
 test('release signing accepts the matching public pin and refuses a different deployment key', async t => {

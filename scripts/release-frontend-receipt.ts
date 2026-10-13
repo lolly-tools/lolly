@@ -5,9 +5,7 @@ import { lstatSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { canonicalJson } from '../engine/src/canonical-json.ts';
-import { importSpkiOrJwkPublicKey, verifyCatalogEnvelope, verifyToolFile } from '../engine/src/catalog-integrity.ts';
 import type { CatalogSignatureEnvelope } from '../engine/src/catalog-integrity.ts';
-import { catalogFile, readToolManifestText, toolFile } from '../packages/node-shell/src/content-roots.ts';
 
 const RECEIPT = 'release-frontend.sig.json';
 const TARGETS = ['web', 'tauri-desktop', 'tauri-mobile'];
@@ -77,6 +75,8 @@ export function checkoutSource(root: string): string {
 }
 
 export async function verifySignedSourceCatalog(publicMaterial: string): Promise<void> {
+  const { catalogFile, readToolManifestText, toolFile } = await import('../packages/node-shell/src/content-roots.ts');
+  const { importSpkiOrJwkPublicKey, verifyCatalogEnvelope, verifyToolFile } = await import('../engine/src/catalog-integrity.ts');
   const envelope = JSON.parse(readFileSync(catalogFile('tools/index.sig.json'), 'utf8')) as CatalogSignatureEnvelope;
   const pin = await importSpkiOrJwkPublicKey(publicMaterial);
   if (!(await verifyCatalogEnvelope(envelope, readFileSync(catalogFile('tools/index.json')), pin)).ok) throw new Error('The source catalog does not match the public pin.');
@@ -91,13 +91,21 @@ export async function verifySignedSourceCatalog(publicMaterial: string): Promise
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
-    const [target, directory] = process.argv.slice(2);
+    const args = process.argv.slice(2);
+    const verifyOnly = args[0] === '--verify';
+    const [target, directory] = verifyOnly ? args.slice(1) : args;
     const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
-    if (!target || !directory) throw new Error();
-    writeFrontendReceipt(resolve(directory), checkoutSource(root), target, process.env.LOLLY_PROFILE ?? 'lolly-start',
-      process.env.LOLLY_CATALOG_SIGNING_KEY ?? '', process.env.VITE_CATALOG_PUBLIC_KEY_JWK ?? '');
+    if (!target || !directory || (verifyOnly ? args.length !== 3 : args.length !== 2)) throw new Error();
+    if (verifyOnly) {
+      const source = process.env.LOLLY_RELEASE_SOURCE ?? checkoutSource(root);
+      if (!/^[a-f0-9]{40}$/.test(source) || !TARGETS.includes(target)) throw new Error();
+      verifyFrontendReceipt(resolve(directory), source, target, process.env.LOLLY_PROFILE ?? 'lolly-start', process.env.VITE_CATALOG_PUBLIC_KEY_JWK ?? '');
+    } else {
+      writeFrontendReceipt(resolve(directory), checkoutSource(root), target, process.env.LOLLY_PROFILE ?? 'lolly-start',
+        process.env.LOLLY_CATALOG_SIGNING_KEY ?? '', process.env.VITE_CATALOG_PUBLIC_KEY_JWK ?? '');
+    }
   } catch {
-    console.error('Frontend signing failed: check the source, target, public pin and artifact files.');
+    console.error('Frontend verification or signing failed: check the source, target, public pin and artifact files.');
     process.exitCode = 1;
   }
 }

@@ -1,106 +1,38 @@
 # syntax=docker/dockerfile:1
-# ============================================================================
-# Lolly Web PWA - the primary self-hosted product.
-# ============================================================================
-# Multi-stage: a Node build stage runs `pnpm run build:web:release` and a tiny
-# nginx-unprivileged stage serves the resulting static `shells/web/dist`.
-#
-# BUILD CONTEXT MUST BE THE REPO ROOT (not deploy/docker):
-#
-#   docker buildx build --load --no-cache-filter build \
-#     -f deploy/docker/web.Dockerfile \
-#     --secret id=LOLLY_CATALOG_SIGNING_KEY,env=LOLLY_CATALOG_SIGNING_KEY \
-#     --secret id=VITE_CATALOG_PUBLIC_KEY_JWK,env=VITE_CATALOG_PUBLIC_KEY_JWK \
-#     -t <registry>/lolly-web:0.1.0 .
-#
-# Supply the signing key (PKCS8 PEM or private JWK) and matching PUBLIC P-256
-# JWK through the build environment or --secret id=...,src=/secure/path.
-# BuildKit exposes them only to the release step, never as image ARG/ENV or a
-# copied key file. The public pin is intentionally embedded in the client.
-# --no-cache-filter build re-runs signing even when only key material changes;
-# BuildKit secret values do not invalidate cached build steps. See README.md.
-#
-# The build bakes ONE brand/profile into the static output (theme-color, PWA
-# chrome, and the tools/ + catalog/ content written into dist are resolved at
-# build time by the content resolver plus the vite brandChrome plugin - see
-# shells/web/vite.config.js).
-# Choose it with --build-arg LOLLY_PROFILE=lolly-start|suse. The default is the
-# neutral lolly-start brand, so a public image ships NO private (SUSE) tools or
-# assets; pass --build-arg LOLLY_PROFILE=suse to build the SUSE-branded image
-# (that needs the private brands/suse submodule checked out in the context). The
-# resulting image is fully self-contained - nothing is read at serve time, so the
-# Helm chart needs NO runtime pack/brand mount for the web app.
-#
-# REQUIREMENT: the content packs (community/, brands/*) must be present in the
-# build context - `pnpm run build:web:release` writes a real tools/ + catalog/
-# tree into dist from the resolved profile. community/ and brands/lolly-start/ are
-# in this repository; brands/suse is the one remaining submodule and has to be
-# checked out for LOLLY_PROFILE=suse.
-# ============================================================================
+# SPDX-License-Identifier: MPL-2.0
+# Package an independently compiled and signed web frontend. The named context
+# release-frontend carries only its artifact files, including the signed receipt.
+# Supply the reviewed source SHA, profile and public pin as build arguments.
+# No dependency installation, compiler or private signing material runs here.
 
-# ── dependency fetch stage ──────────────────────────────────────────────────
-FROM node:26-bookworm@sha256:f1233c415b41ffcf237c717b3dea92e9d4ea006e0e4c71edcb790605d74f5404 AS deps
+FROM node:26-bookworm@sha256:f1233c415b41ffcf237c717b3dea92e9d4ea006e0e4c71edcb790605d74f5404 AS verify
 WORKDIR /src
-RUN npm install --global pnpm@11.26.0
-# Fetch reads the locked graph without executing the root bootstrap lifecycle.
-# Keep workspace settings and the root manifest (including override references).
-# This layer contains no profile content or signing material.
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-RUN pnpm fetch
-
-# ── build stage ─────────────────────────────────────────────────────────────
-FROM deps AS build
-
-# Which brand/profile to bake into the static build (see header). Neutral by
-# default; a public image must not ship the private SUSE pack.
 ARG LOLLY_PROFILE=lolly-start
-ARG VITE_REQUIRE_AI_POLICY=false
-ARG VITE_LIVE_RELAY=
-ENV VITE_REQUIRE_AI_POLICY=${VITE_REQUIRE_AI_POLICY}
-ENV VITE_LIVE_RELAY=${VITE_LIVE_RELAY}
+ARG LOLLY_RELEASE_SOURCE
+ARG VITE_CATALOG_PUBLIC_KEY_JWK
 ENV LOLLY_PROFILE=${LOLLY_PROFILE}
-ENV NODE_ENV=production
-# Native optional deps (sharp/onnxruntime/resvg/playwright) need dev tooling
-# absent from the slim variant; bookworm carries what node-gyp/prebuilt need.
+ENV LOLLY_RELEASE_SOURCE=${LOLLY_RELEASE_SOURCE}
+ENV VITE_CATALOG_PUBLIC_KEY_JWK=${VITE_CATALOG_PUBLIC_KEY_JWK}
+COPY scripts/release-frontend-receipt.ts scripts/verify-release-catalog.ts scripts/webgpu-release-gate.ts ./scripts/
+COPY engine/src/canonical-json.ts engine/src/catalog-integrity.ts engine/src/x509.ts engine/src/bytes.ts engine/src/der-read.ts ./engine/src/
+COPY shells/web/src/main.ts ./shells/web/src/main.ts
+COPY docs/supported-environments.md ./docs/supported-environments.md
+COPY --from=release-frontend / /src/release-frontend/
+RUN --network=none node scripts/webgpu-release-gate.ts --scope web \
+    && node scripts/release-frontend-receipt.ts --verify web release-frontend \
+    && node scripts/verify-release-catalog.ts --root release-frontend \
+    && test -f release-frontend/.delivery-etags.conf
 
-# Copy the whole monorepo - build:web spans root scripts, engine, docs, the
-# web shell, and the profile content packs. A narrower copy breaks the workspace
-# graph, so we copy everything (respecting .dockerignore).
-COPY . .
-
-# Full install (--prod=false): build:web needs devDeps (vite, esbuild, sharp,
-# onnxruntime-node, svgo, resvg) that the runtime-only ca/mcp images omit.
-# There is no root postinstall to run: content is read from the packs where it
-# lives, and LOLLY_PROFILE above picks which. pnpm-workspace.yaml's allowBuilds
-# list approves the native build scripts (esbuild, onnxruntime-node, fsevents).
-RUN pnpm install --offline --frozen-lockfile --prod=false
-
-# Sign the active catalog, validate the public pin, and build verified-only
-# shells/web/dist. Missing keys fail the build; there is no unsigned fallback.
-# Secret env mounts require Dockerfile frontend >= 1.10 (syntax=1 above).
-RUN --mount=type=secret,id=LOLLY_CATALOG_SIGNING_KEY,env=LOLLY_CATALOG_SIGNING_KEY,required=true \
-    --mount=type=secret,id=VITE_CATALOG_PUBLIC_KEY_JWK,env=VITE_CATALOG_PUBLIC_KEY_JWK,required=true \
-    pnpm run build:web:release
-
-# ── runtime stage ───────────────────────────────────────────────────────────
-# nginx-unprivileged runs as uid 101 (non-root) and listens on 8080 by default.
 FROM ghcr.io/nginx/nginx-unprivileged:1.31-alpine@sha256:884e0b7f42f303641b0f4e78755aea647521dca0b89ca3be7992ad78b5c07434 AS runtime
-
-# Our server config replaces the stock default.conf.
+USER 0
+RUN --network=none rm -rf /usr/share/nginx/html && mkdir -p /usr/share/nginx/html
 COPY deploy/docker/nginx.conf /etc/nginx/conf.d/default.conf
-# The security headers every location includes (nginx drops inherited
-# add_header in any location that sets one of its own).
 COPY deploy/docker/security-headers.conf /etc/nginx/security-headers.conf
 COPY deploy/docker/delivery-maps.conf /etc/nginx/delivery-maps.conf
 COPY deploy/docker/delivery-headers.conf /etc/nginx/delivery-headers.conf
-COPY --from=build /src/shells/web/dist/.delivery-etags.conf /etc/nginx/delivery-etags.conf
-
-# Static site. nginx-unprivileged serves from /usr/share/nginx/html.
-COPY --from=build /src/shells/web/dist /usr/share/nginx/html
-
-# nginx-unprivileged already sets USER 101 and a RuntimeDefault-friendly layout.
+COPY --from=verify /src/release-frontend/.delivery-etags.conf /etc/nginx/delivery-etags.conf
+COPY --from=verify /src/release-frontend /usr/share/nginx/html
 USER 101
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD wget -q --spider http://127.0.0.1:8080/healthz || exit 1
-# The base image's entrypoint launches nginx in the foreground.

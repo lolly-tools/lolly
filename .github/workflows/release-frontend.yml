@@ -10,6 +10,10 @@ on:
       public_key_jwk:
         required: true
         type: string
+      live_relay:
+        required: false
+        type: string
+        default: ''
     secrets:
       LOLLY_CATALOG_SIGNING_KEY:
         required: true
@@ -87,12 +91,14 @@ jobs:
         env:
           FRONTEND_TARGET: ${{ inputs.target }}
           LOLLY_RELEASE_FRONTEND_PHASE: build
+          VITE_LIVE_RELAY: ${{ inputs.live_relay }}
           NODE_OPTIONS: --max-old-space-size=6144
         run: node scripts/build-release-web.ts "$FRONTEND_TARGET"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: release-frontend-input-${{ inputs.target }}
           path: shells/${{ inputs.target == 'web' && 'web' || inputs.target }}/dist
+          include-hidden-files: true
           if-no-files-found: error
 
   sign-artifact:
@@ -117,17 +123,27 @@ jobs:
         with:
           name: release-frontend-input-${{ inputs.target }}
           path: release-frontend
-      - name: Sign and verify frontend artifact
+      - name: Sign frontend catalog
+        env:
+          LOLLY_CATALOG_SIGNING_KEY: ${{ secrets.LOLLY_CATALOG_SIGNING_KEY }}
+        run: node scripts/sign-catalog.ts --tools release-frontend/tools --index release-frontend/catalog/tools/index.json --out release-frontend/catalog/tools/index.sig.json --materialize
+      - name: Verify signed catalog
+        run: node scripts/verify-release-catalog.ts --root release-frontend
+      - name: Prepare web delivery files
+        if: inputs.target == 'web'
+        run: node scripts/build-delivery.ts --root release-frontend
+      - name: Sign frontend receipt
         env:
           FRONTEND_TARGET: ${{ inputs.target }}
           LOLLY_CATALOG_SIGNING_KEY: ${{ secrets.LOLLY_CATALOG_SIGNING_KEY }}
-        run: |
-          node scripts/sign-catalog.ts --tools release-frontend/tools --index release-frontend/catalog/tools/index.json --out release-frontend/catalog/tools/index.sig.json --materialize
-          node scripts/release-frontend-receipt.ts "$FRONTEND_TARGET" release-frontend
-      - name: Verify signed catalog
-        run: node scripts/verify-release-catalog.ts --root release-frontend
+        run: node scripts/release-frontend-receipt.ts "$FRONTEND_TARGET" release-frontend
+      - name: Verify frontend receipt
+        env:
+          FRONTEND_TARGET: ${{ inputs.target }}
+        run: node scripts/release-frontend-receipt.ts --verify "$FRONTEND_TARGET" release-frontend
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: release-frontend-${{ inputs.target }}
           path: release-frontend
+          include-hidden-files: true
           if-no-files-found: error

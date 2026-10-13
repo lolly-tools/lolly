@@ -51,17 +51,17 @@ Use a clean source checkout and approved release runner. Build public images wit
 this public release. Record the source commit, test receipts, image digests,
 published catalog verification key and model release inventory together.
 
-The [signed image instructions](README.md) describe BuildKit signing secrets.
-The public web build also needs the relay origin compiled into the shell:
+The [signed image instructions](README.md) describe the separate compiler and
+protected signing jobs. The public workflow compiles its relay origin before
+signing. Package the resulting approved artifact without signing material:
 
 ```sh
-public_host=lolly.tools
-docker buildx build --no-cache-filter build \
+docker buildx build --no-cache-filter verify \
   -f deploy/docker/web.Dockerfile \
+  --build-context "release-frontend=/approved/frontend" \
+  --build-arg "LOLLY_RELEASE_SOURCE=<reviewed-commit-sha>" \
   --build-arg LOLLY_PROFILE=lolly-start \
-  --build-arg "VITE_LIVE_RELAY=https://${public_host}/live" \
-  --secret id=LOLLY_CATALOG_SIGNING_KEY,env=LOLLY_CATALOG_SIGNING_KEY \
-  --secret id=VITE_CATALOG_PUBLIC_KEY_JWK,env=VITE_CATALOG_PUBLIC_KEY_JWK \
+  --build-arg "VITE_CATALOG_PUBLIC_KEY_JWK=$VITE_CATALOG_PUBLIC_KEY_JWK" \
   -t <approved-registry>/lolly-web:<release> .
 ```
 
