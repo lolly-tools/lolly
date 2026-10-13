@@ -469,7 +469,7 @@ test('the web shell and every Tauri app build still go through the gate', () => 
   // The wrapper asks the gate before it validates or signs anything (its behaviour is
   // exercised in catalog-release.test.ts; this pins the order of the calls).
   const wrapper = repoFile('scripts/build-release-web.ts');
-  const main = wrapper.slice(wrapper.indexOf('export function main(): void {'));
+  const main = wrapper.slice(wrapper.indexOf('export async function main(): Promise<void> {'));
   const body = main.slice(0, main.indexOf('\n}\n'));
   const asked = body.indexOf("  assertWebGpuReleaseAllowed(ROOT, target === 'web' ? 'web' : 'all');");
   assert.ok(asked > 0 && asked < body.indexOf('validateReleaseEnvironment(') && asked < body.indexOf('sign(env)'));
@@ -480,7 +480,7 @@ test('the web shell and every Tauri app build still go through the gate', () => 
   }
   // A version tag refuses early in the two Linux workflows that build on tags.
   for (const file of ['flatpak.yml', 'linux-arm64.yml']) {
-    const steps = Object.values(workflowJobs(file)).flatMap((job) => job.steps);
+    const steps = Object.values(workflowJobs(file)).flatMap((job) => job.steps ?? []);
     assert.ok(steps.some((step) => step.run?.trim() === GATE_STEP && /startsWith\(github\.ref, 'refs\/tags\/v'\)/.test(step.if ?? '')), file);
   }
   // Each packaging workflow builds the app through tauri (whose beforeBuildCommand is
