@@ -113,7 +113,7 @@ export function peoplePanelView(people: ProjectPeople, policy: InvitePolicy | nu
  */
 export function viaText(m: Pick<ProjectMember, 'role' | 'via' | 'group'>): string {
   if (m.via === 'admin') return tRaw('Admin · via workspace role');
-  if (m.via !== 'group') return '';
+  if (m.via !== 'group' && m.via !== 'custom-group') return '';
   return m.group ? tRaw('{role} · via {group}', { role: roleLabel(m.role), group: m.group }) : roleLabel(m.role);
 }
 
@@ -741,6 +741,14 @@ export function buildPeoplePanel(opts: PeoplePanelOptions): HTMLElement {
     listSlot.replaceChildren(members);
     // A manager who is not a workspace admin sees no admin rows: say that admins can open the project too.
     const workspace = opts.policy?.workspace || people.message?.workspace;
+    if (view.manage && people.instanceAudience) {
+      const role = roleLabel(people.instanceAudience.role);
+      const text = workspace ? tRaw('Everyone in {workspace} · {role}', { workspace, role })
+        : tRaw('Everyone in this workspace · {role}', { role });
+      const note = el('p', { text, style: `margin:.4rem 0 0;${MUTED}` });
+      note.dataset.instanceAudience = '';
+      listSlot.append(note);
+    }
     if (view.manage && people.adminAccess === 'note' && workspace) {
       const note = el('p', { text: tRaw('Admins of {workspace} can also open this project.', { workspace }), style: `margin:.4rem 0 0;${MUTED}` });
       note.dataset.adminNote = '';

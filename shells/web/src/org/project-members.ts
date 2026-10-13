@@ -42,8 +42,8 @@ import { inviteRoleOf, type InviteRole, type InviteStatus } from './team-access.
 
 /** How a person reaches a project: as its owner, through their own member row, through
  *  the group the project is visible to, or through a workspace admin role. */
-export type MemberVia = 'owner' | 'member' | 'group' | 'admin';
-const VIAS: readonly MemberVia[] = ['owner', 'member', 'group', 'admin'];
+export type MemberVia = 'owner' | 'member' | 'group' | 'custom-group' | 'admin';
+const VIAS: readonly MemberVia[] = ['owner', 'member', 'group', 'custom-group', 'admin'];
 
 export interface ProjectMember {
   userId: string;
@@ -55,7 +55,7 @@ export interface ProjectMember {
   /** The signed-in person's own row (the instance marks it `isMe: true`). */
   isMe?: boolean;
   /** Where the access comes from (lolly-work plan 75 G15): `owner` and `member` on the
-   *  rows in `members`, `group` and `admin` on the `effective` rows managers get. Absent
+   *  rows in `members`, `group`, `custom-group` and `admin` on the `effective` rows managers get. Absent
    *  from an older instance. */
   via?: MemberVia;
   /** The group a `group` row comes through, for managers. */
@@ -117,6 +117,8 @@ export interface ProjectPeople {
   /** `listed`: the caller is a workspace admin or owner, who sees the admin rows. `note`:
    *  another manager, who sees no admin rows and is told that admins can open the project. */
   adminAccess?: 'listed' | 'note';
+  /** Instance-wide access summary, capped by policy; no directory enumeration. */
+  instanceAudience?: { role: 'viewer' | 'commenter' | 'editor' };
   /** Whether the caller may hand the project on, by the instance's own test for a
    *  transfer (the owner, or a holder of `project.manage`). Absent from an older instance. */
   canTransfer?: boolean;
@@ -196,7 +198,7 @@ export function memberFromRow(row: unknown): ProjectMember | null {
   const email = str(r.email);
   const addedAt = str(r.addedAt);
   const via = typeof r.via === 'string' && (VIAS as readonly string[]).includes(r.via) ? r.via as MemberVia : undefined;
-  const group = via === 'group' ? str(r.group) : undefined;
+  const group = via === 'group' || via === 'custom-group' ? str(r.group) : undefined;
   return {
     userId, name: str(r.name) ?? email ?? userId, role,
     ...(email ? { email } : {}), ...(addedAt ? { addedAt } : {}), ...(r.isMe === true ? { isMe: true } : {}),
@@ -261,7 +263,7 @@ export function peopleFromBody(body: unknown): ProjectPeople | null {
   if (!body || typeof body !== 'object') return null;
   const b = body as {
     myRole?: unknown; members?: unknown; invitations?: unknown; requests?: unknown; message?: unknown;
-    effective?: unknown; effectiveTruncated?: unknown; adminAccess?: unknown; canTransfer?: unknown;
+    effective?: unknown; effectiveTruncated?: unknown; adminAccess?: unknown; canTransfer?: unknown; instanceAudience?: unknown;
   };
   const myRole = teamRoleOf(b.myRole);
   if (!myRole || !Array.isArray(b.members)) return null;
@@ -275,13 +277,18 @@ export function peopleFromBody(body: unknown): ProjectPeople | null {
   const message = messageContextFrom(b.message);
   // Only group and admin rows belong here: an owner or member row is in `members`.
   const effective = Array.isArray(b.effective)
-    ? b.effective.map(memberFromRow).filter((m): m is ProjectMember => !!m && (m.via === 'group' || m.via === 'admin'))
+    ? b.effective.map(memberFromRow).filter((m): m is ProjectMember => !!m && (m.via === 'group' || m.via === 'custom-group' || m.via === 'admin'))
     : [];
+  const audience = obj(b.instanceAudience);
+  const audienceRole = audience?.role;
+  const instanceAudience: ProjectPeople['instanceAudience'] = audienceRole === 'viewer' || audienceRole === 'commenter' || audienceRole === 'editor'
+    ? { role: audienceRole } : undefined;
   const adminAccess = b.adminAccess === 'listed' || b.adminAccess === 'note' ? b.adminAccess : undefined;
   return {
     myRole, members, invitations, requests, ...(message ? { message } : {}),
     ...(effective.length ? { effective } : {}), ...(b.effectiveTruncated === true ? { effectiveTruncated: true } : {}),
     ...(adminAccess ? { adminAccess } : {}),
+    ...(instanceAudience ? { instanceAudience } : {}),
     ...(typeof b.canTransfer === 'boolean' ? { canTransfer: b.canTransfer } : {}),
   };
 }
