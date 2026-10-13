@@ -229,14 +229,21 @@ test('disposing or rebuilding a docked Share surface releases its help listeners
   _clearShareSectionsForTests();
   const c = document.createElement('div'); document.body.replaceChildren(c);
   const dispose = mountSharePanel(c, OPTS);
-  const previous = c.firstElementChild as HTMLElement & { _helpTipsWired?: boolean };
-  assert.equal(previous._helpTipsWired, true);
+  const previous = c.firstElementChild as HTMLElement;
+  const previousButton = previous.querySelector<HTMLButtonElement>('[data-encrypt-row] .help-tip-btn')!;
+  const previousPop = previous.querySelector<HTMLElement>('[data-encrypt-row] .help-tip-pop')!;
+  previousButton.click(); assert.equal(previousPop.hidden, false);
+  previousButton.click(); assert.equal(previousPop.hidden, true);
   const disposeNext = mountSharePanel(c, OPTS);
-  assert.equal(previous._helpTipsWired, undefined);
+  previousButton.click(); assert.equal(previousPop.hidden, true, 'the replaced surface no longer handles help clicks');
   dispose();
-  const next = c.firstElementChild as HTMLElement & { _helpTipsWired?: boolean };
+  const next = c.firstElementChild as HTMLElement;
+  const nextButton = next.querySelector<HTMLButtonElement>('[data-encrypt-row] .help-tip-btn')!;
+  const nextPop = next.querySelector<HTMLElement>('[data-encrypt-row] .help-tip-pop')!;
+  nextButton.click(); assert.equal(nextPop.hidden, false, 'disposing the old surface leaves the new one active');
+  nextButton.click(); assert.equal(nextPop.hidden, true);
   disposeNext();
-  assert.equal(next._helpTipsWired, undefined);
+  nextButton.click(); assert.equal(nextPop.hidden, true, 'the disposed surface no longer handles help clicks');
 });
 
 test('a recommended editable file opens, and delivery reveals its contents receipt', async () => {
