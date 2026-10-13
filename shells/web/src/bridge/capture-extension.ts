@@ -54,6 +54,7 @@ let _seq = 0;
 export function createExtensionCaptureAPI(): CaptureAPI {
   return {
     page(spec) {
+      if (spec.isolation) return Promise.reject(new Error('The extension does not provide isolated public page capture.'));
       return new Promise<AssetRef>((resolve, reject) => {
         const id = `cap${++_seq}`;
 

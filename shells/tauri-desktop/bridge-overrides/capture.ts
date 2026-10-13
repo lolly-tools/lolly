@@ -79,8 +79,9 @@ function resolveScroll(depth: number | undefined, pageH: number, viewportH: numb
 const clampInset = (v: number | undefined): number =>
   Number.isFinite(v) ? Math.min(0.9, Math.max(0, v as number)) : 0;
 
-export function createCaptureAPI(): CaptureAPI {
+export function createCaptureAPI(): CaptureAPI & { _isolatedPublic: true } {
   return {
+    _isolatedPublic: true,
     async page(spec: CaptureSpec): Promise<AssetRef> {
       const s = spec ?? ({} as CaptureSpec);
       if (!s.url) throw new Error('capture.page: a url is required');
@@ -94,6 +95,7 @@ export function createCaptureAPI(): CaptureAPI {
             url: s.url, width: s.width, height: s.height,
             scrollDepth: s.scrollDepth, rangeTo: s.rangeTo,
             waitMs: s.waitMs, dpr: s.dpr, css: s.css, crop: s.crop,
+            isolation: s.isolation,
           },
         });
       } catch (e) {
@@ -132,6 +134,7 @@ export function createCaptureAPI(): CaptureAPI {
             url: s.url, width: s.width, height: s.height,
             scrollDepth: s.scrollDepth, rangeTo: s.rangeTo,
             waitMs: s.waitMs, dpr: s.dpr, css: s.css, crop: s.crop,
+            isolation: s.isolation,
           },
         });
       } catch (e) {

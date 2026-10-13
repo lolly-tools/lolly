@@ -51,6 +51,7 @@ let callSeq = 0;
 interface WorkerMount {
   host: HostV1;
   allowedRpc: Set<string>;
+  strict: boolean;
 }
 const mounts = new Map<number, WorkerMount>();
 const workers = new Map<number, Worker>();
@@ -135,7 +136,8 @@ async function dispatchHostCall(w: Worker, m: HookHostCallMsg): Promise<void> {
   const fn = nsObj?.[method];
   if (typeof fn !== 'function') { reply(false, undefined, `no host.${m.method}`); return; }
   try {
-    const value = await (fn as (...a: unknown[]) => unknown).apply(nsObj, m.args);
+    const args = mount.strict && ns === 'capture' ? isolatedCaptureArgs(nsObj ?? {}, method, m.args) : m.args;
+    const value = await (fn as (...a: unknown[]) => unknown).apply(nsObj, args);
     reply(true, value);
   } catch (e) {
     reply(false, undefined, e instanceof Error ? e.message : String(e));
@@ -172,18 +174,36 @@ const STRICT_OMIT_NAMESPACES = new Set([
 /** Reduce an isolated untrusted mount's host proxy to declared capabilities.
  * Absence is the policy: feature detection sees no namespace instead of a stub
  * that rejects only after sensitive arguments have crossed the channel. */
-export function strictHostShape(shape: HostShape, capabilities: readonly string[]): HostShape {
+export function strictHostShape(shape: HostShape, capabilities: readonly string[], isolatedCapture = false): HostShape {
   const declared = new Set(capabilities);
   const out: HostShape = {};
   for (const [ns, methods] of Object.entries(shape)) {
     if (STRICT_OMIT_NAMESPACES.has(ns)) continue;
+    if (ns === 'capture' && !isolatedCapture) continue;
     const required = STRICT_NAMESPACE_CAPABILITY[ns];
     if (typeof required === 'string' && !declared.has(required)) continue;
     if (Array.isArray(required) && !required.some(cap => declared.has(cap))) continue;
-    const publicMethods = methods.filter(method => !method.startsWith('_'));
+    const publicMethods = methods.filter(method => !method.startsWith('_') && (ns !== 'capture' || ['page', 'vector'].includes(method)));
     if (publicMethods.length) out[ns] = publicMethods;
   }
   return out;
+}
+
+export function isolatedCaptureArgs(capture: Record<string, unknown>, method: string, args: unknown[]): unknown[] {
+  if (capture._isolatedPublic !== true || !['page', 'vector'].includes(method)) {
+    throw new Error('This host does not provide isolated public page capture.');
+  }
+  const spec = args[0];
+  if (!spec || typeof spec !== 'object' || Array.isArray(spec)) throw new Error('Page capture requires a specification.');
+  const source = spec as Record<string, unknown>;
+  const safe: Record<string, unknown> = { isolation: 'isolated-public' };
+  for (const key of ['url', 'width', 'height', 'scrollDepth', 'rangeTo', 'waitMs', 'dpr', 'css']) {
+    if (Object.hasOwn(source, key)) safe[key] = source[key];
+  }
+  if (source.crop && typeof source.crop === 'object' && !Array.isArray(source.crop)) {
+    safe.crop = Object.fromEntries(['top', 'right', 'bottom', 'left'].map(key => [key, (source.crop as Record<string, unknown>)[key]]));
+  }
+  return [safe];
 }
 
 const gatherSeeds = gatherHostSeeds;
@@ -248,7 +268,7 @@ async function mountInWorker(
   const { doc, excluded } = await snapshotTokens(host);
   const hostShape = allowInRealmExportHooks
     ? introspect(host)
-    : strictHostShape(introspect(host), tool.manifest.capabilities ?? []);
+    : strictHostShape(introspect(host), tool.manifest.capabilities ?? [], (host.capture as unknown as Record<string, unknown> | undefined)?._isolatedPublic === true);
   const initMsg = await new Promise<HookInitDoneMsg>((resolve, reject) => {
     const timer = setTimeout(() => {
       if (!initWaiters.has(runId)) return;
@@ -285,7 +305,7 @@ async function mountInWorker(
   }
   // Register the mount ONLY after a clean init, so a failed/timed-out init (which
   // falls back to in-realm) never leaks a host into `mounts`.
-  mounts.set(runId, { host, allowedRpc: workerRpcMethods(hostShape) });
+  mounts.set(runId, { host, allowedRpc: workerRpcMethods(hostShape), strict: !allowInRealmExportHooks });
   host.log('info', `hooks running in a Worker (${initMsg.declared.join(', ') || 'none declared'})`, { toolId: tool.manifest.id });
   const has = new Set(initMsg.declared);
   const slot = (name: WorkerHookName): ((ctx: unknown) => Promise<unknown>) | null =>

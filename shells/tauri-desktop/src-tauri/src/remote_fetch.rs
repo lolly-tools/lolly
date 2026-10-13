@@ -6,13 +6,13 @@
 //! checks on every redirect. The command remains intentionally general enough
 //! for user-selected remote Lolly instances and personal export providers.
 
-use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, ToSocketAddrs};
+use std::net::IpAddr;
+use crate::public_network::{is_public_ip, pinned_client};
 use std::time::Duration;
 
 use reqwest::{
     header::{HeaderMap, HeaderName, HeaderValue, AUTHORIZATION, CONTENT_TYPE, COOKIE, LOCATION},
-    redirect::Policy,
-    Client, Method, Url,
+    Method, Url,
 };
 use serde::{Deserialize, Serialize};
 
@@ -27,7 +27,6 @@ const MAX_REDIRECTS: usize = 5;
 const DEFAULT_TIMEOUT_MS: u64 = 60_000;
 const MIN_TIMEOUT_MS: u64 = 1_000;
 const MAX_TIMEOUT_MS: u64 = 5 * 60_000;
-const USER_AGENT: &str = "Lolly/1.0 (+https://lolly.tools)";
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -214,38 +213,6 @@ fn validate_headers(entries: Vec<(String, String)>) -> Result<HeaderMap, String>
     Ok(out)
 }
 
-async fn pinned_client(url: &Url, timeout: Duration) -> Result<Client, String> {
-    let host = url
-        .host_str()
-        .ok_or_else(|| "The remote address has no host.".to_string())?
-        .to_string();
-    let port = url.port_or_known_default().unwrap_or(443);
-    let addresses = if let Ok(ip) = host.parse::<IpAddr>() {
-        vec![SocketAddr::new(ip, port)]
-    } else {
-        let lookup_host = host.clone();
-        tauri::async_runtime::spawn_blocking(move || {
-            (lookup_host.as_str(), port)
-                .to_socket_addrs()
-                .map(|answers| answers.collect::<Vec<_>>())
-        })
-        .await
-        .map_err(|_| "The remote name could not be resolved.".to_string())?
-        .map_err(|_| "The remote name could not be resolved.".to_string())?
-    };
-    if addresses.is_empty() || addresses.iter().any(|answer| !is_public_ip(answer.ip())) {
-        return Err("The remote address does not resolve to public network space.".into());
-    }
-    Client::builder()
-        .user_agent(USER_AGENT)
-        .timeout(timeout)
-        .redirect(Policy::none())
-        .no_proxy()
-        .resolve_to_addrs(&host, &addresses)
-        .build()
-        .map_err(|_| "The native HTTP client could not be created.".to_string())
-}
-
 async fn read_capped(response: &mut reqwest::Response, cap: usize) -> Result<Vec<u8>, String> {
     if response
         .content_length()
@@ -273,45 +240,6 @@ fn origin(url: &Url) -> (String, String, u16) {
         url.host_str().unwrap_or("").to_ascii_lowercase(),
         url.port_or_known_default().unwrap_or(443),
     )
-}
-
-fn is_public_ip(address: IpAddr) -> bool {
-    match address {
-        IpAddr::V4(v4) => is_public_v4(v4),
-        IpAddr::V6(v6) => v6
-            .to_ipv4_mapped()
-            .map(is_public_v4)
-            .unwrap_or_else(|| is_public_v6(v6)),
-    }
-}
-
-fn is_public_v4(address: Ipv4Addr) -> bool {
-    let [a, b, c, _] = address.octets();
-    !(a == 0
-        || a == 10
-        || a == 127
-        || a >= 224
-        || (a == 100 && (64..=127).contains(&b))
-        || (a == 169 && b == 254)
-        || (a == 172 && (16..=31).contains(&b))
-        || (a == 192 && b == 168)
-        || (a == 192 && b == 0 && c == 0)
-        || (a == 192 && b == 0 && c == 2)
-        || (a == 198 && (b == 18 || b == 19))
-        || (a == 198 && b == 51 && c == 100)
-        || (a == 203 && b == 0 && c == 113))
-}
-
-fn is_public_v6(address: Ipv6Addr) -> bool {
-    let segments = address.segments();
-    !(address.is_unspecified()
-        || address.is_loopback()
-        || (segments[0] & 0xff00) == 0xff00
-        || (segments[0] & 0xfe00) == 0xfc00
-        || (segments[0] & 0xffc0) == 0xfe80
-        || (segments[0] & 0xffc0) == 0xfec0
-        || (segments[0] == 0x0100 && segments[1] == 0 && segments[2] == 0 && segments[3] == 0)
-        || (segments[0] == 0x2001 && segments[1] == 0x0db8))
 }
 
 #[cfg(test)]
