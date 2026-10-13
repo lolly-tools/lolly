@@ -234,7 +234,7 @@ export type WorkCollabOutcome =
   | { readonly ok: true }
   | { readonly ok: false; readonly reason: WorkCollabFailure; readonly message: string };
 
-const fail = (reason: WorkCollabFailure, message: string): WorkCollabOutcome => ({ ok: false, reason, message });
+const fail = (reason: WorkCollabFailure, message: string): Extract<WorkCollabOutcome, { ok: false }> => ({ ok: false, reason, message });
 
 // ── Injectable wiring (production loads it; tests supply it) ──────────────────
 
@@ -426,7 +426,7 @@ function armTeamOrigin(plan: ConnectPlan): boolean {
  *  dialog shows the room instead of offering to start one (org/collab-share.ts). The
  *  stream replays its current state on subscribe, so a handle that is already closed
  *  is marked and unmarked at once. */
-function watchLiveRoom(sessionId: string, handle: CollabSessionHandle): void {
+export function watchLiveRoom(sessionId: string, handle: CollabSessionHandle): void {
   const leave = noteTeamSessionLive(sessionId);
   let off: (() => void) | undefined;
   let closed = false;
@@ -445,13 +445,17 @@ function watchLiveRoom(sessionId: string, handle: CollabSessionHandle): void {
 }
 
 /**
- * The one chain (see the header), and every way it can end.
- *
- * A failure closes the provider on the way out. A success hands the connection to
- * `lib/collab-mount.ts` and keeps nothing: from that moment the mount owns the
- * session, including hanging it up.
+ * Connect before an editor mount. A failure closes the provider. On success the
+ * caller owns the connection, delivery and navigation.
  */
-async function connectAndDeliver(plan: ConnectPlan, deps: WorkCollabDeps): Promise<WorkCollabOutcome> {
+export async function connectWorkCollabSession(
+  ctx: CollabLaunchContext,
+  deps: WorkCollabDeps = {},
+): Promise<{ ok: true; connection: CollabConnection } | Extract<WorkCollabOutcome, { ok: false }>> {
+  await loadNamespace('collab');
+  if (!(deps.canJoin ?? canJoinCollab)()) return { ok: false, reason: 'not-permitted', message: tRaw(STRINGS.cannotJoin) };
+  const sessionId = readId(ctx.sessionId);
+  if (!sessionId) return { ok: false, reason: 'no-session', message: tRaw(STRINGS.noSession) };
   let wiring: WorkCollabWiring;
   try {
     wiring = await (deps.wiring ? deps.wiring() : loadWiring());
@@ -461,7 +465,7 @@ async function connectAndDeliver(plan: ConnectPlan, deps: WorkCollabDeps): Promi
 
   let provider: WorkCollabHandle;
   try {
-    provider = wiring.makeProvider(plan.sessionId);
+    provider = wiring.makeProvider(sessionId);
   } catch {
     return fail('unreachable', tRaw(STRINGS.unreachable));
   }
@@ -504,8 +508,8 @@ async function connectAndDeliver(plan: ConnectPlan, deps: WorkCollabDeps): Promi
     // final state event still reaches anyone subscribed. Calling `stop()` here instead
     // would hang the socket up and leave the adapter believing it was still live.
     close: () => { try { handle.close(); } catch { stop(); } },
-    ...(plan.toolId ? { toolId: plan.toolId } : {}),
-    ...(plan.launch ? { launch: plan.launch } : {}),
+    ...(ctx.toolId ? { toolId: ctx.toolId } : {}),
+    launch: ctx,
     // A work collab edits the instance's own durable session - the server is the
     // authority and the persistence (section 7.3), so nothing about this copy is ephemeral.
     // That is the opposite of a private collab's acceptor (section 6.2a/section 11.17).
@@ -513,6 +517,18 @@ async function connectAndDeliver(plan: ConnectPlan, deps: WorkCollabDeps): Promi
     // No `seed`/`seedLater`, per the seam's own contract: a member is seeded by the
     // gateway's join-ack snapshot. See the header.
   };
+  return { ok: true, connection: conn };
+}
+
+async function connectAndDeliver(plan: ConnectPlan, deps: WorkCollabDeps): Promise<WorkCollabOutcome> {
+  const connected = await connectWorkCollabSession(
+    plan.launch ?? { sessionId: plan.sessionId, toolId: plan.toolId, baseParts: [] }, deps,
+  );
+  if (!connected.ok) return connected;
+  const conn = connected.connection;
+  // An invite has no launch context to carry into the mount.
+  const { launch: _launch, ...withoutLaunch } = conn;
+  const delivered = plan.launch ? conn : withoutLaunch;
 
   const deliver = deps.deliver ?? deliverCollabConnection;
   // Armed BEFORE the hand-off: the mount may tear this view down and start the next one
@@ -522,13 +538,13 @@ async function connectAndDeliver(plan: ConnectPlan, deps: WorkCollabDeps): Promi
   // dropped (lib/collab-mount.ts) and a mount registering a moment later still adopts
   // it. The user is told the truth about what they can see NOW rather than a promise
   // about a race - the same call `collab/join-route.ts`'s `handOffConnection` makes.
-  if (!deliver(conn)) {
+  if (!deliver(delivered)) {
     // No remount is coming, so nothing may spend the stash: a later, unrelated mount of
     // this tool must not inherit the session.
     if (armed) rememberTeamSessionOrigin({ sessionId: '', toolId: '' });
     return fail('no-mount', tRaw(STRINGS.noMount));
   }
-  watchLiveRoom(plan.sessionId, handle);
+  watchLiveRoom(plan.sessionId, conn.handle);
   return { ok: true };
 }
 

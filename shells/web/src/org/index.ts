@@ -51,6 +51,7 @@ import { registerCatalogSubmitter } from '../lib/catalog-submit.ts';
 import { getSessionWriter, registerSessionSource } from '../lib/session-source.ts';
 import { registerNearbyProvider } from '../lib/nearby.ts';
 import { createOrgNearbyProvider } from './nearby-source.ts';
+import { registerTeamOpenCollabPreparation } from './team-open-collab.ts';
 import {
   applyOrgDeliveryTargets,
   clearOrgDeliveryTargets,
@@ -302,6 +303,7 @@ let unregisterCollabFactory: (() => void) | null = null;
  *  automatic joining that uses it and the presence pill's "Invite to edit now". Same
  *  last-wins reasoning as the handles above. */
 let unregisterCollabOpener: (() => void) | null = null;
+let unregisterTeamOpenCollab: (() => void) | null = null;
 /** Unregister for the header's account chip (org/account-chip.ts through the neutral
  *  lib/account-slot.ts seam): a member's chip, or Sign in for a visitor on an open
  *  workspace. Null on a dormant shell, which shows no chip at all. */
@@ -1257,6 +1259,8 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
       unregisterCollabFactory = null;
       unregisterCollabOpener?.();
       unregisterCollabOpener = null;
+      unregisterTeamOpenCollab?.();
+      unregisterTeamOpenCollab = null;
       // The PRINCIPAL, captured HERE rather than read inside the async callback: it
       // is the partition key of the provider's durable outbox, and the 'profile' KV
       // store that outbox lives in is origin-wide, shared by everyone who signs into
@@ -1266,6 +1270,10 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
       const memberSession = session;
       const stillAllowed = (): boolean => session === memberSession && orgConfig()?.can?.['collab.join'] === true;
       if (orgConfigState?.can?.['collab.join'] === true) {
+        unregisterTeamOpenCollab = registerTeamOpenCollabPreparation(stillAllowed, async () => {
+          const [opener, mount] = await Promise.all([import('./collab-work-opener.ts'), import('../lib/collab-live-mount.ts')]);
+          return { connect: opener.connectWorkCollabSession, arm: mount.armWorkCollabMount, watch: opener.watchLiveRoom };
+        });
         import('./collab-provider.ts')
           .then(async (m) => {
             // The per-device client id must be durable before any provider is built
@@ -1419,6 +1427,8 @@ export function _resetOrgForTests(): void {
   unregisterCollabFactory = null;
   unregisterCollabOpener?.();
   unregisterCollabOpener = null;
+  unregisterTeamOpenCollab?.();
+  unregisterTeamOpenCollab = null;
   unregisterAccountChip?.();
   unregisterAccountChip = null;
   unregisterToolMount?.();

@@ -5,9 +5,8 @@
  *
  * One path for every way in: the Team projects modal (org/team-projects.ts), the
  * `#/team/<sessionId>` deep link (org/team-link.ts) and "Open theirs" after a save
- * conflict (org/team-save.ts). Each builds the tool URL the same way a shared
- * creation does (createRuntime, then serializeUrlState over the runtime's model, so
- * blocks and tables come through whole), arms the origin stash
+ * conflict (org/team-save.ts). Each builds the tool URL from the input model,
+ * so blocks and tables come through whole without running hooks or layout, arms the origin stash
  * (org/team-session-origin.ts) with the session id, project, revision and the address
  * it is about to open, and only then navigates. When that address is already the one
  * on screen there is nothing to navigate to, so the document on screen takes the origin
@@ -31,9 +30,9 @@
  * says where the document belongs, Save writes back to the session, and a viewer's
  * inputs are read-only from the tool's first sidebar draw.
  */
-import { serializeUrlState } from '@lolly/engine';
+import { buildInputModel, serializeUrlState } from '@lolly/engine';
+import type { InputValue } from '../../../../engine/src/inputs.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
-import { createToolRuntime as createRuntime } from '../lib/mount-runtime.ts';
 import { getTool } from '../bridge/tool-loader.ts';
 import { getHostRef } from '../lib/host-ref.ts';
 import { getSessionSource, readSourceProjects, type TeamRole, type TeamSessionData } from '../lib/session-source.ts';
@@ -43,6 +42,7 @@ import { noteProjectOpened } from './opened-projects.ts';
 import { refreshToolReady } from '../lib/tool-ready.ts';
 import { setReviewTarget } from '../lib/review-target.ts';
 import { adoptTeamSessionOrigin, prepareTeamScope, rememberTeamSessionOrigin, teamAddressKey } from './team-session-origin.ts';
+import { prepareTeamOpenCollab } from './team-open-collab.ts';
 
 /** How one open ended. `status` is the HTTP status of a failed fetch (0: no answer,
  *  -1: the session arrived but its tool could not be built, -2: the person moved on,
@@ -114,10 +114,15 @@ export function teamSessionAddress(toolId: string, model: Parameters<typeof seri
 }
 
 /** The `#/tool/<id>?<state>` address a session's inputs open at. */
-export async function teamSessionHash(host: HostV1, data: TeamSessionData): Promise<string> {
-  const tool = await getTool(data.toolId);
-  const runtime = await createRuntime(tool, host, data.inputs as Parameters<typeof createRuntime>[2]);
-  return teamSessionAddress(data.toolId, runtime.getModel(), data.meta);
+export async function teamSessionHash(host: HostV1, data: TeamSessionData, load = getTool): Promise<string> {
+  const tool = await load(data.toolId);
+  // Building an address needs the input model, not hooks or text layout.
+  const { userTemplates, emoji, trustedSites, trustedSitesSeeded, ...profile } = await host.profile.get();
+  void userTemplates; void emoji; void trustedSites; void trustedSitesSeeded;
+  const model = buildInputModel(tool.manifest, {
+    profile, initial: data.inputs as Record<string, InputValue>,
+  });
+  return teamSessionAddress(data.toolId, model, data.meta);
 }
 
 /**
@@ -192,7 +197,15 @@ export async function openTeamSession(sessionId: string, opts: TeamOpenOptions =
     refreshToolReady();
     return { ok: true, toolId: data.toolId, hash, same: true };
   }
-  await opts.beforeNavigate?.();
+  // Join before the first editor mount; joining from tool-ready would rebuild
+  // the entire editor and repeat layout after the document had already appeared.
+  const from = window.location.href;
+  const current = opts.stillWanted ?? (() => window.location.href === from);
+  const collab = await prepareTeamOpenCollab(origin, current).catch(() => null);
+  if (!current()) { collab?.close(); return { ok: false, status: -2 }; }
+  try { await opts.beforeNavigate?.(); }
+  catch { collab?.close(); return { ok: false, status: -1 }; }
+  collab?.mount();
   // The address is a faithful working copy that has otherwise forgotten where it came
   // from: the instance's id for this session is not an input and is deliberately not
   // serialised into a link. Armed LAST, immediately before the navigation it belongs
