@@ -4016,7 +4016,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.259.0";
+    ENGINE_VERSION = "1.260.0";
   }
 });
 
@@ -179462,6 +179462,8 @@ var REFRESH_TTL = 30 * 24 * 3600;
 var CODE_TTL = 60;
 var SCOPE = "mcp";
 var now = () => Math.floor(Date.now() / 1e3);
+var defaultIssuer = (env) => env.LOLLY_MCP_PUBLIC_ORIGIN || `http://localhost:${env.PORT || 8790}`;
+var resourceFor = (issuer) => `${issuer.replace(/\/+$/, "")}/api/mcp`;
 function signingSecret(env) {
   return env.LOLLY_MCP_SIGNING_SECRET || env.LOLLY_MCP_TOKEN || "";
 }
@@ -179545,19 +179547,21 @@ async function resolveClient(params2, env) {
   }
   return { ok: true };
 }
-async function authorizeGet(params2, env) {
+async function authorizeGet(params2, env, issuer = defaultIssuer(env)) {
   if (!passphrase(env)) return { status: 500, html: errorPage("This deployment has no LOLLY_MCP_TOKEN set, so OAuth connect is disabled.") };
   const client = await resolveClient(params2, env);
   if (!client.ok) return client.result;
+  if (params2.resource !== void 0 && params2.resource !== resourceFor(issuer)) return oauthError(400, "invalid_target", "The requested resource is not available.");
   if (params2.response_type !== "code") return { status: 400, html: errorPage('Unsupported response_type (only "code").') };
   if (!params2.code_challenge || params2.code_challenge_method !== "S256") {
     return { status: 400, html: errorPage("This server requires PKCE with code_challenge_method=S256.") };
   }
   return { status: 200, html: consentPage(params2) };
 }
-async function authorizePost(params2, env, issuer = env.LOLLY_MCP_PUBLIC_ORIGIN || `http://localhost:${env.PORT || 8790}`) {
+async function authorizePost(params2, env, issuer = defaultIssuer(env)) {
   const client = await resolveClient(params2, env);
   if (!client.ok) return client.result;
+  if (params2.resource !== void 0 && params2.resource !== resourceFor(issuer)) return oauthError(400, "invalid_target", "The requested resource is not available.");
   if (params2.response_type !== "code" || !params2.code_challenge || params2.code_challenge_method !== "S256") {
     return { status: 400, html: errorPage("Invalid authorization request.") };
   }
@@ -179571,7 +179575,7 @@ async function authorizePost(params2, env, issuer = env.LOLLY_MCP_PUBLIC_ORIGIN 
     ru: params2.redirect_uri,
     cc: params2.code_challenge,
     sc: SCOPE,
-    aud: params2.resource,
+    aud: resourceFor(issuer),
     exp: now() + CODE_TTL
   }, signingSecret(env));
   const url = new URL(params2.redirect_uri);
@@ -179581,12 +179585,15 @@ async function authorizePost(params2, env, issuer = env.LOLLY_MCP_PUBLIC_ORIGIN 
   return { status: 302, redirect: url.href };
 }
 var oauthError = (status, error2, desc) => ({ status, headers: { "cache-control": "no-store" }, json: { error: error2, ...desc ? { error_description: desc } : {} } });
-async function token(body, env) {
+async function token(body, env, issuer = defaultIssuer(env)) {
   const secret = signingSecret(env);
   const grant = body.grant_type;
+  const resource = resourceFor(issuer);
+  if (body.resource !== void 0 && body.resource !== resource) return oauthError(400, "invalid_target", "The requested resource is not available.");
   if (grant === "authorization_code") {
     const code = await verifyValue(body.code, secret);
     if (!code || code.t !== "code") return oauthError(400, "invalid_grant", "authorization code is invalid");
+    if (code.aud !== resource || code.sc !== SCOPE) return oauthError(400, "invalid_grant", "authorization code is not valid for this resource");
     if (code.exp < now()) return oauthError(400, "invalid_grant", "authorization code has expired");
     if (body.redirect_uri && body.redirect_uri !== code.ru) return oauthError(400, "invalid_grant", "redirect_uri mismatch");
     if (body.client_id && body.client_id !== code.cid) return oauthError(400, "invalid_grant", "client_id mismatch");
@@ -179598,6 +179605,7 @@ async function token(body, env) {
   if (grant === "refresh_token") {
     const rt = await verifyValue(body.refresh_token, secret);
     if (!rt || rt.t !== "refresh") return oauthError(400, "invalid_grant", "refresh token is invalid");
+    if (rt.aud !== resource || rt.sc !== SCOPE) return oauthError(400, "invalid_grant", "refresh token is not valid for this resource");
     if (rt.exp < now()) return oauthError(400, "invalid_grant", "refresh token has expired");
     return issueTokens(rt.sc, rt.aud, secret);
   }
@@ -179612,14 +179620,14 @@ async function issueTokens(scope2, aud, secret) {
     json: { access_token: access, token_type: "Bearer", expires_in: ACCESS_TTL, refresh_token: refresh, scope: scope2 }
   };
 }
-async function isAuthorized(authorizationHeader, env) {
+async function isAuthorized(authorizationHeader, env, issuer = defaultIssuer(env)) {
   const shared = passphrase(env);
   if (!shared) return env.LOLLY_MCP_ALLOW_ANONYMOUS === "1";
   const bearer = /^Bearer\s+(.+)$/i.exec(String(authorizationHeader || ""))?.[1]?.trim();
   if (!bearer) return false;
   if (await safeEqual(bearer, shared)) return true;
   const tok = await verifyValue(bearer, signingSecret(env));
-  return !!tok && tok.t === "access" && tok.exp >= now();
+  return !!tok && tok.t === "access" && tok.sc === SCOPE && tok.aud === resourceFor(issuer) && tok.exp >= now();
 }
 var esc6 = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 function page2(title, inner) {
@@ -179810,6 +179818,10 @@ function send(res, r5) {
     return;
   }
   headers["content-type"] = "text/html; charset=utf-8";
+  headers["cache-control"] = "no-store";
+  headers["x-content-type-options"] = "nosniff";
+  headers["x-frame-options"] = "DENY";
+  headers["content-security-policy"] = "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'";
   res.writeHead(r5.status, headers);
   res.end(r5.html || "");
   return;
@@ -179948,7 +179960,7 @@ function createGateway(env = process.env, options2 = {}) {
       const unavailable = () => send(res, { status: 404, json: { error: "not_found" } });
       if (!privateFileScopeEnabled(env) || open3 || !["GET", "HEAD"].includes(method)) return unavailable();
       const authorization = typeof req.headers.authorization === "string" ? req.headers.authorization : void 0;
-      if (!await isAuthorized(authorization, env)) return unavailable();
+      if (!await isAuthorized(authorization, env, publicBase)) return unavailable();
       const owner3 = bearerPrincipal(authorization);
       const rawPath = (req.url ?? "").split("?")[0];
       if (!owner3 || rawPath !== path || url.searchParams.getAll("dt").length !== 1 || [...url.searchParams.keys()].some((key2) => key2 !== "dt")) return unavailable();
@@ -179997,7 +180009,7 @@ function createGateway(env = process.env, options2 = {}) {
       const refusal2 = await limited(limiter, "oauth", clientIp(req, env), positiveInt(env.LOLLY_OAUTH_RPM, 30));
       if (refusal2) return send(res, refusal2);
       const q = Object.fromEntries(url.searchParams);
-      if (method === "GET") return send(res, await authorizeGet(q, env));
+      if (method === "GET") return send(res, await authorizeGet(q, env, publicBase));
       if (method === "POST") {
         let form;
         try {
@@ -180019,7 +180031,7 @@ function createGateway(env = process.env, options2 = {}) {
       } catch (error2) {
         return send(res, bodyFailure(error2, "could not read request body"));
       }
-      return send(res, await token(form, env));
+      return send(res, await token(form, env, publicBase));
     }
     if (path.endsWith("/mcp")) {
       if (method !== "POST") {
@@ -180027,7 +180039,7 @@ function createGateway(env = process.env, options2 = {}) {
         res.end();
         return;
       }
-      if (!await isAuthorized(req.headers["authorization"], env)) {
+      if (!await isAuthorized(req.headers["authorization"], env, publicBase)) {
         res.writeHead(401, {
           ...CORS,
           "content-type": "application/json",

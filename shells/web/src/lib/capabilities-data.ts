@@ -532,7 +532,7 @@ export const CAPABILITY_SECTIONS: CapSection[] = [
     desc: 'Creative production stays on the device, under your control - rendering, storage and export never require a server. The optional hosted add-ons are listed separately.',
     cards: [
       { icon: ICONS.shield, title: 'On-device by default', shot: 'pv-ondevice-badge', keywords: 'no cloud local analytics telemetry tracking server private', features: [
-        { name: 'No cloud rendering', desc: 'No analytics, no telemetry, and rendering happens locally - what you create is stored on your machine, not on a server.' },
+        { name: 'Local rendering', desc: 'Rendering and saved work stay on your device by default. Optional sync, hosted rendering and connected services send the data needed for the features you choose; managed instances can apply their own audit and telemetry policy.' },
       ] },
       { icon: ICONS.device, title: 'Local storage', shot: 'pd-storage-meter', keywords: 'indexeddb browser database quota clear storage usage sessions', features: [
         { name: 'Your browser’s database', desc: 'Profile, saved sessions, uploaded images and the cached brand assets live in IndexedDB; Storage tools show usage and can clear that data.' },
@@ -542,7 +542,7 @@ export const CAPABILITY_SECTIONS: CapSection[] = [
         { name: 'Stripped & local', desc: 'Images you add are downscaled and stripped of EXIF/GPS, then kept in a local My images library - never uploaded.' },
       ] },
       { icon: ICONS.credential, title: 'Content Credentials', shot: 'exp-c2pa-card', keywords: 'c2pa cai provenance sign manifest tamper evident authorship', features: [
-        { name: 'Signed, tamper-evident provenance', desc: 'Exports can carry a signed <a href="https://c2pa.org" target="_blank" rel="noopener">C2PA</a> manifest - the <a href="https://contentauthenticity.org" target="_blank" rel="noopener">Content Authenticity Initiative</a> standard for tamper-evident provenance - created entirely on your device, so a file can prove what made it without any cloud signing service. PDF, PNG, JPG, GIF, SVG, TIFF, WebP, MP4 and WebM all take the credential, recording the tool, the author (profile opt-in) and where the export happened; <a href="#/verify">Verify</a> checks any file on-device.' },
+        { name: 'Signed, tamper-evident provenance', desc: 'Exports can carry a signed <a href="https://c2pa.org" target="_blank" rel="noopener">C2PA</a> manifest - the <a href="https://contentauthenticity.org" target="_blank" rel="noopener">Content Authenticity Initiative</a> standard for tamper-evident provenance. Signing happens on your device; optional identity enrollment uses the configured certificate service. PDF, PNG, JPG, GIF, SVG, TIFF, WebP, MP4 and WebM can record the tool, input fingerprints and an author (profile opt-in); <a href="#/verify">Verify</a> checks any file on-device.' },
       ] },
       { icon: ICONS.imprint, title: 'The Lolly Imprint', keywords: 'invisible watermark imprint pixel durable recognise recompression trustmark', features: [
         { name: 'An invisible pixel watermark', desc: 'Raster exports also carry the Lolly Imprint, on by default: a watermark in the pixels themselves that survives recompression, so a copy can still be recognised as made with Lolly after its credential and metadata are gone. It is a durable hint rather than a cryptographic proof, it carries no personal data, and one switch in the export panel leaves it out.' },

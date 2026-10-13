@@ -13,10 +13,10 @@ import {
   authorizationServerMetadata, authorizeGet, authorizePost, isAuthorized,
   protectedResourceMetadata, register, token,
 } from '../src/oauth.ts';
-import { randomB64u, sha256B64u } from '../src/sign.ts';
+import { randomB64u, sha256B64u, signValue, verifyValue } from '../src/sign.ts';
 
 const TOKEN = 'test-secret-token-xyz';
-const env = { LOLLY_MCP_TOKEN: TOKEN } as unknown as NodeJS.ProcessEnv;
+const env = { LOLLY_MCP_TOKEN: TOKEN, LOLLY_MCP_PUBLIC_ORIGIN: 'https://lolly.tools' } as unknown as NodeJS.ProcessEnv;
 const REDIRECT = 'https://claude.ai/api/mcp/auth_callback';
 
 test('discovery metadata is well-formed and absolute', () => {
@@ -159,4 +159,42 @@ test('a redirect_uri not registered to the client is refused', async () => {
   const bad = await authorizeGet({ response_type: 'code', client_id: clientId, redirect_uri: 'https://claude.ai/other', code_challenge: 'x', code_challenge_method: 'S256' }, env);
   assert.equal(bad.status, 400);
   assert.match(bad.html || '', /not registered/);
+});
+
+test('codes and both token types stay bound to the configured resource', async () => {
+  const clientId = await newClientId();
+  const verifier = randomB64u(48);
+  const params = { response_type: 'code', client_id: clientId, redirect_uri: REDIRECT, code_challenge: await sha256B64u(verifier), code_challenge_method: 'S256' };
+  const resource = `${env.LOLLY_MCP_PUBLIC_ORIGIN}/api/mcp`;
+  const otherEnv = { ...env, LOLLY_MCP_PUBLIC_ORIGIN: 'https://other.example.test' };
+  for (const resource of ['https://other.example.test/api/mcp', 'https://lolly.tools/api/mcp#fragment', '']) {
+    assert.equal((await authorizeGet({ ...params, resource }, env)).status, 400);
+    assert.equal((await authorizePost({ ...params, resource, passphrase: TOKEN }, env)).status, 400);
+  }
+  const granted = await authorizePost({ ...params, resource, passphrase: TOKEN }, env);
+  const code = new URL(granted.redirect!).searchParams.get('code')!;
+  const exchange = { grant_type: 'authorization_code', code, code_verifier: verifier };
+  assert.equal((await token(exchange, otherEnv)).status, 400);
+  assert.equal((await token({ ...exchange, resource: `${resource}/other` }, env)).status, 400);
+  const issued = await token({ ...exchange, resource }, env);
+  assert.equal(issued.status, 200);
+  const credentials = issued.json as { access_token: string; refresh_token: string };
+  for (const value of [credentials.access_token, credentials.refresh_token]) {
+    assert.equal((await verifyValue<{ aud: string }>(value, TOKEN))?.aud, resource);
+  }
+  assert.equal(await isAuthorized(`Bearer ${credentials.access_token}`, otherEnv), false);
+  assert.equal((await token({ grant_type: 'refresh_token', refresh_token: credentials.refresh_token }, otherEnv)).status, 400);
+  const renewed = await token({ grant_type: 'refresh_token', refresh_token: credentials.refresh_token, resource }, env);
+  assert.equal(renewed.status, 200);
+  assert.equal(await isAuthorized(`Bearer ${(renewed.json as { access_token: string }).access_token}`, env), true);
+});
+
+test('unscoped and differently scoped signed credentials require a new grant', async () => {
+  const exp = Math.floor(Date.now() / 1000) + 3600;
+  for (const fields of [{}, { aud: 'https://other.example.test/api/mcp' }, { aud: 'https://lolly.tools/api/mcp', sc: 'other' }]) {
+    const credential = await signValue({ t: 'access', sc: 'mcp', exp, ...fields }, TOKEN);
+    assert.equal(await isAuthorized(`Bearer ${credential}`, env), false);
+    const refresh = await signValue({ t: 'refresh', sc: 'mcp', exp, ...fields }, TOKEN);
+    assert.equal((await token({ grant_type: 'refresh_token', refresh_token: refresh }, env)).status, 400);
+  }
 });
