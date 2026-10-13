@@ -14,6 +14,7 @@
  */
 
 import { spawnSync } from 'node:child_process';
+import { parseConnectorOrigins } from '../packages/core/src/connector-origins.ts';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { assertWebGpuReleaseAllowed, webGpuReleaseProblems } from './webgpu-release-gate.ts';
@@ -29,6 +30,7 @@ const TAURI_DIR: Record<Exclude<ReleaseFrontend, 'web'>, string> = {
 };
 
 export function validateReleaseEnvironment(env: NodeJS.ProcessEnv, signing = true): void {
+  parseConnectorOrigins(env.VITE_CONNECTOR_ORIGINS ?? '');
   if (env.VITE_REQUIRE_AI_POLICY !== undefined && !['true', 'false'].includes(env.VITE_REQUIRE_AI_POLICY)) {
     throw new Error('VITE_REQUIRE_AI_POLICY must be true or false');
   }

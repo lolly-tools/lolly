@@ -19,6 +19,7 @@
  * everywhere-answer later (plans/129 WP4).
  */
 
+import { ConnectorOriginError } from './connector-policy.ts';
 import { t } from '../i18n.ts';
 import {
   getConnection, saveConnection, removeConnection, hasConnection,
@@ -79,7 +80,8 @@ export async function testWebdav(cfg: WebdavConfig, fetchFn: typeof fetch = prov
     if (res.status === 401) return { ok: false, note: t('The server refused the sign-in (401) - check the username and app password') };
     if (res.status === 404 && cfg.folder) return { ok: true, note: t('Signed in; the folder will be created on first send') };
     return { ok: res.ok || res.status === 207, note: res.ok || res.status === 207 ? t('Connection works') : t('The server answered {status}', { status: res.status }) };
-  } catch {
+  } catch (error) {
+    if (error instanceof ConnectorOriginError) return { ok: false, note: error.message };
     return { ok: false, note: t('Could not reach the server - it must allow this origin (CORS), or use the desktop app') };
   }
 }
@@ -114,7 +116,8 @@ export function nextcloudSendTarget(): SendTarget {
           headers: { Authorization: basic(cfg), 'Content-Type': mime || 'application/octet-stream' },
           body: bytes as unknown as BodyInit,
         });
-      } catch {
+      } catch (error) {
+        if (error instanceof ConnectorOriginError) throw error;
         throw new Error(t('Could not reach the server - it must allow this origin (CORS), or use the desktop app'));
       }
       if (!res.ok) throw new Error(t('Server upload failed ({status})', { status: res.status }));
@@ -165,7 +168,7 @@ export function webdavSyncRemote(fetchFn: typeof fetch = providerFetch, relPath:
     const { cfg, path } = await requireCfg();
     let res: Response;
     try { res = await fetchFn(davUrl(cfg, path), { method: 'HEAD', headers: { Authorization: basic(cfg) } }); }
-    catch { throw new Error(reach); }
+    catch (error) { if (error instanceof ConnectorOriginError) throw error; throw new Error(reach); }
     if (res.status === 404) return null;
     if (!res.ok) throw new Error(t('The server answered {status}', { status: res.status }));
     return metaFromHeaders(res.headers, 0);
@@ -175,7 +178,7 @@ export function webdavSyncRemote(fetchFn: typeof fetch = providerFetch, relPath:
     const { cfg, path } = await requireCfg();
     let res: Response;
     try { res = await fetchFn(davUrl(cfg, path), { method: 'GET', headers: { Authorization: basic(cfg) } }); }
-    catch { throw new Error(reach); }
+    catch (error) { if (error instanceof ConnectorOriginError) throw error; throw new Error(reach); }
     if (res.status === 404) return null;
     if (!res.ok) throw new Error(t('The server answered {status}', { status: res.status }));
     const bytes = new Uint8Array(await res.arrayBuffer());
@@ -198,11 +201,12 @@ export function webdavSyncRemote(fetchFn: typeof fetch = providerFetch, relPath:
     let res: Response;
     try {
       res = await send(conditional);
-    } catch {
+    } catch (error) {
+      if (error instanceof ConnectorOriginError) throw error;
       // A server whose CORS rule does not allow If-Match fails the browser
       // preflight. Try once more without it; the engine compared revisions just before.
       if (!Object.keys(conditional).length || isTauriShell()) throw new Error(reach);
-      try { res = await send({}); } catch { throw new Error(reach); }
+      try { res = await send({}); } catch (error) { if (error instanceof ConnectorOriginError) throw error; throw new Error(reach); }
     }
     if (Object.keys(conditional).length && res.status === 412) throw new SyncConflictError();
     if (!res.ok) throw new Error(t('Server upload failed ({status})', { status: res.status }));

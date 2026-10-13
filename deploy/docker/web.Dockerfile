@@ -10,9 +10,14 @@ WORKDIR /src
 ARG LOLLY_PROFILE=lolly-start
 ARG LOLLY_RELEASE_SOURCE
 ARG VITE_CATALOG_PUBLIC_KEY_JWK
+ARG VITE_CONNECTOR_ORIGINS
 ENV LOLLY_PROFILE=${LOLLY_PROFILE}
 ENV LOLLY_RELEASE_SOURCE=${LOLLY_RELEASE_SOURCE}
 ENV VITE_CATALOG_PUBLIC_KEY_JWK=${VITE_CATALOG_PUBLIC_KEY_JWK}
+ENV VITE_CONNECTOR_ORIGINS=${VITE_CONNECTOR_ORIGINS}
+COPY packages/core/src/connector-origins.ts ./packages/core/src/
+COPY scripts/configure-connector-origins.ts ./scripts/
+COPY deploy/docker/nginx.conf ./nginx.conf
 COPY scripts/release-frontend-receipt.ts scripts/verify-release-catalog.ts scripts/webgpu-release-gate.ts ./scripts/
 COPY engine/src/canonical-json.ts engine/src/catalog-integrity.ts engine/src/x509.ts engine/src/bytes.ts engine/src/der-read.ts ./engine/src/
 COPY shells/web/src/main.ts ./shells/web/src/main.ts
@@ -21,12 +26,13 @@ COPY --from=release-frontend / /src/release-frontend/
 RUN --network=none node scripts/webgpu-release-gate.ts --scope web \
     && node scripts/release-frontend-receipt.ts --verify web release-frontend \
     && node scripts/verify-release-catalog.ts --root release-frontend \
-    && test -f release-frontend/.delivery-etags.conf
+    && test -f release-frontend/.delivery-etags.conf \
+    && node scripts/configure-connector-origins.ts nginx.conf configured.nginx.conf
 
 FROM ghcr.io/nginx/nginx-unprivileged:1.31-alpine@sha256:884e0b7f42f303641b0f4e78755aea647521dca0b89ca3be7992ad78b5c07434 AS runtime
 USER 0
 RUN --network=none rm -rf /usr/share/nginx/html && mkdir -p /usr/share/nginx/html
-COPY deploy/docker/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=verify /src/configured.nginx.conf /etc/nginx/conf.d/default.conf
 COPY deploy/docker/security-headers.conf /etc/nginx/security-headers.conf
 COPY deploy/docker/delivery-maps.conf /etc/nginx/delivery-maps.conf
 COPY deploy/docker/delivery-headers.conf /etc/nginx/delivery-headers.conf

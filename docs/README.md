@@ -143,6 +143,7 @@ The Builders sidebar also carries an **About** entry, which renders the repo-roo
 | [legal.md](legal.md) | operator | Playbook. Redact, anonymise, strip metadata, compress and verify with nothing sent anywhere, plus the licence, AI-marking and data positions stated plainly. |
 | [adoption-governance.md](adoption-governance.md) | operator | The honest pilot account: current status, who it is for, how adoption is measured, who governs the output. |
 | [cli-signing.md](cli-signing.md) | operator | Setting up a real signing identity for the CLI, so files made from the terminal carry a verifiable name rather than an anonymous on-device key. Its own pathway is Operators; the Builders sidebar carries it too. |
+| [connector-origins.md](connector-origins.md) | operator | Exact HTTPS connector origins, web headers, native request limits and deployment configuration. |
 | [deployment.md](deployment.md) | operator | Where each piece runs: distribute apps, host the PWA, add optional integrations or deploy lolly.work for organisation services. |
 | [deploy-delivery.md](deploy-delivery.md) | operator | Signed catalog delivery, immutable file retention, model integrity, private cache boundaries, optional edges and release qualification. |
 | [configuration.md](configuration.md) | operator | Profiles, brand packs, tool sets and per-tool capabilities as files rather than in-app settings. |

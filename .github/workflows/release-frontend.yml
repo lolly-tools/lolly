@@ -14,6 +14,10 @@ on:
         required: false
         type: string
         default: ''
+      connector_origins:
+        required: false
+        type: string
+        default: ''
       live_relay:
         required: false
         type: string
@@ -96,6 +100,7 @@ jobs:
           FRONTEND_TARGET: ${{ inputs.target }}
           LOLLY_RELEASE_FRONTEND_PHASE: build
           VITE_LIVE_RELAY: ${{ inputs.live_relay }}
+          VITE_CONNECTOR_ORIGINS: ${{ inputs.connector_origins }}
           VITE_CA_ENROLLMENT_TRUST_JSON: ${{ inputs.ca_enrollment_trust_json }}
           NODE_OPTIONS: --max-old-space-size=6144
         run: node scripts/build-release-web.ts "$FRONTEND_TARGET"

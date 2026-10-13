@@ -20,7 +20,7 @@ spec:
         {{- include "sovereign.selector" (dict "root" $ "name" $name) | nindent 8 }}
       annotations:
         {{- if eq $name "web" }}
-        checksum/nginx: {{ $.Files.Get "files/public.nginx.conf" | sha256sum }}
+        checksum/nginx: {{ include "sovereign.connectorNginx" $ | sha256sum }}
         lolly.tools/models-release: {{ $.Values.models.release | quote }}
         {{- end }}
         lolly.tools/profile: sovereign-single-node

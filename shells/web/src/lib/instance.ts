@@ -315,21 +315,28 @@ export function adoptBootFetch(path: string): Promise<Response> | null {
  * boot-time index merge), which keeps the remote TOOL index pristine for the
  * pinned-key signed-envelope check in catalog/integrity.ts.
  */
-export function instanceFetch(input: string | URL, init?: RequestInit): Promise<Response> {
+/** Optional lower native bounds for shell-owned readers. */
+export interface InstanceFetchLimits {
+  timeoutMs?: number;
+  maxResponseBytes?: number;
+  fallbackFetch?: typeof fetch;
+}
+
+export function instanceFetch(input: string | URL, init?: RequestInit, limits?: InstanceFetchLimits): Promise<Response> {
   const url = String(input);
   if (packActive()) {
     const path = pathOf(url);
-    if (path === '/catalog/assets/index.json') return packMergedAssetIndex(url, init);
+    if (path === '/catalog/assets/index.json') return packMergedAssetIndex(url, init, limits);
     if (path.startsWith('/catalog/')) {
-      return packFetch(path).then(r => r ?? transportFetch(url, init));
+      return packFetch(path).then(r => r ?? transportFetch(url, init, limits));
     }
   }
-  return transportFetch(url, init);
+  return transportFetch(url, init, limits);
 }
 
-function transportFetch(url: string, init?: RequestInit): Promise<Response> {
-  if (hasTauriInternals() && isCrossOrigin(url)) return tauriRemoteFetch(url, withClientHeader(init));
-  return fetch(url, isCrossOrigin(url) ? init : withClientHeader(init));
+function transportFetch(url: string, init?: RequestInit, limits?: InstanceFetchLimits): Promise<Response> {
+  if (hasTauriInternals() && isCrossOrigin(url)) return tauriRemoteFetch(url, withClientHeader(init), undefined, limits);
+  return (limits?.fallbackFetch ?? fetch)(url, isCrossOrigin(url) ? init : withClientHeader(init));
 }
 
 /** The root-relative path of an instance URL (absolute or already relative).
@@ -355,10 +362,10 @@ function pathOf(url: string): string {
  * asset index carries no signed envelope - only the TOOL index does, and
  * that one passes through unmerged.)
  */
-async function packMergedAssetIndex(url: string, init: RequestInit | undefined): Promise<Response> {
+async function packMergedAssetIndex(url: string, init: RequestInit | undefined, limits?: InstanceFetchLimits): Promise<Response> {
   let baseIndex: Record<string, unknown> | null = null;
   try {
-    const resp = await transportFetch(url, init);
+    const resp = await transportFetch(url, init, limits);
     if (resp.ok) baseIndex = await resp.json() as Record<string, unknown>;
   } catch { /* offline / no instance yet - the pack still answers */ }
   const packEntries = await packAssetEntries();
@@ -455,13 +462,25 @@ function isInstanceOrigin(url: string): boolean {
   }
 }
 
-async function tauriRemoteFetch(url: string, init?: RequestInit): Promise<Response> {
+/** Connector requests carry an exact-origin restriction through every native redirect. */
+export async function nativeConnectorFetch(request: Request, allowedOrigins: readonly string[]): Promise<Response> {
+  return tauriRemoteFetch(request.url, {
+    method: request.method, headers: request.headers,
+    body: request.body ? await request.arrayBuffer() : undefined,
+  }, allowedOrigins);
+}
+
+async function tauriRemoteFetch(url: string, init?: RequestInit, allowedOrigins?: readonly string[], limits?: InstanceFetchLimits): Promise<Response> {
   const { invoke } = (window as unknown as { __TAURI_INTERNALS__: TauriInternals }).__TAURI_INTERNALS__;
+  init?.signal?.throwIfAborted();
+  for (const limit of [limits?.timeoutMs, limits?.maxResponseBytes]) {
+    if (limit !== undefined && (!Number.isSafeInteger(limit) || limit < 1)) throw new Error('Native request limits require positive integers');
+  }
   const req = new Request(url, init);
   // The Rust client has no cookie jar: attach the parked session pair to
   // instance-origin requests so a device-code sign-in survives - and to no
   // other host, ever (see isInstanceOrigin).
-  if (instanceSession && instanceSession.origin === instanceOrigin()
+  if (!allowedOrigins && instanceSession && instanceSession.origin === instanceOrigin()
     && isInstanceOrigin(url) && !req.headers.has('cookie')) {
     req.headers.set('cookie', instanceSession.cookiePair);
   }
@@ -472,6 +491,9 @@ async function tauriRemoteFetch(url: string, init?: RequestInit): Promise<Respon
       url: req.url,
       headers: Array.from(req.headers.entries()),
       body: bodyBuf.byteLength ? Array.from(new Uint8Array(bodyBuf)) : null,
+      ...(allowedOrigins ? { allowedOrigins: [...allowedOrigins] } : {}),
+      ...(limits?.timeoutMs ? { timeoutMs: Math.min(limits.timeoutMs, 60000) } : {}),
+      ...(limits?.maxResponseBytes ? { maxResponseBytes: limits.maxResponseBytes } : {}),
     },
   });
   const body = resp.body instanceof ArrayBuffer ? new Uint8Array(resp.body) : Uint8Array.from(resp.body);

@@ -64,6 +64,8 @@ test('frontend compiler environment drops all native and catalog signing credent
 test('release orchestration exposes catalog material only to the signing subprocess', t => {
   const root = fixture(t);
   mkdirSync(join(root, 'scripts'));
+  mkdirSync(join(root, 'packages/core/src'), { recursive: true });
+  writeFileSync(join(root, 'packages/core/src/connector-origins.ts'), readFileSync(new URL('../packages/core/src/connector-origins.ts', import.meta.url)));
   mkdirSync(join(root, 'bin'));
   for (const name of ['build-release-web.ts', 'webgpu-release-gate.ts', 'webgpu-qualification.ts']) {
     writeFileSync(join(root, 'scripts', name), readFileSync(new URL(`../scripts/${name}`, import.meta.url)));

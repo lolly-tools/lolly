@@ -47,13 +47,12 @@ import type { SendTarget } from './send-target.ts';
 import type { SyncRemote, SnapshotMeta, PutOpts } from './sync-remote.ts';
 import { SyncConflictError } from './sync-remote.ts';
 import {
-  codeGrant, loopbackVia, mobileVia, nativeTransport, popupOAuth, refreshGrant,
+  codeGrant, loopbackVia, mobileVia, nativeTransport, popupOAuth, providerFetch, refreshGrant,
   type AuthorizeVia, type LoopbackTransport, type TokenSet,
 } from './provider-auth.ts';
 import {
   cachedToken, cacheToken, dropToken, getConnection, removeConnection, saveConnection, cachedConnection,
 } from './provider-connections.ts';
-import { instanceFetch } from './instance.ts';
 import { isTauriShell, isTauriMobileShell } from './instance-choice.ts';
 import { t } from '../i18n.ts';
 
@@ -249,8 +248,7 @@ export function driveNativeAvailable(): boolean {
 }
 
 /** googleapis fetches ride the CORS-free Tauri HTTP client on desktop. */
-const driveFetch: typeof fetch = (input, init) =>
-  isTauriShell() ? instanceFetch(String(input), init) : fetch(input, init);
+const driveFetch: typeof fetch = providerFetch;
 
 const desktopGrantCfg = () => ({
   authorizeUrl: AUTH_URL,
@@ -346,7 +344,7 @@ export async function connectDriveWeb(persist: boolean, ownClientId?: string): P
   const token = await requestToken(ownClientId);
   let account = t('Google account');
   try {
-    const res = await fetch(ABOUT_URL, { headers: { Authorization: `Bearer ${token}` } });
+    const res = await providerFetch(ABOUT_URL, { headers: { Authorization: `Bearer ${token}` } });
     if (res.ok) {
       const about = await res.json() as { user?: { emailAddress?: string; displayName?: string } };
       account = about.user?.emailAddress || about.user?.displayName || account;

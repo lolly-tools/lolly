@@ -1,10 +1,11 @@
 import { defineConfig } from 'vite';
+import { connectorDevPolicy } from '../../scripts/vite-connector-policy.mjs';
 import { resolve, dirname } from 'node:path';
 import { existsSync } from 'node:fs';
 import {
   embedContentPlugins, injectModelsBase, resolveEmbedMode,
 } from '../tauri-shared/vite-embed.mjs';
-import { tauriCspMeta } from '../tauri-shared/vite-csp.mjs';
+import { tauriCspMeta, TAURI_CSP } from '../tauri-shared/vite-csp.mjs';
 import { webGpuProductProbe } from './webgpu-product-probe.mjs';
 // Borrowed from the web shell's config, which owns the format. See the plugin list.
 import { precacheManifest, APP_ASSETS_DIR } from '../web/vite.config.js';
@@ -84,7 +85,9 @@ const MODELS_HOST = process.env.VITE_MODELS_BASE ?? 'https://lolli.li';
 export default defineConfig({
   root: webShell,
   publicDir: resolve(webShell, 'public'),
+  define: { 'import.meta.env.VITE_CONNECTOR_ORIGINS': JSON.stringify(process.env.VITE_CONNECTOR_ORIGINS ?? '') },
   plugins: [
+    connectorDevPolicy(TAURI_CSP),
     webGpuProductProbe({ root: repoRoot }),
     // The app's Content Security Policy rides in as a <meta> tag: with a CSP in
     // tauri.conf.json, Tauri's codegen re-serialises every .html asset - the tool

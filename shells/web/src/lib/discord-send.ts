@@ -15,6 +15,7 @@
  * honest message rather than a hardcoded cap that would drift.
  */
 
+import { ConnectorOriginError } from './connector-policy.ts';
 import { t } from '../i18n.ts';
 import { isTauriShell } from './instance-choice.ts';
 import { providerFetch } from './provider-auth.ts';
@@ -42,7 +43,8 @@ export async function testDiscord(rawUrl: string, fetchFn: typeof fetch = provid
     if (!res.ok) return { ok: false, note: t('Discord did not accept that webhook ({status})', { status: res.status }) };
     const hook = await res.json() as { name?: string };
     return { ok: true, note: t('Connected'), name: hook.name };
-  } catch {
+  } catch (error) {
+    if (error instanceof ConnectorOriginError) return { ok: false, note: error.message };
     return { ok: false, note: t('Could not reach Discord - check the URL and your connection') };
   }
 }

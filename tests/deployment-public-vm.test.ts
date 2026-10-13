@@ -267,7 +267,7 @@ test('web image packaging verifies a named artifact context and owns only its ac
       `;
       const result: SpawnSyncReturns<string> = spawnSync('bash', ['-c', mock + script], { cwd: root, env: {
         ...process.env, NODE_EXEC: process.execPath, TRACE: join(root, 'calls.jsonl'), FAIL: failure, RUNNER_TEMP: root,
-        REGISTRY_TOKEN: 'synthetic-not-a-token', GITHUB_ACTOR: 'fixture', VITE_CATALOG_PUBLIC_KEY_JWK: 'synthetic-public-pin',
+        REGISTRY_TOKEN: 'synthetic-not-a-token', GITHUB_ACTOR: 'fixture', VITE_CATALOG_PUBLIC_KEY_JWK: 'synthetic-public-pin', VITE_CONNECTOR_ORIGINS: 'https://storage.example.com',
         GITHUB_REPOSITORY_OWNER: 'Owner', GITHUB_REPOSITORY: 'Owner/lolly', GITHUB_RUN_ID: '123', GITHUB_RUN_ATTEMPT: '2', EXPECTED_SOURCE: archiveSource,
       }, encoding: 'utf8', timeout: 5000 });
       assert.equal(result.status === 0, failure === '', result.stderr);
@@ -281,6 +281,7 @@ test('web image packaging verifies a named artifact context and owns only its ac
       assert.equal(build[build.indexOf('--build-context') + 1], 'release-frontend=' + root + '/lolly-signed-web');
       assert.ok(build.includes('LOLLY_RELEASE_SOURCE=' + archiveSource));
       assert.ok(build.includes('VITE_CATALOG_PUBLIC_KEY_JWK=synthetic-public-pin'));
+      assert.ok(build.includes('VITE_CONNECTOR_ORIGINS=https://storage.example.com'));
       assert.ok(build.includes('LOLLY_PROFILE=lolly-start'));
       assert.doesNotMatch(build.join(' '), /--secret|--cache-to|--cache-from|--target deps|LOLLY_CATALOG_SIGNING_KEY/);
     }
