@@ -11,17 +11,14 @@ whose controls render a soft-body "jelly" squish on a per-component `<canvas>`
 jelly chrome controls (see `shells/web/src/lib/jelly.ts`); importing the module
 defines every `<jelly-*>` element and injects its default tokens under `@layer jelly`.
 
-**Do not hand-edit `jelly.mjs`.** Refresh it with:
-
-```
-curl -sL https://jelly-ui.com/dist/jelly.js -o shells/web/src/vendor/jelly/jelly.mjs
-```
+The exact distributed bytes and local-change status are recorded in `security/vendor-artifacts.json`. SBOM generation verifies this inventory before including the library. Do not refresh directly from the mutable hosted bundle. Select and review an immutable upstream source revision, rebuild the bundle, preserve the local performance hook, then update the reviewed byte inventory.
 
 ## Provenance
 - Source: https://jelly-ui.com/dist/jelly.js (the site serves the repo's built,
   unminified ESM bundle - 40 custom elements, ~318 KB)
 - Snapshot: 2026-07-21. Upstream had no tagged release yet; treat this as a pin
   and re-audit on refresh (the repo is early-stage).
+- The historical snapshot does not record an upstream source commit or a separate pre-patch artifact. Its current byte pin makes later changes reviewable; it does not reconstruct that missing history.
 - Repo: https://github.com/jelly-org/ui - TypeScript, MIT
 - The trailing `//# sourceMappingURL=jelly.js.map` is upstream's; the map is not
   vendored (devtools may log a one-time 404 when the Sources panel is open).

@@ -20,7 +20,9 @@
 set -euo pipefail
 
 LIBOPENMPT_VERSION="0.8.7"           # pinned; see https://lib.openmpt.org/files/libopenmpt/src/
-EMSDK_VERSION="latest"               # emsdk toolchain (emcc). 0.8.x needs emscripten >= 3.1.51.
+EMSDK_VERSION="6.0.2"
+EMSDK_COMMIT="ca38f487f28b7c3c16f8f70cd0e012099ac4b7e2"
+SOURCE_SHA256="8a6c0a70b034740f6cdd7b53de65181c3bca82183d084a53ed7fd678ba1a38ab"
 SR_NOTE="decode samplerate is chosen at runtime by the worker, not baked in"
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -39,7 +41,12 @@ cd "${WORKDIR}"
 
 # 1. Emscripten SDK (self-contained, pinned) ---------------------------------------
 if [ ! -d emsdk ]; then
-  git clone --depth 1 https://github.com/emscripten-core/emsdk.git
+  git clone --no-checkout https://github.com/emscripten-core/emsdk.git
+  git -C emsdk checkout --detach "${EMSDK_COMMIT}"
+fi
+if [ "$(git -C emsdk rev-parse HEAD)" != "${EMSDK_COMMIT}" ] || ! git -C emsdk diff --quiet; then
+  echo "The cached SDK differs from the reviewed source. Use a fresh build directory." >&2
+  exit 1
 fi
 ( cd emsdk && ./emsdk install "${EMSCRIPTEN_VERSION:-${EMSDK_VERSION}}" && ./emsdk activate "${EMSCRIPTEN_VERSION:-${EMSDK_VERSION}}" )
 # shellcheck disable=SC1091
@@ -47,11 +54,16 @@ source emsdk/emsdk_env.sh
 echo "==> $(emcc --version | head -1)"
 
 # 2. libopenmpt source (pinned makefile-flavour release tarball) --------------------
-if [ ! -d "libopenmpt-${LIBOPENMPT_VERSION}+release" ]; then
-  curl -fSL -O "${SRC_URL}"
-  tar xf "${SRC_TARBALL}"
-fi
-cd "libopenmpt-${LIBOPENMPT_VERSION}+release"
+curl -fSL -o "${SRC_TARBALL}" "${SRC_URL}"
+python3 - "${SRC_TARBALL}" "${SOURCE_SHA256}" <<'PY'
+import hashlib, pathlib, sys
+if hashlib.sha256(pathlib.Path(sys.argv[1]).read_bytes()).hexdigest() != sys.argv[2]:
+    raise SystemExit('The source archive differs from the reviewed bytes.')
+PY
+LIBOPENMPT_SOURCE_DIR="$(mktemp -d "${WORKDIR}/libopenmpt-src.XXXXXX")"
+trap 'rm -rf "${LIBOPENMPT_SOURCE_DIR}"' EXIT
+tar xf "${SRC_TARBALL}" -C "${LIBOPENMPT_SOURCE_DIR}"
+cd "${LIBOPENMPT_SOURCE_DIR}/libopenmpt-${LIBOPENMPT_VERSION}+release"
 
 # 3. Static library - DEFAULT codecs (permissive). No ALLOW_LGPL, no ports. ---------
 #    Skip examples / openmpt123 / test / shared-lib to keep the build lean.
