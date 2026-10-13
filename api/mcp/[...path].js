@@ -168525,6 +168525,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
   };
   host.capture = {
     async page(spec) {
+      if (spec.isolation) throw new Error("This host does not provide isolated public page capture.");
       const { bytes: bytes2, mime: mime2 } = await captureUrl(
         {
           url: spec.url,
