@@ -1,21 +1,5 @@
-/**
- * Lolly URL Screenshot — background service worker.
- *
- * Two jobs, one shape: open the user's URL in an inactive background tab, take one
- * reading, close the tab in a `finally`.
- *
- * 1. `lolly-capture` — captures the page to a PNG via the DevTools Protocol
- *    (chrome.debugger), mirroring the desktop (Tauri) native path in
- *    shells/tauri-desktop/src-tauri/src/capture.rs: set the viewport + DPR, inject
- *    custom CSS, scroll, then Page.captureScreenshot with captureBeyondViewport.
- *    Returns a base64 PNG data URL.
- * 2. `lolly-capture/site` — reads the page's markup, stylesheet text and a handful
- *    of icon/logo bytes for the Lolly app's design-system website source (plan 97
- *    section 9). The app parses them on-device; the extension only reads and hands back.
- *
- * This runs in the user's own browser, so reading localhost / private URLs is a
- * feature (it's their network) — we only reject non-http(s) schemes.
- */
+// Background page readings run only after extension approval.
+importScripts('policy.js', 'consent-flow.js');
 
 const CDP = '1.3';
 
@@ -115,40 +99,25 @@ function keepWorkerAlive() {
   return () => clearInterval(timer);
 }
 
-chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
-  if (!msg) return; // not ours
-
-  if (msg.type === 'lolly-capture') {
-    capture(msg.spec)
-      .then((dataUrl) => sendResponse({ ok: true, dataUrl }))
-      .catch((err) => sendResponse({ ok: false, error: String(err?.message ?? err) }));
-    return true; // keep the message channel open for the async response
-  }
-
-  if (msg.type === 'lolly-capture/site') {
-    readSite(msg.url, msg.options)
-      .then((result) => sendResponse({ ok: true, ...result }))
-      .catch((err) => sendResponse({ ok: false, reason: String(err?.message ?? err) }));
-    return true;
-  }
-});
-
-async function capture(spec = {}) {
+async function capture(spec = {}, request) {
   const url = String(spec.url ?? '');
   if (!/^https?:\/\//i.test(url)) throw new Error('Only http(s) URLs can be captured.');
 
-  const width = Math.max(1, Math.round(spec.width || 1280));
-  const height = Math.max(1, Math.round(spec.height || 720));
-  const dpr = spec.dpr > 0 ? spec.dpr : 1;
-  const waitMs = Number.isFinite(spec.waitMs) ? Math.max(0, spec.waitMs) : 500;
+  const width = Math.min(10000, Math.max(1, Math.round(Number(spec.width) || 1280)));
+  const height = Math.min(10000, Math.max(1, Math.round(Number(spec.height) || 720)));
+  const dpr = Number.isFinite(spec.dpr) && spec.dpr > 0 ? Math.min(4, spec.dpr) : 1;
+  const waitMs = Number.isFinite(spec.waitMs) ? Math.min(10000, Math.max(0, spec.waitMs)) : 500;
 
+  assertReading(request, 'running');
   const tab = await chrome.tabs.create({ url, active: false });
+  request.targetTabId = tab.id;
   const target = { tabId: tab.id };
   await rememberTab(tab.id);
   const stopKeepAlive = keepWorkerAlive();
 
   try {
     await waitForComplete(tab.id);
+    await assertTargetPresent(request, tab.id);
     await chrome.debugger.attach(target, CDP);
     await send(target, 'Page.enable');
     // Drive the layout viewport + device pixel ratio (instead of the real window).
@@ -157,12 +126,13 @@ async function capture(spec = {}) {
     });
 
     // Custom CSS — additive userstyles, appended so it layers over the page.
+    await assertTargetPresent(request, tab.id);
     if (typeof spec.css === 'string' && spec.css.trim()) {
       await send(target, 'Runtime.evaluate', { expression: injectCssExpr(spec.css.trim()) });
     }
 
     // Scroll: 0..1 fraction of the scrollable height, or a px offset when > 1.
-    if (spec.scrollDepth > 0) {
+    if (Number.isFinite(spec.scrollDepth) && spec.scrollDepth > 0) {
       const d = spec.scrollDepth;
       const expr = d <= 1
         ? `window.scrollTo(0,(document.body.scrollHeight-window.innerHeight)*${d});`
@@ -174,15 +144,18 @@ async function capture(spec = {}) {
 
     // captureBeyondViewport lets a tall height grab below-the-fold content; the
     // device-metrics DPR already scales resolution, so clip.scale stays 1.
+    await assertTargetPresent(request, tab.id);
     const { data } = await send(target, 'Page.captureScreenshot', {
       format: 'png',
       captureBeyondViewport: true,
       clip: { x: 0, y: 0, width, height, scale: 1 },
     });
+    await assertTargetPresent(request, tab.id);
     return `data:image/png;base64,${data}`;
   } finally {
     stopKeepAlive();
     try { await chrome.debugger.detach(target); } catch { /* already gone */ }
+    if (request.targetTabId === tab.id) request.targetTabId = null;
     try { await chrome.tabs.remove(tab.id); } catch { /* already closed */ }
     await forgetTab(tab.id);
   }
@@ -234,11 +207,13 @@ function injectCssExpr(css) {
  * swallowed there, so a hostile or half-broken page yields partial output rather
  * than an error or a hang.
  */
-async function readSite(rawUrl, options = {}) {
+async function readSite(rawUrl, options = {}, request) {
   const url = String(rawUrl ?? '');
   if (!/^https?:\/\//i.test(url)) throw new Error('Only http(s) URLs can be read.');
 
+  assertReading(request, 'running');
   const tab = await chrome.tabs.create({ url, active: false });
+  request.targetTabId = tab.id;
   await rememberTab(tab.id);
   const stopKeepAlive = keepWorkerAlive();
 
@@ -247,15 +222,17 @@ async function readSite(rawUrl, options = {}) {
     // Late webfonts and CSSOM-inserted styles land just after `complete`.
     await sleep(SITE_SETTLE_MS);
 
+    await assertTargetPresent(request, tab.id);
     const frames = await withTimeout(
       chrome.scripting.executeScript({
         target: { tabId: tab.id },
         func: collectSite,
-        args: [SITE_CAPS],
+        args: [SITE_CAPS, request.targetOrigin],
       }),
       SITE_COLLECT_TIMEOUT_MS,
       'Reading the page timed out.',
     );
+    await assertTargetPresent(request, tab.id);
     const collected = frames && frames[0] && frames[0].result;
     if (!collected) throw new Error('The page returned nothing to read.');
 
@@ -265,9 +242,10 @@ async function readSite(rawUrl, options = {}) {
     // and a failure here never fails the read.
     let screenshotBase64;
     if (options && options.screenshot) {
-      screenshotBase64 = await screenshotTab(tab.id).catch(() => undefined);
+      screenshotBase64 = await screenshotTab(tab.id, 1280, 800, 1, request).catch(() => undefined);
     }
 
+    await assertTargetPresent(request, tab.id);
     return {
       html: collected.html || '',
       cssTexts: collected.cssTexts || [],
@@ -278,13 +256,15 @@ async function readSite(rawUrl, options = {}) {
     };
   } finally {
     stopKeepAlive();
+    if (request.targetTabId === tab.id) request.targetTabId = null;
     try { await chrome.tabs.remove(tab.id); } catch { /* already closed */ }
     await forgetTab(tab.id);
   }
 }
 
 /** Page.captureScreenshot over an ALREADY-OPEN tab (the site read's bonus PNG). */
-async function screenshotTab(tabId, width = 1280, height = 800, dpr = 1) {
+async function screenshotTab(tabId, width = 1280, height = 800, dpr = 1, request) {
+  await assertTargetPresent(request, tabId);
   const target = { tabId };
   await chrome.debugger.attach(target, CDP);
   try {
@@ -292,11 +272,13 @@ async function screenshotTab(tabId, width = 1280, height = 800, dpr = 1) {
     await send(target, 'Emulation.setDeviceMetricsOverride', {
       width, height, deviceScaleFactor: dpr, mobile: false,
     });
+    await assertTargetPresent(request, tabId);
     const { data } = await send(target, 'Page.captureScreenshot', {
       format: 'png',
       captureBeyondViewport: true,
       clip: { x: 0, y: 0, width, height, scale: 1 },
     });
+    await assertTargetPresent(request, tabId);
     return data; // bare base64, no data: prefix
   } finally {
     try { await chrome.debugger.detach(target); } catch { /* already gone */ }
@@ -325,7 +307,8 @@ function withTimeout(promise, ms, message) {
  * cookies. Nothing is sent anywhere — the bytes go back to the Lolly tab that
  * asked, and the app parses them on-device.
  */
-async function collectSite(caps) {
+async function collectSite(caps, expectedOrigin) {
+  if (location.origin !== expectedOrigin) throw new Error('The page moved to another site.');
   const out = { html: '', cssTexts: [], assets: [], finalUrl: location.href, styles: null };
 
   // Read a bounded sample of visible elements, with no text or selectors retained.
@@ -536,5 +519,6 @@ async function collectSite(caps) {
     });
   }
 
+  if (location.origin !== expectedOrigin) throw new Error('The page moved to another site.');
   return out;
 }

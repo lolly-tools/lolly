@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Lolly URL Screenshot",
-  "version": "0.3.0",
-  "description": "Screenshot any URL from the Lolly web app, and read a page's markup, styles and icons, on your command in your browser.",
+  "version": "0.4.0",
+  "description": "Read one page after approving each request in the extension, then return its screenshot or page contents to Lolly.",
   "icons": {
     "16": "icons/icon-16.png",
     "48": "icons/icon-48.png",
@@ -15,18 +15,13 @@
     "scripting",
     "storage"
   ],
-  "host_permissions": [
-    "<all_urls>"
-  ],
   "background": {
     "service_worker": "background.js"
   },
   "content_scripts": [
     {
       "matches": [
-        "http://localhost:5173/*",
-        "https://lolly.tools/*",
-        "https://*.lolly.tools/*"
+        "https://lolly.tools/*"
       ],
       "js": [
         "inpage.js"
@@ -36,14 +31,20 @@
     },
     {
       "matches": [
-        "http://localhost:5173/*",
-        "https://lolly.tools/*",
-        "https://*.lolly.tools/*"
+        "https://lolly.tools/*"
       ],
       "js": [
+        "policy.js",
         "content.js"
       ],
       "run_at": "document_start"
     }
-  ]
+  ],
+  "optional_host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'none'; frame-ancestors 'none'"
+  }
 }
