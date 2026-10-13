@@ -175,7 +175,7 @@ test('public VM sparse checkout includes the maintained native image probe', () 
     `the public VM contracts read ${probePath}, so checkout must include that exact file`);
 });
 
-function normalCiSource(alter?: (run: Record<string, unknown>, inventory: { total_count: number; jobs: Record<string, unknown>[] }) => void, images = 'all') {
+function normalCiSource(alter?: (run: Record<string, unknown>, inventory: { total_count: number; jobs: Record<string, unknown>[] }) => void) {
   const directory = mkdtempSync(join(tmpdir(), 'lolly-normal-ci-'));
   try {
     const run = { id: 123, run_attempt: 2, status: 'completed', conclusion: 'success', head_sha: archiveSource, head_branch: 'main', event: 'push', path: '.github/workflows/ci.yml', repository: { full_name: 'owner/lolly' }, head_repository: { full_name: 'owner/lolly' } };
