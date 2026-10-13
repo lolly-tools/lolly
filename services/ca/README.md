@@ -88,3 +88,210 @@ under the organisation's certificate policy.
 
 For organisation SSO and SCIM, deploy Work separately and follow its
 [enterprise identity runbook](https://github.com/lolly-tools/lolly-work/blob/main/docs/enterprise-identity.md).
+
+## Proposed managed intermediate architecture
+
+This section is a design for a future hosted enrollment service. The current
+implementation accepts SPKI and token proof-of-possession, signs a device leaf
+with `CA_ROOT_KEY_PEM`, and returns a two-certificate chain. It has no Vault
+adapter, intermediate validation, revocation service or issuance records. The
+design below requires implementation and qualification before deployment.
+Addresses, mount paths, key references, trust anchors, policy OIDs and operator
+identities must come from the deployment owner; none are provisioned here.
+
+The proposed chain is an offline organisation root, one constrained intermediate,
+then a device leaf. Root custody and recovery stay outside the hosted service.
+The intermediate uses a non-exportable P-256 signing key in an approved HSM or
+KMS, accessed through Vault Enterprise Managed Keys. The device generates its
+own key and signs Content Credentials locally. Hosted authentication and
+enrollment remain available, while the service receives no CA or device private
+key. [Vault's managed-key design](https://developer.hashicorp.com/vault/tutorials/pki/managed-key-pki)
+delegates private-key operations to the external provider. Qualify that provider's
+P-256 signing mechanism, key export policy and operational evidence before
+asserting hardware custody.
+
+An HSM-backed Vault seal protects Vault's encryption root key. It does not make
+an ordinary PKI or Transit key perform each signature in hardware. A software
+Transit key that cannot be exported through the API is also a different custody
+model. Require a configured managed signing key and evidence that successful
+certificate signatures use that key. See [seal configuration](https://developer.hashicorp.com/vault/docs/configuration/seal)
+and [Managed Keys](https://developer.hashicorp.com/vault/api-docs/system/managed-keys).
+
+### Issuance API and enrollment protocol
+
+Prefer Vault PKI so the provider owns certificate issuance and revocation. The
+operator generates an intermediate CSR with
+`POST /v1/<mount>/intermediate/generate/kms` and its managed-key reference,
+obtains an offline root signature, and imports the public chain with
+`POST /v1/<mount>/intermediate/set-signed`. The service uses only
+`POST /v1/<mount>/sign/<role>` with a device CSR, an approved identity, `ttl` and
+`format=pem`. Keep the role's issuer explicit; exclude issuer-override and
+privileged signing endpoints from its ACL. These APIs and role fields are
+defined in the [PKI API](https://developer.hashicorp.com/vault/api-docs/secret/pki).
+
+This choice needs a versioned enrollment protocol: the existing SPKI plus token
+signature is not a PKCS#10 CSR. Add a bounded DER CSR signed by the same device
+P-256 key. Verify its signature, curve and exact SPKI equality with the token
+proof before calling Vault. Keep a separate proof over a domain-separated
+enrollment message containing protocol version, token and CSR SHA-256. Add a
+short-lived, single-use token identifier with atomic consumption and idempotent
+retry handling, so concurrent replicas cannot issue twice. Require fresh hosted
+authentication for renewal; never renew merely because a device has an old leaf.
+Retain the existing origin restrictions and shared admission limits.
+
+Identity, organisation, permitted SAN, lifetime and role come from verified
+server policy. A CSR cannot choose its own identity or extensions. Set
+`use_csr_common_name=false` and `use_csr_sans=false`; request the approved identity
+separately. Inspect the issued certificate before returning it, checking SPKI,
+SAN, issuer, constraints, policy and lifetime against the request. On an unknown
+provider, malformed response or provider outage, fail issuance without a local
+signing fallback. Return leaf-first intermediate chains; keep root anchors in
+the client's separately managed trust configuration.
+
+If PKI cannot produce the required certificate profile, a separate design can
+retain local DER assembly and use a Transit external signer. For a managed P-256
+key, `POST /v1/<transit>/sign/<key>/sha2-256` receives the base64 binary SHA-256
+of the exact TBSCertificate, `prehashed=true`, an explicit `key_version`, and
+`marshaling_algorithm=asn1`. Validate the `vault:v<version>:` envelope and DER
+ECDSA signature, verify it against the pinned intermediate SPKI, then encode
+the X.509 BIT STRING with zero unused bits. Never hash the digest again or treat
+JWS `r||s` as DER. [Transit signing](https://developer.hashicorp.com/vault/api-docs/secret/transit)
+provides these parameters, but a general digest-signing permission leaves
+certificate policy enforcement in the caller. That broader authority, CSR
+creation, revocation and DER assembly need separate review; this is not an
+automatic fallback from PKI.
+
+### Constraints and provider assurance
+
+The offline signer must issue an intermediate with critical `CA=true`,
+`pathLenConstraint=0`, certificate/CRL signing usage, approved validity and
+critical name constraints for the approved RFC822 identity domains. Do not assume
+a CSR request makes the offline signer preserve these fields. Configure the
+leaf profile for `CA=false`, P-256, digital signature and the Content Credentials
+EKU supported by the current verifier (`emailProtection`). Prohibit TLS EKUs,
+DNS/IP/URI SANs, arbitrary extensions and additional CAs. If an intermediate
+EKU constraint is used, qualify the complete chain with every supported Content
+Credentials verifier. Role restrictions supplement certificate constraints.
+
+Allocate policy OIDs under the organisation's registered arc for each supported
+assurance class. Managed organisation SSO, consumer verified email and email-link
+ownership must have distinct policy values. Select a fixed role per class with
+its `policy_identifiers`; the request cannot supply an OID. Managed deployments
+can accept only their approved SSO class. A policy OID describes the verified
+enrollment policy, not device hardware or legal identity assurance. Keep the
+issuer/provider-to-policy mapping versioned and reviewed; unregistered OIDs and
+provider classes fail closed.
+
+Client validation must build a leaf-to-pinned-root path and enforce every
+signature, validity bound, basic constraint, path length, key usage, name
+constraint, permitted policy and unsupported critical extension. Checking just
+the leaf or a claimed provider label is insufficient. The hosted response is
+not a trust anchor. Refuse chains containing another intermediate under the
+path-length-zero issuer, an out-of-domain identity, a substituted root or a leaf
+that outlives its issuer.
+
+### Workload access and operational boundaries
+
+Use short-lived workload authentication tied to the exact service deployment.
+On Kubernetes, bind a Vault auth role to the exact service account, namespace
+and token audience; renew a short-lived Vault token within a bounded maximum
+lifetime. [Vault Kubernetes auth](https://developer.hashicorp.com/vault/docs/auth/kubernetes)
+supports these bindings. For another platform, qualify an equivalent workload
+identity mechanism before rollout. Never distribute an operator or root token
+to the service, CI, a browser or a general build container.
+
+Grant the enrollment workload update access only to its approved sign roles and
+read access only to the public issuer material it needs. A deployment restricted
+to managed SSO cannot call a consumer or email-link role. A separate restricted
+revocation workload receives revoke authority. Neither can manage keys, change
+roles, select arbitrary issuers, sign intermediates, import keys or administer
+Vault. Operators control key creation, role/issuer updates, trust distribution,
+CRLs and recovery through reviewed changes. Permit network access only to the
+approved Vault endpoint and required IdP/rate-limit dependencies; bound response
+sizes, timeouts and retries, verify TLS and refuse redirects. Monitor aggregate
+failure counts, issuer expiry and revocation publication without identities or
+certificate bytes in application logs.
+
+### Lifetime, revocation and retained data
+
+Propose a 24-hour leaf default and seven-day ceiling, further capped by the
+remaining intermediate lifetime. Offline use and renewal prompts must be tested
+before adopting those limits. Renew with fresh identity verification, preferably
+a fresh device key. Configure CRL/OCSP distribution and a revocation freshness
+budget, then qualify how each Content Credentials verifier handles unavailable
+or stale status and timestamped historical signatures. Expiry, IdP logout and
+Work offboarding are different events; no automatic revocation is implemented
+today.
+
+Keep any application issuance records minimal: a keyed HMAC of issuer plus serial,
+issuer identifier, expiry, policy class and status. Exclude email, IdP subject,
+IP, tokens, CSR and certificate bytes. Restrict the records' HMAC key and access,
+set expiry-based retention, and avoid exposing it as a public lookup API. Such a
+record set cannot find every certificate for a departing person. Automatic
+offboarding needs a separately approved identity-to-serial mapping or a managed
+certificate inventory with an explicit retention policy.
+
+Propose PKI `no_store=true` and `generate_lease=false` for issuance. This removes
+ordinary issuance storage and serial-only revocation. An authorised revocation
+service must accept the issued certificate plus authenticated authority or a
+device-signed revocation challenge, then call Vault's certificate-based revoke
+API. Keep device private keys on the device; do not use an API that asks the
+client to upload one. Vault BYOC revocation can still retain the certificate DER,
+including its identity SAN, as shown by the
+[vendor revocation implementation](https://github.com/hashicorp/vault/blob/main/builtin/logical/pki/path_revoke.go).
+Therefore this design cannot promise that Vault stores no personal data. Review
+revoked-certificate storage, backups, tidy safety windows and deletion behavior
+for the exact qualified Vault version before enabling revocation.
+
+Keep Vault private. Publish only approved issuer certificates and CRL/OCSP
+surfaces through a restricted gateway; block individual-certificate retrieval
+and enumeration routes. Treat revocation serials as potentially linkable.
+[Vault audit devices](https://developer.hashicorp.com/vault/docs/audit) normally
+HMAC most string fields, with exceptions. Inspect real enrollment, errors and
+revocation events and configure redaction, retention and access for all audit
+sinks, gateways and traces. HMAC defaults are not evidence that every field is
+private. Require approval of the resulting data inventory and retention policy
+before rollout.
+
+### Rollover, acceptance and implementation work
+
+Use a new managed key and offline-signed intermediate for each rollover. Pin an
+explicit issuer per role and switch only after clients accept the new public
+chain. Retain the old intermediate and its revocation publication through the
+last issued leaf's validity and the approved historical-validation window.
+During overlap, issue from only the selected new issuer while validating both
+approved chains. Root replacement needs a separate trust-anchor distribution
+plan. A provider failure pauses enrollment; rollback must retain external
+custody and cannot restore a root private key to the service.
+
+Implementation work must cover the versioned client CSR/proof protocol, shared
+single-use admission, a bounded PKI adapter, chain/policy validation in every
+shell, trust-bundle distribution, renewal UX, revocation authorization and
+privacy retention. Add protocol and adapter tests before operator configuration.
+Actual Vault edition/version, HSM/KMS model, endpoint, key references, root,
+identity domains, OIDs, roles, revocation availability and retention remain
+deployment inputs requiring a reviewed configuration change.
+
+Acceptance requires the following evidence from disposable test authorities,
+then the candidate provider and every supported shell:
+
+1. Correct authentication and CSR proof issue a conforming leaf; replay,
+   cross-key proof, identity substitution, wrong origin, unknown assurance,
+   excessive lifetime and forbidden extensions are refused. Parallel enrollment
+   and retry tests produce at most one issued result per token.
+2. Verify constraints and policies along the complete path. Reject another CA,
+   an out-of-domain SAN, a different root, an expired issuer and a missing policy.
+   Exercise both normal validation and independently changed certificate bytes.
+3. Check that no issuer key enters service configuration, memory exports, build
+   artifacts or logs. Confirm provider-side signing evidence and denied key
+   export/admin operations. Test revoked workload credentials, outages, audit
+   sink failure and bounded retries without local signing.
+4. Exercise issuance, authorized/unauthorized revocation, CRL/OCSP refresh,
+   expiry, retention cleanup and restored backups. Inspect persistent provider
+   records and audit output for identity data, and verify private lookup routes
+   stay unreachable through the public gateway.
+5. Rehearse intermediate overlap, trust update, issuer switch and rollback.
+   Demonstrate old Content Credentials remain verifiable according to the
+   approved timestamp/revocation policy, while new enrollments use the selected
+   issuer. Security and service owners approve the evidence before a small
+   enrollment cohort is enabled; expand only after renewal and monitoring pass.
