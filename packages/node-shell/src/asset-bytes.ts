@@ -11,6 +11,7 @@ import { fileURLToPath } from 'node:url';
 export interface AssetBytesOpts {
   /** The tool's allowlisted fetch, for http(s) urls. Absent ⇒ http(s) is refused. */
   netFetch?: (url: string) => Promise<Response>;
+  allowFiles?: boolean;
 }
 
 export function decodeDataUrl(url: string): Uint8Array {
@@ -26,7 +27,10 @@ export async function assetBytes(target: { url: string; original?: { url: string
   const url = typeof target === 'string' ? target : target.original?.url ?? target.url;
   if (!url) throw new Error('asset has no url');
   if (url.startsWith('data:')) return decodeDataUrl(url);
-  if (url.startsWith('file:')) return new Uint8Array(await readFile(fileURLToPath(url)));
+  if (url.startsWith('file:')) {
+    if (opts.allowFiles === false) throw new Error('File assets are not available in this host.');
+    return new Uint8Array(await readFile(fileURLToPath(url)));
+  }
   if (/^https?:/i.test(url)) {
     if (!opts.netFetch) throw new Error(`host.assets.bytes: ${url} is a network url and this tool declares no network allowlist`);
     const res = await opts.netFetch(url);

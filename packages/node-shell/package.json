@@ -77,6 +77,7 @@
     "./render-integrity": "./src/render-integrity.ts",
     "./url-capture": "./src/url-capture.ts",
     "./net": "./src/net.ts",
+    "./public-http": "./src/public-http.ts",
     "./pptx": "./src/pptx.ts",
     "./rebrand": "./src/rebrand/index.ts",
     "./rebrand/source-pptx": "./src/rebrand/source-pptx.ts",

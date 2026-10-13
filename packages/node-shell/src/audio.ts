@@ -71,6 +71,7 @@ export interface NodeAudioOptions {
   budget?: RondoBudget;
   /** The original file name, for raw bytes that carry none (`AudioCleanOpts.sourceName`). */
   sourceName?: string;
+  readSource?: (url: string) => Promise<Uint8Array>;
 }
 
 /** The content roots for a root, or undefined when none resolve there - a caller with
@@ -88,10 +89,11 @@ function isRef(src: AudioSource): src is AssetRef {
 }
 
 /** A url/path/data-url/bytes source → raw encoded bytes. */
-async function bytesOf(src: AudioSource, repoRoot: string): Promise<Uint8Array> {
+async function bytesOf(src: AudioSource, repoRoot: string, readSource?: NodeAudioOptions['readSource']): Promise<Uint8Array> {
   if (src instanceof Uint8Array) return src;
   if (src instanceof ArrayBuffer) return new Uint8Array(src);
   const url = isRef(src) ? src.url : src;
+  if (readSource) return readSource(url);
 
   if (url.startsWith('data:')) {
     const comma = url.indexOf(',');
@@ -120,8 +122,8 @@ async function bytesOf(src: AudioSource, repoRoot: string): Promise<Uint8Array> 
   return new Uint8Array(await readFile(path));
 }
 
-async function songOf(src: AudioSource, repoRoot: string): Promise<ZzfxSong> {
-  const bytes = await bytesOf(src, repoRoot);
+async function songOf(src: AudioSource, repoRoot: string, readSource?: NodeAudioOptions['readSource']): Promise<ZzfxSong> {
+  const bytes = await bytesOf(src, repoRoot, readSource);
   return JSON.parse(Buffer.from(bytes).toString('utf8')) as ZzfxSong;
 }
 
@@ -216,7 +218,7 @@ export async function decodeAudioSource(
   if (isRondoShareLink(url)) return renderSong(readSong(() => rondoFromShareLink(url)), opts, decodeOpts.seconds);
   const fileName = fileNameOf(url) || fileNameOf(opts.sourceName ?? '');
   if (ref?.format === RONDO_ASSET_FORMAT || isRondoFileName(fileName)) {
-    const bytes = await bytesOf(src, repoRoot);
+    const bytes = await bytesOf(src, repoRoot, opts.readSource);
     // The name decides the reading: `.rondo` is rondo-language text, anything
     // else is a JSON record. A `rondo` asset with no telling name is read as
     // JSON when its bytes are an object, and as rondo text otherwise.
@@ -226,7 +228,7 @@ export async function decodeAudioSource(
   }
 
   if ((ref && ref.format === 'zzfxm') || /\.zzfxm\.json$/i.test(url)) {
-    const { left, right, sampleRate } = renderZzfxm(await songOf(src, repoRoot));
+    const { left, right, sampleRate } = renderZzfxm(await songOf(src, repoRoot, opts.readSource));
     if (!left.length) throw new Error('audio: zzfxm song rendered empty');
     return recorded([left, right], sampleRate);
   }
@@ -238,7 +240,7 @@ export async function decodeAudioSource(
     );
   }
 
-  const bytes = await bytesOf(src, repoRoot);
+  const bytes = await bytesOf(src, repoRoot, opts.readSource);
   // A song's canonical record arriving as bare bytes or a data: URL (a design
   // timeline inlines an audio box that way) is known by its own content.
   if (looksLikeRondoRecord(bytes)) return renderSong(readSong(() => rondoFromBytes(bytes)), opts, decodeOpts.seconds);

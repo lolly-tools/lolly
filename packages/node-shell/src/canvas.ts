@@ -189,9 +189,14 @@ export async function decodeToCanvas(bytes: Uint8Array, mime?: string): Promise<
 
 // ─── host.raster (the v1.105 contract) ────────────────────────────────────────
 
-async function sourceBytes(src: RasterSource): Promise<Uint8Array> {
+export interface NodeRasterOptions {
+  readUrl?: (url: string) => Promise<Uint8Array>;
+}
+
+async function sourceBytes(src: RasterSource, opts: NodeRasterOptions = {}): Promise<Uint8Array> {
   if (src instanceof Uint8Array) return src;
   if (typeof src === 'string') {
+    if (opts.readUrl) return opts.readUrl(src);
     if (src.startsWith('data:')) {
       const comma = src.indexOf(',');
       if (comma < 0) throw new Error('host.raster: malformed data: URL.');
@@ -205,7 +210,7 @@ async function sourceBytes(src: RasterSource): Promise<Uint8Array> {
   }
   if (typeof (src as Blob).arrayBuffer === 'function') return new Uint8Array(await (src as Blob).arrayBuffer());
   const ref = src as { url?: string };
-  if (ref && typeof ref.url === 'string') return sourceBytes(ref.url);
+  if (ref && typeof ref.url === 'string') return sourceBytes(ref.url, opts);
   throw new Error('host.raster: unreadable source.');
 }
 
@@ -233,14 +238,14 @@ async function encodeCanvas(canvas: NodeCanvas, format: string, quality?: number
  * satisfies both here. The declared type stays `ImageBitmap` so a tool written
  * against the contract compiles unchanged.
  */
-export function createNodeRasterAPI(): RasterAPI | null {
+export function createNodeRasterAPI(opts: NodeRasterOptions = {}): RasterAPI | null {
   if (!isCanvasAvailable()) return null;
   return {
     canRaster(): boolean {
       return isCanvasAvailable();
     },
     async measure(src: RasterSource): Promise<ImageInfo> {
-      const bytes = await sourceBytes(src);
+      const bytes = await sourceBytes(src, opts);
       const mime = sniffImageMime(bytes);
       const sharp = mime === 'image/svg+xml' ? null : await loadSharp();
       if (sharp) {
@@ -257,7 +262,7 @@ export function createNodeRasterAPI(): RasterAPI | null {
       return { width: canvas.width, height: canvas.height, mime };
     },
     async decode(src: RasterSource): Promise<ImageBitmap> {
-      const bytes = await sourceBytes(src);
+      const bytes = await sourceBytes(src, opts);
       const canvas = await decodeToCanvas(bytes);
       if (!canvas) throw new Error('host.raster: these bytes are not a decodable image here.');
       return canvas as unknown as ImageBitmap;

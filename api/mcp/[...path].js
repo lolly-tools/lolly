@@ -9341,12 +9341,12 @@ function resolveTokenSelection(doc, opts = {}) {
   let legacyFound = false;
   for (const [group, options2] of groups) {
     const wanted = requested && Object.hasOwn(requested, group) ? requested[group] : void 0;
-    const matches4 = wanted !== void 0 ? options2.filter((o) => o.id === wanted) : opts.theme ? options2.filter((o) => o.id === opts.theme || o.name === opts.theme || `${group}/${o.id}` === opts.theme || `${group}/${o.name}` === opts.theme) : options2.filter((o) => active.includes(o.id) || active.includes(o.name) || active.includes(`${group}/${o.id}`) || active.includes(`${group}/${o.name}`));
-    if (matches4.length > 1) issue2(`Competing choices in ${group || "Themes"}; the first is effective.`);
-    if (wanted !== void 0 && !matches4.length) issue2(`Unknown choice ${String(wanted)} in ${group || "Themes"}.`);
-    if (opts.theme && matches4.length) legacyFound = true;
-    const choice3 = matches4[0] ?? options2[0];
-    if (!matches4.length) defaults2.push(group);
+    const matches3 = wanted !== void 0 ? options2.filter((o) => o.id === wanted) : opts.theme ? options2.filter((o) => o.id === opts.theme || o.name === opts.theme || `${group}/${o.id}` === opts.theme || `${group}/${o.name}` === opts.theme) : options2.filter((o) => active.includes(o.id) || active.includes(o.name) || active.includes(`${group}/${o.id}`) || active.includes(`${group}/${o.name}`));
+    if (matches3.length > 1) issue2(`Competing choices in ${group || "Themes"}; the first is effective.`);
+    if (wanted !== void 0 && !matches3.length) issue2(`Unknown choice ${String(wanted)} in ${group || "Themes"}.`);
+    if (opts.theme && matches3.length) legacyFound = true;
+    const choice3 = matches3[0] ?? options2[0];
+    if (!matches3.length) defaults2.push(group);
     choices2.set(group, choice3.id);
     if (record(choice3.raw.selectedTokenSets)) for (const [set, status] of Object.entries(choice3.raw.selectedTokenSets)) {
       if (status && status !== "disabled") enabled4.add(set);
@@ -56411,8 +56411,8 @@ function validateInputValue(input, value, path, errors) {
   if (value === "" && input.default === "" && (input.type === "number" || input.type === "boolean")) return;
   const object4 = Boolean(value && typeof value === "object" && !Array.isArray(value));
   const expected = input.type === "number" ? "number" : input.type === "boolean" ? "boolean" : input.type === "blocks" ? "array" : input.type === "table" || input.type === "vector" ? "object" : input.type === "asset" ? "asset" : input.type === "file" ? "file" : input.type === "color" ? "color" : "string";
-  const matches4 = expected === "array" ? Array.isArray(value) : expected === "object" ? object4 : expected === "asset" ? value === null || typeof value === "string" || object4 : expected === "file" ? value === null || object4 || input.multiple === true && Array.isArray(value) : expected === "color" ? typeof value === "string" || object4 : typeof value === expected;
-  if (!matches4) {
+  const matches3 = expected === "array" ? Array.isArray(value) : expected === "object" ? object4 : expected === "asset" ? value === null || typeof value === "string" || object4 : expected === "file" ? value === null || object4 || input.multiple === true && Array.isArray(value) : expected === "color" ? typeof value === "string" || object4 : typeof value === expected;
+  if (!matches3) {
     errors.push({ path, message: `must be ${expected}` });
     return;
   }
@@ -77826,10 +77826,10 @@ function copyRows(rows2) {
 }
 function rowAt(rows2, id3, path) {
   if (typeof id3 !== "string" || !id3.trim()) throw new Error(`${path}: a stable layer id is required.`);
-  const matches4 = rows2.map((row, index2) => ({ row, index: index2 })).filter(({ row }) => Boolean(row && typeof row === "object" && !Array.isArray(row) && row.id === id3));
-  if (matches4.length !== 1)
-    throw new Error(`${path}: layer "${id3}" ${matches4.length ? "is duplicated" : "does not exist"}.`);
-  return matches4[0];
+  const matches3 = rows2.map((row, index2) => ({ row, index: index2 })).filter(({ row }) => Boolean(row && typeof row === "object" && !Array.isArray(row) && row.id === id3));
+  if (matches3.length !== 1)
+    throw new Error(`${path}: layer "${id3}" ${matches3.length ? "is duplicated" : "does not exist"}.`);
+  return matches3[0];
 }
 function anchorOf(record41, path) {
   const before = record41.beforeId;
@@ -79075,8 +79075,8 @@ function applyAuthoredLayerPatches(rows2, patches, opts = {}) {
   patches.forEach((patch, index2) => {
     const at = `${base}/${index2}`;
     let next2 = patch;
-    const matches4 = record10(patch) ? current.filter((row) => record10(row) && row.id === patch.id) : [];
-    const target2 = matches4.length === 1 ? matches4[0] : void 0;
+    const matches3 = record10(patch) ? current.filter((row) => record10(row) && row.id === patch.id) : [];
+    const target2 = matches3.length === 1 ? matches3[0] : void 0;
     if (record10(patch) && (hasDollar(patch.set) || colourRefsFor(opts, patch.set)) && target2) {
       if (ctx) ctx.frames = collectFrames(current, opts.existing);
       else ctx = makeCtx(current, opts, "/$theme");
@@ -118590,10 +118590,10 @@ function escapeCode(value) {
 function callout(raw, opts) {
   if (!opts.calloutMode || opts.calloutMode === "off") return null;
   const text9 = raw.replace(/^(?:\/\/|#)\s*/, "");
-  const matches4 = opts.calloutMode === "all" || opts.calloutMode === "tags" && /^(TODO|FIXME|FIX|NOTE|HACK|XXX|BUG|WIP|WARNING|WARN|OPTIMIZE|REVIEW|DEPRECATED)\b/i.test(
+  const matches3 = opts.calloutMode === "all" || opts.calloutMode === "tags" && /^(TODO|FIXME|FIX|NOTE|HACK|XXX|BUG|WIP|WARNING|WARN|OPTIMIZE|REVIEW|DEPRECATED)\b/i.test(
     text9
   ) || opts.calloutMode === "custom" && opts.calloutPrefixes?.some((p) => text9.toLowerCase().startsWith(p.toLowerCase()));
-  if (!matches4) return null;
+  if (!matches3) return null;
   const html = escapeCode(text9).replace(/\*\*([^*]+?)\*\*/g, "<strong>$1</strong>").replace(/(^|[^\w*])__([^_]+?)__(?![\w])/g, "$1<strong>$2</strong>").replace(/\*([^*]+?)\*/g, "<em>$1</em>").replace(/(^|[^\w*])_([^_]+?)_(?![\w])/g, "$1<em>$2</em>");
   return `<span class="cc-callout"><span class="cc-callout-arrow">\u2190</span><span class="cc-callout-text">${html}</span></span>`;
 }
@@ -119481,17 +119481,17 @@ ${signals.findings.map((f) => f.label).join("\n")}`;
       if (!s("pattern")) throw new Error("Enter a regular expression.");
       const flags = s("flags", "gu");
       const re = new RegExp(s("pattern"), flags.includes("g") ? flags : flags + "g");
-      const matches4 = [];
+      const matches3 = [];
       for (const m2 of text9.matchAll(re)) {
-        matches4.push({ at: m2.index, text: m2[0], groups: m2.groups ?? m2.slice(1) });
-        if (matches4.length >= 1e4) {
+        matches3.push({ at: m2.index, text: m2[0], groups: m2.groups ?? m2.slice(1) });
+        if (matches3.length >= 1e4) {
           notes.push("Showing the first 10,000 matches.");
           break;
         }
       }
       const replacing = s("mode") === "replace" || !s("mode") && !!s("replacement");
-      details = { matches: matches4, source: text9, replacing };
-      out = replacing ? text9.replace(re, s("replacement")) : JSON.stringify(matches4, null, 2);
+      details = { matches: matches3, source: text9, replacing };
+      out = replacing ? text9.replace(re, s("replacement")) : JSON.stringify(matches3, null, 2);
       format = replacing ? "txt" : "json";
       break;
     }
@@ -119539,9 +119539,9 @@ ${signals.findings.map((f) => f.label).join("\n")}`;
     case "hash":
       out = [...await env.digest(s("algorithm", "SHA-256"), new TextEncoder().encode(text9))].map((b) => b.toString(16).padStart(2, "0")).join("");
       if (s("expected")) {
-        const matches4 = out.toLowerCase() === s("expected").trim().toLowerCase();
-        notes.push(matches4 ? "Checksum matches." : "Checksum does not match.");
-        details = { matches: matches4 };
+        const matches3 = out.toLowerCase() === s("expected").trim().toLowerCase();
+        notes.push(matches3 ? "Checksum matches." : "Checksum does not match.");
+        details = { matches: matches3 };
       }
       break;
     case "json":
@@ -122215,9 +122215,9 @@ function checkBrandDesign(boxes, doc, opts = {}) {
 }
 function applyBrandFix(boxes, fix) {
   if (!Array.isArray(boxes) || !["bg", "fg", "stroke", "font"].includes(fix.field)) return null;
-  const matches4 = boxes.filter((row) => record22(row) && row.id === fix.layerId);
-  if (matches4.length !== 1) return null;
-  const target2 = matches4[0];
+  const matches3 = boxes.filter((row) => record22(row) && row.id === fix.layerId);
+  if (matches3.length !== 1) return null;
+  const target2 = matches3[0];
   if (target2.locked === true || target2.locked === "true" || JSON.stringify(target2[fix.field]) !== JSON.stringify(fix.before)) return null;
   return boxes.map((row) => row === target2 ? { ...row, [fix.field]: fix.after } : row);
 }
@@ -135228,8 +135228,8 @@ async function productionProblems(report4, bytes2, input) {
       }
       if (row.state === "pass") {
         const actual = row.actual;
-        const matches4 = typeof expectedValue === "number" ? typeof actual === "number" && Number.isFinite(actual) && (comparison === "max" ? actual <= expectedValue : comparison === "min" ? actual >= expectedValue : Math.abs(actual - expectedValue) <= (check.tolerance ?? Number.EPSILON * 8 * Math.max(1, Math.abs(expectedValue)))) : actual === expectedValue;
-        if (row.expected !== expectedValue || !matches4) problems.push(`${check.id}:measurement-mismatch`);
+        const matches3 = typeof expectedValue === "number" ? typeof actual === "number" && Number.isFinite(actual) && (comparison === "max" ? actual <= expectedValue : comparison === "min" ? actual >= expectedValue : Math.abs(actual - expectedValue) <= (check.tolerance ?? Number.EPSILON * 8 * Math.max(1, Math.abs(expectedValue)))) : actual === expectedValue;
+        if (row.expected !== expectedValue || !matches3) problems.push(`${check.id}:measurement-mismatch`);
       } else problems.push(`${check.id}:${row.state}`);
     }
   }
@@ -135402,10 +135402,10 @@ async function productionInputFacts(model2, contract2) {
   const snapshots = [];
   let size = 0;
   for (const id3 of new Set(contract2.requirements.filter((r5) => r5.kind === "input").map((r5) => r5.location))) {
-    const matches4 = model2.filter((input) => input.id === id3);
-    if (matches4.length !== 1 || matches4[0].value === void 0) continue;
+    const matches3 = model2.filter((input) => input.id === id3);
+    if (matches3.length !== 1 || matches3[0].value === void 0) continue;
     try {
-      const bytes2 = new TextEncoder().encode(productionJson(matches4[0].value));
+      const bytes2 = new TextEncoder().encode(productionJson(matches3[0].value));
       size += bytes2.length;
       if (size <= 1024 * 1024) snapshots.push([id3, bytes2]);
     } catch {
@@ -150722,9 +150722,9 @@ async function observeProductionInputs(page3, toolId, ids2) {
   return (bytes2) => {
     if (overflow) return void 0;
     const digest2 = createHash4("sha256").update(bytes2).digest("hex");
-    const matches4 = observations.filter((value) => value.artifactSha256 === digest2);
-    if (!matches4.length || matches4.some((value) => JSON.stringify(value.inputs) !== JSON.stringify(matches4[0].inputs))) return void 0;
-    return matches4[0].inputs;
+    const matches3 = observations.filter((value) => value.artifactSha256 === digest2);
+    if (!matches3.length || matches3.some((value) => JSON.stringify(value.inputs) !== JSON.stringify(matches3[0].inputs))) return void 0;
+    return matches3[0].inputs;
   };
 }
 var init_production_browser = __esm({
@@ -150842,7 +150842,10 @@ async function assetBytes(target2, opts = {}) {
   const url = typeof target2 === "string" ? target2 : target2.original?.url ?? target2.url;
   if (!url) throw new Error("asset has no url");
   if (url.startsWith("data:")) return decodeDataUrl2(url);
-  if (url.startsWith("file:")) return new Uint8Array(await readFile4(fileURLToPath3(url)));
+  if (url.startsWith("file:")) {
+    if (opts.allowFiles === false) throw new Error("File assets are not available in this host.");
+    return new Uint8Array(await readFile4(fileURLToPath3(url)));
+  }
   if (/^https?:/i.test(url)) {
     if (!opts.netFetch) throw new Error(`host.assets.bytes: ${url} is a network url and this tool declares no network allowlist`);
     const res = await opts.netFetch(url);
@@ -151955,7 +151958,7 @@ async function serveSessionOnce(page3, origin, path, bytes2) {
     throw new OpenSessionError(`The file is ${Math.round(bytes2.length / 1e6)} MB, over the ${OPEN_ROUTE_MAX_BYTES / 1e6} MB a page is handed. Make it smaller (fewer or smaller pictures) and try again.`);
   }
   const body = Buffer.from(bytes2);
-  const matches4 = (url) => url.origin === origin && url.pathname === path;
+  const matches3 = (url) => url.origin === origin && url.pathname === path;
   let removed = false;
   let consumed = false;
   let asked = () => {
@@ -151966,7 +151969,7 @@ async function serveSessionOnce(page3, origin, path, bytes2) {
   const remove = async () => {
     if (removed) return;
     removed = true;
-    await page3.unroute(matches4, handler).catch(() => {
+    await page3.unroute(matches3, handler).catch(() => {
     });
   };
   const handler = async (route, request2) => {
@@ -151982,7 +151985,7 @@ async function serveSessionOnce(page3, origin, path, bytes2) {
     await route.fulfill({ status: 200, body, contentType: "application/vnd.lolly+zip", headers: { "Cache-Control": "no-store" } });
     asked();
   };
-  await page3.route(matches4, handler);
+  await page3.route(matches3, handler);
   return { remove, requested };
 }
 async function settleEditor(page3, timeoutMs, opts = {}) {
@@ -154023,10 +154026,10 @@ function createNodeTextAPI({ repoRoot: repoRoot2, assets, parseXml }) {
       const want = normFamily(family2);
       const weight = Math.min(900, Math.max(100, Number(opts?.weight) || 400));
       const italic = Boolean(opts?.italic);
-      const matches4 = (await scanDiskFaces(repoRoot2)).filter((f) => f.family === want && f.italic === italic);
-      if (!matches4.length) return null;
-      const dir = fontDirs2(repoRoot2).find((d) => matches4[0].url.startsWith(d.url));
-      const pool = matches4.filter((f) => f.url.startsWith(dir.url));
+      const matches3 = (await scanDiskFaces(repoRoot2)).filter((f) => f.family === want && f.italic === italic);
+      if (!matches3.length) return null;
+      const dir = fontDirs2(repoRoot2).find((d) => matches3[0].url.startsWith(d.url));
+      const pool = matches3.filter((f) => f.url.startsWith(dir.url));
       const variable = pool.find((f) => f.variable);
       if (variable) return { url: variable.url, variations: [`wght=${weight}`] };
       const nearest3 = pool.reduce((a, b) => Math.abs(b.weight - weight) < Math.abs(a.weight - weight) ? b : a);
@@ -154739,9 +154742,10 @@ async function decodeToCanvas(bytes2, mime2) {
     return null;
   }
 }
-async function sourceBytes(src) {
+async function sourceBytes(src, opts = {}) {
   if (src instanceof Uint8Array) return src;
   if (typeof src === "string") {
+    if (opts.readUrl) return opts.readUrl(src);
     if (src.startsWith("data:")) {
       const comma = src.indexOf(",");
       if (comma < 0) throw new Error("host.raster: malformed data: URL.");
@@ -154755,7 +154759,7 @@ async function sourceBytes(src) {
   }
   if (typeof src.arrayBuffer === "function") return new Uint8Array(await src.arrayBuffer());
   const ref = src;
-  if (ref && typeof ref.url === "string") return sourceBytes(ref.url);
+  if (ref && typeof ref.url === "string") return sourceBytes(ref.url, opts);
   throw new Error("host.raster: unreadable source.");
 }
 async function encodeCanvas(canvas, format, quality) {
@@ -154765,14 +154769,14 @@ async function encodeCanvas(canvas, format, quality) {
   const buf = q === void 0 ? canvas.toBuffer(mime2) : canvas.toBuffer(mime2, q);
   return { bytes: new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength), mime: mime2 };
 }
-function createNodeRasterAPI() {
+function createNodeRasterAPI(opts = {}) {
   if (!isCanvasAvailable()) return null;
   return {
     canRaster() {
       return isCanvasAvailable();
     },
     async measure(src) {
-      const bytes2 = await sourceBytes(src);
+      const bytes2 = await sourceBytes(src, opts);
       const mime2 = sniffImageMime(bytes2);
       const sharp = mime2 === "image/svg+xml" ? null : await loadSharp3();
       if (sharp) {
@@ -154791,13 +154795,13 @@ function createNodeRasterAPI() {
       return { width: canvas.width, height: canvas.height, mime: mime2 };
     },
     async decode(src) {
-      const bytes2 = await sourceBytes(src);
+      const bytes2 = await sourceBytes(src, opts);
       const canvas = await decodeToCanvas(bytes2);
       if (!canvas) throw new Error("host.raster: these bytes are not a decodable image here.");
       return canvas;
     },
-    async encode(source, opts) {
-      if (!opts?.format) throw new Error("host.raster.encode: `format` is required (webp | jpeg | png).");
+    async encode(source, opts2) {
+      if (!opts2?.format) throw new Error("host.raster.encode: `format` is required (webp | jpeg | png).");
       const mod = await nodeCanvas();
       if (!mod) throw new Error("host.raster: no canvas in this install.");
       let canvas;
@@ -154812,7 +154816,7 @@ function createNodeRasterAPI() {
         canvas = mod.createCanvas(Math.max(1, bmp.width), Math.max(1, bmp.height));
         canvas.getContext("2d").drawImage(bmp, 0, 0);
       }
-      const { bytes: bytes2, mime: mime2 } = await encodeCanvas(canvas, opts.format, opts.quality);
+      const { bytes: bytes2, mime: mime2 } = await encodeCanvas(canvas, opts2.format, opts2.quality);
       return { bytes: bytes2, mime: mime2, width: canvas.width, height: canvas.height };
     }
   };
@@ -156851,9 +156855,9 @@ function inlineImages(animation, members, directory, remaining = LOTTIE_LIMITS.i
     const resource = `${String(asset2.u ?? "")}${asset2.p}`;
     const name = resource.startsWith("../") ? safePath2(resource.slice(3)) : safePath2(resource);
     const candidates2 = resource.startsWith("../") ? [name] : [name, `${directory}/${name}`];
-    const matches4 = candidates2.filter((candidate) => members.has(candidate));
-    if (matches4.length !== 1) throw new Error(`Lottie image ${resource}: ${matches4.length ? "ambiguous" : "missing"} packaged resource.`);
-    const bytes2 = members.get(matches4[0]);
+    const matches3 = candidates2.filter((candidate) => members.has(candidate));
+    if (matches3.length !== 1) throw new Error(`Lottie image ${resource}: ${matches3.length ? "ambiguous" : "missing"} packaged resource.`);
+    const bytes2 = members.get(matches3[0]);
     expanded += Math.ceil(bytes2.length / 3) * 4;
     if (expanded > limit2) throw new Error("Lottie: combined animation resources exceed the expansion budget.");
     asset2.p = `data:${lottieImageMime(bytes2)};base64,${btoa(bytesToBin(bytes2))}`;
@@ -163354,7 +163358,7 @@ function loadToolCached(id3) {
 async function listTools(filter = {}) {
   const { tools } = await loadIndex();
   const q = filter.q?.trim().toLowerCase();
-  const matches4 = tools.filter((t) => {
+  const matches3 = tools.filter((t) => {
     if (filter.status && t.status !== filter.status) return false;
     if (filter.category && t.category !== filter.category) return false;
     if (filter.format && !(t.formats ?? []).map((f) => f.toLowerCase()).includes(filter.format.toLowerCase())) return false;
@@ -163365,9 +163369,9 @@ async function listTools(filter = {}) {
     }
     return true;
   });
-  if (filter.limit === void 0) return matches4;
+  if (filter.limit === void 0) return matches3;
   const limit2 = Math.min(100, Math.max(1, Math.floor(filter.limit)));
-  return matches4.slice(0, limit2);
+  return matches3.slice(0, limit2);
 }
 var TEMPLATE_ID_RE = /^[a-z0-9-]+$/;
 async function listToolTemplates(toolId) {
@@ -163544,23 +163548,256 @@ async function prepareJxlAsset(ref, bytes2) {
 
 // shells/cli/src/bridge.ts
 init_asset_bytes();
+import { readFile as readFile19 } from "node:fs/promises";
+
+// packages/node-shell/src/public-http.ts
+import { lookup } from "node:dns/promises";
+import { request as httpRequest } from "node:http";
+import { request as httpsRequest } from "node:https";
+import { BlockList, isIP } from "node:net";
+import { Readable } from "node:stream";
+var blocked = new BlockList();
+for (const [network, prefix] of [
+  ["0.0.0.0", 8],
+  ["10.0.0.0", 8],
+  ["100.64.0.0", 10],
+  ["127.0.0.0", 8],
+  ["169.254.0.0", 16],
+  ["172.16.0.0", 12],
+  ["192.0.0.0", 24],
+  ["192.0.2.0", 24],
+  ["192.88.99.0", 24],
+  ["192.168.0.0", 16],
+  ["198.18.0.0", 15],
+  ["198.51.100.0", 24],
+  ["203.0.113.0", 24],
+  ["224.0.0.0", 4],
+  ["240.0.0.0", 4]
+]) blocked.addSubnet(network, prefix, "ipv4");
+for (const [network, prefix] of [
+  ["2001::", 23],
+  ["2001:db8::", 32],
+  ["2002::", 16],
+  ["3fff::", 20]
+]) blocked.addSubnet(network, prefix, "ipv6");
+var globalV6 = new BlockList();
+globalV6.addSubnet("2000::", 3, "ipv6");
+function isPublicAddress(address) {
+  const family2 = isIP(address);
+  if (family2 === 4) return !blocked.check(address, "ipv4");
+  return family2 === 6 && !address.includes("%") && globalV6.check(address, "ipv6") && !blocked.check(address, "ipv6");
+}
+var PUBLIC_IMAGE_TYPES = /* @__PURE__ */ new Set([
+  "image/png",
+  "image/jpeg",
+  "image/gif",
+  "image/webp",
+  "image/svg+xml",
+  "image/avif",
+  "image/bmp",
+  "image/x-icon",
+  "image/vnd.microsoft.icon",
+  "image/tiff",
+  "image/apng",
+  "image/jxl",
+  "image/heic",
+  "image/heif",
+  "image/x-exr",
+  "image/vnd.radiance"
+]);
+var MAX_PUBLIC_ASSET_BYTES = 25 * 1024 * 1024;
+var PublicHttpError = class extends Error {
+  code;
+  constructor(code, message) {
+    super(message);
+    this.code = code;
+  }
+};
+function assertPublicHttpShape(url) {
+  if (url.protocol !== "http:" && url.protocol !== "https:") throw new PublicHttpError("refused", "Only http(s) URLs are supported.");
+  if (url.username || url.password) throw new PublicHttpError("refused", "The URL must not carry a username or password.");
+  if (url.toString().length > 8192) throw new PublicHttpError("refused", "The URL is too long.");
+}
+var requestPinned = (url, { address, signal, headers }) => new Promise((resolve8, reject) => {
+  const hostname = url.hostname.replace(/^\[|\]$/g, "");
+  const send2 = url.protocol === "https:" ? httpsRequest : httpRequest;
+  const req = send2({
+    protocol: url.protocol,
+    hostname: address,
+    family: isIP(address),
+    port: url.port || void 0,
+    path: `${url.pathname}${url.search}`,
+    method: "GET",
+    agent: false,
+    signal,
+    ...url.protocol === "https:" && !isIP(hostname) ? { servername: hostname } : {},
+    headers: { ...Object.fromEntries(headers), host: url.host, "accept-encoding": "identity" },
+    maxHeaderSize: 16 * 1024
+  }, (res) => {
+    const responseHeaders = new Headers();
+    for (const [name, value] of Object.entries(res.headers)) {
+      if (Array.isArray(value)) for (const item2 of value) responseHeaders.append(name, item2);
+      else if (value !== void 0) responseHeaders.set(name, value);
+    }
+    const status = res.statusCode ?? 502;
+    if ([204, 205, 304].includes(status)) {
+      res.destroy();
+      resolve8(new Response(null, { status, headers: responseHeaders }));
+    } else {
+      resolve8(new Response(Readable.toWeb(res), { status, headers: responseHeaders }));
+    }
+  });
+  req.once("error", reject);
+  req.once("upgrade", (_res, socket) => {
+    socket.destroy();
+    reject(new PublicHttpError("status", "Protocol upgrades are not supported."));
+  });
+  req.end();
+});
+async function resolveHost(hostname) {
+  try {
+    return (await lookup(hostname, { all: true, verbatim: true })).map((answer) => answer.address);
+  } catch {
+    return [];
+  }
+}
+function withinDeadline(operation, signal) {
+  signal.throwIfAborted();
+  return new Promise((resolve8, reject) => {
+    const abort = () => {
+      reject(signal.reason);
+    };
+    signal.addEventListener("abort", abort, { once: true });
+    operation.then(resolve8, reject).finally(() => signal.removeEventListener("abort", abort));
+  });
+}
+async function checkedAddress(url, resolver, signal) {
+  const literal = url.hostname.replace(/^\[|\]$/g, "");
+  const addresses = isIP(literal) ? [literal] : await withinDeadline(resolver(url.hostname), signal);
+  if (!addresses.length || addresses.some((address) => !isPublicAddress(address))) {
+    throw new PublicHttpError("refused", "That address is not reachable from here.");
+  }
+  return addresses.find((address) => isIP(address) === 4) ?? addresses[0];
+}
+async function cancel(response) {
+  try {
+    await response.body?.cancel();
+  } catch {
+  }
+}
+async function readCappedResponse(response, max, signal) {
+  const declared = Number(response.headers.get("content-length"));
+  if (Number.isFinite(declared) && declared > max) {
+    await cancel(response);
+    throw new PublicHttpError("size", `The response exceeds the ${max}-byte limit.`);
+  }
+  const reader = response.body?.getReader();
+  if (!reader) return new Uint8Array();
+  const chunks = [];
+  let total = 0;
+  try {
+    for (; ; ) {
+      const next2 = reader.read();
+      const { done, value } = signal ? await withinDeadline(next2, signal) : await next2;
+      if (done) break;
+      total += value.byteLength;
+      if (total > max) throw new PublicHttpError("size", `The response exceeds the ${max}-byte limit.`);
+      chunks.push(value);
+    }
+  } catch (error2) {
+    void reader.cancel().catch(() => {
+    });
+    throw error2;
+  } finally {
+    reader.releaseLock();
+  }
+  const bytes2 = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk6 of chunks) {
+    bytes2.set(chunk6, offset);
+    offset += chunk6.byteLength;
+  }
+  return bytes2;
+}
+async function fetchPublicBytes(raw, opts = {}) {
+  const controller = new AbortController();
+  const abort = () => {
+    controller.abort(opts.signal?.reason);
+  };
+  if (opts.signal?.aborted) abort();
+  else opts.signal?.addEventListener("abort", abort, { once: true });
+  const timer = setTimeout(() => controller.abort(new PublicHttpError("timeout", "That address took too long to answer.")), opts.timeoutMs ?? 2e4);
+  const signal = controller.signal;
+  try {
+    let url = new URL(raw);
+    const headers = new Headers(opts.headers);
+    for (let hop = 0; ; hop++) {
+      signal.throwIfAborted();
+      assertPublicHttpShape(url);
+      if (opts.allowUrl && !opts.allowUrl(url)) throw new PublicHttpError("refused", "That URL is not allowed here.");
+      const address = await checkedAddress(url, opts.resolver ?? resolveHost, signal);
+      const response = await withinDeadline((opts.request ?? requestPinned)(url, { address, signal, headers }), signal);
+      try {
+        opts.onResponse?.(url, response);
+      } catch (error2) {
+        await cancel(response);
+        throw error2;
+      }
+      if (response.status >= 300 && response.status < 400) {
+        const location4 = response.headers.get("location");
+        await cancel(response);
+        if (!location4) throw new PublicHttpError("redirect", "That address returned a redirect without a location.");
+        if (hop >= (opts.maxRedirects ?? 4)) throw new PublicHttpError("redirect", "That address redirected too many times.");
+        try {
+          url = new URL(location4, url);
+        } catch {
+          throw new PublicHttpError("redirect", "That address redirected to an invalid location.");
+        }
+        continue;
+      }
+      if (!response.ok) {
+        await cancel(response);
+        throw new PublicHttpError("status", `That address answered with ${response.status}.`);
+      }
+      const mime2 = (response.headers.get("content-type") ?? "").split(";")[0].trim().toLowerCase();
+      if (opts.allowedTypes && !opts.allowedTypes.has(mime2)) {
+        await cancel(response);
+        throw new PublicHttpError("type", "That URL has an unsupported content type.");
+      }
+      if ((response.headers.get("content-encoding") ?? "identity").toLowerCase() !== "identity") {
+        await cancel(response);
+        throw new PublicHttpError("encoding", "That address returned unsupported content encoding.");
+      }
+      const bytes2 = await readCappedResponse(response, opts.maxBytes ?? MAX_PUBLIC_ASSET_BYTES, signal);
+      return { bytes: bytes2, mime: mime2, response, url };
+    }
+  } catch (error2) {
+    if (signal.aborted) throw signal.reason;
+    throw error2;
+  } finally {
+    clearTimeout(timer);
+    opts.signal?.removeEventListener("abort", abort);
+    controller.abort();
+  }
+}
+
+// shells/cli/src/bridge.ts
 init_src2();
 init_src2();
 init_pdf2();
 init_pptx3();
-import { readFile as readFile19 } from "node:fs/promises";
 import { zipSync as zipSync2 } from "fflate";
 
 // packages/node-shell/src/net.ts
 var MAX_RESPONSE_BYTES = 64 * 1024 * 1024;
-function createNetAPI({ allowlist = [] }) {
+function createNetAPI({ allowlist = [], fetchImpl }) {
   return {
     async fetch(url, init) {
-      const allowed = allowlist.some((pattern) => matches3(pattern, url));
+      const allowed = allowlist.some((pattern) => matchesNetworkUrl(pattern, url));
       if (!allowed) {
         throw new Error(`Tool tried to fetch disallowed URL: ${url}`);
       }
-      return capResponse(await fetch(url, init), MAX_RESPONSE_BYTES);
+      return capResponse(await (fetchImpl ?? fetch)(url, init), MAX_RESPONSE_BYTES);
     }
   };
 }
@@ -163580,7 +163817,7 @@ function capResponse(res, cap) {
   }));
   return new Response(counted, { status: res.status, statusText: res.statusText, headers: res.headers });
 }
-function matches3(pattern, url) {
+function matchesNetworkUrl(pattern, url) {
   if (pattern.endsWith("*")) {
     let prefix = pattern.slice(0, -1);
     if (!prefix.endsWith("/")) prefix += "/";
@@ -164537,10 +164774,11 @@ var NEEDS_PLATFORM_CODEC = /\.(mp3|m4a|aac|ogg|oga|opus|flac|weba|webm|mp4)$/i;
 function isRef(src) {
   return typeof src === "object" && src !== null && "url" in src && typeof src.url === "string";
 }
-async function bytesOf2(src, repoRoot2) {
+async function bytesOf2(src, repoRoot2, readSource2) {
   if (src instanceof Uint8Array) return src;
   if (src instanceof ArrayBuffer) return new Uint8Array(src);
   const url = isRef(src) ? src.url : src;
+  if (readSource2) return readSource2(url);
   if (url.startsWith("data:")) {
     const comma = url.indexOf(",");
     if (comma < 0) throw new Error("audio: malformed data URL");
@@ -164559,8 +164797,8 @@ async function bytesOf2(src, repoRoot2) {
   const path = content2 ?? (isAbsolute(url) && !url.startsWith("/catalog/") && !url.startsWith("/community/") ? url : join13(repoRoot2, url.replace(/^\//, "")));
   return new Uint8Array(await readFile9(path));
 }
-async function songOf(src, repoRoot2) {
-  const bytes2 = await bytesOf2(src, repoRoot2);
+async function songOf(src, repoRoot2, readSource2) {
+  const bytes2 = await bytesOf2(src, repoRoot2, readSource2);
   return JSON.parse(Buffer.from(bytes2).toString("utf8"));
 }
 function fileNameOf(url) {
@@ -164624,12 +164862,12 @@ async function decodeAudioSource(src, opts, decodeOpts = {}) {
   if (isRondoShareLink(url)) return renderSong(readSong(() => rondoFromShareLink(url)), opts, decodeOpts.seconds);
   const fileName = fileNameOf(url) || fileNameOf(opts.sourceName ?? "");
   if (ref?.format === RONDO_ASSET_FORMAT || isRondoFileName(fileName)) {
-    const bytes3 = await bytesOf2(src, repoRoot2);
+    const bytes3 = await bytesOf2(src, repoRoot2, opts.readSource);
     const asName = isRondoFileName(fileName) ? fileName : looksLikeJsonObject(bytes3) ? "song.rondo.json" : "song.rondo";
     return renderSong(readSong(() => rondoFromFile(bytes3, asName)), opts, decodeOpts.seconds);
   }
   if (ref && ref.format === "zzfxm" || /\.zzfxm\.json$/i.test(url)) {
-    const { left, right, sampleRate: sampleRate2 } = renderZzfxm(await songOf(src, repoRoot2));
+    const { left, right, sampleRate: sampleRate2 } = renderZzfxm(await songOf(src, repoRoot2, opts.readSource));
     if (!left.length) throw new Error("audio: zzfxm song rendered empty");
     return recorded([left, right], sampleRate2);
   }
@@ -164638,7 +164876,7 @@ async function decodeAudioSource(src, opts, decodeOpts = {}) {
       `audio: ${url.split(".").pop()} needs a platform codec this shell does not have - analyse WAV, a ZzFXM song or a rondocode song headlessly, or render in a browser shell`
     );
   }
-  const bytes2 = await bytesOf2(src, repoRoot2);
+  const bytes2 = await bytesOf2(src, repoRoot2, opts.readSource);
   if (looksLikeRondoRecord(bytes2)) return renderSong(readSong(() => rondoFromBytes(bytes2)), opts, decodeOpts.seconds);
   const container = sniffContainer2(bytes2);
   if (container && container !== "wav") {
@@ -167403,7 +167641,7 @@ function rondoRecordOf(bytes2) {
     return null;
   }
 }
-async function createCliBridge({ profile = {}, dom, networkAllowlist, designVersion, tokenSelection, capturePublicOnly = false, aiEnabled = true, tokensDocument = null, rondo, onAudioRun, onAudioRunFailed, rondoBudget, geometryBackend } = {}) {
+async function createCliBridge({ profile = {}, dom, networkAllowlist, designVersion, tokenSelection, capturePublicOnly = false, publicOnlyAssets = false, aiEnabled = true, tokensDocument = null, rondo, onAudioRun, onAudioRunFailed, rondoBudget, geometryBackend } = {}) {
   const w = dom.window;
   const assetIndex2 = readAssetIndex();
   const assetById = new Map(assetIndex2.assets.map((a) => [a.id, a]));
@@ -167413,6 +167651,15 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
     return path;
   };
   const state = /* @__PURE__ */ new Map();
+  const bounded2 = (bytes2) => {
+    if (bytes2.byteLength > MAX_PUBLIC_ASSET_BYTES) throw new Error("The asset exceeds this host's byte limit.");
+    return bytes2;
+  };
+  async function readHostedSource(source, allowedTypes = PUBLIC_IMAGE_TYPES) {
+    if (source.startsWith("/catalog/")) return bounded2(new Uint8Array(await readFile19(assetFilePath(source))));
+    if (/^data:/i.test(source)) return bounded2(decodeDataUrl2(source));
+    return (await fetchPublicBytes(source, { allowedTypes })).bytes;
+  }
   const host = {
     version: "1",
     shell: "cli",
@@ -167445,6 +167692,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
       if (typeof source === "object" && "arrayBuffer" in source) return new Uint8Array(await source.arrayBuffer());
       if (typeof source !== "string") return host.assets.bytes(source);
       if (source.startsWith("/catalog/")) return new Uint8Array(await readFile19(assetFilePath(source)));
+      if (publicOnlyAssets) return readHostedSource(source);
       const response = await fetch(source);
       if (!response.ok) throw new Error(`Could not read HDR source (${response.status}).`);
       return new Uint8Array(await response.arrayBuffer());
@@ -167638,6 +167886,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
   host.connectors = makeConnectorsApi();
   host.audio = createNodeAudioAPI({
     repoRoot: REPO_ROOT2,
+    ...publicOnlyAssets ? { readSource: (source) => readHostedSource(source, /* @__PURE__ */ new Set(["audio/wav", "audio/x-wav", "audio/wave", "audio/vnd.wave", "application/json", "text/plain"])) } : {},
     ...rondo ? { rondo } : {},
     ...rondoBudget ? { budget: rondoBudget } : {},
     onRun: onAudioRun ?? cliAudioRunReporter(),
@@ -167665,12 +167914,26 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
   host.emoji = await (await Promise.resolve().then(() => (init_emoji2(), emoji_exports))).createNodeEmojiAPI({
     parseXml: (source) => new w.DOMParser().parseFromString(source, "image/svg+xml")
   });
-  host.net = createNetAPI({ allowlist: networkAllowlist });
+  host.net = createNetAPI({
+    allowlist: networkAllowlist,
+    ...publicOnlyAssets ? {
+      fetchImpl: async (url, init) => {
+        if (init?.method && init.method.toUpperCase() !== "GET") throw new Error("This host supports GET network reads only.");
+        if (init?.body) throw new Error("This host does not send network request bodies.");
+        const result = await fetchPublicBytes(url, {
+          ...init?.headers ? { headers: init.headers } : {},
+          ...init?.signal ? { signal: init.signal } : {},
+          allowUrl: (next2) => (networkAllowlist ?? []).some((pattern) => matchesNetworkUrl(pattern, next2.toString()))
+        });
+        return new Response(result.bytes, { status: result.response.status, headers: result.response.headers });
+      }
+    } : {}
+  });
   host.assets = {
     // v1.183: bytes behind a ref. This bridge inlines catalog files as data:
     // urls, so most reads never touch the disk; http(s) rides the tool's own
     // allowlist through host.net, never an open fetch.
-    bytes: (target2) => assetBytes(target2, { netFetch: (url) => host.net ? host.net.fetch(url) : Promise.reject(new Error("no host.net")) }),
+    bytes: (target2) => assetBytes(target2, { allowFiles: !publicOnlyAssets, netFetch: (url) => host.net ? host.net.fetch(url) : Promise.reject(new Error("no host.net")) }),
     async resolveProvider(ref) {
       if (ref.provider === "catalog" || ref.provider === "library") {
         try {
@@ -167681,8 +167944,8 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
       }
       if (ref.provider === "image" && ref.scope === "brand") {
         const slot = ref.path || "logo";
-        const matches4 = await host.assets.query({ tags: [slot] });
-        const picked = matches4[0] ?? (slot === "logo" ? (await host.assets.query({ tags: ["logo"] }))[0] : void 0);
+        const matches3 = await host.assets.query({ tags: [slot] });
+        const picked = matches3[0] ?? (slot === "logo" ? (await host.assets.query({ tags: ["logo"] }))[0] : void 0);
         if (!picked) return null;
         try {
           return await host.assets.get(picked.id);
@@ -167734,6 +167997,12 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
         return prepareJxlAsset({ source: "remote", id: id3, type: kind.type, format: kind.format, url: id3 }, bytes2);
       }
       if (/^https?:\/\//i.test(id3)) {
+        if (publicOnlyAssets) {
+          const { bytes: bytes2, mime: mime4 } = await fetchPublicBytes(id3, { allowedTypes: PUBLIC_IMAGE_TYPES, headers: { accept: "image/*" } });
+          const kind2 = urlAssetKind(mime4, "");
+          if (!kind2) throw new Error("Unsupported URL asset content type.");
+          return prepareJxlAsset({ source: "remote", id: id3, ...kind2, url: `data:${mime4};base64,${Buffer.from(bytes2).toString("base64")}` }, bytes2);
+        }
         const res = await fetch(id3, { signal: AbortSignal.timeout(2e4) });
         if (!res.ok) throw new Error(`URL asset fetch failed (${res.status}): ${id3}`);
         const buf2 = Buffer.from(await res.arrayBuffer());
@@ -168212,7 +168481,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
     host.pdf.redact = pdfCanvas.redact;
     host.pdf.pages = pdfCanvas.pages;
   }
-  const raster = createNodeRasterAPI();
+  const raster = createNodeRasterAPI(publicOnlyAssets ? { readUrl: readHostedSource } : {});
   if (raster) host.raster = raster;
   host.c2pa = {
     async sign(bytes2, format, opts = {}) {
@@ -168557,6 +168826,7 @@ function withHost(profile, fn, opts = {}) {
         dom,
         profile,
         capturePublicOnly: true,
+        publicOnlyAssets: true,
         aiEnabled: false,
         ...opts.tokenSelection ? { tokenSelection: opts.tokenSelection } : {},
         rondo: audio?.caps ?? DEFAULT_SCOPE_CAPS,
@@ -168593,38 +168863,8 @@ import { existsSync as existsSync14 } from "node:fs";
 import { join as join22, resolve as resolve4, extname, normalize as normalize2 } from "node:path";
 
 // services/mcp/src/egress.ts
-import { lookup } from "node:dns/promises";
-import { BlockList, isIP } from "node:net";
-var blocked = new BlockList();
-for (const [network, prefix] of [
-  ["0.0.0.0", 8],
-  ["10.0.0.0", 8],
-  ["100.64.0.0", 10],
-  ["127.0.0.0", 8],
-  ["169.254.0.0", 16],
-  ["172.16.0.0", 12],
-  ["192.0.0.0", 24],
-  ["192.0.2.0", 24],
-  ["192.168.0.0", 16],
-  ["198.18.0.0", 15],
-  ["198.51.100.0", 24],
-  ["203.0.113.0", 24],
-  ["224.0.0.0", 4],
-  ["240.0.0.0", 4]
-]) blocked.addSubnet(network, prefix, "ipv4");
-for (const [network, prefix] of [
-  ["::", 128],
-  ["::1", 128],
-  ["100::", 64],
-  ["2001:db8::", 32],
-  ["fc00::", 7],
-  ["fe80::", 10],
-  ["ff00::", 8]
-]) blocked.addSubnet(network, prefix, "ipv6");
-function isPublicAddress(address) {
-  const family2 = isIP(address);
-  return family2 !== 0 && !blocked.check(address, family2 === 4 ? "ipv4" : "ipv6");
-}
+import { lookup as lookup2 } from "node:dns/promises";
+import { isIP as isIP2 } from "node:net";
 function checkedBase(raw) {
   let url;
   try {
@@ -168657,7 +168897,7 @@ function browserAllowedOrigins(base, env) {
   }
   return allowed;
 }
-async function assertBrowserRequestAllowed(raw, base, env, resolver = resolveHost) {
+async function assertBrowserRequestAllowed(raw, base, env, resolver = resolveHost2) {
   const url = new URL(raw);
   if (url.protocol === "blob:" || url.protocol === "data:" || url.protocol === "about:") return;
   if (url.protocol !== "http:" && url.protocol !== "https:") throw new Error(`browser egress rejects ${url.protocol}`);
@@ -168666,7 +168906,7 @@ async function assertBrowserRequestAllowed(raw, base, env, resolver = resolveHos
   const baseUrl = checkedBase(base);
   if (baseUrl.protocol === "http:" && isLoopbackName(baseUrl.hostname) && url.origin === baseUrl.origin) return;
   const literal = stripIpv6Brackets(url.hostname);
-  if (isIP(literal)) {
+  if (isIP2(literal)) {
     if (!isPublicAddress(literal)) throw new Error("browser egress rejects non-public address");
     return;
   }
@@ -168680,7 +168920,7 @@ async function installBrowserEgressPolicy(page3, base, env = process.env) {
   const resolver = (hostname) => {
     let pending3 = cache5.get(hostname);
     if (!pending3) {
-      pending3 = resolveHost(hostname);
+      pending3 = resolveHost2(hostname);
       cache5.set(hostname, pending3);
     }
     return pending3;
@@ -168695,9 +168935,9 @@ async function installBrowserEgressPolicy(page3, base, env = process.env) {
     }
   });
 }
-async function resolveHost(hostname) {
+async function resolveHost2(hostname) {
   try {
-    return (await lookup(hostname, { all: true, verbatim: true })).map((answer) => answer.address);
+    return (await lookup2(hostname, { all: true, verbatim: true })).map((answer) => answer.address);
   } catch {
     return [];
   }
@@ -169056,10 +169296,10 @@ function resolveEmojiSetName(named, sets) {
   const id3 = at > 0 ? raw.slice(0, at) : raw;
   const version = at > 0 ? raw.slice(at + 1) : "";
   const short = (full) => full.split("/").slice(-2).join("/");
-  const matches4 = sets.filter((set) => (set.pin.id === id3 || short(set.pin.id) === id3) && (!version || set.pin.pin.version === version));
-  if (matches4.length === 1) return { set: emojiSetName(matches4[0]) };
+  const matches3 = sets.filter((set) => (set.pin.id === id3 || short(set.pin.id) === id3) && (!version || set.pin.pin.version === version));
+  if (matches3.length === 1) return { set: emojiSetName(matches3[0]) };
   const registered = sets.length ? sets.map((set) => `${emojiSetName(set)} (${set.label})`).join(", ") : "none - this deployment registers no emoji set";
-  if (matches4.length > 1) {
+  if (matches3.length > 1) {
     return { error: `More than one emoji set answers to "${raw}". Name one exactly: ${registered}.` };
   }
   return { error: `Unknown emoji set "${raw}". Registered sets: ${registered}.` };
@@ -178045,9 +178285,9 @@ async function callLiveTool(bridge, name, args) {
 
 // services/mcp/src/agent-connector.ts
 init_src();
-import { lookup as lookup2 } from "node:dns/promises";
+import { lookup as lookup3 } from "node:dns/promises";
 import { request } from "node:https";
-import { BlockList as BlockList2, isIP as isIP2 } from "node:net";
+import { BlockList as BlockList2, isIP as isIP3 } from "node:net";
 import Ajv8 from "ajv";
 
 // packages/core/src/live-invite-v1.ts
@@ -178095,12 +178335,12 @@ var ajv3 = new Ajv8({ strict: false });
 var validators2 = new Map(AGENT_TOOLS.map((tool) => [tool.name, ajv3.compile(tool.inputSchema)]));
 var transition = new BlockList2();
 for (const [network, prefix] of [["::ffff:0:0", 96], ["64:ff9b::", 96], ["64:ff9b:1::", 48], ["2002::", 16], ["2001::", 32]]) transition.addSubnet(network, prefix, "ipv6");
-var publicRelayAddress = (address) => isPublicAddress(address) && !(isIP2(address) === 6 && transition.check(address, "ipv6"));
+var publicRelayAddress = (address) => isPublicAddress(address) && !(isIP3(address) === 6 && transition.check(address, "ipv6"));
 async function requestAgentRelay(invitation, path, body) {
   const url = new URL(invitation.base + path);
   if (url.protocol !== "https:" || url.port && url.port !== "443") throw new Error("Hosted agents require a public HTTPS relay on port 443. Use the local MCP server for local invitations.");
   const hostname = url.hostname.replace(/^\[|\]$/g, "");
-  const answers = isIP2(hostname) ? [{ address: hostname, family: isIP2(hostname) }] : await lookup2(hostname, { all: true, verbatim: true });
+  const answers = isIP3(hostname) ? [{ address: hostname, family: isIP3(hostname) }] : await lookup3(hostname, { all: true, verbatim: true });
   if (!answers.length || answers.some((answer) => !publicRelayAddress(answer.address))) throw new Error("This invitation must address a public relay.");
   const address = answers[0];
   const raw = JSON.stringify(body);
@@ -178972,8 +179212,6 @@ function renderFailure(e) {
 }
 
 // services/mcp/src/image-proxy.ts
-import { lookup as lookup3 } from "node:dns/promises";
-import { isIP as isIP3 } from "node:net";
 import { createHash as createHash14 } from "node:crypto";
 init_delivery_v1();
 var PATH_RE2 = /\/fetch-image$/;
@@ -178983,25 +179221,11 @@ function matchImageProxyPath(path) {
 var MAX_URL_LEN = 2048;
 var MAX_IMAGE_BYTES = 25 * 1024 * 1024;
 var VERCEL_MAX_IMAGE_BYTES = 4 * 1024 * 1024;
-var MAX_REDIRECTS = 4;
 var OVERALL_TIMEOUT_MS = 2e4;
 var RL_WINDOW_MS2 = 6e4;
 var DEFAULT_RPM2 = 60;
 var DEFAULT_GLOBAL_RPM2 = 600;
 var localRateLimiter2 = new MemoryRateLimiter();
-var ALLOWED_TYPES = /* @__PURE__ */ new Set([
-  "image/png",
-  "image/jpeg",
-  "image/gif",
-  "image/webp",
-  "image/svg+xml",
-  "image/avif",
-  "image/bmp",
-  "image/x-icon",
-  "image/vnd.microsoft.icon",
-  "image/tiff",
-  "image/apng"
-]);
 var NO_STORE2 = {
   "content-type": "application/json; charset=utf-8",
   ...deliveryHeaders("person-private", { tokenBearing: true }),
@@ -179013,65 +179237,6 @@ function errorResponse2(status, error2, extra = {}) {
 function budget2(raw, fallback) {
   const n7 = Number(raw);
   return Number.isSafeInteger(n7) && n7 > 0 ? n7 : fallback;
-}
-function stripBrackets(hostname) {
-  return hostname.startsWith("[") && hostname.endsWith("]") ? hostname.slice(1, -1) : hostname;
-}
-var ProxyRefused = class extends Error {
-};
-async function resolveHost2(hostname) {
-  try {
-    return (await lookup3(hostname, { all: true, verbatim: true })).map((answer) => answer.address);
-  } catch {
-    return [];
-  }
-}
-function assertFetchableShape(url) {
-  if (url.protocol !== "http:" && url.protocol !== "https:") throw new ProxyRefused(`Only http(s) image URLs are supported, not ${url.protocol.replace(":", "")}.`);
-  if (url.username || url.password) throw new ProxyRefused("The URL must not carry a username or password.");
-}
-async function assertPublicTarget(url, resolver) {
-  const literal = stripBrackets(url.hostname);
-  if (isIP3(literal)) {
-    if (!isPublicAddress(literal)) throw new ProxyRefused("That address is not reachable from here.");
-    return;
-  }
-  const addresses = await resolver(url.hostname);
-  if (!addresses.length) throw new ProxyRefused("That address could not be resolved.");
-  if (addresses.some((a) => !isPublicAddress(a))) throw new ProxyRefused("That address is not reachable from here.");
-}
-var TooLarge = class extends Error {
-};
-async function readCapped(response, max) {
-  const reader = response.body?.getReader();
-  if (!reader) {
-    const buf = new Uint8Array(await response.arrayBuffer());
-    if (buf.byteLength > max) throw new TooLarge();
-    return buf;
-  }
-  const chunks = [];
-  let total = 0;
-  for (; ; ) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    if (!value) continue;
-    total += value.byteLength;
-    if (total > max) {
-      try {
-        await reader.cancel();
-      } catch {
-      }
-      throw new TooLarge();
-    }
-    chunks.push(value);
-  }
-  const out = new Uint8Array(total);
-  let off = 0;
-  for (const chunk6 of chunks) {
-    out.set(chunk6, off);
-    off += chunk6.byteLength;
-  }
-  return out;
 }
 var SIGNATURE_PARAM = /^(?:x-amz-.+|signature|sig|token|expires)$/i;
 function upstreamImagePolicy(url, headers) {
@@ -179098,9 +179263,9 @@ async function proxyImage(reqUrl, opts) {
     return errorResponse2(400, "That doesn't look like a URL.");
   }
   try {
-    assertFetchableShape(parsed);
+    assertPublicHttpShape(parsed);
   } catch (e) {
-    if (e instanceof ProxyRefused) return errorResponse2(422, e.message);
+    if (e instanceof PublicHttpError) return errorResponse2(422, e.message);
     throw e;
   }
   const limiter = opts.rateLimiter ?? localRateLimiter2;
@@ -179118,69 +179283,43 @@ async function proxyImage(reqUrl, opts) {
     if (!(e instanceof RateLimitUnavailableError)) throw e;
     return errorResponse2(503, "Image fetching is temporarily unavailable.", { "retry-after": "5" });
   }
-  const resolver = opts.resolver ?? resolveHost2;
-  const doFetch = opts.fetchImpl ?? fetch;
-  const deadline = AbortSignal.timeout(OVERALL_TIMEOUT_MS);
-  let response;
-  let current = parsed;
   let privateResponse = false;
   let cacheAge = 3600;
+  const maxBytes = env.VERCEL ? VERCEL_MAX_IMAGE_BYTES : MAX_IMAGE_BYTES;
+  let bytes2;
+  let rawType;
   try {
-    for (let hop = 0; ; hop++) {
-      assertFetchableShape(current);
-      await assertPublicTarget(current, resolver);
-      response = await doFetch(current.toString(), {
+    const result = await fetchPublicBytes(parsed, {
+      maxBytes,
+      timeoutMs: OVERALL_TIMEOUT_MS,
+      allowedTypes: PUBLIC_IMAGE_TYPES,
+      headers: { accept: "image/*" },
+      ...opts.resolver ? { resolver: opts.resolver } : {},
+      ...opts.fetchImpl ? { request: (url, options2) => opts.fetchImpl(url.toString(), {
         redirect: "manual",
-        signal: deadline,
-        headers: { accept: "image/*" }
-      });
-      const policy = upstreamImagePolicy(current, response.headers);
-      privateResponse ||= policy.private;
-      cacheAge = Math.min(cacheAge, policy.age);
-      const location4 = response.status >= 300 && response.status < 400 ? response.headers.get("location") : null;
-      if (!location4) break;
-      if (hop >= MAX_REDIRECTS) return errorResponse2(502, "That address redirected too many times.");
-      let next2;
-      try {
-        next2 = new URL(location4, current);
-      } catch {
-        return errorResponse2(502, "That address redirected to an invalid location.");
+        signal: options2.signal,
+        headers: options2.headers
+      }) } : {},
+      onResponse(url, response) {
+        const policy = upstreamImagePolicy(url, response.headers);
+        privateResponse ||= policy.private;
+        cacheAge = Math.min(cacheAge, policy.age);
       }
-      try {
-        await response.body?.cancel();
-      } catch {
-      }
-      current = next2;
-    }
+    });
+    bytes2 = result.bytes;
+    rawType = result.mime;
   } catch (e) {
-    if (e instanceof ProxyRefused) return errorResponse2(422, e.message);
+    await opts.budget?.record(0);
+    if (e instanceof PublicHttpError) {
+      if (e.code === "refused") return errorResponse2(422, e.message);
+      if (e.code === "type") return errorResponse2(415, "That URL is not an image.");
+      if (e.code === "size") return errorResponse2(413, `That image is larger than the ${Math.round(maxBytes / 1024 / 1024)} MB limit.`);
+      if (e.code === "timeout") return errorResponse2(504, e.message);
+      return errorResponse2(502, e.message);
+    }
     const name = e?.name;
     if (name === "TimeoutError" || name === "AbortError") return errorResponse2(504, "That address took too long to answer.");
     return errorResponse2(502, `Couldn't fetch that URL: ${e.message}`);
-  }
-  if (!response.ok) {
-    try {
-      await response.body?.cancel();
-    } catch {
-    }
-    return errorResponse2(502, `That address answered with ${response.status}.`);
-  }
-  const rawType = (response.headers.get("content-type") || "").split(";")[0].trim().toLowerCase();
-  if (!ALLOWED_TYPES.has(rawType)) {
-    try {
-      await response.body?.cancel();
-    } catch {
-    }
-    return errorResponse2(415, "That URL is not an image.");
-  }
-  const maxBytes = env.VERCEL ? VERCEL_MAX_IMAGE_BYTES : MAX_IMAGE_BYTES;
-  let bytes2;
-  try {
-    bytes2 = await readCapped(response, maxBytes);
-  } catch (e) {
-    await opts.budget?.record(0);
-    if (e instanceof TooLarge) return errorResponse2(413, `That image is larger than the ${Math.round(maxBytes / 1024 / 1024)} MB limit.`);
-    return errorResponse2(502, `Couldn't read that image: ${e.message}`);
   }
   const etag = `"${createHash14("sha256").update(bytes2).digest("hex")}"`;
   const headers = {

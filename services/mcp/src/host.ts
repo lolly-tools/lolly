@@ -61,7 +61,7 @@ export function withHost<T>(
       // stderr (audio-runs.ts). Outside a request scope: the hosted caps.
       const audio = currentAudioScope();
       const host = await createCliBridge({
-        dom: dom as never, profile, capturePublicOnly: true, aiEnabled: false,
+        dom: dom as never, profile, capturePublicOnly: true, publicOnlyAssets: true, aiEnabled: false,
         ...(opts.tokenSelection ? { tokenSelection: opts.tokenSelection } : {}),
         rondo: audio?.caps ?? DEFAULT_SCOPE_CAPS,
         ...(audio ? { rondoBudget: audio.budget } : {}),
