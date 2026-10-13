@@ -124,7 +124,7 @@ html[data-a11y-motion="reduce"] .hero-logo-link:focus-visible .hero-logo-still{o
   box-shadow:0 .35em .8em #0006,0 0 0 .22em rgba(255,255,255,.75);outline:none}
 @media(prefers-reduced-motion:reduce){.hero-verify{transition:none}
   .hero-verify:hover,.hero-verify:focus-visible{transform:translate(-50%,-50%)}}
-.hero .subtitle{font-size:clamp(.9375rem,1.8vw,1.125rem);max-width:560px;margin:0 auto 2.75rem; margin-left:color:hsl(var(--on-band-dark) / .5);font-weight:300;line-height:1.85;position:relative}
+.hero .subtitle{font-size:clamp(.9375rem,1.8vw,1.125rem);max-width:560px;margin:0 auto 2.75rem; color:hsl(var(--on-band-dark) / .5);font-weight:300;line-height:1.85;position:relative}
 .hero-cta{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;position:relative;margin-bottom:2.5rem}
 .hero-trust{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:.5rem;position:relative}
 .hero-trust span{font-size:.8rem;line-height:1;color:hsl(var(--on-band-dark) / .5);letter-spacing:0}
