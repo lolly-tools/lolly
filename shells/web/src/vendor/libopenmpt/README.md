@@ -13,7 +13,8 @@ scripts/build-libopenmpt-wasm.sh
 
 ## Provenance
 - libopenmpt **0.8.7** - makefile-flavour release tarball from lib.openmpt.org
-- Emscripten **6.0.2** (emsdk `latest` at build time)
+- Emscripten **6.0.2**, with SDK source commit `ca38f487f28b7c3c16f8f70cd0e012099ac4b7e2` pinned in the build script.
+- The source archive is SHA-256 checked before extraction. The distributed artifact's exact hash is in `security/vendor-artifacts.json` and verified during SBOM generation.
 - Build target: `CONFIG=emscripten EMSCRIPTEN_TARGET=wasm`, then linked
   `MODULARIZE + EXPORT_ES6 + SINGLE_FILE` (wasm embedded as base64), `ENVIRONMENT=web,worker`,
   `FILESYSTEM=0`, exception catching enabled.

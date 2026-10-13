@@ -157,6 +157,8 @@ test('build-sbom writes the same bytes on macOS and Linux installs, in any local
   mkdirSync(join(root, 'scripts/lib'), { recursive: true });
   copyFileSync(fileURLToPath(new URL('../scripts/build-sbom.ts', import.meta.url)), join(root, 'scripts/build-sbom.ts'));
   copyFileSync(fileURLToPath(new URL('../scripts/lib/pnpm-lock.ts', import.meta.url)), join(root, 'scripts/lib/pnpm-lock.ts'));
+  copyFileSync(fileURLToPath(new URL('../scripts/lib/vendor-artifacts.ts', import.meta.url)), join(root, 'scripts/lib/vendor-artifacts.ts'));
+  writeFileSync(join(root, 'security/vendor-artifacts.json'), JSON.stringify({ schemaVersion: 1, artifacts: [], sourceTrees: [] }));
   mkdirSync(join(root, 'node_modules'));
   symlinkSync(dirname(createRequire(import.meta.url).resolve('yaml/package.json')), join(root, 'node_modules/yaml'), 'dir');
   const generate = (locale: string): Buffer => {

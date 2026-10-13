@@ -42,7 +42,7 @@ link carries, so anything you can render in the browser you can regenerate in CI
 | `format` | `svg` | Export format for the single render. Batch rows carry their own `format` column. |
 | `out-dir` | `./lolly-out` | Workspace-relative output directory (created if missing). |
 | `browser` | `false` | `'true'` installs the scoped Chromium (`lolly install-browser --with-deps`) **and** builds the web shell - required for raster/pdf/video of HTML-layout tools. See [The browser tier](#the-browser-tier). |
-| `lolly-ref` | `v1` | Git ref of `lolly-tools/lolly` to render with. `v1` is a placeholder until `render-action` tags releases - pass a commit SHA (or `main`) meanwhile, and pin a SHA for reproducible renders. |
+| `lolly-ref` | `fb6899c5ec69f3b9e0e99367fdcb109ade7ba6a4` | Reviewed source commit to render with. Supply a different commit explicitly when updating the engine. |
 | `profile-root` | - | Workspace-relative path of a brand-pack profile root (`tools/` + `catalog/` with a built `catalog/tools/index.json`). Exported as `LOLLY_ROOT`. See [Brand packs](#brand-packs-profile-root). |
 | `token` | `github.token` | Token for the lolly checkout. `lolly-tools/lolly` is **public**, so the default always works - pass a PAT only to render from a private fork/mirror. |
 
@@ -223,6 +223,6 @@ carrying `tools/` and `catalog/` with a built `catalog/tools/index.json` - the m
   private fork, the stock action cannot see it - set the `token` input to a PAT that
   can read the fork, and (until the split) also change the `repository:` in your own
   copy of the action, since the checkout targets `lolly-tools/lolly` by name.
-- **Reproducibility:** `lolly-ref` defaults to the placeholder tag `v1`; until that tag
-  exists, pass a commit SHA. A pinned SHA gives byte-stable tool definitions; `main`
-  gives you the newest tools at the cost of renders that may change under you.
+- **Reproducibility:** `lolly-ref` defaults to an immutable reviewed commit. Review
+  a source update before supplying a different commit. An explicit mutable ref
+  can change the engine and tool definitions between runs.
