@@ -108,6 +108,10 @@ test('native packaging jobs receive signed artifacts and signing jobs run no com
     assert.ok(job.steps.every((step: any) => !step.env?.LOLLY_CATALOG_SIGNING_KEY));
     assert.ok(job.steps.some((step: any) => step.with?.name?.startsWith('release-frontend-')));
     assert.equal(workflow.permissions.contents, 'read');
-    if (name === 'ios-release') assert.equal(job.environment, 'release-native-signing');
+    if (name === 'ios-release') {
+      assert.equal(job.environment, undefined);
+      assert.equal(workflow.jobs.sign.environment, 'release-native-signing');
+      assert.deepEqual(workflow.jobs.sign.needs, ['frontend', 'build']);
+    }
   }
 });

@@ -10,7 +10,7 @@ link carries, so anything you can render in the browser you can regenerate in CI
 > the in-tree copy pinned to a commit:
 >
 > ```yaml
-> - uses: lolly-tools/lolly/action@main        # or @<commit-sha> to pin
+> - uses: lolly-tools/lolly/action@08ab9b3b71aff09722643c6809f8da292fd63af1        # pinned action revision
 > ```
 >
 > After the split it becomes:
@@ -22,7 +22,7 @@ link carries, so anything you can render in the browser you can regenerate in CI
 ## Quick start
 
 ```yaml
-- uses: lolly-tools/lolly/action@main
+- uses: lolly-tools/lolly/action@08ab9b3b71aff09722643c6809f8da292fd63af1
   id: render
   with:
     tool: qr-code
@@ -73,7 +73,7 @@ jobs:
   og:
     runs-on: ubuntu-latest
     steps:
-      - uses: lolly-tools/lolly/action@main
+      - uses: lolly-tools/lolly/action@08ab9b3b71aff09722643c6809f8da292fd63af1
         id: render
         with:
           tool: design
@@ -118,7 +118,7 @@ jobs:
         id: days
         run: echo "left=$(( ( $(date -ud '2026-12-31' +%s) - $(date -u +%s) ) / 86400 ))" >> "$GITHUB_OUTPUT"
 
-      - uses: lolly-tools/lolly/action@main
+      - uses: lolly-tools/lolly/action@08ab9b3b71aff09722643c6809f8da292fd63af1
         id: render
         with:
           tool: wordmark
@@ -160,7 +160,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4   # your repo - rows.csv lives here
 
-      - uses: lolly-tools/lolly/action@main
+      - uses: lolly-tools/lolly/action@08ab9b3b71aff09722643c6809f8da292fd63af1
         id: render
         with:
           rows: ./renders/rows.csv
@@ -207,7 +207,7 @@ carrying `tools/` and `catalog/` with a built `catalog/tools/index.json` - the m
           token: ${{ secrets.BRAND_PACK_PAT }}   # PAT with read access to that repo
           path: brand-pack
 
-      - uses: lolly-tools/lolly/action@main
+      - uses: lolly-tools/lolly/action@08ab9b3b71aff09722643c6809f8da292fd63af1
         with:
           tool: qr-code
           args-json: '["--url=https://example.com"]'

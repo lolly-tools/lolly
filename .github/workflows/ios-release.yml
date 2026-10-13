@@ -1,38 +1,12 @@
-# Build + sign + upload the iOS App Store binary on a NON-beta macOS runner.
-#
-# Why this exists: Apple rejects App Store binaries built on a beta macOS
-# (ITMS-90111 "Unsupported SDK or Xcode version", stamped via BuildMachineOSBuild)
-# regardless of the Xcode version. Andy's dev machine runs a beta macOS, so local
-# `tauri ios build` output can never be submitted. GitHub's hosted macOS runners
-# run a released (GM) macOS, which clears it. See memory ios-app-store-submission.
-#
-# Signing: Tauri's own xcodebuild call handles provisioning via the App Store
-# Connect API key when APPLE_API_KEY / APPLE_API_ISSUER / APPLE_API_KEY_PATH are
-# set (it then passes -authenticationKey* + -allowProvisioningUpdates). The
-# Apple Distribution cert is imported into a throwaway keychain. `--export-method
-# app-store-connect` makes Tauri build + export a distribution-signed ipa.
-#
-# Manual trigger only. Bump the version in
-# shells/tauri-mobile/src-tauri/tauri.conf.json first (each App Store build needs
-# a higher CFBundleVersion), commit, then run this.
-#
-# Required signing secrets (configure the protected release environments):
-#   IOS_DIST_CERT_P12       base64 of an Apple Distribution cert .p12 (cert + private key)
-#   IOS_DIST_CERT_PASSWORD  the .p12 export password
-#   ASC_KEY_P8              base64 of the App Store Connect API key .p8
-#   ASC_KEY_ID             App Store Connect API key id (6WNY433QKD)
-#   ASC_ISSUER_ID          App Store Connect issuer id (e529261d-…)
-#   LOLLY_CATALOG_SIGNING_KEY  P-256 private signing JWK/PKCS8 PEM
-# Required repo variable:
-#   VITE_CATALOG_PUBLIC_KEY_JWK matching public P-256 JWK pinned in the app
-
+# Compile without release credentials, then sign only the verified archive.
+# The protected job requires an approved App Store profile and distribution identity.
 name: iOS App Store release
 
 on:
   workflow_dispatch:
     inputs:
       upload:
-        description: Upload to App Store Connect after building
+        description: Upload the signed artifact to App Store Connect
         type: boolean
         default: true
 
@@ -57,9 +31,12 @@ jobs:
   build:
     needs: frontend
     if: ${{ always() && !cancelled() && needs.frontend.result == 'success' }}
-    environment: release-native-signing
-    runs-on: macos-15   # released (non-beta) macOS — the whole point
+    runs-on: macos-15
     timeout-minutes: 75
+    outputs:
+      archive_id: ${{ steps.archive.outputs.artifact-id }}
+      receipt_sha: ${{ steps.receipt.outputs.receipt_sha }}
+      developer_dir: ${{ steps.xcode.outputs.developer_dir }}
     env:
       LOLLY_RELEASE_FRONTEND_PHASE: verified-artifact
       VITE_CATALOG_PUBLIC_KEY_JWK: ${{ vars.VITE_CATALOG_PUBLIC_KEY_JWK }}
@@ -68,22 +45,21 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
+          ref: ${{ github.sha }}
           persist-credentials: false
-          submodules: recursive   # brands/suse is `update = none` → skipped; falls back to lolly-start
+          submodules: recursive
 
-      - name: Select the newest GM Xcode (needs iOS 26+ SDK)
+      - name: Select a released Xcode with the required device SDK
+        id: xcode
         run: |
           set -euo pipefail
-          XC=$(ls -d /Applications/Xcode_26*.app /Applications/Xcode.app 2>/dev/null | sort -V | tail -1)
-          echo "Using $XC"
+          XC=$(for APP in /Applications/Xcode_26*.app /Applications/Xcode.app; do if [ -d "$APP" ]; then echo "$APP"; fi; done | sort -V | tail -1)
+          [[ "$XC" =~ ^/Applications/Xcode[A-Za-z0-9_.]*\.app$ ]]
           sudo xcode-select -s "$XC/Contents/Developer"
           xcodebuild -version
           SDK=$(xcodebuild -showsdks | sed -n 's/.*iphoneos\([0-9][0-9]*\).*/\1/p' | sort -n | tail -1)
-          echo "iOS SDK major: ${SDK:-none}"
-          if [ "${SDK:-0}" -lt 26 ]; then
-            echo "::error::Runner Xcode has no iOS 26+ SDK (got ${SDK:-none}). Apple requires iOS 26 SDK; pick a runner image that ships Xcode 26."
-            exit 1
-          fi
+          [ "${SDK:-0}" -ge 26 ]
+          echo "developer_dir=$XC/Contents/Developer" >> "$GITHUB_OUTPUT"
 
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
         with:
@@ -94,111 +70,133 @@ jobs:
         with:
           node-version: '24'
 
-      - name: Rust toolchain + iOS target
+      - name: Rust toolchain and device target
         run: |
           rustup update stable --no-self-update
           rustup target add aarch64-apple-ios
 
-      - name: Install workspace deps
-        run: pnpm install --frozen-lockfile
+      - name: Install compiler dependencies
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm -C shells/tauri-mobile install --frozen-lockfile
         env:
           ONNXRUNTIME_NODE_INSTALL_CUDA: skip
 
-      - name: Install mobile-shell deps (not an npm workspace)
-        run: pnpm -C shells/tauri-mobile install --frozen-lockfile
-
       - name: Download signed source catalog
-        if: needs.frontend.result == 'success'
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: release-source-catalog-tauri-mobile
           path: brands/lolly-start/catalog/tools
 
       - name: Download signed frontend
-        if: needs.frontend.result == 'success'
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: release-frontend-tauri-mobile
           path: shells/tauri-mobile/dist
 
-      - name: Import Apple Distribution certificate
+      - name: Verify the independently signed frontend
+        run: node scripts/release-frontend-receipt.ts --verify tauri-mobile shells/tauri-mobile/dist
+
+      - name: Compile an unsigned device archive
+        working-directory: shells/tauri-mobile
+        run: pnpm run tauri ios build --target aarch64 --no-sign --archive-only --ci
         env:
-          CERT_P12: ${{ secrets.IOS_DIST_CERT_P12 }}
-          CERT_PW: ${{ secrets.IOS_DIST_CERT_PASSWORD }}
+          ONNXRUNTIME_NODE_INSTALL_CUDA: skip
+          NODE_OPTIONS: --max-old-space-size=6144
+
+      - name: Bind the unsigned archive to this run and signed frontend
+        id: receipt
+        run: |
+          /usr/bin/python3 -I scripts/ios-release-artifact.py prepare \
+            --archive shells/tauri-mobile/src-tauri/gen/apple/build/lolly-mobile_iOS.xcarchive \
+            --frontend shells/tauri-mobile/dist --output "$RUNNER_TEMP/ios-unsigned" \
+            --source "$GITHUB_SHA" --run-id "$GITHUB_RUN_ID" --run-attempt "$GITHUB_RUN_ATTEMPT"
+
+      - name: Upload the unsigned archive
+        id: archive
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: ios-unsigned-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/ios-unsigned
+          if-no-files-found: error
+          retention-days: 7
+
+  sign:
+    needs: [frontend, build]
+    if: ${{ always() && !cancelled() && needs.frontend.result == 'success' && needs.build.result == 'success' }}
+    environment: release-native-signing
+    runs-on: macos-15
+    timeout-minutes: 30
+    env:
+      VITE_CATALOG_PUBLIC_KEY_JWK: ${{ vars.VITE_CATALOG_PUBLIC_KEY_JWK }}
+      LOLLY_PROFILE: lolly-start
+      DEVELOPER_DIR: ${{ needs.build.outputs.developer_dir }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '24'
+
+      - name: Select the compiler's Xcode
         run: |
           set -euo pipefail
-          KC=build.keychain
-          KCPW=$(uuidgen)
-          echo "$CERT_P12" | base64 --decode > /tmp/dist.p12
-          security create-keychain -p "$KCPW" "$KC"
-          security set-keychain-settings -lut 21600 "$KC"
-          security unlock-keychain -p "$KCPW" "$KC"
-          security import /tmp/dist.p12 -k "$KC" -P "$CERT_PW" -T /usr/bin/codesign -T /usr/bin/xcodebuild
-          security list-keychains -d user -s "$KC" login.keychain-db
-          security set-key-partition-list -S apple-tool:,apple: -s -k "$KCPW" "$KC" >/dev/null
-          rm -f /tmp/dist.p12
-          security find-identity -v -p codesigning "$KC"
+          [[ "$DEVELOPER_DIR" =~ ^/Applications/Xcode[A-Za-z0-9_.]*\.app/Contents/Developer$ ]]
+          sudo xcode-select -s "$DEVELOPER_DIR"
 
-      - name: Write App Store Connect API key + export signing env
+      - name: Download the immutable archive artifact
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          artifact-ids: ${{ needs.build.outputs.archive_id }}
+          merge-multiple: true
+          path: ${{ runner.temp }}/ios-unsigned
+
+      - name: Download the independently signed frontend
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: release-frontend-tauri-mobile
+          path: ${{ runner.temp }}/ios-frontend
+
+      - name: Verify the source, frontend and unsigned archive before credential access
+        env:
+          RECEIPT_SHA: ${{ needs.build.outputs.receipt_sha }}
+        run: |
+          set -euo pipefail
+          [ "$(git rev-parse HEAD)" = "$GITHUB_SHA" ]
+          node scripts/release-frontend-receipt.ts --verify tauri-mobile "$RUNNER_TEMP/ios-frontend"
+          /usr/bin/python3 -I scripts/ios-release-artifact.py verify \
+            --input "$RUNNER_TEMP/ios-unsigned" --frontend "$RUNNER_TEMP/ios-frontend" \
+            --output "$RUNNER_TEMP/ios-prepared" --receipt-sha "$RECEIPT_SHA" \
+            --source "$GITHUB_SHA" --run-id "$GITHUB_RUN_ID" --run-attempt "$GITHUB_RUN_ATTEMPT"
+
+      - name: Sign and export only the prepared archive
+        env:
+          RECEIPT_SHA: ${{ needs.build.outputs.receipt_sha }}
+          IOS_DIST_CERT_P12: ${{ secrets.IOS_DIST_CERT_P12 }}
+          IOS_DIST_CERT_PASSWORD: ${{ secrets.IOS_DIST_CERT_PASSWORD }}
+          IOS_APP_STORE_PROFILE: ${{ secrets.IOS_APP_STORE_PROFILE }}
+        run: |
+          /usr/bin/python3 -I scripts/ios-release-artifact.py sign \
+            --input "$RUNNER_TEMP/ios-prepared" --output "$RUNNER_TEMP/ios-signed" \
+            --receipt-sha "$RECEIPT_SHA" --source "$GITHUB_SHA" \
+            --run-id "$GITHUB_RUN_ID" --run-attempt "$GITHUB_RUN_ATTEMPT"
+
+      - name: Upload the signed IPA after credential cleanup
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: Lolly-ios-ipa
+          path: |
+            ${{ runner.temp }}/ios-signed/Lolly.ipa
+            ${{ runner.temp }}/ios-signed/release.json
+          if-no-files-found: error
+
+      - name: Upload the finished IPA to App Store Connect
+        if: ${{ inputs.upload }}
         env:
           ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
-        run: |
-          set -euo pipefail
-          mkdir -p ~/.appstoreconnect/private_keys ~/private_keys
-          P8=~/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8
-          echo "$ASC_KEY_P8" | base64 --decode > "$P8"
-          cp "$P8" ~/private_keys/
-          # Tauri reads these and passes -authenticationKey* + -allowProvisioningUpdates to xcodebuild.
-          {
-            echo "APPLE_API_KEY=$ASC_KEY_ID"
-            echo "APPLE_API_ISSUER=$ASC_ISSUER_ID"
-            echo "APPLE_API_KEY_PATH=$P8"
-          } >> "$GITHUB_ENV"
-
-      - name: Build + export App Store ipa (Tauri, API-key signing)
-        working-directory: shells/tauri-mobile
-        run: pnpm run tauri ios build --export-method app-store-connect --ci --verbose
-        env:
-          ONNXRUNTIME_NODE_INSTALL_CUDA: skip
-          VITE_CATALOG_PUBLIC_KEY_JWK: ${{ vars.VITE_CATALOG_PUBLIC_KEY_JWK }}
-          # The docs (build:info, 27 locales) + vite build blow past Node's default
-          # heap on the 7 GB runner. Give V8 more room (exit 134 = V8 OOM, not OS OOM).
-          NODE_OPTIONS: --max-old-space-size=6144
-
-      - name: Locate the ipa + confirm it is NOT beta-built
-        id: ipa
-        working-directory: shells/tauri-mobile/src-tauri/gen/apple
-        run: |
-          set -euo pipefail
-          IPA=$(find build -name '*.ipa' -type f | head -1)
-          [ -z "$IPA" ] && { echo "::error::no ipa produced"; ls -R build | head -50; exit 1; }
-          echo "found $IPA"
-          echo "ipa=$PWD/$IPA" >> "$GITHUB_OUTPUT"
-          ARCH=build/lolly-mobile_iOS.xcarchive/Products/Applications/Lolly.app
-          if [ -d "$ARCH" ]; then
-            OSB=$(/usr/bin/defaults read "$PWD/$ARCH/Info" BuildMachineOSBuild)
-            echo "BuildMachineOSBuild=$OSB  DTSDKName=$(/usr/bin/defaults read "$PWD/$ARCH/Info" DTSDKName)"
-            if echo "$OSB" | grep -Eq '[0-9]{2}[A-Z]5[0-9]{3}[a-z]$'; then
-              echo "::error::Archive was built on a BETA macOS ($OSB) — Apple will reject with ITMS-90111."
-              exit 1
-            fi
-          fi
-
-      - name: Upload the ipa as a workflow artifact
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
-        with:
-          name: Lolly-ios-ipa
-          path: ${{ steps.ipa.outputs.ipa }}
-          if-no-files-found: error
-
-      - name: Upload to App Store Connect
-        if: ${{ inputs.upload }}
-        env:
-          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
-          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
-        run: |
-          set -euo pipefail
-          xcrun altool --upload-app -f "${{ steps.ipa.outputs.ipa }}" -t ios \
-            --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID"
+        run: /usr/bin/python3 -I scripts/ios-release-artifact.py upload --input "$RUNNER_TEMP/ios-signed"
