@@ -74,3 +74,16 @@ Session-specific logout requires sid in ID and logout tokens. Newer issue times 
 not revive that sid. Revocation targets are retained beyond Work's maximum session
 chain; the deployment runbook explains legacy-cookie cutover, migration 0067 and
 why rolling back to older server code weakens enforcement.
+
+## CI follow-up
+
+Lolly CI passed every test shard, build/bundle checks, API bundle drift, catalog
+checks and static security scanning. The jobs named typecheck and npm audit
+stopped on stale generated metadata: web source README statistics and the root
+CycloneDX SBOM. Regenerated both and verified the README check and repeat SBOM
+generation locally. CI is rerunning on the corrected generated files.
+
+Work CI built and booted its BCI image, built both service containers, and passed
+its typecheck, audit, Helm and database restore checks. Its sole test failure was
+the missing console registry entry for the new guide; the companion PR corrects
+that entry and passes the affected documentation tests locally.
