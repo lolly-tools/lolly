@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { shareUrlState } from '../lib/share-privacy.ts';
 import { prepareInputPanel } from './tool-input-model.ts';
 import { flattenValue } from '../../../../engine/src/inputs.ts';
 import { scrollToControl, focusSidebarBlock, toggleBlock } from '../lib/sidebar-focus.ts';
@@ -15,7 +16,6 @@ import { scrollToControl, focusSidebarBlock, toggleBlock } from '../lib/sidebar-
  */
 import {
   parseUrlState,
-  serializeUrlState,
   buildEmbedUrl,
   parseToolUrl,
   parseDataRows,
@@ -3613,7 +3613,7 @@ async function openEmbedEditor(
       pending = null;
       applyBtn.disabled = true;
       previewEl.innerHTML = `<div class="asset-picker-loading">Rendering…</div>`;
-      const query = emojiStyle.queryWithEmoji(serializeUrlState(child.getModel()), child.emoji.style);
+      const query = emojiStyle.queryWithEmoji(shareUrlState(child.getModel()), child.emoji.style);
       const url = buildEmbedUrl({ toolId: parsed.toolId, format: fmtSel.value, query });
       const ref = url
         ? await host.compose!.renderUrl!(url, {

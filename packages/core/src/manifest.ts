@@ -92,6 +92,8 @@ export interface InputSpec {
   default?: unknown;
   /** Pre-fill from the user profile, e.g. `"firstname"`. */
   bindToProfile?: string;
+  /** Personal content omitted from generated links until reviewed for sharing. */
+  sharePrivacy?: 'personal';
   /** Short URL-param alias for compact links, e.g. `"textColor"` → `"tc"`. */
   urlKey?: string;
   /** Collapsible sidebar section this control renders under. */

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { shareUrlState } from '../lib/share-privacy.ts';
 /**
  * A placed tool's live settings panel: the embed editor's inputs without its modal.
  *
@@ -7,7 +8,7 @@
  * sidebar's own (tool-inputs.ts syncInputs), driven by a child runtime exactly as the
  * embed editor drives them, so a placed tool is tuned with the board in view.
  */
-import { parseUrlState, serializeUrlState, buildEmbedUrl, parseToolUrl } from '@lolly/engine';
+import { parseUrlState, buildEmbedUrl, parseToolUrl } from '@lolly/engine';
 import type { AssetRef, ComposeAPI } from '@lolly-tools/core/host-v1';
 import type { InputModelItem } from '../../../../engine/src/inputs.ts';
 import type { Runtime } from '../../../../engine/src/runtime.ts';
@@ -84,7 +85,7 @@ export async function mountEmbedPanel(
 
   const render = async (): Promise<void> => {
     const seq = ++renderSeq;
-    const query = emojiStyle.queryWithEmoji(serializeUrlState(child.getModel()), child.emoji.style);
+    const query = emojiStyle.queryWithEmoji(shareUrlState(child.getModel()), child.emoji.style);
     const next = buildEmbedUrl({ toolId: parsed.toolId, format, query });
     const ref = next
       ? await host.compose!.renderUrl!(next, {

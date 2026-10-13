@@ -136,3 +136,18 @@ lolly qr-code \
 ```
 
 ---
+
+
+### Reviewing personal values in generated links
+
+Generated web links omit inputs bound to the profile and inputs declared with
+`sharePrivacy: "personal"`. The Share dialog shows those values locally and
+requires a separate selection for each value included in the link. A shortened
+link still contains its readable values; password protection remains a separate
+choice. Recorded speech and caption text use the personal declaration.
+
+The URL input contract is unchanged: explicitly supplied parameters still load,
+and CLI arguments still express the same inputs. Local saved sessions retain
+the original values. Automatically updated addresses omit these fields as well.
+An editable `.lolly` file carries the saved design separately from the generated
+link and still needs review before sending.

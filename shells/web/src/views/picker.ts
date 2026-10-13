@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { shareUrlState } from '../lib/share-privacy.ts';
 import { readRecentAssets, recordRecentAsset, readTabMemory, recordTabMemory } from '../lib/picker-memory.ts';
 import { projectImageCardHtml, libraryCardThumb, userCardThumb } from './picker-thumbnails.ts';
 import { assetViewerKind } from '../lib/asset-viewer-source.ts';
@@ -39,7 +40,7 @@ import '../styles/picker.css';   // async CSS chunk (lazy view - not on the land
 import { isHiddenSlot } from '../lib/batch-slots.ts';
 import { archiveBudgetFor, archiveMemberFile, readArchiveMembers, readUploadArchiveBytes } from '../lib/archive-ingest.ts';
 import DOMPurify from 'dompurify';
-import { serializeUrlState, buildEmbedUrl, parseThemedAssetId, buildThemedAssetId, restyleIconTheme, sniffAnimatedRaster, sniffVideoContainer, parseTreatedAssetId, buildTreatedAssetId, stripAssetModifiers, extractC2paStore, prepareC2paIngredientFromStore, stripMetadata, midiToZzfxm, bakeAssetRef, decodeBmp, isBmp, decodeIco, isIco, gunzip, packPng, analyzeTextSignals, LEXICON_VERSION, extractFileMetadata } from '@lolly/engine';
+import { buildEmbedUrl, parseThemedAssetId, buildThemedAssetId, restyleIconTheme, sniffAnimatedRaster, sniffVideoContainer, parseTreatedAssetId, buildTreatedAssetId, stripAssetModifiers, extractC2paStore, prepareC2paIngredientFromStore, stripMetadata, midiToZzfxm, bakeAssetRef, decodeBmp, isBmp, decodeIco, isIco, gunzip, packPng, analyzeTextSignals, LEXICON_VERSION, extractFileMetadata } from '@lolly/engine';
 import type { RondoSourceV1 } from '@lolly/engine';
 import { createToolRuntime as createRuntime } from '../lib/mount-runtime.ts';
 // Format + embeddability rules - pure and unit-tested in ./picker-formats.test.ts.
@@ -2157,7 +2158,7 @@ async function render(
       // keepUserIds: this embed identity re-renders ON THIS DEVICE, where a user/
       // upload resolves - the pre-plan-171 behaviour. Off-device it degrades to the
       // same silent blank it always did (the id is device-local either way).
-      const query = serializeUrlState(runtime.getModel(), { keepUserIds: true });
+      const query = shareUrlState(runtime.getModel(), { keepUserIds: true });
       const url = buildEmbedUrl({ toolId, format: imageFormatSeed(data.__export_format), query });
       const desc = url ? await host.compose._describeUrl(url) : null;
       if (!url || !desc) throw new Error('not renderable');

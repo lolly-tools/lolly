@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { shareUrlState } from '../lib/share-privacy.ts';
 /**
  * Pro / Batch mode - view entry point and orchestrator.
  *
@@ -16,7 +17,7 @@ import './pro.css';
 import { mountKitPanel, type KitPanel } from './kit-panel.ts';
 import { captureKitEdits, restoreKit, type KitState } from './kit-model.ts';
 import { isHiddenSlot, BATCH_SLOT_PREFIX } from '../lib/batch-slots.ts';
-import { serializeUrlState, buildEmbedUrl, toCssPx, CMYK_CONDITIONS, DEFAULT_CMYK_CONDITION } from '@lolly/engine';
+import { buildEmbedUrl, toCssPx, CMYK_CONDITIONS, DEFAULT_CMYK_CONDITION } from '@lolly/engine';
 import { marksToCsv, csvToMarks } from '../lib/print-marks-csv.ts';
 
 // Output-dimension units the batch can target. px is the design canvas; the
@@ -1591,7 +1592,7 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
       // Vector where the tool offers it (scales cleanly for print), else a raster still.
       const format = fmts.includes('svg') ? 'svg' : (fmts.find((f: string) => ['png', 'jpg', 'jpeg', 'webp'].includes(f)) ?? 'png');
       // keepUserIds: a same-device embed identity (see picker.ts embedSession).
-      const url = buildEmbedUrl({ toolId: row.toolId, format, query: serializeUrlState(model, { keepUserIds: true }) });
+      const url = buildEmbedUrl({ toolId: row.toolId, format, query: shareUrlState(model, { keepUserIds: true }) });
       // The cell's artwork must be a REF OBJECT ({id}), not a bare string - the runtime's
       // assetRefId reads .id off an object and ignores bare strings, so a bare URL renders
       // an empty grid. The id is the canonical embed URL; resolveAssetRefs re-renders it.
@@ -1633,7 +1634,7 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
     // URL serializer, so the deep link matches what the single-tool view expects.
     const model = (tool.manifest.inputs ?? []).map((i: any) => ({ ...i, value: row.values[i.id] ?? i.default }));
     // keepUserIds: a same-device preview link - a user/ upload resolves here.
-    const qs = serializeUrlState(model, { format: row.format || state.format, keepUserIds: true });
+    const qs = shareUrlState(model, { format: row.format || state.format, keepUserIds: true });
     // Carry per-row export dimensions (reserved w/h params), and `full` so the
     // single-tool view hides its sidebar - a clean preview. The preview canvas
     // is on-screen px, so physical units are shown at their CSS-px (96dpi) size.

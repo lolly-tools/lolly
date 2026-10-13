@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { shareUrlState } from '../lib/share-privacy.ts';
 /**
  * Multi-edit - 2–8 saved sessions edited side by side (#/multi?s=slot,slot…).
  *
@@ -28,7 +29,7 @@
 import { updateRouteParams } from '../lib/url-state.ts';
 import '../styles/parts/tool.css';        // .tool-inputs control styles (shared chunk with the tool view)
 import '../styles/parts/multi-edit.css';
-import { UNITS, serializeUrlState, buildEmbedUrl, buildInputModel } from '@lolly/engine';
+import { UNITS, buildEmbedUrl, buildInputModel } from '@lolly/engine';
 import { setPendingToolSeed } from '../lib/drop-router.ts';
 import { navigateTo } from '../nav.ts';
 import { createToolRuntime as createRuntime } from '../lib/mount-runtime.ts';
@@ -916,7 +917,7 @@ export async function mountMultiEdit(viewEl: ViewElement, host: WebToolHost, par
       const fmts = m.tool.manifest.render?.formats ?? [];
       // Vector where the tool offers it (scales cleanly for print), else a raster still.
       const format = fmts.includes('svg') ? 'svg' : (fmts.find(f => ['png', 'jpg', 'jpeg', 'webp'].includes(f)) ?? 'png');
-      const url = buildEmbedUrl({ toolId: m.tool.manifest.id, format, query: serializeUrlState(model) });
+      const url = buildEmbedUrl({ toolId: m.tool.manifest.id, format, query: shareUrlState(model) });
       // The cell's artwork must be a REF OBJECT ({id}), not a bare string - the runtime's
       // assetRefId reads .id off an object and ignores bare strings, so a bare URL renders
       // an empty grid. The id is the canonical embed URL; resolveAssetRefs re-renders it.

@@ -256,3 +256,21 @@ test('clipboard failure rejects for sections and reports failure on the copy but
     else Reflect.deleteProperty(navigator, 'clipboard');
   }
 });
+
+
+test('personal fields require a review choice and can be removed again', () => {
+  _clearShareSectionsForTests();
+  const container = document.createElement('div'); document.body.replaceChildren(container);
+  mountSharePanel(container, { toolId: 'fixture', baseParts: ['title=public', 'name=Fixture%20Name'], manifest: {
+    inputs: [{ id: 'name', label: 'Name', type: 'text', bindToProfile: 'firstname' }], render: { formats: ['svg'] },
+  } });
+  const field = container.querySelector<HTMLInputElement>('.share-link-field')!;
+  const checkbox = container.querySelector<HTMLInputElement>('[data-personal-field]')!;
+  assert.equal(new URL(field.value).searchParams.has('name'), false);
+  assert.equal(container.querySelector<HTMLTextAreaElement>('textarea')!.value, 'Fixture Name');
+  assert.equal(checkbox.checked, false);
+  checkbox.checked = true; checkbox.dispatchEvent(new Event('change'));
+  assert.equal(new URL(field.value).searchParams.get('name'), 'Fixture Name');
+  checkbox.checked = false; checkbox.dispatchEvent(new Event('change'));
+  assert.equal(new URL(field.value).searchParams.has('name'), false);
+});

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { shareUrlState } from '../lib/share-privacy.ts';
 /**
  * Pro / Batch mode - render one row to an export Blob, fully offscreen.
  *
@@ -13,7 +14,7 @@
  * (scope-css.ts + render-lifecycle.ts) instead of being hand-copied here, so
  * the batch/compose path can no longer drift from the live view (finding #4).
  */
-import { toCssPx, serializeUrlState, packQuery, isPackAvailable, PACK_PARAM } from '@lolly/engine';
+import { toCssPx, packQuery, isPackAvailable, PACK_PARAM } from '@lolly/engine';
 import { createToolRuntime as createRuntime } from '../lib/mount-runtime.ts';
 import { csvToMarks } from '../lib/print-marks-csv.ts';
 import { type StudioExportHooks, withStudioExport } from '../lib/studio-export-guard.ts';
@@ -400,7 +401,7 @@ export async function renderRowToBlob(row: BatchRow, host: HostV1, { format, wid
     // lolly.txt (see creditText in pro/zip.js); ignored on the compose/thumbnail paths.
     // Thumbnail/preview callers discard `url`, so skip serialising (+ its occasional
     // native DEFLATE) entirely on that path - only real exports (batch, compose child) need it.
-    const url = thumbnail ? '' : toolShareUrl(tool.manifest.id, await preferCompactQuery(serializeUrlState(runtime.getModel(), {
+    const url = thumbnail ? '' : toolShareUrl(tool.manifest.id, await preferCompactQuery(shareUrlState(runtime.getModel(), {
       format: fmt, width, height, unit, dpi: unit !== 'px' ? dpi : undefined,
       // Print settings belong in the recreate link too - a zip recipient opening
       // lolly.txt should land on the file they were sent, bleed and marks included.
