@@ -3,13 +3,13 @@
 Status: PLANNED. Research and implementation plan only; no skill or product changes made.
 Date: 2026-10-13
 Scope: diagram creation and recreation within the standard `skills/lolly` skill.
-Companions: [307 - Diagram builder](307-diagram-builder-semantic-layout-and-quality.md), [308 - Design-system setup](308-standard-lolly-skill-design-system-setup.md).
+Companions: [307 - Diagram builder](307-diagram-builder-semantic-layout-and-quality.md), [308 - Design-system setup](308-standard-lolly-skill-design-system-setup.md), [310 - Overall/tool skills in invitations](310-overall-and-tool-skills-in-agent-invitations.md).
 
 ## Outcome
 
 An agent using the standard Lolly skill can choose a diagram that fits the explanation, generate editable inputs using today's supported tools, inspect the result, and hand over evidence of preserved meaning and requested-format behavior.
 
-Keep one entry skill with progressive references. Use Diagrams for its supported graph layouts, Chart for quantitative graphics, and Design for deliberate compositions the diagram builder cannot yet represent.
+Keep an overall entry skill with progressive shared references and a compatible tool-specific skill for each open tool, as described in plan 310. Share > Copy agent instructions supplies both. The overall skill covers selection across tools; the Diagrams skill covers its supported inputs and recipes. Use Diagrams for its supported graph layouts, Chart for quantitative graphics, and Design for deliberate compositions the diagram builder cannot yet represent.
 
 ## Evidence and gaps
 
@@ -25,7 +25,7 @@ Responsibility: `skills/lolly/SKILL.md`, new `reference/diagrams.md`, and `scrip
 
 Add diagram creation/recreation to the skill description and routing list. Keep the root skill short; load `design-system.md` for setup, `diagrams.md` for selection and supported inputs, and `design.md` only for composition that needs Design.
 
-In `diagrams.md`, generate manifest-derived tables for source modes, diagram types, look values, visual node/edge fields and exports. Include the exact current defaults and the distinction between fresh Minimal seeding and historical Legacy behavior. Prose explains intent and limitations; generated tables describe available controls.
+In `diagrams.md`, generate manifest-derived tables for source modes, diagram types, look values, visual node/edge fields and exports. Include the exact current defaults and the distinction between fresh Minimal seeding and historical Legacy behavior. Prose explains intent and limitations; generated tables describe available controls. Package the applicable guidance in the tool-specific Diagrams skill through plan 310's generator/publication contract, sharing references instead of maintaining divergent copies.
 
 Add a decision table based on meaning:
 

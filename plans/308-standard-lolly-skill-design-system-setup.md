@@ -3,13 +3,13 @@
 Status: PLANNED. Research and implementation plan only; no skill or product changes made.
 Date: 2026-10-13
 Scope: the existing `skills/lolly` skill across all asset work, including diagrams.
-Companions: [307 - Diagram builder quality](307-diagram-builder-semantic-layout-and-quality.md), [309 - Diagram workflows in the standard skill](309-standard-lolly-skill-diagram-workflows.md).
+Companions: [307 - Diagram builder quality](307-diagram-builder-semantic-layout-and-quality.md), [309 - Diagram workflows in the standard skill](309-standard-lolly-skill-diagram-workflows.md), [310 - Overall/tool skills in invitations](310-overall-and-tool-skills-in-agent-invitations.md).
 
 ## Outcome
 
 A person can ask the standard Lolly skill to set up a design system from existing material, use the right system for a piece of work, and carry that system to another device. An agent can explain where each choice came from and verify the resulting render.
 
-Add this to the existing skill's normal workflow. A separate diagram skill would hide setup from the people making posters, slides, charts or motion pieces. Setup remains optional for exploration; a request to match a particular identity requires enough evidence to identify that identity.
+Add this to the overall skill's normal workflow, shared by every tool-specific skill proposed in plan 310. Setup belongs in the overall skill so people making posters, slides, charts or motion pieces receive the same guidance. A tool-specific skill covers that tool's controls, recipes and checks, and points back here for setup. Setup remains optional for exploration; a request to match a particular identity requires enough evidence to identify that identity.
 
 ## Evidence and current gaps
 
