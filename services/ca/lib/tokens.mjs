@@ -2,9 +2,8 @@
 /**
  * HMAC-signed values. Enrollment tokens and the OAuth state cookie share one
  * scheme: base64url(JSON payload) + '.' + base64url(HMAC-SHA256(payloadB64,
- * CA_SERVICE_SECRET)). Stateless by design - verification needs only the
- * secret, so the service keeps no session store; replay inside the 10-minute
- * window just re-issues a cert for the same identity + key, which is harmless.
+ * CA_SERVICE_SECRET)). Token verification needs only the secret. Managed issuance also atomically
+ * consumes a random token identifier in a shared admission store.
  */
 
 const te = new TextEncoder();
@@ -63,7 +62,7 @@ export const TOKEN_TYP = 'lolly-ca/enroll';
  */
 export async function mintEnrollToken({ email, provider, days }, secret, ttlSeconds = TOKEN_TTL_SECONDS) {
   const iat = Math.floor(Date.now() / 1000);
-  return signValue({ typ: TOKEN_TYP, email, provider, iat, exp: iat + ttlSeconds, ...(Number.isFinite(days) ? { days } : {}) }, secret);
+  return signValue({ typ: TOKEN_TYP, version: 2, jti: randomB64u(24), email, provider, iat, exp: iat + ttlSeconds, ...(Number.isFinite(days) ? { days } : {}) }, secret);
 }
 
 /** → { ok: true, payload } | { ok: false, error } - never throws on bad input. */

@@ -31,6 +31,7 @@ jobs:
     with:
       target: tauri-desktop
       public_key_jwk: ${{ vars.VITE_CATALOG_PUBLIC_KEY_JWK }}
+      ca_enrollment_trust_json: ${{ vars.VITE_CA_ENROLLMENT_TRUST_JSON }}
     secrets:
       LOLLY_CATALOG_SIGNING_KEY: ${{ secrets.LOLLY_CATALOG_SIGNING_KEY }}
 

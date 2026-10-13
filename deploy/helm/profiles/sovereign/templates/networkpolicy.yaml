@@ -15,7 +15,11 @@ spec:
   podSelector:
     matchLabels:
       {{- include "sovereign.selector" (dict "root" $ "name" $name) | nindent 6 }}
-  policyTypes: [Ingress]
+  policyTypes: [Ingress{{ if and (eq $name "ca") (eq $component.issuerMode "vault-pki") }}, Egress{{ end }}]
+  {{- if and (eq $name "ca") (eq $component.issuerMode "vault-pki") }}
+  egress:
+    {{- toYaml $component.managed.egress | nindent 4 }}
+  {{- end }}
   ingress:
     - from:
         {{- range $peers | uniq }}

@@ -185,16 +185,252 @@ async function fetchVerifiedEmail(provider, env, { code, redirectUri, pkceVerifi
 // services/ca/handler.mjs
 import { isIP } from "node:net";
 
-// services/ca/lib/tokens.mjs
+// engine/src/bytes.ts
+function concatBytes(parts) {
+  let n = 0;
+  for (const p of parts) n += p.length;
+  const out = new Uint8Array(n);
+  let o = 0;
+  for (const p of parts) {
+    out.set(p, o);
+    o += p.length;
+  }
+  return out;
+}
+var asBufferSource = (b) => b;
+var bytesToHex = (b) => Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("");
+function base64ToBytes(b64) {
+  const bin = atob(b64);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+function bytesToBin(bytes) {
+  let s = "";
+  for (let i = 0; i < bytes.length; i += 32768) {
+    s += String.fromCharCode.apply(null, bytes.subarray(i, i + 32768));
+  }
+  return s;
+}
+
+// engine/src/der-read.ts
+function derTlv(b, i) {
+  if (i + 2 > b.length) throw new Error("der: truncated");
+  const tag = b[i];
+  let len = b[i + 1];
+  let j = i + 2;
+  if (len & 128) {
+    const k = len & 127;
+    if (j + k > b.length) throw new Error("der: length overruns buffer");
+    len = 0;
+    for (let x = 0; x < k; x++) len = len * 256 + b[j++];
+  }
+  if (j + len > b.length) throw new Error("der: length overruns buffer");
+  return { tag, start: i, contentStart: j, end: j + len };
+}
+function derChildren(b, tlv2) {
+  const kids = [];
+  let i = tlv2.contentStart;
+  while (i < tlv2.end) {
+    const c = derTlv(b, i);
+    kids.push(c);
+    i = c.end;
+  }
+  return kids;
+}
+var EC_CURVES = {
+  "2a8648ce3d030107": { curve: "P-256", hash: "SHA-256", size: 32 },
+  // prime256v1
+  "2b81040022": { curve: "P-384", hash: "SHA-384", size: 48 },
+  // secp384r1
+  "2b81040023": { curve: "P-521", hash: "SHA-512", size: 66 }
+  // secp521r1
+};
+function ecdsaDerToRaw(derSig, size) {
+  const top = derTlv(derSig, 0);
+  if (top.tag !== 48) throw new Error("der: not an ECDSA-Sig-Value");
+  const [r, s] = derChildren(derSig, top);
+  if (!r || !s || r.tag !== 2 || s.tag !== 2) throw new Error("der: not an ECDSA-Sig-Value");
+  const out = new Uint8Array(size * 2);
+  let at = 0;
+  for (const int of [r, s]) {
+    let i = int.contentStart;
+    while (i < int.end && derSig[i] === 0) i++;
+    const v = derSig.subarray(i, int.end);
+    if (v.length > size) throw new Error("der: ECDSA integer wider than the curve");
+    out.set(v, at + size - v.length);
+    at += size;
+  }
+  return out;
+}
+function derLen(n) {
+  if (n < 128) return Uint8Array.of(n);
+  if (n < 256) return Uint8Array.of(129, n);
+  if (n < 65536) return Uint8Array.of(130, n >>> 8, n & 255);
+  return Uint8Array.of(131, n >>> 16, n >>> 8 & 255, n & 255);
+}
+function derWrap(tag, body) {
+  return concatBytes([Uint8Array.of(tag), derLen(body.length), body]);
+}
+function ecdsaRawToDer(raw) {
+  const half = raw.length / 2;
+  const int = (bytes) => {
+    let i = 0;
+    while (i < bytes.length - 1 && bytes[i] === 0) i++;
+    const v = bytes.subarray(i);
+    return v[0] & 128 ? derWrap(2, concatBytes([Uint8Array.of(0), v])) : derWrap(2, v);
+  };
+  return derWrap(48, concatBytes([int(raw.subarray(0, half)), int(raw.subarray(half))]));
+}
+
+// engine/src/x509.ts
 var te2 = new TextEncoder();
 var subtle2 = globalThis.crypto.subtle;
+function derLen2(n) {
+  if (n < 128) return Uint8Array.of(n);
+  if (n < 256) return Uint8Array.of(129, n);
+  if (n < 65536) return Uint8Array.of(130, n >>> 8, n & 255);
+  return Uint8Array.of(131, n >>> 16, n >>> 8 & 255, n & 255);
+}
+function der(tag, ...content) {
+  const body = concatBytes(content);
+  return concatBytes([Uint8Array.of(tag), derLen2(body.length), body]);
+}
+var derSeq = (...c) => der(48, ...c);
+var derSet = (...c) => der(49, ...c);
+var derOctet = (bytes) => der(4, bytes);
+function derUint(bytes) {
+  let i = 0;
+  while (i < bytes.length - 1 && bytes[i] === 0) i++;
+  const v = bytes.subarray(i);
+  return v[0] & 128 ? der(2, Uint8Array.of(0), v) : der(2, v);
+}
+function derOid(oid2) {
+  const parts = oid2.split(".").map(Number);
+  const bytes = [parts[0] * 40 + parts[1]];
+  for (const p of parts.slice(2)) {
+    const grp = [p & 127];
+    for (let n = Math.floor(p / 128); n > 0; n = Math.floor(n / 128)) grp.unshift(n & 127 | 128);
+    bytes.push(...grp);
+  }
+  return der(6, Uint8Array.from(bytes));
+}
+function derTime(date) {
+  const p = (v, w = 2) => String(v).padStart(w, "0");
+  const y = date.getUTCFullYear();
+  const rest = p(date.getUTCMonth() + 1) + p(date.getUTCDate()) + p(date.getUTCHours()) + p(date.getUTCMinutes()) + p(date.getUTCSeconds()) + "Z";
+  if (y >= 1950 && y < 2050) return der(23, te2.encode(p(y % 100) + rest));
+  return der(24, te2.encode(p(y, 4) + rest));
+}
+function asDate(v, fallback) {
+  const d = v == null ? new Date(fallback) : v instanceof Date ? v : new Date(v);
+  if (Number.isNaN(d.getTime())) throw new Error("c2pa: invalid date " + v);
+  return d;
+}
+async function keyIdOf(spkiDer) {
+  const [, bits] = derChildren(spkiDer, derTlv(spkiDer, 0));
+  if (!bits || bits.tag !== 3) throw new Error("x509: SPKI has no subjectPublicKey BIT STRING");
+  return new Uint8Array(await subtle2.digest("SHA-1", asBufferSource(spkiDer.subarray(bits.contentStart + 1, bits.end))));
+}
+function certNameAndKey(certDer) {
+  const [tbs] = derChildren(certDer, derTlv(certDer, 0));
+  const kids = derChildren(certDer, tbs);
+  const shift = kids[0].tag === 160 ? 1 : 0;
+  return {
+    subjectBytes: certDer.slice(kids[shift + 4].start, kids[shift + 4].end),
+    spkiDer: certDer.slice(kids[shift + 5].start, kids[shift + 5].end)
+  };
+}
+function pemToDer(pem) {
+  const b64 = String(pem).replace(/-----[^-]+-----/g, "").replace(/\s+/g, "");
+  if (!b64) throw new Error("x509: no PEM body found");
+  return base64ToBytes(b64);
+}
+function derToPem(der2, label) {
+  const body = btoa(bytesToBin(der2)).replace(/(.{64})/g, "$1\n").trimEnd();
+  return `-----BEGIN ${label}-----
+${body}
+-----END ${label}-----
+`;
+}
+var OID_ECDSA_WITH_SHA256 = "1.2.840.10045.4.3.2";
+function randomSerial() {
+  const serial = globalThis.crypto.getRandomValues(new Uint8Array(9));
+  serial[0] = serial[0] & 63 | 64;
+  return serial;
+}
+function x501Name(organization, commonName) {
+  return derSeq(
+    derSet(derSeq(derOid("2.5.4.10"), der(12, te2.encode(organization)))),
+    // organizationName
+    derSet(derSeq(derOid("2.5.4.3"), der(12, te2.encode(commonName))))
+    // commonName
+  );
+}
+async function signTbs(tbs, privateKey) {
+  const raw = new Uint8Array(await subtle2.sign({ name: "ECDSA", hash: "SHA-256" }, privateKey, asBufferSource(tbs)));
+  return derSeq(tbs, derSeq(derOid(OID_ECDSA_WITH_SHA256)), der(3, Uint8Array.of(0), ecdsaRawToDer(raw)));
+}
+async function issueLeafCert({
+  caCertDer,
+  caPrivateKey,
+  spkiDer,
+  email,
+  commonName,
+  organization = "Lolly",
+  days = 7,
+  notBefore,
+  notAfter
+} = {}) {
+  if (!(caCertDer instanceof Uint8Array)) throw new Error("x509: caCertDer must be a Uint8Array");
+  if (!(spkiDer instanceof Uint8Array)) throw new Error("x509: spkiDer must be a Uint8Array");
+  if (!email) throw new Error("x509: email is required");
+  const nb = asDate(notBefore, Date.now() - 6e4);
+  const na = asDate(notAfter, nb.getTime() + days * 24 * 3600 * 1e3);
+  const signKey = caPrivateKey instanceof Uint8Array ? await subtle2.importKey("pkcs8", asBufferSource(caPrivateKey), { name: "ECDSA", namedCurve: "P-256" }, false, ["sign"]) : caPrivateKey;
+  const ca = certNameAndKey(caCertDer);
+  const keyId = await keyIdOf(spkiDer);
+  const issuerKeyId = await keyIdOf(ca.spkiDer);
+  const extensions = derSeq(
+    derSeq(derOid("2.5.29.19"), derOctet(derSeq())),
+    // basicConstraints: CA absent = false
+    derSeq(derOid("2.5.29.15"), der(1, Uint8Array.of(255)), derOctet(der(3, Uint8Array.of(7, 128)))),
+    // keyUsage: digitalSignature, critical
+    derSeq(derOid("2.5.29.37"), derOctet(derSeq(derOid("1.3.6.1.5.5.7.3.4")))),
+    // extKeyUsage: emailProtection
+    derSeq(derOid("2.5.29.14"), derOctet(derOctet(keyId))),
+    // subjectKeyIdentifier
+    derSeq(derOid("2.5.29.35"), derOctet(derSeq(der(128, issuerKeyId)))),
+    // authorityKeyIdentifier: [0] keyid
+    derSeq(derOid("2.5.29.17"), derOctet(derSeq(der(129, te2.encode(String(email))))))
+    // subjectAltName: rfc822Name
+  );
+  const tbs = derSeq(
+    der(160, derUint(Uint8Array.of(2))),
+    // [0] version: v3
+    derUint(randomSerial()),
+    derSeq(derOid(OID_ECDSA_WITH_SHA256)),
+    ca.subjectBytes,
+    // issuer, byte-identical to the CA's subject
+    derSeq(derTime(nb), derTime(na)),
+    x501Name(organization, commonName || String(email)),
+    spkiDer,
+    // already a DER SubjectPublicKeyInfo
+    der(163, extensions)
+  );
+  return signTbs(tbs, signKey);
+}
+
+// services/ca/lib/tokens.mjs
+var te3 = new TextEncoder();
+var subtle3 = globalThis.crypto.subtle;
 var b64u = (bytes) => Buffer.from(bytes).toString("base64url");
 var b64uToBytes = (str) => new Uint8Array(Buffer.from(String(str), "base64url"));
 var randomB64u = (n = 32) => b64u(globalThis.crypto.getRandomValues(new Uint8Array(n)));
 async function hmac(secret, text) {
   if (!secret) throw new Error("CA_SERVICE_SECRET is not set");
-  const key = await subtle2.importKey("raw", te2.encode(String(secret)), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-  return new Uint8Array(await subtle2.sign("HMAC", key, te2.encode(text)));
+  const key = await subtle3.importKey("raw", te3.encode(String(secret)), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  return new Uint8Array(await subtle3.sign("HMAC", key, te3.encode(text)));
 }
 async function signValue(payload, secret) {
   const body = Buffer.from(JSON.stringify(payload)).toString("base64url");
@@ -219,7 +455,7 @@ var TOKEN_TTL_SECONDS = 600;
 var TOKEN_TYP = "lolly-ca/enroll";
 async function mintEnrollToken({ email, provider, days }, secret, ttlSeconds = TOKEN_TTL_SECONDS) {
   const iat = Math.floor(Date.now() / 1e3);
-  return signValue({ typ: TOKEN_TYP, email, provider, iat, exp: iat + ttlSeconds, ...Number.isFinite(days) ? { days } : {} }, secret);
+  return signValue({ typ: TOKEN_TYP, version: 2, jti: randomB64u(24), email, provider, iat, exp: iat + ttlSeconds, ...Number.isFinite(days) ? { days } : {} }, secret);
 }
 async function verifyEnrollToken(token, secret) {
   const payload = await verifyValue(token, secret);
@@ -282,219 +518,884 @@ function errorPage(message) {
 <p>Close this window and try again from Lolly.</p>`);
 }
 
-// engine/src/bytes.ts
-function concatBytes(parts) {
-  let n = 0;
-  for (const p of parts) n += p.length;
-  const out = new Uint8Array(n);
-  let o = 0;
-  for (const p of parts) {
-    out.set(p, o);
-    o += p.length;
+// engine/src/x509-read.ts
+var td = new TextDecoder();
+var subtle4 = globalThis.crypto.subtle;
+function decodeOid(b, tlv2) {
+  const bytes = b.slice(tlv2.contentStart, tlv2.end);
+  const parts = [Math.floor(bytes[0] / 40), bytes[0] % 40];
+  let v = 0;
+  for (let i = 1; i < bytes.length; i++) {
+    v = v * 128 + (bytes[i] & 127);
+    if (!(bytes[i] & 128)) {
+      parts.push(v);
+      v = 0;
+    }
+  }
+  return parts.join(".");
+}
+function decodeTime(b, tlv2) {
+  const s = td.decode(b.slice(tlv2.contentStart, tlv2.end));
+  const four = tlv2.tag === 24;
+  const yy = four ? +s.slice(0, 4) : +s.slice(0, 2) < 50 ? 2e3 + +s.slice(0, 2) : 1900 + +s.slice(0, 2);
+  const o = four ? 2 : 0;
+  return new Date(Date.UTC(yy, +s.slice(2 + o, 4 + o) - 1, +s.slice(4 + o, 6 + o), +s.slice(6 + o, 8 + o), +s.slice(8 + o, 10 + o), +s.slice(10 + o, 12 + o)));
+}
+function decodeName(cert, nameTlv) {
+  const out = {};
+  for (const rdn of derChildren(cert, nameTlv)) {
+    for (const atv of derChildren(cert, rdn)) {
+      const [oidTlv, valTlv] = derChildren(cert, atv);
+      if (!oidTlv || !valTlv || oidTlv.tag !== 6) continue;
+      const oid2 = decodeOid(cert, oidTlv);
+      const val = td.decode(cert.slice(valTlv.contentStart, valTlv.end));
+      if (oid2 === "2.5.4.3" && out.commonName == null) out.commonName = val;
+      if (oid2 === "2.5.4.10" && out.organization == null) out.organization = val;
+    }
   }
   return out;
 }
-var asBufferSource = (b) => b;
-function base64ToBytes(b64) {
-  const bin = atob(b64);
-  const out = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+function decodeExtensions(cert, kids, shift) {
+  const out = { sanEmails: [], isCa: false };
+  try {
+    const wrap = kids.slice(shift + 6).find((k) => k.tag === 163);
+    if (!wrap) return out;
+    const [seq] = derChildren(cert, wrap);
+    if (seq?.tag !== 48) return out;
+    for (const ext of derChildren(cert, seq)) {
+      if (ext.tag !== 48) continue;
+      const parts = derChildren(cert, ext);
+      const value = parts[parts.length - 1];
+      if (parts[0]?.tag !== 6 || !value || value.tag !== 4) continue;
+      const oid2 = decodeOid(cert, parts[0]);
+      if (oid2 === "2.5.29.17") {
+        const names = derTlv(cert, value.contentStart);
+        if (names.tag !== 48 || names.end > value.end) continue;
+        for (const gn of derChildren(cert, names)) {
+          if (gn.tag === 129) out.sanEmails.push(td.decode(cert.slice(gn.contentStart, gn.end)));
+        }
+      } else if (oid2 === "2.5.29.19") {
+        const bc = derTlv(cert, value.contentStart);
+        if (bc.tag !== 48 || bc.end > value.end) continue;
+        const [ca] = derChildren(cert, bc);
+        out.isCa = !!ca && ca.tag === 1 && ca.end > ca.contentStart && cert[ca.contentStart] !== 0;
+      }
+    }
+  } catch {
+  }
   return out;
 }
-function bytesToBin(bytes) {
-  let s = "";
-  for (let i = 0; i < bytes.length; i += 32768) {
-    s += String.fromCharCode.apply(null, bytes.subarray(i, i + 32768));
+var SIG_ALGS = {
+  "2a8648ce3d040302": { scheme: "ecdsa", hash: "SHA-256" },
+  "2a8648ce3d040303": { scheme: "ecdsa", hash: "SHA-384" },
+  "2a8648ce3d040304": { scheme: "ecdsa", hash: "SHA-512" },
+  "2a864886f70d01010b": { scheme: "rsa", hash: "SHA-256" },
+  "2a864886f70d01010c": { scheme: "rsa", hash: "SHA-384" },
+  "2a864886f70d01010d": { scheme: "rsa", hash: "SHA-512" }
+};
+var SIG_OID_RSA_PSS = "2a864886f70d01010a";
+var SIG_OID_ED25519 = "2b6570";
+var HASH_OIDS = {
+  "608648016503040201": "SHA-256",
+  "608648016503040202": "SHA-384",
+  "608648016503040203": "SHA-512",
+  "2b0e03021a": "SHA-1"
+};
+function parseCertSigAlg(cert, algId) {
+  try {
+    const kids = derChildren(cert, algId);
+    const oidTlv = kids[0];
+    if (oidTlv?.tag !== 6) return null;
+    const oid2 = bytesToHex(cert.slice(oidTlv.contentStart, oidTlv.end));
+    const fixed = SIG_ALGS[oid2];
+    if (fixed) return { ...fixed };
+    if (oid2 === SIG_OID_ED25519) return { scheme: "ed25519" };
+    if (oid2 === SIG_OID_RSA_PSS) {
+      let hash = "SHA-1";
+      let saltLength = 20;
+      const params = kids[1];
+      if (params && params.tag === 48) {
+        for (const field of derChildren(cert, params)) {
+          if (field.tag === 160) {
+            const h = derChildren(cert, field)[0];
+            if (h && h.tag === 6) hash = HASH_OIDS[bytesToHex(cert.slice(h.contentStart, h.end))] || hash;
+          } else if (field.tag === 162) {
+            const s = derChildren(cert, field)[0];
+            if (s && s.tag === 2) {
+              let n = 0;
+              for (const b of cert.slice(s.contentStart, s.end)) n = n * 256 + b;
+              saltLength = n;
+            }
+          }
+        }
+      }
+      return { scheme: "rsa-pss", hash, saltLength };
+    }
+    return null;
+  } catch {
+    return null;
   }
-  return s;
 }
-
-// engine/src/der-read.ts
-function derTlv(b, i) {
-  if (i + 2 > b.length) throw new Error("der: truncated");
-  const tag = b[i];
-  let len = b[i + 1];
-  let j = i + 2;
-  if (len & 128) {
-    const k = len & 127;
-    if (j + k > b.length) throw new Error("der: length overruns buffer");
-    len = 0;
-    for (let x = 0; x < k; x++) len = len * 256 + b[j++];
-  }
-  if (j + len > b.length) throw new Error("der: length overruns buffer");
-  return { tag, start: i, contentStart: j, end: j + len };
-}
-function derChildren(b, tlv) {
-  const kids = [];
-  let i = tlv.contentStart;
-  while (i < tlv.end) {
-    const c = derTlv(b, i);
-    kids.push(c);
-    i = c.end;
-  }
-  return kids;
-}
-function derLen(n) {
-  if (n < 128) return Uint8Array.of(n);
-  if (n < 256) return Uint8Array.of(129, n);
-  if (n < 65536) return Uint8Array.of(130, n >>> 8, n & 255);
-  return Uint8Array.of(131, n >>> 16, n >>> 8 & 255, n & 255);
-}
-function derWrap(tag, body) {
-  return concatBytes([Uint8Array.of(tag), derLen(body.length), body]);
-}
-function ecdsaRawToDer(raw) {
-  const half = raw.length / 2;
-  const int = (bytes) => {
-    let i = 0;
-    while (i < bytes.length - 1 && bytes[i] === 0) i++;
-    const v = bytes.subarray(i);
-    return v[0] & 128 ? derWrap(2, concatBytes([Uint8Array.of(0), v])) : derWrap(2, v);
+function parseCertificate(cert) {
+  const top = derTlv(cert, 0);
+  const topKids = derChildren(cert, top);
+  const tbs = topKids[0];
+  const sigAlgTlv = topKids[1];
+  const sigTlv = topKids[2];
+  const kids = derChildren(cert, tbs);
+  const shift = kids[0].tag === 160 ? 1 : 0;
+  const issuerTlv = kids[shift + 2];
+  const validity = derChildren(cert, kids[shift + 3]);
+  const subjectTlv = kids[shift + 4];
+  const spkiTlv = kids[shift + 5];
+  const issuerBytes = cert.slice(issuerTlv.start, issuerTlv.end);
+  const subjectBytes = cert.slice(subjectTlv.start, subjectTlv.end);
+  const ext = decodeExtensions(cert, kids, shift);
+  return {
+    subject: decodeName(cert, subjectTlv),
+    issuer: decodeName(cert, issuerTlv),
+    notBefore: decodeTime(cert, validity[0]),
+    notAfter: decodeTime(cert, validity[1]),
+    selfSigned: bytesToHex(issuerBytes) === bytesToHex(subjectBytes),
+    spki: cert.slice(spkiTlv.start, spkiTlv.end),
+    tbsBytes: cert.slice(tbs.start, tbs.end),
+    signatureRaw: sigTlv && sigTlv.tag === 3 && sigTlv.end > sigTlv.contentStart + 1 ? cert.slice(sigTlv.contentStart + 1, sigTlv.end) : null,
+    sigAlg: sigAlgTlv ? parseCertSigAlg(cert, sigAlgTlv) : null,
+    issuerBytes,
+    subjectBytes,
+    sanEmails: ext.sanEmails,
+    isCa: ext.isCa
   };
-  return derWrap(48, concatBytes([int(raw.subarray(0, half)), int(raw.subarray(half))]));
+}
+function ecParamsOf(spki) {
+  try {
+    const algId = derChildren(spki, derTlv(spki, 0))[0];
+    const curveOid = derChildren(spki, algId)[1];
+    if (curveOid?.tag !== 6) return null;
+    return EC_CURVES[bytesToHex(spki.slice(curveOid.contentStart, curveOid.end))] ?? null;
+  } catch {
+    return null;
+  }
+}
+async function signedBy(child, signer) {
+  if (!child.signatureRaw || !child.sigAlg || bytesToHex(child.issuerBytes) !== bytesToHex(signer.subjectBytes)) return false;
+  const sa = child.sigAlg;
+  try {
+    if (sa.scheme === "ecdsa") {
+      const ec = ecParamsOf(signer.spki);
+      if (!ec) return false;
+      const key2 = await subtle4.importKey("spki", asBufferSource(signer.spki), { name: "ECDSA", namedCurve: ec.curve }, false, ["verify"]);
+      return await subtle4.verify({ name: "ECDSA", hash: sa.hash }, key2, asBufferSource(ecdsaDerToRaw(child.signatureRaw, ec.size)), asBufferSource(child.tbsBytes));
+    }
+    if (sa.scheme === "rsa") {
+      const key2 = await subtle4.importKey("spki", asBufferSource(normalizeRsaSpki(signer.spki)), { name: "RSASSA-PKCS1-v1_5", hash: sa.hash }, false, ["verify"]);
+      return await subtle4.verify({ name: "RSASSA-PKCS1-v1_5" }, key2, asBufferSource(child.signatureRaw), asBufferSource(child.tbsBytes));
+    }
+    if (sa.scheme === "rsa-pss") {
+      const key2 = await subtle4.importKey("spki", asBufferSource(normalizeRsaSpki(signer.spki)), { name: "RSA-PSS", hash: sa.hash }, false, ["verify"]);
+      return await subtle4.verify({ name: "RSA-PSS", saltLength: sa.saltLength }, key2, asBufferSource(child.signatureRaw), asBufferSource(child.tbsBytes));
+    }
+    const key = await subtle4.importKey("spki", asBufferSource(signer.spki), { name: "Ed25519" }, false, ["verify"]);
+    return await subtle4.verify({ name: "Ed25519" }, key, asBufferSource(child.signatureRaw), asBufferSource(child.tbsBytes));
+  } catch {
+    return false;
+  }
+}
+var OID_RSASSA_PSS = Uint8Array.of(6, 9, 42, 134, 72, 134, 247, 13, 1, 1, 10);
+var ALGID_RSA_ENCRYPTION = Uint8Array.of(48, 13, 6, 9, 42, 134, 72, 134, 247, 13, 1, 1, 1, 5, 0);
+function derWrap2(tag, body) {
+  let head;
+  if (body.length < 128) head = Uint8Array.of(tag, body.length);
+  else if (body.length < 256) head = Uint8Array.of(tag, 129, body.length);
+  else head = Uint8Array.of(tag, 130, body.length >>> 8, body.length & 255);
+  return concatBytes([head, body]);
+}
+function normalizeRsaSpki(spki) {
+  const top = derTlv(spki, 0);
+  const [algTlv, keyTlv] = derChildren(spki, top);
+  const oid2 = derTlv(spki, algTlv.contentStart);
+  const oidBytes = spki.slice(oid2.start, oid2.end);
+  if (oidBytes.length !== OID_RSASSA_PSS.length || !oidBytes.every((b, i) => b === OID_RSASSA_PSS[i])) return spki;
+  return derWrap2(48, concatBytes([ALGID_RSA_ENCRYPTION, spki.slice(keyTlv.start, keyTlv.end)]));
 }
 
-// engine/src/x509.ts
-var te3 = new TextEncoder();
-var subtle3 = globalThis.crypto.subtle;
-function derLen2(n) {
-  if (n < 128) return Uint8Array.of(n);
-  if (n < 256) return Uint8Array.of(129, n);
-  if (n < 65536) return Uint8Array.of(130, n >>> 8, n & 255);
-  return Uint8Array.of(131, n >>> 16, n >>> 8 & 255, n & 255);
+// engine/src/enrollment.ts
+var te4 = new TextEncoder();
+var td2 = new TextDecoder("utf-8", { fatal: true });
+var subtle5 = globalThis.crypto.subtle;
+var SIG_OID = "1.2.840.10045.4.3.2";
+var EMAIL_EKU = "1.3.6.1.5.5.7.3.4";
+var ENROLLMENT_VERSION = 2;
+var equalDer = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
+var hex = (b) => Array.from(b, (v) => v.toString(16).padStart(2, "0")).join("");
+function tlv(b, at = 0, tag = 48, end = b.length) {
+  const t = derTlv(b, at);
+  if (t.tag !== tag || t.end !== end || !equalDer(b.slice(t.start, t.end), der(t.tag, b.slice(t.contentStart, t.end)))) throw new Error("Invalid DER structure");
+  return t;
 }
-function der(tag, ...content) {
-  const body = concatBytes(content);
-  return concatBytes([Uint8Array.of(tag), derLen2(body.length), body]);
+function children(b, t, count) {
+  const c = derChildren(b, t);
+  for (const v of c) if (!equalDer(b.slice(v.start, v.end), der(v.tag, b.slice(v.contentStart, v.end)))) throw new Error("Noncanonical DER length");
+  if (count != null && c.length !== count) throw new Error("Invalid DER field count");
+  return c;
 }
-var derSeq = (...c) => der(48, ...c);
-var derSet = (...c) => der(49, ...c);
-var derOctet = (bytes) => der(4, bytes);
-function derUint(bytes) {
-  let i = 0;
-  while (i < bytes.length - 1 && bytes[i] === 0) i++;
-  const v = bytes.subarray(i);
-  return v[0] & 128 ? der(2, Uint8Array.of(0), v) : der(2, v);
-}
-function derOid(oid) {
-  const parts = oid.split(".").map(Number);
-  const bytes = [parts[0] * 40 + parts[1]];
-  for (const p of parts.slice(2)) {
-    const grp = [p & 127];
-    for (let n = Math.floor(p / 128); n > 0; n = Math.floor(n / 128)) grp.unshift(n & 127 | 128);
-    bytes.push(...grp);
+function oid(b, t) {
+  if (t.tag !== 6 || t.end <= t.contentStart) throw new Error("Invalid object identifier");
+  const nums = [];
+  let n = 0;
+  let start = true;
+  for (const v of b.subarray(t.contentStart, t.end)) {
+    if (start && v === 128) throw new Error("Noncanonical object identifier");
+    n = n * 128 + (v & 127);
+    if (!Number.isSafeInteger(n)) throw new Error("Object identifier is too large");
+    if (!(v & 128)) {
+      nums.push(n);
+      n = 0;
+      start = true;
+    } else start = false;
   }
-  return der(6, Uint8Array.from(bytes));
+  if (!start || !nums.length) throw new Error("Invalid object identifier");
+  const first = nums.shift();
+  return [first < 40 ? 0 : first < 80 ? 1 : 2, first < 80 ? first % 40 : first - 80, ...nums].join(".");
 }
-function derTime(date) {
-  const p = (v, w = 2) => String(v).padStart(w, "0");
-  const y = date.getUTCFullYear();
-  const rest = p(date.getUTCMonth() + 1) + p(date.getUTCDate()) + p(date.getUTCHours()) + p(date.getUTCMinutes()) + p(date.getUTCSeconds()) + "Z";
-  if (y >= 1950 && y < 2050) return der(23, te3.encode(p(y % 100) + rest));
-  return der(24, te3.encode(p(y, 4) + rest));
+function uint(b, t) {
+  const v = b.subarray(t.contentStart, t.end);
+  if (t.tag !== 2 || !v.length || v[0] & 128 || v.length > 1 && v[0] === 0 && !(v[1] & 128)) throw new Error("Invalid unsigned integer");
+  let n = 0;
+  for (const x of v) n = n * 256 + x;
+  if (!Number.isSafeInteger(n)) throw new Error("Integer is too large");
+  return n;
 }
-function asDate(v, fallback) {
-  const d = v == null ? new Date(fallback) : v instanceof Date ? v : new Date(v);
-  if (Number.isNaN(d.getTime())) throw new Error("c2pa: invalid date " + v);
+function bool(b, t) {
+  if (t.tag !== 1 || t.end - t.contentStart !== 1 || ![0, 255].includes(b[t.contentStart])) throw new Error("Invalid DER boolean");
+  return b[t.contentStart] === 255;
+}
+function time(b, t) {
+  const s = td2.decode(b.subarray(t.contentStart, t.end));
+  if (t.tag !== 23 && t.tag !== 24) throw new Error("Invalid certificate time");
+  if (!(t.tag === 23 ? /^\d{12}Z$/ : /^\d{14}Z$/).test(s)) throw new Error("Invalid certificate time");
+  const y = t.tag === 23 ? (+s.slice(0, 2) < 50 ? 2e3 : 1900) + +s.slice(0, 2) : +s.slice(0, 4);
+  const off = t.tag === 23 ? 2 : 4;
+  const d = new Date(Date.UTC(y, +s.slice(off, off + 2) - 1, +s.slice(off + 2, off + 4), +s.slice(off + 4, off + 6), +s.slice(off + 6, off + 8), +s.slice(off + 8, off + 10)));
+  const canonical = d.toISOString().replace(/[-:T]/g, "").replace(".000Z", "Z");
+  if ((t.tag === 23 ? canonical.slice(2) : canonical) !== s) throw new Error("Invalid calendar time");
   return d;
 }
-async function keyIdOf(spkiDer) {
-  const [, bits] = derChildren(spkiDer, derTlv(spkiDer, 0));
-  if (!bits || bits.tag !== 3) throw new Error("x509: SPKI has no subjectPublicKey BIT STRING");
-  return new Uint8Array(await subtle3.digest("SHA-1", asBufferSource(spkiDer.subarray(bits.contentStart + 1, bits.end))));
+async function p256(spki) {
+  const [alg, bits] = children(spki, tlv(spki), 2);
+  const [ec, curve] = children(spki, alg, 2);
+  if (oid(spki, ec) !== "1.2.840.10045.2.1" || oid(spki, curve) !== "1.2.840.10045.3.1.7" || bits.tag !== 3 || bits.end - bits.contentStart !== 66 || spki[bits.contentStart] !== 0 || spki[bits.contentStart + 1] !== 4) throw new Error("Device key must be P-256");
+  return subtle5.importKey("spki", asBufferSource(spki), { name: "ECDSA", namedCurve: "P-256" }, false, ["verify"]);
 }
-function certNameAndKey(certDer) {
-  const [tbs] = derChildren(certDer, derTlv(certDer, 0));
-  const kids = derChildren(certDer, tbs);
-  const shift = kids[0].tag === 160 ? 1 : 0;
+async function enrollmentProofMessage(token, csr) {
+  if (typeof token !== "string" || !token.length || token.length > 8192 || csr.length > 4096) throw new Error("Invalid enrollment proof input");
+  const digest3 = hex(new Uint8Array(await subtle5.digest("SHA-256", asBufferSource(csr))));
+  return te4.encode(JSON.stringify(["lolly-ca/enroll", ENROLLMENT_VERSION, token, digest3]));
+}
+async function verifyEnrollmentRequest(csr, spki, proof, token) {
+  if (!csr.length || csr.length > 4096 || proof.length !== 64 || spki.length > 256) throw new Error("Invalid enrollment request size");
+  const [info, alg, sig] = children(csr, tlv(csr), 3);
+  const [version, subject, publicKey, attrs] = children(csr, info, 4);
+  if (uint(csr, version) !== 0 || subject.tag !== 48 || subject.end !== subject.contentStart || attrs.tag !== 160 || attrs.end !== attrs.contentStart) throw new Error("CSR identity and extensions must be empty");
+  if (oid(csr, children(csr, alg, 1)[0]) !== SIG_OID || sig.tag !== 3 || csr[sig.contentStart] !== 0) throw new Error("Invalid CSR signature algorithm");
+  if (!equalDer(csr.slice(publicKey.start, publicKey.end), spki)) throw new Error("CSR key does not match device key");
+  const key = await p256(spki);
+  const sigBytes = csr.slice(sig.contentStart + 1, sig.end);
+  const raw = ecdsaDerToRaw(sigBytes, 32);
+  if (!equalDer(ecdsaRawToDer(raw), sigBytes)) throw new Error("Noncanonical CSR signature");
+  if (!await subtle5.verify({ name: "ECDSA", hash: "SHA-256" }, key, asBufferSource(raw), asBufferSource(csr.slice(info.start, info.end)))) throw new Error("CSR signature does not verify");
+  if (!await subtle5.verify({ name: "ECDSA", hash: "SHA-256" }, key, asBufferSource(proof), asBufferSource(await enrollmentProofMessage(token, csr)))) throw new Error("Enrollment proof does not verify");
+}
+function readExtensions(b, t) {
+  const out = /* @__PURE__ */ new Map();
+  for (const ext of children(b, t)) {
+    const c = children(b, ext);
+    if (ext.tag !== 48 || c.length < 2 || c.length > 3) throw new Error("Invalid certificate extension");
+    const id = oid(b, c[0]);
+    const value = c.at(-1);
+    if (out.has(id) || value.tag !== 4) throw new Error("Invalid or duplicate certificate extension");
+    out.set(id, { critical: c.length === 3 && bool(b, c[1]), bytes: b.slice(value.contentStart, value.end) });
+  }
+  return out;
+}
+function profile(cert) {
+  if (!(cert instanceof Uint8Array) || !cert.length || cert.length > 16384) throw new Error("Invalid certificate size");
+  const [tbs, alg, sig] = children(cert, tlv(cert), 3);
+  const c = children(cert, tbs);
+  if (c.length !== 8 || c[0].tag !== 160 || uint(cert, children(cert, c[0], 1)[0]) !== 2 || c[7].tag !== 163) throw new Error("Certificate must have the supported v3 profile");
+  if (!equalDer(cert.slice(c[2].start, c[2].end), cert.slice(alg.start, alg.end)) || sig.tag !== 3 || cert[sig.contentStart] !== 0) throw new Error("Certificate signature algorithms differ");
+  const validity = children(cert, c[4], 2);
+  const parsed = parseCertificate(cert);
+  parsed.notBefore = time(cert, validity[0]);
+  parsed.notAfter = time(cert, validity[1]);
+  const serialBytes = cert.slice(c[1].contentStart, c[1].end);
+  if (c[1].tag !== 2 || !serialBytes.length || serialBytes.length > 21 || serialBytes[0] & 128 || serialBytes.length > 1 && serialBytes[0] === 0 && !(serialBytes[1] & 128)) throw new Error("Invalid certificate serial");
+  const extensions = readExtensions(cert, children(cert, c[7], 1)[0]);
+  const known = ["2.5.29.19", "2.5.29.15", "2.5.29.37", "2.5.29.14", "2.5.29.35", "2.5.29.17", "2.5.29.32", "2.5.29.30", "2.5.29.31", "1.3.6.1.5.5.7.1.1"];
+  for (const [id, ext] of extensions) if (ext.critical && (!known.includes(id) || ["2.5.29.31", "1.3.6.1.5.5.7.1.1"].includes(id))) throw new Error("Unsupported critical certificate extension");
+  const out = { parsed, serial: hex(serialBytes).replace(/^00/, ""), extensions, ca: false, usage: 0, eku: [], emails: [], policies: [], permitted: [], excluded: [] };
+  const bc = extensions.get("2.5.29.19");
+  if (!bc) throw new Error("Missing basic constraints");
+  const bcKids = children(bc.bytes, tlv(bc.bytes));
+  if (bcKids[0]?.tag === 1) {
+    out.ca = bool(bc.bytes, bcKids[0]);
+    bcKids.shift();
+  }
+  if (bcKids.length) out.pathLen = uint(bc.bytes, bcKids.shift());
+  if (bcKids.length || !out.ca && out.pathLen != null) throw new Error("Invalid basic constraints");
+  const ku = extensions.get("2.5.29.15");
+  if (!ku?.critical) throw new Error("Missing critical key usage");
+  const bits = tlv(ku.bytes, 0, 3);
+  const unused = ku.bytes[bits.contentStart];
+  const usageBytes = ku.bytes.slice(bits.contentStart + 1, bits.end);
+  if (!usageBytes.length || usageBytes.length > 2 || unused > 7 || usageBytes.at(-1) & (1 << unused) - 1) throw new Error("Invalid key usage");
+  out.usage = usageBytes[0] | (usageBytes[1] ?? 0) << 8;
+  const eku = extensions.get("2.5.29.37");
+  if (eku) out.eku = children(eku.bytes, tlv(eku.bytes)).map((t) => oid(eku.bytes, t));
+  const san = extensions.get("2.5.29.17");
+  if (san) for (const name of children(san.bytes, tlv(san.bytes))) {
+    if (name.tag !== 129) throw new Error("Only email subject alternative names are supported");
+    const email = td2.decode(san.bytes.slice(name.contentStart, name.end));
+    if (!/^[\x21-\x7e]+$/.test(email)) throw new Error("Invalid email subject alternative name");
+    out.emails.push(email);
+  }
+  const policies = extensions.get("2.5.29.32");
+  if (policies) for (const p of children(policies.bytes, tlv(policies.bytes))) {
+    const [id, ...qualifiers] = children(policies.bytes, p);
+    if (qualifiers.length) throw new Error("Unsupported policy qualifiers");
+    out.policies.push(oid(policies.bytes, id));
+  }
+  const nc = extensions.get("2.5.29.30");
+  if (nc) {
+    if (!nc.critical || !out.ca) throw new Error("Name constraints must be critical on a CA");
+    const seen = /* @__PURE__ */ new Set();
+    for (const group of children(nc.bytes, tlv(nc.bytes))) {
+      if (![160, 161].includes(group.tag) || seen.has(group.tag)) throw new Error("Invalid name constraints");
+      seen.add(group.tag);
+      for (const tree of children(nc.bytes, group)) {
+        const [base, ...bounds] = children(nc.bytes, tree);
+        if (base.tag !== 129 || bounds.length) throw new Error("Unsupported name constraint");
+        const value = td2.decode(nc.bytes.slice(base.contentStart, base.end)).toLowerCase();
+        if (!/^(?:\.)?[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$/.test(value) || value.includes("..")) throw new Error("Invalid email domain constraint");
+        (group.tag === 160 ? out.permitted : out.excluded).push(value);
+      }
+    }
+  }
+  return out;
+}
+function matchesDomain(email, constraint) {
+  const domain = email.slice(email.lastIndexOf("@") + 1).toLowerCase();
+  return constraint.startsWith(".") ? domain.endsWith(constraint) && domain.length > constraint.length : domain === constraint;
+}
+function enforceNames(p, emails) {
+  for (const email of emails) {
+    if (p.permitted.length && !p.permitted.some((d) => matchesDomain(email, d))) throw new Error("Identity is outside issuer name constraints");
+    if (p.excluded.some((d) => matchesDomain(email, d))) throw new Error("Identity is excluded by issuer name constraints");
+  }
+}
+function validAt(p, now) {
+  if (p.parsed.notBefore.getTime() > now || p.parsed.notAfter.getTime() <= now || p.parsed.notAfter <= p.parsed.notBefore) throw new Error("Certificate is outside its validity window");
+}
+async function validateEnrollmentChain(chain, policy) {
+  if (!Array.isArray(chain) || chain.length < 2 || chain.length > 3 || !policy.roots.length || policy.roots.length > 8 || !Number.isSafeInteger(policy.maxLifetimeSeconds) || policy.maxLifetimeSeconds < 1) throw new Error("Invalid enrollment trust policy");
+  if (!equalDer(chain[1], policy.issuer)) throw new Error("Certificate issuer is not pinned");
+  const leaf = profile(chain[0]);
+  const mid = profile(policy.issuer);
+  const now = policy.now ?? Date.now();
+  validAt(leaf, now);
+  validAt(mid, now);
+  await p256(leaf.parsed.spki);
+  await p256(mid.parsed.spki);
+  if (!leaf.parsed.subject.organization || leaf.parsed.subject.commonName !== policy.email || leaf.ca || leaf.usage !== 128 || leaf.eku.length !== 1 || leaf.eku[0] !== EMAIL_EKU || leaf.emails.length !== 1 || leaf.emails[0] !== policy.email || leaf.policies.length !== 1 || leaf.policies[0] !== policy.policyOid) throw new Error("Leaf does not match enrollment policy");
+  if (policy.spki && !equalDer(leaf.parsed.spki, policy.spki)) throw new Error("Certificate key does not match device key");
+  if (!mid.ca || mid.pathLen !== 0 || !mid.extensions.get("2.5.29.19").critical || mid.usage !== 6 || !mid.permitted.length || mid.eku.length && (mid.eku.length !== 1 || mid.eku[0] !== EMAIL_EKU)) throw new Error("Intermediate constraints do not match enrollment policy");
+  if (leaf.parsed.notAfter.getTime() - leaf.parsed.notBefore.getTime() > policy.maxLifetimeSeconds * 1e3 + 3e5 || leaf.parsed.notAfter > mid.parsed.notAfter || leaf.parsed.notBefore < mid.parsed.notBefore) throw new Error("Leaf lifetime exceeds enrollment policy");
+  if (mid.policies.length && !mid.policies.includes(policy.policyOid)) throw new Error("Intermediate certificate policy does not match");
+  enforceNames(mid, leaf.emails);
+  const ski = mid.extensions.get("2.5.29.14");
+  const aki = leaf.extensions.get("2.5.29.35");
+  if (!ski || !aki) throw new Error("Missing certificate key identifiers");
+  const skiValue = tlv(ski.bytes, 0, 4);
+  const akiValue = children(aki.bytes, tlv(aki.bytes), 1)[0];
+  if (akiValue.tag !== 128 || !equalDer(ski.bytes.slice(skiValue.contentStart, skiValue.end), aki.bytes.slice(akiValue.contentStart, akiValue.end))) throw new Error("Certificate authority key identifier does not match");
+  if (!await signedBy(leaf.parsed, mid.parsed)) throw new Error("Leaf signature does not verify");
+  let matched = false;
+  for (const bytes of policy.roots) {
+    const root = profile(bytes);
+    validAt(root, now);
+    if (!root.ca || !root.extensions.get("2.5.29.19").critical || !(root.usage & 4) || root.pathLen != null && root.pathLen < 1 || !root.parsed.selfSigned || !await signedBy(root.parsed, root.parsed)) continue;
+    if (chain[2] && !equalDer(bytes, chain[2])) continue;
+    if (mid.parsed.notAfter > root.parsed.notAfter || mid.parsed.notBefore < root.parsed.notBefore) continue;
+    if (root.eku.length && !root.eku.includes(EMAIL_EKU) || root.policies.length && !root.policies.includes(policy.policyOid)) continue;
+    enforceNames(root, leaf.emails);
+    if (await signedBy(mid.parsed, root.parsed)) {
+      matched = true;
+      break;
+    }
+  }
+  if (!matched) throw new Error("Certificate chain does not reach an approved root");
+  return { leaf: leaf.parsed, serial: leaf.serial };
+}
+async function validateEnrollmentCrl(crl, issuer, maxAgeSeconds, now = Date.now()) {
+  if (!(crl instanceof Uint8Array) || !crl.length || crl.length > 1024 * 1024 || !Number.isSafeInteger(maxAgeSeconds) || maxAgeSeconds < 1) throw new Error("Invalid CRL size or policy");
+  const [tbs, alg, sig] = children(crl, tlv(crl), 3);
+  const c = children(crl, tbs);
+  if (c[0]?.tag === 2) {
+    if (uint(crl, c.shift()) !== 1) throw new Error("Unsupported CRL version");
+  }
+  const [innerAlg, name, current, next, ...tail] = c;
+  if (!innerAlg || !name || !current || !next || !equalDer(crl.slice(innerAlg.start, innerAlg.end), crl.slice(alg.start, alg.end)) || oid(crl, children(crl, alg, 1)[0]) !== SIG_OID || sig.tag !== 3 || crl[sig.contentStart] !== 0) throw new Error("Invalid CRL profile");
+  const issuing = profile(issuer);
+  validAt(issuing, now);
+  if (!issuing.ca || !(issuing.usage & 2) || !equalDer(crl.slice(name.start, name.end), issuing.parsed.subjectBytes)) throw new Error("CRL issuer does not match");
+  const thisUpdate = time(crl, current).getTime();
+  const nextUpdate = time(crl, next).getTime();
+  if (thisUpdate > now + 6e4 || now - thisUpdate > maxAgeSeconds * 1e3 || nextUpdate <= now || nextUpdate <= thisUpdate) throw new Error("CRL is not fresh");
+  const revokedSerials = [];
+  if (tail[0]?.tag === 48) {
+    for (const entry of children(crl, tail.shift())) {
+      const entryFields = children(crl, entry);
+      if (entryFields.length < 2 || entryFields.length > 3) throw new Error("Invalid CRL entry");
+      const [serial, date, ext] = entryFields;
+      if (!serial || !date || serial.tag !== 2 || serial.end - serial.contentStart > 21) throw new Error("Invalid CRL entry");
+      const serialBytes = crl.slice(serial.contentStart, serial.end);
+      if (!serialBytes.length || serialBytes[0] & 128) throw new Error("Invalid revoked serial");
+      time(crl, date);
+      if (ext) {
+        for (const [id, e] of readExtensions(crl, ext)) if (e.critical || id === "2.5.29.29") throw new Error("Unsupported critical CRL entry extension");
+      }
+      revokedSerials.push(hex(serialBytes).replace(/^00/, ""));
+      if (revokedSerials.length > 2e4) throw new Error("CRL contains too many entries");
+    }
+  }
+  if (tail[0]?.tag === 160) {
+    for (const [id, ext] of readExtensions(crl, children(crl, tail.shift(), 1)[0])) if (ext.critical || id === "2.5.29.27" || id === "2.5.29.28") throw new Error("Unsupported CRL extension");
+  }
+  if (tail.length) throw new Error("Invalid CRL structure");
+  const key = await p256(issuing.parsed.spki);
+  const sigDer = crl.slice(sig.contentStart + 1, sig.end);
+  const raw = ecdsaDerToRaw(sigDer, 32);
+  if (!equalDer(ecdsaRawToDer(raw), sigDer) || !await subtle5.verify({ name: "ECDSA", hash: "SHA-256" }, key, asBufferSource(raw), asBufferSource(crl.slice(tbs.start, tbs.end)))) throw new Error("CRL signature does not verify");
+  return { revokedSerials, thisUpdate, nextUpdate };
+}
+async function revocationProofMessage(token, certificate) {
+  if (!token || token.length > 8192 || !certificate.length || certificate.length > 16384) throw new Error("Invalid revocation proof input");
+  return concatBytes([te4.encode(JSON.stringify(["lolly-ca/revoke", ENROLLMENT_VERSION, token])), Uint8Array.of(0), new Uint8Array(await subtle5.digest("SHA-256", asBufferSource(certificate)))]);
+}
+var enrollmentCertificateDer = (pem) => {
+  if (typeof pem !== "string" || pem.length > 24e3 || !/^\s*-----BEGIN CERTIFICATE-----[\s\S]+-----END CERTIFICATE-----\s*$/.test(pem) || (pem.match(/-----BEGIN/g) ?? []).length !== 1) throw new Error("Invalid certificate PEM");
+  return pemToDer(pem);
+};
+function parseEnrollmentTrustBundle(raw) {
+  if (typeof raw !== "string" || raw.length > 2e5) throw new Error("Enrollment trust configuration is missing");
+  const b = JSON.parse(raw);
+  const fields = ["version", "roots", "issuers", "providers", "defaultLifetimeSeconds", "maxLifetimeSeconds", "crlMaxAgeSeconds", "unifiedCrl"];
+  if (!b || typeof b !== "object" || Object.keys(b).some((k) => !fields.includes(k))) throw new Error("Invalid enrollment trust fields");
+  if (b?.version !== 1 || !Array.isArray(b.roots) || !b.roots.length || b.roots.length > 8 || !Array.isArray(b.issuers) || !b.issuers.length || b.issuers.length > 8 || typeof b.providers !== "object" || !b.providers || Array.isArray(b.providers)) throw new Error("Invalid enrollment trust configuration");
+  const issuers = /* @__PURE__ */ new Map();
+  for (const i of b.issuers) {
+    if (!i || typeof i !== "object" || Object.keys(i).some((k) => !["id", "certificate"].includes(k)) || typeof i?.id !== "string" || !/^[A-Za-z0-9_-]{1,100}$/.test(i.id) || i.id === "default" || issuers.has(i.id)) throw new Error("Invalid enrollment issuer");
+    issuers.set(i.id, enrollmentCertificateDer(i.certificate));
+  }
+  const providers = /* @__PURE__ */ Object.create(null);
+  if (!Object.keys(b.providers).length || Object.keys(b.providers).length > 8) throw new Error("Enrollment assurance policies are missing");
+  for (const [name, value] of Object.entries(b.providers)) {
+    if (!value || typeof value !== "object" || Object.keys(value).some((k) => !["issuer", "policyOid", "domains"].includes(k)) || !/^[a-z][a-z0-9_-]{0,31}$/.test(name) || !issuers.has(value?.issuer) || typeof value.policyOid !== "string" || !/^(?:0|1|2)\.\d+(?:\.\d+){2,20}$/.test(value.policyOid) || value.policyOid === "2.5.29.32.0" || value.policyOid.split(".").some((n) => !Number.isSafeInteger(+n) || +n > 2147483647 || String(+n) !== n) || +value.policyOid[0] < 2 && +value.policyOid.split(".")[1] > 39 || !Array.isArray(value.domains) || !value.domains.length || value.domains.length > 32 || value.domains.some((d) => typeof d !== "string" || d.length > 253 || !/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$/.test(d))) throw new Error("Invalid enrollment assurance policy");
+    providers[name] = { issuer: value.issuer, policyOid: value.policyOid, domains: [...new Set(value.domains)] };
+  }
+  for (const n of ["defaultLifetimeSeconds", "maxLifetimeSeconds", "crlMaxAgeSeconds"]) if (!Number.isSafeInteger(b[n]) || b[n] < 60 || b[n] > 7 * 86400) throw new Error("Enrollment lifetime and status policies are required");
+  if (b.defaultLifetimeSeconds > 86400 || b.defaultLifetimeSeconds > b.maxLifetimeSeconds || b.crlMaxAgeSeconds > b.maxLifetimeSeconds || typeof b.unifiedCrl !== "boolean") throw new Error("Invalid enrollment lifetime policy");
+  return { version: 1, roots: b.roots.map(enrollmentCertificateDer), issuers, providers, defaultLifetimeSeconds: b.defaultLifetimeSeconds, maxLifetimeSeconds: b.maxLifetimeSeconds, crlMaxAgeSeconds: b.crlMaxAgeSeconds, unifiedCrl: b.unifiedCrl };
+}
+
+// services/ca/lib/managed-enroll.mjs
+import { createHash } from "node:crypto";
+
+// services/ca/lib/enrollment-admission.mjs
+import { createHmac } from "node:crypto";
+var EnrollmentAdmissionUnavailable = class extends Error {
+};
+var LUA = "return redis.call('SET', KEYS[1], ARGV[1], 'NX', 'EX', ARGV[2])";
+var MAX_KEYS = 2e4;
+var memoryStores = /* @__PURE__ */ new WeakMap();
+function keyFor(secret, scope, id) {
+  return `lolly:ca:once:${createHmac("sha256", secret).update(scope).update("\0").update(id).digest("hex")}`;
+}
+function parameters(env) {
+  const url = String(env.CA_RATE_LIMIT_REST_URL || env.LOLLY_RATE_LIMIT_REST_URL || "").trim();
+  const token = String(env.CA_RATE_LIMIT_REST_TOKEN || env.LOLLY_RATE_LIMIT_REST_TOKEN || "").trim();
+  if (!url || !token) throw new EnrollmentAdmissionUnavailable("Shared enrollment admission is not configured");
+  const parsed = new URL(url);
+  if (parsed.protocol !== "https:" || parsed.username || parsed.password || parsed.search || parsed.hash) throw new EnrollmentAdmissionUnavailable("Shared enrollment admission is not configured");
+  return { url: parsed.toString(), token };
+}
+async function consumeEnrollment(env, scope, id, requestDigest, expires, { fetchImpl = fetch, now = Date.now() } = {}) {
+  if (!env.CA_SERVICE_SECRET || typeof id !== "string" || !/^[A-Za-z0-9_-]{20,100}$/.test(id) || !/^[a-f0-9]{64}$/.test(requestDigest)) throw new EnrollmentAdmissionUnavailable("Invalid enrollment admission input");
+  const ttl = Math.ceil((expires * 1e3 - now) / 1e3);
+  if (!Number.isSafeInteger(ttl) || ttl < 1 || ttl > 600) throw new EnrollmentAdmissionUnavailable("Invalid enrollment admission lifetime");
+  const key = keyFor(env.CA_SERVICE_SECRET, scope, id);
+  if (env.CA_ENROLLMENT_ALLOW_MEMORY === "1" && env.NODE_ENV !== "production" && !env.VERCEL && env.CA_HOSTED !== "1") {
+    let store = memoryStores.get(env);
+    if (!store) {
+      store = /* @__PURE__ */ new Map();
+      memoryStores.set(env, store);
+    }
+    for (const [entry, value] of store) if (value.expires <= now) store.delete(entry);
+    if (store.has(key)) return false;
+    if (store.size >= MAX_KEYS) throw new EnrollmentAdmissionUnavailable("Enrollment admission capacity reached");
+    store.set(key, { digest: requestDigest, expires: expires * 1e3 });
+    return true;
+  }
+  const configured = parameters(env);
+  let res;
+  try {
+    res = await fetchImpl(configured.url, {
+      method: "POST",
+      redirect: "error",
+      signal: AbortSignal.timeout(2500),
+      headers: { authorization: `Bearer ${configured.token}`, "content-type": "application/json" },
+      body: JSON.stringify(["EVAL", LUA, "1", key, requestDigest, String(ttl)])
+    });
+  } catch {
+    throw new EnrollmentAdmissionUnavailable("Shared enrollment admission is unavailable");
+  }
+  if (!res.ok || Number(res.headers.get("content-length")) > 4096) throw new EnrollmentAdmissionUnavailable("Shared enrollment admission is unavailable");
+  const reader = res.body?.getReader();
+  if (!reader) throw new EnrollmentAdmissionUnavailable("Shared enrollment admission is unavailable");
+  let size = 0;
+  const chunks = [];
+  try {
+    for (; ; ) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.length;
+      if (size > 4096) throw new EnrollmentAdmissionUnavailable("Shared enrollment admission response is too large");
+      chunks.push(value);
+    }
+    const result = JSON.parse(Buffer.concat(chunks).toString("utf8")).result;
+    if (result === "OK") return true;
+    if (result === null) return false;
+    throw new EnrollmentAdmissionUnavailable("Shared enrollment admission returned an invalid result");
+  } catch (err) {
+    await reader.cancel().catch(() => {
+    });
+    if (err instanceof EnrollmentAdmissionUnavailable) throw err;
+    throw new EnrollmentAdmissionUnavailable("Shared enrollment admission is unavailable");
+  }
+}
+
+// services/ca/lib/vault-pki.mjs
+import { readFile } from "node:fs/promises";
+var VaultUnavailable = class extends Error {
+};
+var invalidCredential = (text) => [...text].some((c) => c.charCodeAt(0) <= 32 || c.charCodeAt(0) === 127);
+var SEGMENT = /^[A-Za-z0-9_-]{1,100}$/;
+function vaultPath(raw) {
+  if (typeof raw !== "string" || raw.length > 300 || !raw.split("/").every((v) => SEGMENT.test(v))) throw new Error("Invalid Vault mount path");
+  return raw;
+}
+function vaultName(raw) {
+  if (typeof raw !== "string" || !SEGMENT.test(raw) || raw === "default") throw new Error("Vault references must be explicit");
+  return raw;
+}
+async function boundedBody(res, cap) {
+  if (Number(res.headers.get("content-length")) > cap || !res.body) throw new VaultUnavailable("Provider response exceeds its limit");
+  const reader = res.body.getReader();
+  const chunks = [];
+  let size = 0;
+  try {
+    for (; ; ) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      size += value.length;
+      if (size > cap) throw new VaultUnavailable("Provider response exceeds its limit");
+      chunks.push(value);
+    }
+    return Buffer.concat(chunks);
+  } catch (err) {
+    await reader.cancel().catch(() => {
+    });
+    throw err;
+  }
+}
+async function workloadFile(path, readImpl) {
+  if (typeof path !== "string" || !path.startsWith("/") || path.length > 4096) throw new VaultUnavailable("Workload credential file is not configured");
+  let text;
+  try {
+    text = String(await readImpl(path, "utf8")).trim();
+  } catch {
+    throw new VaultUnavailable("Workload credential is unavailable");
+  }
+  if (!text || text.length > 16384 || invalidCredential(text)) throw new VaultUnavailable("Workload credential is invalid");
+  return text;
+}
+function createVaultPki(env, { fetchImpl = fetch, readImpl = readFile, now = Date.now } = {}) {
+  const url = new URL(env.CA_VAULT_ADDR);
+  if (url.protocol !== "https:" || url.username || url.password || url.search || url.hash || url.pathname !== "/") throw new Error("Vault address must be an HTTPS origin");
+  const mount = vaultPath(env.CA_VAULT_MOUNT);
+  const namespace = String(env.CA_VAULT_NAMESPACE || "");
+  if (namespace && !/^[A-Za-z0-9_/-]{1,300}$/.test(namespace)) throw new Error("Invalid Vault namespace");
+  const auth = env.CA_VAULT_AUTH;
+  if (!["agent", "kubernetes"].includes(auth)) throw new Error("Vault workload authentication is not configured");
+  if (auth === "agent" && !env.CA_VAULT_TOKEN_FILE) throw new Error("Vault Agent token file is not configured");
+  if (auth === "kubernetes") {
+    vaultPath(env.CA_VAULT_K8S_MOUNT);
+    vaultName(env.CA_VAULT_K8S_ROLE);
+  }
+  let cached = null;
+  let loginPromise = null;
+  async function request(path, body, token, cap = 128 * 1024, binary = false) {
+    let res;
+    const headers = { ...namespace ? { "X-Vault-Namespace": namespace } : {}, ...token ? { "X-Vault-Token": token } : {} };
+    try {
+      res = await fetchImpl(`${url.origin}/v1/${path}`, {
+        method: body == null ? "GET" : "POST",
+        redirect: "error",
+        signal: AbortSignal.timeout(1e4),
+        headers: { ...headers, ...body == null ? {} : { "content-type": "application/json" } },
+        ...body == null ? {} : { body: JSON.stringify(body) }
+      });
+      if (!res.ok) {
+        await res.body?.cancel();
+        throw new VaultUnavailable("Certificate provider refused the request");
+      }
+      const bytes = await boundedBody(res, cap);
+      if (binary) return new Uint8Array(bytes);
+      const json = JSON.parse(bytes.toString("utf8"));
+      if (!json || typeof json !== "object" || Array.isArray(json)) throw new Error();
+      return json;
+    } catch (error) {
+      if (error instanceof VaultUnavailable) throw error;
+      throw new VaultUnavailable("Certificate provider is unavailable");
+    }
+  }
+  async function credential() {
+    if (auth === "agent") {
+      const token = await workloadFile(env.CA_VAULT_TOKEN_FILE, readImpl);
+      const result = await request("auth/token/lookup-self", null, token);
+      const ttl = Number(result.data?.ttl);
+      if (!Array.isArray(result.data?.policies) || result.data.policies.includes("root") || !Number.isSafeInteger(ttl) || ttl < 1 || ttl > 900) throw new VaultUnavailable("Workload credential does not meet the required lifetime and privilege policy");
+      return token;
+    }
+    if (cached && cached.until > now()) return cached.token;
+    loginPromise ??= (async () => {
+      const jwt = await workloadFile(env.CA_VAULT_K8S_JWT_FILE, readImpl);
+      const result = await request(`auth/${env.CA_VAULT_K8S_MOUNT}/login`, { role: env.CA_VAULT_K8S_ROLE, jwt });
+      const token = result.auth?.client_token;
+      const seconds = Number(result.auth?.lease_duration);
+      if (!Array.isArray(result.auth?.policies) || result.auth.policies.includes("root")) throw new VaultUnavailable("Workload authentication returned an invalid privilege policy");
+      if (typeof token !== "string" || !token || token.length > 16384 || invalidCredential(token) || !Number.isSafeInteger(seconds) || seconds < 60 || seconds > 900) throw new VaultUnavailable("Workload authentication returned an invalid credential");
+      cached = { token, until: now() + (seconds - 30) * 1e3 };
+      return token;
+    })();
+    try {
+      return await loginPromise;
+    } finally {
+      loginPromise = null;
+    }
+  }
   return {
-    subjectBytes: certDer.slice(kids[shift + 4].start, kids[shift + 4].end),
-    spkiDer: certDer.slice(kids[shift + 5].start, kids[shift + 5].end)
+    async verifyProfile(role, approved) {
+      const token = await credential();
+      const issuer = await request(`${mount}/issuer/${vaultName(approved.issuer)}`, null, token);
+      const configured = await request(`${mount}/roles/${vaultName(role)}`, null, token);
+      const i = issuer.data, r = configured.data;
+      const list = (value) => Array.isArray(value) ? value : typeof value === "string" ? value.split(",").map((v) => v.trim()).filter(Boolean) : [];
+      const only = (value, expected) => {
+        const values = list(value).map((v) => v.toLowerCase());
+        return values.length === 1 && values[0] === expected.toLowerCase();
+      };
+      if ((issuer.warnings?.length ?? 0) || (configured.warnings?.length ?? 0) || !i || !r || i.issuer_id !== approved.issuer || i.key_id !== approved.issuerKeyId || !equalDer(enrollmentCertificateDer(i.certificate), approved.certificate) || !list(i.usage).includes("issuing-certificates") || r.issuer_ref !== approved.issuer || r.no_store !== true || r.generate_lease !== false || r.use_csr_common_name !== false || r.use_csr_sans !== false || r.server_flag !== false || r.client_flag !== false || r.code_signing_flag !== false || r.email_protection_flag !== true || r.key_type !== "ec" || r.key_bits !== 256 || !only(r.key_usage, "DigitalSignature") || list(r.ext_key_usage).some((v) => v.toLowerCase() !== "emailprotection") || list(r.ext_key_usage_oids).some((v) => v !== "1.3.6.1.5.5.7.3.4") || !only(r.policy_identifiers, approved.policyOid) || !Number.isSafeInteger(r.max_ttl) || r.max_ttl < 60 || r.max_ttl > approved.maxLifetimeSeconds || r.allow_any_name !== false || r.allow_ip_sans !== false || r.allow_subdomains !== false || r.allow_glob_domains !== false || list(r.allowed_domains).length !== approved.domains.length || !approved.domains.every((d) => list(r.allowed_domains).includes(d)) || list(r.allowed_uri_sans).length || list(r.allowed_other_sans).length) throw new VaultUnavailable("Provider issuer policy does not match deployment configuration");
+    },
+    async sign(role, body) {
+      return (await request(`${mount}/sign/${vaultName(role)}`, body, await credential())).data;
+    },
+    async revoke(certificate) {
+      if (!env.CA_VAULT_REVOCATION_TOKEN_FILE) throw new VaultUnavailable("Revocation workload is not configured");
+      const token = await workloadFile(env.CA_VAULT_REVOCATION_TOKEN_FILE, readImpl);
+      const info = (await request("auth/token/lookup-self", null, token)).data;
+      if (!Array.isArray(info?.policies) || info.policies.includes("root") || !Number.isSafeInteger(info.ttl) || info.ttl < 1 || info.ttl > 900) throw new VaultUnavailable("Revocation credential does not meet workload policy");
+      return (await request(`${mount}/revoke`, { certificate }, token)).data;
+    },
+    async crl(issuer, unified = false) {
+      return request(`${mount}/issuer/${vaultName(issuer)}/${unified ? "unified-crl" : "crl"}/der`, null, null, 1024 * 1024, true);
+    }
   };
 }
-function pemToDer(pem) {
-  const b64 = String(pem).replace(/-----[^-]+-----/g, "").replace(/\s+/g, "");
-  if (!b64) throw new Error("x509: no PEM body found");
-  return base64ToBytes(b64);
+
+// services/ca/lib/managed-enroll.mjs
+var digest = (bytes) => createHash("sha256").update(bytes).digest("hex");
+var fail = (status, error) => ({ status, json: { error } });
+function issuerMode(env) {
+  const hasVault = Object.keys(env).some((k) => k.startsWith("CA_VAULT_") && env[k]);
+  const mode = env.CA_ISSUER_MODE || (hasVault ? "" : "legacy-root");
+  if (!["legacy-root", "vault-pki"].includes(mode) || mode === "legacy-root" && hasVault) throw new Error("Certificate issuer mode must be explicitly configured");
+  return mode;
 }
-function derToPem(der2, label) {
-  const body = btoa(bytesToBin(der2)).replace(/(.{64})/g, "$1\n").trimEnd();
-  return `-----BEGIN ${label}-----
-${body}
------END ${label}-----
-`;
+function managedPolicy(env) {
+  if (issuerMode(env) !== "vault-pki") throw new Error("Managed issuer mode is not configured");
+  const trust = parseEnrollmentTrustBundle(env.CA_ENROLLMENT_TRUST_JSON);
+  if (trust.defaultLifetimeSeconds > 86400 || trust.maxLifetimeSeconds > 604800) throw new Error("Managed certificate lifetimes exceed deployment policy");
+  const roles = JSON.parse(env.CA_VAULT_ROLES_JSON || "null");
+  if (!roles || typeof roles !== "object" || Array.isArray(roles)) throw new Error("Managed issuer roles are not configured");
+  const assurance = { suse: "managed-sso", google: "consumer-email", github: "consumer-email", email: "email-link" };
+  const used = /* @__PURE__ */ new Map();
+  for (const name of Object.keys(trust.providers)) {
+    const category = Object.hasOwn(assurance, name) ? assurance[name] : void 0;
+    const oid2 = trust.providers[name].policyOid;
+    if (!category || used.has(oid2) && used.get(oid2) !== category) throw new Error("Enrollment assurance classes must have distinct policy identifiers");
+    used.set(oid2, category);
+    vaultName(roles[name]?.role);
+    vaultName(roles[name]?.managedKeyId);
+    vaultName(roles[name]?.issuerKeyId);
+  }
+  return { trust, roles };
 }
-var OID_ECDSA_WITH_SHA256 = "1.2.840.10045.4.3.2";
-function randomSerial() {
-  const serial = globalThis.crypto.getRandomValues(new Uint8Array(9));
-  serial[0] = serial[0] & 63 | 64;
-  return serial;
+function approvedIdentity(payload, trust) {
+  const policy = trust.providers[payload.provider];
+  const email = payload.email;
+  if (!policy || typeof email !== "string" || email.length > 254 || !/^[A-Za-z0-9.!#$%&'*+\-/=?^_`{|}~]+@[A-Za-z0-9.-]+$/.test(email) || !policy.domains.includes(email.slice(email.lastIndexOf("@") + 1).toLowerCase())) throw new Error("Identity is outside enrollment policy");
+  return policy;
 }
-function x501Name(organization, commonName) {
-  return derSeq(
-    derSet(derSeq(derOid("2.5.4.10"), der(12, te3.encode(organization)))),
-    // organizationName
-    derSet(derSeq(derOid("2.5.4.3"), der(12, te3.encode(commonName))))
-    // commonName
-  );
+function requestBytes(value, cap) {
+  if (typeof value !== "string" || !value || value.length > Math.ceil(cap * 4 / 3) || !/^[A-Za-z0-9_-]+$/.test(value)) throw new Error("Invalid enrollment input");
+  const b = b64uToBytes(value);
+  if (!b.length || b.length > cap || Buffer.from(b).toString("base64url") !== value) throw new Error("Invalid enrollment input");
+  return b;
 }
-async function signTbs(tbs, privateKey) {
-  const raw = new Uint8Array(await subtle3.sign({ name: "ECDSA", hash: "SHA-256" }, privateKey, asBufferSource(tbs)));
-  return derSeq(tbs, derSeq(derOid(OID_ECDSA_WITH_SHA256)), der(3, Uint8Array.of(0), ecdsaRawToDer(raw)));
+function publicFailure(err) {
+  if (err instanceof EnrollmentAdmissionUnavailable) return fail(503, "Enrollment admission is temporarily unavailable");
+  if (err instanceof VaultUnavailable) return fail(503, "Certificate provider is temporarily unavailable");
+  return fail(502, "Certificate provider returned an invalid certificate");
 }
-async function issueLeafCert({
-  caCertDer,
-  caPrivateKey,
-  spkiDer,
-  email,
-  commonName,
-  organization = "Lolly",
-  days = 7,
-  notBefore,
-  notAfter
-} = {}) {
-  if (!(caCertDer instanceof Uint8Array)) throw new Error("x509: caCertDer must be a Uint8Array");
-  if (!(spkiDer instanceof Uint8Array)) throw new Error("x509: spkiDer must be a Uint8Array");
-  if (!email) throw new Error("x509: email is required");
-  const nb = asDate(notBefore, Date.now() - 6e4);
-  const na = asDate(notAfter, nb.getTime() + days * 24 * 3600 * 1e3);
-  const signKey = caPrivateKey instanceof Uint8Array ? await subtle3.importKey("pkcs8", asBufferSource(caPrivateKey), { name: "ECDSA", namedCurve: "P-256" }, false, ["sign"]) : caPrivateKey;
-  const ca = certNameAndKey(caCertDer);
-  const keyId = await keyIdOf(spkiDer);
-  const issuerKeyId = await keyIdOf(ca.spkiDer);
-  const extensions = derSeq(
-    derSeq(derOid("2.5.29.19"), derOctet(derSeq())),
-    // basicConstraints: CA absent = false
-    derSeq(derOid("2.5.29.15"), der(1, Uint8Array.of(255)), derOctet(der(3, Uint8Array.of(7, 128)))),
-    // keyUsage: digitalSignature, critical
-    derSeq(derOid("2.5.29.37"), derOctet(derSeq(derOid("1.3.6.1.5.5.7.3.4")))),
-    // extKeyUsage: emailProtection
-    derSeq(derOid("2.5.29.14"), derOctet(derOctet(keyId))),
-    // subjectKeyIdentifier
-    derSeq(derOid("2.5.29.35"), derOctet(derSeq(der(128, issuerKeyId)))),
-    // authorityKeyIdentifier: [0] keyid
-    derSeq(derOid("2.5.29.17"), derOctet(derSeq(der(129, te3.encode(String(email))))))
-    // subjectAltName: rfc822Name
-  );
-  const tbs = derSeq(
-    der(160, derUint(Uint8Array.of(2))),
-    // [0] version: v3
-    derUint(randomSerial()),
-    derSeq(derOid(OID_ECDSA_WITH_SHA256)),
-    ca.subjectBytes,
-    // issuer, byte-identical to the CA's subject
-    derSeq(derTime(nb), derTime(na)),
-    x501Name(organization, commonName || String(email)),
-    spkiDer,
-    // already a DER SubjectPublicKeyInfo
-    der(163, extensions)
-  );
-  return signTbs(tbs, signKey);
+async function managedEnroll(body, env, deps = {}) {
+  let config, adapter;
+  try {
+    config = managedPolicy(env);
+    adapter = deps.adapter || createVaultPki(env, deps);
+  } catch {
+    return fail(503, "Managed enrollment is not configured");
+  }
+  const { trust, roles } = config;
+  if (body?.version !== 2 || typeof body.token !== "string" || body.token.length > 8192) return fail(400, "Enrollment protocol version 2 is required");
+  let token;
+  try {
+    token = await verifyEnrollToken(body.token, env.CA_SERVICE_SECRET);
+  } catch {
+    return fail(503, "Enrollment authentication is unavailable");
+  }
+  if (!token.ok) return fail(401, "Enrollment authentication is invalid or expired");
+  if (token.payload.version !== 2 || !token.payload.jti || !Number.isSafeInteger(token.payload.iat) || token.payload.iat > Math.floor(Date.now() / 1e3) + 60 || token.payload.exp - token.payload.iat > 600) return fail(401, "A fresh enrollment authentication is required");
+  let csr, spki, proof, policy, seconds;
+  try {
+    policy = approvedIdentity(token.payload, trust);
+    csr = requestBytes(body.csr, 4096);
+    spki = requestBytes(body.spki, 256);
+    proof = requestBytes(body.pop, 64);
+    await verifyEnrollmentRequest(csr, spki, proof, body.token);
+    seconds = body.lifetimeSeconds == null ? trust.defaultLifetimeSeconds : body.lifetimeSeconds;
+    if (!Number.isSafeInteger(seconds) || seconds < 60 || seconds > trust.maxLifetimeSeconds) throw new Error();
+    const issuer = parseCertificate(trust.issuers.get(policy.issuer));
+    seconds = Math.min(seconds, Math.floor((issuer.notAfter.getTime() - Date.now()) / 1e3));
+    if (seconds < 60) throw new Error();
+  } catch {
+    return fail(400, "Enrollment proof, identity or lifetime does not meet policy");
+  }
+  try {
+    await adapter.verifyProfile(roles[token.payload.provider].role, { ...policy, issuerKeyId: roles[token.payload.provider].issuerKeyId, certificate: trust.issuers.get(policy.issuer), maxLifetimeSeconds: trust.maxLifetimeSeconds });
+    const accepted = await consumeEnrollment(env, "issue", token.payload.jti, digest(Buffer.concat([Buffer.from(csr), Buffer.from(spki), Buffer.from(String(seconds))])), token.payload.exp, deps);
+    if (!accepted) return fail(409, "This enrollment authentication was already used; sign in again");
+    const result = await adapter.sign(roles[token.payload.provider].role, {
+      csr: derToPem(csr, "CERTIFICATE REQUEST"),
+      common_name: token.payload.email,
+      alt_names: token.payload.email,
+      exclude_cn_from_sans: true,
+      ttl: `${seconds}s`,
+      format: "pem",
+      remove_roots_from_chain: false
+    });
+    if (!result || result.private_key || !Array.isArray(result.ca_chain) || result.ca_chain.length < 1 || result.ca_chain.length > 2) throw new Error();
+    const chain = [enrollmentCertificateDer(result.certificate), ...result.ca_chain.map(enrollmentCertificateDer)];
+    const checked = await validateEnrollmentChain(chain, { roots: trust.roots, issuer: trust.issuers.get(policy.issuer), email: token.payload.email, policyOid: policy.policyOid, spki, maxLifetimeSeconds: seconds });
+    if (checked.leaf.notBefore.getTime() < Date.now() - 3e5 || checked.leaf.notAfter.getTime() > Date.now() + seconds * 1e3 + 6e4) throw new Error();
+    const status = await validateEnrollmentCrl(await adapter.crl(policy.issuer, trust.unifiedCrl), trust.issuers.get(policy.issuer), trust.crlMaxAgeSeconds);
+    if (status.revokedSerials.includes(checked.serial)) throw new Error();
+    const pem = chain.map((b) => derToPem(b, "CERTIFICATE"));
+    return { status: 200, json: {
+      version: 2,
+      issuerMode: "vault-pki",
+      issuer: policy.issuer,
+      cert: pem[0],
+      chain: pem,
+      identity: { email: token.payload.email, provider: token.payload.provider },
+      policyOid: policy.policyOid,
+      notBefore: checked.leaf.notBefore.toISOString(),
+      notAfter: checked.leaf.notAfter.toISOString()
+    } };
+  } catch (err) {
+    return publicFailure(err);
+  }
+}
+async function managedCrl(env, issuer, deps = {}) {
+  try {
+    const { trust } = managedPolicy(env);
+    const cert = trust.issuers.get(issuer);
+    if (!cert) return fail(404, "Issuer is not configured");
+    const adapter = deps.adapter || createVaultPki(env, deps);
+    const bytes = await adapter.crl(issuer, trust.unifiedCrl);
+    await validateEnrollmentCrl(bytes, cert, trust.crlMaxAgeSeconds);
+    return { status: 200, body: Buffer.from(bytes), type: "application/pkix-crl", headers: { "x-content-type-options": "nosniff" } };
+  } catch (err) {
+    return publicFailure(err);
+  }
+}
+async function approvedCertificate(env, body) {
+  const { trust } = managedPolicy(env);
+  const certificate = enrollmentCertificateDer(body?.certificate);
+  const issuer = trust.issuers.get(body?.issuer);
+  const policy = trust.providers[body?.provider];
+  const parsed = parseCertificate(certificate);
+  if (!policy || !issuer || body.issuer !== policy.issuer || parsed.sanEmails.length !== 1) throw new Error();
+  approvedIdentity({ email: parsed.sanEmails[0], provider: body.provider }, trust);
+  await validateEnrollmentChain([certificate, issuer], { roots: trust.roots, issuer, email: parsed.sanEmails[0], policyOid: policy.policyOid, maxLifetimeSeconds: trust.maxLifetimeSeconds });
+  return { certificate, parsed, trust };
+}
+async function managedRevocationChallenge(env, body) {
+  try {
+    const { certificate } = await approvedCertificate(env, body);
+    const now = Math.floor(Date.now() / 1e3);
+    const challenge = await signValue({ typ: "lolly-ca/revoke", jti: randomB64u(24), iat: now, exp: now + 120, hash: digest(certificate), issuer: body.issuer, provider: body.provider }, env.CA_SERVICE_SECRET);
+    return { status: 200, json: { challenge } };
+  } catch {
+    return fail(400, "Certificate does not meet revocation policy");
+  }
+}
+async function managedRevoke(env, body, deps = {}) {
+  let checked, challenge;
+  try {
+    checked = await approvedCertificate(env, body);
+    challenge = await verifyValue(body?.challenge, env.CA_SERVICE_SECRET);
+    const now = Math.floor(Date.now() / 1e3);
+    if (challenge?.typ !== "lolly-ca/revoke" || challenge.hash !== digest(checked.certificate) || challenge.issuer !== body.issuer || challenge.provider !== body.provider || !Number.isSafeInteger(challenge.exp) || challenge.exp <= now || challenge.exp - challenge.iat > 120 || challenge.iat > now + 60) throw new Error();
+    const key = await crypto.subtle.importKey("spki", asBufferSource(checked.parsed.spki), { name: "ECDSA", namedCurve: "P-256" }, false, ["verify"]);
+    if (!await crypto.subtle.verify({ name: "ECDSA", hash: "SHA-256" }, key, asBufferSource(requestBytes(body.pop, 64)), asBufferSource(await revocationProofMessage(body.challenge, checked.certificate)))) throw new Error();
+  } catch {
+    return fail(401, "Revocation proof does not verify");
+  }
+  try {
+    if (!await consumeEnrollment(env, "revoke", challenge.jti, challenge.hash, challenge.exp, deps)) return fail(409, "This revocation challenge was already used");
+    const adapter = deps.adapter || createVaultPki(env, deps);
+    const response = await adapter.revoke(derToPem(checked.certificate, "CERTIFICATE"));
+    if (!Number.isSafeInteger(response?.revocation_time) || response.revocation_time < 1) throw new Error();
+    return { status: 200, json: { revoked: true } };
+  } catch (err) {
+    return publicFailure(err);
+  }
 }
 
 // services/ca/lib/enroll.mjs
-var te4 = new TextEncoder();
-var subtle4 = globalThis.crypto.subtle;
+var te5 = new TextEncoder();
+var subtle6 = globalThis.crypto.subtle;
 var DAY_MS = 24 * 3600 * 1e3;
 var ALLOWED_DAYS = [7, 30, 90, 365];
 async function verifyPop({ token, spki, pop }) {
@@ -503,11 +1404,11 @@ async function verifyPop({ token, spki, pop }) {
   if (sig.length !== 64) return { ok: false, error: "pop must be a raw 64-byte ECDSA P-256 signature" };
   let key;
   try {
-    key = await subtle4.importKey("spki", spkiDer, { name: "ECDSA", namedCurve: "P-256" }, false, ["verify"]);
+    key = await subtle6.importKey("spki", spkiDer, { name: "ECDSA", namedCurve: "P-256" }, false, ["verify"]);
   } catch {
     return { ok: false, error: "spki is not a P-256 public key" };
   }
-  const ok = await subtle4.verify({ name: "ECDSA", hash: "SHA-256" }, key, sig, te4.encode(String(token)));
+  const ok = await subtle6.verify({ name: "ECDSA", hash: "SHA-256" }, key, sig, te5.encode(String(token)));
   return ok ? { ok: true, spkiDer } : { ok: false, error: "proof-of-possession signature does not verify" };
 }
 function leafDays(env, requested) {
@@ -516,11 +1417,28 @@ function leafDays(env, requested) {
   const days = ALLOWED_DAYS.includes(Number(requested)) ? Number(requested) : fallback;
   return Math.min(days, max);
 }
-async function enroll({ token, spki, pop, days } = {}, env) {
+async function enroll(body = {}, env, deps = {}) {
+  let mode;
+  try {
+    mode = issuerMode(env);
+  } catch {
+    return { status: 503, json: { error: "Certificate issuer mode is not configured" } };
+  }
+  if (mode === "vault-pki") return managedEnroll(body, env, deps);
+  const { token, spki, pop, days, csr, version } = body;
   if (!token || !spki || !pop) return { status: 400, json: { error: "token, spki and pop are required" } };
   const t = await verifyEnrollToken(String(token), env.CA_SERVICE_SECRET);
   if (!t.ok) return { status: 401, json: { error: t.error } };
-  const p = await verifyPop({ token: String(token), spki, pop });
+  let p;
+  if (version === 2) {
+    try {
+      const spkiDer = b64uToBytes(spki);
+      await verifyEnrollmentRequest(b64uToBytes(csr), spkiDer, b64uToBytes(pop), String(token));
+      p = { ok: true, spkiDer };
+    } catch {
+      p = { ok: false, error: "Enrollment proof does not verify" };
+    }
+  } else p = await verifyPop({ token: String(token), spki, pop });
   if (!p.ok) return { status: 401, json: { error: p.error } };
   if (!env.CA_ROOT_CERT_PEM || !env.CA_ROOT_KEY_PEM) return { status: 500, json: { error: "CA root is not configured" } };
   const caCertDer = pemToDer(env.CA_ROOT_CERT_PEM);
@@ -538,6 +1456,8 @@ async function enroll({ token, spki, pop, days } = {}, env) {
   return {
     status: 200,
     json: {
+      version: version === 2 ? 2 : 1,
+      issuerMode: "legacy-root",
       cert: certPem,
       chain: [certPem, derToPem(caCertDer, "CERTIFICATE")],
       // leaf-first, root normalised
@@ -549,9 +1469,9 @@ async function enroll({ token, spki, pop, days } = {}, env) {
 }
 
 // services/ca/lib/rate-limit.mjs
-import { createHash } from "node:crypto";
+import { createHash as createHash2 } from "node:crypto";
 var MAX_MEMORY_KEYS = 2e4;
-var LUA = [
+var LUA2 = [
   "local n = redis.call('INCR', KEYS[1])",
   "if n == 1 then redis.call('PEXPIRE', KEYS[1], ARGV[1]) end",
   "local ttl = redis.call('PTTL', KEYS[1])",
@@ -572,7 +1492,7 @@ var MemoryRateLimiter = class {
   async consume(scope, subject, limit, windowMs) {
     validateBudget(limit, windowMs);
     const now = this.#now();
-    const key = digest("memory", scope, subject);
+    const key = digest2("memory", scope, subject);
     let bucket = this.#windows.get(key);
     if (!bucket || bucket.expires <= now) {
       if (this.#windows.size >= MAX_MEMORY_KEYS) {
@@ -612,13 +1532,13 @@ var RedisRestRateLimiter = class {
     }
   }
   async #consume(scope, subject, limit, windowMs) {
-    const key = `lolly:rl:${digest("ca", scope, subject)}`;
+    const key = `lolly:rl:${digest2("ca", scope, subject)}`;
     let response;
     try {
       response = await this.#fetch(this.#url, {
         method: "POST",
         headers: { authorization: `Bearer ${this.#token}`, "content-type": "application/json" },
-        body: JSON.stringify(["EVAL", LUA, "1", key, String(windowMs)]),
+        body: JSON.stringify(["EVAL", LUA2, "1", key, String(windowMs)]),
         signal: AbortSignal.timeout(2500)
       });
     } catch {
@@ -663,8 +1583,8 @@ function createRateLimiter(env, onWrite) {
   }
   return new MemoryRateLimiter();
 }
-function digest(namespace, scope, subject) {
-  return createHash("sha256").update(namespace).update("\0").update(scope).update("\0").update(String(subject)).digest("hex");
+function digest2(namespace, scope, subject) {
+  return createHash2("sha256").update(namespace).update("\0").update(scope).update("\0").update(String(subject)).digest("hex");
 }
 function normalizeUrl(raw) {
   let url;
@@ -693,6 +1613,7 @@ function decision(count, limit, ttlMs) {
 }
 
 // services/ca/handler.mjs
+var certificatePem = (root) => derToPem(root, "CERTIFICATE");
 var STATE_COOKIE = "lolly_ca_state";
 var STATE_TTL_SECONDS = 600;
 var ISOLATION_HEADERS = {
@@ -733,16 +1654,37 @@ function isAllowedOrigin(origin, env) {
   return false;
 }
 function routeHealth(env) {
+  let mode;
+  let managed;
+  try {
+    mode = issuerMode(env);
+    if (mode === "vault-pki") managed = managedPolicy(env);
+  } catch {
+    mode = "unconfigured";
+  }
+  const configured = configuredProviders(env);
+  if (mode !== "legacy-root") for (const provider of Object.keys(configured)) configured[provider] = configured[provider] && !!managed?.trust.providers[provider];
   return {
     status: 200,
     json: {
       ok: true,
-      devProvider: env.CA_DEV_FAKE_PROVIDER === "1",
-      configured: configuredProviders(env)
+      devProvider: env.CA_DEV_FAKE_PROVIDER === "1" && (mode === "legacy-root" || !!managed?.trust.providers.dev),
+      configured,
+      enrollmentVersion: 2,
+      issuerMode: mode,
+      ...managed ? { defaultLifetimeSeconds: managed.trust.defaultLifetimeSeconds, maxLifetimeSeconds: managed.trust.maxLifetimeSeconds } : {}
     }
   };
 }
 function routeRootPem(env) {
+  try {
+    if (issuerMode(env) === "vault-pki") {
+      const { trust } = managedPolicy(env);
+      return { status: 200, body: trust.roots.map((root) => certificatePem(root)).join(""), type: "text/plain; charset=utf-8" };
+    }
+  } catch {
+    return { status: 503, body: "Certificate trust is not configured\n", type: "text/plain; charset=utf-8" };
+  }
   if (!env.CA_ROOT_CERT_PEM) {
     return { status: 404, body: "CA root certificate is not configured on this deployment\n", type: "text/plain; charset=utf-8" };
   }
@@ -752,6 +1694,11 @@ function routeRootPem(env) {
 var stateCookie = (value, redirectUri, maxAge = STATE_TTL_SECONDS) => `${STATE_COOKIE}=${value}; Max-Age=${maxAge}; Path=/api/ca; HttpOnly; SameSite=Lax${String(redirectUri).startsWith("https") ? "; Secure" : ""}`;
 async function routeAuth(env, { provider, origin, redirectUri }) {
   if (!isAllowedOrigin(origin, env)) return { status: 403, json: { error: "origin is not allowlisted" } };
+  try {
+    if (issuerMode(env) === "vault-pki" && !managedPolicy(env).trust.providers[provider]) return { status: 403, json: { error: "provider is outside enrollment policy" } };
+  } catch {
+    return { status: 503, json: { error: "enrollment policy is not configured" } };
+  }
   if (provider === "dev") {
     if (env.CA_DEV_FAKE_PROVIDER !== "1") return { status: 404, json: { error: "unknown provider" } };
     const token = await mintEnrollToken({ email: "dev@example.com", provider: "dev" }, env.CA_SERVICE_SECRET);
@@ -773,13 +1720,13 @@ async function routeAuth(env, { provider, origin, redirectUri }) {
 }
 async function routeCallback(env, { provider, query, cookieHeader, redirectUri }) {
   const clear = { "set-cookie": stateCookie("", redirectUri, 0) };
-  const fail = (status, message) => ({ status, body: errorPage(message), type: "text/html; charset=utf-8", headers: clear });
+  const fail2 = (status, message) => ({ status, body: errorPage(message), type: "text/html; charset=utf-8", headers: clear });
   const state = await verifyValue(parseCookies(cookieHeader)[STATE_COOKIE], env.CA_SERVICE_SECRET);
-  if (!state || state.typ !== STATE_TYP) return fail(401, "The sign-in state is missing or invalid. Start again from Lolly.");
-  if (typeof state.exp !== "number" || state.exp * 1e3 < Date.now()) return fail(401, "The sign-in attempt expired - it only lives 10 minutes.");
-  if (state.provider !== provider) return fail(400, "The sign-in state does not match this provider.");
-  if (!query.state || query.state !== state.nonce) return fail(400, "The sign-in state does not match this browser.");
-  if (!query.code) return fail(400, query.error_description || query.error || "The provider returned no authorization code.");
+  if (!state || state.typ !== STATE_TYP) return fail2(401, "The sign-in state is missing or invalid. Start again from Lolly.");
+  if (typeof state.exp !== "number" || state.exp * 1e3 < Date.now()) return fail2(401, "The sign-in attempt expired - it only lives 10 minutes.");
+  if (state.provider !== provider) return fail2(400, "The sign-in state does not match this provider.");
+  if (!query.state || query.state !== state.nonce) return fail2(400, "The sign-in state does not match this browser.");
+  if (!query.code) return fail2(400, query.error_description || query.error || "The provider returned no authorization code.");
   let email;
   try {
     email = await fetchVerifiedEmail(provider, env, {
@@ -789,12 +1736,17 @@ async function routeCallback(env, { provider, query, cookieHeader, redirectUri }
       nonce: state.nonce
     });
   } catch (err) {
-    return fail(401, err?.message || "Could not verify your email with the provider.");
+    return fail2(401, err?.message || "Could not verify your email with the provider.");
   }
   const token = await mintEnrollToken({ email, provider }, env.CA_SERVICE_SECRET);
   return { status: 200, body: completionPage({ token, origin: state.origin }), type: "text/html; charset=utf-8", headers: { ...clear, ...ISOLATION_HEADERS } };
 }
 async function routeEmailStart(env, body, ip) {
+  try {
+    if (issuerMode(env) === "vault-pki" && !managedPolicy(env).trust.providers.email) return { status: 403, json: { error: "provider is outside enrollment policy" } };
+  } catch {
+    return { status: 503, json: { error: "enrollment policy is not configured" } };
+  }
   const email = typeof body?.email === "string" ? body.email.trim() : "";
   const origin = body?.origin;
   if (!isAllowedOrigin(origin, env)) return { status: 403, json: { error: "origin is not allowlisted" } };
@@ -857,12 +1809,14 @@ function redirectUriFor(req, provider) {
 async function readJsonBody(req) {
   if (req.body !== void 0 && req.body !== null) {
     if (Buffer.isBuffer(req.body) || typeof req.body === "string") {
+      if (Buffer.byteLength(req.body) > BODY_CAP) throw Object.assign(new Error("request body too large"), { statusCode: 413 });
       try {
         return JSON.parse(String(req.body));
       } catch {
         return null;
       }
     }
+    if (Buffer.byteLength(JSON.stringify(req.body)) > BODY_CAP) throw Object.assign(new Error("request body too large"), { statusCode: 413 });
     return req.body;
   }
   const chunks = [];
@@ -917,6 +1871,11 @@ async function route(env, req, url, path, limiter) {
   const m = req.method;
   if (m === "GET" && path === "/api/ca/health") return routeHealth(env);
   if (m === "GET" && path === "/api/ca/root.pem") return routeRootPem(env);
+  const crl = m === "GET" && path.match(/^\/api\/ca\/issuer\/([A-Za-z0-9_-]{1,100})\/crl$/);
+  if (crl) {
+    const refusal = await admission(limiter, "crl", clientIp(req, env), positiveInt(env.CA_ENROLL_RPM, 30));
+    return refusal ?? managedCrl(env, crl[1]);
+  }
   const auth = m === "GET" && path.match(/^\/api\/ca\/auth\/([a-z0-9_-]+)$/);
   if (auth) {
     const refusal = await admission(limiter, "auth", clientIp(req, env), positiveInt(env.CA_AUTH_RPM, 30));
@@ -938,7 +1897,9 @@ async function route(env, req, url, path, limiter) {
       redirectUri: redirectUriFor(req, cb[1])
     });
   }
-  if (m === "POST" && (path === "/api/ca/email/start" || path === "/api/ca/enroll")) {
+  if (m === "POST" && (path === "/api/ca/email/start" || path === "/api/ca/enroll" || path === "/api/ca/revoke/challenge" || path === "/api/ca/revoke")) {
+    const origin = req.headers.origin;
+    if (origin && !isAllowedOrigin(origin, env)) return { status: 403, json: { error: "origin is not allowlisted" } };
     const ip = clientIp(req, env);
     const routeLimit = path === "/api/ca/enroll" ? positiveInt(env.CA_ENROLL_RPM, 30) : positiveInt(env.CA_EMAIL_RPM, 5);
     const refusal = await admission(limiter, path.endsWith("/enroll") ? "enroll" : "email-ip", ip, routeLimit);
@@ -950,6 +1911,8 @@ async function route(env, req, url, path, limiter) {
       return { status: err.statusCode || 400, json: { error: err.message } };
     }
     if (path === "/api/ca/enroll") return enroll(body || {}, env);
+    if (path === "/api/ca/revoke/challenge") return managedRevocationChallenge(env, body || {});
+    if (path === "/api/ca/revoke") return managedRevoke(env, body || {});
     const email = typeof body?.email === "string" ? body.email.trim().toLowerCase() : "invalid";
     const emailRefusal = await admission(limiter, "email-address", email, positiveInt(env.CA_EMAIL_PER_ADDRESS_RPM, 1));
     return emailRefusal ?? routeEmailStart(env, body || {}, ip);
@@ -957,7 +1920,7 @@ async function route(env, req, url, path, limiter) {
   return { status: 404, json: { error: "not found" } };
 }
 function createCaHandler(env = process.env, { onWrite } = {}) {
-  const caEnabled = !!(env.CA_SERVICE_SECRET || env.CA_ROOT_KEY_PEM);
+  const caEnabled = !!(env.CA_SERVICE_SECRET || env.CA_ISSUER_MODE === "vault-pki" || env.CA_ROOT_KEY_PEM);
   const limiter = caEnabled ? createRateLimiter(env, onWrite) : null;
   return async function caHandler(req, res) {
     try {
@@ -976,8 +1939,8 @@ function createCaHandler(env = process.env, { onWrite } = {}) {
         return;
       }
       writeResult(res, await route(env, req, url, path, limiter), cors);
-    } catch (err) {
-      console.error("ca handler error:", err?.message || "unknown");
+    } catch {
+      console.error("ca handler failed");
       try {
         res.writeHead(500, { "content-type": "application/json; charset=utf-8" });
         res.end(JSON.stringify({ error: "internal error" }));

@@ -29,6 +29,10 @@ spec:
       nodeSelector:
         kubernetes.io/hostname: {{ $.Values.edge.nodeName | quote }}
       {{- end }}
+      {{- if and (eq $name "ca") (eq $component.issuerMode "vault-pki") }}
+      {{- include "lolly.ca.managedFields" $component.managed }}
+      serviceAccountName: {{ $component.managed.serviceAccountName }}
+      {{- end }}
       automountServiceAccountToken: false
       terminationGracePeriodSeconds: {{ ternary 330 30 (or (eq $name "mcp") (eq $name "ca")) }}
       {{- with $.Values.imagePullSecrets }}
@@ -56,7 +60,7 @@ spec:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
             capabilities: {drop: [ALL]}
-          {{- if or (eq $name "mcp") (eq $name "ca") }}
+          {{- if or (eq $name "mcp") (and (eq $name "ca") (ne $component.issuerMode "vault-pki")) }}
           envFrom:
             - secretRef: {name: {{ $component.existingSecret }}}
           {{- end }}
@@ -81,6 +85,18 @@ spec:
             - {name: LOLLY_BROWSER_MAX_QUEUE, value: {{ $component.browser.maxQueued | quote }}}
             - {name: LOLLY_BROWSER_QUEUE_TIMEOUT_MS, value: {{ $component.browser.queueTimeoutMs | quote }}}
             {{- else if eq $name "ca" }}
+            - {name: CA_ISSUER_MODE, value: {{ $component.issuerMode | quote }}}
+            {{- if eq $component.issuerMode "vault-pki" }}
+            {{- include "lolly.ca.managedEnv" $component.managed | nindent 12 }}
+            {{- range $key := list "CA_SERVICE_SECRET" "CA_RATE_LIMIT_REST_URL" "CA_RATE_LIMIT_REST_TOKEN" "GITHUB_CLIENT_ID" "GITHUB_CLIENT_SECRET" "GOOGLE_CLIENT_ID" "GOOGLE_CLIENT_SECRET" "GOOGLE_TOKEN_AUTH_METHOD" "SUSE_ISSUER" "SUSE_CLIENT_ID" "SUSE_CLIENT_SECRET" "SUSE_TOKEN_AUTH_METHOD" "SUSE_EMAIL_VERIFICATION" }}
+            - name: {{ $key }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $component.existingSecret }}
+                  key: {{ $key }}
+                  optional: {{ ternary "false" "true" (has $key (list "CA_SERVICE_SECRET" "CA_RATE_LIMIT_REST_URL" "CA_RATE_LIMIT_REST_TOKEN")) }}
+            {{- end }}
+            {{- end }}
             - {name: CA_ALLOWED_ORIGINS, value: "https://{{ $.Values.public.host }},https://{{ $.Values.private.host }}"}
             - {name: CA_TRUST_PROXY, value: "1"}
             - {name: CA_TRUSTED_PROXIES, value: {{ join "," $.Values.edge.proxyAddresses | quote }}}
@@ -111,6 +127,9 @@ spec:
             {{- end }}
             periodSeconds: 5
           volumeMounts:
+            {{- if and (eq $name "ca") (eq $component.issuerMode "vault-pki") }}
+            {{- include "lolly.ca.managedMounts" $component.managed | nindent 12 }}
+            {{- end }}
             - {name: tmp, mountPath: /tmp}
             {{- if eq $name "web" }}
             - {name: nginx, mountPath: /etc/nginx/conf.d/default.conf, subPath: default.conf, readOnly: true}
@@ -122,6 +141,9 @@ spec:
               {{- end }}
             {{- end }}
       volumes:
+        {{- if and (eq $name "ca") (eq $component.issuerMode "vault-pki") }}
+        {{- include "lolly.ca.managedVolumes" $component.managed | nindent 8 }}
+        {{- end }}
         - name: tmp
           emptyDir: {sizeLimit: {{ $component.tmpSize | quote }}}
         {{- if eq $name "web" }}

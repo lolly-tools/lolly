@@ -46,15 +46,16 @@ export function renderEnrollForm(pv: ProfileViewCtx, health: CaHealth | null) {
       ${verifyLink()}
       <p class="identity-error" role="alert" hidden></p>`;
   }
+  const managed = health?.issuerMode === 'vault-pki';
+  const defaultDays = managed ? (health.defaultLifetimeSeconds ?? 86400) / 86400 : 30;
+  const maxDays = managed ? (health.maxLifetimeSeconds ?? 604800) / 86400 : 365;
+  const days = [...new Set([defaultDays, ...(managed ? [1, 7] : [7, 30, 90, 365])])].filter(day => day <= maxDays);
   return `
       <p class="identity-blurb">${t('Sign exports with a verified identity - a short-lived certificate ties your email to files you export; the key never leaves this device.')} <a href="${docsAppHref('trust/content-credentials-identity')}" target="_blank" rel="noopener">${t('How it works')}</a></p>
       <p class="identity-blurb identity-permanence">${t('Know before you enrol: your email address is written into every file you export while enrolled. It stays in every copy you share and cannot be removed later, even after the certificate expires.')}</p>
       <label class="identity-days-row">${t('Verified for')}
         <select class="identity-days-select field-select" aria-label="${escapeText(t('Certificate lifetime'))}">
-          <option value="7">${t('7 days')}</option>
-          <option value="30" selected>${t('30 days')}</option>
-          <option value="90">${t('90 days')}</option>
-          <option value="365">${t('365 days')}</option>
+          ${days.map(day => `<option value="${day}"${day === defaultDays ? ' selected' : ''}>${escapeText(t('{count} days', { count: day }))}</option>`).join('')}
         </select>
         <span class="identity-days-hint">${t('- longer keeps exports verified longer; shorter limits misuse if this device is lost. The CA has the final say.')}</span>
       </label>
@@ -71,10 +72,12 @@ export function renderIdentityStatus(pv: ProfileViewCtx, s: IdentityStatus) {
   const life = s.expired ? (when ? tRaw('expired {date}', { date: when }) : t('expired')) : (when ? tRaw('renews {date}', { date: when }) : '');
   return `
       <div class="identity-status${s.expired ? ' is-expired' : ''}">
+        ${s.revoked ? `<p class="identity-error">${t('This signing certificate has been revoked. Renew to sign with a verified identity again.')}</p>` : s.statusUnavailable ? `<p class="identity-error">${t('Certificate status is unavailable. Exports use an anonymous credential until verification succeeds.')}</p>` : ''}
         <p class="identity-signing">${t('Signing as <strong>{email}</strong>', { email: s.identity?.email ?? '' })}${provider ? ` <span class="identity-via">${t('via {provider}', { provider })}</span>` : ''}</p>
         ${life ? `<p class="identity-life">${escapeText(life)}</p>` : ''}
         <div class="identity-actions">
           <button type="button" class="btn" data-identity-act="renew">${t('Renew')}</button>
+          ${s.managed && !s.expired && !s.revoked && pv.host.identity?.revoke ? `<button type="button" class="btn" data-identity-act="revoke">${t('Revoke certificate')}</button>` : ''}
           <button type="button" class="btn" data-identity-act="forget">${t('Forget this device')}</button>
         </div>
         ${verifyLink()}
@@ -149,7 +152,18 @@ export const loadIdentity = (pv: ProfileViewCtx): Promise<void> => {
       // A legacy email (magic-link) identity can no longer renew by email - re-show the
       // enroll form so it re-enrols via a provider instead.
       if (provider === 'email') body.innerHTML = renderEnrollForm(pv, await caHealth(pv));
-      else if (provider) await enrollWith(pv, provider, act, [7, 30, 90, 365].includes(prevDays) ? prevDays : undefined);
+      else if (provider) await enrollWith(pv, provider, act, pv.identityStatus?.managed ? undefined : [7, 30, 90, 365].includes(prevDays) ? prevDays : undefined);
+      return;
+    }
+    if (act.dataset.identityAct === 'revoke') {
+      if (act.dataset.confirm !== '1') {
+        act.dataset.confirm = '1'; act.textContent = t('Really revoke?');
+        setTimeout(() => { if (document.contains(act)) { delete act.dataset.confirm; act.textContent = t('Revoke certificate'); } }, 4000);
+        return;
+      }
+      act.disabled = true;
+      try { await host.identity!.revoke?.(); await paintIdentity(pv); announce(t('Signing certificate revoked')); }
+      catch (err) { act.disabled = false; showIdentityError(pv, String((err as { message?: unknown })?.message ?? err)); }
       return;
     }
     if (act.dataset.identityAct === 'forget') {

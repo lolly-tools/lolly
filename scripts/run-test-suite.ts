@@ -50,7 +50,7 @@ export function discoverTests(repo = REPO): string[] {
     .sort();
 }
 
-const SECURITY = /(?:^|[-/.])(?:action|auth|ca-service|catalog-release|chrome-extension-relay|contentseal|csp|egress|gateway-security|hook-worker|integrity|locale-markup|oauth|password|rate-limit|redact|render-secret|scan-secrets|seal|security|ssrf|taint|trust|workflow-pins)(?:[-/.]|$)/;
+const SECURITY = /(?:^|[-/.])(?:action|auth|ca-(?:service|managed|oidc)|catalog-release|chrome-extension-relay|contentseal|csp|egress|gateway-security|hook-worker|integrity|locale-markup|oauth|password|rate-limit|redact|render-secret|scan-secrets|seal|security|ssrf|taint|trust|workflow-pins)(?:[-/.]|$)/;
 const CONFORMANCE = /(?:^|[-/.])(?:c2pa|c2patool|conformance|foreign|qpdf|spec-conformance)(?:[-/.]|$)/;
 const TOOLS = /(?:^|[-/.])(?:asset-ref|catalog|manifest|profile-tools|tool(?:-|s\.)|tool-render|tools)(?:[-/.]|$)/;
 const BROWSER_NAME = /(?:^|[-/.])(?:browser|capture|dom-emitter|export-emitter-golden|playwright|screen-capture|svg-walker|walker)(?:[-/.]|$)/;

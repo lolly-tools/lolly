@@ -32,6 +32,11 @@ export function validateReleaseEnvironment(env: NodeJS.ProcessEnv, signing = tru
   if (env.VITE_REQUIRE_AI_POLICY !== undefined && !['true', 'false'].includes(env.VITE_REQUIRE_AI_POLICY)) {
     throw new Error('VITE_REQUIRE_AI_POLICY must be true or false');
   }
+  if (env.VITE_CA_ENROLLMENT_TRUST_JSON) {
+    let trust: { version?: number; roots?: unknown[]; issuers?: unknown[] };
+    try { trust = JSON.parse(env.VITE_CA_ENROLLMENT_TRUST_JSON); } catch { throw new Error('VITE_CA_ENROLLMENT_TRUST_JSON must be public trust JSON'); }
+    if (!trust || Object.keys(trust).some(k => !['version', 'roots', 'issuers', 'providers', 'defaultLifetimeSeconds', 'maxLifetimeSeconds', 'crlMaxAgeSeconds', 'unifiedCrl'].includes(k)) || trust?.version !== 1 || !Array.isArray(trust.roots) || !trust.roots.length || !Array.isArray(trust.issuers) || !trust.issuers.length || /PRIVATE KEY/.test(env.VITE_CA_ENROLLMENT_TRUST_JSON)) throw new Error('VITE_CA_ENROLLMENT_TRUST_JSON must contain public enrollment trust');
+  }
   if (signing && !env.LOLLY_CATALOG_SIGNING_KEY?.trim()) {
     throw new Error('LOLLY_CATALOG_SIGNING_KEY is required for a release web build');
   }
@@ -65,7 +70,9 @@ export function releaseCompilerEnvironment(env: NodeJS.ProcessEnv): NodeJS.Proce
     'IOS_DIST_CERT_P12', 'IOS_DIST_CERT_PASSWORD', 'ASC_KEY_P8', 'ASC_KEY_ID', 'ASC_ISSUER_ID',
     'APPLE_API_KEY', 'APPLE_API_ISSUER', 'APPLE_API_KEY_PATH', 'APPLE_CERTIFICATE', 'APPLE_CERTIFICATE_PASSWORD',
     'APPLE_SIGNING_IDENTITY', 'APPLE_ID', 'APPLE_PASSWORD',
+    'CA_ROOT_KEY_PEM', 'CA_SERVICE_SECRET', 'VAULT_TOKEN', 'GITHUB_CLIENT_SECRET', 'GOOGLE_CLIENT_SECRET', 'SUSE_CLIENT_SECRET', 'RESEND_API_KEY', 'LOLLY_RATE_LIMIT_REST_TOKEN',
   ]) delete build[name];
+  for (const name of Object.keys(build)) if (name.startsWith('CA_') || name.startsWith('VAULT_')) delete build[name];
   return build;
 }
 

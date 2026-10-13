@@ -32,15 +32,19 @@ export interface IdentityStatus {
   notBefore?: string;
   notAfter?: string;
   expired?: boolean;
+  managed?: boolean;
+  revoked?: boolean;
+  statusUnavailable?: boolean;
 }
 export interface IdentityAPI {
   status(): Promise<IdentityStatus>;
   enroll(provider: string, opts?: { days?: number; email?: string }): Promise<IdentityStatus>;
   forget(): Promise<unknown>;
+  revoke?(): Promise<unknown>;
   completeEnrollment(token: string): Promise<IdentityStatus>;
 }
 
-export interface CaHealth { ok?: boolean; devProvider?: boolean; configured?: { github?: boolean; google?: boolean; suse?: boolean; email?: boolean } }
+export interface CaHealth { ok?: boolean; devProvider?: boolean; issuerMode?: string; defaultLifetimeSeconds?: number; maxLifetimeSeconds?: number; configured?: { github?: boolean; google?: boolean; suse?: boolean; email?: boolean } }
 
 /**
  * The web bridge as this view drives it: HostV1 plus the host-UI-only surface
