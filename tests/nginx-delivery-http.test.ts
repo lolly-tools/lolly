@@ -193,4 +193,92 @@ test(`actual ${configuration} preserves validators, decoded signatures, ranges a
     rmSync(temporary, { recursive: true, force: true });
   }
 });
+
+test(`actual ${configuration} streams to a slow reader without proxy temp files`, { skip: !installed, timeout: 30_000 }, async () => {
+  const bytes = Buffer.alloc(4 * 1024 * 1024, 0x61);
+  // The buffering-on control proves this small fixture actually reaches the disk-buffer path.
+  for (const bufferingControl of [false, true]) {
+    const temporary = mkdtempSync(join(tmpdir(), 'lolly-nginx-stream-'));
+    const root = join(temporary, 'site'); mkdirSync(join(root, 'models'), { recursive: true });
+    writeFileSync(join(root, 'models', 'stream.onnx'), bytes);
+    prepareStaticDelivery(root);
+    writeFileSync(join(temporary, 'delivery-maps.conf'), nginxDeliveryMaps());
+    writeFileSync(join(temporary, 'delivery-etags.conf'), readFileSync(join(root, '.delivery-etags.conf')));
+    for (const file of ['delivery-headers.conf', 'security-headers.conf']) {
+      writeFileSync(join(temporary, file), readFileSync(resolve('deploy/docker', file), 'utf8').replaceAll('/etc/nginx/', `${temporary}/`));
+    }
+    const port = await unusedPort(), innerPort = await unusedPort();
+    let serverConfig = readFileSync(resolve('deploy/docker', configuration), 'utf8')
+      .replaceAll('/etc/nginx/', `${temporary}/`)
+      .replace('listen 8080;', `listen 127.0.0.1:${port};`)
+      .replace('listen [::]:8080;', '')
+      .replaceAll('127.0.0.1:8081', `127.0.0.1:${innerPort}`)
+      .replace(/root\s+\/usr\/share\/nginx\/html;/, `root ${root};`);
+    if (bufferingControl) serverConfig = serverConfig.replace('proxy_buffering off;', 'proxy_buffering on;');
+    writeFileSync(join(temporary, 'nginx.conf'), `pid ${temporary}/nginx.pid;
+error_log ${temporary}/error.log warn;
+events {}
+http {
+  access_log off;
+  proxy_temp_path ${temporary}/proxy-temp;
+  proxy_buffer_size 4k;
+  proxy_buffers 4 4k;
+  proxy_busy_buffers_size 8k;
+  proxy_temp_file_write_size 8k;
+  proxy_max_temp_file_size 64k;
+  ${serverConfig}
+}
+`);
+    const child = spawn(nginx, ['-p', temporary, '-c', join(temporary, 'nginx.conf'), '-g', 'daemon off;']);
+    let errors = ''; child.stderr.on('data', chunk => { errors += chunk; });
+    try {
+      let ready = false;
+      for (let attempt = 0; attempt < 100; attempt++) {
+        try {
+          await new Promise<void>((done, reject) => {
+            const call = request({ host: '127.0.0.1', port, path: '/healthz' }, response => {
+              response.resume();
+              response.on('end', () => response.statusCode === 200 ? done() : reject(new Error('Nginx not ready')));
+              response.on('error', reject);
+            });
+            call.setTimeout(1000, () => call.destroy(new Error('Nginx readiness timed out')));
+            call.on('error', reject); call.end();
+          });
+          ready = true; break;
+        } catch { if (child.exitCode !== null) throw new Error(errors); await delay(20); }
+      }
+      assert.ok(ready, 'Nginx became ready');
+      const received = await new Promise<{ bytes: number; hash: string; headers: import('node:http').IncomingHttpHeaders }>((done, reject) => {
+        let observed = 0;
+        const call = request({ agent: false, host: '127.0.0.1', port, path: '/models/stream.onnx', headers: { 'accept-encoding': 'identity' } }, response => {
+          const hash = createHash('sha256'); let length = 0;
+          response.on('data', (chunk: Buffer) => {
+            hash.update(chunk); length += chunk.length; observed = length;
+            response.pause(); setTimeout(() => response.resume(), 10);
+          });
+          response.pause(); setTimeout(() => response.resume(), 200);
+          response.on('error', reject);
+          response.on('end', () => {
+            if (response.statusCode !== 200 || !response.complete) return reject(new Error('Incomplete model response'));
+            done({ bytes: length, hash: hash.digest('hex'), headers: response.headers });
+          });
+        });
+        call.setTimeout(10_000, () => call.destroy(new Error(`Slow reader timed out (${configuration}, control=${bufferingControl}, bytes=${observed})`)));
+        call.on('error', reject); call.end();
+      });
+      assert.equal(received.bytes, bytes.length);
+      assert.equal(received.hash, sha(bytes));
+      assert.equal(received.headers['content-length'], String(bytes.length));
+      assert.equal(received.headers.etag, `"${sha(bytes)}"`);
+      assert.equal(received.headers['content-encoding'], undefined);
+      const log = readFileSync(join(temporary, 'error.log'), 'utf8');
+      assert.equal(log.includes('an upstream response is buffered to a temporary file'), bufferingControl,
+        bufferingControl ? 'Buffering-on control must spill to disk' : 'Maintained configuration must not spill to disk');
+    } finally {
+      child.kill('SIGTERM');
+      await new Promise<void>(done => { if (child.exitCode !== null) done(); else child.once('exit', () => done()); });
+      rmSync(temporary, { recursive: true, force: true });
+    }
+  }
+});
 }
