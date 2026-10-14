@@ -114,11 +114,12 @@ function dirsTable(): string {
 }
 
 /** Every file that is pointed at by a test, by basename import or sibling suite. */
-function testedSet(): Set<string> {
+function testedSet(candidates: FileRow[]): Set<string> {
+  if (candidates.length === 0) return new Set();
   const tests = ALL.filter((f) => isTest(f.rel));
   const texts = tests.map((f) => readFileSync(join(SRC, f.rel), 'utf8'));
   const tested = new Set<string>();
-  for (const f of ALL) {
+  for (const f of candidates) {
     if (!isSource(f.rel) || isDecl(f.rel)) continue;
     const base = f.rel.slice(f.rel.lastIndexOf('/') + 1).replace(/\.[jt]s$/, '');
     const sibling = f.rel.replace(/\.[jt]s$/, '.test.ts');
@@ -153,11 +154,12 @@ function existingNotes(readme: string): Map<string, string> {
 }
 
 function largestTable(readme: string): string {
-  const tested = testedSet();
   const notes = existingNotes(readme);
-  const rows = ALL.filter((f) => isSource(f.rel) && !isDecl(f.rel) && /\.ts$/.test(f.rel))
+  const largest = ALL.filter((f) => isSource(f.rel) && !isDecl(f.rel) && /\.ts$/.test(f.rel))
     .sort((a, b) => b.lines - a.lines)
-    .slice(0, LARGEST_N)
+    .slice(0, LARGEST_N);
+  const tested = testedSet(largest.filter(f => !notes.has(f.rel)));
+  const rows = largest
     .map((f) => {
       const note = notes.get(f.rel) ?? (tested.has(f.rel) ? 'yes' : '**none**');
       return `| ${fmt(f.lines)} | \`${f.rel}\` | ${note} |`;

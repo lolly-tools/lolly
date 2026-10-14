@@ -157,11 +157,23 @@ before claiming a wall-clock saving. Refresh the profile from complete successfu
 per file and recording the contributing source/run identities. Stale estimates
 may reduce balance but cannot reduce coverage.
 
-Two other measured targets remain separate from browser scheduling. Generated
-source-map drift failed the main run `38601444707` after TypeScript had finished;
-the same generated tables conflicted when integrating independent PRs. A cheap
-generated-file preflight should report that before expensive checks begin.
-Also, failed-job reruns of `38602962399` and `38602986096` lacked scope artifacts
+Generated source-map drift failed the main run `38601444707` after TypeScript had
+finished; the same generated tables conflicted when integrating independent PRs.
+The local pre-push hook now checks the web source map and engine module table
+from every distinct pushed commit tip before the wording checks. Its temporary
+snapshot comes from raw Git blobs, so dirty working files cannot hide committed
+drift. This check requires no installation and leaves the index and working tree
+untouched. See [CONTRIBUTING.md](../CONTRIBUTING.md) for setup and repair commands.
+CI's existing generated-source drift checks remain in force.
+
+On 2026-10-14, the local web source-map check fell from 17.34 seconds to 0.71
+seconds by calculating fallback coverage only for listed files without saved
+notes. The generated README remained byte-identical. The complete commit-tip
+preflight, including the Git snapshot and both generators, took 2.28 seconds
+with Node 26.11.1 on the development Mac. These are local measurements, not
+hosted CI duration claims.
+
+Failed-job reruns of `38602962399` and `38602986096` lacked scope artifacts
 for their new attempt. The current exact-attempt policy requires a complete
 rerun; a future retry workflow must reconstruct that provenance explicitly.
 

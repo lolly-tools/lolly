@@ -1,10 +1,21 @@
 #!/usr/bin/env sh
-# Local vernacular gate before source publication. Main pushes run CI; production
-# application releases use their reviewed target and qualified artifacts. A source
-# push does not deploy infrastructure. Emergency bypass: git push --no-verify.
+# Local source checks before publication. A source push does not deploy infrastructure.
+# Emergency bypass: git push --no-verify.
 root=$(git rev-parse --show-toplevel) || exit 1
 cd "$root" || exit 1
+updates=$(cat) || exit 1
+node_bin=${LOLLY_NODE:-node}
+expected=$(sed 's/^v//; s/\..*//' .nvmrc) || exit 1
+actual=$("$node_bin" -p 'process.versions.node.split(".")[0]') || exit 1
+if [ "$actual" != "$expected" ]; then
+  printf '✗ pre-push needs Node %s from .nvmrc (found %s). Run nvm use, or set LOLLY_NODE to that Node executable.\n' "$expected" "$actual"
+  exit 1
+fi
+printf '→ pre-push: generated source maps…\n'
+printf '%s\n' "$updates" | "$node_bin" scripts/check-pushed-generated.ts --pre-push || exit 1
+# A delete publishes no source. Keep branch cleanup independent of checkout wording.
+printf '%s\n' "$updates" | awk 'NF && $2 !~ /^0+$/ && $2 != $4 { found=1 } END { exit !found }' || exit 0
 printf '→ pre-push: vernacular gate…\n'
-pnpm --silent run check:code-comments || { printf '\n✗ code-comment vernacular failed - fix, or bypass with: git push --no-verify\n'; exit 1; }
-node scripts/check-docs-vernacular.ts   || { printf '\n✗ docs vernacular failed - fix, or bypass with: git push --no-verify\n'; exit 1; }
+"$node_bin" scripts/check-code-comment-vernacular.ts || { printf '\n✗ code-comment vernacular failed - fix, or bypass with: git push --no-verify\n'; exit 1; }
+"$node_bin" scripts/check-docs-vernacular.ts || { printf '\n✗ docs vernacular failed - fix, or bypass with: git push --no-verify\n'; exit 1; }
 printf '✓ vernacular clean\n'
