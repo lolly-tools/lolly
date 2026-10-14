@@ -124,11 +124,12 @@ function paintSelectionAxis(
     length = axis === 'x' ? 'width' : 'height';
   view.band.style[position] = `${min}px`;
   view.band.style[length] = `${Math.max(0, max - min)}px`;
-  // Modern draw_selection_x/y: 100px outer masks and symmetric half-bar label gaps.
+  // Modern draw_selection_x/y: 100px outer masks and labels anchored to the band edges.
   view.before.style[position] = `${min - 100}px`;
   view.after.style[position] = `${max}px`;
-  view.min.style[position] = `${min - GUIDE_RULER_SIZE / 2}px`;
-  view.max.style[position] = `${max + GUIDE_RULER_SIZE / 2}px`;
+  // Each label sits against its unit edge: min ends at the edge and max starts at the edge.
+  view.min.style[position] = `${min}px`;
+  view.max.style[position] = `${max}px`;
   view.min.textContent = guideNumber(nativeMin);
   view.max.textContent = guideNumber(nativeMax);
 }

@@ -179,7 +179,7 @@
     flex-shrink: 0;
   }
   /* .export-popup-title/-close: hoisted out of both breakpoints, near the top of this file. */
-  .export-popup-body { overflow-y: auto;padding: var(--sp-4); }
+  .export-popup-body { overflow-y: auto;padding: var(--sp-4) 0; }
   .export-popup-body .tool-actions { margin: 0; padding: 0; border-top: none; }
   /* Let the last input scroll clear of the open export panel. */
   .tool-layout.export-open .sidebar-body { padding-bottom: 45vh; }
@@ -250,7 +250,7 @@
   overflow-y: auto;
     max-height: 100vh;
     max-height: 100dvh; /* track the visible viewport so mobile chrome can't hide the header/actions */
-    box-shadow: 1px 0 3px -3px #0001, 1rem 0 .5rem -.5rem #0001;
+    box-shadow: var(--ui-elevation-sidebar);
   }
 
 .sidebar.is-dragging {
@@ -651,7 +651,7 @@
      fold - and its "keep content stable" adjustment is what turned a hover into a
      scroll nudge. Belt-and-suspenders with the clip-path fix on .input-section. */
   overflow-anchor: none;
-  padding: var(--sp-4);
+  padding: 0;
   padding-top: var(--sp-4);
   display: flex;
   flex-direction: column;
@@ -985,6 +985,7 @@
   text-transform: uppercase;
   letter-spacing: var(--ui-type-tracking-label);
   color: var(--ui-color-text-muted);
+  padding-left: var(--sp-5);
 }
 
 /* A slider row's caption is one short line with its live value already sitting

@@ -240,7 +240,6 @@
   grid-row: 3;
   grid-column: 1;
   margin: 0;
-  padding-inline-end: var(--sp-2);
   font-size: inherit;
 }
 .tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile-status { display: flex; grid-row: 3; grid-column: 2; justify-self: start; }
@@ -265,9 +264,9 @@
 .tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"])[data-browse-density="compact"] .gtile-meta > .gtile-name { display: block; }
 .tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"])[data-browse-density="compact"] .gtile:not(.gtile--resumable) .gtile-meta > .gtile-desc,
 .tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"])[data-browse-density="compact"] .gtile-meta > :is(.gtile-resume, .gtile-tpl, .gtile-fmts, .gtile-status) {
-  display: inline;
+  display: inline-block;
   contain: none;
-  padding: 0;
+  padding: 0 var(--sp-2);
   margin-inline-end: var(--sp-3);
   unicode-bidi: normal;
 }

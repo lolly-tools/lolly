@@ -715,6 +715,16 @@ export const DOCS_PAGES: Array<{ slug: string; src: string }> = [
   { slug: 'ai-stance', src: 'ai-stance.md' },
   { slug: 'tenets', src: 'tenets.md' },
   { slug: 'creative-rights', src: 'creative-rights.md' },   // plan 253: what an export owes its sources
+  // The comparison pages are among the most-read public docs; a reader weighing Lolly
+  // against Canva or Figma reads it in their own language.
+  { slug: 'compare', src: 'compare.md' },
+  { slug: 'compare-adobe', src: 'compare-adobe.md' },
+  { slug: 'compare-brand-portals', src: 'compare-brand-portals.md' },
+  { slug: 'compare-canva', src: 'compare-canva.md' },
+  { slug: 'compare-converters', src: 'compare-converters.md' },
+  { slug: 'compare-figma', src: 'compare-figma.md' },
+  { slug: 'compare-penpot', src: 'compare-penpot.md' },
+  { slug: 'compare-render-apis', src: 'compare-render-apis.md' },
 ];
 
 interface DocBlock {
@@ -1294,7 +1304,8 @@ async function exportPending(corpusIds: string[], langs: Lang[], cache: Cache, g
     // work file records which pages it covered so `--import` can regenerate
     // exactly those twins and no others.
     if (id === 'docs') {
-      const pages = only ? DOCS_PAGES.filter(p => p.slug === only) : DOCS_PAGES;
+      const onlySlugs = only?.split(',');
+      const pages = onlySlugs ? DOCS_PAGES.filter(p => onlySlugs.includes(p.slug)) : DOCS_PAGES;
       if (only && !pages.length) { console.error(`Unknown --only page "${only}". Available: ${DOCS_PAGES.map(p => p.slug).join(', ')}`); process.exit(1); }
       const docs = pages.map(p => ({ ...p, blocks: splitDocBlocks(readFileSync(join(REPO_ROOT, 'docs', p.src), 'utf8')) }));
       for (const lang of langs) {

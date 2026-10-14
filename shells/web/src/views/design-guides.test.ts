@@ -702,7 +702,7 @@ test('selection ruler bands reuse nodes and the last layout independently of tic
   assert.equal(band.style.left, '83px');
   assert.equal(band.style.width, '45px');
   assert.equal(min.textContent, '10');
-  assert.equal(min.style.left, '72px');
+  assert.equal(min.style.left, '83px');
   assert.equal(y.querySelector<HTMLElement>('.fc-ruler-selection-band')!.style.height, '30px');
   f.handle.setSelectionBounds({ minX: -0.001, minY: 0, maxX: 123.5, maxY: 80 });
   assert.equal(min.textContent, '0');

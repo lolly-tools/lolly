@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:01b78a89-d462-426b-8d92-001893a84ed7",
+  "serialNumber": "urn:uuid:2597c1f1-d712-4702-8709-75c44c8a6afe",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-10-13T18:22:52.221Z",
+    "timestamp": "2026-10-14T13:54:11.793Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -11370,10 +11370,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/rustls@0.23.45",
+      "bom-ref": "pkg:cargo/rustls@0.23.46",
       "name": "rustls",
-      "version": "0.23.45",
-      "purl": "pkg:cargo/rustls@0.23.45",
+      "version": "0.23.46",
+      "purl": "pkg:cargo/rustls@0.23.46",
       "scope": "required",
       "licenses": [
         {
@@ -11383,7 +11383,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0d41d731c7d2f962d1ccc364cec258de3c0e93b38c2fb3ba97ac74513048d634"
+          "content": "48e13bd8c0e9365c43cfa5c9e8f9ad49d3c8444926c9aac819e0e4dc503c8fdf"
         }
       ],
       "properties": [

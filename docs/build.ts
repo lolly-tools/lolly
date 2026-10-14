@@ -340,6 +340,7 @@ const pages: Page[] = [
   { slug: 'catalog-resource-reading', title: 'Read verified catalog resources', src: 'catalog-resource-reading.md', pathway: 'builders', description: 'Signed resource coverage, bounded reads and verified client resource delivery.' },
   { slug: 'connector-origins', title: 'Configure connector origins', src: 'connector-origins.md', pathway: 'operators', description: 'Exact HTTPS connector origins, deployment headers and native request policy.' },
   { slug: 'deployment',       title: 'Deployment',        src: 'deployment.md',      pathway: 'operators' },
+  { slug: 'ci-qualification', title: 'CI qualification', src: 'ci-qualification.md', pathway: 'operators', description: 'Qualify rapid UI updates and full releases with exact source and CI evidence.' },
   { slug: 'deploy-delivery', title: 'Delivery deployment', src: 'deploy-delivery.md', pathway: 'operators', description: "Serve public files and private workspace responses safely: signed catalog updates, retained hashed files, model integrity, optional edges and release checks." },
   { slug: 'configuration',    title: 'Configuration',     src: 'configuration.md',   pathway: 'operators', description: "Everything that shapes a Lolly instance: which brand it wears, which tools it exposes, and what each tool may do on the device it runs on." },
   { slug: 'content-credentials-identity', title: 'Content Credentials Identity', src: 'content-credentials-identity.md', pathway: 'trust' },
@@ -663,6 +664,7 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
         { slug: 'connector-origins', label: 'Connector origins' },
         { slug: 'deployment',    label: 'Deployment' },
         { slug: 'deploy-delivery', label: 'Delivery deployment' },
+        { slug: 'ci-qualification', label: 'CI qualification' },
         { slug: 'configuration', label: 'Configuration' },
         { slug: 'supported-environments', label: 'Supported environments' },
         { slug: 'about',         label: 'About' } ] },
@@ -692,6 +694,7 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
         { slug: 'sovereign-production', label: 'Sovereign production' },
         { slug: 'deployment',    label: 'Deployment' },
         { slug: 'deploy-delivery', label: 'Delivery deployment' },
+        { slug: 'ci-qualification', label: 'CI qualification' },
         { slug: 'configuration', label: 'Configuration' },
         { slug: 'build-guide',   label: 'Build Guide' } ] },
       { label: 'Build targets', items: [
@@ -5293,7 +5296,7 @@ const FOOTER_SECTIONS: SitemapSection[] = [
   { hub: 'builders', label: 'Run & integrate', slugs: ['tui', 'mcp', 'ai-agents', 'learning-integration', 'design-tool-contract'] },
   { hub: 'builders', label: 'Ship & operate', slugs: ['contributing-setup', 'about'] },
   { hub: 'operators', label: 'Playbooks', slugs: ['sales', 'press', 'marketing', 'legal'] },
-  { hub: 'operators', label: 'Adopt & govern', slugs: ['adoption-governance', 'sovereign-production', 'deployment', 'deploy-delivery', 'configuration', 'connector-origins', 'build-guide'] },
+  { hub: 'operators', label: 'Adopt & govern', slugs: ['adoption-governance', 'sovereign-production', 'deployment', 'deploy-delivery', 'ci-qualification', 'configuration', 'connector-origins', 'build-guide'] },
   { hub: 'operators', label: 'Build targets', slugs: ['build-terminal', 'build-desktop', 'build-mobile', 'build-obs', 'build-kubernetes', 'ios-build'] },
   { hub: 'trust', label: 'Tenets', slugs: ['tenets', 'status-quo', 'inclusive-design'] },
   { hub: 'trust', label: 'Project perspective', slugs: ['input-not-impersonation', 'content-credentials-identity',
@@ -5409,7 +5412,7 @@ const SIDEBAR_ICON: Record<string, string> = {
   sales: 'people', press: 'document', marketing: 'photos', legal: 'lock',
   // Concepts: the locked rule set, the same-every-time check, the link as the artifact.
   constraints: 'lock', determinism: 'check', reproducibility: 'link',
-  'sovereign-production': 'server',
+  'sovereign-production': 'server', 'ci-qualification': 'checklist',
   ask: 'sparkle', dashboard: 'monitor', utilities: 'wrench',
   collaborate: 'people', search: 'search', favourites: 'star', 'find-your-work': 'folder', sync: 'convert',
   // Builders - architecture & authoring

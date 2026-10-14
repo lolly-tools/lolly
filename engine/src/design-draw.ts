@@ -280,6 +280,25 @@ function gradientOf(row: DesignBoxRowV1, box: DrawBox): DrawPaint | null {
 type ColorOf = (value: string) => { color: string; opacity?: number } | null;
 const authoredColor: ColorOf = (value) => (value ? { color: value } : null);
 
+/**
+ * The dash array Design's path hook writes for its `dashed` and `dotted` keywords. A dashed
+ * stroke takes the one length it is given for both, and three and two widths when it has
+ * none; a dotted one is a zero-length dash, a dot under a round or square cap, or a dash as
+ * long as the width under a butt cap. Lengths are clamped to 400 and kept to hundredths.
+ */
+function dashOf(row: DesignBoxRowV1, width: number, cap: string | undefined): [number, number] | undefined {
+  const style = rowStr(row, 'strokeDash');
+  const f2 = (v: number) => Math.round(v * 100) / 100;
+  if (style === 'dashed') {
+    let dash = clampTo(rowNum(row, 'strokeDashLen'), 0, 400), gap = clampTo(rowNum(row, 'strokeGapLen'), 0, 400);
+    if (!(dash > 0)) dash = gap;
+    if (!(gap > 0)) gap = dash;
+    return dash > 0 && gap > 0 ? [f2(dash), f2(gap)] : [f2(width * 3), f2(width * 2)];
+  }
+  if (style === 'dotted') return cap === 'butt' ? [f2(width), f2(width)] : [0, f2(width * 2)];
+  return undefined;
+}
+
 function strokeOf(row: DesignBoxRowV1, color: ColorOf, defaults?: { cap: string; join: string }): DrawStroke | undefined {
   const width = rowNum(row, 'strokeW');
   const paint = color(rowStr(row, 'stroke'));
@@ -289,7 +308,12 @@ function strokeOf(row: DesignBoxRowV1, color: ColorOf, defaults?: { cap: string;
     stroke.cap = rowStr(row, 'strokeCap') || defaults.cap;
     stroke.join = rowStr(row, 'strokeJoin') || defaults.join;
   }
-  if (rowStr(row, 'strokeDash') === 'dashed') stroke.dash = [rowNum(row, 'strokeDashLen') || width * 3, rowNum(row, 'strokeGapLen') || width * 2];
+  // A pen shape's dash is its path hook's array; a box draws a CSS border style, which the
+  // compile reports, and keeps the earlier approximation for the preview reading.
+  if (defaults) {
+    const dash = dashOf(row, width, stroke.cap);
+    if (dash) stroke.dash = dash;
+  } else if (rowStr(row, 'strokeDash') === 'dashed') stroke.dash = [rowNum(row, 'strokeDashLen') || width * 3, rowNum(row, 'strokeGapLen') || width * 2];
   return stroke;
 }
 
