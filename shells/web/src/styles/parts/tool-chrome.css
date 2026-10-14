@@ -364,8 +364,8 @@ html[data-a11y-motion="reduce"] .share-meter-toast { animation: none; }
   flex: 0 0 auto;
   align-self: stretch;              /* a real segment - match the row height */
   display: inline-flex;
-  flex-direction: column;
-  box-shadow: var(--ui-effect-input-well);        /* stack the number over the caption */
+  flex-direction: column;           /* stack the number over the caption */
+  box-shadow: var(--ui-effect-input-well);
   align-items: center;
   justify-content: center;
   gap: 0;
@@ -373,8 +373,6 @@ html[data-a11y-motion="reduce"] .share-meter-toast { animation: none; }
 
   color: hsl(var(--muted-foreground));
 }
-input[data-action="export-dpi"]{box-shadow:none; background-color:red;}
-
 .dim-dpi > span {                   /* the micro "DPI" caption, under the number */
   font-size: calc(7px * var(--a11y-fs));
   line-height: 1;
@@ -388,6 +386,7 @@ input[data-action="export-dpi"]{box-shadow:none; background-color:red;}
   width: calc(2.9rem * var(--a11y-fs));
   border: 0;                 /* the .dim-dpi container carries the segment border */
   background: transparent;
+  box-shadow: none;          /* and its input well: one well per segment, not two */
   padding: 0 4px;
   font-size: var(--fs-md);
   line-height: 1;
