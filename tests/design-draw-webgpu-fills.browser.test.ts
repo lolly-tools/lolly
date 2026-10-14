@@ -18,7 +18,7 @@ import { dirname } from 'node:path';
 import { test } from 'node:test';
 import { chromium } from 'playwright';
 import type { DesignBoxRowV1 } from '@lolly-tools/core';
-import { compileDesignDraw, layoutDesignDrawText, outlineDesignDrawText, type DesignDrawPage, type DrawOp } from '../engine/src/design-draw.ts';
+import { compileDesignDraw, layoutDesignDrawText, outlineDesignDrawText, type DesignDrawPage, type DrawOp, type DrawShapeOp } from '../engine/src/design-draw.ts';
 import { prepareDesignRaster } from '../engine/src/design-draw-raster.ts';
 import { TEXT_MEASURE_DEFAULTS } from '../engine/src/design-text-measure.ts';
 import { encodeAuthoredPaths } from '../engine/src/geom/authored-url.ts';
@@ -71,6 +71,13 @@ const INK_SHARE = 0.25, INK_SHIFT = 1.5;
  * word moved by 0.25 px sits 0.257 px away. Chromium's SVG of the same outlines is not this
  * reference: on Metal it rasterises them with quarter-step coverage and sat up to 0.36 px off.
  */
+/**
+ * Gradients: inside each unturned gradient box, past its outline, no pixel may differ from
+ * the Design renderer by more than this many levels. Measured on Mac Chrome: every interior
+ * pixel within one level at 1x and 2x (about half differ by exactly one). The same gradient
+ * line moved 2 px, and an OKLab ramp drawn from its two end colours, both fail.
+ */
+const GRADIENT_THRESHOLD = REPORT_ONLY && process.env.LOLLY_GRADIENT_THRESHOLD ? Number(process.env.LOLLY_GRADIENT_THRESHOLD) : 2;
 const EXACT_INK_SHARE = REPORT_ONLY && process.env.LOLLY_EXACT_INK_SHARE ? Number(process.env.LOLLY_EXACT_INK_SHARE) : 0.01;
 const EXACT_SHIFT = REPORT_ONLY && process.env.LOLLY_EXACT_SHIFT ? Number(process.env.LOLLY_EXACT_SHIFT) : 0.05;
 
@@ -121,6 +128,19 @@ const strokeRows: DesignBoxRowV1[] = [
   on({ id: 'turned', kind: 'box', x: 230, y: 175, w: 70, h: 45, shape: 'rounded', radius: 10, rot: 21, bg: '#ffe066', stroke: '#495057', strokeW: 3 }),
   on({ id: 'hair', kind: 'path', x: 120, y: 212, w: 90, h: 18, path: diagonal, stroke: '#212529', strokeW: 1, strokeJoin: 'miter', strokeCap: 'butt' }),
 ];
+/** Linear and radial gradients over colours, outlines, a border and a pose, as Design paints CSS backgrounds. */
+const gradientRows: DesignBoxRowV1[] = [
+  { id: 'page', kind: 'frame', x: 0, y: 0, w: 320, h: 240, bg: '#ffffff' },
+  on({ id: 'linear', kind: 'box', x: 15, y: 15, w: 90, h: 60, grad: 'lin.srgb_90_ff6b6b-0_4dabf7-100' }),
+  on({ id: 'angled', kind: 'box', x: 120, y: 15, w: 90, h: 60, bg: '#212529', grad: 'lin.srgb_30_ffd43b-0_1c7ed600-100' }),
+  on({ id: 'oklab', kind: 'box', x: 225, y: 15, w: 80, h: 60, grad: 'lin.oklab_135_1c7ed6-0_f03e3e-100' }),
+  on({ id: 'radial', kind: 'box', x: 15, y: 90, w: 90, h: 60, shape: 'rounded', radius: 12, bg: '#212529', grad: 'rad.srgb_0_ffffff-0_ffffff00-100' }),
+  on({ id: 'hard', kind: 'box', x: 120, y: 90, w: 90, h: 60, grad: 'lin.srgb_0_e8590c-0_e8590c-50_5c940d-50_5c940d-100' }),
+  on({ id: 'bordered', kind: 'box', x: 225, y: 90, w: 80, h: 60, grad: 'lin.srgb_90_862e9c-0_ffffff-100', stroke: '#00000066', strokeW: 8 }),
+  on({ id: 'turned', kind: 'box', x: 20, y: 165, w: 90, h: 55, shape: 'ellipse', grad: 'rad.srgb_0_fab005-0_1864ab-100', rot: 20, flipH: true }),
+  on({ id: 'faded', kind: 'box', x: 125, y: 165, w: 80, h: 60, grad: 'lin.srgb_180_12b886-0_7048e8-100', opacity: 60 }),
+  on({ id: 'pill', kind: 'box', x: 225, y: 175, w: 80, h: 40, shape: 'pill', grad: 'lin.srgb_45_000000-0_ffffff-100' }),
+];
 const textRows: DesignBoxRowV1[] = [
   { id: 'page', kind: 'frame', x: 0, y: 0, w: 320, h: 240, bg: '#ffffff' },
   on({ id: 'title', kind: 'text', x: 10, y: 10, w: 300, h: 60, text: 'Design', fontSize: 40 }),
@@ -153,6 +173,18 @@ function shapeRegions(drawing: DesignDrawPage, sx: number, sy: number) {
     const w = Math.abs(Math.cos(a)) * op.box.w + Math.abs(Math.sin(a)) * op.box.h, h = Math.abs(Math.sin(a)) * op.box.w + Math.abs(Math.cos(a)) * op.box.h;
     const pad = 4 + (op.op === 'shape' && op.shape.kind === 'path' && op.stroke ? 2 * op.stroke.width : 0);
     return { id: op.id, x: (op.box.x + (op.box.w - w) / 2 - pad) * sx, y: (op.box.y + (op.box.h - h) / 2 - pad) * sy, w: (w + 2 * pad) * sx, h: (h + 2 * pad) * sy };
+  });
+}
+
+/**
+ * The inside of each unturned box with a gradient, in output pixels, inset past its outline
+ * (and an ellipse's curve) so edge coverage stays out and only the gradient's colour is judged.
+ */
+function gradientInteriors(drawing: DesignDrawPage, sx: number, sy: number) {
+  return drawing.ops.filter(op => op.op === 'shape' && op.shape.kind !== 'path' && !op.pose?.rot && op.fills.some(f => f.kind !== 'color')).map(op => {
+    const border = op.op === 'shape' && op.stroke ? op.stroke.width : 0;
+    const ix = 0.3 * op.box.w / 2 + border + 2, iy = 0.3 * op.box.h / 2 + border + 2;
+    return { id: `${op.id}:inside`, x: (op.box.x + ix) * sx, y: (op.box.y + iy) * sy, w: (op.box.w - 2 * ix) * sx, h: (op.box.h - 2 * iy) * sy };
   });
 }
 
@@ -214,7 +246,7 @@ test('opt-in Design GPU fills draw pen shapes, strokes and outlined words within
     return d;
   };
   const cases: DesignGpuCase[] = [];
-  for (const [name, rows] of [['paths', pathRows], ['strokes', strokeRows], ['text', textRows]] as const) {
+  for (const [name, rows] of [['paths', pathRows], ['strokes', strokeRows], ['gradients', gradientRows], ['text', textRows]] as const) {
     const drawing = await drawn(rows);
     for (const scale of [1, 2]) cases.push({ key: `${name}-${scale}`, rows, drawing, scaleX: scale, scaleY: scale, original: true });
   }
@@ -238,7 +270,7 @@ test('opt-in Design GPU fills draw pen shapes, strokes and outlined words within
     assert.equal(value.allocation.liveBytes, 0);
     return `data:image/png;base64,${Buffer.from(value.png).toString('base64')}`;
   };
-  const report: Array<{ page: string; failing: string[]; regions: RegionStats[]; outline: Array<{ id: string; share: number; shift: number }>; svg: RegionStats[]; layout: RegionStats[]; faces: string[] }> = [];
+  const report: Array<{ page: string; failing: string[]; regions: RegionStats[]; inside: RegionStats[]; outline: Array<{ id: string; share: number; shift: number }>; svg: RegionStats[]; layout: RegionStats[]; faces: string[] }> = [];
   const failures: string[] = [];
   // Under load, headless Chrome can return a torn frame (upper rows repeated below), so a
   // reference is the first screenshot that matches the one taken just before.
@@ -264,8 +296,8 @@ test('opt-in Design GPU fills draw pen shapes, strokes and outlined words within
     const words = c.drawing.ops.some(op => op.words);
     const ground = words ? await render({ ...c.drawing, ops: c.drawing.ops.map(({ words: _w, ...op }) => op as DrawOp) }, width, height) : undefined;
     const regions = [...shapeRegions(c.drawing, c.scaleX, c.scaleY), ...runRegions(c.drawing, c.scaleX, c.scaleY)];
-    const compareWith = (before: string, shot: string, within: typeof regions) => probe.evaluate<FidelityStats>(
-      `(${compareInBrowser.toString()})(${JSON.stringify(before)},${JSON.stringify(shot)},${width},${height},${JSON.stringify(within)},${FILL_THRESHOLD},${ground ? JSON.stringify(ground) : 'undefined'},${FILL_SLACK})`);
+    const compareWith = (before: string, shot: string, within: typeof regions, threshold = FILL_THRESHOLD) => probe.evaluate<FidelityStats>(
+      `(${compareInBrowser.toString()})(${JSON.stringify(before)},${JSON.stringify(shot)},${width},${height},${JSON.stringify(within)},${threshold},${ground ? JSON.stringify(ground) : 'undefined'},${FILL_SLACK})`);
     const compare = (shot: string, within: typeof regions) => compareWith(design, shot, within);
     // Against Design: shapes by pixels, words by ink and centroid.
     const stats = await compare(gpu, regions);
@@ -277,17 +309,27 @@ test('opt-in Design GPU fills draw pen shapes, strokes and outlined words within
       return { share, shift, fault: share > EXACT_INK_SHARE || shift > EXACT_SHIFT ? `ink differs from the outline's area by ${(100 * share).toFixed(2)}% and sits ${shift.toFixed(3)} px from its centroid` : undefined };
     };
     const outline = await Promise.all(truth.map(async run => ({ id: run.id, ...(await outlineFault(gpu, run)) })));
+    // Against Design inside each gradient, by colour alone.
+    const interiors = gradientInteriors(c.drawing, c.scaleX, c.scaleY);
+    const insideFault = async (shot: string, within: typeof interiors) => interiors.length
+      ? (await compareWith(design, shot, within, GRADIENT_THRESHOLD)).regions.filter(r => r.differing > 0) : [];
+    const inside = await insideFault(gpu, interiors);
     const failing = [
       ...stats.regions.flatMap(r => { const f = fault(r, c.scaleX); return f ? [`${r.id}: ${f}`] : []; }),
       ...outline.flatMap(r => r.fault ? [`${r.id} against its outline: ${r.fault}`] : []),
+      ...inside.map(r => `${r.id}: ${r.differing} of ${r.pixels} px differ by more than ${GRADIENT_THRESHOLD} levels`),
     ];
     // Diagnostics only: Chromium's own SVG of the same operations, and how far Chromium's text
     // sits from the operations' layout (the drawing compiler's harness owns that limit).
     const svgStats = await compareWith(svg, gpu, regions);
     const layout = words ? (await compareWith(design, svg, regions.filter(r => 'ink' in r))).regions : [];
-    report.push({ page: c.key, failing, regions: stats.regions, outline: outline.map(({ id, share, shift }) => ({ id, share, shift })), svg: svgStats.regions, layout, faces: faces.get(`${fixture.origin}/design/${c.key}`) ?? [] });
+    report.push({ page: c.key, failing, regions: stats.regions, inside, outline: outline.map(({ id, share, shift }) => ({ id, share, shift })), svg: svgStats.regions, layout, faces: faces.get(`${fixture.origin}/design/${c.key}`) ?? [] });
     failures.push(...failing.map(f => `${c.key}/${f}`));
     for (const r of stats.regions) t.diagnostic(`${c.key} ${r.id}: ${detail(r)}`);
+    if (interiors.length && REPORT_ONLY) for (const level of [0, 1, 2, 3, 4, 6]) {
+      const inside = await compareWith(design, gpu, interiors, level);
+      t.diagnostic(`${c.key} gradient interiors over ${level}: ${inside.regions.map(r => `${r.id.split(':')[0]} ${r.differing}/${r.pixels}`).join(', ')}`);
+    }
     for (const r of outline) t.diagnostic(`${c.key} ${r.id} against its outline: ink ${(100 * r.share).toFixed(2)}% shift ${r.shift.toFixed(3)}`);
     for (const r of svgStats.regions) t.diagnostic(`${c.key} ${r.id} against the SVG: ${detail(r)}`);
     for (const r of layout) t.diagnostic(`${c.key} ${r.id} Design text against the SVG: ${detail(r)}`);
@@ -309,6 +351,19 @@ test('opt-in Design GPU fills draw pen shapes, strokes and outlined words within
         const [region] = (await compare(await render(wider, width, height), regions.filter(r => r.id === id))).regions;
         if (REPORT_ONLY) t.diagnostic(`control ${id} stroke 1 px wider: ${region ? `${(100 * region.differing / (region.pixels || 1)).toFixed(2)}%` : 'no region'}`);
         else assert.ok(region && fault(region, 1), `the band catches a stroke 1 px wider (${id})`);
+      }
+    }
+    if (c.key === 'gradients-1') {
+      // Negative controls: the linear gradient's line moved 2 px along itself, and the OKLab
+      // ramp drawn from its two end colours, must each fail the interior check.
+      const moved = structuredClone(c.drawing), line = (moved.ops.find(op => op.id === 'linear') as DrawShapeOp).fills.find(f => f.kind === 'linear');
+      if (line?.kind === 'linear') { line.x1 += 2; line.x2 += 2; }
+      const flat = structuredClone(c.drawing), ramp = (flat.ops.find(op => op.id === 'oklab') as DrawShapeOp).fills.find(f => f.kind === 'linear');
+      if (ramp?.kind === 'linear') ramp.stops = [ramp.stops[0]!, ramp.stops.at(-1)!];
+      for (const [id, page] of [['linear', moved], ['oklab', flat]] as const) {
+        const [region] = await insideFault(await render(page, width, height), interiors.filter(r => r.id === `${id}:inside`));
+        if (REPORT_ONLY) t.diagnostic(`control ${id} gradient: ${region ? `${region.differing} of ${region.pixels} px` : 'no difference'}`);
+        else assert.ok(region, `the interior check catches a changed gradient (${id})`);
       }
     }
     if (c.key === 'text-1') {
