@@ -112938,6 +112938,18 @@ function gradientOf(row, box4) {
   const cy3 = box4.y + box4.h / 2;
   return { kind: "linear", x1: cx2 - dx * half, y1: cy3 - dy * half, x2: cx2 + dx * half, y2: cy3 + dy * half, stops };
 }
+function dashOf(row, width, cap) {
+  const style = rowStr2(row, "strokeDash");
+  const f22 = (v) => Math.round(v * 100) / 100;
+  if (style === "dashed") {
+    let dash = clampTo(rowNum2(row, "strokeDashLen"), 0, 400), gap = clampTo(rowNum2(row, "strokeGapLen"), 0, 400);
+    if (!(dash > 0)) dash = gap;
+    if (!(gap > 0)) gap = dash;
+    return dash > 0 && gap > 0 ? [f22(dash), f22(gap)] : [f22(width * 3), f22(width * 2)];
+  }
+  if (style === "dotted") return cap === "butt" ? [f22(width), f22(width)] : [0, f22(width * 2)];
+  return void 0;
+}
 function strokeOf2(row, color6, defaults2) {
   const width = rowNum2(row, "strokeW");
   const paint2 = color6(rowStr2(row, "stroke"));
@@ -112947,7 +112959,10 @@ function strokeOf2(row, color6, defaults2) {
     stroke.cap = rowStr2(row, "strokeCap") || defaults2.cap;
     stroke.join = rowStr2(row, "strokeJoin") || defaults2.join;
   }
-  if (rowStr2(row, "strokeDash") === "dashed") stroke.dash = [rowNum2(row, "strokeDashLen") || width * 3, rowNum2(row, "strokeGapLen") || width * 2];
+  if (defaults2) {
+    const dash = dashOf(row, width, stroke.cap);
+    if (dash) stroke.dash = dash;
+  } else if (rowStr2(row, "strokeDash") === "dashed") stroke.dash = [rowNum2(row, "strokeDashLen") || width * 3, rowNum2(row, "strokeGapLen") || width * 2];
   return stroke;
 }
 function subPixel(nodes, w, h, scale) {
