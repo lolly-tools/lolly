@@ -58516,6 +58516,9 @@ function xorPath(a, b, opts) {
   return booleanPath(a, b, "xor", opts);
 }
 function selfUnion(p, opts = {}) {
+  return selfUnionChecked(p, opts) ?? normalise(p);
+}
+function selfUnionChecked(p, opts = {}) {
   const tol = usableTol(opts.tol);
   const rule = opts.fillRule ?? "nonzero";
   const path = normalise(p);
@@ -58526,7 +58529,7 @@ function selfUnion(p, opts = {}) {
   const span = Math.max(box4.x1 - box4.x0, box4.y1 - box4.y0, 1);
   const weld = Math.max(tol, JOIN_EPS) * span;
   const near = weld * 0.01;
-  if (idx.curves.length > MAX_CURVES) return path;
+  if (idx.curves.length > MAX_CURVES) return null;
   const budget3 = newBudget();
   const splits = idx.curves.map(() => []);
   selfSplits(idx.curves, splits, tol, weld, budget3, opts.operations);
@@ -58563,7 +58566,7 @@ function selfUnion(p, opts = {}) {
     if (left === right) continue;
     kept2.push(left ? c : reverseCubic(c));
   }
-  if (budget3.work <= 0) return path;
+  if (budget3.work <= 0) return null;
   return compactPath(walkLoops(dedupeEdges(kept2, weld, budget3), weld));
 }
 function windingNumber(p, x, y) {
