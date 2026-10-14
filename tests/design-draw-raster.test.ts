@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MPL-2.0
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { compileDesignDraw, type DesignDrawPage } from '../engine/src/design-draw.ts';
+import { compileDesignDraw, layoutDesignDrawText, outlineDesignDrawText, type DesignDrawPage, type DrawShapeOp } from '../engine/src/design-draw.ts';
+import type { TextShaperV1 } from '../engine/src/design-text-measure.ts';
+import { encodeAuthoredPaths } from '../engine/src/geom/authored-url.ts';
 import { DESIGN_RASTER_RECIPE, designRasterIdentity, prepareDesignRaster, readDesignRasterEvaluation, type DesignRasterEvaluation } from '../engine/src/design-draw-raster.ts';
 import { createDesignRasterRenderer } from '../shells/web/src/lib/webgpu/design-page.ts';
 import { createDesignPageWorker } from '../shells/web/src/lib/webgpu/design-page-worker.ts';
@@ -27,18 +29,20 @@ test('raster admission freezes detached ordered semantics and output geometry', 
 
 test('coverage recipe revision rejects stale handoffs and changes detached raster identity', () => {
   const current = evaluation();
-  assert.equal(DESIGN_RASTER_RECIPE, 'design-static-primitives-edge-aa-rgba8-v1');
+  assert.equal(DESIGN_RASTER_RECIPE, 'design-static-primitives-edge-aa-area-fills-gradients-rgba8-v3');
   assert.equal(current.recipe, DESIGN_RASTER_RECIPE);
-  const stale = { ...structuredClone(current), recipe: 'design-static-primitives-rgba8-v0' };
-  assert.equal(readDesignRasterEvaluation(stale), null);
-  assert.notEqual(designRasterIdentity(current), designRasterIdentity(stale as DesignRasterEvaluation));
+  for (const recipe of ['design-static-primitives-rgba8-v0', 'design-static-primitives-edge-aa-rgba8-v1', 'design-static-primitives-edge-aa-area-fills-rgba8-v2']) {
+    const stale = { ...structuredClone(current), recipe };
+    assert.equal(readDesignRasterEvaluation(stale), null, `${recipe} is stale`);
+    assert.notEqual(designRasterIdentity(current), designRasterIdentity(stale as DesignRasterEvaluation));
+  }
 });
 
 test('unsupported features refuse the whole page rather than dropping operations', () => {
   const mutations: Array<(p: DesignDrawPage) => void> = [
     p => { p.ops[0]!.words = {} as never; }, p => { p.ops[0]!.picture = {} as never; }, p => { p.ops[0]!.shadow = {} as never; },
     p => { p.ops[0]!.blend = 'multiply'; }, p => { p.ops[0]!.blur = 1; }, p => { p.ops[0]!.clip = { points: [] }; },
-    p => { p.ops[0]!.op = 'text'; }, p => { p.frame!.shape = { kind: 'rect', radius: 2 }; },
+    p => { p.ops[0]!.op = 'text'; }, p => { p.frame!.opacity = 50; },
     p => { p.ops[0] = { ...p.ops[0]!, compatibility: 'penpot-native-v1' } as never; },
     p => { p.ops[0] = { ...p.ops[0]!, stroke: { color: '#fff', width: 1 } } as never; },
     p => { p.ops[0] = { ...p.ops[0]!, fills: [{ kind: 'radial', stops: [] }] } as never; },
@@ -167,4 +171,229 @@ test('worker detaches before awaiting and transfers only a complete matching RGB
   const invalid: Record<string, unknown>[] = [];
   const wrong = createDesignPageWorker({ render: async () => result, encode: async () => ({ bytes: png, mime: 'image/png', width: 1, height: 48 }), post: message => invalid.push(message as Record<string, unknown>) });
   await wrong({ kind: 'render', id: 2, page: page() }); assert.equal(invalid[0]!.ok, false); assert.equal(invalid[0]!.data, undefined); assert.equal(invalid[0]!.png, undefined);
+});
+
+const triangle = encodeAuthoredPaths([{ kind: 'cubic', closed: true, nodes: [{ x: 0, y: 1 }, { x: 0.5, y: 0 }, { x: 1, y: 1 }] }] as never) ?? '';
+/** Fixed advances; each run outlines to a square a third of the size high, on its baseline. */
+const shaper: TextShaperV1 = async (run) => {
+  const advances = [...run.text].map((ch) => (ch === ' ' ? run.size / 4 : run.size / 2));
+  return { advances, total: advances.reduce((a, b) => a + b, 0), font: { file: `/fonts/${run.family}.ttf`, metrics: { upem: 1000, ascent: 980, descent: 280 } } };
+};
+async function fillPage(extra: Record<string, unknown>[] = []): Promise<DesignDrawPage> {
+  const page = compileDesignDraw([{ id: 'frame', kind: 'frame', w: 200, h: 120, bg: '#ffffff' },
+    { id: 'tri', kind: 'path', x: 10, y: 10, w: 40, h: 30, path: triangle, bg: '#ff0000', rot: 90 },
+    { id: 'words', kind: 'box', x: 60, y: 10, w: 120, h: 60, text: 'Hi there', fontSize: 16, bg: '#00ff00', fg: '#0000ff' },
+    ...extra] as never, { width: 200, height: 120 }, { effects: true, colors: 'resolved' });
+  await layoutDesignDrawText(page, shaper);
+  await outlineDesignDrawText(page, async ({ text, fontSize }) => ({ d: text.trim() ? `M0 ${-fontSize / 3}L${text.length * fontSize / 2} ${-fontSize / 3}L${text.length * fontSize / 2} 0L0 0Z` : '' }));
+  return page;
+}
+
+test('pen shapes and outlined words are admitted as closed, posed fills in paint order', async () => {
+  const a = prepareDesignRaster(await fillPage());
+  assert.ok(a.ok, JSON.stringify(!a.ok && a.findings));
+  const e = a.evaluation;
+  assert.deepEqual(e.paint, [['primitive', 0], ['fill', 0], ['primitive', 1], ['fill', 1]], 'frame, path, box, then its one run');
+  const [tri, hi] = e.fills;
+  assert.equal(tri!.id, 'tri'); assert.equal(tri!.evenOdd, false); assert.deepEqual(tri!.color, [1, 0, 0, 1]);
+  const close = (n: number, m: number) => Math.abs(n - m) < 1e-9;
+  // Turned 90 degrees about its centre (30, 25), the 40 x 30 box spans 30 x 40.
+  assert.ok(close(tri!.bounds[0], 15) && close(tri!.bounds[1], 5) && close(tri!.bounds[2], 45) && close(tri!.bounds[3], 45), JSON.stringify(tri!.bounds));
+  const edges = tri!.edges, last = edges.length - 4;
+  assert.deepEqual([edges[last + 2], edges[last + 3]], [edges[0], edges[1]], 'the contour closes on its start');
+  assert.equal(hi!.id, 'words:0.0'); assert.deepEqual(hi!.color, [0, 0, 1, 1], 'the run is drawn in the row ink');
+  assert.equal(designRasterIdentity(readDesignRasterEvaluation(structuredClone(e))!), designRasterIdentity(e), 'a fill survives the worker handoff');
+  for (const tamper of [
+    (v: Record<string, any>) => { v.fills[0].bounds[0] -= 1; },
+    (v: Record<string, any>) => { v.paint.reverse(); },
+    (v: Record<string, any>) => { v.fills[0].edges.pop(); },
+    (v: Record<string, any>) => { v.fills[0].color[3] = 2; },
+    (v: Record<string, any>) => { v.paint.pop(); },
+  ]) { const v = structuredClone(e) as Record<string, any>; tamper(v); assert.equal(readDesignRasterEvaluation(v), null); }
+});
+
+test('fills refuse dashes, centred box strokes, words the box would clip, group fades and live text', async () => {
+  const findings = async (page: DesignDrawPage) => { const a = prepareDesignRaster(page); return a.ok ? [] : a.findings.map(f => `${f.feature}:${f.id}`); };
+  assert.deepEqual(await findings(await fillPage([{ id: 'line', kind: 'path', x: 0, y: 80, w: 50, h: 20, path: triangle, stroke: '#000000', strokeW: 2 }])), []);
+  assert.deepEqual(await findings(await fillPage([{ id: 'dash', kind: 'path', x: 0, y: 80, w: 50, h: 20, path: triangle, stroke: '#000000', strokeW: 2, strokeDash: 'dashed' }])), ['raster-dash:dash']);
+  assert.deepEqual(await findings(await fillPage([{ id: 'both', kind: 'path', x: 0, y: 80, w: 50, h: 20, path: triangle, bg: '#ff0000', stroke: '#000000', strokeW: 2, opacity: 50 }])), ['raster-group:both']);
+  const centred = await fillPage([{ id: 'edge', kind: 'box', x: 0, y: 80, w: 50, h: 20, bg: '#ff0000', stroke: '#000000', strokeW: 2 }]);
+  delete (centred.ops.at(-1) as DrawShapeOp).stroke!.align;
+  assert.deepEqual(await findings(centred), ['raster-stroke:edge'], 'a centred box stroke is the preview reading');
+  const capped = await fillPage([{ id: 'cap', kind: 'path', x: 0, y: 80, w: 50, h: 20, path: triangle, stroke: '#000000', strokeW: 2 }]);
+  (capped.ops.at(-1) as DrawShapeOp).stroke!.cap = 'arrow';
+  assert.deepEqual(await findings(capped), ['raster-stroke:cap']);
+  assert.deepEqual(await findings(await fillPage([{ id: 'tight', kind: 'text', x: 0, y: 80, w: 30, h: 12, text: 'Overflowing words', fontSize: 16, align: 'left' }])), ['raster-clip:tight']);
+  assert.deepEqual(await findings(await fillPage([{ id: 'fade', kind: 'box', x: 0, y: 80, w: 120, h: 30, text: 'Faded', fontSize: 12, bg: '#cccccc', opacity: 50 }])), ['raster-group:fade']);
+  const live = await fillPage(); delete live.ops[1]!.words!.outlines;
+  assert.deepEqual(await findings(live), ['raster-live-text:words']);
+});
+
+test('strokes become the fill of the region they paint, over the fills and under the words', async () => {
+  const line = encodeAuthoredPaths([{ kind: 'cubic', closed: false, nodes: [{ x: 0, y: 0.5 }, { x: 1, y: 0.5 }] }] as never) ?? '';
+  const a = prepareDesignRaster(await fillPage([
+    { id: 'border', kind: 'box', x: 10, y: 50, w: 40, h: 30, bg: '#ffff00', stroke: '#000000', strokeW: 4, text: 'Hi', fontSize: 8 },
+    { id: 'round', kind: 'box', x: 60, y: 80, w: 40, h: 30, shape: 'rounded', radius: 10, stroke: '#00000080', strokeW: 4 },
+    { id: 'oval', kind: 'box', x: 110, y: 80, w: 40, h: 30, shape: 'ellipse', stroke: '#000000', strokeW: 5, rot: 30 },
+    { id: 'butt', kind: 'path', x: 10, y: 90, w: 40, h: 10, path: line, stroke: '#000000', strokeW: 6, strokeCap: 'butt' },
+    { id: 'cap', kind: 'path', x: 10, y: 100, w: 40, h: 10, path: line, stroke: '#000000', strokeW: 6 },
+  // Curves flatten to 1/32 output px, so at 16x each chord sits within 1/512 px of its curve.
+  ]), { width: 3200, height: 1920, dpi: 1536 });
+  assert.ok(a.ok, JSON.stringify(!a.ok && a.findings));
+  const e = a.evaluation;
+  assert.deepEqual(e.paint.map(([kind, i]) => kind === 'primitive' ? e.ops[i]!.id : e.fills[i]!.id),
+    ['frame', 'tri', 'words', 'words:0.0', 'border', 'border:stroke', 'border:0.0', 'round', 'round:stroke', 'oval', 'oval:stroke', 'butt:stroke', 'cap:stroke']);
+  const area = (id: string) => {
+    const edges = e.fills.find(f => f.id === id)!.edges;
+    let twice = 0;
+    for (let i = 0; i < edges.length; i += 4) twice += edges[i]! * edges[i + 3]! - edges[i + 2]! * edges[i + 1]!;
+    return Math.abs(twice / 2);
+  };
+  // A chord within t of its curve loses at most two thirds of t times its length, here t = 1/512 px.
+  const near = (id: string, exact: number, curved: number) => assert.ok(Math.abs(area(id) - exact) <= (2 / 3) * curved / 512 + 1e-3, `${id}: ${area(id)} against ${exact}`);
+  const ellipse = (a: number, b: number) => Math.PI * (3 * (a + b) - Math.sqrt((3 * a + b) * (a + 3 * b)));
+  // A CSS border is the ring between the box and the box inside the border, whose corner radius shrinks by the width.
+  near('border:stroke', 40 * 30 - 32 * 22, 0);
+  near('round:stroke', 40 * 30 - (4 - Math.PI) * 100 - (32 * 22 - (4 - Math.PI) * 36), 2 * Math.PI * 10);
+  near('oval:stroke', Math.PI * (20 * 15 - 15 * 10), ellipse(20, 15));
+  // A pen stroke is centred on its path: a butt end stops at the end, a round one adds half a disc at each.
+  near('butt:stroke', 40 * 6, 0);
+  near('cap:stroke', 40 * 6 + Math.PI * 9, 2 * Math.PI * 3);
+  assert.deepEqual(e.fills.find(f => f.id === 'round:stroke')!.color, [0, 0, 0, 0x80 / 255], 'the stroke keeps its own alpha');
+  assert.equal(designRasterIdentity(readDesignRasterEvaluation(structuredClone(e))!), designRasterIdentity(e), 'strokes survive the worker handoff');
+});
+
+test('gradients paint over their primitive as CSS backgrounds: on the box inside the border, after the colour, before the border', () => {
+  const a = prepareDesignRaster(compileDesignDraw([{ id: 'frame', kind: 'frame', w: 200, h: 120, bg: '#ffffff' },
+    { id: 'lin', kind: 'box', x: 10, y: 10, w: 80, h: 40, bg: '#000000', grad: 'lin.srgb_90_ff0000-0_0000ff80-100', opacity: 100 },
+    { id: 'rad', kind: 'box', x: 100, y: 10, w: 60, h: 40, shape: 'ellipse', grad: 'rad.srgb_0_ffffff-0_00000000-100', stroke: '#00ff00', strokeW: 5, rot: 30 },
+    { id: 'fade', kind: 'box', x: 10, y: 60, w: 60, h: 40, grad: 'lin.srgb_0_ffffff-0_000000-100', opacity: 50 },
+  ] as never, { width: 200, height: 120 }, { effects: true, colors: 'resolved' }));
+  assert.ok(a.ok, JSON.stringify(!a.ok && a.findings));
+  const e = a.evaluation;
+  assert.deepEqual(e.paint.map(([kind, i]) => kind === 'primitive' ? e.ops[i]!.id : kind === 'fill' ? e.fills[i]!.id : e.gradients[i]!.id),
+    ['frame', 'lin', 'lin:gradient', 'rad', 'rad:gradient', 'rad:stroke', 'fade', 'fade:gradient'], 'the colour, its gradient, then the border');
+  const [lin, rad, fade] = e.gradients;
+  assert.deepEqual([lin!.primitive, lin!.kind, lin!.geometry.map(n => Math.round(n * 1e9) / 1e9), lin!.tile], [1, 'linear', [10, 30, 90, 30], [10, 10, 80, 40]], 'a 90 degree line across the box');
+  assert.deepEqual(lin!.stops, [0, 1, 0, 0, 1, 1, 0, 0, 1, 0x80 / 255]);
+  assert.deepEqual(e.ops[1]!.color, [0, 0, 0, 1], 'the colour under the gradient stays a primitive');
+  assert.deepEqual([rad!.primitive, rad!.kind, rad!.tile], [2, 'radial', [105, 15, 50, 30]], 'the box inside the five-pixel border');
+  assert.ok(Math.abs(rad!.geometry[2] - 50 * Math.SQRT1_2) < 1e-12 && Math.abs(rad!.geometry[3] - 30 * Math.SQRT1_2) < 1e-12 && rad!.geometry[0] === 130 && rad!.geometry[1] === 30,
+    'an ellipse at the centre reaching the farthest corner');
+  assert.deepEqual([rad!.stops[4], rad!.stops[9]], [1, 0]);
+  assert.deepEqual([fade!.stops[4], fade!.stops[9]], [0.5, 0.5], 'stop alpha carries the operation opacity');
+  assert.deepEqual(e.ops[3]!.color[3], 0, 'a box with only a gradient keeps a transparent primitive for its outline');
+  assert.equal(designRasterIdentity(readDesignRasterEvaluation(structuredClone(e))!), designRasterIdentity(e), 'gradients survive the worker handoff');
+  for (const tamper of [
+    (v: Record<string, any>) => { v.gradients[0].primitive = 2; },
+    (v: Record<string, any>) => { v.gradients[0].primitive = 9; },
+    (v: Record<string, any>) => { v.gradients[0].stops[5] = -0.5; },
+    (v: Record<string, any>) => { v.gradients[0].stops.length = 7; },
+    (v: Record<string, any>) => { v.gradients[0].tile[2] = 0; },
+    (v: Record<string, any>) => { v.gradients[0].kind = 'conic'; },
+    (v: Record<string, any>) => { v.paint.splice(2, 1); v.paint.push(['gradient', 0]); },
+    (v: Record<string, any>) => { delete v.gradients; },
+  ]) { const v = structuredClone(e) as Record<string, any>; tamper(v); assert.equal(readDesignRasterEvaluation(v), null, tamper.toString()); }
+  // A colour under a gradient fades as one group, which painting them one after the other would not.
+  const faded = prepareDesignRaster(compileDesignDraw([{ id: 'frame', kind: 'frame', w: 200, h: 120, bg: '#ffffff' },
+    { id: 'both', kind: 'box', x: 10, y: 10, w: 80, h: 40, bg: '#000000', grad: 'lin.srgb_90_ff0000-0_0000ff-100', opacity: 50 }] as never, { width: 200, height: 120 }, { effects: true, colors: 'resolved' }));
+  assert.deepEqual(!faded.ok && faded.findings.map(f => `${f.feature}:${f.id}`), ['raster-group:both']);
+});
+
+test('a page with gradients compiles the gradient pipeline once and releases its buffers', async t => {
+  const prior = new Map<string, unknown>();
+  for (const [key, value] of Object.entries({ GPUBufferUsage: { STORAGE: 1, COPY_DST: 2, UNIFORM: 4, COPY_SRC: 8, MAP_READ: 16 }, GPUTextureUsage: { RENDER_ATTACHMENT: 1, TEXTURE_BINDING: 2 }, GPUMapMode: { READ: 1 } })) {
+    prior.set(key, Reflect.get(globalThis, key)); Reflect.set(globalThis, key, value);
+  }
+  t.after(() => { for (const [key, value] of prior) { if (value === undefined) Reflect.deleteProperty(globalThis, key); else Reflect.set(globalThis, key, value); } });
+  const a = prepareDesignRaster(compileDesignDraw([{ id: 'frame', kind: 'frame', w: 64, h: 48, bg: '#ffffff' },
+    { id: 'lin', kind: 'box', x: 4, y: 4, w: 40, h: 20, grad: 'lin.srgb_90_ff0000-0_0000ff-100' }] as never, { width: 64, height: 48 }, { effects: true, colors: 'resolved' }));
+  assert.ok(a.ok);
+  const f = gpu(); await f.render(a.evaluation); const second = await f.render(a.evaluation);
+  assert.deepEqual([second.allocation.created, second.allocation.destroyed, second.allocation.liveBytes], [8, 8, 0], 'the six primitive resources plus gradient descriptors and stops');
+  assert.equal(f.counts().pipelines, 3, 'render, readback and gradient, each compiled once');
+  for (let at = 1; at <= 8; at++) {
+    const g = gpu('allocation', at); await assert.rejects(g.render(a.evaluation), /actual allocation fault/);
+    assert.equal(g.counts().created, g.counts().destroyed); assert.equal(g.counts().scopes, 0);
+  }
+});
+
+/** A rounded, bordered board that clips its rows, with a box over its corner and a path. */
+const boardPage = () => compileDesignDraw([{ id: 'board', kind: 'frame', w: 200, h: 120, bg: '#ffffff', shape: 'rounded', radius: 16, stroke: '#000000', strokeW: 4 },
+  { id: 'corner', kind: 'box', x: -10, y: -10, w: 60, h: 40, bg: '#ff0000' },
+  { id: 'tri', kind: 'path', x: 120, y: 60, w: 100, h: 80, path: triangle, bg: '#0000ff' }] as never, { width: 200, height: 120 }, { effects: true, colors: 'resolved' });
+
+test('a rounded, bordered frame paints itself, then clips every row inside its border at the inner radius', () => {
+  const a = prepareDesignRaster(boardPage());
+  assert.ok(a.ok, JSON.stringify(!a.ok && a.findings));
+  const e = a.evaluation;
+  assert.deepEqual(e.paint.map(([kind, i]) => kind === 'primitive' ? e.ops[i]!.id : kind === 'fill' ? e.fills[i]!.id : e.gradients[i]!.id), ['board', 'board:stroke', 'corner', 'tri']);
+  assert.deepEqual(e.ops[0]!.radius, 16, 'the frame keeps its own corner radius');
+  assert.deepEqual(e.clip, { box: [4, 4, 192, 112], shape: 'rect', radius: 12, from: 2 }, 'the box inside the border, its radius less the border, after the frame\'s own paint');
+  assert.equal(designRasterIdentity(readDesignRasterEvaluation(structuredClone(e))!), designRasterIdentity(e), 'the clip survives the worker handoff');
+  for (const tamper of [
+    (v: Record<string, any>) => { v.clip.from = 0; },
+    (v: Record<string, any>) => { v.clip.from = 9; },
+    (v: Record<string, any>) => { v.clip.box[2] = 0; },
+    (v: Record<string, any>) => { v.clip.radius = 90; },
+    (v: Record<string, any>) => { v.clip.shape = 'ellipse'; },
+    (v: Record<string, any>) => { v.clip.extra = 1; },
+    (v: Record<string, any>) => { delete v.clip; },
+  ]) { const v = structuredClone(e) as Record<string, any>; tamper(v); assert.equal(readDesignRasterEvaluation(v), null, tamper.toString()); }
+  const open = compileDesignDraw([{ id: 'board', kind: 'frame', w: 200, h: 120, bg: '#ffffff', shape: 'ellipse', clipChildren: false }] as never, { width: 200, height: 120 }, { effects: true, colors: 'resolved' });
+  const b = prepareDesignRaster(open);
+  assert.ok(b.ok && b.evaluation.clip === null && b.evaluation.ops[0]!.shape === 'ellipse', 'an elliptical frame that does not clip draws its outline alone');
+});
+
+test('a clipped page draws its rows with the clipped passes and the frame with the plain ones', async t => {
+  const prior = new Map<string, unknown>();
+  for (const [key, value] of Object.entries({ GPUBufferUsage: { STORAGE: 1, COPY_DST: 2, UNIFORM: 4, COPY_SRC: 8, MAP_READ: 16 }, GPUTextureUsage: { RENDER_ATTACHMENT: 1, TEXTURE_BINDING: 2 }, GPUMapMode: { READ: 1 } })) {
+    prior.set(key, Reflect.get(globalThis, key)); Reflect.set(globalThis, key, value);
+  }
+  t.after(() => { for (const [key, value] of prior) { if (value === undefined) Reflect.deleteProperty(globalThis, key); else Reflect.set(globalThis, key, value); } });
+  const a = prepareDesignRaster(boardPage()); assert.ok(a.ok);
+  const f = gpu(); await f.render(a.evaluation); const second = await f.render(a.evaluation);
+  assert.deepEqual([second.allocation.created, second.allocation.destroyed, second.allocation.liveBytes], [9, 9, 0], 'the six primitive resources, fill descriptors and edges, and the clip');
+  assert.equal(f.counts().pipelines, 5, 'render and readback, the plain fill for the border, the clipped primitive and the clipped fill, each compiled once');
+  for (let at = 1; at <= 9; at++) {
+    const g = gpu('allocation', at); await assert.rejects(g.render(a.evaluation), /actual allocation fault/);
+    assert.equal(g.counts().created, g.counts().destroyed); assert.equal(g.counts().scopes, 0);
+  }
+});
+
+test('a page with fills compiles the fill pipeline once and releases every fill buffer', async t => {
+  const prior = new Map<string, unknown>();
+  for (const [key, value] of Object.entries({ GPUBufferUsage: { STORAGE: 1, COPY_DST: 2, UNIFORM: 4, COPY_SRC: 8, MAP_READ: 16 }, GPUTextureUsage: { RENDER_ATTACHMENT: 1, TEXTURE_BINDING: 2 }, GPUMapMode: { READ: 1 } })) {
+    prior.set(key, Reflect.get(globalThis, key)); Reflect.set(globalThis, key, value);
+  }
+  t.after(() => { for (const [key, value] of prior) { if (value === undefined) Reflect.deleteProperty(globalThis, key); else Reflect.set(globalThis, key, value); } });
+  const a = prepareDesignRaster(await fillPage()); assert.ok(a.ok);
+  const f = gpu(); await f.render(a.evaluation); const second = await f.render(a.evaluation);
+  assert.deepEqual([second.allocation.created, second.allocation.destroyed, second.allocation.liveBytes], [8, 8, 0], 'the six primitive resources plus fill descriptors and edges');
+  assert.equal(f.counts().pipelines, 3, 'render, readback and fill, each compiled once');
+  for (let at = 1; at <= 8; at++) {
+    const g = gpu('allocation', at); await assert.rejects(g.render(a.evaluation), /actual allocation fault/);
+    assert.equal(g.counts().created, g.counts().destroyed); assert.equal(g.counts().scopes, 0);
+  }
+});
+
+test('overlapping contours are merged before they become a fill, and a fill past the merge budget is refused', async () => {
+  const square = (x0: number, y0: number, x1: number, y1: number) => ({ kind: 'cubic', closed: true, nodes: [{ x: x0, y: y0 }, { x: x1, y: y0 }, { x: x1, y: y1 }, { x: x0, y: y1 }] });
+  const overlap = encodeAuthoredPaths([square(0, 0, 0.6, 0.6), square(0.4, 0.4, 1, 1)] as never) ?? '';
+  const a = prepareDesignRaster(compileDesignDraw([{ id: 'frame', kind: 'frame', w: 200, h: 120, bg: '#ffffff' },
+    { id: 'pair', kind: 'path', x: 0, y: 0, w: 100, h: 100, path: overlap, bg: '#000000' }] as never, { width: 200, height: 120 }, { effects: true, colors: 'resolved' }));
+  assert.ok(a.ok, JSON.stringify(!a.ok && a.findings));
+  const e = a.evaluation.fills[0]!.edges;
+  let area = 0, w = 0;
+  for (let i = 0; i < e.length; i += 4) {
+    const [x0, y0, x1, y1] = [e[i]!, e[i + 1]!, e[i + 2]!, e[i + 3]!];
+    area += (x0 * y1 - x1 * y0) / 2;
+    if ((y0 <= 50.5) !== (y1 <= 50.5) && x0 + (50.5 - y0) / (y1 - y0) * (x1 - x0) > 50.5) w += y1 > y0 ? 1 : -1;
+  }
+  assert.equal(Math.abs(w), 1, 'the overlap is covered once, so the area sum stays exact');
+  assert.ok(Math.abs(Math.abs(area) - 6800) < 1e-6, `the union's area, not the sum of both squares: ${area}`);
+  const comb = encodeAuthoredPaths(Array.from({ length: 2100 }, (_, i) => square(i / 2100, 0, (i + 0.5) / 2100, 1)) as never) ?? '';
+  const b = prepareDesignRaster(compileDesignDraw([{ id: 'frame', kind: 'frame', w: 200, h: 120, bg: '#ffffff' },
+    { id: 'comb', kind: 'path', x: 0, y: 0, w: 100, h: 100, path: comb, bg: '#000000' }] as never, { width: 200, height: 120 }, { effects: true, colors: 'resolved' }));
+  assert.deepEqual(!b.ok && b.findings.map(f => `${f.feature}:${f.id}`), ['raster-budget:comb']);
 });

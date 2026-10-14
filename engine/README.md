@@ -231,7 +231,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `design-draw-pdf.ts` | 512 | Drawing operations written as PDF (plan 295, phase 3, P3d). | no | `tests/design-draw-pdf.test.ts` | – |
 | `design-draw-penpot.ts` | 126 | Penpot's existing flat-primitive and gradient reading, separate from Design's CSS geometry. | no | `tests/design-draw-penpot.test.ts` | – |
 | `design-draw-pptx.ts` | 275 | The native deck's primitive, linear-gradient and single-path reading, distinct from Design's CSS geometry. | no | `tests/design-draw-pptx.test.ts` | – |
-| `design-draw-raster.ts` | 113 | Internal P3f admission. | no | `tests/design-draw-raster.test.ts` | – |
+| `design-draw-raster.ts` | 545 | Internal P3f admission. | no | `tests/design-draw-raster.test.ts` | – |
 | `design-draw-svg.ts` | 411 | Drawing operations written as SVG (plan 295, phase 3, P3a). | no | indirect | – |
 | `design-draw.ts` | 900 | Authored Design rows compiled into drawing operations (plan 295, phase 3, P3a). | no | `tests/design-draw.test.ts` | – |
 | `design-hierarchy.ts` | 256 | Document ownership is independent of geometry and the active editor canvas. | yes | `tests/design-hierarchy.test.ts` | – |
@@ -321,7 +321,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `geom/authored-frame.ts` | 228 | The frame a path box is drawn in, fitted to its curve: one rule for the pen tool and for every caller that writes a path row from absolute geometry (plan 291 W5). | yes | indirect | – |
 | `geom/authored-url.ts` | 316 | The wire form of an `AuthoredPath` - what a pen shape looks like inside one `blocks` sub-field, and therefore inside a share link. | yes | indirect | – |
 | `geom/bezier.ts` | 484 | Cubic Bézier kernel - the geometric substrate for boolean operations, offsetting and stroke outlining. | yes | `tests/geom-bezier.test.ts` | – |
-| `geom/boolean.ts` | 1622 | Boolean operations on regions bounded by cubic Béziers - union, intersection, difference, exclusive-or - and the winding-number test they are all decided by. | yes | `tests/geom-boolean.test.ts` | – |
+| `geom/boolean.ts` | 1630 | Boolean operations on regions bounded by cubic Béziers - union, intersection, difference, exclusive-or - and the winding-number test they are all decided by. | yes | `tests/geom-boolean.test.ts` | – |
 | `geom/fit.ts` | 1262 | Fitting cubics to a curve that has no Bézier form - an exact offset, a stroke edge, a distorted path. | yes | `tests/geom-fit.test.ts` | – |
 | `geom/intersect.ts` | 2352 | Curve intersection. | yes | `tests/geom-intersect.test.ts` | – |
 | `geom/near-pieces.ts` | 57 | Ordered curve-proximity candidates from start, midpoint and end cells. | no | `tests/geom-near-pieces.test.ts` | – |
