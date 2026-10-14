@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: MPL-2.0
-/** Primitive coverage and source-over are GPU work. No SVG, DOM or CPU mask is uploaded. */
-export const DESIGN_PAGE_SHADER = /* wgsl */ `
+/** The primitive shader in parts, so the gradient pass draws exactly the primitive's coverage. */
+const PRIMITIVE_HEAD = /* wgsl */ `
 struct Primitive { box: vec4<f32>, color: vec4<f32>, shape: vec4<f32>, mirror: vec4<f32> }
 struct Size { page: vec2<f32>, pixels: vec2<f32> }
 @group(0) @binding(0) var<storage, read> ops: array<Primitive>;
 @group(0) @binding(1) var<uniform> size: Size;
 struct Vertex { @builtin(position) position: vec4<f32>, @location(0) @interpolate(flat) index: u32 }
-@vertex fn vertex(@builtin(vertex_index) vertex: u32, @builtin(instance_index) index: u32) -> Vertex {
+`;
+const PRIMITIVE_VERTEX = /* wgsl */ `@vertex fn vertex(@builtin(vertex_index) vertex: u32, @builtin(instance_index) index: u32) -> Vertex {
   let p = ops[index];
   let half = p.box.zw * 0.5;
   let extent = vec2<f32>(abs(p.shape.z) * half.x + abs(p.shape.w) * half.y,
@@ -19,7 +20,8 @@ struct Vertex { @builtin(position) position: vec4<f32>, @location(0) @interpolat
   result.index = index;
   return result;
 }
-fn localPoint(point: vec2<f32>, p: Primitive) -> vec2<f32> {
+`;
+const PRIMITIVE_COVERAGE = /* wgsl */ `fn localPoint(point: vec2<f32>, p: Primitive) -> vec2<f32> {
   let delta = point - p.box.xy - p.box.zw * 0.5;
   return vec2<f32>(p.shape.z * delta.x + p.shape.w * delta.y,
                       -p.shape.w * delta.x + p.shape.z * delta.y) * p.mirror.xy;
@@ -171,7 +173,8 @@ fn scanlineRectangleCoverage(pixel: vec2<f32>, p: Primitive) -> f32 {
   }
   return clamp(coverage, 0.0, 1.0);
 }
-@fragment fn fragment(v: Vertex) -> @location(0) vec4<f32> {
+`;
+const PRIMITIVE_FRAGMENT = /* wgsl */ `@fragment fn fragment(v: Vertex) -> @location(0) vec4<f32> {
   let p = ops[v.index];
   let scanlineRectangle = p.shape.y < 0.5 && p.shape.x == 0.0
     && abs(p.shape.z) > 0.00001 && abs(p.shape.w) > 0.00001;
@@ -207,6 +210,78 @@ fn scanlineRectangleCoverage(pixel: vec2<f32>, p: Primitive) -> f32 {
   }
   let alpha = p.color.a * coverage;
   return vec4<f32>(p.color.rgb * alpha, alpha);
+}
+`;
+/** Primitive coverage and source-over are GPU work. No SVG, DOM or CPU mask is uploaded. */
+export const DESIGN_PAGE_SHADER = PRIMITIVE_HEAD + PRIMITIVE_VERTEX + PRIMITIVE_COVERAGE + PRIMITIVE_FRAGMENT;
+
+/**
+ * Gradients over a primitive's outline: the primitive's own coverage, coloured per pixel.
+ * Each gradient carries its primitive's index, its kind (0 linear, 1 radial) and its stops, as
+ * pairs of an offset and a straight sRGB colour with alpha.
+ */
+export const DESIGN_GRADIENT_SHADER = PRIMITIVE_HEAD + /* wgsl */ `struct Gradient { geometry: vec4<f32>, tile: vec4<f32>, info: vec4<u32> }
+@group(0) @binding(2) var<storage, read> gradients: array<Gradient>;
+@group(0) @binding(3) var<storage, read> stops: array<vec4<f32>>;
+` + /* wgsl */ `@vertex fn vertex(@builtin(vertex_index) vertex: u32, @builtin(instance_index) index: u32) -> Vertex {
+  let p = ops[gradients[index].info.x];
+  let half = p.box.zw * 0.5;
+  let extent = vec2<f32>(abs(p.shape.z) * half.x + abs(p.shape.w) * half.y,
+                         abs(p.shape.w) * half.x + abs(p.shape.z) * half.y) + size.page / size.pixels;
+  let corners = array<vec2<f32>, 6>(vec2<f32>(-1,-1), vec2<f32>(1,-1), vec2<f32>(-1,1),
+                                  vec2<f32>(-1,1), vec2<f32>(1,-1), vec2<f32>(1,1));
+  let point = p.box.xy + half + corners[vertex] * extent;
+  var result: Vertex;
+  result.position = vec4<f32>(point.x / size.page.x * 2.0 - 1.0, 1.0 - point.y / size.page.y * 2.0, 0, 1);
+  result.index = index;
+  return result;
+}
+` + PRIMITIVE_COVERAGE + /* wgsl */ `// CSS repeats the gradient over its tile and interpolates premultiplied colour between
+// the two stops either side; before the first stop and after the last the colour holds.
+fn gradientColor(point: vec2<f32>, g: Gradient) -> vec4<f32> {
+  let q = g.tile.xy + (point - g.tile.xy) - floor((point - g.tile.xy) / g.tile.zw) * g.tile.zw;
+  var t = length((q - g.geometry.xy) / g.geometry.zw);
+  if g.info.y == 0u {
+    let d = g.geometry.zw - g.geometry.xy;
+    t = dot(q - g.geometry.xy, d) / dot(d, d);
+  }
+  let first = g.info.z; let last = g.info.z + (g.info.w - 1u) * 2u;
+  var lower = stops[first + 1u]; var upper = lower; var u = 0.0;
+  if t >= stops[last].x { lower = stops[last + 1u]; upper = lower; }
+  else if t > stops[first].x {
+    for (var i = first; i < last; i += 2u) {
+      let a = stops[i].x; let b = stops[i + 2u].x;
+      if t < b { lower = stops[i + 1u]; upper = stops[i + 3u]; u = (t - a) / (b - a); break; }
+    }
+  }
+  let premultiplied = mix(vec4<f32>(lower.rgb * lower.a, lower.a), vec4<f32>(upper.rgb * upper.a, upper.a), u);
+  return premultiplied;
+}
+@fragment fn fragment(v: Vertex) -> @location(0) vec4<f32> {
+  let g = gradients[v.index];
+  let p = ops[g.info.x];
+  let scanlineRectangle = p.shape.y < 0.5 && p.shape.x == 0.0
+    && abs(p.shape.z) > 0.00001 && abs(p.shape.w) > 0.00001;
+  var coverage = 0.0;
+  if p.shape.y < 0.5 && p.shape.x == 0.0 {
+    if scanlineRectangle { coverage = scanlineRectangleCoverage(v.position.xy, p); }
+    else { coverage = rectangleCoverage(v.position.xy, p); }
+  } else {
+    let step = size.page / size.pixels;
+    let distance = curveDistance(localPoint(v.position.xy * step, p), p);
+    let reach = length(step) * 0.5 + max(step.x, step.y) / 16.0;
+    if distance <= -reach { coverage = 1.0; }
+    else if distance < reach {
+      for (var y = 0u; y < 8u; y++) { for (var x = 0u; x < 8u; x++) {
+        let offset = (vec2<f32>(f32(x), f32(y)) + 0.5) / 8.0 - 0.5;
+        if curveInside(localPoint((v.position.xy + offset) * step, p), p) { coverage += 1.0 / 64.0; }
+      } }
+    }
+  }
+  // The colour at the pixel centre, in the box's own frame before its pose.
+  let step = size.page / size.pixels;
+  let point = p.box.xy + p.box.zw * 0.5 + localPoint(v.position.xy * step, p);
+  return gradientColor(point, g) * clamp(coverage, 0.0, 1.0);
 }
 `;
 
