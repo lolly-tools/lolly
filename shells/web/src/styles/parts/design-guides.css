@@ -314,7 +314,9 @@
       border-radius: var(--ui-radius-control) 0 0 var(--ui-radius-control);
 }
 .fc-ruler-selection-y span {
-  left: 2px;
+  left: 0;
+  height: 22px;
+  line-height: 22px;
   transform-origin: 0 0;
 }
 .fc-ruler-selection-y [data-selection-edge="min"] {

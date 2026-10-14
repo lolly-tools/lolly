@@ -61,6 +61,15 @@ export function refreshPrintUi(ta: ActionsCtx): void {
       fmt === 'pdf' || fmt === 'pdf-cmyk' || fmt === 'zip' || isC2paFmt(fmt) || isImprintFmt(fmt) || ta.hasLicence;
     protectionEl.style.display = anyValid ? 'flex' : 'none';
   }
+  // The audio / loudness / HDR fold: every child is gated by its own format flag, so
+  // for a still format all of them are hidden and the card would be an empty shell.
+  const videoOptions = el!.querySelector<HTMLElement>('[data-video-options]');
+  if (videoOptions) {
+    const empty = ![...videoOptions.children].some(
+      (c) => c.tagName !== 'SUMMARY' && !(c as HTMLElement).hidden && (c as HTMLElement).style.display !== 'none'
+    );
+    videoOptions.hidden = empty;
+  }
   refreshNotesHandoutUi(ta);
 }
 /** Design-only layout switch: a handout needs artboards and the multi-page RGB PDF path. */

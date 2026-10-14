@@ -169,7 +169,6 @@ const CSS = `
   box-sizing: border-box;
   min-height: var(--chrome-h);
   padding: calc(3px * var(--a11y-fs)) calc(8px * var(--a11y-fs));
-  border: 1px solid hsl(var(--border));
   border-radius: 999px;
   background: hsl(var(--card) / 0.85);
   -webkit-backdrop-filter: blur(6px);

@@ -1215,16 +1215,13 @@ box-shadow: var(--ui-elevation-control);
   box-shadow: var(--ui-elevation-control);
   transition: translate var(--ui-motion-feedback) ease, border-color var(--ui-motion-feedback) ease, box-shadow var(--ui-motion-feedback) ease;
 }
-.valid-batch-stat::before {
-  content: ''; position: absolute; inset: 0 auto 0 0; width: 3px;
-  background: hsl(var(--batch-tone)); opacity: 0.82;
-}
+
 .valid-batch-stat strong { font-size: calc(1.35rem * var(--a11y-fs)); line-height: 1; }
 .valid-batch-stat span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--fs-xs); color: var(--ui-color-text-muted); }
 .valid-batch-stat:hover:not(:disabled) { translate: 0 -2px; border-color: hsl(var(--batch-tone) / 0.48); }
 .valid-batch-stat.is-active { border-color: hsl(var(--batch-tone) / 0.62); box-shadow: var(--ui-elevation-control); }
 .valid-batch-stat:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
-.valid-batch-stat:disabled { cursor: default; opacity: 0.46; }
+.valid-batch-stat:disabled { cursor: default; opacity: 0.46; box-shadow:none; border:1px solid transparent; }
 .valid-batch-stat.is-good { --batch-tone: var(--vf-pass); }
 .valid-batch-stat.is-attention { --batch-tone: var(--vf-fail); }
 .valid-batch-stat.is-ai { --batch-tone: var(--vf-ai-1); }
@@ -1239,16 +1236,16 @@ box-shadow: var(--ui-elevation-control);
 
 .valid-item {
   border: 1px solid var(--ui-color-border-default);
-  border-left-width: 3px;
+
   border-radius: var(--ui-radius-card);
   background: var(--ui-color-surface-raised);
   overflow: hidden;
 }
-.valid-item.is-good { border-left-color: hsl(var(--vf-pass) / 0.7); }
-.valid-item.is-bad  { border-left-color: hsl(var(--vf-fail) / 0.7); }
-.valid-item.is-warn { border-left-color: hsl(var(--vf-warn) / 0.7); }
+.valid-item.is-good { border-color: hsl(var(--vf-pass) / 0.7); }
+.valid-item.is-bad  { border-color: hsl(var(--vf-fail) / 0.7); }
+.valid-item.is-warn { border-color: hsl(var(--vf-warn) / 0.7); }
 .valid-item.is-none,
-.valid-item.is-busy { border-left-color: var(--ui-color-border-default); }
+.valid-item.is-busy { border-color: var(--ui-color-border-default); }
 .valid-item[open] { box-shadow: var(--ui-elevation-panel); }
  
 
