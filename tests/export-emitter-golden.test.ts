@@ -328,6 +328,9 @@ test('data: model-derived JSON payload golden', async () => {
   const parsed = JSON.parse(dataText);
   assert.equal(parsed.tool, 'color-palette');
   assert.equal(parsed.inputs.seed, '#336699', 'pinned input survives into the payload');
+  // This brand-free host cannot resolve the default token. Export uses its
+  // effective value rather than treating the authored alias as a paint literal.
+  assert.equal(parsed.inputs.bg, '', 'unresolved color does not emit a raw token alias');
 });
 
 // Synthetic tool double for ics/vcf: community ships no ics/vcf tool (those
