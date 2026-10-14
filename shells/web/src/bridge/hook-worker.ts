@@ -268,7 +268,7 @@ async function mountInWorker(
   const { doc, excluded } = await snapshotTokens(host);
   const hostShape = allowInRealmExportHooks
     ? introspect(host)
-    : strictHostShape(introspect(host), tool.manifest.capabilities ?? [], (host.capture as unknown as Record<string, unknown> | undefined)?._isolatedPublic === true);
+    : strictHostShape(introspect(host), tool.manifest.capabilities ?? [], !!host.capture && '_isolatedPublic' in host.capture && host.capture._isolatedPublic === true);
   const initMsg = await new Promise<HookInitDoneMsg>((resolve, reject) => {
     const timer = setTimeout(() => {
       if (!initWaiters.has(runId)) return;

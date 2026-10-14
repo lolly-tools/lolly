@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
-import { shareUrlState } from '../lib/share-privacy.ts';
+import { savedSessionEmbedUrl } from './picker-session-embed.ts';
 import { readRecentAssets, recordRecentAsset, readTabMemory, recordTabMemory } from '../lib/picker-memory.ts';
 import { projectImageCardHtml, libraryCardThumb, userCardThumb } from './picker-thumbnails.ts';
 import { assetViewerKind } from '../lib/asset-viewer-source.ts';
@@ -45,7 +45,7 @@ import type { RondoSourceV1 } from '@lolly/engine';
 import { createToolRuntime as createRuntime } from '../lib/mount-runtime.ts';
 // Format + embeddability rules - pure and unit-tested in ./picker-formats.test.ts.
 import {
-  extFromMime, audioFormatOf, formatsForType, isEmbeddable, imageFormatSeed,
+  extFromMime, audioFormatOf, formatsForType, isEmbeddable,
 } from './picker-formats.ts';
 import { fmtBytes, svgDataUrl } from '../lib/format.ts';
 import { fold, tokenize, scoreHaystack, SEARCH_DEBOUNCE_MS } from '../lib/search/match.ts';
@@ -2155,11 +2155,7 @@ async function render(
       if (!data) throw new Error('empty session');
       const tool = await getTool(toolId);
       const runtime = await createRuntime(tool, host, data as Record<string, InputValue>);
-      // keepUserIds: this embed identity re-renders ON THIS DEVICE, where a user/
-      // upload resolves - the pre-plan-171 behaviour. Off-device it degrades to the
-      // same silent blank it always did (the id is device-local either way).
-      const query = shareUrlState(runtime.getModel(), { keepUserIds: true });
-      const url = buildEmbedUrl({ toolId, format: imageFormatSeed(data.__export_format), query });
+      const url = savedSessionEmbedUrl(toolId, runtime.getModel(), data.__export_format);
       const desc = url ? await host.compose._describeUrl(url) : null;
       if (!url || !desc) throw new Error('not renderable');
       showToolCard(desc, url, { editUrl: url });

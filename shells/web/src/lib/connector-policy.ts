@@ -9,7 +9,7 @@ export class ConnectorOriginError extends Error {
 }
 
 export const nativeConnectorOrigins = (): string[] => [...NATIVE_PROVIDER_ORIGINS,
-  ...parseConnectorOrigins((import.meta as unknown as { env?: { VITE_CONNECTOR_ORIGINS?: string } }).env?.VITE_CONNECTOR_ORIGINS ?? '')];
+  ...parseConnectorOrigins(import.meta.env?.VITE_CONNECTOR_ORIGINS ?? '')];
 
 /** Read same-origin deployment headers before sending any connector credentials. */
 export function createConnectorGuard(readPolicy: () => Promise<string>, native = false, configured: readonly string[] = []): (url: string) => Promise<void> {
@@ -28,7 +28,7 @@ async function deploymentPolicy(): Promise<string> {
   if (cached && cached.until > Date.now()) return cached.value;
   const value = (async () => {
     if (typeof location === 'undefined') return '';
-    const response = await fetch(new URL('index.html', new URL((import.meta as unknown as { env?: { BASE_URL?: string } }).env?.BASE_URL ?? '/', location.href)), {
+    const response = await fetch(new URL('index.html', new URL(import.meta.env?.BASE_URL ?? '/', location.href)), {
       method: 'HEAD', credentials: 'same-origin', redirect: 'error', cache: 'no-store', signal: AbortSignal.timeout(5000),
     });
     return response.ok ? response.headers.get('Content-Security-Policy') ?? '' : '';

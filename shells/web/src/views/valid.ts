@@ -27,7 +27,7 @@ import { forensicPanelHtml, mountForensicVerify } from './valid-forensics.ts';
 
 import '../styles/parts/valid.css';   // async CSS chunk (lazy view - not on the landing)
 import '../styles/parts/valid-report.css';
-import { verifyC2pa, verifySeal, pemToDer, c2paTrustAnchors, extractFileMetadata, appendedIsExpected, stripMetadata, detectWatermark, detectWatermarkSearch, analyzeLsb, isPptx, pptxMediaImages, evaluateReuse, licenceDisplayName, normaliseLicence, rightsReportFromC2pa } from '@lolly/engine';
+import { verifyC2pa, verifySeal, extractFileMetadata, appendedIsExpected, stripMetadata, detectWatermark, detectWatermarkSearch, analyzeLsb, isPptx, pptxMediaImages, evaluateReuse, licenceDisplayName, normaliseLicence, rightsReportFromC2pa } from '@lolly/engine';
 import type { FileMetadata, StripFormat, SealVerifyResult } from '@lolly/engine';
 import type { CreativeOperationV1, CreativeUseRoleV1, DeliveryRouteV1 } from '@lolly-tools/core/rights-v1';
 import { looksLikePptxFile, inflatePptx, PPTX_MIME } from '../bridge/pptx.ts';
@@ -39,8 +39,7 @@ import { readVerifyMetadata } from './valid-read-metadata.ts';
 import { renderMetadata } from './valid-metadata.ts';
 import { vendorMark } from './valid-vendors.ts';
 import { checkingHtml, updateVerifyProgress } from './valid-progress.ts';
-import { CA_ROOT_PEM } from '../ca-root.ts';
-import { configuredEnrollmentTrust, fetchEnrollmentCrl } from '../bridge/enrollment-policy.ts';
+import { configuredVerifyOptions } from './valid-verification.ts';
 import { escape } from '../utils.ts';
 import { textSignalKindTitle, textSignalLabels } from './valid-text-labels.ts';
 import { wireTextHandoffs } from '../lib/text-handoff.ts';
@@ -112,20 +111,6 @@ import { rewordAvailable } from '../lib/reworder.ts';
 // pasted.txt); the verification itself always re-sniffs the bytes.
 import { sniffFormat } from '../../../../engine/src/c2pa-extract.ts';
 import { appendScoreToggle } from './valid-score-toggle.ts';
-
-// Trust anchors: the pinned Lolly CA root (identity for Lolly-signed assets)
-// plus the vendored C2PA trust list (Google/Gemini, the camera makers, Bria,
-// …), so a credential from a recognised signer upgrades from "valid" to a
-// named, CA-verified identity - "signed by <issuer>". A self-signed on-device
-// export still reads as intact-but-untrusted (it chains to none of these).
-const ENROLLMENT_TRUST = configuredEnrollmentTrust();
-const VERIFY_OPTS = {
-  trustAnchors: [
-    ...(CA_ROOT_PEM ? [pemToDer(CA_ROOT_PEM)] : []),
-    ...c2paTrustAnchors(),
-    ...(ENROLLMENT_TRUST?.roots ?? []),
-  ],
-};
 
 // Verification reads the WHOLE file into memory (and the PDF extractor makes a
 // byte-transparent string copy on top), so bound what a drop can pull in. Far
@@ -2122,11 +2107,7 @@ export async function mountValid(viewEl: HTMLElement, host: HostV1, params = '')
       await updateVerifyProgress(reportEl, 'bytes', activeFiles.indexOf(file));
       const bytes = new Uint8Array(await file.arrayBuffer());
       await updateVerifyProgress(reportEl, 'credentials', activeFiles.indexOf(file));
-      const enrollmentCrls: Record<string, Uint8Array> = {};
-      if (ENROLLMENT_TRUST) for (const issuer of ENROLLMENT_TRUST.issuers.keys()) {
-        try { enrollmentCrls[issuer] = await fetchEnrollmentCrl(issuer, ENROLLMENT_TRUST); } catch { /* unavailable status keeps managed identities untrusted */ }
-      }
-      const report = await verifyC2pa(bytes, { ...VERIFY_OPTS, ...(opts.externalManifest ? { externalManifest: opts.externalManifest } : {}), ...(ENROLLMENT_TRUST ? { enrollmentTrust: ENROLLMENT_TRUST, enrollmentCrls } : {}) });
+      const report = await verifyC2pa(bytes, await configuredVerifyOptions(opts.externalManifest));
       // SEAL runs on the same bytes, fully on-device and with NO key resolver:
       // the web shell deliberately passes none, so verification here makes zero
       // network requests of any kind. A record carrying its key inline (`pk=`)

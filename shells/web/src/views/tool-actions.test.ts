@@ -1985,14 +1985,16 @@ test('an organisation send credentials the exact export without changing a perso
   }
 });
 
-// ── 14. one vocabulary for the credential lifetime (F25) ──────────────────────
-// /profile calls the identical 7/30/90/365 select "Verified for"; the export sheet
-// said "Expires:" and said it untranslated.
+// ── 14. compact credential lifetime with an explicit accessible name ─────────
 
-test('the credential lifetime label matches the profile view, translated', () => {
+test('the compact credential lifetime keeps its context and accessible name', () => {
   const h = mount({ seqMs: null, formats: ['png'] });
-  const label = h.panel.querySelector('.c2pa-life-label') as HTMLElement;
-  assert.equal(label.textContent, 'Verified for');
+  const row = h.panel.querySelector('.export-c2pa')!;
+  assert.equal(row.querySelector('.c2pa-head')!.textContent, 'C2PA');
+  assert.equal(row.querySelector('.c2pa-life-label')!.textContent, 'for');
+  const select = row.querySelector<HTMLSelectElement>('[data-action="c2pa-days"]')!;
+  assert.equal(select.getAttribute('aria-label'), 'Credential lifetime');
+  assert.deepEqual([...select.options].map(option => option.value), ['7', '30', '90', '365']);
 });
 
 // ── 15. transparency, mirrored from the sidebar (F22) ─────────────────────────

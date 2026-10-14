@@ -356,7 +356,7 @@ export async function createBridge(): Promise<WebHost> {
     // after 5000ms"). Awaiting here restores the pre-c71a7de eager desktop import. (On the
     // web the impl is a trivial stub with no such side effect, so it stays lazy.)
     const nativeCapture = await loadCapture();
-    if ((nativeCapture as unknown as Record<string, unknown>)._isolatedPublic === true) {
+    if ('_isolatedPublic' in nativeCapture && nativeCapture._isolatedPublic === true) {
       Object.defineProperty(captureFacade, '_isolatedPublic', { value: true });
     }
     captureFacade.vector = async (spec) => {

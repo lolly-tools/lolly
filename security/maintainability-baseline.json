@@ -28,7 +28,7 @@
       "typeEscapes": 19
     },
     "shells/web/src/bridge/export.ts": {
-      "lines": 4291,
+      "lines": 4278,
       "largestFunctionLines": 647,
       "importFanIn": 27,
       "importFanOut": 68,
@@ -85,7 +85,7 @@
     },
     "shells/web/src/views/picker.ts": {
       "lines": 2396,
-      "largestFunctionLines": 2050,
+      "largestFunctionLines": 2046,
       "importFanIn": 33,
       "importFanOut": 68,
       "typeEscapes": 3
@@ -112,7 +112,7 @@
       "typeEscapes": 10
     },
     "shells/web/src/views/valid.ts": {
-      "lines": 2696,
+      "lines": 2690,
       "largestFunctionLines": 1930,
       "importFanIn": 3,
       "importFanOut": 54,
