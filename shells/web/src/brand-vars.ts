@@ -190,10 +190,12 @@ async function applyUiTokenOverrides(tokens: BrandTokens | undefined): Promise<v
 // triples (--primary / --primary-foreground / --ring - deliberately nothing
 // else: backgrounds, borders and text stay the shell's own) via one injected
 // <style>, per shell theme so light/dark each take their brand-theme value.
-// No semantic slots (the SUSE doc has none) → the style is removed and the
-// hardcoded chrome stands. lolly-start's starter tokens alias primary to the
-// neutral ink ramp, so the out-of-the-box chrome accent is black until the
-// user installs a brand (#/start wizard / ingest).
+// No semantic slots → the style is removed and the hardcoded chrome stands, as
+// it does when "Interface follows the design system" is off. Both shipped
+// packs declare the slots: SUSE's primary is Pine in light and Jungle in dark,
+// and lolly-start's starter tokens alias primary to the neutral ink ramp, so
+// the out-of-the-box chrome accent is black in light and white in dark until
+// the user installs a brand (#/start wizard / ingest).
 
 const CHROME_STYLE_ID = 'brand-chrome-vars';
 
@@ -462,8 +464,9 @@ export function nearestWarmHex(swatches: ReadonlyArray<{ value: unknown }>): { h
 //
 // Unlike brandMarkPrimary, a near-neutral primary cannot be declined here - a
 // CTA still has to be legible - and it doesn't need to be: the search moves
-// along L with chroma HELD, so a starter brand's ink (OKLCH chroma ~0.012)
-// stays neutral and its unstable hue never becomes visible.
+// along L with chroma HELD. The starter ink (#1d1d1d) measures OKLCH chroma 0
+// (engine/src/brand-derive.ts reports hue 0 below chroma 1e-7), so any fill
+// the search makes from it stays a neutral grey.
 
 /** The bar a CTA label must clear. Lc 75 is APCA's body-text minimum and the bar
  *  the contrast pass set itself (tokens.css header) - but the bisection below
@@ -630,9 +633,11 @@ function accentBlock(selector: string, primary: string | null): string {
  * this): SURFACES take the light primary's hue at low chroma across fixed
  * mid-dark lightness stops (Pine-tinted panels, in SUSE terms); the ACCENT is
  * the dark primary verbatim (Jungle). Chroma is anchored to the light primary's
- * own chroma, so a neutral starter brand (ink primary) yields a tastefully
- * grey chrome and a vivid brand yields a tinted one - never garish: surface
- * chroma is capped at 0.08.
+ * own chroma, floored at 0.008, which gives even a neutral brand a faint tint,
+ * and capped so a vivid brand is never garish: surface chroma tops out at 0.08.
+ * The starter ink (#1d1d1d) measures chroma 0, and engine/src/brand-derive.ts
+ * reports hue 0 for that, so the blank brand's chrome takes the floor at hue 0:
+ * the rose-tinted grey it is meant to wear.
  */
 export function brandThemeCss(lightPrimaryHex: string, darkPrimaryHex: string): string {
   const surf = hexToOklch(lightPrimaryHex);
@@ -652,6 +657,9 @@ export function brandThemeCss(lightPrimaryHex: string, darkPrimaryHex: string): 
   // secondary (muted-foreground) ink .90 - raised from .84 (OKLCH), which sat
   // at APCA Lc ~62 on the lightest surface for every hue, under the Lc 75 body
   // floor; .90 clears it (~75) while staying below the body ink for hierarchy.
+  // The storage ramp steps .65 to .84 at the accent's hue, one stop for each
+  // --store-N the static block declares, so none of its SUSE greens shows
+  // through a constructed theme.
   // --foreground-canvas repeats --foreground on purpose: it is the ink the render
   // canvas keeps when the high-contrast preference re-points --foreground, so a
   // comfort setting cannot move exported pixels (styles/tokens.css carries the
@@ -660,7 +668,7 @@ export function brandThemeCss(lightPrimaryHex: string, darkPrimaryHex: string): 
   // would otherwise leave the canvas pinned to the static SUSE ink.
   return `[data-theme="brand"] {
   color-scheme: dark;
-${v('background', t(0.29, 1))}${v('foreground', t(0.95, 0.35))}${v('foreground-canvas', t(0.95, 0.35))}${v('card', t(0.35, 1.18))}${v('card-foreground', t(0.95, 0.35))}${v('popover', t(0.35, 1.18))}${v('popover-foreground', t(0.95, 0.35))}${v('primary', accent)}${v('primary-foreground', accentFg)}${v('secondary', t(0.39, 1.27))}${v('secondary-foreground', t(0.95, 0.35))}${v('muted', t(0.38, 1.2))}${v('muted-foreground', t(0.90, 0.55))}${v('accent', t(0.40, 1.3))}${v('accent-foreground', t(0.95, 0.35))}${v('border', t(0.51, 1.45))}${v('input', t(0.51, 1.45))}${v('ring', accent)}${v('store-1', t(0.65, 0.75, acc.h))}${v('store-2', t(0.70, 0.75, acc.h))}${v('store-3', t(0.74, 0.75, acc.h))}${v('store-4', t(0.79, 0.75, acc.h))}${v('store-other', t(0.62, 0.4))}}`;
+${v('background', t(0.29, 1))}${v('foreground', t(0.95, 0.35))}${v('foreground-canvas', t(0.95, 0.35))}${v('card', t(0.35, 1.18))}${v('card-foreground', t(0.95, 0.35))}${v('popover', t(0.35, 1.18))}${v('popover-foreground', t(0.95, 0.35))}${v('primary', accent)}${v('primary-foreground', accentFg)}${v('secondary', t(0.39, 1.27))}${v('secondary-foreground', t(0.95, 0.35))}${v('muted', t(0.38, 1.2))}${v('muted-foreground', t(0.90, 0.55))}${v('accent', t(0.40, 1.3))}${v('accent-foreground', t(0.95, 0.35))}${v('border', t(0.51, 1.45))}${v('input', t(0.51, 1.45))}${v('ring', accent)}${v('store-1', t(0.65, 0.75, acc.h))}${v('store-2', t(0.70, 0.75, acc.h))}${v('store-3', t(0.74, 0.75, acc.h))}${v('store-4', t(0.79, 0.75, acc.h))}${v('store-5', t(0.84, 0.75, acc.h))}${v('store-other', t(0.62, 0.4))}}`;
 }
 
 // ── Lolly's own mark, recoloured to the guest brand ──────────────────────────
@@ -683,7 +691,8 @@ ${v('background', t(0.29, 1))}${v('foreground', t(0.95, 0.35))}${v('foreground-c
  * brand's hue. */
 const LOLLY_TONE = { light: { l: 0.5586, c: 0.1286 }, dark: { l: 0.772, c: 0.1338 } } as const;
 // Below this OKLCH chroma a "primary" has no hue worth adopting - a greyscale or
-// near-black ink (the blank starter's ink, ~0.012) reads as no brand colour at
+// near-black ink (the blank starter's #1d1d1d measures chroma 0, and
+// engine/src/brand-derive.ts reports hue 0 for it) reads as no brand colour at
 // all, so we leave Lolly its own green rather than tint it an arbitrary hue.
 const MARK_MIN_CHROMA = 0.03;
 
@@ -732,10 +741,10 @@ export function lollyMarkCss(lightHex: string | null, darkHex: string | null): s
   ].join('\n');
 }
 
-/** The full injected stylesheet text. Exported for tests. Under the suse
- * PROFILE no semantic slots resolve, nothing is emitted, and the static
- * tokens.css blocks (including the brand theme's SUSE-palette defaults)
- * stand untouched. */
+/** The full injected stylesheet text. Exported for tests. When neither
+ * theme's primary resolves, nothing is emitted and the static tokens.css
+ * blocks (including the brand theme's SUSE-palette defaults) stand. The suse
+ * profile resolves both (Pine light, Jungle dark), so it gets this sheet too. */
 export function chromeBrandCss(
   light: { primary: string | null; onPrimary: string | null },
   dark: { primary: string | null; onPrimary: string | null },
@@ -935,10 +944,10 @@ export async function applyChromeBrandVars(host: BrandVarsHost): Promise<void> {
     } catch { return null; }
   };
   // Fonts, shape and spacing first, independently of the colour blocks below - a brand
-  // may declare these tokens without semantic colour slots (the SUSE doc)
-  // or vice versa. Both are outside the Appearance pref below: a face and a
-  // corner are what the design system says the app should LOOK like, and neither
-  // is the app helping itself to a colour (lib/chrome-follow.ts).
+  // may declare these tokens without semantic colour slots or vice versa.
+  // Both are outside the Appearance pref below: a face and a corner are what
+  // the design system says the app should LOOK like, and neither is the app
+  // helping itself to a colour (lib/chrome-follow.ts).
   await applyBrandFonts({ tokens: tk }).catch(() => { /* never breaks boot */ });
   await applyBrandRadius({ tokens: tk }).catch(() => { /* never breaks boot */ });
   await applyBrandSpace({ tokens: tk }).catch(() => { /* never breaks boot */ });
@@ -964,8 +973,8 @@ export async function applyChromeBrandVars(host: BrandVarsHost): Promise<void> {
   }
   // The warm "needs attention" accent scans every resolved colour (ramps,
   // spectrum, roles) - independent of the semantic primary/on-primary block
-  // below, so it still finds SUSE's Persimmon even though that catalog
-  // declares no color.semantic.* slots at all. The catch must NOT touch the
+  // below, so it works for a pack with no color.semantic.* slots too (for
+  // SUSE it finds a Persimmon ramp step). The catch must NOT touch the
   // DOM (a resolve() rejection still leaves documentElement writable, but
   // keeping the handler pure means it can never itself throw).
   let warn: { hex: string; ink: string } | null = null;
@@ -990,9 +999,8 @@ export async function applyChromeBrandVars(host: BrandVarsHost): Promise<void> {
     // Expose the brand primary GLOBALLY on :root (not just the tool canvas that
     // applyBrandVars paints) so app chrome outside a tool - the gallery's
     // preview-loading trace, say - can wear it via var(--brand-primary, <fallback>).
-    // Same precedent as --brand-warn above; a brand with no resolvable primary
-    // (the SUSE catalog declares no semantic slots) removes it so the CSS
-    // fallback stays in charge.
+    // Same precedent as --brand-warn above; a brand with no resolvable light
+    // primary removes it so the CSS fallback stays in charge.
     if (lp) root.setProperty('--brand-primary', lp);
     else root.removeProperty('--brand-primary');
     mirrorAccent(lp);
