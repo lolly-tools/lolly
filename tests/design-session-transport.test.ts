@@ -12,7 +12,7 @@
  *
  * The page side is covered by tests/open-route.browser.test.ts.
  */
-import { test } from 'node:test';
+import { after, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -27,8 +27,13 @@ import {
 import { DESKTOP_REQUEST_MAX_BYTES, PAGE_DESIGN_SYSTEM_GLOBAL, exportUrl, fitsDesktopRequest, renderDesignViaSession, seedPageDesignSystem } from '../packages/node-shell/src/webshell-render.ts';
 import { AUTOMATION_DESIGN_SYSTEM_GLOBAL } from '../shells/web/src/bridge/tokens.ts';
 import { readLollyFile } from '../packages/node-shell/src/lolly-file.ts';
+import { closeBrowser } from '../packages/node-shell/src/browsers.ts';
+import { closeWebShell } from '../packages/node-shell/src/webshell-render.ts';
+import { readRenderServer } from '../packages/node-shell/src/desktop-renderer.ts';
 import { themeRuns, themedOutputPath, themesPlan } from '../shells/cli/src/themes.ts';
 import { designSessionRunPlan } from '../shells/cli/src/design-session.ts';
+
+after(async () => { await closeWebShell(); await closeBrowser(); });
 
 const root = resolve(import.meta.dirname, '..');
 const PNG = new Uint8Array(readFileSync(join(root, 'shells/web/public/icons/icon-192.png')));
@@ -198,10 +203,19 @@ async function withEnv<T>(vars: Record<string, string | undefined>, body: () => 
   }
 }
 
+/** Match the app's owner-only advert, including the secure reader used in production. */
+function writeDesktopAdvert(file: string, port: number): void {
+  writeFileSync(file, JSON.stringify({ port, token: 'tok', pid: process.pid, version: 'test' }), { mode: 0o600 });
+  assert.equal(readRenderServer({ env: { LOLLY_RENDER_SERVER: file } })?.port, port, 'the fixture must be accepted before attempting a render');
+}
+
 /** A stand-in for the desktop app's render endpoint (render_server.rs framing), answering every job with `answer`. */
 async function fakeDesktop(answer: Uint8Array): Promise<{ port: number; seen: Array<Record<string, unknown>>; close: () => Promise<void> }> {
   const seen: Array<Record<string, unknown>> = [];
+  const sockets = new Set<Socket>();
   const server = createServer((socket: Socket) => {
+    sockets.add(socket);
+    socket.once('close', () => sockets.delete(socket));
     const chunks: Buffer[] = [];
     socket.on('data', (chunk) => {
       chunks.push(Buffer.from(chunk));
@@ -217,15 +231,18 @@ async function fakeDesktop(answer: Uint8Array): Promise<{ port: number; seen: Ar
   });
   await new Promise<void>((done) => server.listen(0, '127.0.0.1', () => done()));
   const port = (server.address() as { port: number }).port;
-  return { port, seen, close: () => new Promise<void>((done) => server.close(() => done())) };
+  return { port, seen, close: () => {
+    for (const socket of sockets) socket.destroy();
+    return new Promise<void>((done) => server.close(() => done()));
+  } };
 }
 
-test('a Design render keeps the desktop rung: an address that fits goes to the running app, not Chromium (E27)', async () => {
+test('a Design render keeps the desktop rung: an address that fits goes to the running app, not Chromium (E27)', { timeout: 30_000 }, async () => {
   const dir = mkdtempSync(join(tmpdir(), 'lolly-desktop-rung-'));
   const desktop = await fakeDesktop(PNG);
   try {
     const advert = join(dir, 'render.json');
-    writeFileSync(advert, JSON.stringify({ port: desktop.port, token: 'tok', pid: process.pid, version: 'test' }));
+    writeDesktopAdvert(advert, desktop.port);
     // No web shell is reachable, so a render that went to Chromium could not succeed.
     const out = await withEnv({ LOLLY_RENDER_SERVER: advert, LOLLY_RENDERER: undefined, LOLLY_WEB_BASE: 'http://127.0.0.1:9', LOLLY_DESKTOP_BIN: join(dir, 'none') }, () =>
       renderDesignViaSession({ boxes: [] }, 'png', { width: 640, height: 360 }, { urlQuery: 'boxes=%5B%5D' }));
@@ -241,19 +258,19 @@ test('a Design render keeps the desktop rung: an address that fits goes to the r
   }
 });
 
-test('lolly run design hands its Tier B render to a running desktop app when the address fits', async () => {
+test('lolly run design hands its Tier B render to a running desktop app when the address fits', { timeout: 30_000 }, async () => {
   const dir = mkdtempSync(join(tmpdir(), 'lolly-desktop-cli-'));
   const pdf = new TextEncoder().encode('%PDF-1.7 from the desktop app');
   const desktop = await fakeDesktop(pdf);
   try {
     const advert = join(dir, 'render.json');
-    writeFileSync(advert, JSON.stringify({ port: desktop.port, token: 'tok', pid: process.pid, version: 'test' }));
+    writeDesktopAdvert(advert, desktop.port);
     const rows = join(dir, 'rows.json');
     writeFileSync(rows, JSON.stringify([{ id: 'f', kind: 'frame', x: 0, y: 0, w: 640, h: 360, bg: '#ffffff' }, { id: 't', kind: 'text', frame: 'f', x: 10, y: 10, w: 300, h: 60, text: 'Hello' }, { id: 'shadow', kind: 'box', frame: 'f', x: 20, y: 100, w: 100, h: 80, bg: '#1c7ed6', shadow: 'box' }]));
     const env: NodeJS.ProcessEnv = { ...process.env, LOLLY_PROFILE: 'lolly-start', LOLLY_STATE_DIR: join(dir, 'state'), NO_COLOR: '1', LOLLY_WEB_BASE: 'http://127.0.0.1:9', LOLLY_RENDER_SERVER: advert, LOLLY_DESKTOP_BIN: join(dir, 'none') };
     delete env.LOLLY_RENDERER;
     const out = join(dir, 'deck.pdf');
-    const child = spawn(process.execPath, [join(root, 'shells/cli/bin/lolly.ts'), 'run', 'design', `--boxes-data=${rows}`, '--text=outline', '--export=pdf', `--output=${out}`, '--no-provenance'], { env, cwd: dir });
+    const child = spawn(process.execPath, [join(root, 'shells/cli/bin/lolly.ts'), 'run', 'design', `--boxes-data=${rows}`, '--text=outline', '--export=pdf', `--output=${out}`, '--no-provenance'], { env, cwd: dir, timeout: 25_000 });
     let stderr = '';
     child.stderr.on('data', (d) => { stderr += String(d); });
     const code = await new Promise<number | null>((done) => child.on('close', done));
@@ -268,19 +285,19 @@ test('lolly run design hands its Tier B render to a running desktop app when the
   }
 });
 
-test('default and explicit live-text Design PDFs keep one browser transport request', async () => {
+test('default and explicit live-text Design PDFs keep one browser transport request', { timeout: 30_000 }, async () => {
   const dir = mkdtempSync(join(tmpdir(), 'lolly-desktop-live-pdf-'));
   const pdf = new TextEncoder().encode('%PDF-1.7 live text from desktop');
   const desktop = await fakeDesktop(pdf);
   try {
     const advert = join(dir, 'render.json');
-    writeFileSync(advert, JSON.stringify({ port: desktop.port, token: 'tok', pid: process.pid, version: 'test' }));
+    writeDesktopAdvert(advert, desktop.port);
     const rows = join(dir, 'rows.json');
     writeFileSync(rows, JSON.stringify([{ id: 'f', kind: 'frame', x: 0, y: 0, w: 640, h: 360, bg: '#ffffff' }, { id: 't', kind: 'text', frame: 'f', x: 20, y: 20, w: 300, h: 60, text: 'Keep these words live' }]));
     const env: NodeJS.ProcessEnv = { ...process.env, LOLLY_PROFILE: 'lolly-start', LOLLY_STATE_DIR: join(dir, 'state'), NO_COLOR: '1', LOLLY_WEB_BASE: 'http://127.0.0.1:9', LOLLY_RENDER_SERVER: advert, LOLLY_DESKTOP_BIN: join(dir, 'none'), LOLLY_RENDERER: 'desktop' };
     for (const [index, flags] of [[], ['--text=live']].entries()) {
       const out = join(dir, `live-${index}.pdf`);
-      const child = spawn(process.execPath, [join(root, 'shells/cli/bin/lolly.ts'), 'run', 'design', `--boxes-data=${rows}`, '--export=pdf', `--output=${out}`, '--no-provenance', ...flags], { env, cwd: dir });
+      const child = spawn(process.execPath, [join(root, 'shells/cli/bin/lolly.ts'), 'run', 'design', `--boxes-data=${rows}`, '--export=pdf', `--output=${out}`, '--no-provenance', ...flags], { env, cwd: dir, timeout: 25_000 });
       let stderr = '';
       child.stderr.on('data', (data) => { stderr += String(data); });
       const code = await new Promise<number | null>((done) => child.on('close', done));
@@ -296,14 +313,14 @@ test('default and explicit live-text Design PDFs keep one browser transport requ
   }
 });
 
-test('unsupported Design SVGZ pages make one complete browser transport request and preserve its gzip bytes', async () => {
+test('unsupported Design SVGZ pages make one complete browser transport request and preserve its gzip bytes', { timeout: 30_000 }, async () => {
   const dir = mkdtempSync(join(tmpdir(), 'lolly-desktop-svgz-'));
   const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360"><rect width="640" height="360" fill="#ffffff"/></svg>';
   const answer = gzipSync(svg);
   const desktop = await fakeDesktop(answer);
   try {
     const advert = join(dir, 'render.json');
-    writeFileSync(advert, JSON.stringify({ port: desktop.port, token: 'tok', pid: process.pid, version: 'test' }));
+    writeDesktopAdvert(advert, desktop.port);
     const env: NodeJS.ProcessEnv = { ...process.env, LOLLY_ROOT: root, LOLLY_PROFILE: 'lolly-start', LOLLY_STATE_DIR: join(dir, 'state'), NO_COLOR: '1', LOLLY_WEB_BASE: 'http://127.0.0.1:9', LOLLY_RENDER_SERVER: advert, LOLLY_DESKTOP_BIN: join(dir, 'none'), LOLLY_RENDERER: 'desktop' };
     const frame = { id: 'f', kind: 'frame', x: 0, y: 0, w: 640, h: 360, bg: '#ffffff' };
     const cases = [
@@ -314,7 +331,7 @@ test('unsupported Design SVGZ pages make one complete browser transport request 
     for (const [index, entry] of cases.entries()) {
       const rows = join(dir, `rows-${index}.json`), out = join(dir, `fallback-${index}.svgz`);
       writeFileSync(rows, JSON.stringify(entry.rows));
-      const child = spawn(process.execPath, [join(root, 'shells/cli/bin/lolly.ts'), 'run', 'design', `--boxes-data=${rows}`, '--export=svgz', `--output=${out}`, '--no-provenance', ...entry.flags], { env, cwd: dir });
+      const child = spawn(process.execPath, [join(root, 'shells/cli/bin/lolly.ts'), 'run', 'design', `--boxes-data=${rows}`, '--export=svgz', `--output=${out}`, '--no-provenance', ...entry.flags], { env, cwd: dir, timeout: 25_000 });
       let stderr = '';
       child.stderr.on('data', data => { stderr += String(data); });
       const code = await new Promise<number | null>(done => child.on('close', done));
@@ -395,12 +412,12 @@ test('the page is started with the design system the caller resolved, by an init
   }
 });
 
-test('lolly run design --file resolves links in that system and sends it with the render', async () => {
+test('lolly run design --file resolves links in that system and sends it with the render', { timeout: 30_000 }, async () => {
   const dir = mkdtempSync(join(tmpdir(), 'lolly-run-file-'));
   const desktop = await fakeDesktop(new TextEncoder().encode('%PDF-1.7 desktop'));
   try {
     const advert = join(dir, 'render.json');
-    writeFileSync(advert, JSON.stringify({ port: desktop.port, token: 'tok', pid: process.pid, version: 'test' }));
+    writeDesktopAdvert(advert, desktop.port);
     // A frame painted with a linked colour whose cached value is stale.
     const rows = join(dir, 'rows.json');
     writeFileSync(rows, JSON.stringify([{ id: 'f', kind: 'frame', x: 0, y: 0, w: 640, h: 360, bg: '#000000', tokenLinks: JSON.stringify({ bg: { ref: '{color.brand.navy}', value: '#000000' } }) }]));
@@ -408,7 +425,7 @@ test('lolly run design --file resolves links in that system and sends it with th
     const tokens = join(root, 'tests/fixtures/recreate/tokens.json');
     const navy = JSON.parse(readFileSync(tokens, 'utf8')).base?.color?.brand?.navy?.$value as string;
     assert.match(navy, /^#[0-9a-f]{6}$/i, 'the fixture names a navy');
-    const child = spawn(process.execPath, [join(root, 'shells/cli/bin/lolly.ts'), 'run', 'design', `--boxes-data=${rows}`, `--file=${tokens}`, '--export=pdf', `--output=${join(dir, 'x.pdf')}`, '--no-provenance'], { env, cwd: dir });
+    const child = spawn(process.execPath, [join(root, 'shells/cli/bin/lolly.ts'), 'run', 'design', `--boxes-data=${rows}`, `--file=${tokens}`, '--export=pdf', `--output=${join(dir, 'x.pdf')}`, '--no-provenance'], { env, cwd: dir, timeout: 25_000 });
     let stderr = '';
     child.stderr.on('data', (d) => { stderr += String(d); });
     const code = await new Promise<number | null>((done) => child.on('close', done));

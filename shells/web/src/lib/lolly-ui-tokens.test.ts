@@ -26,7 +26,9 @@ test('the Start studio can show every UI role without adding any of them to a br
   // 75 to 77 on 2026-09-24 (plan 275 close-out): effect.selection-ring and its hover
   // form, the 2px ring a chooser tile wears. Effects stay out of UI_SLOTS, as
   // effect.selected and effect.accent-ring do.
-  assert.equal(tokens.length, 77);
+  // 77 to 78: numeric inputs share their inset shadow through effect.inset.
+  assert.equal(tokens.length, 78);
+  assert.equal(tokens.find(t => t.path.join('.') === 'effect.inset')?.type, 'shadow');
   assert.equal(tokens.find(t => t.path.join('.') === 'type.tracking-label')?.type, 'letterSpacing');
   assert.equal(tokens.find(t => t.path.join('.') === 'color.text.default')?.type, 'color');
   assert.equal(tokens.find(t => t.path.join('.') === 'color.selection.surface')?.type, 'color');
