@@ -556,8 +556,7 @@ input.field-range.is-upgraded { display: none; }
   position: relative;
   height: var(--cs-track-h);
   border-radius: 2px;
-  /* Match the canvas surface behind the control. */
-  background: var(--ui-color-surface-canvas);
+  background: var(--ui-color-surface-muted);
   box-shadow: none;
 }
 
