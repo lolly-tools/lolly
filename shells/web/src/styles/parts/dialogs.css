@@ -385,6 +385,8 @@ html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-3 { animati
   vertical-align: middle;
   white-space: nowrap;
 }
+.share-file-text { display: flex; flex-direction: column; gap: 2px; flex: 1 1 18px; min-width: 0; }
+.share-file-text strong { font-size: var(--fs-md); }
 .share-option { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); min-width: 0; }
 .share-option > .field-toggle { flex: 1; min-width: 0; }
 .share-option > .help-tip-btn { margin: 0; }
@@ -406,6 +408,25 @@ html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-3 { animati
   line-height: 1.45;
 }
 .share-file-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+/* "Shortest link" - shown only when packing beats the readable URL (JS toggles
+   [hidden]). A prominent accented row: it changes what the link IS, not just an
+   on-visit flag like the ones in the fieldset below. */
+.share-shortest {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+
+  border-radius: var(--radius);
+  background: hsl(var(--primary) / 0.06);
+  cursor: pointer;
+  font-size: var(--fs-md);
+}
+.share-shortest[hidden] { display: none; }
+/* The box is `.field-check`; only the optical nudge onto the first text line
+   (this row is align-items: flex-start, two lines tall) stays here. */
+.share-shortest input[type="checkbox"] { margin-top: 2px; }
+.share-shortest-text { display: flex; flex-direction: column; gap: 1px; }
 .share-shortest-note {
   font-size: var(--fs-sm);
   color: hsl(var(--muted-foreground));
@@ -424,6 +445,11 @@ html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-3 { animati
   border: 0;
   padding: 0;
 }
+
+.tool-share{margin-top:var(--sp-8)}
+.tool-share .btn{background: var(--ui-color-action-primary);
+    color: var(--ui-color-action-on-primary);}
+
 .share-toggles {
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
@@ -434,10 +460,11 @@ html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-3 { animati
   gap: 10px;
 }
 .share-toggles legend {
-  padding: 0 6px;
+  padding: var(--sp-6) 0 var(--sp-4);
   font-size: var(--fs-sm);
-  font-weight: 600;
-  color: hsl(var(--muted-foreground));
+  font-weight: 400;
+  font-style:italic;
+  color: var(--ui-color-action-primary);
 }
 /* Each label carries `.field-toggle` and each box `.field-check` - the row's
    flex/centre/gap/cursor and the tick's whole appearance live there now. */
@@ -526,7 +553,7 @@ html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-3 { animati
   cursor: pointer;
     transition: background var(--dur-1);
   }
-  
+
   .unsaved-leave:hover,
   .unsaved-cancel:hover {
     background: hsl(var(--accent));

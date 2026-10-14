@@ -4,6 +4,7 @@ import test from 'node:test';
 import { mkdir } from 'node:fs/promises';
 import { chromium } from 'playwright';
 import { webGpuLaunchArgs } from '../packages/node-shell/src/webgpu-launch.ts';
+import { shellSettled } from './helpers/shell-settled.ts';
 
 const origin = process.env.LOLLY_IMPORT_TEST_URL ?? process.env.LOLLY_EXPORT_TEST_URL;
 const skip = origin ? false : 'Serve the web shell and set LOLLY_EXPORT_TEST_URL.';
@@ -15,6 +16,7 @@ test('Design rulers and guides default off and remember a previous opt-in or opt
     const boxes = [{ id: 'a', kind: 'box', x: 120, y: 160, w: 120, h: 80, bg: '#88c4a0' }];
     const params = new URLSearchParams({ boxes: JSON.stringify(boxes), guides: '1|x=200;y=300' });
     await page.goto(`${origin}/t/design?${params}`);
+    await shellSettled(page);
     const canvas = page.locator('#tool-canvas [data-box-id="a"]');
     const guides = page.locator('.fc-authoring-guides');
     await canvas.waitFor();
@@ -24,12 +26,14 @@ test('Design rulers and guides default off and remember a previous opt-in or opt
     await guides.waitFor({ state: 'visible' });
     assert.equal(await page.evaluate(() => localStorage.getItem('lolly-design-guides-visible')), 'true');
     await page.reload();
+    await shellSettled(page);
     await canvas.waitFor();
     await guides.waitFor({ state: 'visible' });
     await page.locator('#tool-canvas').focus();
     await page.keyboard.press('Shift+R');
     await guides.waitFor({ state: 'hidden' });
     await page.reload();
+    await shellSettled(page);
     await canvas.waitFor();
     assert.equal(await guides.isVisible(), false, 'the explicit off choice also survives reopening');
     assert.equal(await page.evaluate(() => localStorage.getItem('lolly-design-guides-visible')), 'false');

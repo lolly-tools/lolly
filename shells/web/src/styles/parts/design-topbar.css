@@ -33,11 +33,11 @@
   gap: var(--sp-3);
   padding: var(--sp-3) var(--sp-5);
   padding-top: calc(var(--sp-3) + var(--safe-top));
-  background: color-mix(in srgb, var(--ui-color-surface-raised) 86%, transparent);
+  background: color-mix(in srgb, var(--ui-color-surface-raised) 96%, transparent);
   -webkit-backdrop-filter: blur(16px) saturate(1.3);
   backdrop-filter: blur(16px) saturate(1.3);
   color: var(--ui-color-text-default);
-  border-bottom: 1px solid var(--ui-color-border-default);
+  border-bottom: 1px solid var(--ui-color-surface-raised);
   font-size: var(--ui-type-body);
 }
 
@@ -105,7 +105,8 @@
    parts/a11y.css): most of these buttons are a glyph plus a hidden label, so the
    glyph IS the type as far as a largeText reader is concerned. */
 .dtb-ic { display: inline-flex; }
-.dtb-ic svg { display: block; stroke-width:1.5px; width: calc(16px * var(--a11y-fs)); height: calc(16px * var(--a11y-fs)); }
+.dtb-ic svg { display: block; stroke-width:1.5px; opacity:.75; width: calc(16px * var(--a11y-fs)); height: calc(16px * var(--a11y-fs)); }
+.dtb-btn:hover svg { opacity: 1; stroke-width: 2px; }
 .dtb-btn:hover:not(:disabled) { background: var(--ui-color-surface-muted); }
 .dtb-btn:active:not(:disabled) { filter: brightness(0.94); }
 .dtb-btn:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
@@ -120,7 +121,7 @@
 .dtb-primary { background: var(--ui-color-action-primary); color: var(--ui-color-action-on-primary); }
 .dtb-primary:hover:not(:disabled) { background: color-mix(in srgb, var(--ui-color-action-primary) 86%, transparent); }
 
-.dtb-split { display: inline-flex; align-items: stretch; border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-control); overflow: hidden; }
+.dtb-split {     box-shadow: var(--ui-effect-bevel);display: inline-flex; align-items: stretch; border-radius: var(--ui-radius-control); overflow: hidden;    background: var(--ui-color-surface-muted); }
 .dtb-split .dtb-btn { border: 0; border-radius: 0; }
 .dtb-split-main { padding-inline-end: var(--sp-3); }
 .dtb-split .dtb-split-caret { padding-inline: var(--sp-2); border-inline-start: 1px solid var(--ui-color-border-default); }

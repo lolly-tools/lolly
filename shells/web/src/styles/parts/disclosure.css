@@ -50,8 +50,10 @@
   display: flex;
   flex-direction: column;
   gap: var(--sp-4);
-  padding: var(--sp-6);
+
 }
+.section-card{  padding: var(--sp-6);}
+
 
 .section-card-summary,
 .plat-section-summary {   /* platform.css */
@@ -137,7 +139,8 @@
      section owns no border) and the corner is one step larger than the fields
      inside it, so the group and its controls never read as the same object. An
      open section lifts to the floating drop just below. */
-  border: 0; box-shadow: var(--ui-effect-bevel), var(--ui-elevation-control);
+  border: 0;
+  box-shadow:var(--ui-effect-bevel),  var(--ui-elevation-control), inset 0 -1.3em 1em .3em hsl(var(--primary) / 0.05);
   border-radius: var(--ui-radius-card);
   /* Clip content to the rounded corners with `overflow: clip` - NOT clip-path and
      NOT overflow:hidden. `overflow: clip` clips only DESCENDANTS (never the element's
@@ -153,10 +156,16 @@
      The ring switches instantly instead (the box-shadow halo carries the motion). */
   min-width: 0; /* grid item: allow shrink so inner controls can truncate */
 }
+.section-card .export-audio,
+.section-card .section-card{box-shadow:none; border-radius:0;}
 .section-card.is-open,
 .lp-sec:has(> .lp-sec-head[aria-expanded="true"]),
 .input-section[open] {
-  box-shadow: var(--ui-effect-bevel), var(--ui-elevation-floating);
+  transition: box-shadow var(--dur-2) ease;
+  box-shadow: var(--ui-effect-bevel), var(--ui-elevation-panel), inset 0 -.5em .5em -.3em var(--ui-color-surface-raised), inset 0 -.5em .5em .25em hsl(var(--primary) / 0.06);
+
+
+
 }
 
 .input-section-summary {
@@ -186,14 +195,14 @@
 /* An optional glyph before the head (manifest render.sectionIcons): on the chrome
    icon scale like every other mark, muted like the word beside it. */
 .input-section-title { display: inline-flex; align-items: center; gap: var(--sp-3); min-width: 0; }
-.input-section-icon { display: inline-flex; flex: none; }
+.input-section-icon { display: inline-flex; flex: none; opacity: .8; }
 .input-section-icon svg,
 .lp-sec-head > svg,
 .section-card-icon,
 .cmyk-icon, .audio-icon, .pdfpass-icon, .c2pa-icon, .print-icon, .protection-icon, .hdr-icon {
   width: var(--ui-size-icon-md);
   height: var(--ui-size-icon-md);
-  color: var(--ui-color-text-muted);
+  color: var(--ui-color-action-primary);
   opacity: .75;
   stroke-width: 1.5px;
 }
@@ -231,15 +240,20 @@
      type size, and thickening it reads as a bolder rule, not a bigger arrow. */
   width: calc(8px * var(--a11y-fs));
   height: calc(8px * var(--a11y-fs));
-  border-right: 1.5px solid currentColor;
-  border-bottom: 1.5px solid currentColor;
+  border-right: 1.25px solid currentColor;
+  border-bottom: 1.25px solid currentColor;
   transform: rotate(-45deg);
   transition: transform var(--dur-1) ease;
   flex-shrink: 0;
+  opacity: .75;
+  color: var(--ui-color-action-primary);
 }
+
+
 
 .input-section[open] .input-section-summary::after {
   transform: rotate(45deg);
+  color: var(--ui-color-border-default);
 }
 
 .input-section-body {

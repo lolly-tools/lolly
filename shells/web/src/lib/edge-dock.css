@@ -15,7 +15,7 @@
 }
 /* Inset padding so each docked occupant reads as a distinct card/pane (the column
    background shows around it), not an edge-to-edge slab. */
-.edge-dock-body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; overflow: hidden; padding: var(--ui-space-control-block); box-sizing: border-box; }
+.edge-dock-body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; overflow: hidden;  box-sizing: border-box; }
 .edge-dock-slot { min-height: 0; overflow: auto; position: relative; }
 .edge-dock-slot--fill { flex: 1 1 auto; }
 /* A tabbed column mounts every panel and shows one. Stated so the slot's own display
@@ -47,7 +47,7 @@
 .edge-dock-tab-lb { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* A docked occupant is a pane now, not a floating pill/rounded card: drop its large
    outer radius to a small pane corner. Overrides the panel's own (pill or big) radius. */
-.edge-dock-slot > * { border-radius: var(--ui-radius-choice) !important; }
+.edge-dock-slot > * { border-radius: var(--ui-radius-choice-round) !important; }
 /* The compact bar (zoom HUD): fixed height, sits at the top, centred, and does NOT
    stretch its child to fill (that override lives below, scoped away from it). */
 .edge-dock-slot--compact { flex: 0 0 auto; overflow: visible; display: flex; justify-content: center; padding: 0; }
@@ -56,7 +56,7 @@
 .edge-dock-slot--compact:not(:last-child) { margin-block-end: var(--ui-space-control-block); }
 .edge-dock-slot--compact > * {
   position: static !important; inset: auto !important; margin: 0 !important;
-  height: auto !important; width: auto !important; max-width: 100% !important;
+  height: auto !important; width: calc(100% - var(--sp-4)); background:transparent; max-width: 100% !important;
   visibility: visible !important; border:0;opacity: 1 !important; pointer-events: auto !important;
 }
 .edge-dock-slot--compact > .collab-pill {

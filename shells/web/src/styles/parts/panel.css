@@ -183,7 +183,6 @@ input.lp-head-name:focus {
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding-inline: var(--sp-3);
   padding-bottom: calc(var(--sp-6) + var(--safe-bottom, 0px));
 }
 /* The scroll container takes focus programmatically when a reveal lands, so it
@@ -276,7 +275,7 @@ input.lp-head-name:focus {
 
 /* ── section ───────────────────────────────────────────────────────────────── */
 
-.lp-band { display: flex; flex-direction: column; gap: var(--sp-5); }
+.lp-band { display: flex; flex-direction: column; gap: var(--sp-1);    padding: var(--sp-1) var(--sp-6); }
 .lp-band + .lp-band { margin-top: var(--sp-5); }
 
 /* A real <button>: keyboard reachable, aria-expanded carries the state, and the

@@ -10,8 +10,10 @@
   inset: 0;
   z-index: 18;
   pointer-events: none;
-  color: var(--ui-color-text-muted);
   font-size: var(--fs-xs);
+  color: var(--ui-color-border-default);
+
+  opacity:1;
 }
 .fc-authoring-guides[hidden] {
   display: none;
@@ -23,11 +25,12 @@
   box-sizing: border-box;
   border: 0;
   background: color-mix(in srgb, var(--ui-color-surface-raised) 92%, transparent);
-  color: var(--ui-color-text-muted);
-  border-bottom: 1px solid var(--ui-color-border-default);
+
+  border-bottom: 0;
   pointer-events: auto;
   touch-action: none;
   user-select: none;
+
 }
 .fc-ruler-x {
   height: 22px;
@@ -38,7 +41,7 @@
   width: 22px;
   cursor: col-resize;
   border-bottom: 0;
-  border-right: 1px solid var(--ui-color-border-default);
+  border-right: 0;
 }
 .fc-ruler-corner {
   left: 0;
@@ -46,7 +49,7 @@
   height: 22px;
   padding: 0;
   cursor: pointer;
-  border-right: 1px solid var(--ui-color-border-default);
+  border-right: 1px solid currentColor;
 }
 .fc-ruler-corner::after {
   content: "";
@@ -72,22 +75,23 @@
   overflow: hidden;
 }
 .fc-ruler line {
-  stroke: var(--ui-color-border-default);
+  stroke: currentColor;
   stroke-width: 1;
-  opacity: 0.65;
+  opacity: 0.35;
   vector-effect: non-scaling-stroke;
 }
 .fc-ruler line[y1="7"] {
-  opacity: 1;
+  opacity: .7;
 }
 .fc-ruler text {
+  letter-spacing:-.25px;
   fill: currentColor;
-  font:
-    8px ui-monospace,
-    SFMono-Regular,
-    monospace;
-}
 
+  font:  8px var(--ui-type-mono-family);
+  font-weight: 400;
+}
+.fc-ruler-x text{transform:translateX(-6px )}
+.fc-ruler-x  line[y1="7"]{    transform: scale(1, .8) translateY(7px);}
 .fc-author-guide-lines {
   position: absolute;
   inset: 0;
@@ -253,7 +257,7 @@
 }
 .fc-ruler-selection-band {
   background: var(--ui-color-action-primary);
-  opacity: 0.3;
+  opacity: 0.35;
 }
 .fc-ruler-selection-x .fc-ruler-selection-band {
   top: 0;
@@ -289,18 +293,22 @@
   background: linear-gradient(to bottom, var(--ui-color-surface-raised) 60%, transparent);
 }
 .fc-ruler-selection span {
-  color: var(--ui-color-action-primary);
-  white-space: nowrap;
+  background: var(--ui-color-action-primary);
+    opacity: 0.6;
+  color: var(--ui-color-action-on-primary);
+  white-space: nowrap;padding:0 var(--sp-4);
   font:
-    12px ui-monospace,
-    SFMono-Regular,
-    monospace;
+    12px  var(--ui-type-mono-family);
+       border-radius: 0 var(--ui-radius-control) var(--ui-radius-control) 0 ;
+
+
 }
 .fc-ruler-selection-x span {
   top: 2px;
 }
 .fc-ruler-selection-x [data-selection-edge="min"] {
-  transform: translateX(-100%);
+  transform: translateX(-100%);padding:0 var(--sp-4);
+      border-radius: var(--ui-radius-control) 0 0 var(--ui-radius-control);
 }
 .fc-ruler-selection-y span {
   left: 2px;
@@ -311,6 +319,8 @@
 }
 .fc-ruler-selection-y [data-selection-edge="max"] {
   transform: rotate(-90deg) translateX(-100%);
+        border-radius: var(--ui-radius-control) 0 0 var(--ui-radius-control);padding-left:var(--sp-4);
+
 }
 
 /* Exact entry stays upright and opens into the canvas, independent of pill rotation. */

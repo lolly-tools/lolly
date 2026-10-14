@@ -4,5 +4,5 @@
 .share-agent label { display:grid; gap:var(--sp-2); font-size:var(--fs-sm); }
 .share-agent-actions { display:flex; flex-wrap:wrap; gap:var(--sp-2); }
 .share-agent-actions .btn { display:inline-flex; align-items:center; gap:var(--sp-2); }
-.share-agent-setup { display:inline-flex; align-items:center; gap:var(--sp-2); width:fit-content; font-size:var(--fs-sm); }
+.share-agent-setup {color:var(--ui-color-text-default); text-decoration:none; display:inline-flex; align-items:center; gap:var(--sp-2); width:fit-content; font-size:var(--fs-sm); }
 .share-agent [role="status"]:empty { display:none; }

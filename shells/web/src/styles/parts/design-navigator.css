@@ -21,7 +21,7 @@
      properties are written on the stage by their own owner (design-topbar's
      `measure`, free-canvas's `reserveBottom`) and default to 0 when absent, so a
      stage with no bar and no timeline lays the column out exactly as before. */
-  top: var(--stage-reserve-top, 0px);
+  top: var(--stage-reserve-top, 54px);
   bottom: var(--stage-reserve-bottom, 0px);
   left: 0;
   z-index: 21;                  /* over the overlay (12), under the timeline band (22) */

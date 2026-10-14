@@ -84,7 +84,7 @@
   align-items: center;
   gap: var(--sp-2);
   padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-4);
-  border-bottom: 1px solid var(--ui-color-border-default);
+  border-bottom:0;
 }
 .fc-insp-coltitle {
   flex: 1 1 auto;
@@ -253,9 +253,9 @@
   display: flex;
   align-items: flex-start;
   gap: var(--sp-3);
-  margin: var(--sp-3) var(--sp-4);
-  padding: var(--sp-3);
-  border: 1px solid var(--ui-color-border-default);
+  margin: var(--sp-3) 0;
+  padding: var(--sp-6) var(--sp-4);
+
   border-radius: var(--ui-radius-control);
   background: var(--ui-color-surface-muted);
   color: var(--ui-color-text-default);

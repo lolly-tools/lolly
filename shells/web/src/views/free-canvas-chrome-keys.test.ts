@@ -152,10 +152,14 @@ function selectAt(f: Fixture, x: number, y: number): void {
 }
 const selectionCount = (f: Fixture): number => f.stageEl.querySelectorAll('.fc-chrome .fc-outline').length;
 
-test('authoring guides follow the canvas edit permission as the writer seat changes', () => {
+test('authoring guides follow the canvas edit permission as the writer seat changes', (t) => {
   let writable = false;
   const f = mount([plainBox('a', 100, 100)], true, () => writable);
-  const line = f.stageEl.querySelector<HTMLElement>('.fc-author-guide')!;
+  t.after(() => f.destroy());
+  // Guides start hidden; opt in through the same shortcut an observer can use.
+  pressFrom(f.canvasEl, 'R', { shift: true });
+  const line = f.stageEl.querySelector<HTMLElement>('.fc-author-guide');
+  assert.ok(line, 'opting in exposes the authored guide');
   line.dispatchEvent(pointerEvent('pointerdown', { x: 400, y: 300 }));
   line.dispatchEvent(pointerEvent('pointerup', { x: 400, y: 350 }));
   line.focus();
@@ -166,7 +170,6 @@ test('authoring guides follow the canvas edit permission as the writer seat chan
   line.dispatchEvent(new W.KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
   assert.match(String(f.guides()), /301/);
   assert.equal(f.commits(), 1);
-  f.destroy();
 });
 
 /**

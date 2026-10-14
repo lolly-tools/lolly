@@ -19,7 +19,7 @@ export function mountRulesEntrypoints(runtime: Runtime, inputs: HTMLElement | nu
   };
   const unregister = registerShareSection(context => {
     if (manifest.designTool || context.toolId !== manifest.id) return null;
-    const section = document.createElement('section'); section.className = 'share-row share-option help-tip-host';
+    const section = document.createElement('section'); section.className = 'tool-share share-row share-option help-tip-host';
     const button = document.createElement('button'); button.type = 'button'; button.className = 'btn'; button.textContent = t('Share as a reusable tool');
     button.addEventListener('click', () => { context.close?.(); share(); });
     const tip = helpTip(t('Choose which inputs recipients can edit, then share a reusable tool as a .lolly file.'));

@@ -556,10 +556,9 @@ input.field-range.is-upgraded { display: none; }
   position: relative;
   height: var(--cs-track-h);
   border-radius: 2px;
-  /* `--input` is only 1.49:1 against the page in the light theme - under WCAG
-     1.4.11's 3:1 for a control boundary. Raised with the native range track
-     above so the two sliders stay one object. */
-  background: hsl(var(--muted-foreground) / .75);
+  /* Keep the canvas fill while retaining a visible control boundary. */
+  background: var(--ui-color-surface-canvas);
+  box-shadow: inset 0 0 0 1px hsl(var(--muted-foreground) / .75);
 }
 
 .cs-fill {

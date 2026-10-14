@@ -217,13 +217,13 @@ export function buildFormatOptions(ta: ActionsCtx): void {
       <div class="section-card export-c2pa" data-c2pa-only style="display:${isC2paFmt(initialFmt) || initialFmt === 'zip' ? 'flex' : 'none'}">
         <label class="c2pa-enable field-toggle help-tip-host">
           <input type="checkbox" class="field-check" data-action="pdf-c2pa" ${c2paInitOn ? 'checked' : ''}>
-          <span class="c2pa-head">${ICON_CRED}<span>C2PA Credentials</span></span>
+          <span class="c2pa-head">${ICON_CRED}<span>C2PA</span></span>
           ${c2paTip!.button}
           ${c2paTip!.pop}
         </label>
         <p class="c2pa-hint" data-c2pa-webm style="display:${initialFmt === 'webm' ? 'block' : 'none'}">WebM credentials are Lolly's own mapping for now - external C2PA viewers can't read WebM.</p>
         <div class="c2pa-life" data-c2pa-life>
-          <label class="c2pa-life-pick"><span class="c2pa-life-label">${escapeText(t('Verified for'))}</span>
+          <label class="c2pa-life-pick"><span class="c2pa-life-label">${escapeText(t('for'))}</span>
             <select class="field-select field-select--sm field-select--auto" data-action="c2pa-days" aria-label="Credential lifetime">
               ${[7, 30, 90, 365].map((d) => `<option value="${d}"${d === c2paInitDays ? ' selected' : ''}>${d} days</option>`).join('')}
             </select>

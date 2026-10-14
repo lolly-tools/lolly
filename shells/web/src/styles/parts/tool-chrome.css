@@ -219,6 +219,8 @@ html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
   min-width: 0;
   color: var(--ui-color-text-default);
 }
+
+
 .tool-actions .section-card-head { padding: 0; box-shadow: none; }
 .notes-handout-head { display: inline-flex; align-items: center; gap: var(--sp-3); }
 .tool-actions .export-preflight .preflight-open {
@@ -236,6 +238,7 @@ html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
   border-color: hsl(var(--ring) / 0.4);
   background: hsl(var(--accent));
 }
+
 
 .export-option:has(input:checked) {
   border-color: hsl(var(--primary) / 0.5);
@@ -1399,15 +1402,18 @@ html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
   width: calc(8px * var(--a11y-fs));
   height: calc(8px * var(--a11y-fs));
   margin-left: auto;
-  border-right: 1.5px solid currentColor;
-  border-bottom: 1.5px solid currentColor;
+  border-right: 1.25px solid currentColor;
+  border-bottom: 1.25px solid currentColor;
   transform: rotate(-45deg);
   transition: transform var(--dur-1) ease;
+    color: var(--ui-color-action-primary);
+    opacity:.75;
+
   flex-shrink: 0;
 }
 .export-pdfpass.is-open .pdfpass-head::after,
 .export-protection.is-open .protection-head::after,
-.export-send.is-open .protection-head::after { transform: rotate(45deg); }
+.export-send.is-open .protection-head::after { transform: rotate(45deg); color: var(--ui-color-border-default); }
 .pdfpass-body,
 .protection-body {
   display: flex;
@@ -1463,6 +1469,9 @@ html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
 .hdr-slider input[type="range"]::-webkit-slider-thumb { background: hsl(var(--brand-c1, var(--ring))); }
 .hdr-slider input[type="range"]::-moz-range-thumb { background: hsl(var(--brand-c1, var(--ring))); }
 .hdr-slider input[type="range"]::-moz-range-progress { background: hsl(var(--brand-c1, var(--ring))); }
+
+.export-c2pa {flex-flow:wrap}
+
 .c2pa-enable:has(input:disabled) { cursor: default; opacity: 0.55; }
 
 /* C2PA lifetime picker - "Expires:" label + the days <select>, inline. Stacked
@@ -1590,10 +1599,10 @@ html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
   row-gap: var(--sp-3);
   font-size: var(--fs-sm);
   color: hsl(var(--muted-foreground));
-  padding: var(--sp-3) var(--sp-4);
-  border: 1px solid hsl(var(--border));
+  padding: var(--sp-6) var(--sp-4);
   border-radius: var(--radius);
-  background: hsl(var(--background));
+  box-shadow: var(--ui-elevation-control);
+  background: var(--ui-color-surface-raised);
 }
 
 /* Keep each "label · input · unit" trio together as one unwrappable unit. */
@@ -1665,9 +1674,10 @@ html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
   color: hsl(var(--muted-foreground));
 }
 .vq-main > span { font-weight: 600; }
-.export-pro-settings { padding: var(--sp-4) var(--sp-5); gap: var(--sp-3); }
+.export-pro-settings { padding: var(--sp-5) var(--sp-5); gap: var(--sp-3); }
 .prosettings-head {
   display: flex;
+box-shadow:none;
   align-items: center;
   gap: 7px;
   width: 100%;
@@ -1684,7 +1694,7 @@ html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
 }
 .prosettings-head:hover { color: hsl(var(--foreground)); }
 .prosettings-head:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; border-radius: calc(var(--radius) * 0.75); }
-.prosettings-head svg { flex: 0 0 auto; color: hsl(var(--primary)); }
+.prosettings-head svg { flex: 0 0 auto; color: hsl(var(--primary));     opacity: .76; stroke-width: 1.5px;}
 /* Caret: a rotated corner glyph, not a one-sided border on a radiused box. */
 .prosettings-head::after {
   content: "";
@@ -1700,8 +1710,8 @@ html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
 .prosettings-body {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 10px;
-  padding-top: 8px;
+  gap:  var(--sp-7);
+  padding: var(--sp-6) 0 var(--sp-6) 0;
 }
 .prosettings-body .vp-field {
   font-size: var(--fs-sm);
@@ -1879,7 +1889,7 @@ html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
   align-items: center;
   gap: var(--sp-3);
 }
-.export-licence-pick .field-select { margin-inline-start: auto; min-width: 0; }
+.export-licence-pick .field-select { margin-inline-start: auto; min-width: 0;width:auto; }
 
 /* Captions, inside the video Pro settings fold (markup.ts captionsRow). Hidden until
    the export has caption text to carry (audio.ts syncCaptionsAvailable). */

@@ -167,8 +167,6 @@
     background: color-mix(in srgb, var(--ui-color-surface-raised) 70%, transparent);
     color: var(--ui-color-text-default);
     border-radius: var(--ui-radius-panel) var(--ui-radius-panel) 0 0;
-    border-top: 1px solid var(--ui-color-border-default);
-    box-shadow: var(--ui-elevation-sheet);
     pointer-events: auto;
     transform: translateY(110%);              /* tucked below the viewport when closed */
     transition: transform var(--ui-motion-overlay) var(--ui-motion-standard);
@@ -181,7 +179,7 @@
     flex-shrink: 0;
   }
   /* .export-popup-title/-close: hoisted out of both breakpoints, near the top of this file. */
-  .export-popup-body { overflow-y: auto; padding: 14px; padding-top:0;}
+  .export-popup-body { overflow-y: auto;padding: var(--sp-4); }
   .export-popup-body .tool-actions { margin: 0; padding: 0; border-top: none; }
   /* Let the last input scroll clear of the open export panel. */
   .tool-layout.export-open .sidebar-body { padding-bottom: 45vh; }
@@ -642,7 +640,7 @@
      fold - and its "keep content stable" adjustment is what turned a hover into a
      scroll nudge. Belt-and-suspenders with the clip-path fix on .input-section. */
   overflow-anchor: none;
-  padding: var(--sp-7);
+  padding: var(--sp-4);
   padding-top: var(--sp-4);
   display: flex;
   flex-direction: column;
@@ -1568,7 +1566,7 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
   grid-column: 4;
 }
 .block-color-field {
- 
+
   grid-row: 1;grid-column: 3;
 }
 .blocks-list .block-field{padding:4px  4px 4px  14px !important; }
@@ -2147,7 +2145,7 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
    its own small box, rather than clip. Under five they stay one joined pill. */
 .vector-input:has(.vec-field:nth-child(5)) {
   flex-wrap: wrap;
-  gap: 1px;
+  gap: 0px;
 }
 
 
@@ -2189,6 +2187,7 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
     font-weight: 600;
     line-height: 1;
     color: hsl(var(--muted-foreground));
+    opacity:0.5;
     user-select: none;
     -webkit-user-select: none;
     touch-action: none;
@@ -2214,10 +2213,11 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
   min-height: 32px;
   background: hsl(var(--background));
   color: hsl(var(--foreground));
-  border: 1px solid hsl(var(--input));
-  box-shadow: var(--ui-effect-bevel), var(--ui-elevation-control);
+
+  box-shadow: inset 1px 1px 0 #0001, inset -1px 2px 5px #0002, 0 1px var(--ui-color-surface-raised);
   border-radius: 0;
-  border-right-width: 0;           /* collapse internal dividers */
+  border-right-width: 0;
+  border:0;        /* collapse internal dividers */
   font: inherit;
   font-size: var(--fs-md);
   font-variant-numeric: tabular-nums;
