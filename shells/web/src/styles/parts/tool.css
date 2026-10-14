@@ -2216,8 +2216,7 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
 
   box-shadow: inset 1px 1px 0 #0001, inset -1px 2px 5px #0002, 0 1px var(--ui-color-surface-raised);
   border-radius: 0;
-  border-right-width: 0;
-  border:0;        /* collapse internal dividers */
+  border: 0;        /* collapse internal dividers */
   font: inherit;
   font-size: var(--fs-md);
   font-variant-numeric: tabular-nums;
