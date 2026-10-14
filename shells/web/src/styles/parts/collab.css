@@ -443,7 +443,7 @@ body:has(.tool-stage[data-design-layout="compact"] .collab-comments-panel:not([h
 .collab-settings-unread {
   position: absolute; inset-block-start: 3px; inset-inline-end: 3px; width: 6px; height: 6px;
   border-radius: var(--radius-round); background: var(--ui-color-action-primary);
-  box-shadow: 0 0 0 2px var(--ui-color-surface-raised);
+  outline: 2px solid var(--ui-color-surface-raised);
 }
 .collab-settings-unread[hidden] { display: none; }
 

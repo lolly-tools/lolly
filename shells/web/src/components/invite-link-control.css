@@ -14,7 +14,7 @@
   border: 0; box-shadow: none; font-size: var(--ui-type-label);
 }
 .invite-link-pill > .invite-link-role {
-  flex: 1 1 auto; width: auto; min-width: 0; max-width: calc(120px * var(--a11y-fs));
+  flex: 1 1 auto; width: auto; min-width: 0; max-width: 10em;
   padding-block: 0; padding-inline-start: 12px; border-start-start-radius: var(--radius-pill); border-end-start-radius: var(--radius-pill);
   border-start-end-radius: 0; border-end-end-radius: 0; background-color: transparent;
 }
