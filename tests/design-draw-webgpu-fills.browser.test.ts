@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * P3f fills (pen shapes and outlined words) against the real Design renderer.
+ * P3f fills (pen shapes, strokes and outlined words) against the real Design renderer.
  *
  * Primitives keep their zero-slack comparison in design-draw-webgpu.browser.test.ts.
  * Fills are judged within a declared band (plan 295, decision of 2026-10-14): Chromium
  * draws a path with its own edge coverage and draws text with its font rasteriser, not
- * as outlines, so neither matches a filled outline pixel for pixel. Shapes compare with
+ * as outlines, so neither matches a filled outline pixel for pixel. A stroke is drawn as
+ * the fill of the region it paints and is judged as a shape. Shapes compare with
  * no positional slack and a coverage allowance per pixel; words compare run by run by
  * their ink and its centroid. Each word is also judged against its own outline, which is
  * exact on any platform and is the GPU's own contract. Each limit is proven by a negative
@@ -41,7 +42,10 @@ type ProbeWindow = Window & { designRasterProbe: FillProbe };
  * Measured on Mac Chrome (Metal): the worst shape region had 0.09% of its pixels above
  * 72 (a curved blob at 1x; 0.38% at 48, 0.84% at 24); the triangle moved 2 px differs in
  * 4.24%, far over the 0.5% share. A 1 px neighbourhood at 40 also caught the move (3.87%)
- * but left the blob at 0.38%, nearer the limit.
+ * but left the blob at 0.38%, nearer the limit. Strokes on the Mac: every border and pen
+ * stroke at 0.00% but the square-capped wave (0.13% at 1x, 0.31% at 2x, the 0.12 px Design
+ * snaps it by; 0.01% against Chromium's SVG); a border 1 px wider differs in 3.72%, a pen
+ * stroke 1 px wider in 2.82%.
  */
 const REPORT_ONLY = process.env.LOLLY_DESIGN_GPU_FILL_CALIBRATE === '1';
 const FILL_SLACK = REPORT_ONLY && process.env.LOLLY_FILL_SLACK ? Number(process.env.LOLLY_FILL_SLACK) : 0;
@@ -83,6 +87,10 @@ const ring = encodeAuthoredPaths([
   { kind: 'cubic', closed: true, nodes: [{ x: 0.25, y: 0.25 }, { x: 0.75, y: 0.25 }, { x: 0.75, y: 0.75 }, { x: 0.25, y: 0.75 }] },
 ] as never) ?? '';
 
+const zig = path(false, [{ x: 0, y: 1 }, { x: 0.3, y: 0 }, { x: 0.6, y: 1 }, { x: 1, y: 0.2 }]);
+const wave = path(false, [{ x: 0, y: 0.5, hOutX: 0.2, hOutY: -0.6 }, { x: 0.5, y: 0.5, hInX: -0.2, hInY: 0.6, hOutX: 0.2, hOutY: 0.6 }, { x: 1, y: 0.5, hInX: -0.2, hInY: -0.6 }]);
+const diagonal = path(false, [{ x: 0, y: 0 }, { x: 1, y: 1 }]);
+
 const on = (row: DesignBoxRowV1): DesignBoxRowV1 => ({ frame: 'page', ...row });
 const pathRows: DesignBoxRowV1[] = [
   { id: 'page', kind: 'frame', x: 0, y: 0, w: 320, h: 240, bg: '#ffffff' },
@@ -92,6 +100,26 @@ const pathRows: DesignBoxRowV1[] = [
   on({ id: 'turned', kind: 'path', x: 30, y: 130, w: 90, h: 80, path: triangle, bg: '#1c7ed6', rot: 23, flipH: true }),
   on({ id: 'under', kind: 'box', x: 170, y: 140, w: 120, h: 70, bg: '#212529' }),
   on({ id: 'faded', kind: 'path', x: 150, y: 120, w: 100, h: 90, path: blob, bg: '#fab005', opacity: 60 }),
+];
+/**
+ * Pen strokes with each cap and join, and CSS borders on each box outline. Design offsets a
+ * pen shape's svg by its stroke pad and Chromium snaps a fractional pad to whole pixels,
+ * which moves a round-capped odd width 0.5 px off its geometry (pad 0.5 or 1.5) and a
+ * square cap 0.12 px (pad w/sqrt 2); the operations and the GPU keep the geometry. The
+ * hairline therefore takes a mitre join, whose pad (twice the width) is whole.
+ */
+const strokeRows: DesignBoxRowV1[] = [
+  { id: 'page', kind: 'frame', x: 0, y: 0, w: 320, h: 240, bg: '#ffffff' },
+  on({ id: 'zig', kind: 'path', x: 15, y: 15, w: 90, h: 60, path: zig, stroke: '#e03131', strokeW: 6 }),
+  on({ id: 'mitre', kind: 'path', x: 125, y: 20, w: 75, h: 50, path: zig, stroke: '#1971c2', strokeW: 5, strokeJoin: 'miter', strokeCap: 'butt' }),
+  on({ id: 'wave', kind: 'path', x: 220, y: 15, w: 85, h: 60, path: wave, stroke: '#2f9e44', strokeW: 3, strokeCap: 'square', strokeJoin: 'bevel' }),
+  on({ id: 'outlined', kind: 'path', x: 15, y: 95, w: 80, h: 70, path: blob, bg: '#ffd43b', stroke: '#5f3dc4cc', strokeW: 4 }),
+  on({ id: 'bordered', kind: 'box', x: 110, y: 95, w: 90, h: 60, bg: '#a5d8ff', stroke: '#1864ab', strokeW: 6 }),
+  on({ id: 'rounded', kind: 'box', x: 215, y: 95, w: 90, h: 60, shape: 'rounded', radius: 16, stroke: '#c2255c', strokeW: 4 }),
+  on({ id: 'ellipse', kind: 'box', x: 15, y: 180, w: 90, h: 50, shape: 'ellipse', bg: '#b2f2bb', stroke: '#2b8a3e', strokeW: 5 }),
+  on({ id: 'pill', kind: 'box', x: 120, y: 172, w: 90, h: 30, shape: 'pill', stroke: '#e8590c99', strokeW: 3 }),
+  on({ id: 'turned', kind: 'box', x: 230, y: 175, w: 70, h: 45, shape: 'rounded', radius: 10, rot: 21, bg: '#ffe066', stroke: '#495057', strokeW: 3 }),
+  on({ id: 'hair', kind: 'path', x: 120, y: 212, w: 90, h: 18, path: diagonal, stroke: '#212529', strokeW: 1, strokeJoin: 'miter', strokeCap: 'butt' }),
 ];
 const textRows: DesignBoxRowV1[] = [
   { id: 'page', kind: 'frame', x: 0, y: 0, w: 320, h: 240, bg: '#ffffff' },
@@ -115,12 +143,16 @@ function runRegions(drawing: DesignDrawPage, sx: number, sy: number) {
   });
 }
 
-/** Shape regions: each operation without words, over its turned bounds, padded four pixels. */
+/**
+ * Shape regions: each operation without words, over its turned bounds, padded four pixels
+ * and, for a pen stroke, by twice its width, as far as a join at SVG's mitre limit reaches.
+ */
 function shapeRegions(drawing: DesignDrawPage, sx: number, sy: number) {
   return drawing.ops.filter(op => !op.words).map(op => {
     const a = (op.pose?.rot ?? 0) * Math.PI / 180;
     const w = Math.abs(Math.cos(a)) * op.box.w + Math.abs(Math.sin(a)) * op.box.h, h = Math.abs(Math.sin(a)) * op.box.w + Math.abs(Math.cos(a)) * op.box.h;
-    return { id: op.id, x: (op.box.x + (op.box.w - w) / 2 - 4) * sx, y: (op.box.y + (op.box.h - h) / 2 - 4) * sy, w: (w + 8) * sx, h: (h + 8) * sy };
+    const pad = 4 + (op.op === 'shape' && op.shape.kind === 'path' && op.stroke ? 2 * op.stroke.width : 0);
+    return { id: op.id, x: (op.box.x + (op.box.w - w) / 2 - pad) * sx, y: (op.box.y + (op.box.h - h) / 2 - pad) * sy, w: (w + 2 * pad) * sx, h: (h + 2 * pad) * sy };
   });
 }
 
@@ -129,7 +161,7 @@ function outlineTruth(drawing: DesignDrawPage, sx: number, sy: number) {
   // Admitted at the rendered size, so the edges are flattened exactly as the GPU received them.
   const admitted = prepareDesignRaster(drawing, { width: 320 * sx, height: 240 * sy, dpi: 96 * sx });
   assert.ok(admitted.ok, 'the fixture page is admitted');
-  return admitted.evaluation.fills.filter(f => f.id.includes(':')).map(f => {
+  return admitted.evaluation.fills.filter(f => /:\d+\.\d+$/.test(f.id)).map(f => {
     let area = 0, cx = 0, cy = 0;
     for (let i = 0; i < f.edges.length; i += 4) {
       const x0 = f.edges[i]! * sx, y0 = f.edges[i + 1]! * sy, x1 = f.edges[i + 2]! * sx, y1 = f.edges[i + 3]! * sy, k = x0 * y1 - x1 * y0;
@@ -171,7 +203,7 @@ function fault(r: RegionStats, scale: number): string | undefined {
   return r.pixels && r.differing / r.pixels > REGION_SHARE ? `${(100 * r.differing / r.pixels).toFixed(2)}% of ${r.pixels} px` : undefined;
 }
 
-test('opt-in Design GPU fills draw pen shapes and outlined words within the declared band', { timeout: 300_000 }, async t => {
+test('opt-in Design GPU fills draw pen shapes, strokes and outlined words within the declared band', { timeout: 300_000 }, async t => {
   const root = repoRoot();
   const shaper = createNodeTextShaper({ repoRoot: root }), text = createNodeTextAPI({ repoRoot: root });
   const drawn = async (rows: DesignBoxRowV1[]) => {
@@ -182,7 +214,7 @@ test('opt-in Design GPU fills draw pen shapes and outlined words within the decl
     return d;
   };
   const cases: DesignGpuCase[] = [];
-  for (const [name, rows] of [['paths', pathRows], ['text', textRows]] as const) {
+  for (const [name, rows] of [['paths', pathRows], ['strokes', strokeRows], ['text', textRows]] as const) {
     const drawing = await drawn(rows);
     for (const scale of [1, 2]) cases.push({ key: `${name}-${scale}`, rows, drawing, scaleX: scale, scaleY: scale, original: true });
   }
@@ -268,6 +300,16 @@ test('opt-in Design GPU fills draw pen shapes and outlined words within the decl
       const [region] = (await compare(await render(moved, width, height), regions.filter(r => r.id === 'triangle'))).regions;
       if (REPORT_ONLY) t.diagnostic(`control moved triangle: ${region ? `${(100 * region.differing / (region.pixels || 1)).toFixed(2)}%` : 'no region'}`);
       else assert.ok(region && fault(region, 1), 'the band catches a shape moved by 2 px');
+    }
+    if (c.key === 'strokes-1') {
+      // Negative controls: a border and a pen stroke each 1 px wider must fail their regions.
+      for (const id of ['bordered', 'zig']) {
+        const wider = structuredClone(c.drawing), target = wider.ops.find(op => op.id === id)!;
+        if (target.op === 'shape' && target.stroke) target.stroke.width += 1;
+        const [region] = (await compare(await render(wider, width, height), regions.filter(r => r.id === id))).regions;
+        if (REPORT_ONLY) t.diagnostic(`control ${id} stroke 1 px wider: ${region ? `${(100 * region.differing / (region.pixels || 1)).toFixed(2)}%` : 'no region'}`);
+        else assert.ok(region && fault(region, 1), `the band catches a stroke 1 px wider (${id})`);
+      }
     }
     if (c.key === 'text-1') {
       // Negative control: the narrowest word left out must fail its ink check.
