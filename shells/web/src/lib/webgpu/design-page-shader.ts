@@ -215,6 +215,31 @@ const PRIMITIVE_FRAGMENT = /* wgsl */ `@fragment fn fragment(v: Vertex) -> @loca
 /** Primitive coverage and source-over are GPU work. No SVG, DOM or CPU mask is uploaded. */
 export const DESIGN_PAGE_SHADER = PRIMITIVE_HEAD + PRIMITIVE_VERTEX + PRIMITIVE_COVERAGE + PRIMITIVE_FRAGMENT;
 
+/** A primitive's coverage at a pixel, chosen as the primitive pass chooses it, for passes that reuse an outline. */
+const PRIMITIVE_SELECT = /* wgsl */ `
+fn primitiveCoverage(position: vec2<f32>, p: Primitive) -> f32 {
+  let scanlineRectangle = p.shape.y < 0.5 && p.shape.x == 0.0
+    && abs(p.shape.z) > 0.00001 && abs(p.shape.w) > 0.00001;
+  var coverage = 0.0;
+  if p.shape.y < 0.5 && p.shape.x == 0.0 {
+    if scanlineRectangle { coverage = scanlineRectangleCoverage(position, p); }
+    else { coverage = rectangleCoverage(position, p); }
+  } else {
+    let step = size.page / size.pixels;
+    let distance = curveDistance(localPoint(position * step, p), p);
+    let reach = length(step) * 0.5 + max(step.x, step.y) / 16.0;
+    if distance <= -reach { coverage = 1.0; }
+    else if distance < reach {
+      for (var y = 0u; y < 8u; y++) { for (var x = 0u; x < 8u; x++) {
+        let offset = (vec2<f32>(f32(x), f32(y)) + 0.5) / 8.0 - 0.5;
+        if curveInside(localPoint((position + offset) * step, p), p) { coverage += 1.0 / 64.0; }
+      } }
+    }
+  }
+  return coverage;
+}
+`;
+
 /**
  * Gradients over a primitive's outline: the primitive's own coverage, coloured per pixel.
  * Each gradient carries its primitive's index, its kind (0 linear, 1 radial) and its stops, as
@@ -236,7 +261,7 @@ export const DESIGN_GRADIENT_SHADER = PRIMITIVE_HEAD + /* wgsl */ `struct Gradie
   result.index = index;
   return result;
 }
-` + PRIMITIVE_COVERAGE + /* wgsl */ `// CSS repeats the gradient over its tile and interpolates premultiplied colour between
+` + PRIMITIVE_COVERAGE + PRIMITIVE_SELECT + /* wgsl */ `// CSS repeats the gradient over its tile and interpolates premultiplied colour between
 // the two stops either side; before the first stop and after the last the colour holds.
 fn gradientColor(point: vec2<f32>, g: Gradient) -> vec4<f32> {
   let q = g.tile.xy + (point - g.tile.xy) - floor((point - g.tile.xy) / g.tile.zw) * g.tile.zw;
@@ -260,24 +285,7 @@ fn gradientColor(point: vec2<f32>, g: Gradient) -> vec4<f32> {
 @fragment fn fragment(v: Vertex) -> @location(0) vec4<f32> {
   let g = gradients[v.index];
   let p = ops[g.info.x];
-  let scanlineRectangle = p.shape.y < 0.5 && p.shape.x == 0.0
-    && abs(p.shape.z) > 0.00001 && abs(p.shape.w) > 0.00001;
-  var coverage = 0.0;
-  if p.shape.y < 0.5 && p.shape.x == 0.0 {
-    if scanlineRectangle { coverage = scanlineRectangleCoverage(v.position.xy, p); }
-    else { coverage = rectangleCoverage(v.position.xy, p); }
-  } else {
-    let step = size.page / size.pixels;
-    let distance = curveDistance(localPoint(v.position.xy * step, p), p);
-    let reach = length(step) * 0.5 + max(step.x, step.y) / 16.0;
-    if distance <= -reach { coverage = 1.0; }
-    else if distance < reach {
-      for (var y = 0u; y < 8u; y++) { for (var x = 0u; x < 8u; x++) {
-        let offset = (vec2<f32>(f32(x), f32(y)) + 0.5) / 8.0 - 0.5;
-        if curveInside(localPoint((v.position.xy + offset) * step, p), p) { coverage += 1.0 / 64.0; }
-      } }
-    }
-  }
+  var coverage = primitiveCoverage(v.position.xy, p);
   // The colour at the pixel centre, in the box's own frame before its pose.
   let step = size.page / size.pixels;
   let point = p.box.xy + p.box.zw * 0.5 + localPoint(v.position.xy * step, p);
@@ -356,3 +364,27 @@ fn clampedMean(u: f32, v: f32) -> f32 {
   return vec4<f32>(f.color.rgb * alpha, alpha);
 }
 `;
+
+/** A clip outline bound as a primitive at `binding`, and its coverage at a pixel. */
+const clipPart = (binding: number) => /* wgsl */ `
+@group(0) @binding(${binding}) var<uniform> clip: Primitive;
+fn clipCoverage(position: vec2<f32>) -> f32 { return primitiveCoverage(position, clip); }
+`;
+/** A fragment whose coverage is multiplied by the clip's just before `anchor`, which must occur once. */
+function clipped(fragment: string, anchor: string): string {
+  const at = fragment.indexOf(anchor);
+  if (at < 0 || fragment.indexOf(anchor, at + 1) >= 0) throw new Error(`The clip anchor does not occur exactly once: ${anchor}`);
+  return `${fragment.slice(0, at)}  coverage = coverage * clipCoverage(v.position.xy);\n${fragment.slice(at)}`;
+}
+const PRIMITIVE_STRUCT = PRIMITIVE_HEAD.slice(PRIMITIVE_HEAD.indexOf('struct Primitive'), PRIMITIVE_HEAD.indexOf('struct Size'));
+
+/**
+ * The same passes inside the frame's clip, as Chromium clips a board's children: each
+ * draw's coverage times the clip outline's anti-aliased coverage. A page without a clip
+ * keeps the shaders above.
+ */
+export const DESIGN_PAGE_CLIPPED_SHADER = PRIMITIVE_HEAD + PRIMITIVE_VERTEX + PRIMITIVE_COVERAGE + PRIMITIVE_SELECT + clipPart(2)
+  + clipped(PRIMITIVE_FRAGMENT, '  if scanlineRectangle {\n    // Byte paint');
+export const DESIGN_FILL_CLIPPED_SHADER = PRIMITIVE_STRUCT + clipped(DESIGN_FILL_SHADER, '  let alpha = f.color.a * clamp(coverage, 0.0, 1.0);')
+  + PRIMITIVE_COVERAGE + PRIMITIVE_SELECT + clipPart(3);
+export const DESIGN_GRADIENT_CLIPPED_SHADER = clipped(DESIGN_GRADIENT_SHADER, '  // The colour at the pixel centre') + clipPart(4);

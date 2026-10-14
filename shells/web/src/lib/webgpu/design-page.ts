@@ -3,7 +3,10 @@
 import { designRasterIdentity, readDesignRasterEvaluation, DESIGN_RASTER_RECIPE, type DesignRasterEvaluation } from '../../../../../engine/src/design-draw-raster.ts';
 import { WebGpuError, webGpuLossSignal } from './device.ts';
 import { runWebGpuOperation } from './operation.ts';
-import { DESIGN_FILL_SHADER, DESIGN_GRADIENT_SHADER, DESIGN_PAGE_SHADER, DESIGN_PAGE_READBACK_SHADER } from './design-page-shader.ts';
+import {
+  DESIGN_FILL_CLIPPED_SHADER, DESIGN_FILL_SHADER, DESIGN_GRADIENT_CLIPPED_SHADER, DESIGN_GRADIENT_SHADER, DESIGN_PAGE_CLIPPED_SHADER,
+  DESIGN_PAGE_SHADER, DESIGN_PAGE_READBACK_SHADER,
+} from './design-page-shader.ts';
 
 const MAX_JOB_BYTES = 128 * 1024 * 1024;
 interface Pipelines { render: GPURenderPipeline; readback: GPUComputePipeline }
@@ -27,19 +30,42 @@ async function abortable<T>(work: Promise<T>, signal: AbortSignal): Promise<T> {
   });
 }
 
+type Outline = Pick<DesignRasterEvaluation['ops'][number], 'box' | 'color' | 'shape' | 'radius' | 'pose'>;
+
+/** One primitive's 16 floats: box, colour, shape and turn, mirror and contour segments. */
+function pack(data: Float32Array, at: number, p: Outline, e: DesignRasterEvaluation): void {
+  const angle = p.pose[0] * Math.PI / 180;
+  data.set(p.box, at); data.set(p.color, at + 4);
+  // An inscribed circular contour has maximum error r * (1 - cos(pi / (4n))).
+  // The largest output radius bounds that error after rotation or unequal scaling.
+  const radius = (p.shape === 'ellipse' ? Math.max(p.box[2], p.box[3]) / 2 : p.radius)
+    * Math.max(e.pixelWidth / e.width, e.pixelHeight / e.height);
+  const segments = radius > 1 / 16 ? Math.max(4, Math.ceil(Math.PI / 4 / Math.acos(1 - 1 / (16 * radius)))) : 4;
+  data.set([p.radius, p.shape === 'ellipse' ? 1 : 0, Math.cos(angle), Math.sin(angle), p.pose[1] ? -1 : 1, p.pose[2] ? -1 : 1, segments, Math.cos(Math.PI / (4 * segments))], at + 8);
+}
+
 function parameters(e: DesignRasterEvaluation): Float32Array<ArrayBuffer> {
   const data = new Float32Array(e.ops.length * 16);
-  e.ops.forEach((p, index) => {
-    const at = index * 16, angle = p.pose[0] * Math.PI / 180;
-    data.set(p.box, at); data.set(p.color, at + 4);
-    // An inscribed circular contour has maximum error r * (1 - cos(pi / (4n))).
-    // The largest output radius bounds that error after rotation or unequal scaling.
-    const radius = (p.shape === 'ellipse' ? Math.max(p.box[2], p.box[3]) / 2 : p.radius)
-      * Math.max(e.pixelWidth / e.width, e.pixelHeight / e.height);
-    const segments = radius > 1 / 16 ? Math.max(4, Math.ceil(Math.PI / 4 / Math.acos(1 - 1 / (16 * radius)))) : 4;
-    data.set([p.radius, p.shape === 'ellipse' ? 1 : 0, Math.cos(angle), Math.sin(angle), p.pose[1] ? -1 : 1, p.pose[2] ? -1 : 1, segments, Math.cos(Math.PI / (4 * segments))], at + 8);
-  });
+  e.ops.forEach((p, index) => pack(data, index * 16, p, e));
   return data;
+}
+
+/** The frame's clip as an unturned primitive outline. */
+function clipParameters(e: DesignRasterEvaluation): Float32Array<ArrayBuffer> {
+  const data = new Float32Array(16);
+  if (e.clip) pack(data, 0, { box: e.clip.box, color: [0, 0, 0, 0], shape: e.clip.shape, radius: e.clip.radius, pose: [0, false, false] }, e);
+  return data;
+}
+
+/** The passes beyond the primitive one, and their versions inside the frame's clip. */
+type Variant = 'fill' | 'gradient' | 'primitive-clip' | 'fill-clip' | 'gradient-clip';
+const VARIANT_SHADERS: Record<Variant, string> = {
+  fill: DESIGN_FILL_SHADER, gradient: DESIGN_GRADIENT_SHADER, 'primitive-clip': DESIGN_PAGE_CLIPPED_SHADER,
+  'fill-clip': DESIGN_FILL_CLIPPED_SHADER, 'gradient-clip': DESIGN_GRADIENT_CLIPPED_SHADER,
+};
+/** Which pass draws each paint step: steps from the clip's `from` on are drawn inside the clip. */
+function stepVariants(e: DesignRasterEvaluation): Array<Variant | 'primitive'> {
+  return e.paint.map(([kind], i) => (e.clip && i >= e.clip.from ? `${kind}-clip` as Variant : kind));
 }
 
 /** Fill descriptors (bounds, colour, edge range and rule, 48 bytes each) and edges in output pixels. */
@@ -75,7 +101,7 @@ function limits(e: DesignRasterEvaluation, device: GPUDevice): { bytes: number; 
   const x = Math.min(groups, device.limits.maxComputeWorkgroupsPerDimension), y = Math.ceil(groups / x);
   const fillBytes = e.fills.length * 48, edgeBytes = e.fills.reduce((n, f) => n + f.edges.length, 0) * 4;
   const gradientBytes = e.gradients.length * 48, stopBytes = e.gradients.reduce((n, g) => n + g.stops.length / 5, 0) * 32;
-  const peakBytes = bytes * 3 + e.ops.length * 64 + 32 + (e.fills.length ? fillBytes + edgeBytes + 16 : 0) + gradientBytes + stopBytes;
+  const peakBytes = bytes * 3 + e.ops.length * 64 + 32 + (e.fills.length ? fillBytes + edgeBytes + 16 : 0) + gradientBytes + stopBytes + (e.clip ? 64 : 0);
   if (peakBytes > MAX_JOB_BYTES || bytes > Math.min(device.limits.maxBufferSize, device.limits.maxStorageBufferBindingSize)
     || e.ops.length * 64 > device.limits.maxStorageBufferBindingSize || edgeBytes > device.limits.maxStorageBufferBindingSize
     || fillBytes > device.limits.maxStorageBufferBindingSize || stopBytes > device.limits.maxStorageBufferBindingSize || y > device.limits.maxComputeWorkgroupsPerDimension
@@ -85,10 +111,10 @@ function limits(e: DesignRasterEvaluation, device: GPUDevice): { bytes: number; 
   return { bytes, x, y, peakBytes, fillBytes, edgeBytes, gradientBytes, stopBytes };
 }
 
-/** The fill or gradient pipeline, compiled only for a page that has fills or gradients. */
-async function compileFill(device: GPUDevice, kind: 'fill' | 'gradient' = 'fill'): Promise<GPURenderPipeline> {
-  const module = device.createShaderModule({ code: kind === 'fill' ? DESIGN_FILL_SHADER : DESIGN_GRADIENT_SHADER });
-  return device.createRenderPipelineAsync({ label: `${DESIGN_RASTER_RECIPE}:${kind}`, layout: 'auto',
+/** A fill, gradient or clipped pipeline, compiled only for a page whose paint steps need that pipeline. */
+async function compileVariant(device: GPUDevice, variant: Variant): Promise<GPURenderPipeline> {
+  const module = device.createShaderModule({ code: VARIANT_SHADERS[variant] });
+  return device.createRenderPipelineAsync({ label: `${DESIGN_RASTER_RECIPE}:${variant}`, layout: 'auto',
     vertex: { module, entryPoint: 'vertex' },
     fragment: { module, entryPoint: 'fragment', targets: [{ format: 'rgba8unorm', blend: {
       color: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha' }, alpha: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha' },
@@ -106,7 +132,7 @@ async function compile(device: GPUDevice): Promise<Pipelines> {
   return { render, readback };
 }
 
-async function draw(device: GPUDevice, p: Pipelines, e: DesignRasterEvaluation, signal: AbortSignal, fill?: GPURenderPipeline, shade?: GPURenderPipeline): Promise<Omit<DesignRasterResult, 'identity'>> {
+async function draw(device: GPUDevice, p: Pipelines, e: DesignRasterEvaluation, signal: AbortSignal, passes: ReadonlyMap<Variant, GPURenderPipeline>): Promise<Omit<DesignRasterResult, 'identity'>> {
   const budget = limits(e, device), owned: Array<GPUBuffer | GPUTexture> = [];
   const allocation = { peakBytes: budget.peakBytes, created: 0, destroyed: 0, liveBytes: 0 };
   const buffer = (size: number, usage: GPUBufferUsageFlags, label: string) => {
@@ -129,28 +155,36 @@ async function draw(device: GPUDevice, p: Pipelines, e: DesignRasterEvaluation, 
     const renderGroup = device.createBindGroup({ layout: p.render.getBindGroupLayout(0), entries: [
       { binding: 0, resource: { buffer: ops } }, { binding: 1, resource: { buffer: geometry } },
     ] });
-    let fillGroup: GPUBindGroup | undefined;
+    const bound = new Map<Variant | 'primitive', GPUBindGroup>([['primitive', renderGroup]]);
+    const pass = (variant: Variant) => {
+      const pipeline = passes.get(variant);
+      if (!pipeline) throw new WebGpuError('WEBGPU_OPERATION_FAILED', `The Design raster ${variant} pipeline is missing.`);
+      return pipeline;
+    };
+    let fillBuffers: GPUBuffer[] = [], gradientBuffers: GPUBuffer[] = [], clipBuffer: GPUBuffer | undefined;
     if (e.fills.length) {
-      if (!fill) throw new WebGpuError('WEBGPU_OPERATION_FAILED', 'The Design raster fill pipeline is missing.');
       const packed = fillParameters(e);
-      const fills = buffer(budget.fillBytes, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST, 'Design raster fills');
-      const edges = buffer(budget.edgeBytes, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST, 'Design raster fill edges');
-      device.queue.writeBuffer(fills, 0, packed.fills); device.queue.writeBuffer(edges, 0, packed.edges);
-      fillGroup = device.createBindGroup({ layout: fill.getBindGroupLayout(0), entries: [
-        { binding: 0, resource: { buffer: fills } }, { binding: 1, resource: { buffer: edges } }, { binding: 2, resource: { buffer: geometry } },
-      ] });
+      fillBuffers = [buffer(budget.fillBytes, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST, 'Design raster fills'),
+        buffer(budget.edgeBytes, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST, 'Design raster fill edges')];
+      device.queue.writeBuffer(fillBuffers[0]!, 0, packed.fills); device.queue.writeBuffer(fillBuffers[1]!, 0, packed.edges);
     }
-    let gradientGroup: GPUBindGroup | undefined;
     if (e.gradients.length) {
-      if (!shade) throw new WebGpuError('WEBGPU_OPERATION_FAILED', 'The Design raster gradient pipeline is missing.');
       const packed = gradientParameters(e);
-      const gradients = buffer(budget.gradientBytes, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST, 'Design raster gradients');
-      const stops = buffer(budget.stopBytes, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST, 'Design raster gradient stops');
-      device.queue.writeBuffer(gradients, 0, packed.gradients); device.queue.writeBuffer(stops, 0, packed.stops);
-      gradientGroup = device.createBindGroup({ layout: shade.getBindGroupLayout(0), entries: [
-        { binding: 0, resource: { buffer: ops } }, { binding: 1, resource: { buffer: geometry } },
-        { binding: 2, resource: { buffer: gradients } }, { binding: 3, resource: { buffer: stops } },
-      ] });
+      gradientBuffers = [buffer(budget.gradientBytes, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST, 'Design raster gradients'),
+        buffer(budget.stopBytes, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST, 'Design raster gradient stops')];
+      device.queue.writeBuffer(gradientBuffers[0]!, 0, packed.gradients); device.queue.writeBuffer(gradientBuffers[1]!, 0, packed.stops);
+    }
+    if (e.clip) {
+      clipBuffer = buffer(64, GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST, 'Design raster frame clip');
+      device.queue.writeBuffer(clipBuffer, 0, clipParameters(e));
+    }
+    const steps = stepVariants(e);
+    for (const variant of new Set(steps)) {
+      if (variant === 'primitive') continue;
+      const kind = variant.replace('-clip', '');
+      const resources = kind === 'fill' ? [...fillBuffers, geometry] : kind === 'gradient' ? [ops, geometry, ...gradientBuffers] : [ops, geometry];
+      if (variant.endsWith('-clip')) resources.push(clipBuffer!);
+      bound.set(variant, device.createBindGroup({ layout: pass(variant).getBindGroupLayout(0), entries: resources.map((resource, binding) => ({ binding, resource: { buffer: resource } })) }));
     }
     const convertGroup = device.createBindGroup({ layout: p.readback.getBindGroupLayout(0), entries: [
       { binding: 0, resource: texture.createView() }, { binding: 1, resource: { buffer: pixels } }, { binding: 2, resource: { buffer: convert } },
@@ -159,16 +193,15 @@ async function draw(device: GPUDevice, p: Pipelines, e: DesignRasterEvaluation, 
     const render = encoder.beginRenderPass({ colorAttachments: [{ view: texture.createView(), clearValue: [0, 0, 0, 0], loadOp: 'clear', storeOp: 'store' }] });
     // Each draw completes before the next paint, in the evaluation's paint order; opacity is
     // not applied to an overlapping instanced batch.
-    let current: 'primitive' | 'fill' | 'gradient' | undefined;
-    for (const [kind, index] of e.paint) {
-      if (kind !== current) {
-        current = kind;
-        if (kind === 'primitive') { render.setPipeline(p.render); render.setBindGroup(0, renderGroup); }
-        else if (kind === 'fill') { render.setPipeline(fill!); render.setBindGroup(0, fillGroup!); }
-        else { render.setPipeline(shade!); render.setBindGroup(0, gradientGroup!); }
+    let current: Variant | 'primitive' | undefined;
+    e.paint.forEach(([, index], i) => {
+      const variant = steps[i]!;
+      if (variant !== current) {
+        current = variant;
+        render.setPipeline(variant === 'primitive' ? p.render : pass(variant)); render.setBindGroup(0, bound.get(variant)!);
       }
       render.draw(6, 1, 0, index);
-    }
+    });
     render.end();
     const compute = encoder.beginComputePass(); compute.setPipeline(p.readback); compute.setBindGroup(0, convertGroup); compute.dispatchWorkgroups(budget.x, budget.y); compute.end();
     encoder.copyBufferToBuffer(pixels, 0, readback, 0, budget.bytes); device.queue.submit([encoder.finish()]);
@@ -188,8 +221,7 @@ async function draw(device: GPUDevice, p: Pipelines, e: DesignRasterEvaluation, 
 /** Injected services are an explicit unit-test seam; the normal singleton uses the product device service. */
 export function createDesignRasterRenderer(services: DesignRasterServices = { run: runWebGpuOperation, loss: webGpuLossSignal }) {
   const pipelines = new WeakMap<GPUDevice, Promise<Pipelines>>();
-  const fillPipelines = new WeakMap<GPUDevice, Promise<GPURenderPipeline>>();
-  const gradientPipelines = new WeakMap<GPUDevice, Promise<GPURenderPipeline>>();
+  const variants = new WeakMap<GPUDevice, Map<Variant, Promise<GPURenderPipeline>>>();
   return async (input: DesignRasterEvaluation, signal?: AbortSignal): Promise<DesignRasterResult> => {
     const e = readDesignRasterEvaluation(input);
     if (!e) throw new WebGpuError('WEBGPU_OPERATION_FAILED', 'The frozen Design raster evaluation is invalid.');
@@ -206,16 +238,16 @@ export function createDesignRasterRenderer(services: DesignRasterServices = { ru
           combined.throwIfAborted(); limits(e, device);
           let p = pipelines.get(device);
           if (!p) { p = compile(device).catch(error => { pipelines.delete(device); throw error; }); pipelines.set(device, p); }
-          let f: Promise<GPURenderPipeline> | undefined, g: Promise<GPURenderPipeline> | undefined;
-          if (e.fills.length) {
-            f = fillPipelines.get(device);
-            if (!f) { f = compileFill(device).catch(error => { fillPipelines.delete(device); throw error; }); fillPipelines.set(device, f); }
+          let cache = variants.get(device);
+          if (!cache) { cache = new Map(); variants.set(device, cache); }
+          const passes = new Map<Variant, GPURenderPipeline>();
+          for (const variant of new Set(stepVariants(e))) {
+            if (variant === 'primitive') continue;
+            let compiled = cache.get(variant);
+            if (!compiled) { const owner = cache; compiled = compileVariant(device, variant).catch(error => { owner.delete(variant); throw error; }); cache.set(variant, compiled); }
+            passes.set(variant, await abortable(compiled, combined));
           }
-          if (e.gradients.length) {
-            g = gradientPipelines.get(device);
-            if (!g) { g = compileFill(device, 'gradient').catch(error => { gradientPipelines.delete(device); throw error; }); gradientPipelines.set(device, g); }
-          }
-          return await draw(device, await abortable(p, combined), e, combined, f ? await abortable(f, combined) : undefined, g ? await abortable(g, combined) : undefined);
+          return await draw(device, await abortable(p, combined), e, combined, passes);
         } finally { done(); }
       });
       signal?.throwIfAborted();

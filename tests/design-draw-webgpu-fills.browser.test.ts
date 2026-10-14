@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * P3f fills (pen shapes, strokes and outlined words) against the real Design renderer.
+ * P3f fills (pen shapes, strokes, gradients, frames and outlined words) against the real
+ * Design renderer.
  *
  * Primitives keep their zero-slack comparison in design-draw-webgpu.browser.test.ts.
  * Fills are judged within a declared band (plan 295, decision of 2026-10-14): Chromium
@@ -9,8 +10,9 @@
  * the fill of the region it paints and is judged as a shape. Shapes compare with
  * no positional slack and a coverage allowance per pixel; words compare run by run by
  * their ink and its centroid. Each word is also judged against its own outline, which is
- * exact on any platform and is the GPU's own contract. Each limit is proven by a negative
- * control that must fail.
+ * exact on any platform and is the GPU's own contract. A rounded or elliptical frame leaves
+ * the page transparent outside its outline, so both images are judged over the same
+ * checkerboard. Each limit is proven by a negative control that must fail.
  */
 import assert from 'node:assert/strict';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
@@ -45,7 +47,9 @@ type ProbeWindow = Window & { designRasterProbe: FillProbe };
  * but left the blob at 0.38%, nearer the limit. Strokes on the Mac: every border and pen
  * stroke at 0.00% but the square-capped wave (0.13% at 1x, 0.31% at 2x, the 0.12 px Design
  * snaps it by; 0.01% against Chromium's SVG); a border 1 px wider differs in 3.72%, a pen
- * stroke 1 px wider in 2.82%.
+ * stroke 1 px wider in 2.82%. Frames on the Mac: every region of a rounded, bordered board
+ * and an elliptical one at 0.01% or less, rows clipped included; without the frame's clip
+ * the rows crossing its edge differ in up to 24% and the corners in up to 76%.
  */
 const REPORT_ONLY = process.env.LOLLY_DESIGN_GPU_FILL_CALIBRATE === '1';
 const FILL_SLACK = REPORT_ONLY && process.env.LOLLY_FILL_SLACK ? Number(process.env.LOLLY_FILL_SLACK) : 0;
@@ -141,6 +145,20 @@ const gradientRows: DesignBoxRowV1[] = [
   on({ id: 'faded', kind: 'box', x: 125, y: 165, w: 80, h: 60, grad: 'lin.srgb_180_12b886-0_7048e8-100', opacity: 60 }),
   on({ id: 'pill', kind: 'box', x: 225, y: 175, w: 80, h: 40, shape: 'pill', grad: 'lin.srgb_45_000000-0_ffffff-100' }),
 ];
+/** Frames that clip their rows: rounded with a border, and elliptical, each crossed by rows at its edge. */
+const boardRows: DesignBoxRowV1[] = [
+  { id: 'page', kind: 'frame', x: 0, y: 0, w: 320, h: 240, bg: '#f8f9fa', shape: 'rounded', radius: 28, stroke: '#495057', strokeW: 6 },
+  on({ id: 'corner', kind: 'box', x: -20, y: -20, w: 100, h: 80, bg: '#e03131' }),
+  on({ id: 'edge', kind: 'path', x: 250, y: 40, w: 100, h: 90, path: blob, bg: '#1c7ed6' }),
+  on({ id: 'line', kind: 'path', x: -30, y: 150, w: 120, h: 60, path: zig, stroke: '#2f9e44', strokeW: 6 }),
+  on({ id: 'ramp', kind: 'box', x: 150, y: 190, w: 140, h: 80, shape: 'rounded', radius: 14, grad: 'lin.srgb_90_7048e8-0_fab005-100' }),
+];
+const ovalRows: DesignBoxRowV1[] = [
+  { id: 'page', kind: 'frame', x: 0, y: 0, w: 320, h: 240, bg: '#fff3bf', shape: 'ellipse' },
+  on({ id: 'left', kind: 'box', x: -10, y: 60, w: 90, h: 120, bg: '#5f3dc4' }),
+  on({ id: 'top', kind: 'path', x: 110, y: -30, w: 100, h: 90, path: triangle, bg: '#e8590c' }),
+  on({ id: 'lower', kind: 'box', x: 200, y: 160, w: 120, h: 90, shape: 'ellipse', bg: '#0b7285', rot: 15 }),
+];
 const textRows: DesignBoxRowV1[] = [
   { id: 'page', kind: 'frame', x: 0, y: 0, w: 320, h: 240, bg: '#ffffff' },
   on({ id: 'title', kind: 'text', x: 10, y: 10, w: 300, h: 60, text: 'Design', fontSize: 40 }),
@@ -174,6 +192,14 @@ function shapeRegions(drawing: DesignDrawPage, sx: number, sy: number) {
     const pad = 4 + (op.op === 'shape' && op.shape.kind === 'path' && op.stroke ? 2 * op.stroke.width : 0);
     return { id: op.id, x: (op.box.x + (op.box.w - w) / 2 - pad) * sx, y: (op.box.y + (op.box.h - h) / 2 - pad) * sy, w: (w + 2 * pad) * sx, h: (h + 2 * pad) * sy };
   });
+}
+
+/** A frame that is not a plain rectangle: each corner of the page, where its outline, border and clip meet the rows. */
+function frameRegions(drawing: DesignDrawPage, sx: number, sy: number) {
+  const frame = drawing.frame;
+  if (!frame || (frame.shape.kind === 'rect' && !frame.shape.radius && !frame.stroke)) return [];
+  const size = 56, w = drawing.width, h = drawing.height;
+  return [[0, 0], [w - size, 0], [0, h - size], [w - size, h - size]].map(([x, y], i) => ({ id: `frame:${['top-left', 'top-right', 'bottom-left', 'bottom-right'][i]}`, x: x! * sx, y: y! * sy, w: size * sx, h: size * sy }));
 }
 
 /**
@@ -246,7 +272,7 @@ test('opt-in Design GPU fills draw pen shapes, strokes and outlined words within
     return d;
   };
   const cases: DesignGpuCase[] = [];
-  for (const [name, rows] of [['paths', pathRows], ['strokes', strokeRows], ['gradients', gradientRows], ['text', textRows]] as const) {
+  for (const [name, rows] of [['paths', pathRows], ['strokes', strokeRows], ['gradients', gradientRows], ['board', boardRows], ['oval', ovalRows], ['text', textRows]] as const) {
     const drawing = await drawn(rows);
     for (const scale of [1, 2]) cases.push({ key: `${name}-${scale}`, rows, drawing, scaleX: scale, scaleY: scale, original: true });
   }
@@ -261,6 +287,17 @@ test('opt-in Design GPU fills draw pen shapes, strokes and outlined words within
   const context = await browser.newContext({ deviceScaleFactor: 1 });
   const probe = await context.newPage(); await probe.goto(fixture.origin); await probe.waitForFunction(() => !!(window as ProbeWindow).designRasterProbe);
   t.after(async () => { if (!probe.isClosed()) await probe.evaluate(() => (window as ProbeWindow).designRasterProbe.close()); });
+  // Both sides are judged as seen over a one-pixel black and white checkerboard: a
+  // transparent pixel's own colour carries little information, and anything drawn where the
+  // page is transparent differs by at least half the range on half its pixels, whatever its colour.
+  const flatten = (src: string, width: number, height: number) => probe.evaluate(async ({ src, width, height }) => {
+    const img = new Image(); img.src = src; await img.decode();
+    const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height;
+    const ctx = canvas.getContext('2d')!, board = ctx.createImageData(width, height);
+    for (let i = 0; i < width * height; i++) board.data.fill((i % width + Math.floor(i / width)) % 2 ? 255 : 0, i * 4, i * 4 + 3).fill(255, i * 4 + 3, i * 4 + 4);
+    ctx.putImageData(board, 0, 0); ctx.drawImage(img, 0, 0);
+    return canvas.toDataURL('image/png');
+  }, { src, width, height });
   const render = async (page: DesignDrawPage, width: number, height: number) => {
     const value = await probe.evaluate(async ({ page, output }) => {
       const v = await (window as ProbeWindow).designRasterProbe.render(page, output);
@@ -268,7 +305,7 @@ test('opt-in Design GPU fills draw pen shapes, strokes and outlined words within
     }, { page, output: { width, height, dpi: 96 * width / 320 } });
     assert.ok(value.ok, `the GPU renders the page: ${JSON.stringify(value)}`);
     assert.equal(value.allocation.liveBytes, 0);
-    return `data:image/png;base64,${Buffer.from(value.png).toString('base64')}`;
+    return flatten(`data:image/png;base64,${Buffer.from(value.png).toString('base64')}`, width, height);
   };
   const report: Array<{ page: string; failing: string[]; regions: RegionStats[]; inside: RegionStats[]; outline: Array<{ id: string; share: number; shift: number }>; svg: RegionStats[]; layout: RegionStats[]; faces: string[] }> = [];
   const failures: string[] = [];
@@ -279,13 +316,15 @@ test('opt-in Design GPU fills draw pen shapes, strokes and outlined words within
     const page = await context.newPage(); await page.setViewportSize({ width, height });
     await page.goto(url); await page.evaluate(() => document.fonts.ready);
     faces.set(url, await page.evaluate(() => [...document.fonts].map(f => `${f.family} ${f.style} ${f.weight} ${f.status}`)));
-    let shot = await page.screenshot({ clip: { x: 0, y: 0, width, height } }), previous: Buffer | undefined;
+    // Transparent where the page paints nothing (outside a rounded or elliptical frame), as the GPU leaves those pixels.
+    const capture = () => page.screenshot({ clip: { x: 0, y: 0, width, height }, omitBackground: true });
+    let shot = await capture(), previous: Buffer | undefined;
     for (let tries = 0; !previous?.equals(shot); tries++) {
       assert.ok(tries < 8, `${url} settles into a stable screenshot`);
-      previous = shot; shot = await page.screenshot({ clip: { x: 0, y: 0, width, height } });
+      previous = shot; shot = await capture();
     }
     await page.close();
-    return `data:image/png;base64,${shot.toString('base64')}`;
+    return flatten(`data:image/png;base64,${shot.toString('base64')}`, width, height);
   };
   const detail = (r: RegionStats) => r.ink ? `ink ${(100 * Math.abs(r.ink.a - r.ink.b) / (r.ink.a || 1)).toFixed(1)}% shift ${Math.hypot(r.ink.ax - r.ink.bx, r.ink.ay - r.ink.by).toFixed(2)}` : `${(100 * r.differing / (r.pixels || 1)).toFixed(2)}%`;
   for (const c of cases) {
@@ -295,7 +334,7 @@ test('opt-in Design GPU fills draw pen shapes, strokes and outlined words within
     const gpu = await render(c.drawing, width, height);
     const words = c.drawing.ops.some(op => op.words);
     const ground = words ? await render({ ...c.drawing, ops: c.drawing.ops.map(({ words: _w, ...op }) => op as DrawOp) }, width, height) : undefined;
-    const regions = [...shapeRegions(c.drawing, c.scaleX, c.scaleY), ...runRegions(c.drawing, c.scaleX, c.scaleY)];
+    const regions = [...shapeRegions(c.drawing, c.scaleX, c.scaleY), ...frameRegions(c.drawing, c.scaleX, c.scaleY), ...runRegions(c.drawing, c.scaleX, c.scaleY)];
     const compareWith = (before: string, shot: string, within: typeof regions, threshold = FILL_THRESHOLD) => probe.evaluate<FidelityStats>(
       `(${compareInBrowser.toString()})(${JSON.stringify(before)},${JSON.stringify(shot)},${width},${height},${JSON.stringify(within)},${threshold},${ground ? JSON.stringify(ground) : 'undefined'},${FILL_SLACK})`);
     const compare = (shot: string, within: typeof regions) => compareWith(design, shot, within);
@@ -365,6 +404,15 @@ test('opt-in Design GPU fills draw pen shapes, strokes and outlined words within
         if (REPORT_ONLY) t.diagnostic(`control ${id} gradient: ${region ? `${region.differing} of ${region.pixels} px` : 'no difference'}`);
         else assert.ok(region, `the interior check catches a changed gradient (${id})`);
       }
+    }
+    if (c.key === 'board-1' || c.key === 'oval-1') {
+      // Negative control: the same page without the frame's clip must fail where rows cross its edge.
+      const open = structuredClone(c.drawing); delete open.clip;
+      const crossing = regions.filter(r => !('ink' in r));
+      const opened = (await compare(await render(open, width, height), crossing)).regions;
+      const failed = opened.filter(r => fault(r, 1)).map(r => r.id);
+      if (REPORT_ONLY) t.diagnostic(`control ${c.key} without its clip: ${opened.map(r => `${r.id} ${detail(r)}`).join(', ')}`);
+      else assert.ok(failed.length, `the band catches a frame that does not clip its rows (${c.key})`);
     }
     if (c.key === 'text-1') {
       // Negative control: the narrowest word left out must fail its ink check.
