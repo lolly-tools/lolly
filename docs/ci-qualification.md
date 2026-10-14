@@ -116,7 +116,14 @@ new non-runtime files can still require a compatibility policy update or a new
 matched baseline. Any private exception must name the reviewed CI/test/docs
 paths, require full-tier evidence for the transition and preserve every protected
 runtime input. Fast CI eligibility alone does not permit engine reuse. Root
-package and lock files are unchanged by this activation.
+`package.json` and `pnpm-lock.yaml` are unchanged by this activation.
+
+The bootstrap also requires the security patch from `rustls` 0.23.45 to 0.23.46
+in the desktop, mobile and isolated-capture Cargo locks, with regenerated license
+and SBOM records. These Tauri dependency locks are protected runtime inputs.
+The first deployment after this rollout therefore needs a matched full release
+baseline. A CI/test/docs metadata exception cannot authorize reuse across those
+dependency changes.
 
 ## Measurements and remaining work
 
