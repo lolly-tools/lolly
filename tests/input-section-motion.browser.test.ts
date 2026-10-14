@@ -14,7 +14,7 @@ const css = `${read('styles/tokens.css')}
   @layer chrome { ${read('styles/parts/gallery.css')} ${read('styles/parts/components.css')} }
   ${read('styles/parts/tool.css')}`;
 
-interface Frame { height: number; opacity: number; bodyOpacity: number; translate: string }
+interface Frame { height: number; opacity: number; bodyOpacity: number; contentOpacity: number; translate: string; leaks: boolean; closing: boolean }
 
 async function sample(page: Page, action: 'open' | 'close' | 'reverse'): Promise<Frame[]> {
   return page.evaluate(async action => {
@@ -30,9 +30,12 @@ async function sample(page: Page, action: 'open' | 'close' | 'reverse'): Promise
     do {
       await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
       const bodyStyle = getComputedStyle(body), rowStyle = getComputedStyle(row);
-      frames.push({ height: section.getBoundingClientRect().height,
-        opacity: Number(rowStyle.opacity) * Number(bodyStyle.opacity),
-        bodyOpacity: Number(bodyStyle.opacity), translate: rowStyle.translate });
+      const box = section.getBoundingClientRect(), contentStyle = getComputedStyle(section, '::details-content');
+      const contentOpacity = Number(contentStyle.opacity || 1);
+      frames.push({ height: box.height,
+        opacity: Number(rowStyle.opacity) * Number(bodyStyle.opacity) * contentOpacity,
+        bodyOpacity: Number(bodyStyle.opacity), contentOpacity, translate: rowStyle.translate,
+        leaks: body.contains(document.elementFromPoint(box.x + box.width / 2, box.bottom + 2)), closing: reversed });
       if (action === 'reverse' && !reversed && performance.now() - started > 65) {
         summary.click(); reversed = true;
       }
@@ -83,6 +86,7 @@ test('input disclosures expand once and fade directly to their default opacity',
     assert.ok(frames.every((frame, i) => !i || frame.opacity >= frames[i - 1]!.opacity - 0.001), `${label}: fade never restarts`);
     assert.ok(Math.abs(frames.at(-1)!.opacity - 0.7) < 0.001, `${label}: focus dimming retained`);
     assert.ok(frames.every(frame => frame.translate === 'none'), `${label}: rows do not bounce independently`);
+    assert.ok(frames.every(frame => !frame.leaks), `${label}: keyboard focus does not remove content clipping`);
     if (interpolates) {
       assert.ok(frames.some(frame => frame.height > collapsed + 1 && frame.height < expanded - 1), `${label}: height interpolates`);
       assert.ok(frames.every((frame, i) => !i || frame.height >= frames[i - 1]!.height - 0.1), `${label}: height never reverses`);
@@ -90,6 +94,8 @@ test('input disclosures expand once and fade directly to their default opacity',
     assert.equal(await page.locator('.reveal-item').count(), 0, `${label}: no delayed row restart`);
     const closing = await sample(page, 'close');
     assert.ok(closing.every((frame, i) => !i || frame.height <= closing[i - 1]!.height + 0.1), 'close is monotonic');
+    assert.ok(closing.every((frame, i) => !i || frame.opacity <= closing[i - 1]!.opacity + 0.001), 'close never brightens');
+    assert.ok(closing.every(frame => !frame.leaks), 'closing content stays clipped');
     assert.equal(closing.at(-1)!.height, collapsed);
   }
 
@@ -98,9 +104,25 @@ test('input disclosures expand once and fade directly to their default opacity',
   assert.ok(custom.every(frame => frame.bodyOpacity <= 0.551), 'fade respects an authored body opacity');
   assert.ok(Math.abs(custom.at(-1)!.bodyOpacity - 0.55) < 0.001);
   await sample(page, 'close');
+  await page.addStyleTag({ content: '@layer base { .input-section::details-content { opacity: 0.6; } }' });
+  const wrapper = await sample(page, 'open');
+  assert.ok(wrapper.every(frame => frame.contentOpacity <= 0.601), 'wrapper fade respects its authored default');
+  assert.ok(Math.abs(wrapper.at(-1)!.contentOpacity - 0.6) < 0.001);
+  await sample(page, 'close');
   const reverse = await sample(page, 'reverse');
   assert.equal(reverse.at(-1)!.height, collapsed, 'rapid reversal leaves native closed state');
   assert.equal(await section.getAttribute('open'), null);
+  assert.ok(reverse.every(frame => !frame.leaks), 'rapid reversal never paints outside the section');
+  assert.ok(reverse.some(frame => frame.closing));
+  assert.ok(reverse.every((frame, i) => !frame.closing || frame.opacity <= reverse[i - 1]!.opacity + 0.001), 'reversal never jumps to the final opacity');
+
+  await summary.press('Enter');
+  await page.waitForTimeout(220);
+  await section.locator('.input-row').first().evaluate(el => { el.classList.add('color-picker-field', 'is-open'); });
+  assert.equal(await section.evaluate(el => getComputedStyle(el, '::details-content').overflow), 'visible', 'an open picker can extend past the section');
+  await sample(page, 'close');
+  assert.equal(await section.evaluate(el => getComputedStyle(el, '::details-content').overflow), 'clip', 'closing a section restores clipping even with a picker');
+  await section.locator('.input-row').first().evaluate(el => { el.classList.remove('color-picker-field', 'is-open'); });
 
   await summary.press('Enter');
   await page.waitForTimeout(220);
