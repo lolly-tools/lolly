@@ -50,11 +50,11 @@ export type ViewToggleKey = 'tools' | 'utilities' | 'projects' | 'catalog';
  *  and is a persisted key - it stays 'cat-developer'. */
 export const UTILITIES_FLAG_ID = 'cat-developer';
 
-// Glyphs - hammer (Tools) and a lightning bolt (Utilities), Andy 2026-08-20:
-// the hammer reads as "build things", the bolt as "quick powered actions" -
+// Glyphs - a lollipop (Tools, the "lolly tools" pun, Andy 2026-10-14; it leans the way
+// the hammer it replaced did) and a lightning bolt (Utilities, "quick powered actions") -
 // plus folder (Projects) and layout-grid (Assets).
 const ICONS: Record<ViewToggleKey, string> = {
-  tools: icon('hammer'),
+  tools: icon('lollipop'),
   utilities: icon('zap'),
   projects: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>',
   catalog: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>',
