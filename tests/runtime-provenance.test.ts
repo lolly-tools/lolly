@@ -269,7 +269,7 @@ test('regression: a plain video take (no source) still marks the camera, unchang
   assert.equal(rendered[0].c2paCapture.screen, undefined);
 });
 
-test('text over an OPENED (credentialed) asset → c2paTextAdded with a sample', async () => {
+test('text over a credentialed asset records the edit without its copy', async () => {
   const store = await credentialStore();
   const { host, rendered } = makeHost({ store });
   const tool: any = {
@@ -283,7 +283,9 @@ test('text over an OPENED (credentialed) asset → c2paTextAdded with a sample',
   const rt = await createRuntime(tool, host, { photo: { id: 'user/up/1' }, headline: 'BREAKING NEWS' });
   await rt.export({} as any, 'png', { c2pa: true });
   assert.equal(rendered[0].ingredients?.length, 1, 'the opened asset is preserved as an ingredient');
-  assert.deepEqual(rendered[0].c2paTextAdded, { sample: 'BREAKING NEWS' });
+  assert.deepEqual(rendered[0].c2paTextAdded, {});
+  assert.match(rendered[0].c2paInputs.headline, /^sha256:[a-f0-9]{64}$/);
+  assert.equal(JSON.stringify(rendered[0]).includes('BREAKING NEWS'), false);
 });
 
 test('text WITHOUT an opened asset is not a fabricated edit (digest only)', async () => {
@@ -299,7 +301,7 @@ test('text WITHOUT an opened asset is not a fabricated edit (digest only)', asyn
   const rt = await createRuntime(tool, host, { headline: 'Summer Sale' });
   await rt.export({} as any, 'png', { c2pa: true });
   assert.equal(rendered[0].c2paTextAdded, undefined, 'no ingredient → no "Added text" step');
-  assert.equal(rendered[0].c2paInputs?.headline, 'Summer Sale', 'the copy still rides in the input digest');
+  assert.match(rendered[0].c2paInputs?.headline, /^sha256:[a-f0-9]{64}$/);
 });
 
 test('no capture and no c2pa → no provenance keys at all', async () => {

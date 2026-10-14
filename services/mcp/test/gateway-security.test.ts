@@ -10,6 +10,7 @@ import {
   publicOrigin,
   readBody,
 } from '../src/gateway.ts';
+import { register } from '../src/oauth.ts';
 
 test('hosted MCP requires a canonical HTTPS public origin', () => {
   assert.throws(() => publicOrigin({ VERCEL: '1' }), /PUBLIC_ORIGIN is required/);
@@ -49,6 +50,21 @@ interface CapturedResponse {
   headers: Record<string, string>;
   body: string;
 }
+
+test('authorization pages disallow framing and external form targets', async () => {
+  const env = { LOLLY_MCP_TOKEN: 'test-token', LOLLY_MCP_PUBLIC_ORIGIN: 'https://mcp.example.test' };
+  const client = await register({ redirect_uris: ['https://client.example.test/callback'] }, env);
+  const params = new URLSearchParams({ response_type: 'code', client_id: (client.json as { client_id: string }).client_id, redirect_uri: 'https://client.example.test/callback', code_challenge: 'challenge', code_challenge_method: 'S256' });
+  for (const path of [`/api/mcp/authorize?${params}`, '/api/mcp/authorize?client_id=invalid']) {
+    const response = await drive(path, env);
+    assert.match(response.headers['content-type'] ?? '', /text\/html/);
+    assert.equal(response.headers['x-frame-options'], 'DENY');
+    assert.equal(response.headers['x-content-type-options'], 'nosniff');
+    assert.match(response.headers['content-security-policy'] ?? '', /frame-ancestors 'none'/);
+    assert.match(response.headers['content-security-policy'] ?? '', /form-action 'self'/);
+    assert.match(response.headers['cache-control'] ?? '', /no-store/);
+  }
+});
 
 test('installed agent route lists tools without account auth and fails closed when admission is unavailable', async () => {
   const request = { method: 'POST', headers: { 'content-type': 'application/json' }, body: { jsonrpc: '2.0', id: 1, method: 'tools/list' } };

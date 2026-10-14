@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
+import { installVerifiedToolElements } from '../catalog/tool-elements.ts';
+import { installToolByteVerification, resolveVerifiedStaticResources } from '../catalog/tool-bytes.ts';
 /**
  * Shared tool loader for the web shell's render paths.
  *
@@ -50,6 +52,8 @@ export function makeFetchFile(toolId: string): (path: string) => Promise<string>
  *  language never changes mid-session (switchLang reloads the page), so the cache
  *  doesn't need lang in its key. */
 export async function getTool(toolId: string, artifactDigest?: string): Promise<LoadedTool> {
+  installToolByteVerification();
+  installVerifiedToolElements();
   const meta = await getInstalledTool(toolId, artifactDigest);
   if (artifactDigest && !meta) throw new Error('This saved tool revision is missing. Import its original .lolly file.');
   const cacheKey = `${toolId}@${artifactDigest || meta?.artifactDigest || ''}`;
@@ -72,6 +76,12 @@ export async function getTool(toolId: string, artifactDigest?: string): Promise<
             if (tool.styles) tool.styles = resolveVerifiedToolReferences(tool.styles, integrity.envelope, instancePath);
             if (tool.hooksSource) tool.hooksSource = resolveVerifiedToolReferences(tool.hooksSource, integrity.envelope, instancePath);
             if (tool.presentationSource) tool.presentationSource = resolveVerifiedToolReferences(tool.presentationSource, integrity.envelope, instancePath);
+          }
+          if (integrity) {
+            tool.template = await resolveVerifiedStaticResources(tool.template, integrity.envelope);
+            if (tool.styles) tool.styles = await resolveVerifiedStaticResources(tool.styles, integrity.envelope);
+            if (tool.hooksSource) tool.hooksSource = await resolveVerifiedStaticResources(tool.hooksSource, integrity.envelope);
+            if (tool.presentationSource) tool.presentationSource = await resolveVerifiedStaticResources(tool.presentationSource, integrity.envelope);
           }
           return tool;
         }));

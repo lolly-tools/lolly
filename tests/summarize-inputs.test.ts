@@ -12,7 +12,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { summarizeInputs } from '../engine/src/inputs.ts';
+import { summarizeInputs, summarizeInputDigests } from '../engine/src/inputs.ts';
+import { buildExportC2paOpts } from '../packages/node-shell/src/c2pa-opts.ts';
 
 // summarizeInputs reads (type, value, id, unit, bindToProfile) off each item; the
 // full InputModelItem carries more, but a partial is enough to exercise the logic.
@@ -95,6 +96,53 @@ test('caps the number of entries', () => {
   const many = Array.from({ length: 50 }, (_, i) => item({ id: `k${i}`, type: 'text', value: `v${i}` }));
   const out = summarizeInputs(many, { maxEntries: 5 });
   assert.equal(Object.keys(out).length, 5);
+});
+
+test('export input fingerprints contain hashes instead of scalar values', async () => {
+  const model = [item({ id: 'copy', type: 'longtext', value: 'Example text for a credential' }),
+    item({ id: 'count', type: 'number', value: 12, unit: 'mm' })];
+  const out = await summarizeInputDigests(model);
+  assert.deepEqual(Object.keys(out), ['copy', 'count']);
+  for (const value of Object.values(out)) assert.match(value, /^sha256:[a-f0-9]{64}$/);
+  assert.equal(JSON.stringify(out).includes('Example text'), false);
+  assert.deepEqual(await summarizeInputDigests(model), out);
+  assert.notEqual((await summarizeInputDigests([item({ id: 'count', type: 'number', value: 13, unit: 'mm' })])).count, out.count);
+});
+
+test('export input fingerprints exclude profile fields and inactive controls', async () => {
+  const out = await summarizeInputDigests([
+    item({ id: 'enabled', type: 'boolean', value: false }),
+    item({ id: 'person', type: 'text', value: 'Example person', bindToProfile: 'firstname' }),
+    item({ id: 'unused', type: 'text', value: 'Example inactive copy', showIf: { enabled: true } }),
+    item({ id: 'image', type: 'asset', value: { id: 'example/image' } }),
+  ]);
+  assert.deepEqual(Object.keys(out), ['enabled']);
+});
+
+test('export input fingerprints hash all text while bounding the entry count', async () => {
+  const prefix = 'a'.repeat(5000);
+  const first = await summarizeInputDigests([item({ id: 'copy', type: 'longtext', value: prefix + 'first' })]);
+  const second = await summarizeInputDigests([item({ id: 'copy', type: 'longtext', value: prefix + 'second' })]);
+  assert.notEqual(first.copy, second.copy);
+  assert.equal(Object.keys(await summarizeInputDigests([
+    item({ id: 'one', type: 'text', value: 'one' }), item({ id: 'two', type: 'text', value: 'two' }),
+  ], { maxEntries: 1 })).length, 1);
+});
+
+test('Node exports use the same fingerprints and omit device details', async () => {
+  const model = [
+    item({ id: 'empty', type: 'text', value: '' }),
+    item({ id: 'copy', type: 'longtext', value: 'Example source' }),
+    item({ id: 'count', type: 'number', value: 12, unit: 'mm' }),
+    item({ id: 'person', type: 'text', value: 'Example person', bindToProfile: 'firstname' }),
+    item({ id: 'inactive', type: 'text', value: 'Example inactive', showIf: { count: 1 } }),
+  ];
+  const options = buildExportC2paOpts({ surface: 'cli', manifest: { id: 'example' }, model, format: 'svg' });
+  const environment = options.environment as Record<string, unknown>;
+  assert.deepEqual(environment.inputs, await summarizeInputDigests(model));
+  assert.equal(environment.os, undefined);
+  assert.equal(environment.engine, undefined);
+  assert.equal(JSON.stringify(options).includes('Example source'), false);
 });
 
 test('empty model → empty digest (never throws)', () => {

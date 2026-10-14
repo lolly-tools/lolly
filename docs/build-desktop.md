@@ -94,3 +94,24 @@ Tauri does not support cross-compilation out of the box. Build each platform on 
 ---
 
 [Back to Build Guide](/info/build-guide.html).
+
+
+### Website reads and delivered files
+
+The Website source reads public HTTP and HTTPS pages anonymously. It resolves
+and pins public addresses for each page, redirect, stylesheet and image read;
+local and private addresses are refused. The page redirect stays with the same
+party. Missing resources can leave a partial import, while a refused network
+address stops the import. Existing signed-in screen capture is separate from
+website reading.
+
+Desktop file events keep an open descriptor until the client consumes the file.
+Hot-folder files must be regular direct children of the selected directory;
+links and files outside that directory are refused. Custody and event queues
+are bounded to 256 entries, and individual files have a 256 MiB read limit.
+Replacing a folder with invalid settings keeps the previous watcher active.
+
+Renderer endpoint adverts are written through a private temporary file and an
+atomic replacement. Node clients require a bounded regular advert owned by the
+current user with owner-only permissions on Unix. A stale or unsuitable advert
+is ignored, allowing the normal renderer selection to continue.

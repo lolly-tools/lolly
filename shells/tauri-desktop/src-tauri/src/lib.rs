@@ -1,4 +1,7 @@
+mod file_custody;
 mod capture;
+mod capture_isolated;
+mod public_network;
 mod cli;
 mod desktop_integration;
 #[path = "../../../tauri-shared/tauri-embedded-assets.rs"]

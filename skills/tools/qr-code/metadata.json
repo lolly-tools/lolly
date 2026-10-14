@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "qr-code",
-  "toolVersion": "2.6.2",
-  "toolVersionRange": "2.6.2",
+  "toolVersion": "2.6.3",
+  "toolVersionRange": "2.6.3",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -11,7 +11,7 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "d90ac6ac5fe563ecaf1d1053f165cb7164f4b3ed3ec302c315f39fbe0ff26be5",
+      "sha256": "043f162b3ef6e49d87bf7ff8f3070ceef74b6ce176ed9b49feacb50c6a49ea28",
       "bytes": 2870
     },
     "reference/inputs.json": {

@@ -1,3 +1,4 @@
+mod public_network;
 #[path = "../../../tauri-shared/tauri-embedded-assets.rs"]
 mod embedded_assets;
 mod remote_fetch;

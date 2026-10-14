@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-10-12T11:42:14.512Z",
+  "generatedAt": "2026-10-13T18:51:01.629Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -272,7 +272,7 @@
       "id": "qr-code",
       "name": "QR Code",
       "description": "Scannable codes of every kind: QR, Micro QR, Data Matrix, Aztec and PDF417 for links, contacts, Wi-Fi, events, locations and text - plus retail and logistics barcodes from EAN-13 and Code 128 to ITF-14, GS1-128, GS1 DataBar and MaxiCode.",
-      "version": "2.6.2",
+      "version": "2.6.3",
       "status": "official",
       "category": "everyone",
       "tags": [
@@ -2715,7 +2715,7 @@
       "id": "audiogram",
       "name": "Audiogram",
       "description": "Turn a voice clip or song into a video in your design system's colours that actually moves with the sound - bars, spectrum, ring, ridgeline or scope, ready for social.",
-      "version": "2.7.4",
+      "version": "2.7.5",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -5455,7 +5455,7 @@
       "id": "record",
       "name": "Record",
       "description": "Design your own top and tail cards, then record a clip and Lolly wraps them around it automatically.",
-      "version": "1.4.2",
+      "version": "1.4.3",
       "status": "official",
       "category": "everyone",
       "capabilities": [
@@ -6128,7 +6128,7 @@
       "id": "captions",
       "name": "Captions",
       "description": "Subtitles for a clip - turn its speech into text on device or drop in an SRT/VTT file, style the cues, and export burned-in frames plus clean .srt and .vtt sidecars.",
-      "version": "1.0.3",
+      "version": "1.0.4",
       "status": "community",
       "category": "everyone",
       "tags": [

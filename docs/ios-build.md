@@ -101,9 +101,9 @@ Notes:
   whole set from a source PNG: `npx @tauri-apps/cli icon path/to/icon-1024.png`.
 - Init reads `src-tauri/tauri.conf.json` (`productName: "Lolly"`,
   `identifier: "tools.lolly.mobile"`, `bundle.iOS.minimumSystemVersion: "14.3"`).
-- `tauri.conf.json` deliberately does **not** hardcode
-  `bundle.iOS.developmentTeam`; pass the team via the `APPLE_DEVELOPMENT_TEAM`
-  env var so no credential is committed.
+- The configured Apple Team ID is public build metadata. Set the approved team
+  in `bundle.iOS.developmentTeam` or through `APPLE_DEVELOPMENT_TEAM`; keep
+  certificates, passwords and API private keys outside the source tree.
 
 ### Permissions (Info.plist)
 
@@ -184,9 +184,9 @@ bundles `tools/` and `catalog/` into `dist/` first (see `vite.config.js`);
 
 ### Code signing via environment variables
 
-Apple code signing is configured through env vars so no credentials are committed
-to the repo. **Do not hardcode a Team ID or key into `tauri.conf.json` or the
-Xcode project.**
+Local code signing can use environment variables. The Team ID is public build
+metadata; private keys and certificate passwords belong in local credential
+storage or the protected release environment.
 
 | Env var | Purpose |
 |---|---|
@@ -201,7 +201,7 @@ pnpm run build:ios --export-method app-store-connect
 ```
 
 `--export-method` selects how the `.ipa` is packaged: `app-store-connect`,
-`ad-hoc`, `enterprise` or `debugging`. Interactively you can instead open the
+`release-testing` or `debugging` with the pinned Tauri CLI. Interactively you can instead open the
 project (`pnpm run dev:ios --open`) and set the team under **Signing &
 Capabilities**; the env-var path is what CI uses.
 
@@ -209,6 +209,63 @@ Device builds, IPA export, TestFlight and App Store distribution additionally
 require a provisioning profile whose App ID matches `tools.lolly.mobile`. A
 free Apple ID gives 7-day on-device provisioning; the paid Apple Developer
 Program is needed for TestFlight / App Store.
+
+### Protected App Store workflow
+
+`.github/workflows/ios-release.yml` separates compilation from release signing.
+The compiler job installs dependencies, verifies the independently signed frontend
+and runs `tauri ios build --target aarch64 --no-sign --archive-only --ci`. It has
+no native signing environment, distribution certificate or App Store API key.
+The pinned [Tauri CLI implementation](https://github.com/tauri-apps/tauri/blob/tauri-cli-v2.12.1/crates/tauri-cli/src/mobile/ios/build.rs)
+archives without code signing and stops before IPA export for these flags.
+
+The protected `release-native-signing` job downloads the completed archive by its
+immutable artifact ID. Before receiving credentials, it verifies the checkout,
+frontend signature, workflow run and attempt, receipt digest, complete archive
+files and executable permissions, app identity and compiler Xcode version.
+The archive receipt is bound to the job output and GitHub artifact; the frontend
+has its separate catalog-key signature. These checks preserve the provenance of
+the compiler output. They do not establish that compiled native code is benign.
+
+Signing uses an explicit App Store provisioning profile rather than automatic
+provisioning. The job checks its team, exact App ID, validity, distribution
+certificate and permitted entitlements. The current policy supports one app,
+frameworks and dynamic libraries with the app's existing empty custom entitlement
+set. Additional executable targets or capabilities require a reviewed policy
+change. It signs the finished code and runs `xcodebuild -exportArchive` with fixed
+manual export options; no dependency installation, project build, Rust build
+script or repository JavaScript runs after private key access. See Apple's
+[entitlement guidance](https://developer.apple.com/library/archive/technotes/tn2415/_index.html)
+for the relationship between the profile and the app signature.
+
+Configure these credentials in the protected environment before using the job:
+
+| Secret | Purpose |
+|---|---|
+| `IOS_DIST_CERT_P12` | Base64 distribution identity, including its private key. |
+| `IOS_DIST_CERT_PASSWORD` | Password for that identity. |
+| `IOS_APP_STORE_PROFILE` | Base64 approved App Store provisioning profile for the configured app and team. |
+| `ASC_KEY_P8`, `ASC_KEY_ID`, `ASC_ISSUER_ID` | App Store API credentials, used only for optional upload of the finished IPA. |
+
+Missing or unsuitable profile configuration stops the job. Signing uses a
+throwaway keychain and removes the imported identity and installed profile copies
+before the signed IPA is uploaded as a workflow artifact. The optional App Store
+upload uses a temporary API-key directory that is removed after the upload.
+No API-key path is persisted through `GITHUB_ENV`.
+
+Graceful SIGINT and SIGTERM interruption stops the active Apple subprocess and
+runs credential cleanup. SIGKILL, runner loss or another interruption that
+prevents the process from running cleanup relies on destruction of the disposable
+hosted `macos-15` runner. This workflow must not be moved to a persistent runner
+without a separately qualified credential cleanup and custody policy.
+
+A release operator must qualify this path with the approved profile and identity,
+the hosted released Xcode image, an exported IPA and App Store validation. Archive
+and profile fixtures exercise admission and cleanup without live credentials;
+they do not qualify a packaged native app or App Store acceptance. Existing native
+runtime and release gates also remain in force. Move or retire old signing secret
+locations only after this workflow is in use; changing the workflow does not
+change GitHub environment settings or move credentials.
 
 ---
 

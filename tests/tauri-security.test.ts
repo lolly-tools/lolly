@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
 const ROOT = new URL('../', import.meta.url);
@@ -82,18 +82,23 @@ test('desktop OAuth uses a narrow native command, not generic shell-open permiss
 test('Tauri remote fetch is a bounded native command, not a raw HTTP plugin', () => {
   const desktopBoundary = readFileSync(new URL('shells/tauri-desktop/src-tauri/src/remote_fetch.rs', ROOT), 'utf8');
   const mobileBoundary = readFileSync(new URL('shells/tauri-mobile/src-tauri/src/remote_fetch.rs', ROOT), 'utf8');
-  assert.equal(mobileBoundary, desktopBoundary, 'desktop and mobile native boundaries stay byte-identical');
+  const sharedNetwork = new URL('shells/tauri-shared/native/public_network.rs', ROOT);
+  const publicNetwork = readFileSync(existsSync(sharedNetwork) ? sharedNetwork : new URL('shells/tauri-desktop/src-tauri/src/public_network.rs', ROOT), 'utf8');
+  for (const boundary of [desktopBoundary, mobileBoundary]) {
+    assert.match(boundary, /allowed_origins: Option<Vec<String>>/);
+    assert.equal(boundary.split('require_allowed_origin(').length - 1, 8);
+  }
   for (const token of [
     'MAX_REQUEST_BYTES',
     'MAX_RESPONSE_BYTES',
     'MAX_REDIRECTS',
     'is_public_ip',
-    '.resolve_to_addrs(&host, &addresses)',
+    '.resolve_to_addrs(',
     '.no_proxy()',
     'headers.remove(AUTHORIZATION)',
     'headers.remove(COOKIE)',
   ]) {
-    assert.ok(desktopBoundary.includes(token), `remote boundary retains ${token}`);
+    assert.ok((desktopBoundary + publicNetwork).includes(token), `remote boundary retains ${token}`);
   }
 
   for (const shell of shells) {

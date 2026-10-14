@@ -3,7 +3,7 @@
   "name": "QR Code",
   "description": "Scannable codes of every kind: QR, Micro QR, Data Matrix, Aztec and PDF417 for links, contacts, Wi-Fi, events, locations and text - plus retail and logistics barcodes from EAN-13 and Code 128 to ITF-14, GS1-128, GS1 DataBar and MaxiCode.",
   "a11yLabel": "Scannable code holding {{default qrSummary \"nothing yet\"}}",
-  "version": "2.6.2",
+  "version": "2.6.3",
   "engineVersion": "^1.0.0",
   "status": "official",
   "category": "everyone",

@@ -125,6 +125,7 @@ export function createNodeHookExecutor(opts: NodeHookExecutorOpts = {}): HookExe
     worker.unref();
     const mount: Mount = { host, allowedRpc: new Set(), worker, invokes: new Map() };
     const hostShape: HostShape = introspectHost(host);
+    if (strict) delete hostShape.capture;
     mount.allowedRpc = workerRpcMethods(hostShape);
     const tokenDoc = await snapshotTokens(host);
 

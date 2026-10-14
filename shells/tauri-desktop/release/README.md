@@ -43,6 +43,44 @@ shells/tauri-desktop/release/lolli.py sums --write
 
 Artifacts land in `$LOLLY_RELEASE_OUT` (default `~/.cache/lolly-release/artifacts`).
 
+## Builder image pins
+
+The release Dockerfiles and Flatpak jobs select immutable manifest digests.
+The current pins were checked against Docker Hub and GHCR on 2026-10-13:
+
+| Builder | Image family | Available Linux platforms checked |
+| --- | --- | --- |
+| DEB | `ubuntu:24.04` | amd64, arm64 |
+| Portable DEB | `node:22-bookworm` | amd64, arm64 |
+| Tumbleweed RPM | `opensuse/tumbleweed:latest` | amd64, arm64 |
+| Leap RPM | `opensuse/leap:16.0` | amd64, arm64 |
+| Flatpak | `ghcr.io/flathub-infra/flatpak-github-actions:gnome-50` | amd64, arm64 |
+
+The exact digests live in `containers/Dockerfile.*` and the Flatpak workflow
+`container.image` fields. These are multi-platform manifest digests, so Docker
+still selects the requested architecture. The Flatpak container must stay aligned
+with runtime version 50 in the desktop manifest. Consult the
+[Flathub image definitions](https://github.com/flathub-infra/actions-images)
+when reviewing an update.
+
+`build-rpm.sh` reads its Tumbleweed and Leap defaults from `Dockerfile.rpm`.
+To use another reviewed base, set `LOLLY_RPM_BASE` to a repository reference
+ending in `@sha256:` and a full 64-character lowercase digest.
+`LOLLY_DEB_IMAGE` accepts an existing local `sha256:` image ID or an immutable
+repository reference with `@sha256:`. A missing repository reference is pulled
+by digest; a missing local image ID fails. For a custom portable builder, obtain
+its local ID with `docker image inspect --format '{{.Id}}' <local-builder>`.
+Mutable custom image names fail before Docker is invoked.
+
+Default builder cache names include the recipe digest, and RPM cache names also
+include the selected base. The scripts resolve the resulting local image ID
+before running the build. Updating a pin requires checking the registry manifest
+bytes, their SHA-256 digest and supported architectures, then running
+`node --test tests/release-container-pins.test.ts` and qualifying the affected
+package on its target platform. Package-manager repositories and downloaded
+toolchains retain their existing update behavior; these pins cover the starting
+container images.
+
 ## aarch64
 
 There is no local path. Cross-compiling needs a full arm64 sysroot for

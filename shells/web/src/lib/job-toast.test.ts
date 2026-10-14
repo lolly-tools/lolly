@@ -79,3 +79,16 @@ test('expanding then Escape collapses the toast', () => {
   assert.ok(toast.querySelector('.job-pill'), 'pill is back');
   job.finish();
 });
+
+test('completed job links allow ordinary destinations and keep other schemes as text', () => {
+  const toast = document.querySelector<HTMLElement>('.job-toast')!;
+  toast.querySelector<HTMLElement>('[data-act="expand"]')!.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
+  const ordinary = startJob({ title: 'Ordinary result' });
+  ordinary.finish({ url: 'https://files.example/result', label: 'Open result' });
+  const other = startJob({ title: 'Text result' });
+  other.finish({ url: 'data:text/plain,result', label: 'Result saved' });
+  const links = Array.from(toast.querySelectorAll<HTMLAnchorElement>('a.job-row-note'));
+  assert.ok(links.some(link => link.href === 'https://files.example/result'));
+  assert.equal(links.some(link => link.getAttribute('href')?.startsWith('data:')), false);
+  assert.ok(Array.from(toast.querySelectorAll('.job-row-note')).some(note => note.textContent === 'Result saved' && note.tagName === 'SPAN'));
+});

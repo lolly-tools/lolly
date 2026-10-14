@@ -13,6 +13,13 @@ const workflowFiles = readdirSync(workflowDir)
   .map((name) => path.join(workflowDir, name));
 const automationFiles = [...workflowFiles, path.join(repoRoot, 'action', 'action.yml')];
 
+test('the rendering action defaults to an immutable source commit', () => {
+  const action = readFileSync(path.join(repoRoot, 'action/action.yml'), 'utf8');
+  const input = action.match(/\n[ ]{2}lolly-ref:\n([\s\S]*?)(?=\n[ ]{2}[a-z][a-z-]*:)/)?.[1];
+  assert.ok(input);
+  assert.match(input, /default: '[0-9a-f]{40}'/);
+});
+
 test('third-party workflow actions are pinned to immutable commits', () => {
   const mutable: string[] = [];
   for (const filename of automationFiles) {

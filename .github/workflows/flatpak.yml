@@ -1,7 +1,7 @@
 # Build a Linux Flatpak of the Lolly desktop app.
 #
 # Flatpak is Linux-only and Tauri does not cross-compile, so this cannot be built on a
-# developer's macOS machine - it runs here on `ubuntu-latest` instead. Two jobs:
+# developer's macOS machine - it runs here on `ubuntu-latest` instead. Packaging jobs:
 #
 #   1. build-deb  - build the Tauri desktop app into a .deb (needs network + the
 #                   webkit2gtk toolchain; a normal runner, NOT the offline Flatpak
@@ -12,8 +12,7 @@
 #
 # Triggers on version tags (v*) and manual dispatch. A dispatch with the
 # webgpu_qualification input builds for plan 295 P0b: unsigned, marked not for release.
-# Keep the container tag (gnome-50)
-# in lockstep with `runtime-version: '50'` in the manifest.
+# Review the pinned GNOME-50 container with `runtime-version: '50'` in the manifest.
 name: Flatpak (Linux)
 
 on:
@@ -35,10 +34,25 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  frontend:
+    if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.webgpu_qualification) }}
+    uses: ./.github/workflows/release-frontend.yml
+    with:
+      target: tauri-desktop
+      public_key_jwk: ${{ vars.VITE_CATALOG_PUBLIC_KEY_JWK }}
+      connector_origins: ${{ vars.VITE_CONNECTOR_ORIGINS }}
+      ca_enrollment_trust_json: ${{ vars.VITE_CA_ENROLLMENT_TRUST_JSON }}
+    secrets:
+      LOLLY_CATALOG_SIGNING_KEY: ${{ secrets.LOLLY_CATALOG_SIGNING_KEY }}
+
   build-deb:
+    needs: frontend
+    if: ${{ always() && !cancelled() && (needs.frontend.result == 'success' || (github.event_name == 'workflow_dispatch' && inputs.webgpu_qualification)) }}
     name: Build .deb (x86_64)
     runs-on: ubuntu-latest
     env:
+      LOLLY_RELEASE_FRONTEND_PHASE: verified-artifact
+      VITE_CATALOG_PUBLIC_KEY_JWK: ${{ vars.VITE_CATALOG_PUBLIC_KEY_JWK }}
       # A WebGPU qualification build (plan 295 P0b) only on a manual dispatch that asks for
       # one: scripts/build-release-web.ts then skips the release gate, signs nothing and
       # marks the frontend, and the step before upload marks the packages not for release.
@@ -46,6 +60,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
+          persist-credentials: false
           submodules: recursive   # only brands/suse, and `update = none` skips it here
 
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
@@ -107,11 +122,24 @@ jobs:
       # a profile build, so a neutral one is quietly not the same package.
       # lolly-start is the public blank brand and safe to embed; suse is not, and
       # nothing here selects it.
+      - name: Download signed source catalog
+        if: needs.frontend.result == 'success'
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: release-source-catalog-tauri-desktop
+          path: brands/lolly-start/catalog/tools
+
+      - name: Download signed frontend
+        if: needs.frontend.result == 'success'
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: release-frontend-tauri-desktop
+          path: shells/tauri-desktop/dist
+
       - name: Build desktop .deb
         env:
           LOLLY_PROFILE: lolly-start
           LOLLY_EMBED_CATALOG: profile
-          LOLLY_CATALOG_SIGNING_KEY: ${{ secrets.LOLLY_CATALOG_SIGNING_KEY }}
           VITE_CATALOG_PUBLIC_KEY_JWK: ${{ vars.VITE_CATALOG_PUBLIC_KEY_JWK }}
         working-directory: shells/tauri-desktop
         run: pnpm run tauri build --bundles deb
@@ -158,7 +186,7 @@ jobs:
     needs: build-deb
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-50
+      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-50@sha256:1de59efef01a946d9f28f1ec3458bf6f61dcee3507d7fecdd473f8134da4ec77
       options: --privileged
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7

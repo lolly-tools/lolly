@@ -66,7 +66,7 @@ Lolly uses a small set of words with exact meanings, and a few of them (profile,
 
 **Export.** Turning a render into a file in a chosen format, through `host.export`. Physical units (`mm`, `in`, `pt`) and `dpi` are resolved at export time, per format, by the engine.
 
-**Content Credentials.** The C2PA provenance record a file can carry, stating who made it and with what. Opt-in per export through the `c2pa` parameter; nothing is embedded by default, and a utility never embeds one.
+**Content Credentials.** The C2PA provenance record a file can carry, stating who made it and with what. Authoring tools enable credentials by default unless their manifest opts out. The export control and `c2pa` parameter can disable them. Input fingerprints replace full values; authorship requires a separate opt-in, and a utility never embeds a credential.
 
 **Watermark.** The visible mark experimental tools put on exports unless the caller turns it off. Not the same thing as Content Credentials.
 

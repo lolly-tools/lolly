@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { needsShareReview } from './share-privacy.ts';
 /** Content-link encoding and cost accounting. Workspace state is owned by the shell. */
 
 import { assetIdForUrl, blocksForUrl, encodeTableCompact, isPackAvailable, isTokenValue, normalizeTableValue } from '@lolly/engine';
@@ -56,6 +57,7 @@ export type UrlCostStatus =
   | 'baseline' // equals an active template baseline (distinct from tool default, for P3)
   | 'dropped-len' // legacy status; content length now affects the budget only
   | 'dropped-asset' // device-local dependency recorded in the fidelity report
+  | 'dropped-personal'
   | 'dropped-blocks'; // retained for shape stability; no longer emitted (blocks ride uncapped)
 
 /** One row emitted by the per-param decision primitive (byte-exact to buildShareParams). */
@@ -137,11 +139,13 @@ function tablesEqual(a: TableValue, b: TableValue): boolean {
 //    EXACTLY (order and bytes). buildShareParams and costUrlState both call this,
 //    so the copied link and the gauge never disagree. ──
 export function encodeModelParam(input: InputModelItem): EncodedModelParam[] {
+  if (needsShareReview(input)) return encodeInputParam(input, false).map(row => ({ ...row, emit: '', status: 'dropped-personal' }));
   return encodeInputParam(input, false);
 }
 
 /** Address state includes explicit defaults and device-local references. */
 export function encodeAddressModelParam(input: InputModelItem): EncodedModelParam[] {
+  if (needsShareReview(input)) return [];
   return encodeInputParam(input, true);
 }
 

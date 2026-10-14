@@ -38,6 +38,8 @@ pub struct RemoteFetchRequest {
     headers: Vec<(String, String)>,
     body: Option<Vec<u8>>,
     timeout_ms: Option<u64>,
+    allowed_origins: Option<Vec<String>>,
+    max_response_bytes: Option<usize>,
 }
 
 #[derive(Serialize)]
@@ -52,7 +54,20 @@ pub struct RemoteFetchResponse {
 
 #[tauri::command]
 pub async fn remote_fetch(request: RemoteFetchRequest) -> Result<RemoteFetchResponse, String> {
+    if let Some(milliseconds) = request.timeout_ms {
+        let timeout = Duration::from_millis(milliseconds.clamp(MIN_TIMEOUT_MS, MAX_TIMEOUT_MS));
+        return tokio::time::timeout(timeout, remote_fetch_inner(request)).await
+            .map_err(|_| "The remote request timed out.".to_string())?;
+    }
+    remote_fetch_inner(request).await
+}
+
+async fn remote_fetch_inner(request: RemoteFetchRequest) -> Result<RemoteFetchResponse, String> {
+    let response_cap = request.max_response_bytes.unwrap_or(MAX_RESPONSE_BYTES).min(MAX_RESPONSE_BYTES);
+    if response_cap == 0 { return Err("The response byte limit must be positive.".into()); }
     let mut url = validate_url(&request.url)?;
+    let allowed_origins = validate_allowed_origins(request.allowed_origins)?;
+    require_allowed_origin(&url, &allowed_origins)?;
     let mut method = validate_method(&request.method)?;
     let mut headers = validate_headers(request.headers)?;
     let mut body = request.body.unwrap_or_default();
@@ -95,6 +110,7 @@ pub async fn remote_fetch(request: RemoteFetchRequest) -> Result<RemoteFetchResp
                 "The remote service redirected to an invalid destination.".to_string()
             })?;
             let next = validate_url(next.as_str())?;
+            require_allowed_origin(&next, &allowed_origins)?;
             if origin(&url) != origin(&next) {
                 headers.remove(AUTHORIZATION);
                 headers.remove(COOKIE);
@@ -121,7 +137,7 @@ pub async fn remote_fetch(request: RemoteFetchRequest) -> Result<RemoteFetchResp
                     .map(|value| (name.to_string(), value.to_string()))
             })
             .collect();
-        let bytes = read_capped(&mut response, MAX_RESPONSE_BYTES).await?;
+        let bytes = read_capped(&mut response, response_cap).await?;
         return Ok(RemoteFetchResponse {
             status: status.as_u16(),
             status_text: status.canonical_reason().unwrap_or("").to_string(),
@@ -152,6 +168,33 @@ fn validate_url(raw: &str) -> Result<Url, String> {
         }
     }
     Ok(url)
+}
+
+fn validate_allowed_origins(raw: Option<Vec<String>>) -> Result<Option<Vec<String>>, String> {
+    let Some(values) = raw else { return Ok(None); };
+    if values.len() > 96 || values.iter().map(String::len).sum::<usize>() > 16384 {
+        return Err("The connector origin configuration is too large.".into());
+    }
+    let mut origins = Vec::new();
+    for value in values {
+        let url = validate_url(&value)?;
+        if url.path() != "/" || url.query().is_some() || url.fragment().is_some()
+            || value.contains('*') || value.chars().any(char::is_whitespace)
+            || value.trim_end_matches('/') != url.origin().ascii_serialization()
+        {
+            return Err("Connector origins require exact HTTPS origins.".into());
+        }
+        let origin = url.origin().ascii_serialization();
+        if !origins.contains(&origin) { origins.push(origin); }
+    }
+    Ok(Some(origins))
+}
+
+fn require_allowed_origin(url: &Url, allowed: &Option<Vec<String>>) -> Result<(), String> {
+    if allowed.as_ref().is_some_and(|origins| !origins.contains(&url.origin().ascii_serialization())) {
+        return Err("Connector origin is not configured. Ask your operator to approve this host, then save your work before reopening.".into());
+    }
+    Ok(())
 }
 
 fn validate_method(raw: &str) -> Result<Method, String> {
@@ -350,6 +393,33 @@ mod tests {
         assert!(validate_url("https://example.com/path").is_ok());
         assert!(validate_headers(vec![("Host".into(), "elsewhere.test".into())]).is_err());
         assert!(validate_headers(vec![("authorization".into(), "Bearer test".into())]).is_ok());
+    }
+
+    #[test]
+    fn configured_origins_apply_to_initial_requests_and_redirect_destinations() {
+        let allowed = validate_allowed_origins(Some(vec!["https://storage.example.com".into()])).unwrap();
+        assert!(require_allowed_origin(&validate_url("https://storage.example.com/upload").unwrap(), &allowed).is_ok());
+        assert!(require_allowed_origin(&validate_url("https://other.example.com/upload").unwrap(), &allowed).is_err());
+        assert!(require_allowed_origin(&validate_url("https://storage.example.com:8443/upload").unwrap(), &allowed).is_err());
+        assert!(require_allowed_origin(&validate_url("https://storage.example.com/upload").unwrap(), &Some(vec![])).is_err());
+        assert!(require_allowed_origin(&validate_url("https://other.example.com/upload").unwrap(), &None).is_ok());
+        for value in ["https://*.example.com", "https://storage.example.com/path", "https://storage.example.com?x=1", "https://storage.example.com#x", "https://storage.example.com\n"] {
+            assert!(validate_allowed_origins(Some(vec![value.into()])).is_err(), "{value}");
+        }
+    }
+
+    #[test]
+    fn restricted_request_and_zero_byte_budget_fail_before_network_access() {
+        let runtime = tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap();
+        let request = |cap| RemoteFetchRequest {
+            method: "GET".into(), url: "https://unused.example.invalid/file".into(),
+            headers: vec![], body: None, timeout_ms: Some(15000),
+            allowed_origins: Some(vec![]), max_response_bytes: cap,
+        };
+        let denied = runtime.block_on(remote_fetch(request(Some(32 * 1024 * 1024))));
+        assert!(denied.err().unwrap().starts_with("Connector origin is not configured."));
+        let zero = runtime.block_on(remote_fetch(request(Some(0))));
+        assert_eq!(zero.err().unwrap(), "The response byte limit must be positive.");
     }
 
     #[test]

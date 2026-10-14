@@ -102,6 +102,15 @@ test('strict mode: the thread has an empty environment, no require and no fetch'
   runtime.destroy?.();
 });
 
+test('strict Node hooks omit capture when the transport has no isolated public reader', async () => {
+  let captures = 0;
+  const h = host({ capture: { page: async () => { captures++; return { id: 'fixture' }; } } });
+  const runtime = await createRuntime(toolWith(`function onInit({host}) { return {note:typeof host.capture}; }`), h, {}, { hookExecutor: createNodeHookExecutor({ strict: true }) });
+  assert.match(runtime.getHydrated(), /undefined/);
+  assert.equal(captures, 0);
+  runtime.destroy();
+});
+
 test('an init timeout terminates the worker so the owning process can exit', async () => {
   const executorUrl = new URL('../packages/node-shell/src/hook-worker.ts', import.meta.url).href;
   const script = `

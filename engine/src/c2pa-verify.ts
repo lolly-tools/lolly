@@ -54,8 +54,8 @@ import { encodeCbor, LOLLY_EXPORT_ASSERTION } from './c2pa.ts';
 // cycle: c2pa-verdict.ts imports only types from this file.)
 import { C2PA_CHECK } from './c2pa-verdict.ts';
 import { concatBytes, asBufferSource, sha256, bytesToHex as hexOf } from './bytes.ts';
-import { derTlv, derChildren, ecdsaDerToRaw, EC_CURVES } from './der-read.ts';
-import type { DerTlv } from './der-read.ts';
+import { parseCertificate, signedBy, normalizeRsaSpki, type ParsedCertificate } from './x509-read.ts';
+import { equalDer, validateManagedCredential, type EnrollmentTrustBundle } from './enrollment.ts';
 // Structural extraction (CBOR/JUMBF decoding, per-container manifest sniffing,
 // ingredient prep) lives in c2pa-extract.ts - this file is the crypto core only:
 // X.509/trust-chain walking and the actual COSE/hash verification. See that
@@ -87,250 +87,8 @@ const te = new TextEncoder();
 const tdText = new TextDecoder('utf-8', { ignoreBOM: true });
 const subtle = globalThis.crypto.subtle;
 
-// ─── DER / X.509 (read side) ──────────────────────────────────────────────────
-// The TLV walker (derTlv/derChildren) lives in der-read.ts, shared with
-// x509.ts and seal.ts.
-
-function decodeOid(b: Uint8Array, tlv: DerTlv): string {
-  const bytes = b.slice(tlv.contentStart, tlv.end);
-  const parts = [Math.floor(bytes[0]! / 40), bytes[0]! % 40];
-  let v = 0;
-  for (let i = 1; i < bytes.length; i++) {
-    v = v * 128 + (bytes[i]! & 0x7f);
-    if (!(bytes[i]! & 0x80)) { parts.push(v); v = 0; }
-  }
-  return parts.join('.');
-}
-
-// UTCTime (YYMMDD…Z, RFC 5280 sliding window) or GeneralizedTime (YYYYMMDD…Z).
-function decodeTime(b: Uint8Array, tlv: DerTlv): Date {
-  const s = td.decode(b.slice(tlv.contentStart, tlv.end));
-  const four = tlv.tag === 0x18;
-  const yy = four ? +s.slice(0, 4) : (+s.slice(0, 2) < 50 ? 2000 + +s.slice(0, 2) : 1900 + +s.slice(0, 2));
-  const o = four ? 2 : 0;
-  return new Date(Date.UTC(yy, +s.slice(2 + o, 4 + o) - 1, +s.slice(4 + o, 6 + o), +s.slice(6 + o, 8 + o), +s.slice(8 + o, 10 + o), +s.slice(10 + o, 12 + o)));
-}
-
-export interface DName { commonName?: string; organization?: string; }
-
-// Name → { commonName, organization } (first CN / O attribute found).
-function decodeName(cert: Uint8Array, nameTlv: DerTlv): DName {
-  const out: DName = {};
-  for (const rdn of derChildren(cert, nameTlv)) {           // SET
-    for (const atv of derChildren(cert, rdn)) {             // SEQUENCE { oid, value }
-      const [oidTlv, valTlv] = derChildren(cert, atv);
-      if (!oidTlv || !valTlv || oidTlv.tag !== 0x06) continue;
-      const oid = decodeOid(cert, oidTlv);
-      const val = td.decode(cert.slice(valTlv.contentStart, valTlv.end));
-      if (oid === '2.5.4.3' && out.commonName == null) out.commonName = val;
-      if (oid === '2.5.4.10' && out.organization == null) out.organization = val;
-    }
-  }
-  return out;
-}
-
-// [3] extensions walk: SAN rfc822Name emails + basicConstraints cA. Every
-// read goes through der-read.ts's derTlv (bounds-checked BEFORE use - the GIF
-// lesson) and a hostile/malformed extension block degrades to the defaults,
-// never throws: certificates come straight out of attacker-controlled files.
-function decodeExtensions(cert: Uint8Array, kids: DerTlv[], shift: number): { sanEmails: string[]; isCa: boolean } {
-  const out: { sanEmails: string[]; isCa: boolean } = { sanEmails: [], isCa: false };
-  try {
-    const wrap = kids.slice(shift + 6).find((k) => k.tag === 0xa3);
-    if (!wrap) return out;
-    const [seq] = derChildren(cert, wrap); // Extensions ::= SEQUENCE OF Extension
-    if (!seq || seq.tag !== 0x30) return out;
-    for (const ext of derChildren(cert, seq)) {
-      if (ext.tag !== 0x30) continue;
-      const parts = derChildren(cert, ext); // { extnID OID, critical BOOLEAN?, extnValue OCTET STRING }
-      const value = parts[parts.length - 1];
-      if (!parts[0] || parts[0].tag !== 0x06 || !value || value.tag !== 0x04) continue;
-      const oid = decodeOid(cert, parts[0]);
-      if (oid === '2.5.29.17') { // subjectAltName: GeneralNames SEQUENCE
-        const names = derTlv(cert, value.contentStart);
-        if (names.tag !== 0x30 || names.end > value.end) continue;
-        for (const gn of derChildren(cert, names)) {
-          if (gn.tag === 0x81) out.sanEmails.push(td.decode(cert.slice(gn.contentStart, gn.end))); // rfc822Name (IA5String)
-        }
-      } else if (oid === '2.5.29.19') { // basicConstraints: SEQUENCE { cA BOOLEAN DEFAULT FALSE, … }
-        const bc = derTlv(cert, value.contentStart);
-        if (bc.tag !== 0x30 || bc.end > value.end) continue;
-        const [ca] = derChildren(cert, bc);
-        out.isCa = !!ca && ca.tag === 0x01 && ca.end > ca.contentStart && cert[ca.contentStart] !== 0;
-      }
-    }
-  } catch { /* a malformed extension block never breaks certificate display */ }
-  return out;
-}
-
-export interface ParsedCertificate {
-  subject: DName;
-  issuer: DName;
-  notBefore: Date;
-  notAfter: Date;
-  selfSigned: boolean;
-  spki: Uint8Array;
-  tbsBytes: Uint8Array;
-  signatureRaw: Uint8Array | null;
-  sigAlg: CertSigAlg | null;
-  issuerBytes: Uint8Array;
-  subjectBytes: Uint8Array;
-  sanEmails: string[];
-  isCa: boolean;
-}
-
-// How an ISSUER signed a child's tbsCertificate. Real C2PA hierarchies span
-// ECDSA (Google, the camera makers), RSA PKCS#1 v1.5 (Adobe, Microsoft,
-// DigiCert, SSL.com roots), RSA-PSS, and Ed25519 (Trufo). The digest is fixed
-// by the OID for ECDSA/RSA; RSA-PSS carries it in the AlgorithmIdentifier
-// parameters. Read from the CHILD cert (it names the algorithm the parent used).
-export type CertSigAlg =
-  | { scheme: 'ecdsa'; hash: string }
-  | { scheme: 'rsa'; hash: string }
-  | { scheme: 'rsa-pss'; hash: string; saltLength: number }
-  | { scheme: 'ed25519' };
-
-// signatureAlgorithm OID (hex of the OID content) → fixed-digest schemes.
-const SIG_ALGS: Record<string, { scheme: 'ecdsa' | 'rsa'; hash: string }> = {
-  '2a8648ce3d040302': { scheme: 'ecdsa', hash: 'SHA-256' }, // ecdsa-with-SHA256
-  '2a8648ce3d040303': { scheme: 'ecdsa', hash: 'SHA-384' }, // ecdsa-with-SHA384
-  '2a8648ce3d040304': { scheme: 'ecdsa', hash: 'SHA-512' }, // ecdsa-with-SHA512
-  '2a864886f70d01010b': { scheme: 'rsa', hash: 'SHA-256' }, // sha256WithRSAEncryption
-  '2a864886f70d01010c': { scheme: 'rsa', hash: 'SHA-384' }, // sha384WithRSAEncryption
-  '2a864886f70d01010d': { scheme: 'rsa', hash: 'SHA-512' }, // sha512WithRSAEncryption
-};
-const SIG_OID_RSA_PSS = '2a864886f70d01010a'; // id-RSASSA-PSS
-const SIG_OID_ED25519 = '2b6570';             // id-Ed25519
-const HASH_OIDS: Record<string, string> = {
-  '608648016503040201': 'SHA-256', '608648016503040202': 'SHA-384',
-  '608648016503040203': 'SHA-512', '2b0e03021a': 'SHA-1',
-};
-
-// Parse a signatureAlgorithm AlgorithmIdentifier into a verify recipe, or null
-// for anything unrecognised (→ the chain step is a quiet no-match, never a
-// crash, never a false trust).
-function parseCertSigAlg(cert: Uint8Array, algId: DerTlv): CertSigAlg | null {
-  try {
-    const kids = derChildren(cert, algId);
-    const oidTlv = kids[0];
-    if (!oidTlv || oidTlv.tag !== 0x06) return null;
-    const oid = hexOf(cert.slice(oidTlv.contentStart, oidTlv.end));
-    const fixed = SIG_ALGS[oid];
-    if (fixed) return { ...fixed };
-    if (oid === SIG_OID_ED25519) return { scheme: 'ed25519' };
-    if (oid === SIG_OID_RSA_PSS) {
-      // RSASSA-PSS-params ::= SEQUENCE { [0] hashAlgorithm, [1] maskGen,
-      // [2] saltLength INTEGER DEFAULT 20, [3] trailerField }. Absent [0]/[2]
-      // fall back to the ASN.1 defaults (SHA-1, 20).
-      let hash = 'SHA-1';
-      let saltLength = 20;
-      const params = kids[1];
-      if (params && params.tag === 0x30) {
-        for (const field of derChildren(cert, params)) {
-          if (field.tag === 0xa0) {
-            const h = derChildren(cert, field)[0];
-            if (h && h.tag === 0x06) hash = HASH_OIDS[hexOf(cert.slice(h.contentStart, h.end))] || hash;
-          } else if (field.tag === 0xa2) {
-            const s = derChildren(cert, field)[0];
-            if (s && s.tag === 0x02) { let n = 0; for (const b of cert.slice(s.contentStart, s.end)) n = n * 256 + b; saltLength = n; }
-          }
-        }
-      }
-      return { scheme: 'rsa-pss', hash, saltLength };
-    }
-    return null;
-  } catch { return null; }
-}
-
-/** Pull display facts + the SPKI out of a DER certificate. */
-export function parseCertificate(cert: Uint8Array): ParsedCertificate {
-  const top = derTlv(cert, 0);
-  // Certificate: tbsCertificate, signatureAlgorithm, signatureValue BIT STRING.
-  const topKids = derChildren(cert, top);
-  const tbs = topKids[0]!;
-  const sigAlgTlv = topKids[1];
-  const sigTlv = topKids[2];
-  const kids = derChildren(cert, tbs);
-  // tbsCertificate: optional [0] version, serial, sigAlg, issuer, validity, subject, SPKI, …
-  const shift = kids[0]!.tag === 0xa0 ? 1 : 0;
-  const issuerTlv = kids[shift + 2]!;
-  const validity = derChildren(cert, kids[shift + 3]!);
-  const subjectTlv = kids[shift + 4]!;
-  const spkiTlv = kids[shift + 5]!;
-  const issuerBytes = cert.slice(issuerTlv.start, issuerTlv.end);
-  const subjectBytes = cert.slice(subjectTlv.start, subjectTlv.end);
-  const ext = decodeExtensions(cert, kids, shift);
-  return {
-    subject: decodeName(cert, subjectTlv),
-    issuer: decodeName(cert, issuerTlv),
-    notBefore: decodeTime(cert, validity[0]!),
-    notAfter: decodeTime(cert, validity[1]!),
-    selfSigned: hexOf(issuerBytes) === hexOf(subjectBytes),
-    spki: cert.slice(spkiTlv.start, spkiTlv.end),
-    // Additive (1.11.0) - the chain-verification raw material. signatureRaw is
-    // the signatureValue BIT STRING content minus its unused-bits byte: for
-    // ECDSA that is still a DER ECDSA-Sig-Value (ecdsaDerToRaw converts).
-    tbsBytes: cert.slice(tbs.start, tbs.end),
-    signatureRaw: sigTlv && sigTlv.tag === 0x03 && sigTlv.end > sigTlv.contentStart + 1
-      ? cert.slice(sigTlv.contentStart + 1, sigTlv.end)
-      : null,
-    sigAlg: sigAlgTlv ? parseCertSigAlg(cert, sigAlgTlv) : null,
-    issuerBytes,
-    subjectBytes,
-    sanEmails: ext.sanEmails,
-    isCa: ext.isCa,
-  };
-}
-
-// ─── trust-anchor chain verification ──────────────────────────────────────────
-// ecdsaDerToRaw (the inverse of der-read.ts's ecdsaRawToDer) and the EC
-// named-curve table both live in der-read.ts, shared with seal.ts.
-
-// Read the named curve out of an EC SubjectPublicKeyInfo (SEQUENCE {
-// AlgorithmIdentifier { ecPublicKey, curveOID }, BIT STRING }). A non-EC key
-// (RSA root) or an unknown curve returns null → the step is a quiet no-match,
-// so an RSA-rooted signer stays honestly untrusted rather than crashing.
-function ecParamsOf(spki: Uint8Array): { curve: string; hash: string; size: number } | null {
-  try {
-    const algId = derChildren(spki, derTlv(spki, 0))[0]!;
-    const curveOid = derChildren(spki, algId)[1];
-    if (!curveOid || curveOid.tag !== 0x06) return null;
-    return EC_CURVES[hexOf(spki.slice(curveOid.contentStart, curveOid.end))] ?? null;
-  } catch { return null; }
-}
-
-// One issuer→subject step: the child's issuer Name must byte-match the signer's
-// subject AND the signature over the child's tbsCertificate must verify against
-// the signer's SPKI, under the algorithm the CHILD's signatureAlgorithm names.
-// Covers every scheme real C2PA CAs sign certificates with - ECDSA P-256/384/521
-// (Google, camera makers), RSA PKCS#1 v1.5 (Adobe, Microsoft, DigiCert, SSL.com),
-// RSA-PSS, and Ed25519 (Trufo). An unrecognised algorithm, a key that can't be
-// imported for it, or any thrown error is a quiet no-match: a signer we cannot
-// cryptographically verify stays honestly UNTRUSTED - never a false trust.
-export async function signedBy(child: ParsedCertificate, signer: ParsedCertificate): Promise<boolean> {
-  if (!child.signatureRaw || !child.sigAlg || hexOf(child.issuerBytes) !== hexOf(signer.subjectBytes)) return false;
-  const sa = child.sigAlg;
-  try {
-    if (sa.scheme === 'ecdsa') {
-      const ec = ecParamsOf(signer.spki);
-      if (!ec) return false;
-      const key = await subtle.importKey('spki', asBufferSource(signer.spki), { name: 'ECDSA', namedCurve: ec.curve }, false, ['verify']);
-      return await subtle.verify({ name: 'ECDSA', hash: sa.hash }, key, asBufferSource(ecdsaDerToRaw(child.signatureRaw, ec.size)), asBufferSource(child.tbsBytes));
-    }
-    if (sa.scheme === 'rsa') {
-      const key = await subtle.importKey('spki', asBufferSource(normalizeRsaSpki(signer.spki)), { name: 'RSASSA-PKCS1-v1_5', hash: sa.hash }, false, ['verify']);
-      return await subtle.verify({ name: 'RSASSA-PKCS1-v1_5' }, key, asBufferSource(child.signatureRaw), asBufferSource(child.tbsBytes));
-    }
-    if (sa.scheme === 'rsa-pss') {
-      const key = await subtle.importKey('spki', asBufferSource(normalizeRsaSpki(signer.spki)), { name: 'RSA-PSS', hash: sa.hash }, false, ['verify']);
-      return await subtle.verify({ name: 'RSA-PSS', saltLength: sa.saltLength }, key, asBufferSource(child.signatureRaw), asBufferSource(child.tbsBytes));
-    }
-    // Ed25519 - the raw 64-byte signature verifies directly; not universal in
-    // WebCrypto, so a missing implementation throws → quiet no-match.
-    const key = await subtle.importKey('spki', asBufferSource(signer.spki), { name: 'Ed25519' }, false, ['verify']);
-    return await subtle.verify({ name: 'Ed25519' }, key, asBufferSource(child.signatureRaw), asBufferSource(child.tbsBytes));
-  } catch { return false; }
-}
+export { parseCertificate, signedBy } from './x509-read.ts';
+export type { ParsedCertificate, CertSigAlg, DName } from './x509-read.ts';
 
 // Does the x5chain reach a pinned root? Walks leaf → intermediates (the rest of
 // the embedded x5chain) → a caller-pinned anchor, verifying each issuer→subject
@@ -394,30 +152,6 @@ const COSE_ALGS: Record<string, CoseAlg> = {
   '-39': { kind: 'rsa-pss', hash: 'SHA-512', saltLength: 64, name: 'PS512' },
   '-8': { kind: 'ed25519', name: 'Ed25519' },
 };
-
-// id-RSASSA-PSS AlgorithmIdentifier OID (1.2.840.113549.1.1.10). WebCrypto
-// only imports RSA SPKIs declared as plain rsaEncryption, so a PSS-declared
-// SPKI (what C2PA test/production certs actually carry) is re-wrapped: same
-// key BIT STRING, rsaEncryption + NULL params AlgorithmIdentifier.
-const OID_RSASSA_PSS = Uint8Array.of(0x06, 0x09, 0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x0a);
-const ALGID_RSA_ENCRYPTION = Uint8Array.of(0x30, 0x0d, 0x06, 0x09, 0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x01, 0x05, 0x00);
-
-function derWrap(tag: number, body: Uint8Array): Uint8Array {
-  let head: Uint8Array;
-  if (body.length < 0x80) head = Uint8Array.of(tag, body.length);
-  else if (body.length < 0x100) head = Uint8Array.of(tag, 0x81, body.length);
-  else head = Uint8Array.of(tag, 0x82, body.length >>> 8, body.length & 0xff);
-  return concatBytes([head, body]);
-}
-
-function normalizeRsaSpki(spki: Uint8Array): Uint8Array {
-  const top = derTlv(spki, 0);
-  const [algTlv, keyTlv] = derChildren(spki, top);
-  const oid = derTlv(spki, algTlv!.contentStart);
-  const oidBytes = spki.slice(oid.start, oid.end);
-  if (oidBytes.length !== OID_RSASSA_PSS.length || !oidBytes.every((b, i) => b === OID_RSASSA_PSS[i])) return spki;
-  return derWrap(0x30, concatBytes([ALGID_RSA_ENCRYPTION, spki.slice(keyTlv!.start, keyTlv!.end)]));
-}
 
 async function verifyCoseSignature(alg: CoseAlg, spki: Uint8Array, sigRaw: Uint8Array, sigStructure: Uint8Array): Promise<boolean> {
   if (alg.kind === 'ecdsa') {
@@ -928,7 +662,7 @@ function readAiDisclosure(content: Uint8Array): C2paAiDisclosure | undefined {
  */
 export async function verifyC2pa(
   bytes: Uint8Array,
-  { trustAnchors, externalManifest }: { trustAnchors?: Uint8Array[]; externalManifest?: Uint8Array } = {},
+  { trustAnchors, externalManifest, enrollmentTrust, enrollmentCrls }: { trustAnchors?: Uint8Array[]; externalManifest?: Uint8Array; enrollmentTrust?: EnrollmentTrustBundle; enrollmentCrls?: Record<string, Uint8Array> } = {},
 ): Promise<C2paReport> {
   if (!(bytes instanceof Uint8Array)) throw new Error('verifyC2pa: bytes must be a Uint8Array');
   const checks: C2paCheck[] = [];
@@ -1288,6 +1022,7 @@ export async function verifyC2pa(
   // that this key signed THIS content. Only `claimSigValid === true` proves the
   // latter, so trust/identity are gated on it, never on the chain alone.
   let claimSigValid: boolean | null = null;   // true only if the COSE signature verified
+  let managedTrustFailure = false;
   let anchorMatch: ParsedCertificate | null = null;     // the pinned anchor the chain reached, or null
   let leafInsideValidity = false;
   let leafSanEmail: string | null = null;
@@ -1345,6 +1080,10 @@ export async function verifyC2pa(
     leafSanEmail = cert.sanEmails[0] ?? null;
     if (Array.isArray(trustAnchors) && trustAnchors.length) {
       anchorMatch = await chainsToAnchor(cert, chainDers, trustAnchors);
+      if (anchorMatch && enrollmentTrust?.roots.some(root => equalDer(parseCertificate(root).spki, anchorMatch!.spki))) {
+        try { await validateManagedCredential(chainDers.filter((b): b is Uint8Array => b instanceof Uint8Array), enrollmentTrust, enrollmentCrls ?? {}); }
+        catch { anchorMatch = null; managedTrustFailure = true; }
+      }
     }
   } catch (err) {
     fail(C2PA_CHECK.claimSignatureMismatch,`claim signature could not be verified: ${(err as Error).message}`);
@@ -1606,7 +1345,7 @@ export async function verifyC2pa(
     // browser's CA enrolment) produces a CA-ISSUED certificate that simply does not
     // chain to any anchor THIS verifier pinned - telling that reader "an ephemeral
     // on-device key" is false, and it points them at the wrong fix. Read the leaf.
-    fail(C2PA_CHECK.signingCredentialUntrusted, untrustedReason(report.signer));
+    fail(C2PA_CHECK.signingCredentialUntrusted, managedTrustFailure ? 'Managed certificate policy or current revocation status could not be verified' : untrustedReason(report.signer));
   }
 
   report.state = checks.every((c) => c.ok || c.code === C2PA_CHECK.signingCredentialUntrusted) ? 'valid' : 'invalid';

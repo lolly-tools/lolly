@@ -903,7 +903,7 @@ export async function scanWebsite(
     return { kind: 'refused', reason: 'no-transport' };
   }
 
-  const timeoutMs = Number(opts.timeoutMs) > 0 ? Number(opts.timeoutMs) : SITE_TIMEOUT_MS;
+  const timeoutMs = Number(opts.timeoutMs) > 0 ? Number(opts.timeoutMs) : transport.kind === 'extension' ? 90_000 : SITE_TIMEOUT_MS;
 
   progress('fetch');
   let answer: unknown;

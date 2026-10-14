@@ -20,6 +20,7 @@
  * addressing throughout - the form every S3-compatible accepts.
  */
 
+import { ConnectorOriginError } from './connector-policy.ts';
 import { t } from '../i18n.ts';
 import {
   getConnection, saveConnection, removeConnection, hasConnection,
@@ -166,7 +167,8 @@ export async function testS3(config: S3Config, fetchFn: typeof fetch = providerF
     if (res.status === 404) return { ok: true, note: t('Connection works') };
     if (res.status === 403) return { ok: false, note: t('The bucket refused the keys (403) - check key, secret and region') };
     return { ok: res.ok, note: t('The bucket answered {status}', { status: res.status }) };
-  } catch {
+  } catch (error) {
+    if (error instanceof ConnectorOriginError) return { ok: false, note: error.message };
     return { ok: false, note: t('Could not reach the bucket - its CORS config (and this deploy\'s security policy) must allow this origin') };
   }
 }
@@ -191,7 +193,8 @@ export function s3SendTarget(): SendTarget {
       let res: Response;
       try {
         res = await providerFetch(url.toString(), { method: 'PUT', headers, body: bytes as unknown as BodyInit });
-      } catch {
+      } catch (error) {
+        if (error instanceof ConnectorOriginError) throw error;
         throw new Error(t('Could not reach the bucket - its CORS config (and this deploy\'s security policy) must allow this origin'));
       }
       if (!res.ok) {
@@ -237,7 +240,7 @@ export function s3SyncRemote(fetchFn: typeof fetch = providerFetch, objectKey: s
   const emptyHash = (): Promise<string> => sha256Hex(new Uint8Array(0));
   const unreachable = t('Could not reach the bucket - its CORS config (and this deploy\'s security policy) must allow this origin');
   const request = async (url: URL, init: RequestInit): Promise<Response> => {
-    try { return await fetchFn(url.toString(), init); } catch { throw new Error(unreachable); }
+    try { return await fetchFn(url.toString(), init); } catch (error) { if (error instanceof ConnectorOriginError) throw error; throw new Error(unreachable); }
   };
 
   const head = async (): Promise<SnapshotMeta | null> => {
@@ -270,12 +273,13 @@ export function s3SyncRemote(fetchFn: typeof fetch = providerFetch, objectKey: s
     let res: Response;
     try {
       res = await send(conditional);
-    } catch {
+    } catch (error) {
+      if (error instanceof ConnectorOriginError) throw error;
       // In a browser, a bucket whose CORS rule predates sync does not allow the
       // If-Match header, and the preflight fails before any request is made. Try
       // once more without it: the engine already compared revisions just before.
       if (!Object.keys(conditional).length || isTauriShell()) throw new Error(unreachable);
-      try { res = await send({}); } catch { throw new Error(unreachable); }
+      try { res = await send({}); } catch (error) { if (error instanceof ConnectorOriginError) throw error; throw new Error(unreachable); }
     }
     // 412: the stored copy changed. 409: S3's answer when two conditional writes race.
     // 404 with If-Match: the object this device last saw was deleted since.

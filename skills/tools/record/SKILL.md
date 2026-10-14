@@ -5,7 +5,7 @@ description: "Operate the Lolly Record tool (record) using its declared inputs a
 
 # Record
 
-Tool ID: `record`. Tool version: `1.4.2`. Engine range: `>=1.150.0 <2.0.0`.
+Tool ID: `record`. Tool version: `1.4.3`. Engine range: `>=1.261.0 <2.0.0`.
 
 Design your own top and tail cards, then record a clip and Lolly wraps them around it automatically.
 

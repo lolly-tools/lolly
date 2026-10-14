@@ -10,7 +10,7 @@ link carries, so anything you can render in the browser you can regenerate in CI
 > the in-tree copy pinned to a commit:
 >
 > ```yaml
-> - uses: lolly-tools/lolly/action@main        # or @<commit-sha> to pin
+> - uses: lolly-tools/lolly/action@08ab9b3b71aff09722643c6809f8da292fd63af1        # pinned action revision
 > ```
 >
 > After the split it becomes:
@@ -22,7 +22,7 @@ link carries, so anything you can render in the browser you can regenerate in CI
 ## Quick start
 
 ```yaml
-- uses: lolly-tools/lolly/action@main
+- uses: lolly-tools/lolly/action@08ab9b3b71aff09722643c6809f8da292fd63af1
   id: render
   with:
     tool: qr-code
@@ -42,7 +42,7 @@ link carries, so anything you can render in the browser you can regenerate in CI
 | `format` | `svg` | Export format for the single render. Batch rows carry their own `format` column. |
 | `out-dir` | `./lolly-out` | Workspace-relative output directory (created if missing). |
 | `browser` | `false` | `'true'` installs the scoped Chromium (`lolly install-browser --with-deps`) **and** builds the web shell - required for raster/pdf/video of HTML-layout tools. See [The browser tier](#the-browser-tier). |
-| `lolly-ref` | `v1` | Git ref of `lolly-tools/lolly` to render with. `v1` is a placeholder until `render-action` tags releases - pass a commit SHA (or `main`) meanwhile, and pin a SHA for reproducible renders. |
+| `lolly-ref` | `18108292e1899d6d684efc274d03fc78bb5dd325` | Reviewed source commit to render with. Supply a different commit explicitly when updating the engine. |
 | `profile-root` | - | Workspace-relative path of a brand-pack profile root (`tools/` + `catalog/` with a built `catalog/tools/index.json`). Exported as `LOLLY_ROOT`. See [Brand packs](#brand-packs-profile-root). |
 | `token` | `github.token` | Token for the lolly checkout. `lolly-tools/lolly` is **public**, so the default always works - pass a PAT only to render from a private fork/mirror. |
 
@@ -73,7 +73,7 @@ jobs:
   og:
     runs-on: ubuntu-latest
     steps:
-      - uses: lolly-tools/lolly/action@main
+      - uses: lolly-tools/lolly/action@08ab9b3b71aff09722643c6809f8da292fd63af1
         id: render
         with:
           tool: design
@@ -118,7 +118,7 @@ jobs:
         id: days
         run: echo "left=$(( ( $(date -ud '2026-12-31' +%s) - $(date -u +%s) ) / 86400 ))" >> "$GITHUB_OUTPUT"
 
-      - uses: lolly-tools/lolly/action@main
+      - uses: lolly-tools/lolly/action@08ab9b3b71aff09722643c6809f8da292fd63af1
         id: render
         with:
           tool: wordmark
@@ -160,7 +160,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4   # your repo - rows.csv lives here
 
-      - uses: lolly-tools/lolly/action@main
+      - uses: lolly-tools/lolly/action@08ab9b3b71aff09722643c6809f8da292fd63af1
         id: render
         with:
           rows: ./renders/rows.csv
@@ -207,7 +207,7 @@ carrying `tools/` and `catalog/` with a built `catalog/tools/index.json` - the m
           token: ${{ secrets.BRAND_PACK_PAT }}   # PAT with read access to that repo
           path: brand-pack
 
-      - uses: lolly-tools/lolly/action@main
+      - uses: lolly-tools/lolly/action@08ab9b3b71aff09722643c6809f8da292fd63af1
         with:
           tool: qr-code
           args-json: '["--url=https://example.com"]'
@@ -223,6 +223,6 @@ carrying `tools/` and `catalog/` with a built `catalog/tools/index.json` - the m
   private fork, the stock action cannot see it - set the `token` input to a PAT that
   can read the fork, and (until the split) also change the `repository:` in your own
   copy of the action, since the checkout targets `lolly-tools/lolly` by name.
-- **Reproducibility:** `lolly-ref` defaults to the placeholder tag `v1`; until that tag
-  exists, pass a commit SHA. A pinned SHA gives byte-stable tool definitions; `main`
-  gives you the newest tools at the cost of renders that may change under you.
+- **Reproducibility:** `lolly-ref` defaults to an immutable reviewed commit. Review
+  a source update before supplying a different commit. An explicit mutable ref
+  can change the engine and tool definitions between runs.

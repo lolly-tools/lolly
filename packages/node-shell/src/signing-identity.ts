@@ -60,10 +60,11 @@
 import { readFile } from 'node:fs/promises';
 import { createPrivateKey, createPublicKey, webcrypto } from 'node:crypto';
 import type { KeyObject } from 'node:crypto';
-import { parseCertificate, signedBy } from '@lolly/engine';
+import { parseCertificate, signedBy, validateManagedCredential } from '@lolly/engine';
 // The same `~` rule --trust-anchor uses. A shell does NOT expand a tilde after `=` in
 // `--sign-key=~/.config/…`, so without this the documented path silently ENOENTs.
 import { expandHome } from './trust-anchors.ts';
+import { loadEnrollmentTrust } from './enrollment-trust.ts';
 import type { C2paSigner, ParsedCertificate } from '@lolly/engine';
 
 /** Environment variables this module reads. Frozen in plans/73-cli-ga-contract.md section 1.5. */
@@ -386,6 +387,11 @@ export async function resolveSigningIdentity(input: SigningIdentityInput = {}): 
       );
     }
   }
+
+  try {
+    const managed = await loadEnrollmentTrust(env);
+    if (managed) await validateManagedCredential(chain, managed.trust, managed.crls);
+  } catch { throw new SigningIdentityError('Managed signing identity does not meet the configured certificate or status policy.', 'SIGN_CERT_POLICY'); }
 
   const warnings: string[] = [];
   const last = parsed[parsed.length - 1]!;

@@ -14,6 +14,7 @@
  */
 
 import { spawnSync } from 'node:child_process';
+import { parseConnectorOrigins } from '../packages/core/src/connector-origins.ts';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { assertWebGpuReleaseAllowed, webGpuReleaseProblems } from './webgpu-release-gate.ts';
@@ -28,11 +29,17 @@ const TAURI_DIR: Record<Exclude<ReleaseFrontend, 'web'>, string> = {
   'tauri-mobile': 'shells/tauri-mobile',
 };
 
-export function validateReleaseEnvironment(env: NodeJS.ProcessEnv): void {
+export function validateReleaseEnvironment(env: NodeJS.ProcessEnv, signing = true): void {
+  parseConnectorOrigins(env.VITE_CONNECTOR_ORIGINS ?? '');
   if (env.VITE_REQUIRE_AI_POLICY !== undefined && !['true', 'false'].includes(env.VITE_REQUIRE_AI_POLICY)) {
     throw new Error('VITE_REQUIRE_AI_POLICY must be true or false');
   }
-  if (!env.LOLLY_CATALOG_SIGNING_KEY?.trim()) {
+  if (env.VITE_CA_ENROLLMENT_TRUST_JSON) {
+    let trust: { version?: number; roots?: unknown[]; issuers?: unknown[] };
+    try { trust = JSON.parse(env.VITE_CA_ENROLLMENT_TRUST_JSON); } catch { throw new Error('VITE_CA_ENROLLMENT_TRUST_JSON must be public trust JSON'); }
+    if (!trust || Object.keys(trust).some(k => !['version', 'roots', 'issuers', 'providers', 'defaultLifetimeSeconds', 'maxLifetimeSeconds', 'crlMaxAgeSeconds', 'unifiedCrl'].includes(k)) || trust?.version !== 1 || !Array.isArray(trust.roots) || !trust.roots.length || !Array.isArray(trust.issuers) || !trust.issuers.length || /PRIVATE KEY/.test(env.VITE_CA_ENROLLMENT_TRUST_JSON)) throw new Error('VITE_CA_ENROLLMENT_TRUST_JSON must contain public enrollment trust');
+  }
+  if (signing && !env.LOLLY_CATALOG_SIGNING_KEY?.trim()) {
     throw new Error('LOLLY_CATALOG_SIGNING_KEY is required for a release web build');
   }
   const publicMaterial = env.VITE_CATALOG_PUBLIC_KEY_JWK?.trim();
@@ -57,6 +64,20 @@ export function validateReleaseEnvironment(env: NodeJS.ProcessEnv): void {
   }
 }
 
+/** Compiler subprocesses receive public build settings and no signing credentials. */
+export function releaseCompilerEnvironment(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
+  const build = { ...env };
+  for (const name of [
+    'LOLLY_CATALOG_SIGNING_KEY', 'TAURI_SIGNING_PRIVATE_KEY', 'TAURI_SIGNING_PRIVATE_KEY_PASSWORD',
+    'IOS_DIST_CERT_P12', 'IOS_DIST_CERT_PASSWORD', 'ASC_KEY_P8', 'ASC_KEY_ID', 'ASC_ISSUER_ID',
+    'APPLE_API_KEY', 'APPLE_API_ISSUER', 'APPLE_API_KEY_PATH', 'APPLE_CERTIFICATE', 'APPLE_CERTIFICATE_PASSWORD',
+    'APPLE_SIGNING_IDENTITY', 'APPLE_ID', 'APPLE_PASSWORD',
+    'CA_ROOT_KEY_PEM', 'CA_SERVICE_SECRET', 'VAULT_TOKEN', 'GITHUB_CLIENT_SECRET', 'GOOGLE_CLIENT_SECRET', 'SUSE_CLIENT_SECRET', 'RESEND_API_KEY', 'LOLLY_RATE_LIMIT_REST_TOKEN',
+  ]) delete build[name];
+  for (const name of Object.keys(build)) if (name.startsWith('CA_') || name.startsWith('VAULT_')) delete build[name];
+  return build;
+}
+
 function run(command: string, args: string[], env: NodeJS.ProcessEnv): void {
   // Windows cannot execute a .cmd shim through spawn without a shell. The
   // invoking package manager supplies its JavaScript entry point instead.
@@ -79,7 +100,9 @@ export function parseReleaseFrontend(value: string | undefined): ReleaseFrontend
 }
 
 function sign(env: NodeJS.ProcessEnv, extraArgs: string[] = []): void {
-  run(process.execPath, ['scripts/sign-catalog.ts', ...extraArgs], env);
+  run(process.execPath, ['scripts/sign-catalog.ts', ...extraArgs], {
+    ...releaseCompilerEnvironment(env), LOLLY_CATALOG_SIGNING_KEY: env.LOLLY_CATALOG_SIGNING_KEY,
+  });
 }
 
 /**
@@ -101,7 +124,7 @@ export function qualificationMain(target: ReleaseFrontend, env: NodeJS.ProcessEn
   // Nothing downstream signs: the signing key never reaches a child process. The public
   // pin goes too, because a frontend that carries a pin trusts only signed catalogs
   // (catalog/integrity.ts), and this one is built in the unsigned development mode.
-  const build: NodeJS.ProcessEnv = { ...env };
+  const build = releaseCompilerEnvironment(env);
   for (const name of ['LOLLY_CATALOG_SIGNING_KEY', 'VITE_CATALOG_PUBLIC_KEY_JWK', 'LOLLY_RELEASE_BUILD', 'VITE_CATALOG_TRUST_MODE']) delete build[name];
   const packageManager = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
   const shellDir = TAURI_DIR[target];
@@ -109,21 +132,37 @@ export function qualificationMain(target: ReleaseFrontend, env: NodeJS.ProcessEn
   writeMarker(resolve(ROOT, shellDir, 'dist'), problems, env);
 }
 
-export function main(): void {
+export async function main(): Promise<void> {
   const target = parseReleaseFrontend(process.argv[2]);
   if (isQualificationBuild(process.env)) { qualificationMain(target); return; }
   assertWebGpuReleaseAllowed(ROOT, target === 'web' ? 'web' : 'all');
-  validateReleaseEnvironment(process.env);
+  const phase = process.env.LOLLY_RELEASE_FRONTEND_PHASE ?? 'combined';
+  if (!['combined', 'build', 'verified-artifact'].includes(phase)) throw new Error('Unknown release frontend phase.');
+  validateReleaseEnvironment(process.env, phase === 'combined');
   const env: NodeJS.ProcessEnv = {
     ...process.env,
     LOLLY_RELEASE_BUILD: '1',
     VITE_CATALOG_TRUST_MODE: 'verified',
   };
   const packageManager = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
+  const build = releaseCompilerEnvironment(env);
+  if (phase === 'build') {
+    const { verifySignedSourceCatalog } = await import('./release-frontend-receipt.ts');
+    await verifySignedSourceCatalog(env.VITE_CATALOG_PUBLIC_KEY_JWK!);
+  }
+  if (phase === 'verified-artifact') {
+    const { checkoutSource, verifyFrontendReceipt, verifySignedSourceCatalog } = await import('./release-frontend-receipt.ts');
+    await verifySignedSourceCatalog(env.VITE_CATALOG_PUBLIC_KEY_JWK!);
+    const directory = target === 'web' ? 'shells/web/dist' : `${TAURI_DIR[target]}/dist`;
+    verifyFrontendReceipt(resolve(ROOT, directory), checkoutSource(ROOT), target, env.LOLLY_PROFILE ?? 'lolly-start', env.VITE_CATALOG_PUBLIC_KEY_JWK!);
+    run(process.execPath, ['scripts/verify-release-catalog.ts', '--root', directory], build);
+    return;
+  }
   if (target === 'web') {
-    sign(env);
-    run(packageManager, ['run', 'build:web'], env);
-    run(process.execPath, ['scripts/build-catalog-renditions.ts', '--root', 'shells/web/dist'], env);
+    if (phase === 'combined') sign(env);
+    run(packageManager, ['run', 'build:web'], build);
+    run(process.execPath, ['scripts/build-catalog-renditions.ts', '--root', 'shells/web/dist'], build);
+    if (phase === 'build') return;
     sign(env, [
       '--tools', 'shells/web/dist/tools',
       '--index', 'shells/web/dist/catalog/tools/index.json',
@@ -131,11 +170,11 @@ export function main(): void {
       '--materialize',
       ...(env.LOLLY_PREVIOUS_CATALOG_ENVELOPE ? ['--previous-envelope', env.LOLLY_PREVIOUS_CATALOG_ENVELOPE] : []),
     ]);
-    run(process.execPath, ['scripts/verify-release-catalog.ts', '--root', 'shells/web/dist'], env);
+    run(process.execPath, ['scripts/verify-release-catalog.ts', '--root', 'shells/web/dist'], build);
     run(process.execPath, ['scripts/build-delivery.ts', '--root', 'shells/web/dist',
       ...(env.LOLLY_PREVIOUS_STATIC_RELEASE ? ['--previous', env.LOLLY_PREVIOUS_STATIC_RELEASE] : []),
       ...(env.VERCEL ? ['--no-compression'] : []),
-    ], env);
+    ], build);
     return;
   }
 
@@ -146,8 +185,9 @@ export function main(): void {
   // have a valid envelope. Sign that source first; the output catalogue is
   // still signed again below so the native package is bound to the exact bytes
   // it embeds (including neutral/profile composition).
-  sign(env);
-  run(packageManager, ['-C', shellDir, 'run', 'build:frontend'], env);
+  if (phase === 'combined') sign(env);
+  run(packageManager, ['-C', shellDir, 'run', 'build:frontend'], build);
+  if (phase === 'build') return;
   sign(env, [
     '--tools', `${shellDir}/dist/tools`,
     '--index', `${shellDir}/dist/catalog/tools/index.json`,
@@ -158,7 +198,7 @@ export function main(): void {
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  try { main(); } catch (error) {
+  try { await main(); } catch (error) {
     console.error(error instanceof Error ? error.message : String(error));
     process.exit(1);
   }

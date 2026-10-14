@@ -45,6 +45,7 @@ test('the shared policy is a real CSP with the directives the shells rely on', (
     assert.ok(directives.has(name), `policy declares ${name}`);
   }
   assert.ok(directives.get('connect-src')?.includes('ipc:'), 'IPC transport stays reachable');
+  assert.ok(directives.get('connect-src')?.every(source => source !== 'https:' && !source.includes('*')), 'native connections require exact origins');
   assert.ok(directives.get('script-src')?.includes("'wasm-unsafe-eval'"), 'WASM engines stay loadable');
   assert.ok(directives.get('script-src')?.includes('blob:'), "the Rondocode editor's AudioWorklet module loads from a blob: URL");
   assert.deepEqual(directives.get('object-src'), ["'none'"]);

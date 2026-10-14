@@ -157,7 +157,7 @@ An operator's configured identity and asset providers can add destinations to th
 | Google Fonts | The chosen font family name and your IP address, to Google's font servers (`fonts.googleapis.com` for the stylesheet, `fonts.gstatic.com` for the font file) | Only if you add a Google Font in the brand editor, **and only after you agree to it in a dialog that says exactly this** - a one-time fetch per family, then it lives on your device and is used offline | The Google Fonts picker fails closed. Upload a font file instead |
 | Send to Google Drive | The one file you chose to send, to Google's Drive API (`www.googleapis.com`), after a Google sign-in you complete in Google's own popup window. Lolly's access is limited to files it created (the `drive.file` scope - it can never read the rest of your Drive), and the sign-in token is held in memory for the session, never stored | Only when you press "Send to Google Drive" on an EMF export, and only on builds where the operator has configured a Google client id - without one the button does not exist | The button never appears. Download the file and upload it to Drive yourself |
 | Send to Dropbox | The one file you chose to send, to Dropbox's API (`api.dropboxapi.com` for sign-in and metadata, `content.dropboxapi.com` for the file itself), after a Dropbox sign-in you complete in Dropbox's own window. Lolly's access is app-folder only (it can only ever see `Apps/` and its own folder there - never the rest of your Dropbox), the "Open" link it shows you is a short-lived private link (no public share is created), and a refresh token is stored only if you tick "stay connected" | Only when you press "Send to Dropbox" on a file, and only on builds where the operator has configured a Dropbox client id - without one the button does not exist | The button never appears. Download the file and upload it to Dropbox yourself |
-| Send to OneDrive | The one file you chose to send, to Microsoft's identity and Graph services (`login.microsoftonline.com` for sign-in, `graph.microsoft.com` for the upload; a large file uploads in chunks to a Microsoft-owned upload address on `api.onedrive.com`, `*.up.1drv.com` or `*.sharepoint.com`), after a Microsoft sign-in you complete in Microsoft's own window. Lolly's access is limited to its own folder under `Apps/` (it can never read the rest of your OneDrive) plus your display name for the account label, and a refresh token is stored only if you tick "stay connected" | Only when you press "Send to OneDrive" on a file, and only on builds where the operator has configured a Microsoft client id - without one the button does not exist | The button never appears. Download the file and upload it to OneDrive yourself |
+| Send to OneDrive | The one file you chose to send, to Microsoft's identity and Graph services (`login.microsoftonline.com` for sign-in, `graph.microsoft.com` for the upload; a large file uploads in chunks to `api.onedrive.com` or operator configured storage origins), after a Microsoft sign-in you complete in Microsoft's own window. Lolly's access is limited to its own folder under `Apps/` (it can never read the rest of your OneDrive) plus your display name for the account label, and a refresh token is stored only if you tick "stay connected" | Only when you press "Send to OneDrive" on a file, and only on builds where the operator has configured a Microsoft client id - without one the button does not exist | The button never appears. Download the file and upload it to OneDrive yourself |
 | Send to LinkedIn | The one file you chose to send, plus its name as the text of the post, to LinkedIn (`www.linkedin.com` for the sign-in, `api.linkedin.com` for the upload and the post), after a LinkedIn sign-in you complete in your own browser. The post goes to your own feed as a public post under your name. Lolly can post as you and read your name for the account label, nothing else on your LinkedIn, and the sign-in is kept on this device only if you tick "stay connected" - LinkedIn's tokens last 60 days and cannot be renewed silently, so it lapses on its own | Only when you press "Send to LinkedIn" on a file, in the desktop apps only, and only on builds where a LinkedIn app is configured - without one the button does not exist | Nothing to block in the web app: this exists in the **desktop apps only**, so those two hosts are deliberately NOT in the web app's Content-Security-Policy below. In the desktop apps, remove the configured LinkedIn app and the button never appears |
 | Send to Penpot | Your Penpot personal access token (you paste it in the app) and the `.penpot` archive of the design you chose to send, to Penpot's API (`design.penpot.app`) through a small pass-through on the app's own origin (`/api/penpot`), because Penpot's API will not answer a browser directly. The pass-through forwards and forgets; the desktop apps talk to Penpot directly | Only when you press "Send to Penpot" in the Design tool and confirm a project | The pass-through returns an error and the send fails closed. Export the `.penpot` file and import it in Penpot yourself |
 | Send to Bluesky | The one image you chose to send, its name as the post text and alt text, and your handle plus an app password (Bluesky → Settings → App passwords, never your account password), to the Bluesky server you name (`bsky.social` unless you self-host). The app password is stored on this device only, never in a backup, and Disconnect wipes it | Only when you press "Send to Bluesky" on an image, after you connect the account in your profile, in the **desktop apps only** | Nothing to block in the web app: its policy below lists no Bluesky host, so the crossing does not exist there. In the desktop apps, remove the connection and the button never appears |
@@ -165,7 +165,7 @@ An operator's configured identity and asset providers can add destinations to th
 | Send to Mastodon | The one file you chose to send and its name as the post text, to the Mastodon (or compatible) server you name, after a sign-in you complete in that server's own window. Connecting registers a small per-device app on that server; the sign-in is kept on this device only if you tick "stay connected" | Only when you press "Send to Mastodon" on a file. You choose the server, so it is not in the policy below | The server you name has to allow browser calls; if it does not, use the desktop apps. Disconnect removes the button |
 | Send to Nextcloud / WebDAV | The one file you chose to send, to your own server, over one authenticated PUT with the server address, user name and app password you entered (Nextcloud → Settings → Security → Devices & sessions; never your account password). Stored on this device only, never in a backup, wiped by Disconnect | Only when you press "Send to Nextcloud" on a file. You choose the server, so it is not in the policy below | Your server has to allow browser calls from the app's origin; if it does not, use the desktop apps |
 | Send to S3-compatible storage | The one file you chose to send, to your own bucket (AWS S3, MinIO, R2, B2, Garage - any SigV4 endpoint), signed on your device with the key pair you entered. Keys are stored on this device only, never in a backup, wiped by Disconnect | Only when you press "Send to S3" on a file. You choose the endpoint, so it is not in the policy below | Your bucket's CORS rules have to allow the app's origin; if they do not, use the desktop apps |
-| Sync across your devices | A copy of what you made on this device - saved sessions and projects, your design systems with their fonts and logos, uploaded images, your profile and your preferences - as one file, to the one storage you chose: the Lolly app folder in your Dropbox (`api.dropboxapi.com`, `content.dropboxapi.com`), files Lolly created in your Google Drive (`www.googleapis.com`), the Lolly app folder in your OneDrive (`graph.microsoft.com`, with larger files uploaded to `api.onedrive.com`, `*.up.1drv.com` or `*.sharepoint.com`, and downloads from Microsoft's `*.files.1drv.com`, `my.microsoftpersonalcontent.com` or `*.sharepoint.com`), or your own Nextcloud / WebDAV server or S3 bucket. The same storage also keeps up to seven daily copies and one copy from before your last apply. **Nothing goes to Lolly:** no Lolly server, relay or Lolly Work server is in the path, and the apps need no Lolly website for it, not even to sign in. The copy is encrypted on your device first only if you set a passphrase. Sign-ins, keys, app passwords, the passphrase and the sync settings stay on the device and are never in the copy. On the web, a remembered Google Drive connection keeps only your account name (and your own client id, if you gave one); the Google sign-in itself lasts one visit. In the Android app, the Google Drive sign-in goes through Google Play services on the phone, which Google runs | Only after you turn on "Sync across my devices" or press "Sync now": an upload shortly after each change and when you leave the app, and a check for a newer copy when the app starts | Sync fails and says why; your work stays on the device. Export your data to a file and move it yourself instead |
+| Sync across your devices | A copy of what you made on this device - saved sessions and projects, your design systems with their fonts and logos, uploaded images, your profile and your preferences - as one file, to the one storage you chose: the Lolly app folder in your Dropbox (`api.dropboxapi.com`, `content.dropboxapi.com`), files Lolly created in your Google Drive (`www.googleapis.com`), the Lolly app folder in your OneDrive (`graph.microsoft.com`, with larger files uploaded to `api.onedrive.com` or operator configured storage origins, and downloads from exact operator configured storage origins), or your own Nextcloud / WebDAV server or S3 bucket. The same storage also keeps up to seven daily copies and one copy from before your last apply. **Nothing goes to Lolly:** no Lolly server, relay or Lolly Work server is in the path, and the apps need no Lolly website for it, not even to sign in. The copy is encrypted on your device first only if you set a passphrase. Sign-ins, keys, app passwords, the passphrase and the sync settings stay on the device and are never in the copy. On the web, a remembered Google Drive connection keeps only your account name (and your own client id, if you gave one); the Google sign-in itself lasts one visit. In the Android app, the Google Drive sign-in goes through Google Play services on the phone, which Google runs | Only after you turn on "Sync across my devices" or press "Sync now": an upload shortly after each change and when you leave the app, and a check for a newer copy when the app starts | Sync fails and says why; your work stays on the device. Export your data to a file and move it yourself instead |
 | ICC press profiles | Nothing personal - a request for a standard printing-condition profile, to the ICC's public registry (`registry.color.org`, `www.color.org`) | Only if you click an ICC preset in the print-profile manager - a one-time fetch per profile, then it lives on your device | ICC presets fail. Supply your own `.icc` profile instead |
 | Internet radio | Nothing personal - a playlist request and an audio stream, to the station (`api.somafm.com` and the icecast server it points at, `*.somafm.com`) | Only while you play the optional built-in radio in the sound player | The radio fails. Every other sound feature still works |
 | A URL you ask a tool to capture | A request to the exact web address you type, from the URL screenshot tool. Whatever that address is. This host is not in the policy below, because you choose it at the moment of use | Only when you enter a URL in that tool and start the capture | An operator cannot allowlist this by host. To remove it, remove the tool |
@@ -180,25 +180,22 @@ An operator's configured identity and asset providers can add destinations to th
 
 A Design web page object's **Use page** action lets you reject cookies or close a banner inside the page. For accessible Lolly pages, **Hide cookie banners** hides known overlays, including OneTrust, without accepting cookies or changing the site's consent choice. **Page CSS** changes that object's live page and presentation; exports still use the chosen poster. The rules cannot import resources or fonts. Browsers prevent Lolly from changing another site's CSS. Sandbox previews have their own CSS editor under **Edit in Sandbox**.
 
-Every fixed host in that table is also the complete allowlist in the app's
-Content-Security-Policy, which the browser enforces. So the list is not only a
-description of what the code does today, it is the boundary the browser holds the
-app to: a future change that tried to contact some other host would be blocked,
-not silently permitted. One row is the deliberate exception, and its own cell
-explains it: Send to LinkedIn exists in the desktop apps only, and the web app's
-policy lists neither of its hosts - the web app could not reach them even if its
-code tried.
-Two more rows, Bluesky and Discord, are desktop-only the same way, and their
-hosts are left out of the web policy for the same reason. Five rows have no fixed
-host, because you choose the address at the moment of use: a URL you ask a tool
-to capture, a remote instance you point the shell at, and your own Mastodon
-server, WebDAV server or S3 bucket (the last two also as a sync home). None of those is in the policy, and each
-uses the destination you selected. A lolly.work deployment must also permit its
-configured identity providers and service connections; it does not inherit an
-unchanging list of public-reference hosts. The Penpot row reaches
-Penpot through the app's own origin, so it is covered by `'self'`. A deployment that wants none of the
-optional ones (an enterprise instance with its own fonts, say) removes those
-hosts from its policy and the features fail closed rather than reaching out.
+Browser connection policies list fixed public API origins and operator approved
+exact HTTPS origins. Custom storage, SharePoint upload/download hosts, Mastodon,
+WebDAV, S3 and other custom connectors require deployment configuration before
+requests can run. Native connector requests apply that same configured-origin
+restriction through every redirect; native instance traffic has a separate
+public-network transport. Browser connector redirects fail closed, so use a
+canonical endpoint that does not redirect. CORS must also permit the browser.
+
+These connection policies do not distinguish tenants or accounts on fixed
+Google or Microsoft Graph APIs. They restrict browser fetch destinations, but
+are not a complete data-egress boundary: other resource directives, permitted
+provider operations, external sign-in windows and native capabilities have
+separate rules. Organisation policy and provider permissions still determine
+which accounts and actions are approved. Configuration changes require a new
+native build or updated web response headers. Save local work before reopening
+the application to use an updated policy. See [connector configuration](connector-origins.md).
 
 Most fetches bring tools, fonts or models to your device. Send actions transmit
 the selected file, personal Sync transmits a backup to your chosen storage, and
@@ -372,28 +369,42 @@ If you do enrol, here is exactly what happens:
    address is not sent to that store. The bucket expires after about a minute
    and is not used for tracking. Ordinary hosting access logs are separate and
    described below.
-4. **The certificate service issues a short-lived certificate** (7, 30, 90 or 365
-   days, your choice, capped by the operator's policy) binding your verified
-   email to the public half of the keypair generated on your device. The private
-   half never leaves your browser.
-5. **Nothing about the issuance is recorded.** The certificate service keeps no
-   issuance log: not your email, not the provider, not a serial number, not a
-   timestamp. No database, no log line, no webhook. Your email address exists in
-   the request only long enough to be written into the certificate that your own
-   device receives, and then it is gone from our side entirely.
-6. **After that, signing is offline again** for the certificate's whole lifetime.
-   Exporting a file never contacts the certificate service - only enrolling did.
+4. **The certificate service issues a certificate binding your verified email
+   to your device's public key.** The browser's private key stays on the device.
+   Legacy hosted enrollment offers 7, 30, 90 or 365 days, capped by the operator.
+   Managed organisation enrollment uses a 24-hour default and a seven-day
+   maximum, with an independently configured root and issuer trust policy.
+   The client sends a public-key certificate request and a bound possession
+   proof; the managed service delegates signing to its approved Vault issuer.
+   No device private key is sent to either service.
+5. **Retention depends on the issuer mode.** Legacy hosted issuance keeps no
+   identity inventory or issuance log. Managed enrollment uses a shared one-use
+   admission store, holding only a keyed authentication identifier and request
+   digest for at most ten minutes. It stores no identity inventory or
+   certificate-response cache in the enrollment application. The managed PKI
+   provider, its audit devices, gateways and backups have separate data flows.
+   Even with ordinary issuance storage disabled, certificate-based revocation
+   can retain the certificate, including its email identity. Revocation serials
+   and audit identifiers can remain linkable. The organisation must approve
+   that inventory, access and retention before enabling managed enrollment.
+6. **Cryptographic signing remains local.** Legacy signing needs no certificate
+   service request during an export. Managed identities also require a fresh,
+   signed revocation list from the configured issuer. The client can use a
+   cached list within its approved freshness window; refreshing status can
+   contact the certificate service during an export. Missing, expired or
+   invalid status prevents use of the managed signing identity. Revocation
+   requires authenticated device proof; no API asks for the device private key.
 
-**The tradeoff, stated plainly.** An earlier version of this service did log each
-issuance, so that a misissued or compromised certificate could be traced. We
-removed it to avoid retaining personal data in this certificate service.
-Organisation identity and audit records in lolly.work are separate and follow
-the operator's retention policy. What we give up is server-side traceability: if a certificate is
-misused we cannot look up who obtained it. Certificates are short-lived by
-design - 7 to 365 days, your choice, capped by the operator - and expire on their
-own, which is the mitigation we rely on instead. Self-hosters whose own
-obligations require an audit log can add one, and become the controller of that
-data by doing so.
+The legacy service's lack of an identity inventory means it cannot look up who
+obtained a certificate or automatically revoke that person's certificates.
+Managed deployments have a different lifecycle: the device can request
+revocation, and the operator can withdraw an issuer through its independently
+managed trust policy. Directory-driven offboarding needs an approved
+identity-to-certificate inventory or another qualified operator procedure; that
+mapping is not supplied automatically. Original organisation audit records,
+PKI records, recipients and backups follow their separately approved policies.
+See the [certificate service design](https://github.com/lolly-tools/lolly/blob/main/services/ca/README.md)
+for issuer custody, provider retention and qualification boundaries.
 
 ## The browser extension
 
@@ -512,7 +523,7 @@ its operator must provide those in its own policy.
 | Processing | Legal basis (GDPR Art. 6) | Retained for |
 |---|---|---|
 | Everything on your device (documents, prefs, cache, counters) | **Not our processing at all** - it never reaches us. Storage on your device is strictly necessary for the service you requested (ePrivacy Art. 5(3)), so it needs no consent | Until you delete it |
-| Your email address during Content Credentials enrolment | **Art. 6(1)(b)**, performance of a service you explicitly requested | Not retained. Present in memory for the duration of the request only |
+| Your email address during legacy hosted Content Credentials enrolment | **Art. 6(1)(b)**, performance of a service you explicitly requested | No identity inventory or issuance log in the legacy service; the email is used during the request and included in your certificate. Managed organisation PKI, audit and revocation retention follow its operator's approved policy |
 | A one-way-derived bucket key made from your IP address, for rate limiting the sign-in endpoints and the public render, image and MCP endpoints | **Art. 6(1)(f)**, our legitimate interest in preventing abuse of a free service and of a third party's email quota. We consider this to pass a balancing test because the raw address is not sent to the limiter, the bucket is used only for abuse control and it expires automatically | About 1 minute in the abuse-control store; not retained afterwards |
 | Hosting access logs (IP, path, timestamp, user agent) | **Art. 6(1)(f)**, our legitimate interest in service security, abuse prevention and diagnosing faults | Administrator-configured rotation and retention; contact the controller for the current schedule |
 

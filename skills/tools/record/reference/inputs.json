@@ -67,6 +67,7 @@
   },
   {
     "id": "transcript",
+    "sharePrivacy": "personal",
     "section": "Subtitles",
     "label": "Transcript",
     "type": "longtext",

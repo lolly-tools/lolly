@@ -36,7 +36,7 @@ spec:
       ports:
         - protocol: TCP
           port: {{ $c.service.targetPort }}
-  {{- if $.Values.networkPolicy.allowAllEgress }}
+  {{- if and $.Values.networkPolicy.allowAllEgress (not (and (eq $name "ca") (eq $.Values.ca.config.issuerMode "vault-pki"))) }}
   egress:
     - {}
   {{- end }}

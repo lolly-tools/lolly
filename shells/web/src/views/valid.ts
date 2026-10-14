@@ -40,6 +40,7 @@ import { renderMetadata } from './valid-metadata.ts';
 import { vendorMark } from './valid-vendors.ts';
 import { checkingHtml, updateVerifyProgress } from './valid-progress.ts';
 import { CA_ROOT_PEM } from '../ca-root.ts';
+import { configuredEnrollmentTrust, fetchEnrollmentCrl } from '../bridge/enrollment-policy.ts';
 import { escape } from '../utils.ts';
 import { textSignalKindTitle, textSignalLabels } from './valid-text-labels.ts';
 import { wireTextHandoffs } from '../lib/text-handoff.ts';
@@ -117,10 +118,12 @@ import { appendScoreToggle } from './valid-score-toggle.ts';
 // …), so a credential from a recognised signer upgrades from "valid" to a
 // named, CA-verified identity - "signed by <issuer>". A self-signed on-device
 // export still reads as intact-but-untrusted (it chains to none of these).
-const VERIFY_OPTS: { trustAnchors: Uint8Array[] } = {
+const ENROLLMENT_TRUST = configuredEnrollmentTrust();
+const VERIFY_OPTS = {
   trustAnchors: [
     ...(CA_ROOT_PEM ? [pemToDer(CA_ROOT_PEM)] : []),
     ...c2paTrustAnchors(),
+    ...(ENROLLMENT_TRUST?.roots ?? []),
   ],
 };
 
@@ -2119,7 +2122,11 @@ export async function mountValid(viewEl: HTMLElement, host: HostV1, params = '')
       await updateVerifyProgress(reportEl, 'bytes', activeFiles.indexOf(file));
       const bytes = new Uint8Array(await file.arrayBuffer());
       await updateVerifyProgress(reportEl, 'credentials', activeFiles.indexOf(file));
-      const report = await verifyC2pa(bytes, opts.externalManifest ? { ...VERIFY_OPTS, externalManifest: opts.externalManifest } : VERIFY_OPTS);
+      const enrollmentCrls: Record<string, Uint8Array> = {};
+      if (ENROLLMENT_TRUST) for (const issuer of ENROLLMENT_TRUST.issuers.keys()) {
+        try { enrollmentCrls[issuer] = await fetchEnrollmentCrl(issuer, ENROLLMENT_TRUST); } catch { /* unavailable status keeps managed identities untrusted */ }
+      }
+      const report = await verifyC2pa(bytes, { ...VERIFY_OPTS, ...(opts.externalManifest ? { externalManifest: opts.externalManifest } : {}), ...(ENROLLMENT_TRUST ? { enrollmentTrust: ENROLLMENT_TRUST, enrollmentCrls } : {}) });
       // SEAL runs on the same bytes, fully on-device and with NO key resolver:
       // the web shell deliberately passes none, so verification here makes zero
       // network requests of any kind. A record carrying its key inline (`pk=`)

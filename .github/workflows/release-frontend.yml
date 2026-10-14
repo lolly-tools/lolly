@@ -1,0 +1,159 @@
+# SPDX-License-Identifier: MPL-2.0
+name: Signed release frontend
+
+on:
+  workflow_call:
+    inputs:
+      target:
+        required: true
+        type: string
+      public_key_jwk:
+        required: true
+        type: string
+      ca_enrollment_trust_json:
+        required: false
+        type: string
+        default: ''
+      connector_origins:
+        required: false
+        type: string
+        default: ''
+      live_relay:
+        required: false
+        type: string
+        default: ''
+    secrets:
+      LOLLY_CATALOG_SIGNING_KEY:
+        required: true
+
+permissions:
+  contents: read
+
+env:
+  LOLLY_PROFILE: lolly-start
+  LOLLY_EMBED_CATALOG: profile
+  VITE_CATALOG_PUBLIC_KEY_JWK: ${{ inputs.public_key_jwk }}
+
+jobs:
+  source-catalog:
+    runs-on: ubuntu-24.04
+    environment: release-catalog-signing
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          submodules: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '26'
+          package-manager-cache: false
+      - name: Check frontend target and release qualification
+        env:
+          FRONTEND_TARGET: ${{ inputs.target }}
+        run: |
+          node --input-type=module -e 'import{parseReleaseFrontend}from"./scripts/build-release-web.ts";parseReleaseFrontend(process.env.FRONTEND_TARGET)'
+          scope=all
+          if [ "$FRONTEND_TARGET" = web ]; then scope=web; fi
+          node scripts/webgpu-release-gate.ts --scope "$scope"
+          mkdir -p node_modules/@lolly-tools
+          ln -s ../../packages/node-shell node_modules/@lolly-tools/node-shell
+      - name: Sign source catalog
+        env:
+          LOLLY_CATALOG_SIGNING_KEY: ${{ secrets.LOLLY_CATALOG_SIGNING_KEY }}
+        run: node scripts/sign-catalog.ts
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: release-source-catalog-${{ inputs.target }}
+          path: brands/lolly-start/catalog/tools/index.sig.json
+          if-no-files-found: error
+
+  compile:
+    needs: source-catalog
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          submodules: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          version: 11.26.0
+          run_install: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '26'
+          cache: pnpm
+      - name: Install frontend dependencies
+        env:
+          FRONTEND_TARGET: ${{ inputs.target }}
+        run: |
+          pnpm install --frozen-lockfile
+          if [ "$FRONTEND_TARGET" != web ]; then pnpm -C "shells/$FRONTEND_TARGET" install --frozen-lockfile; fi
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: release-source-catalog-${{ inputs.target }}
+          path: brands/lolly-start/catalog/tools
+      - name: Compile frontend
+        env:
+          FRONTEND_TARGET: ${{ inputs.target }}
+          LOLLY_RELEASE_FRONTEND_PHASE: build
+          VITE_LIVE_RELAY: ${{ inputs.live_relay }}
+          VITE_CONNECTOR_ORIGINS: ${{ inputs.connector_origins }}
+          VITE_CA_ENROLLMENT_TRUST_JSON: ${{ inputs.ca_enrollment_trust_json }}
+          NODE_OPTIONS: --max-old-space-size=6144
+        run: node scripts/build-release-web.ts "$FRONTEND_TARGET"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: release-frontend-input-${{ inputs.target }}
+          path: shells/${{ inputs.target == 'web' && 'web' || inputs.target }}/dist
+          include-hidden-files: true
+          if-no-files-found: error
+
+  sign-artifact:
+    needs: compile
+    runs-on: ubuntu-24.04
+    environment: release-catalog-signing
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          submodules: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '26'
+          package-manager-cache: false
+      - name: Prepare source resolver
+        run: |
+          mkdir -p node_modules/@lolly-tools
+          ln -s ../../packages/node-shell node_modules/@lolly-tools/node-shell
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: release-frontend-input-${{ inputs.target }}
+          path: release-frontend
+      - name: Sign frontend catalog
+        env:
+          LOLLY_CATALOG_SIGNING_KEY: ${{ secrets.LOLLY_CATALOG_SIGNING_KEY }}
+        run: node scripts/sign-catalog.ts --tools release-frontend/tools --index release-frontend/catalog/tools/index.json --out release-frontend/catalog/tools/index.sig.json --materialize
+      - name: Verify signed catalog
+        run: node scripts/verify-release-catalog.ts --root release-frontend
+      - name: Prepare web delivery files
+        if: inputs.target == 'web'
+        run: node scripts/build-delivery.ts --root release-frontend
+      - name: Sign frontend receipt
+        env:
+          FRONTEND_TARGET: ${{ inputs.target }}
+          LOLLY_CATALOG_SIGNING_KEY: ${{ secrets.LOLLY_CATALOG_SIGNING_KEY }}
+        run: node scripts/release-frontend-receipt.ts "$FRONTEND_TARGET" release-frontend
+      - name: Verify frontend receipt
+        env:
+          FRONTEND_TARGET: ${{ inputs.target }}
+        run: node scripts/release-frontend-receipt.ts --verify "$FRONTEND_TARGET" release-frontend
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: release-frontend-${{ inputs.target }}
+          path: release-frontend
+          include-hidden-files: true
+          if-no-files-found: error

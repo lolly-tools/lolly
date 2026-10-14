@@ -4,8 +4,8 @@
 # ============================================================================
 # Runs `node services/ca/server.mjs`. Listens on $PORT (default 8787), serving
 # under /api/ca (GET /api/ca/health, GET /api/ca/root.pem, the OAuth auth/callback
-# routes, POST /api/ca/enroll). Stateless - the only state is the root key/cert
-# supplied via env; issuance logs are POSTed to an optional webhook.
+# routes and device enrollment/revocation). Managed issuance delegates to Vault;
+# shared admission stores short-lived keyed token identifiers and digests.
 #
 # BUILD CONTEXT MUST BE THE REPO ROOT - the handler imports engine/src/x509.ts
 # by relative path (../../../engine/src/x509.ts):
@@ -13,7 +13,8 @@
 #   docker build -f deploy/docker/ca.Dockerfile -t <registry>/lolly-ca:0.1.0 .
 #
 # REQUIRED runtime env (see services/ca/.env.example): CA_SERVICE_SECRET,
-# CA_ROOT_KEY_PEM, CA_ROOT_CERT_PEM, CA_ALLOWED_ORIGINS, plus at least one OIDC
+# CA_ISSUER_MODE, CA_ALLOWED_ORIGINS and either managed issuer configuration or
+# legacy CA_ROOT_KEY_PEM + CA_ROOT_CERT_PEM, plus at least one OIDC
 # provider pair (GITHUB_*, GOOGLE_*, SUSE_*). Generate the root once with
 # `node services/ca/scripts/gen-root.mjs`. Without the root + secret, /enroll and
 # auth fail. With neither configured, all routes (including health) return 404;
@@ -49,9 +50,9 @@ ENV PORT=8787
 COPY --from=dependencies /src/node_modules/jose ./node_modules/jose
 COPY services/ca ./services/ca
 COPY services/shared ./services/shared
-COPY engine/src/x509.ts engine/src/bytes.ts engine/src/der-read.ts ./engine/src/
+COPY engine/src/x509.ts engine/src/x509-read.ts engine/src/enrollment.ts engine/src/bytes.ts engine/src/der-read.ts ./engine/src/
 COPY LICENSE ./LICENSE
-RUN node --input-type=module -e "await import('./services/ca/lib/oidc.mjs');"
+RUN node --input-type=module -e "await import('./services/ca/lib/oidc.mjs'); await import('./services/ca/handler.mjs');"
 RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 
 USER node

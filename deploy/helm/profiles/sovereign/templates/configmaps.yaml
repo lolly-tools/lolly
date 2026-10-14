@@ -8,7 +8,7 @@ metadata:
     {{- include "sovereign.labels" (dict "root" . "name" "web") | nindent 4 }}
 data:
   default.conf: |
-    {{- .Files.Get "files/public.nginx.conf" | nindent 4 }}
+    {{- include "sovereign.connectorNginx" . | nindent 4 }}
 ---
 apiVersion: v1
 kind: ConfigMap

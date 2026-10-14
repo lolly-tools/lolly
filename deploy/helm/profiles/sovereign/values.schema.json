@@ -3,6 +3,16 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
+    "connectorOrigins": {
+      "type": "array",
+      "maxItems": 64,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "maxLength": 280,
+        "pattern": "^https://[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+(:[1-9][0-9]{0,4})?$"
+      }
+    },
     "manageNamespaces": {
       "type": "boolean"
     },
@@ -589,6 +599,76 @@
               "type": "integer",
               "minimum": 16,
               "maximum": 64
+            },
+            "issuerMode": {
+              "type": "string",
+              "enum": [
+                "legacy-root",
+                "vault-pki"
+              ]
+            },
+            "managed": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "address": {
+                  "type": "string",
+                  "maxLength": 1024
+                },
+                "mount": {
+                  "type": "string",
+                  "maxLength": 1024
+                },
+                "namespace": {
+                  "type": "string",
+                  "maxLength": 1024
+                },
+                "serviceAccountName": {
+                  "type": "string",
+                  "maxLength": 1024
+                },
+                "kubernetesMount": {
+                  "type": "string",
+                  "maxLength": 1024
+                },
+                "kubernetesRole": {
+                  "type": "string",
+                  "maxLength": 1024
+                },
+                "kubernetesAudience": {
+                  "type": "string",
+                  "maxLength": 1024
+                },
+                "credentialSecret": {
+                  "type": "string",
+                  "maxLength": 1024
+                },
+                "revocationCredentialSecret": {
+                  "type": "string",
+                  "maxLength": 1024
+                },
+                "trustJson": {
+                  "type": "string",
+                  "maxLength": 200000
+                },
+                "rolesJson": {
+                  "type": "string",
+                  "maxLength": 200000
+                },
+                "auth": {
+                  "type": "string",
+                  "enum": [
+                    "agent",
+                    "kubernetes"
+                  ]
+                },
+                "egress": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
             }
           },
           "required": ["image", "port", "uid", "resources", "tmpSize", "existingSecret", "heapMiB"]

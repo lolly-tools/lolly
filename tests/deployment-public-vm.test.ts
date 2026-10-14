@@ -82,13 +82,14 @@ test('public VM uses bounded public services with no private mounts or access op
   assert.match(compose, /create_host_path: false/);
 });
 
-test('public web image relay setting is optional and public content remains the default', () => {
+test('public web frontend settings are compiled before independent image packaging', () => {
   const dockerfile = read('deploy/docker/web.Dockerfile');
-  assert.match(dockerfile, /^ARG VITE_LIVE_RELAY=$/m);
-  assert.match(dockerfile, /^ENV VITE_LIVE_RELAY=\$\{VITE_LIVE_RELAY\}$/m);
   assert.match(dockerfile, /^ARG LOLLY_PROFILE=lolly-start$/m);
-  assert.match(dockerfile, /id=LOLLY_CATALOG_SIGNING_KEY[^\n]*required=true/);
-  assert.match(dockerfile, /id=VITE_CATALOG_PUBLIC_KEY_JWK[^\n]*required=true/);
+  assert.match(dockerfile, /^ARG VITE_CATALOG_PUBLIC_KEY_JWK$/m);
+  assert.doesNotMatch(dockerfile, /LOLLY_CATALOG_SIGNING_KEY|pnpm|npm|VITE_LIVE_RELAY/);
+  const reusable = read('.github/workflows/release-frontend.yml');
+  assert.match(reusable, /VITE_LIVE_RELAY: \$\{\{ inputs.live_relay \}\}/);
+  assert.match(workflowJob(read('.github/workflows/deployment-suse.yml'), 'web-frontend'), /live_relay: https:\/\/lolly.tools\/live/);
 });
 
 test('public VM HTTP fixture prepares and mounts the complete maintained delivery configuration', () => {
@@ -109,24 +110,21 @@ test('public VM HTTP fixture prepares and mounts the complete maintained deliver
   }
 });
 
-test('web dependency fetch is source-independent but bootstrap, linking and signing always use full source', () => {
+test('web image verification requires the complete signed artifact without compilation', () => {
   const instructions = read('deploy/docker/web.Dockerfile').replace(/^\s*#.*$/gm, '');
   const stages = instructions.split(/^FROM /m).slice(1);
-  assert.equal(stages.length, 3);
-  const deps = stages[0]!; const build = stages[1]!;
-  assert.match(deps, /node:26-bookworm@sha256:[a-f0-9]{64} AS deps/);
-  assert.match(deps, /npm install --global pnpm@11\.26\.0/);
-  assert.match(deps, /^COPY package\.json pnpm-lock\.yaml pnpm-workspace\.yaml \.\/$/m);
-  assert.match(deps, /^RUN pnpm fetch$/m);
-  assert.doesNotMatch(deps, /COPY \.|brands\/|community\/|pnpm install|LOLLY_CATALOG_SIGNING_KEY/);
-  assert.match(build, /^deps AS build/);
-  assert.ok(build.indexOf('COPY . .') < build.indexOf('pnpm install --offline --frozen-lockfile --prod=false'));
-  assert.ok(build.indexOf('pnpm install --offline --frozen-lockfile --prod=false') < build.indexOf('pnpm run build:web:release'));
-  assert.doesNotMatch(instructions, /--ignore-scripts|LOLLY_SKIP_BOOTSTRAP_CHECK/);
-  const manifest = JSON.parse(read('package.json')) as { scripts: { preinstall: string } };
-  assert.equal(manifest.scripts.preinstall, 'node scripts/check-bootstrap.ts');
-  const workspace = read('pnpm-workspace.yaml');
-  for (const line of workspace.split('\n').filter(line => /^ {2}- /.test(line))) assert.ok(read(`${line.slice(4)}/package.json`));
+  assert.equal(stages.length, 2);
+  const verify = stages[0]!; const runtime = stages[1]!;
+  assert.match(verify, /node:26-bookworm@sha256:[a-f0-9]{64} AS verify/);
+  assert.match(verify, /COPY --from=release-frontend \/ \/src\/release-frontend\//);
+  assert.match(verify, /RUN --network=none node scripts\/webgpu-release-gate.ts --scope web/);
+  assert.match(verify, /release-frontend-receipt.ts --verify web release-frontend/);
+  assert.match(verify, /verify-release-catalog.ts --root release-frontend/);
+  assert.match(verify, /test -f release-frontend\/\.delivery-etags.conf/);
+  assert.doesNotMatch(instructions, /pnpm|npm|--mount=type=secret|LOLLY_CATALOG_SIGNING_KEY|COPY \. \./);
+  assert.match(runtime, /COPY --from=verify \/src\/release-frontend \/usr\/share\/nginx\/html/);
+  assert.ok(runtime.indexOf('rm -rf /usr/share/nginx/html') < runtime.indexOf('COPY --from=verify'));
+  assert.doesNotMatch(runtime, /COPY --from=release-frontend/);
 });
 
 test('browser image is optional, lockfile-scoped and retains sandbox/auth defaults', () => {
@@ -249,54 +247,43 @@ test('signed public candidate pin must match the valid existing repository publi
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });
 
-test('web build exports only dependency cache and always reruns the signed source stage', () => {
+test('web image packaging verifies a named artifact context and owns only its acquired builder', () => {
   const web = workflowJob(read('.github/workflows/deployment-suse.yml'), 'web-image');
   const step = web.slice(web.indexOf('- name: Build the exact public web image'), web.indexOf('- name: Verify the actual image catalog'));
   const script = step.split('        run: |\n')[1]?.replace(/^ {10}/gm, ''); assert.ok(script);
-  assert.match(script, /sha256sum package\.json pnpm-lock\.yaml pnpm-workspace\.yaml deploy\/docker\/web\.Dockerfile/);
   assert.match(script, /--driver docker-container/);
   assert.match(script, /image=moby\/buildkit:v0\.34\.0@sha256:b059f8d7226d0b326bc871af489a5dddf65e36af4d20d14251b072974d9ee87c/);
-  const directory = mkdtempSync(join(tmpdir(), 'lolly-dependency-cache-'));
+  const directory = mkdtempSync(join(tmpdir(), 'lolly-artifact-image-'));
   try {
-    for (const failure of ['', 'create', 'fetch']) {
-      const root = mkdtempSync(join(directory, 'case-')); mkdirSync(join(root, 'deploy/docker'), { recursive: true });
-      mkdirSync(join(root, 'lolly-image-receipts'));
-      for (const file of ['package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', 'deploy/docker/web.Dockerfile']) writeFileSync(join(root, file), 'synthetic input\n');
+    for (const failure of ['', 'create', 'build']) {
+      const root = mkdtempSync(join(directory, 'case-'));
       const mock = `
         uname() { printf '%s\\n' x86_64; }
-        sha256sum() { "$NODE_EXEC" --input-type=module -e '
-          import {createHash} from "node:crypto"; import {readFileSync} from "node:fs";
-          const files=process.argv.slice(1); for(const file of files.length?files:[null]) {
-            process.stdout.write(createHash("sha256").update(readFileSync(file??0)).digest("hex")+"  "+(file??"-")+"\\n");
-          }
-        ' "$@"; }
         docker() {
           "$NODE_EXEC" --input-type=module -e 'import {appendFileSync} from "node:fs"; appendFileSync(process.env.TRACE,JSON.stringify(process.argv.slice(1))+"\\n");' "$@"
           if [[ "$FAIL" == create && "$1" == buildx && "$2" == create ]]; then return 1; fi
-          if [[ "$FAIL" == fetch && "$1" == buildx && "$2" == build && "$*" == *"--target deps"* ]]; then return 1; fi
+          if [[ "$FAIL" == build && "$1" == buildx && "$2" == build ]]; then return 1; fi
         }
       `;
       const result: SpawnSyncReturns<string> = spawnSync('bash', ['-c', mock + script], { cwd: root, env: {
         ...process.env, NODE_EXEC: process.execPath, TRACE: join(root, 'calls.jsonl'), FAIL: failure, RUNNER_TEMP: root,
-        LOLLY_CATALOG_SIGNING_KEY: 'synthetic-not-a-key', REGISTRY_TOKEN: 'synthetic-not-a-token', GITHUB_ACTOR: 'fixture',
+        REGISTRY_TOKEN: 'synthetic-not-a-token', GITHUB_ACTOR: 'fixture', VITE_CATALOG_PUBLIC_KEY_JWK: 'synthetic-public-pin', VITE_CONNECTOR_ORIGINS: 'https://storage.example.com',
         GITHUB_REPOSITORY_OWNER: 'Owner', GITHUB_REPOSITORY: 'Owner/lolly', GITHUB_RUN_ID: '123', GITHUB_RUN_ATTEMPT: '2', EXPECTED_SOURCE: archiveSource,
       }, encoding: 'utf8', timeout: 5000 });
       assert.equal(result.status === 0, failure === '', result.stderr);
       const calls = readFileSync(join(root, 'calls.jsonl'), 'utf8').trim().split('\n').map(line => JSON.parse(line) as string[]);
       const builds = calls.filter(args => args[0] === 'buildx' && args[1] === 'build');
       assert.equal(calls.some(args => args[1] === 'rm'), failure !== 'create', 'remove only an acquired builder');
-      if (failure === 'create') { assert.equal(builds.length, 0); continue; }
-      const deps = builds[0]!; assert.ok(deps.includes('--target')); assert.equal(deps[deps.indexOf('--target') + 1], 'deps');
-      assert.ok(deps.includes('--cache-to')); assert.doesNotMatch(deps.join(' '), /--secret|--build-arg|--load|suse/);
-      assert.match(deps[deps.indexOf('--cache-to') + 1]!, /^type=registry,ref=ghcr\.io\/owner\/lolly-web-deps-cache:neutral-node26-pnpm11-amd64-[a-f0-9]{64},mode=max$/);
-      assert.equal(builds.length, failure === 'fetch' ? 1 : 2);
-      if (failure) continue;
-      const release = builds[1]!; assert.ok(release.includes('--load')); assert.ok(release.includes('--cache-from'));
-      assert.equal(release[release.indexOf('--no-cache-filter') + 1], 'build'); assert.ok(!release.includes('--cache-to'));
-      assert.ok(release.includes('LOLLY_PROFILE=lolly-start')); assert.ok(release.includes('id=LOLLY_CATALOG_SIGNING_KEY,env=LOLLY_CATALOG_SIGNING_KEY'));
-      const receipt = JSON.parse(readFileSync(join(root, 'lolly-image-receipts/dependency-cache.json'), 'utf8'));
-      assert.equal(receipt.scope, 'public-neutral'); assert.equal(receipt.target, 'deps');
-      assert.equal(receipt.sourceExported, false); assert.equal(receipt.signingExported, false); assert.equal(receipt.releaseStageCache, false);
+      assert.equal(builds.length, failure === 'create' ? 0 : 1);
+      if (!builds.length) continue;
+      const build = builds[0]!;
+      assert.equal(build[build.indexOf('--no-cache-filter') + 1], 'verify');
+      assert.equal(build[build.indexOf('--build-context') + 1], 'release-frontend=' + root + '/lolly-signed-web');
+      assert.ok(build.includes('LOLLY_RELEASE_SOURCE=' + archiveSource));
+      assert.ok(build.includes('VITE_CATALOG_PUBLIC_KEY_JWK=synthetic-public-pin'));
+      assert.ok(build.includes('VITE_CONNECTOR_ORIGINS=https://storage.example.com'));
+      assert.ok(build.includes('LOLLY_PROFILE=lolly-start'));
+      assert.doesNotMatch(build.join(' '), /--secret|--cache-to|--cache-from|--target deps|LOLLY_CATALOG_SIGNING_KEY/);
     }
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });
@@ -308,7 +295,7 @@ test('native image publication is opt-in and follows source, catalog and sandbox
   const browser = workflowJob(workflow, 'mcp-browser-image');
   for (const job of [web, services, browser]) {
     assert.match(job, /github.event_name == 'workflow_dispatch' && inputs.build_images == true/);
-    assert.match(job, /needs: \[chart, public-vm, source-qualification(?:, [a-z-]+)?\]/);
+    assert.match(job, /needs: \[chart, public-vm, source-qualification(?:, [a-z-]+)*\]/);
     assert.match(job, /test "\$GITHUB_SHA" = "\$EXPECTED_SOURCE"/);
     assert.match(job, /submodules: false/);
     assert.doesNotMatch(job, /seccomp=unconfined|--privileged|SYS_ADMIN|LOLLY_BROWSER_NO_SANDBOX=1/);
@@ -316,9 +303,13 @@ test('native image publication is opt-in and follows source, catalog and sandbox
   for (const job of [web, services]) {
     assert.match(job, /--read-only --cap-drop ALL --security-opt no-new-privileges:true/);
   }
-  // Only the web image is signed, so only its job sees the signing key.
-  assert.match(web, /secrets.LOLLY_CATALOG_SIGNING_KEY/);
-  assert.match(web, /--secret id=LOLLY_CATALOG_SIGNING_KEY,env=LOLLY_CATALOG_SIGNING_KEY/);
+  const frontend = workflowJob(workflow, 'web-frontend');
+  assert.match(frontend, /uses: \.\/\.github\/workflows\/release-frontend.yml/);
+  assert.match(frontend, /secrets.LOLLY_CATALOG_SIGNING_KEY/);
+  assert.doesNotMatch(web, /LOLLY_CATALOG_SIGNING_KEY|--secret|release-catalog-signing/);
+  assert.match(web, /release-frontend-receipt.ts --verify web/);
+  assert.ok(web.indexOf('release-frontend-receipt.ts --verify web') < web.indexOf('docker buildx build'));
+  assert.match(web, /needs: \[chart, public-vm, source-qualification, web-release-gate, web-frontend\]/);
   assert.match(web, /verify-release-catalog.ts/);
   assert.ok(web.indexOf('verify-release-catalog.ts') < web.indexOf('docker push "$remote"'));
   for (const job of [services, browser]) {
@@ -396,7 +387,7 @@ test('native image publication is opt-in and follows source, catalog and sandbox
 test('public preparation scopes keep full as the default and web updates independent of services', () => {
   const workflow = read('.github/workflows/deployment-suse.yml');
   assert.match(workflow, /release_scope:\n(?:.*\n){3}\s+options: \[full, web, services-docs\]\n\s+default: full/);
-  const webJobs = ['web-release-gate', 'web-image'];
+  const webJobs = ['web-release-gate', 'web-frontend', 'web-image'];
   const independentJobs = ['probe-web-shell', 'service-images', 'mcp-browser-image', 'info-docs'];
   for (const event of ['push', 'pull_request', 'workflow_dispatch']) {
     for (const scope of ['full', 'web', 'services-docs', 'unknown']) {
@@ -410,7 +401,7 @@ test('public preparation scopes keep full as the default and web updates indepen
           const selected = event === 'workflow_dispatch' && buildImages
             && (scope === 'full' || scope === (webJobs.includes(id) ? 'web' : 'services-docs'));
           assert.equal(evaluate(event, buildImages, scope, 'true'), selected, `${event}/${scope}/${buildImages}/${id}`);
-          if (id === 'web-image') assert.equal(evaluate(event, buildImages, scope, 'false'), false);
+          if (id === 'web-image' || id === 'web-frontend') assert.equal(evaluate(event, buildImages, scope, 'false'), false);
         }
       }
     }
@@ -421,7 +412,7 @@ test('public preparation scopes keep full as the default and web updates indepen
     const result: SpawnSyncReturns<string> = spawnSync('bash', ['-c', validation], { env: { ...process.env, RELEASE_SCOPE: scope }, encoding: 'utf8', timeout: 5000 });
     assert.equal(result.status === 0, ['full', 'web', 'services-docs'].includes(scope), result.stderr);
   }
-  assert.match(workflowJob(workflow, 'web-image'), /docker buildx build --load --no-cache-filter build --platform linux\/amd64/);
+  assert.match(workflowJob(workflow, 'web-image'), /docker buildx build --load --no-cache-filter verify --platform linux\/amd64/);
   for (const id of ['service-images', 'mcp-browser-image']) {
     assert.match(workflowJob(workflow, id), /docker buildx build --load --no-cache --platform linux\/amd64/);
   }

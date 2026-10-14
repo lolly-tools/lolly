@@ -6,6 +6,18 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.261.0
+
+- Add managed certificate enrollment, CSR and key proof validation, independently configured issuer trust, and signed certificate status checks. Existing certificate APIs keep their supported signatures.
+- Add optional personal-data sharing metadata. Generated share links review declared personal and profile-bound fields while raw URL parsing and CLI input contracts keep their existing behavior.
+- Extend signed catalog resource verification to published previews and dependent tool files.
+
+## 1.260.0
+
+- Add an optional isolated-public capture mode. Strict tool execution requires a host that supplies a disposable browser profile and checked public networking; unsupported hosts refuse that mode.
+- Export credentials record input fingerprints by default. Hidden and profile-bound inputs are omitted, and text edits retain action metadata without a text sample.
+- Validate colour values before they enter input models, updates and cached token values. Hosted asset reads use checked public HTTP connections with bounded redirects, deadlines and response sizes.
+
 ## 1.259.0
 
 - Supported DOCX metadata cleanup can remove selected Company and Manager string properties from the canonical extended-properties part. Namespace and source-range deletion retain other application properties, package declarations and unrelated ZIP members. Strip Hidden Data 1.3 exposes the selections through the existing review and copy flow.

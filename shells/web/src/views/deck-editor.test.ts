@@ -31,7 +31,7 @@ dom.window.HTMLDialogElement.prototype.showModal = function () { this.open = tru
 dom.window.HTMLDialogElement.prototype.close = function () { this.open = false; this.dispatchEvent(new W.Event('close')); };
 // `window` + getComputedStyle are needed because the inspector mounts the app's real colour
 // picker (color-field.ts), which wires window listeners and reads computed styles on mount.
-for (const k of ['window', 'document', 'HTMLElement', 'KeyboardEvent', 'Event', 'MouseEvent', 'Node', 'getComputedStyle']) {
+for (const k of ['window', 'document', 'Element', 'HTMLElement', 'HTMLDialogElement', 'KeyboardEvent', 'Event', 'MouseEvent', 'Node', 'getComputedStyle']) {
   (globalThis as Record<string, unknown>)[k] = (dom.window as unknown as Record<string, unknown>)[k];
 }
 const click = (el: Element): void => { el.dispatchEvent(new W.Event('click', { bubbles: true })); };
@@ -969,8 +969,43 @@ test('parsePptxGenDeck: a pptxgenjs script imports as freeform slides (shape + t
 });
 
 test('parseDeck routes a pptxgenjs script through the importer', () => {
-  const slides = parseDeck('const p = new (require("pptxgenjs"))(); const s = p.addSlide(); s.addText("Hi", { x:1, y:1, w:3, h:1 });');
+  const slides = parseDeck('const p = new (require("pptxgenjs"))(); const s = p.addSlide(); s.addText("Hi", { x:1, y:1, w:3, h:1 });', { allowScript: true });
   assert.equal(slides[0]!.mode, 'freeform');
+});
+
+test('parseDeck requires approval for executable source', () => {
+  assert.throws(() => parseDeck('const p = new (require("pptxgenjs"))(); p.addSlide();'), /approval/);
+});
+
+test('load: a deck script waits for consent and cancel leaves the deck unchanged', async () => {
+  const { stageEl, val, handle } = mountFixture([{ title: 'old' }]);
+  click(stageEl.querySelector('.deck-strip__load')!);
+  (stageEl.querySelector('.deck-load__ta') as HTMLTextAreaElement).value = 'const p = new (require("pptxgenjs"))(); p.addSlide().addText("Hello");';
+  click(stageEl.querySelector('.deck-load__btn--go')!);
+  assert.equal((val('deck') as Array<{ title: string }>)[0]!.title, 'old');
+  const dialog = document.querySelector('dialog')!;
+  assert.ok(dialog.open);
+  click(dialog.querySelector('[data-act="cancel"]')!);
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal((val('deck') as Array<{ title: string }>)[0]!.title, 'old');
+  assert.ok(stageEl.querySelector('.deck-load'));
+  handle.destroy();
+});
+
+test('load: approval runs the captured source and imports the slides', async () => {
+  const { stageEl, val, handle } = mountFixture([{ title: 'old' }]);
+  click(stageEl.querySelector('.deck-strip__load')!);
+  const textarea = stageEl.querySelector('.deck-load__ta') as HTMLTextAreaElement;
+  textarea.value = 'const p = new (require("pptxgenjs"))(); p.addSlide().addText("Approved");';
+  click(stageEl.querySelector('.deck-load__btn--go')!);
+  textarea.value = 'const p = new (require("pptxgenjs"))(); p.addSlide().addText("Changed");';
+  click(document.querySelector('dialog [data-act="ok"]')!);
+  await new Promise(resolve => setTimeout(resolve, 0));
+  const deck = val('deck') as Array<{ mode: string; boxes: Array<{ text: string }> }>;
+  assert.equal(deck[0]!.mode, 'freeform');
+  assert.equal(deck[0]!.boxes[0]!.text, 'Approved');
+  assert.equal(stageEl.querySelector('.deck-load'), null);
+  handle.destroy();
 });
 
 // ── binary .pptx read-model import (engine readPptx → freeform slides) ──────────

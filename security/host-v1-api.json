@@ -160,7 +160,7 @@
     "CaptureSpec": {
       "module": "capture.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "1ac6261fc2e4be472ceb79be846cd19381e172ea4495c1cc0bff23c17c2aa456"
+      "sha256": "56b9b59b7be62969a344f5de1e3b29920e4ad6abc0bc925ed02276fb47d8c0ee"
     },
     "LiftLayer": {
       "module": "capture.ts",

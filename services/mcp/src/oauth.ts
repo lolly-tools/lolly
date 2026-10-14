@@ -45,10 +45,12 @@ const CODE_TTL = 60;                  // 1 min - bounds the stateless (non-one-t
 const SCOPE = 'mcp';
 
 interface ClientPayload { t: 'client'; ru: string[]; iat: number }
-interface CodePayload { t: 'code'; cid: string; ru: string; cc: string; sc: string; aud?: string; exp: number }
-interface TokenPayload { t: 'access' | 'refresh'; sc: string; aud?: string; exp: number }
+interface CodePayload { t: 'code'; cid: string; ru: string; cc: string; sc: string; aud: string; exp: number }
+interface TokenPayload { t: 'access' | 'refresh'; sc: string; aud: string; exp: number }
 
 const now = (): number => Math.floor(Date.now() / 1000);
+const defaultIssuer = (env: NodeJS.ProcessEnv): string => env.LOLLY_MCP_PUBLIC_ORIGIN || `http://localhost:${env.PORT || 8790}`;
+const resourceFor = (issuer: string): string => `${issuer.replace(/\/+$/, '')}/api/mcp`;
 
 /** The signing secret (defaults to the passphrase so no new env is required). */
 export function signingSecret(env: NodeJS.ProcessEnv): string {
@@ -159,10 +161,11 @@ async function resolveClient(params: AuthzParams, env: NodeJS.ProcessEnv): Promi
 }
 
 /** GET /authorize → the consent page (or an error page for bad params). */
-export async function authorizeGet(params: AuthzParams, env: NodeJS.ProcessEnv): Promise<Result> {
+export async function authorizeGet(params: AuthzParams, env: NodeJS.ProcessEnv, issuer = defaultIssuer(env)): Promise<Result> {
   if (!passphrase(env)) return { status: 500, html: errorPage('This deployment has no LOLLY_MCP_TOKEN set, so OAuth connect is disabled.') };
   const client = await resolveClient(params, env);
   if (!client.ok) return client.result;
+  if (params.resource !== undefined && params.resource !== resourceFor(issuer)) return oauthError(400, 'invalid_target', 'The requested resource is not available.');
   if (params.response_type !== 'code') return { status: 400, html: errorPage('Unsupported response_type (only "code").') };
   if (!params.code_challenge || params.code_challenge_method !== 'S256') {
     return { status: 400, html: errorPage('This server requires PKCE with code_challenge_method=S256.') };
@@ -171,9 +174,10 @@ export async function authorizeGet(params: AuthzParams, env: NodeJS.ProcessEnv):
 }
 
 /** POST /authorize → check the passphrase, mint a code, 302 back to the client. */
-export async function authorizePost(params: AuthzParams & { passphrase?: string }, env: NodeJS.ProcessEnv, issuer = env.LOLLY_MCP_PUBLIC_ORIGIN || `http://localhost:${env.PORT || 8790}`): Promise<Result> {
+export async function authorizePost(params: AuthzParams & { passphrase?: string }, env: NodeJS.ProcessEnv, issuer = defaultIssuer(env)): Promise<Result> {
   const client = await resolveClient(params, env);
   if (!client.ok) return client.result;
+  if (params.resource !== undefined && params.resource !== resourceFor(issuer)) return oauthError(400, 'invalid_target', 'The requested resource is not available.');
   if (params.response_type !== 'code' || !params.code_challenge || params.code_challenge_method !== 'S256') {
     return { status: 400, html: errorPage('Invalid authorization request.') };
   }
@@ -184,7 +188,7 @@ export async function authorizePost(params: AuthzParams & { passphrase?: string 
   }
   const code = await signValue({
     t: 'code', cid: params.client_id!, ru: params.redirect_uri!, cc: params.code_challenge!,
-    sc: SCOPE, aud: params.resource, exp: now() + CODE_TTL,
+    sc: SCOPE, aud: resourceFor(issuer), exp: now() + CODE_TTL,
   } satisfies CodePayload, signingSecret(env));
   const url = new URL(params.redirect_uri!);
   url.searchParams.set('iss', issuer);
@@ -198,13 +202,16 @@ export async function authorizePost(params: AuthzParams & { passphrase?: string 
 const oauthError = (status: number, error: string, desc?: string): Result =>
   ({ status, headers: { 'cache-control': 'no-store' }, json: { error, ...(desc ? { error_description: desc } : {}) } });
 
-export async function token(body: Record<string, string>, env: NodeJS.ProcessEnv): Promise<Result> {
+export async function token(body: Record<string, string>, env: NodeJS.ProcessEnv, issuer = defaultIssuer(env)): Promise<Result> {
   const secret = signingSecret(env);
   const grant = body.grant_type;
+  const resource = resourceFor(issuer);
+  if (body.resource !== undefined && body.resource !== resource) return oauthError(400, 'invalid_target', 'The requested resource is not available.');
 
   if (grant === 'authorization_code') {
     const code = await verifyValue<CodePayload>(body.code, secret);
     if (!code || code.t !== 'code') return oauthError(400, 'invalid_grant', 'authorization code is invalid');
+    if (code.aud !== resource || code.sc !== SCOPE) return oauthError(400, 'invalid_grant', 'authorization code is not valid for this resource');
     if (code.exp < now()) return oauthError(400, 'invalid_grant', 'authorization code has expired');
     if (body.redirect_uri && body.redirect_uri !== code.ru) return oauthError(400, 'invalid_grant', 'redirect_uri mismatch');
     if (body.client_id && body.client_id !== code.cid) return oauthError(400, 'invalid_grant', 'client_id mismatch');
@@ -218,6 +225,7 @@ export async function token(body: Record<string, string>, env: NodeJS.ProcessEnv
   if (grant === 'refresh_token') {
     const rt = await verifyValue<TokenPayload>(body.refresh_token, secret);
     if (!rt || rt.t !== 'refresh') return oauthError(400, 'invalid_grant', 'refresh token is invalid');
+    if (rt.aud !== resource || rt.sc !== SCOPE) return oauthError(400, 'invalid_grant', 'refresh token is not valid for this resource');
     if (rt.exp < now()) return oauthError(400, 'invalid_grant', 'refresh token has expired');
     return issueTokens(rt.sc, rt.aud, secret);
   }
@@ -225,7 +233,7 @@ export async function token(body: Record<string, string>, env: NodeJS.ProcessEnv
   return oauthError(400, 'unsupported_grant_type', String(grant || ''));
 }
 
-async function issueTokens(scope: string, aud: string | undefined, secret: string): Promise<Result> {
+async function issueTokens(scope: string, aud: string, secret: string): Promise<Result> {
   const access = await signValue({ t: 'access', sc: scope, aud, exp: now() + ACCESS_TTL } satisfies TokenPayload, secret);
   const refresh = await signValue({ t: 'refresh', sc: scope, aud, exp: now() + REFRESH_TTL } satisfies TokenPayload, secret);
   return {
@@ -239,10 +247,10 @@ async function issueTokens(scope: string, aud: string | undefined, secret: strin
 
 /**
  * Gate for POST /api/mcp. Accepts EITHER the raw shared token (LOLLY_MCP_TOKEN,
- * Claude Code / curl, unchanged) OR an OAuth access token minted above. If no
- * token is configured at all, the endpoint is open (dev/self-host default).
+ * Claude Code / curl, unchanged) OR a resource-scoped OAuth access token minted
+ * above. Anonymous access requires an explicit deployment opt-in.
  */
-export async function isAuthorized(authorizationHeader: string | undefined, env: NodeJS.ProcessEnv): Promise<boolean> {
+export async function isAuthorized(authorizationHeader: string | undefined, env: NodeJS.ProcessEnv, issuer = defaultIssuer(env)): Promise<boolean> {
   const shared = passphrase(env);
   // Fail CLOSED. A production deploy that forgets/drops/typos LOLLY_MCP_TOKEN
   // must NOT silently become a world-open MCP endpoint (which can invoke tools
@@ -253,7 +261,7 @@ export async function isAuthorized(authorizationHeader: string | undefined, env:
   if (!bearer) return false;
   if (await safeEqual(bearer, shared)) return true; // raw shared-secret path
   const tok = await verifyValue<TokenPayload>(bearer, signingSecret(env));
-  return !!tok && tok.t === 'access' && tok.exp >= now();
+  return !!tok && tok.t === 'access' && tok.sc === SCOPE && tok.aud === resourceFor(issuer) && tok.exp >= now();
 }
 
 // ─── minimal HTML (self-contained, brand-light) ───────────────────────────────

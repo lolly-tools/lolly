@@ -32,9 +32,10 @@ marketing line. Each claim points at the code that backs it; verify them.
   remote and never `localStorage` for tool data
   ([`shells/web/src/bridge/state.ts`](shells/web/src/bridge/state.ts)).
 
-- **No third-party runtime fetches.** Typefaces are bundled and served from the
-  same origin, not Google Fonts or a CDN; text-to-path uses a bundled HarfBuzz
-  WASM, not a hosted service.
+- **Core rendering uses bundled resources.** Typefaces and HarfBuzz WASM are
+  served from the application origin. Optional features can contact external
+  providers for fonts, maps, media, storage, sign-in and certificate enrollment;
+  [`docs/privacy.md`](docs/privacy.md) describes those data flows.
 
 - **Open Source, copyleft-licensed.** `engine/`, `shells/`, `schemas/`, and
   `docs/` are open-sourceable by design under [MPL-2.0](LICENSE); the

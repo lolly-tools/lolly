@@ -14,7 +14,8 @@ import { scopedTokenOptions } from '../../../engine/src/token-context.ts';
 import { isJxl } from '../../../engine/src/jxl.ts';
 import { prepareJxlAsset } from '@lolly-tools/node-shell/jxl-asset';
 import { readFile } from 'node:fs/promises';
-import { assetBytes } from '@lolly-tools/node-shell/asset-bytes';
+import { assetBytes, decodeDataUrl } from '@lolly-tools/node-shell/asset-bytes';
+import { fetchPublicBytes, MAX_PUBLIC_ASSET_BYTES, PUBLIC_IMAGE_TYPES } from '@lolly-tools/node-shell/public-http';
 // The .penpot archive's zip step (plans/178). fflate is already this shell's zip codec
 // (the pptx read path uses it); the engine hands back entries and the caller zips them,
 // exactly the split the web shell's lib/zip.ts sits on.
@@ -44,7 +45,7 @@ import { createPptxAPI } from '@lolly-tools/node-shell/pptx';
 // Node ≥18 globals), so every shell builds it from one module - the prefix-match
 // rules and the 64 MB counting-stream cap can never drift. RELATIVE for the same
 // MCP-bundle reason as above.
-import { createNetAPI } from '@lolly-tools/node-shell/net';
+import { createNetAPI, matchesNetworkUrl } from '@lolly-tools/node-shell/net';
 // SVG→EMF IR walk is DOM-light (attribute reads), so it runs under jsdom for
 // native-SVG tools - the same "no layout engine" constraint as the svg branch.
 // Moved out of shells/web by plans/202 WP1.1; RELATIVE for the MCP-bundle reason.
@@ -268,6 +269,8 @@ interface CliBridgeOpts {
    * it off, since capturing your own localhost is a normal thing to do there.
    */
   capturePublicOnly?: boolean;
+  /** Hosted asset readers use bounded public HTTP connections and MIME checks. */
+  publicOnlyAssets?: boolean;
   /** Hosted renderers without a member AI lease omit model-backed APIs.
    * Standalone CLI/TUI behaviour remains enabled by default. */
   aiEnabled?: boolean;
@@ -323,7 +326,7 @@ function rondoRecordOf(bytes: Uint8Array): RondoSourceV1 | null {
 }
 
 export async function createCliBridge(
-  { profile = {}, dom, networkAllowlist, designVersion, tokenSelection, capturePublicOnly = false, aiEnabled = true, tokensDocument = null, rondo, onAudioRun, onAudioRunFailed, rondoBudget, geometryBackend }: CliBridgeOpts = {} as CliBridgeOpts,
+  { profile = {}, dom, networkAllowlist, designVersion, tokenSelection, capturePublicOnly = false, publicOnlyAssets = false, aiEnabled = true, tokensDocument = null, rondo, onAudioRun, onAudioRunFailed, rondoBudget, geometryBackend }: CliBridgeOpts = {} as CliBridgeOpts,
 ): Promise<HostV1> {
   const w = dom.window;
   // Pre-load the asset catalog so query/get can be synchronous-ish. Merged, not the
@@ -341,6 +344,16 @@ export async function createCliBridge(
   };
 
   const state = new Map<string, { data: object; updatedAt: string }>();
+
+  const bounded = (bytes: Uint8Array): Uint8Array => {
+    if (bytes.byteLength > MAX_PUBLIC_ASSET_BYTES) throw new Error('The asset exceeds this host\'s byte limit.');
+    return bytes;
+  };
+  async function readHostedSource(source: string, allowedTypes: ReadonlySet<string> = PUBLIC_IMAGE_TYPES): Promise<Uint8Array> {
+    if (source.startsWith('/catalog/')) return bounded(new Uint8Array(await readFile(assetFilePath(source))));
+    if (/^data:/i.test(source)) return bounded(decodeDataUrl(source));
+    return (await fetchPublicBytes(source, { allowedTypes })).bytes;
+  }
 
   const host = {
     version: '1',
@@ -373,6 +386,7 @@ export async function createCliBridge(
       if (typeof source === 'object' && 'arrayBuffer' in source) return new Uint8Array(await source.arrayBuffer());
       if (typeof source !== 'string') return host.assets.bytes!(source);
       if (source.startsWith('/catalog/')) return new Uint8Array(await readFile(assetFilePath(source)));
+      if (publicOnlyAssets) return readHostedSource(source);
       const response = await fetch(source);
       if (!response.ok) throw new Error(`Could not read HDR source (${response.status}).`);
       return new Uint8Array(await response.arrayBuffer());
@@ -642,6 +656,7 @@ export async function createCliBridge(
   // render is reported to `onAudioRun`.
   host.audio = createNodeAudioAPI({
     repoRoot: REPO_ROOT,
+    ...(publicOnlyAssets ? { readSource: (source: string) => readHostedSource(source, new Set(['audio/wav', 'audio/x-wav', 'audio/wave', 'audio/vnd.wave', 'application/json', 'text/plain'])) } : {}),
     ...(rondo ? { rondo } : {}),
     ...(rondoBudget ? { budget: rondoBudget } : {}),
     onRun: onAudioRun ?? cliAudioRunReporter(),
@@ -713,13 +728,27 @@ export async function createCliBridge(
   // built per-invocation from the loaded manifest's network.allowlist (callers thread
   // it in via CliBridgeOpts). Deny happens before any I/O, so an empty/absent allowlist
   // means the API exists but every fetch rejects - identical fail-closed stance to web.
-  host.net = createNetAPI({ allowlist: networkAllowlist });
+  host.net = createNetAPI({
+    allowlist: networkAllowlist,
+    ...(publicOnlyAssets ? {
+      fetchImpl: async (url: string, init?: RequestInit): Promise<Response> => {
+        if (init?.method && init.method.toUpperCase() !== 'GET') throw new Error('This host supports GET network reads only.');
+        if (init?.body) throw new Error('This host does not send network request bodies.');
+        const result = await fetchPublicBytes(url, {
+          ...(init?.headers ? { headers: init.headers } : {}),
+          ...(init?.signal ? { signal: init.signal } : {}),
+          allowUrl: next => (networkAllowlist ?? []).some(pattern => matchesNetworkUrl(pattern, next.toString())),
+        });
+        return new Response(result.bytes as BodyInit, { status: result.response.status, headers: result.response.headers });
+      },
+    } : {}),
+  });
 
   host.assets = {
     // v1.183: bytes behind a ref. This bridge inlines catalog files as data:
     // urls, so most reads never touch the disk; http(s) rides the tool's own
     // allowlist through host.net, never an open fetch.
-    bytes: (target) => assetBytes(target, { netFetch: (url) => (host.net ? host.net.fetch(url) : Promise.reject(new Error('no host.net'))) }),
+    bytes: (target) => assetBytes(target, { allowFiles: !publicOnlyAssets, netFetch: (url) => (host.net ? host.net.fetch(url) : Promise.reject(new Error('no host.net'))) }),
     async resolveProvider(ref) {
       if (ref.provider === 'catalog' || ref.provider === 'library') {
         try { return await host.assets.get([ref.scope, ref.path].filter(Boolean).join('/')); } catch { return null; }
@@ -792,6 +821,12 @@ export async function createCliBridge(
         return prepareJxlAsset({ source: 'remote', id, type: kind.type, format: kind.format, url: id }, bytes);
       }
       if (/^https?:\/\//i.test(id)) {
+        if (publicOnlyAssets) {
+          const { bytes, mime } = await fetchPublicBytes(id, { allowedTypes: PUBLIC_IMAGE_TYPES, headers: { accept: 'image/*' } });
+          const kind = urlAssetKind(mime, '');
+          if (!kind) throw new Error('Unsupported URL asset content type.');
+          return prepareJxlAsset({ source: 'remote', id, ...kind, url: `data:${mime};base64,${Buffer.from(bytes).toString('base64')}` }, bytes);
+        }
         const res = await fetch(id, { signal: AbortSignal.timeout(20_000) });
         if (!res.ok) throw new Error(`URL asset fetch failed (${res.status}): ${id}`);
         const buf = Buffer.from(await res.arrayBuffer());
@@ -1393,6 +1428,7 @@ function rootSvgOf(node: Element | null): Element | null {
   // this - but this fulfils the 'capture' capability for the hook + non-CLI callers.)
   host.capture = {
     async page(spec) {
+      if (spec.isolation) throw new Error('This host does not provide isolated public page capture.');
       const { bytes, mime } = await captureUrl(
         {
           url: spec.url, scrollDepth: spec.scrollDepth ?? 0, waitMs: spec.waitMs ?? 500,
@@ -1433,7 +1469,7 @@ function rootSvgOf(node: Element | null): Element | null {
   // canvas. `canRaster()` is the sync probe a tool branches on before deciding what
   // to render, and it now answers honestly here instead of being absent (which every
   // hook reads as "headless, refuse"). Conditional for the same reason as above.
-  const raster = createNodeRasterAPI();
+  const raster = createNodeRasterAPI(publicOnlyAssets ? { readUrl: readHostedSource } : {});
   if (raster) host.raster = raster;
 
   // host.c2pa.sign (v1.85; widened v1.104) - freshly sign a manifest into finished

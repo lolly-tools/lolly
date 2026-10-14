@@ -73,3 +73,23 @@ download services, and has not qualified complete public route parity for
 lolly.tools. These components and their authentication, rate limits, backups and
 recovery must be qualified before a production migration. See the
 [deployment guide](https://lolly.tools/info/operate/deployment.html).
+
+### Managed certificate enrollment
+
+Set `ca.config.issuerMode=vault-pki` and fill `ca.config.managed` with the reviewed
+Vault endpoint, auth role/audience, public trust JSON and issuer/role key references.
+Supply an existing enrollment secret with `CA_SERVICE_SECRET`, IdP client secrets and
+shared admission-store settings; do not include legacy authority fields in chart values.
+The managed pod references no root key or root certificate secret. Kubernetes workload
+auth uses a projected JWT with the selected audience and a ten-minute expiry; Vault
+Agent mode requires an externally refreshed short-lived credential Secret. The chosen
+ServiceAccount must already exist and match Vault's exact role bindings.
+
+Managed enrollment requires explicit NetworkPolicy egress peers and ports, including
+approved Vault, IdP, admission-store and DNS targets. Keep those routes bounded and
+qualify actual enforcement on the cluster. A separate revocation credential is optional;
+use a separate workload and ingress route when pod-level credential separation is needed.
+The public trust bundle must be compiled into web/native shells independently of the
+service response. See [managed enrollment](../../services/ca/README.md#managed-intermediate-enrollment)
+for the complete configuration and provider acceptance requirements. The sovereign
+profile exposes the same choices under `components.ca`.

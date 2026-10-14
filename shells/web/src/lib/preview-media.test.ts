@@ -412,3 +412,23 @@ test('an unmarked element is never touched, and a grid gap plays nothing', () =>
   assert.equal(played.length, 0);
   arm.destroy();
 });
+
+
+test('verified preview elements remain blank until approved bytes arrive and show refusals', async () => {
+  const { hydrateVerifiedPreviews } = await import('./preview-media.ts');
+  const root = document.createElement('div');
+  root.innerHTML = '<img data-verified-preview="/catalog/previews/fixture.svg"><iframe data-verified-preview="/tools/demo/card.html"></iframe>';
+  document.body.appendChild(root);
+  let release: (url: string) => void = () => {};
+  const result = hydrateVerifiedPreviews(root, async url => {
+    if (url.endsWith('.html')) throw new Error('fixture unavailable');
+    return new Promise<string>(resolve => { release = resolve; });
+  });
+  const image = root.querySelector('img')!; const card = root.querySelector('iframe')!;
+  assert.equal(image.hasAttribute('src'), false); assert.equal(card.hasAttribute('src'), false);
+  release('blob:verified-preview'); await result;
+  assert.equal(image.getAttribute('src'), 'blob:verified-preview');
+  assert.equal(card.hasAttribute('src'), false); assert.equal(card.dataset.previewRefused, 'true');
+  assert.match(root.textContent ?? '', /Preview unavailable/);
+  root.remove();
+});

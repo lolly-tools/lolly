@@ -355,7 +355,10 @@ export async function createBridge(): Promise<WebHost> {
     // budget was locked in, so url-shot timed out at 5s ("Auto-export failed: timed out
     // after 5000ms"). Awaiting here restores the pre-c71a7de eager desktop import. (On the
     // web the impl is a trivial stub with no such side effect, so it stays lazy.)
-    await loadCapture();
+    const nativeCapture = await loadCapture();
+    if ((nativeCapture as unknown as Record<string, unknown>)._isolatedPublic === true) {
+      Object.defineProperty(captureFacade, '_isolatedPublic', { value: true });
+    }
     captureFacade.vector = async (spec) => {
       const impl = await loadCapture();
       if (!impl.vector) throw new Error('Vector capture is unavailable in this shell.');

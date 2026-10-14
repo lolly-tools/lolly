@@ -14,7 +14,20 @@ permissions:
   contents: read
 
 jobs:
+  frontend:
+    if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.webgpu_qualification) }}
+    uses: ./.github/workflows/release-frontend.yml
+    with:
+      target: tauri-desktop
+      public_key_jwk: ${{ vars.VITE_CATALOG_PUBLIC_KEY_JWK }}
+      connector_origins: ${{ vars.VITE_CONNECTOR_ORIGINS }}
+      ca_enrollment_trust_json: ${{ vars.VITE_CA_ENROLLMENT_TRUST_JSON }}
+    secrets:
+      LOLLY_CATALOG_SIGNING_KEY: ${{ secrets.LOLLY_CATALOG_SIGNING_KEY }}
+
   build:
+    needs: frontend
+    if: ${{ always() && !cancelled() && (needs.frontend.result == 'success' || (github.event_name == 'workflow_dispatch' && inputs.webgpu_qualification)) }}
     name: Desktop (${{ matrix.target }})
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 120
@@ -29,6 +42,8 @@ jobs:
       run:
         shell: bash
     env:
+      LOLLY_RELEASE_FRONTEND_PHASE: verified-artifact
+      VITE_CATALOG_PUBLIC_KEY_JWK: ${{ vars.VITE_CATALOG_PUBLIC_KEY_JWK }}
       LOLLY_PROFILE: lolly-start
       LOLLY_EMBED_CATALOG: profile
       ONNXRUNTIME_NODE_INSTALL_CUDA: skip
@@ -41,6 +56,8 @@ jobs:
       - name: Preserve repository line endings
         run: git config --global core.autocrlf false
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: '24'
@@ -57,9 +74,22 @@ jobs:
         run: |
           pnpm install --frozen-lockfile
           pnpm -C shells/tauri-desktop install --frozen-lockfile
+      - name: Download signed source catalog
+        if: needs.frontend.result == 'success'
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: release-source-catalog-tauri-desktop
+          path: brands/lolly-start/catalog/tools
+
+      - name: Download signed frontend
+        if: needs.frontend.result == 'success'
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: release-frontend-tauri-desktop
+          path: shells/tauri-desktop/dist
+
       - name: Build packages
         env:
-          LOLLY_CATALOG_SIGNING_KEY: ${{ secrets.LOLLY_CATALOG_SIGNING_KEY }}
           VITE_CATALOG_PUBLIC_KEY_JWK: ${{ vars.VITE_CATALOG_PUBLIC_KEY_JWK }}
           BUILD_BUNDLES: ${{ matrix.bundles }}
         run: pnpm -C shells/tauri-desktop run tauri build --bundles "$BUILD_BUNDLES"

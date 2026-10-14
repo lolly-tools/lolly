@@ -16,14 +16,21 @@
  * HostV1 capability: tools can never observe or depend on enrollment.
  */
 
-import { pemToDer } from '../../../../engine/src/x509.ts';
+import { derToPem } from '../../../../engine/src/x509.ts';
+import { asBufferSource } from '../../../../engine/src/bytes.ts';
+import { createEnrollmentCsr, enrollmentProofMessage, parseEnrollmentTrustBundle, revocationProofMessage, validateEnrollmentCrl, validateEnrollmentChain } from '../../../../engine/src/enrollment.ts';
+import { configuredEnrollmentTrust, fetchEnrollmentCrl, validateEnrollmentResponse } from './enrollment-policy.ts';
 import type { IDBPDatabase } from 'idb';
 
 // The persisted certificate record (the 'cert' entry in the 'identity' store):
 // the DER chain the engine signer consumes plus the CA-issued validity window.
 interface CertRecord {
   chain: Uint8Array[];
-  identity: unknown;
+  identity: { email: string; provider: string };
+  issuerMode?: string;
+  issuer?: string;
+  policyOid?: string;
+  crl?: Uint8Array;
   notBefore: string;
   notAfter: string;
   issuedAt?: string;
@@ -60,16 +67,29 @@ async function postJson(path: string, body: unknown): Promise<any> {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
+    redirect: 'error', signal: AbortSignal.timeout(45_000),
   });
-  if (!res.ok) {
-    let msg = res.statusText || `CA request failed (${res.status})`;
-    try {
-      const data = await res.json();
-      msg = data?.error || data?.message || msg;
-    } catch { /* non-JSON error body */ }
-    throw new Error(msg);
-  }
-  return res.json();
+  if (!res.body || Number(res.headers.get('content-length')) > 128 * 1024) throw new Error('Certificate response exceeds its limit');
+  const reader = res.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let length = 0;
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      length += value.length;
+      if (length > 128 * 1024) throw new Error('Certificate response exceeds its limit');
+      chunks.push(value);
+    }
+  } catch (error) { await reader.cancel().catch(() => {}); throw error; }
+  const bytes = new Uint8Array(length);
+  let offset = 0;
+  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
+  let data: Record<string, unknown>;
+  try { data = JSON.parse(new TextDecoder().decode(bytes)); }
+  catch { throw new Error('Certificate response is invalid'); }
+  if (!res.ok) throw new Error(typeof data?.error === 'string' ? data.error : `CA request failed (${res.status})`);
+  return data;
 }
 
 // Open the provider's OIDC flow in a popup and wait for the CA callback page to
@@ -128,7 +148,8 @@ function popupToken(provider: string): Promise<string> {
   });
 }
 
-export function createIdentityAPI(db: IDBPDatabase) {
+export function createIdentityAPI(db: IDBPDatabase, opts: { managedTrustJson?: string; legacyRootPem?: string } = {}) {
+  const trust = opts.managedTrustJson ? parseEnrollmentTrustBundle(opts.managedTrustJson) : configuredEnrollmentTrust();
   // Closure cache so repeat signer() calls (a zip export stamps every member)
   // pay IndexedDB once. Invalidated by completeEnrollment/forget.
   let cache: IdentityCache | null = null; // { keypair: CryptoKeyPair|null, record: { chain, identity, … }|null }
@@ -158,16 +179,35 @@ export function createIdentityAPI(db: IDBPDatabase) {
     return now >= Date.parse(record.notBefore) && now <= Date.parse(record.notAfter);
   }
 
+  async function signingState(keypair: CryptoKeyPair | null, record: CertRecord) {
+    if (!keypair || !record.chain?.length || !within(record)) return { available: false, revoked: false };
+    try {
+      const spki = new Uint8Array(await crypto.subtle.exportKey('spki', keypair.publicKey));
+      await validateEnrollmentResponse({ ...record, version: 2, chain: record.chain.map(b => derToPem(b, 'CERTIFICATE')) }, spki, trust, opts.legacyRootPem);
+      if (trust) {
+        let status: Awaited<ReturnType<typeof validateEnrollmentCrl>>;
+        try { status = await validateEnrollmentCrl(record.crl!, trust.issuers.get(record.issuer!)!, trust.crlMaxAgeSeconds); }
+        catch {
+          record.crl = await fetchEnrollmentCrl(record.issuer!, trust);
+          status = await validateEnrollmentCrl(record.crl, trust.issuers.get(record.issuer!)!, trust.crlMaxAgeSeconds);
+          await db.put(STORE, record, CERT_KEY);
+        }
+        const checked = await validateEnrollmentChain(record.chain, { roots: trust.roots, issuer: trust.issuers.get(record.issuer!)!, email: record.identity.email, policyOid: record.policyOid!, spki, maxLifetimeSeconds: trust.maxLifetimeSeconds });
+        if (status.revokedSerials.includes(checked.serial)) return { available: false, revoked: true };
+      }
+      return { available: true, revoked: false };
+    } catch { return { available: false, revoked: false }; }
+  }
+
   async function status() {
-    const { record } = await load();
+    const { keypair, record } = await load();
     if (!record) return { enrolled: false };
     const now = Date.now();
+    const expired = !within(record, now);
+    const state = await signingState(keypair, record);
     return {
-      enrolled: true,
-      identity: record.identity,
-      notBefore: record.notBefore,
-      notAfter: record.notAfter,
-      expired: !within(record, now),
+      enrolled: true, identity: record.identity, notBefore: record.notBefore, notAfter: record.notAfter,
+      expired, managed: !!trust, revoked: state.revoked, statusUnavailable: !expired && !state.available && !state.revoked,
       daysLeft: Math.max(0, Math.ceil((Date.parse(record.notAfter) - now) / 86400000)),
     };
   }
@@ -185,26 +225,27 @@ export function createIdentityAPI(db: IDBPDatabase) {
       keypair = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign']);
       await db.put(STORE, keypair, KEYPAIR_KEY);
     }
-    // CSR-less enrollment: raw SPKI + a proof-of-possession signature over the
-    // token bytes (raw 64-byte r||s - WebCrypto's native ECDSA output).
+    const csr = await createEnrollmentCsr(keypair);
     const pop = new Uint8Array(await crypto.subtle.sign(
-      { name: 'ECDSA', hash: 'SHA-256' },
-      keypair.privateKey,
-      new TextEncoder().encode(String(token)),
+      { name: 'ECDSA', hash: 'SHA-256' }, keypair.privateKey,
+      asBufferSource(await enrollmentProofMessage(token, csr)),
     ));
     const spki = new Uint8Array(await crypto.subtle.exportKey('spki', keypair.publicKey));
     const res = await postJson('/enroll', {
-      token,
-      spki: b64url(spki),
-      pop: b64url(pop),
-      ...(Number.isFinite(days) ? { days } : {}),
+      version: 2, token, csr: b64url(csr), spki: b64url(spki), pop: b64url(pop),
+      ...(trust ? { lifetimeSeconds: Number.isFinite(days) ? Number(days) * 86400 : trust.defaultLifetimeSeconds } : Number.isFinite(days) ? { days } : {}),
     });
-    const chainPem = Array.isArray(res.chain) && res.chain.length ? res.chain : [res.cert];
+    const chain = await validateEnrollmentResponse(res, spki, trust, opts.legacyRootPem);
+    let crl: Uint8Array | undefined;
+    if (trust) {
+      crl = await fetchEnrollmentCrl(res.issuer, trust);
+      const verified = await validateEnrollmentCrl(crl, trust.issuers.get(res.issuer)!, trust.crlMaxAgeSeconds);
+      const checked = await validateEnrollmentChain(chain, { roots: trust.roots, issuer: trust.issuers.get(res.issuer)!, email: res.identity.email, policyOid: res.policyOid, spki, maxLifetimeSeconds: trust.maxLifetimeSeconds });
+      if (verified.revokedSerials.includes(checked.serial)) throw new Error('This signing certificate has been revoked');
+    }
     await db.put(STORE, {
-      chain: chainPem.map(pemToDer), // Uint8Array[] leaf-first - the engine signer shape
-      identity: res.identity,
-      notBefore: res.notBefore,
-      notAfter: res.notAfter,
+      chain, identity: res.identity, issuerMode: res.issuerMode, issuer: res.issuer, policyOid: res.policyOid,
+      notBefore: res.notBefore, notAfter: res.notAfter, ...(crl ? { crl } : {}),
       issuedAt: new Date().toISOString(),
     }, CERT_KEY);
     cache = null;
@@ -238,7 +279,21 @@ export function createIdentityAPI(db: IDBPDatabase) {
     async signer() {
       const { keypair, record } = await load();
       if (!keypair || !record?.chain?.length || !within(record)) return null;
+      if (!(await signingState(keypair, record)).available) return null;
       return { privateKey: keypair.privateKey, certDer: record.chain[0]!, chain: record.chain };
+    },
+
+    async revoke() {
+      const { keypair, record } = await load();
+      if (!trust || !keypair || !record?.issuer || !record.chain?.length) throw new Error('Managed signing identity is not available');
+      const certificate = derToPem(record.chain[0]!, 'CERTIFICATE');
+      const request = { certificate, issuer: record.issuer, provider: record.identity.provider };
+      const { challenge } = await postJson('/revoke/challenge', request);
+      const pop = new Uint8Array(await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, keypair.privateKey, asBufferSource(await revocationProofMessage(challenge, record.chain[0]!))));
+      await postJson('/revoke', { ...request, challenge, pop: b64url(pop) });
+      await db.delete(STORE, CERT_KEY);
+      cache = null;
+      announceChange();
     },
 
     async forget() {

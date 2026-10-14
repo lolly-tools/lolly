@@ -1217,3 +1217,6 @@ export { createDesignLayoutMeasurer, resolveDesignLayoutFonts } from './design-l
 
 export { DesignHierarchyError, DEFAULT_DESIGN_PAGE, DESIGN_HIERARCHY_LIMITS, resolveDesignPages, designHierarchyIndex, validateDesignHierarchy, designHierarchyPageBoxes, designHierarchyAncestors, designHierarchyDescendants, designHierarchyFlags, designHierarchyBounds, migrateDesignHierarchy, reparentDesignHierarchy, remapDesignHierarchy, refreshDesignGroupBounds } from './design-hierarchy.ts';
 export type { DesignPage, DesignHierarchyRow, DesignHierarchyFinding, DesignHierarchyIndex } from './design-hierarchy.ts';
+
+export { createEnrollmentCsr, enrollmentProofMessage, verifyEnrollmentRequest, validateEnrollmentChain, validateEnrollmentCrl, parseEnrollmentTrustBundle, validateManagedCredential, revocationProofMessage } from './enrollment.ts';
+export type { EnrollmentPolicy, EnrollmentTrustBundle, EnrollmentProviderPolicy, VerifiedCrl } from './enrollment.ts';

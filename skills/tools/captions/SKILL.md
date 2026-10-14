@@ -5,7 +5,7 @@ description: "Operate the Lolly Captions tool (captions) using its declared inpu
 
 # Captions
 
-Tool ID: `captions`. Tool version: `1.0.3`. Engine range: `>=1.150.0`.
+Tool ID: `captions`. Tool version: `1.0.4`. Engine range: `>=1.261.0 <2.0.0`.
 
 Subtitles for a clip - turn its speech into text on device or drop in an SRT/VTT file, style the cues, and export burned-in frames plus clean .srt and .vtt sidecars.
 

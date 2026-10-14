@@ -102,7 +102,10 @@ Local HTTP binds to `127.0.0.1` by default. Set `LOLLY_MCP_BIND_HOST` explicitly
 for a container listener. Configure `LOLLY_MCP_PUBLIC_ORIGIN` for hosted use;
 browser requests must match that origin or an exact origin in the comma-separated
 `LOLLY_MCP_ALLOWED_ORIGINS`. Requests without an Origin header are supported.
-OAuth authorization responses include the canonical issuer (`iss`). Registration
+OAuth authorization responses include the canonical issuer (`iss`). Codes and
+tokens are scoped to the configured `/api/mcp` resource. Clients with older
+unscoped credentials must reconnect. Authorization pages prohibit framing.
+Registration
 accepts `application_type: "web"` or `"native"` and retains omitted values for
 older clients. Dynamic registration remains for compatibility; Client ID Metadata
 Documents are not advertised.

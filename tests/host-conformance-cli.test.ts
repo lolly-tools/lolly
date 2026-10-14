@@ -27,3 +27,9 @@ test('the CLI bridge conforms to HostV1, shape and behaviour', async () => {
   }
   assert.ok(!present.has('recorder'), 'a headless shell has no recorder');
 });
+
+test('the CLI refuses unsupported isolated capture before starting a browser', async () => {
+  const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
+  const host = await createCliBridge({ dom: dom.window as never, profile: {} } as never);
+  await assert.rejects(host.capture!.page({ url: 'https://capture.example.test/', width: 600, isolation: 'isolated-public' }), /does not provide isolated public/);
+});

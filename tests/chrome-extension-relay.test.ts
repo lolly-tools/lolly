@@ -7,7 +7,7 @@ import vm from 'node:vm';
 
 type RelayEvent = { source: object; origin: string; data: unknown };
 
-function loadRelay() {
+function loadRelay(origin = 'https://lolly.tools') {
   let onMessage: ((event: RelayEvent) => void) | undefined;
   const posted: Array<{ data: Record<string, unknown>; targetOrigin: string }> = [];
   const sent: Array<Record<string, unknown>> = [];
@@ -19,8 +19,11 @@ function loadRelay() {
       posted.push({ data, targetOrigin });
     },
   };
+  Object.assign(window, { top: window });
   const chrome = {
     runtime: {
+      id: 'fixture-extension',
+      onMessage: { addListener() {} },
       lastError: undefined,
       sendMessage(message: Record<string, unknown>, callback: (response: Record<string, unknown>) => void) {
         sent.push(message);
@@ -31,7 +34,8 @@ function loadRelay() {
     },
   };
   const source = readFileSync(new URL('../shells/chrome-extension/content.js', import.meta.url), 'utf8');
-  vm.runInNewContext(source, { window, chrome });
+  const policy = readFileSync(new URL('../shells/chrome-extension/policy.js', import.meta.url), 'utf8');
+  vm.runInNewContext(`${policy}\n${source}`, { window, chrome, location: { origin, href: `${origin}/` } });
   assert.ok(onMessage, 'content script did not install its message listener');
   return { dispatch: onMessage, window, posted, sent };
 }
@@ -47,7 +51,7 @@ test('extension relay ignores foreign origins and foreign windows', () => {
 
 test('extension relay replies only to the validated requesting origin', () => {
   const relay = loadRelay();
-  const origin = 'https://preview-123.lolly.tools';
+  const origin = 'https://lolly.tools';
   relay.dispatch({ source: relay.window, origin, data: { source: 'lolly-capture/page', type: 'ping' } });
   relay.dispatch({
     source: relay.window,
@@ -63,4 +67,12 @@ test('extension relay replies only to the validated requesting origin', () => {
   assert.equal(relay.posted.length, 3);
   assert.deepEqual(new Set(relay.posted.map((message) => message.targetOrigin)), new Set([origin]));
   assert.deepEqual(relay.posted.map((message) => message.data.type), ['pong', 'result', 'lolly-capture/site-result']);
+});
+
+test('production relay refuses preview and development origins', () => {
+  for (const origin of ['https://preview.lolly.tools', 'http://localhost:5173']) {
+    const relay = loadRelay(origin);
+    relay.dispatch({ source: relay.window, origin, data: { source: 'lolly-capture/page', type: 'capture', id: 'fixture', spec: {} } });
+    assert.equal(relay.sent.length, 0);
+  }
 });

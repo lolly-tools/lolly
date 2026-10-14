@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:49fa2453-c2aa-45d6-82ae-0ba84009e638",
+  "serialNumber": "urn:uuid:01b78a89-d462-426b-8d92-001893a84ed7",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-10-13T11:36:26.486Z",
+    "timestamp": "2026-10-13T18:22:52.221Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -259,31 +259,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/anyhow@1.0.102",
-      "name": "anyhow",
-      "version": "1.0.102",
-      "purl": "pkg:cargo/anyhow@1.0.102",
-      "scope": "required",
-      "licenses": [
-        {
-          "expression": "MIT OR Apache-2.0"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "7f202df86484c868dbad7eaa557ef785d5c66295e41b460ef922eca0723b842c"
-        }
-      ],
-      "properties": [
-        {
-          "name": "lolly:source",
-          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:cargo/anyhow@1.0.103",
       "name": "anyhow",
       "version": "1.0.103",
@@ -303,7 +278,7 @@
       "properties": [
         {
           "name": "lolly:source",
-          "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
         }
       ]
     },
@@ -5214,16 +5189,32 @@
           }
         }
       ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "233daaf6e83ae6a12a52055f568f9d7cf4671dabb78ff9560ab6da230ce00ee5"
-        }
-      ],
       "properties": [
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        },
+        {
+          "name": "lolly:vendored",
+          "value": "vendor/glib"
+        },
+        {
+          "name": "lolly:upstream-commit",
+          "value": "42b9caf98e03ded086362d9653ca58fe94dc8658"
+        },
+        {
+          "name": "lolly:source-archive-sha256",
+          "value": "233daaf6e83ae6a12a52055f568f9d7cf4671dabb78ff9560ab6da230ce00ee5"
+        },
+        {
+          "name": "lolly:local-changes",
+          "value": "true"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b3593c1aa27b53fb3e798602ece1546a9c92bc2db1f2e326aafbdcd3cf8ed55f"
         }
       ]
     },
@@ -19023,6 +19014,88 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:generic/jelly-ui@2026-07-21",
+      "name": "jelly-ui",
+      "version": "2026-07-21",
+      "purl": "pkg:generic/jelly-ui@2026-07-21",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "34bebaaa6e6c4aa13f55840e27eb30edaaa2c104342ef68e85c68b3d02dd246c"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/jelly-org/ui"
+        },
+        {
+          "type": "distribution",
+          "url": "https://jelly-ui.com/dist/jelly.js"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:vendored",
+          "value": "shells/web/src/vendor/jelly/jelly.mjs"
+        },
+        {
+          "name": "lolly:local-changes",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:generic/libopenmpt-wasm@0.8.7",
+      "name": "libopenmpt-wasm",
+      "version": "0.8.7",
+      "purl": "pkg:generic/libopenmpt-wasm@0.8.7",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "eefd22838a75987983582c5cc8b8371d721a1a06711cbaa6baf16704743b3b2f"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://lib.openmpt.org/"
+        },
+        {
+          "type": "distribution",
+          "url": "https://lib.openmpt.org/files/libopenmpt/src/libopenmpt-0.8.7+release.makefile.tar.gz"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:vendored",
+          "value": "shells/web/src/vendor/libopenmpt/libopenmpt.mjs"
+        },
+        {
+          "name": "lolly:local-changes",
+          "value": "false"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:generic/suse-fonts",
       "name": "SUSE / SUSE Mono fonts",
       "purl": "pkg:generic/suse-fonts",
@@ -22290,6 +22363,47 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/%40paper-design/shaders@0.0.80",
+      "name": "@paper-design/shaders",
+      "version": "0.0.80",
+      "purl": "pkg:npm/%40paper-design/shaders@0.0.80",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c14b75e5d8701218898651285ee4690d74a2de8a7bf08dbdac25894d3b2aff55"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/paper-design/shaders"
+        },
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@paper-design/shaders/-/shaders-0.0.80.tgz"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:vendored",
+          "value": "community/backdrop/lib/paper-shaders.min.js"
+        },
+        {
+          "name": "lolly:local-changes",
+          "value": "false"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/%40pdf-lib/fontkit@1.1.1",
       "name": "@pdf-lib/fontkit",
       "version": "1.1.1",
@@ -25000,7 +25114,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "bb6b81278ab4df8269ba3084f23aa4fbb905cb47da89fe5fee0403b74abcbaefec59c60b35200083a18b0df0ac2407cc67a643266e80d5d63fb08d14ae95af76"
+          "content": "cc94c3c9b68e080f68d53f8437313e76e9858c8f2c1d22d68eddb162f1483b192d9bd2b2d5c605cad1c2a5a4d390a5ec08269cb7c93806d79dad75d2536cd0c4"
         }
       ],
       "properties": [
@@ -30043,7 +30157,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "bb6b81278ab4df8269ba3084f23aa4fbb905cb47da89fe5fee0403b74abcbaefec59c60b35200083a18b0df0ac2407cc67a643266e80d5d63fb08d14ae95af76"
+          "content": "cc94c3c9b68e080f68d53f8437313e76e9858c8f2c1d22d68eddb162f1483b192d9bd2b2d5c605cad1c2a5a4d390a5ec08269cb7c93806d79dad75d2536cd0c4"
         }
       ],
       "properties": [

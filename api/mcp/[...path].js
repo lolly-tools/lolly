@@ -1443,6 +1443,11 @@ var init_tool_schema = __esm({
             default: {
               description: "Type-appropriate default value."
             },
+            sharePrivacy: {
+              type: "string",
+              enum: ["personal"],
+              description: "Personal content omitted from generated links until reviewed for sharing."
+            },
             bindToProfile: {
               type: "string",
               description: "If set, pre-fills from the user profile field of this name (e.g. 'firstname', 'headshot'). User can override."
@@ -3591,10 +3596,10 @@ function derTlv(b, i) {
   if (j + len2 > b.length) throw new Error("der: length overruns buffer");
   return { tag: tag3, start: i, contentStart: j, end: j + len2 };
 }
-function derChildren(b, tlv) {
+function derChildren(b, tlv2) {
   const kids2 = [];
-  let i = tlv.contentStart;
-  while (i < tlv.end) {
+  let i = tlv2.contentStart;
+  while (i < tlv2.end) {
     const c = derTlv(b, i);
     kids2.push(c);
     i = c.end;
@@ -3670,8 +3675,8 @@ function derUint(bytes2) {
   const v = bytes2.subarray(i);
   return v[0] & 128 ? der(2, Uint8Array.of(0), v) : der(2, v);
 }
-function derOid(oid) {
-  const parts = oid.split(".").map(Number);
+function derOid(oid2) {
+  const parts = oid2.split(".").map(Number);
   const bytes2 = [parts[0] * 40 + parts[1]];
   for (const p of parts.slice(2)) {
     const grp = [p & 127];
@@ -3956,6 +3961,12 @@ function catalogEnvelopeShape(envelope2) {
   for (const [path, digest2] of Object.entries(envelope2.files)) {
     if (path.length > 1024 || /[\\%?#\p{White_Space}\p{Cc}]/u.test(path) || path.split("/").some((part) => !part || part === "." || part === "..") || !digestPattern.test(digest2)) return { ok: false, reason: "invalid signed file digest" };
   }
+  if (envelope2.resources !== void 0) {
+    if (!envelope2.resources || typeof envelope2.resources !== "object" || Array.isArray(envelope2.resources) || Object.keys(envelope2.resources).length > 2e4) return { ok: false, reason: "invalid signed resource map" };
+    for (const [path, digest2] of Object.entries(envelope2.resources)) {
+      if (!/^\/(?:catalog\/(?:previews|og)|info\/shots)\//.test(path) || path.length > 1024 || /[\\%?#\p{White_Space}\p{Cc}]/u.test(path) || path.slice(1).split("/").some((part) => !part || part === "." || part === "..") || !digestPattern.test(digest2)) return { ok: false, reason: "invalid signed resource digest" };
+    }
+  }
   if (!digestPattern.test(envelope2.indexHash)) return { ok: false, reason: "invalid signed tool index hash" };
   if (typeof envelope2.signedAt !== "string" || !Number.isFinite(Date.parse(envelope2.signedAt))) return { ok: false, reason: "invalid catalog signing time" };
   if (envelope2.seq !== void 0 && (!Number.isSafeInteger(envelope2.seq) || envelope2.seq < 1)) return { ok: false, reason: "invalid catalog sequence" };
@@ -4016,7 +4027,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.259.0";
+    ENGINE_VERSION = "1.261.0";
   }
 });
 
@@ -6850,7 +6861,7 @@ function parseInner(b) {
     if (grayTrc) return [labToXyz(want[0], want[1], want[2])[1] / PCS_D50[1]];
     return null;
   };
-  const profile = {
+  const profile2 = {
     deviceClass,
     dataColourSpace,
     pcs,
@@ -6867,7 +6878,7 @@ function parseInner(b) {
      * a media white to rescale relative by, and is unsupported without one.
      */
     hasIntent(intent) {
-      if (intent === "absolute") return mediaWhite !== null && profile.hasIntent("relative");
+      if (intent === "absolute") return mediaWhite !== null && profile2.hasIntent("relative");
       if (!Object.hasOwn(INTENT_TAG, intent)) return false;
       if (hasDirect()) return true;
       const n7 = INTENT_TAG[intent];
@@ -6929,8 +6940,8 @@ function parseInner(b) {
       return null;
     }
   };
-  PROFILE_DIGEST.set(profile, sha256Prefix(b.subarray(0, fileEnd)));
-  if (matrixTrc || grayTrc) DIRECT_LINEAR.set(profile, (intent, lab) => {
+  PROFILE_DIGEST.set(profile2, sha256Prefix(b.subarray(0, fileEnd)));
+  if (matrixTrc || grayTrc) DIRECT_LINEAR.set(profile2, (intent, lab) => {
     if (!Object.hasOwn(INTENT_TAG, intent)) return null;
     if (pipeline(`B2A${INTENT_TAG[intent]}`, false)) return null;
     let want = [lab[0], lab[1], lab[2]];
@@ -6941,7 +6952,7 @@ function parseInner(b) {
     }
     return directLinear(want);
   });
-  return profile;
+  return profile2;
 }
 function iccGamutIntent(p, intent) {
   if (p.deviceClass === "abst" || p.deviceClass === "link") return false;
@@ -7543,23 +7554,23 @@ function distinctColors(n7, opts = {}) {
 }
 function readIccProfile(bytes2, intent = "relative") {
   const want = INTENTS.includes(intent) ? intent : "relative";
-  const profile = parseIccProfile(bytes2);
-  if (!profile) return null;
-  const source = iccGamutSource(profile, want);
+  const profile2 = parseIccProfile(bytes2);
+  if (!profile2) return null;
+  const source = iccGamutSource(profile2, want);
   const handle = {
     id: source.id,
     label: source.label,
-    deviceClass: profile.deviceClass,
-    colourSpace: profile.dataColourSpace.trim(),
-    channels: profile.nChannels,
+    deviceClass: profile2.deviceClass,
+    colourSpace: profile2.dataColourSpace.trim(),
+    channels: profile2.nChannels,
     intent: want,
-    version: profile.version,
+    version: profile2.version,
     // The gamut gate, not `hasIntent`: a profile carrying only device → Lab (the
     // stock abstract profiles) has a transform for the intent and still cannot
     // answer a membership question, and `usable: true` there would promise an
     // answer the three queries below can only give as "nothing at all is
     // printable". See iccGamutIntent.
-    usable: iccGamutIntent(profile, want)
+    usable: iccGamutIntent(profile2, want)
   };
   PROFILE_SOURCES.set(handle, source);
   return handle;
@@ -7615,16 +7626,16 @@ function makeColorApi() {
     // No-answer values (null / false / 0) for a handle we did not issue or a
     // profile with no table for its intent; never a guess.
     iccProfile: (bytes2, intent) => readIccProfile(bytes2, intent),
-    inProfileGamut: (profile, l, c, h) => {
-      const src = sourceFor(profile);
+    inProfileGamut: (profile2, l, c, h) => {
+      const src = sourceFor(profile2);
       return src ? inGamut(l, c, h, src) : false;
     },
-    profileMaxChroma: (profile, l, h) => {
-      const src = sourceFor(profile);
+    profileMaxChroma: (profile2, l, h) => {
+      const src = sourceFor(profile2);
       return src ? maxChroma(l, h, src) : 0;
     },
-    inkCoverage: (profile, l, c, h) => {
-      const src = sourceFor(profile);
+    inkCoverage: (profile2, l, c, h) => {
+      const src = sourceFor(profile2);
       return src?.inkCoverage?.(l, c, h) ?? null;
     },
     // v1.108: palette exchange (palette-export.ts), attached verbatim. A flat
@@ -8810,8 +8821,8 @@ function inspectDesignV1(boxes, opts = {}) {
   });
   const artboardLayers = layers.filter((layer) => layer.kind === "frame");
   const artboardIds = new Set(artboardLayers.map((layer) => layer.id).filter(Boolean));
-  const children = /* @__PURE__ */ new Map();
-  for (const id3 of artboardIds) children.set(id3, []);
+  const children2 = /* @__PURE__ */ new Map();
+  for (const id3 of artboardIds) children2.set(id3, []);
   for (const layer of layers) {
     if (layer.kind === "frame" || !layer.artboardId) continue;
     const parent = layers.find(
@@ -8828,7 +8839,7 @@ function inspectDesignV1(boxes, opts = {}) {
       );
       continue;
     }
-    children.get(parent.id)?.push(layer.id);
+    children2.get(parent.id)?.push(layer.id);
     if (!contains(parent.bounds, layer.bounds)) {
       finding2(
         findings,
@@ -8842,7 +8853,7 @@ function inspectDesignV1(boxes, opts = {}) {
   }
   const artboards = artboardLayers.map((layer) => {
     const row = rows2.get(layer.id) ?? {};
-    const childLayerIds = children.get(layer.id) ?? [];
+    const childLayerIds = children2.get(layer.id) ?? [];
     if (!layer.name) {
       finding2(
         findings,
@@ -9341,12 +9352,12 @@ function resolveTokenSelection(doc, opts = {}) {
   let legacyFound = false;
   for (const [group, options2] of groups) {
     const wanted = requested && Object.hasOwn(requested, group) ? requested[group] : void 0;
-    const matches4 = wanted !== void 0 ? options2.filter((o) => o.id === wanted) : opts.theme ? options2.filter((o) => o.id === opts.theme || o.name === opts.theme || `${group}/${o.id}` === opts.theme || `${group}/${o.name}` === opts.theme) : options2.filter((o) => active.includes(o.id) || active.includes(o.name) || active.includes(`${group}/${o.id}`) || active.includes(`${group}/${o.name}`));
-    if (matches4.length > 1) issue2(`Competing choices in ${group || "Themes"}; the first is effective.`);
-    if (wanted !== void 0 && !matches4.length) issue2(`Unknown choice ${String(wanted)} in ${group || "Themes"}.`);
-    if (opts.theme && matches4.length) legacyFound = true;
-    const choice3 = matches4[0] ?? options2[0];
-    if (!matches4.length) defaults2.push(group);
+    const matches3 = wanted !== void 0 ? options2.filter((o) => o.id === wanted) : opts.theme ? options2.filter((o) => o.id === opts.theme || o.name === opts.theme || `${group}/${o.id}` === opts.theme || `${group}/${o.name}` === opts.theme) : options2.filter((o) => active.includes(o.id) || active.includes(o.name) || active.includes(`${group}/${o.id}`) || active.includes(`${group}/${o.name}`));
+    if (matches3.length > 1) issue2(`Competing choices in ${group || "Themes"}; the first is effective.`);
+    if (wanted !== void 0 && !matches3.length) issue2(`Unknown choice ${String(wanted)} in ${group || "Themes"}.`);
+    if (opts.theme && matches3.length) legacyFound = true;
+    const choice3 = matches3[0] ?? options2[0];
+    if (!matches3.length) defaults2.push(group);
     choices2.set(group, choice3.id);
     if (record(choice3.raw.selectedTokenSets)) for (const [set, status] of Object.entries(choice3.raw.selectedTokenSets)) {
       if (status && status !== "disabled") enabled4.add(set);
@@ -9489,8 +9500,8 @@ function resolveAliases(map) {
             e.extensions = { ...e.extensions, [TOKEN_EXT]: { ...isRecord(own3) ? own3 : {}, faces: inherited2.faces } };
           }
           if (e.type == null) {
-            const te11 = map.get(target2);
-            if (te11) e.type = te11.type;
+            const te12 = map.get(target2);
+            if (te12) e.type = te12.type;
           }
         }
       }
@@ -10358,11 +10369,17 @@ function syntheticInputs(manifest) {
   }
   return synthetic;
 }
-function buildInputModel(manifest, { profile = {}, initial = {} } = {}) {
+function buildInputModel(manifest, { profile: profile2 = {}, initial = {} } = {}) {
   const declared = manifest.inputs ?? [];
   const synthetic = syntheticInputs(manifest);
   return [...declared, ...synthetic].map((input) => {
-    const value = resolveInitialValue(input, profile, initial);
+    let value = resolveInitialValue(input, profile2, initial);
+    if (input.type === "color" || input.type === "blocks") {
+      const fallback = defaultForType(input.type);
+      const base = { ...input, value: fallback, isDirty: false, control: pickControl(input) };
+      base.value = constrain(base, input.default ?? fallback);
+      value = constrain(base, value);
+    }
     const savedLinks = initial.__tokenLinks;
     const previous2 = savedLinks && typeof savedLinks === "object" && !Array.isArray(savedLinks) && Object.hasOwn(savedLinks, input.id) ? savedLinks[input.id] : void 0;
     return {
@@ -10374,7 +10391,7 @@ function buildInputModel(manifest, { profile = {}, initial = {} } = {}) {
     };
   });
 }
-function resolveInitialValue(input, profile, initial) {
+function resolveInitialValue(input, profile2, initial) {
   if (input.type === "vector") return resolveVectorValue(input, initial[input.id]);
   if (input.type === "file") {
     const v = initial[input.id];
@@ -10387,7 +10404,7 @@ function resolveInitialValue(input, profile, initial) {
     return normalizeTableValue(input.default) ?? { columns: [], rows: [] };
   }
   if (input.id in initial) return initial[input.id] ?? null;
-  const bound = input.bindToProfile ? profile[input.bindToProfile] : void 0;
+  const bound = input.bindToProfile ? profile2[input.bindToProfile] : void 0;
   if (input.bindToProfile && bound !== void 0) {
     return bound;
   }
@@ -10469,6 +10486,7 @@ function updateInput(model2, id3, value, options2) {
   });
 }
 function constrain(input, value, options2) {
+  if (input.type === "color") return constrainColour(value, input.value);
   if (["number", "text", "longtext", "select"].includes(input.type) && isTokenValue(value)) return value;
   if (input.type === "number" && isAlias(value)) return value;
   if (input.type === "select") {
@@ -10488,10 +10506,15 @@ function constrain(input, value, options2) {
   }
   if (input.type === "blocks") {
     if (!Array.isArray(value)) return input.value;
-    if (!input.tokenBindingsField) return value;
-    if (options2?.tokenSet && options2.refreshTokenLinks) return resolveBlockTokenBindings(value, input.tokenBindingsField, input.fields ?? [], options2.tokenSet, options2.colorTarget ?? "srgb");
-    const reconciled = reconcileBlockTokenBindings(value, input.tokenBindingsField);
-    return normaliseDesignColourRefs(reconciled, blockColourFields(input.fields ?? []), options2?.tokenSet, options2?.colorTarget ?? "srgb", { metadataField: input.tokenBindingsField, refresh: false });
+    let rows2 = value;
+    if (input.tokenBindingsField) {
+      if (options2?.tokenSet && options2.refreshTokenLinks) rows2 = resolveBlockTokenBindings(rows2, input.tokenBindingsField, input.fields ?? [], options2.tokenSet, options2.colorTarget ?? "srgb");
+      else {
+        const reconciled = reconcileBlockTokenBindings(rows2, input.tokenBindingsField);
+        rows2 = normaliseDesignColourRefs(reconciled, blockColourFields(input.fields ?? []), options2?.tokenSet, options2?.colorTarget ?? "srgb", { metadataField: input.tokenBindingsField, refresh: false });
+      }
+    }
+    return constrainBlockColours(input, rows2);
   }
   if (input.type === "text" || input.type === "longtext") {
     if (typeof value !== "string") return input.value;
@@ -10537,6 +10560,48 @@ function constrain(input, value, options2) {
   }
   return value;
 }
+function colourLiteral(value, depth = 0) {
+  if (typeof value !== "string" || value.length > 1024 || /[<>"'&;\\\p{Cc}]/u.test(value)) return null;
+  const text9 = value.trim();
+  if (text9 === "" || /^(?:none|currentcolor)$/i.test(text9)) return text9;
+  if (/^(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(text9)) return "#" + text9;
+  if (parseColor(text9)) return text9;
+  const variable = /^var\(\s*--[a-z0-9_-]+\s*(?:,\s*([\s\S]+))?\)$/i.exec(text9);
+  return variable && depth < 4 && (variable[1] === void 0 || colourLiteral(variable[1], depth + 1) !== null) ? text9 : null;
+}
+function constrainColour(value, fallback) {
+  if (value === null) return null;
+  if (isTokenValue(value)) {
+    if (!value.ref || value.ref.length > 1024) return fallback;
+    if (value.value === void 0 || value.value === null) return value;
+    const cached2 = colourLiteral(value.value);
+    return cached2 !== null ? cached2 === value.value ? value : { ...value, value: cached2 } : { ...value, value: void 0 };
+  }
+  if (isAlias(value) && value.length <= 1024) return { ref: value };
+  return colourLiteral(value) ?? fallback;
+}
+function constrainBlockColours(input, rows2) {
+  const fields2 = blockColourFields(input.fields ?? []);
+  if (!fields2.length) return rows2;
+  const previous2 = Array.isArray(input.value) ? input.value : [];
+  let changed = false;
+  const next2 = rows2.map((row, index2) => {
+    if (!isObjectValue(row) || Array.isArray(row)) return row;
+    let result = row;
+    const old = previous2[index2];
+    for (const field2 of fields2) {
+      if (row[field2] === void 0) continue;
+      const prior = isObjectValue(old) && !Array.isArray(old) ? colourLiteral(flattenValue(old[field2] ?? "")) ?? "" : "";
+      const colour = constrainColour(row[field2], prior);
+      if (colour === row[field2]) continue;
+      if (result === row) result = { ...row };
+      result[field2] = colour;
+      changed = true;
+    }
+    return result;
+  });
+  return changed ? next2 : rows2;
+}
 function modelToValues(model2) {
   const out = {};
   for (const i of model2) out[i.id] = flattenValue(i.value);
@@ -10566,6 +10631,21 @@ function modelForHooks(model2) {
     const v = flattenValue(i.value);
     return v === i.value ? i : { ...i, value: v };
   });
+}
+async function summarizeInputDigests(model2, { maxEntries = 24 } = {}) {
+  const values = modelToValues([...model2]);
+  const eligible = model2.filter((item2) => item2 && SUMMARISABLE_TYPES.has(item2.type) && !item2.bindToProfile && matchesShowIf(item2.showIf, values));
+  const out = {};
+  for (const item2 of eligible) {
+    if (Object.keys(out).length >= maxEntries) break;
+    const value = flattenValue(item2.value);
+    if (!["string", "number", "boolean"].includes(typeof value) || !String(value).trim()) continue;
+    try {
+      out[item2.id] = `sha256:${await sha256Hex(new TextEncoder().encode(JSON.stringify([item2.type, value, item2.unit ?? ""])))}`;
+    } catch {
+    }
+  }
+  return out;
 }
 function flattenValue(v) {
   if (!isTokenValue(v)) return v;
@@ -10606,6 +10686,8 @@ var init_inputs = __esm({
   "engine/src/inputs.ts"() {
     "use strict";
     init_tokens2();
+    init_css_color();
+    init_bytes();
     init_token_block_bindings();
     DEFAULT_FILE_MAX_BYTES = 100 * 1024 * 1024;
     SUMMARISABLE_TYPES = /* @__PURE__ */ new Set([
@@ -34603,19 +34685,19 @@ function normalize(source, viewBox, parseXml, authoredPaint = false) {
       const id3 = attributes2[name] === void 0 ? null : localId(name, attributes2[name]);
       if (id3) references.push({ id: id3, targets: referenceTargets[name] });
     }
-    const children = [];
+    const children2 = [];
     for (const child of Array.from(element.childNodes)) {
       if (child.nodeType === 1) {
         const node = walk2(child, depth + 1);
-        if (node) children.push(node);
+        if (node) children2.push(node);
       } else if (child.nodeType === 8) changes.add("Omitted XML comments; source bytes remain pinned.");
       else if (child.nodeType !== 3 || child.textContent?.trim()) throw new Error("Unsupported SVG text or node.");
     }
-    const childrenAllowed = tag3.endsWith("Gradient") ? children.every((child) => child.tag === "stop") : tag3 === "clipPath" ? children.every((child) => shapes.has(child.tag) || child.tag === "use") : ["svg", "g", "defs"].includes(tag3) || !children.length;
+    const childrenAllowed = tag3.endsWith("Gradient") ? children2.every((child) => child.tag === "stop") : tag3 === "clipPath" ? children2.every((child) => shapes.has(child.tag) || child.tag === "use") : ["svg", "g", "defs"].includes(tag3) || !children2.length;
     if (!childrenAllowed) throw new Error("Unsupported SVG child structure.");
-    if (!hidden4.value) return { tag: tag3, attributes: attributes2, children };
+    if (!hidden4.value) return { tag: tag3, attributes: attributes2, children: children2 };
     changes.add("Omitted elements hidden by display none.");
-    const kept2 = children.filter((child) => referenceOnly.has(child.tag));
+    const kept2 = children2.filter((child) => referenceOnly.has(child.tag));
     return kept2.length ? { tag: "defs", attributes: {}, children: kept2 } : null;
   }
   for (const child of Array.from(doc.childNodes)) if (child !== doc.documentElement && child.nodeType !== 8 && (child.nodeType !== 3 || child.textContent?.trim())) throw new Error("Unsupported SVG document node.");
@@ -35624,12 +35706,12 @@ function licenceProfile(id3, extra = []) {
   for (let i = extra.length - 1; i >= 0; i--) if (extra[i].id === id3) return extra[i];
   return PROFILES.get(id3) ?? null;
 }
-function roleObligation(profile, role) {
-  return profile.roleObligations[role] ?? profile.obligation;
+function roleObligation(profile2, role) {
+  return profile2.roleObligations[role] ?? profile2.obligation;
 }
 function licenceDisplayName(id3, extra = []) {
-  const profile = licenceProfile(id3, extra);
-  if (profile) return profile.name;
+  const profile2 = licenceProfile(id3, extra);
+  if (profile2) return profile2.name;
   for (const candidate of [...extra, ...PROFILES.values()]) {
     const entry2 = candidate.compatibleOutputLicences.find((item2) => item2.id === id3);
     if (entry2) return entry2.name;
@@ -35662,7 +35744,7 @@ function normaliseLicence(text9, extra = []) {
   const original = text9;
   const trimmed = text9.trim().replace(/\s+/g, " ");
   if (!trimmed) return { id: null, original, reviewed: false, status: "unparsed" };
-  const supplied = extra.find((profile) => profile.id === trimmed);
+  const supplied = extra.find((profile2) => profile2.id === trimmed);
   if (supplied) {
     const out = { id: supplied.id, url: supplied.url, reviewed: supplied.reviewed, original };
     if (supplied.version) out.version = supplied.version;
@@ -35688,10 +35770,10 @@ function normaliseLicence(text9, extra = []) {
   return { id: null, original, reviewed: false, status: "unparsed" };
 }
 function described(id3, original) {
-  const profile = PROFILES.get(id3);
-  if (!profile) return { id: id3, reviewed: false, original };
-  const out = { id: id3, url: profile.url, reviewed: profile.reviewed, original };
-  if (profile.version) out.version = profile.version;
+  const profile2 = PROFILES.get(id3);
+  if (!profile2) return { id: id3, reviewed: false, original };
+  const out = { id: id3, url: profile2.url, reviewed: profile2.reviewed, original };
+  if (profile2.version) out.version = profile2.version;
   return out;
 }
 function readLicenceExpression(text9, extra = []) {
@@ -35959,7 +36041,7 @@ var init_rights_profiles = __esm({
       { id: "CC-BY-NC-ND-4.0", name: "CC BY-NC-ND 4.0", url: "https://creativecommons.org/licenses/by-nc-nd/4.0/", conditions: ["Attribution", "NonCommercial", "NoDerivatives"] }
     ];
     PROFILES = /* @__PURE__ */ new Map();
-    for (const profile of REVIEWED) PROFILES.set(profile.id, profile);
+    for (const profile2 of REVIEWED) PROFILES.set(profile2.id, profile2);
     for (const entry2 of RECOGNISED) PROFILES.set(entry2.id, recognisedProfile(entry2));
     OUTPUT_LICENCE_CHOICES = [
       { id: "CC0-1.0", name: "CC0 1.0", url: "https://creativecommons.org/publicdomain/zero/1.0/" },
@@ -36204,8 +36286,8 @@ function evaluateCreativeUses(input) {
     const { classification, rule } = classify(use);
     const licence = workLicence(work, use, extra);
     const detail = detailFor(work.id);
-    const profile = licence.profile;
-    if (profile) profileVersions[profile.id] = profile.profileVersion;
+    const profile2 = licence.profile;
+    if (profile2) profileVersions[profile2.id] = profile2.profileVersion;
     const changes = changesFor(use, detail);
     for (const change of changes) allChanges.add(change);
     if (licence.declarations.length > 1 && !licence.resolved) {
@@ -36227,8 +36309,8 @@ function evaluateCreativeUses(input) {
         rule: "licence-expression-cumulative-v1"
       });
       unresolved.push(`${work.id}: cumulative terms recorded, not yet interpreted`);
-    } else if (!profile?.reviewed) {
-      const conditions = profile?.conditions ?? [];
+    } else if (!profile2?.reviewed) {
+      const conditions = profile2?.conditions ?? [];
       add3({
         code: "licence.unknown",
         work: work.id,
@@ -36248,9 +36330,9 @@ function evaluateCreativeUses(input) {
       unresolved.push(`${work.id}: a choice of grant is unselected`);
     }
     let obligation = "none";
-    if (profile?.reviewed) {
-      obligation = roleObligation(profile, use.role);
-      for (const limit2 of profile.limits) {
+    if (profile2?.reviewed) {
+      obligation = roleObligation(profile2, use.role);
+      for (const limit2 of profile2.limits) {
         if (!limitMatches(limit2, input.context, use, classification)) continue;
         add3({
           code: "licence.use-not-covered",
@@ -36260,11 +36342,11 @@ function evaluateCreativeUses(input) {
             { kind: "replace-work", label: "Use a different work" },
             { kind: "separate-permission", label: "Record separate permission" }
           ],
-          rule: `limit:${profile.id}`
+          rule: `limit:${profile2.id}`
         });
       }
     }
-    if (use.role === "source-distribution" && profile?.redistributeSource !== "permitted-with-notices") {
+    if (use.role === "source-distribution" && profile2?.redistributeSource !== "permitted-with-notices") {
       add3({
         code: "source.redistribution-unknown",
         work: work.id,
@@ -36276,7 +36358,7 @@ function evaluateCreativeUses(input) {
         rule: "redistribute-source-v1"
       });
     }
-    if (obligation !== "none" && profile) {
+    if (obligation !== "none" && profile2) {
       const creators = partyNames(work.creators);
       const licenceUrl = publicLocator(licence.normalised?.url ?? licence.evidence?.url);
       if (!creators || !licenceUrl) {
@@ -36289,8 +36371,8 @@ function evaluateCreativeUses(input) {
         });
         unresolved.push(`${work.id}: ${creators ? "licence link" : "creator"} not recorded`);
       }
-      const notice = noticeFor(work, licence, changes, true, profile.attribution, detail);
-      if (profile.noticeRequired && !notice.noticeText) {
+      const notice = noticeFor(work, licence, changes, true, profile2.attribution, detail);
+      if (profile2.noticeRequired && !notice.noticeText) {
         add3({
           code: "attribution.source-missing",
           work: work.id,
@@ -36301,20 +36383,20 @@ function evaluateCreativeUses(input) {
         unresolved.push(`${work.id}: notice text not recorded`);
       }
       required.push(notice);
-    } else if (profile?.courtesyCredit) {
+    } else if (profile2?.courtesyCredit) {
       optional.push(noticeFor(work, licence, changes, false, COURTESY_PARTS, detail));
     }
-    if (profile?.reviewed && profile.shareAlike && classification === "adaptation" && input.context.audience !== "private") {
+    if (profile2?.reviewed && profile2.shareAlike && classification === "adaptation" && input.context.audience !== "private") {
       const decision2 = decisionFor(decisions, work.id, "output-licence", situation);
       const permission = decisionFor(decisions, work.id, "separate-permission", situation);
-      const compatible = decision2?.licence && profile.compatibleOutputLicences.some((entry2) => entry2.id === decision2.licence);
+      const compatible = decision2?.licence && profile2.compatibleOutputLicences.some((entry2) => entry2.id === decision2.licence);
       if (!compatible && !permission) {
         add3({
           code: "licence.adaptation-choice",
           work: work.id,
           summary: "If you share this adaptation, it needs a compatible licence.",
           remedies: [
-            ...profile.compatibleOutputLicences.map((entry2) => ({ kind: "output-licence", label: `Share the adaptation under ${entry2.name}`, licence: entry2.id })),
+            ...profile2.compatibleOutputLicences.map((entry2) => ({ kind: "output-licence", label: `Share the adaptation under ${entry2.name}`, licence: entry2.id })),
             { kind: "keep-original", label: "Keep the original, unchanged" },
             { kind: "replace-work", label: "Use a different work" },
             { kind: "separate-permission", label: "Record separate permission" }
@@ -36330,7 +36412,7 @@ function evaluateCreativeUses(input) {
       classification,
       rule,
       licence: licence.normalised?.id ?? null,
-      reviewed: Boolean(profile?.reviewed),
+      reviewed: Boolean(profile2?.reviewed),
       issues: codes
     });
   });
@@ -36393,7 +36475,7 @@ function situationOf(works, uses, context, details, extra) {
       attribution: details[id3]?.attribution ?? null,
       modifications: details[id3]?.modifications ?? null
     })),
-    profiles: extra.map((profile) => ({ id: profile.id, version: profile.profileVersion })).sort((a, b) => byString(a.id, b.id)),
+    profiles: extra.map((profile2) => ({ id: profile2.id, version: profile2.profileVersion })).sort((a, b) => byString(a.id, b.id)),
     rules: RIGHTS_RULES_VERSION,
     uses: uses.map((use) => ({
       work: use.work,
@@ -37285,16 +37367,16 @@ var init_template = __esm({
 });
 
 // engine/src/metadata.ts
-async function buildExportMeta(host, manifest, profile, inputs) {
+async function buildExportMeta(host, manifest, profile2, inputs) {
   let p = {};
-  if (profile == null) {
+  if (profile2 == null) {
     try {
       p = await host?.profile?.get() ?? {};
     } catch {
       p = {};
     }
   } else {
-    p = profile;
+    p = profile2;
   }
   const clean2 = (s) => s == null ? "" : String(s).trim();
   const optedIn = p.useDetails === true;
@@ -41313,8 +41395,8 @@ function collect(root2, options2, everything = false) {
       continue;
     }
     if (!everything && skipElement(element, options2)) continue;
-    const children = element.childNodes;
-    for (let index2 = children.length - 1; index2 >= 0; index2--) stack.push(children[index2]);
+    const children2 = element.childNodes;
+    for (let index2 = children2.length - 1; index2 >= 0; index2--) stack.push(children2[index2]);
   }
   return work;
 }
@@ -42003,8 +42085,8 @@ function embedMp4Meta(bytes2, tags3) {
   const top = walkBoxes(bytes2, 0, bytes2.length);
   const moov = top?.find((b) => b.type === "moov");
   if (!moov) return bytes2;
-  const children = walkBoxes(bytes2, moov.off + 8, moov.off + moov.size);
-  if (!children || children.some((b) => b.type === "udta")) return bytes2;
+  const children2 = walkBoxes(bytes2, moov.off + 8, moov.off + moov.size);
+  if (!children2 || children2.some((b) => b.type === "udta")) return bytes2;
   const items2 = [];
   if (tags3.title) items2.push(ilstItem("\xA9nam", tags3.title));
   if (tags3.artist) items2.push(ilstItem("\xA9ART", tags3.artist));
@@ -44067,9 +44149,9 @@ function isoBox(type, ...payloads) {
   out.set(body, 8);
   return out;
 }
-function jumbfSuperbox(uuid, label4, ...children) {
+function jumbfSuperbox(uuid, label4, ...children2) {
   const jumd = isoBox("jumd", uuid, Uint8Array.of(3), te5.encode(label4), Uint8Array.of(0));
-  return isoBox("jumb", jumd, ...children);
+  return isoBox("jumb", jumd, ...children2);
 }
 async function coseSign1Detached(signer, payload) {
   const protectedBytes = encodeCbor(/* @__PURE__ */ new Map([
@@ -46027,6 +46109,540 @@ var init_c2pa_verdict = __esm({
   }
 });
 
+// engine/src/x509-read.ts
+function decodeOid(b, tlv2) {
+  const bytes2 = b.slice(tlv2.contentStart, tlv2.end);
+  const parts = [Math.floor(bytes2[0] / 40), bytes2[0] % 40];
+  let v = 0;
+  for (let i = 1; i < bytes2.length; i++) {
+    v = v * 128 + (bytes2[i] & 127);
+    if (!(bytes2[i] & 128)) {
+      parts.push(v);
+      v = 0;
+    }
+  }
+  return parts.join(".");
+}
+function decodeTime(b, tlv2) {
+  const s = td.decode(b.slice(tlv2.contentStart, tlv2.end));
+  const four = tlv2.tag === 24;
+  const yy = four ? +s.slice(0, 4) : +s.slice(0, 2) < 50 ? 2e3 + +s.slice(0, 2) : 1900 + +s.slice(0, 2);
+  const o = four ? 2 : 0;
+  return new Date(Date.UTC(yy, +s.slice(2 + o, 4 + o) - 1, +s.slice(4 + o, 6 + o), +s.slice(6 + o, 8 + o), +s.slice(8 + o, 10 + o), +s.slice(10 + o, 12 + o)));
+}
+function decodeName(cert, nameTlv) {
+  const out = {};
+  for (const rdn of derChildren(cert, nameTlv)) {
+    for (const atv of derChildren(cert, rdn)) {
+      const [oidTlv, valTlv] = derChildren(cert, atv);
+      if (!oidTlv || !valTlv || oidTlv.tag !== 6) continue;
+      const oid2 = decodeOid(cert, oidTlv);
+      const val = td.decode(cert.slice(valTlv.contentStart, valTlv.end));
+      if (oid2 === "2.5.4.3" && out.commonName == null) out.commonName = val;
+      if (oid2 === "2.5.4.10" && out.organization == null) out.organization = val;
+    }
+  }
+  return out;
+}
+function decodeExtensions(cert, kids2, shift) {
+  const out = { sanEmails: [], isCa: false };
+  try {
+    const wrap3 = kids2.slice(shift + 6).find((k) => k.tag === 163);
+    if (!wrap3) return out;
+    const [seq] = derChildren(cert, wrap3);
+    if (seq?.tag !== 48) return out;
+    for (const ext of derChildren(cert, seq)) {
+      if (ext.tag !== 48) continue;
+      const parts = derChildren(cert, ext);
+      const value = parts[parts.length - 1];
+      if (parts[0]?.tag !== 6 || !value || value.tag !== 4) continue;
+      const oid2 = decodeOid(cert, parts[0]);
+      if (oid2 === "2.5.29.17") {
+        const names = derTlv(cert, value.contentStart);
+        if (names.tag !== 48 || names.end > value.end) continue;
+        for (const gn of derChildren(cert, names)) {
+          if (gn.tag === 129) out.sanEmails.push(td.decode(cert.slice(gn.contentStart, gn.end)));
+        }
+      } else if (oid2 === "2.5.29.19") {
+        const bc = derTlv(cert, value.contentStart);
+        if (bc.tag !== 48 || bc.end > value.end) continue;
+        const [ca] = derChildren(cert, bc);
+        out.isCa = !!ca && ca.tag === 1 && ca.end > ca.contentStart && cert[ca.contentStart] !== 0;
+      }
+    }
+  } catch {
+  }
+  return out;
+}
+function parseCertSigAlg(cert, algId) {
+  try {
+    const kids2 = derChildren(cert, algId);
+    const oidTlv = kids2[0];
+    if (oidTlv?.tag !== 6) return null;
+    const oid2 = bytesToHex(cert.slice(oidTlv.contentStart, oidTlv.end));
+    const fixed = SIG_ALGS[oid2];
+    if (fixed) return { ...fixed };
+    if (oid2 === SIG_OID_ED25519) return { scheme: "ed25519" };
+    if (oid2 === SIG_OID_RSA_PSS) {
+      let hash = "SHA-1";
+      let saltLength = 20;
+      const params2 = kids2[1];
+      if (params2 && params2.tag === 48) {
+        for (const field2 of derChildren(cert, params2)) {
+          if (field2.tag === 160) {
+            const h = derChildren(cert, field2)[0];
+            if (h && h.tag === 6) hash = HASH_OIDS[bytesToHex(cert.slice(h.contentStart, h.end))] || hash;
+          } else if (field2.tag === 162) {
+            const s = derChildren(cert, field2)[0];
+            if (s && s.tag === 2) {
+              let n7 = 0;
+              for (const b of cert.slice(s.contentStart, s.end)) n7 = n7 * 256 + b;
+              saltLength = n7;
+            }
+          }
+        }
+      }
+      return { scheme: "rsa-pss", hash, saltLength };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+function parseCertificate(cert) {
+  const top = derTlv(cert, 0);
+  const topKids = derChildren(cert, top);
+  const tbs = topKids[0];
+  const sigAlgTlv = topKids[1];
+  const sigTlv = topKids[2];
+  const kids2 = derChildren(cert, tbs);
+  const shift = kids2[0].tag === 160 ? 1 : 0;
+  const issuerTlv = kids2[shift + 2];
+  const validity = derChildren(cert, kids2[shift + 3]);
+  const subjectTlv = kids2[shift + 4];
+  const spkiTlv = kids2[shift + 5];
+  const issuerBytes = cert.slice(issuerTlv.start, issuerTlv.end);
+  const subjectBytes = cert.slice(subjectTlv.start, subjectTlv.end);
+  const ext = decodeExtensions(cert, kids2, shift);
+  return {
+    subject: decodeName(cert, subjectTlv),
+    issuer: decodeName(cert, issuerTlv),
+    notBefore: decodeTime(cert, validity[0]),
+    notAfter: decodeTime(cert, validity[1]),
+    selfSigned: bytesToHex(issuerBytes) === bytesToHex(subjectBytes),
+    spki: cert.slice(spkiTlv.start, spkiTlv.end),
+    tbsBytes: cert.slice(tbs.start, tbs.end),
+    signatureRaw: sigTlv && sigTlv.tag === 3 && sigTlv.end > sigTlv.contentStart + 1 ? cert.slice(sigTlv.contentStart + 1, sigTlv.end) : null,
+    sigAlg: sigAlgTlv ? parseCertSigAlg(cert, sigAlgTlv) : null,
+    issuerBytes,
+    subjectBytes,
+    sanEmails: ext.sanEmails,
+    isCa: ext.isCa
+  };
+}
+function ecParamsOf(spki) {
+  try {
+    const algId = derChildren(spki, derTlv(spki, 0))[0];
+    const curveOid = derChildren(spki, algId)[1];
+    if (curveOid?.tag !== 6) return null;
+    return EC_CURVES[bytesToHex(spki.slice(curveOid.contentStart, curveOid.end))] ?? null;
+  } catch {
+    return null;
+  }
+}
+async function signedBy(child, signer) {
+  if (!child.signatureRaw || !child.sigAlg || bytesToHex(child.issuerBytes) !== bytesToHex(signer.subjectBytes)) return false;
+  const sa = child.sigAlg;
+  try {
+    if (sa.scheme === "ecdsa") {
+      const ec = ecParamsOf(signer.spki);
+      if (!ec) return false;
+      const key3 = await subtle4.importKey("spki", asBufferSource(signer.spki), { name: "ECDSA", namedCurve: ec.curve }, false, ["verify"]);
+      return await subtle4.verify({ name: "ECDSA", hash: sa.hash }, key3, asBufferSource(ecdsaDerToRaw(child.signatureRaw, ec.size)), asBufferSource(child.tbsBytes));
+    }
+    if (sa.scheme === "rsa") {
+      const key3 = await subtle4.importKey("spki", asBufferSource(normalizeRsaSpki(signer.spki)), { name: "RSASSA-PKCS1-v1_5", hash: sa.hash }, false, ["verify"]);
+      return await subtle4.verify({ name: "RSASSA-PKCS1-v1_5" }, key3, asBufferSource(child.signatureRaw), asBufferSource(child.tbsBytes));
+    }
+    if (sa.scheme === "rsa-pss") {
+      const key3 = await subtle4.importKey("spki", asBufferSource(normalizeRsaSpki(signer.spki)), { name: "RSA-PSS", hash: sa.hash }, false, ["verify"]);
+      return await subtle4.verify({ name: "RSA-PSS", saltLength: sa.saltLength }, key3, asBufferSource(child.signatureRaw), asBufferSource(child.tbsBytes));
+    }
+    const key2 = await subtle4.importKey("spki", asBufferSource(signer.spki), { name: "Ed25519" }, false, ["verify"]);
+    return await subtle4.verify({ name: "Ed25519" }, key2, asBufferSource(child.signatureRaw), asBufferSource(child.tbsBytes));
+  } catch {
+    return false;
+  }
+}
+function derWrap2(tag3, body) {
+  let head2;
+  if (body.length < 128) head2 = Uint8Array.of(tag3, body.length);
+  else if (body.length < 256) head2 = Uint8Array.of(tag3, 129, body.length);
+  else head2 = Uint8Array.of(tag3, 130, body.length >>> 8, body.length & 255);
+  return concatBytes([head2, body]);
+}
+function normalizeRsaSpki(spki) {
+  const top = derTlv(spki, 0);
+  const [algTlv, keyTlv] = derChildren(spki, top);
+  const oid2 = derTlv(spki, algTlv.contentStart);
+  const oidBytes = spki.slice(oid2.start, oid2.end);
+  if (oidBytes.length !== OID_RSASSA_PSS.length || !oidBytes.every((b, i) => b === OID_RSASSA_PSS[i])) return spki;
+  return derWrap2(48, concatBytes([ALGID_RSA_ENCRYPTION, spki.slice(keyTlv.start, keyTlv.end)]));
+}
+var td, subtle4, SIG_ALGS, SIG_OID_RSA_PSS, SIG_OID_ED25519, HASH_OIDS, OID_RSASSA_PSS, ALGID_RSA_ENCRYPTION;
+var init_x509_read = __esm({
+  "engine/src/x509-read.ts"() {
+    "use strict";
+    init_bytes();
+    init_der_read();
+    td = new TextDecoder();
+    subtle4 = globalThis.crypto.subtle;
+    SIG_ALGS = {
+      "2a8648ce3d040302": { scheme: "ecdsa", hash: "SHA-256" },
+      "2a8648ce3d040303": { scheme: "ecdsa", hash: "SHA-384" },
+      "2a8648ce3d040304": { scheme: "ecdsa", hash: "SHA-512" },
+      "2a864886f70d01010b": { scheme: "rsa", hash: "SHA-256" },
+      "2a864886f70d01010c": { scheme: "rsa", hash: "SHA-384" },
+      "2a864886f70d01010d": { scheme: "rsa", hash: "SHA-512" }
+    };
+    SIG_OID_RSA_PSS = "2a864886f70d01010a";
+    SIG_OID_ED25519 = "2b6570";
+    HASH_OIDS = {
+      "608648016503040201": "SHA-256",
+      "608648016503040202": "SHA-384",
+      "608648016503040203": "SHA-512",
+      "2b0e03021a": "SHA-1"
+    };
+    OID_RSASSA_PSS = Uint8Array.of(6, 9, 42, 134, 72, 134, 247, 13, 1, 1, 10);
+    ALGID_RSA_ENCRYPTION = Uint8Array.of(48, 13, 6, 9, 42, 134, 72, 134, 247, 13, 1, 1, 1, 5, 0);
+  }
+});
+
+// engine/src/enrollment.ts
+function tlv(b, at = 0, tag3 = 48, end = b.length) {
+  const t = derTlv(b, at);
+  if (t.tag !== tag3 || t.end !== end || !equalDer(b.slice(t.start, t.end), der(t.tag, b.slice(t.contentStart, t.end)))) throw new Error("Invalid DER structure");
+  return t;
+}
+function children(b, t, count4) {
+  const c = derChildren(b, t);
+  for (const v of c) if (!equalDer(b.slice(v.start, v.end), der(v.tag, b.slice(v.contentStart, v.end)))) throw new Error("Noncanonical DER length");
+  if (count4 != null && c.length !== count4) throw new Error("Invalid DER field count");
+  return c;
+}
+function oid(b, t) {
+  if (t.tag !== 6 || t.end <= t.contentStart) throw new Error("Invalid object identifier");
+  const nums = [];
+  let n7 = 0;
+  let start = true;
+  for (const v of b.subarray(t.contentStart, t.end)) {
+    if (start && v === 128) throw new Error("Noncanonical object identifier");
+    n7 = n7 * 128 + (v & 127);
+    if (!Number.isSafeInteger(n7)) throw new Error("Object identifier is too large");
+    if (!(v & 128)) {
+      nums.push(n7);
+      n7 = 0;
+      start = true;
+    } else start = false;
+  }
+  if (!start || !nums.length) throw new Error("Invalid object identifier");
+  const first = nums.shift();
+  return [first < 40 ? 0 : first < 80 ? 1 : 2, first < 80 ? first % 40 : first - 80, ...nums].join(".");
+}
+function uint(b, t) {
+  const v = b.subarray(t.contentStart, t.end);
+  if (t.tag !== 2 || !v.length || v[0] & 128 || v.length > 1 && v[0] === 0 && !(v[1] & 128)) throw new Error("Invalid unsigned integer");
+  let n7 = 0;
+  for (const x of v) n7 = n7 * 256 + x;
+  if (!Number.isSafeInteger(n7)) throw new Error("Integer is too large");
+  return n7;
+}
+function bool(b, t) {
+  if (t.tag !== 1 || t.end - t.contentStart !== 1 || ![0, 255].includes(b[t.contentStart])) throw new Error("Invalid DER boolean");
+  return b[t.contentStart] === 255;
+}
+function time(b, t) {
+  const s = td2.decode(b.subarray(t.contentStart, t.end));
+  if (t.tag !== 23 && t.tag !== 24) throw new Error("Invalid certificate time");
+  if (!(t.tag === 23 ? /^\d{12}Z$/ : /^\d{14}Z$/).test(s)) throw new Error("Invalid certificate time");
+  const y = t.tag === 23 ? (+s.slice(0, 2) < 50 ? 2e3 : 1900) + +s.slice(0, 2) : +s.slice(0, 4);
+  const off = t.tag === 23 ? 2 : 4;
+  const d = new Date(Date.UTC(y, +s.slice(off, off + 2) - 1, +s.slice(off + 2, off + 4), +s.slice(off + 4, off + 6), +s.slice(off + 6, off + 8), +s.slice(off + 8, off + 10)));
+  const canonical3 = d.toISOString().replace(/[-:T]/g, "").replace(".000Z", "Z");
+  if ((t.tag === 23 ? canonical3.slice(2) : canonical3) !== s) throw new Error("Invalid calendar time");
+  return d;
+}
+async function p256(spki) {
+  const [alg, bits] = children(spki, tlv(spki), 2);
+  const [ec, curve] = children(spki, alg, 2);
+  if (oid(spki, ec) !== "1.2.840.10045.2.1" || oid(spki, curve) !== "1.2.840.10045.3.1.7" || bits.tag !== 3 || bits.end - bits.contentStart !== 66 || spki[bits.contentStart] !== 0 || spki[bits.contentStart + 1] !== 4) throw new Error("Device key must be P-256");
+  return subtle5.importKey("spki", asBufferSource(spki), { name: "ECDSA", namedCurve: "P-256" }, false, ["verify"]);
+}
+async function createEnrollmentCsr(pair) {
+  const spki = new Uint8Array(await subtle5.exportKey("spki", pair.publicKey));
+  await p256(spki);
+  const info = derSeq(derUint(Uint8Array.of(0)), derSeq(), spki, der(160));
+  const sig = new Uint8Array(await subtle5.sign({ name: "ECDSA", hash: "SHA-256" }, pair.privateKey, asBufferSource(info)));
+  return derSeq(info, derSeq(derOid(SIG_OID)), der(3, Uint8Array.of(0), ecdsaRawToDer(sig)));
+}
+async function enrollmentProofMessage(token2, csr) {
+  if (typeof token2 !== "string" || !token2.length || token2.length > 8192 || csr.length > 4096) throw new Error("Invalid enrollment proof input");
+  const digest2 = hex2(new Uint8Array(await subtle5.digest("SHA-256", asBufferSource(csr))));
+  return te6.encode(JSON.stringify(["lolly-ca/enroll", ENROLLMENT_VERSION, token2, digest2]));
+}
+async function verifyEnrollmentRequest(csr, spki, proof, token2) {
+  if (!csr.length || csr.length > 4096 || proof.length !== 64 || spki.length > 256) throw new Error("Invalid enrollment request size");
+  const [info, alg, sig] = children(csr, tlv(csr), 3);
+  const [version, subject, publicKey, attrs] = children(csr, info, 4);
+  if (uint(csr, version) !== 0 || subject.tag !== 48 || subject.end !== subject.contentStart || attrs.tag !== 160 || attrs.end !== attrs.contentStart) throw new Error("CSR identity and extensions must be empty");
+  if (oid(csr, children(csr, alg, 1)[0]) !== SIG_OID || sig.tag !== 3 || csr[sig.contentStart] !== 0) throw new Error("Invalid CSR signature algorithm");
+  if (!equalDer(csr.slice(publicKey.start, publicKey.end), spki)) throw new Error("CSR key does not match device key");
+  const key2 = await p256(spki);
+  const sigBytes = csr.slice(sig.contentStart + 1, sig.end);
+  const raw = ecdsaDerToRaw(sigBytes, 32);
+  if (!equalDer(ecdsaRawToDer(raw), sigBytes)) throw new Error("Noncanonical CSR signature");
+  if (!await subtle5.verify({ name: "ECDSA", hash: "SHA-256" }, key2, asBufferSource(raw), asBufferSource(csr.slice(info.start, info.end)))) throw new Error("CSR signature does not verify");
+  if (!await subtle5.verify({ name: "ECDSA", hash: "SHA-256" }, key2, asBufferSource(proof), asBufferSource(await enrollmentProofMessage(token2, csr)))) throw new Error("Enrollment proof does not verify");
+}
+function readExtensions(b, t) {
+  const out = /* @__PURE__ */ new Map();
+  for (const ext of children(b, t)) {
+    const c = children(b, ext);
+    if (ext.tag !== 48 || c.length < 2 || c.length > 3) throw new Error("Invalid certificate extension");
+    const id3 = oid(b, c[0]);
+    const value = c.at(-1);
+    if (out.has(id3) || value.tag !== 4) throw new Error("Invalid or duplicate certificate extension");
+    out.set(id3, { critical: c.length === 3 && bool(b, c[1]), bytes: b.slice(value.contentStart, value.end) });
+  }
+  return out;
+}
+function profile(cert) {
+  if (!(cert instanceof Uint8Array) || !cert.length || cert.length > 16384) throw new Error("Invalid certificate size");
+  const [tbs, alg, sig] = children(cert, tlv(cert), 3);
+  const c = children(cert, tbs);
+  if (c.length !== 8 || c[0].tag !== 160 || uint(cert, children(cert, c[0], 1)[0]) !== 2 || c[7].tag !== 163) throw new Error("Certificate must have the supported v3 profile");
+  if (!equalDer(cert.slice(c[2].start, c[2].end), cert.slice(alg.start, alg.end)) || sig.tag !== 3 || cert[sig.contentStart] !== 0) throw new Error("Certificate signature algorithms differ");
+  const validity = children(cert, c[4], 2);
+  const parsed = parseCertificate(cert);
+  parsed.notBefore = time(cert, validity[0]);
+  parsed.notAfter = time(cert, validity[1]);
+  const serialBytes = cert.slice(c[1].contentStart, c[1].end);
+  if (c[1].tag !== 2 || !serialBytes.length || serialBytes.length > 21 || serialBytes[0] & 128 || serialBytes.length > 1 && serialBytes[0] === 0 && !(serialBytes[1] & 128)) throw new Error("Invalid certificate serial");
+  const extensions3 = readExtensions(cert, children(cert, c[7], 1)[0]);
+  const known = ["2.5.29.19", "2.5.29.15", "2.5.29.37", "2.5.29.14", "2.5.29.35", "2.5.29.17", "2.5.29.32", "2.5.29.30", "2.5.29.31", "1.3.6.1.5.5.7.1.1"];
+  for (const [id3, ext] of extensions3) if (ext.critical && (!known.includes(id3) || ["2.5.29.31", "1.3.6.1.5.5.7.1.1"].includes(id3))) throw new Error("Unsupported critical certificate extension");
+  const out = { parsed, serial: hex2(serialBytes).replace(/^00/, ""), extensions: extensions3, ca: false, usage: 0, eku: [], emails: [], policies: [], permitted: [], excluded: [] };
+  const bc = extensions3.get("2.5.29.19");
+  if (!bc) throw new Error("Missing basic constraints");
+  const bcKids = children(bc.bytes, tlv(bc.bytes));
+  if (bcKids[0]?.tag === 1) {
+    out.ca = bool(bc.bytes, bcKids[0]);
+    bcKids.shift();
+  }
+  if (bcKids.length) out.pathLen = uint(bc.bytes, bcKids.shift());
+  if (bcKids.length || !out.ca && out.pathLen != null) throw new Error("Invalid basic constraints");
+  const ku = extensions3.get("2.5.29.15");
+  if (!ku?.critical) throw new Error("Missing critical key usage");
+  const bits = tlv(ku.bytes, 0, 3);
+  const unused = ku.bytes[bits.contentStart];
+  const usageBytes = ku.bytes.slice(bits.contentStart + 1, bits.end);
+  if (!usageBytes.length || usageBytes.length > 2 || unused > 7 || usageBytes.at(-1) & (1 << unused) - 1) throw new Error("Invalid key usage");
+  out.usage = usageBytes[0] | (usageBytes[1] ?? 0) << 8;
+  const eku = extensions3.get("2.5.29.37");
+  if (eku) out.eku = children(eku.bytes, tlv(eku.bytes)).map((t) => oid(eku.bytes, t));
+  const san3 = extensions3.get("2.5.29.17");
+  if (san3) for (const name of children(san3.bytes, tlv(san3.bytes))) {
+    if (name.tag !== 129) throw new Error("Only email subject alternative names are supported");
+    const email = td2.decode(san3.bytes.slice(name.contentStart, name.end));
+    if (!/^[\x21-\x7e]+$/.test(email)) throw new Error("Invalid email subject alternative name");
+    out.emails.push(email);
+  }
+  const policies = extensions3.get("2.5.29.32");
+  if (policies) for (const p of children(policies.bytes, tlv(policies.bytes))) {
+    const [id3, ...qualifiers] = children(policies.bytes, p);
+    if (qualifiers.length) throw new Error("Unsupported policy qualifiers");
+    out.policies.push(oid(policies.bytes, id3));
+  }
+  const nc = extensions3.get("2.5.29.30");
+  if (nc) {
+    if (!nc.critical || !out.ca) throw new Error("Name constraints must be critical on a CA");
+    const seen = /* @__PURE__ */ new Set();
+    for (const group of children(nc.bytes, tlv(nc.bytes))) {
+      if (![160, 161].includes(group.tag) || seen.has(group.tag)) throw new Error("Invalid name constraints");
+      seen.add(group.tag);
+      for (const tree of children(nc.bytes, group)) {
+        const [base, ...bounds] = children(nc.bytes, tree);
+        if (base.tag !== 129 || bounds.length) throw new Error("Unsupported name constraint");
+        const value = td2.decode(nc.bytes.slice(base.contentStart, base.end)).toLowerCase();
+        if (!/^(?:\.)?[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$/.test(value) || value.includes("..")) throw new Error("Invalid email domain constraint");
+        (group.tag === 160 ? out.permitted : out.excluded).push(value);
+      }
+    }
+  }
+  return out;
+}
+function matchesDomain(email, constraint) {
+  const domain = email.slice(email.lastIndexOf("@") + 1).toLowerCase();
+  return constraint.startsWith(".") ? domain.endsWith(constraint) && domain.length > constraint.length : domain === constraint;
+}
+function enforceNames(p, emails) {
+  for (const email of emails) {
+    if (p.permitted.length && !p.permitted.some((d) => matchesDomain(email, d))) throw new Error("Identity is outside issuer name constraints");
+    if (p.excluded.some((d) => matchesDomain(email, d))) throw new Error("Identity is excluded by issuer name constraints");
+  }
+}
+function validAt(p, now2) {
+  if (p.parsed.notBefore.getTime() > now2 || p.parsed.notAfter.getTime() <= now2 || p.parsed.notAfter <= p.parsed.notBefore) throw new Error("Certificate is outside its validity window");
+}
+async function validateEnrollmentChain(chain2, policy) {
+  if (!Array.isArray(chain2) || chain2.length < 2 || chain2.length > 3 || !policy.roots.length || policy.roots.length > 8 || !Number.isSafeInteger(policy.maxLifetimeSeconds) || policy.maxLifetimeSeconds < 1) throw new Error("Invalid enrollment trust policy");
+  if (!equalDer(chain2[1], policy.issuer)) throw new Error("Certificate issuer is not pinned");
+  const leaf = profile(chain2[0]);
+  const mid3 = profile(policy.issuer);
+  const now2 = policy.now ?? Date.now();
+  validAt(leaf, now2);
+  validAt(mid3, now2);
+  await p256(leaf.parsed.spki);
+  await p256(mid3.parsed.spki);
+  if (!leaf.parsed.subject.organization || leaf.parsed.subject.commonName !== policy.email || leaf.ca || leaf.usage !== 128 || leaf.eku.length !== 1 || leaf.eku[0] !== EMAIL_EKU || leaf.emails.length !== 1 || leaf.emails[0] !== policy.email || leaf.policies.length !== 1 || leaf.policies[0] !== policy.policyOid) throw new Error("Leaf does not match enrollment policy");
+  if (policy.spki && !equalDer(leaf.parsed.spki, policy.spki)) throw new Error("Certificate key does not match device key");
+  if (!mid3.ca || mid3.pathLen !== 0 || !mid3.extensions.get("2.5.29.19").critical || mid3.usage !== 6 || !mid3.permitted.length || mid3.eku.length && (mid3.eku.length !== 1 || mid3.eku[0] !== EMAIL_EKU)) throw new Error("Intermediate constraints do not match enrollment policy");
+  if (leaf.parsed.notAfter.getTime() - leaf.parsed.notBefore.getTime() > policy.maxLifetimeSeconds * 1e3 + 3e5 || leaf.parsed.notAfter > mid3.parsed.notAfter || leaf.parsed.notBefore < mid3.parsed.notBefore) throw new Error("Leaf lifetime exceeds enrollment policy");
+  if (mid3.policies.length && !mid3.policies.includes(policy.policyOid)) throw new Error("Intermediate certificate policy does not match");
+  enforceNames(mid3, leaf.emails);
+  const ski = mid3.extensions.get("2.5.29.14");
+  const aki = leaf.extensions.get("2.5.29.35");
+  if (!ski || !aki) throw new Error("Missing certificate key identifiers");
+  const skiValue = tlv(ski.bytes, 0, 4);
+  const akiValue = children(aki.bytes, tlv(aki.bytes), 1)[0];
+  if (akiValue.tag !== 128 || !equalDer(ski.bytes.slice(skiValue.contentStart, skiValue.end), aki.bytes.slice(akiValue.contentStart, akiValue.end))) throw new Error("Certificate authority key identifier does not match");
+  if (!await signedBy(leaf.parsed, mid3.parsed)) throw new Error("Leaf signature does not verify");
+  let matched = false;
+  for (const bytes2 of policy.roots) {
+    const root2 = profile(bytes2);
+    validAt(root2, now2);
+    if (!root2.ca || !root2.extensions.get("2.5.29.19").critical || !(root2.usage & 4) || root2.pathLen != null && root2.pathLen < 1 || !root2.parsed.selfSigned || !await signedBy(root2.parsed, root2.parsed)) continue;
+    if (chain2[2] && !equalDer(bytes2, chain2[2])) continue;
+    if (mid3.parsed.notAfter > root2.parsed.notAfter || mid3.parsed.notBefore < root2.parsed.notBefore) continue;
+    if (root2.eku.length && !root2.eku.includes(EMAIL_EKU) || root2.policies.length && !root2.policies.includes(policy.policyOid)) continue;
+    enforceNames(root2, leaf.emails);
+    if (await signedBy(mid3.parsed, root2.parsed)) {
+      matched = true;
+      break;
+    }
+  }
+  if (!matched) throw new Error("Certificate chain does not reach an approved root");
+  return { leaf: leaf.parsed, serial: leaf.serial };
+}
+async function validateEnrollmentCrl(crl, issuer, maxAgeSeconds, now2 = Date.now()) {
+  if (!(crl instanceof Uint8Array) || !crl.length || crl.length > 1024 * 1024 || !Number.isSafeInteger(maxAgeSeconds) || maxAgeSeconds < 1) throw new Error("Invalid CRL size or policy");
+  const [tbs, alg, sig] = children(crl, tlv(crl), 3);
+  const c = children(crl, tbs);
+  if (c[0]?.tag === 2) {
+    if (uint(crl, c.shift()) !== 1) throw new Error("Unsupported CRL version");
+  }
+  const [innerAlg, name, current, next2, ...tail] = c;
+  if (!innerAlg || !name || !current || !next2 || !equalDer(crl.slice(innerAlg.start, innerAlg.end), crl.slice(alg.start, alg.end)) || oid(crl, children(crl, alg, 1)[0]) !== SIG_OID || sig.tag !== 3 || crl[sig.contentStart] !== 0) throw new Error("Invalid CRL profile");
+  const issuing = profile(issuer);
+  validAt(issuing, now2);
+  if (!issuing.ca || !(issuing.usage & 2) || !equalDer(crl.slice(name.start, name.end), issuing.parsed.subjectBytes)) throw new Error("CRL issuer does not match");
+  const thisUpdate = time(crl, current).getTime();
+  const nextUpdate = time(crl, next2).getTime();
+  if (thisUpdate > now2 + 6e4 || now2 - thisUpdate > maxAgeSeconds * 1e3 || nextUpdate <= now2 || nextUpdate <= thisUpdate) throw new Error("CRL is not fresh");
+  const revokedSerials = [];
+  if (tail[0]?.tag === 48) {
+    for (const entry2 of children(crl, tail.shift())) {
+      const entryFields = children(crl, entry2);
+      if (entryFields.length < 2 || entryFields.length > 3) throw new Error("Invalid CRL entry");
+      const [serial, date, ext] = entryFields;
+      if (!serial || !date || serial.tag !== 2 || serial.end - serial.contentStart > 21) throw new Error("Invalid CRL entry");
+      const serialBytes = crl.slice(serial.contentStart, serial.end);
+      if (!serialBytes.length || serialBytes[0] & 128) throw new Error("Invalid revoked serial");
+      time(crl, date);
+      if (ext) {
+        for (const [id3, e] of readExtensions(crl, ext)) if (e.critical || id3 === "2.5.29.29") throw new Error("Unsupported critical CRL entry extension");
+      }
+      revokedSerials.push(hex2(serialBytes).replace(/^00/, ""));
+      if (revokedSerials.length > 2e4) throw new Error("CRL contains too many entries");
+    }
+  }
+  if (tail[0]?.tag === 160) {
+    for (const [id3, ext] of readExtensions(crl, children(crl, tail.shift(), 1)[0])) if (ext.critical || id3 === "2.5.29.27" || id3 === "2.5.29.28") throw new Error("Unsupported CRL extension");
+  }
+  if (tail.length) throw new Error("Invalid CRL structure");
+  const key2 = await p256(issuing.parsed.spki);
+  const sigDer = crl.slice(sig.contentStart + 1, sig.end);
+  const raw = ecdsaDerToRaw(sigDer, 32);
+  if (!equalDer(ecdsaRawToDer(raw), sigDer) || !await subtle5.verify({ name: "ECDSA", hash: "SHA-256" }, key2, asBufferSource(raw), asBufferSource(crl.slice(tbs.start, tbs.end)))) throw new Error("CRL signature does not verify");
+  return { revokedSerials, thisUpdate, nextUpdate };
+}
+async function revocationProofMessage(token2, certificate) {
+  if (!token2 || token2.length > 8192 || !certificate.length || certificate.length > 16384) throw new Error("Invalid revocation proof input");
+  return concatBytes([te6.encode(JSON.stringify(["lolly-ca/revoke", ENROLLMENT_VERSION, token2])), Uint8Array.of(0), new Uint8Array(await subtle5.digest("SHA-256", asBufferSource(certificate)))]);
+}
+function parseEnrollmentTrustBundle(raw) {
+  if (typeof raw !== "string" || raw.length > 2e5) throw new Error("Enrollment trust configuration is missing");
+  const b = JSON.parse(raw);
+  const fields2 = ["version", "roots", "issuers", "providers", "defaultLifetimeSeconds", "maxLifetimeSeconds", "crlMaxAgeSeconds", "unifiedCrl"];
+  if (!b || typeof b !== "object" || Object.keys(b).some((k) => !fields2.includes(k))) throw new Error("Invalid enrollment trust fields");
+  if (b?.version !== 1 || !Array.isArray(b.roots) || !b.roots.length || b.roots.length > 8 || !Array.isArray(b.issuers) || !b.issuers.length || b.issuers.length > 8 || typeof b.providers !== "object" || !b.providers || Array.isArray(b.providers)) throw new Error("Invalid enrollment trust configuration");
+  const issuers = /* @__PURE__ */ new Map();
+  for (const i of b.issuers) {
+    if (!i || typeof i !== "object" || Object.keys(i).some((k) => !["id", "certificate"].includes(k)) || typeof i?.id !== "string" || !/^[A-Za-z0-9_-]{1,100}$/.test(i.id) || i.id === "default" || issuers.has(i.id)) throw new Error("Invalid enrollment issuer");
+    issuers.set(i.id, enrollmentCertificateDer(i.certificate));
+  }
+  const providers = /* @__PURE__ */ Object.create(null);
+  if (!Object.keys(b.providers).length || Object.keys(b.providers).length > 8) throw new Error("Enrollment assurance policies are missing");
+  for (const [name, value] of Object.entries(b.providers)) {
+    if (!value || typeof value !== "object" || Object.keys(value).some((k) => !["issuer", "policyOid", "domains"].includes(k)) || !/^[a-z][a-z0-9_-]{0,31}$/.test(name) || !issuers.has(value?.issuer) || typeof value.policyOid !== "string" || !/^(?:0|1|2)\.\d+(?:\.\d+){2,20}$/.test(value.policyOid) || value.policyOid === "2.5.29.32.0" || value.policyOid.split(".").some((n7) => !Number.isSafeInteger(+n7) || +n7 > 2147483647 || String(+n7) !== n7) || +value.policyOid[0] < 2 && +value.policyOid.split(".")[1] > 39 || !Array.isArray(value.domains) || !value.domains.length || value.domains.length > 32 || value.domains.some((d) => typeof d !== "string" || d.length > 253 || !/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$/.test(d))) throw new Error("Invalid enrollment assurance policy");
+    providers[name] = { issuer: value.issuer, policyOid: value.policyOid, domains: [...new Set(value.domains)] };
+  }
+  for (const n7 of ["defaultLifetimeSeconds", "maxLifetimeSeconds", "crlMaxAgeSeconds"]) if (!Number.isSafeInteger(b[n7]) || b[n7] < 60 || b[n7] > 7 * 86400) throw new Error("Enrollment lifetime and status policies are required");
+  if (b.defaultLifetimeSeconds > 86400 || b.defaultLifetimeSeconds > b.maxLifetimeSeconds || b.crlMaxAgeSeconds > b.maxLifetimeSeconds || typeof b.unifiedCrl !== "boolean") throw new Error("Invalid enrollment lifetime policy");
+  return { version: 1, roots: b.roots.map(enrollmentCertificateDer), issuers, providers, defaultLifetimeSeconds: b.defaultLifetimeSeconds, maxLifetimeSeconds: b.maxLifetimeSeconds, crlMaxAgeSeconds: b.crlMaxAgeSeconds, unifiedCrl: b.unifiedCrl };
+}
+async function validateManagedCredential(chain2, trust, crls, now2 = Date.now()) {
+  if (!chain2[0] || !chain2[1]) throw new Error("Managed identity chain is incomplete");
+  const email = parseCertificate(chain2[0]).sanEmails[0];
+  if (!email) throw new Error("Managed identity has no email");
+  for (const p of Object.values(trust.providers)) {
+    const issuer = trust.issuers.get(p.issuer);
+    if (!equalDer(chain2[1], issuer) || !p.domains.includes(email.slice(email.lastIndexOf("@") + 1).toLowerCase())) continue;
+    let checked;
+    try {
+      checked = await validateEnrollmentChain(chain2, { roots: trust.roots, issuer, email, policyOid: p.policyOid, maxLifetimeSeconds: trust.maxLifetimeSeconds, now: now2 });
+    } catch {
+      continue;
+    }
+    const status = await validateEnrollmentCrl(crls[p.issuer], issuer, trust.crlMaxAgeSeconds, now2);
+    if (status.revokedSerials.includes(checked.serial)) throw new Error("Managed identity certificate is revoked");
+    return { issuer: p.issuer, serial: checked.serial };
+  }
+  throw new Error("Managed identity does not match an approved issuer policy");
+}
+var te6, td2, subtle5, SIG_OID, EMAIL_EKU, ENROLLMENT_VERSION, equalDer, hex2, enrollmentCertificateDer;
+var init_enrollment = __esm({
+  "engine/src/enrollment.ts"() {
+    "use strict";
+    init_bytes();
+    init_der_read();
+    init_x509();
+    init_x509_read();
+    te6 = new TextEncoder();
+    td2 = new TextDecoder("utf-8", { fatal: true });
+    subtle5 = globalThis.crypto.subtle;
+    SIG_OID = "1.2.840.10045.4.3.2";
+    EMAIL_EKU = "1.3.6.1.5.5.7.3.4";
+    ENROLLMENT_VERSION = 2;
+    equalDer = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
+    hex2 = (b) => Array.from(b, (v) => v.toString(16).padStart(2, "0")).join("");
+    enrollmentCertificateDer = (pem) => {
+      if (typeof pem !== "string" || pem.length > 24e3 || !/^\s*-----BEGIN CERTIFICATE-----[\s\S]+-----END CERTIFICATE-----\s*$/.test(pem) || (pem.match(/-----BEGIN/g) ?? []).length !== 1) throw new Error("Invalid certificate PEM");
+      return pemToDer(pem);
+    };
+  }
+});
+
 // engine/src/ai-kind.ts
 var AI_SOURCE_TYPES, aiKind;
 var init_ai_kind = __esm({
@@ -46084,13 +46700,13 @@ function decodeItem(b, i, depth = 0) {
           const [v, j] = decodeItem(b, i, depth + 1);
           i = j;
           if (v === CBOR_BREAK) break;
-          parts.push(major === 2 ? v : te6.encode(v));
+          parts.push(major === 2 ? v : te7.encode(v));
         }
         const whole = concatBytes(parts);
-        return [major === 2 ? whole : td.decode(whole), i];
+        return [major === 2 ? whole : td3.decode(whole), i];
       }
       if (i + n7 > b.length) throw new Error("cbor: truncated string");
-      return [major === 2 ? b.slice(i, i + n7) : td.decode(b.slice(i, i + n7)), i + n7];
+      return [major === 2 ? b.slice(i, i + n7) : td3.decode(b.slice(i, i + n7)), i + n7];
     }
     case 4: {
       const a = [];
@@ -46167,7 +46783,7 @@ function parseSuperbox(bytes2, box4) {
   const nul = rest2.indexOf(0);
   return {
     uuid,
-    label: nul >= 0 ? td.decode(rest2.slice(0, nul)) : "",
+    label: nul >= 0 ? td3.decode(rest2.slice(0, nul)) : "",
     children: kids2.slice(1),
     box: box4
   };
@@ -47231,7 +47847,7 @@ function prepareC2paIngredientFromStore(store, format) {
   }
   return { manifestBoxes, activeLabel, title, format, digitalSourceType };
 }
-var td, te6, CBOR_BREAK, MAX_CBOR_DEPTH, contentOf, ascii, SNIFF_HEAD_BYTES, SNIFF_TAIL_BYTES, MAX_FULL_SCAN_BYTES, MAX_TEXT_BYTES, HTML_MARKER, ARMOR_BEGIN2, ARMOR_END2, HTML_C2PA_SCRIPT, HTML_C2PA_LINK, hasHtmlC2paCarrier, TEXT_WRAPPER_SIGNATURE, u32At, isC2paBmffBox, MKV_ATTACHMENTS, MKV_ATTACHEDFILE, MKV_FILEMIMETYPE, MKV_FILEDATA, C2PA_TEXT_STATUS, tooLarge, BASE64_ONLY, MAX_HTML_REFS, MAX_HTML_ATTRS2, SPACE, BOM_CP, VS_LOW_START, VS_LOW_END, VS_HIGH_START, VS_HIGH_END, WRAPPER_MAGIC, MAX_TEXT_WRAPPERS, variationSelectorToByte, utf8Len, TEXT_READERS, asExtractor, EXTRACTORS, INGREDIENT_LABEL, RIGHTS_LABEL, asText;
+var td3, te7, CBOR_BREAK, MAX_CBOR_DEPTH, contentOf, ascii, SNIFF_HEAD_BYTES, SNIFF_TAIL_BYTES, MAX_FULL_SCAN_BYTES, MAX_TEXT_BYTES, HTML_MARKER, ARMOR_BEGIN2, ARMOR_END2, HTML_C2PA_SCRIPT, HTML_C2PA_LINK, hasHtmlC2paCarrier, TEXT_WRAPPER_SIGNATURE, u32At, isC2paBmffBox, MKV_ATTACHMENTS, MKV_ATTACHEDFILE, MKV_FILEMIMETYPE, MKV_FILEDATA, C2PA_TEXT_STATUS, tooLarge, BASE64_ONLY, MAX_HTML_REFS, MAX_HTML_ATTRS2, SPACE, BOM_CP, VS_LOW_START, VS_LOW_END, VS_HIGH_START, VS_HIGH_END, WRAPPER_MAGIC, MAX_TEXT_WRAPPERS, variationSelectorToByte, utf8Len, TEXT_READERS, asExtractor, EXTRACTORS, INGREDIENT_LABEL, RIGHTS_LABEL, asText;
 var init_c2pa_extract = __esm({
   "engine/src/c2pa-extract.ts"() {
     "use strict";
@@ -47240,8 +47856,8 @@ var init_c2pa_extract = __esm({
     init_video_meta();
     init_bytes();
     init_ogg();
-    td = new TextDecoder();
-    te6 = new TextEncoder();
+    td3 = new TextDecoder();
+    te7 = new TextEncoder();
     CBOR_BREAK = /* @__PURE__ */ Symbol("cbor break");
     MAX_CBOR_DEPTH = 64;
     contentOf = (bytes2, sub) => bytes2.slice(sub.children[0].payloadStart, sub.children[0].end);
@@ -47368,173 +47984,6 @@ __export(c2pa_verify_exports, {
   verifyC2pa: () => verifyC2pa,
   verifyC2paPdf: () => verifyC2paPdf
 });
-function decodeOid(b, tlv) {
-  const bytes2 = b.slice(tlv.contentStart, tlv.end);
-  const parts = [Math.floor(bytes2[0] / 40), bytes2[0] % 40];
-  let v = 0;
-  for (let i = 1; i < bytes2.length; i++) {
-    v = v * 128 + (bytes2[i] & 127);
-    if (!(bytes2[i] & 128)) {
-      parts.push(v);
-      v = 0;
-    }
-  }
-  return parts.join(".");
-}
-function decodeTime(b, tlv) {
-  const s = td2.decode(b.slice(tlv.contentStart, tlv.end));
-  const four = tlv.tag === 24;
-  const yy = four ? +s.slice(0, 4) : +s.slice(0, 2) < 50 ? 2e3 + +s.slice(0, 2) : 1900 + +s.slice(0, 2);
-  const o = four ? 2 : 0;
-  return new Date(Date.UTC(yy, +s.slice(2 + o, 4 + o) - 1, +s.slice(4 + o, 6 + o), +s.slice(6 + o, 8 + o), +s.slice(8 + o, 10 + o), +s.slice(10 + o, 12 + o)));
-}
-function decodeName(cert, nameTlv) {
-  const out = {};
-  for (const rdn of derChildren(cert, nameTlv)) {
-    for (const atv of derChildren(cert, rdn)) {
-      const [oidTlv, valTlv] = derChildren(cert, atv);
-      if (!oidTlv || !valTlv || oidTlv.tag !== 6) continue;
-      const oid = decodeOid(cert, oidTlv);
-      const val = td2.decode(cert.slice(valTlv.contentStart, valTlv.end));
-      if (oid === "2.5.4.3" && out.commonName == null) out.commonName = val;
-      if (oid === "2.5.4.10" && out.organization == null) out.organization = val;
-    }
-  }
-  return out;
-}
-function decodeExtensions(cert, kids2, shift) {
-  const out = { sanEmails: [], isCa: false };
-  try {
-    const wrap3 = kids2.slice(shift + 6).find((k) => k.tag === 163);
-    if (!wrap3) return out;
-    const [seq] = derChildren(cert, wrap3);
-    if (!seq || seq.tag !== 48) return out;
-    for (const ext of derChildren(cert, seq)) {
-      if (ext.tag !== 48) continue;
-      const parts = derChildren(cert, ext);
-      const value = parts[parts.length - 1];
-      if (!parts[0] || parts[0].tag !== 6 || !value || value.tag !== 4) continue;
-      const oid = decodeOid(cert, parts[0]);
-      if (oid === "2.5.29.17") {
-        const names = derTlv(cert, value.contentStart);
-        if (names.tag !== 48 || names.end > value.end) continue;
-        for (const gn of derChildren(cert, names)) {
-          if (gn.tag === 129) out.sanEmails.push(td2.decode(cert.slice(gn.contentStart, gn.end)));
-        }
-      } else if (oid === "2.5.29.19") {
-        const bc = derTlv(cert, value.contentStart);
-        if (bc.tag !== 48 || bc.end > value.end) continue;
-        const [ca] = derChildren(cert, bc);
-        out.isCa = !!ca && ca.tag === 1 && ca.end > ca.contentStart && cert[ca.contentStart] !== 0;
-      }
-    }
-  } catch {
-  }
-  return out;
-}
-function parseCertSigAlg(cert, algId) {
-  try {
-    const kids2 = derChildren(cert, algId);
-    const oidTlv = kids2[0];
-    if (!oidTlv || oidTlv.tag !== 6) return null;
-    const oid = bytesToHex(cert.slice(oidTlv.contentStart, oidTlv.end));
-    const fixed = SIG_ALGS[oid];
-    if (fixed) return { ...fixed };
-    if (oid === SIG_OID_ED25519) return { scheme: "ed25519" };
-    if (oid === SIG_OID_RSA_PSS) {
-      let hash = "SHA-1";
-      let saltLength = 20;
-      const params2 = kids2[1];
-      if (params2 && params2.tag === 48) {
-        for (const field2 of derChildren(cert, params2)) {
-          if (field2.tag === 160) {
-            const h = derChildren(cert, field2)[0];
-            if (h && h.tag === 6) hash = HASH_OIDS[bytesToHex(cert.slice(h.contentStart, h.end))] || hash;
-          } else if (field2.tag === 162) {
-            const s = derChildren(cert, field2)[0];
-            if (s && s.tag === 2) {
-              let n7 = 0;
-              for (const b of cert.slice(s.contentStart, s.end)) n7 = n7 * 256 + b;
-              saltLength = n7;
-            }
-          }
-        }
-      }
-      return { scheme: "rsa-pss", hash, saltLength };
-    }
-    return null;
-  } catch {
-    return null;
-  }
-}
-function parseCertificate(cert) {
-  const top = derTlv(cert, 0);
-  const topKids = derChildren(cert, top);
-  const tbs = topKids[0];
-  const sigAlgTlv = topKids[1];
-  const sigTlv = topKids[2];
-  const kids2 = derChildren(cert, tbs);
-  const shift = kids2[0].tag === 160 ? 1 : 0;
-  const issuerTlv = kids2[shift + 2];
-  const validity = derChildren(cert, kids2[shift + 3]);
-  const subjectTlv = kids2[shift + 4];
-  const spkiTlv = kids2[shift + 5];
-  const issuerBytes = cert.slice(issuerTlv.start, issuerTlv.end);
-  const subjectBytes = cert.slice(subjectTlv.start, subjectTlv.end);
-  const ext = decodeExtensions(cert, kids2, shift);
-  return {
-    subject: decodeName(cert, subjectTlv),
-    issuer: decodeName(cert, issuerTlv),
-    notBefore: decodeTime(cert, validity[0]),
-    notAfter: decodeTime(cert, validity[1]),
-    selfSigned: bytesToHex(issuerBytes) === bytesToHex(subjectBytes),
-    spki: cert.slice(spkiTlv.start, spkiTlv.end),
-    // Additive (1.11.0) - the chain-verification raw material. signatureRaw is
-    // the signatureValue BIT STRING content minus its unused-bits byte: for
-    // ECDSA that is still a DER ECDSA-Sig-Value (ecdsaDerToRaw converts).
-    tbsBytes: cert.slice(tbs.start, tbs.end),
-    signatureRaw: sigTlv && sigTlv.tag === 3 && sigTlv.end > sigTlv.contentStart + 1 ? cert.slice(sigTlv.contentStart + 1, sigTlv.end) : null,
-    sigAlg: sigAlgTlv ? parseCertSigAlg(cert, sigAlgTlv) : null,
-    issuerBytes,
-    subjectBytes,
-    sanEmails: ext.sanEmails,
-    isCa: ext.isCa
-  };
-}
-function ecParamsOf(spki) {
-  try {
-    const algId = derChildren(spki, derTlv(spki, 0))[0];
-    const curveOid = derChildren(spki, algId)[1];
-    if (!curveOid || curveOid.tag !== 6) return null;
-    return EC_CURVES[bytesToHex(spki.slice(curveOid.contentStart, curveOid.end))] ?? null;
-  } catch {
-    return null;
-  }
-}
-async function signedBy(child, signer) {
-  if (!child.signatureRaw || !child.sigAlg || bytesToHex(child.issuerBytes) !== bytesToHex(signer.subjectBytes)) return false;
-  const sa = child.sigAlg;
-  try {
-    if (sa.scheme === "ecdsa") {
-      const ec = ecParamsOf(signer.spki);
-      if (!ec) return false;
-      const key3 = await subtle4.importKey("spki", asBufferSource(signer.spki), { name: "ECDSA", namedCurve: ec.curve }, false, ["verify"]);
-      return await subtle4.verify({ name: "ECDSA", hash: sa.hash }, key3, asBufferSource(ecdsaDerToRaw(child.signatureRaw, ec.size)), asBufferSource(child.tbsBytes));
-    }
-    if (sa.scheme === "rsa") {
-      const key3 = await subtle4.importKey("spki", asBufferSource(normalizeRsaSpki(signer.spki)), { name: "RSASSA-PKCS1-v1_5", hash: sa.hash }, false, ["verify"]);
-      return await subtle4.verify({ name: "RSASSA-PKCS1-v1_5" }, key3, asBufferSource(child.signatureRaw), asBufferSource(child.tbsBytes));
-    }
-    if (sa.scheme === "rsa-pss") {
-      const key3 = await subtle4.importKey("spki", asBufferSource(normalizeRsaSpki(signer.spki)), { name: "RSA-PSS", hash: sa.hash }, false, ["verify"]);
-      return await subtle4.verify({ name: "RSA-PSS", saltLength: sa.saltLength }, key3, asBufferSource(child.signatureRaw), asBufferSource(child.tbsBytes));
-    }
-    const key2 = await subtle4.importKey("spki", asBufferSource(signer.spki), { name: "Ed25519" }, false, ["verify"]);
-    return await subtle4.verify({ name: "Ed25519" }, key2, asBufferSource(child.signatureRaw), asBufferSource(child.tbsBytes));
-  } catch {
-    return false;
-  }
-}
 async function chainsToAnchor(leaf, chainDers, trustAnchors) {
   const anchors = [];
   for (const der2 of trustAnchors) {
@@ -47579,32 +48028,17 @@ async function chainsToAnchor(leaf, chainDers, trustAnchors) {
   }
   return null;
 }
-function derWrap2(tag3, body) {
-  let head2;
-  if (body.length < 128) head2 = Uint8Array.of(tag3, body.length);
-  else if (body.length < 256) head2 = Uint8Array.of(tag3, 129, body.length);
-  else head2 = Uint8Array.of(tag3, 130, body.length >>> 8, body.length & 255);
-  return concatBytes([head2, body]);
-}
-function normalizeRsaSpki(spki) {
-  const top = derTlv(spki, 0);
-  const [algTlv, keyTlv] = derChildren(spki, top);
-  const oid = derTlv(spki, algTlv.contentStart);
-  const oidBytes = spki.slice(oid.start, oid.end);
-  if (oidBytes.length !== OID_RSASSA_PSS.length || !oidBytes.every((b, i) => b === OID_RSASSA_PSS[i])) return spki;
-  return derWrap2(48, concatBytes([ALGID_RSA_ENCRYPTION, spki.slice(keyTlv.start, keyTlv.end)]));
-}
 async function verifyCoseSignature(alg, spki, sigRaw, sigStructure) {
   if (alg.kind === "ecdsa") {
-    const key3 = await subtle4.importKey("spki", asBufferSource(spki), { name: "ECDSA", namedCurve: alg.curve }, false, ["verify"]);
-    return subtle4.verify({ name: "ECDSA", hash: alg.hash }, key3, asBufferSource(sigRaw), asBufferSource(sigStructure));
+    const key3 = await subtle6.importKey("spki", asBufferSource(spki), { name: "ECDSA", namedCurve: alg.curve }, false, ["verify"]);
+    return subtle6.verify({ name: "ECDSA", hash: alg.hash }, key3, asBufferSource(sigRaw), asBufferSource(sigStructure));
   }
   if (alg.kind === "rsa-pss") {
-    const key3 = await subtle4.importKey("spki", asBufferSource(normalizeRsaSpki(spki)), { name: "RSA-PSS", hash: alg.hash }, false, ["verify"]);
-    return subtle4.verify({ name: "RSA-PSS", saltLength: alg.saltLength }, key3, asBufferSource(sigRaw), asBufferSource(sigStructure));
+    const key3 = await subtle6.importKey("spki", asBufferSource(normalizeRsaSpki(spki)), { name: "RSA-PSS", hash: alg.hash }, false, ["verify"]);
+    return subtle6.verify({ name: "RSA-PSS", saltLength: alg.saltLength }, key3, asBufferSource(sigRaw), asBufferSource(sigStructure));
   }
-  const key2 = await subtle4.importKey("spki", asBufferSource(spki), { name: "Ed25519" }, false, ["verify"]);
-  return subtle4.verify({ name: "Ed25519" }, key2, asBufferSource(sigRaw), asBufferSource(sigStructure));
+  const key2 = await subtle6.importKey("spki", asBufferSource(spki), { name: "Ed25519" }, false, ["verify"]);
+  return subtle6.verify({ name: "Ed25519" }, key2, asBufferSource(sigRaw), asBufferSource(sigStructure));
 }
 function parseCreatorEntry(entry2) {
   let name = entry2;
@@ -47683,13 +48117,13 @@ function readAiDisclosure(content2) {
   try {
     let m2 = decodeCbor(content2);
     if (!(m2 instanceof Map)) {
-      const json = JSON.parse(td2.decode(content2));
+      const json = JSON.parse(td4.decode(content2));
       m2 = json && typeof json === "object" && !Array.isArray(json) ? new Map(Object.entries(json)) : null;
     }
     if (!(m2 instanceof Map)) return void 0;
     const str10 = (v) => typeof v === "string" && v.trim() ? v.trim() : void 0;
-    const profile = m2.get("contentProfile");
-    const oversight = profile instanceof Map ? str10(profile.get("humanOversightLevel")) : profile && typeof profile === "object" ? str10(profile.humanOversightLevel) : void 0;
+    const profile2 = m2.get("contentProfile");
+    const oversight = profile2 instanceof Map ? str10(profile2.get("humanOversightLevel")) : profile2 && typeof profile2 === "object" ? str10(profile2.humanOversightLevel) : void 0;
     const rawDomain = m2.get("scientificDomain");
     const domains = (Array.isArray(rawDomain) ? rawDomain : [rawDomain]).map(str10).filter((s) => !!s);
     const out = {
@@ -47704,7 +48138,7 @@ function readAiDisclosure(content2) {
     return void 0;
   }
 }
-async function verifyC2pa(bytes2, { trustAnchors, externalManifest } = {}) {
+async function verifyC2pa(bytes2, { trustAnchors, externalManifest, enrollmentTrust, enrollmentCrls } = {}) {
   if (!(bytes2 instanceof Uint8Array)) throw new Error("verifyC2pa: bytes must be a Uint8Array");
   const checks = [];
   const fail5 = (code, explanation) => {
@@ -47882,7 +48316,7 @@ async function verifyC2pa(bytes2, { trustAnchors, externalManifest } = {}) {
   const metaAssertion = parts.assertions.find((a) => a.label === "cawg.metadata" || a.label === "c2pa.metadata");
   if (metaAssertion) {
     try {
-      const meta = JSON.parse(td2.decode(metaAssertion.content));
+      const meta = JSON.parse(td4.decode(metaAssertion.content));
       const creator = meta?.["dc:creator"];
       const name = Array.isArray(creator) ? creator[0] : creator;
       if (name) report4.author = parseCreatorEntry(String(name));
@@ -47894,7 +48328,7 @@ async function verifyC2pa(bytes2, { trustAnchors, externalManifest } = {}) {
   const creativeWork = parts.assertions.find((a) => a.label === "stds.schema-org.CreativeWork");
   if (creativeWork && (!report4.author || !report4.rights)) {
     try {
-      const work = JSON.parse(td2.decode(creativeWork.content));
+      const work = JSON.parse(td4.decode(creativeWork.content));
       const person = work?.author?.[0];
       if (!report4.author && person?.name) {
         report4.author = {
@@ -47935,6 +48369,7 @@ async function verifyC2pa(bytes2, { trustAnchors, externalManifest } = {}) {
   }
   let signerAlg = null;
   let claimSigValid = null;
+  let managedTrustFailure = false;
   let anchorMatch = null;
   let leafInsideValidity = false;
   let leafSanEmail = null;
@@ -47982,6 +48417,14 @@ async function verifyC2pa(bytes2, { trustAnchors, externalManifest } = {}) {
     leafSanEmail = cert.sanEmails[0] ?? null;
     if (Array.isArray(trustAnchors) && trustAnchors.length) {
       anchorMatch = await chainsToAnchor(cert, chainDers, trustAnchors);
+      if (anchorMatch && enrollmentTrust?.roots.some((root2) => equalDer(parseCertificate(root2).spki, anchorMatch.spki))) {
+        try {
+          await validateManagedCredential(chainDers.filter((b) => b instanceof Uint8Array), enrollmentTrust, enrollmentCrls ?? {});
+        } catch {
+          anchorMatch = null;
+          managedTrustFailure = true;
+        }
+      }
     }
   } catch (err) {
     fail5(C2PA_CHECK.claimSignatureMismatch, `claim signature could not be verified: ${err.message}`);
@@ -48041,7 +48484,7 @@ async function verifyC2pa(bytes2, { trustAnchors, externalManifest } = {}) {
     try {
       const hd = decodeCbor(hashData.content);
       if ((hd.get("alg") || "sha256") !== "sha256") throw new Error(`unsupported hash alg ${String(hd.get("alg"))}`);
-      const nfcBytes = te7.encode(carrier.nfc);
+      const nfcBytes = te8.encode(carrier.nfc);
       const exclusions = readExclusions(hd);
       let at = 0;
       for (const e of exclusions) {
@@ -48075,7 +48518,7 @@ async function verifyC2pa(bytes2, { trustAnchors, externalManifest } = {}) {
           cut = e.start + e.length;
         }
         spans.push(nfcBytes.subarray(cut));
-        const remaining = te7.encode(tdText.decode(concatBytes(spans)).normalize("NFC"));
+        const remaining = te8.encode(tdText.decode(concatBytes(spans)).normalize("NFC"));
         if (bytesToHex(await sha256(remaining)) === bytesToHex(hd.get("hash"))) {
           pass(C2PA_CHECK.assertionDataHashMatch, "data hash valid (NFC-normalized text, section 15.12.1.3.1)");
         } else {
@@ -48133,7 +48576,7 @@ async function verifyC2pa(bytes2, { trustAnchors, externalManifest } = {}) {
     const who = report4.signer.identity.email || report4.signer.commonName;
     pass(C2PA_CHECK.signingCredentialTrusted, report4.trusted ? `signing certificate chains to a pinned CA root - verified identity: ${who}` : `signing certificate chains to a pinned CA root - verified identity: ${who} (certificate has since expired; signing time cannot be proven - no timestamp authority yet)`);
   } else {
-    fail5(C2PA_CHECK.signingCredentialUntrusted, untrustedReason(report4.signer));
+    fail5(C2PA_CHECK.signingCredentialUntrusted, managedTrustFailure ? "Managed certificate policy or current revocation status could not be verified" : untrustedReason(report4.signer));
   }
   report4.state = checks.every((c) => c.ok || c.code === C2PA_CHECK.signingCredentialUntrusted) ? "valid" : "invalid";
   const acts = report4.claim.actions || [];
@@ -48149,41 +48592,21 @@ async function verifyC2pa(bytes2, { trustAnchors, externalManifest } = {}) {
   report4.delivered = report4.state === "valid" && !created && acts.some((a) => a.action === "c2pa.published");
   return report4;
 }
-var td2, te7, tdText, subtle4, SIG_ALGS, SIG_OID_RSA_PSS, SIG_OID_ED25519, HASH_OIDS, MAX_CHAIN_INTERMEDIATES, COSE_ALGS, OID_RSASSA_PSS, ALGID_RSA_ENCRYPTION, HASHED_URI_PREFIX, EPHEMERAL_CN, TEXT_BINDING_KIND, isCutWrapper, excludesWrapper, MAX_WRAPPER_CANDIDATES, sameRanges, verifyC2paPdf;
+var td4, te8, tdText, subtle6, MAX_CHAIN_INTERMEDIATES, COSE_ALGS, HASHED_URI_PREFIX, EPHEMERAL_CN, TEXT_BINDING_KIND, isCutWrapper, excludesWrapper, MAX_WRAPPER_CANDIDATES, sameRanges, verifyC2paPdf;
 var init_c2pa_verify = __esm({
   "engine/src/c2pa-verify.ts"() {
     "use strict";
     init_c2pa2();
     init_c2pa_verdict();
     init_bytes();
-    init_der_read();
+    init_x509_read();
+    init_enrollment();
     init_c2pa_extract();
-    td2 = new TextDecoder();
-    te7 = new TextEncoder();
+    init_x509_read();
+    td4 = new TextDecoder();
+    te8 = new TextEncoder();
     tdText = new TextDecoder("utf-8", { ignoreBOM: true });
-    subtle4 = globalThis.crypto.subtle;
-    SIG_ALGS = {
-      "2a8648ce3d040302": { scheme: "ecdsa", hash: "SHA-256" },
-      // ecdsa-with-SHA256
-      "2a8648ce3d040303": { scheme: "ecdsa", hash: "SHA-384" },
-      // ecdsa-with-SHA384
-      "2a8648ce3d040304": { scheme: "ecdsa", hash: "SHA-512" },
-      // ecdsa-with-SHA512
-      "2a864886f70d01010b": { scheme: "rsa", hash: "SHA-256" },
-      // sha256WithRSAEncryption
-      "2a864886f70d01010c": { scheme: "rsa", hash: "SHA-384" },
-      // sha384WithRSAEncryption
-      "2a864886f70d01010d": { scheme: "rsa", hash: "SHA-512" }
-      // sha512WithRSAEncryption
-    };
-    SIG_OID_RSA_PSS = "2a864886f70d01010a";
-    SIG_OID_ED25519 = "2b6570";
-    HASH_OIDS = {
-      "608648016503040201": "SHA-256",
-      "608648016503040202": "SHA-384",
-      "608648016503040203": "SHA-512",
-      "2b0e03021a": "SHA-1"
-    };
+    subtle6 = globalThis.crypto.subtle;
     MAX_CHAIN_INTERMEDIATES = 8;
     COSE_ALGS = {
       "-7": { kind: "ecdsa", curve: "P-256", hash: "SHA-256", name: "ES256" },
@@ -48194,8 +48617,6 @@ var init_c2pa_verify = __esm({
       "-39": { kind: "rsa-pss", hash: "SHA-512", saltLength: 64, name: "PS512" },
       "-8": { kind: "ed25519", name: "Ed25519" }
     };
-    OID_RSASSA_PSS = Uint8Array.of(6, 9, 42, 134, 72, 134, 247, 13, 1, 1, 10);
-    ALGID_RSA_ENCRYPTION = Uint8Array.of(48, 13, 6, 9, 42, 134, 72, 134, 247, 13, 1, 1, 1, 5, 0);
     HASHED_URI_PREFIX = "self#jumbf=c2pa.assertions/";
     EPHEMERAL_CN = "Lolly On-Device Credential";
     TEXT_BINDING_KIND = {
@@ -49060,9 +49481,9 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
   const composeMemo = /* @__PURE__ */ new Map();
   let setInputSeq = 0;
   let viewState = opts.viewState ? Object.freeze(structuredClone(opts.viewState)) : void 0;
-  const profile = await host.profile.get();
-  const hookLang = tool.lang || profile.lang || "en";
-  const { userTemplates: _templates, emoji: _emojiPref, trustedSites: _trusted, trustedSitesSeeded: _trustedSeeded, ...profileValues } = profile;
+  const profile2 = await host.profile.get();
+  const hookLang = tool.lang || profile2.lang || "en";
+  const { userTemplates: _templates, emoji: _emojiPref, trustedSites: _trusted, trustedSitesSeeded: _trustedSeeded, ...profileValues } = profile2;
   void _templates;
   void _emojiPref;
   void _trusted;
@@ -50164,7 +50585,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       const isOnDevice = tool.manifest.privacy === "on-device";
       let meta = opts2.meta;
       if (meta === void 0 && opts2.embedMeta !== false && !isOnDevice) {
-        meta = await buildExportMeta(host, tool.manifest, profile, model2);
+        meta = await buildExportMeta(host, tool.manifest, profile2, model2);
         const notice = outputLicenceNotice(declaredLicence);
         if (meta && notice && !meta.license) meta = { ...meta, license: notice };
       }
@@ -50205,7 +50626,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
         ingredients = [...ingredients ?? [], ...sourceIngredientsFor(frozen.works, frozen.uses, frozen.details)];
       }
       const stampProvenance = opts2.c2pa && !isOnDevice;
-      const c2paInputs = stampProvenance ? summarizeInputs(model2) : void 0;
+      const c2paInputs = stampProvenance ? await summarizeInputDigests(model2) : void 0;
       const capCamera = liveCameraShown || recordedCamera;
       const c2paCapture = stampProvenance && (recordedScreen || capCamera || recordedMic) ? {
         ...recordedScreen ? { screen: true } : {},
@@ -50214,10 +50635,9 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       } : void 0;
       let c2paTextAdded;
       if (stampProvenance && ingredients?.length) {
-        const textItem = model2.find((i) => (i.type === "text" || i.type === "longtext") && !i.bindToProfile && String(flattenValue(i.value) ?? "").trim());
+        const textItem = model2.find((i) => (i.type === "text" || i.type === "longtext") && !i.bindToProfile && matchesShowIf(i.showIf, modelToValues(model2)) && String(flattenValue(i.value) ?? "").trim());
         if (textItem) {
-          const s = String(flattenValue(textItem.value)).trim();
-          c2paTextAdded = { sample: s.length > 48 ? s.slice(0, 47) + "\u2026" : s };
+          c2paTextAdded = {};
         }
       }
       let c2paAiUpscale;
@@ -52101,11 +52521,11 @@ function validateSampleTimes(value) {
     throw new RangeError("sampleTimes must contain 1 to 64 timeline times in seconds.");
   }
   const times = [];
-  for (const time of value) {
-    if (typeof time !== "number" || !Number.isFinite(time) || time < 0 || time > 3600 || times.length > 0 && time <= times[times.length - 1]) {
+  for (const time2 of value) {
+    if (typeof time2 !== "number" || !Number.isFinite(time2) || time2 < 0 || time2 > 3600 || times.length > 0 && time2 <= times[times.length - 1]) {
       throw new RangeError("sampleTimes must be strictly increasing finite seconds from 0 to 3600.");
     }
-    times.push(time);
+    times.push(time2);
   }
   return times;
 }
@@ -52131,19 +52551,19 @@ function sequenceSampleTimes(totalMs, cuts, sampleTimes) {
   if (!Number.isFinite(totalMs) || totalMs <= 0) throw new RangeError("Timeline samples need a timed composition.");
   if (sampleTimes !== void 0) {
     const times = validateSampleTimes(sampleTimes).map((seconds) => seconds * 1e3);
-    if (times.some((time) => time >= totalMs)) throw new RangeError(`Every sample must be before the timeline end (${totalMs / 1e3}s).`);
+    if (times.some((time2) => time2 >= totalMs)) throw new RangeError(`Every sample must be before the timeline end (${totalMs / 1e3}s).`);
     return times;
   }
   if (!Number.isInteger(cuts) || cuts < 1 || cuts > MAX_SEQUENCE_SAMPLES) throw new RangeError("cuts must be an integer from 1 to 64.");
   return Array.from({ length: cuts }, (_, i) => totalMs * (i + 0.5) / cuts);
 }
 function motionReviewTimes(seconds, fps, boundaries, holds3 = []) {
-  if (!Number.isFinite(seconds) || seconds <= 0 || seconds > 3600 || !Number.isInteger(fps) || fps < 1 || fps > 120 || [...boundaries, ...holds3].some((time) => !Number.isFinite(time) || time < 0 || time >= seconds)) {
+  if (!Number.isFinite(seconds) || seconds <= 0 || seconds > 3600 || !Number.isInteger(fps) || fps < 1 || fps > 120 || [...boundaries, ...holds3].some((time2) => !Number.isFinite(time2) || time2 < 0 || time2 >= seconds)) {
     throw new RangeError("Review times need a positive duration, an integer fps from 1 to 120 and in-range cues.");
   }
   const times = [0, (Math.ceil(seconds * fps) - 1) / fps, ...holds3];
-  for (const time of boundaries) times.push(time - 1 / fps, time, time + 1 / fps);
-  return validateSampleTimes([...new Set(times.filter((time) => time >= 0 && time < seconds))].sort((a, b) => a - b));
+  for (const time2 of boundaries) times.push(time2 - 1 / fps, time2, time2 + 1 / fps);
+  return validateSampleTimes([...new Set(times.filter((time2) => time2 >= 0 && time2 < seconds))].sort((a, b) => a - b));
 }
 var MAX_SEQUENCE_SAMPLES;
 var init_sequence_samples = __esm({
@@ -53632,8 +54052,8 @@ function aesCtrLe(encKey, data) {
   return out;
 }
 async function deriveAesZipKey(pw, salt16) {
-  const base = await subtle5.importKey("raw", asBufferSource(pw), "PBKDF2", false, ["deriveBits"]);
-  const dk = new Uint8Array(await subtle5.deriveBits(
+  const base = await subtle7.importKey("raw", asBufferSource(pw), "PBKDF2", false, ["deriveBits"]);
+  const dk = new Uint8Array(await subtle7.deriveBits(
     { name: "PBKDF2", hash: "SHA-1", salt: asBufferSource(salt16), iterations: 1e3 },
     base,
     66 * 8
@@ -53643,8 +54063,8 @@ async function deriveAesZipKey(pw, salt16) {
 async function aesZipEncryptEntry(pw, compressed, salt16) {
   const { encKey, authKey, pwVerify } = await deriveAesZipKey(pw, salt16);
   const ct = aesCtrLe(encKey, compressed);
-  const hmacKey = await subtle5.importKey("raw", asBufferSource(authKey), { name: "HMAC", hash: "SHA-1" }, false, ["sign"]);
-  const mac = new Uint8Array(await subtle5.sign("HMAC", hmacKey, asBufferSource(ct))).subarray(0, 10);
+  const hmacKey = await subtle7.importKey("raw", asBufferSource(authKey), { name: "HMAC", hash: "SHA-1" }, false, ["sign"]);
+  const mac = new Uint8Array(await subtle7.sign("HMAC", hmacKey, asBufferSource(ct))).subarray(0, 10);
   return concatBytes([salt16, pwVerify, ct, mac]);
 }
 function encodeName(name) {
@@ -53742,12 +54162,12 @@ async function buildEncryptedZip(entries, opts) {
   edv.setUint32(16, localBlob.length, true);
   return concatBytes([localBlob, centralBlob, eocd]);
 }
-var subtle5, CRC_TABLE2, crc32Byte, ZipCryptoKeys, AES_SBOX, Aes256, DOS_DATE;
+var subtle7, CRC_TABLE2, crc32Byte, ZipCryptoKeys, AES_SBOX, Aes256, DOS_DATE;
 var init_zip_crypto = __esm({
   "engine/src/zip-crypto.ts"() {
     "use strict";
     init_bytes();
-    subtle5 = globalThis.crypto.subtle;
+    subtle7 = globalThis.crypto.subtle;
     CRC_TABLE2 = (() => {
       const t = new Uint32Array(256);
       for (let n7 = 0; n7 < 256; n7++) {
@@ -56411,8 +56831,8 @@ function validateInputValue(input, value, path, errors) {
   if (value === "" && input.default === "" && (input.type === "number" || input.type === "boolean")) return;
   const object4 = Boolean(value && typeof value === "object" && !Array.isArray(value));
   const expected = input.type === "number" ? "number" : input.type === "boolean" ? "boolean" : input.type === "blocks" ? "array" : input.type === "table" || input.type === "vector" ? "object" : input.type === "asset" ? "asset" : input.type === "file" ? "file" : input.type === "color" ? "color" : "string";
-  const matches4 = expected === "array" ? Array.isArray(value) : expected === "object" ? object4 : expected === "asset" ? value === null || typeof value === "string" || object4 : expected === "file" ? value === null || object4 || input.multiple === true && Array.isArray(value) : expected === "color" ? typeof value === "string" || object4 : typeof value === expected;
-  if (!matches4) {
+  const matches3 = expected === "array" ? Array.isArray(value) : expected === "object" ? object4 : expected === "asset" ? value === null || typeof value === "string" || object4 : expected === "file" ? value === null || object4 || input.multiple === true && Array.isArray(value) : expected === "color" ? typeof value === "string" || object4 : typeof value === expected;
+  if (!matches3) {
     errors.push({ path, message: `must be ${expected}` });
     return;
   }
@@ -63522,7 +63942,7 @@ function readVersionedDescriptor(bytes2, offset = 0) {
 function descColor(color6) {
   const r5 = descNumber(color6, "Rd  "), g2 = descNumber(color6, "Grn "), b = descNumber(color6, "Bl  ");
   if (r5 == null || g2 == null || b == null) return null;
-  return `#${hex2(channel(r5))}${hex2(channel(g2))}${hex2(channel(b))}`;
+  return `#${hex22(channel(r5))}${hex22(channel(g2))}${hex22(channel(b))}`;
 }
 function parseEngineData(bytes2) {
   let i = 0;
@@ -63690,7 +64110,7 @@ function engineWalk(v, ...keys2) {
   }
   return cur ?? null;
 }
-var MAX_DEPTH3, MAX_ITEMS, MAX_LIST, MAX_TOTAL, MAX_DATA, MAX_KEY, Stop, Cursor, own2, descNumber, descText, descBool, descEnum, descData, descList, descChild, hex2, channel, ENGINE_DEPTH, ENGINE_TOKENS, engineNumber, engineBool, engineString, engineList;
+var MAX_DEPTH3, MAX_ITEMS, MAX_LIST, MAX_TOTAL, MAX_DATA, MAX_KEY, Stop, Cursor, own2, descNumber, descText, descBool, descEnum, descData, descList, descChild, hex22, channel, ENGINE_DEPTH, ENGINE_TOKENS, engineNumber, engineBool, engineString, engineList;
 var init_psd_descriptor = __esm({
   "engine/src/psd-descriptor.ts"() {
     "use strict";
@@ -63803,7 +64223,7 @@ var init_psd_descriptor = __esm({
       const v = own2(o, k);
       return v && typeof v === "object" && !Array.isArray(v) && !(v instanceof Uint8Array) && !("enum" in v && Object.keys(v).length === 1) ? v : null;
     };
-    hex2 = (v) => Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, "0");
+    hex22 = (v) => Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, "0");
     channel = (v) => v > 1 ? v : v * 255;
     ENGINE_DEPTH = 64;
     ENGINE_TOKENS = 1e6;
@@ -65181,8 +65601,8 @@ function applyMask(out, w, h, rec2, mPlane) {
   }
 }
 function cmykPlanesToRgba(cy3, ma, ye, ke, alpha, n7, out, icc, warn2) {
-  const profile = icc ? parseIccProfile(icc) : null;
-  const lut = profile && profile.dataColourSpace === "CMYK" ? buildCmykLut(profile, cy3, ma, ye, ke, n7, warn2) : null;
+  const profile2 = icc ? parseIccProfile(icc) : null;
+  const lut = profile2 && profile2.dataColourSpace === "CMYK" ? buildCmykLut(profile2, cy3, ma, ye, ke, n7, warn2) : null;
   if (!lut && icc) warn2("cmyk.no-profile", "embedded profile unusable - naive conversion");
   if (!lut && !icc) warn2("cmyk.no-profile", "no embedded profile - naive conversion");
   for (let i = 0; i < n7; i++) {
@@ -65202,7 +65622,7 @@ function cmykPlanesToRgba(cy3, ma, ye, ke, alpha, n7, out, icc, warn2) {
     out[o + 3] = alpha ? alpha[i] : 255;
   }
 }
-function buildCmykLut(profile, cy3, ma, ye, ke, n7, warn2) {
+function buildCmykLut(profile2, cy3, ma, ye, ke, n7, warn2) {
   const unique3 = /* @__PURE__ */ new Map();
   for (let i = 0; i < n7; i++) {
     const key2 = (cy3[i] << 8 | ma[i]) * 65536 + (ye[i] << 8 | ke[i]);
@@ -65222,7 +65642,7 @@ function buildCmykLut(profile, cy3, ma, ye, ke, n7, warn2) {
     const kk = key2 % 65536;
     const hi = (key2 - kk) / 65536;
     const dev = [1 - (hi >> 8 & 255) / 255, 1 - (hi & 255) / 255, 1 - (kk >> 8 & 255) / 255, 1 - (kk & 255) / 255];
-    const l = profile.toLab("relative", dev) ?? profile.toLab("perceptual", dev);
+    const l = profile2.toLab("relative", dev) ?? profile2.toLab("perceptual", dev);
     const o = slot * 4;
     if (l) {
       lab[o] = l[0];
@@ -67168,7 +67588,7 @@ function autoPoints(options2, context) {
 }
 function samplePresentInteractAuto(options2, tMs, context, flags = {}) {
   const paused = Number.isFinite(flags.pausedAtMs);
-  const time = Math.max(0, Number.isFinite(paused ? flags.pausedAtMs : tMs) ? paused ? flags.pausedAtMs : tMs : 0);
+  const time2 = Math.max(0, Number.isFinite(paused ? flags.pausedAtMs : tMs) ? paused ? flags.pausedAtMs : tMs : 0);
   if (options2.auto === "off") return { to: options2.start, done: true, stopIndex: null, paused };
   const points = autoPoints(options2, context);
   if (flags.reducedMotion && !options2.stops.length) return { to: options2.start, done: true, stopIndex: null, paused };
@@ -67176,11 +67596,11 @@ function samplePresentInteractAuto(options2, tMs, context, flags = {}) {
   const pause = clamp3(options2.pauseSeconds, 0, 600) * 1e3;
   const segments = Math.max(1, points.length - 1);
   const legDuration = duration + points.filter((point3) => point3.stopIndex !== null).length * pause;
-  const done = options2.repeat === "once" && time >= legDuration;
-  const iteration = options2.repeat === "once" ? 0 : Math.floor(time / legDuration);
+  const done = options2.repeat === "once" && time2 >= legDuration;
+  const iteration = options2.repeat === "once" ? 0 : Math.floor(time2 / legDuration);
   const reverse = options2.repeat === "alternate" && iteration % 2 === 1;
   const route = reverse ? [...points].reverse() : points;
-  let left = done ? legDuration : options2.repeat === "once" ? time : time % legDuration;
+  let left = done ? legDuration : options2.repeat === "once" ? time2 : time2 % legDuration;
   if (done) {
     const last2 = route.at(-1);
     return { to: last2.depth, done, stopIndex: last2.stopIndex, paused };
@@ -68535,20 +68955,20 @@ function insertAvifExif(bytes2, meta) {
     exifPayload.set([0, 0, 0, 6, 69, 120, 105, 102, 0, 0], 0);
     exifPayload.set(tiff, 10);
     const buildMeta = (entries) => {
-      const children = [];
+      const children2 = [];
       for (const child of inner) {
         if (child.type === "iinf") {
-          children.push(...newIinf);
-          if (!iref) children.push(...newIref);
+          children2.push(...newIinf);
+          if (!iref) children2.push(...newIref);
         } else if (child.type === "iref" && iref) {
-          children.push(...newIref);
+          children2.push(...newIref);
         } else if (child.type === "iloc") {
-          children.push(...emitIloc(parsed.version, entries));
+          children2.push(...emitIloc(parsed.version, entries));
         } else {
-          children.push(...bytes2.subarray(child.start, child.end));
+          children2.push(...bytes2.subarray(child.start, child.end));
         }
       }
-      return boxOf("meta", [...bytes2.subarray(metaBox.payload, metaBox.payload + 4), ...children]);
+      return boxOf("meta", [...bytes2.subarray(metaBox.payload, metaBox.payload + 4), ...children2]);
     };
     const draft = buildMeta([...parsed.entries, { id: exifId, method: 0, dataRef: 0, extents: [{ offset: 0, length: exifPayload.length }] }]);
     const delta = draft.length - (metaBox.end - metaBox.start);
@@ -70577,17 +70997,17 @@ function skipSubtree(tags3, i) {
 }
 function directChildren(tags3, openIdx) {
   if (tags3[openIdx]?.kind !== "open") return [];
-  const children = [];
+  const children2 = [];
   for (let i = openIdx + 1; i < tags3.length; i++) {
     const t = tags3[i];
-    if (t.kind === "close") return children;
+    if (t.kind === "close") return children2;
     if (t.kind === "self") {
-      children.push({ tag: t, ti: i, start: t.start, end: t.end });
+      children2.push({ tag: t, ti: i, start: t.start, end: t.end });
       continue;
     }
     const after = skipSubtree(tags3, i);
     if (after == null) return null;
-    children.push({ tag: t, ti: i, start: t.start, end: tags3[after - 1].end });
+    children2.push({ tag: t, ti: i, start: t.start, end: tags3[after - 1].end });
     i = after - 1;
   }
   return null;
@@ -76327,7 +76747,7 @@ function roundedRectPath(x, y, w, h, radii2) {
     Math.max(0, Math.min(p[0], w)),
     Math.max(0, Math.min(p[1], h))
   ];
-  const [tlh, tlv] = cl(radii2.topLeft);
+  const [tlh, tlv2] = cl(radii2.topLeft);
   const [trh, trv] = cl(radii2.topRight);
   const [brh, brv] = cl(radii2.bottomRight);
   const [blh, blv] = cl(radii2.bottomLeft);
@@ -76339,8 +76759,8 @@ function roundedRectPath(x, y, w, h, radii2) {
     brh || brv ? `A${n3(brh)},${n3(brv)} 0 0 1 ${n3(x + w - brh)},${n3(y + h)}` : "",
     `H${n3(x + blh)}`,
     blh || blv ? `A${n3(blh)},${n3(blv)} 0 0 1 ${n3(x)},${n3(y + h - blv)}` : "",
-    `V${n3(y + tlv)}`,
-    tlh || tlv ? `A${n3(tlh)},${n3(tlv)} 0 0 1 ${n3(x + tlh)},${n3(y)}` : "",
+    `V${n3(y + tlv2)}`,
+    tlh || tlv2 ? `A${n3(tlh)},${n3(tlv2)} 0 0 1 ${n3(x + tlh)},${n3(y)}` : "",
     "Z"
   ].filter(Boolean).join(" ");
 }
@@ -77574,9 +77994,9 @@ function designHierarchyIndex(boxes, pages = emptyPages) {
     }
     if (owner3) {
       result.parent.set(id3, owner3);
-      const children = result.children.get(owner3) || [];
-      children.push(id3);
-      result.children.set(owner3, children);
+      const children2 = result.children.get(owner3) || [];
+      children2.push(id3);
+      result.children.set(owner3, children2);
     }
   }
   for (const [id3, row] of result.byId) {
@@ -77615,8 +78035,8 @@ function designHierarchyIndex(boxes, pages = emptyPages) {
   }
   const positions = new Map(boxes.map((row, n7) => [key(row.id), n7]));
   const stackPosition = (id3) => {
-    const own3 = positions.get(id3) ?? 0, children = result.children.get(id3);
-    return result.byId.get(id3)?.kind === "group" && children?.length ? Math.min(own3, Math.max(...children.map((child) => positions.get(child) ?? 0))) : own3;
+    const own3 = positions.get(id3) ?? 0, children2 = result.children.get(id3);
+    return result.byId.get(id3)?.kind === "group" && children2?.length ? Math.min(own3, Math.max(...children2.map((child) => positions.get(child) ?? 0))) : own3;
   };
   for (const siblings of [...result.children.values(), ...result.rootsByPage.values()]) siblings.sort((a, b) => stackPosition(a) - stackPosition(b));
   let revisions = cache2.get(boxes);
@@ -77826,10 +78246,10 @@ function copyRows(rows2) {
 }
 function rowAt(rows2, id3, path) {
   if (typeof id3 !== "string" || !id3.trim()) throw new Error(`${path}: a stable layer id is required.`);
-  const matches4 = rows2.map((row, index2) => ({ row, index: index2 })).filter(({ row }) => Boolean(row && typeof row === "object" && !Array.isArray(row) && row.id === id3));
-  if (matches4.length !== 1)
-    throw new Error(`${path}: layer "${id3}" ${matches4.length ? "is duplicated" : "does not exist"}.`);
-  return matches4[0];
+  const matches3 = rows2.map((row, index2) => ({ row, index: index2 })).filter(({ row }) => Boolean(row && typeof row === "object" && !Array.isArray(row) && row.id === id3));
+  if (matches3.length !== 1)
+    throw new Error(`${path}: layer "${id3}" ${matches3.length ? "is duplicated" : "does not exist"}.`);
+  return matches3[0];
 }
 function anchorOf(record41, path) {
   const before = record41.beforeId;
@@ -78009,18 +78429,18 @@ function applyLayerOperations(sourceRows, value, fieldDefault = (_id, fallback) 
         id: String(source.row.id)
       };
       const isFrame2 = source.row.kind === "frame";
-      const children = subtreeRows(rows2, String(source.row.id), options2.pages);
+      const children2 = subtreeRows(rows2, String(source.row.id), options2.pages);
       const isContainer = isFrame2 || source.row.kind === "group" || source.row.layout === "flex" || source.row.layout === "grid";
-      if ([source.row, ...children].some((row) => row.textStory || row.layout === "grid")) throw new Error(`${path}: duplicating linked stories or grids requires copying their document metadata. Use the canvas duplicate action.`);
+      if ([source.row, ...children2].some((row) => row.textStory || row.layout === "grid")) throw new Error(`${path}: duplicating linked stories or grids requires copying their document metadata. Use the canvas duplicate action.`);
       const childIdsValue = record41.childIds;
       if (!isContainer && childIdsValue !== void 0)
         throw new Error(`${path}/childIds: only a container duplicate may supply child ids.`);
       if (childIdsValue !== void 0 && (!childIdsValue || typeof childIdsValue !== "object" || Array.isArray(childIdsValue)))
         throw new Error(`${path}/childIds: expected an old child id to new child id object.`);
-      if (children.length && childIdsValue === void 0)
-        throw new Error(`${path}/childIds: duplicating artboard "${String(source.row.id)}" requires a new id for each of its ${children.length} child layers.`);
+      if (children2.length && childIdsValue === void 0)
+        throw new Error(`${path}/childIds: duplicating artboard "${String(source.row.id)}" requires a new id for each of its ${children2.length} child layers.`);
       const childIds = childIdsValue ?? {};
-      const sourceChildIds = children.map((child, childIndex) => {
+      const sourceChildIds = children2.map((child, childIndex) => {
         const id4 = child.id;
         if (typeof id4 !== "string" || !id4.trim())
           throw new Error(`${path}/childIds: source child at index ${childIndex} has no stable id.`);
@@ -78047,15 +78467,15 @@ function applyLayerOperations(sourceRows, value, fieldDefault = (_id, fallback) 
       const clone5 = remapLayerRow(source.row, mappedChildIds);
       rows2.push(clone5);
       reorderDesignRow(rows2, newId, anchor, path, options2.pages);
-      for (const child of children) rows2.push(remapLayerRow(child, mappedChildIds));
+      for (const child of children2) rows2.push(remapLayerRow(child, mappedChildIds));
       continue;
     }
     if (op === "remove") {
       const target2 = rowAt(rows2, record41.id, `${path}/id`);
-      const children = subtreeRows(rows2, String(target2.row.id), options2.pages);
-      if (children.length && record41.cascade !== true)
-        throw new Error(`${path}/cascade: artboard "${String(target2.row.id)}" has ${children.length} child layer${children.length === 1 ? "" : "s"}; pass cascade:true to remove them.`);
-      const removeIds = /* @__PURE__ */ new Set([target2.row.id, ...children.map((row) => row.id)]);
+      const children2 = subtreeRows(rows2, String(target2.row.id), options2.pages);
+      if (children2.length && record41.cascade !== true)
+        throw new Error(`${path}/cascade: artboard "${String(target2.row.id)}" has ${children2.length} child layer${children2.length === 1 ? "" : "s"}; pass cascade:true to remove them.`);
+      const removeIds = /* @__PURE__ */ new Set([target2.row.id, ...children2.map((row) => row.id)]);
       for (let rowIndex2 = rows2.length - 1; rowIndex2 >= 0; rowIndex2--) {
         const row = rows2[rowIndex2];
         if (row && typeof row === "object" && !Array.isArray(row) && removeIds.has(row.id)) rows2.splice(rowIndex2, 1);
@@ -79075,17 +79495,17 @@ function applyAuthoredLayerPatches(rows2, patches, opts = {}) {
   patches.forEach((patch, index2) => {
     const at = `${base}/${index2}`;
     let next2 = patch;
-    const matches4 = record10(patch) ? current.filter((row) => record10(row) && row.id === patch.id) : [];
-    const target2 = matches4.length === 1 ? matches4[0] : void 0;
+    const matches3 = record10(patch) ? current.filter((row) => record10(row) && row.id === patch.id) : [];
+    const target2 = matches3.length === 1 ? matches3[0] : void 0;
     if (record10(patch) && (hasDollar(patch.set) || colourRefsFor(opts, patch.set)) && target2) {
       if (ctx) ctx.frames = collectFrames(current, opts.existing);
       else ctx = makeCtx(current, opts, "/$theme");
       next2 = { ...patch, set: lowerPatchSet(ctx, patch.set, target2, `${at}/set`) };
     }
     if (target2 && target2.kind === "frame" && record10(patch) && record10(patch.set) && (patch.set.x !== void 0 || patch.set.y !== void 0)) {
-      const children = current.filter((row) => record10(row) && row.kind !== "frame" && row.frame === target2.id).length;
-      if (children) {
-        notes.push({ path: `${at}/set`, code: "authoring.frame.children", message: `Artboard "${String(target2.id)}" moved; its ${children} layer${children === 1 ? "" : "s"} keep their canvas position. Move them too, or author them with $in after the move.` });
+      const children2 = current.filter((row) => record10(row) && row.kind !== "frame" && row.frame === target2.id).length;
+      if (children2) {
+        notes.push({ path: `${at}/set`, code: "authoring.frame.children", message: `Artboard "${String(target2.id)}" moved; its ${children2} layer${children2 === 1 ? "" : "s"} keep their canvas position. Move them too, or author them with $in after the move.` });
       }
     }
     try {
@@ -86055,7 +86475,7 @@ function assembleSealMessage(bytes2, ranges) {
 }
 async function computeSealDigest(bytes2, ranges, digestAlg) {
   const msg3 = assembleSealMessage(bytes2, ranges);
-  return new Uint8Array(await subtle6.digest(digestAlg, asBufferSource(msg3)));
+  return new Uint8Array(await subtle8.digest(digestAlg, asBufferSource(msg3)));
 }
 function coversWholeFile(ranges, sigStart, len2) {
   if (!ranges.length) return false;
@@ -86091,16 +86511,16 @@ function ecCurveOf(spki) {
 }
 async function importSealKey(spki, keyAlg, digestAlg) {
   if (keyAlg === "rsa") {
-    return subtle6.importKey("spki", asBufferSource(spki), { name: "RSASSA-PKCS1-v1_5", hash: digestAlg }, false, ["verify"]);
+    return subtle8.importKey("spki", asBufferSource(spki), { name: "RSASSA-PKCS1-v1_5", hash: digestAlg }, false, ["verify"]);
   }
   const ec = ecCurveOf(spki);
   if (!ec) throw new Error("seal: unrecognised EC curve (only P-256/384/521 are supported)");
-  return subtle6.importKey("spki", asBufferSource(spki), { name: "ECDSA", namedCurve: ec.curve }, false, ["verify"]);
+  return subtle8.importKey("spki", asBufferSource(spki), { name: "ECDSA", namedCurve: ec.curve }, false, ["verify"]);
 }
 async function verifySealSignature(message, signature2, publicKey, keyAlg, digestAlg) {
   try {
     if (keyAlg === "rsa") {
-      return await subtle6.verify({ name: "RSASSA-PKCS1-v1_5" }, publicKey, asBufferSource(signature2), asBufferSource(message));
+      return await subtle8.verify({ name: "RSASSA-PKCS1-v1_5" }, publicKey, asBufferSource(signature2), asBufferSource(message));
     }
     const named = publicKey.algorithm.namedCurve;
     const size = named === "P-384" ? 48 : named === "P-521" ? 66 : 32;
@@ -86111,7 +86531,7 @@ async function verifySealSignature(message, signature2, publicKey, keyAlg, diges
       } catch {
       }
     }
-    return await subtle6.verify({ name: "ECDSA", hash: digestAlg }, publicKey, asBufferSource(raw), asBufferSource(message));
+    return await subtle8.verify({ name: "ECDSA", hash: digestAlg }, publicKey, asBufferSource(raw), asBufferSource(message));
   } catch {
     return false;
   }
@@ -86178,11 +86598,11 @@ async function verifyOneRecord(bytes2, rec2, recordCount, resolveKey) {
   try {
     const rangeMsg = assembleSealMessage(bytes2, rec2.ranges);
     if (rec2.id || rec2.timestamp) {
-      const digest1 = new Uint8Array(await subtle6.digest(rec2.digestAlg, asBufferSource(rangeMsg)));
+      const digest1 = new Uint8Array(await subtle8.digest(rec2.digestAlg, asBufferSource(rangeMsg)));
       let prepend = "";
       if (rec2.timestamp) prepend += rec2.timestamp + ":";
       if (rec2.id) prepend += rec2.id + ":";
-      message = concatBytes([te8.encode(prepend), digest1]);
+      message = concatBytes([te9.encode(prepend), digest1]);
     } else {
       message = rangeMsg;
     }
@@ -86197,14 +86617,14 @@ async function verifyOneRecord(bytes2, rec2, recordCount, resolveKey) {
     reason: valid2 ? `signature valid - attributed to ${rec2.domain}${base.coversWholeFile ? ", covers the whole file" : ", covers a partial byte range"}${keySource === "inline" ? " (verified with the record\u2019s inline key)" : ""}` : "signature did not verify (the covered bytes were modified, or the key does not match)"
   };
 }
-var te8, subtle6, DIGEST_MAP, START_NEEDLES, TERMINATORS, SEAL_SCAN_EDGE_BYTES, SEAL_SCAN_WHOLE_MAX_BYTES, SEAL_MAX_RECORD_CHARS, SEAL_MAX_RECORDS, SEAL_MAX_FIELDS, SEAL_MAX_FIELD_CHARS, SEAL_MAX_RANGE_SPEC_CHARS, SEAL_MAX_RANGES, SEAL_MAX_ASSEMBLED_BYTES, EC_SPKI_LEN, NONE;
+var te9, subtle8, DIGEST_MAP, START_NEEDLES, TERMINATORS, SEAL_SCAN_EDGE_BYTES, SEAL_SCAN_WHOLE_MAX_BYTES, SEAL_MAX_RECORD_CHARS, SEAL_MAX_RECORDS, SEAL_MAX_FIELDS, SEAL_MAX_FIELD_CHARS, SEAL_MAX_RANGE_SPEC_CHARS, SEAL_MAX_RANGES, SEAL_MAX_ASSEMBLED_BYTES, EC_SPKI_LEN, NONE;
 var init_seal = __esm({
   "engine/src/seal.ts"() {
     "use strict";
     init_bytes();
     init_der_read();
-    te8 = new TextEncoder();
-    subtle6 = globalThis.crypto.subtle;
+    te9 = new TextEncoder();
+    subtle8 = globalThis.crypto.subtle;
     DIGEST_MAP = {
       sha256: "SHA-256",
       sha384: "SHA-384",
@@ -89214,7 +89634,7 @@ var init_file_data = __esm({
 
 // engine/src/riff-meta.ts
 function infoSub(id3, value) {
-  const body = concatBytes([te9.encode(value), Uint8Array.of(0)]);
+  const body = concatBytes([te10.encode(value), Uint8Array.of(0)]);
   return concatBytes([
     fourccBytes(id3),
     u32le2(body.length),
@@ -89256,12 +89676,12 @@ function embedWavInfo(wav, tags3) {
   new DataView(out.buffer, out.byteOffset).setUint32(4, out.length - 8, true);
   return out;
 }
-var te9, fourccBytes, u32le2;
+var te10, fourccBytes, u32le2;
 var init_riff_meta = __esm({
   "engine/src/riff-meta.ts"() {
     "use strict";
     init_bytes();
-    te9 = new TextEncoder();
+    te10 = new TextEncoder();
     fourccBytes = (s) => Uint8Array.from(s, (c) => c.charCodeAt(0) & 255);
     u32le2 = (n7) => Uint8Array.of(n7 & 255, n7 >>> 8 & 255, n7 >>> 16 & 255, n7 >>> 24 & 255);
   }
@@ -90408,16 +90828,16 @@ function parsePenpotContent(contentJson) {
   (function walk2(n7) {
     if (n7 == null || typeof n7 !== "object") return;
     const type = pget(n7, "type");
-    const children = pkids(n7);
-    if (type === "paragraph" || type == null && children.some(isLeaf)) {
+    const children2 = pkids(n7);
+    if (type === "paragraph" || type == null && children2.some(isLeaf)) {
       collectParagraph(n7);
       return;
     }
-    if (isLeaf(n7) && !children.length) {
+    if (isLeaf(n7) && !children2.length) {
       collectParagraph(n7);
       return;
     }
-    children.forEach(walk2);
+    children2.forEach(walk2);
   })(root2);
   const fg = firstStyle ? penpotLeafColor(firstStyle) : "";
   let fontFamily = "";
@@ -91221,11 +91641,11 @@ function decodeFigVectorPath(bytes2) {
   return d.trim();
 }
 function figmaTextRuns(node, baseFg) {
-  const td3 = node.textData || {};
-  const chars = String(td3.characters != null ? td3.characters : node.name || "");
-  const ids2 = Array.isArray(td3.characterStyleIDs) ? td3.characterStyleIDs : null;
+  const td5 = node.textData || {};
+  const chars = String(td5.characters != null ? td5.characters : node.name || "");
+  const ids2 = Array.isArray(td5.characterStyleIDs) ? td5.characterStyleIDs : null;
   const tbl = {};
-  for (const s of Array.isArray(td3.styleOverrideTable) ? td3.styleOverrideTable : []) {
+  for (const s of Array.isArray(td5.styleOverrideTable) ? td5.styleOverrideTable : []) {
     const c = s && get(get(s, "fillPaints"), "0") && get(get(get(s, "fillPaints"), "0"), "color");
     const styleID = get(s, "styleID");
     if (s && styleID != null && c) tbl[String(styleID)] = figColorHex(c);
@@ -93838,12 +94258,12 @@ function assertPdfSvgBudgets(nodes) {
       throw new Error(`pdfNodesToSvg: more than ${PDF_SVG_MAX_GRADIENT_STOPS} gradient stops`);
     }
     if (!maskChild && n7._softMask) {
-      const children = n7._softMask.nodes;
-      if (!Array.isArray(children) || children.length > PDF_SVG_MAX_MASK_NODES) {
+      const children2 = n7._softMask.nodes;
+      if (!Array.isArray(children2) || children2.length > PDF_SVG_MAX_MASK_NODES) {
         throw new Error(`pdfNodesToSvg: more than ${PDF_SVG_MAX_MASK_NODES} soft-mask nodes`);
       }
       charge(n7._softMask.key, PDF_SVG_MAX_SOURCE_CHARS, "soft-mask key");
-      for (const child of children) inspect(child, true);
+      for (const child of children2) inspect(child, true);
     }
   };
   for (const node of nodes) inspect(node, false);
@@ -95563,15 +95983,15 @@ var init_gamut_tier = __esm({
 });
 
 // engine/src/icc-pixels.ts
-function iccResolvedIntent(profile, direction2, intent) {
+function iccResolvedIntent(profile2, direction2, intent) {
   try {
-    if (!profile || typeof profile.toLab !== "function" || typeof profile.fromLab !== "function") return null;
+    if (!profile2 || typeof profile2.toLab !== "function" || typeof profile2.fromLab !== "function") return null;
     if (!Object.hasOwn(FALLBACK, intent)) return null;
-    const n7 = profile.nChannels;
+    const n7 = profile2.nChannels;
     if (!Number.isInteger(n7) || n7 < 1) return null;
     const midDevice = new Array(n7).fill(0.5);
     for (const cand of FALLBACK[intent]) {
-      const ok3 = direction2 === "toPcs" ? profile.toLab(cand, midDevice) !== null : profile.fromLab(cand, [50, 0, 0]) !== null;
+      const ok3 = direction2 === "toPcs" ? profile2.toLab(cand, midDevice) !== null : profile2.fromLab(cand, [50, 0, 0]) !== null;
       if (ok3) return cand;
     }
     return null;
@@ -95579,14 +95999,14 @@ function iccResolvedIntent(profile, direction2, intent) {
     return null;
   }
 }
-function buildLattice(profile, direction2, intent) {
+function buildLattice(profile2, direction2, intent) {
   const s = LATTICE_N - 1;
   const lat = new Float32Array(LATTICE_N * LATTICE_N * LATTICE_N * 3);
   let p = 0;
   for (let i = 0; i < LATTICE_N; i++) {
     for (let j = 0; j < LATTICE_N; j++) {
       for (let k = 0; k < LATTICE_N; k++) {
-        const res = direction2 === "toPcs" ? profile.toLab(intent, [i / s, j / s, k / s]) : profile.fromLab(intent, [i / s * 100, j / s * 255 - 128, k / s * 255 - 128]);
+        const res = direction2 === "toPcs" ? profile2.toLab(intent, [i / s, j / s, k / s]) : profile2.fromLab(intent, [i / s * 100, j / s * 255 - 128, k / s * 255 - 128]);
         if (!res || res.length !== 3) return null;
         if (!Number.isFinite(res[0]) || !Number.isFinite(res[1]) || !Number.isFinite(res[2])) return null;
         lat[p++] = res[0];
@@ -95597,15 +96017,15 @@ function buildLattice(profile, direction2, intent) {
   }
   return lat;
 }
-function getLattice(profile, direction2, intent) {
-  let byKey = LATTICES.get(profile);
+function getLattice(profile2, direction2, intent) {
+  let byKey = LATTICES.get(profile2);
   if (!byKey) {
     byKey = /* @__PURE__ */ new Map();
-    LATTICES.set(profile, byKey);
+    LATTICES.set(profile2, byKey);
   }
   const key2 = `${direction2}:${intent}`;
   if (byKey.has(key2)) return byKey.get(key2) ?? null;
-  const lat = buildLattice(profile, direction2, intent);
+  const lat = buildLattice(profile2, direction2, intent);
   byKey.set(key2, lat);
   return lat;
 }
@@ -95677,13 +96097,13 @@ function tetraEval(lat, u, v, w, out, o) {
     out[o + c] = a + f1 * (b1 - a) + f22 * (b2 - b1) + f3 * (b3 - b2);
   }
 }
-function rowEvaluator(profile, direction2, intent) {
-  const n7 = profile.nChannels;
+function rowEvaluator(profile2, direction2, intent) {
+  const n7 = profile2.nChannels;
   if (n7 !== 1 && n7 !== 3) return null;
-  const direct = !iccRoundTripDecides(profile);
+  const direct = !iccRoundTripDecides(profile2);
   if (!direct) {
     if (n7 !== 3) return null;
-    const lat = getLattice(profile, direction2, intent);
+    const lat = getLattice(profile2, direction2, intent);
     if (!lat) return null;
     if (direction2 === "toPcs") {
       return (row) => {
@@ -95704,7 +96124,7 @@ function rowEvaluator(profile, direction2, intent) {
     return (row) => {
       for (let i = 0; i < row.length; i += 4) {
         const dev = n7 === 1 ? [san2(row[i])] : [san2(row[i]), san2(row[i + 1]), san2(row[i + 2])];
-        const lab = profile.toLab(intent, dev);
+        const lab = profile2.toLab(intent, dev);
         if (!lab) return false;
         row[i] = lab[0];
         row[i + 1] = lab[1];
@@ -95715,7 +96135,7 @@ function rowEvaluator(profile, direction2, intent) {
   }
   return (row) => {
     for (let i = 0; i < row.length; i += 4) {
-      const dev = profile.fromLab(intent, [san2(row[i]), san2(row[i + 1]), san2(row[i + 2])]);
+      const dev = profile2.fromLab(intent, [san2(row[i]), san2(row[i + 1]), san2(row[i + 2])]);
       if (!dev || dev.length !== n7) return false;
       if (n7 === 1) {
         row[i] = dev[0];
@@ -95743,13 +96163,13 @@ function iccFrameRefusal(frame, direction2) {
   if (pcsInputOk(frame)) return null;
   return `fromPcs needs a colorimetric frame (a real PixelSpace), but this frame is tagged '${String(frame.space)}' - device channels carry no colorimetry on their own. Run direction 'toPcs' with their profile first.`;
 }
-function applyIccToFrame(frame, profile, direction2, intent) {
+function applyIccToFrame(frame, profile2, direction2, intent) {
   try {
-    if (!profileSane(profile)) return null;
+    if (!profileSane(profile2)) return null;
     if (iccFrameRefusal(frame, direction2)) return null;
-    const resolved2 = iccResolvedIntent(profile, direction2, intent);
+    const resolved2 = iccResolvedIntent(profile2, direction2, intent);
     if (!resolved2) return null;
-    const ev = rowEvaluator(profile, direction2, resolved2);
+    const ev = rowEvaluator(profile2, direction2, resolved2);
     if (!ev) return null;
     const { width, height } = frame;
     const stride = width * 4;
@@ -97487,9 +97907,9 @@ function structureIssue(value, budget3) {
       if (active.has(frame.value)) return "JSON structure contains a cycle";
       active.add(frame.value);
       stack.push({ value: void 0, depth: frame.depth, leave: frame.value });
-      const children = Array.isArray(frame.value) ? frame.value : Object.keys(frame.value).map((key2) => frame.value[key2]);
-      for (let i = children.length - 1; i >= 0; i--) {
-        stack.push({ value: children[i], depth: frame.depth + 1 });
+      const children2 = Array.isArray(frame.value) ? frame.value : Object.keys(frame.value).map((key2) => frame.value[key2]);
+      for (let i = children2.length - 1; i >= 0; i--) {
+        stack.push({ value: children2[i], depth: frame.depth + 1 });
       }
     }
     return null;
@@ -98150,11 +98570,11 @@ function checkedGroupGeometry(row) {
     throw new Error("Group sizing exceeds the finite geometry limit.");
   return row;
 }
-function measureGroupBounds(group, boxes, children, visit) {
+function measureGroupBounds(group, boxes, children2, visit) {
   if (on2(group.hidden)) return group;
   const origin = corners(group), angle = number2(group.rot) * Math.PI / 180, c = cos(angle), s = sin(angle);
   let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity;
-  const pending3 = [...children.get(id(group)) || []];
+  const pending3 = [...children2.get(id(group)) || []];
   for (let at = 0; at < pending3.length; at++) {
     visit();
     const row = boxes[pending3[at]];
@@ -98170,7 +98590,7 @@ function measureGroupBounds(group, boxes, children, visit) {
         bottom = Math.max(bottom, v);
       }
     }
-    pending3.push(...children.get(id(row)) || []);
+    pending3.push(...children2.get(id(row)) || []);
   }
   if (left === Infinity) {
     left = top = right = bottom = 0;
@@ -98191,13 +98611,13 @@ function settleGroupGeometry(before, after) {
   for (const field2 of ["x", "y", "w", "h"]) if (before[field2] != null && Math.abs(number2(before[field2]) - number2(after[field2])) < 1e-4) next2[field2] = before[field2];
   return next2;
 }
-function carryGroupGeometry(before, after, boxes, children, visit) {
+function carryGroupGeometry(before, after, boxes, children2, visit) {
   if (["x", "y", "w", "h", "rot"].every((field2) => before[field2] === after[field2])) return;
   if ([before, after].some((row) => number2(row.w, 100) <= 0 || number2(row.h, 100) <= 0)) throw new Error("Group sizing requires nonzero bounds.");
   const old = corners(before), next2 = corners(after), ux = old[2] - old[0], uy = old[3] - old[1], vx = old[6] - old[0], vy = old[7] - old[1];
   const det = ux * vy - uy * vx;
   if (!Number.isFinite(det) || Math.abs(det) < 1e-12) throw new Error("Group sizing requires nonzero bounds.");
-  const pending3 = [...children.get(id(before)) || []];
+  const pending3 = [...children2.get(id(before)) || []];
   for (let at = 0; at < pending3.length; at++) {
     visit();
     const index2 = pending3[at], row = boxes[index2], points = corners(row), mapped = [];
@@ -98211,10 +98631,10 @@ function carryGroupGeometry(before, after, boxes, children, visit) {
       if (error2 instanceof Error && error2.message.includes("skewed rectangle")) throw new Error(`Group sizing would shear rotated layer "${id(row)}". Use fixed sizing or align its rotation with the group.`);
       throw error2;
     }
-    pending3.push(...children.get(id(row)) || []);
+    pending3.push(...children2.get(id(row)) || []);
   }
 }
-function designLayoutRequest(container, children, tracks) {
+function designLayoutRequest(container, children2, tracks) {
   const cols = tracks.filter((t) => t.container === container.id && t.axis === "column").sort(
     (a, b) => number2(a.order) - number2(b.order) || (id(a) < id(b) ? -1 : id(a) > id(b) ? 1 : 0)
   ).map((t) => parseLayoutTrack(t.track));
@@ -98228,7 +98648,7 @@ function designLayoutRequest(container, children, tracks) {
   let placementWork = 0;
   const occupied = /* @__PURE__ */ new Set();
   const areas = /* @__PURE__ */ new Map();
-  const items2 = children.map((r5) => ({
+  const items2 = children2.map((r5) => ({
     bounds: corners(r5),
     sizing: [mode(r5, "W"), mode(r5, "H")],
     margin: sides(r5, "layoutMargin"),
@@ -98259,12 +98679,12 @@ function designLayoutRequest(container, children, tracks) {
         throw new Error("Grid placement must use whole numbers between 1 and 1024.");
       if (item2.cell[0] && item2.cell[1]) {
         mark(item2.cell);
-        if (children[n7].layoutArea) areas.set(String(children[n7].layoutArea), item2.cell);
+        if (children2[n7].layoutArea) areas.set(String(children2[n7].layoutArea), item2.cell);
       }
     }
     for (const [n7, item2] of items2.entries()) {
       if (item2.absolute || item2.hidden) continue;
-      const area2 = areas.get(String(children[n7].layoutArea || ""));
+      const area2 = areas.get(String(children2[n7].layoutArea || ""));
       if (area2) item2.cell = [...area2];
       if (!item2.cell[0] || !item2.cell[1]) {
         let found = false;
@@ -98367,16 +98787,16 @@ function createDesignLayoutEvaluator(solve3, measure3) {
     const boxes = source.map((r5) => ({ ...r5 }));
     const byId = new Map(boxes.map((r5, n7) => [id(r5), n7]));
     const owner3 = (r5) => boxes[byId.get(String(r5.group || ""))]?.kind === "group" ? String(r5.group) : String(r5.layoutOwner || r5.frame || "");
-    const children = /* @__PURE__ */ new Map();
+    const children2 = /* @__PURE__ */ new Map();
     for (const [n7, r5] of boxes.entries()) {
       const o = owner3(r5);
       if (o) {
-        const list4 = children.get(o) || [];
+        const list4 = children2.get(o) || [];
         list4.push(n7);
-        children.set(o, list4);
+        children2.set(o, list4);
       }
     }
-    for (const list4 of children.values())
+    for (const list4 of children2.values())
       list4.sort(
         (a, b) => number2(boxes[a].layoutOrder, a) - number2(boxes[b].layoutOrder, b) || a - b
       );
@@ -98392,7 +98812,7 @@ function createDesignLayoutEvaluator(solve3, measure3) {
     containers.sort((a, b) => depth(b) - depth(a));
     const participating = new Set([...containers, ...intrinsicGroups].map(id)), pending3 = [...participating];
     for (let n7 = 0; n7 < pending3.length; n7++)
-      for (const index2 of children.get(pending3[n7]) || []) {
+      for (const index2 of children2.get(pending3[n7]) || []) {
         const child = id(boxes[index2]);
         if (!participating.has(child)) {
           participating.add(child);
@@ -98451,12 +98871,12 @@ function createDesignLayoutEvaluator(solve3, measure3) {
         const before = boxes.map((r5) => [r5.x, r5.y, r5.w, r5.h, r5.rot].join(","));
         for (const group of intrinsicGroups) {
           const n7 = byId.get(id(group));
-          boxes[n7] = measureGroupBounds(boxes[n7], boxes, children, visit);
+          boxes[n7] = measureGroupBounds(boxes[n7], boxes, children2, visit);
         }
         for (const c of containers) {
           const index2 = byId.get(id(c));
           const container = boxes[index2];
-          const members = children.get(id(c)) || [];
+          const members = children2.get(id(c)) || [];
           work += members.length + 1;
           if (work > MAX_LAYOUT_REFLOW_WORK)
             throw new Error("Layout exceeds its aggregate reflow work budget.");
@@ -98474,7 +98894,7 @@ function createDesignLayoutEvaluator(solve3, measure3) {
                 y: ny + ss * w / 2 + cc * h / 2 - h / 2
               };
             }
-            if (row.kind === "group") carryGroupGeometry(row, boxes[n7], boxes, children, visit);
+            if (row.kind === "group") carryGroupGeometry(row, boxes[n7], boxes, children2, visit);
           }
           for (const n7 of members) {
             let r5 = boxes[n7];
@@ -98558,16 +98978,16 @@ function createDesignLayoutEvaluator(solve3, measure3) {
             const answerChild = fromCorners(old, result[i + 1]);
             const nextChild = old.kind === "group" ? settleGroupGeometry(old, answerChild) : answerChild;
             boxes[n7] = nextChild;
-            if (old.kind === "group") carryGroupGeometry(old, nextChild, boxes, children, visit);
+            if (old.kind === "group") carryGroupGeometry(old, nextChild, boxes, children2, visit);
             if ((old.kind === "frame" || hasDesignLayout([old])) && (nextChild.x !== old.x || nextChild.y !== old.y)) {
               const dx = number2(nextChild.x) - number2(old.x), dy = number2(nextChild.y) - number2(old.y);
-              const pending4 = [...children.get(id(old)) || []];
+              const pending4 = [...children2.get(id(old)) || []];
               for (let q = 0; q < pending4.length; q++) {
                 if (++work > MAX_LAYOUT_REFLOW_WORK)
                   throw new Error("Layout exceeds its aggregate reflow work budget.");
                 const child = pending4[q], r5 = boxes[child];
                 boxes[child] = { ...r5, x: number2(r5.x) + dx, y: number2(r5.y) + dy };
-                pending4.push(...children.get(id(r5)) || []);
+                pending4.push(...children2.get(id(r5)) || []);
               }
             }
           }
@@ -98828,13 +99248,13 @@ function importPenpotLayouts(boxes, sourceIds, shapes2, options2 = {}) {
     const cells = Object.values(record12(shape.layoutGridCells));
     const assigned = /* @__PURE__ */ new Set();
     for (const raw of cells) {
-      const cell = record12(raw), children = Array.isArray(cell.shapes) ? cell.shapes : [];
-      if (!children.length) {
+      const cell = record12(raw), children2 = Array.isArray(cell.shapes) ? cell.shapes : [];
+      if (!children2.length) {
         if (cell.areaName || cell.position === "manual" || cell.position === "area") add3(sourceId, "penpot.layout.empty-cell", "Empty named or manually placed grid cells cannot be represented in this document.");
         continue;
       }
-      if (children.length > 1) add3(sourceId, "penpot.layout.cell-count", "A grid cell with more than one layer cannot be represented in this document.");
-      for (const childId of children) {
+      if (children2.length > 1) add3(sourceId, "penpot.layout.cell-count", "A grid cell with more than one layer cannot be represented in this document.");
+      for (const childId of children2) {
         const box4 = mapped.get(String(childId)), row = box4 && resultMap.get(box4.id);
         if (!row) {
           add3(sourceId, "penpot.layout.cell", "A grid cell references a shape that could not be imported.");
@@ -98860,7 +99280,7 @@ function importPenpotLayouts(boxes, sourceIds, shapes2, options2 = {}) {
   }
   return { boxes: result, tracks, findings: [...findings, ...validateDesignLayout(result, tracks)] };
 }
-function exportPenpotLayout(row, children, tracks) {
+function exportPenpotLayout(row, children2, tracks) {
   const props = {};
   if (row.layoutOwner || row.kind === "group" || hasDesignLayout([row])) {
     props.layoutItemHSizing = ppSizing(row.layoutW);
@@ -98890,8 +99310,8 @@ function exportPenpotLayout(row, children, tracks) {
     return props;
   }
   props.layoutGridDir = row.layoutDirection || "row";
-  const request2 = designLayoutRequest(row, [...children], tracks);
-  const cells = children.flatMap((child, n7) => {
+  const request2 = designLayoutRequest(row, [...children2], tracks);
+  const cells = children2.flatMap((child, n7) => {
     if (child.layoutAbsolute === true || child.hidden === true) return [];
     const cell = request2.items[n7].cell;
     return [{
@@ -114053,8 +114473,8 @@ function boxesToPenpotDoc(boxesIn, o) {
     if (findings.length) throw new Error(findings.map((finding3) => finding3.message).join("\n"));
     const paintIndex = new Map(boxes.map((box4, n7) => [String(box4.id), n7]));
     const lowerTree = (box4) => {
-      let children = (index2.children.get(String(box4.id)) || []).map((id3) => byId.get(id3));
-      if (hasDesignLayout([box4])) children = children.slice().sort((a, b) => fin2(a.layoutOrder) - fin2(b.layoutOrder));
+      let children2 = (index2.children.get(String(box4.id)) || []).map((id3) => byId.get(id3));
+      if (hasDesignLayout([box4])) children2 = children2.slice().sort((a, b) => fin2(a.layoutOrder) - fin2(b.layoutOrder));
       let shape;
       if (box4.kind === "group") {
         if (box4.clip || box4.shadow && box4.shadow !== "none" || fin2(box4.blur) > 0 || fin2(box4.bgBlur) > 0) throw new Error("Group masks, shadows and blur need an SVG copy for faithful Penpot export.");
@@ -114065,14 +114485,14 @@ function boxesToPenpotDoc(boxesIn, o) {
           y: fin2(box4.y),
           w: Math.max(0.01, fin2(box4.w, 1)),
           h: Math.max(0.01, fin2(box4.h, 1)),
-          children: children.map(lowerTree).filter((child) => child !== null)
+          children: children2.map(lowerTree).filter((child) => child !== null)
         };
         effects(box4, shape);
       } else if (box4.kind === "frame" || hasDesignLayout([box4])) {
         const primitive = box4.kind === "frame" ? null : lowerBox(box4);
         if (primitive && primitive.type !== "rect") throw new Error("A dynamic layout container must be a rectangle or an artboard for Penpot export.");
         const fill2 = parsePenpotColor(color6(box4.bg) ?? "transparent");
-        if (box4.layout === "flex") children = [...children].reverse();
+        if (box4.layout === "flex") children2 = [...children2].reverse();
         shape = {
           ...primitive || {},
           type: "board",
@@ -114083,7 +114503,7 @@ function boxesToPenpotDoc(boxesIn, o) {
           h: Math.max(0.01, fin2(box4.h, 1)),
           fills: primitive?.fills || (fill2 ? [{ color: fill2.hex, opacity: fill2.alpha }] : []),
           ...box4.kind === "frame" ? { strokes: strokeOf3(box4).map((stroke) => ({ ...stroke, alignment: "inner" })) } : {},
-          children: children.map(lowerTree).filter((child) => child !== null),
+          children: children2.map(lowerTree).filter((child) => child !== null),
           showContent: box4.kind === "frame" ? box4.clipChildren === false : box4.clipChildren !== true
         };
         effects(box4, shape);
@@ -114091,7 +114511,7 @@ function boxesToPenpotDoc(boxesIn, o) {
       if (shape) {
         shape.sourceId = String(box4.id);
         shape.hidden = box4.hidden === true || box4.hidden === "true";
-        const props = exportPenpotLayout(box4, children, o.layoutTracks || []);
+        const props = exportPenpotLayout(box4, children2, o.layoutTracks || []);
         shape.layoutProperties = box4.layoutOwner ? { ...props, layoutItemZIndex: paintIndex.get(String(box4.id)) } : props;
       }
       return shape;
@@ -114127,13 +114547,13 @@ function boxesToPenpotDoc(boxesIn, o) {
     const visited = /* @__PURE__ */ new Set();
     const lowerTree = (box4) => {
       visited.add(String(box4.id));
-      const children = childrenOf(box4), props = exportPenpotLayout(box4, children, o.layoutTracks || []);
+      const children2 = childrenOf(box4), props = exportPenpotLayout(box4, children2, o.layoutTracks || []);
       let shape;
       if (box4.kind === "frame" || hasDesignLayout([box4])) {
         const primitive = box4.kind === "frame" ? null : lowerBox(box4);
         if (primitive && primitive.type !== "rect") throw new Error("A dynamic layout container must be a rectangle or an artboard for Penpot export.");
         const fill2 = parsePenpotColor(color6(box4.bg) ?? "transparent");
-        const nativeChildren = box4.layout === "flex" ? [...children].reverse() : children;
+        const nativeChildren = box4.layout === "flex" ? [...children2].reverse() : children2;
         shape = {
           ...primitive || {},
           type: "board",
@@ -114181,11 +114601,11 @@ function boxesToPenpotDoc(boxesIn, o) {
     const frameIds = new Set(frames.map(({ b, idx }) => str6(b.id) || String(idx)));
     for (const { b: fb, idx } of frames) {
       const fid = str6(fb.id) || String(idx);
-      const children = [];
+      const children2 = [];
       for (const cb of boxes) {
         if (str6(cb.kind) === "frame" || str6(cb.frame) !== fid) continue;
         const s = lowerBox(cb);
-        if (s) children.push(s);
+        if (s) children2.push(s);
       }
       const bg = color6(fb.bg) ?? "#ffffff";
       const p = parsePenpotColor(bg) ?? { hex: "#ffffff", alpha: 1 };
@@ -114201,7 +114621,7 @@ function boxesToPenpotDoc(boxesIn, o) {
         // board takes strokes like any other shape. `inner`, because the design tool
         // paints that border inside the box (`box-sizing: border-box`).
         strokes: strokeOf3(fb).map((s) => ({ ...s, alignment: "inner" })),
-        children,
+        children: children2,
         showContent: fb.clipChildren === false
       };
       effects(fb, board);
@@ -114223,10 +114643,10 @@ function boxesToPenpotDoc(boxesIn, o) {
       if (s) shapes2.push(s);
     }
   } else {
-    const children = [];
+    const children2 = [];
     for (const cb of boxes) {
       const s = lowerBox(cb);
-      if (s) children.push(s);
+      if (s) children2.push(s);
     }
     const bg = o.background == null ? null : color6(o.background);
     const p = bg ? parsePenpotColor(bg) : null;
@@ -114238,7 +114658,7 @@ function boxesToPenpotDoc(boxesIn, o) {
       w: Math.max(1, fin2(o.canvas.w, 1)),
       h: Math.max(1, fin2(o.canvas.h, 1)),
       fills: p ? [{ color: p.hex, opacity: p.alpha }] : [],
-      children
+      children: children2
     });
   }
   return {
@@ -114978,8 +115398,8 @@ function svgToPenpotDoc(svgText, o) {
   })();
   const rootFrame = frameFor2(base, { ...root2, attrs: { ...root2.attrs, transform: "" } });
   if (!rootFrame) return null;
-  const children = [];
-  if (!walk2(rootIdx + 1, rootClose, rootFrame, children)) return null;
+  const children2 = [];
+  if (!walk2(rootIdx + 1, rootClose, rootFrame, children2)) return null;
   const bg = o.background ? parsePenpotColor(o.background) : null;
   const board = {
     type: "board",
@@ -114989,7 +115409,7 @@ function svgToPenpotDoc(svgText, o) {
     w: width,
     h: height,
     fills: bg ? [{ color: bg.hex, opacity: bg.alpha }] : [],
-    children,
+    children: children2,
     showContent: false
   };
   return {
@@ -115787,11 +116207,11 @@ var init_photo_treatment = __esm({
 
 // engine/src/pdf-crypto-r6.ts
 async function digest(algo, data) {
-  return new Uint8Array(await subtle7.digest(algo, asBufferSource(data)));
+  return new Uint8Array(await subtle9.digest(algo, asBufferSource(data)));
 }
 async function aesCbcPkcs7(key2, iv, data) {
-  const k = await subtle7.importKey("raw", asBufferSource(key2), { name: "AES-CBC" }, false, ["encrypt"]);
-  return new Uint8Array(await subtle7.encrypt({ name: "AES-CBC", iv: asBufferSource(iv) }, k, asBufferSource(data)));
+  const k = await subtle9.importKey("raw", asBufferSource(key2), { name: "AES-CBC" }, false, ["encrypt"]);
+  return new Uint8Array(await subtle9.encrypt({ name: "AES-CBC", iv: asBufferSource(iv) }, k, asBufferSource(data)));
 }
 async function aesCbcNoPad(key2, iv, data) {
   const full = await aesCbcPkcs7(key2, iv, data);
@@ -115847,12 +116267,12 @@ async function encryptObjectBytes(fileKey, iv16, plaintext) {
   const ct = await aesCbcPkcs7(fileKey, iv16, plaintext);
   return concat5(iv16, ct);
 }
-var subtle7, ZERO_IV, concat5;
+var subtle9, ZERO_IV, concat5;
 var init_pdf_crypto_r6 = __esm({
   "engine/src/pdf-crypto-r6.ts"() {
     "use strict";
     init_bytes();
-    subtle7 = globalThis.crypto.subtle;
+    subtle9 = globalThis.crypto.subtle;
     ZERO_IV = new Uint8Array(16);
     concat5 = (...parts) => concatBytes(parts);
   }
@@ -118590,10 +119010,10 @@ function escapeCode(value) {
 function callout(raw, opts) {
   if (!opts.calloutMode || opts.calloutMode === "off") return null;
   const text9 = raw.replace(/^(?:\/\/|#)\s*/, "");
-  const matches4 = opts.calloutMode === "all" || opts.calloutMode === "tags" && /^(TODO|FIXME|FIX|NOTE|HACK|XXX|BUG|WIP|WARNING|WARN|OPTIMIZE|REVIEW|DEPRECATED)\b/i.test(
+  const matches3 = opts.calloutMode === "all" || opts.calloutMode === "tags" && /^(TODO|FIXME|FIX|NOTE|HACK|XXX|BUG|WIP|WARNING|WARN|OPTIMIZE|REVIEW|DEPRECATED)\b/i.test(
     text9
   ) || opts.calloutMode === "custom" && opts.calloutPrefixes?.some((p) => text9.toLowerCase().startsWith(p.toLowerCase()));
-  if (!matches4) return null;
+  if (!matches3) return null;
   const html = escapeCode(text9).replace(/\*\*([^*]+?)\*\*/g, "<strong>$1</strong>").replace(/(^|[^\w*])__([^_]+?)__(?![\w])/g, "$1<strong>$2</strong>").replace(/\*([^*]+?)\*/g, "<em>$1</em>").replace(/(^|[^\w*])_([^_]+?)_(?![\w])/g, "$1<em>$2</em>");
   return `<span class="cc-callout"><span class="cc-callout-arrow">\u2190</span><span class="cc-callout-text">${html}</span></span>`;
 }
@@ -119099,7 +119519,7 @@ ${body}`;
     const prefix = PREFIX.exec(content2);
     const journalTime = typeof fields2.__REALTIME_TIMESTAMP === "string" && /^\d+$/.test(fields2.__REALTIME_TIMESTAMP) ? Number(fields2.__REALTIME_TIMESTAMP) / 1e3 : NaN;
     const journalIso = Number.isFinite(journalTime) && Number.isFinite(new Date(journalTime).getTime()) ? new Date(journalTime).toISOString() : "";
-    const time = /^(?:\[)?(\d{4}-\d\d-\d\d[T ][\d:.]+(?:Z|[+-]\d\d:?\d\d)?|[A-Z][a-z]{2}\s+\d{1,2}\s+\d\d:\d\d:\d\d)/.exec(
+    const time2 = /^(?:\[)?(\d{4}-\d\d-\d\d[T ][\d:.]+(?:Z|[+-]\d\d:?\d\d)?|[A-Z][a-z]{2}\s+\d{1,2}\s+\d\d:\d\d:\d\d)/.exec(
       content2
     );
     const syslog = /^(?:[A-Z][a-z]{2}\s+\d{1,2}\s+[\d:]+|\d{4}-\d\d-\d\d[T ][\d:.Z+-]+)\s+\S+\s+([^ :]+)(?:\[\d+\])?:\s*(.*)$/.exec(
@@ -119113,7 +119533,7 @@ ${body}`;
       end: at + raw.length,
       raw,
       fields: fields2,
-      timestamp: journalIso || stringField(fields2, ["timestamp", "time", "@timestamp"]) || prefix?.groups?.time || time?.[1] || "",
+      timestamp: journalIso || stringField(fields2, ["timestamp", "time", "@timestamp"]) || prefix?.groups?.time || time2?.[1] || "",
       severity: level(
         fields2.level ?? fields2.severity ?? fields2.PRIORITY ?? (priority ? Number(priority[1]) % 8 : void 0) ?? prefix?.groups?.level1 ?? prefix?.groups?.level2
       ),
@@ -119153,10 +119573,10 @@ function filterTextLogs(events, filter) {
     if (query2 && !(filter.exact ? e.message.toLowerCase() === query2 : e.raw.toLowerCase().includes(query2)))
       return false;
     if (filter.from || filter.until) {
-      const time = /^\d{4}-\d\d-\d\d[T ]/.test(e.timestamp) ? Date.parse(e.timestamp) : NaN;
-      if (!Number.isFinite(time)) return false;
-      if (filter.from && time < Date.parse(filter.from)) return false;
-      if (filter.until && time > Date.parse(filter.until)) return false;
+      const time2 = /^\d{4}-\d\d-\d\d[T ]/.test(e.timestamp) ? Date.parse(e.timestamp) : NaN;
+      if (!Number.isFinite(time2)) return false;
+      if (filter.from && time2 < Date.parse(filter.from)) return false;
+      if (filter.until && time2 > Date.parse(filter.until)) return false;
     }
     return true;
   });
@@ -119481,17 +119901,17 @@ ${signals.findings.map((f) => f.label).join("\n")}`;
       if (!s("pattern")) throw new Error("Enter a regular expression.");
       const flags = s("flags", "gu");
       const re = new RegExp(s("pattern"), flags.includes("g") ? flags : flags + "g");
-      const matches4 = [];
+      const matches3 = [];
       for (const m2 of text9.matchAll(re)) {
-        matches4.push({ at: m2.index, text: m2[0], groups: m2.groups ?? m2.slice(1) });
-        if (matches4.length >= 1e4) {
+        matches3.push({ at: m2.index, text: m2[0], groups: m2.groups ?? m2.slice(1) });
+        if (matches3.length >= 1e4) {
           notes.push("Showing the first 10,000 matches.");
           break;
         }
       }
       const replacing = s("mode") === "replace" || !s("mode") && !!s("replacement");
-      details = { matches: matches4, source: text9, replacing };
-      out = replacing ? text9.replace(re, s("replacement")) : JSON.stringify(matches4, null, 2);
+      details = { matches: matches3, source: text9, replacing };
+      out = replacing ? text9.replace(re, s("replacement")) : JSON.stringify(matches3, null, 2);
       format = replacing ? "txt" : "json";
       break;
     }
@@ -119539,9 +119959,9 @@ ${signals.findings.map((f) => f.label).join("\n")}`;
     case "hash":
       out = [...await env.digest(s("algorithm", "SHA-256"), new TextEncoder().encode(text9))].map((b) => b.toString(16).padStart(2, "0")).join("");
       if (s("expected")) {
-        const matches4 = out.toLowerCase() === s("expected").trim().toLowerCase();
-        notes.push(matches4 ? "Checksum matches." : "Checksum does not match.");
-        details = { matches: matches4 };
+        const matches3 = out.toLowerCase() === s("expected").trim().toLowerCase();
+        notes.push(matches3 ? "Checksum matches." : "Checksum does not match.");
+        details = { matches: matches3 };
       }
       break;
     case "json":
@@ -120671,10 +121091,10 @@ function mix(keys2, leg, t, ease) {
     focus
   };
 }
-function studioCameraPose(scene, time, clipSeconds) {
+function studioCameraPose(scene, time2, clipSeconds) {
   const motion = scene.cameraMotion;
   if (!motion || motion.kind === "still" || motion.keys.length < 2) return studioRestPose(scene);
-  const seconds = Number.isFinite(time) ? Math.max(0, time) * (clipSeconds && clipSeconds > 0 ? clipSeconds : scene.motion.seconds) : 0;
+  const seconds = Number.isFinite(time2) ? Math.max(0, time2) * (clipSeconds && clipSeconds > 0 ? clipSeconds : scene.motion.seconds) : 0;
   const progress = seconds / scene.motion.seconds;
   const phase = motion.loop ? progress % 1 : Math.min(1, progress);
   const keys2 = [...motion.keys].sort((x, y) => x.at - y.at);
@@ -121197,16 +121617,16 @@ function squash2(pose3, drop) {
   const side2 = 1 / Math.sqrt(up);
   pose3.scale = [side2, up, side2];
 }
-function studioObjectPose(scene, time, clipSeconds) {
+function studioObjectPose(scene, time2, clipSeconds) {
   const motion = scene.motion;
   const kind = motion.kind;
   if (kind === "still") return rest();
   if (kind === "turntable") {
     const turning = rest();
-    turning.spin = studioTime(scene, time, clipSeconds);
+    turning.spin = studioTime(scene, time2, clipSeconds);
     return turning;
   }
-  const seconds = Number.isFinite(time) ? Math.max(0, time) * (clipSeconds && clipSeconds > 0 ? clipSeconds : motion.seconds) : 0;
+  const seconds = Number.isFinite(time2) ? Math.max(0, time2) * (clipSeconds && clipSeconds > 0 ? clipSeconds : motion.seconds) : 0;
   const p = seconds / motion.seconds % 1;
   const amount = clamp6(motion.amount, 0.25, 2, 1);
   const pose3 = rest();
@@ -121708,19 +122128,19 @@ function cameraKeys(v) {
 function studioAnimated(scene) {
   return scene.motion.kind !== "still" || studioCameraTravels(scene) || !!(scene.lightAnimation && scene.lightAnimation.kind !== "still" && scene.lightAnimation.amount > 0);
 }
-function studioLightMotion(scene, time, clipSeconds) {
+function studioLightMotion(scene, time2, clipSeconds) {
   const motion = scene.lightAnimation;
   if (!motion || motion.kind === "still") return { angle: 0, strength: 1 };
-  const seconds = Number.isFinite(time) ? Math.max(0, time) * (clipSeconds && clipSeconds > 0 ? clipSeconds : scene.motion.seconds) : 0;
+  const seconds = Number.isFinite(time2) ? Math.max(0, time2) * (clipSeconds && clipSeconds > 0 ? clipSeconds : scene.motion.seconds) : 0;
   const phase = seconds / scene.motion.seconds % 1;
   return {
     angle: motion.kind === "orbit" ? Math.sin(phase * 2 * Math.PI) * Math.PI * motion.amount : 0,
     strength: motion.kind === "breathe" ? 1 - (1 - Math.cos(phase * 2 * Math.PI)) * motion.amount * 0.35 : 1
   };
 }
-function studioTime(scene, time, clipSeconds) {
+function studioTime(scene, time2, clipSeconds) {
   if (scene.motion.kind === "still") return 0;
-  const seconds = Number.isFinite(time) ? Math.max(0, time) * (clipSeconds && clipSeconds > 0 ? clipSeconds : scene.motion.seconds) : 0;
+  const seconds = Number.isFinite(time2) ? Math.max(0, time2) * (clipSeconds && clipSeconds > 0 ? clipSeconds : scene.motion.seconds) : 0;
   return seconds / scene.motion.seconds * scene.motion.degrees * Math.PI / 180;
 }
 var STUDIO_FINISHES, FINISHES, STUDIO_CAMERA_KEY_NAME_LIMIT;
@@ -122215,9 +122635,9 @@ function checkBrandDesign(boxes, doc, opts = {}) {
 }
 function applyBrandFix(boxes, fix) {
   if (!Array.isArray(boxes) || !["bg", "fg", "stroke", "font"].includes(fix.field)) return null;
-  const matches4 = boxes.filter((row) => record22(row) && row.id === fix.layerId);
-  if (matches4.length !== 1) return null;
-  const target2 = matches4[0];
+  const matches3 = boxes.filter((row) => record22(row) && row.id === fix.layerId);
+  if (matches3.length !== 1) return null;
+  const target2 = matches3[0];
   if (target2.locked === true || target2.locked === "true" || JSON.stringify(target2[fix.field]) !== JSON.stringify(fix.before)) return null;
   return boxes.map((row) => row === target2 ? { ...row, [fix.field]: fix.after } : row);
 }
@@ -127376,7 +127796,7 @@ function importVectorPaint(svg, parseXml) {
       for (const key2 of geometry2[tag3]) delete attributes2[key2];
       return { tag: "path", attributes: attributes2, contours: indices };
     }
-    const children = Array.from(element.children).flatMap((child) => {
+    const children2 = Array.from(element.children).flatMap((child) => {
       const node = walk2(child, tag3 === "defs", instance);
       return node ? [node] : [];
     });
@@ -127384,9 +127804,9 @@ function importVectorPaint(svg, parseXml) {
       for (const key2 of ["xmlns", "viewBox", "width", "height", "preserveAspectRatio"]) delete attributes2[key2];
       const own3 = attributes2.transform ?? "";
       attributes2.transform = `translate(${-view[0]} ${-view[1]}) ${own3}`.trim();
-      return { tag: "g", attributes: attributes2, children };
+      return { tag: "g", attributes: attributes2, children: children2 };
     }
-    return { tag: tag3, attributes: attributes2, children };
+    return { tag: tag3, attributes: attributes2, children: children2 };
   }
   const tree = walk2(root2);
   if (!paths.length) throw new Error("This selection has no visible vector geometry.");
@@ -135093,22 +135513,22 @@ function motionProductionChecks(contract2, facts2) {
   );
   if (m2.loudness) checks.push(check("loudness.min", f.loudness, m2.loudness.min, 0, "min"), check("loudness.max", f.loudness, m2.loudness.max, 0, "max"));
   if (m2.truePeakMax !== void 0) checks.push(check("truePeak", f.truePeak, m2.truePeakMax, 0, "max"));
-  if (m2.comparison) for (const [index2, time] of m2.comparison.times.entries()) {
-    const sample = f.samples?.filter((s) => s.time === time);
-    checks.push(check(`sample.${index2}.timestamp`, sample?.length === 1 ? sample[0].timestamp : void 0, time, m2.timestampTolerance));
+  if (m2.comparison) for (const [index2, time2] of m2.comparison.times.entries()) {
+    const sample = f.samples?.filter((s) => s.time === time2);
+    checks.push(check(`sample.${index2}.timestamp`, sample?.length === 1 ? sample[0].timestamp : void 0, time2, m2.timestampTolerance));
   }
   return checks;
 }
 function compareProductionMotion(reference3, candidate, contract2, signal) {
   const p = contract2.motion.comparison;
   if (!p) return [];
-  return p.times.flatMap((time, index2) => {
-    const a = reference3?.motion?.samples?.filter((s) => s.time === time), b = candidate.motion?.samples?.filter((s) => s.time === time);
-    const valid2 = (samples) => samples?.length === 1 && Math.abs(samples[0].timestamp - time) <= contract2.motion.timestampTolerance ? samples[0].pixels : void 0;
+  return p.times.flatMap((time2, index2) => {
+    const a = reference3?.motion?.samples?.filter((s) => s.time === time2), b = candidate.motion?.samples?.filter((s) => s.time === time2);
+    const valid2 = (samples) => samples?.length === 1 && Math.abs(samples[0].timestamp - time2) <= contract2.motion.timestampTolerance ? samples[0].pixels : void 0;
     return compareProductionPixels(valid2(a), valid2(b), p, signal).map((check) => ({
       ...check,
       id: `sample.${index2}.${check.id}`,
-      location: `time:${time}/${check.location}`,
+      location: `time:${time2}/${check.location}`,
       expected: check.id === "appearance.whole" ? p.maxChangedFraction : check.id.endsWith(".ssim") ? p.regions.find((r5) => `appearance.${r5.id}.ssim` === check.id).minSsim : p.regions.find((r5) => `appearance.${r5.id}.ink` === check.id).maxInkDelta,
       operator: check.id.endsWith(".ssim") ? "min" : "max"
     }));
@@ -135228,8 +135648,8 @@ async function productionProblems(report4, bytes2, input) {
       }
       if (row.state === "pass") {
         const actual = row.actual;
-        const matches4 = typeof expectedValue === "number" ? typeof actual === "number" && Number.isFinite(actual) && (comparison === "max" ? actual <= expectedValue : comparison === "min" ? actual >= expectedValue : Math.abs(actual - expectedValue) <= (check.tolerance ?? Number.EPSILON * 8 * Math.max(1, Math.abs(expectedValue)))) : actual === expectedValue;
-        if (row.expected !== expectedValue || !matches4) problems.push(`${check.id}:measurement-mismatch`);
+        const matches3 = typeof expectedValue === "number" ? typeof actual === "number" && Number.isFinite(actual) && (comparison === "max" ? actual <= expectedValue : comparison === "min" ? actual >= expectedValue : Math.abs(actual - expectedValue) <= (check.tolerance ?? Number.EPSILON * 8 * Math.max(1, Math.abs(expectedValue)))) : actual === expectedValue;
+        if (row.expected !== expectedValue || !matches3) problems.push(`${check.id}:measurement-mismatch`);
       } else problems.push(`${check.id}:${row.state}`);
     }
   }
@@ -135402,10 +135822,10 @@ async function productionInputFacts(model2, contract2) {
   const snapshots = [];
   let size = 0;
   for (const id3 of new Set(contract2.requirements.filter((r5) => r5.kind === "input").map((r5) => r5.location))) {
-    const matches4 = model2.filter((input) => input.id === id3);
-    if (matches4.length !== 1 || matches4[0].value === void 0) continue;
+    const matches3 = model2.filter((input) => input.id === id3);
+    if (matches3.length !== 1 || matches3[0].value === void 0) continue;
     try {
-      const bytes2 = new TextEncoder().encode(productionJson(matches4[0].value));
+      const bytes2 = new TextEncoder().encode(productionJson(matches3[0].value));
       size += bytes2.length;
       if (size <= 1024 * 1024) snapshots.push([id3, bytes2]);
     } catch {
@@ -136259,7 +136679,7 @@ function sampleDisc(img, cx2, cy3, radius) {
   const rgb3 = [Math.round(sr * scale), Math.round(sg * scale), Math.round(sb * scale)];
   const lab = linearSrgbToOklab(srgbToLinear(rgb3[0] / 255), srgbToLinear(rgb3[1] / 255), srgbToLinear(rgb3[2] / 255));
   return {
-    hex: `#${hex22(rgb3[0])}${hex22(rgb3[1])}${hex22(rgb3[2])}`,
+    hex: `#${hex23(rgb3[0])}${hex23(rgb3[1])}${hex23(rgb3[2])}`,
     rgb: rgb3,
     alpha: Math.round(sa / n7 / 255 * 1e3) / 1e3,
     oklab: [Math.round(lab[0] * 1e4) / 1e4, Math.round(lab[1] * 1e4) / 1e4, Math.round(lab[2] * 1e4) / 1e4]
@@ -136286,7 +136706,7 @@ function nearestSwatch(hex3, swatches) {
   best.verdict = best.deltaE <= 0.02 ? "match" : best.deltaE <= 0.06 ? "close" : "different";
   return best;
 }
-var NUM, fmt2, GLYPHS2, label3, hex22;
+var NUM, fmt2, GLYPHS2, label3, hex23;
 var init_agent_view = __esm({
   "engine/src/agent-view.ts"() {
     "use strict";
@@ -136308,7 +136728,7 @@ var init_agent_view = __esm({
       ".": "M2 5.6L2 6"
     };
     label3 = (v) => fmt2(Math.round(v * 100) / 100);
-    hex22 = (v) => Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, "0");
+    hex23 = (v) => Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, "0");
   }
 });
 
@@ -138180,6 +138600,7 @@ __export(src_exports, {
   createDeepFrame: () => createDeepFrame,
   createDesignLayoutEvaluator: () => createDesignLayoutEvaluator,
   createDesignLayoutMeasurer: () => createDesignLayoutMeasurer,
+  createEnrollmentCsr: () => createEnrollmentCsr,
   createHookWorkerCore: () => createHookWorkerCore,
   createHostTextShaper: () => createHostTextShaper,
   createLoudnessMeter: () => createLoudnessMeter,
@@ -138328,6 +138749,7 @@ __export(src_exports, {
   encryptObjectBytes: () => encryptObjectBytes,
   endsSentence: () => endsSentence,
   enforceContinuity: () => enforceContinuity,
+  enrollmentProofMessage: () => enrollmentProofMessage,
   enumerateSvgLayers: () => enumerateSvgLayers,
   escapeMarkup: () => escapeMarkup,
   evalChannel: () => evalChannel,
@@ -138738,6 +139160,7 @@ __export(src_exports, {
   parseDropShadowFilter: () => parseDropShadowFilter,
   parseEdgePoint: () => parseEdgePoint,
   parseEmbedUrl: () => parseEmbedUrl,
+  parseEnrollmentTrustBundle: () => parseEnrollmentTrustBundle,
   parseFidelityEdits: () => parseFidelityEdits,
   parseFrameAddress: () => parseFrameAddress,
   parseFxChain: () => parseFxChain,
@@ -138966,6 +139389,7 @@ __export(src_exports, {
   reviewFidelity: () => reviewFidelity,
   reviewMessage: () => reviewMessage,
   reviewQueue: () => reviewQueue,
+  revocationProofMessage: () => revocationProofMessage,
   rewordCandidates: () => rewordCandidates,
   rewordGate: () => rewordGate,
   rewordableSpans: () => rewordableSpans,
@@ -139231,6 +139655,9 @@ __export(src_exports, {
   validateDesignHierarchy: () => validateDesignHierarchy,
   validateDesignLayout: () => validateDesignLayout,
   validateDocument: () => validateDocument,
+  validateEnrollmentChain: () => validateEnrollmentChain,
+  validateEnrollmentCrl: () => validateEnrollmentCrl,
+  validateManagedCredential: () => validateManagedCredential,
   validateManifest: () => validateManifest,
   validateMotionBlur: () => validateMotionBlur,
   validateMotionRange: () => validateMotionRange,
@@ -139251,6 +139678,7 @@ __export(src_exports, {
   verifyC2paPdf: () => verifyC2paPdf,
   verifyCatalogEnvelope: () => verifyCatalogEnvelope,
   verifyDesignDocument: () => verifyDesignDocument,
+  verifyEnrollmentRequest: () => verifyEnrollmentRequest,
   verifyEnvelopeSignature: () => verifyEnvelopeSignature,
   verifyForensicReport: () => verifyForensicReport,
   verifyPinnedFontBytes: () => verifyPinnedFontBytes,
@@ -139655,6 +140083,7 @@ var init_src2 = __esm({
     init_design_layout();
     init_design_layout_resources();
     init_design_hierarchy();
+    init_enrollment();
   }
 });
 
@@ -139764,7 +140193,7 @@ function resolveProfileName(root2, cfg, explicit) {
   }
   return complete;
 }
-function sharedRoots(root2, declared, profile) {
+function sharedRoots(root2, declared, profile2) {
   const out = [];
   const seen = /* @__PURE__ */ new Map();
   for (const rel of declared) {
@@ -139773,7 +140202,7 @@ function sharedRoots(root2, declared, profile) {
     const clash = seen.get(name);
     if (clash) {
       throw new Error(
-        `content-roots: profile "${profile}" mounts two shared asset roots named "${name}" (${clash} and ${dir}) - one url namespace cannot serve both`
+        `content-roots: profile "${profile2}" mounts two shared asset roots named "${name}" (${clash} and ${dir}) - one url namespace cannot serve both`
       );
     }
     seen.set(name, dir);
@@ -139786,8 +140215,8 @@ function allAssetRoots(opts) {
   if (!existsSync2(join2(root2, "profiles.json"))) return [];
   const cfg = loadProfiles(root2);
   const out = [];
-  for (const [name, profile] of Object.entries(cfg.profiles)) {
-    for (const mounted of sharedRoots(root2, profile.assets ?? [], name)) {
+  for (const [name, profile2] of Object.entries(cfg.profiles)) {
+    for (const mounted of sharedRoots(root2, profile2.assets ?? [], name)) {
       if (!out.some((a) => a.dir === mounted.dir)) out.push(mounted);
     }
   }
@@ -139824,24 +140253,24 @@ function contentRoots(opts) {
   }
   const cfg = loadProfiles(root2);
   const name = resolveProfileName(root2, cfg, opts?.profile);
-  const profile = cfg.profiles[name];
-  if (!profile) {
+  const profile2 = cfg.profiles[name];
+  if (!profile2) {
     throw new Error(
       `content-roots: unknown profile "${name}" - known: ${Object.keys(cfg.profiles).join(", ")}`
     );
   }
-  if (!isComplete(root2, profile)) {
-    const missing = declaredRoots(profile).filter((r5) => !existsSync2(join2(root2, r5)));
+  if (!isComplete(root2, profile2)) {
+    const missing = declaredRoots(profile2).filter((r5) => !existsSync2(join2(root2, r5)));
     const hint = missing[0].startsWith("brands/") ? ` (a private pack needs: git submodule update --init --checkout ${missing[0]})` : " (that directory is not in this checkout)";
     throw new Error(`content-roots: profile "${name}" is missing: ${missing.join(", ")}${hint}`);
   }
   const resolved2 = {
     profile: name,
-    toolRoots: profile.tools.map((r5) => join2(root2, r5)),
-    catalogRoot: join2(root2, profile.catalog),
-    assetRoots: sharedRoots(root2, profile.assets ?? [], name),
-    exclude: new Set(profile.exclude ?? []),
-    ...typeof profile.label === "string" && profile.label ? { label: profile.label } : {}
+    toolRoots: profile2.tools.map((r5) => join2(root2, r5)),
+    catalogRoot: join2(root2, profile2.catalog),
+    assetRoots: sharedRoots(root2, profile2.assets ?? [], name),
+    exclude: new Set(profile2.exclude ?? []),
+    ...typeof profile2.label === "string" && profile2.label ? { label: profile2.label } : {}
   };
   rootOf.set(resolved2, root2);
   cache4.set(key2, resolved2);
@@ -140475,7 +140904,7 @@ function deckColor(v, resolve8) {
   const c = parseColorToSrgb8(s);
   if (!c) return null;
   const a = c[3];
-  return a <= 0.01 ? null : { hex: hex23(c[0]) + hex23(c[1]) + hex23(c[2]), alpha: a < 1 ? a : void 0 };
+  return a <= 0.01 ? null : { hex: hex24(c[0]) + hex24(c[1]) + hex24(c[2]), alpha: a < 1 ? a : void 0 };
 }
 function isLinearGradSpec(spec) {
   const s = typeof spec === "string" ? spec.trim() : "";
@@ -140690,7 +141119,7 @@ function deckTransition(v, notes) {
       return void 0;
   }
 }
-var hex23, GENERIC_FAMILY, STATIC_WEIGHT_NAMES, FACE_FAMILY_RE, STATIC_FACE_DIR, themeFamily, CUSTOM_PROP_RE, MAX_VAR_HOPS, MAX_GRAD_SPEC_CHARS, PICTURE_FITS, SVG_UNIT_PX;
+var hex24, GENERIC_FAMILY, STATIC_WEIGHT_NAMES, FACE_FAMILY_RE, STATIC_FACE_DIR, themeFamily, CUSTOM_PROP_RE, MAX_VAR_HOPS, MAX_GRAD_SPEC_CHARS, PICTURE_FITS, SVG_UNIT_PX;
 var init_pptx_deck = __esm({
   "packages/node-shell/src/pptx-deck.ts"() {
     "use strict";
@@ -140699,7 +141128,7 @@ var init_pptx_deck = __esm({
     init_gradient_spec();
     init_css_color();
     init_text_svg();
-    hex23 = (n7) => Math.max(0, Math.min(255, Math.round(Number.isFinite(n7) ? n7 : 0))).toString(16).padStart(2, "0").toUpperCase();
+    hex24 = (n7) => Math.max(0, Math.min(255, Math.round(Number.isFinite(n7) ? n7 : 0))).toString(16).padStart(2, "0").toUpperCase();
     GENERIC_FAMILY = /^(?:serif|sans-serif|monospace|cursive|fantasy|math|emoji|fangsong|system-ui|ui-[\w-]+|-apple-system|blinkmacsystemfont|inherit|initial|unset)$/i;
     STATIC_WEIGHT_NAMES = {
       100: "Thin",
@@ -140871,7 +141300,7 @@ function lineEndOf(ctx, row, key2) {
 function inexpressible(row, byId) {
   const kind = str9(row, "kind") || "box";
   if (num13(row, "rot") !== 0 && !TURNS.has(kind)) return "a rotated object";
-  if ((bool(row, "flipH") || bool(row, "flipV")) && !MIRRORS.has(kind)) return "a flipped object";
+  if ((bool2(row, "flipH") || bool2(row, "flipV")) && !MIRRORS.has(kind)) return "a flipped object";
   if (num13(row, "rx") !== 0 || num13(row, "ry") !== 0) return "a perspective tilt";
   if (num13(row, "opacity", 100) !== 100 && !FOLDS_OPACITY.has(str9(row, "kind") || "box")) return "partial opacity";
   const grad = str9(row, "grad").trim();
@@ -140904,8 +141333,8 @@ function foldAlpha(alpha, opacity) {
 function pathDataOf(row, cx2, cy3) {
   const paths = decodeAuthoredPaths(str9(row, "path"));
   if (!paths || paths.length === 0) return null;
-  const fx = bool(row, "flipH") ? -1 : 1;
-  const fy = bool(row, "flipV") ? -1 : 1;
+  const fx = bool2(row, "flipH") ? -1 : 1;
+  const fy = bool2(row, "flipV") ? -1 : 1;
   const contours = [];
   for (const path of paths) {
     const nodes = path.nodes.map((n7) => ({
@@ -140973,7 +141402,7 @@ async function picOf(ctx, sink, row, box4) {
     ctx.notes.add(`a picture set to ${fit} was placed over its whole box, because its size could not be read`);
   }
   const placed2 = deckPlacePicture(row, box4, intrinsic, fit);
-  const look2 = deckPicLook({ name: str9(row, "name"), flipH: bool(row, "flipH"), flipV: bool(row, "flipV"), opacity: opacityOf(row) * 100 });
+  const look2 = deckPicLook({ name: str9(row, "name"), flipH: bool2(row, "flipH"), flipV: bool2(row, "flipV"), opacity: opacityOf(row) * 100 });
   const srcRect = placed2.srcRect;
   const bake = ext === "svg" ? deckSvgBakeRaster(got.bytes, MAX_FALLBACK_PX) : null;
   if (bake) {
@@ -141150,7 +141579,7 @@ async function lowerLayer(ctx, sink, row, origin, binding, masterStyle, master, 
   }
   const shapeKind = str9(row, "shape"), radiusPx = shapeKind === "rounded" ? num13(row, "radius") : 0;
   const radius = shapeKind === "rounded" ? { radius: emu2(radiusPx) } : {};
-  const gradFill = linearGradBox(row) ? gradSpecFill(str9(row, "grad").trim(), { flipH: bool(row, "flipH"), flipV: bool(row, "flipV") }) : null;
+  const gradFill = linearGradBox(row) ? gradSpecFill(str9(row, "grad").trim(), { flipH: bool2(row, "flipH"), flipV: bool2(row, "flipV") }) : null;
   const capture = { kind, shapeKind, radius: radiusPx, strokeWidth: strokeW };
   const metadata2 = gradFill && "grad" in gradFill ? capturePptxGradientMetadata(row) : null;
   if (gradFill && "grad" in gradFill && metadata2 && isPptxPrimitiveRow(metadata2, origin, geometry3, true, capture)) {
@@ -141487,7 +141916,7 @@ function framesOfDesignDoc(doc) {
   }
   return frames;
 }
-var SCHEME_SLOTS, THEME_SLOT_TOKENS2, MAX_SLIDES3, MAX_LAYERS_PER_SLIDE, MAX_PICTURE_BYTES, num13, str9, bool, emu2, TOKEN_PATH_RE, ROLE_PH_TYPE, SLD_NUM_IDX, Palette, SLOT_FILL_GROUPS, ALIGN, ANCHOR, INDENTED_LINE, Notes, addMedia, EXT_OF_MIME, BLEND_MODES2, MOTION_FIELDS, SHADOW_TARGETS, DEFAULT_TEXT_WEIGHT, DEFAULT_TEXT_HEX, DEFAULT_LINE_HEIGHT, LINE_ENDS_OF_HEADS, FOLDS_OPACITY, TURNS, MIRRORS, hidden2, MAX_FALLBACK_PX, FALLBACK_SCALE;
+var SCHEME_SLOTS, THEME_SLOT_TOKENS2, MAX_SLIDES3, MAX_LAYERS_PER_SLIDE, MAX_PICTURE_BYTES, num13, str9, bool2, emu2, TOKEN_PATH_RE, ROLE_PH_TYPE, SLD_NUM_IDX, Palette, SLOT_FILL_GROUPS, ALIGN, ANCHOR, INDENTED_LINE, Notes, addMedia, EXT_OF_MIME, BLEND_MODES2, MOTION_FIELDS, SHADOW_TARGETS, DEFAULT_TEXT_WEIGHT, DEFAULT_TEXT_HEX, DEFAULT_LINE_HEIGHT, LINE_ENDS_OF_HEADS, FOLDS_OPACITY, TURNS, MIRRORS, hidden2, MAX_FALLBACK_PX, FALLBACK_SCALE;
 var init_design_pptx = __esm({
   "packages/node-shell/src/design-pptx.ts"() {
     "use strict";
@@ -141533,7 +141962,7 @@ var init_design_pptx = __esm({
       const v = row[key2];
       return typeof v === "string" ? v : "";
     };
-    bool = (row, key2, fallback = false) => {
+    bool2 = (row, key2, fallback = false) => {
       const v = row[key2];
       if (v === true || v === false) return v;
       if (v === 1) return true;
@@ -141678,7 +142107,7 @@ var init_design_pptx = __esm({
     FOLDS_OPACITY = /* @__PURE__ */ new Set(["box", "path", "text", "image"]);
     TURNS = /* @__PURE__ */ new Set(["box", "path", "text"]);
     MIRRORS = /* @__PURE__ */ new Set(["box", "path", "image"]);
-    hidden2 = (row) => bool(row, "hidden");
+    hidden2 = (row) => bool2(row, "hidden");
     MAX_FALLBACK_PX = 4096;
     FALLBACK_SCALE = 2;
   }
@@ -143805,13 +144234,13 @@ function looseParts(image, box4) {
 }
 function parentFirst(regions) {
   const ids2 = new Set(regions.map((r5) => r5.id));
-  const children = /* @__PURE__ */ new Map();
+  const children2 = /* @__PURE__ */ new Map();
   const roots2 = [];
   for (const r5 of regions) {
     if (r5.parent && ids2.has(r5.parent) && r5.parent !== r5.id) {
-      const list4 = children.get(r5.parent);
+      const list4 = children2.get(r5.parent);
       if (list4) list4.push(r5);
-      else children.set(r5.parent, [r5]);
+      else children2.set(r5.parent, [r5]);
     } else {
       roots2.push(r5);
     }
@@ -143822,7 +144251,7 @@ function parentFirst(regions) {
     if (placed2.has(r5)) return;
     placed2.add(r5);
     out.push(r5);
-    for (const child of children.get(r5.id) ?? []) visit(child);
+    for (const child of children2.get(r5.id) ?? []) visit(child);
   };
   for (const r5 of roots2) visit(r5);
   for (const r5 of regions) visit(r5);
@@ -148311,7 +148740,7 @@ function mapPsd(meta, payload, options2, budget3) {
   if (!mode3 || ![8, 16, 32].includes(meta.depth)) throw new Error("This PSD colour mode or depth has no supported preview.");
   const depth = meta.depth;
   const icc = meta.icc ? spanBytes(payload, meta.icc).slice() : void 0;
-  const profile = icc ? parseIccProfile(icc) : null;
+  const profile2 = icc ? parseIccProfile(icc) : null;
   const warnings2 = [];
   const warn2 = (code, detail) => {
     if (!warnings2.includes(code)) {
@@ -148321,7 +148750,7 @@ function mapPsd(meta, payload, options2, budget3) {
   };
   if (depth !== 8) warn2("psd.preview-depth", `${depth}-bit source; editable preview uses 8-bit pixels. Preserve the original separately to keep its precision.`);
   if (mode3 === "lab") warn2("psd.lab-preview", "Lab preview converted to sRGB. Preserve the original separately to keep its source colour data.");
-  if (mode3 === "cmyk" && !profile) warn2("cmyk.no-profile");
+  if (mode3 === "cmyk" && !profile2) warn2("cmyk.no-profile");
   if (depth === 32) warn2("psd.hdr-preview", "Linear preview is clipped to the display range. This preview does not retain HDR values.");
   let allocated = payload.length;
   const charge = (size) => {
@@ -148346,7 +148775,7 @@ function mapPsd(meta, payload, options2, budget3) {
       let rgb3;
       if (mode3 === "lab") rgb3 = convertColor({ space: "lab", components: [c[0] * 100, c[1] * 255 - 128, c[2] * 255 - 128], alpha: 1, missing: 0 }, "srgb").components;
       else if (mode3 === "cmyk") {
-        const lab = profile?.toLab("relative", c.map((n7) => 1 - n7));
+        const lab = profile2?.toLab("relative", c.map((n7) => 1 - n7));
         rgb3 = lab ? convertColor({ space: "lab", components: lab, alpha: 1, missing: 0 }, "srgb").components : [c[0] * c[3], c[1] * c[3], c[2] * c[3]];
       } else if (mode3 === "gray") {
         const gray = depth === 32 ? linearToSrgb3(c[0]) : c[0];
@@ -150696,7 +151125,7 @@ var init_webgpu_launch = __esm({
 });
 
 // packages/node-shell/src/production-browser.ts
-import { createHash as createHash4 } from "node:crypto";
+import { createHash as createHash5 } from "node:crypto";
 async function observeProductionInputs(page3, toolId, ids2) {
   const requested = [...new Set(ids2)];
   const observations = [];
@@ -150721,10 +151150,10 @@ async function observeProductionInputs(page3, toolId, ids2) {
   }
   return (bytes2) => {
     if (overflow) return void 0;
-    const digest2 = createHash4("sha256").update(bytes2).digest("hex");
-    const matches4 = observations.filter((value) => value.artifactSha256 === digest2);
-    if (!matches4.length || matches4.some((value) => JSON.stringify(value.inputs) !== JSON.stringify(matches4[0].inputs))) return void 0;
-    return matches4[0].inputs;
+    const digest2 = createHash5("sha256").update(bytes2).digest("hex");
+    const matches3 = observations.filter((value) => value.artifactSha256 === digest2);
+    if (!matches3.length || matches3.some((value) => JSON.stringify(value.inputs) !== JSON.stringify(matches3[0].inputs))) return void 0;
+    return matches3[0].inputs;
   };
 }
 var init_production_browser = __esm({
@@ -150842,7 +151271,10 @@ async function assetBytes(target2, opts = {}) {
   const url = typeof target2 === "string" ? target2 : target2.original?.url ?? target2.url;
   if (!url) throw new Error("asset has no url");
   if (url.startsWith("data:")) return decodeDataUrl2(url);
-  if (url.startsWith("file:")) return new Uint8Array(await readFile4(fileURLToPath3(url)));
+  if (url.startsWith("file:")) {
+    if (opts.allowFiles === false) throw new Error("File assets are not available in this host.");
+    return new Uint8Array(await readFile4(fileURLToPath3(url)));
+  }
   if (/^https?:/i.test(url)) {
     if (!opts.netFetch) throw new Error(`host.assets.bytes: ${url} is a network url and this tool declares no network allowlist`);
     const res = await opts.netFetch(url);
@@ -151105,7 +151537,7 @@ __export(content_inventory_exports, {
   mediaFileName: () => mediaFileName,
   readContentInventory: () => readContentInventory
 });
-import { createHash as createHash5 } from "node:crypto";
+import { createHash as createHash6 } from "node:crypto";
 import { readFile as readFile6, stat as stat2 } from "node:fs/promises";
 import { join as join9 } from "node:path";
 async function inventoryXmlParser() {
@@ -151124,7 +151556,7 @@ function mediaFileName(sha2563, mime2) {
   return `${sha2563}.${MIME_EXT2[mime2.toLowerCase()] ?? "bin"}`;
 }
 function sha256Hex3(bytes2) {
-  return createHash5("sha256").update(bytes2).digest("hex");
+  return createHash6("sha256").update(bytes2).digest("hex");
 }
 function sameBytes(a, b) {
   if (a.length !== b.length) return false;
@@ -151379,7 +151811,7 @@ __export(design_lolly_exports, {
   packageTime: () => packageTime,
   stampZipTimes: () => stampZipTimes
 });
-import { createHash as createHash6 } from "node:crypto";
+import { createHash as createHash7 } from "node:crypto";
 import { readdir as readdir2, readFile as readFile7 } from "node:fs/promises";
 import { join as join10 } from "node:path";
 function mediaHashPrefixOfKey(key2) {
@@ -151447,7 +151879,7 @@ function zipTimeOf(exportedAt) {
 }
 function stampZipTimes(bytes2, exportedAt) {
   const at = zipInstantOf(exportedAt);
-  const time = at.getUTCHours() << 11 | at.getUTCMinutes() << 5 | at.getUTCSeconds() >> 1;
+  const time2 = at.getUTCHours() << 11 | at.getUTCMinutes() << 5 | at.getUTCSeconds() >> 1;
   const date = at.getUTCFullYear() - 1980 << 9 | at.getUTCMonth() + 1 << 5 | at.getUTCDate();
   const out = new Uint8Array(bytes2);
   const view = new DataView(out.buffer, out.byteOffset, out.byteLength);
@@ -151460,11 +151892,11 @@ function stampZipTimes(bytes2, exportedAt) {
   let entry2 = view.getUint32(end + 16, true);
   for (let i = 0; i < count4; i += 1) {
     if (entry2 + 46 > out.byteLength || view.getUint32(entry2, true) !== 33639248) fail5(`central entry ${i} is not where the directory says`);
-    view.setUint16(entry2 + 12, time, true);
+    view.setUint16(entry2 + 12, time2, true);
     view.setUint16(entry2 + 14, date, true);
     const local2 = view.getUint32(entry2 + 42, true);
     if (local2 + 30 > out.byteLength || view.getUint32(local2, true) !== 67324752) fail5(`local header ${i} is not where the directory says`);
-    view.setUint16(local2 + 10, time, true);
+    view.setUint16(local2 + 10, time2, true);
     view.setUint16(local2 + 12, date, true);
     entry2 += 46 + view.getUint16(entry2 + 28, true) + view.getUint16(entry2 + 30, true) + view.getUint16(entry2 + 32, true);
   }
@@ -151859,7 +152291,7 @@ var init_design_lolly = __esm({
     init_lolly_file();
     init_pipeline();
     record32 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
-    sha256Hex4 = (bytes2) => createHash6("sha256").update(bytes2).digest("hex");
+    sha256Hex4 = (bytes2) => createHash7("sha256").update(bytes2).digest("hex");
     plural3 = (n7, one, many = `${one}s`) => `${n7} ${n7 === 1 ? one : many}`;
     MEDIA_REF_RE = /^user\/media\/([0-9a-f]{64})$/;
     HASH_KEY_RE = /^[a-z][a-z0-9+.-]*:([0-9a-f]{8,64})$/i;
@@ -151955,7 +152387,7 @@ async function serveSessionOnce(page3, origin, path, bytes2) {
     throw new OpenSessionError(`The file is ${Math.round(bytes2.length / 1e6)} MB, over the ${OPEN_ROUTE_MAX_BYTES / 1e6} MB a page is handed. Make it smaller (fewer or smaller pictures) and try again.`);
   }
   const body = Buffer.from(bytes2);
-  const matches4 = (url) => url.origin === origin && url.pathname === path;
+  const matches3 = (url) => url.origin === origin && url.pathname === path;
   let removed = false;
   let consumed = false;
   let asked = () => {
@@ -151966,7 +152398,7 @@ async function serveSessionOnce(page3, origin, path, bytes2) {
   const remove = async () => {
     if (removed) return;
     removed = true;
-    await page3.unroute(matches4, handler).catch(() => {
+    await page3.unroute(matches3, handler).catch(() => {
     });
   };
   const handler = async (route, request2) => {
@@ -151982,7 +152414,7 @@ async function serveSessionOnce(page3, origin, path, bytes2) {
     await route.fulfill({ status: 200, body, contentType: "application/vnd.lolly+zip", headers: { "Cache-Control": "no-store" } });
     asked();
   };
-  await page3.route(matches4, handler);
+  await page3.route(matches3, handler);
   return { remove, requested };
 }
 async function settleEditor(page3, timeoutMs, opts = {}) {
@@ -154023,10 +154455,10 @@ function createNodeTextAPI({ repoRoot: repoRoot2, assets, parseXml }) {
       const want = normFamily(family2);
       const weight = Math.min(900, Math.max(100, Number(opts?.weight) || 400));
       const italic = Boolean(opts?.italic);
-      const matches4 = (await scanDiskFaces(repoRoot2)).filter((f) => f.family === want && f.italic === italic);
-      if (!matches4.length) return null;
-      const dir = fontDirs2(repoRoot2).find((d) => matches4[0].url.startsWith(d.url));
-      const pool = matches4.filter((f) => f.url.startsWith(dir.url));
+      const matches3 = (await scanDiskFaces(repoRoot2)).filter((f) => f.family === want && f.italic === italic);
+      if (!matches3.length) return null;
+      const dir = fontDirs2(repoRoot2).find((d) => matches3[0].url.startsWith(d.url));
+      const pool = matches3.filter((f) => f.url.startsWith(dir.url));
       const variable = pool.find((f) => f.variable);
       if (variable) return { url: variable.url, variations: [`wght=${weight}`] };
       const nearest3 = pool.reduce((a, b) => Math.abs(b.weight - weight) < Math.abs(a.weight - weight) ? b : a);
@@ -154739,9 +155171,10 @@ async function decodeToCanvas(bytes2, mime2) {
     return null;
   }
 }
-async function sourceBytes(src) {
+async function sourceBytes(src, opts = {}) {
   if (src instanceof Uint8Array) return src;
   if (typeof src === "string") {
+    if (opts.readUrl) return opts.readUrl(src);
     if (src.startsWith("data:")) {
       const comma = src.indexOf(",");
       if (comma < 0) throw new Error("host.raster: malformed data: URL.");
@@ -154755,7 +155188,7 @@ async function sourceBytes(src) {
   }
   if (typeof src.arrayBuffer === "function") return new Uint8Array(await src.arrayBuffer());
   const ref = src;
-  if (ref && typeof ref.url === "string") return sourceBytes(ref.url);
+  if (ref && typeof ref.url === "string") return sourceBytes(ref.url, opts);
   throw new Error("host.raster: unreadable source.");
 }
 async function encodeCanvas(canvas, format, quality) {
@@ -154765,14 +155198,14 @@ async function encodeCanvas(canvas, format, quality) {
   const buf = q === void 0 ? canvas.toBuffer(mime2) : canvas.toBuffer(mime2, q);
   return { bytes: new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength), mime: mime2 };
 }
-function createNodeRasterAPI() {
+function createNodeRasterAPI(opts = {}) {
   if (!isCanvasAvailable()) return null;
   return {
     canRaster() {
       return isCanvasAvailable();
     },
     async measure(src) {
-      const bytes2 = await sourceBytes(src);
+      const bytes2 = await sourceBytes(src, opts);
       const mime2 = sniffImageMime(bytes2);
       const sharp = mime2 === "image/svg+xml" ? null : await loadSharp3();
       if (sharp) {
@@ -154791,13 +155224,13 @@ function createNodeRasterAPI() {
       return { width: canvas.width, height: canvas.height, mime: mime2 };
     },
     async decode(src) {
-      const bytes2 = await sourceBytes(src);
+      const bytes2 = await sourceBytes(src, opts);
       const canvas = await decodeToCanvas(bytes2);
       if (!canvas) throw new Error("host.raster: these bytes are not a decodable image here.");
       return canvas;
     },
-    async encode(source, opts) {
-      if (!opts?.format) throw new Error("host.raster.encode: `format` is required (webp | jpeg | png).");
+    async encode(source, opts2) {
+      if (!opts2?.format) throw new Error("host.raster.encode: `format` is required (webp | jpeg | png).");
       const mod = await nodeCanvas();
       if (!mod) throw new Error("host.raster: no canvas in this install.");
       let canvas;
@@ -154812,7 +155245,7 @@ function createNodeRasterAPI() {
         canvas = mod.createCanvas(Math.max(1, bmp.width), Math.max(1, bmp.height));
         canvas.getContext("2d").drawImage(bmp, 0, 0);
       }
-      const { bytes: bytes2, mime: mime2 } = await encodeCanvas(canvas, opts.format, opts.quality);
+      const { bytes: bytes2, mime: mime2 } = await encodeCanvas(canvas, opts2.format, opts2.quality);
       return { bytes: bytes2, mime: mime2, width: canvas.width, height: canvas.height };
     }
   };
@@ -155200,8 +155633,8 @@ function readDeepPng(bytes2) {
     return decodeTransfer({ ...frame, space: cicpSpace(cicp[0]) }, cicp[1]);
   }
   if (icc) {
-    const profile = parseIccProfile(icc);
-    const pcs = profile && applyIccToFrame({ ...frame, space: ICC_DEVICE_SPACE }, profile, "toPcs", "relative");
+    const profile2 = parseIccProfile(icc);
+    const pcs = profile2 && applyIccToFrame({ ...frame, space: ICC_DEVICE_SPACE }, profile2, "toPcs", "relative");
     if (!pcs) throw new Error("The PNG colour profile cannot be converted at full precision.");
     return convertSpace(pcs, "srgb-linear");
   }
@@ -155292,7 +155725,7 @@ function readDeepTiff(bytes2) {
   const iccTag = tags3.get(34675);
   if (iccTag) {
     if (iccTag.size > 4 * 1024 * 1024) throw new Error("TIFF ICC profile exceeds 4 MiB.");
-    const icc = bytes2.subarray(iccTag.at, iccTag.at + iccTag.size), profile = parseIccProfile(icc);
+    const icc = bytes2.subarray(iccTag.at, iccTag.at + iccTag.size), profile2 = parseIccProfile(icc);
     let cicp;
     if (icc.length >= 132) {
       const iv = new DataView(icc.buffer, icc.byteOffset, icc.length), n7 = iv.getUint32(128);
@@ -155307,7 +155740,7 @@ function readDeepTiff(bytes2) {
       if (cicp[2] || cicp[3] !== 1 || ![1, 6, 8, 13, 14, 15, 16, 18].includes(cicp[1])) throw new Error("Unsupported TIFF cICP.");
       frame = decodeTransfer({ ...frame, space: cicpSpace(cicp[0]) }, cicp[1]);
     } else {
-      const pcs = profile && applyIccToFrame({ ...frame, space: ICC_DEVICE_SPACE }, profile, "toPcs", "relative");
+      const pcs = profile2 && applyIccToFrame({ ...frame, space: ICC_DEVICE_SPACE }, profile2, "toPcs", "relative");
       if (!pcs) throw new Error("The TIFF profile cannot be converted at full precision.");
       frame = convertSpace(pcs, "srgb-linear");
     }
@@ -156851,9 +157284,9 @@ function inlineImages(animation, members, directory, remaining = LOTTIE_LIMITS.i
     const resource = `${String(asset2.u ?? "")}${asset2.p}`;
     const name = resource.startsWith("../") ? safePath2(resource.slice(3)) : safePath2(resource);
     const candidates2 = resource.startsWith("../") ? [name] : [name, `${directory}/${name}`];
-    const matches4 = candidates2.filter((candidate) => members.has(candidate));
-    if (matches4.length !== 1) throw new Error(`Lottie image ${resource}: ${matches4.length ? "ambiguous" : "missing"} packaged resource.`);
-    const bytes2 = members.get(matches4[0]);
+    const matches3 = candidates2.filter((candidate) => members.has(candidate));
+    if (matches3.length !== 1) throw new Error(`Lottie image ${resource}: ${matches3.length ? "ambiguous" : "missing"} packaged resource.`);
+    const bytes2 = members.get(matches3[0]);
     expanded += Math.ceil(bytes2.length / 3) * 4;
     if (expanded > limit2) throw new Error("Lottie: combined animation resources exceed the expansion budget.");
     asset2.p = `data:${lottieImageMime(bytes2)};base64,${btoa(bytesToBin(bytes2))}`;
@@ -157101,8 +157534,8 @@ function parseSequenceMarks(wire) {
   const result = { markers: [] };
   if (typeof wire !== "string" || wire.length > 65536 || !wire.startsWith("v1|")) return result;
   for (const row of wire.split("|").slice(1, 259)) {
-    const [kind, time, end, color6, text9] = row.split(",");
-    const ms = stamp2(time);
+    const [kind, time2, end, color6, text9] = row.split(",");
+    const ms = stamp2(time2);
     if (ms === void 0) continue;
     if (kind === "i") {
       result.inMs = ms;
@@ -158838,6 +159271,34 @@ var init_trust_anchors = __esm({
   }
 });
 
+// packages/node-shell/src/enrollment-trust.ts
+import { readFile as readFile18 } from "node:fs/promises";
+async function loadEnrollmentTrust(env = process.env) {
+  const path = env.LOLLY_ENROLLMENT_TRUST;
+  if (!path) return null;
+  const bytes2 = await readFile18(expandHome(path));
+  if (bytes2.length > 2e5) throw new Error("Managed identity trust file exceeds its limit");
+  const trust = parseEnrollmentTrustBundle(bytes2.toString("utf8"));
+  const files = JSON.parse(env.LOLLY_ENROLLMENT_CRLS || "{}");
+  if (!files || typeof files !== "object" || Array.isArray(files)) throw new Error("Managed identity CRL configuration is invalid");
+  const crls = /* @__PURE__ */ Object.create(null);
+  for (const [issuer, path2] of Object.entries(files)) {
+    if (!trust.issuers.has(issuer) || typeof path2 !== "string" || !path2.length) throw new Error("Managed identity CRL configuration is invalid");
+    const bytes3 = await readFile18(expandHome(path2));
+    if (bytes3.length > 1500 * 1024) throw new Error("Managed identity CRL file exceeds its limit");
+    crls[issuer] = bytes3.includes("-----BEGIN X509 CRL-----") ? pemToDer(bytes3.toString("utf8")) : new Uint8Array(bytes3);
+  }
+  return { trust, crls };
+}
+var init_enrollment_trust = __esm({
+  "packages/node-shell/src/enrollment-trust.ts"() {
+    "use strict";
+    init_src2();
+    init_x509();
+    init_trust_anchors();
+  }
+});
+
 // packages/node-shell/src/signing-identity.ts
 var signing_identity_exports = {};
 __export(signing_identity_exports, {
@@ -158846,7 +159307,7 @@ __export(signing_identity_exports, {
   describeIdentity: () => describeIdentity,
   resolveSigningIdentity: () => resolveSigningIdentity
 });
-import { readFile as readFile18 } from "node:fs/promises";
+import { readFile as readFile19 } from "node:fs/promises";
 import { createPrivateKey, createPublicKey, webcrypto } from "node:crypto";
 function readCertChain(bytes2, source) {
   const text9 = bytes2.toString("latin1");
@@ -158997,6 +159458,12 @@ async function resolveSigningIdentity(input = {}) {
       );
     }
   }
+  try {
+    const managed = await loadEnrollmentTrust(env);
+    if (managed) await validateManagedCredential(chain2, managed.trust, managed.crls);
+  } catch {
+    throw new SigningIdentityError("Managed signing identity does not meet the configured certificate or status policy.", "SIGN_CERT_POLICY");
+  }
   const warnings2 = [];
   const last = parsed[parsed.length - 1];
   if (!last.selfSigned) {
@@ -159027,7 +159494,7 @@ function sameBytes2(a, b) {
 }
 async function readSecret(path, code, flag) {
   try {
-    return await readFile18(expandHome(path));
+    return await readFile19(expandHome(path));
   } catch (e) {
     throw new SigningIdentityError(`${flag}: cannot read "${path}" (${firstLine(e.message)}).`, code);
   }
@@ -159043,6 +159510,7 @@ var init_signing_identity = __esm({
     "use strict";
     init_src2();
     init_trust_anchors();
+    init_enrollment_trust();
     SIGN_ENV = {
       /** Path to the PKCS#8 (or SEC1) private key file. */
       key: "LOLLY_SIGN_KEY",
@@ -159213,9 +159681,9 @@ async function inspectMotionBytes(bytes2, target2 = {}, binaries = { probe: "ffp
         const audioFrames = [...stderr.matchAll(/\[Parsed_ashowinfo_[^\]]+\]\s+n:\s*(\d+)\s+pts:\s*[-\d]+\s+pts_time:([-\d.e+]+).*?rate:(\d+)\s+nb_samples:(\d+)/g)];
         let seconds = 0, timestampError = 0;
         const consistent = audioFrames.length > 0 && audioFrames.every((frame, index2) => {
-          const time = Number(frame[2]), rate3 = Number(frame[3]), count4 = Number(frame[4]);
-          if (Number(frame[1]) !== index2 || !Number.isFinite(time) || rate3 <= 0 || count4 <= 0) return false;
-          timestampError = Math.max(timestampError, Math.abs(time - seconds));
+          const time2 = Number(frame[2]), rate3 = Number(frame[3]), count4 = Number(frame[4]);
+          if (Number(frame[1]) !== index2 || !Number.isFinite(time2) || rate3 <= 0 || count4 <= 0) return false;
+          timestampError = Math.max(timestampError, Math.abs(time2 - seconds));
           seconds += count4 / rate3;
           return Number.isFinite(seconds);
         });
@@ -159367,9 +159835,9 @@ async function collectProductionMotion(bytes2, contract2, signal, binaries = { p
     }
     const frameBytes = width * height * 4;
     if (indices.length && decoded.stdout.length === indices.length * frameBytes) {
-      facts2.motion.samples = times.flatMap((time) => {
-        const index2 = Math.round(time * contract2.motion.fps), position = indices.indexOf(index2), frame = frames[index2];
-        return frame ? [{ time, timestamp: frame.time, pixels: { width, height, rgba: new Uint8Array(decoded.stdout.subarray(position * frameBytes, (position + 1) * frameBytes)) } }] : [];
+      facts2.motion.samples = times.flatMap((time2) => {
+        const index2 = Math.round(time2 * contract2.motion.fps), position = indices.indexOf(index2), frame = frames[index2];
+        return frame ? [{ time: time2, timestamp: frame.time, pixels: { width, height, rgba: new Uint8Array(decoded.stdout.subarray(position * frameBytes, (position + 1) * frameBytes)) } }] : [];
       });
     }
     facts2.records.motionCoverage = {
@@ -159407,7 +159875,7 @@ var init_production_motion = __esm({
 
 // packages/node-shell/src/production-pdf.ts
 import { execFile as execFile3 } from "node:child_process";
-import { mkdtemp as mkdtemp3, readFile as readFile21, rm as rm5, writeFile as writeFile6 } from "node:fs/promises";
+import { mkdtemp as mkdtemp3, readFile as readFile22, rm as rm5, writeFile as writeFile6 } from "node:fs/promises";
 import { tmpdir as tmpdir3 } from "node:os";
 import { join as join25 } from "node:path";
 import { promisify as promisify4 } from "node:util";
@@ -159447,7 +159915,7 @@ async function collectProductionPdf(bytes2, contract2, signal) {
       if (pages !== 1 || !facts2.width || !facts2.height || Math.ceil(facts2.width) * Math.ceil(facts2.height) > PRODUCTION_MAX_PIXELS) facts2.limitations.push("pdf-pixel-budget-or-multiple-pages");
       else {
         await exec("pdftoppm", ["-f", "1", "-singlefile", "-cropbox", "-scale-dimension-before-rotation", "-r", "96", "-png", file, join25(dir, "page")], opts);
-        const raster = await productionRaster(new Uint8Array(await readFile21(join25(dir, "page.png"))), signal);
+        const raster = await productionRaster(new Uint8Array(await readFile22(join25(dir, "page.png"))), signal);
         facts2.pixels = raster.pixels;
         facts2.opaque = raster.opaque;
       }
@@ -159591,7 +160059,7 @@ var init_production2 = __esm({
 });
 
 // packages/node-shell/src/desktop-renderer.ts
-import { constants, existsSync as existsSync16, accessSync, readFileSync as readFileSync8, statSync as statSync4 } from "node:fs";
+import { constants, existsSync as existsSync16, accessSync, statSync as statSync4, lstatSync, openSync, fstatSync, readSync, closeSync } from "node:fs";
 import { homedir as homedir5, tmpdir as tmpdir4 } from "node:os";
 import { basename as basename3, delimiter, join as join27 } from "node:path";
 import { spawn as spawn3, spawnSync } from "node:child_process";
@@ -159727,10 +160195,27 @@ function processAlive(pid) {
   }
 }
 function readTextOrNull(path) {
+  let descriptor;
   try {
-    return readFileSync8(path, "utf8");
+    const before = lstatSync(path, { bigint: true });
+    if (!before.isFile() || before.isSymbolicLink() || before.size > 8192n) return null;
+    if (process.platform !== "win32" && ((before.mode & 0o077n) !== 0n || typeof process.getuid === "function" && before.uid !== BigInt(process.getuid()))) return null;
+    descriptor = openSync(path, constants.O_RDONLY | (constants.O_NOFOLLOW ?? 0) | (constants.O_NONBLOCK ?? 0));
+    const opened = fstatSync(descriptor, { bigint: true });
+    if (!opened.isFile() || opened.size > 8192n || before.dev !== opened.dev || before.ino !== opened.ino) return null;
+    if (process.platform !== "win32" && ((opened.mode & 0o077n) !== 0n || opened.uid !== before.uid)) return null;
+    const buffer = Buffer.alloc(8193);
+    let used = 0;
+    while (used < buffer.length) {
+      const count4 = readSync(descriptor, buffer, used, buffer.length - used, null);
+      if (count4 === 0) break;
+      used += count4;
+    }
+    return used <= 8192 ? buffer.subarray(0, used).toString("utf8") : null;
   } catch {
     return null;
+  } finally {
+    if (descriptor !== void 0) closeSync(descriptor);
   }
 }
 function readRenderServer(probe = {}) {
@@ -159987,7 +160472,7 @@ __export(webshell_render_exports, {
   transformViaWebShell: () => transformViaWebShell
 });
 import { createServer as createServer2 } from "node:http";
-import { readFile as readFile24, stat as stat6 } from "node:fs/promises";
+import { readFile as readFile25, stat as stat6 } from "node:fs/promises";
 import { existsSync as existsSync17, writeFileSync as writeFileSync2 } from "node:fs";
 import { join as join28, resolve as resolve7, extname as extname3, normalize as normalize3 } from "node:path";
 async function webShellBase2() {
@@ -160048,7 +160533,7 @@ function serveDist2() {
       if (!live2 && (urlPath === "/" || !existsSync17(filePath) || !(await stat6(filePath)).isFile())) {
         filePath = join28(root2, "index.html");
       }
-      const data = await readFile24(filePath);
+      const data = await readFile25(filePath);
       res.setHeader("Content-Type", MIME4[extname3(filePath)] ?? "application/octet-stream");
       res.setHeader("Cache-Control", "no-store");
       res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
@@ -160300,7 +160785,7 @@ async function transformViaWebShell({ toolId, fileInputId: fileInputId2, file, q
     }
     const path = await outcome.d.path();
     if (!path) throw new BrowserError(`Download for "${toolId}" yielded no file.`);
-    const bytes2 = new Uint8Array(await readFile24(path));
+    const bytes2 = new Uint8Array(await readFile25(path));
     const filename = outcome.d.suggestedFilename() || file.name;
     await outcome.d.delete().catch(() => {
     });
@@ -160337,7 +160822,7 @@ async function renderViaChromiumShell(toolId, query2, format, dims = {}) {
     debug.step("read the downloaded bytes");
     const path = await download.path();
     if (!path) throw new BrowserError(`Download for "${toolId}" yielded no file.`);
-    const bytes2 = new Uint8Array(await readFile24(path));
+    const bytes2 = new Uint8Array(await readFile25(path));
     await download.delete().catch(() => {
     });
     dims.onProductionInputs?.(observeInputs(bytes2));
@@ -160404,7 +160889,7 @@ async function renderVideoViaScreenshot(toolId, query2, format, dims = {}) {
     debug.step("read the downloaded bytes");
     const path = await download.path();
     if (!path) throw new BrowserError(`Download for "${toolId}" yielded no file.`);
-    const bytes2 = new Uint8Array(await readFile24(path));
+    const bytes2 = new Uint8Array(await readFile25(path));
     await download.delete().catch(() => {
     });
     return { bytes: bytes2, mime: MIME4["." + format.toLowerCase()] ?? "application/octet-stream" };
@@ -160440,7 +160925,7 @@ async function renderToolPackageViaWebShell(bytes2, toolId, query2, format, prod
     const download = await downloading;
     const path = await download.path();
     if (!path) throw new BrowserError("The tool produced no output file.");
-    const rendered = new Uint8Array(await readFile24(path));
+    const rendered = new Uint8Array(await readFile25(path));
     production.onProductionInputs?.(observeInputs(rendered));
     return rendered;
   } finally {
@@ -160546,7 +161031,7 @@ async function exportOpenedSession(page3, base, query2, format, dims, debug, lab
     }
     const path = await download.path();
     if (!path) throw new BrowserError(`The ${format} export of ${label4} yielded no file.`);
-    const out = new Uint8Array(await readFile24(path));
+    const out = new Uint8Array(await readFile25(path));
     const filename = download.suggestedFilename();
     await download.delete().catch(() => {
     });
@@ -161352,7 +161837,7 @@ var init_forensic2 = __esm({
 });
 
 // packages/node-shell/src/check.ts
-import { createHash as createHash8 } from "node:crypto";
+import { createHash as createHash9 } from "node:crypto";
 function fidelityNote(compared) {
   const excepted = compared.fidelity.excepted?.length ?? 0;
   return (excepted ? ` ${excepted === 1 ? "1 string is recorded as a deliberate edit" : `${excepted} strings are recorded as deliberate edits`} (excepted, not passed).` : "") + (compared.complete ? "" : " The comparison stopped at one of its limits, so the family is partial (see fidelity.coverage.partial).");
@@ -161813,13 +162298,13 @@ function rasterSize(bytes2) {
   const size = imageDimensions(b);
   return size && size.w > 0 && size.h > 0 ? size : null;
 }
-async function catalogPictureReader(profile) {
+async function catalogPictureReader(profile2) {
   const { contentRoots: contentRoots2, contentUrlFile: contentUrlFile2, readAssetIndex: readAssetIndex2 } = await Promise.resolve().then(() => (init_content_roots(), content_roots_exports));
-  const { readFileSync: readFileSync9, statSync: statSync5 } = await import("node:fs");
+  const { readFileSync: readFileSync8, statSync: statSync5 } = await import("node:fs");
   let roots2;
   let byId;
   try {
-    roots2 = contentRoots2(profile ? { profile } : {});
+    roots2 = contentRoots2(profile2 ? { profile: profile2 } : {});
     byId = new Map(readAssetIndex2(roots2).assets.filter(record34).map((a) => [String(a.id), a]));
   } catch {
     return () => null;
@@ -161830,7 +162315,7 @@ async function catalogPictureReader(profile) {
     const path = file ? contentUrlFile2(String(file.url), roots2) : null;
     if (!path) return null;
     try {
-      return statSync5(path).size <= CHECK_MAX_INPUT_BYTES ? new Uint8Array(readFileSync9(path)) : null;
+      return statSync5(path).size <= CHECK_MAX_INPUT_BYTES ? new Uint8Array(readFileSync8(path)) : null;
     } catch {
       return null;
     }
@@ -162352,7 +162837,7 @@ var init_check = __esm({
       const n7 = typeof v === "string" && v.trim() !== "" ? Number(v) : v;
       return typeof n7 === "number" && Number.isFinite(n7) ? n7 : fallback;
     };
-    sha2562 = (bytes2) => createHash8("sha256").update(bytes2).digest("hex");
+    sha2562 = (bytes2) => createHash9("sha256").update(bytes2).digest("hex");
     zero = () => ({ error: 0, warn: 0, info: 0 });
     familyState = (state, reason2) => ({
       state,
@@ -162372,7 +162857,7 @@ var init_check = __esm({
 });
 
 // packages/node-shell/src/compose-photo-surface.ts
-import { readFile as readFile25 } from "node:fs/promises";
+import { readFile as readFile26 } from "node:fs/promises";
 function mimeOf2(bytes2) {
   if (bytes2[0] === 255 && bytes2[1] === 216) return "image/jpeg";
   if (bytes2[0] === 137 && bytes2[1] === 80 && bytes2[2] === 78 && bytes2[3] === 71) return "image/png";
@@ -162508,7 +162993,7 @@ async function markInks(id3) {
     const svg = (entry2?.formats ?? []).find((f) => String(f.format).toLowerCase() === "svg" && f.url);
     const file = svg?.url ? contentUrlFile2(svg.url) : null;
     if (!file) return null;
-    const colours2 = extractSvgColors(await readFile25(file, "utf8"));
+    const colours2 = extractSvgColors(await readFile26(file, "utf8"));
     if (!colours2.length) return ["#000000"];
     const lums = colours2.map((c) => hexLuminance(c)).filter((l) => l !== null);
     if (lums.length && (Math.max(...lums) + 0.05) / (Math.min(...lums) + 0.05) >= 3) return null;
@@ -162621,7 +163106,7 @@ __export(design_compose_exports, {
   resolveComposeMaster: () => resolveComposeMaster,
   suggestCompose: () => suggestCompose
 });
-import { readFile as readFile26 } from "node:fs/promises";
+import { readFile as readFile27 } from "node:fs/promises";
 function parseComposeSize(value) {
   const m2 = /^\s*(\d+)\s*[x×X]\s*(\d+)\s*$/.exec(value);
   if (!m2) return null;
@@ -162633,7 +163118,7 @@ function parseComposeSize(value) {
 async function readJsonFile(path, code, what) {
   let text9;
   try {
-    text9 = await readFile26(path, "utf8");
+    text9 = await readFile27(path, "utf8");
   } catch (err) {
     throw new DesignComposeError(code, `${what} ${path} could not be read: ${err.message}`);
   }
@@ -162646,9 +163131,9 @@ async function readJsonFile(path, code, what) {
 async function designSystemOf(opts) {
   if (opts.designSystem) return opts.designSystem;
   if (opts.file) return { doc: await readJsonFile(opts.file, "tokens.unreadable", "The token document"), origin: "file" };
-  const profile = readProfileTokenDocument();
-  if (!profile) return { doc: null, origin: null };
-  return { doc: profile.doc, origin: "profile", ...profile.label ? { name: profile.label } : {} };
+  const profile2 = readProfileTokenDocument();
+  if (!profile2) return { doc: null, origin: null };
+  return { doc: profile2.doc, origin: "profile", ...profile2.label ? { name: profile2.label } : {} };
 }
 function masterFromFile(value, path) {
   const candidate = record38(value) && Array.isArray(value.masters) ? value.masters[0] : value;
@@ -163354,7 +163839,7 @@ function loadToolCached(id3) {
 async function listTools(filter = {}) {
   const { tools } = await loadIndex();
   const q = filter.q?.trim().toLowerCase();
-  const matches4 = tools.filter((t) => {
+  const matches3 = tools.filter((t) => {
     if (filter.status && t.status !== filter.status) return false;
     if (filter.category && t.category !== filter.category) return false;
     if (filter.format && !(t.formats ?? []).map((f) => f.toLowerCase()).includes(filter.format.toLowerCase())) return false;
@@ -163365,9 +163850,9 @@ async function listTools(filter = {}) {
     }
     return true;
   });
-  if (filter.limit === void 0) return matches4;
+  if (filter.limit === void 0) return matches3;
   const limit2 = Math.min(100, Math.max(1, Math.floor(filter.limit)));
-  return matches4.slice(0, limit2);
+  return matches3.slice(0, limit2);
 }
 var TEMPLATE_ID_RE = /^[a-z0-9-]+$/;
 async function listToolTemplates(toolId) {
@@ -163471,11 +163956,18 @@ init_raster3();
 
 // packages/node-shell/src/c2pa-opts.ts
 init_src2();
+init_inputs();
+import { createHash as createHash4 } from "node:crypto";
 function buildExportC2paOpts(o) {
-  const { surface, manifest, model: model2, format, dims = {}, profile = {} } = o;
+  const { surface, manifest, model: model2, format, dims = {}, profile: profile2 = {} } = o;
   const days = o.days ?? 30;
   const name = manifest.name || manifest.id;
-  const inputs = summarizeInputs(model2);
+  const values = modelToValues([...model2]);
+  const eligible = new Set(Object.keys(summarizeInputs(model2.filter((item2) => matchesShowIf(item2.showIf, values)))));
+  const inputs = Object.fromEntries(model2.filter((item2) => eligible.has(item2.id)).map((item2) => [
+    item2.id,
+    `sha256:${createHash4("sha256").update(JSON.stringify([item2.type, flattenValue(item2.value), item2.unit ?? ""])).digest("hex")}`
+  ]));
   const unit2 = dims.unit || "px";
   const sizeLine = typeof dims.width === "number" && dims.width > 0 && typeof dims.height === "number" && dims.height > 0 ? unit2 !== "px" ? `${dims.width} \xD7 ${dims.height} ${unit2} @ ${dims.dpi || 300} DPI` : `${dims.width} \xD7 ${dims.height} px` : void 0;
   const aiIngredients = collectAiIngredientDeclarations(model2);
@@ -163485,15 +163977,13 @@ function buildExportC2paOpts(o) {
     generatorInfo: { name: "Lolly", version: ENGINE_VERSION },
     environment: {
       surface,
-      engine: `node ${process.version}`,
-      os: process.platform,
       format,
       tool: name,
       date: (/* @__PURE__ */ new Date()).toISOString(),
       ...sizeLine ? { dimensions: sizeLine } : {},
       ...Object.keys(inputs).length ? { inputs } : {}
     },
-    ...profile.useDetails === true && profile.firstname ? { author: { name: [profile.firstname, profile.lastname].filter(Boolean).join(" "), ...profile.email ? { email: profile.email } : {} } } : {},
+    ...profile2.useDetails === true && profile2.firstname ? { author: { name: [profile2.firstname, profile2.lastname].filter(Boolean).join(" "), ...profile2.email ? { email: profile2.email } : {} } } : {},
     ...o.signer ? { signer: o.signer } : {},
     // With an identity, the dates ARE the certificate's. `dates` only ever fed the
     // ephemeral certificate generator, and an enrolled signer brings its own.
@@ -163524,7 +164014,7 @@ init_webgpu_launch();
 init_production_browser();
 init_export_wait();
 init_open_session();
-import { readFile as readFile22, stat as stat5 } from "node:fs/promises";
+import { readFile as readFile23, stat as stat5 } from "node:fs/promises";
 
 // shells/cli/src/bridge.ts
 init_token_context();
@@ -163544,23 +164034,256 @@ async function prepareJxlAsset(ref, bytes2) {
 
 // shells/cli/src/bridge.ts
 init_asset_bytes();
+import { readFile as readFile20 } from "node:fs/promises";
+
+// packages/node-shell/src/public-http.ts
+import { lookup } from "node:dns/promises";
+import { request as httpRequest } from "node:http";
+import { request as httpsRequest } from "node:https";
+import { BlockList, isIP } from "node:net";
+import { Readable } from "node:stream";
+var blocked = new BlockList();
+for (const [network, prefix] of [
+  ["0.0.0.0", 8],
+  ["10.0.0.0", 8],
+  ["100.64.0.0", 10],
+  ["127.0.0.0", 8],
+  ["169.254.0.0", 16],
+  ["172.16.0.0", 12],
+  ["192.0.0.0", 24],
+  ["192.0.2.0", 24],
+  ["192.88.99.0", 24],
+  ["192.168.0.0", 16],
+  ["198.18.0.0", 15],
+  ["198.51.100.0", 24],
+  ["203.0.113.0", 24],
+  ["224.0.0.0", 4],
+  ["240.0.0.0", 4]
+]) blocked.addSubnet(network, prefix, "ipv4");
+for (const [network, prefix] of [
+  ["2001::", 23],
+  ["2001:db8::", 32],
+  ["2002::", 16],
+  ["3fff::", 20]
+]) blocked.addSubnet(network, prefix, "ipv6");
+var globalV6 = new BlockList();
+globalV6.addSubnet("2000::", 3, "ipv6");
+function isPublicAddress(address) {
+  const family2 = isIP(address);
+  if (family2 === 4) return !blocked.check(address, "ipv4");
+  return family2 === 6 && !address.includes("%") && globalV6.check(address, "ipv6") && !blocked.check(address, "ipv6");
+}
+var PUBLIC_IMAGE_TYPES = /* @__PURE__ */ new Set([
+  "image/png",
+  "image/jpeg",
+  "image/gif",
+  "image/webp",
+  "image/svg+xml",
+  "image/avif",
+  "image/bmp",
+  "image/x-icon",
+  "image/vnd.microsoft.icon",
+  "image/tiff",
+  "image/apng",
+  "image/jxl",
+  "image/heic",
+  "image/heif",
+  "image/x-exr",
+  "image/vnd.radiance"
+]);
+var MAX_PUBLIC_ASSET_BYTES = 25 * 1024 * 1024;
+var PublicHttpError = class extends Error {
+  code;
+  constructor(code, message) {
+    super(message);
+    this.code = code;
+  }
+};
+function assertPublicHttpShape(url) {
+  if (url.protocol !== "http:" && url.protocol !== "https:") throw new PublicHttpError("refused", "Only http(s) URLs are supported.");
+  if (url.username || url.password) throw new PublicHttpError("refused", "The URL must not carry a username or password.");
+  if (url.toString().length > 8192) throw new PublicHttpError("refused", "The URL is too long.");
+}
+var requestPinned = (url, { address, signal, headers }) => new Promise((resolve8, reject) => {
+  const hostname = url.hostname.replace(/^\[|\]$/g, "");
+  const send2 = url.protocol === "https:" ? httpsRequest : httpRequest;
+  const req = send2({
+    protocol: url.protocol,
+    hostname: address,
+    family: isIP(address),
+    port: url.port || void 0,
+    path: `${url.pathname}${url.search}`,
+    method: "GET",
+    agent: false,
+    signal,
+    ...url.protocol === "https:" && !isIP(hostname) ? { servername: hostname } : {},
+    headers: { ...Object.fromEntries(headers), host: url.host, "accept-encoding": "identity" },
+    maxHeaderSize: 16 * 1024
+  }, (res) => {
+    const responseHeaders = new Headers();
+    for (const [name, value] of Object.entries(res.headers)) {
+      if (Array.isArray(value)) for (const item2 of value) responseHeaders.append(name, item2);
+      else if (value !== void 0) responseHeaders.set(name, value);
+    }
+    const status = res.statusCode ?? 502;
+    if ([204, 205, 304].includes(status)) {
+      res.destroy();
+      resolve8(new Response(null, { status, headers: responseHeaders }));
+    } else {
+      resolve8(new Response(Readable.toWeb(res), { status, headers: responseHeaders }));
+    }
+  });
+  req.once("error", reject);
+  req.once("upgrade", (_res, socket) => {
+    socket.destroy();
+    reject(new PublicHttpError("status", "Protocol upgrades are not supported."));
+  });
+  req.end();
+});
+async function resolveHost(hostname) {
+  try {
+    return (await lookup(hostname, { all: true, verbatim: true })).map((answer) => answer.address);
+  } catch {
+    return [];
+  }
+}
+function withinDeadline(operation, signal) {
+  signal.throwIfAborted();
+  return new Promise((resolve8, reject) => {
+    const abort = () => {
+      reject(signal.reason);
+    };
+    signal.addEventListener("abort", abort, { once: true });
+    operation.then(resolve8, reject).finally(() => signal.removeEventListener("abort", abort));
+  });
+}
+async function checkedAddress(url, resolver, signal) {
+  const literal = url.hostname.replace(/^\[|\]$/g, "");
+  const addresses = isIP(literal) ? [literal] : await withinDeadline(resolver(url.hostname), signal);
+  if (!addresses.length || addresses.some((address) => !isPublicAddress(address))) {
+    throw new PublicHttpError("refused", "That address is not reachable from here.");
+  }
+  return addresses.find((address) => isIP(address) === 4) ?? addresses[0];
+}
+async function cancel(response) {
+  try {
+    await response.body?.cancel();
+  } catch {
+  }
+}
+async function readCappedResponse(response, max, signal) {
+  const declared = Number(response.headers.get("content-length"));
+  if (Number.isFinite(declared) && declared > max) {
+    await cancel(response);
+    throw new PublicHttpError("size", `The response exceeds the ${max}-byte limit.`);
+  }
+  const reader = response.body?.getReader();
+  if (!reader) return new Uint8Array();
+  const chunks = [];
+  let total = 0;
+  try {
+    for (; ; ) {
+      const next2 = reader.read();
+      const { done, value } = signal ? await withinDeadline(next2, signal) : await next2;
+      if (done) break;
+      total += value.byteLength;
+      if (total > max) throw new PublicHttpError("size", `The response exceeds the ${max}-byte limit.`);
+      chunks.push(value);
+    }
+  } catch (error2) {
+    void reader.cancel().catch(() => {
+    });
+    throw error2;
+  } finally {
+    reader.releaseLock();
+  }
+  const bytes2 = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk6 of chunks) {
+    bytes2.set(chunk6, offset);
+    offset += chunk6.byteLength;
+  }
+  return bytes2;
+}
+async function fetchPublicBytes(raw, opts = {}) {
+  const controller = new AbortController();
+  const abort = () => {
+    controller.abort(opts.signal?.reason);
+  };
+  if (opts.signal?.aborted) abort();
+  else opts.signal?.addEventListener("abort", abort, { once: true });
+  const timer = setTimeout(() => controller.abort(new PublicHttpError("timeout", "That address took too long to answer.")), opts.timeoutMs ?? 2e4);
+  const signal = controller.signal;
+  try {
+    let url = new URL(raw);
+    const headers = new Headers(opts.headers);
+    for (let hop = 0; ; hop++) {
+      signal.throwIfAborted();
+      assertPublicHttpShape(url);
+      if (opts.allowUrl && !opts.allowUrl(url)) throw new PublicHttpError("refused", "That URL is not allowed here.");
+      const address = await checkedAddress(url, opts.resolver ?? resolveHost, signal);
+      const response = await withinDeadline((opts.request ?? requestPinned)(url, { address, signal, headers }), signal);
+      try {
+        opts.onResponse?.(url, response);
+      } catch (error2) {
+        await cancel(response);
+        throw error2;
+      }
+      if (response.status >= 300 && response.status < 400) {
+        const location4 = response.headers.get("location");
+        await cancel(response);
+        if (!location4) throw new PublicHttpError("redirect", "That address returned a redirect without a location.");
+        if (hop >= (opts.maxRedirects ?? 4)) throw new PublicHttpError("redirect", "That address redirected too many times.");
+        try {
+          url = new URL(location4, url);
+        } catch {
+          throw new PublicHttpError("redirect", "That address redirected to an invalid location.");
+        }
+        continue;
+      }
+      if (!response.ok) {
+        await cancel(response);
+        throw new PublicHttpError("status", `That address answered with ${response.status}.`);
+      }
+      const mime2 = (response.headers.get("content-type") ?? "").split(";")[0].trim().toLowerCase();
+      if (opts.allowedTypes && !opts.allowedTypes.has(mime2)) {
+        await cancel(response);
+        throw new PublicHttpError("type", "That URL has an unsupported content type.");
+      }
+      if ((response.headers.get("content-encoding") ?? "identity").toLowerCase() !== "identity") {
+        await cancel(response);
+        throw new PublicHttpError("encoding", "That address returned unsupported content encoding.");
+      }
+      const bytes2 = await readCappedResponse(response, opts.maxBytes ?? MAX_PUBLIC_ASSET_BYTES, signal);
+      return { bytes: bytes2, mime: mime2, response, url };
+    }
+  } catch (error2) {
+    if (signal.aborted) throw signal.reason;
+    throw error2;
+  } finally {
+    clearTimeout(timer);
+    opts.signal?.removeEventListener("abort", abort);
+    controller.abort();
+  }
+}
+
+// shells/cli/src/bridge.ts
 init_src2();
 init_src2();
 init_pdf2();
 init_pptx3();
-import { readFile as readFile19 } from "node:fs/promises";
 import { zipSync as zipSync2 } from "fflate";
 
 // packages/node-shell/src/net.ts
 var MAX_RESPONSE_BYTES = 64 * 1024 * 1024;
-function createNetAPI({ allowlist = [] }) {
+function createNetAPI({ allowlist = [], fetchImpl }) {
   return {
     async fetch(url, init) {
-      const allowed = allowlist.some((pattern) => matches3(pattern, url));
+      const allowed = allowlist.some((pattern) => matchesNetworkUrl(pattern, url));
       if (!allowed) {
         throw new Error(`Tool tried to fetch disallowed URL: ${url}`);
       }
-      return capResponse(await fetch(url, init), MAX_RESPONSE_BYTES);
+      return capResponse(await (fetchImpl ?? fetch)(url, init), MAX_RESPONSE_BYTES);
     }
   };
 }
@@ -163580,7 +164303,7 @@ function capResponse(res, cap) {
   }));
   return new Response(counted, { status: res.status, statusText: res.statusText, headers: res.headers });
 }
-function matches3(pattern, url) {
+function matchesNetworkUrl(pattern, url) {
   if (pattern.endsWith("*")) {
     let prefix = pattern.slice(0, -1);
     if (!prefix.endsWith("/")) prefix += "/";
@@ -164148,7 +164871,7 @@ import { isAbsolute, join as join13 } from "node:path";
 import { Worker as Worker3 } from "node:worker_threads";
 import { existsSync as existsSync8 } from "node:fs";
 import { fileURLToPath as fileURLToPath6 } from "node:url";
-import { createHash as createHash7 } from "node:crypto";
+import { createHash as createHash8 } from "node:crypto";
 
 // packages/rondo/src/limits.ts
 var RONDO_LIMITS = Object.freeze({
@@ -164397,7 +165120,7 @@ function runWorker2(job, caps, timeoutMs, limitText) {
   });
 }
 var secondsText = (ms) => ms < 1e4 ? (ms / 1e3).toFixed(1) : String(Math.round(ms / 1e3));
-var digestOf = (song) => createHash7("sha256").update(`${song.lang}\0${song.code}`).digest("hex");
+var digestOf = (song) => createHash8("sha256").update(`${song.lang}\0${song.code}`).digest("hex");
 var copyOf = (k) => ({
   ...k,
   channels: [k.channels[0].slice(), k.channels[1].slice()],
@@ -164414,7 +165137,7 @@ async function renderRondoSong(song, opts = {}) {
     throw new RondoAudioError(`This host renders songs up to ${maxSeconds} s long; ${seconds} s was asked for.`, "rondo.limits.seconds");
   }
   const key2 = `${digestOf(song)}|${seconds ?? "natural"}|${maxSeconds}`;
-  const sourceDigest = createHash7("sha256").update(rondoSourceBytes(song)).digest("hex");
+  const sourceDigest = createHash8("sha256").update(rondoSourceBytes(song)).digest("hex");
   const report4 = (k, cached2) => ({
     sampleRate: k.sampleRate,
     channels: k.channels,
@@ -164537,10 +165260,11 @@ var NEEDS_PLATFORM_CODEC = /\.(mp3|m4a|aac|ogg|oga|opus|flac|weba|webm|mp4)$/i;
 function isRef(src) {
   return typeof src === "object" && src !== null && "url" in src && typeof src.url === "string";
 }
-async function bytesOf2(src, repoRoot2) {
+async function bytesOf2(src, repoRoot2, readSource2) {
   if (src instanceof Uint8Array) return src;
   if (src instanceof ArrayBuffer) return new Uint8Array(src);
   const url = isRef(src) ? src.url : src;
+  if (readSource2) return readSource2(url);
   if (url.startsWith("data:")) {
     const comma = url.indexOf(",");
     if (comma < 0) throw new Error("audio: malformed data URL");
@@ -164559,8 +165283,8 @@ async function bytesOf2(src, repoRoot2) {
   const path = content2 ?? (isAbsolute(url) && !url.startsWith("/catalog/") && !url.startsWith("/community/") ? url : join13(repoRoot2, url.replace(/^\//, "")));
   return new Uint8Array(await readFile9(path));
 }
-async function songOf(src, repoRoot2) {
-  const bytes2 = await bytesOf2(src, repoRoot2);
+async function songOf(src, repoRoot2, readSource2) {
+  const bytes2 = await bytesOf2(src, repoRoot2, readSource2);
   return JSON.parse(Buffer.from(bytes2).toString("utf8"));
 }
 function fileNameOf(url) {
@@ -164624,12 +165348,12 @@ async function decodeAudioSource(src, opts, decodeOpts = {}) {
   if (isRondoShareLink(url)) return renderSong(readSong(() => rondoFromShareLink(url)), opts, decodeOpts.seconds);
   const fileName = fileNameOf(url) || fileNameOf(opts.sourceName ?? "");
   if (ref?.format === RONDO_ASSET_FORMAT || isRondoFileName(fileName)) {
-    const bytes3 = await bytesOf2(src, repoRoot2);
+    const bytes3 = await bytesOf2(src, repoRoot2, opts.readSource);
     const asName = isRondoFileName(fileName) ? fileName : looksLikeJsonObject(bytes3) ? "song.rondo.json" : "song.rondo";
     return renderSong(readSong(() => rondoFromFile(bytes3, asName)), opts, decodeOpts.seconds);
   }
   if (ref && ref.format === "zzfxm" || /\.zzfxm\.json$/i.test(url)) {
-    const { left, right, sampleRate: sampleRate2 } = renderZzfxm(await songOf(src, repoRoot2));
+    const { left, right, sampleRate: sampleRate2 } = renderZzfxm(await songOf(src, repoRoot2, opts.readSource));
     if (!left.length) throw new Error("audio: zzfxm song rendered empty");
     return recorded([left, right], sampleRate2);
   }
@@ -164638,7 +165362,7 @@ async function decodeAudioSource(src, opts, decodeOpts = {}) {
       `audio: ${url.split(".").pop()} needs a platform codec this shell does not have - analyse WAV, a ZzFXM song or a rondocode song headlessly, or render in a browser shell`
     );
   }
-  const bytes2 = await bytesOf2(src, repoRoot2);
+  const bytes2 = await bytesOf2(src, repoRoot2, opts.readSource);
   if (looksLikeRondoRecord(bytes2)) return renderSong(readSong(() => rondoFromBytes(bytes2)), opts, decodeOpts.seconds);
   const container = sniffContainer2(bytes2);
   if (container && container !== "wav") {
@@ -167403,7 +168127,7 @@ function rondoRecordOf(bytes2) {
     return null;
   }
 }
-async function createCliBridge({ profile = {}, dom, networkAllowlist, designVersion, tokenSelection, capturePublicOnly = false, aiEnabled = true, tokensDocument = null, rondo, onAudioRun, onAudioRunFailed, rondoBudget, geometryBackend } = {}) {
+async function createCliBridge({ profile: profile2 = {}, dom, networkAllowlist, designVersion, tokenSelection, capturePublicOnly = false, publicOnlyAssets = false, aiEnabled = true, tokensDocument = null, rondo, onAudioRun, onAudioRunFailed, rondoBudget, geometryBackend } = {}) {
   const w = dom.window;
   const assetIndex2 = readAssetIndex();
   const assetById = new Map(assetIndex2.assets.map((a) => [a.id, a]));
@@ -167413,6 +168137,15 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
     return path;
   };
   const state = /* @__PURE__ */ new Map();
+  const bounded2 = (bytes2) => {
+    if (bytes2.byteLength > MAX_PUBLIC_ASSET_BYTES) throw new Error("The asset exceeds this host's byte limit.");
+    return bytes2;
+  };
+  async function readHostedSource(source, allowedTypes = PUBLIC_IMAGE_TYPES) {
+    if (source.startsWith("/catalog/")) return bounded2(new Uint8Array(await readFile20(assetFilePath(source))));
+    if (/^data:/i.test(source)) return bounded2(decodeDataUrl2(source));
+    return (await fetchPublicBytes(source, { allowedTypes })).bytes;
+  }
   const host = {
     version: "1",
     shell: "cli",
@@ -167431,7 +168164,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
   };
   host.profile = {
     async get() {
-      return profile;
+      return profile2;
     },
     subscribe() {
       return () => {
@@ -167444,7 +168177,8 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
       if (source instanceof Uint8Array) return source;
       if (typeof source === "object" && "arrayBuffer" in source) return new Uint8Array(await source.arrayBuffer());
       if (typeof source !== "string") return host.assets.bytes(source);
-      if (source.startsWith("/catalog/")) return new Uint8Array(await readFile19(assetFilePath(source)));
+      if (source.startsWith("/catalog/")) return new Uint8Array(await readFile20(assetFilePath(source)));
+      if (publicOnlyAssets) return readHostedSource(source);
       const response = await fetch(source);
       if (!response.ok) throw new Error(`Could not read HDR source (${response.status}).`);
       return new Uint8Array(await response.arrayBuffer());
@@ -167474,7 +168208,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
     iconThemesCache ??= (async () => {
       const pal = [...assetById.values()].find((a) => a.type === "palette" && a.tags?.includes("icon-themes"));
       if (!pal) return [];
-      const doc = JSON.parse(await readFile19(assetFilePath(pal.formats[0].url), "utf8"));
+      const doc = JSON.parse(await readFile20(assetFilePath(pal.formats[0].url), "utf8"));
       return parseIconThemesDoc(doc);
     })().catch(() => []);
     return iconThemesCache;
@@ -167484,7 +168218,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
     photoTreatmentsCache ??= (async () => {
       const pal = [...assetById.values()].find((a) => a.type === "palette" && a.tags?.includes("photo-treatments"));
       if (!pal) return [];
-      const doc = JSON.parse(await readFile19(assetFilePath(pal.formats[0].url), "utf8"));
+      const doc = JSON.parse(await readFile20(assetFilePath(pal.formats[0].url), "utf8"));
       return parsePhotoTreatmentsDoc(doc);
     })().catch(() => []);
     return photoTreatmentsCache;
@@ -167500,7 +168234,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
         const meta = assetById.get(lutId);
         const fmt4 = meta?.formats.find((f) => f.format === "cube") ?? meta?.formats[0];
         if (!fmt4) return null;
-        return parseLutText(await readFile19(assetFilePath(fmt4.url), "utf8"), lutId);
+        return parseLutText(await readFile20(assetFilePath(fmt4.url), "utf8"), lutId);
       })().catch(() => null);
       lutReads.set(lutId, pending3);
     }
@@ -167536,7 +168270,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
   const tokensAssets = assetIndex2.assets.filter((a) => a.type === "tokens");
   const headTokensId = pickHeadAssetId(tokensAssets.map((a) => a.id));
   const headTokensAsset3 = tokensAssets.find((a) => a.id === headTokensId) ?? null;
-  const readAssetDoc = async (asset2) => JSON.parse(await readFile19(assetFilePath(asset2.formats[0].url), "utf8"));
+  const readAssetDoc = async (asset2) => JSON.parse(await readFile20(assetFilePath(asset2.formats[0].url), "utf8"));
   let tokensDocCache = null;
   let tokensDocRevision = "";
   async function tokensDoc() {
@@ -167638,6 +168372,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
   host.connectors = makeConnectorsApi();
   host.audio = createNodeAudioAPI({
     repoRoot: REPO_ROOT2,
+    ...publicOnlyAssets ? { readSource: (source) => readHostedSource(source, /* @__PURE__ */ new Set(["audio/wav", "audio/x-wav", "audio/wave", "audio/vnd.wave", "application/json", "text/plain"])) } : {},
     ...rondo ? { rondo } : {},
     ...rondoBudget ? { budget: rondoBudget } : {},
     onRun: onAudioRun ?? cliAudioRunReporter(),
@@ -167665,12 +168400,26 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
   host.emoji = await (await Promise.resolve().then(() => (init_emoji2(), emoji_exports))).createNodeEmojiAPI({
     parseXml: (source) => new w.DOMParser().parseFromString(source, "image/svg+xml")
   });
-  host.net = createNetAPI({ allowlist: networkAllowlist });
+  host.net = createNetAPI({
+    allowlist: networkAllowlist,
+    ...publicOnlyAssets ? {
+      fetchImpl: async (url, init) => {
+        if (init?.method && init.method.toUpperCase() !== "GET") throw new Error("This host supports GET network reads only.");
+        if (init?.body) throw new Error("This host does not send network request bodies.");
+        const result = await fetchPublicBytes(url, {
+          ...init?.headers ? { headers: init.headers } : {},
+          ...init?.signal ? { signal: init.signal } : {},
+          allowUrl: (next2) => (networkAllowlist ?? []).some((pattern) => matchesNetworkUrl(pattern, next2.toString()))
+        });
+        return new Response(result.bytes, { status: result.response.status, headers: result.response.headers });
+      }
+    } : {}
+  });
   host.assets = {
     // v1.183: bytes behind a ref. This bridge inlines catalog files as data:
     // urls, so most reads never touch the disk; http(s) rides the tool's own
     // allowlist through host.net, never an open fetch.
-    bytes: (target2) => assetBytes(target2, { netFetch: (url) => host.net ? host.net.fetch(url) : Promise.reject(new Error("no host.net")) }),
+    bytes: (target2) => assetBytes(target2, { allowFiles: !publicOnlyAssets, netFetch: (url) => host.net ? host.net.fetch(url) : Promise.reject(new Error("no host.net")) }),
     async resolveProvider(ref) {
       if (ref.provider === "catalog" || ref.provider === "library") {
         try {
@@ -167681,8 +168430,8 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
       }
       if (ref.provider === "image" && ref.scope === "brand") {
         const slot = ref.path || "logo";
-        const matches4 = await host.assets.query({ tags: [slot] });
-        const picked = matches4[0] ?? (slot === "logo" ? (await host.assets.query({ tags: ["logo"] }))[0] : void 0);
+        const matches3 = await host.assets.query({ tags: [slot] });
+        const picked = matches3[0] ?? (slot === "logo" ? (await host.assets.query({ tags: ["logo"] }))[0] : void 0);
         if (!picked) return null;
         try {
           return await host.assets.get(picked.id);
@@ -167734,6 +168483,12 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
         return prepareJxlAsset({ source: "remote", id: id3, type: kind.type, format: kind.format, url: id3 }, bytes2);
       }
       if (/^https?:\/\//i.test(id3)) {
+        if (publicOnlyAssets) {
+          const { bytes: bytes2, mime: mime4 } = await fetchPublicBytes(id3, { allowedTypes: PUBLIC_IMAGE_TYPES, headers: { accept: "image/*" } });
+          const kind2 = urlAssetKind(mime4, "");
+          if (!kind2) throw new Error("Unsupported URL asset content type.");
+          return prepareJxlAsset({ source: "remote", id: id3, ...kind2, url: `data:${mime4};base64,${Buffer.from(bytes2).toString("base64")}` }, bytes2);
+        }
         const res = await fetch(id3, { signal: AbortSignal.timeout(2e4) });
         if (!res.ok) throw new Error(`URL asset fetch failed (${res.status}): ${id3}`);
         const buf2 = Buffer.from(await res.arrayBuffer());
@@ -167751,7 +168506,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
       const fmt4 = opts.format ? meta.formats.find((f) => f.format === opts.format) : meta.type === "lottie" ? meta.formats.find((f) => f.format === "json") ?? meta.formats[0] : meta.formats[0];
       if (!fmt4) throw new Error(`Asset format unavailable: ${baseId} (${opts.format})`);
       const localPath2 = assetFilePath(fmt4.url);
-      let buf = await readFile19(localPath2);
+      let buf = await readFile20(localPath2);
       let extraMeta = { name: meta.name, tags: meta.tags };
       if (meta.type === "palette" && fmt4.format === "json") {
         try {
@@ -168181,6 +168936,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
   };
   host.capture = {
     async page(spec) {
+      if (spec.isolation) throw new Error("This host does not provide isolated public page capture.");
       const { bytes: bytes2, mime: mime2 } = await captureUrl(
         {
           url: spec.url,
@@ -168212,7 +168968,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
     host.pdf.redact = pdfCanvas.redact;
     host.pdf.pages = pdfCanvas.pages;
   }
-  const raster = createNodeRasterAPI();
+  const raster = createNodeRasterAPI(publicOnlyAssets ? { readUrl: readHostedSource } : {});
   if (raster) host.raster = raster;
   host.c2pa = {
     async sign(bytes2, format, opts = {}) {
@@ -168235,7 +168991,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
         });
       }
       const imported = opts.action === "imported" || opts.action == null && (opts.author != null || opts.rights != null || (opts.ingredients?.length ?? 0) > 0);
-      const author = opts.author != null ? typeof opts.author === "string" ? opts.author.trim() ? { name: opts.author.trim() } : void 0 : opts.author : profile.useDetails === true && profile.firstname ? { name: [profile.firstname, profile.lastname].filter(Boolean).join(" "), ...profile.email ? { email: profile.email } : {} } : void 0;
+      const author = opts.author != null ? typeof opts.author === "string" ? opts.author.trim() ? { name: opts.author.trim() } : void 0 : opts.author : profile2.useDetails === true && profile2.firstname ? { name: [profile2.firstname, profile2.lastname].filter(Boolean).join(" "), ...profile2.email ? { email: profile2.email } : {} } : void 0;
       const rights = opts.rights != null ? opts.rights.trim() || void 0 : void 0;
       const actions = imported ? [
         { action: "c2pa.metadata", description: opts.description || "Author, copyright and licence embedded" },
@@ -168542,7 +169298,7 @@ function safeJson(v) {
     return String(v);
   }
 }
-function withHost(profile, fn, opts = {}) {
+function withHost(profile2, fn, opts = {}) {
   return enqueue(async () => {
     const { JSDOM } = await import("jsdom");
     const dom = new JSDOM('<!DOCTYPE html><html><body><div id="canvas"></div></body></html>');
@@ -168555,8 +169311,9 @@ function withHost(profile, fn, opts = {}) {
       const audio = currentAudioScope();
       const host = await createCliBridge({
         dom,
-        profile,
+        profile: profile2,
         capturePublicOnly: true,
+        publicOnlyAssets: true,
         aiEnabled: false,
         ...opts.tokenSelection ? { tokenSelection: opts.tokenSelection } : {},
         rondo: audio?.caps ?? DEFAULT_SCOPE_CAPS,
@@ -168588,43 +169345,13 @@ function withHost(profile, fn, opts = {}) {
 // services/mcp/src/webshell.ts
 import { createServer } from "node:http";
 import { spawn } from "node:child_process";
-import { readFile as readFile20, stat as stat4 } from "node:fs/promises";
+import { readFile as readFile21, stat as stat4 } from "node:fs/promises";
 import { existsSync as existsSync14 } from "node:fs";
 import { join as join22, resolve as resolve4, extname, normalize as normalize2 } from "node:path";
 
 // services/mcp/src/egress.ts
-import { lookup } from "node:dns/promises";
-import { BlockList, isIP } from "node:net";
-var blocked = new BlockList();
-for (const [network, prefix] of [
-  ["0.0.0.0", 8],
-  ["10.0.0.0", 8],
-  ["100.64.0.0", 10],
-  ["127.0.0.0", 8],
-  ["169.254.0.0", 16],
-  ["172.16.0.0", 12],
-  ["192.0.0.0", 24],
-  ["192.0.2.0", 24],
-  ["192.168.0.0", 16],
-  ["198.18.0.0", 15],
-  ["198.51.100.0", 24],
-  ["203.0.113.0", 24],
-  ["224.0.0.0", 4],
-  ["240.0.0.0", 4]
-]) blocked.addSubnet(network, prefix, "ipv4");
-for (const [network, prefix] of [
-  ["::", 128],
-  ["::1", 128],
-  ["100::", 64],
-  ["2001:db8::", 32],
-  ["fc00::", 7],
-  ["fe80::", 10],
-  ["ff00::", 8]
-]) blocked.addSubnet(network, prefix, "ipv6");
-function isPublicAddress(address) {
-  const family2 = isIP(address);
-  return family2 !== 0 && !blocked.check(address, family2 === 4 ? "ipv4" : "ipv6");
-}
+import { lookup as lookup2 } from "node:dns/promises";
+import { isIP as isIP2 } from "node:net";
 function checkedBase(raw) {
   let url;
   try {
@@ -168657,7 +169384,7 @@ function browserAllowedOrigins(base, env) {
   }
   return allowed;
 }
-async function assertBrowserRequestAllowed(raw, base, env, resolver = resolveHost) {
+async function assertBrowserRequestAllowed(raw, base, env, resolver = resolveHost2) {
   const url = new URL(raw);
   if (url.protocol === "blob:" || url.protocol === "data:" || url.protocol === "about:") return;
   if (url.protocol !== "http:" && url.protocol !== "https:") throw new Error(`browser egress rejects ${url.protocol}`);
@@ -168666,7 +169393,7 @@ async function assertBrowserRequestAllowed(raw, base, env, resolver = resolveHos
   const baseUrl = checkedBase(base);
   if (baseUrl.protocol === "http:" && isLoopbackName(baseUrl.hostname) && url.origin === baseUrl.origin) return;
   const literal = stripIpv6Brackets(url.hostname);
-  if (isIP(literal)) {
+  if (isIP2(literal)) {
     if (!isPublicAddress(literal)) throw new Error("browser egress rejects non-public address");
     return;
   }
@@ -168680,7 +169407,7 @@ async function installBrowserEgressPolicy(page3, base, env = process.env) {
   const resolver = (hostname) => {
     let pending3 = cache5.get(hostname);
     if (!pending3) {
-      pending3 = resolveHost(hostname);
+      pending3 = resolveHost2(hostname);
       cache5.set(hostname, pending3);
     }
     return pending3;
@@ -168695,9 +169422,9 @@ async function installBrowserEgressPolicy(page3, base, env = process.env) {
     }
   });
 }
-async function resolveHost(hostname) {
+async function resolveHost2(hostname) {
   try {
-    return (await lookup(hostname, { all: true, verbatim: true })).map((answer) => answer.address);
+    return (await lookup2(hostname, { all: true, verbatim: true })).map((answer) => answer.address);
   } catch {
     return [];
   }
@@ -168776,7 +169503,7 @@ function serveDist(dist2) {
       if (urlPath === "/" || !existsSync14(filePath) || !(await stat4(filePath)).isFile()) {
         filePath = join22(root2, "index.html");
       }
-      const data = await readFile20(filePath);
+      const data = await readFile21(filePath);
       res.setHeader("Content-Type", MIME2[extname(filePath)] ?? "application/octet-stream");
       res.setHeader("Cache-Control", "no-store");
       res.end(data);
@@ -169032,8 +169759,8 @@ async function mountAndDraw(dom, host, toolId, values, emoji, tokenSelection) {
   await runtime.applyEmojiToDom(canvas);
   return { runtime, canvas, warnings: warnings2 };
 }
-async function emojiCensus(toolId, values, fmt4, profile, emoji, tokenSelection) {
-  return withHost(profile, async (dom, host) => {
+async function emojiCensus(toolId, values, fmt4, profile2, emoji, tokenSelection) {
+  return withHost(profile2, async (dom, host) => {
     const { runtime } = await mountAndDraw(dom, host, toolId, values, emoji, tokenSelection);
     return {
       ingredients: runtime.emojiIngredients(),
@@ -169056,16 +169783,16 @@ function resolveEmojiSetName(named, sets) {
   const id3 = at > 0 ? raw.slice(0, at) : raw;
   const version = at > 0 ? raw.slice(at + 1) : "";
   const short = (full) => full.split("/").slice(-2).join("/");
-  const matches4 = sets.filter((set) => (set.pin.id === id3 || short(set.pin.id) === id3) && (!version || set.pin.pin.version === version));
-  if (matches4.length === 1) return { set: emojiSetName(matches4[0]) };
+  const matches3 = sets.filter((set) => (set.pin.id === id3 || short(set.pin.id) === id3) && (!version || set.pin.pin.version === version));
+  if (matches3.length === 1) return { set: emojiSetName(matches3[0]) };
   const registered = sets.length ? sets.map((set) => `${emojiSetName(set)} (${set.label})`).join(", ") : "none - this deployment registers no emoji set";
-  if (matches4.length > 1) {
+  if (matches3.length > 1) {
     return { error: `More than one emoji set answers to "${raw}". Name one exactly: ${registered}.` };
   }
   return { error: `Unknown emoji set "${raw}". Registered sets: ${registered}.` };
 }
-async function renderTierA(toolId, values, fmt4, opts, profile, emoji, productionContract, tokenSelection) {
-  return withHost(profile, async (dom, host) => {
+async function renderTierA(toolId, values, fmt4, opts, profile2, emoji, productionContract, tokenSelection) {
+  return withHost(profile2, async (dom, host) => {
     const { runtime, canvas, warnings: warnings2 } = await mountAndDraw(dom, host, toolId, values, emoji, tokenSelection);
     let productionInputs;
     if (productionContract?.requirements.some((requirement) => requirement.kind === "input")) {
@@ -169161,7 +169888,7 @@ async function readBoundedDownload(filename) {
   if (info.size > MAX_BROWSER_OUTPUT_BYTES) {
     throw new RenderError(`Browser export exceeds the ${MAX_BROWSER_OUTPUT_BYTES}-byte output limit.`);
   }
-  return new Uint8Array(await readFile22(filename));
+  return new Uint8Array(await readFile23(filename));
 }
 function browserLaunchArgs(env = process.env) {
   return [
@@ -169408,7 +170135,7 @@ async function renderCandidateBytes(toolId, query2, o = {}) {
     hdr: o.hdr ?? st.hdr ?? null,
     depth: o.depth ?? st.depth ?? void 0
   };
-  const profile = o.profile ?? {};
+  const profile2 = o.profile ?? {};
   const emoji = { emoji: st.emoji, emojifx: st.emojiFx, emojistyle: st.emojiStyle };
   const warnings2 = [];
   if (merged.password && exportFmt === "pdf-cmyk") {
@@ -169424,7 +170151,7 @@ async function renderCandidateBytes(toolId, query2, o = {}) {
     out = { ...await renderTierB(toolId, q, exportFmt, merged), mime: mimeForFormat(deliveredFormat), tier: "B" };
   } else if (TIER_A.has(exportFmt) && !floatScene) {
     try {
-      const r5 = await renderTierA(toolId, values, exportFmt, exportOpts(merged), profile, emoji, productionContract, st.tokenSelection);
+      const r5 = await renderTierA(toolId, values, exportFmt, exportOpts(merged), profile2, emoji, productionContract, st.tokenSelection);
       placed2 = r5.ingredients;
       evaluation = r5.rights;
       warnings2.push(...r5.warnings);
@@ -169438,7 +170165,7 @@ async function renderCandidateBytes(toolId, query2, o = {}) {
     }
   } else if (exportFmt === "png" && formats.includes("svg") && !floatScene && values.editingRange !== "hdr") {
     try {
-      const svg = await renderTierA(toolId, values, "svg", exportOpts({ ...merged, width: void 0, height: void 0, unit: "px" }), profile, emoji, productionContract, st.tokenSelection);
+      const svg = await renderTierA(toolId, values, "svg", exportOpts({ ...merged, width: void 0, height: void 0, unit: "px" }), profile2, emoji, productionContract, st.tokenSelection);
       placed2 = svg.ingredients;
       evaluation = svg.rights;
       warnings2.push(...svg.warnings);
@@ -169466,7 +170193,7 @@ async function renderCandidateBytes(toolId, query2, o = {}) {
   let bytes2 = out.bytes;
   if (out.tier.startsWith("B") && !evaluation && carriesEmojiParams(q)) {
     try {
-      const census = await emojiCensus(toolId, values, exportFmt, profile, emoji, st.tokenSelection);
+      const census = await emojiCensus(toolId, values, exportFmt, profile2, emoji, st.tokenSelection);
       placed2 = census.ingredients;
       evaluation = census.rights;
     } catch (e) {
@@ -169606,8 +170333,8 @@ async function designChecksTierB(session, opts = {}) {
     }
   });
 }
-async function transform(toolId, file, inputs = {}, profile = {}, o = {}) {
-  const { value, runs: runs2, failures } = await withAudioScope(o.rondo, () => transformFile(toolId, file, inputs, profile, o));
+async function transform(toolId, file, inputs = {}, profile2 = {}, o = {}) {
+  const { value, runs: runs2, failures } = await withAudioScope(o.rondo, () => transformFile(toolId, file, inputs, profile2, o));
   const expected = [...new Set(runs2.map((r5) => r5.name))];
   return {
     ...value,
@@ -169616,7 +170343,7 @@ async function transform(toolId, file, inputs = {}, profile = {}, o = {}) {
     ...expected.length ? { songs: { expected, recorded: await recordedSongs(value.bytes) } } : {}
   };
 }
-async function transformFile(toolId, file, inputs, profile, o) {
+async function transformFile(toolId, file, inputs, profile2, o) {
   const tool = await loadToolCached(toolId);
   if (!tool.manifest.hooks?.exportFile) {
     throw new RenderError(`Tool "${toolId}" is not a transform (file-in/file-out) tool.`);
@@ -169649,7 +170376,7 @@ async function transformFile(toolId, file, inputs, profile, o) {
     return { bytes: out.bytes, filename, mime: mimeForFormat(ext), tier };
   };
   try {
-    return await withHost(profile, async (_dom, host) => {
+    return await withHost(profile2, async (_dom, host) => {
       await prerenderSongInputs(tool.manifest.inputs ?? [], values, host);
       const runtime = await createRuntime(tool, host, values);
       const res = await runtime.exportFile();
@@ -171989,7 +172716,7 @@ async function callRebrand(args, env = process.env, limits = REBRAND_LIMITS) {
 // packages/node-shell/src/look.ts
 init_src2();
 init_raster_child();
-import { readFile as readFile23 } from "node:fs/promises";
+import { readFile as readFile24 } from "node:fs/promises";
 import { extname as extname2, resolve as resolve6, sep as sep2 } from "node:path";
 import { fileURLToPath as fileURLToPath11 } from "node:url";
 var B642 = /^[A-Za-z0-9+/]*={0,2}$/;
@@ -172051,7 +172778,7 @@ async function cleanRef(value, roots2, depth) {
   const mime2 = IMAGE_TYPES[extname2(full).toLowerCase()];
   if (!mime2) return "";
   try {
-    const bytes2 = await readFile23(full);
+    const bytes2 = await readFile24(full);
     if (bytes2.length > MAX_INLINE_BYTES) return "";
     if (mime2 === "image/svg+xml") {
       if (depth >= MAX_NESTING) return "";
@@ -175688,7 +176415,7 @@ init_src2();
 init_src();
 init_file_v1();
 init_design_lolly();
-import { createHash as createHash9 } from "node:crypto";
+import { createHash as createHash10 } from "node:crypto";
 
 // schemas/design-package-v1.schema.json
 var design_package_v1_schema_default = {
@@ -176194,7 +176921,7 @@ async function callPackage(args, resolveDesign, env = process.env, limits = PACK
       } catch (err) {
         throw new ToolCodeError("input.unsupported", `The compiled document could not be packaged: ${err instanceof Error ? err.message : String(err)}`);
       }
-      const sha2563 = createHash9("sha256").update(packed2.bytes).digest("hex");
+      const sha2563 = createHash10("sha256").update(packed2.bytes).digest("hex");
       const name2 = "document.lolly";
       const structured = { legacy: true, manifest: packed2.manifest, bytes: packed2.bytes.byteLength, sha256: sha2563 };
       const block2 = { type: "resource", resource: { uri: resourceUri2("package", sha2563, name2), mimeType: LOLLY_MIME2, blob: Buffer.from(packed2.bytes).toString("base64") } };
@@ -176259,8 +176986,8 @@ function isFileTransform(manifest) {
 // services/mcp/src/result-files.ts
 init_file_v1();
 init_delivery_v1();
-import { createHash as createHash10, createHmac, randomUUID as randomUUID2 } from "node:crypto";
-import { mkdtemp as mkdtemp4, readFile as readFile27, writeFile as writeFile7, unlink, rm as rm6 } from "node:fs/promises";
+import { createHash as createHash11, createHmac, randomUUID as randomUUID2 } from "node:crypto";
+import { mkdtemp as mkdtemp4, readFile as readFile28, writeFile as writeFile7, unlink, rm as rm6 } from "node:fs/promises";
 import { tmpdir as tmpdir5 } from "node:os";
 import { join as join29 } from "node:path";
 var RESULT_LINK_THRESHOLD = 1024 * 1024;
@@ -176271,7 +176998,7 @@ var ENTRY_LIMIT = 200;
 var PATH_PATTERN = /^\/api\/mcp\/files\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 function bearerPrincipal(header) {
   const bearer = /^Bearer\s+(.+)$/i.exec(header ?? "")?.[1]?.trim();
-  return bearer ? createHash10("sha256").update(bearer).digest("hex") : null;
+  return bearer ? createHash11("sha256").update(bearer).digest("hex") : null;
 }
 function privateFileScopeEnabled(env) {
   return env.LOLLY_MCP_PRIVATE_FILES === "1" && !!env.LOLLY_MCP_TOKEN?.trim() && !env.VERCEL && (env.LOLLY_MCP_REPLICAS === void 0 || env.LOLLY_MCP_REPLICAS === "1");
@@ -176333,7 +177060,7 @@ var ResultFiles = class {
       this.directory ??= mkdtemp4(join29(tmpdir5(), "lolly-mcp-results-"));
       file = join29(await this.directory, id3);
       await writeFile7(file, bytes2, { flag: "wx", mode: 384 });
-      const digest2 = createHash10("sha256").update(bytes2).digest("hex");
+      const digest2 = createHash11("sha256").update(bytes2).digest("hex");
       const dt = await signDeliveryToken({ v: 1, kid: "mcp1", exp: expires, cls: "person-private" }, path, { canonicalHost: base.host, subject: owner3 }, await this.key(base.host, secret));
       const filename = safeFileName(name);
       this.entries.set(id3, { owner: owner3, path, file, expires, size: bytes2.byteLength, sha256: digest2, mime: /^[\w.+-]+\/[\w.+-]+(?:;[\x20-\x7e]*)?$/.test(mime2) ? mime2 : "application/octet-stream", name: filename });
@@ -176361,8 +177088,8 @@ var ResultFiles = class {
     const host = new URL(origin).host;
     const status = await verifyDeliveryToken(token2, path, { canonicalHost: host, cls: "person-private", pattern: PATH_PATTERN, subject: owner3, maxSkewSec: 0 }, /* @__PURE__ */ new Map([["mcp1", await this.key(host, secret)]]), Math.floor(this.now() / 1e3));
     if (status !== "ok") return null;
-    const bytes2 = await readFile27(entry2.file);
-    if (bytes2.byteLength !== entry2.size || createHash10("sha256").update(bytes2).digest("hex") !== entry2.sha256) throw new Error("Private result integrity check failed.");
+    const bytes2 = await readFile28(entry2.file);
+    if (bytes2.byteLength !== entry2.size || createHash11("sha256").update(bytes2).digest("hex") !== entry2.sha256) throw new Error("Private result integrity check failed.");
     if (entry2.expires <= Math.floor(this.now() / 1e3)) return null;
     return { bytes: bytes2, mime: entry2.mime, name: entry2.name, etag: `"${entry2.sha256}"` };
   }
@@ -177419,7 +178146,7 @@ function readProductionReference(value) {
 init_design_brief();
 init_design_brief2();
 init_src2();
-import { readFile as readFile28 } from "node:fs/promises";
+import { readFile as readFile29 } from "node:fs/promises";
 import { join as join30 } from "node:path";
 init_schema();
 var RESOURCES = [
@@ -177448,7 +178175,7 @@ async function tokensResource(uri) {
   const tokenUrl = tokenAsset2.formats[0].url;
   const tokenPath = contentUrl(tokenUrl);
   if (!tokenPath) throw new Error(`Tokens asset ${tokenAsset2.id}: ${tokenUrl} is not in this profile's catalog.`);
-  const doc = JSON.parse(await readFile28(tokenPath, "utf8"));
+  const doc = JSON.parse(await readFile29(tokenPath, "utf8"));
   const set = createTokenSet(doc);
   return { uri, mimeType: "application/json", text: JSON.stringify({ colors: set.colors() }, null, 2) };
 }
@@ -177471,7 +178198,7 @@ async function assetsListing(uri) {
 async function previewResource(uri, id3) {
   for (const file of [`${id3}.svg`, `${id3}.look0.svg`]) {
     try {
-      const text9 = await readFile28(join30(previewsDir(), file), "utf8");
+      const text9 = await readFile29(join30(previewsDir(), file), "utf8");
       return { uri, mimeType: "image/svg+xml", text: text9 };
     } catch {
     }
@@ -177498,12 +178225,12 @@ function designContextResource(uri = "lolly://design-context") {
   return { uri, mimeType: "application/json", text: JSON.stringify(result, null, 2) };
 }
 async function readResource(uri) {
-  if (uri === "lolly://skill") return { uri, mimeType: "text/markdown", text: await readFile28(join30(REPO_ROOT, "skills/lolly/SKILL.md"), "utf8") };
+  if (uri === "lolly://skill") return { uri, mimeType: "text/markdown", text: await readFile29(join30(REPO_ROOT, "skills/lolly/SKILL.md"), "utf8") };
   const sharedSkillMatch = /^lolly:\/\/skill\/((?:reference|examples)\/(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9_-]+\.(?:md|json))$/.exec(uri);
   if (sharedSkillMatch) return {
     uri,
     mimeType: uri.endsWith(".json") ? "application/json" : "text/markdown",
-    text: await readFile28(join30(REPO_ROOT, "skills/lolly", sharedSkillMatch[1]), "utf8")
+    text: await readFile29(join30(REPO_ROOT, "skills/lolly", sharedSkillMatch[1]), "utf8")
   };
   const skillMatch = /^lolly:\/\/tool\/([a-z0-9-]+)\/skill$/.exec(uri);
   if (skillMatch) {
@@ -177547,7 +178274,7 @@ init_file_operation_v1();
 init_file_v1();
 import { open as open2 } from "node:fs/promises";
 import { basename as basename4 } from "node:path";
-import { createHash as createHash11 } from "node:crypto";
+import { createHash as createHash12 } from "node:crypto";
 
 // packages/core/src/image-operation-v1.ts
 var DEFAULT_IMAGE_OPTIONS = { maxEdge: 0, quality: 0.92, background: "#ffffff" };
@@ -177671,7 +178398,7 @@ async function describeOperationFile(file, signal) {
   const format = detected === "jpg" ? "jpeg" : detected ?? file.name.split(".").pop()?.toLowerCase() ?? "unknown";
   const jxl = isJxl(bytes2) ? (await runJxl({ operation: "probe", bytes: bytes2 }, signal)).info : void 0;
   const dimensions = jxl ? { w: jxl.width, h: jxl.height } : imageDimensions(bytes2, file.type);
-  return { name: file.name, format, formatSource: detected ? "detected" : "declared", mime: mime[format] ?? (file.type || "application/octet-stream"), size: file.size, sha256: createHash11("sha256").update(bytes2).digest("hex"), ...dimensions ? { width: dimensions.w, height: dimensions.h } : {} };
+  return { name: file.name, format, formatSource: detected ? "detected" : "declared", mime: mime[format] ?? (file.type || "application/octet-stream"), size: file.size, sha256: createHash12("sha256").update(bytes2).digest("hex"), ...dimensions ? { width: dimensions.w, height: dimensions.h } : {} };
 }
 async function runNodeFileOperation(file, request2, signal, execution = "device") {
   return executeFileOperationV1(file, request2, {
@@ -178045,9 +178772,9 @@ async function callLiveTool(bridge, name, args) {
 
 // services/mcp/src/agent-connector.ts
 init_src();
-import { lookup as lookup2 } from "node:dns/promises";
+import { lookup as lookup3 } from "node:dns/promises";
 import { request } from "node:https";
-import { BlockList as BlockList2, isIP as isIP2 } from "node:net";
+import { BlockList as BlockList2, isIP as isIP3 } from "node:net";
 import Ajv8 from "ajv";
 
 // packages/core/src/live-invite-v1.ts
@@ -178095,12 +178822,12 @@ var ajv3 = new Ajv8({ strict: false });
 var validators2 = new Map(AGENT_TOOLS.map((tool) => [tool.name, ajv3.compile(tool.inputSchema)]));
 var transition = new BlockList2();
 for (const [network, prefix] of [["::ffff:0:0", 96], ["64:ff9b::", 96], ["64:ff9b:1::", 48], ["2002::", 16], ["2001::", 32]]) transition.addSubnet(network, prefix, "ipv6");
-var publicRelayAddress = (address) => isPublicAddress(address) && !(isIP2(address) === 6 && transition.check(address, "ipv6"));
+var publicRelayAddress = (address) => isPublicAddress(address) && !(isIP3(address) === 6 && transition.check(address, "ipv6"));
 async function requestAgentRelay(invitation, path, body) {
   const url = new URL(invitation.base + path);
   if (url.protocol !== "https:" || url.port && url.port !== "443") throw new Error("Hosted agents require a public HTTPS relay on port 443. Use the local MCP server for local invitations.");
   const hostname = url.hostname.replace(/^\[|\]$/g, "");
-  const answers = isIP2(hostname) ? [{ address: hostname, family: isIP2(hostname) }] : await lookup2(hostname, { all: true, verbatim: true });
+  const answers = isIP3(hostname) ? [{ address: hostname, family: isIP3(hostname) }] : await lookup3(hostname, { all: true, verbatim: true });
   if (!answers.length || answers.some((answer) => !publicRelayAddress(answer.address))) throw new Error("This invitation must address a public relay.");
   const address = answers[0];
   const raw = JSON.stringify(body);
@@ -178273,10 +179000,10 @@ async function dispatch(req, context = {}) {
 
 // services/mcp/src/render-get.ts
 init_src2();
-import { createHash as createHash13 } from "node:crypto";
+import { createHash as createHash14 } from "node:crypto";
 
 // services/mcp/src/rate-limit.ts
-import { createHash as createHash12 } from "node:crypto";
+import { createHash as createHash13 } from "node:crypto";
 var RateLimitUnavailableError = class extends Error {
   code = "rate-limit-unavailable";
   constructor(message = "Durable rate limiter is unavailable") {
@@ -178410,7 +179137,7 @@ function createRateLimiter(env, namespace3 = "mcp", onWrite) {
   return new MemoryRateLimiter();
 }
 function digestKey(namespace3, scope2, subject) {
-  return createHash12("sha256").update(namespace3).update("\0").update(scope2).update("\0").update(subject).digest("hex");
+  return createHash13("sha256").update(namespace3).update("\0").update(scope2).update("\0").update(subject).digest("hex");
 }
 function normalizeRestUrl(raw) {
   let url;
@@ -178880,10 +179607,10 @@ async function renderGet(path, query2, opts) {
   for (const key2 of dropped) params2.delete(key2);
   const sorted = new URLSearchParams(params2);
   sorted.sort();
-  const etag = `"${createHash13("sha256").update(`${ENGINE_VERSION}|${index2.version}|${index2.generatedAt}|${match.toolId}.${fmt4}?${sorted.toString()}`).digest("hex").slice(0, 32)}"`;
+  const etag = `"${createHash14("sha256").update(`${ENGINE_VERSION}|${index2.version}|${index2.generatedAt}|${match.toolId}.${fmt4}?${sorted.toString()}`).digest("hex").slice(0, 32)}"`;
   const cacheHeaders = {
     ...deliveryHeaders("public-bounded", { tokenBearing: true }),
-    "cache-tag": renderTags([tag("x", "public-bounded"), tag("t", match.toolId), tag("e", ENGINE_VERSION.toLowerCase()), tag("c", createHash13("sha256").update(`${index2.version}|${index2.generatedAt}`).digest("hex").slice(0, 12))], "comma"),
+    "cache-tag": renderTags([tag("x", "public-bounded"), tag("t", match.toolId), tag("e", ENGINE_VERSION.toLowerCase()), tag("c", createHash14("sha256").update(`${index2.version}|${index2.generatedAt}`).digest("hex").slice(0, 12))], "comma"),
     vary: "Accept-Encoding",
     etag,
     "x-robots-tag": "noindex"
@@ -178972,9 +179699,7 @@ function renderFailure(e) {
 }
 
 // services/mcp/src/image-proxy.ts
-import { lookup as lookup3 } from "node:dns/promises";
-import { isIP as isIP3 } from "node:net";
-import { createHash as createHash14 } from "node:crypto";
+import { createHash as createHash15 } from "node:crypto";
 init_delivery_v1();
 var PATH_RE2 = /\/fetch-image$/;
 function matchImageProxyPath(path) {
@@ -178983,25 +179708,11 @@ function matchImageProxyPath(path) {
 var MAX_URL_LEN = 2048;
 var MAX_IMAGE_BYTES = 25 * 1024 * 1024;
 var VERCEL_MAX_IMAGE_BYTES = 4 * 1024 * 1024;
-var MAX_REDIRECTS = 4;
 var OVERALL_TIMEOUT_MS = 2e4;
 var RL_WINDOW_MS2 = 6e4;
 var DEFAULT_RPM2 = 60;
 var DEFAULT_GLOBAL_RPM2 = 600;
 var localRateLimiter2 = new MemoryRateLimiter();
-var ALLOWED_TYPES = /* @__PURE__ */ new Set([
-  "image/png",
-  "image/jpeg",
-  "image/gif",
-  "image/webp",
-  "image/svg+xml",
-  "image/avif",
-  "image/bmp",
-  "image/x-icon",
-  "image/vnd.microsoft.icon",
-  "image/tiff",
-  "image/apng"
-]);
 var NO_STORE2 = {
   "content-type": "application/json; charset=utf-8",
   ...deliveryHeaders("person-private", { tokenBearing: true }),
@@ -179013,65 +179724,6 @@ function errorResponse2(status, error2, extra = {}) {
 function budget2(raw, fallback) {
   const n7 = Number(raw);
   return Number.isSafeInteger(n7) && n7 > 0 ? n7 : fallback;
-}
-function stripBrackets(hostname) {
-  return hostname.startsWith("[") && hostname.endsWith("]") ? hostname.slice(1, -1) : hostname;
-}
-var ProxyRefused = class extends Error {
-};
-async function resolveHost2(hostname) {
-  try {
-    return (await lookup3(hostname, { all: true, verbatim: true })).map((answer) => answer.address);
-  } catch {
-    return [];
-  }
-}
-function assertFetchableShape(url) {
-  if (url.protocol !== "http:" && url.protocol !== "https:") throw new ProxyRefused(`Only http(s) image URLs are supported, not ${url.protocol.replace(":", "")}.`);
-  if (url.username || url.password) throw new ProxyRefused("The URL must not carry a username or password.");
-}
-async function assertPublicTarget(url, resolver) {
-  const literal = stripBrackets(url.hostname);
-  if (isIP3(literal)) {
-    if (!isPublicAddress(literal)) throw new ProxyRefused("That address is not reachable from here.");
-    return;
-  }
-  const addresses = await resolver(url.hostname);
-  if (!addresses.length) throw new ProxyRefused("That address could not be resolved.");
-  if (addresses.some((a) => !isPublicAddress(a))) throw new ProxyRefused("That address is not reachable from here.");
-}
-var TooLarge = class extends Error {
-};
-async function readCapped(response, max) {
-  const reader = response.body?.getReader();
-  if (!reader) {
-    const buf = new Uint8Array(await response.arrayBuffer());
-    if (buf.byteLength > max) throw new TooLarge();
-    return buf;
-  }
-  const chunks = [];
-  let total = 0;
-  for (; ; ) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    if (!value) continue;
-    total += value.byteLength;
-    if (total > max) {
-      try {
-        await reader.cancel();
-      } catch {
-      }
-      throw new TooLarge();
-    }
-    chunks.push(value);
-  }
-  const out = new Uint8Array(total);
-  let off = 0;
-  for (const chunk6 of chunks) {
-    out.set(chunk6, off);
-    off += chunk6.byteLength;
-  }
-  return out;
 }
 var SIGNATURE_PARAM = /^(?:x-amz-.+|signature|sig|token|expires)$/i;
 function upstreamImagePolicy(url, headers) {
@@ -179098,9 +179750,9 @@ async function proxyImage(reqUrl, opts) {
     return errorResponse2(400, "That doesn't look like a URL.");
   }
   try {
-    assertFetchableShape(parsed);
+    assertPublicHttpShape(parsed);
   } catch (e) {
-    if (e instanceof ProxyRefused) return errorResponse2(422, e.message);
+    if (e instanceof PublicHttpError) return errorResponse2(422, e.message);
     throw e;
   }
   const limiter = opts.rateLimiter ?? localRateLimiter2;
@@ -179118,77 +179770,51 @@ async function proxyImage(reqUrl, opts) {
     if (!(e instanceof RateLimitUnavailableError)) throw e;
     return errorResponse2(503, "Image fetching is temporarily unavailable.", { "retry-after": "5" });
   }
-  const resolver = opts.resolver ?? resolveHost2;
-  const doFetch = opts.fetchImpl ?? fetch;
-  const deadline = AbortSignal.timeout(OVERALL_TIMEOUT_MS);
-  let response;
-  let current = parsed;
   let privateResponse = false;
   let cacheAge = 3600;
+  const maxBytes = env.VERCEL ? VERCEL_MAX_IMAGE_BYTES : MAX_IMAGE_BYTES;
+  let bytes2;
+  let rawType;
   try {
-    for (let hop = 0; ; hop++) {
-      assertFetchableShape(current);
-      await assertPublicTarget(current, resolver);
-      response = await doFetch(current.toString(), {
+    const result = await fetchPublicBytes(parsed, {
+      maxBytes,
+      timeoutMs: OVERALL_TIMEOUT_MS,
+      allowedTypes: PUBLIC_IMAGE_TYPES,
+      headers: { accept: "image/*" },
+      ...opts.resolver ? { resolver: opts.resolver } : {},
+      ...opts.fetchImpl ? { request: (url, options2) => opts.fetchImpl(url.toString(), {
         redirect: "manual",
-        signal: deadline,
-        headers: { accept: "image/*" }
-      });
-      const policy = upstreamImagePolicy(current, response.headers);
-      privateResponse ||= policy.private;
-      cacheAge = Math.min(cacheAge, policy.age);
-      const location4 = response.status >= 300 && response.status < 400 ? response.headers.get("location") : null;
-      if (!location4) break;
-      if (hop >= MAX_REDIRECTS) return errorResponse2(502, "That address redirected too many times.");
-      let next2;
-      try {
-        next2 = new URL(location4, current);
-      } catch {
-        return errorResponse2(502, "That address redirected to an invalid location.");
+        signal: options2.signal,
+        headers: options2.headers
+      }) } : {},
+      onResponse(url, response) {
+        const policy = upstreamImagePolicy(url, response.headers);
+        privateResponse ||= policy.private;
+        cacheAge = Math.min(cacheAge, policy.age);
       }
-      try {
-        await response.body?.cancel();
-      } catch {
-      }
-      current = next2;
-    }
+    });
+    bytes2 = result.bytes;
+    rawType = result.mime;
   } catch (e) {
-    if (e instanceof ProxyRefused) return errorResponse2(422, e.message);
+    await opts.budget?.record(0);
+    if (e instanceof PublicHttpError) {
+      if (e.code === "refused") return errorResponse2(422, e.message);
+      if (e.code === "type") return errorResponse2(415, "That URL is not an image.");
+      if (e.code === "size") return errorResponse2(413, `That image is larger than the ${Math.round(maxBytes / 1024 / 1024)} MB limit.`);
+      if (e.code === "timeout") return errorResponse2(504, e.message);
+      return errorResponse2(502, e.message);
+    }
     const name = e?.name;
     if (name === "TimeoutError" || name === "AbortError") return errorResponse2(504, "That address took too long to answer.");
     return errorResponse2(502, `Couldn't fetch that URL: ${e.message}`);
   }
-  if (!response.ok) {
-    try {
-      await response.body?.cancel();
-    } catch {
-    }
-    return errorResponse2(502, `That address answered with ${response.status}.`);
-  }
-  const rawType = (response.headers.get("content-type") || "").split(";")[0].trim().toLowerCase();
-  if (!ALLOWED_TYPES.has(rawType)) {
-    try {
-      await response.body?.cancel();
-    } catch {
-    }
-    return errorResponse2(415, "That URL is not an image.");
-  }
-  const maxBytes = env.VERCEL ? VERCEL_MAX_IMAGE_BYTES : MAX_IMAGE_BYTES;
-  let bytes2;
-  try {
-    bytes2 = await readCapped(response, maxBytes);
-  } catch (e) {
-    await opts.budget?.record(0);
-    if (e instanceof TooLarge) return errorResponse2(413, `That image is larger than the ${Math.round(maxBytes / 1024 / 1024)} MB limit.`);
-    return errorResponse2(502, `Couldn't read that image: ${e.message}`);
-  }
-  const etag = `"${createHash14("sha256").update(bytes2).digest("hex")}"`;
+  const etag = `"${createHash15("sha256").update(bytes2).digest("hex")}"`;
   const headers = {
     "content-type": rawType,
     ...deliveryHeaders(privateResponse ? "person-private" : "public-bounded", { boundedAgeSec: cacheAge, tokenBearing: true }),
     etag,
     vary: "Accept-Encoding",
-    ...!privateResponse ? { "cache-tag": renderTags([tag("x", "public-bounded"), tag("u", createHash14("sha256").update(parsed.toString()).digest("hex").slice(0, 12))], "comma") } : {},
+    ...!privateResponse ? { "cache-tag": renderTags([tag("x", "public-bounded"), tag("u", createHash15("sha256").update(parsed.toString()).digest("hex").slice(0, 12))], "comma") } : {},
     "content-security-policy": "sandbox",
     "x-content-type-options": "nosniff",
     "content-disposition": "inline",
@@ -179200,18 +179826,18 @@ async function proxyImage(reqUrl, opts) {
 }
 
 // services/mcp/src/sign.ts
-var te10 = new TextEncoder();
-var subtle8 = globalThis.crypto.subtle;
+var te11 = new TextEncoder();
+var subtle10 = globalThis.crypto.subtle;
 var bytesToB64u = (bytes2) => Buffer.from(bytes2).toString("base64url");
 var b64uToBytes = (str10) => new Uint8Array(Buffer.from(String(str10), "base64url"));
 var randomB64u = (n7 = 32) => bytesToB64u(globalThis.crypto.getRandomValues(new Uint8Array(n7)));
 async function hmac(secret, text9) {
   if (!secret) throw new Error("signing secret is not set");
-  const key2 = await subtle8.importKey("raw", te10.encode(String(secret)), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-  return new Uint8Array(await subtle8.sign("HMAC", key2, te10.encode(text9)));
+  const key2 = await subtle10.importKey("raw", te11.encode(String(secret)), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  return new Uint8Array(await subtle10.sign("HMAC", key2, te11.encode(text9)));
 }
 async function sha256B64u(text9) {
-  return bytesToB64u(new Uint8Array(await subtle8.digest("SHA-256", te10.encode(text9))));
+  return bytesToB64u(new Uint8Array(await subtle10.digest("SHA-256", te11.encode(text9))));
 }
 async function signValue(payload, secret) {
   const body = Buffer.from(JSON.stringify(payload)).toString("base64url");
@@ -179248,6 +179874,8 @@ var REFRESH_TTL = 30 * 24 * 3600;
 var CODE_TTL = 60;
 var SCOPE = "mcp";
 var now = () => Math.floor(Date.now() / 1e3);
+var defaultIssuer = (env) => env.LOLLY_MCP_PUBLIC_ORIGIN || `http://localhost:${env.PORT || 8790}`;
+var resourceFor = (issuer) => `${issuer.replace(/\/+$/, "")}/api/mcp`;
 function signingSecret(env) {
   return env.LOLLY_MCP_SIGNING_SECRET || env.LOLLY_MCP_TOKEN || "";
 }
@@ -179331,19 +179959,21 @@ async function resolveClient(params2, env) {
   }
   return { ok: true };
 }
-async function authorizeGet(params2, env) {
+async function authorizeGet(params2, env, issuer = defaultIssuer(env)) {
   if (!passphrase(env)) return { status: 500, html: errorPage("This deployment has no LOLLY_MCP_TOKEN set, so OAuth connect is disabled.") };
   const client = await resolveClient(params2, env);
   if (!client.ok) return client.result;
+  if (params2.resource !== void 0 && params2.resource !== resourceFor(issuer)) return oauthError(400, "invalid_target", "The requested resource is not available.");
   if (params2.response_type !== "code") return { status: 400, html: errorPage('Unsupported response_type (only "code").') };
   if (!params2.code_challenge || params2.code_challenge_method !== "S256") {
     return { status: 400, html: errorPage("This server requires PKCE with code_challenge_method=S256.") };
   }
   return { status: 200, html: consentPage(params2) };
 }
-async function authorizePost(params2, env, issuer = env.LOLLY_MCP_PUBLIC_ORIGIN || `http://localhost:${env.PORT || 8790}`) {
+async function authorizePost(params2, env, issuer = defaultIssuer(env)) {
   const client = await resolveClient(params2, env);
   if (!client.ok) return client.result;
+  if (params2.resource !== void 0 && params2.resource !== resourceFor(issuer)) return oauthError(400, "invalid_target", "The requested resource is not available.");
   if (params2.response_type !== "code" || !params2.code_challenge || params2.code_challenge_method !== "S256") {
     return { status: 400, html: errorPage("Invalid authorization request.") };
   }
@@ -179357,7 +179987,7 @@ async function authorizePost(params2, env, issuer = env.LOLLY_MCP_PUBLIC_ORIGIN 
     ru: params2.redirect_uri,
     cc: params2.code_challenge,
     sc: SCOPE,
-    aud: params2.resource,
+    aud: resourceFor(issuer),
     exp: now() + CODE_TTL
   }, signingSecret(env));
   const url = new URL(params2.redirect_uri);
@@ -179367,12 +179997,15 @@ async function authorizePost(params2, env, issuer = env.LOLLY_MCP_PUBLIC_ORIGIN 
   return { status: 302, redirect: url.href };
 }
 var oauthError = (status, error2, desc) => ({ status, headers: { "cache-control": "no-store" }, json: { error: error2, ...desc ? { error_description: desc } : {} } });
-async function token(body, env) {
+async function token(body, env, issuer = defaultIssuer(env)) {
   const secret = signingSecret(env);
   const grant = body.grant_type;
+  const resource = resourceFor(issuer);
+  if (body.resource !== void 0 && body.resource !== resource) return oauthError(400, "invalid_target", "The requested resource is not available.");
   if (grant === "authorization_code") {
     const code = await verifyValue(body.code, secret);
     if (!code || code.t !== "code") return oauthError(400, "invalid_grant", "authorization code is invalid");
+    if (code.aud !== resource || code.sc !== SCOPE) return oauthError(400, "invalid_grant", "authorization code is not valid for this resource");
     if (code.exp < now()) return oauthError(400, "invalid_grant", "authorization code has expired");
     if (body.redirect_uri && body.redirect_uri !== code.ru) return oauthError(400, "invalid_grant", "redirect_uri mismatch");
     if (body.client_id && body.client_id !== code.cid) return oauthError(400, "invalid_grant", "client_id mismatch");
@@ -179384,6 +180017,7 @@ async function token(body, env) {
   if (grant === "refresh_token") {
     const rt = await verifyValue(body.refresh_token, secret);
     if (!rt || rt.t !== "refresh") return oauthError(400, "invalid_grant", "refresh token is invalid");
+    if (rt.aud !== resource || rt.sc !== SCOPE) return oauthError(400, "invalid_grant", "refresh token is not valid for this resource");
     if (rt.exp < now()) return oauthError(400, "invalid_grant", "refresh token has expired");
     return issueTokens(rt.sc, rt.aud, secret);
   }
@@ -179398,14 +180032,14 @@ async function issueTokens(scope2, aud, secret) {
     json: { access_token: access, token_type: "Bearer", expires_in: ACCESS_TTL, refresh_token: refresh, scope: scope2 }
   };
 }
-async function isAuthorized(authorizationHeader, env) {
+async function isAuthorized(authorizationHeader, env, issuer = defaultIssuer(env)) {
   const shared = passphrase(env);
   if (!shared) return env.LOLLY_MCP_ALLOW_ANONYMOUS === "1";
   const bearer = /^Bearer\s+(.+)$/i.exec(String(authorizationHeader || ""))?.[1]?.trim();
   if (!bearer) return false;
   if (await safeEqual(bearer, shared)) return true;
   const tok = await verifyValue(bearer, signingSecret(env));
-  return !!tok && tok.t === "access" && tok.exp >= now();
+  return !!tok && tok.t === "access" && tok.sc === SCOPE && tok.aud === resourceFor(issuer) && tok.exp >= now();
 }
 var esc6 = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 function page2(title, inner) {
@@ -179461,7 +180095,7 @@ function errorPage(message) {
 }
 
 // services/mcp/src/gateway.ts
-import { createHash as createHash15 } from "node:crypto";
+import { createHash as createHash16 } from "node:crypto";
 
 // services/mcp/src/admission-namespace.ts
 function admissionNamespace(env) {
@@ -179596,6 +180230,10 @@ function send(res, r5) {
     return;
   }
   headers["content-type"] = "text/html; charset=utf-8";
+  headers["cache-control"] = "no-store";
+  headers["x-content-type-options"] = "nosniff";
+  headers["x-frame-options"] = "DENY";
+  headers["content-security-policy"] = "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'";
   res.writeHead(r5.status, headers);
   res.end(r5.html || "");
   return;
@@ -179734,7 +180372,7 @@ function createGateway(env = process.env, options2 = {}) {
       const unavailable = () => send(res, { status: 404, json: { error: "not_found" } });
       if (!privateFileScopeEnabled(env) || open3 || !["GET", "HEAD"].includes(method)) return unavailable();
       const authorization = typeof req.headers.authorization === "string" ? req.headers.authorization : void 0;
-      if (!await isAuthorized(authorization, env)) return unavailable();
+      if (!await isAuthorized(authorization, env, publicBase)) return unavailable();
       const owner3 = bearerPrincipal(authorization);
       const rawPath = (req.url ?? "").split("?")[0];
       if (!owner3 || rawPath !== path || url.searchParams.getAll("dt").length !== 1 || [...url.searchParams.keys()].some((key2) => key2 !== "dt")) return unavailable();
@@ -179783,7 +180421,7 @@ function createGateway(env = process.env, options2 = {}) {
       const refusal2 = await limited(limiter, "oauth", clientIp(req, env), positiveInt(env.LOLLY_OAUTH_RPM, 30));
       if (refusal2) return send(res, refusal2);
       const q = Object.fromEntries(url.searchParams);
-      if (method === "GET") return send(res, await authorizeGet(q, env));
+      if (method === "GET") return send(res, await authorizeGet(q, env, publicBase));
       if (method === "POST") {
         let form;
         try {
@@ -179805,7 +180443,7 @@ function createGateway(env = process.env, options2 = {}) {
       } catch (error2) {
         return send(res, bodyFailure(error2, "could not read request body"));
       }
-      return send(res, await token(form, env));
+      return send(res, await token(form, env, publicBase));
     }
     if (path.endsWith("/mcp")) {
       if (method !== "POST") {
@@ -179813,7 +180451,7 @@ function createGateway(env = process.env, options2 = {}) {
         res.end();
         return;
       }
-      if (!await isAuthorized(req.headers["authorization"], env)) {
+      if (!await isAuthorized(req.headers["authorization"], env, publicBase)) {
         res.writeHead(401, {
           ...CORS,
           "content-type": "application/json",
@@ -179823,7 +180461,7 @@ function createGateway(env = process.env, options2 = {}) {
         return;
       }
       const auth = String(req.headers["authorization"] || "anonymous");
-      const principal = open3 ? `ip:${clientIp(req, env)}` : createHash15("sha256").update(auth).digest("hex");
+      const principal = open3 ? `ip:${clientIp(req, env)}` : createHash16("sha256").update(auth).digest("hex");
       const refusal2 = await limited(limiter, "mcp", principal, positiveInt(env.LOLLY_MCP_RPM, open3 ? 60 : 120));
       if (refusal2) return send(res, refusal2);
       const spent = await overBudget(budget3);

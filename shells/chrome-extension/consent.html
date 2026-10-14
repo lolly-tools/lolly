@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Approve page request</title>
+  <link rel="stylesheet" href="consent.css">
+  <script src="consent.js" defer></script>
+</head>
+<body>
+  <main>
+    <h1>Approve page request</h1>
+    <p><strong id="caller">Lolly</strong> wants to read <span id="reading">this page</span>:</p>
+    <p id="target" class="url"></p>
+    <p>This uses your browser session. Signed-in page contents may include private information. The result will be returned to the requesting site shown above.</p>
+    <p>This approval applies to this request only. Requests that move to another site are canceled.</p>
+    <p id="status" role="status">Checking the request...</p>
+    <div class="actions">
+      <button id="cancel" type="button">Cancel</button>
+      <button id="approve" type="button" disabled>Approve once</button>
+    </div>
+  </main>
+</body>
+</html>

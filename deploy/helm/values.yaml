@@ -333,6 +333,22 @@ ca:
   # Non-secret CA config (the public half of the OIDC provider registrations and
   # issuance policy). Rendered into env directly. See services/ca/.env.example.
   config:
+    issuerMode: legacy-root
+    managed:
+      address: ""
+      mount: ""
+      namespace: ""
+      auth: kubernetes
+      serviceAccountName: ""
+      kubernetesMount: ""
+      kubernetesRole: ""
+      kubernetesAudience: ""
+      credentialSecret: ""
+      revocationCredentialSecret: ""
+      trustJson: ""
+      rolesJson: ""
+      # Exact Vault, IdP, admission-store and DNS peers with explicit ports.
+      egress: []
     # Comma list of origins allowed to receive enrollment tokens (your web host).
     allowedOrigins: "https://lolly.example.com"
     # Public OIDC client ids + issuers (set the ones you registered).

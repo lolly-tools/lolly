@@ -18,8 +18,8 @@
  * Why the CSP is not strict: tool hooks run through `new Function` by design
  * (engine/src/runtime.ts), so `script-src` needs `unsafe-eval` and removing it
  * would break shipping tools. That is a documented, accepted residual risk. The
- * directive doing the work here is connect-src: script that CAN execute still
- * cannot exfiltrate to an arbitrary host.
+ * connect-src restricts fetch destinations. Fixed provider APIs do not
+ * distinguish tenants, accounts or the purpose of a permitted request.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -192,10 +192,9 @@ test('nginx mirrors every vercel clean-URL rewrite to a /view/*.html page', () =
 test('the directives that carry the security value are present', () => {
   const csp = parseCsp(rootHeaders['Content-Security-Policy']!);
 
-  // connect-src is the one that contains an XSS: injected script cannot post
-  // stolen data to an arbitrary host. It must NOT be absent and must NOT be '*'.
+  // Connections require exact listed origins; fixed APIs do not scope accounts.
   assert.ok(csp['connect-src'], 'connect-src missing - the whole point of this CSP');
-  assert.ok(!csp['connect-src'].includes('*'), 'connect-src must not be a wildcard');
+  assert.ok(csp['connect-src'].every(source => !source.includes('*') && source !== 'https:'), 'connect-src requires exact destinations');
   assert.ok(csp['connect-src'].includes("'self'"));
 
   // Free wins with no compatibility cost.
@@ -274,9 +273,10 @@ test('every host docs/privacy.md discloses is ALLOWED by the CSP', () => {
       .filter(h => /\.(com|org|net|io|dev|tools)$/.test(h))
       .filter(h => !h.endsWith('lolly.tools'));   // first-party, covered by 'self'
   const lines = privacy.split('\n');
+  const configuredOnly = new Set(lines.filter(l => l.includes('configured storage origins')).flatMap(hostsIn));
   const desktopOnly = new Set(lines.filter(l => l.includes(DESKTOP_ONLY)).flatMap(hostsIn));
   const declared = lines.filter(l => !l.includes(DESKTOP_ONLY)).flatMap(hostsIn)
-    .filter(h => !desktopOnly.has(h));
+    .filter(h => !desktopOnly.has(h) && !configuredOnly.has(h));
   assert.ok(declared.length >= 3, 'expected the egress table to name hosts in backticks');
   for (const host of new Set(declared)) {
     const wildcard = host.replace(/^[a-z0-9-]+\./, '*.');

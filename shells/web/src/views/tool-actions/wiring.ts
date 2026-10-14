@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { shareUrlState } from '../../lib/share-privacy.ts';
 /**
  * actions bar: event wiring, done at mount.
  *
@@ -7,7 +8,7 @@
  * a value (an event listener), goes through `ta.<module>.<fn>`. Extracted verbatim
  * from renderActions() by scripts/split-closure.ts.
  */
-import { DEFAULT_CMYK_CONDITION, HDR_DEFAULTS, SEPARATING_FORMATS, VIDEO_CODEC_STRINGS, composeSong, frameFilterApplies, generatedSongSpec, selectFramePage, serializeUrlState } from '@lolly/engine';
+import { DEFAULT_CMYK_CONDITION, HDR_DEFAULTS, SEPARATING_FORMATS, VIDEO_CODEC_STRINGS, composeSong, frameFilterApplies, generatedSongSpec, selectFramePage } from '@lolly/engine';
 import { announce } from '../../a11y.js';
 import { CENTRE_LOW } from '../../bridge/audio-envelope.ts';
 import { _exportNotice, _setExportNoticeSink } from '../../bridge/export.ts';
@@ -1658,7 +1659,7 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
         // A collaboration mount suppresses private device activity.
         if (experience.recordDeviceActivity !== false) {
           const entry = { toolId: manifest.id, label: manifest.name, filename: outputBase,
-            format: fmt, query: serializeUrlState(runtime.getModel()), ...(ta.activeSlot ? { slot: ta.activeSlot } : {}) };
+            format: fmt, query: shareUrlState(runtime.getModel()), ...(ta.activeSlot ? { slot: ta.activeSlot } : {}) };
           void import('../../lib/export-activity.ts').then(({ recordExportActivity }) => recordExportActivity({
             allowed: true, entry, bytes: downloadedBlob,
             capture: () => captureThumbnail(manifest, canvasEl, runtime, exportUnscaled, fmt, false),

@@ -21,7 +21,7 @@
   "engine/src/c2pa-extract.ts": 14,
   "engine/src/c2pa-trust.ts": 3,
   "engine/src/c2pa-verdict.ts": 2,
-  "engine/src/c2pa-verify.ts": 8,
+  "engine/src/c2pa-verify.ts": 7,
   "engine/src/c2pa.ts": 10,
   "engine/src/captions.ts": 3,
   "engine/src/catalog-integrity.ts": 4,

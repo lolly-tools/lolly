@@ -28,10 +28,8 @@
 //! Requires a Chrome/Chromium install. CDP returns both formats base64-encoded;
 //! the JS override wraps them in AssetRefs.
 //!
-//! Note on SSRF: this is a tool the user runs locally, so capturing localhost / a
-//! private dev server is a *feature*, not a risk - we only reject non-http(s)
-//! schemes (no file://, chrome://). The SSRF hardening belongs to the deferred
-//! server-side render service, where an attacker could choose the URL.
+//! Verified local tools can capture the user's configured browser session.
+//! Isolated public captures use a disposable profile and a checked network reader.
 
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -67,6 +65,7 @@ pub struct CropSpec {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CaptureSpec {
+    pub isolation: Option<CaptureIsolation>,
     pub url: String,
     pub width: u32,
     /// Viewport/capture height in px. Defaults to a 16:9 box if omitted.
@@ -84,6 +83,12 @@ pub struct CaptureSpec {
     pub css: Option<String>,
     /// Trim insets, each a 0..0.9 fraction of the framed viewport box.
     pub crop: Option<CropSpec>,
+}
+
+#[derive(Deserialize, Clone, Copy, PartialEq)]
+pub enum CaptureIsolation {
+    #[serde(rename = "isolated-public")]
+    Public,
 }
 
 /// What the raster command hands back: the shot plus the geometry the tool needs
@@ -213,6 +218,11 @@ pub async fn capture_page(
     session: State<'_, CaptureSession>,
     spec: CaptureSpec,
 ) -> Result<CaptureResult, String> {
+    if spec.isolation == Some(CaptureIsolation::Public) {
+        let slot = crate::capture_isolated::BusyGuard::enter()?;
+        return tauri::async_runtime::spawn_blocking(move || isolated_capture(spec, slot, run_raster))
+            .await.map_err(|e| format!("capture task panicked: {e}"))?;
+    }
     let profile = capture_profile_dir(&app)?;
     let session = (*session).clone();
     // headless_chrome is blocking; keep it off the async runtime's threads.
@@ -227,6 +237,11 @@ pub async fn capture_page_pdf(
     session: State<'_, CaptureSession>,
     spec: CaptureSpec,
 ) -> Result<VectorResult, String> {
+    if spec.isolation == Some(CaptureIsolation::Public) {
+        let slot = crate::capture_isolated::BusyGuard::enter()?;
+        return tauri::async_runtime::spawn_blocking(move || isolated_capture(spec, slot, run_pdf))
+            .await.map_err(|e| format!("capture task panicked: {e}"))?;
+    }
     let profile = capture_profile_dir(&app)?;
     let session = (*session).clone();
     tauri::async_runtime::spawn_blocking(move || capture_pdf_blocking(&session, &profile, spec))
@@ -509,6 +524,20 @@ fn capture_blocking(
     with_capture_tab(session, profile, &spec, vh, |tab| run_raster(tab, &spec))
 }
 
+fn isolated_capture<T>(mut spec: CaptureSpec, slot: crate::capture_isolated::BusyGuard, render: impl FnOnce(&Tab, &CaptureSpec) -> Result<T, String>) -> Result<T, String> {
+    let height = spec.height.unwrap_or_else(|| spec.width.saturating_mul(9) / 16).max(1);
+    if !(1..=4096).contains(&spec.width) || height > 4096
+        || spec.dpr.is_some_and(|d| !d.is_finite() || d <= 0.0 || d > 2.0)
+        || spec.css.as_ref().is_some_and(|css| css.len() > 64 * 1024) {
+        return Err("The isolated capture dimensions or styling exceed its limits.".into());
+    }
+    spec.wait_ms = Some(spec.wait_ms.unwrap_or(500).min(5000));
+    crate::capture_isolated::with_isolated_tab(&spec.url, spec.width, height, slot, |tab| {
+        prepare_tab(tab, &spec)?;
+        render(tab, &spec)
+    })
+}
+
 /// Measure the page, resolve the framed clip (scroll depth + crop + range), and grab
 /// the PNG. Runs on a prepared tab from either capture path.
 fn run_raster(tab: &Tab, spec: &CaptureSpec) -> Result<CaptureResult, String> {
@@ -547,6 +576,9 @@ fn run_raster(tab: &Tab, spec: &CaptureSpec) -> Result<CaptureResult, String> {
     let x = vw * l;
     let y = (from + vh * t).min((ph - frame_h).max(0.0));
     let h = (frame_h + extra).min(max_h).min((ph - y).max(frame_h));
+    if spec.isolation == Some(CaptureIsolation::Public) && frame_w * h * scale * scale > 16_000_000.0 {
+        return Err("The isolated capture exceeds its pixel budget.".into());
+    }
 
     let shot = tab
         .call_method(Page::CaptureScreenshot {

@@ -3,7 +3,7 @@
 # Dockerfile.deb (which deliberately borrows Node and Cargo from a Linux host),
 # this image owns target-native Node, Rust, Tauri CLI, esbuild and resvg bits so
 # an Apple-silicon Mac can build the exact local checkout under emulation.
-FROM node:22-bookworm
+FROM node:22-bookworm@sha256:0e5f906573693feaa1e21057ebdcfdb5bd5021f050b2dc7c9deceb629c7da2a8
 
 # Keep emulated lld links serialized enough to avoid QEMU's intermittent
 # SIGSEGV under the six-way default used by the local Colima builder.

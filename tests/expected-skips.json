@@ -479,6 +479,13 @@
       "owner": "tests"
     },
     {
+      "file": "tests/ca-managed.test.ts",
+      "fullName": "browser enrollment persists a nonextractable key, validates before storing and revokes with device proof",
+      "reason": "Set LOLLY_CA_BROWSER_TESTS=1 for managed enrollment browser checks.",
+      "capability": "browser",
+      "owner": "tests"
+    },
+    {
       "file": "tests/check-file.test.ts",
       "fullName": "the delivered Sleepwalking decks check with no error finding, and list their wording edits against the source",
       "reason": "the delivered Sleepwalking deck fixture is not on this machine (set LOLLY_CHECK_SLEEPWALKING)",
@@ -826,6 +833,13 @@
       "fullName": "--list --json on the suse profile lists that profile's catalog master",
       "reason": "brands/suse is not checked out, so the suse profile cannot be resolved here",
       "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/connector-origins.browser.test.ts",
+      "fullName": "browser and native connector paths retain work and refuse unconfigured destinations",
+      "reason": "Set LOLLY_CONNECTOR_BROWSER_TESTS=1 for isolated HTTPS browser checks.",
+      "capability": "browser",
       "owner": "tests"
     },
     {
@@ -3445,6 +3459,13 @@
       "reason": "brands/suse is not checked out, so the suse profile cannot be resolved here",
       "capability": "brand:suse",
       "owner": "tests"
+    },
+    {
+      "file": "tests/tool-resource.browser.test.ts",
+      "fullName": "browser tool libraries execute only after their requested bytes verify",
+      "reason": "requires LOLLY_BROWSER_TESTS=1 and a local Chrome installation",
+      "capability": "browser",
+      "owner": "shells/web"
     }
   ]
 }

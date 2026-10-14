@@ -19,6 +19,7 @@ webgpu-probe = []
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
+libc = "0.2"
 # tray-icon: the clipboard-lens tray (src/desktop_integration/tray.rs, plans/174 #5).
 tauri = { version = "2", features = ["tray-icon"] }
 tauri-plugin-fs = "2"
@@ -57,6 +58,9 @@ serde_json = "1"
 # Protocol to screenshot arbitrary URLs. Requires Chrome/Chromium installed.
 # CDP returns screenshots already base64-encoded, so no separate base64 dep.
 headless_chrome = "1"
+base64 = "0.22"
+tempfile = "3"
+tokio = { version = "1", features = ["rt-multi-thread", "time", "sync"] }
 # Native ONNX Runtime for the reword generator (src/reword.rs), the only native
 # inference left here - background removal dropped its native path when the full
 # BiRefNet was removed from the catalogue, so every matte model now runs on the
@@ -107,3 +111,9 @@ zbus = { version = "5", default-features = false, features = ["tokio"] }
 # WebKit's supplied window configuration and shared media/opener relationship.
 objc2 = "0.6"
 objc2-web-kit = { version = "0.3", default-features = false, features = ["std", "WKUserContentController", "WKWebViewConfiguration"] }
+
+[patch.crates-io]
+glib = { path = "../../../vendor/glib" }
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61", features = ["Win32_Storage_FileSystem", "Win32_Foundation"] }

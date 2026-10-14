@@ -27,6 +27,7 @@ import {
   getWorkerHookExecutor,
   HookIsolationUnavailableError,
   strictHostShape,
+  isolatedCaptureArgs,
   WORKER_HOOK_BUDGET_MS,
 } from './hook-worker.ts';
 
@@ -207,6 +208,18 @@ test('strict host shape requires declared capabilities and hides privileged name
   assert.deepEqual(shape, { assets: ['get'], ['net']: ['fetch'] });
 });
 
+test('strict capture is available only from a host that enforces public isolation', () => {
+  const shape = { capture: ['page', 'vector', '_session'], assets: ['get'] };
+  assert.deepEqual(strictHostShape(shape, ['capture']), { assets: ['get'] });
+  assert.deepEqual(strictHostShape(shape, ['capture'], true), { capture: ['page', 'vector'], assets: ['get'] });
+  assert.deepEqual(strictHostShape(shape, [], true), { assets: ['get'] });
+  const spec = { url: 'https://capture.example.test/', width: 600, isolation: 'session', profile: 'fixture' };
+  assert.deepEqual(isolatedCaptureArgs({ _isolatedPublic: true }, 'page', [spec, { isolation: 'session' }]), [{ url: spec.url, width: spec.width, isolation: 'isolated-public' }]);
+  assert.equal(spec.isolation, 'session');
+  assert.throws(() => isolatedCaptureArgs({}, 'page', [spec]), /does not provide/);
+  assert.throws(() => isolatedCaptureArgs({ _isolatedPublic: true }, '_session', [spec]), /does not provide/);
+});
+
 test('strict worker lockdown removes ambient network, storage, and worker bypasses', () => {
   const fake = Object.fromEntries(STRICT_AMBIENT_GLOBALS.map(name => [name, () => name])) as Record<string, unknown>;
   fake.navigator = Object.fromEntries(STRICT_NAVIGATOR_PROPERTIES.map(name => [name, { name }]));
@@ -266,4 +279,40 @@ test('strict worker executor fails closed when Worker is unavailable', async () 
   const host = { log() {} } as unknown as Parameters<typeof executor>[1];
   await assert.rejects(executor(tool, host), (error: unknown) =>
     error instanceof HookIsolationUnavailableError && error.code === 'isolation-unavailable');
+});
+
+test('the strict main-thread RPC forces isolated capture and keeps private support fields out of the hook', async () => {
+  class TestWorker {
+    onmessage: ((event: { data: HookWorkerOut }) => void) | null = null;
+    onerror = null;
+    core = createHookWorkerCore({ post: data => queueMicrotask(() => this.onmessage?.({ data })) });
+    postMessage(data: Parameters<typeof this.core.handle>[0]): void { this.core.handle(data); }
+    terminate(): void {}
+  }
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'Worker');
+  Object.defineProperty(globalThis, 'Worker', { value: TestWorker, configurable: true });
+  const calls: unknown[] = [];
+  const executor = getWorkerHookExecutor({ allowInRealmFallback: false });
+  const tool = {
+    hooksSource: `async function onInit({host}) {
+      const ref = await host.capture.page({url:'https://capture.example.test/',width:600,isolation:'session',headers:{fixture:'value'},profile:'fixture'});
+      return {result:ref.id,privateField:typeof host.capture._isolatedPublic};
+    }`,
+    manifest: { id: 'capture-fixture', capabilities: ['capture'] },
+  } as Parameters<typeof executor>[0];
+  const host = {
+    shell: 'web', capabilities: ['capture'], log() {},
+    capture: { _isolatedPublic: true, page: async (spec: unknown) => { calls.push(spec); return { id: 'fixture' }; } },
+  } as unknown as Parameters<typeof executor>[1];
+  let hooks: Awaited<ReturnType<typeof executor>> | undefined;
+  try {
+    hooks = await executor(tool, host);
+    const result = await hooks.onInit!({} as Parameters<NonNullable<typeof hooks.onInit>>[0]);
+    assert.deepEqual(result, { result: 'fixture', privateField: 'undefined' });
+    assert.deepEqual(calls, [{ url: 'https://capture.example.test/', width: 600, isolation: 'isolated-public' }]);
+  } finally {
+    hooks?.dispose?.();
+    if (previous) Object.defineProperty(globalThis, 'Worker', previous);
+    else Reflect.deleteProperty(globalThis, 'Worker');
+  }
 });

@@ -1447,10 +1447,12 @@ export async function provisionLollyTool(parsed: LollyFileContents, lp: typeof i
  */
 async function confirmToolTrust(manifest: ToolManifest, by?: string): Promise<boolean> {
   const name = (manifest as { name?: string }).name || manifest.id;
+  const capabilities = manifest.capabilities?.length
+    ? tRaw(' Requested device access: {capabilities}.', { capabilities: manifest.capabilities.join(', ') }) : '';
   return confirmDialog({
     title: tRaw('Trust this tool?'),
     message: tRaw('Install “{name}” {version}{by}? Opening it runs its packaged code on your device. Saved tool sessions keep their current version. Only install files from a source you trust.',
-      { name, version: manifest.version, by: by ? tRaw(' by {who}', { who: by }) : '' }),
+      { name, version: manifest.version, by: by ? tRaw(' by {who}', { who: by }) : '' }) + capabilities,
     confirmLabel: tRaw('Trust & install'),
     danger: true,
   });

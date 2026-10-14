@@ -3,8 +3,8 @@
   "name": "Record",
   "description": "Design your own top and tail cards, then record a clip and Lolly wraps them around it automatically.",
   "a11yLabel": "Record - an editable intro and outro around a camera clip",
-  "version": "1.4.2",
-  "engineVersion": ">=1.150.0 <2.0.0",
+  "version": "1.4.3",
+  "engineVersion": ">=1.261.0 <2.0.0",
   "status": "official",
   "category": "everyone",
   "tags": [
@@ -144,6 +144,7 @@
     },
     {
       "id": "transcript",
+      "sharePrivacy": "personal",
       "section": "Subtitles",
       "label": "Transcript",
       "type": "longtext",

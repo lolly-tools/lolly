@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { installToolByteVerification } from '../catalog/tool-bytes.ts';
 import type { CodecAPI, AssetsAPI } from '@lolly-tools/core/host-v1';
 import { createDeepCodec } from '../../../../engine/src/deep-codec-api.ts';
 import { createRasterAPI } from './raster.ts';
@@ -13,6 +14,7 @@ export function createCodecAPI(assets?: Pick<AssetsAPI, 'bytes'>): CodecAPI {
         if (!assets) throw new Error('Original asset access is unavailable.');
         return assets.bytes!(source);
       }
+      installToolByteVerification();
       const response = await fetch(source);
       if (!response.ok) throw new Error(`Could not read HDR source (${response.status}).`);
       return new Uint8Array(await response.arrayBuffer());

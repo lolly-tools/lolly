@@ -163,6 +163,10 @@ function send(res: ServerResponse, r: Result): void {
     res.writeHead(r.status, headers); res.end(JSON.stringify(r.json)); return;
   }
   headers['content-type'] = 'text/html; charset=utf-8';
+  headers['cache-control'] = 'no-store';
+  headers['x-content-type-options'] = 'nosniff';
+  headers['x-frame-options'] = 'DENY';
+  headers['content-security-policy'] = "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'";
   res.writeHead(r.status, headers); res.end(r.html || ''); return;
 }
 
@@ -332,7 +336,7 @@ export function createGateway(env: NodeJS.ProcessEnv = process.env, options: { o
       const unavailable = () => send(res, { status: 404, json: { error: 'not_found' } });
       if (!privateFileScopeEnabled(env) || open || !['GET', 'HEAD'].includes(method)) return unavailable();
       const authorization = typeof req.headers.authorization === 'string' ? req.headers.authorization : undefined;
-      if (!(await isAuthorized(authorization, env))) return unavailable();
+      if (!(await isAuthorized(authorization, env, publicBase))) return unavailable();
       const owner = bearerPrincipal(authorization);
       const rawPath = (req.url ?? '').split('?')[0]!;
       if (!owner || rawPath !== path || url.searchParams.getAll('dt').length !== 1 || [...url.searchParams.keys()].some(key => key !== 'dt')) return unavailable();
@@ -375,7 +379,7 @@ export function createGateway(env: NodeJS.ProcessEnv = process.env, options: { o
       const refusal = await limited(limiter, 'oauth', clientIp(req, env), positiveInt(env.LOLLY_OAUTH_RPM, 30));
       if (refusal) return send(res, refusal);
       const q = Object.fromEntries(url.searchParams) as Record<string, string>;
-      if (method === 'GET') return send(res, await authorizeGet(q, env));
+      if (method === 'GET') return send(res, await authorizeGet(q, env, publicBase));
       if (method === 'POST') {
         let form: Record<string, string>;
         try { form = formToObject(await readBody(req, OAUTH_BODY_MAX)); }
@@ -391,13 +395,13 @@ export function createGateway(env: NodeJS.ProcessEnv = process.env, options: { o
       let form: Record<string, string>;
       try { form = formToObject(await readBody(req, OAUTH_BODY_MAX)); }
       catch (error) { return send(res, bodyFailure(error, 'could not read request body')); }
-      return send(res, await token(form, env));
+      return send(res, await token(form, env, publicBase));
     }
 
     // ── the MCP JSON-RPC endpoint ────────────────────────────────────────────
     if (path.endsWith('/mcp')) {
       if (method !== 'POST') { res.writeHead(405, { ...CORS, allow: 'POST, OPTIONS' }); res.end(); return; }
-      if (!(await isAuthorized(req.headers['authorization'] as string | undefined, env))) {
+      if (!(await isAuthorized(req.headers['authorization'] as string | undefined, env, publicBase))) {
         res.writeHead(401, {
           ...CORS,
           'content-type': 'application/json',

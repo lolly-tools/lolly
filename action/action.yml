@@ -65,11 +65,10 @@ inputs:
     default: 'false'
   lolly-ref:
     description: >-
-      Git ref of lolly-tools/lolly to render with. Pin a tag for reproducible
-      renders; 'v1' is a placeholder until render-action tags releases - pass a
-      commit SHA (or 'main') meanwhile.
+      Reviewed source commit of lolly-tools/lolly to render with. The default
+      is immutable; supply a different commit explicitly to update the engine.
     required: false
-    default: 'v1'
+    default: '18108292e1899d6d684efc274d03fc78bb5dd325'
   profile-root:
     description: >-
       Optional workspace-relative path of a brand-pack profile root - a directory

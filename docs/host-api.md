@@ -203,7 +203,9 @@ Rasterise a live URL to an image using a real browser engine. Only shells with a
 | `page(spec)` | `Promise<AssetRef>` |
 | `vector(spec)` *(optional, v1.45)* | `Promise<AssetRef>` |
 
-`CaptureSpec`: `{ url, width, height?, scrollDepth?, rangeTo?, waitMs?, dpr?, css?, crop? }`. `page()` returns a raster `AssetRef` (`source: 'remote'`) that flows through the normal export path. `url-shot` uses it. Slow and side-effectful - call from an explicit action, not on every keystroke.
+`CaptureSpec`: `{ url, width, height?, scrollDepth?, rangeTo?, waitMs?, dpr?, css?, crop?, isolation? }`. `page()` returns a raster `AssetRef` (`source: 'remote'`) that flows through the normal export path. `url-shot` uses it. Slow and side-effectful - call from an explicit action, not on every keystroke.
+
+`isolation: 'isolated-public'` requests a fresh disposable browser session that reads public HTTP(S) resources without saved credentials. A host that cannot enforce this mode must refuse. The desktop implementation reads GET and HEAD through a checked, pinned network reader and refuses workers, sockets and child frames. Strict untrusted hooks receive this mode automatically where supported. Existing hook deadlines still apply; a slow page can exceed its caller's hook budget before the native capture deadline.
 
 Windowing and vector capture (v1.45):
 

@@ -16,6 +16,8 @@ on:
       - tests/deployment-public-vm.integration.ts
       - tests/model-release.test.ts
       - tests/browser-seccomp.test.ts
+      - .github/workflows/release-frontend.yml
+      - scripts/release-frontend-receipt.ts
       - .github/workflows/deployment-suse.yml
   pull_request:
     paths:
@@ -30,6 +32,8 @@ on:
       - tests/deployment-public-vm.integration.ts
       - tests/model-release.test.ts
       - tests/browser-seccomp.test.ts
+      - .github/workflows/release-frontend.yml
+      - scripts/release-frontend-receipt.ts
       - .github/workflows/deployment-suse.yml
   workflow_dispatch:
     inputs:
@@ -280,6 +284,7 @@ jobs:
             /services/ca/package.json
             /services/mcp/package.json
             /.github/workflows/deployment-suse.yml
+            /.github/workflows/release-frontend.yml
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
@@ -425,6 +430,10 @@ jobs:
         shell: bash
     outputs:
       allowed: ${{ steps.gate.outputs.allowed }}
+    env:
+      VITE_CATALOG_PUBLIC_KEY_JWK: ${{ inputs.public_key_jwk }}
+      VITE_CONNECTOR_ORIGINS: ${{ vars.VITE_CONNECTOR_ORIGINS }}
+      EXISTING_PUBLIC_KEY_JWK: ${{ vars.LOLLY_RELEASE_PUBLIC_KEY_JWK }}
     steps:
       # A full checkout, not a sparse one: without shells/web/src/main.ts the gate
       # would see no WebGPU requirement and allow the web image.
@@ -438,6 +447,16 @@ jobs:
         with:
           node-version: '26'
           package-manager-cache: false
+
+      - name: Require the existing public pin before frontend signing
+        run: |
+          node --input-type=module -e '
+            import {createPublicKey} from "node:crypto";
+            const key=JSON.parse(process.env.VITE_CATALOG_PUBLIC_KEY_JWK);
+            const existing=JSON.parse(process.env.EXISTING_PUBLIC_KEY_JWK);
+            if(key.kty!=="EC" || key.crv!=="P-256" || !key.x || !key.y || key.d!==undefined || existing.d!==undefined || ["kty","crv","x","y"].some(field=>key[field]!==existing[field])) throw Error("Public pin differs from the existing repository release pin");
+            createPublicKey({key,format:"jwk"});
+          '
 
       - name: Ask the gate; a refusal withholds the web image and nothing else
         id: gate
@@ -458,10 +477,23 @@ jobs:
             sed 's/^/    /' "$report"
           } >> "$GITHUB_STEP_SUMMARY"
 
+  web-frontend:
+    if: github.event_name == 'workflow_dispatch' && inputs.build_images == true && (inputs.release_scope == 'full' || inputs.release_scope == 'web') && needs.web-release-gate.outputs.allowed == 'true'
+    needs: [chart, public-vm, source-qualification, web-release-gate]
+    uses: ./.github/workflows/release-frontend.yml
+    with:
+      target: web
+      public_key_jwk: ${{ inputs.public_key_jwk }}
+      connector_origins: ${{ vars.VITE_CONNECTOR_ORIGINS }}
+      ca_enrollment_trust_json: ${{ vars.VITE_CA_ENROLLMENT_TRUST_JSON }}
+      live_relay: https://lolly.tools/live
+    secrets:
+      LOLLY_CATALOG_SIGNING_KEY: ${{ secrets.LOLLY_CATALOG_SIGNING_KEY }}
+
   web-image:
     name: Opt-in native public web image (gated on the WebGPU table)
     if: github.event_name == 'workflow_dispatch' && inputs.build_images == true && (inputs.release_scope == 'full' || inputs.release_scope == 'web') && needs.web-release-gate.outputs.allowed == 'true'
-    needs: [chart, public-vm, source-qualification, web-release-gate]
+    needs: [chart, public-vm, source-qualification, web-release-gate, web-frontend]
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     permissions:
@@ -473,6 +505,7 @@ jobs:
     env:
       EXPECTED_SOURCE: ${{ inputs.expected_source }}
       VITE_CATALOG_PUBLIC_KEY_JWK: ${{ inputs.public_key_jwk }}
+      VITE_CONNECTOR_ORIGINS: ${{ vars.VITE_CONNECTOR_ORIGINS }}
       EXISTING_PUBLIC_KEY_JWK: ${{ vars.LOLLY_RELEASE_PUBLIC_KEY_JWK }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -509,48 +542,43 @@ jobs:
             writeFileSync(process.env.RUNNER_TEMP + "/lolly-image-receipts/public.jwk.json", JSON.stringify(pin));
           '
 
-      # The image build refuses too (deploy/docker/web.Dockerfile runs
-      # build:web:release, which is scripts/build-release-web.ts); this step refuses
-      # first, on this exact checkout, before any signing material is used.
       - name: Check browser qualification for the web-only image
         run: node scripts/webgpu-release-gate.ts --scope web
 
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: release-frontend-web
+          path: ${{ runner.temp }}/lolly-signed-web
+
+      - name: Verify the frontend artifact against the reviewed source
+        env:
+          LOLLY_PROFILE: lolly-start
+          LOLLY_RELEASE_SOURCE: ${{ inputs.expected_source }}
+        run: node scripts/release-frontend-receipt.ts --verify web "$RUNNER_TEMP/lolly-signed-web"
+
       - name: Build the exact public web image on native amd64
         env:
-          LOLLY_CATALOG_SIGNING_KEY: ${{ secrets.LOLLY_CATALOG_SIGNING_KEY }}
           REGISTRY_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           test "$(uname -m)" = x86_64
-          test -n "$LOLLY_CATALOG_SIGNING_KEY"
-          owner=$(printf '%s' "$GITHUB_REPOSITORY_OWNER" | tr '[:upper:]' '[:lower:]')
           builder="lolly-public-web-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           builder_owned=false
-          cache_key=$(sha256sum package.json pnpm-lock.yaml pnpm-workspace.yaml deploy/docker/web.Dockerfile | sha256sum | cut -d ' ' -f 1)
-          cache="ghcr.io/$owner/lolly-web-deps-cache:neutral-node26-pnpm11-amd64-$cache_key"
           trap 'if [[ "$builder_owned" == true ]]; then docker buildx rm "$builder" >/dev/null 2>&1 || true; fi; docker logout ghcr.io >/dev/null 2>&1 || true' EXIT
           printf '%s' "$REGISTRY_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
           docker buildx create --name "$builder" --driver docker-container \
             --driver-opt image=moby/buildkit:v0.34.0@sha256:b059f8d7226d0b326bc871af489a5dddf65e36af4d20d14251b072974d9ee87c
           builder_owned=true
-          # Export only the dependency-fetch target: no source, brand or signing step.
-          docker buildx build --builder "$builder" --target deps --platform linux/amd64 \
-            --cache-from "type=registry,ref=$cache" \
-            --cache-to "type=registry,ref=$cache,mode=max" \
-            -f deploy/docker/web.Dockerfile .
-          CACHE_REF="$cache" CACHE_KEY="$cache_key" node --input-type=module -e '
-            import {writeFileSync} from "node:fs";
-            writeFileSync(process.env.RUNNER_TEMP+"/lolly-image-receipts/dependency-cache.json",JSON.stringify({version:1,target:"deps",scope:"public-neutral",platform:"linux/amd64",cacheRef:process.env.CACHE_REF,key:process.env.CACHE_KEY,inputs:["package.json","pnpm-lock.yaml","pnpm-workspace.yaml","deploy/docker/web.Dockerfile"],sourceExported:false,signingExported:false,releaseStageCache:false},null,2));
-          '
-          docker buildx build --load --no-cache-filter build --platform linux/amd64 \
-            --builder "$builder" --cache-from "type=registry,ref=$cache" \
+          docker buildx build --load --no-cache-filter verify --platform linux/amd64 \
+            --builder "$builder" \
+            --build-context "release-frontend=$RUNNER_TEMP/lolly-signed-web" \
             --label "org.opencontainers.image.revision=$EXPECTED_SOURCE" \
             --label "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" \
             --label org.lolly.profile=lolly-start \
             --build-arg LOLLY_PROFILE=lolly-start \
-            --build-arg VITE_LIVE_RELAY=https://lolly.tools/live \
-            --secret id=LOLLY_CATALOG_SIGNING_KEY,env=LOLLY_CATALOG_SIGNING_KEY \
-            --secret id=VITE_CATALOG_PUBLIC_KEY_JWK,env=VITE_CATALOG_PUBLIC_KEY_JWK \
+            --build-arg "LOLLY_RELEASE_SOURCE=$EXPECTED_SOURCE" \
+            --build-arg "VITE_CATALOG_PUBLIC_KEY_JWK=$VITE_CATALOG_PUBLIC_KEY_JWK" \
+            --build-arg "VITE_CONNECTOR_ORIGINS=${VITE_CONNECTOR_ORIGINS:-}" \
             -f deploy/docker/web.Dockerfile \
             -t "lolly-candidate-web:$EXPECTED_SOURCE" .
 
@@ -560,6 +588,8 @@ jobs:
           container=$(docker create "lolly-candidate-web:$EXPECTED_SOURCE")
           trap 'docker rm -f "$container" >/dev/null 2>&1 || true' EXIT
           docker cp "$container:/usr/share/nginx/html/." "$RUNNER_TEMP/lolly-qualified-web/"
+          LOLLY_PROFILE=lolly-start LOLLY_RELEASE_SOURCE="$EXPECTED_SOURCE" \
+            node scripts/release-frontend-receipt.ts --verify web "$RUNNER_TEMP/lolly-qualified-web"
           node scripts/verify-release-catalog.ts --root "$RUNNER_TEMP/lolly-qualified-web" \
             --public-key "$RUNNER_TEMP/lolly-image-receipts/public.jwk.json" \
             > "$RUNNER_TEMP/lolly-image-receipts/catalog.json"

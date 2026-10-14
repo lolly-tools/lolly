@@ -9,7 +9,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { chmod, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { chmod, mkdtemp, rm, writeFile, symlink } from 'node:fs/promises';
 import { createServer, type Server, type Socket } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -388,4 +388,27 @@ test('the one-shot command path passes a tool URL and reads the file the app wro
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
+});
+
+
+test('native renderer adverts require bounded private regular files', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'lolly-advert-'));
+  const file = join(dir, 'render.json');
+  const body = JSON.stringify({ port: 43210, token: 'fixture-token', pid: process.pid, version: '1.0.0' });
+  try {
+    await writeFile(file, body, { mode: 0o600 });
+    assert.equal(readRenderServer({ dataDir: dir })?.port, 43210);
+    await writeFile(file, ' '.repeat(8193));
+    assert.equal(readRenderServer({ dataDir: dir }), null);
+    await writeFile(file, body);
+    if (process.platform !== 'win32') {
+      await chmod(file, 0o644);
+      assert.equal(readRenderServer({ dataDir: dir }), null);
+      await rm(file);
+      const target = join(dir, 'fixture');
+      await writeFile(target, body, { mode: 0o600 });
+      await symlink(target, file);
+      assert.equal(readRenderServer({ dataDir: dir }), null);
+    }
+  } finally { await rm(dir, { recursive: true, force: true }); }
 });

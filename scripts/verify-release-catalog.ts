@@ -93,6 +93,10 @@ export async function verifyReleaseCatalog(
   for (const [id, digest] of Object.entries(envelope.toolDirs ?? {})) {
     if (await toolDirectoryHash(envelope.files, id) !== digest) throw new Error('A tool directory does not match its signed identity');
   }
+  for (const [path, digest] of Object.entries(envelope.resources ?? {})) {
+    if (!/^\/(?:catalog\/(?:previews|og)|info\/shots)\//.test(path) || !/^[0-9a-f]{64}$/.test(digest)
+      || await sha256Hex(readFileSync(contained(root, path.slice(1)))) !== digest) throw new Error('A public resource did not verify');
+  }
   if (envelope.assetIndexHash) verifyAssetBytes(root, readFileSync(contained(root, 'catalog/assets/index.json'), 'utf8'));
   return {
     verified: true,

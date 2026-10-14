@@ -28,6 +28,8 @@ test('signed frontend entrypoints refuse before signing when WebGPU qualificatio
   mkdirSync(join(dir, 'scripts'), { recursive: true });
   mkdirSync(join(dir, 'shells', 'web', 'src'), { recursive: true });
   mkdirSync(join(dir, 'docs'), { recursive: true });
+  mkdirSync(join(dir, 'packages/core/src'), { recursive: true });
+  writeFileSync(join(dir, 'packages/core/src/connector-origins.ts'), readFileSync(new URL('../packages/core/src/connector-origins.ts', import.meta.url)));
   for (const file of ['build-release-web.ts', 'webgpu-release-gate.ts', 'webgpu-qualification.ts']) {
     writeFileSync(join(dir, 'scripts', file), readFileSync(new URL(`../scripts/${file}`, import.meta.url)));
   }
@@ -138,24 +140,23 @@ test('native builds refuse a missing or incomplete MilkDrop artist pack', async 
   assert.doesNotThrow(() => check.writeBundle({}));
 });
 
-test('hosted Tauri release workflows provide signing material to the build hook', () => {
+test('hosted Tauri workflows consume an independently signed frontend', () => {
   for (const workflow of ['flatpak.yml', 'linux-arm64.yml', 'ios-release.yml']) {
     const source = readFileSync(new URL(`../.github/workflows/${workflow}`, import.meta.url), 'utf8');
-    assert.match(source, /LOLLY_CATALOG_SIGNING_KEY:\s*\$\{\{ secrets\.LOLLY_CATALOG_SIGNING_KEY \}\}/);
+    assert.match(source, /uses: \.\/\.github\/workflows\/release-frontend\.yml/);
+    assert.match(source, /LOLLY_RELEASE_FRONTEND_PHASE: verified-artifact/);
+    assert.doesNotMatch(source, /^ {10}LOLLY_CATALOG_SIGNING_KEY:/m);
     assert.match(source, /VITE_CATALOG_PUBLIC_KEY_JWK:\s*\$\{\{ vars\.VITE_CATALOG_PUBLIC_KEY_JWK \}\}/);
   }
 });
 
-test('web container requires signed release inputs without baking keys into image configuration', () => {
+test('web container verifies signed artifacts using only public material', () => {
   const source = readFileSync(new URL('../deploy/docker/web.Dockerfile', import.meta.url), 'utf8');
   const instructions = source.replace(/^\s*#.*$/gm, '').replace(/\\\n\s*/g, ' ');
-  const release = instructions.split('\n').find(line => /^RUN .*pnpm run build:web:release\s*$/.test(line));
-  assert.ok(release, 'the deployed image must use the signed release command');
-  for (const key of ['LOLLY_CATALOG_SIGNING_KEY', 'VITE_CATALOG_PUBLIC_KEY_JWK']) {
-    assert.ok(release.includes(`--mount=type=secret,id=${key},env=${key},required=true`));
-    assert.doesNotMatch(instructions, new RegExp(`^(?:ARG|ENV)\\s+${key}\\b`, 'm'));
-  }
-  assert.doesNotMatch(instructions, /^RUN\b.*pnpm run build:web\s*$/m);
+  assert.match(instructions, /node scripts\/release-frontend-receipt.ts --verify web release-frontend/);
+  assert.match(instructions, /node scripts\/verify-release-catalog.ts --root release-frontend/);
+  assert.match(instructions, /^ARG VITE_CATALOG_PUBLIC_KEY_JWK$/m);
+  assert.doesNotMatch(instructions, /LOLLY_CATALOG_SIGNING_KEY|type=secret|pnpm|npm|build:web/);
 });
 
 test('release signing accepts the matching public pin and refuses a different deployment key', async t => {

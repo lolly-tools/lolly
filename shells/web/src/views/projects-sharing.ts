@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
+import { shareUrlState, personalShareFields } from '../lib/share-privacy.ts';
 /** Saved-session sharing leaves persistence and project navigation with Projects. */
 import type { HostV1 } from '@lolly-tools/core/host-v1';
-import { serializeUrlState } from '@lolly/engine';
 import { getTool } from '../bridge/tool-loader.ts';
 import { createToolRuntime } from '../lib/mount-runtime.ts';
 import { openShareDialog } from '../components/share-dialog.ts';
@@ -28,10 +28,10 @@ export async function shareProjectSession(host:HostV1,source:SessionSaveSource,r
     const tool=await getTool(source.toolId);
     const runtime=await createToolRuntime(tool,host,data as Parameters<typeof createToolRuntime>[2]);
     try {
-      const query=serializeUrlState(runtime.getModel());
+      const query=shareUrlState(runtime.getModel());
       const baseParts=query?query.split('&'):[];
       if(data.__export_format)baseParts.push(`format=${encodeURIComponent(String(data.__export_format))}`);
-      openShareDialog({toolId:source.toolId,baseParts,manifest:tool.manifest,currentFormat:String(data.__export_format||''),title:t('Share this creation')});
+      openShareDialog({toolId:source.toolId,baseParts,personalFields:personalShareFields(runtime.getModel()),manifest:tool.manifest,currentFormat:String(data.__export_format||''),title:t('Share this creation')});
     }finally{runtime.destroy();}
   }catch(error){announce((error as Error).message);}
 }

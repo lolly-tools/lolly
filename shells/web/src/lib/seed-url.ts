@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { shareUrlState } from './share-privacy.ts';
 /**
  * Build the hash route that opens a tool SEEDED with a specific example look's inputs - 
  * the `#/tool/<id>?<query>` a hand-made share of that look would produce. The query is the
@@ -22,12 +23,12 @@ export async function toolSeedHref(
   const base = `#/tool/${toolId}`;
   if (!values) return base;
   try {
-    const [{ getTool }, { buildInputModel, serializeUrlState }] = await Promise.all([
+    const [{ getTool }, { buildInputModel }] = await Promise.all([
       import('../bridge/tool-loader.ts'),
       import('@lolly/engine'),
     ]);
     const { manifest } = await getTool(toolId);
-    const query = serializeUrlState(
+    const query = shareUrlState(
       buildInputModel(manifest, { initial: values as Record<string, InputValue> }).filter((m) => m.isDirty),
     );
     return query ? `${base}?${query}` : base;
