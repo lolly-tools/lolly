@@ -162,6 +162,22 @@
           "css": "inset 0 1px hsl(0 0% 100% / .1)"
         }
       }
+    },
+    "inset": {
+      "$type": "shadow",
+      "$description": "Recessed numeric input with a raised lower edge.",
+      "$value": {
+        "color": "#00000022",
+        "offsetX": "-1px",
+        "offsetY": "2px",
+        "blur": "5px",
+        "spread": "0px"
+      },
+      "$extensions": {
+        "tools.lolly": {
+          "css": "inset 1px 1px 0 #0001, inset -1px 2px 5px #0002, 0 1px var(--ui-color-surface-raised)"
+        }
+      }
     }
   },
   "ring-focus": {

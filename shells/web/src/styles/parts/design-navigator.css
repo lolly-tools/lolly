@@ -19,8 +19,8 @@
      which is the only way back out of the collapsed rail) painted over and its
      pointer events swallowed; the timeline band does the same at the foot. Both
      properties are written on the stage by their own owner (design-topbar's
-     `measure`, free-canvas's `reserveBottom`) and default to 0 when absent, so a
-     stage with no bar and no timeline lays the column out exactly as before. */
+     `measure`, free-canvas's `reserveBottom`). Before the first measurement,
+     reserve the top bar's 54px height; a measured zero still removes that gap. */
   top: var(--stage-reserve-top, 54px);
   bottom: var(--stage-reserve-bottom, 0px);
   left: 0;

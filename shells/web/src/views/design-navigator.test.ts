@@ -1512,7 +1512,7 @@ test('the column is laid out INSIDE the docked bands, never under them', () => {
   // swallowed no clicks at all: the bar was above it. The inspector column always got
   // this right, which is what made it read as an oversight rather than a choice.
   const body = ruleBody(NAV_CSS, '.fc-nav');
-  assert.match(body, /top:\s*var\(--stage-reserve-top,\s*0px\)/, 'offset by the top bar\'s own band');
+  assert.match(body, /top:\s*var\(--stage-reserve-top,\s*54px\)/, 'offset by the top bar\'s own band');
   assert.match(body, /bottom:\s*var\(--stage-reserve-bottom,\s*0px\)/, 'and by the docked timeline\'s');
 });
 
@@ -1586,7 +1586,7 @@ test('the rail docked as a left column starts below the top bar, like the naviga
   // its clicks: the label read as "ome" and elementFromPoint over it returned the dock
   // (Andy's screenshot, 2026-09-02). Same defect the navigator had, same fix.
   const body = ruleBody(EDITOR_CSS, '.tool-stage.has-tl-reserve .fc-toolbar-dock');
-  assert.match(body, /top:\s*var\(--stage-reserve-top,\s*0px\)/);
+  assert.match(body, /top:\s*var\(--stage-reserve-top,\s*54px\)/);
 });
 
 test('two edits to one board before the paint frame clone it once, after the paint', () => {

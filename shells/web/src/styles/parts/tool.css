@@ -2214,7 +2214,7 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
   background: hsl(var(--background));
   color: hsl(var(--foreground));
 
-  box-shadow: inset 1px 1px 0 #0001, inset -1px 2px 5px #0002, 0 1px var(--ui-color-surface-raised);
+  box-shadow: var(--ui-effect-inset);
   border-radius: 0;
   border: 0;        /* collapse internal dividers */
   font: inherit;

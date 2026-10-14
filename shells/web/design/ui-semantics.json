@@ -389,6 +389,10 @@
           "$type": "shadow",
           "$value": "{lolly.foundation.bevel.default}"
         },
+        "inset": {
+          "$type": "shadow",
+          "$value": "{lolly.foundation.bevel.inset}"
+        },
         "focus-halo": {
           "$type": "shadow",
           "$value": "{lolly.foundation.focus.default}"

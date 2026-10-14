@@ -296,6 +296,7 @@
   --shadow-5: 0 24px 60px hsl(0 0% 0% / .3);
   /* glass top-light */
   --bevel: inset 0 1px hsl(0 0% 100% / .1);
+  --bevel-inset: inset 1px 1px 0 #0001, inset -1px 2px 5px #0002, 0 1px var(--ui-color-surface-raised);
   /* focus rings */
   --ring-focus: 0 0 0 3px hsl(var(--ring) / .15);
   --ring-focus-strong: 0 0 0 2px hsl(var(--primary) / .35);
@@ -390,6 +391,7 @@
   --ui-edge-faint: var(--edge-faint);
   --ui-edge-strong: var(--edge-strong);
   --ui-effect-bevel: var(--bevel);
+  --ui-effect-inset: var(--bevel-inset);
   --ui-effect-focus-halo: var(--ring-focus);
   --ui-effect-selected: inset 0 0 0 1px hsl(var(--primary) / .20);
   --ui-effect-accent-ring: inset 0 0 0 1px hsl(var(--primary) / .20);
