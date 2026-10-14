@@ -5296,7 +5296,7 @@ const FOOTER_SECTIONS: SitemapSection[] = [
   { hub: 'builders', label: 'Run & integrate', slugs: ['tui', 'mcp', 'ai-agents', 'learning-integration', 'design-tool-contract'] },
   { hub: 'builders', label: 'Ship & operate', slugs: ['contributing-setup', 'about'] },
   { hub: 'operators', label: 'Playbooks', slugs: ['sales', 'press', 'marketing', 'legal'] },
-  { hub: 'operators', label: 'Adopt & govern', slugs: ['adoption-governance', 'sovereign-production', 'deployment', 'deploy-delivery', 'configuration', 'connector-origins', 'build-guide'] },
+  { hub: 'operators', label: 'Adopt & govern', slugs: ['adoption-governance', 'sovereign-production', 'deployment', 'deploy-delivery', 'ci-qualification', 'configuration', 'connector-origins', 'build-guide'] },
   { hub: 'operators', label: 'Build targets', slugs: ['build-terminal', 'build-desktop', 'build-mobile', 'build-obs', 'build-kubernetes', 'ios-build'] },
   { hub: 'trust', label: 'Tenets', slugs: ['tenets', 'status-quo', 'inclusive-design'] },
   { hub: 'trust', label: 'Project perspective', slugs: ['input-not-impersonation', 'content-credentials-identity',
@@ -5412,7 +5412,7 @@ const SIDEBAR_ICON: Record<string, string> = {
   sales: 'people', press: 'document', marketing: 'photos', legal: 'lock',
   // Concepts: the locked rule set, the same-every-time check, the link as the artifact.
   constraints: 'lock', determinism: 'check', reproducibility: 'link',
-  'sovereign-production': 'server',
+  'sovereign-production': 'server', 'ci-qualification': 'checklist',
   ask: 'sparkle', dashboard: 'monitor', utilities: 'wrench',
   collaborate: 'people', search: 'search', favourites: 'star', 'find-your-work': 'folder', sync: 'convert',
   // Builders - architecture & authoring
