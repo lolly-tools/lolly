@@ -80,6 +80,23 @@ completed CI. The early tier artifact supports the separate Work preparation
 workflow without starting another Lolly CI pipeline or publishing from this
 public repository.
 
+After activation, request the current main commit from Lolly's Actions page or
+the same manual workflow through the CLI. Set `SOURCE_SHA` to the exact main
+commit and `CI_RUN_ID` to its qualified CI run:
+
+```sh
+gh workflow run shell-deployment-request.yml --repo lolly-tools/lolly --ref main \
+  -f source="$SOURCE_SHA" -f ci_run="$CI_RUN_ID" -f ci_attempt=1 \
+  -f tier=public-ready
+```
+
+Use `release-ready` for the full tier. The wrapper pins the Work reusable
+workflow and its operator checkout to the same immutable commit. Its token can
+read Lolly's CI artifacts; neither workflow has production credentials. The
+resulting `shell-request-<runId>-<runAttempt>` artifact is input to the private
+operator, which repeats qualification before publication. This request does not
+build private brand content or change production.
+
 Activate the stable `qualification` branch-protection requirement only after
 this workflow change completes genuine full CI and its policy is reviewed.
 Existing individual required checks remain in force until that explicit

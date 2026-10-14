@@ -1,0 +1,42 @@
+# SPDX-License-Identifier: MPL-2.0
+name: Prepare shell deployment request
+
+on:
+  workflow_dispatch:
+    inputs:
+      source:
+        description: Exact Lolly main commit (40 characters)
+        required: true
+        type: string
+      ci_run:
+        description: Lolly CI run ID for this main commit
+        required: true
+        type: string
+      ci_attempt:
+        description: Exact CI attempt
+        required: true
+        default: '1'
+        type: string
+      tier:
+        description: Qualification tier
+        required: true
+        default: public-ready
+        type: choice
+        options:
+          - public-ready
+          - release-ready
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  request:
+    if: github.ref == 'refs/heads/main'
+    uses: lolly-tools/lolly-work/.github/workflows/shell-deployment-request.yml@335263aa4e31043f57acdf2a76e67020beaf3dcd
+    with:
+      source: ${{ inputs.source }}
+      ci_run: ${{ inputs.ci_run }}
+      ci_attempt: ${{ inputs.ci_attempt }}
+      tier: ${{ inputs.tier }}
+      operator_source: 335263aa4e31043f57acdf2a76e67020beaf3dcd

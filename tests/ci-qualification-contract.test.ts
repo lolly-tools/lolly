@@ -170,6 +170,17 @@ test('focused UI set includes canonical-token drift and contains no browser-only
   }
 });
 
+test('manual request pins the same Work workflow and operator source without production authority', () => {
+  const workflow = readFileSync(join(root, '.github/workflows/shell-deployment-request.yml'), 'utf8');
+  const pinned = workflow.match(/uses: lolly-tools\/lolly-work\/\.github\/workflows\/shell-deployment-request.yml@([a-f0-9]{40})/);
+  assert.ok(pinned);
+  assert.match(workflow, new RegExp(`operator_source: ${pinned[1]}(?:\\n|$)`));
+  assert.match(workflow, /workflow_dispatch:/); assert.match(workflow, /github.ref == 'refs\/heads\/main'/);
+  assert.match(workflow, /contents: read/); assert.match(workflow, /actions: read/);
+  assert.doesNotMatch(workflow, /secrets:|write|concurrency:/);
+  for (const input of ['source', 'ci_run', 'ci_attempt', 'tier']) assert.ok(workflow.includes(`${input}: \${{ inputs.${input} }}`));
+});
+
 test('qualification preserves exact provider bytes and emits source-bound publication evidence', async t => {
   const directory = mkdtempSync(join(tmpdir(), 'lolly-ci-evidence-'));
   const originalFetch = globalThis.fetch, originalToken = process.env.GH_TOKEN;
