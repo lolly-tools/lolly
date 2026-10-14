@@ -141,9 +141,11 @@ const still = (x: number, y: number): [number, number] => [x, y];
  * Closed straight edges for a filled path, posed into page pixels. Overlapping contours are
  * merged first: the fill shader sums each edge's winding over a pixel, which counts an
  * overlap twice where it meets a partly covered pixel, and variable-font glyphs keep their
- * overlaps. Null when the merge cannot finish within its bounded work.
+ * overlaps. Null for a coordinate out of range, or when the merge cannot finish within
+ * its bounded work.
  */
 function fillEdges(path: GeomPath, evenOdd: boolean, tolerance: number, map: (x: number, y: number) => [number, number]): number[] | null {
+  if (!path.every(contour => contour.curves.every(q => q.every(n => Math.abs(n) <= 1e6)))) return null;
   // The pose is affine, so posing the control points poses the curves exactly.
   const posed: GeomPath = path.map(contour => ({ closed: true, curves: contour.curves.map(q => {
     const [ax, ay] = map(q[0], q[1]), [bx, by] = map(q[2], q[3]), [cx, cy] = map(q[4], q[5]), [dx, dy] = map(q[6], q[7]);

@@ -7,7 +7,9 @@
  * draws a path with its own edge coverage and draws text with its font rasteriser, not
  * as outlines, so neither matches a filled outline pixel for pixel. Shapes compare with
  * no positional slack and a coverage allowance per pixel; words compare run by run by
- * their ink and its centroid. Each limit is proven by a negative control that must fail.
+ * their ink and its centroid. Each word is also judged against its own outline, which is
+ * exact on any platform and is the GPU's own contract. Each limit is proven by a negative
+ * control that must fail.
  */
 import assert from 'node:assert/strict';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
@@ -46,12 +48,16 @@ const FILL_SLACK = REPORT_ONLY && process.env.LOLLY_FILL_SLACK ? Number(process.
 const FILL_THRESHOLD = REPORT_ONLY && process.env.LOLLY_FILL_THRESHOLD ? Number(process.env.LOLLY_FILL_THRESHOLD) : 72;
 const REGION_SHARE = 0.005;
 /**
- * Words: a run's ink must match the browser's text within this share, and its centroid
- * within this many px at 1x. Measured: outlines carry 5.3% to 17.1% less ink than the
- * browser's text (its font rasteriser draws heavier), centroids within 0.31 px at 1x and
- * 0.59 px at 2x; the narrowest word left out differs by 100%.
+ * Words against Design: a run's ink must match the browser's text within this share, and
+ * its centroid within this many px times the output scale. Measured: outlines carry up to
+ * 17.1% less ink than the browser's text on Mac Chrome (its font rasteriser draws heavier)
+ * and up to 6.9% on Linux CI. Centroids sat within 0.59 px on the Mac; on Linux CI the
+ * italic run of the rich fixture sat 1.20 px away at 1x and 2.53 px at 2x, and Chromium's
+ * SVG of the same operations sat 1.08 px and 2.62 px from Chromium's text, so that distance
+ * is Chromium's own text layout on Linux, not the GPU. The GPU's position is judged against
+ * its outlines below. A missing word and a word moved by 3 px each fail this band.
  */
-const INK_SHARE = 0.25, INK_SHIFT = 1;
+const INK_SHARE = 0.25, INK_SHIFT = 1.5;
 /**
  * Words against their own outlines: a run's ink in the GPU image must equal its exact area
  * (times its paint's contrast) within this share, and its ink centroid must sit on the
@@ -272,6 +278,11 @@ test('opt-in Design GPU fills draw pen shapes and outlined words within the decl
       const [region] = (await compare(await render(missing, width, height), [target])).regions;
       if (REPORT_ONLY) t.diagnostic(`control missing word ${target.id}: ${region?.ink ? `ink ${(100 * Math.abs(region.ink.a - region.ink.b) / (region.ink.a || 1)).toFixed(1)}%` : 'no ink'}`);
       else assert.ok(region && fault(region, 1), `the ink check catches a missing word (${target.id})`);
+      // Negative control: the same word moved by 3 px must fail the Design band.
+      const shifted = structuredClone(c.drawing); shifted.ops.find(op => op.id === opId)!.words!.layout!.lines[l]!.runs[r]!.x += 3;
+      const [away] = (await compare(await render(shifted, width, height), [target])).regions;
+      if (REPORT_ONLY) t.diagnostic(`control word moved 3 px ${target.id}: ${away ? detail(away) : 'no region'}`);
+      else assert.ok(away && fault(away, 1), `the Design band catches a word moved by 3 px (${target.id})`);
       // Negative control: the same word moved a quarter pixel must fail the outline check.
       const nudged = structuredClone(c.drawing); nudged.ops.find(op => op.id === opId)!.words!.layout!.lines[l]!.runs[r]!.x += 0.25;
       const nudge = await outlineFault(await render(nudged, width, height), truth.find(run => run.id === target.id)!);
