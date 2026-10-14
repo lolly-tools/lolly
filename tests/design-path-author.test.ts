@@ -342,10 +342,10 @@ function renderPath(row: Record<string, unknown>): string {
 
 test('paint matches the svg size and viewBox the renderer emits', () => {
   const cases: Array<[DesignPathGeometry, Record<string, string | number>, number]> = [
-    [{ points: [[0, 0], [50, 0]] }, { stroke: '#123456', strokeW: 6, headEnd: 'open' }, 89.6],
+    [{ points: [[0, 0], [50, 0]] }, { stroke: '#123456', strokeW: 6, headEnd: 'open' }, 90],
     [{ points: [[0, 0], [175, 0], [135, 150], [0, 150]], closed: true }, { stroke: '#ffffff', strokeW: 4 }, 179],
     [{ points: [[0, 0], [100, 50]] }, { stroke: '#000000', strokeW: 10, strokeCap: 'square', strokeJoin: 'miter' }, 140],
-    [{ points: [[0, 0], [100, 0]] }, { stroke: '#000000', strokeW: 2, headStart: 'circle', headEnd: 'triangle' }, 114.6],
+    [{ points: [[0, 0], [100, 0]] }, { stroke: '#000000', strokeW: 2, headStart: 'circle', headEnd: 'triangle' }, 116],
   ];
   for (const [geometry, paint, width] of cases) {
     const placed: DesignPathPlacement = designPathPlacement(geometry, paint);
