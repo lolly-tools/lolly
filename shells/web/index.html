@@ -224,6 +224,8 @@
           if (ax.highContrast) document.documentElement.dataset.a11yContrast = 'high';
           if (ax.largeText) document.documentElement.dataset.a11yText = 'large';
           if (ax.hidePreviews) document.documentElement.dataset.a11yPreviews = 'hidden';
+          // The same pref also sets Jelly UI's own motion attribute (see syncJellyMotion).
+          if (ax.reduceMotion) document.documentElement.setAttribute('data-jelly-motion', 'reduce');
         }
       } catch (e) { /* corrupt cache - boot JS rewrites it */ }
       // Performance UI (feature-flags.ts perf-ui, its FOUC mirror): reflect the flag from

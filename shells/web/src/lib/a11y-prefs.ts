@@ -17,6 +17,10 @@
  * - and, like those blocks, never reaches inside the tool render canvas: a
  * user's creative output must not change because the app chrome calmed down.
  *
+ * Reduce motion also reaches Jelly UI (the jelly-effects controls), which reads
+ * its own attribute, data-jelly-motion, rather than data-a11y-motion. See
+ * syncJellyMotion below.
+ *
  * hidePreviews ("Hide colourful previews") swaps the tool galleries to calm
  * icon + text cards (parts/gallery.css) and desaturates + lowers the contrast
  * of the Projects/session thumbnails (parts/folders.css) - the one place
@@ -55,6 +59,39 @@ export function currentA11yPrefs(): A11yPrefs {
   };
 }
 
+/**
+ * Jelly UI's reduced-motion switch on <html>. vendor/jelly/jelly.mjs reads the
+ * attribute on every motion check, and its shadow styles match
+ * [data-jelly-motion="reduce"]. With the attribute absent, Jelly follows the OS.
+ */
+export const JELLY_MOTION_ATTR = 'data-jelly-motion';
+
+/** The window event that asks every built Jelly control for a fresh frame. */
+export const JELLY_MOTION_EVENT = 'jelly-motion-change';
+
+/**
+ * Pass the reduce-motion pref on to Jelly UI. The pref sets "reduce", and
+ * turning the pref off removes the attribute instead of writing
+ * "no-preference", so Jelly goes on following the OS setting, as it does for
+ * anyone who never turned the pref on.
+ *
+ * A control's physics reads the attribute only when the control next runs a
+ * frame, so a change also sends JELLY_MOTION_EVENT, the event Jelly's own
+ * setPerformanceMode sends, and every built control repaints under the new
+ * setting without a reload. Nothing is sent when the value did not change.
+ * The event comes from the document's own window and Event constructor: in a
+ * browser those are `window` and `Event`, while a jsdom test host keeps Node's
+ * global Event, which jsdom refuses.
+ */
+function syncJellyMotion(reduce: boolean): void {
+  const root = document.documentElement;
+  const before = root.getAttribute(JELLY_MOTION_ATTR);
+  if (reduce) root.setAttribute(JELLY_MOTION_ATTR, 'reduce');
+  else root.removeAttribute(JELLY_MOTION_ATTR);
+  const view = document.defaultView;
+  if (view && root.getAttribute(JELLY_MOTION_ATTR) !== before) view.dispatchEvent(new view.Event(JELLY_MOTION_EVENT));
+}
+
 /** Apply prefs to <html> and keep the FOUC mirror in step. */
 export function applyA11yPrefs(prefs: A11yPrefs | undefined): void {
   const d = document.documentElement.dataset;
@@ -62,6 +99,7 @@ export function applyA11yPrefs(prefs: A11yPrefs | undefined): void {
     if (prefs?.[key]) d[attr] = value;
     else delete d[attr];
   }
+  syncJellyMotion(Boolean(prefs?.reduceMotion));
   try {
     const on = ATTRS.filter(([key]) => prefs?.[key]).map(([key]) => key);
     if (on.length) localStorage.setItem(A11Y_STORE_KEY, JSON.stringify(Object.fromEntries(on.map(k => [k, true]))));

@@ -17,9 +17,10 @@
  * pinned statically in a11y-prefs-contract.test.ts.
  *
  * The invariant these tests exist for is ADDITIVITY: with nothing turned on
- * there must be no data-a11y-* attribute and no mirror key, so not one selector
- * matches and the regular experience is byte-identical. Every case therefore
- * asserts the OFF state as carefully as the ON state.
+ * there must be no data-a11y-* attribute, no data-jelly-motion attribute and no
+ * mirror key, so not one selector matches and the regular experience is
+ * byte-identical. Every case therefore asserts the OFF state as carefully as
+ * the ON state.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -53,7 +54,8 @@ function installMatchMedia(): void {
 installMatchMedia();
 
 const {
-  A11Y_STORE_KEY, applyA11yPrefs, currentA11yPrefs, hydrateA11yPrefs, setA11yPref, prefersReducedMotion,
+  A11Y_STORE_KEY, JELLY_MOTION_ATTR, JELLY_MOTION_EVENT,
+  applyA11yPrefs, currentA11yPrefs, hydrateA11yPrefs, setA11yPref, prefersReducedMotion,
 } = await import('./a11y-prefs.ts');
 
 /** The four attributes as they appear in HTML, for direct attribute reads. */
@@ -62,9 +64,20 @@ const VALUE = { reduceMotion: 'reduce', highContrast: 'high', largeText: 'large'
 type Key = keyof typeof ATTR;
 const KEYS: Key[] = ['reduceMotion', 'highContrast', 'largeText', 'hidePreviews'];
 
+/** Jelly UI's motion attribute on <html>, or null when absent. */
+function jellyMotion(): string | null {
+  return document.documentElement.getAttribute(JELLY_MOTION_ATTR);
+}
+
+/** The Jelly attribute's value at each jelly-motion-change event, in order. */
+const jellyEvents: Array<string | null> = [];
+window.addEventListener(JELLY_MOTION_EVENT, () => { jellyEvents.push(jellyMotion()); });
+
 /** Back to a pristine document: no prefs, no mirror, OS motion pref off. */
 function reset(): void {
   for (const attr of Object.values(ATTR)) document.documentElement.removeAttribute(attr);
+  document.documentElement.removeAttribute(JELLY_MOTION_ATTR);
+  jellyEvents.length = 0;
   localStorage.clear();
   osReduceMotion = false;
   installMatchMedia();
@@ -87,9 +100,10 @@ function mirror(): unknown {
 
 // ── Additivity: the dormant default ──────────────────────────────────────────
 
-test('nothing on: no data-a11y-* attribute, no mirror key, every pref reads false', () => {
+test('nothing on: no data-a11y-* or data-jelly-motion attribute, no mirror key, every pref reads false', () => {
   reset();
   assert.deepEqual(liveAttrs(), {});
+  assert.equal(jellyMotion(), null);
   assert.equal(localStorage.getItem(A11Y_STORE_KEY), null);
   assert.deepEqual(currentA11yPrefs(), { reduceMotion: false, highContrast: false, largeText: false, hidePreviews: false });
 });
@@ -103,6 +117,8 @@ test('applying an all-off object is indistinguishable from never applying anythi
   assert.deepEqual(liveAttrs(), {});
   assert.equal(localStorage.getItem(A11Y_STORE_KEY), null);
   assert.equal(document.documentElement.outerHTML.includes('data-a11y'), false);
+  assert.equal(document.documentElement.outerHTML.includes(JELLY_MOTION_ATTR), false);
+  assert.deepEqual(jellyEvents, [], 'nothing changed, so Jelly is not asked to repaint');
 });
 
 // ── apply / current round-trip ───────────────────────────────────────────────
@@ -324,4 +340,72 @@ test('the other prefs do not leak into the motion signal', () => {
   reset();
   applyA11yPrefs({ highContrast: true, largeText: true, hidePreviews: true });
   assert.equal(prefersReducedMotion(), false);
+});
+
+// ── Jelly UI: the same reduce-motion pref, on Jelly's own attribute ──────────
+
+test('reduce motion sets data-jelly-motion="reduce", and switching the pref off removes the attribute', () => {
+  reset();
+  applyA11yPrefs({ reduceMotion: true });
+  assert.equal(jellyMotion(), 'reduce');
+  applyA11yPrefs({ reduceMotion: false });
+  // Removed, never "no-preference": with the attribute absent, Jelly follows the
+  // OS setting, as it does for anyone who never turned the pref on.
+  assert.equal(document.documentElement.hasAttribute(JELLY_MOTION_ATTR), false);
+});
+
+test('only the reduce-motion pref drives the Jelly attribute', () => {
+  reset();
+  applyA11yPrefs({ highContrast: true, largeText: true, hidePreviews: true });
+  assert.equal(jellyMotion(), null);
+  assert.deepEqual(jellyEvents, []);
+});
+
+test('an OS-only reduce-motion setting leaves the Jelly attribute absent', () => {
+  reset();
+  osReduceMotion = true; installMatchMedia();
+  applyA11yPrefs({});
+  // Jelly reads the OS query itself and follows a change to the OS setting
+  // live. Writing the attribute from the OS answer would pin Jelly to the value
+  // at the time of writing.
+  assert.equal(jellyMotion(), null);
+  assert.equal(prefersReducedMotion(), true, 'the shell still sees the OS setting');
+});
+
+test('the Jelly attribute follows the pref through setA11yPref, hydration and the mirror', async () => {
+  reset();
+  const { host } = stubHost();
+  await setA11yPref(host, 'reduceMotion', true);
+  assert.equal(jellyMotion(), 'reduce');
+  await setA11yPref(host, 'highContrast', true);
+  assert.equal(jellyMotion(), 'reduce', 'flipping another pref keeps the motion choice');
+  await setA11yPref(host, 'reduceMotion', false);
+  assert.equal(jellyMotion(), null);
+
+  reset();
+  hydrateA11yPrefs({ reduceMotion: true });
+  assert.equal(jellyMotion(), 'reduce');
+  hydrateA11yPrefs(undefined);
+  assert.equal(jellyMotion(), 'reduce', 'an untouched profile leaves the Jelly attribute alone too');
+  hydrateA11yPrefs({});
+  assert.equal(jellyMotion(), null, 'an explicit all-off profile clears a stale mirror for Jelly too');
+
+  reset();
+  applyA11yPrefs({ reduceMotion: true });
+  const stored = mirror() as Record<string, boolean>;
+  reset(); // new page load: the mirror is all the boot script has
+  applyA11yPrefs(stored);
+  assert.equal(jellyMotion(), 'reduce');
+});
+
+test('a change sends one jelly-motion-change event, after the attribute is written', () => {
+  reset();
+  applyA11yPrefs({ reduceMotion: true });
+  assert.deepEqual(jellyEvents, ['reduce'], 'one event, and a listener already reads the new value');
+  applyA11yPrefs({ reduceMotion: true, largeText: true });
+  assert.deepEqual(jellyEvents, ['reduce'], 'the value did not change, so no event');
+  applyA11yPrefs({ largeText: true });
+  assert.deepEqual(jellyEvents, ['reduce', null], 'switching the pref off is a change too');
+  applyA11yPrefs({});
+  assert.deepEqual(jellyEvents, ['reduce', null], 'still off, so no event');
 });
