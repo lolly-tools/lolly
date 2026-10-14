@@ -354,13 +354,19 @@ test('clicking a person follows their view through the real wiring, and Hide poi
   assert.ok(stage.querySelector(':scope > .collab-follow-frame'), 'the stage is framed');
   assert.equal(canvas.querySelector('.collab-follow-frame'), null, 'and the render surface is untouched');
 
-  const pointers = [...stage.querySelectorAll<HTMLButtonElement>('.collab-pill button')].find(b => b.getAttribute('aria-label') === 'Hide pointers')!;
-  assert.ok(pointers, 'the room controls offer Hide pointers');
+  const settings = stage.querySelector<HTMLButtonElement>('.collab-settings')!;
+  settings.click();
+  const pointers = stage.ownerDocument.querySelector<HTMLButtonElement>('[role="menuitemcheckbox"]')!;
+  assert.ok(pointers, 'the settings menu offers Show pointers');
+  assert.equal(pointers.getAttribute('aria-checked'), 'true');
   assert.equal(stage.querySelectorAll('.collab-cursor').length, 1);
   pointers.click();
   assert.equal(stage.querySelectorAll('.collab-cursor').length, 0, 'the remote cursor is released');
   assert.equal(stage.querySelectorAll('.collab-av').length, 2, 'avatars stay: it hides remote cursors only');
-  pointers.click();
+  settings.click();
+  const showPointers = stage.ownerDocument.querySelector<HTMLButtonElement>('[role="menuitemcheckbox"]')!;
+  assert.equal(showPointers.getAttribute('aria-checked'), 'false');
+  showPointers.click();
   assert.equal(stage.querySelectorAll('.collab-cursor').length, 1);
 
   collab.teardown();

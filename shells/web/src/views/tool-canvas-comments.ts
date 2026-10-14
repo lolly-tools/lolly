@@ -59,7 +59,7 @@ export function mountCanvasComments(runtime: object, capability: CanvasCommentsC
     commentIcon(element, '', glyph);
     element.addEventListener('click', action); return element;
   };
-  const close = button(t('Close comments'), 'close', () => { layout.setOpen(false); placing = false; open.focus(); });
+  const close = button(t('Close comments'), 'close', () => { layout.setOpen(false); placing = false; (controlsHost?.querySelector<HTMLElement>('.collab-settings') ?? open).focus(); });
   const point = button(t('Pin a comment'), 'pin', () => { placing = !placing; status.textContent = placing ? t('Choose an object or a point on the canvas.') : ''; });
   const onSelection = button(t('Comment on selection'), 'messageCircle', () => {
     const surface = collabSurface(runtime), id = surface?.selection()[0], object = id ? surface?.object?.(id) : undefined;
@@ -400,7 +400,7 @@ export function mountCanvasComments(runtime: object, capability: CanvasCommentsC
   }, { capture: true, signal: abort.signal });
   open.addEventListener('click', () => { layout.setOpen(panel.hidden); if (!panel.hidden) { void refresh(); close.focus(); } }, { signal: abort.signal });
   panel.addEventListener('keydown', event => {
-    if (event.key === 'Escape') { event.stopPropagation(); layout.setOpen(false); placing = false; open.focus(); return; }
+    if (event.key === 'Escape') { event.stopPropagation(); layout.setOpen(false); placing = false; (controlsHost?.querySelector<HTMLElement>('.collab-settings') ?? open).focus(); return; }
     const field = (event.target as HTMLElement | null)?.tagName;
     if (!event.altKey || event.key !== 'ArrowUp' && event.key !== 'ArrowDown' || field === 'TEXTAREA' || field === 'INPUT') return;
     event.preventDefault(); step(event.key === 'ArrowDown' ? 1 : -1);
@@ -518,13 +518,13 @@ export function mountCanvasComments(runtime: object, capability: CanvasCommentsC
   }
   void refresh();
   return { reanchor, refresh, locate, dockControls(container: HTMLElement) {
-    controlsHost = container;
+    controlsHost = container; container.classList.add('collab-pill--comments');
     open.classList.add('collab-comments-open--docked'); container.append(open);
   }, endAccess() { if (draftKey) queueDraft(draftKey, input.value); report({ status: 403 }); }, teardown() {
     if (disposed) return; disposed = true; if (draftKey) queueDraft(draftKey, input.value);
     for (const timer of [pollTimer, readTimer, eventTimer]) if (timer) clearTimeout(timer);
     offChanges?.(); offSession?.(); targets.dispose(); picker?.dispose(); editorPicker?.dispose();
-    abort.abort(); layout.destroy(); pins.remove(); panel.remove(); open.remove();
+    abort.abort(); layout.destroy(); pins.remove(); panel.remove(); open.remove(); controlsHost?.classList.remove('collab-pill--comments');
     presence?.dispose();
   } };
 }

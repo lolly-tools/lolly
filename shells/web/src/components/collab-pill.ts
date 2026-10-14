@@ -14,8 +14,8 @@
  * ── The idiom it borrows ──────────────────────────────────────────────────────
  *
  * The stage HUD (`.stage-nav`, `styles/parts/editor.css`): a translucent `--card`
- * capsule at 0.85 alpha over a 6px backdrop blur, a hairline `--border`, a 999px
- * radius, sized off the shared `--chrome-*` row tokens so it lines up with the back
+ * capsule at 0.85 alpha over a 6px backdrop blur, sized off the shared
+ * `--chrome-*` row tokens so it lines up with the back
  * pill at every width. That module is NOT touched - this is its own component with
  * its own injected sheet, the `music-player.ts`/`neuro-dock.ts` pattern, because a
  * collab is lazy chrome that must cost a single-player build nothing.
@@ -163,6 +163,7 @@ const STYLE_ID = 'collab-pill-styles';
  */
 const CSS = `
 .collab-pill {
+  --collab-control-size: var(--ui-size-control, calc(30px * var(--a11y-fs)));
   display: inline-flex;
   align-items: center;
   gap: calc(6px * var(--a11y-fs));
@@ -191,6 +192,41 @@ const CSS = `
   top: calc(var(--chrome-top) + var(--vv-top, 0px));
   inset-inline-end: calc(var(--chrome-inset) + var(--vv-right, 0px) + var(--collab-pill-offset, 0px));
   z-index: 20;
+  max-width: calc(100% - var(--chrome-inset) * 2 - var(--collab-pill-offset, 0px));
+  flex-wrap: wrap;
+  border-radius: calc(var(--collab-control-size) / 2 + 8px);
+}
+.collab-pill-tags:empty { display: none; }
+.collab-pill:has(.invite-link-control:not([hidden])) > .collab-invite { display: none; }
+.collab-pill > .collab-stack,
+.collab-pill > .collab-invite,
+.collab-pill > .collab-action,
+.collab-pill > .collab-settings {
+  box-sizing: border-box;
+  min-width: var(--collab-control-size);
+  min-height: var(--collab-control-size);
+  height: var(--collab-control-size);
+  box-shadow: none;
+}
+.collab-pill > .collab-stack { padding-inline: 3px; border-radius: 999px; }
+.collab-pill > :is(.collab-invite, .collab-action, .collab-settings) { width: var(--collab-control-size); }
+.collab-pill :is(button, select):focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+@media (pointer: coarse) {
+  .collab-pill { --collab-control-size: max(44px, var(--ui-size-control)); }
+}
+@media (max-width: 640px) and (pointer: coarse) {
+  .collab-pill--stage:has(.invite-link-control:not([hidden])) {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    width: calc(240px * var(--a11y-fs));
+  }
+  .collab-pill > .collab-dot { grid-column: 1; grid-row: 1; }
+  .collab-pill > .collab-stack { grid-column: 2; grid-row: 1; }
+  .collab-pill > .collab-settings { grid-column: 3; grid-row: 1; }
+  .collab-pill > .invite-link-control { grid-column: 1 / -1; grid-row: 2; }
+  .collab-pill .invite-link-pill { width: 100%; }
+  .collab-pill .invite-link-role { max-width: none; }
+  .collab-pill > .collab-follow { grid-column: 1 / -1; }
 }
 
 /* ── Connection dot: colour AND shape, never colour alone ─────────────────── */
@@ -385,6 +421,7 @@ html[data-a11y-motion="reduce"] .collab-action { transition: none; }
 }
 .collab-follow[data-state="notice"] .collab-follow-label { font-weight: 400; color: hsl(var(--muted-foreground)); }
 .collab-follow-action {
+  min-height: var(--collab-control-size);
   flex: none;
   padding: calc(3px * var(--a11y-fs)) calc(8px * var(--a11y-fs));
   border: 1px solid hsl(var(--border));
@@ -727,7 +764,7 @@ export function mountCollabPill(container: HTMLElement, opts: CollabPillOptions)
     invite.type = 'button';
     invite.className = 'collab-invite';
     invite.setAttribute('aria-label', tRaw(STRINGS.invite));
-    invite.title = tRaw(STRINGS.invite);
+    invite.title = invite.dataset.tip = tRaw(STRINGS.invite);
     const glyph = iconNode('plus');
     if (glyph) invite.appendChild(glyph);
     invite.addEventListener('click', () => { opts.onInvite?.(); });
@@ -761,7 +798,7 @@ export function mountCollabPill(container: HTMLElement, opts: CollabPillOptions)
     for (const slot of actionSlots) {
       const label = tRaw(STRINGS[ACTION_LABEL_KEYS[slot.action.kind]]);
       slot.el.setAttribute('aria-label', label);
-      slot.el.title = label;
+      slot.el.title = slot.el.dataset.tip = label;
     }
   }
   labelActions();
@@ -948,6 +985,7 @@ export function mountCollabPill(container: HTMLElement, opts: CollabPillOptions)
     if (followAction.textContent !== action) followAction.textContent = action;
     // Escape is the quicker way out; the button's tooltip says so on hover and focus.
     if (follow?.leader) followAction.title = tRaw(STRINGS.escapeToStop); else followAction.removeAttribute('title');
+    followAction.dataset.tip = follow?.leader ? tRaw(STRINGS.escapeToStop) : followAction.textContent ?? '';
     const count = follow?.followers.length ?? 0;
     if (count) {
       const tag = tagEl(tRaw(STRINGS.followers, { count }));
@@ -972,6 +1010,7 @@ export function mountCollabPill(container: HTMLElement, opts: CollabPillOptions)
     dot.dataset.state = dotState;
     const label = tRaw(STRINGS[DOT_LABEL_KEYS[dotState]]);
     dot.title = label;
+    dot.dataset.tip = label;
     if (dotLabel.textContent !== label) dotLabel.textContent = label;
 
     const everyone = [state.self, ...state.peers];
@@ -1004,6 +1043,8 @@ export function mountCollabPill(container: HTMLElement, opts: CollabPillOptions)
       'aria-label',
       tRaw(STRINGS.stack, { names: everyone.map(collabDisplayName).join(', ') }),
     );
+    stack.dataset.tip = tRaw(STRINGS.roster);
+    for (const av of wanted) av.dataset.tip = av.title;
 
     tags.textContent = '';
     // The observer banner is about THIS client - "you can watch but not edit" is a
@@ -1063,7 +1104,7 @@ export function mountCollabPill(container: HTMLElement, opts: CollabPillOptions)
       const inviteBtn = el.querySelector<HTMLButtonElement>('.collab-invite');
       if (inviteBtn) {
         inviteBtn.setAttribute('aria-label', tRaw(STRINGS.invite));
-        inviteBtn.title = tRaw(STRINGS.invite);
+        inviteBtn.title = inviteBtn.dataset.tip = tRaw(STRINGS.invite);
       }
       labelActions();
       render(opts.source.state());

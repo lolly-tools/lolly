@@ -266,13 +266,13 @@ html[data-a11y-motion="reduce"] .collab-tile-dot { animation: none; }
   flex: none;
   min-height: var(--chrome-h);
 }
-.collab-pill:has(> .collab-comments-open--docked) {
+.collab-pill.collab-pill--comments {
   max-width: calc(100% - var(--chrome-inset) * 2 - var(--collab-pill-offset, 0px));
   flex-wrap: wrap;
   transform: translateY(var(--design-topbar-h, 0px));
 }
 @media (min-width: 641px) {
-  #tool-layout.is-editor:not(.is-document) .collab-pill:has(> .collab-comments-open--docked) {
+  #tool-layout.is-editor:not(.is-document) .collab-pill.collab-pill--comments {
     transform: translateY(max(var(--design-topbar-h, 0px), calc(var(--chrome-h) + 8px)));
   }
 }
@@ -410,3 +410,42 @@ body:has(.tool-stage[data-design-layout="compact"] .collab-comments-panel:not([h
 .collab-comment-mentions [role="option"][aria-selected="true"] { background: var(--ui-color-selection-surface); box-shadow: var(--ui-effect-accent-ring); }
 .collab-comment-mention-note { margin: var(--sp-1) var(--sp-2); color: var(--ui-color-text-muted); font-size: var(--fs-xs); }
 .collab-comment-mention-note:empty { display: none; }
+
+
+/* Secondary collaboration actions share the standard anchored menu. */
+.collab-settings-menu {
+  min-width: min(220px, calc(100vw - 16px));
+  max-width: calc(100vw - 16px);
+}
+.collab-settings-menu .collab-comments-open {
+  position: static; inset: auto; display: flex; align-items: center; gap: 12px;
+  box-sizing: border-box; width: 100%; height: auto; min-width: 0; min-height: var(--ui-size-target);
+  padding: 11px 12px; border: 0; border-radius: var(--ui-radius-panel);
+  box-shadow: none; background: transparent; color: inherit; text-align: start; font: inherit;
+  font-size: var(--fs-lg); font-weight: 500;
+}
+.collab-settings-menu .collab-comments-open:hover { background: var(--ui-color-surface-muted); }
+.collab-settings-menu .collab-comments-badge { position: static; margin-inline-start: auto; }
+.collab-settings-label { flex: 1; }
+.collab-settings-check { display: inline-flex; margin-inline-start: auto; width: var(--ui-size-icon-md); }
+.collab-settings-status { margin: var(--sp-2) var(--sp-3); font-size: var(--ui-type-help); color: var(--ui-color-text-muted); }
+.collab-pill > .collab-save-status {
+  flex: 0 1 auto; min-width: 0; max-width: 12em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  color: var(--ui-color-text-muted); line-height: 1.4;
+}
+.collab-pill > .collab-save-status:empty { display: none; }
+@media (max-width: 640px) {
+  .collab-pill > .collab-save-status { display: none; }
+}
+
+.collab-settings-menu .collab-comments-open[hidden] { display: none; }
+.collab-settings { position: relative; }
+.collab-settings-unread {
+  position: absolute; inset-block-start: 3px; inset-inline-end: 3px; width: 6px; height: 6px;
+  border-radius: var(--radius-round); background: var(--ui-color-action-primary);
+  outline: 2px solid var(--ui-color-surface-raised);
+}
+.collab-settings-unread[hidden] { display: none; }
+
+.collab-settings-menu .profile-menu-item { justify-content: flex-start; text-align: start; }
+.collab-settings-menu .collab-comments-open svg { width: calc(16px * var(--a11y-fs)); height: calc(16px * var(--a11y-fs)); color: var(--ui-color-text-muted); }

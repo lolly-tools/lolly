@@ -1021,8 +1021,12 @@ test('render: the stroke pad GROWS for the two decorations that reach past half 
     const { compute } = withGeom(brand);
     const geo = (over: Row): string | null => attr(compute([strokedBox({ strokeW: 20, ...over })]).pathHtml![0]!, 'viewBox');
     assert.equal(geo({}), '-10 -10 420 320', `${brand}: round/round pads by half the width`);
-    // 20 · √2/2 = 14.142… → 14.14 at the hook's 2-decimal rounding.
-    assert.equal(geo({ strokeCap: 'square' }), '-14.14 -14.14 428.28 328.28', `${brand}: a square cap's corner`);
+    // 20 · √2/2 = 14.142…, rounded up to a whole pixel: the browser snaps a fractional
+    // offset to the pixel grid, which moved the drawn path off its own coordinates.
+    assert.equal(geo({ strokeCap: 'square' }), '-15 -15 430 330', `${brand}: a square cap's corner`);
+    // Half of an odd width is a half pixel, so it pads by the next whole one.
+    assert.equal(geo({ strokeW: 1 }), '-1 -1 402 302', `${brand}: a 1 px stroke pads by a whole pixel`);
+    assert.equal(geo({ strokeW: 3 }), '-2 -2 404 304', `${brand}: a 3 px stroke pads by two`);
     // 20 · 4/2 = 40.
     assert.equal(geo({ strokeJoin: 'miter' }), '-40 -40 480 380', `${brand}: a miter spike`);
     // The larger of the two wins rather than the two adding up.

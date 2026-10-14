@@ -40,33 +40,66 @@ test('Hide pointers is a per-device choice that hides remote cursors only, and s
     const pointers = { setHidden(value: boolean) { hidden.push(value); } };
     const handle = { self: { clientId: 'person' } } as CollabSessionHandle;
     const bar = dom.window.document.getElementById('bar')!;
-    const button = (): HTMLButtonElement => [...bar.querySelectorAll<HTMLButtonElement>('button')].find(b => /pointers/.test(b.getAttribute('aria-label') ?? ''))!;
+    const button = (): HTMLButtonElement | null => document.querySelector('[role="menuitemcheckbox"]');
+    const openMenu = (): void => { bar.querySelector<HTMLButtonElement>('.collab-settings')!.click(); };
 
     const none = mountCollabControls(bar, handle);
     assert.equal(bar.querySelector('button'), null, 'no cursor layer, no control');
     none();
 
     let dispose = mountCollabControls(bar, handle, undefined, pointers);
-    assert.equal(button().getAttribute('aria-label'), 'Hide pointers');
+    openMenu();
+    assert.equal(button()!.getAttribute('aria-checked'), 'true');
     assert.deepEqual(hidden, [false], 'pointers start shown');
-    button().click();
-    assert.equal(button().getAttribute('aria-label'), 'Show pointers');
+    button()!.click();
+    assert.equal(document.querySelector('.collab-settings-menu'), null, 'selection dismisses the menu');
+    openMenu(); assert.equal(button()!.getAttribute('aria-checked'), 'false');
     assert.deepEqual(hidden, [false, true]);
     assert.equal(dom.window.localStorage.getItem('lolly.collab.pointers'), 'hidden');
     dispose();
-    assert.equal(button(), undefined, 'teardown removes the control');
+    assert.equal(button(), null, 'teardown removes the control');
 
     dispose = mountCollabControls(bar, handle, undefined, pointers);
     assert.deepEqual(hidden.at(-1), true, 'the next document on this device starts with pointers hidden');
-    button().click();
+    openMenu();
+    button()!.click();
     assert.equal(dom.window.localStorage.getItem('lolly.collab.pointers'), null, 'showing them again forgets the choice');
     dispose();
 
     Object.defineProperty(dom.window, 'localStorage', { configurable: true, get() { throw new Error('blocked'); } });
     dispose = mountCollabControls(bar, handle, undefined, pointers);
     assert.equal(hidden.at(-1), false, 'blocked storage leaves pointers shown');
-    button().click();
+    openMenu();
+    button()!.click();
     assert.equal(hidden.at(-1), true, 'and the toggle still works for this document');
     dispose();
+  } finally { Object.assign(globalThis, previous); dom.window.close(); }
+});
+
+test('settings keeps live comments and unread feedback, supports keyboard dismissal and releases its menu', async () => {
+  const dom = new JSDOM('<div id="bar"><button class="collab-comments-open--docked">Comments<span class="collab-comments-badge">2</span></button></div>', { url: 'https://lolly.tools/' });
+  const previous = { window: globalThis.window, document: globalThis.document, HTMLElement: globalThis.HTMLElement };
+  Object.assign(globalThis, { window: dom.window, document: dom.window.document, HTMLElement: dom.window.HTMLElement });
+  try {
+    const bar = document.getElementById('bar')!, comments = bar.querySelector('button')!;
+    let opened = 0; comments.addEventListener('click', () => opened++);
+    const dispose = mountCollabControls(bar, { people() {} } as CollabSessionHandle);
+    const settings = bar.querySelector<HTMLButtonElement>('.collab-settings')!;
+    assert.equal(comments.parentElement?.hidden, true);
+    assert.match(settings.getAttribute('aria-label')!, /2 unread/);
+    settings.click();
+    assert.equal(comments.closest('[role="menu"]')?.getAttribute('aria-label'), 'Collaboration settings');
+    comments.click();
+    assert.equal(opened, 1); assert.equal(document.querySelector('.collab-settings-menu'), null);
+    assert.equal(comments.parentElement?.hidden, true, 'the live control is retained between menu openings');
+    comments.querySelector('.collab-comments-badge')!.remove(); await Promise.resolve();
+    assert.equal(settings.getAttribute('aria-label'), 'Collaboration settings');
+    settings.click();
+    document.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    assert.equal(document.activeElement, settings);
+    assert.equal(settings.getAttribute('aria-expanded'), 'false');
+    settings.click(); dispose();
+    assert.equal(document.querySelector('.collab-settings-menu'), null);
+    assert.equal(comments.parentElement, bar);
   } finally { Object.assign(globalThis, previous); dom.window.close(); }
 });

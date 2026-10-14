@@ -141,7 +141,7 @@ export function mountCommentFilters(doc: Document, onChange: (filter: CommentFil
 /** The Comments button states how many threads are unread, as a badge and in its name. */
 export function paintUnreadCount(open: HTMLButtonElement, count: number): void {
   const label = count ? tRaw('Comments, {count} unread', { count }) : tRaw('Comments');
-  if (open.getAttribute('aria-label') !== label) { open.setAttribute('aria-label', label); open.title = label; }
+  if (open.getAttribute('aria-label') !== label) { open.setAttribute('aria-label', label); open.title = open.dataset.tip = label; }
   const hidden = open.querySelector<HTMLElement>('.visually-hidden');
   if (hidden && hidden.textContent !== label) hidden.textContent = label;
   let badge = open.querySelector<HTMLElement>('.collab-comments-badge');

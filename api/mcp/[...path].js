@@ -77870,7 +77870,7 @@ function paintPad(paint2, paths, notes) {
     if (asked.includes("bar")) notes.push("a bar head has no PowerPoint line end, so a .pptx leaves it off");
   }
   const reach2 = Math.max(cap === "square" ? Math.SQRT2 / 2 : 0.5, join32 === "miter" ? MITER_LIMIT / 2 : 0.5);
-  return Math.max(stroke && sw > 0 ? sw * reach2 : 0, headReach);
+  return Math.ceil(Math.max(stroke && sw > 0 ? sw * reach2 : 0, headReach));
 }
 function designPathPlacement(geometry3, opts = {}) {
   if (!geometry3 || typeof geometry3 !== "object") refuse("invalid-argument", "geometry must be an object with points or d");

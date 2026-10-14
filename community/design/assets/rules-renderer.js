@@ -1189,8 +1189,13 @@ function pathHtmlFor(b) {
   //   - an ARROWHEAD (plan 96) is the third: it sits ON the frame edge and spreads across
   //     the tangent, so `headReach` above sizes the pad for whichever head is on. A path
   //     with no head contributes 0 and the pad is byte-identical to what it was.
+  //
+  // The pad is rounded UP to a whole pixel. The browser snaps the element's fractional
+  // offset to the pixel grid, so a pad of 0.5 (a 1 px round-capped stroke) or sw/2·√2 (a
+  // square cap) moved the whole drawn path off its own coordinates by up to half a pixel.
+  // A whole-pixel pad is never snapped, and a larger pad only grows the margin.
   var reach = Math.max(cap === 'square' ? Math.SQRT2 / 2 : 0.5, join === 'miter' ? MITER_LIMIT / 2 : 0.5);
-  var pad = Math.max(stroke && sw > 0 ? sw * reach : 0, headReach);
+  var pad = Math.ceil(Math.max(stroke && sw > 0 ? sw * reach : 0, headReach));
   var vw = f2(w + pad * 2), vh = f2(h + pad * 2), o = f2(-pad);
   // Everything interpolated is esc()'d even though each value is already reduced to a
   // validated colour, a whitelisted keyword or a number: the extra is emitted through

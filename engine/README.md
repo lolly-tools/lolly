@@ -243,7 +243,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `design-lottie.ts` | 105 | Authored Design values into the shared sequence compiler, identical on every host. | no | `tests/design-lottie.test.ts` | – |
 | `design-map.ts` | 2174 | Design-file → Design boxes (pure mapper). | yes | `tests/design-map.test.ts` | – |
 | `design-page-svg.ts` | 228 | A Design page exported as SVG from drawing operations (plan 295, phase 3, P3d). | no | `tests/design-page-svg.test.ts` | – |
-| `design-path-author.ts` | 256 | Absolute path geometry to a stored Design path row (plan 291 W5). | yes | `tests/design-path-author.test.ts` | – |
+| `design-path-author.ts` | 257 | Absolute path geometry to a stored Design path row (plan 291 W5). | yes | `tests/design-path-author.test.ts` | – |
 | `design-premiere.ts` | 62 | Authored media clips into a Premiere XML package with original media bytes. | no | indirect | – |
 | `design-scene.ts` | 149 | The Design scene grammar - what a `kind:'3d'` box's `scene` field holds, and the only place that grammar lives (plan 265 milestone 3, decision Q17). | yes | indirect | – |
 | `design-system.ts` | 257 | design-system.ts - the identity and namespace rules for holding SEVERAL design systems on one device (plans/186 section 6). | yes | `tests/design-system.test.ts` | – |

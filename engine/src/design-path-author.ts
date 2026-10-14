@@ -194,7 +194,8 @@ function paintPad(paint: DesignPathPaint, paths: AuthoredPath[], notes: string[]
     if (asked.includes('bar')) notes.push('a bar head has no PowerPoint line end, so a .pptx leaves it off');
   }
   const reach = Math.max(cap === 'square' ? Math.SQRT2 / 2 : 0.5, join === 'miter' ? MITER_LIMIT / 2 : 0.5);
-  return Math.max(stroke && sw > 0 ? sw * reach : 0, headReach);
+  // Whole pixels, as the renderer pads: a fractional offset is snapped by the browser.
+  return Math.ceil(Math.max(stroke && sw > 0 ? sw * reach : 0, headReach));
 }
 
 /**

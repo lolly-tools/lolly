@@ -10,6 +10,7 @@ type Row = Record<string, unknown>;
 const path = (closed: boolean, nodes: Array<Record<string, number>>) => encodeAuthoredPaths([{ kind: 'cubic', closed, nodes }] as never) ?? '';
 const triangle = path(true, [{ x: 0, y: 1 }, { x: 0.5, y: 0 }, { x: 1, y: 1 }]);
 const wave = path(false, [{ x: 0, y: 0.5, hOutX: 0.2, hOutY: -0.5 }, { x: 0.5, y: 0.5, hInX: -0.2, hInY: 0.5, hOutX: 0.2, hOutY: -0.5 }, { x: 1, y: 0.5, hInX: -0.2, hInY: 0.5 }]);
+const diagonal = path(false, [{ x: 0, y: 0 }, { x: 1, y: 1 }]);
 const ring = encodeAuthoredPaths([
   { kind: 'cubic', closed: true, nodes: [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 1, y: 1 }, { x: 0, y: 1 }] },
   { kind: 'cubic', closed: true, nodes: [{ x: 0.25, y: 0.25 }, { x: 0.75, y: 0.25 }, { x: 0.75, y: 0.75 }, { x: 0.25, y: 0.75 }] },
@@ -73,6 +74,20 @@ export function fidelityPages(): FidelityPage[] {
         on('paths', { id: 'ring', kind: 'path', x: 40, y: 220, w: 150, h: 150, path: ring, bg: '#7048e8', fillRule: 'evenodd' }),
         on('paths', { id: 'dashed', kind: 'path', x: 240, y: 230, w: 160, h: 120, path: wave, stroke: '#e64980', strokeW: 6, strokeDash: 'dashed' }),
         on('paths', { id: 'flipped', kind: 'path', x: 440, y: 220, w: 160, h: 140, path: triangle, bg: '#12b886', flipV: true, rot: 15 }),
+        // Odd widths under round and square caps: their stroke pad is not a whole number of pixels.
+        on('paths', { id: 'hairline', kind: 'path', x: 430, y: 172, w: 180, h: 18, path: diagonal, stroke: '#212529', strokeW: 1 }),
+        on('paths', { id: 'odd-square', kind: 'path', x: 220, y: 175, w: 180, h: 30, path: diagonal, stroke: '#1864ab', strokeW: 3, strokeCap: 'square' }),
+      ],
+    },
+    {
+      // Design's dash keywords on pen shapes: dotted under each cap, and a dash given one length.
+      name: 'dashes', width: 640, height: 400,
+      rows: [
+        frame('dashes', { bg: '#ffffff' }),
+        on('dashes', { id: 'dotted', kind: 'path', x: 30, y: 40, w: 260, h: 120, path: wave, stroke: '#1864ab', strokeW: 6, strokeDash: 'dotted' }),
+        on('dashes', { id: 'dotted-butt', kind: 'path', x: 340, y: 40, w: 260, h: 120, path: wave, stroke: '#c92a2a', strokeW: 6, strokeDash: 'dotted', strokeCap: 'butt' }),
+        on('dashes', { id: 'dash-only', kind: 'path', x: 30, y: 230, w: 260, h: 120, path: wave, stroke: '#2b8a3e', strokeW: 4, strokeDash: 'dashed', strokeDashLen: 14 }),
+        on('dashes', { id: 'gap-only', kind: 'path', x: 340, y: 230, w: 260, h: 120, path: wave, stroke: '#862e9c', strokeW: 4, strokeDash: 'dashed', strokeGapLen: 9 }),
       ],
     },
     {

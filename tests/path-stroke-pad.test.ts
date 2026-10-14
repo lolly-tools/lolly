@@ -154,10 +154,11 @@ for (const h of HOSTS) {
 test('design: a square cap and a miter join size the pad up for themselves', async () => {
   const h = HOSTS[0];
   const sw = 40;
-  // A square cap's corner sits sw/2 along the tangent AND sw/2 across it: sw/2·√2.
+  // A square cap's corner sits sw/2 along the tangent AND sw/2 across it: sw/2·√2,
+  // rounded up to a whole pixel so the browser does not snap the offset.
   const square = pathSvg(await mount(h, { stroke: '#30ba78', strokeW: sw, strokeCap: 'square' }), 'square cap');
-  const squarePad = (Math.SQRT2 / 2) * sw;
-  assert.ok(Math.abs(square.width - (W + squarePad * 2)) < 0.02, `square cap pad: got ${square.width}`);
+  const squarePad = Math.ceil((Math.SQRT2 / 2) * sw);
+  assert.equal(square.width, W + squarePad * 2, `square cap pad: got ${square.width}`);
   // A miter spike is bounded by stroke-miterlimit · sw/2, and the limit is emitted
   // explicitly precisely so that bound is a fact rather than a per-renderer default.
   const html = await mount(h, { stroke: '#30ba78', strokeW: sw, strokeJoin: 'miter' });

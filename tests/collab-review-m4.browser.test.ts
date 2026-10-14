@@ -155,7 +155,8 @@ async function panelButton(page: Page, name: string): Promise<void> {
 }
 async function openPanel(page: Page): Promise<void> {
   if (await page.locator('.collab-comments-panel').evaluate(panel => !(panel as HTMLElement).hidden)) return;
-  await press(page, '.collab-comments-open');
+  await page.locator('.collab-settings').click();
+  await page.locator('.collab-settings-menu .collab-comments-open').click();
   await page.waitForFunction(() => document.querySelector<HTMLElement>('.collab-comments-panel')?.hidden === false, null, { polling: 'raf' });
 }
 async function closePanel(page: Page): Promise<void> {
@@ -314,7 +315,7 @@ test('M4 review: mentions, inbox notice, Open thread, unread, filters, jump and 
     assert.ok(savedAt > 0, 'the reply was saved');
     // The M4f gate: peer visibility under one second in the local browser.
     assert.ok(badgeAt - savedAt < 1_000, `the reply reached the reviewer through the live room (${badgeAt - savedAt} ms)`);
-    await reviewer.page.locator('.collab-comments-open .collab-comments-badge').waitFor();
+    await reviewer.page.locator('.collab-comments-open .collab-comments-badge').waitFor({ state: 'attached' });
     await waitForNotice(reviewer.page, 'comment-reply', mentionId);
     // The owner is not involved: the thread is unread for them, but they get no notice.
     await waitForLabel(owner.page, 'Comments, 1 unread');
@@ -607,14 +608,16 @@ test('M4 follow: Hide pointers, following a person, followers by name, one prese
     await owner.page.mouse.move(shape.x + 40, shape.y + 30, { steps: 4 });
     await pointerOf(editor.page, 'Admin').first().waitFor();
     await pointerOf(reviewer.page, 'Admin').first().waitFor();
-    await press(reviewer.page, 'button[aria-label="Hide pointers"]');
+    await reviewer.page.locator('.collab-settings').click();
+    await reviewer.page.getByRole('menuitemcheckbox', { name: 'Show pointers' }).click();
     await reviewer.page.waitForFunction(() => !document.querySelector('.collab-cursor:not([hidden])'), null, { polling: 'raf' });
     assert.equal(await reviewer.page.evaluate(() => localStorage.getItem('lolly.collab.pointers')), 'hidden');
     await owner.page.mouse.move(shape.x + 70, shape.y + 50, { steps: 4 });
     await editor.page.waitForFunction(() => [...document.querySelectorAll('.collab-cursor:not([hidden]) .collab-cursor-label')].some(l => l.textContent === 'Admin'), null, { polling: 'raf' });
     await frame(reviewer.page); await reviewer.page.waitForTimeout(400);
     assert.equal(await pointerOf(reviewer.page, 'Admin').count(), 0, 'the reviewer sees no pointers');
-    await press(reviewer.page, 'button[aria-label="Show pointers"]');
+    await reviewer.page.locator('.collab-settings').click();
+    await reviewer.page.getByRole('menuitemcheckbox', { name: 'Show pointers' }).click();
     await owner.page.mouse.move(shape.x + 30, shape.y + 60, { steps: 4 });
     await pointerOf(reviewer.page, 'Admin').first().waitFor();
     assert.equal(await reviewer.page.evaluate(() => localStorage.getItem('lolly.collab.pointers')), null);

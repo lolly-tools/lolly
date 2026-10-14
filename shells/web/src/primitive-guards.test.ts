@@ -1714,6 +1714,8 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // Registry icons only; labels use textContent and DOM attributes.
   'lib/text-control-ui.ts': 1,
   'lib/text-editor-controls.ts': 1,
+  // Collaboration settings use fixed registry icons; labels and status use textContent.
+  'views/tool-collab-controls.ts': 3,
   // Already admitted tool HTML enters an inert template for reconciliation.
   // Composed SVG comes from the bounded engine layout and admitted inline paint.
   'lib/text-edit-paint.ts': 2,

@@ -18,7 +18,7 @@ const controls: Record<string, IconName> = {
 export function commentIcon(button: HTMLButtonElement, key: string, override?: IconName): void {
   const glyph = override ?? controls[key]; if (!glyph) return;
   const label = button.textContent ?? '';
-  button.setAttribute('aria-label', label); button.title = label;
+  button.setAttribute('aria-label', label); button.title = button.dataset.tip = label;
   button.innerHTML = icon(glyph, { size: 18 });
   const text = button.ownerDocument.createElement('span'); text.className = 'visually-hidden'; text.textContent = label;
   button.append(text); button.classList.add('collab-comment-icon');
