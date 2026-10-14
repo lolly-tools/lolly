@@ -7,15 +7,15 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
-import { gaugeVisual, shareQueryOf, createUrlGauge } from './url-budget-gauge.ts';
+import { gaugeVisual, shareQueryOf, createShareMeter, attachShareMeter } from './url-budget-gauge.ts';
 import type { UrlCostModel } from './url-budget.ts';
 
 const BROWSER = { warn: 16000, hard: 64000 };
 
-// jsdom for the toast test (mirrors view-fade.test.ts). The gauge is position:absolute inside a
-// stage, with the toast as its sibling - exactly the shape tool.ts mounts.
+// jsdom for the meter + toast tests (mirrors view-fade.test.ts): a Share button that carries the
+// meter, and the toast in the stage - the shape tool.ts mounts.
 const dom = new JSDOM(
-  '<!doctype html><body><div id="stage"><div id="g"></div><div data-gauge-toast hidden></div></div></body>',
+  '<!doctype html><body><div id="stage"><button id="share" data-share-meter><span class="share-meter" aria-hidden="true"></span>Share</button><div id="toast" hidden></div></div></body>',
   { pretendToBeVisual: true, url: 'http://localhost/' }, // a real origin so localStorage works (the gauge reads it)
 );
 globalThis.window = dom.window as unknown as typeof globalThis.window;
@@ -70,33 +70,62 @@ test('shareQueryOf: an all-default model yields an empty query', () => {
   assert.equal(shareQueryOf(model), '');
 });
 
-test('toast: fires once when the bar first FILLS, skipped on mount, re-arms after dropping below', () => {
-  const g = document.querySelector('#g') as HTMLElement;
-  const toast = document.querySelector('[data-gauge-toast]') as HTMLElement;
-  const gauge = createUrlGauge(g, { used: () => 'x', reassure: 'keep going - .lolly' }, () => false);
+test('toast: fires once when the meter first FILLS, skipped on mount, re-arms after dropping below', () => {
+  const toast = document.querySelector('#toast') as HTMLElement;
+  const root = document.documentElement;
+  const meter = createShareMeter(toast, { used: () => 'x', reassure: 'keep going - .lolly' });
 
   // First paint (mount) with an already-FULL link: primed is false → NO toast (no pop on load).
-  gauge.update(model(20000), 'base');
+  meter.update(model(20000));
   assert.equal(toast.hidden, true, 'no toast on the mount paint even when already full');
 
-  gauge.update(model(500), 'base'); // drop well below full
+  meter.update(model(500)); // drop well below full
   assert.equal(toast.hidden, true);
 
-  gauge.update(model(20000), 'base'); // an EDIT crosses into full → toast
-  assert.equal(toast.hidden, false, 'toast appears when an edit fills the bar');
+  meter.update(model(20000)); // an EDIT crosses into full → toast
+  assert.equal(toast.hidden, false, 'toast appears when an edit fills the meter');
   assert.equal(toast.textContent, 'keep going - .lolly');
+  assert.equal(toast.parentElement, document.body, 'shown from <body>, so it can stand beside a Share button in any column');
 
   toast.hidden = true; // staying full must NOT re-fire
-  gauge.update(model(20000), 'base');
+  meter.update(model(20000));
   assert.equal(toast.hidden, true, 'no re-fire while it stays full');
 
-  gauge.update(model(500), 'base');   // drop, then fill again → re-arms
-  gauge.update(model(20000), 'base');
+  meter.update(model(500));   // drop, then fill again → re-arms
+  meter.update(model(20000));
   assert.equal(toast.hidden, false, 're-arms after dropping below full');
 
   // Unshareable content (fidelity loss) reds the band but that is a separate signal from the toast.
-  gauge.update(model(500, false), 'base');
-  assert.equal(g.dataset.band, 'over');
+  meter.update(model(500, false));
+  assert.equal(root.dataset.shareBand, 'over');
   assert.equal(toast.hidden, true, 'dropping below full hides the toast again');
-  gauge.dispose();
+  meter.dispose();
+  assert.equal(toast.isConnected, false, 'the toast goes with the tool');
+});
+
+test('meter: the state is on the root, every Share button describes it, and a late button catches up', () => {
+  const root = document.documentElement;
+  const share = document.querySelector('#share') as HTMLElement;
+  const meter = createShareMeter(null, { used: (pct) => `URL budget: ${pct}%`, reassure: '' });
+  meter.update(model(0));
+  assert.equal(root.style.getPropertyValue('--share-link-fill'), '0');
+  assert.equal(root.dataset.shareBand, 'ok');
+  meter.update(model(16000));
+  assert.equal(root.style.getPropertyValue('--share-link-fill'), '1', 'full at the warn target');
+  assert.equal(root.dataset.shareBand, 'warn');
+  assert.equal(share.getAttribute('aria-description'), 'URL budget: 100%', 'the number is spoken, not only coloured');
+
+  // A Share button built after the last edit (the export panel opening) is right at once.
+  const late = document.createElement('button');
+  attachShareMeter(late);
+  assert.equal(late.hasAttribute('data-share-meter'), true);
+  assert.equal(late.querySelectorAll('.share-meter').length, 1);
+  assert.equal(late.getAttribute('aria-description'), 'URL budget: 100%');
+  attachShareMeter(late);
+  assert.equal(late.querySelectorAll('.share-meter').length, 1, 'attaching twice adds one fill');
+
+  meter.dispose();
+  assert.equal(root.dataset.shareBand, undefined, 'unmount leaves no meter on another view');
+  assert.equal(root.style.getPropertyValue('--share-link-fill'), '');
+  assert.equal(share.hasAttribute('aria-description'), false);
 });

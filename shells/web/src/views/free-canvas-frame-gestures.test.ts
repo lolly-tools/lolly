@@ -527,8 +527,9 @@ test('A10: a frame label shows its NAME, and a double-click renames it', async (
       'unnamed artboards fall back to their 1-based place in the page order');
 
     tabs()[1]!.dispatchEvent(new dom.window.MouseEvent('dblclick', { bubbles: true, cancelable: true }));
-    const input = f.stageEl.querySelector<HTMLInputElement>('.fc-frame-rename');
-    assert.ok(input, 'the tab became an editor');
+    const input = f.stageEl.querySelector<HTMLInputElement>('.fc-frame-rename input');
+    assert.ok(input, 'the tab opened the rename prompt');
+    assert.equal(f.stageEl.querySelector('.fc-frame-rename')?.getAttribute('role'), 'dialog', 'a small prompt, not a bare field');
     input!.value = 'Closing';
     input!.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
     await settle();
@@ -553,7 +554,7 @@ test('A10: F2 and Enter reach the rename from the keyboard, and hand the focus b
 
     tab().focus();
     tab().dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'F2', bubbles: true, cancelable: true }));
-    let input = f.stageEl.querySelector<HTMLInputElement>('.fc-frame-rename');
+    let input = f.stageEl.querySelector<HTMLInputElement>('.fc-frame-rename input');
     assert.ok(input, 'F2 opens the editor');
     input!.value = 'Opening';
     input!.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
@@ -566,7 +567,7 @@ test('A10: F2 and Enter reach the rename from the keyboard, and hand the focus b
     const ev = new dom.window.KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true });
     tab().dispatchEvent(ev);
     assert.equal(ev.defaultPrevented, true);
-    input = f.stageEl.querySelector<HTMLInputElement>('.fc-frame-rename');
+    input = f.stageEl.querySelector<HTMLInputElement>('.fc-frame-rename input');
     assert.ok(input, 'Enter opens it too');
     input!.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
     await settle();
@@ -581,12 +582,38 @@ test('A10: Escape cancels a rename and writes nothing', async () => {
     const before = f.writes();
     const tab = f.stageEl.querySelector<HTMLElement>('.fc-frame-label')!;
     tab.dispatchEvent(new dom.window.MouseEvent('dblclick', { bubbles: true, cancelable: true }));
-    const input = f.stageEl.querySelector<HTMLInputElement>('.fc-frame-rename')!;
+    const input = f.stageEl.querySelector<HTMLInputElement>('.fc-frame-rename input')!;
     input.value = 'Nope';
     input.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
     await settle();
     assert.equal(f.byId('f1').name, undefined);
     assert.equal(f.writes(), before, 'nothing committed');
+  } finally { f.destroy(); }
+});
+
+test('A10: a double TAP on a frame tab opens the rename prompt, where no dblclick arrives', async () => {
+  const f = mount(DECK());
+  try {
+    await settle();
+    const tap = (at: number): void => {
+      const tab = f.stageEl.querySelectorAll<HTMLElement>('.fc-frame-label')[1]!;
+      const e = new W.MouseEvent('pointerdown', { bubbles: true, cancelable: true, clientX: 0, clientY: 0, button: 0 });
+      Object.defineProperty(e, 'pointerId', { value: 2 });
+      Object.defineProperty(e, 'pointerType', { value: 'touch' });
+      Object.defineProperty(e, 'timeStamp', { value: at });
+      tab.dispatchEvent(e);
+      tab.dispatchEvent(pointerEvent('pointerup', 0, 0));
+    };
+    tap(1000);
+    await settle();
+    assert.equal(f.stageEl.querySelector('.fc-frame-rename'), null, 'one tap only selects');
+    tap(1200);
+    const input = f.stageEl.querySelector<HTMLInputElement>('.fc-frame-rename input');
+    assert.ok(input, 'the second tap opened the prompt');
+    input!.value = 'Closing';
+    input!.dispatchEvent(new W.KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+    await settle();
+    assert.equal(f.byId('f2').name, 'Closing');
   } finally { f.destroy(); }
 });
 

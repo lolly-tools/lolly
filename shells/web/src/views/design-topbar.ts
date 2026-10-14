@@ -49,6 +49,7 @@ import { compactDesignViewport } from '../lib/design-panel-layout.ts';
 import { t } from '../i18n.ts';
 import { isTypingTarget } from '../lib/typing-target.ts';
 import { icon, type IconName } from '../lib/icons.ts';
+import { attachShareMeter } from '../lib/url-budget-gauge.ts';
 import type { NarrationActions } from './design-ports.ts';
 
 /**
@@ -397,6 +398,8 @@ export function mountDesignTopbar(opts: DesignTopbarOpts): DesignTopbar {
   right.appendChild(moreBtn);
 
   const shareBtn = mkBtn('share', t('Share'), icon('share'), { text: t('Share') });
+  // The share-link meter fills this button as the link grows (lib/url-budget-gauge.ts).
+  attachShareMeter(shareBtn);
   shareBtn.addEventListener('click', () => opts.share());
   right.appendChild(shareBtn);
 

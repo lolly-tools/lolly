@@ -61,7 +61,6 @@
 .tool-view.is-chrome-hidden .fc-ctxbar,
 .tool-view.is-chrome-hidden .fc-frame-labels,
 .tool-view.is-chrome-hidden [data-back-pill],
-.tool-view.is-chrome-hidden .url-budget,
 .tool-view.is-chrome-hidden .render-pill { display: none !important; }
 /* The hidden state takes the chrome's SPACE back as well. The columns' reserves live as
    inline custom properties on the stage and the right dock's width on <html>, and with
@@ -142,7 +141,7 @@ html:has(.tool-view.is-chrome-hidden) .edge-dock-drop { display: none !important
      pill and swallowed its clicks: the label read as "ome" and the link could not be hit
      (Andy's screenshot, 2026-09-02). design-topbar's `measure` writes the property and
      it defaults to 0, so an editor with no top bar lays the column out as before. */
-  top: var(--stage-reserve-top, 54px);
+  top: 54px; /* intentionally not a variable */
   box-shadow: var(--ui-elevation-rail);
   padding-left: 0;
   justify-content: center;
@@ -1107,21 +1106,11 @@ html[data-a11y-motion="reduce"] .fc-toolbar .fc-btn { transition: none; }
 .fc-frame-label.is-active { color: hsl(var(--primary)); }
 .fc-frame-label:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 1px; }
 
-/* Inline artboard rename (plans/179 A10) - sits on the tab's own rect, so the name is
-   edited where it is read. Same type as the tab so nothing jumps on the swap. */
-.fc-frame-rename {
-  position: absolute;
-  pointer-events: auto;
-  width: 160px; max-width: 240px;
-  height: calc(19px * var(--a11y-fs));
-  padding: 0 5px;
-  border: 1px solid hsl(var(--primary));
-  border-radius: var(--radius-sm);
-  background: hsl(var(--background));
-  color: hsl(var(--foreground));
-  font: inherit; font-size: var(--fs-xs); font-weight: 600;
-  line-height: calc(17px * var(--a11y-fs));
-}
+/* Artboard rename (plans/179 A10) - the editor's one-field prompt (`.fc-panel` +
+   `.fc-num-panel`), opened on the tab's own rect so the name is edited where it is read.
+   Only what the tab layer needs is local: the layer is click-through, the prompt is not. */
+.fc-frame-rename { pointer-events: auto; }
+.fc-frame-rename .field-input { flex: 1; min-width: 0; }
 
 /* Toolbar canvas-background - the shared colour picker, compacted to a swatch. */
 .fc-color-btn { padding: 0; overflow: visible; }

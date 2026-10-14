@@ -299,6 +299,7 @@
   /* glass top-light */
   --bevel: inset 0 1px hsl(0 0% 100% / .1);
   --bevel-inset: inset 0 0px 2px #0003, inset -1px 2px 5px #0001, 0 1px var(--ui-color-surface-raised);
+  --bevel-input-well: inset 3px 2px 10px var(--ui-color-surface-canvas);
   /* focus rings */
   --ring-focus: 0 0 0 3px hsl(var(--ring) / .15);
   --ring-focus-strong: 0 0 0 2px hsl(var(--primary) / .35);
@@ -401,6 +402,7 @@
   --ui-effect-accent-ring: inset 0 0 0 1px hsl(var(--primary) / .20);
   --ui-effect-selection-ring: 0 0 0 2px var(--ui-color-selection-border);
   --ui-effect-selection-ring-hover: 0 0 0 2px color-mix(in srgb, var(--ui-color-selection-border) 40%, transparent);
+  --ui-effect-input-well: var(--bevel-input-well);
   --ui-type-display: calc(64px * var(--a11y-fs));
   --ui-type-heading: calc(28px * var(--a11y-fs));
   --ui-type-lead: calc(18px * var(--a11y-fs));

@@ -1179,7 +1179,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // close button's `innerHTML = icon('close')` on the line above it - `icon()`
   // interpolates nothing, it looks a name up in a closed literal table and
   // returns a fixed path string, and the name here is an InspectorSection key.
-  'views/design-inspector.ts': 3,
+  'views/design-inspector.ts': 2,
   'views/doc-editor.ts': 1,
   // 1 as of 2026-07-31: applyPreflight writes the "Before you export" card body.
   // Reviewed - every value at that sink comes from preflightBodyHtml, which
@@ -1984,7 +1984,8 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // Shared surfaces replace repeated paint in the pending editor and report work.
     // 263 to 262: the docs reading components print with an outline, not a shadow.
     // 260 to 259: the recommended Share file card uses the semantic bevel.
-    pin: 259,
+    // 259 to 257: export controls share the canonical inset surface.
+    pin: 257,
     count: (t) => [...t.matchAll(/box-shadow:\s*([^;}]+)/g)]
       .map(m => m[1]!.trim())
       .filter(v => v !== 'none' && !/var\(--(?:ui-(?:edge|elevation|effect)|shadow|edge|ring-focus|bevel)/.test(v)).length,

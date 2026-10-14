@@ -426,7 +426,7 @@ export async function wireSidebar(tview: ToolViewCtx): Promise<void> {
             : ''
       }
       <div class="tool-stage" id="tool-stage">
-        ${runtime.manifest.render.urlSync !== false && !exportUiEmpty && !visitorPage && !isIframeMode() ? `<div class="url-budget" id="url-budget-gauge" role="button" tabindex="0" aria-label="${escapeText(t('URL budget'))}" title="${escapeText(t('URL budget'))}" hidden><span class="url-budget-fill" data-gauge-fill></span></div><div class="url-budget-toast" data-gauge-toast role="status" aria-live="polite" hidden></div>` : ''}
+        ${runtime.manifest.render.urlSync !== false && !exportUiEmpty && !visitorPage && !isIframeMode() ? `<div class="share-meter-toast" id="share-meter-toast" role="status" aria-live="polite" hidden></div>` : ''}
         ${showAside && !isIframeMode() ? `<button type="button" class="fullscreen-toggle-float" id="fullscreen-toggle-float" data-tip-below data-tip-align="start" data-tip="${escapeText(t('Expand sidebar'))}" aria-label="${escapeText(t('Expand sidebar'))}">${icon('arrowRight')}</button>` : ''}
         ${
           hideSidebar && onDevice && toolId !== 'rondocode' && !isIframeMode()
@@ -992,11 +992,11 @@ export async function wireCanvas(tview: ToolViewCtx): Promise<void> {
   // can flash and clear it from the input-change chokepoint.
   tview.renderSaveBtn = null;
   const renderPill = viewEl.querySelector<HTMLElement>('#render-pill'); tview.renderPill = renderPill;
-  // The ambient URL-budget gauge (plan 115 P1) - a draggable vertical bar showing the
-  // share-link cost of the current edit (reads the P0 cost model, never the address bar).
-  // The instance is created after actionsApi (below) so a click can open the Share dialog;
+  // The share-link meter (plan 115 P1), drawn inside the Share buttons: the share-link cost
+  // of the current edit (reads the P0 cost model, never the address bar). Only its toast is
+  // markup here, and only where links are shared at all; the instance is created in setup,
   // the holder is declared here so syncUrl + _cleanup (both above that point) can see it.
-  const urlGaugeEl = viewEl.querySelector<HTMLElement>('#url-budget-gauge'); tview.urlGaugeEl = urlGaugeEl as ToolViewCtx['urlGaugeEl'];
+  const shareToastEl = viewEl.querySelector<HTMLElement>('#share-meter-toast'); tview.shareToastEl = shareToastEl;
   tview.urlGauge = null;
   const renderFab = viewEl.querySelector<HTMLButtonElement>('#render-fab'); tview.renderFab = renderFab as ToolViewCtx['renderFab']; // the "Export" half (opens export)
   tview.renderSaveBtn = viewEl.querySelector<HTMLButtonElement>('#render-save'); // the "Save" half (outer-scoped)
@@ -1247,7 +1247,7 @@ export async function wireCanvas(tview: ToolViewCtx): Promise<void> {
     } catch (e) {
       console.error('[tool] stopLive on teardown:', e);
     }
-    tview.urlGauge?.dispose(); // cancel any pending pack-refine timer so it can't fire post-teardown
+    tview.urlGauge?.dispose(); // clear the Share buttons' meter and take the toast down with the tool
     // FIRST, because everything below destroys the thing it reads. Starting a collab
     // remounts this tool through a route that cannot carry an uploaded asset, a picked
     // file, a long paragraph or the slot - so when (and only when) that remount is the

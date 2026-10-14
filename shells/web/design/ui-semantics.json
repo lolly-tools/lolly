@@ -467,6 +467,10 @@
               "css": "0 0 0 2px color-mix(in srgb, var(--ui-color-selection-border) 40%, transparent)"
             }
           }
+        },
+        "input-well": {
+          "$type": "shadow",
+          "$value": "{lolly.foundation.bevel.input-well}"
         }
       },
       "type": {

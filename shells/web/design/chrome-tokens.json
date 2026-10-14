@@ -219,6 +219,22 @@
           "css": "inset 0 0px 2px #0003, inset -1px 2px 5px #0001, 0 1px var(--ui-color-surface-raised)"
         }
       }
+    },
+    "input-well": {
+      "$type": "shadow",
+      "$description": "Inset surface shared by export size, density and format controls.",
+      "$value": {
+        "color": "#0b1021",
+        "offsetX": "3px",
+        "offsetY": "2px",
+        "blur": "10px",
+        "spread": "0px"
+      },
+      "$extensions": {
+        "tools.lolly": {
+          "css": "inset 3px 2px 10px var(--ui-color-surface-canvas)"
+        }
+      }
     }
   },
   "ring-focus": {
@@ -255,7 +271,7 @@
     }
   },
   "radius": {
-    "$description": "Radius scale derived from the design system's shape.radius source (--radius). Zero makes every Lolly UI corner square; any non-zero base turns the high 999× step into a pill/round treatment.",
+    "$description": "Radius scale derived from the design system's shape.radius source (--radius). Zero makes every Lolly UI corner square; any non-zero base turns the high 999\u00d7 step into a pill/round treatment.",
     "xs": {
       "$type": "dimension",
       "$value": "4px",
@@ -360,42 +376,90 @@
     "1": {
       "$type": "dimension",
       "$value": "2px",
-      "$extensions": { "tools.lolly": { "css": "calc(var(--space) * .25)", "derivedFrom": "space.base", "multiplier": 0.25 } }
+      "$extensions": {
+        "tools.lolly": {
+          "css": "calc(var(--space) * .25)",
+          "derivedFrom": "space.base",
+          "multiplier": 0.25
+        }
+      }
     },
     "2": {
       "$type": "dimension",
       "$value": "4px",
-      "$extensions": { "tools.lolly": { "css": "calc(var(--space) * .5)", "derivedFrom": "space.base", "multiplier": 0.5 } }
+      "$extensions": {
+        "tools.lolly": {
+          "css": "calc(var(--space) * .5)",
+          "derivedFrom": "space.base",
+          "multiplier": 0.5
+        }
+      }
     },
     "3": {
       "$type": "dimension",
       "$value": "6px",
-      "$extensions": { "tools.lolly": { "css": "calc(var(--space) * .75)", "derivedFrom": "space.base", "multiplier": 0.75 } }
+      "$extensions": {
+        "tools.lolly": {
+          "css": "calc(var(--space) * .75)",
+          "derivedFrom": "space.base",
+          "multiplier": 0.75
+        }
+      }
     },
     "4": {
       "$type": "dimension",
       "$value": "8px",
-      "$extensions": { "tools.lolly": { "css": "var(--space)", "derivedFrom": "space.base", "multiplier": 1 } }
+      "$extensions": {
+        "tools.lolly": {
+          "css": "var(--space)",
+          "derivedFrom": "space.base",
+          "multiplier": 1
+        }
+      }
     },
     "5": {
       "$type": "dimension",
       "$value": "10px",
-      "$extensions": { "tools.lolly": { "css": "calc(var(--space) * 1.25)", "derivedFrom": "space.base", "multiplier": 1.25 } }
+      "$extensions": {
+        "tools.lolly": {
+          "css": "calc(var(--space) * 1.25)",
+          "derivedFrom": "space.base",
+          "multiplier": 1.25
+        }
+      }
     },
     "6": {
       "$type": "dimension",
       "$value": "12px",
-      "$extensions": { "tools.lolly": { "css": "calc(var(--space) * 1.5)", "derivedFrom": "space.base", "multiplier": 1.5 } }
+      "$extensions": {
+        "tools.lolly": {
+          "css": "calc(var(--space) * 1.5)",
+          "derivedFrom": "space.base",
+          "multiplier": 1.5
+        }
+      }
     },
     "7": {
       "$type": "dimension",
       "$value": "16px",
-      "$extensions": { "tools.lolly": { "css": "calc(var(--space) * 2)", "derivedFrom": "space.base", "multiplier": 2 } }
+      "$extensions": {
+        "tools.lolly": {
+          "css": "calc(var(--space) * 2)",
+          "derivedFrom": "space.base",
+          "multiplier": 2
+        }
+      }
     },
     "8": {
       "$type": "dimension",
       "$value": "24px",
-      "$extensions": { "tools.lolly": { "css": "calc(var(--space) * 3)", "derivedFrom": "space.base", "multiplier": 3 } }
+      "$extensions": {
+        "tools.lolly": {
+          "css": "calc(var(--space) * 3)",
+          "derivedFrom": "space.base",
+          "multiplier": 3
+        }
+      }
     }
   },
   "dur": {

@@ -498,15 +498,16 @@ const openSecs = (h: Harness): string[] => [...h.el.querySelectorAll<HTMLElement
 
 // ── section visibility per kind ───────────────────────────────────────────────
 
-test('empty selection shows only Document: canvas size, background, and why nothing else is here', () => {
+test('empty selection shows the Canvas sections: dimensions, style and look, and why nothing else is here', () => {
   const h = mount();
-  assert.deepEqual(secs(h), ['document']);
+  assert.deepEqual(secs(h), ['dimensions', 'look']);
+  assert.equal(h.el.querySelector('.lp-band-label'), null, 'the Canvas tab already names them, so no band word repeats it');
   const check = h.el.querySelector<HTMLElement>('[data-design-check]');
   assert.equal(check?.dataset.designCheck, 'clean');
   assert.match(check?.textContent ?? '', /1 Artboard · 3 Layers/);
   assert.match(h.el.textContent!, /1600 x 900 px/);
   assert.ok(h.el.querySelector('[data-color-field]'), 'the background swatch is a real colour field');
-  assert.deepEqual([...h.el.querySelectorAll('.fc-insp-tabs button')].map(b => b.textContent), ['Selection', 'Document']);
+  assert.deepEqual([...h.el.querySelectorAll('.fc-insp-tabs button')].map(b => b.textContent), ['Selection', 'Canvas']);
   h.handle.destroy();
 });
 
@@ -1212,7 +1213,7 @@ test('the groups that start open are the ones every selection has something in',
   h.select(['f1']);
   assert.ok(openSecs(h).includes('artboard'));
   h.select([]);
-  assert.deepEqual(openSecs(h), ['document']);
+  assert.deepEqual(openSecs(h), ['dimensions', 'look']);
   h.handle.destroy();
 });
 
@@ -1291,6 +1292,16 @@ test("reveal() expands its target, and falls through when the section it names i
   h.handle.reveal('object');
   assert.equal(h.el.querySelector('[data-head="fill"]')!.getAttribute('aria-expanded'), 'true');
   assert.equal(document.activeElement, h.el.querySelector('[data-head="fill"]'));
+  h.handle.destroy();
+});
+
+test("reveal('document') opens the Canvas tab on its first section, whatever is selected", () => {
+  const h = mount();
+  h.select(['b1']);
+  h.handle.reveal('document');
+  assert.deepEqual(secs(h), ['dimensions', 'look']);
+  assert.equal(h.el.querySelector('.fc-insp-tabs button[aria-pressed="true"]')?.textContent, 'Canvas');
+  assert.equal(document.activeElement, h.el.querySelector('[data-head="dimensions"]'));
   h.handle.destroy();
 });
 

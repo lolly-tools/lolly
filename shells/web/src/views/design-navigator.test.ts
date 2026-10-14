@@ -220,6 +220,7 @@ function mount(rows: Box[], opt: {
       fire();
     },
     addArtboardAfter: (id) => c.actions.push(`add:${id}`),
+    deleteLayer: (id) => { c.actions.push(`deleteLayer:${id}`); },
     ...(opt.present ? { present: (id: string) => c.actions.push(`present:${id}`) } : {}),
     ...(opt.reorderChildren === false ? {} : {
       reorderChildren: (frameId: string, ids: string[]) => c.reorderChildren.push({ frameId, ids }),
@@ -731,6 +732,25 @@ test('layers: H hides and L locks from the ROW - the toggles are not tab stops',
   assert.deepEqual(f.c.setField.at(-1), { ids: ['c3'], field: 'hidden', value: false }, 'and back again');
   key(f.layerEls()[0]!, 'L');
   assert.deepEqual(f.c.setField.at(-1), { ids: ['c3'], field: 'locked', value: true }, 'either case');
+  f.nav.destroy();
+});
+
+test('layers: every row has the artboard row\'s actions button, so touch reaches Delete', () => {
+  // A right-click was the only way into a layer's menu, and a touch screen has no right
+  // button; the menu also had Rename and no Delete at all.
+  const f = mount(WITH_KIDS, { active: 'f1' });
+  const doc = f.nav.el.ownerDocument;
+  const kebab = f.layerEls()[1]!.parentElement!.querySelector<HTMLButtonElement>('[data-nav-menu-btn]');
+  assert.ok(kebab, 'the same button the artboard rows carry');
+  assert.equal(kebab!.getAttribute('aria-label'), 'Actions for Hello there');
+  click(kebab!);
+  const items = [...doc.querySelectorAll<HTMLButtonElement>('.fc-nav-layer-menu .fc-nav-menu-item')];
+  assert.deepEqual(items.map((b) => b.textContent).filter((l) => l === 'Rename layer' || l === 'Delete layer'), ['Rename layer', 'Delete layer']);
+  click(items.find((b) => b.textContent === 'Delete layer')!);
+  assert.deepEqual(f.c.actions, ['deleteLayer:c2']);
+  // …and the keyboard's own key, on the row.
+  key(f.layerEls()[0]!, 'Delete');
+  assert.equal(f.c.actions.at(-1), 'deleteLayer:c3');
   f.nav.destroy();
 });
 
@@ -1511,8 +1531,10 @@ test('the column is laid out INSIDE the docked bands, never under them', () => {
   // painted over, and `.fc-nav-toggle` (the only way back out of the collapsed rail)
   // swallowed no clicks at all: the bar was above it. The inspector column always got
   // this right, which is what made it read as an oversight rather than a choice.
+  // The band is a FIXED 54px, on purpose (Andy, 2026-10-14: "intentionally not a
+  // variable"): the column starts below the bar's own height whatever the bar measured.
   const body = ruleBody(NAV_CSS, '.fc-nav');
-  assert.match(body, /top:\s*var\(--stage-reserve-top,\s*54px\)/, 'offset by the top bar\'s own band');
+  assert.match(body, /top:\s*54px/, 'offset by the top bar\'s own band');
   assert.match(body, /bottom:\s*var\(--stage-reserve-bottom,\s*0px\)/, 'and by the docked timeline\'s');
 });
 
@@ -1586,7 +1608,7 @@ test('the rail docked as a left column starts below the top bar, like the naviga
   // its clicks: the label read as "ome" and elementFromPoint over it returned the dock
   // (Andy's screenshot, 2026-09-02). Same defect the navigator had, same fix.
   const body = ruleBody(EDITOR_CSS, '.tool-stage.has-tl-reserve .fc-toolbar-dock');
-  assert.match(body, /top:\s*var\(--stage-reserve-top,\s*54px\)/);
+  assert.match(body, /top:\s*54px/, 'the same fixed band as the navigator');
 });
 
 test('two edits to one board before the paint frame clone it once, after the paint', () => {

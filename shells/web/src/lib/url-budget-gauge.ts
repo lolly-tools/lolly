@@ -1,23 +1,27 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The ambient URL-budget gauge (plan 115 P1). A small draggable bar in the tool chrome that
- * fills as you add content, so a team can SEE how heavy a shareable link is getting. It READS
+ * The share-link meter (plan 115 P1), drawn INSIDE every Share button as a progress fill, so a
+ * team can SEE how heavy a shareable link is getting at the control that shares the link. It READS
  * the P0 cost model (costUrlState), never the raw address bar.
  *
- * It is a CONTENT-VOLUME meter (see gaugeVisual): the fill HEIGHT is a LOG curve of the content
- * length so the bar visibly responds to every edit (a linear byte/limit fraction sat near-empty
- * for any normal amount of content and read as "no feedback"), and it reaches the top only at a
- * genuinely large amount. The COLOUR stays calm - links pack and there is always the .lolly - so
- * it goes red only when content literally can't ride in a link (a device-local image) or is huge
- * past even packing. When it fills, a reassurance toast says "keep going, share the .lolly". The
- * render is pure + synchronous; the true copy-link size + the "shortest link" packing are the
- * Share dialog's job, not the ambient gauge's.
+ * It used to be a free-standing draggable bar on the stage, which other tools' chrome kept
+ * covering. The state now lives on the document root - `--share-link-fill` (0..1) and
+ * `data-share-band` - and each button marked `[data-share-meter]` paints it through its own
+ * `.share-meter` child (SHARE_METER_HTML / shareMeterNode). A button built after the last
+ * edit (the export panel, a re-laid-out top bar) is therefore right the moment it exists.
  *
- * Chrome-only: the caller mounts this in tool chrome, NEVER inside .tool-canvas /
- * #tool-content / the export stage. The gauge writes nothing that reaches a render.
+ * It is a CONTENT-VOLUME meter (see gaugeVisual): the fill is a LOG curve of the content
+ * length so it visibly responds to every edit (a linear byte/limit fraction sat near-empty
+ * for any normal amount of content and read as "no feedback"), and it reaches the end only at
+ * a genuinely large amount. The COLOUR stays calm - links pack and there is always the .lolly
+ * - so it goes red only when content literally can't ride in a link (a device-local image) or
+ * is huge past even packing. When it fills, a reassurance toast beside the visible Share button
+ * says "keep going, share the .lolly". The true copy-link size and the "shortest link" packing
+ * are the Share dialog's job, not the meter's.
+ *
+ * Chrome-only: nothing here reaches .tool-canvas / #tool-content / the export stage.
  */
 import type { UrlCostModel } from './url-budget.ts';
-import { attachWobble } from './wobble.ts';
 
 export type GaugeBand = 'ok' | 'warn' | 'over';
 
@@ -61,167 +65,105 @@ export function shareQueryOf(model: UrlCostModel): string {
 }
 
 export interface GaugeLabels {
-  /** e.g. (42, 'warn') => "URL budget: 42% used". Localised by the caller. */
+  /** e.g. (42, 'warn') => "URL budget: 42%". Localised by the caller; it becomes each Share
+   *  button's accessible description, since the fill itself is decorative. */
   used: (pct: number, band: GaugeBand) => string;
-  /** Reassurance shown from the meter the first time a link FILLS the bar - "it's okay,
-   *  keep going, you can share the .lolly file". A calm nudge, never a blocking warning. */
+  /** Reassurance shown beside the Share button the first time a link FILLS the meter - "it's
+   *  okay, keep going, you can share the .lolly file". A calm nudge, never a blocking warning. */
   reassure: string;
 }
 
 /** How long the reassurance toast stays up before it fades on its own (ms). */
 const TOAST_MS = 6000;
 
+/** The meter's markup inside a Share button: decorative, painted under the label. */
+export const SHARE_METER_HTML = '<span class="share-meter" aria-hidden="true"></span>';
+
+/** The same meter as a node, for buttons built with createElement. */
+export function shareMeterNode(doc: Document = document): HTMLSpanElement {
+  const span = doc.createElement('span');
+  span.className = 'share-meter';
+  span.setAttribute('aria-hidden', 'true');
+  return span;
+}
+
+/**
+ * Make `button` a Share button that carries the meter: the marker, the decorative fill and,
+ * when a tool has already measured its link, the description that fill stands for.
+ */
+export function attachShareMeter(button: HTMLElement): void {
+  button.setAttribute('data-share-meter', '');
+  if (!button.querySelector(':scope > .share-meter')) button.prepend(shareMeterNode(button.ownerDocument));
+  const description = button.ownerDocument.documentElement.dataset.shareMeterText;
+  if (description) button.setAttribute('aria-description', description);
+}
+
 export interface UrlGauge {
-  /** Render a fresh cost model. `base` is the full-URL base (origin + '/t/<id>?') so the
-   *  packed length is measured against the same absolute ceiling as readableLen. */
-  update(model: UrlCostModel, base: string): void;
-  /** Cancel timers + listeners - call on tool unmount so nothing fires after teardown. */
+  /** Render a fresh cost model. `base` is accepted for the callers' symmetry; the meter
+   *  measures content only (readableLen - baseLen). */
+  update(model: UrlCostModel, base?: string): void;
+  /** Clear the root state, cancel the toast timer and take the toast down - call on tool
+   *  unmount so no Share button elsewhere keeps showing this tool's link. */
   dispose(): void;
 }
 
-/** localStorage key for the gauge's dragged position - a chrome pref (device-local, like
- *  the theme), NOT tool state. */
-const POS_KEY = 'lolly-url-gauge-pos';
-/** Pointer travel (px) past which a press is a drag, not a click. */
-const DRAG_THRESHOLD = 4;
+/** The Share button the toast should stand beside: the first one actually on screen. */
+function visibleShareButton(doc: Document): HTMLElement | null {
+  for (const el of doc.querySelectorAll<HTMLElement>('[data-share-meter]')) {
+    if (el.getClientRects().length && !el.closest('[hidden], [inert]')) return el;
+  }
+  return null;
+}
 
 /**
- * Wire a gauge to a chrome element that has `[data-gauge-fill]` (the fill) and takes
- * `--gauge-frac` (0..1) + `data-band` / `data-state`. Also makes it DRAGGABLE (the user
- * repositions it instead of it hiding - position persists across sessions) and calls
- * `onActivate` on a click that wasn't a drag (opens the Share dialog). `prefersReducedMotion`
- * is accepted for API symmetry; the CSS gates the actual transitions.
+ * Drive the Share buttons' meter from the cost model. `toastEl` is the reassurance bubble
+ * (a `role="status"` region); it is moved to <body> while shown, so it can stand beside a
+ * Share button in any column, and taken down again by `dispose`.
  */
-export function createUrlGauge(
-  el: HTMLElement,
-  labels: GaugeLabels,
-  _prefersReducedMotion: () => boolean,
-  onActivate?: () => void,
-): UrlGauge {
-  const pctEl = el.querySelector<HTMLElement>('[data-gauge-pct]');
-
-  // The reassurance toast (a sibling of the gauge in #tool-stage). Shown once each time a
-  // link FIRST fills the bar, then it fades on its own - never a blocker, just "keep going".
-  const toastEl = el.parentElement?.querySelector<HTMLElement>('[data-gauge-toast]') ?? null;
+export function createShareMeter(toastEl: HTMLElement | null, labels: GaugeLabels): UrlGauge {
+  const doc = toastEl?.ownerDocument ?? document;
+  const root = doc.documentElement;
   let toastTimer: ReturnType<typeof setTimeout> | null = null;
-  let wasFull = false; // last-seen "bar is at the top" state, so the toast only fires on entry
+  let wasFull = false; // last-seen "meter is full" state, so the toast only fires on entry
   let primed = false;  // the first paint (mount / a loaded link) records state WITHOUT toasting -
-                       // reassurance is for when the user's own editing fills the bar, not on load
+                       // reassurance is for when the user's own editing fills it, not on load
   const hideToast = (): void => {
     if (toastTimer) { clearTimeout(toastTimer); toastTimer = null; }
     if (toastEl) toastEl.hidden = true;
   };
   const showToast = (): void => {
     if (!toastEl) return;
+    if (toastEl.parentElement !== doc.body) doc.body.append(toastEl);
     toastEl.textContent = labels.reassure;
-    // Park it beside the gauge (which the user may have dragged anywhere): to the right by
-    // default, flipped left when the gauge sits in the right half of its stage. Both are
-    // stage-relative, matching the gauge's own position:absolute coords.
-    const p = el.offsetParent as HTMLElement | null;
-    const stageW = p ? p.clientWidth : window.innerWidth;
-    toastEl.hidden = false; // unhide first so offsetWidth is real for the flip decision
-    const toRight = el.offsetLeft + el.offsetWidth / 2 < stageW / 2;
-    toastEl.style.top = `${el.offsetTop}px`;
-    if (toRight) {
-      toastEl.style.left = `${el.offsetLeft + el.offsetWidth + 10}px`;
-      toastEl.style.right = 'auto';
-    } else {
-      toastEl.style.left = 'auto';
-      toastEl.style.right = `${Math.max(4, stageW - el.offsetLeft + 10)}px`;
-    }
+    toastEl.hidden = false; // unhide first so its size is real for the placement below
+    const view = doc.defaultView;
+    const vw = view?.innerWidth ?? 0, vh = view?.innerHeight ?? 0;
+    const w = toastEl.offsetWidth, h = toastEl.offsetHeight;
+    const at = visibleShareButton(doc)?.getBoundingClientRect();
+    // Under the button, its right edges aligned; above it when there is no room below.
+    // With no Share button on screen (a narrow top bar, a closed export panel) it takes
+    // the top-left corner the old free-standing meter lived in.
+    let left = at ? at.right - w : 12;
+    let top = at ? at.bottom + 8 : 12;
+    if (at && top + h > vh - 8) top = at.top - 8 - h;
+    left = Math.max(8, Math.min(left, vw - w - 8));
+    top = Math.max(8, top);
+    toastEl.style.left = `${Math.round(left)}px`;
+    toastEl.style.top = `${Math.round(top)}px`;
     if (toastTimer) clearTimeout(toastTimer);
     toastTimer = setTimeout(hideToast, TOAST_MS);
   };
 
-  // Position is stage-relative (the gauge is position:absolute inside #tool-stage), so
-  // drags + persistence use offsetLeft/offsetTop and clamp to the offset parent's box.
-  const bounds = (): { maxL: number; maxT: number } => {
-    const p = el.offsetParent as HTMLElement | null;
-    return {
-      maxL: Math.max(4, (p ? p.clientWidth : window.innerWidth) - el.offsetWidth - 4),
-      maxT: Math.max(4, (p ? p.clientHeight : window.innerHeight) - el.offsetHeight - 4),
-    };
-  };
-
-  // ── restore the dragged position (clamped in case the stage is smaller here) ──
-  try {
-    const saved = JSON.parse(localStorage.getItem(POS_KEY) || 'null');
-    if (saved && typeof saved.left === 'number' && typeof saved.top === 'number') {
-      const { maxL, maxT } = bounds();
-      el.style.left = `${Math.max(4, Math.min(saved.left, maxL))}px`;
-      el.style.top = `${Math.max(4, Math.min(saved.top, maxT))}px`;
-    }
-  } catch { /* no/bad storage - keep the CSS default (canvas top-left) */ }
-
-  // ── drag to move / click to share ──
-  let dragging = false;
-  let moved = false;
-  let startX = 0;
-  let startY = 0;
-  let baseLeft = 0;
-  let baseTop = 0;
-  let prevX = 0;
-  let prevY = 0;
-  const wobble = attachWobble(el);
-
-  const onMove = (e: PointerEvent): void => {
-    if (!dragging) return;
-    wobble.drag(e.clientX - prevX, e.clientY - prevY);
-    prevX = e.clientX;
-    prevY = e.clientY;
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
-    if (!moved && Math.hypot(dx, dy) > DRAG_THRESHOLD) moved = true;
-    if (!moved) return;
-    const { maxL, maxT } = bounds();
-    el.style.left = `${Math.min(Math.max(baseLeft + dx, 4), maxL)}px`;
-    el.style.top = `${Math.min(Math.max(baseTop + dy, 4), maxT)}px`;
-  };
-  const onUp = (): void => {
-    if (!dragging) return;
-    dragging = false;
-    wobble.release();
-    window.removeEventListener('pointermove', onMove);
-    window.removeEventListener('pointerup', onUp);
-    if (moved) {
-      try { localStorage.setItem(POS_KEY, JSON.stringify({ left: el.offsetLeft, top: el.offsetTop })); } catch { /* ignore */ }
-    } else {
-      onActivate?.(); // a click, not a drag → open the Share dialog
-    }
-  };
-  const onDown = (e: PointerEvent): void => {
-    if (e.button !== 0) return;
-    hideToast(); // a drag would leave the toast stranded where the gauge used to be
-    dragging = true;
-    moved = false;
-    startX = e.clientX;
-    startY = e.clientY;
-    baseLeft = el.offsetLeft; // stage-relative, matches the position:absolute coords we set
-    baseTop = el.offsetTop;
-    prevX = e.clientX;
-    prevY = e.clientY;
-    wobble.grab(e.clientX, e.clientY);
-    window.addEventListener('pointermove', onMove);
-    window.addEventListener('pointerup', onUp);
-  };
-  const onKey = (e: KeyboardEvent): void => {
-    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onActivate?.(); }
-  };
-  el.addEventListener('pointerdown', onDown);
-  el.addEventListener('keydown', onKey);
-
   const paint = (visual: { fillFraction: number; band: GaugeBand; full: boolean }): void => {
-    el.dataset.band = visual.band;
-    el.style.setProperty('--gauge-frac', String(visual.fillFraction));
-    const pct = Math.round(visual.fillFraction * 100);
-    if (pctEl) pctEl.textContent = `${pct}%`;
-    el.setAttribute('aria-label', labels.used(pct, visual.band));
-    el.title = labels.used(pct, visual.band);
-    el.hidden = false;
-    // Pop the calm "keep going, there's always the .lolly" reassurance ONCE each time the bar
-    // FIRST fills (reaches the top). Re-arms only after it drops back below full, so a settled
-    // edit session isn't nagged every keystroke; skipped on the first paint so opening an
-    // already-big shared link doesn't toast unprompted.
+    root.dataset.shareBand = visual.band;
+    root.style.setProperty('--share-link-fill', String(visual.fillFraction));
+    const description = labels.used(Math.round(visual.fillFraction * 100), visual.band);
+    root.dataset.shareMeterText = description;
+    for (const button of doc.querySelectorAll<HTMLElement>('[data-share-meter]')) button.setAttribute('aria-description', description);
+    // Pop the calm "keep going, there's always the .lolly" reassurance ONCE each time the meter
+    // FIRST fills. Re-arms only after it drops back below full, so a settled edit session isn't
+    // nagged every keystroke; skipped on the first paint so opening an already-big shared link
+    // doesn't toast unprompted.
     if (primed) {
       if (visual.full && !wasFull) showToast();
       else if (!visual.full) hideToast();
@@ -230,22 +172,20 @@ export function createUrlGauge(
     primed = true;
   };
 
-  const update = (model: UrlCostModel, _base?: string): void => {
-    // Content-only length: drop the fixed origin+/t/id? base so the bar reads 0 for a blank tool
-    // and doesn't drift with the domain. The visual is a PURE, SYNC function of it - it moves on
-    // every edit (the old packed-length refine sat near-empty for normal content = "no feedback").
-    // Packing / the true copy-link size are the Share dialog's job now, not the ambient gauge's.
+  const update = (model: UrlCostModel): void => {
+    // Content-only length: drop the fixed origin+/t/id? base so the meter reads 0 for a blank
+    // tool and doesn't drift with the domain. The visual is a PURE, SYNC function of that length.
     const queryLen = Math.max(0, model.readableLen - model.baseLen);
     paint(gaugeVisual(queryLen, model.fidelity.faithful, model.target));
   };
 
   const dispose = (): void => {
     hideToast();
-    wobble.dispose();
-    el.removeEventListener('pointerdown', onDown);
-    el.removeEventListener('keydown', onKey);
-    window.removeEventListener('pointermove', onMove);
-    window.removeEventListener('pointerup', onUp);
+    toastEl?.remove();
+    delete root.dataset.shareBand;
+    delete root.dataset.shareMeterText;
+    root.style.removeProperty('--share-link-fill');
+    for (const button of doc.querySelectorAll<HTMLElement>('[data-share-meter]')) button.removeAttribute('aria-description');
   };
 
   return { update, dispose };

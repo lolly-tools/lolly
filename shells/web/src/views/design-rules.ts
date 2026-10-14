@@ -39,7 +39,10 @@ export function mountDesignRules(opts: DesignRulesOptions): DesignRulesHandle {
   const parkChrome = (park: boolean): void => {
     if (park) for (const element of [
       ...document.querySelectorAll<HTMLElement>('.edge-dock'),
-      ...opts.view.querySelectorAll<HTMLElement>('.design-compact-actions,.design-topbar,.fc-toolbar-dock,.fc-nav,.fc-insp,.fc-overlay,.tl-panel,.stage-zoom'),
+      // The rulers go with the rest of the editing chrome. They measure their left edge from
+      // the navigator's reserve, so leaving them up with the navigator parked drew the left
+      // ruler straight through the artwork.
+      ...opts.view.querySelectorAll<HTMLElement>('.design-compact-actions,.design-topbar,.fc-toolbar-dock,.fc-nav,.fc-insp,.fc-overlay,.fc-authoring-guides,.tl-panel,.stage-zoom'),
     ]) {
       if (!parkedChrome.has(element)) parkedChrome.set(element, { display: element.style.display, inert: element.inert });
       element.style.display = 'none'; element.inert = true;

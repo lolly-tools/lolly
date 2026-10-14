@@ -155,12 +155,10 @@ export function wireDesignInspectorFloat(
     clearBox();
   };
 
-  const tools = document.createElement('span');
-  tools.className = 'fc-insp-tools';
   const button = (action: string, glyph: string, label: string): HTMLButtonElement => {
     const el = document.createElement('button');
     el.type = 'button';
-    el.className = 'fc-insp-tool';
+    el.className = 'export-popup-tool fc-insp-tool';
     el.dataset.actCol = action;
     el.innerHTML = glyph;
     el.setAttribute('aria-label', label);
@@ -168,9 +166,10 @@ export function wireDesignInspectorFloat(
     return el;
   };
   const dockBtn = button('dock', icon('dock'), t('Dock inspector to the side'));
-  tools.append(dockBtn);
+  // Into the head's own tools cluster, before the close button - the Export panel's
+  // order. A head without one (a test double) takes it before the close, or at the end.
   const closeBtn = head.querySelector<HTMLElement>('[data-act-col="close"]');
-  head.insertBefore(tools, closeBtn ?? null);
+  (closeBtn?.parentElement ?? head).insertBefore(dockBtn, closeBtn ?? null);
 
   panel.insertAdjacentHTML('beforeend', panelGripsHtml());
   const wobble = attachWobble(panel);

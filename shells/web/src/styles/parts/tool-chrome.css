@@ -80,65 +80,52 @@
    Export|Save FAB and the export bottom sheet) lives at the end of tool.css, next
    to the base rules it overrides - see the note there. */
 
-/* Ambient URL-budget gauge (plan 115 P1) - a DRAGGABLE vertical bar showing how much of a
-   shareable link the current edit costs. Chrome-only (position:fixed, never in the canvas);
-   reads the cost model, never moves an exported pixel. Default top-left; the user drags it
-   anywhere (position persists) and clicks it to open Share. Green → amber → red matches the
-   Share dialog's verdict colours (fixed hsl triples). Top-level so it applies on ALL
-   viewports; the fill HEIGHT + aria-label carry the signal, not colour alone. */
-.url-budget {
-  --budget-ok: 142 64% 42%;
-  --budget-warn: 38 92% 50%;
-  --budget-over: 0 72% 51%;
-  /* Absolute within #tool-stage (the canvas area, right of the sidebar) so "top-left"
-     means the top-left of the CANVAS, clear of the sidebar, in every layout. */
+/* Share-link meter (plan 115 P1, lib/url-budget-gauge.ts) - a progress fill INSIDE every
+   Share button (the Design top bar's and the export panel's), showing how much of a shareable
+   link the current edit costs. It replaced a free-standing bar on the stage that other tools'
+   chrome kept covering. The state is on the root (`--share-link-fill`, `data-share-band`), so a
+   Share button in any column - the edge dock is outside the tool layout - reads the same value.
+   A full-width wash rather than an edge line, filling from the start like a progress bar; the
+   accessible description on the button carries the number, so the colour is never the only
+   signal. Calm green, amber at the top, red only for a link that cannot carry its content. */
+:root {
+  --share-meter-ok: 142 64% 42%;
+  --share-meter-warn: 38 92% 50%;
+  --share-meter-over: 0 72% 51%;
+}
+[data-share-meter] { position: relative; isolation: isolate; }
+.share-meter {
   position: absolute;
-  top: 12px;
-  left: 12px;
-  z-index: 6;
-  width: 9px;
-  height: 80px;
-  padding: 0;
-  border: none;
-  border-radius: var(--radius-pill);
-  background: hsl(0 0% 50% / 0.28);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3), inset 0 0 0 1px hsl(0 0% 0% / 0.14);
-  cursor: grab;
-  touch-action: none; /* the pointer-drag owns the gesture */
+  inset: 0;
+  z-index: -1;               /* under the label, over the button's own surface */
+  border-radius: inherit;
   overflow: hidden;
-  transition: box-shadow var(--dur-1) ease, transform var(--dur-1) ease;
+  pointer-events: none;
 }
-.url-budget:hover { transform: scaleX(1.25); box-shadow: 0 3px 16px rgba(0, 0, 0, 0.38), inset 0 0 0 1px hsl(0 0% 0% / 0.2); }
-.url-budget:active { cursor: grabbing; }
-.url-budget:focus-visible { outline: 2px solid hsl(var(--budget-warn)); outline-offset: 3px; }
-.url-budget-fill {
+html:not([data-share-band]) .share-meter { display: none; }
+.share-meter::before {
+  content: "";
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: calc(var(--gauge-frac, 0) * 100%);
-  min-height: 3px; /* a hairline so an all-default (0%) bar still reads as "empty", not blank */
-  background: hsl(var(--budget-ok));
-  border-radius: var(--radius-pill);
-  transition: height var(--dur-3) ease, background var(--dur-3) ease;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: calc(var(--share-link-fill, 0) * 100%);
+  background: hsl(var(--share-meter-ok) / 0.24);
+  transition: width var(--dur-3) ease, background var(--dur-3) ease;
 }
-.url-budget[data-band="warn"] .url-budget-fill { background: hsl(var(--budget-warn)); }
-.url-budget[data-band="over"] .url-budget-fill { background: hsl(var(--budget-over)); }
+html[data-share-band="warn"] .share-meter::before { background: hsl(var(--share-meter-warn) / 0.3); }
+html[data-share-band="over"] .share-meter::before { background: hsl(var(--share-meter-over) / 0.3); }
 /* Reduced motion (OS query OR the app pref): no fill glide - jump straight to the value. */
-@media (prefers-reduced-motion: reduce) {
-  .url-budget { transition: box-shadow var(--dur-1) ease; }
-  .url-budget-fill { transition: none; }
-}
-html[data-a11y-motion="reduce"] .url-budget-fill { transition: none; }
+@media (prefers-reduced-motion: reduce) { .share-meter::before { transition: none; } }
+html[data-a11y-motion="reduce"] .share-meter::before { transition: none; }
 
-/* Reassurance toast (url-budget-gauge.ts) - a calm speech-bubble beside the meter the first
-   time a link fills the bar: "keep going, share the .lolly". NOT a warning, so it uses the
-   neutral popover tokens (never the red/amber band colours). Chrome-only (position:absolute in
-   #tool-stage, JS-positioned beside the gauge); pointer-events:none so it never intercepts the
-   gauge's drag/click; it fades itself out after a few seconds. */
-.url-budget-toast {
-  position: absolute;
-  z-index: 7; /* just above the gauge (z-index:6) */
+/* Reassurance toast (url-budget-gauge.ts) - a calm speech-bubble beside the visible Share
+   button the first time a link fills the meter: "keep going, share the .lolly". NOT a warning,
+   so it uses the neutral popover tokens (never the red/amber band colours). Fixed, on <body>
+   while shown, so it can stand beside a Share button in any column; pointer-events:none so it
+   never takes a click meant for the button; it fades itself out after a few seconds. */
+.share-meter-toast {
+  position: fixed;
+  z-index: 9600;
   max-width: 210px;
   padding: 8px 11px;
   border-radius: var(--radius-md);
@@ -148,13 +135,13 @@ html[data-a11y-motion="reduce"] .url-budget-fill { transition: none; }
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.28);
   font-size: var(--fs-sm);
   line-height: 1.4;
-  pointer-events: none; /* never blocks the gauge underneath */
-  animation: url-budget-toast-in var(--dur-2) ease both;
+  pointer-events: none;
+  animation: share-meter-toast-in var(--dur-2) ease both;
 }
-.url-budget-toast[hidden] { display: none; }
-@keyframes url-budget-toast-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
-@media (prefers-reduced-motion: reduce) { .url-budget-toast { animation: none; } }
-html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
+.share-meter-toast[hidden] { display: none; }
+@keyframes share-meter-toast-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .share-meter-toast { animation: none; } }
+html[data-a11y-motion="reduce"] .share-meter-toast { animation: none; }
 
 /* ─── Actions bar ───────────────────────────────────────────────────────── */
 /* Format and content settings lead; protection, preflight and delivery follow. */
@@ -206,6 +193,7 @@ html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
   gap: var(--sp-3);
   width: 100%;
   min-width: 0;
+  padding-left: 1em;
 }
 .export-text-label { display: inline-flex; align-items: center; white-space: nowrap; }
 .export-text-mode > .field-select { width: 100%; min-width: 0; height: var(--ui-size-control); padding-block: 0; }
@@ -283,9 +271,10 @@ html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
 .export-dims input[type="number"] {
   width: 100%;
   padding: 9px 10px 9px 18px;
-  background: hsl(var(--background));
+  background: var(--ui-color-surface-overlay);
+  box-shadow: var(--ui-effect-input-well);
   color: hsl(var(--foreground));
-  border: 1px solid hsl(var(--input));
+  border: 0;
   border-radius: 0;                      /* segmented pill - outer caps added below */
   font: inherit;
   font-size: var(--fs-lg);
@@ -375,14 +364,17 @@ html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
   flex: 0 0 auto;
   align-self: stretch;              /* a real segment - match the row height */
   display: inline-flex;
-  flex-direction: column;           /* stack the number over the caption */
+  flex-direction: column;
+  box-shadow: var(--ui-effect-input-well);        /* stack the number over the caption */
   align-items: center;
   justify-content: center;
   gap: 0;
-  border: 1px solid hsl(var(--input));
-  background-color: hsl(var(--background));
+  border: 1px solid transparent;
+
   color: hsl(var(--muted-foreground));
 }
+input[data-action="export-dpi"]{box-shadow:none; background-color:red;}
+
 .dim-dpi > span {                   /* the micro "DPI" caption, under the number */
   font-size: calc(7px * var(--a11y-fs));
   line-height: 1;
@@ -628,7 +620,7 @@ html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
   padding: 9px 12px;
   background: hsl(var(--background));
   color: hsl(var(--foreground));
-  border: 1px solid hsl(var(--input));
+  border: 1px solid transparent;
   border-radius: 0 var(--radius) var(--radius) 0;
   font: inherit;
   font-size: var(--fs-md);
@@ -652,8 +644,8 @@ html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
   padding: var(--sp-5);
   border-radius: var(--radius);
   background: hsl(var(--card));
-  border: 1px solid hsl(var(--border));
-  box-shadow: 0 12px 32px #00000038;
+  border: 0;
+  box-shadow: inset 0 0 0 1px #0002, inset 0 1.5px .5px #fff1, 0 12px 32px #00000038;
 }
 .fmt-pop-head { display: none; }
 .fmt-cat + .fmt-cat { margin-top: 10px; padding-top: 10px; border-top: 1px solid hsl(var(--border)); }
@@ -668,14 +660,14 @@ html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
 .fmt-cat-body {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--sp-3);
+  gap: var(--sp-5) var(--sp-3);
 }
 .fmt-chip {
   display: inline-flex;
   align-items: center;
   gap: 5px;
   padding: 5px 10px;
-  border: 1px solid hsl(var(--border));
+  border:0;
   border-radius: var(--radius-pill);
   font: inherit;
   font-size: var(--fs-sm);
@@ -684,7 +676,7 @@ html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
 .fmt-chip .fmt-chip-ic {
   width: var(--fs-md);
   height: var(--fs-md);
-  opacity: .75;
+  opacity: .45;
   flex: 0 0 auto;
 }
 /* Resting paint ONLY on the un-pressed state: the chosen chip's primary FILL
@@ -1489,7 +1481,7 @@ html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
   padding: 9px 12px;
   background: hsl(var(--background));
   color: hsl(var(--foreground));
-  border: 1px solid hsl(var(--input));
+  border: 1px solid transparent;
   border-radius: var(--radius);
   font: inherit;
   font-size: var(--fs-md);
@@ -1514,7 +1506,8 @@ html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
    yields to them rather than out-ranking the primitive from a higher layer. */
 .tool-actions select:not(.field-select) {
   padding: 9px 28px 9px 12px;   /* right room for the custom chevron */
-  background-color: hsl(var(--background));
+  background: var(--ui-color-surface-overlay);
+  box-shadow: var(--ui-effect-input-well);
   background-image: var(--field-chevron);  /* the one shared caret (parts/fields.css) */
   background-repeat: no-repeat;
   background-position: right 10px center;
@@ -1522,7 +1515,7 @@ html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
      already holds it at 1.2× (10px offset + 16.8px caret), so the padding stands. */
   background-size: var(--fs-lg);
   color: hsl(var(--foreground));
-  border: 1px solid hsl(var(--input));
+  border: 1px solid transparent;
   border-radius: var(--radius);
   font: inherit;
   font-size: var(--fs-md);

@@ -1718,7 +1718,18 @@ export function wireColorField(scope: HTMLElement, { onChange = () => {}, onInte
     const proposedTop = isFloat ? anchor.top : openUp ? anchor.top - 4 - height : anchor.bottom + 4;
     const top = Math.max(8, Math.min(proposedTop, window.innerHeight - height - 8));
     const docked = isFloat && Math.abs(top - anchor.top) < 1;
-    popover.style.cssText = `position:fixed;top:${Math.round(top - cb.y)}px;left:${Math.round(left - cb.x)}px;width:${width}px;max-height:${Math.max(1, window.innerHeight - top - 8)}px;right:auto;z-index:10001;${docked ? 'border-top-left-radius:0;' : ''}`;
+    const place = (dx: number, dy: number): void => {
+      popover.style.cssText = `position:fixed;top:${Math.round(top - dy)}px;left:${Math.round(left - dx)}px;width:${width}px;max-height:${Math.max(1, window.innerHeight - top - 8)}px;right:auto;z-index:10001;${docked ? 'border-top-left-radius:0;' : ''}`;
+    };
+    place(cb.x, cb.y);
+    // The property list above is a guess at what makes a containing block, and engines
+    // disagree (a query container's `container-type` no longer contains fixed boxes, so the
+    // inspector's picker opened one panel-width off to the left). Measure where the popover
+    // actually sits and take the difference out, so the answer never depends on the guess.
+    const placed = popover.getBoundingClientRect();
+    if (placed.width > 0 && (Math.abs(placed.left - left) > 1 || Math.abs(placed.top - top) > 1)) {
+      place(cb.x + (placed.left - left), cb.y + (placed.top - top));
+    }
     armOutside(field, popover);
   }
 

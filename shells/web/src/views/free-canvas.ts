@@ -952,7 +952,29 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   const frameLabels = document.createElement('div'); fc.frameLabels = frameLabels;
   frameLabels.className = 'fc-frame-labels';
   overlay.appendChild(frameLabels);
-  frameLabels.addEventListener('pointerdown', (e) => { fc.gestures.onFrameLabelPointerDown(e); e.stopPropagation(); });
+  // A second press on the same tab inside the double-press window opens the rename prompt.
+  // Counted here rather than left to `dblclick`, which never reaches a tab: the first press
+  // selects the frame, the tab is rebuilt under the pointer with its new state, and the
+  // browser then sends the click pair to the canvas behind the new tab. A touch screen gets no
+  // reliable `dblclick` at all (iOS never sends one). Cancelling the second press also
+  // cancels its mousedown, whose focus change would otherwise close the prompt at once.
+  let lastLabelPress = { id: '', at: 0 };
+  frameLabels.addEventListener('pointerdown', (e) => {
+    const label = (e.target as HTMLElement | null)?.closest<HTMLElement>('.fc-frame-label');
+    if (label && e.button === 0) {
+      const id = label.dataset.frameId || '';
+      if (id && lastLabelPress.id === id && e.timeStamp - lastLabelPress.at < 450) {
+        lastLabelPress = { id: '', at: 0 };
+        e.preventDefault();
+        e.stopPropagation();
+        fc.chromeSync.startFrameRename(label, id);
+        return;
+      }
+      lastLabelPress = { id, at: e.timeStamp };
+    }
+    fc.gestures.onFrameLabelPointerDown(e);
+    e.stopPropagation();
+  });
   frameLabels.addEventListener('click', (e) => {
     const el = (e.target as HTMLElement | null)?.closest<HTMLElement>('.fc-frame-label');
     if (!el) return;
@@ -2055,6 +2077,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
     enterGroup: fc.hierarchy.enterGroup,
     duplicateFrame: (id) => fc.editorState.withFrameSelected(id, fc.ops.duplicateSelection),
     deleteFrame: (id) => fc.editorState.withFrameSelected(id, fc.ops.deleteSelection),
+    deleteLayer: (id) => fc.editorState.withFrameSelected(id, fc.ops.deleteSelection),
     addArtboardAfter: fc.editorState.addArtboardAfter,
     present: (fromFrameId) => actions?.present?.(fromFrameId),
     reorderChildren: fc.editorState.reorderFrameChildren,

@@ -1362,6 +1362,24 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
     row.addEventListener('dblclick', event => { event.preventDefault(); event.stopPropagation(); if (kind === 'group' && actions.enterGroup) enterLayerGroup(id); else startRename(id, row, i); });
     row.addEventListener('contextmenu', event => { event.preventDefault(); openLayerMenu(id, row, i); });
 
+    // The artboard row's actions button, for the artboard row's reason: a right-click is
+    // the only other way into this menu, and a touch screen has no right button.
+    const menuBtn = make('button', 'fc-nav-row-menu');
+    menuBtn.type = 'button';
+    menuBtn.tabIndex = -1;
+    menuBtn.setAttribute('data-nav-menu-btn', '');
+    menuBtn.setAttribute('aria-haspopup', 'menu');
+    menuBtn.setAttribute('aria-expanded', 'false');
+    menuBtn.setAttribute('aria-label', tRaw('Actions for {name}', { name: label }));
+    const dots = iconNode('menuDots');
+    if (dots) menuBtn.append(dots);
+    menuBtn.addEventListener('pointerdown', (ev: Event) => ev.stopPropagation());
+    menuBtn.addEventListener('click', (ev: Event) => {
+      ev.stopPropagation();
+      if (layerMenu?.isOpen() && menuBtn.getAttribute('aria-expanded') === 'true') { layerMenu.close(true); layerMenu = null; }
+      else openLayerMenu(id, row, i, menuBtn);
+    });
+
     const item = make('div', 'fc-nav-layer-item');
     item.setAttribute('role', 'presentation');
     item.append(
@@ -1370,16 +1388,28 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
         () => setFlag(id, F.hidden, !hidden)),
       flagBtn('lock', locked, locked ? t('Unlock layer') : t('Lock layer'),
         () => setFlag(id, F.locked, !locked)),
+      menuBtn,
     );
     // A loose layer (no artboard anywhere) can become the first one's contents.
     if (loose && actions.makeArtboard) item.append(verbBtn(kindIcon(F.frameKind), t('Make artboard'), () => actions.makeArtboard?.([id])));
     return item;
   }
 
-  function openLayerMenu(id: string, row: HTMLElement, index: number): void {
+  function openLayerMenu(id: string, row: HTMLElement, index: number, anchor?: HTMLElement): void {
     closeMenu(); layerMenu?.close(false);
-    layerMenu = openDesignLayerMenu({ row, id, model, pages: opts.pages?.get(), canEdit: () => opts.pages?.canEdit?.() !== false,
-      rename: () => startRename(id, row, index) });
+    layerMenu = openDesignLayerMenu({ row, anchor, id, model, pages: opts.pages?.get(), canEdit: () => opts.pages?.canEdit?.() !== false,
+      rename: () => startRename(id, row, index),
+      remove: actions.deleteLayer ? () => deleteLayer(id, row) : undefined });
+  }
+
+  /** Delete a layer, keeping the keyboard in the list: focus moves to the row that took its place. */
+  function deleteLayer(id: string, row: HTMLElement): void {
+    if (!actions.deleteLayer || opts.pages?.canEdit?.() === false) return;
+    const list = row.closest<HTMLElement>('[role="listbox"]') ?? layersList;
+    const b = model.getBoxes().find((r) => fieldStr(r, F.id) === id);
+    const name = b ? (String(b[F.label] ?? '').trim() || layerTextLabel(String(b[F.text] ?? '')) || kindWord(fieldStr(b, F.kind) || 'box')) : '';
+    queueFocus(id, list, () => actions.deleteLayer!(id));
+    if (name) announce(tRaw('{name} deleted', { name }));
   }
 
   /** A row-side verb: the flag button's shape without a pressed state. */
@@ -1450,6 +1480,7 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
     // pointer-only.
     if (kind === 'layers' && (ev.key === 'h' || ev.key === 'H')) { swallow(ev); toggleFlag(id, F.hidden); return; }
     if (kind === 'layers' && (ev.key === 'l' || ev.key === 'L')) { swallow(ev); toggleFlag(id, F.locked); return; }
+    if (kind === 'layers' && (ev.key === 'Delete' || ev.key === 'Backspace') && actions.deleteLayer) { swallow(ev); deleteLayer(id, row); return; }
     if (kind === 'frames' && (ev.key === 'p' || ev.key === 'P')) { swallow(ev); previewTransition(id); return; }
     if (kind === 'frames' && (ev.key === 'ContextMenu' || (ev.shiftKey && ev.key === 'F10'))) {
       swallow(ev);

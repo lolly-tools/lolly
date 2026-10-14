@@ -157,7 +157,7 @@ function port(value: EmojiStyleV1 | null, mount: EmojiControlMount, changes: Arr
 
 // ── tests ─────────────────────────────────────────────────────────────────────
 
-test('the Document section mounts the shared control, in document mode, on the current value', () => {
+test('the Style & look section mounts the shared control, in document mode, on the current value', () => {
   const control = controlDouble();
   const changes: Array<EmojiStyleV1 | null> = [];
   const current = style('17.0.3');
@@ -165,7 +165,7 @@ test('the Document section mounts the shared control, in document mode, on the c
   try {
     const slot = h.slot();
     assert.ok(slot, 'the Document section left a slot for the control');
-    assert.equal(h.el.querySelector('[data-sec="document"]')?.contains(slot!), true, 'and it is inside Document');
+    assert.equal(h.el.querySelector('[data-sec="look"]')?.contains(slot!), true, 'and it is inside Style & look');
     assert.equal(slot!.getAttribute('aria-label'), 'Emoji', 'the shared control owns the visible heading');
 
     assert.equal(control.mounts.length, 1, 'the control was mounted once');

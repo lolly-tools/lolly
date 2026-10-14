@@ -222,6 +222,12 @@ export function frameLabelText(fc: FcCtx, b: Box | undefined, n: number): string
   const nm = nameField ? String(b?.[nameField] ?? '').trim() : '';
   return nm || `${t('Artboard')} ${n + 1}`;
 }
+/**
+ * Rename an artboard from its tab, in the editor's own small prompt (the `fc-panel`
+ * recipe askNumber uses): a heading, the name field and a Rename button, opened on the
+ * tab's own rect so the name is edited where it is read. Enter or Rename saves, Escape
+ * cancels, and moving focus out of the prompt saves - the same rule the bare field had.
+ */
 export function startFrameRename(fc: FcCtx, el: HTMLElement, fid: string): void {
   const { frameLabels, nameField } = fc;
   if (!nameField || fc.renamingFrameId || !fid) return;
@@ -229,36 +235,50 @@ export function startFrameRename(fc: FcCtx, el: HTMLElement, fid: string): void 
   const i = boxes.findIndex((b, n) => fc.select.idOf(b, n) === fid);
   if (i < 0) return;
   fc.renamingFrameId = fid;
+  const panel = document.createElement('div');
+  panel.className = 'fc-panel fc-num-panel fc-frame-rename';
+  panel.setAttribute('role', 'dialog');
+  panel.setAttribute('aria-label', t('Rename artboard'));
+  const head = document.createElement('div');
+  head.className = 'fc-panel-head';
+  head.textContent = t('Rename artboard');
+  const row = document.createElement('div');
+  row.className = 'fc-num-row';
   const input = document.createElement('input');
   input.type = 'text';
-  input.className = 'fc-frame-rename field-input';
+  input.className = 'field-input';
   input.dataset.collabFocus = fieldFocusToken(fc.blockId, fc.select.idOf(boxes[i], i), nameField);
   input.value = String(boxes[i]![nameField] ?? '');
   input.placeholder = el.textContent || '';
   input.setAttribute('aria-label', t('Artboard name'));
   input.spellcheck = false;
-  input.style.left = el.style.left;
-  input.style.top = el.style.top;
+  const go = document.createElement('button');
+  go.type = 'button';
+  go.className = 'btn btn--primary btn--sm fc-num-go';
+  go.textContent = t('Rename');
+  row.append(input, go);
+  panel.append(head, row);
+  panel.style.left = el.style.left;
+  panel.style.top = el.style.top;
   el.hidden = true;
-  frameLabels.appendChild(input);
+  frameLabels.appendChild(panel);
   input.focus();
   input.select();
   let done = false;
   /**
-   * `refocus` is only ever true for a KEY (Enter / Escape): the input is about to be
+   * `refocus` is only ever true for a KEY or the button: the prompt is about to be
    * removed and the tab it replaced is about to be rebuilt, so without a hand-back
    * focus falls to `<body>` - where the next Tab restarts at the top of the page and
    * every bare canvas shortcut is live again. A blur, by contrast, means the user has
    * already put the focus somewhere themselves, and taking it back would fight them.
    */
   const finish = (save: boolean, refocus = false): void => {
-  const { frameLabels, nameField } = fc;
     if (done) return;
     done = true;
     fc.renamingFrameId = '';
-    input.remove();
+    panel.remove();
     el.hidden = false;
-    if (save && nameField) {
+    if (save) {
       const bs = fc.select.getBoxes();
       const j = bs.findIndex((b, n) => fc.select.idOf(b, n) === fid);
       const v = input.value.trim();
@@ -277,9 +297,9 @@ export function startFrameRename(fc: FcCtx, el: HTMLElement, fid: string): void 
     }
   };
   // Typing a name must not reach the canvas shortcuts (every letter is a tool).
-  input.addEventListener('keydown', (e) => {
+  panel.addEventListener('keydown', (e) => {
     e.stopPropagation();
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' && e.target === input) {
       e.preventDefault();
       finish(true, true);
     } else if (e.key === 'Escape') {
@@ -287,8 +307,18 @@ export function startFrameRename(fc: FcCtx, el: HTMLElement, fid: string): void 
       finish(false, true);
     }
   });
-  input.addEventListener('blur', () => finish(true));
-  input.addEventListener('pointerdown', (e) => e.stopPropagation());
+  go.addEventListener('click', () => finish(true, true));
+  // Focus moving between the field and the button stays inside the prompt; anywhere
+  // else is the person leaving it, which saves.
+  panel.addEventListener('focusout', (e) => {
+    if (!panel.contains(e.relatedTarget as Node | null)) finish(true);
+  });
+  // A press on the prompt's own chrome must neither reach the canvas (which would start
+  // a gesture under it) nor take the focus off the field.
+  panel.addEventListener('pointerdown', (e) => {
+    e.stopPropagation();
+    if (e.target !== input && e.target !== go) e.preventDefault();
+  });
 }
 export function paintChrome(fc: FcCtx, boxes: Box[], liveRects: Map<number, Rect> | null): void {
   const { cfg, ctxbar, emptyHint, frameCfg, timeCfg, toolbar } = fc;

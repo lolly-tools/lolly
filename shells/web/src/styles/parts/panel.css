@@ -198,6 +198,7 @@ input.lp-head-name:focus {
   align-items: center;
   gap: var(--sp-2);
   margin: 0;
+  filter: drop-shadow(0px 2.5px 1px var(--ui-color-surface-canvas));
   padding: var(--sp-5) var(--sp-3) var(--sp-2) var(--sp-5);
   font-size: var(--ui-type-band);
   font-weight: var(--ui-type-weight-label);
@@ -275,7 +276,7 @@ input.lp-head-name:focus {
 
 /* ── section ───────────────────────────────────────────────────────────────── */
 
-.lp-band { display: flex; flex-direction: column; gap: var(--sp-1);    padding: var(--sp-1) var(--sp-6); }
+.lp-band { display: flex; flex-direction: column; gap: var(--sp-1);    padding:  var(--sp-6) 0; }
 .lp-band + .lp-band { margin-top: var(--sp-5); }
 
 /* A real <button>: keyboard reachable, aria-expanded carries the state, and the
@@ -359,7 +360,7 @@ html[data-a11y-motion="reduce"] .lp-caret::before { transition: none; }
 .lp-rows {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-6);
+  gap: var(--sp-2);
   padding: var(--sp-7) var(--sp-6) var(--sp-6);
 }
 .lp-rows[hidden] { display: none; }

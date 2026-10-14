@@ -5,6 +5,7 @@ import { mountDockedPanel } from '../components/docked-panel.ts';
 import { getExportPolicy } from '../lib/export-policy.ts';
 import { routeParams, updateRouteParams } from '../lib/url-state.ts';
 import { icon } from '../lib/icons.ts';
+import { attachShareMeter } from '../lib/url-budget-gauge.ts';
 import { t } from '../i18n.ts';
 import './export-share.css';
 
@@ -62,6 +63,9 @@ export function mountExportShare(root: HTMLElement, options: () => ShareDialogOp
     trigger.dataset.action = 'copy-url';
     trigger.className = shareAction.className;
     label.textContent = t('Share');
+    // The toolbar's Share carries the share-link meter (lib/url-budget-gauge.ts), so this
+    // replacement does too.
+    attachShareMeter(trigger);
     shareAction.replaceWith(trigger);
   } else root.append(trigger);
   const select = root.querySelector<HTMLSelectElement>('[data-action="format"]');
