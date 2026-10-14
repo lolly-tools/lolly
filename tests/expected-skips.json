@@ -136,13 +136,6 @@
       "owner": "shells/web"
     },
     {
-      "file": "shells/web/src/bridge/export-svg-mask.test.ts",
-      "fullName": "webkit: SVG mask fades survive raster export",
-      "reason": "Playwright webkit browser is not installed",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
       "file": "shells/web/src/bridge/text-outline-golden.test.ts",
       "fullName": "a blank/whitespace-only run returns the documented empty sentinel, not a degenerate shape",
       "reason": "SUSE static fonts not present at brands/suse/catalog/fonts/ttf/SUSE-Regular.ttf etc. - the private brands/suse pack is not mounted in this checkout (git submodule update --init --checkout brands/suse). Skipping.",
