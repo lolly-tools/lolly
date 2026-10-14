@@ -10,7 +10,7 @@
   position: fixed; inset-block: 0 var(--design-timeline-h, 0px); inset-inline-end: 0; z-index: 2;
   width: var(--dock-w, 340px);
   display: flex; flex-direction: column;
-  background: var(--ui-color-surface-canvas);
+  background: var(--ui-color-surface-raised);
   box-shadow: var(--ui-elevation-panel);
 
 }
@@ -39,7 +39,7 @@
 }
 .edge-dock-tab:hover { color: var(--ui-color-text-default); }
 .edge-dock-tab[aria-selected="true"] {
-  background: var(--ui-color-surface-raised); color: var(--ui-color-text-default);
+  background: var(--ui-color-surface-muted); color: var(--ui-color-text-default);
   box-shadow: var(--ui-elevation-control);
 }
 .edge-dock-tab:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }

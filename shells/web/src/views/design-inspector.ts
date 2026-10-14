@@ -154,8 +154,14 @@ const DOCK_ID = 'inspector';
  * to be sub-headings inside Object.
  */
 export type InspectorSection =
-  | 'document' | 'artboard' | 'object' | 'text' | 'image' | 'tool' | 'scene' | 'web' | 'motion' | 'present'
+  | 'dimensions' | 'look' | 'media' | 'artboard' | 'object' | 'text' | 'image' | 'tool' | 'scene' | 'web' | 'motion' | 'present'
   | 'fill' | 'appearance' | 'shadow' | 'tilt' | 'arrange' | 'guide' | 'dynamicLayout';
+
+/** What `reveal()` accepts: every section, plus `document` for the whole Canvas route. */
+export type InspectorRevealTarget = InspectorSection | 'document';
+
+/** The Canvas route's sections, in reading order: how big, how it looks, what it plays. */
+const DOCUMENT_SECTIONS = ['dimensions', 'look', 'media'] as const satisfies readonly InspectorSection[];
 
 function commonPaintSections(rows: Box[], kindField: string | undefined, sections: InspectorSection[]): InspectorSection[] {
   return rows.some(row => kindField && row[kindField] === 'group')
@@ -313,7 +319,7 @@ export interface DesignInspectorHandle {
   sync(): void;
   /** Always 0: the dock column reserves the space, this panel reserves nothing. */
   width(): number;
-  reveal(section: InspectorSection): void;
+  reveal(section: InspectorRevealTarget): void;
   destroy(): void;
 }
 
@@ -401,7 +407,9 @@ interface FlagFields { trans?: string; hidden?: string; locked?: string }
 
 /** Which fields each section reads. The repaint memo hashes exactly these. */
 const WATCHED: Record<InspectorSection, (c: Cfg, m: FlagFields) => Array<string | undefined>> = {
-  document: () => [],
+  dimensions: () => [],
+  look: () => [],
+  media: () => [],
   guide: () => [],
   artboard: (c, m) => [c.labelField, c.wField, c.hField, c.fillField, c.gradField, c.strokeField, c.strokeWField, c.strokeDashField, c.strokeDashArrayField, 'strokeDashLen', 'strokeGapLen', c.clipChildrenField, c.orderField, m.trans],
   object: (c, m) => [c.xField, c.yField, c.wField, c.hField, c.rotationField, 'cls', m.hidden, m.locked],
@@ -442,7 +450,9 @@ const WATCHED: Record<InspectorSection, (c: Cfg, m: FlagFields) => Array<string 
  * render time, so a language switch repaints in the new language.
  */
 const SECTION_META: Record<InspectorSection, { title: () => string; glyph: IconName; band: Band }> = {
-  document: { title: () => t('Document'), glyph: 'document', band: 'content' },
+  dimensions: { title: () => t('Dimensions'), glyph: 'resize', band: 'content' },
+  look: { title: () => t('Style & look'), glyph: 'palette', band: 'content' },
+  media: { title: () => t('Media'), glyph: 'filmStrip', band: 'content' },
   guide: { title: () => t('Guide'), glyph: 'grid', band: 'layout' },
   artboard: { title: () => t('Artboard'), glyph: 'crop', band: 'layout' },
   // "Position & size" says what the rows under it do. "Object" named the thing the
@@ -496,7 +506,7 @@ export const SECTIONS_KEY = 'lolly-design-inspector-sections';
  * real control rather than on a header.
  */
 const DEFAULT_OPEN: Record<InspectorSection, boolean> = {
-  document: true, guide: true, artboard: true, object: false, fill: true, appearance: false,
+  dimensions: true, look: true, media: false, guide: true, artboard: true, object: false, fill: true, appearance: false,
   shadow: false, tilt: false, arrange: false, dynamicLayout: true,
   text: true, image: true, tool: true, scene: true, web: true, motion: false, present: false,
 };
@@ -675,31 +685,28 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
   // buttons `reveal()` it and nothing dismissed it - so a wide screen lost the sidebar's
   // width for good and a phone got a sheet over most of the screen with no way back.
   // Closing means UNDOCKING, which is the host's call: `onClose` hands it over.
+  //
+  // The head is the Export panel's own (`.export-popup-head`, also what docked-panel.ts
+  // builds): the title, then one tools cluster holding the way out. The float controller
+  // adds its dock button into that cluster. Naming is not done here - an artboard or a
+  // layer is named from its own row, its canvas tab or the Layers panel.
   const headBar = document.createElement('div');
-  headBar.className = 'lp-head fc-insp-headbar';
-  // What KIND of thing is selected, as one glyph, so the head answers "what am I
-  // editing" before the name does. Set from SECTION_META on every render.
-  const kindMark = document.createElement('span');
-  kindMark.className = 'lp-head-kind';
-  kindMark.setAttribute('aria-hidden', 'true');
+  headBar.className = 'export-popup-head fc-insp-headbar';
   const colTitle = document.createElement('h2');
-  colTitle.className = 'lp-head-name fc-insp-coltitle';
+  colTitle.className = 'export-popup-title fc-insp-coltitle';
   colTitle.textContent = t('Inspector');
+  const headTools = document.createElement('span');
+  headTools.className = 'export-popup-tools';
   const closeBtn = document.createElement('button');
   closeBtn.type = 'button';
-  closeBtn.className = 'lp-iconbtn fc-insp-close';
+  closeBtn.className = 'export-popup-close fc-insp-close';
   closeBtn.setAttribute('data-act-col', 'close');
   closeBtn.setAttribute('aria-label', t('Hide inspector'));
   closeBtn.title = t('Hide inspector');
-  closeBtn.innerHTML = icon('close');
+  closeBtn.innerHTML = icon('close', { size: 18 });
   closeBtn.addEventListener('click', () => { setOpen(false); opts.onClose?.(); });
-  const layerName = document.createElement('input');
-  layerName.className = 'lp-head-name fc-insp-name';
-  layerName.type = 'text';
-  layerName.setAttribute('aria-label', t('Layer name'));
-  layerName.hidden = true;
-  layerName.addEventListener('change', () => write(F_NAME, layerName.value));
-  headBar.append(kindMark, colTitle, layerName, closeBtn);
+  headTools.append(closeBtn);
+  headBar.append(colTitle, headTools);
   el.appendChild(headBar);
 
   let documentView = false;
@@ -709,7 +716,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
   tabs.setAttribute('aria-label', t('Inspector settings'));
   const selectionTab = document.createElement('button');
   const documentTab = document.createElement('button');
-  for (const [button, label, value] of [[selectionTab, t('Selection'), false], [documentTab, t('Document'), true]] as const) {
+  for (const [button, label, value] of [[selectionTab, t('Selection'), false], [documentTab, t('Canvas'), true]] as const) {
     button.type = 'button'; button.textContent = label;
     button.addEventListener('click', () => { documentView = value; sync(true); });
     tabs.appendChild(button);
@@ -731,13 +738,9 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
    * closed on purpose must stay closed.
    */
   const sectionPrefs = readSectionPrefs();
-  let documentOptionsOpen = false;
   scroll.addEventListener('toggle', (event) => {
     const target = event.target as HTMLDetailsElement;
-    if (target.matches?.('[data-advanced-text]')) { advancedTextOpen = target.open; return; }
-    if (!target.matches?.('[data-document-options]')) return;
-    documentOptionsOpen = target.open;
-    if (target.open && !emojiMounted) mountEmojiControl();
+    if (target.matches?.('[data-advanced-text]')) advancedTextOpen = target.open;
   }, true);
   /** The number cells built for the CURRENT markup, and the sliders they mirror. */
   let numSpecs: NumSpec[] = [];
@@ -805,11 +808,11 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
 
   /** What the selection IS, and therefore which sections may show. */
   function gate(): Gate {
-    if (documentView) return { kind: 'empty', ids: [], box: null, rows: [], secs: ['document'] };
+    if (documentView) return { kind: 'empty', ids: [], box: null, rows: [], secs: documentSecs() };
     const guide = opts.guides?.selected();
     if (guide) return { kind: 'guide', ids: [], box: null, rows: [], secs: ['guide'], guide };
     const ids = selection.get().filter((s) => s != null && s !== '');
-    if (!ids.length) return { kind: 'empty', ids: [], box: null, rows: [], secs: ['document'] };
+    if (!ids.length) return { kind: 'empty', ids: [], box: null, rows: [], secs: documentSecs() };
     const rows = boxesById(ids);
     const box = rows[0] ?? {};
     // Position and size read the FIRST selected box and write the whole selection, so on
@@ -1278,12 +1281,30 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     });
   }
 
-  function documentBody(): string {
+  /** Does the canvas hold artboards? Then each paints its own fill and a frame rate applies. */
+  function hasFrames(): boolean {
+    return frame ? model.getBoxes().some((row) => kindOf(row) === frame.frameKind) : false;
+  }
+
+  /** The frame rate row shows for a clip, or for a deck whose artboards can play. */
+  function showsFrameRate(): boolean {
+    return model.getInput('projectFps') != null && Boolean(opts.videoWorkspace?.() || hasFrames());
+  }
+
+  /** The Canvas route's sections. Media is left out when it would hold nothing. */
+  function documentSecs(): InspectorSection[] {
+    const media = showsFrameRate() || (narration && opts.narrationEnabled?.() !== false);
+    return DOCUMENT_SECTIONS.filter((sec) => sec !== 'media' || media);
+  }
+
+  /** Size, and the units and resolution every measurement on the canvas is read in. */
+  function dimensionsBody(): string {
     const size = canvasSize();
     const unit = documentUnit();
     const scale = CSS_PX_PER_UNIT[unit];
     const fmt = (n: number): string => String(Math.round(n / scale * 1000) / 1000);
-    const options = (model.getInput('projectFps') == null || !(opts.videoWorkspace?.() || model.getBoxes().some(row => frame && kindOf(row) === frame.frameKind)) ? '' : docSelectRow(t('Frame rate'), 'projectFps', ['24', '25', '30', '50', '60'].map(rate => [rate, `${rate} fps`])))
+    const sizeText = `${fmt(size.w)} x ${fmt(size.h)} ${unit}`;
+    return (actions.openDocumentSize ? doorRow(t('Size'), sizeText, 'documentsize', 'resize') : readRow(t('Size'), sizeText))
       + docSelectRow(t('Units'), 'documentUnit', DOCUMENT_UNITS.map((u) => [u, u]))
       + docNumRow(t('DPI'), 'documentDpi', 300, {
         min: 36, max: 2400, step: 1, precision: 0, unit: 'dpi',
@@ -1292,16 +1313,23 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
           model.setInput('documentDpi', next);
           canvasEl.dispatchEvent(new CustomEvent('fc-document-dpi', { detail: next }));
         },
-      }) + narrationDocRows();
-    return (actions.openDocumentSize ? doorRow(t('Size'), `${fmt(size.w)} x ${fmt(size.h)} ${unit}`, 'documentsize', 'resize') : readRow(t('Size'), `${fmt(size.w)} x ${fmt(size.h)} ${unit}`))
-      + `<div class="fc-row"><span>${t('Background')}</span><span class="fc-cfield">${colorField('fc-insp-bg', model.getInput('background'), t('Background'))}</span></div>`
+      });
+  }
+
+  /** The colours the document is drawn in: its fill, theme, colour range and emoji set. */
+  function lookBody(): string {
+    // With artboards on the canvas each one paints its own fill, so the document colour only
+    // seeds the next artboard; saying so is what stops a pick that shows nothing reading as a bug.
+    return colorRow(hasFrames() ? t('Default fill') : t('Background'), 'fc-insp-bg', model.getInput('background'))
       + themeDocRows()
       + (model.getInput('editingRange') == null ? '' : docSelectRow(t('Colour'), 'editingRange', [['sdr', t('SDR')], ['hdr', t('HDR / wide gamut')]], t('Preview depends on your display. Export HDR is chosen separately.')))
-      + emojiDocRows()
-      + (opts.videoWorkspace?.()
-        ? `<details class="lp-details fc-insp-document-options" data-document-options${documentOptionsOpen ? ' open' : ''}><summary>${icon('sliders')}<span>${t('More settings')}</span><i class="lp-caret" aria-hidden="true"></i></summary>${options}</details>`
-        : options)
-      + designHealthHtml(size);
+      + emojiDocRows();
+  }
+
+  /** What the document does over time: its frame rate, and the narrated voice and captions. */
+  function mediaBody(): string {
+    return (showsFrameRate() ? docSelectRow(t('Frame rate'), 'projectFps', ['24', '25', '30', '50', '60'].map((rate) => [rate, `${rate} fps`])) : '')
+      + narrationDocRows();
   }
 
   /**
@@ -1351,7 +1379,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
   function mountEmojiControl(): void {
     const port = opts.emoji;
     const slot = scroll.querySelector<HTMLElement>('[data-emoji-slot]');
-    if (!port || !slot || slot.closest('[data-document-options]:not([open])')) return;
+    if (!port || !slot) return;
     emojiMounted = port.mount(slot, {
       host: port.host,
       mode: 'document',
@@ -1877,7 +1905,9 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
   }
 
   function bodyFor(sec: InspectorSection, g: Gate): string {
-    if (sec === 'document') return documentBody();
+    if (sec === 'dimensions') return dimensionsBody();
+    if (sec === 'look') return lookBody();
+    if (sec === 'media') return mediaBody();
     if (sec === 'guide' && g.kind === 'guide') return guideBody(g.guide);
     const b = (g.box ?? {}) as Box;
     // Paint and compatible text controls read every selected row for mixed values.
@@ -1997,20 +2027,15 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     // replaces, and it is mounted again below when the Document section is showing.
     emojiMounted?.destroy();
     emojiMounted = null;
-    // The column head says WHAT is selected; a multi-selection has no one section that
-    // could carry the count now that the paint groups stand on their own.
-    colTitle.textContent = g.kind === 'multi' ? t('{n} selected', { n: g.ids.length }) : g.kind === 'empty' ? t('Document') : g.kind === 'guide' ? t('Guide') : [kindOf(g.box) === 'webcam' ? t('Camera') : kindOf(g.box), String(fv(g.box ?? {}, F_NAME) ?? '')].filter(Boolean).join(': ');
+    // The column head says WHAT is selected: the one selected thing's own name, else
+    // what kind of thing it is. A multi-selection has no one section that could carry
+    // the count now that the paint groups stand on their own, so the head shows the count.
+    const headName = g.box ? String(fv(g.box, F_NAME) ?? '').trim() : '';
+    const headKind = !g.box ? '' : kindOf(g.box) === 'webcam' ? t('Camera') : g.kind === 'frame' ? t('Artboard') : kindOf(g.box);
+    colTitle.textContent = g.kind === 'multi' ? t('{n} selected', { n: g.ids.length }) : g.kind === 'empty' ? t('Document') : g.kind === 'guide' ? t('Guide') : headName || headKind;
+    colTitle.title = colTitle.textContent;
     selectionTab.setAttribute('aria-pressed', String(!documentView));
     documentTab.setAttribute('aria-pressed', String(documentView));
-    layerName.hidden = !(g.ids.length === 1 && F_NAME);
-    colTitle.hidden = !layerName.hidden;
-    if (document.activeElement !== layerName) layerName.value = String(fv(g.box ?? {}, F_NAME) ?? '');
-    layerName.placeholder = colTitle.textContent || t('Layer name');
-    layerName.title = colTitle.textContent || t('Layer name');
-    // The head's kind glyph is the FIRST section's glyph, which is the first
-    // Content section for anything with content and the first section otherwise.
-    // Nothing selected shows the document mark rather than an empty cell.
-    kindMark.innerHTML = icon(SECTION_META[g.secs[0] ?? 'document'].glyph);
     // One section. The head is a GRID whose last column is the caret, so a
     // section action (Edit text) goes in the `auto` column before it and the
     // fold control keeps one x for every section in the column. It used to be a
@@ -2040,14 +2065,14 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     const shownBands = BANDS.filter((band) => g.secs.some((sec) => SECTION_META[sec].band === band));
     scroll.innerHTML = shownBands.map((band) => {
       const secs = g.secs.filter((sec) => SECTION_META[sec].band === band);
-      // A band holding one section whose name IS the band word ("Document" under
-      // Content, on the Document route) would say it twice in two type sizes.
-      const bare = shownBands.length === 1 && secs.length === 1;
+      // A band holding one section whose name IS the band word would say it twice in two
+      // type sizes, and the Canvas route's sections are already named by the tab above them.
+      const bare = g.kind === 'empty' || (shownBands.length === 1 && secs.length === 1);
       return `<div class="lp-band" data-band="${band}">`
         + (bare ? '' : `<p class="lp-band-label">${escape(BAND_META[band].title())}</p>`)
         + secs.map(sectionHtml).join('')
         + '</div>';
-    }).join('') || `<p class="lp-empty">${t('Nothing selected')}</p>`;
+    }).join('') + (g.kind === 'empty' ? designHealthHtml(canvasSize()) : '') || `<p class="lp-empty">${t('Nothing selected')}</p>`;
     mountNums();
     mountEmojiControl();
     wireHelpTips(el);
@@ -2070,7 +2095,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       if (!tokenUiState.has(sec)) tokenUiState.set(sec, {});
       tokenDisposers.push(mountDesignTokenBindings(slot, { ...opts.tokens, model, ids: [...g.ids], fields: fieldDefs as BlockFieldSpec[], fieldIds: WATCHED[sec](cfg, m4), state: tokenUiState.get(sec), onSettled: settle, isCurrent: () => !destroyed && open && JSON.stringify(gate().ids) === JSON.stringify(g.ids) }));
     }
-    if (g.secs.includes('document')) scheduleMountedAudit();
+    if (g.kind === 'empty') scheduleMountedAudit();
     // Put the user back on the control they were operating. `preventScroll` because a
     // restore is not a navigation: scrolling the column to it would move the rows the
     // pointer is over.
@@ -2361,7 +2386,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     }
     // Document's readout is the one value that is NOT in the model - it measures the
     // canvas - so it is hashed here and woken by the canvas's own `canvas-resize`.
-    const size = g.secs.includes('document') ? canvasSize() : null;
+    const size = g.kind === 'empty' ? canvasSize() : null;
     const doc = size ? [model.getInput('background'), model.getInput('projectFps'), size.w, size.h, model.getBoxes(), opts.theme?.groups() ?? null] : [];
     // Narration status is the OTHER value no watched field carries: it is derived from
     // the `narration:<frameId>` clip's resolved asset meta, on a different row entirely.
@@ -2621,12 +2646,13 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     isOpen: () => open,
     sync: () => sync(true),
     width: () => 0,
-    reveal(section: InspectorSection): void {
+    reveal(target: InspectorRevealTarget): void {
       // Remembered BEFORE focus moves, so Escape can hand the keyboard back to the
       // object-bar button (or wherever else) that asked for this section.
       const from = typeof document !== 'undefined' ? document.activeElement as HTMLElement | null : null;
       returnFocus = from && !el.contains(from) ? from : returnFocus;
-      documentView = section === 'document';
+      documentView = target === 'document' || (DOCUMENT_SECTIONS as readonly string[]).includes(target);
+      const section: InspectorSection = target === 'document' ? DOCUMENT_SECTIONS[0] : target;
       if (!open) setOpen(true); else sync(true);
       // The object bar asks for 'object' when its Stroke and More buttons are pressed
       // (views/design-ports.ts pins that call to the seven original names), and a

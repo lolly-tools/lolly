@@ -4117,9 +4117,6 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
   }
   .tool-layout.export-open .render-pill { display: none; }
 
-  /* The .url-budget gauge is defined at top level in tool-chrome.css so it applies on
-     ALL viewports - this block is mobile-only, which would have left it unstyled on desktop. */
-
   /* Recorder tools (render.capture) put a "Warm the mic / Record" button at the foot
      of the stage - the SAME bottom-centre lane as the Get|Save FAB above, so on mobile
      the pill sits right on top of it. Lift the record button (and its take timer) to

@@ -49,9 +49,7 @@ import { createNetAPI } from '../../bridge/net.ts';
 import { defaultHiddenTemplateRefs } from '../../catalog/sync.ts';
 import { loadTemplateStart, START_BLANK } from '../../lib/template-start.ts';
 import { BROWSER_TARGET, costUrlState } from '../../lib/url-budget.ts';
-import { createUrlGauge } from '../../lib/url-budget-gauge.ts';
-import { prefersReducedMotion } from '../../lib/a11y-prefs.ts';
-import { makeLollyVehicle } from '../tool-lolly-vehicle.ts';
+import { createShareMeter } from '../../lib/url-budget-gauge.ts';
 import { historyParticipation, localHistorySlot, mountCollabActionHistory, trackRevisionInput, wireToolRevisionHistory } from '../tool-revision-history.ts';
 import { mountRecoveryNotice } from '../tool-recovery-notice.ts';
 import { entryHoldsUnsavedEdits, localDocument } from '../tool-leave.ts';
@@ -64,7 +62,7 @@ import { createLiveControls, mountSidebarLiveControls, registerLiveControls } fr
 import { mountCaptureSignin } from '../capture-signin.ts';
 import { captureThumbnail, renderActions } from '../tool-actions.ts';
 import { setupCanvasBlocksDrop, setupCanvasFileDrop } from '../tool-canvas-drop.ts';
-import { collectExportParams, decryptEncryptedLink, setToolEmojiParams, showShareDialog } from './shared.ts';
+import { collectExportParams, decryptEncryptedLink, setToolEmojiParams } from './shared.ts';
 import { clearShareDeepLink, shareDeepLink } from '../export-share.ts';
 import { setSessionEmojiStamp } from '../../bridge/state.ts';
 import type { PanelEl, ToolRuntime } from './shared.ts';
@@ -980,7 +978,7 @@ export function mountActions(tview: ToolViewCtx): void {
 }
 
 export function wireBulkRows(tview: ToolViewCtx): void {
-  const { TOOL_URL_BASE, actionsApi, actionsEl, bulkFilesId, contentEl, runtime, toolId, urlFlags, urlGaugeEl, viewEl } = tview;
+  const { TOOL_URL_BASE, actionsEl, bulkFilesId, contentEl, runtime, toolId, urlFlags, shareToastEl, viewEl } = tview;
   viewEl.querySelector<HTMLButtonElement>('#bulk-rows-btn')?.addEventListener('click', tview.session.openBulk);
 
   // "Bulk from files" (plans/147 M2): pick N files and run this transform tool over
@@ -1048,30 +1046,18 @@ export function wireBulkRows(tview: ToolViewCtx): void {
     });
   }
 
-  // Now that actionsApi exists, wire the gauge - a click (not a drag) opens the Share
-  // dialog with the current state (same path as the Share button). syncUrl already drives
-  // its live value via the holder above.
-  if (urlGaugeEl) {
-    tview.urlGauge = createUrlGauge(
-      urlGaugeEl,
-      {
-        used: (pct) => `${t('URL budget')}: ${pct}%`,
-        // Shown from the meter the first time a link fills the bar - reassurance, not a warning.
-        reassure: t(
-          "It's okay - keep going. You can always share the whole thing as a .lolly file."
-        ),
-      },
-      prefersReducedMotion,
-      () =>
-        showShareDialog(
-          runtime,
-          actionsEl,
-          tview.tool.manifest,
-          makeLollyVehicle(tview.host, toolId, tview.tool.manifest, actionsApi?.sessionState, contentEl)
-        )
-    );
-    // Render once now so the bar shows on mount - not only after the first syncUrl (a
-    // free-canvas tool may not write the URL on load, which would leave it hidden).
+  // The share-link meter, drawn inside every Share button (plan 115 P1). syncUrl drives its
+  // live value via the holder above; only a tool whose links are shared has its toast.
+  if (shareToastEl) {
+    tview.urlGauge = createShareMeter(shareToastEl, {
+      used: (pct) => `${t('URL budget')}: ${pct}%`,
+      // Shown beside the Share button the first time a link fills the meter - reassurance, not a warning.
+      reassure: t(
+        "It's okay - keep going. You can always share the whole thing as a .lolly file."
+      ),
+    });
+    // Render once now so the meter is right on mount - not only after the first syncUrl (a
+    // free-canvas tool may not write the URL on load, which would leave it empty).
     const gaugeBase = `${location.origin}${TOOL_URL_BASE}?`;
     tview.urlGauge.update(
       costUrlState(

@@ -141,6 +141,8 @@ export interface NavigatorActions {
   enterGroup?(id: string): void;
   duplicateFrame(id: string): void;
   deleteFrame(id: string): void;
+  /** Delete one layer (and what it contains) through the canvas's own delete. */
+  deleteLayer?(id: string): void;
   addArtboardAfter(id: string): void;
   present?(fromFrameId: string): void;
   /** Reorder the z-stack of the active frame's children: ids in new paint order (first paints first). */

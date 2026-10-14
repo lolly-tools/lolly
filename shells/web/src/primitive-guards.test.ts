@@ -1179,7 +1179,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // close button's `innerHTML = icon('close')` on the line above it - `icon()`
   // interpolates nothing, it looks a name up in a closed literal table and
   // returns a fixed path string, and the name here is an InspectorSection key.
-  'views/design-inspector.ts': 3,
+  'views/design-inspector.ts': 2,
   'views/doc-editor.ts': 1,
   // 1 as of 2026-07-31: applyPreflight writes the "Before you export" card body.
   // Reviewed - every value at that sink comes from preflightBodyHtml, which

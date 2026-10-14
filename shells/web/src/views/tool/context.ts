@@ -255,7 +255,8 @@ export interface ToolViewCtx {
   framingTeardown: (() => void) | null;
   renderSaveBtn: HTMLButtonElement | null;
   renderPill: HTMLElement | null;
-  urlGaugeEl: HTMLElement;
+  /** The share-link meter's reassurance toast; absent where the tool shares no links. */
+  shareToastEl: HTMLElement | null;
   urlGauge: UrlGauge | null;
   renderFab: HTMLButtonElement;
   exportOverlay: HTMLElement;

@@ -63,7 +63,6 @@
   .fc-insp.is-dragging,
   .fc-insp.is-resizing { user-select: none; transition: none !important; }
   .fc-insp.is-floating .panel-grip { display: block; }
-  .fc-insp-headbar { cursor: grab; touch-action: none; }
   .fc-insp.is-dragging .fc-insp-headbar { cursor: grabbing; }
 }
 
@@ -77,51 +76,19 @@
    What this is, and the way out of it. Fixed above the scroller (the sections
    scroll under it), because a close control you have to scroll to find is not a
    close control - on a narrow stage this column is a sheet over most of the
-   screen and this is its only dismiss. */
-.fc-insp-headbar {
-  flex: none;
-  display: flex;
-  align-items: center;
-  gap: var(--sp-2);
-  padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-4);
-  border-bottom:0;
-}
+   screen and this is its only dismiss. The look is the Export panel's head
+   (`.export-popup-head`/`-title`/`-tools`/`-close`, tool.css); only what a column
+   adds is here: the head never scrolls, and a long name ellipsises. */
+.fc-insp-headbar { flex: none; }
 .fc-insp-coltitle {
   flex: 1 1 auto;
   min-width: 0;
   margin: 0;
-  font-size: var(--fs-xs);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--ui-type-tracking-label);
-  color: var(--ui-color-text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.fc-insp-close,
-.fc-insp-tool {
-  flex: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: calc(24px * var(--a11y-fs));
-  height: calc(24px * var(--a11y-fs));
-  padding: 0;
-  border: 0;
-  border-radius: var(--ui-radius-control);
-  background: none;
-  color: var(--ui-color-text-muted);
-  cursor: pointer;
-}
-.fc-insp-close svg,
-.fc-insp-tool svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); }
-.fc-insp-close:hover,
-.fc-insp-tool:hover { background: var(--ui-color-surface-muted); color: var(--ui-color-text-default); }
-.fc-insp-close:focus-visible,
-.fc-insp-tool:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
-.fc-insp-tools { display: inline-flex; align-items: center; gap: var(--sp-1); margin-inline-start: auto; }
-.fc-insp-tool[hidden] { display: none; }
+.fc-insp-close { display: inline-flex; align-items: center; justify-content: center; }
 
 .fc-insp-scroll {
   flex: 1 1 auto;
@@ -407,7 +374,6 @@
 }
 .fc-insp-scroll > .fc-row { padding: 8px 12px; }
 .fc-insp details > summary { cursor: pointer; padding-block: 8px; }
-.fc-insp-coltitle { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 @media (any-pointer: coarse) {
   .fc-insp-tabs button, .fc-insp details > summary { min-height: 44px; }
   .fc-insp .emoji-style-control button, .fc-insp .badge-select-opt { min-height: 44px; min-width: 44px; }
@@ -433,6 +399,4 @@
 .tool-stage[data-design-layout="compact"] .fc-nav.is-collapsed { display: none; }
 .tool-stage[data-design-layout="compact"] .tl-panel { bottom: calc(var(--design-actions-h) + var(--design-viewport-inset, 0px)); }
 .tool-stage[data-design-layout="compact"].is-text-editing .design-compact-actions button:not(.design-text-done) { display: none; }
-.fc-insp-name { width: 0; }
-.fc-insp-name[hidden] { display: none; }
-@media (any-pointer: coarse) { .fc-insp-name { min-height: 44px; box-sizing: border-box; } }
+

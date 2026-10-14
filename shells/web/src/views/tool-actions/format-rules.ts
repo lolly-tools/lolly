@@ -17,6 +17,7 @@ import { canExportLolly } from '../export-share.ts';
 import { jellyActive } from '../../lib/jelly.ts';
 import { isC2paFmt, isImprintFmt, isPressFmt, isPrintFmt, keepFormat } from './shared.ts';
 import { bindOp, type ActionsCtx } from './context.ts';
+import { SHARE_METER_HTML } from '../../lib/url-budget-gauge.ts';
 
 export const isAnimatedFmt = (_ta: ActionsCtx, f: string | undefined): boolean =>
   f === 'webm' ||
@@ -183,7 +184,7 @@ export function readCanvasBlocks(ta: ActionsCtx): void {
   const SHARE_SVG = `<svg class="copy-url-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 17H7A5 5 0 0 1 7 7h2"/><path d="M15 7h2a5 5 0 1 1 0 10h-2"/><line x1="8" x2="16" y1="12" y2="12"/></svg>`; ta.SHARE_SVG = SHARE_SVG;
   const copyUrlBtn = jellyActive()
     ? `<jelly-button variant="platinum" data-action="copy-url" class="copy-url-btn" title="Copy a shareable link" label="Share">${SHARE_SVG}<span data-copy-url-label>Share</span></jelly-button>`
-    : `<button type="button" data-action="copy-url" class="copy-url-btn btn" title="Copy a shareable link" aria-label="Share">${SHARE_SVG}<span data-copy-url-label>Share</span></button>`; ta.copyUrlBtn = copyUrlBtn;
+    : `<button type="button" data-action="copy-url" class="copy-url-btn btn" data-share-meter title="Copy a shareable link" aria-label="Share">${SHARE_METER_HTML}${SHARE_SVG}<span data-copy-url-label>Share</span></button>`; ta.copyUrlBtn = copyUrlBtn;
 
   // Save glyph - a tray with a down-arrow (matches the Feather "download" mark),
   // line-art to sit consistently beside the Copy and Share icons.

@@ -6,9 +6,14 @@ import { designHierarchyDescendants, designHierarchyIndex, reparentDesignHierarc
 import { mountBodyPopover } from '../components/body-popover.ts';
 import { tRaw as t } from '../i18n.ts';
 
-export function openDesignLayerMenu(opts: { row: HTMLElement; id: string; model: ModelPort; pages?: DesignPage[]; canEdit(): boolean; rename(): void }) {
+/**
+ * The layer's actions. `anchor` is the control that opened it - the row for a right-click
+ * or a key, the row's actions button for a press - and `remove` is absent on a host that
+ * cannot delete, which then offers no Delete rather than one that does nothing.
+ */
+export function openDesignLayerMenu(opts: { row: HTMLElement; anchor?: HTMLElement; id: string; model: ModelPort; pages?: DesignPage[]; canEdit(): boolean; rename(): void; remove?(): void }) {
   const doc = opts.row.ownerDocument;
-  const popover = mountBodyPopover(opts.row, (el, pop) => {
+  const popover = mountBodyPopover(opts.anchor ?? opts.row, (el, pop) => {
     const boxes = opts.model.getBoxes(), pages = opts.pages;
     const index = designHierarchyIndex(boxes, pages), box = index.byId.get(opts.id);
     const subtree = designHierarchyDescendants(index, new Set([opts.id])), page = index.pageById.get(opts.id);
@@ -44,6 +49,7 @@ export function openDesignLayerMenu(opts: { row: HTMLElement; id: string; model:
       search.addEventListener('keydown', event => { if (event.key === 'ArrowDown') { event.preventDefault(); results.querySelector<HTMLElement>('button')?.focus(); } });
       render(); search.focus();
     });
+    if (opts.remove) action(t('Delete layer'), () => { pop.close(); opts.remove!(); });
     return el.querySelector<HTMLElement>('button:not(:disabled)');
   }, { className: 'fc-nav-menu fc-nav-layer-menu', ariaLabel: t('Layer actions'), menuNavigation: true, trackSize: true });
   popover.open(); return popover;
