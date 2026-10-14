@@ -3,7 +3,7 @@
 import { designRasterIdentity, readDesignRasterEvaluation, DESIGN_RASTER_RECIPE, type DesignRasterEvaluation } from '../../../../../engine/src/design-draw-raster.ts';
 import { WebGpuError, webGpuLossSignal } from './device.ts';
 import { runWebGpuOperation } from './operation.ts';
-import { DESIGN_PAGE_SHADER, DESIGN_PAGE_READBACK_SHADER } from './design-page-shader.ts';
+import { DESIGN_FILL_SHADER, DESIGN_PAGE_SHADER, DESIGN_PAGE_READBACK_SHADER } from './design-page-shader.ts';
 
 const MAX_JOB_BYTES = 128 * 1024 * 1024;
 interface Pipelines { render: GPURenderPipeline; readback: GPUComputePipeline }
@@ -42,16 +42,43 @@ function parameters(e: DesignRasterEvaluation): Float32Array<ArrayBuffer> {
   return data;
 }
 
-function limits(e: DesignRasterEvaluation, device: GPUDevice): { bytes: number; x: number; y: number; peakBytes: number } {
+/** Fill descriptors (bounds, colour, edge range and rule, 48 bytes each) and edges in output pixels. */
+function fillParameters(e: DesignRasterEvaluation): { fills: ArrayBuffer; edges: Float32Array<ArrayBuffer> } {
+  const sx = e.pixelWidth / e.width, sy = e.pixelHeight / e.height;
+  const fills = new ArrayBuffer(e.fills.length * 48), floats = new Float32Array(fills), words = new Uint32Array(fills);
+  const edges = new Float32Array(e.fills.reduce((n, f) => n + f.edges.length, 0));
+  let at = 0;
+  e.fills.forEach((f, index) => {
+    floats.set(f.bounds, index * 12); floats.set(f.color, index * 12 + 4);
+    words.set([at / 4, f.edges.length / 4, f.evenOdd ? 1 : 0, 0], index * 12 + 8);
+    for (let i = 0; i < f.edges.length; i += 2) { edges[at + i] = f.edges[i]! * sx; edges[at + i + 1] = f.edges[i + 1]! * sy; }
+    at += f.edges.length;
+  });
+  return { fills, edges };
+}
+
+function limits(e: DesignRasterEvaluation, device: GPUDevice): { bytes: number; x: number; y: number; peakBytes: number; fillBytes: number; edgeBytes: number } {
   const bytes = e.pixelWidth * e.pixelHeight * 4, groups = Math.ceil(bytes / 4 / 64);
   const x = Math.min(groups, device.limits.maxComputeWorkgroupsPerDimension), y = Math.ceil(groups / x);
-  const peakBytes = bytes * 3 + e.ops.length * 64 + 32;
+  const fillBytes = e.fills.length * 48, edgeBytes = e.fills.reduce((n, f) => n + f.edges.length, 0) * 4;
+  const peakBytes = bytes * 3 + e.ops.length * 64 + 32 + (e.fills.length ? fillBytes + edgeBytes + 16 : 0);
   if (peakBytes > MAX_JOB_BYTES || bytes > Math.min(device.limits.maxBufferSize, device.limits.maxStorageBufferBindingSize)
-    || e.ops.length * 64 > device.limits.maxStorageBufferBindingSize || y > device.limits.maxComputeWorkgroupsPerDimension
+    || e.ops.length * 64 > device.limits.maxStorageBufferBindingSize || edgeBytes > device.limits.maxStorageBufferBindingSize
+    || fillBytes > device.limits.maxStorageBufferBindingSize || y > device.limits.maxComputeWorkgroupsPerDimension
     || e.pixelWidth > device.limits.maxTextureDimension2D || e.pixelHeight > device.limits.maxTextureDimension2D) {
     throw new WebGpuError('WEBGPU_LIMIT', 'The Design page exceeds the raster resource budget or graphics device limits.');
   }
-  return { bytes, x, y, peakBytes };
+  return { bytes, x, y, peakBytes, fillBytes, edgeBytes };
+}
+
+/** The fill pipeline, compiled only for a page that has fills. */
+async function compileFill(device: GPUDevice): Promise<GPURenderPipeline> {
+  const module = device.createShaderModule({ code: DESIGN_FILL_SHADER });
+  return device.createRenderPipelineAsync({ label: `${DESIGN_RASTER_RECIPE}:fill`, layout: 'auto',
+    vertex: { module, entryPoint: 'vertex' },
+    fragment: { module, entryPoint: 'fragment', targets: [{ format: 'rgba8unorm', blend: {
+      color: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha' }, alpha: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha' },
+    } }] }, primitive: { topology: 'triangle-list' } });
 }
 
 async function compile(device: GPUDevice): Promise<Pipelines> {
@@ -65,7 +92,7 @@ async function compile(device: GPUDevice): Promise<Pipelines> {
   return { render, readback };
 }
 
-async function draw(device: GPUDevice, p: Pipelines, e: DesignRasterEvaluation, signal: AbortSignal): Promise<Omit<DesignRasterResult, 'identity'>> {
+async function draw(device: GPUDevice, p: Pipelines, e: DesignRasterEvaluation, signal: AbortSignal, fill?: GPURenderPipeline): Promise<Omit<DesignRasterResult, 'identity'>> {
   const budget = limits(e, device), owned: Array<GPUBuffer | GPUTexture> = [];
   const allocation = { peakBytes: budget.peakBytes, created: 0, destroyed: 0, liveBytes: 0 };
   const buffer = (size: number, usage: GPUBufferUsageFlags, label: string) => {
@@ -88,14 +115,34 @@ async function draw(device: GPUDevice, p: Pipelines, e: DesignRasterEvaluation, 
     const renderGroup = device.createBindGroup({ layout: p.render.getBindGroupLayout(0), entries: [
       { binding: 0, resource: { buffer: ops } }, { binding: 1, resource: { buffer: geometry } },
     ] });
+    let fillGroup: GPUBindGroup | undefined;
+    if (e.fills.length) {
+      if (!fill) throw new WebGpuError('WEBGPU_OPERATION_FAILED', 'The Design raster fill pipeline is missing.');
+      const packed = fillParameters(e);
+      const fills = buffer(budget.fillBytes, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST, 'Design raster fills');
+      const edges = buffer(budget.edgeBytes, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST, 'Design raster fill edges');
+      device.queue.writeBuffer(fills, 0, packed.fills); device.queue.writeBuffer(edges, 0, packed.edges);
+      fillGroup = device.createBindGroup({ layout: fill.getBindGroupLayout(0), entries: [
+        { binding: 0, resource: { buffer: fills } }, { binding: 1, resource: { buffer: edges } }, { binding: 2, resource: { buffer: geometry } },
+      ] });
+    }
     const convertGroup = device.createBindGroup({ layout: p.readback.getBindGroupLayout(0), entries: [
       { binding: 0, resource: texture.createView() }, { binding: 1, resource: { buffer: pixels } }, { binding: 2, resource: { buffer: convert } },
     ] });
     const encoder = device.createCommandEncoder({ label: DESIGN_RASTER_RECIPE });
     const render = encoder.beginRenderPass({ colorAttachments: [{ view: texture.createView(), clearValue: [0, 0, 0, 0], loadOp: 'clear', storeOp: 'store' }] });
-    render.setPipeline(p.render); render.setBindGroup(0, renderGroup);
-    // Each draw completes before the next paint; opacity is not applied to an overlapping instanced batch.
-    e.ops.forEach((_, index) => { render.draw(6, 1, 0, index); }); render.end();
+    // Each draw completes before the next paint, in the evaluation's paint order; opacity is
+    // not applied to an overlapping instanced batch.
+    let current: 'primitive' | 'fill' | undefined;
+    for (const [kind, index] of e.paint) {
+      if (kind !== current) {
+        current = kind;
+        if (kind === 'primitive') { render.setPipeline(p.render); render.setBindGroup(0, renderGroup); }
+        else { render.setPipeline(fill!); render.setBindGroup(0, fillGroup!); }
+      }
+      render.draw(6, 1, 0, index);
+    }
+    render.end();
     const compute = encoder.beginComputePass(); compute.setPipeline(p.readback); compute.setBindGroup(0, convertGroup); compute.dispatchWorkgroups(budget.x, budget.y); compute.end();
     encoder.copyBufferToBuffer(pixels, 0, readback, 0, budget.bytes); device.queue.submit([encoder.finish()]);
     await abortable(readback.mapAsync(GPUMapMode.READ, 0, budget.bytes), signal); signal.throwIfAborted();
@@ -114,6 +161,7 @@ async function draw(device: GPUDevice, p: Pipelines, e: DesignRasterEvaluation, 
 /** Injected services are an explicit unit-test seam; the normal singleton uses the product device service. */
 export function createDesignRasterRenderer(services: DesignRasterServices = { run: runWebGpuOperation, loss: webGpuLossSignal }) {
   const pipelines = new WeakMap<GPUDevice, Promise<Pipelines>>();
+  const fillPipelines = new WeakMap<GPUDevice, Promise<GPURenderPipeline>>();
   return async (input: DesignRasterEvaluation, signal?: AbortSignal): Promise<DesignRasterResult> => {
     const e = readDesignRasterEvaluation(input);
     if (!e) throw new WebGpuError('WEBGPU_OPERATION_FAILED', 'The frozen Design raster evaluation is invalid.');
@@ -130,7 +178,12 @@ export function createDesignRasterRenderer(services: DesignRasterServices = { ru
           combined.throwIfAborted(); limits(e, device);
           let p = pipelines.get(device);
           if (!p) { p = compile(device).catch(error => { pipelines.delete(device); throw error; }); pipelines.set(device, p); }
-          return await draw(device, await abortable(p, combined), e, combined);
+          let f: Promise<GPURenderPipeline> | undefined;
+          if (e.fills.length) {
+            f = fillPipelines.get(device);
+            if (!f) { f = compileFill(device).catch(error => { fillPipelines.delete(device); throw error; }); fillPipelines.set(device, f); }
+          }
+          return await draw(device, await abortable(p, combined), e, combined, f ? await abortable(f, combined) : undefined);
         } finally { done(); }
       });
       signal?.throwIfAborted();

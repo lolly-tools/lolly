@@ -65,7 +65,7 @@ import { intersectCubics } from '../engine/src/geom/intersect.ts';
 import { type Contour, type GeomPath, JOIN_EPS, contourArea } from '../engine/src/geom/path.ts';
 import {
   type BooleanOp, GeomLimitError, booleanPath, differencePath, intersectPath, pointInPath,
-  selfUnion, unionPath, windingNumber, xorPath,
+  selfUnion, selfUnionChecked, unionPath, windingNumber, xorPath,
 } from '../engine/src/geom/boolean.ts';
 
 const near = (a: number, b: number, eps = 1e-9, what = '') =>
@@ -1296,4 +1296,17 @@ test('a shared edge broken into a weld-scale piece still unions to the whole rec
   // except the two outer verticals.
   assert.ok(pointInPath(out, 50, 0.5, 'nonzero') && pointInPath(out, 50, -0.5, 'nonzero'),
     'both halves are filled');
+});
+
+test('selfUnionChecked answers null exactly where selfUnion hands the path back unresolved', () => {
+  const overlapping: GeomPath = [rect(0, 0, 6, 6), rect(4, 4, 10, 10)];
+  const resolved = selfUnionChecked(overlapping);
+  assert.ok(resolved, 'two overlapping squares resolve');
+  assert.deepEqual(resolved, selfUnion(overlapping), 'the checked form gives the same answer');
+  assert.equal(Math.abs(windingNumber(resolved, 5, 5)), 1, 'the overlap is covered once');
+  const many: GeomPath = [];
+  for (let i = 0; i < 2100; i++) many.push(rect(i * 3, 0, i * 3 + 2, 2));
+  assert.ok(curveCount(many) > 8000);
+  assert.equal(selfUnionChecked(many), null, 'past the ceiling there is no resolved answer');
+  assert.equal(curveCount(selfUnion(many)), curveCount(many), 'selfUnion still returns its best effort');
 });

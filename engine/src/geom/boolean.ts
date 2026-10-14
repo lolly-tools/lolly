@@ -303,6 +303,14 @@ export function xorPath(a: GeomPath, b: GeomPath, opts?: BooleanOptions): GeomPa
  * operand - the pairwise pass is only simple because it can assume canonical inputs.
  */
 export function selfUnion(p: GeomPath, opts: BooleanOptions = {}): GeomPath {
+  return selfUnionChecked(p, opts) ?? normalise(p);
+}
+
+/**
+ * `selfUnion`, or null where it would hand the path back unresolved because the work
+ * ran past its bounds. For a caller that must not mistake the best effort for an answer.
+ */
+export function selfUnionChecked(p: GeomPath, opts: BooleanOptions = {}): GeomPath | null {
   const tol = usableTol(opts.tol);
   const rule = opts.fillRule ?? 'nonzero';
   const path = normalise(p);
@@ -314,7 +322,7 @@ export function selfUnion(p: GeomPath, opts: BooleanOptions = {}): GeomPath {
   const span = Math.max(box.x1 - box.x0, box.y1 - box.y0, 1);
   const weld = Math.max(tol, JOIN_EPS) * span;
   const near = weld * 1e-2;
-  if (idx.curves.length > MAX_CURVES) return path;   // best effort: leave it alone
+  if (idx.curves.length > MAX_CURVES) return null;   // best effort: `selfUnion` leaves it alone
 
   const budget = newBudget();
   const splits: number[][] = idx.curves.map(() => []);
@@ -368,7 +376,7 @@ export function selfUnion(p: GeomPath, opts: BooleanOptions = {}): GeomPath {
   // Same bail-out as `booleanPath`, and here the fallback is barely a compromise: the
   // unresolved path fills nearly the region its resolved form would under the nonzero rule,
   // which is what a caller self-unioning an offset or a stroke outline started from.
-  if (budget.work <= 0) return path;
+  if (budget.work <= 0) return null;
   return compactPath(walkLoops(dedupeEdges(kept, weld, budget), weld));
 }
 

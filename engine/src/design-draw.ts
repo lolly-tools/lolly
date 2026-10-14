@@ -459,7 +459,7 @@ function pictureOf(row: DesignBoxRowV1, area: DrawBox, clip: DrawArea | undefine
 }
 
 /** The box inside an inside stroke, and the outline CSS clips its content to there. */
-function paddingArea(box: DrawBox, shape: Exclude<DrawShape, { kind: 'path' }>, stroke: DrawStroke | undefined): DrawArea {
+export function paddingArea(box: DrawBox, shape: Exclude<DrawShape, { kind: 'path' }>, stroke: DrawStroke | undefined): DrawArea {
   const inset = stroke ? Math.min(stroke.width, box.w / 2, box.h / 2) : 0;
   return {
     box: { x: box.x + inset, y: box.y + inset, w: box.w - inset * 2, h: box.h - inset * 2 },

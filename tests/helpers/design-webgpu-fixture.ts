@@ -68,7 +68,14 @@ render(page,output){return new Promise((resolve,reject)=>{const current=++id;con
 close(){worker.terminate();for(const p of pending.values()){clearTimeout(p.timer);p.reject(new Error('Owned fixture closed'));}pending.clear();}};
 `;
 
-export async function createDesignGpuFixture() {
+/** One served page pair: the real Design render and the compiled SVG, at an output scale. */
+export interface DesignGpuCase { key: string; rows: DesignBoxRowV1[]; drawing: DesignDrawPage; scaleX: number; scaleY: number; original: boolean }
+
+/**
+ * The owned origin. `cases` replaces the primitive pages; `head` adds markup to every
+ * Design page (fonts for text cases).
+ */
+export async function createDesignGpuFixture(options: { cases?: DesignGpuCase[]; head?: string } = {}) {
   const root = fileURLToPath(new URL('../../', import.meta.url));
   const [entry, worker, tool] = await Promise.all([
     build({ stdin: { contents: program, resolveDir: root, sourcefile: 'design-gpu-fixture.ts' }, bundle: true, write: false, format: 'esm', platform: 'browser' }),
@@ -76,11 +83,11 @@ export async function createDesignGpuFixture() {
     loadTool('design', p => readFile(root + 'community/' + p, 'utf8')),
   ]);
   const pages = new Map<string, string>();
-  for (const { key, rows, drawing, scaleX, scaleY, original } of designGpuCases()) {
+  for (const { key, rows, drawing, scaleX, scaleY, original } of options.cases ?? designGpuCases()) {
     const runtime = await createRuntime(tool, Object.assign(baseHost(), { color: makeColorApi(), geom: makeGeomApi(), connectors: makeConnectorsApi() }), { boxes: rows as never });
     assert.deepEqual(runtime.hookErrors ?? [], [], 'real Design hooks rendered without errors');
     const style = '<style>html,body{margin:0;background:transparent}#tool-canvas{position:relative;width:320px;height:240px;overflow:hidden;transform-origin:0 0;transform:scale(' + scaleX + ',' + scaleY + ')}</style>';
-    pages.set('/design/' + key, `<!doctype html>${style}<style>${tool.styles ?? ''}</style><div id="tool-canvas">${runtime.getHydrated()}</div>`);
+    pages.set('/design/' + key, `<!doctype html>${style}${options.head ?? ''}<style>${tool.styles ?? ''}</style><div id="tool-canvas">${runtime.getHydrated()}</div>`);
     const svg = designDrawSvg(drawing, { assetHref: () => undefined, family: () => 'system-ui', mono: 'monospace' });
     const svgStyle = original ? `svg{width:${320 * scaleX}px;height:${240 * scaleY}px}` : `svg{width:320px;height:240px;transform-origin:0 0;transform:scale(${scaleX},${scaleY})}`;
     pages.set('/svg/' + key, `<!doctype html><style>html,body{margin:0;background:transparent}${svgStyle}</style>${svg}`);
