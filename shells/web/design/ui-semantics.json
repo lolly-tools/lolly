@@ -368,6 +368,14 @@
         "overlay": {
           "$type": "shadow",
           "$value": "{lolly.foundation.elevation.5}"
+        },
+        "rail": {
+          "$type": "shadow",
+          "$value": "{lolly.foundation.elevation.rail}"
+        },
+        "sidebar": {
+          "$type": "shadow",
+          "$value": "{lolly.foundation.elevation.sidebar}"
         }
       },
       "edge": {

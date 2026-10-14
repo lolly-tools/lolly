@@ -250,7 +250,7 @@
   overflow-y: auto;
     max-height: 100vh;
     max-height: 100dvh; /* track the visible viewport so mobile chrome can't hide the header/actions */
-    box-shadow: 1px 0 3px -3px #0001, 1rem 0 .5rem -.5rem #0001;
+    box-shadow: var(--ui-elevation-sidebar);
   }
 
 .sidebar.is-dragging {

@@ -2049,7 +2049,7 @@ test('R12 (plans/188): app navigation reads semantic Lolly UI roles', () => {
   const dock = CSS.find(f => f.rel === 'lib/edge-dock.css')?.text ?? '';
   for (const role of [
     '--ui-color-surface-canvas', '--ui-color-selection-border', '--ui-color-focus-ring',
-    '--ui-radius-choice', '--ui-elevation-sheet', '--ui-motion-standard',
+    '--ui-radius-choice', '--ui-elevation-panel', '--ui-motion-standard',
   ]) assert.ok(dock.includes(role), `edge-dock.css: dock navigation must read ${role}`);
 });
 
