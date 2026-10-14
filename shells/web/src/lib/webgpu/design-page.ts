@@ -46,7 +46,7 @@ function pack(data: Float32Array, at: number, p: Outline, e: DesignRasterEvaluat
 
 function parameters(e: DesignRasterEvaluation): Float32Array<ArrayBuffer> {
   const data = new Float32Array(e.ops.length * 16);
-  e.ops.forEach((p, index) => pack(data, index * 16, p, e));
+  e.ops.forEach((p, index) => { pack(data, index * 16, p, e); });
   return data;
 }
 
