@@ -5,6 +5,22 @@ import { readFileSync } from 'node:fs';
 
 export const BROWSER_PARTITION_COUNT = 4;
 
+// These entry checks used to run on every runner before the same files ran again
+// in their assigned partition. Keep them early without changing their ownership.
+export const BROWSER_ENTRY_POINT_FILES = [
+  'tests/design-theme.browser.test.ts',
+  'services/mcp/test/motion-samples.browser.test.ts',
+  'tests/open-route.browser.test.ts',
+] as const;
+
+/** Run entry checks first, then the remaining assigned files alphabetically. */
+export function browserExecutionFiles(files: readonly string[]): string[] {
+  const priority = new Map<string, number>(BROWSER_ENTRY_POINT_FILES.map((file, index) => [file, index]));
+  return uniqueFiles([...files], 'browser execution files').sort((a, b) =>
+    (priority.get(a) ?? priority.size) - (priority.get(b) ?? priority.size)
+    || (a < b ? -1 : a > b ? 1 : 0));
+}
+
 interface BrowserTimings {
   schemaVersion: number;
   defaultDurationMs: number;
