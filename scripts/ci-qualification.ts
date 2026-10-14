@@ -45,7 +45,7 @@ function git(args: string[], root = process.cwd()): string {
 
 /** Deliberately narrower than shell compatibility: startup, bridges and auth need the full suite. */
 export function classifyChanges(changes: Change[]): { publicReadyEligible: boolean; reasons: string[] } {
-  const protectedName = /(?:^|[/_.-])(?:auth|account|session|login|signin|signup|password|credential|permission|policy|trust|security|org|admin|invite|collab|gateway|remote|iframe|embed|release|webgpu)(?:[/_.-]|$)/i;
+  const protectedName = /(?:^|[/_.-])(?:auth|account|session|login|signin|signup|password|credential|permission|policy|trust|security|org|admin|invite|collab|gateway|remote|iframe|embed|release|webgpu|profile|identity|connections|instance)(?:[/_.-]|$)/i;
   const ui = (name: string) => !protectedName.test(name) && (
     /^shells\/web\/src\/(?:components|styles|views)\/.+\.(?:ts|css|html|svg)$/.test(name)
     || /^shells\/web\/src\/lib\/(?:edge-dock(?:-split-default)?|lolly-ui-tokens)(?:\.test)?\.(?:ts|css)$/.test(name)

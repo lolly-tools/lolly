@@ -23,7 +23,7 @@ node --test tests/ci-qualification-contract.test.ts tests/workflow-pins.test.ts
 
 The fast scope permits regular files in web components, styles and views,
 selected docking/token helpers, their focused tests and the two canonical UI
-token documents. Auth, account, session, policy and related protected filenames
+token documents. Auth, account, session, profile, identity, instance, policy and related protected filenames
 are excluded even within those directories. A substantive UI change is required.
 Startup, bridges, catalog code, engine, backend, dependencies, workflows, CI
 policy, unknown paths, executable files and symlinks require the full tier.

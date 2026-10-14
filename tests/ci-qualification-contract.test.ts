@@ -38,7 +38,9 @@ for (const path of ['engine/src/runtime.ts', 'packages/node-shell/src/content-ro
   '.github/workflows/ci.yml', 'scripts/ci-qualification.ts', 'scripts/run-public-ready-ui.ts', 'security/lint-baseline.json',
   'shells/web/src/main.ts', 'shells/web/src/bridge/auth.ts', 'shells/web/src/catalog/sync.ts',
   'shells/web/src/views/account.ts', 'shells/web/src/views/auth/login.ts', 'shells/web/src/views/tool/session.ts',
-  'shells/web/src/components/admin-menu.ts', 'shells/web/src/views/remote-identity.ts', 'unknown.ts']) {
+  'shells/web/src/components/admin-menu.ts', 'shells/web/src/views/remote-identity.ts',
+  'shells/web/src/views/profile.ts', 'shells/web/src/views/profile/chrome.ts', 'shells/web/src/views/profile/identity.ts',
+  'shells/web/src/views/profile-connections.ts', 'shells/web/src/components/instance-sheet.ts', 'unknown.ts']) {
   test(`full tier is required for ${path}`, () => assert.equal(classifyChanges([...changes, change(path)]).publicReadyEligible, false));
 }
 
