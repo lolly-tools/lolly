@@ -121,7 +121,7 @@ async function link(page: Page, path = 'verification.enter'): Promise<Locator> {
 }
 
 async function theme(page: Page, name: string): Promise<void> {
-  await page.locator('.fc-insp-tabs').getByRole('button', { name: 'Document', exact: true }).click();
+  await page.locator('.fc-insp-tabs').getByRole('button', { name: 'Canvas', exact: true }).click();
   await page.locator('.fc-seg[data-seg="lolly-doc-theme-0"] .fc-seg-btn', { hasText: name }).click();
   await settleEditor(page, 30_000);
 }

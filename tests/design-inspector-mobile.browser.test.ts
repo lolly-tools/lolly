@@ -158,7 +158,7 @@ test('phone inspector preserves P3 through undo and reload, and Escape dismisses
     await page.waitForFunction(() => !!(window as EditorWindow).lolly?.ui);
     assert.equal(await readInk(page), 'color(display-p3 1 0 0)');
     await select(page); await page.getByRole('button', { name: 'Inspect', exact: true }).click();
-    await page.locator('.fc-insp-tabs').getByRole('button', { name: 'Document', exact: true }).click();
+    await page.locator('.fc-insp-tabs').getByRole('button', { name: 'Canvas', exact: true }).click();
     assert.deepEqual(await selection(page), ['headline']);
     await page.waitForFunction(() => document.querySelector('.emoji-style-summary')?.textContent?.includes('Fluent Emoji High Contrast'));
     await page.locator('[data-doc="editingRange"]').selectOption('sdr');

@@ -54,7 +54,7 @@ test('whole borders render, restore dash overrides, refresh themes and reopen in
     assert.ok((await read()).every(row => JSON.parse(String(row.tokenLinks)).strokeDash.custom));
     await settleEditor(page, 30000); await slot.locator('[data-design-token-property]').selectOption('strokeDash');
     await slot.locator('[data-token-restore]').click(); await wait('strokeDash', 'dashed');
-    await page.locator('.fc-insp-tabs').getByRole('button', { name: 'Document', exact: true }).click();
+    await page.locator('.fc-insp-tabs').getByRole('button', { name: 'Canvas', exact: true }).click();
     await page.locator('.fc-seg[data-seg="lolly-doc-theme-0"] .fc-seg-btn', { hasText: 'Dark' }).click();
     await wait('stroke', '#ffffff');
     const saved = page.url(); await page.goto(saved);
