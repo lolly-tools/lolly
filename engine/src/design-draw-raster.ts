@@ -12,15 +12,18 @@ import type { JoinStyle } from './geom/offset.ts';
 export const DESIGN_RASTER_VERSION = 1;
 /**
  * Primitives keep their Skia-matched edge coverage; paths and outlined words are filled
- * by exact per-pixel area over edges flattened to 1/32 output pixel.
+ * by exact per-pixel area over edges flattened to 1/32 output pixel; gradients colour a
+ * primitive's coverage per pixel, interpolated premultiplied.
  */
-export const DESIGN_RASTER_RECIPE = 'design-static-primitives-edge-aa-area-fills-rgba8-v2';
+export const DESIGN_RASTER_RECIPE = 'design-static-primitives-edge-aa-area-fills-gradients-rgba8-v3';
 export const DESIGN_RASTER_MAX_PIXELS = 16 * 1024 * 1024;
 export const DESIGN_RASTER_MAX_OPS = 1024;
 export const DESIGN_RASTER_MAX_DIMENSION = 8192;
 /** Edges across every fill of one page, and of one fill. */
 export const DESIGN_RASTER_MAX_EDGES = 262_144;
 export const DESIGN_RASTER_MAX_FILL_EDGES = 65_536;
+/** Stops in one gradient. */
+export const DESIGN_RASTER_MAX_STOPS = 256;
 /** How far a flattened edge may stray from its curve, in output pixels. */
 const FLATTEN_TOLERANCE_PX = 1 / 32;
 
@@ -49,8 +52,36 @@ export interface DesignRasterFill {
   /** The edges' bounds: x0, y0, x1, y1. */
   readonly bounds: readonly [number, number, number, number];
 }
-/** One step of the paint order: a primitive or a fill, by index. */
-export type DesignRasterPaint = readonly ['primitive' | 'fill', number];
+/**
+ * A gradient over a primitive's outline, as CSS paints a background image: on the box
+ * inside the border and repeated across the box. `geometry` is the gradient line's two
+ * ends (linear) or the ellipse's centre and radii (radial, to the farthest corner), and
+ * `tile` the box it repeats, both in page coordinates before the primitive's pose.
+ * `stops` holds, per stop, its offset then straight sRGB and alpha, the alpha already
+ * carrying the operation's opacity. Colours interpolate premultiplied, as CSS does.
+ */
+export interface DesignRasterGradient {
+  readonly id: string;
+  /** The primitive whose box, outline and pose the gradient paints. */
+  readonly primitive: number;
+  readonly kind: 'linear' | 'radial';
+  readonly geometry: readonly [number, number, number, number];
+  readonly tile: readonly [number, number, number, number];
+  readonly stops: readonly number[];
+}
+/**
+ * What the frame clips its rows to: the box inside its border at the inner radius, as
+ * Design's board clips its children. Every paint step from `from` on is clipped to this
+ * outline; the frame's own paint, the steps before `from`, is not.
+ */
+export interface DesignRasterClip {
+  readonly box: readonly [number, number, number, number];
+  readonly shape: 'rect' | 'ellipse';
+  readonly radius: number;
+  readonly from: number;
+}
+/** One step of the paint order: a primitive, a fill or a gradient, by index. */
+export type DesignRasterPaint = readonly ['primitive' | 'fill' | 'gradient', number];
 
 export interface DesignRasterEvaluation {
   readonly version: typeof DESIGN_RASTER_VERSION;
@@ -65,8 +96,11 @@ export interface DesignRasterEvaluation {
   readonly resources: readonly [];
   readonly ops: readonly DesignRasterPrimitive[];
   readonly fills: readonly DesignRasterFill[];
-  /** Primitives and fills in paint order. */
+  readonly gradients: readonly DesignRasterGradient[];
+  /** Primitives, fills and gradients in paint order. */
   readonly paint: readonly DesignRasterPaint[];
+  /** The frame's clip, when it clips its rows inside the page edge. */
+  readonly clip: DesignRasterClip | null;
 }
 export type DesignRasterAdmission = { ok: true; evaluation: DesignRasterEvaluation } | { ok: false; findings: DesignRasterFinding[] };
 
@@ -89,9 +123,12 @@ function primitive(op: DrawOp, findings: DesignRasterFinding[]): DesignRasterPri
   if (!keys(s, s.kind === 'rect' ? ['kind', 'radius'] : ['kind'])) return reject('raster-shape');
   const radius = s.kind === 'rect' ? s.radius : 0;
   if (!finite(radius) || radius < 0 || radius > Math.min(b.w, b.h) / 2) return reject('raster-radius');
-  if (!finite(op.opacity) || op.opacity < 0 || op.opacity > 100 || !Array.isArray(op.fills) || op.fills.length > 1) return reject('raster-paint');
-  const paint = op.fills[0];
-  if (op.fills.length && (!paint || typeof paint !== 'object' || paint.kind !== 'color' || !keys(paint, ['kind', 'color', 'opacity']) || !/^#[\da-f]{6}$/i.test(paint.color)
+  // At most a colour, then a gradient over it, as Design paints `bg` under `grad`.
+  if (!finite(op.opacity) || op.opacity < 0 || op.opacity > 100 || !Array.isArray(op.fills) || op.fills.length > 2 || !dense(op.fills)
+    || !op.fills.every(f => f && typeof f === 'object')
+    || op.fills.length === 2 && (op.fills[0]!.kind !== 'color' || op.fills[1]!.kind === 'color')) return reject('raster-paint');
+  const paint = op.fills[0]?.kind === 'color' ? op.fills[0] : undefined;
+  if (paint && (!keys(paint, ['kind', 'color', 'opacity']) || !/^#[\da-f]{6}$/i.test(paint.color)
     || paint.opacity !== undefined && !unit(paint.opacity))) return reject('raster-paint');
   const pose = op.pose;
   if (pose !== undefined && (!pose || typeof pose !== 'object' || !keys(pose, ['rot', 'flipH', 'flipV']) || !finite(pose.rot) || Math.abs(pose.rot) > 1e6
@@ -331,6 +368,41 @@ function wordFills(op: DrawOp, tolerance: number, findings: DesignRasterFinding[
   return fills;
 }
 
+/**
+ * A box's gradient, over the primitive at `primitive`. The gradient sits on the box inside
+ * the border and CSS repeats it across the box; a radial gradient is an ellipse at the
+ * centre of that box reaching its farthest corner. A gradient over a colour, or under words,
+ * is refused when the operation fades as a group.
+ */
+function gradientOf(op: DrawOp, primitive: number, findings: DesignRasterFinding[]): DesignRasterGradient | null | undefined {
+  const reject = (feature: string): null => { findings.push({ id: op.id.slice(0, 256), feature }); return null; };
+  const paint = op.op === 'shape' ? op.fills.find(f => f.kind !== 'color') : undefined;
+  if (!paint || op.op !== 'shape' || op.shape.kind === 'path') return undefined;
+  if (op.opacity < 100 && (op.fills.length > 1 || op.words)) return reject('raster-group');
+  const stops = paint.stops;
+  if (!Array.isArray(stops) || stops.length < 2 || stops.length > DESIGN_RASTER_MAX_STOPS || !dense(stops)) return reject('raster-paint');
+  const flat: number[] = [];
+  for (const stop of stops) {
+    const rgb = stop && typeof stop === 'object' && exact(stop, ['offset', 'color', 'opacity']) && typeof stop.color === 'string' ? rgbOf(stop.color) : null;
+    if (!rgb || !unit(stop.offset) || !unit(stop.opacity) || (flat.length && stop.offset < flat[flat.length - 5]!)) return reject('raster-paint');
+    flat.push(stop.offset, ...rgb, stop.opacity * op.opacity / 100);
+  }
+  const area = op.stroke?.align === 'inside' ? paddingArea(op.box, op.shape, op.stroke) : { box: op.box, shape: op.shape };
+  const tile = area.box;
+  if (![tile.x, tile.y, tile.w, tile.h].every(finite) || tile.w <= 0 || tile.h <= 0) return reject('raster-paint');
+  let geometry: [number, number, number, number];
+  if (paint.kind === 'linear') {
+    if (!keys(paint, ['kind', 'x1', 'y1', 'x2', 'y2', 'stops'])) return reject('raster-paint');
+    geometry = [paint.x1, paint.y1, paint.x2, paint.y2];
+    if (!geometry.every(n => finite(n) && Math.abs(n) <= 1e6) || (paint.x1 === paint.x2 && paint.y1 === paint.y2)) return reject('raster-paint');
+  } else if (paint.kind === 'radial') {
+    if (!keys(paint, ['kind', 'stops'])) return reject('raster-paint');
+    geometry = [tile.x + tile.w / 2, tile.y + tile.h / 2, tile.w * Math.SQRT1_2, tile.h * Math.SQRT1_2];
+  } else return reject('raster-paint');
+  return Object.freeze({ id: `${op.id}:gradient`.slice(0, 256), primitive, kind: paint.kind, geometry: Object.freeze(geometry) as DesignRasterGradient['geometry'],
+    tile: Object.freeze([tile.x, tile.y, tile.w, tile.h]) as DesignRasterGradient['tile'], stops: Object.freeze(flat) });
+}
+
 /** Whole-page admission is synchronous, before any device acquisition or asynchronous work. */
 export function prepareDesignRaster(page: DesignDrawPage, output?: { width: number; height: number; dpi?: number }): DesignRasterAdmission {
   const findings: DesignRasterFinding[] = [];
@@ -341,13 +413,24 @@ export function prepareDesignRaster(page: DesignDrawPage, output?: { width: numb
     || pixelWidth * pixelHeight > DESIGN_RASTER_MAX_PIXELS || !finite(dpi) || dpi < 1 || dpi > 9600) findings.push({ id: '', feature: 'raster-size' });
   if (!Array.isArray(page.ops) || page.ops.length > DESIGN_RASTER_MAX_OPS || !dense(page.ops) || !Array.isArray(page.findings) || page.findings.length > DESIGN_RASTER_MAX_OPS || !dense(page.findings)) return { ok: false, findings: [...findings, { id: '', feature: 'raster-budget' }] };
   findings.push(...page.findings.map(f => ({ id: typeof f?.id === 'string' ? f.id.slice(0, 256) : '', feature: typeof f?.feature === 'string' ? f.feature.slice(0, 128) : 'raster-finding' })));
-  if (page.clip !== undefined) findings.push({ id: page.frame?.id ?? '', feature: 'raster-page-clip' });
   const frame = page.frame;
-  if (frame?.shape?.kind !== 'rect' || frame.shape.radius !== 0 || !frame.box || frame.box.x !== 0 || frame.box.y !== 0
+  // The frame paints the whole page, square, rounded or elliptical; primitive admission checks its radius.
+  if ((frame?.shape?.kind !== 'rect' && frame?.shape?.kind !== 'ellipse') || !frame.box || frame.box.x !== 0 || frame.box.y !== 0
     || frame.box.w !== page.width || frame.box.h !== page.height || frame.opacity !== 100 || frame.pose) findings.push({ id: frame?.id ?? '', feature: 'raster-frame' });
+  const area = page.clip, edge = area?.box, outline = area?.shape;
+  let clip: Omit<DesignRasterClip, 'from'> | null = null;
+  if (area !== undefined) {
+    if (!area || typeof area !== 'object' || !exact(area, ['box', 'shape']) || !edge || typeof edge !== 'object' || !keys(edge, ['x', 'y', 'w', 'h'])
+      || ![edge.x, edge.y, edge.w, edge.h].every(n => finite(n) && Math.abs(n) <= 1e6) || edge.w <= 0 || edge.h <= 0 || !outline || typeof outline !== 'object'
+      || !(outline.kind === 'ellipse' ? exact(outline, ['kind']) : outline.kind === 'rect' && exact(outline, ['kind', 'radius']) && finite(outline.radius)
+        && outline.radius >= 0 && outline.radius <= Math.min(edge.w, edge.h) / 2)) findings.push({ id: frame?.id ?? '', feature: 'raster-page-clip' });
+    else clip = { box: Object.freeze([edge.x, edge.y, edge.w, edge.h]) as DesignRasterClip['box'], shape: outline.kind, radius: outline.kind === 'rect' ? outline.radius : 0 };
+  }
   const tolerance = FLATTEN_TOLERANCE_PX / Math.max(pixelWidth / (page.width || 1), pixelHeight / (page.height || 1));
-  const ops: DesignRasterPrimitive[] = [], fills: DesignRasterFill[] = [], paint: DesignRasterPaint[] = [];
+  const ops: DesignRasterPrimitive[] = [], fills: DesignRasterFill[] = [], gradients: DesignRasterGradient[] = [], paint: DesignRasterPaint[] = [];
+  let from = 0;
   for (const op of [...(frame ? [frame] : []), ...page.ops]) {
+    if (op !== frame && !from) from = paint.length;
     const addFill = (fill: DesignRasterFill) => { paint.push(Object.freeze(['fill', fills.length]) as DesignRasterPaint); fills.push(fill); };
     if (op?.op === 'shape' && op.shape?.kind === 'path') {
       const fill = pathFill(op, tolerance, findings);
@@ -360,6 +443,8 @@ export function prepareDesignRaster(page: DesignDrawPage, output?: { width: numb
     const p = primitive(op, findings);
     if (!p) continue;
     paint.push(Object.freeze(['primitive', ops.length]) as DesignRasterPaint); ops.push(p);
+    const gradient = gradientOf(op, ops.length - 1, findings);
+    if (gradient) { paint.push(Object.freeze(['gradient', gradients.length]) as DesignRasterPaint); gradients.push(gradient); }
     // A CSS border paints over the background and under the words.
     const stroke = op.op === 'shape' && op.stroke ? strokeFill(op, tolerance, findings) : undefined;
     if (stroke) addFill(stroke);
@@ -370,7 +455,8 @@ export function prepareDesignRaster(page: DesignDrawPage, output?: { width: numb
   if (findings.length) return { ok: false, findings };
   return { ok: true, evaluation: Object.freeze({ version: DESIGN_RASTER_VERSION, drawingVersion: DESIGN_DRAW_VERSION, recipe: DESIGN_RASTER_RECIPE,
     width: page.width, height: page.height, pixelWidth, pixelHeight, dpi, resources: Object.freeze([]) as readonly [], ops: Object.freeze(ops),
-    fills: Object.freeze(fills), paint: Object.freeze(paint) }) };
+    fills: Object.freeze(fills), gradients: Object.freeze(gradients), paint: Object.freeze(paint),
+    clip: clip && from ? Object.freeze({ ...clip, from }) : null }) };
 }
 
 /** A handed-off fill, checked field by field. */
@@ -386,26 +472,55 @@ function readFill(f: unknown): DesignRasterFill | null {
   return Object.freeze({ id: v.id, edges: Object.freeze([...v.edges]), evenOdd: v.evenOdd, color: Object.freeze([...v.color]) as DesignRasterFill['color'], bounds: Object.freeze(b) as DesignRasterFill['bounds'] });
 }
 
+/** A handed-off gradient, checked field by field against the primitives it may paint. */
+function readGradient(g: unknown, primitives: number): DesignRasterGradient | null {
+  if (!g || typeof g !== 'object') return null;
+  const v = g as DesignRasterGradient;
+  if (!exact(v, ['id', 'primitive', 'kind', 'geometry', 'tile', 'stops']) || typeof v.id !== 'string' || v.id.length > 256
+    || !Number.isInteger(v.primitive) || v.primitive < 0 || v.primitive >= primitives || (v.kind !== 'linear' && v.kind !== 'radial')
+    || !Array.isArray(v.geometry) || v.geometry.length !== 4 || !v.geometry.every(n => finite(n) && Math.abs(n) <= 1e6)
+    || !Array.isArray(v.tile) || v.tile.length !== 4 || !v.tile.every(n => finite(n) && Math.abs(n) <= 1e6) || v.tile[2] <= 0 || v.tile[3] <= 0
+    || !Array.isArray(v.stops) || !dense(v.stops) || v.stops.length % 5 || v.stops.length < 10 || v.stops.length > DESIGN_RASTER_MAX_STOPS * 5
+    || !v.stops.every(unit)) return null;
+  for (let i = 5; i < v.stops.length; i += 5) if (v.stops[i]! < v.stops[i - 5]!) return null;
+  if (v.kind === 'linear' && v.geometry[0] === v.geometry[2] && v.geometry[1] === v.geometry[3]) return null;
+  if (v.kind === 'radial' && (v.geometry[2] <= 0 || v.geometry[3] <= 0)) return null;
+  return Object.freeze({ id: v.id, primitive: v.primitive, kind: v.kind, geometry: Object.freeze([...v.geometry]) as DesignRasterGradient['geometry'],
+    tile: Object.freeze([...v.tile]) as DesignRasterGradient['tile'], stops: Object.freeze([...v.stops]) });
+}
+
 /** Validate a worker handoff without trusting a structured clone's former freeze or TypeScript type. */
 export function readDesignRasterEvaluation(value: unknown): DesignRasterEvaluation | null {
   if (!value || typeof value !== 'object') return null;
   const e = value as DesignRasterEvaluation;
-  if (!exact(e, ['version', 'drawingVersion', 'recipe', 'width', 'height', 'pixelWidth', 'pixelHeight', 'dpi', 'resources', 'ops', 'fills', 'paint'])
+  if (!exact(e, ['version', 'drawingVersion', 'recipe', 'width', 'height', 'pixelWidth', 'pixelHeight', 'dpi', 'resources', 'ops', 'fills', 'gradients', 'paint', 'clip'])
     || e.version !== DESIGN_RASTER_VERSION || e.drawingVersion !== DESIGN_DRAW_VERSION || e.recipe !== DESIGN_RASTER_RECIPE
     || !size(e.pixelWidth) || !size(e.pixelHeight) || !finite(e.dpi) || e.dpi < 1 || e.dpi > 9600
     || !Array.isArray(e.resources) || e.resources.length || !Array.isArray(e.ops) || !e.ops.length || e.ops.length > DESIGN_RASTER_MAX_OPS + 1
     || !Array.isArray(e.fills) || !dense(e.fills) || e.fills.length > DESIGN_RASTER_MAX_OPS * 64 || !Array.isArray(e.paint) || !dense(e.paint)
-    || e.paint.length !== e.ops.length + e.fills.length) return null;
+    || !Array.isArray(e.gradients) || !dense(e.gradients) || e.gradients.length > e.ops.length
+    || e.paint.length !== e.ops.length + e.fills.length + e.gradients.length) return null;
   const fills: DesignRasterFill[] = [];
   for (const f of e.fills) { const read = readFill(f); if (!read) return null; fills.push(read); }
+  const gradients: DesignRasterGradient[] = [];
+  for (const g of e.gradients) { const read = readGradient(g, e.ops.length); if (!read) return null; gradients.push(read); }
+  const c = e.clip as DesignRasterClip | null;
+  if (c !== null && (!c || typeof c !== 'object' || !exact(c, ['box', 'shape', 'radius', 'from']) || !Number.isInteger(c.from) || c.from < 1 || c.from > e.paint.length
+    || !Array.isArray(c.box) || c.box.length !== 4 || !c.box.every(n => finite(n) && Math.abs(n) <= 1e6) || c.box[2] <= 0 || c.box[3] <= 0
+    || (c.shape !== 'rect' && c.shape !== 'ellipse') || !finite(c.radius) || c.radius < 0 || c.radius > Math.min(c.box[2], c.box[3]) / 2
+    || (c.shape === 'ellipse' && c.radius !== 0))) return null;
+  const clip = c && Object.freeze({ box: Object.freeze([...c.box]) as DesignRasterClip['box'], shape: c.shape, radius: c.radius, from: c.from });
   if (fills.reduce((n, f) => n + f.edges.length / 4, 0) > DESIGN_RASTER_MAX_EDGES) return null;
-  // Every primitive and fill appears once, primitives and fills each in their own order, the frame first.
-  const next = { primitive: 0, fill: 0 };
+  // Every primitive, fill and gradient appears once, each kind in its own order, the frame
+  // first, and a gradient straight after the primitive it paints.
+  const next = { primitive: 0, fill: 0, gradient: 0 };
+  let previous: unknown;
   for (const step of e.paint as unknown[]) {
-    if (!Array.isArray(step) || step.length !== 2 || (step[0] !== 'primitive' && step[0] !== 'fill')) return null;
-    const kind: 'primitive' | 'fill' = step[0];
+    if (!Array.isArray(step) || step.length !== 2 || (step[0] !== 'primitive' && step[0] !== 'fill' && step[0] !== 'gradient')) return null;
+    const kind: 'primitive' | 'fill' | 'gradient' = step[0];
     if (step[1] !== next[kind]) return null;
-    next[kind]++;
+    if (kind === 'gradient' && (!Array.isArray(previous) || previous[0] !== 'primitive' || previous[1] !== gradients[step[1]]!.primitive)) return null;
+    next[kind]++; previous = step;
   }
   if (e.paint[0]?.[0] !== 'primitive') return null;
   const rows: DrawOp[] = [];
@@ -422,7 +537,8 @@ export function readDesignRasterEvaluation(value: unknown): DesignRasterEvaluati
   }
   const result = prepareDesignRaster({ version: DESIGN_DRAW_VERSION, width: e.width, height: e.height, background: '', frame: rows[0] as DesignDrawPage['frame'], ops: rows.slice(1), findings: [] }, { width: e.pixelWidth, height: e.pixelHeight, dpi: e.dpi });
   if (!result.ok) return null;
-  return Object.freeze({ ...result.evaluation, fills: Object.freeze(fills), paint: Object.freeze(e.paint.map(([kind, index]) => Object.freeze([kind, index]) as DesignRasterPaint)) });
+  return Object.freeze({ ...result.evaluation, fills: Object.freeze(fills), gradients: Object.freeze(gradients),
+    paint: Object.freeze(e.paint.map(([kind, index]) => Object.freeze([kind, index]) as DesignRasterPaint)), clip });
 }
 
 /** The identity names semantic input and output geometry, never an adapter or GPU resource. */

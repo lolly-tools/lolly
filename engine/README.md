@@ -231,7 +231,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `design-draw-pdf.ts` | 512 | Drawing operations written as PDF (plan 295, phase 3, P3d). | no | `tests/design-draw-pdf.test.ts` | – |
 | `design-draw-penpot.ts` | 126 | Penpot's existing flat-primitive and gradient reading, separate from Design's CSS geometry. | no | `tests/design-draw-penpot.test.ts` | – |
 | `design-draw-pptx.ts` | 275 | The native deck's primitive, linear-gradient and single-path reading, distinct from Design's CSS geometry. | no | `tests/design-draw-pptx.test.ts` | – |
-| `design-draw-raster.ts` | 429 | Internal P3f admission. | no | `tests/design-draw-raster.test.ts` | – |
+| `design-draw-raster.ts` | 545 | Internal P3f admission. | no | `tests/design-draw-raster.test.ts` | – |
 | `design-draw-svg.ts` | 411 | Drawing operations written as SVG (plan 295, phase 3, P3a). | no | indirect | – |
 | `design-draw.ts` | 900 | Authored Design rows compiled into drawing operations (plan 295, phase 3, P3a). | no | `tests/design-draw.test.ts` | – |
 | `design-hierarchy.ts` | 256 | Document ownership is independent of geometry and the active editor canvas. | yes | `tests/design-hierarchy.test.ts` | – |

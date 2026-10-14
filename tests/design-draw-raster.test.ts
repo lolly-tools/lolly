@@ -29,9 +29,9 @@ test('raster admission freezes detached ordered semantics and output geometry', 
 
 test('coverage recipe revision rejects stale handoffs and changes detached raster identity', () => {
   const current = evaluation();
-  assert.equal(DESIGN_RASTER_RECIPE, 'design-static-primitives-edge-aa-area-fills-rgba8-v2');
+  assert.equal(DESIGN_RASTER_RECIPE, 'design-static-primitives-edge-aa-area-fills-gradients-rgba8-v3');
   assert.equal(current.recipe, DESIGN_RASTER_RECIPE);
-  for (const recipe of ['design-static-primitives-rgba8-v0', 'design-static-primitives-edge-aa-rgba8-v1']) {
+  for (const recipe of ['design-static-primitives-rgba8-v0', 'design-static-primitives-edge-aa-rgba8-v1', 'design-static-primitives-edge-aa-area-fills-rgba8-v2']) {
     const stale = { ...structuredClone(current), recipe };
     assert.equal(readDesignRasterEvaluation(stale), null, `${recipe} is stale`);
     assert.notEqual(designRasterIdentity(current), designRasterIdentity(stale as DesignRasterEvaluation));
@@ -42,7 +42,7 @@ test('unsupported features refuse the whole page rather than dropping operations
   const mutations: Array<(p: DesignDrawPage) => void> = [
     p => { p.ops[0]!.words = {} as never; }, p => { p.ops[0]!.picture = {} as never; }, p => { p.ops[0]!.shadow = {} as never; },
     p => { p.ops[0]!.blend = 'multiply'; }, p => { p.ops[0]!.blur = 1; }, p => { p.ops[0]!.clip = { points: [] }; },
-    p => { p.ops[0]!.op = 'text'; }, p => { p.frame!.shape = { kind: 'rect', radius: 2 }; },
+    p => { p.ops[0]!.op = 'text'; }, p => { p.frame!.opacity = 50; },
     p => { p.ops[0] = { ...p.ops[0]!, compatibility: 'penpot-native-v1' } as never; },
     p => { p.ops[0] = { ...p.ops[0]!, stroke: { color: '#fff', width: 1 } } as never; },
     p => { p.ops[0] = { ...p.ops[0]!, fills: [{ kind: 'radial', stops: [] }] } as never; },
@@ -261,6 +261,104 @@ test('strokes become the fill of the region they paint, over the fills and under
   near('cap:stroke', 40 * 6 + Math.PI * 9, 2 * Math.PI * 3);
   assert.deepEqual(e.fills.find(f => f.id === 'round:stroke')!.color, [0, 0, 0, 0x80 / 255], 'the stroke keeps its own alpha');
   assert.equal(designRasterIdentity(readDesignRasterEvaluation(structuredClone(e))!), designRasterIdentity(e), 'strokes survive the worker handoff');
+});
+
+test('gradients paint over their primitive as CSS backgrounds: on the box inside the border, after the colour, before the border', () => {
+  const a = prepareDesignRaster(compileDesignDraw([{ id: 'frame', kind: 'frame', w: 200, h: 120, bg: '#ffffff' },
+    { id: 'lin', kind: 'box', x: 10, y: 10, w: 80, h: 40, bg: '#000000', grad: 'lin.srgb_90_ff0000-0_0000ff80-100', opacity: 100 },
+    { id: 'rad', kind: 'box', x: 100, y: 10, w: 60, h: 40, shape: 'ellipse', grad: 'rad.srgb_0_ffffff-0_00000000-100', stroke: '#00ff00', strokeW: 5, rot: 30 },
+    { id: 'fade', kind: 'box', x: 10, y: 60, w: 60, h: 40, grad: 'lin.srgb_0_ffffff-0_000000-100', opacity: 50 },
+  ] as never, { width: 200, height: 120 }, { effects: true, colors: 'resolved' }));
+  assert.ok(a.ok, JSON.stringify(!a.ok && a.findings));
+  const e = a.evaluation;
+  assert.deepEqual(e.paint.map(([kind, i]) => kind === 'primitive' ? e.ops[i]!.id : kind === 'fill' ? e.fills[i]!.id : e.gradients[i]!.id),
+    ['frame', 'lin', 'lin:gradient', 'rad', 'rad:gradient', 'rad:stroke', 'fade', 'fade:gradient'], 'the colour, its gradient, then the border');
+  const [lin, rad, fade] = e.gradients;
+  assert.deepEqual([lin!.primitive, lin!.kind, lin!.geometry.map(n => Math.round(n * 1e9) / 1e9), lin!.tile], [1, 'linear', [10, 30, 90, 30], [10, 10, 80, 40]], 'a 90 degree line across the box');
+  assert.deepEqual(lin!.stops, [0, 1, 0, 0, 1, 1, 0, 0, 1, 0x80 / 255]);
+  assert.deepEqual(e.ops[1]!.color, [0, 0, 0, 1], 'the colour under the gradient stays a primitive');
+  assert.deepEqual([rad!.primitive, rad!.kind, rad!.tile], [2, 'radial', [105, 15, 50, 30]], 'the box inside the five-pixel border');
+  assert.ok(Math.abs(rad!.geometry[2] - 50 * Math.SQRT1_2) < 1e-12 && Math.abs(rad!.geometry[3] - 30 * Math.SQRT1_2) < 1e-12 && rad!.geometry[0] === 130 && rad!.geometry[1] === 30,
+    'an ellipse at the centre reaching the farthest corner');
+  assert.deepEqual([rad!.stops[4], rad!.stops[9]], [1, 0]);
+  assert.deepEqual([fade!.stops[4], fade!.stops[9]], [0.5, 0.5], 'stop alpha carries the operation opacity');
+  assert.deepEqual(e.ops[3]!.color[3], 0, 'a box with only a gradient keeps a transparent primitive for its outline');
+  assert.equal(designRasterIdentity(readDesignRasterEvaluation(structuredClone(e))!), designRasterIdentity(e), 'gradients survive the worker handoff');
+  for (const tamper of [
+    (v: Record<string, any>) => { v.gradients[0].primitive = 2; },
+    (v: Record<string, any>) => { v.gradients[0].primitive = 9; },
+    (v: Record<string, any>) => { v.gradients[0].stops[5] = -0.5; },
+    (v: Record<string, any>) => { v.gradients[0].stops.length = 7; },
+    (v: Record<string, any>) => { v.gradients[0].tile[2] = 0; },
+    (v: Record<string, any>) => { v.gradients[0].kind = 'conic'; },
+    (v: Record<string, any>) => { v.paint.splice(2, 1); v.paint.push(['gradient', 0]); },
+    (v: Record<string, any>) => { delete v.gradients; },
+  ]) { const v = structuredClone(e) as Record<string, any>; tamper(v); assert.equal(readDesignRasterEvaluation(v), null, tamper.toString()); }
+  // A colour under a gradient fades as one group, which painting them one after the other would not.
+  const faded = prepareDesignRaster(compileDesignDraw([{ id: 'frame', kind: 'frame', w: 200, h: 120, bg: '#ffffff' },
+    { id: 'both', kind: 'box', x: 10, y: 10, w: 80, h: 40, bg: '#000000', grad: 'lin.srgb_90_ff0000-0_0000ff-100', opacity: 50 }] as never, { width: 200, height: 120 }, { effects: true, colors: 'resolved' }));
+  assert.deepEqual(!faded.ok && faded.findings.map(f => `${f.feature}:${f.id}`), ['raster-group:both']);
+});
+
+test('a page with gradients compiles the gradient pipeline once and releases its buffers', async t => {
+  const prior = new Map<string, unknown>();
+  for (const [key, value] of Object.entries({ GPUBufferUsage: { STORAGE: 1, COPY_DST: 2, UNIFORM: 4, COPY_SRC: 8, MAP_READ: 16 }, GPUTextureUsage: { RENDER_ATTACHMENT: 1, TEXTURE_BINDING: 2 }, GPUMapMode: { READ: 1 } })) {
+    prior.set(key, Reflect.get(globalThis, key)); Reflect.set(globalThis, key, value);
+  }
+  t.after(() => { for (const [key, value] of prior) { if (value === undefined) Reflect.deleteProperty(globalThis, key); else Reflect.set(globalThis, key, value); } });
+  const a = prepareDesignRaster(compileDesignDraw([{ id: 'frame', kind: 'frame', w: 64, h: 48, bg: '#ffffff' },
+    { id: 'lin', kind: 'box', x: 4, y: 4, w: 40, h: 20, grad: 'lin.srgb_90_ff0000-0_0000ff-100' }] as never, { width: 64, height: 48 }, { effects: true, colors: 'resolved' }));
+  assert.ok(a.ok);
+  const f = gpu(); await f.render(a.evaluation); const second = await f.render(a.evaluation);
+  assert.deepEqual([second.allocation.created, second.allocation.destroyed, second.allocation.liveBytes], [8, 8, 0], 'the six primitive resources plus gradient descriptors and stops');
+  assert.equal(f.counts().pipelines, 3, 'render, readback and gradient, each compiled once');
+  for (let at = 1; at <= 8; at++) {
+    const g = gpu('allocation', at); await assert.rejects(g.render(a.evaluation), /actual allocation fault/);
+    assert.equal(g.counts().created, g.counts().destroyed); assert.equal(g.counts().scopes, 0);
+  }
+});
+
+/** A rounded, bordered board that clips its rows, with a box over its corner and a path. */
+const boardPage = () => compileDesignDraw([{ id: 'board', kind: 'frame', w: 200, h: 120, bg: '#ffffff', shape: 'rounded', radius: 16, stroke: '#000000', strokeW: 4 },
+  { id: 'corner', kind: 'box', x: -10, y: -10, w: 60, h: 40, bg: '#ff0000' },
+  { id: 'tri', kind: 'path', x: 120, y: 60, w: 100, h: 80, path: triangle, bg: '#0000ff' }] as never, { width: 200, height: 120 }, { effects: true, colors: 'resolved' });
+
+test('a rounded, bordered frame paints itself, then clips every row inside its border at the inner radius', () => {
+  const a = prepareDesignRaster(boardPage());
+  assert.ok(a.ok, JSON.stringify(!a.ok && a.findings));
+  const e = a.evaluation;
+  assert.deepEqual(e.paint.map(([kind, i]) => kind === 'primitive' ? e.ops[i]!.id : kind === 'fill' ? e.fills[i]!.id : e.gradients[i]!.id), ['board', 'board:stroke', 'corner', 'tri']);
+  assert.deepEqual(e.ops[0]!.radius, 16, 'the frame keeps its own corner radius');
+  assert.deepEqual(e.clip, { box: [4, 4, 192, 112], shape: 'rect', radius: 12, from: 2 }, 'the box inside the border, its radius less the border, after the frame\'s own paint');
+  assert.equal(designRasterIdentity(readDesignRasterEvaluation(structuredClone(e))!), designRasterIdentity(e), 'the clip survives the worker handoff');
+  for (const tamper of [
+    (v: Record<string, any>) => { v.clip.from = 0; },
+    (v: Record<string, any>) => { v.clip.from = 9; },
+    (v: Record<string, any>) => { v.clip.box[2] = 0; },
+    (v: Record<string, any>) => { v.clip.radius = 90; },
+    (v: Record<string, any>) => { v.clip.shape = 'ellipse'; },
+    (v: Record<string, any>) => { v.clip.extra = 1; },
+    (v: Record<string, any>) => { delete v.clip; },
+  ]) { const v = structuredClone(e) as Record<string, any>; tamper(v); assert.equal(readDesignRasterEvaluation(v), null, tamper.toString()); }
+  const open = compileDesignDraw([{ id: 'board', kind: 'frame', w: 200, h: 120, bg: '#ffffff', shape: 'ellipse', clipChildren: false }] as never, { width: 200, height: 120 }, { effects: true, colors: 'resolved' });
+  const b = prepareDesignRaster(open);
+  assert.ok(b.ok && b.evaluation.clip === null && b.evaluation.ops[0]!.shape === 'ellipse', 'an elliptical frame that does not clip draws its outline alone');
+});
+
+test('a clipped page draws its rows with the clipped passes and the frame with the plain ones', async t => {
+  const prior = new Map<string, unknown>();
+  for (const [key, value] of Object.entries({ GPUBufferUsage: { STORAGE: 1, COPY_DST: 2, UNIFORM: 4, COPY_SRC: 8, MAP_READ: 16 }, GPUTextureUsage: { RENDER_ATTACHMENT: 1, TEXTURE_BINDING: 2 }, GPUMapMode: { READ: 1 } })) {
+    prior.set(key, Reflect.get(globalThis, key)); Reflect.set(globalThis, key, value);
+  }
+  t.after(() => { for (const [key, value] of prior) { if (value === undefined) Reflect.deleteProperty(globalThis, key); else Reflect.set(globalThis, key, value); } });
+  const a = prepareDesignRaster(boardPage()); assert.ok(a.ok);
+  const f = gpu(); await f.render(a.evaluation); const second = await f.render(a.evaluation);
+  assert.deepEqual([second.allocation.created, second.allocation.destroyed, second.allocation.liveBytes], [9, 9, 0], 'the six primitive resources, fill descriptors and edges, and the clip');
+  assert.equal(f.counts().pipelines, 5, 'render and readback, the plain fill for the border, the clipped primitive and the clipped fill, each compiled once');
+  for (let at = 1; at <= 9; at++) {
+    const g = gpu('allocation', at); await assert.rejects(g.render(a.evaluation), /actual allocation fault/);
+    assert.equal(g.counts().created, g.counts().destroyed); assert.equal(g.counts().scopes, 0);
+  }
 });
 
 test('a page with fills compiles the fill pipeline once and releases every fill buffer', async t => {
