@@ -16,6 +16,7 @@ import { test } from 'node:test';
 import { chromium } from 'playwright';
 import type { DesignBoxRowV1 } from '@lolly-tools/core';
 import { compileDesignDraw, layoutDesignDrawText, outlineDesignDrawText, type DesignDrawPage, type DrawOp } from '../engine/src/design-draw.ts';
+import { prepareDesignRaster } from '../engine/src/design-draw-raster.ts';
 import { TEXT_MEASURE_DEFAULTS } from '../engine/src/design-text-measure.ts';
 import { encodeAuthoredPaths } from '../engine/src/geom/authored-url.ts';
 import { createNodeTextAPI } from '../packages/node-shell/src/text.ts';
@@ -51,6 +52,17 @@ const REGION_SHARE = 0.005;
  * 0.59 px at 2x; the narrowest word left out differs by 100%.
  */
 const INK_SHARE = 0.25, INK_SHIFT = 1;
+/**
+ * Words against their own outlines: a run's ink in the GPU image must equal its exact area
+ * (times its paint's contrast) within this share, and its ink centroid must sit on the
+ * outline's area centroid within this many output px. This is the GPU's own contract and
+ * holds on any platform; the Design band above also carries the drawing compiler's layout.
+ * Measured on Mac Chrome (Metal): ink within 0.04% and centroids within 0.013 px; the same
+ * word moved by 0.25 px sits 0.257 px away. Chromium's SVG of the same outlines is not this
+ * reference: on Metal it rasterises them with quarter-step coverage and sat up to 0.36 px off.
+ */
+const EXACT_INK_SHARE = REPORT_ONLY && process.env.LOLLY_EXACT_INK_SHARE ? Number(process.env.LOLLY_EXACT_INK_SHARE) : 0.01;
+const EXACT_SHIFT = REPORT_ONLY && process.env.LOLLY_EXACT_SHIFT ? Number(process.env.LOLLY_EXACT_SHIFT) : 0.05;
 
 const path = (closed: boolean, nodes: Array<Record<string, number>>) => encodeAuthoredPaths([{ kind: 'cubic', closed, nodes }] as never) ?? '';
 const triangle = path(true, [{ x: 0, y: 1 }, { x: 0.5, y: 0 }, { x: 1, y: 1 }]);
@@ -106,6 +118,45 @@ function shapeRegions(drawing: DesignDrawPage, sx: number, sy: number) {
   });
 }
 
+/** Each word fill's exact area and area centroid in output px (pixel indices), from the admitted edges. */
+function outlineTruth(drawing: DesignDrawPage, sx: number, sy: number) {
+  // Admitted at the rendered size, so the edges are flattened exactly as the GPU received them.
+  const admitted = prepareDesignRaster(drawing, { width: 320 * sx, height: 240 * sy, dpi: 96 * sx });
+  assert.ok(admitted.ok, 'the fixture page is admitted');
+  return admitted.evaluation.fills.filter(f => f.id.includes(':')).map(f => {
+    let area = 0, cx = 0, cy = 0;
+    for (let i = 0; i < f.edges.length; i += 4) {
+      const x0 = f.edges[i]! * sx, y0 = f.edges[i + 1]! * sy, x1 = f.edges[i + 2]! * sx, y1 = f.edges[i + 3]! * sy, k = x0 * y1 - x1 * y0;
+      area += k; cx += (x0 + x1) * k; cy += (y0 + y1) * k;
+    }
+    area /= 2;
+    return { id: f.id, area: Math.abs(area), x: cx / (6 * area) - 0.5, y: cy / (6 * area) - 0.5, color: [...f.color],
+      box: [Math.floor(f.bounds[0] * sx) - 1, Math.floor(f.bounds[1] * sy) - 1, Math.ceil(f.bounds[2] * sx) + 1, Math.ceil(f.bounds[3] * sy) + 1] };
+  });
+}
+
+/** Runs in the browser: per box, the ink a shot adds over the ground and its centroid, and the ink its paint would add per unit of area. */
+async function inkInBrowser(shot: string, ground: string, width: number, height: number, boxes: Array<{ box: number[]; color: number[] }>) {
+  const pixels = async (src: string) => {
+    const img = new Image(); img.src = src; await img.decode();
+    const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height;
+    const ctx = canvas.getContext('2d')!; ctx.drawImage(img, 0, 0);
+    return ctx.getImageData(0, 0, width, height).data;
+  };
+  const [ps, pg] = await Promise.all([pixels(shot), pixels(ground)]);
+  const lum = (r: number, g: number, b: number) => 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  return boxes.map(({ box: [x0, y0, x1, y1], color }) => {
+    let ink = 0, x = 0, y = 0;
+    for (let yy = Math.max(0, y0!); yy < Math.min(height, y1!); yy++) for (let xx = Math.max(0, x0!); xx < Math.min(width, x1!); xx++) {
+      const i = (yy * width + xx) * 4, w = Math.abs(lum(ps[i]!, ps[i + 1]!, ps[i + 2]!) - lum(pg[i]!, pg[i + 1]!, pg[i + 2]!));
+      ink += w; x += w * xx; y += w * yy;
+    }
+    const mid = (Math.floor((y0! + y1!) / 2) * width + Math.floor((x0! + x1!) / 2)) * 4;
+    const perArea = color[3]! * Math.abs(lum(color[0]! * 255, color[1]! * 255, color[2]! * 255) - lum(pg[mid]!, pg[mid + 1]!, pg[mid + 2]!));
+    return { ink, x: ink ? x / ink : 0, y: ink ? y / ink : 0, perArea };
+  });
+}
+
 function fault(r: RegionStats, scale: number): string | undefined {
   if (r.ink) {
     const share = r.ink.a ? Math.abs(r.ink.a - r.ink.b) / r.ink.a : 0, shift = Math.hypot(r.ink.ax - r.ink.bx, r.ink.ay - r.ink.by);
@@ -149,35 +200,59 @@ test('opt-in Design GPU fills draw pen shapes and outlined words within the decl
     assert.equal(value.allocation.liveBytes, 0);
     return `data:image/png;base64,${Buffer.from(value.png).toString('base64')}`;
   };
-  const report: Array<{ page: string; failing: string[]; regions: RegionStats[] }> = [];
+  const report: Array<{ page: string; failing: string[]; regions: RegionStats[]; outline: Array<{ id: string; share: number; shift: number }>; svg: RegionStats[]; layout: RegionStats[]; faces: string[] }> = [];
   const failures: string[] = [];
+  // Under load, headless Chrome can return a torn frame (upper rows repeated below), so a
+  // reference is the first screenshot that matches the one taken just before.
+  const faces = new Map<string, string[]>();
+  const reference = async (url: string, width: number, height: number) => {
+    const page = await context.newPage(); await page.setViewportSize({ width, height });
+    await page.goto(url); await page.evaluate(() => document.fonts.ready);
+    faces.set(url, await page.evaluate(() => [...document.fonts].map(f => `${f.family} ${f.style} ${f.weight} ${f.status}`)));
+    let shot = await page.screenshot({ clip: { x: 0, y: 0, width, height } }), previous: Buffer | undefined;
+    for (let tries = 0; !previous?.equals(shot); tries++) {
+      assert.ok(tries < 8, `${url} settles into a stable screenshot`);
+      previous = shot; shot = await page.screenshot({ clip: { x: 0, y: 0, width, height } });
+    }
+    await page.close();
+    return `data:image/png;base64,${shot.toString('base64')}`;
+  };
+  const detail = (r: RegionStats) => r.ink ? `ink ${(100 * Math.abs(r.ink.a - r.ink.b) / (r.ink.a || 1)).toFixed(1)}% shift ${Math.hypot(r.ink.ax - r.ink.bx, r.ink.ay - r.ink.by).toFixed(2)}` : `${(100 * r.differing / (r.pixels || 1)).toFixed(2)}%`;
   for (const c of cases) {
     const width = 320 * c.scaleX, height = 240 * c.scaleY;
-    const design = await context.newPage(); await design.setViewportSize({ width, height });
-    await design.goto(`${fixture.origin}/design/${c.key}`); await design.evaluate(() => document.fonts.ready);
-    // Under load, headless Chrome can return a torn frame (upper rows repeated below), so the
-    // reference is the first screenshot that matches the one taken just before.
-    let shot = await design.screenshot({ clip: { x: 0, y: 0, width, height } }), previous: Buffer | undefined;
-    for (let tries = 0; !previous?.equals(shot); tries++) {
-      assert.ok(tries < 8, 'the Design page settles into a stable screenshot');
-      previous = shot; shot = await design.screenshot({ clip: { x: 0, y: 0, width, height } });
-    }
-    const reference = `data:image/png;base64,${shot.toString('base64')}`;
-    await design.close();
+    const design = await reference(`${fixture.origin}/design/${c.key}`, width, height);
+    const svg = await reference(`${fixture.origin}/svg/${c.key}`, width, height);
     const gpu = await render(c.drawing, width, height);
     const words = c.drawing.ops.some(op => op.words);
     const ground = words ? await render({ ...c.drawing, ops: c.drawing.ops.map(({ words: _w, ...op }) => op as DrawOp) }, width, height) : undefined;
     const regions = [...shapeRegions(c.drawing, c.scaleX, c.scaleY), ...runRegions(c.drawing, c.scaleX, c.scaleY)];
-    const compare = (shot: string, within: typeof regions) => probe.evaluate<FidelityStats>(
-      `(${compareInBrowser.toString()})(${JSON.stringify(reference)},${JSON.stringify(shot)},${width},${height},${JSON.stringify(within)},${FILL_THRESHOLD},${ground ? JSON.stringify(ground) : 'undefined'},${FILL_SLACK})`);
+    const compareWith = (before: string, shot: string, within: typeof regions) => probe.evaluate<FidelityStats>(
+      `(${compareInBrowser.toString()})(${JSON.stringify(before)},${JSON.stringify(shot)},${width},${height},${JSON.stringify(within)},${FILL_THRESHOLD},${ground ? JSON.stringify(ground) : 'undefined'},${FILL_SLACK})`);
+    const compare = (shot: string, within: typeof regions) => compareWith(design, shot, within);
+    // Against Design: shapes by pixels, words by ink and centroid.
     const stats = await compare(gpu, regions);
-    const failing = stats.regions.flatMap(r => { const f = fault(r, c.scaleX); return f ? [`${r.id}: ${f}`] : []; });
-    report.push({ page: c.key, failing, regions: stats.regions });
+    // Against the exact outlines: each word's ink and centroid in the GPU image.
+    const truth = words ? outlineTruth(c.drawing, c.scaleX, c.scaleY) : [];
+    const outlineFault = async (shot: string, run: (typeof truth)[number]) => {
+      const [m] = await probe.evaluate(`(${inkInBrowser.toString()})(${JSON.stringify(shot)},${JSON.stringify(ground)},${width},${height},${JSON.stringify([run])})`) as Array<{ ink: number; x: number; y: number; perArea: number }>;
+      const share = Math.abs(m!.ink / (m!.perArea * run.area) - 1), shift = Math.hypot(m!.x - run.x, m!.y - run.y);
+      return { share, shift, fault: share > EXACT_INK_SHARE || shift > EXACT_SHIFT ? `ink differs from the outline's area by ${(100 * share).toFixed(2)}% and sits ${shift.toFixed(3)} px from its centroid` : undefined };
+    };
+    const outline = await Promise.all(truth.map(async run => ({ id: run.id, ...(await outlineFault(gpu, run)) })));
+    const failing = [
+      ...stats.regions.flatMap(r => { const f = fault(r, c.scaleX); return f ? [`${r.id}: ${f}`] : []; }),
+      ...outline.flatMap(r => r.fault ? [`${r.id} against its outline: ${r.fault}`] : []),
+    ];
+    // Diagnostics only: Chromium's own SVG of the same operations, and how far Chromium's text
+    // sits from the operations' layout (the drawing compiler's harness owns that limit).
+    const svgStats = await compareWith(svg, gpu, regions);
+    const layout = words ? (await compareWith(design, svg, regions.filter(r => 'ink' in r))).regions : [];
+    report.push({ page: c.key, failing, regions: stats.regions, outline: outline.map(({ id, share, shift }) => ({ id, share, shift })), svg: svgStats.regions, layout, faces: faces.get(`${fixture.origin}/design/${c.key}`) ?? [] });
     failures.push(...failing.map(f => `${c.key}/${f}`));
-    for (const r of stats.regions) {
-      const detail = r.ink ? `ink ${(100 * Math.abs(r.ink.a - r.ink.b) / (r.ink.a || 1)).toFixed(1)}% shift ${Math.hypot(r.ink.ax - r.ink.bx, r.ink.ay - r.ink.by).toFixed(2)}` : `${(100 * r.differing / (r.pixels || 1)).toFixed(2)}%`;
-      t.diagnostic(`${c.key} ${r.id}: ${detail}`);
-    }
+    for (const r of stats.regions) t.diagnostic(`${c.key} ${r.id}: ${detail(r)}`);
+    for (const r of outline) t.diagnostic(`${c.key} ${r.id} against its outline: ink ${(100 * r.share).toFixed(2)}% shift ${r.shift.toFixed(3)}`);
+    for (const r of svgStats.regions) t.diagnostic(`${c.key} ${r.id} against the SVG: ${detail(r)}`);
+    for (const r of layout) t.diagnostic(`${c.key} ${r.id} Design text against the SVG: ${detail(r)}`);
     if (c.key === 'paths-1') {
       // Negative control: the same page with the triangle moved 2 px must fail its region.
       // A path's geometry is its contours (page coordinates), so the move shifts them with the box.
@@ -197,6 +272,11 @@ test('opt-in Design GPU fills draw pen shapes and outlined words within the decl
       const [region] = (await compare(await render(missing, width, height), [target])).regions;
       if (REPORT_ONLY) t.diagnostic(`control missing word ${target.id}: ${region?.ink ? `ink ${(100 * Math.abs(region.ink.a - region.ink.b) / (region.ink.a || 1)).toFixed(1)}%` : 'no ink'}`);
       else assert.ok(region && fault(region, 1), `the ink check catches a missing word (${target.id})`);
+      // Negative control: the same word moved a quarter pixel must fail the outline check.
+      const nudged = structuredClone(c.drawing); nudged.ops.find(op => op.id === opId)!.words!.layout!.lines[l]!.runs[r]!.x += 0.25;
+      const nudge = await outlineFault(await render(nudged, width, height), truth.find(run => run.id === target.id)!);
+      if (REPORT_ONLY) t.diagnostic(`control word moved 0.25 px ${target.id}: shift ${nudge.shift.toFixed(3)}`);
+      else assert.ok(nudge.fault, `the outline check catches a word moved by 0.25 px (${target.id})`);
     }
   }
   if (process.env.LOLLY_DESIGN_GPU_FILL_REPORT) {

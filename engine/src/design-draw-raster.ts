@@ -3,6 +3,9 @@
 import { DESIGN_DRAW_VERSION, type DesignDrawPage, type DrawBox, type DrawOp, type DrawShape } from './design-draw.ts';
 import * as pmath from './geom/portable-math.ts';
 import { parseSvgPath } from './svg-path.ts';
+import type { Cubic } from './geom/bezier.ts';
+import { selfUnionChecked } from './geom/boolean.ts';
+import { pathBounds, pathFromSubPaths, type GeomPath } from './geom/path.ts';
 
 export const DESIGN_RASTER_VERSION = 1;
 /**
@@ -132,6 +135,34 @@ function boundsOf(edges: readonly number[]): [number, number, number, number] {
   return [x0, y0, x1, y1];
 }
 
+const still = (x: number, y: number): [number, number] => [x, y];
+
+/**
+ * Closed straight edges for a filled path, posed into page pixels. Overlapping contours are
+ * merged first: the fill shader sums each edge's winding over a pixel, which counts an
+ * overlap twice where it meets a partly covered pixel, and variable-font glyphs keep their
+ * overlaps. Null when the merge cannot finish within its bounded work.
+ */
+function fillEdges(path: GeomPath, evenOdd: boolean, tolerance: number, map: (x: number, y: number) => [number, number]): number[] | null {
+  // The pose is affine, so posing the control points poses the curves exactly.
+  const posed: GeomPath = path.map(contour => ({ closed: true, curves: contour.curves.map(q => {
+    const [ax, ay] = map(q[0], q[1]), [bx, by] = map(q[2], q[3]), [cx, cy] = map(q[4], q[5]), [dx, dy] = map(q[6], q[7]);
+    return [ax, ay, bx, by, cx, cy, dx, dy] as Cubic;
+  }) }));
+  const merged = selfUnionChecked(posed, { fillRule: evenOdd ? 'evenodd' : 'nonzero' });
+  if (!merged) return null;
+  const edges: number[] = [];
+  for (const contour of merged) {
+    const start = edges.length;
+    for (const q of contour.curves) flattenCubic(edges, q, tolerance, still);
+    if (edges.length > start) edges.push(edges[edges.length - 2]!, edges[edges.length - 1]!, edges[start]!, edges[start + 1]!);
+  }
+  return edges;
+}
+
+/** Curves one fill may carry into the merge, the bound `selfUnion` answers within. */
+const MAX_FILL_CURVES = 8000;
+
 /** Whether a box lies wholly inside a rectangle or ellipse outline (both convex, so its corners decide). */
 function boxInside(b: readonly [number, number, number, number], box: DrawBox, shape: Exclude<DrawShape, { kind: 'path' }>): boolean {
   const corners: Array<[number, number]> = [[b[0], b[1]], [b[2], b[1]], [b[0], b[3]], [b[2], b[3]]];
@@ -160,13 +191,11 @@ function pathFill(op: DrawOp, tolerance: number, findings: DesignRasterFinding[]
   const paint = op.fills[0]!;
   const rgb = paint.kind === 'color' ? rgbOf(paint.color) : null;
   if (!rgb || (paint.kind === 'color' && paint.opacity !== undefined && !unit(paint.opacity))) return reject('raster-paint');
-  const map = poseOf(op), edges: number[] = [];
-  for (const contour of op.shape.contours) {
-    const start = edges.length;
-    for (const cubic of contour.curves) flattenCubic(edges, cubic, tolerance, map);
-    // A fill closes every contour, open or not.
-    if (edges.length > start) edges.push(edges[edges.length - 2]!, edges[edges.length - 1]!, edges[start]!, edges[start + 1]!);
-  }
+  // A fill closes every contour, open or not.
+  const path: GeomPath = op.shape.contours.map(contour => ({ closed: true, curves: contour.curves.map(q => [...q] as Cubic) }));
+  if (path.reduce((n, c) => n + c.curves.length, 0) > MAX_FILL_CURVES) return reject('raster-budget');
+  const edges = fillEdges(path, op.shape.evenOdd, tolerance, poseOf(op));
+  if (!edges) return reject('raster-budget');
   if (!edges.length) return reject('raster-path');
   if (edges.length / 4 > DESIGN_RASTER_MAX_FILL_EDGES || !edges.every(n => Math.abs(n) <= 1e6)) return reject('raster-budget');
   const alpha = ((paint.kind === 'color' ? paint.opacity : undefined) ?? 1) * op.opacity / 100;
@@ -194,23 +223,17 @@ function wordFills(op: DrawOp, tolerance: number, findings: DesignRasterFinding[
       const d = words.outlines[li]?.[ri];
       if (d === '' || (d === undefined && !run.text.trim())) continue;
       if (typeof d !== 'string') return reject('raster-live-text');
-      const ox = op.box.x + line.x + run.x, oy = op.box.y + line.baseline, local: number[] = [], edges: number[] = [];
-      const at = (x: number, y: number): [number, number] => [x + ox, y + oy];
-      for (const sub of parseSvgPath(d)) {
-        let cx = 0, cy = 0, sx = 0, sy = 0;
-        const start = local.length;
-        for (const seg of sub.segments) {
-          if (seg.op === 'M') { cx = sx = seg.x; cy = sy = seg.y; continue; }
-          if (seg.op === 'L') flattenCubic(local, [cx, cy, cx, cy, seg.x, seg.y, seg.x, seg.y], tolerance, at);
-          else flattenCubic(local, [cx, cy, seg.x1, seg.y1, seg.x2, seg.y2, seg.x, seg.y], tolerance, at);
-          cx = seg.x; cy = seg.y;
-        }
-        if (local.length > start && (cx !== sx || cy !== sy)) local.push(cx + ox, cy + oy, sx + ox, sy + oy);
-      }
-      if (!local.length) continue;
+      const ox = op.box.x + line.x + run.x, oy = op.box.y + line.baseline;
+      const local: GeomPath = pathFromSubPaths(parseSvgPath(d)).map(contour => ({ closed: true,
+        curves: contour.curves.map(q => [q[0] + ox, q[1] + oy, q[2] + ox, q[3] + oy, q[4] + ox, q[5] + oy, q[6] + ox, q[7] + oy] as Cubic) }));
+      const box = pathBounds(local);
+      if (!box) continue;
       // The canvas clips words to the box; only words it would not cut are admitted.
-      if (!boxInside(boundsOf(local), op.box, shape)) return reject('raster-clip');
-      for (let i = 0; i < local.length; i += 2) edges.push(...map(local[i]!, local[i + 1]!));
+      if (!boxInside([box.x0, box.y0, box.x1, box.y1], op.box, shape)) return reject('raster-clip');
+      if (local.reduce((n, c) => n + c.curves.length, 0) > MAX_FILL_CURVES) return reject('raster-budget');
+      const edges = fillEdges(local, false, tolerance, map);
+      if (!edges) return reject('raster-budget');
+      if (!edges.length) continue;
       if (edges.length / 4 > DESIGN_RASTER_MAX_FILL_EDGES || !edges.every(n => Math.abs(n) <= 1e6)) return reject('raster-budget');
       const own = run.color ? rgbOf(run.color) : null;
       const alpha = (own ? 1 : words.inkOpacity ?? 1) * op.opacity / 100;

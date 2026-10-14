@@ -236,3 +236,24 @@ test('a page with fills compiles the fill pipeline once and releases every fill 
     assert.equal(g.counts().created, g.counts().destroyed); assert.equal(g.counts().scopes, 0);
   }
 });
+
+test('overlapping contours are merged before they become a fill, and a fill past the merge budget is refused', async () => {
+  const square = (x0: number, y0: number, x1: number, y1: number) => ({ kind: 'cubic', closed: true, nodes: [{ x: x0, y: y0 }, { x: x1, y: y0 }, { x: x1, y: y1 }, { x: x0, y: y1 }] });
+  const overlap = encodeAuthoredPaths([square(0, 0, 0.6, 0.6), square(0.4, 0.4, 1, 1)] as never) ?? '';
+  const a = prepareDesignRaster(compileDesignDraw([{ id: 'frame', kind: 'frame', w: 200, h: 120, bg: '#ffffff' },
+    { id: 'pair', kind: 'path', x: 0, y: 0, w: 100, h: 100, path: overlap, bg: '#000000' }] as never, { width: 200, height: 120 }, { effects: true, colors: 'resolved' }));
+  assert.ok(a.ok, JSON.stringify(!a.ok && a.findings));
+  const e = a.evaluation.fills[0]!.edges;
+  let area = 0, w = 0;
+  for (let i = 0; i < e.length; i += 4) {
+    const [x0, y0, x1, y1] = [e[i]!, e[i + 1]!, e[i + 2]!, e[i + 3]!];
+    area += (x0 * y1 - x1 * y0) / 2;
+    if ((y0 <= 50.5) !== (y1 <= 50.5) && x0 + (50.5 - y0) / (y1 - y0) * (x1 - x0) > 50.5) w += y1 > y0 ? 1 : -1;
+  }
+  assert.equal(Math.abs(w), 1, 'the overlap is covered once, so the area sum stays exact');
+  assert.ok(Math.abs(Math.abs(area) - 6800) < 1e-6, `the union's area, not the sum of both squares: ${area}`);
+  const comb = encodeAuthoredPaths(Array.from({ length: 2100 }, (_, i) => square(i / 2100, 0, (i + 0.5) / 2100, 1)) as never) ?? '';
+  const b = prepareDesignRaster(compileDesignDraw([{ id: 'frame', kind: 'frame', w: 200, h: 120, bg: '#ffffff' },
+    { id: 'comb', kind: 'path', x: 0, y: 0, w: 100, h: 100, path: comb, bg: '#000000' }] as never, { width: 200, height: 120 }, { effects: true, colors: 'resolved' }));
+  assert.deepEqual(!b.ok && b.findings.map(f => `${f.feature}:${f.id}`), ['raster-budget:comb']);
+});
