@@ -67,6 +67,86 @@ env:
 # checkout and test time, so a slow install that passes inside its step limit is
 # not then stopped by the job limit. Package installs retry a stalled attempt.
 jobs:
+  # Scope comes from the exact event base. Changes to this workflow or policy
+  # require the full suite. The bootstrap PR has no base policy and is full-only.
+  deployment-scope:
+    name: deployment scope
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      public-ready: ${{ steps.scope.outputs.public-ready }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '26'
+          package-manager-cache: false
+      - name: Classify with trusted base policy
+        id: scope
+        run: |
+          mkdir -p artifacts
+          if git cat-file -e "$CI_BASE_SHA:scripts/ci-qualification.ts" 2>/dev/null; then
+            git show "$CI_BASE_SHA:scripts/ci-qualification.ts" > "$RUNNER_TEMP/ci-qualification.ts"
+            node "$RUNNER_TEMP/ci-qualification.ts" scope artifacts/ci-scope.json
+          else
+            node --input-type=module <<'NODE'
+          import { execFileSync } from 'node:child_process';
+          import { createHash } from 'node:crypto';
+          import { appendFileSync, writeFileSync } from 'node:fs';
+          const env = process.env;
+          const git = ref => execFileSync('git', ['rev-parse', ref], { encoding: 'utf8' }).trim();
+          const scope = { version: 1, source: git('HEAD'), tree: git('HEAD^{tree}'),
+            base: env.CI_BASE_SHA, headSha: env.CI_HEAD_SHA,
+            repository: env.GITHUB_REPOSITORY, repositoryId: Number(env.GITHUB_REPOSITORY_ID),
+            headRepository: env.CI_HEAD_REPOSITORY, headBranch: env.CI_HEAD_BRANCH,
+            event: env.GITHUB_EVENT_NAME, runId: Number(env.GITHUB_RUN_ID), runAttempt: Number(env.GITHUB_RUN_ATTEMPT),
+            policyCommit: env.CI_BASE_SHA, policySha256: null, publicReadyEligible: false,
+            changes: [], changedPathsSha256: createHash('sha256').update('[]').digest('hex'),
+            reasons: ['Trusted base has no CI policy; full release required'] };
+          writeFileSync('artifacts/ci-scope.json', JSON.stringify(scope, null, 2) + '\n', { flag: 'wx' });
+          appendFileSync(env.GITHUB_OUTPUT, 'public-ready=false\n');
+          NODE
+          fi
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: ci-scope-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/ci-scope.json
+          if-no-files-found: error
+          retention-days: 14
+
+  public-ready-ui:
+    name: test (public-ready UI)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          version: 11.26.0
+          run_install: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '26'
+          cache: pnpm
+      - name: Install pinned dependencies
+        timeout-minutes: 5
+        run: pnpm install --frozen-lockfile
+      - name: Focused UI and canonical token contracts
+        env:
+          LOLLY_PUBLIC_READY_UI_REPORT: artifacts/public-ready-ui.json
+        run: node scripts/run-public-ready-ui.ts
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: public-ready-ui-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/public-ready-ui.json
+          if-no-files-found: error
+          retention-days: 14
+
   secrets:
     name: secret history scan
     runs-on: ubuntu-latest
@@ -114,32 +194,19 @@ jobs:
       - name: Scan tracked Git history (redacted output)
         run: pnpm run secrets:scan
 
-  test:
-    name: ${{ matrix.partition && format('test (browser {0})', matrix.partition) || format('test ({0})', matrix.shard) }}
+  # These two checks share all installation, skip and evidence steps with the
+  # exhaustive matrix, but expose a dependency that can finish before browsers.
+  test-fast:
+    name: ${{ format('test ({0})', matrix.shard) }}
     runs-on: ubuntu-latest
-    # Per shard, in minutes. Passing runs take about 15 (unit:engine), 11
-    # (unit:web) and 21 to 33 (a browser partition) at the 90th percentile.
-    # A shard that installs packages adds those step limits: a browser
-    # partition allows 20 + 25 + 10 for its installs, 34 for its tests and 7
-    # for checkout, with 9 to spare.
     timeout-minutes: ${{ matrix.timeout }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - { shard: 'unit:engine', artifact: 'unit-engine', timeout: 40 }
-          - { shard: 'unit:web', artifact: 'unit-web', timeout: 30 }
           - { shard: 'contracts', artifact: 'contracts', timeout: 40 }
           - { shard: 'security', artifact: 'security', timeout: 30 }
-          - { shard: 'tools', artifact: 'tools', timeout: 15 }
-          - { shard: 'browser', artifact: 'browser-1', partition: '1/4', timeout: 105 }
-          - { shard: 'browser', artifact: 'browser-2', partition: '2/4', timeout: 105 }
-          - { shard: 'browser', artifact: 'browser-3', partition: '3/4', timeout: 105 }
-          - { shard: 'browser', artifact: 'browser-4', partition: '4/4', timeout: 105 }
-          - { shard: 'tauri', artifact: 'tauri', timeout: 40 }
-          - { shard: 'conformance', artifact: 'conformance', timeout: 25 }
-          - { shard: 'fuzz:regression', artifact: 'fuzz-regression', timeout: 15 }
-    steps:
+    steps: &ci-test-steps
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           submodules: recursive   # only brands/suse, and `update = none` skips it on a public runner
@@ -509,6 +576,35 @@ jobs:
             lolly-tier-b-debug-*.log
             plans/artifacts/browser-journeys/
           if-no-files-found: error
+
+  test:
+    name: ${{ matrix.partition && format('test (browser {0})', matrix.partition) || format('test ({0})', matrix.shard) }}
+    # Keep these initial fast jobs ahead of the large matrix in the runner queue.
+    # Full coverage still runs if a fast check fails.
+    needs: [deployment-scope, public-ready-ui]
+    if: ${{ always() && !cancelled() }}
+    runs-on: ubuntu-latest
+    # Per shard, in minutes. Passing runs take about 15 (unit:engine), 11
+    # (unit:web) and 21 to 33 (a browser partition) at the 90th percentile.
+    # A shard that installs packages adds those step limits: a browser
+    # partition allows 20 + 25 + 10 for its installs, 34 for its tests and 7
+    # for checkout, with 9 to spare.
+    timeout-minutes: ${{ matrix.timeout }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { shard: 'unit:engine', artifact: 'unit-engine', timeout: 40 }
+          - { shard: 'unit:web', artifact: 'unit-web', timeout: 30 }
+          - { shard: 'tools', artifact: 'tools', timeout: 15 }
+          - { shard: 'browser', artifact: 'browser-1', partition: '1/4', timeout: 105 }
+          - { shard: 'browser', artifact: 'browser-2', partition: '2/4', timeout: 105 }
+          - { shard: 'browser', artifact: 'browser-3', partition: '3/4', timeout: 105 }
+          - { shard: 'browser', artifact: 'browser-4', partition: '4/4', timeout: 105 }
+          - { shard: 'tauri', artifact: 'tauri', timeout: 40 }
+          - { shard: 'conformance', artifact: 'conformance', timeout: 25 }
+          - { shard: 'fuzz:regression', artifact: 'fuzz-regression', timeout: 15 }
+    steps: *ci-test-steps
 
   browser-gate:
     name: test (browser)
@@ -1075,91 +1171,11 @@ jobs:
             --error . || true
 
 
-  # Scope comes from the exact event base. Changes to this workflow or policy
-  # require the full suite. The bootstrap PR has no base policy and is full-only.
-  deployment-scope:
-    name: deployment scope
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    outputs:
-      public-ready: ${{ steps.scope.outputs.public-ready }}
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
-        with:
-          node-version: '26'
-          package-manager-cache: false
-      - name: Classify with trusted base policy
-        id: scope
-        run: |
-          mkdir -p artifacts
-          if git cat-file -e "$CI_BASE_SHA:scripts/ci-qualification.ts" 2>/dev/null; then
-            git show "$CI_BASE_SHA:scripts/ci-qualification.ts" > "$RUNNER_TEMP/ci-qualification.ts"
-            node "$RUNNER_TEMP/ci-qualification.ts" scope artifacts/ci-scope.json
-          else
-            node --input-type=module <<'NODE'
-          import { execFileSync } from 'node:child_process';
-          import { createHash } from 'node:crypto';
-          import { appendFileSync, writeFileSync } from 'node:fs';
-          const env = process.env;
-          const git = ref => execFileSync('git', ['rev-parse', ref], { encoding: 'utf8' }).trim();
-          const scope = { version: 1, source: git('HEAD'), tree: git('HEAD^{tree}'),
-            base: env.CI_BASE_SHA, headSha: env.CI_HEAD_SHA,
-            repository: env.GITHUB_REPOSITORY, repositoryId: Number(env.GITHUB_REPOSITORY_ID),
-            headRepository: env.CI_HEAD_REPOSITORY, headBranch: env.CI_HEAD_BRANCH,
-            event: env.GITHUB_EVENT_NAME, runId: Number(env.GITHUB_RUN_ID), runAttempt: Number(env.GITHUB_RUN_ATTEMPT),
-            policyCommit: env.CI_BASE_SHA, policySha256: null, publicReadyEligible: false,
-            changes: [], changedPathsSha256: createHash('sha256').update('[]').digest('hex'),
-            reasons: ['Trusted base has no CI policy; full release required'] };
-          writeFileSync('artifacts/ci-scope.json', JSON.stringify(scope, null, 2) + '\n', { flag: 'wx' });
-          appendFileSync(env.GITHUB_OUTPUT, 'public-ready=false\n');
-          NODE
-          fi
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
-        with:
-          name: ci-scope-${{ github.run_id }}-${{ github.run_attempt }}
-          path: artifacts/ci-scope.json
-          if-no-files-found: error
-          retention-days: 14
-
-  public-ready-ui:
-    name: test (public-ready UI)
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          persist-credentials: false
-      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-        with:
-          version: 11.26.0
-          run_install: false
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
-        with:
-          node-version: '26'
-          cache: pnpm
-      - name: Install pinned dependencies
-        timeout-minutes: 5
-        run: pnpm install --frozen-lockfile
-      - name: Focused UI and canonical token contracts
-        env:
-          LOLLY_PUBLIC_READY_UI_REPORT: artifacts/public-ready-ui.json
-        run: node scripts/run-public-ready-ui.ts
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
-        with:
-          name: public-ready-ui-${{ github.run_id }}-${{ github.run_attempt }}
-          path: artifacts/public-ready-ui.json
-          if-no-files-found: error
-          retention-days: 14
-
-  # Do not depend on the test matrix: that would wait for all browser shards.
-  # The qualifier reads every current-attempt job and refuses any known failure.
+  # Allocate the qualifier only after fast checks finish, without waiting for
+  # the long test matrix. Read every current-attempt job and refuse known failures.
   public-ready:
     name: public-ready
-    needs: deployment-scope
+    needs: [deployment-scope, public-ready-ui, test-fast, secrets, typecheck, validate-catalog, smoke, build, sast]
     if: ${{ !cancelled() && needs.deployment-scope.result == 'success' && needs.deployment-scope.outputs.public-ready == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 50
@@ -1194,7 +1210,7 @@ jobs:
 
   release-ready:
     name: release-ready
-    needs: [deployment-scope, public-ready-ui, secrets, test, browser-gate, typecheck, validate-catalog, smoke, instance-shell, build, api-bundles, render-action, audit, sast]
+    needs: [deployment-scope, public-ready-ui, secrets, test-fast, test, browser-gate, typecheck, validate-catalog, smoke, instance-shell, build, api-bundles, render-action, audit, sast]
     if: ${{ always() && !cancelled() }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -1239,7 +1255,7 @@ jobs:
   # eligible UI changes finish after public-ready while exhaustive tests continue.
   qualification:
     name: qualification
-    needs: deployment-scope
+    needs: [deployment-scope, public-ready-ui, test-fast, secrets, typecheck, validate-catalog, smoke, build, sast]
     if: ${{ always() && !cancelled() }}
     runs-on: ubuntu-latest
     timeout-minutes: 120

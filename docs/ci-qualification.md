@@ -30,6 +30,13 @@ policy, unknown paths, executable files and symlinks require the full tier.
 The exact allowlist lives in `scripts/ci-qualification.ts`; a documentation
 description never grants additional scope.
 
+Scope and the focused UI job start ahead of the long matrix. Contracts and
+security have their own fast matrix, sharing the exact installation, test and
+skip-report steps with the exhaustive matrix. The long matrix waits for the
+initial scope/UI jobs but still runs when they fail. Qualification jobs allocate
+a runner only after fast checks finish. Full-tier qualification then waits for
+release-ready; the full suite and its required checks are preserved.
+
 For PRs the checked source can be GitHub's merge commit; `headSha` separately
 records the provider's PR head. Scope and qualification policy are executed from
 the exact event base commit. Candidate changes cannot relax that base policy.

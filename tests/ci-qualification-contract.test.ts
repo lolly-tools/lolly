@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
+import { parse } from 'yaml';
 import { assessJobs, classifyChanges, hash, inspectScope, PUBLIC_JOBS, qualify, RELEASE_JOBS, validateScope, WORKFLOW } from '../scripts/ci-qualification.ts';
 import type { Change, Identity, Job, Scope } from '../scripts/ci-qualification.ts';
 import { PUBLIC_READY_UI_FILES } from '../scripts/run-public-ready-ui.ts';
@@ -150,18 +151,43 @@ test('workflow keeps fast qualification independent of the full matrix and uses 
   const workflow = readFileSync(join(root, WORKFLOW), 'utf8');
   for (const name of ['public-ready', 'qualification']) {
     const block = workflow.split(`\n  ${name}:\n`)[1]!.split(/\n {2}[a-z][a-z-]+:\n/)[0]!;
-    assert.match(block, /needs: deployment-scope/);
-    assert.doesNotMatch(block, /needs:.*\btest\b/);
+    assert.match(block, /needs: \[deployment-scope, public-ready-ui, test-fast,/);
+    assert.doesNotMatch(block, /needs:.*(?:, test,|browser-gate|release-ready)/);
     assert.match(block, /actions: read/); assert.doesNotMatch(block, /write/);
     assert.match(block, /git show "\$CI_BASE_SHA:scripts\/ci-qualification.ts"/);
     assert.match(block, /github.run_id.*github.run_attempt/);
   }
   const full = workflow.split('\n  release-ready:\n')[1]!.split('\n  qualification:\n')[0]!;
   assert.match(full, /needs: \[.*\btest\b.*browser-gate.*audit.*sast/);
-  const focused = workflow.split('\n  public-ready-ui:\n')[1]!.split('\n  public-ready:\n')[0]!;
+  const focused = workflow.split('\n  public-ready-ui:\n')[1]!.split(/\n {2}[a-z][a-z-]+:\n/)[0]!;
   assert.doesNotMatch(focused, /^ {4}if:/m); assert.match(focused, /node scripts\/run-public-ready-ui.ts/);
   assert.match(workflow, /Trusted base has no CI policy; full release required/);
   assert.match(workflow, /public-ready=false/);
+});
+
+test('fast tests start before long suites, share exact steps, and preserve all original shards on failure', () => {
+  interface WorkflowJob { needs?: string[]; if?: string; steps: Array<{ name?: string }>;
+    strategy?: { matrix: { include: Array<{ shard: string; partition?: string; artifact: string }> } } }
+  const workflow = parse(readFileSync(join(root, WORKFLOW), 'utf8')) as { jobs: Record<string, WorkflowJob> };
+  assert.deepEqual(Object.keys(workflow.jobs).slice(0, 2), ['deployment-scope', 'public-ready-ui']);
+  const fast = workflow.jobs['test-fast']!, long = workflow.jobs.test!;
+  assert.equal(fast.needs, undefined);
+  assert.deepEqual(fast.strategy!.matrix.include.map(value => value.shard), ['contracts', 'security']);
+  assert.deepEqual(long.needs, ['deployment-scope', 'public-ready-ui']);
+  assert.match(long.if!, /always\(\) && !cancelled\(\)/);
+  assert.strictEqual(fast.steps, long.steps, 'YAML alias must resolve to the one unchanged test-step list');
+  assert.ok(fast.steps.some(step => step.name === 'Install Chromium (browser and security shards)'));
+  assert.ok(fast.steps.some(step => step.name === 'Skipped tests must match exact CI identities'));
+  const shards = [...fast.strategy!.matrix.include, ...long.strategy!.matrix.include];
+  assert.equal(shards.length, 12); assert.equal(new Set(shards.map(value => value.artifact)).size, 12);
+  assert.deepEqual(shards.filter(value => value.shard === 'browser').map(value => value.partition), ['1/4', '2/4', '3/4', '4/4']);
+  for (const name of ['public-ready', 'qualification']) {
+    const needs = workflow.jobs[name]!.needs!;
+    assert.ok(needs.includes('test-fast')); assert.ok(needs.includes('public-ready-ui'));
+    assert.ok(!needs.includes('test') && !needs.includes('browser-gate'));
+  }
+  assert.ok(workflow.jobs['release-ready']!.needs!.includes('test-fast'));
+  assert.ok(workflow.jobs['release-ready']!.needs!.includes('test'));
 });
 
 test('focused UI set includes canonical-token drift and contains no browser-only tests', () => {
