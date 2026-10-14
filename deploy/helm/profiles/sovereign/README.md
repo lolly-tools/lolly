@@ -30,6 +30,13 @@ and explicit Authorization is preserved. The remaining shell routes reach Work
 without cookies or Authorization. This does not move private catalogs into the
 public namespace or add private pack mounts to public pods.
 
+The private edge enables `encode zstd gzip`. Work already serves precompressed
+shell files, and Caddy preserves those encodings and responses marked
+`no-transform`. Versioned public shell files use a one-year `immutable` cache
+lifetime from Work's delivery policy. Preserve that upstream policy: a blanket
+cache header would also cache missing files or private catalog responses.
+HTML revalidates, and the service worker keeps its separate update policy.
+
 Set `private.servePublicDeploymentGuide: true` to serve the public deployment
 guide from the private hostname. Only GET and HEAD on
 `/info/operate/deployment`, `/info/operate/deployment.html`,

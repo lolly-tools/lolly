@@ -288,7 +288,6 @@
 /* "+ New" stays (it is the way to the starting points), as a quiet icon button at the
    card's end: muted at rest, full strength while the card is hovered or holds focus,
    and always full on a touch screen, where nothing hovers. */
-.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile-new { display: none; }
 .tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile-new-icon {
   display: inline-grid;
   place-items: center;

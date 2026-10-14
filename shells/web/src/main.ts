@@ -1122,6 +1122,9 @@ function startBootCatalog(host: Awaited<ReturnType<typeof createBridge>>, coldGa
 }
 
 async function boot(): Promise<void> {
+  // Capture export intent before mounting can rewrite the address.
+  const bootRoute = parseRoute();
+  const scriptedExport = new URLSearchParams('params' in bootRoute ? bootRoute.params ?? '' : '').has('export');
   installToolByteVerification();
   installVerifiedPreviews();
   // WebGPU is a hard requirement (plan 295), checked alongside boot rather than before
@@ -1166,7 +1169,7 @@ async function boot(): Promise<void> {
   // the base for good. Correctness costs Tauri nothing measurable - the sheet is one
   // fast IndexedDB read on every boot after the first.
   const coldGallery = !window.__toolIndex;
-  const firstRoute = parseRoute().name;
+  const firstRoute = bootRoute.name;
   if ((firstRoute === 'gallery' || firstRoute === 'utilities') && !isWelcomeDismissed()) expectWelcomeDecision();
   let slimIndexReady = coldGallery && !isTauriShell() ? loadSlimToolIndex() : null;
 
@@ -1577,7 +1580,8 @@ async function boot(): Promise<void> {
   // the components/featured-row.ts pattern) - same work, after the paint that matters.
   // It also refreshes pinned tool files and downloaded offline parts, so it waits for
   // the first-run welcome to close as well.
-  if (!isIframeMode()) catalogReady.then(() => afterWelcomeIdle(() => { void syncCorePrefetch(host as unknown as Parameters<typeof syncCorePrefetch>[0]); }));
+  // Scripted exports fetch their own resources; offline warming can exhaust a worker's request budget.
+  if (!scriptedExport && !isIframeMode()) catalogReady.then(() => afterWelcomeIdle(() => { void syncCorePrefetch(host as unknown as Parameters<typeof syncCorePrefetch>[0]); }));
   // Hosted design systems (plans/186 section 3.6): once a day, and when the tab
   // comes back to the front after a day away, ask each host whether its design
   // system moved. Idle-scheduled and best-effort - a host that is away, or a
@@ -1586,7 +1590,7 @@ async function boot(): Promise<void> {
   // Neither the check nor that repaint belongs behind the first-run welcome, so both
   // callers below go through its gate.
   const checkHosted = (): void => {
-    if (isIframeMode()) return;
+    if (scriptedExport || isIframeMode()) return;
     void welcomeSettled().then(() => import('./lib/design-system/hosted.ts')).then(async m => {
       const outcomes = await m.checkHostedDesignSystems(host as unknown as Parameters<typeof m.checkHostedDesignSystems>[0]);
       const activeId = await (host as unknown as { designSystems?: { activeId(): Promise<string> } }).designSystems?.activeId();
@@ -1858,7 +1862,7 @@ async function boot(): Promise<void> {
   };
   // Background warming waits for the first-run welcome to close. Intent on a tool
   // below still starts warming immediately. Check performance mode after the wait.
-  void welcomeSettled().then(() => {
+  if (!scriptedExport) void welcomeSettled().then(() => {
     if (!perfUiOn()) {
       if (typeof requestIdleCallback === 'function') requestIdleCallback(warmEngine, { timeout: 600 });
       else setTimeout(warmEngine, 200);

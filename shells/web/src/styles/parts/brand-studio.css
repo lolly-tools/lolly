@@ -917,7 +917,7 @@ background-image:
    below 640px (the phone) and at the 507px stacked width, two across a desktop
    split's main column. */
 .be-roles-strip { display: grid; gap: .5rem; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
-.be-role { display: flex; align-items: center; gap: .6rem; min-width: 0; padding: .45rem .55rem; border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius) * .6); background: hsl(var(--background)); }
+.be-role { display: flex; align-items: center; gap: .6rem; min-width: 0; padding: var(--sp-6) var(--sp-6); border: 0; box-shadow: var(--ui-elevation-control); border-radius: calc(var(--radius) * .86); background: hsl(var(--background)); }
 .be-role.is-unset { border-style: solid; opacity: .75; }
 /* A slot filled by a colour NOBODY CHOSE - the starter's, standing in, or the
    primary showing through (plan 182 section 4.2). It is not "unset" (something
@@ -940,7 +940,7 @@ background-image:
   color: hsl(var(--muted-foreground));
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.be-role-val { font-family: var(--font-mono); font-size: var(--fs-xs); color: hsl(var(--foreground)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.be-role-val { font-family: var(--font-mono); font-size: var(--fs-2xs); color: hsl(var(--foreground)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .be-role-apca { font-family: var(--font-mono); font-size: var(--fs-xs); font-variant-numeric: tabular-nums; color: hsl(var(--muted-foreground)); }
 .be-role-apca.is-weak { color: hsl(var(--destructive)); }
 /* The picker is the assignment control: native, so it is keyboard- and

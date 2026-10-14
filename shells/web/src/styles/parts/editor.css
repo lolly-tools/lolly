@@ -143,6 +143,7 @@ html:has(.tool-view.is-chrome-hidden) .edge-dock-drop { display: none !important
      (Andy's screenshot, 2026-09-02). design-topbar's `measure` writes the property and
      it defaults to 0, so an editor with no top bar lays the column out as before. */
   top: var(--stage-reserve-top, 54px);
+  box-shadow: var(--ui-elevation-rail);
   padding-left: 0;
   justify-content: center;
   background: var(--ui-color-surface-raised);

@@ -37,7 +37,7 @@
   align-items: center;
   gap: 10px;
   padding: 14px 20px;
-  border-bottom: 1px solid hsl(var(--border));
+
 }
 .tmpl-chooser-header h2 {
   margin: 0;
@@ -53,7 +53,7 @@
   padding: 0 10px;
   background: hsl(var(--background));
   color: hsl(var(--foreground));
-  border: 1px solid hsl(var(--border));
+  border: 1px solid transparent;
   border-radius: var(--radius);
   font: inherit;
   font-size: var(--fs-md);
@@ -81,7 +81,7 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 16px 20px 24px;
+  padding: 0  16px 20px 24px ;
 }
 
 /* "Starts with X" (plans/226 WP-3) - the per-tool new-document setting, stated under the
@@ -110,12 +110,12 @@
 .tmpl-chooser-filters {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin: 0 0 16px;
+  gap: var(--sp-1);
+  margin: 0 0 var(--sp-6);
 }
 .tmpl-chooser-filter {
   padding: 6px 14px;
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-sm);
   border: 1px solid hsl(var(--border));
   background: transparent;
   color: hsl(var(--muted-foreground));
@@ -343,7 +343,7 @@
   .tmpl-chooser-header h2 { flex: 1 1 auto; }
   .tmpl-chooser-search { order: 3; flex-basis: 100%; height: 44px; }
   .tmpl-chooser-close { width: 44px; height: 44px; }
-  .tmpl-chooser-body { padding: 10px 10px 16px; }
+  .tmpl-chooser-body { padding: 10px  10px 16px; }
   .tmpl-chooser-filters {
     flex-wrap: nowrap;
     overflow-x: auto;

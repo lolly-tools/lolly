@@ -1178,7 +1178,7 @@
   "shells/web/src/views/docs.ts": 3,
   "shells/web/src/views/document-model.ts": 5,
   "shells/web/src/views/export-depth.test.ts": 1,
-  "shells/web/src/views/export-depth.ts": 4,
+  "shells/web/src/views/export-depth.ts": 1,
   "shells/web/src/views/export-durable-card.ts": 1,
   "shells/web/src/views/export-preflight.test.ts": 1,
   "shells/web/src/views/export-preflight.ts": 5,

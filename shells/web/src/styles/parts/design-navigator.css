@@ -35,6 +35,7 @@
   background: var(--ui-color-surface-raised);
   color: var(--ui-color-text-default);
   font-size: var(--ui-type-body);
+  box-shadow: var(--ui-elevation-panel);
   overflow: hidden;
 }
 .fc-nav.is-collapsed { width: 36px; padding-inline: var(--sp-2); }

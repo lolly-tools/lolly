@@ -136,7 +136,7 @@ test('dock navigation uses the Lolly UI semantic surface, selection and focus ro
   for (const role of [
     '--ui-color-surface-canvas', '--ui-color-surface-muted', '--ui-color-surface-raised',
     '--ui-color-selection-surface', '--ui-color-selection-border', '--ui-color-focus-ring',
-    '--ui-radius-control', '--ui-radius-choice', '--ui-elevation-sheet', '--ui-elevation-control',
+    '--ui-radius-control', '--ui-radius-choice', '--ui-elevation-panel', '--ui-elevation-control',
     '--ui-motion-navigation',
   ]) assert.ok(css.includes(role), `dock chrome reads ${role}`);
 });

@@ -27,7 +27,9 @@ test('the Start studio can show every UI role without adding any of them to a br
   // form, the 2px ring a chooser tile wears. Effects stay out of UI_SLOTS, as
   // effect.selected and effect.accent-ring do.
   // 77 to 78: numeric inputs share their inset shadow through effect.inset.
-  assert.equal(tokens.length, 78);
+  // 78 to 80: docked rail and input sidebar shadows have their own elevation roles.
+  assert.equal(tokens.length, 80);
+  for (const role of ['rail', 'sidebar']) assert.equal(tokens.find(t => t.path.join('.') === `elevation.${role}`)?.type, 'shadow');
   assert.equal(tokens.find(t => t.path.join('.') === 'effect.inset')?.type, 'shadow');
   assert.equal(tokens.find(t => t.path.join('.') === 'type.tracking-label')?.type, 'letterSpacing');
   assert.equal(tokens.find(t => t.path.join('.') === 'color.text.default')?.type, 'color');

@@ -264,8 +264,53 @@
   padding: var(--sp-7) var(--sp-6) var(--sp-6);
 }
 
+/* Fallback for browsers without the native content wrapper. */
+@keyframes input-section-in {
+  from { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports not selector(::details-content) {
+    .input-section[open] > .input-section-body {
+      animation: input-section-in 160ms ease-out backwards;
+    }
+  }
+
+  /* The wrapper fades without overriding any child's opacity. Reverting this
+     layer on open also retains an authored wrapper opacity from the base layer.
+     Native transitions reverse from the current frame on a quick second click. */
+  @supports selector(::details-content) {
+    .input-section::details-content {
+      opacity: 0;
+      transition: opacity 160ms ease-out, content-visibility 180ms allow-discrete;
+    }
+    .input-section[open]::details-content {
+      opacity: revert-layer;
+    }
+
+    @supports (interpolate-size: allow-keywords) {
+      .input-section::details-content {
+        interpolate-size: allow-keywords;
+        block-size: 0;
+        /* The summary's focus ring can make the outer section overflow visible. */
+        overflow: clip;
+        transition: block-size 180ms ease-out, opacity 160ms ease-out, content-visibility 180ms allow-discrete;
+      }
+      .input-section[open]::details-content {
+        block-size: auto;
+      }
+      .input-section[open]:has(.help-tip-btn:hover, .help-tip-btn:focus-visible, .help-tip-pop:not([hidden]), .color-picker-field.is-open)::details-content {
+        overflow: visible;
+      }
+    }
+  }
+}
+
 
 @media (prefers-reduced-motion: reduce) {
   .input-section-summary::after { transition: none; }
 }
 html[data-a11y-motion="reduce"] .input-section-summary::after { transition: none; }
+
+html[data-a11y-motion="reduce"] .input-section::details-content { transition: none; }
+html[data-a11y-motion="reduce"] .input-section-body { animation: none; }

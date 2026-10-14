@@ -323,7 +323,7 @@ export function cardMarkup(
               // Opening the tool fresh presents the chooser, so the count IS the path -
               // unless this person set a "Start with", in which case the line says which one
               // and the chooser is one "+ New" click away (plans/226 section 4.4).
-              ? `<span class="gtile-tpl">${escapeHtml(templateLine)}</span>`
+              ? `<a class="gtile-tpl btn" href="${newHref}" data-new-tool="${escapeHtml(tool.id)}" aria-label="${escapeHtml(tRaw('Start a new {name} session', { name: tool.name }))}"><span>${escapeHtml(templateLine)}</span></a>`
               : ''}
             ${detailCells(tool.id, [['opened', lastOpened], ['format', primaryFormat], ['category', t(catLabel(tool.category))], ['description', tool.description ?? '']])}
           </span>
@@ -333,8 +333,7 @@ export function cardMarkup(
             // an explicit chooser ask); a tool with no templates just opens blank.
             // openQuery (url-source injected tools) rides along so their seed survives.
             // Card draws the same action as a quiet icon button at the card's end.
-            : `<a class="gtile-new" href="${newHref}" data-new-tool="${escapeHtml(tool.id)}" aria-label="${escapeHtml(tRaw('Start a new {name} session', { name: tool.name }))}">${t('+ New')}</a>
-               <a class="gtile-new-icon" href="${newHref}" data-new-tool="${escapeHtml(tool.id)}" aria-label="${escapeHtml(tRaw('New {name}', { name: tool.name }))}">${PLUS_ICON}</a>`}
+            : `<a class="gtile-new-icon" href="${newHref}" data-new-tool="${escapeHtml(tool.id)}" aria-label="${escapeHtml(tRaw('New {name}', { name: tool.name }))}">${PLUS_ICON}</a>`}
           ${hasImageHero
             // Badge moved onto the preview image (see the hero markup), but that
             // hero is aria-hidden / aria-labelled, so keep the status announced.
