@@ -127,6 +127,43 @@ dependency changes.
 
 ## Measurements and remaining work
 
+Browser files are assigned by measured duration, longest first onto the runner
+with the least assigned time. The four runners remain serial within their own
+partition. The checked-in `scripts/data/browser-test-durations.json` contains
+median file durations from three complete CI runs and records their run IDs,
+attempts and source commits. New files receive a ten-second estimate; removed
+files are ignored. The discovered inventory, never the timing profile, selects
+which tests run. Equal durations and loads use deterministic ties.
+
+The runner and coverage gate use the same assignment function. The gate still
+requires every discovered file to finish exactly once at the checked-out source,
+all four complete reports, and the exact reviewed skips. A timing estimate cannot
+excuse a missing, failed or cancelled test.
+
+The 2026-10-14 merge batch exposed a large imbalance in alphabetical round-robin
+assignment. Replaying the recorded file durations with the median profile gives:
+
+| CI run | Old longest file total | Balanced replay | Reduction |
+|---|---:|---:|---:|
+| `38597990477` | 1,613 s | 1,157 s | 28.3% |
+| `38603007081` | 1,124 s | 1,085 s | 3.5% |
+| `38611784722` | 1,688 s | 1,118 s | 33.7% |
+
+These are replay estimates, excluding queue time, setup and process overhead,
+not measured improvement from a new hosted run. Preserve fresh hosted evidence
+before claiming a wall-clock saving. Refresh the profile from complete successful
+`browser-coverage.json` artifact sets, taking the median `summaries[].durationMs`
+per file and recording the contributing source/run identities. Stale estimates
+may reduce balance but cannot reduce coverage.
+
+Two other measured targets remain separate from browser scheduling. Generated
+source-map drift failed the main run `38601444707` after TypeScript had finished;
+the same generated tables conflicted when integrating independent PRs. A cheap
+generated-file preflight should report that before expensive checks begin.
+Also, failed-job reruns of `38602962399` and `38602986096` lacked scope artifacts
+for their new attempt. The current exact-attempt policy requires a complete
+rerun; a future retry workflow must reconstruct that provenance explicitly.
+
 On the 2026-10-14 main run `38553705860`, the original eight fast checks passed
 in 8 minutes 57 seconds; the complete suite took 38 minutes 43 seconds. The
 focused UI set ran 175 checks in 10.23 seconds locally. Hosted queue/install time

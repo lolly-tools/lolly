@@ -1,7 +1,21 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Deterministic browser partitions and their observed execution contract. */
 
+import { readFileSync } from 'node:fs';
+
 export const BROWSER_PARTITION_COUNT = 4;
+
+interface BrowserTimings {
+  schemaVersion: number;
+  defaultDurationMs: number;
+  durationMs: Record<string, number>;
+}
+const TIMINGS = JSON.parse(readFileSync(new URL('./data/browser-test-durations.json', import.meta.url), 'utf8')) as BrowserTimings;
+if (TIMINGS.schemaVersion !== 1 || !Number.isSafeInteger(TIMINGS.defaultDurationMs) || TIMINGS.defaultDurationMs <= 0
+  || !TIMINGS.durationMs || typeof TIMINGS.durationMs !== 'object' || Array.isArray(TIMINGS.durationMs)
+  || Object.values(TIMINGS.durationMs).some((value) => !Number.isSafeInteger(value) || value <= 0)) {
+  throw new Error('invalid browser timing profile');
+}
 
 export interface BrowserPartition { index: number; count: number }
 export interface TestCounts {
@@ -46,10 +60,28 @@ function uniqueFiles(value: unknown, label: string): string[] {
   return files;
 }
 
-export function browserPartitionFiles(files: readonly string[], partition: BrowserPartition): string[] {
+export function browserPartitionFiles(
+  files: readonly string[],
+  partition: BrowserPartition,
+  durations: Readonly<Record<string, number>> = TIMINGS.durationMs,
+): string[] {
   parseBrowserPartition(`${partition.index}/${partition.count}`);
   const sorted = uniqueFiles([...files], 'browser inventory').sort();
-  const selected = sorted.filter((_, index) => index % partition.count === partition.index - 1);
+  const weight = (file: string): number => {
+    const value = Object.hasOwn(durations, file) ? durations[file]! : TIMINGS.defaultDurationMs;
+    if (!Number.isFinite(value) || value <= 0) throw new Error(`invalid browser duration: ${file}`);
+    return value;
+  };
+  const ordered = sorted.map((file) => ({ file, duration: weight(file) }))
+    .sort((a, b) => b.duration - a.duration || (a.file < b.file ? -1 : a.file > b.file ? 1 : 0));
+  const bins = Array.from({ length: partition.count }, () => ({ files: [] as string[], duration: 0 }));
+  // Put the longest files on the lightest runner. Timings affect order only:
+  // new files use the default weight and deleted files never enter the inventory.
+  for (const { file, duration } of ordered) {
+    const bin = bins.reduce((best, next) => next.duration < best.duration ? next : best);
+    bin.files.push(file); bin.duration += duration;
+  }
+  const selected = bins[partition.index - 1]!.files.sort();
   if (!selected.length) throw new Error(`browser partition ${partition.index}/${partition.count} is empty`);
   return selected;
 }

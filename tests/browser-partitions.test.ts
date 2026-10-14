@@ -51,6 +51,26 @@ test('partition configuration refuses invalid ranges, duplicate paths and empty 
   assert.throws(() => browserPartitionFiles(['tests/one.test.ts'], { index: 4, count: 4 }), /empty/);
 });
 
+test('measured long files are spread across runners without dropping new or retaining deleted files', () => {
+  const files = Array.from({ length: 16 }, (_, index) => `tests/${String(index).padStart(2, '0')}.test.ts`);
+  // Alphabetical round-robin puts these four long files on the same runner.
+  const durations = Object.fromEntries(files.map((file, index) => [file, index % 4 === 0 ? 100_000 : 1000]));
+  durations['tests/deleted.test.ts'] = 1_000_000;
+  const partitions = [1, 2, 3, 4].map((index) => browserPartitionFiles(files, { index, count: 4 }, durations));
+  assert.deepEqual(partitions.flat().sort(), files);
+  const totals = partitions.map((part) => part.reduce((sum, file) => sum + durations[file]!, 0));
+  assert.deepEqual(totals, [103_000, 103_000, 103_000, 103_000]);
+  for (const [index, selected] of partitions.entries()) {
+    assert.deepEqual(browserPartitionFiles([...files].reverse(), { index: index + 1, count: 4 }, durations), selected);
+  }
+  const withNew = [...files, 'tests/new.test.ts'];
+  const observed = [1, 2, 3, 4].flatMap((index) => browserPartitionFiles(withNew, { index, count: 4 }, durations));
+  assert.deepEqual(observed.sort(), withNew.sort());
+  for (const invalid of [0, -1, NaN, Infinity]) {
+    assert.throws(() => browserPartitionFiles(files, { index: 1, count: 4 }, { [files[0]!]: invalid }), /duration/);
+  }
+});
+
 const invalidReports: [string, (value: BrowserPartitionReport[]) => void, RegExp][] = [
   ['missing partition', (value) => { value.pop(); }, /missing or extra/],
   ['duplicate partition', (value) => { value[3] = value[0]!; }, /duplicate/],
