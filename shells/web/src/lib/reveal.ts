@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * staggerReveal - the gallery's entrance cascade, made reusable for any freshly-shown
- * set of items: an input section expanding, or a catalog group opening. Each item
+ * set of items: a profile section expanding, or a catalog group opening. Each item
  * animates in with a stepped delay (the CSS `.reveal-item` rule → shared `card-in`
  * keyframes) and a soft "shuffle" cue plays under it.
  *
@@ -57,11 +57,10 @@ export function staggerReveal(items: Element[], { step = 14, max = 160, sound = 
   if (sound) playSfx('shuffle');
 }
 
-// The collapsible-section flavours that cascade on open: sidebar input groups, the
-// platform/capabilities panels, and the profile cards. All are <details>; each keeps
-// its items in a known body wrapper.
-const SECTION_CLASSES = ['input-section', 'plat-section', 'profile-collapse'];
-const SECTION_BODIES = '.input-section-body, .plat-section-body, .profile-collapse-body';
+// Platform/capabilities panels and profile cards cascade on open. Each <details>
+// keeps its items in a known body wrapper.
+const SECTION_CLASSES = ['plat-section', 'profile-collapse'];
+const SECTION_BODIES = '.plat-section-body, .profile-collapse-body';
 
 /** The items to cascade inside an opened section: a grid of cards if the body wraps one
  *  (capabilities/platform), otherwise the body's own direct children. */
@@ -75,9 +74,9 @@ function revealItemsFor(details: HTMLDetailsElement): Element[] {
 let installed = false;
 
 /**
- * App-wide: when a collapsible `<details>` SECTION opens - a sidebar input group, a
- * platform / capabilities panel, or a profile card - cascade its contents in (+ a soft
- * shuffle). The `toggle` event doesn't bubble, so we listen in the CAPTURE phase, which
+ * App-wide: when a collapsible platform / capabilities panel or profile card opens,
+ * cascade its contents in with a soft shuffle. The `toggle` event doesn't bubble,
+ * so we listen in the CAPTURE phase, which
  * still visits the target for non-bubbling events. Idempotent; call once at boot
  * (main.ts), alongside installGlobalSfx().
  */
@@ -87,6 +86,12 @@ export function installGlobalReveal(): void {
   document.addEventListener('toggle', (e) => {
     const d = e.target;
     if (!(d instanceof HTMLDetailsElement) || !d.open) return;
+    // Input disclosures animate with their open state, before the asynchronous
+    // toggle event. A second row cascade would restart their fade after first paint.
+    if (d.classList.contains('input-section')) {
+      if (!d.closest('[data-reveal-sound="off"]')) playSfx('shuffle');
+      return;
+    }
     if (!SECTION_CLASSES.some(c => d.classList.contains(c))) return;
     const items = revealItemsFor(d);
     if (items.length) staggerReveal(items, { sound: !d.closest('[data-reveal-sound="off"]') });
