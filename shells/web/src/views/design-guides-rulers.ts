@@ -127,7 +127,7 @@ function paintSelectionAxis(
   // Modern draw_selection_x/y: 100px outer masks and labels anchored to the band edges.
   view.before.style[position] = `${min - 100}px`;
   view.after.style[position] = `${max}px`;
-  // Each label butts against its unit edge: min ends at the edge, max starts at it.
+  // Each label sits against its unit edge: min ends at the edge and max starts at the edge.
   view.min.style[position] = `${min}px`;
   view.max.style[position] = `${max}px`;
   view.min.textContent = guideNumber(nativeMin);
