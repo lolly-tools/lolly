@@ -4,10 +4,9 @@ import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
 import { createHash } from 'node:crypto';
 import { build } from 'esbuild';
-import { chromium } from 'playwright-core';
+import { chromium, type Browser } from 'playwright-core';
 
-const enabled = process.env.LOLLY_BROWSER_TESTS === '1';
-test('browser tool libraries execute only after their requested bytes verify', { skip: !enabled }, async () => {
+test('browser tool libraries execute only after their requested bytes verify', { timeout: 30000 }, async () => {
   const source = 'window.fixtureLibraryLoaded = (window.fixtureLibraryLoaded || 0) + 1;';
   const expected = createHash('sha256').update(source).digest('hex');
   const seen: string[] = [];
@@ -20,8 +19,9 @@ test('browser tool libraries execute only after their requested bytes verify', {
   await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve));
   const address = server.address(); assert.ok(address && typeof address !== 'string');
   const origin = `http://127.0.0.1:${address.port}`;
-  const browser = await chromium.launch({ channel: 'chrome', headless: true });
+  let browser: Browser | undefined;
   try {
+    browser = await chromium.launch({ channel: process.env.LOLLY_BROWSER_CHANNEL || 'chrome', headless: true });
     const bundle = await build({ stdin: { contents: `
       import { installVerifiedToolElements } from './shells/web/src/catalog/tool-elements.ts';
       import { createVerifiedToolFetch } from './shells/web/src/catalog/tool-bytes.ts';
@@ -48,5 +48,5 @@ test('browser tool libraries execute only after their requested bytes verify', {
     assert.equal(refused.source, null); assert.equal(refused.loaded, 1);
     assert.equal(seen.filter(path => path === '/tools/demo/lib/accepted.js').length, 1);
     assert.equal(seen.filter(path => path === '/tools/demo/lib/unavailable.js').length, 1);
-  } finally { await browser.close(); await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve())); }
+  } finally { await browser?.close(); await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve())); }
 });

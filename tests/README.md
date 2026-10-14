@@ -103,6 +103,7 @@ Two documents map this suite onto the things it is meant to prove:
 `lottie-edit.test.ts` covers source-bound revisions, independent property easing, key edits and nested time conversion. Run `lottie-internal.browser.test.ts` with the same local-shell variables for the nested layer, curve, undo/redo, duplicate and save/reopen/export journey. `node tests/fuzz/run.ts 5000 lottie-edits` mutates the bounded revision reader.
 
 
-`LOLLY_BROWSER_TESTS=1 node --test tests/tool-resource.browser.test.ts` exercises
-the signed tool-library reader and element loader in local Chrome. It uses only
+`node --test tests/tool-resource.browser.test.ts` exercises
+the signed tool-library reader and element loader in local Chrome (or the installed
+`LOLLY_BROWSER_CHANNEL`, which is Chromium in CI). This runs in the required browser shard. It uses only
 owned loopback fixtures and checks that changed bytes never gain a script URL.
