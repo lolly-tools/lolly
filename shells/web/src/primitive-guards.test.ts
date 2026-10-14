@@ -1984,7 +1984,8 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // Shared surfaces replace repeated paint in the pending editor and report work.
     // 263 to 262: the docs reading components print with an outline, not a shadow.
     // 260 to 259: the recommended Share file card uses the semantic bevel.
-    pin: 259,
+    // 259 to 257: export controls share the canonical inset surface.
+    pin: 257,
     count: (t) => [...t.matchAll(/box-shadow:\s*([^;}]+)/g)]
       .map(m => m[1]!.trim())
       .filter(v => v !== 'none' && !/var\(--(?:ui-(?:edge|elevation|effect)|shadow|edge|ring-focus|bevel)/.test(v)).length,

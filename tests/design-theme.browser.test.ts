@@ -4,7 +4,7 @@
  *
  * A packaged deck saved in the dark theme (`__tokenSelection`) is opened with no
  * `_themes` in its link. The saved choice must reach the address, the linked text
- * colour and the canvas `--brand-text` variable alike. The Document section then
+ * colour and the canvas `--brand-text` variable alike. The Canvas tab then
  * switches to Light with a click and back to Dark from the keyboard, and Escape
  * leaves the choice alone.
  *
@@ -51,7 +51,7 @@ async function darkDeck(): Promise<Uint8Array> {
   return bytes;
 }
 
-test('a saved theme reaches the address and canvas on reopen, and the Document control switches it', { skip, timeout: 300_000 }, async () => {
+test('a saved theme reaches the address and canvas on reopen, and the Canvas control switches it', { skip, timeout: 300_000 }, async () => {
   const bytes = await darkDeck();
   const browser = await getBrowser();
   const context = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1440, height: 1000 } });
@@ -97,9 +97,9 @@ test('a saved theme reaches the address and canvas on reopen, and the Document c
       assert.equal(await textColour(), DARK_TEXT);
       assert.equal(await brandText(), '#ffffff', 'the canvas variables follow the saved theme');
 
-      // The Document section's control: one segment per declared theme.
+      // The Canvas tab's control: one segment per declared theme.
       if (!await page.locator('.fc-insp').isVisible()) await page.getByRole('button', { name: 'Inspector', exact: true }).click();
-      await page.locator('.fc-insp-tabs').getByRole('button', { name: 'Document', exact: true }).click();
+      await page.locator('.fc-insp-tabs').getByRole('button', { name: 'Canvas', exact: true }).click();
       const group = page.locator('.fc-insp .fc-seg[data-seg="lolly-doc-theme-0"]');
       assert.equal(await group.getAttribute('aria-label'), 'Theme');
       assert.deepEqual(await group.locator('.fc-seg-btn').allTextContents(), ['Light', 'Dark']);

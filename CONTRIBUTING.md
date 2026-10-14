@@ -70,6 +70,36 @@ A profile whose packs are not mounted is skipped rather than failed, so `brands/
 
 ## 4. Commands to run before you open a PR
 
+Enable the local push checks once with `git config core.hooksPath scripts/git-hooks`
+and use the Node version in `.nvmrc` (`nvm use`). The hook invokes Node directly;
+`LOLLY_NODE` can name that executable when a Git client has a different PATH.
+The hook does not invoke a package manager or install dependencies.
+
+Before the wording checks, the hook checks the web source map and engine module
+table in each distinct commit tip being pushed. Branch creation, forced updates,
+multiple refs and annotated tags use Git's supplied object IDs. Deletions skip
+source checks. Intermediate commits are not checked when a later tip repairs
+them. The check reads raw Git blobs into a temporary directory, runs that commit's
+generators with `--check`, and removes the snapshot. Staged changes, unstaged
+changes and untracked files cannot change the result and remain untouched.
+
+To check a particular commit or branch before pushing:
+
+```sh
+node scripts/check-pushed-generated.ts HEAD
+```
+
+If generated metadata is stale, run these commands in the affected branch's
+worktree, review the README changes and commit them before pushing again:
+
+```sh
+node scripts/gen-web-src-readme.ts
+node scripts/gen-engine-modules.ts
+```
+
+The existing wording checks still inspect the working tree. The generated-source
+check complements the CI drift checks; a local pass does not qualify a release.
+
 ```bash
 pnpm test          # the full suite: tests/ plus the co-located suites
 pnpm run typecheck # tsc -p across every project

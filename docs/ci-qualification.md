@@ -127,6 +127,56 @@ dependency changes.
 
 ## Measurements and remaining work
 
+Browser files are assigned by measured duration, longest first onto the runner
+with the least assigned time. The four runners remain serial within their own
+partition. The checked-in `scripts/data/browser-test-durations.json` contains
+median file durations from three complete CI runs and records their run IDs,
+attempts and source commits. New files receive a ten-second estimate; removed
+files are ignored. The discovered inventory, never the timing profile, selects
+which tests run. Equal durations and loads use deterministic ties.
+
+The runner and coverage gate use the same assignment function. The gate still
+requires every discovered file to finish exactly once at the checked-out source,
+all four complete reports, and the exact reviewed skips. A timing estimate cannot
+excuse a missing, failed or cancelled test.
+
+The 2026-10-14 merge batch exposed a large imbalance in alphabetical round-robin
+assignment. Replaying each run's discovered inventory and recorded file durations
+with the checked-in, rounded-millisecond median profile gives:
+
+| CI run | Old longest file total | Balanced replay | Reduction |
+|---|---:|---:|---:|
+| `38597990477` | 1,613 s | 1,154 s | 28.5% |
+| `38603007081` | 1,124 s | 1,086 s | 3.3% |
+| `38611784722` | 1,688 s | 1,119 s | 33.7% |
+
+These are replay estimates, excluding queue time, setup and process overhead,
+not measured improvement from a new hosted run. Preserve fresh hosted evidence
+before claiming a wall-clock saving. Refresh the profile from complete successful
+`browser-coverage.json` artifact sets, taking the median `summaries[].durationMs`
+per file and recording the contributing source/run identities. Stale estimates
+may reduce balance but cannot reduce coverage.
+
+Generated source-map drift failed the main run `38601444707` after TypeScript had
+finished; the same generated tables conflicted when integrating independent PRs.
+The local pre-push hook now checks the web source map and engine module table
+from every distinct pushed commit tip before the wording checks. Its temporary
+snapshot comes from raw Git blobs, so dirty working files cannot hide committed
+drift. This check requires no installation and leaves the index and working tree
+untouched. See [CONTRIBUTING.md](../CONTRIBUTING.md) for setup and repair commands.
+CI's existing generated-source drift checks remain in force.
+
+On 2026-10-14, the local web source-map check fell from 17.34 seconds to 0.71
+seconds by calculating fallback coverage only for listed files without saved
+notes. The generated README remained byte-identical. The complete commit-tip
+preflight, including the Git snapshot and both generators, took 2.28 seconds
+with Node 26.11.1 on the development Mac. These are local measurements, not
+hosted CI duration claims.
+
+Failed-job reruns of `38602962399` and `38602986096` lacked scope artifacts
+for their new attempt. The current exact-attempt policy requires a complete
+rerun; a future retry workflow must reconstruct that provenance explicitly.
+
 On the 2026-10-14 main run `38553705860`, the original eight fast checks passed
 in 8 minutes 57 seconds; the complete suite took 38 minutes 43 seconds. The
 focused UI set ran 175 checks in 10.23 seconds locally. Hosted queue/install time

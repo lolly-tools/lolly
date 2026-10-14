@@ -19,7 +19,7 @@ test('Design panels use short labels, opaque floating surfaces and redock contro
     await settleEditor(page, 30_000);
     const inspector = page.locator('.fc-insp');
     if (!await inspector.isVisible()) await page.getByRole('button', { name: 'Inspector', exact: true }).click();
-    await inspector.locator('.fc-insp-tabs').getByRole('button', { name: 'Document', exact: true }).click();
+    await inspector.locator('.fc-insp-tabs').getByRole('button', { name: 'Canvas', exact: true }).click();
     // A row with a help tip is a <div>, not a <label>, so read the visible label
     // text from the row's label span rather than from an enclosing <label>.
     for (const [field, label] of [['documentUnit', 'Units'], ['editingRange', 'Colour'], ['projectFps', 'Frame rate']]) {
@@ -76,7 +76,7 @@ test('Design panels use short labels, opaque floating surfaces and redock contro
     const popup = page.locator('.export-popup');
     assert.equal(await popup.locator('.export-popup-max').count(), 0);
     assert.equal(await popup.locator('.export-popup-dock').isVisible(), false);
-    await dragHeader('.export-popup-head');
+    await dragHeader('.export-popup .export-popup-head');
     await page.waitForFunction(() => !!document.querySelector('.export-popup') && !document.querySelector('.export-popup')!.closest('.edge-dock-slot'));
     assert.equal(await popup.locator('.export-popup-dock').isVisible(), true);
     await popup.locator('.export-popup-dock').click();

@@ -272,7 +272,7 @@ html[data-a11y-motion="reduce"] .share-meter-toast { animation: none; }
   width: 100%;
   padding: 9px 10px 9px 18px;
   background: var(--ui-color-surface-overlay);
-  box-shadow: inset 3px 2px 10px var(--ui-color-surface-canvas);
+  box-shadow: var(--ui-effect-input-well);
   color: hsl(var(--foreground));
   border: 0;
   border-radius: 0;                      /* segmented pill - outer caps added below */
@@ -364,13 +364,13 @@ html[data-a11y-motion="reduce"] .share-meter-toast { animation: none; }
   flex: 0 0 auto;
   align-self: stretch;              /* a real segment - match the row height */
   display: inline-flex;
-  flex-direction: column;   
-  box-shadow: inset 3px 2px 10px var(--ui-color-surface-canvas);        /* stack the number over the caption */
+  flex-direction: column;
+  box-shadow: var(--ui-effect-input-well);        /* stack the number over the caption */
   align-items: center;
   justify-content: center;
   gap: 0;
   border: 1px solid transparent;
- 
+
   color: hsl(var(--muted-foreground));
 }
 input[data-action="export-dpi"]{box-shadow:none; background-color:red;}
@@ -1507,7 +1507,7 @@ input[data-action="export-dpi"]{box-shadow:none; background-color:red;}
 .tool-actions select:not(.field-select) {
   padding: 9px 28px 9px 12px;   /* right room for the custom chevron */
   background: var(--ui-color-surface-overlay);
-  box-shadow: inset 3px 2px 10px var(--ui-color-surface-canvas);
+  box-shadow: var(--ui-effect-input-well);
   background-image: var(--field-chevron);  /* the one shared caret (parts/fields.css) */
   background-repeat: no-repeat;
   background-position: right 10px center;

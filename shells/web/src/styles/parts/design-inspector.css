@@ -399,4 +399,3 @@
 .tool-stage[data-design-layout="compact"] .fc-nav.is-collapsed { display: none; }
 .tool-stage[data-design-layout="compact"] .tl-panel { bottom: calc(var(--design-actions-h) + var(--design-viewport-inset, 0px)); }
 .tool-stage[data-design-layout="compact"].is-text-editing .design-compact-actions button:not(.design-text-done) { display: none; }
-
