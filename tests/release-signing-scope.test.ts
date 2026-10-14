@@ -4,6 +4,8 @@ import assert from 'node:assert/strict';
 import { generateKeyPairSync } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import fs from 'node:fs';
+import { syncBuiltinESMExports } from 'node:module';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { parse } from 'yaml';
@@ -113,5 +115,35 @@ test('native packaging jobs receive signed artifacts and signing jobs run no com
       assert.equal(workflow.jobs.sign.environment, 'release-native-signing');
       assert.deepEqual(workflow.jobs.sign.needs, ['frontend', 'build']);
     }
+  }
+});
+
+// Virtual retained files exercise the real signer/reader without allocating a
+// hundred thousand disposable filesystem entries on developer and CI machines.
+test('frontend receipts accept 150000 total entries and refuse the next retained entry', t => {
+  const root = fixture(t);
+  const originalRead = fs.readFileSync, originalList = fs.readdirSync, originalStat = fs.lstatSync;
+  const regularFile = originalStat(join(root, 'index.html'));
+  let retainedCount = 150000 - 4; // catalog/, tools/, index.sig.json and index.html.
+  const retained = (path: unknown) => typeof path === 'string' && path.startsWith(join(root, 'retained-'));
+  t.mock.method(fs, 'readdirSync', (path: unknown, ...args: unknown[]) => path === root
+    ? ['catalog', 'index.html', ...Array.from({ length: retainedCount }, (_, i) => `retained-${i}.js`)]
+    : Reflect.apply(originalList, fs, [path, ...args]));
+  t.mock.method(fs, 'lstatSync', (path: unknown, ...args: unknown[]) => retained(path)
+    ? regularFile : Reflect.apply(originalStat, fs, [path, ...args]));
+  t.mock.method(fs, 'readFileSync', (path: unknown, ...args: unknown[]) => retained(path)
+    ? Buffer.from('retained immutable bytes') : Reflect.apply(originalRead, fs, [path, ...args]));
+  syncBuiltinESMExports();
+  try {
+    stamp(root);
+    check(root);
+    const receipt = JSON.parse(originalRead(join(root, 'release-frontend.sig.json'), 'utf8'));
+    assert.equal(Object.keys(receipt.files).length, 149998); // Directories consume the same bound.
+    retainedCount++;
+    assert.throws(() => stamp(root), /frontend directory is invalid/);
+    assert.throws(() => check(root), /frontend directory is invalid/);
+  } finally {
+    t.mock.restoreAll();
+    syncBuiltinESMExports();
   }
 });

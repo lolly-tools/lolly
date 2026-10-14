@@ -8,6 +8,8 @@ import { canonicalJson } from '../engine/src/canonical-json.ts';
 import type { CatalogSignatureEnvelope } from '../engine/src/catalog-integrity.ts';
 
 const RECEIPT = 'release-frontend.sig.json';
+// Retained private releases already contain over 100,000 files and directories.
+const MAX_FRONTEND_ENTRIES = 150000;
 const TARGETS = ['web', 'tauri-desktop', 'tauri-mobile'];
 interface FrontendReceipt {
   kind: 'lolly-release-frontend';
@@ -27,7 +29,7 @@ function fileDigests(root: string): Record<string, string> {
     for (const name of readdirSync(directory).sort()) {
       if (!prefix && name === RECEIPT) continue;
       const path = prefix + name;
-      if (++count > 100000 || /[\\\p{Cc}]/u.test(path)) throw new Error('The frontend directory is invalid.');
+      if (++count > MAX_FRONTEND_ENTRIES || /[\\\p{Cc}]/u.test(path)) throw new Error('The frontend directory is invalid.');
       const file = join(directory, name), state = lstatSync(file);
       if (state.isSymbolicLink()) throw new Error('Frontend files must not be symbolic links.');
       if (state.isDirectory()) walk(file, path + '/', depth + 1);
