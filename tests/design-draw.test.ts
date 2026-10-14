@@ -7,6 +7,11 @@ import { designDrawSvg } from '../engine/src/design-draw-svg.ts';
 import { drawDesignText, measureDesignText, type TextShaperV1 } from '../engine/src/design-text-measure.ts';
 import { framePreviewSvg } from '../engine/src/frame-preview-svg.ts';
 import { encodeAuthoredPaths } from '../engine/src/geom/authored-url.ts';
+import { readFile } from 'node:fs/promises';
+import { loadTool } from '../engine/src/loader.ts';
+import { createRuntime } from '../engine/src/runtime.ts';
+import { makeGeomApi } from '../engine/src/geom-api.ts';
+import { baseHost } from './helpers/host.ts';
 
 const triangle = encodeAuthoredPaths([{ kind: 'cubic', closed: true, nodes: [{ x: 0, y: 1 }, { x: 0.5, y: 0 }, { x: 1, y: 1 }] }] as never) ?? '';
 
@@ -55,6 +60,24 @@ test('shapes, paints, strokes and poses carry Design semantics', () => {
   assert.equal(words.opacity, 50);
   assert.deepEqual(words.words, { spec: { text: 'Hello <world> & **bold**', width: 400, height: 120, font: 'display', size: 24, lineHeight: 1.4, valign: 'middle' }, align: 'center', ink: '#333333' },
     'the measure spec the shared row rule writes, Design\'s centred alignment and the row ink');
+});
+
+test('a pen shape dashes exactly as Design\'s path hook writes its dash array', async () => {
+  const tool = await loadTool('design', (file) => readFile(new URL(`../community/${file}`, import.meta.url), 'utf8'));
+  const cases: Array<Partial<DesignBoxRowV1>> = [
+    { strokeDash: 'dotted' }, { strokeDash: 'dotted', strokeCap: 'square' }, { strokeDash: 'dotted', strokeCap: 'butt' },
+    { strokeDash: 'dotted', strokeW: 2.333 }, { strokeDash: 'dashed' }, { strokeDash: 'dashed', strokeDashLen: 10 },
+    { strokeDash: 'dashed', strokeGapLen: 7 }, { strokeDash: 'dashed', strokeDashLen: 3, strokeGapLen: 5 },
+    { strokeDash: 'dashed', strokeDashLen: 900, strokeGapLen: 2.346 }, { strokeDash: 'solid' }, {},
+  ];
+  for (const extra of cases) {
+    const row = { id: 'p', kind: 'path', x: 0, y: 0, w: 100, h: 100, path: triangle, stroke: '#000000', strokeW: 4, ...extra } as DesignBoxRowV1;
+    const runtime = await createRuntime(tool, baseHost({ geom: makeGeomApi() }), { boxes: [row] as never });
+    assert.deepEqual(runtime.hookErrors ?? [], []);
+    const written = /<path [^>]*stroke-dasharray="([^"]*)"/.exec(runtime.getHydrated() as string)?.[1];
+    const dash = (compileDesignDraw([row], { width: 200, height: 200 }).ops[0] as DrawShapeOp).stroke?.dash;
+    assert.deepEqual(dash, written?.split(' ').map(Number), `${JSON.stringify(extra)}: the hook writes ${written ?? 'no dash'}`);
+  }
 });
 
 test('every feature version 0 does not draw is reported against its row, never dropped silently', () => {
