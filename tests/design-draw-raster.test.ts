@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { compileDesignDraw, layoutDesignDrawText, outlineDesignDrawText, type DesignDrawPage } from '../engine/src/design-draw.ts';
+import { compileDesignDraw, layoutDesignDrawText, outlineDesignDrawText, type DesignDrawPage, type DrawShapeOp } from '../engine/src/design-draw.ts';
 import type { TextShaperV1 } from '../engine/src/design-text-measure.ts';
 import { encodeAuthoredPaths } from '../engine/src/geom/authored-url.ts';
 import { DESIGN_RASTER_RECIPE, designRasterIdentity, prepareDesignRaster, readDesignRasterEvaluation, type DesignRasterEvaluation } from '../engine/src/design-draw-raster.ts';
@@ -212,13 +212,55 @@ test('pen shapes and outlined words are admitted as closed, posed fills in paint
   ]) { const v = structuredClone(e) as Record<string, any>; tamper(v); assert.equal(readDesignRasterEvaluation(v), null); }
 });
 
-test('fills refuse strokes, words the box would clip, group fades over words and live text', async () => {
+test('fills refuse dashes, centred box strokes, words the box would clip, group fades and live text', async () => {
   const findings = async (page: DesignDrawPage) => { const a = prepareDesignRaster(page); return a.ok ? [] : a.findings.map(f => `${f.feature}:${f.id}`); };
-  assert.deepEqual(await findings(await fillPage([{ id: 'line', kind: 'path', x: 0, y: 80, w: 50, h: 20, path: triangle, stroke: '#000000', strokeW: 2 }])), ['raster-stroke:line']);
+  assert.deepEqual(await findings(await fillPage([{ id: 'line', kind: 'path', x: 0, y: 80, w: 50, h: 20, path: triangle, stroke: '#000000', strokeW: 2 }])), []);
+  assert.deepEqual(await findings(await fillPage([{ id: 'dash', kind: 'path', x: 0, y: 80, w: 50, h: 20, path: triangle, stroke: '#000000', strokeW: 2, strokeDash: 'dashed' }])), ['raster-dash:dash']);
+  assert.deepEqual(await findings(await fillPage([{ id: 'both', kind: 'path', x: 0, y: 80, w: 50, h: 20, path: triangle, bg: '#ff0000', stroke: '#000000', strokeW: 2, opacity: 50 }])), ['raster-group:both']);
+  const centred = await fillPage([{ id: 'edge', kind: 'box', x: 0, y: 80, w: 50, h: 20, bg: '#ff0000', stroke: '#000000', strokeW: 2 }]);
+  delete (centred.ops.at(-1) as DrawShapeOp).stroke!.align;
+  assert.deepEqual(await findings(centred), ['raster-stroke:edge'], 'a centred box stroke is the preview reading');
+  const capped = await fillPage([{ id: 'cap', kind: 'path', x: 0, y: 80, w: 50, h: 20, path: triangle, stroke: '#000000', strokeW: 2 }]);
+  (capped.ops.at(-1) as DrawShapeOp).stroke!.cap = 'arrow';
+  assert.deepEqual(await findings(capped), ['raster-stroke:cap']);
   assert.deepEqual(await findings(await fillPage([{ id: 'tight', kind: 'text', x: 0, y: 80, w: 30, h: 12, text: 'Overflowing words', fontSize: 16, align: 'left' }])), ['raster-clip:tight']);
   assert.deepEqual(await findings(await fillPage([{ id: 'fade', kind: 'box', x: 0, y: 80, w: 120, h: 30, text: 'Faded', fontSize: 12, bg: '#cccccc', opacity: 50 }])), ['raster-group:fade']);
   const live = await fillPage(); delete live.ops[1]!.words!.outlines;
   assert.deepEqual(await findings(live), ['raster-live-text:words']);
+});
+
+test('strokes become the fill of the region they paint, over the fills and under the words', async () => {
+  const line = encodeAuthoredPaths([{ kind: 'cubic', closed: false, nodes: [{ x: 0, y: 0.5 }, { x: 1, y: 0.5 }] }] as never) ?? '';
+  const a = prepareDesignRaster(await fillPage([
+    { id: 'border', kind: 'box', x: 10, y: 50, w: 40, h: 30, bg: '#ffff00', stroke: '#000000', strokeW: 4, text: 'Hi', fontSize: 8 },
+    { id: 'round', kind: 'box', x: 60, y: 80, w: 40, h: 30, shape: 'rounded', radius: 10, stroke: '#00000080', strokeW: 4 },
+    { id: 'oval', kind: 'box', x: 110, y: 80, w: 40, h: 30, shape: 'ellipse', stroke: '#000000', strokeW: 5, rot: 30 },
+    { id: 'butt', kind: 'path', x: 10, y: 90, w: 40, h: 10, path: line, stroke: '#000000', strokeW: 6, strokeCap: 'butt' },
+    { id: 'cap', kind: 'path', x: 10, y: 100, w: 40, h: 10, path: line, stroke: '#000000', strokeW: 6 },
+  // Curves flatten to 1/32 output px, so at 16x each chord sits within 1/512 px of its curve.
+  ]), { width: 3200, height: 1920, dpi: 1536 });
+  assert.ok(a.ok, JSON.stringify(!a.ok && a.findings));
+  const e = a.evaluation;
+  assert.deepEqual(e.paint.map(([kind, i]) => kind === 'primitive' ? e.ops[i]!.id : e.fills[i]!.id),
+    ['frame', 'tri', 'words', 'words:0.0', 'border', 'border:stroke', 'border:0.0', 'round', 'round:stroke', 'oval', 'oval:stroke', 'butt:stroke', 'cap:stroke']);
+  const area = (id: string) => {
+    const edges = e.fills.find(f => f.id === id)!.edges;
+    let twice = 0;
+    for (let i = 0; i < edges.length; i += 4) twice += edges[i]! * edges[i + 3]! - edges[i + 2]! * edges[i + 1]!;
+    return Math.abs(twice / 2);
+  };
+  // A chord within t of its curve loses at most two thirds of t times its length, here t = 1/512 px.
+  const near = (id: string, exact: number, curved: number) => assert.ok(Math.abs(area(id) - exact) <= (2 / 3) * curved / 512 + 1e-3, `${id}: ${area(id)} against ${exact}`);
+  const ellipse = (a: number, b: number) => Math.PI * (3 * (a + b) - Math.sqrt((3 * a + b) * (a + 3 * b)));
+  // A CSS border is the ring between the box and the box inside the border, whose corner radius shrinks by the width.
+  near('border:stroke', 40 * 30 - 32 * 22, 0);
+  near('round:stroke', 40 * 30 - (4 - Math.PI) * 100 - (32 * 22 - (4 - Math.PI) * 36), 2 * Math.PI * 10);
+  near('oval:stroke', Math.PI * (20 * 15 - 15 * 10), ellipse(20, 15));
+  // A pen stroke is centred on its path: a butt end stops at the end, a round one adds half a disc at each.
+  near('butt:stroke', 40 * 6, 0);
+  near('cap:stroke', 40 * 6 + Math.PI * 9, 2 * Math.PI * 3);
+  assert.deepEqual(e.fills.find(f => f.id === 'round:stroke')!.color, [0, 0, 0, 0x80 / 255], 'the stroke keeps its own alpha');
+  assert.equal(designRasterIdentity(readDesignRasterEvaluation(structuredClone(e))!), designRasterIdentity(e), 'strokes survive the worker handoff');
 });
 
 test('a page with fills compiles the fill pipeline once and releases every fill buffer', async t => {
