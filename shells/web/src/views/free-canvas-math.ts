@@ -116,6 +116,16 @@ export interface ResizeOpts {
   minSize?: number;
   keepAspect?: boolean;
   fromCentre?: boolean;
+  /** With `fromCentre`, the dragged edge follows the pointer and the opposite edge
+   *  mirrors it (Figma, Penpot), so the size changes by twice the projected delta.
+   *  Off by default: the dragged edge then moves half the pointer delta, which the
+   *  deck editor still relies on. */
+  mirror?: boolean;
+  /** How `keepAspect` picks the axis that drives a corner drag. 'width' (the default)
+   *  drives the height from the width. 'dominant' follows whichever axis changed more
+   *  relative to its start size (Figma), so a vertical-only Shift drag still resizes,
+   *  and clamps one uniform factor with {@link uniformScaleFloor}. */
+  aspectFrom?: 'width' | 'dominant';
 }
 
 /** Options for {@link scaleGroup}. */
@@ -331,16 +341,31 @@ export function moveBoxes(boxes: Box[], indices: number[], dx: number, dy: numbe
 }
 
 // Handle → local sign of the corner/edge being dragged. 0 = free on that axis.
-const HANDLE_SIGN: Record<HandleName, [number, number]> = {
+export const HANDLE_SIGN: Readonly<Record<HandleName, readonly [number, number]>> = {
   n: [0, -1], s: [0, 1], e: [1, 0], w: [-1, 0],
   ne: [1, -1], nw: [-1, -1], se: [1, 1], sw: [-1, 1],
 };
+
+/** The smallest uniform factor a uniform scale may reach (Figma's `rescale` floor). */
+export const SCALE_K_FLOOR = 0.01;
+
+/**
+ * The smallest uniform factor that keeps a `w`×`h` box at `minSize` or more: the
+ * smaller side decides. A side already under `minSize` (a 0-height line, a hairline)
+ * is exempt, so a line scales on its length alone; a box with both sides under
+ * `minSize` sets no limit beyond {@link SCALE_K_FLOOR}.
+ */
+export function uniformScaleFloor(w: number, h: number, minSize: number): number {
+  const sides = [w, h].filter((s) => Number.isFinite(s) && s >= minSize && s > 0);
+  return sides.length ? Math.max(SCALE_K_FLOOR, minSize / Math.min(...sides)) : SCALE_K_FLOOR;
+}
 
 /**
  * Resize one box by dragging `handle`, given the TOTAL pointer delta (native px)
  * since the gesture began and the box's rect AT gesture start (`startRect`).
  * Rotation-aware: the opposite anchor stays fixed in world space.
- * opts: { minSize, keepAspect, fromCentre }.
+ * opts: { minSize, keepAspect, fromCentre, mirror, aspectFrom }; the last two default
+ * to the deck editor's behaviour (see {@link ResizeOpts}).
  */
 export function resizeRect(startRect: StartRect, handle: HandleName, dxTotal: number, dyTotal: number, opts: ResizeOpts = {}): Rect {
   const minSize = opts.minSize ?? 8;
@@ -352,21 +377,33 @@ export function resizeRect(startRect: StartRect, handle: HandleName, dxTotal: nu
   // Pointer delta projected onto the local axes.
   const dLocalX = dxTotal * ax.x + dyTotal * ax.y;
   const dLocalY = dxTotal * ay.x + dyTotal * ay.y;
-  let newW = startRect.w + (hx === 0 ? 0 : hx * dLocalX);
-  let newH = startRect.h + (hy === 0 ? 0 : hy * dLocalY);
-  newW = Math.max(minSize, newW);
-  newH = Math.max(minSize, newH);
+  // A mirrored from-centre drag moves both edges, so the size changes twice as fast.
+  const grow = opts.fromCentre && opts.mirror ? 2 : 1;
+  let newW = startRect.w + (hx === 0 ? 0 : grow * hx * dLocalX);
+  let newH = startRect.h + (hy === 0 ? 0 : grow * hy * dLocalY);
 
-  if (opts.keepAspect && startRect.w > 0 && startRect.h > 0) {
-    const aspect = startRect.w / startRect.h;
-    if (hx !== 0 && hy !== 0) {
-      // Corner drag: drive height from width along the aspect.
-      newH = Math.max(minSize, newW / aspect);
-      newW = newH * aspect;
-    } else if (hx !== 0) {
-      newH = newW / aspect;
-    } else if (hy !== 0) {
-      newW = newH * aspect;
+  if (opts.keepAspect && opts.aspectFrom === 'dominant' && startRect.w > 0 && startRect.h > 0) {
+    // One factor for both sides: a corner follows the axis that moved further
+    // relative to its size, an edge follows its own axis.
+    const sx = newW / startRect.w, sy = newH / startRect.h;
+    const raw = hy === 0 ? sx : hx === 0 ? sy : Math.abs(sx - 1) >= Math.abs(sy - 1) ? sx : sy;
+    const k = Math.max(uniformScaleFloor(startRect.w, startRect.h, minSize), raw);
+    newW = startRect.w * k;
+    newH = startRect.h * k;
+  } else {
+    newW = Math.max(minSize, newW);
+    newH = Math.max(minSize, newH);
+    if (opts.keepAspect && startRect.w > 0 && startRect.h > 0) {
+      const aspect = startRect.w / startRect.h;
+      if (hx !== 0 && hy !== 0) {
+        // Corner drag: drive height from width along the aspect.
+        newH = Math.max(minSize, newW / aspect);
+        newW = newH * aspect;
+      } else if (hx !== 0) {
+        newH = newW / aspect;
+      } else if (hy !== 0) {
+        newW = newH * aspect;
+      }
     }
   }
 

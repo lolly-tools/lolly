@@ -41,6 +41,7 @@ function fixture(rows: Box[], selected: number[], pending = false) {
     applyGestureMove: (event: PointerEvent) => applyGestureMove(fc, event),
     applyLiveRect: (index: number) => { restored.push(index); },
     cancelGesture: () => { cancelled++; finishCanvasGesture(fc, false); fc.gesture = null; },
+    isFrameRow: () => false,
   } as unknown as FcCtx['gestures'];
   const lease: CanvasInteractionLease = { id: 'claim', preview: value => { previews.push(value); },
     finish: committed => { finishes.push(committed); } };
@@ -108,14 +109,26 @@ test('batched frame previews match the committed cascade, including independentl
   } finally { f.destroy(); }
 });
 
+/** A group gesture as onGroupHandleDown builds one: the press in native px, the start
+ *  bounds of the pair (0,0 to 140,80) and, for a scale, the se corner over the nw anchor. */
+function groupGesture(type: 'gscale' | 'grotate', boxes: Box[], press = { x: 140, y: 80 }): Gesture {
+  const base = { pointerId: 1, startClient: press, origin: press, sel: [0, 1], startBoxes: boxes };
+  if (type === 'gscale') {
+    return { ...base, type, handle: 'se', aabb: { minX: 0, minY: 0, maxX: 140, maxY: 80 },
+      anchor: { x: 0, y: 0 }, origDist: Math.hypot(press.x, press.y) };
+  }
+  const centre = { x: 70, y: 40 };
+  return { ...base, type, centre, pointerStartDeg: (Math.atan2(press.y - centre.y, press.x - centre.x) * 180) / Math.PI };
+}
+
 test('resize, rotate, group scale and group rotation each publish one final preview', async () => {
   for (const type of ['resize', 'rotate', 'gscale', 'grotate'] as const) {
     const boxes = [shape('one'), shape('two', 100, 50)];
     const f = fixture(boxes, type.startsWith('g') ? [0, 1] : [0]);
-    f.fc.gesture = { pointerId: 1, startClient: { x: 0, y: 0 }, origin: { x: 0, y: 0 },
+    f.fc.gesture = type === 'gscale' || type === 'grotate' ? groupGesture(type, boxes) : {
+      pointerId: 1, startClient: { x: 0, y: 0 }, origin: { x: 0, y: 0 },
       type, index: 0, handle: 'se', startRect: boxRect(boxes[0], f.fc.cfg), others: [],
-      centerClient: { x: 0, y: 0 }, pointerStartDeg: 0, sel: [0, 1], startBoxes: boxes,
-      anchor: { x: 0, y: 0 }, origDist: 100, centre: { x: 70, y: 40 },
+      centerClient: { x: 0, y: 0 }, pointerStartDeg: 0,
     } as Gesture;
     await f.ready();
     try {
@@ -123,6 +136,41 @@ test('resize, rotate, group scale and group rotation each publish one final prev
       assert.equal(f.previews.length, 1, type);
       assert.equal(f.previews[0]!.kind, type === 'resize' || type === 'gscale' ? 'resize' : 'rotate');
       assert.equal(f.previews[0]!.objects.length, type.startsWith('g') ? 2 : 1);
+    } finally { f.destroy(); }
+  }
+});
+
+test('a group rebase rebuilds the anchor and the pivot from the claim-grant rows, keeping the press', async () => {
+  for (const type of ['gscale', 'grotate'] as const) {
+    // The press was measured against the pair at (0,0); before the grant a peer moved
+    // both rows 100 px right, and the server's drained rows are what the gesture uses.
+    const pressed = [shape('one'), shape('two', 100, 50)];
+    const f = fixture(pressed, [0, 1], true);
+    f.fc.gesture = groupGesture(type, pressed);
+    await f.ready();
+    try {
+      const drained = [shape('one', 100), shape('two', 200, 50)];
+      f.replace(drained);
+      await f.grant();
+      assert.equal(canvasGestureReady(f.fc), true, 'the first frame after the grant rebases');
+      const g = f.fc.gesture!;
+      switch (g.type) {
+        case 'gscale':
+          assert.deepEqual(g.anchor, { x: 100, y: 0 }, 'the anchor is the rebased bounds\' nw corner');
+          assert.deepEqual(g.aabb, { minX: 100, minY: 0, maxX: 240, maxY: 80, w: 140, h: 80 });
+          assert.equal(g.origDist, Math.hypot(40, 80), 'measured from the press, which kept its place');
+          break;
+        case 'grotate':
+          assert.deepEqual(g.centre, { x: 170, y: 40 }, 'the pivot is the rebased bounds\' centre');
+          assert.equal(g.pointerStartDeg, (Math.atan2(40, -30) * 180) / Math.PI, 'and the press angle is taken about that pivot');
+          break;
+        default:
+          assert.fail(`unexpected gesture ${g.type}`);
+      }
+      // At the press point the rebased gesture reads as no change at all.
+      applyGestureMove(f.fc, f.event(140, 80));
+      const last = f.previews.at(-1)!;
+      assert.deepEqual(last.objects.map(o => [o.x, o.y, o.w, o.h, o.rot]), [[100, 0, 40, 30, 0], [200, 50, 40, 30, 0]], type);
     } finally { f.destroy(); }
   }
 });

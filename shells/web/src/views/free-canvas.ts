@@ -1690,6 +1690,16 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   // not acquire a field its URL wire cannot carry merely because this editor knows the
   // conventional name.
   const declaredBoxFields = new Set((input.fields || []).map((f) => f.id)); fc.declaredBoxFields = declaredBoxFields;
+  // The manifest bounds of each box field that declares one, for Scale's clamps (plan
+  // 311): a blocks input stores what it is given, so a scaled stroke or font size is
+  // held to the field's own min/max here rather than by the write.
+  const boxFieldBounds = new Map<string, { min?: number; max?: number }>();
+  const bound = (v: unknown): number | undefined => (typeof v === 'number' && Number.isFinite(v) ? v : undefined);
+  for (const f of input.fields || []) {
+    const min = bound(f.min), max = bound(f.max);
+    if (min !== undefined || max !== undefined) boxFieldBounds.set(f.id, { ...(min !== undefined && { min }), ...(max !== undefined && { max }) });
+  }
+  fc.boxFieldBounds = boxFieldBounds;
   const styleFields = [...new Set([
     cfg.fillField, cfg.gradField, cfg.opacityField, cfg.shapeField, cfg.radiusField,
     cfg.fitField, cfg.imgPosField, cfg.blendField,
@@ -2287,6 +2297,9 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
       // for the enhancer's own reap would hold a WebGL context until some other tool paints.
       void sceneSelection?.then(m => m.destroyDesignScenes()).catch(() => {});
       fc.disposed = true;
+      // A drag in flight holds capture-phase modifier listeners on the window.
+      fc.gestureKeysOff?.();
+      fc.gestureKeysOff = null;
       // FIRST, so nothing that throws later in this teardown can leave the stage's
       // bottom band reserved for a panel that no longer exists.
       fc.timeline.destroyTimeline();

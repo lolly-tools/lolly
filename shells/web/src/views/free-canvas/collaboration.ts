@@ -2,15 +2,16 @@
 import { retainCanvasRecovery } from '../../lib/canvas-recovery.ts';
 import { charsFromDom, markdownFromChars } from '../rich-text.ts';
 import { canvasInteractions, type CanvasInteractionLease } from '../../lib/canvas-interaction.ts';
-import { boxRect, withRect } from '../free-canvas-math.ts';
+import { boxRect, selectionAABB, withRect } from '../free-canvas-math.ts';
 import type { Box } from '../free-canvas-math.ts';
 import type { FcCtx } from './context.ts';
-import type { Gesture, Rect } from './shared.ts';
+import { OPPOSITE_CORNER, boundsCorner } from './shared.ts';
+import type { Gesture, GesturePointer, Rect } from './shared.ts';
 
 interface GestureLease {
   gesture: Gesture;
   lease?: CanvasInteractionLease;
-  move?: PointerEvent;
+  move?: GesturePointer;
   ids: string[];
   claimed: Set<string>;
   selected: string[];
@@ -64,7 +65,7 @@ export function beginCanvasGesture(fc: FcCtx): void {
     fc.gestures.cancelGesture(); fc.stage.flash((error as Error).message);
   });
 }
-export function canvasGestureReady(fc: FcCtx, move?: PointerEvent): boolean {
+export function canvasGestureReady(fc: FcCtx, move?: GesturePointer): boolean {
   const state = gestures.get(fc);
   if (state && !state.lease) { if (move) state.move = move; return false; }
   if (state) {
@@ -86,6 +87,19 @@ export function canvasGestureReady(fc: FcCtx, move?: PointerEvent): boolean {
       g.startBoxes = boxes.map((box, i) => {
         const baseline = state.baseline.get(fc.select.idOf(box, i)); return baseline ? withRect(box, baseline, fc.cfg) : box;
       });
+      // The pivot and the anchor follow the rebased start, and the press keeps its
+      // place, so the first frame after a grant reads no change at the press point
+      // rather than a jump about the bounds the press was measured against.
+      const startBoxes = g.startBoxes;
+      const pivotSel = g.type === 'grotate' ? g.sel.filter(i => !fc.gestures.isFrameRow(startBoxes[i])) : g.sel;
+      const a = selectionAABB(startBoxes, pivotSel, fc.cfg);
+      if (a && g.type === 'gscale') {
+        g.aabb = a; g.anchor = boundsCorner(a, OPPOSITE_CORNER[g.handle]);
+        g.origDist = Math.hypot(g.origin.x - g.anchor.x, g.origin.y - g.anchor.y) || 1;
+      } else if (a && g.type === 'grotate') {
+        g.centre = { x: (a.minX + a.maxX) / 2, y: (a.minY + a.maxY) / 2 };
+        g.pointerStartDeg = (Math.atan2(g.origin.y - g.centre.y, g.origin.x - g.centre.x) * 180) / Math.PI;
+      }
     }
     state.prepared = boxes;
   }

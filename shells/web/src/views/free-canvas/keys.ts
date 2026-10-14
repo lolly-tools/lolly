@@ -111,7 +111,12 @@ export const rectAsBox = (fc: FcCtx, r: Rect): Box => { const { cfg } = fc; retu
   [cfg.hField]: r.h,
   [cfg.rotationField]: r.rot,
 }); };
-export function rotOf(_fc: FcCtx, el: HTMLElement): number {
+/** A live box element's rotation: the gesture's own record while one is live (see
+ *  applyLiveRect), else the `rotate()` in its inline transform. */
+export function rotOf(fc: FcCtx, el: HTMLElement): number {
+  const id = el.getAttribute('data-box-id') ?? el.getAttribute('data-frame-id');
+  const live = fc.gesture && id != null ? fc.liveRects?.get(id) : undefined;
+  if (live) return live.rot ?? 0;
   const t = el.style.transform || '';
   const mm = t.match(/rotate\(([-0-9.]+)deg\)/);
   return mm ? parseFloat(mm[1]!) : 0;

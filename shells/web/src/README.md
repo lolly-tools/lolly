@@ -5,11 +5,11 @@ This file exists so you can find the code for a feature without reading all of i
 The counts below are GENERATED - `pnpm run build:web-src-readme`, checked in CI by `pnpm run check:web-src-readme`, so they cannot rot the way the hand-measured ones did. They convey proportion; don't cite them as an API.
 
 <!-- web-src-dirs:start -->
-Roughly 765,000 lines of TypeScript, tests included, and 60,000 lines of CSS.
+Roughly 767,000 lines of TypeScript, tests included, and 60,000 lines of CSS.
 
 | Directory | Source | Tests | CSS |
 |---|---|---|---|
-| `views/` | 541 files, 204,919 lines | 266 files, 84,469 lines | 7 files, 1,441 lines |
+| `views/` | 542 files, 206,090 lines | 268 files, 85,673 lines | 7 files, 1,441 lines |
 | `lib/` | 797 files, 163,207 lines | 460 files, 89,166 lines | 13 files, 1,820 lines |
 | `bridge/` | 223 files, 54,794 lines | 133 files, 27,833 lines | none |
 | `components/` | 124 files, 28,035 lines | 54 files, 14,039 lines | 22 files, 1,345 lines |
@@ -72,8 +72,8 @@ Do not be ambushed by these. The largest source files, by line count:
 | 2,656 | `views/deck-editor.ts` | yes |
 | 2,562 | `views/design-import.ts` | **none** |
 | 2,557 | `views/timeline-math.ts` | yes |
-| 2,390 | `views/free-canvas-math.ts` | yes |
-| 2,386 | `views/free-canvas.ts` | yes, nine `free-canvas-*.test.ts` files |
+| 2,427 | `views/free-canvas-math.ts` | yes |
+| 2,399 | `views/free-canvas.ts` | yes, nine `free-canvas-*.test.ts` files |
 | 2,329 | `main.ts` | yes |
 | 2,264 | `lib/drop-router.ts` | yes |
 | 2,207 | `views/present-mode.ts` | yes |

@@ -23,12 +23,21 @@ export function scheduleSync(fc: FcCtx): void {
     if (!fc.gesture || fc.gesture.type === 'tap') renderChrome(fc);
   });
 }
-// During a gesture, reposition chrome from the live DOM (which we just mutated).
+// During a gesture, reposition chrome from the live rects the gesture just wrote: the
+// gesture's own record first (`fc.liveRects`), then the live DOM, then the model (in
+// chromeRect). Every TRANSFORMED row is read, not only the selected ones: a selected
+// group moves its descendants, and the group row has no element of its own, so its
+// chrome froze at the pre-gesture rect while the artwork moved.
 export function renderChromeLive(fc: FcCtx): void {
   const boxes = fc.select.getBoxes();
   const rects = new Map<number, Rect>();
-  for (const i of fc.select.selIndices(boxes)) {
+  for (const i of fc.hierarchy?.transformIndices(boxes) || fc.select.selIndices(boxes)) {
     const id = fc.select.idOf(boxes[i], i);
+    const live = fc.gesture ? fc.liveRects?.get(id) : undefined;
+    if (live) {
+      rects.set(i, live);
+      continue;
+    }
     const el = fc.stage.liveBoxEl(id);
     // el.style.left/top are FRAME-LOCAL in multi-page mode; add the frame offset back
     // so the selection chrome (which paints in global native → stage coords) lines up.
@@ -430,9 +439,16 @@ export function paintChrome(fc: FcCtx, boxes: Box[], liveRects: Map<number, Rect
         .sort()
         .join(',')
     : '';
-  if (key !== fc.chromeKey) {
-    fc.chromeKey = key;
-    buildChrome(fc, idx.length); // (re)create nodes for the new set
+  // A LOCKED row refuses every transform, so its selection shows outlines and no
+  // handles; an ARTBOARD never turns, so a set of nothing but artboards has no rotate
+  // handle. Both can change under an unchanged set (the navigator's lock toggle), so
+  // they are part of the build key.
+  const handles = !!idx.length && !fc.gestures.selectionLocked(boxes, idx);
+  const rotate = handles && idx.some((i) => !fc.gestures.isFrameRow(boxes[i]));
+  const buildKey = key && `${key}|${handles ? 'h' : ''}${rotate ? 'r' : ''}`;
+  if (buildKey !== fc.chromeKey) {
+    fc.chromeKey = buildKey;
+    buildChrome(fc, idx.length, { handles, rotate }); // (re)create nodes for the new set
   }
   positionChrome(fc, boxes, idx, liveRects, m);
   // Contextual bar - rebuilt when the selection set changes OR when the VALUES it shows
@@ -489,8 +505,10 @@ export function syncBoxA11y(fc: FcCtx): void {
 // Create the chrome node set for a selection of `count` boxes (0 = none, 1 = single
 // with 8 resize handles + rotate, 2+ = group AABB with 4 corners + rotate). Nodes
 // are stored in chromeNodes so subsequent syncs reposition them without recreating
-// (or re-binding pointerdown). positionChrome fills in geometry.
-export function buildChrome(fc: FcCtx, count: number): void {
+// (or re-binding pointerdown). positionChrome fills in geometry. `allow.handles` false
+// (a locked row in the set) leaves outlines only; `allow.rotate` false (artboards
+// only) drops the rotate stem and handle.
+export function buildChrome(fc: FcCtx, count: number, allow = { handles: true, rotate: true }): void {
   const { chrome } = fc;
   chrome.innerHTML = '';
   const outlines: HTMLElement[] = [];
@@ -503,21 +521,23 @@ export function buildChrome(fc: FcCtx, count: number): void {
     o.className = 'fc-outline';
     outlines.push(o);
     chrome.appendChild(o);
-    for (const h of HANDLES) {
+    for (const h of allow.handles ? HANDLES : []) {
       const el = document.createElement('div');
       el.className = 'fc-handle fc-h-' + h;
       el.addEventListener('pointerdown', (e) => fc.gestures.onHandlePointerDown(e, h));
       handles.push(el);
       chrome.appendChild(el);
     }
-    stem = document.createElement('div');
-    stem.className = 'fc-rot-stem';
-    chrome.appendChild(stem);
-    rot = document.createElement('div');
-    rot.className = 'fc-handle fc-h-rotate';
-    rot.setAttribute('data-tip', t('Rotate'));
-    rot.addEventListener('pointerdown', (e) => fc.gestures.onHandlePointerDown(e, 'rotate'));
-    chrome.appendChild(rot);
+    if (allow.rotate) {
+      stem = document.createElement('div');
+      stem.className = 'fc-rot-stem';
+      chrome.appendChild(stem);
+      rot = document.createElement('div');
+      rot.className = 'fc-handle fc-h-rotate';
+      rot.setAttribute('data-tip', t('Rotate'));
+      rot.addEventListener('pointerdown', (e) => fc.gestures.onHandlePointerDown(e, 'rotate'));
+      chrome.appendChild(rot);
+    }
   } else if (count > 1) {
     for (let k = 0; k < count; k++) {
       const o = document.createElement('div');
@@ -528,21 +548,23 @@ export function buildChrome(fc: FcCtx, count: number): void {
     groupOutline = document.createElement('div');
     groupOutline.className = 'fc-outline fc-group-outline';
     chrome.appendChild(groupOutline);
-    for (const name of ['nw', 'ne', 'se', 'sw'] as Corner[]) {
+    for (const name of (allow.handles ? ['nw', 'ne', 'se', 'sw'] : []) as Corner[]) {
       const el = document.createElement('div');
       el.className = 'fc-handle fc-h-' + name;
       el.addEventListener('pointerdown', (e) => onGroupHandleDown(fc, e, name));
       handles.push(el);
       chrome.appendChild(el);
     }
-    stem = document.createElement('div');
-    stem.className = 'fc-rot-stem';
-    chrome.appendChild(stem);
-    rot = document.createElement('div');
-    rot.className = 'fc-handle fc-h-rotate';
-    rot.setAttribute('data-tip', t('Rotate group'));
-    rot.addEventListener('pointerdown', (e) => onGroupHandleDown(fc, e, 'rotate'));
-    chrome.appendChild(rot);
+    if (allow.rotate) {
+      stem = document.createElement('div');
+      stem.className = 'fc-rot-stem';
+      chrome.appendChild(stem);
+      rot = document.createElement('div');
+      rot.className = 'fc-handle fc-h-rotate';
+      rot.setAttribute('data-tip', t('Rotate group'));
+      rot.addEventListener('pointerdown', (e) => onGroupHandleDown(fc, e, 'rotate'));
+      chrome.appendChild(rot);
+    }
   }
   fc.chromeNodes = { outlines, groupOutline, handles, stem, rot };
 }
@@ -563,10 +585,11 @@ export function buildChrome(fc: FcCtx, count: number): void {
  * nothing about what they do.
  *
  * A box with a LIVE rect is the exception, and not an arbitrary one: `applyLiveRect`
- * writes `transform: rotate(...)` straight onto the element, which CLOBBERS the
- * applier's composed pose for the duration of the drag. So mid-gesture the box really
- * is unposed on screen, and posing its chrome would be the original bug with the
- * signs reversed. The live rect is used verbatim, exactly as it always was.
+ * writes the box's own transform (its rotation, flip and tilt) straight onto the
+ * element, which CLOBBERS the applier's composed pose for the duration of the drag. So
+ * mid-gesture the box really is unposed on screen, and posing its chrome would be the
+ * original bug with the signs reversed. The live rect is used verbatim, exactly as it
+ * always was.
  */
 export function chromeRect(fc: FcCtx, boxes: Box[], i: number, liveRects: Map<number, Rect> | null): Rect {
   const { cfg } = fc;
@@ -634,7 +657,8 @@ export function positionHandles(fc: FcCtx, r: Rect, m: Metrics): void {
     w: mid(corners[3]!, corners[0]!),
   };
   HANDLES.forEach((h, k) => {
-    const el = nodes.handles[k]!;
+    const el = nodes.handles[k];
+    if (!el) return; // a locked selection is built without handles
     el.style.left = pos[h].x + 'px';
     el.style.top = pos[h].y + 'px';
   });
@@ -708,7 +732,8 @@ export function positionGroupHandles(fc: FcCtx, a: Bounds, m: Metrics): void {
     nodes.groupOutline.style.height = corners.sw.y - corners.nw.y + 'px';
   }
   (['nw', 'ne', 'se', 'sw'] as Corner[]).forEach((name, k) => {
-    const el = nodes.handles[k]!;
+    const el = nodes.handles[k];
+    if (!el) return; // a locked selection is built without handles
     el.style.left = corners[name].x + 'px';
     el.style.top = corners[name].y + 'px';
   });
@@ -735,32 +760,30 @@ export const CORNER_PT = (_fc: FcCtx, a: Bounds, name: Corner): Point =>
   )[name];
 export function onGroupHandleDown(fc: FcCtx, e: PointerEvent, name: Corner | 'rotate'): void {
   const { OPPOSITE } = fc;
+  if (fc.gestures.secondFinger(e)) return;
   e.stopPropagation();
   if (e.button > 0) return;
   const boxes = fc.select.getBoxes();
   const sel = fc.hierarchy?.transformIndices(boxes) || fc.select.selIndices(boxes);
-  if (sel.length < 2) return;
+  if (sel.length < 2 || fc.gestures.selectionLocked(boxes, sel)) return;
   const a = groupAABBNative(fc, sel, boxes, null);
-  const centre = { x: (a.minX + a.maxX) / 2, y: (a.minY + a.maxY) / 2 };
+  // Both gestures measure from the PRESS in native px, not from the corner or the
+  // client-px centre: the handle's hit area is wider than the handle, so a press a
+  // few px inside a corner must still read as no change until the pointer moves.
+  const press = fc.stage.clientToNative(e.clientX, e.clientY);
   if (name === 'rotate') {
-    const m = fc.stage.metrics();
-    const cs = fc.stage.nativeToStage(centre.x, centre.y, m);
-    const centerClient = { x: cs.x + m.sr.left, y: cs.y + m.sr.top };
-    const pointerStartDeg =
-      (Math.atan2(e.clientY - centerClient.y, e.clientX - centerClient.x) * 180) / Math.PI;
-    fc.gestures.beginGesture(e, {
-      type: 'grotate',
-      sel,
-      startBoxes: boxes,
-      centre,
-      centerClient,
-      pointerStartDeg,
-    });
+    // Artboards never turn, so the pivot is the centre of the rows that do: an
+    // artboard left in place must not swing the boxes about its own bounds.
+    const turning = sel.filter((i) => !fc.gestures.isFrameRow(boxes[i]));
+    if (!turning.length) return;
+    const t = groupAABBNative(fc, turning, boxes, null);
+    const centre = { x: (t.minX + t.maxX) / 2, y: (t.minY + t.maxY) / 2 };
+    const pointerStartDeg = (Math.atan2(press.y - centre.y, press.x - centre.x) * 180) / Math.PI;
+    fc.gestures.beginGesture(e, { type: 'grotate', sel, startBoxes: boxes, centre, origin: press, pointerStartDeg });
   } else {
     const anchor = CORNER_PT(fc, a, OPPOSITE[name]);
-    const origDist =
-      Math.hypot(CORNER_PT(fc, a, name).x - anchor.x, CORNER_PT(fc, a, name).y - anchor.y) || 1;
-    fc.gestures.beginGesture(e, { type: 'gscale', sel, startBoxes: boxes, anchor, origDist });
+    const origDist = Math.hypot(press.x - anchor.x, press.y - anchor.y) || 1;
+    fc.gestures.beginGesture(e, { type: 'gscale', sel, startBoxes: boxes, handle: name, aabb: a, origin: press, anchor, origDist });
   }
 }
 export function chromeSyncOps(fc: FcCtx) {

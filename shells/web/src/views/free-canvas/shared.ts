@@ -64,6 +64,9 @@ export interface BlockFieldDef {
   id: string;
   default?: unknown;
   options?: Array<{ value?: unknown; label?: string }>;
+  /** A number field's manifest bounds, read into `fc.boxFieldBounds` for Scale's clamps. */
+  min?: unknown;
+  max?: unknown;
 }
 export interface FontOption {
   value: string;
@@ -563,12 +566,18 @@ export interface PopAction {
 }
 export type PopItem = PopSep | PopGrid | PopAction;
 
+/** The fields of a pointer event a gesture frame reads. A modifier key pressed or
+ *  released mid-drag re-runs the last frame with the new modifier state, so this is
+ *  also what that replay builds. */
+export type GesturePointer = Pick<PointerEvent, 'pointerId' | 'clientX' | 'clientY' | 'shiftKey' | 'altKey' | 'metaKey' | 'ctrlKey'>;
 // Gesture state - filled in by beginGesture with pointerId/startClient.
 export interface GestureBase {
   pointerId: number;
   startClient: Point;
   snapIndex?: CanvasSnapIndex | null;
   origin?: Point;
+  /** The last pointer frame applied, replayed when a modifier key changes. */
+  lastMove?: GesturePointer;
 }
 export interface TapGesture extends GestureBase {
   type: 'tap';
@@ -660,21 +669,39 @@ export interface RotateGesture extends GestureBase {
   pointerStartDeg: number;
   liveRect?: Rect;
 }
+/**
+ * A selection-level scale. `origin` is the PRESS in native px and `origDist` its
+ * distance from `anchor`, so k reads 1 at the press, wherever inside the handle it was.
+ * `handle` and `aabb` (the authored start bounds) are kept so a collaboration rebase
+ * can rebuild the anchor and the press reach from the rebased `startBoxes`.
+ */
 export interface GScaleGesture extends GestureBase {
   type: 'gscale';
   sel: number[];
   startBoxes: Box[];
+  handle: Corner;
+  aabb: Bounds;
+  origin: Point;
   anchor: Point;
   origDist: number;
+  /** The live factor, for the commit's zero-delta guard and a readout. */
+  k?: number;
   liveBoxes?: Box[];
 }
+/**
+ * A selection-level rotation about `centre`. Angles are measured in NATIVE px from
+ * the press (`origin`), so a pan mid-drag or a rebased centre keeps one pivot for the
+ * pointer and the boxes alike.
+ */
 export interface GRotateGesture extends GestureBase {
   type: 'grotate';
   sel: number[];
   startBoxes: Box[];
   centre: Point;
-  centerClient: Point;
+  origin: Point;
   pointerStartDeg: number;
+  /** The live turn in degrees, for the commit's zero-delta guard. */
+  deg?: number;
   liveBoxes?: Box[];
 }
 // Pen tool (Stage D). Drawing is `pendraw` - one gesture per NODE, not one per path, since
@@ -749,6 +776,12 @@ export type GestureInit =
   | Omit<LineGesture, FilledBaseFields>;
 
 export const HANDLES: HandleName[] = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'];
+/** The corner a selection scale anchors on when the named one is dragged. */
+export const OPPOSITE_CORNER: Readonly<Record<Corner, Corner>> = { nw: 'se', ne: 'sw', se: 'nw', sw: 'ne' };
+/** One corner of axis-aligned bounds. */
+export function boundsCorner(a: Bounds, c: Corner): Point {
+  return { x: c === 'nw' || c === 'sw' ? a.minX : a.maxX, y: c === 'nw' || c === 'ne' ? a.minY : a.maxY };
+}
 export const SNAP_PX = 6;
 
 // ── the floating rail's position ──────────────────────────────────────────────

@@ -19,7 +19,8 @@ import type { DesignGuidesHandle } from '../design-guides.ts';
 import type { hierarchyOps } from './hierarchy.ts';
 import type { layoutOps } from './layout.ts';
 import type { DesignStyleSnapshot } from '../design-style-clipboard.ts';
-import type { AddKind, BlockFieldDef, CanvasCfg, ConnectCfg, Corner, EditingState, EditorMode, FieldCfg, FmtBar, FontOption, Gesture, InitFreeCanvasOpts, Metrics, ModelItem, PenPart, Point, PopItem, StageBox, TouchPt } from './shared.ts';
+import type { AddKind, BlockFieldDef, CanvasCfg, ConnectCfg, Corner, EditingState, EditorMode, FieldCfg, FmtBar, FontOption, Gesture, InitFreeCanvasOpts, Metrics, ModelItem, PenPart, Point, PopItem, Rect, StageBox, TouchPt } from './shared.ts';
+import type { FieldBounds } from '../free-canvas-transform.ts';
 import type { WobbleHandle } from '../../lib/wobble.ts';
 import type { BoxFieldConfig } from '../free-canvas-math.ts';
 import type { helpersOps } from './helpers.ts';
@@ -127,6 +128,12 @@ export interface FcCtx {
   nodeToolActive: boolean;
   armedKind: AddKind | null;
   gesture: Gesture | null;
+  /** The rect each box is live at in the current gesture frame, by stable id. Created
+   *  by `applyLiveRect`, rebuilt every frame and cleared when the gesture ends. While a
+   *  gesture is live, chrome, connectors and readouts read it before the DOM. */
+  liveRects?: Map<string, Rect>;
+  /** Removes the modifier-key listeners a transform gesture arms (see beginGesture). */
+  gestureKeysOff?: (() => void) | null;
   lastPointerKind: string;
   editing: EditingState | null;
   disposed: boolean;
@@ -288,6 +295,8 @@ export interface FcCtx {
   objectClipboard: import('./shared.ts').LayoutClipboard | null;
   styleClipboard: DesignStyleSnapshot | null;
   declaredBoxFields: Set<string>;
+  /** Each box field's manifest `min`/`max`, by field id (only fields declaring one). */
+  boxFieldBounds: ReadonlyMap<string, FieldBounds>;
   styleFields: string[];
   lastPointer: { x: number; y: number } | null;
   fmtbar: FmtBar | null;

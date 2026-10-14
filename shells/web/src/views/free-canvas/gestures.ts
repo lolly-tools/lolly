@@ -16,8 +16,10 @@ import { announce } from '../../a11y.ts';
 import { isTypingTarget } from '../../lib/typing-target.ts';
 import { beginCanvasFeedback, finishCanvasFeedback, cancelCanvasFeedback } from '../../lib/canvas-feedback.ts';
 import { t } from '../../i18n.ts';
+import { designHierarchyFlags, designHierarchyIndex } from '@lolly/engine';
+import { boxTransformCss, type BoxPose } from '../free-canvas-transform.ts';
 import { SNAP_PX, boolOf } from './shared.ts';
-import type { AABB, Gesture, GestureInit, HandleName, Point, Rect } from './shared.ts';
+import type { AABB, GRotateGesture, GScaleGesture, Gesture, GestureInit, GesturePointer, HandleName, Point, Rect } from './shared.ts';
 import { bindOp, type FcCtx } from './context.ts';
 import { beginCanvasGesture, canvasGestureReady, finishCanvasGesture, flushCanvasPreview, previewCanvasRect } from './collaboration.ts';
 
@@ -40,6 +42,7 @@ export function beginGesture(fc: FcCtx, e: PointerEvent, g: GestureInit): void {
   document.body.classList.add('fc-manipulating');
   fc.textEdit.setFramesClipped(false);
   fc.frameOffCache = new Map(); // frame offsets are stable during a drag - cache to avoid per-move reflow
+  if (REAPPLY_TYPES.has(g.type)) armModifierKeys(fc);
   beginCanvasGesture(fc);
 }
 function gestureSnapIndex(fc: FcCtx): CanvasSnapIndex | null {
@@ -50,6 +53,11 @@ function gestureSnapIndex(fc: FcCtx): CanvasSnapIndex | null {
 }
 export function endGesture(fc: FcCtx, committed = false): void {
   finishCanvasGesture(fc, committed);
+  // After the cancel restore above, which writes through applyLiveRect: the live rects
+  // describe this gesture only, and every reader falls back to the DOM and the model.
+  fc.liveRects?.clear();
+  fc.gestureKeysOff?.();
+  fc.gestureKeysOff = null;
   const { rubber, stageEl } = fc;
   document.body.classList.remove('fc-manipulating');
   fc.gesture = null;
@@ -166,7 +174,7 @@ export function onStageTouchUp(fc: FcCtx, e: PointerEvent): void {
   ) {
     fc.twoTapDone = true; // the OTHER finger's up must not re-open it
     fc.twoTapStart = 0;
-    if (fc.gesture) endGesture(fc); // neither finger commits a (zero-delta) drag
+    if (fc.gesture) cancelGesture(fc); // neither finger commits a (zero-delta) drag
     fc.menus.contextMenuAt((pts[0]!.x + pts[1]!.x) / 2, (pts[0]!.y + pts[1]!.y) / 2, false);
   }
   touchPts.delete(e.pointerId);
@@ -289,17 +297,19 @@ export function onCanvasPointerDown(fc: FcCtx, e: PointerEvent): void {
   if (e.pointerType === 'mouse' && fc.spacePan) return;
   fc.lastPointerKind = e.pointerType || '';
   // A second finger belongs to a stage gesture (pan / pinch / two-finger tap), never to
-  // a box drag - and the first finger's gesture is abandoned so no drag commits.
+  // a box drag - and the first finger's gesture is CANCELLED, as Escape cancels one: its
+  // feedback lanes, queued frame, pointer capture and live connectors all go, and the
+  // boxes it was previewing return to the model, so no drag commits.
   if (e.pointerType !== 'mouse' && touchPts.size > 1) {
     // A node the FIRST finger placed is retracted, not just abandoned: the create gesture
     // above commits nothing until release, but a pen node is already in the draft, and a
     // two-finger pan must not litter the shape being drawn with the point it started on.
     if (fc.gesture?.type === 'pendraw') {
-      endGesture(fc);
+      cancelGesture(fc);
       fc.penTool.penUndoNode();
       return;
     }
-    if (fc.gesture) endGesture(fc);
+    if (fc.gesture) cancelGesture(fc);
     return;
   }
   if (fc.editing) {
@@ -595,9 +605,10 @@ export function flushGestureMove(fc: FcCtx): void {
     if (fc.gesture && canvasGestureReady(fc)) finishCanvasFeedback(fc.runtime, 'pointer-preview');
   }
 }
-export function applyGestureMove(fc: FcCtx, e: PointerEvent): void {
+export function applyGestureMove(fc: FcCtx, e: GesturePointer): void {
   const { CAM_TILT_DEG_PER_PX, PEN_PULL_MIN, cfg, minSize } = fc;
   if (!fc.gesture || e.pointerId !== fc.gesture.pointerId) return;
+  fc.gesture.lastMove = e;
   if (!canvasGestureReady(fc, e)) return;
   if (fc.opts?.canEdit?.() === false && fc.gesture.type !== 'marquee') { cancelGesture(fc); return; }
   const nat = fc.stage.clientToNative(e.clientX, e.clientY);
@@ -771,6 +782,7 @@ export function applyGestureMove(fc: FcCtx, e: PointerEvent): void {
     fc.connectors.drawLineRubber(fc.gesture.origin, to);
     return;
   }
+  fc.liveRects?.clear(); // each transform frame below writes every rect it moves afresh
   if (fc.gesture.type === 'move') {
     let mdx = dxN,
       mdy = dyN;
@@ -866,9 +878,11 @@ export function applyGestureMove(fc: FcCtx, e: PointerEvent): void {
     return;
   }
   if (fc.gesture.type === 'gscale') {
+    // `origDist` is the PRESS's reach from the anchor, so k is exactly 1 at the press.
     const k = Math.hypot(nat.x - fc.gesture.anchor.x, nat.y - fc.gesture.anchor.y) / fc.gesture.origDist;
     const next = scaleGroup(fc.gesture.startBoxes, fc.gesture.sel, fc.gesture.anchor, k, cfg, { minSize });
     for (const i of fc.gesture.sel) applyLiveRect(fc, i, boxRect(next[i], cfg));
+    fc.gesture.k = k;
     fc.gesture.liveBoxes = next;
     flushCanvasPreview(fc);
     fc.chromeSync.renderChromeLive();
@@ -876,12 +890,15 @@ export function applyGestureMove(fc: FcCtx, e: PointerEvent): void {
     return;
   }
   if (fc.gesture.type === 'grotate') {
-    const c = fc.gesture.centerClient;
-    let deg =
-      (Math.atan2(e.clientY - c.y, e.clientX - c.x) * 180) / Math.PI - fc.gesture.pointerStartDeg;
+    const { centre, startBoxes } = fc.gesture;
+    let deg = (Math.atan2(nat.y - centre.y, nat.x - centre.x) * 180) / Math.PI - fc.gesture.pointerStartDeg;
     if (!e.altKey) deg = snapAngle(deg, 15, 4);
-    const next = rotateGroup(fc.gesture.startBoxes, fc.gesture.sel, fc.gesture.centre, deg, cfg);
+    // An artboard never turns (the render draws pages upright), and it does not orbit
+    // the pivot either: it stays exactly where it is while the rest of the set turns.
+    const turning = fc.gesture.sel.filter((i) => !isFrameRow(fc, startBoxes[i]));
+    const next = rotateGroup(startBoxes, turning, centre, deg, cfg);
     for (const i of fc.gesture.sel) applyLiveRect(fc, i, boxRect(next[i], cfg));
+    fc.gesture.deg = deg;
     fc.gesture.liveBoxes = next;
     flushCanvasPreview(fc);
     fc.chromeSync.renderChromeLive();
@@ -1323,9 +1340,12 @@ export function onGestureEnd(fc: FcCtx, e: PointerEvent): void {
     return;
   }
   if (g.type === 'gscale' || g.type === 'grotate') {
-    const next = g.liveBoxes;
+    // ZERO DELTA IS A CLICK, as for move and resize: a press and release on a group
+    // handle that moved nothing past the tolerance writes nothing and spends no undo
+    // step, and the preview is put back on the model.
+    const next = groupTransformChanged(fc, g) ? g.liveBoxes : undefined;
     const sel = g.sel;
-    endGesture(fc, true);
+    endGesture(fc, !!next);
     // Containment-on-group-transform: every scaled/rotated box re-buckets. g.liveBoxes
     // is a full index-aligned array, so g.sel indices stay valid.
     if (next) {
@@ -1341,27 +1361,127 @@ export function onGestureEnd(fc: FcCtx, e: PointerEvent): void {
   }
   endGesture(fc);
 }
-// Apply a rect to a live box DOM element during a gesture (no model write).
-export function applyLiveRect(fc: FcCtx, index: number, r: Rect): void {
+/**
+ * Apply a rect to a live box DOM element during a gesture (no model write), and record
+ * it in `fc.liveRects` for the chrome, connectors and readouts. A group row has no
+ * element, so the record is made before the element lookup.
+ *
+ * The transform is rebuilt from the box's OWN fields (flip, tilt) with the live
+ * rotation, in the order the Design hook composes them, and never read back from
+ * `el.style`, where the sequence applier writes its poses. `k` is Scale mode's live
+ * preview: the element keeps its start size, centred on the live centre, and
+ * `scale(k)` grows its content exactly as the committed scale will.
+ */
+export function applyLiveRect(fc: FcCtx, index: number, r: Rect, k = 1): void {
   previewCanvasRect(fc, index, r);
-  const { frameCfg, pages } = fc;
+  const { FLIP_H_FIELD, FLIP_V_FIELD, canFlip, cv, frameCfg, pages } = fc;
   const boxes = fc.select.getBoxes();
-  const id = fc.select.idOf(boxes[index], index);
+  const box = boxes[index];
+  const id = fc.select.idOf(box, index);
+  fc.liveRects ??= new Map();
+  fc.liveRects.set(id, r);
   const el = fc.stage.liveBoxEl(id);
   if (!el) return;
+  const kk = Number.isFinite(k) && k > 0 ? k : 1;
+  const w = r.w / kk, h = r.h / kk;
   // r is in GLOBAL native coords; the element positions relative to its page frame.
   const fo = fc.stage.frameOffsetOfEl(el);
-  el.style.left = Math.round(r.x - fo.x) + 'px';
-  el.style.top = Math.round(r.y - fo.y) + 'px';
-  el.style.width = Math.max(1, Math.round(r.w)) + 'px';
-  el.style.height = Math.max(1, Math.round(r.h)) + 'px';
-  el.style.transform = r.rot ? `rotate(${Math.round(r.rot * 10) / 10}deg)` : '';
+  el.style.left = Math.round(r.x + (r.w - w) / 2 - fo.x) + 'px';
+  el.style.top = Math.round(r.y + (r.h - h) / 2 - fo.y) + 'px';
+  el.style.width = Math.max(1, Math.round(w)) + 'px';
+  el.style.height = Math.max(1, Math.round(h)) + 'px';
+  // An artboard's page carries no transform of its own in the render, so only the
+  // rotation it always previewed with is written there, never a flip or a tilt that
+  // would turn every member riding inside the page.
+  const pose: BoxPose = { rot: r.rot };
+  if (box && !isFrameRow(fc, box)) {
+    if (canFlip) { pose.flipH = box[FLIP_H_FIELD]; pose.flipV = box[FLIP_V_FIELD]; }
+    if (cv.rxField) pose.rx = box[cv.rxField];
+    if (cv.ryField) pose.ry = box[cv.ryField];
+  }
+  el.style.transform = boxTransformCss(pose, kk);
   // Multi-page: a box dragged toward a higher-index page spills (unclipped) into that
   // page's rectangle, but the later frame's opaque background paints OVER it (same
   // stacking context, tree order). A positive z-index hoists the live box above every
   // later frame for the duration of the drag; endGesture clears it (and the next paint
   // rebuilds the element clean). No-op for single-page editors (Design).
   if (pages || frameCfg) el.style.zIndex = '9999';
+}
+/** Did a group scale or turn change anything? A member moving or resizing by more than
+ *  0.5 px counts, the tolerance the move and resize commits use; a turn needs more than
+ *  0.01 degree, the rotate commit's own. */
+function groupTransformChanged(fc: FcCtx, g: GScaleGesture | GRotateGesture): boolean {
+  const { cfg } = fc;
+  const next = g.liveBoxes;
+  if (!next) return false;
+  if (g.type === 'grotate') return Math.abs(g.deg ?? 0) > 0.01;
+  return g.sel.some((i) => {
+    const a = boxRect(g.startBoxes[i], cfg), b = boxRect(next[i], cfg);
+    return Math.abs(a.x - b.x) > 0.5 || Math.abs(a.y - b.y) > 0.5 || Math.abs(a.w - b.w) > 0.5 || Math.abs(a.h - b.h) > 0.5;
+  });
+}
+/** Is this row an artboard (the frame kind)? */
+export function isFrameRow(fc: FcCtx, box: Box | undefined): boolean {
+  return !!fc.frameCfg && String(box?.[fc.cfg.kindField] ?? '') === fc.frameCfg.frameKind;
+}
+/**
+ * Does the set hold a LOCKED row, by its own layer flag or by a locked group above the
+ * row? A locked layer draws normally and refuses every pointer transform, so a
+ * selection holding one (the navigator can select a locked row) gets no handles.
+ */
+export function selectionLocked(fc: FcCtx, boxes: Box[], indices: readonly number[]): boolean {
+  const lockF = fc.frameCfg?.lockedField;
+  if (lockF && indices.some((i) => boolOf(boxes[i]?.[lockF], false))) return true;
+  if (!fc.hierarchy?.enabled()) return false;
+  const index = designHierarchyIndex(boxes, fc.opts?.getDesignPages?.());
+  return indices.some((i) => designHierarchyFlags(index, fc.select.idOf(boxes[i], i)).locked);
+}
+/** The gestures a modifier key re-applies mid-drag. */
+const REAPPLY_TYPES = new Set<Gesture['type']>(['move', 'resize', 'rotate', 'gscale', 'grotate']);
+const MODIFIER_KEYS = new Set(['Shift', 'Alt', 'Meta', 'Control']);
+/** Listen for modifier keys for the life of one transform gesture; endGesture removes them. */
+function armModifierKeys(fc: FcCtx): void {
+  const win = fc.canvasEl.ownerDocument?.defaultView;
+  if (!win || fc.gestureKeysOff) return;
+  const on = (e: KeyboardEvent): void => onGestureModifierKey(fc, e);
+  win.addEventListener('keydown', on, true);
+  win.addEventListener('keyup', on, true);
+  fc.gestureKeysOff = () => {
+    win.removeEventListener('keydown', on, true);
+    win.removeEventListener('keyup', on, true);
+  };
+}
+/**
+ * Shift, Alt, ⌘ or Ctrl pressed or released while a transform is live re-runs the last
+ * pointer frame with the new modifier state, so holding Shift locks the aspect at
+ * once rather than on the next pointer move. Only a bare modifier key is taken, which
+ * no canvas shortcut is bound to.
+ */
+export function onGestureModifierKey(fc: FcCtx, e: KeyboardEvent): void {
+  // An editor torn down mid-drag never reaches endGesture, so the listeners go here.
+  if (fc.disposed) { fc.gestureKeysOff?.(); fc.gestureKeysOff = null; return; }
+  const g = fc.gesture;
+  if (!g || e.repeat || !MODIFIER_KEYS.has(e.key) || !REAPPLY_TYPES.has(g.type)) return;
+  // A move still waiting for its frame is the newest position: take it here instead.
+  const pending = fc.pendingMove;
+  if (fc.moveRaf) cancelAnimationFrame(fc.moveRaf);
+  fc.moveRaf = 0;
+  fc.pendingMove = null;
+  const at = pending ?? g.lastMove;
+  if (!at) return;
+  e.preventDefault();
+  applyGestureMove(fc, {
+    pointerId: at.pointerId, clientX: at.clientX, clientY: at.clientY,
+    shiftKey: e.shiftKey, altKey: e.altKey, metaKey: e.metaKey, ctrlKey: e.ctrlKey,
+  });
+  if (pending && fc.gesture && canvasGestureReady(fc)) finishCanvasFeedback(fc.runtime, 'pointer-preview');
+}
+/** A second finger landing on a handle belongs to the stage, as one on the canvas does
+ *  (see onCanvasPointerDown): whatever the first finger started is cancelled. */
+export function secondFinger(fc: FcCtx, e: PointerEvent): boolean {
+  if (e.pointerType === 'mouse' || fc.touchPts.size < 2) return false;
+  if (fc.gesture) cancelGesture(fc);
+  return true;
 }
 export function drawRubber(fc: FcCtx, origin: Point, nat: Point): void {
   const { rubber } = fc;
@@ -1375,12 +1495,15 @@ export function drawRubber(fc: FcCtx, origin: Point, nat: Point): void {
 // ── handle interactions ──────────────────────────────────────────────────────
 export function onHandlePointerDown(fc: FcCtx, e: PointerEvent, handle: HandleName | 'rotate'): void {
   const { cfg } = fc;
+  if (secondFinger(fc, e)) return;
   e.stopPropagation();
   if (e.button > 0) return;
   const boxes = fc.select.getBoxes();
   const idx = fc.select.selIndices(boxes);
   if (idx.length !== 1) return;
   const index = idx[0]!;
+  // The chrome draws no handles for either, so these only guard a stale handle.
+  if (selectionLocked(fc, boxes, idx) || (handle === 'rotate' && isFrameRow(fc, boxes[index]))) return;
   const startRect = boxRect(boxes[index], cfg);
   if (handle === 'rotate') {
     const m = fc.stage.metrics();
@@ -1461,6 +1584,10 @@ export function gesturesOps(fc: FcCtx) {
     applyGestureMove: bindOp(fc, applyGestureMove),
     onGestureEnd: bindOp(fc, onGestureEnd),
     applyLiveRect: bindOp(fc, applyLiveRect),
+    isFrameRow: bindOp(fc, isFrameRow),
+    selectionLocked: bindOp(fc, selectionLocked),
+    onGestureModifierKey: bindOp(fc, onGestureModifierKey),
+    secondFinger: bindOp(fc, secondFinger),
     drawRubber: bindOp(fc, drawRubber),
     onHandlePointerDown: bindOp(fc, onHandlePointerDown),
     otherAABBs: bindOp(fc, otherAABBs),
