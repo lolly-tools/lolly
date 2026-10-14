@@ -8,6 +8,34 @@ import { webGpuLaunchArgs } from '../packages/node-shell/src/webgpu-launch.ts';
 const origin = process.env.LOLLY_IMPORT_TEST_URL ?? process.env.LOLLY_EXPORT_TEST_URL;
 const skip = origin ? false : 'Serve the web shell and set LOLLY_EXPORT_TEST_URL.';
 
+test('Design rulers and guides default off and remember a previous opt-in or opt-out', { skip, timeout: 60_000 }, async () => {
+  const browser = await chromium.launch({ headless: true, args: webGpuLaunchArgs('software') });
+  try {
+    const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+    const boxes = [{ id: 'a', kind: 'box', x: 120, y: 160, w: 120, h: 80, bg: '#88c4a0' }];
+    const params = new URLSearchParams({ boxes: JSON.stringify(boxes), guides: '1|x=200;y=300' });
+    await page.goto(`${origin}/t/design?${params}`);
+    const canvas = page.locator('#tool-canvas [data-box-id="a"]');
+    const guides = page.locator('.fc-authoring-guides');
+    await canvas.waitFor();
+    assert.equal(await guides.isVisible(), false, 'a fresh device starts without rulers or authored guides');
+    await page.locator('#tool-canvas').focus();
+    await page.keyboard.press('Shift+R');
+    await guides.waitFor({ state: 'visible' });
+    assert.equal(await page.evaluate(() => localStorage.getItem('lolly-design-guides-visible')), 'true');
+    await page.reload();
+    await canvas.waitFor();
+    await guides.waitFor({ state: 'visible' });
+    await page.locator('#tool-canvas').focus();
+    await page.keyboard.press('Shift+R');
+    await guides.waitFor({ state: 'hidden' });
+    await page.reload();
+    await canvas.waitFor();
+    assert.equal(await guides.isVisible(), false, 'the explicit off choice also survives reopening');
+    assert.equal(await page.evaluate(() => localStorage.getItem('lolly-design-guides-visible')), 'false');
+  } finally { await browser.close(); }
+});
+
 test('guide preview work stays bounded on a canvas with 1,000 guides', { skip, timeout: 60_000 }, async () => {
   const browser = await chromium.launch({ headless: true, args: webGpuLaunchArgs('software') });
   try {
@@ -100,6 +128,7 @@ test('Design ruler feedback and exact guide edits survive cancel, undo and zoom'
     page.on('pageerror', error => errors.push(error.message));
     const boxes = [{ id: 'a', kind: 'box', x: 120, y: 160, w: 120, h: 80, bg: '#88c4a0' }];
     const guides = '2|[["horizontal",0,300,0,"",true]]';
+    await page.addInitScript(() => localStorage.setItem('lolly-design-guides-visible', 'true'));
     await page.goto(`${origin}/t/design?${new URLSearchParams({
       w: '800', h: '600', boxes: JSON.stringify(boxes), guides, _sel: 'a', c2pa: '0', imprint: '0',
     })}`);

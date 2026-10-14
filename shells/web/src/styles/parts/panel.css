@@ -237,7 +237,7 @@ input.lp-head-name:focus {
   align-items: center;
   column-gap: var(--sp-2);
   margin: 0;
-  padding: var(--sp-5) var(--sp-3) var(--sp-2);
+  padding: var(--sp-5) var(--sp-6) var(--sp-2);
   border: 0;
   background: transparent;
   color: var(--ui-color-text-muted);

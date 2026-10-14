@@ -75,8 +75,8 @@ export const liveBoxEl = (fc: FcCtx, id: string): HTMLElement | null =>
   canvasEl.querySelector<HTMLElement>(`.lolly-frame-page[data-frame-id="${fc.keys.cssEscape(id)}"]`); };
 export const readGuideVisibility = (fc: FcCtx): boolean => {
   const { GUIDE_VISIBILITY_KEY } = fc;
-  try { return localStorage.getItem(GUIDE_VISIBILITY_KEY) !== 'false'; }
-  catch { return true; }
+  try { return localStorage.getItem(GUIDE_VISIBILITY_KEY) === 'true'; }
+  catch { return false; }
 };
 export const setGuidesVisible = (fc: FcCtx, visible: boolean): void => {
   const { GUIDE_VISIBILITY_KEY } = fc;
