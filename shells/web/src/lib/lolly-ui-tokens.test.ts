@@ -12,6 +12,7 @@ test('the app document preserves its semantic references over the foundation sca
   assert.equal(doc.lolly.ui.elevation.overlay.$value, '{lolly.foundation.elevation.5}');
   assert.equal(doc.lolly.ui.edge.default.$value, '{lolly.foundation.edge.default}');
   assert.equal(doc.lolly.ui.effect.bevel.$value, '{lolly.foundation.bevel.default}');
+  assert.equal(doc.lolly.ui.effect['input-well'].$value, '{lolly.foundation.bevel.input-well}');
   assert.equal(doc.lolly.foundation.space['4'].$value, '8px');
 });
 
@@ -28,9 +29,11 @@ test('the Start studio can show every UI role without adding any of them to a br
   // effect.selected and effect.accent-ring do.
   // 77 to 78: numeric inputs share their inset shadow through effect.inset.
   // 78 to 80: docked rail and input sidebar shadows have their own elevation roles.
-  assert.equal(tokens.length, 80);
+  // 80 to 81: export controls share the input-well effect.
+  assert.equal(tokens.length, 81);
   for (const role of ['rail', 'sidebar']) assert.equal(tokens.find(t => t.path.join('.') === `elevation.${role}`)?.type, 'shadow');
   assert.equal(tokens.find(t => t.path.join('.') === 'effect.inset')?.type, 'shadow');
+  assert.equal(tokens.find(t => t.path.join('.') === 'effect.input-well')?.type, 'shadow');
   assert.equal(tokens.find(t => t.path.join('.') === 'type.tracking-label')?.type, 'letterSpacing');
   assert.equal(tokens.find(t => t.path.join('.') === 'color.text.default')?.type, 'color');
   assert.equal(tokens.find(t => t.path.join('.') === 'color.selection.surface')?.type, 'color');
