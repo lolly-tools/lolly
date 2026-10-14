@@ -21,7 +21,7 @@
      properties are written on the stage by their own owner (design-topbar's
      `measure`, free-canvas's `reserveBottom`). Before the first measurement,
      reserve the top bar's 54px height; a measured zero still removes that gap. */
-  top: var(--stage-reserve-top, 54px);
+  top: 54px;
   bottom: var(--stage-reserve-bottom, 0px);
   left: 0;
   z-index: 21;                  /* over the overlay (12), under the timeline band (22) */
@@ -35,6 +35,7 @@
   background: var(--ui-color-surface-raised);
   color: var(--ui-color-text-default);
   font-size: var(--ui-type-body);
+  box-shadow: var(--ui-elevation-panel);
   overflow: hidden;
 }
 .fc-nav.is-collapsed { width: 36px; padding-inline: var(--sp-2); }

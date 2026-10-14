@@ -2,7 +2,7 @@
 .notification-center[open] { display: flex; }
 .notification-center > header { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: clamp(.5rem, 3dvh, 1rem) 1rem; flex-shrink: 0; }
 .notification-center .modal-title { margin: 0; min-width: 0; overflow-wrap: anywhere; }
-.notification-center-close { width: max(44px, var(--ui-size-target)); height: max(44px, var(--ui-size-target)); padding: 0; flex-shrink: 0; }
+.notification-center-close {     width: 32px;   height: 32px;    padding: 0;    flex-shrink: 0;    line-height: 38px; }
 .notification-center-tabs { display: flex; flex-wrap: wrap; gap: .5rem; padding: 0 1rem clamp(.5rem, 3dvh, 1rem); flex-shrink: 0; }
 .notification-center-tabs .btn { min-height: max(44px, var(--ui-size-target)); }
 .notification-center-tabs [aria-pressed="true"] { background: hsl(var(--accent)); color: hsl(var(--accent-foreground)); }

@@ -831,6 +831,15 @@ export function wireActionsPanel(tview: ToolViewCtx): void {
   const { autoCopy, autoExport, isFull, showAside, viewEl } = tview;
   const actionsEl = viewEl.querySelector<PanelEl>('#tool-actions'); tview.actionsEl = actionsEl;
   const sidebarEl = viewEl.querySelector<HTMLElement>('#tool-sidebar'); tview.sidebarEl = sidebarEl;
+  // Drives the sidebar header's shadow: 0 at the top of the inputs, 1 once they have scrolled 24px.
+  const sidebarBody = sidebarEl?.querySelector<HTMLElement>('.sidebar-body');
+  if (sidebarEl && sidebarBody) {
+    const syncScrolled = (): void => {
+      sidebarEl.style.setProperty('--sb-scrolled', String(Math.min(1, sidebarBody.scrollTop / 24)));
+    };
+    sidebarBody.addEventListener('scroll', syncScrolled, { passive: true });
+    syncScrolled();
+  }
 
   // The tool's own walkthrough (manifest `guide`, components/tool-guide.ts): the
   // help button beside the title, plus one automatic open per device on a tool

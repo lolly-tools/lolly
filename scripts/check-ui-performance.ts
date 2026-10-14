@@ -142,8 +142,8 @@ async function sweep(browser: Browser, run: number, mode: Sample['mode']) {
       await page.waitForFunction(() => !document.querySelector('#view .tool-masonry .gtile.is-filtered'));
     });
     // A card's title deliberately opens its current example, which can differ
-    // between modes. + New → blank exercises the same document through real UI.
-    const tool = page.locator('#view .tool-masonry [data-tool-id="qr-code"] .gtile-new');
+    // between modes. the template link → blank exercises the same document through real UI.
+    const tool = page.locator('#view .tool-masonry [data-tool-id="qr-code"] .gtile-tpl');
     await tool.scrollIntoViewIfNeeded();
     await record('open-tool', async () => {
       await tool.click();

@@ -272,7 +272,6 @@ export function wireFormatChange(ta: ActionsCtx): void {
       ta.audio.syncPrintDefault(fmt); // open the marks card for a CMYK press format, close it otherwise
       ta.dims.updateFidelityWarning(); // only SVG/HTML keep a frosted panel
       ta.refresh.refreshPrintUi(); // owns [data-pdf-only] (password) visibility - see below
-      ta.refresh.refreshDepthFact();
       ta.preflight.refreshPreflight(); // the format is the single biggest input to every check
       ta.rights.refreshRights(); // the format decides the route, and the route decides what can carry a credit
       ta.audio.syncCaptionsAvailable(); // caption text is looked up only for moving formats
@@ -355,7 +354,6 @@ export function wirePrint(ta: ActionsCtx): void {
     }); }
   );
   ta.refresh.refreshPrintUi(); // initial state (e.g. card pre-opened from a shared link)
-  ta.refresh.refreshDepthFact(); // renders nothing unless a deep/gain-map path is already selected
 
   // Colour profile (CMYK press condition) - print-PDF only; persists via URL/save.
   el.querySelector<HTMLSelectElement>('[data-action="cmyk-profile"]')?.addEventListener(
@@ -397,7 +395,6 @@ export function wirePrint(ta: ActionsCtx): void {
     const on = (e.target as HTMLInputElement).checked;
     const body = el.querySelector<HTMLElement>('[data-hdr-body]');
     if (body) body.style.display = on ? 'grid' : 'none';
-    ta.refresh.refreshDepthFact(); // HDR is what makes the PNG deep / the JPEG a gain map
     ta.preflight.refreshPreflight(); // HDR on a format that cannot carry it is a warning
     onUrlSync?.('hdr');
   });

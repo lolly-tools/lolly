@@ -1523,7 +1523,7 @@ html[data-a11y-previews="hidden"] .tool-masonry:is([data-browse-layout="card"],[
    hit area, so starting fresh is as obvious as the hero's Continue. */
 /* Body fills the space under the square visual so every tile in a row is the same
    height (the grid stretches them; the body takes up the slack). */
-.gtile-body { position: relative; flex: 1 1 auto; }
+.gtile-body { position: relative; flex: 1 1 auto; padding-bottom:1.5rem;}
 /* The visual (preview hero / example carousel / icon-or-resume tile) is a fixed
    square and never shrinks in the flex column - so the grid stays regular. */
 .gtile > .gtile-hero,
@@ -1557,30 +1557,6 @@ a.gtile-name:focus-visible::after {
   outline-offset: -2px;
   border-radius: calc(var(--radius) * 0.8);
 }
-
-/* "+ New" action - a persistent link on every card that opens the tool's template
-   chooser (empty ?template= boot flag). Sits above the stretched title link
-   (a.gtile-name::after, z-index 1) so it takes its own click. */
-.gtile-new {
-  flex: none;
-  position: relative;
-  z-index: 2;
-  font-size: var(--fs-xs);
-  font-weight: 700;
-  line-height: 1;
-  background: hsl(var(--primary) /.68);
-  color: hsl(var(--primary-foreground) / 1);
-
-  border: 0;
-  box-shadow: var(--shadow-1);
-  border-radius: var(--radius-pill);
-  padding: var(--sp-6);
-  text-decoration: none;
-  transition: background var(--dur-1);
-}
-.gtile-new:hover {
- color: hsl(var(--primary-foreground) / 1);
-    background: hsl(var(--primary) /1); }
 
 /* (The "New" recency badge is retired - Andy 2026-08-28: it collided with the
    ".gtile-new" "+ New" start-blank action. Recency lives in the info dialog's
@@ -1642,10 +1618,33 @@ a.gtile-name:focus-visible::after {
 .gtile-cap .badge { position: static; }   /* badge sits inline here, not pinned */
 /* Curated starting-point count (plans/142) - a quiet line under the description;
    the fresh open presents the chooser, so the count itself is the affordance. */
-.gtile-tpl {
-  margin-top: 3px;
-  font-size: var(--fs-xs);
-  color: hsl(var(--muted-foreground) / 0.85);
+/* It is also the card's start-a-new-session link (opens the template chooser via the
+   empty ?template= boot flag): a flat primary pill, above the stretched title link
+   (a.gtile-name::after, z-index 1) so it takes its own click. */
+.gtile-tpl,
+.gtile-tpl.btn {
+  z-index: 2;
+  width: fit-content;
+  margin: 3px auto;
+  font-size: var(--fs-2xs);
+  font-weight: 600;
+  line-height: 1;
+  background: hsl(var(--primary) / .68);
+  color: hsl(var(--primary-foreground) / 1);
+  border: 0;
+  box-shadow: none;
+  border-radius: var(--radius-pill);
+  padding: var(--sp-3) var(--sp-6);
+  text-decoration: none;
+  transition: background var(--dur-1);
+  position:absolute;
+  bottom: .25rem;
+  right:.35rem;
+  text-transform: uppercase;
+}
+.gtile-tpl.btn:hover {
+  color: hsl(var(--primary-foreground) / 1);
+  background: hsl(var(--primary) / 1);
 }
 /* Description lives in the meta column, directly under the title - no horizontal
    padding of its own (the column already starts past the icon). */

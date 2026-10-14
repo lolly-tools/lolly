@@ -1149,7 +1149,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
     // already stopPropagation or preventDefault; skip anything inside them defensively.
     // The "+ New" chip and Card's quiet "+ New" icon too: each must reach the template
     // chooser un-seeded, so the example-look hijack below must never claim its click.
-    if (target.closest('.gcar-nav, .gcar-dot, [data-resume], [data-select], .gtile-new, .gtile-new-icon')) return;
+    if (target.closest('.gcar-nav, .gcar-dot, [data-resume], [data-select], .gtile-tpl, .gtile-new-icon')) return;
     const tile = target.closest<HTMLElement>('.gtile');
     const gcar = tile?.querySelector<HTMLElement>('.gcar');
     if (!tile || !gcar) return;

@@ -7,11 +7,12 @@
      where the column begins, so a column starting under it left a blank band above
      itself (Andy, later the same day: "fix the dead space"). Resolves to 0 for every
      other view, where the column keeps its full height. */
-  position: fixed; inset-block: 0 var(--design-timeline-h, 0px); inset-inline-end: 0; z-index: 9400;
+  position: fixed; inset-block: 0 var(--design-timeline-h, 0px); inset-inline-end: 0; z-index: 2;
   width: var(--dock-w, 340px);
   display: flex; flex-direction: column;
   background: var(--ui-color-surface-canvas);
-  box-shadow: var(--ui-elevation-sheet);
+  box-shadow: var(--ui-elevation-panel);
+
 }
 /* Inset padding so each docked occupant reads as a distinct card/pane (the column
    background shows around it), not an edge-to-edge slab. */

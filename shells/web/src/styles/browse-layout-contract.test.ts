@@ -194,7 +194,6 @@ test('the quiet "+ New" is muted at rest and full on hover, focus and touch', ()
   const touch = ALL.find(r => r.at === '@media (hover: none)' && r.selector.includes('.gtile-new-icon'));
   assert.ok(touch, 'always full on a touch screen');
   assert.match(touch!.body, /opacity:\s*1/);
-  assert.ok(ALL.some(r => r.selector.endsWith('.gtile-new') && /display:\s*none/.test(r.body) && r.selector.includes('[data-browse-layout="card"]')), 'Card drops the Grid pill');
 });
 
 test('gallery.css: phone scroll-snap is Grid only, and hidden previews give Card the icon', () => {
