@@ -1659,7 +1659,7 @@ html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
   outline-offset: 2px;
 }
 .export-video-options[data-compact="false"] { padding: 0; border: 0; background: none; }
-.export-video-options[open] { display: block; }
+.export-video-options[open] { display: block; padding:var(--sp-4) var(--sp-5); }
 .export-video-options[open] > :not(summary) { margin-block-start: var(--ui-space-control-block); }
 .export-video-quality {
   display: flex;
