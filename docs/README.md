@@ -147,6 +147,7 @@ The Builders sidebar also carries an **About** entry, which renders the repo-roo
 | [connector-origins.md](connector-origins.md) | operator | Exact HTTPS connector origins, web headers, native request limits and deployment configuration. |
 | [deployment.md](deployment.md) | operator | Where each piece runs: distribute apps, host the PWA, add optional integrations or deploy lolly.work for organisation services. |
 | [deploy-delivery.md](deploy-delivery.md) | operator | Signed catalog delivery, immutable file retention, model integrity, private cache boundaries, optional edges and release qualification. |
+| [ci-qualification.md](ci-qualification.md) | operator | Public-ready and release-ready CI tiers, exact source evidence, workflow handoff and rollout requirements. |
 | [configuration.md](configuration.md) | operator | Profiles, brand packs, tool sets and per-tool capabilities as files rather than in-app settings. |
 | [build-guide.md](build-guide.md) | operator | Per-target build steps: CLI binary, desktop app, mobile apps, and the web shell as a container image. |
 | [build-terminal.md](build-terminal.md) | operator | Run the terminal shells from source or package the CLI binary. |
