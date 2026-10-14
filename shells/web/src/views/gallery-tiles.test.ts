@@ -43,8 +43,9 @@ test('a tool tile carries Continue, the quiet "+ New" and its detail cells', () 
   assert.match(resume.textContent ?? '', /^Continue · 2d ago$/);
 
   const quiet = el.querySelector<HTMLAnchorElement>('.gtile-cap > a.gtile-new-icon')!;
-  const pill = el.querySelector<HTMLAnchorElement>('.gtile-cap > a.gtile-new')!;
-  assert.equal(quiet.getAttribute('href'), pill.getAttribute('href'), 'the same template chooser as the Grid pill');
+  assert.equal(el.querySelector('.gtile-new'), null, 'the + New pill is retired');
+  const pill = el.querySelector<HTMLAnchorElement>('a.gtile-tpl.btn');
+  if (pill) assert.equal(quiet.getAttribute('href'), pill.getAttribute('href'), 'the same template chooser as the icon');
   assert.equal(quiet.getAttribute('aria-label'), 'New Poster');
   assert.equal(quiet.dataset.newTool, 'poster');
   assert.ok(quiet.querySelector('svg path'), 'the plus glyph from lib/icons.ts');
@@ -77,7 +78,7 @@ test('a tool with no session has no Continue, and an unavailable one has no "+ N
   assert.equal(fresh.querySelector('.tile-cols')!.textContent, 'PNG, Designer, Make a poster.', 'an empty cell adds no comma');
   const desktop = tile(cardMarkup({ ...tool, capabilities: ['filesystem'] }, session, []));
   assert.ok(desktop.classList.contains('gtile--unavailable'), 'a capability this shell lacks');
-  assert.equal(desktop.querySelector('.gtile-new, .gtile-new-icon, .gtile-resume'), null);
+  assert.equal(desktop.querySelector('.gtile-tpl, .gtile-new-icon, .gtile-resume'), null);
 });
 
 test('the status line copy is for the eye only where the caption already announces it', () => {
@@ -102,7 +103,7 @@ test('a utility tile carries its formats line and cells; a view card its descrip
   assert.equal(el.querySelector('.gtile-fmts')!.textContent, 'PNG · SVG · PDF');
   assert.equal(tile(cardMarkup({ ...tool, formats: ['png', 'svg', 'penpot'] }, undefined, [], false, true)).querySelector('.gtile-fmts')!.textContent,
     'PNG · SVG · Penpot', 'a product name keeps its own spelling');
-  assert.equal(el.querySelector('.gtile-new, .gtile-new-icon'), null, 'utilities have no starting points to choose');
+  assert.equal(el.querySelector('.gtile-tpl, .gtile-new-icon'), null, 'utilities have no starting points to choose');
   assert.equal(el.querySelector('.tile-col[data-col="format"]')!.textContent, 'PNG');
   const view = { id: 'compare', href: '#/compare', icon: 'document' as const, name: 'Compare', description: 'Compare two files.' };
   const card = tile(viewCardMarkup(view));

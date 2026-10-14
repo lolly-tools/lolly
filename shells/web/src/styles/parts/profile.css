@@ -181,10 +181,10 @@
 .profile-view .profile-card h2 {
   margin: 0 0 1rem;
   font-size: var(--fs-xs);
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: .07em;
-  color: hsl(var(--muted-foreground));
+  letter-spacing: .05em;
+  color: hsl(var(--foreground));
 }
 /* Language picker sits top-right of the details card, level with its h2 - a
    permanent preference, unlike the welcome dialog's one-time chips. */

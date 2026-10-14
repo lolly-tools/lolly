@@ -502,7 +502,7 @@ html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
 }
 /* Taller, easier-to-hit targets while labelled; collapses back to compact icons
    in the @container query below. */
-.export-action-buttons button { flex: 1 1 0; min-width: 0; padding-block: 9px; }
+.export-action-buttons button { flex: 1 1 0; min-width: 0; padding: var(--sp-4) 0; }
 .export-action-buttons .btn { white-space: normal; overflow-wrap: anywhere; }
 /* Jelly-mode stand-ins (Save / Download) share the same flex tracks; their
    height/padding come from the component (scaled by the lib/jelly.ts bridge). */
@@ -804,56 +804,9 @@ html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
   min-width: 0;
   padding-top: var(--sp-5);
   border-top: 1px solid hsl(var(--border));
+  opacity:1 !important;
 }
 
-/* The depth fact - what the export WILL carry beyond an ordinary 8-bit image
-   (16-bit HDR PNG, gain-map HDR JPEG). A statement, not a control: no border, no
-   background, no icon, not focusable. It is created only when it is true and
-   removed when it is not (views/export-depth.ts applyDepthFact), so in the common
-   case this rule matches nothing at all.
-
-   It is a SIBLING of the filename·format pair, never a child: that row is a flex
-   pair whose filename grows and whose select hugs, and a third item would resize
-   both every time HDR was toggled. Sitting on its own line under the row, right-
-   aligned to the format select it describes, it cannot move that row a pixel.
-   Negative margin pulls it against the row instead of taking the column's gap. */
-.export-depth-fact {
-  align-self: flex-end;
-  margin-top: -6px;
-  font-size: var(--fs-sm);
-  color: hsl(var(--muted-foreground) / 0.8);
-  font-variant-numeric: tabular-nums;
-  cursor: default;
-}
-/* Tooltip geometry, [data-tip] primitive: the bubble carries a sentence, and this
-   host hugs the right edge of a sidebar that is overflow-x:hidden - so the default
-   centred nowrap bubble would be sliced. Wrap it and hang it from the right edge
-   (the arrow follows). Same wrap treatment parts/tooltip.css already applies at
-   phone widths, for the same reason. */
-.export-depth-fact::after {
-  /* LOGICAL, not physical: `right: 0` would hang the bubble off the same visual
-     edge in RTL, where the sidebar's clipped edge is the other one, and throw the
-     whole sentence outside overflow-x: hidden. inset-inline-end follows the
-     writing direction, so Arabic gets the same tuck the LTR layout gets. */
-  inset-inline-start: auto;
-  inset-inline-end: 0;
-  transform: translateY(3px);
-  white-space: normal;
-  width: max-content;
-  max-width: min(15rem, 62vw);
-  line-height: 1.35;
-  text-align: start;
-  font-weight: 500;
-}
-.export-depth-fact:hover::after { transform: translateY(0); }
-.export-depth-fact::before {
-  inset-inline-start: auto;
-  inset-inline-end: 8px;
-  transform: none;
-}
-@media (prefers-reduced-motion: reduce) {
-  .export-depth-fact::after { transition: none; transform: none; }
-}
 
 /* Tier 3 - ancillary settings. A single wrapping cluster of chips so optional
    controls never disrupt the rows above. */

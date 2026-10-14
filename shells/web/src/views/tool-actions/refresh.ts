@@ -7,24 +7,10 @@
  * a value (an event listener), goes through `ta.<module>.<fn>`. Extracted verbatim
  * from renderActions() by scripts/split-closure.ts.
  */
-import { applyDepthFact, depthFact } from '../export-depth.ts';
 import { isDurableFmt } from '../export-durable-card.ts';
 import { isC2paFmt, isHdrFmt, isImprintFmt } from './shared.ts';
 import { bindOp, type ActionsCtx } from './context.ts';
 
-// The depth fact - what the chosen format WILL carry beyond an ordinary 8-bit
-// image, stated and not offered (plans/61-deeprichpixels.md section 10 item 3). Nothing is
-// rendered unless there is something true to say, so this runs wherever either
-// input to that truth changes: the format, and the HDR toggle. `?depth=` has no
-// panel control by design - it rides the link, so exportDefaults is its only
-// source. See views/export-depth.ts for the derivation.
-export function refreshDepthFact(ta: ActionsCtx): void {
-  const { el, exportDefaults, formatEl, initialFmt } = ta;
-  const fmt = formatEl?.value ?? initialFmt;
-  const hdr =
-    el!.querySelector<HTMLInputElement>('[data-action="hdr"]')?.checked ?? exportDefaults.hdr;
-  applyDepthFact(el, depthFact(fmt, { hdr: !!hdr, depth: exportDefaults.depth }));
-}
 // Print marks card: reveal its body when enabled, and hide the open-password
 // card while it's on (marks/bleed route through pdf-lib, which can't encrypt).
 export function refreshPrintUi(ta: ActionsCtx): void {
@@ -166,7 +152,6 @@ export const dimUnit = (ta: ActionsCtx): string =>
     : el!.querySelector<HTMLSelectElement>('[data-action="export-unit"]')?.value || 'px'; };
 export function refreshOps(ta: ActionsCtx) {
   return {
-    refreshDepthFact: bindOp(ta, refreshDepthFact),
     refreshPrintUi: bindOp(ta, refreshPrintUi),
     refreshNotesHandoutUi: bindOp(ta, refreshNotesHandoutUi),
     refreshLockTier: bindOp(ta, refreshLockTier),

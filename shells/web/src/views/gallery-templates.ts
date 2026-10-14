@@ -120,8 +120,10 @@ export function refreshTemplateLine(gt: GalleryTemplates, toolId: string): void 
   let el = meta.querySelector<HTMLElement>('.gtile-tpl');
   if (!line) { el?.remove(); return; }
   if (!el) {
-    el = document.createElement('span');
-    el.className = 'gtile-tpl';
+    el = document.createElement('a');
+    el.className = 'gtile-tpl btn';
+    el.setAttribute('href', `#/tool/${toolId}?template=${tool.openQuery ? `&${tool.openQuery}` : ''}`);
+    el.dataset.newTool = toolId;
     meta.appendChild(el);
   }
   el.textContent = line;

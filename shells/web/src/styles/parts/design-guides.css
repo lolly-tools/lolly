@@ -49,7 +49,6 @@
   height: 22px;
   padding: 0;
   cursor: pointer;
-  border-right: 1px solid currentColor;
 }
 .fc-ruler-corner::after {
   content: "";
@@ -68,7 +67,9 @@
   outline: 2px solid var(--ui-color-focus-ring);
   outline-offset: -2px;
 }
+.fc-ruler:hover :is(line, text){opacity: 1; color: var(--ui-color-action-primary); transition: all 1s ease; }
 .fc-ruler svg {
+  pointer-events: none;
   display: block;
   width: 100%;
   height: 100%;
@@ -304,7 +305,9 @@
 
 }
 .fc-ruler-selection-x span {
-  top: 2px;
+   top: 0;
+    height: 22px;
+    line-height: 22px;
 }
 .fc-ruler-selection-x [data-selection-edge="min"] {
   transform: translateX(-100%);padding:0 var(--sp-4);

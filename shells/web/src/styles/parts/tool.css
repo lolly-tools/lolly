@@ -250,7 +250,8 @@
   overflow-y: auto;
     max-height: 100vh;
     max-height: 100dvh; /* track the visible viewport so mobile chrome can't hide the header/actions */
-}
+    box-shadow: 1px 0 3px -3px #0001, 1rem 0 .5rem -.5rem #0001;
+  }
 
 .sidebar.is-dragging {
   transition: none;
@@ -310,10 +311,20 @@
     -webkit-backdrop-filter: blur(5px);
     backdrop-filter: blur(5px);
     width: 100%;
-    /* The signature ring-plus-drop at panel level (surfaces.css): the sticky
-       header keeps reading as a layer over the scrolling inputs, with the
-       top-light bevel instead of a hand-mixed pair of near-invisible drops. */
-    box-shadow: var(--ui-effect-bevel), var(--ui-elevation-panel)
+}
+
+/* The signature ring-plus-drop at panel level (surfaces.css), shown only once
+   .sidebar-body has scrolled: --sb-scrolled (0..1) is set by wireActionsPanel
+   and ramps over the first 24px, so the shadow fades in as the inputs slide
+   under the header and fades out again at the top. */
+.sidebar-header::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  box-shadow: var(--ui-effect-bevel), var(--ui-elevation-panel), 0 1px 0 var(--ui-color-border-default);
+  opacity: var(--sb-scrolled, 0);
 }
 
 /* Top row of the sidebar header: the Tools back pill (left) + undo/redo (right).
