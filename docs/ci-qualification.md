@@ -141,13 +141,14 @@ all four complete reports, and the exact reviewed skips. A timing estimate canno
 excuse a missing, failed or cancelled test.
 
 The 2026-10-14 merge batch exposed a large imbalance in alphabetical round-robin
-assignment. Replaying the recorded file durations with the median profile gives:
+assignment. Replaying each run's discovered inventory and recorded file durations
+with the checked-in, rounded-millisecond median profile gives:
 
 | CI run | Old longest file total | Balanced replay | Reduction |
 |---|---:|---:|---:|
-| `38597990477` | 1,613 s | 1,157 s | 28.3% |
-| `38603007081` | 1,124 s | 1,085 s | 3.5% |
-| `38611784722` | 1,688 s | 1,118 s | 33.7% |
+| `38597990477` | 1,613 s | 1,154 s | 28.5% |
+| `38603007081` | 1,124 s | 1,086 s | 3.3% |
+| `38611784722` | 1,688 s | 1,119 s | 33.7% |
 
 These are replay estimates, excluding queue time, setup and process overhead,
 not measured improvement from a new hosted run. Preserve fresh hosted evidence
