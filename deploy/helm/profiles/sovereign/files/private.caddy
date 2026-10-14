@@ -17,6 +17,7 @@
 	}
 }
 {$LOLLY_PRIVATE_HOST} {
+	encode zstd gzip
 	{{- if ne .Values.edge.tls.mode "acme" }}
 	tls /tls/private/tls.crt /tls/private/tls.key
 	{{- else }}
