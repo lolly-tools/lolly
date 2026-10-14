@@ -3,22 +3,24 @@ import type { CollabInviteLinks, InviteLinkRole } from '../lib/collab-session.ts
 import { copyText } from '../lib/copy-text.ts';
 import { icon } from '../lib/icons.ts';
 import { tRaw } from '../i18n.ts';
-import { announce } from '../a11y.ts';
+import { showTooltipToast } from '../lib/tooltips.ts';
 import './invite-link-control.css';
 
 /** A role picker and copy action, usable in the live room or a project's People panel. */
 export function mountInviteLinkControl(host: HTMLElement, capability: CollabInviteLinks): () => void {
   const doc = host.ownerDocument, row = doc.createElement('span'); row.className = 'invite-link-control'; row.hidden = true;
-  const role = doc.createElement('select'); role.className = 'field-select invite-link-role'; role.ariaLabel = tRaw('Role');
+  const role = doc.createElement('select'); role.className = 'field-select invite-link-role'; role.ariaLabel = role.dataset.tip = tRaw('Invite link role');
   const copy = doc.createElement('button'); copy.type = 'button'; copy.className = 'btn btn--sm invite-link-copy';
-  copy.title = copy.ariaLabel = tRaw('Copy invite link');
+  copy.dataset.tip = copy.ariaLabel = tRaw('Copy invite link');
   // Fixed registry markup; no name, URL or response text enters this sink.
   copy.innerHTML = icon('link', { size: 18 });
   const label = doc.createElement('span'); label.className = 'visually-hidden'; label.textContent = tRaw('Copy invite link'); copy.append(label);
   const fallback = doc.createElement('input'); fallback.className = 'field-input invite-link-fallback'; fallback.readOnly = true; fallback.hidden = true; fallback.ariaLabel = tRaw('Copy invite link');
   const status = doc.createElement('span'); status.className = 'invite-link-status'; status.setAttribute('role', 'status');
-  row.append(role, copy, fallback, status); host.append(row);
+  const pill = doc.createElement('span'); pill.className = 'invite-link-pill';
+  pill.append(role, copy); row.append(pill, fallback, status); host.append(row);
   let disposed = false, busy = false;
+  let clearToast: (() => void) | undefined;
   async function refresh(): Promise<void> {
     const roles = await capability.roles(); if (disposed) return;
     const selected = role.value; role.replaceChildren();
@@ -27,19 +29,19 @@ export function mountInviteLinkControl(host: HTMLElement, capability: CollabInvi
     row.hidden = roles.length === 0;
   }
   const onCopy = async (): Promise<void> => {
-    if (busy || disposed) return; busy = true; copy.disabled = role.disabled = true; status.textContent = ''; fallback.hidden = true;
+    if (busy || disposed) return; clearToast?.(); busy = true; copy.disabled = role.disabled = true; status.textContent = ''; fallback.hidden = true;
     try {
       const value = role.value; if (value !== 'editor' && value !== 'commenter' && value !== 'viewer') return;
       const link = await capability.create(value); if (disposed) return;
       const copied = await copyText(link.url); if (disposed) return;
-      if (copied) { status.textContent = tRaw('Link copied'); announce(status.textContent); }
+      if (copied) { clearToast = showTooltipToast(copy, tRaw('Link copied')); }
       else { fallback.value = link.url; fallback.hidden = false; fallback.focus(); fallback.select(); status.textContent = tRaw('Could not copy link'); }
     } catch {
       if (!disposed) { status.textContent = tRaw('Could not create the link. Try again.'); void refresh().catch(() => { row.hidden = true; }); }
     } finally { busy = false; if (!disposed) copy.disabled = role.disabled = false; }
   };
-  role.addEventListener('change', () => { status.textContent = ''; fallback.hidden = true; });
+  role.addEventListener('change', () => { clearToast?.(); status.textContent = ''; fallback.hidden = true; });
   copy.addEventListener('click', onCopy);
   void refresh().catch(() => { row.hidden = true; });
-  return () => { disposed = true; copy.removeEventListener('click', onCopy); row.remove(); };
+  return () => { disposed = true; clearToast?.(); copy.removeEventListener('click', onCopy); row.remove(); };
 }

@@ -27,7 +27,9 @@ test('the role selected beside Copy is the role granted by the reusable link', a
     await settle(); const select = f.host.querySelector('select')!; select.value = 'viewer'; select.dispatchEvent(new dom.window.Event('change'));
     f.host.querySelector<HTMLButtonElement>('button')!.click(); await settle();
     assert.deepEqual(roles, ['viewer']); assert.deepEqual(copied, ['https://instance.test/l/join/viewer?s=signed']);
-    assert.equal(f.host.querySelector('[role="status"]')!.textContent, 'Link copied');
+    assert.equal(document.querySelector('.lolly-tooltip-toast')?.textContent, 'Link copied');
+    assert.equal(f.host.querySelector('[role="status"]')!.textContent, '', 'confirmation does not take space in the pill');
+    f.clear(); assert.equal(document.querySelector('.lolly-tooltip-toast'), null, 'teardown clears feedback');
   } finally { f.clear(); }
 });
 

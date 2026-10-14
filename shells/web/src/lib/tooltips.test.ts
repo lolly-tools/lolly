@@ -57,3 +57,18 @@ test('scrolling, moving and cancelling a touch do not show help later', async ()
     }
   } finally { f.close(); }
 });
+
+test('action feedback replaces hover help, preserves focus and dismisses when the anchor leaves', async () => {
+  const { showTooltipToast } = await import('./tooltips.ts');
+  const f = fixture();
+  try {
+    f.button.focus();
+    const close = showTooltipToast(f.button, 'Link copied');
+    assert.equal(f.doc.querySelector('[role="tooltip"]'), null);
+    assert.equal(f.doc.querySelector('.lolly-tooltip-toast')?.textContent, 'Link copied');
+    assert.equal(f.doc.activeElement, f.button);
+    f.button.remove(); await Promise.resolve();
+    assert.equal(f.doc.querySelector('.lolly-tooltip-toast'), null);
+    close();
+  } finally { f.close(); }
+});

@@ -48,15 +48,7 @@ export function mountTooltips(doc: Document = document): () => void {
     doc.body.append(bubble);
     if (typeof bubble.showPopover === 'function') { bubble.popover = 'manual'; bubble.showPopover(); }
     else doc.querySelector('dialog[open]')?.append(bubble);
-    const viewport = win.visualViewport;
-    const leftEdge = (viewport?.offsetLeft || 0) + 8, topEdge = (viewport?.offsetTop || 0) + 8;
-    const rightEdge = leftEdge + (viewport?.width || win.innerWidth) - 16;
-    const bottomEdge = topEdge + (viewport?.height || win.innerHeight) - 16;
-    bubble.style.maxWidth = `${Math.max(0, Math.min(448, rightEdge - leftEdge))}px`;
-    const rect = element.getBoundingClientRect(), size = bubble.getBoundingClientRect();
-    bubble.style.left = `${Math.max(leftEdge, Math.min(rect.left + (rect.width - size.width) / 2, rightEdge - size.width))}px`;
-    const above = rect.top - size.height - 8;
-    bubble.style.top = `${Math.max(topEdge, Math.min(above >= topEdge ? above : rect.bottom + 8, bottomEdge - size.height))}px`;
+    positionTooltip(bubble, element);
   };
   const dismiss = (): void => { cancelHold(); hide(); };
   listen(doc, 'pointerover', event => {
@@ -100,6 +92,7 @@ export function mountTooltips(doc: Document = document): () => void {
     if (held || pending) { event.preventDefault(); event.stopImmediatePropagation(); }
   }, true);
   listen(doc, 'keydown', event => { if ((event as KeyboardEvent).key === 'Escape' && target) { dismiss(); held = undefined; event.preventDefault(); event.stopImmediatePropagation(); } }, true);
+  listen(doc, 'lolly:tooltip-toast', dismiss);
   listen(doc, 'scroll', dismiss, true); listen(win, 'resize', dismiss);
   if (win.visualViewport) { listen(win.visualViewport, 'resize', dismiss); listen(win.visualViewport, 'scroll', dismiss); }
   const observer = new win.MutationObserver(() => { if (target && (!target.isConnected || target.closest('[inert]'))) dismiss(); if (held && !held.isConnected) held = undefined; });
@@ -112,4 +105,51 @@ export function mountTooltips(doc: Document = document): () => void {
     const entry = mounted.get(doc); if (!entry || --entry.users) return;
     entry.release(); mounted.delete(doc);
   }
+}
+
+/** The same viewport-aware placement for help and short action confirmations. */
+function positionTooltip(bubble: HTMLElement, element: HTMLElement): void {
+  const win = element.ownerDocument.defaultView!;
+  const viewport = win.visualViewport;
+  const leftEdge = (viewport?.offsetLeft || 0) + 8, topEdge = (viewport?.offsetTop || 0) + 8;
+  const rightEdge = leftEdge + (viewport?.width || win.innerWidth) - 16;
+  const bottomEdge = topEdge + (viewport?.height || win.innerHeight) - 16;
+  bubble.style.maxWidth = `${Math.max(0, Math.min(448, rightEdge - leftEdge))}px`;
+  const rect = element.getBoundingClientRect(), size = bubble.getBoundingClientRect();
+  bubble.style.left = `${Math.max(leftEdge, Math.min(rect.left + (rect.width - size.width) / 2, rightEdge - size.width))}px`;
+  const above = rect.top - size.height - 8;
+  bubble.style.top = `${Math.max(topEdge, Math.min(above >= topEdge ? above : rect.bottom + 8, bottomEdge - size.height))}px`;
+}
+
+/** A temporary confirmation beside its control, outside clipped or scrolling chrome. */
+export function showTooltipToast(anchor: HTMLElement, message: string, duration = 2400): () => void {
+  const doc = anchor.ownerDocument, win = doc.defaultView!;
+  doc.dispatchEvent(new win.Event('lolly:tooltip-toast'));
+  const bubble = doc.createElement('div');
+  bubble.className = 'lolly-tooltip lolly-tooltip-toast';
+  bubble.setAttribute('role', 'status');
+  bubble.setAttribute('aria-live', 'polite');
+  doc.body.append(bubble);
+  bubble.textContent = message;
+  if (typeof bubble.showPopover === 'function') { bubble.popover = 'manual'; bubble.showPopover(); }
+  else doc.querySelector('dialog[open]')?.append(bubble);
+  positionTooltip(bubble, anchor);
+  const onKey = (event: KeyboardEvent): void => { if (event.key === 'Escape') close(); };
+  const observer = new win.MutationObserver(() => { if (!anchor.isConnected) close(); });
+  observer.observe(doc.body, { childList: true, subtree: true });
+  const timer = setTimeout(close, duration);
+  doc.addEventListener('scroll', close, true);
+  doc.addEventListener('keydown', onKey);
+  win.addEventListener('resize', close);
+  win.visualViewport?.addEventListener('resize', close);
+  win.visualViewport?.addEventListener('scroll', close);
+  function close(): void {
+    clearTimeout(timer); observer.disconnect(); bubble.remove();
+    doc.removeEventListener('scroll', close, true);
+    doc.removeEventListener('keydown', onKey);
+    win.removeEventListener('resize', close);
+    win.visualViewport?.removeEventListener('resize', close);
+    win.visualViewport?.removeEventListener('scroll', close);
+  }
+  return close;
 }

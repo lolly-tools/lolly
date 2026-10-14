@@ -1,12 +1,40 @@
 .invite-link-control {
+  --invite-control-size: var(--collab-control-size, var(--ui-size-control));
   display: inline-flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap;
   min-width: 0; max-width: 100%; color: var(--ui-color-text-default);
 }
+.invite-link-pill {
+  display: inline-flex; align-items: stretch; flex: none; max-width: 100%;
+  border-radius: var(--radius-pill); background: var(--ui-color-surface-raised);
+  box-shadow: var(--ui-edge-faint), var(--ui-elevation-control);
+}
 .invite-link-control[hidden], .invite-link-fallback[hidden] { display: none; }
-.invite-link-role { width: auto; min-height: var(--ui-size-control); font-size: var(--ui-type-label); }
-.invite-link-copy { flex: none; min-height: var(--ui-size-control); }
+.invite-link-pill > :is(.invite-link-role, .invite-link-copy) {
+  box-sizing: border-box; margin: 0; height: var(--invite-control-size); min-height: var(--invite-control-size);
+  border: 0; box-shadow: none; font-size: var(--ui-type-label);
+}
+.invite-link-pill > .invite-link-role {
+  flex: 1 1 auto; width: auto; min-width: 0; max-width: calc(120px * var(--a11y-fs));
+  padding-block: 0; padding-inline-start: 12px; border-start-start-radius: var(--radius-pill); border-end-start-radius: var(--radius-pill);
+  border-start-end-radius: 0; border-end-end-radius: 0; background-color: transparent;
+}
+.invite-link-pill > .invite-link-copy {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  width: var(--invite-control-size); min-width: var(--invite-control-size); padding: 0;
+  border-inline-start: 1px solid var(--ui-color-border-default);
+  border-start-start-radius: 0; border-end-start-radius: 0;
+  border-start-end-radius: var(--radius-pill); border-end-end-radius: var(--radius-pill);
+  background: transparent;
+}
+.invite-link-pill > .invite-link-copy:hover:not(:disabled) { background: var(--ui-color-surface-muted); }
+.invite-link-pill > :is(.invite-link-role, .invite-link-copy):focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
 .invite-link-copy svg { width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); }
 .invite-link-fallback { flex-basis: 100%; width: 100%; min-width: 0; }
 .invite-link-status { font-size: var(--ui-type-help); color: var(--ui-color-text-muted); }
 .invite-link-status:empty { display: none; }
 .project-invite-popover { padding: var(--sp-4); min-width: min(18rem, calc(100vw - var(--sp-4))); }
+@media (pointer: coarse) {
+  .invite-link-control { --invite-control-size: max(44px, var(--collab-control-size, var(--ui-size-control))); }
+}
+
+.invite-link-pill > .invite-link-role:dir(rtl) { background-position: left 10px center; }

@@ -3,7 +3,7 @@ import type { CollabSessionHandle } from '../lib/collab-session.ts';
 import { edgeDockAvailable, edgeDockCollapsed, isDocked, onDockChange, releaseDock, requestDock } from '../lib/edge-dock.ts';
 import { icon } from '../lib/icons.ts';
 import { tRaw } from '../i18n.ts';
-import { commentIcon } from './tool-comment-chat.ts';
+import { mountBodyPopover } from '../components/body-popover.ts';
 import { mountInviteLinkControl } from '../components/invite-link-control.ts';
 import { publishNotification } from '../lib/notifications.ts';
 import { announce } from '../a11y.ts';
@@ -22,31 +22,62 @@ export function mountCollabControls(bar: HTMLElement, handle: CollabSessionHandl
   pointers?: { setHidden(hidden: boolean): void }): () => void {
   const doc = bar.ownerDocument;
   const stopInvite = handle.inviteLinks && mountInviteLinkControl(bar, handle.inviteLinks);
-  const agent = handle.inviteAgent && doc.createElement('button');
-  if (agent) {
-    agent.type = 'button'; agent.className = 'btn btn--sm'; agent.textContent = tRaw('Invite agent');
-    commentIcon(agent, 'Invite agent', 'aiSpark'); agent.title = tRaw('Connect your agent to this document');
-    agent.addEventListener('click', handle.inviteAgent!); bar.append(agent);
-  }
-  const people = handle.people && doc.createElement('button');
-  if (people) {
-    people.type = 'button'; people.className = 'btn btn--sm';
-    people.textContent = tRaw('People'); commentIcon(people, 'People', 'users');
-    people.addEventListener('click', handle.people!); bar.append(people);
-  }
-  // Hide pointers hides other people's cursors on this device only; focus rings, pins and avatars stay.
-  const pointerToggle = pointers && doc.createElement('button');
-  if (pointerToggle && pointers) {
-    let hidden = pointersHidden(doc.defaultView);
-    const paint = (): void => {
-      pointerToggle.type = 'button'; pointerToggle.className = 'btn btn--sm';
-      pointerToggle.textContent = hidden ? tRaw('Show pointers') : tRaw('Hide pointers');
-      commentIcon(pointerToggle, 'pointers', hidden ? 'eye' : 'eyeOff');
-      pointers.setHidden(hidden);
+  const comments = bar.querySelector<HTMLButtonElement>('.collab-comments-open--docked');
+  const storage = doc.createElement('span'); storage.hidden = true;
+  const settings = doc.createElement('button');
+  settings.type = 'button'; settings.className = 'collab-action collab-settings';
+  settings.ariaLabel = settings.dataset.tip = tRaw('Collaboration settings');
+  settings.setAttribute('aria-haspopup', 'menu'); settings.setAttribute('aria-expanded', 'false');
+  settings.innerHTML = icon('sliders');
+  let hidden = pointersHidden(doc.defaultView);
+  pointers?.setHidden(hidden);
+  const commentLabel = doc.createElement('span'); commentLabel.className = 'collab-settings-label'; commentLabel.textContent = tRaw('Comments');
+  if (comments) { comments.insertBefore(commentLabel, comments.querySelector('.collab-comments-badge')); storage.append(comments); bar.append(storage); }
+  let menuStatus: HTMLParagraphElement | undefined;
+  const menu = mountBodyPopover(settings, (el, popover) => {
+    const item = (label: string, glyph: Parameters<typeof icon>[0], action: () => void): HTMLButtonElement => {
+      const button = doc.createElement('button'); button.type = 'button';
+      button.className = 'profile-menu-item'; button.setAttribute('role', 'menuitem');
+      button.innerHTML = icon(glyph);
+      const text = doc.createElement('span'); text.textContent = label; button.append(text);
+      button.addEventListener('click', () => { popover.close(true); action(); }); el.append(button); return button;
     };
-    pointerToggle.addEventListener('click', () => { hidden = !hidden; rememberPointersHidden(doc.defaultView, hidden); paint(); });
-    paint(); bar.append(pointerToggle);
-  }
+    if (handle.people) item(tRaw('People'), 'users', handle.people);
+    if (comments && !comments.hidden) { comments.setAttribute('role', 'menuitem'); el.append(comments); }
+    if (handle.inviteAgent) item(tRaw('Invite agent'), 'aiSpark', handle.inviteAgent);
+    if (pointers) {
+      const toggle = item(tRaw('Show pointers'), 'eye', () => {
+        hidden = !hidden; rememberPointersHidden(doc.defaultView, hidden); pointers.setHidden(hidden);
+      });
+      toggle.setAttribute('role', 'menuitemcheckbox'); toggle.setAttribute('aria-checked', String(!hidden));
+      const check = doc.createElement('span'); check.className = 'collab-settings-check'; check.setAttribute('aria-hidden', 'true');
+      if (!hidden) check.innerHTML = icon('check'); toggle.append(check);
+    }
+    if (status) {
+      menuStatus = doc.createElement('p'); menuStatus.className = 'collab-settings-status';
+      menuStatus.textContent = status.textContent; menuStatus.hidden = !status.textContent; el.append(menuStatus);
+    }
+    return el.querySelector<HTMLButtonElement>('button');
+  }, {
+    className: 'profile-menu collab-settings-menu', ariaLabel: tRaw('Collaboration settings'),
+    menuNavigation: true, trackScroll: true, trackSize: true,
+    onClose() { menuStatus = undefined; if (comments) { storage.append(comments); comments.removeAttribute('role'); } },
+  });
+  const unread = doc.createElement('span'); unread.className = 'collab-settings-unread'; unread.hidden = true;
+  unread.setAttribute('aria-hidden', 'true'); settings.append(unread);
+  const syncUnread = (): void => {
+    const count = comments?.querySelector('.collab-comments-badge')?.textContent;
+    unread.hidden = !count || !!comments?.hidden;
+    settings.ariaLabel = settings.dataset.tip = unread.hidden ? tRaw('Collaboration settings')
+      : tRaw('Collaboration settings, {count} unread comments', { count: count ?? '' });
+  };
+  const observer = comments && new doc.defaultView!.MutationObserver(syncUnread);
+  observer?.observe(comments!, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['hidden'] });
+  syncUnread();
+  const onComments = (): void => { menu.close(); };
+  comments?.addEventListener('click', onComments, true);
+  settings.addEventListener('click', () => { if (menu.isOpen()) menu.close(true); else menu.open(); });
+  if (handle.people || handle.inviteAgent || pointers || comments || handle.saveIn) bar.append(settings);
   const status = handle.saveIn && doc.createElement('span');
   if (status) { status.className = 'collab-save-status'; status.setAttribute('role', 'status'); bar.append(status); }
   let clearNotice: (() => void) | undefined;
@@ -55,6 +86,9 @@ export function mountCollabControls(bar: HTMLElement, handle: CollabSessionHandl
   const stopSave = handle.saveIn?.subscribe(state => {
     if (!status) return;
     status.textContent = state.retry ? '' : state.message;
+    if (menuStatus) { menuStatus.textContent = status.textContent; menuStatus.hidden = !status.textContent; }
+    status.dataset.tip = status.textContent;
+    status.setAttribute('aria-label', status.textContent);
     if (state.retry) {
       if (!failed) { noticeId = `collab-image-transfer:${crypto.randomUUID()}`; announce(state.message); }
       failed = true; clearNotice?.();
@@ -72,5 +106,7 @@ export function mountCollabControls(bar: HTMLElement, handle: CollabSessionHandl
   const offDock = onDockChange(sync);
   // Existing full panels may already be mounted when the live room joins.
   sync((['inspector', 'history', 'export', 'share', 'transcript', 'neuro'] as const).filter(isDocked));
-  return () => { offDock(); releaseDock('people', 'host'); stopSave?.(); clearNotice?.(); stopInvite?.(); people?.remove(); agent?.remove(); pointerToggle?.remove(); status?.remove(); };
+  return () => { offDock(); releaseDock('people', 'host'); stopSave?.(); clearNotice?.(); stopInvite?.(); menu.close(); observer?.disconnect(); settings.remove();
+    comments?.removeEventListener('click', onComments, true); commentLabel.remove();
+    if (comments) bar.append(comments); storage.remove(); status?.remove(); };
 }
