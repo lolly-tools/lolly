@@ -524,6 +524,7 @@ jobs:
           LOLLY_SKIP_REPORT: artifacts/test-skips.json
           LOLLY_TEST_COVERAGE_REPORT: ${{ matrix.partition && 'artifacts/browser-coverage.json' || '' }}
           LOLLY_DESIGN_GPU_REPORT: ${{ matrix.shard == 'browser' && 'artifacts/design-gpu-p3f-report.json' || '' }}
+          LOLLY_DESIGN_GPU_FILL_REPORT: ${{ matrix.shard == 'browser' && 'artifacts/design-gpu-fills-report.json' || '' }}
           PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.browsers
           # Software rendering and video/JXL encoding use several threads per file.
           # Keep timed browser workloads serial on this shared CPU/GPU runner.
@@ -573,6 +574,7 @@ jobs:
             artifacts/geometry-engines/
             artifacts/drawing-fidelity-report.json
             artifacts/design-gpu-p3f-report.json
+            artifacts/design-gpu-fills-report.json
             lolly-tier-b-debug-*.log
             plans/artifacts/browser-journeys/
           if-no-files-found: error

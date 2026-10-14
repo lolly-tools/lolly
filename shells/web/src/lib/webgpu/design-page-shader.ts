@@ -225,3 +225,59 @@ struct Size { width: u32, height: u32, row: u32, spare: u32 }
   pixels[index] = pack4x8unorm(vec4<f32>(color, value.a));
 }
 `;
+
+/**
+ * Filled outlines (paths and outlined words). A pixel's coverage is its area-weighted
+ * winding number, summed exactly over the fill's straight edges: each edge adds the part
+ * of the pixel row to its left, signed by its direction. Nonzero clamps that to one;
+ * even-odd folds the winding back into zero to one. Edges arrive in output pixel coordinates.
+ */
+export const DESIGN_FILL_SHADER = /* wgsl */ `
+struct Fill { bounds: vec4<f32>, color: vec4<f32>, range: vec4<u32> }
+struct Size { page: vec2<f32>, pixels: vec2<f32> }
+@group(0) @binding(0) var<storage, read> fills: array<Fill>;
+@group(0) @binding(1) var<storage, read> edges: array<vec4<f32>>;
+@group(0) @binding(2) var<uniform> size: Size;
+struct Vertex { @builtin(position) position: vec4<f32>, @location(0) @interpolate(flat) index: u32 }
+@vertex fn vertex(@builtin(vertex_index) vertex: u32, @builtin(instance_index) index: u32) -> Vertex {
+  let f = fills[index];
+  let pad = size.page / size.pixels;
+  let corners = array<vec2<f32>, 6>(vec2<f32>(0,0), vec2<f32>(1,0), vec2<f32>(0,1),
+                                  vec2<f32>(0,1), vec2<f32>(1,0), vec2<f32>(1,1));
+  let point = mix(f.bounds.xy - pad, f.bounds.zw + pad, corners[vertex]);
+  var result: Vertex;
+  result.position = vec4<f32>(point.x / size.page.x * 2.0 - 1.0, 1.0 - point.y / size.page.y * 2.0, 0, 1);
+  result.index = index;
+  return result;
+}
+// The mean of clamp(t, 0, 1) as t runs linearly from u to v.
+fn clampedMean(u: f32, v: f32) -> f32 {
+  if abs(v - u) < 1e-6 { return clamp((u + v) * 0.5, 0.0, 1.0); }
+  let cu = select(select(u - 0.5, u * u * 0.5, u < 1.0), 0.0, u < 0.0);
+  let cv = select(select(v - 0.5, v * v * 0.5, v < 1.0), 0.0, v < 0.0);
+  return (cv - cu) / (v - u);
+}
+@fragment fn fragment(v: Vertex) -> @location(0) vec4<f32> {
+  let f = fills[v.index];
+  let pixel = floor(v.position.xy);
+  var winding = 0.0;
+  for (var i = f.range.x; i < f.range.x + f.range.y; i++) {
+    let e = edges[i];
+    if e.y == e.w { continue; }
+    let top = max(min(e.y, e.w), pixel.y);
+    let bottom = min(max(e.y, e.w), pixel.y + 1.0);
+    if top >= bottom { continue; }
+    let slope = (e.z - e.x) / (e.w - e.y);
+    let xTop = e.x + slope * (top - e.y) - pixel.x;
+    let xBottom = e.x + slope * (bottom - e.y) - pixel.x;
+    winding += select(-1.0, 1.0, e.w > e.y) * (bottom - top) * clampedMean(xTop, xBottom);
+  }
+  var coverage = min(abs(winding), 1.0);
+  if f.range.z == 1u {
+    let folded = abs(winding) - 2.0 * floor(abs(winding) * 0.5);
+    coverage = select(folded, 2.0 - folded, folded > 1.0);
+  }
+  let alpha = f.color.a * clamp(coverage, 0.0, 1.0);
+  return vec4<f32>(f.color.rgb * alpha, alpha);
+}
+`;
