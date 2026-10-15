@@ -75,7 +75,7 @@ import { _host, canvasToBlob, imprintCanvas, exportDims, getDomToImage, swapBlob
 import { beginFrameClock, renderFrameAt, endFrameClock, posedFrame } from './frame-clock.ts';
 import { isTopTailStage, isRecordStage } from './export-shared.ts';
 import type { WebHost, ExportOpts, ExportDims, DtoRenderOpts, ImprintState, Rgba } from './export-shared.ts';
-import { renderSvgFromHtml, stripCommentNodes, inlineBlobUrlsInEl, inlineSvgFromImg, imprintEmbedCanvas, isPaintSkipped, rotationPivot, rasterizePosedNodeToDataUrl, effectSpillCss, detectUnsupportedCss, rasterizeNodeToDataUrl, firstCssUrl, cssUrlToHref, bakeImageFilter, visualLines, mergeDeco, decoFlags, pseudoDescriptor, type Deco } from './export-svg-walker.ts';
+import { renderSvgFromHtml, stripCommentNodes, inlineBlobUrlsInEl, inlineSvgFromImg, imprintEmbedCanvas, isPaintSkipped, rotationPivot, rasterizePosedNodeToDataUrl, effectSpillCss, detectUnsupportedCss, rasterizeNodeToDataUrl, firstCssUrl, cssUrlToHref, bakeImageFilter, visualLines, mergeDeco, decoFlags, pdfInlineNonText, pseudoDescriptor, type Deco } from './export-svg-walker.ts';
 import { designOpsSvg, renderDesignOpsPdf } from './export-design-ops.ts';
 import { outlineSvgTextRuns } from './export-svg-text-runs.ts';
 import { buildLinearGradientEl, buildRadialGradientEl } from './export-gradients.ts';
@@ -3810,7 +3810,7 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
             && child.tagName.toLowerCase() !== 'svg') continue;
         await visit(child);
       }
-      await renderInlineContent(pdf, el, style, rootRect, scaleX, scaleY, cssToPt, registeredFonts, convertPaths, imprint);
+      await renderInlineContent(pdf, el, style, rootRect, scaleX, scaleY, cssToPt, registeredFonts, convertPaths, imprint, visit);
       await pdfPseudoContent(pdf, el, rootRect, scaleX, scaleY, cssToPt, registeredFonts, convertPaths);
     };
     if (clipsOverflow && (hasRadius || spillsBox)) await withPdfRoundedClip(pdf, x, y, w, h, radii, uniform, drawContent);
@@ -3832,10 +3832,12 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
 //
 // Block-level children are skipped - the main visit() loop already handles them.
 // <br> is skipped - the line break is implicit in the text nodes' y positions.
+// An <svg> nested in inline flow, such as an emoji placement's artwork, has no other
+// owner, so it goes to `drawBox`, the walker's own element painter (pdfInlineNonText).
 async function renderInlineContent(
   pdf: any, blockEl: any, blockStyle: CSSStyleDeclaration,
   rootRect: { left: number; top: number }, scaleX: number, scaleY: number, cssToPt: number,
-  registeredFonts: Set<unknown>, convertPaths = true, imprint?: ImprintState,
+  registeredFonts: Set<unknown>, convertPaths = true, imprint?: ImprintState, drawBox?: (el: Element) => Promise<void>,
 ): Promise<void> {
   async function walk(node: any, nodeStyle: CSSStyleDeclaration, deco: Deco): Promise<void> {
     if (node.nodeType === 3) {
@@ -3995,7 +3997,8 @@ async function renderInlineContent(
       }
 
     } else if (node.nodeType === 1) {
-      if (node.tagName.toLowerCase() === 'br') return;
+      // A <br>, an emoji placement's hidden characters or a picture drawBox has drawn.
+      if (await pdfInlineNonText(node, blockEl, drawBox)) return;
       const s = window.getComputedStyle(node);
       if (s.display === 'none') return;
       // Only descend into inline-level elements; block children are visited by
