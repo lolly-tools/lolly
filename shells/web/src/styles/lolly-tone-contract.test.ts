@@ -109,6 +109,10 @@ test('the job stripe falls back to the tone and the credential panel washes the 
   assert.ok(panel.includes(`color-mix(in srgb, ${READ} 32%, transparent)`), 'a 32% border of the tone');
   // Andy's rule: full wash and full border, never a one-sided rail on a radiused element.
   assert.ok(/border-radius:/.test(panel) && !/border-(left|right|top|bottom)\s*:/.test(panel), 'no single-edge border');
+  // The brand theme's mid-dark cards take a 4% wash so the large badge holds 4.5:1
+  // under a guest hue; only the wash changes, never the tone.
+  const brandPanel = ruleBody(read('styles/parts/assets.css'), '[data-theme="brand"] .cat-cred-lolly') ?? '';
+  assert.equal(brandPanel.replace(/\s+/g, ' ').trim(), `background: color-mix(in srgb, ${READ} 4%, transparent);`);
 });
 
 test('the export shutter and its flash use Lolly colours: Bunyapine for the mark, the tone for the flash fallback', () => {
