@@ -3,5 +3,5 @@ name: lolly-sovereign
 description: Explicit single-node public Lolly edge and service profile with existing private Work upstreams.
 type: application
 version: 0.2.0
-appVersion: "1.1.0"
+appVersion: "1.1.1"
 kubeVersion: ">=1.30.0-0"
