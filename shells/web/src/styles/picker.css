@@ -646,9 +646,10 @@
   height: 84px;
   object-fit: contain;
   border-radius: var(--radius);
-  /* Same themed shade the gallery tiles use (tokens.css) - a tool's own render is
-     transparent wherever it paints nothing. No checker in this 84px slot: at this
-     size it reads as noise rather than as transparency. */
+  /* --preview-surface (tokens.css), the themed shade one step off the card, because a
+     tool's own render is transparent wherever it paints nothing. Gallery tiles no
+     longer use it (their covers sit on the card, parts/object-tiles.css). No checker
+     in this 84px slot: at this size it reads as noise rather than as transparency. */
   background: var(--preview-surface);
 }
 /* The icon is always in the DOM but shown ONLY when there's no usable preview

@@ -54,16 +54,16 @@ export const fmtLabel = (f: string) => FMT_LABEL[f] ?? String(f).toUpperCase();
 // gallery.css .gtile-iconfill) as an instant, on-brand placeholder while lazy art
 // decodes, and as the permanent fallback if a preview is missing or errors - so a gallery
 // tile never shows a broken image or an empty box. '' when a tool has no icon (rare - the
-// tile's checkerboard background still stands in).
+// card's own surface shows instead).
 function iconBackdrop(icon: string | undefined): string {
   if (!icon) return '';
-  // Two stacked copies of the icon: a static muted BASE, and a green TRACE on top
-  // whose stroke-dasharray leaves only a short segment drawn and whose animated
-  // stroke-dashoffset walks that green segment along the icon's outline - a "drawing"
-  // shimmer shown WHILE a preview is still loading. The trace is transparent wherever
-  // it isn't currently stroking, so the muted base shows through (green passes over a
-  // stretch, then it's muted again). CSS stops the trace once art loads / on the
-  // permanent icon-only fallback / under reduced-motion (see .gtile-iconfill in gallery.css).
+  // Two stacked copies of the icon: a static muted BASE, and a TRACE on top in the
+  // theme's --secondary colour, whose stroke-dasharray breaks the outline into short
+  // dashes and whose animated stroke-dashoffset moves them along it - a "drawing"
+  // shimmer shown WHILE a preview is still loading. The gaps between the dashes are
+  // transparent, so the muted base shows through them. CSS stops the trace once art
+  // loads / on the permanent icon-only fallback / under reduced-motion (see
+  // .gtile-iconfill in gallery.css).
   return `<span class="gtile-iconfill" aria-hidden="true">`
     + `<span class="gtile-iconfill-base">${icon}</span>`
     + `<span class="gtile-iconfill-trace">${icon}</span>`
@@ -82,7 +82,7 @@ export function galleryExampleLooks(tool: GalleryTool, darkTheme: boolean, max =
   return resolveExamples(tool)
     .map((v, i) => ({ v, i }))
     // Same theme filter as the featured row: a reverse/white look on a light tile (or a
-    // dark look on a dark tile) would be near-invisible on the checkerboard backdrop.
+    // dark look on a dark tile) would be near-invisible on the card behind the cover.
     .filter(({ v }) => !v.theme || (v.theme === 'dark') === darkTheme)
     .slice(0, max);
 }
