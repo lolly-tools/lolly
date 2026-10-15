@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash, generateKeyPairSync } from 'node:crypto';
 import { spawnSync, type SpawnSyncReturns } from 'node:child_process';
-import { chmodSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, copyFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { parse as parseYaml } from 'yaml';
@@ -244,38 +244,98 @@ test('provenance and images.json name the qualification run, the source and this
 });
 
 const workflowText = read('.github/workflows/release-images.yml');
-const workflow = parseYaml(workflowText) as { on: Record<string, any>; permissions: Record<string, string>; concurrency: Record<string, unknown>; jobs: Record<string, any> };
-const promote = workflow.jobs.promote as { if: string; permissions: Record<string, string>; env: Record<string, string>; steps: { name?: string; uses?: string; run?: string; env?: Record<string, string>; with?: Record<string, string> }[] };
-const step = (name: string) => { const found = promote.steps.find(item => item.name === name); assert.ok(found?.run, name); return found; };
+type Step = { name?: string; uses?: string; run?: string; env?: Record<string, string>; with?: Record<string, string> };
+type Job = { if?: string; needs?: string[]; environment?: unknown; permissions?: Record<string, string>; env?: Record<string, string>; steps: Step[] };
+type Workflow = { on: Record<string, any>; env: Record<string, string>; permissions: Record<string, string>; concurrency: Record<string, unknown>; jobs: Record<string, Job> };
+const workflow = parseYaml(workflowText) as Workflow;
+const admit = workflow.jobs.admit!;
+const promote = workflow.jobs.promote!;
+const step = (job: Job, name: string) => { const found = job.steps.find(item => item.name === name); assert.ok(found?.run, name); return found; };
+const RESTRICTED = "github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && github.repository == 'lolly-tools/lolly'";
 
-test('only a reviewed main dispatch can promote, with no more than signing, package and run-reading rights', () => {
+/**
+ * What would let this workflow sign, attest or tag without Andy's approval. Every
+ * job that holds the OIDC identity or package write access, or runs a signing,
+ * attesting, SBOM or tagging command, must run in the release-images environment.
+ */
+function approvalGateProblems(candidate: Workflow): string[] {
+  const problems: string[] = [];
+  const writes = (permissions?: Record<string, string>) => permissions?.['id-token'] === 'write' || permissions?.packages === 'write' || (permissions as unknown) === 'write-all';
+  if (writes(candidate.permissions)) problems.push('the workflow grants write access to every job');
+  for (const [id, job] of Object.entries(candidate.jobs)) {
+    const gated = job.environment === 'release-images' || (job.environment as { name?: string } | undefined)?.name === 'release-images';
+    if (job.permissions === undefined) problems.push(`${id} inherits the workflow permissions`);
+    const signs = job.steps.some(item => /\bcosign (?:sign|attest)\b|\bcrane tag\b|\bsyft scan\b/.test(item.run ?? '') || item.uses?.startsWith('sigstore/'));
+    if ((writes(job.permissions) || signs) && !gated) problems.push(`${id} can sign, attest or tag without release-images approval`);
+  }
+  return problems;
+}
+
+test('only a reviewed main dispatch can promote, and only the approved job can sign, attest or tag', () => {
   assert.deepEqual(Object.keys(workflow.on), ['workflow_dispatch']);
   assert.deepEqual(Object.keys(workflow.on.workflow_dispatch.inputs), ['qualification_run', 'expected_source', 'version', 'images']);
   assert.deepEqual(workflow.permissions, { contents: 'read' });
-  assert.deepEqual(Object.keys(workflow.jobs), ['promote']);
-  assert.equal(promote.if, "github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && github.repository == 'lolly-tools/lolly'");
-  assert.deepEqual(promote.permissions, { contents: 'read', actions: 'read', packages: 'write', 'id-token': 'write' });
+  assert.deepEqual(Object.keys(workflow.jobs), ['admit', 'promote']);
+  for (const job of [admit, promote]) assert.equal(job.if, RESTRICTED);
+  // Admission only reads: run inventories, receipts and the registry.
+  assert.deepEqual(admit.permissions, { contents: 'read', actions: 'read', packages: 'read' });
+  assert.equal(admit.environment, undefined);
+  // Promotion waits for approval and alone holds the OIDC identity and package writes.
+  assert.equal(promote.environment, 'release-images');
+  assert.deepEqual(promote.needs, ['admit']);
+  assert.deepEqual(promote.permissions, { contents: 'read', packages: 'write', 'id-token': 'write' });
+  assert.equal(promote.env, undefined, 'the gated job carries no extra token');
+  assert.deepEqual(approvalGateProblems(workflow), []);
   assert.equal(workflow.concurrency['cancel-in-progress'], false);
-  assert.match(String(promote.steps[0]!.with!.ref), /^\$\{\{ github\.sha \}\}$/);
-  assert.equal(promote.steps[0]!.with!['persist-credentials'], false);
+  for (const job of [admit, promote]) {
+    assert.match(String(job.steps[0]!.with!.ref), /^\$\{\{ github\.sha \}\}$/);
+    assert.equal(job.steps[0]!.with!['persist-credentials'], false);
+  }
   const cosign = promote.steps.find(item => item.uses?.startsWith('sigstore/cosign-installer@'));
   assert.equal(cosign?.uses, 'sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6');
   assert.match(workflowText, /sigstore\/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4\.1\.2/);
   assert.equal(cosign?.with?.['cosign-release'], 'v3.0.6');
+  // The gated job takes the admitted files from this attempt and rebuilds its plan from them.
+  const download = promote.steps.findIndex(item => item.uses?.startsWith('actions/download-artifact@'));
+  assert.match(String(promote.steps[download]!.with!.name), /^release-images-admission-attempt-\$\{\{ github\.run_attempt \}\}$/);
+  const upload = admit.steps.find(item => item.uses?.startsWith('actions/upload-artifact@'));
+  assert.equal(upload?.with?.name, promote.steps[download]!.with!.name);
+  assert.ok(download < promote.steps.findIndex(item => item.name === 'Recheck the admitted plan'));
+  assert.match(step(promote, 'Recheck the admitted plan').run!, /git merge-base --is-ancestor "\$EXPECTED_SOURCE" refs\/remotes\/origin\/main\n.*request\n.*receipts/);
   // Nothing here builds, pushes or rewrites an image; the tag reuses the manifest bytes.
   assert.doesNotMatch(workflowText, /docker (?:buildx )?build|docker push|imagetools create|--force|secrets\./);
-  assert.match(step('Require a main source that declares this version').run!, /git merge-base --is-ancestor "\$EXPECTED_SOURCE" refs\/remotes\/origin\/main/);
-  assert.match(step('Require a main source that declares this version').run!, /test "\$GITHUB_REF" = refs\/heads\/main/);
+  assert.match(step(admit, 'Require a main source that declares this version').run!, /git merge-base --is-ancestor "\$EXPECTED_SOURCE" refs\/remotes\/origin\/main/);
+  assert.match(step(admit, 'Require a main source that declares this version').run!, /test "\$GITHUB_REF" = refs\/heads\/main/);
+});
+
+test('a version of the workflow that could sign, attest or tag before approval is refused', () => {
+  const variant = (change: (copy: Workflow) => void) => { const copy = structuredClone(workflow); change(copy); return approvalGateProblems(copy); };
+  const refused: [string, (copy: Workflow) => void][] = [
+    ['no environment', copy => { delete copy.jobs.promote!.environment; }],
+    ['another environment', copy => { copy.jobs.promote!.environment = 'release-catalog-signing'; }],
+    ['admission signs', copy => { copy.jobs.admit!.steps.push({ run: 'cosign sign "$repository@$digest"' }); }],
+    ['admission tags', copy => { copy.jobs.admit!.steps.push({ run: 'crane tag "$repository@$digest" "$RELEASE_VERSION"' }); }],
+    ['admission holds the OIDC identity', copy => { copy.jobs.admit!.permissions = { ...copy.jobs.admit!.permissions, 'id-token': 'write' }; }],
+    ['admission writes packages', copy => { copy.jobs.admit!.permissions = { ...copy.jobs.admit!.permissions, packages: 'write' }; }],
+    ['workflow-wide writes', copy => { copy.permissions = { contents: 'read', 'id-token': 'write' }; }],
+    ['a new ungated signing job', copy => { copy.jobs.sign = { permissions: { 'id-token': 'write' }, steps: [{ run: 'cosign sign x' }] }; }],
+    ['a job without permissions', copy => { copy.jobs.extra = { steps: [{ run: 'true' }] }; }],
+  ];
+  for (const [name, change] of refused) assert.notDeepEqual(variant(change), [], name);
+  assert.deepEqual(variant(copy => { copy.jobs.promote!.environment = { name: 'release-images' }; }), []);
 });
 
 test('downloaded tools are checked against pinned digests before they are unpacked or run', () => {
-  const install = step('Install the pinned registry and SBOM tools').run!;
-  for (const tool of ['crane', 'syft']) {
-    const check = install.indexOf(`echo "$${tool.toUpperCase()}_LINUX_X64_SHA256  $RUNNER_TEMP/${tool}.tar.gz" | sha256sum --check`);
-    assert.ok(check > 0, tool);
-    assert.ok(check < install.indexOf(`tar -xzf "$RUNNER_TEMP/${tool}.tar.gz"`), tool);
-    assert.match(promote.env[`${tool.toUpperCase()}_LINUX_X64_SHA256`]!, /^[a-f0-9]{64}$/);
-    assert.match(promote.env[`${tool.toUpperCase()}_VERSION`]!, /^\d+\.\d+\.\d+$/);
+  for (const [job, name, tools] of [[admit, 'Install the pinned registry tool', ['crane']], [promote, 'Install the pinned registry and SBOM tools', ['crane', 'syft']]] as const) {
+    const install = step(job, name).run!;
+    for (const tool of tools) {
+      const check = install.indexOf(`echo "$${tool.toUpperCase()}_LINUX_X64_SHA256  $RUNNER_TEMP/${tool}.tar.gz" | sha256sum --check`);
+      assert.ok(check > 0, `${name}: ${tool}`);
+      assert.ok(check < install.indexOf(`tar -xzf "$RUNNER_TEMP/${tool}.tar.gz"`), `${name}: ${tool}`);
+      assert.match(workflow.env[`${tool.toUpperCase()}_LINUX_X64_SHA256`]!, /^[a-f0-9]{64}$/);
+      assert.match(workflow.env[`${tool.toUpperCase()}_VERSION`]!, /^\d+\.\d+\.\d+$/);
+    }
+    if (!(tools as readonly string[]).includes('syft')) assert.doesNotMatch(install, /syft/, 'admission installs no SBOM tool');
   }
   const sign = promote.steps.findIndex(item => item.name === 'Sign and attest each qualified digest');
   assert.ok(promote.steps.findIndex(item => item.name === 'Install the pinned registry and SBOM tools') < sign);
@@ -286,7 +346,7 @@ test('downloaded tools are checked against pinned digests before they are unpack
  * Run the workflow's own steps in order inside a throwaway repository, with
  * recording stand-ins for gh, docker, crane, syft and cosign.
  */
-function rehearse(options: { version?: string; offMain?: boolean; existingTag?: (digest: string) => string | undefined; images?: string } = {}) {
+function rehearse(options: { version?: string; offMain?: boolean; existingTag?: (digest: string) => string | undefined; tagAfterApproval?: boolean; images?: string } = {}) {
   const directory = mkdtempSync(join(tmpdir(), 'lolly-release-images-'));
   const repo = join(directory, 'repo'), bin = join(directory, 'bin'), fixtures = join(directory, 'fixtures'), runner = join(directory, 'runner');
   for (const path of [repo, bin, fixtures, runner]) mkdirSync(path, { recursive: true });
@@ -311,14 +371,19 @@ function rehearse(options: { version?: string; offMain?: boolean; existingTag?: 
     mkdirSync(join(fixtures, 'artifacts', artifact), { recursive: true });
     for (const [name, text] of Object.entries(contents)) writeFileSync(join(fixtures, 'artifacts', artifact, name), text);
   }
+  const tagRegistry = (existing: (digest: string) => string | undefined) => {
+    for (const [image, copy] of Object.entries(images)) {
+      const tag = existing(copy.digest);
+      writeFileSync(join(fixtures, 'registry', image, 'tags'), `candidate-${expected}\n${tag ? `${options.version ?? '1.1.1'}\n` : ''}`);
+      if (tag) writeFileSync(join(fixtures, 'registry', image, 'tag-digest'), tag);
+    }
+  };
   for (const [image, copy] of Object.entries(images)) {
     mkdirSync(join(fixtures, 'registry', image), { recursive: true });
     writeFileSync(join(fixtures, 'registry', image, 'manifest.json'), copy.manifest);
     writeFileSync(join(fixtures, 'registry', image, 'config.json'), copy.config);
-    const existing = options.existingTag?.(copy.digest);
-    writeFileSync(join(fixtures, 'registry', image, 'tags'), `candidate-${expected}\n${existing ? `${options.version ?? '1.1.1'}\n` : ''}`);
-    if (existing) writeFileSync(join(fixtures, 'registry', image, 'tag-digest'), existing);
   }
+  tagRegistry(options.tagAfterApproval ? () => undefined : options.existingTag ?? (() => undefined));
   const trace = join(directory, 'trace.jsonl');
   const record = `"$NODE_EXEC" -e 'require("node:fs").appendFileSync(process.env.TRACE, JSON.stringify([require("node:path").basename(process.argv[1]), ...process.argv.slice(2)]) + "\\n")' "$0" "$@"`;
   const tools: Record<string, string> = {
@@ -351,12 +416,28 @@ case "$1" in verify|verify-attestation) printf '[]\\n' ;; esac`,
     QUALIFICATION_RUN: '123', EXPECTED_SOURCE: expected, RELEASE_VERSION: options.version ?? '1.1.1', RELEASE_IMAGES: options.images ?? 'web mcp mcp-browser ca penpot',
     EXISTING_PUBLIC_KEY_JWK: pinText, REGISTRY_TOKEN: 'synthetic-not-a-token', COSIGN_YES: 'true',
   };
-  const steps = ['Require a main source that declares this version', 'Recheck the qualification run, its jobs and its receipts',
-    'Sign and attest each qualified digest', 'Tag each signed digest with the release version'];
+  const jobs: [Job, string[]][] = [
+    [admit, ['Require a main source that declares this version', 'Recheck the qualification run, its jobs and its receipts', 'Check each registry copy and its release tag']],
+    [promote, ['Recheck the admitted plan', 'Sign and attest each qualified digest', 'Tag each signed digest with the release version']],
+  ];
   let failed: { step: string; result: SpawnSyncReturns<string> } | undefined;
-  for (const name of steps) {
-    const result = spawnSync('bash', ['-c', step(name).run!], { cwd: repo, env: stepEnv, encoding: 'utf8', timeout: 30_000 });
-    if (result.status !== 0) { failed = { step: name, result }; break; }
+  let admittedCalls = 0;
+  const admitted = join(directory, 'admitted');
+  for (const [job, names] of jobs) {
+    if (failed) break;
+    if (job === promote) {
+      // The gated job starts on a fresh runner with only the admission artifact.
+      admittedCalls = existsSync(trace) ? readFileSync(trace, 'utf8').trim().split('\n').length : 0;
+      cpSync(join(runner, 'release-images'), join(admitted, 'release-images'), { recursive: true });
+      rmSync(runner, { recursive: true, force: true });
+      cpSync(admitted, runner, { recursive: true });
+      // A release tag can appear while the approval prompt waits.
+      if (options.tagAfterApproval && options.existingTag) tagRegistry(options.existingTag);
+    }
+    for (const name of names) {
+      const result = spawnSync('bash', ['-c', step(job, name).run!], { cwd: repo, env: stepEnv, encoding: 'utf8', timeout: 30_000 });
+      if (result.status !== 0) { failed = { step: name, result }; break; }
+    }
   }
   const calls = existsSync(trace) ? readFileSync(trace, 'utf8').trim().split('\n').map(line => JSON.parse(line) as string[]) : [];
   const outputs = join(runner, 'release-images');
@@ -364,7 +445,7 @@ case "$1" in verify|verify-attestation) printf '[]\\n' ;; esac`,
   const provenanceFile = join(outputs, 'images', 'mcp', 'provenance.json');
   const mcpProvenance = existsSync(provenanceFile) ? JSON.parse(readFileSync(provenanceFile, 'utf8')) : null;
   rmSync(directory, { recursive: true, force: true });
-  return { failed, calls, imagesJson, mcpProvenance, images, source: expected };
+  return { failed, calls, admissionCalls: calls.slice(0, admittedCalls || calls.length), imagesJson, mcpProvenance, images, source: expected };
 }
 function registryFor(sourceSha: string) {
   return Object.fromEntries(IMAGES.map(image => {
@@ -408,6 +489,9 @@ test('a rehearsal of the workflow signs, attests and verifies every digest befor
     assert.equal(call[call.indexOf('--certificate-oidc-issuer') + 1], 'https://token.actions.githubusercontent.com');
   }
   assert.ok(run.calls.some(call => call[0] === 'gh' && call[1] === 'run' && call.includes('public-candidate-mcp-receipts-attempt-2')));
+  // Admission reads the registry but never signs, scans or tags.
+  assert.ok(run.admissionCalls.some(call => call[0] === 'crane' && call[1] === 'manifest'));
+  assert.ok(!run.admissionCalls.some(call => call[0] === 'cosign' || call[0] === 'syft' || (call[0] === 'crane' && call[1] === 'tag')));
   assert.equal(run.imagesJson.source, run.source);
   assert.deepEqual(run.imagesJson.images.map((image: { name: string; reference: string }) => [image.name, image.reference]),
     IMAGES.map(image => [image, `ghcr.io/lolly-tools/lolly-${image}:1.1.1@${run.images[image].digest}`]));
@@ -415,7 +499,7 @@ test('a rehearsal of the workflow signs, attests and verifies every digest befor
   assert.equal(run.mcpProvenance.buildDefinition.resolvedDependencies[0].digest.gitCommit, run.source);
 });
 
-test('a rehearsal refuses another version, an unreviewed source and a moved release tag without tagging', () => {
+test('a rehearsal refuses another version, an unreviewed source and a moved release tag without signing or tagging', () => {
   const version = rehearse({ version: '1.1.2' });
   assert.equal(version.failed?.step, 'Require a main source that declares this version');
   assert.match(version.failed!.result.stderr, /declares 1\.1\.1, not 1\.1\.2/);
@@ -425,12 +509,16 @@ test('a rehearsal refuses another version, an unreviewed source and a moved rele
   const same = rehearse({ existingTag: digest => digest, images: 'web' });
   assert.equal(same.failed, undefined, same.failed?.result.stderr ?? '');
   const moved = rehearse({ existingTag: () => `sha256:${'f'.repeat(64)}` });
-  assert.equal(moved.failed?.step, 'Sign and attest each qualified digest');
+  assert.equal(moved.failed?.step, 'Check each registry copy and its release tag');
   assert.match(moved.failed!.result.stderr, /never moves/);
-  for (const run of [version, offMain, moved]) {
+  // A tag that appears while approval waits is caught again before anything is signed.
+  const late = rehearse({ existingTag: () => `sha256:${'f'.repeat(64)}`, tagAfterApproval: true });
+  assert.equal(late.failed?.step, 'Sign and attest each qualified digest');
+  assert.match(late.failed!.result.stderr, /never moves/);
+  for (const run of [version, offMain, moved, late]) {
     assert.ok(!run.calls.some(call => call[0] === 'crane' && call[1] === 'tag'), 'no tag moved');
+    assert.ok(!run.calls.some(call => call[0] === 'cosign'), 'a refused image is never signed');
   }
-  assert.ok(!moved.calls.some(call => call[0] === 'cosign'), 'a refused image is never signed');
 });
 
 test('the docker README documents the published repositories, verification, mirroring and model layout', () => {

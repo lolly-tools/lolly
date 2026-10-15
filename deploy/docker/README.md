@@ -270,7 +270,8 @@ digest: set `image.digest` to the digest listed in the release's `images.json`.
    `candidate-<source>`.
 2. Within 14 days, while the receipts exist, dispatch `release-images.yml` from
    main with that run as `qualification_run`, the commit as `expected_source`,
-   the product version as `version` and the images to release. It refuses
+   the product version as `version` and the images to release. Its `admit`
+   job only reads (run inventories, receipts and the registry) and refuses
    unless every one of these holds:
    - the commit is on main and declares that version in `tauri.conf.json` and
      both chart `appVersion` fields;
@@ -284,14 +285,21 @@ digest: set `image.digest` to the digest listed in the release's `images.json`.
      `linux/amd64` image whose labels give that commit, title, version and
      profile;
    - the version tag is unused or already points at the same digest.
-3. For every digest it writes an SPDX SBOM with `syft` (packages, without a
+3. The `promote` job then waits for approval in the `release-images`
+   environment. It is the only job with the OIDC identity and package write
+   access. After approval it rebuilds the plan from the admitted files, requires
+   the source to still be on main and checks each registry copy and tag again.
+   For every digest it then writes an SPDX SBOM with `syft` (packages, without a
    per-file inventory), signs the digest keylessly with `cosign`, attests the
    SBOM and SLSA provenance, and verifies all three against its own identity.
    Only after every image passes does it tag each digest with `crane tag`, which
    copies the manifest bytes unchanged, then checks that the tag resolves to the
    qualified digest. `images.json` (repository, tag, digest, source, runs and
    signing identity) is kept as the `release-images-<version>-attempt-N`
-   artifact for the GitHub release.
+   artifact for the GitHub release. The source commit can be later than the
+   release's git tag; `images.json` and the release notes name the commit the
+   images were built from. To retry after a failure, re-run the whole workflow,
+   because the approved job reads the admission files of its own attempt.
 4. New packages are private. An organisation owner makes each one public once,
    in the package's settings: **Danger Zone**, **Change visibility**, **Public**.
    The workflow token cannot change visibility.
