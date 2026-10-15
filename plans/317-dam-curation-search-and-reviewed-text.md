@@ -36,3 +36,11 @@ Cached Work-owned primary files are matched only when unambiguous, with version 
 Evidence: five new Work permission/freshness tests and eight new UI curation tests passed, together with existing provider, browse, metadata, availability, selected-file and cache regression suites. Full Work and installed-project Lolly typechecks passed; the normal optional Tauri dependency checks skipped. The real Assets browser walkthrough passed selection, field editing, actual SVG text extraction, review/save, search/clear and access-loss handling. Desktop and 390px mobile review screenshots are retained in `plans/317-evidence/` in the Lolly worktree, with no horizontal overflow. Image OCR inference was not exercised in a browser; its publication path is covered by the UI tests. Built documentation scans skipped where no generated /info site was present.
 
 Lint across all source files, maintainability, UI/comment wording and generated source statistics passed. Work source scanning passed all 324 applicable files with complete parser coverage. Pinned staged secret scans and branch hygiene are recorded at handoff. These changes remain review branches, not a deployment. Real Cloudinary and Orange Logic tenant qualification remains outstanding.
+
+## Review handoff
+
+- Lolly: https://github.com/lolly-tools/lolly/pull/316, based on paged browse PR 315 and provider PR 311.
+- Work: https://github.com/lolly-tools/lolly-work/pull/155, based on paged browse PR 154 and provider PR 151.
+- Implementation commits: Lolly `ce40f938173c` and Work `e91c9286e089`. Both PRs are drafts. No merge or deployment was performed.
+- Pinned staged Gitleaks scans passed in both repositories. Web test typechecking also passed after the cache-matching coverage was added.
+- Branch-hygiene reporting for both checkouts is retained in the Lolly worktree at `plans/317-hygiene.txt`. Reporting only; no prune or cleanup action is authorised for this task.
