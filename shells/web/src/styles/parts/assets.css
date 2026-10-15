@@ -682,12 +682,13 @@
 .cat-act-verify svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); }
 
 /* The prominent lockup - a FULLY tinted panel (not a one-edge stripe), wordmark + a
-   one-line explanation. Hidden until verifyC2pa confirms madeWithLolly. */
+   one-line explanation. Hidden until verifyC2pa confirms madeWithLolly. The wash
+   carries the tone; the edge is the neutral hairline every resting card wears (C3). */
 .cat-cred-lolly {
   align-self: stretch; display: flex; flex-direction: column; gap: var(--sp-2);
   padding: 12px 14px; border-radius: calc(var(--radius) * 1.1);
   background: color-mix(in srgb, var(--lolly-mark, var(--lolly-tone)) 6%, transparent);
-  border: 1px solid color-mix(in srgb, var(--lolly-mark, var(--lolly-tone)) 32%, transparent);
+  border: 1px solid hsl(var(--border));
 }
 .cat-cred-lolly[hidden] { display: none; }
 /* The brand theme's cards are a mid-dark ground, so the wash stays lighter there:

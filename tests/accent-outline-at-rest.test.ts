@@ -162,10 +162,6 @@ const ALLOWED: Allowed[] = [
   { file: 'docs/build.ts', selector: '.shot-cred--ai .shot-cred-btn',
     reason: 'A docs shot carrying an AI declaration says so at full contrast; the comment above the rule explains why.' },
 
-  // The /info seal.
-  { file: `${PARTS}docs-landing.css`, selector: '.hero-verify',
-    reason: 'The Pine rim is part of the /info seal. fix/info-opal recolours this ring; delete this entry when it merges.' },
-
   // Needs Andy: listed in the C3 pull request and left unchanged.
   { file: `${PARTS}docs.css`, selector: '.docs-content th',
     reason: `${WAITING} the reader table restates a green bottom rule after the neutral one, which reads as a deliberate hand edit.` },
