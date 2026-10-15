@@ -50,17 +50,21 @@ number. A tint keeps its parent's name (Liquorice raised, Liquorice panel).
 
 | Group | Colours |
 |---|---|
-| Greens | Spearmint `#033633`, Bunyapine `#008657`, Green Apple `#50c369` |
+| Greens, the main brand hue | Spearmint `#033633`, Bunyapine `#008657`, Green Apple `#50c369`, and the lighter Wattle `#d3e688` (a yellow-green highlight), Pandanus `#ace1ad` (raised washes and selected states) and Avocado `#edf6e0` (the palest wash, for pages and paper) |
 | Earth | Basalt `#373e44`, Bauxite `#a43427`, Bark `#734f31` |
 | Relief | Banksia `#ee9138`, Honey `#fac044`, Olive `#818e44` |
 | Dramatic relief | Reef `#25c2c2` |
 | Treats | Donut `#f39dbd`, Waffle `#d8b890` |
 | Light and ink | Sugar `#ffffff`, Meringue `#f9f7ef`, Beach `#f2e1bf`, Pebble `#99a0a4`, Liquorice `#09141a` (raised `#121d24`, panel `#1c282f`) |
 | Purple | Jacaranda `#8182d3` |
-| Reds for the app | Arvo `#ef9275` (error text on dark), Outback `#c55123` (red earth, for charts), Ore `#72251c` (error text on light under High contrast) |
+| Reds for the app | Arvo `#ef9275` (error text on dark), Outback `#c55123` (red earth, for charts), Ochre `#72251c` (error text on light under High contrast) |
 
 - **Light, the crystal chalice:** Liquorice text on Sugar (18.6:1), Spearmint
   accent with a Sugar label (13.3:1), Basalt for quiet text, Pebble hairlines.
+  Where Opal names a wash or paper for its own surfaces (the slide roles' cards,
+  tracks and alternative ground), it takes the light greens: Avocado for cards
+  and paper, Pandanus for tinted cards and tracks, Wattle for the card a slide
+  argues for. Cards that warn stay warm.
 - **Dark, the stealth ship:** Sugar text on a Liquorice hull, Green Apple accent
   with a Liquorice label (8.3:1), Pebble for quiet text (7.0:1), Basalt edges.
 - **Brand, home:** the shell builds it from the accents' hues.
@@ -88,3 +92,7 @@ brand plan.
   prizes, an OG set and the stage master arrive in a later change.
 - **Spearmint marks.** Lolly's reverse, mono and mono-reverse marks still carry
   Pine. Spearmint replaces it once the marks can be signed again.
+- **Honey for unsaved work.** The shell picks its unsaved cue (`--brand-warn`)
+  by hue, the palette colour nearest OKLCH 50 degrees (`nearestWarmHex` in
+  `shells/web/src/brand-vars.ts`), so Opal's Banksia, Outback or Bark wins and a
+  pack has no slot to name Honey. Naming it needs a shell change.

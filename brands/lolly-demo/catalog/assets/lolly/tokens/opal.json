@@ -27,7 +27,7 @@
     "color": {
       "$type": "color",
       "brand": {
-        "$description": "Opal's named colours. What each one is for travels in its tools.lolly.opal extension. Greens (Spearmint, Bunyapine, Green Apple), earth (Basalt, Bauxite, Bark), relief (Banksia, Honey, Olive), dramatic relief (Reef), treats (Donut, Waffle), light and ink (Sugar, Meringue, Beach, Pebble, Liquorice), the one purple (Jacaranda) and the reds Lolly needs as an app (Arvo, Outback, Ore).",
+        "$description": "Opal's named colours. What each one is for travels in its tools.lolly.opal extension. Greens, the main brand hue (Spearmint, Bunyapine, Green Apple, and the lighter Wattle, Pandanus and Avocado), earth (Basalt, Bauxite, Bark), relief (Banksia, Honey, Olive), dramatic relief (Reef), treats (Donut, Waffle), light and ink (Sugar, Meringue, Beach, Pebble, Liquorice), the one purple (Jacaranda) and the reds Lolly needs as an app (Arvo, Outback, Ochre).",
         "spearmint": {
           "$value": "#033633",
           "$description": "Spearmint",
@@ -52,6 +52,33 @@
           "$extensions": {
             "tools.lolly.opal": {
               "use": "Bright green, a step warmer than Jungle. The dark-theme accent and calls to action."
+            }
+          }
+        },
+        "wattle": {
+          "$value": "#d3e688",
+          "$description": "Wattle",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "A light yellow-green highlight."
+            }
+          }
+        },
+        "pandanus": {
+          "$value": "#ace1ad",
+          "$description": "Pandanus",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "A light leaf green for raised washes and selected states."
+            }
+          }
+        },
+        "avocado": {
+          "$value": "#edf6e0",
+          "$description": "Avocado",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "The palest wash, for pages and paper where Lolly shows itself."
             }
           }
         },
@@ -226,12 +253,12 @@
             }
           }
         },
-        "ore": {
+        "ochre": {
           "$value": "#72251c",
-          "$description": "Ore",
+          "$description": "Ochre",
           "$extensions": {
             "tools.lolly.opal": {
-              "use": "Deep iron red: error text on light under High contrast."
+              "use": "Deep red: error text on light under High contrast."
             }
           }
         }
@@ -397,23 +424,23 @@
           "$description": "A rule drawn on a card."
         },
         "track": {
-          "$value": "{color.brand.beach}",
+          "$value": "{color.brand.pandanus}",
           "$description": "Bars and tracks of a timeline or chart."
         },
         "card": {
-          "$value": "{color.brand.meringue}",
+          "$value": "{color.brand.avocado}",
           "$description": "A neutral card or table cell."
         },
         "quiet-card": {
-          "$value": "{color.brand.meringue}",
+          "$value": "{color.brand.avocado}",
           "$description": "A neutral panel that takes the brand ground in the dark theme."
         },
         "mint-card": {
-          "$value": "{color.brand.beach}",
+          "$value": "{color.brand.pandanus}",
           "$description": "A lightly tinted card."
         },
         "strong-card": {
-          "$value": "{color.brand.waffle}",
+          "$value": "{color.brand.wattle}",
           "$description": "An emphasised card: the column or cell the slide argues for."
         },
         "alert-card": {
@@ -429,7 +456,7 @@
           "$description": "A fill that warns: the bar or block to avoid."
         },
         "alt-surface": {
-          "$value": "{color.brand.meringue}",
+          "$value": "{color.brand.avocado}",
           "$description": "An alternative slide ground."
         }
       }
@@ -523,7 +550,7 @@
           "$description": "An emphasised card: the column or cell the slide argues for."
         },
         "alert-card": {
-          "$value": "{color.brand.ore}",
+          "$value": "{color.brand.ochre}",
           "$description": "A card that warns."
         },
         "quiet-alert-card": {
