@@ -76,29 +76,71 @@ export class PdfGState {
   }
 }
 
-/** An axial or radial gradient, painted with the `sh` operator. */
+/**
+ * An axial or radial gradient, painted with the `sh` operator. Colours are 0 to 255
+ * per channel: three for DeviceRGB, one for DeviceGray, which is how a gradient's stop
+ * opacities travel as the luminosity of a soft mask.
+ */
 export class PdfShadingPattern {
   type: 'axial' | 'radial';
   coords: number[];
   colors: { offset: number; color: number[] }[];
-  constructor(type: 'axial' | 'radial', coords: number[], colors: { offset: number; color: number[] }[]) {
+  space: 'DeviceRGB' | 'DeviceGray';
+  constructor(type: 'axial' | 'radial', coords: number[], colors: { offset: number; color: number[] }[], space: 'DeviceRGB' | 'DeviceGray' = 'DeviceRGB') {
     this.type = type;
     this.coords = coords;
     this.colors = colors;
+    this.space = space;
   }
 }
 
+/**
+ * A gradient fill: the shading's key, the matrix from gradient space to the current
+ * user space, and optionally the key of a DeviceGray shading of the stop opacities.
+ */
+export interface ShadingFill { key: string; matrix?: PdfMatrix; alpha?: string }
+
 type Style = 'S' | 'D' | 'F' | 'DF' | 'FD' | 'f' | 'f*' | 'B' | 'B*' | 'n' | null | undefined;
 
-interface PageState {
-  page: PDFPage;
-  w: number;
-  h: number;
+/** Where operators and resource uses go: a page, or a form XObject being recorded. */
+interface Sink {
   ops: string[];
   fonts: Set<string>;
   images: Set<string>;
   shadings: Set<string>;
   gstates: Set<string>;
+  forms: Set<string>;
+  /** The fill alpha in force, and the values q has saved. A group starts at 1. */
+  alpha: number;
+  saved: number[];
+}
+
+interface PageState extends Sink {
+  page: PDFPage;
+  w: number;
+  h: number;
+}
+
+/**
+ * A form XObject: a transparency group a translucent SVG group is painted through, or
+ * the luminosity group of a soft mask. `bbox` is in the space the form was drawn in.
+ */
+interface FormEntry { name: string; sink: Sink; bbox: number[]; space: 'DeviceRGB' | 'DeviceGray' }
+
+const newSink = (): Sink => ({ ops: [], fonts: new Set(), images: new Set(), shadings: new Set(), gstates: new Set(), forms: new Set(), alpha: 1, saved: [] });
+
+/** The extent of buffered path operators, padded by a point, for a mask form's bounding box. */
+function pathOpsBox(ops: readonly string[]): number[] {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  const add = (x: number, y: number): void => { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); };
+  for (const op of ops) {
+    const parts = op.trim().split(/\s+/);
+    const name = parts.pop();
+    const v = parts.map(Number);
+    if (name === 're') { add(v[0]!, v[1]!); add(v[0]! + v[2]!, v[1]! + v[3]!); continue; }
+    for (let i = 0; i + 1 < v.length; i += 2) add(v[i]!, v[i + 1]!);
+  }
+  return Number.isFinite(x0) ? [x0 - 1, y0 - 1, x1 + 1, y1 + 1] : [0, 0, 0, 0];
 }
 
 interface FontEntry {
@@ -118,7 +160,8 @@ interface FontEntry {
 
 interface ImageEntry { name: string; src: string }
 interface ShadingEntry { name: string; pattern: PdfShadingPattern }
-interface GStateEntry { name: string; gs: PdfGState }
+/** Fill and stroke alpha, or a soft mask whose luminosity group is the form `mask`. */
+interface GStateEntry { name: string; gs?: PdfGState; mask?: string }
 
 /** Up to four decimals, never exponent notation (which PDF does not accept). */
 function num(v: number): string {
@@ -203,10 +246,14 @@ export class PdfDoc {
   private drawOp = '0 G';
   private pages: PageState[] = [];
   private current!: PageState;
+  /** Where the next operator goes: the current page, or the form being recorded. */
+  private sink!: Sink;
+  private sinkStack: Sink[] = [];
   private fonts = new Map<string, FontEntry>();
   private images = new Map<string, ImageEntry>();
   private shadings = new Map<string, ShadingEntry>();
   private gstates = new Map<string, GStateEntry>();
+  private forms = new Map<string, FormEntry>();
   private vfs = new Map<string, Uint8Array>();
   private activeFont: FontEntry;
   private fontSize = 16;
@@ -233,10 +280,9 @@ export class PdfDoc {
   // ── page + stream plumbing ──────────────────────────────────────────────────
 
   private newPage(w: number, h: number): void {
-    this.current = {
-      page: this.doc.addPage([w, h]), w, h, ops: [],
-      fonts: new Set(), images: new Set(), shadings: new Set(), gstates: new Set(),
-    };
+    this.current = { page: this.doc.addPage([w, h]), w, h, ...newSink() };
+    this.sink = this.current;
+    this.sinkStack.length = 0;
     this.pages.push(this.current);
     // Change of basis: the rest of this stream is written top-left, y-down.
     this.out(`1 0 0 -1 0 ${num(h)} cm`);
@@ -254,7 +300,64 @@ export class PdfDoc {
   }
 
   private out(op: string): void {
-    this.current.ops.push(op);
+    this.sink.ops.push(op);
+  }
+
+  /** The current page's size in points. */
+  pageSize(): { w: number; h: number } {
+    return { w: this.current.w, h: this.current.h };
+  }
+
+  // ── transparency groups ─────────────────────────────────────────────────────
+
+  /**
+   * Record what follows into a form XObject instead of the page, until endGroup().
+   * A translucent group with several children has to be composited as one picture
+   * and then faded; fading each child on its own lets the ones underneath show
+   * through where they overlap. Groups nest.
+   */
+  beginGroup(): this {
+    this.flushPath();
+    this.sinkStack.push(this.sink);
+    this.sink = newSink();
+    return this;
+  }
+
+  /**
+   * Close the group begun last. `bbox` is its extent in the space it was drawn in. A
+   * DeviceGray group is one meant as a soft mask, whose luminosity is the coverage.
+   */
+  endGroup(bbox: number[], space: 'DeviceRGB' | 'DeviceGray' = 'DeviceRGB'): string {
+    this.flushPath();
+    const sink = this.sink;
+    this.sink = this.sinkStack.pop() ?? this.current;
+    const key = `fm${this.forms.size + 1}`;
+    this.forms.set(key, { name: `Fm${this.forms.size + 1}`, sink, bbox, space });
+    return key;
+  }
+
+  /**
+   * Paint a recorded group, faded as a whole by `alpha` and, when `mask` is the key of
+   * a DeviceGray group, shown only where that group is light.
+   */
+  paintGroup(key: string, alpha = 1, mask?: string): this {
+    const form = this.forms.get(key);
+    if (!form) return this;
+    this.sink.forms.add(key);
+    this.saveGraphicsState();
+    if (alpha < 1) this.setGState(new PdfGState({ opacity: alpha, 'stroke-opacity': alpha }));
+    if (mask && this.forms.has(mask)) this.useMask(mask);
+    this.out(`/${form.name} Do`);
+    this.restoreGraphicsState();
+    return this;
+  }
+
+  /** Set a soft mask whose luminosity group is the form `mask`, in the current space. */
+  private useMask(mask: string): void {
+    const gsKey = `mask:${mask}`;
+    if (!this.gstates.has(gsKey)) this.gstates.set(gsKey, { name: `GM${this.gstates.size + 1}`, mask });
+    this.sink.gstates.add(gsKey);
+    this.out(`/${this.gstates.get(gsKey)!.name} gs`);
   }
 
   // ── colour and line state ───────────────────────────────────────────────────
@@ -308,13 +411,24 @@ export class PdfDoc {
   }
 
   saveGraphicsState(): this {
+    this.sink.saved.push(this.sink.alpha);
     this.out('q');
     return this;
   }
 
   restoreGraphicsState(): this {
+    this.sink.alpha = this.sink.saved.pop() ?? 1;
     this.out('Q');
     return this;
+  }
+
+  /**
+   * The fill alpha a gs operator would replace here. PDF sets alpha rather than
+   * multiplying, so a painter that sets its own inside an element the walker has
+   * faded multiplies by this value.
+   */
+  currentAlpha(): number {
+    return this.sink.alpha;
   }
 
   setGState(gs: PdfGState): this {
@@ -324,7 +438,8 @@ export class PdfDoc {
       entry = { name: `GA${this.gstates.size + 1}`, gs };
       this.gstates.set(key, entry);
     }
-    this.current.gstates.add(key);
+    this.sink.gstates.add(key);
+    this.sink.alpha = gs.opacity;
     this.out(`/${entry.name} gs`);
     return this;
   }
@@ -383,21 +498,36 @@ export class PdfDoc {
   clipEvenOdd(): this { return this.clip('evenodd'); }
   discardPath(): this { this.flushPath(); this.out('n'); return this; }
   stroke(): this { this.flushPath(); this.out('S'); return this; }
-  fill(pattern?: { key: string; matrix?: PdfMatrix }): this { return this.paint('f', pattern); }
-  fillEvenOdd(pattern?: { key: string; matrix?: PdfMatrix }): this { return this.paint('f*', pattern); }
-  fillStroke(pattern?: { key: string; matrix?: PdfMatrix }): this { return this.paint('B', pattern); }
+  fill(pattern?: ShadingFill): this { return this.paint('f', pattern); }
+  fillEvenOdd(pattern?: ShadingFill): this { return this.paint('f*', pattern); }
+  fillStroke(pattern?: ShadingFill): this { return this.paint('B', pattern); }
 
-  private paint(op: string, pattern?: { key: string; matrix?: PdfMatrix }): this {
+  private paint(op: string, pattern?: ShadingFill): this {
     const entry = pattern && typeof pattern === 'object' ? this.shadings.get(pattern.key) : undefined;
     // No entry, or a gradient with no stops (buildShading would return null and the
     // stream would name a resource the page never carries): paint the plain fill.
     if (!entry?.pattern.colors.length) { this.flushPath(); this.out(op); return this; }
-    this.current.shadings.add(pattern!.key);
+    this.sink.shadings.add(pattern!.key);
+    const clipOp = op === 'f*' ? 'W* n' : 'W n';
+    const matrix = `${(pattern!.matrix ?? new PdfMatrix(1, 0, 0, 1, 0, 0)).toString()} cm`;
     // q first, then the path, so the clip the path sets is undone by the matching Q.
     this.out('q');
+    const alpha = pattern!.alpha ? this.shadings.get(pattern!.alpha) : undefined;
+    if (alpha?.pattern.colors.length) {
+      // Stop opacities have no place in a shading's colour function, so they travel as
+      // a soft mask: a luminosity group painting the same path with a grey shading of
+      // the alphas. It is drawn in the space this graphics state is set in, which is
+      // why it repeats the path and the gradient matrix exactly.
+      const mask = newSink();
+      mask.ops.push(...this.pathOps, clipOp, matrix, `/${alpha.name} sh`);
+      mask.shadings.add(pattern!.alpha!);
+      const form = `fm${this.forms.size + 1}`;
+      this.forms.set(form, { name: `Fm${this.forms.size + 1}`, sink: mask, bbox: pathOpsBox(this.pathOps), space: 'DeviceGray' });
+      this.useMask(form);
+    }
     this.flushPath();
-    this.out(op === 'f*' ? 'W* n' : 'W n');
-    this.out(`${(pattern!.matrix ?? new PdfMatrix(1, 0, 0, 1, 0, 0)).toString()} cm`);
+    this.out(clipOp);
+    this.out(matrix);
     this.out(`/${entry.name} sh`);
     this.out('Q');
     return this;
@@ -472,7 +602,7 @@ export class PdfDoc {
       entry = { name: `I${this.images.size + 1}`, src };
       this.images.set(src, entry);
     }
-    this.current.images.add(src);
+    this.sink.images.add(src);
     // The image's own unit square is y-up, so its placement matrix flips back.
     this.out('q');
     this.out(`${num(w)} 0 0 ${num(-h)} ${num(x)} ${num(y + h)} cm`);
@@ -566,7 +696,7 @@ export class PdfDoc {
     const lines = String(text).split('\n');
     const rgb = parseHexColor(this.textColor);
     const lead = this.fontSize * 1.15;
-    this.current.fonts.add(font.key);
+    this.sink.fonts.add(font.key);
     this.out('q');
     this.out('BT');
     this.out(`/${font.name} ${num(this.fontSize)} Tf`);
@@ -647,9 +777,10 @@ export class PdfDoc {
     for (const [src] of this.images) imageRefs.set(src, await this.embedImage(src));
 
     // Only fonts a run actually drew with: a document whose text was all outlined
-    // to paths carries no font object at all, which is what PDF/X wants to see.
+    // to paths carries no font object at all, which is what PDF/X wants to see. A
+    // run drawn inside a transparency group counts too.
     const drawn = new Set<string>();
-    for (const page of this.pages) for (const key of page.fonts) drawn.add(key);
+    for (const sink of [...this.pages, ...[...this.forms.values()].map(f => f.sink)]) for (const key of sink.fonts) drawn.add(key);
     const fontRefs = new Map<string, PDFRef>();
     for (const key of drawn) {
       const font = this.fonts.get(key);
@@ -660,20 +791,42 @@ export class PdfDoc {
     const shadingRefs = new Map<string, PDFRef | null>();
     for (const [key, entry] of this.shadings) shadingRefs.set(key, buildShading(ctx, entry.pattern));
 
+    // Forms are numbered first, because a group can hold another group and the soft
+    // mask in an ExtGState points at its luminosity group.
+    const formRefs = new Map<string, PDFRef>();
+    for (const key of this.forms.keys()) formRefs.set(key, ctx.nextRef());
+
     const gstateRefs = new Map<string, PDFRef>();
     for (const [key, entry] of this.gstates) {
-      gstateRefs.set(key, ctx.register(ctx.obj({
-        Type: 'ExtGState', ca: entry.gs.opacity, CA: entry.gs.strokeOpacity,
-      })));
+      gstateRefs.set(key, ctx.register(ctx.obj(entry.mask
+        ? { Type: 'ExtGState', SMask: { Type: 'Mask', S: 'Luminosity', G: formRefs.get(entry.mask)!, BC: [0] } }
+        : { Type: 'ExtGState', ca: entry.gs!.opacity, CA: entry.gs!.strokeOpacity })));
+    }
+
+    const resourcesOf = (sink: Sink): PdfResources => {
+      const resources: PdfResources = { ProcSet: ['PDF', 'Text', 'ImageB', 'ImageC', 'ImageI'] };
+      collect(resources, 'Font', sink.fonts, this.fonts, fontRefs);
+      collect(resources, 'XObject', sink.images, this.images, imageRefs);
+      collect(resources, 'XObject', sink.forms, this.forms, formRefs);
+      collect(resources, 'Shading', sink.shadings, this.shadings, shadingRefs);
+      collect(resources, 'ExtGState', sink.gstates, this.gstates, gstateRefs);
+      return resources;
+    };
+    for (const [key, form] of this.forms) {
+      // A soft mask's luminosity group must state its colour space. A content group
+      // states none and blends in its parent's, so a CMYK print export keeps its PDF/X
+      // claim (packages/node-shell/src/pdfx.ts groupCsOk refuses an RGB group).
+      const group = form.space === 'DeviceGray'
+        ? { Type: 'Group', S: 'Transparency', CS: 'DeviceGray' }
+        : { Type: 'Group', S: 'Transparency' };
+      ctx.assign(formRefs.get(key)!, ctx.flateStream(form.sink.ops.join('\n'), {
+        Type: 'XObject', Subtype: 'Form', BBox: form.bbox, Group: group,
+        Resources: resourcesOf(form.sink),
+      }));
     }
 
     for (const page of this.pages) {
-      const resources: PdfResources = { ProcSet: ['PDF', 'Text', 'ImageB', 'ImageC', 'ImageI'] };
-      collect(resources, 'Font', page.fonts, this.fonts, fontRefs);
-      collect(resources, 'XObject', page.images, this.images, imageRefs);
-      collect(resources, 'Shading', page.shadings, this.shadings, shadingRefs);
-      collect(resources, 'ExtGState', page.gstates, this.gstates, gstateRefs);
-      page.page.node.set(PDFName.of('Resources'), ctx.obj(resources));
+      page.page.node.set(PDFName.of('Resources'), ctx.obj(resourcesOf(page)));
       page.page.node.set(PDFName.of('Contents'), ctx.register(ctx.flateStream(page.ops.join('\n'))));
     }
 
@@ -771,7 +924,9 @@ function collect(
   refs: Map<string, PDFRef | null>,
 ): void {
   if (!used.size) return;
-  const dict: Record<string, PDFRef> = {};
+  // Merged into what the category already holds: images and forms are both XObjects.
+  const prior = resources[category];
+  const dict: Record<string, PDFRef> = prior && !Array.isArray(prior) ? prior : {};
   for (const key of used) {
     const entry = registry.get(key);
     const ref = refs.get(key);
@@ -861,7 +1016,8 @@ function buildShading(ctx: PDFContext, pattern: PdfShadingPattern): PDFRef | nul
   if (!stops.length) return null;
   if (stops[0]!.offset !== 0) stops.unshift({ offset: 0, color: stops[0]!.color });
   if (stops[stops.length - 1]!.offset !== 1) stops.push({ offset: 1, color: stops[stops.length - 1]!.color });
-  const unit = (color: number[]): number[] => [0, 1, 2].map(c => Math.max(0, Math.min(1, (color[c] ?? 0) / 255)));
+  const channels = pattern.space === 'DeviceGray' ? [0] : [0, 1, 2];
+  const unit = (color: number[]): number[] => channels.map(c => Math.max(0, Math.min(1, (color[c] ?? 0) / 255)));
   const fns: PDFRef[] = [];
   const bounds: number[] = [];
   const encode: number[] = [];
@@ -885,7 +1041,7 @@ function buildShading(ctx: PDFContext, pattern: PdfShadingPattern): PDFRef | nul
     : ctx.register(ctx.obj({ FunctionType: 3, Domain: [0, 1], Functions: fns, Bounds: bounds, Encode: encode }));
   return ctx.register(ctx.obj({
     ShadingType: pattern.type === 'axial' ? 2 : 3,
-    ColorSpace: 'DeviceRGB',
+    ColorSpace: pattern.space,
     Coords: pattern.coords,
     Function: fn,
     Extend: [true, true],

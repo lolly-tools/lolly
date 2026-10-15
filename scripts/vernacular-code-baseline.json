@@ -463,7 +463,7 @@
   "shells/web/src/bridge/export-stroke-paint.test.ts": 3,
   "shells/web/src/bridge/export-svg-walker.ts": 23,
   "shells/web/src/bridge/export-text-emission.test.ts": 2,
-  "shells/web/src/bridge/export.ts": 39,
+  "shells/web/src/bridge/export.ts": 35,
   "shells/web/src/bridge/font-registry.ts": 8,
   "shells/web/src/bridge/fontface-discovery.ts": 1,
   "shells/web/src/bridge/format-support.test.ts": 1,

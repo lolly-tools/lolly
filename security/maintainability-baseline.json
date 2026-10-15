@@ -23,16 +23,16 @@
     "shells/web/src/bridge/export-svg-walker.ts": {
       "lines": 1727,
       "largestFunctionLines": 1704,
-      "importFanIn": 1,
+      "importFanIn": 2,
       "importFanOut": 17,
       "typeEscapes": 19
     },
     "shells/web/src/bridge/export.ts": {
-      "lines": 4278,
-      "largestFunctionLines": 647,
+      "lines": 3873,
+      "largestFunctionLines": 629,
       "importFanIn": 27,
-      "importFanOut": 68,
-      "typeEscapes": 51
+      "importFanOut": 70,
+      "typeEscapes": 39
     },
     "shells/web/src/bridge/sequence-render.ts": {
       "lines": 1745,
@@ -227,7 +227,7 @@
     "shells/web/src/bridge/export-pdf-vector.ts": 11,
     "shells/web/src/bridge/export-shared.ts": 1,
     "shells/web/src/bridge/export-svg-walker.ts": 19,
-    "shells/web/src/bridge/export.ts": 51,
+    "shells/web/src/bridge/export.ts": 39,
     "shells/web/src/bridge/hook-worker.ts": 2,
     "shells/web/src/bridge/hook-worker.worker.ts": 1,
     "shells/web/src/bridge/identity.ts": 1,

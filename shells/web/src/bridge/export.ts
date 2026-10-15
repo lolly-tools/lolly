@@ -16,16 +16,14 @@ import { wantsDeepExport, hdrTune } from './export-deep-choice.ts';
  * every format (raster, SVG walker, PDF) sees the identical mark.
  */
 
-import { embedResolvedFont, loadFontBase64 } from './export-font-data.ts';
-import { canEmbedPdfSubset } from './pdf-font-policy.ts';
+import { embedResolvedFont } from './export-font-data.ts';
 import { LOSSLESS_STRENGTH, C2PA_FORMATS, embedWavInfo, writeDocx, writeOdt, hdrBoostToPQ, pqBt2020IccProfile, iccProfileBytes, HDR_PQ_CICP, packTiff, CSS_DPI, encodeBmp, rgbToCmyk, cmykCondition, toPixels, parseDimension, toCssLength, gzip, emitEmf, emitWmf, emitEps, emitDxf, toPoints, exportActionSteps, embedC2pa, ENGINE_VERSION, buildExportMeta, SCREEN_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, extractC2paStore, roundedRectPath, splitCssArgs, insetCorners, uniformRadius, parseCssMatrix, isAxisAlignedMat, isNonAffineTransform, parseClipShape, parseBoxShadow, gaussianShadowBands, parseTextShadow, videoProvenanceTags, embedMp4Meta, embedWebmMeta, hdrViewTransform, fromU8Srgb, pqToI420P10, pqEncodeFrame, packApng, packWebpAnim } from '@lolly/engine';
 import type { Mat2D } from '@lolly/engine';
-import { letterSpacingPx, featureSettingsToHb, canVectoriseText, textBaselineY, textStrokeAttrs, suseFontFile, SUSE_FONT_DIR } from './text-svg.ts';
+import { letterSpacingPx, featureSettingsToHb, canVectoriseText, textBaselineY, textStrokeAttrs } from './text-svg.ts';
 import { resolveVectorFont } from './font-registry.ts';
-import type { VectorFont } from './font-registry.ts';
 import { bakeWebKitBoxShadows } from './webkit-shadow-bake.ts';
 import { newNeutraliseGuard, neutraliseTransform } from './transform-neutralise.ts';
-import { svgDomToIr, decomposeAffine, parseTransformList } from './svg-ir.ts';
+import { svgDomToIr } from './svg-ir.ts';
 import { placeBackground } from './bg-layout.ts';
 import { unscopeStyleEls } from '../lib/scope-css.ts';
 import { tRaw } from '../i18n.ts';
@@ -61,7 +59,7 @@ import { n2, parseCssColorFull, resolveRadii, parseCssColor, objectPositionFract
 import { renderPptx, sourceAuthorOf } from './export-pptx.ts';
 import { domToRichDoc, domToDocBlocks } from './doc-blocks.ts';
 import { insertWebpMeta, insertAvifExif, iccWanted, insertPngPhys, insertPngMeta, insertPngXmp, insertPngCicp, insertPngIcc, patchJpegDpi, insertJpegExif, insertJpegXmp, insertJpegIcc, setAvifCicp, injectSvgMeta, inflateBytes, deflateBytes, withGifComment } from './export-image-meta.ts';
-import { pureRotationDeg, buildCmykPaletteMap, cmykKey, applyTextTransform, parseSvgColor, blendSvgWithWhite, drawSvgPathToPdf, svgLen, withPdfRotation, withPdfMatrix, pdfApplyClip, withPdfAlpha, pdfFillCssBackground, clipOuterShadowsOfTranslucentBox, pdfRoundedRect, pdfGradientSpec, fillPdfShading, withPdfRoundedClip, sampleGradientMidpoint, borderDashArray, withPdfClipRect, assignSpotResourceNames, substitutePdfRgb, OVERPRINT_GS_DEFS, paletteHitKey } from './export-pdf-vector.ts';
+import { pureRotationDeg, buildCmykPaletteMap, cmykKey, applyTextTransform, drawSvgPathToPdf, withPdfRotation, withPdfMatrix, pdfApplyClip, withPdfAlpha, pdfFillCssBackground, clipOuterShadowsOfTranslucentBox, pdfRoundedRect, pdfGradientSpec, fillPdfShading, withPdfRoundedClip, sampleGradientMidpoint, borderDashArray, withPdfClipRect, assignSpotResourceNames, substitutePdfRgb, OVERPRINT_GS_DEFS, paletteHitKey } from './export-pdf-vector.ts';
 import { paintDesignGroupPage } from './export-group-compositing.ts';
 import type { PaletteHit, BrandPaletteEntry } from './export-pdf-vector.ts';
 import { applyPdfX } from './export-pdfx.ts';
@@ -69,6 +67,9 @@ import { printGeometryForSize, provenanceLabels, setPageBoxes, drawPrintMarks, f
 import type { LabelsRecord, PdfFinishSettings } from '@lolly-tools/node-shell/pdf-finishing';
 export { encryptPdfStrong } from '@lolly-tools/node-shell/pdf-finishing';
 import { createPdfDoc } from './export-pdf-doc.ts';
+import { embedSuseFont, pdfFontEmbed, suseFontName } from './export-pdf-fonts.ts';
+import { paintSvgToPdf } from './export-pdf-svg.ts';
+export { strokeOf, strokeWidthOf } from './export-pdf-svg-style.ts';
 import { isOwnProfile, resolveEmbeddedProfile } from '../lib/press-profile-embed.ts';
 import type { EmbedResolution } from '../lib/press-profile-embed.ts';
 import { _host, canvasToBlob, imprintCanvas, exportDims, getDomToImage, swapBlobUrls, fontMetricsPx, blobToDataUrl, MAX_RASTER_PX, makeRoundedFill, setExportHost, foldIngredientSinks } from './export-shared.ts';
@@ -2424,481 +2425,17 @@ async function finishPdfX(blobOrBytes: Blob | Uint8Array, opts: ExportOpts, sett
   return finishSharedPdfX(blobOrBytes, opts, { ...settings, log: pdfxLog });
 }
 
-// Renders an SVG element into a rectangular region of the PDF page.
-// ox/oy are the PDF-space top-left offsets (pt); regionW/regionH are the
-// target dimensions (pt). Used both by the full-page SVG canvas path and by
-// drawHtmlVectors when it encounters an inline <svg> element.
-async function drawSvgVectorsInRegion(pdf: any, svgEl: Element, ox: number, oy: number, regionW: number, regionH: number, registeredFonts: Set<unknown> | null = null, imprint?: ImprintState, convertPaths = true): Promise<void> {
-  const vb = (svgEl as SVGSVGElement).viewBox?.baseVal;
-  const vbW = (vb && vb.width  > 0) ? vb.width  : svgEl.getBoundingClientRect().width;
-  const vbH = (vb && vb.height > 0) ? vb.height : svgEl.getBoundingClientRect().height;
-  const vbX = (vb && vb.width  > 0) ? vb.x : 0;
-  const vbY = (vb && vb.height > 0) ? vb.y : 0;
-  let sx = regionW / vbW;
-  let sy = regionH / vbH;
-  // Honour the SVG's preserveAspectRatio when its viewBox aspect differs from the
-  // target region. Tools like Diagram Builder size the viewBox to the diagram's own
-  // bounds (not the fixed export page), so the browser - and the SVG export - letterbox
-  // the artwork via the default "xMidYMid meet". Without this the walker filled the page
-  // with a NON-uniform scale (sx≠sy), stretching the diagram vs. the on-screen preview.
-  // 'none' keeps the legacy stretch-to-fill; meet/slice + x/y alignment follow the SVG
-  // spec, matching the <image> branch's own meet handling below. The centering offset is
-  // folded into ox/oy so every mapper (PX/PY/LW/LH, the rotation pivot, rAvg) tracks it.
-  const par = ((svgEl.getAttribute('preserveAspectRatio') || '').trim() || 'xMidYMid meet');
-  if (!/^none/i.test(par)) {
-    const align = par.split(/\s+/)[0] || 'xMidYMid';
-    const s = /\bslice\b/i.test(par) ? Math.max(sx, sy) : Math.min(sx, sy);
-    ox += (regionW - vbW * s) * (align.includes('xMax') ? 1 : align.includes('xMid') ? 0.5 : 0);
-    oy += (regionH - vbH * s) * (align.includes('YMax') ? 1 : align.includes('YMid') ? 0.5 : 0);
-    sx = sy = s;
-  }
-
-  // Gradient / filter / pattern SVGs can't be reproduced by the vector walk below:
-  // The SVG walker has no axial/radial shading here, and a url(#…) fill resolves to null
-  // → the shape simply VANISHES. Rasterise the whole subtree to an alpha-preserved PNG
-  // and drop it into the SAME PAR-fitted box the vectors would occupy. drawHtmlVectors
-  // already does this for an inline <svg>; centralising it here means EVERY entry point - 
-  // a Lolly tool embedded as an <img>, artwork / multi-page PDFs, a nested <image> - 
-  // keeps its shading instead of only the inline case. Solid-fill SVGs (qr, brand-lockup)
-  // match nothing here and stay crisp vector. (bag-video's gradient Geeko is the canon case.)
-  if (svgEl.querySelector?.('linearGradient, radialGradient, filter, pattern')) {
-    try {
-      const fitW = vbW * sx, fitH = vbH * sy;
-      const dpr = 150 / 72;                                    // output-region px at ~150dpi, bounded
-      const pxW = Math.max(2, Math.min(2000, Math.round(fitW * dpr)));
-      const pxH = Math.max(2, Math.min(2000, Math.round(fitH * dpr)));
-      const png = await rasterizeSvgElement(svgEl, pxW, pxH, false, imprint);
-      pdf.addImage(png, 'PNG', ox, oy, fitW, fitH);
-      return;
-    } catch { /* fall through to the vector walk (better a solid silhouette than nothing) */ }
-  }
-
-  let nodesWalked = 0;
-  const YIELD_NODES = 200;
-  // <use> expansion depth - bounds a <use> chain (or a self/mutually referential one)
-  // so a malformed SVG can't recurse without end. 8 is far beyond any real nesting.
-  let useDepth = 0;
-  const MAX_USE_DEPTH = 8;
-  async function visit(el: any, tx: number, ty: number, sX: number, sY: number): Promise<void> {
-    if (!el.tagName) return;
-    // Cooperative yield, matching the sibling HTML walker: a big SVG (Diagram Builder,
-    // imported artwork) otherwise runs getComputedStyle + drawSvgPathToPdf per path
-    // synchronously and freezes the tab. Draws stay in document order (painter's algo
-    // preserved), so output is byte-identical.
-    if (++nodesWalked % YIELD_NODES === 0) await new Promise<void>((r) => setTimeout(r));
-    const tag = el.tagName.toLowerCase().replace(/^svg:/, '');
-
-    if (tag === 'defs' || tag === 'clippath' || tag === 'lineargradient' ||
-        tag === 'radialgradient' || tag === 'symbol') return;
-
-    // Compose this element's OWN transform (translate/scale/rotate) onto the inherited
-    // CTM - applied to CONTAINERS and LEAF drawables alike. brand-lockup lays its whole
-    // lockup out as sibling <path transform="translate()/scale()"> with no wrapping <g>,
-    // so unless a leaf's own transform is honoured here every glyph run and the chameleon
-    // collapse onto the origin at native scale when the lockup is embedded as an image and
-    // the parent (e.g. Design) exports PDF. Mirrors the EMF/EPS/DXF walker's
-    // applyElementTransform (svg-ir.ts), which already maps per-leaf transforms.
-    const tx0 = tx, ty0 = ty, sX0 = sX, sY0 = sY;
-    let rotDeg = 0;
-    {
-      const t = el.getAttribute('transform') ?? '';
-      if (t) {
-        // The whole transform LIST (any order or multiplicity, matrix(), rotate(θ cx cy)),
-        // through the same parser the EMF/EPS/DXF walker uses, then split into the
-        // translate/scale/rotate this sink consumes. The local translate is taken in the
-        // PARENT's scale, the scales multiply, and the rotation pivots on the local origin
-        // after the translate, which is what a T·R·S decomposition yields. Skew is not
-        // representable here and is dropped (decomposeAffine).
-        const d = decomposeAffine(parseTransformList(t));
-        tx = tx0 + sX0 * d.tx; ty = ty0 + sY0 * d.ty;
-        sX = sX0 * d.sx; sY = sY0 * d.sy;
-        rotDeg = d.rotDeg;
-      }
-    }
-
-    // Map an SVG user-space coord (inside this element's own + inherited transform)
-    // into PDF points: apply the accumulated translate+scale, shift by the viewBox
-    // origin, then scale into the target region. LW/LH scale a length.
-    const gAvg = (sX + sY) / 2, rAvg = (sx + sy) / 2;
-    const PX = (v: number) => ox + ((tx + sX * v) - vbX) * sx;
-    const PY = (v: number) => oy + ((ty + sY * v) - vbY) * sy;
-    const LW = (v: number) => v * sX * sx;
-    const LH = (v: number) => v * sY * sy;
-    // Stroke width / font scaling: group scale × region scale - EXCEPT for
-    // vector-effect:non-scaling-stroke (e.g. street-map roads), whose stroke keeps
-    // its user-unit width through the group transform, so region scale only.
-    const strokeMul = (e: any) =>
-      ((e.getAttribute('vector-effect') || resolveStyleProp(e, 'vector-effect')) === 'non-scaling-stroke' ? 1 : gAvg) * rAvg;
-
-    // Resolve fill + stroke (with opacity) for a basic shape, mirroring the
-    // <path> branch - so a stroked <rect>/<circle> keeps its border in PDF.
-    // (Previously rect/circle were fill-only: a card whose fill matches the page,
-    // distinguished only by its border, exported as an invisible box. The EMF/EPS
-    // walker in svg-ir.js already routes rect/circle through its path logic, so
-    // this brings the PDF sink to parity.) Returns null when nothing is paintable.
-    const shapePaint = (e: any): { fillRgb: Rgb | null; strokeRgb: Rgb | null; lw: number } | null => {
-      let fillRgb = resolveColor(e);                 // own-attr → inline style → computed
-      const strokeStr = strokeOf(e);                 // same three-way resolution
-      let strokeRgb = (strokeStr && strokeStr !== 'none') ? parseSvgColor(strokeStr) : null;
-      const elemOp = parseFloat(e.getAttribute('opacity') ?? '1');
-      const fillOp = elemOp * parseFloat(e.getAttribute('fill-opacity') ?? '1');
-      const strkOp = elemOp * parseFloat(e.getAttribute('stroke-opacity') ?? '1');
-      if (fillOp < 0.01) fillRgb = null;
-      if (strkOp < 0.01) strokeRgb = null;
-      if (!fillRgb && !strokeRgb) return null;
-      if (fillRgb   && fillOp < 0.999) fillRgb   = blendSvgWithWhite(fillRgb,   fillOp);
-      if (strokeRgb && strkOp < 0.999) strokeRgb = blendSvgWithWhite(strokeRgb, strkOp);
-      const lw = Math.max(0.1, strokeWidthOf(e) * strokeMul(e));
-      return { fillRgb, strokeRgb, lw };
-    };
-
-    // Paint + draw any shape expressed as an SVG `d` - shared by <path> and the shapes
-    // that reduce to a path (<polygon>/<polyline>/<ellipse>). Resolves fill/stroke with
-    // currentColor + computed-style fallback, per-element + fill/stroke opacity, and
-    // fill-rule exactly as the <path> branch always has, so the added shapes match it.
-    const drawShapeD = (e: any, d: string): void => {
-      if (!d.trim()) return;
-      let fillStr = e.getAttribute('fill') ?? resolveStyleProp(e, 'fill');
-      if (!fillStr || fillStr === 'currentColor') fillStr = computedPaint(e, 'fill') || 'black';
-      const strokeStr = strokeOf(e);
-      const elemOp  = parseFloat(e.getAttribute('opacity') ?? '1');
-      const fillOp  = elemOp * parseFloat(e.getAttribute('fill-opacity')   ?? '1');
-      const strkOp  = elemOp * parseFloat(e.getAttribute('stroke-opacity') ?? '1');
-      let fillRgb   = (fillStr   && fillStr   !== 'none') ? parseSvgColor(fillStr)   : null;
-      let strokeRgb = (strokeStr && strokeStr !== 'none') ? parseSvgColor(strokeStr) : null;
-      if (fillOp   < 0.01) fillRgb   = null;
-      if (strkOp   < 0.01) strokeRgb = null;
-      if (!fillRgb && !strokeRgb) return;
-      if (fillRgb   && fillOp   < 0.999) fillRgb   = blendSvgWithWhite(fillRgb,   fillOp);
-      if (strokeRgb && strkOp   < 0.999) strokeRgb = blendSvgWithWhite(strokeRgb, strkOp);
-      if (fillRgb)   pdf.setFillColor(fillRgb[0], fillRgb[1], fillRgb[2]);
-      let restoreStroke: (() => void) | null = null;
-      if (strokeRgb) {
-        pdf.setDrawColor(strokeRgb[0], strokeRgb[1], strokeRgb[2]);
-        const lw = strokeWidthOf(e) * strokeMul(e);
-        pdf.setLineWidth(Math.max(0.1, lw));
-        restoreStroke = applySvgStrokeDecoration(pdf, e, strokeMul(e));
-      }
-      drawSvgPathToPdf(pdf, d, PX, PY);
-      const fillRule = e.getAttribute('fill-rule') ?? 'nonzero';
-      if (fillRgb && strokeRgb) pdf.fillStroke();
-      else if (fillRgb) { fillRule === 'evenodd' ? pdf.fillEvenOdd() : pdf.fill(); }
-      else pdf.stroke();
-      restoreStroke?.();
-    };
-
-    // Render this element - leaf geometry, or a container's children - under any own
-    // rotation. Translate/scale are already folded into tx/ty/sX/sY above; a rotate()
-    // (d3.zoom groups, pose-geeko's articulated limbs) is applied about its pivot via
-    // the PDF matrix, wrapping the whole subtree. Skew/matrix() are not handled.
-    const drawSelf = async (): Promise<void> => {
-    if (tag === 'g') {
-      for (const child of el.children) await visit(child, tx, ty, sX, sY);
-      return;
-    }
-
-    if (tag === 'rect') {
-      const x = PX(svgLen(el.getAttribute('x'), vbW));
-      const y = PY(svgLen(el.getAttribute('y'), vbH));
-      const w = LW(svgLen(el.getAttribute('width'), vbW));
-      const h = LH(svgLen(el.getAttribute('height'), vbH));
-      if (w <= 0 || h <= 0) return;
-      const paint = shapePaint(el);
-      if (!paint) return;
-      const rx = LW(parseFloat(el.getAttribute('rx') || el.getAttribute('ry') || '0'));
-      const ry = LH(parseFloat(el.getAttribute('ry') || el.getAttribute('rx') || '0'));
-      if (paint.fillRgb)   pdf.setFillColor(paint.fillRgb[0], paint.fillRgb[1], paint.fillRgb[2]);
-      if (paint.strokeRgb) { pdf.setDrawColor(paint.strokeRgb[0], paint.strokeRgb[1], paint.strokeRgb[2]); pdf.setLineWidth(paint.lw); }
-      const style = (paint.fillRgb && paint.strokeRgb) ? 'FD' : (paint.fillRgb ? 'F' : 'S');
-      (rx > 0 || ry > 0)
-        ? pdf.roundedRect(x, y, w, h, rx, ry, style)
-        : pdf.rect(x, y, w, h, style);
-      return;
-    }
-
-    if (tag === 'circle') {
-      const cx = PX(svgLen(el.getAttribute('cx'), vbW));
-      const cy = PY(svgLen(el.getAttribute('cy'), vbH));
-      const r  = LW(svgLen(el.getAttribute('r'), vbW));
-      if (r <= 0) return;
-      const paint = shapePaint(el);
-      if (!paint) return;
-      if (paint.fillRgb)   pdf.setFillColor(paint.fillRgb[0], paint.fillRgb[1], paint.fillRgb[2]);
-      if (paint.strokeRgb) { pdf.setDrawColor(paint.strokeRgb[0], paint.strokeRgb[1], paint.strokeRgb[2]); pdf.setLineWidth(paint.lw); }
-      const style = (paint.fillRgb && paint.strokeRgb) ? 'FD' : (paint.fillRgb ? 'F' : 'S');
-      pdf.circle(cx, cy, r, style);
-      return;
-    }
-
-    if (tag === 'line') {
-      const strokeStr = el.getAttribute('stroke') ?? '';
-      if (strokeStr === 'none') return;
-      let rgb = strokeStr ? parseSvgColor(strokeStr) : null;
-      // Fall back to the COMPUTED stroke when set via CSS (or a named colour that
-      // slipped through) so <line stroke="red">/CSS-styled lines aren't dropped.
-      if (!rgb) rgb = parseSvgColor(computedPaint(el, 'stroke'));
-      if (!rgb) return;
-      const opacity = parseFloat(el.getAttribute('opacity') ?? el.getAttribute('stroke-opacity') ?? '1');
-      if (opacity < 0.01) return;
-      if (opacity < 0.999) rgb = blendSvgWithWhite(rgb, opacity);
-      const lx1 = PX(svgLen(el.getAttribute('x1'), vbW));
-      const ly1 = PY(svgLen(el.getAttribute('y1'), vbH));
-      const lx2 = PX(svgLen(el.getAttribute('x2'), vbW));
-      const ly2 = PY(svgLen(el.getAttribute('y2'), vbH));
-      const lw  = strokeWidthOf(el) * strokeMul(el);
-      pdf.setDrawColor(rgb[0], rgb[1], rgb[2]);
-      pdf.setLineWidth(Math.max(0.1, lw));
-      pdf.line(lx1, ly1, lx2, ly2, 'S');
-      return;
-    }
-
-    if (tag === 'text') {
-      // Draw ONE run (the <text> itself, or one <tspan>) at (userX,userY) in the element's
-      // own style, then return its advance in USER units. Font props: attribute first, else
-      // the COMPUTED style - tools that set the typeface/size/weight via CSS (chart-creator/d3
-      // → SUSE) otherwise fell back to Helvetica at the default size. Advance uses the
-      // browser's measured getComputedTextLength (a length → maps like the x attrs); the
-      // writer's width is the fallback. Baseline y is the writer's own (SVG y IS the baseline).
-      // `opMul` carries the parent <text>'s opacity onto a <tspan>: opacity is not
-      // inherited, but it still fades every run the <text> holds.
-      const drawRun = async (styleEl: any, runText: string, userX: number, userY: number, anchor: string, opMul = 1): Promise<number> => {
-        const t = (runText ?? '').trim();
-        if (!t) return 0;
-        const cs = (typeof window !== 'undefined' && styleEl.isConnected) ? window.getComputedStyle(styleEl) : null;
-        let fillStr = styleEl.getAttribute('fill');
-        if (!fillStr || fillStr === 'currentColor') fillStr = computedPaint(styleEl, 'fill') || '#000000';
-        let rgb = parseSvgColor(fillStr) ?? parseSvgColor(computedPaint(styleEl, 'fill'));
-        const op = parseFloat(styleEl.getAttribute('opacity') ?? styleEl.getAttribute('fill-opacity') ?? '1') * opMul;
-        const fsUser = parseFloat(styleEl.getAttribute('font-size') ?? cs?.fontSize ?? '16');
-        const fs = fsUser * gAvg * rAvg;
-        const fw = parseInt(styleEl.getAttribute('font-weight') ?? cs?.fontWeight ?? '400') || 400;
-        const fst = styleEl.getAttribute('font-style') ?? cs?.fontStyle ?? '';
-        const italic = fst === 'italic' || fst === 'oblique';
-        // COMPUTED family first: it is what actually painted the glyphs on screen,
-        // including a tool stylesheet's var(--font-brand)/var(--font-mono) rule
-        // (the brand-faces contract). The attribute is the detached-node fallback -
-        // and for a connected node with no CSS rule the computed value IS the
-        // attribute's cascade result, so nothing regresses.
-        const familyRaw = (cs?.fontFamily || styleEl.getAttribute('font-family') || '');
-        const family = familyRaw.toLowerCase();
-
-        // 'Convert paths' outlines SVG text like every other run: resolve the run's
-        // face (brand statics, user fonts, the generic-to-brand mapping), shape via
-        // host.text, and draw filled glyph contours through the SAME PX/PY mapping
-        // as the x/y attributes. Before this branch existed the toggle was inert
-        // here - SVG-rooted tools' PDFs embedded what substring-matched 'suse' and
-        // silently fell back to base-14 fonts for everything else.
-        const vf = _host?.text ? await resolveVectorFont(
-          { fontFamily: familyRaw, fontWeight: String(fw), fontStyle: italic ? 'italic' : 'normal' }, t) : null;
-        const embedUrl = convertPaths ? null : await pdfFontEmbed(vf);
-        if ((convertPaths || (vf && !embedUrl)) && _host?.text) {
-          try {
-            if (vf) {
-              const shaped = await _host.text.toPath({ text: t, fontUrl: vf.url, fontSize: fsUser, variations: vf.variations, fallbackFonts: vf.fallbacks });
-              if (shaped?.d && !shaped.notdef) {
-                const advUser = shaped.advanceWidth || 0;
-                const xAdj = anchor === 'middle' ? userX - advUser / 2 : anchor === 'end' ? userX - advUser : userX;
-                if (rgb && op >= 0.01) {
-                  let fillRgb = rgb;
-                  if (op < 0.999) fillRgb = blendSvgWithWhite(fillRgb, op);
-                  pdf.setFillColor(fillRgb[0], fillRgb[1], fillRgb[2]);
-                  drawSvgPathToPdf(pdf, shaped.d, (gx: number) => PX(xAdj + gx), (gy: number) => PY(userY + gy));
-                  pdf.fill();
-                }
-                return advUser;
-              }
-            }
-          } catch (e) {
-            _host?.log?.('warn', `pdf: svg text outline failed for "${t.slice(0, 24)}" - ${(e as Error).message}`);
-          }
-        }
-        pdf.setFontSize(Math.max(1, fs));
-        let fontSet = false;
-        if (embedUrl && registeredFonts) {
-          const name = await embedResolvedFont(pdf, registeredFonts, embedUrl);
-          if (name) { pdf.setFont(name, 'normal'); fontSet = true; }
-        }
-        if (!fontSet && family.includes('suse') && registeredFonts) {
-          const mono = family.includes('mono');
-          const suseStyle = await embedSuseFont(pdf, registeredFonts, fw, italic, mono);
-          if (suseStyle) { pdf.setFont(suseFontName(mono), suseStyle); fontSet = true; }
-        }
-        if (!fontSet) pdf.setFont('helvetica', fw >= 600 ? (italic ? 'bolditalic' : 'bold') : (italic ? 'italic' : 'normal'));
-        // Draw only when visible + paintable, but ALWAYS measure so following inline runs flow.
-        if (rgb && op >= 0.01) {
-          if (op < 0.999) rgb = blendSvgWithWhite(rgb, op);
-          pdf.setTextColor(rgb[0], rgb[1], rgb[2]);
-          const align = anchor === 'middle' ? 'center' : anchor === 'end' ? 'right' : 'left';
-          pdf.text(t, PX(userX), PY(userY), { align });
-        }
-        let wUser = 0;
-        try { wUser = typeof styleEl.getComputedTextLength === 'function' ? styleEl.getComputedTextLength() : 0; } catch { wUser = 0; }
-        if (!wUser) { const wpt = pdf.getTextWidth(t); wUser = (gAvg * rAvg) ? wpt / (gAvg * rAvg) : 0; }
-        return wUser;
-      };
-
-      const nodes = el.childNodes ? [...el.childNodes] : [];
-      const hasTspan = nodes.some((n: any) => n.nodeType === 1 && n.tagName?.toLowerCase() === 'tspan');
-      // Plain <text> (no tspans): one run at the text's own x/y - unchanged behaviour.
-      if (!hasTspan) {
-        await drawRun(el, el.textContent ?? '', svgLen(el.getAttribute('x'), vbW), svgLen(el.getAttribute('y'), vbH), el.getAttribute('text-anchor') ?? 'start');
-        return;
-      }
-      // Multi-run: a <tspan> may RESET the pen (x/y) or OFFSET it (dx/dy) and carry its own
-      // fill/font; a bare text node flows at the pen in the <text>'s style. Positions resolve
-      // from attributes (same user space as PX/PY) so multi-line / positioned tspan text lays
-      // out like the browser instead of collapsing every line onto the parent's baseline.
-      let penX = svgLen(el.getAttribute('x'), vbW);
-      let penY = svgLen(el.getAttribute('y'), vbH);
-      const textAnchor = el.getAttribute('text-anchor') ?? 'start';
-      const parsedOpacity = parseFloat(el.getAttribute('opacity') ?? '1');
-      const textOpacity = Number.isFinite(parsedOpacity) ? parsedOpacity : 1;
-      for (const n of nodes) {
-        if (n.nodeType === 3) {                                   // bare text node - flows inline
-          if ((n.textContent ?? '').trim()) penX += await drawRun(el, n.textContent, penX, penY, 'start');
-        } else if (n.nodeType === 1 && (n as any).tagName?.toLowerCase() === 'tspan') {
-          const ts: any = n;
-          const emPx = parseFloat((ts.isConnected ? window.getComputedStyle(ts).fontSize : '') || ts.getAttribute('font-size') || '16') || 16;
-          const relLen = (v: string | null): number => { if (!v) return 0; const s = v.trim(); return s.endsWith('em') ? parseFloat(s) * emPx : (parseFloat(s) || 0); };
-          if (ts.hasAttribute('x')) penX = svgLen(ts.getAttribute('x'), vbW);
-          if (ts.hasAttribute('y')) penY = svgLen(ts.getAttribute('y'), vbH);
-          penX += relLen(ts.getAttribute('dx'));
-          penY += relLen(ts.getAttribute('dy'));
-          penX += await drawRun(ts, ts.textContent, penX, penY, ts.getAttribute('text-anchor') ?? textAnchor, textOpacity);
-        }
-      }
-      return;
-    }
-
-    // Fill/stroke fall back to the COMPUTED paint (not a literal black), so a path that
-    // inherits its colour from an ancestor group (e.g. logo-wall's one-ink <g fill="ink">)
-    // or uses currentColor resolves correctly in PDF instead of rendering black - 
-    // getComputedStyle resolves SVG inheritance on the live DOM. (See drawShapeD.)
-    if (tag === 'path') { drawShapeD(el, el.getAttribute('d') ?? ''); return; }
-
-    // <ellipse> / <polygon> / <polyline> reduce to a `d` and paint through the same path
-    // pipeline. Previously they fell through to the generic child-recurse and were
-    // silently DROPPED from PDF output - real geometry loss for filter-voronoi (all
-    // polygons), org-chart / diagram-builder connectors, multi-page-pdf, etc. The
-    // EMF/EPS/DXF walker (svg-ir.ts) has always drawn them via the same reduction.
-    if (tag === 'ellipse') {
-      const ecx = svgLen(el.getAttribute('cx'), vbW), ecy = svgLen(el.getAttribute('cy'), vbH);
-      const erx = svgLen(el.getAttribute('rx'), vbW), ery = svgLen(el.getAttribute('ry'), vbH);
-      if (erx <= 0 || ery <= 0) return;
-      drawShapeD(el, `M${ecx - erx},${ecy} A${erx},${ery} 0 1 0 ${ecx + erx},${ecy} A${erx},${ery} 0 1 0 ${ecx - erx},${ecy} Z`);
-      return;
-    }
-
-    if (tag === 'polygon' || tag === 'polyline') {
-      const pts = (el.getAttribute('points') || '').match(/[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/g);
-      if (!pts || pts.length < 4) return;
-      let d = `M${pts[0]},${pts[1]}`;
-      for (let i = 2; i + 1 < pts.length; i += 2) d += ` L${pts[i]},${pts[i + 1]}`;
-      drawShapeD(el, d + (tag === 'polygon' ? ' Z' : ''));
-      return;
-    }
-
-    if (tag === 'image') {
-      const href = el.getAttribute('href') || el.getAttribute('xlink:href') || '';
-      if (!href) return;
-      const x = PX(svgLen(el.getAttribute('x'), vbW));
-      const y = PY(svgLen(el.getAttribute('y'), vbH));
-      const w = LW(svgLen(el.getAttribute('width'), vbW));
-      const h = LH(svgLen(el.getAttribute('height'), vbH));
-      if (w <= 0 || h <= 0) return;
-
-      // An <image> pointing at an SVG (e.g. the brand logo) must stay VECTOR - 
-      // addImage can't embed SVG. Inline it and recurse, honouring the
-      // <image>'s preserveAspectRatio (meet → fit the whole mark, centred).
-      // SVG-ness is detected from the bytes (asset URLs are blob: with no hint).
-      {
-        let inner: any = null;
-        try {
-          inner = await inlineSvgFromImg(href);
-          if (inner) {
-            inner.setAttribute('style', `position:absolute;left:-99999px;top:0;width:${Math.max(1, Math.round(w))}px;height:${Math.max(1, Math.round(h))}px`);
-            document.body.appendChild(inner);
-            const ivb  = inner.viewBox?.baseVal;
-            const ivbW = (ivb && ivb.width  > 0) ? ivb.width  : w;
-            const ivbH = (ivb && ivb.height > 0) ? ivb.height : h;
-            const par  = (el.getAttribute('preserveAspectRatio') || 'xMidYMid meet').trim();
-            let fx = x, fy = y, fw = w, fh = h;
-            if (!/^none/i.test(par)) {                 // meet: preserve aspect, centre
-              const s = Math.min(w / ivbW, h / ivbH);
-              fw = ivbW * s; fh = ivbH * s;
-              fx = x + (w - fw) / 2; fy = y + (h - fh) / 2;
-            }
-            // A nested <image href> is a REFERENCED asset (a user logo/photo), not
-            // Lolly-rendered content - never imprint it (KEY PRINCIPLE). Its own
-            // gradient/filter rasterisation fallback stays unmarked (imprint omitted).
-            await drawSvgVectorsInRegion(pdf, inner, fx, fy, fw, fh, registeredFonts, undefined, convertPaths);
-          }
-        } catch { /* fall through to raster */ }
-        finally { inner?.remove(); }
-        if (inner) return;
-      }
-
-      try {
-        const dataUrl = href.startsWith('data:') ? href : await blobToDataUrl(href);
-        const { src: imgSrc, fmt } = await imageForPdf(dataUrl);
-        pdf.addImage(imgSrc, fmt, x, y, w, h);
-      } catch { /* skip unresolvable images */ }
-      return;
-    }
-
-    // <use href="#id"> renders a deep clone of the referenced element at the use's
-    // position. Equivalent to a <g transform="[use transform] translate(x,y)"> wrapping
-    // the target: the use's own transform is already folded into tx/ty/sX/sY above, so
-    // here we add the x/y translate and walk the target. Previously <use> fell through to
-    // the child-recurse and, having no light-DOM children, drew NOTHING. The referenced
-    // subtree renders WITHOUT its definition-site ancestors (SVG spec), so visiting the
-    // target directly (bypassing the skipped <defs>/<symbol>) is correct.
-    if (tag === 'use') {
-      const href = (el.getAttribute('href') || el.getAttribute('xlink:href') || '').trim();
-      if (!href.startsWith('#') || useDepth >= MAX_USE_DEPTH) return;
-      let target: Element | null = null;
-      try { target = svgEl.querySelector('#' + CSS.escape(href.slice(1))); } catch { target = null; }
-      if (!target || target === el) return;
-      const utx = tx + sX * svgLen(el.getAttribute('x'), vbW);
-      const uty = ty + sY * svgLen(el.getAttribute('y'), vbH);
-      const ttag = target.tagName?.toLowerCase().replace(/^svg:/, '');
-      useDepth++;
-      try {
-        // A <symbol>/<svg> target contributes its CHILDREN (the element itself is a skipped
-        // container); any other element (path/g/shape) is walked directly.
-        if (ttag === 'symbol' || ttag === 'svg') { for (const c of target.children) await visit(c, utx, uty, sX, sY); }
-        else await visit(target, utx, uty, sX, sY);
-      } finally { useDepth--; }
-      return;
-    }
-
-    for (const child of el.children) await visit(child, tx, ty, sX, sY);
-    };
-
-    if (rotDeg) {
-      // Rotate pivot mapped to PDF pt through this element's composed diagonal
-      // transform. A reflection (negative determinant, e.g. a scale(-1) mirror
-      // ancestor) reverses rotation handedness, so negate to match the SVG.
-      const rotPx = ox + (tx - vbX) * sx;
-      const rotPy = oy + (ty - vbY) * sy;
-      const deg = (sX * sY * sx * sy) < 0 ? -rotDeg : rotDeg;
-      await withPdfRotation(pdf, deg, rotPx, rotPy, drawSelf);
-    } else {
-      await drawSelf();
-    }
-  }
-
-  await visit(svgEl, 0, 0, 1, 1);
+// Renders an SVG element into a rectangular region of the PDF page: ox/oy are the
+// region's top-left offsets and regionW/regionH its size, in points. Used by the
+// full-page SVG canvas path, by drawHtmlVectors for an inline <svg> and an SVG <img>,
+// and recursively for a nested <image>. The painter is export-pdf-svg.ts; this lends
+// it the picture capture and image decoding that live in this module.
+async function drawSvgVectorsInRegion(pdf: any, svgEl: Element, ox: number, oy: number, regionW: number, regionH: number, registeredFonts: Set<unknown> | null = null, imprint?: ImprintState, convertPaths = true, flipX = false): Promise<void> {
+  await paintSvgToPdf(pdf, svgEl, { x: ox, y: oy, w: regionW, h: regionH }, {
+    registeredFonts, convertPaths, flipX, imageForPdf,
+    rasterize: (el, pxW, pxH) => rasterizeSvgElement(el, pxW, pxH, flipX, imprint),
+  });
 }
-
-// Reads a CSS property from an element's style attribute (not computed style).
-// Used to extract fill/stroke when they are set via style="" rather than as attributes.
-function resolveStyleProp(el: any, prop: string): string | null {
-  const styleAttr = el.getAttribute('style') ?? '';
-  const m = styleAttr.match(new RegExp('(?:^|;)\\s*' + prop + '\\s*:\\s*([^;]+)'));
-  return m ? m[1]!.trim() : null;
-}
-
 
 // Rasterise a CSS linear- or radial-gradient fill to a PNG data URL at pxW×pxH. The PDF
 // compat-mode API has no vector shading (patterns need advancedAPI, which flips the
@@ -3653,32 +3190,14 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
       if (bR.rgb) edge(bR.rgb, x + w - bR.bw * scaleX, y, bR.bw * scaleX, h);
     }
 
-    // ── SVG subtree → vector region (or raster for gradient illustrations) ─────
+    // ── SVG subtree → vector region ──────────────────────────────────────────
+    // The painter draws gradients, clips and transparency itself, and draws the SVG
+    // as a picture at 150 dpi only for what it cannot (svgRasterReason). A scaleX(-1)
+    // flip (a negative computed matrix a, or the .flip class) mirrors either way.
     if (tag === 'svg') {
-      // Gradient / filter illustrations (e.g. the bag-video Geeko) can't be
-      // reproduced by the vector walker: drawSvgVectorsInRegion has no axial /
-      // radial shading and reads fills only from attributes or inline style, so
-      // url(#gradient) fills disappear and CSS-class fills (declared in an inner
-      // <style>) fall back to black - a solid silhouette. The SVG export keeps
-      // these vector by cloning the node verbatim; for PDF we rasterise just this
-      // subtree to a PNG (alpha preserved) so it keeps its shading, and reserve
-      // the crisp vector walk for solid-fill SVGs (qr, lockup, …).
-      if (el.querySelector('linearGradient, radialGradient, filter, pattern')) {
-        try {
-          // Resolution from the OUTPUT region (points → px at ~150dpi), not the
-          // on-screen box - so it's independent of the preview zoom and bounded.
-          const dpr = 150 / 72;
-          const pxW = Math.max(2, Math.min(2000, Math.round(w * dpr)));
-          const pxH = Math.max(2, Math.min(2000, Math.round(h * dpr)));
-          // Honour a scaleX(-1) flip (computed transform's matrix a-component < 0).
-          const tm = String(style.transform || '').match(/matrix\(\s*(-?[\d.]+)/);
-          const flipX = tm ? parseFloat(tm[1]!) < 0 : el.classList.contains('flip');
-          const png = await rasterizeSvgElement(el, pxW, pxH, flipX, imprint);
-          pdf.addImage(png, 'PNG', x, y, w, h);
-          return;
-        } catch { /* fall through to the vector walk */ }
-      }
-      await drawSvgVectorsInRegion(pdf, el, x, y, w, h, registeredFonts, imprint, convertPaths);
+      const tm = String(style.transform || '').match(/matrix\(\s*(-?[\d.]+)/);
+      const flipX = tm ? parseFloat(tm[1]!) < 0 : el.classList.contains('flip');
+      await drawSvgVectorsInRegion(pdf, el, x, y, w, h, registeredFonts, imprint, convertPaths, flipX);
       return;
     }
 
@@ -4111,49 +3630,6 @@ async function circularClipImage(imgEl: any, dataUrl: string): Promise<string> {
   return canvas.toDataURL('image/png');
 }
 
-// ── SUSE font embedding ───────────────────────────────────────────────────────
-
-// Embeds a SUSE weight+style variant into the document and returns the
-// fontStyle key to use with pdf.setFont(suseFontName(mono), key).
-// registeredFonts is a per-PDF-instance Set that avoids re-registering.
-// Font-file naming is shared with the SVG path emitter (text-svg.js) so the two
-// export paths never resolve the same weight to different files.
-const suseFontName = (mono: boolean) => (mono ? 'SUSEMono' : 'SUSE');
-async function embedSuseFont(pdf: any, registeredFonts: Set<unknown>, weight: number, italic: boolean, mono = false): Promise<string | null> {
-  const style = (mono ? 'm' : '') + (italic ? `wi${weight}` : `w${weight}`);
-  if (!registeredFonts.has(style)) {
-    const file = suseFontFile(weight, italic, mono);
-    const url  = SUSE_FONT_DIR + file;
-    try {
-      const b64 = await loadFontBase64(url);
-      pdf.addFileToVFS(file, b64);
-      pdf.addFont(file, suseFontName(mono), style);
-      registeredFonts.add(style);
-    } catch {
-      return null; // fetch failed; caller falls back to helvetica
-    }
-  }
-  return style;
-}
-
-// Live PDF text needs one permitted TrueType face at its default instance.
-// Other runs use the outline path, which supports variations and fallback faces.
-async function pdfFontEmbed(vf: VectorFont | null): Promise<string | null> {
-  if (!vf || vf.fallbacks?.length) return null;
-  try {
-    const bytes = Uint8Array.from(atob(await loadFontBase64(vf.url)), char => char.charCodeAt(0));
-    if (!canEmbedPdfSubset(bytes)) return null;
-  } catch { return null; }
-  if (!vf.variations?.length) return vf.url; // static face → its own weight
-  const defs = await _host?.text?.axisDefaults?.(vf.url).catch(() => null);
-  return vf.variations.every(setting => {
-    const match = /^([A-Za-z0-9]{4})=(-?\d+(?:\.\d+)?)$/.exec(setting);
-    if (!match) return false;
-    const wanted = Number(match[2]), def = defs?.[match[1]!];
-    return def != null && Math.abs(def - wanted) < 0.001;
-  }) ? vf.url : null;
-}
-
 // ── CMYK PDF export ───────────────────────────────────────────────────────────
 //
 // Post-processes a rendered PDF to convert RGB colour operators to CMYK.
@@ -4194,6 +3670,7 @@ async function renderCmykPdf(node: Element, opts: ExportOpts): Promise<Blob> {
   const usedKeys = new Set<string>();   // brand palette keys actually hit during substitution
   const usedSpots = new Set<string>();  // spot names actually referenced by a content stream
   const usedGs = new Set<string>();     // overprint/knockout ExtGStates actually emitted
+  const changedForms: any[] = [];       // form XObjects (transparency groups) the swap rewrote
 
   for (const [, obj] of pdfDoc.context.enumerateIndirectObjects()) {
     if (!(obj.contents instanceof Uint8Array)) continue;
@@ -4228,6 +3705,7 @@ async function renderCmykPdf(node: Element, opts: ExportOpts): Promise<Blob> {
     obj.contents = recompressed;
     dict.set(PDFName.of('Length'), PDFNumber.of(recompressed.length));
     if (!filter) dict.set(PDFName.of('Filter'), PDFName.of('FlateDecode'));
+    if (sub && String(sub).includes('Form')) changedForms.push(dict);
   }
 
   // Materialise a /Separation colourspace for every spot a content stream actually
@@ -4298,6 +3776,21 @@ async function renderCmykPdf(node: Element, opts: ExportOpts): Promise<Blob> {
     }
   }
 
+  // A transparency group has resources of its own, so the colour spaces and graphics
+  // states the swap wrote into one are added to its resources as well as to the page.
+  const pageRes = changedForms.length ? pdfDoc.getPage(0).node.Resources() : null;
+  for (const formDict of changedForms) {
+    const res = formDict.lookupMaybe(PDFName.of('Resources'), PDFDict) || pdfDoc.context.obj({});
+    formDict.set(PDFName.of('Resources'), res);
+    for (const cat of ['ColorSpace', 'ExtGState']) {
+      const from = pageRes?.lookupMaybe(PDFName.of(cat), PDFDict);
+      if (!from) continue;
+      const to = res.lookupMaybe(PDFName.of(cat), PDFDict) || pdfDoc.context.obj({});
+      res.set(PDFName.of(cat), to);
+      for (const [name, ref] of from.entries()) if (!to.get(name)) to.set(name, ref);
+    }
+  }
+
   // Print finishing in DeviceCMYK, drawn after the colour swap so registration
   // marks land on every plate (1 1 1 1) and aren't re-mapped by the RGB→CMYK pass.
   // The verification bar shows pairs for only the brand inks that actually
@@ -4336,116 +3829,6 @@ async function renderCmykPdf(node: Element, opts: ExportOpts): Promise<Blob> {
   // must be the final step). The PDF/X-4 conformance claim was already dropped in
   // applyPdfX above. Print PDFs had no password support before this.
   return opts.strongPassword ? encryptPdfStrong(cmykBlob, opts.strongPassword) : cmykBlob;
-}
-
-
-
-
-
-// The computed fill/stroke of a live-DOM SVG element - resolves SVG inheritance
-// (an ancestor group's paint) and currentColor. Empty for a detached element, so
-// callers keep their own literal fallback.
-function computedPaint(el: Element, prop: string): string {
-  try {
-    // getPropertyValue takes the CSS property NAME, so hyphenated props ('stroke-width')
-    // are read here exactly like single-word ones ('fill'/'stroke') - no `as any` index,
-    // and none of the camelCase IDL spelling this would need via the property accessor.
-    return (typeof window !== 'undefined' && el.isConnected) ? (window.getComputedStyle(el).getPropertyValue(prop) || '') : '';
-  } catch { return ''; }
-}
-
-
-
-/**
- * Resolve an element's stroke paint the way the browser does - the counterpart to
- * resolveColor() below, which has always done this for fill.
- *
- * A presentation attribute and an inline style are only two of the three ways a stroke
- * arrives. Illustrator/Figma SVGs - which is every SUSE catalog illustration - carry
- * theirs in a CSS CLASS instead: `.cls-7{stroke:#003e37;stroke-width:4px}`, with no
- * stroke attribute on any node. Neither of the first two reads can see that, so without
- * the computed fallback every such stroke resolved to 'none' and the artwork exported to
- * PDF as flat fills with EVERY outline missing - while fill came through, because
- * resolveColor already fell back to getComputedStyle. That asymmetry was the bug.
- *
- * Returns 'none' (the SVG initial value for stroke) when nothing paints, where the fill
- * side defaults to black. Detached nodes yield '' from computedPaint → 'none'.
- */
-export function strokeOf(el: Element): string {
-  const s = el.getAttribute('stroke') ?? resolveStyleProp(el, 'stroke') ?? '';
-  return (!s || s === 'currentColor') ? (computedPaint(el, 'stroke') || 'none') : s;
-}
-
-/**
- * Stroke width under the same three-way resolution, in SVG user units. A class-declared
- * `stroke-width:4px` is invisible to getAttribute, so this otherwise fell back to 1 and
- * hairlined artwork whose real width was 4. Non-finite/negative input → 1 (the SVG initial
- * value); getComputedStyle reports a resolved px length ("4px"), which parseFloat takes.
- */
-export function strokeWidthOf(el: Element): number {
-  const raw = el.getAttribute('stroke-width') ?? resolveStyleProp(el, 'stroke-width') ??
-              computedPaint(el, 'stroke-width');
-  const v = parseFloat(raw || '');
-  return Number.isFinite(v) && v >= 0 ? v : 1;
-}
-
-/**
- * Carry an SVG shape's stroke DECORATION - dash array, cap, join, miter limit - into the
- * PDF graphics state, and hand back the undo. Without this the PDF walker reproduced only a
- * stroke's colour and width, so a dashed or flat-capped outline exported as a plain round
- * solid one: a control whose effect vanished on export, which is worse than not offering it.
- *
- * The line state is STICKY (the operator is written once and every later stroke inherits
- * it), which is why the caller must run the returned restore - the same discipline the
- * border path already follows. Every setter is feature-checked because a writer build
- * ship only some of them.
- *
- * Lengths are multiplied by `mul`, the same user-unit → pt factor applied to stroke-width,
- * so a dash keeps its proportion to the line. `stroke-dasharray` is read as numbers only:
- * a non-finite or negative entry, or an all-zero pattern (which PDF rejects), drops the
- * dash rather than emitting an invalid pattern.
- */
-export function applySvgStrokeDecoration(pdf: any, el: Element, mul: number): (() => void) | null {
-  const undo: Array<() => void> = [];
-  const raw = el.getAttribute('stroke-dasharray') ?? resolveStyleProp(el, 'stroke-dasharray') ?? '';
-  if (raw && raw !== 'none' && typeof pdf.setLineDashPattern === 'function') {
-    const nums = raw.trim().split(/[\s,]+/).map((s) => parseFloat(s) * mul);
-    if (nums.length && nums.every((n) => Number.isFinite(n) && n >= 0) && nums.some((n) => n > 0)) {
-      pdf.setLineDashPattern(nums, 0);
-      undo.push(() => pdf.setLineDashPattern([], 0));
-    }
-  }
-  const cap = el.getAttribute('stroke-linecap') ?? resolveStyleProp(el, 'stroke-linecap') ?? '';
-  if ((cap === 'round' || cap === 'square') && typeof pdf.setLineCap === 'function') {
-    // The writer understands the SVG cap/join keywords verbatim ('square' → projecting),
-    // and THROWS on anything it does not, which is why only the two are let through.
-    pdf.setLineCap(cap);
-    undo.push(() => pdf.setLineCap('butt'));
-  }
-  const join = el.getAttribute('stroke-linejoin') ?? resolveStyleProp(el, 'stroke-linejoin') ?? '';
-  if ((join === 'round' || join === 'bevel') && typeof pdf.setLineJoin === 'function') {
-    pdf.setLineJoin(join);
-    undo.push(() => pdf.setLineJoin('miter'));
-  }
-  // A miter join is PDF's default, but its default LIMIT is 10 against SVG's 4 - so a
-  // shape that says 4 has to say it here too, or a spike PDF keeps is one the browser and
-  // the SVG export both bevelled away.
-  const ml = parseFloat(el.getAttribute('stroke-miterlimit') ?? resolveStyleProp(el, 'stroke-miterlimit') ?? '');
-  if (Number.isFinite(ml) && ml >= 1 && typeof pdf.setLineMiterLimit === 'function') {
-    pdf.setLineMiterLimit(ml);
-    undo.push(() => pdf.setLineMiterLimit(10));
-  }
-  return undo.length ? () => { for (const fn of undo) fn(); } : null;
-}
-
-function resolveColor(el: any): Rgb | null {
-  const attr = el.getAttribute('fill');
-  if (attr && attr !== 'currentColor') return parseSvgColor(attr);
-  const styleAttr = el.getAttribute('style') ?? '';
-  const styleMatch = styleAttr.match(/(?:^|;)\s*fill\s*:\s*([^;]+)/);
-  if (styleMatch) return parseSvgColor(styleMatch[1].trim());
-  const computed = typeof window !== 'undefined' ? window.getComputedStyle(el).fill : null;
-  return computed ? parseSvgColor(computed) : null;
 }
 
 

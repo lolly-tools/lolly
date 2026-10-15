@@ -288,3 +288,99 @@ test('a gradient with no stops paints the plain fill instead of naming a missing
   const res = pdf.getPage(0).node.Resources();
   assert.ok(!res.get(lib.PDFName.of('Shading')), 'no shading resource is declared for a pattern that never painted');
 });
+
+/** The decoded content of a form XObject in page one's resources. */
+function formOf(pdf: any, lib: any, name: string): { dict: any; content: string } {
+  const res = pdf.getPage(0).node.Resources();
+  const form = pdf.context.lookup(res.lookup(lib.PDFName.of('XObject'), lib.PDFDict).get(lib.PDFName.of(name)));
+  return { dict: form.dict, content: new TextDecoder('latin1').decode(inflateSync(Buffer.from(form.contents))) };
+}
+
+test('a group is drawn into a transparency form and painted once, faded as a whole', async () => {
+  const doc = await createPdfDoc({ format: [100, 100] });
+  doc.beginGroup();
+  doc.setFillColor(255, 0, 0);
+  doc.rect(0, 0, 50, 50, 'F');
+  doc.setFont('helvetica', 'normal');
+  doc.text('in a group', 5, 5);
+  doc.paintGroup(doc.endGroup([0, 0, 100, 100]), 0.5);
+  const { content, pdf, lib } = await readBack(doc);
+
+  assert.match(content, /q\n\/GA1 gs\n\/Fm1 Do\nQ/, 'the page paints the form under one alpha');
+  assert.doesNotMatch(content, /50 50 re/, 'what the group drew is in the form, not on the page');
+  const form = formOf(pdf, lib, 'Fm1');
+  assert.equal(String(form.dict.get(lib.PDFName.of('Subtype'))), '/Form');
+  assert.equal(String(form.dict.get(lib.PDFName.of('BBox'))), '[ 0 0 100 100 ]');
+  const group = form.dict.lookup(lib.PDFName.of('Group'), lib.PDFDict);
+  assert.equal(String(group.get(lib.PDFName.of('S'))), '/Transparency');
+  assert.equal(group.get(lib.PDFName.of('CS')), undefined,
+    'a content group blends in its parent space, so a CMYK print export keeps its PDF/X claim');
+  assert.match(form.content, /0 0 50 50 re\nf/);
+  assert.match(form.content, /Tj/);
+  const formRes = form.dict.lookup(lib.PDFName.of('Resources'), lib.PDFDict);
+  assert.ok(formRes.get(lib.PDFName.of('Font')), 'a font used only inside the group is declared on the form and written');
+});
+
+test('groups nest, and a DeviceGray group masks another by its luminosity', async () => {
+  const doc = await createPdfDoc({ format: [100, 100] });
+  doc.beginGroup();
+  doc.beginGroup();
+  doc.rect(0, 0, 10, 10, 'F');
+  doc.paintGroup(doc.endGroup([0, 0, 100, 100]), 0.25);
+  const outer = doc.endGroup([0, 0, 100, 100]);
+  doc.beginGroup();
+  doc.setFillColor(255, 255, 255);
+  doc.rect(0, 0, 5, 5, 'F');
+  const mask = doc.endGroup([0, 0, 100, 100], 'DeviceGray');
+  doc.paintGroup(outer, 1, mask);
+  const { content, pdf, lib } = await readBack(doc);
+
+  assert.match(content, /q\n\/GM\d+ gs\n\/Fm2 Do\nQ/, 'the outer group is painted through the soft mask, with no alpha state');
+  const outerForm = formOf(pdf, lib, 'Fm2');
+  assert.match(outerForm.content, /\/Fm1 Do/, 'the inner group is painted inside the outer one');
+  const gs = pdf.getPage(0).node.Resources().lookup(lib.PDFName.of('ExtGState'), lib.PDFDict);
+  const maskGs = [...gs.entries()].map(([, ref]: [unknown, any]) => pdf.context.lookup(ref)).find((d: any) => d.get(lib.PDFName.of('SMask')));
+  const smask = maskGs.lookup(lib.PDFName.of('SMask'), lib.PDFDict);
+  assert.equal(String(smask.get(lib.PDFName.of('S'))), '/Luminosity');
+  assert.equal(String(smask.get(lib.PDFName.of('BC'))), '[ 0 ]', 'outside the mask is black, so nothing shows there');
+  const maskForm = pdf.context.lookup(smask.get(lib.PDFName.of('G')));
+  const group = maskForm.dict.lookup(lib.PDFName.of('Group'), lib.PDFDict);
+  assert.equal(String(group.get(lib.PDFName.of('CS'))), '/DeviceGray', 'a luminosity group states its colour space, as PDF requires');
+});
+
+test('a gradient with stop opacities paints through a soft mask of a grey shading', async () => {
+  const doc = await createPdfDoc({ format: [100, 100] });
+  doc.addShadingPattern('c', new doc.ShadingPattern('radial', [50, 50, 0, 50, 50, 40], [
+    { offset: 0, color: [255, 0, 0] }, { offset: 1, color: [0, 0, 255] },
+  ]));
+  doc.addShadingPattern('a', new doc.ShadingPattern('radial', [50, 50, 0, 50, 50, 40], [
+    { offset: 0, color: [255] }, { offset: 1, color: [0] },
+  ], 'DeviceGray'));
+  doc.rect(10, 10, 80, 80, null);
+  doc.fill({ key: 'c', alpha: 'a' });
+  const { content, pdf, lib } = await readBack(doc);
+
+  assert.match(content, /q\n\/GM1 gs\n10 10 80 80 re\nW n\n1 0 0 1 0 0 cm\n\/Sh1 sh\nQ/, 'the mask is set before the clipped shading paints');
+  const smask = pdf.context.lookup(pdf.getPage(0).node.Resources().lookup(lib.PDFName.of('ExtGState'), lib.PDFDict).get(lib.PDFName.of('GM1')))
+    .lookup(lib.PDFName.of('SMask'), lib.PDFDict);
+  const maskForm = pdf.context.lookup(smask.get(lib.PDFName.of('G')));
+  const maskContent = new TextDecoder('latin1').decode(inflateSync(Buffer.from(maskForm.contents)));
+  assert.match(maskContent, /10 10 80 80 re\nW n\n1 0 0 1 0 0 cm\n\/Sh2 sh/, 'the mask repeats the path and paints the grey shading');
+  const grey = pdf.context.lookup(maskForm.dict.lookup(lib.PDFName.of('Resources'), lib.PDFDict).lookup(lib.PDFName.of('Shading'), lib.PDFDict).get(lib.PDFName.of('Sh2')));
+  assert.equal(String(grey.get(lib.PDFName.of('ColorSpace'))), '/DeviceGray');
+  assert.equal(String(grey.get(lib.PDFName.of('ShadingType'))), '3');
+});
+
+test('the writer knows the fill alpha in force, so a painter inside a fade can multiply by it', async () => {
+  const doc = await createPdfDoc({ format: [100, 100] });
+  assert.equal(doc.currentAlpha(), 1);
+  doc.saveGraphicsState();
+  doc.setGState(new doc.GState({ opacity: 0.5 }));
+  assert.equal(doc.currentAlpha(), 0.5);
+  doc.beginGroup();
+  assert.equal(doc.currentAlpha(), 1, 'a transparency group starts at full alpha, as PDF resets alpha there');
+  doc.paintGroup(doc.endGroup([0, 0, 1, 1]), 0.25);
+  assert.equal(doc.currentAlpha(), 0.5, 'painting a group restores the state around its own alpha');
+  doc.restoreGraphicsState();
+  assert.equal(doc.currentAlpha(), 1);
+});
