@@ -118,6 +118,14 @@ Three rules hold over every field.
 
 An effect recorded here is an observation, never a permission: a receipt that lists an effect does not authorise it on a later run.
 
+### Production bindings and observations
+
+Where recording is enabled, retain the exact selected file and observed digest separately from metadata, policy and review observations, including their origin, observation time, mapping revision and completeness (R15; plans 314 and 315). Historical bytes with only current attributes must be reported with that limitation. A cache token cannot replace either observation.
+
+For a campaign row, associate the result with stable row identity, input revision, resolved locale and field/fallback bindings. Keep the explicit action targets, destination write intent, remote asset/version identity and observed readiness alongside committed effects where retention permits. A retry adds evidence for its own attempt; it must never relabel an earlier output as the result of changed copy. Missing evidence remains an omission, and private context follows redaction policy.
+
+This elaborates the draft receipt's existing inputs, results and effects. It adds no shared type or mandatory durable record to local utilities (D11).
+
 ### Fonts, shaping and live text
 
 A receipt must record the font files a run resolved, by digest, together with the shaping engine and its version (R15).

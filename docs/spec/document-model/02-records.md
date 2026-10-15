@@ -56,6 +56,14 @@ Rights evidence reuses `CreativeWorkRecordV1`, `RightsEvidenceV1`, `PermissionGr
 
 The dependency graph emitted by an evaluation and a historical derivation record answer different questions. The first records what that evaluation used; the second may also carry external assertions. An index may combine them only while preserving their origins and completeness. No graph becomes a second source of authored rows (R1). Private recipes and hidden neighbours need their own access checks, including counts and traversal results ([policy](policy.html)).
 
+## Content history and production inputs
+
+A historical original and historical metadata are separate evidence (plan 315; R4, R15). A source may retain old file bytes while exposing only current attributes. Bind each retained metadata, policy or review observation to its own source, observation time and mapping revision, and state whether its historical scope is known. An unchanged digest must never imply unchanged permission or review, and current attributes must never be presented as a snapshot taken when older bytes were created.
+
+Structured copy is a typed input resource, with content identity, schema and source revision, locale, selected fields and mapping revision. Accepted field values and row-local overrides belong to the authored instance. Preserve their origin and fallback choices. Refreshing a content source, brand context or tool definition proposes an explicit update; it must never rewrite a saved instance or another locale's edits (R1, R4).
+
+An instruction preset, reusable brand context, executable tool definition and observed run are different records. Instructions may inform an operation but cannot grant effects or replace deterministic authored rules. Private context keeps its own disclosure policy. These requirements add no new input type or portable part; existing input, dependency and locale contracts must be extended only after their applicable fixtures pass.
+
 ## CompiledDocument stays transient
 
 `compileDocument` mounts a runtime, reads the input model and returns a `CompiledDocument` holding the manifest, the model, the values, the resolved token references where the model holds any, the hydrated markup and the scoped styles, which are null when the tool ships none (`engine/src/document-api.ts`).

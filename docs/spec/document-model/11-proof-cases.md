@@ -173,6 +173,28 @@ Expected outcome: reconciliation reads operation identity, attempts, staged arti
 **38. Preserved private evidence.** Import a future recipe/evidence part, persist, restart, edit an unrelated permitted field and save. Then export to a recipient who lacks recipe access, followed by an older-reader round trip.
 Expected outcome: authorised retained bytes survive the owner round trip. Disclosure is checked separately before export; private fields and hidden lineage do not travel by accident. Revision-scoped evidence remains historical after a change. Required unknown parts invoke the reader or affected-operation gate. No new part is emitted before those preservation and compatibility gates exist (R10, R11). This extends case 21.
 
+## Production and provider cases from the follow-up review
+
+These cases extend the DAM boundary after the Papirfly, Air and Adobe review (plans 314 and 315). They are requirements; focused evidence at an existing seam is not the complete case.
+
+**39. Old bytes, current attributes.** Resolve a historical original whose source retains no historical attributes. Change its current review and access state without changing its bytes or metadata cache token.
+Expected outcome: byte identity, metadata observation, review subject and current authority remain separate. Current attributes are not attributed to the historical revision. A digest or cache token cannot preserve permission after withdrawal; missing historical evidence remains unknown (R3, R4, R15).
+
+**40. Incompatible search modes.** Request semantic ranking with exact tags and a date filter from a source that supports those filters only in lexical mode. Return one capped relevance page and one unavailable source.
+Expected outcome: the host refuses or explicitly negotiates unsupported combinations without silently dropping required filters. Exact-filter browsing remains available. Result scope, completeness and permission-filtered counts are explicit; no-match, unavailable and unsearched are distinct answers (R3, R11).
+
+**41. Campaign refresh and selective retry.** Bind two locales to a content-schema revision, override one row's copy, then refresh the content and tool definition. One variant fails preflight; retry only that variant after repair.
+Expected outcome: incoming fields are compared against the pinned base; local overrides and conflicts survive. Stable row identity and input revision follow every finding and output despite queue compaction. Successful rows are not regenerated or relabelled. Changed proof membership invokes its stated review policy (R1, R4, R5, R15).
+
+**42. Transfer accepted, original pending.** Deliver to an existing remote asset with explicit create, new-version and replacement intentions in separate attempts. Lose the completion acknowledgement while processing continues, and deliver duplicate or no events.
+Expected outcome: conflict/version policy is explicit before the write. Reconciliation checks remote identity and effects before retry. Accepted transfer, processing, original readiness, review and publication remain separate observations. No preview substitutes for a pending original, no unintended overwrite occurs and unknown completion remains unknown (R3, R5, R11). This extends case 37.
+
+**43. Automated approval for another target.** Import a source's automatically set internal-library approval. Submit a public-delivery proof containing two locale variants, then change one crop and a responsive viewport.
+Expected outcome: decision origin and activation target are retained. The internal assertion cannot approve public delivery or become human review. The new decision binds exact variant revisions and membership; responsive proof records the tested viewport and state. Earlier decisions remain historical and cannot approve changed bytes or untested views (R8, R15).
+
+**44. Viewer context changes during a task.** Preview a mutation of selected files, navigate to another file, then revoke access to one selected item while earlier items complete.
+Expected outcome: navigation never widens the explicit target set or confirms a destination. Admission and commit checks apply per affected item, with committed, blocked and unknown outcomes retained. Prior task consent cannot widen source or destination grants, and hidden targets remain hidden (R3, R5, R15).
+
 ## The five that come first
 
 The plan's section 18 names five of these cases as the ones that run before any shared type is frozen, because each one carries contract semantics that a type would otherwise settle by accident.
@@ -187,7 +209,7 @@ The plan's section 18 names five of these cases as the ones that run before any 
 
 The patch envelope and the source-aware diff land when their semantics are fixed in [Source rows, payloads and patches](source-and-patches.html) and [Packaging, identity and migration](packaging.html), not before (plan section 18). Cases 13, 15 and 16 are the evidence those semantics are settled.
 
-Cases 30 to 38 add gates for shared source-history, processing and review contracts. They do not replace the five above or make the first native still-image suite depend on a DAM vendor. Freeze only the smallest contract justified by its applicable fixtures, and keep unimplemented cases stated as requirements (plan 314).
+Cases 30 to 44 add gates for shared source-history, processing and review contracts. They do not replace the five above or make the first native still-image suite depend on a DAM vendor. Freeze only the smallest contract justified by its applicable fixtures, and keep unimplemented cases stated as requirements (plan 314).
 
 ## Open points
 

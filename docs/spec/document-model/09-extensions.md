@@ -48,6 +48,10 @@ Search capabilities must distinguish supported filters/facets, semantic availabi
 
 A capability declaration never grants model processing, data egress or spend authority (R3). Source, outbound destination and processing service are distinct roles even when one vendor supplies all three. Their credentials and grants remain with the host or Work. A missing processing service must never prevent reuse of permitted stored result bytes.
 
+Search support must be stated per mode and allowed parameter combination, not as independent filter booleans (plan 315). A source may support exact tags and semantic ranking separately while refusing them together. The host must report or refuse that combination explicitly, offer a permitted exact-filter route and distinguish a complete empty result from a capped or partial candidate set. Post-filtering a relevance page must never imply complete eligible recall.
+
+Resource readiness is specific to the requested action and representation. Distinguish unsupported, not yet ready, inaccessible and unavailable where disclosure permits. Transfer completion, a ready preview, a ready original, review and publication must never collapse into one ready flag. These are requirements for future projections, not new provider fields supplied by this draft (R11).
+
 ## Requiredness is scoped to the operation
 
 A requirement is always a requirement for something. A host must scope requiredness to the affected operation and output target, never to the document as a whole (plan section 12, third compatibility gate of the review).

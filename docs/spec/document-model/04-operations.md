@@ -139,6 +139,14 @@ A remote transform produces a new artifact. Fixed delivery stages and checks its
 
 Processing and delivery retries keep a logical operation identity and reconcile its attempts, staged artifacts and uncertain effects before repeating an external action (R5). A cancelled local wait is not proof that a remote job stopped or that no charge occurred. The outcome reports what the host observed; unobserved completion remains unknown. This extends the lost-acknowledgement case, not the promise of exactly-once execution.
 
+### Explicit targets and remote readiness
+
+Before a consequential batch, resolve an explicit bounded target set with selected revisions, intended changes, destination and permitted cost (R3, R5; plan 315). Viewer context, a search result or later navigation must never silently change those targets. Check authority again at commit and report each item's observed result. An item whose required authority is withdrawn cannot commit merely because earlier items succeeded.
+
+A destination operation must declare whether it creates an asset, adds a version or replaces content, with a conflict precondition. Omitting a vendor flag must never silently choose that policy. Reconcile an uncertain completion against remote identity and observed effects before retry; a timeout does not prove no write occurred.
+
+Transfer accepted, processing pending, selected original ready, review accepted and published are distinct resource observations. They do not add states to the run lifecycle above. A completed transfer can finish its own operation while processing remains pending; a render needing the original must wait or report unavailable. Events prompt a verified refresh, and bounded reconciliation covers missing events. A preview or upload acknowledgement cannot establish original readiness or publication (R5, R11).
+
 ## What each operation must specify
 
 An operation declaration must state each of these (plan section 7.1):

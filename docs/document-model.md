@@ -20,7 +20,7 @@ This is a draft for review, dated 2026-09-24. Nothing in it is normative until t
 
 A D id is a confirmed direction. An R id is a resolution proposed from evidence; it stands unless the review overturns it. A C id is a correction the final review made before drafting started.
 
-The focused DAM review of 2026-10-15 adds requirements for exact source files, imported evidence, review scope and current source/processing authority. The four records and the Design, Chart and Agenda pilots stay in place. Cases 30 to 38 describe the new requirements; they are not implemented DAM contract fixtures. The [status chapter](/info/spec/document-model/status.html) records the review's scope and remaining work.
+The focused DAM review of 2026-10-15 adds requirements for exact source files, imported evidence, review scope and current source/processing authority. The four records and the Design, Chart and Agenda pilots stay in place. The follow-up production review adds typed content/locale bindings, independent metadata observations, explicit action targets, asynchronous readiness and review purpose. Cases 30 to 44 describe the new requirements; they are not implemented DAM contract fixtures. The [status chapter](/info/spec/document-model/status.html) records the review's scope and remaining work.
 
 ## Where to read the specification
 

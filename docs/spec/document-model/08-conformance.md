@@ -88,6 +88,12 @@ Fixed delivery approval must bind the final staged output digest. Work's existin
 
 Adaptive publication would instead accept a pinned source and a versioned policy for permitted transformations. This is a proposed acceptance class, not a capability supplied by the draft. It requires its own validation and delivery contract before implementation and must never be presented as approval of exact delivered bytes. Existing fixed-byte delivery keeps its current meaning (R8; plan 300).
 
+### Review purpose and production proofs
+
+A source approval assertion needs its purpose, activation target, origin and subject, including whether a person decided or an automated rule set the state (R8, R15; plan 315). Approval for an internal library must never imply approval for public delivery. A mapped flag with unknown subject stays an incomplete upstream assertion, even when the bytes have a verified digest.
+
+Campaign review identifies exact variant revisions and proof-set membership. A responsive proof additionally identifies the viewport, rendering environment and sampled state it shows; a screenshot proves only that view. Changed copy, crop, bytes or membership needs the relevant decision again. Successful unchanged variants keep their historical decisions; a set-level policy may still require resubmission of the set. Review routing belongs to the host workflow and does not grant source, processing or delivery access.
+
 ## The native 0.1 suites
 
 | Suite | Scope | State in this draft |

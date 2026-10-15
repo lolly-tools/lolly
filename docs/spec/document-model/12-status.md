@@ -32,6 +32,14 @@ The index identifies this amendment as `draft-2026-10-15`; chapter notices retai
 
 Passing those focused tests is not admission of a conformance fixture. Cases 34, 35 and 38 still require their full privacy, imported-recipe and package round trips.
 
+### Papirfly, Air and Adobe follow-up
+
+The same wave now includes plan 315's production findings: historical bytes versus current attributes, typed content and locale bindings, explicit bounded action targets, destination write intent, asynchronous readiness, search-mode compatibility and review purpose/origin. Cases 39 to 44 state the required counterexamples. A campaign remains a host/Work record referencing the four document records; no fifth root or separate renderer is introduced (R1, R3, R4, R5, R8, R11, R15).
+
+Focused evidence additionally exercises Work's current exposure predicate after an upstream approval change with unchanged bytes/cache token, and Batch's stable row mapping when a caller selects only failed rows. The first does not prove live upstream revocation or historical metadata retrieval. The second does not implement campaign persistence, content refresh, proof-set review or remote commit checks. Cases 39 to 44 remain unimplemented end-to-end requirements.
+
+Plan 314's later order is paged library, source/history, controlled campaign production, governed discovery and selected processing/delivery. Plan 191 owns portable locale/matrix descriptions; Work plan 43 owns persisted campaigns. Vendor qualification may proceed independently, and no new adapter is enabled by this draft.
+
 ## Confirmed decisions
 
 These come from Andy's recorded direction. They are settled and must not be reopened by a chapter (D1 to D13).
@@ -153,6 +161,7 @@ Two rules bind that order. No shared type may be frozen before the fixtures in s
 
 | Date | Change |
 |---|---|
+| 2026-10-15 | Plan 315 follow-up extends wave 1 with content/metadata history, typed production bindings and refresh, stable campaign rows, action targets, explicit destination writes, readiness, search combinations and review purpose/origin. Cases 39 to 44 and focused exposure/Batch evidence are added. Affects R1, R3, R4, R5, R8, R11 and R15; no shared contract or vendor adapter is implemented. |
 | 2026-10-15 | Focused DAM review and plan 314 wave 1. Four-record resource mapping, exact-byte pin requirements, source and processing authority, review subjects, imported generation evidence, fixed/adaptive delivery and private package disclosure are specified as draft requirements. Cases 30 to 38 are added. No shared type or conformance claim is introduced. |
 | 2026-09-24 | Draft for review. The twelve chapters were written from the plan 276 consolidation after its final review, with D1 to D13 confirmed, R1 to R15 adopted from evidence, C1 to C9 corrected and Q1 to Q6 recorded with their defaults. No type is frozen and no conformance claim is made. |
 | 2026-09-26 | Constitution. The thirteen invariants gain four reading groups with their numbers unchanged, and a table of where each one holds today, what is not met yet and which proof cases test it; the table finds no case that tests invariant 11 on its own and only case 7 behind invariant 5. The no-cloud limit now states R7 as a requirement and records that the web shell fails closed after 24 hours offline instead. The limits section says which two promises its first two items bound. Affects R7. |
