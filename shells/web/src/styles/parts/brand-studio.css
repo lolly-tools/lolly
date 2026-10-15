@@ -230,11 +230,11 @@ button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), 
 .be-cand-name { font-size: var(--fs-sm); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .be-cand-hex { font-family: var(--font-mono); font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
 .be-cand-add {
-  flex: 0 0 auto; border: 1px solid hsl(var(--primary) / .4); background: hsl(var(--primary) / .1);
+  flex: 0 0 auto; border: 1px solid hsl(var(--border)); background: hsl(var(--primary) / .1);
   color: hsl(var(--primary)); font: inherit; font-size: var(--fs-xs); font-weight: 700;
-  padding: .3rem .6rem; border-radius: var(--radius-pill); cursor: pointer; transition: background var(--dur-1);
+  padding: .3rem .6rem; border-radius: var(--radius-pill); cursor: pointer; transition: background var(--dur-1), border-color var(--dur-1);
 }
-.be-cand-add:hover:not(:disabled) { background: hsl(var(--primary) / .18); }
+.be-cand-add:hover:not(:disabled) { background: hsl(var(--primary) / .18); border-color: hsl(var(--primary) / .4); }
 .be-cand-add:disabled { border-color: hsl(var(--border)); background: transparent; color: hsl(var(--muted-foreground)); cursor: default; }
 
 .be-previews-wrap { display: grid; gap: .5rem; }
@@ -1071,11 +1071,12 @@ background-image:
 
 /* ── The generate offer (plan 182 section 3a, beat 1). A panel, not a link on a
       chip that a dismiss takes away: it is the one thing worth doing after a
-      first colour, and it says which colour it will build from. Full-perimeter
-      tint in the brand's own colour - never a single accent edge. */
+      first colour, and it says which colour it will build from. A full tint in the
+      brand's own colour on the neutral hairline every card wears at rest, never a
+      single accent edge. */
 .be-generate-cta {
   display: none; align-items: center; gap: 1rem; flex-wrap: wrap;
-  border-color: hsl(var(--primary) / .5); background: hsl(var(--primary) / .06);
+  border-color: hsl(var(--border)); background: hsl(var(--primary) / .06);
 }
 .be-generate-cta[hidden] { display: none; }
 .be-generate-cta-copy { display: grid; gap: .25rem; min-width: 0; flex: 1 1 18rem; }
@@ -1937,7 +1938,7 @@ html[data-a11y-motion="reduce"] .start:has(> .stu-sheet) .be-bulkbar { transitio
   flex: 1;
   min-width: 50px;
   padding: 0.4rem 0.6rem;
-  border: 1px solid hsl(var(--primary) / 0.3);
+  border: 1px solid hsl(var(--border));
   border-radius: calc(var(--radius) * 0.6);
   background-color: hsl(var(--primary) / 0.08);
   color: hsl(var(--primary));

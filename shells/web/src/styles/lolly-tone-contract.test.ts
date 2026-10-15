@@ -106,7 +106,8 @@ test('the job stripe falls back to the tone and the credential panel washes the 
   assert.match(tokens, /--job-candy-a:\s*var\(--brand-primary,\s*var\(--lolly-tone\)\);/);
   const panel = ruleBody(read('styles/parts/assets.css'), '.cat-cred-lolly') ?? '';
   assert.ok(panel.includes(`color-mix(in srgb, ${READ} 6%, transparent)`), 'a 6% wash of the tone');
-  assert.ok(panel.includes(`color-mix(in srgb, ${READ} 32%, transparent)`), 'a 32% border of the tone');
+  // At rest a card wears the theme's neutral hairline and the tone stays in the wash (C3).
+  assert.ok(panel.includes('border: 1px solid hsl(var(--border));'), 'a neutral hairline border');
   // Andy's rule: full wash and full border, never a one-sided rail on a radiused element.
   assert.ok(/border-radius:/.test(panel) && !/border-(left|right|top|bottom)\s*:/.test(panel), 'no single-edge border');
   // The brand theme's mid-dark cards take a 4% wash so the large badge holds 4.5:1

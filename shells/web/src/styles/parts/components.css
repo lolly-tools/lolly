@@ -349,7 +349,7 @@
     font-weight: 600;
     font-size: var(--fs-md);
     line-height: 1;
-    border: 1px solid hsl(var(--primary));
+    border: 1px solid transparent;
     padding: 0 10px 0 3em;
     border-radius: calc(var(--radius)*1.5);
   }
@@ -419,8 +419,10 @@ html[data-a11y-motion="reduce"] .profile-link .profile-link-mark .lolly-mark__sp
  height: 2.2em;
   border-radius: var(--radius-round);
   object-fit: cover;
-  border: 1px solid hsl(var(--primary) / .4);
+  border: 1px solid hsl(var(--border));
 }
+.profile-link:hover .profile-link-avatar,
+.profile-link:focus-visible .profile-link-avatar { border-color: hsl(var(--primary) / .4); }
 
 /* On mobile the gallery scrolls under it, so pin the profile button to the
    viewport; the legibility blur comes from the shared .btn--glass recipe

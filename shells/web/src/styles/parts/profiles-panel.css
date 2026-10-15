@@ -53,12 +53,13 @@
 
    It is not `aria-pressed` and never becomes the charted target - pressing it opens a
    panel - so it deliberately does NOT wear the pressed segment's solid primary fill.
-   A tint plus a primary border is the "act" state; solid primary would claim it was
-   the current comparison. Only properties color-lab.css's own `.lab-limit-add` rule
-   leaves alone are set here, so neither rule depends on which sheet loads first. */
+   The tint is the "act" state, and the primary edge arrives on hover; solid primary
+   would claim it was the current comparison. Only properties color-lab.css's own
+   `.lab-limit-add` rule leaves alone are set here, so neither rule depends on which
+   sheet loads first. */
 .lab-limit .view-seg-btn.lab-limit-add {
   padding-inline: 0.7rem;
-  border-color: hsl(var(--primary) / 0.55);
+  border-color: hsl(var(--border));
   background: hsl(var(--primary) / 0.14);
   color: hsl(var(--primary));
   line-height: 1;

@@ -237,8 +237,8 @@
   transition: border-color var(--dur-1), background var(--dur-1), transform var(--dur-1);
 }
 .welcome-card:hover { border-color: hsl(var(--primary) / 0.55); transform: translateY(-1px); }
+/* The lead card is marked by its wash; at rest every card wears the neutral hairline and the accent edge arrives on hover. */
 .welcome-card--brand {
-  border-color: hsl(var(--primary) / 0.45);
   background: hsl(var(--primary) / 0.06);
 }
 /* Icon leading each choice card - heart (make it yours) / filePlus (bring your
