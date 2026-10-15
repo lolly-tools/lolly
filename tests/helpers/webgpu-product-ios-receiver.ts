@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
-/** The real mobile product through an owned physical iPhone console, never a simulator. */
+/** The real mobile product through an owned physical iPhone or iPad console, never a simulator. */
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { dirname } from 'node:path';
