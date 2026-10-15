@@ -7,6 +7,13 @@ on:
       target:
         required: true
         type: string
+      # The packaged app this frontend is for (macos, ios, android, linux or windows).
+      # Each one needs only its own row of docs/supported-environments.md; a native
+      # target without a platform keeps the full WebGPU hold.
+      platform:
+        required: false
+        type: string
+        default: ''
       public_key_jwk:
         required: true
         type: string
@@ -33,6 +40,7 @@ env:
   LOLLY_PROFILE: lolly-start
   LOLLY_EMBED_CATALOG: profile
   VITE_CATALOG_PUBLIC_KEY_JWK: ${{ inputs.public_key_jwk }}
+  LOLLY_RELEASE_PLATFORM: ${{ inputs.platform }}
 
 jobs:
   source-catalog:
@@ -52,9 +60,7 @@ jobs:
         env:
           FRONTEND_TARGET: ${{ inputs.target }}
         run: |
-          node --input-type=module -e 'import{parseReleaseFrontend}from"./scripts/build-release-web.ts";parseReleaseFrontend(process.env.FRONTEND_TARGET)'
-          scope=all
-          if [ "$FRONTEND_TARGET" = web ]; then scope=web; fi
+          scope=$(node --input-type=module -e 'import{parseReleaseFrontend,releaseGateScope}from"./scripts/build-release-web.ts";console.log(releaseGateScope(parseReleaseFrontend(process.env.FRONTEND_TARGET)))')
           node scripts/webgpu-release-gate.ts --scope "$scope"
           mkdir -p node_modules/@lolly-tools
           ln -s ../../packages/node-shell node_modules/@lolly-tools/node-shell
