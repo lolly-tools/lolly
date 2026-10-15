@@ -196,6 +196,6 @@
      the one name /info re-points, where the raw --muted slot means muted text. */
   background: color-mix(in srgb, var(--ui-color-surface-muted) 45%, transparent);
   text-shadow: 0 1px hsl(var(--secondary) / .5);
-  color: hsl(var(--on-primary));
+  color: inherit;   /* the parent's colour, not .btn's or the browser's button or link colour */
   transition: background var(--ui-motion-feedback), box-shadow var(--ui-motion-feedback);
 }

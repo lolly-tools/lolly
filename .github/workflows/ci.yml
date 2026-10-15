@@ -443,18 +443,9 @@ jobs:
           } finally { await browser.close(); }
           JS
 
-      - name: Check browser entry points before the full suite
-        if: matrix.shard == 'browser'
-        env:
-          PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.browsers
-          LOLLY_TIER_B_DEBUG: '1'
-          LOLLY_BROWSER_CHANNEL: chromium
-        run: |
-          set -o pipefail
-          node --import ./tests/browser-gpu.ts --import ./tests/css-stub.mjs --test --test-concurrency=1 \
-            services/mcp/test/motion-samples.browser.test.ts \
-            tests/design-theme.browser.test.ts \
-            tests/open-route.browser.test.ts 2>&1 | tee artifacts/browser-readiness.log
+      # Entry-point feature tests run first in their assigned required partition.
+      # Every runner still warms both shells above and checks its GPU/renderer;
+      # the three complete feature files are no longer repeated on all runners.
 
       - name: Install Rust toolchain (Tauri shard)
         if: matrix.shard == 'tauri'
@@ -565,7 +556,6 @@ jobs:
             artifacts/public-journey-shell.log
             artifacts/public-render-shell.log
             artifacts/public-journey-build.log
-            artifacts/browser-readiness.log
             artifacts/geometry-fit-report.json
             artifacts/geometry-portable-report.json
             artifacts/geometry-clip-report.json

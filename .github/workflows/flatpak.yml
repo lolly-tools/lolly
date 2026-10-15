@@ -39,6 +39,7 @@ jobs:
     uses: ./.github/workflows/release-frontend.yml
     with:
       target: tauri-desktop
+      platform: linux
       public_key_jwk: ${{ vars.VITE_CATALOG_PUBLIC_KEY_JWK }}
       connector_origins: ${{ vars.VITE_CONNECTOR_ORIGINS }}
       ca_enrollment_trust_json: ${{ vars.VITE_CA_ENROLLMENT_TRUST_JSON }}
@@ -81,7 +82,7 @@ jobs:
       # webgpu_qualification input. That build is unsigned and marked not for release.
       - name: Refuse a release without the WebGPU supported-environment table
         if: startsWith(github.ref, 'refs/tags/v')
-        run: node scripts/webgpu-release-gate.ts
+        run: node scripts/webgpu-release-gate.ts --scope linux
 
       - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable branch, pinned 2026-08-04
 

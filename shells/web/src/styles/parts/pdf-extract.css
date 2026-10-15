@@ -173,8 +173,8 @@
   min-width: 1.35em; height: 1.35em; padding: 0 0.4em;
   border-radius: var(--radius-pill);
   font-size: calc(0.78rem * var(--a11y-fs)); font-weight: 700; font-variant-numeric: tabular-nums;
-  background: color-mix(in oklab, var(--brand-primary, #6b4bd6) 18%, transparent);
-  color: var(--brand-primary, #6b4bd6);
+  background: color-mix(in oklab, var(--brand-primary, hsl(var(--primary))) 18%, transparent);
+  color: var(--brand-primary, hsl(var(--primary)));
 }
 
 .pdfx-tab.is-active {

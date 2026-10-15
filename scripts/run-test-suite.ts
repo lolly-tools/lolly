@@ -5,7 +5,7 @@ import { execFileSync, spawnSync } from 'node:child_process';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { browserPartitionFiles, parseBrowserPartition } from './browser-partitions.ts';
+import { browserExecutionFiles, browserPartitionFiles, parseBrowserPartition } from './browser-partitions.ts';
 
 export const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const TEST_ROOTS = [
@@ -100,7 +100,7 @@ export function main(argv = process.argv.slice(2)): number {
   if (partitionArgs.length > 1) throw new Error('only one browser partition may be selected');
   if (partitionArgs.length && requested !== 'browser') throw new Error('only the browser shard can be partitioned');
   const partition = partitionArgs[0] ? parseBrowserPartition(partitionArgs[0].slice('--partition='.length)) : undefined;
-  const files = partition ? browserPartitionFiles(inventory.browser, partition)
+  const files = partition ? browserExecutionFiles(browserPartitionFiles(inventory.browser, partition))
     : requested === 'all' ? discoverTests() : inventory[requested as TestShard];
   if (argv.includes('--list')) {
     for (const shard of SHARDS) console.log(`${shard.padEnd(16)} ${inventory[shard].length}`);
@@ -113,9 +113,10 @@ export function main(argv = process.argv.slice(2)): number {
     return 2;
   }
   const started = Date.now();
-  const args = ['--import', './tests/css-stub.mjs', '--test'];
+  const args = ['--import', './tests/css-stub.mjs'];
+  if (!partition) args.push('--test');
   if (process.env.LOLLY_WEBGPU_TEST_ADAPTER) args.push('--import', './tests/browser-gpu.ts');
-  if (process.env.LOLLY_SKIP_REPORT) args.push('--test-reporter=./tests/reporters/skip-identities.ts');
+  if (!partition && process.env.LOLLY_SKIP_REPORT) args.push('--test-reporter=./tests/reporters/skip-identities.ts');
   const childEnv = { ...process.env };
   if (partition) {
     if (!process.env.LOLLY_SKIP_REPORT || !process.env.LOLLY_TEST_COVERAGE_REPORT) {
@@ -133,7 +134,7 @@ export function main(argv = process.argv.slice(2)): number {
   // some wall time for a run that does not depend on scheduling luck. Unset - CI and a plain
   // `pnpm test` - keeps the default, so this is byte-for-byte inert until someone opts in.
   const testConcurrency = process.env.LOLLY_TEST_CONCURRENCY;
-  if (partition) args.push('--test-concurrency=1');
+  if (partition) args.push('./scripts/run-browser-files.ts');
   else if (testConcurrency && /^\d+$/.test(testConcurrency)) args.push(`--test-concurrency=${testConcurrency}`);
   args.push(...files);
   const result = spawnSync(process.execPath, args, {
