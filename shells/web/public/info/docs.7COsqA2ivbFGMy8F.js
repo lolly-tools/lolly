@@ -178,7 +178,9 @@ window.__lollyChipField=function(canvas,opt){
     while(floaters.length<targetFloaters()) floaters.push(makeFloater(initial));
   }
 
-  var still=!!opt.reduceMotion && window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  // Read once, before the first frame. The attribute is the app's own switch, which
+  // these pages pick up from its saved copy (THEME_INIT_SCRIPT), beside the OS query.
+  var still=opt.reduceMotion!==false && (document.documentElement.dataset.a11yMotion==='reduce' || window.matchMedia('(prefers-reduced-motion:reduce)').matches);
   var running=false;
   function start(){
     if(running||still)return;
@@ -596,7 +598,8 @@ window.__lollyChipField=function(canvas,opt){
 (function(){
   var canvas=document.getElementById('heroCanvas');
   if(!canvas)return;
-  // The landing hero: default palette, always running, and it bursts when tapped.
+  // The landing hero: default palette, running from the start, and it bursts when
+  // tapped. Under reduced motion the engine's default paints one still frame instead.
   window.__lollyChipField(canvas,{burst:true});
 })();
 ;

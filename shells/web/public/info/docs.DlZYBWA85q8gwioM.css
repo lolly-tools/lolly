@@ -82,8 +82,11 @@
   --shadow-3: 0 8px 28px hsl(0 0% 0% / .22);
   --shadow-4: 0 12px 36px hsl(0 0% 0% / .26);
   --shadow-5: 0 24px 60px hsl(0 0% 0% / .3);
+  --shadow-rail: 1rem 0 1rem -1rem #0002;
+  --shadow-sidebar: 1px 0 3px -3px #0001, 1rem 0 .5rem -.5rem #0001;
   --bevel: inset 0 1px hsl(0 0% 100% / .1);
-  --bevel-inset: inset 1px 1px 0 #0001, inset -1px 2px 5px #0002, 0 1px var(--ui-color-surface-raised);
+  --bevel-inset: inset 0 0px 2px #0003, inset -1px 2px 5px #0001, 0 1px var(--ui-color-surface-raised);
+  --bevel-input-well: inset 3px 2px 10px var(--ui-color-surface-canvas);
   --ring-focus: 0 0 0 3px hsl(var(--ring) / .15);
   --ring-focus-strong: 0 0 0 2px hsl(var(--primary) / .35);
   --radius-xs: calc(var(--radius) * .25);
@@ -162,6 +165,8 @@
   --ui-elevation-floating: var(--shadow-3);
   --ui-elevation-sheet: var(--shadow-4);
   --ui-elevation-overlay: var(--shadow-5);
+  --ui-elevation-rail: var(--shadow-rail);
+  --ui-elevation-sidebar: var(--shadow-sidebar);
   --ui-edge-default: var(--edge);
   --ui-edge-faint: var(--edge-faint);
   --ui-edge-strong: var(--edge-strong);
@@ -172,6 +177,7 @@
   --ui-effect-accent-ring: inset 0 0 0 1px hsl(var(--primary) / .20);
   --ui-effect-selection-ring: 0 0 0 2px var(--ui-color-selection-border);
   --ui-effect-selection-ring-hover: 0 0 0 2px color-mix(in srgb, var(--ui-color-selection-border) 40%, transparent);
+  --ui-effect-input-well: var(--bevel-input-well);
   --ui-type-display: calc(64px * var(--a11y-fs));
   --ui-type-heading: calc(28px * var(--a11y-fs));
   --ui-type-lead: calc(18px * var(--a11y-fs));
@@ -1135,11 +1141,20 @@ html[data-theme="dark"] .quicknav{background:rgba(9,26,21,.9)}
 .hero-logo-link{position:relative}
 .hero-logo-still{position:absolute;inset:0;width:100%;height:100%;border-radius:50%;filter:hue-rotate(-15deg);transition:opacity .25s ease;pointer-events:none}
 .hero-logo-link:hover .hero-logo-still,.hero-logo-link:focus-visible .hero-logo-still{opacity:0}
+/* Every reduced-motion rule in this file comes twice: once under the OS query and
+   once as an html[data-a11y-motion="reduce"] twin for the in-app Reduce motion
+   switch. The static /info pages do not load the app's base.css, so the twin here
+   is the only thing that answers that switch on them (THEME_INIT_SCRIPT in
+   docs/build.ts sets the attribute before paint). tests/docs-landing-motion.test.ts
+   fails when a rule has one form without the other. The 1px press is travel too, so
+   it goes with the rest. */
 @media (prefers-reduced-motion: reduce){
   .hero-logo-link:hover .hero-logo-still,.hero-logo-link:focus-visible .hero-logo-still{opacity:1}
+  .hero-logo-link:active{transform:none}
 }
 html[data-a11y-motion="reduce"] .hero-logo-link:hover .hero-logo-still,
 html[data-a11y-motion="reduce"] .hero-logo-link:focus-visible .hero-logo-still{opacity:1}
+html[data-a11y-motion="reduce"] .hero-logo-link:active{transform:none}
 /* The verify badge. Sits ON the circle's lower-right diagonal (a circle inscribed in
    the slot meets that diagonal at 50%+35.4%), small enough that the mark is still the
    thing you see - the badge is an offer, not a second logo. Its own hit area is 44px
@@ -1157,6 +1172,9 @@ html[data-a11y-motion="reduce"] .hero-logo-link:focus-visible .hero-logo-still{o
   box-shadow:0 .35em .8em #0006,0 0 0 .22em rgba(255,255,255,.75);outline:none}
 @media(prefers-reduced-motion:reduce){.hero-verify{transition:none}
   .hero-verify:hover,.hero-verify:focus-visible{transform:translate(-50%,-50%)}}
+html[data-a11y-motion="reduce"] .hero-verify{transition:none}
+html[data-a11y-motion="reduce"] .hero-verify:hover,
+html[data-a11y-motion="reduce"] .hero-verify:focus-visible{transform:translate(-50%,-50%)}
 .hero .subtitle{font-size:clamp(.9375rem,1.8vw,1.125rem);max-width:560px;margin:0 auto 2.75rem; color:hsl(var(--on-band-dark) / .5);font-weight:300;line-height:1.85;position:relative}
 .hero-cta{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;position:relative;margin-bottom:2.5rem}
 .hero-trust{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:.5rem;position:relative}
@@ -1206,6 +1224,8 @@ html[data-a11y-motion="reduce"] .hero-logo-link:focus-visible .hero-logo-still{o
   font-family:var(--ui-type-mono-family,var(--font-mono,monospace));font-size:.8125rem;line-height:1.6}
 .agent-dialog-body:focus-visible{outline:2px solid var(--ui-color-focus-ring,currentColor);outline-offset:-2px}
 @media(prefers-reduced-motion:reduce){.agent-pill,.agent-pill-icon,.agent-pill-icon[data-tip]::after{transition:none}}
+html[data-a11y-motion="reduce"] .agent-pill,html[data-a11y-motion="reduce"] .agent-pill-icon,
+html[data-a11y-motion="reduce"] .agent-pill-icon[data-tip]::after{transition:none}
 .trust-dot{color:hsl(var(--on-band-dark) / .18)!important}
 /* The landing's big call-to-action pill. Its own class, not .btn: /info reads the
    app's buttons.css for its top bar (plan 277 step 3c), and there .btn is the
@@ -1243,6 +1263,9 @@ html[data-a11y-motion="reduce"] .hero-logo-link:focus-visible .hero-logo-still{o
    words readable over anything the backdrop turns into. */
 .btn-secondary{background:rgba(6,20,14,.42);color:hsl(var(--on-band-dark));border:0;position:relative}
 .btn-secondary:hover{background:rgba(6,20,14,.28);text-decoration:none;transform:translateY(-1px)}
+/* Reduced motion keeps the hover's colour and drops the lift. */
+@media(prefers-reduced-motion:reduce){.btn-primary:hover,.btn-secondary:hover{transform:none}}
+html[data-a11y-motion="reduce"] .btn-primary:hover,html[data-a11y-motion="reduce"] .btn-secondary:hover{transform:none}
 /* Glass baseline - frosted blur so the buttons read as glass even where the JS
    liquid-displacement filter can't render. The buildGlass script overrides this
    inline with the refractive filter on the PRIMARY button only: the secondary
@@ -1453,6 +1476,15 @@ html[data-a11y-motion="reduce"] .hero-logo-link:focus-visible .hero-logo-still{o
   .dl-tile:hover .dl-go,.dl-tile:focus-visible .dl-go{transform:none}
   .dl-more:hover,.dl-more:focus-visible{gap:.35rem}
 }
+html[data-a11y-motion="reduce"] .dl-tile{transition:border-color .22s ease,background-color .22s ease}
+html[data-a11y-motion="reduce"] .dl-tile:hover,html[data-a11y-motion="reduce"] .dl-tile:focus-visible,
+html[data-a11y-motion="reduce"] .dl-tile:active{transform:none}
+html[data-a11y-motion="reduce"] .dl-tile::after{display:none}
+html[data-a11y-motion="reduce"] .dl-tile::before{transition:opacity .2s ease;transform:scale(1)}
+html[data-a11y-motion="reduce"] .dl-mark,html[data-a11y-motion="reduce"] .dl-go{transition:opacity .2s ease,color .2s ease}
+html[data-a11y-motion="reduce"] .dl-tile:hover .dl-mark,html[data-a11y-motion="reduce"] .dl-tile:focus-visible .dl-mark{transform:none}
+html[data-a11y-motion="reduce"] .dl-tile:hover .dl-go,html[data-a11y-motion="reduce"] .dl-tile:focus-visible .dl-go{transform:none}
+html[data-a11y-motion="reduce"] .dl-more:hover,html[data-a11y-motion="reduce"] .dl-more:focus-visible{gap:.35rem}
 
 /* Three-door pathways band - sits directly under the hero on the landing page. */
 .pathways-section{background:transparent;position:relative;z-index:1;padding:3rem 1.5rem}
@@ -2028,7 +2060,6 @@ html[data-theme="dark"] .fmt-dialog-unsup{background:rgba(254,124,63,.13)}
 .audience-mascot{width:clamp(200px,26vw,430px);flex-shrink:0;filter:drop-shadow(0 6px 20px rgba(12,50,44,.18))}
 @media(max-width:900px){.audience-mascot{width:clamp(160px,22vw,280px)}}
 @media(max-width:600px){.audience-header{flex-direction:column;gap:1rem;padding:2rem 1.25rem 1rem}.audience-header-text{text-align:center}.audience-mascot{width:clamp(140px,44vw,220px)}}
-.hero-founded{margin-top:2rem; max-width:15em;}
 /* About section */
 .about-section{padding:3.25rem 1.5rem;background:hsl(var(--band-dark));color:hsl(var(--on-band-dark))}
 .about-inner{max-width:960px;margin:0 auto}
@@ -2123,9 +2154,13 @@ html[data-theme="dark"] .fmt-dialog-unsup{background:rgba(254,124,63,.13)}
   .reveal-1,.reveal-2,.reveal-3,.reveal-4,.reveal-5,.reveal-6{transition-delay:0s}
 }
 @media(prefers-reduced-motion:reduce){
-  .hero h1,.hero .subtitle,.hero-cta,.hero-trust{animation:none}
+  .hero-heading,.hero h1,.hero .subtitle,.hero-cta,.hero-agent,.hero-trust{animation:none}
   .reveal,.reveal.visible{opacity:1;transform:none;transition:none}
 }
+html[data-a11y-motion="reduce"] .hero-heading,html[data-a11y-motion="reduce"] .hero h1,
+html[data-a11y-motion="reduce"] .hero .subtitle,html[data-a11y-motion="reduce"] .hero-cta,
+html[data-a11y-motion="reduce"] .hero-agent,html[data-a11y-motion="reduce"] .hero-trust{animation:none}
+html[data-a11y-motion="reduce"] .reveal,html[data-a11y-motion="reduce"] .reveal.visible{opacity:1;transform:none;transition:none}
 [data-theme="dark"] .audience-section{border-bottom-color:var(--border)}
 [data-theme="dark"] .audience-header{background:linear-gradient(180deg,#0a1f16 0%,#061816 100%)}
 [data-theme="dark"] .audience-title{color:var(--text)}
@@ -2208,6 +2243,7 @@ html[data-theme="dark"] .fmt-dialog-unsup{background:rgba(254,124,63,.13)}
 .hero-statement--cycle .cycle-word.is-swapping span{transform:translateX(-.5em);opacity:0}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 @media (prefers-reduced-motion: reduce){.hero-statement--cycle .cycle-word span{transition:none}}
+html[data-a11y-motion="reduce"] .hero-statement--cycle .cycle-word span{transition:none}
 
 /* ── beat 2: the covers ─────────────────────────────────────────────────────
    Base form is a scroll-snap FILMSTRIP: native swipe and drag on touch, wheel
@@ -2283,6 +2319,7 @@ html[data-theme="dark"] .fmt-dialog-unsup{background:rgba(254,124,63,.13)}
 .covers-open-btn.is-on{opacity:1;transform:none;pointer-events:auto; position:relative; z-index:9}
 .covers-open-btn:hover{text-decoration:none;filter:brightness(1.07)}
 @media (prefers-reduced-motion: reduce){.covers-open-btn{transition:none}}
+html[data-a11y-motion="reduce"] .covers-open-btn{transition:none}
 .covers-nav{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:.5rem}
 .covers-btn{width:36px;height:36px;border-radius:50%;border:1px solid hsl(var(--on-band-dark) / .3);background:transparent;color:hsl(var(--on-band-dark));cursor:pointer;font-size:1.1rem;line-height:1}
 .covers-btn:hover{border-color:hsl(var(--primary))}
@@ -2290,6 +2327,7 @@ html[data-theme="dark"] .fmt-dialog-unsup{background:rgba(254,124,63,.13)}
 .covers-dot{width:8px;height:8px;border-radius:50%;background:hsl(var(--on-band-dark) / .3);border:0;padding:0;cursor:pointer;transition:all .2s ease}
 .covers-dot[aria-current="true"]{background:hsl(var(--primary));width:22px;border-radius:4px}
 @media (prefers-reduced-motion: reduce){.covers--fan .cover-card{transition:none}}
+html[data-a11y-motion="reduce"] .covers--fan .cover-card{transition:none}
 
 /* ── beat 3: what / why ─────────────────────────────────────────────────── */
 .whatwhy-section{padding:4rem 1.5rem 2.5rem}
@@ -2327,7 +2365,16 @@ html[data-theme="dark"] .fmt-dialog-unsup{background:rgba(254,124,63,.13)}
 .persona-tabs img{transition: all .5s ease; filter:drop-shadow( 0 1px 14px color-mix(in oklab,var(--green) 86%,var(--page)))}
 #door-creators:not(:checked) ~ .persona-tabs label[for="door-creators"] img,
 #door-builders:not(:checked) ~ .persona-tabs label[for="door-builders"] img,
-#door-operators:not(:checked) ~ .persona-tabs label[for="door-operators"] img{filter:grayscale(.6) brightness(1.3) contrast(1.16) ; opacity:.2; transition: all .5s ease; transform:scale(.8) translate(2em, -5em)}
+#door-operators:not(:checked) ~ .persona-tabs label[for="door-operators"] img{filter:grayscale(.6) brightness(1.3) contrast(1.16) ; opacity:.2; transform:scale(.8) translate(2em, -5em)}
+/* Reduced motion: a door changes state without moving. The ghost rule above takes its
+   transition from .persona-tabs img, so one rule there stops all three mascots. Do not
+   restate a transition on the ghost rule: its ids would out-rank this one. */
+@media (prefers-reduced-motion: reduce){
+  .persona-tab:hover{transform:none}
+  .persona-tabs img{transition:none}
+}
+html[data-a11y-motion="reduce"] .persona-tab:hover{transform:none}
+html[data-a11y-motion="reduce"] .persona-tabs img{transition:none}
 #door-creators:checked ~ .persona-tabs label[for="door-creators"] .persona-sub,
 #door-builders:checked ~ .persona-tabs label[for="door-builders"] .persona-sub,
 #door-operators:checked ~ .persona-tabs label[for="door-operators"] .persona-sub{color:var(--text)}

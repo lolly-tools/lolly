@@ -2323,7 +2323,8 @@ function buildLandingContent(md: string, lang: Lang = 'en') {
   var a=document.getElementById('heroCycle');if(!a)return;
   var data;try{data=JSON.parse(a.getAttribute('data-cycle'))}catch(e){return}
   if(!data||data.length<2)return;
-  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return; // the first word stands
+  // Reduced motion, from the OS or from the app's switch on <html>: the first word stands.
+  if(document.documentElement.dataset.a11yMotion==='reduce'||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
   var word=a.querySelector('span')||a,i=0,hold=0;
   function set(n){
     i=(n+data.length)%data.length;
@@ -3945,7 +3946,18 @@ const GITHUB_LINK    = `<a class="site-fab site-fab--github" href="https://githu
 // so it carries the `.dark` class too - the mastheads render their dark palette under it. New
 // mastheads read [data-theme] per plans/212-docs-masthead-gemini-prompt.md; once the bank is
 // re-baked on that prompt this class shim can go.
-const THEME_INIT_SCRIPT = `<script>(function(){var c=localStorage.getItem('theme'),s=window.matchMedia('(prefers-color-scheme:dark)').matches;var t=(c==='light'||c==='dark'||c==='brand')?c:(s?'dark':'light');var r=document.documentElement;r.dataset.theme=t;r.classList.toggle('dark',t==='dark'||t==='brand');})();</script>`;
+//
+// The same script carries the app's Reduce motion switch onto these pages. The app
+// keeps a copy of its accessibility choices in localStorage under 'lolly-a11y'
+// (written by shells/web/src/lib/a11y-prefs.ts, read before paint by
+// shells/web/index.html), and /info shares the app's origin, so a reader who turned
+// motion down in the app gets html[data-a11y-motion="reduce"] here too, read in the
+// same format and with the same truthy check. That attribute is what the twins in
+// docs-landing.css, the chip field and the hero's cycling word answer to; the static
+// pages never load the app's base.css. The read has its own try, so a damaged copy
+// cannot cost the reader the theme. tests/docs-landing-motion.test.ts runs this script
+// against the copy the app's own writer produces.
+const THEME_INIT_SCRIPT = `<script>(function(){var c=localStorage.getItem('theme'),s=window.matchMedia('(prefers-color-scheme:dark)').matches;var t=(c==='light'||c==='dark'||c==='brand')?c:(s?'dark':'light');var r=document.documentElement;r.dataset.theme=t;r.classList.toggle('dark',t==='dark'||t==='brand');try{var ax=JSON.parse(localStorage.getItem('lolly-a11y')||'null');if(ax&&ax.reduceMotion)r.dataset.a11yMotion='reduce';}catch(e){}})();</script>`;
 
 // Pre-paint, beside the theme flag and for the same reason: it decides how the
 // first frame is painted. It only ARMS the screenshot motion - SHOT_MOTION_SCRIPT
@@ -4386,11 +4398,15 @@ function chipExtensions(): string[] {
  *                    existing chips in place (docs) instead of resetting the field.
  *   burst          → click/tap scatters a ring of chips (landing only).
  *   pause          → run only while the band is on screen and the tab is visible.
- *   reduceMotion   → honour prefers-reduced-motion by painting ONE frame, no loop.
+ *   reduceMotion   → on unless a caller passes false. When the reader asks for less
+ *                    motion (the OS preference, or the app's Reduce motion switch that
+ *                    THEME_INIT_SCRIPT mirrors onto <html> as data-a11y-motion), paint
+ *                    ONE frame: no loop, and no burst.
  *
- * Defaults reproduce the landing exactly (landing palette, no pausing, no
- * reduced-motion branch, and the loop started immediately) - this refactor moved the
- * code, not the hero.
+ * Defaults reproduce the landing (landing palette, no pausing, the loop started
+ * immediately). Reduced motion is a default as well: the landing passes only
+ * {burst:true}, and while the option was opt-in that left its field moving for a
+ * reader who had asked for less motion.
  */
 const CHIP_FIELD_JS = `
 window.__lollyChipField=function(canvas,opt){
@@ -4572,7 +4588,9 @@ window.__lollyChipField=function(canvas,opt){
     while(floaters.length<targetFloaters()) floaters.push(makeFloater(initial));
   }
 
-  var still=!!opt.reduceMotion && window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  // Read once, before the first frame. The attribute is the app's own switch, which
+  // these pages pick up from its saved copy (THEME_INIT_SCRIPT), beside the OS query.
+  var still=opt.reduceMotion!==false && (document.documentElement.dataset.a11yMotion==='reduce' || window.matchMedia('(prefers-reduced-motion:reduce)').matches);
   var running=false;
   function start(){
     if(running||still)return;
@@ -4648,7 +4666,8 @@ window.__lollyChipField=function(canvas,opt){
 const HERO_CANVAS_SCRIPT = `<script>(function(){
   var canvas=document.getElementById('heroCanvas');
   if(!canvas)return;
-  // The landing hero: default palette, always running, and it bursts when tapped.
+  // The landing hero: default palette, running from the start, and it bursts when
+  // tapped. Under reduced motion the engine's default paints one still frame instead.
   window.__lollyChipField(canvas,{burst:true});
 })();</script>`;
 
