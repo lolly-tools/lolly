@@ -67,7 +67,7 @@ export function ownedAppName(runId: string): string {
 }
 
 export function sanitizeIosInfo(info: Record<string, unknown>, runId: string): Record<string, unknown> {
-  const result = { ...info, CFBundleIdentifier: productProbeIdentity(runId), CFBundleDisplayName: 'Lolly GPU Qualification' };
+  const result = { ...info, CFBundleIdentifier: productProbeIdentity(runId), CFBundleDisplayName: 'Lolly Connect Test' };
   for (const key of IOS_REGISTRATIONS) delete (result as Record<string, unknown>)[key];
   return result;
 }

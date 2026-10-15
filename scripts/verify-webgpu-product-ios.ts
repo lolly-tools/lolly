@@ -21,7 +21,7 @@ import { appDigest, completeIosRuntime, ownedAppName, parseApplePlist, requireSo
 const repo = fileURLToPath(new URL('../', import.meta.url));
 const mobile = join(repo, 'shells/tauri-mobile');
 export const IOS_PRODUCT_SOURCES = [
-  'scripts/verify-webgpu-product-ios.ts', 'scripts/verify-webgpu-product.ts', 'scripts/build-native.ts', 'scripts/build-release-web.ts',
+  'scripts/verify-webgpu-product-ios.ts', 'scripts/verify-webgpu-product.ts', 'scripts/build-native.ts', 'scripts/build-release-web.ts', 'scripts/build-onboarding-test-frontend.ts',
   'scripts/lib/webgpu-ios-product.ts', 'scripts/lib/webgpu-ios-device.ts', 'scripts/lib/webgpu-product-corpus.ts', 'scripts/webgpu-qualification.ts',
   'scripts/lib/webgpu-ios-build.ts', 'scripts/lib/webgpu-ios-probes.ts', 'scripts/lib/webgpu-ios-generated.ts', 'scripts/lib/webgpu-ios-process.ts',
   'tests/helpers/webgpu-product-receiver.ts', 'tests/helpers/webgpu-product-ios-receiver.ts', 'tests/helpers/webgpu-browser.ts',
@@ -42,6 +42,7 @@ export const IOS_PRODUCT_SOURCES = [
 
 export function iosProbeConfig(runId: string): Record<string, unknown> {
   return { identifier: productProbeIdentity(runId), productName: 'Lolly WebGPU Product Qualification',
+    build: { beforeBuildCommand: 'node ../../scripts/build-onboarding-test-frontend.ts' },
     bundle: { createUpdaterArtifacts: false, fileAssociations: [] } };
 }
 
@@ -126,7 +127,7 @@ async function prepare(output: string, sourceSha: string): Promise<void> {
   writeMarker(output); await writeFile(join(output, 'probe-config.json'), JSON.stringify(config, null, 2) + '\n', { flag: 'wx' });
   await writeFile(join(output, 'environment.json'), JSON.stringify({ version: 1, platform: 'ios', runId, identifier: config.identifier,
     date: new Date().toISOString(), status: 'prepared; no build, device install or launch', release: false, sources, sourceSha,
-    scope: 'Instrumented mobile product with normal scene, custom protocol, shared CSP, startup, storage and default GPU preferences. Device use needs explicit --run. Catalog/release signing remains disabled; local development signing is required for a physical device.' }, null, 2) + '\n', { flag: 'wx' });
+    scope: 'Standalone onboarding test app using the normal native startup without the GPU probe feature. Opens from its icon without launch environment. Development signed, unsigned catalog, not for release. GPU corpus execution is disabled in this build-only source derivation.' }, null, 2) + '\n', { flag: 'wx' });
 }
 
 async function appleInputs(output: string, sources: Record<string, unknown>): Promise<AppleInputs> {
@@ -163,7 +164,7 @@ async function archiveProduct(output: string, receipt: IosProductReceipt & Recor
     ...selected.tools, tauriCli };
   const started = Date.now(), log = openSync(join(output, 'build.log'), 'wx');
   try {
-    const status = await runOwnedBuild({ command: process.execPath, args: ['scripts/build-native.ts', 'mobile', 'ios', '--target', 'aarch64', '--features', 'webgpu-probe', '--no-sign', '--archive-only', '--config', config],
+    const status = await runOwnedBuild({ command: process.execPath, args: ['scripts/build-native.ts', 'mobile', 'ios', '--target', 'aarch64', '--no-sign', '--archive-only', '--config', config],
       cwd: repo, env: { ...selected.env, LOLLY_KEEP_NATIVE_CACHE: '1' }, stdio: ['ignore', log, log], leases: selected.guard.leases, binding: selected.binding, deadline: selected.guard.deadline, supervise: true, protectedGroup: selected.guard.protectedGroup });
     assert.equal(status, 0, 'The archive build failed; inspect the owned build log.');
   } finally { closeSync(log); }
@@ -235,7 +236,8 @@ async function runProduct(output: string, receipt: IosProductReceipt & Record<st
 
 export async function verifyIosProduct(argv = process.argv.slice(2)): Promise<number> {
   assert.equal(process.platform, 'darwin', 'Physical iPhone and iPad qualification requires this Mac and its existing Apple tooling.');
-  const modes = argv.filter(value => ['--prepare', '--build', '--run'].includes(value));
+  assert.ok(!argv.includes('--run'), 'This standalone manual client test cannot run or claim the GPU corpus.');
+  const modes = argv.filter(value => ['--prepare', '--build'].includes(value));
   assert.equal(modes.length, 1, 'Choose exactly one explicit prepare, build or run step.');
   for (const value of argv) assert.ok(['--prepare', '--build', '--run'].includes(value) || /^--(output|profile|identity|device)=.+$/.test(value), 'Unknown physical-product argument.');
   const requested = argument(argv, 'output'); assert.ok(requested, 'Select the exact owned --output directory.');
