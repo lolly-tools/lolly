@@ -3800,17 +3800,17 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
     const drawContent = async (): Promise<void> => {
       for (const child of el.children) {
         const cd = window.getComputedStyle(child).display;
-        // Same carve-out as the SVG walker: inline children are left to the inline-text
-        // pass, which emits TEXT and has no <svg> branch - so an inline <svg> was
-        // dropped from PDF output entirely, silently. An <svg> is replaced content with
-        // a box of its own at any display value. A bare <svg> defaults to display:inline,
-        // which is what a tool's own canvas is, so this is the same missing-QR-code bug
-        // on the PDF side. Drawing it can only add: the previous behaviour was nothing.
+        // Inline children are left to the inline pass (renderInlineContent), which draws
+        // their text and hands nested pictures and block-level descendants back to
+        // visit() as drawBox. An <svg> child is visited here at any display value: it is
+        // replaced content with a box of its own, and a bare <svg> defaults to
+        // display:inline, which is what a tool's own canvas is (the missing-QR-code bug
+        // on the PDF side). Drawing it can only add: the previous behaviour was nothing.
         if ((cd === 'inline' || cd === 'inline-block' || cd === 'inline-flex')
             && child.tagName.toLowerCase() !== 'svg') continue;
         await visit(child);
       }
-      await renderInlineContent(pdf, el, style, rootRect, scaleX, scaleY, cssToPt, registeredFonts, convertPaths, imprint, visit);
+      await renderInlineContent(pdf, el, style, rootRect, scaleX, scaleY, cssToPt, registeredFonts, visit, convertPaths, imprint);
       await pdfPseudoContent(pdf, el, rootRect, scaleX, scaleY, cssToPt, registeredFonts, convertPaths);
     };
     if (clipsOverflow && (hasRadius || spillsBox)) await withPdfRoundedClip(pdf, x, y, w, h, radii, uniform, drawContent);
@@ -3832,12 +3832,13 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
 //
 // Block-level children are skipped - the main visit() loop already handles them.
 // <br> is skipped - the line break is implicit in the text nodes' y positions.
-// An <svg> nested in inline flow, such as an emoji placement's artwork, has no other
-// owner, so it goes to `drawBox`, the walker's own element painter (pdfInlineNonText).
+// An <svg> or a block-level box nested in inline flow, such as an emoji placement's
+// artwork, has no other owner, so it goes to `drawBox`, the walker's own element
+// painter (pdfInlineNonText).
 async function renderInlineContent(
   pdf: any, blockEl: any, blockStyle: CSSStyleDeclaration,
   rootRect: { left: number; top: number }, scaleX: number, scaleY: number, cssToPt: number,
-  registeredFonts: Set<unknown>, convertPaths = true, imprint?: ImprintState, drawBox?: (el: Element) => Promise<void>,
+  registeredFonts: Set<unknown>, drawBox: (el: Element) => Promise<void>, convertPaths = true, imprint?: ImprintState,
 ): Promise<void> {
   async function walk(node: any, nodeStyle: CSSStyleDeclaration, deco: Deco): Promise<void> {
     if (node.nodeType === 3) {
@@ -3997,7 +3998,7 @@ async function renderInlineContent(
       }
 
     } else if (node.nodeType === 1) {
-      // A <br>, an emoji placement's hidden characters or a picture drawBox has drawn.
+      // A <br>, an emoji placement's hidden characters or an element drawBox has drawn.
       if (await pdfInlineNonText(node, blockEl, drawBox)) return;
       const s = window.getComputedStyle(node);
       if (s.display === 'none') return;
