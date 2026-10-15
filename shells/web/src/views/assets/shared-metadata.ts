@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Organisation fields are local overlays; this editor never rewrites upstream source facts. */
 import { instanceFetch, instancePath, getInstanceBase } from '../../lib/instance.ts';
-import { escape as esc } from '../../utils.ts';
 import { t } from '../../i18n.ts';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 interface Field { id: string; label: string; kind: 'text' | 'date' | 'url' | 'select'; required?: boolean; options?: string[] }
@@ -19,12 +18,36 @@ export async function mountSharedMetadata(root: HTMLElement, ref: AssetRef, refr
     const value = await response.json() as { id: string; canEdit?: boolean; fields?: Record<string, string>; fieldDefs?: Field[] };
     if (!root.isConnected || origin !== getInstanceBase() || value.id !== id) return;
     const fields = (value.fieldDefs ?? []).filter(field => /^[a-z0-9][a-z0-9-]{0,39}$/.test(field.id)).slice(0, 100);
-    root.innerHTML = `<details><summary>${t('Organisation metadata')}</summary><p>${t('These fields belong to this organisation. Source metadata stays with the connected library.')}</p>
-      ${fields.length ? value.canEdit ? `<form>${fields.map(field => `<label class="cat-shared-field">${esc(field.label)}${field.kind === 'select'
-        ? `<select aria-label="${esc(field.label)}" name="${field.id}"${field.required ? ' required' : ''}><option value=""></option>${(field.options ?? []).map(option => `<option value="${esc(option)}"${value.fields?.[field.id] === option ? ' selected' : ''}>${esc(option)}</option>`).join('')}</select>`
-        : `<input aria-label="${esc(field.label)}" name="${field.id}" type="${field.kind === 'date' ? 'date' : field.kind === 'url' ? 'url' : 'text'}" value="${esc(value.fields?.[field.id] ?? '')}" maxlength="4000"${field.required ? ' required' : ''}>`}</label>`).join('')}
-        <button type="submit" class="btn">${t('Save metadata')}</button><p role="status" data-metadata-status></p></form>`
-        : `<dl>${fields.map(field => `<dt>${esc(field.label)}</dt><dd>${esc(value.fields?.[field.id] ?? t('Not recorded'))}</dd>`).join('')}</dl>` : `<p>${t('No organisation fields are configured.')}</p>`}</details>`;
+    const element = <K extends keyof HTMLElementTagNameMap>(tag: K, text?: string): HTMLElementTagNameMap[K] => {
+      const node = root.ownerDocument.createElement(tag);
+      if (text !== undefined) node.textContent = text;
+      return node;
+    };
+    const details = element('details');
+    details.append(element('summary', t('Organisation metadata')), element('p', t('These fields belong to this organisation. Source metadata stays with the connected library.')));
+    if (!fields.length) details.append(element('p', t('No organisation fields are configured.')));
+    else if (!value.canEdit) {
+      const list = element('dl');
+      for (const field of fields) list.append(element('dt', field.label), element('dd', value.fields?.[field.id] ?? t('Not recorded')));
+      details.append(list);
+    } else {
+      const form = element('form');
+      for (const field of fields) {
+        const label = element('label', field.label); label.className = 'cat-shared-field';
+        const control = field.kind === 'select' ? element('select') : element('input');
+        if (control instanceof HTMLSelectElement) {
+          const blank = element('option'); blank.value = ''; control.append(blank);
+          for (const option of field.options ?? []) { const node = element('option', option); node.value = option; control.append(node); }
+        } else { control.type = field.kind === 'date' ? 'date' : field.kind === 'url' ? 'url' : 'text'; control.maxLength = 4000; }
+        control.name = field.id; control.required = !!field.required;
+        control.setAttribute('aria-label', field.label); control.value = value.fields?.[field.id] ?? '';
+        label.append(control); form.append(label);
+      }
+      const button = element('button', t('Save metadata')); button.type = 'submit'; button.className = 'btn';
+      const status = element('p'); status.setAttribute('role', 'status'); status.dataset.metadataStatus = '';
+      form.append(button, status); details.append(form);
+    }
+    root.replaceChildren(details);
     root.querySelector('form')?.addEventListener('submit', async event => {
       event.preventDefault(); if (controller.signal.aborted || origin !== getInstanceBase()) return;
       const form = event.currentTarget as HTMLFormElement, button = form.querySelector<HTMLButtonElement>('button')!, status = form.querySelector<HTMLElement>('[data-metadata-status]')!;

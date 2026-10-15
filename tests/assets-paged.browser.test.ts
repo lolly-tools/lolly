@@ -20,7 +20,7 @@ test('shared Assets pages retain selections, exact filters, file choice and meta
     if (url.pathname === '/api/v1/catalog/sources') return route.fulfill({ json: { sources: denied ? [] : [{ id: 'dam', label: 'Campaign library', status: 'current', count: 100_000 }], scope: 'fixture', canManage: false } });
     if (denied) return route.fulfill({ status: 403, json: { error: { message: 'Denied' } } });
     if (url.pathname.endsWith('/meta')) { writes.push(route.request().postDataJSON()); return route.fulfill({ json: { ok: true } }); }
-    if (url.pathname !== '/api/v1/catalog/assets') return route.fulfill({ json: { ...entry(Number(url.pathname.match(/item-(\d+)/)?.[1] ?? 0)), canEdit: true, fields: { region: 'EMEA' }, fieldDefs: [{ id: 'region', label: 'Region', kind: 'select', options: ['EMEA', 'APAC'] }] } });
+    if (url.pathname !== '/api/v1/catalog/assets') return route.fulfill({ json: { ...entry(Number(url.pathname.match(/item-(\d+)/)?.[1] ?? 0)), canEdit: true, fields: { region: 'EMEA', credit: '<img src=x onerror=alert(1)>' }, fieldDefs: [{ id: 'region', label: 'Region', kind: 'select', options: ['EMEA', 'APAC'] }, { id: 'credit', label: 'Credit <script>literal</script>', kind: 'text' }] } });
     requests.push(url); const offset = Number(url.searchParams.get('cursor') ?? 0), tagged = url.searchParams.has('tag');
     return route.fulfill({ json: { capabilities: { indexedFilters: ['q', 'scope', 'source', 'types', 'tag', 'taxonomyKind', 'taxonomyId'] }, assets: Array.from({ length: tagged ? 10 : 100 }, (_, i) => entry(offset + i)), total: tagged ? 10 : 100_000, nextCursor: tagged ? null : String(offset + 100), version: 'fixture', complete: true,
       sources: [{ id: 'dam', label: 'Campaign library', status: 'current', count: 100_000 }], facets: { sources: [{ id: 'dam', label: 'Campaign library', count: 100_000 }], sections: [{ name: 'Launch', count: 100_000 }], collections: [], tags: [{ name: 'launch', count: 10 }], types: [{ name: 'vector', count: 100_000 }], taxonomy: [{ source: 'dam', kind: 'section', id: 'legacy:Launch', name: 'Launch', count: 100_000 }] } } });
@@ -55,6 +55,8 @@ test('shared Assets pages retain selections, exact filters, file choice and meta
     const reopened = await page.evaluate(async () => { const bridge = '/src/bridge/assets.ts', storage = '/src/bridge/db.ts'; const api = (await import(bridge)).createAssetsAPI(await (await import(storage)).openDB()); const ref = await api.get('ext/dam/item-0?file=' + 'b'.repeat(24)); return { id: ref.id, name: ref.meta.name }; });
     assert.equal(reopened.id, 'ext/dam/item-0?file=' + 'b'.repeat(24)); assert.equal(reopened.name, 'square.svg');
     await page.getByText('Organisation metadata', { exact: true }).click();
+    assert.equal(await page.getByLabel('Credit <script>literal</script>', { exact: true }).inputValue(), '<img src=x onerror=alert(1)>');
+    assert.equal(await page.locator('.cat-details-body form img, .cat-details-body form script').count(), 0, 'metadata labels and values remain text');
     await page.getByLabel('Region', { exact: true }).selectOption('APAC');
     await page.getByRole('button', { name: 'Save metadata', exact: true }).click();
     await page.getByText('Metadata saved.', { exact: true }).waitFor();
