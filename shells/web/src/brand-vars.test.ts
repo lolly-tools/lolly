@@ -937,9 +937,11 @@ test('Opal: per-theme chrome blocks, gated off under High contrast, with reading
     assert.ok([...resting, c.hover, ...washes].some((s) => contrastRatio(staticText, s) < DANGER_TEXT_RATIO), `${theme}: the static red needed the walk`);
   }
   // Unsaved: three ungated blocks, Honey deep in light, Honey in dark and in brand (from dark).
+  // The light one stays off a dark or brand root, so a theme with no colour of its own
+  // keeps the stylesheets' fallback rather than inheriting light's.
   const warn = blocks.filter(([, decls]) => decls.has('brand-warn')).map(([sel, decls]) => [sel, decls.get('brand-warn'), decls.get('brand-warn-ink')]);
   assert.deepEqual(warn, [
-    [':root, [data-theme="light"]', '#b57c0a', '#000000'],
+    [':root:not([data-theme="dark"]):not([data-theme="brand"]), [data-theme="light"]', '#b57c0a', '#000000'],
     ['[data-theme="dark"]', '#fac044', '#000000'],
     ['[data-theme="brand"]', '#fac044', '#000000'],
   ]);

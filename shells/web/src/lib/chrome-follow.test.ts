@@ -168,7 +168,7 @@ test('a theme the pack leaves without an unsaved colour takes the warm pick in t
   setChromeFollowMirror(true);
   await applyChromeBrandVars(chromeHost({ light: { page: '#fcfaf6', unsaved: '#b57c0a' }, dark: {} }));
   const css = styleEl()?.textContent ?? '';
-  assert.match(css, /:root, \[data-theme="light"\] \{\n {2}--brand-warn: #b57c0a;/);
+  assert.match(css, /:root:not\(\[data-theme="dark"\]\):not\(\[data-theme="brand"\]\), \[data-theme="light"\] \{\n {2}--brand-warn: #b57c0a;/);
   assert.match(css, /\[data-theme="dark"\] \{\n {2}--brand-warn: #e0452b;/, 'dark takes the warm pick');
   assert.equal(inlineWarn(), '');
 });

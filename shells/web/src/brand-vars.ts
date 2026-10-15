@@ -1133,9 +1133,12 @@ export const CHROME_SEL: Readonly<Record<ChromeThemeName, string>> = {
 };
 
 /** The unsaved colour's selectors. Ungated: the colour is not a surface, so it
- *  stays in force under High contrast. */
-const UNSAVED_SEL: Readonly<Record<ChromeThemeName, string>> = {
-  light: ':root, [data-theme="light"]',
+ *  stays in force under High contrast. The light one is "neither dark nor
+ *  brand" on the root, so a dark or brand page that states no colour of its own
+ *  keeps the stylesheets' fallback instead of taking light's through :root.
+ *  index.html's pre-paint check lists these strings literally. */
+export const UNSAVED_SEL: Readonly<Record<ChromeThemeName, string>> = {
+  light: ':root:not([data-theme="dark"]):not([data-theme="brand"]), [data-theme="light"]',
   dark: '[data-theme="dark"]',
   brand: '[data-theme="brand"]',
 };
@@ -1167,7 +1170,8 @@ function chromeSurfaceBlock(theme: ChromeThemeName, chrome: ChromeTheme, dangerR
 
 /** The per-theme unsaved colour, with its ink by the app-wide inversion rule
  *  (contrastText). Brand takes the brand set's colour, else dark's; a theme with
- *  none gets no block. */
+ *  none gets no block, so a page in that theme keeps the readers' own fallback
+ *  (`#b28727`). */
 function unsavedBlocks(unsaved: PackChrome['unsaved']): string {
   const picks: Array<[ChromeThemeName, string | undefined]> = [['light', unsaved.light], ['dark', unsaved.dark], ['brand', unsaved.brand ?? unsaved.dark]];
   return picks

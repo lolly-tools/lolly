@@ -27,7 +27,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 import { createTokenSet } from '../../../../engine/src/tokens.ts';
-import { CHROME_SEL, CHROME_CACHE_KEY, CHROME_CACHE_MAX, apcaLcAbs, chromeBrandCss, hexToHslTriple, tokenValueToHex } from '../brand-vars.ts';
+import { CHROME_SEL, CHROME_CACHE_KEY, CHROME_CACHE_MAX, UNSAVED_SEL, apcaLcAbs, chromeBrandCss, hexToHslTriple, tokenValueToHex } from '../brand-vars.ts';
 import { deriveChrome, resolvePackChrome, type PackChrome } from './brand-chrome.ts';
 
 const HTML = readFileSync(new URL('../../index.html', import.meta.url), 'utf8');
@@ -148,6 +148,8 @@ test("the script's selector list is exactly the selectors chromeBrandCss emits",
   for (const [name, sel] of [['CL', CHROME_SEL.light], ['CD', CHROME_SEL.dark], ['CB', CHROME_SEL.brand]] as const) {
     assert.ok(block.includes(`var ${name} = '${sel}';`), `${name} is CHROME_SEL`);
   }
+  // So are the unsaved colour's, whose light one stays off a dark or brand root.
+  for (const sel of Object.values(UNSAVED_SEL)) assert.ok(listed.has(sel), `${sel} is listed`);
 });
 
 // ── 2. Anything else restores nothing ────────────────────────────────────────

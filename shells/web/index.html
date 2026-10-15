@@ -247,7 +247,8 @@
           var CB = '[data-theme="brand"]';
           var SEL = [':root, [data-theme="light"]', '[data-theme="dark"]', CB, '[data-theme="dark"], [data-theme="brand"]',
             'html[data-a11y-contrast="high"]:not([data-theme="dark"]):not([data-theme="brand"])',
-            'html[data-a11y-contrast="high"][data-theme="dark"]', 'html[data-a11y-contrast="high"][data-theme="brand"]', CL, CD];
+            'html[data-a11y-contrast="high"][data-theme="dark"]', 'html[data-a11y-contrast="high"][data-theme="brand"]', CL, CD,
+            ':root:not([data-theme="dark"]):not([data-theme="brand"]), [data-theme="light"]'];
           var DECL = /^  --[a-z0-9-]{1,40}: (?:\d{1,3}(?:\.\d{1,3})? \d{1,3}(?:\.\d{1,3})?% \d{1,3}(?:\.\d{1,3})?%|#[0-9a-f]{6}(?:[0-9a-f]{2})?);$/;
           var rows = cc.split('\n'), sel = null, n = 0, bg = '', pages = [], ok = true;
           for (var i = 0; ok && i < rows.length; i++) {

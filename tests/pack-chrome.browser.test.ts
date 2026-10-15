@@ -15,6 +15,8 @@
  *     layer order with parts/base.css (the body colour tool markup inherits) and
  *     parts/a11y.css (the canvas boundary), because a pack's `ink` re-points
  *     --foreground and only that boundary keeps it out of an export.
+ *  4. A pack that states an unsaved colour for light only leaves dark and brand on the
+ *     stylesheets' own fallback when there is no warm pick to fill them.
  *
  * A green run without Chromium means "not exercised": the file skips by name where
  * Playwright's Chromium is not installed (`pnpm exec playwright install chromium`).
@@ -234,4 +236,18 @@ test("the render canvas keeps the theme's own ink with a pack's chrome, High con
       }
     }
   }
+});
+
+test('a pack that states an unsaved colour for light only leaves dark and brand on the fallback', { skip }, async () => {
+  // As applyChromeBrandVars passes it when the pack has no warm colour to fill the gaps.
+  const sheet = chromeBrandCss(OPAL.light, OPAL.dark, { ...OPAL.chrome, unsaved: { light: '#b57c0a' } });
+  for (const [theme, want] of [['light', '#b57c0a'], ['dark', ''], ['brand', '']] as const) {
+    const p = await open(sheet, { theme, high: false });
+    assert.equal((await computed(p, 'html', ['--brand-warn']))['--brand-warn'], want, theme);
+    await p.close();
+  }
+  // A subtree marked light inside a dark page takes the light colour.
+  const dp = await open(sheet, { theme: 'dark', high: false });
+  assert.equal((await computed(dp, '#card-light', ['--brand-warn']))['--brand-warn'], '#b57c0a');
+  await dp.close();
 });
