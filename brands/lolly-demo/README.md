@@ -43,8 +43,9 @@ deployment handoff with one named owner.
   so every paint moves to its nearest Opal colour while skin tones, flags and
   custom symbols keep their own. A link's choice or a saved session's own style
   still comes first. The style pins the first 64 colours the token bridge lists
-  for Opal, the palette's limit; the one left over is a role that repeats
-  Avocado. Rewrite the block after a colour change.
+  for Opal, the palette's limit; the ones left over are a role that repeats
+  Avocado and the chrome slots, which repeat named colours apart from Honey
+  deep and the dark hover. Rewrite the block after a colour change.
 - **No font files.** Outfit (headings), SUSE (text and italics) and SUSE Mono
   (code) are all served by the web shell from `shells/web/public/fonts/`, as for
   `lolly-start`.
@@ -79,11 +80,18 @@ number. A tint keeps its parent's name (Liquorice raised, Liquorice panel).
 - **Charts** take the spectrum in this order: Green Apple, Reef, Honey, Donut,
   Banksia, Olive, Outback, Bark. A verdict never relies on colour alone.
 
-The shell's chrome follows the semantic primary in each theme; the surfaces of
-the app's own light and dark themes are still the shell's static blocks, so the
-Liquorice hull reaches tool canvases (through the semantic `surface` slot) but
-not yet the chrome around them. That is the open "static dark block" call in the
-brand plan.
+Opal also sets the app's own chrome in `color.chrome.*` in each theme set, which
+the shell reads once PR #310 (a pack sets the chrome) is on main:
+
+- **Light:** an Avocado page, Sugar cards, panels and menus, Pandanus edges,
+  Liquorice ink and Basalt for quiet text. Unsaved work is Honey deep
+  `#b57c0a`, because Honey itself reads under 3:1 on a light page.
+- **Dark:** the Liquorice hull with its raised and panel tints, Basalt edges,
+  Sugar ink and Pebble for quiet text, and Honey for unsaved work. Hover is
+  `#263239`, a step above the panel, so Pebble keeps 4.96:1 on a hovered row;
+  the hover the shell would work out (`#2d3a41`) gives 4.42:1.
+- Under High contrast the pack's chrome steps aside and Lolly's own High
+  contrast room takes over.
 
 ## Print
 
@@ -137,7 +145,3 @@ against 37 in CMYK.
   prizes, an OG set and the stage master arrive in a later change.
 - **Spearmint marks.** Lolly's reverse, mono and mono-reverse marks still carry
   Pine. Spearmint replaces it once the marks can be signed again.
-- **Honey for unsaved work.** The shell picks its unsaved cue (`--brand-warn`)
-  by hue, the palette colour nearest OKLCH 50 degrees (`nearestWarmHex` in
-  `shells/web/src/brand-vars.ts`), so Opal's Banksia, Outback or Bark wins and a
-  pack has no slot to name Honey. Naming it needs a shell change.

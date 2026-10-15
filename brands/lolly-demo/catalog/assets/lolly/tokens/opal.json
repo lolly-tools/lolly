@@ -556,6 +556,37 @@
           "$value": "{color.brand.avocado}",
           "$description": "An alternative slide ground."
         }
+      },
+      "chrome": {
+        "$description": "The app's own chrome in the light look: Liquorice ink on Avocado, with Sugar for cards and menus. Muted and hover are left out, so the shell works them out from the page. Unsaved work is Honey deep, because Honey itself is too pale to read on a light page.",
+        "page": {
+          "$value": "{color.brand.avocado}",
+          "$description": "The page: Avocado."
+        },
+        "raised": {
+          "$value": "{color.brand.sugar}",
+          "$description": "Cards, side panels and the top bar."
+        },
+        "overlay": {
+          "$value": "{color.brand.sugar}",
+          "$description": "Menus, dialogs and popovers."
+        },
+        "edge": {
+          "$value": "{color.brand.pandanus}",
+          "$description": "Hairlines and field edges."
+        },
+        "ink": {
+          "$value": "{color.brand.liquorice}",
+          "$description": "Body text on the chrome."
+        },
+        "muted-ink": {
+          "$value": "{color.brand.basalt}",
+          "$description": "Secondary text on the chrome."
+        },
+        "unsaved": {
+          "$value": "#b57c0a",
+          "$description": "Honey deep: Honey at OKLCH lightness .63, so the unsaved mark reads 3:1 on the light chrome."
+        }
       }
     }
   },
@@ -661,6 +692,45 @@
         "alt-surface": {
           "$value": "{color.brand.liquorice-raised}",
           "$description": "An alternative slide ground."
+        }
+      },
+      "chrome": {
+        "$description": "The app's own chrome in the dark look: Sugar ink on the Liquorice hull, with its raised surface and panel for cards and menus. Hover is left out, so the shell works it out from the page. Unsaved work is Honey.",
+        "page": {
+          "$value": "{color.brand.liquorice}",
+          "$description": "The page: Liquorice."
+        },
+        "raised": {
+          "$value": "{color.brand.liquorice-raised}",
+          "$description": "Cards, side panels and the top bar."
+        },
+        "overlay": {
+          "$value": "{color.brand.liquorice-panel}",
+          "$description": "Menus, dialogs and popovers."
+        },
+        "muted": {
+          "$value": "{color.brand.liquorice-panel}",
+          "$description": "Wells, tracks and quiet fills."
+        },
+        "hover": {
+          "$value": "#263239",
+          "$description": "Hover: a step above the panel, so Pebble's secondary text keeps 4.5:1 on a hovered row."
+        },
+        "edge": {
+          "$value": "{color.brand.basalt}",
+          "$description": "Hairlines and field edges."
+        },
+        "ink": {
+          "$value": "{color.brand.sugar}",
+          "$description": "Body text on the chrome."
+        },
+        "muted-ink": {
+          "$value": "{color.brand.pebble}",
+          "$description": "Secondary text on the chrome."
+        },
+        "unsaved": {
+          "$value": "{color.brand.honey}",
+          "$description": "Unsaved work: Honey."
         }
       }
     }
