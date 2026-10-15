@@ -54,6 +54,17 @@ deployment handoff with one named owner.
 - **No tools of its own.** Every tool comes from `community/`; `tools/` holds a
   README so the profile can mount the pack the same way it mounts a brand that
   does carry tools.
+- **Share cards in Opal's own designs.** Opal's tokens also declare
+  `$extensions['com.suse.lolly'].shareCards: "opal"`, so the card generator
+  (`docs/og-image.ts` with `docs/og-opal.ts`) draws the brand page's house, tool
+  and stage cards for this pack rather than putting it on its dark theme's
+  Liquorice surface. `catalog/og/og.png` is the house landing card, which a build
+  of this profile serves as `/og.png`; `catalog/og/` holds one tool card per tool
+  and `catalog/og/views/` one house card per view, each set with its
+  `.og-sigs.json`. The /info cards are build output and are not committed: the why
+  pages take the stage card and every other page the house card. Regenerate with
+  `LOLLY_PROFILE=lolly-demo` and `scripts/build-tool-og.ts`,
+  `scripts/build-view-og.ts` and `scripts/build-og-base.ts`.
 
 ## The Opal palette
 
@@ -135,10 +146,6 @@ against 37 in CMYK.
   dark in place of Pine, so their old manifests described other bytes. The
   primary mark's manifest no longer matched its artwork either. The four marks
   were signed again after the Spearmint change; PR #305 lists the steps.
-- **Share cards.** `catalog/og/` holds placeholders. The card generator puts a
-  branded pack on its dark theme's surface, which for Lolly Demo is Liquorice, while
-  Lolly's own cards are green; the cards wait for Lolly Demo's own share-card designs
-  (the house, tool and stage cards from the brand page).
 - **Four previews.** The tool previews were captured on 15 Oct 2026 against this
   profile, with four gaps. The booth-studio and flythrough tiles are
   `lolly-start`'s captures, because the headless capture on current main gets no
@@ -148,4 +155,5 @@ against 37 in CMYK.
   Chrome with the machine's own GPU: three.js's WebGPU renderer fails on the
   SwiftShader adapter the generator pins.
 - **The show.** The cast, studio sweeps, stick overlays, the glass disc, tool
-  prizes, an OG set and the stage master arrive in a later change.
+  prizes and the stage master arrive in a later change. Until the prizes arrive,
+  a tool card's sticker carries the tool's own catalog icon.

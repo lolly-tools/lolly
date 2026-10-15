@@ -737,6 +737,7 @@
   },
   "$extensions": {
     "com.suse.lolly": {
+      "shareCards": "opal",
       "emoji": {
         "schemaVersion": 1,
         "primary": {

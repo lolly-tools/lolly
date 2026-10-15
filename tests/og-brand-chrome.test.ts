@@ -9,17 +9,23 @@
  * submodule is present), and a fake rasteriser captures the card SVG so the second
  * mark can be counted. The blank starter and any unreadable or illegible brand get
  * Lolly's own Opal chrome, and Lolly's own logo is never shown twice.
+ *
+ * Tests 12 to 15 cover how a pack selects Opal's own share-card designs: a declaration
+ * in its tokens' Lolly extension, never an asset id. Only lolly-demo carries it, and the
+ * fingerprint every other pack's committed cards were hashed with does not move.
  */
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 
 import {
-  OPAL_CHROME, STARTER_TOKENS_ID, chromeFingerprint, createToolCardRenderer, loadBrandChrome,
-  type BrandChrome,
+  OPAL_CHROME, STARTER_TOKENS_ID, chromeFingerprint, createLandingCardRenderer, createToolCardRenderer,
+  createViewCardRenderer, loadBrandChrome, type BrandChrome,
 } from '../docs/og-image.ts';
+import { OPAL_CARDS_VERSION } from '../docs/og-opal.ts';
 import { contentRoots } from '../packages/node-shell/src/content-roots.ts';
 
 const ROOT = join(import.meta.dirname, '..');
@@ -85,6 +91,10 @@ const logoAsset = (id: string, tags: string[], w: number, h: number): FixtureAss
 
 const ACME = { surface: '#101820', primary: '#ffb000', text: '#ffffff' };
 
+/** The fixture brand's tokens with a document-level Lolly extension. */
+const tokensWithExtension = (extension: unknown): string =>
+  JSON.stringify({ ...JSON.parse(tokensDoc(ACME)), $extensions: { 'com.suse.lolly': extension } });
+
 const PROFILES: Record<string, FixtureAsset[] | null> = {
   fixture: [
     tokensAsset('acme/tokens/brand', tokensDoc(ACME)),
@@ -108,6 +118,12 @@ const PROFILES: Record<string, FixtureAsset[] | null> = {
   notext: [tokensAsset('acme/tokens/brand', tokensDoc({ surface: ACME.surface, primary: ACME.primary }))],
   darkdark: [tokensAsset('acme/tokens/brand', tokensDoc({ surface: '#101820', primary: '#ffb000', text: '#2a2a2a' }))],
   faintaccent: [tokensAsset('acme/tokens/brand', tokensDoc({ surface: '#101820', primary: '#202a35', text: '#f0f0f0' }))],
+  // An id that is neither Opal's nor the starter's: the declaration is what selects.
+  opalcards: [tokensAsset('acme/tokens/brand', tokensWithExtension({ shareCards: 'opal', emoji: {} }))],
+  neoncards: [tokensAsset('acme/tokens/brand', tokensWithExtension({ shareCards: 'neon' }))],
+  objectcards: [tokensAsset('acme/tokens/brand', tokensWithExtension({ shareCards: { design: 'opal' } }))],
+  // The Opal tokens asset id without the declaration selects nothing.
+  opalidonly: [tokensAsset('lolly/tokens/opal', tokensDoc(ACME))],
 };
 
 put('profiles.json', JSON.stringify({
@@ -192,6 +208,7 @@ test('6. lolly-start renders on Opal with the lollipop once', () => {
   assert.deepEqual(colours(c), OPAL);
   assert.equal(c.logo, null);
   assert.ok(c.mark, 'icon.svg gives the Lolly mark');
+  assert.equal(c.cards, null, 'the starter keeps the Opal chrome layouts, not Opal\'s own designs');
 });
 
 const SUSE_INDEX = join(ROOT, 'brands/suse/catalog/assets/index.json');
@@ -201,6 +218,7 @@ test('7. SUSE keeps its own colours and logo (read only)', {
   const c = loadBrandChrome(ROOT, contentRoots({ root: ROOT, profile: 'suse' }));
   assert.deepEqual(colours(c), { field: '#0c322c', accent: '#30ba78', ink: '#ffffff' });
   assert.ok(c.logo);
+  assert.equal(c.cards, null, 'SUSE keeps its light-on-dark brand layouts');
 });
 
 // ── 8: the card SVG, through a fake rasteriser ─────────────────────────────
@@ -277,4 +295,89 @@ test('11. the Opal chrome is legible: ink and muted 4.5:1, footer and accent 3:1
   assert.ok(ratio(c.muted, c.field) >= 4.5, `muted ${ratio(c.muted, c.field)}`);
   assert.ok(ratio(c.footer, c.field) >= 3, `footer ${ratio(c.footer, c.field)}`);
   assert.ok(ratio(c.accent, c.field) >= 3, `accent ${ratio(c.accent, c.field)}`);
+});
+
+// ── 12-15: selecting Opal's own designs ────────────────────────────────────
+
+const sha256 = (s: string): string => createHash('sha256').update(s).digest('hex');
+
+test('12. a pack selects Opal\'s designs by declaring shareCards: "opal" in its tokens, and only then', () => {
+  const declared = fixtureChrome('opalcards');
+  assert.equal(declared.cards, 'opal');
+  // The declaration picks the designs; the colours are still read as before.
+  assert.deepEqual(colours(declared), { field: ACME.surface, accent: ACME.primary, ink: ACME.text });
+  for (const profile of ['fixture', 'neoncards', 'objectcards', 'opalidonly', 'starter', 'noindex', 'badjson']) {
+    assert.equal(fixtureChrome(profile).cards, null, profile);
+  }
+  assert.equal(loadBrandChrome(join(FIX, 'tools')).cards, null, 'no profiles.json');
+  assert.equal(loadBrandChrome(ROOT, contentRoots({ root: ROOT, profile: 'lolly-demo' })).cards, 'opal');
+});
+
+test('13. every other pack keeps the fingerprint its committed cards were hashed with', () => {
+  // Computed here, not imported: the list chromeFingerprint hashed before Opal's designs existed.
+  const legacy = (c: BrandChrome) => sha256(JSON.stringify([
+    c.field, c.accent, c.ink, c.logo?.href ?? null, c.logo?.ratio ?? null, c.mark ?? null,
+  ]));
+  const start = loadBrandChrome(ROOT, contentRoots({ root: ROOT, profile: 'lolly-start' }));
+  const brand = fixtureChrome('fixture');
+  assert.equal(chromeFingerprint(start), legacy(start), 'lolly-start');
+  assert.equal(chromeFingerprint(brand), legacy(brand), 'a brand pack');
+  if (existsSync(SUSE_INDEX)) {
+    const suse = loadBrandChrome(ROOT, contentRoots({ root: ROOT, profile: 'suse' }));
+    assert.equal(chromeFingerprint(suse), legacy(suse), 'suse');
+  }
+  // Opal's designs hash the design, its version and the mark, and nothing they do not draw.
+  const opal: BrandChrome = { ...brand, cards: 'opal' };
+  assert.equal(chromeFingerprint(opal), sha256(JSON.stringify(['opal', OPAL_CARDS_VERSION, opal.mark])));
+  assert.equal(chromeFingerprint({ ...opal, field: '#000000', logo: null }), chromeFingerprint(opal));
+  assert.notEqual(chromeFingerprint({ ...opal, mark: 'data:image/svg+xml,n' }), chromeFingerprint(opal));
+  assert.notEqual(chromeFingerprint(opal), chromeFingerprint(brand));
+});
+
+/** The SVG a renderer hands its rasteriser. */
+async function painted(render: (r: (svg: string) => Promise<Buffer>) => Promise<unknown>): Promise<string> {
+  let seen = '';
+  await render(async (svg) => { seen = svg; return Buffer.alloc(0); });
+  return seen;
+}
+
+const ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 4h16v16H4z"/></svg>';
+
+test('14. the renderers draw Opal\'s designs for lolly-demo and the brand layouts for lolly-start', async () => {
+  const demo = loadBrandChrome(ROOT, contentRoots({ root: ROOT, profile: 'lolly-demo' }));
+  const start = loadBrandChrome(ROOT, contentRoots({ root: ROOT, profile: 'lolly-start' }));
+  const qr = (JSON.parse(read('brands/lolly-demo/catalog/tools/index.json')).tools as Array<{ id: string; description: string }>)
+    .find(t => t.id === 'qr-code')!;
+  const tool = { id: 'qr-code', name: 'QR Code', description: qr.description, iconSvg: ICON };
+  const view = { title: 'Projects', description: 'Your saved sessions and exports, in folders.', iconSvg: ICON, slug: 'p' };
+  const opalSvgs = [
+    await painted(r => createToolCardRenderer(r, demo).render(tool)),
+    await painted(r => createViewCardRenderer(r, demo).render(view)),
+    await painted(r => createLandingCardRenderer(r, demo).render()),
+  ];
+  for (const svg of opalSvgs) {
+    assert.match(svg, /<radialGradient id="ground"/, 'an Opal ground');
+    assert.match(svg, /font-family="Outfit"/, 'an Outfit heading');
+    assert.doesNotMatch(svg, new RegExp(demo.field, 'i'), 'never the Liquorice surface the brand layouts would use');
+  }
+  // The copy as drawn, every line of every text run joined.
+  const copy = (svg: string) => [...svg.matchAll(/<text\b[^>]*>([^<]*)<\/text>/g)].map(m => m[1]).join(' ');
+  assert.match(copy(opalSvgs[0]!), /^TOOL · QR CODE Scannable codes of every kind \S+\/t\/qr-code$/);
+  assert.match(copy(opalSvgs[1]!), /^Projects Your saved sessions and exports, in folders\. \S+\/p$/);
+  assert.match(copy(opalSvgs[2]!), /^Lolly Free creative tools, with your rules\. \S+$/);
+  for (const svg of [
+    await painted(r => createToolCardRenderer(r, start).render(tool)),
+    await painted(r => createViewCardRenderer(r, start).render(view)),
+    await painted(r => createLandingCardRenderer(r, start).render()),
+  ]) {
+    assert.match(svg, new RegExp(`<rect width="1200" height="630" fill="${OPAL.field}"/>`), 'the Opal chrome field');
+    assert.doesNotMatch(svg, /<radialGradient id="ground"|font-family="Outfit"/, 'none of Opal\'s designs');
+  }
+});
+
+test('15. only lolly-demo\'s tokens declare Opal\'s designs', () => {
+  const opal = JSON.parse(read('brands/lolly-demo/catalog/assets/lolly/tokens/opal.json'));
+  assert.equal(opal.$extensions['com.suse.lolly'].shareCards, 'opal');
+  const starter = JSON.parse(read('brands/lolly-start/catalog/assets/lolly/tokens/brand.json'));
+  assert.equal(starter.$extensions?.['com.suse.lolly']?.shareCards, undefined);
 });

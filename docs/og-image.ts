@@ -33,6 +33,12 @@
 // it has no readable brand colours of its own, so each profile's cards come out in its
 // own colours and never in another brand's.
 //
+// A pack whose brand tokens declare `$extensions['com.suse.lolly'].shareCards: "opal"`
+// (Opal itself, in lolly-demo) gets Opal's own designs instead, from docs/og-opal.ts:
+// the house card for the landing card, the app's views and most docs pages, the tool
+// card for every tool and the stage card for the why pages (a docs page whose
+// `register` is "stage"). Every other pack keeps the layouts below unchanged.
+//
 // Why generate rather than reuse one static og.png: social crawlers (Slack, X,
 // Facebook, LinkedIn, iMessage) cache one image per URL and only reliably render
 // raster (PNG/JPEG), never SVG. Each page and tool therefore gets a pre-rendered PNG.
@@ -41,12 +47,14 @@ import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createTokenSet, colorToHex } from '../engine/src/tokens.ts';
+import { TOKEN_EXT } from '../engine/src/token-ext.ts';
 import {
   contentRoots, contentUrlFile, readAssetIndex, type ContentRoots,
 } from '../packages/node-shell/src/content-roots.ts';
 import { createSvgRasterizer } from '../scripts/lib/rasterize-svg-browser.ts';
 import { stampBitmap } from '../scripts/lib/stamp-media.ts';
 import { siteUrl } from '../scripts/lib/site-url.ts';
+import { createOpalCards, OPAL_CARDS_VERSION, type ShareCardDesign } from './og-opal.ts';
 
 // The site name printed in every card's footer: lolly.tools, or the host of
 // LOLLY_SITE_URL for an instance's own build, so a card shows where its link goes.
@@ -58,11 +66,13 @@ const FOOTER_HOST = new URL(siteUrl()).host;
 type SvgToPng = (svg: string, opts: { width: number; height: number; background?: string }) => Promise<Buffer>;
 
 // A page from the build's page list; only `slug` + `title` (non-landing) get a card.
-// `description` captions the card (falls back to the site tagline when absent).
-interface OgPage { slug?: string; title?: string; description?: string; isLanding?: boolean; }
+// `description` captions the card (falls back to the site tagline when absent), and
+// `register: 'stage'` marks a why page, which Opal's designs put on the stage.
+interface OgPage { slug?: string; title?: string; description?: string; isLanding?: boolean; register?: 'stage'; }
 
-// The per-tool card inputs.
+// The per-tool card inputs. `id` gives Opal's tool card its link (/t/<id>).
 interface ToolCard {
+  id?: string;
   name: string;
   description: string;
   iconSvg?: string;
@@ -119,6 +129,9 @@ export interface BrandChrome {
   logo: BrandLogo | null;
   /** Lolly's own lollipop mark as a data-URI, or null if the asset is missing. */
   mark: string | null;
+  /** The share-card designs the brand's tokens select: "opal" draws Opal's own house,
+   *  tool and stage cards (docs/og-opal.ts); absent or null keeps the layouts here. */
+  cards?: ShareCardDesign | null;
 }
 
 /** The three colours a card is painted in; muted and footer are mixed from them. */
@@ -221,6 +234,22 @@ function brandColors(assets: IndexAsset[], roots: ContentRoots): ChromeColours {
   } catch { return OPAL_CHROME; }
 }
 
+/**
+ * The share-card designs the brand's own tokens select, read from the same tokens asset
+ * brandColors() reads: `$extensions['com.suse.lolly'].shareCards`. The declaration
+ * travels with the design system rather than with an asset id, and a document that does
+ * not carry it, carries another value or cannot be read selects nothing.
+ */
+function shareCardDesign(assets: IndexAsset[], roots: ContentRoots): ShareCardDesign | null {
+  const tokens = assets.find(a => a.type === 'tokens' && a.tags?.includes('brand'));
+  const file = tokens ? assetFile(tokens, 'json', roots) : null;
+  if (!file) return null;
+  try {
+    const doc = JSON.parse(readFileSync(file, 'utf8')) as { $extensions?: Record<string, { shareCards?: unknown } | undefined> };
+    return doc.$extensions?.[TOKEN_EXT]?.shareCards === 'opal' ? 'opal' : null;
+  } catch { return null; }
+}
+
 /** The brand's reverse (on-dark) horizontal logo, by tags - never by brand-specific id. */
 function brandLogo(assets: IndexAsset[], roots: ContentRoots): BrandLogo | null {
   // Lolly's own marks are left out before picking: the lockup already carries the
@@ -252,11 +281,13 @@ function brandLogo(assets: IndexAsset[], roots: ContentRoots): BrandLogo | null 
 export function loadBrandChrome(repoRoot: string, roots?: ContentRoots): BrandChrome {
   let colours: ChromeColours = OPAL_CHROME;
   let logo: BrandLogo | null = null;
+  let cards: ShareCardDesign | null = null;
   try {
     const r = roots ?? contentRoots({ root: repoRoot });
     const assets = readAssetIndex(r).assets as IndexAsset[];
     colours = brandColors(assets, r);
     logo = brandLogo(assets, r);
+    cards = shareCardDesign(assets, r);
   } catch { /* no profile or no readable index: Opal, no brand logo */ }
   const { field, accent, ink } = colours;
   // The Lolly mark: the single source of truth, repo-root icon.svg (the hand-drawn,
@@ -276,6 +307,7 @@ export function loadBrandChrome(repoRoot: string, roots?: ContentRoots): BrandCh
     mark: existsSync(markFile)
       ? `data:image/svg+xml,${encodeURIComponent(stripSvgAnimation(readFileSync(markFile, 'utf8')))}`
       : null,
+    cards,
   };
 }
 
@@ -284,12 +316,17 @@ export function loadBrandChrome(repoRoot: string, roots?: ContentRoots): BrandCh
  * logo and the Lolly mark (muted and footer are mixed from the colours). The card
  * scripts add it to each card's input hash, so a change of brand colours, brand logo or
  * icon.svg re-renders the committed cards without a version bump.
+ *
+ * Opal's designs take only the mark from the chrome, so a pack that selects them hashes
+ * the design, OPAL_CARDS_VERSION and the mark instead. Every other pack hashes exactly
+ * the list it always did, which keeps its committed cards' hashes valid.
  */
 export function chromeFingerprint(chrome: BrandChrome): string {
-  return createHash('sha256').update(JSON.stringify([
-    chrome.field, chrome.accent, chrome.ink,
-    chrome.logo?.href ?? null, chrome.logo?.ratio ?? null, chrome.mark ?? null,
-  ])).digest('hex');
+  const inputs = chrome.cards
+    ? [chrome.cards, OPAL_CARDS_VERSION, chrome.mark ?? null]
+    : [chrome.field, chrome.accent, chrome.ink,
+      chrome.logo?.href ?? null, chrome.logo?.ratio ?? null, chrome.mark ?? null];
+  return createHash('sha256').update(JSON.stringify(inputs)).digest('hex');
 }
 
 /**
@@ -331,14 +368,25 @@ function brandMark(chrome: BrandChrome, x: number, y: number, w: number): string
 // generated from icon.svg (chrome.mark), so it can never fall behind the app icon.
 
 const LANDING_TAGLINE = ['fast, free, reproducible', 'assets & tools'];
+// The words under "Lolly" on Opal's house card, as the brand page sets them.
+const OPAL_LANDING_LINE = 'Free creative tools, with your rules.';
 
 /**
  * Build the landing-card renderer. `render()` returns og.png's bytes: the lollipop on
  * the left, the "Lolly" wordmark + tagline on the right, on the brand field. `rasterize`
  * is injected (browser path) so a missing browser degrades to "keep the committed og.png"
- * rather than crashing; `chrome` comes from loadBrandChrome().
+ * rather than crashing; `chrome` comes from loadBrandChrome(). A pack that selects Opal's
+ * designs gets the house card instead.
  */
 export function createLandingCardRenderer(rasterize: SvgToPng, chrome: BrandChrome) {
+  if (chrome.cards === 'opal') {
+    const opal = createOpalCards(rasterize, chrome.mark);
+    return {
+      render(): Promise<Buffer> {
+        return opal.house({ title: 'Lolly', line: OPAL_LANDING_LINE, url: FOOTER_HOST });
+      },
+    };
+  }
   const svgFor = (): string => {
     const markSize = 430;
     const markX = 92, markY = Math.round((OG_H - markSize) / 2);
@@ -440,9 +488,18 @@ function fitName(name: string, boxWidth: number): number {
  * same browser that rasterises the card - no second interpreter). With no preview, a large
  * tinted icon stands in. `rasterize` is injected so a missing browser degrades ("keep
  * committed card") instead of crashing, like the old resvg path; `chrome` comes from
- * loadBrandChrome() so the card is painted in the ACTIVE profile's colours and marks.
+ * loadBrandChrome() so the card is painted in the ACTIVE profile's colours and marks. A
+ * pack that selects Opal's designs gets Opal's tool card, which links to /t/<id>.
  */
 export function createToolCardRenderer(rasterize: SvgToPng, chrome: BrandChrome) {
+  if (chrome.cards === 'opal') {
+    const opal = createOpalCards(rasterize, chrome.mark);
+    return {
+      render({ id, name, description, iconSvg }: ToolCard): Promise<Buffer> {
+        return opal.tool({ name, description, iconSvg, url: id ? `${FOOTER_HOST}/t/${id}` : FOOTER_HOST });
+      },
+    };
+  }
   const svgFor = ({ name, description, iconSvg, previewDataUri }: ToolCard): string => {
     const M = CARD_MARGIN;
     const P = CARD_PANEL;
@@ -526,11 +583,13 @@ const VIEW_TITLE_MIN  = 52;
 // says "Lolly" without competing with the type column on the left.
 const VIEW_MARK_SIZE = 300;
 
-// The per-view card inputs. `iconSvg` is a lucide-style 24×24 stroke icon.
+// The per-view card inputs. `iconSvg` is a lucide-style 24×24 stroke icon; `slug` is the
+// view's share path (/p, /tools, ...), which Opal's house card prints after the host.
 interface ViewCard {
   title: string;
   description: string;
   iconSvg: string;
+  slug?: string;
 }
 
 // Shrink the (usually one-word) title only if it would overrun the text column.
@@ -543,9 +602,18 @@ function fitViewTitle(title: string, boxWidth: number): number {
  * Build a per-view card renderer. `render({ title, description, iconSvg })` returns
  * PNG bytes: an accent app-icon tile, the view title and a one-line description on the
  * brand field, with a large translucent icon watermark bleeding off the right. `rasterize`
- * is injected (browser path) so a missing browser degrades to the committed cards.
+ * is injected (browser path) so a missing browser degrades to the committed cards. A pack
+ * that selects Opal's designs gets the house card, titled with the view.
  */
 export function createViewCardRenderer(rasterize: SvgToPng, chrome: BrandChrome) {
+  if (chrome.cards === 'opal') {
+    const opal = createOpalCards(rasterize, chrome.mark);
+    return {
+      render({ title, description, slug }: ViewCard): Promise<Buffer> {
+        return opal.house({ title, line: description, url: slug ? `${FOOTER_HOST}/${slug}` : FOOTER_HOST });
+      },
+    };
+  }
   const svgFor = ({ title, description, iconSvg }: ViewCard): string => {
     const M = VIEW_MARGIN;
     const textW = OG_W - M - 480;                // type column - clear of the lollipop
@@ -622,10 +690,40 @@ const DOCS_ICON =
 // title card. Matches docs/build.ts's SITE_DESCRIPTION intent (kept in sync by eye).
 const DOCS_DESC_FALLBACK = 'Fast, free, reproducible assets and tools - on your own device.';
 
+// The kicker over a why page on Opal's stage, as the brand page draws the card.
+const STAGE_KICKER = 'The why pages';
+
+/** The Opal design a docs page takes: the stage for a why page (`register: 'stage'` in
+ *  docs/build.ts), the house for every other page. */
+export function docsCardDesign(page: OgPage): 'stage' | 'house' {
+  return page.register === 'stage' ? 'stage' : 'house';
+}
+
+/** One docs page's card: Opal's stage or house when the pack selects Opal's designs,
+ *  otherwise the view card with the docs icon, exactly as before. */
+function docsCardRenderer(rasterize: SvgToPng, chrome: BrandChrome) {
+  if (chrome.cards === 'opal') {
+    const opal = createOpalCards(rasterize, chrome.mark);
+    return (title: string, page: OgPage): Promise<Buffer> => {
+      const line = page.description || DOCS_DESC_FALLBACK;
+      return docsCardDesign(page) === 'stage'
+        ? opal.stage({ kicker: STAGE_KICKER, title, line })
+        : opal.house({ title, line, url: FOOTER_HOST });
+    };
+  }
+  const view = createViewCardRenderer(rasterize, chrome);
+  return (title: string, page: OgPage): Promise<Buffer> => view.render({
+    title,
+    description: page.description || DOCS_DESC_FALLBACK,
+    iconSvg: DOCS_ICON,
+  });
+}
+
 /**
  * Generate one PNG per /info page into <outDir>/og/<slug>.png, in the same view-card
  * family as the app's own sections: a docs-icon tile, the page title (wrapping to two
- * lines), the page description, a faint watermark and the corner lollipop. `pages` is
+ * lines), the page description, a faint watermark and the corner lollipop. Under Opal's
+ * designs a why page gets the stage card and every other page the house card. `pages` is
  * the build's page list; only pages with a `slug` and `title` get a card (the landing
  * page keeps the canonical og.png). Best-effort: returns the set of slugs successfully
  * written, or an empty set if the renderer can't start, so the caller can point only
@@ -637,13 +735,13 @@ export async function generateOgImages(
   repoRoot: string,
   log: (msg: string) => void = () => {},
 ): Promise<Set<string>> {
-  let renderer: ReturnType<typeof createViewCardRenderer>;
+  let render: ReturnType<typeof docsCardRenderer>;
   let rasterizer: Awaited<ReturnType<typeof createSvgRasterizer>>;
   try {
     // Our own render path (Chromium). A missing browser / fonts throws → pages fall
     // back to og.png, same degrade contract as the old dynamic-resvg import.
     rasterizer = await createSvgRasterizer(repoRoot);
-    renderer = createViewCardRenderer(rasterizer.rasterize, loadBrandChrome(repoRoot));
+    render = docsCardRenderer(rasterizer.rasterize, loadBrandChrome(repoRoot));
   } catch (e) {
     log(`og: image generation skipped (${(e as Error).message}); pages fall back to og.png`);
     return new Set();
@@ -655,11 +753,7 @@ export async function generateOgImages(
     try {
       // Stamp our own brand card with the Lolly Imprint + "made with Lolly" C2PA
       // before writing (see scripts/lib/stamp-media.ts).
-      const png = await renderer.render({
-        title: page.title,
-        description: page.description || DOCS_DESC_FALLBACK,
-        iconSvg: DOCS_ICON,
-      });
+      const png = await render(page.title, page);
       const stamped = await stampBitmap(new Uint8Array(png), 'png', { id: page.slug, name: page.title });
       writeFileSync(resolve(outDir, 'og', `${page.slug}.png`), Buffer.from(stamped));
       done.add(page.slug);

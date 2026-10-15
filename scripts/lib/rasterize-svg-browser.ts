@@ -61,6 +61,15 @@ const FONT_WEIGHTS: ReadonlyArray<readonly [number, string]> = [
 
 const FALLBACK_FONT = 'shells/web/public/fonts/SUSE[wght].ttf';
 
+// Opal's own share cards (docs/og-opal.ts) also set Outfit headings and SUSE Mono labels.
+// Both are the shell's variable faces, declared over their whole weight range so Chromium
+// sets the wght axis from each text's font-weight, which is how docs/og-opal.ts measures
+// them. Cards that never name these families render exactly as before.
+const RANGE_FONTS: ReadonlyArray<readonly [family: string, file: string, weights: string]> = [
+  ['Outfit', 'shells/web/public/fonts/Outfit[wght].ttf', '100 900'],
+  ['SUSE Mono', 'shells/web/public/fonts/SUSEMono[wght].ttf', '100 800'],
+];
+
 /**
  * Build a rasteriser bound to the repo's SUSE fonts, launching one headless Chromium.
  * Throws if Playwright or any required font weight is missing (caller degrades).
@@ -98,6 +107,13 @@ export async function createSvgRasterizer(repoRoot: string): Promise<SvgRasteriz
     return (
       `@font-face{font-family:'SUSE';font-style:normal;font-weight:${weight};` +
       `src:url(data:font/ttf;base64,${b64}) format('truetype');}`
+    );
+  }).join('') + RANGE_FONTS.map(([family, file, weights]) => {
+    const path = resolve(repoRoot, file);
+    if (!existsSync(path)) return '';
+    return (
+      `@font-face{font-family:'${family}';font-style:normal;font-weight:${weights};` +
+      `src:url(data:font/ttf;base64,${readFileSync(path).toString('base64')}) format('truetype');}`
     );
   }).join('');
 
