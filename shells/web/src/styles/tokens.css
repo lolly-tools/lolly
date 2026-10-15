@@ -653,12 +653,13 @@
       brand-vars.ts's highContrastAccent() repairs that at runtime for any brand
       by holding hue and chroma and walking lightness until the ink clears the
       bar. Its gated block (same selector shape, later in document order)
-      overrides the static pair below, but brand-vars.ts emits one only while
-      "Interface follows the design system" is on and the pack's own dark pair
-      fails the bar. Everywhere else the static pair repaired here is in force:
-      before boot, with that preference off, for a pack with no semantic
-      primary, and for a pack whose dark pair already clears the bar
-      (lolly-start's white on ink is one).
+      overrides the static pair below whenever "Interface follows the design
+      system" is on and the pack has a semantic primary: the brand's pair
+      repaired when the pair fails the bar, and restated unchanged when the
+      pair already clears the bar (lolly-start's paper with an ink label
+      does), so the static Jungle never stands in for a loaded brand. The
+      static pair repaired here is in force only before boot, with that
+      preference off, or for a pack with no semantic primary.
     • The brand theme's SURFACES (background/card/popover/secondary/muted/
       accent). brandThemeCss CONSTRUCTS them from the active brand's hue; a
       hardcoded teal here would paint a purple brand's chrome green. Instead
@@ -780,9 +781,10 @@ html[data-a11y-contrast="high"][data-theme="brand"] {
   /* The CTA, same repair and the same computed pair as the dark theme - this
      block's static values ARE the SUSE-palette instance of the construction, and
      its accent is the same Jungle. Unlike the surfaces below, the accent is a
-     fixed hue: brand-vars.ts's own gated block (highContrastAccent) replaces it
-     in the brand's own hue only when the brand's dark pair fails the bar, and
-     otherwise this Jungle pair stays in force (see the header note). */
+     fixed hue: brand-vars.ts's own gated block replaces the pair with the
+     brand's own whenever it constructed this theme, repaired or restated (see
+     the header note). The --ring below has no runtime replacement, so it stays
+     this Jungle for every brand. */
   --primary:                147.6 75% 67.1%; /* was 151 57% 46% - Lc 52 → 80 with a black label */
   --primary-foreground:     0 0% 0%;         /* was 171 62% 8% */
 
