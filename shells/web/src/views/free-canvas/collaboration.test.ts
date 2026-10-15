@@ -5,8 +5,10 @@ import type { CanvasClaimTarget, CanvasPreview } from '@lolly-tools/core/canvas-
 import { registerCanvasInteractions, type CanvasInteractionLease } from '../../lib/canvas-interaction.ts';
 import { subscribeCanvasRecovery } from '../../lib/canvas-recovery.ts';
 import { boxRect, withRect, type Box } from '../free-canvas-math.ts';
+import { handleAnchor } from '../free-canvas-transform.ts';
 import { applyGestureMove } from './gestures.ts';
 import { cascadeFrameChildren, idOf } from './select.ts';
+import { selectionTransformOps } from './selection-transform.ts';
 import {
   beginCanvasGesture, canvasGestureReady, finishCanvasGesture, flushCanvasPreview, previewCanvasRect,
 } from './collaboration.ts';
@@ -43,6 +45,7 @@ function fixture(rows: Box[], selected: number[], pending = false) {
     cancelGesture: () => { cancelled++; finishCanvasGesture(fc, false); fc.gesture = null; },
     isFrameRow: () => false,
   } as unknown as FcCtx['gestures'];
+  fc.selectionTransform = selectionTransformOps(fc);
   const lease: CanvasInteractionLease = { id: 'claim', preview: value => { previews.push(value); },
     finish: committed => { finishes.push(committed); } };
   const unregister = registerCanvasInteractions(fc.runtime, {
@@ -52,7 +55,9 @@ function fixture(rows: Box[], selected: number[], pending = false) {
       return lease;
     },
   });
-  const event = (x: number, y: number): PointerEvent => ({ pointerId: 1, clientX: x, clientY: y, altKey: true }) as PointerEvent;
+  // Ctrl suspends snapping in every transform, so the frames below read the raw pointer.
+  // Alt would not: it resizes from the centre and keeps the guides on.
+  const event = (x: number, y: number): PointerEvent => ({ pointerId: 1, clientX: x, clientY: y, ctrlKey: true }) as PointerEvent;
   return { fc, previews, finishes, targets, restored, event,
     ready: async () => { beginCanvasGesture(fc); await Promise.resolve(); await Promise.resolve(); },
     grant: async () => { grant?.(); await Promise.resolve(); await Promise.resolve(); await Promise.resolve(); },
@@ -110,12 +115,12 @@ test('batched frame previews match the committed cascade, including independentl
 });
 
 /** A group gesture as onGroupHandleDown builds one: the press in native px, the start
- *  bounds of the pair (0,0 to 140,80) and, for a scale, the se corner over the nw anchor. */
-function groupGesture(type: 'gscale' | 'grotate', boxes: Box[], press = { x: 140, y: 80 }): Gesture {
+ *  bounds of the pair (0,0 to 140,80) and, for a scale, the dragged handle (the se corner,
+ *  which holds the nw corner still, or the e edge, which holds the w edge's midpoint). */
+function groupGesture(type: 'gscale' | 'grotate', boxes: Box[], press = { x: 140, y: 80 }, handle: 'se' | 'e' = 'se'): Gesture {
   const base = { pointerId: 1, startClient: press, origin: press, sel: [0, 1], startBoxes: boxes };
   if (type === 'gscale') {
-    return { ...base, type, handle: 'se', aabb: { minX: 0, minY: 0, maxX: 140, maxY: 80 },
-      anchor: { x: 0, y: 0 }, origDist: Math.hypot(press.x, press.y) };
+    return { ...base, type, handle, aabb: { minX: 0, minY: 0, maxX: 140, maxY: 80 }, others: [], proportional: false };
   }
   const centre = { x: 70, y: 40 };
   return { ...base, type, centre, pointerStartDeg: (Math.atan2(press.y - centre.y, press.x - centre.x) * 180) / Math.PI };
@@ -141,12 +146,12 @@ test('resize, rotate, group scale and group rotation each publish one final prev
 });
 
 test('a group rebase rebuilds the anchor and the pivot from the claim-grant rows, keeping the press', async () => {
-  for (const type of ['gscale', 'grotate'] as const) {
+  for (const [type, handle, press] of [['gscale', 'se', { x: 140, y: 80 }], ['gscale', 'e', { x: 140, y: 40 }], ['grotate', 'se', { x: 140, y: 80 }]] as const) {
     // The press was measured against the pair at (0,0); before the grant a peer moved
     // both rows 100 px right, and the server's drained rows are what the gesture uses.
     const pressed = [shape('one'), shape('two', 100, 50)];
     const f = fixture(pressed, [0, 1], true);
-    f.fc.gesture = groupGesture(type, pressed);
+    f.fc.gesture = groupGesture(type, pressed, press, handle);
     await f.ready();
     try {
       const drained = [shape('one', 100), shape('two', 200, 50)];
@@ -156,9 +161,11 @@ test('a group rebase rebuilds the anchor and the pivot from the claim-grant rows
       const g = f.fc.gesture!;
       switch (g.type) {
         case 'gscale':
-          assert.deepEqual(g.anchor, { x: 100, y: 0 }, 'the anchor is the rebased bounds\' nw corner');
           assert.deepEqual(g.aabb, { minX: 100, minY: 0, maxX: 240, maxY: 80, w: 140, h: 80 });
-          assert.equal(g.origDist, Math.hypot(40, 80), 'measured from the press, which kept its place');
+          assert.deepEqual(handleAnchor(g.aabb, g.handle), handle === 'se' ? { x: 100, y: 0 } : { x: 100, y: 40 },
+            'the point held still is the rebased bounds\' nw corner, or its w edge\'s midpoint');
+          assert.deepEqual(g.origin, press, 'and the press kept its place');
+          assert.equal(g.proportional, false, 'two upright rows still resize freely');
           break;
         case 'grotate':
           assert.deepEqual(g.centre, { x: 170, y: 40 }, 'the pivot is the rebased bounds\' centre');
@@ -168,9 +175,39 @@ test('a group rebase rebuilds the anchor and the pivot from the claim-grant rows
           assert.fail(`unexpected gesture ${g.type}`);
       }
       // At the press point the rebased gesture reads as no change at all.
-      applyGestureMove(f.fc, f.event(140, 80));
+      applyGestureMove(f.fc, f.event(press.x, press.y));
       const last = f.previews.at(-1)!;
-      assert.deepEqual(last.objects.map(o => [o.x, o.y, o.w, o.h, o.rot]), [[100, 0, 40, 30, 0], [200, 50, 40, 30, 0]], type);
+      assert.deepEqual(last.objects.map(o => [o.x, o.y, o.w, o.h, o.rot]), [[100, 0, 40, 30, 0], [200, 50, 40, 30, 0]], `${type} ${handle}`);
+      if (type === 'gscale') {
+        // And the travel from the press scales the rebased rows about the rebased anchor:
+        // 140 px right doubles the pair's 140 px width from its left edge, at x 100.
+        applyGestureMove(f.fc, f.event(press.x + 140, press.y));
+        const moved = f.previews.at(-1)!.objects.map(o => [o.x, o.w]);
+        assert.deepEqual(moved, [[100, 80], [300, 80]], `${handle}: the rows double their width from x 100`);
+      }
+    } finally { f.destroy(); }
+  }
+});
+
+test('a group scale rebase decides the uniform fallback again from the claim-grant rows', async () => {
+  for (const [rot, want] of [[30, true], [90, false]] as const) {
+    // Pressed on two upright rows; before the grant a peer turned one of them.
+    const pressed = [shape('one'), shape('two', 100, 50)];
+    const f = fixture(pressed, [0, 1], true);
+    f.fc.gesture = groupGesture('gscale', pressed, { x: 140, y: 40 }, 'e');
+    await f.ready();
+    try {
+      f.replace([shape('one'), { ...shape('two', 100, 50), rot }]);
+      await f.grant();
+      assert.equal(canvasGestureReady(f.fc), true);
+      const g = f.fc.gesture!;
+      assert.equal(g.type === 'gscale' && g.proportional, want,
+        `${rot} degrees: ${want ? 'one factor for both axes, as the readout will say' : 'a quarter turn still resizes freely'}`);
+      // The e edge's 70 px on a set 70 px past its left edge: the free drag doubles x only,
+      // the fallback doubles both axes about the w edge's midpoint.
+      applyGestureMove(f.fc, f.event(140 + (g.type === 'gscale' ? g.aabb.maxX - g.aabb.minX : 0), 40));
+      const one = f.previews.at(-1)!.objects.find(o => o.id === 'one')!;
+      assert.deepEqual([one.w, one.h], want ? [80, 60] : [80, 30]);
     } finally { f.destroy(); }
   }
 });

@@ -19,7 +19,7 @@ import type { DesignGuidesHandle } from '../design-guides.ts';
 import type { hierarchyOps } from './hierarchy.ts';
 import type { layoutOps } from './layout.ts';
 import type { DesignStyleSnapshot } from '../design-style-clipboard.ts';
-import type { AddKind, BlockFieldDef, CanvasCfg, ConnectCfg, Corner, EditingState, EditorMode, FieldCfg, FmtBar, FontOption, Gesture, InitFreeCanvasOpts, Metrics, ModelItem, PenPart, Point, PopItem, Rect, StageBox, TouchPt } from './shared.ts';
+import type { AddKind, BlockFieldDef, CanvasCfg, ConnectCfg, EditingState, EditorMode, FieldCfg, FmtBar, FontOption, Gesture, InitFreeCanvasOpts, Metrics, ModelItem, PenPart, Point, PopItem, Rect, StageBox, TouchPt } from './shared.ts';
 import type { FieldBounds } from '../free-canvas-transform.ts';
 import type { WobbleHandle } from '../../lib/wobble.ts';
 import type { BoxFieldConfig } from '../free-canvas-math.ts';
@@ -63,6 +63,8 @@ import type { chromeSyncOps } from './chrome-sync.ts';
 import type { keysOps } from './keys.ts';
 import type { editorStateOps } from './editor-state.ts';
 import type { LoadedMaster, MasterStatus, slideMastersOps } from './slide-masters.ts';
+import type { scaleModeOps } from './scale-mode.ts';
+import type { selectionTransformOps } from './selection-transform.ts';
 
 export interface FcCtx {
   hierarchy: ReturnType<typeof hierarchyOps>;
@@ -126,6 +128,10 @@ export interface FcCtx {
   multiTapMode: boolean;
   mode: EditorMode;
   nodeToolActive: boolean;
+  /** Scale mode (K, plan 311): a select sub-mode like the Node tool, never saved. A
+   *  transform then scales each object's content (font size, stroke, radius, effects)
+   *  with its box, where Resize changes the box only. */
+  scaleContent: boolean;
   armedKind: AddKind | null;
   gesture: Gesture | null;
   /** The rect each box is live at in the current gesture frame, by stable id. Created
@@ -315,7 +321,6 @@ export interface FcCtx {
   artboardNotifiedId: string;
   frameLabelKey: string;
   renamingFrameId: string;
-  OPPOSITE: Record<Corner, Corner>;
   ctxBlockers: StageBox[] | null;
   ctxFrozen: { left: number; top: number } | null;
   ro: ResizeObserver;
@@ -371,6 +376,8 @@ export interface FcCtx {
   keys: ReturnType<typeof keysOps>;
   editorState: ReturnType<typeof editorStateOps>;
   slideMasters: ReturnType<typeof slideMastersOps>;
+  scaleMode: ReturnType<typeof scaleModeOps>;
+  selectionTransform: ReturnType<typeof selectionTransformOps>;
 }
 
 /** A module function minus its leading context parameter. */

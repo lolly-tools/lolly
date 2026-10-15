@@ -47,7 +47,6 @@ export interface Metrics {
   scale: number;
 }
 export type HandleName = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
-export type Corner = 'nw' | 'ne' | 'se' | 'sw';
 
 /** One entry of a `canvas.addKinds` list - a "kind" the add-box menu can create. */
 export interface AddKind {
@@ -373,6 +372,11 @@ export interface HistoryApi {
   changed?(): void;
   /** The entry the next undo would take, by identity (plans/289 D1: an agent undoes only its own). */
   top?(): object | null;
+  /** Run one plain input write whose undo step is called `label`. Without a name the
+   *  history describes the rows that changed, and a Scale (sizes and content at once)
+   *  reads as no single gesture. The write keeps setInput's undo, which reverts only
+   *  this edit's fields when someone else edited the rows since. */
+  named?(label: string, write: () => void): void;
 }
 
 /**
@@ -660,6 +664,12 @@ export interface ResizeGesture extends GestureBase {
   startRect: Rect;
   others: AABB[];
   liveRect?: Rect;
+  /** Scale mode at the press: the aspect is forced and the content scales by `k`. */
+  content?: boolean;
+  /** The live uniform factor of a Scale, for the commit and the readouts. */
+  k?: number;
+  /** The row at the press, which a Scale's content is computed from. */
+  startBox?: Box;
 }
 export interface RotateGesture extends GestureBase {
   type: 'rotate';
@@ -670,23 +680,32 @@ export interface RotateGesture extends GestureBase {
   liveRect?: Rect;
 }
 /**
- * A selection-level scale. `origin` is the PRESS in native px and `origDist` its
- * distance from `anchor`, so k reads 1 at the press, wherever inside the handle it was.
- * `handle` and `aabb` (the authored start bounds) are kept so a collaboration rebase
- * can rebuild the anchor and the press reach from the rebased `startBoxes`.
+ * A selection-level resize or scale, from one of the selection's 8 handles. `origin` is
+ * the PRESS in native px and every frame reads the pointer's travel from it, so nothing
+ * changes at the press, wherever inside the handle it was. `aabb` (the authored start
+ * bounds) is rebuilt by a collaboration rebase from the rebased `startBoxes`; the point
+ * a frame holds still (the opposite corner or edge midpoint, or the centre with Alt)
+ * follows from `aabb` and `handle` each frame (free-canvas-transform.ts
+ * `transformSelection`), so it is not stored.
  */
 export interface GScaleGesture extends GestureBase {
   type: 'gscale';
   sel: number[];
   startBoxes: Box[];
-  handle: Corner;
+  handle: HandleName;
   aabb: Bounds;
   origin: Point;
-  anchor: Point;
-  origDist: number;
+  /** Snap targets: every row outside the set, as a move and a resize take them. */
+  others: AABB[];
   /** The live factor, for the commit's zero-delta guard and a readout. */
   k?: number;
   liveBoxes?: Box[];
+  /** Scale mode at the press: every member's content scales by `k` as well. */
+  content?: boolean;
+  /** A Resize of a set that can only keep its proportions (a group row or a circle in it,
+   *  or a member turned off a quarter turn): one factor drives both axes, and the readout
+   *  says so. Decided at the press and again by a collaboration rebase. */
+  proportional?: boolean;
 }
 /**
  * A selection-level rotation about `centre`. Angles are measured in NATIVE px from
@@ -776,12 +795,6 @@ export type GestureInit =
   | Omit<LineGesture, FilledBaseFields>;
 
 export const HANDLES: HandleName[] = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'];
-/** The corner a selection scale anchors on when the named one is dragged. */
-export const OPPOSITE_CORNER: Readonly<Record<Corner, Corner>> = { nw: 'se', ne: 'sw', se: 'nw', sw: 'ne' };
-/** One corner of axis-aligned bounds. */
-export function boundsCorner(a: Bounds, c: Corner): Point {
-  return { x: c === 'nw' || c === 'sw' ? a.minX : a.maxX, y: c === 'nw' || c === 'ne' ? a.minY : a.maxY };
-}
 export const SNAP_PX = 6;
 
 // ── the floating rail's position ──────────────────────────────────────────────

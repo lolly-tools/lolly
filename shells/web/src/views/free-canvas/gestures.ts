@@ -7,7 +7,7 @@
  * a value (an event listener), goes through `fc.<module>.<fn>`. Extracted verbatim
  * from initFreeCanvas() by scripts/split-closure.ts.
  */
-import { boxAABB, boxRect, createCanvasSnapIndex, filterMarqueeFrames, moveBoxes, normAngle, normDragRect, num, rectCentre, resizeRect, rotateGroup, scaleGroup, seedBox, selectionAABB, snapAngle, snapMove, snapPoint, withRect } from '../free-canvas-math.ts';
+import { boxAABB, boxRect, createCanvasSnapIndex, filterMarqueeFrames, moveBoxes, normAngle, normDragRect, num, rectCentre, resizeRect, rotateGroup, seedBox, selectionAABB, snapMove, snapPoint, withRect } from '../free-canvas-math.ts';
 import type { AABB as MathAABB, Box, CanvasSnapIndex, Rect as MathRect } from '../free-canvas-math.ts';
 import { pickMarquee, pickTopmost } from '../canvas-scene.ts';
 import { boxOutlineKind } from '../vector-ops.ts';
@@ -17,7 +17,7 @@ import { isTypingTarget } from '../../lib/typing-target.ts';
 import { beginCanvasFeedback, finishCanvasFeedback, cancelCanvasFeedback } from '../../lib/canvas-feedback.ts';
 import { t } from '../../i18n.ts';
 import { designHierarchyFlags, designHierarchyIndex } from '@lolly/engine';
-import { boxTransformCss, type BoxPose } from '../free-canvas-transform.ts';
+import { boxTransformCss, rotateSnap, transformRules, uniformResize, type BoxPose } from '../free-canvas-transform.ts';
 import { SNAP_PX, boolOf } from './shared.ts';
 import type { AABB, GRotateGesture, GScaleGesture, Gesture, GestureInit, GesturePointer, HandleName, Point, Rect } from './shared.ts';
 import { bindOp, type FcCtx } from './context.ts';
@@ -45,9 +45,10 @@ export function beginGesture(fc: FcCtx, e: PointerEvent, g: GestureInit): void {
   if (REAPPLY_TYPES.has(g.type)) armModifierKeys(fc);
   beginCanvasGesture(fc);
 }
-function gestureSnapIndex(fc: FcCtx): CanvasSnapIndex | null {
+/** The gesture's snap index over its `others`, built on the first frame that snaps. */
+export function gestureSnapIndex(fc: FcCtx): CanvasSnapIndex | null {
   const gesture = fc.gesture;
-  if (!gesture || gesture.type !== 'create' && gesture.type !== 'move' && gesture.type !== 'resize') return null;
+  if (!gesture || gesture.type !== 'create' && gesture.type !== 'move' && gesture.type !== 'resize' && gesture.type !== 'gscale') return null;
   if (gesture.snapIndex === undefined) gesture.snapIndex = createCanvasSnapIndex(gesture.others, fc.helpers.canvasWH());
   return gesture.snapIndex;
 }
@@ -56,6 +57,7 @@ export function endGesture(fc: FcCtx, committed = false): void {
   // After the cancel restore above, which writes through applyLiveRect: the live rects
   // describe this gesture only, and every reader falls back to the DOM and the model.
   fc.liveRects?.clear();
+  fc.selectionTransform?.hideLabel();
   fc.gestureKeysOff?.();
   fc.gestureKeysOff = null;
   const { rubber, stageEl } = fc;
@@ -702,9 +704,10 @@ export function applyGestureMove(fc: FcCtx, e: GesturePointer): void {
   }
   if (fc.gesture.type === 'pennode') {
     if (!fc.penEdit) return;
-    // The pointer snaps against sibling boxes and the artboard exactly as a create/resize
-    // drag does - same helper, same `.fc-guides` layer, Alt suppresses it - so a node can
-    // be dropped on a neighbour's edge without a second snapping system existing.
+    // The pointer snaps against sibling boxes and the artboard with the helper and the
+    // `.fc-guides` layer a create or resize drag uses, so a node can be dropped on a
+    // neighbour's edge without a second snapping system existing. Alt suppresses the
+    // snap for a node, as it does for a move.
     let sx = nat.x,
       sy = nat.y;
     if (!e.altKey) {
@@ -786,7 +789,8 @@ export function applyGestureMove(fc: FcCtx, e: GesturePointer): void {
   if (fc.gesture.type === 'move') {
     let mdx = dxN,
       mdy = dyN;
-    if (fc.gesture.selAABB && !e.altKey) {
+    // Alt and ⌘/Ctrl both drop the guides and the grid (the modifier table).
+    if (fc.gesture.selAABB && transformRules('move', e).snap) {
       // Smart guides win: snap the RAW drag to any sibling/artboard edge or centre
       // first, so dragging a card onto another's vertical/horizontal line locks it
       // into alignment (even off-grid). The grid then only rounds whichever axis
@@ -828,7 +832,11 @@ export function applyGestureMove(fc: FcCtx, e: GesturePointer): void {
   if (fc.gesture.type === 'resize') {
     let sdx = dxN,
       sdy = dyN;
-    if ((fc.gesture.startRect.rot || 0) === 0 && !e.altKey) {
+    // The modifier table: Shift keeps the aspect from the axis that moved further, Alt
+    // works from the centre with the dragged edge on the pointer and the guides still on,
+    // and ⌘/Ctrl suspends the guides and the grid. A Scale is uniform whatever Shift says.
+    const rules = transformRules(fc.gesture.content ? 'scale' : 'resize', e);
+    if ((fc.gesture.startRect.rot || 0) === 0 && rules.snap) {
       let px = nat.x,
         py = nat.y;
       if (fc.gridOn) {
@@ -848,14 +856,21 @@ export function applyGestureMove(fc: FcCtx, e: GesturePointer): void {
       sdy += snap.y - nat.y;
       drawGuides(fc, snap.guides);
     } else clearGuides(fc);
+    // Scale mode forces the aspect, and the element previews the content at k (plan 311).
+    const sc = fc.gesture.content
+      ? uniformResize(fc.gesture.startRect, fc.gesture.handle, sdx, sdy, { fromCentre: rules.fromCentre, minSize })
+      : null;
     // A circle stays a circle: lock its aspect (1:1) through the resize, as if Shift
     // were held. Its startRect is already square, so any handle keeps w === h.
-    const nr = resizeRect(fc.gesture.startRect, fc.gesture.handle, sdx, sdy, {
+    const nr = sc ? sc.rect : resizeRect(fc.gesture.startRect, fc.gesture.handle, sdx, sdy, {
       minSize,
-      keepAspect: e.shiftKey || fc.fieldPanels.isCircle(fc.select.getBoxes()[fc.gesture.index]),
-      fromCentre: e.altKey,
+      keepAspect: rules.keepAspect || fc.fieldPanels.isCircle(fc.select.getBoxes()[fc.gesture.index]),
+      aspectFrom: 'dominant',
+      fromCentre: rules.fromCentre,
+      mirror: true,
     });
-    applyLiveRect(fc, fc.gesture.index, { ...nr, rot: fc.gesture.startRect.rot });
+    if (sc) fc.gesture.k = sc.k;
+    applyLiveRect(fc, fc.gesture.index, { ...nr, rot: fc.gesture.startRect.rot }, sc?.k);
     fc.gesture.liveRect = { ...nr, rot: fc.gesture.startRect.rot };
     flushCanvasPreview(fc);
     fc.chromeSync.renderChromeLive();
@@ -869,7 +884,7 @@ export function applyGestureMove(fc: FcCtx, e: GesturePointer): void {
       fc.gesture.pointerStartDeg +
       fc.gesture.startRect.rot!;
     deg = normAngle(deg); // keep stored rotation in [-180, 180)
-    if (!e.altKey) deg = snapAngle(deg, 15, 4);
+    deg = rotateSnap(deg, transformRules('rotate', e).rotate); // magnet, Shift steps, or free
     const live = { ...fc.gesture.startRect, rot: deg };
     applyLiveRect(fc, fc.gesture.index, live);
     fc.gesture.liveRect = live;
@@ -878,10 +893,12 @@ export function applyGestureMove(fc: FcCtx, e: GesturePointer): void {
     return;
   }
   if (fc.gesture.type === 'gscale') {
-    // `origDist` is the PRESS's reach from the anchor, so k is exactly 1 at the press.
-    const k = Math.hypot(nat.x - fc.gesture.anchor.x, nat.y - fc.gesture.anchor.y) / fc.gesture.origDist;
-    const next = scaleGroup(fc.gesture.startBoxes, fc.gesture.sel, fc.gesture.anchor, k, cfg, { minSize });
-    for (const i of fc.gesture.sel) applyLiveRect(fc, i, boxRect(next[i], cfg));
+    // The travel from the PRESS, so nothing changes at the press. The modifier table, the
+    // uniform fallback and the edge snapping live in selection-transform.ts.
+    const { next, k, guides } = fc.selectionTransform.scaleFrame(fc.gesture, e, dxN, dyN);
+    drawGuides(fc, guides);
+    if (fc.gesture.content) fc.selectionTransform.previewScale(fc.gesture, next, k);
+    else for (const i of fc.gesture.sel) applyLiveRect(fc, i, boxRect(next[i], cfg));
     fc.gesture.k = k;
     fc.gesture.liveBoxes = next;
     flushCanvasPreview(fc);
@@ -892,7 +909,7 @@ export function applyGestureMove(fc: FcCtx, e: GesturePointer): void {
   if (fc.gesture.type === 'grotate') {
     const { centre, startBoxes } = fc.gesture;
     let deg = (Math.atan2(nat.y - centre.y, nat.x - centre.x) * 180) / Math.PI - fc.gesture.pointerStartDeg;
-    if (!e.altKey) deg = snapAngle(deg, 15, 4);
+    deg = rotateSnap(deg, transformRules('rotate', e).rotate);
     // An artboard never turns (the render draws pages upright), and it does not orbit
     // the pivot either: it stays exactly where it is while the rest of the set turns.
     const turning = fc.gesture.sel.filter((i) => !isFrameRow(fc, startBoxes[i]));
@@ -1312,6 +1329,12 @@ export function onGestureEnd(fc: FcCtx, e: PointerEvent): void {
     const onDiamond = (fc.timelinePanel?.kfPoseIds([rotId]).length ?? 0) > 0;
     const rotKf = g.type === 'rotate' && Math.abs(dr) > 0.01 && onDiamond;
     const sizeKf = g.type === 'resize' && (Math.abs(dw) > 0.5 || Math.abs(dh) > 0.5) && onDiamond;
+    // A Scale press that never grew or shrank the box is a click, and writes nothing.
+    if (g.type === 'resize' && g.content && Math.abs(dw) <= 0.5 && Math.abs(dh) <= 0.5) {
+      endGesture(fc);
+      fc.chromeSync.renderChrome();
+      return;
+    }
     endGesture(fc, true);
     if (rotKf && fc.timelinePanel) {
       fc.select.commit(fc.timelinePanel.kfPoseWrite(boxes, [rotId], { r: dr }));
@@ -1328,7 +1351,9 @@ export function onGestureEnd(fc: FcCtx, e: PointerEvent): void {
       if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) {
         next = fc.timelinePanel.kfPoseWrite(next, [rotId], { x: dx, y: dy });
       }
-      fc.select.commit(next);
+      // A Scale's content goes to the base row; the size stays the pose written above.
+      const scaled = fc.selectionTransform.withScale(g, next);
+      fc.select.commit(scaled.boxes, scaled.patch, scaled.label, scaled.frames);
       return;
     }
     // Containment-on-resize: a resize/rotate can move the box's centre across a frame
@@ -1336,7 +1361,8 @@ export function onGestureEnd(fc: FcCtx, e: PointerEvent): void {
     // origin too - cascade members with it (Figma semantics: children keep their
     // frame-local position), exactly like the move and group-transform commits.
     const resized = boxes.map((b, i) => (i === idx ? withRect(b, live, cfg) : b));
-    fc.select.commit(fc.select.assignFrames(fc.select.cascadeFrameChildren(boxes, resized, [idx]), new Set([idx])));
+    const scaled = fc.selectionTransform.withScale(g, fc.select.assignFrames(fc.select.cascadeFrameChildren(boxes, resized, [idx]), new Set([idx])));
+    fc.select.commit(scaled.boxes, scaled.patch, scaled.label, scaled.frames);
     return;
   }
   if (g.type === 'gscale' || g.type === 'grotate') {
@@ -1354,7 +1380,9 @@ export function onGestureEnd(fc: FcCtx, e: PointerEvent): void {
       const byId = new Map(sel.map(i => [fc.select.idOf(next[i], i), boxRect(next[i], cfg)]));
       const merged = boxes.map((box, i) => { const rect = byId.get(fc.select.idOf(box, i)); return rect ? withRect(box, rect, cfg) : box; });
       const selected = boxes.flatMap((box, i) => byId.has(fc.select.idOf(box, i)) ? [i] : []);
-      fc.select.commit(fc.select.assignFrames(fc.select.cascadeFrameChildren(boxes, merged, selected), new Set(selected)));
+      // Scale mode adds each member's content, on its current row, by the same k.
+      const scaled = fc.selectionTransform.withScale(g, fc.select.assignFrames(fc.select.cascadeFrameChildren(boxes, merged, selected), new Set(selected)));
+      fc.select.commit(scaled.boxes, scaled.patch, scaled.label, scaled.frames);
     }
     else fc.chromeSync.renderChrome();
     return;
@@ -1370,9 +1398,11 @@ export function onGestureEnd(fc: FcCtx, e: PointerEvent): void {
  * rotation, in the order the Design hook composes them, and never read back from
  * `el.style`, where the sequence applier writes its poses. `k` is Scale mode's live
  * preview: the element keeps its start size, centred on the live centre, and
- * `scale(k)` grows its content exactly as the committed scale will.
+ * `scale(k)` grows its content exactly as the committed scale will. `paint` false
+ * records the rect without writing the element, for a box drawn inside a page that
+ * is itself scaling.
  */
-export function applyLiveRect(fc: FcCtx, index: number, r: Rect, k = 1): void {
+export function applyLiveRect(fc: FcCtx, index: number, r: Rect, k = 1, paint = true): void {
   previewCanvasRect(fc, index, r);
   const { FLIP_H_FIELD, FLIP_V_FIELD, canFlip, cv, frameCfg, pages } = fc;
   const boxes = fc.select.getBoxes();
@@ -1380,7 +1410,7 @@ export function applyLiveRect(fc: FcCtx, index: number, r: Rect, k = 1): void {
   const id = fc.select.idOf(box, index);
   fc.liveRects ??= new Map();
   fc.liveRects.set(id, r);
-  const el = fc.stage.liveBoxEl(id);
+  const el = paint ? fc.stage.liveBoxEl(id) : null;
   if (!el) return;
   const kk = Number.isFinite(k) && k > 0 ? k : 1;
   const w = r.w / kk, h = r.h / kk;
@@ -1520,6 +1550,7 @@ export function onHandlePointerDown(fc: FcCtx, e: PointerEvent, handle: HandleNa
       handle,
       startRect,
       others: otherAABBs(fc, boxes, new Set([index])),
+      ...(fc.scaleContent && { content: true, startBox: boxes[index] }),
     });
   }
 }
@@ -1584,6 +1615,7 @@ export function gesturesOps(fc: FcCtx) {
     applyGestureMove: bindOp(fc, applyGestureMove),
     onGestureEnd: bindOp(fc, onGestureEnd),
     applyLiveRect: bindOp(fc, applyLiveRect),
+    gestureSnapIndex: bindOp(fc, gestureSnapIndex),
     isFrameRow: bindOp(fc, isFrameRow),
     selectionLocked: bindOp(fc, selectionLocked),
     onGestureModifierKey: bindOp(fc, onGestureModifierKey),

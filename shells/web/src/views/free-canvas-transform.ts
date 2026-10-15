@@ -23,7 +23,59 @@ import { DEFAULT_PERSPECTIVE } from '../../../../engine/src/keyframes.ts';
 import {
   HANDLE_SIGN, SCALE_K_FLOOR, formatDashArray, normAngle, num, parseDashArray, rotateVec, snapAngle, uniformScaleFloor,
 } from './free-canvas-math.ts';
-import type { AABB, Box, HandleName, Point, Rect, StartRect } from './free-canvas-math.ts';
+import type { AABB, Box, Guide, HandleName, Point, Rect, StartRect } from './free-canvas-math.ts';
+
+/** Axis-aligned bounds without their size, as the selection chrome measures them. */
+type Bounds = Pick<AABB, 'minX' | 'minY' | 'maxX' | 'maxY'>;
+
+// ── The modifier table ───────────────────────────────────────────────────────
+
+/** The modifier keys one gesture frame was taken with: a pointer event, or the replay
+ *  of the last one when a modifier key goes down or up mid-drag. */
+export interface ModifierKeys {
+  shiftKey?: boolean;
+  altKey?: boolean;
+  metaKey?: boolean;
+  ctrlKey?: boolean;
+}
+
+/** The transform a frame belongs to: Resize, Scale (K on), a turn or a move. */
+export type TransformKind = 'resize' | 'scale' | 'rotate' | 'move';
+
+/** What the held modifiers mean for one frame. */
+export interface TransformRules {
+  /** One factor for both axes: Shift on a Resize, and always on a Scale. */
+  keepAspect: boolean;
+  /** Resize and Scale about the centre, the dragged edge following the pointer. */
+  fromCentre: boolean;
+  /** Smart guides and the grid. A turn has the angle magnet instead. */
+  snap: boolean;
+  /** The angle snap a turn takes, for {@link rotateSnap}. */
+  rotate: { shift: boolean; free: boolean };
+}
+
+/**
+ * The modifier table every selection transform shares (plan 311), read from each
+ * frame's own event so a key pressed or released mid-drag applies at once:
+ *
+ * - Resize: Shift keeps the aspect, Alt works from the centre with snapping still on,
+ *   and ⌘ or Ctrl suspends snapping and the grid.
+ * - Scale: already uniform, so Shift adds nothing; Alt from the centre; ⌘ or Ctrl
+ *   suspends snapping.
+ * - Rotate: the soft 15 degree magnet; Shift gives hard steps; Alt, ⌘ or Ctrl turns freely.
+ * - Move: Alt keeps its own meanings (no snapping, and a detach from layout on drop,
+ *   which the drop reads itself), and ⌘ or Ctrl suspends snapping as well.
+ */
+export function transformRules(kind: TransformKind, keys: ModifierKeys): TransformRules {
+  const shift = !!keys.shiftKey, alt = !!keys.altKey, cmd = !!(keys.metaKey || keys.ctrlKey);
+  const sizing = kind === 'resize' || kind === 'scale';
+  return {
+    keepAspect: kind === 'scale' || (kind === 'resize' && shift),
+    fromCentre: sizing && alt,
+    snap: kind !== 'rotate' && !cmd && !(kind === 'move' && alt),
+    rotate: { shift: kind === 'rotate' && shift, free: kind === 'rotate' && (alt || cmd) },
+  };
+}
 
 // ── Uniform scale ─────────────────────────────────────────────────────────────
 
@@ -82,25 +134,42 @@ export function handleScaleK(start: StartRect, handle: HandleName, dx: number, d
 }
 
 /**
+ * One side of a box under the factor `s`: `side * s`, but never under the smaller of
+ * its start size and `minSize`. {@link clampScaleK} and the per-axis clamp already keep
+ * every side at or over `minSize` there, so this holds only a side that started thinner
+ * (a 1 px rule, a hairline) at its own size. Without the floor `s` takes that side
+ * toward 0, the commit's whole-pixel rounding writes 0, and no later scale can grow a
+ * 0 back. A side of 0 stays 0.
+ */
+export function scaleSide(side: number, s: number, minSize: number): number {
+  const next = side * s;
+  return side > 0 ? Math.max(next, Math.min(side, minSize)) : next;
+}
+
+/**
  * `start` scaled uniformly by `k` about the point a `handle` drag holds still: the
  * opposite corner, the opposite edge's midpoint, or the centre with `fromCentre`.
- * Rotation-aware: the anchor stays put in world space and `rot` is unchanged.
+ * Rotation-aware: the anchor stays put in world space and `rot` is unchanged. With
+ * `minSize`, a side thinner than that keeps its size ({@link scaleSide}) and the anchor
+ * still holds.
  */
-export function scaleRectAbout(start: StartRect, handle: HandleName, k: number, fromCentre = false): Rect {
+export function scaleRectAbout(start: StartRect, handle: HandleName, k: number, fromCentre = false, minSize = 0): Rect {
   const [hx, hy] = HANDLE_SIGN[handle] ?? [0, 0];
   const rot = start.rot || 0;
   const c0 = { x: start.x + start.w / 2, y: start.y + start.h / 2 };
-  const w = start.w * k, h = start.h * k;
+  const w = scaleSide(start.w, k, minSize), h = scaleSide(start.h, k, minSize);
   if (fromCentre) return { x: c0.x - w / 2, y: c0.y - h / 2, w, h, rot };
-  // The anchor's offset from the centre scales with the box, so the centre moves
-  // by (1 - k) of that offset.
-  const a = rotateVec((-hx * start.w) / 2, (-hy * start.h) / 2, rot);
-  const c1 = { x: c0.x + a.x * (1 - k), y: c0.y + a.y * (1 - k) };
+  // The anchor keeps its world point: the new centre sits the new size's half-diagonal
+  // back from it, so a side held by the floor moves the centre no further than it grew.
+  const a0 = rotateVec((-hx * start.w) / 2, (-hy * start.h) / 2, rot);
+  const a1 = rotateVec((-hx * w) / 2, (-hy * h) / 2, rot);
+  const c1 = { x: c0.x + a0.x - a1.x, y: c0.y + a0.y - a1.y };
   return { x: c1.x - w / 2, y: c1.y - h / 2, w, h, rot };
 }
 
 /** Options for {@link uniformResize}. */
 export interface UniformResizeOpts {
+  /** Alt: scale about the centre, mirrored so the dragged edge follows the pointer. */
   fromCentre?: boolean;
   minSize?: number;
   kMax?: number;
@@ -111,8 +180,55 @@ export interface UniformResizeOpts {
  * rect it gives. The same `k` then drives content scaling and the readout.
  */
 export function uniformResize(start: StartRect, handle: HandleName, dx: number, dy: number, opts: UniformResizeOpts = {}): { rect: Rect; k: number } {
-  const k = clampScaleK(handleScaleK(start, handle, dx, dy, opts.fromCentre), [start], opts.minSize ?? 8, opts.kMax);
-  return { rect: scaleRectAbout(start, handle, k, opts.fromCentre), k };
+  const centre = !!opts.fromCentre;
+  const minSize = opts.minSize ?? 8;
+  const k = clampScaleK(handleScaleK(start, handle, dx, dy, centre), [start], minSize, opts.kMax);
+  return { rect: scaleRectAbout(start, handle, k, centre, minSize), k };
+}
+
+// ── Scale about an anchor (the Scale popover) ────────────────────────────────
+
+/** One of the nine points a Scale can hold still: a handle's point, or 'c' for the centre. */
+export type ScaleAnchor = HandleName | 'c';
+
+/** The nine anchors in reading order, the cells of the 3x3 picker. */
+export const SCALE_ANCHORS: readonly ScaleAnchor[] = ['nw', 'n', 'ne', 'w', 'c', 'e', 'sw', 's', 'se'];
+
+/** The world point an anchor picks out on axis-aligned bounds. */
+export function anchorPoint(a: Bounds, anchor: ScaleAnchor): Point {
+  const [hx, hy] = anchor === 'c' ? [0, 0] : (HANDLE_SIGN[anchor] ?? [0, 0]);
+  const pick = (s: number, lo: number, hi: number): number => (s < 0 ? lo : s > 0 ? hi : (lo + hi) / 2);
+  return { x: pick(hx, a.minX, a.maxX), y: pick(hy, a.minY, a.maxY) };
+}
+
+/** The handle across the box from each handle: the corner or edge a drag holds still. */
+export const OPPOSITE_HANDLE: Readonly<Record<HandleName, HandleName>> = {
+  n: 's', s: 'n', e: 'w', w: 'e', ne: 'sw', sw: 'ne', nw: 'se', se: 'nw',
+};
+
+/** The point a drag of `handle` holds still on axis-aligned bounds without Alt: the
+ *  opposite corner, or the middle of the opposite edge. */
+export function handleAnchor(a: Bounds, handle: HandleName): Point {
+  return anchorPoint(a, OPPOSITE_HANDLE[handle] ?? handle);
+}
+
+/**
+ * One box scaled by `k` with `anchor` held still in world space, rotation-aware: the
+ * same rect a Scale drag of the opposite handle gives, or a from-centre drag for 'c'.
+ * `minSize` is the drag's own floor ({@link scaleSide}).
+ */
+export function scaleRectAt(start: StartRect, anchor: ScaleAnchor, k: number, minSize = 0): Rect {
+  if (anchor === 'c') return scaleRectAbout(start, 'se', k, true, minSize);
+  return scaleRectAbout(start, OPPOSITE_HANDLE[anchor], k, false, minSize);
+}
+
+/**
+ * A set scaled by one factor `k` about a world point, as the Scale popover scales a
+ * selection: each member centre maps about `anchor`, each side follows
+ * {@link scaleSide}, and `rot` is unchanged. Pass `k` through {@link clampScaleK} first.
+ */
+export function scaleMembersAt(members: ReadonlyArray<StartRect>, anchor: Point, k: number, minSize = 0): Rect[] {
+  return members.map((m) => placeMember(m, anchor, k, k, false, minSize));
 }
 
 // ── Selection (group) resize and scale ───────────────────────────────────────
@@ -184,6 +300,16 @@ export interface SelectionTransform {
   uniform: boolean;
 }
 
+/** A member's rect under the world factors (sx, sy) about `anchor`: its centre maps
+ *  affinely, and a member turned a quarter (`swap`) takes sy on its w and sx on its h.
+ *  Each side follows {@link scaleSide}, so a side thinner than `minSize` keeps its size. */
+function placeMember(m: StartRect, anchor: Point, sx: number, sy: number, swap: boolean, minSize: number): Rect {
+  const w = scaleSide(m.w, swap ? sy : sx, minSize), h = scaleSide(m.h, swap ? sx : sy, minSize);
+  const c = { x: m.x + m.w / 2, y: m.y + m.h / 2 };
+  const nc = { x: anchor.x + (c.x - anchor.x) * sx, y: anchor.y + (c.y - anchor.y) * sy };
+  return { x: nc.x - w / 2, y: nc.y - h / 2, w, h, rot: m.rot || 0 };
+}
+
 /** One axis's factor clamped so no member's extent along that world axis drops
  *  under `minSize`; a member already under `minSize` on that axis is exempt. */
 function clampAxis(s: number, members: ReadonlyArray<StartRect>, axis: 'x' | 'y', minSize: number, kMax: number): number {
@@ -205,10 +331,12 @@ function clampAxis(s: number, members: ReadonlyArray<StartRect>, axis: 'x' | 'y'
  * member is axis-aligned ({@link canResizeNonUniform}); a member turned a quarter
  * takes sy on its w and sx on its h. Otherwise one clamped factor drives both
  * axes: a corner follows the axis that moved further, an edge its own axis. Each
- * member centre maps affinely about the anchor, so the set stays rigid.
+ * member centre maps affinely about the anchor, so the set stays rigid. A member side
+ * that started under `minSize` (a 1 px divider in a card) is exempt from the clamp and
+ * keeps its own size instead ({@link scaleSide}), so it never reaches 0.
  */
 export function transformSelection(
-  members: ReadonlyArray<StartRect>, aabb: AABB, handle: HandleName, dx: number, dy: number,
+  members: ReadonlyArray<StartRect>, aabb: Bounds, handle: HandleName, dx: number, dy: number,
   opts: SelectionTransformOpts = {},
 ): SelectionTransform {
   const minSize = opts.minSize ?? 8;
@@ -232,20 +360,48 @@ export function transformSelection(
     sx = Number.isFinite(rawX) ? clampAxis(rawX, members, 'x', minSize, kMax) : 1;
     sy = Number.isFinite(rawY) ? clampAxis(rawY, members, 'y', minSize, kMax) : 1;
   }
-  const rects = members.map((m): Rect => {
-    const rot = m.rot || 0;
-    const turned = !uniform && sideways(rot);
-    const w = m.w * (turned ? sy : sx), h = m.h * (turned ? sx : sy);
-    const c = { x: m.x + m.w / 2, y: m.y + m.h / 2 };
-    const nc = { x: anchor.x + (c.x - anchor.x) * sx, y: anchor.y + (c.y - anchor.y) * sy };
-    return { x: nc.x - w / 2, y: nc.y - h / 2, w, h, rot };
-  });
+  const rects = members.map((m) => placeMember(m, anchor, sx, sy, !uniform && sideways(m.rot || 0), minSize));
   const minX = anchor.x + (aabb.minX - anchor.x) * sx, maxX = anchor.x + (aabb.maxX - anchor.x) * sx;
   const minY = anchor.y + (aabb.minY - anchor.y) * sy, maxY = anchor.y + (aabb.maxY - anchor.y) * sy;
   return {
     rects, aabb: { minX, minY, maxX, maxY, w: maxX - minX, h: maxY - minY }, anchor,
     sx, sy, k: uniform ? sx : 1, uniform,
   };
+}
+
+/**
+ * The point a selection handle drag carries, for snapping: the handle's own point on
+ * the start bounds moved by the pointer delta. The dragged edge follows the pointer,
+ * from the opposite edge and from the centre alike (a from-centre drag is mirrored), so
+ * snapping this point to a guide puts the edge on that guide. An edge handle drives one axis only,
+ * and the axis it leaves alone is null.
+ */
+export function handleDragPoint(a: Bounds, handle: HandleName, dx: number, dy: number): { x: number | null; y: number | null } {
+  const [hx, hy] = HANDLE_SIGN[handle] ?? [0, 0];
+  return {
+    x: hx === 0 ? null : (hx > 0 ? a.maxX : a.minX) + dx,
+    y: hy === 0 ? null : (hy > 0 ? a.maxY : a.minY) + dy,
+  };
+}
+
+/**
+ * The snap guides a transformed selection really touches: a vertical guide that one of
+ * the bounds' x edges reaches, a horizontal one a y edge reaches (within half a pixel),
+ * on the axes the drag drives, and an angled guide that `corner` (the dragged corner,
+ * passed only for a free corner drag) lies on. A uniform drag follows one axis and a
+ * clamp can stop an edge short, so a guide the edges missed is dropped rather than
+ * drawn where no edge reached.
+ */
+export function touchedGuides(guides: readonly Guide[], a: Bounds, axes: { x: boolean; y: boolean }, corner?: Point): Guide[] {
+  const on = (v: number, lo: number, hi: number): boolean => Math.abs(v - lo) <= 0.5 || Math.abs(v - hi) <= 0.5;
+  const onSlope = (g: Guide, p: Point): boolean => {
+    const vx = g.x2 - g.x1, vy = g.y2 - g.y1, len = Math.hypot(vx, vy);
+    return len > 0 && Math.abs(vx * (p.y - g.y1) - vy * (p.x - g.x1)) / len <= 0.5;
+  };
+  return guides.filter((g) =>
+    g.x1 === g.x2 ? axes.x && on(g.x1, a.minX, a.maxX)
+      : g.y1 === g.y2 ? axes.y && on(g.y1, a.minY, a.maxY)
+        : !!corner && onSlope(g, corner));
 }
 
 // ── Content scaling (Scale mode) ─────────────────────────────────────────────
@@ -430,6 +586,37 @@ export function scaleBoxContent(box: Box, k: number, spec: ContentScaleSpec, opt
     }
   }
   return Object.keys(patch).length ? { ...box, ...patch } : box;
+}
+
+/**
+ * Which axes of a layout row take a new size under Scale. A 'hug' or 'fill' axis keeps
+ * its mode and lets the layout size it from the scaled children, gaps and padding, so
+ * only a fixed axis (the default) is written.
+ */
+export function scaledLayoutAxes(row: Box): { w: boolean; h: boolean } {
+  const fixed = (v: InputValue | undefined): boolean => v !== 'hug' && v !== 'fill';
+  return { w: fixed(row.layoutW), h: fixed(row.layoutH) };
+}
+
+/** A rect's top-left corner after its turn, the point a layout child's offset is
+ *  measured from and to (the layout's own `basis`). */
+function turnedCorner(r: StartRect): Point {
+  const a = rotateVec(-r.w / 2, -r.h / 2, r.rot || 0);
+  return { x: r.x + r.w / 2 + a.x, y: r.y + r.h / 2 + a.y };
+}
+
+/**
+ * Where an absolutely placed layout child's row goes when a Scale grows its container
+ * by `k`: the child's turned corner keeps its direction from the container's turned
+ * corner at `k` times the distance, so its offset in the container's axes grows by `k`
+ * whatever the anchor and the turn. Both corners are the START ones, because the layout
+ * reads a child's new offset against its container's place before the edit (layout.ts
+ * `sourceEdit`). `out` is the child's new size and turn; the result is its new x/y.
+ */
+export function scaleChildOffset(parentStart: StartRect, childStart: StartRect, out: { w: number; h: number; rot?: number }, k: number): Point {
+  const p = turnedCorner(parentStart), c = turnedCorner(childStart);
+  const at = turnedCorner({ x: 0, y: 0, w: out.w, h: out.h, rot: out.rot });
+  return { x: p.x + (c.x - p.x) * k - at.x, y: p.y + (c.y - p.y) * k - at.y };
 }
 
 // ── Live box transform ───────────────────────────────────────────────────────

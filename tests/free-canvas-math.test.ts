@@ -445,8 +445,11 @@ test('scaleGroup scales positions + sizes about the anchor, keeping the anchor f
   assert.deepEqual([out[0].x, out[0].y, out[0].w, out[0].h], [100, 100, 200, 200]);
   // b's centre (350,150) → (100,100)+2*(250,50)=(600,200); size 200 → x=500,y=100
   assert.deepEqual([out[1].x, out[1].y, out[1].w, out[1].h], [500, 100, 200, 200]);
-  assert.equal(out[1].fontSize, 80);            // text scaled
-  assert.equal(out[1].radius, 40);              // radius scaled
+  // The font size and radius come back times k as well, but the canvas commits only the
+  // geometry: Resize is geometry only, and Scale mode scales content through
+  // scaleBoxContent (free-canvas-transform.ts), not through these two fields.
+  assert.equal(out[1].fontSize, 80, 'a by-product the Resize commit drops');
+  assert.equal(out[1].radius, 40, 'a by-product the Resize commit drops');
 });
 
 test('rotateGroup rotates member centres about the pivot and adds to each rotation', () => {

@@ -157,6 +157,9 @@ export interface ToolViewCtx {
    *  actions bar flushes once more on teardown, and that write must keep both. */
   documentMeta?: () => Record<string, unknown>;
   applyingHistory: boolean;
+  /** The undo name an editor gave the plain input write in flight (free-canvas's Scale),
+   *  read by the setInput wrapper in place of the name it would infer. */
+  historyName?: string;
   historyControls: HistoryControls | null;
   historyToastEl: HTMLElement | null;
   historyToastTimer: ReturnType<typeof setTimeout> | undefined;

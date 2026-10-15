@@ -355,6 +355,11 @@ export function rebuildCtxBar(fc: FcCtx, boxes: Box[], idx: number[]): void {
   // Fill field edits the SELECTED STOP, which nothing else offers. Without an inspector
   // (no dock host) the bar keeps every control and its own popovers, as before.
   const verbsOnly = !!fc.inspectorPort && fc.gradEdit == null;
+  // With Scale on, or several objects selected, the readout opens the Scale popover:
+  // the single-pointer route to a Scale drag (plan 311, WCAG 2.5.7).
+  const scaleDoor = fc.scaleMode.panelWanted(boxes);
+  const readTip = scaleDoor ? t('Scale the selection') : verbsOnly ? t('Edit in the inspector') : t('Edit position & size');
+  const readLabel = scaleDoor ? t('Scale the selection') : verbsOnly ? t('Edit in the inspector') : t('Edit position and size');
   ctxbar.innerHTML = `
       ${verbsOnly ? '' : paintCtxHtml(fc, first, allPaths, allStroked)}
       ${
@@ -373,7 +378,8 @@ export function rebuildCtxBar(fc: FcCtx, boxes: Box[], idx: number[]): void {
       <button type="button" class="fc-cbtn" data-cx="dup" data-tip="${escapeText(t('Duplicate'))}" aria-label="${escapeText(t('Duplicate'))}">${icon(SVG.dup)}</button>
       <button type="button" class="fc-cbtn fc-danger" data-cx="del" data-tip="${escapeText(t('Delete'))}" aria-label="${escapeText(t('Delete'))}">${icon(SVG.trash)}</button>
       ${coarse ? `<button type="button" class="fc-cbtn${fc.multiTapMode ? ' is-on' : ''}" data-cx="multi" aria-pressed="${fc.multiTapMode}" data-tip="${escapeText(t('Select more - tap cards to add'))}" aria-label="${escapeText(t('Select more cards'))}">${icon(SVG.add)}</button>` : ''}
-      <button type="button" class="fc-readout" data-cx="dims" data-cx-readout data-tip="${escapeText(verbsOnly ? t('Edit in the inspector') : t('Edit position & size'))}" aria-label="${escapeText(verbsOnly ? t('Edit in the inspector') : t('Edit position and size'))}"></button>`;
+      ${coarse ? `<button type="button" class="fc-cbtn${fc.scaleContent ? ' is-on' : ''}" data-cx="scale" aria-pressed="${fc.scaleContent}" data-tip="${escapeText(t('Scale (K) - text, strokes and effects resize with the object'))}" aria-label="${escapeText(t('Scale mode'))}">${icon(SVG.scaleMode)}</button>` : ''}
+      <button type="button" class="fc-readout" data-cx="dims" data-cx-readout${scaleDoor ? ' aria-haspopup="dialog"' : ''} data-tip="${escapeText(readTip)}" aria-label="${escapeText(readLabel)}"></button>`;
   wirePaintCtx(fc, ctxbar);
   ctxbar.querySelectorAll<HTMLElement>('[data-cx]').forEach((b) =>
     { b.addEventListener('click', (e) => {
@@ -410,8 +416,10 @@ export function rebuildCtxBar(fc: FcCtx, boxes: Box[], idx: number[]): void {
         announce(
           fc.multiTapMode ? t('Select more - tap cards to add them.') : t('Multi-select off.')
         );
-      } else if (cx === 'dims') {
-        if (fc.inspectorPort) fc.inspectorPort.reveal('object');
+      } else if (cx === 'scale') fc.scaleMode.toggle();
+      else if (cx === 'dims') {
+        if (fc.scaleMode.panelWanted(fc.select.getBoxes())) fc.scaleMode.openPanel(b);
+        else if (fc.inspectorPort) fc.inspectorPort.reveal('object');
         else fc.fieldPanels.openDimsPanel(b);
       }
     }); }

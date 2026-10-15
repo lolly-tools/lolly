@@ -573,6 +573,17 @@ export function buildToolbar(fc: FcCtx): void {
     fc.menus.openArrangeMenu()
   );
   fc.keys.syncArrangeUI();
+  // Scale mode (K, plan 311): a toggle on the pointer, built like the grid toggle below.
+  // It starts off at every mount; fc.scaleMode keeps it, the object bar's twin and the
+  // K key in step.
+  const sbtn = toolBtn(fc,
+    t('Scale (K) - text, strokes and effects resize with the object'),
+    SVG.scaleMode,
+    () => fc.scaleMode.toggle(),
+    'fc-btn-scale'
+  );
+  sbtn.setAttribute('aria-pressed', String(fc.scaleContent));
+  if (fc.scaleContent) sbtn.classList.add('is-armed');
   // Snap-to-grid toggle (opt-in).
   if (cv.grid) {
     const gbtn = toolBtn(fc, t('Snap to grid'), SVG.grid, () => {

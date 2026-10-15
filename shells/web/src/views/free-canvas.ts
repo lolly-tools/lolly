@@ -79,7 +79,7 @@ import { t } from '../i18n.ts';
 import { mountDesignGuides } from './design-guides.ts';
 import { SVG, icon } from './free-canvas-icons.ts';
 import { railSession, } from './free-canvas/shared.ts';
-import type { AddKind, CanvasCfg, ConnectCfg, Corner, DeepLinkState, FieldCfg, FontOption, ImportMode, InitFreeCanvasOpts, RuntimeApi, TouchPt } from './free-canvas/shared.ts';
+import type { AddKind, CanvasCfg, ConnectCfg, DeepLinkState, FieldCfg, FontOption, ImportMode, InitFreeCanvasOpts, RuntimeApi, TouchPt } from './free-canvas/shared.ts';
 import type { FcCtx } from './free-canvas/context.ts';
 import { helpersOps } from './free-canvas/helpers.ts';
 import { selectOps } from './free-canvas/select.ts';
@@ -121,6 +121,8 @@ import { chromeSyncOps } from './free-canvas/chrome-sync.ts';
 import { keysOps } from './free-canvas/keys.ts';
 import { editorStateOps } from './free-canvas/editor-state.ts';
 import { slideMastersOps } from './free-canvas/slide-masters.ts';
+import { scaleModeOps } from './free-canvas/scale-mode.ts';
+import { selectionTransformOps } from './free-canvas/selection-transform.ts';
 import { preloadGeometryKernels } from '../bridge/geometry-host.ts';
 export { clampRailPos, stageBlockers, ctxTopBand, centreCtxBar, FC_TILT } from './free-canvas/shared.ts';
 export type { DeepLinkState, CtxTopBand } from './free-canvas/shared.ts';
@@ -251,6 +253,8 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   fc.keys = keysOps(fc);
   fc.editorState = editorStateOps(fc);
   fc.slideMasters = slideMastersOps(fc);
+  fc.scaleMode = scaleModeOps(fc);
+  fc.selectionTransform = selectionTransformOps(fc);
   fc.opts = opts;
 
   const {
@@ -638,6 +642,9 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   // wants to keep - so a real mode would fight that invariant. Mutually exclusive with the
   // other tools: picking pen/create/connect (or the plain pointer) clears it.
   fc.nodeToolActive = false;
+  // Scale mode (K): the same kind of select sub-mode, and never restored from a save -
+  // every mount starts in Resize (see free-canvas/scale-mode.ts).
+  fc.scaleContent = false;
   fc.armedKind = null; // the create gesture's seed; set iff mode === 'create'
   fc.gesture = null; // active pointer gesture
   // The pointerType of the last press ON THE CANVAS. A touch laptop reports `pointer:
@@ -1788,7 +1795,6 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   // name when there is one, and a double-click turns it into a one-field editor: Enter or
   // a click away saves, Escape cancels. Single click still solos the frame.
   fc.renamingFrameId = '';
-  const OPPOSITE: Record<Corner, Corner> = { nw: 'se', ne: 'sw', se: 'nw', sw: 'ne' }; fc.OPPOSITE = OPPOSITE;
 
   /**
    * The fixed stage chrome the contextual bar has to keep off, in STAGE coordinates:

@@ -506,6 +506,11 @@ html[data-a11y-motion="reduce"] .fc-btn-lolly:focus-visible svg .lolly-mark__spi
    its behaviour inside this one row is local. Restating the fill pair here would beat the
    primitive from the `views` layer, which is what primitive-guards.test.ts ratchets. */
 .fc-num-go { flex: none; }
+/* The Scale popover (plan 311): the percentage row, the 3x3 anchor and its two buttons. */
+.fc-scale-panel .fc-num-row .field-input { flex: 1 1 auto; min-width: 0; }
+.fc-scale-actions { display: flex; justify-content: flex-end; gap: var(--sp-2); }
+/* The object bar's Scale toggle on a coarse pointer: a full accent wash while on. */
+.fc-ctxbar .fc-cbtn[data-cx="scale"].is-on { background: hsl(var(--primary) / 0.16); color: hsl(var(--primary)); }
 
 /* Selection overlay - siblings of the canvas, never exported. */
 .fc-overlay { position: absolute; inset: 0; z-index: 12; pointer-events: none; }
@@ -549,6 +554,29 @@ html[data-a11y-motion="reduce"] .fc-btn-lolly:focus-visible svg .lolly-mark__spi
 .fc-rot-stem {
   position: absolute; height: 1.5px; background: hsl(var(--primary));
   transform-origin: 0 50%; margin-top: -0.75px; pointer-events: none;
+}
+/* Scale mode (K, plan 311): the resize handles fill with the accent, the inverse of
+   Resize's white squares, so the mode shows on the selection the drag starts from. The
+   whole handle changes colour; no edge of a handle is drawn on its own. */
+.fc-chrome[data-scale] .fc-handle:not(.fc-h-rotate) { background: hsl(var(--primary)); border-color: #ffffff; }
+/* The scale cursor (plan 311), Penpot's sign that a drag scales in proportion: the resize
+   cursor's direction drawn as two arrows, black with a white keyline like
+   .drag-wrap-cursor, so it reads on any surface in either theme. Scale mode's handles
+   carry it, and so do a set's handles in Resize when the set can only keep its
+   proportions (a group or a circle in it, or a member turned off a quarter turn). The
+   plain resize cursor is the fallback. */
+.fc-chrome:is([data-scale], [data-proportional]) :is(.fc-h-n, .fc-h-s) { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M7 1l3.5 5h-2.25v12h2.25l-3.5 5-3.5-5h2.25V6h-2.25zM17 1l3.5 5h-2.25v12h2.25l-3.5 5-3.5-5h2.25V6h-2.25z' fill='%23000' stroke='%23fff' stroke-width='2' stroke-linejoin='round' paint-order='stroke'/%3E%3C/svg%3E") 12 12, ns-resize; }
+.fc-chrome:is([data-scale], [data-proportional]) :is(.fc-h-e, .fc-h-w) { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath transform='rotate(90 12 12)' d='M7 1l3.5 5h-2.25v12h2.25l-3.5 5-3.5-5h2.25V6h-2.25zM17 1l3.5 5h-2.25v12h2.25l-3.5 5-3.5-5h2.25V6h-2.25z' fill='%23000' stroke='%23fff' stroke-width='2' stroke-linejoin='round' paint-order='stroke'/%3E%3C/svg%3E") 12 12, ew-resize; }
+.fc-chrome:is([data-scale], [data-proportional]) :is(.fc-h-ne, .fc-h-sw) { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath transform='rotate(45 12 12)' d='M7 1l3.5 5h-2.25v12h2.25l-3.5 5-3.5-5h2.25V6h-2.25zM17 1l3.5 5h-2.25v12h2.25l-3.5 5-3.5-5h2.25V6h-2.25z' fill='%23000' stroke='%23fff' stroke-width='2' stroke-linejoin='round' paint-order='stroke'/%3E%3C/svg%3E") 12 12, nesw-resize; }
+.fc-chrome:is([data-scale], [data-proportional]) :is(.fc-h-nw, .fc-h-se) { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath transform='rotate(-45 12 12)' d='M7 1l3.5 5h-2.25v12h2.25l-3.5 5-3.5-5h2.25V6h-2.25zM17 1l3.5 5h-2.25v12h2.25l-3.5 5-3.5-5h2.25V6h-2.25z' fill='%23000' stroke='%23fff' stroke-width='2' stroke-linejoin='round' paint-order='stroke'/%3E%3C/svg%3E") 12 12, nwse-resize; }
+/* The size label beside a selection being resized or scaled: W x H, or Scale NN%. It
+   repeats the object bar's readout next to the pointer for when the bar is hidden. */
+.fc-xform-label {
+  position: absolute; z-index: 16; padding: 3px 7px;
+  border-radius: var(--radius-xs); background: hsl(var(--card) / 0.92); color: hsl(var(--foreground));
+  box-shadow: var(--shadow-3), 0 0 0 1px hsl(var(--border));
+  font-size: var(--fs-xs); font-weight: 600; line-height: 1.2;
+  font-variant-numeric: tabular-nums; white-space: nowrap; pointer-events: none;
 }
 
 /* Rubber-band (create-drag + marquee). */

@@ -90,6 +90,20 @@ export const changeLabel = (_tview: ToolViewCtx,
   const f = (item.fields || []).find((x) => x?.id === ch.field);
   return f?.label ? t(f.label) : fallback;
 };
+/** The name of a plain input write's undo step: the one its editor gave through
+ *  `named` (see transactionActions), else what {@link changeLabel} reads from the change. */
+export const writeLabel = (tview: ToolViewCtx, item: Parameters<typeof changeLabel>[1], before: InputValue, after: InputValue): string =>
+  tview.historyName ?? changeLabel(tview, item, before, after);
+/** Run one plain write whose undo step is called `label`; cleared even when it throws. */
+export const namedWrite = (tview: ToolViewCtx, label: string, write: () => void): void => {
+  const outer = tview.historyName;
+  tview.historyName = label;
+  try {
+    write();
+  } finally {
+    tview.historyName = outer;
+  }
+};
 export const applyHistory = (tview: ToolViewCtx, id: string, value: InputValue, restoreTokenRefs?: Record<string, string | null>) => {
   const { inputHistory, runtime } = tview;
   tview.applyingHistory = true;
@@ -450,10 +464,21 @@ export function wireHistory(tview: ToolViewCtx): void {
   const canvasRole = runtime.hasExportFile || tview.toolId === '3d-studio' ? 'group' : 'img'; tview.canvasRole = canvasRole;
 }
 
+type HistoryRegister = (sync: (canUndo: boolean, canRedo: boolean) => void) => void;
+/** The history commands an editor calls; free-canvas's `HistoryApi` lists the same commands. */
+interface TransactionActions {
+  register: HistoryRegister;
+  commit: (values: Record<string, unknown>, label: string, typingGroup?: string) => Promise<void>;
+  endGesture: () => void;
+  changed: () => void;
+  top: () => object | null;
+  named: (label: string, write: () => void) => void;
+}
 /** Bind history commands outside the mount orchestrator. `changed` is automatic
- *  history's signal, for an editor action that writes through applyPatch. */
-export function transactionActions(tview: ToolViewCtx, register: (sync: (canUndo: boolean, canRedo: boolean) => void) => void): { register: typeof register; commit: (values: Record<string, unknown>, label: string, typingGroup?: string) => Promise<void>; endGesture: () => void; changed: () => void; top: () => object | null } {
-  return { register, commit:tview.history.commitInputs, endGesture:()=>tview.inputHistory.endGesture(), changed: () => tview.revisionChanged(), top: () => tview.inputHistory.peekUndo() };
+ *  history's signal, for an editor action that writes through applyPatch; `named`
+ *  gives one plain write its undo name. */
+export function transactionActions(tview: ToolViewCtx, register: HistoryRegister): TransactionActions {
+  return { register, commit:tview.history.commitInputs, endGesture:()=>tview.inputHistory.endGesture(), changed: () => tview.revisionChanged(), top: () => tview.inputHistory.peekUndo(), named: (label, write) => namedWrite(tview, label, write) };
 }
 export function historyOps(tview: ToolViewCtx) {
   return {
@@ -462,6 +487,7 @@ export function historyOps(tview: ToolViewCtx) {
     compileForSurface: bindOp(tview, compileForSurface),
     refreshHistoryUI: bindOp(tview, refreshHistoryUI),
     changeLabel: bindOp(tview, changeLabel),
+    writeLabel: bindOp(tview, writeLabel),
     applyHistory: bindOp(tview, applyHistory),
     commitInputs: bindOp(tview, commitInputs),
     undoHistory: bindOp(tview, undoHistory),

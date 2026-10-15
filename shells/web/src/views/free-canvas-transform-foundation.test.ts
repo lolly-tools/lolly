@@ -206,11 +206,12 @@ test('a group-scale press 5 px inside the corner reads k = 1, and the scale is m
     await settle();
     assert.equal(f.writes(), 0, 'and nothing commits');
 
-    // Twice the press's reach from the anchor (the nw corner at 100,100) is k = 2.
+    // The travel from the press, not from the corner: 300 px right and 100 px down
+    // doubles the 300 x 100 pair from its nw corner at (100, 100).
     f.handle('se')!.dispatchEvent(pointer('pointerdown', 395, 195));
-    f.canvasEl.dispatchEvent(pointer('pointermove', 690, 290));
+    f.canvasEl.dispatchEvent(pointer('pointermove', 695, 295));
     await settle();
-    f.canvasEl.dispatchEvent(pointer('pointerup', 690, 290));
+    f.canvasEl.dispatchEvent(pointer('pointerup', 695, 295));
     await settle();
     assert.equal(f.writes(), 1, 'one commit, one undo step');
     assert.deepEqual([f.byId('a').x, f.byId('a').y, f.byId('a').w, f.byId('a').h], [100, 100, 200, 200]);

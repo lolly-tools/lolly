@@ -12,17 +12,19 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
-  SCALE_K_MAX, clampScaleK, scaleFactorOf, handleScaleK, scaleRectAbout, uniformResize,
-  canResizeNonUniform, rectsAABB, transformSelection,
-  contentScaleSpec, scaleBoxContent, scaleTextWrap, CONTENT_LENGTH_IDS, TEXT_WRAP_OFFSET_MAX,
+  SCALE_K_MAX, clampScaleK, scaleFactorOf, handleScaleK, scaleSide, scaleRectAbout, uniformResize,
+  SCALE_ANCHORS, anchorPoint, scaleRectAt, scaleMembersAt, OPPOSITE_HANDLE, handleAnchor,
+  canResizeNonUniform, rectsAABB, transformSelection, handleDragPoint, touchedGuides,
+  transformRules,
+  contentScaleSpec, scaleBoxContent, scaledLayoutAxes, scaleChildOffset, scaleTextWrap, CONTENT_LENGTH_IDS, TEXT_WRAP_OFFSET_MAX,
   boxTransformCss, TILT_MAX_DEG,
   zoneAt, zoneLayout, zoneRects, smallObjectHandles, visibleExtent,
   GRAB_ZONE_MIN, GRAB_ZONE_MAX, ZONE_ROTATE,
   resizeCursorFor, snapAngleHard, rotateSnap, pinchTransform,
 } from './free-canvas-transform.ts';
-import type { BoxPose, ContentScaleSpec, FieldBounds, ScreenRect, ViewRect, ZoneOpts } from './free-canvas-transform.ts';
+import type { BoxPose, ContentScaleSpec, FieldBounds, ModifierKeys, ScreenRect, TransformKind, ViewRect, ZoneOpts } from './free-canvas-transform.ts';
 import { rotateVec } from './free-canvas-math.ts';
-import type { AABB, Box, HandleName, Point, Rect, StartRect } from './free-canvas-math.ts';
+import type { AABB, Box, Guide, HandleName, Point, Rect, StartRect } from './free-canvas-math.ts';
 
 const near = (a: number, b: number, eps = 1e-6, msg?: string): void => {
   assert.ok(Math.abs(a - b) <= eps, msg ?? `${a} != ${b}`);
@@ -124,6 +126,102 @@ test('uniformResize on a rotated box keeps the anchor and the aspect', () => {
   near(a1.x, a0.x); near(a1.y, a0.y);
 });
 
+test('uniformResize from the centre is mirrored, so the dragged edge follows the pointer', () => {
+  const start = { x: 0, y: 0, w: 100, h: 50 };
+  const mirrored = uniformResize(start, 'e', 20, 0, { fromCentre: true });
+  near(mirrored.k, 1.4, 1e-9, 'the dragged edge follows the pointer');
+  nearRect(mirrored.rect, { x: -20, w: 140, h: 70 });
+  near(mirrored.rect.x + mirrored.rect.w / 2, 50); near(mirrored.rect.y + mirrored.rect.h / 2, 25);
+  near(uniformResize(start, 'e', 20, 0).k, 1.2, 1e-9, 'without Alt the width grows by the delta');
+});
+
+// ── The per-member floor: a thin side never reaches 0 ────────────────────────
+
+test('scaleSide keeps a side thinner than minSize at its own size, and 0 stays 0', () => {
+  assert.equal(scaleSide(200, 0.5, 8), 100, 'a side over minSize follows the factor');
+  assert.equal(scaleSide(1, 0.3, 8), 1, 'a 1 px side keeps its 1 px instead of 0.3, which rounds to 0');
+  assert.equal(scaleSide(4, 0.1, 8), 4);
+  assert.equal(scaleSide(1, 3, 8), 3, 'and still grows');
+  assert.equal(scaleSide(0, 0.5, 8), 0, 'a 0-height line stays a line');
+  assert.equal(scaleSide(1, 0.3, 0), 0.3, 'minSize 0 is no floor at all');
+});
+
+test('uniformResize: a 300 x 1 rule scaled on its e edge keeps its 1 px height and its anchor', () => {
+  const start = { x: 100, y: 200, w: 300, h: 1 };
+  const { rect, k } = uniformResize(start, 'e', -220, 0, { minSize: 8 });
+  near(k, 80 / 300);
+  nearRect(rect, { x: 100, y: 200, w: 80, h: 1 });
+  assert.ok(Math.round(rect.h) >= 1, 'never committed as 0');
+});
+
+test('scaleRectAbout with minSize holds the anchor when a side keeps its size, rotated or not', () => {
+  for (const rot of [0, 30, 90]) {
+    const start = { x: 40, y: 20, w: 300, h: 2, rot };
+    for (const handle of Object.keys(SIGN) as HandleName[]) {
+      const [hx, hy] = SIGN[handle];
+      const out = scaleRectAbout(start, handle, 0.25, false, 8);
+      near(out.w, 75); near(out.h, 2, 1e-9, `${handle}@${rot}: the 2 px side stays`);
+      const a0 = localPt(start, -hx, -hy), a1 = localPt(out, -hx, -hy);
+      near(a1.x, a0.x, 1e-9, `${handle}@${rot} x`); near(a1.y, a0.y, 1e-9, `${handle}@${rot} y`);
+    }
+  }
+});
+
+test('scaleRectAt and scaleMembersAt floor a thin side as the drag does', () => {
+  nearRect(scaleRectAt({ x: 0, y: 0, w: 300, h: 1 }, 'w', 0.3, 8), { x: 0, w: 90, h: 1 });
+  const set: StartRect[] = [{ x: 0, y: 0, w: 300, h: 200 }, { x: 20, y: 100, w: 260, h: 1 }];
+  const out = scaleMembersAt(set, { x: 0, y: 0 }, 0.3, 8);
+  nearRect(out[0]!, { x: 0, y: 0, w: 90, h: 60 });
+  nearRect(out[1]!, { w: 78, h: 1 });
+  near(out[1]!.x + out[1]!.w / 2, 0.3 * 150, 1e-9, 'its centre still maps about the point');
+  near(out[1]!.y + out[1]!.h / 2, 0.3 * 100.5, 1e-9);
+});
+
+test('transformSelection never shrinks a 1 px member to 0, free, uniform or from the centre', () => {
+  const members: StartRect[] = [{ x: 0, y: 0, w: 300, h: 1 }, { x: 0, y: 10, w: 300, h: 200 }];
+  const box = rectsAABB(members)!;
+  // sy = 0.3 on the s edge: the divider's 0.3 px would round to 0.
+  const opts = [{ minSize: 8 }, { minSize: 8, uniformOnly: true }, { minSize: 8, fromCentre: true }, { minSize: 8, keepAspect: true }];
+  for (const o of opts) {
+    const t = transformSelection(members, box, 's', 0, -box.h * 0.7, o);
+    assert.ok(t.rects[0]!.h >= 1, `${JSON.stringify(o)}: h ${t.rects[0]!.h}`);
+    assert.ok(Math.round(t.rects[0]!.h) >= 1);
+  }
+  // A 4 px box beside a 100 px one, dragged far past the left: the set stops at the
+  // larger box's floor, and the 4 px side keeps its 4 px.
+  const thin: StartRect[] = [{ x: 0, y: 0, w: 4, h: 100 }, { x: 10, y: 0, w: 100, h: 100 }];
+  const free = transformSelection(thin, rectsAABB(thin)!, 'e', -800, 0, { minSize: 8 });
+  near(free.sx, 0.08);
+  nearRect(free.rects[0]!, { w: 4, h: 100 });
+  const turned = thin.map((m, i) => (i === 1 ? { ...m, rot: 30 } : m));
+  const uni = transformSelection(turned, rectsAABB(turned)!, 'e', -800, 0, { minSize: 8 });
+  assert.equal(uni.uniform, true);
+  near(uni.rects[0]!.w, 4); near(uni.rects[0]!.h, 8);
+});
+
+test('anchorPoint picks the nine points of a selection, and SCALE_ANCHORS lists them row by row', () => {
+  const a = { minX: 10, minY: 20, maxX: 110, maxY: 70 };
+  assert.deepEqual(SCALE_ANCHORS, ['nw', 'n', 'ne', 'w', 'c', 'e', 'sw', 's', 'se']);
+  assert.deepEqual(SCALE_ANCHORS.map((n) => anchorPoint(a, n)), [
+    { x: 10, y: 20 }, { x: 60, y: 20 }, { x: 110, y: 20 },
+    { x: 10, y: 45 }, { x: 60, y: 45 }, { x: 110, y: 45 },
+    { x: 10, y: 70 }, { x: 60, y: 70 }, { x: 110, y: 70 },
+  ]);
+});
+
+test('scaleRectAt holds the chosen anchor of a box still, rotated or not', () => {
+  for (const rot of [0, 30, 90]) {
+    const start = { x: 40, y: 20, w: 100, h: 50, rot };
+    for (const anchor of SCALE_ANCHORS) {
+      const out = scaleRectAt(start, anchor, 2);
+      near(out.w, 200); near(out.h, 100); assert.equal(out.rot, rot);
+      const [sx, sy] = anchor === 'c' ? [0, 0] : SIGN[anchor];
+      const p0 = localPt(start, sx, sy), p1 = localPt(out, sx, sy);
+      near(p1.x, p0.x, 1e-9, `${anchor}@${rot} x`); near(p1.y, p0.y, 1e-9, `${anchor}@${rot} y`);
+    }
+  }
+});
+
 // ── Selection resize and scale ───────────────────────────────────────────────
 
 const pair: StartRect[] = [{ x: 0, y: 0, w: 100, h: 50 }, { x: 200, y: 0, w: 100, h: 50 }];
@@ -223,6 +321,81 @@ test('canResizeNonUniform tolerates rounding near quarter turns only', () => {
   assert.equal(canResizeNonUniform([{ rot: 90.5 }]), false);
 });
 
+test('handleAnchor is the opposite corner or edge midpoint, and the transform holds the same point', () => {
+  const a = { minX: 10, minY: 20, maxX: 110, maxY: 70 };
+  const want: Record<HandleName, Point> = {
+    nw: { x: 110, y: 70 }, n: { x: 60, y: 70 }, ne: { x: 10, y: 70 }, e: { x: 10, y: 45 },
+    se: { x: 10, y: 20 }, s: { x: 60, y: 20 }, sw: { x: 110, y: 20 }, w: { x: 110, y: 45 },
+  };
+  for (const h of Object.keys(want) as HandleName[]) {
+    assert.deepEqual(handleAnchor(a, h), want[h], h);
+    assert.equal(OPPOSITE_HANDLE[OPPOSITE_HANDLE[h]], h, `${h} is its opposite's opposite`);
+    const t = transformSelection(pair, { ...a }, h, 7, 9);
+    assert.deepEqual(t.anchor, want[h], `${h}: transformSelection holds the same point`);
+  }
+});
+
+test('handleDragPoint is the dragged corner or edge moved by the pointer, on the axes the handle drives', () => {
+  const a = { minX: 10, minY: 20, maxX: 110, maxY: 70 };
+  assert.deepEqual(handleDragPoint(a, 'se', 5, -3), { x: 115, y: 67 });
+  assert.deepEqual(handleDragPoint(a, 'nw', 5, -3), { x: 15, y: 17 });
+  assert.deepEqual(handleDragPoint(a, 'e', 5, -3), { x: 115, y: null });
+  assert.deepEqual(handleDragPoint(a, 'n', 5, -3), { x: null, y: 17 });
+  // The dragged edge follows the pointer from the centre too, so the point and the edge stay together.
+  for (const fromCentre of [false, true]) {
+    const t = transformSelection(pair, pairBox, 'e', 40, 0, { fromCentre });
+    near(t.aabb.maxX, handleDragPoint(pairBox, 'e', 40, 0).x!);
+  }
+});
+
+test('touchedGuides keeps only the guides a moving edge reaches, on the axes the drag drives', () => {
+  const a = { minX: 0, minY: 0, maxX: 200.3, maxY: 100 };
+  const v = (x: number): Guide => ({ x1: x, y1: 0, x2: x, y2: 1000 });
+  const hz = (y: number): Guide => ({ x1: 0, y1: y, x2: 1000, y2: y });
+  const slope: Guide = { x1: 0, y1: 0, x2: 100, y2: 100 };
+  assert.deepEqual(touchedGuides([v(200), v(203), hz(100), slope], a, { x: true, y: true }), [v(200), hz(100)]);
+  assert.deepEqual(touchedGuides([v(200), hz(100)], a, { x: true, y: false }), [v(200)], 'an e edge drag draws no horizontal guide');
+  assert.deepEqual(touchedGuides([v(0.4)], a, { x: true, y: false }), [v(0.4)], 'a mirrored drag reaches a guide with either edge');
+  assert.deepEqual(touchedGuides([], a, { x: true, y: true }), []);
+});
+
+test('touchedGuides keeps an angled guide only when the dragged corner lies on the slope', () => {
+  const a = { minX: 0, minY: 0, maxX: 100, maxY: 100.3 };
+  const slope: Guide = { x1: 0, y1: 0, x2: 400, y2: 400 };
+  const off: Guide = { x1: 0, y1: 50, x2: 400, y2: 450 };
+  assert.deepEqual(touchedGuides([slope, off], a, { x: true, y: true }, { x: 100, y: 100.3 }), [slope]);
+  assert.deepEqual(touchedGuides([slope], a, { x: true, y: true }), [], 'no corner, no slope: a uniform or edge drag');
+});
+
+// ── The modifier table ───────────────────────────────────────────────────────
+
+test('transformRules is the plan 311 modifier table, one row per key and transform', () => {
+  const rules = (kind: TransformKind, keys: ModifierKeys = {}) => transformRules(kind, keys);
+  // Resize: Shift aspect, Alt centre with snapping on, Cmd or Ctrl suspends snapping.
+  assert.deepEqual(rules('resize'), { keepAspect: false, fromCentre: false, snap: true, rotate: { shift: false, free: false } });
+  assert.equal(rules('resize', { shiftKey: true }).keepAspect, true);
+  assert.deepEqual([rules('resize', { altKey: true }).fromCentre, rules('resize', { altKey: true }).snap], [true, true]);
+  assert.equal(rules('resize', { metaKey: true }).snap, false);
+  assert.equal(rules('resize', { ctrlKey: true }).snap, false);
+  // Scale: always uniform, Alt centre, Cmd or Ctrl suspends snapping.
+  assert.equal(rules('scale').keepAspect, true);
+  assert.deepEqual(rules('scale', { shiftKey: true }), rules('scale'), 'Shift changes nothing in Scale');
+  assert.deepEqual([rules('scale', { altKey: true }).fromCentre, rules('scale', { altKey: true }).snap], [true, true]);
+  assert.equal(rules('scale', { ctrlKey: true }).snap, false);
+  // Rotate: magnet, Shift hard steps, Alt, Cmd or Ctrl free; never the guides.
+  assert.deepEqual(rules('rotate').rotate, { shift: false, free: false });
+  assert.deepEqual(rules('rotate', { shiftKey: true }).rotate, { shift: true, free: false });
+  for (const k of ['altKey', 'metaKey', 'ctrlKey'] as const) assert.deepEqual(rules('rotate', { [k]: true }).rotate, { shift: false, free: true }, k);
+  assert.equal(rules('rotate').snap, false);
+  // Move: Alt and Cmd or Ctrl suspend snapping; a move keeps no aspect and has no centre.
+  assert.equal(rules('move').snap, true);
+  for (const k of ['altKey', 'metaKey', 'ctrlKey'] as const) assert.equal(rules('move', { [k]: true }).snap, false, k);
+  assert.deepEqual([rules('move', { shiftKey: true, altKey: true }).keepAspect, rules('move', { altKey: true }).fromCentre], [false, false]);
+  // A rotate rule never leaks into a resize, and Shift wins over a free turn (rotateSnap).
+  assert.deepEqual(rules('resize', { shiftKey: true, altKey: true }).rotate, { shift: false, free: false });
+  assert.equal(rotateSnap(8, rules('rotate', { shiftKey: true, altKey: true }).rotate), 15);
+});
+
 // ── Content scaling ──────────────────────────────────────────────────────────
 
 interface ManifestField { id: string; min?: number; max?: number }
@@ -284,6 +457,52 @@ test('scaleBoxContent writes only present, non-empty, finite values and never cr
   assert.equal(out.pad, 'wide');
   assert.ok(Number.isNaN(out.radius as number));
   for (const f of ['layoutMaxW', 'shadowBlur', 'blur', 'strokeDashArray', 'textWrap', 'webView']) assert.ok(!(f in out), f);
+});
+
+test('scaleBoxContent on the current row keeps an edit made after the start', () => {
+  // A Scale scales the row it commits onto: a font size another editor changed during
+  // the drag grows from its new value, and every field it does not own stays as found.
+  const current: Box = { id: 'a', x: 5, fontSize: 22, strokeW: 0, radius: 8, lineHeight: 1.2, fill: '#000' };
+  assert.deepEqual(scaleBoxContent(current, 2, DESIGN), { ...current, fontSize: 44, radius: 16 });
+});
+
+test('scaledLayoutAxes writes only the fixed axes of a layout row', () => {
+  assert.deepEqual(scaledLayoutAxes({}), { w: true, h: true }, 'absent means fixed, the manifest default');
+  assert.deepEqual(scaledLayoutAxes({ layoutW: 'hug', layoutH: 'fixed' }), { w: false, h: true });
+  assert.deepEqual(scaledLayoutAxes({ layoutW: 'fixed', layoutH: 'fill' }), { w: true, h: false });
+});
+
+/** The offset the layout stores for a child: its turned corner from the parent's, in the
+ *  parent's axes (free-canvas/shared.ts `relativePlacement`, restated). */
+const placement = (child: StartRect, parent: StartRect): Point => {
+  const c = localPt(child, -1, -1), p = localPt(parent, -1, -1), d = rotateVec(c.x - p.x, c.y - p.y, -(parent.rot || 0));
+  return { x: d.x, y: d.y };
+};
+
+test('scaleChildOffset grows an absolute child offset by k in its container axes', () => {
+  const parent = { x: 100, y: 50, w: 200, h: 100 };
+  const child = { x: 130, y: 70, w: 40, h: 20 };
+  const at = scaleChildOffset(parent, child, { w: 80, h: 40 }, 2);
+  assert.deepEqual(at, { x: 160, y: 90 }, 'the corner 30, 20 from the container corner moves to 60, 40');
+  const out = { ...at, w: 80, h: 40 };
+  assert.deepEqual(placement(out, parent), { x: 60, y: 40 });
+});
+
+test('scaleChildOffset holds for a turned container and child and any anchor', () => {
+  const parent: StartRect = { x: 40, y: 60, w: 300, h: 160, rot: 30 };
+  const child: StartRect = { x: 120, y: 130, w: 50, h: 24, rot: 45 };
+  const k = 1.75;
+  const out = { w: child.w * k, h: child.h * k, rot: child.rot };
+  const at = scaleChildOffset(parent, child, out, k);
+  const before = placement(child, parent), after = placement({ ...at, ...out }, parent);
+  near(after.x, before.x * k); near(after.y, before.y * k);
+  // The layout puts the child at its new offset from the container's NEW corner. Scaled
+  // about a far anchor, that is exactly where a scale of the child about the same anchor puts the child.
+  const anchor = { x: 900, y: -400 };
+  const about = (p: Point): Point => ({ x: anchor.x + (p.x - anchor.x) * k, y: anchor.y + (p.y - anchor.y) * k });
+  const corner = about(localPt(parent, -1, -1)), offset = rotateVec(after.x, after.y, parent.rot!);
+  const placed = { x: corner.x + offset.x, y: corner.y + offset.y }, wanted = about(localPt(child, -1, -1));
+  near(placed.x, wanted.x, 1e-9); near(placed.y, wanted.y, 1e-9);
 });
 
 test('scaleBoxContent returns the same object when nothing changes', () => {

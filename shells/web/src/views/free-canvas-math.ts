@@ -1297,8 +1297,14 @@ export function normDragRect(x0: number, y0: number, x1: number, y1: number, min
 // ── Group transforms (multi-selection: scale + rotate about a pivot) ──────────
 // A group / multi-selection scales UNIFORMLY (shear-free - a rotated box can't
 // represent a non-uniform scale) about a fixed `anchor`, and rotates rigidly about
-// a fixed `centre`. Text size + corner radius scale with the group so it reads as
-// real scaling. Both return NEW boxes arrays.
+// a fixed `centre`. Both return NEW boxes arrays.
+//
+// scaleGroup also returns the font size and corner radius times k. The canvas no longer
+// calls it: a selection resize or Scale goes through transformSelection and
+// scaleMembersAt in free-canvas-transform.ts, which keep a side thinner than minSize at
+// its own size instead of raising it to minSize. Resize, the default, is geometry only;
+// Scale mode (K, plan 311) scales content through scaleBoxContent, which covers every
+// content length and the manifest bounds.
 
 export function scaleGroup(boxes: Box[], indices: number[], anchor: Point, k: number, cfg: BoxFieldConfig, opts: ScaleOpts = {}): Box[] {
   const set = new Set(indices);

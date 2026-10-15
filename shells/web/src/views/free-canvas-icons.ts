@@ -291,6 +291,10 @@ export const SVG = {
     '<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none"/>',
   sound:
     '<path d="M4 9.5h3L11 6v12l-4-3.5H4z"/><path d="M15.5 9.2a4 4 0 0 1 0 5.6"/><path d="M18 6.7a7.5 7.5 0 0 1 0 10.6"/>',
+  // Scale mode (K, plan 311): a small square grown into a larger one along the diagonal,
+  // the object and its content resizing together.
+  scaleMode:
+    '<rect x="3" y="13" width="8" height="8" rx="1.5"/><path d="M3 9V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="m11 13 7-7"/><path d="M13 6h5v5"/>',
   // Invite an agent: a brain, matching the toolbox’s outline icons.
   agent: '<path d="M12 18V5a3 3 0 0 0-5.9-.8 4 4 0 0 0-3 5.8 4 4 0 0 0 .4 7 4 4 0 0 0 8.5 1Z"/><path d="M12 18V5a3 3 0 0 1 5.9-.8 4 4 0 0 1 3 5.8 4 4 0 0 1-.4 7 4 4 0 0 1-8.5 1Z"/><path d="M6 4.5C6 6 7 7 8 7M18 4.5C18 6 17 7 16 7M3 10c2-1 4 0 4 2M21 10c-2-1-4 0-4 2M7 17c2 0 3-1 3-3M17 17c-2 0-3-1-3-3"/>',
 };

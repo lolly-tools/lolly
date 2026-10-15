@@ -9,9 +9,11 @@
  */
 import { activeFrameIdFor, boxCorners, boxRect, num, posedRect } from '../free-canvas-math.ts';
 import type { Box } from '../free-canvas-math.ts';
+import { anchorPoint } from '../free-canvas-transform.ts';
+import { announce } from '../../a11y.ts';
 import { t, tRaw } from '../../i18n.ts';
 import { HANDLES } from './shared.ts';
-import type { Bounds, Corner, HandleName, Metrics, Point, Rect } from './shared.ts';
+import type { Bounds, HandleName, Metrics, Point, Rect } from './shared.ts';
 import { bindOp, type FcCtx } from './context.ts';
 import { fieldFocusToken } from '../../lib/collab-field-focus.ts';
 
@@ -31,7 +33,7 @@ export function scheduleSync(fc: FcCtx): void {
 export function renderChromeLive(fc: FcCtx): void {
   const boxes = fc.select.getBoxes();
   const rects = new Map<number, Rect>();
-  for (const i of fc.hierarchy?.transformIndices(boxes) || fc.select.selIndices(boxes)) {
+  for (const i of fc.selectionTransform.transformSet(boxes)) {
     const id = fc.select.idOf(boxes[i], i);
     const live = fc.gesture ? fc.liveRects?.get(id) : undefined;
     if (live) {
@@ -53,6 +55,7 @@ export function renderChromeLive(fc: FcCtx): void {
     }
   }
   paintChrome(fc, boxes, rects);
+  fc.selectionTransform.paintLabel(rects);
   fc.storyFlowUi?.paint();
   fc.layout?.paint();
 }
@@ -420,7 +423,12 @@ export function paintChrome(fc: FcCtx, boxes: Box[], liveRects: Map<number, Rect
   fc.penTool.paintPen();
   const selectedIndices = fc.select.selIndices(boxes);
   const hasGroup = selectedIndices.some(i => fc.hierarchy?.isGroup(boxes[i]));
-  const idx = hasGroup ? fc.hierarchy.transformIndices(boxes) : selectedIndices;
+  // Scale mode widens a selected artboard or layout container to what it holds, whose
+  // content scales with it (see transformSet), so its chrome is the group's. The readout
+  // still describes the selection: one artboard reads as its place and size, not as the
+  // count of what it holds.
+  const shown = hasGroup ? fc.hierarchy.transformIndices(boxes) : selectedIndices;
+  const idx = fc.scaleContent ? fc.selectionTransform.transformSet(boxes) : shown;
   const m = fc.stage.metrics();
   // Gradient handles sit UNDER the selection chrome in z-order but are painted here
   // so they track the same pan/zoom sync (and self-exit if their box went away).
@@ -441,13 +449,20 @@ export function paintChrome(fc: FcCtx, boxes: Box[], liveRects: Map<number, Rect
     : '';
   // A LOCKED row refuses every transform, so its selection shows outlines and no
   // handles; an ARTBOARD never turns, so a set of nothing but artboards has no rotate
-  // handle. Both can change under an unchanged set (the navigator's lock toggle), so
-  // they are part of the build key.
+  // handle (Scale's widened set asks the selected rows, not the members it added).
+  // Both can change under an unchanged set (the navigator's lock toggle), and Scale
+  // mode restyles the handles, so all three are part of the build key.
   const handles = !!idx.length && !fc.gestures.selectionLocked(boxes, idx);
-  const rotate = handles && idx.some((i) => !fc.gestures.isFrameRow(boxes[i]));
-  const buildKey = key && `${key}|${handles ? 'h' : ''}${rotate ? 'r' : ''}`;
+  const rotate = handles && (fc.scaleContent ? selectedIndices : idx).some((i) => !fc.gestures.isFrameRow(boxes[i]));
+  // A set that can only keep its proportions under Resize (a group, a circle or a member
+  // turned off a quarter turn in it) shows the scale cursor on its handles, as Scale mode
+  // does: its edges grow the whole set, not one axis.
+  const proportional = handles && idx.length > 1 && !fc.scaleContent && fc.selectionTransform.proportional(boxes, idx);
+  const buildKey = key && `${key}|${handles ? 'h' : ''}${rotate ? 'r' : ''}${fc.scaleContent ? 's' : ''}${proportional ? 'p' : ''}`;
   if (buildKey !== fc.chromeKey) {
     fc.chromeKey = buildKey;
+    fc.chrome.toggleAttribute('data-scale', fc.scaleContent);
+    fc.chrome.toggleAttribute('data-proportional', proportional);
     buildChrome(fc, idx.length, { handles, rotate }); // (re)create nodes for the new set
   }
   positionChrome(fc, boxes, idx, liveRects, m);
@@ -473,7 +488,7 @@ export function paintChrome(fc: FcCtx, boxes: Box[], liveRects: Map<number, Rect
     const btn = ctxbar.querySelector<HTMLElement>('[data-cx="grad"]');
     if (btn) fc.gradient.openGradPanel(btn);
   }
-  if (idx.length) fc.keys.positionCtxBar(boxes, idx, liveRects, m);
+  if (idx.length) fc.keys.positionCtxBar(boxes, shown, liveRects, m);
   fc.keys.updateToolbarState(selectedIndices.length);
   syncBoxA11y(fc);
   // A doc holding only empty ARTBOARDS is still content-empty - keep inviting the
@@ -502,8 +517,12 @@ export function syncBoxA11y(fc: FcCtx): void {
       el.setAttribute('aria-pressed', on ? 'true' : 'false');
   });
 }
+/** The order a set's handles are built in: the corners after the edges, so where the hit
+ *  areas of a small set's handles overlap, the corner is on top and takes the press, and
+ *  the two-axis drag stays in reach. */
+const GROUP_HANDLES: readonly HandleName[] = ['n', 'e', 's', 'w', 'nw', 'ne', 'se', 'sw'];
 // Create the chrome node set for a selection of `count` boxes (0 = none, 1 = single
-// with 8 resize handles + rotate, 2+ = group AABB with 4 corners + rotate). Nodes
+// with 8 resize handles + rotate, 2+ = group AABB with 4 corners, 4 edges + rotate). Nodes
 // are stored in chromeNodes so subsequent syncs reposition them without recreating
 // (or re-binding pointerdown). positionChrome fills in geometry. `allow.handles` false
 // (a locked row in the set) leaves outlines only; `allow.rotate` false (artboards
@@ -548,7 +567,7 @@ export function buildChrome(fc: FcCtx, count: number, allow = { handles: true, r
     groupOutline = document.createElement('div');
     groupOutline.className = 'fc-outline fc-group-outline';
     chrome.appendChild(groupOutline);
-    for (const name of (allow.handles ? ['nw', 'ne', 'se', 'sw'] : []) as Corner[]) {
+    for (const name of allow.handles ? GROUP_HANDLES : []) {
       const el = document.createElement('div');
       el.className = 'fc-handle fc-h-' + name;
       el.addEventListener('pointerdown', (e) => onGroupHandleDown(fc, e, name));
@@ -712,32 +731,31 @@ export function groupAABBNative(fc: FcCtx,
   const { cfg } = fc;
   return aabbOfRects(fc, idx.map((i) => (liveRects?.get(i)) || boxRect(boxes[i], cfg)));
 }
-// Group/multi-selection chrome: an axis-aligned box with 4 corner handles
-// (uniform scale) + a rotate handle. Nodes are built by buildChrome; this only
-// repositions the group outline, the 4 corner handles (nw,ne,se,sw order) and the
+// Group/multi-selection chrome: an axis-aligned box with the 8 handles of a single box
+// (4 corners and 4 edge midpoints) + a rotate handle. Nodes are built by buildChrome;
+// this only repositions the group outline, the handles (GROUP_HANDLES order) and the
 // rotate stem/handle.
 export function positionGroupHandles(fc: FcCtx, a: Bounds, m: Metrics): void {
   const nodes = fc.chromeNodes;
   if (!nodes) return;
-  const corners: Record<Corner, Point> = {
-    nw: fc.stage.nativeToStage(a.minX, a.minY, m),
-    ne: fc.stage.nativeToStage(a.maxX, a.minY, m),
-    se: fc.stage.nativeToStage(a.maxX, a.maxY, m),
-    sw: fc.stage.nativeToStage(a.minX, a.maxY, m),
-  };
-  if (nodes.groupOutline) {
-    nodes.groupOutline.style.left = corners.nw.x + 'px';
-    nodes.groupOutline.style.top = corners.nw.y + 'px';
-    nodes.groupOutline.style.width = corners.ne.x - corners.nw.x + 'px';
-    nodes.groupOutline.style.height = corners.sw.y - corners.nw.y + 'px';
+  const pos = {} as Record<HandleName, Point>;
+  for (const h of HANDLES) {
+    const p = anchorPoint(a, h);
+    pos[h] = fc.stage.nativeToStage(p.x, p.y, m);
   }
-  (['nw', 'ne', 'se', 'sw'] as Corner[]).forEach((name, k) => {
+  if (nodes.groupOutline) {
+    nodes.groupOutline.style.left = pos.nw.x + 'px';
+    nodes.groupOutline.style.top = pos.nw.y + 'px';
+    nodes.groupOutline.style.width = pos.ne.x - pos.nw.x + 'px';
+    nodes.groupOutline.style.height = pos.sw.y - pos.nw.y + 'px';
+  }
+  GROUP_HANDLES.forEach((name, k) => {
     const el = nodes.handles[k];
     if (!el) return; // a locked selection is built without handles
-    el.style.left = corners[name].x + 'px';
-    el.style.top = corners[name].y + 'px';
+    el.style.left = pos[name].x + 'px';
+    el.style.top = pos[name].y + 'px';
   });
-  const bc = { x: (corners.sw.x + corners.se.x) / 2, y: (corners.sw.y + corners.se.y) / 2 };
+  const bc = pos.s;
   if (nodes.stem) {
     nodes.stem.style.left = bc.x + 'px';
     nodes.stem.style.top = bc.y + 'px';
@@ -749,22 +767,21 @@ export function positionGroupHandles(fc: FcCtx, a: Bounds, m: Metrics): void {
     nodes.rot.style.top = bc.y + 30 + 'px';
   }
 }
-export const CORNER_PT = (_fc: FcCtx, a: Bounds, name: Corner): Point =>
-  (
-    ({
-      nw: { x: a.minX, y: a.minY },
-      ne: { x: a.maxX, y: a.minY },
-      se: { x: a.maxX, y: a.maxY },
-      sw: { x: a.minX, y: a.maxY },
-    }) as Record<Corner, Point>
-  )[name];
-export function onGroupHandleDown(fc: FcCtx, e: PointerEvent, name: Corner | 'rotate'): void {
-  const { OPPOSITE } = fc;
+export function onGroupHandleDown(fc: FcCtx, e: PointerEvent, name: HandleName | 'rotate'): void {
   if (fc.gestures.secondFinger(e)) return;
   e.stopPropagation();
   if (e.button > 0) return;
   const boxes = fc.select.getBoxes();
-  const sel = fc.hierarchy?.transformIndices(boxes) || fc.select.selIndices(boxes);
+  // A turn takes the selection as it is; a scale takes Scale mode's widened set too.
+  const sel = name === 'rotate'
+    ? fc.hierarchy?.transformIndices(boxes) || fc.select.selIndices(boxes)
+    : fc.selectionTransform.transformSet(boxes);
+  // Scale mode draws a lone layout container with its children's set chrome, but the
+  // container still turns on its own, as it does in Resize.
+  if (name === 'rotate' && sel.length < 2) {
+    fc.gestures.onHandlePointerDown(e, 'rotate');
+    return;
+  }
   if (sel.length < 2 || fc.gestures.selectionLocked(boxes, sel)) return;
   const a = groupAABBNative(fc, sel, boxes, null);
   // Both gestures measure from the PRESS in native px, not from the corner or the
@@ -781,9 +798,16 @@ export function onGroupHandleDown(fc: FcCtx, e: PointerEvent, name: Corner | 'ro
     const pointerStartDeg = (Math.atan2(press.y - centre.y, press.x - centre.x) * 180) / Math.PI;
     fc.gestures.beginGesture(e, { type: 'grotate', sel, startBoxes: boxes, centre, origin: press, pointerStartDeg });
   } else {
-    const anchor = CORNER_PT(fc, a, OPPOSITE[name]);
-    const origDist = Math.hypot(press.x - anchor.x, press.y - anchor.y) || 1;
-    fc.gestures.beginGesture(e, { type: 'gscale', sel, startBoxes: boxes, handle: name, aabb: a, origin: press, anchor, origDist });
+    // A corner or an edge: the set snaps to the rows outside it, and a Resize of a set
+    // that must keep its proportions is uniform from the press on. That changes what the
+    // drag does, so it is said once here; the readout and the label are not spoken.
+    const proportional = !fc.scaleContent && fc.selectionTransform.proportional(boxes, sel);
+    fc.gestures.beginGesture(e, {
+      type: 'gscale', sel, startBoxes: boxes, handle: name, aabb: a, origin: press,
+      others: fc.gestures.otherAABBs(boxes, new Set(sel)),
+      ...(fc.scaleContent ? { content: true } : { proportional }),
+    });
+    if (proportional && fc.gesture?.type === 'gscale') announce(t('This selection keeps its proportions.'));
   }
 }
 export function chromeSyncOps(fc: FcCtx) {
@@ -806,7 +830,6 @@ export function chromeSyncOps(fc: FcCtx) {
     aabbOfRects: bindOp(fc, aabbOfRects),
     groupAABBNative: bindOp(fc, groupAABBNative),
     positionGroupHandles: bindOp(fc, positionGroupHandles),
-    CORNER_PT: bindOp(fc, CORNER_PT),
     onGroupHandleDown: bindOp(fc, onGroupHandleDown),
   };
 }

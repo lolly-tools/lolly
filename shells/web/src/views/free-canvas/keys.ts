@@ -84,10 +84,10 @@ export function positionCtxBar(fc: FcCtx,
   const r = liveRects?.get(idx[0]!) || boxRect(first, cfg);
   const read = ctxbar.querySelector('[data-cx-readout]');
   if (read)
-    read.textContent =
-      idx.length > 1
+    read.textContent = fc.selectionTransform.transformReadout(liveRects) ??
+      (idx.length > 1
         ? t('{n} selected', { n: idx.length })
-        : `${Math.round(r.x)}, ${Math.round(r.y)}  ·  ${Math.round(r.w)}×${Math.round(r.h)}${r.rot ? '  ·  ' + Math.round(r.rot) + '°' : ''}`;
+        : `${Math.round(r.x)}, ${Math.round(r.y)}  ·  ${Math.round(r.w)}×${Math.round(r.h)}${r.rot ? '  ·  ' + Math.round(r.rot) + '°' : ''}`);
 }
 export function updateToolbarState(fc: FcCtx, _count: number): void {
   // Nothing hard-disabled - align-to-canvas works on a single box; arrange/delete
@@ -283,6 +283,13 @@ export function onKey(fc: FcCtx, e: KeyboardEvent): void {
       fc.modes.toPointer('discard');
       return;
     }
+    // Scale mode is the outermost mode: it goes once the surfaces open over it have
+    // closed, and ahead of any deselect, so leaving Scale keeps the selection.
+    if (fc.scaleContent) {
+      e.preventDefault();
+      fc.scaleMode.set(false);
+      return;
+    }
     if (fc.selectedEdges.size) {
       e.preventDefault();
       fc.edges.deselectEdge();
@@ -419,6 +426,13 @@ export function onKey(fc: FcCtx, e: KeyboardEvent): void {
   if (!e.metaKey && !e.ctrlKey && !e.altKey && (e.key === 'v' || e.key === 'V')) {
     e.preventDefault();
     fc.modes.pickPointer();
+    return;
+  }
+  // K - Scale mode (Figma's and Penpot's key). Bare K only: Shift+K is not K, and inside
+  // the timeline panel K pauses or keys a frame, a key the bail at the top leaves to the panel.
+  if (!e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey && (e.key === 'k' || e.key === 'K') && !fc.editing) {
+    e.preventDefault();
+    fc.scaleMode.key();
     return;
   }
   if (

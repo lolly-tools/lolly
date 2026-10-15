@@ -5,7 +5,6 @@ import { canvasInteractions, type CanvasInteractionLease } from '../../lib/canva
 import { boxRect, selectionAABB, withRect } from '../free-canvas-math.ts';
 import type { Box } from '../free-canvas-math.ts';
 import type { FcCtx } from './context.ts';
-import { OPPOSITE_CORNER, boundsCorner } from './shared.ts';
 import type { Gesture, GesturePointer, Rect } from './shared.ts';
 
 interface GestureLease {
@@ -82,20 +81,26 @@ export function canvasGestureReady(fc: FcCtx, move?: GesturePointer): boolean {
       g.start = new Map(selected.map(i => [i, state.baseline.get(fc.select.idOf(boxes[i], i))!]));
     } else if (g.type === 'resize' || g.type === 'rotate') {
       g.index = selected[0]!; g.startRect = state.baseline.get(state.selected[0]!)!;
+      // A Scale's start row follows the rebase as gscale's start rows do: the current row
+      // at the baseline geometry, which the layout half of its commit reads.
+      if (g.type === 'resize' && g.startBox) g.startBox = withRect(boxes[g.index]!, g.startRect, fc.cfg);
     } else if (g.type === 'gscale' || g.type === 'grotate') {
       g.sel = selected;
       g.startBoxes = boxes.map((box, i) => {
         const baseline = state.baseline.get(fc.select.idOf(box, i)); return baseline ? withRect(box, baseline, fc.cfg) : box;
       });
-      // The pivot and the anchor follow the rebased start, and the press keeps its
-      // place, so the first frame after a grant reads no change at the press point
-      // rather than a jump about the bounds the press was measured against.
+      // The pivot and the bounds (and with them the anchor every gscale frame derives)
+      // follow the rebased start, and the press keeps its place, so the first frame after
+      // a grant reads no change at the press point rather than a jump about the bounds the
+      // press was measured against. Every gscale frame reads its travel from the press,
+      // for a corner and an edge alike. A peer may have turned a member onto or off a
+      // quarter turn before the grant, so the uniform fallback of a Resize is decided again.
       const startBoxes = g.startBoxes;
       const pivotSel = g.type === 'grotate' ? g.sel.filter(i => !fc.gestures.isFrameRow(startBoxes[i])) : g.sel;
       const a = selectionAABB(startBoxes, pivotSel, fc.cfg);
       if (a && g.type === 'gscale') {
-        g.aabb = a; g.anchor = boundsCorner(a, OPPOSITE_CORNER[g.handle]);
-        g.origDist = Math.hypot(g.origin.x - g.anchor.x, g.origin.y - g.anchor.y) || 1;
+        g.aabb = a;
+        if (!g.content) g.proportional = fc.selectionTransform.proportional(startBoxes, g.sel);
       } else if (a && g.type === 'grotate') {
         g.centre = { x: (a.minX + a.maxX) / 2, y: (a.minY + a.maxY) / 2 };
         g.pointerStartDeg = (Math.atan2(g.origin.y - g.centre.y, g.origin.x - g.centre.x) * 180) / Math.PI;
