@@ -28,16 +28,16 @@ application menu and a copy that keeps working with the network unplugged.
 
 ## macOS
 
-**Apple silicon (M1 and later), `.dmg`.**
+**Apple silicon (M1 and later) and Intel, `.dmg`.**
 
 Version 1.0.9 requires macOS 13.5 or later, including its bundled terminal tools.
 
 Download the disk image, open it, and drag Lolly to Applications. Nothing else
 is needed - the app carries its own engine and tool catalogue.
 
-- **Download:** [`lolly-latest.dmg`](https://lolli.li/lolly-latest.dmg) - always the newest build.
-- **Versioned:** `https://lolli.li/Lolly_<version>_aarch64.dmg` - pinned, never overwritten.
-- **Intel Macs:** the stable download has not been published. The 1.0.9 build uses the Intel workflow with its matching native runtimes; see the [desktop build guide](/info/build-desktop.html).
+- **Apple silicon:** [`lolly-latest.dmg`](https://lolli.li/lolly-latest.dmg) - always the newest build.
+- **Intel:** [`lolly-latest-x64.dmg`](https://lolli.li/lolly-latest-x64.dmg) - always the newest build.
+- **Versioned:** `https://lolli.li/Lolly_<version>_aarch64.dmg` and `https://lolli.li/Lolly_<version>_x64.dmg` - pinned, never overwritten.
 
 Build it yourself:
 
@@ -224,14 +224,46 @@ Android SDK and NDK prerequisites are in the
 
 ---
 
+## iPhone and iPad
+
+**iOS and iPadOS. No download yet.**
+
+An iPhone or iPad app has to be signed with an Apple developer identity before
+the device will install the file, so there is no download to hand out. Until
+there is, open [the web app](/) in Safari. It is the same application, and
+**Share, then Add to Home Screen** gives the web app an icon of its own.
+
+The web app needs WebGPU; [supported environments](/info/supported-environments.html)
+lists what has been tested so far. To build and sign the app yourself, see
+[Building for iOS](/info/ios-build.html).
+
+---
+
+## YunoHost
+
+**Your own server, as a YunoHost app.**
+
+On a [YunoHost](https://yunohost.org) server, install Lolly from its app package:
+
+```bash
+sudo yunohost app install https://github.com/lolly-tools/lolly_ynh
+```
+
+The package serves the same web app from a domain of your own, with the same
+security headers as lolly.tools. It needs a whole domain, keeps nothing on the
+server, and fetches the on-device models from `lolli.li` the first time a tool
+asks for one. The [YunoHost section of the deployment guide](/info/deployment.html#yunohost)
+covers what the package installs and how access to the app works.
+
+---
+
 ## Everything else
 
 | Surface | How you get it | Notes |
 |---|---|---|
 | **Web** | [Open it](/) | Nothing to install. Add it to your home screen or dock and it keeps working with the network unplugged. |
-| **Windows** | `.msi` or an NSIS `.exe` | Built by `pnpm run build:desktop` on Windows. Not yet published as a signed release. |
-| **iOS** | `.ipa` | Needs an Apple developer identity to sign with, so there is no download to hand out. See [Building for iOS](/info/ios-build.html). |
-| **Linux, other** | `.AppImage` | Falls out of the same desktop build. For Debian/Ubuntu use the `.deb` above; the Flatpak is the supported cross-distro package. |
+| **Windows** | [`lolly-latest.exe`](https://lolli.li/lolly-latest.exe) (NSIS installer) or [`lolly-latest.msi`](https://lolli.li/lolly-latest.msi) | x64. The installers are not code-signed yet, so Windows SmartScreen warns before the first run; compare the file with `SHA256SUMS.txt` (below) before you allow the install. Built by `pnpm run build:desktop` on Windows. |
+| **Linux, other** | [`lolly-latest.AppImage`](https://lolli.li/lolly-latest.AppImage) | x86_64. Falls out of the same desktop build: make the file executable and run the AppImage directly. For Debian/Ubuntu use the `.deb` above; the Flatpak is the supported cross-distro package. |
 | **Terminal** | `pnpm run cli` in a checkout | The same engine, headless. The desktop app carries the same CLI. See [the CLI guide](/info/cli.html#install). |
 | **Terminal, interactive** | `pnpm run tui` in a checkout | A full-screen terminal interface on the same engine. See [the TUI guide](/info/tui.html). |
 | **Tool-author SDK** | `npm i -D @lolly-tools/core` | Published on npm. The `HostV1` contract types, the manifest validator and a mock host for testing a tool without the app or a clone of the repository. See [Authoring Tools](/info/tool-publishing.html#try-it-without-the-monorepo). |
@@ -264,10 +296,13 @@ stronger check - see [Verify It Yourself](/info/verify-yourself.html).
 
 ## Which one should I pick?
 
-- **You are on a Mac.** The DMG.
+- **You are on a Mac.** The DMG for your chip: Apple silicon or Intel.
+- **You are on Windows.** The `.exe` installer.
 - **You are on Tumbleweed or Leap 16.** The RPM built for your distribution.
+- **You are on Arch.** The pacman repository.
 - **You are on any other Linux.** The Flatpak.
-- **You are on a phone.** The APK on Android; the web app on iOS.
+- **You are on a phone.** The APK on Android; the web app on iPhone and iPad.
+- **You run a YunoHost server.** The YunoHost app.
 - **You do not want to install anything.** [The web app](/). It is the same
   application, and you can add it to your dock or home screen.
 - **You are rolling this out to other people.** Read

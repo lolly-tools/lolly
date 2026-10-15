@@ -17,6 +17,14 @@ The other files here - `downloads.json`, `import.json`, `formats.json`,
 `formats-catalog.json` - are bands hosted by the install, design-import and
 formats pages, read by the same build.
 
+`downloads.json` is the "Get the app" rail: `rows[]`, each a short `label` over
+its `items[]`. A tile with `file` links to that `lolly-latest.*` alias on
+lolli.li; a tile without one links to `slug` + `hash`, a section of the install
+page. `logo` is a mark from `docs/logos.ts`, and `icon` (a DOC_ICONS key)
+stands in where a mark cannot be shown. The link fields are always read from
+this English file by tile `id`. `tests/docs-downloads.test.ts` checks the rows,
+the marks and that every anchor is a real heading.
+
 ## How each file localises
 
 Two mechanisms, and the difference matters:
