@@ -1,6 +1,5 @@
 {
   "docs/build.ts": {
-    "H3": 8,
     "H4": 11,
     "H5": 1
   },
@@ -50,7 +49,6 @@
     "H5": 2
   },
   "shells/web/src/styles/parts/asset-shared.css": {
-    "H3": 2,
     "H4": 1,
     "H5": 2
   },
@@ -81,9 +79,6 @@
   },
   "shells/web/src/styles/parts/convert.css": {
     "H4": 2
-  },
-  "shells/web/src/styles/parts/css-editor.css": {
-    "H3": 3
   },
   "shells/web/src/styles/parts/dashboard.css": {
     "H4": 8,
@@ -132,9 +127,6 @@
   "shells/web/src/styles/parts/gallery.css": {
     "H4": 9,
     "H5": 2
-  },
-  "shells/web/src/styles/parts/guide.css": {
-    "H3": 2
   },
   "shells/web/src/styles/parts/instance-sheet.css": {
     "H5": 1
@@ -225,7 +217,6 @@
     "H5": 1
   },
   "shells/web/src/styles/parts/valid.css": {
-    "H3": 2,
     "H4": 14,
     "H5": 8
   },

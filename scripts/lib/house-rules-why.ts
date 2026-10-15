@@ -20,9 +20,6 @@ What each rule means
   H2  Dashed means "drop here" and nothing else. Use a solid hairline, a muted
       fill or a state glyph for empty, busy, missing and mixed states. A real
       drop area goes in scripts/data/house-rules-allow.json with its reason.
-  H3  Violet is reserved for GEN AI and lives in the --vf-ai tokens. Jacaranda
-      (#8182d3) is Lolly's one purple and may appear wherever it is the right
-      colour.
   H4  Durations come from --dur-*, --ui-motion-* or --ease-* so motion can be
       tuned in one place.
   H5  Anything that moves needs both switches: the operating system's

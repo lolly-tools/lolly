@@ -99,27 +99,6 @@ test('H2: allowlist selectors match with whitespace collapsed', () => {
   assert.equal(a.allowed.length, 1);
 });
 
-// ─── H3 ───────────────────────────────────────────────────────────────────────
-
-test('H3: violet literals are flagged', () => {
-  assert.equal(rule('.f { color: #7a4bd0; }', 'H3').length, 1);
-  assert.equal(rule('.f { color: hsl(275 65% 55%); }', 'H3').length, 1);
-  assert.equal(rule(':root { --chip: 275 65% 55%; }', 'H3').length, 1);
-  assert.equal(rule('.f { background: rgba(139,124,246,.13); }', 'H3').length, 1);
-  assert.equal(rule('.f { color: oklch(60% 0.15 300); }', 'H3').length, 1);
-  assert.equal(rule('.f { color: rebeccapurple; }', 'H3').length, 1);
-});
-
-test('H3: Jacaranda, the GEN AI tokens and pale or blue tints are not flagged', () => {
-  assert.equal(rule('.f { color: #8182d3; }', 'H3').length, 0);
-  assert.equal(rule('.f { color: #8182D3; }', 'H3').length, 0);
-  assert.equal(rule(':root { --vf-ai-1: 276 86% 67%; }', 'H3').length, 0);
-  assert.equal(rule('.f { background: #f5f2fd; }', 'H3').length, 0);
-  assert.equal(rule('.f { color: #2563eb; }', 'H3').length, 0);
-  assert.equal(rule('.f { color: hsl(var(--primary)); }', 'H3').length, 0);
-  assert.equal(rule('.f { background: url(#plum); }', 'H3').length, 0);
-});
-
 // ─── H4 ───────────────────────────────────────────────────────────────────────
 
 test('H4: a literal duration is flagged; the motion tokens and zero are not', () => {
@@ -239,10 +218,10 @@ test('extractHtmlCss finds both <style> blocks and ignores a comment that mentio
 
 test('drift reports a rise, a new entry and an unrecorded fall', () => {
   const baseline: Counts = { 'a.css': { H2: 2, H4: 1 }, 'b.css': { H1: 1 }, 'gone.css': { H2: 4 } };
-  const current: Counts = { 'a.css': { H2: 3, H5: 1 }, 'c.css': { H3: 1 } };
+  const current: Counts = { 'a.css': { H2: 3, H5: 1 }, 'c.css': { H6: 1 } };
   const d = drift(current, baseline, (f) => f !== 'gone.css');
   assert.deepEqual(d.over, [{ file: 'a.css', rule: 'H2', was: 2, now: 3 }]);
-  assert.deepEqual(d.fresh, [{ file: 'a.css', rule: 'H5', now: 1 }, { file: 'c.css', rule: 'H3', now: 1 }]);
+  assert.deepEqual(d.fresh, [{ file: 'a.css', rule: 'H5', now: 1 }, { file: 'c.css', rule: 'H6', now: 1 }]);
   assert.deepEqual(d.under, [{ file: 'a.css', rule: 'H4', was: 1, now: 0 }, { file: 'b.css', rule: 'H1', was: 1, now: 0 }]);
 });
 

@@ -156,12 +156,6 @@
     "reason": "drop area: a lesson row while content is dragged onto it (views/learning/blocks.ts)"
   },
   {
-    "file": "shells/web/src/lib/palette-wheel.css",
-    "rule": "H3",
-    "selector": ".dash-wheel-ring",
-    "reason": "a hue wheel shows every hue, violet included, as a conic gradient round the whole circle"
-  },
-  {
     "file": "shells/web/src/styles/parts/tool.css",
     "rule": "H1",
     "selector": ".blocks-input--tree .block-item.is-child::before",

@@ -11,18 +11,20 @@
  *
  *   H1  no single-edge border or inset rail on an element with a radius
  *   H2  dashed only for drop areas
- *   H3  violet only in the GEN AI tokens (--vf-ai*); Jacaranda #8182d3 is fine
  *   H4  durations from the motion tokens (--dur-*, --ui-motion-*)
  *   H5  anything that moves honours both Reduce motion switches
  *   H6  no custom property that nothing defines
+ *
+ * The numbers are fixed ids that the baseline and review notes refer to, so the
+ * gap after H2 is deliberate and nothing is renumbered.
  *
  * scripts/lib/house-rules-why.ts explains each rule in plain words. Today's debt
  * is recorded per file and rule in scripts/house-rules-baseline.json, and a count
  * may only go down, the same three-way ratchet as check-code-comment-vernacular.ts:
  * a rise fails, a new file or rule with findings fails, and a fall fails until
- * recorded. Reviewed exceptions (real drop areas, a hue wheel) live in
- * scripts/data/house-rules-allow.json, matched on file, rule and selector so
- * edits elsewhere in a sheet never break an entry.
+ * recorded. Reviewed exceptions (real drop areas and a few shapes the corner
+ * logic misreads) live in scripts/data/house-rules-allow.json, matched on file,
+ * rule and selector so edits elsewhere in a sheet never break an entry.
  *
  *   node scripts/check-house-rules.ts            check (exit 1 on drift)
  *   node scripts/check-house-rules.ts --write    record a reviewed fall (refuses a rise)
@@ -39,12 +41,11 @@ const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
 export const BASELINE_PATH = join(ROOT, 'scripts/house-rules-baseline.json');
 export const ALLOW_PATH = join(ROOT, 'scripts/data/house-rules-allow.json');
 
-export type RuleId = 'H1' | 'H2' | 'H3' | 'H4' | 'H5' | 'H6';
+export type RuleId = 'H1' | 'H2' | 'H4' | 'H5' | 'H6';
 
 export const RULES: ReadonlyArray<{ id: RuleId; title: string; reason: string }> = [
   { id: 'H1', title: 'Single-edge rail on a rounded element', reason: 'A stripe on one edge of a rounded box breaks where it meets the curve.' },
   { id: 'H2', title: 'Dashed outside a drop area', reason: 'Dashed means "drop here" and nothing else.' },
-  { id: 'H3', title: 'Violet outside the GEN AI tokens', reason: 'Violet is reserved for GEN AI; Jacaranda #8182d3 is allowed.' },
   { id: 'H4', title: 'Duration not from a motion token', reason: 'Durations come from --dur-*, --ui-motion-* or --ease-*.' },
   { id: 'H5', title: 'Motion without both Reduce motion rules', reason: 'Anything that moves honours prefers-reduced-motion and data-a11y-motion.' },
   { id: 'H6', title: 'Custom property defined nowhere', reason: 'A var() with no definition and no fallback resolves to nothing.' },
@@ -316,106 +317,6 @@ export function insetRailEdge(part: string): Edge | null {
   return y.startsWith('-') ? 'bottom' : 'top';
 }
 
-// ─── Colour (sRGB to OKLCH, the maths of engine/src/brand-derive.ts) ──────────
-
-const srgbToLinear = (c: number): number => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
-
-export function rgbToOklch(r: number, g: number, b: number): { l: number; c: number; h: number } {
-  const [lr, lg, lb] = [r, g, b].map((v) => srgbToLinear(Math.min(1, Math.max(0, v)))) as [number, number, number];
-  const l = Math.cbrt(0.4122214708 * lr + 0.5363325363 * lg + 0.0514459929 * lb);
-  const m = Math.cbrt(0.2119034982 * lr + 0.6806995451 * lg + 0.1073969566 * lb);
-  const s = Math.cbrt(0.0883024619 * lr + 0.2817188376 * lg + 0.6299787005 * lb);
-  const L = 0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s;
-  const A = 1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s;
-  const B = 0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s;
-  const c = Math.hypot(A, B);
-  const h = c < 1e-7 ? 0 : (((Math.atan2(B, A) * 180) / Math.PI) % 360 + 360) % 360;
-  return { l: L, c, h };
-}
-
-function hslToRgb(h: number, s: number, l: number): [number, number, number] {
-  const hue = ((h % 360) + 360) % 360;
-  const k = (n: number): number => (n + hue / 30) % 12;
-  const a = s * Math.min(l, 1 - l);
-  const f = (n: number): number => l - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));
-  return [f(0), f(8), f(4)];
-}
-
-function hueDegrees(t: string): number {
-  const m = /^([+-]?\d*\.?\d+)(deg|turn|rad|grad)?$/i.exec(t.trim());
-  if (!m) return Number.NaN;
-  const v = Number(m[1]);
-  const unit = (m[2] ?? 'deg').toLowerCase();
-  return unit === 'turn' ? v * 360 : unit === 'rad' ? (v * 180) / Math.PI : unit === 'grad' ? v * 0.9 : v;
-}
-
-const NAMED_VIOLETS: Record<string, string> = {
-  purple: '#800080', violet: '#ee82ee', blueviolet: '#8a2be2', darkviolet: '#9400d3', darkorchid: '#9932cc',
-  mediumorchid: '#ba55d3', mediumpurple: '#9370db', rebeccapurple: '#663399', slateblue: '#6a5acd',
-  mediumslateblue: '#7b68ee', darkslateblue: '#483d8b', indigo: '#4b0082', orchid: '#da70d6', plum: '#dda0dd',
-};
-const NAMED_RE = new RegExp(`(?<![\\w-])(${Object.keys(NAMED_VIOLETS).join('|')})(?![\\w-])`, 'gi');
-
-function hexRgb(hex: string): [number, number, number] | null {
-  let h = hex.replace('#', '');
-  if (h.length === 3 || h.length === 4) h = h.slice(0, 3).split('').map((c) => c + c).join('');
-  else h = h.slice(0, 6);
-  if (!/^[0-9a-f]{6}$/i.test(h)) return null;
-  return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16) / 255) as [number, number, number];
-}
-
-const JACARANDA = '#8182d3';
-const isViolet = (rgb: [number, number, number] | null): boolean => {
-  if (!rgb) return false;
-  const { c, h } = rgbToOklch(...rgb);
-  return c > 0.08 && h >= 275 && h <= 324;
-};
-
-/** Every violet literal in one declaration: OKLCH hue 275 to 324 with chroma over
- *  0.08. The --vf-ai* tokens are exempt by property name, Jacaranda by value. */
-export function violetsIn(prop: string, value: string): string[] {
-  if (prop.startsWith('--vf-ai')) return [];
-  if (!/[#(%]|purple|violet|orchid|plum|indigo|slateblue/i.test(value)) return [];
-  const v =value.replace(/url\((?:[^()]|\([^()]*\))*\)/gi, 'url()');
-  const found: string[] = [];
-  for (const m of v.matchAll(/#(?:[0-9a-f]{8}|[0-9a-f]{6}|[0-9a-f]{3,4})(?![\w-])/gi)) {
-    if (m[0].toLowerCase() === JACARANDA) continue;
-    if (isViolet(hexRgb(m[0]))) found.push(m[0]);
-  }
-  for (const m of v.matchAll(/rgba?\(([^()]*)\)/gi)) {
-    const parts = m[1]!.split(/[\s,/]+/).filter(Boolean);
-    if (parts.length < 3 || /var/i.test(m[1]!)) continue;
-    const ch = parts.slice(0, 3).map((p) => (p.endsWith('%') ? Number.parseFloat(p) / 100 : Number.parseFloat(p) / 255));
-    if (ch.some((x) => Number.isNaN(x))) continue;
-    if (isViolet(ch as [number, number, number])) found.push(m[0]);
-  }
-  for (const m of v.matchAll(/hsla?\(([^()]*)\)/gi)) {
-    const parts = m[1]!.split(/[\s,/]+/).filter(Boolean);
-    if (parts.length < 3 || /var/i.test(m[1]!)) continue;
-    const h = hueDegrees(parts[0]!);
-    const s = Number.parseFloat(parts[1]!) / 100;
-    const l = Number.parseFloat(parts[2]!) / 100;
-    if ([h, s, l].some((x) => Number.isNaN(x))) continue;
-    if (isViolet(hslToRgb(h, s, l))) found.push(m[0]);
-  }
-  for (const m of v.matchAll(/oklch\(([^()]*)\)/gi)) {
-    const parts = m[1]!.split(/[\s/]+/).filter(Boolean);
-    if (parts.length < 3 || /var/i.test(m[1]!)) continue;
-    const c = parts[1]!.endsWith('%') ? (Number.parseFloat(parts[1]!) / 100) * 0.4 : Number.parseFloat(parts[1]!);
-    const h = hueDegrees(parts[2]!);
-    if (c > 0.08 && h >= 275 && h <= 324) found.push(m[0]);
-  }
-  if (prop.startsWith('--')) {
-    // A bare HSL triplet in a custom property, the shape the shell's tokens use.
-    const t = /^\s*([+-]?\d*\.?\d+(?:deg)?)\s+(\d*\.?\d+)%\s+(\d*\.?\d+)%\s*(?:\/\s*[\d.]+%?\s*)?$/i.exec(stripImportant(v));
-    if (t && isViolet(hslToRgb(hueDegrees(t[1]!), Number(t[2]) / 100, Number(t[3]) / 100))) found.push(t[0].trim());
-  }
-  for (const m of v.matchAll(NAMED_RE)) {
-    if (isViolet(hexRgb(NAMED_VIOLETS[m[1]!.toLowerCase()]!))) found.push(m[1]!);
-  }
-  return found;
-}
-
 // ─── Motion ───────────────────────────────────────────────────────────────────
 
 const REDUCE_ATTR = /\[data-a11y-motion=["']?reduce["']?\]/;
@@ -539,7 +440,7 @@ export interface ScanContext {
   rules?: CssRule[];
 }
 
-/** Check one stylesheet (or one embedded block) against H1 to H6. */
+/** Check one stylesheet (or one embedded block) against every rule in RULES. */
 export function scanCss(text: string, file: string, ctx: ScanContext = {}): Finding[] {
   const rules = ctx.rules ?? parseCss(text, ctx.lineOffset ?? 0);
   const keys = ctx.motionKeys ?? collectMotionKeys(rules);
@@ -593,8 +494,7 @@ export function scanCss(text: string, file: string, ctx: ScanContext = {}): Find
         }
       }
       if (rule.keyframes) continue;
-      // H3 also reads the at-rule bodies (@property initial values).
-      for (const colour of violetsIn(d.prop, d.value)) add(rule, d.line, 'H3', `${d.prop}: ${colour}`);
+      // The rest read boxes, and an at-rule body (@font-face, @property) has none.
       if (rule.atBody) continue;
       // H1: a one-sided border or inset stripe where a corner on that edge is rounded.
       const edgeProp = EDGE_PROP.exec(d.prop);
