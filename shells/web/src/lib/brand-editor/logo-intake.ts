@@ -18,6 +18,7 @@ import { isTauriShell } from '../instance-choice.ts';
 import { escape as escapeText } from '../../utils.ts';
 import { announce } from '../../a11y.ts';
 import { playSfx } from '../sfx.ts';
+import { bindFileDropTiles } from '../file-drop-tile.ts';
 import type { LogoCandidateChip } from './shared.ts';
 import { bindOp, type BrandEditorCtx } from './context.ts';
 
@@ -292,6 +293,60 @@ export function seedIntakeQueue(bedit: BrandEditorCtx): void {
   };
 }
 
+/** A custom mark from a picked or dropped file: it needs the name typed beside
+ *  it, waits for the trim card, then installs and repaints. */
+export const addCustomMarkFile = async (bedit: BrandEditorCtx, form: HTMLElement, file: File): Promise<void> => {
+  const { root } = bedit;
+  const nameInput = form.querySelector<HTMLInputElement>('[data-addmark-name]');
+  const identity = form.dataset.identity || 'default';
+  const label = nameInput?.value.trim() ?? '';
+  const slug = bedit.logos.slugify(label);
+  bedit.logos.showLogoErr('');
+  if (!slug || !LOGO_SLUG_RE.test(slug)) { bedit.logos.showLogoErr(t('Name the mark first - letters and numbers, e.g. "Icon".')); nameInput?.focus(); return; }
+  if (bedit.logos.trimBusy()) { bedit.logos.showLogoErr(t('Answer the trim card above first.')); return; }
+  // The picker that started this is inside the form, which paintLogos
+  // rebuilds; the keyboard goes back to the same control on the fresh markup.
+  const addmarkSel = `[data-logo-addmark][data-identity="${identity}"] [data-addmark-name]`;
+  try {
+    const picked = await bedit.logos.withTrimOffer(file, () => bedit.logoIntake.refocus(addmarkSel));
+    if (!root.isConnected) return;
+    if (!picked) return;   // backed out of the trim card: nothing is installed
+    // installLogoFile, not installLogo: the unnamed identity has to be
+    // OMITTED, and the literal 'default' this path used to pass is refused
+    // outright ("default is reserved") - so no custom mark could be added to
+    // the first logo at all.
+    await bedit.logos.installLogoFile(slug, identity, picked, label);
+    playSfx('saveProfile'); await bedit.logos.paintLogos(); bedit.state.notify('logos');
+    bedit.logoIntake.refocus(addmarkSel);
+    void bedit.logos.suggestFromLogo(picked);
+    announce(tRaw('{label} mark added', { label }));
+  } catch (err) { bedit.logos.showLogoErr(String((err as { message?: unknown })?.message ?? err)); }
+};
+
+/** A logo slot from a picked or dropped file: waits for the trim card, then
+ *  installs, repaints and offers the derived variants. */
+export const placeSlotFile = async (bedit: BrandEditorCtx, variant: string, identity: string, file: File): Promise<void> => {
+  const { root } = bedit;
+  bedit.logos.showLogoErr('');
+  if (bedit.logos.trimBusy()) { bedit.logos.showLogoErr(t('Answer the trim card above first.')); return; }
+  // paintLogos rebuilds the whole matrix, so the keyboard is handed back to the
+  // same tile's file input on the fresh markup rather than left on <body>.
+  const tileSel = `[data-logo-file="${variant}"][data-identity="${identity}"]`;
+  try {
+    // The same trim offer the intake chips get - the affordance belongs to
+    // "a user file becomes an asset", not to one control (plan 97 section 7.3).
+    const picked = await bedit.logos.withTrimOffer(file, () => bedit.logoIntake.refocus(tileSel));
+    if (!root.isConnected) return;
+    if (!picked) return;   // backed out of the trim card: nothing is installed
+    await bedit.logos.installLogoFile(variant, identity, picked);
+    playSfx('saveProfile'); await bedit.logos.paintLogos(); bedit.state.notify('logos');
+    bedit.logoIntake.refocus(tileSel);
+    void bedit.logos.suggestFromLogo(picked);
+    void bedit.logoIntake.offerDerivedVariants(picked, variant, identity);
+    announce(tRaw('{variant} logo added', { variant: variantLabel(variant) }));
+  } catch (err) { bedit.logos.showLogoErr(String((err as { message?: unknown })?.message ?? err)); }
+};
+
 export function wireIntakeZone(bedit: BrandEditorCtx): void {
   const { LOGO_CONFIRM_MIN, fontsHost, pendingIdentities, queueEl, root } = bedit;
   const intakeZone = bedit.ramps.$('[data-be-logo-intake]') as HTMLElement | null; bedit.intakeZone = intakeZone as BrandEditorCtx['intakeZone'];
@@ -360,62 +415,36 @@ export function wireIntakeZone(bedit: BrandEditorCtx): void {
     bedit.renderIntake();
   });
 
-  bedit.ramps.$('[data-be-logos]')?.addEventListener('change', async (e) => {
+  bedit.ramps.$('[data-be-logos]')?.addEventListener('change', (e) => {
     const target = e.target as HTMLElement;
     // A custom-mark file pick: needs the name typed beside it.
     const addFile = target.closest<HTMLInputElement>('[data-addmark-file]');
     if (addFile) {
       const form = addFile.closest<HTMLElement>('[data-logo-addmark]');
-      const nameInput = form?.querySelector<HTMLInputElement>('[data-addmark-name]');
-      const identity = form?.dataset.identity || 'default';
-      const label = nameInput?.value.trim() ?? '';
-      const slug = bedit.logos.slugify(label);
       const file = addFile.files?.[0]; addFile.value = '';
-      if (!file) return;
-      bedit.logos.showLogoErr('');
-      if (!slug || !LOGO_SLUG_RE.test(slug)) { bedit.logos.showLogoErr(t('Name the mark first - letters and numbers, e.g. "Icon".')); nameInput?.focus(); return; }
-      if (bedit.logos.trimBusy()) { bedit.logos.showLogoErr(t('Answer the trim card above first.')); return; }
-      // The picker that started this is inside the form, which paintLogos
-      // rebuilds; the keyboard goes back to the same control on the fresh markup.
-      const addmarkSel = `[data-logo-addmark][data-identity="${identity}"] [data-addmark-name]`;
-      try {
-        const picked = await bedit.logos.withTrimOffer(file, () => bedit.logoIntake.refocus(addmarkSel));
-        if (!root.isConnected) return;
-        if (!picked) return;   // backed out of the trim card: nothing is installed
-        // installLogoFile, not installLogo: the unnamed identity has to be
-        // OMITTED, and the literal 'default' this path used to pass is refused
-        // outright ("default is reserved") - so no custom mark could be added to
-        // the first logo at all.
-        await bedit.logos.installLogoFile(slug, identity, picked, label);
-        playSfx('saveProfile'); await bedit.logos.paintLogos(); bedit.state.notify('logos');
-        bedit.logoIntake.refocus(addmarkSel);
-        void bedit.logos.suggestFromLogo(picked);
-        announce(tRaw('{label} mark added', { label }));
-      } catch (err) { bedit.logos.showLogoErr(String((err as { message?: unknown })?.message ?? err)); }
+      if (!form || !file) return;
+      void bedit.logoIntake.addCustomMarkFile(form, file);
       return;
     }
     const input = target.closest<HTMLInputElement>('[data-logo-file]'); if (!input) return;
-    const variant = input.dataset.logoFile!;
-    const identity = input.dataset.identity || 'default';
     const file = input.files?.[0]; input.value = ''; if (!file) return;
-    bedit.logos.showLogoErr('');
-    if (bedit.logos.trimBusy()) { bedit.logos.showLogoErr(t('Answer the trim card above first.')); return; }
-    // paintLogos rebuilds the whole matrix, so the keyboard is handed back to the
-    // same tile's file input on the fresh markup rather than left on <body>.
-    const tileSel = `[data-logo-file="${variant}"][data-identity="${identity}"]`;
-    try {
-      // The same trim offer the intake chips get - the affordance belongs to
-      // "a user file becomes an asset", not to one control (plan 97 section 7.3).
-      const picked = await bedit.logos.withTrimOffer(file, () => bedit.logoIntake.refocus(tileSel));
-      if (!root.isConnected) return;
-      if (!picked) return;   // backed out of the trim card: nothing is installed
-      await bedit.logos.installLogoFile(variant, identity, picked);
-      playSfx('saveProfile'); await bedit.logos.paintLogos(); bedit.state.notify('logos');
-      bedit.logoIntake.refocus(tileSel);
-      void bedit.logos.suggestFromLogo(picked);
-      void bedit.logoIntake.offerDerivedVariants(picked, variant, identity);
-      announce(tRaw('{variant} logo added', { variant: variantLabel(variant) }));
-    } catch (err) { bedit.logos.showLogoErr(String((err as { message?: unknown })?.message ?? err)); }
+    void bedit.logoIntake.placeSlotFile(input.dataset.logoFile ?? '', input.dataset.identity || 'default', file);
+  });
+  // The slot tiles and the custom-mark form are dashed, so each takes a dropped
+  // file as well, through the same placement a picked file takes. Bound on the
+  // mount, which paintLogos keeps while it replaces the tiles inside.
+  const logosMount = bedit.ramps.$('[data-be-logos]') as HTMLElement | null;
+  if (logosMount) bindFileDropTiles(logosMount, {
+    inputOf: (tile) => tile.querySelector<HTMLInputElement>('input[type="file"]'),
+    onFiles: (tile, files) => {
+      const file = files[0];
+      if (!file) return;
+      const slot = tile.querySelector<HTMLInputElement>('[data-logo-file]');
+      return slot
+        ? bedit.logoIntake.placeSlotFile(slot.dataset.logoFile ?? '', slot.dataset.identity || 'default', file)
+        : bedit.logoIntake.addCustomMarkFile(tile, file);
+    },
+    onRefuse: () => bedit.logos.showLogoErr(t('Drop one file at a time here.')),
   });
   bedit.ramps.$('[data-be-logos]')?.addEventListener('submit', (e) => {
     // The custom-mark form has no submit button (its "action" is the file
@@ -475,6 +504,8 @@ export function logoIntakeOps(bedit: BrandEditorCtx) {
     placeCandidate: bindOp(bedit, placeCandidate),
     defineRenderIntake: bindOp(bedit, defineRenderIntake),
     seedIntakeQueue: bindOp(bedit, seedIntakeQueue),
+    addCustomMarkFile: bindOp(bedit, addCustomMarkFile),
+    placeSlotFile: bindOp(bedit, placeSlotFile),
     wireIntakeZone: bindOp(bedit, wireIntakeZone),
   };
 }

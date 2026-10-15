@@ -148,7 +148,7 @@
 .userimg-delete:hover { color: hsl(var(--destructive-text)); background: hsl(var(--accent)); }
 
 /* "Add" tile - sits in the grid as the last cell (or the only cell when empty),
-   matching the thumb cells in size but dashed to read as an upload affordance. */
+   matching the thumb cells in size, dashed because it is a drop area as well as a button. */
 .userimg-add {
   aspect-ratio: 1;
   display: flex;
@@ -170,6 +170,22 @@
   background: hsl(var(--accent));
 }
 .userimg-add:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+/* A file dragged over the tile: the dashes go solid and the cue appears
+   (components.css), so the state does not rest on colour alone. */
+.userimg-add.is-dragover {
+  border-style: solid;
+  border-color: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.08);
+  color: hsl(var(--foreground));
+}
+/* The tile is too small for the cue beside the "+" and "Add", so the cue takes
+   their place, centred. */
+.userimg-add.is-dragover .userimg-add-icon,
+.userimg-add.is-dragover .userimg-add-text { visibility: hidden; }
+.userimg-add.is-dragover::after {
+  inset-block: 0; margin-block: auto; height: fit-content;
+  max-width: calc(100% - .4rem); padding-inline: .35rem;
+}
 .userimg-add:disabled,
 .btn-danger:disabled{ opacity: 0.5; cursor: default; }
 .userimg-add-icon { font-size: calc(20px * var(--a11y-fs)); line-height: 1; font-weight: 300; }
