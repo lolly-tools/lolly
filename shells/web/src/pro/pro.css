@@ -900,10 +900,20 @@ body.pro-row-dragging, body.pro-row-dragging * { cursor: grabbing !important; us
 [data-cell-count] { font-weight: 600; }
 .pro-cell-hint { color: hsl(var(--muted-foreground)); font-size: calc(.72rem * var(--a11y-fs)); }
 .pro-grid tbody tr > td.is-cell-selected { background-color: color-mix(in srgb, hsl(var(--primary)) 14%, hsl(var(--card))); }
-.pro-grid td.cell-range-top { border-top-color: hsl(var(--ring)); }
-.pro-grid td.cell-range-bottom { border-bottom-color: hsl(var(--ring)); }
-.pro-grid td.cell-range-left { border-left-color: hsl(var(--ring)); }
-.pro-grid td.cell-range-right { border-right-color: hsl(var(--ring)); }
+/* Join the outer edges into one focus ring without moving the grid's borders. */
+.pro-grid td.is-cell-selected:not(.pro-cell--editing) { outline: none; border-radius: 0; }
+.pro-grid td.is-cell-selected::before {
+  content: ''; position: absolute; inset: -.5px; z-index: 1;
+  pointer-events: none; border: 0 solid hsl(var(--ring));
+}
+.pro-grid td.cell-range-top::before { border-top-width: 2px; }
+.pro-grid td.cell-range-bottom::before { border-bottom-width: 2px; }
+.pro-grid td.cell-range-left::before { border-left-width: 2px; }
+.pro-grid td.cell-range-right::before { border-right-width: 2px; }
+.pro-grid td.cell-range-top.cell-range-left::before { border-top-left-radius: 4px; }
+.pro-grid td.cell-range-top.cell-range-right::before { border-top-right-radius: 4px; }
+.pro-grid td.cell-range-bottom.cell-range-left::before { border-bottom-left-radius: 4px; }
+.pro-grid td.cell-range-bottom.cell-range-right::before { border-bottom-right-radius: 4px; }
 .pro-grid td:not(.pro-cell--editing) .pro-control { cursor: cell; }
 @media (max-width: 720px) {
   .pro-format-picker .fmt-pop { position: fixed; inset: 1rem; width: auto; max-height: none; z-index: 50; }
