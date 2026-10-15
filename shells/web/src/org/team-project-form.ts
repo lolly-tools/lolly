@@ -77,7 +77,7 @@ export function buildNewProjectForm(writer: SessionSourceWriter, opts: NewProjec
   const err = document.createElement('p');
   err.setAttribute('role', 'status');
   err.hidden = true;
-  err.style.cssText = 'margin:0;color:hsl(var(--destructive));font-size:var(--fs-xs)';
+  err.style.cssText = 'margin:0;color:hsl(var(--destructive-text));font-size:var(--fs-xs)';
 
   const actions = document.createElement('div');
   actions.style.cssText = 'display:flex;gap:.5rem;flex-wrap:wrap;justify-content:flex-end';

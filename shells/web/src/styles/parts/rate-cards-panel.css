@@ -46,7 +46,7 @@
   font-size: calc(0.9rem * var(--a11y-fs));
   color: hsl(var(--muted-foreground));
 }
-.rcm-msg[data-tone="error"] { color: hsl(var(--destructive, 0 72% 51%)); }
+.rcm-msg[data-tone="error"] { color: hsl(var(--destructive-text, 0 72% 51%)); }
 
 .rcm-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.55rem; }
 .rcm-list:empty { display: none; }

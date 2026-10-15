@@ -165,7 +165,7 @@ function differentAccount(): HTMLElement {
   b.textContent = tRaw('Use a different account');
   b.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;min-height:var(--ui-size-target)';
   const error = document.createElement('p');
-  error.style.cssText = 'margin:0;color:hsl(var(--destructive));font-size:.9rem';
+  error.style.cssText = 'margin:0;color:hsl(var(--destructive-text));font-size:.9rem';
   error.hidden = true;
   b.addEventListener('click', () => {
     if (b.disabled) return;

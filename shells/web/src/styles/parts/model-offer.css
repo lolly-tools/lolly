@@ -19,7 +19,7 @@
   margin: 0 0 var(--ui-space-control-inline);
   font-size: var(--ui-type-label);
   line-height: 1.5;
-  color: hsl(var(--destructive));
+  color: hsl(var(--destructive-text));
 }
 .mo-error[hidden] { display: none; }
 /* A finger needs a 44px target; the shared modal buttons are sized for a pointer. */

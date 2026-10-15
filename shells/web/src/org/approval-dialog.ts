@@ -168,7 +168,7 @@ export function openApprovalDialog(ctx: ApprovalRequestContext): void {
         </div>
       </div>
 
-      <p class="approval-error" data-error role="status" style="margin:0;color:hsl(var(--destructive));font-size:12px" hidden></p>
+      <p class="approval-error" data-error role="status" style="margin:0;color:hsl(var(--destructive-text));font-size:12px" hidden></p>
 
       <div class="approval-dialog-actions" style="display:flex;justify-content:flex-end;gap:.5rem">
         <button type="button" class="btn" data-act="cancel">${escape(t('Cancel'))}</button>

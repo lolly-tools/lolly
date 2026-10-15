@@ -179,7 +179,7 @@
   font-size: calc(11.5px * var(--a11y-fs));
   color: hsl(var(--muted-foreground));
 }
-.tycmp-card[data-tycmp-state="failed"] .tycmp-note { color: hsl(var(--destructive)); }
+.tycmp-card[data-tycmp-state="failed"] .tycmp-note { color: hsl(var(--destructive-text)); }
 
 .tycmp-chips { display: flex; flex-wrap: wrap; gap: 5px; margin: 0; padding: 0; list-style: none; }
 /* The chips are the honesty, and the longest of them are the licence sentences

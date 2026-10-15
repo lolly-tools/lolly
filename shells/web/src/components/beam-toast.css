@@ -126,7 +126,7 @@
 }
 
 .beam-toast-terminal { margin: 0; font-size: calc(0.88rem * var(--a11y-fs)); }
-.beam-toast-terminal--err { color: hsl(var(--destructive)); }
+.beam-toast-terminal--err { color: hsl(var(--destructive-text)); }
 
 .beam-toast-queue {
   margin: 0.6rem 0 0;

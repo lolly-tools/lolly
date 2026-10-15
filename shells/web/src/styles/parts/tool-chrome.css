@@ -976,7 +976,7 @@ html[data-a11y-motion="reduce"] .share-meter-toast { animation: none; }
 }
 .preflight-finding.is-error .preflight-finding-figure {
   background: hsl(var(--destructive) / 0.15);
-  color: hsl(var(--destructive));
+  color: hsl(var(--destructive-text));
 }
 /* A NAMED GAP: "Lolly could not check this". Same tinted-fill + full-hairline
    anatomy as the other two (never a left stripe), but drawn DOWN rather than up -

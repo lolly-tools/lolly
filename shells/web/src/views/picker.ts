@@ -973,7 +973,7 @@ async function render(
           const msg = document.createElement('p');
           msg.className = 'asset-picker-card-error';
           msg.setAttribute('role', 'alert');
-          msg.style.cssText = 'margin:4px 0 0;font-size:11px;color:hsl(var(--destructive));text-align:center';
+          msg.style.cssText = 'margin:4px 0 0;font-size:11px;color:hsl(var(--destructive-text));text-align:center';
           msg.textContent = t('Couldn’t delete - try again.');
           card.appendChild(msg);
         }
@@ -1136,7 +1136,7 @@ async function render(
         const note = document.createElement('p');
         note.className = 'asset-picker-card-error';
         note.setAttribute('role', 'alert');
-        note.style.cssText = 'margin:4px 0 0;font-size:11px;color:hsl(var(--destructive));text-align:center';
+        note.style.cssText = 'margin:4px 0 0;font-size:11px;color:hsl(var(--destructive-text));text-align:center';
         note.textContent = t('This slot can’t use that kind of file.');
         cardEl.appendChild(note);
         return;
@@ -1168,7 +1168,7 @@ async function render(
           const msg = document.createElement('p');
           msg.className = 'asset-picker-card-error';
           msg.setAttribute('role', 'alert');
-          msg.style.cssText = 'margin:4px 0 0;font-size:11px;color:hsl(var(--destructive));text-align:center';
+          msg.style.cssText = 'margin:4px 0 0;font-size:11px;color:hsl(var(--destructive-text));text-align:center';
           msg.textContent = t('Couldn’t load - try again.');
           card.appendChild(msg);
         }

@@ -249,7 +249,7 @@ html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-3 { animati
 }
 .save-input:focus { border-color: hsl(var(--primary)); }
 
-.save-card-err { margin: 8px 0 0; font-size: var(--fs-sm); color: hsl(var(--destructive, 0 70% 50%)); }
+.save-card-err { margin: 8px 0 0; font-size: var(--fs-sm); color: hsl(var(--destructive-text, 0 70% 50%)); }
 
 /* "More ways to save" (plans/170 WP-1): the template / variation / create-a-tool
    cards fold behind one disclosure so a first save reads as one decision. The
@@ -597,7 +597,7 @@ html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-3 { animati
 
   .clear-inputs-btn:hover {
     border-color: hsl(var(--destructive));
-    color: hsl(var(--destructive));
+    color: hsl(var(--destructive-text));
     background-color: hsl(var(--destructive) / 0.08);
   }
 

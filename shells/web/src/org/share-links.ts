@@ -139,7 +139,7 @@ function makeErrorLine(): { el: HTMLElement; set(msg: string): void; clear(): vo
   el.className = 'share-instance-error';
   el.setAttribute('role', 'status');
   el.hidden = true;
-  el.style.cssText = 'margin:.4rem 0 0;color:hsl(var(--destructive));font-size:12px';
+  el.style.cssText = 'margin:.4rem 0 0;color:hsl(var(--destructive-text));font-size:12px';
   return {
     el,
     set(msg: string) { el.textContent = msg; el.hidden = false; announce(msg, { assertive: true }); },

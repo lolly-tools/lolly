@@ -240,7 +240,7 @@ export function renderSection(pv: ProfileViewCtx, m: StorageModel, sort: string)
                 ${userImgAddButton()}
               </div>
               <input type="file" id="userimg-file" accept="image/svg+xml,image/png,image/apng,image/jpeg,image/webp,image/gif,image/avif,image/heic,image/heif,video/mp4,video/webm,.mp4,.webm,.mov" multiple hidden>
-              <p class="profile-inline-error" id="userimg-error" style="color:hsl(var(--destructive));font-size:13px;margin:.4rem 0 0" hidden></p>`)}
+              <p class="profile-inline-error" id="userimg-error" style="color:hsl(var(--destructive-text));font-size:13px;margin:.4rem 0 0" hidden></p>`)}
 
           ${storeRow('file-history', t('File results & versions'), t('Saved copies and earlier asset bytes, including recoverable deleted assets. Included in data backups. Not a disposable cache.'),
             `<div class="profile-row-actions"><a class="btn" href="#/convert">${t('Review & manage…')}</a></div>`)}

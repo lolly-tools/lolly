@@ -60,7 +60,7 @@
 .pdfx-note {
   width: 100%; margin: 1rem auto; text-align: center;
 }
-.pdfx-error { color: var(--danger, #b3261e); }
+.pdfx-error { color: var(--ui-color-status-danger); }
 .pdfx-note {
   padding: 0.75rem 1rem;
   border-radius: var(--radius-md, 10px);
@@ -99,9 +99,9 @@
 .pdfx-hidden {
   margin: 1.5rem 0;
   padding: 1.15rem 1.25rem;
-  border: 1px solid var(--danger, #b3261e);
+  border: 1px solid var(--ui-color-status-danger);
   border-radius: var(--radius-md, 10px);
-  background: color-mix(in oklab, var(--danger, #b3261e) 8%, transparent);
+  background: color-mix(in oklab, var(--ui-color-status-danger) 8%, transparent);
 }
 .pdfx-hidden-head {
   display: flex; align-items: center; gap: 0.5rem;

@@ -200,7 +200,7 @@
 .cl-zoomhud-demo { position: relative; width: 100%; max-width: 260px; height: 64px; }.cl-zoomhud-demo .stage-nav { opacity: 1; }
 .cl-popover-demo { position: fixed; z-index: var(--z-top); min-width: 160px; padding: 6px; display: flex; flex-direction: column; gap: 2px; background: var(--ui-color-surface-overlay); border-radius: var(--ui-radius-panel); box-shadow: var(--ui-elevation-overlay); }
 .cl-popover-demo-item { padding: 10px; border-radius: var(--ui-radius-control); font-size: var(--ui-type-body); cursor: pointer; }.cl-popover-demo-item:hover { background: var(--ui-color-surface-muted); }
-.cl-broken { font: var(--ui-type-caption)/1.6 var(--font-mono); color: hsl(var(--destructive)); }
+.cl-broken { font: var(--ui-type-caption)/1.6 var(--font-mono); color: hsl(var(--destructive-text)); }
 /* Explicit demo scaffolding for host-dependent design states. */
 .cl-fixture-row { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px; }
 .cl-fixture-panel { width: 100%; padding: 22px; border-radius: var(--ui-radius-panel); background: var(--ui-color-surface-raised); box-shadow: var(--ui-elevation-panel); }

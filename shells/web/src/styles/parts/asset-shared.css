@@ -229,7 +229,7 @@
 .cat-bulkbar-actions { display: flex; gap: var(--sp-4); }
 .cat-bulkbar-actions .btn { display: inline-flex; align-items: center; gap: var(--sp-3); }
 .cat-bulkbar-actions .btn svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); }
-.cat-bulk-danger.btn { color: hsl(var(--destructive)); border-color: hsl(var(--destructive) / .4); }
+.cat-bulk-danger.btn { color: hsl(var(--destructive-text)); border-color: hsl(var(--destructive) / .4); }
 .cat-bulk-danger.btn:hover { background: hsl(var(--destructive) / .1); border-color: hsl(var(--destructive)); }
 .cat-bulkbar-clear {
   display: inline-flex; align-items: center; justify-content: center;
@@ -813,7 +813,7 @@ button.cat-download { font: inherit; cursor: pointer; }
 }
 .cat-vid-tab.is-active { background: hsl(var(--primary)); border-color: hsl(var(--primary)); color: #fff; }
 .cat-vid-note, .cat-vid-dur { margin: 0; font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); }
-.cat-vid-error, .cat-vid-refusal { margin: 0; font-size: var(--fs-md); color: hsl(var(--destructive)); }
+.cat-vid-error, .cat-vid-refusal { margin: 0; font-size: var(--fs-md); color: hsl(var(--destructive-text)); }
 .cat-vid-error[hidden], .cat-vid-refusal[hidden], .cat-vid-span[hidden] { display: none; }
 /* The crop tab's box, in the still crop box's visual language (.cat-crop-box and its
    handles above) over a paused frame instead of an image. Its stage is sized in JS from

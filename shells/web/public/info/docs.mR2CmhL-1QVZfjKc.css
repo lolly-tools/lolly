@@ -140,7 +140,7 @@
   --ui-color-syntax-function: var(--ui-color-text-default);
   --ui-color-syntax-type: hsl(var(--primary));
   --ui-color-syntax-operator: var(--ui-color-text-muted);
-  --ui-color-status-danger: hsl(var(--destructive));
+  --ui-color-status-danger: hsl(var(--destructive-text));
   --ui-color-status-danger-surface: hsl(var(--destructive) / .07);
   --ui-color-status-notice-surface: hsl(var(--primary) / .07);
   --ui-size-target: 44px;
@@ -223,6 +223,7 @@
   --accent-foreground:      224 71% 4%;
   --destructive:            0 72% 51%;
   --destructive-foreground: 0 0% 100%;
+  --destructive-text:       355.1 95.2% 40.6%; 
   --border:                 214 28% 84%;
   --input:                  214 28% 84%;
   --ring:                   171 62% 12%;
@@ -254,6 +255,7 @@
   --accent-foreground:      213 31% 91%;
   --destructive:            0 63% 38%;
   --destructive-foreground: 213 31% 91%;
+  --destructive-text:       4 73.8% 64.1%;    
   --border:                 217 33% 18%;
   --input:                  217 33% 18%;
   --ring:                   151 57% 46%;
@@ -285,6 +287,7 @@
   --accent-foreground:      160 30% 92%;
   --destructive:            0 55% 42%;
   --destructive-foreground: 160 30% 92%;
+  --destructive-text:       4.7 100% 80%;     
   --border:                 171 36% 33%;
   --input:                  171 36% 33%;
   --ring:                   151 57% 46%;
@@ -311,6 +314,7 @@ html[data-a11y-contrast="high"]:not([data-theme="dark"]):not([data-theme="brand"
   --input:                  214 32% 30%;   
   --ring:                   171 90% 12%;   
   --destructive:            0 80% 34%;     
+  --destructive-text:       0 100% 22.9%;  
   --store-1:                171 62% 16%;
   --store-2:                166 55% 27%;
   --store-3:                159 52% 38%;
@@ -321,7 +325,6 @@ html[data-a11y-contrast="high"]:not([data-theme="dark"]):not([data-theme="brand"
 html[data-a11y-contrast="high"][data-theme="dark"] {
   --primary:                147.6 75% 67.1%; 
   --primary-foreground:     0 0% 0%;         
-  --ring:                   147.6 75% 67.1%;
   --foreground:             213 45% 98%;   
   --card:                   222 47% 9%;    
   --card-foreground:        213 45% 98%;
@@ -338,6 +341,7 @@ html[data-a11y-contrast="high"][data-theme="dark"] {
   --ring:                   213 45% 98%;
   --destructive:            0 72% 44%;     
   --destructive-foreground: 213 45% 98%;
+  --destructive-text:       9.5 100% 88.8%;  
   --store-other:            215 16% 66%;   
 }
 html[data-a11y-contrast="high"][data-theme="brand"] {
@@ -354,6 +358,7 @@ html[data-a11y-contrast="high"][data-theme="brand"] {
   --ring:                   147.6 75% 67.1%; 
   --destructive:            0 72% 44%;     
   --destructive-foreground: 0 0% 100%;
+  --destructive-text:       9.3 100% 91.2%;  
   --store-other:            0 0% 68%;      
 }
 /* Bridge: the docs' legacy token names, expressed in the app's design tokens above, so the

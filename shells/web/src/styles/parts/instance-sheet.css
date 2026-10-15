@@ -42,7 +42,7 @@
 
 .instance-probe { margin: -4px 0 14px; font-size: calc(12.5px * var(--a11y-fs)); line-height: 1.5; }
 .instance-probe--ok { color: hsl(150 55% 30%); }
-.instance-probe--err { color: hsl(var(--destructive)); }
+.instance-probe--err { color: hsl(var(--destructive-text)); }
 
 .instance-import-or {
   display: flex; align-items: center; gap: 10px; margin: 4px 0 14px;

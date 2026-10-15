@@ -115,7 +115,7 @@ export function renderShell(pv: ProfileViewCtx): void {
                   <button type="button" class="headshot-remove" id="headshot-remove" aria-label="${escapeText(t('Remove headshot'))}" title="${escapeText(t('Remove'))}"${pv.headshotUrl ? '' : ' hidden'}>&times;</button>
                   <input type="file" id="headshot-file" accept="image/png,image/jpeg,image/webp,image/avif,image/heic,image/heif,image/svg+xml" hidden>
                 </div>
-                <p class="profile-inline-error" id="headshot-error" style="color:hsl(var(--destructive));font-size:13px;margin:.4rem 0 0" hidden></p>
+                <p class="profile-inline-error" id="headshot-error" style="color:hsl(var(--destructive-text));font-size:13px;margin:.4rem 0 0" hidden></p>
               </div>
             </aside>
           </div>
@@ -284,7 +284,7 @@ export function renderShell(pv: ProfileViewCtx): void {
           </span>
         </div>
         ${accountRowHtml(account, signOut)}
-        ${signOut ? `<p class="profile-inline-error" id="instance-signout-error" role="alert" style="color:hsl(var(--destructive));font-size:13px;margin:.4rem 0 0" hidden></p>` : ''}
+        ${signOut ? `<p class="profile-inline-error" id="instance-signout-error" role="alert" style="color:hsl(var(--destructive-text));font-size:13px;margin:.4rem 0 0" hidden></p>` : ''}
         ${/* Why a browser has no Change. Not on a workspace: there the person came to use
               that workspace, and the line read as if something were missing. */ ''}
         ${canChangeInstance || workspace ? '' : `<p class="profile-appearance-sub">${t('Pointing at another Lolly instance needs the desktop app - a browser blocks a page from loading tools and assets across origins.')}</p>`}

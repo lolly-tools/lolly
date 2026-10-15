@@ -558,7 +558,7 @@ stroke-width:.81;
 .badge-experimental {
   background: hsl(var(--background) / .9);
 
-  color: hsl(var(--destructive));
+  color: hsl(var(--destructive-text));
   border: 1px solid hsl(var(--destructive) / 0.3);
 }
 

@@ -215,7 +215,7 @@ html[data-a11y-motion="reduce"] .job-bar-fill { animation: none; transition: non
    destructive, cancelled/queued as muted. Never a one-sided border. */
 .job-row-status { font-size: calc(11.5px * var(--a11y-fs)); font-weight: 700; }
 .job-row-status--done { color: hsl(var(--primary)); }
-.job-row-status--failed { color: hsl(var(--destructive)); }
+.job-row-status--failed { color: hsl(var(--destructive-text)); }
 .job-row-status--cancelled,
 .job-row-status--queued { color: hsl(var(--muted-foreground)); font-weight: 600; }
 

@@ -145,7 +145,7 @@
 }
 .userimg-item:hover .userimg-delete,
 .userimg-delete:focus-visible { opacity: 1; }
-.userimg-delete:hover { color: hsl(var(--destructive)); background: hsl(var(--accent)); }
+.userimg-delete:hover { color: hsl(var(--destructive-text)); background: hsl(var(--accent)); }
 
 /* "Add" tile - sits in the grid as the last cell (or the only cell when empty),
    matching the thumb cells in size but dashed to read as an upload affordance. */

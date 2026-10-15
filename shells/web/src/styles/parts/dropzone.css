@@ -159,7 +159,7 @@
 .updz-url-toggle svg { width: 14px; height: 14px; }
 .updz-url-form { display: flex; gap: 8px; width: 100%; max-width: 460px; }
 .updz-url-input { flex: 1 1 auto; min-width: 0; }
-.updz-url-error { margin: 0; color: var(--danger, #b3261e); font-size: var(--fs-xs, 12px); text-align: center; }
+.updz-url-error { margin: 0; color: var(--ui-color-status-danger); font-size: var(--fs-xs, 12px); text-align: center; }
 @media (pointer: coarse) {
   .updz-url-input, .updz-url-go, .updz-url-toggle { min-height: 44px; }
 }

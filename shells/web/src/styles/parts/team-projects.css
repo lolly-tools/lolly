@@ -98,7 +98,7 @@
 .share-access-who { min-width: 0; flex: 1 1 12rem; }
 .share-access-name { font-weight: 600; overflow-wrap: anywhere; }
 .share-access-muted { color: var(--ui-color-text-muted); font-size: var(--fs-sm); }
-.share-access-ended { color: hsl(var(--destructive)); font-size: var(--fs-sm); }
+.share-access-ended { color: hsl(var(--destructive-text)); font-size: var(--fs-sm); }
 .share-access-controls, .share-access-ends, .share-access-member, .share-access-add {
   display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap;
 }
@@ -121,10 +121,10 @@
 .share-group-empty { color: var(--ui-color-text-muted); font-size: var(--fs-sm); padding-block: var(--sp-2); }
 .share-group-check { font-size: var(--fs-sm); }
 .share-group-status { margin: 0; font-size: var(--fs-sm); color: var(--ui-color-text-muted); }
-.share-group-status.is-error { color: hsl(var(--destructive)); }
+.share-group-status.is-error { color: hsl(var(--destructive-text)); }
 .share-group-actions { display: flex; justify-content: space-between; gap: var(--sp-3); flex-wrap: wrap; margin-block-start: var(--sp-4); }
 .share-group-actions .btn { min-height: var(--ui-size-target); }
-.share-group-delete { color: hsl(var(--destructive)); }
+.share-group-delete { color: hsl(var(--destructive-text)); }
 .project-browse .field-input { min-height: var(--ui-size-target); margin-block: var(--sp-3) var(--sp-2); }
 .project-browse a.share-access-name { color: inherit; text-decoration: none; }
 .project-browse a.share-access-name:hover, .project-browse a.share-access-name:focus-visible { text-decoration: underline; }

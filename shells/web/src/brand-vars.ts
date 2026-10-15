@@ -28,7 +28,7 @@
 // (Handlebars) + loadTool/validate (Ajv) + c2pa onto first paint. See
 // scripts/check-bundle-budget.ts.
 import { colorToHex, isAlias } from '../../../engine/src/tokens.ts';
-import { parseOklch, oklchToHex, hexToOklch, parseHex } from '../../../engine/src/brand-derive.ts';
+import { parseOklch, oklchToHex, hexToOklch, parseHex, contrastRatio } from '../../../engine/src/brand-derive.ts';
 import { chromeFollowsDesignSystem } from './lib/chrome-follow.ts';
 
 /** The seven semantic slots (token leaf under `color.semantic`) → CSS var. */
@@ -173,14 +173,41 @@ export function uiTokenCssValue(kind: UiTokenKind, value: unknown): string | nul
   }
 }
 
+/** The injected sheet that carries a design system's own error-text reds. */
+const DANGER_STYLE_ID = 'brand-danger-text';
+
 async function applyUiTokenOverrides(tokens: BrandTokens | undefined): Promise<void> {
   if (typeof document === 'undefined') return;
   const root = document.documentElement.style;
   await Promise.all(UI_SLOTS.map(async ([path, css, kind]) => {
     let value: string | null = null;
     try { value = uiTokenCssValue(kind, await tokens?.resolve(`{lolly.ui.${path}}`)); } catch { /* missing is stock Lolly */ }
+    if (path === 'color.status.danger') {
+      // A design system's own danger red is the SOURCE of the error-text red,
+      // not a value pinned the same in every theme: an inline value would
+      // paint a red that reads on white straight onto the dark page. So it
+      // never goes inline; it becomes per-theme --destructive-text (see
+      // dangerText), which --ui-color-status-danger already reads.
+      root.removeProperty(css);
+      applyDangerText(value);
+      return;
+    }
     if (value) root.setProperty(css, value); else root.removeProperty(css);
   }));
+}
+
+/** Inject (or remove) the per-theme error-text sheet for a design system's
+ *  own danger red. */
+function applyDangerText(red: string | null): void {
+  const css = dangerTextCss(red);
+  let styleEl = document.getElementById(DANGER_STYLE_ID);
+  if (!css) { styleEl?.remove(); return; }
+  if (!styleEl) {
+    styleEl = document.createElement('style');
+    styleEl.id = DANGER_STYLE_ID;
+    document.head.appendChild(styleEl);
+  }
+  styleEl.textContent = css;
 }
 
 // ── Chrome (app UI) brand accent ─────────────────────────────────────────────
@@ -466,12 +493,13 @@ export function nearestWarmHex(swatches: ReadonlyArray<{ value: unknown }>): { h
 // and chroma, walk its LIGHTNESS away from the authored value until the paired
 // ink clears the bar, and take whichever of the two directions converges with
 // the smaller move - so a brand's accent shifts as little as it can, and a
-// purple brand stays purple. Only --primary/--primary-foreground are emitted:
-// --ring is deliberately NOT re-pointed at the brand, because tokens.css's
-// high-contrast blocks give focus a colour of their own (a dim brand primary
-// can be an invisible focus ring), and that decision outranks brand identity.
-// In the brand theme that colour is still SUSE's lifted Jungle; see the note
-// on tokens.css's brand block.
+// purple brand stays purple.
+//
+// The focus ring follows the brand too, but only when the brand's colour can
+// be found: the same fill the accent uses (repaired or restated) becomes
+// --ring when it reads at least 3:1 against the theme's page, cards and
+// popovers. A colour too dim for that keeps tokens.css's own high-contrast
+// ring, Lolly's, so a keyboard user never loses the focus to a guest colour.
 //
 // Unlike brandMarkPrimary, a near-neutral primary cannot be declined here - a
 // CTA still has to be legible - and it doesn't need to be: the search moves
@@ -613,16 +641,242 @@ function clearingPair(primary: string | null, onPrimary: string | null): { fill:
   return null;
 }
 
+// ── Surfaces: what a ring or a line of error text has to read against ───────
+// tokens.css's page, card, popover, muted and hover (accent) triples, and its
+// destructive fills, per theme, as plain data so the two derivations below can
+// measure against them without a document. brand-vars.test.ts holds every
+// value to tokens.css, so the two cannot drift.
+
+/** A shadcn "H S% L%" triple → #rrggbb, or null when it doesn't parse. The
+ *  inverse of hexToHslTriple. */
+export function hslTripleToHex(triple: string): string | null {
+  const m = /^\s*(-?\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)%\s+(\d+(?:\.\d+)?)%\s*$/.exec(triple);
+  if (!m) return null;
+  const h = ((parseFloat(m[1]!) % 360) + 360) % 360 / 360;
+  const s = Math.min(1, parseFloat(m[2]!) / 100);
+  const l = Math.min(1, parseFloat(m[3]!) / 100);
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  const p = 2 * l - q;
+  const channel = (t: number): string => {
+    const u = t < 0 ? t + 1 : t > 1 ? t - 1 : t;
+    const v = u < 1 / 6 ? p + (q - p) * 6 * u : u < 1 / 2 ? q : u < 2 / 3 ? p + (q - p) * (2 / 3 - u) * 6 : p;
+    return Math.round(v * 255).toString(16).padStart(2, '0');
+  };
+  return `#${channel(h + 1 / 3)}${channel(h)}${channel(h - 1 / 3)}`;
+}
+
+type SurfaceRole = 'background' | 'card' | 'popover' | 'muted' | 'accent';
+type SurfaceTriples = Readonly<Record<SurfaceRole, string>>;
+
+/** tokens.css's surface triples. `brand` is the static SUSE-palette instance
+ *  of the brand theme; a constructed brand theme brings its own (see
+ *  brandSurfaceHexes). The high-contrast blocks re-point only some of these,
+ *  and the rest stand, so each `*High` entry repeats the base value it keeps. */
+export const THEME_SURFACES: Readonly<Record<'light' | 'lightHigh' | 'dark' | 'darkHigh' | 'brand', SurfaceTriples>> = {
+  light: { background: '0 0% 100%', card: '0 0% 99%', popover: '0 0% 100%', muted: '210 40% 96%', accent: '210 40% 94%' },
+  lightHigh: { background: '0 0% 100%', card: '210 24% 97%', popover: '0 0% 100%', muted: '210 40% 96%', accent: '210 40% 94%' },
+  dark: { background: '224 71% 4%', card: '222 47% 7%', popover: '222 47% 7%', muted: '217 33% 14%', accent: '217 33% 18%' },
+  darkHigh: { background: '224 71% 4%', card: '222 47% 9%', popover: '222 47% 11%', muted: '217 33% 17%', accent: '217 33% 26%' },
+  brand: { background: '171 62% 12%', card: '171 55% 17%', popover: '171 55% 17%', muted: '171 48% 20%', accent: '171 48% 22%' },
+};
+
+/** tokens.css's destructive fills, per theme and contrast: the red every
+ *  danger wash under error text is made of. */
+export const THEME_DESTRUCTIVE: Readonly<Record<'light' | 'lightHigh' | 'dark' | 'darkHigh' | 'brand' | 'brandHigh', string>> = {
+  light: '0 72% 51%', lightHigh: '0 80% 34%',
+  dark: '0 63% 38%', darkHigh: '0 72% 44%',
+  brand: '0 55% 42%', brandHigh: '0 72% 44%',
+};
+
+const surfaceHexes = (set: SurfaceTriples, roles: readonly SurfaceRole[]): string[] =>
+  roles.map(role => hslTripleToHex(set[role])).filter((hex): hex is string => !!hex);
+
+/** The brand theme's surface stops (OKLCH lightness, chroma multiplier), as
+ *  brandThemeCss lays them down. */
+const BRAND_SURFACE_STOPS: Readonly<Record<SurfaceRole, readonly [number, number]>> = {
+  background: [0.29, 1], card: [0.35, 1.18], popover: [0.35, 1.18], muted: [0.38, 1.2], accent: [0.40, 1.3],
+};
+/** brandThemeCss's background chroma anchor and its clamps. */
+const brandChromaBase = (c: number): number => Math.min(Math.max(c, 0.008), 0.055);
+const brandSurfaceHex = (h: number, cBase: number, stop: readonly [number, number]): string =>
+  oklchToHex({ l: stop[0], c: Math.min(cBase * stop[1], 0.08), h });
+
+/** The surfaces brandThemeCss builds from one light primary, or [] when it
+ *  doesn't parse. Exported for tests. */
+export function brandSurfaceHexes(lightPrimaryHex: string, roles: readonly SurfaceRole[] = ['background', 'card', 'popover']): string[] {
+  const surf = hexToOklch(lightPrimaryHex);
+  if (!surf) return [];
+  const cBase = brandChromaBase(surf.c);
+  return roles.map(role => brandSurfaceHex(surf.h, cBase, BRAND_SURFACE_STOPS[role]));
+}
+
+/** Every `roles` surface the brand theme can be built with: each stop across
+ *  the hue circle and the chroma anchor's range, plus the static instance. */
+function everyBrandSurface(roles: readonly SurfaceRole[]): string[] {
+  const all = new Set<string>(surfaceHexes(THEME_SURFACES.brand, roles));
+  for (let h = 0; h < 360; h += 5) {
+    for (const cBase of [0.008, 0.03, 0.055]) {
+      for (const role of roles) all.add(brandSurfaceHex(h, cBase, BRAND_SURFACE_STOPS[role]));
+    }
+  }
+  return [...all];
+}
+
+/** The members of `list` that bind: a colour's contrast against a set is
+ *  lowest at the set's lightest or darkest member, under WCAG and APCA alike,
+ *  so only those extremes are kept (a few by each measure, since the two weigh
+ *  luminance slightly differently). */
+function extremes(list: readonly string[]): string[] {
+  const wcagKey = (hex: string): number => contrastRatio(hex, '#000000');
+  const apcaKey = (hex: string): number => { const c = parseHex(hex); return c ? apcaY([c[0], c[1], c[2]]) : 0; };
+  const keep = new Set<string>();
+  for (const key of [wcagKey, apcaKey]) {
+    const sorted = [...list].sort((a, b) => key(a) - key(b));
+    for (const hex of [...sorted.slice(0, 3), ...sorted.slice(-3)]) keep.add(hex);
+  }
+  return [...keep];
+}
+
+/** `top` laid over `base` at `alpha`, the way a browser composites a
+ *  translucent background (per channel, in encoded sRGB). */
+function overlayHex(top: string, base: string, alpha: number): string | null {
+  const t = parseHex(top), b = parseHex(base);
+  if (!t || !b) return null;
+  return '#' + [0, 1, 2].map(i => Math.round(t[i]! * alpha + b[i]! * (1 - alpha)).toString(16).padStart(2, '0')).join('');
+}
+
+// ── Focus ring under High contrast (follows the brand when it can be seen) ───
+
+/** A focus ring has to read against what surrounds it: WCAG's 3:1 for a
+ *  non-text indicator. */
+export const FOCUS_RING_RATIO = 3;
+
+/** `fill` when it reads FOCUS_RING_RATIO against every surface, else null. */
+function visibleRing(fill: string | null, surfaces: readonly string[]): string | null {
+  if (!fill || !surfaces.length) return null;
+  return surfaces.every(s => contrastRatio(fill, s) >= FOCUS_RING_RATIO) ? fill : null;
+}
+
+// ── Error text: a red that reads on the theme's own surfaces ─────────────────
+// --destructive is a FILL: the destructive button and the ink on that button.
+// Error text painted in that same red measured 2.6:1 on the dark page and
+// about 2.3:1 on the brand theme, under the 4.5:1 words need. tokens.css's
+// --destructive-text is the red for words, and for the icons that take their
+// colour from them: the theme's own destructive hue and chroma, its lightness
+// walked away from the surfaces until it reads on the page, cards, popovers,
+// the muted and hover surfaces, and a danger wash over the resting ones (error
+// text often sits on one). A red that already reads keeps its lightness. With High
+// contrast on, the target is tokens.css's body-text floor, APCA Lc 75, which on
+// a dark page is a pale red: still a red, and legible. tokens.css carries the
+// static values dangerText() computes for its own reds, and a design system
+// that sets `lolly.ui.color.status.danger` gets the same walk from its red.
+
+/** The bar error text clears without High contrast: WCAG AA for body text. */
+export const DANGER_TEXT_RATIO = 4.5;
+/** The bar with High contrast on: tokens.css's APCA body-text floor. */
+export const DANGER_TEXT_HC_LC = 75;
+
+function readsOnAll(text: string, surfaces: readonly string[], high: boolean): boolean {
+  return surfaces.every(s => (high ? apcaLcAbs(text, s) >= DANGER_TEXT_HC_LC : contrastRatio(text, s) >= DANGER_TEXT_RATIO));
+}
+
+/**
+ * The text red for one theme: `red`'s OKLCH hue and chroma at the lightness
+ * nearest its own that reads on every one of `surfaces` (`high` for the High
+ * contrast bar). `red` itself when it already reads; null when it doesn't
+ * parse or no lightness can (an empty surface list included). The search is
+ * highContrastAccent's: bisect each direction for the smallest move, keep the
+ * smaller. Exported for tests and for the static values in tokens.css.
+ */
+export function dangerText(red: string, surfaces: readonly string[], high = false): string | null {
+  const base = hexToOklch(red);
+  const authored = parseHex(red) ? red.trim().toLowerCase().slice(0, 7) : null;
+  if (!base || !authored || !surfaces.length) return null;
+  if (readsOnAll(authored, surfaces, high)) return authored;
+  const at = (l: number): string => oklchToHex({ l, c: base.c, h: base.h });
+  const found: Array<{ hex: string; move: number }> = [];
+  for (const dir of [-1, 1] as const) {
+    const bound = dir < 0 ? 0 : 1;
+    if (!readsOnAll(at(bound), surfaces, high)) continue;
+    let fail = base.l, pass = bound;
+    for (let i = 0; i < 24 && Math.abs(pass - fail) > HC_L_EPSILON; i++) {
+      const mid = (fail + pass) / 2;
+      if (readsOnAll(at(mid), surfaces, high)) pass = mid; else fail = mid;
+    }
+    found.push({ hex: at(pass), move: Math.abs(pass - base.l) });
+  }
+  return found.sort((a, b) => a.move - b.move)[0]?.hex ?? null;
+}
+
+/** The deepest danger wash the stylesheets lay under error words:
+ *  `hsl(var(--destructive) / .12)`, behind the prepare panel's status badges
+ *  and the pro rows. (The data grid's .15 sits behind a delete icon, which
+ *  needs 3:1, not 4.5:1.) */
+export const DANGER_WASH_ALPHA = 0.12;
+
+const dangerSurfaceCache = new Map<string, string[]>();
+/**
+ * The surfaces error text is measured against, per theme: the page, cards,
+ * popovers, the muted and hover surfaces, and each resting one under the
+ * strongest danger wash. For the brand theme that is every surface any brand
+ * can build, cut to the extremes that bind (see extremes). Exported for tests.
+ */
+export function dangerTextSurfaces(theme: 'light' | 'dark' | 'brand', high = false): string[] {
+  const key = `${theme}${high ? 'High' : ''}` as keyof typeof THEME_DESTRUCTIVE;
+  const hit = dangerSurfaceCache.get(key);
+  if (hit) return hit;
+  // A wash goes under text on a resting surface; the hover surface (accent)
+  // is a state of its own, so it is measured bare.
+  const resting: readonly SurfaceRole[] = ['background', 'card', 'popover', 'muted'];
+  const set = THEME_SURFACES[high ? (theme === 'dark' ? 'darkHigh' : 'lightHigh') : theme === 'brand' ? 'brand' : theme];
+  const base = theme === 'brand' ? everyBrandSurface(resting) : surfaceHexes(set, resting);
+  const hover = theme === 'brand' ? everyBrandSurface(['accent']) : surfaceHexes(set, ['accent']);
+  const fill = hslTripleToHex(THEME_DESTRUCTIVE[key]);
+  const washed = fill ? base.map(s => overlayHex(fill, s, DANGER_WASH_ALPHA)).filter((hex): hex is string => !!hex) : [];
+  const all = [...base, ...hover, ...washed];
+  const surfaces = theme === 'brand' ? extremes(all) : all;
+  dangerSurfaceCache.set(key, surfaces);
+  return surfaces;
+}
+
+/**
+ * The per-theme `--destructive-text` sheet for a design system's own danger
+ * red, or '' when it doesn't parse. Same selector shapes as tokens.css and
+ * chromeBrandCss, so it overrides the static values in the same cascade.
+ * Exported for tests.
+ */
+export function dangerTextCss(red: string | null): string {
+  if (!red || !hexToOklch(red)) return '';
+  const triple = (theme: 'light' | 'dark' | 'brand', high: boolean): string | null => {
+    const hex = dangerText(red, dangerTextSurfaces(theme, high), high);
+    return hex ? hexToHslTriple(hex) : null;
+  };
+  const blocks: Array<[string, string | null]> = [
+    [':root, [data-theme="light"]', triple('light', false)],
+    ['[data-theme="dark"]', triple('dark', false)],
+    ['[data-theme="brand"]', triple('brand', false)],
+    ['html[data-a11y-contrast="high"]:not([data-theme="dark"]):not([data-theme="brand"])', triple('light', true)],
+    ['html[data-a11y-contrast="high"][data-theme="dark"]', triple('dark', true)],
+    ['html[data-a11y-contrast="high"][data-theme="brand"]', triple('brand', true)],
+  ];
+  return blocks.filter(([, t]) => t).map(([sel, t]) => `${sel} {\n  --destructive-text: ${t};\n}`).join('\n');
+}
+
 /**
  * The `html[data-a11y-contrast="high"]`-gated accent pair for one theme, or ''
  * when there is nothing to state: the primary didn't resolve, or the authored
- * pair already clears the bar and `restate` is off.
+ * pair already clears the bar, `restate` is off and the ring has nothing to
+ * add.
  *
  * `restate` is for the themes whose tokens.css high-contrast block declares a
  * --primary pair of its own (dark and brand; light declares none). That static
  * pair is SUSE's lifted Jungle and outranks the ungated brand block, so a pair
  * that already clears the bar is stated here as it is, never left to the
  * cascade.
+ *
+ * `ringSurfaces` are the theme's high-contrast page, card and popover. The
+ * accent's fill, repaired or restated, becomes --ring when it reads
+ * FOCUS_RING_RATIO on all of them; otherwise tokens.css's own ring stands.
  *
  * SPECIFICITY, and why the selectors are shaped like tokens.css's: this sheet
  * is generated at runtime and cannot know the attribute's future state, so it
@@ -638,12 +892,24 @@ function clearingPair(primary: string | null, onPrimary: string | null): { fill:
  * [data-theme] at all is light, and the block must not leak into the two
  * themes that carry their own.
  */
-function hcAccentBlock(selector: string, primary: string | null, onPrimary: string | null, restate = false): string {
-  const hc = highContrastAccent(primary, onPrimary) ?? (restate ? clearingPair(primary, onPrimary) : null);
-  const p = hc && hexToHslTriple(hc.fill);
-  const fg = hc && hexToHslTriple(hc.ink);
-  if (!p || !fg) return '';
-  return `${selector} {\n  --primary: ${p};\n  --primary-foreground: ${fg};\n}`;
+function hcAccentBlock(
+  selector: string,
+  primary: string | null,
+  onPrimary: string | null,
+  restate = false,
+  ringSurfaces: readonly string[] = [],
+): string {
+  const repaired = highContrastAccent(primary, onPrimary);
+  const clearing = repaired ? null : clearingPair(primary, onPrimary);
+  const pair = repaired ?? (restate ? clearing : null);
+  const decls: string[] = [];
+  const p = pair && hexToHslTriple(pair.fill);
+  const fg = pair && hexToHslTriple(pair.ink);
+  if (p && fg) decls.push(`  --primary: ${p};`, `  --primary-foreground: ${fg};`);
+  const ring = visibleRing((repaired ?? clearing)?.fill ?? null, ringSurfaces);
+  const r = ring && hexToHslTriple(ring);
+  if (r) decls.push(`  --ring: ${r};`);
+  return decls.length ? `${selector} {\n${decls.join('\n')}\n}` : '';
 }
 
 /** One shell theme's accent overrides, or '' when primary didn't resolve. The
@@ -674,7 +940,7 @@ export function brandThemeCss(lightPrimaryHex: string, darkPrimaryHex: string): 
   const acc = hexToOklch(darkPrimaryHex);
   if (!surf || !acc) return '';
   const h = surf.h;
-  const cBase = Math.min(Math.max(surf.c, 0.008), 0.055); // background chroma anchor
+  const cBase = brandChromaBase(surf.c); // background chroma anchor
   const t = (l: number, cMul: number, hue = h) =>
     hexToHslTriple(oklchToHex({ l, c: Math.min(cBase * cMul, 0.08), h: hue }));
   const accent = hexToHslTriple(darkPrimaryHex);
@@ -790,19 +1056,26 @@ export function chromeBrandCss(
     // High contrast, per theme and gated on the attribute, so a user with no
     // prefs set gets exactly the blocks above and nothing else can match.
     // Each theme is judged on its OWN pair. A brand whose light accent already
-    // clears the bar (SUSE's Pine does, at Lc 98) emits no light block, since
-    // tokens.css leaves the light accent alone. Dark and brand always state the
-    // brand's pair, because tokens.css's static one would otherwise win there.
+    // clears the bar (SUSE's Pine does, at Lc 98) states no light pair, since
+    // tokens.css leaves the light accent alone; its light block, if any, holds
+    // only the ring. Dark and brand always state the brand's pair, because
+    // tokens.css's static one would otherwise win there. In every theme the
+    // ring follows that fill wherever it reads 3:1 on the high-contrast page,
+    // cards and popovers (see visibleRing).
     hcAccentBlock('html[data-a11y-contrast="high"]:not([data-theme="dark"]):not([data-theme="brand"])',
-      light.primary, light.onPrimary),
-    hcAccentBlock('html[data-a11y-contrast="high"][data-theme="dark"]', dark.primary, dark.onPrimary, true),
+      light.primary, light.onPrimary, false,
+      surfaceHexes(THEME_SURFACES.lightHigh, ['background', 'card', 'popover'])),
+    hcAccentBlock('html[data-a11y-contrast="high"][data-theme="dark"]', dark.primary, dark.onPrimary, true,
+      surfaceHexes(THEME_SURFACES.darkHigh, ['background', 'card', 'popover'])),
     // The brand theme wears the DARK primary as its accent (brandThemeCss), so
     // it takes the same adjustment - but only when that constructed theme was
     // emitted at all. Without it the static tokens.css brand block is in
     // charge, and patching its accent from a brand that didn't produce it would
-    // pair a colour with an ink neither of them chose.
+    // pair a colour with an ink neither of them chose. Its ring is measured
+    // against the surfaces brandThemeCss built for this brand.
     light.primary && dark.primary
-      ? hcAccentBlock('html[data-a11y-contrast="high"][data-theme="brand"]', dark.primary, dark.onPrimary, true)
+      ? hcAccentBlock('html[data-a11y-contrast="high"][data-theme="brand"]', dark.primary, dark.onPrimary, true,
+        brandSurfaceHexes(light.primary))
       : '',
   ].filter(Boolean).join('\n');
 }

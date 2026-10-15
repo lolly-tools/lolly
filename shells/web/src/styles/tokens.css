@@ -368,7 +368,7 @@
   --ui-color-syntax-function: var(--ui-color-text-default);
   --ui-color-syntax-type: hsl(var(--primary));
   --ui-color-syntax-operator: var(--ui-color-text-muted);
-  --ui-color-status-danger: hsl(var(--destructive));
+  --ui-color-status-danger: hsl(var(--destructive-text));
   --ui-color-status-danger-surface: hsl(var(--destructive) / .07);
   --ui-color-status-notice-surface: hsl(var(--primary) / .07);
   --ui-size-target: 44px;
@@ -472,6 +472,14 @@
 
   --destructive:            0 72% 51%;
   --destructive-foreground: 0 0% 100%;
+  /* Error text, and the icons beside the words. --destructive is a FILL, and
+     words in the fill red read 2.1:1 on the dark page, so each theme carries a
+     text red of its own: the destructive hue at the lightness nearest the
+     fill's that reads 4.5:1 on the page, cards, popovers, the muted and hover
+     surfaces, and a danger wash over the resting ones. brand-vars.ts's
+     dangerText() computes every value here and brand-vars.test.ts holds the
+     two together. */
+  --destructive-text:       355.1 95.2% 40.6%; /* #ca0515 - the fill reads 3.6:1 on a danger wash over muted */
 
   --border:                 214 28% 84%;
   --input:                  214 28% 84%;
@@ -523,6 +531,7 @@
 
   --destructive:            0 63% 38%;
   --destructive-foreground: 213 31% 91%;
+  --destructive-text:       4 73.8% 64.1%;    /* #e76960 - the fill reads 1.9:1 here (see the light theme's note) */
 
   --border:                 217 33% 18%;
   --input:                  217 33% 18%;
@@ -582,6 +591,9 @@
 
   --destructive:            0 55% 42%;
   --destructive-foreground: 160 30% 92%;
+  /* Measured against every surface brandThemeCss can build, not only this
+     SUSE instance, so a constructed brand theme needs no value of its own. */
+  --destructive-text:       4.7 100% 80%;     /* #ffa199 */
 
   --border:                 171 36% 33%;
   --input:                  171 36% 33%;
@@ -674,18 +686,14 @@
    pass, not a monochrome one - hues stay where the theme put them, except in
    the brand theme where the hue is unknown at authoring time.
 
+   ERROR TEXT has a token of its own, --destructive-text, declared in every
+   theme and in each block below. The fill red stays for fills: as text on the
+   dark page it measured Lc 16.6, and darkening it helps only the ink that sits
+   ON a destructive fill. The text red is walked in lightness until it reads
+   (4.5:1 normally, Lc 75 here), which on a dark page means a pale red that
+   still reads as a red.
+
    KNOWN LIMITS - what a token-only pass cannot reach:
-    • --destructive AS TEXT. 46 declarations do `color: hsl(var(--destructive))`
-      (grep 2026-07-30; pro/pro.css and pro/run-overlay.css alone hold 9). As
-      text on the dark page that measures Lc 16.6, and Lc 23.5 with the darkened
-      value below - still nowhere near the bar, and NO red can fix it: even a
-      pale hsl(0 80% 80%) only reaches Lc 64.4, at which point it has stopped
-      reading as an error. Darkening --destructive helps ink-on-destructive-FILL,
-      which is the MINORITY use, and by construction cannot help the majority
-      one. The real fix is per-site and is not attempted here: under high
-      contrast, error text should be --foreground with the semantics carried by
-      a destructive-coloured icon or left edge. 46 call sites, so it is its own
-      change, not a token edit.
     • ALPHA-COMPOSITED TEXT. 27 declarations fade ink with
       `color: hsl(var(--foreground) / 0.6)`-style alpha (14 files; 663 uses of
       `hsl(var(--x) / a)` overall, most of them surfaces and hairlines rather
@@ -720,6 +728,7 @@ html[data-a11y-contrast="high"]:not([data-theme="dark"]):not([data-theme="brand"
   --ring:                   171 90% 12%;   /* was 171 62% 12% - same ink depth, full chroma so focus reads as focus (Lc 98) */
 
   --destructive:            0 80% 34%;     /* was 0 72% 51%   - white on it Lc 77 → 92 */
+  --destructive-text:       0 100% 22.9%;  /* #750000 - Lc 75 on every surface and wash; the fill reads Lc 81 on white but less on a wash */
 
   /* Fill ramp, not text: the goal is separation from the surface and between
      neighbours, so the whole ramp shifts darker with even ~10% L steps. Order
@@ -739,11 +748,9 @@ html[data-a11y-contrast="high"][data-theme="dark"] {
      the fill lifts to L 67% at the same hue and chroma and the label goes black:
      Lc 54 → 80. Computed by brand-vars.ts's own highContrastAccent() against the
      shipped pair, so the static fallback and the runtime path agree by
-     construction rather than by eye. --ring follows --primary, so it is repaired
-     with it. */
+     construction rather than by eye. */
   --primary:                147.6 75% 67.1%; /* was 151 57% 46% */
   --primary-foreground:     0 0% 0%;         /* was 171 62% 5% */
-  --ring:                   147.6 75% 67.1%;
 
   --foreground:             213 45% 98%;   /* was 213 31% 91% - Lc 92 → 104 on page */
   --card:                   222 47% 9%;    /* was 222 47% 7%  - ink Lc 104 */
@@ -760,14 +767,15 @@ html[data-a11y-contrast="high"][data-theme="dark"] {
 
   --border:                 215 30% 55%;   /* was 217 33% 18% - Lc 0 (!) → 37; a near-black line on near-black */
   --input:                  215 32% 62%;   /* was 217 33% 18% - Lc 46 */
-  /* Focus outranks brand: a dim brand primary (applyChromeAccent also writes
-     --ring) can be invisible on a near-black page, so high contrast forces the
-     theme's brightest ink instead - Lc 104 against the page, guaranteed for
-     every brand. Functional signal, not identity. */
+  /* Lolly's ring: the theme's brightest ink, Lc 104 against the page. A brand
+     whose own colour reads 3:1 on the page, cards and popovers replaces it at
+     runtime (brand-vars.ts, visibleRing); a dim one, which could vanish on a
+     near-black page, keeps this. */
   --ring:                   213 45% 98%;
 
   --destructive:            0 72% 44%;     /* was 0 63% 38%   - ink on it Lc 74 → 80 */
   --destructive-foreground: 213 45% 98%;
+  --destructive-text:       9.5 100% 88.8%;  /* #ffcfc6 - Lc 75 on every surface and wash; a red at that bar is a pale one */
 
   --store-other:            215 16% 66%;   /* was 215 12% 46% - Lc 53 on card */
 }
@@ -783,8 +791,9 @@ html[data-a11y-contrast="high"][data-theme="brand"] {
      its accent is the same Jungle. Unlike the surfaces below, the accent is a
      fixed hue: brand-vars.ts's own gated block replaces the pair with the
      brand's own whenever it constructed this theme, repaired or restated (see
-     the header note). The --ring below has no runtime replacement, so it stays
-     this Jungle for every brand. */
+     the header note). The --ring below is Lolly's: brand-vars.ts replaces it
+     with the brand's own fill when that reads 3:1 on the brand's surfaces, and
+     a dimmer brand keeps this one. */
   --primary:                147.6 75% 67.1%; /* was 151 57% 46% - Lc 52 → 80 with a black label */
   --primary-foreground:     0 0% 0%;         /* was 171 62% 8% */
 
@@ -803,6 +812,7 @@ html[data-a11y-contrast="high"][data-theme="brand"] {
 
   --destructive:            0 72% 44%;     /* was 0 55% 42%   - white on it Lc 84 */
   --destructive-foreground: 0 0% 100%;
+  --destructive-text:       9.3 100% 91.2%;  /* #ffd9d2 - Lc 75 on every brand theme's surfaces and washes */
 
   --store-other:            0 0% 68%;      /* was 171 16% 54% - the "not a category" neutral, now visibly neutral */
 }

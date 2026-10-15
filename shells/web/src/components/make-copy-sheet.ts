@@ -50,7 +50,7 @@ export function openMakeCopySheet(opts: MakeCopySheetOptions): Promise<boolean> 
         <select class="field-select field-select--sm" data-project-select aria-label="${t('Project')}" hidden></select>
       </fieldset>
       <p class="modal-msg make-copy-note">${escapeHtml(opts.note)}</p>
-      <p class="make-copy-status" role="status" hidden style="margin:0 0 12px;color:hsl(var(--destructive))"></p>
+      <p class="make-copy-status" role="status" hidden style="margin:0 0 12px;color:hsl(var(--destructive-text))"></p>
       <div class="modal-actions">
         <button type="button" class="btn modal-cancel" data-act="cancel">${t('Cancel')}</button>
         <button type="button" class="btn modal-primary" data-act="make">${t('Make copy')}</button>
