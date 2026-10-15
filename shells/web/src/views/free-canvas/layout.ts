@@ -609,8 +609,8 @@ function gapControl(
     fontSize: '10px',
     border: '1px solid currentColor',
     borderRadius: '4px',
-    color: 'var(--accent,#5c67d5)',
-    background: 'var(--surface,#fff)',
+    color: 'hsl(var(--primary))',
+    background: 'var(--ui-color-surface-raised)',
     cursor: axis === 'x' ? 'ew-resize' : 'ns-resize',
   });
   button.addEventListener('keydown', (event) => {

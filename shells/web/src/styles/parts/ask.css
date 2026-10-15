@@ -317,7 +317,7 @@ html[data-a11y-motion="reduce"] .ask-send .ask-send-mark .lolly-mark__spin-3 { a
   margin: 4px 0 8px;
   padding: 8px 12px;
   border-radius: var(--radius-md);
-  background: var(--surface-2, color-mix(in oklab, var(--fg, #0f172a) 5%, transparent));
+  background: color-mix(in oklab, var(--ui-color-text-default) 5%, transparent);
   font-size: var(--fs-md);
 }
 .ask-consent[hidden] { display: none; }

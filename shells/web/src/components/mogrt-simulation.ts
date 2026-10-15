@@ -14,7 +14,7 @@ export function mountMogrtSimulation(panel: HTMLElement, template: MogrtPreview)
   note.textContent = t('Rebuilds exposed text and size controls as editable layers with simple entrance and exit animation. Layout is approximate; Adobe effects, logo artwork, gradients, audio and exact font cuts are not reconstructed. Uses your current brand sans font.');
   const preview = document.createElement('div');
   preview.setAttribute('aria-label', t('Simulated template preview'));
-  preview.style.cssText = 'position:relative;overflow:hidden;width:100%;border:1px solid var(--ui-color-border);margin:12px 0';
+  preview.style.cssText = 'position:relative;overflow:hidden;width:100%;border:1px solid var(--ui-color-border-default);margin:12px 0';
   const render = () => {
     const result = simulateMogrt(template, options);
     preview.style.aspectRatio = `${result.width}/${result.height}`;

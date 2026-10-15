@@ -7,7 +7,7 @@
 .kit-outputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: var(--space-4, 1.5rem); }
 .kit-outputs article { min-width: 0; }
 .kit-outputs img, .kit-preview-empty { display: block; width: 100%; height: 20rem; object-fit: contain; background: var(--surface-2, #8881); border-radius: var(--radius-md, .5rem); }
-.kit-preview-empty { display: grid; place-items: center; color: var(--text-muted, #666); }
+.kit-preview-empty { display: grid; place-items: center; color: var(--ui-color-text-muted); }
 .kit-outputs details { margin-block: var(--space-3, 1rem); }
 .kit-outputs details label { display: block; margin-block: var(--space-2, .5rem); }
 .kit-hide-rows #pro-grid-host { display: none; }

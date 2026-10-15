@@ -4,11 +4,11 @@
 @layer views {
   .fc-web-interact {
     margin-block-start: var(--space-3, 12px);
-    border-block-start: 1px solid var(--ui-color-border-subtle);
+    border-block-start: 1px solid var(--ui-color-border-default);
     padding-block-start: var(--space-2, 8px);
   }
   .fc-web-interact-group {
-    border-block-start: 1px solid var(--ui-color-border-subtle);
+    border-block-start: 1px solid var(--ui-color-border-default);
     padding-block: 8px;
   }
   .fc-web-interact-group > summary {

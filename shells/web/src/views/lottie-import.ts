@@ -37,7 +37,7 @@ async function chooseAnimation(pkg: LottiePackage, url: string): Promise<string 
   return new Promise(resolve => {
     const modal = mountModal<string>('', { className: 'modal-overlay lottie-choice', ariaLabel: t('Choose an animation'), onClose: value => { player.destroyLottiePlayers(modal.el); resolve(value ?? null); } });
     const card = document.createElement('div'); card.className = 'confirm-dialog';
-    card.style.cssText = 'width:min(28rem,90vw);padding:1.5rem;background:var(--surface,#fff);color:var(--text,#111);border-radius:1rem';
+    card.style.cssText = 'width:min(28rem,90vw);padding:1.5rem;background:var(--ui-color-surface-raised);color:var(--ui-color-text-default);border-radius:1rem';
     const title = document.createElement('h2'); title.textContent = t('Choose an animation');
     const select = document.createElement('select'); select.setAttribute('aria-label', t('Animation'));
     for (const choice of pkg.animations) { const option = document.createElement('option'); option.value = choice.id; option.textContent = `${choice.name} (${(choice.durationMs / 1000).toFixed(2)} s)`; select.append(option); }
