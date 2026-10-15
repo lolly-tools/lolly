@@ -51,6 +51,24 @@ const THEME_COLORS: Record<string, string> = {
   brand: '#0c322c',  // the static (SUSE-palette) construction's background
 };
 
+/**
+ * Set the browser/PWA chrome colour (`<meta name="theme-color">`) to the page
+ * colour now in force. Prefers the LIVE --background triple: the brand theme and
+ * a design pack's own chrome are painted at runtime (brand-vars.ts), so the
+ * static map cannot know their page; the map covers the moments before CSS.
+ * applyTheme calls this, and so does applyChromeBrandVars once it has painted.
+ */
+export function syncThemeColorMeta(): void {
+  if (typeof document === 'undefined') return;
+  const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+  if (!meta) return;
+  const html = document.documentElement;
+  const triple = typeof getComputedStyle === 'function' ? getComputedStyle(html).getPropertyValue('--background').trim() : '';
+  const fallback = THEME_COLORS[html.dataset.theme || 'light'];
+  if (triple) meta.content = `hsl(${triple})`;
+  else if (fallback) meta.content = fallback;
+}
+
 // Handle for the transition-class cleanup timer. Module-scoped so rapid theme
 // switches clear the pending timeout instead of letting an earlier one fire early
 // and cut the current transition short.
@@ -75,16 +93,8 @@ export function applyTheme(theme: string, animate = true, persist = true): void 
   html.dataset.theme = theme;
   if (persist) localStorage.setItem('theme', theme);
 
-  // Keep the browser/PWA chrome colour in step with the theme. Prefer the LIVE
-  // --background triple (the brand theme is constructed at runtime, so the
-  // static map can't know its surface); the map covers pre-CSS edge cases.
-  const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
-  if (meta) {
-    const triple = getComputedStyle(html).getPropertyValue('--background').trim();
-    const fallback = THEME_COLORS[theme];
-    if (triple) meta.content = `hsl(${triple})`;
-    else if (fallback) meta.content = fallback;
-  }
+  // Keep the browser/PWA chrome colour in step with the theme.
+  syncThemeColorMeta();
 
   // Keep the browser-tab favicon in step with the app theme (dark/brand wear the
   // reverse mark). Setting the href in JS follows the in-app toggle live - the

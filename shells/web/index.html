@@ -228,6 +228,54 @@
           if (ax.reduceMotion) document.documentElement.setAttribute('data-jelly-motion', 'reduce');
         }
       } catch (e) { /* corrupt cache - boot JS rewrites it */ }
+      // A design pack's chrome and accent: brand-vars.ts's applyChromeAccent mirrors the
+      // exact text of the chrome sheet it paints (#brand-chrome-vars), so a return visit
+      // shows the pack's room from the first frame (after the a11y attributes above,
+      // because light and dark pack chrome steps aside under High contrast). The text
+      // is checked whole and strictly, so the cached value can carry no markup, url()
+      // or @rule: each block's selector is one chromeBrandCss emits, listed here
+      // literally, and each declaration is a custom property holding an HSL triple or
+      // a hex colour (the brand theme's colour-scheme line aside). Anything else
+      // injects nothing and boot JS repaints. The sheet goes straight after <head>, not inside it: a
+      // production build puts its stylesheet link at the end of <head>, after this
+      // script, and at equal specificity the later sheet wins.
+      try {
+        var cc = localStorage.getItem('lolly-follow-ds') === '0' ? null : localStorage.getItem('brand-chrome');
+        if (cc && cc.length <= 16384) {
+          var CL = ':root:not([data-theme="dark"]):not([data-theme="brand"]):not([data-a11y-contrast="high"]), [data-theme="light"]:not([data-a11y-contrast="high"]):not([data-a11y-contrast="high"] *)';
+          var CD = '[data-theme="dark"]:not([data-a11y-contrast="high"]):not([data-a11y-contrast="high"] *)';
+          var CB = '[data-theme="brand"]';
+          var SEL = [':root, [data-theme="light"]', '[data-theme="dark"]', CB, '[data-theme="dark"], [data-theme="brand"]',
+            'html[data-a11y-contrast="high"]:not([data-theme="dark"]):not([data-theme="brand"])',
+            'html[data-a11y-contrast="high"][data-theme="dark"]', 'html[data-a11y-contrast="high"][data-theme="brand"]', CL, CD];
+          var DECL = /^  --[a-z0-9-]{1,40}: (?:\d{1,3}(?:\.\d{1,3})? \d{1,3}(?:\.\d{1,3})?% \d{1,3}(?:\.\d{1,3})?%|#[0-9a-f]{6}(?:[0-9a-f]{2})?);$/;
+          var rows = cc.split('\n'), sel = null, n = 0, bg = '', pages = [], ok = true;
+          for (var i = 0; ok && i < rows.length; i++) {
+            var row = rows[i];
+            if (sel === null) {
+              sel = row.slice(-2) === ' {' ? row.slice(0, -2) : '';
+              ok = SEL.indexOf(sel) >= 0; n = 0; bg = '';
+            } else if (row === '}') {
+              ok = n > 0; pages.push([sel, bg]); sel = null;
+            } else if (DECL.test(row) || row === '  color-scheme: dark;') {
+              n++; if (row.indexOf('  --background: ') === 0) bg = row.slice(16, -1);
+            } else ok = false;
+          }
+          if (ok && sel === null && pages.length) {
+            var st = document.createElement('style');
+            st.id = 'brand-chrome-vars';
+            st.textContent = cc;
+            document.head.parentNode.insertBefore(st, document.head.nextSibling);
+            // The address bar takes the pack's page for the active theme. Under High
+            // contrast only the brand theme keeps pack chrome, so only it can set one.
+            var de = document.documentElement, th = de.dataset.theme;
+            var want = th === 'brand' ? CB : de.dataset.a11yContrast === 'high' ? '' : th === 'dark' ? CD : CL, page = '';
+            for (var j = 0; j < pages.length; j++) if (pages[j][0] === want && pages[j][1]) page = pages[j][1];
+            var tc = document.querySelector('meta[name="theme-color"]');
+            if (page && tc) tc.content = 'hsl(' + page + ')';
+          }
+        }
+      } catch (e) { /* corrupt mirror - boot JS repaints */ }
       // Performance UI (feature-flags.ts perf-ui, its FOUC mirror): reflect the flag from
       // the feature-flag mirror before paint so a lower-powered device never flashes the
       // full-effect chrome for a beat. Absent/false ⇒ no attribute ⇒ full chrome (default).

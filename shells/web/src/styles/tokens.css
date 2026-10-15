@@ -270,7 +270,8 @@
    --lolly-mark (this same tone at the guest's hue), and every reader takes
    var(--lolly-mark, var(--lolly-tone)). LOLLY_TONE_HEX in brand-vars.ts holds
    the same two colours; lolly-tone-contract.test.ts keeps them equal. */
-:root {
+:root,
+[data-theme="light"] {
   --lolly-tone: #033633;
 }
 [data-theme="dark"],

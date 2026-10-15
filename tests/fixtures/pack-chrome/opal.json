@@ -1,0 +1,77 @@
+{
+  "$description": "Opal for the pack chrome tests: a trimmed copy of brands/lolly-demo/catalog/assets/lolly/tokens/opal.json (feat/lolly-demo-pack at 92fefb5d4, PR #286) with the color.chrome group the C1 follow-up gives it. Unsaved work is Honey deep in light and Honey in dark and brand.",
+  "$metadata": {
+    "tokenSetOrder": ["base", "light", "dark"]
+  },
+  "$themes": [
+    { "name": "light", "selectedTokenSets": { "base": "enabled", "light": "enabled" } },
+    { "name": "dark", "selectedTokenSets": { "base": "enabled", "dark": "enabled" } }
+  ],
+  "base": {
+    "color": {
+      "$type": "color",
+      "brand": {
+        "spearmint": { "$value": "#033633", "$description": "Spearmint" },
+        "bunyapine": { "$value": "#008657", "$description": "Bunyapine" },
+        "green-apple": { "$value": "#50c369", "$description": "Green Apple" },
+        "pandanus": { "$value": "#ace1ad", "$description": "Pandanus" },
+        "avocado": { "$value": "#edf6e0", "$description": "Avocado" },
+        "basalt": { "$value": "#373e44", "$description": "Basalt" },
+        "honey": { "$value": "#fac044", "$description": "Honey" },
+        "outback": { "$value": "#c55123", "$description": "Outback" },
+        "sugar": { "$value": "#ffffff", "$description": "Sugar" },
+        "pebble": { "$value": "#99a0a4", "$description": "Pebble" },
+        "liquorice": { "$value": "#09141a", "$description": "Liquorice" },
+        "liquorice-raised": { "$value": "#121d24", "$description": "Liquorice raised" },
+        "liquorice-panel": { "$value": "#1c282f", "$description": "Liquorice panel" }
+      }
+    }
+  },
+  "light": {
+    "color": {
+      "$type": "color",
+      "semantic": {
+        "primary": { "$value": "{color.brand.spearmint}" },
+        "on-primary": { "$value": "{color.brand.sugar}" },
+        "secondary": { "$value": "{color.brand.bunyapine}" },
+        "surface": { "$value": "{color.brand.sugar}" },
+        "text": { "$value": "{color.brand.liquorice}" },
+        "muted": { "$value": "{color.brand.basalt}" },
+        "edge": { "$value": "{color.brand.pebble}" }
+      },
+      "chrome": {
+        "page": { "$value": "{color.brand.avocado}", "$description": "The page: Avocado." },
+        "raised": { "$value": "{color.brand.sugar}", "$description": "Cards, side panels and the top bar." },
+        "overlay": { "$value": "{color.brand.sugar}", "$description": "Menus, dialogs and popovers." },
+        "edge": { "$value": "{color.brand.pandanus}", "$description": "Hairlines and field edges." },
+        "ink": { "$value": "{color.brand.liquorice}", "$description": "Body text on the chrome." },
+        "muted-ink": { "$value": "{color.brand.basalt}", "$description": "Secondary text." },
+        "unsaved": { "$value": "#b57c0a", "$description": "Honey deep: Honey at OKLCH lightness .63, so the unsaved mark reads 3:1 on light chrome." }
+      }
+    }
+  },
+  "dark": {
+    "color": {
+      "$type": "color",
+      "semantic": {
+        "primary": { "$value": "{color.brand.green-apple}" },
+        "on-primary": { "$value": "{color.brand.liquorice}" },
+        "secondary": { "$value": "{color.brand.bunyapine}" },
+        "surface": { "$value": "{color.brand.liquorice}" },
+        "text": { "$value": "{color.brand.sugar}" },
+        "muted": { "$value": "{color.brand.pebble}" },
+        "edge": { "$value": "{color.brand.basalt}" }
+      },
+      "chrome": {
+        "page": { "$value": "{color.brand.liquorice}", "$description": "The page: Liquorice." },
+        "raised": { "$value": "{color.brand.liquorice-raised}", "$description": "Cards, side panels and the top bar." },
+        "overlay": { "$value": "{color.brand.liquorice-panel}", "$description": "Menus, dialogs and popovers." },
+        "muted": { "$value": "{color.brand.liquorice-panel}", "$description": "Wells, tracks and quiet fills." },
+        "edge": { "$value": "{color.brand.basalt}", "$description": "Hairlines and field edges." },
+        "ink": { "$value": "{color.brand.sugar}", "$description": "Body text on the chrome." },
+        "muted-ink": { "$value": "{color.brand.pebble}", "$description": "Secondary text." },
+        "unsaved": { "$value": "{color.brand.honey}", "$description": "Unsaved work: Honey." }
+      }
+    }
+  }
+}

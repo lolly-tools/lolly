@@ -30,6 +30,8 @@
 import { colorToHex, isAlias } from '../../../engine/src/tokens.ts';
 import { parseOklch, oklchToHex, hexToOklch, parseHex, contrastRatio } from '../../../engine/src/brand-derive.ts';
 import { chromeFollowsDesignSystem } from './lib/chrome-follow.ts';
+import { CHROME_SLOTS, CHROME_THEMES, declaresUnsaved, resolvePackChrome, type ChromeTheme, type ChromeThemeName, type PackChrome } from './lib/brand-chrome.ts';
+import { syncThemeColorMeta } from './theme.ts';
 
 /** The seven semantic slots (token leaf under `color.semantic`) → CSS var. */
 const SLOTS = [
@@ -47,6 +49,8 @@ const SLOTS = [
 interface BrandTokens {
   resolve(ref: string, opts?: { theme?: string }): Promise<unknown>;
   colors?(opts?: { theme?: string }): Promise<Array<{ value: string; ref?: string; path?: string; faces?: Record<string,string|number[]>; css?: string }>>;
+  /** The document's `$themes`, so pack chrome reads a brand set only when one is declared. */
+  themes?(): Promise<Array<{ name: string }>>;
 }
 
 /** The host slice this module reads - the (optional) tokens resolver, plus
@@ -214,9 +218,11 @@ function applyDangerText(red: string | null): void {
 // The second half of the contract: the SHELL's own chrome follows the brand's
 // primary. tokens.css hardcodes shadcn HSL-triple accents per theme; when the
 // active brand resolves `color.semantic.primary`, we override the accent
-// triples (--primary / --primary-foreground / --ring - deliberately nothing
-// else: backgrounds, borders and text stay the shell's own) via one injected
+// triples (--primary / --primary-foreground / --ring) via one injected
 // <style>, per shell theme so light/dark each take their brand-theme value.
+// Surfaces, edges and inks stay the shell's own unless the pack declares a
+// `color.chrome.*` group (lib/brand-chrome.ts), and that group steps aside
+// under High contrast.
 // No semantic slots → the style is removed and the hardcoded chrome stands, as
 // it does when "Interface follows the design system" is off. Both shipped
 // packs declare the slots: SUSE's primary is Pine in light and Jungle in dark,
@@ -452,7 +458,9 @@ function hueDistance(h: number, target: number): number {
 /** Among `swatches`, the resolved hex whose OKLCH hue is nearest red/yellow,
  * plus whichever of black/white reads legibly on top of it - or null when none
  * resolve to a usable, sufficiently-chromatic colour (caller keeps its own
- * static fallback, e.g. `var(--brand-warn, #b28727)`). */
+ * static fallback, e.g. `var(--brand-warn, #b28727)`). A pack's declared
+ * `color.chrome.unsaved` takes precedence (lib/brand-chrome.ts): this pick then
+ * fills only the themes the pack leaves out. */
 export function nearestWarmHex(swatches: ReadonlyArray<{ value: unknown }>): { hex: string; ink: string } | null {
   let best: { hex: string; dist: number } | null = null;
   const seen = new Set<string>();
@@ -1104,13 +1112,81 @@ export function lollyMarkCss(lightHex: string | null, darkHex: string | null): s
   ].join('\n');
 }
 
+// ── A pack's own chrome (lib/brand-chrome.ts) ────────────────────────────────
+
+/**
+ * The pack chrome selectors. Light and dark step aside under High contrast:
+ * the attribute on <html>, or on any ancestor of a subtree that carries its
+ * own theme, unmatches them, so tokens.css's static and High contrast blocks
+ * govern the whole room there. The light one is "neither dark nor brand" on
+ * the root, as tokens.css spells it, plus any subtree marked light. Every arm
+ * is a bare attribute selector, not one tied to <html>, so the profile's theme
+ * cards and Design's document stage wear the pack's chrome for their theme.
+ * Brand stays in force under High contrast, where the High contrast brand
+ * block's inks and edges win on specificity. index.html's pre-paint check
+ * lists these strings literally.
+ */
+export const CHROME_SEL: Readonly<Record<ChromeThemeName, string>> = {
+  light: ':root:not([data-theme="dark"]):not([data-theme="brand"]):not([data-a11y-contrast="high"]), [data-theme="light"]:not([data-a11y-contrast="high"]):not([data-a11y-contrast="high"] *)',
+  dark: '[data-theme="dark"]:not([data-a11y-contrast="high"]):not([data-a11y-contrast="high"] *)',
+  brand: '[data-theme="brand"]',
+};
+
+/** The unsaved colour's selectors. Ungated: the colour is not a surface, so it
+ *  stays in force under High contrast. */
+const UNSAVED_SEL: Readonly<Record<ChromeThemeName, string>> = {
+  light: ':root, [data-theme="light"]',
+  dark: '[data-theme="dark"]',
+  brand: '[data-theme="brand"]',
+};
+
+/**
+ * One theme's pack chrome block: every static name its slots set, plus
+ * --destructive-text. The static text reds read under 4.5:1 on some pack
+ * surfaces, so the red is walked again (dangerText) until it reads on the
+ * pack's resting and hover surfaces and on a danger wash over the resting
+ * ones, starting from the design system's own red when it declares one and
+ * from the theme's static fill otherwise.
+ */
+function chromeSurfaceBlock(theme: ChromeThemeName, chrome: ChromeTheme, dangerRed: string | null): string {
+  const decls: string[] = [];
+  for (const { key, names } of CHROME_SLOTS) {
+    const hex = key ? chrome[key] : null;
+    const triple = hex ? hexToHslTriple(hex) : null;
+    if (triple) for (const name of names) decls.push(`  ${name}: ${triple};`);
+  }
+  const fill = hslTripleToHex(THEME_DESTRUCTIVE[theme]);
+  const resting = [chrome.page, chrome.raised, chrome.overlay, chrome.muted];
+  const washed = fill ? resting.map(s => overlayHex(fill, s, DANGER_WASH_ALPHA)).filter((hex): hex is string => !!hex) : [];
+  const red = dangerRed ?? fill;
+  const text = red ? dangerText(red, [...resting, chrome.hover, ...washed]) : null;
+  const textTriple = text ? hexToHslTriple(text) : null;
+  if (textTriple) decls.push(`  --destructive-text: ${textTriple};`);
+  return `${CHROME_SEL[theme]} {\n${decls.join('\n')}\n}`;
+}
+
+/** The per-theme unsaved colour, with its ink by the app-wide inversion rule
+ *  (contrastText). Brand takes the brand set's colour, else dark's; a theme with
+ *  none gets no block. */
+function unsavedBlocks(unsaved: PackChrome['unsaved']): string {
+  const picks: Array<[ChromeThemeName, string | undefined]> = [['light', unsaved.light], ['dark', unsaved.dark], ['brand', unsaved.brand ?? unsaved.dark]];
+  return picks
+    .filter((pick): pick is [ChromeThemeName, string] => !!pick[1] && !!parseHex(pick[1]))
+    .map(([theme, hex]) => `${UNSAVED_SEL[theme]} {\n  --brand-warn: ${hex.toLowerCase()};\n  --brand-warn-ink: ${contrastText(hex)};\n}`)
+    .join('\n');
+}
+
 /** The full injected stylesheet text. Exported for tests. When neither
- * theme's primary resolves, nothing is emitted and the static tokens.css
- * blocks (including the brand theme's SUSE-palette defaults) stand. The suse
- * profile resolves both (Pine light, Jungle dark), so it gets this sheet too. */
+ * theme's primary resolves and the pack declares no chrome, nothing is emitted
+ * and the static tokens.css blocks (including the brand theme's SUSE-palette
+ * defaults) stand. The suse profile resolves both primaries (Pine light,
+ * Jungle dark), so it gets this sheet too. Without `chrome` (or with an empty
+ * one) the text is exactly what it was before packs could set chrome. */
 export function chromeBrandCss(
   light: { primary: string | null; onPrimary: string | null },
   dark: { primary: string | null; onPrimary: string | null },
+  chrome?: PackChrome | null,
+  dangerRed?: string | null,
 ): string {
   return [
     accentBlock(':root, [data-theme="light"]', light.primary),
@@ -1120,6 +1196,13 @@ export function chromeBrandCss(
     light.primary && dark.primary ? brandThemeCss(light.primary, dark.primary) : '',
     // Lolly's own mark follows the brand hue (identity, not verdict).
     lollyMarkCss(light.primary, dark.primary),
+    // A pack's own chrome, after the constructed brand theme so brand chrome
+    // wins over the construction, and before the High contrast blocks.
+    ...CHROME_THEMES.map(theme => {
+      const surfaces = chrome?.[theme];
+      return surfaces ? chromeSurfaceBlock(theme, surfaces, dangerRed ?? null) : '';
+    }),
+    chrome ? unsavedBlocks(chrome.unsaved) : '',
     // High contrast, per theme and gated on the attribute, so a user with no
     // prefs set gets exactly the blocks above and nothing else can match.
     // Each theme is judged on its OWN pair. A brand whose light accent already
@@ -1148,27 +1231,47 @@ export function chromeBrandCss(
   ].filter(Boolean).join('\n');
 }
 
+/** localStorage mirror of the chrome sheet's exact text, which index.html's
+ *  pre-paint script checks and restores so a return visit paints the pack's
+ *  room and accent before boot. Same FOUC-mirror pattern as brand-fonts. */
+export const CHROME_CACHE_KEY = 'brand-chrome';
+/** The longest mirror index.html restores; a longer sheet is not mirrored. */
+export const CHROME_CACHE_MAX = 16384;
+
+function mirrorChrome(css: string): void {
+  try {
+    if (css && css.length <= CHROME_CACHE_MAX) localStorage.setItem(CHROME_CACHE_KEY, css);
+    else localStorage.removeItem(CHROME_CACHE_KEY);
+  } catch { /* storage unavailable - the live sheet is already right */ }
+}
+
 /**
  * Inject/refresh the chrome override stylesheet from already-resolved primary
- * (+ on-primary) hexes, per theme. The shared tail of applyChromeBrandVars
- * (below) - split out so the brand editor's live, in-memory DRAFT preview
- * (not yet installed, so nothing to resolve via host.tokens) can paint the
- * same chrome accent without going through the host at all.
+ * (+ on-primary) hexes, per theme, plus a pack's own chrome. The shared tail
+ * of applyChromeBrandVars (below) - split out so a caller holding resolved
+ * values (a draft preview, the console) can paint the same chrome without
+ * going through the host. Mirrors the sheet for the pre-paint script, or
+ * clears the mirror with the sheet.
  */
 export function applyChromeAccent(
   light: { primary: string | null; onPrimary: string | null },
   dark: { primary: string | null; onPrimary: string | null },
+  chrome?: PackChrome | null,
+  dangerRed?: string | null,
 ): void {
   if (typeof document === 'undefined') return;
-  const css = chromeBrandCss(light, dark);
+  const css = chromeBrandCss(light, dark, chrome, dangerRed);
   let styleEl = document.getElementById(CHROME_STYLE_ID);
-  if (!css) { styleEl?.remove(); return; }
-  if (!styleEl) {
-    styleEl = document.createElement('style');
-    styleEl.id = CHROME_STYLE_ID;
-    document.head.appendChild(styleEl);
+  if (!css) styleEl?.remove();
+  else {
+    if (!styleEl) {
+      styleEl = document.createElement('style');
+      styleEl.id = CHROME_STYLE_ID;
+      document.head.appendChild(styleEl);
+    }
+    styleEl.textContent = css;
   }
-  styleEl.textContent = css;
+  mirrorChrome(css);
 }
 
 const FAVICON_ID = 'brand-favicon';
@@ -1295,6 +1398,16 @@ function mirrorAccent(hex: string | null): void {
  *  system's favicon (plans/186 section 3.4 step 5). */
 let paintGeneration = 0;
 
+/** Pack chrome issues already reported, so a repaint does not repeat a warning. */
+const reportedChrome = new Set<string>();
+function reportChromeIssues(issues: readonly string[]): void {
+  for (const issue of issues) {
+    if (reportedChrome.has(issue)) continue;
+    reportedChrome.add(issue);
+    console.warn(`Pack chrome: ${issue}. That theme keeps Lolly's own chrome.`);
+  }
+}
+
 export async function applyChromeBrandVars(host: BrandVarsHost): Promise<void> {
   // Nothing here to do without a document (a DOM-free shell / test bridge) - 
   // and every branch below writes to documentElement, so bail before any of
@@ -1314,6 +1427,13 @@ export async function applyChromeBrandVars(host: BrandVarsHost): Promise<void> {
   const resolveHex = async (slot: string, theme: string): Promise<string | null> => {
     try {
       return tokenValueToHex(await tk?.resolve(`{color.semantic.${slot}}`, { theme }));
+    } catch { return null; }
+  };
+  // The design system's own danger red, read as applyUiTokenOverrides reads it:
+  // pack chrome walks its error-text red from this one when there is one.
+  const resolveDangerRed = async (): Promise<string | null> => {
+    try {
+      return uiTokenCssValue('color', await tk?.resolve('{lolly.ui.color.status.danger}'));
     } catch { return null; }
   };
   // Fonts, shape and spacing first, independently of the colour blocks below - a brand
@@ -1336,12 +1456,14 @@ export async function applyChromeBrandVars(host: BrandVarsHost): Promise<void> {
   await applyUiTokenOverrides(tk).catch(() => { /* invalid/missing leaves keep stock aliases */ });
   if (stale()) return;
   if (!chromeFollowsDesignSystem()) {
+    // Removes the sheet and, with it, the pre-paint mirror.
     applyChromeAccent({ primary: null, onPrimary: null }, { primary: null, onPrimary: null });
     root.removeProperty('--brand-primary');
     mirrorAccent(null);
     root.removeProperty('--brand-warn');
     root.removeProperty('--brand-warn-ink');
     applyBrandLogo(null);
+    syncThemeColorMeta();
     return;
   }
   // The warm "needs attention" accent scans every resolved colour (ramps,
@@ -1355,20 +1477,32 @@ export async function applyChromeBrandVars(host: BrandVarsHost): Promise<void> {
     warn = nearestWarmHex(await tk?.colors?.() ?? []);
   } catch { warn = null; }
   if (stale()) return;
-  if (warn) {
-    root.setProperty('--brand-warn', warn.hex);
-    root.setProperty('--brand-warn-ink', warn.ink);
-  } else {
-    root.removeProperty('--brand-warn');
-    root.removeProperty('--brand-warn-ink');
-  }
   try {
-    const [lp, lop, dp, dop] = await Promise.all([
+    // Every read first, then one synchronous paint: no frame can show a new
+    // unsaved colour against the old sheet, or the reverse.
+    const [lp, lop, dp, dop, chrome, dangerRed] = await Promise.all([
       resolveHex('primary', 'light'), resolveHex('on-primary', 'light'),
       resolveHex('primary', 'dark'), resolveHex('on-primary', 'dark'),
+      resolvePackChrome(tk, { toHex: tokenValueToHex, lc: apcaLcAbs }),
+      resolveDangerRed(),
     ]);
     if (stale()) return;
-    applyChromeAccent({ primary: lp, onPrimary: lop }, { primary: dp, onPrimary: dop });
+    // A pack that declares its unsaved colour moves --brand-warn from inline
+    // into the sheet, per theme; a theme it leaves out takes the warm pick.
+    const ownsUnsaved = declaresUnsaved(chrome);
+    if (ownsUnsaved && warn) {
+      chrome.unsaved.light ??= warn.hex;
+      chrome.unsaved.dark ??= warn.hex;
+    }
+    reportChromeIssues(chrome.issues);
+    applyChromeAccent({ primary: lp, onPrimary: lop }, { primary: dp, onPrimary: dop }, chrome, dangerRed);
+    if (warn && !ownsUnsaved) {
+      root.setProperty('--brand-warn', warn.hex);
+      root.setProperty('--brand-warn-ink', warn.ink);
+    } else {
+      root.removeProperty('--brand-warn');
+      root.removeProperty('--brand-warn-ink');
+    }
     // Expose the brand primary GLOBALLY on :root (not just the tool canvas that
     // applyBrandVars paints) so app chrome outside a tool - the gallery's
     // preview-loading trace, say - can wear it via var(--brand-primary, <fallback>).
@@ -1385,6 +1519,8 @@ export async function applyChromeBrandVars(host: BrandVarsHost): Promise<void> {
     const hslHue = primary ? hexHslHue(primary) : null;
     if (hslHue == null) applyBrandLogo(null);
     else void tintLogo(hslHue).then(url => { if (!stale()) applyBrandLogo(url); }).catch(() => { if (!stale()) applyBrandLogo(null); });
+    // The address bar follows the page the sheet just painted.
+    syncThemeColorMeta();
   } catch { /* cosmetic only - never break boot */ }
 }
 

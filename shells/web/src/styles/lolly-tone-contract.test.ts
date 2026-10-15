@@ -61,9 +61,11 @@ test('tokens.css declares --lolly-tone for light and for dark plus brand, matchi
   // Comments hold prose with braces; strip them before reading rule bodies.
   const bare = read('styles/tokens.css').replace(/\/\*[\s\S]*?\*\//g, '');
   const toneIn = (body: string): string | undefined => body.match(/--lolly-tone:\s*(#[0-9a-fA-F]{6})\s*;/)?.[1];
-  const rootBlocks = [...bare.matchAll(/:root\s*\{([^}]*)\}/g)].map((m) => m[1]!);
+  // The light block is `:root` alone or `:root,\n[data-theme="light"]`, the second so a
+  // light subtree inside a dark page (a theme card, a document stage) takes the light tone.
+  const rootBlocks = [...bare.matchAll(/:root(?:,\s*\[data-theme="light"\])?\s*\{([^}]*)\}/g)].map((m) => m[1]!);
   const lightTone = rootBlocks.map(toneIn).find(Boolean);
-  assert.ok(lightTone, 'a :root block declares --lolly-tone');
+  assert.ok(lightTone, 'a :root (or :root plus light) block declares --lolly-tone');
   assert.equal(lightTone.toLowerCase(), LOLLY_TONE_HEX.light);
   // The selector list is exactly dark plus brand: brand is a dark ground in every
   // construction, so it must never fall to the light tone.

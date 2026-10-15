@@ -127,3 +127,89 @@ test('a profile that refuses the write still leaves the chrome right', async () 
   await setChromeFollow(host, false);
   assert.equal(chromeFollowsDesignSystem(), false);
 });
+
+// ── A pack's own chrome rides the same painter ───────────────────────────────
+
+const { CHROME_CACHE_KEY } = await import('../brand-vars.ts');
+
+/** A design system with a primary, a warm swatch and, per theme, a `color.chrome.*` group. */
+function chromeHost(chrome: Record<'light' | 'dark', Record<string, string>>): Parameters<typeof applyChromeBrandVars>[0] {
+  return {
+    tokens: {
+      resolve: async (ref: string, opts: { theme?: string } = {}) => {
+        if (ref === '{color.semantic.primary}') return '#e0452b';
+        if (ref === '{color.semantic.on-primary}') return '#ffffff';
+        const slot = /^\{color\.chrome\.([a-z-]+)\}$/.exec(ref)?.[1];
+        const theme = opts.theme === 'dark' ? 'dark' : 'light';
+        return slot ? chrome[theme][slot] ?? null : null;
+      },
+      colors: async () => [{ value: '#e0452b' }],
+      themes: async () => [{ name: 'light' }, { name: 'dark' }],
+    },
+  } as unknown as Parameters<typeof applyChromeBrandVars>[0];
+}
+const inlineWarn = (): string => document.documentElement.style.getPropertyValue('--brand-warn');
+
+test('ON with pack chrome: the mirror holds the exact sheet, and a declared unsaved colour leaves no inline warn', async () => {
+  setChromeFollowMirror(true);
+  await applyChromeBrandVars(chromeHost({
+    light: { page: '#fcfaf6', unsaved: '#b57c0a' },
+    dark: { page: '#09141a', unsaved: '#fac044' },
+  }));
+  const css = styleEl()?.textContent ?? '';
+  assert.match(css, /--background: /, 'the pack chrome is in the sheet');
+  assert.match(css, /\[data-theme="dark"\] \{\n {2}--brand-warn: #fac044;/);
+  assert.equal(localStorage.getItem(CHROME_CACHE_KEY), css, 'the pre-paint mirror is the sheet, character for character');
+  assert.equal(inlineWarn(), '', 'the unsaved colour lives in the sheet, per theme, not inline');
+  assert.equal(document.documentElement.style.getPropertyValue('--brand-warn-ink'), '');
+});
+
+test('a theme the pack leaves without an unsaved colour takes the warm pick in the sheet', async () => {
+  setChromeFollowMirror(true);
+  await applyChromeBrandVars(chromeHost({ light: { page: '#fcfaf6', unsaved: '#b57c0a' }, dark: {} }));
+  const css = styleEl()?.textContent ?? '';
+  assert.match(css, /:root, \[data-theme="light"\] \{\n {2}--brand-warn: #b57c0a;/);
+  assert.match(css, /\[data-theme="dark"\] \{\n {2}--brand-warn: #e0452b;/, 'dark takes the warm pick');
+  assert.equal(inlineWarn(), '');
+});
+
+test('a pack with chrome but no unsaved colour keeps the inline warm pick', async () => {
+  setChromeFollowMirror(true);
+  await applyChromeBrandVars(chromeHost({ light: { page: '#fcfaf6' }, dark: { page: '#09141a' } }));
+  assert.ok(!(styleEl()?.textContent ?? '').includes('--brand-warn'));
+  assert.equal(inlineWarn(), '#e0452b');
+});
+
+test('OFF with pack chrome: the sheet, its mirror and the inline warn all go', async () => {
+  setChromeFollowMirror(true);
+  await applyChromeBrandVars(chromeHost({ light: { page: '#fcfaf6', unsaved: '#b57c0a' }, dark: { page: '#09141a' } }));
+  assert.ok(localStorage.getItem(CHROME_CACHE_KEY), 'painted first, so the off pass has a mirror to clear');
+  setChromeFollowMirror(false);
+  await applyChromeBrandVars(chromeHost({ light: { page: '#fcfaf6', unsaved: '#b57c0a' }, dark: { page: '#09141a' } }));
+  assert.equal(styleEl(), null);
+  assert.equal(localStorage.getItem(CHROME_CACHE_KEY), null);
+  assert.equal(inlineWarn(), '');
+});
+
+test('the address bar colour follows the page the sheet paints, and a paint with no meta or no computed style is harmless', async () => {
+  setChromeFollowMirror(true);
+  // No getComputedStyle at all (this file installs none): still no throw.
+  const meta = document.createElement('meta');
+  meta.name = 'theme-color';
+  meta.content = '#033633';
+  document.head.appendChild(meta);
+  document.documentElement.dataset.theme = 'light';
+  await applyChromeBrandVars(chromeHost({ light: { page: '#fcfaf6' }, dark: { page: '#09141a' } }));
+  assert.equal(meta.content, '#ffffff', 'without a computed style the static light colour stands in');
+  assert.equal(brandPrimary(), '#e0452b', 'and the rest of the paint still ran');
+  // With jsdom's computed style the meta takes the live page triple.
+  (globalThis as { getComputedStyle?: unknown }).getComputedStyle = dom.window.getComputedStyle.bind(dom.window);
+  try {
+    await applyChromeBrandVars(chromeHost({ light: { page: '#fcfaf6' }, dark: { page: '#09141a' } }));
+    const live = dom.window.getComputedStyle(document.documentElement).getPropertyValue('--background').trim();
+    assert.equal(meta.content, live ? `hsl(${live})` : '#ffffff');
+  } finally {
+    delete (globalThis as { getComputedStyle?: unknown }).getComputedStyle;
+    meta.remove();
+  }
+});
