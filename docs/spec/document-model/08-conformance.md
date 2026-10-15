@@ -76,6 +76,24 @@ An acceptance must name the report it judged by digest (R8, C8). An acceptance d
 
 The governed authority is the Work administrator for the brand, recorded with the instance they administer (D12). Otherwise it is the local person using the client (D12).
 
+## Source review, use eligibility and delivery approval
+
+`AcceptanceV1` judges a conformance report. The DAM review requires separate subjects for catalog admission, upstream creative review, contextual use eligibility and final-byte delivery approval (plan 314; R8). A source review may have no conformance report. It must keep its own evidence and must never be turned into a suite pass.
+
+A proposed source-review record must bind the decision to the source, exact reviewed file revisions or digests, reviewer authority and scope. A proof containing several files must identify its reviewed membership and revisions. Conditional approval, such as changes still required, remains conditional. Replacing a file or changing that membership must never transfer the earlier decision silently. These shared review records are not built by this amendment. Work currently treats replacement of admitted asset bytes as curation; its contribution approval is not a general review of every replacement (`lolly-work/server/src/catalog/submit.ts`).
+
+Use eligibility also needs the requested operation, channel, territory and date where the applicable evidence requires them. Missing source data leaves an unknown answer; a general approved flag does not settle those conditions (`packages/core/src/rights-v1.ts`, [policy](policy.html)). Signature validity, source assertions, review and eligibility remain independently reported facts.
+
+Fixed delivery approval must bind the final staged output digest. Work's existing optional destination approval records that subject before provider egress (`lolly-work/server/src/api/app.ts`, `lolly-work/server/src/delivery/types.ts`). Ordinary exports do not acquire the same guarantee merely by referring to the same source. Each remotely processed derivative is a new artifact with its own checks and review requirements.
+
+Adaptive publication would instead accept a pinned source and a versioned policy for permitted transformations. This is a proposed acceptance class, not a capability supplied by the draft. It requires its own validation and delivery contract before implementation and must never be presented as approval of exact delivered bytes. Existing fixed-byte delivery keeps its current meaning (R8; plan 300).
+
+### Review purpose and production proofs
+
+A source approval assertion needs its purpose, activation target, origin and subject, including whether a person decided or an automated rule set the state (R8, R15; plan 315). Approval for an internal library must never imply approval for public delivery. A mapped flag with unknown subject stays an incomplete upstream assertion, even when the bytes have a verified digest.
+
+Campaign review identifies exact variant revisions and proof-set membership. A responsive proof additionally identifies the viewport, rendering environment and sampled state it shows; a screenshot proves only that view. Changed copy, crop, bytes or membership needs the relevant decision again. Successful unchanged variants keep their historical decisions; a set-level policy may still require resubmission of the set. Review routing belongs to the host workflow and does not grant source, processing or delivery access.
+
 ## The native 0.1 suites
 
 | Suite | Scope | State in this draft |

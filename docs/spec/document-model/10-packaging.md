@@ -84,6 +84,16 @@ The container already carries evaluation facts beside the payload: `engineVersio
 
 A font digest is taken over the whole source font file and never over the subset an export embedded (`packages/node-shell/src/lolly-file.ts`). A receipt that identifies a font by digest therefore points at the file a reader could fetch again.
 
+## Portable evidence and private records
+
+The DAM review extends the retained-part rules to optional generation recipes, source observations and review evidence (plan 314; R10, R11, R15). This is a packaging requirement, not permission to emit a new part before preservation-capable readers and effective old-client gates ship.
+
+A portable record must bind to its exact resource, instance or artifact revision. An older review or credential travels as history and must never describe changed bytes as already reviewed. An imported recipe remains external evidence; retaining its bytes does not establish an executable environment or a replay claim.
+
+Preservation and disclosure are separate checks. A part may be retained for its authorised owner and still be excluded from a shared package. The export operation must establish the permitted evidence set before writing. It must report an authorised omission or redaction without disclosing hidden fields, identifiers or lineage neighbours. Private grant documents, prompts and service records must never enter a public package just because the reader kept their opaque bytes (`packages/core/src/rights-v1.ts`; [policy](policy.html)).
+
+An exact pin may travel by reference or with permitted retained bytes. A by-reference pin does not promise that the recipient can still fetch it, and carrying the bytes does not grant permission to redistribute them. The reader reports unavailable dependencies and protects required unknown parts through the existing operation and reader gates (R10, R11).
+
 ## Editable motion and playback projections
 
 An animation made from existing Design rows needs no new container version merely because it exports an HTML player or a movie. Its saved session remains the editable source, and its referenced audio and images must travel through the existing asset closure and integrity map. A compiled render wrapper is not interchangeable with saved tool inputs: a valid archive must also reopen as editable content in the target tool.

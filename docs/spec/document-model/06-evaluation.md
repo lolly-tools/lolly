@@ -92,7 +92,7 @@ draft shape
     shaping           { engine, version }
     textFallbacks[]   runs that stayed live text: { text, reason }
     emoji             { set, version, treatment }
-    models[]          { id, version, licence } for any on-device model the run used
+    models[]          { id, version, licence, execution location, service identity? } for each model the run used
     kernels[]         { operation, implementation, revision, artifact sha256? } per numerical or pixel implementation that produced a result
     devices[]         { api, adapter, backend, software } per graphics device the run computed on
     conversions[]     unit and DPI conversions applied, with the site that applied each
@@ -117,6 +117,14 @@ Three rules hold over every field.
 - A receipt must never be required for an operation to succeed (D11).
 
 An effect recorded here is an observation, never a permission: a receipt that lists an effect does not authorise it on a later run.
+
+### Production bindings and observations
+
+Where recording is enabled, retain the exact selected file and observed digest separately from metadata, policy and review observations, including their origin, observation time, mapping revision and completeness (R15; plans 314 and 315). Historical bytes with only current attributes must be reported with that limitation. A cache token cannot replace either observation.
+
+For a campaign row, associate the result with stable row identity, input revision, resolved locale and field/fallback bindings. Keep the explicit action targets, destination write intent, remote asset/version identity and observed readiness alongside committed effects where retention permits. A retry adds evidence for its own attempt; it must never relabel an earlier output as the result of changed copy. Missing evidence remains an omission, and private context follows redaction policy.
+
+This elaborates the draft receipt's existing inputs, results and effects. It adds no shared type or mandatory durable record to local utilities (D11).
 
 ### Fonts, shaping and live text
 
@@ -190,6 +198,20 @@ These rules come from the first WebGPU and Rust kernel work (plan 295), added on
 - Renderer-owned resources belong to no record. Device loss invalidates GPU buffers, textures and pipelines, and a host rebuilds them from logical resources and the frozen evaluation. A package must never persist a renderer resource or a process-local handle.
 
 ## Redaction is an explicit field
+
+### Source and processing evidence
+
+The DAM review adds a requirement to the draft receipt, not a new implemented receipt type (plan 314; R15). Each observed resource must identify its selected file, source revision, representation and digest where observed. Declared dependencies, observed inputs and imported assertions remain distinguishable. A source timestamp or catalog cache version is never evidence that the run read particular bytes ([records](records.html)).
+
+Where retained, processing evidence must name the actual model/service revision, operation and job/attempt reference, the effective processing authority and the result digests. Detailed recipes, private grant evidence and spend records remain separately authorised host or Work data. A public receipt may carry only permitted references or reduced facts. It must never contain service credentials, signed read URLs or an unapproved private prompt (R3, R15; `packages/core/src/rights-v1.ts`).
+
+A generation recipe imported from another system remains external evidence. The host must record its origin, completeness and any withheld fields; it must never describe that import as a Lolly-observed execution. Missing settings, models or source inputs leave replay unproven. Reusing the resulting asset does not repeat the generation ([records](records.html), R15).
+
+Source access, contextual use eligibility and review are observations with their own issuer, subject, context, observed time and validity where supplied. Their retained evidence explains the earlier run. A later consequential action must perform the fresh checks its authority requires; an old receipt cannot renew a grant ([policy](policy.html), R7).
+
+These records are conditional on recording policy. Source history must never turn a local utility with retention none into a durably logged operation (D11). No new provenance assertion is emitted by this amendment; any future write follows its format and publication policy.
+
+### Recorded, withheld and unobserved
 
 A receipt must never imply that it holds every private input (R15).
 

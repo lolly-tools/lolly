@@ -46,7 +46,7 @@ export const SPEC_SRC_DIR = resolve(__dirname, 'spec', 'document-model');
  * draft is dated: nothing here is normative, and a semantic version would imply a
  * promise the status chapter has not made yet.
  */
-export const SPEC_VERSION = 'draft-2026-09-24';
+export const SPEC_VERSION = 'draft-2026-10-15';
 
 /**
  * The date `index.json` reports as the draft's own. A wall clock would rewrite the

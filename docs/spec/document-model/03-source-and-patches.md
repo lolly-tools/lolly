@@ -132,6 +132,14 @@ Cycles in ownership are always invalid (R1). Value dependencies, resource depend
 
 The merge cases must be proved in both delivery orders and across a reconnect and a checkpoint (C2). The [proof cases](proof-cases.html) list them: the concurrent reparent, delete against reparent, two concurrent atomic choices, an invalid final operation in an envelope and two patches against one mutable head.
 
+## Campaign rows and content refresh
+
+A production matrix references authored instances and expands finite channel, size and locale coordinates; it is not another document root (R1, R4; plans 191, 314 and 315). Work owns any persisted campaign and scheduling. Each row needs stable identity independent of its queue position, plus explicit definition, content and resource bindings. Existing Batch already carries `uid` and a source-index mapping (`shells/web/src/pro/batch.ts`); neither mapping alone supplies a durable campaign revision.
+
+A content refresh is a revision-aware patch. Compare the old binding, incoming fields and local overrides; report conflicts and keep local edits until explicitly resolved. Releasing a template or refreshing reusable context must never silently migrate saved rows. The same declared field ownership and atomic-choice rules apply to locale values (R1).
+
+Preflight reports findings against the row and its input revision. Retrying selected failed rows must keep successful outputs and their evidence, and must not renumber identities or regenerate other locales. A changed row invalidates its dependent result; proof-set policy decides whether the changed membership also needs group review ([conformance](conformance.html)). This draft defines no campaign scheduler or matrix wire format.
+
 ## Component expansion and upgrade
 
 A component expands into rows at evaluation time. Expansion must be bounded by depth and by fan-out, and a recursive reference must be refused at validation with the path that reached it (R1). This chapter sets no numbers. The bounds must be declared by the implementation and refused at validation with a reason (R1). Two bounded paths exist already. `createRuntime` in `engine/src/runtime.ts` carries a compose stack into nested renders so a tool that embeds itself trips a cycle and depth guard instead of recursing. `validateDesignTool` in `packages/core/src/design-tool-v1.ts` refuses a draft over its artboard, layer, input and choice limits.
