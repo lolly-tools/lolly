@@ -1371,6 +1371,12 @@ background-image:
    file input inside is visually-hidden (focusable), so the label carries the ring. */
 .be-logo-addmark-pick:focus-within { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
 .be-logo-addmark.is-dragover { border-style: solid; border-color: hsl(var(--primary)); background: hsl(var(--primary) / .08); }
+/* While a file is over the form, the cue sits where the Choose file button was
+   (centred on its row: the form's padding plus half the height difference), so
+   it covers neither the name field nor the button's label. Opacity, not
+   visibility, so a picker holding the keyboard focus does not lose the focus. */
+.be-logo-addmark.is-dragover .be-logo-addmark-pick { opacity: 0; }
+.be-logo-addmark.is-dragover::after { inset-block-end: 1.15rem; }
 .be-logo-addidentity { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: 1.1rem; padding-top: 1.1rem; border-top: 1px solid hsl(var(--border) / .7); }
 .be-logo-addidentity input {
   flex: 1 1 16rem; min-width: 0; padding: .45rem .6rem; font: inherit; font-size: var(--fs-md);

@@ -178,7 +178,14 @@
   background: hsl(var(--primary) / 0.08);
   color: hsl(var(--foreground));
 }
+/* The tile is too small for the cue beside the "+" and "Add", so the cue takes
+   their place, centred. */
+.userimg-add.is-dragover .userimg-add-icon,
 .userimg-add.is-dragover .userimg-add-text { visibility: hidden; }
+.userimg-add.is-dragover::after {
+  inset-block: 0; margin-block: auto; height: fit-content;
+  max-width: calc(100% - .4rem); padding-inline: .35rem;
+}
 .userimg-add:disabled,
 .btn-danger:disabled{ opacity: 0.5; cursor: default; }
 .userimg-add-icon { font-size: calc(20px * var(--a11y-fs)); line-height: 1; font-weight: 300; }

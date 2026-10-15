@@ -62,6 +62,11 @@ test('hasVisibleFileDrop ignores hidden tiles', () => {
   const shown = document.createElement('div');
   shown.innerHTML = '<section hidden><label data-file-drop></label></section><label data-file-drop></label>';
   assert.equal(hasVisibleFileDrop(shown), true);
+  // A view can widen the search to a drop area of its own, such as an intake zone.
+  const intake = document.createElement('div');
+  intake.innerHTML = '<section hidden><label data-file-drop></label></section><div data-intake></div>';
+  assert.equal(hasVisibleFileDrop(intake), false);
+  assert.equal(hasVisibleFileDrop(intake, '[data-file-drop], [data-intake]'), true);
 });
 
 type Calls = { files: File[][]; refused: string[] };

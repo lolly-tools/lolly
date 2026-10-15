@@ -85,10 +85,11 @@ export function splitByAccept(files: File[], accept: string): { accepted: File[]
 /**
  * True when a drop tile inside `root` is rendered. A room that hides its tiles (a closed
  * fold, a hidden step) does not count, so a view can tell whether the pointer has a tile
- * to aim for. Without `checkVisibility` the `[hidden]` attribute is the only signal.
+ * to aim for. `selector` widens the search to a view's other drop areas, such as a room's
+ * own intake zone. Without `checkVisibility` the `[hidden]` attribute is the only signal.
  */
-export function hasVisibleFileDrop(root: ParentNode): boolean {
-  for (const el of root.querySelectorAll<HTMLElement>(TILE)) {
+export function hasVisibleFileDrop(root: ParentNode, selector = TILE): boolean {
+  for (const el of root.querySelectorAll<HTMLElement>(selector)) {
     if (el.checkVisibility?.() ?? !el.closest('[hidden]')) return true;
   }
   return false;
