@@ -47,10 +47,12 @@ serviceAccount:
 # NO server-side state (everything runs client-side; data lives in the browser's
 # IndexedDB), so replicas are freely interchangeable and it scales trivially.
 #
-# The brand/catalog is BAKED INTO THE IMAGE at build time (theme, tools/, and
-# catalog/ are resolved by `pnpm run build:web:release` - see deploy/docker/web.Dockerfile
-# --build-arg LOLLY_PROFILE). The running container reads nothing at serve time,
-# so there is NOTHING to mount here - no pack, no config, no secret.
+# The brand/catalog is BAKED INTO THE IMAGE: the signed frontend that
+# deploy/docker/web.Dockerfile packages was compiled for one content profile
+# (theme, tools/ and catalog/), and the image build refuses any other. The
+# running container reads nothing at serve time, so there is NOTHING to mount
+# here - no pack, no config, no secret. Model files are the one optional
+# read-only mount (/usr/share/nginx/html/models); see deploy/docker/README.md.
 web:
   enabled: true
 
@@ -58,13 +60,17 @@ web:
   replicaCount: 2
 
   image:
-    # REQUIRED: build and push the web image, then set this repository.
-    #   docker buildx build --load --no-cache-filter build -f deploy/docker/web.Dockerfile \
-    #     --build-arg LOLLY_PROFILE=suse \
-    #     --secret id=LOLLY_CATALOG_SIGNING_KEY,env=LOLLY_CATALOG_SIGNING_KEY \
-    #     --secret id=VITE_CATALOG_PUBLIC_KEY_JWK,env=VITE_CATALOG_PUBLIC_KEY_JWK \
-    #     -t <registry>/lolly-web:0.1.0 .
-    #   docker push <registry>/lolly-web:0.1.0
+    # Lolly releases from 1.1.1 publish the neutral (lolly-start) image here,
+    # signed and attested; set digest from the release's images.json. For another
+    # profile or signing key, package your own signed frontend instead. The
+    # image build receives no private key:
+    #   docker buildx build --load --no-cache-filter verify -f deploy/docker/web.Dockerfile \
+    #     --build-context "release-frontend=/approved/frontend" \
+    #     --build-arg "LOLLY_RELEASE_SOURCE=<reviewed-commit-sha>" \
+    #     --build-arg LOLLY_PROFILE=<profile> \
+    #     --build-arg "VITE_CATALOG_PUBLIC_KEY_JWK=$VITE_CATALOG_PUBLIC_KEY_JWK" \
+    #     -t <registry>/lolly-web:<release> .
+    # deploy/docker/README.md covers the signed frontend and verification.
     repository: ghcr.io/lolly-tools/lolly-web
     # Empty ⇒ use the chart's appVersion. digest takes precedence over tag.
     tag: ""
@@ -166,7 +172,9 @@ mcp:
     enabled: false
 
   image:
-    #   docker build -f deploy/docker/mcp.Dockerfile -t <registry>/lolly-mcp:0.1.0 .
+    # Published from 1.1.1 without a browser. For PNG, JPEG, PDF and video through
+    # Chromium, use ghcr.io/lolly-tools/lolly-mcp-browser and set webBase. To build:
+    #   docker build -f deploy/docker/mcp.Dockerfile -t <registry>/lolly-mcp:<release> .
     repository: ghcr.io/lolly-tools/lolly-mcp
     tag: ""
     # Optional immutable reference; takes precedence over tag.
@@ -201,8 +209,8 @@ mcp:
   tmp:
     sizeLimit: ""
 
-  # The MCP server has no unauthenticated GET health route, so probes use a TCP
-  # socket check - the port is open once the http server is listening.
+  # Liveness is a TCP socket check: the port is open once the http server is
+  # listening. Readiness uses /readyz, which turns 503 when the server drains.
   livenessProbe:
     tcpSocket:
       port: http
@@ -257,7 +265,8 @@ ca:
   replicaCount: 2
 
   image:
-    #   docker build -f deploy/docker/ca.Dockerfile -t <registry>/lolly-ca:0.1.0 .
+    # Published from 1.1.1; the CA carries no brand content. To build:
+    #   docker build -f deploy/docker/ca.Dockerfile -t <registry>/lolly-ca:<release> .
     repository: ghcr.io/lolly-tools/lolly-ca
     tag: ""
     # Optional immutable reference; takes precedence over tag.
