@@ -22,6 +22,7 @@ jobs:
     uses: ./.github/workflows/release-frontend.yml
     with:
       target: tauri-mobile
+      platform: ios
       public_key_jwk: ${{ vars.VITE_CATALOG_PUBLIC_KEY_JWK }}
       connector_origins: ${{ vars.VITE_CONNECTOR_ORIGINS }}
       ca_enrollment_trust_json: ${{ vars.VITE_CA_ENROLLMENT_TRUST_JSON }}

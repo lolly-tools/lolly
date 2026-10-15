@@ -21,9 +21,10 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { parse as parseYaml } from 'yaml';
 import {
-  REQUIRED_WEBGPU_TARGETS, REQUIRED_WEBGPU_WEB_TARGETS, SUPPORTED_ENVIRONMENTS_PATH, assertWebGpuReleaseAllowed, parseWebGpuReleaseScope,
-  supportedEnvironmentProblems, webGpuReleaseProblems, webGpuStartupGatePresent,
+  REQUIRED_WEBGPU_TARGETS, REQUIRED_WEBGPU_WEB_TARGETS, SUPPORTED_ENVIRONMENTS_PATH, WEBGPU_NATIVE_PLATFORMS, assertWebGpuReleaseAllowed,
+  parseWebGpuReleaseScope, supportedEnvironmentProblems, webGpuReleaseProblems, webGpuStartupGatePresent,
 } from '../scripts/webgpu-release-gate.ts';
+import { releaseGateScope } from '../scripts/build-release-web.ts';
 import { main as releaseChecklist } from '../scripts/release-checklist.ts';
 
 const COMPLETE = [
@@ -38,7 +39,10 @@ const COMPLETE = [
   '| Linux app (WebKitGTK) | Not supported | 2.50 | none | run 7 |',
   '| Android app (WebView) | Supported | 153 | Vulkan | run 8 |',
 ].join('\n');
-const WEB_QUALIFIED = COMPLETE.split('\n').map((row, index) => index >= 5 ? row.replace(/(?:Not supported(?:: no adapter)?|Supported)/, 'Pending: runtime not qualified') : row).join('\n');
+const pendingFrom = (first: number): string => COMPLETE.split('\n').map((row, index) => index >= first ? row.replace(/(?:Not supported(?:: no adapter)?|Supported)/, 'Pending: runtime not qualified') : row).join('\n');
+const WEB_QUALIFIED = pendingFrom(5);
+/** The browsers and the macOS app are published; the other packaged apps are pending. */
+const MAC_QUALIFIED = pendingFrom(6);
 
 /** A scratch tree with the shell's main.ts and, optionally, the published table. */
 function tree(mainSource: string, table?: string): string {
@@ -161,7 +165,9 @@ test('scope is explicit and closed, including an unknown scope when startup is u
   assert.equal(parseWebGpuReleaseScope([]), 'all');
   assert.equal(parseWebGpuReleaseScope(['--scope', 'all']), 'all');
   assert.equal(parseWebGpuReleaseScope(['--scope', 'web']), 'web');
-  for (const argv of [['--scope'], ['--scope', 'native'], ['--scope=web'], ['web'], ['--scope', 'web', '--scope', 'all']]) {
+  assert.deepEqual([...WEBGPU_NATIVE_PLATFORMS], ['macos', 'ios', 'android', 'linux', 'windows']);
+  for (const platform of WEBGPU_NATIVE_PLATFORMS) assert.equal(parseWebGpuReleaseScope(['--scope', platform]), platform);
+  for (const argv of [['--scope'], ['--scope', 'native'], ['--scope', 'darwin'], ['--scope', 'toString'], ['--scope=web'], ['web'], ['--scope', 'web', '--scope', 'all']]) {
     assert.throws(() => parseWebGpuReleaseScope(argv), /Release refused/);
   }
   const root = tree('void boot();\n');
@@ -188,6 +194,67 @@ test('the standalone gate keeps the full hold unless its exact CLI selects a qua
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
+test('each packaged app needs only its own row, and the default scope keeps every row', () => {
+  const rows: Record<string, string> = {
+    macos: 'macOS app (WKWebView)', ios: 'iOS and iPadOS app (WKWebView)', android: 'Android app (WebView)',
+    linux: 'Linux app (WebKitGTK)', windows: 'Windows app (WebView2)',
+  };
+  for (const platform of WEBGPU_NATIVE_PLATFORMS) {
+    assert.deepEqual(supportedEnvironmentProblems(COMPLETE, platform), [], `${platform} with every row published`);
+    assert.deepEqual(supportedEnvironmentProblems(MAC_QUALIFIED, platform).length, platform === 'macos' ? 0 : 1, platform);
+    const missing = COMPLETE.split('\n').filter((row) => !row.startsWith(`| ${rows[platform]} |`)).join('\n');
+    assert.deepEqual(supportedEnvironmentProblems(missing, platform), [`no row for ${rows[platform]}`]);
+  }
+  // A platform's own row is all it reads: the pending browsers of a web-only table do not hold a Mac package back.
+  const macOnly = MAC_QUALIFIED.replace('| Firefox | Not supported: no adapter |', '| Firefox | Pending |');
+  assert.deepEqual(supportedEnvironmentProblems(macOnly, 'macos'), []);
+  assert.equal(supportedEnvironmentProblems(MAC_QUALIFIED, 'all').length, 4);
+  const root = tree(GATED_MAIN, MAC_QUALIFIED);
+  try {
+    mkdirSync(join(root, 'scripts'));
+    copyFileSync(new URL('../scripts/webgpu-release-gate.ts', import.meta.url), join(root, 'scripts/webgpu-release-gate.ts'));
+    writeFileSync(join(root, 'package.json'), '{ "type": "module" }\n');
+    const run = (args: string[]) => spawnSync(process.execPath, [join(root, 'scripts/webgpu-release-gate.ts'), ...args], {
+      encoding: 'utf8', timeout: 10_000, env: { PATH: process.env.PATH, LOLLY_RELEASE_PLATFORM: 'macos' },
+    });
+    assert.equal(run([]).status, 1, 'an environment variable does not select a platform for the standalone gate');
+    const mac = run(['--scope', 'macos']);
+    assert.equal(mac.status, 0, mac.stderr);
+    assert.match(mac.stdout, /WebGPU release gate \(macos\).*1 required environments/);
+    for (const platform of ['ios', 'android', 'linux', 'windows']) {
+      const held = run(['--scope', platform]);
+      assert.equal(held.status, 1, platform);
+      assert.match(held.stderr, new RegExp(`${platform} artifact scope`));
+    }
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test('a frontend build takes its platform from Tauri or the workflow, and states none to keep the full hold', () => {
+  assert.equal(releaseGateScope('web', { TAURI_ENV_PLATFORM: 'ios' }), 'web');
+  assert.equal(releaseGateScope('tauri-desktop', {}, 'darwin'), 'all');
+  assert.equal(releaseGateScope('tauri-mobile', {}, 'darwin'), 'all');
+  assert.equal(releaseGateScope('tauri-desktop', { TAURI_ENV_PLATFORM: 'darwin' }, 'darwin'), 'macos');
+  assert.equal(releaseGateScope('tauri-desktop', { TAURI_ENV_PLATFORM: 'linux' }, 'linux'), 'linux');
+  assert.equal(releaseGateScope('tauri-desktop', { TAURI_ENV_PLATFORM: 'windows' }, 'win32'), 'windows');
+  assert.equal(releaseGateScope('tauri-mobile', { TAURI_ENV_PLATFORM: 'ios' }, 'darwin'), 'ios');
+  assert.equal(releaseGateScope('tauri-mobile', { TAURI_ENV_PLATFORM: 'android' }, 'linux'), 'android');
+  // A workflow that compiles before Tauri runs states the platform, on any machine.
+  assert.equal(releaseGateScope('tauri-desktop', { LOLLY_RELEASE_PLATFORM: 'macos' }, 'linux'), 'macos');
+  assert.equal(releaseGateScope('tauri-mobile', { LOLLY_RELEASE_PLATFORM: 'ios' }, 'linux'), 'ios');
+  assert.equal(releaseGateScope('tauri-desktop', { TAURI_ENV_PLATFORM: 'darwin', LOLLY_RELEASE_PLATFORM: 'macos' }, 'darwin'), 'macos');
+  assert.equal(releaseGateScope('tauri-desktop', { LOLLY_RELEASE_PLATFORM: '' }, 'darwin'), 'all');
+  const refusals: [Parameters<typeof releaseGateScope>, RegExp][] = [
+    [['tauri-desktop', { TAURI_ENV_PLATFORM: 'darwin', LOLLY_RELEASE_PLATFORM: 'linux' }, 'darwin'], /LOLLY_RELEASE_PLATFORM is linux, but Tauri is building for macos/],
+    [['tauri-desktop', { TAURI_ENV_PLATFORM: 'darwin' }, 'linux'], /a macos package on a linux machine/],
+    [['tauri-desktop', { TAURI_ENV_PLATFORM: 'ios' }, 'darwin'], /tauri-desktop is not built for ios/],
+    [['tauri-mobile', { LOLLY_RELEASE_PLATFORM: 'macos' }, 'darwin'], /tauri-mobile is not built for macos/],
+    [['tauri-desktop', { TAURI_ENV_PLATFORM: 'beos' }, 'darwin'], /unknown TAURI_ENV_PLATFORM/],
+    [['tauri-desktop', { LOLLY_RELEASE_PLATFORM: 'all' }, 'darwin'], /unknown LOLLY_RELEASE_PLATFORM/],
+    [['tauri-desktop', { TAURI_ENV_PLATFORM: 'toString' }, 'darwin'], /unknown TAURI_ENV_PLATFORM/],
+  ];
+  for (const [args, message] of refusals) assert.throws(() => releaseGateScope(...args), message);
+});
+
 test('ordinary CI keeps passing release-checklist --check; release mode refuses until the table exists', () => {
   const quiet = console.error;
   console.error = () => {};
@@ -202,8 +269,10 @@ test('ordinary CI keeps passing release-checklist --check; release mode refuses 
   }
 });
 
-test('the published Mac browser matrix permits web artifacts and keeps the remaining native qualification hold', () => {
+test('the published Mac matrix permits web and Mac artifacts and keeps the other native apps held', () => {
   assert.deepEqual(webGpuReleaseProblems(undefined, 'web'), []);
+  assert.deepEqual(webGpuReleaseProblems(undefined, 'macos'), []);
+  for (const platform of ['ios', 'android', 'linux', 'windows'] as const) assert.equal(webGpuReleaseProblems(undefined, platform).length, 1, platform);
   const problems = webGpuReleaseProblems();
   assert.equal(problems.length, 4);
   for (const environment of ['iOS and iPadOS', 'Windows', 'Linux', 'Android']) {
@@ -473,7 +542,7 @@ test('the web shell and every Tauri app build still go through the gate', () => 
   const wrapper = repoFile('scripts/build-release-web.ts');
   const main = wrapper.slice(wrapper.indexOf('export async function main(): Promise<void> {'));
   const body = main.slice(0, main.indexOf('\n}\n'));
-  const asked = body.indexOf("  assertWebGpuReleaseAllowed(ROOT, target === 'web' ? 'web' : 'all');");
+  const asked = body.indexOf('  assertWebGpuReleaseAllowed(ROOT, releaseGateScope(target));');
   assert.ok(asked > 0 && asked < body.indexOf('validateReleaseEnvironment(') && asked < body.indexOf('sign(env)'));
   for (const [shell, root] of [['tauri-desktop', 'build:desktop:frontend:release'], ['tauri-mobile', 'build:mobile:frontend:release']] as const) {
     const config = JSON.parse(repoFile(`shells/${shell}/src-tauri/tauri.conf.json`)) as { build: { beforeBuildCommand: string } };
@@ -483,8 +552,23 @@ test('the web shell and every Tauri app build still go through the gate', () => 
   // A version tag refuses early in the two Linux workflows that build on tags.
   for (const file of ['flatpak.yml', 'linux-arm64.yml']) {
     const steps = Object.values(workflowJobs(file)).flatMap((job) => job.steps ?? []);
-    assert.ok(steps.some((step) => step.run?.trim() === GATE_STEP && /startsWith\(github\.ref, 'refs\/tags\/v'\)/.test(step.if ?? '')), file);
+    assert.ok(steps.some((step) => step.run?.trim() === `${GATE_STEP} --scope linux` && /startsWith\(github\.ref, 'refs\/tags\/v'\)/.test(step.if ?? '')), file);
   }
+  // Each packaging workflow asks for the frontend of the one platform it packages, and the
+  // RPM job, which runs the wrapper outside tauri build, states that platform too.
+  const platforms: Record<string, string> = {
+    'flatpak.yml': 'linux', 'linux-arm64.yml': 'linux', 'linux-rpm.yml': 'linux',
+    'desktop-extra.yml': 'windows', 'macos-intel.yml': 'macos', 'ios-release.yml': 'ios',
+  };
+  for (const [file, platform] of Object.entries(platforms)) {
+    const callers = Object.values(workflowJobs(file)).filter((job) => (job as { uses?: string }).uses === './.github/workflows/release-frontend.yml');
+    assert.equal(callers.length, 1, file);
+    assert.equal((callers[0] as { with?: Record<string, unknown> }).with?.platform, platform, file);
+  }
+  assert.equal(workflowJobs('linux-rpm.yml').build?.env?.LOLLY_RELEASE_PLATFORM, 'linux');
+  const frontend = repoFile('.github/workflows/release-frontend.yml');
+  assert.match(frontend, /LOLLY_RELEASE_PLATFORM: \$\{\{ inputs\.platform \}\}/);
+  assert.match(frontend, /releaseGateScope\(parseReleaseFrontend\(process\.env\.FRONTEND_TARGET\)\)[\s\S]*node scripts\/webgpu-release-gate\.ts --scope "\$scope"/);
   // Each packaging workflow builds the app through tauri (whose beforeBuildCommand is
   // the wrapper) or runs the wrapper itself, and none empties beforeBuildCommand.
   for (const file of ['flatpak.yml', 'linux-arm64.yml', 'linux-rpm.yml', 'desktop-extra.yml', 'macos-intel.yml', 'ios-release.yml']) {
