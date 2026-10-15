@@ -325,12 +325,13 @@ const clamp01v = (v: number): number => (v < 0 ? 0 : v > 1 ? 1 : v);
 /**
  * The live accent the app is currently wearing, as hex.
  *
- * Prefers `--brand-primary` (set by brand-vars.ts when the brand declares a semantic
- * primary slot) and falls back to the theme's `--primary`, which every Lolly theme
- * defines as an `h s% l%` triplet. This is the most honest available answer to "what
- * colour is this brand", and notably it's the ONLY one that works for SUSE, whose
- * catalog declares no semantic slots at all - so there's no primary token to read,
- * but the theme still says Pine Green.
+ * Reads the theme's `--primary` first, then `--brand-primary` (the note in
+ * liveAccentHex gives the reason for that order). Every Lolly theme defines `--primary`
+ * as an `h s% l%` triplet, and brand-vars.ts re-points it per theme from the pack's
+ * semantic primary, so this is the most honest available answer to "what colour is
+ * this brand". For SUSE that is Pine in light and Jungle in dark and brand, whether it
+ * comes from the pack's semantic slots or, with "Interface follows the design system"
+ * off, from the static tokens.css themes.
  */
 /** The live brand accent, exported so scheme derivation can lead with the brand's own
  *  family rather than whichever pairing merely scores highest. */
@@ -450,7 +451,7 @@ let cached: Promise<VizPalette> | null = null;
 /**
  * The session's visualizer palette - derived from the loaded brand's tokens once,
  * then cached; a design-system switch calls invalidateVizPalette (plans/186
- * section 3.4). A tokenless host resolves to the SUSE-shaped fallback immediately.
+ * section 3.4). A tokenless host builds from the neutral fallback anchors immediately.
  */
 export function vizPalette(host?: VizPaletteHost): Promise<VizPalette> {
   const accent = liveAccentHex();

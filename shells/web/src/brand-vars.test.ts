@@ -7,6 +7,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { hexToHslTriple, chromeBrandCss, brandThemeCss, brandFontStack, brandRadiusValue, brandSpaceValue, brandMarkHue, brandMarkPrimary, lollyMarkCss, highContrastAccent, apcaLcAbs, HC_TARGET_LC, uiTokenCssValue, contrastText } from './brand-vars.ts';
 import { apcaContrast } from '../../../engine/src/color-tools.ts';
 import { hexToOklch } from '../../../engine/src/brand-derive.ts';
@@ -136,6 +137,37 @@ test('brandThemeCss constructs the full mid-toned chrome from the two primaries'
   const neutral = brandThemeCss('#0e1217', '#f3f5f8');
   const sats = [...neutral.matchAll(/--(?:background|card|muted|border): [\d.]+ ([\d.]+)%/g)].map(m => parseFloat(m[1]!));
   assert.ok(sats.length >= 4 && sats.every(s => s < 20), `neutral brand stays near-grey (${sats.join(', ')})`);
+});
+
+test('brandThemeCss re-emits every storage stop, so no static SUSE green shows through', () => {
+  // The constructed block overrides only the properties it states. A --store-N
+  // that the static [data-theme="brand"] block in tokens.css declares and this
+  // one skips keeps its SUSE green under every brand: --store-5 did, which
+  // painted pins, file history and Lottie clips green in the blank brand.
+  const tokensCss = readFileSync(new URL('./styles/tokens.css', import.meta.url), 'utf8')
+    .replace(/\/\*[\s\S]*?\*\//g, '');
+  const staticStores = [...tokensCss.matchAll(/\n\[data-theme="brand"\] \{([^}]*)\}/g)]
+    .flatMap(m => [...m[1]!.matchAll(/--(store-[\w-]+):/g)].map(d => d[1]!));
+  assert.ok(staticStores.includes('store-5'), `static brand stops: ${staticStores.join(', ')}`);
+  const triple = (css: string, name: string) => {
+    const m = new RegExp(`--${name}: ([\\d.]+) ([\\d.]+)% ([\\d.]+)%;`).exec(css);
+    assert.ok(m, `constructs --${name}`);
+    return { h: parseFloat(m[1]!), s: parseFloat(m[2]!), l: parseFloat(m[3]!) };
+  };
+  // SUSE, the blank starter (ink and paper) and a purple brand.
+  for (const [light, dark] of [['#0c322c', '#30ba78'], ['#1d1d1d', '#ffffff'], ['#7b3fe4', '#a678ff']]) {
+    const css = brandThemeCss(light!, dark!);
+    for (const name of staticStores) triple(css, name);
+    // --store-5 is the ramp's next stop: lighter than --store-4, at the same hue.
+    const s4 = triple(css, 'store-4');
+    const s5 = triple(css, 'store-5');
+    assert.ok(s5.l > s4.l, `${light}/${dark}: --store-5 (${s5.l}%) is lighter than --store-4 (${s4.l}%)`);
+    const dh = Math.abs(s5.h - s4.h) % 360;
+    assert.ok(Math.min(dh, 360 - dh) < 5, `${light}/${dark}: --store-5 keeps the ramp's hue (${s4.h} → ${s5.h})`);
+  }
+  // The blank brand's stop stays in its own near-grey, not the static 132 60% 79%.
+  const blank = triple(brandThemeCss('#1d1d1d', '#ffffff'), 'store-5');
+  assert.ok(blank.s < 10, `blank --store-5 stays near-grey (${blank.s}%)`);
 });
 
 test('an unresolvable primary yields no block; both missing yields empty css', () => {

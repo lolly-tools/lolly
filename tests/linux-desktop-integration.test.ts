@@ -43,6 +43,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { zipSync, strToU8 } from 'fflate';
+import { webGpuReleaseProblems } from '../scripts/webgpu-release-gate.ts';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DESKTOP_SHELL = path.join(ROOT, 'shells/tauri-desktop');
@@ -975,6 +976,12 @@ test('aur: PKGBUILD pkgver matches tauri.conf.json version', (t) => {
   const pkgver = pb.vars.get('pkgver')?.values[0];
   const appVersion = (JSON.parse(readFileSync(TAURI_CONF, 'utf8')) as { version?: string }).version;
   assert.ok(appVersion, 'tauri.conf.json has no version field - the drift anchor moved; update this test');
+  // Each packaged app is released only once its own WebGPU row is published
+  // (scripts/webgpu-release-gate.ts). While the Linux app is held, no DEB exists for a
+  // newer version, so the recipe stays on the last Linux release.
+  if (pkgver !== appVersion && webGpuReleaseProblems(ROOT, 'linux').length) {
+    return t.skip('the Linux app is held by the WebGPU release gate, so the recipe stays on the last Linux release');
+  }
   // The recipe may trail a release by hours, never silently by a version. If this
   // fails right after a version bump, that is BY DESIGN - it is the reminder to do
   // the AUR ritual, spelled out in the message below.

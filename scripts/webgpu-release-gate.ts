@@ -7,14 +7,17 @@
  * The web shell will not start without a usable WebGPU adapter and device. Main may
  * carry that requirement; running instances retain their reviewed release pins.
  * The 2026-10-09 decision allows qualified web-only artifacts while native releases
- * remain held. The default scope still requires every browser and packaged target;
- * only a caller producing a web artifact may explicitly select the web scope.
+ * remain held. The 2026-10-15 decision gates each packaged app on its own platform's row:
+ * a Mac package needs the macOS app result, an Android package the Android app result,
+ * and so on. The default scope still requires every browser and packaged target; a
+ * caller producing one web or platform artifact selects that scope explicitly.
  * Each required result must be published in docs/supported-environments.md.
  * Ordinary CI never runs this check. A release does:
  *
  *   pnpm run check:release                       # the release checklist in release mode
  *   node scripts/webgpu-release-gate.ts          # every frontend target (default)
  *   node scripts/webgpu-release-gate.ts --scope web  # web artifacts only
+ *   node scripts/webgpu-release-gate.ts --scope macos  # one packaged app: macos, ios, android, linux or windows
  *
  * and so do the release tools that publish: scripts/build-release-web.ts (signed web,
  * desktop and mobile frontends, including the web container), scripts/yunohost-release.ts
@@ -84,21 +87,39 @@ export const REQUIRED_WEBGPU_TARGETS: readonly WebGpuTarget[] = [
   exactly('Android app (WebView)'),
 ];
 
-export type WebGpuReleaseScope = 'all' | 'web';
-/** Web artifacts need the browser rows; packaged artifacts retain the full hold. */
+/** A packaged app's platform. Each one's packages need only that platform's row. */
+export type WebGpuNativePlatform = 'macos' | 'ios' | 'android' | 'linux' | 'windows';
+export type WebGpuReleaseScope = 'all' | 'web' | WebGpuNativePlatform;
+/** Web artifacts need the browser rows; the default scope retains the full hold. */
 export const REQUIRED_WEBGPU_WEB_TARGETS: readonly WebGpuTarget[] = REQUIRED_WEBGPU_TARGETS.slice(0, 3);
+
+/** The row each platform's packages need (Andy, 2026-10-15: gate per app). */
+const PLATFORM_ENVIRONMENT: Readonly<Record<WebGpuNativePlatform, string>> = {
+  macos: 'macOS app (WKWebView)',
+  ios: 'iOS and iPadOS app (WKWebView)',
+  android: 'Android app (WebView)',
+  linux: 'Linux app (WebKitGTK)',
+  windows: 'Windows app (WebView2)',
+};
+export const WEBGPU_NATIVE_PLATFORMS = Object.keys(PLATFORM_ENVIRONMENT) as readonly WebGpuNativePlatform[];
+const SCOPES: readonly string[] = ['all', 'web', ...WEBGPU_NATIVE_PLATFORMS];
+
+export function isWebGpuNativePlatform(value: string): value is WebGpuNativePlatform {
+  return Object.hasOwn(PLATFORM_ENVIRONMENT, value);
+}
 
 function targetsForScope(scope: WebGpuReleaseScope): readonly WebGpuTarget[] {
   if (scope === 'all') return REQUIRED_WEBGPU_TARGETS;
   if (scope === 'web') return REQUIRED_WEBGPU_WEB_TARGETS;
-  throw new Error('Release refused: unknown WebGPU release scope (expected all or web).');
+  if (isWebGpuNativePlatform(scope)) return REQUIRED_WEBGPU_TARGETS.filter((target) => target.name === PLATFORM_ENVIRONMENT[scope]);
+  throw new Error(`Release refused: unknown WebGPU release scope (expected ${SCOPES.join(', ')}).`);
 }
 
 /** An explicit CLI artifact scope; omitted arguments retain the full frontend hold. */
 export function parseWebGpuReleaseScope(argv: readonly string[]): WebGpuReleaseScope {
   if (!argv.length) return 'all';
-  if (argv.length === 2 && argv[0] === '--scope' && (argv[1] === 'all' || argv[1] === 'web')) return argv[1];
-  throw new Error('Release refused: use no arguments or --scope all / --scope web.');
+  if (argv.length === 2 && argv[0] === '--scope' && SCOPES.includes(argv[1]!)) return argv[1] as WebGpuReleaseScope;
+  throw new Error(`Release refused: use no arguments or --scope with one of ${SCOPES.join(', ')}.`);
 }
 
 /** Whether the web shell's boot still makes WebGPU a startup requirement. */
