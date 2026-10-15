@@ -1552,19 +1552,19 @@
     },
     {
       "file": "deck-studio.look0.svg",
-      "bytes": 16670,
-      "sha": "3cb13360ac3b6d07",
-      "stddev": 12.396,
-      "inkRatio": 0.50583,
+      "bytes": 16628,
+      "sha": "d58ec5c840e11bd6",
+      "stddev": 12.422,
+      "inkRatio": 0.50578,
       "ground": "white",
       "grounds": {
         "white": {
-          "stddev": 12.396,
-          "inkRatio": 0.50583
+          "stddev": 12.422,
+          "inkRatio": 0.50578
         },
         "black": {
-          "stddev": 12.279,
-          "inkRatio": 0.50198
+          "stddev": 12.306,
+          "inkRatio": 0.50193
         }
       },
       "blank": false,
@@ -1572,19 +1572,19 @@
     },
     {
       "file": "deck-studio.look1.svg",
-      "bytes": 17157,
-      "sha": "b68e3c80412d397d",
-      "stddev": 15.642,
-      "inkRatio": 0.51774,
+      "bytes": 17119,
+      "sha": "5fb215a8ac8684c6",
+      "stddev": 15.663,
+      "inkRatio": 0.51763,
       "ground": "white",
       "grounds": {
         "white": {
-          "stddev": 15.642,
-          "inkRatio": 0.51774
+          "stddev": 15.663,
+          "inkRatio": 0.51763
         },
         "black": {
-          "stddev": 15.547,
-          "inkRatio": 0.51432
+          "stddev": 15.568,
+          "inkRatio": 0.51421
         }
       },
       "blank": false,
@@ -1592,18 +1592,18 @@
     },
     {
       "file": "deck-studio.look2.svg",
-      "bytes": 16985,
-      "sha": "71e93c749f5ef1ed",
-      "stddev": 14.552,
+      "bytes": 16943,
+      "sha": "e97ee1286a55b0c5",
+      "stddev": 14.599,
       "inkRatio": 0.04381,
       "ground": "white",
       "grounds": {
         "white": {
-          "stddev": 14.552,
+          "stddev": 14.599,
           "inkRatio": 0.04381
         },
         "black": {
-          "stddev": 14.466,
+          "stddev": 14.513,
           "inkRatio": 0.04381
         }
       },
@@ -1612,19 +1612,19 @@
     },
     {
       "file": "deck-studio.svg",
-      "bytes": 16796,
-      "sha": "1a7fe3177b8c0b65",
-      "stddev": 13.156,
-      "inkRatio": 0.50027,
+      "bytes": 16758,
+      "sha": "af3fdee460a01c83",
+      "stddev": 13.181,
+      "inkRatio": 0.50022,
       "ground": "white",
       "grounds": {
         "white": {
-          "stddev": 13.156,
-          "inkRatio": 0.50027
+          "stddev": 13.181,
+          "inkRatio": 0.50022
         },
         "black": {
-          "stddev": 13.048,
-          "inkRatio": 0.49642
+          "stddev": 13.074,
+          "inkRatio": 0.49637
         }
       },
       "blank": false,
