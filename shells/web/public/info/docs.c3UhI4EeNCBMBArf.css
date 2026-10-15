@@ -719,6 +719,12 @@ strong{font-weight:600}
   .site-fab:active,
   .docs-top-btn:active { transform: none; }
 }
+/* The app's Reduce motion switch, for both readers: /info never loads base.css, and
+   base.css's own block shortens animations but leaves transitions and the press. */
+html[data-a11y-motion="reduce"] .site-fab,
+html[data-a11y-motion="reduce"] .docs-top-btn { transition: none; }
+html[data-a11y-motion="reduce"] .site-fab:active,
+html[data-a11y-motion="reduce"] .docs-top-btn:active { transform: none; }
 
 /* ── Pathways strip ─────────────────────────────────────────────────────────
    Text tabs. The current section takes the full-strength text colour, its weight
@@ -903,7 +909,13 @@ html[data-a11y-motion="reduce"] .footer-sitemap .sitemap-chevron { transition: n
    hero is on screen the bar's copy steps aside; it returns once the hero's buttons
    have passed under the bar (NAV_SOLID_JS adds .site-bar--past-hero). */
 .site-bar--over-hero:not(.site-bar--past-hero)>.site-launch{display:none}
+/* Each reduced-motion rule in this site stylesheet comes twice, like the landing's:
+   under the OS query, and as an html[data-a11y-motion="reduce"] twin for the app's
+   Reduce motion switch, which THEME_INIT_SCRIPT carries onto these pages from the
+   app's saved copy. A motion that only runs under no-preference is stopped by a twin
+   of its own. tests/docs-site-motion.test.ts fails on a rule with one form only. */
 @media(prefers-reduced-motion:reduce){.site-bar::before{transition:none}}
+html[data-a11y-motion="reduce"] .site-bar::before{transition:none}
 /* Skip to content: the app's skip link (base.css .skip-link), hidden with a clip
    until it takes focus, then pinned to the start corner above the bar. Its fill is
    the primary, from buttons.css's alias list. It targets the page's <main>. */
@@ -915,6 +927,7 @@ main[tabindex="-1"]:focus{outline:none}
 /* On-page quick nav - a sticky jump bar under the top bar, on the landing only. */
 html{scroll-behavior:smooth}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+html[data-a11y-motion="reduce"]{scroll-behavior:auto}
 section[id]{scroll-margin-top:calc(var(--site-bar-h) + 2.65rem)}
 /* Home: the app's back pill (components.css .tools-home) in the shared glass
    (buttons.css .btn--glass), holding the app's mark, the name and, on English
@@ -951,6 +964,7 @@ section[id]{scroll-margin-top:calc(var(--site-bar-h) + 2.65rem)}
 .lang-menu{position:fixed;z-index:120;box-sizing:border-box;width:min(272px,calc(100vw - 16px));max-height:70vh;overflow:hidden;padding:6px;display:flex;flex-direction:column;gap:2px;background:var(--ui-color-surface-raised);color:var(--ui-color-text-default);border:1px solid var(--ui-color-border-default);border-radius:var(--ui-radius-card);box-shadow:var(--ui-elevation-floating)}
 .lang-menu[hidden]{display:none}
 @media(prefers-reduced-motion:no-preference){.lang-menu:not([hidden]){animation:site-pop-in var(--ui-motion-overlay) var(--ui-motion-standard) both}}
+html[data-a11y-motion="reduce"] .lang-menu:not([hidden]){animation:none}
 @keyframes site-pop-in{from{opacity:0;transform:translateY(-6px) scale(.98)}to{opacity:1;transform:none}}
 .lang-sort-tabs{display:flex;gap:2px;padding:3px;margin-bottom:4px;flex:none;background:color-mix(in srgb,var(--ui-color-surface-muted) 50%,transparent);border-radius:var(--ui-radius-pill)}
 .lang-sort-tab{flex:1 1 auto;white-space:nowrap;padding:4px 8px;border:0;cursor:pointer;background:transparent;color:var(--ui-color-text-muted);font-family:var(--font-mono);font-size:calc(10.5px * var(--a11y-fs));letter-spacing:.04em;border-radius:var(--ui-radius-pill);transition:background var(--ui-motion-feedback),color var(--ui-motion-feedback)}
@@ -985,6 +999,7 @@ section[id]{scroll-margin-top:calc(var(--site-bar-h) + 2.65rem)}
    (WCAG technique C43), so keyboard focus is never drawn under it. */
 .site-sheet{position:absolute;inset-inline-end:0;top:calc(100% + var(--sp-5));z-index:110;box-sizing:border-box;width:min(340px,calc(100vw - 24px));max-height:calc(100vh - var(--site-bar-h) - 16px);max-height:calc(100dvh - var(--site-bar-h) - 16px);overflow-y:auto;overscroll-behavior:contain;scroll-padding-block-end:calc(var(--chrome-h) + 1.5rem);padding:8px;display:flex;flex-direction:column;gap:4px;background:var(--ui-color-surface-raised);color:var(--ui-color-text-default);border:1px solid var(--ui-color-border-default);border-radius:var(--ui-radius-card);box-shadow:var(--ui-elevation-floating)}
 @media(prefers-reduced-motion:no-preference){.site-menu[open] .site-sheet{animation:site-pop-in var(--ui-motion-overlay) var(--ui-motion-standard) both;transform-origin:top right}[dir="rtl"] .site-menu[open] .site-sheet{transform-origin:top left}}
+html[data-a11y-motion="reduce"] .site-menu[open] .site-sheet{animation:none}
 .site-sheet .profile-menu-theme{display:flex;gap:2px;padding:3px;margin-bottom:4px;border:1px solid var(--ui-color-border-default);border-radius:var(--ui-radius-pill);background:color-mix(in srgb,var(--ui-color-surface-muted) 50%,transparent)}
 .site-sheet .profile-menu-seg{flex:1;display:flex;align-items:center;justify-content:center;padding:8px 6px;border:0;border-radius:var(--ui-radius-pill);background:transparent;color:var(--ui-color-text-muted);font:inherit;line-height:1.2;cursor:pointer;transition:background var(--ui-motion-feedback),color var(--ui-motion-feedback)}
 .site-sheet .profile-menu-seg svg{width:calc(18px * var(--a11y-fs));height:calc(18px * var(--a11y-fs))}
@@ -3178,6 +3193,7 @@ button.shot-cred-copy{border:0;background:none;padding:.1em .35em;font:inherit;f
 [data-theme="dark"] .shot-cred-line{background:hsl(var(--popover) / 0.93);box-shadow:0 2px 10px #0007, inset 0 0 0 1px hsl(var(--border))}
 [data-theme="dark"] .shot-cred-do:hover{background:hsl(var(--foreground) / 0.08)}
 @media(prefers-reduced-motion:reduce){.shot-cred-line{transition:none;transform:none}}
+html[data-a11y-motion="reduce"] .shot-cred-line{transition:none;transform:none}
 /* Narrow columns: the line stacks above the glyph instead of beside it. The box
    stays anchored to the inline-END corner only and grows toward inline-start, the
    side a page never scrolls to (left in LTR, right in RTL). Pinning the start edge
@@ -3241,6 +3257,9 @@ button.shot-cred-copy{border:0;background:none;padding:.1em .35em;font:inherit;f
   .showcase-art{filter:none}
   .showcase-art [data-sc-i]{opacity:1}
 }
+html[data-a11y-motion="reduce"] .showcase{--p:1 !important}
+html[data-a11y-motion="reduce"] .showcase-art{filter:none}
+html[data-a11y-motion="reduce"] .showcase-art [data-sc-i]{opacity:1}
 
 /* ── Theme twin: two committed files, one shown ────────────────────────────
    A "dark=1" recipe ships a second baseline captured with the app pinned dark, and
@@ -3338,6 +3357,7 @@ button.shot-cred-copy{border:0;background:none;padding:.1em .35em;font:inherit;f
 .doc-jump-nav a:hover{background:#30ba7818;color:var(--green);text-decoration:none}
 .doc-jump-top{margin-top:.25rem;border-top:1px solid var(--border);padding-top:.45rem;color:var(--muted)}
 @media(prefers-reduced-motion:reduce){.doc-jump-btn{transition:none}}
+html[data-a11y-motion="reduce"] .doc-jump-btn{transition:none}
 @media print{.doc-jump{display:none}}
 .docs-content h1{font-size:3rem;color:var(--dark);line-height:1.15;margin-bottom:2rem;padding-bottom:2rem;border-bottom:1px solid var(--border); font-weight:300;}
 

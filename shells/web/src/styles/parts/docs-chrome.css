@@ -62,6 +62,12 @@
   .site-fab:active,
   .docs-top-btn:active { transform: none; }
 }
+/* The app's Reduce motion switch, for both readers: /info never loads base.css, and
+   base.css's own block shortens animations but leaves transitions and the press. */
+html[data-a11y-motion="reduce"] .site-fab,
+html[data-a11y-motion="reduce"] .docs-top-btn { transition: none; }
+html[data-a11y-motion="reduce"] .site-fab:active,
+html[data-a11y-motion="reduce"] .docs-top-btn:active { transform: none; }
 
 /* ── Pathways strip ─────────────────────────────────────────────────────────
    Text tabs. The current section takes the full-strength text colour, its weight
