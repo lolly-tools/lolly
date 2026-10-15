@@ -9,8 +9,8 @@
   "assets": [
     {
       "id": "lolly/tokens/opal",
-      "name": "Opal",
-      "description": "Opal, Lolly's own design system: treats and nature. Named colours (Spearmint, Green Apple, Liquorice, Honey, Reef and the rest), the chart spectrum, light and dark semantic slots with the slide roles, Outfit headings with SUSE and SUSE Mono, and Lolly's marks in the logo slots.",
+      "name": "Lolly Demo",
+      "description": "Lolly Demo, Lolly's own design system, coloured with the Opal palette of treats and nature. Named colours (Spearmint, Green Apple, Liquorice, Honey, Reef and the rest), the chart spectrum, light and dark semantic slots with the slide roles, Outfit headings with SUSE and SUSE Mono, and Lolly's marks in the logo slots.",
       "type": "tokens",
       "version": "1.0.0",
       "tier": "core",
@@ -24,8 +24,8 @@
         {
           "format": "json",
           "url": "/catalog/assets/lolly/tokens/opal.json",
-          "checksum": "sha256-6fFvMNMBj0crneUAqP3ho4FQbfgq0pD3CF7nNAkWv5Q=",
-          "size": 33679
+          "checksum": "sha256-2mAoITXexQs5mX4ZIqzCN7XEG2FosNjcpTmHLXoF8vM=",
+          "size": 33706
         }
       ]
     },

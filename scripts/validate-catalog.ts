@@ -968,10 +968,10 @@ const RASTER_PREVIEWS: Record<string, string> = {
  * Changes to the list above for a pack whose previews were captured on their own.
  *
  * The shared list stays true of suse and lolly-start, which were measured together.
- * lolly-demo's previews were captured on 15 Oct 2026 from Opal's own content with the
+ * lolly-demo's previews were captured on 15 Oct 2026 from Lolly Demo's own content with the
  * current generator, which encodes a raster as WebP where the older captures wrapped
  * it in an <svg>. Some of this pack's files differ from lolly-start's in spelling and
- * a few in kind: prompt-card's traced illustration is lolly-start content, and Opal's
+ * a few in kind: prompt-card's traced illustration is lolly-start content, and Lolly Demo's
  * card is plain text. `drop` takes a shared entry off that pack's list and says why it does not hold
  * there; `add` gives the pack's own rasters their reasons, measured on its files. The
  * both-ways checks run on the result, and a `drop` naming no shared entry fails.
@@ -986,7 +986,7 @@ const RASTER_PREVIEW_CHANGES: Record<string, { drop: Record<string, string>; add
         'The Neural drift capture keeps real markup here: its one <image> is 46% of the file, under the 60% line.',
       'frame.look2.svg':
         'No capture ships: the composed Synth render did not draw in the headless capture, so the gallery renders this look live.',
-      'prompt-card.webp': "Opal ships no generated illustration, so this pack's prompt card is plain text and stays SVG.",
+      'prompt-card.webp': "Lolly Demo ships no generated illustration, so this pack's prompt card is plain text and stays SVG.",
     },
     add: {
       '3d-studio.webp':

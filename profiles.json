@@ -16,7 +16,7 @@
       "catalog": "brands/lolly-start/catalog"
     },
     "lolly-demo": {
-      "label": "Lolly Demo (Opal)",
+      "label": "Lolly Demo",
       "tools": ["community", "brands/lolly-demo/tools"],
       "assets": ["community/emoji-packs"],
       "catalog": "brands/lolly-demo/catalog"

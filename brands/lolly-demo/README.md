@@ -1,7 +1,8 @@
-# brands/lolly-demo - Lolly's own demo brand, wearing Opal
+# brands/lolly-demo - Lolly Demo, Lolly's own demo brand
 
-`lolly-demo` is the full Lolly demo brand: Lolly dressed in **Opal**, its first
-design system, for first use and testing. `lolly-start` stays what it is, the
+`lolly-demo` is the full Lolly demo brand: **Lolly Demo**, Lolly's first design
+system, coloured with the **Opal** palette, for first use and testing.
+`lolly-start` stays what it is, the
 neutral blank for starting a design system, and stays the profile a public clone
 falls back to (it comes first in `profiles.json`, so the resolver reaches it
 before this one).
@@ -19,8 +20,9 @@ deployment handoff with one named owner.
 
 ## What's in the pack
 
-- **Opal** (`catalog/assets/lolly/tokens/opal.json`, asset id
-  `lolly/tokens/opal`). A layered DTCG document in the starter's shape: a shared
+- **The Lolly Demo design system** (`catalog/assets/lolly/tokens/opal.json`;
+  the asset id `lolly/tokens/opal` follows the palette's name). A layered DTCG
+  document in the starter's shape: a shared
   `base` set with Opal's named colours, the chart spectrum, the faces and the
   logo slots, plus `light` and `dark` sets with the seven semantic slots and the
   slide roles. It is the pack's only `tokens` asset, so the shell's token bridge
@@ -36,14 +38,14 @@ deployment handoff with one named owner.
 - **Palette documents derived from Opal**: `lolly/palette/opal-photo-treatments`
   and `lolly/palette/opal-icon-themes`, made with the same engine functions
   `scripts/ingest-brand.ts` uses (`engine/src/brand-treatments.ts`).
-- **Emoji: Fluent Emoji Flat at Full palette influence.** Opal's tokens carry
+- **Emoji: Fluent Emoji Flat at Full palette influence.** The tokens carry
   the pack's emoji style in `$extensions['com.suse.lolly'].emoji`, which
   `brandEmojiStyle` (`engine/src/emoji-default.ts`) reads: the Fluent Emoji Flat
   2026.8.24 set, with the Palette influence control's "Full" setting (`snap`),
   so every paint moves to its nearest Opal colour while skin tones, flags and
   custom symbols keep their own. A link's choice or a saved session's own style
   still comes first. The style pins the first 64 colours the token bridge lists
-  for Opal, the palette's limit; the ones left over are a role that repeats
+  for Lolly Demo, the emoji palette's limit; the ones left over are a role that repeats
   Avocado and the chrome slots, which repeat named colours apart from Honey
   deep and the dark hover. Rewrite the block after a colour change.
 - **No font files.** Outfit (headings), SUSE (text and italics) and SUSE Mono
@@ -53,7 +55,7 @@ deployment handoff with one named owner.
   README so the profile can mount the pack the same way it mounts a brand that
   does carry tools.
 
-## Opal
+## The Opal palette
 
 Every colour is a treat or a piece of nature, remembered by name and never by
 number. A tint keeps its parent's name (Liquorice raised, Liquorice panel).
@@ -70,7 +72,7 @@ number. A tint keeps its parent's name (Liquorice raised, Liquorice panel).
 
 - **Light, the crystal chalice:** Liquorice text on Sugar (18.6:1), Spearmint
   accent with a Sugar label (13.3:1), Basalt for quiet text, Pebble hairlines.
-  Where Opal names a wash or paper for its own surfaces (the slide roles' cards,
+  Where Lolly Demo names a wash or paper for its own surfaces (the slide roles' cards,
   tracks and alternative ground), it takes the light greens: Avocado for cards
   and paper, Pandanus for tinted cards and tracks, and Wattle's soft yellow for the
   card a slide argues for. Cards that warn stay warm.
@@ -80,7 +82,7 @@ number. A tint keeps its parent's name (Liquorice raised, Liquorice panel).
 - **Charts** take the spectrum in this order: Green Apple, Reef, Honey, Donut,
   Banksia, Olive, Outback, Bark. A verdict never relies on colour alone.
 
-Opal also sets the app's own chrome in `color.chrome.*` in each theme set, which
+Lolly Demo also sets the app's own chrome in `color.chrome.*` in each theme set, which
 the shell reads once PR #310 (a pack sets the chrome) is on main:
 
 - **Light:** an Avocado page, Sugar cards, panels and menus, Pandanus edges,
@@ -130,8 +132,8 @@ against 37 in CMYK.
   palette documents carry no Content Credentials. The shared files keep the
   credentials they were shipped with.
 - **Share cards.** `catalog/og/` holds placeholders. The card generator puts a
-  branded pack on its dark theme's surface, which for Opal is Liquorice, while
-  Lolly's own cards are green; the cards wait for Opal's own share-card designs
+  branded pack on its dark theme's surface, which for Lolly Demo is Liquorice, while
+  Lolly's own cards are green; the cards wait for Lolly Demo's own share-card designs
   (the house, tool and stage cards from the brand page).
 - **Four previews.** The tool previews were captured on 15 Oct 2026 against this
   profile, with four gaps. The booth-studio and flythrough tiles are
