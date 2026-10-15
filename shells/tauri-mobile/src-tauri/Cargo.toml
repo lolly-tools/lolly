@@ -5,7 +5,8 @@ edition = "2021"
 
 [lib]
 name = "lolly_mobile_lib"
-crate-type = ["staticlib", "cdylib", "rlib"]
+# This isolated iPad test needs only the static library consumed by Xcode.
+crate-type = ["staticlib"]
 
 [features]
 webgpu-probe = []
