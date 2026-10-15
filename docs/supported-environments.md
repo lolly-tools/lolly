@@ -17,10 +17,10 @@ same browsers on Windows, Linux, Android, iOS, Intel Macs or other GPUs.
 | Firefox | Supported: tested on macOS only | Firefox 157.0.1; macOS 27, Apple M4 | Default non-fallback adapter; GPU identity not reported by the browser | 9 October 2026; installed visible browser; required corpus passed |
 | Safari (WebKit) | Supported: tested on macOS only | Safari 27.0.1; macOS 27, Apple M4 | Default Apple adapter; no software fallback | 9 October 2026; installed visible browser; required corpus passed |
 | macOS app (WKWebView) | Supported: qualification build | WKWebView 22625.1.29.11.28; macOS 27, Apple M4 | Default Apple adapter; no software fallback | 9 October 2026; compiled qualification app, second execution with its existing isolated profile; startup, tool mount and required corpus passed |
-| iOS and iPadOS app (WKWebView) | Pending: physical runtime not qualified | Not established | Not established | Archive compilation is recorded; device installation and runtime checks remain open |
+| iOS and iPadOS app (WKWebView) | Supported: manual device check | Lolly 1.1.1 app; iPhone 16 Pro Max, iOS 27.2 beta (24B5099f); iPad Pro 13-inch (M4), iPadOS 27.0 beta (24A5424a) | Default Apple GPU adapter; adapter identity not recorded | 15 October 2026; development-signed 1.1.1 app installed on both devices; startup, a mounted tool, editing and export checked by hand; the automated corpus did not run (see Recorded evidence) |
 | Windows app (WebView2) | Pending: physical runtime not qualified | Not established | Not established | Required device/runtime check has not run |
 | Linux app (WebKitGTK) | Pending: physical runtime not qualified | Not established | Not established | Required device/runtime check has not run |
-| Android app (WebView) | Pending: physical runtime not qualified | Not established | Not established | Required device/runtime check has not run |
+| Android app (WebView) | Pending: physical runtime not qualified | Android 11 tested only (see Recorded evidence) | Not established | 15 October 2026: Android 11 has no adapter; Android 12 or later not yet checked |
 
 The browser corpus checks numerical results on the main thread and in a worker,
 photo baking, cancellation, device recovery and operation chains. Its browser
@@ -79,6 +79,24 @@ inputs are unchanged between those commits. The Mac qualification app was built
 from `ed6c32571593dba96b0562b47396ff42e2cf3270`; its passed execution is not a new
 current-main build or a fresh-profile startup result. Original failed attempts
 remain recorded separately.
+
+The iOS and iPadOS result is a manual check, not the automated corpus. On 15
+October 2026 a development-signed Lolly 1.1.1 app, built from
+`26cf05324f46dc4cacd65d12d6f454ada181fb5e` with the unsigned qualification
+frontend, was installed on an iPhone 16 Pro Max (iOS 27.2 beta) and an iPad Pro
+13-inch with M4 (iPadOS 27.0 beta). On both devices the app started without the
+WebGPU notice, opened bundled tools, edited a tool and exported. The automated
+product corpus could not run on either device: its qualification broker reads
+commands from standard input, which is closed when the app is launched on an
+iOS device or simulator, and its exit on that input crashes the app (an iOS
+event-loop fault in tao 0.37.1). The release app does not contain that broker.
+
+The Android 11 result is from `scripts/verify-webgpu-android.ts` on a TCL T810H
+(Android 11, Android System WebView 155.0.8059.43, Adreno GPU), source
+`26cf05324f46dc4cacd65d12d6f454ada181fb5e`: the WebGPU API is present and no
+adapter is returned. Its `qualification.json` has SHA-256
+`5b45834fd228a68d14e218531796a4a3302f1a7d063f44e65ff9fa1b94ab59be`. Android 12
+or later has not been checked, so the Android row stays pending.
 
 Retained conformance reports have these SHA-256 digests:
 
