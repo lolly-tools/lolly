@@ -2,7 +2,7 @@
 /**
  * The pre-paint chrome mirror in index.html, run for real.
  *
- * brand-vars.ts's applyChromeAccent writes the exact text of the chrome sheet it
+ * brand-vars.ts's applyChromeBrandVars writes the exact text of the chrome sheet it
  * paints to localStorage['brand-chrome']; index.html's theme script restores that
  * text before the first paint, after checking every line of the text. This suite takes
  * the theme script out of index.html (from the "Apply saved theme" comment to its

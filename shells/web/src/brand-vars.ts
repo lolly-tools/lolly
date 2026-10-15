@@ -1242,6 +1242,8 @@ export const CHROME_CACHE_KEY = 'brand-chrome';
 /** The longest mirror index.html restores; a longer sheet is not mirrored. */
 export const CHROME_CACHE_MAX = 16384;
 
+/** Write the sheet applyChromeBrandVars painted to the mirror, or clear the
+ *  mirror when there is no sheet (or one too long to restore). */
 function mirrorChrome(css: string): void {
   try {
     if (css && css.length <= CHROME_CACHE_MAX) localStorage.setItem(CHROME_CACHE_KEY, css);
@@ -1251,19 +1253,20 @@ function mirrorChrome(css: string): void {
 
 /**
  * Inject/refresh the chrome override stylesheet from already-resolved primary
- * (+ on-primary) hexes, per theme, plus a pack's own chrome. The shared tail
- * of applyChromeBrandVars (below) - split out so a caller holding resolved
+ * (+ on-primary) hexes, per theme, plus a pack's own chrome, and return the
+ * text painted ('' when the sheet was removed). The shared tail of
+ * applyChromeBrandVars (below) - split out so a caller holding resolved
  * values (a draft preview, the console) can paint the same chrome without
- * going through the host. Mirrors the sheet for the pre-paint script, or
- * clears the mirror with the sheet.
+ * going through the host. Only applyChromeBrandVars writes the pre-paint
+ * mirror, so a preview never becomes the next visit's first paint.
  */
 export function applyChromeAccent(
   light: { primary: string | null; onPrimary: string | null },
   dark: { primary: string | null; onPrimary: string | null },
   chrome?: PackChrome | null,
   dangerRed?: string | null,
-): void {
-  if (typeof document === 'undefined') return;
+): string {
+  if (typeof document === 'undefined') return '';
   const css = chromeBrandCss(light, dark, chrome, dangerRed);
   let styleEl = document.getElementById(CHROME_STYLE_ID);
   if (!css) styleEl?.remove();
@@ -1275,7 +1278,7 @@ export function applyChromeAccent(
     }
     styleEl.textContent = css;
   }
-  mirrorChrome(css);
+  return css;
 }
 
 const FAVICON_ID = 'brand-favicon';
@@ -1461,7 +1464,7 @@ export async function applyChromeBrandVars(host: BrandVarsHost): Promise<void> {
   if (stale()) return;
   if (!chromeFollowsDesignSystem()) {
     // Removes the sheet and, with it, the pre-paint mirror.
-    applyChromeAccent({ primary: null, onPrimary: null }, { primary: null, onPrimary: null });
+    mirrorChrome(applyChromeAccent({ primary: null, onPrimary: null }, { primary: null, onPrimary: null }));
     root.removeProperty('--brand-primary');
     mirrorAccent(null);
     root.removeProperty('--brand-warn');
@@ -1499,7 +1502,8 @@ export async function applyChromeBrandVars(host: BrandVarsHost): Promise<void> {
       chrome.unsaved.dark ??= warn.hex;
     }
     reportChromeIssues(chrome.issues);
-    applyChromeAccent({ primary: lp, onPrimary: lop }, { primary: dp, onPrimary: dop }, chrome, dangerRed);
+    // The app's own paint is the one the next visit restores before boot.
+    mirrorChrome(applyChromeAccent({ primary: lp, onPrimary: lop }, { primary: dp, onPrimary: dop }, chrome, dangerRed));
     if (warn && !ownsUnsaved) {
       root.setProperty('--brand-warn', warn.hex);
       root.setProperty('--brand-warn-ink', warn.ink);

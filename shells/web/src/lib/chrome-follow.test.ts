@@ -130,7 +130,7 @@ test('a profile that refuses the write still leaves the chrome right', async () 
 
 // ── A pack's own chrome rides the same painter ───────────────────────────────
 
-const { CHROME_CACHE_KEY } = await import('../brand-vars.ts');
+const { CHROME_CACHE_KEY, applyChromeAccent } = await import('../brand-vars.ts');
 
 /** A design system with a primary, a warm swatch and, per theme, a `color.chrome.*` group. */
 function chromeHost(chrome: Record<'light' | 'dark', Record<string, string>>): Parameters<typeof applyChromeBrandVars>[0] {
@@ -171,6 +171,20 @@ test('a theme the pack leaves without an unsaved colour takes the warm pick in t
   assert.match(css, /:root:not\(\[data-theme="dark"\]\):not\(\[data-theme="brand"\]\), \[data-theme="light"\] \{\n {2}--brand-warn: #b57c0a;/);
   assert.match(css, /\[data-theme="dark"\] \{\n {2}--brand-warn: #e0452b;/, 'dark takes the warm pick');
   assert.equal(inlineWarn(), '');
+});
+
+test('a paint from outside the app\'s own pass (a draft preview, the console) leaves the pre-paint mirror alone', async () => {
+  setChromeFollowMirror(true);
+  await applyChromeBrandVars(chromeHost({ light: { page: '#fcfaf6' }, dark: { page: '#09141a' } }));
+  const mirrored = localStorage.getItem(CHROME_CACHE_KEY);
+  assert.ok(mirrored, 'the app\'s own paint is mirrored');
+  const preview = applyChromeAccent({ primary: '#6d28d9', onPrimary: '#ffffff' }, { primary: '#a678ff', onPrimary: '#000000' });
+  assert.ok(preview.length > 0);
+  assert.equal(styleEl()?.textContent, preview, 'the preview is painted, and its text returned');
+  assert.equal(localStorage.getItem(CHROME_CACHE_KEY), mirrored, 'the next visit still opens on the installed system');
+  assert.equal(applyChromeAccent({ primary: null, onPrimary: null }, { primary: null, onPrimary: null }), '');
+  assert.equal(styleEl(), null, 'a preview with nothing to paint removes the sheet');
+  assert.equal(localStorage.getItem(CHROME_CACHE_KEY), mirrored, 'and leaves the mirror too');
 });
 
 test('a pack with chrome but no unsaved colour keeps the inline warm pick', async () => {

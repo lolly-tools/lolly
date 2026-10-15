@@ -962,5 +962,5 @@ test("pack chrome walks the design system's own danger red when it declares one"
 });
 
 test('applyChromeAccent is a no-op without a document', () => {
-  assert.doesNotThrow(() => applyChromeAccent(SUSE_PAIR[0], SUSE_PAIR[1], newsprint()));
+  assert.equal(applyChromeAccent(SUSE_PAIR[0], SUSE_PAIR[1], newsprint()), '');
 });
