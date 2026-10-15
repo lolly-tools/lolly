@@ -22,12 +22,13 @@
  * path onto the stub (/d → /view/d.html), placed before the SPA catch-all.
  *
  * Card art is a dark "brand-system" panel (docs/og-image.ts → createViewCardRenderer):
- * pine field, a green app-icon tile, the view title + one-line description, a large
- * translucent watermark of the same icon - cohesive as a family, distinct from the light
- * tool gallery-tile cards. Rendering goes through OUR OWN render path (Chromium via
- * Playwright - scripts/lib/rasterize-svg-browser.ts), not resvg, so a card is shaped the
- * way the app paints and can't drift. The browser isn't on the Vercel build, so - exactly
- * like the tool cards and catalog/previews - the PNGs are COMMITTED at
+ * the brand field, an accent app-icon tile, the view title + one-line description, a
+ * large translucent watermark of the same icon - cohesive as a family, distinct from the
+ * tool cards, which frame a preview of the tool's output. Rendering goes through OUR OWN
+ * render path (Chromium via Playwright - scripts/lib/rasterize-svg-browser.ts), not
+ * resvg, so a card is shaped the way the app paints and can't drift. The browser isn't
+ * on the Vercel build, so - exactly like the tool cards and catalog/previews - the PNGs
+ * are COMMITTED at
  * catalog/og/views/<slug>.png (served /catalog/og/views/<slug>.png). build:web / dev:web
  * refresh them LOCALLY; a browser-less build leaves the committed bytes untouched and the
  * stubs still point at them. Stubs (HTML, no rasteriser) are git-ignored, rebuilt each run.
@@ -37,7 +38,7 @@ import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync } from 'node
 import { createHash } from 'node:crypto';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createViewCardRenderer, loadBrandChrome } from '../docs/og-image.ts';
+import { chromeFingerprint, createViewCardRenderer, loadBrandChrome } from '../docs/og-image.ts';
 import { createSvgRasterizer, type SvgRasterizer } from './lib/rasterize-svg-browser.ts';
 import { stampBitmap } from './lib/stamp-media.ts';
 import { catalogFile } from '@lolly-tools/node-shell/content-roots';
@@ -66,10 +67,10 @@ const OG_DIR   = catalogFile('og/views');  // → /catalog/og/views/<slug>.png (
 // Input-hash gate (see build-tool-og.ts for the full rationale): a card is re-rendered
 // only when its render inputs change, so the non-deterministic render path (Playwright +
 // Imprint/C2PA stamp) stops churning identical-looking PNGs every push. We persist, per
-// view slug, a sha256 over the card's render inputs plus OG_RENDER_VERSION in a COMMITTED
-// sidecar (OG_DIR/.og-sigs.json); a card whose sig matches AND whose file exists is
-// skipped. BUMP OG_RENDER_VERSION after any card template / stamp change.
-const OG_RENDER_VERSION = 1;
+// view slug, a sha256 over the card's render inputs, the brand chrome's fingerprint
+// (chromeFingerprint) and OG_RENDER_VERSION in a COMMITTED sidecar (OG_DIR/.og-sigs.json);
+// a card whose sig matches AND whose file exists is skipped. BUMP OG_RENDER_VERSION after any card template / stamp change.
+const OG_RENDER_VERSION = 2;
 const SIGS_FILE = resolve(OG_DIR, '.og-sigs.json');
 const sha256 = (s: string): string => createHash('sha256').update(s).digest('hex');
 // --preserve (or LOLLY_PRESERVE=1): keep an already-committed card, skip its re-render.
@@ -262,6 +263,10 @@ function stubHtml({ slug, title, description, hash, image }:
 }
 
 async function main(): Promise<void> {
+  // Same active-profile chrome as the tool cards (see docs/og-image.ts), read once: the
+  // renderer paints with it and every card's input hash carries its fingerprint.
+  const chrome = loadBrandChrome(ROOT);
+  const chromeSig = chromeFingerprint(chrome);
   // Renderer is best-effort: a missing browser (or SUSE fonts) degrades cards to the
   // committed bytes (or, first time, none) rather than failing the whole web build.
   let renderer: ReturnType<typeof createViewCardRenderer> | null = null;
@@ -273,8 +278,7 @@ async function main(): Promise<void> {
   } else {
     try {
       rasterizer = await createSvgRasterizer(ROOT);
-      // Same active-profile chrome as the tool cards (see docs/og-image.ts).
-      renderer = createViewCardRenderer(rasterizer.rasterize, loadBrandChrome(ROOT));
+      renderer = createViewCardRenderer(rasterizer.rasterize, chrome);
     } catch (e) {
       console.log(`view-og: card generation skipped (${(e as Error).message}); stubs point at committed cards`);
     }
@@ -303,7 +307,7 @@ async function main(): Promise<void> {
     // when the input-hash gate says the render inputs are unchanged AND the card exists.
     const cardPath = resolve(OG_DIR, `${v.slug}.png`);
     const sig = sha256(JSON.stringify([
-      OG_RENDER_VERSION, v.title, v.description, v.icon, v.hash,
+      OG_RENDER_VERSION, v.title, v.description, v.icon, v.hash, chromeSig,
       // The footer prints the site's host; an instance build's host joins the inputs so its
       // cards re-render, while lolly.tools signatures stay as they were.
       ...(SITE_URL === DEFAULT_SITE_URL ? [] : [new URL(SITE_URL).host]),
