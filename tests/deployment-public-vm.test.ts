@@ -173,6 +173,13 @@ test('public VM sparse checkout includes the maintained native image probe', () 
     `the public VM contracts read ${probePath}, so checkout must include that exact file`);
 });
 
+function addJobs(inventory: { total_count: number; jobs: Record<string, unknown>[] }, ...jobs: [string, string][]) {
+  for (const [name, conclusion] of jobs) {
+    inventory.jobs.push({ id: inventory.jobs.length + 1, run_id: 123, name, status: 'completed', conclusion });
+  }
+  inventory.total_count = inventory.jobs.length;
+}
+
 function normalCiSource(alter?: (run: Record<string, unknown>, inventory: { total_count: number; jobs: Record<string, unknown>[] }) => void) {
   const directory = mkdtempSync(join(tmpdir(), 'lolly-normal-ci-'));
   try {
@@ -213,10 +220,19 @@ test('public candidates require exact successful normal main CI and its complete
     ['failed job', (_run, inventory) => { inventory.jobs[0]!.conclusion = 'failure'; }],
     ['unknown skip', (_run, inventory) => { inventory.jobs[0]!.conclusion = 'skipped'; }],
     ['only skips', (_run, inventory) => { inventory.jobs = [inventory.jobs[1]!]; inventory.total_count = 1; }],
+    ['public-ready skipped without release-ready', (_run, inventory) => { addJobs(inventory, ['public-ready', 'skipped']); }],
+    ['public-ready skipped beside a failed release-ready', (_run, inventory) => { addJobs(inventory, ['public-ready', 'skipped'], ['release-ready', 'failure']); }],
+    ['release-ready skipped', (_run, inventory) => { addJobs(inventory, ['public-ready', 'skipped'], ['release-ready', 'skipped']); }],
+    ['duplicate job names', (_run, inventory) => { addJobs(inventory, ['typecheck', 'success']); }],
+    ['duplicate skip names', (_run, inventory) => { addJobs(inventory, ['verified instance shell', 'skipped']); }],
   ];
   for (const [name, alter] of refusals) {
     const refused = normalCiSource(alter); assert.notEqual(refused.status, 0, name); assert.equal(refused.receipt, null, name);
   }
+  // A broad main push skips public-ready and passes release-ready instead.
+  const broad = normalCiSource((_run, inventory) => { addJobs(inventory, ['public-ready', 'skipped'], ['release-ready', 'success']); });
+  assert.equal(broad.status, 0, broad.stderr);
+  assert.equal(broad.receipt.jobCount, 4);
   const job = workflowJob(read('.github/workflows/deployment-suse.yml'), 'source-qualification');
   assert.match(job, /actions\/runs\/\$CI_RUN\/attempts\/\$ci_attempt\/jobs\?per_page=100/);
   assert.match(job, /git merge-base --is-ancestor "\$EXPECTED_SOURCE" refs\/remotes\/origin\/main/);

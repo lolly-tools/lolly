@@ -396,13 +396,18 @@ jobs:
           if(!Number.isSafeInteger(run.id) || run.id<1 || String(run.id)!==process.env.CI_RUN || run.path!=='.github/workflows/ci.yml' || run.event!=='push' || run.head_branch!=='main' || run.head_sha!==process.env.EXPECTED_SOURCE || run.repository?.full_name!==process.env.GITHUB_REPOSITORY || run.head_repository?.full_name!==process.env.GITHUB_REPOSITORY || run.status!=='completed' || run.conclusion!=='success' || !Number.isSafeInteger(run.run_attempt) || run.run_attempt<1) throw Error('Candidate requires its exact successful normal main CI run');
           const jobs=inventory.jobs;
           if(!Array.isArray(jobs) || !jobs.length || jobs.length>100 || inventory.total_count!==jobs.length) throw Error('Incomplete normal CI job inventory');
-          const ids=new Set(); let succeeded=0,expectedSkips=0;
+          // Main pushes skip public-ready when the change is too broad for it. That skip
+          // is accepted only beside a successful release-ready, which needs every tier
+          // and refuses a public-ready skip on an eligible change.
+          const ids=new Set(),names=new Set(); let succeeded=0,expectedSkips=0,publicReadySkipped=false,releaseReady=false;
           for(const job of jobs) {
-            if(!Number.isSafeInteger(job.id) || job.id<1 || ids.has(job.id) || job.run_id!==run.id || typeof job.name!=='string' || !job.name.length || job.name.length>256 || job.status!=='completed' || (job.conclusion!=='success' && !(job.name==='verified instance shell' && job.conclusion==='skipped'))) throw Error('Normal CI job did not complete successfully');
-            ids.add(job.id);
-            if(job.conclusion==='success') succeeded++; else expectedSkips++;
+            const expectedSkip=job.conclusion==='skipped' && (job.name==='verified instance shell' || job.name==='public-ready');
+            if(!Number.isSafeInteger(job.id) || job.id<1 || ids.has(job.id) || job.run_id!==run.id || typeof job.name!=='string' || !job.name.length || job.name.length>256 || names.has(job.name) || job.status!=='completed' || (job.conclusion!=='success' && !expectedSkip)) throw Error('Normal CI job did not complete successfully');
+            ids.add(job.id); names.add(job.name);
+            if(job.conclusion==='success') { succeeded++; if(job.name==='release-ready') releaseReady=true; }
+            else { expectedSkips++; if(job.name==='public-ready') publicReadySkipped=true; }
           }
-          if(!succeeded || expectedSkips>1) throw Error('Invalid normal CI success inventory');
+          if(!succeeded || expectedSkips>2 || (publicReadySkipped && !releaseReady)) throw Error('Invalid normal CI success inventory');
           writeFileSync(root+'/normal-ci-source.json',JSON.stringify({version:1,source:run.head_sha,ciRun:run.id,ciAttempt:run.run_attempt,workflow:run.path,jobCount:jobs.length},null,2));
           JS
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
