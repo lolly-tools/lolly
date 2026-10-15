@@ -91,7 +91,7 @@ Previzualizarea arată mereu exact ce se va exporta.
 
 **Atingere**
 
-- **Pinch** pentru zoom, **trage** pentru panoramare, **dublă atingere** pentru revenirea la potrivire.
+- **Pinch** pentru zoom, **trage** pentru panoramare, **dublă atingere** pentru revenirea la potrivire. Pe canvasul liber, două degete pe un obiect selectat scalează, rotesc și mută selecția (vezi [Redimensionare, scalare și rotire](#resize-scale-and-rotate)).
 
 **Dă clic ca să ajungi la o comandă:** dă clic pe orice element din design și câmpul corespunzător din bara laterală primește focusul și intră în vedere - la un grup de rânduri repetabile se desface exact rândul pe care ai dat clic, așa că editarea a ceea ce vezi e la o atingere distanță.
 
@@ -110,6 +110,37 @@ Instrumentele cu canvas liber adaugă o suprafață de lucru *în jurul* planșe
 ![Canvasul liber al Design - planșa de lucru și masa de lucru din jurul ei](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 **Oglindește o selecție.** Dă clic dreapta pe orice casetă și alege **Flip horizontal** sau **Flip vertical** pentru a o oglindi pe loc, sau apasă `Shift+H` / `Shift+V` de la tastatură - Shift, pentru că un simplu `V` este unealta Pointer. Fiecare casetă selectată se oglindește pe propria axă într-un singur pas de undo, iar oglindirea este o transformare reală, deci se păstrează în SVG-ul, PDF-ul și PNG-ul exportat, nu doar pe canvas.
+
+### Redimensionare, scalare și rotire
+
+Selectează un obiect, apoi trage de un mâner ca să-i schimbi dimensiunea, sau de mânerul rotund de sub selecție ca să rotești obiectul. O tragere de dimensiune funcționează în unul dintre două moduri:
+
+- **Redimensionare**, modul implicit, schimbă doar caseta. Textul se reașază la noua dimensiune, iar dimensiunea fontului, grosimea conturului, raza colțurilor și efectele rămân cum erau.
+- **Scalare** mărește sau micșorează întregul obiect împreună cu conținutul: dimensiunea fontului, conturul, raza colțurilor, umbra, estomparea, spațierea interioară și distanțele se schimbă toate în aceeași măsură.
+
+Apasă `K` ca să pornești sau să oprești Scalarea, sau folosește butonul **Scalare** din bara de instrumente; pe un ecran tactil, bara obiectului are același comutator. Mânerele își schimbă aspectul cât timp Scalarea e pornită. `V` sau **Escape** revine la Redimensionare și îți păstrează selecția. Scalarea e oprită de fiecare dată când se deschide un document, ca nimeni să nu scaleze contururi din greșeală. Fiecare scalare este un pas de anulare, cu eticheta **Scalare**.
+
+**Scalare după un număr.** Cu Scalarea pornită, sau cu mai multe obiecte selectate, fă clic pe indicator în bara obiectului ca să deschizi fereastra **Scalare**. Scrie un procent, alege pe grila 3 x 3 punctul care rămâne pe loc și alege **Aplică**. Rezultatul este un singur pas de anulare, fără tragere. Cu Scalarea oprită, mai multe obiecte își schimbă doar dimensiunea și poziția.
+
+**Mai multe obiecte.** O selecție de mai multe obiecte are mânere pe margini, nu doar în colțuri. O tragere de colț schimbă liber lățimea și înălțimea cât timp fiecare obiect din selecție e drept sau rotit cu sferturi întregi de tură, iar selecția nu conține nicio grupare sau cerc. Altfel, selecția își păstrează proporțiile, iar indicatorul adaugă **Proporțional**. Cât timp redimensionezi sau scalezi, o etichetă mică de lângă selecție arată dimensiunea, sau procentul în modul Scalare.
+
+**Tastele pe care le ții apăsate în timpul unei trageri** au efect imediat ce le apeși sau le eliberezi (foaia de scurtături, `?`, le listează și ea):
+
+| Ține apăsat | Redimensionare sau scalare | Rotire | Mutare |
+|---|---|---|---|
+| **Shift** | Păstrează proporțiile (Scalarea o face mereu) | Se rotește în pași de 15 grade | Nicio schimbare |
+| **Alt** (Option) | Lucrează din centru | Se rotește liber | Oprește alinierea automată și grila |
+| **Cmd/Ctrl** | Oprește alinierea automată și grila | Se rotește liber | Oprește alinierea automată și grila |
+
+Fără nicio tastă apăsată, o rotire e atrasă spre cei mai apropiați 15 grade când ajunge la 4 grade de ei. Planșele nu se rotesc, deci nu au mâner de rotire.
+
+**Prinde de oriunde de-a lungul unei margini.** Nu trebuie să nimerești exact un mâner. Fiecare latură a unei selecții este o bandă de redimensionare pe toată lungimea ei, iar cu mouse-ul sau cu un stilou există o zonă de rotire chiar în afara fiecărui colț. Cursorul arată ce va face o tragere, rotit potrivit selecției. O apăsare într-o bandă sau zonă devine redimensionare sau rotire doar când începi să tragi, deci un simplu clic selectează, adaugă la selecție sau deselectează ca înainte. Un obiect blocat nu are mânere, benzi sau zone.
+
+**Obiectele mici rămân mutabile.** La un obiect de 25 de pixeli de ecran sau mai puțin, mânerele din mijloc, care ar aglomera colțurile, dispar, iar celelalte mânere se depărtează puțin de contur, așa că o apăsare pe obiect îl mută. La 10 pixeli sau mai puțin dispar și mânerele din colțuri, iar o linie subțire păstrează un mâner la fiecare capăt.
+
+**Zone de prindere mari.** Pe un ecran tactil zonele de prindere sunt mari: fiecare zonă de colț e un sfert din lățimea și înălțimea selecției pe ecran, între 24 și 44 de pixeli, iar fiecare zonă de latură acoperă porțiunea dintre două colțuri. Când selecția e prea mică pentru asta, zonele trec în afara conturului, așa că o apăsare în mijloc mută în continuare selecția. Zona de sub cursor, sau de sub un deget ținut apăsat, este umbrită. Ca să ai aceleași zone cu mouse-ul sau cu un stilou, pornește **Zone de prindere mari** din meniul Lolly. Setarea se păstrează doar pe acest dispozitiv.
+
+**Două degete pe o selecție.** Pe un ecran tactil, pune două degete pe un obiect selectat: ciupește ca să scalezi selecția, răsucește ca s-o rotești sau mișcă ambele degete ca s-o muți. Tot ce fac cele două degete se numără ca un singur pas de anulare. Cu Scalarea pornită, o ciupire scalează și conținutul; cu Scalarea oprită, ciupirea redimensionează selecția proporțional. O răsucire e atrasă spre cei mai apropiați 15 grade când e aproape, iar o mișcare cu două degete nu se aliniază niciodată. Două degete în altă parte măresc și panoramează în continuare vederea, iar o atingere cu două degete deschide în continuare meniul. Primul deget trebuie să cadă pe selecție, iar al doilea trebuie să urmeze repede. Dacă selecția conține o planșă sau un obiect blocat, acoperă cea mai mare parte a vederii sau depășește marginea vederii, două degete măresc și panoramează vederea în schimb.
 
 ### Straturi și Inspector
 

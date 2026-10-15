@@ -91,7 +91,7 @@ L'aperçu montre toujours exactement ce qui sera exporté.
 
 **Tactile**
 
-- **Pince** pour zoomer, **glisse** pour déplacer, **double-tape** pour revenir à l'ajustement.
+- **Pince** pour zoomer, **glisse** pour déplacer, **double-tape** pour revenir à l'ajustement. Sur le canevas libre, deux doigts posés sur un objet sélectionné mettent plutôt la sélection à l'échelle, la font pivoter et la déplacent (voir [Redimensionner, mettre à l'échelle et pivoter](#resize-scale-and-rotate)).
 
 **Cliquer pour accéder à un contrôle :** clique sur n'importe quel élément du design et le champ correspondant dans la barre latérale reçoit le focus et défile jusqu'à être visible - pour un groupe de lignes répétitives, cela déplie exactement la ligne sur laquelle tu as cliqué, si bien que modifier ce que tu vois n'est qu'à un tap.
 
@@ -110,6 +110,37 @@ Les outils en canevas libre ajoutent une surface de travail *autour* du plan de 
 ![Le canevas libre de Design - le plan de travail avec son plan de collage environnant](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 **Retourner une sélection.** Fais un clic droit sur une boîte et choisis **Retourner horizontalement** ou **Retourner verticalement** pour la mettre en miroir sur place, ou appuie sur `Shift+H` / `Shift+V` au clavier - Shift, car un simple `V` correspond à l'outil Pointeur. Chaque boîte sélectionnée se retourne selon son propre axe en une seule étape d'annulation, et le miroir est une vraie transformation, donc il tient dans le SVG, le PDF et le PNG exportés, pas seulement sur le canevas.
+
+### Redimensionner, mettre à l'échelle et pivoter
+
+Sélectionne un objet, puis fais glisser une poignée pour changer sa taille, ou la poignée ronde sous la sélection pour faire pivoter l'objet. Un glissement de taille fonctionne selon l'un de deux modes :
+
+- **Redimensionner**, le mode par défaut, ne change que le cadre. Le texte se réagence à la nouvelle taille, et la taille de police, l'épaisseur du contour, le rayon des coins et les effets restent tels quels.
+- **Échelle** agrandit ou réduit l'objet entier avec son contenu : taille de police, contour, rayon des coins, ombre, flou, marge intérieure et espacement changent tous dans la même proportion.
+
+Appuie sur `K` pour activer ou désactiver Échelle, ou utilise le bouton **Échelle** de la barre d'outils ; sur un écran tactile, la barre d'objet offre la même bascule. Les poignées changent d'aspect tant que Échelle est actif. `V` ou **Escape** revient à Redimensionner et conserve ta sélection. Échelle est désactivé à chaque ouverture de document, pour que personne ne mette des contours à l'échelle par accident. Chaque mise à l'échelle est une étape d'annulation, intitulée **Échelle**.
+
+**Mettre à l'échelle par un nombre.** Avec Échelle activé, ou avec plusieurs objets sélectionnés, clique sur l'indicateur de la barre d'objet pour ouvrir le panneau **Échelle**. Saisis un pourcentage, choisis sur la grille 3 x 3 le point qui reste immobile, puis choisis **Appliquer**. Le résultat est une seule étape d'annulation, sans glissement. Avec Échelle désactivé, plusieurs objets ne changent que de taille et de position.
+
+**Plusieurs objets.** Une sélection de plusieurs objets a des poignées sur ses bords en plus de ses coins. Un glissement de coin change la largeur et la hauteur librement tant que chaque objet de la sélection est droit ou pivoté par quarts de tour entiers, et que la sélection ne contient ni groupe ni cercle. Sinon, la sélection garde ses proportions, et l'indicateur ajoute **Proportionnel**. Pendant que tu redimensionnes ou mets à l'échelle, une petite étiquette à côté de la sélection affiche la taille, ou le pourcentage en mode Échelle.
+
+**Les touches que tu maintiens pendant un glissement** agissent dès que tu les presses ou les relâches (la feuille des raccourcis, `?`, les liste aussi) :
+
+| Maintenir | Redimensionner ou mettre à l'échelle | Pivoter | Déplacer |
+|---|---|---|---|
+| **Shift** | Conserve les proportions (Échelle le fait toujours) | Pivote par pas de 15 degrés | Aucun changement |
+| **Alt** (Option) | Travaille depuis le centre | Pivote librement | Désactive l'aimantation et la grille |
+| **Cmd/Ctrl** | Désactive l'aimantation et la grille | Pivote librement | Désactive l'aimantation et la grille |
+
+Sans touche maintenue, une rotation est attirée vers le multiple de 15 degrés le plus proche dès qu'elle en approche à 4 degrés. Les plans de travail ne pivotent pas, ils n'ont donc pas de poignée de rotation.
+
+**Saisis n'importe où le long d'un bord.** Inutile de viser une poignée avec précision. Chaque côté d'une sélection est une bande de redimensionnement sur toute sa longueur, et avec une souris ou un stylet, une zone de rotation se trouve juste à l'extérieur de chaque coin. Le pointeur montre ce que fera un glissement, orienté comme la sélection. Un appui dans une bande ou une zone ne devient un redimensionnement ou une rotation que lorsque tu commences à glisser : un simple clic sélectionne, ajoute à la sélection ou désélectionne comme avant. Un objet verrouillé n'a ni poignées, ni bandes, ni zones.
+
+**Les petits objets restent déplaçables.** Sur un objet de 25 pixels d'écran ou moins, les poignées du milieu, qui encombreraient les coins, se masquent et les autres poignées s'écartent un peu du contour, si bien qu'un appui sur l'objet le déplace. À 10 pixels ou moins, les poignées de coin disparaissent aussi, et une ligne fine garde une poignée à chaque extrémité.
+
+**Grandes zones de saisie.** Sur un écran tactile, les zones de saisie sont grandes : chaque zone de coin fait un quart de la largeur et de la hauteur de la sélection à l'écran, entre 24 et 44 pixels, et chaque zone de côté couvre l'espace entre deux coins. Quand la sélection est trop petite pour cela, les zones passent à l'extérieur de son contour, si bien qu'un appui au milieu déplace toujours la sélection. La zone sous ton pointeur, ou sous un doigt maintenu, est ombrée. Pour obtenir les mêmes zones avec une souris ou un stylet, active **Grandes zones de saisie** dans le menu Lolly. Ce réglage reste sur cet appareil uniquement.
+
+**Deux doigts sur une sélection.** Sur un écran tactile, pose deux doigts sur un objet sélectionné : pince pour mettre la sélection à l'échelle, tourne pour la faire pivoter, ou déplace les deux doigts pour la transporter. Tout ce que font les deux doigts compte pour une seule étape d'annulation. Avec Échelle activé, un pincement met aussi le contenu à l'échelle ; avec Échelle désactivé, il redimensionne la sélection en proportion. Une rotation est attirée vers le multiple de 15 degrés le plus proche quand elle en est proche, et un déplacement à deux doigts ne s'aimante jamais. Deux doigts ailleurs zooment et déplacent toujours la vue, et un tap à deux doigts ouvre toujours le menu. Le premier doigt doit se poser sur la sélection et le second doit suivre rapidement. Si la sélection contient un plan de travail ou un objet verrouillé, couvre la plus grande partie de la vue ou dépasse du bord de la vue, deux doigts zooment et déplacent la vue à la place.
 
 ### Calques et inspecteur
 

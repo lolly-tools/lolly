@@ -91,7 +91,7 @@ Podgląd zawsze pokazuje dokładnie to, co zostanie wyeksportowane.
 
 **Dotyk**
 
-- **Szczypnij**, aby powiększyć, **przeciągnij**, aby przesunąć, **stuknij dwukrotnie**, aby wrócić do dopasowania.
+- **Szczypnij**, aby powiększyć, **przeciągnij**, aby przesunąć widok, **stuknij dwukrotnie**, aby wrócić do dopasowania. Na wolnej kanwie dwa palce na zaznaczonym obiekcie skalują, obracają i przesuwają zaznaczenie (zobacz [Zmiana rozmiaru, skalowanie i obracanie](#resize-scale-and-rotate)).
 
 **Kliknij, by przejść do kontrolki:** kliknij dowolny element projektu, a odpowiadające mu pole na pasku bocznym dostanie fokus i przewinie się do widoku - w powtarzalnej grupie wierszy rozwinie dokładnie ten wiersz, który kliknąłeś, więc edycja tego, co widzisz, jest o jedno stuknięcie.
 
@@ -110,6 +110,37 @@ Narzędzia z wolną kanwą dodają powierzchnię roboczą *wokół* obszaru robo
 ![Wolne płótno Design - artboard wraz z otaczającym go stołem roboczym](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 **Odbij zaznaczenie.** Kliknij prawym przyciskiem dowolny box i wybierz **Flip horizontal** lub **Flip vertical**, by odbić go w miejscu, albo naciśnij `Shift+H` / `Shift+V` na klawiaturze - Shift, ponieważ samo `V` to narzędzie Pointer. Każdy zaznaczony box odbija się względem własnej osi w jednym kroku cofania, a odbicie jest prawdziwą transformacją, więc zachowuje się w wyeksportowanym SVG, PDF i PNG, a nie tylko na płótnie.
+
+### Zmiana rozmiaru, skalowanie i obracanie
+
+Zaznacz obiekt, a potem przeciągnij uchwyt, aby zmienić jego rozmiar, albo przeciągnij okrągły uchwyt pod zaznaczeniem, aby obrócić obiekt. Przeciągnięcie rozmiaru działa w jednym z dwóch trybów:
+
+- **Zmień rozmiar**, tryb domyślny, zmienia tylko ramkę. Tekst zawija się do nowego rozmiaru, a rozmiar czcionki, grubość obrysu, promień rogów i efekty zostają bez zmian.
+- **Skala** powiększa lub zmniejsza cały obiekt razem z zawartością: rozmiar czcionki, obrys, promień rogów, cień, rozmycie, odstępy wewnętrzne i zewnętrzne zmieniają się o ten sam współczynnik.
+
+Naciśnij `K`, aby włączyć lub wyłączyć Skalę, albo użyj przycisku **Skala** na listwie narzędzi; na ekranie dotykowym pasek obiektu ma ten sam przełącznik. Uchwyty zmieniają wygląd, gdy Skala jest włączona. `V` lub **Escape** wraca do zmiany rozmiaru i zachowuje zaznaczenie. Skala jest wyłączona przy każdym otwarciu dokumentu, więc nikt nie przeskaluje obrysów przez przypadek. Każde skalowanie to jeden krok cofania o nazwie **Skala**.
+
+**Skalowanie liczbą.** Gdy Skala jest włączona albo zaznaczono kilka obiektów, kliknij wartość na pasku obiektu, aby otworzyć okienko **Skala**. Wpisz procent, wybierz punkt, który ma pozostać w miejscu, na siatce 3 x 3 i wybierz **Zastosuj**. Wynik to jeden krok cofania, bez przeciągania. Przy wyłączonej Skali kilka obiektów zmienia tylko rozmiar i położenie.
+
+**Kilka obiektów.** Zaznaczenie kilku obiektów ma uchwyty na krawędziach, a nie tylko w rogach. Przeciągnięcie rogu zmienia szerokość i wysokość swobodnie, dopóki każdy obiekt w zaznaczeniu stoi prosto albo jest obrócony o pełne ćwiartki obrotu, a zaznaczenie nie zawiera grupy ani koła. W przeciwnym razie zaznaczenie zachowuje proporcje, a odczyt dostaje dopisek **Proporcjonalnie**. Podczas zmiany rozmiaru lub skalowania mała etykieta obok zaznaczenia pokazuje rozmiar albo procent w trybie Skali.
+
+**Klawisze przytrzymane podczas przeciągania** działają od razu po wciśnięciu lub puszczeniu (arkusz skrótów, `?`, też je wymienia):
+
+| Przytrzymaj | Zmiana rozmiaru lub skalowanie | Obracanie | Przesuwanie |
+|---|---|---|---|
+| **Shift** | Zachowuje proporcje (Skala robi to zawsze) | Obraca co 15 stopni | Bez zmian |
+| **Alt** (Option) | Działa od środka | Obraca swobodnie | Wyłącza przyciąganie i siatkę |
+| **Cmd/Ctrl** | Wyłącza przyciąganie i siatkę | Obraca swobodnie | Wyłącza przyciąganie i siatkę |
+
+Bez przytrzymanego klawisza obrót jest przyciągany do najbliższych 15 stopni, gdy zbliży się do nich na 4 stopnie. Obszary robocze się nie obracają, więc nie mają uchwytu obrotu.
+
+**Chwyć w dowolnym miejscu krawędzi.** Nie musisz trafiać dokładnie w uchwyt. Każdy bok zaznaczenia to pasek zmiany rozmiaru na całej długości, a przy myszy lub rysiku tuż za każdym rogiem jest strefa obrotu. Wskaźnik pokazuje, co zrobi przeciągnięcie, obrócony zgodnie z zaznaczeniem. Naciśnięcie w pasku lub strefie staje się zmianą rozmiaru albo obrotem dopiero po rozpoczęciu przeciągania, więc zwykłe kliknięcie nadal zaznacza, dodaje do zaznaczenia lub usuwa zaznaczenie jak dotąd. Zablokowany obiekt nie ma uchwytów, pasków ani stref.
+
+**Małe obiekty dają się przesuwać.** Na obiekcie o szerokości 25 pikseli ekranu lub mniej środkowe uchwyty, które tłoczyłyby się przy rogach, są ukryte, a pozostałe uchwyty odsuwają się nieco od obrysu, więc naciśnięcie obiektu przesuwa obiekt. Przy 10 pikselach lub mniej znikają też uchwyty rogów, a cienka linia zachowuje uchwyt na każdym końcu.
+
+**Duże obszary chwytania.** Na ekranie dotykowym strefy chwytania są duże: każda strefa rogu to jedna czwarta szerokości i wysokości zaznaczenia na ekranie, w granicach od 24 do 44 pikseli, a każda strefa boku obejmuje odcinek między dwoma rogami. Gdy zaznaczenie jest na to za małe, strefy przesuwają się poza obrys, więc naciśnięcie pośrodku nadal przesuwa zaznaczenie. Strefa pod wskaźnikiem albo pod przytrzymanym palcem jest zacieniona. Aby mieć te same strefy przy myszy lub rysiku, włącz **Duże obszary chwytania** w menu Lolly. Ustawienie jest zapamiętywane tylko na tym urządzeniu.
+
+**Dwa palce na zaznaczeniu.** Na ekranie dotykowym połóż dwa palce na zaznaczonym obiekcie: szczypnij, aby przeskalować zaznaczenie, skręć, aby je obrócić, albo przesuń oba palce, aby je przenieść. Wszystko, co zrobią dwa palce, liczy się jako jeden krok cofania. Przy włączonej Skali szczypnięcie skaluje też zawartość; przy wyłączonej szczypnięcie zmienia rozmiar zaznaczenia proporcjonalnie. Skręt jest przyciągany do najbliższych 15 stopni, gdy jest blisko, a przesunięcie dwoma palcami nigdy nie przyciąga. Dwa palce gdziekolwiek indziej nadal powiększają i przesuwają widok, a stuknięcie dwoma palcami nadal otwiera menu. Pierwszy palec musi trafić w zaznaczenie, a drugi szybko po nim dołączyć. Jeśli zaznaczenie zawiera obszar roboczy lub zablokowany obiekt, zajmuje większość widoku albo wychodzi poza jego krawędź, dwa palce powiększają i przesuwają widok.
 
 ### Warstwy i Inspektor
 

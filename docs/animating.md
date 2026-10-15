@@ -13,7 +13,7 @@ A keyframe records a box's position, its size, how see-through, how blurred and 
 - the diamond at the end of the timeline's tool cluster, after the keyboard button;
 - the diamond on the selected object's bar on the canvas, beside Duplicate and Delete.
 
-`K` does the same from the keyboard. Whichever you use, the pose is written at the playhead for everything keyframable in the selection, in one commit - so one undo takes the whole thing back, even across a multi-selection.
+`Shift+K` does the same from the keyboard while the timeline has focus (a bare `K` on the canvas turns Scale mode on or off). Whichever you use, the pose is written at the playhead for everything keyframable in the selection, in one commit - so one undo takes the whole thing back, even across a multi-selection.
 
 If the thing you selected has no timing yet, that same press adds it to the timeline **and** writes its first keyframe together. One press, one undo step.
 

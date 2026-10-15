@@ -21,7 +21,7 @@ import {
   zoneAt, zoneLayout, zoneRects, smallObjectHandles, visibleExtent, largeZoneSize,
   GRAB_ZONE_MIN, GRAB_ZONE_MAX, ZONE_ROTATE, ROTATE_STEM, ROTATE_STEM_NARROW, ROTATE_STEM_SMALL, rotateStemFor,
   handleOutset, SMALL_HANDLE_OUTSET, zoneDragThreshold, ZONE_DRAG_PX, ZONE_DRAG_PX_COARSE,
-  HANDLE_HALF, HANDLE_HALF_COARSE, HANDLE_FAT, handleHitReach, onDrawnHandle,
+  HANDLE_HALF, HANDLE_HALF_COARSE, HANDLE_FAT, drawnHandleReach, handleHitReach, onDrawnHandle,
   resizeCursorFor, rotateCursorAt, rotateCursorFor, snapAngleHard, rotateSnap, pinchTransform,
   PINCH_MAX_COVER, PINCH_SECOND_MS, PINCH_TRAVEL_PX, pinchFits, pinchMembers, visibleRect,
 } from './free-canvas-transform.ts';
@@ -896,15 +896,43 @@ test('a stood-off handle never reaches into a small box, at either handle size a
   assert.ok(checked > 1000);
 });
 
-test('handleHitReach is the drawn handle\'s hit area, as editor.css sizes the handles', () => {
+test('handleHitReach is the drawn handle\'s hit area as editor.css sizes the handles, and a finger\'s full reach for a finger', () => {
   const fat = Number(/\.fc-handle::after\s*\{[^}]*inset:\s*-(\d+)px/.exec(editorCss)?.[1]);
   assert.deepEqual([HANDLE_HALF * 2, HANDLE_HALF_COARSE * 2, HANDLE_FAT], [...HANDLE_SIZES, fat], 'the sizes read from editor.css');
-  assert.match(editorCss, /@media \(pointer: fine\)\s*\{\s*\.fc-handle:is\(\.fc-h-nw, \.fc-h-ne, \.fc-h-se, \.fc-h-sw\)::after\s*\{\s*content:\s*none;?\s*\}/,
-    'a fine pointer\'s corner has no fat target');
+  assert.match(editorCss, /@media \(pointer: fine\)\s*\{\s*\.fc-chrome\[data-zones\] \.fc-handle:is\(\.fc-h-nw, \.fc-h-ne, \.fc-h-se, \.fc-h-sw\)::after\s*\{\s*content:\s*none;?\s*\}/,
+    'a fine pointer\'s corner has no fat target while the zones are live');
+  // Where the zones are off no rotate zone lies past a corner, and the corner keeps the
+  // fat target: the one rule that drops the target sits under the data-zones chrome.
+  const cornerRules = editorCss.match(/^[^{}\n]*\.fc-h-nw, \.fc-h-ne, \.fc-h-se, \.fc-h-sw\)::after[^{]*\{[^}]*content:\s*none/gm) ?? [];
+  assert.equal(cornerRules.length, 1, 'one rule drops the corner fat target');
+  assert.match(cornerRules[0]!, /^\s*\.fc-chrome\[data-zones\] \.fc-handle:is\(/, 'and the rule is gated on the live zones');
   assert.deepEqual(handleHitReach('mouse'), { corner: 6, edge: 15, square: 6 }, 'a desktop, by default');
   assert.deepEqual(handleHitReach('pen', { coarse: true, fine: false }), { corner: 17, edge: 17, square: 8 }, 'a tablet');
   assert.deepEqual(handleHitReach('mouse', { coarse: true, fine: true }), { corner: 8, edge: 17, square: 8 }, 'a touch laptop');
   assert.deepEqual(handleHitReach('touch', { coarse: false, fine: true }), { corner: 17, edge: 17, square: 8 }, 'a finger, whatever the media');
+});
+
+test('drawnHandleReach is the drawn handle for the media, whichever pointer presses: a finger on a touch laptop meets a corner on its square', () => {
+  const laptop = { coarse: true, fine: true }, tablet = { coarse: true, fine: false };
+  assert.deepEqual(drawnHandleReach(), { corner: 6, edge: 15, square: 6 }, 'a desktop, by default');
+  assert.deepEqual(drawnHandleReach(laptop), { corner: HANDLE_HALF_COARSE, edge: 17, square: 8 }, 'a touch laptop: the corner is its 16 px square');
+  assert.deepEqual(drawnHandleReach(tablet), { corner: 17, edge: 17, square: 8 }, 'a tablet: the corner carries its fat target');
+  // A mouse or a pen meets the drawn handle where its zones reach.
+  for (const media of [laptop, tablet, { coarse: false, fine: true }, { coarse: false, fine: false }]) {
+    for (const kind of ['mouse', 'pen'] as const) assert.deepEqual(handleHitReach(kind, media), drawnHandleReach(media), `${kind} ${JSON.stringify(media)}`);
+  }
+  // A finger 12 px out on the nw diagonal: in the corner's zone on both, on the drawn
+  // corner only on the tablet, so on the touch laptop an object there keeps the press.
+  const r = { x: 100, y: 100, w: 200, h: 200 };
+  const p = { x: 88, y: 88 };
+  for (const [media, drawn] of [[laptop, false], [tablet, true]] as const) {
+    const zone = zoneAt(p, r, touch({ handleReach: handleHitReach('touch', media) }));
+    assert.deepEqual(zone, { kind: 'corner', handle: 'nw', outside: true }, `the zone reaches a finger's 17 px (${JSON.stringify(media)})`);
+    assert.equal(onDrawnHandle(p, r, 'nw', drawnHandleReach(media)), drawn, `on the drawn corner (${JSON.stringify(media)})`);
+  }
+  // The edge handles keep their fat target on both.
+  for (const media of [laptop, tablet]) assert.ok(onDrawnHandle({ x: 200, y: 84 }, r, 'n', drawnHandleReach(media)));
+  assert.ok(!onDrawnHandle({ x: 200, y: 82.9 }, r, 'n', drawnHandleReach(laptop)));
 });
 
 test('onDrawnHandle: the square and its fat target round a corner or midpoint, the square alone when stood off, none when hidden', () => {

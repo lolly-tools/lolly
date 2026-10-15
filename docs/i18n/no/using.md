@@ -91,7 +91,7 @@ Forhåndsvisningen viser alltid nøyaktig det som blir eksportert.
 
 **Berøring**
 
-- **Knip** for å zoome, **dra** for å panorere, **dobbelttrykk** for å tilbakestille til tilpasset visning.
+- **Knip** for å zoome, **dra** for å panorere, **dobbelttrykk** for å tilbakestille til tilpasset visning. På det frie canvaset skalerer, vrir og flytter to fingre på et valgt objekt utvalget i stedet (se [Endre størrelse, skaler og roter](#resize-scale-and-rotate)).
 
 **Klikk for å hoppe til en kontroll:** klikk på et element i designet, så får det tilsvarende feltet i sidepanelet fokus og rulles fram - for en gjentakende radgruppe folder den ut nøyaktig raden du klikket på, slik at det å redigere det du ser er ett trykk unna.
 
@@ -110,6 +110,37 @@ Verktøy med fritt canvas legger til en arbeidsflate *rundt* tegnebrettet, som e
 ![Designs frie canvas - tegnebrettet med det omkringliggende monteringsbrettet](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 **Snu et utvalg.** Høyreklikk på en hvilken som helst boks og velg **Flip horizontal** eller **Flip vertical** for å speile den på stedet, eller trykk `Shift+H` / `Shift+V` på tastaturet - Shift, fordi en bar `V` er Pointer-verktøyet. Hver valgte boks speiles langs sin egen akse i ett angre-trinn, og speilingen er en ekte transformasjon, så den holder seg i den eksporterte SVG-, PDF- og PNG-filen, ikke bare på lerretet.
+
+### Endre størrelse, skaler og roter
+
+Velg et objekt, og dra så i et håndtak for å endre størrelsen, eller dra i det runde håndtaket under utvalget for å vri objektet. Et størrelsesdrag fungerer i én av to moduser:
+
+- **Endre størrelse**, standarden, endrer bare boksen. Teksten brytes om til den nye størrelsen, og skriftstørrelse, strekbredde, hjørneradius og effekter forblir som de var.
+- **Skala** forstørrer eller forminsker hele objektet med innholdet: skriftstørrelse, strek, hjørneradius, skygge, uskarphet, avstand innvendig og mellomrom endres med samme faktor.
+
+Trykk `K` for å slå Skala på eller av, eller bruk **Skala**-knappen på verktøylinjen; på en berøringsskjerm har objektlinjen den samme bryteren. Håndtakene får en annen stil mens Skala er på. `V` eller **Escape** går tilbake til Endre størrelse og beholder utvalget. Skala er av hver gang et dokument åpnes, så ingen skalerer streker ved et uhell. Hver skalering er ett angre-trinn med navnet **Skala**.
+
+**Skaler med et tall.** Med Skala på, eller når flere objekter er valgt, klikker du på verdien i objektlinjen for å åpne **Skala**-panelet. Skriv inn en prosentverdi, velg punktet som blir stående i 3 x 3-rutenettet, og velg **Bruk**. Resultatet blir ett angre-trinn, uten at du trenger å dra. Med Skala av endrer flere objekter bare størrelse og posisjon.
+
+**Flere objekter.** Et utvalg med flere objekter har håndtak på kantene i tillegg til hjørnene. Et hjørnedrag endrer bredde og høyde fritt så lenge hvert objekt i utvalget står oppreist eller er vridd i hele kvartsomdreininger, og utvalget ikke inneholder noen gruppe eller sirkel. Ellers beholder utvalget proporsjonene, og verdien får tillegget **Proporsjonal**. Mens du endrer størrelse eller skalerer, viser en liten etikett ved siden av utvalget størrelsen, eller prosenten i Skala-modus.
+
+**Taster du holder inne under et drag** virker så snart du trykker eller slipper dem (hurtigtastoversikten, `?`, viser dem også):
+
+| Hold | Endre størrelse eller skalere | Rotere | Flytte |
+|---|---|---|---|
+| **Shift** | Beholder proporsjonene (Skala gjør det alltid) | Vrir i trinn på 15 grader | Ingen endring |
+| **Alt** (Option) | Jobber fra midten | Vrir fritt | Slår av snapping og rutenett |
+| **Cmd/Ctrl** | Slår av snapping og rutenett | Vrir fritt | Slår av snapping og rutenett |
+
+Uten noen tast holdt inne trekkes en vridning til nærmeste 15 grader når den kommer innenfor 4 grader av den. Tegnebrett roteres ikke, så de har ikke noe rotasjonshåndtak.
+
+**Ta tak hvor som helst langs en kant.** Du trenger ikke treffe et håndtak nøyaktig. Hver side av et utvalg er en størrelsesstripe langs hele lengden, og med mus eller penn er det en rotasjonssone rett utenfor hvert hjørne. Pekeren viser hva et drag kommer til å gjøre, vridd så den passer til utvalget. Et trykk i en stripe eller sone blir til en størrelsesendring eller en vridning først når du begynner å dra, så et vanlig klikk velger, legger til i utvalget eller fjerner utvalget som før. Et låst objekt har ingen håndtak, striper eller soner.
+
+**Små objekter kan fortsatt flyttes.** På et objekt som er 25 skjermpiksler eller mindre på tvers, skjules midthåndtakene som ville trengt seg ved hjørnene, og de andre håndtakene flyttes et lite stykke ut fra omrisset, så et trykk på objektet flytter objektet. Ved 10 piksler eller mindre forsvinner hjørnehåndtakene også, og en tynn linje beholder et håndtak i hver ende.
+
+**Store tak-områder.** På en berøringsskjerm er grepssonene store: hver hjørnesone er en fjerdedel av utvalgets bredde og høyde på skjermen, begrenset til mellom 24 og 44 piksler, og hver sidesone dekker strekningen mellom to hjørner. Når utvalget er for lite til det, flyttes sonene utenfor omrisset, så et trykk i midten fortsatt flytter utvalget. Sonen under pekeren, eller under en finger du holder nede, skyggelegges. Hvis du vil ha de samme sonene med mus eller penn, slår du på **Store tak-områder** i Lolly-menyen. Innstillingen lagres bare på denne enheten.
+
+**To fingre på et utvalg.** På en berøringsskjerm legger du to fingre på et valgt objekt: knip for å skalere utvalget, vri for å rotere det, eller flytt begge fingrene for å bære det. Alt de to fingrene gjør, teller som ett angre-trinn. Med Skala på skalerer et knip innholdet også; med Skala av endrer knipet størrelsen på utvalget proporsjonalt. En vridning trekkes til nærmeste 15 grader når den er nær, og en flytting med to fingre snapper aldri. To fingre andre steder zoomer og panorerer fortsatt visningen, og et trykk med to fingre åpner fortsatt menyen. Den første fingeren må lande på utvalget, og den andre må følge raskt etter. Hvis utvalget inneholder et tegnebrett eller et låst objekt, dekker mesteparten av visningen eller går forbi kanten av visningen, zoomer og panorerer to fingre i stedet.
 
 ### Lag og Inspektør
 

@@ -91,7 +91,7 @@ Döküm, oturum belleğidir: bir devam sorusu sor, konu ilerledikçe iş parçac
 
 **Dokunmatik**
 
-- **Sıkıştırarak** yakınlaştır, **sürükleyerek** kaydır, sığdırmaya dönmek için **çift dokun**.
+- Yakınlaştırmak için **sıkıştır**, kaydırmak için **sürükle**, sığdırmaya sıfırlamak için **çift dokun**. Serbest kanvasta seçili bir nesnenin üzerindeki iki parmak bunun yerine seçimi ölçekler, döndürür ve taşır (bkz. [Yeniden boyutlandırma, ölçekleme ve döndürme](#resize-scale-and-rotate)).
 
 **Bir kontrole atlamak için tıkla:** Tasarımdaki herhangi bir öğeye tıkla, ilgili kenar çubuğu girdisi odaklanır ve görünüme kayar - tekrar eden bir satır grubunda tıkladığın satırı tam olarak açar, böylece gördüğünü düzenlemek tek dokunuş uzaklıktadır.
 
@@ -110,6 +110,37 @@ Serbest kanvas araçları, bir tasarımcının yapıştırma tahtası gibi, çal
 ![Design'ın serbest tuvali - çalışma yüzeyi ve onu çevreleyen yapıştırma masası](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 **Bir seçimi çevir.** Herhangi bir kutuya sağ tıkla ve yerinde aynalamak için **Flip horizontal** veya **Flip vertical**'i seç, ya da klavyeden `Shift+H` / `Shift+V` tuşlarına bas - Shift, çünkü tek başına `V` Pointer aracıdır. Seçili her kutu kendi ekseninde tek bir geri alma adımında aynalanır ve ayna gerçek bir dönüşümdür, bu yüzden sadece tuvalde değil, dışa aktarılan SVG, PDF ve PNG'de de kalıcıdır.
+
+### Yeniden boyutlandırma, ölçekleme ve döndürme
+
+Bir nesne seç, sonra boyutunu değiştirmek için bir tutamacı sürükle ya da nesneyi döndürmek için seçimin altındaki yuvarlak tutamacı sürükle. Boyut sürüklemesi iki moddan birinde çalışır:
+
+- **Yeniden boyutlandır**, varsayılan mod, yalnızca kutuyu değiştirir. Metin yeni boyuta göre yeniden satırlanır; yazı tipi boyutu, kontur kalınlığı, köşe yarıçapı ve efektler olduğu gibi kalır.
+- **Ölçek**, nesnenin tamamını içeriğiyle birlikte büyütür veya küçültür: yazı tipi boyutu, kontur, köşe yarıçapı, gölge, bulanıklık, iç boşluk ve aralıkların hepsi aynı oranda değişir.
+
+Ölçeği açıp kapatmak için `K` tuşuna bas ya da araç çubuğundaki **Ölçek** düğmesini kullan; dokunmatik ekranda nesne çubuğunda aynı anahtar bulunur. Ölçek açıkken tutamaçların biçimi değişir. `V` veya **Escape**, seçimini koruyarak yeniden boyutlandırmaya döner. Ölçek, bir belge her açıldığında kapalıdır; böylece kimse yanlışlıkla konturları ölçeklemez. Her ölçekleme, **Ölçek** adlı tek bir geri alma adımıdır.
+
+**Sayıyla ölçekle.** Ölçek açıkken ya da birden çok nesne seçiliyken, **Ölçek** açılır penceresini açmak için nesne çubuğundaki değere tıkla. Bir yüzde yaz, 3 x 3 ızgarada sabit kalacak noktayı seç ve **Uygula**'yı seç. Sonuç, sürüklemeye gerek kalmadan tek bir geri alma adımıdır. Ölçek kapalıyken birden çok nesne yalnızca boyut ve konum değiştirir.
+
+**Birden çok nesne.** Birden çok nesneli bir seçimin köşelerinde olduğu gibi kenarlarında da tutamaçlar bulunur. Seçimdeki her nesne dik duruyorsa ya da tam çeyrek turlarla döndürülmüşse ve seçimde grup veya daire yoksa, köşe sürüklemesi genişliği ve yüksekliği serbestçe değiştirir. Aksi halde seçim oranlarını korur ve değer satırına **Orantılı** eklenir. Yeniden boyutlandırırken veya ölçeklerken seçimin yanındaki küçük bir etiket boyutu, Ölçek modunda ise yüzdeyi gösterir.
+
+**Sürükleme sırasında basılı tuttuğun tuşlar**, bastığın ya da bıraktığın anda etki eder (kısayol listesi `?` de bunları gösterir):
+
+| Basılı tut | Yeniden boyutlandırma veya ölçekleme | Döndürme | Taşıma |
+|---|---|---|---|
+| **Shift** | Oranları korur (Ölçek her zaman korur) | 15 derecelik adımlarla döndürür | Değişiklik yok |
+| **Alt** (Option) | Merkezden çalışır | Serbestçe döndürür | Yaslamayı ve ızgarayı kapatır |
+| **Cmd/Ctrl** | Yaslamayı ve ızgarayı kapatır | Serbestçe döndürür | Yaslamayı ve ızgarayı kapatır |
+
+Hiçbir tuş basılı değilken, bir dönüş en yakın 15 dereceye 4 derece kadar yaklaştığında ona çekilir. Çalışma alanları döndürülmez, bu yüzden döndürme tutamaçları yoktur.
+
+**Kenar boyunca her yerden tut.** Bir tutamacı tam olarak yakalaman gerekmez. Seçimin her kenarı, tüm uzunluğu boyunca bir yeniden boyutlandırma şeridi olarak çalışır; fare veya kalemle her köşenin hemen dışında bir döndürme bölgesi de vardır. İmleç, sürüklemenin ne yapacağını seçime uyacak şekilde döndürülmüş olarak gösterir. Bir şeride veya bölgeye basış, ancak sürüklemeye başladığında yeniden boyutlandırma ya da dönüşe dönüşür; yani düz bir tıklama eskisi gibi seçer, seçime ekler ya da seçimi kaldırır. Kilitli bir nesnenin tutamacı, şeridi veya bölgesi yoktur.
+
+**Küçük nesneler taşınabilir kalır.** Ekranda 25 piksel veya daha dar bir nesnede, köşelere yığılacak orta tutamaçlar gizlenir ve diğer tutamaçlar çerçeveden biraz dışarı kayar; böylece nesneye basmak nesneyi taşır. 10 piksel veya daha azında köşe tutamaçları da kaybolur, ince bir çizgi ise her ucunda bir tutamaç tutar.
+
+**Büyük tutma alanları.** Dokunmatik ekranda tutma bölgeleri büyüktür: her köşe bölgesi, seçimin ekrandaki genişliğinin ve yüksekliğinin dörtte biridir, 24 ile 44 piksel arasında tutulur ve her kenar bölgesi iki köşe arasındaki aralığı kaplar. Seçim buna göre çok küçükse bölgeler çerçevenin dışına kayar, böylece ortaya basmak yine seçimi taşır. İmlecin altındaki ya da basılı tuttuğun parmağın altındaki bölge gölgelenir. Aynı bölgeleri fare veya kalemle de almak için Lolly menüsünde **Büyük tutma alanları**'nı aç. Ayar yalnızca bu cihazda saklanır.
+
+**Bir seçimin üzerinde iki parmak.** Dokunmatik ekranda seçili bir nesnenin üzerine iki parmak koy: seçimi ölçeklemek için sıkıştır, döndürmek için bük ya da taşımak için iki parmağı birlikte hareket ettir. İki parmağın yaptığı her şey tek bir geri alma adımı sayılır. Ölçek açıkken sıkıştırma içeriği de ölçekler; kapalıyken sıkıştırma seçimi orantılı olarak yeniden boyutlandırır. Bükme yakınsa en yakın 15 dereceye çekilir, iki parmakla taşıma ise hiçbir zaman yaslanmaz. İki parmak başka bir yerdeyse görünümü yine yakınlaştırır ve kaydırır, iki parmakla dokunma yine menüyü açar. İlk parmak seçimin üzerine inmeli, ikincisi hızla ardından gelmelidir. Seçim bir çalışma alanı ya da kilitli bir nesne içeriyorsa, görünümün çoğunu kaplıyorsa veya görünümün kenarını aşıyorsa, iki parmak bunun yerine yakınlaştırır ve kaydırır.
 
 ### Katmanlar ve Denetçi
 

@@ -16,12 +16,15 @@
  *   5. The wash over the zone under the pointer (or the finger's press) is the hit
  *      geometry itself, and goes when the pointer leaves or the press ends.
  *   6. While the large zones are on for the pointer, the resize handles let the press
- *      through (pointer-events: none), and a zone mode gate gives them back.
+ *      through (pointer-events: none), and a zone mode gate gives them back. The chrome
+ *      says when the zones are live (data-zones), which an armed Add kind and a gradient
+ *      edit take away.
  *   7. Zoomed: the zones are sized from the VISIBLE part of the rect.
  *   8. The zones stand in for the handles they let through: they reach as far out as a
  *      drawn handle took a press, a handle over another object or the bare stage still
  *      resizes (before the stage pan sees the press), a tap on a handle changes nothing,
- *      and a long-press context menu ends the press.
+ *      and a long-press context menu ends the press. On a touch laptop a finger meets a
+ *      drawn corner on its square alone, as the media draw the corner.
  *
  * Run directly:  node --import ./tests/css-stub.mjs --test shells/web/src/views/free-canvas-transform-grab-zones.test.ts
  */
@@ -51,10 +54,14 @@ for (const k of [
 }
 globalThis.requestAnimationFrame = ((cb: FrameRequestCallback) => W.requestAnimationFrame(cb)) as typeof requestAnimationFrame;
 globalThis.cancelAnimationFrame = ((h: number) => W.cancelAnimationFrame(h)) as typeof cancelAnimationFrame;
-// A desktop: the primary pointer is fine and none is coarse, which sizes the drawn
-// handles the large zones stand in for (12 px squares, no fat target round a corner).
-Reflect.set(globalThis, 'matchMedia', (q: string) =>
-  ({ matches: q === '(pointer: fine)', media: q, addEventListener() {}, removeEventListener() {} }));
+// A desktop by default: the primary pointer is fine and none is coarse, which sizes the
+// drawn handles the large zones stand in for (12 px squares, no fat target round a
+// corner). A test may set another device's media and put these back after.
+const MEDIA = { coarse: false, fine: true };
+Reflect.set(globalThis, 'matchMedia', (q: string) => ({
+  matches: (q === '(pointer: fine)' && MEDIA.fine) || (q === '(any-pointer: coarse)' && MEDIA.coarse),
+  media: q, addEventListener() {}, removeEventListener() {},
+}));
 Reflect.set(globalThis, 'ResizeObserver', class { observe() {} disconnect() {} });
 Reflect.set(globalThis, 'CSS', Reflect.get(W, 'CSS') ?? { escape: (v: string) => String(v).replace(/[^\w-]/g, (c) => `\\${c}`) });
 
@@ -647,6 +654,40 @@ test('while the large zones are on for the pointer the resize handles are pointe
   } finally { f.destroy(); }
 });
 
+test('the chrome carries data-zones only while the zones are live: not with an armed Add kind, nor in gradient edit', async () => {
+  useStorage(memoryStorage());
+  const f = mount([BIG()], { canvas: { gradField: 'grad' } });
+  const zones = (): boolean => f.chrome().hasAttribute('data-zones');
+  try {
+    f.select(['a']);
+    await settle();
+    assert.equal(zones(), true, 'the pointer with a selection: a fine pointer meets a corner on its square');
+    // An armed Add kind has no zones, so no rule takes the corners' fat target.
+    f.stageEl.querySelector<HTMLElement>('.fc-btn-add')!.dispatchEvent(new W.MouseEvent('click', { bubbles: true }));
+    await settle();
+    const box = [...f.stageEl.querySelectorAll<HTMLElement>('.fc-pop-item, .fc-pop-gitem')].find((b) => (b.textContent ?? '').trim() === 'Box');
+    assert.ok(box, 'the Add menu offers Box');
+    box!.dispatchEvent(new W.MouseEvent('click', { bubbles: true }));
+    await settle();
+    assert.ok(f.stageEl.classList.contains('fc-arming'), 'Box is armed');
+    assert.equal(zones(), false, 'an armed Add kind');
+    press('v');
+    await settle();
+    assert.equal(zones(), true, 'back on the pointer');
+    // Gradient edit has no zones either.
+    const grad = (): HTMLElement => f.stageEl.querySelector<HTMLElement>('.fc-ctxbar [data-cx="grad"]')!;
+    assert.ok(grad(), 'the object bar offers a gradient');
+    grad().dispatchEvent(new W.MouseEvent('click', { bubbles: true }));
+    await settle();
+    assert.ok(f.stageEl.querySelector('.fc-grad-stop'), 'the gradient edit is live');
+    assert.equal(zones(), false, 'in gradient edit');
+    grad().dispatchEvent(new W.MouseEvent('click', { bubbles: true }));
+    await settle();
+    assert.equal(f.stageEl.querySelector('.fc-grad-stop'), null, 'the gradient edit is over');
+    assert.equal(zones(), true, 'and the zones are back');
+  } finally { f.destroy(); }
+});
+
 test('a finger on a handle the chrome had not yet let through is still a zone press', async () => {
   useStorage(memoryStorage());
   const f = mount([BIG()]);
@@ -740,6 +781,35 @@ test('the large zones reach as far out as the drawn handles, for a finger and fo
     await drag(f, 165, 55, 165, 35);
     assert.deepEqual(rectOf(f.byId('a')), [30, 40, 270, 260], 'and a drag from there resizes');
   } finally { f.destroy(); }
+});
+
+test('a finger on a touch laptop meets a drawn corner on its square alone, where a tablet\'s corner carries its fat target', async () => {
+  useStorage(memoryStorage());
+  const devices = [['touch laptop', { coarse: true, fine: true }], ['tablet', { coarse: true, fine: false }]] as const;
+  for (const [device, media] of devices) {
+    Object.assign(MEDIA, media);
+    // b, unselected and on top, lies over a's nw corner zone, 12 px out on the diagonal.
+    const f = mount([BIG(), { id: 'b', kind: 'box', x: 70, y: 70, w: 25, h: 25, rot: 0 } as Box]);
+    try {
+      f.select(['a']);
+      await settle();
+      // 40 px up and left, clear of every snap b offers.
+      await drag(f, 88, 88, 48, 48, { kind: 'touch' });
+      if (device === 'tablet') {
+        assert.deepEqual(rectOf(f.byId('a')), [60, 60, 240, 240], 'tablet: on the drawn corner the handle resizes the selection');
+        assert.deepEqual(f.selection(), ['a']);
+        assert.deepEqual(rectOf(f.byId('b')), [70, 70, 25, 25]);
+      } else {
+        assert.deepEqual(f.selection(), ['b'], 'touch laptop: past the 16 px square the object on top takes the press');
+        assert.deepEqual(rectOf(f.byId('b')), [30, 30, 25, 25], 'and moves');
+        assert.deepEqual(rectOf(f.byId('a')), [100, 100, 200, 200]);
+      }
+      assert.equal(f.writes(), 1, `${device}: one undo step`);
+    } finally {
+      f.destroy();
+      Object.assign(MEDIA, { coarse: false, fine: true });
+    }
+  }
 });
 
 test('a large zone past the artboard takes a finger or a pen before the stage pan, and keeps the selection', async () => {

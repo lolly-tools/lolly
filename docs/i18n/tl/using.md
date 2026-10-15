@@ -91,7 +91,7 @@ Laging ipinapakita ng preview ang eksaktong ie-export.
 
 **Touch**
 
-- **Pinch** para mag-zoom, **drag** para mag-pan, **double-tap** para bumalik sa fit.
+- **I-pinch** para mag-zoom, **i-drag** para mag-pan, **i-double-tap** para bumalik sa fit. Sa free canvas, ang dalawang daliri sa napiling object ay nag-i-scale, nag-i-rotate at naglilipat ng seleksyon sa halip na ng view (tingnan ang [I-resize, i-scale at i-rotate](#resize-scale-and-rotate)).
 
 **I-click para tumalon sa isang control:** i-click ang alinmang elemento sa disenyo at makukuha ng tugmang sidebar input ang focus at lilitaw ito sa view - para sa isang paulit-ulit na row group, binubuksan nito ang mismong row na na-click mo, kaya isang tap lang ang layo ng pag-edit sa nakikita mo.
 
@@ -110,6 +110,37 @@ Nagdaragdag ang mga free-canvas na tool ng working surface *sa paligid* ng artbo
 ![Ang libreng canvas ng Design - ang artboard kasama ang pasteboard na nakapaligid dito](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 **I-flip ang isang selection.** Mag-right-click sa anumang box at piliin ang **Flip horizontal** o **Flip vertical** para i-mirror ito sa lugar, o pindutin ang `Shift+H` / `Shift+V` mula sa keyboard - Shift, dahil ang hubad na `V` ay ang Pointer tool. Nagmi-mirror ang bawat napiling box sa sarili nitong axis sa isang undo step, at tunay na transform ang mirror, kaya nananatili ito sa na-export na SVG, PDF at PNG at hindi lamang sa canvas.
+
+### I-resize, i-scale at i-rotate
+
+Pumili ng object, pagkatapos ay i-drag ang isang handle para baguhin ang laki nito, o i-drag ang bilog na handle sa ibaba ng seleksyon para i-rotate ang object. May dalawang mode ang pag-drag ng laki:
+
+- **I-resize**, ang default, ay ang kahon lang ang binabago. Nagre-rewrap ang teksto sa bagong laki, at nananatili ang font size, lapad ng stroke, corner radius at mga effect.
+- **I-scale** ay nagpapalaki o nagpapaliit sa buong object kasama ang nilalaman nito: pare-parehong nagbabago ang font size, stroke, corner radius, shadow, blur, padding at spacing.
+
+Pindutin ang `K` para i-on o i-off ang Scale, o gamitin ang button na **Scale** sa tool rail; sa touch screen, may kaparehong toggle ang object bar. Nagbabago ang istilo ng mga handle habang naka-on ang Scale. Ibinabalik ka ng `V` o **Escape** sa Resize at pinananatili ang seleksyon mo. Naka-off ang Scale tuwing magbubukas ng dokumento, kaya walang aksidenteng mag-i-scale ng mga stroke. Isang undo step ang bawat Scale, na may label na **Scale**.
+
+**Mag-scale gamit ang numero.** Kapag naka-on ang Scale, o kapag maraming object ang napili, i-click ang readout sa object bar para buksan ang popover na **Scale**. Mag-type ng porsyento, piliin ang puntong mananatiling hindi gagalaw sa 3 x 3 grid at piliin ang **I-apply**. Isang undo step ang resulta, at hindi na kailangang mag-drag. Kapag naka-off ang Scale, laki at posisyon lang ang nagbabago sa maraming object.
+
+**Maraming object.** May mga handle sa gilid, hindi lang sa mga sulok, ang seleksyon ng maraming object. Malayang binabago ng pag-drag sa sulok ang lapad at taas hangga't tuwid ang bawat object sa seleksyon o naka-rotate sa buong quarter turn, at walang group o bilog sa seleksyon. Kung hindi, pinapanatili ng seleksyon ang mga proporsyon nito, at idinadagdag ng readout ang **Proporsyonal**. Habang nire-resize o ini-scale mo, may maliit na label sa tabi ng seleksyon na nagpapakita ng laki, o ng porsyento sa Scale mode.
+
+**Mga key na hinahawakan mo habang nagda-drag** ay agad na umiepekto kapag pinindot o binitawan mo ang mga ito (nakalista rin ang mga ito sa shortcut sheet, `?`):
+
+| Hawak | Pag-resize o pag-scale | Pag-rotate | Paglilipat |
+|---|---|---|---|
+| **Shift** | Pinapanatili ang mga proporsyon (laging ganito ang Scale) | Umiikot nang 15 degree bawat hakbang | Walang pagbabago |
+| **Alt** (Option) | Nagsisimula sa gitna | Malayang umiikot | Ino-off ang snapping at grid |
+| **Cmd/Ctrl** | Ino-off ang snapping at grid | Malayang umiikot | Ino-off ang snapping at grid |
+
+Kapag walang hawak na key, hinihila ang pag-ikot sa pinakamalapit na 15 degree kapag nasa loob ito ng 4 na degree mula rito. Hindi nagro-rotate ang mga artboard, kaya wala silang rotate handle.
+
+**Humawak kahit saan sa gilid.** Hindi mo kailangang eksaktong tamaan ang handle. Ang bawat gilid ng seleksyon ay resize strip sa buong haba nito, at sa mouse o pen, may rotate zone sa labas lang ng bawat sulok. Ipinapakita ng pointer ang gagawin ng pag-drag, nakaikot para tumugma sa seleksyon. Nagiging resize o pag-ikot lang ang pagpindot sa strip o zone kapag nagsimula ka nang mag-drag, kaya ang simpleng click ay pumipili, nagdaragdag sa seleksyon o nag-aalis ng pagpili gaya ng dati. Walang handle, strip o zone ang naka-lock na object.
+
+**Nananatiling nagagalaw ang maliliit na object.** Sa object na 25 screen pixel o mas maliit ang lapad, nagtatago ang mga gitnang handle na susiksik sa mga sulok at bahagyang lumalayo sa outline ang iba pang handle, kaya inililipat ng pagpindot sa object ang object. Sa 10 pixel o mas maliit, nawawala rin ang mga handle sa sulok, at nagtitira ng handle sa bawat dulo ang manipis na linya.
+
+**Malalaking grab area.** Sa touch screen, malalaki ang mga grab zone: ang bawat corner zone ay isang-kapat ng lapad at taas ng seleksyon sa screen, pinananatili sa pagitan ng 24 at 44 pixel, at sinasaklaw ng bawat side zone ang bahagi sa pagitan ng dalawang sulok. Kapag masyadong maliit ang seleksyon para dito, lumilipat sa labas ng outline ang mga zone, kaya inililipat pa rin ng pagpindot sa gitna ang seleksyon. May shade ang zone na nasa ilalim ng pointer mo, o ng daliring pinipindot mo. Para makuha ang parehong mga zone sa mouse o pen, i-on ang **Malalaking grab area** sa Lolly menu. Sa device na ito lang nase-save ang setting.
+
+**Dalawang daliri sa seleksyon.** Sa touch screen, ilagay ang dalawang daliri sa napiling object: mag-pinch para i-scale ang seleksyon, mag-twist para i-rotate ang seleksyon o igalaw ang dalawang daliri para dalhin ang seleksyon. Isang undo step ang anumang ginawa ng dalawang daliri. Kapag naka-on ang Scale, ini-scale rin ng pinch ang nilalaman; kapag naka-off, nire-resize ng pinch ang seleksyon nang proporsyonal. Hinihila ang twist sa pinakamalapit na 15 degree kapag malapit, at hindi nagsa-snap ang galaw ng dalawang daliri. Nagzo-zoom at nagpa-pan pa rin ng view ang dalawang daliri sa ibang lugar, at nagbubukas pa rin ng menu ang two-finger tap. Dapat lumapag ang unang daliri sa seleksyon at dapat sumunod agad ang pangalawa. Kung may artboard o naka-lock na object ang seleksyon, sumasakop sa halos buong view o lumalampas sa gilid ng view, magzo-zoom at magpa-pan ang dalawang daliri.
 
 ### Mga Layer at Inspector
 

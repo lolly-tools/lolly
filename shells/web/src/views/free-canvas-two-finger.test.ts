@@ -18,7 +18,8 @@
  *      and Escape or a pointercancel mid pinch puts the selection back and commits
  *      nothing;
  *   6. after a pinch, the finger left down (and a third one the pinch held back) zoom
- *      the view with the next finger, whichever finger lifted first;
+ *      the view with the next finger, whichever finger lifted first, and so do the
+ *      fingers left after a pointercancel on one pinch finger;
  *   7. Safari's own pinch events do not zoom the view while the selection is pinched.
  *
  * Run directly:  node --import ./tests/css-stub.mjs --test shells/web/src/views/free-canvas-two-finger.test.ts
@@ -714,6 +715,31 @@ test('a third finger the pinch held back zooms the view with the finger left onc
     await settle();
     near(f.zoom(), 2, 0.05, 'the two fingers left zoomed the view');
     assert.equal(f.writes(), 1);
+  } finally { f.destroy(); }
+});
+
+test('a pointercancel on one pinch finger hands the fingers still down to the view', async () => {
+  const f = mount(ONE());
+  try {
+    f.select(['a']);
+    await settle();
+    down(f, [160, 200], [240, 200]);
+    f.canvasEl.dispatchEvent(finger('pointerdown', [600, 600], 3, 1060));
+    await to(f, [120, 200], [280, 200]);
+    f.canvasEl.dispatchEvent(finger('pointercancel', [120, 200], 1, 1300));
+    await settle();
+    assert.equal(geom(f.el('a')), '100px 100px 200px 200px', 'the cancel put the selection back');
+    // Fingers 2 (280, 200) and 3 (600, 600) spread to twice their distance about (440, 400).
+    f.canvasEl.dispatchEvent(finger('pointermove', [120, 0], 2, 1500));
+    f.canvasEl.dispatchEvent(finger('pointermove', [760, 800], 3, 1500));
+    await settle();
+    f.canvasEl.dispatchEvent(finger('pointerup', [120, 0], 2, 1700));
+    f.canvasEl.dispatchEvent(finger('pointerup', [760, 800], 3, 1710));
+    await settle();
+    assert.ok(f.zoom() > 1, `the two fingers left zoomed the view (zoom ${f.zoom()})`);
+    near(f.zoom(), 2, 0.05, 'by their spread');
+    assert.deepEqual(rectOf(f.byId('a')), [100, 100, 200, 200], 'and left the box alone');
+    assert.equal(f.writes(), 0, 'the cancelled pinch wrote nothing');
   } finally { f.destroy(); }
 });
 

@@ -31,8 +31,9 @@
  */
 import type { Box } from '../free-canvas-math.ts';
 import {
-  handleHitReach, largeZoneSize, onDrawnHandle, resizeCursorFor, rotateCursorAt, rotateCursorFor, rotateStemFor, visibleRect,
-  zoneAt, zoneDragThreshold, zoneRects, type HandleMedia, type PointerKind, type ScreenRect, type ViewRect, type ZoneHit, type ZoneOpts,
+  drawnHandleReach, handleHitReach, largeZoneSize, onDrawnHandle, resizeCursorFor, rotateCursorAt, rotateCursorFor, rotateStemFor,
+  visibleRect, zoneAt, zoneDragThreshold, zoneRects, type HandleMedia, type PointerKind, type ScreenRect, type ViewRect, type ZoneHit,
+  type ZoneOpts,
 } from '../free-canvas-transform.ts';
 import type { Gesture, HandleName, Metrics, Point, Rect } from './shared.ts';
 import { bindOp, type FcCtx } from './context.ts';
@@ -198,20 +199,24 @@ function zoneTarget(fc: FcCtx, boxes: Box[]): ZoneTarget | null {
  *
  * Under the large zones a drawn resize handle lets the press through to the zone that
  * stands for the handle, and on the handle the handle's own press wins, as it did when
- * the handle took the press: over another object and with a modifier held.
+ * the handle took the press: over another object and with a modifier held. The zone
+ * reaches as far as this pointer's press could take a handle, and "on the handle" is
+ * the handle as drawn for these media, so a finger on a touch laptop meets a corner on
+ * its square alone.
  */
 function zoneUnder(fc: FcCtx, boxes: Box[], x: number, y: number, kind: PointerKind, mods: Mods): ZoneFound | null {
   if (mods.ctrlKey && macPlatform()) return null;
   const target = zoneTarget(fc, boxes);
   if (!target) return null;
   const large = fc.grabZones.largeFor(kind);
-  const reach = large ? handleHitReach(kind, handleMedia()) : undefined;
+  const media = large ? handleMedia() : null;
+  const reach = media ? handleHitReach(kind, media) : undefined;
   const opts: ZoneOpts = {
     pointerKind: kind, large, viewport: target.viewport, allowRotate: target.allowRotate, ...(reach && { handleReach: reach }),
   };
   const hit = zoneAt({ x, y }, target.rect, opts);
   if (!hit) return null;
-  if (reach && hit.kind !== 'rotate' && onDrawnHandle({ x, y }, target.rect, hit.handle, reach)) {
+  if (media && hit.kind !== 'rotate' && onDrawnHandle({ x, y }, target.rect, hit.handle, drawnHandleReach(media))) {
     return { hit, target, opts, onHandle: true };
   }
   if (hit.kind === 'edge' && hit.outside && (mods.shiftKey || mods.metaKey || mods.ctrlKey)) return null;
@@ -492,17 +497,22 @@ export function refreshZones(fc: FcCtx): void {
 // ── Large zones and the chrome ───────────────────────────────────────────────
 
 /**
- * Lay the chrome out for the pointer it expects. While the large zones are on for that
- * pointer in a zone mode, the resize handles let presses through to their zones
- * (`data-grab` on the chrome; still drawn). Kept through a drag, so the handles do not
- * flicker; a mode with no zones (gradient, text, pen or node edit) gives the handles
- * back, and takes the zone's cursor and wash away at once, since a tool switch need not
- * repaint the chrome or move the pointer. Returns the state.
+ * Lay the chrome out for the zones and the pointer it expects. In a zone mode the zones
+ * stand round the handles (`data-zones` on the chrome), so on a fine pointer a corner
+ * handle is hit on its own square and a turn starts where the square ends (editor.css).
+ * While the large zones are on for that pointer, the resize handles also let presses
+ * through to their zones (`data-grab`; still drawn). Both are kept through a drag, so
+ * the handles do not flicker. A mode with no zones (an armed Add kind, a gradient,
+ * text, pen or node edit) gives the handles back whole, and takes the zone's cursor and
+ * wash away at once, since a tool switch need not repaint the chrome or move the
+ * pointer. Every chrome paint and every tool switch (syncModeUI) calls this. Returns
+ * whether the large zones are on.
  */
 export function syncGrab(fc: FcCtx): boolean {
   const mode = zonesMode(fc);
   const on = mode && fc.grabZones.largeFor(kinds.get(fc) ?? 'mouse');
   grabbing.set(fc, on);
+  fc.chrome?.toggleAttribute('data-zones', mode);
   fc.chrome?.toggleAttribute('data-grab', on);
   const h = hovers.get(fc);
   if (!mode && h?.on && !fc.gesture) {

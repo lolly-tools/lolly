@@ -546,10 +546,13 @@ html[data-a11y-motion="reduce"] .fc-btn-lolly:focus-visible svg .lolly-mark__spi
 /* A handle stood off a small box's outline (plan 311) is hit on its own square, so the
    fat target never covers the box, whose inside stays the move target. */
 .fc-handle[data-outward]::after { content: none; }
-/* Just outside a corner a mouse turns the box (the rotate zones, zones.ts), so a fine
-   pointer hits a corner handle on its own square and the turn starts where it ends. */
+/* Just outside a corner a mouse turns the box (the rotate zones, zones.ts), so while the
+   zones are live (zones.ts sets data-zones on the chrome) a fine pointer hits a corner
+   handle on its own square and the turn starts where the square ends. Where the zones
+   are off (an armed Add kind, a gradient, text, pen or node edit) the corner keeps its
+   fat target, since no zone stands behind the handle there. */
 @media (pointer: fine) {
-  .fc-handle:is(.fc-h-nw, .fc-h-ne, .fc-h-se, .fc-h-sw)::after { content: none; }
+  .fc-chrome[data-zones] .fc-handle:is(.fc-h-nw, .fc-h-ne, .fc-h-se, .fc-h-sw)::after { content: none; }
 }
 /* Large grab zones (plan 311, GIMP's crop tool) take the press round a selection for a
    finger, and for a mouse or a pen with "Large grab areas" on. The resize handles stay

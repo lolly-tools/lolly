@@ -847,8 +847,9 @@ export function handleOutset(handle: HandleName, rotDeg = 0, px = SMALL_HANDLE_O
 /**
  * The resize handles as editor.css draws them (screen px from a handle's centre): a
  * 12 px square, 16 px where any pointer is coarse, and a 9 px fat target round the
- * square (`.fc-handle::after`). A corner drops the fat target on a fine primary pointer, where
- * a rotate zone starts just past its square.
+ * square (`.fc-handle::after`). While the zones are live (`data-zones` on the chrome) a
+ * corner drops the fat target on a fine primary pointer, where a rotate zone starts just
+ * past its square.
  */
 export const HANDLE_HALF = 6;
 export const HANDLE_HALF_COARSE = 8;
@@ -872,16 +873,29 @@ export interface HandleMedia {
 }
 
 /**
- * How far the drawn resize handles take a press, for one pointer under the given media.
- * The large grab zones stand in for the handles, which let the press through to them,
- * so those zones reach at least this far. A finger gets the coarse reach at every handle
- * whatever the media say: no rotate zone lies past its corners.
+ * How far the large grab zones reach past the outline for one pointer under the given
+ * media. The zones stand in for the resize handles, which let the press through to
+ * them, so the zones reach at least as far as a drawn handle takes a press
+ * ({@link drawnHandleReach}). A finger gets the coarse reach at every handle whatever
+ * the media say: no rotate zone lies past its corners.
  */
 export function handleHitReach(kind: PointerKind, media: HandleMedia = { coarse: false, fine: true }): HandleReach {
   if (kind === 'touch') {
     const r = HANDLE_HALF_COARSE + HANDLE_FAT;
     return { corner: r, edge: r, square: HANDLE_HALF_COARSE };
   }
+  return drawnHandleReach(media);
+}
+
+/**
+ * How far a resize handle as editor.css draws it takes a press while the zones are live,
+ * under the given media, for any pointer: the square, and the fat target round an edge
+ * handle, and round a corner unless the primary pointer is fine. Where the handle's own
+ * press wins over another object ({@link onDrawnHandle}) is this reach, not a zone's: on
+ * a touch laptop (a coarse pointer present, a fine primary one) a finger meets a corner
+ * on its 16 px square alone, though the corner's zone reaches a finger's 17 px.
+ */
+export function drawnHandleReach(media: HandleMedia = { coarse: false, fine: true }): HandleReach {
   const half = media.coarse ? HANDLE_HALF_COARSE : HANDLE_HALF;
   return { corner: media.fine ? half : half + HANDLE_FAT, edge: half + HANDLE_FAT, square: half };
 }

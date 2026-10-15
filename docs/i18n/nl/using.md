@@ -91,7 +91,7 @@ De voorvertoning toont altijd precies wat er geëxporteerd wordt.
 
 **Touch**
 
-- **Knijp** om te zoomen, **sleep** om te pannen, **dubbeltik** om terug te zetten naar passend.
+- **Knijp** om te zoomen, **sleep** om te pannen, **dubbeltik** om terug te zetten naar passend. Op het vrije canvas schalen, draaien en verplaatsen twee vingers op een geselecteerd object in plaats daarvan de selectie (zie [Formaat wijzigen, schalen en roteren](#resize-scale-and-rotate)).
 
 **Klik om naar een bedieningselement te springen:** klik op een willekeurig element in het ontwerp en het bijbehorende invoerveld in de zijbalk krijgt focus en scrolt in beeld - bij een herhalende rijgroep vouwt precies de rij open waarop je klikte, zodat bewerken wat je ziet één tik verwijderd is.
 
@@ -110,6 +110,37 @@ Tools met een vrij canvas voegen een werkoppervlak toe *rondom* het tekenvlak, z
 ![Het vrije canvas van Design - het artboard met het omringende plakbord](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 **Een selectie spiegelen.** Klik met de rechtermuisknop op een box en kies **Horizontaal spiegelen** of **Verticaal spiegelen** om hem ter plekke te spiegelen, of druk op `Shift+H` / `Shift+V` op het toetsenbord - Shift, omdat een kale `V` de Pointer-tool is. Elke geselecteerde box spiegelt op zijn eigen as in één undo-stap, en de spiegeling is een echte transform, dus die blijft staan in de geëxporteerde SVG, PDF en PNG en niet alleen op het canvas.
+
+### Formaat wijzigen, schalen en roteren
+
+Selecteer een object en sleep dan een handvat om het formaat te wijzigen, of het ronde handvat onder de selectie om het object te draaien. Een formaatsleep werkt in een van twee modi:
+
+- **Formaat wijzigen**, de standaard, verandert alleen het vak. Tekst loopt opnieuw om in het nieuwe formaat, en lettergrootte, lijndikte, hoekradius en effecten blijven zoals ze waren.
+- **Schalen** maakt het hele object met zijn inhoud groter of kleiner: lettergrootte, lijn, hoekradius, schaduw, vervaging, opvulling en tussenruimte veranderen allemaal met dezelfde factor.
+
+Druk op `K` om Schalen aan of uit te zetten, of gebruik de knop **Schaal** op de gereedschapsbalk; op een touchscreen heeft de objectbalk dezelfde schakelaar. De handvatten veranderen van stijl zolang Schalen aan staat. `V` of **Escape** keert terug naar Formaat wijzigen en behoudt je selectie. Schalen staat uit zodra een document opent, zodat niemand per ongeluk lijnen schaalt. Elke schaalbewerking is één stap ongedaan maken, met het label **Schaal**.
+
+**Schalen met een getal.** Klik met Schalen aan, of met meerdere objecten geselecteerd, op de uitlezing in de objectbalk om de popover **Schaal** te openen. Typ een percentage, kies op het raster van 3 x 3 het punt dat stil blijft staan en kies **Toepassen**. Het resultaat is één stap ongedaan maken, zonder slepen. Met Schalen uit veranderen meerdere objecten alleen van formaat en positie.
+
+**Meerdere objecten.** Een selectie van meerdere objecten heeft handvatten op de randen en op de hoeken. Een hoeksleep wijzigt breedte en hoogte vrij zolang elk object in de selectie rechtop staat of in hele kwartslagen is gedraaid en de selectie geen groep of cirkel bevat. Anders behoudt de selectie haar verhoudingen en voegt de uitlezing **Proportioneel** toe. Terwijl je het formaat wijzigt of schaalt, toont een klein label naast de selectie het formaat, of het percentage in de schaalmodus.
+
+**Toetsen die je tijdens een sleep ingedrukt houdt** werken zodra je ze indrukt of loslaat (het sneltoetsenoverzicht, `?`, toont ze ook):
+
+| Ingedrukt houden | Formaat wijzigen of schalen | Roteren | Verplaatsen |
+|---|---|---|---|
+| **Shift** | Behoudt de verhoudingen (Schalen doet dat altijd) | Draait in stappen van 15 graden | Geen verandering |
+| **Alt** (Option) | Werkt vanuit het midden | Draait vrij | Zet uitlijnen en het raster uit |
+| **Cmd/Ctrl** | Zet uitlijnen en het raster uit | Draait vrij | Zet uitlijnen en het raster uit |
+
+Zonder ingedrukte toets wordt een draai naar de dichtstbijzijnde 15 graden getrokken zodra hij binnen 4 graden daarvan komt. Tekenvlakken roteren niet, dus ze hebben geen draaihandvat.
+
+**Pak overal langs een rand.** Je hoeft een handvat niet precies te raken. Elke zijde van een selectie is over de hele lengte een formaatstrook, en met een muis of pen zit er net buiten elke hoek een draaizone. De aanwijzer toont wat een sleep zal doen, gedraaid om bij de selectie te passen. Een druk in een strook of zone wordt pas een formaatwijziging of draai zodra je begint te slepen, dus een gewone klik selecteert, voegt toe aan de selectie of heft de selectie op zoals voorheen. Een vergrendeld object heeft geen handvatten, stroken of zones.
+
+**Kleine objecten blijven verplaatsbaar.** Bij een object van 25 schermpixels of minder verdwijnen de middelste handvatten die de hoeken zouden verdringen en schuiven de andere handvatten een stukje buiten de omtrek, zodat een druk op het object het object verplaatst. Bij 10 pixels of minder verdwijnen ook de hoekhandvatten, en een dunne lijn houdt aan elk uiteinde een handvat.
+
+**Grote grijpzones.** Op een touchscreen zijn de grijpzones groot: elke hoekzone is een kwart van de breedte en hoogte van de selectie op het scherm, tussen 24 en 44 pixels, en elke zijzone beslaat het stuk tussen twee hoeken. Is de selectie daarvoor te klein, dan verschuiven de zones naar buiten de omtrek, zodat een druk in het midden de selectie nog steeds verplaatst. De zone onder je aanwijzer, of onder een vinger die je ingedrukt houdt, is gearceerd. Om dezelfde zones met een muis of pen te krijgen, zet je **Grote grijpzones** aan in het Lolly-menu. De instelling blijft alleen op dit apparaat bewaard.
+
+**Twee vingers op een selectie.** Leg op een touchscreen twee vingers op een geselecteerd object: knijp om de selectie te schalen, draai om haar te roteren of beweeg beide vingers om haar mee te nemen. Alles wat de twee vingers doen telt als één stap ongedaan maken. Met Schalen aan schaalt een knijp ook de inhoud; met Schalen uit wijzigt de knijp het formaat van de selectie in verhouding. Een draai wordt in de buurt naar de dichtstbijzijnde 15 graden getrokken, en een beweging met twee vingers lijnt nooit uit. Twee vingers elders zoomen en pannen nog steeds de weergave, en een tik met twee vingers opent nog steeds het menu. De eerste vinger moet op de selectie landen en de tweede moet snel volgen. Bevat de selectie een tekenvlak of een vergrendeld object, beslaat ze het grootste deel van de weergave of reikt ze voorbij de rand van de weergave, dan zoomen en pannen twee vingers in plaats daarvan.
 
 ### Lagen en Inspecteur
 

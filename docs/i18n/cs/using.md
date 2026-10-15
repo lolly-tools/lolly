@@ -91,7 +91,7 @@ Náhled vždy zobrazuje přesně to, co se exportuje.
 
 **Dotyk**
 
-- **Sevření prstů** pro přiblížení, **tažení** pro posun, **dvojité ťuknutí** pro návrat na přizpůsobené zobrazení.
+- **Sevři prsty** pro přiblížení, **táhni** pro posun, **dvojitě klepni** pro návrat k přizpůsobení. Na volném plátně dva prsty na vybraném objektu místo toho mění měřítko výběru, otáčejí jím a posouvají ho (viz [Změna velikosti, měřítko a otočení](#resize-scale-and-rotate)).
 
 **Kliknutím přejdeš na ovládací prvek:** klikni na libovolný prvek v návrhu a odpovídající vstup v postranním panelu získá fokus a posune se do viditelné oblasti - u opakující se skupiny řádků se rozbalí přesně ten řádek, na který jsi klikl/a, takže úprava toho, co vidíš, je na jedno ťuknutí.
 
@@ -110,6 +110,37 @@ Nástroje s volným plátnem přidávají pracovní plochu *kolem* kresebné plo
 ![Volné plátno Designu - kresebná plocha a okolní podložka](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 **Převrať výběr.** Klikni pravým na jakýkoli box a zvol **Flip horizontal** nebo **Flip vertical** pro jeho zrcadlové převrácení na místě, nebo stiskni `Shift+H` / `Shift+V` na klávesnici - Shift proto, že samotné `V` je nástroj Pointer. Každý vybraný box se zrcadlí podle vlastní osy v jednom kroku zpět a zrcadlení je skutečná transformace, takže se drží i v exportovaném SVG, PDF a PNG, ne jen na plátně.
+
+### Změna velikosti, měřítko a otočení
+
+Vyber objekt a pak tahem za úchyt změň jeho velikost, nebo tahem za kulatý úchyt pod výběrem objekt otoč. Tažení za velikost funguje ve dvou režimech:
+
+- **Změnit velikost**, výchozí režim, mění jen rámeček. Text se přeskládá podle nové velikosti a velikost písma, šířka obrysu, poloměr rohů a efekty zůstanou, jaké byly.
+- **Měřítko** zvětší nebo zmenší celý objekt s obsahem: velikost písma, obrys, poloměr rohů, stín, rozostření, odsazení i mezery se změní o stejný poměr.
+
+Stisknutím `K` režim Měřítko zapneš nebo vypneš, nebo použij tlačítko **Měřítko** na liště nástrojů; na dotykové obrazovce má lišta objektu stejný přepínač. Když je Měřítko zapnuté, úchyty změní vzhled. `V` nebo **Escape** vrátí režim Změnit velikost a ponechá výběr. Měřítko je při otevření dokumentu vždy vypnuté, takže nikdo nezmění měřítko obrysů omylem. Každá změna měřítka je jeden krok zpět s názvem **Měřítko**.
+
+**Měřítko zadané číslem.** Když je Měřítko zapnuté nebo je vybráno více objektů, klikni na hodnotu na liště objektu a otevři okno **Měřítko**. Zadej procenta, na mřížce 3 x 3 vyber bod, který zůstane na místě, a zvol **Použít**. Výsledek je jeden krok zpět a nemusíš nic tahat. Při vypnutém Měřítku se u více objektů mění jen velikost a poloha.
+
+**Více objektů.** Výběr více objektů má úchyty i na hranách, nejen v rozích. Tažení za roh mění šířku a výšku volně, pokud je každý objekt ve výběru svislý nebo otočený o celé čtvrtiny otáčky a výběr neobsahuje skupinu ani kruh. Jinak výběr zachovává proporce a údaj dostane dodatek **Proporcionálně**. Při změně velikosti nebo měřítka malý štítek vedle výběru ukazuje velikost, v režimu Měřítko procenta.
+
+**Klávesy podržené při tažení** se projeví ihned po stisknutí nebo uvolnění (přehled zkratek, `?`, je také uvádí):
+
+| Podrž | Změna velikosti nebo měřítka | Otáčení | Přesouvání |
+|---|---|---|---|
+| **Shift** | Zachová proporce (Měřítko je zachovává vždy) | Otáčí po 15 stupních | Beze změny |
+| **Alt** (Option) | Pracuje od středu | Otáčí volně | Vypne přichytávání a mřížku |
+| **Cmd/Ctrl** | Vypne přichytávání a mřížku | Otáčí volně | Vypne přichytávání a mřížku |
+
+Bez podržené klávesy se otočení přitáhne k nejbližším 15 stupňům, jakmile se k nim přiblíží na 4 stupně. Plátna se neotáčejí, takže nemají úchyt pro otáčení.
+
+**Uchop kdekoli podél hrany.** Nemusíš se trefit přesně do úchytu. Každá strana výběru je pruh pro změnu velikosti po celé své délce a s myší nebo perem je těsně za každým rohem zóna pro otáčení. Ukazatel ukazuje, co tažení udělá, a je natočený podle výběru. Stisk v pruhu nebo zóně se stane změnou velikosti nebo otočením, až když začneš tahat, takže prosté kliknutí stále vybírá, přidává do výběru nebo ruší výběr jako dřív. Uzamčený objekt nemá žádné úchyty, pruhy ani zóny.
+
+**Malé objekty zůstávají přesouvatelné.** U objektu širokého 25 pixelů na obrazovce nebo méně se prostřední úchyty, které by se tísnily u rohů, skryjí a ostatní úchyty se posunou kousek od obrysu ven, takže stisk na objektu objekt přesune. Při 10 pixelech nebo méně zmizí i rohové úchyty a tenká čára si ponechá úchyt na každém konci.
+
+**Velké úchopové oblasti.** Na dotykové obrazovce jsou úchopové zóny velké: každá rohová zóna je čtvrtina šířky a výšky výběru na obrazovce, v rozmezí 24 až 44 pixelů, a každá boční zóna pokrývá úsek mezi dvěma rohy. Když je výběr na to příliš malý, zóny se přesunou vně obrysu, takže stisk uprostřed výběr stále přesouvá. Zóna pod ukazatelem nebo pod podrženým prstem je zastíněná. Chceš-li stejné zóny s myší nebo perem, zapni **Velké úchopové oblasti** v nabídce Lolly. Nastavení se uchovává jen na tomto zařízení.
+
+**Dva prsty na výběru.** Na dotykové obrazovce polož dva prsty na vybraný objekt: sevřením změníš měřítko výběru, stočením ho otočíš a posunem obou prstů ho přeneseš. Vše, co dva prsty udělají, se počítá jako jeden krok zpět. Při zapnutém Měřítku sevření mění měřítko i obsahu; při vypnutém sevření mění velikost výběru proporcionálně. Stočení se přitáhne k nejbližším 15 stupňům, když je blízko, a posun dvěma prsty se nikdy nepřichytává. Dva prsty kdekoli jinde stále přibližují a posouvají zobrazení a klepnutí dvěma prsty stále otevře nabídku. První prst musí dopadnout na výběr a druhý musí rychle následovat. Pokud výběr obsahuje plátno nebo uzamčený objekt, zabírá většinu zobrazení nebo přesahuje jeho okraj, dva prsty místo toho přibližují a posouvají zobrazení.
 
 ### Vrstvy a Inspektor
 

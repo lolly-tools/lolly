@@ -18,7 +18,8 @@
  * every finger down is handed to the stage's pinch (`fc-touch-handoff`), which never
  * sees a finger whose press an object, a surface keeping its own presses or an earlier
  * pinch held back. A pinch that ends with two fingers still down hands both to the
- * stage the same way.
+ * stage the same way, whether a lift committed the pinch or a cancel put the selection
+ * back.
  *
  * The keyframe rule keeps two fingers from disagreeing with one: the pinch commits the
  * base rows, as a group scale does, where a one-finger move on a diamond poses the
@@ -261,6 +262,18 @@ export function endPinch(fc: FcCtx): void {
   fc.gestures.endGesture(!!next);
   if (next) commitPinch(fc, g, next);
   else fc.chromeSync.renderChrome();
+  releasePinch(fc);
+}
+
+/**
+ * The pinch is over, committed or not: two or more fingers still down are the stage's
+ * pair from here. endPinch calls this after a lift; onGestureEnd calls this after a
+ * pinch it cancelled (a pointercancel on one finger, or a lift the edit could not
+ * take), once the cancel has put the selection back. A single finger left down waits
+ * for the next finger, and pair() hands both fingers over then. Escape cancels the
+ * pinch elsewhere and leaves the fingers where they are.
+ */
+export function releasePinch(fc: FcCtx): void {
   if ([...fc.touchPts.values()].filter((p) => p.touch).length > 1) fingersToStage(fc);
 }
 
@@ -316,6 +329,7 @@ export function pinchOps(fc: FcCtx) {
     track: bindOp(fc, trackPinch),
     frame: bindOp(fc, pinchFrame),
     end: bindOp(fc, endPinch),
+    release: bindOp(fc, releasePinch),
     wire: bindOp(fc, wirePinch),
   };
 }

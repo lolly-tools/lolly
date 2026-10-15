@@ -91,7 +91,7 @@ L'anteprima mostra sempre esattamente ciò che verrà esportato.
 
 **Tocco**
 
-- **Pizzica** per lo zoom, **trascina** per spostarti, **tocca due volte** per tornare all'adattamento.
+- **Pizzica** per lo zoom, **trascina** per spostarti, **tocca due volte** per tornare all'adattamento. Sul canvas libero, due dita su un oggetto selezionato scalano, ruotano e spostano invece la selezione (vedi [Ridimensionare, scalare e ruotare](#resize-scale-and-rotate)).
 
 **Clic per saltare a un controllo:** fai clic su un elemento qualsiasi del design e l'input corrispondente nella barra laterale riceve il focus e scorre fino a essere visibile - per un gruppo di righe ripetibili apre esattamente la riga su cui hai cliccato, così modificare ciò che vedi è a un tocco di distanza.
 
@@ -110,6 +110,37 @@ Gli strumenti a canvas libero aggiungono una superficie di lavoro *intorno* all'
 ![La tela libera di Design - l'artboard con il pasteboard circostante](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 **Capovolgi una selezione.** Clicca con il tasto destro su un riquadro qualsiasi e scegli **Capovolgi orizzontalmente** o **Capovolgi verticalmente** per specchiarlo sul posto, oppure premi `Shift+H` / `Shift+V` da tastiera - Shift, perché una `V` semplice è lo strumento Puntatore. Ogni riquadro selezionato si specchia sul proprio asse in un unico passaggio di annullamento, e lo specchiamento è una trasformazione vera, quindi rimane nell'SVG, nel PDF e nel PNG esportati e non solo sulla tela.
+
+### Ridimensionare, scalare e ruotare
+
+Seleziona un oggetto, poi trascina una maniglia per cambiarne la dimensione, oppure la maniglia rotonda sotto la selezione per ruotare l'oggetto. Un trascinamento di dimensione funziona in due modalità:
+
+- **Ridimensiona**, l'impostazione predefinita, cambia solo il riquadro. Il testo si riadatta alla nuova dimensione, mentre dimensione del carattere, spessore del tratto, raggio degli angoli ed effetti restano come erano.
+- **Scala** ingrandisce o riduce l'intero oggetto con il suo contenuto: dimensione del carattere, tratto, raggio degli angoli, ombra, sfocatura, spaziatura interna ed esterna cambiano tutti nella stessa misura.
+
+Premi `K` per attivare o disattivare Scala, oppure usa il pulsante **Scala** sulla barra degli strumenti; su uno schermo touch la barra dell'oggetto ha lo stesso interruttore. Le maniglie cambiano aspetto finché Scala è attiva. `V` o **Escape** torna a Ridimensiona e mantiene la selezione. Scala è disattivata ogni volta che si apre un documento, così nessuno scala i tratti per sbaglio. Ogni scalatura è un solo passo di annullamento, con l'etichetta **Scala**.
+
+**Scalare con un numero.** Con Scala attiva, o con più oggetti selezionati, fai clic sull'indicatore nella barra dell'oggetto per aprire il popover **Scala**. Digita una percentuale, scegli sulla griglia 3 x 3 il punto che resta fermo e scegli **Applica**. Il risultato è un solo passo di annullamento, senza bisogno di trascinare. Con Scala disattivata, più oggetti cambiano solo dimensione e posizione.
+
+**Più oggetti.** Una selezione di più oggetti ha maniglie sui bordi oltre che agli angoli. Un trascinamento d'angolo cambia larghezza e altezza liberamente finché ogni oggetto della selezione è dritto o ruotato di quarti di giro interi e la selezione non contiene gruppi né cerchi. Altrimenti la selezione mantiene le proporzioni e l'indicatore aggiunge **Proporzionale**. Mentre ridimensioni o scali, una piccola etichetta accanto alla selezione mostra la dimensione, o la percentuale in modalità Scala.
+
+**I tasti che tieni premuti durante un trascinamento** hanno effetto non appena li premi o li rilasci (anche il foglio delle scorciatoie, `?`, li elenca):
+
+| Tieni premuto | Ridimensionare o scalare | Ruotare | Spostare |
+|---|---|---|---|
+| **Shift** | Mantiene le proporzioni (Scala lo fa sempre) | Ruota a scatti di 15 gradi | Nessun cambiamento |
+| **Alt** (Option) | Lavora dal centro | Ruota liberamente | Disattiva lo snap e la griglia |
+| **Cmd/Ctrl** | Disattiva lo snap e la griglia | Ruota liberamente | Disattiva lo snap e la griglia |
+
+Senza tasti premuti, una rotazione viene attirata ai 15 gradi più vicini quando arriva a 4 gradi da essi. Le aree di disegno non ruotano, quindi non hanno la maniglia di rotazione.
+
+**Afferra in qualsiasi punto del bordo.** Non serve colpire una maniglia con precisione. Ogni lato di una selezione è una striscia di ridimensionamento per tutta la sua lunghezza, e con mouse o penna c'è una zona di rotazione appena fuori da ogni angolo. Il puntatore mostra cosa farà un trascinamento, ruotato in base alla selezione. Una pressione in una striscia o in una zona diventa un ridimensionamento o una rotazione solo quando inizi a trascinare, quindi un semplice clic continua a selezionare, aggiungere alla selezione o deselezionare come prima. Un oggetto bloccato non ha maniglie, strisce o zone.
+
+**Gli oggetti piccoli restano spostabili.** Su un oggetto largo 25 pixel dello schermo o meno, le maniglie centrali che affollerebbero gli angoli si nascondono e le altre maniglie si spostano un po' all'esterno del contorno, così una pressione sull'oggetto lo sposta. A 10 pixel o meno spariscono anche le maniglie d'angolo, e una linea sottile mantiene una maniglia a ciascun estremo.
+
+**Aree di presa grandi.** Su uno schermo touch le zone di presa sono grandi: ogni zona d'angolo è un quarto della larghezza e dell'altezza della selezione sullo schermo, mantenuta tra 24 e 44 pixel, e ogni zona laterale copre il tratto tra due angoli. Quando la selezione è troppo piccola per questo, le zone si spostano all'esterno del suo contorno, così una pressione al centro sposta ancora la selezione. La zona sotto il puntatore, o sotto un dito appoggiato, è ombreggiata. Per avere le stesse zone con mouse o penna, attiva **Aree di presa grandi** nel menu Lolly. L'impostazione resta solo su questo dispositivo.
+
+**Due dita su una selezione.** Su uno schermo touch, appoggia due dita su un oggetto selezionato: pizzica per scalare la selezione, ruota per girarla oppure muovi entrambe le dita per trasportarla. Qualunque cosa facciano le due dita conta come un solo passo di annullamento. Con Scala attiva, un pizzico scala anche il contenuto; con Scala disattivata, il pizzico ridimensiona la selezione in proporzione. Una rotazione viene attirata ai 15 gradi più vicini quando è vicina, e uno spostamento a due dita non aggancia mai. Due dita in qualsiasi altro punto continuano a fare zoom e pan della vista, e un tocco con due dita continua ad aprire il menu. Il primo dito deve cadere sulla selezione e il secondo deve seguire rapidamente. Se la selezione contiene un'area di disegno o un oggetto bloccato, copre la maggior parte della vista o supera il bordo della vista, due dita fanno invece zoom e pan.
 
 ### Livelli e Ispettore
 

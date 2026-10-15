@@ -91,7 +91,7 @@ Förhandsvisningen visar alltid exakt det som kommer att exporteras.
 
 **Pekskärm**
 
-- **Nyp ihop** för att zooma, **dra** för att panorera, **dubbeltryck** för att återställa till anpassad vy.
+- **Nyp ihop** för att zooma, **dra** för att panorera, **dubbeltryck** för att återställa till anpassad vy. På den fria arbetsytan skalar, vrider och flyttar två fingrar på ett markerat objekt i stället markeringen (se [Ändra storlek, skala och rotera](#resize-scale-and-rotate)).
 
 **Klicka för att hoppa till en kontroll:** klicka på valfritt element i designen så får motsvarande inmatningsfält i sidopanelen fokus och rullas fram i vyn - för en upprepande radgrupp fälls exakt den rad du klickade på ut, så att redigera det du ser bara är ett tryck bort.
 
@@ -110,6 +110,37 @@ Verktyg med fri arbetsyta lägger till en arbetsyta *runt* ritytan, som en formg
 ![Designs fria kanvas - ritytan med den omgivande arbetsytan runt om](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 **Vänd en markering.** Högerklicka på valfri box och välj **Vänd horisontellt** eller **Vänd vertikalt** för att spegla den på plats, eller tryck `Shift+H` / `Shift+V` på tangentbordet - Shift, eftersom ett rent `V` är Pekarverktyget. Varje markerad box speglas på sin egen axel i ett enda ångra-steg, och spegelvändningen är en riktig transform, så den håller i den exporterade SVG:n, PDF:en och PNG:n snarare än bara på duken.
+
+### Ändra storlek, skala och rotera
+
+Markera ett objekt och dra sedan i ett handtag för att ändra storleken, eller dra i det runda handtaget under markeringen för att vrida objektet. Ett storleksdrag fungerar i ett av två lägen:
+
+- **Ändra storlek**, standardläget, ändrar bara rutan. Texten bryts om efter den nya storleken, och teckenstorlek, linjebredd, hörnradie och effekter förblir som de var.
+- **Skala** förstorar eller förminskar hela objektet med innehåll: teckenstorlek, linje, hörnradie, skugga, oskärpa, utfyllnad och avstånd ändras med samma faktor.
+
+Tryck `K` för att slå på eller av Skala, eller använd knappen **Skala** i verktygslisten; på en pekskärm har objektfältet samma växlare. Handtagen får en annan stil medan Skala är på. `V` eller **Escape** går tillbaka till Ändra storlek och behåller markeringen. Skala är av varje gång ett dokument öppnas, så ingen skalar linjer av misstag. Varje skalning är ett ångra-steg med namnet **Skala**.
+
+**Skala med ett tal.** Med Skala på, eller när flera objekt är markerade, klickar du på värdet i objektfältet för att öppna popover-rutan **Skala**. Skriv en procentsats, välj den punkt som står still i rutnätet på 3 x 3 och välj **Tillämpa**. Resultatet blir ett ångra-steg, utan att du behöver dra. Med Skala av ändras bara storlek och position för flera objekt.
+
+**Flera objekt.** En markering med flera objekt har handtag på kanterna och i hörnen. Ett hörndrag ändrar bredd och höjd fritt så länge varje objekt i markeringen står upprätt eller är vridet i hela kvartsvarv, och markeringen inte innehåller någon grupp eller cirkel. Annars behåller markeringen sina proportioner, och värdet får tillägget **Proportionell**. Medan du ändrar storlek eller skalar visar en liten etikett bredvid markeringen storleken, eller procenttalet i skalningsläget.
+
+**Tangenter du håller ned under ett drag** gäller så fort du trycker ned eller släpper dem (genvägsöversikten, `?`, listar dem också):
+
+| Håll | Ändra storlek eller skala | Rotera | Flytta |
+|---|---|---|---|
+| **Shift** | Behåller proportionerna (Skala gör det alltid) | Vrider i steg om 15 grader | Ingen ändring |
+| **Alt** (Option) | Arbetar från mitten | Vrider fritt | Stänger av fästning och rutnät |
+| **Cmd/Ctrl** | Stänger av fästning och rutnät | Vrider fritt | Stänger av fästning och rutnät |
+
+Utan någon tangent nedtryckt dras en vridning till närmaste 15 grader när den kommer inom 4 grader från den. Ritytor roteras inte, så de har inget rotationshandtag.
+
+**Ta tag var som helst längs en kant.** Du behöver inte träffa ett handtag exakt. Varje sida av en markering är en storleksremsa längs hela sin längd, och med mus eller penna finns en rotationszon strax utanför varje hörn. Pekaren visar vad ett drag kommer att göra, vriden så att den passar markeringen. Ett tryck i en remsa eller zon blir en storleksändring eller en vridning först när du börjar dra, så ett vanligt klick markerar, lägger till i markeringen eller avmarkerar som förut. Ett låst objekt har inga handtag, remsor eller zoner.
+
+**Små objekt går att flytta.** På ett objekt som är 25 skärmpixlar eller mindre i bredd döljs mellanhandtagen som skulle trängas vid hörnen, och de andra handtagen flyttas en bit utanför konturen, så att ett tryck på objektet flyttar objektet. Vid 10 pixlar eller mindre försvinner också hörnhandtagen, och en tunn linje behåller ett handtag i varje ände.
+
+**Stora greppytor.** På en pekskärm är greppzonerna stora: varje hörnzon är en fjärdedel av markeringens bredd och höjd på skärmen, begränsad till mellan 24 och 44 pixlar, och varje sidozon täcker sträckan mellan två hörn. När markeringen är för liten för det flyttas zonerna utanför konturen, så ett tryck i mitten flyttar fortfarande markeringen. Zonen under pekaren, eller under ett finger du håller ned, skuggas. Om du vill ha samma zoner med mus eller penna slår du på **Stora greppytor** i Lolly-menyn. Inställningen sparas bara på den här enheten.
+
+**Två fingrar på en markering.** På en pekskärm lägger du två fingrar på ett markerat objekt: nyp för att skala markeringen, vrid för att rotera den eller flytta båda fingrarna för att bära den. Allt som de två fingrarna gör räknas som ett ångra-steg. Med Skala på skalar en nypning också innehållet; med Skala av ändrar nypningen markeringens storlek proportionellt. En vridning dras till närmaste 15 grader när den är nära, och en förflyttning med två fingrar fäster aldrig. Två fingrar på andra ställen zoomar och panorerar fortfarande vyn, och ett tryck med två fingrar öppnar fortfarande menyn. Det första fingret måste landa på markeringen och det andra måste följa snabbt efter. Om markeringen innehåller en rityta eller ett låst objekt, täcker det mesta av vyn eller sträcker sig förbi vyns kant, zoomar och panorerar två fingrar i stället.
 
 ### Lager och Inspektör
 

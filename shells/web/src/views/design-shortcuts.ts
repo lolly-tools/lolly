@@ -67,6 +67,24 @@ export function designShortcutGroups(
       ],
     },
     {
+      // The modifier rows are held during a drag, as the modifier table in
+      // free-canvas-transform.ts (transformRules) reads them on every frame.
+      label: t('Transform'),
+      rows: [
+        { keys: 'K', label: t('Scale mode: handles scale fonts, strokes, radii and effects, not only the box') },
+        { keys: 'Shift', label: t('While resizing: keep proportions') },
+        { keys: 'Shift', label: t('While rotating: turn in 15 degree steps') },
+        { keys: alt, label: t('While resizing or scaling: work from the centre') },
+        { keys: mod, label: t('While resizing or scaling: no snapping') },
+        { keys: `${alt} / ${mod}`, label: t('While rotating: turn freely') },
+        { keys: `${alt} / ${mod}`, label: t('While moving: no snapping') },
+        { keys: t('Two-finger pinch'), label: t('Scale the selection') },
+        { keys: t('Two-finger twist'), label: t('Rotate the selection') },
+        { keys: t('Two-finger drag'), label: t('Move the selection') },
+        { keys: t('Two fingers off the selection'), label: t('Zoom and pan the view') },
+      ],
+    },
+    {
       label: t('View and panels'),
       rows: [
         { keys: '0', label: t('Fit all') },

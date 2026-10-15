@@ -962,6 +962,7 @@ export function onGestureEnd(fc: FcCtx, e: PointerEvent): void {
   const { CAM_TILT_DEG_PER_PX, canvasEl, cfg, frameCfg, minSize, timeCfg } = fc;
   if (!fc.gesture || !ownsPointer(fc.gesture, e.pointerId)) return;
   if (e.type === 'pointercancel' || !canvasGestureReady(fc) || fc.opts?.canEdit?.() === false && fc.gesture.type !== 'marquee' || fc.layout && !fc.layout.gestureReady(fc.gesture.type)) {
+    if (fc.gesture.type === 'pinch') { cancelGesture(fc); fc.pinch.release(); return; } // the fingers left go to the stage (pinch.ts)
     cancelGesture(fc); return;
   }
   const g = fc.gesture;
