@@ -1249,5 +1249,8 @@
   "While resizing: keep proportions": "Vid storleksändring: behåll proportionerna",
   "While rotating: turn freely": "Vid rotation: vrid fritt",
   "While rotating: turn in 15 degree steps": "Vid rotation: vrid i steg om 15 grader",
-  "Zoom and pan the view": "Zooma och panorera vyn"
+  "Zoom and pan the view": "Zooma och panorera vyn",
+  "Anchor": "Ankarpunkt",
+  "Enter a scale from 1% to 10000%.": "Ange en skala från 1 % till 10000 %.",
+  "Pointer - select and move (V). Hold for Scale (K)": "Pekare - markera och flytta (V). Håll för Skala (K)"
 }

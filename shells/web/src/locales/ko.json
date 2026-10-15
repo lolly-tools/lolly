@@ -406,7 +406,7 @@
   "Analyse text": "텍스트 분석",
   "Analysed {date}.": "{date}에 분석했어요.",
   "Analyser": "분석기",
-  "Anchor": "Anchor",
+  "Anchor": "기준점",
   "Anchor image {pos}": "이미지 고정 위치 {pos}",
   "Angle": "각도",
   "Animate": "애니메이션 만들기",
@@ -7964,5 +7964,7 @@
   "While resizing: keep proportions": "크기 조절 중: 비율 유지",
   "While rotating: turn freely": "회전 중: 자유롭게 회전",
   "While rotating: turn in 15 degree steps": "회전 중: 15도 단위로 회전",
-  "Zoom and pan the view": "보기 확대/축소 및 이동"
+  "Zoom and pan the view": "보기 확대/축소 및 이동",
+  "Enter a scale from 1% to 10000%.": "1%에서 10000% 사이로 배율을 입력해 주세요.",
+  "Pointer - select and move (V). Hold for Scale (K)": "포인터 - 선택하고 이동 (V). 길게 누르면 배율 (K)"
 }

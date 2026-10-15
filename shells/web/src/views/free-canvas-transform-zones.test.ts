@@ -439,6 +439,33 @@ test('Shift or Cmd held at the press ignores the outer strip', async () => {
   } finally { f.destroy(); }
 });
 
+test('Shift, Cmd or Ctrl pressed or released over a still pointer updates the outer strip\'s cursor', async () => {
+  const f = mount([ONE()]);
+  try {
+    f.select(['a']);
+    await settle();
+    const key = async (type: 'keydown' | 'keyup', name: string, mods: { shift?: boolean; meta?: boolean; ctrl?: boolean }): Promise<string | null> => {
+      dom.window.document.body.dispatchEvent(new W.KeyboardEvent(type, {
+        key: name, bubbles: true, cancelable: true, shiftKey: !!mods.shift, metaKey: !!mods.meta, ctrlKey: !!mods.ctrl,
+      }));
+      await settle();
+      return cursor(f);
+    };
+    assert.equal(await hover(f, 303, 120), 'ew-resize', '3 px outside the e edge is the strip');
+    assert.equal(await key('keydown', 'Shift', { shift: true }), null, 'Shift down: a press there would be a Shift click');
+    assert.equal(await key('keyup', 'Shift', {}), 'ew-resize', 'Shift up: the strip again');
+    assert.equal(await key('keydown', 'Meta', { meta: true }), null, 'Cmd too');
+    assert.equal(await key('keyup', 'Meta', {}), 'ew-resize');
+    assert.equal(await key('keydown', 'Control', { ctrl: true }), null, 'and Ctrl');
+    assert.equal(await key('keyup', 'Control', {}), 'ew-resize');
+    assert.equal(await key('keydown', 'a', {}), 'ew-resize', 'any other key leaves the hover alone');
+    // The inner half keeps its strip under a modifier.
+    assert.equal(await hover(f, 297, 120), 'ew-resize');
+    assert.equal(await key('keydown', 'Shift', { shift: true }), 'ew-resize');
+    await key('keyup', 'Shift', {});
+  } finally { f.destroy(); }
+});
+
 test('Escape drops a held zone press, so the release does nothing', async () => {
   const f = mount([ONE()]);
   try {
@@ -755,6 +782,35 @@ test('a press in the band round a selected hairline or tiny box moves the box, f
     await click(h, 200, 330);
     assert.deepEqual(h.selection(), [], 'a click well clear of the rule deselects');
   } finally { h.destroy(); }
+});
+
+test('over another object the band round a selected rule still belongs to the rule: a drag moves the rule, a click selects the object', async () => {
+  for (const kind of ['mouse', 'touch'] as const) {
+    // A 400 x 2 divider on a card behind it, the divider selected.
+    const card = { id: 'card', kind: 'box', x: 50, y: 50, w: 780, h: 600, rot: 0 } as Box;
+    const rule = { id: 'r', kind: 'box', x: 100, y: 400, w: 400, h: 2, rot: 0 } as Box;
+    const f = mount([card, rule]);
+    try {
+      f.select(['r']);
+      await settle();
+      // 3 px below the rule is over the card and inside the rule's 10 px band.
+      await drag(f, 300, 404, 340, 434, { kind });
+      assert.deepEqual(f.selection(), ['r'], `${kind}: the rule stays selected`);
+      assert.deepEqual(rectOf(f.byId('r')), [140, 430, 400, 2], `${kind}: the rule moves`);
+      assert.deepEqual(rectOf(f.byId('card')), [50, 50, 780, 600], `${kind}: the card stays`);
+      assert.equal(f.writes(), 1, `${kind}: one undo step`);
+      // The same press released without travel is a click on the card.
+      await click(f, 300, 434);
+      assert.deepEqual(f.selection(), ['card'], `${kind}: a click in the band selects the card`);
+      assert.deepEqual(rectOf(f.byId('r')), [140, 430, 400, 2], `${kind}: and moves nothing`);
+      assert.equal(f.writes(), 1);
+      // Shift keeps its meaning: a Shift press in the band adds the card.
+      f.select(['r']);
+      await settle();
+      await click(f, 300, 434, { shift: true });
+      assert.deepEqual(f.selection().sort(), ['card', 'r'], `${kind}: Shift adds the card`);
+    } finally { f.destroy(); }
+  }
 });
 
 // ── 8. Thin boxes keep a handle for their length ────────────────────────────────

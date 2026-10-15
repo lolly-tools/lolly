@@ -406,7 +406,7 @@
   "Analyse text": "テキストを解析",
   "Analysed {date}.": "{date}に分析しました。",
   "Analyser": "アナライザー",
-  "Anchor": "Anchor",
+  "Anchor": "基準点",
   "Anchor image {pos}": "画像を{pos}に固定",
   "Angle": "角度",
   "Animate": "アニメーション化",
@@ -7964,5 +7964,7 @@
   "While resizing: keep proportions": "リサイズ中: 縦横比を維持",
   "While rotating: turn freely": "回転中: 自由に回転",
   "While rotating: turn in 15 degree steps": "回転中: 15度ずつ回転",
-  "Zoom and pan the view": "表示をズーム・パン"
+  "Zoom and pan the view": "表示をズーム・パン",
+  "Enter a scale from 1% to 10000%.": "1% から 10000% までのスケールを入力してください。",
+  "Pointer - select and move (V). Hold for Scale (K)": "ポインター - 選択と移動（V）。長押しでスケール（K）"
 }

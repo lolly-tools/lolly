@@ -1386,5 +1386,8 @@
   "While resizing: keep proportions": "Podczas zmiany rozmiaru: zachowaj proporcje",
   "While rotating: turn freely": "Podczas obracania: obracaj swobodnie",
   "While rotating: turn in 15 degree steps": "Podczas obracania: obracaj co 15 stopni",
-  "Zoom and pan the view": "Powiększ i przesuń widok"
+  "Zoom and pan the view": "Powiększ i przesuń widok",
+  "Anchor": "Punkt zakotwiczenia",
+  "Enter a scale from 1% to 10000%.": "Wpisz skalę od 1% do 10000%.",
+  "Pointer - select and move (V). Hold for Scale (K)": "Wskaźnik - zaznacz i przenieś (V). Przytrzymaj, aby wybrać skalowanie (K)"
 }

@@ -253,7 +253,7 @@ test('resizeRect fromCentre without mirror moves the dragged edge HALF the point
   assert.equal(r.x + r.w, 110); // the pointer is at 120
 });
 
-test('resizeRect mirror: the dragged edge follows the pointer and the opposite edge mirrors it', () => {
+test('resizeRect mirror: the dragged edge follows the pointer and the opposite edge moves the same distance the other way', () => {
   const r = resizeRect({ x: 0, y: 0, w: 100, h: 50, rot: 0 }, 'e', 20, 0, { fromCentre: true, mirror: true });
   assert.deepEqual([r.x, r.y, r.w, r.h], [-20, 0, 140, 50]);
   assert.equal(r.x + r.w, 120);

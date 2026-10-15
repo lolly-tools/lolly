@@ -1388,5 +1388,8 @@
   "While resizing: keep proportions": "При преоразмеряване: запази пропорциите",
   "While rotating: turn freely": "При завъртане: завърти свободно",
   "While rotating: turn in 15 degree steps": "При завъртане: завъртай на стъпки от 15 градуса",
-  "Zoom and pan the view": "Мащабирай и премествай изгледа"
+  "Zoom and pan the view": "Мащабирай и премествай изгледа",
+  "Anchor": "Опорна точка",
+  "Enter a scale from 1% to 10000%.": "Въведи мащаб от 1% до 10000%.",
+  "Pointer - select and move (V). Hold for Scale (K)": "Показалец - избери и премести (V). Задръж за Мащаб (K)"
 }

@@ -17,7 +17,7 @@ import { isTypingTarget } from '../../lib/typing-target.ts';
 import { beginCanvasFeedback, finishCanvasFeedback, cancelCanvasFeedback } from '../../lib/canvas-feedback.ts';
 import { t } from '../../i18n.ts';
 import { designHierarchyFlags, designHierarchyIndex } from '@lolly/engine';
-import { boxTransformCss, handleDragPoint, rotateSnap, transformRules, uniformResize, type BoxPose } from '../free-canvas-transform.ts';
+import { boxTransformCss, handleDragPoint, rectsChanged, rotateSnap, transformRules, uniformResize, type BoxPose } from '../free-canvas-transform.ts';
 import { SNAP_PX, boolOf, gesturePointers, ownsPointer } from './shared.ts';
 import type { AABB, GRotateGesture, GScaleGesture, Gesture, GestureInit, GesturePointer, HandleName, Point, Rect } from './shared.ts';
 import { bindOp, type FcCtx } from './context.ts';
@@ -441,10 +441,17 @@ export function onCanvasPointerDown(fc: FcCtx, e: PointerEvent, replay = false):
     return;
   }
   let hit = fc.select.selectHit(boxes, nat.x, nat.y); // artboard-aware: a child over a frame wins; the frame takes an empty-area/edge click
-  // The band the zones leave round a selected hairline or tiny box moves the box (zones.ts).
-  if (!replay && !wasEditing && (hit < 0 || isFrameRow(fc, boxes[hit])) && !(e.shiftKey || e.metaKey || e.ctrlKey || e.altKey || fc.multiTapMode)) {
-    const band = fc.zones.moveBand(boxes, e.clientX, e.clientY);
-    if (band >= 0) hit = band;
+  // The band the zones leave round a selected hairline or tiny box belongs to the selection
+  // (zones.ts), over empty space, an artboard or another object alike: a drag there moves
+  // the box. Over another object the press stays a click on that object until it travels.
+  let under: number | undefined;
+  if (!replay && !wasEditing && !(e.shiftKey || e.metaKey || e.ctrlKey || e.altKey || fc.multiTapMode)) {
+    const other = hit >= 0 && !isFrameRow(fc, boxes[hit]);
+    const band = other && fc.select.selectionForHit(boxes, hit, false).some((id) => fc.selection.has(id)) ? -1 : fc.zones.moveBand(boxes, e.clientX, e.clientY);
+    if (band >= 0) {
+      if (other) under = hit;
+      hit = band;
+    }
   }
   if (hit >= 0) {
     fc.edges.deselectEdge(); // picking a card drops any connector selection
@@ -464,6 +471,9 @@ export function onCanvasPointerDown(fc: FcCtx, e: PointerEvent, replay = false):
     } else if (fc.selection.size > hitSel.length) {
       narrow = hitSel;
     }
+    // A band press over another object that never travels selects that object, as the
+    // click would have without the band.
+    if (under !== undefined) narrow = fc.select.selectionForHit(boxes, under, false);
     fc.chromeSync.renderChrome();
     // A zone click (zones.ts) has already been released, so the press is settled here as
     // the move below settles a click, without a move that would first wait on a lease.
@@ -1490,10 +1500,7 @@ function groupTransformChanged(fc: FcCtx, g: GScaleGesture | GRotateGesture): bo
   const next = g.liveBoxes;
   if (!next) return false;
   if (g.type === 'grotate') return Math.abs(g.deg ?? 0) > 0.01;
-  return g.sel.some((i) => {
-    const a = boxRect(g.startBoxes[i], cfg), b = boxRect(next[i], cfg);
-    return Math.abs(a.x - b.x) > 0.5 || Math.abs(a.y - b.y) > 0.5 || Math.abs(a.w - b.w) > 0.5 || Math.abs(a.h - b.h) > 0.5;
-  });
+  return rectsChanged(g.sel.map((i) => [boxRect(g.startBoxes[i], cfg), boxRect(next[i], cfg)] as const));
 }
 /** Is this row an artboard (the frame kind)? */
 export function isFrameRow(fc: FcCtx, box: Box | undefined): boolean {

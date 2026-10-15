@@ -12,7 +12,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
-  SCALE_K_MAX, clampScaleK, scaleFactorOf, handleScaleK, scaleSide, scaleRectAbout, uniformResize,
+  SCALE_K_MAX, clampScaleK, handleScaleK, scaleSide, scaleRectAbout, uniformResize,
   SCALE_ANCHORS, anchorPoint, scaleRectAt, scaleMembersAt, OPPOSITE_HANDLE, handleAnchor,
   canResizeNonUniform, rectsAABB, transformSelection, handleDragPoint, touchedGuides,
   transformRules,
@@ -24,6 +24,7 @@ import {
   HANDLE_HALF, HANDLE_HALF_COARSE, HANDLE_FAT, drawnHandleReach, handleHitReach, onDrawnHandle,
   resizeCursorFor, rotateCursorAt, rotateCursorFor, snapAngleHard, rotateSnap, pinchTransform,
   PINCH_MAX_COVER, PINCH_SECOND_MS, PINCH_TRAVEL_PX, pinchFits, pinchMembers, pinchReaches, visibleRect, inMoveBand, MIN_MOVE_PX,
+  PINCH_SPREAD_PX, pinchCatchUp, easePinch,
 } from './free-canvas-transform.ts';
 import type { BoxPose, ContentScaleSpec, FieldBounds, ModifierKeys, ScreenRect, TransformKind, ViewRect, ZoneOpts } from './free-canvas-transform.ts';
 import { rotateVec } from './free-canvas-math.ts';
@@ -74,13 +75,6 @@ test('clampScaleK: k stays positive, caps at 100, and NaN reads as no change', (
   assert.equal(clampScaleK(Infinity, [], 8), SCALE_K_MAX);
   assert.equal(clampScaleK(Number.NaN, [{ w: 100, h: 100 }], 8), 1);
   assert.equal(clampScaleK(5, [{ w: 100, h: 100 }], 8, 2), 2);
-});
-
-test('scaleFactorOf reads k from the longer side of a resize result', () => {
-  assert.equal(scaleFactorOf({ w: 200, h: 50 }, { w: 300, h: 75 }), 1.5);
-  assert.equal(scaleFactorOf({ w: 50, h: 200 }, { w: 75, h: 300 }), 1.5);
-  assert.equal(scaleFactorOf({ w: 200, h: 0 }, { w: 100, h: 0 }), 0.5);
-  assert.equal(scaleFactorOf({ w: 0, h: 0 }, { w: 10, h: 10 }), 1);
 });
 
 test('handleScaleK: a corner follows the axis that moved further, an edge its own axis', () => {
@@ -1077,6 +1071,38 @@ test('pinchTransform: k stays 1 inside the 2% dead zone, then follows the full s
   near(back.k, 1.01);
   const wider = pinchTransform(a, b, a, { x: 101, y: 0 }, { scaleDeadZone: 0.005 });
   near(wider.k, 1.01);
+});
+
+test('pinchTransform: the scale floor holds close fingers still until the spread has changed by that much', () => {
+  const a = { x: 0, y: 0 }, b = { x: 40, y: 0 };
+  assert.equal(PINCH_SPREAD_PX, 14, 'the two-finger tap\'s slop');
+  // 1.5 px on fingers 40 px apart is 3.75%, past the 2% but under the floor.
+  const roll = pinchTransform(a, b, a, { x: 41.5, y: 0 }, { scaleFloor: PINCH_SPREAD_PX });
+  assert.deepEqual([roll.k, roll.scaleEngaged], [1, false]);
+  const shrink = pinchTransform(a, b, a, { x: 27, y: 0 }, { scaleFloor: PINCH_SPREAD_PX });
+  assert.deepEqual([shrink.k, shrink.scaleEngaged], [1, false], '13 px closer is still inside the floor');
+  const spread = pinchTransform(a, b, a, { x: 54, y: 0 }, { scaleFloor: PINCH_SPREAD_PX });
+  assert.equal(spread.scaleEngaged, true);
+  near(spread.k, 54 / 40, 1e-9, 'past the floor the full ratio, as the fingers say');
+  // Far apart the 2% is the larger threshold and still applies.
+  const wide = pinchTransform(a, { x: 1000, y: 0 }, a, { x: 1015, y: 0 }, { scaleFloor: PINCH_SPREAD_PX });
+  assert.equal(wide.scaleEngaged, false, '15 px on 1000 is under 2%');
+});
+
+test('pinchCatchUp and easePinch: a late preview eases in over a span of finger travel, then follows the fingers', () => {
+  const from: [Point, Point] = [{ x: 0, y: 0 }, { x: 40, y: 0 }];
+  assert.equal(pinchCatchUp(from, from, 14), 0, 'nothing yet where it began');
+  near(pinchCatchUp(from, [{ x: 0, y: 0 }, { x: 47, y: 0 }], 14), 0.5, 1e-9, 'the further finger counts');
+  assert.equal(pinchCatchUp(from, [{ x: -20, y: 0 }, { x: 40, y: 0 }], 14), 1, 'and caps at the whole frame');
+  assert.equal(pinchCatchUp(from, from, 0), 1, 'no span is no easing');
+  const res = pinchTransform({ x: 0, y: 0 }, { x: 40, y: 0 }, { x: 0, y: 0 }, { x: 80, y: 20 });
+  const half = easePinch(res, { scale: 0.5, turn: 0.5, travel: 0.5 });
+  near(half.k, 1 + (res.k - 1) / 2);
+  near(half.dRot, res.dRot / 2);
+  near(half.dx, res.dx / 2); near(half.dy, res.dy / 2);
+  assert.deepEqual(easePinch(res, { scale: 1, turn: 1, travel: 1 }), res, 'a full weight is the frame itself');
+  const none = easePinch(res, { scale: 0, turn: 0, travel: 0 });
+  assert.deepEqual([none.k, none.dRot, none.dx, none.dy], [1, 0, 0, 0], 'a zero weight is no change');
 });
 
 test('pinchTransform: rotation engages at 10 degrees and counts from there, so nothing jumps', () => {

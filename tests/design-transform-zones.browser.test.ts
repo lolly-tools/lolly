@@ -8,9 +8,13 @@
  * real touch points through CDP (Input.dispatchTouchEvent).
  *
  * Every drag reads the authored rows back from the canvas model, and every committed
- * transform is undone with one Ctrl/Cmd+Z, which must restore the rows exactly.
+ * transform is undone with one Ctrl/Cmd+Z, which must restore the rows exactly. The
+ * checks that judge a look (the handles in each theme, the rail, the sheet) save a
+ * screenshot to LOLLY_DESIGN_SHOT_DIR, or the OS temp folder.
  */
 import assert from 'node:assert/strict';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import test from 'node:test';
 import { chromium } from 'playwright';
 import type { Browser, BrowserContext, CDPSession, Page } from 'playwright';
@@ -172,6 +176,8 @@ async function drag(page: Page, p: Pt, d: Pt, mods: string[] = []): Promise<Curs
 // ── Touch through CDP ────────────────────────────────────────────────────────
 
 const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
+/** Where a check keeps its screenshot: LOLLY_DESIGN_SHOT_DIR when set, else the OS temp folder. */
+const shotPath = (name: string): string => join(process.env.LOLLY_DESIGN_SHOT_DIR ?? tmpdir(), `design-transform-${name}.png`);
 type TouchType = 'touchStart' | 'touchMove' | 'touchEnd';
 async function touch(client: CDPSession, type: TouchType, points: Array<Pt & { id: number }>): Promise<void> {
   await client.send('Input.dispatchTouchEvent', { type, touchPoints: points });
@@ -431,8 +437,9 @@ test('Scale mode: K, a Scale drag scales the text size, one undo step, the popov
       { id: 'txt', kind: 'text', x: 100, y: 300, w: 300, h: 80, text: 'Hello scale', fontSize: 40, fg: '#111111', strokeW: 2, stroke: '#ff0000', pad: 10, tracking: 2 },
       { id: 'big', kind: 'box', x: 100, y: 100, w: 200, h: 120, bg: '#88c4a0', shape: 'rounded', radius: 12, strokeW: 4, stroke: '#000000', shadow: 'box', shadowX: 4, shadowY: 6, shadowBlur: 10 },
     ]);
+    // Scale shares the pointer's rail slot, which shows the Scale icon while Scale is on.
     const state = (): Promise<{ pressed: string | null; scale: boolean }> => page.evaluate(() => ({
-      pressed: document.querySelector('.fc-btn-scale')?.getAttribute('aria-pressed') ?? null,
+      pressed: document.querySelector('.fc-btn-pointer')?.getAttribute('data-variant') === 'scale' ? 'true' : 'false',
       scale: !!document.querySelector('.fc-chrome')?.hasAttribute('data-scale'),
     }));
     await pick(page, 'txt');
@@ -550,6 +557,12 @@ test('Scale on a flex layout container scales its children, spacing and text and
     near(num(get('b'), 'h'), 70 * k, 1, 'the fixed axis of a fill child scales');
     near(num(get('t'), 'fontSize'), 30 * k, 0.3, 'child text size');
     near(num(get('abs'), 'layoutX'), 300 * k, 0.5, 'absolute child offset');
+    // The child's place is whole px and its offset tenths of a px, as a move writes them.
+    for (const f of ['x', 'y']) assert.ok(Number.isInteger(num(get('abs'), f)), `the absolute child's ${f} is whole px (${num(get('abs'), f)})`);
+    for (const f of ['layoutX', 'layoutY']) {
+      const v = num(get('abs'), f);
+      assert.equal(Math.round(v * 10) / 10, v, `the absolute child's ${f} is in tenths of a px (${v})`);
+    }
     assert.deepEqual(['a', 'b', 't'].map((id) => get(id).layoutOrder), [0, 1, 2], 'flow order holds');
     assert.deepEqual(after.map((b) => b.id), before.map((b) => b.id), 'row order holds');
     await page.waitForFunction(() => (document.querySelector('#tool-canvas [data-box-id="a"]') as HTMLElement).style.width === '120px');
@@ -756,46 +769,190 @@ test('Large grab areas for a mouse: the menu toggle, the hover wash, reduced mot
 
 // ── Shortcut sheet and rail ─────────────────────────────────────────────────
 
-test('the shortcut sheet lists the Transform group at desktop and phone widths', opts, async () => {
+test('the shortcut sheet lists the Transform group at desktop and phone widths, in English and German, with no sideways scroll', opts, async () => {
   const browser = await launch();
   try {
-    for (const [width, height] of [[1280, 800], [390, 844]] as const) {
+    for (const lang of ['en', 'de'] as const) {
+      for (const [width, height] of [[1280, 800], [390, 844]] as const) {
+        const { ctx, page, errors } = await open(browser, [{ id: 'big', kind: 'box', x: 100, y: 100, w: 200, h: 120, bg: '#88c4a0' }], { width, height, lang });
+        // A phone width has no navigator, so the canvas takes focus from a click on the box.
+        const r = await rect(page, 'big');
+        await page.mouse.click(r.x + r.w / 2, r.y + r.h / 2);
+        await page.keyboard.press('Shift+?');
+        const tag = `${lang} ${width}px`;
+        // The Transform group is the fourth group in every language.
+        const group = page.locator('.fc-shortcuts-group').nth(3);
+        await group.waitFor();
+        assert.equal(await group.locator('tr').count(), 11, `${tag}: eleven Transform rows`);
+        if (lang === 'en') assert.match(await group.innerText(), /K\s+Scale mode/, `${tag}: K is listed`);
+        const fit = await page.evaluate(() => {
+          const g = document.querySelector('.fc-shortcuts-groups')!, d = document.querySelector('.fc-shortcuts-modal')!;
+          const keys = [...document.querySelectorAll<HTMLElement>('.fc-shortcuts-group')].map((s) => s.querySelector<HTMLElement>('.fc-shortcuts-keys')!.getBoundingClientRect().width);
+          return { grid: [g.clientWidth, g.scrollWidth], dialog: [d.clientWidth, d.scrollWidth, d.scrollLeft], keys };
+        });
+        assert.equal(fit.grid[1], fit.grid[0], `${tag}: the groups fit their column (${fit.grid})`);
+        const [clientW, scrollW, scrolled] = fit.dialog;
+        assert.ok(scrollW! <= clientW! && scrolled === 0, `${tag}: the dialog opens unscrolled and never scrolls sideways (${fit.dialog})`);
+        // The gesture rows wrap, so the Transform key column is no wider than the widest elsewhere.
+        assert.ok(fit.keys[3]! <= Math.max(...fit.keys.filter((_, i) => i !== 3)) + 1, `${tag}: the Transform key column stays narrow (${fit.keys.map(Math.round)})`);
+        await page.screenshot({ path: shotPath(`shortcuts-${lang}-${width}`) });
+        assert.deepEqual(errors, []);
+        await ctx.close();
+      }
+    }
+  } finally { await browser.close(); }
+});
+
+test('Scale shares the pointer\'s rail slot: the rail keeps its ten buttons and whole rows, the slot\'s menu and the Lolly menu turn Scale on, at 1280 px, the 680 px docs-shot width and a phone', opts, async () => {
+  const browser = await launch();
+  try {
+    for (const [width, height, navOpen] of [[1280, 800, false], [680, 425, true], [680, 850, false], [844, 390, false]] as const) {
+      const tag = `${width}x${height}${navOpen ? ' navigator open' : ''}`;
       const { ctx, page, errors } = await open(browser, [{ id: 'big', kind: 'box', x: 100, y: 100, w: 200, h: 120, bg: '#88c4a0' }], { width, height });
-      // A phone width has no navigator, so the canvas takes focus from a click on the box.
+      if (navOpen) {
+        await page.getByRole('button', { name: 'Show navigator' }).click();
+        await page.waitForFunction(() => !document.querySelector('.fc-nav')?.classList.contains('is-collapsed'));
+      }
+      const rail = await page.evaluate(() => {
+        const btns = [...document.querySelectorAll<HTMLElement>('.fc-toolbar .fc-btn')].filter((b) => b.offsetParent);
+        const rows = new Map<number, number>();
+        for (const b of btns) { const y = Math.round(b.getBoundingClientRect().y); rows.set(y, (rows.get(y) ?? 0) + 1); }
+        const reach = btns.map((b) => {
+          const r = b.getBoundingClientRect(); const hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+          return { name: b.getAttribute('aria-label') ?? b.className, swatch: b.classList.contains('fc-color-btn'), ok: !!hit && (hit === b || b.contains(hit)) };
+        });
+        return { count: btns.length, own: !!document.querySelector('.fc-btn-scale'), rows: [...rows.values()], reach };
+      });
+      assert.equal(rail.own, false, `${tag}: no Scale button of its own`);
+      assert.equal(rail.count, 10, `${tag}: the rail has the ten buttons it had before Scale`);
+      if (navOpen) assert.deepEqual(rail.rows, [5, 5], `${tag}: the navigator's tool grid fills two whole rows`);
+      // A short window never reached the colour swatch at the foot of the rail; every tool above it takes a press.
+      assert.deepEqual(rail.reach.filter((b) => !b.ok && !(height < 550 && b.swatch)).map((b) => b.name), [], `${tag}: every rail button takes a press`);
+      // The slot's menu: a right-click offers the pointer and Scale.
+      const slot = page.locator('.fc-btn-pointer');
+      await slot.click({ button: 'right' });
+      const rows = page.locator('.fc-popover [role="menuitemradio"]');
+      assert.deepEqual(await rows.allTextContents(), ['Pointer - select and move (V)', 'Scale (K) - text, strokes and effects resize with the object'], `${tag}: the slot offers both tools`);
+      assert.deepEqual(await rows.evaluateAll((els) => els.map((e) => e.getAttribute('aria-checked'))), ['true', 'false']);
+      await page.screenshot({ path: shotPath(`rail-${width}x${height}-menu`) });
+      await page.locator('.fc-popover [data-pop="scale"]').click();
+      assert.equal(await slot.getAttribute('data-variant'), 'scale', `${tag}: the slot shows Scale`);
+      assert.equal(await slot.getAttribute('aria-pressed'), 'true', `${tag}: and stays pressed`);
+      assert.match(await slot.getAttribute('aria-label') ?? '', /^Scale \(K\)/);
+      const glyphs = (): Promise<string[]> => slot.evaluate((b) => ['.fc-slot-pointer', '.fc-slot-scale'].map((c) => getComputedStyle(b.querySelector(c)!).display));
+      assert.deepEqual(await glyphs(), ['none', 'inline'], `${tag}: the slot draws the Scale glyph`);
+      await page.screenshot({ path: shotPath(`rail-${width}x${height}-scale-on`) });
+      await slot.click();
+      assert.equal(await slot.getAttribute('data-variant'), 'scale', `${tag}: a click on the Scale slot keeps Scale`);
+      await page.keyboard.press('v');
+      assert.equal(await slot.getAttribute('data-variant'), 'pointer', `${tag}: V returns the slot to the pointer`);
+      assert.deepEqual(await glyphs(), ['inline', 'none'], `${tag}: and its glyph`);
+      assert.deepEqual(errors, []);
+      await ctx.close();
+    }
+    // A phone shows no rail and no object bar: the Lolly menu, behind More, has the Scale mode row.
+    const { ctx, page, errors } = await open(browser, [{ id: 'big', kind: 'box', x: 100, y: 100, w: 200, h: 120, bg: '#88c4a0' }], { width: 390, height: 844, hasTouch: true });
+    assert.equal(await page.locator('.fc-toolbar .fc-btn').filter({ visible: true }).count(), 0, 'a phone has no rail');
+    const r = await rect(page, 'big');
+    await page.touchscreen.tap(r.x + r.w / 2, r.y + r.h / 2);
+    await page.getByRole('button', { name: 'More', exact: true }).tap();
+    const row = page.getByRole('menuitemcheckbox', { name: 'Scale mode' });
+    assert.equal(await row.getAttribute('aria-checked'), 'false');
+    await row.tap();
+    await frames(page);
+    assert.equal(await page.locator('.fc-chrome[data-scale]').count(), 1, 'the row turns Scale on: the handles show the mode');
+    await page.screenshot({ path: shotPath('phone-scale-on') });
+    assert.deepEqual(errors, []);
+    await ctx.close();
+  } finally { await browser.close(); }
+});
+
+// ── Scale handles in every theme ────────────────────────────────────────────
+
+test('Scale handles look unlike Resize handles in light, dark and high contrast', opts, async () => {
+  const browser = await launch();
+  try {
+    for (const [scheme, high] of [['light', false], ['dark', false], ['light', true], ['dark', true]] as const) {
+      const tag = `${scheme}${high ? ' high contrast' : ''}`;
+      const { ctx, page, errors } = await open(browser, [{ id: 'big', kind: 'box', x: 100, y: 100, w: 200, h: 120, bg: '#88c4a0' }], { colorScheme: scheme });
+      if (high) await page.evaluate(() => document.documentElement.setAttribute('data-a11y-contrast', 'high'));
+      await pick(page, 'big');
+      const look = (): Promise<{ bg: string; border: string; dot: string | null }> => page.evaluate(() => {
+        const h = document.querySelector<HTMLElement>('.fc-chrome .fc-h-se')!;
+        const dot = getComputedStyle(h, '::before');
+        return { bg: getComputedStyle(h).backgroundColor, border: getComputedStyle(h).borderTopColor, dot: dot.content === 'none' ? null : dot.backgroundColor };
+      });
       const r = await rect(page, 'big');
-      await page.mouse.click(r.x + r.w / 2, r.y + r.h / 2);
-      await page.keyboard.press('Shift+?');
-      const group = page.locator('.fc-shortcuts-group').filter({ has: page.locator('h3', { hasText: /^Transform$/ }) });
-      await group.waitFor();
-      assert.equal(await group.locator('tr').count(), 11, `${width}px: eleven Transform rows`);
-      assert.match(await group.innerText(), /K\s+Scale mode/, `${width}px: K is listed`);
-      const grid = await page.evaluate(() => { const g = document.querySelector('.fc-shortcuts-groups')!; return [g.clientWidth, g.scrollWidth]; });
-      assert.equal(grid[1], grid[0], `${width}px: the groups fit their column in English`);
+      const clip = { x: r.x - 30, y: r.y - 30, width: r.w + 60, height: r.h + 80 };
+      const resize = await look();
+      await page.screenshot({ path: shotPath(`handles-${scheme}${high ? '-hc' : ''}-resize`), clip });
+      await page.keyboard.press('k');
+      await frames(page);
+      const scale = await look();
+      await page.screenshot({ path: shotPath(`handles-${scheme}${high ? '-hc' : ''}-scale`), clip });
+      assert.equal(resize.dot, null, `${tag}: a Resize handle is a plain square`);
+      assert.ok(scale.dot, `${tag}: a Scale handle carries a dot`);
+      assert.notEqual(scale.dot, scale.bg, `${tag}: the dot shows on its fill (${scale.dot} on ${scale.bg})`);
+      assert.notEqual(scale.border, scale.bg, `${tag}: the keyline shows on the fill`);
+      assert.ok(scale.bg !== resize.bg || scale.border !== resize.border, `${tag}: the colours change too (${JSON.stringify({ resize, scale })})`);
       assert.deepEqual(errors, []);
       await ctx.close();
     }
   } finally { await browser.close(); }
 });
 
-test('the Scale rail button is reachable beside the other tools at the 680 px docs-shot width', opts, async () => {
+// ── Right to left, and a rule over a card ───────────────────────────────────
+
+test('in Arabic the Scale popover\'s anchor grid keeps its physical corners and translated names', opts, async () => {
   const browser = await launch();
   try {
-    for (const navOpen of [false, true]) {
-      const { ctx, page, errors } = await open(browser, [{ id: 'big', kind: 'box', x: 100, y: 100, w: 200, h: 120, bg: '#88c4a0' }], { width: 680, height: 850 });
-      if (navOpen) {
-        await page.getByRole('button', { name: 'Show navigator' }).click();
-        await page.waitForFunction(() => !document.querySelector('.fc-nav')?.classList.contains('is-collapsed'));
-      }
-      const reach = await page.evaluate(() => [...document.querySelectorAll<HTMLElement>('.fc-toolbar .fc-btn')].filter((b) => b.offsetParent).map((b) => {
-        const r = b.getBoundingClientRect(); const hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
-        return { name: b.getAttribute('aria-label') ?? b.className, ok: !!hit && (hit === b || b.contains(hit)) };
-      }));
-      assert.ok(reach.some((b) => /^Scale \(K\)/.test(b.name)), `navigator ${navOpen ? 'open' : 'closed'}: the Scale button is in the rail`);
-      assert.deepEqual(reach.filter((b) => !b.ok).map((b) => b.name), [], `navigator ${navOpen ? 'open' : 'closed'}: every rail button takes a press`);
-      await page.locator('.fc-btn-scale').click();
-      assert.equal(await page.locator('.fc-btn-scale').getAttribute('aria-pressed'), 'true', 'the rail button turns Scale on');
-      assert.deepEqual(errors, []);
-      await ctx.close();
-    }
+    const { page, errors } = await open(browser, [{ id: 'big', kind: 'box', x: 100, y: 100, w: 200, h: 120, bg: '#88c4a0' }], { lang: 'ar' });
+    assert.equal(await page.evaluate(() => document.documentElement.dir), 'rtl');
+    await pick(page, 'big');
+    await page.keyboard.press('k');
+    await page.locator('[data-cx-readout]').click();
+    const grid = page.locator('.fc-scale-panel .fc-posgrid');
+    await grid.waitFor();
+    const cells = await grid.evaluate((g) => Object.fromEntries([...g.querySelectorAll<HTMLElement>('[data-anchor]')].map((c) => {
+      const r = c.getBoundingClientRect();
+      return [c.dataset.anchor!, { x: Math.round(r.x), y: Math.round(r.y), label: c.getAttribute('aria-label') }];
+    })));
+    assert.ok(cells.nw!.x < cells.ne!.x && cells.sw!.x < cells.se!.x, `the top left cell is on the left (${JSON.stringify(cells)})`);
+    assert.ok(cells.nw!.y < cells.sw!.y);
+    assert.equal(cells.nw!.label, 'أعلى اليسار', 'and is named top left');
+    assert.notEqual(await grid.getAttribute('aria-label'), 'Anchor', 'the group is named in Arabic');
+    await page.screenshot({ path: shotPath('scale-popover-ar') });
+    assert.deepEqual(errors, []);
+  } finally { await browser.close(); }
+});
+
+test('a press just beside a selected rule on a card drags the rule, and a click there selects the card', opts, async () => {
+  const browser = await launch();
+  try {
+    const { page, errors } = await open(browser, [
+      { id: 'card', kind: 'box', x: 50, y: 50, w: 780, h: 600, bg: '#e8e0d0' },
+      { id: 'rule', kind: 'box', x: 100, y: 400, w: 400, h: 2, bg: '#202020' },
+    ], { sel: 'rule' });
+    const s = await stageScale(page);
+    // A 2 px rule keeps the handles at its ends; its corners are hidden.
+    await page.locator('.fc-chrome .fc-h-e').waitFor();
+    const r = await rect(page, 'rule');
+    const before = await boxes(page);
+    // 3 screen px below the rule, midway along: over the card, inside the rule's band.
+    await drag(page, { x: r.x + r.w / 2, y: r.y + r.h + 3 }, { x: 40, y: 30 });
+    const moved = await row(page, 'rule');
+    near(num(moved, 'x'), 100 + 40 / s, 2, 'the rule moves');
+    near(num(moved, 'y'), 400 + 30 / s, 2, 'the rule moves down');
+    assert.deepEqual(await row(page, 'card'), before.find((b) => b.id === 'card'), 'the card stays');
+    await undoTo(page, before);
+    const selected = (): Promise<string[]> => page.evaluate(() =>
+      [...document.querySelectorAll<HTMLElement>('.fc-nav-layer[aria-selected="true"]')].map((r) => r.dataset.id ?? ''));
+    assert.deepEqual(await selected(), ['rule'], 'the rule is still the selection');
+    const r2 = await rect(page, 'rule');
+    await page.mouse.click(r2.x + r2.w / 2, r2.y + r2.h + 3);
+    await frames(page);
+    assert.deepEqual(await selected(), ['card'], 'a click in the band selects the card under the pointer');
+    assert.deepEqual(await boxes(page), before, 'and changes no row');
+    assert.deepEqual(errors, []);
   } finally { await browser.close(); }
 });

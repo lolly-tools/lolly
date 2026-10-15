@@ -406,7 +406,7 @@
   "Analyse text": "Metni çözümle",
   "Analysed {date}.": "{date} tarihinde incelendi.",
   "Analyser": "Analizör",
-  "Anchor": "Anchor",
+  "Anchor": "Bağlantı noktası",
   "Anchor image {pos}": "Görsel çapası {pos}",
   "Angle": "Açı",
   "Animate": "Canlandır",
@@ -7964,5 +7964,7 @@
   "While resizing: keep proportions": "Yeniden boyutlandırırken: oranları koru",
   "While rotating: turn freely": "Döndürürken: serbestçe döndür",
   "While rotating: turn in 15 degree steps": "Döndürürken: 15 derecelik adımlarla döndür",
-  "Zoom and pan the view": "Görünümü yakınlaştır ve kaydır"
+  "Zoom and pan the view": "Görünümü yakınlaştır ve kaydır",
+  "Enter a scale from 1% to 10000%.": "%1 ile %10000 arasında bir ölçek gir.",
+  "Pointer - select and move (V). Hold for Scale (K)": "İşaretçi - seç ve taşı (V). Ölçek (K) için basılı tut"
 }

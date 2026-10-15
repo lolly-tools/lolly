@@ -406,7 +406,7 @@
   "Analyse text": "Analyser tekst",
   "Analysed {date}.": "Analysert {date}.",
   "Analyser": "Analysator",
-  "Anchor": "Anchor",
+  "Anchor": "Ankerpunkt",
   "Anchor image {pos}": "Forankre bilde {pos}",
   "Angle": "Vinkel",
   "Animate": "Animer",
@@ -7964,5 +7964,7 @@
   "While resizing: keep proportions": "Under størrelsesendring: behold proporsjonene",
   "While rotating: turn freely": "Under rotering: vri fritt",
   "While rotating: turn in 15 degree steps": "Under rotering: vri i trinn på 15 grader",
-  "Zoom and pan the view": "Zoom og panorer visningen"
+  "Zoom and pan the view": "Zoom og panorer visningen",
+  "Enter a scale from 1% to 10000%.": "Skriv inn en skala fra 1 % til 10000 %.",
+  "Pointer - select and move (V). Hold for Scale (K)": "Peker - velg og flytt (V). Hold inne for Skala (K)"
 }

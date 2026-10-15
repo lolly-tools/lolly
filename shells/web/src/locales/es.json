@@ -406,7 +406,7 @@
   "Analyse text": "Analizar texto",
   "Analysed {date}.": "Analizado el {date}.",
   "Analyser": "Analizador",
-  "Anchor": "Anchor",
+  "Anchor": "Anclaje",
   "Anchor image {pos}": "Anclar imagen {pos}",
   "Angle": "Ángulo",
   "Animate": "Animar",
@@ -7964,5 +7964,7 @@
   "While resizing: keep proportions": "Al redimensionar: mantener proporciones",
   "While rotating: turn freely": "Al rotar: girar libremente",
   "While rotating: turn in 15 degree steps": "Al rotar: girar en pasos de 15 grados",
-  "Zoom and pan the view": "Hacer zoom y desplazar la vista"
+  "Zoom and pan the view": "Hacer zoom y desplazar la vista",
+  "Enter a scale from 1% to 10000%.": "Introduce una escala del 1% al 10000%.",
+  "Pointer - select and move (V). Hold for Scale (K)": "Puntero - seleccionar y mover (V). Mantén pulsado para Escala (K)"
 }

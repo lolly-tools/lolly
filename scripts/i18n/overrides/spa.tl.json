@@ -1259,5 +1259,8 @@
   "While resizing: keep proportions": "Habang nire-resize: panatilihin ang mga proporsyon",
   "While rotating: turn freely": "Habang nire-rotate: malayang iikot",
   "While rotating: turn in 15 degree steps": "Habang nire-rotate: umikot nang 15 degree bawat hakbang",
-  "Zoom and pan the view": "I-zoom at i-pan ang view"
+  "Zoom and pan the view": "I-zoom at i-pan ang view",
+  "Anchor": "Angkla",
+  "Enter a scale from 1% to 10000%.": "Maglagay ng scale mula 1% hanggang 10000%.",
+  "Pointer - select and move (V). Hold for Scale (K)": "Pointer - pumili at ilipat (V). I-hold para sa Scale (K)"
 }

@@ -1257,5 +1257,8 @@
   "While resizing: keep proportions": "リサイズ中: 縦横比を維持",
   "While rotating: turn freely": "回転中: 自由に回転",
   "While rotating: turn in 15 degree steps": "回転中: 15度ずつ回転",
-  "Zoom and pan the view": "表示をズーム・パン"
+  "Zoom and pan the view": "表示をズーム・パン",
+  "Anchor": "基準点",
+  "Enter a scale from 1% to 10000%.": "1% から 10000% までのスケールを入力してください。",
+  "Pointer - select and move (V). Hold for Scale (K)": "ポインター - 選択と移動（V）。長押しでスケール（K）"
 }

@@ -1256,5 +1256,8 @@
   "While resizing: keep proportions": "La redimensionare: păstrează proporțiile",
   "While rotating: turn freely": "La rotire: rotește liber",
   "While rotating: turn in 15 degree steps": "La rotire: rotește în pași de 15 grade",
-  "Zoom and pan the view": "Mărește și panoramează vederea"
+  "Zoom and pan the view": "Mărește și panoramează vederea",
+  "Anchor": "Punct de ancorare",
+  "Enter a scale from 1% to 10000%.": "Introdu o scalare între 1% și 10000%.",
+  "Pointer - select and move (V). Hold for Scale (K)": "Cursor - selectează și mută (V). Ține apăsat pentru Scalare (K)"
 }

@@ -406,7 +406,7 @@
   "Analyse text": "Analyzovat text",
   "Analysed {date}.": "Analyzováno {date}.",
   "Analyser": "Analyzátor",
-  "Anchor": "Anchor",
+  "Anchor": "Ukotvení",
   "Anchor image {pos}": "Ukotvit obrázek {pos}",
   "Angle": "Úhel",
   "Animate": "Animovat",
@@ -7964,5 +7964,7 @@
   "While resizing: keep proportions": "Při změně velikosti: zachovat proporce",
   "While rotating: turn freely": "Při otáčení: otáčet volně",
   "While rotating: turn in 15 degree steps": "Při otáčení: otáčet po 15 stupních",
-  "Zoom and pan the view": "Přiblížit a posouvat zobrazení"
+  "Zoom and pan the view": "Přiblížit a posouvat zobrazení",
+  "Enter a scale from 1% to 10000%.": "Zadej měřítko od 1 % do 10000 %.",
+  "Pointer - select and move (V). Hold for Scale (K)": "Ukazatel - výběr a přesun (V). Podrž pro Měřítko (K)"
 }

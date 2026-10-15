@@ -78,9 +78,9 @@ test('the K row is the canvas binding that turns Scale mode on and off', () => {
   const calls = src.split('fc.scaleMode.key()').length - 1;
   assert.equal(calls, 1, 'exactly one key handler reaches fc.scaleMode.key()');
   const at = src.indexOf('fc.scaleMode.key()');
-  const guard = src.slice(src.lastIndexOf('if (', at), at);
+  const guard = src.slice(src.lastIndexOf('if (', src.lastIndexOf("e.key === 'k'", at)), at);
   assert.match(guard, /e\.key === 'k' \|\| e\.key === 'K'/, 'the handler is bound to K');
-  for (const held of ['!e.metaKey', '!e.ctrlKey', '!e.altKey', '!e.shiftKey']) {
+  for (const held of ['!e.metaKey', '!e.ctrlKey', '!e.altKey', '!e.shiftKey', '!e.repeat']) {
     assert.ok(guard.includes(held), `the K binding requires ${held}`);
   }
   assert.match(src, /key: bindOp\(fc, keyScale\)/, 'fc.scaleMode.key is the Scale mode key handler');
@@ -146,4 +146,20 @@ test('the sheet is an accessible dialog, uses text nodes, and restores focus on 
   assert.equal(modal.el.isConnected, false);
   assert.equal(closes, 1);
   assert.equal(document.activeElement, opener);
+});
+
+test('a two-finger gesture row is marked as words that may wrap, and a key chord row stays on one line', () => {
+  const transform = designShortcutGroups('MacIntel').find((group) => group.label === 'Transform');
+  assert.ok(transform);
+  const gestures = transform.rows.filter((row) => row.gesture).map((row) => row.keys);
+  assert.deepEqual(gestures, ['Two-finger pinch', 'Two-finger twist', 'Two-finger drag', 'Two fingers off the selection']);
+  const modal = openDesignShortcuts();
+  try {
+    const cells = [...modal.el.querySelectorAll<HTMLElement>('.fc-shortcuts-keys')];
+    const wrapping = cells.filter((cell) => cell.classList.contains('fc-shortcuts-gesture')).map((cell) => cell.textContent);
+    assert.deepEqual(wrapping, gestures, 'only the gesture rows wrap');
+    const css = readFileSync(join(here, '../styles/parts/editor.css'), 'utf8');
+    assert.match(css, /\.fc-shortcuts-keys\.fc-shortcuts-gesture \{ white-space: normal;/, 'the sheet lets a gesture wrap');
+    assert.match(css, /\.fc-shortcuts-modal \{ width: min\(764px, 92vw\); \}/, 'the dialog is as wide as its two columns');
+  } finally { modal.close(); }
 });

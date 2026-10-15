@@ -31,9 +31,9 @@
  */
 import type { Box } from '../free-canvas-math.ts';
 import {
-  drawnHandleReach, handleHitReach, inMoveBand, largeZoneSize, onDrawnHandle, resizeCursorFor, rotateCursorAt, rotateCursorFor,
-  rotateStemFor, visibleRect, zoneAt, zoneDragThreshold, zoneRects, type HandleMedia, type PointerKind, type ScreenRect, type ViewRect,
-  type ZoneHit, type ZoneOpts,
+  drawnHandleReach, handleHitReach, inMoveBand, largeZoneSize, nativeToScreen, onDrawnHandle, resizeCursorFor, rotateCursorAt,
+  rotateCursorFor, rotateStemFor, visibleRect, zoneAt, zoneDragThreshold, zoneRects, type HandleMedia, type PointerKind,
+  type ScreenRect, type ViewRect, type ZoneHit, type ZoneOpts,
 } from '../free-canvas-transform.ts';
 import type { Gesture, HandleName, Metrics, Point, Rect } from './shared.ts';
 import { bindOp, type FcCtx } from './context.ts';
@@ -147,10 +147,6 @@ function viewportOf(fc: FcCtx, m: Metrics): ViewRect {
   views.set(m, view);
   return view;
 }
-/** A native rect in client px under the given pan and zoom. */
-function onScreen(r: Rect, m: Metrics): ScreenRect {
-  return { x: m.cr.left + r.x * m.scale, y: m.cr.top + r.y * m.scale, w: r.w * m.scale, h: r.h * m.scale, rot: r.rot || 0 };
-}
 
 /**
  * The chrome the zones sit on, in native px: one box's posed rect, turned with the box,
@@ -185,7 +181,7 @@ function zoneTarget(fc: FcCtx, boxes: Box[]): ZoneTarget | null {
   const shape = zoneShape(fc, boxes);
   if (!shape) return null;
   const m = fc.stage.metrics();
-  return { ...shape, rect: onScreen(shape.r, m), viewport: viewportOf(fc, m) };
+  return { ...shape, rect: nativeToScreen(shape.r, m), viewport: viewportOf(fc, m) };
 }
 
 /**
@@ -507,6 +503,20 @@ export function paintHover(fc: FcCtx): void {
   // A connector line under a zone gives way, so the cursor tells what a drag does.
   if (found) fc.edges.setHoverEdge(null);
 }
+/**
+ * Shift, ⌘ or Ctrl went down or up with the pointer still: hit-test the hover again with
+ * the new keys, since a held modifier drops the outer half of the edge strips (Amendment 2)
+ * and the cursor has to show what a press there would now do.
+ */
+export function onZoneModifier(fc: FcCtx, e: KeyboardEvent): void {
+  if (e.key !== 'Shift' && e.key !== 'Meta' && e.key !== 'Control') return;
+  const h = hovers.get(fc);
+  if (!h?.at || fc.disposed || fc.gesture || pending.has(fc)) return;
+  if (h.at.shiftKey === e.shiftKey && h.at.metaKey === e.metaKey && h.at.ctrlKey === e.ctrlKey) return;
+  h.at = { ...h.at, shiftKey: e.shiftKey, metaKey: e.metaKey, ctrlKey: e.ctrlKey };
+  h.lazy = false;
+  if (!h.raf) h.raf = requestAnimationFrame(fc.zones.paintHover);
+}
 export function onZoneLeave(fc: FcCtx): void {
   const h = hoverOf(fc);
   h.at = null;
@@ -589,7 +599,7 @@ export function notePointer(fc: FcCtx, e: PointerEvent): void {
  * outside the selection (plan 311 Amendment 3), so it never covers either.
  */
 export function rotateStem(fc: FcCtx, r: Rect, m: Metrics): number {
-  const rect = onScreen(r, m);
+  const rect = nativeToScreen(r, m);
   const narrow = !!grabbing.get(fc) && largeZoneSize(rect, viewportOf(fc, m)).narrow;
   return rotateStemFor(rect.w, rect.h, narrow);
 }
@@ -598,15 +608,21 @@ export function rotateStem(fc: FcCtx, r: Rect, m: Metrics): number {
  *  drops a held press. */
 export function wireZones(fc: FcCtx): () => void {
   const { stageEl } = fc;
+  const win = stageEl.ownerDocument?.defaultView;
   stageEl.addEventListener('pointerdown', fc.zones.notePointer, { capture: true, passive: true });
   stageEl.addEventListener('pointerdown', fc.zones.onStagePress, true);
   stageEl.addEventListener('pointermove', fc.zones.onHover, { passive: true });
   stageEl.addEventListener('pointerleave', fc.zones.onLeave);
+  // The modifier keys reach the window wherever focus is, as the hover itself does not need focus.
+  win?.addEventListener('keydown', fc.zones.onModifier, true);
+  win?.addEventListener('keyup', fc.zones.onModifier, true);
   return () => {
     stageEl.removeEventListener('pointerdown', fc.zones.notePointer, { capture: true });
     stageEl.removeEventListener('pointerdown', fc.zones.onStagePress, true);
     stageEl.removeEventListener('pointermove', fc.zones.onHover);
     stageEl.removeEventListener('pointerleave', fc.zones.onLeave);
+    win?.removeEventListener('keydown', fc.zones.onModifier, true);
+    win?.removeEventListener('keyup', fc.zones.onModifier, true);
     const h = hovers.get(fc);
     if (h?.raf) cancelAnimationFrame(h.raf);
     hovers.delete(fc);
@@ -629,6 +645,7 @@ export function zonesOps(fc: FcCtx) {
     releaseCursor: bindOp(fc, releaseCursor),
     onHover: bindOp(fc, onZoneHover),
     onLeave: bindOp(fc, onZoneLeave),
+    onModifier: bindOp(fc, onZoneModifier),
     paintHover: bindOp(fc, paintHover),
     hovered: bindOp(fc, zoneHovered),
     refresh: bindOp(fc, refreshZones),

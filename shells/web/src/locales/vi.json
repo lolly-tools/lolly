@@ -406,7 +406,7 @@
   "Analyse text": "Phân tích văn bản",
   "Analysed {date}.": "Đã phân tích {date}.",
   "Analyser": "Bộ phân tích",
-  "Anchor": "Anchor",
+  "Anchor": "Điểm neo",
   "Anchor image {pos}": "Neo hình ảnh {pos}",
   "Angle": "Góc",
   "Animate": "Tạo hoạt ảnh",
@@ -7964,5 +7964,7 @@
   "While resizing: keep proportions": "Khi đổi kích thước: giữ tỷ lệ",
   "While rotating: turn freely": "Khi xoay: xoay tự do",
   "While rotating: turn in 15 degree steps": "Khi xoay: xoay từng bước 15 độ",
-  "Zoom and pan the view": "Thu phóng và lia khung nhìn"
+  "Zoom and pan the view": "Thu phóng và lia khung nhìn",
+  "Enter a scale from 1% to 10000%.": "Nhập tỷ lệ từ 1% đến 10000%.",
+  "Pointer - select and move (V). Hold for Scale (K)": "Con trỏ - chọn và di chuyển (V). Giữ để chọn Tỷ lệ (K)"
 }

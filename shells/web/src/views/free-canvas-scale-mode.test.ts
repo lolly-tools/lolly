@@ -3,10 +3,11 @@
  * Plan 311 M2 - Scale mode, pinned through the real initFreeCanvas in jsdom (the
  * free-canvas-transform-foundation.test.ts harness):
  *
- *   1. K toggles Scale mode, both toggles follow with aria-pressed and the change is
- *      announced; K is ignored while typing, in a text edit, in the timeline panel and
- *      with a modifier; V and Escape leave Scale, Escape ahead of any deselect, and the
- *      pen and the Node tool end Scale mode;
+ *   1. K toggles Scale mode, the rail's pointer slot shows Scale and the object bar's
+ *      toggle follows with aria-pressed, and the change is announced; the slot's menu
+ *      offers the pointer and Scale; a held K toggles once; K is ignored while typing, in
+ *      a text edit, in the timeline panel and with a modifier; V and Escape leave Scale,
+ *      Escape ahead of any deselect, and the pen and the Node tool end Scale mode;
  *   2. a Scale drag on one box grows its content by the geometry's own k in one undo
  *      step, a Resize drag commits geometry only, and k is clamped at minSize and 100;
  *   3. a multi-selection and an artboard scale every member's content and position
@@ -133,6 +134,7 @@ interface Fixture {
   names: string[];
   select(ids: string[]): void;
   handle(name: string): HTMLElement | null;
+  /** The rail's pointer slot, which holds the pointer and Scale. */
   rail(): HTMLElement;
   destroy(): void;
 }
@@ -223,7 +225,7 @@ function mount(seed: Box[], o: MountOpts = {}): Fixture {
     write: (id, value) => runtime.setInput(id, value),
     select: (ids) => handle.applyUi({ select: ids } as never),
     handle: (name) => stageEl.querySelector<HTMLElement>(`.fc-chrome .fc-h-${name}`),
-    rail: () => stageEl.querySelector<HTMLElement>('.fc-toolbar .fc-btn-scale')!,
+    rail: () => stageEl.querySelector<HTMLElement>('.fc-toolbar .fc-btn-pointer')!,
     // The body keeps its live regions: announce() holds on to the one it made first.
     destroy() { handle.destroy(); viewEl.remove(); for (const p of doc.querySelectorAll('.fc-panel')) p.remove(); },
   };
@@ -235,7 +237,7 @@ const geom = (el: HTMLElement): string => [el.style.left, el.style.top, el.style
 const rectOf = (b: Record<string, unknown>): number[] => [b.x, b.y, b.w, b.h].map(Number);
 const announced = (): string => dom.window.document.querySelector('[data-a11y-live][aria-live="polite"]')?.textContent ?? '';
 const label = (f: Fixture): HTMLElement | null => f.stageEl.querySelector<HTMLElement>('.fc-overlay .fc-xform-label');
-const scaleOn = (f: Fixture): boolean => f.rail().getAttribute('aria-pressed') === 'true';
+const scaleOn = (f: Fixture): boolean => f.rail().dataset.variant === 'scale';
 
 /** Press `handle`, move by (dx, dy) and, unless `hold`, release. */
 async function drag(f: Fixture, handle: string, dx: number, dy: number, hold = false): Promise<void> {
@@ -258,7 +260,7 @@ const CONTENT = (): Box => ({
 
 // ── 1. the mode ──────────────────────────────────────────────────────────────
 
-test('K toggles Scale mode: both toggles follow with aria-pressed, the chrome restyles, and it is announced', async () => {
+test('K toggles Scale mode: the pointer slot shows Scale, the object bar toggle follows, the chrome restyles, and it is announced', async () => {
   coarse = true;
   const f = mount([CONTENT()]);
   try {
@@ -266,14 +268,19 @@ test('K toggles Scale mode: both toggles follow with aria-pressed, the chrome re
     await settle();
     const ctx = (): HTMLElement => f.stageEl.querySelector<HTMLElement>('.fc-ctxbar [data-cx="scale"]')!;
     assert.ok(ctx(), 'a coarse pointer gets the object bar toggle');
-    assert.equal(f.rail().getAttribute('aria-pressed'), 'false', 'every mount starts in Resize');
-    assert.ok(f.rail().getAttribute('aria-label'), 'the rail toggle is labelled');
+    assert.equal(f.stageEl.querySelector('.fc-btn-scale'), null, 'Scale shares the pointer slot: the rail has no button of its own');
+    assert.equal(f.rail().dataset.variant, 'pointer', 'every mount starts in Resize');
+    assert.equal(f.rail().getAttribute('aria-label'), 'Pointer - select and move (V). Hold for Scale (K)', 'the slot says a hold offers Scale');
+    assert.equal(f.rail().getAttribute('aria-haspopup'), 'true');
+    assert.ok(f.rail().querySelector('svg .fc-slot-pointer') && f.rail().querySelector('svg .fc-slot-scale'), 'the slot carries both glyphs');
     assert.equal(ctx().getAttribute('aria-label'), 'Scale mode');
     assert.equal(f.stageEl.querySelector('.fc-chrome')!.hasAttribute('data-scale'), false);
 
     assert.equal(press('k').defaultPrevented, true, 'the canvas took K');
     await settle();
-    assert.equal(f.rail().getAttribute('aria-pressed'), 'true');
+    assert.equal(f.rail().dataset.variant, 'scale', 'the slot shows Scale');
+    assert.match(f.rail().getAttribute('aria-label') ?? '', /^Scale \(K\)/, 'and is named for Scale');
+    assert.equal(f.rail().getAttribute('aria-pressed'), 'true', 'the slot stays pressed: Scale is a mode of the pointer');
     assert.ok(f.rail().classList.contains('is-armed'));
     assert.equal(ctx().getAttribute('aria-pressed'), 'true');
     assert.ok(f.stageEl.querySelector('.fc-chrome')!.hasAttribute('data-scale'), 'the handles take the Scale look');
@@ -282,6 +289,7 @@ test('K toggles Scale mode: both toggles follow with aria-pressed, the chrome re
     press('K'); // Caps Lock
     await settle();
     assert.equal(scaleOn(f), false);
+    assert.equal(f.rail().getAttribute('aria-label'), 'Pointer - select and move (V). Hold for Scale (K)');
     assert.equal(ctx().getAttribute('aria-pressed'), 'false');
     assert.equal(announced(), 'Scale mode off');
 
@@ -290,12 +298,108 @@ test('K toggles Scale mode: both toggles follow with aria-pressed, the chrome re
     assert.equal(scaleOn(f), true, 'the object bar toggle turns it on');
     assert.equal(ctx().getAttribute('aria-pressed'), 'true');
     assert.equal(announced(), 'Scale mode on');
+    // A click on the slot picks the tool the slot shows, as Figma's Scale tool does.
     f.rail().click();
     await settle();
-    assert.equal(scaleOn(f), false, 'and the rail toggle off');
-    assert.equal(ctx().getAttribute('aria-pressed'), 'false');
-    assert.equal(announced(), 'Scale mode off');
+    assert.equal(scaleOn(f), true, 'a click on the Scale slot keeps Scale');
+    assert.equal(announced(), 'Scale mode on');
   } finally { f.destroy(); coarse = false; }
+});
+
+test('the pointer slot\'s menu offers the pointer and Scale, the one in use checked', async () => {
+  const f = mount([CONTENT()], { canvas: { pathField: 'path' } });
+  try {
+    f.select(['a']);
+    await settle();
+    const menu = (): HTMLElement[] => {
+      f.rail().dispatchEvent(new W.MouseEvent('contextmenu', { bubbles: true, cancelable: true }));
+      return [...f.stageEl.querySelectorAll<HTMLElement>('.fc-popover [role="menuitemradio"]')];
+    };
+    let rows = menu();
+    assert.deepEqual(rows.map((r) => [r.textContent, r.getAttribute('aria-checked')]), [
+      ['Pointer - select and move (V)', 'true'],
+      ['Scale (K) - text, strokes and effects resize with the object', 'false'],
+    ]);
+    rows[1]!.click();
+    await settle();
+    assert.equal(scaleOn(f), true, 'the Scale row turns Scale on');
+    assert.equal(announced(), 'Scale mode on');
+    assert.equal(f.stageEl.querySelector('.fc-popover'), null, 'and closes the menu');
+    rows = menu();
+    assert.deepEqual(rows.map((r) => r.getAttribute('aria-checked')), ['false', 'true']);
+    rows[0]!.click();
+    await settle();
+    assert.equal(scaleOn(f), false, 'the pointer row is Resize');
+    assert.equal(announced(), 'Pointer on, Scale mode off - click to select, drag to move.');
+    assert.ok(f.handle('se'), 'and keeps the selection');
+    // From another tool the Scale row returns to the pointer with Scale on.
+    press('p');
+    await settle();
+    assert.equal(f.rail().getAttribute('aria-pressed'), 'false', 'the pen is the tool');
+    menu()[1]!.click();
+    await settle();
+    assert.equal(scaleOn(f), true);
+    assert.equal(f.rail().getAttribute('aria-pressed'), 'true', 'the pointer is the tool again');
+  } finally { f.destroy(); }
+});
+
+test('the Lolly menu has a Scale mode checkbox row, the route to Scale where no rail or object bar shows', async () => {
+  const f = mount([CONTENT()], { history: true, canvas: { pathField: 'path' } });
+  try {
+    f.select(['a']);
+    await settle();
+    const row = (): HTMLElement => {
+      for (const p of f.stageEl.querySelectorAll('.fc-popover')) p.remove();
+      f.stageEl.querySelector<HTMLElement>('.fc-btn-lolly')!.dispatchEvent(new W.MouseEvent('click', { bubbles: true }));
+      const r = f.stageEl.querySelector<HTMLElement>('.fc-popover [data-pop="scale-mode"]');
+      assert.ok(r, 'the menu carries the row');
+      return r!;
+    };
+    let r = row();
+    assert.equal(r.getAttribute('role'), 'menuitemcheckbox');
+    assert.equal(r.getAttribute('aria-checked'), 'false');
+    assert.equal(r.textContent, 'Scale mode');
+    r.click();
+    await settle();
+    assert.equal(scaleOn(f), true, 'the row turns Scale on');
+    assert.equal(announced(), 'Scale mode on');
+    r = row();
+    assert.equal(r.getAttribute('aria-checked'), 'true');
+    r.click();
+    await settle();
+    assert.equal(scaleOn(f), false, 'and off');
+    assert.equal(announced(), 'Scale mode off');
+    // From the pen the row returns to the pointer with Scale on, as K does.
+    press('p');
+    await settle();
+    row().click();
+    await settle();
+    assert.equal(scaleOn(f), true);
+    assert.equal(f.rail().getAttribute('aria-pressed'), 'true', 'the pointer is the tool again');
+  } finally { f.destroy(); }
+});
+
+test('a held K toggles Scale once, whatever its key repeats do', async () => {
+  const f = mount([CONTENT()]);
+  try {
+    f.select(['a']);
+    await settle();
+    const held = (): void => {
+      press('k');
+      for (let i = 0; i < 3; i++) {
+        const e = new W.KeyboardEvent('keydown', { key: 'k', repeat: true, bubbles: true, cancelable: true });
+        dom.window.document.body.dispatchEvent(e);
+        assert.equal(e.defaultPrevented, true, 'a repeat is still the canvas\'s key');
+      }
+    };
+    held();
+    await settle();
+    assert.equal(scaleOn(f), true, 'on after a held K');
+    assert.equal(announced(), 'Scale mode on');
+    held();
+    await settle();
+    assert.equal(scaleOn(f), false, 'off after the next one');
+  } finally { f.destroy(); }
 });
 
 test('K is ignored in a field, in a text edit and with Cmd, Ctrl, Alt or Shift', async () => {
@@ -796,6 +900,55 @@ test('the Scale popover applies 200% about a chosen anchor in one undo step and 
     assert.deepEqual([a.fontSize, a.strokeW, a.radius], [40, 4, 16], 'content too, in Scale mode');
     assert.equal(f.stageEl.querySelector('.fc-scale-panel'), null);
     assert.equal(dom.window.document.activeElement, readout(), 'focus is back on the readout');
+  } finally { f.destroy(); }
+});
+
+test('the Scale popover refuses a value outside 1% to 10000% out loud, writes nothing, and clears the error as you type', async () => {
+  const f = mount([CONTENT()]);
+  try {
+    f.select(['a']);
+    await settle();
+    press('k');
+    await settle();
+    f.stageEl.querySelector<HTMLElement>('.fc-ctxbar [data-cx-readout]')!.click();
+    const panel = f.stageEl.querySelector<HTMLElement>('.fc-scale-panel')!;
+    const pct = panel.querySelector<HTMLInputElement>('input[type="number"]')!;
+    const width = panel.querySelector<HTMLInputElement>('input[aria-label="Width"]')!;
+    const error = panel.querySelector<HTMLElement>('.fc-scale-error')!;
+    assert.equal(error.hidden, true, 'no error before a refusal');
+    const type = (el: HTMLInputElement, v: string): void => {
+      el.value = v;
+      el.dispatchEvent(new W.Event('input', { bubbles: true }));
+    };
+    for (const v of ['', '0', '-5', '20000', '0.5']) {
+      type(pct, v);
+      press('Enter', {}, pct);
+      await settle();
+      assert.equal(f.writes(), 0, `"${v}" writes nothing`);
+      assert.ok(f.stageEl.querySelector('.fc-scale-panel'), `"${v}" keeps the popover open`);
+      assert.equal(pct.getAttribute('aria-invalid'), 'true', `"${v}" marks the field invalid`);
+      assert.equal(pct.getAttribute('aria-describedby'), error.id, 'and points the field at the reason');
+      assert.equal(error.hidden, false);
+      assert.equal(error.textContent, 'Enter a scale from 1% to 10000%.');
+      assert.equal(announced(), 'Enter a scale from 1% to 10000%.', 'the reason is spoken');
+      assert.equal(dom.window.document.activeElement, pct, 'focus stays on the field');
+    }
+    type(pct, '150');
+    assert.equal(pct.getAttribute('aria-invalid'), null, 'typing clears the mark');
+    assert.equal(error.hidden, true);
+    // A width past 100 times the box is refused the same way, on the width field.
+    type(width, '30000');
+    panel.querySelector<HTMLButtonElement>('.btn--primary')!.click();
+    await settle();
+    assert.equal(f.writes(), 0);
+    assert.equal(width.getAttribute('aria-invalid'), 'true');
+    assert.equal(pct.getAttribute('aria-invalid'), null, 'only the field the factor came from');
+    // The top of the range applies.
+    type(pct, '10000');
+    press('Enter', {}, pct);
+    await settle();
+    assert.equal(f.writes(), 1, '10000% applies');
+    assert.deepEqual(rectOf(f.byId('a')), [100, 100, 20000, 10000]);
   } finally { f.destroy(); }
 });
 

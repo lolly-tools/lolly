@@ -406,7 +406,7 @@
   "Analyse text": "লেখা বিশ্লেষণ করুন",
   "Analysed {date}.": "{date} তারিখে বিশ্লেষণ করা হয়েছে।",
   "Analyser": "অ্যানালাইজার",
-  "Anchor": "Anchor",
+  "Anchor": "অ্যাঙ্কর বিন্দু",
   "Anchor image {pos}": "অ্যাঙ্কর ছবি {pos}",
   "Angle": "কোণ",
   "Animate": "অ্যানিমেট করুন",
@@ -7964,5 +7964,7 @@
   "While resizing: keep proportions": "আকার বদলানোর সময়: অনুপাত ধরে রাখুন",
   "While rotating: turn freely": "ঘোরানোর সময়: খুশিমতো ঘোরান",
   "While rotating: turn in 15 degree steps": "ঘোরানোর সময়: 15 ডিগ্রি ধাপে ঘোরান",
-  "Zoom and pan the view": "ভিউ জুম ও প্যান করুন"
+  "Zoom and pan the view": "ভিউ জুম ও প্যান করুন",
+  "Enter a scale from 1% to 10000%.": "1% থেকে 10000%-এর মধ্যে একটি স্কেল লিখুন।",
+  "Pointer - select and move (V). Hold for Scale (K)": "পয়েন্টার - নির্বাচন ও সরানো (V)। স্কেল (K)-এর জন্য চেপে ধরুন"
 }

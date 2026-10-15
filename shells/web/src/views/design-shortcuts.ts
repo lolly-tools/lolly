@@ -7,6 +7,8 @@ import { t } from '../i18n.ts';
 export interface DesignShortcutRow {
   keys: string;
   label: string;
+  /** A touch gesture named in words rather than a key chord: the sheet lets it wrap. */
+  gesture?: boolean;
 }
 
 export interface DesignShortcutGroup {
@@ -78,10 +80,10 @@ export function designShortcutGroups(
         { keys: mod, label: t('While resizing or scaling: no snapping') },
         { keys: `${alt} / ${mod}`, label: t('While rotating: turn freely') },
         { keys: `${alt} / ${mod}`, label: t('While moving: no snapping') },
-        { keys: t('Two-finger pinch'), label: t('Scale the selection') },
-        { keys: t('Two-finger twist'), label: t('Rotate the selection') },
-        { keys: t('Two-finger drag'), label: t('Move the selection') },
-        { keys: t('Two fingers off the selection'), label: t('Zoom and pan the view') },
+        { keys: t('Two-finger pinch'), label: t('Scale the selection'), gesture: true },
+        { keys: t('Two-finger twist'), label: t('Rotate the selection'), gesture: true },
+        { keys: t('Two-finger drag'), label: t('Move the selection'), gesture: true },
+        { keys: t('Two fingers off the selection'), label: t('Zoom and pan the view'), gesture: true },
       ],
     },
     {
@@ -129,7 +131,8 @@ export function openDesignShortcuts(opts: DesignShortcutsOptions = {}): ModalHan
     for (const row of group.rows) {
       const tr = document.createElement('tr');
       const keys = document.createElement('td');
-      keys.className = 'fc-shortcuts-keys';
+      // A gesture is words, which may wrap; a key chord stays on one line.
+      keys.className = row.gesture ? 'fc-shortcuts-keys fc-shortcuts-gesture' : 'fc-shortcuts-keys';
       const kbd = document.createElement('kbd');
       kbd.textContent = row.keys;
       keys.appendChild(kbd);

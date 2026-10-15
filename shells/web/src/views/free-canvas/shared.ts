@@ -749,10 +749,18 @@ export interface PinchGesture extends GestureBase {
   curB: Point;
   /** Scale mode at the claim: the content scales by `k` as well. */
   content?: boolean;
-  /** pinchTransform's engage state, fed back each frame. */
+  /** pinchTransform's engage state, fed back on every finger move. */
   scaleEngaged?: boolean;
   engagedAt?: number | null;
   travelEngaged?: boolean;
+  /** Both fingers (client px) when the preview began, once the pair could no longer be a
+   *  tap, and what had engaged by then: those parts ease in from here (pinch.ts). */
+  shownFrom?: [Point, Point];
+  early?: { turn: boolean; travel: boolean };
+  /** Both fingers (client px) when the scale began to show, which it eases in from. */
+  scaleFrom?: [Point, Point];
+  /** How far each eased part has caught up, 0 to 1; never goes back. */
+  ease?: { from: number; scale: number };
   /** The live factor and turn: the commit scales the content by `k`, and both name the
    *  preview kind peers are shown. */
   k?: number;

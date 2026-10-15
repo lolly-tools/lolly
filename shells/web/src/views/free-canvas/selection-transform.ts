@@ -18,7 +18,7 @@ import { HANDLE_SIGN, boxRect, num, snapPoint, withRect } from '../free-canvas-m
 import type { AABB as MathAABB, Box, Guide } from '../free-canvas-math.ts';
 import {
   anchorPoint, canResizeNonUniform, clampScaleK, contentScaleSpec, handleDragPoint, touchedGuides, rectsAABB, scaleBoxContent,
-  scaleChildOffset, scaleMembersAt, scaleRectAt, scaledLayoutAxes, transformRules, transformSelection,
+  scaleChildOffset, scaleLength, scaleMembersAt, scaleRectAt, scaledLayoutAxes, transformRules, transformSelection,
 } from '../free-canvas-transform.ts';
 import type { ContentScaleSpec, ModifierKeys, ScaleAnchor } from '../free-canvas-transform.ts';
 import { announce } from '../../a11y.ts';
@@ -346,12 +346,15 @@ function keepLayout(fc: FcCtx, out: Box, start: Box, starts: ReadonlyMap<string,
   }
   const parent = starts.get(owner);
   if (!parent) return out;
+  // Whole px, as withRect writes every other place: the layout derives the child's
+  // offset from this place, so a raw float here would come back as a float offset.
   const at = scaleChildOffset(boxRect(parent, cfg), boxRect(start, cfg), boxRect(out, cfg), k);
-  out[cfg.xField] = at.x;
-  out[cfg.yField] = at.y;
+  out[cfg.xField] = Math.round(at.x);
+  out[cfg.yField] = Math.round(at.y);
+  // The offset rounds as content does: to 0.1 px, and never from a small offset to none.
   for (const f of ['layoutX', 'layoutY']) {
     const v = start[f];
-    if (v !== '' && v != null && Number.isFinite(Number(v))) out[f] = Math.round(Number(v) * k * 10) / 10;
+    if (v !== '' && v != null && Number.isFinite(Number(v))) out[f] = scaleLength(Number(v), k);
   }
   return out;
 }

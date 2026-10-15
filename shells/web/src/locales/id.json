@@ -406,7 +406,7 @@
   "Analyse text": "Analisis teks",
   "Analysed {date}.": "Dianalisis {date}.",
   "Analyser": "Penganalisis",
-  "Anchor": "Anchor",
+  "Anchor": "Titik jangkar",
   "Anchor image {pos}": "Gambar jangkar {pos}",
   "Angle": "Sudut",
   "Animate": "Animasikan",
@@ -7964,5 +7964,7 @@
   "While resizing: keep proportions": "Saat mengubah ukuran: pertahankan proporsi",
   "While rotating: turn freely": "Saat memutar: putar bebas",
   "While rotating: turn in 15 degree steps": "Saat memutar: putar dengan langkah 15 derajat",
-  "Zoom and pan the view": "Zoom dan geser tampilan"
+  "Zoom and pan the view": "Zoom dan geser tampilan",
+  "Enter a scale from 1% to 10000%.": "Masukkan skala dari 1% sampai 10000%.",
+  "Pointer - select and move (V). Hold for Scale (K)": "Penunjuk - pilih dan pindahkan (V). Tahan untuk Skala (K)"
 }

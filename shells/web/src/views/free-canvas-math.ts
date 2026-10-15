@@ -1310,10 +1310,10 @@ export function normDragRect(x0: number, y0: number, x1: number, y1: number, min
 // represent a non-uniform scale) about a fixed `anchor`, and rotates rigidly about
 // a fixed `centre`. Both return NEW boxes arrays.
 //
-// scaleGroup also returns the font size and corner radius times k. The canvas no longer
-// calls it: a selection resize or Scale goes through transformSelection and
-// scaleMembersAt in free-canvas-transform.ts, which keep a side thinner than minSize at
-// its own size instead of raising it to minSize. Resize, the default, is geometry only;
+// scaleGroup also returns the font size and corner radius times k. Neither the canvas
+// nor the deck editor calls it now: a selection resize or Scale goes through
+// transformSelection and scaleMembersAt in free-canvas-transform.ts, which keep a side
+// thinner than minSize at its own size instead of raising it to minSize. Resize, the default, is geometry only;
 // Scale mode (K, plan 311) scales content through scaleBoxContent, which covers every
 // content length and the manifest bounds.
 

@@ -404,6 +404,29 @@ test('a finger that began a move hands it to the pinch without committing the mo
   } finally { f.destroy(); }
 });
 
+test('a finger already dragging the box and a second finger far from the selection: the drag is dropped, nothing scales, and the view zooms', async () => {
+  for (const second of [235, 600] as const) {
+    const f = mount(ONE());
+    try {
+      f.select(['a']);
+      await settle();
+      // The first finger drags the box 40 px; the second comes down 235 or 600 ms later, far away.
+      f.canvasEl.dispatchEvent(finger('pointerdown', [160, 200], 1, 1000));
+      f.canvasEl.dispatchEvent(finger('pointermove', [200, 200], 1, 1100));
+      await settle();
+      assert.equal(geom(f.el('a')), '140px 100px 200px 200px', 'the first finger is moving the box');
+      f.canvasEl.dispatchEvent(finger('pointerdown', [800, 650], 2, 1000 + second));
+      assert.equal(geom(f.el('a')), '100px 100px 200px 200px', `${second} ms: the move preview is put back`);
+      // Both fingers keep moving: the first one on, the second further out.
+      await to(f, [240, 200], [860, 700], 1000 + second + 100);
+      await up(f, [240, 200], [860, 700], 1000 + second + 200);
+      assert.deepEqual(rectOf(f.byId('a')), [100, 100, 200, 200], `${second} ms: the box is neither moved nor scaled`);
+      assert.equal(f.writes(), 0, `${second} ms: no undo step`);
+      assert.ok(f.zoom() !== 1, `${second} ms: the pair zoomed the view (${f.zoom()})`);
+    } finally { f.destroy(); }
+  }
+});
+
 // ── 4. the view keeps every other pair ───────────────────────────────────────
 
 /** Spread two fingers to twice their distance, then lift them. */
@@ -701,6 +724,96 @@ test('a pinch past the tap\'s slop inside its window is no tap: it previews, com
     assert.deepEqual(rectOf(f.byId('a')), [70, 70, 260, 260]);
     assert.equal(f.writes(), 1, 'the pinch committed');
   } finally { f.destroy(); }
+});
+
+test('two close fingers spreading past the tap\'s slop: the preview starts without a jump and catches up with the fingers', async () => {
+  const f = mount(ONE());
+  try {
+    f.select(['a']);
+    await settle();
+    const width = (): number => parseFloat(f.el('a').style.width) || 200;
+    // 40 px apart on the box's centre line; the second finger walks out to the right.
+    down(f, [180, 200], [220, 200]);
+    const step = async (x: number, t: number): Promise<number> => {
+      f.canvasEl.dispatchEvent(finger('pointermove', [x, 200], 2, t));
+      await settle();
+      return width();
+    };
+    for (const [x, t] of [[225, 1040], [230, 1050], [234, 1060]] as const) {
+      assert.equal(await step(x, t), 200, `${x}: inside the tap's slop nothing previews`);
+    }
+    assert.equal(await step(235, 1070), 200, 'the first move past the slop starts the preview where the box is: no jump');
+    const mid = await step(242, 1080);
+    assert.ok(mid > 200 && mid < 310, `half way through the catch-up the box grows toward the fingers (${mid})`);
+    assert.equal(await step(249, 1090), 345, '14 px past the slop the box is under the fingers: 69 / 40 of its size');
+    assert.equal(await step(260, 1100), 400, 'and from there it follows them exactly');
+    await up(f, [180, 200], [260, 200], 1200);
+    assert.equal(f.writes(), 1);
+    assert.equal(Number(f.byId('a').w), 400);
+  } finally { f.destroy(); }
+});
+
+test('a quick pinch lifted just past the tap\'s slop commits what the fingers did, though its preview was still easing in', async () => {
+  const f = mount(ONE());
+  try {
+    f.select(['a']);
+    await settle();
+    // 60 px apart, each finger 15 px out in 1.5 px steps: the step past the tap's 14 px is the last.
+    down(f, [170, 200], [230, 200]);
+    for (let i = 1; i <= 10; i++) await to(f, [170 - 1.5 * i, 200], [230 + 1.5 * i, 200], 1040 + i * 10);
+    const shown = parseFloat(f.el('a').style.width || '200');
+    assert.ok(shown < 220, `the preview has only begun to catch up (${shown})`);
+    await up(f, [155, 200], [245, 200], 1150);
+    assert.deepEqual(rectOf(f.byId('a')), [50, 50, 300, 300], 'the spread went 60 to 90: 1.5 times, about the midpoint');
+    assert.equal(f.writes(), 1);
+  } finally { f.destroy(); }
+});
+
+test('a quick twist with close fingers keeps the turn the tap\'s hold-back saw: 90 degrees turns the box 75', async () => {
+  const f = mount(ONE());
+  try {
+    f.select(['a']);
+    await settle();
+    // 40 px apart, turned 3.75 degrees a move: each finger leaves the tap's 14 px at 41.25 degrees.
+    const [a0, b0] = turned([200, 200], 20, 0);
+    down(f, a0, b0);
+    let pts = turned([200, 200], 20, 0);
+    for (let i = 1; i <= 24; i++) {
+      pts = turned([200, 200], 20, i * 3.75);
+      await to(f, pts[0], pts[1], 1040 + i * 10);
+      if (i === 11) assert.doesNotMatch(f.el('a').style.transform, /rotate/, 'the turn does not jump when the preview begins');
+    }
+    await up(f, pts[0], pts[1], 1400);
+    // Engaged at 11.25 degrees during the hold-back, as a pair that was never held back
+    // engages: 90 - 11.25 = 78.75, which the magnet takes to 75.
+    assert.equal(Number(f.byId('a').rot), 75);
+    assert.equal(f.writes(), 1);
+  } finally { f.destroy(); }
+});
+
+test('a resting pair held past the tap\'s window commits nothing for a finger that rolls or jitters, however close the fingers', async () => {
+  const cases: Array<[string, Array<[Pt, Pt]>]> = [
+    ['a 1.5 px roll as the fingers lift', [[[180, 200], [221.5, 200]]]],
+    ['1 px of jitter both ways', [[[181, 200], [219, 201]], [[179, 199], [221, 200]], [[180, 201], [220, 199]]]],
+  ];
+  for (const [label, moves] of cases) {
+    const f = mount(ONE());
+    try {
+      f.select(['a']);
+      await settle();
+      down(f, [180, 200], [220, 200]);
+      let t = 1700;
+      for (const [a, b] of moves) {
+        await to(f, a, b, t);
+        t += 100;
+      }
+      const [lastA, lastB] = moves[moves.length - 1]!;
+      await up(f, lastA, lastB, 1900);
+      assert.deepEqual(rectOf(f.byId('a')), [100, 100, 200, 200], `${label}: the box keeps its size and place`);
+      assert.equal(f.writes(), 0, `${label}: no undo step`);
+      assert.equal(f.stageEl.querySelector('.fc-context-menu'), null, `${label}: and no menu, past the tap's window`);
+    } finally { f.destroy(); }
+  }
 });
 
 test('a double tap just outside a selection fits the view, though each tap lands in a grab zone first', async () => {

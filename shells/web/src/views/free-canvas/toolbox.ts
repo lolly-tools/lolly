@@ -187,6 +187,16 @@ export function buildToolbar(fc: FcCtx): void {
       check: true,
       run: () => fc.grabZones.toggle(),
     };
+    // Scale mode (K, plan 311) as a checked row beside it: where a phone's compact layout
+    // shows no rail and no object bar, this menu is the one route to Scale without a key.
+    const scaleRow: PopItem = {
+      label: t('Scale mode'),
+      icon: icon(SVG.scaleMode),
+      key: 'scale-mode',
+      on: fc.scaleContent,
+      check: true,
+      run: () => (fc.scaleContent ? fc.scaleMode.toggle() : fc.scaleMode.pick()),
+    };
     // Export leads - it's the star of the Lolly menu. Present is added LAST (very bottom).
     if (actions && !barMounted) {
       items.push({
@@ -382,7 +392,7 @@ export function buildToolbar(fc: FcCtx): void {
           });
         }
       }
-      items.push(grabRow);
+      items.push(scaleRow, grabRow);
       items.push({
         label: t('Keyboard shortcuts'),
         icon: icon(SVG.info),
@@ -415,10 +425,10 @@ export function buildToolbar(fc: FcCtx): void {
         },
       });
     }
-    // Without a top bar there is no view group above, so the preference stands alone.
+    // Without a top bar there is no view group above, so the two rows stand alone.
     if (!barMounted) {
       if (items.length) items.push({ sep: true });
-      items.push(grabRow);
+      items.push(scaleRow, grabRow);
     }
     // Present is the VERY LAST row (Andy: Export is the star; Present sits at the bottom),
     // set off by its own separator and next to the Slide transition it uses (plan 112).
@@ -502,12 +512,18 @@ export function buildToolbar(fc: FcCtx): void {
   // again - discoverable only if you already knew, which is what "trapped in the current
   // tool" meant. Its own click is not a no-op even when it is already lit: it also leaves
   // point editing and finishes a draft.
+  // The slot also holds Scale (K, plan 311), as Figma's Move and Scale share one slot: a
+  // hold or a right-click offers both, and while Scale is on the slot shows Scale and a
+  // click keeps the mode. It carries both glyphs; fc.scaleMode sets the slot's variant
+  // and name, and editor.css shows the variant's glyph.
   modeBtns.select = toolBtn(fc, 
-    t('Pointer - select and move (V)'),
-    SVG.pointer,
-    () => fc.modes.pickPointer(),
-    'fc-btn-pointer'
+    t('Pointer - select and move (V). Hold for Scale (K)'),
+    `<g class="fc-slot-pointer">${SVG.pointer}</g><g class="fc-slot-scale">${SVG.scaleMode}</g>`,
+    () => fc.scaleMode.pickSlot(),
+    'fc-btn-pointer',
+    (b) => fc.scaleMode.openMenu(b)
   );
+  fc.scaleMode.sync();
   const add = toolBtn(fc, t('Add a box'), SVG.add, () => fc.menus.openAddMenu(add), 'fc-btn-add');
   modeBtns.create = add;
   // Pen (opt-in via canvas.pathField - a tool with nowhere to store an authored path has
@@ -591,17 +607,6 @@ export function buildToolbar(fc: FcCtx): void {
     fc.menus.openArrangeMenu()
   );
   fc.keys.syncArrangeUI();
-  // Scale mode (K, plan 311): a toggle on the pointer, built like the grid toggle below.
-  // It starts off at every mount; fc.scaleMode keeps it, the object bar's twin and the
-  // K key in step.
-  const sbtn = toolBtn(fc,
-    t('Scale (K) - text, strokes and effects resize with the object'),
-    SVG.scaleMode,
-    () => fc.scaleMode.toggle(),
-    'fc-btn-scale'
-  );
-  sbtn.setAttribute('aria-pressed', String(fc.scaleContent));
-  if (fc.scaleContent) sbtn.classList.add('is-armed');
   // Snap-to-grid toggle (opt-in).
   if (cv.grid) {
     const gbtn = toolBtn(fc, t('Snap to grid'), SVG.grid, () => {

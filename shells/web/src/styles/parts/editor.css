@@ -364,6 +364,10 @@ html[data-a11y-motion="reduce"] .fc-btn-lolly:focus-visible svg .lolly-mark__spi
 /* Undo/redo dim out at the ends of history (same treatment as .history-btn). */
 .fc-btn:disabled { opacity: 0.3; cursor: default; }
 .fc-btn.is-armed { background: var(--ui-color-action-primary); color: var(--ui-color-action-on-primary); }
+/* The pointer slot holds two tools, the pointer and Scale (K, plan 311), and a glyph for
+   each: the slot's data-variant (scale-mode.ts) shows the one in use. */
+.fc-btn-pointer .fc-slot-scale, .fc-btn-pointer[data-variant="scale"] .fc-slot-pointer { display: none; }
+.fc-btn-pointer[data-variant="scale"] .fc-slot-scale { display: inline; }
 /* Primary actions (Export/Save/Copy/Share) - a touch more prominent than the plain
    tools: brand-accent icons, with Export filled as the lead call-to-action. */
 .fc-btn.fc-action { color: var(--ui-color-action-primary); }
@@ -511,6 +515,12 @@ html[data-a11y-motion="reduce"] .fc-btn-lolly:focus-visible svg .lolly-mark__spi
 .fc-scale-panel .fc-num-row .field-input { flex: 1 1 auto; min-width: 0; }
 .fc-scale-size { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-4); }
 .fc-scale-actions { display: flex; justify-content: flex-end; gap: var(--sp-2); }
+/* Why a value was refused, under the fields it describes: the danger hue mixed toward the
+   text colour, so the line reads in light, dark and high contrast alike. */
+.fc-scale-error {
+  margin: 0; font-size: var(--fs-xs); line-height: 1.35;
+  color: color-mix(in oklab, var(--ui-color-status-danger) 60%, var(--ui-color-text-default));
+}
 /* The object bar's Scale toggle on a coarse pointer: a full accent wash while on. */
 .fc-ctxbar .fc-cbtn[data-cx="scale"].is-on { background: hsl(var(--primary) / 0.16); color: hsl(var(--primary)); }
 
@@ -578,10 +588,18 @@ html[data-a11y-motion="reduce"] .fc-btn-lolly:focus-visible svg .lolly-mark__spi
   position: absolute; height: 1.5px; background: hsl(var(--primary));
   transform-origin: 0 50%; margin-top: -0.75px; pointer-events: none;
 }
-/* Scale mode (K, plan 311): the resize handles fill with the accent, the inverse of
-   Resize's white squares, so the mode shows on the selection the drag starts from. The
-   whole handle changes colour; no edge of a handle is drawn on its own. */
-.fc-chrome[data-scale] .fc-handle:not(.fc-h-rotate) { background: hsl(var(--primary)); border-color: #ffffff; }
+/* Scale mode (K, plan 311): the resize handles fill with the accent, keyed and dotted in
+   the accent's own ink, so the mode shows on the selection the drag starts from. Resize's
+   handles are white squares keyed in the accent, and a theme whose accent is white (the
+   neutral brand's dark theme) would make an accent fill white on white as well, so the
+   sign is the pair of tokens made to contrast (the accent and the ink on the accent) and
+   the dot, a change of shape that does not rest on colour. The whole handle changes; no
+   edge of a handle is drawn on its own. */
+.fc-chrome[data-scale] .fc-handle:not(.fc-h-rotate) { background: hsl(var(--primary)); border-color: hsl(var(--primary-foreground)); }
+.fc-chrome[data-scale] .fc-handle:not(.fc-h-rotate)::before {
+  content: ""; position: absolute; inset: 0; width: 4px; height: 4px; margin: auto;
+  border-radius: var(--radius-round); background: hsl(var(--primary-foreground)); pointer-events: none;
+}
 /* The scale cursor (plan 311), Penpot's sign that a drag scales in proportion: the resize
    cursor's direction drawn as two arrows, black with a white keyline like
    .drag-wrap-cursor, so it reads on any surface in either theme. Scale mode's handles
@@ -1465,8 +1483,10 @@ html[data-a11y-motion="reduce"] .fc-toolbar .fc-btn { transition: none; }
 .fc-seg-btn.fc-seg-ic svg { width: var(--fs-xl); height: var(--fs-xl); }
 
 /* Image-position anchor picker: a 3×3 grid where each cell IS its anchor. The dot
-   is a target affordance; the selected cell lights up like any .fc-seg-btn.is-on. */
-.fc-seg.fc-posgrid { display: grid; flex: none; grid-template-columns: repeat(3, 24px); grid-auto-rows: 24px; }
+   is a target affordance; the selected cell lights up like any .fc-seg-btn.is-on.
+   The cells are places on the canvas, which a right-to-left language does not mirror,
+   so the grid keeps the physical order its labels name (Top left at the top left). */
+.fc-seg.fc-posgrid { display: grid; flex: none; grid-template-columns: repeat(3, 24px); grid-auto-rows: 24px; direction: ltr; }
 /* A 3×3 cell is sized by its grid track, not by the segment row - so it clears the
    segment's row height BOTH ways (`.fc-seg-btn` sets a min-height as well now, and
    an unreset floor would push each cell past its 24px track). */
@@ -1957,11 +1977,14 @@ button.fc-readout:empty { display: none; }
    The timeline has a focused, timeline-only sheet. This is the canvas/document
    inventory opened by `?` everywhere else and by the document menu. Native dialog
    lifecycle comes from mountModal; only the compact grouped table is owned here. */
+/* The sheet's dialog is wider than a confirm dialog (.modal's 420 px), so its two columns
+   fit inside it and it never opens scrolled sideways to the focused Done button. */
+.fc-shortcuts-modal { width: min(764px, 92vw); }
 .fc-shortcuts-modal .fc-shortcuts-sheet {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  width: min(720px, 86vw);
+  width: 100%;
   max-height: min(78vh, 760px);
 }
 .fc-shortcuts-title { margin: 0; font-size: var(--fs-xl); }
@@ -1983,6 +2006,12 @@ button.fc-readout:empty { display: none; }
 .fc-shortcuts-group table { width: 100%; border-collapse: collapse; }
 .fc-shortcuts-group td { padding: 4px 0; vertical-align: baseline; font-size: var(--fs-md); }
 .fc-shortcuts-keys { width: 1%; padding-inline-end: 12px !important; white-space: nowrap; }
+/* A gesture row names its gesture in words (the Transform group's two-finger rows): the
+   words wrap, in the text face rather than the key face, so the key column stays as
+   narrow as its widest key chord or word in any language. */
+.fc-shortcuts-keys.fc-shortcuts-gesture { white-space: normal; hyphens: auto; }
+.fc-shortcuts-keys.fc-shortcuts-gesture kbd { min-width: 7.5em; font-family: inherit; }
+.fc-shortcuts-group tr:has(.fc-shortcuts-gesture) td { vertical-align: middle; }
 .fc-shortcuts-keys kbd {
   display: inline-block;
   padding: 2px 7px;

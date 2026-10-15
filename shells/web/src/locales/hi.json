@@ -406,7 +406,7 @@
   "Analyse text": "टेक्स्ट का विश्लेषण करें",
   "Analysed {date}.": "{date} को विश्लेषित किया गया।",
   "Analyser": "एनालाइज़र",
-  "Anchor": "Anchor",
+  "Anchor": "एंकर बिंदु",
   "Anchor image {pos}": "एंकर इमेज {pos}",
   "Angle": "कोण",
   "Animate": "एनिमेट करें",
@@ -7964,5 +7964,7 @@
   "While resizing: keep proportions": "आकार बदलते समय: अनुपात बनाए रखें",
   "While rotating: turn freely": "घुमाते समय: खुलकर घुमाएँ",
   "While rotating: turn in 15 degree steps": "घुमाते समय: 15 डिग्री के चरणों में घुमाएँ",
-  "Zoom and pan the view": "दृश्य को ज़ूम और पैन करें"
+  "Zoom and pan the view": "दृश्य को ज़ूम और पैन करें",
+  "Enter a scale from 1% to 10000%.": "1% से 10000% के बीच स्केल दर्ज करें।",
+  "Pointer - select and move (V). Hold for Scale (K)": "पॉइंटर - चुनें और खिसकाएँ (V)। स्केल (K) के लिए दबाए रखें"
 }

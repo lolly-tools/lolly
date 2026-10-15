@@ -406,7 +406,7 @@
   "Analyse text": "分析文本",
   "Analysed {date}.": "分析于 {date}。",
   "Analyser": "分析器",
-  "Anchor": "Anchor",
+  "Anchor": "锚点",
   "Anchor image {pos}": "图片锚点 {pos}",
   "Angle": "角度",
   "Animate": "制作动画",
@@ -7964,5 +7964,7 @@
   "While resizing: keep proportions": "调整大小时：保持比例",
   "While rotating: turn freely": "旋转时：自由旋转",
   "While rotating: turn in 15 degree steps": "旋转时：以 15 度为步长旋转",
-  "Zoom and pan the view": "缩放和平移视图"
+  "Zoom and pan the view": "缩放和平移视图",
+  "Enter a scale from 1% to 10000%.": "请输入 1% 到 10000% 之间的缩放比例。",
+  "Pointer - select and move (V). Hold for Scale (K)": "指针 - 选择与移动 (V)。长按可选缩放 (K)"
 }

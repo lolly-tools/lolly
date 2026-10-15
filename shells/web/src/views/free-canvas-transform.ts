@@ -13,8 +13,7 @@
  * Every function is pure and computes from the snapshot it is handed, so a gesture
  * calls it once per frame from its start state and rounded values never compound.
  * `free-canvas-math.ts` keeps the primitives shared with the deck editor
- * (`resizeRect`, `snapAngle`, `scaleGroup`, `rotateGroup`); nothing here changes
- * their behaviour.
+ * (`resizeRect`, `snapAngle`, `rotateGroup`); nothing here changes their behaviour.
  */
 import type { InputValue } from '../../../../engine/src/inputs.ts';
 // The tilt's perspective distance. The Design hook hand-copies this constant as
@@ -96,17 +95,6 @@ export function clampScaleK(k: number, rects: ReadonlyArray<{ w: number; h: numb
   let kMin = SCALE_K_FLOOR;
   for (const r of rects) kMin = Math.max(kMin, uniformScaleFloor(r.w, r.h, minSize));
   return Math.min(kMax, Math.max(kMin, k));
-}
-
-/**
- * The uniform factor a resize result applied to its start rect, read from the
- * longer side (the more precise one, and the one a 0-height line still has). With
- * the aspect forced the two sides agree; 1 when the start rect has no size.
- */
-export function scaleFactorOf(start: { w: number; h: number }, result: { w: number; h: number }): number {
-  if (start.w >= start.h && start.w > 0) return result.w / start.w;
-  if (start.h > 0) return result.h / start.h;
-  return 1;
 }
 
 /** A corner follows the axis that changed more relative to its size (Figma); a
@@ -490,7 +478,7 @@ function finiteOf(v: InputValue | undefined): number | null {
 
 /** v * k rounded to 0.1 px. A non-zero value never rounds to 0, which would turn a
  *  thin stroke or a small offset off rather than make it smaller. */
-function scaleLength(v: number, k: number): number {
+export function scaleLength(v: number, k: number): number {
   const r = Math.round(v * k * 10) / 10;
   if (r === 0 && v !== 0) return v > 0 ? 0.1 : -0.1;
   return r + 0;
@@ -701,6 +689,22 @@ export interface ViewRect {
   y: number;
   w: number;
   h: number;
+}
+
+/** A native-px rect on screen, from the canvas's client origin `cr` and its screen px per
+ *  native px. The zones and the pinch both measure the posed selection this way. */
+export function nativeToScreen(r: { x: number; y: number; w: number; h: number; rot?: number }, m: { cr: { left: number; top: number }; scale: number }): ScreenRect {
+  return { x: m.cr.left + r.x * m.scale, y: m.cr.top + r.y * m.scale, w: r.w * m.scale, h: r.h * m.scale, rot: r.rot || 0 };
+}
+
+/** Did a transform move any rect past the commits' 0.5 px, or, with `turn`, turn one
+ *  past 0.01 degree? The zero-delta guard a group transform and a pinch share. */
+export function rectsChanged(pairs: Iterable<readonly [Rect, Rect]>, turn = false): boolean {
+  for (const [a, b] of pairs) {
+    if (Math.abs(a.x - b.x) > 0.5 || Math.abs(a.y - b.y) > 0.5 || Math.abs(a.w - b.w) > 0.5 || Math.abs(a.h - b.h) > 0.5) return true;
+    if (turn && Math.abs((a.rot || 0) - (b.rot || 0)) > 0.01) return true;
+  }
+  return false;
 }
 
 /** A client rect's position and size, as `getBoundingClientRect` reports them. */
@@ -1237,6 +1241,9 @@ export function rotateSnap(deg: number, mods: { shift?: boolean; free?: boolean 
 export interface PinchOpts {
   /** Relative spread change that starts the scale (default 0.02, as stage-nav). */
   scaleDeadZone?: number;
+  /** The least spread change (in the points' units) that starts the scale, beside the
+   *  relative dead zone (default 0): two fingers close together jitter by more than 2%. */
+  scaleFloor?: number;
   /** Twist (degrees) that starts the rotation (default 10). */
   rotateEngageDeg?: number;
   /** The scale engaged on an earlier frame, so the factor no longer drops back to 1. */
@@ -1271,8 +1278,9 @@ export interface PinchResult {
 
 /**
  * Scale, twist and travel from two pointers' start and current positions. The
- * scale waits for the spread to pass the dead zone, then follows the full ratio so
- * the fingers stay on the content. The twist waits for `rotateEngageDeg`, then
+ * scale waits for the spread to pass the dead zone and the floor, then follows the
+ * full ratio so the fingers stay on the content (a caller that shows it late eases it
+ * in with {@link pinchCatchUp}). The twist waits for `rotateEngageDeg`, then
  * counts from the angle it engaged at, so the selection never jumps by the
  * threshold. The midpoint carries the selection once it has travelled past
  * `travelDeadZone`, or once the spread or the twist has engaged, and then by its whole
@@ -1280,7 +1288,7 @@ export interface PinchResult {
  * once engaged when the caller feeds back `scaleEngaged`, `engagedAt` and `travelEngaged`.
  */
 export function pinchTransform(startA: Point, startB: Point, curA: Point, curB: Point, opts: PinchOpts = {}): PinchResult {
-  const dead = opts.scaleDeadZone ?? 0.02;
+  const dead = opts.scaleDeadZone ?? 0.02, floor = opts.scaleFloor ?? 0;
   const engageDeg = opts.rotateEngageDeg ?? 10;
   const centre = { x: (startA.x + startB.x) / 2, y: (startA.y + startB.y) / 2 };
   const mx = (curA.x + curB.x) / 2 - centre.x, my = (curA.y + curB.y) / 2 - centre.y;
@@ -1291,7 +1299,7 @@ export function pinchTransform(startA: Point, startB: Point, curA: Point, curB: 
   let spread = 1, dRot = 0;
   if (d0 > 0 && d1 > 0) {
     spread = d1 / d0;
-    if (!scaleEngaged && Math.abs(spread - 1) > dead) scaleEngaged = true;
+    if (!scaleEngaged && Math.abs(spread - 1) > dead && Math.abs(d1 - d0) >= floor) scaleEngaged = true;
     const angle = (a: Point, b: Point): number => (Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI;
     const twist = normAngle(angle(curA, curB) - angle(startA, startB));
     if (engagedAt == null && Math.abs(twist) >= engageDeg) engagedAt = twist;
@@ -1305,6 +1313,32 @@ export function pinchTransform(startA: Point, startB: Point, curA: Point, curB: 
   };
 }
 
+/**
+ * How far a pinch's preview has caught up with the fingers, 0 to 1: the further finger's
+ * travel since `from`, over `span` (both in the same units, screen px in practice). A
+ * preview that starts late (after the two-finger tap's hold-back, or a scale past its
+ * floor) eases in over that span instead of jumping, and follows the fingers exactly from
+ * there, so it neither jumps nor stays behind.
+ */
+export function pinchCatchUp(from: readonly [Point, Point], now: readonly [Point, Point], span: number): number {
+  if (!(span > 0)) return 1;
+  const moved = Math.max(Math.hypot(now[0].x - from[0].x, now[0].y - from[0].y), Math.hypot(now[1].x - from[1].x, now[1].y - from[1].y));
+  return Math.min(1, moved / span);
+}
+
+/** Weights from 0 (nothing yet) to 1 (the whole change) for each part of a pinch frame. */
+export interface PinchEase {
+  scale: number;
+  turn: number;
+  travel: number;
+}
+
+/** A pinch frame with each part eased in by its weight: the factor toward 1, the turn
+ *  and the travel toward 0. */
+export function easePinch(res: PinchResult, w: PinchEase): PinchResult {
+  return { ...res, k: 1 + (res.k - 1) * w.scale, dRot: res.dRot * w.turn, dx: res.dx * w.travel, dy: res.dy * w.travel };
+}
+
 /** A second finger later than this (ms) after the first starts no pinch on the selection. */
 export const PINCH_SECOND_MS = 300;
 /** A selection covering this share of the stage or more leaves two fingers to the view. */
@@ -1312,6 +1346,10 @@ export const PINCH_MAX_COVER = 0.6;
 /** Midpoint travel (screen px) before two fingers that neither spread nor twist carry the
  *  selection: a finger's drag threshold, so a resting pair is no undo step. */
 export const PINCH_TRAVEL_PX = ZONE_DRAG_PX_COARSE;
+/** Spread change (screen px) before a pinch scales, beside its 2%: the two-finger tap's
+ *  slop, so a resting pair's jitter or a finger rolling as it lifts scales nothing, however
+ *  close together the fingers are. */
+export const PINCH_SPREAD_PX = 14;
 
 /**
  * May two fingers take the selection whose bounds on screen are `sel`, on the visible

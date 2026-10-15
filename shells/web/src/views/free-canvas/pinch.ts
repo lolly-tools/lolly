@@ -26,12 +26,17 @@
  * base rows, as a group scale does, where a one-finger move on a diamond poses the
  * keyframe instead.
  *
- * Nothing engages while the pair can still be a two-finger tap (every finger within the
+ * Nothing previews while the pair can still be a two-finger tap (every finger within the
  * tap's 14 px, inside its 500 ms), so a tap with a finger that rolls as it touches down
- * still opens the context menu and changes nothing. After that, scale follows the spread
- * past 2%, turning follows the twist past 10 degrees, counted from where it engaged, and
- * the midpoint carries the selection once it has travelled a finger's drag threshold or
- * either of the others has engaged (pinchTransform). A resting pair commits nothing.
+ * still opens the context menu and changes nothing. What the fingers do meanwhile still
+ * counts: scale follows the spread once it has changed by 2% and by the tap's 14 px (so
+ * no resting pair's jitter scales it, however close the fingers), turning follows the
+ * twist past 10 degrees, counted from where it engaged, and the midpoint carries the
+ * selection once it has travelled a finger's drag threshold or either of the others has
+ * engaged (pinchTransform). Whatever had engaged when the preview begins, and the scale
+ * whenever it engages, eases in over the tap's next 14 px of finger travel
+ * (pinchCatchUp), so nothing jumps and nothing stays behind the fingers; a lift before
+ * that commits what the fingers did. A resting pair commits nothing.
  * Scale mode scales the content too; otherwise the pinch is a uniform resize. A single
  * box turns about its own centre and a set about the centre of its bounds, with the
  * rotate handles' soft magnet (pinchMembers).
@@ -41,7 +46,10 @@
  */
 import { boxRect, withRect } from '../free-canvas-math.ts';
 import type { Box } from '../free-canvas-math.ts';
-import { PINCH_SECOND_MS, PINCH_TRAVEL_PX, pinchFits, pinchMembers, pinchReaches, pinchTransform, visibleRect } from '../free-canvas-transform.ts';
+import {
+  PINCH_SECOND_MS, PINCH_SPREAD_PX, PINCH_TRAVEL_PX, easePinch, nativeToScreen, pinchCatchUp, pinchFits, pinchMembers, pinchReaches,
+  pinchTransform, rectsChanged, visibleRect, type PinchResult,
+} from '../free-canvas-transform.ts';
 import type { PinchGesture, Point, TouchPt } from './shared.ts';
 import { bindOp, type FcCtx } from './context.ts';
 
@@ -136,17 +144,12 @@ function pinchRows(fc: FcCtx, boxes: Box[], second: Point): { sel: number[]; tur
   const m = fc.stage.metrics();
   const rects = set.idx.map((i) => fc.chromeSync.chromeRect(boxes, i, null));
   const a = fc.chromeSync.aabbOfRects(rects);
-  const onScreen = {
-    x: m.cr.left + a.minX * m.scale, y: m.cr.top + a.minY * m.scale,
-    w: (a.maxX - a.minX) * m.scale, h: (a.maxY - a.minY) * m.scale,
-  };
+  const onScreen = nativeToScreen({ x: a.minX, y: a.minY, w: a.maxX - a.minX, h: a.maxY - a.minY }, m);
   const view = visibleRect(m.sr, fc.viewEl.getBoundingClientRect());
   if (!pinchFits(onScreen, view)) return null;
   // One box is turned with the box, as its chrome is; a set is the bounds of its chrome.
   const one = rects.length === 1 ? rects[0]! : null;
-  const posed = one
-    ? { x: m.cr.left + one.x * m.scale, y: m.cr.top + one.y * m.scale, w: one.w * m.scale, h: one.h * m.scale, rot: one.rot || 0 }
-    : onScreen;
+  const posed = one ? nativeToScreen(one, m) : onScreen;
   if (!pinchReaches(second, posed, view)) return null;
   const turning = new Set(plain);
   return { sel, turns: sel.map((i) => turning.has(i)) };
@@ -207,7 +210,8 @@ function fingersToStage(fc: FcCtx): void {
   for (const [id, p] of fc.touchPts) if (p.touch) handOff(fc, id, p);
 }
 
-/** Either finger moved: keep its point for the next frame, and keep the move from the stage. */
+/** Either finger moved: keep its point, follow the pair's engage state with it, and keep
+ *  the move from the stage. */
 export function trackPinch(fc: FcCtx, e: PointerEvent): void {
   const g = fc.gesture;
   if (g?.type !== 'pinch') return;
@@ -215,31 +219,63 @@ export function trackPinch(fc: FcCtx, e: PointerEvent): void {
   else if (e.pointerId === g.pointerId) g.curB = { x: e.clientX, y: e.clientY };
   else return;
   e.stopPropagation();
+  follow(fc, g);
+}
+
+/** Can the pair still be a two-finger tap (every finger inside the tap's 14 px, inside
+ *  its 500 ms)? Then nothing previews, and a lift opens the menu. */
+const heldBack = (fc: FcCtx): boolean => !!fc.twoTapStart && !fc.twoTapDone;
+
+/**
+ * The pair's engage state at both fingers' latest points, kept on every finger move, so
+ * the tap's hold-back delays what the preview shows and never where the twist engaged.
+ * The first move past the hold-back notes where the preview begins and what had engaged
+ * by then; the scale notes where it began to show.
+ */
+function follow(fc: FcCtx, g: PinchGesture): PinchResult {
+  const nowA = fc.stage.clientToNative(g.curA.x, g.curA.y), nowB = fc.stage.clientToNative(g.curB.x, g.curB.y);
+  const scale = fc.stage.metrics().scale;
+  const res = pinchTransform(g.startA, g.startB, nowA, nowB, {
+    scaleEngaged: g.scaleEngaged, engagedAt: g.engagedAt, travelEngaged: g.travelEngaged,
+    travelDeadZone: PINCH_TRAVEL_PX / scale, scaleFloor: PINCH_SPREAD_PX / scale,
+  });
+  g.scaleEngaged = res.scaleEngaged;
+  g.engagedAt = res.engagedAt;
+  g.travelEngaged = res.travelEngaged;
+  if (heldBack(fc)) return res;
+  const now: [Point, Point] = [{ ...g.curA }, { ...g.curB }];
+  if (!g.shownFrom) {
+    g.shownFrom = now;
+    g.early = { turn: res.rotateEngaged, travel: res.travelEngaged };
+  }
+  if (res.scaleEngaged && !g.scaleFrom) g.scaleFrom = now;
+  return res;
 }
 
 /**
  * One frame, from both fingers' latest points (applyGestureMove calls it once the
  * collaboration lease allows a frame): the rows as the frame leaves them, previewed live,
- * the content at `k` in Scale mode. A pair that can still be a tap previews nothing.
+ * the content at `k` in Scale mode. A pair that can still be a tap previews nothing; what
+ * had engaged before the preview began, and the scale, ease in (see the file comment).
  */
 export function pinchFrame(fc: FcCtx): void {
   const g = fc.gesture;
   if (g?.type !== 'pinch') return;
-  // While the pair can still be a two-finger tap (every finger inside the tap's 14 px,
-  // inside its 500 ms), nothing engages: a finger that rolls a px or two as it touches
-  // down is a tap, which opens the menu and changes nothing. The first frame after the
-  // tap's slop or window has passed follows the fingers from where they started.
-  if (fc.twoTapStart && !fc.twoTapDone) return;
-  const { cfg, minSize } = fc;
-  const nowA = fc.stage.clientToNative(g.curA.x, g.curA.y), nowB = fc.stage.clientToNative(g.curB.x, g.curB.y);
-  const res = pinchTransform(g.startA, g.startB, nowA, nowB, {
-    scaleEngaged: g.scaleEngaged, engagedAt: g.engagedAt, travelEngaged: g.travelEngaged,
-    travelDeadZone: PINCH_TRAVEL_PX / fc.stage.metrics().scale,
+  const res = follow(fc, g);
+  if (heldBack(fc) || !g.shownFrom || !g.early) return;
+  const { cfg, minSize, TWO_TAP_SLOP } = fc;
+  const now: [Point, Point] = [g.curA, g.curB];
+  const prev = g.ease ?? { from: 0, scale: 0 };
+  g.ease = {
+    from: Math.max(prev.from, pinchCatchUp(g.shownFrom, now, TWO_TAP_SLOP)),
+    scale: g.scaleFrom ? Math.max(prev.scale, pinchCatchUp(g.scaleFrom, now, TWO_TAP_SLOP)) : 0,
+  };
+  const shown = easePinch(res, {
+    scale: g.ease.scale,
+    turn: g.early.turn ? g.ease.from : 1,
+    travel: g.early.travel ? g.ease.from : 1,
   });
-  g.scaleEngaged = res.scaleEngaged;
-  g.engagedAt = res.engagedAt;
-  g.travelEngaged = res.travelEngaged;
-  const f = pinchMembers(g.sel.map((i) => boxRect(g.startBoxes[i], cfg)), res, { minSize, turns: g.turns });
+  const f = pinchMembers(g.sel.map((i) => boxRect(g.startBoxes[i], cfg)), shown, { minSize, turns: g.turns });
   const at = new Map(g.sel.map((i, j) => [i, f.rects[j]!]));
   const next = g.startBoxes.map((b, i) => {
     const r = at.get(i);
@@ -256,11 +292,7 @@ export function pinchFrame(fc: FcCtx): void {
 function pinchChanged(fc: FcCtx, g: PinchGesture): boolean {
   const next = g.liveBoxes;
   if (!next) return false;
-  return g.sel.some((i) => {
-    const a = boxRect(g.startBoxes[i], fc.cfg), b = boxRect(next[i], fc.cfg);
-    return Math.abs(a.x - b.x) > 0.5 || Math.abs(a.y - b.y) > 0.5 || Math.abs(a.w - b.w) > 0.5 || Math.abs(a.h - b.h) > 0.5 ||
-      Math.abs(a.rot - b.rot) > 0.01;
-  });
+  return rectsChanged(g.sel.map((i) => [boxRect(g.startBoxes[i], fc.cfg), boxRect(next[i], fc.cfg)] as const), true);
 }
 
 /**
@@ -273,6 +305,12 @@ export function endPinch(fc: FcCtx): void {
   if (g?.type !== 'pinch') return;
   for (const id of [g.pointerA, g.pointerId]) {
     try { fc.canvasEl.releasePointerCapture(id); } catch { /* released with the lift */ }
+  }
+  // The lift commits what the fingers did: a preview still easing in (a quick pinch that
+  // lifts just past the tap's slop) catches up first, so the easing never shrinks a pinch.
+  if (g.ease) {
+    g.ease = { from: 1, scale: 1 };
+    pinchFrame(fc);
   }
   const next = pinchChanged(fc, g) ? g.liveBoxes : undefined;
   fc.gestures.endGesture(!!next);

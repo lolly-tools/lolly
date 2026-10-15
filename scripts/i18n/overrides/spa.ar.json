@@ -1393,5 +1393,8 @@
   "While resizing: keep proportions": "أثناء تغيير الحجم: الحفاظ على النسب",
   "While rotating: turn freely": "أثناء التدوير: تدوير حر",
   "While rotating: turn in 15 degree steps": "أثناء التدوير: تدوير بخطوات 15 درجة",
-  "Zoom and pan the view": "تكبير العرض وتحريكه"
+  "Zoom and pan the view": "تكبير العرض وتحريكه",
+  "Anchor": "نقطة الارتكاز",
+  "Enter a scale from 1% to 10000%.": "أدخل نسبة تحجيم من 1% إلى 10000%.",
+  "Pointer - select and move (V). Hold for Scale (K)": "المؤشر - تحديد وتحريك (V). اضغط مطولًا للتحجيم (K)"
 }

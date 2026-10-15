@@ -406,7 +406,7 @@
   "Analyse text": "Tekst analyseren",
   "Analysed {date}.": "Geanalyseerd op {date}.",
   "Analyser": "Analyser",
-  "Anchor": "Anchor",
+  "Anchor": "Ankerpunt",
   "Anchor image {pos}": "Afbeelding ankeren: {pos}",
   "Angle": "Hoek",
   "Animate": "Animeren",
@@ -7964,5 +7964,7 @@
   "While resizing: keep proportions": "Bij formaat wijzigen: verhoudingen behouden",
   "While rotating: turn freely": "Bij roteren: vrij roteren",
   "While rotating: turn in 15 degree steps": "Bij roteren: in stappen van 15 graden roteren",
-  "Zoom and pan the view": "De weergave zoomen en pannen"
+  "Zoom and pan the view": "De weergave zoomen en pannen",
+  "Enter a scale from 1% to 10000%.": "Voer een schaal in van 1% tot 10000%.",
+  "Pointer - select and move (V). Hold for Scale (K)": "Pointer - selecteren en verplaatsen (V). Houd ingedrukt voor Schalen (K)"
 }

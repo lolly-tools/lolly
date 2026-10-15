@@ -430,9 +430,11 @@ export function onKey(fc: FcCtx, e: KeyboardEvent): void {
   }
   // K - Scale mode (Figma's and Penpot's key). Bare K only: Shift+K is not K, and inside
   // the timeline panel K pauses or keys a frame, a key the bail at the top leaves to the panel.
+  // A held K repeats its keydown, and only the first one toggles: the mode on release is
+  // the one the press chose, not whichever repeat came last.
   if (!e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey && (e.key === 'k' || e.key === 'K') && !fc.editing) {
     e.preventDefault();
-    fc.scaleMode.key();
+    if (!e.repeat) fc.scaleMode.key();
     return;
   }
   if (
@@ -455,7 +457,7 @@ export function onKey(fc: FcCtx, e: KeyboardEvent): void {
     cfg.pathField
   ) {
     e.preventDefault();
-    fc.modes.toggleNodeTool();
+    if (!e.repeat) fc.modes.toggleNodeTool(); // a held N toggles once, as K does
     return;
   }
   // Enter / F2 on a selected box → edit its text (select-all so typing replaces it).

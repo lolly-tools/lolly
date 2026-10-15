@@ -406,7 +406,7 @@
   "Analyse text": "Аналізувати текст",
   "Analysed {date}.": "Проаналізовано {date}.",
   "Analyser": "Аналізатор",
-  "Anchor": "Anchor",
+  "Anchor": "Точка прив'язки",
   "Anchor image {pos}": "Прив'язати зображення {pos}",
   "Angle": "Кут",
   "Animate": "Анімувати",
@@ -7964,5 +7964,7 @@
   "While resizing: keep proportions": "Під час зміни розміру: зберігати пропорції",
   "While rotating: turn freely": "Під час повороту: повертати вільно",
   "While rotating: turn in 15 degree steps": "Під час повороту: повертати кроками по 15 градусів",
-  "Zoom and pan the view": "Масштабувати й переміщувати вигляд"
+  "Zoom and pan the view": "Масштабувати й переміщувати вигляд",
+  "Enter a scale from 1% to 10000%.": "Введіть масштаб від 1% до 10000%.",
+  "Pointer - select and move (V). Hold for Scale (K)": "Курсор - вибір і переміщення (V). Утримуйте для масштабу (K)"
 }

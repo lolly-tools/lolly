@@ -1257,5 +1257,8 @@
   "While resizing: keep proportions": "Semasa menukar saiz: kekalkan kadar",
   "While rotating: turn freely": "Semasa memutar: putar bebas",
   "While rotating: turn in 15 degree steps": "Semasa memutar: putar dengan langkah 15 darjah",
-  "Zoom and pan the view": "Zum dan alih paparan"
+  "Zoom and pan the view": "Zum dan alih paparan",
+  "Anchor": "Titik sauh",
+  "Enter a scale from 1% to 10000%.": "Masukkan skala dari 1% hingga 10000%.",
+  "Pointer - select and move (V). Hold for Scale (K)": "Penuding - pilih dan alih (V). Tahan untuk Skala (K)"
 }

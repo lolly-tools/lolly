@@ -6,16 +6,19 @@
  *
  * The mode is a flag on the pointer (`fc.scaleContent`), like the Node tool, and is never
  * saved: a reload starts in Resize, so nobody scales strokes without knowing the mode is
- * on. This module owns turning it on and off, the two toggles (the rail and the coarse
- * pointer object bar) and the Scale popover, the single-pointer route to a Scale drag.
+ * on. This module owns turning it on and off, the rail's pointer slot (which holds the
+ * pointer and Scale, as Figma's Move and Scale share one toolbar slot), the coarse
+ * pointer object bar's toggle and the Scale popover, the single-pointer route to a
+ * Scale drag.
  *
  * Every function takes the shared `fc: FcCtx` first (see context.ts). Sibling calls in
  * this file are direct; anything in another module goes through `fc.<module>.<fn>`.
  */
 import { boxRect, type Box } from '../free-canvas-math.ts';
-import { SCALE_ANCHORS, rectsAABB, type ScaleAnchor } from '../free-canvas-transform.ts';
+import { SCALE_ANCHORS, SCALE_K_MAX, rectsAABB, type ScaleAnchor } from '../free-canvas-transform.ts';
 import { announce } from '../../a11y.ts';
 import { t } from '../../i18n.ts';
+import { SVG, icon } from '../free-canvas-icons.ts';
 import { bindOp, type FcCtx } from './context.ts';
 
 /**
@@ -48,28 +51,63 @@ export function toggleScale(fc: FcCtx): void {
   if (transforming(fc)) return;
   setScale(fc, !fc.scaleContent);
 }
-/** The rail toggle's state, written in place (the rail is built once). */
+/** The pointer slot's labels: the tool a click on the slot picks, named with its key. The
+ *  pointer's says that a hold offers Scale, as the pen's says that a hold offers its types. */
+const SLOT_POINTER_LABEL = (): string => t('Pointer - select and move (V). Hold for Scale (K)');
+const POINTER_LABEL = (): string => t('Pointer - select and move (V)');
+const SCALE_LABEL = (): string => t('Scale (K) - text, strokes and effects resize with the object');
+
+/**
+ * The rail's pointer slot, written in place (the rail is built once). While Scale is on
+ * the slot shows the Scale icon and name, with `data-variant="scale"` (the slot holds
+ * both glyphs and editor.css shows the one in use), and stays pressed as the pointer's;
+ * a click on the slot then keeps Scale, as a click on Figma's Scale tool does. The
+ * slot's menu (a hold or a right-click) offers the pointer and Scale.
+ */
 export function syncScaleUI(fc: FcCtx): void {
-  const rail = fc.toolbar.querySelector<HTMLElement>('.fc-btn-scale');
-  if (rail) {
-    rail.classList.toggle('is-armed', fc.scaleContent);
-    rail.setAttribute('aria-pressed', String(fc.scaleContent));
-  }
+  const slot = fc.modeBtns.select;
+  if (!slot) return;
+  const scale = fc.scaleContent;
+  const variant = scale ? 'scale' : 'pointer';
+  if (slot.dataset.variant === variant) return;
+  slot.dataset.variant = variant;
+  const label = scale ? SCALE_LABEL() : SLOT_POINTER_LABEL();
+  slot.setAttribute('aria-label', label);
+  slot.setAttribute('data-tip', label);
+}
+/** The pointer slot's click: the tool the slot shows. */
+export function pickSlot(fc: FcCtx): void {
+  if (fc.scaleContent) pickScale(fc);
+  else fc.modes.pickPointer();
 }
 /**
- * K on the canvas. From the pen, an armed add or the line tool it returns to the pointer
- * with Scale on, and the Node tool or a point edit ends first; on the pointer it toggles.
+ * The pointer slot's two tools, offered on a hold or a right-click of the slot as the
+ * pen offers its spline types: the pointer (V) and Scale (K), the one in use checked.
  */
-export function keyScale(fc: FcCtx): void {
+export function openScaleMenu(fc: FcCtx, anchor: HTMLElement): void {
+  fc.menus.spawnPopover(anchor, [
+    { label: POINTER_LABEL(), icon: icon(SVG.pointer), key: 'pointer', on: !fc.scaleContent, run: () => fc.modes.pickPointer() },
+    { label: SCALE_LABEL(), icon: icon(SVG.scaleMode), key: 'scale', on: fc.scaleContent, run: () => pickScale(fc) },
+  ]);
+}
+/**
+ * Scale as a tool: back to the pointer from the pen, an armed add or the line tool, with
+ * the Node tool or a point edit ended first, and Scale on. Unlike K it never turns Scale
+ * off, and it says so when Scale was on already, because the pick was the user's own.
+ */
+export function pickScale(fc: FcCtx): void {
   if (transforming(fc)) return;
-  if (fc.mode === 'select' && !fc.nodeToolActive && !fc.penEdit) {
-    toggleScale(fc);
-    return;
-  }
   if (fc.mode !== 'select') fc.modes.toPointer();
   if (fc.nodeToolActive) fc.modes.toggleNodeTool();
   if (fc.penEdit) fc.penTool.endPenEdit();
-  setScale(fc, true);
+  if (fc.scaleContent) announce(t('Scale mode on'));
+  else setScale(fc, true);
+}
+/** K on the canvas: on the pointer it toggles Scale, from any other tool it picks Scale. */
+export function keyScale(fc: FcCtx): void {
+  if (transforming(fc)) return;
+  if (fc.mode === 'select' && !fc.nodeToolActive && !fc.penEdit) toggleScale(fc);
+  else pickScale(fc);
 }
 
 /** Does the object bar's readout open the Scale popover? With Scale on, or a set of
@@ -93,6 +131,10 @@ function scaleBase(fc: FcCtx): { w: number; h: number } {
   const a = rects.length === 1 ? rects[0]! : rectsAABB(rects);
   return a ? { w: a.w, h: a.h } : { w: 0, h: 0 };
 }
+/** The popover's range, in percent: the field's own bounds, and the drag's 100 times at most. */
+const MIN_PCT = 1, MAX_PCT = SCALE_K_MAX * 100;
+/** Each popover's error line gets its own id, for its fields' aria-describedby. */
+let errorIds = 0;
 /** A number for a field: at most two decimals, no trailing zeros. */
 const shown = (v: number): string => String(Math.round(v * 100) / 100);
 /** One labelled size cell: the axis letter, the field (named in full) and its unit. */
@@ -119,8 +161,9 @@ function sizeCell(letter: string, name: string, value: number): { cell: HTMLLabe
  * width and height it gives, a 3x3 anchor and Apply. Typing any one of the three sets
  * the factor and the other two follow; Apply takes the factor from the field typed in
  * last. It commits through the drag's own helper (fc.selectionTransform.applyScale),
- * clamped the same way and in one undo step. Built from DOM nodes and text, never
- * markup. Enter applies, Escape or Cancel closes, and focus returns to the readout.
+ * clamped the same way and in one undo step. A factor outside 1% to 10000% applies
+ * nothing and says why. Built from DOM nodes and text, never markup. Enter applies,
+ * Escape or Cancel closes, and focus returns to the readout.
  */
 export function openScalePanel(fc: FcCtx, opener: HTMLElement): void {
   fc.document.closeMorePanel();
@@ -137,8 +180,8 @@ export function openScalePanel(fc: FcCtx, opener: HTMLElement): void {
   const field = document.createElement('input');
   field.type = 'number';
   field.className = 'field-input';
-  field.min = '1';
-  field.max = '10000';
+  field.min = String(MIN_PCT);
+  field.max = String(MAX_PCT);
   field.step = '1';
   field.value = '100';
   field.setAttribute('aria-label', t('Scale (%)'));
@@ -158,9 +201,33 @@ export function openScalePanel(fc: FcCtx, opener: HTMLElement): void {
     const from = el === width.input ? base.w : el === height.input ? base.h : 100;
     return from > 0 && v > 0 && Number.isFinite(v) ? v / from : NaN;
   };
+  // A value outside 1% to 10000% is refused out loud: the field it came from is marked
+  // invalid and described by a line saying the range, which the next keystroke clears.
+  const error = document.createElement('p');
+  error.className = 'fc-scale-error';
+  error.id = `fc-scale-error-${++errorIds}`;
+  error.hidden = true;
+  const clearError = (): void => {
+    error.hidden = true;
+    error.textContent = '';
+    for (const el of fields) {
+      el.removeAttribute('aria-invalid');
+      el.removeAttribute('aria-describedby');
+    }
+  };
+  const refuse = (el: HTMLInputElement): void => {
+    const msg = t('Enter a scale from 1% to 10000%.');
+    error.textContent = msg;
+    error.hidden = false;
+    el.setAttribute('aria-invalid', 'true');
+    el.setAttribute('aria-describedby', error.id);
+    el.focus();
+    announce(msg);
+  };
   let source = field;
   for (const el of fields) {
     el.addEventListener('input', () => {
+      clearError();
       source = el;
       const k = factorOf(el);
       if (!Number.isFinite(k)) return;
@@ -207,7 +274,7 @@ export function openScalePanel(fc: FcCtx, opener: HTMLElement): void {
   apply.className = 'btn btn--primary btn--sm';
   apply.textContent = t('Apply');
   actions.append(cancel, apply);
-  p.append(head, row, size, grid, actions);
+  p.append(head, row, size, error, grid, actions);
   // The readout is rebuilt with the bar, so focus goes back to whichever one is live.
   const close = (): void => {
     if (fc.morePanel === p) fc.document.closeMorePanel();
@@ -216,8 +283,10 @@ export function openScalePanel(fc: FcCtx, opener: HTMLElement): void {
   };
   const run = (): void => {
     const k = factorOf(source);
-    if (!Number.isFinite(k)) {
-      source.focus();
+    // Rounded as the field shows a factor, so a width that reads 10000% is not refused.
+    const pct = Math.round(k * 1e6) / 1e4;
+    if (!Number.isFinite(k) || pct < MIN_PCT || pct > MAX_PCT) {
+      refuse(source);
       return;
     }
     fc.selectionTransform.applyScale(k, anchor);
@@ -250,6 +319,9 @@ export function scaleModeOps(fc: FcCtx) {
     toggle: bindOp(fc, toggleScale),
     sync: bindOp(fc, syncScaleUI),
     key: bindOp(fc, keyScale),
+    pickSlot: bindOp(fc, pickSlot),
+    pick: bindOp(fc, pickScale),
+    openMenu: bindOp(fc, openScaleMenu),
     panelWanted: bindOp(fc, panelWanted),
     openPanel: bindOp(fc, openScalePanel),
   };
