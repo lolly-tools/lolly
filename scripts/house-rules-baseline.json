@@ -1,0 +1,266 @@
+{
+  "docs/build.ts": {
+    "H3": 8,
+    "H4": 11,
+    "H5": 1
+  },
+  "shells/web/index.html": {
+    "H4": 8,
+    "H5": 1
+  },
+  "shells/web/src/components/beam-toast.css": {
+    "H4": 2,
+    "H5": 1
+  },
+  "shells/web/src/components/prepare/prepare.css": {
+    "H5": 1
+  },
+  "shells/web/src/lib/edge-dock.css": {
+    "H5": 1
+  },
+  "shells/web/src/lib/float-panel.css": {
+    "H2": 1
+  },
+  "shells/web/src/lib/oklch-slice.css": {
+    "H4": 3,
+    "H5": 1
+  },
+  "shells/web/src/lib/palette-wheel.css": {
+    "H4": 3,
+    "H5": 1
+  },
+  "shells/web/src/lib/recent-stack.css": {
+    "H4": 6,
+    "H5": 1
+  },
+  "shells/web/src/lib/type-demo.css": {
+    "H4": 8,
+    "H5": 1
+  },
+  "shells/web/src/pro/pro.css": {
+    "H4": 12,
+    "H5": 1
+  },
+  "shells/web/src/pro/run-overlay.css": {
+    "H4": 5,
+    "H5": 1
+  },
+  "shells/web/src/styles/parts/ask.css": {
+    "H4": 11,
+    "H5": 2
+  },
+  "shells/web/src/styles/parts/asset-shared.css": {
+    "H3": 2,
+    "H4": 1,
+    "H5": 2
+  },
+  "shells/web/src/styles/parts/assets.css": {
+    "H4": 1
+  },
+  "shells/web/src/styles/parts/base.css": {
+    "H4": 4
+  },
+  "shells/web/src/styles/parts/brand-studio.css": {
+    "H1": 1,
+    "H2": 2,
+    "H4": 5,
+    "H5": 11
+  },
+  "shells/web/src/styles/parts/collab.css": {
+    "H2": 1,
+    "H4": 1
+  },
+  "shells/web/src/styles/parts/color-field.css": {
+    "H4": 1,
+    "H5": 1
+  },
+  "shells/web/src/styles/parts/color-lab.css": {
+    "H4": 2,
+    "H5": 3
+  },
+  "shells/web/src/styles/parts/components-lib.css": {
+    "H2": 1
+  },
+  "shells/web/src/styles/parts/components.css": {
+    "H4": 5
+  },
+  "shells/web/src/styles/parts/convert.css": {
+    "H4": 2
+  },
+  "shells/web/src/styles/parts/css-editor.css": {
+    "H3": 3
+  },
+  "shells/web/src/styles/parts/dashboard.css": {
+    "H2": 3,
+    "H4": 8,
+    "H5": 5
+  },
+  "shells/web/src/styles/parts/deck-editor.css": {
+    "H2": 3,
+    "H4": 4,
+    "H5": 1
+  },
+  "shells/web/src/styles/parts/design-guides.css": {
+    "H4": 1,
+    "H5": 1
+  },
+  "shells/web/src/styles/parts/design-layout-section.css": {
+    "H2": 1
+  },
+  "shells/web/src/styles/parts/dialogs.css": {
+    "H4": 4,
+    "H5": 1
+  },
+  "shells/web/src/styles/parts/disclosure.css": {
+    "H4": 7,
+    "H5": 1
+  },
+  "shells/web/src/styles/parts/docs-landing.css": {
+    "H4": 91,
+    "H5": 11,
+    "H6": 1
+  },
+  "shells/web/src/styles/parts/docs.css": {
+    "H4": 10,
+    "H5": 3
+  },
+  "shells/web/src/styles/parts/document.css": {
+    "H2": 2
+  },
+  "shells/web/src/styles/parts/editor.css": {
+    "H2": 2,
+    "H4": 5
+  },
+  "shells/web/src/styles/parts/featured.css": {
+    "H4": 9,
+    "H5": 4
+  },
+  "shells/web/src/styles/parts/fields.css": {
+    "H5": 5
+  },
+  "shells/web/src/styles/parts/gallery.css": {
+    "H4": 9,
+    "H5": 2
+  },
+  "shells/web/src/styles/parts/guide.css": {
+    "H3": 2
+  },
+  "shells/web/src/styles/parts/instance-sheet.css": {
+    "H5": 1
+  },
+  "shells/web/src/styles/parts/job-toast.css": {
+    "H4": 2
+  },
+  "shells/web/src/styles/parts/motion-path.css": {
+    "H4": 1
+  },
+  "shells/web/src/styles/parts/multi-edit.css": {
+    "H1": 1,
+    "H4": 3,
+    "H5": 2
+  },
+  "shells/web/src/styles/parts/offline-manager.css": {
+    "H4": 4,
+    "H5": 2
+  },
+  "shells/web/src/styles/parts/onion.css": {
+    "H4": 1
+  },
+  "shells/web/src/styles/parts/pdf-extract.css": {
+    "H4": 6,
+    "H5": 1
+  },
+  "shells/web/src/styles/parts/platform.css": {
+    "H4": 2
+  },
+  "shells/web/src/styles/parts/present.css": {
+    "H4": 16,
+    "H5": 3
+  },
+  "shells/web/src/styles/parts/profile.css": {
+    "H4": 3,
+    "H5": 3
+  },
+  "shells/web/src/styles/parts/projects.css": {
+    "H4": 1,
+    "H5": 1
+  },
+  "shells/web/src/styles/parts/rebrand-strip.css": {
+    "H2": 1,
+    "H5": 2
+  },
+  "shells/web/src/styles/parts/saved-list.css": {
+    "H4": 11
+  },
+  "shells/web/src/styles/parts/spotlight.css": {
+    "H4": 2
+  },
+  "shells/web/src/styles/parts/start.css": {
+    "H4": 5,
+    "H5": 2
+  },
+  "shells/web/src/styles/parts/storage.css": {
+    "H2": 1,
+    "H4": 2,
+    "H5": 1
+  },
+  "shells/web/src/styles/parts/team-projects.css": {
+    "H2": 1
+  },
+  "shells/web/src/styles/parts/timeline.css": {
+    "H4": 4,
+    "H5": 2
+  },
+  "shells/web/src/styles/parts/tool-chrome.css": {
+    "H4": 3,
+    "H5": 4
+  },
+  "shells/web/src/styles/parts/tool.css": {
+    "H1": 1,
+    "H2": 1,
+    "H4": 24,
+    "H5": 12
+  },
+  "shells/web/src/styles/parts/tooltip.css": {
+    "H5": 1
+  },
+  "shells/web/src/styles/parts/transcript.css": {
+    "H4": 1
+  },
+  "shells/web/src/styles/parts/tray.css": {
+    "H4": 2
+  },
+  "shells/web/src/styles/parts/valid-forensics.css": {
+    "H2": 1
+  },
+  "shells/web/src/styles/parts/valid-production.css": {
+    "H5": 1
+  },
+  "shells/web/src/styles/parts/valid.css": {
+    "H2": 1,
+    "H3": 2,
+    "H4": 14,
+    "H5": 8
+  },
+  "shells/web/src/styles/parts/welcome.css": {
+    "H5": 1
+  },
+  "shells/web/src/styles/picker.css": {
+    "H4": 4,
+    "H5": 2
+  },
+  "shells/web/src/styles/retouch.css": {
+    "H4": 1
+  },
+  "shells/web/src/styles/script-audio.css": {
+    "H4": 2
+  },
+  "shells/web/src/styles/template-chooser.css": {
+    "H4": 1,
+    "H5": 1
+  },
+  "shells/web/src/views/history.css": {
+    "H1": 1,
+    "H2": 1
+  }
+}

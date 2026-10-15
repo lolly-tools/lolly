@@ -1,0 +1,182 @@
+[
+  {
+    "file": "shells/web/src/components/prepare/prepare.css",
+    "rule": "H2",
+    "selector": ".prep-drop",
+    "reason": "drop area: the Prepare panel's file well, wired with dragover and drop in components/prepare/panel.ts"
+  },
+  {
+    "file": "shells/web/src/lib/edge-dock.css",
+    "rule": "H2",
+    "selector": ".edge-dock-drop",
+    "reason": "drop area: the preview shown while a dragged panel hovers the inline-end dock band (lib/edge-dock.ts)"
+  },
+  {
+    "file": "shells/web/src/styles/matte.css",
+    "rule": "H2",
+    "selector": ".matte-choose",
+    "reason": "drop area: the Remove Background choose zone, labelled 'drop or paste one here' like its Upscale twin"
+  },
+  {
+    "file": "shells/web/src/styles/upscale.css",
+    "rule": "H2",
+    "selector": ".upscale-choose",
+    "reason": "drop area: the Upscale choose zone, with dragover and drop listeners in views/upscale-dialog.ts"
+  },
+  {
+    "file": "shells/web/src/styles/picker.css",
+    "rule": "H2",
+    "selector": ".asset-picker-panel.is-dropping",
+    "reason": "drop area: the ring the whole asset picker panel shows while a file is dragged over it"
+  },
+  {
+    "file": "shells/web/src/styles/parts/brand-studio.css",
+    "rule": "H2",
+    "selector": ".be-logo-drop",
+    "reason": "drop area: each brand logo slot tile is the drop target and the label of its file input"
+  },
+  {
+    "file": "shells/web/src/styles/parts/brand-studio.css",
+    "rule": "H2",
+    "selector": ".be-logo-intake-drop",
+    "reason": "drop area: the multi-file logo intake zone, wired in lib/brand-editor/logo-intake.ts"
+  },
+  {
+    "file": "shells/web/src/styles/parts/brand-studio.css",
+    "rule": "H2",
+    "selector": ".fonts-upload-area",
+    "reason": "drop area: the font upload well inside the fonts manager's data-fonts-drop label"
+  },
+  {
+    "file": "shells/web/src/styles/parts/color-lab.css",
+    "rule": "H2",
+    "selector": ".lab-chart--solid.is-drop",
+    "reason": "drop area: the colour lab chart figure while a colour is dragged over it (views/color-lab.ts)"
+  },
+  {
+    "file": "shells/web/src/styles/parts/components-lib.css",
+    "rule": "H2",
+    "selector": ".cl-fixture-drop",
+    "reason": "drop area specimen: the Components library fixture that shows what the upload drop zone looks like"
+  },
+  {
+    "file": "shells/web/src/styles/parts/convert.css",
+    "rule": "H2",
+    "selector": ".convert-drop",
+    "reason": "drop area: the Convert view's file well, wired with dragover and drop in views/convert.ts"
+  },
+  {
+    "file": "shells/web/src/styles/parts/data-view.css",
+    "rule": "H2",
+    "selector": ".data-drop",
+    "reason": "drop area: the Data view's file well, wired with dragover and drop in views/data.ts"
+  },
+  {
+    "file": "shells/web/src/styles/parts/dropzone.css",
+    "rule": "H2",
+    "selector": ".updz",
+    "reason": "drop area: the shared upload dropzone component (lib/upload-dropzone.ts)"
+  },
+  {
+    "file": "shells/web/src/styles/parts/editor.css",
+    "rule": "H2",
+    "selector": "#tool-content.is-file-dragover, #tool-canvas.is-file-dragover",
+    "reason": "drop area: the Design canvas outline while files are dragged over it (views/free-canvas/file-drop.ts)"
+  },
+  {
+    "file": "shells/web/src/styles/parts/pdf-extract.css",
+    "rule": "H2",
+    "selector": ".pdfx-drop",
+    "reason": "drop area: the Unpack PDF view's file well, wired in views/pdf-extract.ts"
+  },
+  {
+    "file": "shells/web/src/styles/parts/rebrand-intake.css",
+    "rule": "H2",
+    "selector": ".rb-drop",
+    "reason": "drop area: the Rebrand intake file well, wired in views/rebrand/intake.ts"
+  },
+  {
+    "file": "shells/web/src/styles/parts/start.css",
+    "rule": "H2",
+    "selector": ".start-import-drop",
+    "reason": "drop area: the Start page import well, wired with dragover and drop in views/start/"
+  },
+  {
+    "file": "shells/web/src/styles/parts/timeline.css",
+    "rule": "H2",
+    "selector": ".tl-dropslot",
+    "reason": "drop area: the empty sequence lane; the Design view places files dropped here at the playhead"
+  },
+  {
+    "file": "shells/web/src/styles/parts/tool.css",
+    "rule": "H2",
+    "selector": ".blocks-drop-hint",
+    "reason": "drop area: the repeating blocks list's file drop hint (views/tool-inputs.ts)"
+  },
+  {
+    "file": "shells/web/src/styles/parts/tool.css",
+    "rule": "H2",
+    "selector": ".blocks-input--droppable.is-file-dragover .blocks-list, .blocks-input--droppable.is-file-dragover .blocks-drop-hint",
+    "reason": "drop area: the blocks list and its hint while files are dragged over a droppable blocks input"
+  },
+  {
+    "file": "shells/web/src/styles/parts/tool.css",
+    "rule": "H2",
+    "selector": ".block-item.drag-over",
+    "reason": "drop area: the block under a dragged block while reordering a repeating list"
+  },
+  {
+    "file": "shells/web/src/styles/parts/tool.css",
+    "rule": "H2",
+    "selector": ".asset-slot:not(.has-value) .asset-slot-tab",
+    "reason": "drop area: an empty asset slot's pick tab, which accepts a dragged catalog tile"
+  },
+  {
+    "file": "shells/web/src/styles/parts/tool.css",
+    "rule": "H2",
+    "selector": ".file-trigger",
+    "reason": "drop area: the file input's trigger inside a control that takes dropped files (views/tool-inputs.ts)"
+  },
+  {
+    "file": "shells/web/src/styles/parts/type-compare.css",
+    "rule": "H2",
+    "selector": ".tycmp-drop",
+    "reason": "drop area: the type compare font well, wired in lib/design-system/type-compare.ts"
+  },
+  {
+    "file": "shells/web/src/styles/parts/valid.css",
+    "rule": "H2",
+    "selector": ".valid-drop",
+    "reason": "drop area: the Verify view's file well, wired with dragover and drop in views/valid.ts"
+  },
+  {
+    "file": "shells/web/src/views/learning/styles.css",
+    "rule": "H2",
+    "selector": "[data-lesson-row][data-content-drop=\"true\"]",
+    "reason": "drop area: a lesson row while content is dragged onto it (views/learning/blocks.ts)"
+  },
+  {
+    "file": "shells/web/src/lib/palette-wheel.css",
+    "rule": "H3",
+    "selector": ".dash-wheel-ring",
+    "reason": "a hue wheel shows every hue, violet included, as a conic gradient round the whole circle"
+  },
+  {
+    "file": "shells/web/src/styles/parts/tool.css",
+    "rule": "H1",
+    "selector": ".blocks-input--tree .block-item.is-child::before",
+    "reason": "tree connector: an elbow line drawn with two edges and one rounded corner, not a rail on a box"
+  },
+  {
+    "file": "shells/web/src/styles/parts/tool.css",
+    "rule": "H1",
+    "selector": ".vec-field:last-child .vec-num",
+    "reason": "segmented pill: the last field restores its right border so the group closes with a full outline"
+  },
+  {
+    "file": "shells/web/src/styles/parts/platform.css",
+    "rule": "H1",
+    "selector": ".plat-swatch",
+    "reason": "glass top-light: a 2px white highlight under a full 1px inset ring, the --bevel shape at double width"
+  }
+]
