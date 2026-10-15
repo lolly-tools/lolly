@@ -267,11 +267,35 @@ sandbox bypass.
 
 ### YunoHost
 
-For a self-hosting box rather than a cluster, Lolly ships as a [YunoHost](https://yunohost.org) app: `sudo yunohost app install https://github.com/lolly-tools/lolly_ynh`. The package is the `deploy/yunohost/` directory of this repo, mirrored to that app repository at each release, so the two never differ.
+**Install [Lolly Work for YunoHost](https://github.com/lolly-tools/lolly-work_ynh)
+for a home or team server.** It includes this same Lolly web app plus the Work
+server, PostgreSQL, shared projects, permissions and sign-in with your YunoHost
+accounts. Start with the [Work installation guide](https://lolly.work/admin#/docs/install)
+and use the exact package revision and qualification results linked from the
+[Work release](https://github.com/lolly-tools/lolly-work/releases).
 
-It is the static delivery model above, done for you: the package downloads a prebuilt web build from the release host, unpacks it into the app directory and serves it with the domain's nginx, with the same security headers as lolly.tools. There is no service and no database, nothing is stored on the server, and access is the ordinary YunoHost permission on the app - public by default, or limited to a group. Two things follow from the build it installs. It takes a **whole domain**, because the web build resolves its assets, service worker and clean routes from the domain root. And the on-device ML models are fetched on first use from `lolli.li`, the project's release host, rather than bundled, the same way the desktop app does it; without that the download would be over two gigabytes, and a YunoHost host is often a small machine.
+The two YunoHost packages serve different needs:
 
-The governed, multi-user deployment with YunoHost sign-in is the separate **[lolly.work](#organisation-services-with-lolly-work)** package, which serves this same web build behind its organisation service.
+| Package | Choose it when |
+|---|---|
+| **Lolly Work** (`lolly-work_ynh`) | You want server features, host-account sign-in and shared projects. Recommended for most self-hosters. |
+| **Static Lolly** (`lolly_ynh`) | You only want to serve the app; people work on their own devices without a Work service or database. |
+
+The static package lives in this repository at `deploy/yunohost/` and is mirrored
+to [lolly-tools/lolly_ynh](https://github.com/lolly-tools/lolly_ynh). It downloads
+a prebuilt web archive, serves it through nginx and uses the normal YunoHost app
+permission. It is public by default and takes a whole domain. On-device models
+load from `lolli.li` when first used. Install this option only if that static
+model is what you need:
+
+```bash
+sudo yunohost app install https://github.com/lolly-tools/lolly_ynh
+```
+
+These are separate apps, not interchangeable upgrade targets. To move from
+static Lolly to Work, install Work on another domain and verify sign-in and
+project transfer before retiring the static app. Do not upgrade `lolly_ynh`
+in place using a `lolly-work_ynh` package URL.
 
 ## Desktop & mobile apps
 
