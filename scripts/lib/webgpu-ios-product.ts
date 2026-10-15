@@ -146,7 +146,9 @@ export function physicalDevice(value: unknown, identifier: string): IosDevice {
   assert.equal(matches.length, 1, 'Select one exact connected device identifier.');
   const row = matches[0], hardware = row.hardwareProperties, software = row.deviceProperties;
   assert.equal(hardware?.platform, 'iOS'); assert.equal(hardware?.reality, 'physical');
-  assert.equal(hardware?.deviceType, 'iPhone', 'This lane qualifies a physical iPhone.');
+  // The app targets iPhone and iPad (TARGETED_DEVICE_FAMILY 1,2), and the supported-environment row
+  // covers both, so either may be qualified; the receipt records the product type that ran.
+  assert.ok(hardware?.deviceType === 'iPhone' || hardware?.deviceType === 'iPad', 'This lane qualifies a physical iPhone or iPad.');
   assert.equal(row.connectionProperties?.pairingState, 'paired');
   assert.equal(software?.developerModeStatus, 'enabled'); assert.equal(software?.ddiServicesAvailable, true, 'Standard developer services must already be available.');
   for (const field of [hardware?.udid, hardware?.productType, software?.osVersionNumber, software?.osBuildUpdate]) assert.ok(typeof field === 'string' && field, 'Device runtime identity is incomplete.');

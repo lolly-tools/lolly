@@ -102,6 +102,11 @@ test('immutable source and complete owned artifact hashes are required before de
 
 test('physical lane refuses simulator, unavailable developer services, ambiguous identity and inventory failures', () => {
   assert.equal(physicalDevice(successful({ devices: [device] }), 'test-device').osVersion, '27.2');
+  const iPad = { ...device, hardwareProperties: { ...device.hardwareProperties, deviceType: 'iPad', productType: 'iPad16,6' } };
+  assert.equal(physicalDevice(successful({ devices: [iPad] }), 'test-device').productType, 'iPad16,6');
+  for (const deviceType of ['appleTV', 'appleWatch', 'realityDevice', undefined]) {
+    assert.throws(() => physicalDevice(successful({ devices: [{ ...device, hardwareProperties: { ...device.hardwareProperties, deviceType } }] }), 'test-device'), /physical iPhone or iPad/);
+  }
   for (const row of [{ ...device, hardwareProperties: { ...device.hardwareProperties, reality: 'simulated' } },
     { ...device, deviceProperties: { ...device.deviceProperties, ddiServicesAvailable: false } },
     { ...device, connectionProperties: { pairingState: 'unpaired' } }]) assert.throws(() => physicalDevice(successful({ devices: [row] }), 'test-device'));

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
-/** Prepare/build locally; only explicit --run may install the owned physical-iPhone app. */
+/** Prepare/build locally; only explicit --run may install the owned app on a physical iPhone or iPad. */
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
 import { createHash, randomUUID } from 'node:crypto';
@@ -234,7 +234,7 @@ async function runProduct(output: string, receipt: IosProductReceipt & Record<st
 }
 
 export async function verifyIosProduct(argv = process.argv.slice(2)): Promise<number> {
-  assert.equal(process.platform, 'darwin', 'Physical iPhone qualification requires this Mac and its existing Apple tooling.');
+  assert.equal(process.platform, 'darwin', 'Physical iPhone and iPad qualification requires this Mac and its existing Apple tooling.');
   const modes = argv.filter(value => ['--prepare', '--build', '--run'].includes(value));
   assert.equal(modes.length, 1, 'Choose exactly one explicit prepare, build or run step.');
   for (const value of argv) assert.ok(['--prepare', '--build', '--run'].includes(value) || /^--(output|profile|identity|device)=.+$/.test(value), 'Unknown physical-product argument.');
