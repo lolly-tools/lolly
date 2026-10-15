@@ -40,7 +40,7 @@ const SOURCES = [
 ];
 
 // SUSE's colours: Pine, Jungle, Persimmon, Midnight, Waterhole and Mint, as hex (with
-// or without an alpha suffix), as rgba() channels, and as the HSL triples the token
+// or without an alpha suffix), as rgba() channels and as the HSL triples the token
 // slots take. They belong in SUSE's catalog only.
 const SUSE_COLOURS: Array<[string, RegExp]> = [
   ['Jungle #30ba78', /#30ba78/i],

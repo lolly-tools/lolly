@@ -764,7 +764,6 @@ html[data-theme="dark"] .behind-para strong{color:hsl(var(--foreground))}
 /* Dark-band contrast repairs (2026-08-16 review): these elements inherit the deep
    green --dark ink while sitting ON a deep green band, which reads as empty boxes.
    Explicit paint, appended last so it wins the cascade. */
-.matrix-head--new{color:hsl(var(--primary-foreground))}
 .pathway-name{color:#fff}
 .pathways-section .pathway-card .pathway-go{color:hsl(var(--band-accent));opacity:1}
 .pathways-section .pathway-card:hover .pathway-go{color:#fff}
@@ -825,7 +824,7 @@ html[data-theme="dark"] .formats-head h2{color:hsl(var(--foreground))}
 .fmt-chip--both{background:var(--green);color:hsl(var(--on-band-dark))}
 .fmt-chip .rt-mark{margin-right:.3em}
 html[data-theme="dark"] .fmt-chip,html[data-theme="brand"] .fmt-chip{background:rgba(80,195,105,.14);color:#50c369}
-/* Over Spearmint, Green Apple on its own wash reads 4.4:1; Pandanus reads 6.9:1. */
+/* Over Spearmint, Green Apple on its own wash only just clears 4.5:1; Pandanus reads 6.9:1. */
 html[data-theme="brand"] .fmt-chip{color:#ace1ad}
 html[data-theme="dark"] .fmt-chip--both,html[data-theme="brand"] .fmt-chip--both{background:var(--green);color:#09141a}
 /* Educational dialog */
@@ -1214,7 +1213,7 @@ html[data-a11y-motion="reduce"] .reveal,html[data-a11y-motion="reduce"] .reveal.
    reading. An alpha on the page's own ink keeps the rhetoric - still visibly quieter
    than .matrix-cell--new's full var(--text) - in both themes with one value. */
 .matrix-head--old{background:rgba(90,112,103,.14);color:hsl(var(--foreground) / .74)}
-.matrix-head--new{background:var(--green);color:#fff}
+.matrix-head--new{background:var(--green);color:hsl(var(--primary-foreground))}
 .matrix-cell{display:flex;gap:.7rem;align-items:flex-start;padding:1rem 1.15rem;border-radius:12px;font-size:.95rem;line-height:1.5}
 .matrix-cell--old{background:hsl(var(--card) / .7);border:0;color:hsl(var(--foreground) / .74)}
 .matrix-cell--new{background:rgba(80,195,105,.1);color:var(--text);box-shadow:0 2px 12px rgba(80,195,105,.14)}

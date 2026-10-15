@@ -53,8 +53,12 @@
   /* The ink on the lolly.work band (.work-body), which sits on a light green wash. */
   --band-primary: var(--text);
 }
-:is([data-theme="dark"], [data-theme="brand"]) :is(.docs-content, .docs-landing) {
+[data-theme="dark"] :is(.docs-content, .docs-landing) {
   --warn: #ee9138;
+}
+/* Brand grounds are lighter than dark ones: Honey keeps the warn label above 4.5:1 there. */
+[data-theme="brand"] :is(.docs-content, .docs-landing) {
+  --warn: #fac044;
 }
 
 /* The landing (#/docs/index) is the ONLY fragment that carries marketing BANDS, so the
@@ -67,7 +71,7 @@
  * The reading text around them still follows the active brand through the bridge above. */
 .docs-landing {
   --band-dark: 176.5 89.5% 11.2%;  /* Spearmint: the always-dark band surface (hero, pathways, about) */
-  --on-band-dark: 0 0% 100%;       /* the always-light ink that rides on it */
+  --on-band-dark: 0 0% 100%;       /* the always-light ink that rides on the band */
   --band-accent: 133 48.9% 53.9%;  /* Green Apple: the always-bright accent on that band */
   --col-cap: 38rem;           /* the reading measure the landing's prose columns cap at */
 }

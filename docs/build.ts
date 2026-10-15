@@ -2741,7 +2741,7 @@ const APP_TOKENS = readFileSync(resolve(repoRoot, 'shells/web/src/styles/tokens.
 // APP_TOKENS out-specify all three blocks, so High contrast keeps the app's values.
 const INFO_OPAL_TOKENS = `:root,[data-theme="light"]{--background:0 0% 100%;--foreground:201.2 48.6% 6.9%;--card:0 0% 100%;--card-foreground:201.2 48.6% 6.9%;--popover:0 0% 100%;--popover-foreground:201.2 48.6% 6.9%;--primary:176.5 89.5% 11.2%;--primary-foreground:0 0% 100%;--secondary:84.5 55% 92.2%;--secondary-foreground:201.2 48.6% 6.9%;--accent:121.1 46.9% 77.8%;--accent-foreground:201.2 48.6% 6.9%;--muted-foreground:207.7 10.6% 24.1%;--input:121.1 46.9% 77.8%;--ring:176.5 89.5% 11.2%;--warn:#72251c;--lolly-coin-glow:#edf6e0}
 [data-theme="dark"]{--background:201.2 48.6% 6.9%;--foreground:0 0% 100%;--card:203.3 33.3% 10.6%;--card-foreground:0 0% 100%;--popover:203.3 33.3% 10.6%;--popover-foreground:0 0% 100%;--primary:133 48.9% 53.9%;--primary-foreground:201.2 48.6% 6.9%;--secondary:202.1 25.3% 14.7%;--secondary-foreground:0 0% 100%;--accent:207.7 10.6% 24.1%;--accent-foreground:0 0% 100%;--muted-foreground:201.8 5.7% 62.2%;--input:207.7 10.6% 24.1%;--ring:133 48.9% 53.9%;--warn:#ee9138;--lolly-coin-glow:#121d24}
-[data-theme="brand"]{--background:176.5 89.5% 11.2%;--foreground:84.5 55% 92.2%;--card:176.5 70% 15%;--card-foreground:84.5 55% 92.2%;--popover:176.5 70% 15%;--popover-foreground:84.5 55% 92.2%;--primary:133 48.9% 53.9%;--primary-foreground:201.2 48.6% 6.9%;--secondary:176.5 60% 18%;--secondary-foreground:84.5 55% 92.2%;--accent:176.5 55% 21%;--accent-foreground:84.5 55% 92.2%;--muted-foreground:121.1 46.9% 77.8%;--input:176.5 35% 30%;--ring:133 48.9% 53.9%;--warn:#ee9138;--lolly-coin-glow:#0b413e}`;
+[data-theme="brand"]{--background:176.5 89.5% 11.2%;--foreground:84.5 55% 92.2%;--card:176.5 70% 15%;--card-foreground:84.5 55% 92.2%;--popover:176.5 70% 15%;--popover-foreground:84.5 55% 92.2%;--primary:133 48.9% 53.9%;--primary-foreground:201.2 48.6% 6.9%;--secondary:176.5 60% 18%;--secondary-foreground:84.5 55% 92.2%;--accent:176.5 55% 21%;--accent-foreground:84.5 55% 92.2%;--muted-foreground:121.1 46.9% 77.8%;--input:176.5 35% 30%;--ring:133 48.9% 53.9%;--warn:#fac044;--lolly-coin-glow:#0b413e}`;
 
 // The landing bands, single-sourced as a real stylesheet: the static front door
 // below and the in-app docs reader (plans/123 decision D2) both render the same
@@ -3813,6 +3813,7 @@ html[data-a11y-motion="reduce"] .showcase-art [data-sc-i]{opacity:1}
 .doc-jump-title{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:.15rem .5rem .35rem}
 .doc-jump-nav a{display:block;padding:.32rem .5rem;border-radius:6px;font-size:.875rem;line-height:1.35;color:var(--text);text-decoration:none}
 .doc-jump-nav a:hover{background:#50c36918;color:var(--green);text-decoration:none}
+[data-theme="brand"] .doc-jump-nav a:hover{color:#ace1ad}
 .doc-jump-top{margin-top:.25rem;border-top:1px solid var(--border);padding-top:.45rem;color:var(--muted)}
 @media(prefers-reduced-motion:reduce){.doc-jump-btn{transition:none}}
 html[data-a11y-motion="reduce"] .doc-jump-btn{transition:none}
