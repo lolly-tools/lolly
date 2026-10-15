@@ -1,6 +1,16 @@
-# Lolly for YunoHost
+# Static Lolly for YunoHost
 
 [YunoHost](https://yunohost.org) package for the Lolly web app: on-brand images, PDFs, video, audio and documents, made on your own device from your own brand. See [`doc/DESCRIPTION.md`](doc/DESCRIPTION.md) for what it is and [`doc/ADMIN.md`](doc/ADMIN.md) for what the package does.
+
+**Looking for a server with accounts and shared projects? Install
+[Lolly Work for YunoHost](https://github.com/lolly-tools/lolly-work_ynh).**
+That is the recommended choice for most self-hosters: it includes this web app,
+the Work server, PostgreSQL and sign-in with your host's accounts. Follow the
+[Work installation guide](https://lolly.work/admin#/docs/install) and its
+[release qualification notes](https://github.com/lolly-tools/lolly-work/releases).
+
+This `lolly_ynh` package is the **static app only**. It has no Work service,
+database or shared-project storage. If that is the delivery model you want:
 
 ```bash
 sudo yunohost app install https://github.com/lolly-tools/lolly_ynh
