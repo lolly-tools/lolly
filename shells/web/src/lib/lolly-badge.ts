@@ -20,6 +20,7 @@ export function lollyBadge(size: 'sm' | 'lg' = 'sm'): string {
   // `.chip` (styles/parts/chips.css) supplies the shared inline-flex/gap layout
   // (component audit rec 3); `.lolly-badge` explicitly zeroes the pill's
   // padding/background/radius back out - this is a plain icon+wordmark
-  // lockup, not a boxed pill, and its --lolly-accent stays its own.
+  // lockup, not a boxed pill, and its colour is Lolly's tone (--lolly-tone, or
+  // --lolly-mark under a guest hue).
   return `<span class="chip lolly-badge lolly-badge--${size}">${LOLLY_ICON(size === 'lg' ? 22 : 15)}<span class="lolly-badge-lbl">Made with Lolly</span></span>`;
 }

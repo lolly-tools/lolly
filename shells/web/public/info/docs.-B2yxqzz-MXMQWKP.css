@@ -72,6 +72,13 @@
   --track-tier-3: 15%;
 }
 :root {
+  --lolly-tone: #033633;
+}
+[data-theme="dark"],
+[data-theme="brand"] {
+  --lolly-tone: #50c369;
+}
+:root {
   --font-brand: 'SUSE', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'SUSE Mono', ui-monospace, monospace;
   --edge: inset 0 0 0 1px hsl(var(--border));
@@ -301,7 +308,7 @@
   --space:                  8px;
 }
 :root {
-  --job-candy-a: var(--brand-primary, hsl(var(--primary)));
+  --job-candy-a: var(--brand-primary, var(--lolly-tone));
   --job-candy-b: var(--brand-secondary, hsl(var(--accent)));
 }
 html[data-a11y-contrast="high"] {

@@ -258,14 +258,12 @@ html:has(.tool-view.is-chrome-hidden) .edge-dock-drop { display: none !important
    Wins over .fc-action-primary, which it also carries so mountTool keeps finding
    the editor's primary affordance to focus. */
 .fc-toolbar .fc-btn.fc-btn-lolly {
-  --lolly-accent: 145 58% 34%;
   /* The mark's swirl inherits this (lolly-mark.ts uses var(--lolly-swirl)); the grey rings
      keep their own gradients. Brand-hued, matching the identity mark it replaced. */
-  --lolly-swirl: var(--lolly-mark, hsl(var(--lolly-accent)));
+  --lolly-swirl: var(--lolly-mark, var(--lolly-tone));
   background: transparent;
-  color: var(--lolly-mark, hsl(var(--lolly-accent)));
+  color: var(--lolly-mark, var(--lolly-tone));
 }
-[data-theme="dark"] .fc-toolbar .fc-btn.fc-btn-lolly { --lolly-accent: 145 52% 60%; }
 .fc-toolbar .fc-btn.fc-btn-lolly:hover:not(:disabled) { background: var(--ui-color-surface-muted); }
 /* The mark is the rail's brand anchor - deliberately larger than the tool glyphs (nearly
    fills its 40px button), so it reads as the app's identity, not just another tool. */

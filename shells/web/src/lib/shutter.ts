@@ -94,7 +94,7 @@ const MARK_FRAC = 0.28;    // mark size as a fraction of the stage's SMALLER sid
 const POP_LO    = 0.6;     // close-progress where the mark starts to appear …
 const POP_HI    = 0.8;     // … and where it has fully popped
 const SEAL_LO   = 0.82;    // WebGL path: plate insurance only over the last sliver
-const LOLLY_GREEN = '#11734b';   // identity green for near-neutral brands
+const LOLLY_GREEN = '#008657';   // Opal Bunyapine, the mark's green, for near-neutral brands
 /** How long an export must run before the status block appears. Exported so the
  *  test can pin it rather than sleeping for it (the HOOK_BUDGET_MS pattern). */
 export const STATUS_DELAY = { ms: 600 };

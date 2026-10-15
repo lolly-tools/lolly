@@ -686,9 +686,15 @@
 .cat-cred-lolly {
   align-self: stretch; display: flex; flex-direction: column; gap: var(--sp-2);
   padding: 12px 14px; border-radius: calc(var(--radius) * 1.1);
-  background: hsl(145 58% 34% / .1); border: 1px solid hsl(145 45% 40% / .32);
+  background: color-mix(in srgb, var(--lolly-mark, var(--lolly-tone)) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--lolly-mark, var(--lolly-tone)) 32%, transparent);
 }
 .cat-cred-lolly[hidden] { display: none; }
+/* The brand theme's cards are a mid-dark ground, so the wash stays lighter there:
+   the large badge keeps 4.5:1 under a guest hue (SUSE's measured 4.48:1 at 6%). */
+[data-theme="brand"] .cat-cred-lolly {
+  background: color-mix(in srgb, var(--lolly-mark, var(--lolly-tone)) 4%, transparent);
+}
 .cat-cred-lolly-sub { font-size: var(--fs-sm); font-weight: 500; color: hsl(var(--muted-foreground)); }
 
 /* Inline "Made from" + "Change history" panels (the Verify checker's own .valid-panel
