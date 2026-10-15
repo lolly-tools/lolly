@@ -144,7 +144,7 @@ function stubHtml(
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(desc)}" />
 <link rel="canonical" href="${esc(url)}" />
-<meta name="theme-color" content="#0c322c" />
+<meta name="theme-color" content="#033633" />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Lolly" />
 <meta property="og:title" content="${esc(title)}" />

@@ -48,7 +48,7 @@
   <title>Lolly Tools</title>
   <meta name="description" content="Lolly generates production-ready assets - QR codes, charts, graphics, PDFs and more - from simple inputs. Constraint-first, template-driven, works offline." />
   <link rel="canonical" href="https://lolly.tools/" />
-  <meta name="theme-color" content="#0c322c" />
+  <meta name="theme-color" content="#033633" />
 
   <!-- Open Graph / social preview -->
   <meta property="og:type" content="website" />
@@ -293,9 +293,9 @@
       .skip-link { display: none !important; }  /* nothing to skip past here */
 
       .nojs {
-        --ink: #0c322c; --ink-soft: #3f5a52; --line: #d7e7e0;
-        --card: #ffffff; --page1: #ffffff; --page2: #e7f3ee;
-        --pine: #159f66; --pine-strong: #128a58; --pine-ink: #ffffff; --glow: 21 159 102;
+        --ink: #09141a; --ink-soft: #373e44; --line: #ace1ad;
+        --card: #ffffff; --page1: #ffffff; --page2: #edf6e0;
+        --accent: #008657; --accent-strong: #033633; --accent-ink: #ffffff; --accent-text: #033633; --glow: 0 134 87;
         position: relative; overflow: hidden; box-sizing: border-box;
         min-height: 100vh; min-height: 100dvh;
         display: flex; align-items: center; justify-content: center;
@@ -312,26 +312,26 @@
       .nojs::before { top: -24vmax; left: -20vmax;
         background: radial-gradient(closest-side, rgba(var(--glow), .20), transparent 70%); }
       .nojs::after { bottom: -28vmax; right: -22vmax;
-        background: radial-gradient(closest-side, rgba(12, 50, 44, .12), transparent 70%); }
+        background: radial-gradient(closest-side, rgba(3, 54, 51, .12), transparent 70%); }
 
       .nojs-card {
         position: relative; z-index: 1; width: 100%; max-width: 540px;
         background: var(--card); border: 1px solid var(--line); border-radius: 22px;
         padding: 40px 36px 32px; text-align: center;
-        box-shadow: 0 1px 2px rgba(12,50,44,.05), 0 26px 60px -30px rgba(12,50,44,.32);
+        box-shadow: 0 1px 2px rgba(3,54,51,.05), 0 26px 60px -30px rgba(3,54,51,.32);
         animation: nojs-rise .6s cubic-bezier(.2,.7,.2,1) both;
       }
       @keyframes nojs-rise { from { opacity: 0; transform: translateY(14px); } }
 
       .nojs-mark {
         width: 76px; height: 76px; border-radius: 20px; display: block; margin: 0 auto 22px;
-        box-shadow: 0 12px 28px -14px rgba(12,50,44,.55);
+        box-shadow: 0 12px 28px -14px rgba(3,54,51,.55);
       }
       .nojs-title { margin: 0; font-size: clamp(30px, 6vw, 40px); font-weight: 800;
         letter-spacing: -.02em; line-height: 1; }
       .nojs-badge { display: inline-flex; align-items: center; gap: 8px; margin: 16px auto 0;
-        padding: 8px 15px; border-radius: 999px; border: 1px solid var(--pine);
-        background: rgba(var(--glow), .12); color: var(--pine);
+        padding: 8px 15px; border-radius: 999px; border: 1px solid var(--accent);
+        background: rgba(var(--glow), .12); color: var(--accent-text);
         font-size: 15px; font-weight: 800; letter-spacing: -.01em; }
       .nojs-badge svg { width: 17px; height: 17px; }
       .nojs-lead { margin: 18px auto 0; max-width: 42ch; font-size: 16px; line-height: 1.65;
@@ -339,7 +339,7 @@
       .nojs-lead strong { color: var(--ink); font-weight: 700; }
 
       .nojs-formats-label { margin: 24px 0 0; font-size: 11.5px; font-weight: 700;
-        letter-spacing: .09em; text-transform: uppercase; color: var(--ink-soft); opacity: .7; }
+        letter-spacing: .09em; text-transform: uppercase; color: var(--ink-soft); }
       .nojs-formats { list-style: none; margin: 11px 0 0; padding: 0;
         display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
       .nojs-formats li { font-size: 11px; font-weight: 600; color: var(--ink-soft);
@@ -353,13 +353,13 @@
         border-radius: 12px; border: 1px solid var(--line); color: var(--ink);
         background: transparent; transition: transform .15s ease, background .15s ease, border-color .15s ease; }
       .nojs-btn:hover { transform: translateY(-1px); background: rgba(var(--glow), .08);
-        border-color: var(--pine); }
-      .nojs-btn--primary { background: var(--pine); color: var(--pine-ink); border-color: var(--pine); }
-      .nojs-btn--primary:hover { background: var(--pine-strong); }
+        border-color: var(--accent); }
+      .nojs-btn--primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+      .nojs-btn--primary:hover { background: var(--accent-strong); }
       .nojs-btn svg { width: 16px; height: 16px; }
 
       .nojs-note { margin: 26px auto 0; max-width: 40ch; font-size: 13px; line-height: 1.55;
-        color: var(--ink-soft); opacity: .9; }
+        color: var(--ink-soft); }
       .nojs-note strong { color: var(--ink); font-weight: 700; }
 
       @media (max-width: 480px) {
@@ -368,9 +368,9 @@
       }
       @media (prefers-color-scheme: dark) {
         .nojs {
-          --ink: #eaf5f0; --ink-soft: #a7c8bc; --line: rgba(160,210,195,.18);
-          --card: #0f2723; --page1: #0a1f1b; --page2: #061310;
-          --pine: #37c684; --pine-strong: #2ea774; --pine-ink: #06231b; --glow: 48 186 120;
+          --ink: #ffffff; --ink-soft: #99a0a4; --line: #373e44;
+          --card: #1c282f; --page1: #121d24; --page2: #09141a;
+          --accent: #50c369; --accent-strong: #ace1ad; --accent-ink: #09141a; --accent-text: #50c369; --glow: 80 195 105;
         }
         .nojs-card { box-shadow: 0 1px 2px rgba(0,0,0,.3), 0 30px 70px -30px rgba(0,0,0,.72); }
       }

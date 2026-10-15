@@ -231,7 +231,7 @@ function stubHtml({ slug, title, description, hash, image }:
 <title>${esc(pageTitle)}</title>
 <meta name="description" content="${esc(description)}" />
 <link rel="canonical" href="${esc(url)}" />
-<meta name="theme-color" content="#0c322c" />
+<meta name="theme-color" content="#033633" />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Lolly" />
 <meta property="og:title" content="${esc(pageTitle)}" />
