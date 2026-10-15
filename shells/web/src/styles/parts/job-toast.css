@@ -97,8 +97,7 @@
   font-size: var(--fs-xs);
   font-weight: 700;
   border-radius: var(--radius-pill);
-  color: var(--brand-on-primary, hsl(var(--primary-foreground)));
-  background: var(--brand-primary, hsl(var(--primary)));
+  /* Fill and ink come from buttons.css's .btn--primary alias list. */
 }
 
 /* ── Candy-stripe bar (shared: pill mini-bar + per-row bars) ─────────────────*/
@@ -215,7 +214,7 @@ html[data-a11y-motion="reduce"] .job-bar-fill { animation: none; transition: non
    win, the --primary precedent from run-overlay's render-time pill), failed as
    destructive, cancelled/queued as muted. Never a one-sided border. */
 .job-row-status { font-size: calc(11.5px * var(--a11y-fs)); font-weight: 700; }
-.job-row-status--done { color: var(--brand-primary, hsl(var(--primary))); }
+.job-row-status--done { color: hsl(var(--primary)); }
 .job-row-status--failed { color: hsl(var(--destructive)); }
 .job-row-status--cancelled,
 .job-row-status--queued { color: hsl(var(--muted-foreground)); font-weight: 600; }
@@ -329,7 +328,7 @@ html[data-a11y-motion="reduce"] .job-bar-fill { animation: none; transition: non
 .undo-toast-btn {
   flex: none; border: 0; background: none; cursor: pointer;
   font: inherit; font-weight: 700;
-  color: var(--brand-primary, hsl(var(--primary)));
+  color: hsl(var(--primary));
   padding: 2px 8px; border-radius: var(--radius);
 }
 .undo-toast-btn:hover { background: hsl(var(--muted)); }
@@ -347,7 +346,7 @@ html[data-a11y-motion="reduce"] .job-bar-fill { animation: none; transition: non
 }
 .undo-toast-bar {
   position: absolute; left: 0; bottom: 0; height: 2px; width: 100%;
-  background: var(--brand-primary, hsl(var(--primary)));
+  background: hsl(var(--primary));
   transform-origin: left;
   animation: undo-toast-drain linear forwards;
 }

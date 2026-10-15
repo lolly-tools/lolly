@@ -942,7 +942,7 @@ html[data-a11y-motion="reduce"] .fc-btn-lolly:focus-visible svg .lolly-mark__spi
    short window and further again under `largeText`, which put the Choreograph button below
    the cut and out of reach. The cap keeps the whole dialog inside the stage; the card grid
    below is what gives way, exactly as `.fc-lift-list` does in the dialog above. */
-.fc-choreo-quick { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-block: var(--space-2); }
+.fc-choreo-quick { display: flex; flex-wrap: wrap; gap: var(--sp-4); margin-block: var(--sp-4); }
 /* The gap a floating panel leaves under the stage foot, named once for the two panels
    that cap their height against the stage. */
 .fc-choreo-panel, .fc-arch-panel { --fc-panel-stage-inset: 12px; }

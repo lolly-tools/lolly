@@ -2448,7 +2448,7 @@ export function initDeckEditor(opts: InitDeckEditorOpts): DeckEditorHandle {
     // The err div is styled as an ERROR (red); an informational note reuses it but overrides
     // the colour inline - cleared again whenever a real error lands.
     const showErr = (msg: string): void => { err.hidden = false; err.style.color = ''; err.textContent = msg; };
-    const showNote = (msg: string): void => { err.hidden = false; err.style.color = 'var(--ink-muted)'; err.textContent = msg; };
+    const showNote = (msg: string): void => { err.hidden = false; err.style.color = 'hsl(var(--muted-foreground))'; err.textContent = msg; };
 
     // A binary .pptx (the upload/drop path only - never the textarea): unzip via the web
     // bridge (fflate stays a dynamic chunk; the engine reader is zip-free and already

@@ -333,7 +333,7 @@ html[data-a11y-previews="hidden"] .folder-export-tile img {
 }
 .folder-star {
   position: absolute; top: 3px; right: 6px; z-index: 1;
-  color: var(--brand-primary, hsl(var(--primary)));
+  color: hsl(var(--primary));
   font-size: var(--fs-sm); line-height: 1;
 }
 

@@ -220,7 +220,11 @@
 }
 
 .ask-send {
-  --lolly-swirl: var(--brand-primary, hsl(var(--primary)));
+  /* The swirl is Lolly's mark, so it follows the mark's rule (as the Design rail's Lolly
+     button does): the guest brand's hue at Lolly's tone (--lolly-mark, from brand-vars.ts),
+     or Lolly's own green while the brand has no hue. */
+  --lolly-accent: 145 58% 34%;
+  --lolly-swirl: var(--lolly-mark, hsl(var(--lolly-accent)));
   flex: none;
   display: inline-flex;
   align-items: center;
@@ -236,6 +240,7 @@
   box-shadow: 0 2px 10px -4px hsl(var(--primary) / 0.4);
   transition: transform var(--dur-2) var(--ease-spring), box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
 }
+:is([data-theme="dark"], [data-theme="brand"]) .ask-send { --lolly-accent: 145 52% 60%; }
 .ask-send:hover {
   border-color: hsl(var(--primary) / 0.75);
   background: hsl(var(--primary) / 0.06);
@@ -312,7 +317,7 @@ html[data-a11y-motion="reduce"] .ask-send .ask-send-mark .lolly-mark__spin-3 { a
   margin: 4px 0 8px;
   padding: 8px 12px;
   border-radius: var(--radius-md);
-  background: var(--surface-2, color-mix(in oklab, var(--fg, #0f172a) 5%, transparent));
+  background: color-mix(in oklab, var(--ui-color-text-default) 5%, transparent);
   font-size: var(--fs-md);
 }
 .ask-consent[hidden] { display: none; }

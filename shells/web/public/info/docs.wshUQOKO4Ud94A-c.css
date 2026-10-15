@@ -596,6 +596,9 @@ strong{font-weight:600}
 .fmt-chip[aria-pressed="true"],                   /* tool-chrome.css - export format picker chosen chip */
 .pdfx-tab.is-active,                              /* pdf-extract.css - Unpack's chosen tab */
 .pdfx-tab-n,                                      /* pdf-extract.css - Unpack's count badge */
+.job-pill-count,                                  /* job-toast.css - the job count badge */
+.slot-play.is-playing,                            /* tool.css - a sound preview while it plays */
+.tr-word.is-now,                                  /* transcript.css - the read-along word */
 .be-cta {                                         /* brand-studio.css */
   background: var(--ui-color-action-primary);
   color: var(--ui-color-action-on-primary);

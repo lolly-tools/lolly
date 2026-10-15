@@ -74,7 +74,7 @@
 .pr-production-controls {
   grid-area: production; min-width: 0; min-height: 0; display: flex; flex-direction: column;
   border-left: 1px solid rgba(255, 255, 255, 0.1); padding-left: 24px;
-  font: calc(14px * var(--a11y-fs, 1))/1.5 var(--font-ui, system-ui, sans-serif);
+  font: calc(14px * var(--a11y-fs, 1))/1.5 var(--font-brand);
 }
 .pr-production-controls h2 { font-size: calc(20px * var(--a11y-fs, 1)); font-weight: 600; letter-spacing: -0.02em; margin: 0; }
 .pr-production-controls p { font-size: calc(12px * var(--a11y-fs, 1)); line-height: 1.5; color: rgba(255, 255, 255, 0.6); margin: 8px 0; }
@@ -180,7 +180,7 @@
   display: grid; gap: var(--sp-2, 8px); padding: var(--sp-3, 12px);
   border: 1px solid rgb(255 255 255 / 18%); border-radius: var(--radius-sm, 8px);
   background: rgb(255 255 255 / 5%); min-width: 0;
-  font: 400 var(--fs-sm)/1.5 var(--font-ui, system-ui, sans-serif);
+  font: 400 var(--fs-sm)/1.5 var(--font-brand);
 }
 .pr-sp-interact-title { font-weight: 600; overflow-wrap: anywhere; }
 .pr-sp-interact-info { color: rgb(255 255 255 / 85%); }
@@ -188,7 +188,7 @@
 .pr-sp-interact .btn { justify-self: start; color: #fff; background: rgb(255 255 255 / 8%); border-color: rgb(255 255 255 / 20%); }
 .pr-sp-interact .btn:focus-visible { outline: 2px solid #8bb4ff; outline-offset: 3px; }
 .pr-speaker .pr-interact-focus { outline: 4px solid var(--pr-interact-color, var(--pr-accent)); outline-offset: 6px; }
-.pwc-interactive, .pwc-clicker { margin-top: var(--sp-4, 16px); padding-top: var(--sp-4, 16px); border-top: 1px solid var(--ui-color-border); }
+.pwc-interactive, .pwc-clicker { margin-top: var(--sp-4, 16px); padding-top: var(--sp-4, 16px); border-top: 1px solid var(--ui-color-border-default); }
 .pwc-interactive h3 { font-size: var(--fs-md); font-weight: 600; margin: 0 0 var(--sp-3, 12px); }
 .pwc-interactive-list { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--sp-3, 12px); }
 .pwc-interactive-list > li { padding: var(--sp-3, 12px); border-radius: var(--ui-radius-card); background: var(--ui-color-surface-muted); }
@@ -200,11 +200,11 @@
 .pwc-interactive-warning svg { flex: none; width: 16px; height: 16px; margin-top: 2px; }
 .pwc-clicker summary { cursor: pointer; font-size: var(--fs-md); font-weight: 600; padding: var(--sp-2, 8px) 0; }
 .pwc-clicker p { font-size: var(--fs-sm); line-height: 1.5; color: var(--ui-color-text-muted); }
-.pwc-clicker-result { padding: var(--sp-3, 12px); border: 1px solid var(--ui-color-border); border-radius: var(--radius-sm); font-variant-numeric: tabular-nums; background: var(--ui-color-surface-muted); }
+.pwc-clicker-result { padding: var(--sp-3, 12px); border: 1px solid var(--ui-color-border-default); border-radius: var(--radius-sm); font-variant-numeric: tabular-nums; background: var(--ui-color-surface-muted); }
 .pwc-clicker-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2, 8px); margin-top: var(--sp-3, 12px); }
 .pwc-clicker-actions label { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-2, 8px); font-size: var(--fs-sm); }
-.pwc-clicker-actions select { min-height: 36px; max-width: 100%; background: var(--ui-color-surface); color: var(--ui-color-text); border: 1px solid var(--ui-color-border); border-radius: var(--radius-sm); font: inherit; padding: 6px 10px; }
-.pwc-clicker summary:focus-visible, .pwc-clicker select:focus-visible { outline: 2px solid var(--ui-color-primary); outline-offset: 3px; }
+.pwc-clicker-actions select { min-height: 36px; max-width: 100%; background: var(--ui-color-surface-canvas); color: var(--ui-color-text-default); border: 1px solid var(--ui-color-border-default); border-radius: var(--radius-sm); font: inherit; padding: 6px 10px; }
+.pwc-clicker summary:focus-visible, .pwc-clicker select:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 3px; }
 @media (prefers-reduced-motion: reduce) { .pr-interact-ring { transition: none; } }
 
 /* The state-class contract → the default transition (a gentle push + fade). Only the
@@ -475,7 +475,7 @@
   color: #fff;
 }
 .pr-sp-status {
-  font: 400 var(--fs-sm)/1.5 var(--font-ui, system-ui, sans-serif);
+  font: 400 var(--fs-sm)/1.5 var(--font-brand);
   margin-top: var(--sp-2, 8px);
   overflow-wrap: anywhere;
 }

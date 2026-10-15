@@ -76,10 +76,10 @@ html[data-a11y-motion="reduce"] .tr-panel { animation: none; }
 /* A word: the seek/selection unit. The flow is a read-only contenteditable, so the browser
    gives a blinking caret, arrow-key navigation, drag-select and double-click-to-select free. */
 .tr-word { cursor: text; border-radius: var(--radius-xs); padding: 0 .05em; }
-.tr-word:hover { background: hsl(var(--muted) / .7); }
+.tr-word:not(.is-now):hover { background: hsl(var(--muted) / .7); }
 .tr-word.is-ignored { text-decoration: line-through; color: hsl(var(--muted-foreground)); }
-/* Read-along: the word under the playhead. Uses the brand accent, matching the timeline. */
-.tr-word.is-now { background: var(--brand-secondary, var(--brand-primary, hsl(var(--accent)))); color: hsl(var(--accent-foreground)); }
+/* Read-along: the word under the playhead takes the accent fill and its ink from
+   buttons.css's .btn--primary alias list, so no rule here sets its colours. */
 .tr-flow ::selection { background: hsl(var(--ring) / .35); }
 
 /* Hide struck words when "Show skipped" is off. */
@@ -152,7 +152,7 @@ html[data-a11y-motion="reduce"] .tr-panel { animation: none; }
 }
 .tr-regen-fill {
   height: 100%; width: 0;
-  background: var(--brand-primary, hsl(var(--primary)));
+  background: hsl(var(--primary));
   border-radius: var(--radius-pill);
 }
 .tr-regen-track.is-indeterminate .tr-regen-fill { opacity: .55; }
