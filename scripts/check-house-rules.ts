@@ -21,7 +21,7 @@
  * scripts/lib/house-rules-why.ts explains each rule in plain words. Today's debt
  * is recorded per file and rule in scripts/house-rules-baseline.json, and a count
  * may only go down, the same three-way ratchet as check-code-comment-vernacular.ts:
- * a rise fails, a new file or rule with findings fails, and a fall fails until
+ * a rise fails, a new file or rule with findings fails and a fall fails until
  * recorded. Reviewed exceptions (real drop areas and a few shapes the corner
  * logic misreads) live in scripts/data/house-rules-allow.json, matched on file,
  * rule and selector so edits elsewhere in a sheet never break an entry.
@@ -163,7 +163,16 @@ export function parseCss(source: string, lineOffset = 0): CssRule[] {
         pos++;
         if (prelude.startsWith('@')) {
           const isKeyframes = /^@(?:-[a-z]+-)?keyframes\b/i.test(prelude);
-          walk([...at, prelude], keyframes || isKeyframes, parents, isKeyframes ? null : owner, prelude);
+          const inner = [...at, prelude];
+          if (owner && !isKeyframes) {
+            // A nested at-rule keeps the owner's selectors but carries its own
+            // context, so a nested reduce block is not read as plain motion.
+            const nested: CssRule = { selector: owner.selector, selectors: owner.selectors, line: preludeLine, decls: [], at: inner, keyframes, atBody: false, index: rules.length };
+            rules.push(nested);
+            walk(inner, keyframes, parents, nested, prelude);
+          } else {
+            walk(inner, keyframes || isKeyframes, parents, null, prelude);
+          }
         } else {
           const selectors = nestSelectors(parents, splitTop(prelude, ',').map(normalise));
           const rule: CssRule = { selector: selectors.join(', '), selectors, line: preludeLine, decls: [], at, keyframes, atBody: false, index: rules.length };
@@ -302,7 +311,8 @@ function inertBorder(value: string, widthOnly: boolean): boolean {
 }
 
 /** The edge an inset shadow paints as a one-sided stripe, or null. A shadow with
- *  blur, two offsets or none, or the 1px top/bottom bevel, is not a rail. */
+ *  blur or with two offsets (or none) is not a rail. Nor is the 1px top/bottom
+ *  bevel. */
 export function insetRailEdge(part: string): Edge | null {
   const tokens = splitTop(part, ' ');
   if (!tokens.some((t) => t.toLowerCase() === 'inset')) return null;

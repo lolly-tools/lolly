@@ -132,6 +132,15 @@ test('H5: a moving transition needs both reduce rules', () => {
   assert.equal(rule(move + os + app, 'H5').length, 0);
 });
 
+test('H5: a nested at-rule keeps its own context under the owner rule', () => {
+  const reduce = parseCss('.m { @media (prefers-reduced-motion: reduce) { transition: none; } }');
+  const nested = reduce.find((r) => r.decls.some((d) => d.prop === 'transition'))!;
+  assert.deepEqual(nested.selectors, ['.m']);
+  assert.deepEqual(nested.at, ['@media (prefers-reduced-motion: reduce)']);
+  const plain = parseCss('.m { color: red; @media (min-width: 1px) { color: blue; } }');
+  assert.deepEqual(plain.find((r) => r.at.length === 0)!.decls.map((d) => d.value), ['red']);
+});
+
 test('H5: an opacity transition does not move', () => {
   assert.equal(rule('.m { transition: opacity var(--dur-1), color var(--dur-1); }', 'H5').length, 0);
   assert.equal(rule('.m { transition: var(--dur-1); }', 'H5').length, 1);
