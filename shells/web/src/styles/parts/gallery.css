@@ -1091,9 +1091,10 @@ html[data-a11y-previews="hidden"] .gtile .tile-check { top: auto; bottom: 6px; }
   z-index: -1;
   pointer-events: none;
 }
-/* Two exactly-overlapping copies: a static muted BASE and, over it, a green TRACE
-   whose drawn segment walks the outline while a preview loads. Both inset from the
-   tile edges so the icon floats within the preview area. */
+/* Two copies of the icon, one over the other: a static muted BASE and, over it, a
+   TRACE in the theme's --secondary colour whose dashes walk the outline while a
+   preview loads. Both inset from the tile edges so the icon floats within the
+   preview area. */
 .gtile-iconfill-base,
 .gtile-iconfill-trace {
   position: absolute;
@@ -1121,13 +1122,12 @@ html[data-a11y-previews="hidden"] .gtile .tile-check { top: auto; bottom: 6px; }
 /* Base: the very muted ghost that always stands in for a missing/loading preview. */
 
 .gtile-iconfill-base {  color: var(--ui-color-surface-canvas); opacity: 0.5; transform: translatey(4px); filter: blur(6px);}
-/* Trace: the brand's own primary from the palette (--brand-primary, set by
-   applyBrandVars when the active brand declares colour.semantic slots), falling
-   back to SUSE Pine Green (#30ba78) when no brand palette is installed - so an
-   unbranded install still traces green, a branded one traces on-brand.
-   stroke-dasharray leaves one short drawn segment per subpath; the animated
-   dashoffset walks it along the outline and loops seamlessly (offset travels
-   exactly one dash+gap). Transparent gaps reveal the muted base. */
+/* Trace: hsl(var(--secondary)), the theme's secondary surface tone (not
+   --brand-secondary). styles/tokens.css sets --secondary for each theme, and
+   brand-vars.ts rebuilds the brand theme's value from the active brand's primary
+   colours. stroke-dasharray breaks each outline into short dashes, and the
+   animated dashoffset moves the dashes slowly along the outline; the gaps between
+   them show the muted base underneath. */
 .gtile-iconfill-trace {   color: hsl(var(--secondary) / 1); }
 .gtile-iconfill-trace svg :is(path, circle, rect, line, polyline, polygon, ellipse) {
   fill:transparent;
