@@ -15,7 +15,7 @@
     "file": "shells/web/src/styles/matte.css",
     "rule": "H2",
     "selector": ".matte-choose",
-    "reason": "drop area: the Remove Background choose zone, labelled 'drop or paste one here' like its Upscale twin"
+    "reason": "drop area: the Remove background choose step; a dropped or pasted photo goes through loadSource, the same path as a picked one (views/matte-dialog.ts)"
   },
   {
     "file": "shells/web/src/styles/upscale.css",
@@ -33,7 +33,13 @@
     "file": "shells/web/src/styles/parts/brand-studio.css",
     "rule": "H2",
     "selector": ".be-logo-drop",
-    "reason": "drop area: each brand logo slot tile is the drop target and the label of its file input"
+    "reason": "drop area: each logo slot tile; a dropped file goes through placeSlotFile, the same path as the slot's picker (lib/brand-editor/logo-intake.ts)"
+  },
+  {
+    "file": "shells/web/src/styles/parts/brand-studio.css",
+    "rule": "H2",
+    "selector": ".be-logo-addmark",
+    "reason": "drop area: the custom mark form; a dropped file goes through addCustomMarkFile, the same path as Choose file (lib/brand-editor/logo-intake.ts)"
   },
   {
     "file": "shells/web/src/styles/parts/brand-studio.css",
@@ -102,6 +108,12 @@
     "reason": "drop area: the Start page import well, wired with dragover and drop in views/start/"
   },
   {
+    "file": "shells/web/src/styles/parts/storage.css",
+    "rule": "H2",
+    "selector": ".userimg-add",
+    "reason": "drop area: the My images Add tile; a dropped file goes through addUserImageFiles, the same path as the picker (views/profile/storage.ts)"
+  },
+  {
     "file": "shells/web/src/styles/parts/timeline.css",
     "rule": "H2",
     "selector": ".tl-dropslot",
@@ -154,6 +166,60 @@
     "rule": "H2",
     "selector": "[data-lesson-row][data-content-drop=\"true\"]",
     "reason": "drop area: a lesson row while content is dragged onto it (views/learning/blocks.ts)"
+  },
+  {
+    "file": "shells/web/src/styles/parts/deck-editor.css",
+    "rule": "H2",
+    "selector": ".deck-free__guide--v",
+    "reason": "editing guide: the vertical snap line drawn while an object is dragged on a slide; Andy approved dashed editing guides (C4)"
+  },
+  {
+    "file": "shells/web/src/styles/parts/deck-editor.css",
+    "rule": "H2",
+    "selector": ".deck-free__guide--h",
+    "reason": "editing guide: the horizontal snap line drawn while an object is dragged on a slide; Andy approved dashed editing guides (C4)"
+  },
+  {
+    "file": "shells/web/src/styles/parts/deck-editor.css",
+    "rule": "H2",
+    "selector": ".deck-free-bbox",
+    "reason": "editing guide: the group bounding box around a multiple selection on a slide; Andy approved dashed editing guides (C4)"
+  },
+  {
+    "file": "shells/web/src/styles/parts/document.css",
+    "rule": "H2",
+    "selector": ".doc-tt-guide",
+    "reason": "editing guide: the soft page boundary line in the document editor; Andy approved dashed editing guides (C4)"
+  },
+  {
+    "file": "shells/web/src/styles/parts/document.css",
+    "rule": "H2",
+    "selector": ".doc-tt-holder .doc-pagebreak",
+    "reason": "editing guide: an explicit page break inside the document editor; Andy approved dashed editing guides (C4)"
+  },
+  {
+    "file": "shells/web/src/styles/parts/editor.css",
+    "rule": "H2",
+    "selector": ".fc-rubber",
+    "reason": "editing guide: the Design rubber band drawn while creating a box or dragging a marquee; Andy approved dashed editing guides (C4)"
+  },
+  {
+    "file": "shells/web/src/styles/parts/rebrand-strip.css",
+    "rule": "H2",
+    "selector": "html[data-a11y-contrast=\"high\"] .rb-thumb[data-drag-source=\"true\"] .rb-thumb-art",
+    "reason": "drag source: under High contrast a slide being dragged is outlined as well as faded, so the move reads without colour; Andy approved (C4)"
+  },
+  {
+    "file": "shells/web/src/styles/parts/tool.css",
+    "rule": "H2",
+    "selector": ".canvas-crop-box",
+    "reason": "editing guide: the crop box drawn over the canvas while the crop is dragged out; Andy approved dashed editing guides (C4)"
+  },
+  {
+    "file": "shells/web/src/styles/parts/valid-forensics.css",
+    "rule": "H2",
+    "selector": ".forensic-region",
+    "reason": "inspection overlay: Valid's forensic region marks the part of the image a finding refers to; Andy approved this dashed overlay (C4)"
   },
   {
     "file": "shells/web/src/styles/parts/tool.css",

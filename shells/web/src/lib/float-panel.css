@@ -69,12 +69,12 @@
 
 /* ── The placeholder ────────────────────────────────────────────────────────
    Holds the popped-out figure's exact box open so nothing on the page moves.
-   Its border IS dashed, and that is the one case the convention allows: this is
-   a drop area in the literal sense - the outline of where the thing goes back. */
+   Nothing can be dropped onto it (its Put back button returns the panel), and
+   dashed means "drop here", so its border is a solid hairline. */
 .floatp-slot {
   display: grid;
   place-items: center;
-  border: 1px dashed hsl(var(--border));
+  border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
   background: hsl(var(--muted) / 0.35);
 }

@@ -17,9 +17,6 @@
   "shells/web/src/lib/edge-dock.css": {
     "H5": 1
   },
-  "shells/web/src/lib/float-panel.css": {
-    "H2": 1
-  },
   "shells/web/src/lib/oklch-slice.css": {
     "H4": 3,
     "H5": 1
@@ -59,7 +56,6 @@
     "H4": 4
   },
   "shells/web/src/styles/parts/brand-studio.css": {
-    "H2": 1,
     "H4": 5,
     "H5": 11
   },
@@ -85,7 +81,6 @@
     "H5": 5
   },
   "shells/web/src/styles/parts/deck-editor.css": {
-    "H2": 3,
     "H4": 4,
     "H5": 1
   },
@@ -109,11 +104,7 @@
     "H4": 10,
     "H5": 3
   },
-  "shells/web/src/styles/parts/document.css": {
-    "H2": 2
-  },
   "shells/web/src/styles/parts/editor.css": {
-    "H2": 1,
     "H4": 5
   },
   "shells/web/src/styles/parts/featured.css": {
@@ -168,7 +159,6 @@
     "H5": 1
   },
   "shells/web/src/styles/parts/rebrand-strip.css": {
-    "H2": 1,
     "H5": 2
   },
   "shells/web/src/styles/parts/saved-list.css": {
@@ -182,7 +172,6 @@
     "H5": 2
   },
   "shells/web/src/styles/parts/storage.css": {
-    "H2": 1,
     "H4": 2,
     "H5": 1
   },
@@ -196,7 +185,6 @@
   },
   "shells/web/src/styles/parts/tool.css": {
     "H1": 1,
-    "H2": 1,
     "H4": 24,
     "H5": 12
   },
@@ -208,9 +196,6 @@
   },
   "shells/web/src/styles/parts/tray.css": {
     "H4": 2
-  },
-  "shells/web/src/styles/parts/valid-forensics.css": {
-    "H2": 1
   },
   "shells/web/src/styles/parts/valid-production.css": {
     "H5": 1
