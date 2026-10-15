@@ -482,10 +482,11 @@ html[data-a11y-motion="reduce"] .profile-link .profile-link-mark .lolly-mark__sp
 }
 
 /* Floating swatch-name chip - painted in the swatch's own colour. showSwatchTip
-   (color-field.ts) sets three custom properties: --swatch-c, the value the swatch is
+   (color-field.ts) sets four custom properties: --swatch-c, the value the swatch is
    painted with; --swatch-base, the opaque surface under a translucent swatch, so
-   the chip reads as the swatch does; and --swatch-ink, white or black, whichever
-   APCA scores higher against that pair (brand-vars.ts swatchInk). The ring is the
+   the chip reads as the swatch does; --swatch-ink, white or black, whichever APCA
+   scores higher against that pair (brand-vars.ts swatchInk); and --swatch-halo,
+   the other ink, which only High contrast draws (below). The ring is the
    ink too, so the chip stays distinct on any page in every theme: a dark chip on the
    dark page, a white one on white. Fixed to the body so the scrolling swatch grid
    never clips it; pointer-events:none so it never intercepts a click on the swatch
@@ -511,9 +512,15 @@ html[data-a11y-motion="reduce"] .profile-link .profile-link-mark .lolly-mark__sp
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--swatch-ink, #000) 30%, transparent), var(--ui-elevation-floating);
 }
 .swatch-name-tip.is-shown { opacity: 1; }
-/* High contrast: the ring at full strength, a hairline of the label's own ink. */
+/* High contrast: the ring at full strength, a hairline of the label's own ink, and
+   a 1px halo of the other ink (--swatch-halo) round the letters. On a mid tone
+   neither ink reaches the High contrast bar of Lc 80 against the swatch itself
+   (Green Apple tops out at 60), so the halo gives every glyph an edge of its own. */
 html[data-a11y-contrast="high"] .swatch-name-tip {
   box-shadow: inset 0 0 0 1px var(--swatch-ink, #000), var(--ui-elevation-floating);
+  text-shadow:
+    -1px 0 var(--swatch-halo, #fff), 1px 0 var(--swatch-halo, #fff),
+    0 -1px var(--swatch-halo, #fff), 0 1px var(--swatch-halo, #fff);
 }
 /* Explicit media playback in Performance UI. The wrapper keeps controls as
    siblings of a tile's primary action, including picker cards made of buttons. */

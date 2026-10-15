@@ -980,10 +980,13 @@ test('the swatch tip writes a dark swatch\'s name in white and a light one\'s in
   assert.equal(paint(spearmint, '--swatch-c'), 'color(srgb 0.011765 0.211765 0.2)',
     'the chip is painted with the face the swatch is painted with');
   assert.equal(paint(spearmint, '--swatch-ink'), '#ffffff', 'the word Spearmint is white');
+  assert.equal(paint(spearmint, '--swatch-halo'), '#000000', 'and its High contrast halo is the other ink');
   assert.equal(paint(spearmint, 'color'), '', 'the ink travels as a custom property, so the stylesheet applies it');
   assert.equal(paint(await hover('Liquorice'), '--swatch-ink'), '#ffffff', 'an oklch() face reads too');
   assert.equal(paint(await hover('Bauxite'), '--swatch-ink'), '#ffffff', 'a hex with no face');
-  assert.equal(paint(await hover('Wattle'), '--swatch-ink'), '#000000', 'a light colour takes the dark ink');
+  const wattle = await hover('Wattle');
+  assert.equal(paint(wattle, '--swatch-ink'), '#000000', 'a light colour takes the dark ink');
+  assert.equal(paint(wattle, '--swatch-halo'), '#ffffff', 'with a white halo for High contrast');
   const none = await hover('Transparent');
   assert.equal(paint(none, '--swatch-c'), '#c9ccd1', 'Transparent keeps its neutral chip');
   assert.equal(paint(none, '--swatch-ink'), '#000000');

@@ -9,18 +9,18 @@ Roughly 759,000 lines of TypeScript, tests included, and 60,000 lines of CSS.
 
 | Directory | Source | Tests | CSS |
 |---|---|---|---|
-| `views/` | 536 files, 204,441 lines | 262 files, 84,000 lines | 7 files, 1,441 lines |
-| `lib/` | 796 files, 163,150 lines | 458 files, 89,000 lines | 13 files, 1,820 lines |
+| `views/` | 536 files, 204,444 lines | 262 files, 84,041 lines | 7 files, 1,441 lines |
+| `lib/` | 796 files, 163,164 lines | 459 files, 89,066 lines | 13 files, 1,820 lines |
 | `bridge/` | 217 files, 52,874 lines | 130 files, 26,320 lines | none |
-| `components/` | 122 files, 27,701 lines | 53 files, 13,831 lines | 21 files, 1,261 lines |
+| `components/` | 122 files, 27,744 lines | 54 files, 14,027 lines | 21 files, 1,261 lines |
 | `org/` | 77 files, 19,940 lines | 55 files, 16,480 lines | none |
 | `collab/` | 20 files, 13,532 lines | 22 files, 14,132 lines | none |
 | `pro/` | 22 files, 8,570 lines | 11 files, 1,738 lines | 3 files, 1,226 lines |
 | `catalog/` | 8 files, 1,610 lines | 8 files, 902 lines | none |
 | `ext/` | 2 files, 136 lines | 1 file, 86 lines | none |
-| `styles/` | none | 10 files, 1,977 lines | 130 files, 54,449 lines |
+| `styles/` | none | 10 files, 1,977 lines | 130 files, 54,468 lines |
 
-Plus 52 `.ts`/`.js` files at the top level of `src/`, 18,354 lines all told, of which 26 are tests and 3 are ambient declarations. `main.ts` is 2,349 of that.
+Plus 52 `.ts`/`.js` files at the top level of `src/`, 18,512 lines all told, of which 26 are tests and 3 are ambient declarations. `main.ts` is 2,349 of that.
 <!-- web-src-dirs:end -->
 
 ## How do I find a feature
@@ -62,7 +62,7 @@ Do not be ambushed by these. The largest source files, by line count:
 | 3,954 | `views/valid.ts` | `valid-verdict.test.ts` only |
 | 3,859 | `views/tool-inputs.ts` | none |
 | 3,775 | `views/picker.ts` | partial - the format and embeddability rules are extracted to `picker-formats.ts` and covered by `picker-formats.test.ts`, plus `picker-initial-tab.test.ts`; the 3,000-line panel body is not. |
-| 3,654 | `views/color-lab.ts` | yes |
+| 3,656 | `views/color-lab.ts` | yes |
 | 3,187 | `bridge/sequence-render.ts` | yes |
 | 3,063 | `bridge/export-svg-walker.ts` | **none** |
 | 3,009 | `lib/rebrand/controller.ts` | yes |
@@ -77,7 +77,7 @@ Do not be ambushed by these. The largest source files, by line count:
 | 2,349 | `main.ts` | yes |
 | 2,264 | `lib/drop-router.ts` | yes |
 | 2,207 | `views/present-mode.ts` | yes |
-| 2,140 | `lib/clip-thumbs.ts` | yes |
+| 2,154 | `components/color-field.ts` | yes |
 <!-- web-src-largest:end -->
 
 The pattern is consistent and worth internalising: the **pure helpers** extracted out of a big view are well covered (`free-canvas-math.ts`, `timeline-math.ts`, `valid-verdict.ts`, `export-css.ts`, `text-svg.ts`, `svg-ir.ts`, `assets-filter.ts`, `tool-history.ts`, `picker-formats.ts`), while the DOM-mounting bodies of the big views mostly are not. When you change one of the uncovered files, the cheapest way to get coverage is to extract the logic into a sibling pure module and test that, which is how the covered ones came to exist.

@@ -26,6 +26,12 @@ test('a role mark is paper on a dark swatch and ink on a light one, by APCA', ()
     ['Honey', '#fac044', true],
     ['Avocado', '#edf6e0', true],
     ['Sugar', '#ffffff', true],
+    // Where APCA and WCAG 2 disagree: WCAG 2 gives each of these black.
+    ['pink', '#cf6ca9', false],        // white Lc 65.4, black 44.1
+    ['Persimmon', '#e0542a', false],   // white Lc 70.4, black 39.2
+    ['blue', '#3a81f6', false],        // white Lc 69.8, black 39.8
+    // A near tie (white 54.55, black 54.54) goes to the WCAG 2 ratio: black.
+    ['lilac', '#a5a0b9', true],
   ];
   for (const [name, hex, dark] of cases) {
     assert.equal(swatchTakesDarkInk(hex), dark, `${name} ${hex}`);

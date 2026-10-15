@@ -3122,8 +3122,10 @@ function paintSwatchHdr(el: HTMLElement, d: ColorDescription, exp?: HdrExposure,
   el.style.backgroundImage = ''; // clear any prior HDR fill → CSS colour shows through
   // `preview === false` is the A/B toggle's SDR side (plan 154 WP-5): the swatch drops
   // its glow to match the charts. On an SDR display displaySupportsHdr() is already
-  // false, so the swatch was never lifted there and this stays byte-identical.
-  if (!displaySupportsHdr() || preview === false) return;
+  // false, so the swatch was never lifted there and this stays byte-identical. A
+  // translucent subject keeps its CSS fill on every display: the image is an opaque
+  // solid at full strength, which would hide the alpha the ink was measured on.
+  if (d.alpha < 1 || !displaySupportsHdr() || preview === false) return;
   const encode = displayAnchor();
   // encodeOklch is the engine's painter path (the same one the slices/quads use), so
   // the preview and the charts cannot disagree; a colour past the display gamut is

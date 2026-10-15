@@ -632,18 +632,27 @@ export function swatchGround(fill: string, backdrop?: string): string | null {
   return hex(over(r, br), over(g, bg), over(b, bb));
 }
 
+/** Within this many Lc of each other the two inks read alike to APCA, and the
+ *  WCAG 2 ratio picks instead. On #a5a0b9 white scores Lc 54.6 and black 54.5,
+ *  but white is only 2.52:1 there, so the near tie goes to black. */
+export const SWATCH_INK_NEAR_TIE_LC = 3;
+
 /**
  * The ink for a label drawn on `fill`: SWATCH_INK.light when white scores the
- * higher APCA |Lc| against `swatchGround(fill, backdrop)`, else SWATCH_INK.dark
- * (a tie goes to the dark ink). Null when there is no ground to measure, so an
- * unread colour is never mistaken for a light one and handed black.
+ * higher APCA |Lc| against `swatchGround(fill, backdrop)`, else SWATCH_INK.dark.
+ * A near tie (SWATCH_INK_NEAR_TIE_LC) goes to the ink with the higher WCAG 2
+ * ratio, and an exact one to the dark ink. Null when there is no ground to
+ * measure, so an unread colour is never mistaken for a light one and handed black.
  */
 export function swatchInk(fill: string, backdrop?: string): string | null {
   const ground = swatchGround(fill, backdrop);
   if (!ground) return null;
-  return apcaLcAbs(SWATCH_INK.light, ground) > apcaLcAbs(SWATCH_INK.dark, ground)
-    ? SWATCH_INK.light
-    : SWATCH_INK.dark;
+  const white = apcaLcAbs(SWATCH_INK.light, ground);
+  const dark = apcaLcAbs(SWATCH_INK.dark, ground);
+  const lightWins = Math.abs(white - dark) <= SWATCH_INK_NEAR_TIE_LC
+    ? contrastRatio(SWATCH_INK.light, ground) > contrastRatio(SWATCH_INK.dark, ground)
+    : white > dark;
+  return lightWins ? SWATCH_INK.light : SWATCH_INK.dark;
 }
 
 /** The primary/ink pair a theme would use at lightness `l`, if any ink clears

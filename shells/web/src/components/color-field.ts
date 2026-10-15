@@ -679,7 +679,7 @@ const EYEDROPPER_ICON = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24
 // The value input doubles as a live swatch of the current colour: the colour
 // itself (alpha included, over the .color-input--painted checkerboard so a
 // translucent value previews its opacity) as background, a contrast-tinted
-// edge of the same colour as border, and the text in the swatch ink: white or
+// edge of the same colour as border and the text in the swatch ink: white or
 // black, whichever APCA scores higher (swatchInk, brand-vars.ts).
 // Delivered as custom properties (--color-input-*) rather than style longhands
 // so the stylesheet's :focus ring still outranks the border tint.
@@ -1034,7 +1034,7 @@ function swatchButtonsHtml(id: string): string {
     // Each swatch carries the value it is painted with (--swatch-c); the floating
     // hover tooltip paints itself in that same value and measures its label ink
     // against it (see showSwatchTip). Transparent has no colour of its own, so its
-    // tooltip is a neutral chip. No native `title` - the graphical tip replaces it.
+    // tooltip is a neutral chip. No native `title`: the graphical tip takes its place.
     // safeCssColor: this is a CSS context, so attribute-escaping alone isn't
     // enough - an unvalidated token value could smuggle extra declarations.
     const val = safeCssColor(s.wide ?? s.value);
@@ -1065,9 +1065,10 @@ let swatchTipArmed = false;
  * colour painted on `el` is judged over (swatchInk's second argument).
  */
 export function surfaceUnder(el: HTMLElement): string {
+  const view = el.ownerDocument.defaultView;
   const layers: string[] = [];
-  for (let a = el.parentElement; a; a = a.parentElement) {
-    const bg = getComputedStyle(a).backgroundColor;
+  for (let a = el.parentElement; a && view; a = a.parentElement) {
+    const bg = view.getComputedStyle(a).backgroundColor;
     const c = parseColor(bg);
     if (!c || c.alpha <= 0) continue;
     layers.push(bg);
@@ -1093,13 +1094,16 @@ export function surfaceUnder(el: HTMLElement): string {
  */
 function paintSwatchTip(tip: HTMLElement, swatch: HTMLElement): void {
   let fill = swatch.style.getPropertyValue('--swatch-c').trim();
-  if (!parseColor(fill)) fill = getComputedStyle(swatch).backgroundColor;
+  if (!parseColor(fill)) fill = swatch.ownerDocument.defaultView?.getComputedStyle(swatch).backgroundColor ?? '';
   if (!parseColor(fill)) fill = NEUTRAL_CHIP;
   const base = (parseColor(fill)?.alpha ?? 1) < 1 ? surfaceUnder(swatch) : '#ffffff';
+  // Both `fill` and `base` parse by now, so swatchInk always answers here.
+  const ink = swatchInk(fill, base) ?? SWATCH_INK.dark;
   tip.style.setProperty('--swatch-c', fill);
   tip.style.setProperty('--swatch-base', base);
-  // Both `fill` and `base` parse by now, so swatchInk always answers here.
-  tip.style.setProperty('--swatch-ink', swatchInk(fill, base) ?? SWATCH_INK.dark);
+  tip.style.setProperty('--swatch-ink', ink);
+  // The other ink, for the halo High contrast draws round the letters.
+  tip.style.setProperty('--swatch-halo', ink === SWATCH_INK.light ? SWATCH_INK.dark : SWATCH_INK.light);
 }
 
 function showSwatchTip(swatch: HTMLElement): void {

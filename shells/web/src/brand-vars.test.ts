@@ -10,7 +10,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { hexToHslTriple, chromeBrandCss, brandThemeCss, brandFontStack, brandRadiusValue, brandSpaceValue, brandMarkHue, brandMarkPrimary, lollyMarkCss, lollyMarkHex, LOLLY_TONE_HEX, highContrastAccent, apcaLcAbs, HC_TARGET_LC, uiTokenCssValue, contrastText,
   hslTripleToHex, THEME_SURFACES, THEME_DESTRUCTIVE, brandSurfaceHexes, FOCUS_RING_RATIO, CONTROL_RATIO, dangerText, dangerTextSurfaces, dangerTextCss, DANGER_TEXT_RATIO, DANGER_TEXT_HC_LC,
-  SWATCH_INK, swatchInk, swatchGround } from './brand-vars.ts';
+  SWATCH_INK, SWATCH_INK_NEAR_TIE_LC, swatchInk, swatchGround } from './brand-vars.ts';
 import { apcaContrast } from '../../../engine/src/color-tools.ts';
 import { hexToOklch, oklchToHex, contrastRatio, parseHex } from '../../../engine/src/brand-derive.ts';
 
@@ -229,9 +229,36 @@ test('swatchInk: white on dark colours, dark ink on light ones, by the higher AP
   assert.deepEqual({ ...SWATCH_INK }, { light: '#ffffff', dark: '#000000' });
 });
 
+test('where APCA and WCAG 2 disagree the label follows APCA, and a near tie goes to the WCAG 2 ratio', () => {
+  // contrastText (WCAG 2) gives each of these black. APCA reads white clearly better:
+  // the pink from the Colour Lab test, the components library's Persimmon and the
+  // Colour Lab's default subject, oklch(62% 0.19 260).
+  const rows: Array<[hex: string, white: number, dark: number]> = [
+    ['#cf6ca9', 65.39, 44.11],
+    ['#e0542a', 70.41, 39.17],
+    ['#3a81f6', 69.75, 39.82],
+  ];
+  for (const [hex, white, dark] of rows) {
+    assert.ok(Math.abs(apcaLcAbs(SWATCH_INK.light, hex) - white) < 0.01, `${hex}: white Lc ${white}`);
+    assert.ok(Math.abs(apcaLcAbs(SWATCH_INK.dark, hex) - dark) < 0.01, `${hex}: dark ink Lc ${dark}`);
+    assert.equal(contrastText(hex), '#000000', `${hex}: WCAG 2 prefers black`);
+    assert.equal(swatchInk(hex), SWATCH_INK.light, `${hex}: the label takes white`);
+  }
+  // A near tie: white 54.55 against black 54.54 on #a5a0b9, where white is only
+  // 2.52:1. Inside SWATCH_INK_NEAR_TIE_LC the WCAG 2 ratio picks, and black is 8.33:1.
+  assert.equal(SWATCH_INK_NEAR_TIE_LC, 3);
+  const lilac = '#a5a0b9';
+  assert.ok(apcaLcAbs(SWATCH_INK.light, lilac) > apcaLcAbs(SWATCH_INK.dark, lilac), 'APCA alone would give white');
+  assert.ok(Math.abs(apcaLcAbs(SWATCH_INK.light, lilac) - apcaLcAbs(SWATCH_INK.dark, lilac)) <= SWATCH_INK_NEAR_TIE_LC);
+  assert.ok(Math.abs(contrastRatio(SWATCH_INK.light, lilac) - 2.52) < 0.01);
+  assert.equal(swatchInk(lilac), SWATCH_INK.dark, 'the near tie goes to black');
+  // Jungle is a near tie too (white 53.57, black 55.47), and both rules give black.
+  assert.equal(swatchInk('#30ba78'), SWATCH_INK.dark);
+});
+
 test('swatchInk reads a colour the way the swatch paints it: any CSS form, wide gamut and alpha', () => {
   // The tool view hands the picker each token's CSS face, so Spearmint reaches the
-  // tooltip as color(srgb ...), never as hex. Every form has to land on one ground.
+  // tooltip as color(srgb ...), never as hex. Every form has to give the same ground.
   for (const face of ['#033633', '#033633ff', 'color(srgb 0.011765 0.211765 0.2)', 'rgb(3 54 51)', 'rgb(3, 54, 51)']) {
     assert.equal(swatchGround(face), '#033633', face);
     assert.equal(swatchInk(face), SWATCH_INK.light, face);

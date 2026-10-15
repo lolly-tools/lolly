@@ -68,6 +68,7 @@ Object.defineProperty(globalThis, 'navigator', {
 
 const { mountColorLab, swatchGamutState, contrastMatrix, simulatePalette } = await import('./color-lab.ts');
 const { swatchInk } = await import('../components/color-field.ts');
+const { contrastText, swatchGround } = await import('../brand-vars.ts');
 const { resetDisplayGamut } = await import('../lib/display-gamut.ts');
 
 /**
@@ -925,19 +926,28 @@ test('the third surface’s picker survives its own change - the card is scored,
 test('one inversion rule: the swatch, the ramp labels and the picker flip together', async () => {
   // Labels on a colour take the swatch ink: white or black, whichever APCA scores
   // higher. A dark colour; the pink where APCA and WCAG 2 part (white Lc 65 against
-  // black Lc 44, while WCAG 2 prefers black); and the green the old luma cut gave white.
-  for (const [hex, want] of [
-    ['%234b2458', '#ffffff'], ['%23cf6ca9', '#ffffff'], ['%2330ba78', '#000000'],
+  // black Lc 44, while WCAG 2 prefers black); the green the old luma cut gave white;
+  // and the default subject, oklch(62% 0.19 260), which renders as #3a81f6 and now
+  // reads in white (Lc 69.8 against 39.8) where WCAG 2 gave black.
+  const rgb = (ink: string | null): string => ink === '#ffffff' ? 'rgb(255, 255, 255)' : 'rgb(0, 0, 0)';
+  let parted = 0;
+  for (const [params, subject, want] of [
+    ['?c=%234b2458', '#4b2458', '#ffffff'], ['?c=%23cf6ca9', '#cf6ca9', '#ffffff'],
+    ['?c=%2330ba78', '#30ba78', '#000000'], ['', '#3a81f6', '#ffffff'],
   ] as const) {
-    await mount('?c=' + hex);
-    const subject = decodeURIComponent(hex);
+    await mount(params);
     assert.equal(swatchInk(subject), want, `the fixture is on the right side: ${subject}`);
-    assert.equal($('[data-lab-swatch]')!.style.color, want === '#ffffff' ? 'rgb(255, 255, 255)' : 'rgb(0, 0, 0)',
-      `the big swatch's ink at ${subject}`);
-    const step = $('[data-lab-ramp] [data-lab-step]')!;
-    assert.equal(step.style.color, swatchInk(step.dataset.labStep!) === '#ffffff' ? 'rgb(255, 255, 255)' : 'rgb(0, 0, 0)',
-      `a ramp step's ink at ${subject}`);
+    assert.equal($('[data-lab-swatch]')!.style.color, rgb(want), `the big swatch's ink at ${subject}`);
+    // Every step on the page, ramp and blend alike, is a label on its own colour.
+    const steps = [...view.querySelectorAll<HTMLElement>('[data-lab-step]')];
+    assert.ok(steps.length > 0, `steps are drawn at ${subject}`);
+    for (const step of steps) {
+      const hex = step.dataset.labStep!;
+      assert.equal(step.style.color, rgb(swatchInk(hex)), `the step ${hex} at ${subject}`);
+      if (swatchInk(hex) !== contrastText(hex)) parted++;
+    }
   }
+  assert.ok(parted > 0, 'at least one step is a colour where APCA and WCAG 2 part, so the steps follow swatchInk');
 });
 
 test('no surface re-implements the ink inversion', async () => {
@@ -955,7 +965,7 @@ test('no surface re-implements the ink inversion', async () => {
   ];
   for (const f of files) {
     const src = readFileSync(new URL('../../../../' + f, import.meta.url), 'utf8');
-    // The forms that were replaced: two WCAG rules, the chrome accent's rule, and
+    // The forms that were replaced: two WCAG rules, the chrome accent's rule and
     // a lightness cut that took any OKLCH L above 0.68 for a light ground.
     assert.doesNotMatch(src, /contrastRatio\([^)]*'#ffffff'\)\s*>=\s*4\.5\s*\?/,
       `${f}: the ">= 4.5 against white" rule is back`);
@@ -1770,6 +1780,23 @@ test('the A/B toggle forces the SDR preview and the nits card follows', async ()
     assert.equal(sdrBtn.getAttribute('aria-pressed'), 'true', 'the SDR side is pressed');
     assert.equal($('[data-lab-nits]')!.dataset.state, 'sdr-preview',
       'and the readout card reports the forced-SDR preview');
+  });
+});
+
+test('on an HDR display a translucent subject keeps its CSS fill, so its ink reads on what is painted', async () => {
+  // The HDR fill is an opaque solid of the colour at full strength that covers the
+  // swatch. Over a translucent subject it hid the alpha the ink was measured on: pink
+  // at half strength is a pale pink that takes black, under a full pink that takes white.
+  await withHdrDisplay(async () => {
+    await mount('?c=%23cf6ca980');
+    const sw = $('[data-lab-swatch]')!;
+    assert.equal(sw.style.backgroundImage, '', 'no opaque HDR image over a translucent subject');
+    assert.equal(swatchGround('#cf6ca980', '#ffffff'), '#e7b5d4', 'half-strength pink over the page');
+    assert.equal(sw.style.color, 'rgb(0, 0, 0)', 'and the ink is measured on that pale pink (Lc 71.8 against 36.0)');
+    await mount('?c=%23cf6ca9');
+    const opaque = $('[data-lab-swatch]')!;
+    assert.match(opaque.style.backgroundImage, /^url\(/, 'an opaque subject is still lifted into headroom');
+    assert.equal(opaque.style.color, 'rgb(255, 255, 255)', 'and takes white, as the full-strength fill does');
   });
 });
 

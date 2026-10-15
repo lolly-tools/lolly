@@ -6,7 +6,8 @@
  * cascade to speak of. This suite mounts the real colour field over the real
  * tokens.css, color-field.css and components.css, moves the mouse onto a swatch
  * and reads the label's COMPUTED colour: in the light, dark and brand themes and
- * under High contrast, where the chip also has to stay distinct from the page.
+ * under High contrast, where the chip also has to stay distinct from the page and
+ * its letters carry a 1px halo of the other ink.
  *
  * Self-skips by name where Playwright's Chromium is not installed (`pnpm exec
  * playwright install chromium`); a green run without it means "not exercised".
@@ -61,13 +62,16 @@ const OPAL: ColorSwatchOption[] = [
   { value: '#09141a', wide: 'color(srgb 0.035294 0.078431 0.101961)', label: 'Liquorice', group: 'Opal', ref: '{color.opal.liquorice}' },
   { value: '#edf6e0', wide: 'color(srgb 0.929412 0.964706 0.878431)', label: 'Avocado', group: 'Opal', ref: '{color.opal.avocado}' },
   { value: '#50c369', wide: 'color(srgb 0.313725 0.764706 0.411765)', label: 'Green Apple', group: 'Opal', ref: '{color.opal.green-apple}' },
+  // A mid tone where APCA and WCAG 2 disagree: white Lc 70.4 against black 39.2,
+  // where WCAG 2 would give black.
+  { value: '#e0542a', wide: 'color(srgb 0.878431 0.329412 0.164706)', label: 'Persimmon', group: 'Opal', ref: null },
   { value: '#00000033', label: 'Shade', group: 'Opal', ref: null },
 ];
 
 const WHITE = 'rgb(255, 255, 255)';
 const BLACK = 'rgb(0, 0, 0)';
 
-interface ChipProbe { color: string; shadow: string }
+interface ChipProbe { color: string; shadow: string; halo: string }
 
 test('a hovered swatch shows its name in the swatch ink in every theme, on a chip that stays distinct from the page', {
   skip: typeof browserOrReason === 'string' ? browserOrReason : false,
@@ -97,7 +101,8 @@ test('a hovered swatch shows its name in the swatch ink in every theme, on a chi
       // a light grey in the light themes, near black in the dark ones.
       const shadeInk = theme === 'light' ? BLACK : WHITE;
       const expected: Array<[string, string]> = [
-        ['Spearmint', WHITE], ['Liquorice', WHITE], ['Avocado', BLACK], ['Green Apple', BLACK], ['Shade', shadeInk],
+        ['Spearmint', WHITE], ['Liquorice', WHITE], ['Avocado', BLACK], ['Green Apple', BLACK],
+        ['Persimmon', WHITE], ['Shade', shadeInk],
       ];
       for (const [name, ink] of expected) {
         await page.hover(`.color-swatch[data-name="${name}"]`);
@@ -107,7 +112,7 @@ test('a hovered swatch shows its name in the swatch ink in every theme, on a chi
         }, name);
         const probe = await page.evaluate((): ChipProbe => {
           const cs = getComputedStyle(document.querySelector<HTMLElement>('.swatch-name-tip')!);
-          return { color: cs.color, shadow: cs.boxShadow };
+          return { color: cs.color, shadow: cs.boxShadow, halo: cs.textShadow };
         });
         assert.equal(probe.color, ink, `${where}: the label "${name}" reads in ${ink === WHITE ? 'white' : 'black'}`);
         // A full ring in the label's own ink, never one edge: inset, 1px, all round.
@@ -115,6 +120,13 @@ test('a hovered swatch shows its name in the swatch ink in every theme, on a chi
         if (contrast === 'high') {
           assert.ok(probe.shadow.includes(`${ink} 0px 0px 0px 1px inset`),
             `${where}: the ring is the ink at full strength (${probe.shadow})`);
+          // A 1px halo of the other ink on all four sides of every glyph.
+          const halo = ink === WHITE ? BLACK : WHITE;
+          for (const offset of ['-1px 0px', '1px 0px', '0px -1px', '0px 1px']) {
+            assert.ok(probe.halo.includes(`${halo} ${offset}`), `${where}: "${name}" has its ${offset} halo (${probe.halo})`);
+          }
+        } else {
+          assert.equal(probe.halo, 'none', `${where}: no halo outside High contrast`);
         }
       }
     }
