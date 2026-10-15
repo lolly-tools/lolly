@@ -19,7 +19,7 @@
  * same markup, with no random colours or generated tints.
  */
 
-import { contrastRatio } from '@lolly/engine';
+import { colorToHex, contrastRatio } from '@lolly/engine';
 import { escape as escapeHtml } from '../utils.ts';
 import { clamp } from '@lolly/engine';
 
@@ -184,4 +184,48 @@ export function palettePreviewSvgs(colors: string[], opts?: PalettePreviewOption
     { label: 'Chart', svg: chart(ex, bars, opts?.roles) },
     { label: 'UI card', svg: uiCard(ex, opts?.roles) },
   ];
+}
+
+/** Lolly's own neutral, the blank starter's ink-to-paper greys: what a scene shows
+ *  when the active design system has no colours of its own, so no brand's palette
+ *  ever stands in for another's. */
+export const LOLLY_NEUTRAL: readonly string[] = ['#1d1d1d', '#3e3e3e', '#6f6f6f', '#bababa', '#efefef'];
+
+/** The slice of the host's design-token API the active palette reads. */
+export interface PaletteTokens {
+  colors(opts?: { theme?: string }): Promise<ReadonlyArray<{ value: string }>>;
+  resolve(ref: string, opts?: { theme?: string }): Promise<unknown>;
+}
+
+/**
+ * The ACTIVE design system's palette and roles for one theme, ready for
+ * palettePreviewSvgs: its semantic primary and secondary first, then the rest of its
+ * colours in document order, each once. A design system with no colours, or a host
+ * with no token API, gets Lolly's neutral and no roles. Never throws.
+ */
+export async function activePalette(
+  tokens: PaletteTokens | undefined,
+  theme: 'light' | 'dark',
+): Promise<{ colors: string[]; roles?: PalettePreviewOptions['roles'] }> {
+  const neutral = { colors: [...LOLLY_NEUTRAL] };
+  if (!tokens) return neutral;
+  const role = async (slot: string): Promise<string | undefined> => {
+    try {
+      const hex = colorToHex(await tokens.resolve(`{color.semantic.${slot}}`, { theme }));
+      return typeof hex === 'string' && HEX_RE.test(hex) ? hex : undefined;
+    } catch { return undefined; }
+  };
+  try {
+    const [swatches, primary, secondary, surface, text, onPrimary] = await Promise.all([
+      tokens.colors({ theme }), role('primary'), role('secondary'), role('surface'), role('text'), role('on-primary'),
+    ]);
+    const seen = new Set<string>();
+    const colors: string[] = [];
+    for (const value of [primary, secondary, ...swatches.map((s) => s.value)]) {
+      if (typeof value !== 'string' || !HEX_RE.test(value) || seen.has(value.toLowerCase())) continue;
+      seen.add(value.toLowerCase());
+      colors.push(value);
+    }
+    return colors.length ? { colors, roles: { primary, secondary, surface, text, onPrimary } } : neutral;
+  } catch { return neutral; }
 }
