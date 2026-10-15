@@ -443,14 +443,24 @@ export function nearestWarmHex(swatches: ReadonlyArray<{ value: unknown }>): { h
 }
 
 // ── High contrast: the accent has to clear the bar too ───────────────────────
-// tokens.css's high-contrast blocks deliberately leave --primary /
-// --primary-foreground alone, because this module owns them at runtime for an
-// arbitrary brand (see the "WHAT IS DELIBERATELY NOT TOUCHED" note there). That
-// ownership argument is right, but it leaves the ONE control the user came to
-// press as the only thing the pref doesn't touch: SUSE's Jungle #30ba78 pairs
-// at APCA Lc 53 with its dark ink and 54 with white or black - under even the
-// Lc 60 large-text floor, in the dark and brand themes. So the fix belongs
-// here, where the accent is constructed.
+// This module owns --primary / --primary-foreground at runtime for an
+// arbitrary brand. tokens.css's light high-contrast block leaves them alone
+// for that reason (see the "WHAT IS DELIBERATELY NOT TOUCHED" note there).
+// Its dark and brand blocks do declare a pair: SUSE's Jungle, lifted until
+// black clears the bar, for the times no brand accent is in force (before
+// boot, with "Interface follows the design system" off, or for a pack with no
+// semantic primary). Those static pairs outrank this module's ungated blocks
+// on specificity, so whenever a brand accent IS in force the gated blocks
+// below state the brand's pair in both themes: repaired when the pair fails
+// the bar, restated unchanged when the pair already clears the bar. Without
+// the restatement a brand that passes (lolly-start's paper with an ink label,
+// say) would turn SUSE green the moment the preference is switched on.
+//
+// The repair is needed because SUSE's Jungle #30ba78 pairs at APCA Lc 53 with
+// its dark ink and 54 with white or black - under even the Lc 60 large-text
+// floor, in the dark and brand themes - and the main button is the one control
+// the user came to press. So the fix belongs here, where the accent is
+// constructed.
 //
 // The move is a HUE-PRESERVING lightness search: hold the primary's OKLCH hue
 // and chroma, walk its LIGHTNESS away from the authored value until the paired
@@ -458,9 +468,10 @@ export function nearestWarmHex(swatches: ReadonlyArray<{ value: unknown }>): { h
 // the smaller move - so a brand's accent shifts as little as it can, and a
 // purple brand stays purple. Only --primary/--primary-foreground are emitted:
 // --ring is deliberately NOT re-pointed at the brand, because tokens.css's
-// high-contrast blocks force the theme's brightest ink there on purpose (a dim
-// brand primary can be an invisible focus ring), and that decision outranks
-// brand identity.
+// high-contrast blocks give focus a colour of their own (a dim brand primary
+// can be an invisible focus ring), and that decision outranks brand identity.
+// In the brand theme that colour is still SUSE's lifted Jungle; see the note
+// on tokens.css's brand block.
 //
 // Unlike brandMarkPrimary, a near-neutral primary cannot be declined here - a
 // CTA still has to be legible - and it doesn't need to be: the search moves
@@ -590,9 +601,28 @@ export function highContrastAccent(
   return best ? { fill: best.fill, ink: best.ink } : null;
 }
 
+/** The pair a theme already shows when that pair clears the bar: the brand's
+ *  fill with the ink the ungated block computes from the fill (contrastText),
+ *  else the brand's authored ink. Null when neither ink clears the bar, or the
+ *  fill doesn't parse. */
+function clearingPair(primary: string | null, onPrimary: string | null): { fill: string; ink: string } | null {
+  if (!primary) return null;
+  for (const ink of [contrastText(primary), onPrimary]) {
+    if (ink && apcaLcAbs(ink, primary) >= HC_TARGET_LC) return { fill: primary, ink };
+  }
+  return null;
+}
+
 /**
  * The `html[data-a11y-contrast="high"]`-gated accent pair for one theme, or ''
- * when the theme's authored pair already clears the bar.
+ * when there is nothing to state: the primary didn't resolve, or the authored
+ * pair already clears the bar and `restate` is off.
+ *
+ * `restate` is for the themes whose tokens.css high-contrast block declares a
+ * --primary pair of its own (dark and brand; light declares none). That static
+ * pair is SUSE's lifted Jungle and outranks the ungated brand block, so a pair
+ * that already clears the bar is stated here as it is, never left to the
+ * cascade.
  *
  * SPECIFICITY, and why the selectors are shaped like tokens.css's: this sheet
  * is generated at runtime and cannot know the attribute's future state, so it
@@ -608,8 +638,8 @@ export function highContrastAccent(
  * [data-theme] at all is light, and the block must not leak into the two
  * themes that carry their own.
  */
-function hcAccentBlock(selector: string, primary: string | null, onPrimary: string | null): string {
-  const hc = highContrastAccent(primary, onPrimary);
+function hcAccentBlock(selector: string, primary: string | null, onPrimary: string | null, restate = false): string {
+  const hc = highContrastAccent(primary, onPrimary) ?? (restate ? clearingPair(primary, onPrimary) : null);
   const p = hc && hexToHslTriple(hc.fill);
   const fg = hc && hexToHslTriple(hc.ink);
   if (!p || !fg) return '';
@@ -759,18 +789,20 @@ export function chromeBrandCss(
     lollyMarkCss(light.primary, dark.primary),
     // High contrast, per theme and gated on the attribute, so a user with no
     // prefs set gets exactly the blocks above and nothing else can match.
-    // Each theme is judged on its OWN pair - a brand whose light accent already
-    // clears Lc 75 (SUSE's Pine does, at 98) emits no light block at all.
+    // Each theme is judged on its OWN pair. A brand whose light accent already
+    // clears the bar (SUSE's Pine does, at Lc 98) emits no light block, since
+    // tokens.css leaves the light accent alone. Dark and brand always state the
+    // brand's pair, because tokens.css's static one would otherwise win there.
     hcAccentBlock('html[data-a11y-contrast="high"]:not([data-theme="dark"]):not([data-theme="brand"])',
       light.primary, light.onPrimary),
-    hcAccentBlock('html[data-a11y-contrast="high"][data-theme="dark"]', dark.primary, dark.onPrimary),
+    hcAccentBlock('html[data-a11y-contrast="high"][data-theme="dark"]', dark.primary, dark.onPrimary, true),
     // The brand theme wears the DARK primary as its accent (brandThemeCss), so
     // it takes the same adjustment - but only when that constructed theme was
     // emitted at all. Without it the static tokens.css brand block is in
     // charge, and patching its accent from a brand that didn't produce it would
     // pair a colour with an ink neither of them chose.
     light.primary && dark.primary
-      ? hcAccentBlock('html[data-a11y-contrast="high"][data-theme="brand"]', dark.primary, dark.onPrimary)
+      ? hcAccentBlock('html[data-a11y-contrast="high"][data-theme="brand"]', dark.primary, dark.onPrimary, true)
       : '',
   ].filter(Boolean).join('\n');
 }

@@ -265,7 +265,7 @@ test('chromeBrandCss appends attribute-gated high-contrast accents, per theme', 
   assert.ok(css.includes('html[data-a11y-contrast="high"][data-theme="dark"] {'));
   assert.ok(css.includes('html[data-a11y-contrast="high"][data-theme="brand"] {'));
   // Gated blocks carry the pair and NOTHING else - --ring stays with tokens.css,
-  // which forces the theme's brightest ink there on purpose.
+  // which gives focus a colour of its own there on purpose.
   for (const m of css.matchAll(/html\[data-a11y-contrast="high"\][^{]*\{([^}]*)\}/g)) {
     const decls = [...m[1]!.matchAll(/--([\w-]+):/g)].map(d => d[1]);
     assert.deepEqual(decls, ['primary', 'primary-foreground']);
@@ -275,6 +275,70 @@ test('chromeBrandCss appends attribute-gated high-contrast accents, per theme', 
   // their own (same reasoning as tokens.css's high-contrast blocks).
   const amber = chromeBrandCss({ primary: '#eab308', onPrimary: null }, { primary: '#eab308', onPrimary: null });
   assert.ok(amber.includes('html[data-a11y-contrast="high"]:not([data-theme="dark"]):not([data-theme="brand"]) {'));
+});
+
+/** theme → declarations of each `html[data-a11y-contrast="high"]` block in a
+ *  stylesheet, comments stripped. The bare attribute block is keyed 'any'. */
+function hcBlocks(css: string): Map<string, string> {
+  const out = new Map<string, string>();
+  const bare = css.replace(/\/\*[\s\S]*?\*\//g, '');
+  for (const m of bare.matchAll(/html\[data-a11y-contrast="high"\]([^{]*)\{([^}]*)\}/g)) {
+    const sel = m[1]!.trim();
+    const theme = sel === '' ? 'any'
+      : sel === ':not([data-theme="dark"]):not([data-theme="brand"])' ? 'light'
+        : (/^\[data-theme="(\w+)"\]$/.exec(sel)?.[1] ?? sel);
+    out.set(theme, m[2]!);
+  }
+  return out;
+}
+
+test('high contrast keeps a brand that already clears the bar in its own colour', () => {
+  // The blank starter: ink in light, paper in dark, both far over the bar, so
+  // there is nothing to repair. tokens.css's dark and brand high-contrast
+  // blocks still declare SUSE's lifted Jungle, which outranks the ungated
+  // brand block, so the gated blocks must restate the starter's own pair or
+  // the main button turns green the moment the preference is on.
+  const starter = hcBlocks(chromeBrandCss(
+    { primary: '#1d1d1d', onPrimary: '#ffffff' },
+    { primary: '#ffffff', onPrimary: '#1d1d1d' },
+  ));
+  for (const theme of ['dark', 'brand']) {
+    const block = starter.get(theme) ?? '';
+    assert.match(block, /--primary: 0 0% 100%;/, `${theme}: the paper fill stands`);
+    assert.match(block, /--primary-foreground: 0 0% 0%;/, `${theme}: the ungated block's computed ink stands`);
+  }
+  // Light needs no block: tokens.css leaves the light accent alone.
+  assert.equal(starter.has('light'), false);
+
+  // A chromatic brand that passes keeps its hue too, not just a neutral one.
+  const yellow = hcBlocks(chromeBrandCss(
+    { primary: '#7a5c00', onPrimary: '#ffffff' },
+    { primary: '#fde047', onPrimary: '#000000' },
+  ));
+  assert.ok(apcaLcAbs('#000000', '#fde047') >= HC_TARGET_LC, 'the yellow pair clears the bar unrepaired');
+  for (const theme of ['dark', 'brand']) {
+    assert.match(yellow.get(theme) ?? '', new RegExp(`--primary: ${hexToHslTriple('#fde047')};`), `${theme}: yellow stands`);
+  }
+});
+
+test('every theme whose tokens.css high-contrast block pins a primary gets a brand block', () => {
+  // The restatement above is only needed where tokens.css declares its own
+  // --primary under the preference. Reading the real stylesheet keeps the two
+  // in step: a static primary added to the light block later fails here until
+  // the light block restates too.
+  const tokens = readFileSync(new URL('./styles/tokens.css', import.meta.url), 'utf8');
+  const pinned = [...hcBlocks(tokens)]
+    .filter(([theme, decls]) => theme !== 'any' && /(^|[;\s])--primary\s*:/.test(decls))
+    .map(([theme]) => theme)
+    .sort();
+  assert.deepEqual(pinned, ['brand', 'dark'], 'tokens.css pins a high-contrast primary in dark and brand only');
+  for (const pair of [
+    [{ primary: '#1d1d1d', onPrimary: '#ffffff' }, { primary: '#ffffff', onPrimary: '#1d1d1d' }],
+    [{ primary: '#0c322c', onPrimary: '#ffffff' }, { primary: '#30ba78', onPrimary: '#000000' }],
+  ] as const) {
+    const gated = hcBlocks(chromeBrandCss(pair[0], pair[1]));
+    for (const theme of pinned) assert.ok(gated.has(theme), `${pair[1].primary}: a gated ${theme} block`);
+  }
 });
 
 test('high contrast forces an explicit ink when the theme ink is unknowable', () => {
