@@ -1,6 +1,6 @@
 {
   "docs/build.ts": {
-    "H4": 11,
+    "H4": 10,
     "H5": 1
   },
   "shells/web/index.html": {
@@ -103,8 +103,7 @@
   },
   "shells/web/src/styles/parts/docs-landing.css": {
     "H4": 91,
-    "H5": 11,
-    "H6": 1
+    "H5": 11
   },
   "shells/web/src/styles/parts/docs.css": {
     "H4": 10,
