@@ -45,7 +45,7 @@
 import { deltaEOk, parseColor, formatColor, convertColor, colorToHexString, BEYOND_TIER } from '@lolly/engine';
 import type { CssColor } from '@lolly/engine';
 import { PALETTE } from '../palette.ts';
-import { contrastText } from '../brand-vars.ts';
+import { swatchInk, swatchGround, SWATCH_INK } from '../brand-vars.ts';
 import { escape } from '../utils.ts';
 import { t } from '../i18n.ts';
 import { icon } from '../lib/icons.ts';
@@ -551,12 +551,13 @@ export function lchTrackGradients(l: number, c: number, h: number): { l: string;
 }
 
 /**
- * One shared ink rule for the dial, value pill, swatches and app chrome.
- * The implementation in brand-vars.ts selects the higher-contrast black/white
- * using linear sRGB luminance, including mid-tone accents. Keeping it on the
- * boot path avoids pulling this component's engine imports into app startup.
+ * One shared ink rule for every label this picker draws on a colour: the dial
+ * disc, the value pill and the swatch name chip. The implementation in
+ * brand-vars.ts takes white or black, whichever APCA scores higher on the colour
+ * the label sits on. Keeping it on the boot path avoids pulling this component's
+ * engine imports into app startup.
  */
-export { contrastText };
+export { swatchInk };
 
 // ── Dials ────────────────────────────────────────────────────────────────────
 // A ring per channel, sitting above the sliders: the axis's ramp poured into a
@@ -638,7 +639,7 @@ function dialsHtml(dials: readonly DialSpec[], outHex: string, slots: number): s
       </button>`;
   return `<div class="color-dials" style="--dial-slots:${Math.max(1, Math.round(slots))}">
       ${dials.map(ring).join('')}
-      <div class="color-dial-out" data-dial-out style="--out:${outHex};--out-fg:${contrastText(outHex)}">
+      <div class="color-dial-out" data-dial-out style="--out:${outHex};--out-fg:${swatchInk(outHex)}">
         <button type="button" class="color-dial-act" data-dial-act="eyedropper"
                 title="Pick a colour from your screen" aria-label="Pick a colour from your screen">${EYEDROPPER_ICON}</button>
         <button type="button" class="color-dial-act" data-dial-act="native"
@@ -667,7 +668,7 @@ function paintDials(panel: HTMLElement, dials: readonly DialSpec[], outHex: stri
   const out = panel.querySelector<HTMLElement>('[data-dial-out]');
   if (out) {
     out.style.setProperty('--out', outHex);
-    out.style.setProperty('--out-fg', contrastText(outHex));
+    out.style.setProperty('--out-fg', swatchInk(outHex)!);
   }
 }
 
@@ -678,24 +679,16 @@ const EYEDROPPER_ICON = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24
 // The value input doubles as a live swatch of the current colour: the colour
 // itself (alpha included, over the .color-input--painted checkerboard so a
 // translucent value previews its opacity) as background, a contrast-tinted
-// edge of the same colour as border, and the text flipped to whichever of
-// white/black reads with more contrast (WCAG ratio, engine brand-derive math).
+// edge of the same colour as border, and the text in the swatch ink: white or
+// black, whichever APCA scores higher (swatchInk, brand-vars.ts).
 // Delivered as custom properties (--color-input-*) rather than style longhands
 // so the stylesheet's :focus ring still outranks the border tint.
-const CHECKER_AVG = 0xe6; // the checkerboard's average grey (#fff / #ccc squares)
+const CHECKER_GROUND = '#e6e6e6'; // the checkerboard's average grey (#fff / #ccc squares)
 function colorInputPaint(hex: string): Record<string, string> {
   const rgb = hex.slice(0, 7);
-  const a = hex.length === 9 ? parseInt(hex.slice(7, 9), 16) / 255 : 1;
-  // Judge contrast against what the eye actually sees: a translucent colour
-  // composites over the checkerboard, so blend toward its average grey first.
-  const eff = '#' + [1, 3, 5].map((i) => {
-    const c = parseInt(rgb.slice(i, i + 2), 16);
-    return Math.round(c * a + CHECKER_AVG * (1 - a)).toString(16).padStart(2, '0');
-  }).join('');
-  // The shared inversion rule - see contrastText. The compositing above still
-  // matters (a translucent value is judged as the eye sees it, over the
-  // checkerboard); only the black/white DECISION is now shared.
-  const fg = contrastText(eff);
+  // Judged against what the eye actually sees: a translucent colour composites
+  // over the checkerboard, so the ink is measured over its average grey.
+  const fg = swatchInk(hex, CHECKER_GROUND)!;
   return {
     '--color-input-bg': hex,
     '--color-input-border': `color-mix(in oklab, ${rgb}, ${fg} 25%)`,
@@ -1027,6 +1020,9 @@ export function colorFieldHtml(id: string, value: unknown, { float = false, swat
   </div>`;
 }
 
+/** The chip for a swatch with no colour of its own (Transparent, an unreadable value). */
+const NEUTRAL_CHIP = '#c9ccd1';
+
 /** The palette swatch buttons for a field - built lazily on first popover open. */
 function swatchButtonsHtml(id: string): string {
   const eid = escape(id);
@@ -1035,14 +1031,14 @@ function swatchButtonsHtml(id: string): string {
     const refAttr = s.ref ? ` data-swatch-ref="${escape(s.ref)}"` : '';
     const name = s.label || s.value;
     const aria = s.group && s.label ? `${s.group} · ${s.label}` : name;
-    // Each swatch carries its own colour (--sw-c) + a black/white contrast colour
-    // (--sw-fg) as inline custom props; the floating hover tooltip paints itself in
-    // those (see showSwatchTip). Transparent has no colour of its own, so give the
-    // tooltip a neutral chip. No native `title` - the graphical tip replaces it.
+    // Each swatch carries the value it is painted with (--swatch-c); the floating
+    // hover tooltip paints itself in that same value and measures its label ink
+    // against it (see showSwatchTip). Transparent has no colour of its own, so its
+    // tooltip is a neutral chip. No native `title` - the graphical tip replaces it.
     // safeCssColor: this is a CSS context, so attribute-escaping alone isn't
     // enough - an unvalidated token value could smuggle extra declarations.
     const val = safeCssColor(s.wide ?? s.value);
-    const tip = isTrans ? '--sw-c:#c9ccd1;--sw-fg:#1d1d1d' : `--sw-c:${escape(val || '#c9ccd1')};--sw-fg:${contrastText(val)};background:${escape(val)}`;
+    const tip = isTrans ? `--swatch-c:${NEUTRAL_CHIP}` : `--swatch-c:${escape(val || NEUTRAL_CHIP)};background:${escape(val)}`;
     return `<button type="button"
       class="color-swatch${isTrans ? ' color-swatch--transparent' : ''}"
       data-swatch-for="${eid}" data-swatch-value="${escape(s.wide ?? s.value)}"${refAttr}
@@ -1053,7 +1049,7 @@ function swatchButtonsHtml(id: string): string {
 
 // ── Swatch name tooltip (a single shared, floating chip) ─────────────────────────
 // A graphical hover label for the palette swatches: a little chip painted in the
-// swatch's OWN colour with a contrasting black/white name. It lives on document.body
+// swatch's OWN colour with its name in the swatch ink. It lives on document.body
 // as position:fixed, so the swatch grid's own scroll/overflow never clips it (a CSS
 // ::after would be), pops in after a tiny delay, and is pointer-events:none - hovering
 // it never steals a click, so you can slide straight onto the next swatch. One shared
@@ -1061,6 +1057,50 @@ function swatchButtonsHtml(id: string): string {
 let swatchTip: HTMLElement | null = null;
 let swatchTipTimer: ReturnType<typeof setTimeout> | undefined;
 let swatchTipArmed = false;
+
+/**
+ * The opaque colour under `el`: its ancestors' backgrounds from the nearest opaque
+ * one down to `el`, composited in that order. White when nothing paints, which is
+ * the page a browser shows with no background at all. The backdrop a translucent
+ * colour painted on `el` is judged over (swatchInk's second argument).
+ */
+export function surfaceUnder(el: HTMLElement): string {
+  const layers: string[] = [];
+  for (let a = el.parentElement; a; a = a.parentElement) {
+    const bg = getComputedStyle(a).backgroundColor;
+    const c = parseColor(bg);
+    if (!c || c.alpha <= 0) continue;
+    layers.push(bg);
+    if (c.alpha >= 1) break;
+  }
+  return layers.reduceRight((under, top) => swatchGround(top, under) ?? under, '#ffffff');
+}
+
+/**
+ * Paint the chip the way the swatch is painted, with its name in the swatch ink
+ * (brand-vars.ts swatchInk: white or black, whichever APCA scores higher).
+ *
+ * The colour is the swatch's own `--swatch-c`. The tool view hands the picker each
+ * token's CSS face, so that is `color(srgb ...)` or `color(display-p3 ...)` far
+ * more often than a hex, and the ink is measured on the parsed colour. A hex-only
+ * read failed on every such face and fell back to black, which wrote "Spearmint"
+ * in black on its own dark green. A value the engine cannot read at all (a host's
+ * `var()` or `color-mix()`) is taken from the swatch's computed background, which
+ * the cascade has already resolved. A translucent colour shows the surface under
+ * the swatch through it, so the chip is given that surface as an opaque base
+ * (`--swatch-base`) and the ink is measured against the pair: the label sits on
+ * exactly the colour it was measured against.
+ */
+function paintSwatchTip(tip: HTMLElement, swatch: HTMLElement): void {
+  let fill = swatch.style.getPropertyValue('--swatch-c').trim();
+  if (!parseColor(fill)) fill = getComputedStyle(swatch).backgroundColor;
+  if (!parseColor(fill)) fill = NEUTRAL_CHIP;
+  const base = (parseColor(fill)?.alpha ?? 1) < 1 ? surfaceUnder(swatch) : '#ffffff';
+  tip.style.setProperty('--swatch-c', fill);
+  tip.style.setProperty('--swatch-base', base);
+  // Both `fill` and `base` parse by now, so swatchInk always answers here.
+  tip.style.setProperty('--swatch-ink', swatchInk(fill, base) ?? SWATCH_INK.dark);
+}
 
 function showSwatchTip(swatch: HTMLElement): void {
   const name = swatch.dataset.name;
@@ -1073,8 +1113,7 @@ function showSwatchTip(swatch: HTMLElement): void {
   }
   const tip = swatchTip;
   tip.textContent = name;
-  tip.style.background = swatch.style.getPropertyValue('--sw-c').trim() || '#333';
-  tip.style.color = swatch.style.getPropertyValue('--sw-fg').trim() || '#fff';
+  paintSwatchTip(tip, swatch);
   const r = swatch.getBoundingClientRect();
   tip.style.left = `${Math.round(r.left + r.width / 2)}px`;
   tip.style.top = `${Math.round(r.top - 6)}px`;

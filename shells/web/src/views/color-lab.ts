@@ -109,7 +109,7 @@ import {
 } from '../lib/color-profiles.ts';
 import type { ColorProfilesHost, ProfileEntry } from '../lib/color-profiles.ts';
 import { openProfilesPanel } from '../components/profiles-manager.ts';
-import { mountColorField, contrastText } from '../components/color-field.ts';
+import { mountColorField, swatchInk, surfaceUnder } from '../components/color-field.ts';
 import { attachScrub } from '../lib/scrub.ts';
 import type { MountColorFieldOpts } from '../components/color-field.ts';
 import { backPillHtml, mountBackPill } from '../components/back-pill.ts';
@@ -2684,9 +2684,9 @@ export async function mountColorLab(view: HTMLElement, host: ColorLabHost, param
    */
   function stepHtml(hex: string, action: 'use' | 'copy' = 'use'): string {
     const o = describeColor(hex)?.oklch;
-    // The shared inversion rule (contrastText), so a ramp step's label flips at the
-  // same lightness as the picker's dial disc and the value pill.
-  const ink = contrastText(hex);
+    // The swatch ink (swatchInk, APCA), so a ramp step's label flips at the same
+  // lightness as the picker's dial disc, its value pill and its swatch chips.
+  const ink = swatchInk(hex)!;
     const label = o
       ? `${Math.round(o.l * 100)}% ${o.c.toFixed(3)} ${Math.round(o.h)}`
       : hex.toUpperCase();
@@ -3095,11 +3095,11 @@ function paperWhite(p: IccProfile, intent: RenderingIntent): [number, number, nu
 function paintSwatch(el: HTMLElement, d: ColorDescription, exp?: HdrExposure, preview?: boolean): void {
   el.style.background = d.srgbHex;
   el.style.background = d.input;
-  // Ink is chosen against the RENDERED fallback: it has to be readable on the
-  // narrow-gamut result too, and the two are close enough that one choice serves.
-  // The shared inversion rule (contrastText) - the big swatch used to flip to black
-  // a good deal earlier than the dial disc sitting right below it.
-  el.style.color = contrastText(d.srgbHex);
+  // The swatch ink (swatchInk, APCA), the rule the dial disc right below it uses. It
+  // reads the authored value as the colour a screen RENDERS, and a translucent one
+  // over the surface it shows through, since that is what the label sits on.
+  // An authored value only the browser can read falls back to the rendered hex.
+  el.style.color = swatchInk(d.input, d.alpha < 1 ? surfaceUnder(el) : undefined) ?? swatchInk(d.srgbHex)!;
   paintSwatchHdr(el, d, exp, preview);
 }
 

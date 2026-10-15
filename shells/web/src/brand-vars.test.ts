@@ -9,7 +9,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { hexToHslTriple, chromeBrandCss, brandThemeCss, brandFontStack, brandRadiusValue, brandSpaceValue, brandMarkHue, brandMarkPrimary, lollyMarkCss, lollyMarkHex, LOLLY_TONE_HEX, highContrastAccent, apcaLcAbs, HC_TARGET_LC, uiTokenCssValue, contrastText,
-  hslTripleToHex, THEME_SURFACES, THEME_DESTRUCTIVE, brandSurfaceHexes, FOCUS_RING_RATIO, CONTROL_RATIO, dangerText, dangerTextSurfaces, dangerTextCss, DANGER_TEXT_RATIO, DANGER_TEXT_HC_LC } from './brand-vars.ts';
+  hslTripleToHex, THEME_SURFACES, THEME_DESTRUCTIVE, brandSurfaceHexes, FOCUS_RING_RATIO, CONTROL_RATIO, dangerText, dangerTextSurfaces, dangerTextCss, DANGER_TEXT_RATIO, DANGER_TEXT_HC_LC,
+  SWATCH_INK, swatchInk, swatchGround } from './brand-vars.ts';
 import { apcaContrast } from '../../../engine/src/color-tools.ts';
 import { hexToOklch, oklchToHex, contrastRatio, parseHex } from '../../../engine/src/brand-derive.ts';
 
@@ -199,6 +200,64 @@ test('apcaLcAbs matches the engine apcaContrast (the port must not drift)', () =
   // The reference pair the engine's own suite pins (APCA-1.0.98G).
   assert.ok(Math.abs(apcaLcAbs('#000000', '#ffffff') - 106.04) < 0.01);
   assert.ok(Number.isNaN(apcaLcAbs('not-a-hex', '#ffffff')));
+});
+
+// ── Labels on a colour: the swatch ink ───────────────────────────────────────
+
+test('swatchInk: white on dark colours, dark ink on light ones, by the higher APCA |Lc|', () => {
+  // Opal, the palette in the report: hovering Spearmint showed its name in black.
+  // Each row is the pick, then the |Lc| of white and of the dark ink on that colour.
+  const rows: Array<[name: string, hex: string, ink: string, white: number, dark: number]> = [
+    ['Spearmint', '#033633', SWATCH_INK.light, 102.61, 0],
+    ['Liquorice', '#09141a', SWATCH_INK.light, 107.23, 0],
+    ['Wattle', '#fdec9e', SWATCH_INK.dark, 10.66, 94.43],
+    ['Avocado', '#edf6e0', SWATCH_INK.dark, 0, 98.66],
+    ['Sugar', '#ffffff', SWATCH_INK.dark, 0, 106.04],
+    // The mid tones, where only the comparison decides.
+    ['Bunyapine', '#008657', SWATCH_INK.light, 76.92, 32.63],
+    ['Green Apple', '#50c369', SWATCH_INK.dark, 48.72, 60.03],
+    ['Honey', '#fac044', SWATCH_INK.dark, 32.39, 75.07],
+    ['Bauxite', '#a43427', SWATCH_INK.light, 87.42, 21.69],
+  ];
+  for (const [name, hex, ink, white, dark] of rows) {
+    const lcWhite = apcaLcAbs(SWATCH_INK.light, hex);
+    const lcDark = apcaLcAbs(SWATCH_INK.dark, hex);
+    assert.ok(Math.abs(lcWhite - white) < 0.01, `${name}: white Lc ${lcWhite.toFixed(2)}, expected ${white}`);
+    assert.ok(Math.abs(lcDark - dark) < 0.01, `${name}: dark ink Lc ${lcDark.toFixed(2)}, expected ${dark}`);
+    assert.equal(swatchInk(hex), ink, `${name} ${hex}`);
+  }
+  assert.deepEqual({ ...SWATCH_INK }, { light: '#ffffff', dark: '#000000' });
+});
+
+test('swatchInk reads a colour the way the swatch paints it: any CSS form, wide gamut and alpha', () => {
+  // The tool view hands the picker each token's CSS face, so Spearmint reaches the
+  // tooltip as color(srgb ...), never as hex. Every form has to land on one ground.
+  for (const face of ['#033633', '#033633ff', 'color(srgb 0.011765 0.211765 0.2)', 'rgb(3 54 51)', 'rgb(3, 54, 51)']) {
+    assert.equal(swatchGround(face), '#033633', face);
+    assert.equal(swatchInk(face), SWATCH_INK.light, face);
+  }
+  for (const face of ['oklch(30% 0.05 180)', 'color(display-p3 0.1 0.2 0.2)', 'navy', 'rebeccapurple']) {
+    assert.equal(swatchInk(face), SWATCH_INK.light, face);
+  }
+  assert.equal(swatchInk('white'), SWATCH_INK.dark);
+  // Outside sRGB: scored as the sRGB colour a screen shows, the gamut-mapped yellow.
+  assert.equal(swatchInk('color(display-p3 1 1 0)'), SWATCH_INK.dark);
+  // Translucent: composited over what the label sits on, so the backdrop decides.
+  assert.equal(swatchGround('#00000033', '#ffffff'), '#cccccc', '20% black over white');
+  assert.equal(swatchInk('#00000033', '#ffffff'), SWATCH_INK.dark);
+  assert.equal(swatchGround('#00000033', '#030712'), '#02060e', 'the same over the dark page');
+  assert.equal(swatchInk('#00000033', '#030712'), SWATCH_INK.light);
+  assert.equal(swatchGround('transparent', '#030712'), '#030712');
+  // No backdrop: the caller cannot see the ground, so the colour stands at full
+  // strength rather than over a guessed white. Transparent then has no ground.
+  assert.equal(swatchGround('#00000033'), '#000000');
+  assert.equal(swatchGround('oklch(30% 0.05 180 / 0.4)'), swatchGround('oklch(30% 0.05 180)'));
+  assert.equal(swatchInk('transparent'), null);
+  // Unreadable is null, never a guess: black on an unread colour was the bug.
+  for (const junk of ['var(--brand-primary)', 'currentColor', '', 'not-a-colour', 'color-mix(in srgb, red, blue)']) {
+    assert.equal(swatchInk(junk), null, JSON.stringify(junk));
+  }
+  assert.equal(swatchInk('#033633', 'junk'), null, 'an unreadable backdrop is no ground either');
 });
 
 test('highContrastAccent lifts any hue over the target Lc while holding hue and chroma', () => {

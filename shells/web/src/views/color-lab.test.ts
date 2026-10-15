@@ -67,7 +67,7 @@ Object.defineProperty(globalThis, 'navigator', {
 });
 
 const { mountColorLab, swatchGamutState, contrastMatrix, simulatePalette } = await import('./color-lab.ts');
-const { contrastText } = await import('../components/color-field.ts');
+const { swatchInk } = await import('../components/color-field.ts');
 const { resetDisplayGamut } = await import('../lib/display-gamut.ts');
 
 /**
@@ -923,34 +923,48 @@ test('the third surface’s picker survives its own change - the card is scored,
 });
 
 test('one inversion rule: the swatch, the ramp labels and the picker flip together', async () => {
-  // Shared chrome now chooses the black/white ink with the stronger WCAG contrast.
-  // Include a dark colour and the pink and green that the old luma cut misclassified.
+  // Labels on a colour take the swatch ink: white or black, whichever APCA scores
+  // higher. A dark colour; the pink where APCA and WCAG 2 part (white Lc 65 against
+  // black Lc 44, while WCAG 2 prefers black); and the green the old luma cut gave white.
   for (const [hex, want] of [
-    ['%234b2458', '#ffffff'], ['%23cf6ca9', '#000000'], ['%2330ba78', '#000000'],
+    ['%234b2458', '#ffffff'], ['%23cf6ca9', '#ffffff'], ['%2330ba78', '#000000'],
   ] as const) {
     await mount('?c=' + hex);
     const subject = decodeURIComponent(hex);
-    assert.equal(contrastText(subject), want, `the fixture is on the right side: ${subject}`);
+    assert.equal(swatchInk(subject), want, `the fixture is on the right side: ${subject}`);
     assert.equal($('[data-lab-swatch]')!.style.color, want === '#ffffff' ? 'rgb(255, 255, 255)' : 'rgb(0, 0, 0)',
       `the big swatch's ink at ${subject}`);
+    const step = $('[data-lab-ramp] [data-lab-step]')!;
+    assert.equal(step.style.color, swatchInk(step.dataset.labStep!) === '#ffffff' ? 'rgb(255, 255, 255)' : 'rgb(0, 0, 0)',
+      `a ramp step's ink at ${subject}`);
   }
 });
 
 test('no surface re-implements the ink inversion', async () => {
   // A drift guard, because this drifted once already: three rules, silently, across
-  // two files. Any new black-or-white-over-a-colour decision must call contrastText.
+  // two files. A new black-or-white decision for a label on a colour calls swatchInk.
   const { readFileSync } = await import('node:fs');
   const files = [
     'shells/web/src/views/color-lab.ts',
     'shells/web/src/components/color-field.ts',
+    'shells/web/src/lib/swatches.ts',
+    'shells/web/src/lib/brand-editor/shared.ts',
+    'shells/web/src/lib/design-system/palette-view.ts',
+    'shells/web/src/lib/design-system/brand-specimen.ts',
+    'shells/web/src/lib/design-system/design-systems-card.ts',
   ];
   for (const f of files) {
     const src = readFileSync(new URL('../../../../' + f, import.meta.url), 'utf8');
-    // The two forms that were replaced.
+    // The forms that were replaced: two WCAG rules, the chrome accent's rule, and
+    // a lightness cut that took any OKLCH L above 0.68 for a light ground.
     assert.doesNotMatch(src, /contrastRatio\([^)]*'#ffffff'\)\s*>=\s*4\.5\s*\?/,
       `${f}: the ">= 4.5 against white" rule is back`);
     assert.doesNotMatch(src, /contrastRatio\('#ffffff',[^)]*\)\s*>=\s*contrastRatio\('#000000'/,
       `${f}: the WCAG-ratio-winner rule is back`);
+    assert.doesNotMatch(src, /contrastRatio\([^)]*'#000000'\)\s*>\s*contrastRatio\(/,
+      `${f}: a WCAG-ratio comparison picks a label's ink again`);
+    assert.doesNotMatch(src, /\bcontrastText\(/, `${f}: a label on a colour takes swatchInk, not the accent's contrastText`);
+    assert.doesNotMatch(src, /\)\?\.l \?\? 0\) > 0\.\d+/, `${f}: a lightness cut picks a label's ink again`);
   }
 });
 

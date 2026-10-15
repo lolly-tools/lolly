@@ -13,7 +13,7 @@ import { RAMP_IDS, getExcludedSwatches, getSwatchFaces, getSwatchPrintOverride, 
 import type { BrandSwatch } from '../brand-doc.ts';
 import { serializeColor } from '../color-formats.ts';
 import type { StorageFormat } from '../color-formats.ts';
-import { tileLabel } from '../swatches.ts';
+import { syncRoleMarkInk, tileLabel } from '../swatches.ts';
 import { STUDIO_GROUPS, materializeGradientAliases } from '../token-studio.ts';
 import { t, tRaw } from '../../i18n.ts';
 import { escape as escapeText } from '../../utils.ts';
@@ -242,12 +242,14 @@ export const renderSubstChips = (bedit: BrandEditorCtx): void => {
   if (cur?.lock?.spot) bits.push(`<span class="be-ps-chip">${escapeText(cur.lock.spot.name)}${cur.lock.spot.finish ? ` · ${escapeText(finishLabel(cur.lock.spot.finish))}` : ''}</span>`);
   substChips.innerHTML = bits.length ? bits.join('') : `<span class="be-ps-chip be-ps-chip--auto">${t('auto')}</span>`;
 };
-/** Keep a shape-only tile's tooltip + accessible name (name - hex) fresh - 
- *  the grid shows no text, so every in-place recolour/rename re-stamps these. */
+/** Keep a shape-only tile's tooltip + accessible name (name - hex) fresh -
+ *  the grid shows no text, so every in-place recolour/rename re-stamps these,
+ *  and the role mark's ink with them, so a recolour never strands the mark. */
 export const syncTileMeta = (_bedit: BrandEditorCtx, tile: HTMLElement, s: BrandSwatch): void => {
   const label = tileLabel(s.name, s.hex, !!s.lock);
   tile.title = label;
   tile.setAttribute('aria-label', label);
+  syncRoleMarkInk(tile, s.hex);
   const card = tile.closest('.be-pal-card');
   card?.querySelector('[data-be-select]')?.setAttribute('aria-label', tRaw('Select {name}', { name: s.name }));
   const name = card?.querySelector('.be-pal-name');
