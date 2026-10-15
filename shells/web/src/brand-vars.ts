@@ -31,7 +31,7 @@ import { colorToHex, isAlias } from '../../../engine/src/tokens.ts';
 import { parseOklch, oklchToHex, hexToOklch, parseHex, contrastRatio } from '../../../engine/src/brand-derive.ts';
 import { chromeFollowsDesignSystem } from './lib/chrome-follow.ts';
 import { CHROME_SLOTS, CHROME_THEMES, declaresUnsaved, resolvePackChrome, type ChromeTheme, type ChromeThemeName, type PackChrome } from './lib/brand-chrome.ts';
-import { syncThemeColorMeta } from './theme.ts';
+import { syncThemeColorMeta } from './lib/theme-color.ts';
 
 /** The seven semantic slots (token leaf under `color.semantic`) → CSS var. */
 const SLOTS = [

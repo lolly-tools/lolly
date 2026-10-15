@@ -15,6 +15,7 @@
 
 import { icon } from './lib/icons.ts';
 import { syncJellyMode } from './lib/jelly.ts';
+import { syncThemeColorMeta } from './lib/theme-color.ts';
 
 export type Theme = 'light' | 'dark' | 'brand';
 
@@ -42,33 +43,6 @@ export function currentTheme(): string {
   return document.documentElement.dataset.theme || localStorage.getItem('theme') || 'light';
 }
 
-// Per-theme address-bar / PWA chrome colour, matching each theme's page
-// background (tokens.css --background). Keeps mobile/PWA chrome in step with the
-// active theme instead of pinning it to the SUSE dark-green.
-const THEME_COLORS: Record<string, string> = {
-  light: '#ffffff',
-  dark: '#030711',   // 224 71% 4%
-  brand: '#0c322c',  // the static (SUSE-palette) construction's background
-};
-
-/**
- * Set the browser/PWA chrome colour (`<meta name="theme-color">`) to the page
- * colour now in force. Prefers the LIVE --background triple: the brand theme and
- * a design pack's own chrome are painted at runtime (brand-vars.ts), so the
- * static map cannot know their page; the map covers the moments before CSS.
- * applyTheme calls this, and so does applyChromeBrandVars once it has painted.
- */
-export function syncThemeColorMeta(): void {
-  if (typeof document === 'undefined') return;
-  const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
-  if (!meta) return;
-  const html = document.documentElement;
-  const triple = typeof getComputedStyle === 'function' ? getComputedStyle(html).getPropertyValue('--background').trim() : '';
-  const fallback = THEME_COLORS[html.dataset.theme || 'light'];
-  if (triple) meta.content = `hsl(${triple})`;
-  else if (fallback) meta.content = fallback;
-}
-
 // Handle for the transition-class cleanup timer. Module-scoped so rapid theme
 // switches clear the pending timeout instead of letting an earlier one fire early
 // and cut the current transition short.
@@ -93,7 +67,8 @@ export function applyTheme(theme: string, animate = true, persist = true): void 
   html.dataset.theme = theme;
   if (persist) localStorage.setItem('theme', theme);
 
-  // Keep the browser/PWA chrome colour in step with the theme.
+  // Keep the browser/PWA chrome colour in step with the theme (lib/theme-color.ts),
+  // instead of pinning it to the SUSE dark-green.
   syncThemeColorMeta();
 
   // Keep the browser-tab favicon in step with the app theme (dark/brand wear the
