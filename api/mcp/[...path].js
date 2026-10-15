@@ -50254,13 +50254,26 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
     // applyPatch/setInput, neither of which resolves them; without this a picked
     // template renders black colours + a placeholder image where a freshly-opened one
     // renders the real gradient. Both resolvers return the same model reference when
-    // nothing needed resolving, so a call that changed nothing skips the re-emit.
+    // nothing needed resolving, so a call that changed nothing skips the hooks and the re-emit.
     async resolveRefs() {
       const before = model2;
       surfaceContexts.delete(host);
       model2 = await resolveTokenRefs(model2, host, keepWriteTokens(themeGeneration));
       model2 = await resolveAssetRefs(model2, host, droppedAssets, composeStack, tool.manifest.id);
-      if (model2 !== before) emit();
+      if (model2 === before) return;
+      const changed = model2.filter((item2) => before.find((prior) => prior.id === item2.id)?.value !== item2.value);
+      const onInput = hooks?.onInput;
+      if (onInput) {
+        for (const item2 of changed) {
+          try {
+            const patch = await runHook("onInput", (report4) => onInput({ id: item2.id, value: flattenValue(item2.value), model: modelForHooks(model2), view: viewState, lang: hookLang, host, report: report4 }), applyLatePatch);
+            if (patch) ({ model: model2, extras } = mergePatch(model2, extras, patch, inputIds));
+          } catch (e) {
+            host.log("warn", `onInput ${e.message}`, { toolId: tool.manifest.id });
+          }
+        }
+      }
+      emit();
     },
     async setTokenSelection(selection) {
       const next2 = parseTokenSelection(JSON.stringify(selection ?? {}));
