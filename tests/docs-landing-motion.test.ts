@@ -73,9 +73,19 @@ const rootDataset = (asked: Asked): Record<string, string> => (asked.app ? { a11
 // a11y-prefs.ts reads `document` and `localStorage` when it is called, so stand-ins on
 // the global are enough to run its writer here. Node 26 defines localStorage as a
 // replaceable accessor and Node 24 has none, so a plain assignment works on both.
+// The writer also passes Reduce motion on to Jelly through an attribute on <html>,
+// so the stand-in keeps attributes too. With no defaultView it sends no event.
 const saved = new Map<string, string>();
+const attrs = new Map<string, string>();
 const scope = globalThis as unknown as Record<string, unknown>;
-scope.document = { documentElement: { dataset: {} } };
+scope.document = {
+  documentElement: {
+    dataset: {},
+    getAttribute: (name: string) => attrs.get(name) ?? null,
+    setAttribute: (name: string, value: string) => { attrs.set(name, String(value)); },
+    removeAttribute: (name: string) => { attrs.delete(name); },
+  },
+};
 scope.localStorage = {
   getItem: (key: string) => saved.get(key) ?? null,
   setItem: (key: string, value: string) => { saved.set(key, String(value)); },
