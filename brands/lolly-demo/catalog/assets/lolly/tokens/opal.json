@@ -35,7 +35,7 @@
             "tools.lolly.opal": {
               "use": "Dark green, a step cooler than Pine. The light-theme accent, the home ground and the dark in the reverse and mono marks."
             },
-            "com.suse.lolly": { "cmyk": [100, 31, 59, 79] }
+            "com.suse.lolly": { "cmyk": [100, 31, 59, 79], "spot": { "name": "H190_L020_C020", "book": "freieFarbe HLC Colour Atlas XL" } }
           }
         },
         "bunyapine": {
@@ -45,7 +45,7 @@
             "tools.lolly.opal": {
               "use": "The mark's green: the swirl and the giveaway lolly."
             },
-            "com.suse.lolly": { "cmyk": [88, 25, 82, 5] }
+            "com.suse.lolly": { "cmyk": [88, 25, 82, 5], "spot": { "name": "H160_L050_C045", "book": "freieFarbe HLC Colour Atlas XL" } }
           }
         },
         "green-apple": {
@@ -55,7 +55,7 @@
             "tools.lolly.opal": {
               "use": "Bright green, a step warmer than Jungle. The dark-theme accent and calls to action."
             },
-            "com.suse.lolly": { "cmyk": [72, 0, 82, 0] }
+            "com.suse.lolly": { "cmyk": [72, 0, 82, 0], "spot": { "name": "H145_L070_C060", "book": "freieFarbe HLC Colour Atlas XL" } }
           }
         },
         "pandanus": {
@@ -65,7 +65,7 @@
             "tools.lolly.opal": {
               "use": "A light leaf green for raised washes and selected states."
             },
-            "com.suse.lolly": { "cmyk": [42, 0, 46, 0] }
+            "com.suse.lolly": { "cmyk": [42, 0, 46, 0], "spot": { "name": "H140_L085_C030", "book": "freieFarbe HLC Colour Atlas XL" } }
           }
         },
         "avocado": {
@@ -75,7 +75,7 @@
             "tools.lolly.opal": {
               "use": "The palest wash, for pages and paper where Lolly shows itself."
             },
-            "com.suse.lolly": { "cmyk": [11, 0, 19, 0] }
+            "com.suse.lolly": { "cmyk": [11, 0, 19, 0], "spot": { "name": "H125_L095_C010", "book": "freieFarbe HLC Colour Atlas XL" } }
           }
         },
         "khaki": {
@@ -85,7 +85,7 @@
             "tools.lolly.opal": {
               "use": "Deep olive drab, paired with Olive: grounds, type on the pale washes and charts. Sugar on Khaki 8.9:1."
             },
-            "com.suse.lolly": { "cmyk": [29, 0, 100, 75] }
+            "com.suse.lolly": { "cmyk": [29, 0, 100, 75], "spot": { "name": "H110_L030_C035", "book": "freieFarbe HLC Colour Atlas XL" } }
           }
         },
         "olive": {
@@ -95,7 +95,7 @@
             "tools.lolly.opal": {
               "use": "Muted green for grounds and charts."
             },
-            "com.suse.lolly": { "cmyk": [51, 26, 85, 18] }
+            "com.suse.lolly": { "cmyk": [51, 26, 85, 18], "spot": { "name": "H110_L055_C040", "book": "freieFarbe HLC Colour Atlas XL" } }
           }
         },
         "ochre": {
@@ -105,7 +105,7 @@
             "tools.lolly.opal": {
               "use": "Deep red: error text on light under High contrast."
             },
-            "com.suse.lolly": { "cmyk": [8, 99, 100, 62] }
+            "com.suse.lolly": { "cmyk": [8, 99, 100, 62], "spot": { "name": "H035_L025_C040", "book": "freieFarbe HLC Colour Atlas XL" } }
           }
         },
         "bauxite": {
@@ -115,7 +115,7 @@
             "tools.lolly.opal": {
               "use": "Warm burgundy red for errors and anything destructive."
             },
-            "com.suse.lolly": { "cmyk": [8, 91, 93, 33] }
+            "com.suse.lolly": { "cmyk": [8, 91, 93, 33], "spot": { "name": "H035_L040_C060", "book": "freieFarbe HLC Colour Atlas XL" } }
           }
         },
         "outback": {
@@ -125,7 +125,7 @@
             "tools.lolly.opal": {
               "use": "Red earth, for charts and illustration."
             },
-            "com.suse.lolly": { "cmyk": [19, 78, 100, 3] }
+            "com.suse.lolly": { "cmyk": [19, 78, 100, 3], "spot": { "name": "H045_L050_C065", "book": "freieFarbe HLC Colour Atlas XL" } }
           }
         },
         "arvo": {
@@ -135,7 +135,7 @@
             "tools.lolly.opal": {
               "use": "Afternoon light: the error red for text on dark surfaces."
             },
-            "com.suse.lolly": { "cmyk": [0, 53, 53, 2] }
+            "com.suse.lolly": { "cmyk": [0, 53, 53, 2], "spot": { "name": "H040_L070_C045", "book": "freieFarbe HLC Colour Atlas XL" } }
           }
         },
         "banksia": {
@@ -145,7 +145,7 @@
             "tools.lolly.opal": {
               "use": "Warm orange for charts and illustration."
             },
-            "com.suse.lolly": { "cmyk": [1, 51, 87, 2] }
+            "com.suse.lolly": { "cmyk": [1, 51, 87, 2], "spot": { "name": "H060_L070_C065", "book": "freieFarbe HLC Colour Atlas XL" } }
           }
         },
         "honey": {
@@ -155,7 +155,7 @@
             "tools.lolly.opal": {
               "use": "Gold: highlights, the stage spotlight and unsaved work."
             },
-            "com.suse.lolly": { "cmyk": [1, 28, 82, 0] }
+            "com.suse.lolly": { "cmyk": [1, 28, 82, 0], "spot": { "name": "H080_L080_C070", "book": "freieFarbe HLC Colour Atlas XL" } }
           }
         },
         "wattle": {
@@ -165,7 +165,7 @@
             "tools.lolly.opal": {
               "use": "A soft light yellow, after the wattle in flower: highlights, notes and sunny grounds, a lighter step from Honey. Liquorice on Wattle 15.7:1."
             },
-            "com.suse.lolly": { "cmyk": [2, 4, 48, 1] }
+            "com.suse.lolly": { "cmyk": [2, 4, 48, 1], "spot": { "name": "H095_L090_C040", "book": "freieFarbe HLC Colour Atlas XL" } }
           }
         },
         "bark": {
@@ -175,7 +175,7 @@
             "tools.lolly.opal": {
               "use": "Brown for grounds, illustration and charts."
             },
-            "com.suse.lolly": { "cmyk": [41, 63, 87, 44] }
+            "com.suse.lolly": { "cmyk": [41, 63, 87, 44], "spot": { "name": "H060_L035_C025", "book": "freieFarbe HLC Colour Atlas XL" } }
           }
         },
         "pancake": {
@@ -185,7 +185,7 @@
             "tools.lolly.opal": {
               "use": "Warm tan for grounds and illustration."
             },
-            "com.suse.lolly": { "cmyk": [15, 28, 47, 4] }
+            "com.suse.lolly": { "cmyk": [15, 28, 47, 4], "spot": { "name": "H075_L075_C025", "book": "freieFarbe HLC Colour Atlas XL" } }
           }
         },
         "beach": {
@@ -195,7 +195,7 @@
             "tools.lolly.opal": {
               "use": "Light sand between Honey and Meringue, for warm grounds."
             },
-            "com.suse.lolly": { "cmyk": [4, 10, 29, 3] }
+            "com.suse.lolly": { "cmyk": [4, 10, 29, 3], "spot": { "name": "H085_L090_C020", "book": "freieFarbe HLC Colour Atlas XL" } }
           }
         },
         "meringue": {
@@ -205,7 +205,7 @@
             "tools.lolly.opal": {
               "use": "Warm off-white for pages and paper."
             },
-            "com.suse.lolly": { "cmyk": [0, 1, 5, 3] }
+            "com.suse.lolly": { "cmyk": [0, 1, 5, 3], "spot": { "name": "H095_L095_C005", "book": "freieFarbe HLC Colour Atlas XL" } }
           }
         },
         "fuchsia": {
@@ -215,7 +215,7 @@
             "tools.lolly.opal": {
               "use": "Correa, the native fuchsia: a vivid pink for celebrations, highlights and illustration. Sugar on Fuchsia 4.7:1, and 4.0:1 as a part on Liquorice."
             },
-            "com.suse.lolly": { "cmyk": [12, 99, 0, 0] }
+            "com.suse.lolly": { "cmyk": [12, 99, 0, 0], "spot": { "name": "H350_L050_C075", "book": "freieFarbe HLC Colour Atlas XL" } }
           }
         },
         "donut": {
@@ -225,7 +225,7 @@
             "tools.lolly.opal": {
               "use": "Pink icing for celebrations and illustration."
             },
-            "com.suse.lolly": { "cmyk": [0, 51, 4, 0] }
+            "com.suse.lolly": { "cmyk": [0, 51, 4, 0], "spot": { "name": "H355_L075_C035", "book": "freieFarbe HLC Colour Atlas XL" } }
           }
         },
         "jacaranda": {
@@ -235,7 +235,7 @@
             "tools.lolly.opal": {
               "use": "The jacaranda's purple, wherever it is the right colour. An AI association is fine."
             },
-            "com.suse.lolly": { "cmyk": [67, 52, 0, 0] }
+            "com.suse.lolly": { "cmyk": [67, 52, 0, 0], "spot": { "name": "H290_L055_C055", "book": "freieFarbe HLC Colour Atlas XL" } }
           }
         },
         "lagoon": {
@@ -245,7 +245,7 @@
             "tools.lolly.opal": {
               "use": "Deep blue water, paired with Sky: links, charts and illustration, never one of Lolly's own grounds. Liquorice on Lagoon 4.6:1."
             },
-            "com.suse.lolly": { "cmyk": [82, 37, 1, 2] }
+            "com.suse.lolly": { "cmyk": [82, 37, 1, 2], "spot": { "name": "H255_L050_C045", "book": "freieFarbe HLC Colour Atlas XL" } }
           }
         },
         "sky": {
@@ -255,7 +255,7 @@
             "tools.lolly.opal": {
               "use": "Bright sky blue, paired with Lagoon: illustration, highlights and charts. Liquorice on Sky 10.1:1."
             },
-            "com.suse.lolly": { "cmyk": [62, 4, 0, 0] }
+            "com.suse.lolly": { "cmyk": [62, 4, 0, 0], "spot": { "name": "H235_L075_C040", "book": "freieFarbe HLC Colour Atlas XL" } }
           }
         },
         "reef": {
@@ -265,7 +265,7 @@
             "tools.lolly.opal": {
               "use": "Turquoise, the dramatic relief: information and the moment that matters most."
             },
-            "com.suse.lolly": { "cmyk": [73, 0, 34, 0] }
+            "com.suse.lolly": { "cmyk": [73, 0, 34, 0], "spot": { "name": "H195_L070_C040", "book": "freieFarbe HLC Colour Atlas XL" } }
           }
         },
         "swell": {
@@ -275,7 +275,7 @@
             "tools.lolly.opal": {
               "use": "The palest aqua, paired with Reef: a wash behind turquoise content. Liquorice on Swell 15:1."
             },
-            "com.suse.lolly": { "cmyk": [36, 0, 17, 0] }
+            "com.suse.lolly": { "cmyk": [36, 0, 17, 0], "spot": { "name": "H200_L085_C020", "book": "freieFarbe HLC Colour Atlas XL" } }
           }
         },
         "void": {
@@ -285,7 +285,7 @@
             "tools.lolly.opal": {
               "use": "True black, a step below Liquorice: the stage at its darkest, mattes and letterboxes, and grounds for OLED screens. Sugar on Void 21:1."
             },
-            "com.suse.lolly": { "cmyk": [71, 60, 43, 100] }
+            "com.suse.lolly": { "cmyk": [71, 60, 43, 100], "spot": { "name": "H000_L005_C000", "book": "freieFarbe HLC Colour Atlas XL" } }
           }
         },
         "liquorice": {
@@ -295,7 +295,7 @@
             "tools.lolly.opal": {
               "use": "The darkest colour: text everywhere and the cool hull of the dark theme."
             },
-            "com.suse.lolly": { "cmyk": [89, 48, 32, 100] }
+            "com.suse.lolly": { "cmyk": [89, 48, 32, 100], "spot": { "name": "H240_L005_C005", "book": "freieFarbe HLC Colour Atlas XL" } }
           }
         },
         "liquorice-raised": {
@@ -305,7 +305,7 @@
             "tools.lolly.opal": {
               "use": "A raised surface on the Liquorice hull."
             },
-            "com.suse.lolly": { "cmyk": [94, 47, 30, 100] }
+            "com.suse.lolly": { "cmyk": [94, 47, 30, 100], "spot": { "name": "H240_L010_C005", "book": "freieFarbe HLC Colour Atlas XL" } }
           }
         },
         "liquorice-panel": {
@@ -315,7 +315,7 @@
             "tools.lolly.opal": {
               "use": "A panel on the Liquorice hull."
             },
-            "com.suse.lolly": { "cmyk": [89, 55, 38, 87] }
+            "com.suse.lolly": { "cmyk": [89, 55, 38, 87], "spot": { "name": "H235_L015_C005", "book": "freieFarbe HLC Colour Atlas XL" } }
           }
         },
         "basalt": {
@@ -325,7 +325,7 @@
             "tools.lolly.opal": {
               "use": "Dark rock: edges and panels on dark, heavy type on light."
             },
-            "com.suse.lolly": { "cmyk": [68, 48, 37, 71] }
+            "com.suse.lolly": { "cmyk": [68, 48, 37, 71], "spot": { "name": "H250_L025_C005", "book": "freieFarbe HLC Colour Atlas XL" } }
           }
         },
         "pebble": {
@@ -335,7 +335,7 @@
             "tools.lolly.opal": {
               "use": "Mid grey for hairlines, and quiet text on dark."
             },
-            "com.suse.lolly": { "cmyk": [36, 24, 23, 20] }
+            "com.suse.lolly": { "cmyk": [36, 24, 23, 20], "spot": { "name": "H240_L065_C005", "book": "freieFarbe HLC Colour Atlas XL" } }
           }
         },
         "sugar": {

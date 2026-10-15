@@ -99,9 +99,20 @@ profile.
   lightness at full weight), with no black in bright colours and the ink total
   under 300%, or 280% for the darks.
 - CMYK cannot reach Jacaranda (chroma 37 of 59), Green Apple (56 of 60), Swell,
-  Pandanus, Reef and Sky. These are the colours a spot ink would carry, and spot
-  inks are not set yet. Void and the Liquorice tints are rich blacks at the
+  Pandanus, Reef and Sky. Void and the Liquorice tints are rich blacks at the
   press's deepest, about L 11.
+
+Every colour except the paper whites (Sugar and Daylight) also names a spot ink
+in `com.suse.lolly.spot`, for printing a colour at full strength: the nearest
+colour in the [freieFarbe HLC Colour Atlas XL](https://freiefarbe.de/en/thema-farbe/hlc-colour-atlas/)
+(13,283 colours, CC BY-ND 4.0, freieFarbe e.V.). HLC is an open colour system
+defined in CIELAB (D50, 2° observer) and the basis of DIN SPEC 16699, "Open
+Colour Communication". A colour's name is its own target (`H290_L055_C055` is
+hue 290°, lightness 55, chroma 55), and the atlas publishes spectral data for
+mixing each one as a spot ink. Every match is within ΔE00 2.4 of the screen
+colour except Swell (3.95, nothing paler exists at its hue), and the spot keeps
+the chroma CMYK loses: Jacaranda prints at chroma 55 as `H290_L055_C055`
+against 37 in CMYK.
 
 ## Not done yet
 
