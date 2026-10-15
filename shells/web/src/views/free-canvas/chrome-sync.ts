@@ -33,11 +33,20 @@ export function scheduleSync(fc: FcCtx): void {
 export function renderChromeLive(fc: FcCtx): void {
   const boxes = fc.select.getBoxes();
   const rects = new Map<number, Rect>();
+  const g = fc.gesture;
   for (const i of fc.selectionTransform.transformSet(boxes)) {
     const id = fc.select.idOf(boxes[i], i);
-    const live = fc.gesture ? fc.liveRects?.get(id) : undefined;
+    const live = g ? fc.liveRects?.get(id) : undefined;
     if (live) {
       rects.set(i, live);
+      continue;
+    }
+    // Scale mode's set holds the members of a selected artboard, which a move carries
+    // inside the page without a rect of their own. They travel by the move's own delta;
+    // read from the DOM they would add a page offset cached when the move began.
+    if (g?.type === 'move' && g.moveDelta) {
+      const r = boxRect(boxes[i], fc.cfg);
+      rects.set(i, { ...r, x: r.x + g.moveDelta.dx, y: r.y + g.moveDelta.dy });
       continue;
     }
     const el = fc.stage.liveBoxEl(id);

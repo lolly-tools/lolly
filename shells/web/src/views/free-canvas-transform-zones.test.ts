@@ -306,6 +306,32 @@ test('a mouse press 10 px outside a corner turns the box; a finger there does no
   } finally { g.destroy(); }
 });
 
+test('over another object a mouse press just outside a corner resizes, as far out as the corner handle always reached', async () => {
+  // A full-bleed background under the selected box: the usual poster layout.
+  const f = mount([
+    { id: 'bg', kind: 'box', x: 0, y: 0, w: 1000, h: 1000, rot: 0 },
+    { id: 'a', kind: 'box', x: 100, y: 100, w: 200, h: 200, rot: 0 },
+  ] as Box[]);
+  try {
+    f.select(['a']);
+    await settle();
+    // 9 px out on the se diagonal: past the corner handle's square, inside its old fat target.
+    assert.equal(await hover(f, 309, 309), 'nwse-resize', 'the corner cursor, not the background\'s');
+    await drag(f, 309, 309, 349, 349);
+    assert.deepEqual(f.selection(), ['a']);
+    assert.deepEqual(rectOf(f.byId('a')), [100, 100, 240, 240], 'the corner resized the box');
+    assert.deepEqual(rectOf(f.byId('bg')), [0, 0, 1000, 1000], 'and the background stayed');
+    // A click there is the handle's: nothing changes.
+    await click(f, 349, 349);
+    assert.deepEqual(f.selection(), ['a']);
+    assert.equal(f.writes(), 1);
+    // 30 px out the background takes the press, as it always did.
+    await drag(f, 370, 370, 410, 410);
+    assert.deepEqual(f.selection(), ['bg']);
+    assert.deepEqual(rectOf(f.byId('bg')), [40, 40, 1000, 1000]);
+  } finally { f.destroy(); }
+});
+
 test('an artboard and a locked row have no rotate zone, and a locked row no zone at all', async () => {
   const f = mount([
     { id: 'f1', kind: 'frame', x: 100, y: 100, w: 400, h: 300, order: 0 },
@@ -696,6 +722,39 @@ test('an 8 px box on an artboard resizes from its outside strip, and the artboar
     assert.deepEqual(rectOf(f.byId('f1')), [0, 0, 1000, 1000]);
     assert.deepEqual(f.selection(), ['t']);
   } finally { f.destroy(); }
+});
+
+test('a press in the band round a selected hairline or tiny box moves the box, for a mouse, a pen and a finger', async () => {
+  const kinds = ['mouse', 'pen', 'touch'] as const;
+  for (const kind of kinds) {
+    // A 200 x 2 rule: 3 px below its top edge is 1 px off the rule, inside the 10 px band.
+    const f = mount([{ id: 'r', kind: 'box', x: 100, y: 300, w: 200, h: 2, rot: 0 } as Box]);
+    try {
+      f.select(['r']);
+      await settle();
+      await drag(f, 200, 304, 240, 334, { kind });
+      assert.deepEqual(f.selection(), ['r'], `${kind}: the rule stays selected`);
+      assert.deepEqual(rectOf(f.byId('r')), [140, 330, 200, 2], `${kind}: and moves`);
+      assert.equal(f.writes(), 1, `${kind}: one undo step`);
+    } finally { f.destroy(); }
+    // A 6 px box: 1 px past its e side.
+    const g = mount([{ id: 't', kind: 'box', x: 300, y: 300, w: 6, h: 6, rot: 0 } as Box]);
+    try {
+      g.select(['t']);
+      await settle();
+      await drag(g, 307, 303, 347, 343, { kind });
+      assert.deepEqual(g.selection(), ['t'], `${kind}: the tiny box stays selected`);
+      assert.deepEqual(rectOf(g.byId('t')), [340, 340, 6, 6], `${kind}: and moves`);
+    } finally { g.destroy(); }
+  }
+  // Past the band a mouse press is a marquee on the empty canvas, as before.
+  const h = mount([{ id: 'r', kind: 'box', x: 100, y: 300, w: 200, h: 2, rot: 0 } as Box]);
+  try {
+    h.select(['r']);
+    await settle();
+    await click(h, 200, 330);
+    assert.deepEqual(h.selection(), [], 'a click well clear of the rule deselects');
+  } finally { h.destroy(); }
 });
 
 // ── 8. Thin boxes keep a handle for their length ────────────────────────────────

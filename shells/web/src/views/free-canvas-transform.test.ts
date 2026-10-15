@@ -23,7 +23,7 @@ import {
   handleOutset, SMALL_HANDLE_OUTSET, zoneDragThreshold, ZONE_DRAG_PX, ZONE_DRAG_PX_COARSE,
   HANDLE_HALF, HANDLE_HALF_COARSE, HANDLE_FAT, drawnHandleReach, handleHitReach, onDrawnHandle,
   resizeCursorFor, rotateCursorAt, rotateCursorFor, snapAngleHard, rotateSnap, pinchTransform,
-  PINCH_MAX_COVER, PINCH_SECOND_MS, PINCH_TRAVEL_PX, pinchFits, pinchMembers, visibleRect,
+  PINCH_MAX_COVER, PINCH_SECOND_MS, PINCH_TRAVEL_PX, pinchFits, pinchMembers, pinchReaches, visibleRect, inMoveBand, MIN_MOVE_PX,
 } from './free-canvas-transform.ts';
 import type { BoxPose, ContentScaleSpec, FieldBounds, ModifierKeys, ScreenRect, TransformKind, ViewRect, ZoneOpts } from './free-canvas-transform.ts';
 import { rotateVec } from './free-canvas-math.ts';
@@ -1130,6 +1130,35 @@ test('visibleRect clips the stage to the view that holds the stage, and an unsiz
   assert.deepEqual(visibleRect(box(10, 20, 300, 200), box(0, 0, 0, 0)), { x: 10, y: 20, w: 300, h: 200 });
   // A stage scrolled clear of the view is empty, never negative.
   assert.deepEqual(visibleRect(box(2000, 0, 100, 100), box(0, 0, 1000, 800)), { x: 2000, y: 0, w: 0, h: 100 });
+});
+
+test('pinchReaches: a finger on the posed selection, or within a finger\'s zone reach of it, turned with the box', () => {
+  const view = { x: 0, y: 0, w: 1000, h: 1000 };
+  const big = { x: 100, y: 100, w: 200, h: 200, rot: 0 };
+  assert.equal(pinchReaches({ x: 200, y: 200 }, big, view), true, 'inside');
+  // A finger's reach is the coarse handle's 8 px half plus its 9 px fat target.
+  assert.equal(pinchReaches({ x: 317, y: 200 }, big, view), true, '17 px out');
+  assert.equal(pinchReaches({ x: 318, y: 200 }, big, view), false, '18 px out');
+  // A 40 px box is in narrow mode: its zones reach 24 px out.
+  const small = { x: 300, y: 300, w: 40, h: 40, rot: 0 };
+  assert.equal(pinchReaches({ x: 364, y: 364 }, small, view), true);
+  assert.equal(pinchReaches({ x: 365, y: 320 }, small, view), false);
+  assert.equal(pinchReaches({ x: 620, y: 620 }, small, view), false, 'far off on the stage');
+  // Turned 45 degrees, the box's own corner reach counts, not its bounds.
+  const turnedBox = { ...big, rot: 45 };
+  assert.equal(pinchReaches({ x: 200 + 141, y: 200 }, turnedBox, view), true, 'past the right corner, inside the reach');
+  assert.equal(pinchReaches({ x: 290, y: 110 }, turnedBox, view), false, 'inside the bounds, far off the turned box');
+});
+
+test('inMoveBand: a thin or tiny rect is grown to MIN_MOVE_PX on its thin axes, turned with the rect', () => {
+  const rule: ScreenRect = { x: 100, y: 300, w: 200, h: 2, rot: 0 };
+  assert.equal(MIN_MOVE_PX, 10);
+  assert.equal(inMoveBand({ x: 200, y: 305 }, rule), true, '4 px off the middle of a 2 px rule');
+  assert.equal(inMoveBand({ x: 200, y: 307 }, rule), false, 'past the 10 px band');
+  assert.equal(inMoveBand({ x: 301, y: 301 }, rule), false, 'past the end: the length is not grown');
+  assert.equal(inMoveBand({ x: 307, y: 303 }, { x: 300, y: 300, w: 6, h: 6 }), true, 'a tiny box grows on both axes');
+  assert.equal(inMoveBand({ x: 150, y: 150 }, { x: 100, y: 100, w: 100, h: 100 }), false, 'a box past the band has none');
+  assert.equal(inMoveBand({ x: 200 - 4, y: 301 }, { ...rule, rot: 90 }), true, 'a turned rule grows across its own thin axis');
 });
 
 test('pinchFits: the selection must lie inside the stage and cover under 60% of the stage', () => {

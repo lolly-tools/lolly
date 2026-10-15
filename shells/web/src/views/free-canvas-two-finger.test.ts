@@ -55,6 +55,7 @@ Reflect.set(globalThis, 'CSS', Reflect.get(W, 'CSS') ?? { escape: (v: string) =>
 
 const { initFreeCanvas } = await import('./free-canvas.ts');
 const { setupStageNav } = await import('./tool-stage-nav.ts');
+const { registerCanvasInteractions } = await import('../lib/canvas-interaction.ts');
 
 const NATIVE = 1000;
 const rect = (left: number, top: number, width: number, height: number): DOMRect => ({
@@ -89,12 +90,18 @@ interface Fixture {
   viewEl: HTMLElement;
   stageEl: HTMLElement;
   canvasEl: HTMLElement;
+  runtime: object;
+  /** Another participant's write to the rows, as the collaboration layer applies one. */
+  write(rows: Box[]): void;
+  rows(): Box[];
   byId(id: string): Record<string, unknown>;
   el(id: string): HTMLElement;
   writes(): number;
   select(ids: string[]): void;
   /** The view's zoom, 1 at Fit. */
   zoom(): number;
+  /** The stage navigation's view, and a way to set one. */
+  view(state?: { scale: number; x: number; y: number }): { scale: number; x: number; y: number };
   destroy(): void;
 }
 
@@ -148,12 +155,15 @@ function mount(seed: Box[], o: { frame?: boolean; canvas?: Record<string, unknow
   });
   const boxes = (): Box[] => model.get('boxes') as Box[];
   return {
-    viewEl, stageEl, canvasEl,
+    viewEl, stageEl, canvasEl, runtime,
+    write: (rows) => runtime.setInput('boxes', rows),
+    rows: boxes,
     byId: (id) => boxes().find((b) => b.id === id)! as Record<string, unknown>,
     el: (id) => canvasEl.querySelector<HTMLElement>(`[data-box-id="${id}"], [data-frame-id="${id}"]`)!,
     writes: () => writes,
     select: (ids) => handle.applyUi({ select: ids } as never),
     zoom: () => nav.viewState().scale,
+    view: (state) => { if (state) nav.applyView(state); return nav.viewState(); },
     destroy() { handle.destroy(); nav.destroy(); viewEl.remove(); for (const m of doc.querySelectorAll('.fc-context-menu')) m.remove(); },
   };
 }
@@ -277,6 +287,39 @@ test('outside Scale mode the pinch is a uniform resize: the content keeps its si
   } finally { f.destroy(); }
 });
 
+test('a peer row inserted between the last pinch frame and the lift: the pinch commits every row it previewed', async () => {
+  for (const scale of [false, true]) {
+    const f = mount([
+      { id: 'a', kind: 'box', x: 100, y: 100, w: 100, h: 100, rot: 0, fontSize: 20 },
+      { id: 'b', kind: 'box', x: 300, y: 100, w: 100, h: 100, rot: 0, fontSize: 20 },
+      { id: 'c', kind: 'box', x: 700, y: 700, w: 50, h: 50, rot: 0, fontSize: 20 },
+    ] as Box[]);
+    const off = registerCanvasInteractions(f.runtime, { acquire: async () => ({ id: 'mine', preview() {}, finish() {} }) });
+    try {
+      f.select(['a', 'b']);
+      await settle();
+      if (scale) {
+        press('k');
+        await settle();
+      }
+      // The first finger on a, the second between the boxes; the spread doubles about (200, 150).
+      down(f, [150, 150], [250, 150]);
+      await to(f, [100, 150], [300, 150]);
+      // After the last frame, a peer puts a row at the front: every row moves one place.
+      f.write([{ id: 'z', kind: 'box', x: 800, y: 50, w: 40, h: 40, rot: 0 } as Box, ...f.rows()]);
+      await settle();
+      const before = f.writes();
+      await up(f, [100, 150], [300, 150]);
+      const tag = scale ? 'Scale mode' : 'Resize';
+      assert.equal(f.writes() - before, 1, `${tag}: one commit`);
+      assert.deepEqual(rectOf(f.byId('a')), [0, 50, 200, 200], `${tag}: a scaled`);
+      assert.deepEqual(rectOf(f.byId('b')), [400, 50, 200, 200], `${tag}: b scaled`);
+      assert.equal(f.byId('a').fontSize, scale ? 40 : 20, `${tag}: a's content follows the mode`);
+      assert.deepEqual(rectOf(f.byId('c')), [700, 700, 50, 50], `${tag}: the row outside the pinch is untouched`);
+    } finally { off(); f.destroy(); }
+  }
+});
+
 // ── 2. twist ─────────────────────────────────────────────────────────────────
 
 test('a twist under 10 degrees turns nothing and commits nothing', async () => {
@@ -302,14 +345,15 @@ test('past 10 degrees the turn counts from where it engaged and takes the magnet
     await settle();
     const [a0, b0] = turned([200, 200], 40, 0);
     down(f, a0, b0);
+    // Past the two-finger tap's 500 ms, so the pair is no longer a tap and a twist can engage.
     const [a1, b1] = turned([200, 200], 40, 12);
-    await to(f, a1, b1);
+    await to(f, a1, b1, 1600);
     assert.doesNotMatch(f.el('a').style.transform, /rotate/, 'the frame that engages adds no jump');
     // 26 degrees of twist is 14 past the engage point: the magnet takes it to 15.
     const [a2, b2] = turned([200, 200], 40, 26);
-    await to(f, a2, b2, 1300);
+    await to(f, a2, b2, 1700);
     assert.match(f.el('a').style.transform, /rotate\(15deg\)/);
-    await up(f, a2, b2);
+    await up(f, a2, b2, 1800);
     const a = f.byId('a');
     assert.equal(Number(a.rot), 15);
     assert.deepEqual(rectOf(a), [100, 100, 200, 200], 'a single box turns about its own centre');
@@ -328,10 +372,10 @@ test('a set turns about the centre of its bounds', async () => {
     const [a0, b0] = turned([200, 150], 50, 0); // the first finger on a, at (150, 150)
     down(f, a0, b0);
     const [a1, b1] = turned([200, 150], 50, 12);
-    await to(f, a1, b1);
+    await to(f, a1, b1, 1600);
     const [a2, b2] = turned([200, 150], 50, 102);
-    await to(f, a2, b2, 1300);
-    await up(f, a2, b2);
+    await to(f, a2, b2, 1700);
+    await up(f, a2, b2, 1800);
     // The bounds' centre is (250, 150): a quarter turn swings a up to (200, 0) and b down to (200, 200).
     assert.deepEqual([...rectOf(f.byId('a')), Number(f.byId('a').rot)], [200, 0, 100, 100, 90]);
     assert.deepEqual([...rectOf(f.byId('b')), Number(f.byId('b').rot)], [200, 200, 100, 100, 90]);
@@ -429,6 +473,26 @@ test('a second finger on the bare stage zooms the view and keeps the selection',
     near(f.zoom(), 2, 0.05, 'the view zoomed');
     assert.ok(handles() > 0, 'neither finger deselected');
     assert.equal(f.writes(), 0);
+  } finally { f.destroy(); }
+});
+
+test('a second finger far from a small selection leaves the pair to the view: the view zooms and the object keeps its size', async () => {
+  const f = mount([{ id: 'a', kind: 'box', x: 300, y: 300, w: 40, h: 40, rot: 0 } as Box]);
+  try {
+    f.select(['a']);
+    await settle();
+    // The first finger on the selected box, the second 300 px away on the empty artboard.
+    down(f, [320, 320], [620, 620]);
+    await to(f, [300, 300], [700, 700]);
+    await up(f, [300, 300], [700, 700]);
+    assert.ok(f.zoom() > 1.2, `the view zoomed (${f.zoom()})`);
+    assert.deepEqual(rectOf(f.byId('a')), [300, 300, 40, 40], 'the small box was not scaled');
+    assert.equal(f.writes(), 0);
+    // Within a finger's reach past the outline, the pair is the selection's.
+    down(f, [320, 320], [354, 354], 20, 3000);
+    await to(f, [300, 300], [374, 374], 3600);
+    await up(f, [300, 300], [374, 374], 3700);
+    assert.equal(f.writes(), 1, 'a second finger just past the corner still pinches the box');
   } finally { f.destroy(); }
 });
 
@@ -598,17 +662,64 @@ test('a resting pair that drifts a few px moves nothing and commits nothing', as
   } finally { f.destroy(); }
 });
 
-test('an engaged pinch released inside the tap window is not a tap', async () => {
+test('a two-finger tap whose fingers roll or drift inside the tap\'s slop still opens the menu and changes nothing', async () => {
   const f = mount(ONE());
   try {
     f.select(['a']);
     await settle();
-    // 5 px a finger is a 10% spread at this distance: inside the tap's 14 px, past the 2% engage.
+    // One finger rolls 1.5 px with the fingers 40 px apart: a 3.75% spread, past the 2% engage.
+    down(f, [180, 200], [220, 200]);
+    f.canvasEl.dispatchEvent(finger('pointermove', [221.5, 200], 2, 1060));
+    await settle();
+    assert.equal(geom(f.el('a')), '100px 100px 200px 200px', 'nothing previews while the pair can be a tap');
+    await up(f, [180, 200], [221.5, 200], 1150);
+    assert.ok(f.stageEl.querySelector('.fc-context-menu'), 'the menu opened');
+    assert.deepEqual(rectOf(f.byId('a')), [100, 100, 200, 200]);
+    assert.equal(f.writes(), 0, 'the roll is no scale');
+    for (const m of f.stageEl.querySelectorAll('.fc-context-menu')) m.remove();
+    // Both fingers drift 11 px together: past the pinch's 10 px travel, inside the tap's 14 px.
+    down(f, [180, 200], [220, 200], 20, 3000);
+    await to(f, [191, 200], [231, 200], 3100);
+    await up(f, [191, 200], [231, 200], 3150);
+    assert.ok(f.stageEl.querySelector('.fc-context-menu'), 'the drifting tap opened the menu too');
+    assert.deepEqual(rectOf(f.byId('a')), [100, 100, 200, 200]);
+    assert.equal(f.writes(), 0, 'the drift is no move');
+  } finally { f.destroy(); }
+});
+
+test('a pinch past the tap\'s slop inside its window is no tap: it previews, commits and opens no menu', async () => {
+  const f = mount(ONE());
+  try {
+    f.select(['a']);
+    await settle();
+    // 15 px a finger is past the tap's 14 px, 80 ms after the second finger came down.
     down(f, [150, 200], [250, 200]);
-    await to(f, [145, 200], [255, 200], 1080);
-    await up(f, [145, 200], [255, 200], 1120);
+    await to(f, [135, 200], [265, 200], 1080);
+    assert.equal(geom(f.el('a')), '70px 70px 260px 260px', 'the spread previews at once');
+    await up(f, [135, 200], [265, 200], 1120);
     assert.equal(f.stageEl.querySelector('.fc-context-menu'), null, 'no menu');
+    assert.deepEqual(rectOf(f.byId('a')), [70, 70, 260, 260]);
     assert.equal(f.writes(), 1, 'the pinch committed');
+  } finally { f.destroy(); }
+});
+
+test('a double tap just outside a selection fits the view, though each tap lands in a grab zone first', async () => {
+  const f = mount(ONE());
+  try {
+    f.select(['a']);
+    await settle();
+    f.view({ scale: 1.5, x: 40, y: 0 });
+    // 10 px outside the e side, clear of its drawn handle: inside a finger's large zone.
+    const tap = async (t: number): Promise<void> => {
+      f.canvasEl.dispatchEvent(finger('pointerdown', [310, 150], 1, t));
+      f.canvasEl.dispatchEvent(finger('pointerup', [310, 150], 1, t + 40));
+      await settle();
+    };
+    await tap(5000);
+    assert.deepEqual(f.view(), { scale: 1.5, x: 40, y: 0 }, 'one tap only deselects');
+    await tap(5150);
+    assert.deepEqual(f.view(), { scale: 1, x: 0, y: 0 }, 'the second tap fits the view');
+    assert.equal(f.writes(), 0);
   } finally { f.destroy(); }
 });
 

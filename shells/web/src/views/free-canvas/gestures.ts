@@ -161,13 +161,16 @@ export function onStageTouchDown(fc: FcCtx, e: PointerEvent): void {
   fc.pinch.press(e);
 }
 export function onStageTouchMove(fc: FcCtx, e: PointerEvent): void {
-  const { TWO_TAP_SLOP, touchPts } = fc;
+  const { TWO_TAP_MS, TWO_TAP_SLOP, touchPts } = fc;
   const p = touchPts.get(e.pointerId);
   if (!p) return;
   p.cx = e.clientX;
   p.cy = e.clientY;
   p.moved = Math.max(p.moved, Math.hypot(e.clientX - p.x, e.clientY - p.y));
   if (p.moved > TWO_TAP_SLOP) fc.twoTapStart = 0; // a pan or a pinch, not a tap
+  // A pair held past the tap's window is no tap either (the lift would not open the
+  // menu), so a pinch on the selection may engage from here (pinch.ts).
+  else if (fc.twoTapStart && (e.timeStamp || Date.now()) - fc.twoTapStart > TWO_TAP_MS) fc.twoTapStart = 0;
 }
 export function onStageTouchUp(fc: FcCtx, e: PointerEvent): void {
   const { TWO_TAP_MS, TWO_TAP_SLOP, touchPts } = fc;
@@ -437,7 +440,12 @@ export function onCanvasPointerDown(fc: FcCtx, e: PointerEvent, replay = false):
     e.stopPropagation();
     return;
   }
-  const hit = fc.select.selectHit(boxes, nat.x, nat.y); // artboard-aware: a child over a frame wins; the frame takes an empty-area/edge click
+  let hit = fc.select.selectHit(boxes, nat.x, nat.y); // artboard-aware: a child over a frame wins; the frame takes an empty-area/edge click
+  // The band the zones leave round a selected hairline or tiny box moves the box (zones.ts).
+  if (!replay && !wasEditing && (hit < 0 || isFrameRow(fc, boxes[hit])) && !(e.shiftKey || e.metaKey || e.ctrlKey || e.altKey || fc.multiTapMode)) {
+    const band = fc.zones.moveBand(boxes, e.clientX, e.clientY);
+    if (band >= 0) hit = band;
+  }
   if (hit >= 0) {
     fc.edges.deselectEdge(); // picking a card drops any connector selection
     const additive = e.shiftKey || e.metaKey || e.ctrlKey || fc.multiTapMode;

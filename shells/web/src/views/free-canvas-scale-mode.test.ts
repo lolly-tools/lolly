@@ -114,6 +114,9 @@ interface MountOpts {
   layout?: boolean;
   /** The canvas input's declared box fields. */
   fields?: Array<{ id: string; type?: string; min?: number; max?: number }>;
+  /** Members painted inside their page at page-local places, as Design renders them,
+   *  with each page's offset read from its own inline place. */
+  nested?: boolean;
 }
 interface Fixture {
   stageEl: HTMLElement;
@@ -134,18 +137,25 @@ interface Fixture {
   destroy(): void;
 }
 
-function paint(canvasEl: HTMLElement, b: Box): void {
+function paint(canvasEl: HTMLElement, b: Box, seed: Box[] = [], nested = false): void {
   const el = dom.window.document.createElement('div');
   const page = String(b.kind) === 'frame';
   el.className = page ? 'lolly-frame-page' : 'lolly-box';
   el.setAttribute(page ? 'data-frame-id' : 'data-box-id', String(b.id));
   if (page) el.setAttribute('data-pdf-page', '');
-  el.style.cssText = `position:absolute;left:${b.x}px;top:${b.y}px;width:${b.w}px;height:${b.h}px`;
+  // jsdom lays nothing out: a page reports the offset of its own inline place.
+  if (page) for (const [prop, side] of [['offsetLeft', 'left'], ['offsetTop', 'top']] as const) {
+    Object.defineProperty(el, prop, { configurable: true, get: () => parseFloat(el.style[side]) || 0 });
+  }
+  const owner = nested && b.frame ? seed.find((p) => p.id === b.frame) : undefined;
+  const host = owner ? canvasEl.querySelector<HTMLElement>(`[data-frame-id="${String(owner.id)}"]`) : null;
+  const x = Number(b.x) - (host ? Number(owner!.x) : 0), y = Number(b.y) - (host ? Number(owner!.y) : 0);
+  el.style.cssText = `position:absolute;left:${x}px;top:${y}px;width:${b.w}px;height:${b.h}px`;
   const text = dom.window.document.createElement('div');
   text.className = 'lolly-box-text';
   text.textContent = String(b.text ?? '');
   el.appendChild(text);
-  canvasEl.appendChild(el);
+  (host ?? canvasEl).appendChild(el);
 }
 
 function mount(seed: Box[], o: MountOpts = {}): Fixture {
@@ -158,7 +168,10 @@ function mount(seed: Box[], o: MountOpts = {}): Fixture {
   doc.body.appendChild(viewEl);
   stageEl.getBoundingClientRect = () => rect(0, 0, NATIVE, NATIVE);
   canvasEl.getBoundingClientRect = () => rect(0, 0, NATIVE, NATIVE);
-  for (const b of seed) if (String(b.kind) !== 'group') paint(canvasEl, b);
+  // Nested, pages go first, so a member painted inside its page finds the page whatever the row order.
+  const painted = seed.filter((b) => String(b.kind) !== 'group');
+  const order = o.nested ? [...painted.filter((b) => b.kind === 'frame'), ...painted.filter((b) => b.kind !== 'frame')] : painted;
+  for (const b of order) paint(canvasEl, b, seed, o.nested);
 
   const model = new Map<string, unknown>([['boxes', seed], ['textDocument', o.text ?? ''], ['pages', [{ id: 'page-1', name: 'Page 1' }]]]);
   const subs: Array<() => void> = [];
@@ -310,6 +323,29 @@ test('K is ignored in a field, in a text edit and with Cmd, Ctrl, Alt or Shift',
     press('k');
     await settle();
     assert.equal(scaleOn(f), false, 'a text edit keeps K for the text');
+  } finally { f.destroy(); }
+});
+
+test('K while a zone press is held short of its drag changes nothing: the drag keeps the mode it was pressed in', async () => {
+  const f = mount([CONTENT()]);
+  try {
+    f.select(['a']);
+    await settle();
+    // 3 px outside the e edge, clear of the drawn handle: an edge strip holds the press.
+    f.canvasEl.dispatchEvent(pointer('pointerdown', 303, 120));
+    press('k');
+    await settle();
+    assert.equal(scaleOn(f), false, 'K is ignored while the press is held');
+    f.canvasEl.dispatchEvent(pointer('pointermove', 403, 120));
+    await settle();
+    f.canvasEl.dispatchEvent(pointer('pointerup', 403, 120));
+    await settle();
+    assert.deepEqual(rectOf(f.byId('a')), [100, 100, 300, 100], 'the strip resized the width');
+    assert.equal(f.byId('a').fontSize, 20, 'as a Resize: the content keeps its size');
+    assert.equal(f.writes(), 1);
+    press('k');
+    await settle();
+    assert.equal(scaleOn(f), true, 'once the press is over, K toggles again');
   } finally { f.destroy(); }
 });
 
@@ -662,6 +698,63 @@ test('Escape mid-Scale puts the DOM back on the model and commits nothing', asyn
   } finally { f.destroy(); }
 });
 
+test('Escape or a cancel after scaling an artboard puts its members back inside the page, whatever the row order', async () => {
+  // Drawing boxes and then framing them puts the member row before its artboard's row.
+  for (const memberFirst of [true, false]) for (const end of ['Escape', 'pointercancel'] as const) {
+    const page: Box = { id: 'A', kind: 'frame', x: 100, y: 100, w: 300, h: 300, order: 0 };
+    const member: Box = { id: 'm', kind: 'box', x: 150, y: 150, w: 100, h: 100, frame: 'A', fontSize: 20 };
+    const f = mount(memberFirst ? [member, page] : [page, member], { frame: true, nested: true });
+    try {
+      f.select(['A']);
+      await settle();
+      press('k');
+      await settle();
+      await drag(f, 'se', 100, 100, true);
+      if (end === 'Escape') press('Escape');
+      else f.canvasEl.dispatchEvent(pointer('pointercancel', 500, 500));
+      await settle();
+      const tag = `${memberFirst ? 'member row first' : 'artboard row first'}, ${end}`;
+      assert.equal(geom(f.el('A')), '100px 100px 300px 300px', `${tag}: the page is back`);
+      assert.equal(geom(f.el('m')), '50px 50px 100px 100px', `${tag}: the member is back at its place in the page`);
+      f.canvasEl.dispatchEvent(pointer('pointerup', 500, 500));
+      await settle();
+      assert.equal(f.writes(), 0, `${tag}: nothing is written`);
+    } finally { f.destroy(); }
+  }
+});
+
+test('in Scale mode a moving artboard keeps its set outline on the page every frame', async () => {
+  for (const memberFirst of [true, false]) {
+    const page: Box = { id: 'A', kind: 'frame', x: 100, y: 100, w: 300, h: 300, order: 0 };
+    const member: Box = { id: 'm', kind: 'box', x: 150, y: 150, w: 100, h: 100, frame: 'A' };
+    const f = mount(memberFirst ? [member, page] : [page, member], { frame: true, nested: true });
+    try {
+      f.select(['A']);
+      await settle();
+      press('k');
+      await settle();
+      const outline = (): string => {
+        const el = f.stageEl.querySelector<HTMLElement>('.fc-chrome .fc-group-outline');
+        return el ? `${el.style.left} ${el.style.width}` : 'none';
+      };
+      assert.equal(outline(), '100px 300px', 'the set outline is the page');
+      // A press on the page, clear of the member and of every zone, moves the artboard.
+      f.canvasEl.dispatchEvent(pointer('pointerdown', 350, 350));
+      const seen: string[] = [];
+      for (const step of [1, 2, 3]) {
+        f.canvasEl.dispatchEvent(pointer('pointermove', 350 + 50 * step, 350));
+        await settle();
+        seen.push(outline());
+      }
+      assert.deepEqual(seen, ['150px 300px', '200px 300px', '250px 300px'], `${memberFirst ? 'member row first' : 'artboard row first'}: the outline follows the page`);
+      f.canvasEl.dispatchEvent(pointer('pointerup', 500, 350));
+      await settle();
+      assert.deepEqual(rectOf(f.byId('A')), [250, 100, 300, 300]);
+      assert.deepEqual(rectOf(f.byId('m')), [300, 150, 100, 100]);
+    } finally { f.destroy(); }
+  }
+});
+
 test('the Scale popover applies 200% about a chosen anchor in one undo step and returns focus', async () => {
   const f = mount([CONTENT()]);
   try {
@@ -728,6 +821,58 @@ test('with Scale off the popover opens for several objects and resizes their geo
   } finally { f.destroy(); }
 });
 
+test('the Scale popover links W and H to the percentage, for a set and for one box in Scale mode', async () => {
+  const type = (el: HTMLInputElement, value: string): void => {
+    el.value = value;
+    el.dispatchEvent(new W.Event('input', { bubbles: true }));
+  };
+  const fieldsOf = (panel: HTMLElement): { pct: HTMLInputElement; w: HTMLInputElement; h: HTMLInputElement } => ({
+    pct: panel.querySelector<HTMLInputElement>('input[aria-label="Scale (%)"]')!,
+    w: panel.querySelector<HTMLInputElement>('input[aria-label="Width"]')!,
+    h: panel.querySelector<HTMLInputElement>('input[aria-label="Height"]')!,
+  });
+  const set = mount([
+    { id: 'a', kind: 'box', x: 100, y: 100, w: 100, h: 100, rot: 0, fontSize: 10 },
+    { id: 'b', kind: 'box', x: 300, y: 100, w: 100, h: 100, rot: 0, fontSize: 10 },
+  ] as Box[]);
+  try {
+    set.select(['a', 'b']);
+    await settle();
+    set.stageEl.querySelector<HTMLElement>('.fc-ctxbar [data-cx-readout]')!.click();
+    const panel = set.stageEl.querySelector<HTMLElement>('.fc-scale-panel')!;
+    const f = fieldsOf(panel);
+    assert.deepEqual([f.pct.value, f.w.value, f.h.value], ['100', '300', '100'], 'W and H start at the bounds of the set');
+    type(f.w, '600');
+    assert.deepEqual([f.pct.value, f.h.value], ['200', '200'], 'a width sets the factor, and the rest follow');
+    press('Enter', {}, f.w);
+    await settle();
+    assert.equal(set.writes(), 1, 'one undo step');
+    assert.deepEqual(rectOf(set.byId('a')), [100, 100, 200, 200]);
+    assert.deepEqual(rectOf(set.byId('b')), [500, 100, 200, 200]);
+  } finally { set.destroy(); }
+  const one = mount([CONTENT()]);
+  try {
+    one.select(['a']);
+    await settle();
+    press('k');
+    await settle();
+    one.stageEl.querySelector<HTMLElement>('.fc-ctxbar [data-cx-readout]')!.click();
+    const panel = one.stageEl.querySelector<HTMLElement>('.fc-scale-panel')!;
+    const f = fieldsOf(panel);
+    assert.deepEqual([f.w.value, f.h.value], ['200', '100'], 'one box starts at its own size');
+    type(f.h, '150');
+    assert.deepEqual([f.pct.value, f.w.value], ['150', '300']);
+    type(f.pct, '50');
+    assert.deepEqual([f.w.value, f.h.value], ['100', '50'], 'and the percentage drives both');
+    type(f.h, '150');
+    [...panel.querySelectorAll<HTMLButtonElement>('button')].find((b) => b.textContent === 'Apply')!.click();
+    await settle();
+    const a = one.byId('a');
+    assert.deepEqual(rectOf(a), [100, 100, 300, 150], 'Apply takes the field typed in last');
+    assert.equal(a.fontSize, 30, 'with the content, in Scale mode');
+  } finally { one.destroy(); }
+});
+
 // ── 7. review fixes ──────────────────────────────────────────────────────────
 
 test('every Scale calls its undo step Scale, the drag, the set and the popover alike; a Resize does not', async () => {
@@ -789,6 +934,54 @@ test('a peer edit to a content field during a Scale is scaled, for one box and f
       assert.equal(f.byId('a').w, 400, `${tag}: k is 2`);
       assert.equal(f.byId('a').fontSize, 60, `${tag}: the peer's 30, scaled`);
       assert.equal(f.byId('a').fill, '#ff0000', `${tag}: and the peer's fill kept`);
+    } finally { off(); f.destroy(); }
+  }
+});
+
+test('a peer row inserted between the last frame and the release: a group scale and a group turn commit every member they previewed', async () => {
+  // The peer's row goes in at the front, so every row moves one place in the array between
+  // the last pointer frame and the release, which applies no further frame.
+  const cases = [['gscale', false], ['gscale', true], ['grotate', false]] as const;
+  for (const [kind, scale] of cases) {
+    const f = mount([
+      { id: 'a', kind: 'box', x: 100, y: 100, w: 100, h: 100, rot: 0, fontSize: 20 },
+      { id: 'b', kind: 'box', x: 300, y: 100, w: 100, h: 100, rot: 0, fontSize: 20 },
+      { id: 'c', kind: 'box', x: 850, y: 850, w: 50, h: 50, rot: 0, fontSize: 20 },
+    ] as Box[]);
+    const off = registerCanvasInteractions(f.runtime, { acquire: async () => ({ id: 'mine', preview() {}, finish() {} }) });
+    try {
+      f.select(['a', 'b']);
+      await settle();
+      if (scale) {
+        press('k');
+        await settle();
+      }
+      // gscale: the set's se corner from (400, 200) to (700, 300), a factor of 2 from (100, 100).
+      // grotate: the rotate handle swung a quarter turn about the bounds' centre (250, 150).
+      const h = f.handle(kind === 'gscale' ? 'se' : 'rotate')!;
+      const [x, y] = at(h);
+      const to: [number, number] = kind === 'gscale' ? [700, 300] : [250 - (y - 150), 150];
+      h.dispatchEvent(pointer('pointerdown', x, y));
+      f.canvasEl.dispatchEvent(pointer('pointermove', to[0], to[1]));
+      await settle();
+      f.write('boxes', [{ id: 'z', kind: 'box', x: 800, y: 50, w: 40, h: 40, rot: 0 }, ...(f.model('boxes') as Box[])]);
+      await settle();
+      const before = f.writes();
+      f.canvasEl.dispatchEvent(pointer('pointerup', to[0], to[1]));
+      await settle();
+      const tag = `${kind}${scale ? ' in Scale mode' : ''}`;
+      assert.equal(f.writes() - before, 1, `${tag}: one commit`);
+      const row = (id: string): number[] => [...rectOf(f.byId(id)), Number(f.byId(id).rot)];
+      if (kind === 'gscale') {
+        assert.deepEqual(row('a'), [100, 100, 200, 200, 0], `${tag}: a scaled`);
+        assert.deepEqual(row('b'), [500, 100, 200, 200, 0], `${tag}: b scaled`);
+        assert.equal(f.byId('a').fontSize, scale ? 40 : 20, `${tag}: a's content follows the mode`);
+      } else {
+        assert.deepEqual(row('a'), [200, 0, 100, 100, 90], `${tag}: a turned`);
+        assert.deepEqual(row('b'), [200, 200, 100, 100, 90], `${tag}: b turned`);
+      }
+      assert.deepEqual(row('c'), [850, 850, 50, 50, 0], `${tag}: the row outside the set is untouched`);
+      assert.deepEqual(row('z'), [800, 50, 40, 40, 0], `${tag}: and the peer's row too`);
     } finally { off(); f.destroy(); }
   }
 });

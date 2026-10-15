@@ -31,9 +31,9 @@
  */
 import type { Box } from '../free-canvas-math.ts';
 import {
-  drawnHandleReach, handleHitReach, largeZoneSize, onDrawnHandle, resizeCursorFor, rotateCursorAt, rotateCursorFor, rotateStemFor,
-  visibleRect, zoneAt, zoneDragThreshold, zoneRects, type HandleMedia, type PointerKind, type ScreenRect, type ViewRect, type ZoneHit,
-  type ZoneOpts,
+  drawnHandleReach, handleHitReach, inMoveBand, largeZoneSize, onDrawnHandle, resizeCursorFor, rotateCursorAt, rotateCursorFor,
+  rotateStemFor, visibleRect, zoneAt, zoneDragThreshold, zoneRects, type HandleMedia, type PointerKind, type ScreenRect, type ViewRect,
+  type ZoneHit, type ZoneOpts,
 } from '../free-canvas-transform.ts';
 import type { Gesture, HandleName, Metrics, Point, Rect } from './shared.ts';
 import { bindOp, type FcCtx } from './context.ts';
@@ -195,7 +195,8 @@ function zoneTarget(fc: FcCtx, boxes: Box[]): ZoneTarget | null {
  * there, so the outer half of a strip steps aside; an outer corner and a rotate zone
  * stay, where Shift keeps the aspect or steps the turn. A zone never takes a press from
  * another object: the point must hold a member of the selection, an artboard or
- * nothing (plan 311 Amendment 1), and the interior is never a zone.
+ * nothing (plan 311 Amendment 1), and the interior is never a zone. The one exception is
+ * a corner's old reach: within its handle's fat target the corner resizes, as before.
  *
  * Under the large zones a drawn resize handle lets the press through to the zone that
  * stands for the handle, and on the handle the handle's own press wins, as it did when
@@ -223,8 +224,30 @@ function zoneUnder(fc: FcCtx, boxes: Box[], x: number, y: number, kind: PointerK
   const nat = fc.stage.clientToNative(x, y);
   const under = fc.select.selectHit(boxes, nat.x, nat.y);
   if (under >= 0 && !target.idx.includes(under) && !fc.gestures.isFrameRow(boxes[under]) &&
-    !fc.select.selectionForHit(boxes, under, false).some((id) => fc.selection.has(id))) return null;
+    !fc.select.selectionForHit(boxes, under, false).some((id) => fc.selection.has(id))) {
+    // Over another object a corner still reaches as far as its handle's fat target always
+    // did. Where the zones are live a fine pointer meets the corner handle on its square
+    // alone (editor.css), for the rotate band past the corner, but no band takes a press
+    // over another object, and that object would take the press instead.
+    const corner = hit.kind === 'edge' ? null : hit.handle;
+    const fat = drawnHandleReach({ coarse: (media ?? handleMedia()).coarse, fine: false });
+    if (corner && onDrawnHandle({ x, y }, target.rect, corner, fat)) {
+      return { hit: { kind: 'corner', handle: corner, outside: hit.outside }, target, opts, onHandle: true };
+    }
+    return null;
+  }
   return { hit, target, opts, onHandle: false };
+}
+/**
+ * The selected row a press moves from the band round a hairline or a tiny box, or -1:
+ * the zones stand clear of a band at least MIN_MOVE_PX thick (inMoveBand), so a finger
+ * or a mouse a few px off a 2 px rule still moves the rule. Only one box has a band; a
+ * set's bounds hold empty space between its members.
+ */
+export function moveBandAt(fc: FcCtx, boxes: Box[], x: number, y: number): number {
+  const target = zoneTarget(fc, boxes);
+  if (!target || target.multi || target.idx.length !== 1) return -1;
+  return inMoveBand({ x, y }, target.rect) ? target.idx[0]! : -1;
 }
 /** Wash the zone a press there takes, when the zones are large; otherwise none. */
 function washZone(fc: FcCtx, found: ZoneFound | null): void {
@@ -297,6 +320,11 @@ export function pressZone(fc: FcCtx, e: PointerEvent, from: ZoneFrom): boolean {
   return true;
 }
 
+/** Is a zone press held, short of its drag? Its drag starts in the mode and on the chrome
+ *  the press was measured on, so Scale mode keeps still until the press ends. */
+export function zonePressHeld(fc: FcCtx): boolean {
+  return pending.has(fc);
+}
 /** End a held press without a transform or a click: Escape, another press, a cancel. */
 function dropPress(fc: FcCtx): void {
   const p = takePress(fc);
@@ -363,8 +391,19 @@ function zonePressUp(fc: FcCtx, e: PointerEvent): void {
   if (e.type === 'pointercancel' || fc.disposed || p.found.onHandle) { releaseCapture(fc, e.pointerId); return; }
   if (p.from === 'canvas') fc.gestures.onCanvasPointerDown(p.press, true);
   else fc.gestures.onBackdropPointerDown(p.press, true);
+  // A finger or a pen tapped empty space (a tap on the canvas, or the bare stage).
+  const empty = p.press.pointerType !== 'mouse' && (p.from === 'backdrop' || fc.gesture?.type === 'tap');
   if (fc.gesture?.pointerId === e.pointerId) fc.gestures.onGestureEnd(e);
   else releaseCapture(fc, e.pointerId);
+  // The view's double-tap to fit never saw the press this zone held, so it is told of
+  // the tap, at the press's own time.
+  if (empty) tapToStage(fc, p.press);
+}
+/** Count a tap toward the stage's double-tap to fit (tool-stage-nav.ts `fc-touch-tap`). */
+function tapToStage(fc: FcCtx, press: PointerEvent): void {
+  // From the stage's own realm, as pinch.ts builds `fc-touch-handoff`.
+  const Ev = (fc.stageEl.ownerDocument?.defaultView?.CustomEvent ?? CustomEvent) as typeof CustomEvent;
+  fc.stageEl.dispatchEvent(new Ev('fc-touch-tap', { detail: { at: press.timeStamp } }));
 }
 
 // ── Cursors ──────────────────────────────────────────────────────────────────
@@ -583,6 +622,8 @@ export function wireZones(fc: FcCtx): () => void {
 export function zonesOps(fc: FcCtx) {
   return {
     press: bindOp(fc, pressZone),
+    held: bindOp(fc, zonePressHeld),
+    moveBand: bindOp(fc, moveBandAt),
     handlePress: bindOp(fc, handleZonePress),
     holdCursor: bindOp(fc, holdCursor),
     releaseCursor: bindOp(fc, releaseCursor),

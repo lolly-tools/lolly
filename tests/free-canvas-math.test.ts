@@ -295,6 +295,19 @@ test('resizeRect aspectFrom dominant clamps ONE factor, so a 120x10 box keeps it
   near(edge.w, 96); near(edge.h, 8);
 });
 
+test('resizeRect aspectFrom dominant with keepThin holds a side already under minSize at its own size', () => {
+  const rule = { x: 100, y: 300, w: 300, h: 4, rot: 0 };
+  const opts = { minSize: 8, keepAspect: true, aspectFrom: 'dominant' as const, keepThin: true };
+  // A Shift drag of the e handle 270 px in: k = 0.1, and the 4 px side stays 4 px, held on its anchor.
+  assert.deepEqual(resizeRect(rule, 'e', -270, 0, opts), { x: 100, y: 300, w: 30, h: 4, rot: 0 });
+  // The se corner holds the nw corner.
+  assert.deepEqual(resizeRect(rule, 'se', -270, 0, opts), { x: 100, y: 300, w: 30, h: 4, rot: 0 });
+  // Growing still scales both sides.
+  assert.deepEqual(resizeRect(rule, 'se', 300, 0, opts), { x: 100, y: 300, w: 600, h: 8, rot: 0 });
+  // Without keepThin (the deck editor's call) the thin side scales with k, as before.
+  near(resizeRect(rule, 'e', -270, 0, { minSize: 8, keepAspect: true, aspectFrom: 'dominant' }).h, 0.4);
+});
+
 test('resizeRect aspectFrom dominant with a mirrored from-centre drag, rotated', () => {
   const r = resizeRect({ x: 0, y: 0, w: 100, h: 100, rot: 0 }, 'se', 10, 4, { keepAspect: true, aspectFrom: 'dominant', fromCentre: true, mirror: true });
   assert.deepEqual([r.x, r.y, r.w, r.h], [-10, -10, 120, 120]);

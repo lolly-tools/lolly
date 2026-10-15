@@ -807,6 +807,19 @@ export const NARROW_FACTOR = 3;
 export const MIN_MOVE_PX = 10;
 
 /**
+ * Is a screen point in the band the zones leave round a thin or tiny posed rect? The
+ * zones are laid round the rect grown to MIN_MOVE_PX on each axis it is thinner on
+ * ({@link zoneLayout}), and that band is the rect's own: a press there moves the object,
+ * as a press on the object does (Penpot's minimum selection rect). False for a rect at
+ * least MIN_MOVE_PX on both axes, whose band is the rect itself.
+ */
+export function inMoveBand(point: Point, rect: ScreenRect): boolean {
+  if (rect.w >= MIN_MOVE_PX && rect.h >= MIN_MOVE_PX) return false;
+  const l = rotateVec(point.x - (rect.x + rect.w / 2), point.y - (rect.y + rect.h / 2), -(rect.rot || 0));
+  return Math.abs(l.x) <= Math.max(rect.w, MIN_MOVE_PX) / 2 && Math.abs(l.y) <= Math.max(rect.h, MIN_MOVE_PX) / 2;
+}
+
+/**
  * Which handles the DOM chrome shows for a posed box of `wScreen`×`hScreen` screen
  * px (Penpot's rule, for every pointer). 25 px or less on an axis hides the two
  * midpoint handles on the short edges (a narrow width hides n and s), which would
@@ -1311,6 +1324,20 @@ export function pinchFits(sel: ViewRect, stage: ViewRect, maxCover = PINCH_MAX_C
   if (!(stage.w > 0 && stage.h > 0) || !(sel.w >= 0 && sel.h >= 0)) return false;
   const inside = sel.x >= stage.x && sel.y >= stage.y && sel.x + sel.w <= stage.x + stage.w && sel.y + sel.h <= stage.y + stage.h;
   return inside && (sel.w * sel.h) / (stage.w * stage.h) < maxCover;
+}
+
+/**
+ * Did a finger land on the posed selection `rect` (screen px, turned with a single box),
+ * or close enough to take the selection with a second finger? Close enough is as far
+ * as a finger's grab zones reach past the outline: a finger's handle reach, or the 24 px
+ * zones outside a selection too small for zones inside (narrow mode). A finger further
+ * out leaves the pair to the view's own pinch and pan.
+ */
+export function pinchReaches(point: Point, rect: ScreenRect, viewport: ViewRect): boolean {
+  const reach = handleHitReach('touch').corner;
+  const margin = largeZoneSize(rect, viewport).narrow ? Math.max(GRAB_ZONE_MIN, reach) : reach;
+  const l = rotateVec(point.x - (rect.x + rect.w / 2), point.y - (rect.y + rect.h / 2), -(rect.rot || 0));
+  return Math.abs(l.x) <= rect.w / 2 + margin && Math.abs(l.y) <= rect.h / 2 + margin;
 }
 
 /** Options for {@link pinchMembers}. */

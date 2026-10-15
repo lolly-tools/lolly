@@ -586,6 +586,11 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
   }
 
   // ── Touch / pen: pinch-zoom + drag-pan (mouse stays free for click-to-focus) ──
+  /** A lone finger's tap, at its press time: a second one within 300 ms fits the view. */
+  const tapAtTime = (tapAt: number): void => {
+    if (tapAt - lastTap < 300 && isZoomed()) { fit(); lastTap = 0; }  // double-tap → fit (sheet-aware)
+    else lastTap = tapAt;
+  };
   /** A finger joins: two make a pinch, one a pan. `tapAt` is the press time the
    *  double-tap reads, or null for a finger handed over after its press. */
   const touchDown = (id: number, x: number, y: number, tapAt: number | null): void => {
@@ -598,9 +603,7 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
       panPt     = null;
     } else if (pts.size === 1) {
       panPt = { x, y };
-      if (tapAt === null) return;
-      if (tapAt - lastTap < 300 && isZoomed()) { fit(); lastTap = 0; }  // double-tap → fit (sheet-aware)
-      else lastTap = tapAt;
+      if (tapAt !== null) tapAtTime(tapAt);
     }
   };
   stageEl.addEventListener('pointerdown', e => {
@@ -616,6 +619,14 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
     touchDown(d.pointerId, d.x, d.y, null);
   };
   stageEl.addEventListener('fc-touch-handoff', onTouchHandoff);
+  // A finger's tap on empty space that the Design canvas held as a grab zone press, and
+  // let go as a tap (free-canvas `fc-touch-tap`): it never reached this stage as a press,
+  // so it is counted here, at its press time, toward double-tap to fit.
+  const onTouchTap = (event: Event): void => {
+    const at = (event as CustomEvent<{ at?: unknown }>).detail?.at;
+    if (typeof at === 'number' && !pts.size) tapAtTime(at);
+  };
+  stageEl.addEventListener('fc-touch-tap', onTouchTap);
 
   stageEl.addEventListener('pointermove', e => {
     if (!pts.has(e.pointerId)) return;
@@ -1115,6 +1126,7 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
     destroyed = true;
     stageEl.removeEventListener('fc-text-focus',onTextFocus);
     stageEl.removeEventListener('fc-touch-handoff', onTouchHandoff);
+    stageEl.removeEventListener('fc-touch-tap', onTouchTap);
     window.removeEventListener('resize', onLayoutChange);
     canvasEl?.removeEventListener('canvas-resize', onLayoutChange);
     stageRo?.disconnect();

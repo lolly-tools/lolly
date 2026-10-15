@@ -9,8 +9,9 @@
  * the FIRST finger of the sequence came down, before that finger's press could change
  * the selection. Two fingers take the selection only when the first finger pressed a
  * selected object on the canvas or its chrome (not a panel floating over the object),
- * the second followed within 300 ms, both are fingers, no artboard is in the set, no
- * row in the set is parked on a keyframe at the playhead, the selection sits inside the
+ * the second followed within 300 ms on the selection or within a finger's grab zone
+ * reach of the selection, both are fingers, no artboard is in the set, no row in the set
+ * is parked on a keyframe at the playhead, the selection sits inside the
  * stage covering under 60% of the stage, nothing is locked and no text, pen, node or
  * gradient edit was live as either finger came down. A claimed pair is stopped there
  * (`stopImmediatePropagation`, which also covers a press on the bare stage). A declined
@@ -25,21 +26,23 @@
  * base rows, as a group scale does, where a one-finger move on a diamond poses the
  * keyframe instead.
  *
- * Scale follows the spread past 2%, turning follows the twist past 10 degrees, counted
- * from where it engaged, and the midpoint carries the selection once it has travelled a
- * finger's drag threshold or either of the others has engaged (pinchTransform). A
- * two-finger tap that never engaged still opens the context menu, and a resting pair
- * commits nothing. Scale mode scales the content too; otherwise the pinch is a uniform
- * resize. A single box turns about its own centre and a set about the centre of its
- * bounds, with the rotate handles' soft magnet (pinchMembers).
+ * Nothing engages while the pair can still be a two-finger tap (every finger within the
+ * tap's 14 px, inside its 500 ms), so a tap with a finger that rolls as it touches down
+ * still opens the context menu and changes nothing. After that, scale follows the spread
+ * past 2%, turning follows the twist past 10 degrees, counted from where it engaged, and
+ * the midpoint carries the selection once it has travelled a finger's drag threshold or
+ * either of the others has engaged (pinchTransform). A resting pair commits nothing.
+ * Scale mode scales the content too; otherwise the pinch is a uniform resize. A single
+ * box turns about its own centre and a set about the centre of its bounds, with the
+ * rotate handles' soft magnet (pinchMembers).
  *
  * Every function takes the shared `fc: FcCtx` first (see context.ts). Sibling calls in
  * this file are direct; anything in another module goes through `fc.<module>.<fn>`.
  */
 import { boxRect, withRect } from '../free-canvas-math.ts';
 import type { Box } from '../free-canvas-math.ts';
-import { PINCH_SECOND_MS, PINCH_TRAVEL_PX, pinchFits, pinchMembers, pinchTransform, visibleRect } from '../free-canvas-transform.ts';
-import type { PinchGesture, TouchPt } from './shared.ts';
+import { PINCH_SECOND_MS, PINCH_TRAVEL_PX, pinchFits, pinchMembers, pinchReaches, pinchTransform, visibleRect } from '../free-canvas-transform.ts';
+import type { PinchGesture, Point, TouchPt } from './shared.ts';
 import { bindOp, type FcCtx } from './context.ts';
 
 /** The first finger of a touch sequence, and the selection as it stood when the finger came down. */
@@ -117,12 +120,13 @@ function pinchMode(fc: FcCtx): boolean {
  * finger's press (see the file comment), or null. `sel` is what the pinch scales and
  * carries (Scale mode widens the set, as a Scale drag does) and `turns` marks, by
  * position, the rows the twist turns: the plain selection without artboards. The caller
- * has put that selection in place.
+ * has put that selection in place. `second` is the second finger, in client px, which
+ * must touch down on the posed selection or within a finger's zone reach of the selection.
  */
-function pinchRows(fc: FcCtx, boxes: Box[]): { sel: number[]; turns: boolean[] } | null {
+function pinchRows(fc: FcCtx, boxes: Box[], second: Point): { sel: number[]; turns: boolean[] } | null {
   if (!fc.select.selectionLive(boxes)) return null;
   const set = fc.chromeSync.chromeSet(boxes);
-  if (!set.handles) return null;
+  if (!set.handles || !set.idx.length) return null;
   const plain = fc.hierarchy?.transformIndices(boxes) || fc.select.selIndices(boxes);
   const sel = fc.selectionTransform.transformSet(boxes);
   if (!sel.length || [...plain, ...sel, ...set.idx].some((i) => fc.gestures.isFrameRow(boxes[i]))) return null;
@@ -130,12 +134,20 @@ function pinchRows(fc: FcCtx, boxes: Box[]): { sel: number[]; turns: boolean[] }
   if (fc.timelinePanel?.kfPoseIds(sel.map((i) => fc.select.idOf(boxes[i], i))).length) return null;
   // The selection as the chrome poses it, on screen, against the visible stage.
   const m = fc.stage.metrics();
-  const a = fc.chromeSync.aabbOfRects(set.idx.map((i) => fc.chromeSync.chromeRect(boxes, i, null)));
+  const rects = set.idx.map((i) => fc.chromeSync.chromeRect(boxes, i, null));
+  const a = fc.chromeSync.aabbOfRects(rects);
   const onScreen = {
     x: m.cr.left + a.minX * m.scale, y: m.cr.top + a.minY * m.scale,
     w: (a.maxX - a.minX) * m.scale, h: (a.maxY - a.minY) * m.scale,
   };
-  if (!pinchFits(onScreen, visibleRect(m.sr, fc.viewEl.getBoundingClientRect()))) return null;
+  const view = visibleRect(m.sr, fc.viewEl.getBoundingClientRect());
+  if (!pinchFits(onScreen, view)) return null;
+  // One box is turned with the box, as its chrome is; a set is the bounds of its chrome.
+  const one = rects.length === 1 ? rects[0]! : null;
+  const posed = one
+    ? { x: m.cr.left + one.x * m.scale, y: m.cr.top + one.y * m.scale, w: one.w * m.scale, h: one.h * m.scale, rot: one.rot || 0 }
+    : onScreen;
+  if (!pinchReaches(second, posed, view)) return null;
   const turning = new Set(plain);
   return { sel, turns: sel.map((i) => turning.has(i)) };
 }
@@ -157,7 +169,7 @@ function claim(fc: FcCtx, e: PointerEvent, first: Sequence): boolean {
   const changed = was.size !== first.selection.size || [...first.selection].some((id) => !was.has(id));
   if (changed) fc.selection = new Set(first.selection);
   const boxes = fc.select.getBoxes();
-  const rows = pinchRows(fc, boxes);
+  const rows = pinchRows(fc, boxes, { x: e.clientX, y: e.clientY });
   if (!rows) {
     fc.selection = was;
     return false;
@@ -208,11 +220,16 @@ export function trackPinch(fc: FcCtx, e: PointerEvent): void {
 /**
  * One frame, from both fingers' latest points (applyGestureMove calls it once the
  * collaboration lease allows a frame): the rows as the frame leaves them, previewed live,
- * the content at `k` in Scale mode. An engaged spread, twist or travel is no longer a tap.
+ * the content at `k` in Scale mode. A pair that can still be a tap previews nothing.
  */
 export function pinchFrame(fc: FcCtx): void {
   const g = fc.gesture;
   if (g?.type !== 'pinch') return;
+  // While the pair can still be a two-finger tap (every finger inside the tap's 14 px,
+  // inside its 500 ms), nothing engages: a finger that rolls a px or two as it touches
+  // down is a tap, which opens the menu and changes nothing. The first frame after the
+  // tap's slop or window has passed follows the fingers from where they started.
+  if (fc.twoTapStart && !fc.twoTapDone) return;
   const { cfg, minSize } = fc;
   const nowA = fc.stage.clientToNative(g.curA.x, g.curA.y), nowB = fc.stage.clientToNative(g.curB.x, g.curB.y);
   const res = pinchTransform(g.startA, g.startB, nowA, nowB, {
@@ -222,7 +239,6 @@ export function pinchFrame(fc: FcCtx): void {
   g.scaleEngaged = res.scaleEngaged;
   g.engagedAt = res.engagedAt;
   g.travelEngaged = res.travelEngaged;
-  if (res.scaleEngaged || res.rotateEngaged || res.travelEngaged) fc.twoTapStart = 0;
   const f = pinchMembers(g.sel.map((i) => boxRect(g.startBoxes[i], cfg)), res, { minSize, turns: g.turns });
   const at = new Map(g.sel.map((i, j) => [i, f.rects[j]!]));
   const next = g.startBoxes.map((b, i) => {

@@ -506,8 +506,10 @@ html[data-a11y-motion="reduce"] .fc-btn-lolly:focus-visible svg .lolly-mark__spi
    its behaviour inside this one row is local. Restating the fill pair here would beat the
    primitive from the `views` layer, which is what primitive-guards.test.ts ratchets. */
 .fc-num-go { flex: none; }
-/* The Scale popover (plan 311): the percentage row, the 3x3 anchor and its two buttons. */
+/* The Scale popover (plan 311): the percentage row, the linked width and height (the
+   Position & size panel's labelled cells, `.fc-dims-f`), the 3x3 anchor and its two buttons. */
 .fc-scale-panel .fc-num-row .field-input { flex: 1 1 auto; min-width: 0; }
+.fc-scale-size { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-4); }
 .fc-scale-actions { display: flex; justify-content: flex-end; gap: var(--sp-2); }
 /* The object bar's Scale toggle on a coarse pointer: a full accent wash while on. */
 .fc-ctxbar .fc-cbtn[data-cx="scale"].is-on { background: hsl(var(--primary) / 0.16); color: hsl(var(--primary)); }

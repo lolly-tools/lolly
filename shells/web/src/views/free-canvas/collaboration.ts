@@ -87,10 +87,21 @@ export function canvasGestureReady(fc: FcCtx, move?: GesturePointer): boolean {
     } else if (g.type === 'gscale' || g.type === 'grotate' || g.type === 'pinch') {
       // A pinch derives every frame from its start rows and its fingers' start points,
       // so the rebased rows below are all it needs.
+      const live = g.liveBoxes && new Map(g.liveBoxes.map((box, i) => [fc.select.idOf(box, i), box]));
       g.sel = selected;
       g.startBoxes = boxes.map((box, i) => {
         const baseline = state.baseline.get(fc.select.idOf(box, i)); return baseline ? withRect(box, baseline, fc.cfg) : box;
       });
+      // The last frame's rows follow their ids as well, so a lift that comes before the
+      // next frame commits what that frame showed for every row of the selection, even
+      // when a peer's write has moved the rows to new places in the array since.
+      if (live) {
+        const moved = new Set(selected);
+        g.liveBoxes = g.startBoxes.map((box, i) => {
+          const row = moved.has(i) ? live.get(fc.select.idOf(box, i)) : undefined;
+          return row ? withRect(box, boxRect(row, fc.cfg), fc.cfg) : box;
+        });
+      }
       // The pivot and the bounds (and with them the anchor every gscale frame derives)
       // follow the rebased start, and the press keeps its place, so the first frame after
       // a grant reads no change at the press point rather than a jump about the bounds the
@@ -146,7 +157,11 @@ export function finishCanvasGesture(fc: FcCtx, committed: boolean): void {
   state?.lease?.finish(committed);
   if (!committed && fc.gesture) {
     const boxes = fc.select.getBoxes();
-    for (const i of indices(fc.gesture)) if (boxes[i]) fc.gestures.applyLiveRect(i, boxRect(boxes[i], fc.cfg));
+    // Artboards go back first: a member drawn inside a page is placed against the page's
+    // own offset, which must be the restored one, not the place the preview left the page.
+    const rows = indices(fc.gesture).filter(i => boxes[i]);
+    const frame = (i: number): number => (fc.gestures.isFrameRow(boxes[i]) ? 0 : 1);
+    for (const i of [...rows].sort((a, b) => frame(a) - frame(b))) fc.gestures.applyLiveRect(i, boxRect(boxes[i], fc.cfg));
   }
 }
 export function claimCanvasText(fc: FcCtx, id: string, resume: () => void): boolean {

@@ -129,7 +129,8 @@ export interface ResizeOpts {
   /** Floor only the sides the handle drives, and a side already thinner than `minSize`
    *  at its own size: lengthening a 2 px rule from an end keeps the rule 2 px thick.
    *  Off by default, which raises both sides to `minSize`, as the deck editor expects.
-   *  Applies outside the 'dominant' aspect path, which has its own uniform floor. */
+   *  On the 'dominant' aspect path, which has its own uniform floor, a side already
+   *  thinner than `minSize` never scales below its own size. */
   keepThin?: boolean;
 }
 
@@ -393,8 +394,12 @@ export function resizeRect(startRect: StartRect, handle: HandleName, dxTotal: nu
     const sx = newW / startRect.w, sy = newH / startRect.h;
     const raw = hy === 0 ? sx : hx === 0 ? sy : Math.abs(sx - 1) >= Math.abs(sy - 1) ? sx : sy;
     const k = Math.max(uniformScaleFloor(startRect.w, startRect.h, minSize), raw);
-    newW = startRect.w * k;
-    newH = startRect.h * k;
+    // With `keepThin`, a side already thinner than minSize (the floor exempts it) never
+    // shrinks below its own size, as a set's members do: a Shift drag that shortens a
+    // 4 px rule keeps the rule 4 px thick rather than rounding it away.
+    const side = (s: number): number => (opts.keepThin ? Math.max(s * k, Math.min(s, minSize)) : s * k);
+    newW = side(startRect.w);
+    newH = side(startRect.h);
   } else {
     const thin = (side: number, driven: boolean): number => (!driven ? 0 : side > 0 ? Math.min(minSize, side) : minSize);
     newW = Math.max(opts.keepThin ? thin(startRect.w, hx !== 0) : minSize, newW);

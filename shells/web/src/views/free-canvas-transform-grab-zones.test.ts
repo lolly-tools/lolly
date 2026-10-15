@@ -783,7 +783,7 @@ test('the large zones reach as far out as the drawn handles, for a finger and fo
   } finally { f.destroy(); }
 });
 
-test('a finger on a touch laptop meets a drawn corner on its square alone, where a tablet\'s corner carries its fat target', async () => {
+test('over another object a finger meets a corner as far out as the corner\'s fat target reaches, on a touch laptop and a tablet alike', async () => {
   useStorage(memoryStorage());
   const devices = [['touch laptop', { coarse: true, fine: true }], ['tablet', { coarse: true, fine: false }]] as const;
   for (const [device, media] of devices) {
@@ -795,15 +795,11 @@ test('a finger on a touch laptop meets a drawn corner on its square alone, where
       await settle();
       // 40 px up and left, clear of every snap b offers.
       await drag(f, 88, 88, 48, 48, { kind: 'touch' });
-      if (device === 'tablet') {
-        assert.deepEqual(rectOf(f.byId('a')), [60, 60, 240, 240], 'tablet: on the drawn corner the handle resizes the selection');
-        assert.deepEqual(f.selection(), ['a']);
-        assert.deepEqual(rectOf(f.byId('b')), [70, 70, 25, 25]);
-      } else {
-        assert.deepEqual(f.selection(), ['b'], 'touch laptop: past the 16 px square the object on top takes the press');
-        assert.deepEqual(rectOf(f.byId('b')), [30, 30, 25, 25], 'and moves');
-        assert.deepEqual(rectOf(f.byId('a')), [100, 100, 200, 200]);
-      }
+      // A touch laptop draws the corner without its fat target (a fine primary pointer),
+      // but over another object the corner keeps the reach it had before the zones.
+      assert.deepEqual(rectOf(f.byId('a')), [60, 60, 240, 240], `${device}: the corner resizes the selection`);
+      assert.deepEqual(f.selection(), ['a']);
+      assert.deepEqual(rectOf(f.byId('b')), [70, 70, 25, 25], `${device}: and the object on top stays`);
       assert.equal(f.writes(), 1, `${device}: one undo step`);
     } finally {
       f.destroy();
