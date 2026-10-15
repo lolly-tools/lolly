@@ -13,7 +13,8 @@ export const IOS_BUILD_MS = 1_800_000;
 
 export function processFacts(): ProcessFact[] {
   // lstart follows the locale (an en_GB Mac prints "Sat  3 Oct"), so ask for the C locale's "Sat Oct  3".
-  const reply = spawnSync('/bin/ps', ['-axo', 'pid=,ppid=,pgid=,lstart=,comm='], { encoding: 'utf8', timeout: 5000, maxBuffer: 4 * 1024 * 1024, env: { ...process.env, LC_ALL: 'C' } });
+  // A busy machine can take several seconds to answer (8 s was seen at load 135), so allow a minute.
+  const reply = spawnSync('/bin/ps', ['-axo', 'pid=,ppid=,pgid=,lstart=,comm='], { encoding: 'utf8', timeout: 60_000, maxBuffer: 4 * 1024 * 1024, env: { ...process.env, LC_ALL: 'C' } });
   assert.ok(!reply.error && reply.status === 0, 'Build process ownership cannot be inspected.');
   return reply.stdout.split('\n').filter(Boolean).map(line => {
     const match = line.match(/^\s*(\d+)\s+(\d+)\s+(\d+)\s+(\w{3}\s+\w{3}\s+\d+\s+[\d:]+\s+\d{4})\s+(.+)$/);
