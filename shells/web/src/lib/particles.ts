@@ -19,23 +19,24 @@ import { prefersReducedMotion } from './a11y-prefs.ts';
 import { perfUiOn, subscribePerfUi } from '../feature-flags.ts';
 
 /** The chip palette: [box-fill, ink] pairs. Brand-derived when tokens are
- * loaded (see brandChipPairs); this SUSE set is the fallback for a tokenless
- * catalog - and the shape reference: every pair is a strong light/dark
- * contrast so the label stays legible. */
+ * loaded (see brandChipPairs); this Opal set (Lolly's own palette, chart order
+ * first) is the fallback for a tokenless or monochrome catalog - and the shape
+ * reference: every pair is a strong light/dark contrast so the label stays
+ * legible. */
 const FALLBACK_CHIP_COLORS: ReadonlyArray<readonly [string, string]> = [
-  ['#0c322c', '#42d29f'], // dark Jungle → Jungle 5
-  ['#30ba78', '#0c322c'], // bright Jungle → Pine ink (lighter jungle chip)
-  ['#008878', '#bff1ea'], // mid Pine → Pine 7
-  ['#01564a', '#90ebcd'], // deep Pine → Mint
-  ['#38d5b4', '#01564a'], // light Pine → deep Pine ink
-  ['#8e2810', '#ffb184'], // dark Persimmon → Persimmon 6
-  ['#fe7c3f', '#47190d'], // bright Persimmon → darkest Persimmon ink
-  ['#bd3314', '#ffd3bd'], // mid Persimmon → light
-  ['#0c322c', '#efefef'], // Pine → Fog (contrast)
-  ['#efefef', '#0c322c'], // Fog → Pine (a light chip for contrast the other way)
-  ['#192072', '#81aefc'], // Midnight → light blue
-  ['#2453ff', '#c8dafc'], // Waterhole → pale blue
-  ['#0c322c', '#90ebcd'], // Pine → Mint
+  ['#50c369', '#09141a'], // Green Apple, Liquorice ink
+  ['#25c2c2', '#09141a'], // Reef
+  ['#fac044', '#09141a'], // Honey
+  ['#f39dbd', '#09141a'], // Donut
+  ['#ee9138', '#09141a'], // Banksia
+  ['#818e44', '#09141a'], // Olive
+  ['#c55123', '#ffffff'], // Outback, Sugar ink
+  ['#734f31', '#ffffff'], // Bark, Sugar ink
+  ['#033633', '#d3e688'], // Spearmint, Wattle ink
+  ['#033633', '#ace1ad'], // Spearmint, Pandanus ink
+  ['#09141a', '#50c369'], // Liquorice, Green Apple ink
+  ['#008657', '#ffffff'], // Bunyapine, Sugar ink
+  ['#edf6e0', '#033633'], // Avocado, Spearmint ink (a light chip)
 ];
 // Plain words only - a brand font may have no glyphs for symbols like ♪/★, which render as tofu.
 const LABELS = ['JUNGLE', 'FOCUS', 'FLOW', 'CALM', 'BEAT', 'RHYTHM', 'DRUM', 'BASS', 'TEMPO', 'SPEED', 'FAST', 'QUICK', 'GENIUS'];
@@ -58,7 +59,7 @@ const rand = (a: number, b: number): number => a + Math.random() * (b - a);
 // skipped - a mid-on-mid chip reads as mud), then keep light/dark combinations
 // with real label contrast, in both orientations like the fallback set. The
 // result is cached for the session; too few usable pairs (a sparse or
-// monochrome brand) falls back to the SUSE set rather than a drab burst.
+// monochrome brand) falls back to the Opal set rather than a drab burst.
 
 /** The host slice this needs - the same optional tokens resolver the brand-var
  * modules use; swatch values may be hex OR raw oklch() ramp strings. */

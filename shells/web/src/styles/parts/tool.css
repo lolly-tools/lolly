@@ -3827,7 +3827,7 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
   z-index: 3;
   pointer-events: none;
   opacity: 0;
-  background: var(--brand-primary, hsl(var(--primary)));
+  background: var(--brand-primary, var(--lolly-tone));
 }
 .export-shutter__flash.is-on { animation: export-shutter-flash 1.05s cubic-bezier(0.16, 0.8, 0.3, 1) both; }
 @keyframes export-shutter-flash {
