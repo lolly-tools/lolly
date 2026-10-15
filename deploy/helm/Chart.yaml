@@ -15,7 +15,7 @@ version: 0.2.0
 # The Lolly release these images are built against. Used as the default image
 # tag when a component's image.tag is left empty. Keep in sync with the repo's
 # desktop product version; workspace packages retain their independent versions.
-appVersion: "1.1.0"
+appVersion: "1.1.1"
 
 home: https://lolly.tools
 sources:
