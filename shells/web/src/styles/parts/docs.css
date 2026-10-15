@@ -46,9 +46,15 @@
   --dark: hsl(var(--foreground));
   --light: hsl(var(--primary) / 0.4);
   --red: hsl(var(--destructive));
-  --orange: #fe7c3f;
-  --navy: #192072;
-  --blue: #2453ff;
+  /* Opal's warm caution ink: Ochre on light grounds, Banksia on dark ones. */
+  --warn: #72251c;
+  /* lib/docs-landing.ts sets the reader's face from this name. */
+  --brand-font: var(--font-brand);
+  /* The ink on the lolly.work band (.work-body), which sits on a light green wash. */
+  --band-primary: var(--text);
+}
+:is([data-theme="dark"], [data-theme="brand"]) :is(.docs-content, .docs-landing) {
+  --warn: #ee9138;
 }
 
 /* The landing (#/docs/index) is the ONLY fragment that carries marketing BANDS, so the
@@ -56,13 +62,13 @@
  * build declares them on :root (docs/build.ts, DOCS_BRIDGE); the app has no equivalent
  * slot for any of them, and a missing custom property is invalid at computed-value time,
  * which would leave the hero with no gradient and its ink inherited (dark on dark).
- * Values mirror the static defaults, so both surfaces open the same way. Making the pair
- * brand-reactive (the build.ts comment's plan for brand-vars.ts) is a follow-up, not a
- * silent guess at what a self-hosted brand's dark band should be. */
+ * The landing is Lolly's own content in every brand, so its bands wear Lolly's own
+ * Opal greens whichever design system is loaded, the same values the static site uses.
+ * The reading text around them still follows the active brand through the bridge above. */
 .docs-landing {
-  --band-dark: 171 62% 12%;   /* the always-dark band surface (hero, pathways, about) */
-  --on-band-dark: 0 0% 100%;  /* the always-light ink that rides on it */
-  --band-accent: 151 57% 46%; /* the always-bright CTA accent on that band */
+  --band-dark: 176.5 89.5% 11.2%;  /* Spearmint: the always-dark band surface (hero, pathways, about) */
+  --on-band-dark: 0 0% 100%;       /* the always-light ink that rides on it */
+  --band-accent: 133 48.9% 53.9%;  /* Green Apple: the always-bright accent on that band */
   --col-cap: 38rem;           /* the reading measure the landing's prose columns cap at */
 }
 
@@ -668,12 +674,12 @@
 .docs-content .fmt-dialog-feats:empty { margin: 0; }
 .docs-content .fmt-dialog-feats li { font-size: calc(.72rem * var(--a11y-fs, 1)); font-weight: 700; color: inherit; background: var(--pale); border: 1px solid var(--border); padding: .32em .68em; border-radius: 1em; display: inline-flex; align-items: center; gap: .4em; }
 .docs-content .fmt-dialog-feats li::before { content: ''; width: .5em; height: .5em; border-radius: var(--radius-round); background: var(--green); flex: none; }
-.docs-content .fmt-dialog-unsup { margin: 1.2rem 0 0; padding: .85rem 1rem; border-radius: 12px; background: hsl(20 99% 62% / .1); }
+.docs-content .fmt-dialog-unsup { margin: 1.2rem 0 0; padding: .85rem 1rem; border-radius: 12px; background: rgb(238 145 56 / .1); }
 .docs-content .fmt-dialog-unsup[hidden] { display: none; }
-.docs-content .fmt-dialog-unsup-label { display: block; font-size: calc(.62rem * var(--a11y-fs, 1)); font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--orange); margin-bottom: .5rem; }
+.docs-content .fmt-dialog-unsup-label { display: block; font-size: calc(.62rem * var(--a11y-fs, 1)); font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--warn); margin-bottom: .5rem; }
 .docs-content .fmt-dialog-unsup-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: .4rem .9rem; }
 .docs-content .fmt-dialog-unsup-list li { font-size: calc(.82rem * var(--a11y-fs, 1)); line-height: 1.3; display: flex; align-items: flex-start; gap: .45em; opacity: .9; }
-.docs-content .fmt-dialog-unsup-list li::before { content: '-'; color: var(--orange); font-weight: 800; flex: none; }
+.docs-content .fmt-dialog-unsup-list li::before { content: '-'; color: var(--warn); font-weight: 800; flex: none; }
 @media (max-width: 520px) {
   .docs-content .fmt-dialog-specs, .docs-content .fmt-dialog-unsup-list { grid-template-columns: 1fr; }
 }
