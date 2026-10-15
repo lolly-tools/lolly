@@ -1519,68 +1519,89 @@ function englishAudienceH2s(): string[] {
 // excuses exactly those, so an unmarked exception fails the build's test run.
 
 /**
- * The download rail - the packaged builds, one tile each.
+ * The download rail - the packaged builds, one tile each, in two labelled rows.
  *
  * It closed the hero from its first day (the argument then: "above the fold" was
  * the whole requirement, and a band under the hero falls off a 720px laptop the
  * moment the H1 wraps). On 2026-09-02 Andy moved it down to its own band between
  * the persona device and lolly.work: a reader meets the tiles after the pitch.
- * The rail itself is unchanged; .downloads-section paints the hero's dark surface
- * under it so the on-band-dark tile colours still hold.
+ * .downloads-section paints the hero's dark surface under it so the on-band-dark
+ * tile colours still hold. On 2026-10-15 it grew from one row of six to two rows
+ * of six: the apps (Mac, iPhone and iPad, Android, Windows, YunoHost) and the
+ * Linux packages, each row under a short label of its own.
  *
  * Each tile carries the OTHER party's mark (docLogo, from docs/logos.ts) rather
  * than one of our own glyphs, because the reader is scanning for a mark they
- * already recognise, not reading five labels. Two openSUSE tiles wear the same
- * mark on purpose - the distribution is the thing being recognised, and the line
- * under it is what separates Tumbleweed from Leap.
+ * already recognise, not reading twelve labels. Tiles that share a mark (three
+ * Apple, two openSUSE) do so on purpose - the platform is the thing being
+ * recognised, and the line under it is what separates one build from the next.
+ * The one exception is Windows, whose mark is not ours to show (see the note in
+ * docs/logos.ts): that tile takes `icon`, a glyph from DOC_ICONS, instead.
  *
- * Every tile links STRAIGHT at the file on lolli.li - the stable `lolly-latest.*`
- * alias, overwritten in place on each release, so the link never rots on a version
- * bump (which is what the section-anchor indirection used to guard against, and no
- * longer needs to). The "more" link still opens /info/install.html for the
- * platforms without a tile (Windows, iOS, the terminal) and the checksum step.
- * URLs come from DOWNLOAD_FILE below, keyed by tile, not from the locale JSON, so
- * they cannot drift per language.
+ * A tile with a `file` links STRAIGHT at that file on lolli.li - the stable
+ * `lolly-latest.*` alias, overwritten in place on each release, so the link never
+ * rots on a version bump. A tile without one (iPhone and iPad, YunoHost, Arch)
+ * has nothing to hand out as a single file, so it opens its section of
+ * /info/install.html instead, shows an arrow rather than the download glyph, and
+ * says so in its accessible name. The "more" link opens the same page for
+ * everything without a tile, and the checksum step.
+ *
+ * The link fields (`file`, `slug`, `hash`) are read from the ENGLISH
+ * docs/site/downloads.json by tile `id`, never from a translated copy, so a
+ * translation can change what a tile says but never where it points.
  */
+type DownloadTile = {
+  id: string; logo?: string; icon?: string;
+  os: string; name: string; ext: string; note: string;
+  file?: string; slug?: string; hash?: string;
+};
+type DownloadsContent = {
+  label: string; lead: string;
+  rows: { id: string; label: string; items: DownloadTile[] }[];
+  more: { label: string; slug: string };
+};
 function downloadsRail(lang: Lang): string {
-  const d = loadSiteJson('downloads.json', lang) as {
-    label: string; lead: string;
-    items: { logo: string; os: string; name: string; ext: string; note: string; slug: string; hash: string }[];
-    more: { label: string; slug: string };
-  };
+  const d = loadSiteJson('downloads.json', lang) as DownloadsContent;
+  const links = new Map((loadSiteJson('downloads.json') as DownloadsContent).rows
+    .flatMap((r) => r.items).map((it) => [it.id, it]));
+  const RELEASE = 'https://lolli.li';
   // aria-label rather than letting the four spans be read in DOM order: the tile's
   // visual order (mark, badge, name, meta) is a scanning order, not a sentence, and
   // "DMG macOS Apple silicon M1 and later" is what the spans read as. One composed
   // label says the same thing once, so the internals are all aria-hidden.
-  // Stable release aliases on lolli.li, keyed by tile hash. A tile with no entry
-  // falls back to the old install-section anchor. Both openSUSE tiles resolve to the
-  // one x86_64 rpm for now; split them when distro-specific rpms ship.
-  const RELEASE = 'https://lolli.li';
-  const DOWNLOAD_FILE: Record<string, string> = {
-    macos: 'lolly-latest.dmg', tumbleweed: 'lolly-latest.rpm', leap: 'lolly-latest-leap16.rpm',
-    flatpak: 'lolly-latest.flatpak', android: 'lolly-latest.apk', deb: 'lolly-latest.deb',
+  const tile = (it: DownloadTile): string => {
+    const link = links.get(it.id) ?? it;
+    if (!link.file && !link.hash) throw new Error(`downloads.json tile "${it.id}" has neither a file nor an install-page anchor`);
+    const href = link.file ? `${RELEASE}/${link.file}` : `${localeHref(lang, link.slug ?? 'install')}#${link.hash}`;
+    const label = link.file
+      ? t('Install for {os}: {name}, {ext} file').replace('{os}', it.os).replace('{name}', it.name).replace('{ext}', it.ext)
+      : t('{os}: {name}. Opens the install guide').replace('{os}', it.os).replace('{name}', it.name);
+    const mark = it.logo ? docLogo(it.logo) : docIcon(it.icon ?? 'download');
+    return `<a class="dl-tile" data-dl="${esc(it.logo ?? it.id)}" href="${esc(href)}"${link.file ? ' download' : ''} aria-label="${esc(label)}">
+          <span class="dl-top" aria-hidden="true">
+            <span class="dl-mark">${mark}</span>
+            <span class="dl-go">${docIcon(link.file ? 'download' : 'chrome-arrow')}</span>
+            <span class="dl-ext">${esc(it.ext)}</span>
+          </span>
+          <span class="dl-name" aria-hidden="true">${esc(it.name)}</span>
+          <span class="dl-meta" aria-hidden="true"><span class="dl-os">${esc(it.os)}</span><span class="dl-note">${esc(it.note)}</span></span>
+        </a>`;
   };
-  const tiles = d.items.map((it) => {
-    const file = DOWNLOAD_FILE[it.hash];
-    const href = file ? `${RELEASE}/${file}` : `${localeHref(lang, it.slug)}#${it.hash}`;
-    return `<a class="dl-tile" data-dl="${esc(it.logo)}" href="${esc(href)}"${file ? ' download' : ''} aria-label="${esc(
-      t('Install for {os}: {name}, {ext} file').replace('{os}', it.os).replace('{name}', it.name).replace('{ext}', it.ext))}">
-        <span class="dl-top" aria-hidden="true">
-          <span class="dl-mark">${docLogo(it.logo)}</span>
-          <span class="dl-go">${docIcon('download')}</span>
-          <span class="dl-ext">${esc(it.ext)}</span>
-        </span>
-        <span class="dl-name" aria-hidden="true">${esc(it.name)}</span>
-        <span class="dl-meta" aria-hidden="true"><span class="dl-os">${esc(it.os)}</span><span class="dl-note">${esc(it.note)}</span></span>
-      </a>`;
-  }).join('\n      ');
+  // Each row is a labelled group, so a screen reader announces "Apps" or "Linux"
+  // on entering the row, the same cue the small label gives a sighted reader.
+  const rows = d.rows.map((row) => `<div class="dl-row" role="group" aria-labelledby="dl-row-${esc(row.id)}">
+        <span class="dl-row-label" id="dl-row-${esc(row.id)}">${esc(row.label)}</span>
+        <div class="dl-grid">
+        ${row.items.map(tile).join('\n        ')}
+        </div>
+      </div>`).join('\n      ');
   return `<div class="hero-downloads">
       <div class="dl-head">
         <span class="dl-label">${esc(d.label)}</span>
         <span class="dl-lead">${esc(d.lead)}</span>
       </div>
-      <div class="dl-grid">
-      ${tiles}
+      <div class="dl-rows">
+      ${rows}
       </div>
       <a class="dl-verify" href="${RELEASE}/SHA256SUMS.txt">${docIcon('shieldcheck')}<span>${esc(t('Verify downloads (SHA-256)'))}</span></a>
       <a class="dl-more" href="${esc(localeHref(lang, d.more.slug))}">${esc(d.more.label)} <span aria-hidden="true">&rarr;</span></a>

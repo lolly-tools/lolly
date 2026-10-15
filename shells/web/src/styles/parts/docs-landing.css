@@ -219,19 +219,19 @@ html[data-a11y-motion="reduce"] .hero-logo-link:focus-visible .hero-logo-still{o
 
 
 /* ── Hero download rail ───────────────────────────────────────────────────────
-   The five packaged builds, inside the hero so they are above the fold on a
-   1280x720 laptop. Everything here sits on the dark hero band only, so the
+   Twelve packaged builds in two labelled rows of six: the apps, then the Linux
+   packages. Everything here sits on the always-dark downloads band, so the
    colours are the on-band-dark tokens and there is no light-theme twin to keep
    in step.
 
    The tile is a CARD, not a row, because a row cannot hold this content at this
-   width: five tiles across the hero's text column is ~190px each, and "Phone and
-   tablet" beside a mark and a file-type badge truncates at that size. Stacking
-   gives the name the tile's full width and leaves the badge a corner of its own.
+   width: six tiles across the band is ~170px each, and "Debian, Ubuntu" beside a
+   mark and a file-type badge truncates at that size. Stacking gives the name the
+   tile's full width and leaves the badge a corner of its own.
 
    `--dl-accent` is the ONE per-tile variable: each tile sets it from its own
-   [data-dl] and every hover effect below reads it, so adding a sixth platform is
-   one line of colour rather than a sixth copy of the hover rules. The accents are
+   [data-dl] and every hover effect below reads it, so adding a platform is one
+   line of colour rather than another copy of the hover rules. The accents are
    each project's own mark colour - the tile is recognised by the mark first and
    read second, and a hover that lights up in the wrong green undoes that.
 
@@ -253,9 +253,18 @@ html[data-a11y-motion="reduce"] .hero-logo-link:focus-visible .hero-logo-still{o
 .dl-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.14em;
   color:hsl(var(--on-band-dark) / .85)}
 .dl-lead{font-size:.8rem;color:hsl(var(--on-band-dark) / .45);font-weight:300}
-/* auto-fit rather than repeat(5,1fr): five across the hero column, and the same
-   rule reflows to 3+2 and then 2+2+1 without a breakpoint per step. */
-.dl-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(9rem,1fr));gap:.55rem}
+/* Two rows, each a small label over its own grid. The rows are separate grids
+   rather than one grid of twelve, so a row always starts on a fresh line under
+   its label whatever the width.
+   Six columns, then three, then two (the phone block below): every step divides
+   six, so a row never ends with an orphan tile on a line of its own. An auto-fit
+   track would reflow to 5+1 or 4+2 at the widths in between. */
+.dl-rows{display:grid;gap:1.05rem}
+.dl-row{display:grid;gap:.5rem;min-width:0}
+.dl-row-label{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.14em;
+  color:hsl(var(--on-band-dark) / .5)}
+.dl-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:.55rem}
+@media(max-width:1100px){.dl-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 
 .dl-tile{--dl-accent:#30ba78;
   position:relative;display:flex;flex-direction:column;gap:.3rem;isolation:isolate;
@@ -270,6 +279,13 @@ html[data-a11y-motion="reduce"] .hero-logo-link:focus-visible .hero-logo-still{o
 .dl-tile[data-dl="opensuse"]{--dl-accent:#73ba25}
 .dl-tile[data-dl="flatpak"]{--dl-accent:#4a90d9}
 .dl-tile[data-dl="android"]{--dl-accent:#3ddc84}
+.dl-tile[data-dl="arch"]{--dl-accent:#1793d1}
+.dl-tile[data-dl="appimage"]{--dl-accent:#739fb9}
+/* YunoHost's mark is black, like Apple's, so it takes the same light accent on
+   this dark band. Windows has no mark here (docs/logos.ts) and takes a light
+   blue for the hover only. */
+.dl-tile[data-dl="yunohost"]{--dl-accent:#e8eef2}
+.dl-tile[data-dl="windows"]{--dl-accent:#4cc2ff}
 
 /* The wash: an accent-tinted glow that grows from behind the mark on hover. Sits
    under the content (the tile is an isolation root), so it never touches the
@@ -381,11 +397,17 @@ html[data-a11y-motion="reduce"] .hero-logo-link:focus-visible .hero-logo-still{o
   .hero-cta .hero-btn{flex:1 1 0;min-width:0;justify-content:center;padding:1.05rem .75rem;
     font-size:.9375rem;border-radius:.85rem}
 
+  /* The band keeps its outer gutter, which lines its edges up with the
+     lolly.work band below, and gives up some inner padding instead: two columns
+     of tiles need every pixel, and "Debian, Ubuntu" was the name that ran out. */
+  .downloads-inner{padding:1.3rem 1rem 1.2rem}
   .dl-head{margin-bottom:.5rem}
+  .dl-rows{gap:.85rem}
+  .dl-row{gap:.4rem}
   /* The lead is a grace note, and at this width it wraps to a second line that
      costs more height than the sentence is worth. The label carries the meaning. */
   .dl-lead{display:none}
-  .dl-grid{grid-template-columns:repeat(2,1fr);gap:.5rem}
+  .dl-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:.5rem}
   /* A tile is never centred: a name centred over a left-hand mark reads as two
      unrelated things sharing a box. */
   .dl-tile{text-align:start}
@@ -393,21 +415,34 @@ html[data-a11y-motion="reduce"] .hero-logo-link:focus-visible .hero-logo-still{o
      two columns of ~167px, a badge beside the name leaves it ~80px, which is not
      enough for "Apple silicon"; under the name it costs nothing, because the row
      it shares with the OS label was half empty. */
-  .dl-tile{gap:.5rem;padding:.55rem .6rem;
+  .dl-tile{gap:.5rem .45rem;padding:.55rem .6rem;
     display:grid;grid-template-columns:auto 1fr auto;
     grid-template-areas:'mark name name' 'mark meta ext'}
   .dl-top{display:contents}
   .dl-mark{grid-area:mark;width:1.4rem;height:1.4rem;margin-inline-end:0;align-self:center}
-  .dl-ext{grid-area:ext;align-self:center;justify-self:end}
+  .dl-ext{grid-area:ext;align-self:center;justify-self:end;font-size:.5rem;letter-spacing:.04em;padding:.16rem .28rem}
   .dl-go{display:none}
   /* One line, always: a name that wraps takes every tile in its row with it, so a
      single long label would add a row's worth of height to the whole grid. */
   .dl-name{grid-area:name;font-size:.84rem;align-self:end;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-  .dl-meta{grid-area:meta;align-self:start;font-size:.62rem}
+  /* The OS label shares its line with the badge, and "OPENSUSE" or "YUNOHOST"
+     beside a wide badge such as APPIMAGE can run out of room. It shortens with an
+     ellipsis rather than sliding under the badge. */
+  .dl-meta{grid-area:meta;align-self:start;font-size:.62rem;overflow:hidden}
+  .dl-os{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .dl-note{display:none}
   .dl-os::after{content:none}
   .dl-more{margin-top:.4rem}
+}
+/* The narrowest phones (360px class). Two columns still beat one, which would
+   make the band twelve rows tall, so the band and the tile give up a little more
+   padding and the type steps down a notch to keep the names whole. */
+@media(max-width:380px){
+  .downloads-inner{padding-inline:.75rem}
+  .dl-tile{padding-inline:.5rem;column-gap:.35rem}
+  .dl-name{font-size:.8rem}
+  .dl-os{letter-spacing:.03em}
 }
 @media(prefers-reduced-motion:reduce){
   /* Colour and border still change - that is the affordance. Only travel goes. */

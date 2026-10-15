@@ -1,64 +1,133 @@
 {
   "label": "Get the app",
   "lead": "Same tools, same files, whichever one you pick.",
-  "items": [
+  "rows": [
     {
-      "logo": "apple",
-      "os": "macOS",
-      "name": "Apple silicon",
-      "ext": "DMG",
-      "note": "M1 and later",
-      "slug": "install",
-      "hash": "macos"
+      "id": "apps",
+      "label": "Apps",
+      "items": [
+        {
+          "id": "macos",
+          "logo": "apple",
+          "os": "macOS",
+          "name": "Apple silicon",
+          "ext": "DMG",
+          "note": "M1 and later",
+          "file": "lolly-latest.dmg"
+        },
+        {
+          "id": "macos-intel",
+          "logo": "apple",
+          "os": "macOS",
+          "name": "Intel",
+          "ext": "DMG",
+          "note": "x86_64",
+          "file": "lolly-latest-x64.dmg"
+        },
+        {
+          "id": "ios",
+          "logo": "apple",
+          "os": "iOS",
+          "name": "iPhone, iPad",
+          "ext": "WEB",
+          "note": "no download yet",
+          "slug": "install",
+          "hash": "iphone-and-ipad"
+        },
+        {
+          "id": "android",
+          "logo": "android",
+          "os": "Android",
+          "name": "Phone, tablet",
+          "ext": "APK",
+          "note": "no store",
+          "file": "lolly-latest.apk"
+        },
+        {
+          "id": "windows",
+          "icon": "monitor",
+          "os": "Windows",
+          "name": "x64 installer",
+          "ext": "EXE",
+          "note": "unsigned",
+          "file": "lolly-latest.exe"
+        },
+        {
+          "id": "yunohost",
+          "logo": "yunohost",
+          "os": "YunoHost",
+          "name": "Self-hosted",
+          "ext": "APP",
+          "note": "your server",
+          "slug": "install",
+          "hash": "yunohost"
+        }
+      ]
     },
     {
-      "logo": "opensuse",
-      "os": "openSUSE",
-      "name": "Tumbleweed",
-      "ext": "RPM",
-      "note": "x86_64",
-      "slug": "install",
-      "hash": "tumbleweed"
-    },
-    {
-      "logo": "opensuse",
-      "os": "openSUSE",
-      "name": "Leap 16",
-      "ext": "RPM",
-      "note": "x86_64",
-      "slug": "install",
-      "hash": "leap"
-    },
-    {
-      "logo": "flatpak",
-      "os": "Linux",
-      "name": "Flatpak",
-      "ext": "FLATPAK",
-      "note": "any distro",
-      "slug": "install",
-      "hash": "flatpak"
-    },
-    {
-      "logo": "android",
-      "os": "Android",
-      "name": "Phone, tablet",
-      "ext": "APK",
-      "note": "no store",
-      "slug": "install",
-      "hash": "android"
-    },
-    {
-      "logo": "debian",
-      "os": "Linux",
-      "name": "Debian, Ubuntu",
-      "ext": "DEB",
-      "note": "x86_64",
-      "slug": "install",
-      "hash": "deb"
+      "id": "linux",
+      "label": "Linux",
+      "items": [
+        {
+          "id": "tumbleweed",
+          "logo": "opensuse",
+          "os": "openSUSE",
+          "name": "Tumbleweed",
+          "ext": "RPM",
+          "note": "x86_64",
+          "file": "lolly-latest.rpm"
+        },
+        {
+          "id": "leap",
+          "logo": "opensuse",
+          "os": "openSUSE",
+          "name": "Leap 16",
+          "ext": "RPM",
+          "note": "x86_64",
+          "file": "lolly-latest-leap16.rpm"
+        },
+        {
+          "id": "flatpak",
+          "logo": "flatpak",
+          "os": "Linux",
+          "name": "Flatpak",
+          "ext": "FLATPAK",
+          "note": "any distro",
+          "file": "lolly-latest.flatpak"
+        },
+        {
+          "id": "deb",
+          "logo": "debian",
+          "os": "Linux",
+          "name": "Debian, Ubuntu",
+          "ext": "DEB",
+          "note": "x86_64",
+          "file": "lolly-latest.deb"
+        },
+        {
+          "id": "arch",
+          "logo": "arch",
+          "os": "Linux",
+          "name": "Arch Linux",
+          "ext": "REPO",
+          "note": "via pacman",
+          "slug": "install",
+          "hash": "arch"
+        },
+        {
+          "id": "appimage",
+          "logo": "appimage",
+          "os": "Linux",
+          "name": "AppImage",
+          "ext": "APPIMAGE",
+          "note": "any distro",
+          "file": "lolly-latest.AppImage"
+        }
+      ]
     }
   ],
   "more": {
-    "label": "Windows, iOS, the terminal and the rest",
+    "label": "ARM64 Linux, the terminal and the rest",
     "slug": "install"
   }
 }
