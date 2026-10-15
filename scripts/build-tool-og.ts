@@ -52,7 +52,7 @@ import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync } from 'node
 import { createHash } from 'node:crypto';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createToolCardRenderer, loadBrandChrome } from '../docs/og-image.ts';
+import { chromeFingerprint, createToolCardRenderer, loadBrandChrome } from '../docs/og-image.ts';
 import { createSvgRasterizer, type SvgRasterizer } from './lib/rasterize-svg-browser.ts';
 import { stampBitmap } from './lib/stamp-media.ts';
 import { catalogFile, toolFile } from '@lolly-tools/node-shell/content-roots';
@@ -106,12 +106,13 @@ const OG_DIR   = catalogFile('og');  // → /catalog/og/<id>.png (committed)
 // Input-hash gate: a card is re-rendered only when its render inputs change. The render
 // path is non-deterministic (Playwright + Imprint/C2PA stamp → new bytes for identical
 // input), so an ungated build churned ~21MB of PNGs every push. We persist, per tool id,
-// a sha256 over the exact fields passed to renderer.render() plus OG_RENDER_VERSION, in a
-// COMMITTED sidecar manifest (OG_DIR/.og-sigs.json). A card whose stored sig matches AND
-// whose file already exists is skipped. BUMP OG_RENDER_VERSION after any change to the
+// a sha256 over the exact fields passed to renderer.render(), the brand chrome's
+// fingerprint (chromeFingerprint: colours, brand logo and Lolly mark) and OG_RENDER_VERSION,
+// in a COMMITTED sidecar manifest (OG_DIR/.og-sigs.json). A card whose stored sig matches
+// AND whose file already exists is skipped. BUMP OG_RENDER_VERSION after any change to the
 // card template / stamp (docs/og-image.ts, stamp-media.ts) - otherwise unchanged inputs
 // keep their old cards. `loldev og` (no --preserve) still forces a full re-render.
-const OG_RENDER_VERSION = 1;
+const OG_RENDER_VERSION = 2;
 const SIGS_FILE = resolve(OG_DIR, '.og-sigs.json');
 const sha256 = (s: string): string => createHash('sha256').update(s).digest('hex');
 // --preserve (or LOLLY_PRESERVE=1, which loldev sets so the flag survives the npm chain):
@@ -203,6 +204,11 @@ function previewDataUri(previewPath: string | undefined): string | null {
 async function main(): Promise<void> {
   const index = JSON.parse(readFileSync(catalogFile('tools/index.json'), 'utf8'));
   const tools: ToolEntry[] = Array.isArray(index.tools) ? index.tools : [];
+  // Chrome (field/accent/ink + the brand's reverse logo) comes from the ACTIVE
+  // profile's catalog, so each profile's cards are painted in its own brand. Read once:
+  // the renderer paints with it and every card's input hash carries its fingerprint.
+  const chrome = loadBrandChrome(ROOT);
+  const chromeSig = chromeFingerprint(chrome);
 
   // Renderer is best-effort: a missing browser (or SUSE fonts) degrades stubs to the
   // committed cards / og.png rather than failing the whole web build (mirrors docs/og-image.ts).
@@ -215,9 +221,7 @@ async function main(): Promise<void> {
   } else {
     try {
       rasterizer = await createSvgRasterizer(ROOT);
-      // Chrome (field/accent/ink + the brand's reverse logo) comes from the ACTIVE
-      // profile's catalog, so each profile's cards are painted in its own brand.
-      renderer = createToolCardRenderer(rasterizer.rasterize, loadBrandChrome(ROOT));
+      renderer = createToolCardRenderer(rasterizer.rasterize, chrome);
     } catch (e) {
       console.log(`tool-og: card generation skipped (${(e as Error).message}); stubs fall back to committed cards / og.png`);
     }
@@ -258,7 +262,7 @@ async function main(): Promise<void> {
       const cardPath = resolve(OG_DIR, `${t.id}.png`);
       const preview = previewDataUri(t.preview);
       const sig = sha256(JSON.stringify([
-        OG_RENDER_VERSION, t.name, t.description ?? null, t.icon ?? null, preview ?? null,
+        OG_RENDER_VERSION, t.name, t.description ?? null, t.icon ?? null, preview ?? null, chromeSig,
         // The footer prints the site's host; an instance build's host joins the inputs so its
         // cards re-render, while lolly.tools signatures stay as they were.
         ...(SITE_URL === DEFAULT_SITE_URL ? [] : [new URL(SITE_URL).host]),

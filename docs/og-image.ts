@@ -26,18 +26,24 @@
 //     title (wrapping to two lines for long docs titles), a one-line description, a
 //     faint icon watermark, and the lollipop cropped by the bottom-right corner.
 //
-// All three renderers take the `BrandChrome` from loadBrandChrome() - field, accent, ink
-// and marks resolved from the ACTIVE profile's catalog, with the Lolly mark taken from
-// icon.svg - so nothing below hardcodes one brand's palette, and every mounted profile's
-// cards come out in its own colours.
+// All three renderers take the `BrandChrome` from loadBrandChrome(): field, accent, ink
+// and the brand logo read from the active profile's catalog through the content resolver
+// (packages/node-shell/src/content-roots.ts), with the Lolly mark taken from icon.svg.
+// The only palette written below is Lolly's own Opal chrome, which a profile gets when
+// it has no readable brand colours of its own, so each profile's cards come out in its
+// own colours and never in another brand's.
 //
 // Why generate rather than reuse one static og.png: social crawlers (Slack, X,
 // Facebook, LinkedIn, iMessage) cache one image per URL and only reliably render
-// raster (PNG/JPEG), never SVG - so each page/tool needs its own pre-rendered PNG.
+// raster (PNG/JPEG), never SVG. Each page and tool therefore gets a pre-rendered PNG.
 
+import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createTokenSet, colorToHex } from '../engine/src/tokens.ts';
+import {
+  contentRoots, contentUrlFile, readAssetIndex, type ContentRoots,
+} from '../packages/node-shell/src/content-roots.ts';
 import { createSvgRasterizer } from '../scripts/lib/rasterize-svg-browser.ts';
 import { stampBitmap } from '../scripts/lib/stamp-media.ts';
 import { siteUrl } from '../scripts/lib/site-url.ts';
@@ -70,20 +76,26 @@ const xmlEsc = (s: unknown): string => String(s)
 
 // ── Brand chrome, resolved from the ACTIVE PROFILE ───────────────────────────
 //
-// The tool and view cards are painted light-on-dark in the active brand's own
+// The tool and view cards are painted light on dark in the active brand's own
 // colours: the dark theme's `surface` is the field, its `primary` the accent and
-// its `text` the ink. Those three semantic tokens exist in every brand pack
-// (SUSE's resolve to pine/jungle/white; an ingested brand's to its own ramps), so
-// nothing here hardcodes SUSE - which matters because this module renders cards
-// for every profile, and `catalog/` is only ever the ACTIVE one (see
-// scripts/build-og-all.ts, which rebuilds each mounted profile in turn).
+// its `text` the ink. The brand's tokens asset and logos are found through the
+// content resolver (contentRoots, readAssetIndex, contentUrlFile), so the profile a
+// card script runs under (LOLLY_PROFILE, or --profile=<name> via applyProfileArg)
+// decides the colours. scripts/build-og-all.ts runs the card scripts once per
+// mounted profile.
+//
+// A profile that has not furnished a brand gets Lolly's own surface, the Opal chrome
+// (OPAL_CHROME), and so does any profile whose colours cannot be read in full or
+// would not be legible. The blank starter's tokens (STARTER_TOKENS_ID) count as no
+// brand: they are ink-and-paper scaffolding, not a palette anybody chose.
 //
 // The marks are the co-brand: Lolly's own lollipop (repo-root icon.svg, parent-
-// owned and brand-agnostic) top-left as a lockup with the wordmark, and the
-// brand's REVERSE (on-dark) horizontal logo top-right, resolved from the catalog
-// by asset TAGS rather than by id - `suse/logo/hor-neg-white` is a SUSE-only id,
-// but `['logo','horizontal','on-dark']` is how any brand pack describes the same
-// thing. A brand with no logo asset (lolly-start) simply gets no second mark.
+// owned and brand-agnostic) top left as a lockup with the wordmark, and the
+// brand's REVERSE (on-dark) horizontal logo top right, picked from the catalog by
+// asset TAGS rather than by id: `['logo','horizontal','on-dark']` is how any brand
+// pack describes that logo, whatever its id. Lolly's own marks (ids under
+// lolly/logo/) are never picked, because the lockup already shows the lollipop, so
+// a profile whose only logos are Lolly's gets no second mark.
 
 export interface BrandLogo {
   /** The logo SVG as a data-URI, ready for an <image href>. */
@@ -103,16 +115,42 @@ export interface BrandChrome {
   muted: string;
   /** Footer: one step dimmer again. */
   footer: string;
-  /** The brand's reverse (on-dark) horizontal logo, or null when it ships none. */
+  /** The brand's reverse (on-dark) horizontal logo, or null when it ships none of its own. */
   logo: BrandLogo | null;
   /** Lolly's own lollipop mark as a data-URI, or null if the asset is missing. */
   mark: string | null;
 }
 
-// Fallbacks when a brand ships no readable tokens: the SUSE-sampled pine family the
-// cards have always used, so a tokenless profile (lolly-start) still renders a card in
-// the house style rather than failing.
-const CHROME_FALLBACK = { field: '#0c322c', accent: '#30ba78', ink: '#ffffff' };
+/** The three colours a card is painted in; muted and footer are mixed from them. */
+export interface ChromeColours {
+  field: string;
+  accent: string;
+  ink: string;
+}
+
+// Lolly's own surface, from the Opal palette: Spearmint field, Green Apple accent and
+// Sugar type. A profile with no readable brand colours renders here, never in another
+// brand's colours. Measured (WCAG 2): Sugar on Spearmint 13.30:1, Green Apple on
+// Spearmint 5.92:1, and the mixed description and footer greys 6.05:1 and 3.58:1.
+export const OPAL_CHROME: Readonly<ChromeColours> = Object.freeze({
+  field: '#033633', accent: '#50c369', ink: '#ffffff',
+});
+
+// The blank starter's tokens asset. The shell treats the same id as "nothing furnished
+// yet" (STARTER_TOKENS_ID in shells/web/src/lib/design-system/rooms/overview.ts), and
+// ingest refuses the lolly namespace, so a brand that chose its own colours never
+// carries this id. The cards treat it as no brand and paint the Opal chrome.
+export const STARTER_TOKENS_ID = 'lolly/tokens/brand';
+
+// The id prefix of Lolly's own marks. A brand pack may ship copies of them (the
+// starter does, for its default logo slots), but the lockup already shows the lollipop.
+const LOLLY_LOGO_PREFIX = 'lolly/logo/';
+
+// Readability floors for a brand's colours on its own field (WCAG 2). The title is
+// normal-weight text for this purpose, so it needs 4.5:1; the accent paints icons and
+// the app-icon tile, which are UI parts at 3:1.
+const INK_MIN_CONTRAST = 4.5;
+const ACCENT_MIN_CONTRAST = 3;
 
 /** Blend two #rrggbb colours in sRGB. Chrome only - never a palette value. */
 function mixHex(a: string, b: string, t: number): string {
@@ -122,11 +160,28 @@ function mixHex(a: string, b: string, t: number): string {
   return `#${ch(ar!, br!)}${ch(ag!, bg!)}${ch(ab!, bb!)}`;
 }
 
-/** Read the active catalog's asset index, or null when there isn't one. */
-function readAssetIndex(repoRoot: string): { assets?: unknown[] } | null {
-  const file = resolve(repoRoot, 'catalog/assets/index.json');
-  if (!existsSync(file)) return null;
-  try { return JSON.parse(readFileSync(file, 'utf8')); } catch { return null; }
+/** WCAG 2 contrast ratio of two #rrggbb colours, from 1 to 21. */
+function contrast(a: string, b: string): number {
+  const lum = (h: string): number => {
+    const [r, g, bl] = [1, 3, 5].map((i) => {
+      const c = parseInt(h.slice(i, i + 2), 16) / 255;
+      return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+    });
+    return 0.2126 * r! + 0.7152 * g! + 0.0722 * bl!;
+  };
+  const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x);
+  return (hi! + 0.05) / (lo! + 0.05);
+}
+
+/** A token value as an opaque #rrggbb, or null when it is not one (a translucent
+ *  colour cannot be mixed or measured against the field). */
+function opaqueHex(value: unknown): string | null {
+  const hex = colorToHex(value);
+  if (typeof hex !== 'string') return null;
+  const h = hex.toLowerCase();
+  if (/^#[0-9a-f]{6}$/.test(h)) return h;
+  if (/^#[0-9a-f]{6}ff$/.test(h)) return h.slice(0, 7);
+  return null;
 }
 
 // Asset-index entries are dynamic JSON; only the fields read here are typed.
@@ -137,57 +192,73 @@ interface IndexAsset {
   formats?: Array<{ format?: string; url?: string }>;
 }
 
-/** The URL of an asset's format, resolved to a path inside the active catalog view. */
-function assetFile(repoRoot: string, asset: IndexAsset, format: string): string | null {
+/** The file behind one of an asset's formats, through the content resolver. */
+function assetFile(asset: IndexAsset, format: string, roots: ContentRoots): string | null {
   const url = asset.formats?.find(f => f.format === format)?.url;
-  if (!url) return null;
-  const file = resolve(repoRoot, url.replace(/^\//, ''));
-  return existsSync(file) ? file : null;
+  return url ? contentUrlFile(url, roots) : null;
 }
 
-/** The dark-theme semantic colours of the active brand's DTCG token asset. */
-function brandColors(repoRoot: string, assets: IndexAsset[]): typeof CHROME_FALLBACK {
+/**
+ * The dark-theme semantic colours of the active brand's DTCG token asset. All or
+ * nothing: when any of the three slots is missing, or the ink is not legible on the
+ * field, the whole Opal chrome is returned, so a card never pairs one brand's field
+ * with Lolly's type. An accent too faint for the field gives way to the ink.
+ */
+function brandColors(assets: IndexAsset[], roots: ContentRoots): ChromeColours {
   const tokens = assets.find(a => a.type === 'tokens' && a.tags?.includes('brand'));
-  const file = tokens ? assetFile(repoRoot, tokens, 'json') : null;
-  if (!file) return CHROME_FALLBACK;
+  if (!tokens || tokens.id === STARTER_TOKENS_ID) return OPAL_CHROME;
+  const file = assetFile(tokens, 'json', roots);
+  if (!file) return OPAL_CHROME;
   try {
-    // The dark theme is the one the cards paint in - light-on-dark by design.
+    // The cards paint light on dark, so the dark theme is the one read.
     const set = createTokenSet(JSON.parse(readFileSync(file, 'utf8')), { theme: 'dark' });
-    const hex = (path: string, fallback: string) =>
-      colorToHex(set.resolve(path)) || fallback;
-    return {
-      field:  hex('color.semantic.surface', CHROME_FALLBACK.field),
-      accent: hex('color.semantic.primary', CHROME_FALLBACK.accent),
-      ink:    hex('color.semantic.text',    CHROME_FALLBACK.ink),
-    };
-  } catch { return CHROME_FALLBACK; }
+    const field = opaqueHex(set.resolve('color.semantic.surface'));
+    const accent = opaqueHex(set.resolve('color.semantic.primary'));
+    const ink = opaqueHex(set.resolve('color.semantic.text'));
+    if (!field || !accent || !ink) return OPAL_CHROME;
+    if (contrast(ink, field) < INK_MIN_CONTRAST) return OPAL_CHROME;
+    return { field, accent: contrast(accent, field) >= ACCENT_MIN_CONTRAST ? accent : ink, ink };
+  } catch { return OPAL_CHROME; }
 }
 
 /** The brand's reverse (on-dark) horizontal logo, by tags - never by brand-specific id. */
-function brandLogo(repoRoot: string, assets: IndexAsset[]): BrandLogo | null {
-  const onDark = assets.filter(a => a.tags?.includes('logo') && a.tags.includes('on-dark'));
+function brandLogo(assets: IndexAsset[], roots: ContentRoots): BrandLogo | null {
+  // Lolly's own marks are left out before picking: the lockup already carries the
+  // lollipop, and a brand's own logo should win over a copy of Lolly's.
+  const onDark = assets.filter(a => a.tags?.includes('logo') && a.tags.includes('on-dark')
+    && !a.id?.startsWith(LOLLY_LOGO_PREFIX));
   // Prefer a horizontal mono/white lockup (it sits beside white type without
   // introducing a second hue), then any horizontal one, then anything on-dark.
   const pick = onDark.find(a => a.tags!.includes('horizontal') && a.tags!.includes('mono'))
     ?? onDark.find(a => a.tags!.includes('horizontal'))
     ?? onDark[0];
-  const file = pick ? assetFile(repoRoot, pick, 'svg') : null;
+  const file = pick ? assetFile(pick, 'svg', roots) : null;
   if (!file) return null;
-  const svg = readFileSync(file, 'utf8');
-  const vb = /viewBox="([\d.eE+\-\s]+)"/.exec(svg)?.[1]?.trim().split(/\s+/).map(Number);
-  if (!vb || vb.length < 4 || !vb[2] || !vb[3]) return null;
-  return { href: `data:image/svg+xml,${encodeURIComponent(svg)}`, ratio: vb[2] / vb[3] };
+  try {
+    const svg = readFileSync(file, 'utf8');
+    const vb = /viewBox="([\d.eE+\-\s]+)"/.exec(svg)?.[1]?.trim().split(/\s+/).map(Number);
+    if (!vb || vb.length < 4 || !vb[2] || !vb[3]) return null;
+    return { href: `data:image/svg+xml,${encodeURIComponent(svg)}`, ratio: vb[2] / vb[3] };
+  } catch { return null; }
 }
 
 /**
- * Resolve the card chrome for whatever profile is currently mounted. Pure reads - 
- * a missing/unreadable catalog degrades to the pine fallback rather than throwing,
- * because a card is worth more than a build failure (same contract as the missing
- * browser). Call once per run and pass the result to both card renderers.
+ * Resolve the card chrome for the active profile, or for `roots` when a caller passes
+ * them (the tests do). Pure reads: a profile that does not resolve, or a missing or
+ * unreadable index, degrades to Lolly's Opal chrome with no brand logo rather than
+ * throwing, because a card is worth more than a build failure (same contract as the
+ * missing browser). Call once per run and pass the result to the card renderers.
  */
-export function loadBrandChrome(repoRoot: string): BrandChrome {
-  const assets = (readAssetIndex(repoRoot)?.assets ?? []) as IndexAsset[];
-  const { field, accent, ink } = brandColors(repoRoot, assets);
+export function loadBrandChrome(repoRoot: string, roots?: ContentRoots): BrandChrome {
+  let colours: ChromeColours = OPAL_CHROME;
+  let logo: BrandLogo | null = null;
+  try {
+    const r = roots ?? contentRoots({ root: repoRoot });
+    const assets = readAssetIndex(r).assets as IndexAsset[];
+    colours = brandColors(assets, r);
+    logo = brandLogo(assets, r);
+  } catch { /* no profile or no readable index: Opal, no brand logo */ }
+  const { field, accent, ink } = colours;
   // The Lolly mark: the single source of truth, repo-root icon.svg (the hand-drawn,
   // C2PA- + RDF-signed vector) - the SAME file the app icons + og.png derive from, so the
   // card mark can't drift from the app icon. Embedded as an SVG data-URI and rasterised
@@ -201,11 +272,24 @@ export function loadBrandChrome(repoRoot: string): BrandChrome {
     field, accent, ink,
     muted:  mixHex(ink, field, 0.38),
     footer: mixHex(ink, field, 0.58),
-    logo: brandLogo(repoRoot, assets),
+    logo,
     mark: existsSync(markFile)
       ? `data:image/svg+xml,${encodeURIComponent(stripSvgAnimation(readFileSync(markFile, 'utf8')))}`
       : null,
   };
+}
+
+/**
+ * A sha256 over everything a card takes from the chrome: the three colours, the brand
+ * logo and the Lolly mark (muted and footer are mixed from the colours). The card
+ * scripts add it to each card's input hash, so a change of brand colours, brand logo or
+ * icon.svg re-renders the committed cards without a version bump.
+ */
+export function chromeFingerprint(chrome: BrandChrome): string {
+  return createHash('sha256').update(JSON.stringify([
+    chrome.field, chrome.accent, chrome.ink,
+    chrome.logo?.href ?? null, chrome.logo?.ratio ?? null, chrome.mark ?? null,
+  ])).digest('hex');
 }
 
 /**
@@ -290,7 +374,7 @@ const CARD_PANEL  = { x: 696, y: 150, w: 432, h: 372, r: 28, pad: 24 };
 // The panel stays WHITE even though the field is dark: tool previews are authored
 // for a light canvas (the brand-lockup preview's black wordmark disappears on a
 // tinted dark panel), so the card frames the tool's own output on white and leaves
-// the brand colours to the field around it.
+// the brand colours to the field around the panel.
 const CARD_PANEL_BG    = '#ffffff';
 const CARD_PLACEHOLDER = '#d8e0dc';   // no-preview placeholder icon tint (on the white panel)
 
@@ -432,7 +516,7 @@ const VIEW_MARGIN = 72;
 // Colours come from the active brand (loadBrandChrome) - the view card is the same
 // light-on-dark family as the tool card, so only its composition differs.
 const VIEW_LOGO_W = 150;             // brand reverse logo width, top-right
-// The accent app-icon tile (top-left) and the title beneath it.
+// The accent app-icon tile (top-left), with the title below the tile.
 const VIEW_TILE   = { x: VIEW_MARGIN, y: 176, size: 120, r: 28 };
 const VIEW_ICON_INSET = 28;          // icon padding inside the tile
 const VIEW_TITLE_Y   = 418;          // title baseline
@@ -457,8 +541,8 @@ function fitViewTitle(title: string, boxWidth: number): number {
 
 /**
  * Build a per-view card renderer. `render({ title, description, iconSvg })` returns
- * PNG bytes: a green app-icon tile, the view title and a one-line description on the
- * pine field, with a large translucent icon watermark bleeding off the right. `rasterize`
+ * PNG bytes: an accent app-icon tile, the view title and a one-line description on the
+ * brand field, with a large translucent icon watermark bleeding off the right. `rasterize`
  * is injected (browser path) so a missing browser degrades to the committed cards.
  */
 export function createViewCardRenderer(rasterize: SvgToPng, chrome: BrandChrome) {
@@ -472,7 +556,7 @@ export function createViewCardRenderer(rasterize: SvgToPng, chrome: BrandChrome)
     out.push(`<rect width="${OG_W}" height="${OG_H}" fill="${chrome.field}"/>`);
 
     // Watermark: the view's own icon, huge and faint, bleeding off the right edge - 
-    // brand texture that names the section without competing with the type.
+    // brand texture that marks the section without competing with the type.
     const wm = 600;
     out.push(`<g opacity="0.10">${placeIcon(iconSvg, OG_W - wm + 176, (OG_H - wm) / 2, wm, chrome.accent, 1.1)}</g>`);
 
@@ -492,7 +576,7 @@ export function createViewCardRenderer(rasterize: SvgToPng, chrome: BrandChrome)
     out.push(`<rect x="${T.x}" y="${T.y}" width="${T.size}" height="${T.size}" rx="${T.r}" fill="${chrome.accent}"/>`);
     out.push(placeIcon(iconSvg, T.x + VIEW_ICON_INSET, T.y + VIEW_ICON_INSET, T.size - 2 * VIEW_ICON_INSET, chrome.field, 2));
 
-    // Title, then a one-line (≤2) description beneath it.
+    // Title, then a one-line (≤2) description below the title.
     // Title wraps to ≤2 lines (short view names stay one line; long docs titles like
     // "Import a design (Figma, Penpot, …)" take two). The LAST line sits on the base
     // baseline so a one- vs two-line title keeps the same optical anchor.
