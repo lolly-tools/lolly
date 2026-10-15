@@ -18,7 +18,10 @@
  * what every pack shows there. Brand chrome is read only from a document whose
  * `$themes` declares a theme called `brand`: asking for a theme the document
  * does not declare answers with its default sets (engine/src/token-selection.ts),
- * which would hand the brand theme the light values.
+ * which would hand the brand theme the light values. Brand chrome does not reach
+ * two High contrast measurements, the accent repair and the error-text red, which
+ * brand-vars.ts still takes against the brand room it builds from the primaries
+ * (docs/design-tokens.md lists the limit).
  */
 import { contrastRatio, hexToOklch, oklchToHex } from '../../../../engine/src/brand-derive.ts';
 
@@ -59,7 +62,7 @@ export interface PackChrome {
 export type ChromeFill = 'required' | 'derived' | 'raised' | 'lolly' | 'warm';
 
 /**
- * The `color.chrome.*` slots, the static custom properties each one sets, and
+ * The `color.chrome.*` slots, the static custom properties each one sets and
  * what stands in when a pack leaves the slot out: `required` (without a page a
  * theme has no surface chrome), `derived` (from the page, see deriveChrome),
  * `raised` (the raised surface), `lolly` (Lolly's own ink stays) or `warm`

@@ -1,5 +1,5 @@
 {
-  "$description": "Opal for the pack chrome tests: a trimmed copy of brands/lolly-demo/catalog/assets/lolly/tokens/opal.json (feat/lolly-demo-pack at 92fefb5d4, PR #286) with the color.chrome group the C1 follow-up gives it. Unsaved work is Honey deep in light and Honey in dark and brand.",
+  "$description": "Opal for the pack chrome tests: a trimmed copy of brands/lolly-demo/catalog/assets/lolly/tokens/opal.json (feat/lolly-demo-pack at 92fefb5d4, PR #286) plus the color.chrome group from the C1 follow-up. Unsaved work is Honey deep in light and Honey in dark and brand.",
   "$metadata": {
     "tokenSetOrder": ["base", "light", "dark"]
   },

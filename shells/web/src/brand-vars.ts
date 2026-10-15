@@ -1121,7 +1121,7 @@ export function lollyMarkCss(lightHex: string | null, darkHex: string | null): s
  * govern the whole room there. The light one is "neither dark nor brand" on
  * the root, as tokens.css spells it, plus any subtree marked light. Every arm
  * is a bare attribute selector, not one tied to <html>, so the profile's theme
- * cards and Design's document stage wear the pack's chrome for their theme.
+ * cards and a document tool's stage wear the pack's chrome for their theme.
  * Brand stays in force under High contrast, where the High contrast brand
  * block's inks and edges win on specificity. index.html's pre-paint check
  * lists these strings literally.
@@ -1227,7 +1227,9 @@ export function chromeBrandCss(
     // charge, and patching its accent from a brand that didn't produce it would
     // pair a colour with an ink neither of them chose. Its ring, and the
     // button's own fill, are measured against the surfaces brandThemeCss built
-    // for this brand.
+    // for this brand, even when a pack's brand chrome replaces those surfaces,
+    // and the High contrast error-text red has the same limit. No shipped pack
+    // states brand chrome; docs/design-tokens.md describes both limits.
     light.primary && dark.primary
       ? hcAccentBlock('html[data-a11y-contrast="high"][data-theme="brand"]', dark.primary, dark.onPrimary, true,
         brandSurfaceHexes(light.primary), brandSurfaceHexes(light.primary))

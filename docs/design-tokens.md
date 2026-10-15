@@ -192,6 +192,12 @@ declares a theme named `brand`, and then from that theme's set. Asking the
 token engine for a theme a document does not declare answers with its default
 sets, which would hand the brand theme the light values. Without a `brand`
 theme, the brand theme stays as Lolly builds it from the pack's primaries.
+Two High contrast measurements still use the brand room Lolly builds rather
+than a pack's brand chrome: the repair of the accent and the error text red.
+The checks above do not measure the accent in any theme either, because the
+semantic primaries own the accent. No shipped pack states brand chrome, and a
+pack that does should check its accent and its error text in the brand theme
+with High contrast on.
 
 **Unsaved work.** When any theme states `unsaved`, the colour moves out of the
 app's automatic pick into a block for each theme. The brand theme takes the
