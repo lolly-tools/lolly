@@ -758,6 +758,11 @@ jobs:
       - name: Validate catalog (no manifest/index drift, asset checksums)
         run: pnpm run validate:catalog
 
+      # The public demo brand (Opal) is a plain directory too, so a public clone can
+      # validate it; the plain step above only sees the lolly-start fallback.
+      - name: Validate the lolly-demo catalog (Opal)
+        run: node scripts/validate-catalog.ts --profile=lolly-demo
+
   # Catalog-wide render gate - `lolly smoke` renders every tool in the active profile
   # at manifest defaults (sequential, browser-free: first Node-native format, html as
   # the layout fallback) and exits non-zero on any failed render. CI checks out the

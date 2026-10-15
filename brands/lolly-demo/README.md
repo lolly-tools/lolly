@@ -1,0 +1,90 @@
+# brands/lolly-demo - Lolly's own demo brand, wearing Opal
+
+`lolly-demo` is the full Lolly demo brand: Lolly dressed in **Opal**, its first
+design system, for first use and testing. `lolly-start` stays what it is, the
+neutral blank for starting a design system, and stays the profile a public clone
+falls back to (it comes first in `profiles.json`, so the resolver reaches it
+before this one).
+
+Run it locally with:
+
+```bash
+LOLLY_PROFILE=lolly-demo pnpm run dev:web
+```
+
+Nothing ships this profile yet. lolly.tools, the release workflows, the
+Dockerfiles and `scripts/data/ship-targets.json` still name `lolly-start`, and
+switching the public build is a production change that goes through the
+deployment handoff with one named owner.
+
+## What's in the pack
+
+- **Opal** (`catalog/assets/lolly/tokens/opal.json`, asset id
+  `lolly/tokens/opal`). A layered DTCG document in the starter's shape: a shared
+  `base` set with Opal's named colours, the chart spectrum, the faces and the
+  logo slots, plus `light` and `dark` sets with the seven semantic slots and the
+  slide roles. It is the pack's only `tokens` asset, so the shell's token bridge
+  discovers it, and because its id is not the starter's `lolly/tokens/brand` the
+  shell treats this install as branded.
+- **Shared rows, byte for byte.** The Lolly marks (`lolly/logo/*`), the demo
+  assets (`lolly/demo/*`, including `lolly/demo/lolly-spin`, which community
+  tools need to validate), the loops, songs, modules, LUTs, 3D models, slide
+  masters and presets, and the riso ink palette are the files and index rows
+  `lolly-start` ships, unchanged and under the same ids. Their checksums, and any
+  credentials embedded in the files, are the starter's own. The renditions of
+  the lorikeet photograph travel with it.
+- **Palette documents derived from Opal**: `lolly/palette/opal-photo-treatments`
+  and `lolly/palette/opal-icon-themes`, made with the same engine functions
+  `scripts/ingest-brand.ts` uses (`engine/src/brand-treatments.ts`).
+- **No font files.** Outfit (headings), SUSE (text and italics) and SUSE Mono
+  (code) are all served by the web shell from `shells/web/public/fonts/`, as for
+  `lolly-start`.
+- **No tools of its own.** Every tool comes from `community/`; `tools/` holds a
+  README so the profile can mount the pack the same way it mounts a brand that
+  does carry tools.
+
+## Opal
+
+Every colour is a treat or a piece of nature, remembered by name and never by
+number. A tint keeps its parent's name (Liquorice raised, Liquorice panel).
+
+| Group | Colours |
+|---|---|
+| Greens | Spearmint `#033633`, Bunyapine `#008657`, Green Apple `#50c369` |
+| Earth | Basalt `#373e44`, Bauxite `#a43427`, Bark `#734f31` |
+| Relief | Banksia `#ee9138`, Honey `#fac044`, Olive `#818e44` |
+| Dramatic relief | Reef `#25c2c2` |
+| Treats | Donut `#f39dbd`, Waffle `#d8b890` |
+| Light and ink | Sugar `#ffffff`, Meringue `#f9f7ef`, Beach `#f2e1bf`, Pebble `#99a0a4`, Liquorice `#09141a` (raised `#121d24`, panel `#1c282f`) |
+| Purple | Jacaranda `#8182d3` |
+| Reds for the app | Arvo `#ef9275` (error text on dark), Outback `#c55123` (red earth, for charts), Ore `#72251c` (error text on light under High contrast) |
+
+- **Light, the crystal chalice:** Liquorice text on Sugar (18.6:1), Spearmint
+  accent with a Sugar label (13.3:1), Basalt for quiet text, Pebble hairlines.
+- **Dark, the stealth ship:** Sugar text on a Liquorice hull, Green Apple accent
+  with a Liquorice label (8.3:1), Pebble for quiet text (7.0:1), Basalt edges.
+- **Brand, home:** the shell builds it from the accents' hues.
+- **Charts** take the spectrum in this order: Green Apple, Reef, Honey, Donut,
+  Banksia, Olive, Outback, Bark. A verdict never relies on colour alone.
+
+The shell's chrome follows the semantic primary in each theme; the surfaces of
+the app's own light and dark themes are still the shell's static blocks, so the
+Liquorice hull reaches tool canvases (through the semantic `surface` slot) but
+not yet the chrome around them. That is the open "static dark block" call in the
+brand plan.
+
+## Not done yet
+
+- **Signing.** `pnpm run sign:credentials:catalog` and the catalog signature
+  (`catalog/tools/index.sig.json`) need keys that the maintainer provisions, so
+  this pack's tool index is unsigned and `lolly/tokens/opal` and the derived
+  palette documents carry no Content Credentials. The shared files keep the
+  credentials they were shipped with.
+- **Generated artwork.** Tool previews and OG cards for this profile are not
+  generated yet (`catalog/previews/` and `catalog/og/` hold placeholders); run
+  `pnpm run previews` and `pnpm run og` with `LOLLY_PROFILE=lolly-demo` when the
+  look is settled.
+- **The show.** The cast, studio sweeps, stick overlays, the glass disc, tool
+  prizes, an OG set and the stage master arrive in a later change.
+- **Spearmint marks.** Lolly's reverse, mono and mono-reverse marks still carry
+  Pine. Spearmint replaces it once the marks can be signed again.

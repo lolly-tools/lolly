@@ -1,0 +1,544 @@
+{
+  "$description": "Opal, Lolly's own design system and the first one built on Lolly. Every colour is a treat or a piece of nature, remembered by name and never by number; a tint keeps its parent's name. Liquorice is the ink, Sugar the paper, Spearmint the light accent and Green Apple the dark one, and green stays a quiet nod to the family Lolly grew up in. Outfit sets headings, SUSE the text and italics, SUSE Mono the code; all three are served by the shell, so this pack ships no font files. Layered DTCG in the starter's shape: a shared 'base' set (named colours, the chart spectrum, faces and logo slots) plus light and dark sets with the seven semantic slots and the slide roles.",
+  "$metadata": {
+    "tokenSetOrder": [
+      "base",
+      "light",
+      "dark"
+    ]
+  },
+  "$themes": [
+    {
+      "name": "light",
+      "selectedTokenSets": {
+        "base": "enabled",
+        "light": "enabled"
+      }
+    },
+    {
+      "name": "dark",
+      "selectedTokenSets": {
+        "base": "enabled",
+        "dark": "enabled"
+      }
+    }
+  ],
+  "base": {
+    "color": {
+      "$type": "color",
+      "brand": {
+        "$description": "Opal's named colours. What each one is for travels in its tools.lolly.opal extension. Greens (Spearmint, Bunyapine, Green Apple), earth (Basalt, Bauxite, Bark), relief (Banksia, Honey, Olive), dramatic relief (Reef), treats (Donut, Waffle), light and ink (Sugar, Meringue, Beach, Pebble, Liquorice), the one purple (Jacaranda) and the reds Lolly needs as an app (Arvo, Outback, Ore).",
+        "spearmint": {
+          "$value": "#033633",
+          "$description": "Spearmint",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Dark green, a step cooler than Pine. The light-theme accent, the home ground and the dark in the reverse and mono marks."
+            }
+          }
+        },
+        "bunyapine": {
+          "$value": "#008657",
+          "$description": "Bunyapine",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "The mark's green: the swirl and the giveaway lolly."
+            }
+          }
+        },
+        "green-apple": {
+          "$value": "#50c369",
+          "$description": "Green Apple",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Bright green, a step warmer than Jungle. The dark-theme accent and calls to action."
+            }
+          }
+        },
+        "basalt": {
+          "$value": "#373e44",
+          "$description": "Basalt",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Dark rock: edges and panels on dark, heavy type on light."
+            }
+          }
+        },
+        "bauxite": {
+          "$value": "#a43427",
+          "$description": "Bauxite",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Warm burgundy red for errors and anything destructive."
+            }
+          }
+        },
+        "bark": {
+          "$value": "#734f31",
+          "$description": "Bark",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Brown for grounds, illustration and charts."
+            }
+          }
+        },
+        "banksia": {
+          "$value": "#ee9138",
+          "$description": "Banksia",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Warm orange for charts and illustration."
+            }
+          }
+        },
+        "honey": {
+          "$value": "#fac044",
+          "$description": "Honey",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Gold: highlights, the stage spotlight and unsaved work."
+            }
+          }
+        },
+        "olive": {
+          "$value": "#818e44",
+          "$description": "Olive",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Muted green for grounds and charts."
+            }
+          }
+        },
+        "reef": {
+          "$value": "#25c2c2",
+          "$description": "Reef",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Turquoise, the dramatic relief: information and the moment that matters most."
+            }
+          }
+        },
+        "donut": {
+          "$value": "#f39dbd",
+          "$description": "Donut",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Pink icing for celebrations and illustration."
+            }
+          }
+        },
+        "waffle": {
+          "$value": "#d8b890",
+          "$description": "Waffle",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Warm tan for grounds and illustration."
+            }
+          }
+        },
+        "sugar": {
+          "$value": "#ffffff",
+          "$description": "Sugar",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "White: the swirl's other half, light surfaces and text on dark."
+            }
+          }
+        },
+        "meringue": {
+          "$value": "#f9f7ef",
+          "$description": "Meringue",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Warm off-white for pages and paper."
+            }
+          }
+        },
+        "beach": {
+          "$value": "#f2e1bf",
+          "$description": "Beach",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Light sand between Honey and Meringue, for warm grounds."
+            }
+          }
+        },
+        "pebble": {
+          "$value": "#99a0a4",
+          "$description": "Pebble",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Mid grey for hairlines, and quiet text on dark."
+            }
+          }
+        },
+        "liquorice": {
+          "$value": "#09141a",
+          "$description": "Liquorice",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "The darkest colour: text everywhere and the cool hull of the dark theme."
+            }
+          }
+        },
+        "liquorice-raised": {
+          "$value": "#121d24",
+          "$description": "Liquorice raised",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "A raised surface on the Liquorice hull."
+            }
+          }
+        },
+        "liquorice-panel": {
+          "$value": "#1c282f",
+          "$description": "Liquorice panel",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "A panel on the Liquorice hull."
+            }
+          }
+        },
+        "jacaranda": {
+          "$value": "#8182d3",
+          "$description": "Jacaranda",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "The one purple, wherever it is the right colour. Bluer and softer than the GEN AI violet, which keeps its own signal."
+            }
+          }
+        },
+        "arvo": {
+          "$value": "#ef9275",
+          "$description": "Arvo",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Afternoon light: the error red for text on dark surfaces."
+            }
+          }
+        },
+        "outback": {
+          "$value": "#c55123",
+          "$description": "Outback",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Red earth, for charts and illustration."
+            }
+          }
+        },
+        "ore": {
+          "$value": "#72251c",
+          "$description": "Ore",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Deep iron red: error text on light under High contrast."
+            }
+          }
+        }
+      },
+      "spectrum": {
+        "$description": "Charts and data, in this order. A verdict never relies on colour alone: it always carries an icon and a word.",
+        "green-apple": {
+          "$value": "{color.brand.green-apple}",
+          "$description": "Green Apple"
+        },
+        "reef": {
+          "$value": "{color.brand.reef}",
+          "$description": "Reef"
+        },
+        "honey": {
+          "$value": "{color.brand.honey}",
+          "$description": "Honey"
+        },
+        "donut": {
+          "$value": "{color.brand.donut}",
+          "$description": "Donut"
+        },
+        "banksia": {
+          "$value": "{color.brand.banksia}",
+          "$description": "Banksia"
+        },
+        "olive": {
+          "$value": "{color.brand.olive}",
+          "$description": "Olive"
+        },
+        "outback": {
+          "$value": "{color.brand.outback}",
+          "$description": "Outback"
+        },
+        "bark": {
+          "$value": "{color.brand.bark}",
+          "$description": "Bark"
+        }
+      }
+    },
+    "font": {
+      "$type": "fontFamily",
+      "brand": {
+        "$value": "SUSE",
+        "$description": "Text and italics: SUSE, served by the shell, so it resolves on every profile without font files in this pack. SIL OFL 1.1."
+      },
+      "display": {
+        "$value": "Outfit",
+        "$description": "Headings: Outfit, served by the shell. Outfit has no italics, so emphasis falls back to SUSE."
+      },
+      "italic": {
+        "$value": "SUSE",
+        "$description": "Italics: SUSE, because Outfit has none."
+      },
+      "mono": {
+        "$value": "SUSE Mono",
+        "$description": "Code, readouts and data: SUSE Mono, served by the shell. SIL OFL 1.1."
+      }
+    },
+    "asset": {
+      "logo": {
+        "$description": "Lolly's own marks, shipped in this pack's catalog (lolly/logo/*). The mark is square, so horizontal and vertical share one file per treatment.",
+        "horizontal-primary": {
+          "$type": "asset",
+          "$value": "lolly/logo/primary"
+        },
+        "horizontal-primary-reverse": {
+          "$type": "asset",
+          "$value": "lolly/logo/reverse"
+        },
+        "horizontal-mono": {
+          "$type": "asset",
+          "$value": "lolly/logo/mono"
+        },
+        "horizontal-mono-reverse": {
+          "$type": "asset",
+          "$value": "lolly/logo/mono-reverse"
+        },
+        "vertical-primary": {
+          "$type": "asset",
+          "$value": "lolly/logo/primary"
+        },
+        "vertical-primary-reverse": {
+          "$type": "asset",
+          "$value": "lolly/logo/reverse"
+        },
+        "vertical-mono": {
+          "$type": "asset",
+          "$value": "lolly/logo/mono"
+        },
+        "vertical-mono-reverse": {
+          "$type": "asset",
+          "$value": "lolly/logo/mono-reverse"
+        }
+      }
+    }
+  },
+  "light": {
+    "color": {
+      "$type": "color",
+      "semantic": {
+        "$description": "The seven semantic slots for the light look, the crystal chalice: Liquorice on Sugar with a Spearmint accent.",
+        "primary": {
+          "$value": "{color.brand.spearmint}",
+          "$description": "The accent: Spearmint, 13.3:1 with a Sugar label"
+        },
+        "on-primary": {
+          "$value": "{color.brand.sugar}",
+          "$description": "Text and icons on the accent"
+        },
+        "secondary": {
+          "$value": "{color.brand.bunyapine}",
+          "$description": "Supporting accent: the mark green"
+        },
+        "surface": {
+          "$value": "{color.brand.sugar}",
+          "$description": "Canvas and page background"
+        },
+        "text": {
+          "$value": "{color.brand.liquorice}",
+          "$description": "Main foreground, 18.6:1 on Sugar"
+        },
+        "muted": {
+          "$value": "{color.brand.basalt}",
+          "$description": "Secondary foreground"
+        },
+        "edge": {
+          "$value": "{color.brand.pebble}",
+          "$description": "Hairlines and borders"
+        }
+      },
+      "role": {
+        "muted-ink": {
+          "$value": "{color.brand.basalt}",
+          "$description": "Captions, labels, axis years and descriptions: quieter than the text colour."
+        },
+        "secondary-ink": {
+          "$value": "{color.brand.basalt}",
+          "$description": "Secondary text on a card."
+        },
+        "strong-card-ink": {
+          "$value": "{color.brand.liquorice}",
+          "$description": "Secondary text on a strong card."
+        },
+        "accent-ink": {
+          "$value": "{color.brand.spearmint}",
+          "$description": "Accent text: subtitles, emphasised runs and markers."
+        },
+        "accent": {
+          "$value": "{color.brand.bunyapine}",
+          "$description": "Accent marks: dots, ticks and check marks."
+        },
+        "alert-ink": {
+          "$value": "{color.brand.bauxite}",
+          "$description": "Text that warns: a risk, a lock-in, the thing to avoid."
+        },
+        "hairline": {
+          "$value": "{color.brand.pebble}",
+          "$description": "Rules, axes and dividers on the slide ground."
+        },
+        "card-hairline": {
+          "$value": "{color.brand.pebble}",
+          "$description": "A rule drawn on a card."
+        },
+        "track": {
+          "$value": "{color.brand.beach}",
+          "$description": "Bars and tracks of a timeline or chart."
+        },
+        "card": {
+          "$value": "{color.brand.meringue}",
+          "$description": "A neutral card or table cell."
+        },
+        "quiet-card": {
+          "$value": "{color.brand.meringue}",
+          "$description": "A neutral panel that takes the brand ground in the dark theme."
+        },
+        "mint-card": {
+          "$value": "{color.brand.beach}",
+          "$description": "A lightly tinted card."
+        },
+        "strong-card": {
+          "$value": "{color.brand.waffle}",
+          "$description": "An emphasised card: the column or cell the slide argues for."
+        },
+        "alert-card": {
+          "$value": "{color.brand.beach}",
+          "$description": "A card that warns."
+        },
+        "quiet-alert-card": {
+          "$value": "{color.brand.meringue}",
+          "$description": "A card that warns, quieter in the dark theme."
+        },
+        "alert-tint": {
+          "$value": "{color.brand.arvo}",
+          "$description": "A fill that warns: the bar or block to avoid."
+        },
+        "alt-surface": {
+          "$value": "{color.brand.meringue}",
+          "$description": "An alternative slide ground."
+        }
+      }
+    }
+  },
+  "dark": {
+    "color": {
+      "$type": "color",
+      "semantic": {
+        "$description": "The seven semantic slots for the dark look, the stealth ship: Sugar on a Liquorice hull with a Green Apple accent.",
+        "primary": {
+          "$value": "{color.brand.green-apple}",
+          "$description": "The accent: Green Apple, with a Liquorice label"
+        },
+        "on-primary": {
+          "$value": "{color.brand.liquorice}",
+          "$description": "Text and icons on the accent"
+        },
+        "secondary": {
+          "$value": "{color.brand.bunyapine}",
+          "$description": "Supporting accent: the mark green"
+        },
+        "surface": {
+          "$value": "{color.brand.liquorice}",
+          "$description": "Canvas and page background: the Liquorice hull"
+        },
+        "text": {
+          "$value": "{color.brand.sugar}",
+          "$description": "Main foreground, 18.6:1 on Liquorice"
+        },
+        "muted": {
+          "$value": "{color.brand.pebble}",
+          "$description": "Secondary foreground, 7:1 on Liquorice"
+        },
+        "edge": {
+          "$value": "{color.brand.basalt}",
+          "$description": "Hairlines and borders"
+        }
+      },
+      "role": {
+        "muted-ink": {
+          "$value": "{color.brand.pebble}",
+          "$description": "Captions, labels, axis years and descriptions: quieter than the text colour."
+        },
+        "secondary-ink": {
+          "$value": "{color.brand.pebble}",
+          "$description": "Secondary text on a card."
+        },
+        "strong-card-ink": {
+          "$value": "{color.brand.sugar}",
+          "$description": "Secondary text on a strong card."
+        },
+        "accent-ink": {
+          "$value": "{color.brand.green-apple}",
+          "$description": "Accent text: subtitles, emphasised runs and markers."
+        },
+        "accent": {
+          "$value": "{color.brand.green-apple}",
+          "$description": "Accent marks: dots, ticks and check marks."
+        },
+        "alert-ink": {
+          "$value": "{color.brand.arvo}",
+          "$description": "Text that warns: a risk, a lock-in, the thing to avoid."
+        },
+        "hairline": {
+          "$value": "{color.brand.basalt}",
+          "$description": "Rules, axes and dividers on the slide ground."
+        },
+        "card-hairline": {
+          "$value": "{color.brand.basalt}",
+          "$description": "A rule drawn on a card."
+        },
+        "track": {
+          "$value": "{color.brand.liquorice-panel}",
+          "$description": "Bars and tracks of a timeline or chart."
+        },
+        "card": {
+          "$value": "{color.brand.liquorice-raised}",
+          "$description": "A neutral card or table cell."
+        },
+        "quiet-card": {
+          "$value": "{color.brand.spearmint}",
+          "$description": "A neutral panel that takes the brand ground in the dark theme."
+        },
+        "mint-card": {
+          "$value": "{color.brand.liquorice-panel}",
+          "$description": "A lightly tinted card."
+        },
+        "strong-card": {
+          "$value": "{color.brand.basalt}",
+          "$description": "An emphasised card: the column or cell the slide argues for."
+        },
+        "alert-card": {
+          "$value": "{color.brand.ore}",
+          "$description": "A card that warns."
+        },
+        "quiet-alert-card": {
+          "$value": "{color.brand.liquorice-panel}",
+          "$description": "A card that warns, quieter in the dark theme."
+        },
+        "alert-tint": {
+          "$value": "{color.brand.bauxite}",
+          "$description": "A fill that warns: the bar or block to avoid."
+        },
+        "alt-surface": {
+          "$value": "{color.brand.liquorice-raised}",
+          "$description": "An alternative slide ground."
+        }
+      }
+    }
+  }
+}

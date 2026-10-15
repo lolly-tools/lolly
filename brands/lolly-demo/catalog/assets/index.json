@@ -1,0 +1,1317 @@
+{
+  "version": "1",
+  "generatedAt": "2026-10-15T00:00:00.000Z",
+  "defaultHiddenTools": [
+    "wordmark",
+    "rebrand-deck"
+  ],
+  "defaultHiddenTemplates": [],
+  "assets": [
+    {
+      "id": "lolly/tokens/opal",
+      "name": "Opal",
+      "description": "Opal, Lolly's own design system: treats and nature. Named colours (Spearmint, Green Apple, Liquorice, Honey, Reef and the rest), the chart spectrum, light and dark semantic slots with the slide roles, Outfit headings with SUSE and SUSE Mono, and Lolly's marks in the logo slots.",
+      "type": "tokens",
+      "version": "1.0.0",
+      "tier": "core",
+      "tags": [
+        "tokens",
+        "brand",
+        "dtcg",
+        "opal"
+      ],
+      "formats": [
+        {
+          "format": "json",
+          "url": "/catalog/assets/lolly/tokens/opal.json",
+          "checksum": "sha256-kfWez35qFvtdYmfB2E2Ngy+zQAcn3h4b17HJhS3brTs=",
+          "size": 18173
+        }
+      ]
+    },
+    {
+      "id": "lolly/logo/primary",
+      "name": "Lolly Mark - Primary",
+      "description": "The Lolly swirl mark, full colour, for light backgrounds. The blank starter's default logo (square, so it serves both the horizontal and vertical slots). Replace it with your own in the #/start Brand studio.",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "core",
+      "tags": [
+        "logo",
+        "lolly",
+        "mark",
+        "primary"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/logo/primary.svg",
+          "checksum": "sha256-NWmujlVZ1zygr2em+Zf3aFJUrr3l1OJK9w2O7Sz+8rY=",
+          "size": 19479
+        }
+      ],
+      "added": "2026-08-23"
+    },
+    {
+      "id": "lolly/logo/reverse",
+      "name": "Lolly Mark - Reverse",
+      "description": "The Lolly swirl mark, full colour, for dark backgrounds. The starter's default reverse logo, and the dark-mode variant of the app icon.",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "core",
+      "tags": [
+        "logo",
+        "lolly",
+        "mark",
+        "reverse",
+        "on-dark"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/logo/reverse.svg",
+          "checksum": "sha256-zXo3qFxarWE1FeQyfE+2q47t4RwDhm7lnq2BznFe56s=",
+          "size": 20301
+        }
+      ],
+      "added": "2026-08-23"
+    },
+    {
+      "id": "lolly/logo/mono",
+      "name": "Lolly Mark - Mono",
+      "description": "The Lolly swirl mark, one colour, for light backgrounds. The starter's default mono logo.",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "core",
+      "tags": [
+        "logo",
+        "lolly",
+        "mark",
+        "mono"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/logo/mono.svg",
+          "checksum": "sha256-WIAYZJMPOpN9KRvRutBVHKse7+3wG9AeKKRAMhnYkLk=",
+          "size": 17711
+        }
+      ],
+      "added": "2026-08-23"
+    },
+    {
+      "id": "lolly/logo/mono-reverse",
+      "name": "Lolly Mark - Mono reverse",
+      "description": "The Lolly swirl mark, one colour, for dark backgrounds. The starter's default mono reverse logo.",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "core",
+      "tags": [
+        "logo",
+        "lolly",
+        "mark",
+        "mono",
+        "on-dark"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/logo/mono-reverse.svg",
+          "checksum": "sha256-HKdZbrfwOO9hBPfk0US9n1LjpC7PO97O7awGIqfva/w=",
+          "size": 15448
+        }
+      ],
+      "added": "2026-08-23"
+    },
+    {
+      "id": "lolly/palette/riso-inks",
+      "name": "Riso Ink Colours",
+      "description": "The Risograph duplicator ink drums as named sRGB approximations - a brand-supplied ink book rather than an enum hardcoded in a tool. Each entry is one drum, so these are spot inks for overprinting (one pass per drum), not process colours. Foundation for the Riso pack: a finishing/duotone tool reads this palette instead of shipping its own ink list.",
+      "type": "palette",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "palette",
+        "riso",
+        "ink",
+        "print",
+        "spot",
+        "finishing"
+      ],
+      "formats": [
+        {
+          "format": "json",
+          "url": "/catalog/assets/lolly/palette/riso-inks.json",
+          "checksum": "sha256-UJ3thKapRCUQ0eoz4N7nJX5J/noXoGfk4lxaLoKR7jg=",
+          "size": 3437
+        }
+      ],
+      "added": "2026-07-31"
+    },
+    {
+      "id": "lolly/loops/pixel-quest-save-point",
+      "name": "Pixel Quest Save Point",
+      "description": "Looping lo-fi beat (focus) - a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0). Donated to the public domain by Bilal Tahir (next-beats). AI-generated with Suno (the Open Lo-Fi project, github.com/btahir/open-lofi).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "loop",
+        "beat",
+        "ambient",
+        "neurospicy",
+        "lofi",
+        "activities"
+      ],
+      "formats": [
+        {
+          "format": "opus",
+          "url": "/catalog/assets/lolly/loops/pixel-quest-save-point.opus",
+          "checksum": "sha256-VS2Gbxgtvtg/j78U8iqTWTp8rBMF3IAYmPvx8POS5qk=",
+          "size": 624613
+        }
+      ],
+      "license": "CC0-1.0",
+      "aiGenerated": "full",
+      "added": "2026-07-10"
+    },
+    {
+      "id": "lolly/loops/breezy-afternoon-terrace",
+      "name": "Breezy Afternoon Terrace",
+      "description": "Looping lo-fi beat (jazz-lounge) - a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0). Donated to the public domain by Bilal Tahir (next-beats). AI-generated with Suno (the Open Lo-Fi project, github.com/btahir/open-lofi).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "loop",
+        "beat",
+        "ambient",
+        "neurospicy",
+        "lofi",
+        "jazzhop"
+      ],
+      "formats": [
+        {
+          "format": "opus",
+          "url": "/catalog/assets/lolly/loops/breezy-afternoon-terrace.opus",
+          "checksum": "sha256-cXoTBT5k/1Hu/gqvX4fmavKYf3JCQobOP7Px9LsHbXo=",
+          "size": 705220
+        }
+      ],
+      "license": "CC0-1.0",
+      "aiGenerated": "full",
+      "added": "2026-07-10"
+    },
+    {
+      "id": "lolly/loops/rain-on-the-boulevard",
+      "name": "Rain on the Boulevard",
+      "description": "Looping lo-fi beat (jazz-lounge) - a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0). Donated to the public domain by Bilal Tahir (next-beats). AI-generated with Suno (the Open Lo-Fi project, github.com/btahir/open-lofi).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "loop",
+        "beat",
+        "ambient",
+        "neurospicy",
+        "lofi",
+        "jazzhop"
+      ],
+      "formats": [
+        {
+          "format": "opus",
+          "url": "/catalog/assets/lolly/loops/rain-on-the-boulevard.opus",
+          "checksum": "sha256-M369W28/MTItORoxOa5MUaShzARzUb1icroOkP0F47Y=",
+          "size": 775824
+        }
+      ],
+      "license": "CC0-1.0",
+      "aiGenerated": "full",
+      "added": "2026-07-10"
+    },
+    {
+      "id": "lolly/loops/fireplace-loop",
+      "name": "Fireplace Loop",
+      "description": "Looping lo-fi beat (rainy-day) - a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0). Donated to the public domain by Bilal Tahir (next-beats). AI-generated with Suno (the Open Lo-Fi project, github.com/btahir/open-lofi).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "loop",
+        "beat",
+        "ambient",
+        "neurospicy",
+        "lofi",
+        "seasonal-weather"
+      ],
+      "formats": [
+        {
+          "format": "opus",
+          "url": "/catalog/assets/lolly/loops/fireplace-loop.opus",
+          "checksum": "sha256-2kllifknBKYZwbPRf14Dr6DFw2PgVld+7I7Kn72UKSg=",
+          "size": 752614
+        }
+      ],
+      "license": "CC0-1.0",
+      "aiGenerated": "full",
+      "added": "2026-07-10"
+    },
+    {
+      "id": "lolly/loops/first-coffee-thoughts",
+      "name": "First Coffee Thoughts",
+      "description": "Looping lo-fi beat (focus) - a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0). Donated to the public domain by Bilal Tahir (next-beats). AI-generated with Suno (the Open Lo-Fi project, github.com/btahir/open-lofi).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "loop",
+        "beat",
+        "ambient",
+        "neurospicy",
+        "lofi",
+        "activities"
+      ],
+      "formats": [
+        {
+          "format": "opus",
+          "url": "/catalog/assets/lolly/loops/first-coffee-thoughts.opus",
+          "checksum": "sha256-59c5wsM+fSmRe3/0LM+gWccw8go5MWtJQYMaA0V/bnY=",
+          "size": 788095
+        }
+      ],
+      "license": "CC0-1.0",
+      "aiGenerated": "full",
+      "added": "2026-07-10"
+    },
+    {
+      "id": "lolly/loops/continue-screen-dreams",
+      "name": "Continue Screen Dreams",
+      "description": "Looping lo-fi beat (focus) - a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0). Donated to the public domain by Bilal Tahir (next-beats). AI-generated with Suno (the Open Lo-Fi project, github.com/btahir/open-lofi).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "loop",
+        "beat",
+        "ambient",
+        "neurospicy",
+        "lofi",
+        "activities"
+      ],
+      "formats": [
+        {
+          "format": "opus",
+          "url": "/catalog/assets/lolly/loops/continue-screen-dreams.opus",
+          "checksum": "sha256-embJbAbglPO6kfJp8TnLrh3XqHsYUkxqPEfE5SFzWqo=",
+          "size": 799523
+        }
+      ],
+      "license": "CC0-1.0",
+      "aiGenerated": "full",
+      "added": "2026-07-10"
+    },
+    {
+      "id": "lolly/loops/slow-dance-in-the-living-room",
+      "name": "Slow Dance in the Living Room",
+      "description": "Looping lo-fi beat (soul & slow-jam) - a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0). Donated to the public domain by Bilal Tahir (next-beats). AI-generated with Suno (the Open Lo-Fi project, github.com/btahir/open-lofi).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "loop",
+        "beat",
+        "ambient",
+        "neurospicy",
+        "lofi",
+        "soul-rnb"
+      ],
+      "formats": [
+        {
+          "format": "opus",
+          "url": "/catalog/assets/lolly/loops/slow-dance-in-the-living-room.opus",
+          "checksum": "sha256-CWdFMTptfB6krFTRy6mLN9lJWKOh07fnb3eEpHpfYAI=",
+          "size": 834769
+        }
+      ],
+      "license": "CC0-1.0",
+      "aiGenerated": "full",
+      "added": "2026-07-10"
+    },
+    {
+      "id": "lolly/loops/3-am-echoes",
+      "name": "3 AM Echoes",
+      "description": "Looping lo-fi beat (late-night) - a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0). Donated to the public domain by Bilal Tahir (next-beats). AI-generated with Suno (the Open Lo-Fi project, github.com/btahir/open-lofi).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "loop",
+        "beat",
+        "ambient",
+        "neurospicy",
+        "lofi",
+        "late-night"
+      ],
+      "formats": [
+        {
+          "format": "opus",
+          "url": "/catalog/assets/lolly/loops/3-am-echoes.opus",
+          "checksum": "sha256-55ASP4ZZymVF74OJ4fcyYUdRj5fzpiE2BQ+W+lPqOYk=",
+          "size": 820401
+        }
+      ],
+      "license": "CC0-1.0",
+      "aiGenerated": "full",
+      "added": "2026-07-10"
+    },
+    {
+      "id": "lolly/loops/after-school-rain",
+      "name": "After School Rain",
+      "description": "Looping lo-fi beat (rainy-day) - a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0). Donated to the public domain by Bilal Tahir (next-beats). AI-generated with Suno (the Open Lo-Fi project, github.com/btahir/open-lofi).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "loop",
+        "beat",
+        "ambient",
+        "neurospicy",
+        "lofi",
+        "seasonal-weather"
+      ],
+      "formats": [
+        {
+          "format": "opus",
+          "url": "/catalog/assets/lolly/loops/after-school-rain.opus",
+          "checksum": "sha256-ougFOMajQXTR4lDX+Bx0JD/WA8ufEmCa+zzF/md1eHI=",
+          "size": 808893
+        }
+      ],
+      "license": "CC0-1.0",
+      "aiGenerated": "full",
+      "added": "2026-07-10"
+    },
+    {
+      "id": "lolly/loops/3am-sink-light",
+      "name": "3AM Sink Light",
+      "description": "Looping lo-fi beat (soul & slow-jam) - a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0). Donated to the public domain by Bilal Tahir (next-beats). AI-generated with Suno (the Open Lo-Fi project, github.com/btahir/open-lofi).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "loop",
+        "beat",
+        "ambient",
+        "neurospicy",
+        "lofi",
+        "soul-rnb"
+      ],
+      "formats": [
+        {
+          "format": "opus",
+          "url": "/catalog/assets/lolly/loops/3am-sink-light.opus",
+          "checksum": "sha256-YAyt0YyFqQtH3Vw0iXslrp+0iQxqyTqUFJKQx8a8IaY=",
+          "size": 803421
+        }
+      ],
+      "license": "CC0-1.0",
+      "aiGenerated": "full",
+      "added": "2026-07-10"
+    },
+    {
+      "id": "lolly/loops/saxophone-in-the-rain",
+      "name": "Saxophone in the Rain",
+      "description": "Looping lo-fi beat (jazz-lounge) - a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0). Donated to the public domain by Bilal Tahir (next-beats). AI-generated with Suno (the Open Lo-Fi project, github.com/btahir/open-lofi).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "loop",
+        "beat",
+        "ambient",
+        "neurospicy",
+        "lofi",
+        "jazzhop"
+      ],
+      "formats": [
+        {
+          "format": "opus",
+          "url": "/catalog/assets/lolly/loops/saxophone-in-the-rain.opus",
+          "checksum": "sha256-LwTa6I5ScvT6OzfJJ7HAk/slAYjhNfhU+WvUZCVr618=",
+          "size": 801565
+        }
+      ],
+      "license": "CC0-1.0",
+      "aiGenerated": "full",
+      "added": "2026-07-10"
+    },
+    {
+      "id": "lolly/loops/empty-street-static",
+      "name": "Empty Street Static",
+      "description": "Looping lo-fi beat (late-night) - a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0). Donated to the public domain by Bilal Tahir (next-beats). AI-generated with Suno (the Open Lo-Fi project, github.com/btahir/open-lofi).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "loop",
+        "beat",
+        "ambient",
+        "neurospicy",
+        "lofi",
+        "late-night"
+      ],
+      "formats": [
+        {
+          "format": "opus",
+          "url": "/catalog/assets/lolly/loops/empty-street-static.opus",
+          "checksum": "sha256-PhD1edChakzCC5so6CGNK2kfdIGev8AbSWXxZZGgH70=",
+          "size": 836496
+        }
+      ],
+      "license": "CC0-1.0",
+      "aiGenerated": "full",
+      "added": "2026-07-10"
+    },
+    {
+      "id": "lolly/songs/drift",
+      "name": "Drift",
+      "description": "A gentle bell melody over a warm pad with a light offbeat pulse. Generated on device from a few KB of ZzFXM data (~44s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "song",
+        "neurospicy",
+        "generated",
+        "melodic",
+        "calm"
+      ],
+      "formats": [
+        {
+          "format": "zzfxm",
+          "url": "/catalog/assets/lolly/songs/drift.zzfxm.json",
+          "checksum": "sha256-LIZcaf1LvLx1cLvcqeV009qjWT6YSrY6y7faBUgS37s=",
+          "size": 962
+        }
+      ],
+      "license": "CC0-1.0",
+      "added": "2026-07-10"
+    },
+    {
+      "id": "lolly/songs/amber-glow",
+      "name": "Amber Glow",
+      "description": "Sparse glass notes drifting over soothing pad swells - no drums. Generated on device from a few KB of ZzFXM data (~53s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "song",
+        "neurospicy",
+        "generated",
+        "ambient",
+        "calm",
+        "sweeps"
+      ],
+      "formats": [
+        {
+          "format": "zzfxm",
+          "url": "/catalog/assets/lolly/songs/amber-glow.zzfxm.json",
+          "checksum": "sha256-TOdHajxUWH5pMETNJtpTCd/Q5AksDebjPVPpq/7aBZg=",
+          "size": 946
+        }
+      ],
+      "license": "CC0-1.0",
+      "added": "2026-07-10"
+    },
+    {
+      "id": "lolly/songs/tide-pool",
+      "name": "Tide Pool",
+      "description": "Very slow, open, suspended chords with long swells - drift-away focus. Generated on device from a few KB of ZzFXM data (~58s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "song",
+        "neurospicy",
+        "generated",
+        "ambient",
+        "calm",
+        "sweeps",
+        "dreamy"
+      ],
+      "formats": [
+        {
+          "format": "zzfxm",
+          "url": "/catalog/assets/lolly/songs/tide-pool.zzfxm.json",
+          "checksum": "sha256-meYw86p7jqLDoIVMk7fwpImRkpWtdQtvWyfe79/PIE8=",
+          "size": 924
+        }
+      ],
+      "license": "CC0-1.0",
+      "added": "2026-07-10"
+    },
+    {
+      "id": "lolly/songs/paper-lanterns",
+      "name": "Paper Lanterns",
+      "description": "A wistful minor-pentatonic melody with a gentle, rocking lilt. Generated on device from a few KB of ZzFXM data (~43s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "song",
+        "neurospicy",
+        "generated",
+        "melodic",
+        "calm"
+      ],
+      "formats": [
+        {
+          "format": "zzfxm",
+          "url": "/catalog/assets/lolly/songs/paper-lanterns.zzfxm.json",
+          "checksum": "sha256-A6HN22Wq53aflD8of0pJYPrcj2T8L8s0ealNcVhN+Mw=",
+          "size": 974
+        }
+      ],
+      "license": "CC0-1.0",
+      "added": "2026-07-10"
+    },
+    {
+      "id": "lolly/songs/meadow",
+      "name": "Meadow",
+      "description": "Bright, unhurried bell phrases over an easy pad - open and sunny. Generated on device from a few KB of ZzFXM data (~52s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "song",
+        "neurospicy",
+        "generated",
+        "melodic",
+        "calm"
+      ],
+      "formats": [
+        {
+          "format": "zzfxm",
+          "url": "/catalog/assets/lolly/songs/meadow.zzfxm.json",
+          "checksum": "sha256-zahJffOz9cf9z2cQkTCiHXbuQ7wo1UCn+U3O0rBpi38=",
+          "size": 974
+        }
+      ],
+      "license": "CC0-1.0",
+      "added": "2026-07-10"
+    },
+    {
+      "id": "lolly/songs/bn-copacabana-breeze",
+      "name": "Copacabana Breeze",
+      "description": "Warm nylon guitar comping bounces over a soft brushed snare and a gentle shaker pulse - a sunny, unhurried bossa sway. Generated on device from a few KB of ZzFXM data (~47s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "song",
+        "neurospicy",
+        "generated",
+        "bossa-nova",
+        "melodic",
+        "calm"
+      ],
+      "formats": [
+        {
+          "format": "zzfxm",
+          "url": "/catalog/assets/lolly/songs/bn-copacabana-breeze.zzfxm.json",
+          "checksum": "sha256-hwBscRGDaTtBxtkUeUjohDbkvrBq+jeee+PswY6wVKo=",
+          "size": 1037
+        }
+      ],
+      "license": "CC0-1.0",
+      "added": "2026-07-10"
+    },
+    {
+      "id": "lolly/songs/ct-turbo-dash",
+      "name": "Turbo Dash",
+      "description": "A buzzy pulse-wave arpeggio sprints over a punchy 8-bit kick, pure retro race-track energy. Generated on device from a few KB of ZzFXM data (~38s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "song",
+        "neurospicy",
+        "generated",
+        "chiptune",
+        "energetic",
+        "arcade",
+        "beat"
+      ],
+      "formats": [
+        {
+          "format": "zzfxm",
+          "url": "/catalog/assets/lolly/songs/ct-turbo-dash.zzfxm.json",
+          "checksum": "sha256-LIuLkl9VlQFsDHojalSrl1dWrO+clsjk8ECx9+DSyhQ=",
+          "size": 1287
+        }
+      ],
+      "license": "CC0-1.0",
+      "added": "2026-07-10"
+    },
+    {
+      "id": "lolly/songs/ct-pixel-quest",
+      "name": "Pixel Quest",
+      "description": "A bright square-wave melody bounces through a cheerful chord march, like a hero setting off on a quest. Generated on device from a few KB of ZzFXM data (~47s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "song",
+        "neurospicy",
+        "generated",
+        "chiptune",
+        "catchy",
+        "playful",
+        "melodic"
+      ],
+      "formats": [
+        {
+          "format": "zzfxm",
+          "url": "/catalog/assets/lolly/songs/ct-pixel-quest.zzfxm.json",
+          "checksum": "sha256-6O05GEPxT99g+I1jfIhxVvaTurdQXT1flpc6Jqxr3C0=",
+          "size": 1106
+        }
+      ],
+      "license": "CC0-1.0",
+      "added": "2026-07-10"
+    },
+    {
+      "id": "lolly/modules/aleja-deszczu",
+      "name": "Aleja Deszczu",
+      "description": "Aleja Deszczu - a tracker module by JAM. Electronic - Breakbeat. Public Domain via The Mod Archive.",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "music",
+        "module",
+        "tracker",
+        "xm",
+        "neurospicy",
+        "beat",
+        "breakbeat"
+      ],
+      "formats": [
+        {
+          "format": "xm",
+          "url": "/catalog/assets/lolly/modules/aleja-deszczu.xm",
+          "checksum": "sha256-Ez+tyP3GRoZJUPTBJLW/MNgyOwS8f3t7IDdFRan9J04=",
+          "size": 347318,
+          "durationMs": 193333
+        }
+      ],
+      "license": "CC-PDDC",
+      "added": "2026-07-29"
+    },
+    {
+      "id": "lolly/modules/blue-intermission",
+      "name": "Blue Intermission",
+      "description": "Blue Intermission - a tracker module by congusbongus. Jazz (general). CC0 via The Mod Archive.",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "music",
+        "module",
+        "tracker",
+        "xm",
+        "neurospicy",
+        "chill",
+        "jazz",
+        "lofi"
+      ],
+      "formats": [
+        {
+          "format": "xm",
+          "url": "/catalog/assets/lolly/modules/blue-intermission.xm",
+          "checksum": "sha256-8oxBe+awc/SSgeTDzhgA3G7zjT8TjLtc8fmVZ5daAJ4=",
+          "size": 201180,
+          "durationMs": 237188
+        }
+      ],
+      "license": "CC0-1.0",
+      "added": "2026-07-29"
+    },
+    {
+      "id": "lolly/modules/headspin",
+      "name": "Headspin",
+      "description": "Headspin - a tracker module by congusbongus. Hip-Hop. CC0 via The Mod Archive.",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "music",
+        "module",
+        "tracker",
+        "xm",
+        "neurospicy",
+        "beat",
+        "hiphop",
+        "lofi"
+      ],
+      "formats": [
+        {
+          "format": "xm",
+          "url": "/catalog/assets/lolly/modules/headspin.xm",
+          "checksum": "sha256-DSF/4+QSc7pnPGb8awvMqqVzvRMgR2PaRSLZYe69Rkw=",
+          "size": 284019,
+          "durationMs": 205232
+        }
+      ],
+      "license": "CC0-1.0",
+      "added": "2026-07-29"
+    },
+    {
+      "id": "lolly/modules/jazzical-interpolation",
+      "name": "Jazzical Interpolation",
+      "description": "Jazzical Interpolation - a tracker module by christofori. Jazz - Modern. Public Domain via The Mod Archive.",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "music",
+        "module",
+        "tracker",
+        "it",
+        "neurospicy",
+        "chill",
+        "jazz",
+        "lofi"
+      ],
+      "formats": [
+        {
+          "format": "it",
+          "url": "/catalog/assets/lolly/modules/jazzical-interpolation.it",
+          "checksum": "sha256-6uZJQBOAt3TiGxIaWs66kw0/QNHih/Dle23nnTsXOl4=",
+          "size": 337408,
+          "durationMs": 152295
+        }
+      ],
+      "license": "CC-PDDC",
+      "added": "2026-07-29"
+    },
+    {
+      "id": "lolly/modules/wild-perspective",
+      "name": "Wild Perspective",
+      "description": "wild perspective - a tracker module by m0d. Trance - Dream. Public Domain via The Mod Archive.",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "music",
+        "module",
+        "tracker",
+        "mod",
+        "neurospicy",
+        "ambient",
+        "chill"
+      ],
+      "formats": [
+        {
+          "format": "mod",
+          "url": "/catalog/assets/lolly/modules/wild-perspective.mod",
+          "checksum": "sha256-2m8EePJUNa8gsqUSrb46hC2zBbNdcGWFwWojsm5kB4o=",
+          "size": 394832,
+          "durationMs": 88320
+        }
+      ],
+      "license": "CC-PDDC",
+      "added": "2026-07-29"
+    },
+    {
+      "id": "lolly/modules/take-a-walk",
+      "name": "Take A Walk",
+      "description": "Take a Walk - a tracker module by JAM. Easy Listening. Public Domain via The Mod Archive.",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "music",
+        "module",
+        "tracker",
+        "xm",
+        "neurospicy",
+        "chill",
+        "lofi"
+      ],
+      "formats": [
+        {
+          "format": "xm",
+          "url": "/catalog/assets/lolly/modules/take-a-walk.xm",
+          "checksum": "sha256-xOAo5+g87g6AXwYbmazhYEHTd2+AUKipHeffTiYdfNE=",
+          "size": 170026,
+          "durationMs": 79680
+        }
+      ],
+      "license": "CC-PDDC",
+      "added": "2026-07-29"
+    },
+    {
+      "id": "lolly/modules/jazznocn",
+      "name": "Jazznocn",
+      "description": "Jazznocn - a tracker module by JAM. Chillout. Public Domain via The Mod Archive.",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "music",
+        "module",
+        "tracker",
+        "xm",
+        "neurospicy",
+        "chill",
+        "lofi"
+      ],
+      "formats": [
+        {
+          "format": "xm",
+          "url": "/catalog/assets/lolly/modules/jazznocn.xm",
+          "checksum": "sha256-EIb+cfOP+4HEzIjhLP3xl0E+spF4JOU/3B9MWXqRTUw=",
+          "size": 389112,
+          "durationMs": 176160
+        }
+      ],
+      "license": "CC-PDDC",
+      "added": "2026-07-29"
+    },
+    {
+      "id": "lolly/demo/lolly-spin",
+      "name": "Lolly Spin (animated)",
+      "description": "The Lolly swirl as a self-contained animated SVG - three nested spirals rotating at a calm 9/18/27s cadence (the mark's own motion, slowed for comfort) with a slow hue drift on a brand-tinted gradient, calmed under prefers-reduced-motion. The swirl and the background inherit the active brand's colours when placed live, and it makes a handy default subject for testing filters, grading and animation. A removable example - delete it any time.",
+      "type": "vector",
+      "version": "1.2.0",
+      "tier": "core",
+      "tags": [
+        "animation",
+        "motion",
+        "svg",
+        "lolly",
+        "swirl",
+        "demo",
+        "example",
+        "placeholder"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/demo/lolly-spin.svg",
+          "checksum": "sha256-H3A6NRnHxKninD8rFAWSaiAv2Yc6dW1Xcvn1eQ3aDxw=",
+          "width": 542,
+          "height": 542,
+          "size": 10628
+        }
+      ],
+      "added": "2026-08-10"
+    },
+    {
+      "id": "lolly/demo/lorikeet-lollipop",
+      "name": "Lorikeet with a Lolly",
+      "description": "A rainbow lorikeet biting a green-and-white swirl lollipop against a deep green studio backdrop - the starter catalogue's demo photograph and the Darkroom's default subject, so grading, LUTs and the brand colour treatments have a real picture with skin-like feather detail and a full hue range to work on. Generated with Google Gemini and shipped byte-for-byte, so the generator's own Content Credential (a C2PA manifest that declares the image as trained-algorithmic media) stays intact for Verify to read. A removable example - delete it any time.",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "photo",
+        "demo",
+        "example",
+        "placeholder",
+        "lorikeet",
+        "bird",
+        "lollipop",
+        "lolly",
+        "portrait"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/lolly/demo/lorikeet-lollipop.jpg",
+          "checksum": "sha256-zOaMwbZfLSvt7U+W0OgwLtj6JFRz3Qx5jI8a1nARNZI=",
+          "width": 1628,
+          "height": 2624,
+          "size": 2779330,
+          "depth": 8
+        }
+      ],
+      "license": "CC0-1.0",
+      "aiGenerated": "full"
+    },
+    {
+      "id": "lolly/demo/app-screenshot",
+      "name": "App screenshot (demo)",
+      "description": "A real Lolly screenshot - the brand studio's Colours tab, captured as vector by the app's own DOM-to-SVG walker. A demo subject for flythroughs, filters and layered animation. A removable example - delete it any time.",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "core",
+      "tags": [
+        "screenshot",
+        "demo",
+        "example",
+        "verify",
+        "svg",
+        "placeholder"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/demo/app-screenshot.svg",
+          "checksum": "sha256-iVon4bUv+aUDjT1wb3AHbbLBS7J2x1XY85qKUXDWU8o=",
+          "width": 1440,
+          "height": 900,
+          "size": 618013
+        }
+      ],
+      "added": "2026-08-14"
+    },
+    {
+      "id": "lolly/3d/duck",
+      "name": "Duck",
+      "description": "A low-poly rubber duck - a sample 3-D model. Drop it into the 3D tool's lit scene, orbit the camera, render a still or a turntable.",
+      "type": "model",
+      "version": "1.0.0",
+      "tier": "catalog",
+      "tags": [
+        "3d",
+        "model",
+        "glb",
+        "duck",
+        "sample",
+        "toy"
+      ],
+      "aiGenerated": "full",
+      "formats": [
+        {
+          "format": "glb",
+          "url": "/catalog/assets/lolly/3d/duck.glb",
+          "checksum": "sha256-9vPq65Db4jOWHUYQ5FORzMo+QQtK0eGRFRdlLxmkbsY=",
+          "size": 299744
+        },
+        {
+          "format": "png",
+          "url": "/catalog/assets/lolly/3d/duck.png",
+          "checksum": "sha256-4bTiAgvqINTyQOJUeues258FNjiSZtyyklE4E08wJ3E=",
+          "size": 283450,
+          "depth": 8
+        }
+      ]
+    },
+    {
+      "id": "lolly/3d/cat",
+      "name": "Cat",
+      "description": "A calico bobtail cat - a sample 3-D model. Load it into the 3D tool, pose the camera and light, render a still or a turntable.",
+      "type": "model",
+      "version": "1.0.0",
+      "tier": "catalog",
+      "tags": [
+        "3d",
+        "model",
+        "glb",
+        "cat",
+        "calico",
+        "animal",
+        "sample"
+      ],
+      "aiGenerated": "full",
+      "formats": [
+        {
+          "format": "glb",
+          "url": "/catalog/assets/lolly/3d/cat.glb",
+          "checksum": "sha256-wQK8Y4bHL+yxWZkZUiUqqutLdMhKbz2xtgLvIdSMag0=",
+          "size": 1347192
+        },
+        {
+          "format": "png",
+          "url": "/catalog/assets/lolly/3d/cat.png",
+          "checksum": "sha256-gTEsLxEonIE/CPlSL1cuJ6k4TU3EZw+KtUuAlV63+QU=",
+          "size": 220566,
+          "depth": 8
+        }
+      ]
+    },
+    {
+      "id": "lolly/luts/slide-standard",
+      "name": "Standard Slide",
+      "description": "A neutral daylight slide-film look (Provia-style) - balanced colour, gentle contrast.",
+      "type": "lut",
+      "version": "1.0.0",
+      "tier": "catalog",
+      "tags": [
+        "lut",
+        "grade",
+        "colour",
+        "cube",
+        "film",
+        "slide",
+        "daylight"
+      ],
+      "license": "cc0-1.0",
+      "formats": [
+        {
+          "format": "cube",
+          "url": "/catalog/assets/lolly/luts/slide-standard.cube",
+          "checksum": "sha256-PU+Qf+vZmVJ3fI8EcAYzu2UJnyYqqBuJWYCqag0gXRw=",
+          "size": 970598
+        },
+        {
+          "format": "png",
+          "url": "/catalog/assets/lolly/luts/slide-standard.png",
+          "checksum": "sha256-CUBn/+DZJ3awC3Guk/hjP3De6TWGAek30yIfK9LCooA=",
+          "size": 128886,
+          "depth": 8
+        }
+      ]
+    },
+    {
+      "id": "lolly/luts/slide-vivid",
+      "name": "Vivid Slide",
+      "description": "A punchy slide-film look - richer saturation and contrast for landscapes and product.",
+      "type": "lut",
+      "version": "1.0.0",
+      "tier": "catalog",
+      "tags": [
+        "lut",
+        "grade",
+        "colour",
+        "cube",
+        "film",
+        "slide",
+        "vivid",
+        "saturated"
+      ],
+      "license": "cc0-1.0",
+      "formats": [
+        {
+          "format": "cube",
+          "url": "/catalog/assets/lolly/luts/slide-vivid.cube",
+          "checksum": "sha256-z+bzvaKGdsddGXk6Uv7iUyaHSbpLxeURlY57Ykj8uIA=",
+          "size": 970600
+        },
+        {
+          "format": "png",
+          "url": "/catalog/assets/lolly/luts/slide-vivid.png",
+          "checksum": "sha256-9HtSpV6WLSGI5sTyMdfGw71X3kI3UOy1K2ZIjyNYJq0=",
+          "size": 127501,
+          "depth": 8
+        }
+      ]
+    },
+    {
+      "id": "lolly/luts/chrome-muted",
+      "name": "Muted Chrome",
+      "description": "A restrained, desaturated chrome look - muted colour with a soft tonal roll-off.",
+      "type": "lut",
+      "version": "1.0.0",
+      "tier": "catalog",
+      "tags": [
+        "lut",
+        "grade",
+        "colour",
+        "cube",
+        "film",
+        "chrome",
+        "muted",
+        "desaturated"
+      ],
+      "license": "cc0-1.0",
+      "formats": [
+        {
+          "format": "cube",
+          "url": "/catalog/assets/lolly/luts/chrome-muted.cube",
+          "checksum": "sha256-rjh7ItGYw9kJ3OJnaG2peCLVryFBkrJ3SSs6edj/aBw=",
+          "size": 970600
+        },
+        {
+          "format": "png",
+          "url": "/catalog/assets/lolly/luts/chrome-muted.png",
+          "checksum": "sha256-N1gWsZCzv1He76LMgbTsMqcpx8XA1MTL7BhB7cDGHv8=",
+          "size": 136864,
+          "depth": 8
+        }
+      ]
+    },
+    {
+      "id": "lolly/luts/mono-fine",
+      "name": "Fine Mono",
+      "description": "A fine black-and-white conversion (Acros-style) - smooth tones, clean neutrals.",
+      "type": "lut",
+      "version": "1.0.0",
+      "tier": "catalog",
+      "tags": [
+        "lut",
+        "grade",
+        "cube",
+        "film",
+        "mono",
+        "black-and-white",
+        "monochrome"
+      ],
+      "license": "cc0-1.0",
+      "formats": [
+        {
+          "format": "cube",
+          "url": "/catalog/assets/lolly/luts/mono-fine.cube",
+          "checksum": "sha256-Sbj1psyTxJquJB0okua+RLLG/CHx3t8CXp1sNzhJ5Z4=",
+          "size": 970588
+        },
+        {
+          "format": "png",
+          "url": "/catalog/assets/lolly/luts/mono-fine.png",
+          "checksum": "sha256-AHZvpe9aDqNrzWYHb+qTxNRHB3te06C4wP+p7lhjI9E=",
+          "size": 53522,
+          "depth": 8
+        }
+      ]
+    },
+    {
+      "id": "lolly/luts/suse7-slog3-heavy",
+      "name": "SUSE7 S-Log3 (Heavy)",
+      "description": "A cinema grade for Sony S-Log3 footage, authored in DaVinci Resolve. Credit: SUSE - Peter Chamalian (CC BY 4.0). Expects S-Log3 input; will look wrong on Rec.709.",
+      "type": "lut",
+      "version": "1.0.0",
+      "tier": "catalog",
+      "tags": [
+        "lut",
+        "grade",
+        "colour",
+        "cube",
+        "cinema",
+        "slog3",
+        "log",
+        "suse",
+        "video"
+      ],
+      "license": "cc-by-4.0",
+      "formats": [
+        {
+          "format": "cube",
+          "url": "/catalog/assets/lolly/luts/suse7-slog3-heavy.cube",
+          "checksum": "sha256-4ZpPfK7Sb0s4AVmoAkF3jDVRvqOrEzo2bVCHtB2J7dI=",
+          "size": 4921197
+        },
+        {
+          "format": "png",
+          "url": "/catalog/assets/lolly/luts/suse7-slog3-heavy.png",
+          "checksum": "sha256-FwzMovsKGoZUL1XDVpwrYllS2JhQLW9+qJRoKwINICc=",
+          "size": 96837,
+          "depth": 8
+        }
+      ],
+      "attribution": "SUSE · Peter Chamalian"
+    },
+    {
+      "id": "lolly/slides/masters",
+      "name": "Neutral slide master",
+      "description": "The starter slide master: twelve hand-tuned archetypes (title, section, content, two columns, split, visual, full-bleed picture, quote, big number, main point, agenda, table) and the layout library structures expanded in the same margins, with a dark variant for each light content slide, each with named placeholder roles and the master furniture it shows. Geometry is stated as fractions of 1280 by 720 and colours as design-system token paths, so Design seeds a frame from it and a brand imported over the blank starter takes the whole master with it.",
+      "type": "data",
+      "version": "1.0.0",
+      "tier": "core",
+      "tags": [
+        "slides",
+        "slide-master",
+        "deck",
+        "design-system"
+      ],
+      "formats": [
+        {
+          "format": "json",
+          "url": "/catalog/assets/lolly/slides/masters.json",
+          "checksum": "sha256-AkJy6uy9JiGvwR09CIttSq138vQ5pVlejouCXPxZmk4=",
+          "size": 118882
+        }
+      ]
+    },
+    {
+      "id": "lolly/slides/presets",
+      "name": "Renovation presets",
+      "description": "The starter renovation presets for Rebrand. Tidy removes decoration, page numbers and dates without asking, keeps every photo and asks a person about each one, and takes the content layout when two layouts score the same. A preset changes the first pass only; every proposal stays reversible in the review.",
+      "type": "data",
+      "version": "1.0.0",
+      "tier": "core",
+      "tags": [
+        "slides",
+        "rebrand-preset",
+        "deck",
+        "design-system"
+      ],
+      "formats": [
+        {
+          "format": "json",
+          "url": "/catalog/assets/lolly/slides/presets.json",
+          "checksum": "sha256-We0KyhBg8zu+tYFjRLYjqCQV9fIdpbFajPsT7PWXdEY=",
+          "size": 712
+        }
+      ]
+    },
+    {
+      "id": "lolly/palette/opal-photo-treatments",
+      "name": "Photo Colour Treatments",
+      "description": "Colour treatments for photo assets, derived from Opal: greyscale and soft duotone washes.",
+      "type": "palette",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "palette",
+        "photo-treatments"
+      ],
+      "formats": [
+        {
+          "format": "json",
+          "url": "/catalog/assets/lolly/palette/opal-photo-treatments.json",
+          "checksum": "sha256-iskVnmnZ/N0D8qcyBhuLT7+nJXbjneOf6LFIpnWuFeY=",
+          "size": 1877
+        }
+      ]
+    },
+    {
+      "id": "lolly/palette/opal-icon-themes",
+      "name": "Icon Duo Themes",
+      "description": "Colour pairings for themable two-colour icons (c1 accent, c2 base), derived from Opal.",
+      "type": "palette",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "palette",
+        "icon-themes"
+      ],
+      "formats": [
+        {
+          "format": "json",
+          "url": "/catalog/assets/lolly/palette/opal-icon-themes.json",
+          "checksum": "sha256-xh5+yclSYd+EoUQdd3Skmr/dU+XCwasNuBEoK/ZGHLE=",
+          "size": 943
+        }
+      ]
+    }
+  ]
+}
