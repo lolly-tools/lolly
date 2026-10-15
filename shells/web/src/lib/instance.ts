@@ -480,16 +480,19 @@ async function tauriRemoteFetch(url: string, init?: RequestInit, allowedOrigins?
   // The Rust client has no cookie jar: attach the parked session pair to
   // instance-origin requests so a device-code sign-in survives - and to no
   // other host, ever (see isInstanceOrigin).
+  // Request's browser header guard silently strips Cookie. Add the native-only
+  // credential after extracting the WebView's permitted request headers.
+  const nativeHeaders = Array.from(req.headers.entries());
   if (!allowedOrigins && instanceSession && instanceSession.origin === instanceOrigin()
-    && isInstanceOrigin(url) && !req.headers.has('cookie')) {
-    req.headers.set('cookie', instanceSession.cookiePair);
+    && isInstanceOrigin(url) && !nativeHeaders.some(([name]) => name.toLowerCase() === 'cookie')) {
+    nativeHeaders.push(['cookie', instanceSession.cookiePair]);
   }
   const bodyBuf = await req.arrayBuffer();
   const resp = await invoke<TauriRemoteFetchResponse>('remote_fetch', {
     request: {
       method: req.method,
       url: req.url,
-      headers: Array.from(req.headers.entries()),
+      headers: nativeHeaders,
       body: bodyBuf.byteLength ? Array.from(new Uint8Array(bodyBuf)) : null,
       ...(allowedOrigins ? { allowedOrigins: [...allowedOrigins] } : {}),
       ...(limits?.timeoutMs ? { timeoutMs: Math.min(limits.timeoutMs, 60000) } : {}),
