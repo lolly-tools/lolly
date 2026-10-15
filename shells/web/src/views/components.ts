@@ -81,7 +81,7 @@ import { footerNav, gallerySearchBox } from '../components/footer-nav.ts';
 import { confirmDialog, choiceDialog, noticeDialog, promptDialog } from '../components/confirm-dialog.ts';
 import { beginViewLoading } from '../components/view-loading.ts';
 import { openShareDialog } from '../components/share-dialog.ts';
-import { palettePreviewSvgs } from '../lib/palette-preview.ts';
+import { activePalette, palettePreviewSvgs } from '../lib/palette-preview.ts';
 import { categoryGlyph } from '../lib/category-icons.ts';
 import { catalogSummaryBody } from '../lib/catalog-summary.ts';
 import { fmtBadge, dimBadge, rowCountBadge, sessionRow, type SessionEntry } from '../folder-tiles.ts';
@@ -510,6 +510,11 @@ export async function mountComponents(viewEl: HTMLElement, host: HostV1, _params
   let n = 0;
   const jump = AUDIT_SECTIONS.map(sec => sectionLink(sectionId(sec.title), sec.title, sec.metaphor, sec.items.length)).join('');
   const interactive = flat.filter(s => renderMode(s) === 'live').length;
+  // The cover paints the ACTIVE design system's colours in the theme on screen (home
+  // takes the dark set), or Lolly's neutral when the system has none. It used the
+  // colour specimens' fixed demo palette, which put one brand's colours on every profile.
+  const coverTheme = document.documentElement.dataset.theme === 'dark' || document.documentElement.dataset.theme === 'brand' ? 'dark' : 'light';
+  const cover = await activePalette(host.tokens, coverTheme);
   viewEl.innerHTML = `
     ${backHomeHtml({ class: 'home-full cl-back' })}<div class="gallery-topright"></div>
     <header class="cl-head">
@@ -517,7 +522,7 @@ export async function mountComponents(viewEl: HTMLElement, host: HostV1, _params
       <p class="cl-sub">Colour instruments, tactile controls and creative workspaces. Try the parts, inspect their tokens, and take them into Penpot.</p>
       <div class="cl-head-actions"><a class="btn btn--primary" href="#/components?section=cl-inventory" data-cl-jump="cl-inventory">Explore components ${icon('arrowRight', { size: 16 })}</a><button type="button" class="btn cl-export-penpot" data-export-hide>Download visible collection</button></div>
       <p class="cl-export-status" role="status" aria-live="polite"></p></div>
-      <a class="cl-cover" href="#/components?section=cl-colour-tools" data-cl-jump="cl-colour-tools" aria-label="Explore colour tools"><div class="cl-cover-top"><span>COLOUR IS A GOOD PLACE TO START</span>${icon('arrowRight', { size: 18 })}</div><div class="cl-cover-art" aria-hidden="true">${palettePreviewSvgs(DEMO.map(p => p.hex))[0]?.svg ?? ''}</div><div class="cl-cover-bottom"><span>One palette. Many possibilities.</span><span>Explore ↗</span></div></a>
+      <a class="cl-cover" href="#/components?section=cl-colour-tools" data-cl-jump="cl-colour-tools" aria-label="Explore colour tools"><div class="cl-cover-top"><span>COLOUR IS A GOOD PLACE TO START</span>${icon('arrowRight', { size: 18 })}</div><div class="cl-cover-art" aria-hidden="true">${palettePreviewSvgs(cover.colors, { roles: cover.roles })[0]?.svg ?? ''}</div><div class="cl-cover-bottom"><span>One palette. Many possibilities.</span><span>Explore ↗</span></div></a>
     </header>
     <div class="cl-stats"><div><strong>${flat.length}</strong><span>Component specimens</span></div><div><strong>${AUDIT_SECTIONS.length}</strong><span>Component families</span></div><div><strong>${listLollyUiTokens().length}</strong><span>Semantic tokens</span></div><div><strong>${interactive}</strong><span>Interactive previews</span></div></div>
     <div class="cl-layout">

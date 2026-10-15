@@ -10,7 +10,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { contrastRatio } from '@lolly/engine';
-import { palettePreviewSvgs } from './palette-preview.ts';
+import { activePalette, LOLLY_NEUTRAL, palettePreviewSvgs } from './palette-preview.ts';
 
 const SUSE = ['#30ba78', '#0c322c', '#efefef', '#fe7c3f', '#2453ff'];
 
@@ -128,4 +128,55 @@ test('brand role values have the same attribute safety as palette values', () =>
   const bad = '#000"/><script>alert(1)</script>';
   const all = palettePreviewSvgs(SUSE, { roles: { primary: bad, secondary: bad, surface: bad, text: bad, onPrimary: bad } }).map(p => p.svg).join('');
   assert.doesNotMatch(all, /<script|alert\(1\)/);
+});
+
+// ─── activePalette: the active design system, or Lolly's neutral ──────────────
+
+/** A tokens API stand-in answering per theme, recording what it was asked. */
+function fakeTokens(byTheme: Record<string, { semantic: Record<string, unknown>; colors: string[] }>) {
+  const asked: string[] = [];
+  return {
+    asked,
+    api: {
+      async colors(opts?: { theme?: string }) { asked.push(`colors:${opts?.theme}`); return (byTheme[opts?.theme ?? ''] ?? { colors: [] }).colors.map(value => ({ value })); },
+      async resolve(ref: string, opts?: { theme?: string }) {
+        asked.push(`resolve:${opts?.theme}`);
+        const slot = /^\{color\.semantic\.([a-z-]+)\}$/.exec(ref)?.[1] ?? '';
+        return byTheme[opts?.theme ?? '']?.semantic[slot];
+      },
+    },
+  };
+}
+
+test('activePalette leads with the semantic primary and secondary, then the rest once each', async () => {
+  const { api, asked } = fakeTokens({
+    light: { semantic: { primary: '#033633', secondary: '#008657', surface: '#ffffff', text: '#09141a', 'on-primary': '#ffffff' },
+      colors: ['#033633', '#008657', '#50c369', '#d3e688', '#008657', 'transparent'] },
+  });
+  const { colors, roles } = await activePalette(api, 'light');
+  assert.deepEqual(colors, ['#033633', '#008657', '#50c369', '#d3e688']);
+  assert.deepEqual(roles, { primary: '#033633', secondary: '#008657', surface: '#ffffff', text: '#09141a', onPrimary: '#ffffff' });
+  assert.ok(asked.every(q => q.endsWith(':light')), 'every read names the theme on screen');
+  const poster = palettePreviewSvgs(colors, { roles })[0]!.svg;
+  assert.match(poster, /<rect width="480" height="360" fill="#033633"/);
+  assert.ok(poster.includes('#50c369') && poster.includes('#d3e688'), 'the poster shapes take the next two colours');
+});
+
+test('activePalette reads the dark set for a dark theme and converts non-hex semantic values', async () => {
+  const { api } = fakeTokens({
+    light: { semantic: { primary: '#1d1d1d' }, colors: ['#1d1d1d'] },
+    dark: { semantic: { primary: 'oklch(1 0 0)' }, colors: ['#ffffff', '#dcdbdc'] },
+  });
+  const { colors, roles } = await activePalette(api, 'dark');
+  assert.equal(colors[0], '#ffffff');
+  assert.equal(roles?.primary, '#ffffff');
+});
+
+test("activePalette falls back to Lolly's neutral, never a demo palette", async () => {
+  assert.deepEqual(await activePalette(undefined, 'light'), { colors: [...LOLLY_NEUTRAL] });
+  const empty = fakeTokens({ light: { semantic: {}, colors: [] } });
+  assert.deepEqual(await activePalette(empty.api, 'light'), { colors: [...LOLLY_NEUTRAL] });
+  const broken = { colors: async () => { throw new Error('offline'); }, resolve: async () => { throw new Error('offline'); } };
+  assert.deepEqual(await activePalette(broken, 'dark'), { colors: [...LOLLY_NEUTRAL] });
+  for (const demo of SUSE.filter(c => c !== '#efefef')) assert.equal(LOLLY_NEUTRAL.includes(demo), false);
 });

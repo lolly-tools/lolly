@@ -43,6 +43,11 @@ test('library mounts every specimen, filters and resets, keeps navigation local,
     const { COMPONENT_SECTIONS: AUDIT_SECTIONS, COMPONENT_ARTWORK } = await import('./components-data.ts');
     const total = AUDIT_SECTIONS.flatMap(s => s.items).length;
     await mountComponents(view, host);
+    // This host has no token API, so the cover falls back to Lolly's neutral, never
+    // the colour specimens' demo palette (Jungle, Klein and Persimmon).
+    const coverArt = view.querySelector('.cl-cover-art')!.innerHTML;
+    assert.ok(coverArt.includes('#1d1d1d'), 'the cover paints Lolly ink');
+    for (const demo of ['#30ba78', '#2453ff', '#fe7c3f']) assert.equal(coverArt.includes(demo), false, `the cover leaves out ${demo}`);
     assert.equal(view.querySelectorAll('[data-cl-card]').length, total);
     assert.equal(view.querySelectorAll('[data-cl-download]').length, total);
     assert.deepEqual([...view.querySelectorAll('.cl-broken')].map(n => n.textContent), []);
