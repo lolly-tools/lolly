@@ -196,10 +196,20 @@ function literal(name: string): string {
 const script = (source: string): string => source.replace(/^\s*<script>/, '').replace(/<\/script>\s*$/, '');
 
 // a11y-prefs.ts reads `document` and `localStorage` when it is called, so stand-ins on
-// the global are enough to run the app's own writer here.
+// the global are enough to run the app's own writer here. The writer also passes
+// Reduce motion on to Jelly through an attribute on <html>, so the stand-in keeps
+// attributes too. With no defaultView it sends no event.
 const saved = new Map<string, string>();
+const attrs = new Map<string, string>();
 const scope = globalThis as unknown as Record<string, unknown>;
-scope.document = { documentElement: { dataset: {} } };
+scope.document = {
+  documentElement: {
+    dataset: {},
+    getAttribute: (name: string) => attrs.get(name) ?? null,
+    setAttribute: (name: string, value: string) => { attrs.set(name, String(value)); },
+    removeAttribute: (name: string) => { attrs.delete(name); },
+  },
+};
 scope.localStorage = {
   getItem: (k: string) => saved.get(k) ?? null,
   setItem: (k: string, v: string) => { saved.set(k, String(v)); },
