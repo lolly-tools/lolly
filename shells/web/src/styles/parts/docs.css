@@ -27,14 +27,21 @@
 /* The legacy docs token names, expressed in the app's design-token slots - a scoped copy
  * of docs/build.ts's DOCS_BRIDGE. Because the app's --background/--foreground/--primary/…
  * are brand-reactive (tokens.css + brand-vars.ts), every var() call site in the fragment
- * follows the active brand and the app's [data-theme] light/dark/brand system. */
+ * follows the active brand and the app's [data-theme] light/dark/brand system.
+ *
+ * Inside this scope --muted, --border and --pale are finished colours, not the app's bare
+ * H S% L% triples, so a rule here reads them as var(--border), never hsl(var(--border)).
+ * --border and --pale read the role tokens: the app's own --border and --muted are
+ * shadowed by the bridge, and a declaration that read its own name would be a cycle,
+ * invalid at computed-value time. --ui-color-border-default and --ui-color-surface-muted
+ * sit on :root, so they compute from the app's triples and arrive here as colours. */
 .docs-content,
 .docs-landing {
   --page: hsl(var(--background));
   --text: hsl(var(--foreground));
   --muted: hsl(var(--muted-foreground));
-  --border: hsl(var(--border));
-  --pale: hsl(var(--muted));
+  --border: var(--ui-color-border-default);
+  --pale: var(--ui-color-surface-muted);
   --green: hsl(var(--primary));
   --dark: hsl(var(--foreground));
   --light: hsl(var(--primary) / 0.4);
@@ -101,7 +108,7 @@
 .docs-status {
   padding: 4rem 1rem;
   text-align: center;
-  color: var(--muted, hsl(var(--muted-foreground)));
+  color: var(--ui-color-text-muted);
   font-size: calc(0.9375rem * var(--a11y-fs, 1));
 }
 .docs-status a { color: hsl(var(--primary)); }
@@ -159,7 +166,7 @@
   font-size: 0.875em; background: var(--ui-color-surface-muted); padding: 0.15em 0.35em; border-radius: 3px;
 }
 .docs-content pre {
-  background: hsl(var(--muted)); padding: 1.25rem 1.5rem; border-radius: 8px;
+  background: var(--pale); padding: 1.25rem 1.5rem; border-radius: 8px;
   overflow-x: auto; white-space: pre-wrap; overflow-wrap: anywhere;
   font-size: calc(0.875rem * var(--a11y-fs, 1)); line-height: 1.5; margin-bottom: 1.25rem;
   box-shadow: inset 0 0.2rem 0.4rem #0002;
@@ -181,7 +188,7 @@
 /* ── Tables ─────────────────────────────────────────────────────────────────── */
 .docs-content .table-wrap {
   overflow-x: auto; margin-bottom: 2rem; border-radius: 1em;
-  box-shadow: 0 0 0 1px hsl(var(--border)), 0 0.2rem 0.4rem #00000018;
+  box-shadow: 0 0 0 1px var(--border), 0 0.2rem 0.4rem #00000018;
 }
 .docs-content table { width: 100%; border-collapse: collapse; font-size: calc(0.8rem * var(--a11y-fs, 1)); }
 .docs-content th, .docs-content td { padding: 0.6rem 0.9rem; text-align: left; border-bottom: 1px solid var(--border);vertical-align: top;border-bottom:1px solid var(--green) }
@@ -211,7 +218,7 @@
 /* App screenshots (docs/shots captures) read at full column width, framed like a window. */
 .docs-content img[src*="/info/shots/"] {
   max-width: 100%; min-width: 50%; border-radius: 1.2em;
-  border: 1px solid hsl(var(--border)); box-shadow: 0 6px 24px #0002;
+  border: 1px solid var(--border); box-shadow: 0 6px 24px #0002;
 }
 
 /* Dual light/dark screenshots: .shot holds both the light img and a `.shot-alt` dark img;
@@ -304,7 +311,7 @@
   gap: 0.35rem;
   padding: 0.42rem 0.72rem;
   border-radius: var(--radius-pill);
-  border: 1px solid hsl(var(--border));
+  border: 1px solid var(--border);
   background: hsl(var(--background) / 0.9);
   color: hsl(var(--foreground));
   font: inherit;
@@ -318,7 +325,7 @@
   transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
 }
 .docs-content .shot-tryit-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
-.docs-content .shot-tryit-btn:hover { background: hsl(var(--muted)); border-color: hsl(var(--foreground) / 0.25); }
+.docs-content .shot-tryit-btn:hover { background: var(--pale); border-color: hsl(var(--foreground) / 0.25); }
 .docs-content .shot-tryit-btn:active { transform: scale(0.96); }
 .docs-content .shot-tryit-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px hsl(var(--primary) / 0.4); }
 
@@ -342,7 +349,7 @@
   height: 100%;
   border: 0;
   border-radius: 1.2em;
-  background: hsl(var(--muted));
+  background: var(--pale);
   opacity: 0;
   transition: opacity 0.2s ease;
 }

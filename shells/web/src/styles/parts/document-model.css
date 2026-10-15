@@ -57,13 +57,6 @@
   padding: var(--docs-chrome-clear) var(--sp-5) var(--ui-space-section);
 }
 
-/* The docs token bridge declares `--border: hsl(var(--border))` on .docs-content,
-   and a custom property that refers to itself is invalid at computed-value time,
-   so every `1px solid var(--border)` in the prose sheet resolves to nothing: no
-   rule under a chapter title, no rule over an h2. Read the composed app token
-   instead, at a specificity the bridge cannot beat. */
-.dm-layout .docs-content { --border: var(--ui-color-border-default); }
-
 /* ── The rail ─────────────────────────────────────────────────────────────── */
 
 .dm-nav {
