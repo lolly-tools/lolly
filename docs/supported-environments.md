@@ -16,7 +16,7 @@ same browsers on Windows, Linux, Android, iOS, Intel Macs or other GPUs.
 | Chrome and Edge (Chromium) | Supported: tested on macOS only | Chrome 154.0.8037.99; Edge 155.0.4283.45; macOS 27, Apple M4 | Default Apple Metal 3 adapter; no software fallback | 9 October 2026; stock browsers, isolated headless hardware runs; required corpus passed, zero skips |
 | Firefox | Supported: tested on macOS only | Firefox 157.0.1; macOS 27, Apple M4 | Default non-fallback adapter; GPU identity not reported by the browser | 9 October 2026; installed visible browser; required corpus passed |
 | Safari (WebKit) | Supported: tested on macOS only | Safari 27.0.1; macOS 27, Apple M4 | Default Apple adapter; no software fallback | 9 October 2026; installed visible browser; required corpus passed |
-| macOS app (WKWebView) | Supported: qualification build; native release held | WKWebView 22625.1.29.11.28; macOS 27, Apple M4 | Default Apple adapter; no software fallback | 9 October 2026; compiled qualification app, second execution with its existing isolated profile; startup, tool mount and required corpus passed |
+| macOS app (WKWebView) | Supported: qualification build | WKWebView 22625.1.29.11.28; macOS 27, Apple M4 | Default Apple adapter; no software fallback | 9 October 2026; compiled qualification app, second execution with its existing isolated profile; startup, tool mount and required corpus passed |
 | iOS and iPadOS app (WKWebView) | Pending: physical runtime not qualified | Not established | Not established | Archive compilation is recorded; device installation and runtime checks remain open |
 | Windows app (WebView2) | Pending: physical runtime not qualified | Not established | Not established | Required device/runtime check has not run |
 | Linux app (WebKitGTK) | Pending: physical runtime not qualified | Not established | Not established | Required device/runtime check has not run |
@@ -34,8 +34,14 @@ native platform.
 
 Web artifacts can use the qualified browser rows without waiting for the
 packaged apps. The signed web build, public web image and verified instance shell
-select that scope explicitly. This approval leaves native releases held,
-including the Mac package, until the full required matrix is published.
+select that scope explicitly.
+
+Since 15 October 2026 each packaged app needs only its own row. A Mac package
+needs the macOS app result, an Android package the Android app result, and so
+on, so the Mac app can be released while the other apps stay held. A package
+build states its platform: Tauri reports the platform when it runs the frontend
+build, and each package workflow passes its platform to the signed frontend
+workflow. A packaged build that states no platform keeps the full hold.
 
 For a web artifact, run:
 
@@ -48,10 +54,17 @@ pnpm run build:web:release
 The signed build still requires the matching catalog signing key and public pin.
 Qualification alone does not publish a build or deploy an instance.
 
-`node scripts/webgpu-release-gate.ts` and `pnpm run check:release` keep the full
-frontend gate. Tauri builds, native package workflows and the YunoHost release
-command also keep that hold. A pending or missing result cannot pass the gate;
-environment variables cannot bypass qualification. A tested unsupported result
+For one packaged app, name its platform: `macos`, `ios`, `android`, `linux` or
+`windows`.
+
+```bash
+node scripts/webgpu-release-gate.ts --scope macos
+```
+
+`node scripts/webgpu-release-gate.ts` with no scope and `pnpm run check:release`
+keep the full frontend gate. The YunoHost release command uses the web scope.
+A pending or missing result cannot pass the gate, and no environment variable
+changes a result. A tested unsupported result
 may be recorded as **Not supported**, but an unrun check stays **Pending**.
 
 The MCP, certificate service, Penpot service and documentation builds are

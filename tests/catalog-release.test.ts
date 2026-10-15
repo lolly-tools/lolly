@@ -38,9 +38,9 @@ test('signed frontend entrypoints refuse before signing when WebGPU qualificatio
   const marker = join(dir, 'signing-reached');
   writeFileSync(join(dir, 'scripts', 'sign-catalog.ts'),
     "import { writeFileSync } from 'node:fs'; writeFileSync('signing-reached', 'yes'); process.exit(77);\n");
-  const run = (target: string) => spawnSync(process.execPath, [join(dir, 'scripts', 'build-release-web.ts'), target], {
+  const run = (target: string, extra: Record<string, string> = {}) => spawnSync(process.execPath, [join(dir, 'scripts', 'build-release-web.ts'), target], {
     cwd: dir, encoding: 'utf8', timeout: 10_000,
-    env: { PATH: process.env.PATH, LOLLY_CATALOG_SIGNING_KEY: 'test-only', VITE_CATALOG_PUBLIC_KEY_JWK: PUBLIC_JWK },
+    env: { PATH: process.env.PATH, LOLLY_CATALOG_SIGNING_KEY: 'test-only', VITE_CATALOG_PUBLIC_KEY_JWK: PUBLIC_JWK, ...extra },
   });
   for (const target of ['web', 'tauri-desktop', 'tauri-mobile']) {
     const result = run(target);
@@ -64,6 +64,21 @@ test('signed frontend entrypoints refuse before signing when WebGPU qualificatio
     assert.match(held.stderr, /all artifact scope[\s\S]*Pending/);
     assert.equal(existsSync(marker), false, `${target} never reaches signing`);
   }
+  // Each packaged app needs only its own row (Andy, 2026-10-15): a published macOS app
+  // result lets a Mac frontend reach signing while every other platform stays held.
+  const macQualified = rows.map((row, index) => index < 4 ? row : row.replace('Not supported', 'Pending: runtime not qualified'));
+  writeFileSync(join(dir, 'docs', 'supported-environments.md'), macQualified.join('\n'));
+  assert.equal(run('tauri-desktop', { LOLLY_RELEASE_PLATFORM: 'macos' }).status, 77, 'a Mac frontend reaches signing');
+  unlinkSync(marker);
+  for (const [target, platform] of [['tauri-desktop', 'linux'], ['tauri-desktop', 'windows'], ['tauri-mobile', 'ios'], ['tauri-mobile', 'android']] as const) {
+    const held = run(target, { LOLLY_RELEASE_PLATFORM: platform });
+    assert.equal(held.status, 1, `${target} for ${platform} stays held`);
+    assert.match(held.stderr, new RegExp(`${platform} artifact scope[\\s\\S]*Pending`));
+    assert.equal(existsSync(marker), false, `${target} for ${platform} never reaches signing`);
+  }
+  assert.match(run('tauri-mobile', { LOLLY_RELEASE_PLATFORM: 'macos' }).stderr, /tauri-mobile is not built for macos/);
+  assert.match(run('tauri-desktop', { LOLLY_RELEASE_PLATFORM: 'macos', TAURI_ENV_PLATFORM: 'linux' }).stderr, /LOLLY_RELEASE_PLATFORM is macos, but Tauri is building for linux/);
+  assert.equal(existsSync(marker), false);
   writeFileSync(join(dir, 'docs', 'supported-environments.md'), rows.join('\n'));
   assert.equal(run('web').status, 77, 'published results allow the signing stage to run');
   assert.equal(existsSync(marker), true);
