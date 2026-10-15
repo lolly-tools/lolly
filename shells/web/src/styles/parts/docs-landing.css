@@ -1210,6 +1210,7 @@ html[data-a11y-motion="reduce"] .reveal,html[data-a11y-motion="reduce"] .reveal.
 .matrix-cell--new{background:rgba(48,186,120,.08);color:var(--text);box-shadow:0 2px 12px rgba(48,186,120,.12)}
 .matrix-mark{flex-shrink:0;width:1.35rem;height:1.35rem;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;font-size:.78rem;font-weight:800;margin-top:.05rem}
 .matrix-cell--old .matrix-mark{background:hsl(var(--card) / 1 );color:var(--muted)}
+.matrix-cell--new .matrix-mark{background:hsl(var(--accent-foreground) / .1);color:hsl(var(--accent-foreground))}
 @media(max-width:720px){.why-frustrations{grid-template-columns:1fr}.matrix{grid-template-columns:1fr;gap:.5rem}.matrix-head{display:none}.matrix-cell--old{margin-top:.5rem}}
 /* Dark-theme surfaces for the pale Why section. */
 [data-theme="dark"] .why-section{background:hsl(var(--background))}

@@ -23,7 +23,7 @@
  *      such as `--glow: var(--vf-pass) / 0.55`).
  *   2. In the docs scope the legacy names above are colours, so `hsl(var(--border))`
  *      fails there. The docs scope is all of `parts/docs-landing.css`, all of
- *      `lib/docs-landing.ts`, and every CSS rule whose selectors each name
+ *      `lib/docs-landing.ts` and every CSS rule whose selectors each name
  *      `.docs-content` or `.docs-landing`.
  *   3. No custom property declaration reads its own name.
  *

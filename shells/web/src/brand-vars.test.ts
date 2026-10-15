@@ -597,9 +597,9 @@ test("under High contrast a violet brand's main button reads 3:1 on its own bran
 });
 
 test('under High contrast every hue gets a brand-theme button that reads on its page', () => {
-  // A light primary at OKLCH L .45 / C .15 for every 15 degrees of hue, the
-  // dark primary at L .62 on the same hue, and one near-neutral, with the
-  // dark ink unknown and then as the ungated block computes that ink.
+  // A light primary at OKLCH L .45 / C .15 for every 15 degrees of hue and the
+  // dark primary at L .62 on the same hue, plus one near-neutral. The dark ink
+  // is first unknown, then the ink the ungated block computes.
   const failures: string[] = [];
   const hues: Array<[number, number]> = [];
   for (let h = 0; h < 360; h += 15) hues.push([h, 0.15]);

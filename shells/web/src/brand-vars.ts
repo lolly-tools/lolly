@@ -675,7 +675,7 @@ export function highContrastAccent(
 /** The pair a theme already shows when that pair clears the bar: the brand's
  *  fill with the ink the ungated block computes from the fill (contrastText),
  *  else the brand's authored ink. Null when neither ink clears the bar, the
- *  fill doesn't parse, or the fill reads under CONTROL_RATIO on any of
+ *  fill doesn't parse or the fill reads under CONTROL_RATIO on any of
  *  `surfaces` (a pair that sinks into the page is repaired, not restated). */
 function clearingPair(
   primary: string | null,
