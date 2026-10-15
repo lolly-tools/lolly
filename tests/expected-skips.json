@@ -2075,6 +2075,13 @@
       "owner": "shells/web"
     },
     {
+      "file": "tests/linux-desktop-integration.test.ts",
+      "fullName": "aur: PKGBUILD pkgver matches tauri.conf.json version",
+      "reason": "the Linux app is held by the WebGPU release gate, so the recipe stays on the last Linux release",
+      "capability": "platform",
+      "owner": "tests"
+    },
+    {
       "file": "tests/revision-snapshot-bench.test.ts",
       "fullName": "revisionSnapshot() stays within 10 ms per MiB of canonical JSON",
       "reason": "perf/timing guard - set BENCH=1 to run (wall-clock, flakes under load)",
