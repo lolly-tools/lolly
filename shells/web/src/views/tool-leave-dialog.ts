@@ -7,16 +7,26 @@
  * question as the title (leaveQuestion), and there Leave anyway keeps a draft on
  * this device.
  *
+ * Lolly's kangaroo leads the dialog, beside the title and the sentence
+ * (components/kangaroo-art.ts). The drawing is decoration, hidden from assistive
+ * technology. The title gives the dialog its accessible name and the sentence
+ * gives the description. The joey looks out of the pouch once as the dialog
+ * opens, unless the system or Lolly is set to reduce motion.
+ *
  * Kept apart from views/tool/shared.ts so a test can build the real dialog in a
  * DOM (tool-leave-dialog.test.ts): shared.ts reaches the export path, whose
  * imports only resolve under Vite.
  */
+import { kangarooArt, playKangaroo } from '../components/kangaroo-art.ts';
 import { mountModal } from '../components/modal.ts';
 import { t } from '../i18n.ts';
 import { jellyActive } from '../lib/jelly.ts';
 import { playSfx } from '../lib/sfx.ts';
 import { escape as escapeText } from '../utils.ts';
 import { leaveQuestion } from './tool-leave.ts';
+
+/** Counts dialogs, so each title and sentence has an id of its own for aria-labelledby and aria-describedby. */
+let dialogs = 0;
 
 // onSave: optional async () => void that performs the save and navigates on
 // success (the caller owns both). We invoke and await it directly (from the
@@ -49,10 +59,16 @@ export function showUnsavedDialog(
       : `<button type="button" class="${nativeClass}" data-act="${act}">${label}</button>`;
   };
   const scoped = leaveQuestion();
+  const uid = `unsaved-dialog-${++dialogs}`;
   const content = `
     <div class="unsaved-dialog-body">
-      <h2>${scoped ? escapeText(scoped) : t('Unsaved edits')}</h2>
-      <p>${t('Save now or abandon your changes.')}</p>
+      <div class="unsaved-dialog-lead">
+        <span class="unsaved-dialog-art" aria-hidden="true">${kangarooArt()}</span>
+        <div class="unsaved-dialog-text">
+          <h2 id="${uid}-title">${scoped ? escapeText(scoped) : t('Unsaved edits')}</h2>
+          <p id="${uid}-desc">${t('Save now or abandon your changes.')}</p>
+        </div>
+      </div>
       <!-- ${detail ? `<p class="unsaved-dialog-detail">${detail}</p>` : ''} -->
       <div class="unsaved-dialog-actions">
         ${onSave ? btn('save', t('Save &amp; leave')) : ''}
@@ -70,6 +86,9 @@ export function showUnsavedDialog(
     },
   });
   modal.el.dataset.sfxClose = 'off'; // this dialog plays its own dismiss cue on Cancel, not the generic shoo
+  modal.el.setAttribute('aria-labelledby', `${uid}-title`);
+  modal.el.setAttribute('aria-describedby', `${uid}-desc`);
+  playKangaroo(modal.el); // once, and only when motion is allowed
   playSfx('crystal'); // a light glass-elevator lift as the save decision rises up
   modal.el.addEventListener('click', (e) => {
     const act =
