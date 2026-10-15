@@ -4002,8 +4002,9 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
     max-height: 92dvh;
     display: flex;
     flex-direction: column;
-    border-right: none;
-    border-bottom: 1px solid hsl(var(--border));
+    /* A full hairline, never the bottom edge alone: a one-sided border would
+       taper away round the rounded bottom corners. */
+    border: 1px solid hsl(var(--border));
     border-radius: 0 0 var(--ui-radius-panel) var(--ui-radius-panel);
     box-shadow: var(--shadow-3);
     transition: height 0.34s var(--ease-out); /* confident, decelerating settle */

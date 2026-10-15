@@ -128,7 +128,6 @@
     "H4": 1
   },
   "shells/web/src/styles/parts/multi-edit.css": {
-    "H1": 1,
     "H4": 3,
     "H5": 2
   },
@@ -184,7 +183,6 @@
     "H5": 4
   },
   "shells/web/src/styles/parts/tool.css": {
-    "H1": 1,
     "H4": 24,
     "H5": 12
   },

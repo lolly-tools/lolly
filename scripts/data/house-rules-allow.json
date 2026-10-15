@@ -238,5 +238,11 @@
     "rule": "H1",
     "selector": ".plat-swatch",
     "reason": "glass top-light: a 2px white highlight under a full 1px inset ring, the --bevel shape at double width"
+  },
+  {
+    "file": "shells/web/src/styles/parts/multi-edit.css",
+    "rule": "H1",
+    "selector": ".me-sidebar",
+    "reason": "square column divider: the desktop sidebar has no radius; the rounded corners belong to the mobile sheet rule, which sets border-right: 0"
   }
 ]
