@@ -15,6 +15,9 @@ import { shareUrlState } from '../lib/share-privacy.ts';
  */
 import './pro.css';
 import { batchChrome } from './chrome.ts';
+import { batchFormats, mountBatchFormats } from './formats.ts';
+import { mountCellSelection } from './cell-selection.ts';
+import { readCell, writeCell } from './cell-data.ts';
 import { mountRowActions } from './row-actions.ts';
 import { reorderRows } from './row-selection.ts';
 import { mountKitPanel, type KitPanel } from './kit-panel.ts';
@@ -29,7 +32,7 @@ const UNIT_OPTIONS = ['px', 'mm', 'cm', 'in', 'pt'];
 import { deriveColumns, cellInput, bulkTargets } from './model.ts';
 import { renderGridHtml, bodyRow } from './grid.ts';
 import { createGridNav } from './grid-nav.ts';
-import { attachResize, isOnResizeEdge } from './resize.ts';
+import { attachResize } from './resize.ts';
 import { attachReorder } from './reorder.ts';
 import { attachScrub } from '../lib/scrub.ts';
 import { controlHtml, readControlValue } from './controls.ts';
@@ -48,7 +51,7 @@ import { planBatch, notesFromFindings } from './batch.ts';
 import { createBatchRowCheck, skippedFindings } from './preflight-rows.ts';
 import type { Finding } from '@lolly/engine';
 import { saveBlob } from './zip.ts';
-import { batchToCsv, csvToBatch, parseClipboardGrid, coerceCell } from './io.ts';
+import { batchToCsv, csvToBatch, coerceCell } from './io.ts';
 import { createSessionStore, rowsFromSnapshot, snapshotFromState } from './sessions.ts';
 import { runBatchWithProgress } from './run-overlay.ts';
 import { startBatchExport, isBatchRunActive } from '../lib/batch-job.ts';
@@ -75,6 +78,7 @@ interface IndexedTool {
   name: string;
   status?: string;
   exportable?: boolean;
+  formats?: string[];
   capabilities?: readonly string[];
   /** The tool's inline-SVG mark from catalog/tools/index.json - first-party
    *  generated data, injected raw exactly like the gallery's tool cards. */
@@ -179,11 +183,6 @@ type PopoverEl = HTMLElement & {
   _row?: string;
 };
 
-// `pdf-cmyk` (the Print PDF) is offered at run level so a whole print run can be
-// set in one place; a tool that can't produce it degrades through chooseFormat to
-// its own first format, exactly as every other run-level format already does.
-const FORMAT_OPTIONS = ['png', 'jpg', 'svg', 'emf', 'eps', 'pdf', 'pdf-cmyk', 'webp'];
-
 // Which formats the print controls apply to. Deliberately IDENTICAL to the
 // single-tool export panel's `isCmykFmt` / `isPrintFmt` (views/tool-actions.ts):
 // the Color profile card is CMYK-only, print marks & bleed cover all three print
@@ -253,7 +252,7 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
   };
   const ctx: GridCtx = { tools, toolById: new Map(tools.map(t => [t.id, t])), assetPicker, unit: state.unit, dpi: state.dpi };
   // ── Static shell ───────────────────────────────────────────────────────────
-  viewEl.innerHTML = batchChrome(state, FORMAT_OPTIONS, UNIT_OPTIONS);
+  viewEl.innerHTML = batchChrome(state, batchFormats(tools, state, !!host.codec), UNIT_OPTIONS);
 
   let kitPanel: KitPanel | undefined;
   const gridHost  = viewEl.querySelector<HTMLElement>('#pro-grid-host')!;
@@ -261,6 +260,7 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
   const activityEl = viewEl.querySelector<HTMLDetailsElement>('.pro-results')!;
   const renderBtn = viewEl.querySelector<HTMLButtonElement>('#pro-render')!;
   const formatSel = viewEl.querySelector<HTMLSelectElement>('#pro-format')!;
+  const batchFormatPicker = mountBatchFormats(viewEl, tools, state, !!host.codec);
   const unitSel = viewEl.querySelector<HTMLSelectElement>('#pro-unit')!;
   const dpiInput = viewEl.querySelector<HTMLInputElement>('#pro-dpi')!;
   const zipNameInput = viewEl.querySelector<HTMLInputElement>('#pro-zip-name')!;
@@ -410,7 +410,25 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
   const rowActions = mountRowActions(viewEl, state, {
     changed: () => { columns = renderGrid(); },
     newUid: () => newRow().uid,
+    selected: () => cellSelection.clear(),
     edit: (anchor, key, blocks) => { if (blocks) void bulkEditBlocks(key); else void openBulkPopover(anchor, key); },
+  });
+
+  const cellColumns = () => [...gridHost.querySelectorAll<HTMLElement>('thead th[data-col]')].map(th => th.dataset.col!);
+  const cellSelection = mountCellSelection(viewEl, {
+    rows: () => state.rows.map(row => row.uid), columns: cellColumns,
+    values: (uids, keys) => {
+      const rows = new Map(state.rows.map(row => [row.uid, row]));
+      return uids.map(uid => keys.map(key => { const row = rows.get(uid); return row ? readCell(row, key, state) : ''; }));
+    },
+    paste: (start, cells, explicit) => {
+      const td = gridHost.querySelector<HTMLElement>(`td[data-row="${CSS.escape(start.row)}"][data-col="${CSS.escape(start.col)}"]`);
+      if (!explicit && td && routeMappedPaste(td, cells)) return;
+      pasteFill(start.row, start.col, cells);
+    },
+    reveal: uid => { if (!rowActions.visible().rows.some(row => row.uid === uid)) { rowActions.reveal(uid); columns = renderGrid(); } },
+    selected: () => rowActions.sync(),
+    writeText: text => host.clipboard.writeText(text),
   });
 
   // ── Render / re-render the grid from state ──────────────────────────────────
@@ -439,6 +457,8 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
     // Wire the shared SUSE colour picker for any colour cells (id is "row~col").
     wireColorField(gridHost, { onChange: colorOnChange });
     rowActions.sync();
+    batchFormatPicker.refresh();
+    cellSelection.refresh();
     nav.refresh({ restoreFocus: hadFocus });
     const nextScroll = gridHost.querySelector('.pro-grid-scroll');
     if (nextScroll) { nextScroll.scrollLeft = scrollX; nextScroll.scrollTop = scrollY; }
@@ -468,6 +488,7 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
     wireColorField(next, { onChange: colorOnChange });
     nav.refresh({ restoreFocus: hadFocus });
     rowActions.sync();
+    cellSelection.refresh();
   }
 
   // Outline the hidden data-column tags that the row you're on actually uses, so a
@@ -783,19 +804,6 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
     // Show all clears the collapsed set.
     if ((e.target as HTMLElement).closest('[data-hide-all-cols]')) { columns.forEach((c: any) => state.collapsed.add(c.key)); columns = renderGrid(); return; }
     if ((e.target as HTMLElement).closest('[data-show-all-cols]')) { state.collapsed.clear(); columns = renderGrid(); return; }
-
-    // Full-cell hit target: clicking the cell's own area (not a child control)
-    // activates the cell's control - toggle a checkbox, open a picker, or focus
-    // a text field for editing. Makes the whole cell selectable. Skip the bottom
-    // edge, which is the row-resize grab zone.
-    if (isOnResizeEdge(e)) return;
-    const td = (e.target as HTMLElement).closest<HTMLElement>('td.pro-cell[data-col]');
-    if (td && e.target === td) {
-      const c = td.querySelector('.pro-control') as HTMLInputElement | null;
-      if (!c) return;
-      if (c.type === 'checkbox' || c.matches('[data-asset-pick]')) c.click();
-      else { c.focus(); if (typeof c.select === 'function') { try { c.select(); } catch { /* number */ } } }
-    }
   });
 
   // Navigating onto an EMPTY template cell auto-opens its search popover (the
@@ -804,27 +812,12 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
   // stops an immediate reopen when we refocus the cell after closing.
   gridHost.addEventListener('focusin', (e) => {
     highlightRelevantTags(); // moving onto a new row re-aims the relevance outline
-    if (_tplSuppress) return;
+    if (_tplSuppress || cellSelection.multiple()) return;
     const td = (e.target as HTMLElement).closest?.('td[data-col="__template"]');
     if (td && e.target === td) {
       const row = rowByUid((td as HTMLElement).dataset.row);
       if (row && !row.toolId) openTemplatePicker(td as HTMLElement, row);
     }
-  });
-
-  // Paste a spreadsheet range (Excel/Sheets copy = TSV) to fill cells from the
-  // focused cell down/right. Only multi-cell/grid pastes are hijacked; a plain
-  // value pastes into the field normally. Use Upload CSV to also set templates.
-  gridHost.addEventListener('paste', (e) => {
-    const text = e.clipboardData?.getData('text/plain') ?? '';
-    if (!/[\t\n]/.test(text)) return; // not a grid → let it paste normally
-    const td = (e.target as HTMLElement).closest?.('td[data-row][data-col]') || gridHost.querySelector('.pro-cell--focused');
-    if (!td) return;
-    const grid = parseClipboardGrid(text);
-    if (grid.length <= 1 && (grid[0]?.length ?? 0) <= 1) return;
-    e.preventDefault();
-    if (routeMappedPaste(td as HTMLElement, grid)) return; // header / fixed-column mapping (plans/140 S3)
-    pasteFill((td as HTMLElement).dataset.row, (td as HTMLElement).dataset.col, grid);
   });
 
   function commitCell(uid: string | undefined, key: string | undefined, el: HTMLElement) {
@@ -1167,6 +1160,7 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
     state.kit = kit;
     viewEl.classList.toggle('kit-hide-rows', !!kit);
     rowActions.reset();
+    cellSelection.clear();
     state.rows = rows.length ? rows : blankRows();
     state.format = data.format ?? state.format;
     state.unit = data.unit ?? 'px';
@@ -1185,6 +1179,7 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
     dpiInput.disabled = (state.unit === 'px');
     zipNameInput.value = state.zipName;
     closePrintPopover();                      // its controls are stale after a load
+    batchFormatPicker.refresh();
 
     columns = renderGrid();
     nav.focusActive();
@@ -1581,6 +1576,7 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
     }) : 'replace';
     if (!mode) return;
     rowActions.reset();
+    cellSelection.clear();
     if (mode === 'append') state.rows.push(...rows);
     else { state.rows = rows; state.kit = undefined; viewEl.classList.remove('kit-hide-rows'); }
     state.collapsed = new Set(['__width', '__height', '__unit', '__dpi']);
@@ -1610,6 +1606,8 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
     for (const row of addRows(shortfall)) {
       row.toolId = anchor.toolId;
       row.manifest = anchor.manifest;
+      row.artifactDigest = anchor.artifactDigest;
+      row.profile = anchor.profile; row.bleed = anchor.bleed; row.marks = anchor.marks;
       row.values = structuredClone(anchor.values ?? {});
       row.format = anchor.format;
       row.outWidth = anchor.outWidth;
@@ -1742,37 +1740,24 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
     });
   }
 
-  function pasteFill(startUid: string | undefined, startColKey: string | undefined, grid: any) {
-    // Column order must match the rendered grid so paste anchors correctly.
-    const flatCols = ['__template', '__filename', '__width', '__height', '__unit', '__dpi', ...columns.map((c: any) => c.key)];
-    const startRowIdx = state.rows.findIndex(r => r.uid === startUid);
-    const startColIdx = Math.max(0, flatCols.indexOf(startColKey));
-    if (startRowIdx < 0) return;
-
+  function pasteFill(startUid: string | undefined, startColKey: string | undefined, grid: string[][]) {
+    const flatCols = cellColumns();
+    const startRowIdx = state.rows.findIndex(row => row.uid === startUid);
+    const startColIdx = flatCols.indexOf(startColKey ?? '');
+    if (startRowIdx < 0 || startColIdx < 0) return;
     growRowsForPaste(startRowIdx, grid.length);
-
     let filled = 0;
-    for (let r = 0; r < grid.length; r++) {
+    for (const [r, cells] of grid.entries()) {
       const row = state.rows[startRowIdx + r];
-      if (!row || !row.manifest) continue;
-      const byId = new Map((row.manifest.inputs ?? []).map((i: any) => [i.id, i]));
-      for (let c = 0; c < grid[r].length; c++) {
-        const colKey = flatCols[startColIdx + c];
-        const raw = grid[r][c];
-        if (!colKey || colKey === '__template') continue; // templates set via CSV upload
-        if (colKey === '__filename') { row.filename = raw; filled++; continue; }
-        if (colKey === '__width')  { row.outWidth  = parseFloat(raw) || undefined; filled++; continue; }
-        if (colKey === '__height') { row.outHeight = parseFloat(raw) || undefined; filled++; continue; }
-        if (colKey === '__unit')   { const u = String(raw).trim().toLowerCase(); if (UNIT_OPTIONS.includes(u)) { row.unit = u; filled++; } continue; }
-        if (colKey === '__dpi')    { row.dpi = parseInt(raw, 10) || undefined; filled++; continue; }
-        const input = byId.get(colKey);
-        if (!input) continue;
-        const v = coerceCell(input as Parameters<typeof coerceCell>[0], raw);
-        if (v !== undefined) { row.values[colKey] = v; filled++; }
+      if (!row) continue;
+      for (const [c, value] of cells.entries()) {
+        const key = flatCols[startColIdx + c];
+        if (key && writeCell(row, key, value)) filled++;
       }
     }
+    rowActions.reveal(startUid!);
     columns = renderGrid();
-    if (filled) showProgress(`<p class="pro-progress-msg">Pasted ${filled} value${filled === 1 ? '' : 's'} from the clipboard.</p>`);
+    if (filled) srAnnounce(tRaw('Pasted {n} cells', { n: filled }));
   }
 
   // ── Batch run + delivery ────────────────────────────────────────────────────
@@ -1903,7 +1888,7 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
 
   // ── Cleanup (called by the router on navigation away) ───────────────────────
   kitPanel = mountKitPanel(viewEl, host, state, { newRow, changed: () => { zipNameInput.value = state.zipName; columns = renderGrid(); }, save: () => sessionsBtn.click() });
-  (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { kitPanel?.dispose(); detachLangMenu(); closeBulkPopover(); closeSessions(); closePrintPopover(); closeTemplatePicker(); closeBlocksPanel(); rowActions.destroy(); nav.destroy(); detachResize(); detachReorder(); detachScrub(); zoomHud.destroy(); document.documentElement.style.zoom = previousZoom; document.removeEventListener('pointerdown', onDocPointer); document.removeEventListener('keydown', onAddRowKey, true); };
+  (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { kitPanel?.dispose(); detachLangMenu(); closeBulkPopover(); closeSessions(); closePrintPopover(); closeTemplatePicker(); closeBlocksPanel(); rowActions.destroy(); cellSelection.destroy(); batchFormatPicker.destroy(); nav.destroy(); detachResize(); detachReorder(); detachScrub(); zoomHud.destroy(); document.documentElement.style.zoom = previousZoom; document.removeEventListener('pointerdown', onDocPointer); document.removeEventListener('keydown', onAddRowKey, true); };
 
   // Deep link, in precedence order:
   //  · a Projects "Edit as sheet" selection (#/pro?s=slot,slot…) → one row per

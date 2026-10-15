@@ -5,11 +5,11 @@
  * no feature module has to import the orchestrator file. The export actions bar under a mounted tool.
  */
 import { C2PA_FORMATS, PRINT_MARK_FORMATS, SEPARATING_FORMATS } from '@lolly/engine';
+import { fmtLabel } from '../../lib/export-format-info.ts';
+export { FMT_LABEL, fmtLabel, keepFormat, CMYK_TIFF_OK, TIFF_OK } from '../../lib/export-format-info.ts';
 import type { Profile } from '@lolly-tools/core/host-v1';
-import { audioSupport, cmykTiffSupport, proFormatSupport, tiffSupport, videoSupport } from '../../bridge/format-support.js';
 import { isAudioFormat as isAudioFmt } from '../../lib/audio-encode.js';
 import { marksToCsv } from '../../lib/print-marks-csv.ts';
-import { isProFormat } from '../export-depth.ts';
 import type { ExportExperience, PrintMarks } from '../tool.ts';
 
 /** Structural mirror of the engine MediaFrame (not re-exported from the engine index) - the
@@ -26,57 +26,6 @@ export interface CaptionText {
   srt: string;
 }
 
-// Human-readable labels and file extensions for format identifiers that differ
-// from their raw string (e.g. "pdf-cmyk" → "Print PDF" / ".pdf").
-export const FMT_LABEL: Record<string, string> = {
-  'pdf-cmyk': 'Print PDF',
-  'cmyk-tiff': 'Print TIFF',
-  tiff: 'TIFF',
-  jpeg: 'JPG',
-  webm: 'WebM',
-  mp4: 'MP4',
-  apng: 'aPNG',
-  'webp-anim': 'Animated WebP',
-  'svg-anim': 'Animated SVG',
-  emf: 'EMF (old)',
-  eps: 'EPS',
-  'eps-cmyk': 'EPS (CMYK)',
-  dxf: 'DXF (cut file)',
-  pptx: 'PowerPoint',
-  penpot: 'Penpot',
-  lottie: 'dotLottie',
-  idml: 'InDesign IDML (static subset)',
-  'premiere-xml': 'Premiere XML + media',
-  jxl: 'JPEG XL',
-  'jxl-lossless': 'JPEG XL lossless',
-  docx: 'Word',
-  odt: 'OpenDocument',
-  ics: 'Calendar',
-  vcf: 'vCard',
-  ico: 'Icon',
-  zip: 'ZIP',
-  csv: 'CSV',
-  json: 'JSON',
-  // A SCORM course package (plans/180 M-D1) - a zip an LMS imports. The qualifier is
-  // there because "SCORM" alone means nothing to anyone who has not been sent to one.
-  scorm: 'SCORM (LMS)',
-  // Palette exchange (color-palette): a design-tokens JSON, CSS/SCSS variable
-  // blocks, a GIMP palette, and a binary Adobe swatch file. extFor falls back to
-  // the format id for each (blob MIME isn't mp4/webm/zip), so no FMT_EXT entry.
-  css: 'CSS',
-  scss: 'SCSS',
-  gpl: 'GIMP palette',
-  ase: 'Adobe swatches',
-  // Audio only. Opus ships in a WebM container, so the label says so rather than
-  // leaving a download named .webm looking like a video.
-  wav: 'WAV',
-  mp3: 'MP3',
-  m4a: 'M4A (AAC)',
-  opus: 'Opus (WebM)',
-  // Linux packages (plan 197 M6): an installable RPM of the render, and the no-root tarball.
-  rpm: 'RPM',
-  'tar.gz': 'Tarball',
-};
 // `penpot` is spelled out rather than left to extFor's fallback: the archive IS a
 // zip, and only its `application/x-penpot` blob type keeps the MIME sniff below from
 // renaming the download to .zip - which Penpot's own Import will not take.
@@ -201,39 +150,6 @@ export const ZIP_BUNDLE = new Set([
   'apng',
   'ico',
 ]);
-
-// Which video containers this browser can actually produce (MediaRecorder OR the
-// WebCodecs probe - see videoSupport). Read per call, NOT snapshotted at module
-// load: the WebCodecs half resolves asynchronously just after boot, and a module-
-// scope const would freeze the pre-probe answer forever.
-// Print TIFF is desktop-only with working canvas readback (see cmykTiffSupport);
-// hide it everywhere it can't be produced or cleanly downloaded.
-export const CMYK_TIFF_OK = cmykTiffSupport();
-export const TIFF_OK = tiffSupport();
-export const keepFormat = (f: string, deepExportOk = false): boolean =>
-  f === 'webm'
-    ? videoSupport().webm
-    : f === 'mp4'
-      ? videoSupport().mp4
-      : // wav/mp3 are pure JS and always pass; m4a/opus need the platform's WebCodecs
-        // AudioEncoder, so they are hidden where it cannot produce them.
-        isAudioFmt(f)
-        ? audioSupport()[f]
-        : f === 'cmyk-tiff'
-          ? CMYK_TIFF_OK
-          : f === 'tiff'
-            ? TIFF_OK
-            : // The pro float formats (exr/hdr) reach the picker two ways: the generic Node
-              // float rasteriser (proFormatSupport - false on the web), OR a tool that owns
-              // them through an exportStill hook computed in float via host.codec (bitmap
-              // studio). `deepExportOk` is that second, tool-specific producer - the runtime
-              // routes exr/hdr to exportStill before the 8-bit DOM path (runtime.ts:752), so
-              // where a tool can genuinely originate the float master the option is honest.
-              isProFormat(f)
-              ? proFormatSupport() || deepExportOk
-              : true;
-
-export const fmtLabel = (f: string): string => f === 'lolly' ? '.lolly' : FMT_LABEL[f] ?? f.toUpperCase();
 
 /** Keep the deliverable caption and action tied to the selected format. */
 export function formatExperience(next: ExportExperience, format: string): ExportExperience {

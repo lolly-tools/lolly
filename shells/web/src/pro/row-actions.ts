@@ -14,6 +14,7 @@ interface Row {
 interface State<R extends Row> { rows: R[]; running: boolean; kit?: unknown }
 interface Actions {
   changed(): void;
+  selected(): void;
   newUid(): string;
   edit(anchor: HTMLElement, key: string, blocks: boolean): void;
 }
@@ -66,7 +67,7 @@ export function mountRowActions<R extends Row>(root: HTMLElement, state: State<R
       checkAll.indeterminate = checked > 0 && checked < current.rows.length;
     }
     const edit = q<HTMLSelectElement>('[data-edit-selected]');
-    const cols = deriveColumns(scope().filter(row => row.manifest)).filter(col => col.bulk || col.type === 'blocks');
+    const cols = n ? deriveColumns(scope().filter(row => row.manifest)).filter(col => col.bulk || col.type === 'blocks') : [];
     edit.replaceChildren(new Option(t('Edit input…'), ''), ...cols.map(col => {
       const option = new Option(col.label, col.key);
       option.dataset.blocks = String(col.type === 'blocks');
@@ -94,7 +95,7 @@ export function mountRowActions<R extends Row>(root: HTMLElement, state: State<R
     }
   }
 
-  function changedSelection(): void { sync(); announce(q<HTMLElement>('[data-selection-count]').textContent!); }
+  function changedSelection(): void { actions.selected(); sync(); announce(q<HTMLElement>('[data-selection-count]').textContent!); }
   function reset(): void { page = 0; selection.clear(); removed = []; }
   function reveal(uid: string): void { const index = state.rows.findIndex(row => row.uid === uid); if (index >= 0) page = Math.floor(index / BATCH_PAGE_SIZE); }
   function remove(ids: ReadonlySet<string>): void {
@@ -148,7 +149,7 @@ export function mountRowActions<R extends Row>(root: HTMLElement, state: State<R
   const keydown = (event: KeyboardEvent): void => {
     const target = event.target as HTMLElement;
     if (!target.matches('td, [data-select-row], [data-select-page]')) return;
-    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'a') {
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'a' && !target.matches('td')) {
       event.preventDefault(); event.stopPropagation();
       for (const row of state.rows) selection.ids.add(row.uid);
       changedSelection();

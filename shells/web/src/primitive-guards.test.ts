@@ -1189,7 +1189,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // category accordion after a setFormats narrowing. Reviewed - format ids and
   // labels are escape()d, category labels are escape(t(…)) literals, and the
   // chevron comes from the shared icon() generator.
-  'views/export-format-picker.ts': 1,
+  'components/export-format-picker.ts': 1,
   'views/export-preflight.ts': 1,
   // 41 as of 2026-08-07: +1 for the Line tool's drawLineRubber (connectLayer.innerHTML,
   // plan 90) - coordinates via cf2 (numbers), colour via cAttr (strips <>"), and the

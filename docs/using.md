@@ -447,6 +447,10 @@ Select rows with the checkboxes, or Shift-click a checkbox to select a range. Th
 
 **Render selected**, **Export selected CSV** and **Print selected rows** use the same selection. Clear the selection to work on the whole batch. The grid shows 50 rows per page, and selections stay selected as you move between pages. **Sessions** always saves the whole batch.
 
+Drag across cells, Shift-click a cell, or use Shift+Arrow keys to select a rectangle. **Copy cells** or Ctrl+C / Command+C copies the values for Excel, Google Sheets and other spreadsheets. Ctrl+A / Command+A from a focused cell selects all visible columns across every page; from a row checkbox, the same shortcut selects all rows for batch actions. Cell selection keeps checked rows selected for batch actions. Double-click a cell or press Enter to edit its text. Paste a rectangle from the clipboard, or paste one value to fill the selected cells. Blank cells and multiline text keep their positions.
+
+**Default format** uses the same grouped menu as the export panel, with the formats available from the catalog and supported by your browser. Individual rows can still override the default.
+
 **Import CSV** lets you add rows or replace the current batch. Open **Columns** below the grid to reveal more inputs or per-row width, height, unit and DPI. Default export settings apply to rows without their own overrides. **Batch activity** can be collapsed after an import or render to make more room for the table.
 
 Batch is for generating **many variants of one template** at once. To re-render sessions you've **already saved**, use **Projects → Render folder / Render selection** (see [Find and recover your work](/info/find-your-work.html#find-something-you-saved)) - no Pro needed.

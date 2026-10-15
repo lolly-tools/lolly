@@ -4,6 +4,8 @@ import { langFabHtml } from '../components/lang-menu.ts';
 import { icon } from '../lib/icons.ts';
 import { escapeHtml as esc } from '../lib/util/escape.ts';
 import { t } from '../i18n.ts';
+import { formatPanelHtml, formatTriggerHtml } from '../components/export-format-picker.ts';
+import { fmtLabel } from '../lib/export-format-info.ts';
 
 export function batchChrome(state: { format: string; unit: string; dpi: number }, formats: string[], units: string[]): string {
   const options = (values: string[], current: string) => values.map(value => `<option value="${esc(value)}"${value === current ? ' selected' : ''}>${esc(value === 'pdf-cmyk' ? 'Print PDF' : value.toUpperCase())}</option>`).join('');
@@ -22,9 +24,11 @@ export function batchChrome(state: { format: string; unit: string; dpi: number }
           <input type="text" id="pro-zip-name" class="field-input field-input--sm" placeholder="lolly-batch" autocomplete="off" spellcheck="false" aria-label="${t('Name for the downloaded .zip')}">
           <span class="pro-zip-ext" aria-hidden="true">.zip</span>
         </label>
-        <label class="pro-format" id="pro-format-field">${t('Default format')}
-          <select id="pro-format" class="field-select field-select--auto field-select--sm" aria-label="${t('Output format for every row')}">${options(formats, state.format)}</select>
-        </label>
+        <div class="pro-format pro-format-picker" id="pro-format-field"><span>${t('Default format')}</span>
+          <select id="pro-format" hidden aria-hidden="true" tabindex="-1">${options(formats, state.format)}</select>
+          ${formatTriggerHtml(state.format, fmtLabel)}
+          ${formatPanelHtml(formats, state.format, fmtLabel)}
+        </div>
         <label class="pro-format" id="pro-unit-field">${t('Unit')}
           <select id="pro-unit" class="field-select field-select--auto field-select--sm" aria-label="${t('Units for the Width & Height columns')}">${units.map(u => `<option value="${u}"${u === state.unit ? ' selected' : ''}>${u}</option>`).join('')}</select>
         </label>
@@ -48,7 +52,8 @@ export function batchChrome(state: { format: string; unit: string; dpi: number }
     </div>
     <div class="pro-selection-bar" data-row-actions aria-label="${t('Row selection')}">
       <span data-selection-count role="status" aria-live="polite"></span>
-      <span data-selection-hint class="pro-selection-hint">${t('Shift-click to select a range. Shift+Space selects the focused row.')}</span>
+      <span data-selection-hint class="pro-selection-hint">${t('Use checkboxes for rows. Drag cells to copy a range.')}</span>
+      <div data-cell-actions hidden><span data-cell-count role="status"></span><button type="button" class="btn btn--sm btn--labelled" data-copy-cells>${icon('clipboard')} ${t('Copy cells')}</button><button type="button" class="btn btn--sm btn--ghost" data-clear-cells>${t('Clear cell selection')}</button><span class="pro-cell-hint">${t('Drag or Shift-click cells. Double-click to edit.')}</span></div>
       <div data-selected-actions hidden>
         <select class="field-select field-select--auto field-select--sm" data-edit-selected aria-label="${t('Edit input in selected rows')}"></select>
         <button type="button" class="btn btn--sm btn--labelled" data-duplicate-rows>${icon('duplicate')} ${t('Duplicate')}</button>

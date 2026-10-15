@@ -1,3 +1,4 @@
+@import '../styles/parts/export-format-picker.css';
 /* Cascade layer: this whole lazy-loaded sheet sits in the `views` layer
    (order declared once in styles/app.css). Wrapping it means its rules keep a
    fixed priority - above chrome/primitives/base, below overrides/a11y - no
@@ -248,7 +249,7 @@ body.pro-col-resizing, body.pro-col-resizing * { cursor: col-resize !important; 
   background: transparent; border-radius: 6px;
 }
 .pro-fill-btn:hover { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
-.pro-fill-btn svg { pointer-events: none; }
+.pro-fill-btn svg { pointer-events: none; width: 16px; height: 16px; }
 
 /* Left gutter holding the drag grip: a hard fixed width, pinned to the left edge
    (sticky) right alongside the template column so reordering stays reachable while
@@ -392,7 +393,7 @@ body.pro-col-resizing, body.pro-col-resizing * { cursor: col-resize !important; 
   background: hsl(var(--background)); color: hsl(var(--muted-foreground));
 }
 .pro-eye:hover, .pro-fmt:hover { color: hsl(var(--primary)); border-color: hsl(var(--primary)); background: hsl(var(--accent)); }
-.pro-eye svg, .pro-fmt svg { pointer-events: none; }
+.pro-eye svg, .pro-fmt svg { pointer-events: none; width: 16px; height: 16px; }
 /* The format pill widens to hold the extension label (e.g. WEBP). */
 .pro-fmt { width: 2.4rem; }
 .pro-fmt-ext { font-size: calc(.62rem * var(--a11y-fs)); font-weight: 600; line-height: 1; letter-spacing: .02em; pointer-events: none; }
@@ -872,7 +873,7 @@ body.pro-row-dragging, body.pro-row-dragging * { cursor: grabbing !important; us
 .pro-empty-hint-icon { color: hsl(var(--muted-foreground)); }
 .pro-empty-hint-icon svg { width: 24px; height: 24px; }
 .pro-grid .pro-col-label { font-weight: 600; }
-.pro-fill-btn { color: hsl(var(--muted-foreground)); transform: none; }
+.pro-col-head .pro-fill-btn { position: static; color: hsl(var(--muted-foreground)); transform: none; opacity: 1; flex: none; }
 @media (max-width: 720px) {
   #pro-grid-host { padding: 0 .75rem; }
   .pro-empty-hint { padding: .7rem; }
@@ -887,4 +888,28 @@ body.pro-row-dragging, body.pro-row-dragging * { cursor: grabbing !important; us
   .pro-col-template { left: auto; }
 }
 
+
+.pro-toolbar:has([data-fmt-panel]:not([hidden])) { position: relative; z-index: 100005; }
+.pro-format-picker { position: relative; }
+.pro-format-picker .fmt-trigger { border: 1px solid hsl(var(--border)); border-radius: var(--ui-radius-control); padding: .4rem .6rem; font-size: calc(.8rem * var(--a11y-fs)); }
+.pro-format-picker .fmt-pop { width: min(34rem, calc(100vw - 2rem)); max-width: none; z-index: 40; white-space: normal; }
+.pro-selection-bar.has-cell-selection:not(.has-selection) [data-selection-count], .pro-selection-bar.has-cell-selection [data-selection-hint] { display: none; }
+.pro-selection-bar [data-cell-actions] { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
+.pro-selection-bar [data-cell-actions][hidden] { display: none; }
+[data-cell-count] { font-weight: 600; }
+.pro-cell-hint { color: hsl(var(--muted-foreground)); font-size: calc(.72rem * var(--a11y-fs)); }
+.pro-grid tbody tr > td.is-cell-selected { background-color: color-mix(in srgb, hsl(var(--primary)) 14%, hsl(var(--card))); }
+.pro-grid td.cell-range-top { border-top-color: hsl(var(--ring)); }
+.pro-grid td.cell-range-bottom { border-bottom-color: hsl(var(--ring)); }
+.pro-grid td.cell-range-left { border-left-color: hsl(var(--ring)); }
+.pro-grid td.cell-range-right { border-right-color: hsl(var(--ring)); }
+.pro-grid td:not(.pro-cell--editing) .pro-control { cursor: cell; }
+@media (max-width: 720px) {
+  .pro-format-picker .fmt-pop { position: fixed; inset: 1rem; width: auto; max-height: none; z-index: 50; }
+  .pro-format-picker .fmt-pop-head { display: flex; justify-content: space-between; align-items: center; }
+  .pro-cell-hint { display: none; }
+  .pro-selection-bar { flex-wrap: nowrap; overflow-x: auto; min-height: calc(3.5rem * var(--a11y-fs)); }
+  .pro-selection-bar [data-selected-actions], .pro-selection-bar [data-cell-actions] { flex-wrap: nowrap; white-space: nowrap; }
+  .pro-selection-bar [data-selection-count] { white-space: nowrap; }
+}
 }
