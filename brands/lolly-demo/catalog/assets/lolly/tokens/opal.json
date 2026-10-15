@@ -27,7 +27,7 @@
     "color": {
       "$type": "color",
       "brand": {
-        "$description": "Opal's named colours. What each one is for travels in its tools.lolly.opal extension. Greens, the main brand hue (Spearmint, Bunyapine, Green Apple, and the lighter Wattle, Pandanus and Avocado), earth (Basalt, Bauxite, Bark), relief (Banksia, Honey, Olive), dramatic relief (Reef), treats (Donut, Waffle), light and ink (Sugar, Meringue, Beach, Pebble, Liquorice), the flowers (Jacaranda, and Fuchsia after Correa, the native fuchsia) and the reds Lolly needs as an app (Arvo, Outback, Ochre).",
+        "$description": "Opal's named colours. What each one is for travels in its tools.lolly.opal extension. Greens, the main brand hue (Spearmint, Bunyapine, Green Apple, and the lighter Pandanus and Avocado), earth (Basalt, Bauxite, Bark), relief (Banksia, Honey, Wattle, Olive), dramatic relief (Reef), treats (Donut, Pancake), light and ink (Daylight, Sugar, Meringue, Beach, Pebble, Liquorice, Void), the flowers (Jacaranda, and Fuchsia after Correa, the native fuchsia) and the reds Lolly needs as an app (Arvo, Outback, Ochre).",
         "spearmint": {
           "$value": "#033633",
           "$description": "Spearmint",
@@ -56,11 +56,11 @@
           }
         },
         "wattle": {
-          "$value": "#d3e688",
+          "$value": "#fdec9e",
           "$description": "Wattle",
           "$extensions": {
             "tools.lolly.opal": {
-              "use": "A light yellow-green highlight."
+              "use": "A soft light yellow, after the wattle in flower: highlights, notes and sunny grounds, a lighter step from Honey. Liquorice on Wattle 15.7:1."
             }
           }
         },
@@ -154,12 +154,22 @@
             }
           }
         },
-        "waffle": {
+        "pancake": {
           "$value": "#d8b890",
-          "$description": "Waffle",
+          "$description": "Pancake",
           "$extensions": {
             "tools.lolly.opal": {
               "use": "Warm tan for grounds and illustration."
+            }
+          }
+        },
+        "daylight": {
+          "$value": "#ffffff",
+          "$description": "Daylight",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "The brightest white a screen can show: plain white on ordinary screens, and about 1,000 nits on HDR screens where HDR colour is drawn. For the export flash, highlights and the spotlight's hot centre.",
+              "hdr": { "display-p3": [1, 1, 1], "rec2100-pq": [0.75, 0.75, 0.75], "nits": 1000 }
             }
           }
         },
@@ -205,6 +215,15 @@
           "$extensions": {
             "tools.lolly.opal": {
               "use": "The darkest colour: text everywhere and the cool hull of the dark theme."
+            }
+          }
+        },
+        "void": {
+          "$value": "#000000",
+          "$description": "Void",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "True black, a step below Liquorice: the stage at its darkest, mattes and letterboxes, and grounds for OLED screens. Sugar on Void 21:1."
             }
           }
         },
