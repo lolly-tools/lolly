@@ -21,7 +21,8 @@ import type { InputValue } from '../../../../engine/src/inputs.ts';
 // TILT_PERSPECTIVE; importing the engine's own keeps the live preview at the same distance.
 import { DEFAULT_PERSPECTIVE } from '../../../../engine/src/keyframes.ts';
 import {
-  HANDLE_SIGN, SCALE_K_FLOOR, formatDashArray, normAngle, num, parseDashArray, rotateVec, snapAngle, uniformScaleFloor,
+  HANDLE_SIGN, SCALE_K_FLOOR, formatDashArray, normAngle, num, parseDashArray, rotateRectAbout, rotateVec, snapAngle,
+  uniformScaleFloor,
 } from './free-canvas-math.ts';
 import type { AABB, Box, Guide, HandleName, Point, Rect, StartRect } from './free-canvas-math.ts';
 
@@ -702,6 +703,27 @@ export interface ViewRect {
   h: number;
 }
 
+/** A client rect's position and size, as `getBoundingClientRect` reports them. */
+export interface ClientBox {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+}
+
+/**
+ * The visible stage in client px: the stage `stage` clipped by the view `view` that
+ * holds the stage. A view with no size yet (not laid out) clips nothing.
+ */
+export function visibleRect(stage: ClientBox, view: ClientBox): ViewRect {
+  let x0 = stage.left, y0 = stage.top, x1 = stage.left + stage.width, y1 = stage.top + stage.height;
+  if (view.width > 0 && view.height > 0) {
+    x0 = Math.max(x0, view.left); y0 = Math.max(y0, view.top);
+    x1 = Math.min(x1, view.left + view.width); y1 = Math.min(y1, view.top + view.height);
+  }
+  return { x: x0, y: y0, w: Math.max(0, x1 - x0), h: Math.max(0, y1 - y0) };
+}
+
 /** Options for {@link zoneAt} and {@link zoneLayout}. All sizes are screen px. */
 export interface ZoneOpts {
   pointerKind: PointerKind;
@@ -719,6 +741,10 @@ export interface ZoneOpts {
   allowRotate: boolean;
   /** Only the edge strips, full length: no corner zones. */
   edgesOnly?: boolean;
+  /** In the large sizing, how far a drawn resize handle takes a press: the corners and
+   *  sides reach at least that far past the outline, and a rotate zone starts beyond
+   *  (default {@link handleHitReach} for the pointer on a fine-pointer screen). */
+  handleReach?: HandleReach;
 }
 
 export type ZoneKind = 'corner' | 'edge' | 'rotate';
@@ -783,15 +809,110 @@ export const MIN_MOVE_PX = 10;
 /**
  * Which handles the DOM chrome shows for a posed box of `wScreen`×`hScreen` screen
  * px (Penpot's rule, for every pointer). 25 px or less on an axis hides the two
- * midpoint handles that sit along that axis (a narrow width hides n and s) and
- * moves the corners outward; 10 px or less on either axis drops the corners too.
+ * midpoint handles on the short edges (a narrow width hides n and s), which would
+ * crowd the corners, and moves the handles outward; 10 px or less on either axis
+ * drops the corners. With the corners gone nothing is crowded, so the short edges'
+ * midpoints come back: a thin rule or a straight line keeps a handle at each end
+ * for its length (e and w on a short height) as well as the two for its thickness.
  */
 export function smallObjectHandles(wScreen: number, hScreen: number): { hide: HandleName[]; outward: boolean } {
   const hide: HandleName[] = [];
-  if (wScreen <= SMALL_OBJECT_PX) hide.push('n', 's');
-  if (hScreen <= SMALL_OBJECT_PX) hide.push('e', 'w');
-  if (wScreen <= TINY_OBJECT_PX || hScreen <= TINY_OBJECT_PX) hide.push('nw', 'ne', 'se', 'sw');
+  const tiny = wScreen <= TINY_OBJECT_PX || hScreen <= TINY_OBJECT_PX;
+  if (wScreen <= SMALL_OBJECT_PX && !tiny) hide.push('n', 's');
+  if (hScreen <= SMALL_OBJECT_PX && !tiny) hide.push('e', 'w');
+  if (tiny) hide.push('nw', 'ne', 'se', 'sw');
   return { hide, outward: wScreen <= SMALL_OBJECT_PX || hScreen <= SMALL_OBJECT_PX };
+}
+
+/**
+ * How far a small box's DOM handles stand off its outline (screen px). A handle
+ * that stands off is hit on its own square alone, without the wider hit area the
+ * other handles carry (`[data-outward]` in editor.css), and 12 px clears that square
+ * from the outline at any turn: the 16 px coarse handle reaches 8 px from its centre
+ * along an axis and 11.3 px along a diagonal. The inside of the box stays the move
+ * target.
+ */
+export const SMALL_HANDLE_OUTSET = 12;
+
+/**
+ * The screen-px offset that moves a handle outward along its own direction on a box
+ * turned `rotDeg`: a corner along its diagonal (`px` on each of the box's axes), an edge
+ * midpoint straight out from its edge.
+ */
+export function handleOutset(handle: HandleName, rotDeg = 0, px = SMALL_HANDLE_OUTSET): Point {
+  const [sx, sy] = HANDLE_SIGN[handle];
+  return rotateVec(sx * px, sy * px, Number.isFinite(rotDeg) ? rotDeg : 0);
+}
+
+/**
+ * The resize handles as editor.css draws them (screen px from a handle's centre): a
+ * 12 px square, 16 px where any pointer is coarse, and a 9 px fat target round the
+ * square (`.fc-handle::after`). A corner drops the fat target on a fine primary pointer, where
+ * a rotate zone starts just past its square.
+ */
+export const HANDLE_HALF = 6;
+export const HANDLE_HALF_COARSE = 8;
+export const HANDLE_FAT = 9;
+
+/** How far from its centre, on each screen axis, a drawn resize handle takes a press. */
+export interface HandleReach {
+  /** A corner handle. */
+  corner: number;
+  /** An edge's midpoint handle. */
+  edge: number;
+  /** The square alone: a handle the small-object rule stood off, which has no fat target. */
+  square: number;
+}
+/** The media queries editor.css sizes the handles by. */
+export interface HandleMedia {
+  /** `(any-pointer: coarse)`: the 16 px handle. */
+  coarse: boolean;
+  /** `(pointer: fine)`: no fat target round a corner. */
+  fine: boolean;
+}
+
+/**
+ * How far the drawn resize handles take a press, for one pointer under the given media.
+ * The large grab zones stand in for the handles, which let the press through to them,
+ * so those zones reach at least this far. A finger gets the coarse reach at every handle
+ * whatever the media say: no rotate zone lies past its corners.
+ */
+export function handleHitReach(kind: PointerKind, media: HandleMedia = { coarse: false, fine: true }): HandleReach {
+  if (kind === 'touch') {
+    const r = HANDLE_HALF_COARSE + HANDLE_FAT;
+    return { corner: r, edge: r, square: HANDLE_HALF_COARSE };
+  }
+  const half = media.coarse ? HANDLE_HALF_COARSE : HANDLE_HALF;
+  return { corner: media.fine ? half : half + HANDLE_FAT, edge: half + HANDLE_FAT, square: half };
+}
+
+/**
+ * Is a screen point on the drawn resize handle `handle` of a posed rect? A handle is a
+ * square drawn square to the screen, centred on its corner or edge midpoint or stood off
+ * a small rect, and a handle the small-object rule hides is not drawn at all
+ * ({@link smallObjectHandles}).
+ */
+export function onDrawnHandle(point: Point, rect: ScreenRect, handle: HandleName, reach: HandleReach): boolean {
+  const small = smallObjectHandles(rect.w, rect.h);
+  if (small.hide.includes(handle)) return false;
+  const rot = rect.rot || 0;
+  const [sx, sy] = HANDLE_SIGN[handle];
+  const on = rotateVec((sx * rect.w) / 2, (sy * rect.h) / 2, rot);
+  const off = small.outward ? handleOutset(handle, rot) : { x: 0, y: 0 };
+  const r = small.outward ? reach.square : sx && sy ? reach.corner : reach.edge;
+  return Math.abs(point.x - (rect.x + rect.w / 2 + on.x + off.x)) <= r &&
+    Math.abs(point.y - (rect.y + rect.h / 2 + on.y + off.y)) <= r;
+}
+
+/** Travel (screen px) before a press in a grab zone becomes a transform: a mouse is
+ *  precise, and a finger or a pen tip wobbles as it touches down. A release short of
+ *  the travel is a click. */
+export const ZONE_DRAG_PX = 4;
+export const ZONE_DRAG_PX_COARSE = 10;
+
+/** The travel a zone press needs before it transforms, for the pointer that pressed. */
+export function zoneDragThreshold(kind: PointerKind): number {
+  return kind === 'mouse' ? ZONE_DRAG_PX : ZONE_DRAG_PX_COARSE;
 }
 
 /** Sutherland-Hodgman: a convex polygon clipped to an axis-aligned rect. */
@@ -840,6 +961,41 @@ export function visibleExtent(rect: ScreenRect, viewport: ViewRect): { w: number
   return { w: x1 - x0, h: y1 - y0 };
 }
 
+/**
+ * GIMP's large-zone sizing for a posed rect: each corner zone is a quarter of the
+ * VISIBLE width by a quarter of the visible height, clamped to 24-44 px, and a
+ * visible side under 3 corner sizes is `narrow` (the zones then sit outside).
+ */
+export function largeZoneSize(rect: ScreenRect, viewport: ViewRect): { cornerW: number; cornerH: number; narrow: boolean } {
+  const vis = visibleExtent(rect, viewport);
+  const cornerW = Math.min(GRAB_ZONE_MAX, Math.max(GRAB_ZONE_MIN, vis.w / 4));
+  const cornerH = Math.min(GRAB_ZONE_MAX, Math.max(GRAB_ZONE_MIN, vis.h / 4));
+  return { cornerW, cornerH, narrow: vis.w < NARROW_FACTOR * cornerW || vis.h < NARROW_FACTOR * cornerH };
+}
+
+/** How far the rotate handle hangs below the selection (screen px), on its stem. */
+export const ROTATE_STEM = 30;
+/** The stem in narrow mode: past the 24 px zones outside the rect, plus the rotate
+ *  handle's own hit area (18 px out from its centre on a coarse pointer), so the
+ *  handle never covers the bottom side zone it hangs over. */
+export const ROTATE_STEM_NARROW = GRAB_ZONE_MIN + 20;
+/** The stem past an `s` handle the small-object rule stood off the outline: that handle
+ *  sits 12 px out and is hit on its own square (8 px from its centre on a coarse
+ *  pointer), the rotate handle's hit area reaches 18 px, and 2 px lie between. */
+export const ROTATE_STEM_SMALL = SMALL_HANDLE_OUTSET + 8 + 18 + 2;
+
+/**
+ * The rotate handle's stem below a posed selection of `wScreen` x `hScreen` screen px,
+ * long enough that the handle's hit area clears whatever hangs below the selection: an
+ * `s` handle stood off a short box (smallObjectHandles), or in `narrow` mode the large
+ * zones outside the rect.
+ */
+export function rotateStemFor(wScreen: number, hScreen: number, narrow = false): number {
+  const small = smallObjectHandles(wScreen, hScreen);
+  const stem = small.outward && !small.hide.includes('s') ? ROTATE_STEM_SMALL : ROTATE_STEM;
+  return narrow ? Math.max(stem, ROTATE_STEM_NARROW) : stem;
+}
+
 const CORNERS: ReadonlyArray<readonly [HandleName, number, number]> = [['nw', -1, -1], ['ne', 1, -1], ['se', 1, 1], ['sw', -1, 1]];
 
 /** A box given in corner-folded coordinates (u, v grow outward from the corner at
@@ -856,13 +1012,16 @@ function unfold(sx: number, sy: number, u0: number, u1: number, v0: number, v1: 
  * then edges, then rotate zones. All sizes are screen px and none depends on zoom.
  *
  * Default sizing (`large` off): strips of `strip` px centred on each edge, corner
- * squares of `corner` px centred on each corner, and a `rotateZone`-wide band just
+ * squares of `corner` px centred on each corner (reaching only `strip / 2 + 2` px
+ * outward when a rotate band sits beside them), and a `rotateZone`-wide band just
  * outside each corner zone. A rect 25 px or less on an axis takes them outside
  * only, and 10 px or less drops the corners ({@link smallObjectHandles}).
  *
  * Large sizing (GIMP's crop tool): each corner zone is a quarter of the VISIBLE
  * width by a quarter of the visible height, clamped to 24-44 px, inside the rect;
- * each side zone is the edge between two corners, as thick as a corner. When the
+ * each side zone is the edge between two corners, as thick as a corner. Corners and
+ * sides also reach past the outline as far as a drawn handle takes a press
+ * (`handleReach`), since the handles let the press through to them. When the
  * visible width or height is under 3 corner sizes the zones move outside at 24 px
  * (narrow mode). There is no centre zone in either sizing: the interior is left to
  * the normal select-and-move path.
@@ -885,19 +1044,24 @@ export function zoneLayout(rect: ScreenRect, opts: ZoneOpts): ZoneLayout {
   let eiX: number, eiY: number, eoX: number, eoY: number;
   let insetX = 0, insetY = 0;
   if (opts.large) {
-    const vis = visibleExtent(rect, opts.viewport);
-    cornerW = Math.min(GRAB_ZONE_MAX, Math.max(GRAB_ZONE_MIN, vis.w / 4));
-    cornerH = Math.min(GRAB_ZONE_MAX, Math.max(GRAB_ZONE_MIN, vis.h / 4));
-    if (vis.w < NARROW_FACTOR * cornerW || vis.h < NARROW_FACTOR * cornerH) {
+    const size = largeZoneSize(rect, opts.viewport);
+    cornerW = size.cornerW;
+    cornerH = size.cornerH;
+    // A drawn handle lets the press through to its zone, so the zone reaches as far out
+    // as the handle took a press. The handle is square to the screen: on a turned box
+    // its square reaches further along the box's own axes.
+    const reach = opts.handleReach ?? handleHitReach(opts.pointerKind);
+    const turn = ((rect.rot || 0) * Math.PI) / 180;
+    const spread = Math.abs(Math.cos(turn)) + Math.abs(Math.sin(turn));
+    const oc = Math.max(strip / 2, reach.corner * spread), oe = Math.max(strip / 2, reach.edge * spread);
+    if (size.narrow) {
       mode = 'narrow';
-      const n = GRAB_ZONE_MIN;
-      ciX = ciY = 0; coX = coY = n;
-      eiX = eiY = 0; eoX = eoY = n;
+      ciX = ciY = 0; coX = coY = Math.max(GRAB_ZONE_MIN, oc);
+      eiX = eiY = 0; eoX = eoY = Math.max(GRAB_ZONE_MIN, oe);
     } else {
       mode = 'large';
-      const o = strip / 2;
-      ciX = cornerW; ciY = cornerH; coX = coY = o;
-      eiX = cornerW; eiY = cornerH; eoX = eoY = o;
+      ciX = cornerW; ciY = cornerH; coX = coY = oc;
+      eiX = cornerW; eiY = cornerH; eoX = eoY = oe;
       if (withCorners) { insetX = cornerW; insetY = cornerH; }
     }
   } else {
@@ -912,7 +1076,11 @@ export function zoneLayout(rect: ScreenRect, opts: ZoneOpts): ZoneLayout {
       // The inward reach stops MIN_MOVE_PX short of the centre, so a coarse corner
       // on a box just over the small threshold still leaves a band to move by.
       const capX = Math.max(0, hw - MIN_MOVE_PX / 2), capY = Math.max(0, hh - MIN_MOVE_PX / 2);
-      ciX = Math.min(corner / 2, capX); ciY = Math.min(corner / 2, capY); coX = coY = corner / 2;
+      ciX = Math.min(corner / 2, capX); ciY = Math.min(corner / 2, capY);
+      // Beside a rotate band a corner reaches only 2 px past its strip, so a turn
+      // starts 6 px out from a mouse corner, where the corner handle's own square
+      // ends (editor.css): a press 10 px outside a corner turns the box.
+      coX = coY = rz > 0 ? Math.min(corner / 2, strip / 2 + 2) : corner / 2;
       eiX = Math.min(strip / 2, capX); eiY = Math.min(strip / 2, capY); eoX = eoY = strip / 2;
     }
   }
@@ -996,6 +1164,23 @@ export function resizeCursorFor(handle: HandleName, rotDeg = 0): ResizeCursor {
   return RESIZE_CURSORS[Math.round(half / 45) % 4] ?? 'ew-resize';
 }
 
+/** The rotate cursor, drawn as an arc round one corner: the four variants are the same
+ *  arrow turned in quarter turns, named for the corner the arc wraps. */
+export type RotateCursor = 'rotate-se' | 'rotate-sw' | 'rotate-nw' | 'rotate-ne';
+const ROTATE_CURSORS: readonly RotateCursor[] = ['rotate-se', 'rotate-sw', 'rotate-nw', 'rotate-ne'];
+
+/** The rotate cursor whose corner is nearest a direction (degrees clockwise from +x). */
+export function rotateCursorAt(deg: number): RotateCursor {
+  const a = Number.isFinite(deg) ? deg : 0;
+  const turn = ((((a - 45) % 360) + 360) % 360) / 90;
+  return ROTATE_CURSORS[Math.round(turn) % 4] ?? 'rotate-se';
+}
+
+/** The rotate cursor for the rotate zone at a corner once the box is turned `rotDeg`. */
+export function rotateCursorFor(handle: HandleName, rotDeg = 0): RotateCursor {
+  return rotateCursorAt((HANDLE_ANGLE[handle] ?? 0) + (Number.isFinite(rotDeg) ? rotDeg : 0));
+}
+
 // ── Rotation snapping ────────────────────────────────────────────────────────
 
 /** The rotation step for Shift and for the soft magnet. */
@@ -1031,6 +1216,11 @@ export interface PinchOpts {
   scaleEngaged?: boolean;
   /** The twist at which rotation engaged on an earlier frame. */
   engagedAt?: number | null;
+  /** Midpoint travel (in the points' units) that starts the move on its own (default 0:
+   *  the midpoint always carries). The spread or the twist engaging starts it too. */
+  travelDeadZone?: number;
+  /** The move engaged on an earlier frame. */
+  travelEngaged?: boolean;
 }
 
 /** Result of {@link pinchTransform}. */
@@ -1039,7 +1229,8 @@ export interface PinchResult {
   k: number;
   /** Rotation (degrees) since the twist engaged, 0 before. */
   dRot: number;
-  /** Midpoint travel since the start (screen px, or whatever units the points use). */
+  /** Midpoint travel since the start (screen px, or whatever units the points use), 0
+   *  until the move engages. */
   dx: number;
   dy: number;
   /** The start midpoint, the pivot for k and dRot. */
@@ -1048,6 +1239,7 @@ export interface PinchResult {
   rotateEngaged: boolean;
   /** The twist when rotation engaged, for the next call's `engagedAt`. */
   engagedAt: number | null;
+  travelEngaged: boolean;
 }
 
 /**
@@ -1055,26 +1247,106 @@ export interface PinchResult {
  * scale waits for the spread to pass the dead zone, then follows the full ratio so
  * the fingers stay on the content. The twist waits for `rotateEngageDeg`, then
  * counts from the angle it engaged at, so the selection never jumps by the
- * threshold. Both stay engaged once engaged when the caller feeds back
- * `scaleEngaged` and `engagedAt`.
+ * threshold. The midpoint carries the selection once it has travelled past
+ * `travelDeadZone`, or once the spread or the twist has engaged, and then by its whole
+ * travel, so two fingers resting on the selection move nothing. All three stay engaged
+ * once engaged when the caller feeds back `scaleEngaged`, `engagedAt` and `travelEngaged`.
  */
 export function pinchTransform(startA: Point, startB: Point, curA: Point, curB: Point, opts: PinchOpts = {}): PinchResult {
   const dead = opts.scaleDeadZone ?? 0.02;
   const engageDeg = opts.rotateEngageDeg ?? 10;
   const centre = { x: (startA.x + startB.x) / 2, y: (startA.y + startB.y) / 2 };
-  const dx = (curA.x + curB.x) / 2 - centre.x, dy = (curA.y + curB.y) / 2 - centre.y;
+  const mx = (curA.x + curB.x) / 2 - centre.x, my = (curA.y + curB.y) / 2 - centre.y;
   const d0 = Math.hypot(startB.x - startA.x, startB.y - startA.y);
   const d1 = Math.hypot(curB.x - curA.x, curB.y - curA.y);
   let scaleEngaged = !!opts.scaleEngaged;
   let engagedAt = opts.engagedAt ?? null;
-  if (!(d0 > 0) || !(d1 > 0)) {
-    return { k: 1, dRot: 0, dx, dy, centre, scaleEngaged, rotateEngaged: engagedAt != null, engagedAt };
+  let spread = 1, dRot = 0;
+  if (d0 > 0 && d1 > 0) {
+    spread = d1 / d0;
+    if (!scaleEngaged && Math.abs(spread - 1) > dead) scaleEngaged = true;
+    const angle = (a: Point, b: Point): number => (Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI;
+    const twist = normAngle(angle(curA, curB) - angle(startA, startB));
+    if (engagedAt == null && Math.abs(twist) >= engageDeg) engagedAt = twist;
+    dRot = engagedAt == null ? 0 : normAngle(twist - engagedAt) + 0;
   }
-  const spread = d1 / d0;
-  if (!scaleEngaged && Math.abs(spread - 1) > dead) scaleEngaged = true;
-  const angle = (a: Point, b: Point): number => (Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI;
-  const twist = normAngle(angle(curA, curB) - angle(startA, startB));
-  if (engagedAt == null && Math.abs(twist) >= engageDeg) engagedAt = twist;
-  const dRot = engagedAt == null ? 0 : normAngle(twist - engagedAt) + 0;
-  return { k: scaleEngaged ? spread : 1, dRot, dx, dy, centre, scaleEngaged, rotateEngaged: engagedAt != null, engagedAt };
+  const rotateEngaged = engagedAt != null;
+  const travelEngaged = !!opts.travelEngaged || scaleEngaged || rotateEngaged || Math.hypot(mx, my) > (opts.travelDeadZone ?? 0);
+  return {
+    k: scaleEngaged ? spread : 1, dRot, dx: travelEngaged ? mx : 0, dy: travelEngaged ? my : 0,
+    centre, scaleEngaged, rotateEngaged, engagedAt, travelEngaged,
+  };
+}
+
+/** A second finger later than this (ms) after the first starts no pinch on the selection. */
+export const PINCH_SECOND_MS = 300;
+/** A selection covering this share of the stage or more leaves two fingers to the view. */
+export const PINCH_MAX_COVER = 0.6;
+/** Midpoint travel (screen px) before two fingers that neither spread nor twist carry the
+ *  selection: a finger's drag threshold, so a resting pair is no undo step. */
+export const PINCH_TRAVEL_PX = ZONE_DRAG_PX_COARSE;
+
+/**
+ * May two fingers take the selection whose bounds on screen are `sel`, on the visible
+ * stage `stage` (both screen px)? Only while the selection lies inside the stage and
+ * covers less than `maxCover` of the stage's area. A selection that fills the view, or
+ * runs past its edge, would leave the view's own pinch no room to start, so its fingers
+ * zoom the view.
+ */
+export function pinchFits(sel: ViewRect, stage: ViewRect, maxCover = PINCH_MAX_COVER): boolean {
+  if (!(stage.w > 0 && stage.h > 0) || !(sel.w >= 0 && sel.h >= 0)) return false;
+  const inside = sel.x >= stage.x && sel.y >= stage.y && sel.x + sel.w <= stage.x + stage.w && sel.y + sel.h <= stage.y + stage.h;
+  return inside && (sel.w * sel.h) / (stage.w * stage.h) < maxCover;
+}
+
+/** Options for {@link pinchMembers}. */
+export interface PinchMembersOpts {
+  minSize?: number;
+  kMax?: number;
+  /** Which members turn, by position (default all). An artboard never turns, and a
+   *  layout child Scale mode adds to the set rides its container's turn. */
+  turns?: ReadonlyArray<boolean>;
+}
+
+/** Result of {@link pinchMembers}. */
+export interface PinchMembers {
+  /** One rect per member, in the order given. */
+  rects: Rect[];
+  /** The clamped uniform factor, which a Scale also applies to the content. */
+  k: number;
+  /** The turn applied in degrees: one box's change of angle, or a set's snapped turn. */
+  deg: number;
+}
+
+/**
+ * One frame of two fingers on a selection (plan 311), from a {@link pinchTransform}
+ * result in native px. The set scales by one factor, clamped as every selection scale is
+ * ({@link clampScaleK}), about the fingers' start midpoint so the content stays under the
+ * fingers, and it travels with the midpoint. Once the twist has engaged it turns with
+ * the soft 15 degree magnet ({@link rotateSnap}), as the rotate handles turn: one turning
+ * box about its own centre to a snapped angle, and a set about the centre of its bounds
+ * by a snapped turn. Computed from the start rects on every frame.
+ */
+export function pinchMembers(
+  members: ReadonlyArray<StartRect>,
+  pinch: Pick<PinchResult, 'k' | 'dRot' | 'dx' | 'dy' | 'centre' | 'rotateEngaged'>,
+  opts: PinchMembersOpts = {},
+): PinchMembers {
+  const minSize = opts.minSize ?? 8;
+  const k = clampScaleK(pinch.k, members, minSize, opts.kMax);
+  const rects = scaleMembersAt(members, pinch.centre, k, minSize).map((r) => ({ ...r, x: r.x + pinch.dx, y: r.y + pinch.dy }));
+  const turning = rects.flatMap((_, j) => (opts.turns?.[j] ?? true ? [j] : []));
+  if (!pinch.rotateEngaged || !turning.length) return { rects, k, deg: 0 };
+  if (turning.length === 1) {
+    const j = turning[0]!;
+    const from = members[j]!.rot || 0;
+    const to = rotateSnap(normAngle(from + pinch.dRot));
+    rects[j] = { ...rects[j]!, rot: to };
+    return { rects, k, deg: normAngle(to - from) + 0 };
+  }
+  const deg = rotateSnap(pinch.dRot);
+  const a = rectsAABB(turning.map((j) => rects[j]!))!;
+  const c = { x: (a.minX + a.maxX) / 2, y: (a.minY + a.maxY) / 2 };
+  for (const j of turning) rects[j] = rotateRectAbout(rects[j]!, c, deg);
+  return { rects, k, deg };
 }

@@ -17,8 +17,8 @@ import { isTypingTarget } from '../../lib/typing-target.ts';
 import { beginCanvasFeedback, finishCanvasFeedback, cancelCanvasFeedback } from '../../lib/canvas-feedback.ts';
 import { t } from '../../i18n.ts';
 import { designHierarchyFlags, designHierarchyIndex } from '@lolly/engine';
-import { boxTransformCss, rotateSnap, transformRules, uniformResize, type BoxPose } from '../free-canvas-transform.ts';
-import { SNAP_PX, boolOf } from './shared.ts';
+import { boxTransformCss, handleDragPoint, rotateSnap, transformRules, uniformResize, type BoxPose } from '../free-canvas-transform.ts';
+import { SNAP_PX, boolOf, gesturePointers, ownsPointer } from './shared.ts';
 import type { AABB, GRotateGesture, GScaleGesture, Gesture, GestureInit, GesturePointer, HandleName, Point, Rect } from './shared.ts';
 import { bindOp, type FcCtx } from './context.ts';
 import { beginCanvasGesture, canvasGestureReady, finishCanvasGesture, flushCanvasPreview, previewCanvasRect } from './collaboration.ts';
@@ -39,6 +39,7 @@ export function beginGesture(fc: FcCtx, e: PointerEvent, g: GestureInit): void {
     startClient: { x: e.clientX, y: e.clientY },
   } as Gesture;
   fc.edges.setHoverEdge(null); // drop any hover highlight/cursor when a drag begins
+  fc.zones?.holdCursor(); // a transform shows its cursor for the whole drag
   document.body.classList.add('fc-manipulating');
   fc.textEdit.setFramesClipped(false);
   fc.frameOffCache = new Map(); // frame offsets are stable during a drag - cache to avoid per-move reflow
@@ -69,6 +70,7 @@ export function endGesture(fc: FcCtx, committed = false): void {
   // exit path, so no branch has to remember to clear them.
   fc.stage.hideCamHud();
   stageEl.style.cursor = '';
+  fc.zones?.releaseCursor();
   clearGuides(fc);
   fc.textEdit.setFramesClipped(true);
   fc.frameOffCache = null; // release the gesture-scoped frame-offset cache
@@ -90,8 +92,9 @@ export function cancelGesture(fc: FcCtx): void {
   cancelCanvasFeedback(fc.runtime, 'pointer-preview');
   if (fc.moveRaf) cancelAnimationFrame(fc.moveRaf);
   fc.moveRaf = 0; fc.pendingMove = null;
-  const pointer = fc.gesture?.pointerId;
-  if (pointer !== undefined) { try { fc.canvasEl.releasePointerCapture(pointer); } catch { /* capture already lost */ } }
+  for (const pointer of fc.gesture ? gesturePointers(fc.gesture) : []) {
+    try { fc.canvasEl.releasePointerCapture(pointer); } catch { /* capture already lost */ }
+  }
   fc.connectors.endLiveConnectors();
   endGesture(fc); fc.chromeSync.renderChrome();
 }
@@ -149,16 +152,20 @@ export function onStageTouchDown(fc: FcCtx, e: PointerEvent): void {
   const { touchPts } = fc;
   if (e.pointerType === 'mouse') return;
   if ((e.target as Element).closest('button,input,select,textarea,.tl-panel,.dr-panel,.dr-toolbar')) return;
-  touchPts.set(e.pointerId, { x: e.clientX, y: e.clientY, moved: 0 });
+  touchPts.set(e.pointerId, { x: e.clientX, y: e.clientY, moved: 0, cx: e.clientX, cy: e.clientY, touch: e.pointerType === 'touch' });
   if (touchPts.size === 2) {
     fc.twoTapStart = e.timeStamp || Date.now();
     fc.twoTapDone = false;
   } else if (touchPts.size > 2) fc.twoTapStart = 0; // three fingers is not a tap
+  // A pair on the selection is a pinch; any other pair is the stage's (pinch.ts).
+  fc.pinch.press(e);
 }
 export function onStageTouchMove(fc: FcCtx, e: PointerEvent): void {
   const { TWO_TAP_SLOP, touchPts } = fc;
   const p = touchPts.get(e.pointerId);
   if (!p) return;
+  p.cx = e.clientX;
+  p.cy = e.clientY;
   p.moved = Math.max(p.moved, Math.hypot(e.clientX - p.x, e.clientY - p.y));
   if (p.moved > TWO_TAP_SLOP) fc.twoTapStart = 0; // a pan or a pinch, not a tap
 }
@@ -293,27 +300,17 @@ export function onFrameLabelPointerDown(fc: FcCtx, e: PointerEvent): void {
   e.stopPropagation();
 }
 
-export function onCanvasPointerDown(fc: FcCtx, e: PointerEvent): void {
-  const { PEN_CURVE_PX, cfg, connectCfg, rubber, touchPts, vectorCfg } = fc;
+/** `replay` is a zone press released short of a drag (zones.ts), run again as a click. */
+export function onCanvasPointerDown(fc: FcCtx, e: PointerEvent, replay = false): void {
+  const { PEN_CURVE_PX, cfg, connectCfg, rubber, vectorCfg } = fc;
   if (e.button > 0) return; // primary button / touch only
   if (e.pointerType === 'mouse' && fc.spacePan) return;
   fc.lastPointerKind = e.pointerType || '';
   // A second finger belongs to a stage gesture (pan / pinch / two-finger tap), never to
-  // a box drag - and the first finger's gesture is CANCELLED, as Escape cancels one: its
-  // feedback lanes, queued frame, pointer capture and live connectors all go, and the
-  // boxes it was previewing return to the model, so no drag commits.
-  if (e.pointerType !== 'mouse' && touchPts.size > 1) {
-    // A node the FIRST finger placed is retracted, not just abandoned: the create gesture
-    // above commits nothing until release, but a pen node is already in the draft, and a
-    // two-finger pan must not litter the shape being drawn with the point it started on.
-    if (fc.gesture?.type === 'pendraw') {
-      cancelGesture(fc);
-      fc.penTool.penUndoNode();
-      return;
-    }
-    if (fc.gesture) cancelGesture(fc);
-    return;
-  }
+  // a box drag. Two fingers on the selection are a pinch, which the stage's capture
+  // listener claims before this runs (pinch.ts).
+  if (secondFinger(fc, e)) return;
+  const wasEditing = !!fc.editing; // the press that ends a text edit is never a zone press
   if (fc.editing) {
     if (fc.editing.el.contains(e.target as Node)) return; // let the caret move within the text
     fc.textEdit.commitTextEdit(); // clicked elsewhere → commit, then select
@@ -434,6 +431,12 @@ export function onCanvasPointerDown(fc: FcCtx, e: PointerEvent): void {
     }
   }
 
+  // The selection's edge strips, corners and rotate zones (plan 311) hold the press until
+  // it travels; a click there replays through this path with `replay` set.
+  if (!replay && !wasEditing && fc.zones.press(e, 'canvas')) {
+    e.stopPropagation();
+    return;
+  }
   const hit = fc.select.selectHit(boxes, nat.x, nat.y); // artboard-aware: a child over a frame wins; the frame takes an empty-area/edge click
   if (hit >= 0) {
     fc.edges.deselectEdge(); // picking a card drops any connector selection
@@ -454,6 +457,17 @@ export function onCanvasPointerDown(fc: FcCtx, e: PointerEvent): void {
       narrow = hitSel;
     }
     fc.chromeSync.renderChrome();
+    // A zone click (zones.ts) has already been released, so the press is settled here as
+    // the move below settles a click, without a move that would first wait on a lease.
+    if (replay) {
+      if (narrow?.length) {
+        fc.selection = new Set(narrow);
+        fc.ctxSelKey = null;
+        fc.chromeSync.renderChrome();
+      }
+      e.stopPropagation();
+      return;
+    }
     // Start a move for the whole current selection.
     const start = new Map<number, Rect>();
     const sel = fc.hierarchy?.transformIndices(boxes) || fc.select.selIndices(boxes);
@@ -518,9 +532,11 @@ export function onCanvasPointerDown(fc: FcCtx, e: PointerEvent): void {
 // reached it). Guarded to a DIRECT hit on the backdrop element (target === currentTarget)
 // so a bubbled event from a box, toolbar, popover or the canvas never triggers it. Doesn't
 // stopPropagation, so stageNav's pan on a backdrop drag is unaffected.
-export function onBackdropPointerDown(fc: FcCtx, e: PointerEvent): void {
+export function onBackdropPointerDown(fc: FcCtx, e: PointerEvent, replay = false): void {
   const { rubber } = fc;
-  if (e.button > 0 || e.target !== e.currentTarget) return;
+  if (e.button > 0 || (!replay && e.target !== e.currentTarget)) return;
+  if (secondFinger(fc, e)) return; // the stage's, as on the canvas: nothing deselects
+  const wasEditing = !!fc.editing;
   if (fc.editing) fc.textEdit.commitTextEdit();
   // Off-frame click while DRAWING places/extends a node (not "finish"), and off-frame
   // click while an Add is armed starts the create - the same as inside the artboard, so
@@ -549,6 +565,9 @@ export function onBackdropPointerDown(fc: FcCtx, e: PointerEvent): void {
     fc.penTool.endPenEdit();
     return;
   }
+  // A mouse press in a zone that reaches past the artboard (see onCanvasPointerDown).
+  // Like the marquee below, the press keeps propagating.
+  if (!replay && !wasEditing && fc.zones.press(e, 'backdrop')) return;
   fc.toolbox.closePopover();
   fc.edges.deselectEdge();
   // A SHIFT/⌘ drag is additive, so it must not wipe what is already selected - same
@@ -591,8 +610,9 @@ export function onSpaceKey(fc: FcCtx, e: KeyboardEvent): void {
   if (e.code === 'Space' && !isTypingTarget()) fc.spacePan = e.type === 'keydown';
 }
 export function onGestureMove(fc: FcCtx, e: PointerEvent): void {
-  if (!fc.gesture || e.pointerId !== fc.gesture.pointerId) return;
+  if (!fc.gesture || !ownsPointer(fc.gesture, e.pointerId)) return;
   if (fc.gesture.type === 'tap') return; // stageNav owns it; only checked on up
+  if (fc.gesture.type === 'pinch') fc.pinch.track(e); // either finger, kept from the stage's pinch
   e.preventDefault(); // must be synchronous to suppress scroll/text-select
   fc.pendingMove = e;
   beginCanvasFeedback(fc.runtime, 'pointer-preview', e.timeStamp);
@@ -609,7 +629,7 @@ export function flushGestureMove(fc: FcCtx): void {
 }
 export function applyGestureMove(fc: FcCtx, e: GesturePointer): void {
   const { CAM_TILT_DEG_PER_PX, PEN_PULL_MIN, cfg, minSize } = fc;
-  if (!fc.gesture || e.pointerId !== fc.gesture.pointerId) return;
+  if (!fc.gesture || !ownsPointer(fc.gesture, e.pointerId)) return;
   fc.gesture.lastMove = e;
   if (!canvasGestureReady(fc, e)) return;
   if (fc.opts?.canEdit?.() === false && fc.gesture.type !== 'marquee') { cancelGesture(fc); return; }
@@ -786,6 +806,13 @@ export function applyGestureMove(fc: FcCtx, e: GesturePointer): void {
     return;
   }
   fc.liveRects?.clear(); // each transform frame below writes every rect it moves afresh
+  if (fc.gesture.type === 'pinch') {
+    fc.pinch.frame(); // both fingers' spread, twist and travel (pinch.ts)
+    flushCanvasPreview(fc);
+    fc.chromeSync.renderChromeLive();
+    fc.connectors.liveConnUpdate();
+    return;
+  }
   if (fc.gesture.type === 'move') {
     let mdx = dxN,
       mdy = dyN;
@@ -837,8 +864,15 @@ export function applyGestureMove(fc: FcCtx, e: GesturePointer): void {
     // and ⌘/Ctrl suspends the guides and the grid. A Scale is uniform whatever Shift says.
     const rules = transformRules(fc.gesture.content ? 'scale' : 'resize', e);
     if ((fc.gesture.startRect.rot || 0) === 0 && rules.snap) {
-      let px = nat.x,
-        py = nat.y;
+      // The dragged edge or corner snaps, not the pointer, so a press off the handle's
+      // centre (or in an edge strip) still puts the edge on the guide. An axis the
+      // handle does not drive snaps the pointer, as it always did.
+      const sr = fc.gesture.startRect;
+      const hp = handleDragPoint({ minX: sr.x, minY: sr.y, maxX: sr.x + sr.w, maxY: sr.y + sr.h }, fc.gesture.handle, dxN, dyN);
+      const ax = hp.x ?? nat.x,
+        ay = hp.y ?? nat.y;
+      let px = ax,
+        py = ay;
       if (fc.gridOn) {
         px = fc.stage.gridRound(px);
         py = fc.stage.gridRound(py);
@@ -852,8 +886,8 @@ export function applyGestureMove(fc: FcCtx, e: GesturePointer): void {
         fc.authoringGuides?.snapTargets(),
         gestureSnapIndex(fc)
       );
-      sdx += snap.x - nat.x;
-      sdy += snap.y - nat.y;
+      sdx += snap.x - ax;
+      sdy += snap.y - ay;
       drawGuides(fc, snap.guides);
     } else clearGuides(fc);
     // Scale mode forces the aspect, and the element previews the content at k (plan 311).
@@ -868,6 +902,7 @@ export function applyGestureMove(fc: FcCtx, e: GesturePointer): void {
       aspectFrom: 'dominant',
       fromCentre: rules.fromCentre,
       mirror: true,
+      keepThin: true,
     });
     if (sc) fc.gesture.k = sc.k;
     applyLiveRect(fc, fc.gesture.index, { ...nr, rot: fc.gesture.startRect.rot }, sc?.k);
@@ -925,7 +960,7 @@ export function applyGestureMove(fc: FcCtx, e: GesturePointer): void {
 }
 export function onGestureEnd(fc: FcCtx, e: PointerEvent): void {
   const { CAM_TILT_DEG_PER_PX, canvasEl, cfg, frameCfg, minSize, timeCfg } = fc;
-  if (!fc.gesture || e.pointerId !== fc.gesture.pointerId) return;
+  if (!fc.gesture || !ownsPointer(fc.gesture, e.pointerId)) return;
   if (e.type === 'pointercancel' || !canvasGestureReady(fc) || fc.opts?.canEdit?.() === false && fc.gesture.type !== 'marquee' || fc.layout && !fc.layout.gestureReady(fc.gesture.type)) {
     cancelGesture(fc); return;
   }
@@ -949,6 +984,7 @@ export function onGestureEnd(fc: FcCtx, e: PointerEvent): void {
     /* ignore */
   }
   fc.connectors.endLiveConnectors(); // restore the tool's committed connector layer after a drag
+  if (g.type === 'pinch') { fc.pinch.end(); return; } // either finger's lift ends it (pinch.ts)
 
   if (g.type === 'tap') {
     const moved = Math.hypot(e.clientX - g.startClient.x, e.clientY - g.startClient.y);
@@ -1506,11 +1542,19 @@ export function onGestureModifierKey(fc: FcCtx, e: KeyboardEvent): void {
   });
   if (pending && fc.gesture && canvasGestureReady(fc)) finishCanvasFeedback(fc.runtime, 'pointer-preview');
 }
-/** A second finger landing on a handle belongs to the stage, as one on the canvas does
- *  (see onCanvasPointerDown): whatever the first finger started is cancelled. */
+/**
+ * A second finger belongs to the stage (pan, pinch, two-finger tap), on the canvas, the
+ * backdrop and a handle alike. Whatever the first finger started is CANCELLED, as Escape
+ * cancels a drag: its feedback lanes, queued frame, pointer capture and live connectors
+ * all go, and the boxes it was previewing return to the model, so no drag commits. A pen
+ * node the first finger placed is retracted, not just abandoned: a two-finger pan must
+ * not litter the shape being drawn with the point it started on.
+ */
 export function secondFinger(fc: FcCtx, e: PointerEvent): boolean {
   if (e.pointerType === 'mouse' || fc.touchPts.size < 2) return false;
+  const pen = fc.gesture?.type === 'pendraw';
   if (fc.gesture) cancelGesture(fc);
+  if (pen) fc.penTool.penUndoNode();
   return true;
 }
 export function drawRubber(fc: FcCtx, origin: Point, nat: Point): void {
@@ -1528,6 +1572,9 @@ export function onHandlePointerDown(fc: FcCtx, e: PointerEvent, handle: HandleNa
   if (secondFinger(fc, e)) return;
   e.stopPropagation();
   if (e.button > 0) return;
+  fc.lastPointerKind = e.pointerType || '';
+  // Under large grab zones the zone beneath a resize handle takes the press (zones.ts).
+  if (handle !== 'rotate' && fc.zones?.handlePress(e)) return;
   const boxes = fc.select.getBoxes();
   const idx = fc.select.selIndices(boxes);
   if (idx.length !== 1) return;

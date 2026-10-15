@@ -123,6 +123,9 @@ import { editorStateOps } from './free-canvas/editor-state.ts';
 import { slideMastersOps } from './free-canvas/slide-masters.ts';
 import { scaleModeOps } from './free-canvas/scale-mode.ts';
 import { selectionTransformOps } from './free-canvas/selection-transform.ts';
+import { zonesOps } from './free-canvas/zones.ts';
+import { grabZonesOps, storedLargeGrab } from './free-canvas/grab-zones.ts';
+import { pinchOps } from './free-canvas/pinch.ts';
 import { preloadGeometryKernels } from '../bridge/geometry-host.ts';
 export { clampRailPos, stageBlockers, ctxTopBand, centreCtxBar, FC_TILT } from './free-canvas/shared.ts';
 export type { DeepLinkState, CtxTopBand } from './free-canvas/shared.ts';
@@ -255,6 +258,9 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   fc.slideMasters = slideMastersOps(fc);
   fc.scaleMode = scaleModeOps(fc);
   fc.selectionTransform = selectionTransformOps(fc);
+  fc.zones = zonesOps(fc);
+  fc.grabZones = grabZonesOps(fc);
+  fc.pinch = pinchOps(fc);
   fc.opts = opts;
 
   const {
@@ -645,12 +651,16 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   // Scale mode (K): the same kind of select sub-mode, and never restored from a save -
   // every mount starts in Resize (see free-canvas/scale-mode.ts).
   fc.scaleContent = false;
+  // "Large grab areas" (plan 311): GIMP-sized grab zones for a mouse and a pen as well
+  // as a finger. A device-local view preference, read once per mount (grab-zones.ts).
+  fc.largeGrab = storedLargeGrab();
   fc.armedKind = null; // the create gesture's seed; set iff mode === 'create'
   fc.gesture = null; // active pointer gesture
-  // The pointerType of the last press ON THE CANVAS. A touch laptop reports `pointer:
-  // coarse` for the whole document while the user is on the trackpad (see
-  // timeline-panel.ts's EDGE_PX_COARSE), so anything that MOVES the canvas asks the event
-  // rather than the media query - a trackpad user must never have the stage zoom under them.
+  // The pointerType of the last press ON THE CANVAS or on a selection handle. A touch
+  // laptop reports `pointer: coarse` for the whole document while the user is on the
+  // trackpad (see timeline-panel.ts's EDGE_PX_COARSE), so anything that MOVES the canvas
+  // asks the event rather than the media query - a trackpad user must never have the
+  // stage zoom under them.
   fc.lastPointerKind = '';
   fc.editing = null; // { id, el, prev } while editing a box's text inline
   fc.disposed = false;
@@ -1843,6 +1853,8 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   document.addEventListener('copy', fc.modes.onCopy);
   document.addEventListener('cut', fc.modes.onCut);
   stageEl.addEventListener('pointermove', fc.keys.onStagePointerMove, { passive: true });
+  const unwireZones = fc.zones.wire(); // the grab zones' hover cursor (plan 311)
+  const unwirePinch = fc.pinch.wire(); // Safari's own pinch events while two fingers hold the selection
   stageEl.addEventListener('wheel', fc.keys.onStageWheel, { passive: true });
   // The camera's wheel (plans/104 section 8) - on the CANVAS, not the stage, and non-passive
   // so a claimed notch can be preventDefault()ed. It runs BEFORE `tool-stage-nav`'s
@@ -2346,6 +2358,8 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
       document.removeEventListener('copy', fc.modes.onCopy);
       document.removeEventListener('cut', fc.modes.onCut);
       stageEl.removeEventListener('pointermove', fc.keys.onStagePointerMove);
+      unwireZones();
+      unwirePinch();
       stageEl.removeEventListener('wheel', fc.keys.onStageWheel);
       stageEl.removeEventListener('transitionend', fc.keys.onStageTransitionEnd);
       canvasEl.removeEventListener('wheel', fc.contextBar.onCameraWheel as EventListener);

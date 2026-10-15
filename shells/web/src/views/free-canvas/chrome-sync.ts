@@ -9,7 +9,7 @@
  */
 import { activeFrameIdFor, boxCorners, boxRect, num, posedRect } from '../free-canvas-math.ts';
 import type { Box } from '../free-canvas-math.ts';
-import { anchorPoint } from '../free-canvas-transform.ts';
+import { ROTATE_STEM, anchorPoint, handleOutset, resizeCursorFor, smallObjectHandles } from '../free-canvas-transform.ts';
 import { announce } from '../../a11y.ts';
 import { t, tRaw } from '../../i18n.ts';
 import { HANDLES } from './shared.ts';
@@ -332,6 +332,42 @@ export function startFrameRename(fc: FcCtx, el: HTMLElement, fid: string): void 
     if (e.target !== input && e.target !== go) e.preventDefault();
   });
 }
+/** What the selection chrome is drawn round, and what its handles may do. */
+export interface ChromeSet {
+  /** The selected rows. */
+  selected: number[];
+  /** What the selection transforms: a selected group's members, else the selection. */
+  shown: number[];
+  /** The rows the chrome outlines. */
+  idx: number[];
+  /** Resize handles (and grab zones) are drawn. */
+  handles: boolean;
+  /** A rotate handle (and rotate zones) is drawn. */
+  rotate: boolean;
+  /** A Resize of this set can only keep its proportions. */
+  proportional: boolean;
+}
+/**
+ * The chrome's set and rules, shared by the paint and the grab zones so a zone always
+ * sits on the chrome that is drawn. Scale mode widens a selected artboard or layout
+ * container to what it holds, whose content scales with it (see transformSet), so its
+ * chrome is the group's. A LOCKED row refuses every transform, so its selection shows
+ * outlines and no handles; an ARTBOARD never turns, so a set of nothing but artboards
+ * has no rotate handle (Scale's widened set asks the selected rows, not the members it
+ * added). A set that can only keep its proportions under Resize (a group, a circle or a
+ * member turned off a quarter turn in it) shows the scale cursor on its handles, as
+ * Scale mode does: its edges grow the whole set, not one axis.
+ */
+export function chromeSet(fc: FcCtx, boxes: Box[]): ChromeSet {
+  const selected = fc.select.selIndices(boxes);
+  const hasGroup = selected.some(i => fc.hierarchy?.isGroup(boxes[i]));
+  const shown = hasGroup ? fc.hierarchy.transformIndices(boxes) : selected;
+  const idx = fc.scaleContent ? fc.selectionTransform.transformSet(boxes) : shown;
+  const handles = !!idx.length && !fc.gestures.selectionLocked(boxes, idx);
+  const rotate = handles && (fc.scaleContent ? selected : idx).some((i) => !fc.gestures.isFrameRow(boxes[i]));
+  const proportional = handles && idx.length > 1 && !fc.scaleContent && fc.selectionTransform.proportional(boxes, idx);
+  return { selected, shown, idx, handles, rotate, proportional };
+}
 export function paintChrome(fc: FcCtx, boxes: Box[], liveRects: Map<number, Rect> | null): void {
   const { cfg, ctxbar, emptyHint, frameCfg, timeCfg, toolbar } = fc;
   // The one place a selection change is announced (see selListeners) - BEFORE the
@@ -339,6 +375,7 @@ export function paintChrome(fc: FcCtx, boxes: Box[], liveRects: Map<number, Rect
   // those modes. Inert (returns immediately) when nothing is listening.
   fc.hierarchy?.retainSelection(boxes);
   fc.select.notifySelection();
+  fc.zones?.refresh(); // the grab zones measure the chrome afresh, and their cursor follows
   syncFrameLabels(fc, fc.document?.pageBoxes?.(boxes) || boxes);
   // M2 - reposition the frame scrim only when the artboard geometry changed (pan/
   // zoom/resize set scrimDirty); a box drag/hover/selection change never moves it.
@@ -421,14 +458,9 @@ export function paintChrome(fc: FcCtx, boxes: Box[], liveRects: Map<number, Rect
   }
   if (fc.penChromeKey) fc.rail.clearPenChrome();
   fc.penTool.paintPen();
-  const selectedIndices = fc.select.selIndices(boxes);
-  const hasGroup = selectedIndices.some(i => fc.hierarchy?.isGroup(boxes[i]));
-  // Scale mode widens a selected artboard or layout container to what it holds, whose
-  // content scales with it (see transformSet), so its chrome is the group's. The readout
-  // still describes the selection: one artboard reads as its place and size, not as the
-  // count of what it holds.
-  const shown = hasGroup ? fc.hierarchy.transformIndices(boxes) : selectedIndices;
-  const idx = fc.scaleContent ? fc.selectionTransform.transformSet(boxes) : shown;
+  // The readout still describes the selection (`shown`): one artboard reads as its place
+  // and size, not as the count of what Scale mode widened it to.
+  const { selected: selectedIndices, shown, idx, handles, rotate, proportional } = chromeSet(fc, boxes);
   const m = fc.stage.metrics();
   // Gradient handles sit UNDER the selection chrome in z-order but are painted here
   // so they track the same pan/zoom sync (and self-exit if their box went away).
@@ -447,17 +479,9 @@ export function paintChrome(fc: FcCtx, boxes: Box[], liveRects: Map<number, Rect
         .sort()
         .join(',')
     : '';
-  // A LOCKED row refuses every transform, so its selection shows outlines and no
-  // handles; an ARTBOARD never turns, so a set of nothing but artboards has no rotate
-  // handle (Scale's widened set asks the selected rows, not the members it added).
-  // Both can change under an unchanged set (the navigator's lock toggle), and Scale
-  // mode restyles the handles, so all three are part of the build key.
-  const handles = !!idx.length && !fc.gestures.selectionLocked(boxes, idx);
-  const rotate = handles && (fc.scaleContent ? selectedIndices : idx).some((i) => !fc.gestures.isFrameRow(boxes[i]));
-  // A set that can only keep its proportions under Resize (a group, a circle or a member
-  // turned off a quarter turn in it) shows the scale cursor on its handles, as Scale mode
-  // does: its edges grow the whole set, not one axis.
-  const proportional = handles && idx.length > 1 && !fc.scaleContent && fc.selectionTransform.proportional(boxes, idx);
+  // The lock, the rotate rule and the proportional fallback can each change under an
+  // unchanged set (the navigator's lock toggle), and Scale mode restyles the handles, so
+  // all of them are part of the build key.
   const buildKey = key && `${key}|${handles ? 'h' : ''}${rotate ? 'r' : ''}${fc.scaleContent ? 's' : ''}${proportional ? 'p' : ''}`;
   if (buildKey !== fc.chromeKey) {
     fc.chromeKey = buildKey;
@@ -675,16 +699,19 @@ export function positionHandles(fc: FcCtx, r: Rect, m: Metrics): void {
     s: mid(corners[2]!, corners[3]!),
     w: mid(corners[3]!, corners[0]!),
   };
+  const rot = r.rot || 0;
+  const small = smallObjectHandles(r.w * m.scale, r.h * m.scale);
   HANDLES.forEach((h, k) => {
     const el = nodes.handles[k];
     if (!el) return; // a locked selection is built without handles
-    el.style.left = pos[h].x + 'px';
-    el.style.top = pos[h].y + 'px';
+    placeHandle(el, h, pos[h], small, rot);
   });
   // rotate handle: outward from the BOTTOM-edge midpoint along the box "down"
   // normal - kept clear of the contextual bar (which floats above the selection)
   // and the 'n' resize handle, so the two never fight for a grab (Canva-style).
-  const ROT_OFFSET = 30;
+  // Further out past a stood-off 's' handle or a narrow selection's large grab zones
+  // (plan 311, zones.ts).
+  const ROT_OFFSET = fc.zones?.rotateStem(r, m) ?? ROTATE_STEM;
   const c = fc.stage.nativeToStage(r.x + r.w / 2, r.y + r.h / 2, m);
   const bottom = pos.s;
   const len = Math.hypot(bottom.x - c.x, bottom.y - c.y) || 1;
@@ -701,6 +728,27 @@ export function positionHandles(fc: FcCtx, r: Rect, m: Metrics): void {
     nodes.rot.style.left = rp.x + 'px';
     nodes.rot.style.top = rp.y + 'px';
   }
+}
+/**
+ * Put one resize handle at its stage point, applying the small-object rule (plan 311,
+ * for every pointer): on a box 25 screen px or less on an axis the midpoints on its
+ * short edges go and the rest stand off the outline, hit on their own square alone
+ * (`data-outward`), and at 10 px or less the corners go instead, so the inside of a
+ * small box is left to the move. A hidden handle keeps its element, and its `.fc-h-*`
+ * locator, for when the box grows again. `data-fc-dir` holds the direction the handle
+ * drags on the turned box, which the stylesheet maps to the resize cursor, or to the
+ * scale cursor, the same one a drag from the handle holds.
+ */
+function placeHandle(el: HTMLElement, h: HandleName, at: Point, small: { hide: HandleName[]; outward: boolean }, rot: number): void {
+  const hide = small.hide.includes(h);
+  if (el.hidden !== hide) el.hidden = hide;
+  const out = small.outward && !hide;
+  el.toggleAttribute('data-outward', out);
+  const o = out ? handleOutset(h, rot) : { x: 0, y: 0 };
+  el.style.left = at.x + o.x + 'px';
+  el.style.top = at.y + o.y + 'px';
+  const dir = resizeCursorFor(h, rot);
+  if (el.dataset.fcDir !== dir) el.dataset.fcDir = dir;
 }
 // Axis-aligned native AABB over already-resolved rects (rotation-aware).
 export function aabbOfRects(fc: FcCtx, rects: Rect[]): Bounds {
@@ -749,28 +797,32 @@ export function positionGroupHandles(fc: FcCtx, a: Bounds, m: Metrics): void {
     nodes.groupOutline.style.width = pos.ne.x - pos.nw.x + 'px';
     nodes.groupOutline.style.height = pos.sw.y - pos.nw.y + 'px';
   }
+  const small = smallObjectHandles(pos.ne.x - pos.nw.x, pos.sw.y - pos.nw.y);
   GROUP_HANDLES.forEach((name, k) => {
     const el = nodes.handles[k];
     if (!el) return; // a locked selection is built without handles
-    el.style.left = pos[name].x + 'px';
-    el.style.top = pos[name].y + 'px';
+    placeHandle(el, name, pos[name], small, 0);
   });
   const bc = pos.s;
+  const stem = fc.zones?.rotateStem({ x: a.minX, y: a.minY, w: a.maxX - a.minX, h: a.maxY - a.minY, rot: 0 }, m) ?? ROTATE_STEM;
   if (nodes.stem) {
     nodes.stem.style.left = bc.x + 'px';
     nodes.stem.style.top = bc.y + 'px';
-    nodes.stem.style.width = '30px';
+    nodes.stem.style.width = stem + 'px';
     nodes.stem.style.transform = 'rotate(90deg)';
   }
   if (nodes.rot) {
     nodes.rot.style.left = bc.x + 'px';
-    nodes.rot.style.top = bc.y + 30 + 'px';
+    nodes.rot.style.top = bc.y + stem + 'px';
   }
 }
 export function onGroupHandleDown(fc: FcCtx, e: PointerEvent, name: HandleName | 'rotate'): void {
   if (fc.gestures.secondFinger(e)) return;
   e.stopPropagation();
   if (e.button > 0) return;
+  fc.lastPointerKind = e.pointerType || '';
+  // Under large grab zones the zone beneath a resize handle takes the press (zones.ts).
+  if (name !== 'rotate' && fc.zones?.handlePress(e)) return;
   const boxes = fc.select.getBoxes();
   // A turn takes the selection as it is; a scale takes Scale mode's widened set too.
   const sel = name === 'rotate'
@@ -821,6 +873,7 @@ export function chromeSyncOps(fc: FcCtx) {
     syncFrameLabels: bindOp(fc, syncFrameLabels),
     frameLabelText: bindOp(fc, frameLabelText),
     startFrameRename: bindOp(fc, startFrameRename),
+    chromeSet: bindOp(fc, chromeSet),
     paintChrome: bindOp(fc, paintChrome),
     syncBoxA11y: bindOp(fc, syncBoxA11y),
     buildChrome: bindOp(fc, buildChrome),

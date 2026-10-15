@@ -178,7 +178,7 @@ function snapDrag(fc: FcCtx, g: GScaleGesture, dx: number, dy: number, slope: bo
  * (a box on an artboard's page) is recorded but not written, because the page's scale
  * already carries it and a second write would scale it twice.
  */
-export function previewScale(fc: FcCtx, g: GScaleGesture, next: Box[], k: number): void {
+export function previewScale(fc: FcCtx, g: Pick<GScaleGesture, 'sel' | 'startBoxes'>, next: Box[], k: number): void {
   const ids = new Set(g.sel.map((i) => fc.select.idOf(g.startBoxes[i], i)));
   for (const i of g.sel) fc.gestures.applyLiveRect(i, boxRect(next[i], fc.cfg), k, !insideMember(fc, fc.select.idOf(next[i], i), ids));
 }
@@ -190,16 +190,16 @@ function insideMember(fc: FcCtx, id: string, ids: ReadonlySet<string>): boolean 
   return false;
 }
 
-/** "Scale NN%" while a Scale drag is live, for the object bar's readout and the size label. */
+/** "Scale NN%" while a Scale drag or pinch is live, for the object bar's readout and the size label. */
 export function scaleReadout(fc: FcCtx): string | null {
   const g = fc.gesture;
-  if (!g || (g.type !== 'resize' && g.type !== 'gscale') || !g.content) return null;
+  if (!g || (g.type !== 'resize' && g.type !== 'gscale' && g.type !== 'pinch') || !g.content) return null;
   return t('Scale {n}%', { n: Math.round((g.k ?? 1) * 100) });
 }
 
 /**
  * The object bar's readout and the size label while a selection transform is live:
- * "Scale NN%" for a Scale, and for a selection resize the bounds' W x H, with
+ * "Scale NN%" for a Scale, and for a selection resize or a pinch the bounds' W x H, with
  * "Proportional" after it when the set keeps its proportions. Null otherwise, when the
  * readout shows its own text. `rects` are the frame's live rects of the transformed rows.
  */
@@ -207,11 +207,11 @@ export function transformReadout(fc: FcCtx, rects: ReadonlyMap<number, Rect> | n
   const scale = scaleReadout(fc);
   if (scale) return scale;
   const g = fc.gesture;
-  if (g?.type !== 'gscale' || !rects) return null;
+  if ((g?.type !== 'gscale' && g?.type !== 'pinch') || !rects) return null;
   const a = rectsAABB([...rects.values()]);
   if (!a) return null;
   const size = `${Math.round(a.w)}×${Math.round(a.h)}`;
-  return g.proportional ? `${size}  ·  ${t('Proportional')}` : size;
+  return g.type === 'gscale' && g.proportional ? `${size}  ·  ${t('Proportional')}` : size;
 }
 
 const labels = new WeakMap<FcCtx, HTMLElement>();
@@ -228,7 +228,7 @@ const labels = new WeakMap<FcCtx, HTMLElement>();
  */
 export function paintLabel(fc: FcCtx, rects: ReadonlyMap<number, Rect>): void {
   const g = fc.gesture;
-  const a = g && (g.type === 'resize' || g.type === 'gscale') ? rectsAABB([...rects.values()]) : null;
+  const a = g && (g.type === 'resize' || g.type === 'gscale' || g.type === 'pinch') ? rectsAABB([...rects.values()]) : null;
   if (!g || !a) {
     hideLabel(fc);
     return;

@@ -555,7 +555,9 @@ export interface PopGrid {
 // enabled state has to follow the history stack rather than the moment it opened.
 // `on` makes a row a RADIO rather than a command - set it (even to false) and the row
 // reports `aria-checked` and paints its current state. Used by the pen's spline-type menu,
-// where the point of opening it is to see which type you are already on.
+// where the point of opening it is to see which type you are already on. `check` with
+// `on` makes the row a CHECKBOX instead: a setting that is on or off on its own, such as
+// "Large grab areas", rather than one choice of several.
 export interface PopAction {
   sep?: undefined;
   grid?: undefined;
@@ -567,6 +569,7 @@ export interface PopAction {
   keepOpen?: boolean;
   key?: string;
   on?: boolean;
+  check?: boolean;
 }
 export type PopItem = PopSep | PopGrid | PopAction;
 
@@ -723,6 +726,39 @@ export interface GRotateGesture extends GestureBase {
   deg?: number;
   liveBoxes?: Box[];
 }
+/**
+ * Two fingers on the selection (plan 311): the spread scales it, a twist turns it and
+ * the midpoint carries it, in one undo step (pinch.ts). `pointerId` is the second
+ * finger, whose press claimed the pair, and `pointerA` the first; both are captured
+ * and the gesture ends when either lifts. The start points are native px, so a
+ * collaboration rebase needs only the rows: every frame derives from `startBoxes`.
+ */
+export interface PinchGesture extends GestureBase {
+  type: 'pinch';
+  pointerA: number;
+  /** The rows the pinch scales and carries: Scale mode's widened set, as gscale takes. */
+  sel: number[];
+  /** Which of `sel` turn, by position: never an artboard, nor a row Scale mode added. */
+  turns: boolean[];
+  startBoxes: Box[];
+  /** Each finger where the pinch began, native px. */
+  startA: Point;
+  startB: Point;
+  /** Each finger's latest client point, applied once a frame. */
+  curA: Point;
+  curB: Point;
+  /** Scale mode at the claim: the content scales by `k` as well. */
+  content?: boolean;
+  /** pinchTransform's engage state, fed back each frame. */
+  scaleEngaged?: boolean;
+  engagedAt?: number | null;
+  travelEngaged?: boolean;
+  /** The live factor and turn: the commit scales the content by `k`, and both name the
+   *  preview kind peers are shown. */
+  k?: number;
+  deg?: number;
+  liveBoxes?: Box[];
+}
 // Pen tool (Stage D). Drawing is `pendraw` - one gesture per NODE, not one per path, since
 // the path itself is a draft that outlives any single press (see `penDraft`). The other
 // three belong to node-edit mode on an already-committed path box.
@@ -775,7 +811,8 @@ export type Gesture =
   | PenNodeGesture
   | PenHandleGesture
   | PenMarqueeGesture
-  | LineGesture;
+  | LineGesture
+  | PinchGesture;
 export type FilledBaseFields = 'pointerId' | 'startClient';
 export type GestureInit =
   | Omit<TapGesture, FilledBaseFields>
@@ -792,7 +829,13 @@ export type GestureInit =
   | Omit<PenNodeGesture, FilledBaseFields>
   | Omit<PenHandleGesture, FilledBaseFields>
   | Omit<PenMarqueeGesture, FilledBaseFields>
-  | Omit<LineGesture, FilledBaseFields>;
+  | Omit<LineGesture, FilledBaseFields>
+  | Omit<PinchGesture, FilledBaseFields>;
+
+/** The pointers a gesture follows: its own, and a pinch's first finger as well. */
+export const gesturePointers = (g: Gesture): number[] => (g.type === 'pinch' ? [g.pointerId, g.pointerA] : [g.pointerId]);
+/** Does this pointer's move or release belong to the gesture? */
+export const ownsPointer = (g: Gesture, pointerId: number): boolean => pointerId === g.pointerId || (g.type === 'pinch' && pointerId === g.pointerA);
 
 export const HANDLES: HandleName[] = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'];
 export const SNAP_PX = 6;
@@ -1148,6 +1191,11 @@ export interface TouchPt {
   x: number;
   y: number;
   moved: number;
+  /** Where the finger is now: a pinch starts there, and the stage takes a finger back from there. */
+  cx: number;
+  cy: number;
+  /** A finger, not a pen: only a finger is handed to the stage's pinch and pan. */
+  touch: boolean;
 }
 /** railSession is an ES module binding now: importers read it live and write it through here. */
 export function setRailSession(value: { left: number; top: number } | null): void { railSession = value; }

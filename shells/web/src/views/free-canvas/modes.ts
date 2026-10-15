@@ -193,6 +193,9 @@ export function syncModeUI(fc: FcCtx): void {
   flag(modeBtns.pen, fc.mode === 'pen');
   flag(modeBtns.line, fc.mode === 'line');
   flag(fc.nodeToolBtn, fc.nodeToolActive);
+  // A tool switch need not repaint the chrome, and only the pointer has grab zones: the
+  // handles take their own presses again in any other tool (plan 311, zones.ts).
+  fc.zones?.syncGrab();
 }
 // Auto-arrange the connected cards into a tidy top-down hierarchy. Roots (cards with
 // nothing pointing AT them) are laid out left-to-right; each child sits under its parent,

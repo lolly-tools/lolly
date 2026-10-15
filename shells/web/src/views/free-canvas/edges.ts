@@ -115,7 +115,8 @@ export function edgeAt(fc: FcCtx, x: number, y: number): string | null {
 export function updateHover(fc: FcCtx): void {
   const { connectCfg } = fc;
   fc.hoverRaf = 0;
-  if (!connectCfg || fc.selectedEdges.size || fc.gesture || !fc.lastPointer) {
+  // A selection's grab zone over a line wins the hover, as it wins the press.
+  if (!connectCfg || fc.selectedEdges.size || fc.gesture || !fc.lastPointer || fc.zones?.hovered()) {
     setHoverEdge(fc, null);
     return;
   }

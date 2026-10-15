@@ -16,7 +16,7 @@ import {
   num, boxRect, withRect, boxAABB, boxCorners, hitTest, marqueeHit,
   moveBoxes, resizeRect, alignBoxes, distributeBoxes, reorderZ,
   seedBox, normDragRect, snapAngle, clampBoxToCanvas, selectionAABB,
-  snapMove, snapPoint, scaleGroup, rotateGroup,
+  snapMove, snapPoint, scaleGroup, rotateGroup, rotateRectAbout,
   gradientLine, gradientPosAt, gradientAngleAt,
   resolveFrame, frameLocalXY, cascadeFrameMove, seedFrameOrder, renumberFrameOrder,
   framesInPageOrder, activeFrameIdFor, nextFrameOrder, seedFrameOrders,
@@ -178,6 +178,22 @@ test('resizeRect respects minSize', () => {
   const r = resizeRect(start, 'se', -200, -200, { minSize: 8 });
   assert.equal(r.w, 8);
   assert.equal(r.h, 8);
+});
+
+test('resizeRect keepThin floors only the driven sides, and a thin side at its own size', () => {
+  const rule = { x: 100, y: 100, w: 400, h: 2, rot: 0 };
+  // By default both sides rise to minSize, which the deck editor relies on.
+  assert.deepEqual(resizeRect(rule, 'e', 40, 0, { minSize: 8 }), { x: 100, y: 97, w: 440, h: 8, rot: 0 });
+  // keepThin: lengthening a rule from an end keeps its thickness.
+  assert.deepEqual(resizeRect(rule, 'e', 40, 0, { minSize: 8, keepThin: true }), { x: 100, y: 100, w: 440, h: 2, rot: 0 });
+  // A driven thin side never falls below its own size, and never jumps up to minSize.
+  assert.equal(resizeRect(rule, 's', 0, -1, { minSize: 8, keepThin: true }).h, 2);
+  assert.equal(resizeRect(rule, 's', 0, 4, { minSize: 8, keepThin: true }).h, 6);
+  // A side at or over minSize keeps the usual floor.
+  const box = { x: 0, y: 0, w: 100, h: 100, rot: 0 };
+  assert.deepEqual(resizeRect(box, 'se', -200, -200, { minSize: 8, keepThin: true }), { x: 0, y: 0, w: 8, h: 8, rot: 0 });
+  // A 0-wide line gets the usual floor on the side the handle drives.
+  assert.equal(resizeRect({ x: 0, y: 0, w: 0, h: 50, rot: 0 }, 'e', -5, 0, { minSize: 8, keepThin: true }).w, 8);
 });
 
 test('resizeRect on a ROTATED box preserves the fixed world corner', () => {
@@ -459,6 +475,16 @@ test('rotateGroup rotates member centres about the pivot and adds to each rotati
   const c = { x: out[0].x + out[0].w / 2, y: out[0].y + out[0].h / 2 };
   near(c.x, 0, 1e-6); near(c.y, 150, 1e-6);
   assert.equal(out[0].rot, 100);                // 10 + 90
+});
+
+test('rotateRectAbout swings the centre round the pivot, keeps the size and wraps the angle', () => {
+  const r = rotateRectAbout({ x: 100, y: -50, w: 100, h: 60, rot: 170 }, { x: 0, y: 0 }, 90);
+  near(r.x + r.w / 2, 20, 1e-6); near(r.y + r.h / 2, 150, 1e-6); // (150, -20) a quarter turn on
+  assert.deepEqual([r.w, r.h], [100, 60]);
+  assert.equal(r.rot, -100, '170 + 90 wraps into [-180, 180)');
+  // rotateGroup is the same turn, written onto the row.
+  const out: any = rotateGroup([box({ id: 'a', x: 100, y: -50, w: 100, h: 60, rot: 170 })], [0], { x: 0, y: 0 }, 90, CFG);
+  near(out[0].x, r.x, 1e-9); near(out[0].y, r.y, 1e-9); assert.equal(out[0].rot, r.rot);
 });
 
 test('selectionAABB unions rotated boxes', () => {

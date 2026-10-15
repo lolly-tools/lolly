@@ -18,9 +18,12 @@ import {
   transformRules,
   contentScaleSpec, scaleBoxContent, scaledLayoutAxes, scaleChildOffset, scaleTextWrap, CONTENT_LENGTH_IDS, TEXT_WRAP_OFFSET_MAX,
   boxTransformCss, TILT_MAX_DEG,
-  zoneAt, zoneLayout, zoneRects, smallObjectHandles, visibleExtent,
-  GRAB_ZONE_MIN, GRAB_ZONE_MAX, ZONE_ROTATE,
-  resizeCursorFor, snapAngleHard, rotateSnap, pinchTransform,
+  zoneAt, zoneLayout, zoneRects, smallObjectHandles, visibleExtent, largeZoneSize,
+  GRAB_ZONE_MIN, GRAB_ZONE_MAX, ZONE_ROTATE, ROTATE_STEM, ROTATE_STEM_NARROW, ROTATE_STEM_SMALL, rotateStemFor,
+  handleOutset, SMALL_HANDLE_OUTSET, zoneDragThreshold, ZONE_DRAG_PX, ZONE_DRAG_PX_COARSE,
+  HANDLE_HALF, HANDLE_HALF_COARSE, HANDLE_FAT, handleHitReach, onDrawnHandle,
+  resizeCursorFor, rotateCursorAt, rotateCursorFor, snapAngleHard, rotateSnap, pinchTransform,
+  PINCH_MAX_COVER, PINCH_SECOND_MS, PINCH_TRAVEL_PX, pinchFits, pinchMembers, visibleRect,
 } from './free-canvas-transform.ts';
 import type { BoxPose, ContentScaleSpec, FieldBounds, ModifierKeys, ScreenRect, TransformKind, ViewRect, ZoneOpts } from './free-canvas-transform.ts';
 import { rotateVec } from './free-canvas-math.ts';
@@ -647,6 +650,15 @@ test('zoneAt: corners beat edges, and rotate zones sit just outside the corners'
   assert.equal(at(85, 85, R, mouse({ rotateZone: 0 })), null);
 });
 
+test('zoneAt: a mouse press 10 px outside a corner is in the rotate band', () => {
+  assert.deepEqual(at(90, 90), { kind: 'rotate', handle: 'nw', outside: true });
+  assert.deepEqual(at(310, 90), { kind: 'rotate', handle: 'ne', outside: true });
+  assert.deepEqual(at(310, 100), { kind: 'rotate', handle: 'ne', outside: true }, 'straight out from the corner too');
+  assert.deepEqual(at(94, 94), { kind: 'corner', handle: 'nw', outside: true }, '6 px out is still the corner');
+  assert.equal(at(73, 73), null, 'the band is 20 px wide, from 6 to 26 px out');
+  assert.deepEqual(at(90, 90, R, mouse({ allowRotate: false })), { kind: 'corner', handle: 'nw', outside: true }, 'with no band the corner reaches 10 px');
+});
+
 test('zoneAt: touch strips are 12 px, and an explicit strip wins', () => {
   const t = mouse({ pointerKind: 'touch' });
   assert.equal(at(200, 95, R, mouse()), null);
@@ -762,6 +774,52 @@ test('zoneLayout: narrow mode moves large zones outside when the visible side is
   assert.equal(off.mode, 'narrow');
 });
 
+test('largeZoneSize is the sizing zoneLayout uses, from the visible rect, at scale 0.5, 1 and 2', () => {
+  const native = { x: 40, y: 40, w: 120, h: 300 };
+  const expected = [
+    { scale: 0.5, size: { cornerW: 24, cornerH: 37.5, narrow: true } },
+    { scale: 1, size: { cornerW: 30, cornerH: GRAB_ZONE_MAX, narrow: false } },
+    { scale: 2, size: { cornerW: GRAB_ZONE_MAX, cornerH: GRAB_ZONE_MAX, narrow: false } },
+  ];
+  for (const { scale, size } of expected) {
+    const rect = { x: native.x * scale, y: native.y * scale, w: native.w * scale, h: native.h * scale };
+    assert.deepEqual(largeZoneSize(rect, VIEW), size, `scale ${scale}`);
+    const layout = zoneLayout(rect, touch());
+    assert.equal(layout.mode, size.narrow ? 'narrow' : 'large', `scale ${scale}`);
+    assert.deepEqual([layout.cornerW, layout.cornerH], [size.cornerW, size.cornerH]);
+  }
+  // A big rect with only 60 px on screen is narrow: the visible part decides.
+  assert.equal(largeZoneSize({ x: -1000, y: 100, w: 1060, h: 400 }, VIEW).narrow, true);
+  assert.equal(largeZoneSize({ x: -1000, y: 100, w: 1060, h: 400 }, { x: -2000, y: 0, w: 4000, h: 2000 }).narrow, false);
+});
+
+test('in narrow mode the rotate handle hangs clear of the zones below the selection', () => {
+  // The rotate handle is hit up to 18 px from its centre on a coarse pointer (an 18 px
+  // dot with a 9 px target round it, editor.css).
+  const reach = 18;
+  const thin = { x: 100, y: 100, w: 60, h: 300 };
+  assert.equal(zoneLayout(thin, touch()).mode, 'narrow');
+  const s = { x: 130, y: 400 }; // the s edge midpoint
+  assert.equal(zoneAt({ x: s.x, y: s.y + ROTATE_STEM_NARROW - reach }, thin, touch()), null, 'the top of its target is past every zone');
+  assert.deepEqual(zoneAt({ x: s.x, y: s.y + GRAB_ZONE_MIN }, thin, touch()), { kind: 'edge', handle: 's', outside: true });
+  assert.ok(ROTATE_STEM - reach < GRAB_ZONE_MIN, 'the usual stem would cover the side zone');
+  assert.ok(ROTATE_STEM_NARROW - reach > GRAB_ZONE_MIN);
+});
+
+test('rotateStemFor hangs the rotate handle past a stood-off s handle, and past narrow zones', () => {
+  assert.equal(rotateStemFor(200, 100), ROTATE_STEM);
+  assert.equal(rotateStemFor(100, 20), ROTATE_STEM_SMALL, 'a short box stands its s handle off');
+  assert.equal(rotateStemFor(20, 100), ROTATE_STEM, 'a narrow width hides s, so nothing stands below');
+  assert.equal(rotateStemFor(8, 8), ROTATE_STEM_SMALL, 'a tiny box shows s again, stood off');
+  assert.equal(rotateStemFor(60, 300, true), ROTATE_STEM_NARROW);
+  assert.equal(rotateStemFor(100, 20, true), ROTATE_STEM_NARROW, 'the longer of the two');
+  // On a coarse pointer the stood-off s handle is hit out to 12 + 8 px, and the rotate
+  // handle 18 px round its centre.
+  const sOuter = SMALL_HANDLE_OUTSET + 8;
+  assert.ok(ROTATE_STEM_SMALL - 18 > sOuter, 'clear of the s handle');
+  assert.ok(ROTATE_STEM - 18 < sOuter, 'the usual stem would cover its lower half');
+});
+
 test('zoneRects: the hover geometry is the hit geometry, in priority order', () => {
   const zones = zoneRects(R, mouse());
   assert.deepEqual(zones.map((z) => `${z.kind}:${z.handle}`), [
@@ -771,8 +829,10 @@ test('zoneRects: the hover geometry is the hit geometry, in priority order', () 
   assert.equal(zoneRects(R, mouse({ allowRotate: false })).length, 8);
   assert.deepEqual(zoneRects(R, mouse({ edgesOnly: true })).filter((z) => z.kind !== 'rotate').map((z) => z.handle), ['n', 'e', 's', 'w']);
   const nw = zones[0]!;
-  assert.deepEqual(nw.parts, [{ x0: -110, x1: -90, y0: -60, y1: -40 }]);
-  assert.deepEqual(nw.quads[0], [{ x: 90, y: 90 }, { x: 110, y: 90 }, { x: 110, y: 110 }, { x: 90, y: 110 }]);
+  // 10 px in, and 6 px out where the rotate band begins.
+  assert.deepEqual(nw.parts, [{ x0: -106, x1: -90, y0: -56, y1: -40 }]);
+  assert.deepEqual(nw.quads[0], [{ x: 94, y: 94 }, { x: 110, y: 94 }, { x: 110, y: 110 }, { x: 94, y: 110 }]);
+  assert.deepEqual(zoneRects(R, mouse({ allowRotate: false }))[0]!.parts, [{ x0: -110, x1: -90, y0: -60, y1: -40 }], 'with no band beside it a corner reaches 10 px out');
   assert.equal(zones.find((z) => z.kind === 'rotate')!.parts.length, 2, 'the rotate zone is an L around the corner');
   // Every quad corner of a turned rect is the local corner rotated about the centre.
   const turned = zoneRects({ ...R, rot: 30 }, mouse());
@@ -785,11 +845,161 @@ test('smallObjectHandles: 25 px hides that axis\'s midpoints and moves corners o
   assert.deepEqual(smallObjectHandles(30, 30), { hide: [], outward: false });
   assert.deepEqual(smallObjectHandles(25, 100), { hide: ['n', 's'], outward: true });
   assert.deepEqual(smallObjectHandles(100, 20), { hide: ['e', 'w'], outward: true });
-  assert.deepEqual(smallObjectHandles(8, 100), { hide: ['n', 's', 'nw', 'ne', 'se', 'sw'], outward: true });
-  assert.deepEqual(smallObjectHandles(100, 10), { hide: ['e', 'w', 'nw', 'ne', 'se', 'sw'], outward: true });
+  assert.deepEqual(smallObjectHandles(20, 20), { hide: ['n', 's', 'e', 'w'], outward: true });
+  // With the corners gone the short edges keep their midpoints, stood off.
+  assert.deepEqual(smallObjectHandles(8, 100), { hide: ['nw', 'ne', 'se', 'sw'], outward: true });
+  assert.deepEqual(smallObjectHandles(100, 10), { hide: ['nw', 'ne', 'se', 'sw'], outward: true });
+  assert.deepEqual(smallObjectHandles(8, 8), { hide: ['nw', 'ne', 'se', 'sw'], outward: true });
+});
+
+test('smallObjectHandles: a thin rule or a straight line keeps a handle at each end for its length', () => {
+  for (const [w, h, ends] of [[400, 2, ['e', 'w']], [400, 0, ['e', 'w']], [2, 400, ['n', 's']], [20, 1, ['e', 'w']]] as const) {
+    const { hide } = smallObjectHandles(w, h);
+    for (const end of ends) assert.ok(!hide.includes(end), `${w} x ${h} keeps ${end}`);
+  }
+});
+
+/** The handle sizes editor.css draws: `.fc-handle`'s width, and its width under
+ *  any-pointer: coarse. A stood-off handle is hit on that square alone. */
+const editorCss = readFileSync(new URL('../styles/parts/editor.css', import.meta.url), 'utf8');
+const handlePx = (css: string): number => Number(/\.fc-handle\s*\{[^}]*?width:\s*(\d+)px/.exec(css)?.[1]);
+const HANDLE_SIZES = [handlePx(editorCss), handlePx(editorCss.slice(editorCss.indexOf('@media (any-pointer: coarse)')))];
+
+test('a stood-off handle never reaches into a small box, at either handle size and any turn', () => {
+  assert.deepEqual(HANDLE_SIZES, [12, 16], 'the sizes read from editor.css');
+  assert.match(editorCss, /\.fc-handle\[data-outward\]::after\s*\{\s*content:\s*none;?\s*\}/, 'a stood-off handle has no wider hit area');
+  // Separating axes: the screen axes (the handle square's) and the box's own two.
+  const clear = (c: Point, half: number, hw: number, hh: number, rot: number): boolean => {
+    const u = rotateVec(1, 0, rot), v = rotateVec(0, 1, rot);
+    return [{ x: 1, y: 0 }, { x: 0, y: 1 }, u, v].some((a) =>
+      Math.abs(c.x * a.x + c.y * a.y) >= half * (Math.abs(a.x) + Math.abs(a.y)) + hw * Math.abs(u.x * a.x + u.y * a.y) + hh * Math.abs(v.x * a.x + v.y * a.y) - 1e-9);
+  };
+  const sizes = [1, 2, 8, 10, 11, 12, 14, 18, 20, 25, 60, 300];
+  let checked = 0;
+  for (const size of HANDLE_SIZES) {
+    for (const w of sizes) for (const h of sizes) {
+      const small = smallObjectHandles(w, h);
+      if (!small.outward) continue;
+      for (const rot of [0, 15, 30, 45, 60, 90, 135, -20]) {
+        for (const handle of Object.keys(SIGN) as HandleName[]) {
+          if (small.hide.includes(handle)) continue;
+          const [sx, sy] = SIGN[handle];
+          const on = rotateVec((sx * w) / 2, (sy * h) / 2, rot);
+          const o = handleOutset(handle, rot);
+          assert.ok(clear({ x: on.x + o.x, y: on.y + o.y }, size / 2, w / 2, h / 2, rot),
+            `${size} px handle ${handle} on a ${w} x ${h} box turned ${rot} reaches into the box`);
+          checked++;
+        }
+      }
+    }
+  }
+  assert.ok(checked > 1000);
+});
+
+test('handleHitReach is the drawn handle\'s hit area, as editor.css sizes the handles', () => {
+  const fat = Number(/\.fc-handle::after\s*\{[^}]*inset:\s*-(\d+)px/.exec(editorCss)?.[1]);
+  assert.deepEqual([HANDLE_HALF * 2, HANDLE_HALF_COARSE * 2, HANDLE_FAT], [...HANDLE_SIZES, fat], 'the sizes read from editor.css');
+  assert.match(editorCss, /@media \(pointer: fine\)\s*\{\s*\.fc-handle:is\(\.fc-h-nw, \.fc-h-ne, \.fc-h-se, \.fc-h-sw\)::after\s*\{\s*content:\s*none;?\s*\}/,
+    'a fine pointer\'s corner has no fat target');
+  assert.deepEqual(handleHitReach('mouse'), { corner: 6, edge: 15, square: 6 }, 'a desktop, by default');
+  assert.deepEqual(handleHitReach('pen', { coarse: true, fine: false }), { corner: 17, edge: 17, square: 8 }, 'a tablet');
+  assert.deepEqual(handleHitReach('mouse', { coarse: true, fine: true }), { corner: 8, edge: 17, square: 8 }, 'a touch laptop');
+  assert.deepEqual(handleHitReach('touch', { coarse: false, fine: true }), { corner: 17, edge: 17, square: 8 }, 'a finger, whatever the media');
+});
+
+test('onDrawnHandle: the square and its fat target round a corner or midpoint, the square alone when stood off, none when hidden', () => {
+  const reach = handleHitReach('mouse');
+  const r = { x: 100, y: 100, w: 200, h: 100 };
+  assert.ok(onDrawnHandle({ x: 94, y: 94 }, r, 'nw', reach));
+  assert.ok(!onDrawnHandle({ x: 93.9, y: 100 }, r, 'nw', reach), 'a fine pointer\'s corner is its square');
+  assert.ok(onDrawnHandle({ x: 215, y: 85 }, r, 'n', reach), 'an edge handle carries the fat target');
+  assert.ok(!onDrawnHandle({ x: 215.1, y: 100 }, r, 'n', reach));
+  assert.ok(!onDrawnHandle({ x: 150, y: 100 }, r, 'n', reach), 'only round the midpoint');
+  // Turned, the handle is drawn square to the screen on the turned corner.
+  const c = rotateVec(-100, -50, 30);
+  assert.ok(onDrawnHandle({ x: 200 + c.x + 5.9, y: 150 + c.y - 5.9 }, { ...r, rot: 30 }, 'nw', reach));
+  assert.ok(!onDrawnHandle({ x: 200 + c.x + 6.1, y: 150 + c.y }, { ...r, rot: 30 }, 'nw', reach));
+  // A small rect stands its handles off and hits them on the square alone.
+  const small = { x: 100, y: 100, w: 20, h: 20 };
+  const o = 100 - SMALL_HANDLE_OUTSET;
+  assert.ok(onDrawnHandle({ x: o - 6, y: o + 6 }, small, 'nw', reach));
+  assert.ok(!onDrawnHandle({ x: 100, y: 100 }, small, 'nw', reach), 'the outline is clear of a stood-off handle');
+  assert.ok(!onDrawnHandle({ x: 110, y: o }, small, 'n', reach), 'a hidden handle is not drawn');
+});
+
+test('zoneLayout: the large zones reach as far out as the drawn handles, at scale 0.5, 1 and 2', () => {
+  const native = { x: 100, y: 100, w: 200, h: 200 };
+  const large = mouse({ large: true });
+  for (const scale of [0.5, 1, 2]) {
+    const r = { x: native.x * scale, y: native.y * scale, w: native.w * scale, h: native.h * scale };
+    assert.equal(zoneLayout(r, touch()).mode, 'large', `scale ${scale}`);
+    const midX = r.x + r.w / 2, midY = r.y + r.h / 2;
+    // A finger: 17 px out at every handle, the coarse square and its fat target.
+    assert.deepEqual(zoneAt({ x: r.x - 16.9, y: r.y - 16.9 }, r, touch()), { kind: 'corner', handle: 'nw', outside: true }, `scale ${scale}`);
+    assert.equal(zoneAt({ x: r.x - 17.1, y: r.y - 17.1 }, r, touch()), null, `scale ${scale}`);
+    assert.deepEqual(zoneAt({ x: r.x - 16.9, y: midY }, r, touch()), { kind: 'edge', handle: 'w', outside: true }, `scale ${scale}`);
+    // A mouse with the preference: the corner square's 6 px, then the rotate band; a side 15 px.
+    assert.deepEqual(zoneAt({ x: r.x - 5.9, y: r.y - 5.9 }, r, large), { kind: 'corner', handle: 'nw', outside: true }, `scale ${scale}`);
+    assert.deepEqual(zoneAt({ x: r.x - 6.1, y: r.y - 6.1 }, r, large), { kind: 'rotate', handle: 'nw', outside: true }, `scale ${scale}`);
+    assert.deepEqual(zoneAt({ x: midX, y: r.y - 14.9 }, r, large), { kind: 'edge', handle: 'n', outside: true }, `scale ${scale}`);
+    assert.equal(zoneAt({ x: midX, y: r.y - 15.1 }, r, large), null, `scale ${scale}`);
+  }
+  const sq = { x: 100, y: 100, w: 200, h: 200 };
+  // The media the caller measured win: a tablet's corners reach 17 px.
+  assert.deepEqual(zoneAt({ x: 84, y: 84 }, sq, mouse({ large: true, handleReach: handleHitReach('pen', { coarse: true, fine: false }) }))?.kind, 'corner');
+  // A handle is square to the screen, so on a turned box its square reaches further
+  // along the box's own axes.
+  near(zoneRects({ ...sq, rot: 45 }, large)[0]!.parts[0]!.x0, -100 - 6 * Math.SQRT2);
+  near(zoneRects({ ...sq, rot: 90 }, large)[0]!.parts[0]!.x0, -106);
+  // Narrow mode keeps its 24 px outside, which covers every handle.
+  assert.equal(zoneRects({ x: 100, y: 100, w: 60, h: 300 }, touch())[0]!.parts[0]!.x0, -30 - GRAB_ZONE_MIN);
+});
+
+test('handleOutset moves a corner out along its diagonal and a midpoint straight out, turning with the box', () => {
+  assert.deepEqual(handleOutset('se'), { x: SMALL_HANDLE_OUTSET, y: SMALL_HANDLE_OUTSET });
+  assert.deepEqual(handleOutset('nw', 0, 6), { x: -6, y: -6 });
+  assert.deepEqual(handleOutset('e', 0, 6), { x: 6, y: 0 });
+  assert.deepEqual(handleOutset('n', 0, 6), { x: 0, y: -6 });
+  // A quarter turn clockwise points the box's e side down the screen.
+  const e90 = handleOutset('e', 90, 6);
+  near(e90.x, 0); near(e90.y, 6);
+  const ne90 = handleOutset('ne', 90, 6);
+  near(ne90.x, 6); near(ne90.y, 6);
+  assert.deepEqual(handleOutset('e', Number.NaN, 6), { x: 6, y: 0 }, 'a turn that is not a number counts as none');
+});
+
+test('zoneDragThreshold: 4 px for a mouse, 10 px for a finger or a pen', () => {
+  assert.equal(ZONE_DRAG_PX, 4);
+  assert.equal(ZONE_DRAG_PX_COARSE, 10);
+  assert.equal(zoneDragThreshold('mouse'), 4);
+  assert.equal(zoneDragThreshold('pen'), 10);
+  assert.equal(zoneDragThreshold('touch'), 10);
 });
 
 // ── Cursors and rotation snapping ────────────────────────────────────────────
+
+test('rotateCursorFor wraps the corner a rotate zone sits at, turning with the box', () => {
+  assert.equal(rotateCursorFor('ne'), 'rotate-ne');
+  assert.equal(rotateCursorFor('se', 0), 'rotate-se');
+  assert.equal(rotateCursorFor('sw', 0), 'rotate-sw');
+  assert.equal(rotateCursorFor('nw', 0), 'rotate-nw');
+  assert.equal(rotateCursorFor('ne', 90), 'rotate-se', 'a quarter turn moves the ne corner to the bottom right');
+  assert.equal(rotateCursorFor('ne', -90), 'rotate-nw');
+  assert.equal(rotateCursorFor('nw', 180), 'rotate-se');
+  assert.equal(rotateCursorFor('ne', 30), 'rotate-ne', 'the nearest corner direction wins');
+  assert.equal(rotateCursorFor('ne', 50), 'rotate-se');
+  assert.equal(rotateCursorFor('ne', 720 + 90), 'rotate-se', 'whole turns fold away');
+});
+
+test('rotateCursorAt picks the corner nearest a direction, whatever the angle', () => {
+  assert.equal(rotateCursorAt(45), 'rotate-se');
+  assert.equal(rotateCursorAt(135), 'rotate-sw');
+  assert.equal(rotateCursorAt(-135), 'rotate-nw');
+  assert.equal(rotateCursorAt(-45), 'rotate-ne');
+  assert.equal(rotateCursorAt(10), 'rotate-se');
+  assert.equal(rotateCursorAt(-10), 'rotate-ne');
+  assert.equal(rotateCursorAt(Number.NaN), rotateCursorAt(0), 'not a number reads as straight right');
+});
 
 test('resizeCursorFor follows the box rotation at 0, 45 and 90 degrees', () => {
   const at0: Record<HandleName, string> = { n: 'ns-resize', s: 'ns-resize', e: 'ew-resize', w: 'ew-resize', ne: 'nesw-resize', sw: 'nesw-resize', nw: 'nwse-resize', se: 'nwse-resize' };
@@ -864,6 +1074,113 @@ test('pinchTransform: the midpoint travel moves, and a zero spread is inert', ()
   assert.deepEqual(r.centre, { x: 50, y: 0 });
   const flat = pinchTransform({ x: 5, y: 5 }, { x: 5, y: 5 }, { x: 0, y: 0 }, { x: 50, y: 0 });
   assert.equal(flat.k, 1); assert.equal(flat.dRot, 0); assert.equal(flat.scaleEngaged, false);
+});
+
+test('pinchTransform: the midpoint carries nothing inside the travel dead zone until something engages', () => {
+  const a = { x: 0, y: 0 }, b = { x: 100, y: 0 };
+  assert.equal(PINCH_TRAVEL_PX, ZONE_DRAG_PX_COARSE, 'a finger\'s drag threshold');
+  const at = (dx: number, dy: number): [Point, Point] => [{ x: a.x + dx, y: a.y + dy }, { x: b.x + dx, y: b.y + dy }];
+  // A resting pair drifting 3 px moves nothing.
+  const rest = pinchTransform(a, b, ...at(3, 0), { travelDeadZone: 10 });
+  assert.deepEqual([rest.dx, rest.dy, rest.travelEngaged], [0, 0, false]);
+  // Past the dead zone the whole travel applies, so the content stays under the fingers.
+  const far = pinchTransform(a, b, ...at(8, 8), { travelDeadZone: 10 });
+  assert.deepEqual([far.dx, far.dy, far.travelEngaged], [8, 8, true]);
+  // Once engaged it keeps carrying, back inside the dead zone too.
+  const back = pinchTransform(a, b, ...at(2, 0), { travelDeadZone: 10, travelEngaged: true });
+  assert.deepEqual([back.dx, back.dy], [2, 0]);
+  // A spread or a twist engaging carries the midpoint from that frame.
+  const spread = pinchTransform(a, b, { x: -3, y: 0 }, { x: 106, y: 0 }, { travelDeadZone: 10 });
+  assert.equal(spread.scaleEngaged, true); assert.equal(spread.travelEngaged, true); near(spread.dx, 1.5);
+  // With no dead zone (the default) any travel carries, as before.
+  assert.equal(pinchTransform(a, b, ...at(1, 0)).dx, 1);
+});
+
+test('visibleRect clips the stage to the view that holds the stage, and an unsized view clips nothing', () => {
+  const box = (left: number, top: number, width: number, height: number) => ({ left, top, width, height });
+  assert.deepEqual(visibleRect(box(-100, 50, 1200, 900), box(0, 0, 1000, 800)), { x: 0, y: 50, w: 1000, h: 750 });
+  assert.deepEqual(visibleRect(box(10, 20, 300, 200), box(0, 0, 0, 0)), { x: 10, y: 20, w: 300, h: 200 });
+  // A stage scrolled clear of the view is empty, never negative.
+  assert.deepEqual(visibleRect(box(2000, 0, 100, 100), box(0, 0, 1000, 800)), { x: 2000, y: 0, w: 0, h: 100 });
+});
+
+test('pinchFits: the selection must lie inside the stage and cover under 60% of the stage', () => {
+  const stage: ViewRect = { x: 0, y: 0, w: 1000, h: 800 };
+  assert.equal(PINCH_MAX_COVER, 0.6);
+  assert.equal(PINCH_SECOND_MS, 300);
+  assert.equal(pinchFits({ x: 100, y: 100, w: 200, h: 200 }, stage), true);
+  // 59.9% takes the selection, 60% leaves the fingers to the view.
+  assert.equal(pinchFits({ x: 0, y: 0, w: 599, h: 800 }, stage), true);
+  assert.equal(pinchFits({ x: 0, y: 0, w: 600, h: 800 }, stage), false);
+  // Off the stage on any side, however small.
+  assert.equal(pinchFits({ x: -1, y: 100, w: 50, h: 50 }, stage), false);
+  assert.equal(pinchFits({ x: 960, y: 100, w: 50, h: 50 }, stage), false);
+  assert.equal(pinchFits({ x: 100, y: 790, w: 50, h: 20 }, stage), false);
+  // A stage offset in the page, and a hairline selection.
+  assert.equal(pinchFits({ x: 250, y: 150, w: 400, h: 0 }, { x: 200, y: 100, w: 600, h: 400 }), true);
+  // A stage with no size takes nothing; a custom share applies.
+  assert.equal(pinchFits({ x: 0, y: 0, w: 1, h: 1 }, { x: 0, y: 0, w: 0, h: 800 }), false);
+  assert.equal(pinchFits({ x: 0, y: 0, w: 500, h: 800 }, stage, 0.4), false);
+});
+
+test('pinchMembers: one box scales about the fingers\' midpoint and travels with the midpoint', () => {
+  const box: StartRect = { x: 100, y: 100, w: 100, h: 100 };
+  const pinch = { k: 2, dRot: 0, dx: 0, dy: 0, centre: { x: 130, y: 120 }, rotateEngaged: false };
+  const r = pinchMembers([box], pinch);
+  near(r.k, 2); assert.equal(r.deg, 0);
+  // The centre (150, 150) is 20, 30 from the pivot, so the centre moves to (170, 180).
+  nearRect(r.rects[0]!, { x: 70, y: 80, w: 200, h: 200, rot: 0 });
+  const moved = pinchMembers([box], { ...pinch, k: 1, dx: 15, dy: -5 });
+  nearRect(moved.rects[0]!, { x: 115, y: 95, w: 100, h: 100 });
+});
+
+test('pinchMembers: k is clamped for the whole set, as every selection scale is', () => {
+  const set: StartRect[] = [{ x: 0, y: 0, w: 100, h: 100 }, { x: 200, y: 0, w: 40, h: 16 }];
+  const tiny = pinchMembers(set, { k: 0.01, dRot: 0, dx: 0, dy: 0, centre: { x: 0, y: 0 }, rotateEngaged: false });
+  near(tiny.k, 0.5, 1e-9); // the 16 px side stops the set at minSize 8
+  nearRect(tiny.rects[1]!, { w: 20, h: 8 });
+  const huge = pinchMembers(set, { k: 500, dRot: 0, dx: 0, dy: 0, centre: { x: 0, y: 0 }, rotateEngaged: false }, { minSize: 8, kMax: 4 });
+  near(huge.k, 4);
+});
+
+test('pinchMembers: one box turns about its own centre to a snapped angle, only once engaged', () => {
+  const box: StartRect = { x: 100, y: 100, w: 100, h: 50, rot: 10 };
+  const base = { k: 1, dx: 0, dy: 0, centre: { x: 0, y: 0 } };
+  const idle = pinchMembers([box], { ...base, dRot: 30, rotateEngaged: false });
+  nearRect(idle.rects[0]!, { x: 100, y: 100, rot: 10 }); assert.equal(idle.deg, 0);
+  // 10 + 18 = 28 is within the magnet's 4 degrees of 30, so the magnet pulls the angle to 30.
+  const snapped = pinchMembers([box], { ...base, dRot: 18, rotateEngaged: true });
+  nearRect(snapped.rects[0]!, { x: 100, y: 100, w: 100, h: 50, rot: 30 }); near(snapped.deg, 20);
+  const free = pinchMembers([box], { ...base, dRot: 12, rotateEngaged: true });
+  nearRect(free.rects[0]!, { rot: 22 }); near(free.deg, 12);
+  // Past half a turn the angle wraps into [-180, 180).
+  nearRect(pinchMembers([box], { ...base, dRot: 175, rotateEngaged: true }).rects[0]!, { rot: -175 });
+});
+
+test('pinchMembers: a set turns about the centre of its bounds by a snapped turn, and an artboard stays put', () => {
+  const set: StartRect[] = [{ x: 0, y: 0, w: 100, h: 100 }, { x: 200, y: 0, w: 100, h: 100 }];
+  const r = pinchMembers(set, { k: 1, dRot: 88, dx: 0, dy: 0, centre: { x: 0, y: 0 }, rotateEngaged: true });
+  near(r.deg, 90);
+  // The bounds' centre is (150, 50): each member's centre swings a quarter turn about that point.
+  nearRect(r.rects[0]!, { x: 100, y: -100, w: 100, h: 100, rot: 90 });
+  nearRect(r.rects[1]!, { x: 100, y: 100, rot: 90 });
+  const kept = pinchMembers(set, { k: 1, dRot: 40, dx: 0, dy: 0, centre: { x: 0, y: 0 }, rotateEngaged: true }, { turns: [false, true] });
+  nearRect(kept.rects[0]!, { x: 0, y: 0, rot: 0 });
+  // One member left to turn turns about its own centre.
+  nearRect(kept.rects[1]!, { x: 200, y: 0, rot: 40 }); near(kept.deg, 40);
+  const none = pinchMembers(set, { k: 1, dRot: 40, dx: 0, dy: 0, centre: { x: 0, y: 0 }, rotateEngaged: true }, { turns: [false, false] });
+  assert.equal(none.deg, 0);
+});
+
+test('pinchMembers: scale, travel and turn compose in one frame, the pivot following the scaled set', () => {
+  const set: StartRect[] = [{ x: 0, y: 0, w: 100, h: 100 }, { x: 200, y: 0, w: 100, h: 100 }];
+  const r = pinchMembers(set, { k: 2, dRot: 90, dx: 10, dy: 20, centre: { x: 150, y: 50 }, rotateEngaged: true });
+  near(r.k, 2); near(r.deg, 90);
+  // Scaled twice about (150, 50), the centre of its bounds, the set runs (-150, -50) to
+  // (450, 150). The travel moves that centre to (160, 70), and the turn swings each
+  // member's centre a quarter turn about the new one.
+  nearRect(r.rects[0]!, { x: 60, y: -230, w: 200, h: 200, rot: 90 });
+  nearRect(r.rects[1]!, { x: 60, y: 170, w: 200, h: 200, rot: 90 });
 });
 
 // Type-only: the AABB shape the selection maths returns is the shared one.

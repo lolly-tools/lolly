@@ -9,11 +9,12 @@ import { handleAnchor } from '../free-canvas-transform.ts';
 import { applyGestureMove } from './gestures.ts';
 import { cascadeFrameChildren, idOf } from './select.ts';
 import { selectionTransformOps } from './selection-transform.ts';
+import { pinchOps } from './pinch.ts';
 import {
   beginCanvasGesture, canvasGestureReady, finishCanvasGesture, flushCanvasPreview, previewCanvasRect,
 } from './collaboration.ts';
 import type { FcCtx } from './context.ts';
-import type { Gesture } from './shared.ts';
+import type { Gesture, Point, Rect } from './shared.ts';
 
 type Preview = Omit<CanvasPreview, 'claimId' | 'collection'>;
 
@@ -210,6 +211,70 @@ test('a group scale rebase decides the uniform fallback again from the claim-gra
       assert.deepEqual([one.w, one.h], want ? [80, 60] : [80, 30]);
     } finally { f.destroy(); }
   }
+});
+
+/** A pinch as pinch.ts claims one on the pair: the first finger at (0, 40) and the second
+ *  at (140, 40), native px, with only the first row turning. */
+function pinchGesture(boxes: Box[]): Gesture {
+  return { type: 'pinch', pointerId: 1, pointerA: 2, startClient: { x: 140, y: 40 }, sel: [0, 1], turns: [true, false],
+    startBoxes: boxes, startA: { x: 0, y: 40 }, startB: { x: 140, y: 40 }, curA: { x: 0, y: 40 }, curB: { x: 140, y: 40 } };
+}
+
+test('a pinch rebases by stable id, keeps its turning rows, takes each preview kind from the frame and commits by id', async () => {
+  const pressed = [shape('one'), shape('two', 100, 50)];
+  const f = fixture(pressed, [0, 1], true);
+  const committed: Box[][] = [];
+  Object.assign(f.fc, {
+    gesture: pinchGesture(pressed), twoTapStart: 0, touchPts: new Map(), canvasEl: { releasePointerCapture() {} },
+  });
+  f.fc.pinch = pinchOps(f.fc);
+  Object.assign(f.fc.stage, { metrics: () => ({ scale: 1 }) });
+  Object.assign(f.fc.chromeSync, { renderChrome: () => {} });
+  Object.assign(f.fc.gestures, {
+    applyLiveRect: (i: number, r: Rect) => previewCanvasRect(f.fc, i, r),
+    endGesture: (done: boolean) => { finishCanvasGesture(f.fc, done); f.fc.gesture = null; },
+  });
+  Object.assign(f.fc.select, { assignFrames: (rows: Box[]) => rows, commit: (rows: Box[]) => { committed.push(rows); } });
+  await f.ready();
+  try {
+    // Before the grant a peer moved both rows 100 px right and put them in the other order.
+    f.replace([shape('two', 200, 50), shape('one', 100)]);
+    await f.grant();
+    assert.equal(canvasGestureReady(f.fc), true);
+    const g = f.fc.gesture!;
+    assert.ok(g.type === 'pinch');
+    assert.deepEqual(g.sel, [1, 0], 'the rows follow their ids to the new order');
+    assert.deepEqual(g.turns, [true, false], 'and the turning flags stay with them, by position');
+    assert.deepEqual(g.sel.map(i => [g.startBoxes[i]!.id, g.startBoxes[i]!.x]), [['one', 100], ['two', 200]]);
+    const frame = (a: Point, b: Point): Preview => {
+      g.curA = a; g.curB = b;
+      applyGestureMove(f.fc, f.event(b.x, b.y));
+      return f.previews.at(-1)!;
+    };
+    // Both fingers travel 20 px right and 10 down: past the drag threshold, a move.
+    const moved = frame({ x: 20, y: 50 }, { x: 160, y: 50 });
+    assert.equal(moved.kind, 'move');
+    assert.deepEqual(moved.objects.map(o => [o.id, o.x, o.y]), [['two', 220, 60], ['one', 120, 10]]);
+    // The spread doubles about the start midpoint (70, 40): a resize.
+    assert.equal(frame({ x: -70, y: 40 }, { x: 210, y: 40 }).kind, 'resize');
+    // A 40 degree twist turns 20 past its 20 degree engage point, and only `one` turns.
+    const turn = (deg: number): [Point, Point] => {
+      const v = { x: Math.cos((deg * Math.PI) / 180) * 70, y: Math.sin((deg * Math.PI) / 180) * 70 };
+      return [{ x: 70 - v.x, y: 40 - v.y }, { x: 70 + v.x, y: 40 + v.y }];
+    };
+    frame(...turn(20));
+    const turned = frame(...turn(40));
+    assert.equal(turned.kind, 'rotate');
+    assert.deepEqual(turned.objects.map(o => [o.id, Math.round(o.rot)]), [['two', 0], ['one', 20]]);
+    // A peer reorders again and edits `two` before the lift: the commit is merged by id onto
+    // the current rows and keeps the peer's edit.
+    f.replace([shape('one', 100), { ...shape('two', 200, 50), fill: '#f00' }]);
+    f.fc.pinch.end();
+    assert.equal(committed.length, 1);
+    const [one, two] = committed[0]!;
+    assert.deepEqual([one!.id, Math.round(Number(one!.rot))], ['one', 20]);
+    assert.deepEqual([two!.id, two!.x, two!.y, two!.fill], ['two', 200, 50, '#f00']);
+  } finally { f.destroy(); }
 });
 
 test('remote reorders preserve stable ids and claim origins, and deletion cancels the gesture', async () => {

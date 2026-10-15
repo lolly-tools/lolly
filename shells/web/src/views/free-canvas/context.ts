@@ -65,6 +65,9 @@ import type { editorStateOps } from './editor-state.ts';
 import type { LoadedMaster, MasterStatus, slideMastersOps } from './slide-masters.ts';
 import type { scaleModeOps } from './scale-mode.ts';
 import type { selectionTransformOps } from './selection-transform.ts';
+import type { zonesOps } from './zones.ts';
+import type { grabZonesOps } from './grab-zones.ts';
+import type { pinchOps } from './pinch.ts';
 
 export interface FcCtx {
   hierarchy: ReturnType<typeof hierarchyOps>;
@@ -132,6 +135,9 @@ export interface FcCtx {
    *  transform then scales each object's content (font size, stroke, radius, effects)
    *  with its box, where Resize changes the box only. */
   scaleContent: boolean;
+  /** "Large grab areas" (plan 311): GIMP-sized grab zones for a mouse and a pen too, as
+   *  a finger always has. A device-local view preference (grab-zones.ts). */
+  largeGrab: boolean;
   armedKind: AddKind | null;
   gesture: Gesture | null;
   /** The rect each box is live at in the current gesture frame, by stable id. Created
@@ -378,6 +384,9 @@ export interface FcCtx {
   slideMasters: ReturnType<typeof slideMastersOps>;
   scaleMode: ReturnType<typeof scaleModeOps>;
   selectionTransform: ReturnType<typeof selectionTransformOps>;
+  zones: ReturnType<typeof zonesOps>;
+  grabZones: ReturnType<typeof grabZonesOps>;
+  pinch: ReturnType<typeof pinchOps>;
 }
 
 /** A module function minus its leading context parameter. */

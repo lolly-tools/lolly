@@ -175,6 +175,18 @@ export function buildToolbar(fc: FcCtx): void {
   };
   const lollyItems = (): PopItem[] => {
     const items: PopItem[] = [];
+    // "Large grab areas" (plan 311): GIMP-sized grab zones round a selection for a mouse
+    // or a pen, as a finger always has. A device-local view preference like Rulers and
+    // guides, and it sits with them; every free-canvas tool has the zones, so it is
+    // offered with or without a top bar.
+    const grabRow: PopItem = {
+      label: t('Large grab areas'),
+      icon: icon(SVG.grabAreas),
+      key: 'grab-areas',
+      on: fc.largeGrab,
+      check: true,
+      run: () => fc.grabZones.toggle(),
+    };
     // Export leads - it's the star of the Lolly menu. Present is added LAST (very bottom).
     if (actions && !barMounted) {
       items.push({
@@ -370,6 +382,7 @@ export function buildToolbar(fc: FcCtx): void {
           });
         }
       }
+      items.push(grabRow);
       items.push({
         label: t('Keyboard shortcuts'),
         icon: icon(SVG.info),
@@ -401,6 +414,11 @@ export function buildToolbar(fc: FcCtx): void {
           runtime.setInput('transition', next);
         },
       });
+    }
+    // Without a top bar there is no view group above, so the preference stands alone.
+    if (!barMounted) {
+      if (items.length) items.push({ sep: true });
+      items.push(grabRow);
     }
     // Present is the VERY LAST row (Andy: Export is the star; Present sits at the bottom),
     // set off by its own separator and next to the Slide transition it uses (plan 112).
@@ -744,7 +762,7 @@ export function fillPopover(fc: FcCtx, el: HTMLElement, items: PopItem[]): void 
     // A row in a `role="menu"` has to be a menuitem, or the container's role makes the
     // whole popover unnavigable to a screen reader: only the radio rows carried one,
     // so every plain row (Export, Undo, Custom CSS…) announced as a bare button.
-    b.setAttribute('role', it.on !== undefined ? 'menuitemradio' : 'menuitem');
+    b.setAttribute('role', it.on === undefined ? 'menuitem' : it.check ? 'menuitemcheckbox' : 'menuitemradio');
     if (it.on !== undefined) b.setAttribute('aria-checked', String(it.on));
     if (it.key) b.dataset.pop = it.key;
     b.disabled = it.disabled === true;

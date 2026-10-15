@@ -126,6 +126,11 @@ export interface ResizeOpts {
    *  relative to its start size (Figma), so a vertical-only Shift drag still resizes,
    *  and clamps one uniform factor with {@link uniformScaleFloor}. */
   aspectFrom?: 'width' | 'dominant';
+  /** Floor only the sides the handle drives, and a side already thinner than `minSize`
+   *  at its own size: lengthening a 2 px rule from an end keeps the rule 2 px thick.
+   *  Off by default, which raises both sides to `minSize`, as the deck editor expects.
+   *  Applies outside the 'dominant' aspect path, which has its own uniform floor. */
+  keepThin?: boolean;
 }
 
 /** Options for {@link scaleGroup}. */
@@ -391,8 +396,9 @@ export function resizeRect(startRect: StartRect, handle: HandleName, dxTotal: nu
     newW = startRect.w * k;
     newH = startRect.h * k;
   } else {
-    newW = Math.max(minSize, newW);
-    newH = Math.max(minSize, newH);
+    const thin = (side: number, driven: boolean): number => (!driven ? 0 : side > 0 ? Math.min(minSize, side) : minSize);
+    newW = Math.max(opts.keepThin ? thin(startRect.w, hx !== 0) : minSize, newW);
+    newH = Math.max(opts.keepThin ? thin(startRect.h, hy !== 0) : minSize, newH);
     if (opts.keepAspect && startRect.w > 0 && startRect.h > 0) {
       const aspect = startRect.w / startRect.h;
       if (hx !== 0 && hy !== 0) {
@@ -1326,15 +1332,19 @@ export function scaleGroup(boxes: Box[], indices: number[], anchor: Point, k: nu
   });
 }
 
+/** One rect of a set turned `deltaDeg` about `centre`: its centre swings round the pivot and its own angle turns by the same amount. */
+export function rotateRectAbout(r: Rect, centre: Point, deltaDeg: number): Rect {
+  const c = rectCentre(r);
+  const v = rotateVec(c.x - centre.x, c.y - centre.y, deltaDeg);
+  return { ...r, x: centre.x + v.x - r.w / 2, y: centre.y + v.y - r.h / 2, rot: normAngle(r.rot + deltaDeg) };
+}
+
 export function rotateGroup(boxes: Box[], indices: number[], centre: Point, deltaDeg: number, cfg: BoxFieldConfig): Box[] {
   const set = new Set(indices);
   return boxes.map((b, i) => {
     if (!set.has(i)) return b;
-    const r = boxRect(b, cfg);
-    const c = rectCentre(r);
-    const v = rotateVec(c.x - centre.x, c.y - centre.y, deltaDeg);
-    const nc = { x: centre.x + v.x, y: centre.y + v.y };
-    return withRect(b, { x: nc.x - r.w / 2, y: nc.y - r.h / 2, rot: normAngle(r.rot + deltaDeg) }, cfg);
+    const { x, y, rot } = rotateRectAbout(boxRect(b, cfg), centre, deltaDeg);
+    return withRect(b, { x, y, rot }, cfg);
   });
 }
 

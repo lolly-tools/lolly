@@ -23,7 +23,7 @@ const gestures = new WeakMap<FcCtx, GestureLease>();
 const texts = new WeakMap<FcCtx, { id: string; lease?: CanvasInteractionLease }>();
 function indices(g: Gesture): number[] {
   return g.type === 'move' ? [...g.sel] : g.type === 'resize' || g.type === 'rotate' ? [g.index]
-    : g.type === 'gscale' || g.type === 'grotate' ? g.sel : [];
+    : g.type === 'gscale' || g.type === 'grotate' || g.type === 'pinch' ? g.sel : [];
 }
 export function beginCanvasGesture(fc: FcCtx): void {
   const port = canvasInteractions(fc.runtime), g = fc.gesture;
@@ -84,7 +84,9 @@ export function canvasGestureReady(fc: FcCtx, move?: GesturePointer): boolean {
       // A Scale's start row follows the rebase as gscale's start rows do: the current row
       // at the baseline geometry, which the layout half of its commit reads.
       if (g.type === 'resize' && g.startBox) g.startBox = withRect(boxes[g.index]!, g.startRect, fc.cfg);
-    } else if (g.type === 'gscale' || g.type === 'grotate') {
+    } else if (g.type === 'gscale' || g.type === 'grotate' || g.type === 'pinch') {
+      // A pinch derives every frame from its start rows and its fingers' start points,
+      // so the rebased rows below are all it needs.
       g.sel = selected;
       g.startBoxes = boxes.map((box, i) => {
         const baseline = state.baseline.get(fc.select.idOf(box, i)); return baseline ? withRect(box, baseline, fc.cfg) : box;
@@ -117,6 +119,12 @@ export function previewCanvasRect(fc: FcCtx, index: number, rect: Rect): void {
   state.rects.set(id, rect);
   state.dirty = true;
 }
+/** What peers are shown a gesture doing. A pinch turns once its twist has turned the
+ *  selection, resizes once its spread has scaled the selection, and otherwise moves. */
+function previewKind(g: Gesture): 'move' | 'resize' | 'rotate' {
+  if (g.type === 'pinch') return g.deg ? 'rotate' : g.k != null && g.k !== 1 ? 'resize' : 'move';
+  return g.type === 'move' ? 'move' : g.type === 'resize' || g.type === 'gscale' ? 'resize' : 'rotate';
+}
 /** Publish a complete gesture frame after every selected object's live DOM write. */
 export function flushCanvasPreview(fc: FcCtx): void {
   const state = gestures.get(fc);
@@ -126,7 +134,7 @@ export function flushCanvasPreview(fc: FcCtx): void {
   const cascaded = fc.select.cascadeFrameChildren(boxes, next, indices(state.gesture));
   const g = state.gesture;
   state.dirty = false;
-  state.lease.preview({ kind: g.type === 'move' ? 'move' : g.type === 'resize' || g.type === 'gscale' ? 'resize' : 'rotate', phase: 'active',
+  state.lease.preview({ kind: previewKind(g), phase: 'active',
     objects: cascaded.flatMap((box, i) => {
       const id = fc.select.idOf(box, i); if (!state.claimed.has(id)) return [];
       const r = boxRect(box, fc.cfg); return [{ id, x: r.x, y: r.y, w: r.w, h: r.h, rot: r.rot ?? 0 }];

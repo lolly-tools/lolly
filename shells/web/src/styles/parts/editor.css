@@ -543,10 +543,28 @@ html[data-a11y-motion="reduce"] .fc-btn-lolly:focus-visible svg .lolly-mark__spi
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.28);
 }
 .fc-handle::after { content: ""; position: absolute; inset: -9px; }  /* fat touch target */
-.fc-h-n, .fc-h-s { cursor: ns-resize; }
-.fc-h-e, .fc-h-w { cursor: ew-resize; }
-.fc-h-ne, .fc-h-sw { cursor: nesw-resize; }
-.fc-h-nw, .fc-h-se { cursor: nwse-resize; }
+/* A handle stood off a small box's outline (plan 311) is hit on its own square, so the
+   fat target never covers the box, whose inside stays the move target. */
+.fc-handle[data-outward]::after { content: none; }
+/* Just outside a corner a mouse turns the box (the rotate zones, zones.ts), so a fine
+   pointer hits a corner handle on its own square and the turn starts where it ends. */
+@media (pointer: fine) {
+  .fc-handle:is(.fc-h-nw, .fc-h-ne, .fc-h-se, .fc-h-sw)::after { content: none; }
+}
+/* Large grab zones (plan 311, GIMP's crop tool) take the press round a selection for a
+   finger, and for a mouse or a pen with "Large grab areas" on. The resize handles stay
+   drawn and let the press through to their zone (zones.ts sets data-grab on the chrome);
+   the rotate handle keeps its own press. */
+.fc-chrome[data-grab] .fc-handle:not(.fc-h-rotate) { pointer-events: none; }
+/* The resize cursors. Each handle carries the direction it drags on the turned box in
+   `data-fc-dir` (chrome-sync.ts), and the class is the fallback before the first paint.
+   The stage takes the same cursors by data attribute over a grab zone (plan 311: an edge
+   strip, a corner or a rotate zone, which are hit areas rather than elements, zones.ts),
+   and holds one for the length of a drag. */
+.fc-h-n, .fc-h-s, .fc-handle[data-fc-dir="ns-resize"], .tool-stage[data-fc-cursor="ns-resize"] { cursor: ns-resize; }
+.fc-h-e, .fc-h-w, .fc-handle[data-fc-dir="ew-resize"], .tool-stage[data-fc-cursor="ew-resize"] { cursor: ew-resize; }
+.fc-h-ne, .fc-h-sw, .fc-handle[data-fc-dir="nesw-resize"], .tool-stage[data-fc-cursor="nesw-resize"] { cursor: nesw-resize; }
+.fc-h-nw, .fc-h-se, .fc-handle[data-fc-dir="nwse-resize"], .tool-stage[data-fc-cursor="nwse-resize"] { cursor: nwse-resize; }
 .fc-h-rotate {
   width: 14px; height: 14px; margin-left: -7px; margin-top: -7px;
   border-radius: var(--radius-round); cursor: grab; background: hsl(var(--primary)); border-color: #ffffff;
@@ -563,12 +581,42 @@ html[data-a11y-motion="reduce"] .fc-btn-lolly:focus-visible svg .lolly-mark__spi
    cursor's direction drawn as two arrows, black with a white keyline like
    .drag-wrap-cursor, so it reads on any surface in either theme. Scale mode's handles
    carry it, and so do a set's handles in Resize when the set can only keep its
-   proportions (a group or a circle in it, or a member turned off a quarter turn). The
-   plain resize cursor is the fallback. */
-.fc-chrome:is([data-scale], [data-proportional]) :is(.fc-h-n, .fc-h-s) { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M7 1l3.5 5h-2.25v12h2.25l-3.5 5-3.5-5h2.25V6h-2.25zM17 1l3.5 5h-2.25v12h2.25l-3.5 5-3.5-5h2.25V6h-2.25z' fill='%23000' stroke='%23fff' stroke-width='2' stroke-linejoin='round' paint-order='stroke'/%3E%3C/svg%3E") 12 12, ns-resize; }
-.fc-chrome:is([data-scale], [data-proportional]) :is(.fc-h-e, .fc-h-w) { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath transform='rotate(90 12 12)' d='M7 1l3.5 5h-2.25v12h2.25l-3.5 5-3.5-5h2.25V6h-2.25zM17 1l3.5 5h-2.25v12h2.25l-3.5 5-3.5-5h2.25V6h-2.25z' fill='%23000' stroke='%23fff' stroke-width='2' stroke-linejoin='round' paint-order='stroke'/%3E%3C/svg%3E") 12 12, ew-resize; }
-.fc-chrome:is([data-scale], [data-proportional]) :is(.fc-h-ne, .fc-h-sw) { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath transform='rotate(45 12 12)' d='M7 1l3.5 5h-2.25v12h2.25l-3.5 5-3.5-5h2.25V6h-2.25zM17 1l3.5 5h-2.25v12h2.25l-3.5 5-3.5-5h2.25V6h-2.25z' fill='%23000' stroke='%23fff' stroke-width='2' stroke-linejoin='round' paint-order='stroke'/%3E%3C/svg%3E") 12 12, nesw-resize; }
-.fc-chrome:is([data-scale], [data-proportional]) :is(.fc-h-nw, .fc-h-se) { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath transform='rotate(-45 12 12)' d='M7 1l3.5 5h-2.25v12h2.25l-3.5 5-3.5-5h2.25V6h-2.25zM17 1l3.5 5h-2.25v12h2.25l-3.5 5-3.5-5h2.25V6h-2.25z' fill='%23000' stroke='%23fff' stroke-width='2' stroke-linejoin='round' paint-order='stroke'/%3E%3C/svg%3E") 12 12, nwse-resize; }
+   proportions (a group or a circle in it, or a member turned off a quarter turn). Each
+   is keyed on the handle's turned direction, as the stage's held drag cursor is, so the
+   hover and the drag show the same arrow. The plain resize cursor is the fallback. */
+.fc-chrome:is([data-scale], [data-proportional]) .fc-handle[data-fc-dir="ns-resize"],
+.tool-stage[data-fc-cursor="ns-resize"][data-fc-cursor-scale] { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M7 1l3.5 5h-2.25v12h2.25l-3.5 5-3.5-5h2.25V6h-2.25zM17 1l3.5 5h-2.25v12h2.25l-3.5 5-3.5-5h2.25V6h-2.25z' fill='%23000' stroke='%23fff' stroke-width='2' stroke-linejoin='round' paint-order='stroke'/%3E%3C/svg%3E") 12 12, ns-resize; }
+.fc-chrome:is([data-scale], [data-proportional]) .fc-handle[data-fc-dir="ew-resize"],
+.tool-stage[data-fc-cursor="ew-resize"][data-fc-cursor-scale] { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath transform='rotate(90 12 12)' d='M7 1l3.5 5h-2.25v12h2.25l-3.5 5-3.5-5h2.25V6h-2.25zM17 1l3.5 5h-2.25v12h2.25l-3.5 5-3.5-5h2.25V6h-2.25z' fill='%23000' stroke='%23fff' stroke-width='2' stroke-linejoin='round' paint-order='stroke'/%3E%3C/svg%3E") 12 12, ew-resize; }
+.fc-chrome:is([data-scale], [data-proportional]) .fc-handle[data-fc-dir="nesw-resize"],
+.tool-stage[data-fc-cursor="nesw-resize"][data-fc-cursor-scale] { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath transform='rotate(45 12 12)' d='M7 1l3.5 5h-2.25v12h2.25l-3.5 5-3.5-5h2.25V6h-2.25zM17 1l3.5 5h-2.25v12h2.25l-3.5 5-3.5-5h2.25V6h-2.25z' fill='%23000' stroke='%23fff' stroke-width='2' stroke-linejoin='round' paint-order='stroke'/%3E%3C/svg%3E") 12 12, nesw-resize; }
+.fc-chrome:is([data-scale], [data-proportional]) .fc-handle[data-fc-dir="nwse-resize"],
+.tool-stage[data-fc-cursor="nwse-resize"][data-fc-cursor-scale] { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath transform='rotate(-45 12 12)' d='M7 1l3.5 5h-2.25v12h2.25l-3.5 5-3.5-5h2.25V6h-2.25zM17 1l3.5 5h-2.25v12h2.25l-3.5 5-3.5-5h2.25V6h-2.25z' fill='%23000' stroke='%23fff' stroke-width='2' stroke-linejoin='round' paint-order='stroke'/%3E%3C/svg%3E") 12 12, nwse-resize; }
+/* The rotate cursor over a rotate zone just outside a corner (plan 311): an arc round
+   that corner with an arrow at each end, black with a white keyline like the scale cursor,
+   so it reads on any surface in either theme. The four are one arrow in quarter turns;
+   `grab`, the rotate handle's own cursor, is the fallback. */
+.tool-stage[data-fc-cursor="rotate-ne"] { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cg transform='rotate(0 12 12)' stroke-linejoin='round'%3E%3Cpath d='M6 7a11 11 0 0 1 11 11' fill='none' stroke='%23fff' stroke-width='4.5'/%3E%3Cpath d='M2 7l5-3.5v7zM17 22l-3.5-5h7z' fill='%23000' stroke='%23fff' stroke-width='2' paint-order='stroke'/%3E%3Cpath d='M6 7a11 11 0 0 1 11 11' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/g%3E%3C/svg%3E") 12 12, grab; }
+.tool-stage[data-fc-cursor="rotate-se"] { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cg transform='rotate(90 12 12)' stroke-linejoin='round'%3E%3Cpath d='M6 7a11 11 0 0 1 11 11' fill='none' stroke='%23fff' stroke-width='4.5'/%3E%3Cpath d='M2 7l5-3.5v7zM17 22l-3.5-5h7z' fill='%23000' stroke='%23fff' stroke-width='2' paint-order='stroke'/%3E%3Cpath d='M6 7a11 11 0 0 1 11 11' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/g%3E%3C/svg%3E") 12 12, grab; }
+.tool-stage[data-fc-cursor="rotate-sw"] { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cg transform='rotate(180 12 12)' stroke-linejoin='round'%3E%3Cpath d='M6 7a11 11 0 0 1 11 11' fill='none' stroke='%23fff' stroke-width='4.5'/%3E%3Cpath d='M2 7l5-3.5v7zM17 22l-3.5-5h7z' fill='%23000' stroke='%23fff' stroke-width='2' paint-order='stroke'/%3E%3Cpath d='M6 7a11 11 0 0 1 11 11' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/g%3E%3C/svg%3E") 12 12, grab; }
+.tool-stage[data-fc-cursor="rotate-nw"] { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cg transform='rotate(270 12 12)' stroke-linejoin='round'%3E%3Cpath d='M6 7a11 11 0 0 1 11 11' fill='none' stroke='%23fff' stroke-width='4.5'/%3E%3Cpath d='M2 7l5-3.5v7zM17 22l-3.5-5h7z' fill='%23000' stroke='%23fff' stroke-width='2' paint-order='stroke'/%3E%3Cpath d='M6 7a11 11 0 0 1 11 11' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/g%3E%3C/svg%3E") 12 12, grab; }
+/* A transform drag holds its cursor: every element on the stage shows the stage's, so a
+   handle, a box or a panel the pointer crosses on the way does not swap it out. */
+.tool-stage[data-fc-cursor-held] * { cursor: inherit !important; }
+/* The large grab zone under the pointer, or under a finger's press (plan 311): a full
+   translucent wash over exactly the area where a press takes that zone, drawn from the
+   hit geometry itself (grab-zones.ts). It fills the whole zone, never one edge of it,
+   and sits under the outline and the handles. The accent token follows the theme. */
+.fc-zone {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  overflow: visible; pointer-events: none; animation: fc-zone-in 120ms ease-out;
+}
+.fc-zone polygon { fill: hsl(var(--primary) / 0.16); }
+@keyframes fc-zone-in { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .fc-zone { animation: none; }
+}
+html[data-a11y-motion="reduce"] .fc-zone { animation: none; }
 /* The size label beside a selection being resized or scaled: W x H, or Scale NN%. It
    repeats the object bar's readout next to the pointer for when the bar is hidden. */
 .fc-xform-label {

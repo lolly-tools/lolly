@@ -52,14 +52,14 @@ const rect = (left: number, top: number, width: number, height: number): DOMRect
   left, top, width, height, right: left + width, bottom: top + height, x: left, y: top, toJSON() { return this; },
 } as DOMRect);
 
-interface PointerOpts { id?: number; kind?: 'mouse' | 'touch' | 'pen'; shift?: boolean; alt?: boolean }
+interface PointerOpts { id?: number; kind?: 'mouse' | 'touch' | 'pen'; shift?: boolean; alt?: boolean; time?: number }
 function pointer(type: string, x: number, y: number, o: PointerOpts = {}): MouseEvent {
   const e = new W.MouseEvent(type, {
     bubbles: true, cancelable: true, clientX: x, clientY: y, button: 0, shiftKey: !!o.shift, altKey: !!o.alt,
   });
   Object.defineProperty(e, 'pointerId', { value: o.id ?? 1 });
   Object.defineProperty(e, 'pointerType', { value: o.kind ?? 'mouse' });
-  Object.defineProperty(e, 'timeStamp', { value: 0 });
+  Object.defineProperty(e, 'timeStamp', { value: o.time ?? 0 });
   Object.defineProperty(e, 'buttons', { value: type === 'pointermove' ? 1 : 0 });
   return e;
 }
@@ -456,13 +456,15 @@ test('a second finger landing on a handle cancels the drag and starts nothing of
     f.select(['a']);
     await settle();
     const released = captures(f);
-    f.canvasEl.dispatchEvent(pointer('pointerdown', 150, 150, { kind: 'touch', id: 1 }));
-    f.canvasEl.dispatchEvent(pointer('pointermove', 170, 160, { kind: 'touch', id: 1 }));
+    // The second finger comes down 400 ms after the first, past the 300 ms a pinch on the
+    // selection allows (free-canvas-two-finger.test.ts), so the pair is the stage's.
+    f.canvasEl.dispatchEvent(pointer('pointerdown', 150, 150, { kind: 'touch', id: 1, time: 1000 }));
+    f.canvasEl.dispatchEvent(pointer('pointermove', 170, 160, { kind: 'touch', id: 1, time: 1100 }));
     await settle();
     assert.equal(geom(f.el('a')), '120px 110px 100px 100px');
     const se = f.handle('se')!;
     const [x, y] = at(se);
-    se.dispatchEvent(pointer('pointerdown', x, y, { kind: 'touch', id: 2 }));
+    se.dispatchEvent(pointer('pointerdown', x, y, { kind: 'touch', id: 2, time: 1400 }));
     assert.equal(geom(f.el('a')), '100px 100px 100px 100px', 'the move was cancelled');
     assert.deepEqual(released, [1]);
     f.canvasEl.dispatchEvent(pointer('pointermove', x + 40, y + 40, { kind: 'touch', id: 2 }));
