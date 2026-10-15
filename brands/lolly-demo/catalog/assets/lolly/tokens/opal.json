@@ -27,7 +27,7 @@
     "color": {
       "$type": "color",
       "brand": {
-        "$description": "Opal's named colours. What each one is for travels in its tools.lolly.opal extension. Greens, the main brand hue (Spearmint, Bunyapine, Green Apple, and the lighter Wattle, Pandanus and Avocado), earth (Basalt, Bauxite, Bark), relief (Banksia, Honey, Olive), dramatic relief (Reef), treats (Donut, Waffle), light and ink (Sugar, Meringue, Beach, Pebble, Liquorice), the one purple (Jacaranda) and the reds Lolly needs as an app (Arvo, Outback, Ochre).",
+        "$description": "Opal's named colours. What each one is for travels in its tools.lolly.opal extension. Greens, the main brand hue (Spearmint, Bunyapine, Green Apple, and the lighter Wattle, Pandanus and Avocado), earth (Basalt, Bauxite, Bark), relief (Banksia, Honey, Olive), dramatic relief (Reef), treats (Donut, Waffle), light and ink (Sugar, Meringue, Beach, Pebble, Liquorice), the flowers (Jacaranda, and Fuchsia after Correa, the native fuchsia) and the reds Lolly needs as an app (Arvo, Outback, Ochre).",
         "spearmint": {
           "$value": "#033633",
           "$description": "Spearmint",
@@ -231,7 +231,16 @@
           "$description": "Jacaranda",
           "$extensions": {
             "tools.lolly.opal": {
-              "use": "The one purple, wherever it is the right colour. Bluer and softer than the GEN AI violet, which keeps its own signal."
+              "use": "The jacaranda's purple, wherever it is the right colour. An AI association is fine."
+            }
+          }
+        },
+        "fuchsia": {
+          "$value": "#c32e85",
+          "$description": "Fuchsia",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Correa, the native fuchsia: a vivid pink for celebrations, highlights and illustration. Sugar on Fuchsia 5.2:1, and 3.6:1 as a part on Liquorice."
             }
           }
         },

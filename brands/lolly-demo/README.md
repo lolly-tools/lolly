@@ -56,7 +56,7 @@ number. A tint keeps its parent's name (Liquorice raised, Liquorice panel).
 | Dramatic relief | Reef `#25c2c2` |
 | Treats | Donut `#f39dbd`, Waffle `#d8b890` |
 | Light and ink | Sugar `#ffffff`, Meringue `#f9f7ef`, Beach `#f2e1bf`, Pebble `#99a0a4`, Liquorice `#09141a` (raised `#121d24`, panel `#1c282f`) |
-| Purple | Jacaranda `#8182d3` |
+| Flowers | Jacaranda `#8182d3`, Fuchsia `#c32e85` |
 | Reds for the app | Arvo `#ef9275` (error text on dark), Outback `#c55123` (red earth, for charts), Ochre `#72251c` (error text on light under High contrast) |
 
 - **Light, the crystal chalice:** Liquorice text on Sugar (18.6:1), Spearmint
