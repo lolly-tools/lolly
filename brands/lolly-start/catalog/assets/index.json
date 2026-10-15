@@ -10,9 +10,9 @@
     {
       "id": "lolly/tokens/brand",
       "name": "Lolly Starter Tokens",
-      "description": "Ink-and-paper scaffolding shipped with the blank lolly-start profile: one neutral ramp (1 Ink through 9 Paper), light/dark semantic slots that all alias into it, and the default Lolly logo slots (asset.logo.*), so the colour picker, semantic CSS vars and the brand hero all resolve real values while the palette stays colourless. A design system grows by adding colours in the start studio. Replace the lot via the start wizard or 'npm run ingest:brand'.",
+      "description": "Ink-and-paper scaffolding shipped with the blank lolly-start profile: one neutral ramp (1 Ink through 9 Paper), light/dark semantic slots that all alias into it, the default Lolly logo slots (asset.logo.*) and Lolly's newsprint app chrome as color.chrome.* roles, so the colour picker, semantic CSS vars and the brand hero all resolve real values while the palette stays colourless. A design system grows by adding colours in the start studio. Replace the lot via the start wizard or 'npm run ingest:brand'.",
       "type": "tokens",
-      "version": "2.0.0",
+      "version": "2.1.0",
       "tier": "core",
       "tags": [
         "tokens",
@@ -23,8 +23,8 @@
         {
           "format": "json",
           "url": "/catalog/assets/lolly/tokens/brand.json",
-          "checksum": "sha256-T6yeljG5VDXxbvti0vSHG2mtZamIfJYMOwpYzX0kNEU=",
-          "size": 10852
+          "checksum": "sha256-2GucFfihO8ur4Cc7uUmY/BYqfxonbGQ5PPD/Me4Pz+w=",
+          "size": 13420
         }
       ],
       "added": "2026-07-08"

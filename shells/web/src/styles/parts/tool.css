@@ -78,7 +78,8 @@
    lands, with a one-shot flash to draw the eye. The resting amber persists until
    the user saves (markSessionSaved removes the class). No --warning token exists
    (see tool-chrome.css's aspect-ratio warning), so this is --brand-warn - the
-   ACTIVE BRAND's own colour closest in hue to red/yellow, scanned + kept current
+   pack's declared unsaved colour (`color.chrome.unsaved`) or else the ACTIVE
+   BRAND's own colour closest in hue to red/yellow, scanned + kept current
    by brand-vars.ts's nearestWarmHex (recomputed on every brand change, so a
    user's own colour choice takes over automatically) - with the static Amber
    #b28727 (src/palette.ts) as the tokenless fallback. --brand-warn-ink is

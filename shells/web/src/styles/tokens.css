@@ -574,7 +574,9 @@
    before boot and when "Interface follows the design system" is off; with it
    on (the default), brand-vars.ts re-constructs this block at runtime from any
    pack whose `color.semantic.*` primaries resolve (see brandThemeCss). The
-   suse and lolly-start packs both declare them. */
+   suse and lolly-start packs both declare them. A pack may replace the light
+   and dark surfaces through a `color.chrome.*` group, and the brand surfaces
+   only when its document declares a theme named `brand` (lib/brand-chrome.ts). */
 [data-theme="brand"] {
   color-scheme: dark;
 
@@ -699,6 +701,12 @@
       block always declares `color-scheme: dark` and its lightness stops are
       fixed at OKLCH L .29–.40, i.e. never a light ground: white ink measures
       APCA Lc 94+ against the worst hue at the lightest stop.
+    • A pack's LIGHT and DARK chrome (`color.chrome.*`, lib/brand-chrome.ts).
+      brand-vars.ts excludes those blocks under High contrast, so the blocks
+      below govern the whole room there and Lolly's measured High contrast
+      surfaces hold for every pack. A pack's brand chrome (only from a document
+      that declares a `brand` theme) stays in force, and the brand block below
+      wins over its inks and edges.
 
    Numbers below are APCA Lc (0.98G-4g), sign dropped; the bar is Lc ≥ 75 for
    body text and ≥ 90 for the main ink-on-background pair. This is a CONTRAST
