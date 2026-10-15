@@ -140,6 +140,23 @@ requires every discovered file to finish exactly once at the checked-out source,
 all four complete reports, and the exact reviewed skips. A timing estimate cannot
 excuse a missing, failed or cancelled test.
 
+Each runner still warms the source and production Design shells and checks its
+WebGPU adapter. Geometry and drawing conformance keep their existing owners.
+The theme, motion-sample export and open-route feature files run first within
+their assigned browser partitions, followed by the other files alphabetically.
+Node's programmatic test runner preserves that order with one isolated process
+per file and serial execution; the existing execution and skip reporter records
+the complete partition. These feature files no longer run an extra time on every
+runner. Their assertions, partition membership and qualification requirements
+are unchanged. A failure is reported from the required shard, whose remaining
+files continue to run, instead of stopping that runner's setup step.
+
+In successful CI run `38630325392`, the removed duplicate step took 203, 202,
+260 and 166 seconds across partitions 1 through 4: 831 runner-seconds in total.
+That is recorded redundant work, not a measured full-CI saving from this change.
+Queueing, runtime variance and the other required jobs still determine elapsed
+qualification time; a fresh hosted run must establish the wall-clock result.
+
 The 2026-10-14 merge batch exposed a large imbalance in alphabetical round-robin
 assignment. Replaying each run's discovered inventory and recorded file durations
 with the checked-in, rounded-millisecond median profile gives:

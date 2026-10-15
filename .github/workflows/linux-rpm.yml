@@ -23,6 +23,7 @@ jobs:
     uses: ./.github/workflows/release-frontend.yml
     with:
       target: tauri-desktop
+      platform: linux
       public_key_jwk: ${{ vars.VITE_CATALOG_PUBLIC_KEY_JWK }}
       connector_origins: ${{ vars.VITE_CONNECTOR_ORIGINS }}
       ca_enrollment_trust_json: ${{ vars.VITE_CA_ENROLLMENT_TRUST_JSON }}
@@ -41,6 +42,9 @@ jobs:
         target: [tumbleweed, leap16]
     env:
       LOLLY_RELEASE_FRONTEND_PHASE: verified-artifact
+      # The RPM job runs the frontend wrapper itself rather than through tauri build, so
+      # it states the platform whose WebGPU row the packages need.
+      LOLLY_RELEASE_PLATFORM: linux
       VITE_CATALOG_PUBLIC_KEY_JWK: ${{ vars.VITE_CATALOG_PUBLIC_KEY_JWK }}
       LOLLY_PROFILE: lolly-start
       LOLLY_EMBED_CATALOG: profile

@@ -3776,7 +3776,7 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
   pointer-events: none;
 }
 /* The brand-hued Lolly mark that pops out on top of the swirl at ~70% of the
-   close. Centred; lib/shutter.ts sets its width (18% of the stage's smaller
+   close. Centred; lib/shutter.ts sets its width (28% of the stage's smaller
    side), opacity and pop scale each frame. */
 .export-shutter__mark {
   position: absolute;

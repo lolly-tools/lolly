@@ -17,7 +17,7 @@ import { spawnSync } from 'node:child_process';
 import { parseConnectorOrigins } from '../packages/core/src/connector-origins.ts';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { assertWebGpuReleaseAllowed, webGpuReleaseProblems } from './webgpu-release-gate.ts';
+import { assertWebGpuReleaseAllowed, isWebGpuNativePlatform, webGpuReleaseProblems, type WebGpuNativePlatform, type WebGpuReleaseScope } from './webgpu-release-gate.ts';
 import { announceQualificationBuild, assertQualificationAllowed, isQualificationBuild, writeMarker } from './webgpu-qualification.ts';
 
 const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
@@ -28,6 +28,40 @@ const TAURI_DIR: Record<Exclude<ReleaseFrontend, 'web'>, string> = {
   'tauri-desktop': 'shells/tauri-desktop',
   'tauri-mobile': 'shells/tauri-mobile',
 };
+
+/** The platforms each packaged frontend is built for, and Tauri's spelling of each. */
+const TARGET_PLATFORMS: Record<Exclude<ReleaseFrontend, 'web'>, readonly WebGpuNativePlatform[]> = {
+  'tauri-desktop': ['macos', 'linux', 'windows'],
+  'tauri-mobile': ['ios', 'android'],
+};
+const TAURI_PLATFORM: Readonly<Record<string, WebGpuNativePlatform>> = { darwin: 'macos', ios: 'ios', android: 'android', linux: 'linux', windows: 'windows' };
+const HOST_PLATFORM: Readonly<Record<string, WebGpuNativePlatform>> = { darwin: 'macos', linux: 'linux', win32: 'windows' };
+
+/**
+ * The WebGPU gate scope for one frontend build. Each packaged app needs only its own
+ * platform's row (Andy, 2026-10-15). Tauri states the platform a package is for in
+ * TAURI_ENV_PLATFORM when it runs beforeBuildCommand; a workflow that compiles the
+ * frontend before Tauri runs states it in LOLLY_RELEASE_PLATFORM. When both are set
+ * they must agree, and a desktop package built by Tauri must be for the machine
+ * doing the build. A native build that states no platform keeps the full hold.
+ */
+export function releaseGateScope(target: ReleaseFrontend, env: NodeJS.ProcessEnv = process.env, host: string = process.platform): WebGpuReleaseScope {
+  if (target === 'web') return 'web';
+  const tauri = env.TAURI_ENV_PLATFORM;
+  const fromTauri = tauri && Object.hasOwn(TAURI_PLATFORM, tauri) ? TAURI_PLATFORM[tauri] : undefined;
+  if (tauri && !fromTauri) throw new Error(`Release refused: unknown TAURI_ENV_PLATFORM "${tauri}".`);
+  let stated: WebGpuNativePlatform | undefined;
+  if (env.LOLLY_RELEASE_PLATFORM) {
+    if (!isWebGpuNativePlatform(env.LOLLY_RELEASE_PLATFORM)) throw new Error(`Release refused: unknown LOLLY_RELEASE_PLATFORM "${env.LOLLY_RELEASE_PLATFORM}".`);
+    stated = env.LOLLY_RELEASE_PLATFORM;
+  }
+  if (fromTauri && stated && fromTauri !== stated) throw new Error(`Release refused: LOLLY_RELEASE_PLATFORM is ${stated}, but Tauri is building for ${fromTauri}.`);
+  const platform = fromTauri ?? stated;
+  if (!platform) return 'all';
+  if (!TARGET_PLATFORMS[target].includes(platform)) throw new Error(`Release refused: ${target} is not built for ${platform} (expected ${TARGET_PLATFORMS[target].join(', ')}).`);
+  if (target === 'tauri-desktop' && fromTauri && (!Object.hasOwn(HOST_PLATFORM, host) || HOST_PLATFORM[host] !== fromTauri)) throw new Error(`Release refused: Tauri reports a ${fromTauri} package on a ${host} machine.`);
+  return platform;
+}
 
 export function validateReleaseEnvironment(env: NodeJS.ProcessEnv, signing = true): void {
   parseConnectorOrigins(env.VITE_CONNECTOR_ORIGINS ?? '');
@@ -135,7 +169,7 @@ export function qualificationMain(target: ReleaseFrontend, env: NodeJS.ProcessEn
 export async function main(): Promise<void> {
   const target = parseReleaseFrontend(process.argv[2]);
   if (isQualificationBuild(process.env)) { qualificationMain(target); return; }
-  assertWebGpuReleaseAllowed(ROOT, target === 'web' ? 'web' : 'all');
+  assertWebGpuReleaseAllowed(ROOT, releaseGateScope(target));
   const phase = process.env.LOLLY_RELEASE_FRONTEND_PHASE ?? 'combined';
   if (!['combined', 'build', 'verified-artifact'].includes(phase)) throw new Error('Unknown release frontend phase.');
   validateReleaseEnvironment(process.env, phase === 'combined');
