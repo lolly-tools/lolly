@@ -595,5 +595,89 @@
         }
       }
     }
+  },
+  "$extensions": {
+    "com.suse.lolly": {
+      "emoji": {
+        "schemaVersion": 1,
+        "primary": {
+          "id": "community/emoji/fluent/flat",
+          "pin": {
+            "version": "2026.8.24"
+          },
+          "checksum": "sha256:b64f604e6977245bc79b99468a12ecccada32822cf74bbe7cb0cc34fca14b62f"
+        },
+        "fallbacks": [],
+        "metricsPolicy": "inline-em-v1",
+        "treatment": {
+          "mode": "snap",
+          "strengthBps": 10000,
+          "palette": [
+            { "id": "{color.brand.spearmint}", "hex": "#033633" },
+            { "id": "{color.brand.bunyapine}", "hex": "#008657" },
+            { "id": "{color.brand.green-apple}", "hex": "#50c369" },
+            { "id": "{color.brand.wattle}", "hex": "#fdec9e" },
+            { "id": "{color.brand.pandanus}", "hex": "#ace1ad" },
+            { "id": "{color.brand.avocado}", "hex": "#edf6e0" },
+            { "id": "{color.brand.basalt}", "hex": "#373e44" },
+            { "id": "{color.brand.bauxite}", "hex": "#a43427" },
+            { "id": "{color.brand.bark}", "hex": "#734f31" },
+            { "id": "{color.brand.banksia}", "hex": "#ee9138" },
+            { "id": "{color.brand.honey}", "hex": "#fac044" },
+            { "id": "{color.brand.olive}", "hex": "#818e44" },
+            { "id": "{color.brand.reef}", "hex": "#25c2c2" },
+            { "id": "{color.brand.donut}", "hex": "#f39dbd" },
+            { "id": "{color.brand.pancake}", "hex": "#d8b890" },
+            { "id": "{color.brand.daylight}", "hex": "#ffffff" },
+            { "id": "{color.brand.sugar}", "hex": "#ffffff" },
+            { "id": "{color.brand.meringue}", "hex": "#f9f7ef" },
+            { "id": "{color.brand.beach}", "hex": "#f2e1bf" },
+            { "id": "{color.brand.pebble}", "hex": "#99a0a4" },
+            { "id": "{color.brand.liquorice}", "hex": "#09141a" },
+            { "id": "{color.brand.void}", "hex": "#000000" },
+            { "id": "{color.brand.liquorice-raised}", "hex": "#121d24" },
+            { "id": "{color.brand.liquorice-panel}", "hex": "#1c282f" },
+            { "id": "{color.brand.jacaranda}", "hex": "#8182d3" },
+            { "id": "{color.brand.fuchsia}", "hex": "#c32e85" },
+            { "id": "{color.brand.arvo}", "hex": "#ef9275" },
+            { "id": "{color.brand.outback}", "hex": "#c55123" },
+            { "id": "{color.brand.ochre}", "hex": "#72251c" },
+            { "id": "{color.spectrum.green-apple}", "hex": "#50c369" },
+            { "id": "{color.spectrum.reef}", "hex": "#25c2c2" },
+            { "id": "{color.spectrum.honey}", "hex": "#fac044" },
+            { "id": "{color.spectrum.donut}", "hex": "#f39dbd" },
+            { "id": "{color.spectrum.banksia}", "hex": "#ee9138" },
+            { "id": "{color.spectrum.olive}", "hex": "#818e44" },
+            { "id": "{color.spectrum.outback}", "hex": "#c55123" },
+            { "id": "{color.spectrum.bark}", "hex": "#734f31" },
+            { "id": "{color.semantic.primary}", "hex": "#033633" },
+            { "id": "{color.semantic.on-primary}", "hex": "#ffffff" },
+            { "id": "{color.semantic.secondary}", "hex": "#008657" },
+            { "id": "{color.semantic.surface}", "hex": "#ffffff" },
+            { "id": "{color.semantic.text}", "hex": "#09141a" },
+            { "id": "{color.semantic.muted}", "hex": "#373e44" },
+            { "id": "{color.semantic.edge}", "hex": "#99a0a4" },
+            { "id": "{color.role.muted-ink}", "hex": "#373e44" },
+            { "id": "{color.role.secondary-ink}", "hex": "#373e44" },
+            { "id": "{color.role.strong-card-ink}", "hex": "#09141a" },
+            { "id": "{color.role.accent-ink}", "hex": "#033633" },
+            { "id": "{color.role.accent}", "hex": "#008657" },
+            { "id": "{color.role.alert-ink}", "hex": "#a43427" },
+            { "id": "{color.role.hairline}", "hex": "#99a0a4" },
+            { "id": "{color.role.card-hairline}", "hex": "#99a0a4" },
+            { "id": "{color.role.track}", "hex": "#ace1ad" },
+            { "id": "{color.role.card}", "hex": "#edf6e0" },
+            { "id": "{color.role.quiet-card}", "hex": "#edf6e0" },
+            { "id": "{color.role.mint-card}", "hex": "#ace1ad" },
+            { "id": "{color.role.strong-card}", "hex": "#fdec9e" },
+            { "id": "{color.role.alert-card}", "hex": "#f2e1bf" },
+            { "id": "{color.role.quiet-alert-card}", "hex": "#f9f7ef" },
+            { "id": "{color.role.alert-tint}", "hex": "#ef9275" },
+            { "id": "{color.role.alt-surface}", "hex": "#edf6e0" }
+          ],
+          "recipe": "emoji-treatment-v1"
+        }
+      }
+    }
   }
 }

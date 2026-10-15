@@ -36,6 +36,14 @@ deployment handoff with one named owner.
 - **Palette documents derived from Opal**: `lolly/palette/opal-photo-treatments`
   and `lolly/palette/opal-icon-themes`, made with the same engine functions
   `scripts/ingest-brand.ts` uses (`engine/src/brand-treatments.ts`).
+- **Emoji: Fluent Emoji Flat at Full palette influence.** Opal's tokens carry
+  the pack's emoji style in `$extensions['com.suse.lolly'].emoji`, which
+  `brandEmojiStyle` (`engine/src/emoji-default.ts`) reads: the Fluent Emoji Flat
+  2026.8.24 set, with the Palette influence control's "Full" setting (`snap`),
+  so every paint moves to its nearest Opal colour while skin tones, flags and
+  custom symbols keep their own. A link's choice or a saved session's own style
+  still comes first. The style pins the 61 colours the token bridge lists for
+  Opal, so rewrite the block after a colour change.
 - **No font files.** Outfit (headings), SUSE (text and italics) and SUSE Mono
   (code) are all served by the web shell from `shells/web/public/fonts/`, as for
   `lolly-start`.
