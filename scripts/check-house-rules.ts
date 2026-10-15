@@ -23,8 +23,9 @@
  * may only go down, the same three-way ratchet as check-code-comment-vernacular.ts:
  * a rise fails, a new file or rule with findings fails and a fall fails until
  * recorded. Reviewed exceptions (real drop areas and a few shapes the corner
- * logic misreads) live in scripts/data/house-rules-allow.json, matched on file,
- * rule and selector so edits elsewhere in a sheet never break an entry.
+ * logic misreads, plus the dashed editing guides and overlays Andy approved)
+ * live in scripts/data/house-rules-allow.json, matched on file, rule and
+ * selector so edits elsewhere in a sheet never break an entry.
  *
  *   node scripts/check-house-rules.ts            check (exit 1 on drift)
  *   node scripts/check-house-rules.ts --write    record a reviewed fall (refuses a rise)
