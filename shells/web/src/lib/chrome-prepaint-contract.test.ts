@@ -6,7 +6,7 @@
  * paints to localStorage['brand-chrome']; index.html's theme script restores that
  * text before the first paint, after checking every line of the text. This suite takes
  * the theme script out of index.html (from the "Apply saved theme" comment to its
- * closing tag), runs it in node:vm against a small fake document and storage, and
+ * closing tag), runs it in node:vm against a small fake document and storage and
  * holds three things:
  *
  *   1. every sheet chromeBrandCss emits for the fixtures below is restored exactly,
