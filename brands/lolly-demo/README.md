@@ -54,8 +54,9 @@ deployment handoff with one named owner.
 - **No tools of its own.** Every tool comes from `community/`; `tools/` holds a
   README so the profile can mount the pack the same way it mounts a brand that
   does carry tools.
-- **Share cards in Opal's own designs.** Opal's tokens also declare
-  `$extensions['com.suse.lolly'].shareCards: "opal"`, so the card generator
+- **Lolly Demo's own share cards.** The tokens also declare
+  `$extensions['com.suse.lolly'].shareCards: "opal"`, the card designs drawn in
+  the Opal palette, so the card generator
   (`docs/og-image.ts` with `docs/og-opal.ts`) draws the brand page's house, tool
   and stage cards for this pack rather than putting it on its dark theme's
   Liquorice surface. `catalog/og/og.png` is the house landing card, which a build
