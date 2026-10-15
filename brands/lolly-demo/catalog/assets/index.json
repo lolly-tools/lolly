@@ -34,7 +34,7 @@
       "name": "Lolly Mark - Primary",
       "description": "The Lolly swirl mark, full colour, for light backgrounds. The blank starter's default logo (square, so it serves both the horizontal and vertical slots). Replace it with your own in the #/start Brand studio.",
       "type": "vector",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "tier": "core",
       "tags": [
         "logo",
@@ -46,8 +46,8 @@
         {
           "format": "svg",
           "url": "/catalog/assets/lolly/logo/primary.svg",
-          "checksum": "sha256-NWmujlVZ1zygr2em+Zf3aFJUrr3l1OJK9w2O7Sz+8rY=",
-          "size": 19479
+          "checksum": "sha256-8HTE8PuMLyvd20WJNt4pJe3s2exmYzeMHNB0dRVnH0A=",
+          "size": 16526
         }
       ],
       "added": "2026-08-23"
