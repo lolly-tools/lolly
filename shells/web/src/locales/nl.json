@@ -2663,7 +2663,6 @@
   "Leave this empty unless you do not trust the place you sync to. With a passphrase, your data is encrypted on this device before upload, and every device needs the same passphrase. If it is lost, the synced copies cannot be opened.": "Leave this empty unless you do not trust the place you sync to. With a passphrase, your data is encrypted on this device before upload, and every device needs the same passphrase. If it is lost, the synced copies cannot be opened.",
   "Leave this instance?": "Deze instantie verlaten?",
   "Leave this member out of the copy": "Leave this member out of the copy",
-  "Leave without saving": "Verlaten zonder op te slaan",
   "Left inset": "Binnenmarge links",
   "Left offset": "Afstand links",
   "Left out because the source artwork was refused:": "Left out because the source artwork was refused:",
@@ -5993,7 +5992,6 @@
   "You can manage these any time from your Profile, under “Available offline”. Voice and other models download automatically the first time you use them.": "Je kunt deze op elk moment beheren via je Profiel, onder “Offline beschikbaar”. Spraak- en andere modellen worden automatisch gedownload de eerste keer dat je ze gebruikt.",
   "You can only replace this with the same kind of file (for example, an image with an image).": "Je kunt dit alleen vervangen door hetzelfde soort bestand (bijvoorbeeld een afbeelding met een afbeelding).",
   "You can save up to eight scenes. Delete one to add another.": "You can save up to eight scenes. Delete one to add another.",
-  "You have unsaved changes. <br>Would you like to save before leaving?": "Je hebt niet-opgeslagen wijzigingen. <br>Wil je opslaan voordat je vertrekt?",
   "You hold rates for this job. Show costs?": "Je hebt tarieven voor deze klus. Kosten tonen?",
   "Your LUT": "Jouw LUT",
   "Your LinkedIn session ended - connect again in Profile": "Je LinkedIn-sessie is verlopen - verbind opnieuw in Profiel",
@@ -7404,8 +7402,6 @@
   "Your role on {workspace} lets you view only. Ask an admin of {workspace} to change your role.": "Met je rol in {workspace} kun je alleen bekijken. Vraag een beheerder van {workspace} om je rol te wijzigen.",
   "This is view only. Make a copy to keep your changes.": "Dit is alleen-lezen. Maak een kopie om je wijzigingen te bewaren.",
   "Save changes to {project}?": "Wijzigingen opslaan in {project}?",
-  "Leave without saving keeps your changes on this device.": "Als je vertrekt zonder op te slaan, blijven je wijzigingen op dit apparaat bewaard.",
-  "Stay": "Blijven",
   "Save a copy on this device": "Kopie op dit apparaat bewaren",
   "Copy saved on this device.": "Kopie op dit apparaat bewaard.",
   "Where should the copy go?": "Waar moet de kopie komen?",
@@ -7925,5 +7921,8 @@
   "No transition tokens in this context.": "No transition tokens in this context.",
   "Applies Enter duration and geometry easing. Opacity keeps the preset easing.": "Applies Enter duration and geometry easing. Opacity keeps the preset easing.",
   "This layer timing control cannot apply a delay. Choose a transition with zero delay.": "This layer timing control cannot apply a delay. Choose a transition with zero delay.",
-  "Reading transition tokens…": "Reading transition tokens…"
+  "Reading transition tokens…": "Reading transition tokens…",
+  "Unsaved edits": "Niet-opgeslagen bewerkingen",
+  "Save now or abandon your changes.": "Sla nu op of verwerp je wijzigingen.",
+  "Leave anyway": "Toch verlaten"
 }

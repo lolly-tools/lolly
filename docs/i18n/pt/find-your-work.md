@@ -73,7 +73,7 @@ O que volta depende de como você saiu e de qual ferramenta você usou:
 
 - **Você fechou a aba, ou voltou outra hora.** O trabalho não salvo se foi, exceto nas [ferramentas que salvam enquanto você trabalha](#which-tools-save-as-you-work): abra esse trabalho em **Projetos**.
 - **Você recarregou a página na mesma aba.** Suas configurações voltam a partir do endereço da página. Em ferramentas que não salvam enquanto você trabalha, imagens e arquivos que você adicionou do seu dispositivo, e texto de uma linha com mais de 150 caracteres, não voltam, porque o endereço não os guarda.
-- **Você pressionou Home, ou o botão de voltar no canto superior esquerdo.** Se você mudou algo desde a última vez que salvou, baixou ou copiou, um diálogo de **Alterações não salvas** pergunta se quer salvar primeiro. **Salvar & sair** salva o trabalho e leva você a **Projetos**, ou de volta à pasta do projeto de onde você abriu o trabalho. **Sair sem salvar** descarta suas alterações: um item salvo volta a como você o salvou pela última vez, e uma criação nunca salva sai de **Projetos**. **Cancelar** mantém você na ferramenta.
+- **Você pressionou Home, ou o botão de voltar no canto superior esquerdo.** Se você mudou algo desde a última vez que salvou, baixou ou copiou, um diálogo de **Edições não salvas** pergunta se quer salvar primeiro. **Salvar & sair** salva o trabalho e leva você a **Projetos**, ou de volta à pasta do projeto de onde você abriu o trabalho. **Sair mesmo assim** descarta suas alterações: um item salvo volta a como você o salvou pela última vez, e uma criação nunca salva sai de **Projetos**. **Cancelar** mantém você na ferramenta.
 
 O Lolly só pergunta quando você pressiona **Home** ou o botão de voltar em uma ferramenta. Fechar a aba, recarregar e o próprio botão Voltar do navegador nunca perguntam. Para garantir, pressione **Salvar como**, ou **Salvar** no painel de exportação, antes de sair de uma ferramenta.
 
@@ -89,7 +89,7 @@ No app web, toda ferramenta que produz um documento salva enquanto você trabalh
 - 3D e Darkroom, que recebem um arquivo próprio;
 - uma ferramenta sem nada a mudar, como Countdown.
 
-Nas outras ferramentas, sua primeira mudança arquiva o trabalho em **Projetos** como se você tivesse salvo, e mudanças posteriores são mantidas enquanto você trabalha, assim que a ferramenta termina de desenhar. Então uma criação não salva continua em Projetos depois que você fecha a aba, e reabre com suas alterações marcadas como não salvas. **Sair sem salvar** ainda assim as descarta, e o Histórico guarda uma cópia das edições descartadas por 30 dias. Abrir a ferramenta de novo pela tela inicial começa uma nova criação; abra a anterior em Projetos.
+Nas outras ferramentas, sua primeira mudança arquiva o trabalho em **Projetos** como se você tivesse salvo, e mudanças posteriores são mantidas enquanto você trabalha, assim que a ferramenta termina de desenhar. Então uma criação não salva continua em Projetos depois que você fecha a aba, e reabre com suas alterações marcadas como não salvas. **Sair mesmo assim** as descarta do mesmo jeito, e o Histórico guarda uma cópia das edições descartadas por 30 dias. Abrir a ferramenta de novo pela tela inicial começa uma nova criação; abra a anterior em Projetos.
 
 Com a [Sincronização](/info/sync.html) ativada, uma criação arquivada dessa forma vai para seus outros dispositivos como qualquer outra coisa em Projetos. Suas versões ficam no dispositivo onde foram feitas.
 

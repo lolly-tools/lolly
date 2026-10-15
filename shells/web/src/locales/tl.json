@@ -2663,7 +2663,6 @@
   "Leave this empty unless you do not trust the place you sync to. With a passphrase, your data is encrypted on this device before upload, and every device needs the same passphrase. If it is lost, the synced copies cannot be opened.": "Leave this empty unless you do not trust the place you sync to. With a passphrase, your data is encrypted on this device before upload, and every device needs the same passphrase. If it is lost, the synced copies cannot be opened.",
   "Leave this instance?": "Umalis sa instance na ito?",
   "Leave this member out of the copy": "Leave this member out of the copy",
-  "Leave without saving": "Umalis nang hindi nagse-save",
   "Left inset": "Panloob na agwat sa kaliwa",
   "Left offset": "Offset sa kaliwa",
   "Left out because the source artwork was refused:": "Left out because the source artwork was refused:",
@@ -5993,7 +5992,6 @@
   "You can manage these any time from your Profile, under “Available offline”. Voice and other models download automatically the first time you use them.": "Kaya mong pamahalaan ang mga ito anumang oras mula sa Profile mo, sa ilalim ng \"Available offline\". Automatic na nagda-download ang Voice at ibang models sa unang gamit mo sa mga ito.",
   "You can only replace this with the same kind of file (for example, an image with an image).": "Puwede mo lang itong palitan ng parehong uri ng file (halimbawa, image sa image).",
   "You can save up to eight scenes. Delete one to add another.": "You can save up to eight scenes. Delete one to add another.",
-  "You have unsaved changes. <br>Would you like to save before leaving?": "May mga hindi mo pa na-save na pagbabago. <br>Gusto mo bang mag-save bago umalis?",
   "You hold rates for this job. Show costs?": "May hawak kang rate para sa trabahong ito. Ipakita ang mga cost?",
   "Your LUT": "Ang LUT mo",
   "Your LinkedIn session ended - connect again in Profile": "Natapos ang LinkedIn session mo - mag-connect ulit sa Profile",
@@ -7404,8 +7402,6 @@
   "Your role on {workspace} lets you view only. Ask an admin of {workspace} to change your role.": "Pantingin lang ang pinapayagan ng role mo sa {workspace}. Hilingin sa admin ng {workspace} na baguhin ang role mo.",
   "This is view only. Make a copy to keep your changes.": "Pantingin lang ito. Gumawa ng kopya para mapanatili ang mga pagbabago mo.",
   "Save changes to {project}?": "I-save ang mga pagbabago sa {project}?",
-  "Leave without saving keeps your changes on this device.": "Kapag umalis nang hindi nagse-save, mananatili ang mga pagbabago mo sa device na ito.",
-  "Stay": "Manatili",
   "Save a copy on this device": "Mag-save ng kopya sa device na ito",
   "Copy saved on this device.": "Na-save ang kopya sa device na ito.",
   "Where should the copy go?": "Saan ilalagay ang kopya?",
@@ -7925,5 +7921,8 @@
   "No transition tokens in this context.": "No transition tokens in this context.",
   "Applies Enter duration and geometry easing. Opacity keeps the preset easing.": "Applies Enter duration and geometry easing. Opacity keeps the preset easing.",
   "This layer timing control cannot apply a delay. Choose a transition with zero delay.": "This layer timing control cannot apply a delay. Choose a transition with zero delay.",
-  "Reading transition tokens…": "Reading transition tokens…"
+  "Reading transition tokens…": "Reading transition tokens…",
+  "Unsaved edits": "Mga hindi na-save na edit",
+  "Save now or abandon your changes.": "Mag-save ngayon o itapon ang mga pagbabago mo.",
+  "Leave anyway": "Umalis pa rin"
 }

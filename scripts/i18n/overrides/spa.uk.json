@@ -1037,8 +1037,6 @@
   "Your role on {workspace} lets you view only. Ask an admin of {workspace} to change your role.": "Ваша роль у {workspace} дає лише перегляд. Попросіть адміністратора {workspace} змінити вашу роль.",
   "This is view only. Make a copy to keep your changes.": "Це лише перегляд. Створіть копію, щоб зберегти свої зміни.",
   "Save changes to {project}?": "Зберегти зміни в {project}?",
-  "Leave without saving keeps your changes on this device.": "Якщо вийти без збереження, ваші зміни залишаться на цьому пристрої.",
-  "Stay": "Залишитися",
   "Save a copy on this device": "Зберегти копію на цьому пристрої",
   "Copy saved on this device.": "Копію збережено на цьому пристрої.",
   "Where should the copy go?": "Куди помістити копію?",
@@ -1345,5 +1343,8 @@
   "WebGPU initialisation timed out. Reload Lolly to try again.": "Час ініціалізації WebGPU вичерпано. Перезавантажте Lolly, щоб спробувати ще раз.",
   "WebGPU initialisation expired. Reload Lolly to try again.": "Термін ініціалізації WebGPU минув. Перезавантажте Lolly, щоб спробувати ще раз.",
   "The graphics device was lost. Reload Lolly to reconnect.": "Графічний пристрій втрачено. Перезавантажте Lolly, щоб підключитися знову.",
-  "Reload": "Перезавантажити"
+  "Reload": "Перезавантажити",
+  "Unsaved edits": "Незбережені правки",
+  "Save now or abandon your changes.": "Збережіть зараз або відмовтеся від змін.",
+  "Leave anyway": "Все одно вийти"
 }

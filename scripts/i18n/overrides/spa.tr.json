@@ -1037,8 +1037,6 @@
   "Your role on {workspace} lets you view only. Ask an admin of {workspace} to change your role.": "{workspace} içindeki rolün yalnızca görüntülemeye izin veriyor. Rolünü değiştirmesi için {workspace} yöneticisine başvur.",
   "This is view only. Make a copy to keep your changes.": "Bu yalnızca görüntüleme modu. Değişikliklerini korumak için bir kopya oluştur.",
   "Save changes to {project}?": "Değişiklikler {project} projesine kaydedilsin mi?",
-  "Leave without saving keeps your changes on this device.": "Kaydetmeden ayrılırsan değişikliklerin bu cihazda kalır.",
-  "Stay": "Kal",
   "Save a copy on this device": "Bu cihaza bir kopya kaydet",
   "Copy saved on this device.": "Kopya bu cihaza kaydedildi.",
   "Where should the copy go?": "Kopya nereye gitsin?",
@@ -1345,5 +1343,8 @@
   "WebGPU initialisation timed out. Reload Lolly to try again.": "WebGPU başlatma işlemi zaman aşımına uğradı. Tekrar denemek için Lolly'yi yeniden yükle.",
   "WebGPU initialisation expired. Reload Lolly to try again.": "WebGPU başlatma işleminin süresi doldu. Tekrar denemek için Lolly'yi yeniden yükle.",
   "The graphics device was lost. Reload Lolly to reconnect.": "Grafik aygıtıyla bağlantı kesildi. Yeniden bağlanmak için Lolly'yi yeniden yükle.",
-  "Reload": "Yeniden yükle"
+  "Reload": "Yeniden yükle",
+  "Unsaved edits": "Kaydedilmemiş düzenlemeler",
+  "Save now or abandon your changes.": "Şimdi kaydet ya da değişikliklerinden vazgeç.",
+  "Leave anyway": "Yine de çık"
 }

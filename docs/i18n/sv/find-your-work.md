@@ -73,7 +73,7 @@ Vad som kommer tillbaka beror på hur du lämnade och vilket verktyg du använde
 
 - **Du stängde fliken, eller kom tillbaka en annan gång.** Osparat arbete är borta, förutom i [de verktyg som sparar medan du arbetar](#which-tools-save-as-you-work): öppna det arbetet från **Projekt**.
 - **Du laddade om sidan i samma flik.** Dina inställningar kommer tillbaka från sidans adress. I verktyg som inte sparar medan du arbetar kommer bilder och filer du lagt till från din enhet, samt enradig text längre än 150 tecken, inte tillbaka, eftersom adressen inte rymmer dem.
-- **Du tryckte på Hem, eller bakåtknappen längst upp till vänster.** Om du ändrat något sedan du senast sparade, laddade ner eller kopierade, frågar dialogen **Osparade ändringar** om du vill spara först. **Spara & lämna** sparar arbetet och tar dig till **Projekt**, eller tillbaka till den projektmapp du öppnade arbetet från. **Lämna utan att spara** kastar dina ändringar: ett sparat objekt återgår till hur du senast sparade det, och en skapelse du aldrig sparade lämnar **Projekt**. **Avbryt** håller dig kvar i verktyget.
+- **Du tryckte på Hem, eller bakåtknappen längst upp till vänster.** Om du ändrat något sedan du senast sparade, laddade ner eller kopierade, frågar dialogen **Osparade redigeringar** om du vill spara först. **Spara & lämna** sparar arbetet och tar dig till **Projekt**, eller tillbaka till den projektmapp du öppnade arbetet från. **Lämna ändå** kastar dina ändringar: ett sparat objekt återgår till hur du senast sparade det, och en skapelse du aldrig sparade lämnar **Projekt**. **Avbryt** håller dig kvar i verktyget.
 
 Lolly frågar bara när du trycker på **Hem** eller bakåtknappen i ett verktyg. Att stänga fliken, ladda om eller använda webbläsarens egen bakåtknapp frågar aldrig. För att vara säker, tryck på **Spara som**, eller **Spara** i exportpanelen, innan du lämnar ett verktyg.
 
@@ -89,7 +89,7 @@ I webbappen sparar varje verktyg som skapar ett dokument medan du arbetar: Desig
 - 3D och Darkroom, som tar en egen fil;
 - ett verktyg utan något att ändra, som Countdown.
 
-I de andra verktygen arkiverar din första ändring arbetet i **Projekt** som om du hade sparat, och senare ändringar sparas medan du arbetar, när verktyget har ritat klart. Så en osparad skapelse finns kvar i Projekt efter att du stängt fliken och öppnas igen med sina ändringar markerade som osparade. **Lämna utan att spara** kastar dem ändå, och Historik behåller en kopia av de kastade ändringarna i 30 dagar. Att öppna verktyget igen från startskärmen påbörjar en ny skapelse; öppna den tidigare från Projekt.
+I de andra verktygen arkiverar din första ändring arbetet i **Projekt** som om du hade sparat, och senare ändringar sparas medan du arbetar, när verktyget har ritat klart. Så en osparad skapelse finns kvar i Projekt efter att du stängt fliken och öppnas igen med sina ändringar markerade som osparade. **Lämna ändå** kastar dem fortfarande, och Historik behåller en kopia av de kastade ändringarna i 30 dagar. Att öppna verktyget igen från startskärmen påbörjar en ny skapelse; öppna den tidigare från Projekt.
 
 Med [Synk](/info/sync.html) på går en skapelse som arkiverats på det här sättet till dina andra enheter som allt annat i Projekt. Dess versioner stannar på enheten där de gjordes.
 

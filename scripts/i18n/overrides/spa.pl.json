@@ -1037,8 +1037,6 @@
   "Your role on {workspace} lets you view only. Ask an admin of {workspace} to change your role.": "Twoja rola w {workspace} pozwala tylko na podgląd. Poproś administratora {workspace}, aby zmienił Twoją rolę.",
   "This is view only. Make a copy to keep your changes.": "To jest tylko podgląd. Utwórz kopię, aby zachować zmiany.",
   "Save changes to {project}?": "Zapisać zmiany w projekcie {project}?",
-  "Leave without saving keeps your changes on this device.": "Wyjście bez zapisywania zachowuje Twoje zmiany na tym urządzeniu.",
-  "Stay": "Zostań",
   "Save a copy on this device": "Zapisz kopię na tym urządzeniu",
   "Copy saved on this device.": "Kopia zapisana na tym urządzeniu.",
   "Where should the copy go?": "Gdzie umieścić kopię?",
@@ -1345,5 +1343,8 @@
   "WebGPU initialisation timed out. Reload Lolly to try again.": "Inicjalizacja WebGPU trwała zbyt długo. Odśwież Lolly, aby spróbować ponownie.",
   "WebGPU initialisation expired. Reload Lolly to try again.": "Inicjalizacja WebGPU wygasła. Odśwież Lolly, aby spróbować ponownie.",
   "The graphics device was lost. Reload Lolly to reconnect.": "Utracono połączenie z urządzeniem graficznym. Odśwież Lolly, aby połączyć się ponownie.",
-  "Reload": "Odśwież"
+  "Reload": "Odśwież",
+  "Unsaved edits": "Niezapisane edycje",
+  "Save now or abandon your changes.": "Zapisz teraz lub odrzuć swoje zmiany.",
+  "Leave anyway": "Wyjdź mimo to"
 }

@@ -901,8 +901,6 @@
   "Your role on {workspace} lets you view only. Ask an admin of {workspace} to change your role.": "Met je rol in {workspace} kun je alleen bekijken. Vraag een beheerder van {workspace} om je rol te wijzigen.",
   "This is view only. Make a copy to keep your changes.": "Dit is alleen-lezen. Maak een kopie om je wijzigingen te bewaren.",
   "Save changes to {project}?": "Wijzigingen opslaan in {project}?",
-  "Leave without saving keeps your changes on this device.": "Als je vertrekt zonder op te slaan, blijven je wijzigingen op dit apparaat bewaard.",
-  "Stay": "Blijven",
   "Save a copy on this device": "Kopie op dit apparaat bewaren",
   "Copy saved on this device.": "Kopie op dit apparaat bewaard.",
   "Where should the copy go?": "Waar moet de kopie komen?",
@@ -1208,5 +1206,8 @@
   "WebGPU initialisation timed out. Reload Lolly to try again.": "Het initialiseren van WebGPU duurde te lang. Laad Lolly opnieuw om het nog eens te proberen.",
   "WebGPU initialisation expired. Reload Lolly to try again.": "Het initialiseren van WebGPU is verlopen. Laad Lolly opnieuw om het nog eens te proberen.",
   "The graphics device was lost. Reload Lolly to reconnect.": "De verbinding met het grafische apparaat is verbroken. Laad Lolly opnieuw om opnieuw te verbinden.",
-  "Reload": "Opnieuw laden"
+  "Reload": "Opnieuw laden",
+  "Unsaved edits": "Niet-opgeslagen bewerkingen",
+  "Save now or abandon your changes.": "Sla nu op of verwerp je wijzigingen.",
+  "Leave anyway": "Toch verlaten"
 }
