@@ -1012,9 +1012,11 @@ const OVER_BUDGET_PREVIEWS: Record<string, { max: number; why: string }> = {
   const isLook = (f: string): boolean => /\.look\d+\.[a-z0-9]+$/i.test(f);
   const kb = (n: number): string => Math.round(n / 1024).toLocaleString();
 
-  // A checkout that has never run `pnpm run previews` has no dir at all. Skip the whole
-  // block there rather than reporting every allowlist entry as stale - same tolerance the
-  // bundle-sig check above applies to a missing bundle.json.
+  // A checkout that has never run `pnpm run previews` has no preview images at all: no
+  // dir, or only the .gitkeep a new pack is laid out with and the empty bundle.json that
+  // build:catalog writes regardless. Skip the whole block there rather than reporting
+  // every allowlist entry as stale - same tolerance the bundle-sig check above applies
+  // to a missing bundle.json.
   const sizes = new Map<string, number>();
   if (existsSync(previewsDir)) {
     for (const f of readdirSync(previewsDir).sort()) {
@@ -1023,7 +1025,7 @@ const OVER_BUDGET_PREVIEWS: Record<string, { max: number; why: string }> = {
     }
   }
 
-  if (sizes.size) {
+  if ([...sizes.keys()].some(isImage)) {
     // Classified on content: a .webp is a raster, and so is an .svg that turns out to be
     // one embedded bitmap in a wrapper.
     const rasters = [...sizes.keys()].filter((f) => isImage(f) && (
