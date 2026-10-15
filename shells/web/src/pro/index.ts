@@ -14,6 +14,9 @@ import { shareUrlState } from '../lib/share-privacy.ts';
  * To remove the feature: delete this folder and that one route case.
  */
 import './pro.css';
+import { batchChrome } from './chrome.ts';
+import { mountRowActions } from './row-actions.ts';
+import { reorderRows } from './row-selection.ts';
 import { mountKitPanel, type KitPanel } from './kit-panel.ts';
 import { captureKitEdits, restoreKit, type KitState } from './kit-model.ts';
 import { isHiddenSlot, BATCH_SLOT_PREFIX } from '../lib/batch-slots.ts';
@@ -32,9 +35,10 @@ import { attachScrub } from '../lib/scrub.ts';
 import { controlHtml, readControlValue } from './controls.ts';
 import { openBlocksEditor, closeBlocksPanel } from './blocks-editor.ts';
 import { colorFieldHtml, wireColorField, type ColorFieldValue } from '../components/color-field.ts';
-import { langFabHtml, attachLangMenu } from '../components/lang-menu.ts';
+import { attachLangMenu } from '../components/lang-menu.ts';
 import { mountZoomHud } from '../components/zoom-hud.ts';
 import { mountModal } from '../components/modal.ts';
+import { choiceDialog } from '../components/confirm-dialog.ts';
 import { t, tRaw } from '../i18n.ts';
 import { escape } from '../utils.ts';
 import { fold, tokenize, scoreHaystack } from '../lib/search/match.ts';
@@ -43,7 +47,6 @@ import { getTool, renderRowToBlob, isExportable } from './render-export.ts';
 import { planBatch, notesFromFindings } from './batch.ts';
 import { createBatchRowCheck, skippedFindings } from './preflight-rows.ts';
 import type { Finding } from '@lolly/engine';
-import { icon } from '../lib/icons.ts';
 import { saveBlob } from './zip.ts';
 import { batchToCsv, csvToBatch, parseClipboardGrid, coerceCell } from './io.ts';
 import { createSessionStore, rowsFromSnapshot, snapshotFromState } from './sessions.ts';
@@ -53,7 +56,7 @@ import { rowsForFolder, rowsFromRefs } from './folder-rows.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import type { Unit } from '../../../../engine/src/units.ts';
 import type { ToolManifest } from '../../../../engine/src/loader.ts';
-import { backPillHtml, mountBackPill } from '../components/back-pill.ts';
+import { mountBackPill } from '../components/back-pill.ts';
 import { setPendingToolSeed } from '../lib/drop-router.ts';
 import { navigateTo } from '../nav.ts';
 import { announce } from '../a11y.ts';
@@ -142,7 +145,6 @@ interface GridCtx {
   assetPicker: boolean;
   unit: string;
   dpi: number;
-  firstname?: string;
   collapsed?: Set<string>;
 }
 
@@ -197,10 +199,6 @@ const DEFAULT_MARKS_CSV = 'crop,reg,bleed,prov';
 const DEFAULT_MARKS_CSV_CMYK = 'crop,reg,bleed,bars,prov';
 const DEFAULT_BLEED_MM = 3;
 
-// The crop-marks glyph, same registry entry the export panel's print card uses
-// (lib/icons.ts PATHS.crop) so the two surfaces read as one feature.
-const ICON_CROP = icon('crop', { size: 14, className: 'pro-print-icon' });
-
 // Input columns worth showing by default when a newly-added tool uses them
 // (everything else a tool introduces starts collapsed). Matched by input id;
 // "title" covers the common "heading text" of chart/meeting-style tools.
@@ -249,70 +247,18 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
     marks: '',            // `marks` CSV; empty = no crop/registration/bleed marks
     running: false,
     cancelRequested: false,
-    collapsed: new Set(), // column keys hidden from the matrix (restorable via tags)
+    collapsed: new Set(['__width', '__height', '__unit', '__dpi']), // column keys hidden from the matrix (restorable via tags)
     colWidths: {},        // key → px width (drag to widen); narrow defaults otherwise
     zipName: '',          // optional name for the delivered zip
   };
   const ctx: GridCtx = { tools, toolById: new Map(tools.map(t => [t.id, t])), assetPicker, unit: state.unit, dpi: state.dpi };
-  // Personalise the empty-grid welcome when the user has a saved profile name
-  // (Profile → First name). Fetched once at mount; the hint only shows before a
-  // tool is picked, so a mid-session profile edit needn't re-render it.
-  const meProfile = await host.profile?.get?.().catch(() => null);
-  ctx.firstname = (meProfile?.firstname ?? '').trim();
-
   // ── Static shell ───────────────────────────────────────────────────────────
-  viewEl.innerHTML = `
-    <div class="pro-wrap">
-      ${backPillHtml()}
-
-      <div class="pro-toolbar">
-        <button type="button" class="pro-btn pro-hamburger" id="pro-menu" aria-label="${escape(t('Toolbar menu'))}" aria-expanded="false" aria-controls="pro-toolbar-group">☰</button>
-        <div class="pro-toolbar-group" id="pro-toolbar-group">
-          <label class="pro-format pro-zip" title="${escape(t('Name for the downloaded .zip'))}">
-            <input type="text" id="pro-zip-name" placeholder="lolly-batch" autocomplete="off" spellcheck="false"
-              aria-label="${escape(t('Name for the downloaded .zip'))}">
-            <span class="pro-zip-ext" aria-hidden="true">.zip</span>
-          </label>
-          <!-- + Row / +5 live at the bottom-left of the grid, where you use them.
-               CSV download/upload live inside the Sessions dialog. -->
-          <button type="button" class="pro-btn" id="pro-common-inputs">${t('Shared inputs')}</button>
-          <button type="button" class="pro-btn" id="pro-event-kit">${t('Event kit')}</button>
-          <input type="file" id="pro-csv-file" accept=".csv,.tsv,.txt,text/csv,text/tab-separated-values" hidden>
-        </div>
-        <span class="pro-spacer"></span>
-        <div class="pro-zoom" data-pro-zoom></div>
-        <label class="pro-format pro-unit-field" id="pro-unit-field" title="${escape(t('Units for the Width & Height columns'))}">
-          <select id="pro-unit" class="field-select field-select--auto field-select--sm"
-            aria-label="${escape(t('Units for the Width & Height columns'))}">${UNIT_OPTIONS.map(u => `<option value="${u}"${u === state.unit ? ' selected' : ''}>${u}</option>`).join('')}</select>
-        </label>
-        <label class="pro-format pro-dpi-field" id="pro-dpi-field" title="${escape(t('Raster resolution for physical units (mm/cm/in/pt). Ignored for px and for vector formats.'))}">
-          <input type="number" id="pro-dpi" class="field-input field-input--auto field-input--sm"
-            aria-label="${escape(t('Raster resolution in DPI'))}"
-            min="36" max="1200" step="1" value="${state.dpi}"${state.unit === 'px' ? ' disabled' : ''}>
-          <span class="pro-dpi-suffix" aria-hidden="true">dpi</span>
-        </label>
-        <label class="pro-format" id="pro-format-field" title="${escape(t('Output format for all rows (rows can override)'))}">
-          <select id="pro-format" class="field-select field-select--auto field-select--sm"
-            aria-label="${escape(t('Output format for every row'))}">${FORMAT_OPTIONS.map(f => `<option value="${f}"${f === state.format ? ' selected' : ''}>${f.toUpperCase()}</option>`).join('')}</select>
-        </label>
-        <button type="button" class="pro-btn pro-print-btn" id="pro-print" hidden aria-expanded="false"
-          title="${escape(t('Bleed, print marks and the CMYK press profile for every row'))}">${ICON_CROP} ${t('Print')}</button>
-        <button type="button" class="pro-btn" id="pro-sessions" title="${escape(t('Save or load a snapshot of this whole batch'))}">⛁ ${t('Sessions')}</button>
-        <button type="button" class="pro-btn" id="pro-tosheet" title="${escape(t('Lay every row out on a printable sheet, n-up, to cut apart'))}">${t('Send to Print Sheet')}</button>
-        <button type="button" class="pro-btn pro-btn--primary" id="pro-render" title="${escape(t('Render the batch'))}">${t('Render')}</button>
-        ${langFabHtml()}
-      </div>
-
-      <section id="pro-kit-host" aria-label="${escape(t('Event kit'))}" hidden></section>
-      <div id="pro-grid-host"></div>
-
-      <div class="pro-progress" id="pro-progress" hidden></div>
-    </div>
-  `;
+  viewEl.innerHTML = batchChrome(state, FORMAT_OPTIONS, UNIT_OPTIONS);
 
   let kitPanel: KitPanel | undefined;
   const gridHost  = viewEl.querySelector<HTMLElement>('#pro-grid-host')!;
   const progressEl = viewEl.querySelector<HTMLElement>('#pro-progress')!;
+  const activityEl = viewEl.querySelector<HTMLDetailsElement>('.pro-results')!;
   const renderBtn = viewEl.querySelector<HTMLButtonElement>('#pro-render')!;
   const formatSel = viewEl.querySelector<HTMLSelectElement>('#pro-format')!;
   const unitSel = viewEl.querySelector<HTMLSelectElement>('#pro-unit')!;
@@ -327,48 +273,7 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
 
   const detachLangMenu = attachLangMenu(viewEl.querySelector<HTMLElement>('.lang-fab'), host);
 
-  // Unit + DPI + Format + Sessions sit next to Render on desktop, but tuck into
-  // the collapsible toolbar group (hamburger menu) on mobile. CSS can't reparent
-  // across the breakpoint, so relocate them on match-media change.
-  const unitField = viewEl.querySelector<HTMLElement>('#pro-unit-field')!;
-  const dpiField = viewEl.querySelector<HTMLElement>('#pro-dpi-field')!;
-  const formatField = viewEl.querySelector<HTMLElement>('#pro-format-field')!;
   const sessionsBtn = viewEl.querySelector<HTMLElement>('#pro-sessions')!;
-  const toolbarGroup = viewEl.querySelector<HTMLElement>('#pro-toolbar-group')!;
-  const zoomField = viewEl.querySelector<HTMLElement>('[data-pro-zoom]')!;
-  const sheetButton = viewEl.querySelector<HTMLElement>('#pro-tosheet')!;
-  const narrowMq = window.matchMedia('(max-width: 720px)'); // keep in sync with the @media in pro.css
-  const placeFormat = () => {
-    if (narrowMq.matches) toolbarGroup.append(zoomField, unitField, dpiField, formatField, printBtn, sessionsBtn, sheetButton);
-    else renderBtn.before(zoomField, unitField, dpiField, formatField, printBtn, sessionsBtn, sheetButton); // desktop order
-  };
-  placeFormat();
-  narrowMq.addEventListener('change', placeFormat);
-
-  // Auto-size the zip-name field so the ".zip" suffix trails the last character
-  // the user types instead of being pinned to the far right. A hidden span mirrors
-  // the text to measure its pixel width; we clamp to the room the field actually
-  // has so a long name scrolls inside the input rather than shoving ".zip" off the
-  // edge. On mobile the field is a full-width dropdown row, so CSS owns sizing there.
-  const zipField = zipNameInput.closest<HTMLElement>('.pro-zip')!;
-  const zipExt = zipField.querySelector<HTMLElement>('.pro-zip-ext')!;
-  const zipMeasure = document.createElement('span');
-  zipMeasure.className = 'pro-zip-measure';
-  zipMeasure.setAttribute('aria-hidden', 'true');
-  zipField.appendChild(zipMeasure);
-  const sizeZip = () => {
-    if (narrowMq.matches) { zipNameInput.style.width = ''; return; }
-    zipMeasure.textContent = zipNameInput.value || zipNameInput.placeholder || '';
-    const cs = getComputedStyle(zipField);
-    const padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
-    const gap = parseFloat(cs.columnGap || cs.gap || '0') || 0;
-    const room = zipField.clientWidth - padX - zipExt.offsetWidth - gap;
-    const want = zipMeasure.offsetWidth + 2;        // +2 keeps the caret from clipping
-    zipNameInput.style.width = `${Math.max(40, Math.min(want, room))}px`;
-  };
-  const zipRO = new ResizeObserver(sizeZip);        // fires on mount + toolbar/zoom reflow
-  zipRO.observe(zipField);
-  narrowMq.addEventListener('change', sizeZip);
 
   // UI zoom (the −/+ pair, on the shared zoom HUD): emulate Cmd +/− using the
   // CSS `zoom` property, which reflows the whole page like native zoom. Works
@@ -378,6 +283,7 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
   // (nothing to fit to), so the HUD renders no Fit button; its readout is a
   // real control instead (clicking it resets to 100%, same job Fit does
   // elsewhere), which is what onFit maps to here.
+  const previousZoom = document.documentElement.style.zoom;
   const ZOOM_STEPS = [0.5, 0.67, 0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2];
   const ZOOM_KEY = 'ct-ui-zoom';
   const readZoom = () => { const z = parseFloat(localStorage.getItem(ZOOM_KEY) as string); return Number.isFinite(z) && z > 0 ? z : 1; };
@@ -460,6 +366,7 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
       const moved = state.rows[i]!;
       state.rows[i] = state.rows[j]!;
       state.rows[j] = moved;
+      rowActions.reveal(rowUid);
       renderGrid();
     },
   });
@@ -500,6 +407,12 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
     if (r) r.values[id.slice(sep + 1)] = value;
   };
 
+  const rowActions = mountRowActions(viewEl, state, {
+    changed: () => { columns = renderGrid(); },
+    newUid: () => newRow().uid,
+    edit: (anchor, key, blocks) => { if (blocks) void bulkEditBlocks(key); else void openBulkPopover(anchor, key); },
+  });
+
   // ── Render / re-render the grid from state ──────────────────────────────────
   function renderGrid() {
     clearRemoveArm(); // a re-render replaces the buttons; drop any pending confirm
@@ -509,6 +422,7 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
     // overflow:auto container (.pro-grid-scroll), which would otherwise snap a
     // scrolled grid back to 0,0 on every bulk-fill / paste / delete. Restored
     // AFTER nav.refresh, so focus-scrolling doesn't fight the restore.
+    const columnsOpen = gridHost.querySelector<HTMLDetailsElement>('.pro-columns')?.open ?? false;
     const prevScroll = gridHost.querySelector('.pro-grid-scroll');
     const scrollX = prevScroll?.scrollLeft ?? 0;
     const scrollY = prevScroll?.scrollTop ?? 0;
@@ -519,17 +433,19 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
     // shown as restorable tags below the grid. Visible columns drive everything.
     const visible = all.filter((c: any) => !state.collapsed.has(c.key));
     const hidden = all.filter((c: any) => state.collapsed.has(c.key));
-    gridHost.innerHTML = renderGridHtml(state as unknown as Parameters<typeof renderGridHtml>[0], visible, ctx as unknown as Parameters<typeof renderGridHtml>[2], hidden);
+    const page = rowActions.visible();
+    gridHost.innerHTML = renderGridHtml({ ...state, rows: page.rows } as unknown as Parameters<typeof renderGridHtml>[0], visible, { ...ctx, rowOffset: page.start, totalRows: state.rows.length, page: page.page, pages: page.pages } as unknown as Parameters<typeof renderGridHtml>[2], hidden);
+    gridHost.querySelector<HTMLDetailsElement>('.pro-columns')!.open = columnsOpen;
     // Wire the shared SUSE colour picker for any colour cells (id is "row~col").
     wireColorField(gridHost, { onChange: colorOnChange });
-    const filled = state.rows.filter(r => r.toolId).length;
-    renderBtn.disabled = filled === 0 || state.running; // count text now lives in the columns bar
+    rowActions.sync();
     nav.refresh({ restoreFocus: hadFocus });
     const nextScroll = gridHost.querySelector('.pro-grid-scroll');
     if (nextScroll) { nextScroll.scrollLeft = scrollX; nextScroll.scrollTop = scrollY; }
     highlightRelevantTags(); // outline the hidden tags the active row actually uses
     kitPanel?.refresh();
     syncPrintButton();       // rows (and their formats) decide whether print applies
+    gridHost.inert = state.running;
     return visible;
   }
 
@@ -545,12 +461,13 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
     if (!row || !tr) { columns = renderGrid(); return; }
     const hadFocus = gridHost.contains(document.activeElement);
     const tmp = document.createElement('template');
-    tmp.innerHTML = bodyRow(row as unknown as Parameters<typeof bodyRow>[0], columns, ctx as unknown as Parameters<typeof bodyRow>[2]);
+    tmp.innerHTML = bodyRow(row as unknown as Parameters<typeof bodyRow>[0], columns, ctx as unknown as Parameters<typeof bodyRow>[2], state.rows.indexOf(row));
     const next = tmp.content.firstElementChild as HTMLElement | null;
     if (!next) { columns = renderGrid(); return; }
     tr.replaceWith(next);
     wireColorField(next, { onChange: colorOnChange });
     nav.refresh({ restoreFocus: hadFocus });
+    rowActions.sync();
   }
 
   // Outline the hidden data-column tags that the row you're on actually uses, so a
@@ -576,7 +493,7 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
   // fire before them and the chooser wouldn't open (you'd have to press Return).
 
   const rowByUid = (uid: string | undefined) => state.rows.find(r => r.uid === uid);
-  const colByKey = (key: string | undefined) => columns.find((c: any) => c.key === key);
+  const colByKey = (key: string | undefined) => deriveColumns(state.rows.filter(r => r.manifest)).find(c => c.key === key);
 
   // Row-height + column-width drag resize. Mutates state directly (no re-render);
   // the renderer re-applies persisted sizes on the next render.
@@ -600,8 +517,7 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
   const detachReorder = attachReorder(gridHost, {
     scrollEl: () => gridHost.querySelector('.pro-grid-scroll'),
     onReorder: (order: string[]) => {
-      const pos = new Map(order.map((uid, i) => [uid, i]));
-      state.rows.sort((a, b) => (pos.get(a.uid) ?? 0) - (pos.get(b.uid) ?? 0));
+      state.rows = reorderRows(state.rows, order);
       columns = renderGrid();
     },
   });
@@ -631,8 +547,9 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
       // Hide only the columns this tool just introduced - EXCEPT a whitelist of
       // common, high-value inputs (headshot/image/photo/heading) that are worth
       // showing straight away when a tool uses them.
-      for (const c of deriveColumns(state.rows.filter(r => r.manifest))) {
-        if (!existingKeys.has(c.key) && !DEFAULT_VISIBLE_COLS.has(c.key)) state.collapsed.add(c.key);
+      const introduced = deriveColumns(state.rows.filter(r => r.manifest)).filter(c => !existingKeys.has(c.key));
+      for (const [index, c] of introduced.entries()) {
+        if (index >= 3 && !DEFAULT_VISIBLE_COLS.has(c.key)) state.collapsed.add(c.key);
       }
     } catch {
       row.toolId = '';
@@ -822,9 +739,7 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
     if (remove) {
       if (remove === _armedRemove) {
         clearRemoveArm();
-        state.rows = state.rows.filter(r => r.uid !== remove.dataset.row);
-        if (state.rows.length === 0) state.rows.push(newRow());
-        columns = renderGrid();
+        rowActions.remove(new Set([remove.dataset.row!]));
       } else {
         armRemove(remove);
       }
@@ -996,10 +911,10 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
     btn.title = `Edit “${input.label ?? key}” - ${n} item${n === 1 ? '' : 's'}`;
   }
   async function bulkEditBlocks(key: string) {
-    const col = colByKey(key);
+    const col = deriveColumns(rowActions.scope().filter(r => r.manifest)).find(c => c.key === key);
     if (!col || !col.members) return;
     const input = [...col.members.values()][0]; // representative declaration (fields are shared)
-    const targets = state.rows.filter(r => r.toolId && col.members.has(r.toolId));
+    const targets = rowActions.scope().filter(r => r.toolId && col.members.has(r.toolId));
     if (!input || !targets.length) return;
     closeTemplatePicker(); closeBulkPopover(); closeSessions();
     // Preview the working value against the first target row, so a bulk edit still
@@ -1009,14 +924,14 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
       input, value: input.default ?? [], host, assetPicker, applyLabel: `Apply to ${targets.length}`,
       renderPreview: previewRow ? (records: any) => renderBlocksPreview(previewRow, key, records) : undefined,
     });
-    if (result !== null) { targets.forEach(r => { r.values[key] = result.map((rec: any) => ({ ...rec })); }); columns = renderGrid(); }
+    if (result !== null) { targets.forEach(r => { r.values[key] = structuredClone(result); }); columns = renderGrid(); }
   }
 
   // ── Bulk column write ───────────────────────────────────────────────────────
   async function openBulkPopover(anchorEl: HTMLElement, key: string) {
-    const col = colByKey(key);
+    const col = deriveColumns(rowActions.scope().filter(r => r.manifest)).find(c => c.key === key);
     if (!col || !col.bulk) return;
-    const targets = bulkTargets(col, state.rows, { assetPicker });
+    const targets = bulkTargets(col, rowActions.scope(), { assetPicker });
     if (targets.length === 0) return;
 
     // Assets: skip the popover and go straight to the shared picker.
@@ -1045,15 +960,15 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
           : controlHtml(col.spec!, col.spec!.default ?? '', 'data-bulk-input', { label: col.label })
       }</div>
       <div class="pro-popover-actions">
-        <button type="button" class="pro-btn" data-bulk-cancel>Cancel</button>
-        <button type="button" class="pro-btn pro-btn--primary" data-bulk-apply>Apply to ${targets.length}</button>
+        <button type="button" class="btn" data-bulk-cancel>Cancel</button>
+        <button type="button" class="btn btn--primary" data-bulk-apply>Apply to ${targets.length}</button>
       </div>`;
     document.body.appendChild(pop);
     positionPopover(pop, anchorEl);
 
     const apply = () => {
       const value = isColor ? colorValue : readControlValue(pop.querySelector('[data-bulk-input]') as HTMLElement, col.spec!);
-      targets.forEach((r: any) => { r.values[key] = value; });
+      targets.forEach((r: any) => { r.values[key] = structuredClone(value); });
       closeBulkPopover();
       columns = renderGrid();
     };
@@ -1067,7 +982,8 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
     }
 
     pop.querySelector('[data-bulk-apply]')!.addEventListener('click', apply);
-    pop.querySelector('[data-bulk-cancel]')!.addEventListener('click', closeBulkPopover);
+    pop.querySelector('[data-bulk-cancel]')!.addEventListener('click', () => { closeBulkPopover(); anchorEl.focus(); });
+    pop.addEventListener('keydown', event => { if (event.key === 'Escape') { event.preventDefault(); closeBulkPopover(); anchorEl.focus(); } });
     setTimeout(() => document.addEventListener('pointerdown', onOutside), 0);
 
     function onOutside(e: PointerEvent) { if (!pop.contains(e.target as Node)) closeBulkPopover(); }
@@ -1181,7 +1097,7 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
         </label>
       </div>
       <p class="pro-print-hint">${escape(t('Applies to every row. A row that carries its own print settings keeps them.'))}</p>
-      <div class="pro-popover-actions"><button type="button" class="pro-btn" data-print-done>${escape(t('Done'))}</button></div>
+      <div class="pro-popover-actions"><button type="button" class="btn" data-print-done>${escape(t('Done'))}</button></div>
     `;
     document.body.appendChild(pop);
     positionPrintPopover(pop, anchorEl);
@@ -1250,6 +1166,7 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
     const rows = await rowsFromSnapshot(data, { newRow });
     state.kit = kit;
     viewEl.classList.toggle('kit-hide-rows', !!kit);
+    rowActions.reset();
     state.rows = rows.length ? rows : blankRows();
     state.format = data.format ?? state.format;
     state.unit = data.unit ?? 'px';
@@ -1268,7 +1185,7 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
     dpiInput.disabled = (state.unit === 'px');
     zipNameInput.value = state.zipName;
     closePrintPopover();                      // its controls are stale after a load
-    sizeZip();
+
     columns = renderGrid();
     nav.focusActive();
     markClean();                              // a freshly loaded snapshot is the new baseline
@@ -1316,7 +1233,7 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
         : `<p class="pro-sess-empty">No saved sessions yet - save the current grid below.</p>`}
       <div class="pro-sess-save">
         <input type="text" class="pro-sess-input" placeholder="Session name" value="${escape(state.zipName.trim())}" autocomplete="off" spellcheck="false" maxlength="60">
-        <button type="button" class="pro-btn pro-btn--primary" data-save>Save</button>
+        <button type="button" class="btn btn--primary" data-save>Save</button>
       </div>
       ${opts.folderApi ? `<div class="pro-sess-project">
         <label class="pro-sess-project-label" for="pro-sess-project-sel">Save to project</label>
@@ -1326,11 +1243,11 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
       </div>` : ''}
       <div class="pro-sess-csv">
         <span class="pro-sess-csv-label">Offline CSV</span>
-        <button type="button" class="pro-btn" data-csv-export title="Download this batch as a CSV to edit in any spreadsheet">↓ Download</button>
-        <button type="button" class="pro-btn" data-csv-import title="Load a batch from a CSV / TSV file">↑ Upload</button>
+        <button type="button" class="btn" data-csv-export title="Download this batch as a CSV to edit in any spreadsheet">↓ Download</button>
+        <button type="button" class="btn" data-csv-import title="Load a batch from a CSV / TSV file">↑ Upload</button>
       </div>
       ${opts.openFolderOverlay ? `<div class="pro-sess-folders">
-        <button type="button" class="pro-btn" data-folders title="Organize sessions into folders and open a folder in the grid">📁 Folders…</button>
+        <button type="button" class="btn" data-folders title="Organize sessions into folders and open a folder in the grid">📁 Folders…</button>
       </div>` : ''}`;
 
     pop.querySelector('[data-folders]')?.addEventListener('click', openFoldersOverlay);
@@ -1472,7 +1389,7 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
 
   // ── Toolbar ─────────────────────────────────────────────────────────────────
   formatSel.addEventListener('change', (e) => { state.format = (e.target as HTMLSelectElement).value; syncPrintButton(); });
-  zipNameInput.addEventListener('input', (e) => { state.zipName = (e.target as HTMLInputElement).value; sizeZip(); });
+  zipNameInput.addEventListener('input', (e) => { state.zipName = (e.target as HTMLInputElement).value; });
 
   // The toolbar unit/DPI are the DEFAULTS every row inherits (row.unit/row.dpi
   // override per row, like the global vs per-row format). Changing a default
@@ -1490,29 +1407,13 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
   // + Row / +5 live in the bottom bar (re-rendered with the grid), so they're
   // wired by delegation in the gridHost click handler via [data-add-rows].
 
-  // Append empty rows incrementally - they never change the column set (columns
-  // derive only from rows with a tool), so we just append <tr>s instead of
-  // rebuilding the whole table. Falls back to a full render if the body's gone.
   function addRows(n: number): GridRow[] {
-    const tbody = gridHost.querySelector('tbody');
-    const added: GridRow[] = [];
-    for (let i = 0; i < n; i++) { const r = newRow(); state.rows.push(r); added.push(r); }
-    if (!tbody) { columns = renderGrid(); return added; }
-    tbody.insertAdjacentHTML('beforeend', added.map(r => bodyRow(r as unknown as Parameters<typeof bodyRow>[0], columns, ctx as unknown as Parameters<typeof bodyRow>[2])).join(''));
-    refreshFillLast(); // new empty rows may re-enable "Fill last"
-    nav.refresh({ restoreFocus: false }); // include the new rows in the nav matrix
+    if (state.running) return [];
+    const added = Array.from({ length: n }, newRow);
+    state.rows.push(...added);
+    if (added[0]) rowActions.reveal(added[0].uid);
+    columns = renderGrid();
     return added;
-  }
-
-  // The "Fill last" button lives outside the table, so the incremental addRows
-  // path doesn't re-render it - keep its disabled state in sync by hand. (A full
-  // renderGrid bakes the same state in via addRowsHtml.)
-  function refreshFillLast() {
-    const btn = gridHost.querySelector<HTMLButtonElement>('[data-fill-last]');
-    if (!btn) return;
-    const hasSource = state.rows.some(r => r.toolId);
-    const hasEmpty = state.rows.some(r => !r.toolId);
-    btn.disabled = !(hasSource && hasEmpty);
   }
 
   // "Fill last": copy the last row that has a template into every row that has
@@ -1527,10 +1428,12 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
     for (const r of state.rows) if (r.toolId) source = r; // last filled row wins
     if (!source) return;
     let filled = 0;
-    for (const row of state.rows) {
+    for (const row of rowActions.scope()) {
       if (row.toolId) continue;
       row.toolId = source.toolId;
       row.manifest = source.manifest;
+      row.artifactDigest = source.artifactDigest;
+      row.profile = source.profile; row.bleed = source.bleed; row.marks = source.marks;
       row.values = structuredClone(source.values ?? {});
       row.format = source.format;
       row.outWidth = source.outWidth;
@@ -1585,7 +1488,7 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
   const toSheetBtn = viewEl.querySelector<HTMLButtonElement>('#pro-tosheet')!;
   toSheetBtn.addEventListener('click', () => {
     const cells: { art: { id: string } }[] = [];
-    for (const row of state.rows) {
+    for (const row of rowActions.scope()) {
       if (!row.toolId || !row.manifest) continue;
       const model = (row.manifest.inputs ?? []).map((i: any) => ({ ...i, value: row.values[i.id] ?? i.default }));
       const fmts = row.manifest.render?.formats ?? [];
@@ -1616,10 +1519,12 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
   const onDocPointer = (e: PointerEvent) => { if (toolbarEl.classList.contains('is-open') && !toolbarEl.contains(e.target as Node)) closeMenu(); };
   document.addEventListener('pointerdown', onDocPointer);
 
-  // CSV import/export - the buttons live inside the Sessions dialog (wired in
-  // drawSessions); the file input stays here so the OS picker survives the
-  // dialog closing. Importing replaces the grid, so close the dialog after.
+  // CSV actions are also available in Sessions. The stable file input survives
+  // the dialog closing; import offers append or replace after parsing succeeds.
   const fileInput = viewEl.querySelector<HTMLInputElement>('#pro-csv-file')!;
+  viewEl.querySelector('[data-toolbar-add]')!.addEventListener('click', addRowAndPick);
+  viewEl.querySelector('[data-import-csv]')!.addEventListener('click', () => fileInput.click());
+  viewEl.querySelector('[data-export-csv]')!.addEventListener('click', exportCsv);
   fileInput.addEventListener('change', () => {
     importCsvFile(fileInput.files?.[0]).then(() => closeSessions()).catch(err => reportFatal(err)).finally(() => { fileInput.value = ''; });
   });
@@ -1654,10 +1559,10 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
   }
 
   function exportCsv() {
-    const usable = state.rows.filter(r => r.toolId && r.manifest);
+    const usable = rowActions.scope().filter(r => r.toolId && r.manifest);
     if (!usable.length) { showProgress(`<p class="pro-progress-msg">Pick at least one template before exporting.</p>`); return; }
     const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
-    void saveBlob(new Blob([batchToCsv(state.rows, { unit: state.unit, dpi: state.dpi })], { type: 'text/csv' }), `lolly-batch-${stamp}.csv`);
+    void saveBlob(new Blob([batchToCsv(rowActions.scope(), { unit: state.unit, dpi: state.dpi })], { type: 'text/csv' }), `lolly-batch-${stamp}.csv`);
   }
 
   async function importCsvFile(file: File | undefined) {
@@ -1670,8 +1575,19 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
       showProgress(`<p class="pro-progress-msg pro-log-err">${escape(errors[0] || 'No rows found in the file.')}</p>`);
       return;
     }
-    state.rows = rows;
-    state.collapsed.clear();
+    const mode = state.rows.some(row => row.toolId) ? await choiceDialog({
+      title: t('Import CSV'), message: tRaw('This file contains {n} rows. Add them to this batch or replace the current rows?', { n: rows.length }),
+      choices: [{ id: 'append', label: t('Add rows'), primary: true }, { id: 'replace', label: t('Replace batch') }],
+    }) : 'replace';
+    if (!mode) return;
+    rowActions.reset();
+    if (mode === 'append') state.rows.push(...rows);
+    else { state.rows = rows; state.kit = undefined; viewEl.classList.remove('kit-hide-rows'); }
+    state.collapsed = new Set(['__width', '__height', '__unit', '__dpi']);
+    for (const [index, col] of deriveColumns(state.rows).entries()) {
+      if (index >= 3 && !state.rows.some(row => Object.hasOwn(row.values, col.key))) state.collapsed.add(col.key);
+    }
+    if (rows[0]) rowActions.reveal(rows[0].uid);
     columns = renderGrid();
     nav.focusActive();
     const ok = rows.filter((r: any) => r.toolId).length;
@@ -1883,14 +1799,15 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
     // what is wrong with row 7 BEFORE 200 rows render. The run-level settings handed
     // in are the same four the run itself is given below, which is what makes the
     // findings about the settings the render will actually use.
-    const { check, runFindings } = await createBatchRowCheck(state.rows, host, {
-      format: state.format, unit: state.unit, dpi: state.dpi,
-      profile: state.profile || undefined,
-      bleed: state.bleed || undefined,
-      marks: state.marks || undefined,
-    });
-    const plan = await planBatch<Finding>(state.rows, { check });
-    const { renderable, skipped, srcIndex, findings } = plan;
+    const runRows = rowActions.scope().map(row => ({ ...row, values: structuredClone(row.values) }));
+    const sourcePositions = new Map(state.rows.map((row, index) => [row.uid, index]));
+    const runSettings = { format: state.format, unit: state.unit, dpi: state.dpi,
+      profile: state.profile || undefined, bleed: state.bleed || undefined, marks: state.marks || undefined };
+    const { check, runFindings } = await createBatchRowCheck(runRows, host, runSettings);
+    const plan = await planBatch<Finding>(runRows, { check: (row, index, ctx) => check(row, index, { ...ctx, srcIndex: sourcePositions.get(row.uid!)! }) });
+    const { renderable, skipped, findings } = plan;
+    const srcIndex = plan.srcIndex.map(index => sourcePositions.get(runRows[index]!.uid)!);
+    for (const entry of skipped) entry.srcIndex = sourcePositions.get(runRows[entry.srcIndex]!.uid)!;
     if (renderable.length === 0) {
       showProgress(`<p class="pro-progress-msg">Nothing to render - pick at least one exportable template.</p>`);
       return;
@@ -1902,7 +1819,7 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
     // When every row resolves to PDF, also offer the single-document delivery
     // (plans/140 S5) - one merged PDF, one row's pages after another.
     const allPdf = renderable.length > 1 &&
-      renderable.every(r => { const f = (r as { format?: string }).format || state.format; return f === 'pdf' || f === 'pdf-cmyk'; });
+      renderable.every(r => { const f = (r as { format?: string }).format || runSettings.format; return f === 'pdf' || f === 'pdf-cmyk'; });
     const { ok, strongPassword, zipLock, combinePdf } = await askExportLock(`${renderable.length} file${renderable.length === 1 ? '' : 's'}`, true, { offerCombine: allPdf });
     if (!ok) return;                          // cancelled
 
@@ -1914,7 +1831,7 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
     const zipBase = state.zipName.trim().replace(/\.zip$/i, '') || `lolly-batch-${stamp}`;
     const profile = await host.profile?.get?.().catch(() => null);
     const author = profile?.useDetails ? profile : null;
-    const csv = batchToCsv(renderable as unknown as Parameters<typeof batchToCsv>[0], { unit: state.unit, dpi: state.dpi });
+    const csv = batchToCsv(renderable as unknown as Parameters<typeof batchToCsv>[0], runSettings);
 
     // The run is a WP-F background job (lib/batch-job.ts): it survives navigating away
     // from the grid, the global toast owns its progress and cancel, and the run lock it
@@ -1924,6 +1841,7 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
       // The grid is disabled from the moment the run's TURN comes, not from the moment
       // it is queued: a job cancelled while still waiting behind another one never calls
       // this back, and a `running` flag set outside it would strand the grid disabled.
+      activityEl.open = true;
       state.running = true;
       state.cancelRequested = false;
       renderGrid();
@@ -1931,19 +1849,7 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
         return await runBatchWithProgress(host, renderable, {
           job,
           mount: progressEl,
-          format: state.format,
-          // Toolbar defaults; each row may override via its own unit/dpi (batch.js).
-          unit: state.unit,
-          dpi: state.dpi,
-          // Run-level print settings, same precedence: a row carrying its own bleed /
-          // marks / press profile keeps it (batch.ts resolvePrintSettings). Passed
-          // unconditionally because runBatch GATES them on each row's resolved format
-          // (batch.ts printSettingsFor) - the Print button hides when the format leaves
-          // print but deliberately does not clear these, and an ungated merge signed a
-          // C2PA claim about bleed and marks onto rasters that rendered neither.
-          profile: state.profile || undefined,
-          bleed: state.bleed || undefined,
-          marks: state.marks || undefined,
+          ...runSettings,
           zipBaseName: zipBase,
           srcIndex,
           // Per-row preflight findings, keyed by queue position. Skipped rows have no
@@ -1972,7 +1878,7 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
     });
   }
 
-  function showProgress(html: string) { progressEl.hidden = false; progressEl.innerHTML = html; }
+  function showProgress(html: string) { activityEl.open = true; progressEl.hidden = false; progressEl.innerHTML = html; }
 
   // Screen-reader announcer for batch milestones (start / done / cancelled).
   // Per-row progress is intentionally NOT announced - it would be far too chatty.
@@ -1997,7 +1903,7 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
 
   // ── Cleanup (called by the router on navigation away) ───────────────────────
   kitPanel = mountKitPanel(viewEl, host, state, { newRow, changed: () => { zipNameInput.value = state.zipName; columns = renderGrid(); }, save: () => sessionsBtn.click() });
-  (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { kitPanel?.dispose(); detachLangMenu(); closeBulkPopover(); closeSessions(); closePrintPopover(); closeTemplatePicker(); closeBlocksPanel(); nav.destroy(); detachResize(); detachReorder(); detachScrub(); zipRO.disconnect(); zoomHud.destroy(); narrowMq.removeEventListener('change', placeFormat); narrowMq.removeEventListener('change', sizeZip); document.removeEventListener('pointerdown', onDocPointer); document.removeEventListener('keydown', onAddRowKey, true); };
+  (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { kitPanel?.dispose(); detachLangMenu(); closeBulkPopover(); closeSessions(); closePrintPopover(); closeTemplatePicker(); closeBlocksPanel(); rowActions.destroy(); nav.destroy(); detachResize(); detachReorder(); detachScrub(); zoomHud.destroy(); document.documentElement.style.zoom = previousZoom; document.removeEventListener('pointerdown', onDocPointer); document.removeEventListener('keydown', onAddRowKey, true); };
 
   // Deep link, in precedence order:
   //  · a Projects "Edit as sheet" selection (#/pro?s=slot,slot…) → one row per
