@@ -1628,14 +1628,32 @@ export async function createRuntime(
     // applyPatch/setInput, neither of which resolves them; without this a picked
     // template renders black colours + a placeholder image where a freshly-opened one
     // renders the real gradient. Both resolvers return the same model reference when
-    // nothing needed resolving, so a call that changed nothing skips the re-emit.
+    // nothing needed resolving, so a call that changed nothing skips the hooks and the re-emit.
     async resolveRefs() {
       const before = model;
       // The surface context caches a token set and variant table: read them again.
       surfaceContexts.delete(host);
       model = await resolveTokenRefs(model, host, keepWriteTokens(themeGeneration));
       model = await resolveAssetRefs(model, host, droppedAssets, composeStack, tool.manifest.id);
-      if (model !== before) emit();
+      if (model === before) return;
+      // applyPatch and setInput already ran onInput on the unresolved values, and a hook
+      // that builds markup from them (QR Code's svgContent, Design's mediaHtml) kept that
+      // markup: a picked starter drew in the fallback paint until the next edit while the
+      // control showed the resolved colour. Run onInput again for each value this pass
+      // completed, as setTokenSelection does after a theme switch.
+      const changed = model.filter(item => before.find(prior => prior.id === item.id)?.value !== item.value);
+      const onInput = hooks?.onInput;
+      if (onInput) {
+        for (const item of changed) {
+          try {
+            const patch = await runHook('onInput', report => onInput({ id: item.id, value: flattenValue(item.value), model: modelForHooks(model), view: viewState, lang: hookLang, host, report }), applyLatePatch);
+            if (patch) ({ model, extras } = mergePatch(model, extras, patch, inputIds));
+          } catch (e) {
+            host.log('warn', `onInput ${(e as Error).message}`, { toolId: tool.manifest.id });
+          }
+        }
+      }
+      emit();
     },
 
     async setTokenSelection(selection) {
