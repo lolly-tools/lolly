@@ -690,7 +690,7 @@ function paintFlowInsertion(
   line.setAttribute('y1', String(a.y));
   line.setAttribute('x2', String(b.x));
   line.setAttribute('y2', String(b.y));
-  line.setAttribute('stroke', 'var(--accent,#5c67d5)');
+  line.setAttribute('stroke', 'hsl(var(--primary))');
   line.setAttribute('stroke-width', '3');
   svg.append(line);
 }
@@ -737,8 +737,8 @@ export function paint(fc: FcCtx): void {
         })
         .join(' ')
     );
-    node.setAttribute('fill', highlight ? 'rgba(92,103,213,.12)' : 'none');
-    node.setAttribute('stroke', 'var(--accent,#5c67d5)');
+    node.setAttribute('fill', highlight ? 'hsl(var(--primary) / .12)' : 'none');
+    node.setAttribute('stroke', 'hsl(var(--primary))');
     node.setAttribute('stroke-width', '1');
     node.setAttribute('stroke-dasharray', '3 3');
     svg.append(node);
