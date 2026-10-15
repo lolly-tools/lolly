@@ -41,3 +41,12 @@ test('a selected variation never borrows a picture of a different file', () => {
   const own = selectAssetFile({ ...withThumb, meta: { ...withThumb.meta, assetFiles: [files[0], previewed] } }, previewed);
   assert.equal(own.meta?.thumbUrl, `${files[1]!.url}?preview=1`, 'a file preview of its own wins');
 });
+test('source file roles survive selection while older metadata stays compatible', () => {
+  const rendition = { ...files[0]!, role: 'rendition' as const };
+  const source = { ...ref, meta: { ...ref.meta, providerOriginalsAvailable: false, assetFiles: [rendition, files[1]] } };
+  const selected = selectAssetFile(source, rendition);
+  assert.equal(selected.meta?.fileRole, 'rendition');
+  assert.equal(selected.meta?.providerOriginalsAvailable, false);
+  assert.equal(selectAssetFile(selected, files[1]!).meta?.fileRole, undefined);
+  assert.equal(assetFiles({ assetFiles: [{ ...files[0], role: 'invented' }] })[0]!.role, undefined);
+});

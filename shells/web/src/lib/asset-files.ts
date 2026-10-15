@@ -3,7 +3,7 @@
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 import { buildFileAssetId, parseFileAssetId, stripAssetModifiers } from '../../../../engine/src/asset-modifiers.ts';
 import { instancePath } from './instance.ts';
-export interface AssetFile { id: string; format: string; url: string; name: string; size?: number; width?: number; height?: number; thumbnail?: string }
+export interface AssetFile { id: string; format: string; url: string; name: string; size?: number; width?: number; height?: number; thumbnail?: string; role?: 'original' | 'rendition' }
 const number = (n: unknown): n is number => typeof n === 'number' && Number.isFinite(n) && n > 0;
 export function assetFiles(meta: Record<string, unknown> | undefined): AssetFile[] {
   const raw = meta?.assetFiles; if (!Array.isArray(raw)) return [];
@@ -17,6 +17,7 @@ export function assetFiles(meta: Record<string, unknown> | undefined): AssetFile
       || typeof f.name !== 'string' || f.name.length > 1000) continue;
     seen.add(f.id);
     files.push({ id: f.id, format: f.format, url: f.url, name: f.name,
+      ...(f.role === 'original' || f.role === 'rendition' ? { role: f.role } : {}),
       ...(number(f.size) ? { size: f.size } : {}), ...(number(f.width) ? { width: f.width } : {}), ...(number(f.height) ? { height: f.height } : {}),
       ...(f.thumbnail === `${f.url}?preview=1` ? { thumbnail: f.thumbnail } : {}) });
   }
@@ -42,6 +43,7 @@ export function selectAssetFile(ref: AssetRef, file: AssetFile): AssetRef {
   return { ...ref, id: buildFileAssetId(group, file.id), type: fileAssetType(selected.format), format: selected.format, url, width: selected.width, height: selected.height,
     meta: { ...ref.meta, name: selected.name, assetGroupName: ref.meta?.assetGroupName ?? ref.meta?.name, assetGroupId: group, selectedFile: selected.id,
       size: selected.size, bytes: selected.size, width: selected.width, height: selected.height,
+      fileRole: selected.role,
       thumbUrl: thumb ?? (samePrimary ? ref.meta?.thumbUrl : undefined), posterUrl: thumb ?? (samePrimary ? ref.meta?.posterUrl : undefined) } };
 }
 export function selectedAssetFile(ref: AssetRef): string | null { return parseFileAssetId(ref.id).file; }

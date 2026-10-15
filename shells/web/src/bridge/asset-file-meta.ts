@@ -12,7 +12,7 @@ export function selectedFileMeta(meta: AssetMetaRecord, file: string | null): As
   if (!selected || !format) throw new Error('Asset file unavailable');
   return { ...meta, id: buildFileAssetId(meta.id, file), type: fileAssetType(format.format), name: selected.name,
     width: selected.width, height: selected.height, formats: [format], checksum: format.checksum,
-    meta: { ...meta.meta, assetGroupId: meta.id, assetGroupName: meta.name, selectedFile: file, size: selected.size, bytes: selected.size,
+    meta: { ...meta.meta, assetGroupId: meta.id, assetGroupName: meta.name, selectedFile: file, size: selected.size, bytes: selected.size, fileRole: selected.role,
       ...(selected.thumbnail ? { thumbUrl: selected.thumbnail, posterUrl: selected.thumbnail } : {}) } };
 }
 
