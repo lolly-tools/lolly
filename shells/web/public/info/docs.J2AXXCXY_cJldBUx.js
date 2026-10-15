@@ -12,7 +12,7 @@ window.__lollyChipField=function(canvas,opt){
   var extPool=exts.concat(['.PDF','.SVG','.PNG','.MP4','.PPTX']);
   var floaters=[], fragments=[];
   // The chip colours, resolved at bake time. Two fields only: the box and its label.
-  var defaultPal=function(){return{fill:'#1c4a2e',label:'#30ba78'};};
+  var defaultPal=function(){return{fill:'#0a4744',label:'#50c369'};};
   var palette=opt.palette||defaultPal;
   var pal=palette();
   // Ambient chip population scales with canvas width so wide heroes aren't sparse
@@ -614,12 +614,14 @@ window.__lollyChipField=function(canvas,opt){
   function palette(){
     var th=document.documentElement.dataset.theme;
     var dark=th==='dark'||th==='brand';  // brand is a dark ground too
-    // Dark: the landing's own chip fill over the dark band, under color-dodge -
-    // the same glow the front door has. Light: a mint chip on a near-white band,
-    // normal blend, so the field reads as watermark rather than decoration.
+    // Dark: the landing's own chip fill (Opal's deep plate green) over the dark band,
+    // under color-dodge - the same glow the front door has. Light: a Pandanus chip on a
+    // near-white band, normal blend, so the field reads as watermark rather than
+    // decoration. The light fill reads --border, not --input: the bridge makes --border
+    // a finished hsl() colour, while --input is a bare triple a canvas cannot parse.
     return dark
-      ? {fill:'#1c4a2e', label:tok('--green','#30ba78')}
-      : {fill:tok('--border','#d8ede4'), label:tok('--green','#30ba78')};
+      ? {fill:'#0a4744', label:tok('--green','#50c369')}
+      : {fill:tok('--border','#ace1ad'), label:tok('--green','#033633')};
   }
   var field=window.__lollyChipField(canvas,{palette:palette,pause:true,reduceMotion:true,burst:true,burstGuard:true});
   // The [data-theme] flip (docs theme toggle) and the OS preference both change the answer.
