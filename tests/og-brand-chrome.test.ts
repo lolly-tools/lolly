@@ -264,7 +264,7 @@ test('10. og-image.ts carries no other brand\'s colours and no repo-root catalog
   assert.doesNotMatch(src, /0c322c|30ba78/i, 'no SUSE Pine or Jungle hex');
   assert.ok(!src.includes("'catalog/assets/index.json'"), 'the catalog comes from the resolver');
   assert.match(src, /from '\.\.\/packages\/node-shell\/src\/content-roots\.ts'/);
-  const shell = /export const STARTER_TOKENS_ID = '([^']+)'/.exec(read('shells/web/src/lib/design-system/rooms/overview.ts'));
+  const shell = /export const STARTER_TOKENS_ID = '([^']+)'/.exec(read('shells/web/src/lib/design-system/starter.ts'));
   assert.ok(shell, 'the shell still exports STARTER_TOKENS_ID');
   assert.equal(STARTER_TOKENS_ID, shell[1]);
 });
