@@ -20,7 +20,12 @@
  *      bitten by two-copies drift before (see the schema drift guard);
  *   4. app.css's layer declaration - the high-contrast token overrides only win
  *      because tokens.css is imported UNLAYERED; layering it would silently
- *      neuter the preference.
+ *      neuter the preference;
+ *   5. the Jelly UI hand-off - lib/a11y-prefs.ts writes the attribute that
+ *      vendor/jelly/jelly.mjs reads and sends the event the bundle listens for.
+ *      The module cannot import the bundle without loading Jelly for every
+ *      user, so each name is spelt in both files and only a static read can
+ *      keep them equal.
  *
  * Deliberately structural: no colour value and no multiplier NUMBER is asserted
  * (those are design choices, tunable in one edit, and pinning them would make
@@ -35,7 +40,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, dirname, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { A11Y_STORE_KEY } from './a11y-prefs.ts';
+import { A11Y_STORE_KEY, JELLY_MOTION_ATTR, JELLY_MOTION_EVENT } from './a11y-prefs.ts';
 
 const SRC_DIR = dirname(dirname(fileURLToPath(import.meta.url))); // this file lives at src/lib/
 const WEB_DIR = dirname(SRC_DIR);
@@ -587,4 +592,31 @@ test('index.html sets the same three attribute/value pairs as the module, each b
     assert.ok(mod.includes(`'${dataset}'`) && mod.includes(`'${value}'`) && mod.includes(`'${key}'`),
       `lib/a11y-prefs.ts no longer maps ${key} → ${dataset}="${value}"; index.html still does`);
   }
+});
+
+// ── Jelly UI: the reduce-motion hand-off, spelt a second time in vendor/jelly ──
+
+test('vendor/jelly reads the attribute and listens for the event that lib/a11y-prefs.ts writes', () => {
+  const jelly = readFileSync(join(SRC_DIR, 'vendor/jelly/jelly.mjs'), 'utf8');
+  const q = `["']`;
+  // The motion check every control's physics calls reads the attribute and treats "reduce" as on.
+  assert.match(jelly, new RegExp(`getAttribute\\(\\s*${q}${JELLY_MOTION_ATTR}${q}\\s*\\)[\\s\\S]{0,200}?${q}reduce${q}`),
+    `vendor/jelly no longer reads ${JELLY_MOTION_ATTR}="reduce" - the in-app Reduce motion pref would stop reaching Jelly controls`);
+  assert.ok(jelly.includes(`[${JELLY_MOTION_ATTR}="reduce"]`),
+    `vendor/jelly's shadow styles no longer match [${JELLY_MOTION_ATTR}="reduce"] - Jelly transitions would run with the pref on`);
+  assert.match(jelly, new RegExp(`addEventListener\\(\\s*${q}${JELLY_MOTION_EVENT}${q}`),
+    `vendor/jelly no longer listens for ${JELLY_MOTION_EVENT} - built controls would pick up a pref change only when ` +
+    'something else asks them for a frame');
+});
+
+test('index.html writes the Jelly attribute once, as "reduce", behind the reduceMotion check', () => {
+  const html = readFileSync(join(WEB_DIR, 'index.html'), 'utf8');
+  const write = String.raw`(?:setAttribute\(\s*['"]${JELLY_MOTION_ATTR}['"]\s*,|dataset\.jellyMotion\s*=)`;
+  const writes = html.match(new RegExp(write, 'g')) ?? [];
+  assert.equal(writes.length, 1,
+    `index.html writes ${JELLY_MOTION_ATTR} ${writes.length} times; the pre-paint mirror needs exactly one write, ` +
+    'behind the reduceMotion check');
+  assert.match(html, new RegExp(String.raw`if\s*\([^)]*\.reduceMotion\s*\)[^;]*${write}\s*['"]reduce['"]`),
+    `index.html must set ${JELLY_MOTION_ATTR}="reduce" only when reduceMotion is on, as applyA11yPrefs does - an ` +
+    'unconditional write, or "no-preference", would take Jelly off the OS setting for users who never asked');
 });
