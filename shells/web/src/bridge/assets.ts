@@ -518,7 +518,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       const parsedFile = parseFileAssetId(baseId);
       let storedMeta = await db.get('asset-meta', parsedFile.baseId);
       if (!storedMeta && /^(ext|inst)\//.test(parsedFile.baseId)) {
-        const { readCatalogAsset } = await import('../catalog/browse.ts');
+        const { readCatalogAsset } = await import('../catalog/metadata.ts');
         const incoming = await readCatalogAsset(parsedFile.baseId);
         if (incoming && (opts.version === undefined || opts.version === incoming.version)) {
           await api._syncFromIndex([incoming]);

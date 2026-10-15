@@ -13,20 +13,22 @@ test('shared Assets pages retain selections, exact filters, file choice and meta
   assert.ok(['localhost', '127.0.0.1'].includes(new URL(origin!).hostname));
   const browser = await getBrowser(), context = await browser.newContext({ viewport: { width: 1360, height: 1000 } });
   const page = await context.newPage(); const errors: string[] = [], requests: URL[] = [], writes: unknown[] = [];
-  let denied = false;
+  let denied = false, indexedText = '';
   page.on('pageerror', error => errors.push(error.message));
   await page.route('**/api/v1/catalog/**', async route => {
     const url = new URL(route.request().url());
     if (url.pathname === '/api/v1/catalog/sources') return route.fulfill({ json: { sources: denied ? [] : [{ id: 'dam', label: 'Campaign library', status: 'current', count: 100_000 }], scope: 'fixture', canManage: false } });
     if (denied) return route.fulfill({ status: 403, json: { error: { message: 'Denied' } } });
+    if (url.pathname.startsWith('/api/v1/catalog/text-index/')) { const body = route.request().postDataJSON(); writes.push(body); indexedText = body.text ?? ''; return route.fulfill({ json: { ok: true } }); }
     if (url.pathname.endsWith('/meta')) { writes.push(route.request().postDataJSON()); return route.fulfill({ json: { ok: true } }); }
-    if (url.pathname !== '/api/v1/catalog/assets') return route.fulfill({ json: { ...entry(Number(url.pathname.match(/item-(\d+)/)?.[1] ?? 0)), canEdit: true, fields: { region: 'EMEA' }, fieldDefs: [{ id: 'region', label: 'Region', kind: 'select', options: ['EMEA', 'APAC'] }] } });
+    if (url.pathname !== '/api/v1/catalog/assets') { const asset = entry(Number(url.pathname.match(/item-(\d+)/)?.[1] ?? 0)); return route.fulfill({ json: { ...asset, canEdit: true, fields: { region: 'EMEA' }, fieldDefs: [{ id: 'region', label: 'Region', kind: 'select', options: ['EMEA', 'APAC'] }],
+      textIndex: { revision: 'revision-one', assetVersion: asset.version, status: indexedText ? 'current' : 'none', characters: indexedText.length }, textIndexFiles: asset.meta.assetFiles } }); }
     requests.push(url); const offset = Number(url.searchParams.get('cursor') ?? 0), tagged = url.searchParams.has('tag');
     return route.fulfill({ json: { capabilities: { indexedFilters: ['q', 'scope', 'source', 'types', 'tag', 'taxonomyKind', 'taxonomyId'] }, assets: Array.from({ length: tagged ? 10 : 100 }, (_, i) => entry(offset + i)), total: tagged ? 10 : 100_000, nextCursor: tagged ? null : String(offset + 100), version: 'fixture', complete: true,
       sources: [{ id: 'dam', label: 'Campaign library', status: 'current', count: 100_000 }], facets: { sources: [{ id: 'dam', label: 'Campaign library', count: 100_000 }], sections: [{ name: 'Launch', count: 100_000 }], collections: [], tags: [{ name: 'launch', count: 10 }], types: [{ name: 'vector', count: 100_000 }], taxonomy: [{ source: 'dam', kind: 'section', id: 'legacy:Launch', name: 'Launch', count: 100_000 }] } } });
   });
   await page.route('**/catalog/assets/index.json*', route => route.fulfill({ json: { assets: [] } }));
-  await page.route('**/catalog/ext/**', route => route.fulfill({ contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="240" height="160"><rect width="240" height="160" fill="#28785a"/><circle cx="120" cy="80" r="45" fill="#d9ed87"/></svg>' }));
+  await page.route('**/catalog/ext/**', route => route.fulfill({ contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="240" height="160"><rect width="240" height="160" fill="#28785a"/><text x="20" y="80" fill="white">Zephyr launch artwork</text></svg>' }));
   try {
     await page.goto(`${origin}/#/a`, { waitUntil: 'domcontentloaded' });
     await page.locator('.cat-remote .cat-tile').first().waitFor({ state: 'visible' });
@@ -59,7 +61,26 @@ test('shared Assets pages retain selections, exact filters, file choice and meta
     await page.getByRole('button', { name: 'Save metadata', exact: true }).click();
     await page.getByText('Metadata saved.', { exact: true }).waitFor();
     assert.deepEqual(writes, [{ fields: { region: 'APAC' } }]);
+    await page.getByRole('button', { name: 'Read text', exact: true }).click();
+    await page.getByText('Review text for shared search', { exact: true }).waitFor();
+    assert.equal(writes.length, 1, 'extracting text performs no curation write');
+    await page.getByLabel('Reviewed search text', { exact: true }).fill('Reviewed Zephyr campaign');
+    await page.getByRole('button', { name: 'Add reviewed text to shared search', exact: true }).click();
+    await page.getByText('Reviewed text added to shared search.', { exact: true }).waitFor();
+    assert.deepEqual(writes[1], { sourceRevision: 'revision-one', text: 'Reviewed Zephyr campaign', fileId: 'b'.repeat(24), method: 'digital' });
+    if (process.env.LOLLY_ASSETS_EVIDENCE) await page.screenshot({ path: `${process.env.LOLLY_ASSETS_EVIDENCE}/reviewed-text.png` });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.getByLabel('Reviewed search text', { exact: true }).scrollIntoViewIfNeeded();
+    assert.equal(await page.locator('.cat-details-body').evaluate(element => element.scrollWidth <= element.clientWidth), true);
+    if (process.env.LOLLY_ASSETS_EVIDENCE) await page.screenshot({ path: `${process.env.LOLLY_ASSETS_EVIDENCE}/reviewed-text-mobile.png` });
+    await page.setViewportSize({ width: 1360, height: 1000 });
     await page.keyboard.press('Escape');
+    await page.getByLabel('Search Assets', { exact: true }).fill('zephyr');
+    await page.waitForFunction(() => document.querySelector('[data-shared-query]')?.textContent?.includes('zephyr'));
+    await page.waitForTimeout(350);
+    assert.equal(requests.at(-1)!.searchParams.get('q'), 'zephyr');
+    await page.getByRole('button', { name: 'Clear shared search', exact: true }).click();
+    assert.equal(await page.getByLabel('Search Assets', { exact: true }).inputValue(), '');
     await page.setViewportSize({ width: 390, height: 844 });
     if (await page.locator('[data-browse-sources]').getAttribute('aria-expanded') === 'true') await page.locator('[data-browse-sources]').click();
     await page.evaluate(() => scrollTo(0, 0));

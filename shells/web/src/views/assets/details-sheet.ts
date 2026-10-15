@@ -534,7 +534,7 @@ export function buildSheet(dt: DetailsCtx): void {
   mountAssetFileList(fileSlot, ref, selected => cat.details.openDetails(selected, dt.initialTheme, dt.initialTreatment));
   if (ref.meta?.provider || ref.id.startsWith('inst/')) {
     const metadata = document.createElement('div'); fileSlot.append(metadata);
-    void import('./shared-metadata.ts').then(({ mountSharedMetadata }) => mountSharedMetadata(metadata, ref, () => { void cat.remote?.load(); }));
+    void import('./shared-metadata.ts').then(({ mountSharedMetadata }) => mountSharedMetadata(metadata, ref, () => { void cat.remote?.load(); }, cat.sourceStatuses.find(source => source.id === ref.meta?.provider)));
   }
   dt.previewStatusDispose = mountAssetPreviewStatus(dlg.querySelector<HTMLElement>('.cat-details-preview')!, Number(ref.meta?.bytes ?? ref.meta?.size ?? 0));
   cat.detailsDialog = dlg; dlg.dataset.viewerProvider = String(ref.meta?.provider ?? '');
@@ -948,6 +948,7 @@ export function wireSheetEvents(dt: DetailsCtx): void {
       if (span) span.textContent = t('Reading…');
       const alive = (): boolean => cat.detailsDialog === dlg;
       try {
+        const textReview = await (await import('./shared-text-index.ts')).prepareSharedTextReview(ref, box, () => { void cat.remote?.load(); });
         const dr = await import('../doc-read.ts');
         let text: string | null = null;
         let source: 'digital' | 'ocr' = 'digital';
@@ -999,6 +1000,7 @@ export function wireSheetEvents(dt: DetailsCtx): void {
         const panel = analyzeVerifyText(text, source);
         box.innerHTML = `<pre class="cat-text-preview cat-text-ocr">${cat.thumbs.catHighlightHtml(text, panel.marks)}</pre>${cat.thumbs.catTextSignalsHtml(panel)}${notesHtml}`;
         box.hidden = false;
+        textReview?.offer(text, source);
         await cat.thumbs.persistAiSignals(ref, panel, source);
       } catch (err) {
         host.log('warn', 'catalog: doc/vector read failed', { error: String((err as Error)?.message ?? err) });
@@ -1045,6 +1047,7 @@ export function wireSheetEvents(dt: DetailsCtx): void {
         else announce(t('The text could not be read.'));
       };
       let frame: { width: number; height: number; data: Uint8ClampedArray };
+      const textReview = await (await import('./shared-text-index.ts')).prepareSharedTextReview(ref, box, () => { void cat.remote?.load(); });
       try {
         frame = await cat.thumbs.rasterToOcrFrame(ref.url);
       } catch {
@@ -1065,6 +1068,7 @@ export function wireSheetEvents(dt: DetailsCtx): void {
             const panel = analyzeVerifyText(text, 'ocr');
             if (alive()) {
               if (box) { box.innerHTML = `<pre class="cat-text-preview cat-text-ocr">${cat.thumbs.catHighlightHtml(text, panel.marks)}</pre>${cat.thumbs.catTextSignalsHtml(panel)}`; box.hidden = false; }
+              textReview?.offer(text, 'ocr');
               // Announce what actually happened: the clipboard write can be refused
               // (permissions, unfocused document), and "copied" would then be a lie.
               let copied = true;
