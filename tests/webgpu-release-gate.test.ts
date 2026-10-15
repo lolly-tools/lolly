@@ -269,13 +269,14 @@ test('ordinary CI keeps passing release-checklist --check; release mode refuses 
   }
 });
 
-test('the published Mac matrix permits web and Mac artifacts and keeps the other native apps held', () => {
+test('the published matrix permits web, Mac and iOS artifacts and keeps the other native apps held', () => {
   assert.deepEqual(webGpuReleaseProblems(undefined, 'web'), []);
   assert.deepEqual(webGpuReleaseProblems(undefined, 'macos'), []);
-  for (const platform of ['ios', 'android', 'linux', 'windows'] as const) assert.equal(webGpuReleaseProblems(undefined, platform).length, 1, platform);
+  assert.deepEqual(webGpuReleaseProblems(undefined, 'ios'), []);
+  for (const platform of ['android', 'linux', 'windows'] as const) assert.equal(webGpuReleaseProblems(undefined, platform).length, 1, platform);
   const problems = webGpuReleaseProblems();
-  assert.equal(problems.length, 4);
-  for (const environment of ['iOS and iPadOS', 'Windows', 'Linux', 'Android']) {
+  assert.equal(problems.length, 3);
+  for (const environment of ['Windows', 'Linux', 'Android']) {
     assert.ok(problems.some(problem => problem.startsWith(environment) && problem.includes('Pending: physical runtime not qualified')));
   }
   const table = readFileSync(new URL('../docs/supported-environments.md', import.meta.url), 'utf8');
