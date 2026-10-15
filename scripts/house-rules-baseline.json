@@ -61,13 +61,11 @@
     "H4": 4
   },
   "shells/web/src/styles/parts/brand-studio.css": {
-    "H1": 1,
-    "H2": 2,
+    "H2": 1,
     "H4": 5,
     "H5": 11
   },
   "shells/web/src/styles/parts/collab.css": {
-    "H2": 1,
     "H4": 1
   },
   "shells/web/src/styles/parts/color-field.css": {
@@ -77,9 +75,6 @@
   "shells/web/src/styles/parts/color-lab.css": {
     "H4": 2,
     "H5": 3
-  },
-  "shells/web/src/styles/parts/components-lib.css": {
-    "H2": 1
   },
   "shells/web/src/styles/parts/components.css": {
     "H4": 5
@@ -91,7 +86,6 @@
     "H3": 3
   },
   "shells/web/src/styles/parts/dashboard.css": {
-    "H2": 3,
     "H4": 8,
     "H5": 5
   },
@@ -103,9 +97,6 @@
   "shells/web/src/styles/parts/design-guides.css": {
     "H4": 1,
     "H5": 1
-  },
-  "shells/web/src/styles/parts/design-layout-section.css": {
-    "H2": 1
   },
   "shells/web/src/styles/parts/dialogs.css": {
     "H4": 4,
@@ -128,7 +119,7 @@
     "H2": 2
   },
   "shells/web/src/styles/parts/editor.css": {
-    "H2": 2,
+    "H2": 1,
     "H4": 5
   },
   "shells/web/src/styles/parts/featured.css": {
@@ -204,9 +195,6 @@
     "H4": 2,
     "H5": 1
   },
-  "shells/web/src/styles/parts/team-projects.css": {
-    "H2": 1
-  },
   "shells/web/src/styles/parts/timeline.css": {
     "H4": 4,
     "H5": 2
@@ -237,7 +225,6 @@
     "H5": 1
   },
   "shells/web/src/styles/parts/valid.css": {
-    "H2": 1,
     "H3": 2,
     "H4": 14,
     "H5": 8
@@ -258,9 +245,5 @@
   "shells/web/src/styles/template-chooser.css": {
     "H4": 1,
     "H5": 1
-  },
-  "shells/web/src/views/history.css": {
-    "H1": 1,
-    "H2": 1
   }
 }
