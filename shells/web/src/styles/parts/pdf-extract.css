@@ -10,7 +10,17 @@
    came out of a document, and it should read like prose, not like a data dump
    spanning a 27" display. */
 
-.pdfx-view { overflow-y: auto; }
+/* This sheet reads --surface, --surface-2 and --line, which nothing in the app defined:
+   the tab strip, the sticky bar and the page rail fell back to the browser's own canvas
+   colour (#121212 in the dark and brand themes), the cards and the thumbnail hover had no
+   surface at all, and every hairline drew in the full text colour. Defining them here
+   from the app's role tokens puts the whole view on the theme's own surfaces. */
+.pdfx-view {
+  overflow-y: auto;
+  --surface: var(--ui-color-surface-raised);
+  --surface-2: var(--ui-color-surface-muted);
+  --line: var(--ui-color-border-default);
+}
 .pdfx-view .platform-layout {
   /* A reading column, not a dashboard: this page is mostly recovered prose, and
      the asset grids are happy at the same measure. Narrower than the verify
