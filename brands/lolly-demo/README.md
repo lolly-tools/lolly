@@ -85,6 +85,24 @@ Liquorice hull reaches tool canvases (through the semantic `surface` slot) but
 not yet the chrome around them. That is the open "static dark block" call in the
 brand plan.
 
+## Print
+
+Every Opal colour carries a CMYK build in `com.suse.lolly.cmyk`, so a CMYK PDF
+prints the same inks every time instead of the shell's naive conversion. The
+builds target FOGRA39 (ISO Coated v2, the ECI profile), the press condition
+Lolly's CMYK export declares by default, and were measured back through that
+profile.
+
+- Colours inside the press gamut print within about ΔE00 1.5 of the screen.
+- Where the screen colour is outside the gamut, the build keeps hue and chroma
+  first and lets lightness move (CIEDE2000 with kL 2; pale and dark colours keep
+  lightness at full weight), with no black in bright colours and the ink total
+  under 300%, or 280% for the darks.
+- CMYK cannot reach Jacaranda (chroma 37 of 59), Green Apple (56 of 60), Swell,
+  Pandanus, Reef and Sky. These are the colours a spot ink would carry, and spot
+  inks are not set yet. Void and the Liquorice tints are rich blacks at the
+  press's deepest, about L 11.
+
 ## Not done yet
 
 - **Signing.** `pnpm run sign:credentials:catalog` and the catalog signature
