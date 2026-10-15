@@ -2729,6 +2729,20 @@ const APP_TOKENS = readFileSync(resolve(repoRoot, 'shells/web/src/styles/tokens.
   .replace(/\n\s*\n/g, '\n')
   .trim();
 
+// The static site's own palette: Opal, Lolly's colours, washed with green. Inlined
+// straight after APP_TOKENS so it replaces the app's unchosen static themes on /info
+// only; tokens.css and the app's themes are untouched, and the in-app reader keeps
+// following the active brand. Spearmint is the light primary and the band, Green
+// Apple the green for light on dark, Avocado washes the light surfaces, Pandanus draws
+// the light hairlines and Liquorice is the ink and the dark ground. Each block sets
+// the same slots, so a later block never leaves an earlier one's value behind (:root
+// also matches a dark document at equal specificity). --muted and --border are left
+// out because the bridge below shadows both, and the High contrast blocks in
+// APP_TOKENS out-specify all three blocks, so High contrast keeps the app's values.
+const INFO_OPAL_TOKENS = `:root,[data-theme="light"]{--background:0 0% 100%;--foreground:201.2 48.6% 6.9%;--card:0 0% 100%;--card-foreground:201.2 48.6% 6.9%;--popover:0 0% 100%;--popover-foreground:201.2 48.6% 6.9%;--primary:176.5 89.5% 11.2%;--primary-foreground:0 0% 100%;--secondary:84.5 55% 92.2%;--secondary-foreground:201.2 48.6% 6.9%;--accent:121.1 46.9% 77.8%;--accent-foreground:201.2 48.6% 6.9%;--muted-foreground:207.7 10.6% 24.1%;--input:121.1 46.9% 77.8%;--ring:176.5 89.5% 11.2%;--warn:#72251c;--lolly-coin-glow:#edf6e0}
+[data-theme="dark"]{--background:201.2 48.6% 6.9%;--foreground:0 0% 100%;--card:203.3 33.3% 10.6%;--card-foreground:0 0% 100%;--popover:203.3 33.3% 10.6%;--popover-foreground:0 0% 100%;--primary:133 48.9% 53.9%;--primary-foreground:201.2 48.6% 6.9%;--secondary:202.1 25.3% 14.7%;--secondary-foreground:0 0% 100%;--accent:207.7 10.6% 24.1%;--accent-foreground:0 0% 100%;--muted-foreground:201.8 5.7% 62.2%;--input:207.7 10.6% 24.1%;--ring:133 48.9% 53.9%;--warn:#ee9138;--lolly-coin-glow:#121d24}
+[data-theme="brand"]{--background:176.5 89.5% 11.2%;--foreground:84.5 55% 92.2%;--card:176.5 70% 15%;--card-foreground:84.5 55% 92.2%;--popover:176.5 70% 15%;--popover-foreground:84.5 55% 92.2%;--primary:133 48.9% 53.9%;--primary-foreground:201.2 48.6% 6.9%;--secondary:176.5 60% 18%;--secondary-foreground:84.5 55% 92.2%;--accent:176.5 55% 21%;--accent-foreground:84.5 55% 92.2%;--muted-foreground:121.1 46.9% 77.8%;--input:176.5 35% 30%;--ring:133 48.9% 53.9%;--warn:#fac044;--lolly-coin-glow:#0b413e}`;
+
 // The landing bands, single-sourced as a real stylesheet: the static front door
 // below and the in-app docs reader (plans/123 decision D2) both render the same
 // bytes, so neither surface can drift from the other. Read verbatim, unlike
@@ -2763,11 +2777,11 @@ const CSS = `
    server-surface.md tells the reader. Latin subset only, 26 KB, loaded on one page. */
 @font-face{font-family:'Cinzel';src:url('/info/fonts/cinzel-latin.woff2') format('woff2-variations');font-weight:400 900;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+2000-206F,U+2122,U+2212}
 ${APP_TOKENS}
-/* Bridge: the docs' legacy token names, expressed in the app's design tokens above, so the
-   whole docs stylesheet follows the app's [data-theme] light/dark/brand system and - inside
-   the app shell - the active brand. Neutrals/surfaces map cleanly; the ACCENT (--green ->
-   --primary) is the one design choice to review: the app's primary is deep teal in light,
-   pine green in dark/brand, so light-mode links become teal rather than green. */
+${INFO_OPAL_TOKENS}
+/* Bridge: the docs' legacy token names, expressed in the design tokens above, so the
+   whole docs stylesheet follows the [data-theme] light/dark/brand system and - inside
+   the app shell - the active brand. On the static site those tokens are Opal, so the
+   accent (--green -> --primary) is Spearmint in light and Green Apple in dark and brand. */
 :root{
   --page:hsl(var(--background));
   --text:hsl(var(--foreground));
@@ -2802,12 +2816,11 @@ ${APP_TOKENS}
   --red:hsl(var(--destructive));
   /* The deep, ALWAYS-DARK marketing-band / chrome surface (nav, hero, platform, assure,
      about, everywhere, pathways). It must stay dark in EVERY theme - unlike --background/
-     --card which flip light in the light theme, and unlike --primary which goes pine-green
-     in dark/brand. Default is the SUSE deep teal (= the old #0c322c); brand-vars.ts will
-     override it per active brand in the app shell (M2) so a self-hosted org's dark bands
-     carry their brand. Fixes the M1 bug where these bands used var(--dark) (=--foreground),
-     which inverted to near-white text-on-band in dark mode. */
-  --band-dark:171 62% 12%;
+     --card which flip light in the light theme, and unlike --primary which goes Green Apple
+     in dark/brand. Opal's Spearmint, Lolly's own deep green; the in-app reader's landing
+     (docs.css) carries the same value. Fixes the M1 bug where these bands used var(--dark)
+     (=--foreground), which inverted to near-white text-on-band in dark mode. */
+  --band-dark:176.5 89.5% 11.2%;
   /* The always-LIGHT ink that rides on --band-dark (headings, nav wordmark, nav/hero/
      platform/assure/everywhere/about/pathways copy). Paired with --band-dark so the
      always-dark chrome is fully brand-reactive: a self-hosted brand overrides BOTH the
@@ -2817,15 +2830,17 @@ ${APP_TOKENS}
      dark/brand, which would turn every band's white text black-on-dark. --on-band-dark
      stays light in every theme + contrast mode, so the a11y contract holds. */
   --on-band-dark:0 0% 100%;
-  /* The always-BRIGHT accent that rides on --band-dark for CTAs on the dark chrome (the
-     nav "Launch App" pill). Band-invariant like the pair above: the nav is dark in every
-     theme, so its CTA must POP in every theme - it can't borrow --primary, which goes deep
-     teal in the LIGHT theme and would sink the button into the dark band. Default is the
-     pine green (= dark/brand --primary, the old bright SUSE green); brand-vars.ts overrides
-     it per active brand in the app shell. Paired with --band-dark as its ink (dark-on-green,
-     the original CTA look). */
-  --band-accent:151 57% 46%;
-  --orange:#fe7c3f;--navy:#192072;--blue:#2453ff;
+  /* The always-BRIGHT accent that rides on --band-dark for CTAs and icons on the dark
+     chrome (the nav "Launch App" pill, the seal, the dark bands' links). Band-invariant
+     like the pair above: the band is dark in every theme, so its accent must POP in every
+     theme - it can't borrow --primary, which is Spearmint in the LIGHT theme and would sink
+     into the band. Opal's Green Apple, the green for light on dark: 5.9:1 on Spearmint. */
+  --band-accent:133 48.9% 53.9%;
+  /* The ink on the lolly.work band, which sits on a light green wash in every theme. */
+  --band-primary:var(--text);
+  /* The brand face. lib/docs-landing.ts reads it in the in-app reader; declared here
+     too so the name resolves on both surfaces instead of computing as invalid. */
+  --brand-font:var(--font-brand);
   --col-cap:38rem;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -2838,13 +2853,19 @@ a:hover{text-decoration:underline}
    text-sized square; sized contexts (.icon-*, .assure-card-ic, illustrations, …) override
    this with a more specific selector. Keeps a missing/renamed rule from ever ballooning. */
 svg{width:1em;height:1em;flex:none}
-code{font-family:var(--brand-font),'SUSE Mono','SF Mono','Fira Code',monospace;font-size:.875em;background:hsl(var(--muted));padding:.15em .35em;border-radius:3px}
+code{font-family:'SUSE Mono','SF Mono','Fira Code',monospace;font-size:.875em;background:hsl(var(--muted));padding:.15em .35em;border-radius:3px}
 /* A long token in running text (a URL, a flag list, an env var, a link whose text is
    an address) breaks where it must rather than widening the page. break-word, not
    anywhere: it breaks only a token that would overflow and leaves table columns their
    natural width, so a wide table keeps scrolling in its own frame. Visual only: a copy
    of the text is unchanged. Code blocks keep their own rules. */
 .docs-content :not(pre)>code,.docs-content a{overflow-wrap:break-word}
+/* Links in running text are underlined as well as coloured. Spearmint reads 13.3:1 on
+   the page but only 1.4:1 against the Liquorice body text around it, so colour alone
+   cannot mark a link (WCAG 1.4.1). The in-app reader underlines the same way (docs.css).
+   Classed links are left alone: the one in running text is the .shot-try caption link,
+   which carries its own quiet rest state and underlines on hover. */
+.docs-content :is(p,li,td,dd)>a:not([class]){text-decoration:underline;text-underline-offset:.15em}
 pre{background:hsl(var(--muted));color:hsl(var(--foreground));padding:1.25rem 1.5rem;border-radius:8px;overflow-x:auto;white-space:pre-wrap;overflow-wrap:anywhere;font-size:.875rem;line-height:1.5;margin-bottom:1.25rem; box-shadow: inset 0 .2rem .4rem #0002, 0 1px #fff2}
 pre code{background:none;padding:0;color:inherit;font-size:1em}
 h1,h2,h3,h4{line-height:1.25;font-weight:700}
@@ -2852,7 +2873,7 @@ h2{font-size:2rem;letter-spacing:0;font-weight:900;text-transform:uppercase}
 p{margin-bottom:2rem}
 ul{padding-left:1.25rem;margin-bottom:1rem}
 li{margin-bottom:.35rem}
-blockquote{border-left:0; box-shadow:0 0 0 1px #30ba7825, inset 0 1px #fff3, inset 0 -1px #0001, 0 .1rem 2.4rem #30ba7855;  border-radius: 2em; padding: 1.5rem 2.25rem;background:var(--pale);margin:4rem 0;transform:scale(1.1)}
+blockquote{border-left:0; box-shadow:0 0 0 1px #50c36925, inset 0 1px #fff3, inset 0 -1px #0001, 0 .1rem 2.4rem #50c36955;  border-radius: 2em; padding: 1.5rem 2.25rem;background:var(--pale);margin:4rem 0;transform:scale(1.1)}
 /* The desktop scale reaches past the column; on a phone the column is the screen. */
 /* The scale needs spare room beside the column; below 800px the column is the screen. */
 @media(max-width:800px){blockquote{transform:none}}
@@ -3033,6 +3054,12 @@ html[data-a11y-motion="reduce"] .site-menu[open] .site-sheet{animation:none}
 @media(max-width:22.5em){.site-home img{display:none}.site-home{padding-inline:var(--sp-7)}}
 
 ${LANDING_CSS}
+/* The hero is dark in every theme, so on the static site its accent is the band's
+   Green Apple rather than the theme primary, which is Spearmint in light and would
+   sink into the hero ground. The static page runs no fitHeroCtaInk, so the Launch App
+   label takes Liquorice here (8.3:1 on Green Apple) instead of inheriting the white
+   hero ink. Static only: the in-app hero keeps the loaded brand's accent and ink. */
+.hero-wrap{--green:hsl(var(--band-accent));--hero-cta-ink:#09141a}
 
 /* Docs layout */
 .docs-wrap{display:grid;grid-template-columns:220px 1fr;max-width:1180px;margin:0 auto;min-height:calc(100vh - 3.5rem - 60px)}
@@ -3047,7 +3074,7 @@ ${LANDING_CSS}
 .sidedoor-promise{list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:.5rem .75rem;margin:0 0 1.5rem}
 .sidedoor-promise li{display:inline-flex;align-items:center;gap:.4em;background:hsl(var(--card));border:1px solid var(--border);border-radius:999px;padding:.3rem .85rem;font-size:.875rem;font-weight:600}
 .sidedoor-promise li::before{content:"✓";color:var(--green);font-weight:700}
-.sidedoor-cta{display:inline-flex;align-items:center;gap:.4em;background:var(--green);color:#fff;text-decoration:none;font-weight:700;padding:.7rem 1.4rem;border-radius:.6rem;margin-bottom:.5rem}
+.sidedoor-cta{display:inline-flex;align-items:center;gap:.4em;background:var(--green);color:hsl(var(--primary-foreground));text-decoration:none;font-weight:700;padding:.7rem 1.4rem;border-radius:.6rem;margin-bottom:.5rem}
 .sidedoor-cta:hover{filter:brightness(1.05)}
 .sidedoor-convert-cols{display:flex;flex-wrap:wrap;align-items:stretch;gap:1rem;margin:0 0 1.5rem}
 .sidedoor-col{flex:1 1 15rem;background:hsl(var(--card));border:1px solid var(--border);border-radius:.75rem;padding:1rem 1.15rem}
@@ -3156,7 +3183,7 @@ ${LANDING_CSS}
 .docs-sidebar a:hover .sidebar-ic,.docs-sidebar a.active .sidebar-ic{color:inherit;opacity:1}
 /* Two pages keep a hue of their own (see buildSidebar): AI and Inclusive Design.
    It is carried by a SOFT TINTED ROW, not a bright glyph - a saturated purple or
-   pink sitting next to SUSE green read as two brands arguing rather than one
+   pink sitting next to the site green read as two brands arguing rather than one
    system with an accent. The tint does the signalling, the glyph just picks it up,
    and both hues are desaturated toward the palette's own muted register so the
    column still reads green-first. Same landmark, no fight. */
@@ -3277,7 +3304,7 @@ ${LANDING_CSS}
    color-dodge divides by the backdrop: over near-black (#061816) the chips resolve to
    near-black too and the field disappears. The gradient's last stop still reaches the
    page colour, so the band ends where the article begins. */
-[data-theme="dark"] .docs-masthead,[data-theme="dark"] .docs-strip-band:not(.docs-strip-band--flow){background:linear-gradient(180deg,#16482f 0%,#0b2b21 58%,var(--page) 100%)}
+[data-theme="dark"] .docs-masthead,[data-theme="dark"] .docs-strip-band:not(.docs-strip-band--flow){background:linear-gradient(180deg,#0a4744 0%,#052927 58%,var(--page) 100%)}
 /* Same box as .docs-wrap, then indented past the rail: the h1 starts exactly where
    the article's text will. Below 768px the rail is gone and so is the indent. It
    holds two rows (plan 277 step 3c): the pathways strip, then the title row. */
@@ -3305,10 +3332,10 @@ ${LANDING_CSS}
 [dir="rtl"] .docs-masthead::before{background:radial-gradient(ellipse 70% 60% at 70% 88%,var(--mast-scrim) 0%,transparent 72%)}
 .docs-masthead::after{content:'';position:absolute;left:0;right:0;bottom:0;height:50%;z-index:1;pointer-events:none;background:linear-gradient(180deg,transparent 0%,var(--page) 94%)}
 :root{--mast-scrim:rgba(255,255,255,.82)}
-[data-theme="dark"]{--mast-scrim:rgba(6,24,22,.72)}
-/* Brand theme is a dark-teal ground: without an override it fell back to the white
+[data-theme="dark"]{--mast-scrim:rgba(9,20,26,.72)}
+/* Brand theme is a dark Spearmint ground: without an override it fell back to the white
    :root scrim, washing the glow white. Ride the brand primary so the halo is the
-   active brand's own colour (pine green for SUSE, the mounted brand's primary else). */
+   active brand's own colour (Green Apple on /info, the mounted brand's primary in the app). */
 [data-theme="brand"]{--mast-scrim:hsl(var(--primary) / .4)}
 /* Qualified with .docs-content (0,2,1) on purpose: the article rule .docs-content h1
    is (0,1,1) and gives every page heading a bottom rule and 2rem of padding. Inside a
@@ -3618,7 +3645,7 @@ button.shot-cred-copy{border:0;background:none;padding:.1em .35em;font:inherit;f
    a dark screenshot's corner is not reliably darker than the puck - and the glyph is
    a muted PALE against it, not a full-white one, so it stays quiet without becoming
    the invisible stroke this used to be. */
-[data-theme="dark"] .shot-cred-btn{color:#93a8a0;background:hsl(var(--popover) / 0.9);box-shadow:0 1px 3px #0006}
+[data-theme="dark"] .shot-cred-btn{color:#99a0a4;background:hsl(var(--popover) / 0.9);box-shadow:0 1px 3px #0006}
 [data-theme="dark"] .shot:hover .shot-cred-btn,[data-theme="dark"] .showcase:hover .shot-cred-btn{color:var(--pale)}
 [data-theme="dark"] .shot-cred-btn:hover,[data-theme="dark"] .shot-cred-btn:focus-visible{color:var(--pale);background:hsl(var(--popover));box-shadow:0 2px 6px #0008}
 [data-theme="dark"] .shot-cred--ai .shot-cred-btn{color:var(--dark);background:var(--light)}
@@ -3723,14 +3750,13 @@ html[data-a11y-motion="reduce"] .showcase-art [data-sc-i]{opacity:1}
    [data-theme="dark"], a hex does not. A hardcoded light fill under light-on-dark text is how
    these pills went unreadable in dark mode the first time. */
 .prov-entity{background:hsl(var(--band-dark));color:hsl(var(--on-band-dark));font-weight:700;letter-spacing:.01em}
-[data-theme="dark"] .prov-entity{background:#12463a}  /* lifted off the near-black page so the chip still reads as a chip */
-.prov-sig{color:var(--text);font-weight:600;background:rgba(48,186,120,.14)}
+[data-theme="dark"] .prov-entity{background:#0a4744}  /* lifted off the near-black page so the chip still reads as a chip */
+.prov-sig{color:var(--text);font-weight:600;background:rgba(80,195,105,.14)}
 /* An actor inside a signature is WHITE ON GREEN in both themes - a signature is the
-   one claim that must look identical wherever it is read. The fill is a deepened
-   brand green rather than --green itself: white on #30ba78 is about 2.2:1, which
-   fails for 13px text, and a signature nobody can read is worse than an off-swatch
-   one. This keeps the hue and clears 4.5:1. */
-.prov-sig .prov-entity{background:#14784d;color:hsl(var(--on-band-dark));margin-inline:.18em 0}
+   one claim that must look identical wherever it is read. The fill is Bunyapine,
+   the mark's green, rather than --green itself: white on Green Apple is about
+   2.2:1, which fails for 13px text, while white on Bunyapine reads 4.62:1. */
+.prov-sig .prov-entity{background:#008657;color:hsl(var(--on-band-dark));margin-inline:.18em 0}
 /* Inline, not a flex child: the pill's baseline must be its TEXT baseline so it
    sits on the same line as the prose around it. The glyph is nudged optically. */
 /* The seal is the one glyph in the pill that must read at a glance, and --green
@@ -3775,18 +3801,19 @@ html[data-a11y-motion="reduce"] .showcase-art [data-sc-i]{opacity:1}
    reader reaches for. Tokens only (--text/--muted/--border/--pale, all redefined by
    .dark) so dark mode needs no second palette here. */
 .doc-jump{position:fixed;bottom:1rem;inset-inline-end:1rem;z-index:88}
-.doc-jump-btn{display:flex;align-items:center;justify-content:center;width:2.25rem;height:2.25rem;border-radius:999px;border:1px solid var(--border);background:var(--pale);color:var(--muted);cursor:pointer;box-shadow:0 2px 10px #0c322c1f;transition:color .12s,border-color .12s}
+.doc-jump-btn{display:flex;align-items:center;justify-content:center;width:2.25rem;height:2.25rem;border-radius:999px;border:1px solid var(--border);background:var(--pale);color:var(--muted);cursor:pointer;box-shadow:0 2px 10px #0336331f;transition:color .12s,border-color .12s}
 .doc-jump-btn svg{width:1.1rem;height:1.1rem}
 .doc-jump-btn:hover,.doc-jump-btn[aria-expanded="true"]{color:var(--green);border-color:var(--green)}
 /* The first six declarations are RESETS, not choices. A bare nav element selector
    used to be the site's top bar (fixed, full-width, flex) and landed on any <nav>
    on the page; the bar is its own .site-bar now, and the resets stay so no element
    rule can ever lay this panel out as a strip across the bottom of the window. */
-.doc-jump-nav{position:absolute;display:block;top:auto;width:auto;height:auto;overflow-x:hidden;transition:none;bottom:calc(100% + .5rem);inset-inline-end:0;min-width:14rem;max-width:min(20rem,calc(100vw - 2rem));max-height:min(60vh,26rem);overflow-y:auto;padding:.4rem;background:var(--pale);border:1px solid var(--border);border-radius:10px;box-shadow:0 10px 34px #0c322c26}
+.doc-jump-nav{position:absolute;display:block;top:auto;width:auto;height:auto;overflow-x:hidden;transition:none;bottom:calc(100% + .5rem);inset-inline-end:0;min-width:14rem;max-width:min(20rem,calc(100vw - 2rem));max-height:min(60vh,26rem);overflow-y:auto;padding:.4rem;background:var(--pale);border:1px solid var(--border);border-radius:10px;box-shadow:0 10px 34px #03363326}
 .doc-jump-nav[hidden]{display:none}
 .doc-jump-title{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:.15rem .5rem .35rem}
 .doc-jump-nav a{display:block;padding:.32rem .5rem;border-radius:6px;font-size:.875rem;line-height:1.35;color:var(--text);text-decoration:none}
-.doc-jump-nav a:hover{background:#30ba7818;color:var(--green);text-decoration:none}
+.doc-jump-nav a:hover{background:#50c36918;color:var(--green);text-decoration:none}
+[data-theme="brand"] .doc-jump-nav a:hover{color:#ace1ad}
 .doc-jump-top{margin-top:.25rem;border-top:1px solid var(--border);padding-top:.45rem;color:var(--muted)}
 @media(prefers-reduced-motion:reduce){.doc-jump-btn{transition:none}}
 html[data-a11y-motion="reduce"] .doc-jump-btn{transition:none}
@@ -3803,7 +3830,7 @@ th{background:var(--pale);font-weight:600;color:var(--dark)}
 tr:nth-child(even) td{background:hsl(var(--muted) / 0.4)}
 
 /* Mascots */
-.social-proof-mascot{position:absolute;right:4%;top:50%;transform:translateY(-50%);width:clamp(90px,12vw,180px);pointer-events:none;filter:drop-shadow(0 8px 20px rgba(12,50,44,.18))}
+.social-proof-mascot{position:absolute;right:4%;top:50%;transform:translateY(-50%);width:clamp(90px,12vw,180px);pointer-events:none;filter:drop-shadow(0 8px 20px rgba(3,54,51,.18))}
 .footer-inner{display:flex;align-items:center;justify-content:center;gap:1rem}
 .footer-mascot{width:2.75rem;flex-shrink:0;filter:drop-shadow(0 2px 6px rgba(0,0,0,.18))}
 @media(max-width:768px){
@@ -3895,7 +3922,7 @@ footer .founded-badge{margin-top:.5rem}
 [data-theme="dark"] footer{border-top-color:var(--border)}
 [data-theme="dark"] .docs-content h1,[data-theme="dark"] .docs-content h2,[data-theme="dark"] .docs-content h3{color:var(--text)}
 [data-theme="dark"] th{color:var(--text)}
-/* Code on a dark ground (dark AND brand - brand is a dark-teal theme with no
+/* Code on a dark ground (dark AND brand - brand is a dark Spearmint theme with no
    [data-theme="brand"] overrides of its own, so it inherits the base rules; the
    base pre now uses hsl(var(--foreground)) so it is already legible, and these
    add the dark box + border for parity). Give inline code a dark surface + light
@@ -3948,12 +3975,6 @@ footer .founded-badge{margin-top:.5rem}
 .doc-video{margin:0 auto 1rem;max-width:min(420px,100%)}
 .doc-video video{width:100%;height:auto;display:block;border-radius:10px;background:#0d1f17}
 [data-theme="dark"] .docs-content pre code{background:none;color:inherit}
-/* ── Pilot / prototype disclaimer badge (in the dark hero) ─────────────────── */
-.hero-pilot{display:inline-flex;align-items:center;gap:.5rem;margin-bottom:3rem;padding:.34rem .36rem .34rem .55rem;background:rgba(254,124,63,.17);border-radius:999px;text-decoration:none;font-size:.8125rem;color:#ffd9c4;transition:background .15s}
-.hero-pilot:hover{background:rgba(254,124,63,.26)}
-.hero-pilot-tag{background:var(--orange);color:#2a0f04;font-weight:800;text-transform:uppercase;letter-spacing:.06em;font-size:.66rem;padding:.22em .62em;border-radius:999px}
-.hero-pilot-text{padding-right:.35rem}
-@media(max-width:600px){.hero-pilot-text{font-size:.74rem}}
 
 /* RTL correctness (Arabic pages get dir="rtl" on <html>): code is Latin and
    always reads LTR - isolate it so surrounding RTL prose doesn't scramble
@@ -4464,7 +4485,7 @@ window.__lollyChipField=function(canvas,opt){
   var extPool=exts.concat(['.PDF','.SVG','.PNG','.MP4','.PPTX']);
   var floaters=[], fragments=[];
   // The chip colours, resolved at bake time. Two fields only: the box and its label.
-  var defaultPal=function(){return{fill:'#1c4a2e',label:'#30ba78'};};
+  var defaultPal=function(){return{fill:'#0a4744',label:'#50c369'};};
   var palette=opt.palette||defaultPal;
   var pal=palette();
   // Ambient chip population scales with canvas width so wide heroes aren't sparse
@@ -4716,8 +4737,8 @@ const HERO_CANVAS_SCRIPT = `<script>(function(){
 /**
  * The article masthead's instance of the same field.
  *
- * The effect was built for one dark plate and hardcoded to it (#1c4a2e chips,
- * #30ba78 labels, color-dodge). Docs pages are read in every theme, so here the
+ * The effect was built for one dark plate and hardcoded to it (deep green chips,
+ * bright green labels, color-dodge). Docs pages are read in every theme, so here the
  * palette comes from the page's own tokens and the chips are RE-BAKED when the
  * theme changes - the toggle stamps [data-theme] (light/dark/brand) on <html>, and a
  * reader on "system" gets the same flip from the OS; palette() treats brand as a dark
@@ -4734,12 +4755,14 @@ const DOCS_MASTHEAD_SCRIPT = `<script>(function(){
   function palette(){
     var th=document.documentElement.dataset.theme;
     var dark=th==='dark'||th==='brand';  // brand is a dark ground too
-    // Dark: the landing's own chip fill over the dark band, under color-dodge -
-    // the same glow the front door has. Light: a mint chip on a near-white band,
-    // normal blend, so the field reads as watermark rather than decoration.
+    // Dark: the landing's own chip fill (Opal's deep plate green) over the dark band,
+    // under color-dodge - the same glow the front door has. Light: a Pandanus chip on a
+    // near-white band, normal blend, so the field reads as watermark rather than
+    // decoration. The light fill reads --border, not --input: the bridge makes --border
+    // a finished hsl() colour, while --input is a bare triple a canvas cannot parse.
     return dark
-      ? {fill:'#1c4a2e', label:tok('--green','#30ba78')}
-      : {fill:tok('--border','#d8ede4'), label:tok('--green','#30ba78')};
+      ? {fill:'#0a4744', label:tok('--green','#50c369')}
+      : {fill:tok('--border','#ace1ad'), label:tok('--green','#033633')};
   }
   var field=window.__lollyChipField(canvas,{palette:palette,pause:true,reduceMotion:true,burst:true,burstGuard:true});
   // The [data-theme] flip (docs theme toggle) and the OS preference both change the answer.

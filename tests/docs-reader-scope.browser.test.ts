@@ -259,12 +259,12 @@ test("the reader's landing takes the dark theme and Reduce motion from <html>", 
       + `<style id="sheet"></style></head><body>${FRAGMENT}</body></html>`);
     const reader = landingStyleText(SOURCE);
     const light = await readFragment(p, reader, {});
-    assert.equal(light.chip, 'rgb(18, 122, 69)', 'the light chip colour changed, so this test no longer reads the rule it means to');
+    assert.equal(light.chip, 'rgb(3, 54, 51)', 'the light chip colour changed, so this test no longer reads the rule it means to');
     assert.equal(light.entrance, 'heroUp');
     assert.equal(light.word, 'transform, opacity');
 
     const dark = await readFragment(p, reader, { 'data-theme': 'dark' });
-    assert.equal(dark.chip, 'rgb(127, 231, 180)', 'the dark-theme chip rule did not apply in the reader');
+    assert.equal(dark.chip, 'rgb(80, 195, 105)', 'the dark-theme chip rule did not apply in the reader');
     assert.equal(dark.faq, 'rgb(46, 51, 56)', 'the dark-theme rule in its bare [data-theme] form did not apply in the reader');
 
     const calm = await readFragment(p, reader, { 'data-a11y-motion': 'reduce' });
@@ -273,7 +273,7 @@ test("the reader's landing takes the dark theme and Reduce motion from <html>", 
 
     // The wrap the reader used before, for the record of what this fixes.
     const before = await readFragment(p, `@scope (.docs-landing) {\n${SOURCE}\n}`, { 'data-theme': 'dark', 'data-a11y-motion': 'reduce' });
-    assert.equal(before.chip, 'rgb(18, 122, 69)');
+    assert.equal(before.chip, 'rgb(3, 54, 51)');
     assert.equal(before.entrance, 'heroUp');
   } finally {
     await p.close();
