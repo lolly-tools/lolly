@@ -8,7 +8,7 @@ options:
   # below are kept in step so the regenerated project matches what actually ships.
   bundleIdPrefix: tools.lolly.mobile
   deploymentTarget:
-    iOS: "15.0"
+    iOS: "26.0"
 fileGroups: [../../src]
 configs:
   debug: debug

@@ -178,7 +178,7 @@
       }
     ],
     "iOS": {
-      "minimumSystemVersion": "15.0",
+      "minimumSystemVersion": "26.0",
       "infoPlist": "Info.ios.plist",
       "developmentTeam": "2FCG2XLK6Y"
     }
