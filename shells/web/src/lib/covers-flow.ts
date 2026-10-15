@@ -60,6 +60,7 @@
 
 import { CoverflowGesture, CoverflowMotion, COVERFLOW_WHEEL_REST_MS } from './coverflow-motion.ts';
 import { COVERFLOW_TUCK as CF_TUCK, coverflowPose } from './coverflow-geometry.ts';
+import { prefersReducedMotion } from './a11y-prefs.ts';
 
 const DRAG_SLOP = 8;            // px a press may travel and still count as a click
 const REST_MS = 900;            // a cover must rest centred this long before Open appears
@@ -172,14 +173,18 @@ export function mountCoverFlow(root: ParentNode): void {
   const startIdx = nearestCoverIndex(hues, readerHue());
   if (startIdx !== 0) cards.forEach((c, i) => c.classList.toggle('is-cur', i === startIdx));
 
-  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Reduced motion, whichever way the reader asked: the operating system, or the
+  // app's own Reduce motion switch (html[data-a11y-motion], which the static
+  // page's pre-paint script also sets from the app's saved copy). Read at each use,
+  // never latched, so a change while the fan is open applies from the next step.
+  const reduced = (): boolean => prefersReducedMotion();
   // The animated covers are muted looping clips; under reduced motion they hold
   // their poster frame instead of playing.
   const videos = cards.map((el) => el.querySelector('video'));
   // Playback is this module's to decide from here: videoPolicy runs the clips
   // (all of them, for now). The autoplay attribute would otherwise restart a
   // clip the policy just paused (reduced motion) as soon as its metadata arrives.
-  videos.forEach((v) => { if (v) { v.removeAttribute('autoplay'); v.autoplay = false; if (reduced) v.pause(); } });
+  videos.forEach((v) => { if (v) { v.removeAttribute('autoplay'); v.autoplay = false; if (reduced()) v.pause(); } });
 
   // ── The loop: clones of the tail before the strip, clones of the head after ──
   // A clone is a poster-only copy (three playing videos are plenty for a tablet;
@@ -312,12 +317,14 @@ export function mountCoverFlow(root: ParentNode): void {
   /** Every real clip plays (the clones hold posters, so at most the four
    *  posed loops decode at once); Andy 2026-09-03: try them all playing and
    *  see how it performs - if a tablet struggles, narrow this back to the
-   *  centred clip and its two neighbours (`d <= 1` on the ring distance). */
+   *  centred clip and its two neighbours (`d <= 1` on the ring distance).
+   *  Under reduced motion every clip holds still on its current frame. */
   function videoPolicy(_r: number): void {
-    if (reduced) return;
+    const still = reduced();
     videos.forEach((v) => {
       if (!v) return;
-      if (v.paused) void v.play().catch(() => { /* autoplay policy */ });
+      if (still) { if (!v.paused) v.pause(); }
+      else if (v.paused) void v.play().catch(() => { /* autoplay policy */ });
     });
   }
 
@@ -379,7 +386,7 @@ export function mountCoverFlow(root: ParentNode): void {
       return;
     }
     motion.reconcile(strip.scrollLeft);
-    const active = motion.advance(dt, nearestTarget, reduced);
+    const active = motion.advance(dt, nearestTarget, reduced());
     writeMotion();
     if (active) loop();
     else lastTs = 0;
@@ -463,8 +470,9 @@ export function mountCoverFlow(root: ParentNode): void {
     e.preventDefault();
     hold = Date.now() + HOLD_MS;
     motion.reconcile(strip.scrollLeft);
-    motion.wheel(e.deltaX, reduced);
-    if (reduced) {
+    const still = reduced();
+    motion.wheel(e.deltaX, still);
+    if (still) {
       cancelAnimationFrame(raf);
       raf = 0;
       lastTs = 0;
@@ -531,9 +539,10 @@ export function mountCoverFlow(root: ParentNode): void {
     // Andy saw the whole fan outlined after a drag); the mark clears on the
     // first key or when focus leaves, so keyboard users still see the ring.
     if (e.pointerType !== 'touch') { rootEl.setAttribute('data-focus-by', 'pointer'); rootEl.focus({ preventScroll: true }); }
-    motion.release(gesture.release(e.timeStamp, e.type !== 'pointerup' || !dragMoved, reduced));
+    const still = reduced();
+    motion.release(gesture.release(e.timeStamp, e.type !== 'pointerup' || !dragMoved, still));
     lastTs = e.timeStamp;
-    if (reduced) { motion.advance(0, nearestTarget, true); writeMotion(); }
+    if (still) { motion.advance(0, nearestTarget, true); writeMotion(); }
     if (!dragMoved && e.type === 'pointerup' && e.button === 0) {
       // Cards are pointer-events:none, so map the press to a cover by its DRAWN
       // centre (layout centre + this frame's tuck) and centre that cover.
@@ -557,13 +566,15 @@ export function mountCoverFlow(root: ParentNode): void {
   rootEl.addEventListener('focusin', () => { hov = true; });
   rootEl.addEventListener('focusout', () => { hov = false; rootEl.removeAttribute('data-focus-by'); });
 
-  if (!reduced) {
-    const timer = setInterval(() => {
-      if (!rootEl.isConnected) { clearInterval(timer); return; }
-      if (!fan || hov || dragging || Date.now() < hold || document.hidden || motion.active) return;
-      // Always one step on: the loop re-bases, so there is no "back to the start".
-      motion.select(centerOf(curIndex() + 1));
-      loop();
-    }, AUTOPLAY_MS);
-  }
+  // The autoplay beat runs whatever the setting, and asks it on every beat: a fan
+  // opened under reduced motion starts stepping once the reader turns it off, and
+  // one turned on mid-play stops at the next beat with its clips held still.
+  const timer = setInterval(() => {
+    if (!rootEl.isConnected) { clearInterval(timer); return; }
+    videoPolicy(lastCur);
+    if (reduced() || !fan || hov || dragging || Date.now() < hold || document.hidden || motion.active) return;
+    // Always one step on: the loop re-bases, so there is no "back to the start".
+    motion.select(centerOf(curIndex() + 1));
+    loop();
+  }, AUTOPLAY_MS);
 }

@@ -311,7 +311,8 @@ window.__lollyChipField=function(canvas,opt){
 ;
 (function(){
   var els=document.querySelectorAll('.showcase');if(!els.length)return;
-  if(window.matchMedia('(prefers-reduced-motion:reduce)').matches)return;  // the <img> is already the finished state
+  // Reduced motion, from the OS or the app's switch on <html>: the <img> is already the finished state.
+  if(document.documentElement.dataset.a11yMotion==='reduce'||window.matchMedia('(prefers-reduced-motion:reduce)').matches)return;
   var ZOOM=0.22;   // p=0 shows this fraction of each axis, centred - deep in the streets
   var items=[];
 
