@@ -20,6 +20,8 @@ const options = { skip: origin ? false : 'set LOLLY_IMPORT_TEST_URL to a local V
 
 // A tight, fully opaque mark: no transparent margin, so no trim card is offered.
 const PNG = Array.from(packPng(new Uint8Array(48 * 24 * 4).fill(200), { width: 48, height: 24 }));
+// A second, different picture, so a store that skips a duplicate still adds a tile.
+const PNG_PICKED = Array.from(packPng(new Uint8Array(48 * 24 * 4).fill(120), { width: 48, height: 24 }));
 
 interface DropFile { name: string; type: string; bytes: number[] }
 const png = (name = 'mark.png'): DropFile => ({ name, type: 'image/png', bytes: PNG });
@@ -102,6 +104,20 @@ test('My images: the Add tile takes a dropped image and refuses what the picker 
     await page.locator('#userimg-file').setInputFiles({ name: notes.name, mimeType: notes.type, buffer: Buffer.from(notes.bytes) });
     await error.filter({ hasText: 'That file is not an image or a video.' }).waitFor();
     assert.equal(await tiles.count(), before + 1);
+
+    // A picked file with a blank type is judged by its extension, the way a drop is.
+    await page.evaluate(() => { const e = document.querySelector<HTMLElement>('#userimg-error'); if (e) { e.hidden = true; e.textContent = ''; } });
+    await page.evaluate(({ bytes }) => {
+      const input = document.querySelector<HTMLInputElement>('#userimg-file');
+      if (!input) throw new Error('no #userimg-file');
+      const transfer = new DataTransfer();
+      transfer.items.add(new File([new Uint8Array(bytes)], 'IMG_1.png', { type: '' }));
+      transfer.items.add(new File([new Uint8Array(bytes)], 'IMG_2.heic', { type: '' }));
+      input.files = transfer.files;
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    }, { bytes: PNG_PICKED });
+    await page.waitForFunction(n => document.querySelectorAll('#userimg-grid [data-userimg]').length > n, before + 1);
+    assert.equal(await error.filter({ hasText: 'That file is not an image or a video.' }).isVisible(), false, 'a blank-typed .png and .heic are not refused');
     assert.deepEqual(errors, []);
   } finally { await browser.close(); }
 });

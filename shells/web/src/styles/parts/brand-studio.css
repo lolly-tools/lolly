@@ -636,6 +636,9 @@ button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), 
   outline: 2px solid hsl(var(--ring)); outline-offset: 2px;
 }
 .be-logo-drop.is-dragover { border-style: solid; border-color: hsl(var(--primary)); background: hsl(var(--primary) / .08); }
+/* The cue says "Drop to add" in place of "Not set", whose muted text would fall
+   under 4.5:1 on the wash in the light theme. */
+.be-logo-drop.is-dragover .be-logo-empty { visibility: hidden; }
 .be-logo-art {
   
   background-image:

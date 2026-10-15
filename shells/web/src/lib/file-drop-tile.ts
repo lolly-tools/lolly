@@ -13,7 +13,7 @@
  * a drop is the pointer's way to the same door.
  *
  * Markup contract: `data-file-drop` on the tile, `data-drop-label` for the short cue
- * drawn while a file is over it (styles/parts/components.css), and the `is-dragover`
+ * drawn while a file is over it (styles/parts/components.css) and the `is-dragover`
  * class this module toggles, which each tile's own sheet turns into a solid border.
  *
  * Imports nothing from views/ and no stylesheet (the layering check).

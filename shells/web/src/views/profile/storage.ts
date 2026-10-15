@@ -19,7 +19,7 @@ import { startBatchExport } from '../../lib/batch-job.ts';
 import { escape as escapeText } from '../../utils.ts';
 import { announce } from '../../a11y.ts';
 import { storeUserUpload } from '../picker.ts';
-import { bindFileDropTiles, splitByAccept } from '../../lib/file-drop-tile.ts';
+import { bindFileDropTiles, splitByAccept, withDroppedType } from '../../lib/file-drop-tile.ts';
 import { saveBlob } from '../../pro/zip.ts';
 import { exportBackup } from '../../data-transfer.ts';
 import { backupHistoryNote } from '../../lib/backup-summary.ts';
@@ -666,7 +666,7 @@ export async function loadStorage(pv: ProfileViewCtx) {
   async function addUserImageFiles(picked: File[]): Promise<void> {
     const imgErr = body.querySelector<HTMLElement>('#userimg-error');
     if (imgErr) imgErr.hidden = true;
-    const { accepted, refused } = splitByAccept(picked, userimgFile?.accept ?? '');
+    const { accepted, refused } = splitByAccept(picked.map(withDroppedType), userimgFile?.accept ?? '');
     if (refused.length) {
       const msg = t('That file is not an image or a video.');
       if (imgErr) { imgErr.textContent = msg; imgErr.hidden = false; }
