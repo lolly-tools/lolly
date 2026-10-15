@@ -635,6 +635,7 @@ button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), 
   border-color: hsl(var(--primary) / .55);
   outline: 2px solid hsl(var(--ring)); outline-offset: 2px;
 }
+.be-logo-drop.is-dragover { border-style: solid; border-color: hsl(var(--primary)); background: hsl(var(--primary) / .08); }
 .be-logo-art {
   
   background-image:
@@ -1354,6 +1355,7 @@ background-image:
 .be-logo-identity-head { display: flex; align-items: baseline; gap: .6rem; }
 .be-logo-identity-name { margin: 0; font-size: var(--fs-sm); font-weight: 700; letter-spacing: .03em; text-transform: uppercase; color: hsl(var(--foreground)); }
 .be-logo-slot[data-treatment="custom"] .be-logo-art { background: hsl(var(--muted) / .35); padding: .5rem; }
+/* The whole form is a drop area for its mark (lib/file-drop-tile.ts), hence the dashes. */
 .be-logo-addmark {
   display: grid; gap: .45rem; align-content: center; padding: .7rem;
   border: 1px dashed hsl(var(--border)); border-radius: calc(var(--radius) * .55);
@@ -1368,6 +1370,7 @@ background-image:
 /* It is styled as a button and now behaves like one for the keyboard too: the
    file input inside is visually-hidden (focusable), so the label carries the ring. */
 .be-logo-addmark-pick:focus-within { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+.be-logo-addmark.is-dragover { border-style: solid; border-color: hsl(var(--primary)); background: hsl(var(--primary) / .08); }
 .be-logo-addidentity { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: 1.1rem; padding-top: 1.1rem; border-top: 1px solid hsl(var(--border) / .7); }
 .be-logo-addidentity input {
   flex: 1 1 16rem; min-width: 0; padding: .45rem .6rem; font: inherit; font-size: var(--fs-md);

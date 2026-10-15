@@ -516,3 +516,19 @@ html[data-a11y-motion="reduce"] .profile-link .profile-link-mark .lolly-mark__sp
 .change-summary dl > div { display: grid; grid-template-columns: minmax(64px, .22fr) 1fr; gap: var(--sp-4); }
 .change-summary dt { font-weight: 600; }
 .change-summary dd { margin: 0; color: hsl(var(--muted-foreground)); overflow-wrap: anywhere; }
+
+/* File drop tiles (lib/file-drop-tile.ts). While a file is over one, a short cue
+   says what the drop will do, beside the dashes turning solid in the tile's own
+   sheet, so the state never rests on colour alone. */
+[data-file-drop] { position: relative; }
+[data-file-drop].is-dragover::after {
+  content: attr(data-drop-label);
+  position: absolute; inset-inline: 0; inset-block-end: .4rem; margin-inline: auto;
+  width: max-content; max-width: calc(100% - .8rem);
+  padding: .1rem .5rem;
+  border: 1px solid hsl(var(--primary)); border-radius: var(--radius-pill);
+  background: hsl(var(--background)); color: hsl(var(--foreground));
+  font-size: var(--fs-2xs); font-weight: 600; line-height: 1.4;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  pointer-events: none;
+}
