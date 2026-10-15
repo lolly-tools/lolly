@@ -254,17 +254,20 @@ export function isReplaced(el: Element): boolean {
  *   in for those characters. Absolute positioning already blockifies the span, so the
  *   pass's display gate would stop there too; the explicit test keeps the characters
  *   out of the file if that gate changes, as in the SVG walk above.
- * - An `<svg>` inside inline flow is a picture with no other owner. The walker's block
- *   loop visits only a block's own children, so a direct `<svg>` child is drawn there,
- *   while the artwork of an emoji placement (a display:block `<svg>` inside the
- *   placement's inline-block span) used to be dropped from every PDF. `drawBox` is the
- *   walker's own element painter, the same one that draws a direct `<svg>` child and a
- *   Design path box after Convert to paths, so the emoji keep the set's vector artwork.
+ * - An `<svg>` whose parent is an HTML element inside inline flow is a picture with no
+ *   other owner. The walker's block loop visits only a block's own children, so a direct
+ *   `<svg>` child is drawn there, while the artwork of an emoji placement (a
+ *   display:block `<svg>` inside the placement's inline-block span) used to be dropped
+ *   from every PDF. `drawBox` is the walker's own element painter, the same one that
+ *   draws a direct `<svg>` child and a Design path box after Convert to paths, so the
+ *   emoji keep the set's vector artwork. An `<svg>` inside another `<svg>` is part of
+ *   that picture and its painter, so the pass treats it as before.
  */
 export async function pdfInlineNonText(el: Element, blockEl: Node, drawBox?: (box: Element) => Promise<void>): Promise<boolean> {
   const tag = el.tagName.toLowerCase();
   if (tag === 'br' || el.classList.contains('lolly-emoji-text')) return true;
-  if (tag !== 'svg' || el.parentNode === blockEl) return false;
+  const parent = el.parentNode as Element | null;
+  if (tag !== 'svg' || parent === blockEl || parent?.namespaceURI === 'http://www.w3.org/2000/svg') return false;
   await drawBox?.(el);
   return true;
 }

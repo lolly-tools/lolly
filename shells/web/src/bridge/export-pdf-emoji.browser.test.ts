@@ -155,7 +155,7 @@ interface Rendered {
   /** Each placement's box in CSS px, relative to #root. */
   boxes: Array<{ x: number; y: number; w: number; h: number }>;
   /** What the PDF inline pass decided for each part of the first placement, and what it drew. */
-  decisions: Record<'hidden' | 'artwork' | 'span' | 'direct', boolean> & { drawn: string[] };
+  decisions: Record<'hidden' | 'artwork' | 'span' | 'direct' | 'nested', boolean> & { drawn: string[] };
   pdf: Uint8Array;
   svg: string;
 }
@@ -187,6 +187,7 @@ async function render(opts: Record<string, unknown>): Promise<Rendered> {
       const block = root.querySelector('.lolly-box-text')!;
       const span = block.querySelector('.lolly-emoji')!;
       const direct = block.appendChild(document.createElementNS('http://www.w3.org/2000/svg', 'svg'));
+      const nested = direct.appendChild(document.createElementNS('http://www.w3.org/2000/svg', 'svg'));
       const drawn: string[] = [];
       const drawBox = async (el: Element) => { drawn.push(el.parentElement === span ? 'artwork' : el.tagName); };
       const decisions = {
@@ -194,6 +195,7 @@ async function render(opts: Record<string, unknown>): Promise<Rendered> {
         artwork: await w.__inline(span.querySelector('svg'), block, drawBox),
         span: await w.__inline(span, block, drawBox),
         direct: await w.__inline(direct, block, drawBox),
+        nested: await w.__inline(nested, block, drawBox),
         drawn,
       };
       direct.remove();
@@ -247,6 +249,7 @@ test('the PDF inline pass skips the hidden characters and hands nested artwork t
     artwork: true,   // drawn through drawBox, the walker's element painter
     span: false,     // an inline wrapper the pass descends into for its text
     direct: false,   // a block's own <svg> child belongs to the block loop
+    nested: false,   // an <svg> inside another <svg> belongs to that picture's painter
     drawn: ['artwork'],
   });
 });
