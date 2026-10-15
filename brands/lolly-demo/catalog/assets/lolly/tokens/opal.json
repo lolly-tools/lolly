@@ -27,7 +27,7 @@
     "color": {
       "$type": "color",
       "brand": {
-        "$description": "Opal's named colours. What each one is for travels in its tools.lolly.opal extension. Greens, the main brand hue (Spearmint, Bunyapine, Green Apple, and the lighter Pandanus and Avocado), earth (Basalt, Bauxite, Bark), relief (Banksia, Honey, Wattle, Olive), dramatic relief (Reef), treats (Donut, Pancake), light and ink (Daylight, Sugar, Meringue, Beach, Pebble, Liquorice, Void), the flowers (Jacaranda, and Fuchsia after Correa, the native fuchsia) and the reds Lolly needs as an app (Arvo, Outback, Ochre).",
+        "$description": "Opal's named colours, in groups. What each one is for travels in its tools.lolly.opal extension. The greens by lightness (Spearmint, Bunyapine, Green Apple, Pandanus, Avocado), with Khaki and Olive beside them; the warm run from deep red to soft yellow (Ochre, Bauxite, Outback, Arvo, Banksia, Honey, Wattle); earth and sand (Bark, Pancake, Beach, Meringue); the flowers (Fuchsia, after Correa, the native fuchsia, Donut and Jacaranda) and the waters (Lagoon and Sky, Reef and Swell); and ink and light (Void, Liquorice and its tints, Basalt, Pebble, Sugar, Daylight).",
         "spearmint": {
           "$value": "#033633",
           "$description": "Spearmint",
@@ -55,15 +55,6 @@
             }
           }
         },
-        "wattle": {
-          "$value": "#fdec9e",
-          "$description": "Wattle",
-          "$extensions": {
-            "tools.lolly.opal": {
-              "use": "A soft light yellow, after the wattle in flower: highlights, notes and sunny grounds, a lighter step from Honey. Liquorice on Wattle 15.7:1."
-            }
-          }
-        },
         "pandanus": {
           "$value": "#ace1ad",
           "$description": "Pandanus",
@@ -82,12 +73,30 @@
             }
           }
         },
-        "basalt": {
-          "$value": "#373e44",
-          "$description": "Basalt",
+        "khaki": {
+          "$value": "#444f05",
+          "$description": "Khaki",
           "$extensions": {
             "tools.lolly.opal": {
-              "use": "Dark rock: edges and panels on dark, heavy type on light."
+              "use": "Deep olive drab, paired with Olive: grounds, type on the pale washes and charts. Sugar on Khaki 8.9:1."
+            }
+          }
+        },
+        "olive": {
+          "$value": "#818e44",
+          "$description": "Olive",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Muted green for grounds and charts."
+            }
+          }
+        },
+        "ochre": {
+          "$value": "#72251c",
+          "$description": "Ochre",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Deep red: error text on light under High contrast."
             }
           }
         },
@@ -100,12 +109,21 @@
             }
           }
         },
-        "bark": {
-          "$value": "#734f31",
-          "$description": "Bark",
+        "outback": {
+          "$value": "#c55123",
+          "$description": "Outback",
           "$extensions": {
             "tools.lolly.opal": {
-              "use": "Brown for grounds, illustration and charts."
+              "use": "Red earth, for charts and illustration."
+            }
+          }
+        },
+        "arvo": {
+          "$value": "#ef9275",
+          "$description": "Arvo",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Afternoon light: the error red for text on dark surfaces."
             }
           }
         },
@@ -127,30 +145,21 @@
             }
           }
         },
-        "olive": {
-          "$value": "#818e44",
-          "$description": "Olive",
+        "wattle": {
+          "$value": "#fdec9e",
+          "$description": "Wattle",
           "$extensions": {
             "tools.lolly.opal": {
-              "use": "Muted green for grounds and charts."
+              "use": "A soft light yellow, after the wattle in flower: highlights, notes and sunny grounds, a lighter step from Honey. Liquorice on Wattle 15.7:1."
             }
           }
         },
-        "reef": {
-          "$value": "#25c2c2",
-          "$description": "Reef",
+        "bark": {
+          "$value": "#734f31",
+          "$description": "Bark",
           "$extensions": {
             "tools.lolly.opal": {
-              "use": "Turquoise, the dramatic relief: information and the moment that matters most."
-            }
-          }
-        },
-        "donut": {
-          "$value": "#f39dbd",
-          "$description": "Donut",
-          "$extensions": {
-            "tools.lolly.opal": {
-              "use": "Pink icing for celebrations and illustration."
+              "use": "Brown for grounds, illustration and charts."
             }
           }
         },
@@ -163,22 +172,12 @@
             }
           }
         },
-        "daylight": {
-          "$value": "#ffffff",
-          "$description": "Daylight",
+        "beach": {
+          "$value": "#f2e1bf",
+          "$description": "Beach",
           "$extensions": {
             "tools.lolly.opal": {
-              "use": "The brightest white a screen can show: plain white on ordinary screens, and about 1,000 nits on HDR screens where HDR colour is drawn. For the export flash, highlights and the spotlight's hot centre.",
-              "hdr": { "display-p3": [1, 1, 1], "rec2100-pq": [0.75, 0.75, 0.75], "nits": 1000 }
-            }
-          }
-        },
-        "sugar": {
-          "$value": "#ffffff",
-          "$description": "Sugar",
-          "$extensions": {
-            "tools.lolly.opal": {
-              "use": "White: the swirl's other half, light surfaces and text on dark."
+              "use": "Light sand between Honey and Meringue, for warm grounds."
             }
           }
         },
@@ -191,30 +190,66 @@
             }
           }
         },
-        "beach": {
-          "$value": "#f2e1bf",
-          "$description": "Beach",
+        "fuchsia": {
+          "$value": "#da1889",
+          "$description": "Fuchsia",
           "$extensions": {
             "tools.lolly.opal": {
-              "use": "Light sand between Honey and Meringue, for warm grounds."
+              "use": "Correa, the native fuchsia: a vivid pink for celebrations, highlights and illustration. Sugar on Fuchsia 4.7:1, and 4.0:1 as a part on Liquorice."
             }
           }
         },
-        "pebble": {
-          "$value": "#99a0a4",
-          "$description": "Pebble",
+        "donut": {
+          "$value": "#f39dbd",
+          "$description": "Donut",
           "$extensions": {
             "tools.lolly.opal": {
-              "use": "Mid grey for hairlines, and quiet text on dark."
+              "use": "Pink icing for celebrations and illustration."
             }
           }
         },
-        "liquorice": {
-          "$value": "#09141a",
-          "$description": "Liquorice",
+        "jacaranda": {
+          "$value": "#7476e0",
+          "$description": "Jacaranda",
           "$extensions": {
             "tools.lolly.opal": {
-              "use": "The darkest colour: text everywhere and the cool hull of the dark theme."
+              "use": "The jacaranda's purple, wherever it is the right colour. An AI association is fine."
+            }
+          }
+        },
+        "lagoon": {
+          "$value": "#1a85c4",
+          "$description": "Lagoon",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Deep blue water, paired with Sky: links, charts and illustration, never one of Lolly's own grounds. Liquorice on Lagoon 4.6:1."
+            }
+          }
+        },
+        "sky": {
+          "$value": "#5fcaff",
+          "$description": "Sky",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Bright sky blue, paired with Lagoon: illustration, highlights and charts. Liquorice on Sky 10.1:1."
+            }
+          }
+        },
+        "reef": {
+          "$value": "#25c2c2",
+          "$description": "Reef",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Turquoise, the dramatic relief: information and the moment that matters most."
+            }
+          }
+        },
+        "swell": {
+          "$value": "#b6f1f1",
+          "$description": "Swell",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "The palest aqua, paired with Reef: a wash behind turquoise content. Liquorice on Swell 15:1."
             }
           }
         },
@@ -224,6 +259,15 @@
           "$extensions": {
             "tools.lolly.opal": {
               "use": "True black, a step below Liquorice: the stage at its darkest, mattes and letterboxes, and grounds for OLED screens. Sugar on Void 21:1."
+            }
+          }
+        },
+        "liquorice": {
+          "$value": "#09141a",
+          "$description": "Liquorice",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "The darkest colour: text everywhere and the cool hull of the dark theme."
             }
           }
         },
@@ -245,48 +289,40 @@
             }
           }
         },
-        "jacaranda": {
-          "$value": "#8182d3",
-          "$description": "Jacaranda",
+        "basalt": {
+          "$value": "#373e44",
+          "$description": "Basalt",
           "$extensions": {
             "tools.lolly.opal": {
-              "use": "The jacaranda's purple, wherever it is the right colour. An AI association is fine."
+              "use": "Dark rock: edges and panels on dark, heavy type on light."
             }
           }
         },
-        "fuchsia": {
-          "$value": "#c32e85",
-          "$description": "Fuchsia",
+        "pebble": {
+          "$value": "#99a0a4",
+          "$description": "Pebble",
           "$extensions": {
             "tools.lolly.opal": {
-              "use": "Correa, the native fuchsia: a vivid pink for celebrations, highlights and illustration. Sugar on Fuchsia 5.2:1, and 3.6:1 as a part on Liquorice."
+              "use": "Mid grey for hairlines, and quiet text on dark."
             }
           }
         },
-        "arvo": {
-          "$value": "#ef9275",
-          "$description": "Arvo",
+        "sugar": {
+          "$value": "#ffffff",
+          "$description": "Sugar",
           "$extensions": {
             "tools.lolly.opal": {
-              "use": "Afternoon light: the error red for text on dark surfaces."
+              "use": "White: the swirl's other half, light surfaces and text on dark."
             }
           }
         },
-        "outback": {
-          "$value": "#c55123",
-          "$description": "Outback",
+        "daylight": {
+          "$value": "#ffffff",
+          "$description": "Daylight",
           "$extensions": {
             "tools.lolly.opal": {
-              "use": "Red earth, for charts and illustration."
-            }
-          }
-        },
-        "ochre": {
-          "$value": "#72251c",
-          "$description": "Ochre",
-          "$extensions": {
-            "tools.lolly.opal": {
-              "use": "Deep red: error text on light under High contrast."
+              "use": "The brightest white a screen can show: plain white on ordinary screens, and about 1,000 nits on HDR screens where HDR colour is drawn. For the export flash, highlights and the spotlight's hot centre.",
+              "hdr": { "display-p3": [1, 1, 1], "rec2100-pq": [0.75, 0.75, 0.75], "nits": 1000 }
             }
           }
         }
@@ -616,32 +652,36 @@
             { "id": "{color.brand.spearmint}", "hex": "#033633" },
             { "id": "{color.brand.bunyapine}", "hex": "#008657" },
             { "id": "{color.brand.green-apple}", "hex": "#50c369" },
-            { "id": "{color.brand.wattle}", "hex": "#fdec9e" },
             { "id": "{color.brand.pandanus}", "hex": "#ace1ad" },
             { "id": "{color.brand.avocado}", "hex": "#edf6e0" },
-            { "id": "{color.brand.basalt}", "hex": "#373e44" },
+            { "id": "{color.brand.khaki}", "hex": "#444f05" },
+            { "id": "{color.brand.olive}", "hex": "#818e44" },
+            { "id": "{color.brand.ochre}", "hex": "#72251c" },
             { "id": "{color.brand.bauxite}", "hex": "#a43427" },
-            { "id": "{color.brand.bark}", "hex": "#734f31" },
+            { "id": "{color.brand.outback}", "hex": "#c55123" },
+            { "id": "{color.brand.arvo}", "hex": "#ef9275" },
             { "id": "{color.brand.banksia}", "hex": "#ee9138" },
             { "id": "{color.brand.honey}", "hex": "#fac044" },
-            { "id": "{color.brand.olive}", "hex": "#818e44" },
-            { "id": "{color.brand.reef}", "hex": "#25c2c2" },
-            { "id": "{color.brand.donut}", "hex": "#f39dbd" },
+            { "id": "{color.brand.wattle}", "hex": "#fdec9e" },
+            { "id": "{color.brand.bark}", "hex": "#734f31" },
             { "id": "{color.brand.pancake}", "hex": "#d8b890" },
-            { "id": "{color.brand.daylight}", "hex": "#ffffff" },
-            { "id": "{color.brand.sugar}", "hex": "#ffffff" },
-            { "id": "{color.brand.meringue}", "hex": "#f9f7ef" },
             { "id": "{color.brand.beach}", "hex": "#f2e1bf" },
-            { "id": "{color.brand.pebble}", "hex": "#99a0a4" },
-            { "id": "{color.brand.liquorice}", "hex": "#09141a" },
+            { "id": "{color.brand.meringue}", "hex": "#f9f7ef" },
+            { "id": "{color.brand.fuchsia}", "hex": "#da1889" },
+            { "id": "{color.brand.donut}", "hex": "#f39dbd" },
+            { "id": "{color.brand.jacaranda}", "hex": "#7476e0" },
+            { "id": "{color.brand.lagoon}", "hex": "#1a85c4" },
+            { "id": "{color.brand.sky}", "hex": "#5fcaff" },
+            { "id": "{color.brand.reef}", "hex": "#25c2c2" },
+            { "id": "{color.brand.swell}", "hex": "#b6f1f1" },
             { "id": "{color.brand.void}", "hex": "#000000" },
+            { "id": "{color.brand.liquorice}", "hex": "#09141a" },
             { "id": "{color.brand.liquorice-raised}", "hex": "#121d24" },
             { "id": "{color.brand.liquorice-panel}", "hex": "#1c282f" },
-            { "id": "{color.brand.jacaranda}", "hex": "#8182d3" },
-            { "id": "{color.brand.fuchsia}", "hex": "#c32e85" },
-            { "id": "{color.brand.arvo}", "hex": "#ef9275" },
-            { "id": "{color.brand.outback}", "hex": "#c55123" },
-            { "id": "{color.brand.ochre}", "hex": "#72251c" },
+            { "id": "{color.brand.basalt}", "hex": "#373e44" },
+            { "id": "{color.brand.pebble}", "hex": "#99a0a4" },
+            { "id": "{color.brand.sugar}", "hex": "#ffffff" },
+            { "id": "{color.brand.daylight}", "hex": "#ffffff" },
             { "id": "{color.spectrum.green-apple}", "hex": "#50c369" },
             { "id": "{color.spectrum.reef}", "hex": "#25c2c2" },
             { "id": "{color.spectrum.honey}", "hex": "#fac044" },
@@ -672,8 +712,7 @@
             { "id": "{color.role.strong-card}", "hex": "#fdec9e" },
             { "id": "{color.role.alert-card}", "hex": "#f2e1bf" },
             { "id": "{color.role.quiet-alert-card}", "hex": "#f9f7ef" },
-            { "id": "{color.role.alert-tint}", "hex": "#ef9275" },
-            { "id": "{color.role.alt-surface}", "hex": "#edf6e0" }
+            { "id": "{color.role.alert-tint}", "hex": "#ef9275" }
           ],
           "recipe": "emoji-treatment-v1"
         }

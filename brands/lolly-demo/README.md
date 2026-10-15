@@ -42,8 +42,9 @@ deployment handoff with one named owner.
   2026.8.24 set, with the Palette influence control's "Full" setting (`snap`),
   so every paint moves to its nearest Opal colour while skin tones, flags and
   custom symbols keep their own. A link's choice or a saved session's own style
-  still comes first. The style pins the 61 colours the token bridge lists for
-  Opal, so rewrite the block after a colour change.
+  still comes first. The style pins the first 64 colours the token bridge lists
+  for Opal, the palette's limit; the one left over is a role that repeats
+  Avocado. Rewrite the block after a colour change.
 - **No font files.** Outfit (headings), SUSE (text and italics) and SUSE Mono
   (code) are all served by the web shell from `shells/web/public/fonts/`, as for
   `lolly-start`.
@@ -58,14 +59,13 @@ number. A tint keeps its parent's name (Liquorice raised, Liquorice panel).
 
 | Group | Colours |
 |---|---|
-| Greens, the main brand hue | Spearmint `#033633`, Bunyapine `#008657`, Green Apple `#50c369`, and the lighter Pandanus `#ace1ad` (raised washes and selected states) and Avocado `#edf6e0` (the palest wash, for pages and paper) |
-| Earth | Basalt `#373e44`, Bauxite `#a43427`, Bark `#734f31` |
-| Relief | Banksia `#ee9138`, Honey `#fac044`, Wattle `#fdec9e` (a soft light yellow), Olive `#818e44` |
-| Dramatic relief | Reef `#25c2c2` |
-| Treats | Donut `#f39dbd`, Pancake `#d8b890` |
-| Light and ink | Daylight (HDR white: `#ffffff`, about 1,000 nits on HDR screens), Sugar `#ffffff`, Meringue `#f9f7ef`, Beach `#f2e1bf`, Pebble `#99a0a4`, Liquorice `#09141a` (raised `#121d24`, panel `#1c282f`), Void `#000000` |
-| Flowers | Jacaranda `#8182d3`, Fuchsia `#c32e85` |
-| Reds for the app | Arvo `#ef9275` (error text on dark), Outback `#c55123` (red earth, for charts), Ochre `#72251c` (error text on light under High contrast) |
+| Greens, the main brand hue, by lightness | Spearmint `#033633`, Bunyapine `#008657`, Green Apple `#50c369`, Pandanus `#ace1ad` (raised washes and selected states), Avocado `#edf6e0` (the palest wash, for pages and paper) |
+| Olive and Khaki | Khaki `#444f05`, Olive `#818e44` |
+| Warm, deep red to soft yellow | Ochre `#72251c` (error text on light under High contrast), Bauxite `#a43427`, Outback `#c55123` (red earth, for charts), Arvo `#ef9275` (error text on dark), Banksia `#ee9138`, Honey `#fac044`, Wattle `#fdec9e` (a soft light yellow) |
+| Earth and sand | Bark `#734f31`, Pancake `#d8b890`, Beach `#f2e1bf`, Meringue `#f9f7ef` |
+| Flowers | Fuchsia `#da1889`, Donut `#f39dbd`, Jacaranda `#7476e0` |
+| Waters | Lagoon `#1a85c4` and Sky `#5fcaff`; Reef `#25c2c2` and Swell `#b6f1f1` |
+| Ink and light | Void `#000000`, Liquorice `#09141a` (raised `#121d24`, panel `#1c282f`), Basalt `#373e44`, Pebble `#99a0a4`, Sugar `#ffffff`, Daylight (HDR white: `#ffffff`, about 1,000 nits on HDR screens) |
 
 - **Light, the crystal chalice:** Liquorice text on Sugar (18.6:1), Spearmint
   accent with a Sugar label (13.3:1), Basalt for quiet text, Pebble hairlines.

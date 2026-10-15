@@ -1853,7 +1853,7 @@
     {
       "file": "filter.look1.svg",
       "bytes": 78104,
-      "sha": "8bead996a0793f8a",
+      "sha": "354696aa48c93530",
       "stddev": 84.964,
       "inkRatio": 0.84851,
       "ground": "white",
@@ -2552,19 +2552,19 @@
     },
     {
       "file": "jump.look2.svg",
-      "bytes": 33341,
-      "sha": "a4af294714dcecf4",
-      "stddev": 55.73,
-      "inkRatio": 0.31981,
+      "bytes": 33348,
+      "sha": "19a7cb4192b41354",
+      "stddev": 62.47,
+      "inkRatio": 0.31996,
       "ground": "white",
       "grounds": {
         "white": {
-          "stddev": 55.73,
-          "inkRatio": 0.31981
+          "stddev": 62.47,
+          "inkRatio": 0.31996
         },
         "black": {
-          "stddev": 55.714,
-          "inkRatio": 0.31981
+          "stddev": 62.453,
+          "inkRatio": 0.31996
         }
       },
       "blank": false,
@@ -2612,19 +2612,19 @@
     },
     {
       "file": "jump.svg",
-      "bytes": 9730,
-      "sha": "43bd6870b4410ab2",
-      "stddev": 86.935,
-      "inkRatio": 0.36211,
+      "bytes": 9629,
+      "sha": "6cce79c195d59a0f",
+      "stddev": 87.287,
+      "inkRatio": 0.36506,
       "ground": "white",
       "grounds": {
         "white": {
-          "stddev": 86.935,
-          "inkRatio": 0.36211
+          "stddev": 87.287,
+          "inkRatio": 0.36506
         },
         "black": {
-          "stddev": 86.906,
-          "inkRatio": 0.36211
+          "stddev": 86.879,
+          "inkRatio": 0.36506
         }
       },
       "blank": false,
@@ -3317,17 +3317,17 @@
     {
       "file": "record.svg",
       "bytes": 5793,
-      "sha": "c7a5abe22da0beb7",
-      "stddev": 26.573,
+      "sha": "7c4fc7fc307e21a2",
+      "stddev": 26.551,
       "inkRatio": 0.02357,
       "ground": "white",
       "grounds": {
         "white": {
-          "stddev": 26.573,
+          "stddev": 26.551,
           "inkRatio": 0.02357
         },
         "black": {
-          "stddev": 26.573,
+          "stddev": 26.551,
           "inkRatio": 0.02357
         }
       },

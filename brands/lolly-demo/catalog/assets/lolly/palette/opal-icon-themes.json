@@ -5,14 +5,20 @@
     {
       "id": "brand",
       "label": "Brand",
-      "c1": "#50c369",
-      "c2": "#09141a"
+      "c1": "#da1889",
+      "c2": "#000000"
     },
     {
       "id": "tint",
       "label": "Tint",
-      "c1": "#a7e7af",
-      "c2": "#50c369"
+      "c1": "#ffb9da",
+      "c2": "#da1889"
+    },
+    {
+      "id": "green",
+      "label": "Green",
+      "c1": "#50c369",
+      "c2": "#234d2b"
     },
     {
       "id": "ember",
@@ -21,23 +27,17 @@
       "c2": "#380c00"
     },
     {
-      "id": "amber",
-      "label": "Amber",
-      "c1": "#fac044",
-      "c2": "#6a511e"
-    },
-    {
-      "id": "teal",
-      "label": "Teal",
-      "c1": "#25c2c2",
-      "c2": "#005151"
+      "id": "indigo",
+      "label": "Indigo",
+      "c1": "#7476e0",
+      "c2": "#1f1f48"
     },
     {
       "id": "paper",
       "label": "Paper",
       "c1": "#ffffff",
       "c2": "#f0f0f0",
-      "previewBg": "#09141a"
+      "previewBg": "#000000"
     }
   ]
 }

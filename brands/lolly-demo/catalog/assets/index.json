@@ -24,8 +24,8 @@
         {
           "format": "json",
           "url": "/catalog/assets/lolly/tokens/opal.json",
-          "checksum": "sha256-I/8EXh8LJYO2C8dIWhYSfxNhwUjfScJFUs4mxKse/bQ=",
-          "size": 24990
+          "checksum": "sha256-DkIlw6Tsqv94UDp9I17vD0LE8EQ99FuxSfBKdRXJD4o=",
+          "size": 26474
         }
       ]
     },
@@ -1288,8 +1288,8 @@
         {
           "format": "json",
           "url": "/catalog/assets/lolly/palette/opal-photo-treatments.json",
-          "checksum": "sha256-iskVnmnZ/N0D8qcyBhuLT7+nJXbjneOf6LFIpnWuFeY=",
-          "size": 1877
+          "checksum": "sha256-43ciKuF7DB7j0+LZFi+/59VHn+F3ovB6j0fbIUhhQVI=",
+          "size": 1881
         }
       ]
     },
@@ -1308,8 +1308,8 @@
         {
           "format": "json",
           "url": "/catalog/assets/lolly/palette/opal-icon-themes.json",
-          "checksum": "sha256-xh5+yclSYd+EoUQdd3Skmr/dU+XCwasNuBEoK/ZGHLE=",
-          "size": 943
+          "checksum": "sha256-Jqy9LbGvt7ETwtq3bMlPMmlX1B3uTJ8aZX56xLVnVPo=",
+          "size": 947
         }
       ]
     }

@@ -12,6 +12,13 @@
       "id": "brand",
       "label": "Brand",
       "kind": "duotone",
+      "shadow": "#3e1127",
+      "highlight": "#ffd9eb"
+    },
+    {
+      "id": "green",
+      "label": "Green",
+      "kind": "duotone",
       "shadow": "#002d0c",
       "highlight": "#d0f3d4"
     },
@@ -23,47 +30,40 @@
       "highlight": "#ffdccd"
     },
     {
-      "id": "amber",
-      "label": "Amber",
+      "id": "indigo",
+      "label": "Indigo",
       "kind": "duotone",
-      "shadow": "#351f00",
-      "highlight": "#fae5bf"
-    },
-    {
-      "id": "teal",
-      "label": "Teal",
-      "kind": "duotone",
-      "shadow": "#002c2d",
-      "highlight": "#c4f3f2"
+      "shadow": "#1e1e47",
+      "highlight": "#e0e5ff"
     },
     {
       "id": "deep",
       "label": "Deep",
       "kind": "duotone",
       "shadow": "#000000",
-      "mid": "#002d0c",
-      "highlight": "#50c369",
-      "previewBg": "#002d0c"
+      "mid": "#3e1127",
+      "highlight": "#da1889",
+      "previewBg": "#3e1127"
     },
     {
       "id": "tone",
       "label": "Tone",
       "kind": "gradient-map",
       "stops": [
-        "#081319",
-        "#407048",
-        "#aab3b8"
+        "#121212",
+        "#8a4c68",
+        "#b1b1b1"
       ],
       "amount": 100,
       "contrast": 16,
       "lightness": -4,
-      "previewBg": "#081319",
+      "previewBg": "#121212",
       "themes": {
         "dark": {
           "stops": [
-            "#000408",
-            "#1a262c",
-            "#46764d"
+            "#030303",
+            "#242424",
+            "#90526d"
           ],
           "amount": 100,
           "contrast": 18,
