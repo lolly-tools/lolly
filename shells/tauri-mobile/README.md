@@ -190,7 +190,7 @@ pnpm run build:ios       # build:frontend then tauri ios build
 pnpm run build:frontend  # frontend only, into ./dist
 ```
 
-Android needs the SDK, NDK and a JDK; iOS needs Xcode and `minimumSystemVersion` 14.3 or later per `tauri.conf.json`.
+Android needs the SDK, NDK and a JDK; iOS needs Xcode. The app requires iOS and iPadOS 26.0 or later (`minimumSystemVersion` in `tauri.conf.json`, `IPHONEOS_DEPLOYMENT_TARGET` in the Xcode project), because the web shell needs WebGPU at startup and WKWebView offers WebGPU from iOS 26.
 
 `tsconfig.json` here typechecks `bridge-overrides/` only - the frontend is covered by `tsc -p shells/web`. It is reached from the repo's `pnpm run typecheck` through `scripts/typecheck-tauri.ts` rather than as a bare `tsc -p` step, because the overrides import `@tauri-apps/api` and `@tauri-apps/plugin-fs` and **this shell is a separate pnpm project**, so a root `pnpm install --frozen-lockfile` never creates its `node_modules`. This is deliberate even now that every directory here is folded into one repository: adding `shells/tauri-mobile` to `pnpm-workspace.yaml` would make a plain `pnpm install` start resolving `@tauri-apps/*` for everyone. That script SKIPS with a logged reason when the Tauri `node_modules` are absent, so a plain clone is not punished; CI installs both Tauri shells (`--prod`) and then re-runs it with `--strict`, which fails on a skip, so the gate cannot quietly become a no-op. To run it locally:
 
