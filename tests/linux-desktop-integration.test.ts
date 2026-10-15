@@ -980,7 +980,7 @@ test('aur: PKGBUILD pkgver matches tauri.conf.json version', (t) => {
   // (scripts/webgpu-release-gate.ts). While the Linux app is held, no DEB exists for a
   // newer version, so the recipe stays on the last Linux release.
   if (pkgver !== appVersion && webGpuReleaseProblems(ROOT, 'linux').length) {
-    return t.skip(`the Linux app is held by the WebGPU release gate, so the recipe stays at ${pkgver} while the app version is ${appVersion}`);
+    return t.skip('the Linux app is held by the WebGPU release gate, so the recipe stays on the last Linux release');
   }
   // The recipe may trail a release by hours, never silently by a version. If this
   // fails right after a version bump, that is BY DESIGN - it is the reminder to do
