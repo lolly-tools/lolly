@@ -92,10 +92,18 @@ brand plan.
   this pack's tool index is unsigned and `lolly/tokens/opal` and the derived
   palette documents carry no Content Credentials. The shared files keep the
   credentials they were shipped with.
-- **Generated artwork.** Tool previews and OG cards for this profile are not
-  generated yet (`catalog/previews/` and `catalog/og/` hold placeholders); run
-  `pnpm run previews` and `pnpm run og` with `LOLLY_PROFILE=lolly-demo` when the
-  look is settled.
+- **Share cards.** `catalog/og/` holds placeholders. The card generator puts a
+  branded pack on its dark theme's surface, which for Opal is Liquorice, while
+  Lolly's own cards are green; the cards wait for Opal's own share-card designs
+  (the house, tool and stage cards from the brand page).
+- **Four previews.** The tool previews were captured on 15 Oct 2026 against this
+  profile, with four gaps. The booth-studio and flythrough tiles are
+  `lolly-start`'s captures, because the headless capture on current main gets no
+  WebGL context inside those two three.js tools. Jump's first look and frame's
+  third look ship no capture, so the gallery renders them live. Re-capture all
+  four when the capture can draw them. The 3d tile was captured in installed
+  Chrome with the machine's own GPU: three.js's WebGPU renderer fails on the
+  SwiftShader adapter the generator pins.
 - **The show.** The cast, studio sweeps, stick overlays, the glass disc, tool
   prizes, an OG set and the stage master arrive in a later change.
 - **Spearmint marks.** Lolly's reverse, mono and mono-reverse marks still carry

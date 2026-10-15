@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-10-15T12:16:33.021Z",
+  "generatedAt": "2026-10-15T17:33:34.428Z",
   "tools": [
     {
       "id": "3d",
@@ -35,7 +35,7 @@
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z\"/><path d=\"m3.3 7 8.7 5 8.7-5\"/><path d=\"M12 22V12\"/></svg>",
       "anim": "/tools/3d/card.webm",
-      "preview": "/catalog/previews/3d.webp",
+      "preview": "/catalog/previews/3d.svg",
       "i18n": {
         "ar": {
           "name": "3D",
@@ -623,7 +623,7 @@
       "exportable": false,
       "fileTransform": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M8 15 15 8\"/><path d=\"M10.6 8H15v4.4\"/><path d=\"M7.5 18h6\"/></svg>",
-      "preview": "/catalog/previews/annotate.webp",
+      "preview": "/catalog/previews/annotate.svg",
       "examples": [
         {
           "label": "Three numbered steps",
@@ -1078,7 +1078,7 @@
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><line x1=\"3\" y1=\"10\" x2=\"3\" y2=\"14\"/><line x1=\"6.5\" y1=\"7\" x2=\"6.5\" y2=\"17\"/><line x1=\"10\" y1=\"4\" x2=\"10\" y2=\"20\"/><line x1=\"13.5\" y1=\"8\" x2=\"13.5\" y2=\"16\"/><line x1=\"17\" y1=\"5.5\" x2=\"17\" y2=\"18.5\"/><line x1=\"20.5\" y1=\"10\" x2=\"20.5\" y2=\"14\"/></svg>",
       "anim": "/tools/audiogram/card.webm",
-      "preview": "/catalog/previews/audiogram.webp",
+      "preview": "/catalog/previews/audiogram.svg",
       "examples": [
         {
           "label": "Podcast quote - bars",
@@ -1290,7 +1290,7 @@
       "height": 900,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"3\"/><circle cx=\"9\" cy=\"9\" r=\"2.2\"/><path d=\"M14.5 7.5c1.8 0 3 1.4 3 3\"/><path d=\"M6.5 16.5c2.8-2.2 8.2-2.2 11 0\"/></svg>",
-      "preview": "/catalog/previews/backdrop.webp",
+      "preview": "/catalog/previews/backdrop.svg",
       "examples": [
         {
           "label": "Lava lamp",
@@ -1670,7 +1670,7 @@
       "height": 1000,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"3.5\" rx=\"1\"/><path d=\"M4.5 6.5V20\"/><path d=\"M19.5 6.5V20\"/><rect x=\"7\" y=\"9\" width=\"10\" height=\"6.5\" rx=\"1\"/><path d=\"M2 20h20\"/><rect x=\"13.5\" y=\"15.5\" width=\"5\" height=\"4.5\" rx=\"1\"/></svg>",
-      "preview": "/catalog/previews/booth-studio.webp",
+      "preview": "/catalog/previews/booth-studio.svg",
       "templates": [
         {
           "id": "brand-starter",
@@ -3159,7 +3159,7 @@
       "exportable": false,
       "fileTransform": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.85\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M16 12.2V4.5q0-2-2-2H4q-2 0-2 2v9q0 2 2 2h9\"/><circle cx=\"6.5\" cy=\"7.3\" r=\"1.3\"/><path d=\"M2.4 13.6l3.2-2.9 2.5 2.1 2.7-2.6 1.9 1.85\"/><path d=\"M18 12l4.5 1.8v2.5c0 3.1-1.9 4.8-4.5 5.7-2.6-.9-4.5-2.6-4.5-5.7v-2.5z\"/><path d=\"M16.2 17.2l1.5 1.55 2.8-2.9\"/></svg>",
-      "preview": "/catalog/previews/claim.webp",
+      "preview": "/catalog/previews/claim.svg",
       "i18n": {
         "ar": {
           "name": "إثبات الملكية",
@@ -3303,7 +3303,7 @@
       "exportable": false,
       "fileTransform": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\"><title>Clean</title><path d=\"M3 12h2l1.5-5 3 10 3-14 3 18 2.5-9H21\"/><path d=\"m18 4 .7 1.8L21 6.5l-2.3.7L18 9l-.7-1.8L15 6.5l2.3-.7L18 4Z\"/></svg>",
-      "preview": "/catalog/previews/clean.webp",
+      "preview": "/catalog/previews/clean.svg",
       "i18n": {
         "ar": {
           "name": "التنظيف",
@@ -3670,7 +3670,7 @@
       "exportable": false,
       "fileTransform": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m15 15 6 6m-6-6v4.8m0-4.8h4.8\" /><path d=\"M9 19.8V15m0 0H4.2M9 15l-6 6\" /><path d=\"M15 4.2V9m0 0h4.8M15 9l6-6\" /><path d=\"M9 4.2V9m0 0H4.2M9 9 3 3\" /></svg>",
-      "preview": "/catalog/previews/compress-pdf.webp",
+      "preview": "/catalog/previews/compress-pdf.svg",
       "i18n": {
         "ar": {
           "name": "الضغط",
@@ -4033,7 +4033,7 @@
       "exportable": false,
       "fileTransform": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M10.3 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6\"/><circle cx=\"9\" cy=\"9\" r=\"2\"/><path d=\"m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21\"/><path d=\"M17 13.7V22\"/><path d=\"m14 19 3 3 3-3\"/></svg>",
-      "preview": "/catalog/previews/convert-image.webp",
+      "preview": "/catalog/previews/convert-image.svg",
       "i18n": {
         "ar": {
           "name": "تحويل الصورة",
@@ -4161,7 +4161,7 @@
       "height": 1080,
       "exportable": false,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><line x1=\"10\" x2=\"14\" y1=\"2\" y2=\"2\" /><line x1=\"12\" x2=\"15\" y1=\"14\" y2=\"11\" /><circle cx=\"12\" cy=\"14\" r=\"8\" /></svg>",
-      "preview": "/catalog/previews/countdown-timer.webp",
+      "preview": "/catalog/previews/countdown-timer.svg",
       "i18n": {
         "ar": {
           "name": "العد التنازلي",
@@ -4599,7 +4599,7 @@
       "height": 720,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"13\" rx=\"1.5\"/><path d=\"M7 20h10\"/><path d=\"M12 17v3\"/><path d=\"M6.5 8.5h6\"/><path d=\"M6.5 11.5h4\"/><rect x=\"14.5\" y=\"8\" width=\"3.5\" height=\"5.5\" rx=\"0.5\"/></svg>",
-      "preview": "/catalog/previews/deck-studio.webp",
+      "preview": "/catalog/previews/deck-studio.svg",
       "examples": [
         {
           "label": "Boardroom title",
@@ -5995,7 +5995,7 @@
       "height": 1080,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><line x1=\"4\" y1=\"6\" x2=\"20\" y2=\"6\"/><line x1=\"4\" y1=\"12\" x2=\"20\" y2=\"12\"/><line x1=\"4\" y1=\"18\" x2=\"20\" y2=\"18\"/><circle cx=\"9\" cy=\"6\" r=\"2\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"15\" cy=\"12\" r=\"2\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"8\" cy=\"18\" r=\"2\" fill=\"currentColor\" stroke=\"none\"/></svg>",
-      "preview": "/catalog/previews/filter.svg",
+      "preview": "/catalog/previews/filter.webp",
       "openWith": [
         {
           "id": "image",
@@ -6483,7 +6483,7 @@
       "height": 720,
       "exportable": true,
       "anim": "/tools/flythrough/card.webm",
-      "preview": "/catalog/previews/flythrough.webp",
+      "preview": "/catalog/previews/flythrough.svg",
       "templates": [
         {
           "id": "brand-starter",
@@ -6631,7 +6631,7 @@
       "exportable": false,
       "fileTransform": true,
       "icon": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M4 6h8M8 6v10M6.3 16h3.4\"/><path d=\"M13.5 16l3.5-10 3.5 10M14.9 12.3h4.2\"/></svg>",
-      "preview": "/catalog/previews/font-convert.webp",
+      "preview": "/catalog/previews/font-convert.svg",
       "i18n": {
         "ar": {
           "name": "تحويل الخط",
@@ -7738,7 +7738,7 @@
       "height": 1400,
       "exportable": false,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"4\" y=\"3\" width=\"16\" height=\"4.6\" rx=\"2.3\"/><rect x=\"4\" y=\"9.7\" width=\"16\" height=\"4.6\" rx=\"2.3\"/><rect x=\"4\" y=\"16.4\" width=\"16\" height=\"4.6\" rx=\"2.3\"/></svg>",
-      "preview": "/catalog/previews/jump.webp",
+      "preview": "/catalog/previews/jump.svg",
       "examples": [
         {
           "label": "Aurora front door",
@@ -9098,7 +9098,7 @@
       "exportable": false,
       "fileTransform": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><title>Pages</title><rect x=\"7\" y=\"3\" width=\"12\" height=\"16\" rx=\"2\"/><path d=\"M5 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-1M10 8h6m-6 4h6m-6 4h3\"/></svg>",
-      "preview": "/catalog/previews/pages.webp",
+      "preview": "/catalog/previews/pages.svg",
       "i18n": {
         "ar": {
           "name": "الصفحات",
@@ -10760,7 +10760,7 @@
       "height": 1920,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"2\" y=\"6\" width=\"20\" height=\"12\" rx=\"2\"/><path d=\"M8 6v12\"/><path d=\"M16 6v12\"/><circle cx=\"12\" cy=\"12\" r=\"2.4\" fill=\"currentColor\" stroke=\"none\"/></svg>",
-      "preview": "/catalog/previews/record.webp",
+      "preview": "/catalog/previews/record.svg",
       "paged": true,
       "i18n": {
         "ar": {
@@ -10909,7 +10909,7 @@
       "exportable": false,
       "fileTransform": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z\"/><path d=\"M14 2v6h6\"/><path d=\"M8 13.5h8\" stroke-width=\"3.4\" stroke-linecap=\"butt\"/><path d=\"M8 18h5\"/></svg>",
-      "preview": "/catalog/previews/redact.webp",
+      "preview": "/catalog/previews/redact.svg",
       "i18n": {
         "ar": {
           "name": "التنقيح",
@@ -11052,7 +11052,7 @@
       "height": 800,
       "exportable": false,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><title>Rondocode</title><path d=\"M7 6 3 12l4 6\"/><path d=\"M17 6l4 6-4 6\"/><path d=\"M13 16.5V8l3 1\"/><circle cx=\"11.2\" cy=\"16.6\" r=\"1.8\"/></svg>",
-      "preview": "/catalog/previews/rondocode.webp"
+      "preview": "/catalog/previews/rondocode.svg"
     },
     {
       "id": "sandbox",
@@ -11231,7 +11231,7 @@
       "height": 640,
       "exportable": false,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 7V5a2 2 0 0 1 2-2h2\" /><path d=\"M17 3h2a2 2 0 0 1 2 2v2\" /><path d=\"M21 17v2a2 2 0 0 1-2 2h-2\" /><path d=\"M7 21H5a2 2 0 0 1-2-2v-2\" /><path d=\"M7 8h2v2H7z\" /><path d=\"M14 8h3\" /><path d=\"M17 8v3\" /><path d=\"M7 14v-1\" /><path d=\"M11 16h-1v-1\" /><path d=\"M14 14h3v3h-3z\" /></svg>",
-      "preview": "/catalog/previews/scan-code.webp",
+      "preview": "/catalog/previews/scan-code.svg",
       "featured": {
         "order": 7,
         "blurb": "Read any code, safely and offline"
@@ -11401,7 +11401,7 @@
       "height": 4320,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M8 3H5a2 2 0 0 0-2 2v3\" /><path d=\"M16 3h3a2 2 0 0 1 2 2v3\" /><path d=\"M8 21H5a2 2 0 0 1-2-2v-3\" /><path d=\"M16 21h3a2 2 0 0 0 2-2v-3\" /><rect width=\"8\" height=\"6\" x=\"8\" y=\"9\" rx=\"1\" /></svg>",
-      "preview": "/catalog/previews/screencap.webp",
+      "preview": "/catalog/previews/screencap.svg",
       "i18n": {
         "ar": {
           "name": "التقاط الشاشة",
@@ -11536,7 +11536,7 @@
       "exportable": false,
       "fileTransform": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><title>Sign</title><path d=\"M3 17.5c2.5-5 3.8-8 5.3-8 2.2 0-1 7.5 1.2 7.5 1.5 0 2.4-4 3.8-4 1.1 0 .2 3 1.6 3 1.2 0 2.2-2 3.6-2 1 0 1.5.7 2.5 1.5M3 20h18\"/><path d=\"m15 5 2-2 4 4-2 2-4-4Z\"/></svg>",
-      "preview": "/catalog/previews/sign.webp",
+      "preview": "/catalog/previews/sign.svg",
       "i18n": {
         "ar": {
           "name": "توقيع المستندات",
@@ -12582,7 +12582,7 @@
       "height": 900,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z\" /><path d=\"M15 5.764v15\" /><path d=\"M9 3.236v15\" /></svg>",
-      "preview": "/catalog/previews/street-map.svg",
+      "preview": "/catalog/previews/street-map.webp",
       "examples": [
         {
           "label": "Paris in ink",
@@ -12857,7 +12857,7 @@
       "exportable": false,
       "fileTransform": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M21 21H8a2 2 0 0 1-1.42-.587l-3.994-3.999a2 2 0 0 1 0-2.828l10-10a2 2 0 0 1 2.829 0l5.999 6a2 2 0 0 1 0 2.828L12.834 21\" /><path d=\"m5.082 11.09 8.828 8.828\" /></svg>",
-      "preview": "/catalog/previews/strip-data.webp",
+      "preview": "/catalog/previews/strip-data.svg",
       "i18n": {
         "ar": {
           "name": "إزالة البيانات المخفية",
@@ -12998,7 +12998,7 @@
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 12c0-4 3-7 6-7s4 3 3 6-3 4-1 6 5 1 7-1\"/><path d=\"M2 19c3-1 5-3 6-5\"/><circle cx=\"18\" cy=\"6\" r=\"2\"/></svg>",
       "anim": "/tools/synth/card.webm",
-      "preview": "/catalog/previews/synth.webp",
+      "preview": "/catalog/previews/synth.svg",
       "examples": [
         {
           "label": "Ink bloom",
@@ -13197,7 +13197,7 @@
       "height": 820,
       "exportable": false,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5c0 1.1.9 2 2 2h1\" /><path d=\"M16 21h1a2 2 0 0 0 2-2v-5c0-1.1.9-2 2-2a2 2 0 0 1-2-2V5a2 2 0 0 0-2-2h-1\" /></svg>",
-      "preview": "/catalog/previews/text-helper.webp",
+      "preview": "/catalog/previews/text-helper.svg",
       "openWith": [
         {
           "id": "text",
@@ -13800,7 +13800,7 @@
       "exportable": false,
       "fileTransform": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><title>Trim</title><circle cx=\"6\" cy=\"7\" r=\"3\"/><circle cx=\"6\" cy=\"17\" r=\"3\"/><path d=\"m8.5 8.5 11 7M8.5 15.5 19.5 8M12 12l-3.5-2.2\"/></svg>",
-      "preview": "/catalog/previews/trim.webp",
+      "preview": "/catalog/previews/trim.svg",
       "i18n": {
         "ar": {
           "name": "القص",
