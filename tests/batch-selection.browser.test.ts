@@ -224,7 +224,13 @@ test('batch reuses the full format menu and copies and pastes rectangular cell r
     await page.locator('#pro-menu').click(); await page.locator('[data-fmt-trigger]').click();
     const panel = await page.locator('[data-fmt-panel]').boundingBox();
     assert.ok(panel && panel.x >= 0 && panel.x + panel.width <= 390);
+    const toast = await page.locator('.job-toast').boundingBox();
+    assert.ok(toast);
+    const overlap = { x: toast.x + toast.width / 2, y: toast.y + toast.height / 2 };
+    assert.equal(await page.evaluate(({ x, y }) => !!document.elementFromPoint(x, y)?.closest('[data-fmt-panel]'), overlap), true, 'format choices remain clickable above the job notification');
     await page.screenshot({ path: '/tmp/lolly-batch-formats-mobile.png' });
+    await page.locator('[data-fmt-close]').click();
+    assert.equal(await page.evaluate(({ x, y }) => !!document.elementFromPoint(x, y)?.closest('.job-toast'), overlap), true, 'closing formats restores access to the job notification');
     assert.deepEqual(errors, []);
   } finally { await context.close(); await closeBrowser(); }
 });

@@ -889,7 +889,8 @@ body.pro-row-dragging, body.pro-row-dragging * { cursor: grabbing !important; us
 }
 
 
-.pro-toolbar:has([data-fmt-panel]:not([hidden])) { position: relative; z-index: 100005; }
+.pro-wrap:has([data-fmt-panel]:not([hidden])) { z-index: 9501; }
+.pro-toolbar:has([data-fmt-panel]:not([hidden])) { position: relative; z-index: 50; }
 .pro-format-picker { position: relative; }
 .pro-format-picker .fmt-trigger { border: 1px solid hsl(var(--border)); border-radius: var(--ui-radius-control); padding: .4rem .6rem; font-size: calc(.8rem * var(--a11y-fs)); }
 .pro-format-picker .fmt-pop { width: min(34rem, calc(100vw - 2rem)); max-width: none; z-index: 40; white-space: normal; }
