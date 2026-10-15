@@ -682,7 +682,7 @@
   .profile-view .store-sess-del { opacity: 1; }
 }
 .profile-view .store-sess-del:hover,
-.profile-view .headshot-remove:hover{ color: hsl(var(--destructive)); border-color: hsl(var(--destructive)); }
+.profile-view .headshot-remove:hover{ color: hsl(var(--destructive-text)); border-color: hsl(var(--destructive)); }
 .profile-view .store-sess-del:disabled { opacity: .4; cursor: default; }
 
 /* Floating multi-select action bar (sessions only). */
@@ -983,7 +983,7 @@
 .ds-row-menu { position: absolute; z-index: 5; right: 0; bottom: calc(100% + var(--sp-3)); min-width: 210px; padding: var(--sp-3); background: var(--ui-color-surface-raised); border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-control); box-shadow: var(--ui-effect-focus-halo); }
 .ds-row-menu button { min-height: max(44px, var(--ui-size-target)); display: flex; align-items: center; gap: var(--sp-4); width: 100%; padding: var(--sp-5); text-align: start; background: none; border: 0; font: inherit; }
 .ds-row-menu button:hover { background: var(--ui-color-surface-muted); }
-.ds-row-menu .ds-row-remove { color: hsl(var(--destructive)); }
+.ds-row-menu .ds-row-remove { color: hsl(var(--destructive-text)); }
 .profile-view .ds-add { display: flex; flex-wrap: wrap; gap: var(--sp-4); padding-top: var(--sp-4); }
 
 /* Brand download uses the same tokens in the dialog's body-mounted top layer. */

@@ -199,10 +199,10 @@
           "danger": {
             "$type": "color",
             "$value": "#b4232a",
-            "$description": "Something is wrong and the user must act.",
+            "$description": "Something is wrong and the user must act. The text red: it reads 4.5:1 on every theme's surfaces, where the destructive fill does not.",
             "$extensions": {
               "tools.lolly": {
-                "css": "hsl(var(--destructive))"
+                "css": "hsl(var(--destructive-text))"
               }
             }
           },

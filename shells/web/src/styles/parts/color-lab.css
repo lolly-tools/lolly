@@ -317,7 +317,7 @@
   line-height: 1.45;
 }
 .lab-hint { color: hsl(var(--muted-foreground)); }
-.lab-err { color: hsl(var(--destructive, 0 72% 51%)); font-weight: 500; }
+.lab-err { color: hsl(var(--destructive-text, 0 72% 51%)); font-weight: 500; }
 
 .lab-picker { min-width: 0; }
 

@@ -174,7 +174,7 @@ export interface PromptDialogOpts {
  */
 export function promptDialog({ title, message, confirmLabel = 'OK', placeholder = '', value = '', inputType = 'text', error }: PromptDialogOpts): Promise<string | null> {
   return new Promise((resolve) => {
-    const errHtml = error ? `<p class="modal-msg" style="color:hsl(var(--destructive));font-weight:600">${escape(error)}</p>` : '';
+    const errHtml = error ? `<p class="modal-msg" style="color:hsl(var(--destructive-text));font-weight:600">${escape(error)}</p>` : '';
     const content = `
       <h2 class="modal-title">${escape(title)}</h2>
       <p class="modal-msg">${escape(message)}</p>

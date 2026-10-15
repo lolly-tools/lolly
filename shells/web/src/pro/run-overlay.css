@@ -125,7 +125,7 @@
 .pro-log { list-style: none; margin: 0; padding: 0; font-size: calc(0.8rem * var(--a11y-fs)); max-height: 16rem; overflow-y: auto; font-family: var(--font-mono, ui-monospace, monospace); }
 .pro-log li { padding: 0.15rem 0; }
 .pro-log-ok { color: hsl(var(--muted-foreground)); }
-.pro-log-err { color: hsl(var(--destructive)); }
+.pro-log-err { color: hsl(var(--destructive-text)); }
 .pro-log-skip { color: hsl(var(--muted-foreground)); font-style: italic; }
 /* Skipped rows, listed by NAME (a skipped row has no queue position to cite). */
 .pro-log-skip summary { cursor: pointer; }

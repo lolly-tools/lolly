@@ -71,7 +71,7 @@
   color: hsl(var(--muted-foreground));
   text-align: right;
 }
-.script-audio-count-over { color: hsl(var(--destructive)); }
+.script-audio-count-over { color: hsl(var(--destructive-text)); }
 /* The one way out of the compact dialog: voice blending and the prosody chips
    live in the writing view, so this sheet stays two controls wide. */
 .script-audio-more {
@@ -132,7 +132,7 @@ html[data-a11y-motion="reduce"] .script-audio-progress-indeterminate .script-aud
   font-size: calc(12.5px * var(--a11y-fs));
   color: hsl(var(--muted-foreground));
 }
-.script-audio-status.script-audio-error { color: hsl(var(--destructive)); }
+.script-audio-status.script-audio-error { color: hsl(var(--destructive-text)); }
 /* The preview row hosts the shared themed transport (.cat-tp - lib/audio-transport.ts,
    visuals in parts/asset-shared.css) plus its hidden <audio> engine. */
 .script-audio-preview {

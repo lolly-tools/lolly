@@ -89,7 +89,7 @@
   color: hsl(var(--foreground));
 }
 .note--error {
-  color: hsl(var(--destructive));
+  color: hsl(var(--destructive-text));
   border-color: hsl(var(--destructive) / 0.4);
   background: hsl(var(--destructive) / 0.06);
 }
@@ -100,7 +100,7 @@
 }
 
 .error {
-  color: hsl(var(--destructive));
+  color: hsl(var(--destructive-text));
   padding: 12px 16px;
   border: 1px solid hsl(var(--destructive) / 0.4);
   background: hsl(var(--destructive) / 0.06);

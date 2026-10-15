@@ -8,9 +8,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { hexToHslTriple, chromeBrandCss, brandThemeCss, brandFontStack, brandRadiusValue, brandSpaceValue, brandMarkHue, brandMarkPrimary, lollyMarkCss, highContrastAccent, apcaLcAbs, HC_TARGET_LC, uiTokenCssValue, contrastText } from './brand-vars.ts';
+import { hexToHslTriple, chromeBrandCss, brandThemeCss, brandFontStack, brandRadiusValue, brandSpaceValue, brandMarkHue, brandMarkPrimary, lollyMarkCss, highContrastAccent, apcaLcAbs, HC_TARGET_LC, uiTokenCssValue, contrastText,
+  hslTripleToHex, THEME_SURFACES, THEME_DESTRUCTIVE, brandSurfaceHexes, FOCUS_RING_RATIO, dangerText, dangerTextSurfaces, dangerTextCss, DANGER_TEXT_RATIO, DANGER_TEXT_HC_LC } from './brand-vars.ts';
 import { apcaContrast } from '../../../engine/src/color-tools.ts';
-import { hexToOklch } from '../../../engine/src/brand-derive.ts';
+import { hexToOklch, contrastRatio, parseHex } from '../../../engine/src/brand-derive.ts';
 
 const SANS_TAIL = "'Outfit', ui-sans-serif, system-ui, sans-serif";
 
@@ -108,8 +109,10 @@ test('chromeBrandCss emits light/dark accent blocks plus the constructed brand t
   assert.ok(css.includes('[data-theme="brand"] {'));
   assert.ok(css.includes('--primary:'));
   assert.ok(css.includes('--primary-foreground:'));
-  // --ring follows --primary in all three blocks (tokens.css couples them).
-  assert.equal((css.match(/--ring:/g) ?? []).length, 3);
+  // --ring follows --primary in all three ungated blocks (tokens.css couples
+  // them); the high-contrast blocks carry rings of their own, tested below.
+  const ungated = css.replace(/html\[data-a11y-contrast="high"\][^{]*\{[^}]*\}/g, '');
+  assert.equal((ungated.match(/--ring:/g) ?? []).length, 3);
 });
 
 test('brandThemeCss constructs the full mid-toned chrome from the two primaries', () => {
@@ -260,16 +263,15 @@ test('chromeBrandCss appends attribute-gated high-contrast accents, per theme', 
     { primary: '#0c322c', onPrimary: '#f7f7f5' },
     { primary: '#30ba78', onPrimary: '#08211d' },
   );
-  // The light accent already clears the bar, so only dark + brand are gated.
-  assert.ok(!css.includes('html[data-a11y-contrast="high"]:not('));
   assert.ok(css.includes('html[data-a11y-contrast="high"][data-theme="dark"] {'));
   assert.ok(css.includes('html[data-a11y-contrast="high"][data-theme="brand"] {'));
-  // Gated blocks carry the pair and NOTHING else - --ring stays with tokens.css,
-  // which gives focus a colour of its own there on purpose.
-  for (const m of css.matchAll(/html\[data-a11y-contrast="high"\][^{]*\{([^}]*)\}/g)) {
-    const decls = [...m[1]!.matchAll(/--([\w-]+):/g)].map(d => d[1]);
-    assert.deepEqual(decls, ['primary', 'primary-foreground']);
-  }
+  // Gated blocks carry the pair and, where the fill can be found, the ring -
+  // nothing else. The light accent already clears the bar, so its block states
+  // no pair: only the ring that follows the light accent.
+  const decls = (theme: string): string[] => [...(hcBlocks(css).get(theme) ?? '').matchAll(/--([\w-]+):/g)].map(d => d[1]!);
+  assert.deepEqual(decls('light'), ['ring']);
+  assert.deepEqual(decls('dark'), ['primary', 'primary-foreground', 'ring']);
+  assert.deepEqual(decls('brand'), ['primary', 'primary-foreground', 'ring']);
   // A brand whose light accent ALSO fails gets the "neither dark nor brand"
   // block - spelled that way so it cannot leak into the two themes that carry
   // their own (same reasoning as tokens.css's high-contrast blocks).
@@ -307,8 +309,10 @@ test('high contrast keeps a brand that already clears the bar in its own colour'
     assert.match(block, /--primary: 0 0% 100%;/, `${theme}: the paper fill stands`);
     assert.match(block, /--primary-foreground: 0 0% 0%;/, `${theme}: the ungated block's computed ink stands`);
   }
-  // Light needs no block: tokens.css leaves the light accent alone.
-  assert.equal(starter.has('light'), false);
+  // Light states no pair: tokens.css leaves the light accent alone. Its block
+  // holds only the ring that follows the starter's ink.
+  assert.doesNotMatch(starter.get('light') ?? '', /--primary/);
+  assert.match(starter.get('light') ?? '', /--ring: 0 0% 11\.4%;/);
 
   // A chromatic brand that passes keeps its hue too, not just a neutral one.
   const yellow = hcBlocks(chromeBrandCss(
@@ -406,4 +410,197 @@ test('lollyMarkCss emits the brand-hued glyph/text tone + coin glow, or nothing 
 test('chrome ink stays readable on mid-tone brand accents', () => {
   for (const [fill, ink] of [['#30ba78', '#000000'], ['#0c322c', '#ffffff'], ['#6336b5', '#ffffff'], ['#808080', '#000000']])
     assert.equal(contrastText(fill!), ink);
+});
+
+// ── Surfaces, the High contrast ring and the error-text red ─────────────────
+
+const TOKENS_CSS = readFileSync(new URL('./styles/tokens.css', import.meta.url), 'utf8');
+
+/** `--name: value` declarations of one block, comments stripped. */
+function declsOf(body: string): Map<string, string> {
+  const out = new Map<string, string>();
+  for (const m of body.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/--([\w-]+):\s*([^;]+);/g)) out.set(m[1]!, m[2]!.trim());
+  return out;
+}
+
+/** tokens.css's static theme block whose selector starts with `head`. */
+function staticBlock(head: string): Map<string, string> {
+  const at = TOKENS_CSS.indexOf(head);
+  assert.ok(at >= 0, `tokens.css has ${head}`);
+  const open = TOKENS_CSS.indexOf('{', at);
+  return declsOf(TOKENS_CSS.slice(open + 1, TOKENS_CSS.indexOf('\n}', open)));
+}
+
+const STATIC = {
+  light: () => staticBlock(':root,\n[data-theme="light"] {'),
+  dark: () => staticBlock('\n[data-theme="dark"] {\n  color-scheme: dark;'),
+  brand: () => staticBlock('\n[data-theme="brand"] {\n  color-scheme: dark;'),
+} as const;
+const HIGH = (theme: 'light' | 'dark' | 'brand'): Map<string, string> => declsOf(hcBlocks(TOKENS_CSS).get(theme) ?? '');
+
+/** Two hexes within one 8-bit step per channel: an HSL triple rounded to a
+ *  tenth can land one step away from the hex it was made from. */
+function near(a: string | null, b: string | null): boolean {
+  const x = a ? parseHex(a) : null, y = b ? parseHex(b) : null;
+  return !!x && !!y && [0, 1, 2].every(i => Math.abs(x[i]! - y[i]!) <= 1);
+}
+
+test('hslTripleToHex reverses hexToHslTriple', () => {
+  for (const hex of ['#0c322c', '#30ba78', '#ffffff', '#000000', '#dc2828', '#6d28d9', '#fde047']) {
+    assert.ok(near(hslTripleToHex(hexToHslTriple(hex)!), hex), hex);
+  }
+  assert.equal(hslTripleToHex('224 71% 4%'), '#030711'); // rgb(3 7 17), as a browser computes it
+  assert.equal(hslTripleToHex('not a triple'), null);
+});
+
+test('the surface tables match tokens.css, high contrast included', () => {
+  const roles = ['background', 'card', 'popover', 'muted', 'accent'] as const;
+  for (const theme of ['light', 'dark', 'brand'] as const) {
+    const base = STATIC[theme]();
+    for (const role of roles) assert.equal(THEME_SURFACES[theme][role], base.get(role), `${theme} ${role}`);
+    if (theme === 'brand') continue;
+    // A high-contrast block re-points some surfaces; the rest stand.
+    const high = HIGH(theme);
+    for (const role of roles) {
+      assert.equal(THEME_SURFACES[`${theme}High`][role], high.get(role) ?? base.get(role), `${theme} high ${role}`);
+    }
+  }
+  // The brand theme's high-contrast block leaves its surfaces to the construction.
+  for (const role of roles) assert.equal(HIGH('brand').get(role), undefined, `brand high ${role}`);
+  // The fills every danger wash is made of.
+  for (const theme of ['light', 'dark', 'brand'] as const) {
+    assert.equal(THEME_DESTRUCTIVE[theme], STATIC[theme]().get('destructive'), `${theme} destructive`);
+    assert.equal(THEME_DESTRUCTIVE[`${theme}High`], HIGH(theme).get('destructive') ?? STATIC[theme]().get('destructive'), `${theme} high destructive`);
+  }
+});
+
+test('brandSurfaceHexes are the surfaces brandThemeCss lays down', () => {
+  const roles = ['background', 'card', 'popover', 'muted', 'accent'] as const;
+  for (const lp of ['#0c322c', '#1d1d1d', '#6d28d9', '#7a5c00']) {
+    const built = declsOf(brandThemeCss(lp, '#30ba78'));
+    const ours = brandSurfaceHexes(lp, roles);
+    roles.forEach((role, i) => { assert.ok(near(ours[i]!, hslTripleToHex(built.get(role)!)), `${lp} ${role}`); });
+  }
+  assert.deepEqual(brandSurfaceHexes('nope'), []);
+});
+
+/** The high-contrast page, cards and popovers a ring sits on, per theme. */
+function ringSurfaces(theme: string, lightPrimary: string): string[] {
+  if (theme === 'brand') return brandSurfaceHexes(lightPrimary);
+  const set = THEME_SURFACES[theme === 'dark' ? 'darkHigh' : 'lightHigh'];
+  return [set.background, set.card, set.popover].map(t => hslTripleToHex(t)!);
+}
+
+test('under High contrast the ring follows a brand that can be seen, in every theme', () => {
+  // The blank starter: ink in light, paper in dark and brand.
+  const starter = hcBlocks(chromeBrandCss({ primary: '#1d1d1d', onPrimary: '#ffffff' }, { primary: '#ffffff', onPrimary: '#1d1d1d' }));
+  assert.match(starter.get('light') ?? '', /--ring: 0 0% 11\.4%;/);
+  assert.match(starter.get('dark') ?? '', /--ring: 0 0% 100%;/);
+  assert.match(starter.get('brand') ?? '', /--ring: 0 0% 100%;/);
+  // SUSE: Pine in light, where the pair already clears the bar; the repaired
+  // Jungle in dark and brand - the very fill the main button wears.
+  const suse = hcBlocks(chromeBrandCss({ primary: '#0c322c', onPrimary: '#ffffff' }, { primary: '#30ba78', onPrimary: '#000000' }));
+  assert.match(suse.get('light') ?? '', new RegExp(`--ring: ${hexToHslTriple('#0c322c')!.replace(/\./g, '\\.')};`));
+  for (const theme of ['dark', 'brand']) {
+    const block = declsOf(suse.get(theme) ?? '');
+    assert.ok(block.get('primary'), `${theme}: a repaired fill`);
+    assert.equal(block.get('ring'), block.get('primary'), `${theme}: the ring is the button's fill`);
+  }
+});
+
+test("a brand colour too dim to find keeps Lolly's ring", () => {
+  // A violet whose repaired fill reads under 3:1 against its own brand theme.
+  const light = { primary: '#6d28d9', onPrimary: '#ffffff' };
+  const blocks = hcBlocks(chromeBrandCss(light, { primary: '#a678ff', onPrimary: '#000000' }));
+  const brand = declsOf(blocks.get('brand') ?? '');
+  const fill = hslTripleToHex(brand.get('primary')!)!;
+  const worst = Math.min(...ringSurfaces('brand', light.primary).map(s => contrastRatio(fill, s)));
+  assert.ok(worst < FOCUS_RING_RATIO, `the fixture is dim on its brand theme (${worst.toFixed(2)}:1)`);
+  assert.equal(brand.get('ring'), undefined, "no ring of its own: tokens.css keeps Lolly's");
+  // The same fill reads on the near-black page, so there it is the ring.
+  assert.equal(declsOf(blocks.get('dark') ?? '').get('ring'), declsOf(blocks.get('dark') ?? '').get('primary'));
+});
+
+test('every ring emitted under High contrast reads 3:1 on the surfaces it sits on', () => {
+  const brands: Array<[{ primary: string; onPrimary: string | null }, { primary: string; onPrimary: string | null }]> = [
+    [{ primary: '#1d1d1d', onPrimary: '#ffffff' }, { primary: '#ffffff', onPrimary: '#1d1d1d' }],
+    [{ primary: '#0c322c', onPrimary: '#ffffff' }, { primary: '#30ba78', onPrimary: '#000000' }],
+    [{ primary: '#7a5c00', onPrimary: '#ffffff' }, { primary: '#fde047', onPrimary: '#000000' }],
+    [{ primary: '#6d28d9', onPrimary: '#ffffff' }, { primary: '#a678ff', onPrimary: '#000000' }],
+    [{ primary: '#1e3a8a', onPrimary: '#ffffff' }, { primary: '#3b82f6', onPrimary: '#ffffff' }],
+    [{ primary: '#eab308', onPrimary: null }, { primary: '#eab308', onPrimary: null }],
+  ];
+  let rings = 0;
+  for (const [light, dark] of brands) {
+    for (const [theme, body] of hcBlocks(chromeBrandCss(light, dark))) {
+      const ring = declsOf(body).get('ring');
+      if (!ring) continue;
+      rings++;
+      const hex = hslTripleToHex(ring)!;
+      for (const s of ringSurfaces(theme, light.primary)) {
+        // A twentieth of headroom for the triple's rounding.
+        assert.ok(contrastRatio(hex, s) >= FOCUS_RING_RATIO - 0.05, `${light.primary}/${dark.primary} ${theme}: ${hex} on ${s}`);
+      }
+    }
+  }
+  assert.ok(rings >= 12, `rings were emitted (${rings})`);
+});
+
+test('dangerText keeps a red that already reads and walks one that does not', () => {
+  assert.equal(dangerText('#B00020', ['#ffffff']), '#b00020', 'already reads on white: unchanged');
+  const dark = dangerTextSurfaces('dark');
+  const lifted = dangerText('#9e2424', dark)!;
+  for (const s of dark) assert.ok(contrastRatio(lifted, s) >= DANGER_TEXT_RATIO, `${lifted} on ${s}`);
+  const from = hexToOklch('#9e2424')!, to = hexToOklch(lifted)!;
+  assert.ok(to.l > from.l, 'lighter on a dark page');
+  assert.ok(Math.abs(to.h - from.h) < 6, `still the same red (hue ${from.h.toFixed(1)} to ${to.h.toFixed(1)})`);
+  // High contrast: the APCA body-text floor on every surface.
+  const darkHigh = dangerTextSurfaces('dark', true);
+  const pale = dangerText('#c11f1f', darkHigh, true)!;
+  for (const s of darkHigh) assert.ok(apcaLcAbs(pale, s) >= DANGER_TEXT_HC_LC, `${pale} on ${s}`);
+  // A brand theme of any hue: one value reads on all of them.
+  const anyBrand = dangerText('#a63030', dangerTextSurfaces('brand'))!;
+  for (const lp of ['#0c322c', '#1d1d1d', '#6d28d9', '#7a5c00', '#e0452b', '#0ea5e9']) {
+    for (const s of brandSurfaceHexes(lp, ['background', 'card', 'popover', 'muted'])) {
+      assert.ok(contrastRatio(anyBrand, s) >= DANGER_TEXT_RATIO, `${anyBrand} on ${lp}'s ${s}`);
+    }
+  }
+  assert.equal(dangerText('not-a-colour', dark), null);
+  assert.equal(dangerText('#9e2424', []), null);
+});
+
+test("tokens.css carries the text reds dangerText computes from each theme's own red", () => {
+  for (const theme of ['light', 'dark', 'brand'] as const) {
+    for (const high of [false, true]) {
+      const block = high ? HIGH(theme) : STATIC[theme]();
+      const fill = (high ? block.get('destructive') : undefined) ?? STATIC[theme]().get('destructive');
+      const text = block.get('destructive-text');
+      assert.ok(fill && text, `${theme}${high ? ' high' : ''} declares --destructive and --destructive-text`);
+      const expected = dangerText(hslTripleToHex(fill!)!, dangerTextSurfaces(theme, high), high);
+      assert.ok(near(hslTripleToHex(text!), expected), `${theme}${high ? ' high' : ''}: tokens.css ${text} vs dangerText ${expected}`);
+    }
+  }
+});
+
+test("dangerTextCss gives a design system's own red a text red per theme", () => {
+  const css = dangerTextCss('#b00020');
+  const blocks = [...css.matchAll(/([^{}]+)\{\s*--destructive-text: ([^;]+);\s*\}/g)].map(m => [m[1]!.trim(), m[2]!] as const);
+  assert.deepEqual(blocks.map(b => b[0]), [
+    ':root, [data-theme="light"]', '[data-theme="dark"]', '[data-theme="brand"]',
+    'html[data-a11y-contrast="high"]:not([data-theme="dark"]):not([data-theme="brand"])',
+    'html[data-a11y-contrast="high"][data-theme="dark"]', 'html[data-a11y-contrast="high"][data-theme="brand"]',
+  ]);
+  const themes = [['light', false], ['dark', false], ['brand', false], ['light', true], ['dark', true], ['brand', true]] as const;
+  blocks.forEach(([sel, triple], i) => {
+    const [theme, high] = themes[i]!;
+    const hex = hslTripleToHex(triple)!;
+    for (const s of dangerTextSurfaces(theme, high)) {
+      const ok = high ? apcaLcAbs(hex, s) >= DANGER_TEXT_HC_LC - 0.5 : contrastRatio(hex, s) >= DANGER_TEXT_RATIO - 0.05;
+      assert.ok(ok, `${sel}: ${hex} on ${s}`);
+    }
+  });
+  // The light theme keeps a red that already reads there.
+  assert.ok(near(hslTripleToHex(blocks[0]![1])!, '#b00020'));
+  assert.equal(dangerTextCss(null), '');
+  assert.equal(dangerTextCss('not-a-colour'), '');
 });

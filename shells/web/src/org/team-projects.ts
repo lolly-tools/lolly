@@ -406,7 +406,7 @@ export function openTeamProjectsModal(deps: TeamProjectsDeps): void {
   /** A visible line at the top of the body, for a session that could not be opened. */
   const showFailure = (message: string): void => {
     body.querySelector('[data-team-failure]')?.remove();
-    const line = node('p', message, 'margin:0 0 .6rem;color:hsl(var(--destructive))');
+    const line = node('p', message, 'margin:0 0 .6rem;color:hsl(var(--destructive-text))');
     line.dataset.teamFailure = '';
     body.prepend(line);
   };

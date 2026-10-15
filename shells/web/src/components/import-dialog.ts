@@ -50,7 +50,7 @@ export function showImportDialog(
       <span class="clear-confirm-prompt">${t('Sync passphrase')}</span>
       <input type="password" class="clear-confirm-input import-passphrase" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
     </label>` : ''}
-    <p class="import-error" role="alert" style="color:hsl(var(--destructive));font-size:13px;margin:0 0 12px" hidden></p>
+    <p class="import-error" role="alert" style="color:hsl(var(--destructive-text));font-size:13px;margin:0 0 12px" hidden></p>
     <div class="clear-dialog-actions">
       <button class="btn" data-scope="import">${t('Import')}</button>
       <button class="btn" data-scope="cancel">${t('Cancel')}</button>

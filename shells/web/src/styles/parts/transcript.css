@@ -47,7 +47,7 @@ html[data-a11y-motion="reduce"] .tr-panel { animation: none; }
 }
 .tr-act:hover:not(:disabled) { background: hsl(var(--muted)); }
 .tr-act:disabled { opacity: .45; cursor: default; }
-.tr-act[data-danger]:hover:not(:disabled) { color: hsl(var(--destructive, 0 72% 51%)); border-color: hsl(var(--destructive, 0 72% 51%) / .5); }
+.tr-act[data-danger]:hover:not(:disabled) { color: hsl(var(--destructive-text, 0 72% 51%)); border-color: hsl(var(--destructive, 0 72% 51%) / .5); }
 .tr-act-ico { display: inline-flex; }
 .tr-act-ico svg { width: calc(14px * var(--a11y-fs, 1)); height: calc(14px * var(--a11y-fs, 1)); }
 

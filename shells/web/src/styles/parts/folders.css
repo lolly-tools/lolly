@@ -176,7 +176,7 @@ a.tile-primary[data-open-team-session] > .tile-cover { pointer-events: none; }
 }
 .folder-menu-item svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); flex: none; opacity: 0.8; }
 .folder-menu-item:hover { background: var(--ui-color-surface-muted); }
-.folder-menu-item--danger { color: hsl(var(--destructive, 0 70% 50%)); }
+.folder-menu-item--danger { color: hsl(var(--destructive-text, 0 70% 50%)); }
 /* The Render action is the primary affordance - tint its icon + label so it stands
    out from Open/Rename/Move, matching the pronounced header "Render folder" button. */
 .folder-menu-item--render { color: var(--ui-color-action-primary); font-weight: 600; }
@@ -355,10 +355,10 @@ html[data-a11y-previews="hidden"] .folder-export-tile img {
 .trash-row-acts { display: flex; gap: 6px; margin-left: auto; }
 /* A row's Delete forever reads as destructive by its text colour only, so a long
    list is not a wall of solid red; Empty Trash keeps the solid danger fill. */
-.trash-row .btn.trash-purge { color: hsl(var(--destructive)); }
+.trash-row .btn.trash-purge { color: hsl(var(--destructive-text)); }
 .trash-row .btn.trash-purge:hover { background: hsl(var(--destructive) / 0.1); }
 .trash-empty { margin: 0; padding: 18px 4px; text-align: center; font-size: var(--fs-md); color: hsl(var(--muted-foreground)); }
-.trash-status { margin: 0; font-size: var(--fs-sm); color: hsl(var(--destructive)); }
+.trash-status { margin: 0; font-size: var(--fs-sm); color: hsl(var(--destructive-text)); }
 .trash-actions { display: flex; justify-content: flex-end; gap: 8px; }
 .folder-style-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .folder-color-dot { width: calc(24px * var(--a11y-fs)); height: calc(24px * var(--a11y-fs)); border-radius: var(--radius-round); border: 2px solid transparent; cursor: pointer; padding: 0; }

@@ -136,7 +136,7 @@ html[data-a11y-motion="reduce"] .rt-progress-fill { transition: none; }
   color: hsl(var(--muted-foreground));
 }
 .rt-status[hidden] { display: none; }
-.rt-status.rt-error { color: hsl(var(--destructive)); }
+.rt-status.rt-error { color: hsl(var(--destructive-text)); }
 
 /* Cancel + the morphing primary live at the END of the top bar, so the whole
    decision loop happens without leaving the image or scrolling the body. */

@@ -490,7 +490,7 @@ button.projects-result-path:hover { background: var(--ui-color-surface-muted); c
 /* Two-class so the destructive red beats the generic `.btn { color: foreground }`
    defined later in the file (equal specificity, later wins) - same trick as
    .projects-render.btn / .modal-danger. */
-.projects-bulk-danger.btn { color: hsl(var(--destructive, 0 70% 50%)); }
+.projects-bulk-danger.btn { color: hsl(var(--destructive-text, 0 70% 50%)); }
 .projects-bulk-danger.btn:hover { background: hsl(var(--destructive, 0 70% 50%) / 0.1); }
 .projects-bulkbar-clear {
   display: inline-flex; align-items: center; justify-content: center; width: calc(28px * var(--a11y-fs)); height: calc(28px * var(--a11y-fs)); flex: none;

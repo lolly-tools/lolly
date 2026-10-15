@@ -484,7 +484,7 @@
   color: hsl(var(--muted-foreground));
   padding: 40px 0;
 }
-.asset-picker-error { color: hsl(var(--destructive)); }
+.asset-picker-error { color: hsl(var(--destructive-text)); }
 
 .asset-picker-loading {
   text-align: center;
@@ -990,7 +990,7 @@
   font-size: var(--fs-md);
 }
 .webcam-capture-status[hidden] { display: none; }
-.webcam-capture-status.webcam-capture-error { color: hsl(var(--destructive)); }
+.webcam-capture-status.webcam-capture-error { color: hsl(var(--destructive-text)); }
 .webcam-capture-actions {
   display: flex;
   justify-content: flex-end;
@@ -1226,7 +1226,7 @@
 .asset-picker-card-user:hover .asset-picker-card-delete,
 .asset-picker-card-delete:focus-visible { opacity: 1; }
 .asset-picker-card-delete:hover {
-  color: hsl(var(--destructive));
+  color: hsl(var(--destructive-text));
   background: hsl(var(--accent));
 }
 
@@ -1308,7 +1308,7 @@
 .asset-picker-panel.is-dropping { outline: 2px dashed hsl(var(--primary)); outline-offset: -6px; }
 
 /* Visible upload failure (P6). */
-.asset-picker-footer-error { font-size: var(--fs-sm); color: hsl(var(--destructive)); }
+.asset-picker-footer-error { font-size: var(--fs-sm); color: hsl(var(--destructive-text)); }
 .asset-picker-footer-error[hidden] { display: none; }
 
 /* Mobile pass (P8): a full-screen sheet, and per-tile actions that touch can see. */

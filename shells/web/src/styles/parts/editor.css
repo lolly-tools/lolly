@@ -430,7 +430,7 @@ html[data-a11y-motion="reduce"] .fc-btn-lolly:focus-visible svg .lolly-mark__spi
 .fc-import-templates > input { margin-top: 2px; }
 .fc-import-status { margin-top: 8px; font-size: var(--fs-sm); line-height: 1.4; min-height: 16px; }
 .fc-import-status.is-ok { color: #128a5b; }
-.fc-import-status.is-err { color: hsl(var(--destructive)); }
+.fc-import-status.is-err { color: hsl(var(--destructive-text)); }
 
 .fc-pop-item {
   display: flex; align-items: center; gap: 9px;

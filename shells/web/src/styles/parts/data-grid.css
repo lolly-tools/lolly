@@ -62,7 +62,7 @@
 }
 .dg-head-cell:hover .dg-del-col,
 .dg-del-col:focus-visible { opacity: 1; }
-.dg-del-col:hover { background: hsl(var(--destructive) / .15); color: hsl(var(--destructive)); }
+.dg-del-col:hover { background: hsl(var(--destructive) / .15); color: hsl(var(--destructive-text)); }
 
 /* Per-row delete gutter - a real trailing flex cell so it stays aligned while the
    grid virtualizes. The × fades in on row hover; the header's corner is empty. */
@@ -82,7 +82,7 @@
 .dg-rowctl-head { background: hsl(var(--muted)); cursor: default; opacity: 1; }
 .dg-row:hover .dg-rowctl,
 .dg-rowctl:focus-visible { opacity: 1; }
-.dg-rowctl:hover { color: hsl(var(--destructive)); }
+.dg-rowctl:hover { color: hsl(var(--destructive-text)); }
 
 .dg-canvas { position: relative; }
 .dg-rows { position: absolute; inset: 0 auto auto 0; width: 100%; will-change: transform; }

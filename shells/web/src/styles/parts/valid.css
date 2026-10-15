@@ -1408,12 +1408,12 @@ box-shadow: var(--ui-elevation-control);
 .identity-status { display: grid; gap: 0.45rem; justify-items: start; }
 .identity-signing { margin: 0; font-size: calc(0.95rem * var(--a11y-fs)); }
 .identity-life { margin: 0; font-size: var(--fs-md); color: hsl(var(--muted-foreground)); }
-.identity-status.is-expired .identity-life { color: hsl(var(--destructive)); font-weight: 600; }
+.identity-status.is-expired .identity-life { color: hsl(var(--destructive-text)); font-weight: 600; }
 .identity-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.2rem; }
 /* Armed "Really forget?" state - two-class so it beats the generic .btn colour. */
-.identity-actions .btn.is-confirm { color: hsl(var(--destructive)); border-color: hsl(var(--destructive) / 0.55); }
+.identity-actions .btn.is-confirm { color: hsl(var(--destructive-text)); border-color: hsl(var(--destructive) / 0.55); }
 
-.identity-error { margin: 0.6rem 0 0; font-size: var(--fs-md); color: hsl(var(--destructive)); }
+.identity-error { margin: 0.6rem 0 0; font-size: var(--fs-md); color: hsl(var(--destructive-text)); }
 .identity-pending { margin: 0; font-size: var(--fs-lg); }
 
 /* Lifetime pick (7/30/90/365) shown on the enrol form only - the cert window
@@ -1480,7 +1480,7 @@ box-shadow: var(--ui-elevation-control);
 .valid-claim-actions { display: flex; align-items: center; gap: var(--sp-6); flex-wrap: wrap; margin-top: var(--sp-2); }
 .valid-claim-sign { flex: 0 0 auto; }
 .valid-claim-status { font-size: var(--ui-type-body); color: var(--ui-color-text-muted); }
-.valid-claim-status.is-err { color: hsl(var(--destructive)); }
+.valid-claim-status.is-err { color: hsl(var(--destructive-text)); }
 .valid-claim-foot { margin: 0; font-size: var(--fs-xs); color: var(--ui-color-text-muted); opacity: 0.85; }
 /* The in-place confirmation banner shown at the top of a re-verified file. */
 .valid-claim-done {

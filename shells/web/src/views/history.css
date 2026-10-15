@@ -109,7 +109,7 @@
 .app-history-project:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 3px; }
 .app-history-format { padding: .1rem .35rem; border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-choice); font-family: var(--ui-type-mono-family); font-size: var(--ui-type-caption); }
 .app-history-original-title, .app-history-result { margin: .3rem 0; color: var(--ui-color-text-muted); font-size: var(--ui-type-caption); line-height: 1.5; overflow-wrap: anywhere; }
-.app-history-result[data-state=failed], .app-history-result[data-state=interrupted] { color: hsl(var(--destructive)); }
+.app-history-result[data-state=failed], .app-history-result[data-state=interrupted] { color: hsl(var(--destructive-text)); }
 .app-history-row-actions { display: flex; align-items: center; justify-content: end; flex-wrap: wrap; gap: .4rem; }
 .app-history-row-actions .app-history-action { font-size: var(--ui-type-caption); }
 .app-history-row-actions > .btn--primary { min-width: 6.5rem; }

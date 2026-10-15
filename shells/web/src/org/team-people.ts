@@ -947,7 +947,7 @@ export function buildPeoplePanel(opts: PeoplePanelOptions): HTMLElement {
       li.dataset.status = shown;
       const address = el('span', { text: r.email, style: 'overflow-wrap:anywhere' });
       address.id = nextId();
-      li.append(address, el('span', { text: inviteResultText(shown, r.reason, policy?.domains), style: r.status === 'refused' ? 'color:hsl(var(--destructive))' : MUTED }));
+      li.append(address, el('span', { text: inviteResultText(shown, r.reason, policy?.domains), style: r.status === 'refused' ? 'color:hsl(var(--destructive-text))' : MUTED }));
       const words = outcome.message;
       const project = projectName();
       const invited = shown === 'invited' || shown === 'already-invited';

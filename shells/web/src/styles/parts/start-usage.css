@@ -17,7 +17,7 @@
   .usage-rule p { margin: 0 0 6px; line-height: 1.5; }
   .usage-rule-meta { display: flex; align-items: flex-end; flex-direction: column; gap: 12px; }
   .usage-badge { display: inline-flex; align-items: center; border: 1px solid hsl(var(--border)); border-radius: var(--ui-radius-pill); padding: 4px 10px; color: hsl(var(--muted-foreground)); font-size: .75rem; line-height: 1.3; white-space: nowrap; }
-  .usage-badge[data-state="blocked"] { color: hsl(var(--destructive)); border-color: currentColor; }
+  .usage-badge[data-state="blocked"] { color: hsl(var(--destructive-text)); border-color: currentColor; }
   .usage-hint { color: hsl(var(--muted-foreground)); font-size: .82rem; line-height: 1.55; overflow-wrap: anywhere; }
   .usage-empty { padding: 36px 28px; max-width: 66ch; }
   .usage-empty > svg { width: 28px; height: 28px; color: hsl(var(--muted-foreground)); margin-bottom: 18px; }
@@ -29,14 +29,14 @@
   .usage-details li { margin-block: 12px; overflow-wrap: anywhere; }
   .usage-details li p { font-size: .8rem; color: hsl(var(--muted-foreground)); margin-top: 5px; line-height: 1.5; }
   .usage-check-state { display: inline-block; font-size: .72rem; min-width: 75px; color: hsl(var(--muted-foreground)); }
-  .usage-check-state[data-state="fail"] { color: hsl(var(--destructive)); }
+  .usage-check-state[data-state="fail"] { color: hsl(var(--destructive-text)); }
   .usage-proof-controls { display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap; }
   .usage-proof-controls > label { min-width: 160px; }
   .usage-proof-controls > details { flex: 1; min-width: min(100%, 260px); margin: 0; }
   .usage-proof-controls label, .usage-rule-form > label, .usage-form-pair > label, .usage-rule-form [data-rule-material] > label, .usage-rule-form [data-new-role] > label, .usage-sample-fields > label { display: grid; gap: 8px; font-size: .84rem; line-height: 1.4; min-width: 0; }
   .usage-sample-fields { display: grid; gap: 14px; margin-top: 12px; }
   .usage-message { font-size: .84rem; line-height: 1.55; min-height: 1.6em; color: hsl(var(--muted-foreground)); }
-  .usage-message--error { color: hsl(var(--destructive)); }
+  .usage-message--error { color: hsl(var(--destructive-text)); }
   .usage-examples { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
   .usage-example { min-width: 0; border: 1px solid hsl(var(--border)); border-radius: var(--radius-lg); overflow: hidden; }
   .usage-example-image { background: hsl(var(--muted) / .35); min-height: 180px; aspect-ratio: 16 / 9; display: flex; align-items: center; justify-content: center; flex-direction: column; color: hsl(var(--muted-foreground)); }

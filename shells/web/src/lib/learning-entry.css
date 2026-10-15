@@ -80,7 +80,7 @@
     transform: rotate(180deg);
   }
   .learning-ui .learning-remove:hover:not(:disabled) {
-    color: hsl(var(--destructive));
+    color: hsl(var(--destructive-text));
     border-color: hsl(var(--destructive));
   }
   .learning-ui .learning-hint {
@@ -271,7 +271,7 @@
     background: hsl(var(--destructive) / 0.08);
   }
   .learning-entry-error {
-    color: hsl(var(--destructive));
+    color: hsl(var(--destructive-text));
     padding-left: var(--sp-5);
     font-weight: 500;
   }

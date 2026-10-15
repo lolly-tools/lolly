@@ -1597,7 +1597,7 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
   font-size: var(--fs-sm); transition: color var(--dur-1), background var(--dur-1);
 }
 .block-remove:hover,
-.block-asset-clear:hover{ color: hsl(var(--destructive, 0 72% 51%)); background: hsl(var(--destructive, 0 72% 51%) / 0.08); }
+.block-asset-clear:hover{ color: hsl(var(--destructive-text, 0 72% 51%)); background: hsl(var(--destructive, 0 72% 51%) / 0.08); }
 
 .block-add {
   align-self: flex-start;
@@ -1717,7 +1717,7 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
     content: ''; position: absolute; inset: calc((40px - 100%) / -2);
   }
 }
-.table-del-col:hover, .table-del-row:hover { color: hsl(var(--destructive, 0 72% 51%)); background: hsl(var(--destructive, 0 72% 51%) / 0.08); }
+.table-del-col:hover, .table-del-row:hover { color: hsl(var(--destructive-text, 0 72% 51%)); background: hsl(var(--destructive, 0 72% 51%) / 0.08); }
 /* Pop-out, pinned to the grid's top-right. Its own bar rather than an overlay on
    the corner cell, which already carries that column's remove-×. The negative
    margin pulls the icon down onto the grid's top edge so the bar costs almost no
@@ -2447,7 +2447,7 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
 }
 
 .asset-clear:hover {
-  color: hsl(var(--destructive));
+  color: hsl(var(--destructive-text));
   border-color: hsl(var(--destructive));
 }
 
@@ -2520,7 +2520,7 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
    selection ring either - that would be the wrong hue for "recording".) */
 .slot-act.slot-live.is-live {
   border-color: transparent;
-  color: hsl(var(--destructive));
+  color: hsl(var(--destructive-text));
   background: hsl(var(--destructive) / 0.08);
 }
 .slot-act.slot-live.is-live .canvas-live-dot {
@@ -2734,7 +2734,7 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
 }
 
 .file-clear:hover {
-  color: hsl(var(--destructive));
+  color: hsl(var(--destructive-text));
   border-color: hsl(var(--destructive));
 }
 
@@ -2837,7 +2837,7 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
 }
 .canvas-live-toggle.is-live {
   border-color: hsl(var(--destructive));
-  color: hsl(var(--destructive));
+  color: hsl(var(--destructive-text));
 }
 .canvas-live-toggle.is-live .canvas-live-dot {
   background: hsl(var(--destructive));
@@ -3089,7 +3089,7 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
 .canvas-record-btn[data-state="armed"] { border-color: hsl(var(--destructive)); }
 .canvas-record-btn[data-state="recording"] {
   border-color: hsl(var(--destructive));
-  color: hsl(var(--destructive));
+  color: hsl(var(--destructive-text));
 }
 .canvas-record-btn[data-state="recording"] .canvas-record-square {
   animation: canvas-live-pulse 1.4s ease-in-out infinite;

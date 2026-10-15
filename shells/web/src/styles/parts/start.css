@@ -295,7 +295,7 @@ html[dir="rtl"] .start-back-row {
   color: hsl(var(--muted-foreground));
   overflow-wrap: anywhere;
 }
-.ds-rail-note.is-error { color: hsl(var(--destructive)); }
+.ds-rail-note.is-error { color: hsl(var(--destructive-text)); }
 
 .ds-main { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
 .ds-panel[hidden] { display: none; }
@@ -549,7 +549,7 @@ html[dir="rtl"] .start-back-row {
 }
 .start-import-stats { margin: 0; font-size: calc(12.5px * var(--a11y-fs)); color: hsl(var(--muted-foreground)); }
 .start-import-warn { margin: 0; font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); font-style: italic; }
-.start-import-err { margin: 0; font-size: calc(12.5px * var(--a11y-fs)); font-weight: 600; color: hsl(var(--destructive)); }
+.start-import-err { margin: 0; font-size: calc(12.5px * var(--a11y-fs)); font-weight: 600; color: hsl(var(--destructive-text)); }
 .start-cta--import { align-self: flex-start; }
 
 /* ── The studio mount ────────────────────────────────────────────────────── */
@@ -728,7 +728,7 @@ html[dir="rtl"] .start-back-row {
 .ds-src-note { margin: 0; font-size: calc(12.5px * var(--a11y-fs)); color: hsl(var(--muted-foreground)); }
 /* Colour is NOT the signal. Every refusal in the picker - a bad address, a page
    that would not answer, a mark over the limit - arrives through this one line,
-   and `color: hsl(var(--destructive))` on 12.5px text is the case tokens.css
+   and `color: hsl(var(--destructive-text))` on 12.5px text is the case tokens.css
    writes up under KNOWN LIMITS: Lc 16.6 on the dark page, Lc 23.5 with the
    darkened value, against a bar of 75, and no red reaches it. It would make the
    error state markedly LESS readable than the muted state it replaces. So the
@@ -736,7 +736,7 @@ html[dir="rtl"] .start-back-row {
    not depend on telling two colours apart - exactly what .ds-v-slugline.is-error
    does on the Versions panel, and what that KNOWN LIMITS entry prescribes. */
 .ds-src-note.is-error { color: hsl(var(--foreground)); font-weight: 600; }
-.ds-src-note.is-error::before { content: '\26A0'; color: hsl(var(--destructive)); margin-inline-end: 0.4em; }
+.ds-src-note.is-error::before { content: '\26A0'; color: hsl(var(--destructive-text)); margin-inline-end: 0.4em; }
 
 /* ── The PDF source's result (plan 97 M5) ────────────────────────────────────
       What one scan found, and the presses that act on it: the marks hand-off,
@@ -986,7 +986,7 @@ html[dir="rtl"] .start-back-row {
   padding: 8px 10px;
   border-radius: var(--radius);
   background: hsl(var(--destructive) / 0.12);
-  color: hsl(var(--destructive));
+  color: hsl(var(--destructive-text));
   font-size: calc(12.5px * var(--a11y-fs));
   overflow-wrap: anywhere;
 }
@@ -1033,7 +1033,7 @@ html[dir="rtl"] .start-back-row {
    same place, so a mark and a weight carry the refusal for anyone who cannot
    tell them apart. The programmatic half is aria-invalid on the field
    (rooms/versions.ts). */
-.ds-v-slugline.is-error { color: hsl(var(--destructive)); font-weight: 600; }
+.ds-v-slugline.is-error { color: hsl(var(--destructive-text)); font-weight: 600; }
 .ds-v-slugline.is-error::before { content: '⚠'; margin-inline-end: 0.4em; }
 
 .ds-v-compat { display: flex; flex-direction: column; gap: 6px; }
@@ -1078,7 +1078,7 @@ html[dir="rtl"] .start-back-row {
 }
 html[data-a11y-motion="reduce"] .ds-v-diff-sum::before { transition: none; }
 /* The breaking set is the one thing on this page a person must not skim past. */
-.ds-v-diff--break > .ds-v-diff-sum { color: hsl(var(--destructive)); font-weight: 700; }
+.ds-v-diff--break > .ds-v-diff-sum { color: hsl(var(--destructive-text)); font-weight: 700; }
 .ds-v-paths,
 .ds-v-assets {
   list-style: none;
@@ -1093,7 +1093,7 @@ html[data-a11y-motion="reduce"] .ds-v-diff-sum::before { transition: none; }
   color: hsl(var(--muted-foreground));
   overflow-wrap: anywhere;
 }
-.ds-v-asset--break { color: hsl(var(--destructive)); }
+.ds-v-asset--break { color: hsl(var(--destructive-text)); }
 
 /* ── The published list ───────────────────────────────────────────────────── */
 .ds-v-list-sec { display: flex; flex-direction: column; gap: 10px; }

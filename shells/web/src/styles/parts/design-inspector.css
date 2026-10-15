@@ -238,7 +238,7 @@
   border-color: hsl(var(--destructive) / 0.45);
   background: hsl(var(--destructive) / 0.06);
 }
-.fc-design-check[data-design-check="error"] .fc-design-check-icon { color: hsl(var(--destructive)); }
+.fc-design-check[data-design-check="error"] .fc-design-check-icon { color: hsl(var(--destructive-text)); }
 .fc-design-check[data-design-check="warn"] .fc-design-check-icon { color: var(--ui-color-action-primary); }
 
 /* ── keyboard focus ─────────────────────────────────────────────────────────── */

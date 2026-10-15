@@ -152,7 +152,7 @@
 }
 
 .saved-delete:hover {
-  color: hsl(var(--destructive));
+  color: hsl(var(--destructive-text));
   border-color: hsl(var(--destructive) / 0.5);
   background: hsl(var(--destructive) / 0.08);
 }

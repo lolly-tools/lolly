@@ -680,7 +680,7 @@ html[data-a11y-contrast="high"] .tl-btn svg { opacity: 1; }
   font-size: calc(11.5px * var(--a11y-fs));
   white-space: nowrap;
 }
-.tl-action.is-danger { color: hsl(var(--destructive)); }
+.tl-action.is-danger { color: hsl(var(--destructive-text)); }
 .tl-action.is-danger:hover { background: hsl(var(--destructive) / 0.12); }
 .tl-kf-pose-num { width: 5.5em; }
 /* THE keyboard and screen-reader route to the diamonds. Real controls, one row per

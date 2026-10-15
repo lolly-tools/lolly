@@ -114,7 +114,7 @@
   color: hsl(var(--muted-foreground));
   font-variant-numeric: tabular-nums;
 }
-.scriptst-meter-over { color: hsl(var(--destructive)); }
+.scriptst-meter-over { color: hsl(var(--destructive-text)); }
 
 /* ─── the rail ──────────────────────────────────────────────────────────────── */
 
@@ -189,7 +189,7 @@
   font-size: calc(12.5px * var(--a11y-fs));
   color: hsl(var(--muted-foreground));
 }
-.scriptst-status-error { color: hsl(var(--destructive)); }
+.scriptst-status-error { color: hsl(var(--destructive-text)); }
 .scriptst-saved {
   margin: 0;
   font-size: calc(12.5px * var(--a11y-fs));
