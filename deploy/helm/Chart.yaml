@@ -10,7 +10,7 @@ description: >-
 type: application
 
 # Chart version - bump on any change to templates/values (SemVer for the chart).
-version: 0.2.0
+version: 0.2.1
 
 # The Lolly release these images are built against. Used as the default image
 # tag when a component's image.tag is left empty. Keep in sync with the repo's

@@ -116,6 +116,14 @@ frontend environment table (plan 295):
 - **CA and Penpot images** (`service-images`). They never ask the gate and
   wait for no web shell. The job boots both under their restricted bounds and
   publishes them.
+- **MCP image** (`mcp-image`). The browser-free `mcp.Dockerfile` image is the
+  chart's default MCP repository. It never asks the gate and waits for no web
+  shell. The job boots it under the chart's bounds (read-only root, no
+  capabilities, 512 MiB, one CPU) with synthetic credentials and requires
+  `/readyz`, `/healthz` and OAuth discovery to answer, a missing token to be
+  refused and admission without a durable limiter to fail closed. A second
+  container under the same bounds renders SVG and resvg PNG with no browser and
+  confirms that PDF is refused. Only then is the digest published.
 - **MCP browser image** (`mcp-browser-image`). It never asks the gate and never
   waits for the web image. The job checks authentication and
   unavailable-admission refusal, and requires actual sandboxed Chromium
@@ -146,8 +154,13 @@ frontend environment table (plan 295):
 
 Each image job publishes source-labelled digests to GHCR and retains small
 receipts: `public-candidate-web-receipts-attempt-N`,
+`public-candidate-mcp-receipts-attempt-N` (`mcp-boot.json`, `mcp-render.json`),
 `public-candidate-mcp-browser-receipts-attempt-N`, and
-`public-candidate-service-receipts` (CA and Penpot). Here `N` is the candidate
+`public-candidate-service-receipts` (CA and Penpot). Every image carries the
+labels `org.opencontainers.image.title`, `.version` (the product version its
+source declares), `.created` (that source's commit time in UTC, so a rebuild of
+the same source keeps the same labels), `.revision`, `.source` and
+`org.lolly.profile`. Here `N` is the candidate
 workflow's positive run attempt. Web/MCP `release.json` records its exact numeric
 `runAttempt` alongside `runId` and source. The unsigned MCP probe uses
 `unsigned-probe-web-shell-attempt-N`, and the MCP job verifies that same attempt
@@ -160,7 +173,9 @@ only its own job's images, so a consumer of the old artifact name or of
 `images.web` beside the service images needs updating. The offline export
 (`archive_run`) judges each exported image by the job that qualified it, so it
 can carry only the web image from a web-only run, only the MCP browser image,
-or both. It requires the complete job inventory and successful source/chart/route
+or both; `archive_images=mcp` exports only the browser-free MCP image. A run
+made before the MCP job existed lists no such job, and the export treats it as
+not selected. It requires the complete job inventory and successful source/chart/route
 prerequisites, then downloads receipts only for successful image jobs. The web
 image still needs its passing gate, and MCP needs its passing exact-source probe
 shell. The archive captures the initially verified positive `run_attempt`, reads
@@ -225,3 +240,138 @@ service. The [public Penpot VM recipe](public-penpot.md) supplies the Caddy moun
 two-command RPC boundary and staged qualification checklist for UpCloud or Evroc.
 The recipe preserves opaque user tokens and streamed import progress. It does
 not establish parity for the complete public host or authorize a DNS cutover.
+
+## Published images
+
+From Lolly 1.1.1 the neutral (`lolly-start`) images are released to the GitHub
+Container Registry. Each one is `linux/amd64`, built once by `deployment-suse.yml`
+and released unchanged by
+[`release-images.yml`](../../.github/workflows/release-images.yml). No image
+contains model files or the private SUSE brand pack.
+
+| Repository | Dockerfile | Chart |
+|---|---|---|
+| `ghcr.io/lolly-tools/lolly-web` | `web.Dockerfile` | `web.image` |
+| `ghcr.io/lolly-tools/lolly-mcp` | `mcp.Dockerfile`, no browser: SVG, data and resvg PNG | `mcp.image`, the default |
+| `ghcr.io/lolly-tools/lolly-mcp-browser` | `mcp-browser.Dockerfile`, with Chromium for PNG, JPEG, PDF and video | set `mcp.image.repository` and `mcp.webBase` |
+| `ghcr.io/lolly-tools/lolly-ca` | `ca.Dockerfile` | `ca.image` |
+| `ghcr.io/lolly-tools/lolly-penpot` | `penpot.Dockerfile` | not in the chart; see [public-penpot.md](public-penpot.md) |
+
+A version tag such as `1.1.1` points at one released digest and never moves. The
+chart's empty `image.tag` resolves to its `appVersion`, which is the same
+version. `candidate-<40-hex source>` tags are qualified candidates that are not
+signed or attested; do not deploy them. There is no `latest` tag. Deploy by
+digest: set `image.digest` to the digest listed in the release's `images.json`.
+
+### How a release is made
+
+1. Dispatch `deployment-suse.yml` from main at the release commit with
+   `build_images=true` (see above). Each image job qualifies its image and pushes
+   `candidate-<source>`.
+2. Within 14 days, while the receipts exist, dispatch `release-images.yml` from
+   main with that run as `qualification_run`, the commit as `expected_source`,
+   the product version as `version` and the images to release. Its `admit`
+   job only reads (run inventories, receipts and the registry) and refuses
+   unless every one of these holds:
+   - the commit is on main and declares that version in `tauri.conf.json` and
+     both chart `appVersion` fields;
+   - the run is a completed dispatch of `deployment-suse.yml` from main for that
+     commit, and the complete job inventory of its attempt shows the
+     prerequisites and every job behind each requested image passing;
+   - each receipt records that commit, run, attempt and the neutral profile,
+     with its boot, render or browser-probe evidence (for web, the repository's
+     public pin and a verified catalog);
+   - the registry manifest hashes to the receipt's digest and is one
+     `linux/amd64` image whose labels give that commit, title, version and
+     profile;
+   - the version tag is unused or already points at the same digest.
+3. The `promote` job then waits for approval in the `release-images`
+   environment. It is the only job with the OIDC identity and package write
+   access. After approval it rebuilds the plan from the admitted files, requires
+   the source to still be on main and checks each registry copy and tag again.
+   For every digest it then writes an SPDX SBOM with `syft` (packages, without a
+   per-file inventory), signs the digest keylessly with `cosign`, attests the
+   SBOM and SLSA provenance, and verifies all three against its own identity.
+   Only after every image passes does it tag each digest with `crane tag`, which
+   copies the manifest bytes unchanged, then checks that the tag resolves to the
+   qualified digest. `images.json` (repository, tag, digest, source, runs and
+   signing identity) is kept as the `release-images-<version>-attempt-N`
+   artifact for the GitHub release. The source commit can be later than the
+   release's git tag; `images.json` and the release notes name the commit the
+   images were built from. To retry after a failure, re-run the whole workflow,
+   because the approved job reads the admission files of its own attempt.
+4. New packages are private. An organisation owner makes each one public once,
+   in the package's settings: **Danger Zone**, **Change visibility**, **Public**.
+   The workflow token cannot change visibility.
+
+The provenance (build type `https://github.com/lolly-tools/lolly/blob/main/deploy/docker/README.md#published-images`)
+records what the qualification run did: the workflow and ref
+(`deployment-suse.yml` on `refs/heads/main`), the source commit, Dockerfile,
+profile and platform, the run attempt as `invocationId`, and the SHA-256 of each
+receipt the release checked as `byproducts`. The certificate identifies the release
+workflow, which signed after rechecking those receipts; the build job itself
+holds no signing identity.
+
+### Verify a release
+
+The release workflow signs with cosign 3.0.6, so verify with cosign 3.0 or later.
+Take the digest from `images.json`:
+
+```sh
+cosign verify ghcr.io/lolly-tools/lolly-ca@sha256:<digest> \
+  --certificate-identity https://github.com/lolly-tools/lolly/.github/workflows/release-images.yml@refs/heads/main \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com
+for type in spdxjson slsaprovenance1; do
+  cosign verify-attestation ghcr.io/lolly-tools/lolly-ca@sha256:<digest> --type "$type" \
+    --certificate-identity https://github.com/lolly-tools/lolly/.github/workflows/release-images.yml@refs/heads/main \
+    --certificate-oidc-issuer https://token.actions.githubusercontent.com
+done
+crane digest ghcr.io/lolly-tools/lolly-ca:1.1.1   # prints the same sha256:<digest>
+```
+
+### Mirror by digest
+
+```sh
+skopeo copy --all --preserve-digests \
+  docker://ghcr.io/lolly-tools/lolly-ca@sha256:<digest> \
+  docker://registry.example.com/lolly/lolly-ca:1.1.1
+```
+
+The mirrored image keeps its digest, so a verification against GHCR covers the
+copied bytes. Signatures and attestations are separate registry artifacts that
+`skopeo` does not copy. Verify against GHCR before mirroring, or copy them too
+with `cosign copy ghcr.io/lolly-tools/lolly-ca@sha256:<digest> registry.example.com/lolly/lolly-ca`
+and verify against your registry.
+
+### Model files
+
+The web image serves no models. Its client fetches content-addressed paths,
+`/models/<family>@<hash16>/<file>`, where `<hash16>` is the first 16 hexadecimal
+characters of the family's `directorySha256`. Each entry's `immutableUrl` in
+`shells/web/models-manifest.json` at the release commit is that path. Mount a
+read-only volume holding that tree at `/usr/share/nginx/html/models`:
+
+```text
+/usr/share/nginx/html/models/
+  ai-detect@30f9e0352083d430/e5-small-ai-detector/config.json
+  <family>@<hash16>/<file>
+```
+
+Every file must match the `size` and `sha256` its manifest entry records. The
+plain `/models/<family>/<file>` paths are legacy aliases that the release client
+does not fetch. `https://lolli.li/models/` serves the same tree, so a volume can
+be filled from it (about 4.1 GB for 1.1.1), run from a checkout of the release
+commit:
+
+```sh
+node -e 'for (const f of require("./shells/web/models-manifest.json")) console.log(f.immutableUrl, f.sha256)' |
+while read -r url sha; do
+  file="models-volume/${url#/models/}"
+  mkdir -p "$(dirname "$file")"
+  curl -fsSL --retry 3 -o "$file" "https://lolli.li$url"
+  echo "$sha  $file" | sha256sum --check --quiet
+done
+```
+
+`scripts/model-release.ts stage` still writes only the alias paths, so it does
+not produce this layout; see [model delivery](../models-host/README.md).

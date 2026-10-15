@@ -285,6 +285,7 @@ test('web image packaging verifies a named artifact context and owns only its ac
         ...process.env, NODE_EXEC: process.execPath, TRACE: join(root, 'calls.jsonl'), FAIL: failure, RUNNER_TEMP: root,
         REGISTRY_TOKEN: 'synthetic-not-a-token', GITHUB_ACTOR: 'fixture', VITE_CATALOG_PUBLIC_KEY_JWK: 'synthetic-public-pin', VITE_CONNECTOR_ORIGINS: 'https://storage.example.com',
         GITHUB_REPOSITORY_OWNER: 'Owner', GITHUB_REPOSITORY: 'Owner/lolly', GITHUB_RUN_ID: '123', GITHUB_RUN_ATTEMPT: '2', EXPECTED_SOURCE: archiveSource,
+        IMAGE_VERSION: '9.8.7', IMAGE_CREATED: '2026-01-02T03:04:05Z',
       }, encoding: 'utf8', timeout: 5000 });
       assert.equal(result.status === 0, failure === '', result.stderr);
       const calls = readFileSync(join(root, 'calls.jsonl'), 'utf8').trim().split('\n').map(line => JSON.parse(line) as string[]);
@@ -299,6 +300,9 @@ test('web image packaging verifies a named artifact context and owns only its ac
       assert.ok(build.includes('VITE_CATALOG_PUBLIC_KEY_JWK=synthetic-public-pin'));
       assert.ok(build.includes('VITE_CONNECTOR_ORIGINS=https://storage.example.com'));
       assert.ok(build.includes('LOLLY_PROFILE=lolly-start'));
+      for (const label of ['org.opencontainers.image.title=lolly-web', 'org.opencontainers.image.version=9.8.7', 'org.opencontainers.image.created=2026-01-02T03:04:05Z']) {
+        assert.equal(build[build.indexOf(label) - 1], '--label', label);
+      }
       assert.doesNotMatch(build.join(' '), /--secret|--cache-to|--cache-from|--target deps|LOLLY_CATALOG_SIGNING_KEY/);
     }
   } finally { rmSync(directory, { recursive: true, force: true }); }
@@ -309,14 +313,15 @@ test('native image publication is opt-in and follows source, catalog and sandbox
   const web = workflowJob(workflow, 'web-image');
   const services = workflowJob(workflow, 'service-images');
   const browser = workflowJob(workflow, 'mcp-browser-image');
-  for (const job of [web, services, browser]) {
+  const mcp = workflowJob(workflow, 'mcp-image');
+  for (const job of [web, services, browser, mcp]) {
     assert.match(job, /github.event_name == 'workflow_dispatch' && inputs.build_images == true/);
     assert.match(job, /needs: \[chart, public-vm, source-qualification(?:, [a-z-]+)*\]/);
     assert.match(job, /test "\$GITHUB_SHA" = "\$EXPECTED_SOURCE"/);
     assert.match(job, /submodules: false/);
     assert.doesNotMatch(job, /seccomp=unconfined|--privileged|SYS_ADMIN|LOLLY_BROWSER_NO_SANDBOX=1/);
   }
-  for (const job of [web, services]) {
+  for (const job of [web, services, mcp]) {
     assert.match(job, /--read-only --cap-drop ALL --security-opt no-new-privileges:true/);
   }
   const frontend = workflowJob(workflow, 'web-frontend');
@@ -328,7 +333,7 @@ test('native image publication is opt-in and follows source, catalog and sandbox
   assert.match(web, /needs: \[chart, public-vm, source-qualification, web-release-gate, web-frontend\]/);
   assert.match(web, /verify-release-catalog.ts/);
   assert.ok(web.indexOf('verify-release-catalog.ts') < web.indexOf('docker push "$remote"'));
-  for (const job of [services, browser]) {
+  for (const job of [services, browser, mcp]) {
     assert.doesNotMatch(job, /LOLLY_CATALOG_SIGNING_KEY|VITE_CATALOG_PUBLIC_KEY_JWK/);
   }
   // CA and Penpot boot and publish without any web shell; only the browser image
@@ -388,14 +393,17 @@ test('native image publication is opt-in and follows source, catalog and sandbox
   assert.match(archive, /release\.source!==process\.env\.SOURCE_SHA \|\| release\.runId!==process\.env\.QUALIFICATION_RUN \|\| release\.runAttempt!==qualification\.attempt \|\| !release\.neutralProfile/);
   assert.match(archive, /actions\/runs\/\$QUALIFICATION_RUN\/attempts\/\$qualification_attempt\/jobs\?per_page=100/);
   assert.match(archive, /qualificationAttempt:qualification\.attempt/);
-  for (const [job, artifact] of [['web-image', 'web'], ['mcp-browser-image', 'mcp-browser']]) {
+  for (const [job, artifact] of [['web-image', 'web'], ['mcp-browser-image', 'mcp-browser'], ['mcp-image', 'mcp']]) {
     assert.match(workflowJob(workflow, job!), new RegExp(`name: public-candidate-${artifact}-receipts-attempt-\\$\\{\\{ github.run_attempt \\}\\}`));
   }
+  assert.match(archive, /mcp\) artifact="public-candidate-mcp-receipts-attempt-\$qualification_attempt"/);
   assert.match(archive, /config\.config\.Labels\['org.opencontainers.image.revision'\]!==release\.source/);
   assert.match(archive, /manifest\.config\.digest!==receipt\.imageId/);
   assert.match(archive, /await hash\(raw\+'\/'\+blob\.digest\.slice\(7\)\)!==blob\.digest\.slice\(7\)/);
   // The archive finds each job by its display name, so the jobs must carry those exact names.
   assert.match(browser, /name: Opt-in native public MCP browser image \(not gated on WebGPU\)\n/);
+  assert.match(mcp, /name: Opt-in native public MCP image \(browser-free\)\n/);
+  assert.match(archive, /const mcpName='Opt-in native public MCP image \(browser-free\)';/);
   assert.match(web, /name: Opt-in native public web image \(gated on the WebGPU table\)\n/);
   assert.match(workflowJob(workflow, 'web-release-gate'), /name: WebGPU release gate \(web shell image only\)\n/);
 });
@@ -404,7 +412,7 @@ test('public preparation scopes keep full as the default and web updates indepen
   const workflow = read('.github/workflows/deployment-suse.yml');
   assert.match(workflow, /release_scope:\n(?:.*\n){3}\s+options: \[full, web, services-docs\]\n\s+default: full/);
   const webJobs = ['web-release-gate', 'web-frontend', 'web-image'];
-  const independentJobs = ['probe-web-shell', 'service-images', 'mcp-browser-image', 'info-docs'];
+  const independentJobs = ['probe-web-shell', 'service-images', 'mcp-image', 'mcp-browser-image', 'info-docs'];
   for (const event of ['push', 'pull_request', 'workflow_dispatch']) {
     for (const scope of ['full', 'web', 'services-docs', 'unknown']) {
       for (const buildImages of [false, true]) {
@@ -429,14 +437,83 @@ test('public preparation scopes keep full as the default and web updates indepen
     assert.equal(result.status === 0, ['full', 'web', 'services-docs'].includes(scope), result.stderr);
   }
   assert.match(workflowJob(workflow, 'web-image'), /docker buildx build --load --no-cache-filter verify --platform linux\/amd64/);
-  for (const id of ['service-images', 'mcp-browser-image']) {
+  for (const id of ['service-images', 'mcp-image', 'mcp-browser-image']) {
     assert.match(workflowJob(workflow, id), /docker buildx build --load --no-cache --platform linux\/amd64/);
   }
+});
+
+test('the browser-free MCP image boots under chart bounds, renders without a browser and publishes after both', () => {
+  const workflow = read('.github/workflows/deployment-suse.yml');
+  const mcp = workflowJob(workflow, 'mcp-image');
+  // It needs no web shell, so a failed web or probe build cannot withhold this image.
+  assert.match(mcp, /needs: \[chart, public-vm, source-qualification\]\n/);
+  assert.doesNotMatch(mcp, /probe-web-shell|lolly-probe-web|web-release-gate|seccomp=|LOLLY_WEB_BASE/);
+  assert.match(mcp, /-f deploy\/docker\/mcp\.Dockerfile/);
+  assert.match(mcp, /--build-arg LOLLY_PROFILE=lolly-start/);
+  assert.match(mcp, /test ! -e brands\/suse\/tools/);
+  const boot = mcp.slice(mcp.indexOf('- name: Boot native MCP'), mcp.indexOf('- name: Render without a browser'));
+  const render = mcp.slice(mcp.indexOf('- name: Render without a browser'), mcp.indexOf('- name: Publish only the qualified MCP image digest'));
+  const publish = mcp.slice(mcp.indexOf('- name: Publish only the qualified MCP image digest'));
+  assert.ok(boot.length && render.length && publish.length);
+  for (const step of [boot, render]) {
+    assert.match(step, /--read-only --cap-drop ALL --security-opt no-new-privileges:true/);
+    assert.match(step, /--memory 512m --cpus 1 --pids-limit 64 --tmpfs \/tmp:size=64m,mode=1777/);
+    assert.doesNotMatch(step, /docker push|REGISTRY_TOKEN|--privileged|cap-add/);
+  }
+  // Readiness, OAuth discovery and fail-closed admission with synthetic credentials.
+  assert.match(boot, /--env LOLLY_ALLOW_IN_MEMORY_RATE_LIMIT=0/);
+  assert.match(boot, /--env LOLLY_MCP_ALLOW_ANONYMOUS=0/);
+  assert.match(boot, /fetch\(base \+ "\/readyz"\)/);
+  assert.match(boot, /assert\.deepEqual\(await ready\.json\(\), \{ ready: true \}\)/);
+  assert.match(boot, /"missing durable admission must fail closed"/);
+  assert.match(boot, /randomBytes\(32\)/);
+  // The render is the image's own code, browser-free, and a browser format refuses.
+  assert.match(render, /noBrowser: true/);
+  assert.match(render, /\[\['svg', 'A'\], \['png', 'A\(resvg\)'\]\]/);
+  assert.match(render, /await assert\.rejects\(render\('qr-code', query, \{ format: 'pdf', noBrowser: true \}\), \/browser render tier\/\)/);
+  assert.match(publish, /remote="ghcr\.io\/\$owner\/lolly-mcp:candidate-\$EXPECTED_SOURCE"/);
+  assert.ok(mcp.indexOf('- name: Boot native MCP') < mcp.indexOf('docker push "$remote"'));
+  assert.ok(mcp.indexOf('- name: Render without a browser') < mcp.indexOf('docker push "$remote"'));
+});
+
+test('every public image carries release labels derived from its source', () => {
+  const workflow = read('.github/workflows/deployment-suse.yml');
+  // The service job labels each image of its loop with the shell variable.
+  const titles: Record<string, string> = { 'web-image': 'lolly-web', 'service-images': 'lolly-$' + '{service}', 'mcp-image': 'lolly-mcp', 'mcp-browser-image': 'lolly-mcp-browser' };
+  const describes = new Set<string>();
+  for (const [id, title] of Object.entries(titles)) {
+    const job = workflowJob(workflow, id);
+    const describe = job.match(/- name: Describe the images? from (?:its|their) source\n {8}run: \|\n((?: {10}[^\n]*\n)+)/)?.[1];
+    assert.ok(describe, `${id} describes its image`);
+    describes.add(describe);
+    const build = job.slice(job.indexOf('docker buildx build'));
+    assert.ok(job.indexOf('- name: Describe the image') < job.indexOf('docker buildx build'), id);
+    for (const label of [`org.opencontainers.image.title=${title}`, 'org.opencontainers.image.version=$IMAGE_VERSION', 'org.opencontainers.image.created=$IMAGE_CREATED', 'org.opencontainers.image.revision=$EXPECTED_SOURCE']) {
+      assert.ok(build.includes(label), `${id}: ${label}`);
+    }
+  }
+  assert.equal(describes.size, 1, 'one description rule for every image');
+  // Execute it against this checkout: the declared product version and the commit
+  // time in UTC, never the clock of the build.
+  const script = [...describes][0]!.replace(/^ {10}/gm, '');
+  const directory = mkdtempSync(join(tmpdir(), 'lolly-image-labels-'));
+  try {
+    const head = spawnSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).stdout.trim();
+    const env = join(directory, 'env');
+    const result: SpawnSyncReturns<string> = spawnSync('bash', ['-c', script], { cwd: new URL('..', import.meta.url), env: { ...process.env, EXPECTED_SOURCE: head, GITHUB_ENV: env }, encoding: 'utf8', timeout: 10_000 });
+    assert.equal(result.status, 0, result.stderr);
+    const values = Object.fromEntries(readFileSync(env, 'utf8').trim().split('\n').map(line => line.split('=') as [string, string]));
+    const product = JSON.parse(read('shells/tauri-desktop/src-tauri/tauri.conf.json')).version;
+    assert.equal(values.IMAGE_VERSION, product);
+    const committed = spawnSync('git', ['log', '-1', '--format=%ct', head], { encoding: 'utf8' }).stdout.trim();
+    assert.equal(values.IMAGE_CREATED, new Date(Number(committed) * 1000).toISOString().replace('.000Z', 'Z'));
+  } finally { rmSync(directory, { recursive: true, force: true }); }
 });
 
 const archiveNames = {
   chart: 'Public chart render and schema checks', route: 'Public VM route and security acceptance',
   source: 'Reviewed main CI source', services: 'Opt-in native public service images (CA, Penpot)',
+  mcpImage: 'Opt-in native public MCP image (browser-free)',
   web: 'Opt-in native public web image (gated on the WebGPU table)', gate: 'WebGPU release gate (web shell image only)',
   mcp: 'Opt-in native public MCP browser image (not gated on WebGPU)', probe: 'Unsigned web shell for the MCP browser probe (never published)',
 };
@@ -445,7 +522,7 @@ function archiveSelection(outcomes: Partial<Record<keyof typeof archiveNames, st
   const directory = mkdtempSync(join(tmpdir(), 'lolly-image-selection-'));
   try {
     const run = { id: 123, run_attempt: 2, status: 'completed', head_sha: archiveSource, path: '.github/workflows/deployment-suse.yml', event: 'workflow_dispatch' };
-    const jobs = Object.entries(archiveNames).map(([id, name], index) => ({ id: index + 1, run_id: 123, run_attempt: 2, name, status: 'completed', conclusion: outcomes[id as keyof typeof archiveNames] ?? (id === 'services' ? 'skipped' : 'success') }));
+    const jobs = Object.entries(archiveNames).map(([id, name], index) => ({ id: index + 1, run_id: 123, run_attempt: 2, name, status: 'completed', conclusion: outcomes[id as keyof typeof archiveNames] ?? (id === 'services' || id === 'mcpImage' ? 'skipped' : 'success') }));
     const inventory = { total_count: jobs.length, jobs: jobs as Record<string, unknown>[] };
     alter?.(run, inventory);
     writeFileSync(join(directory, 'run.json'), JSON.stringify(run)); writeFileSync(join(directory, 'jobs.json'), JSON.stringify(inventory));
@@ -467,19 +544,19 @@ function archiveSelection(outcomes: Partial<Record<keyof typeof archiveNames, st
 
 test('archive selection exports only the observed qualified web and MCP subset', () => {
   const full = archiveSelection({}); assert.equal(full.status, 0, full.stderr);
-  assert.deepEqual(full.selection, { qualified: ['web', 'mcp-browser'], withheld: [], notSelected: ['ca', 'penpot'], notQualified: {} });
+  assert.deepEqual(full.selection, { qualified: ['web', 'mcp-browser'], withheld: [], notSelected: ['ca', 'penpot', 'mcp'], notQualified: {} });
   const web = archiveSelection({ mcp: 'skipped', probe: 'skipped' }); assert.equal(web.status, 0, web.stderr);
-  assert.deepEqual(web.selection, { qualified: ['web'], withheld: [], notSelected: ['mcp-browser', 'ca', 'penpot'], notQualified: {} });
+  assert.deepEqual(web.selection, { qualified: ['web'], withheld: [], notSelected: ['mcp-browser', 'ca', 'penpot', 'mcp'], notQualified: {} });
   const services = archiveSelection({ web: 'skipped', gate: 'skipped' }); assert.equal(services.status, 0, services.stderr);
-  assert.deepEqual(services.selection, { qualified: ['mcp-browser'], withheld: [], notSelected: ['web', 'ca', 'penpot'], notQualified: {} });
+  assert.deepEqual(services.selection, { qualified: ['mcp-browser'], withheld: [], notSelected: ['web', 'ca', 'penpot', 'mcp'], notQualified: {} });
   const withheld = archiveSelection({ web: 'skipped' }); assert.equal(withheld.status, 0, withheld.stderr);
-  assert.deepEqual(withheld.selection, { qualified: ['mcp-browser'], withheld: ['web'], notSelected: ['ca', 'penpot'], notQualified: {} });
+  assert.deepEqual(withheld.selection, { qualified: ['mcp-browser'], withheld: ['web'], notSelected: ['ca', 'penpot', 'mcp'], notQualified: {} });
   const failedWeb = archiveSelection({ web: 'failure' }); assert.equal(failedWeb.status, 0, failedWeb.stderr);
   assert.deepEqual(failedWeb.selection?.notQualified, { web: 'failure' });
   const cancelledMcp = archiveSelection({ mcp: 'cancelled' }); assert.equal(cancelledMcp.status, 0, cancelledMcp.stderr);
   assert.deepEqual(cancelledMcp.selection?.qualified, ['web']); assert.deepEqual(cancelledMcp.selection?.notQualified, { 'mcp-browser': 'cancelled' });
   const failedProbe = archiveSelection({ mcp: 'skipped', probe: 'failure' }); assert.equal(failedProbe.status, 0, failedProbe.stderr);
-  assert.deepEqual(failedProbe.selection?.qualified, ['web']); assert.deepEqual(failedProbe.selection?.notSelected, ['ca', 'penpot']);
+  assert.deepEqual(failedProbe.selection?.qualified, ['web']); assert.deepEqual(failedProbe.selection?.notSelected, ['ca', 'penpot', 'mcp']);
   assert.deepEqual(failedProbe.selection?.notQualified, { 'mcp-browser': 'skipped' });
 });
 
@@ -558,17 +635,37 @@ test('archive selection includes each qualified service and keeps failures out',
   assert.equal(failure.status, 0, failure.stderr);
   assert.deepEqual(failure.selection?.qualified, ['web', 'mcp-browser']);
   assert.deepEqual(failure.selection?.notQualified, { ca: 'failure', penpot: 'failure' });
+  const everything = archiveSelection({ services: 'success', mcpImage: 'success' });
+  assert.equal(everything.status, 0, everything.stderr);
+  assert.deepEqual(everything.selection?.qualified, ['web', 'mcp-browser', 'ca', 'penpot', 'mcp']);
+  const mcpOnly = archiveSelection({ web: 'skipped', gate: 'skipped', mcp: 'skipped', probe: 'skipped', mcpImage: 'success' });
+  assert.equal(mcpOnly.status, 0, mcpOnly.stderr);
+  assert.deepEqual(mcpOnly.selection?.qualified, ['mcp']);
+  const failedMcp = archiveSelection({ mcpImage: 'failure' });
+  assert.equal(failedMcp.status, 0, failedMcp.stderr);
+  assert.deepEqual(failedMcp.selection?.notQualified, { mcp: 'failure' });
+  // A run from before the browser-free MCP job lists no such job; it is not selected.
+  const legacy = archiveSelection({}, (_run, inventory) => {
+    inventory.jobs = inventory.jobs.filter(job => job.name !== archiveNames.mcpImage); inventory.total_count = inventory.jobs.length;
+  });
+  assert.equal(legacy.status, 0, legacy.stderr);
+  assert.deepEqual(legacy.selection?.notSelected, ['ca', 'penpot', 'mcp']);
+  const duplicate = archiveSelection({ mcpImage: 'success' }, (_run, inventory) => {
+    inventory.jobs.push({ ...inventory.jobs.find(job => job.name === archiveNames.mcpImage), id: 99 }); inventory.total_count++;
+  });
+  assert.notEqual(duplicate.status, 0, 'a duplicated MCP job refuses');
 });
 
 
 test('archive filters export only requested qualified images and refuse missing qualification', () => {
-  for (const [filter, wanted] of [['web', ['web']], ['mcp-browser', ['mcp-browser']], ['services', ['ca', 'penpot']]] as const) {
-    const result = archiveSelection({ services: 'success' }, undefined, filter);
+  for (const [filter, wanted] of [['web', ['web']], ['mcp', ['mcp']], ['mcp-browser', ['mcp-browser']], ['services', ['ca', 'penpot']]] as const) {
+    const result = archiveSelection({ services: 'success', mcpImage: 'success' }, undefined, filter);
     assert.equal(result.status, 0, result.stderr);
     assert.deepEqual(result.selection?.qualified, wanted);
-    assert.equal(new Set([...(result.selection?.qualified ?? []), ...(result.selection?.notSelected ?? [])]).size, 4);
+    assert.equal(new Set([...(result.selection?.qualified ?? []), ...(result.selection?.notSelected ?? [])]).size, 5);
   }
-  for (const [filter, outcomes] of [['services', { services: 'failure' }], ['web', { web: 'skipped', gate: 'skipped' }], ['mcp-browser', { mcp: 'failure' }], ['unknown', {}]] as const) {
+  assert.match(read('.github/workflows/deployment-suse.yml'), /options: \[all, web, mcp, mcp-browser, services\]/);
+  for (const [filter, outcomes] of [['services', { services: 'failure' }], ['web', { web: 'skipped', gate: 'skipped' }], ['mcp-browser', { mcp: 'failure' }], ['mcp', {}], ['mcp', { mcpImage: 'failure' }], ['unknown', {}]] as const) {
     const result = archiveSelection(outcomes, undefined, filter);
     assert.notEqual(result.status, 0, `${filter}: unqualified filter must refuse`);
   }
@@ -619,7 +716,7 @@ test('candidate receipt writers and the unsigned MCP probe bind a positive exact
   const workflow = read('.github/workflows/deployment-suse.yml');
   const directory = mkdtempSync(join(tmpdir(), 'lolly-candidate-attempt-'));
   try {
-    for (const [id, service] of [['web-image', 'web'], ['mcp-browser-image', 'mcp-browser']]) {
+    for (const [id, service] of [['web-image', 'web'], ['mcp-browser-image', 'mcp-browser'], ['mcp-image', 'mcp']]) {
       const job = workflowJob(workflow, id!); const publish = job.slice(job.indexOf('- name: Publish only the qualified'));
       const script = publish.match(/node --input-type=module -e '\n([\s\S]*?)\n\s+'/)?.[1]; assert.ok(script);
       for (const attempt of ['2', '', '0', '1.5']) {

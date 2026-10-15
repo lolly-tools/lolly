@@ -64,7 +64,7 @@ on:
         description: Export only this already-qualified image subset; never builds images
         required: false
         type: choice
-        options: [all, web, mcp-browser, services]
+        options: [all, web, mcp, mcp-browser, services]
         default: all
       public_key_jwk:
         description: Existing published public P-256 JWK; never a replacement or private key
@@ -283,6 +283,7 @@ jobs:
             /shells/tui/package.json
             /services/ca/package.json
             /services/mcp/package.json
+            /shells/tauri-desktop/src-tauri/tauri.conf.json
             /.github/workflows/deployment-suse.yml
             /.github/workflows/release-frontend.yml
 
@@ -547,6 +548,18 @@ jobs:
             writeFileSync(process.env.RUNNER_TEMP + "/lolly-image-receipts/public.jwk.json", JSON.stringify(pin));
           '
 
+      # Release labels come from the source alone: the product version it declares
+      # and its commit time. A build clock would give each rebuild different labels.
+      - name: Describe the image from its source
+        run: |
+          set -euo pipefail
+          version=$(node -p 'JSON.parse(require("node:fs").readFileSync("shells/tauri-desktop/src-tauri/tauri.conf.json", "utf8")).version')
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]
+          created=$(TZ=UTC0 git log -1 --format=%cd --date=format-local:%Y-%m-%dT%H:%M:%SZ "$EXPECTED_SOURCE")
+          [[ "$created" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$ ]]
+          echo "IMAGE_VERSION=$version" >> "$GITHUB_ENV"
+          echo "IMAGE_CREATED=$created" >> "$GITHUB_ENV"
+
       - name: Check browser qualification for the web-only image
         run: node scripts/webgpu-release-gate.ts --scope web
 
@@ -579,6 +592,9 @@ jobs:
             --build-context "release-frontend=$RUNNER_TEMP/lolly-signed-web" \
             --label "org.opencontainers.image.revision=$EXPECTED_SOURCE" \
             --label "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" \
+            --label org.opencontainers.image.title=lolly-web \
+            --label "org.opencontainers.image.version=$IMAGE_VERSION" \
+            --label "org.opencontainers.image.created=$IMAGE_CREATED" \
             --label org.lolly.profile=lolly-start \
             --build-arg LOLLY_PROFILE=lolly-start \
             --build-arg "LOLLY_RELEASE_SOURCE=$EXPECTED_SOURCE" \
@@ -768,6 +784,16 @@ jobs:
           docker buildx version
           mkdir -p "$RUNNER_TEMP/lolly-image-receipts"
 
+      - name: Describe the images from their source
+        run: |
+          set -euo pipefail
+          version=$(node -p 'JSON.parse(require("node:fs").readFileSync("shells/tauri-desktop/src-tauri/tauri.conf.json", "utf8")).version')
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]
+          created=$(TZ=UTC0 git log -1 --format=%cd --date=format-local:%Y-%m-%dT%H:%M:%SZ "$EXPECTED_SOURCE")
+          [[ "$created" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$ ]]
+          echo "IMAGE_VERSION=$version" >> "$GITHUB_ENV"
+          echo "IMAGE_CREATED=$created" >> "$GITHUB_ENV"
+
       - name: Build exact CA and Penpot images sequentially on native amd64
         run: |
           set -euo pipefail
@@ -776,6 +802,9 @@ jobs:
             docker buildx build --load --no-cache --platform linux/amd64 \
               --label "org.opencontainers.image.revision=$EXPECTED_SOURCE" \
               --label "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" \
+              --label "org.opencontainers.image.title=lolly-${service}" \
+              --label "org.opencontainers.image.version=$IMAGE_VERSION" \
+              --label "org.opencontainers.image.created=$IMAGE_CREATED" \
               --label org.lolly.profile=lolly-start \
               -f "deploy/docker/${service}.Dockerfile" \
               -t "lolly-candidate-${service}:$EXPECTED_SOURCE" .
@@ -848,6 +877,173 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
+  # The browser-free MCP image is the chart's default MCP repository. It drives no
+  # web shell and carries no browser, so like CA and Penpot it builds, boots and
+  # publishes on its own. It renders SVG, data and resvg PNG; browser formats refuse.
+  mcp-image:
+    name: Opt-in native public MCP image (browser-free)
+    if: github.event_name == 'workflow_dispatch' && inputs.build_images == true && (inputs.release_scope == 'full' || inputs.release_scope == 'services-docs')
+    needs: [chart, public-vm, source-qualification]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      packages: write
+    defaults:
+      run:
+        shell: bash
+    env:
+      EXPECTED_SOURCE: ${{ inputs.expected_source }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          submodules: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '26'
+          package-manager-cache: false
+
+      - name: Require the reviewed source
+        run: |
+          set -euo pipefail
+          [[ "$EXPECTED_SOURCE" =~ ^[a-f0-9]{40}$ ]]
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE"
+          test "$GITHUB_SHA" = "$EXPECTED_SOURCE"
+          test ! -e brands/suse/tools
+          test -z "$(git status --porcelain)"
+          docker version
+          docker buildx version
+          mkdir -p "$RUNNER_TEMP/lolly-image-receipts"
+
+      - name: Describe the image from its source
+        run: |
+          set -euo pipefail
+          version=$(node -p 'JSON.parse(require("node:fs").readFileSync("shells/tauri-desktop/src-tauri/tauri.conf.json", "utf8")).version')
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]
+          created=$(TZ=UTC0 git log -1 --format=%cd --date=format-local:%Y-%m-%dT%H:%M:%SZ "$EXPECTED_SOURCE")
+          [[ "$created" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$ ]]
+          echo "IMAGE_VERSION=$version" >> "$GITHUB_ENV"
+          echo "IMAGE_CREATED=$created" >> "$GITHUB_ENV"
+
+      - name: Build the exact MCP image on native amd64
+        run: |
+          set -euo pipefail
+          test "$(uname -m)" = x86_64
+          docker buildx build --load --no-cache --platform linux/amd64 \
+            --label "org.opencontainers.image.revision=$EXPECTED_SOURCE" \
+            --label "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" \
+            --label org.opencontainers.image.title=lolly-mcp \
+            --label "org.opencontainers.image.version=$IMAGE_VERSION" \
+            --label "org.opencontainers.image.created=$IMAGE_CREATED" \
+            --label org.lolly.profile=lolly-start \
+            --build-arg LOLLY_PROFILE=lolly-start \
+            -f deploy/docker/mcp.Dockerfile \
+            -t "lolly-candidate-mcp:$EXPECTED_SOURCE" .
+
+      # The chart's bounds: read-only root, no capabilities, 512 MiB and one CPU.
+      # Synthetic credentials and no durable limiter, so admission must fail closed.
+      - name: Boot native MCP under its restricted bounds
+        run: |
+          set -euo pipefail
+          trap 'docker rm -f probe-mcp >/dev/null 2>&1 || true' EXIT
+          LOLLY_MCP_TOKEN=$(node -p 'require("node:crypto").randomBytes(32).toString("base64url")')
+          LOLLY_MCP_SIGNING_SECRET=$(node -p 'require("node:crypto").randomBytes(32).toString("base64url")')
+          export LOLLY_MCP_TOKEN LOLLY_MCP_SIGNING_SECRET
+          docker run -d --name probe-mcp --read-only --cap-drop ALL --security-opt no-new-privileges:true \
+            --memory 512m --cpus 1 --pids-limit 64 --tmpfs /tmp:size=64m,mode=1777 \
+            --env LOLLY_MCP_TOKEN --env LOLLY_MCP_SIGNING_SECRET \
+            --env LOLLY_MCP_PUBLIC_ORIGIN=https://public.example --env LOLLY_MCP_ALLOWED_ORIGINS=https://public.example \
+            --env LOLLY_LIVE_ORIGINS=https://public.example --env LOLLY_MCP_ALLOW_ANONYMOUS=0 \
+            --env LOLLY_MCP_PRIVATE_FILES=0 --env LOLLY_ALLOW_IN_MEMORY_RATE_LIMIT=0 \
+            -p 127.0.0.1:18890:8790 "lolly-candidate-mcp:$EXPECTED_SOURCE"
+          node --input-type=module -e '
+            import assert from "node:assert/strict";
+            import { setTimeout as delay } from "node:timers/promises";
+            import { writeFileSync } from "node:fs";
+            const base = "http://127.0.0.1:18890";
+            let ready;
+            for (let attempt = 0; attempt < 150; attempt++) {
+              try { ready = await fetch(base + "/readyz"); } catch {}
+              if (ready) break;
+              await delay(100);
+            }
+            assert.equal(ready?.status, 200, "readyz");
+            assert.deepEqual(await ready.json(), { ready: true });
+            assert.equal((await fetch(base + "/healthz")).status, 200, "healthz");
+            const metadata = await fetch(base + "/.well-known/oauth-authorization-server");
+            assert.equal(metadata.status, 200, "OAuth metadata");
+            assert.equal((await metadata.json()).issuer, "https://public.example");
+            const body = JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" });
+            const headers = { "content-type": "application/json" };
+            const call = async extra => (await fetch(base + "/api/mcp", { method: "POST", headers: { ...headers, ...extra }, body })).status;
+            assert.equal(await call({}), 401, "missing authentication");
+            assert.equal(await call({ authorization: "Bearer " + process.env.LOLLY_MCP_TOKEN }), 503, "missing durable admission must fail closed");
+            assert.equal(await call({ origin: "https://attacker.invalid" }), 403, "foreign origin");
+            writeFileSync(process.env.RUNNER_TEMP + "/lolly-image-receipts/mcp-boot.json", JSON.stringify({ serviceBootPassed: true, results: { readyz: 200, healthz: 200, oauthMetadata: 200, missingAuthRefused: 401, unavailableAdmissionRefused: 503, badOriginRefused: 403 } }, null, 2));
+          '
+
+      - name: Render without a browser under the same bounds
+        run: |
+          set -euo pipefail
+          docker run --rm -i --read-only --cap-drop ALL --security-opt no-new-privileges:true \
+            --memory 512m --cpus 1 --pids-limit 64 --tmpfs /tmp:size=64m,mode=1777 \
+            --entrypoint node "lolly-candidate-mcp:$EXPECTED_SOURCE" --input-type=module - \
+            > "$RUNNER_TEMP/lolly-image-receipts/mcp-render.json" <<'JS'
+          import assert from 'node:assert/strict';
+          import { createHash } from 'node:crypto';
+          // The engine logs catalog state to standard output, which holds only the receipt.
+          console.log = console.info = (...lines) => console.error(...lines);
+          const { render } = await import('/app/services/mcp/src/render.ts');
+          const query = 'url=https%3A%2F%2Flolly.tools%2Fqualification';
+          const renders = {};
+          for (const [format, tier] of [['svg', 'A'], ['png', 'A(resvg)']]) {
+            const result = await render('qr-code', query, { format, width: 256, height: 256, noBrowser: true });
+            assert.equal(result.tier, tier, format);
+            const bytes = Buffer.from(result.bytes);
+            if (format === 'svg') assert.match(bytes.toString(), /<svg/);
+            else assert.equal(bytes.subarray(0, 8).toString('hex'), '89504e470d0a1a0a');
+            renders[format] = { tier: result.tier, bytes: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex') };
+          }
+          await assert.rejects(render('qr-code', query, { format: 'pdf', noBrowser: true }), /browser render tier/);
+          process.stdout.write(JSON.stringify({ browserFreeRenderPassed: true, renders, browserFormatRefused: 'pdf' }, null, 2) + '\n', () => process.exit(0));
+          JS
+
+      - name: Publish only the qualified MCP image digest
+        env:
+          REGISTRY_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          owner="${GITHUB_REPOSITORY_OWNER,,}"
+          printf '%s' "$REGISTRY_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          trap 'docker logout ghcr.io >/dev/null 2>&1 || true' EXIT
+          remote="ghcr.io/$owner/lolly-mcp:candidate-$EXPECTED_SOURCE"
+          docker tag "lolly-candidate-mcp:$EXPECTED_SOURCE" "$remote"
+          docker push "$remote"
+          docker image inspect "$remote" --format '{{json .}}' \
+            > "$RUNNER_TEMP/lolly-image-receipts/mcp.json"
+          node --input-type=module -e '
+            import { readFileSync, writeFileSync } from "node:fs";
+            const directory = process.env.RUNNER_TEMP + "/lolly-image-receipts";
+            const image = JSON.parse(readFileSync(directory + "/mcp.json", "utf8"));
+            if (image.Config.Labels["org.opencontainers.image.revision"] !== process.env.EXPECTED_SOURCE || image.Os !== "linux" || image.Architecture !== "amd64" || image.RepoDigests.length !== 1) throw new Error("Image/source binding failed");
+            const images = { mcp: { imageId: image.Id, digest: image.RepoDigests[0], platform: "linux/amd64", source: process.env.EXPECTED_SOURCE } };
+            writeFileSync(directory + "/mcp.json", JSON.stringify(images.mcp, null, 2));
+            const runAttempt = Number(process.env.GITHUB_RUN_ATTEMPT);
+            if (!Number.isSafeInteger(runAttempt) || runAttempt < 1) throw new Error("Invalid candidate attempt");
+            writeFileSync(directory + "/release.json", JSON.stringify({ source: process.env.EXPECTED_SOURCE, runId: process.env.GITHUB_RUN_ID, runAttempt, neutralProfile: true, images, candidateRuntimeQualified: false }, null, 2));
+          '
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        if: always()
+        with:
+          name: public-candidate-mcp-receipts-attempt-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/lolly-image-receipts/*.json
+          if-no-files-found: warn
+          retention-days: 14
+
   # The MCP browser image drives a web shell for its Tier-B exports, so this job
   # alone waits for the probe shell. It never asks the WebGPU gate and never waits
   # for the web image.
@@ -893,6 +1089,16 @@ jobs:
           docker buildx version
           mkdir -p "$RUNNER_TEMP/lolly-image-receipts" "$RUNNER_TEMP/lolly-probe-web"
 
+      - name: Describe the image from its source
+        run: |
+          set -euo pipefail
+          version=$(node -p 'JSON.parse(require("node:fs").readFileSync("shells/tauri-desktop/src-tauri/tauri.conf.json", "utf8")).version')
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]
+          created=$(TZ=UTC0 git log -1 --format=%cd --date=format-local:%Y-%m-%dT%H:%M:%SZ "$EXPECTED_SOURCE")
+          [[ "$created" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$ ]]
+          echo "IMAGE_VERSION=$version" >> "$GITHUB_ENV"
+          echo "IMAGE_CREATED=$created" >> "$GITHUB_ENV"
+
       - name: Build the exact MCP browser image on native amd64
         run: |
           set -euo pipefail
@@ -900,6 +1106,9 @@ jobs:
           docker buildx build --load --no-cache --platform linux/amd64 \
             --label "org.opencontainers.image.revision=$EXPECTED_SOURCE" \
             --label "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" \
+            --label org.opencontainers.image.title=lolly-mcp-browser \
+            --label "org.opencontainers.image.version=$IMAGE_VERSION" \
+            --label "org.opencontainers.image.created=$IMAGE_CREATED" \
             --label org.lolly.profile=lolly-start \
             --build-arg LOLLY_PROFILE=lolly-start \
             -f deploy/docker/mcp-browser.Dockerfile \
@@ -1180,8 +1389,14 @@ jobs:
           if(services==='success') selection.qualified.push('ca','penpot');
           else if(services==='skipped') selection.notSelected.push('ca','penpot');
           else { selection.notQualified.ca=services; selection.notQualified.penpot=services; }
+          // A run made before the browser-free MCP job existed has no such job.
+          const mcpName='Opt-in native public MCP image (browser-free)';
+          const mcpImage=jobs.some(job=>job.name===mcpName)?outcome(mcpName):'skipped';
+          if(mcpImage==='success') selection.qualified.push('mcp');
+          else if(mcpImage==='skipped') selection.notSelected.push('mcp');
+          else selection.notQualified.mcp=mcpImage;
           const filter=process.env.ARCHIVE_IMAGES||'all';
-          const subsets={all:null,web:['web'],'mcp-browser':['mcp-browser'],services:['ca','penpot']};
+          const subsets={all:null,web:['web'],mcp:['mcp'],'mcp-browser':['mcp-browser'],services:['ca','penpot']};
           if(!Object.hasOwn(subsets,filter)) throw Error('Unknown archive image subset');
           const requested=subsets[filter];
           if(requested) {
@@ -1195,6 +1410,7 @@ jobs:
           for service in $(node --input-type=module -e 'import{readFileSync}from"node:fs";console.log(JSON.parse(readFileSync(process.env.RUNNER_TEMP+"/image-selection.json")).qualified.join(" "))'); do
             case "$service" in
               web) artifact="public-candidate-web-receipts-attempt-$qualification_attempt" ;;
+              mcp) artifact="public-candidate-mcp-receipts-attempt-$qualification_attempt" ;;
               mcp-browser) artifact="public-candidate-mcp-browser-receipts-attempt-$qualification_attempt" ;;
               ca|penpot) artifact="public-candidate-service-receipts-attempt-$qualification_attempt" ;;
               *) exit 1 ;;
@@ -1224,7 +1440,7 @@ jobs:
           if(qualification.runId!==process.env.QUALIFICATION_RUN || qualification.source!==process.env.SOURCE_SHA || !Number.isSafeInteger(qualification.attempt) || qualification.attempt<1) throw Error('Invalid qualification attempt');
           const selection=JSON.parse(readFileSync(root+'/image-selection.json'));
           const qualified=selection.qualified;
-          if(!Array.isArray(qualified)||!qualified.length||new Set(qualified).size!==qualified.length||qualified.some(service=>!['web','mcp-browser','ca','penpot'].includes(service))) throw Error('Invalid archive image selection');
+          if(!Array.isArray(qualified)||!qualified.length||new Set(qualified).size!==qualified.length||qualified.some(service=>!['web','mcp','mcp-browser','ca','penpot'].includes(service))) throw Error('Invalid archive image selection');
           const releases={};
           for(const service of qualified){
             const release=JSON.parse(readFileSync(root+'/receipts/'+service+'/release.json'));
