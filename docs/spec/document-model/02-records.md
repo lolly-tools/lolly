@@ -35,7 +35,7 @@ Each record keeps the identity rules it has today. A tool `id` and an asset `id`
 
 ## Source assets, observations and history
 
-The four records describe a document, not every entity in its library (R4). An imported photo is a resource; it needs no synthetic tool definition. Catalog collections, metadata assertions, source review decisions and processing jobs remain host or Work records referenced by the document. This separation is proposed by the DAM review, not implemented as a shared document contract (plan 313).
+The four records describe a document, not every entity in its library (R4). An imported photo is a resource; it needs no synthetic tool definition. Catalog collections, metadata assertions, source review decisions and processing jobs remain host or Work records referenced by the document. This separation is proposed by the DAM review, not implemented as a shared document contract (plan 314).
 
 A resource binding must distinguish the logical asset, selected file, source revision, representation role and observed byte digest (invariant 7; `packages/core/src/host-v1/asset-ref.ts`, `shells/web/src/lib/asset-files.ts`). A representation may be an original, a safe working copy, a preview or a produced derivative. Two SVG attachments are two selected files even when they share an asset and format. A preview must never satisfy a request for the original.
 

@@ -46,7 +46,7 @@ The review found the plan alternating between "the stronger rule wins" and "both
 
 ## Source authority is separate from a creative waiver
 
-The three rule classes do not replace source access, use conditions, processing grants or destination authority (R3, R6; DAM review, plan 313). Those checks stay at the host boundary that can establish the facts. A local creative waiver must never grant upstream access, widen an organisation exposure policy, authorise cloud processing or create permission to redistribute source bytes. The authority in D12 accepts the creative/conformance result within the powers it holds; it does not acquire powers belonging to a source or another principal.
+The three rule classes do not replace source access, use conditions, processing grants or destination authority (R3, R6; DAM review, plan 314). Those checks stay at the host boundary that can establish the facts. A local creative waiver must never grant upstream access, widen an organisation exposure policy, authorise cloud processing or create permission to redistribute source bytes. The authority in D12 accepts the creative/conformance result within the powers it holds; it does not acquire powers belonging to a source or another principal.
 
 Rights evidence and a selected grant follow `CreativeWorkRecordV1`, `PermissionGrantV1`, `CreativeUseV1` and `UseContextV1` in `packages/core/src/rights-v1.ts`. A contextual eligibility answer must identify its source evidence, intended operation/use, issuer, observation time and freshness or validity requirement. Allowed, denied and unknown remain distinct. The draft does not implement a territory/channel evaluator; those missing semantics extend the existing rights contract rather than create another licence engine.
 
@@ -119,7 +119,7 @@ This is the case the class table does not cover, because neither rule is waivabl
 
 ## A governed client that loses its connection
 
-A governed client that loses its connection must keep enforcing the policy it holds, and nothing relaxes (R7). This preserves authorised held work; it does not renew source-access or processing leases. A restricted fetch, new processing job or delivery follows its own explicit freshness rule and is blocked when that rule requires authority the host cannot establish. Editing permitted cached content and performing those consequential actions must have separate answers (R3, R7; plan 313). The review found the plan describing offline behaviour the design system code does not have, so the four facts below are stated as four separate answers rather than one status (C5).
+A governed client that loses its connection must keep enforcing the policy it holds, and nothing relaxes (R7). This preserves authorised held work; it does not renew source-access or processing leases. A restricted fetch, new processing job or delivery follows its own explicit freshness rule and is blocked when that rule requires authority the host cannot establish. Editing permitted cached content and performing those consequential actions must have separate answers (R3, R7; plan 314). The review found the plan describing offline behaviour the design system code does not have, so the four facts below are stated as four separate answers rather than one status (C5).
 
 | Fact | What it answers | Where the tree answers it today |
 |---|---|---|

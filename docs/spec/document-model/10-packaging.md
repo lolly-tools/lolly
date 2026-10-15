@@ -86,7 +86,7 @@ A font digest is taken over the whole source font file and never over the subset
 
 ## Portable evidence and private records
 
-The DAM review extends the retained-part rules to optional generation recipes, source observations and review evidence (plan 313; R10, R11, R15). This is a packaging requirement, not permission to emit a new part before preservation-capable readers and effective old-client gates ship.
+The DAM review extends the retained-part rules to optional generation recipes, source observations and review evidence (plan 314; R10, R11, R15). This is a packaging requirement, not permission to emit a new part before preservation-capable readers and effective old-client gates ship.
 
 A portable record must bind to its exact resource, instance or artifact revision. An older review or credential travels as history and must never describe changed bytes as already reviewed. An imported recipe remains external evidence; retaining its bytes does not establish an executable environment or a replay claim.
 

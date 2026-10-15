@@ -144,7 +144,7 @@ Spatial and fabrication examples stay paper probes in this wave (D5). They test 
 
 ## DAM resource cases added on 2026-10-15
 
-These cases extend the Design resource boundary after the DAM review (plan 313). They keep Design, Chart and Agenda as the pilots (D2). They are requirements for future contract fixtures, not claims of implemented source-history or review enforcement. Focused tests of existing seams are evidence only for the behaviour those tests exercise.
+These cases extend the Design resource boundary after the DAM review (plan 314). They keep Design, Chart and Agenda as the pilots (D2). They are requirements for future contract fixtures, not claims of implemented source-history or review enforcement. Focused tests of existing seams are evidence only for the behaviour those tests exercise.
 
 **30. Two originals and a preview.** A provider asset contains two SVG attachments and a raster preview of the second. Select the second file, save the instance, reopen, convert and deliver the selected original.
 Expected outcome: every step retains the same selected file identity and observed revision/digest. The preview remains a separate representation and never satisfies an original request. Reordering attachments changes neither selection nor identity. Existing selected-file helpers cover part of this case (`shells/web/src/lib/asset-files.ts`); durable provider pin resolution remains required (R4, R15).
@@ -187,7 +187,7 @@ The plan's section 18 names five of these cases as the ones that run before any 
 
 The patch envelope and the source-aware diff land when their semantics are fixed in [Source rows, payloads and patches](source-and-patches.html) and [Packaging, identity and migration](packaging.html), not before (plan section 18). Cases 13, 15 and 16 are the evidence those semantics are settled.
 
-Cases 30 to 38 add gates for shared source-history, processing and review contracts. They do not replace the five above or make the first native still-image suite depend on a DAM vendor. Freeze only the smallest contract justified by its applicable fixtures, and keep unimplemented cases stated as requirements (plan 313).
+Cases 30 to 38 add gates for shared source-history, processing and review contracts. They do not replace the five above or make the first native still-image suite depend on a DAM vendor. Freeze only the smallest contract justified by its applicable fixtures, and keep unimplemented cases stated as requirements (plan 314).
 
 ## Open points
 

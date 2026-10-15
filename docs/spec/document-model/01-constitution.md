@@ -117,7 +117,7 @@ Each row gives the place in the tree that already holds part of the invariant, t
 
 Cases 24 and 25 were added because of this table. Before them no case tested invariant 11 on its own, since cases 2, 4 and 13 check accessibility metadata or reading order only beside other facts, and invariant 5 rested on case 7 alone, which covers the live-input half of Q4. Case 24 tests accessible intent in four outputs and case 25 the utility half of Q4.
 
-The DAM review adds cases 30 to 38 without changing the thirteen invariants or the pilots (plan 313). They test the resource boundary: exact selected-file identity and observations (7), source and processing authority (3 and 10), review of a defined subject (4), private evidence preservation/disclosure (9 and 13), and uncertain external effects (6). Their requirements are not implemented shared DAM contracts. In particular, a held document policy does not renew source-access or model-processing permission; [policy](policy.html) qualifies the offline rule accordingly (R3, R7).
+The DAM review adds cases 30 to 38 without changing the thirteen invariants or the pilots (plan 314). They test the resource boundary: exact selected-file identity and observations (7), source and processing authority (3 and 10), review of a defined subject (4), private evidence preservation/disclosure (9 and 13), and uncertain external effects (6). Their requirements are not implemented shared DAM contracts. In particular, a held document policy does not renew source-access or model-processing permission; [policy](policy.html) qualifies the offline rule accordingly (R3, R7).
 
 ## Measured conformance and contextual acceptance
 

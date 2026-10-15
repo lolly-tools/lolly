@@ -193,7 +193,7 @@ These rules come from the first WebGPU and Rust kernel work (plan 295), added on
 
 ### Source and processing evidence
 
-The DAM review adds a requirement to the draft receipt, not a new implemented receipt type (plan 313; R15). Each observed resource must identify its selected file, source revision, representation and digest where observed. Declared dependencies, observed inputs and imported assertions remain distinguishable. A source timestamp or catalog cache version is never evidence that the run read particular bytes ([records](records.html)).
+The DAM review adds a requirement to the draft receipt, not a new implemented receipt type (plan 314; R15). Each observed resource must identify its selected file, source revision, representation and digest where observed. Declared dependencies, observed inputs and imported assertions remain distinguishable. A source timestamp or catalog cache version is never evidence that the run read particular bytes ([records](records.html)).
 
 Where retained, processing evidence must name the actual model/service revision, operation and job/attempt reference, the effective processing authority and the result digests. Detailed recipes, private grant evidence and spend records remain separately authorised host or Work data. A public receipt may carry only permitted references or reduced facts. It must never contain service credentials, signed read URLs or an unapproved private prompt (R3, R15; `packages/core/src/rights-v1.ts`).
 

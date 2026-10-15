@@ -78,7 +78,7 @@ The governed authority is the Work administrator for the brand, recorded with th
 
 ## Source review, use eligibility and delivery approval
 
-`AcceptanceV1` judges a conformance report. The DAM review requires separate subjects for catalog admission, upstream creative review, contextual use eligibility and final-byte delivery approval (plan 313; R8). A source review may have no conformance report. It must keep its own evidence and must never be turned into a suite pass.
+`AcceptanceV1` judges a conformance report. The DAM review requires separate subjects for catalog admission, upstream creative review, contextual use eligibility and final-byte delivery approval (plan 314; R8). A source review may have no conformance report. It must keep its own evidence and must never be turned into a suite pass.
 
 A proposed source-review record must bind the decision to the source, exact reviewed file revisions or digests, reviewer authority and scope. A proof containing several files must identify its reviewed membership and revisions. Conditional approval, such as changes still required, remains conditional. Replacing a file or changing that membership must never transfer the earlier decision silently. These shared review records are not built by this amendment. Work currently treats replacement of admitted asset bytes as curation; its contribution approval is not a general review of every replacement (`lolly-work/server/src/catalog/submit.ts`).
 
