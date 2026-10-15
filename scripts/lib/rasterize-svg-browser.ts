@@ -64,7 +64,7 @@ const FALLBACK_FONT = 'shells/web/public/fonts/SUSE[wght].ttf';
 // Opal's own share cards (docs/og-opal.ts) also set Outfit headings and SUSE Mono labels.
 // Both are the shell's variable faces, declared over their whole weight range so Chromium
 // sets the wght axis from each text's font-weight, which is how docs/og-opal.ts measures
-// them. Cards that never name these families render exactly as before.
+// them. Cards that never use these families render exactly as before.
 const RANGE_FONTS: ReadonlyArray<readonly [family: string, file: string, weights: string]> = [
   ['Outfit', 'shells/web/public/fonts/Outfit[wght].ttf', '100 900'],
   ['SUSE Mono', 'shells/web/public/fonts/SUSEMono[wght].ttf', '100 800'],

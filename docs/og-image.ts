@@ -237,8 +237,8 @@ function brandColors(assets: IndexAsset[], roots: ContentRoots): ChromeColours {
 /**
  * The share-card designs the brand's own tokens select, read from the same tokens asset
  * brandColors() reads: `$extensions['com.suse.lolly'].shareCards`. The declaration
- * travels with the design system rather than with an asset id, and a document that does
- * not carry it, carries another value or cannot be read selects nothing.
+ * travels with the design system rather than with an asset id. A document without it,
+ * with another value or that cannot be read selects nothing.
  */
 function shareCardDesign(assets: IndexAsset[], roots: ContentRoots): ShareCardDesign | null {
   const tokens = assets.find(a => a.type === 'tokens' && a.tags?.includes('brand'));

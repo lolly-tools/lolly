@@ -11,8 +11,8 @@
  * Lolly's own Opal chrome, and Lolly's own logo is never shown twice.
  *
  * Tests 12 to 15 cover how a pack selects Opal's own share-card designs: a declaration
- * in its tokens' Lolly extension, never an asset id. Only lolly-demo carries it, and the
- * fingerprint every other pack's committed cards were hashed with does not move.
+ * in its tokens' Lolly extension, never an asset id. Only lolly-demo carries the line;
+ * the fingerprint every other pack's committed cards were hashed with does not move.
  */
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -301,7 +301,7 @@ test('11. the Opal chrome is legible: ink and muted 4.5:1, footer and accent 3:1
 
 const sha256 = (s: string): string => createHash('sha256').update(s).digest('hex');
 
-test('12. a pack selects Opal\'s designs by declaring shareCards: "opal" in its tokens, and only then', () => {
+test('12. a pack selects Opal\'s designs by declaring shareCards: "opal" in its tokens and only then', () => {
   const declared = fixtureChrome('opalcards');
   assert.equal(declared.cards, 'opal');
   // The declaration picks the designs; the colours are still read as before.
@@ -326,7 +326,7 @@ test('13. every other pack keeps the fingerprint its committed cards were hashed
     const suse = loadBrandChrome(ROOT, contentRoots({ root: ROOT, profile: 'suse' }));
     assert.equal(chromeFingerprint(suse), legacy(suse), 'suse');
   }
-  // Opal's designs hash the design, its version and the mark, and nothing they do not draw.
+  // Opal's designs hash the design, its version and the mark: nothing they do not draw.
   const opal: BrandChrome = { ...brand, cards: 'opal' };
   assert.equal(chromeFingerprint(opal), sha256(JSON.stringify(['opal', OPAL_CARDS_VERSION, opal.mark])));
   assert.equal(chromeFingerprint({ ...opal, field: '#000000', logo: null }), chromeFingerprint(opal));

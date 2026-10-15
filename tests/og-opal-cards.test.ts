@@ -9,22 +9,26 @@
  *   2. every text colour is legible on the ground under it (WCAG 2): 4.5:1 for titles
  *      and lines, 3:1 for kickers and addresses set at 24 px or more (large text);
  *   3. nothing stands under the lollipop or a sticker: no dish, shadow, stick or tilt;
- *   4. Outfit sets the headings, SUSE the text and SUSE Mono the labels, and the
- *      rasteriser declares the same files the layout measures;
- *   5. a pitch or a line is cut from its description, never reworded;
- *   6. all copy stays inside its column and on the card;
- *   7. the why pages, and only those, go on the stage.
+ *   4. Outfit sets the headings, SUSE the text and SUSE Mono the labels; the rasteriser
+ *      declares the same files the layout measures;
+ *   5. a pitch or a line is cut from its description, is never reworded and never stops
+ *      on the word "it";
+ *   6. all copy stays inside its column and on the card; an address is never cut;
+ *   7. only the why pages go on the stage;
+ *   8. a pack's own landing card becomes the build's /og.png.
  */
-import { test } from 'node:test';
+import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { docsCardDesign } from '../docs/og-image.ts';
 import {
-  GROUNDS, OPAL, groundAt, layoutOpalCard, loadOpalType, oneLiners, opalCardSvg,
+  GROUNDS, endsOnIt, groundAt, layoutOpalCard, loadOpalType, oneLiners, opalCardSvg,
   type OpalLayout, type TextBlock,
 } from '../docs/og-opal.ts';
+import { servePackShareCard } from '../shells/web/build/pack-share-card.ts';
 
 const ROOT = join(import.meta.dirname, '..');
 const read = (rel: string) => readFileSync(join(ROOT, rel), 'utf8');
@@ -110,11 +114,18 @@ async function allCards(): Promise<Card[]> {
 
 const cardsOnce = allCards();
 
-/** The ground under a block: its corners, edge midpoints and centre. */
+const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
+
+/** The ground under a block: its corners, edge midpoints, centre and the point of the
+ *  block nearest the gradient's centre, where the ground is lightest or darkest. */
 function groundsUnder(layout: OpalLayout, b: TextBlock): string[] {
   const xs = [b.x, b.x + b.width / 2, b.x + b.width];
   const ys = [b.top, b.top + b.height / 2, b.top + b.height];
-  return xs.flatMap(x => ys.map(y => groundAt(layout.ground, x, y)));
+  const { cx, cy } = layout.ground;
+  return [
+    ...xs.flatMap(x => ys.map(y => groundAt(layout.ground, x, y))),
+    groundAt(layout.ground, clamp(cx, b.x, b.x + b.width), clamp(cy, b.top, b.top + b.height)),
+  ];
 }
 
 const LARGE_TEXT = 24;
@@ -165,7 +176,7 @@ test('2. every text colour is legible on the ground under it', async () => {
 const ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16v16H4z"/></svg>';
 const MARK = 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E';
 
-test('3. nothing stands under the lollipop or a sticker, and neither one tilts', async () => {
+test('3. nothing stands under the lollipop or a sticker; neither one tilts', async () => {
   const house = opalCardSvg(await layoutOpalCard('house', { title: 'Lolly', line: 'Free creative tools, with your rules.', url: 'lolly.tools' }), { mark: MARK });
   const tool = opalCardSvg(await layoutOpalCard('tool', { name: 'QR Code', description: 'Scannable codes of every kind.', url: 'lolly.tools/t/qr-code' }), { mark: MARK, iconSvg: ICON });
   const bare = opalCardSvg(await layoutOpalCard('tool', { name: 'Flythrough', description: 'Fly a camera.', url: 'lolly.tools/t/flythrough' }), { mark: MARK });
@@ -173,11 +184,11 @@ test('3. nothing stands under the lollipop or a sticker, and neither one tilts',
   for (const [name, svg] of Object.entries({ house, tool, bare, stage })) {
     assert.doesNotMatch(svg, /<filter|filter=|drop-shadow|<ellipse|rotate\(|skew|matrix\(/, `${name}: no shadow, dish or tilt`);
   }
-  // The house subject is the mark alone: one image, untransformed, and no other shape.
+  // The house subject is the mark alone: one untransformed image and no other shape.
   assert.equal((house.match(/<image\b/g) ?? []).length, 1);
   assert.match(house, /<image x="[\d.]+" y="[\d.]+" width="([\d.]+)" height="\1" href="data:/);
   assert.doesNotMatch(house, /<(?:path|line|circle|polyline|polygon)\b/, 'no stick or plinth under the lolly');
-  // The sticker is one square tile with the tool's own glyph, or the mark when it has none.
+  // The sticker is one square tile with the tool's own glyph or, for a tool with none, the mark.
   assert.match(tool, /<rect x="195" y="253.8" width="210" height="210" rx="37.5" fill="#ffffff"\/><svg x="[\d.]+" y="[\d.]+" width="156" height="156"/);
   assert.match(bare, /<rect x="195" y="253.8" width="210" height="210" rx="37.5" fill="#ffffff"\/><image /);
   assert.equal((tool.match(/<rect\b/g) ?? []).length, 2, 'the ground and the sticker');
@@ -208,14 +219,25 @@ test('4. Outfit sets the headings, SUSE the text and SUSE Mono the labels, as th
 
 const normal = (s: string) => s.replace(/\s+/g, ' ').trim();
 
-test('5. a pitch or a line is the start of its own description', async () => {
+test('5. a pitch or a line is the start of its own description and never stops on "it"', async () => {
   for (const card of await cardsOnce) {
+    for (const b of card.layout.blocks) {
+      if (b.role === 'title' || b.role === 'line') assert.ok(!endsOnIt(b.lines.join(' ')), `${card.name} ${b.role}: "${b.lines.join(' ')}"`);
+    }
     if (!card.source) continue;
     const b = card.layout.blocks.find(x => (card.layout.kind === 'tool' ? x.role === 'title' : x.role === 'line'))!;
     const drawn = b.lines.join(' ').replace(/…$/, '');
     assert.ok(normal(card.source).startsWith(drawn), `${card.name}: "${drawn}"`);
     assert.ok(drawn.length >= 12, `${card.name}: "${drawn}" says too little`);
   }
+  // A cut that stops on "it" is never offered: the lead goes and the sentence stays.
+  assert.deepEqual(oneLiners('Drop in one photo and move a camera through it: depth is read on your device.'),
+    ['Drop in one photo and move a camera through it: depth is read on your device']);
+  // When every cut stops on "it", the sentence stops short of the word instead.
+  assert.deepEqual(oneLiners('Uploading a logo to a stranger to resize it. Artwork locked behind a plan.'),
+    ['Uploading a logo to a stranger to resize…']);
+  assert.ok(endsOnIt('through it') && endsOnIt('resize it.') && endsOnIt('it…') && endsOnIt('It'));
+  assert.ok(!endsOnIt('submit') && !endsOnIt("it's") && !endsOnIt('a unit') && !endsOnIt('it all'));
   // The rules behind the cut.
   assert.deepEqual(oneLiners('Scannable codes of every kind: QR and more - plus barcodes. A second sentence.'),
     ['Scannable codes of every kind: QR and more - plus barcodes', 'Scannable codes of every kind']);
@@ -231,11 +253,16 @@ test('5. a pitch or a line is the start of its own description', async () => {
 
 // ── 6. fit ──────────────────────────────────────────────────────────────────
 
-test('6. all copy stays inside its column and on the card', async () => {
+test('6. all copy stays inside its column and on the card; an address is never cut', async () => {
   const m = await loadOpalType();
   for (const card of await cardsOnce) {
     let previousBottom = -Infinity;
     for (const b of card.layout.blocks) {
+      if (b.role === 'url') {
+        assert.equal(b.lines.length, 1, `${card.name}: one address line`);
+        assert.ok(!b.lines[0]!.includes('…'), `${card.name}: the address "${b.lines[0]}" is cut`);
+        assert.ok(b.size >= LARGE_TEXT || b.fill === '#033633', `${card.name}: a small address in Spearmint`);
+      }
       for (const line of b.lines) {
         const w = m.width(line, b.face, b.size);
         assert.ok(w <= b.width + 0.5, `${card.name} ${b.role}: "${line}" is ${w.toFixed(1)}px in ${b.width}px`);
@@ -250,11 +277,22 @@ test('6. all copy stays inside its column and on the card', async () => {
   // The brand page's own house card keeps its sizes: Lolly at 120 px, the line at 43.2 px.
   const landing = (await cardsOnce)[0]!.layout.blocks;
   assert.deepEqual(landing.map(b => [b.role, b.size, b.lines.length]), [['title', 120, 1], ['line', 43.2, 2], ['url', 25.2, 1]]);
+  // A link too long for the column gives way to its host, at 24 px or more; a host too
+  // long even for that shrinks into Spearmint, which reads at small sizes.
+  const address = async (url: string) => (await layoutOpalCard('house', { title: 'Lolly', line: 'A line.', url })).blocks[2]!;
+  const longLink = await address('docs.example.org/a/very/long/path/that/never/fits/on/one/line/of/the/card');
+  assert.deepEqual([longLink.lines, longLink.size >= LARGE_TEXT, longLink.fill], [['docs.example.org'], true, '#008657']);
+  const longHost = await address('a-very-long-instance-host-name.that-belongs-to.some-organisation.example');
+  assert.equal(longHost.lines[0], 'a-very-long-instance-host-name.that-belongs-to.some-organisation.example');
+  assert.ok(longHost.size < LARGE_TEXT && longHost.fill === '#033633');
+  // A why page keeps its whole lead on two lines rather than lose words on one.
+  const giants = (await cardsOnce).find(c => c.name === 'docs shoulders-of-giants')!.layout.blocks.find(b => b.role === 'line')!;
+  assert.ok(!giants.lines.join(' ').endsWith('…'), giants.lines.join(' / '));
 });
 
 // ── 7. the why pages go on the stage ────────────────────────────────────────
 
-test('7. the why pages, and only those, go on the stage', () => {
+test('7. only the why pages go on the stage', () => {
   const stage = PAGES.filter(p => p.register === 'stage').map(p => p.slug).sort();
   assert.deepEqual(stage, [
     'ai-stance', 'beatrice-warde', 'creative-rights', 'input-not-impersonation',
@@ -268,9 +306,26 @@ test('7. the why pages, and only those, go on the stage', () => {
 
 // ── 8. where the landing card goes ──────────────────────────────────────────
 
-test('8. a pack\'s own landing card stays in its catalog and a build of that pack serves it as /og.png', () => {
+const DIST = mkdtempSync(join(tmpdir(), 'lolly-og-dist-'));
+after(() => rmSync(DIST, { recursive: true, force: true }));
+
+test('8. a pack\'s own landing card stays in its catalog and becomes the build\'s /og.png', () => {
   assert.match(read('scripts/build-og-base.ts'), /const out = chrome\.cards \? catalogFile\('og\/og\.png'\) : SHARED;/);
+  // A dist/ with the pack's card in its materialised catalog: the card replaces the shared og.png.
+  const withCard = join(DIST, 'with-card');
+  mkdirSync(join(withCard, 'catalog/og'), { recursive: true });
+  writeFileSync(join(withCard, 'og.png'), 'the shared card');
+  writeFileSync(join(withCard, 'catalog/og/og.png'), 'the pack card');
+  assert.equal(servePackShareCard(withCard), true);
+  assert.equal(readFileSync(join(withCard, 'og.png'), 'utf8'), 'the pack card');
+  // A pack without its own card keeps the shared one, untouched.
+  const without = join(DIST, 'without-card');
+  mkdirSync(join(without, 'catalog/og'), { recursive: true });
+  writeFileSync(join(without, 'og.png'), 'the shared card');
+  assert.equal(servePackShareCard(without), false);
+  assert.equal(readFileSync(join(without, 'og.png'), 'utf8'), 'the shared card');
+  // The web build runs the step once the catalog is in dist/.
   const vite = readFileSync(join(ROOT, 'shells/web/vite.config.js'), 'latin1');
-  assert.match(vite, /const packCard = resolve\(outDir, 'catalog\/og\/og\.png'\);\n\s*if \(existsSync\(packCard\)\) cpSync\(packCard, resolve\(outDir, 'og\.png'\)\);/);
-  assert.equal(OPAL.spearmint, '#033633');
+  assert.match(vite, /import \{ servePackShareCard \} from '\.\/build\/pack-share-card\.ts';/);
+  assert.match(vite, /materializeInto\(outDir\);\n(?:\s*\/\/[^\n]*\n)*\s*servePackShareCard\(outDir\);/);
 });

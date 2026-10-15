@@ -19,8 +19,8 @@
  *   1. Author override - tools/<id>/og.{png,jpg,jpeg,webp} (committed, raster). Lets a
  *      tool ship its own preferred art; it WINS over the generated default.
  *   2. Generated default - a gallery-tile card (tool icon + name + description + a
- *      framed preview of the tool's own output), or Opal's own tool card for a pack whose
- *      tokens select Opal's designs (docs/og-opal.ts), laid out by docs/og-image.ts and
+ *      framed preview of the tool's own output; Opal's own tool card instead for a pack
+ *      whose tokens select Opal's designs, docs/og-opal.ts), laid out by docs/og-image.ts and
  *      rasterised through OUR OWN render path (Chromium via Playwright - see
  *      scripts/lib/rasterize-svg-browser.ts), NOT a second SVG interpreter like resvg.
  *      One render path means a card is shaped the way the app paints the tool, and a
