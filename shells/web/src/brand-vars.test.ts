@@ -889,7 +889,10 @@ test("lolly-start's newsprint chrome leaves its noir brand theme untouched", () 
   const brand = sheetBlocks(css).filter(([sel]) => sel === '[data-theme="brand"]');
   assert.equal(brand.length, 1, 'one brand block: the constructed noir, no brand chrome');
   assert.ok(css.includes(brandThemeCss('#1d1d1d', '#ffffff')), 'the noir block is byte for byte the construction');
-  // The pack's chrome never reaches the render canvas's ink.
+  // The pack's chrome never declares the render canvas's ink. --foreground-canvas
+  // is what parts/a11y.css's canvas boundary restores, whatever --foreground the
+  // pack sets, so an export keeps the theme's own ink (tests/pack-chrome.browser.test.ts
+  // reads that cascade in a browser).
   assert.equal(css.split('--foreground-canvas').length - 1, 1, 'only the constructed brand theme declares --foreground-canvas');
   // Its light and dark blocks carry the newsprint triples.
   const blocks = new Map(sheetBlocks(css));

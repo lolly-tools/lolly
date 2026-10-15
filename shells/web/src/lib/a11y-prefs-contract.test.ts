@@ -6,7 +6,8 @@
  *
  *   1. the gated CSS (parts/base.css, tokens.css, parts/a11y.css) - must stay
  *      attribute-gated on <html> (dormant by default) and must keep the render
- *      canvas and the offscreen export stages out of every gated rule;
+ *      canvas and the offscreen export stages out of every gated rule, while one
+ *      ungated rule at the canvas boundary puts the theme's own ink back;
  *   2. the `--a11y-fs` type multiplier - ~950 chrome `font-size` declarations, plus
  *      the chrome icon sizes that ride the same factor (an icon that did not grow
  *      with its label left the icon-only controls unreachable by the preference),
@@ -318,21 +319,27 @@ test('both reduce-motion blocks (OS media query AND the app attribute) exempt th
 });
 
 /**
- * The ONE reason a gated rule may name a protected surface outside a `:not()`:
- * putting a value BACK to what it is with the preference off.
+ * The ONE reason a rule may name a protected surface outside a `:not()` and set
+ * something on it: putting the ink BACK to the theme's own.
  *
  * parts/base.css's `body { color: hsl(var(--foreground)) }` is inherited by tool
  * markup (most templates set no colour, several draw with `currentColor`), so
- * when high contrast re-points --foreground the canvas and every offscreen export
- * stage inherit the new ink - changing exported pixels, and baking into session
- * thumbnails and preview renders whose cache keys carry no preference component.
- * The fix is a restore rule at the canvas boundary, which necessarily targets the
- * canvas. It is safe for exactly one reason: every value it sets comes from a
- * `--*-canvas` base token that no gated block ever re-points.
+ * whenever --foreground is re-pointed the canvas and every offscreen export stage
+ * inherit the new ink - changing exported pixels, and for high contrast baking
+ * into session thumbnails and preview renders whose cache keys carry no
+ * preference component. Two things re-point it without changing the theme: high
+ * contrast (a preference) and a design pack's own chrome (brand-vars.ts, with no
+ * preference set at all). The fix is a restore rule at the canvas boundary, which
+ * necessarily targets the canvas and must not be gated on the attribute: gated,
+ * it left a pack's ink free to move every export. It is safe for exactly one
+ * reason: every value it sets comes from a `--*-canvas` base token that neither
+ * high contrast nor pack chrome ever re-points, and which every theme declares
+ * equal to its --foreground, so with neither in play the rule restates the
+ * inherited ink.
  *
  * So the allowance is narrow by construction rather than by good intentions: the
  * properties are enumerated, and every value must resolve through a base token.
- * A restore rule that set anything else - a size, a different token, a literal - 
+ * A restore rule that set anything else - a size, a different token, a literal -
  * fails, which is the point.
  */
 const RESTORE_PROPS = new Set(['--foreground', 'color']);
@@ -349,10 +356,9 @@ test('no a11y-gated rule TARGETS the render canvas or an export stage', () => {
   // Nothing else about a preference may reach in: exports must be byte-identical
   // with the preference on, because the render path is shared with the CLI.
   let exemptions = 0;
-  let restores = 0;
   for (const rule of ALL_RULES) {
     if (!isA11yGated(rule)) continue;
-    if (protectedIn(stripNot(rule.selector)) && isBaseRestore(rule)) { restores++; continue; }
+    if (protectedIn(stripNot(rule.selector)) && isBaseRestore(rule)) continue;
     for (const arm of arms(rule.selector)) {
       if (protectedIn(arm)) exemptions++;                    // named somewhere in this arm
       const hit = protectedIn(stripNot(arm));
@@ -365,16 +371,36 @@ test('no a11y-gated rule TARGETS the render canvas or an export stage', () => {
       );
     }
   }
-  // The restore rule must EXIST: without it, high contrast leaks its ink into
-  // every render through the inherited body colour.
-  assert.equal(restores, 1, `expected exactly 1 base-restore rule at the canvas boundary, found ${restores} - ` +
-    'high contrast re-points --foreground, which parts/base.css\'s body colour inherits straight into the canvas ' +
-    'and the offscreen export stages');
   // Non-vacuity: base.css's two motion blocks and a11y.css's focus-ring block all
   // name the protected surfaces inside :not(), so a scan that sees none has lost
   // its grip on the selectors rather than proving anything.
   assert.ok(exemptions >= 3, `only ${exemptions} gated selector arms mention a protected surface at all - the ` +
     'exemptions that keep the canvas out have gone missing, or this scan stopped seeing them');
+});
+
+test('one ungated rule at the canvas boundary restores the base ink on every render surface', () => {
+  // The restore rule must EXIST, once: without it, high contrast and a pack's
+  // chrome both leak their ink into every render through the inherited body colour.
+  const restores = ALL_RULES.filter((rule) => protectedIn(stripNot(rule.selector)) && isBaseRestore(rule));
+  assert.equal(restores.length, 1, `expected exactly 1 base-restore rule at the canvas boundary, found ${restores.length} - ` +
+    'high contrast and a design pack\'s chrome re-point --foreground, which parts/base.css\'s body colour inherits ' +
+    'straight into the canvas and the offscreen export stages');
+  const rule = restores[0]!;
+  // Ungated: a pack's chrome re-points --foreground with no preference set, so a
+  // restore that waits for the attribute leaves every export on the pack's ink.
+  assert.equal(isA11yGated(rule), false, `${rule.rel}:${rule.line}: "${rule.selector}" is gated on a preference - ` +
+    'a design pack\'s chrome re-points --foreground with no preference set, so the canvas must be held unconditionally');
+  // In the a11y layer, the last one, so no view or chrome sheet can undo the restore.
+  assert.equal(rule.rel, 'styles/parts/a11y.css');
+  assert.deepEqual(decls(rule.body).map(([prop]) => prop).sort(), ['--foreground', 'color'],
+    'the token AND the colour: a tool that reads hsl(var(--foreground)) directly needs the base value too');
+  // Every surface a render is captured from (#tool-canvas carries .tool-canvas,
+  // and #tool-canvas-outer is the frame around it, not a render).
+  for (const surface of PROTECTED) {
+    if (surface === '#tool-canvas' || surface === '#tool-canvas-outer') continue;
+    assert.ok(new RegExp(`${surface.replace(/[.#]/g, '\\$&')}(?![-\\w])`).test(rule.selector),
+      `${rule.rel}:${rule.line}: the canvas boundary does not hold ${surface} - exports captured from it take the re-pointed ink`);
+  }
 });
 
 // ── (c) Large text: one multiplier, defaulting to 1 ──────────────────────────

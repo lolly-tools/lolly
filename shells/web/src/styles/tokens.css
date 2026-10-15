@@ -459,15 +459,17 @@
   --background:             0 0% 100%;
   --foreground:             224 71% 4%;
   /* The theme's ink as the RENDER CANVAS sees it - always the base value, never
-     the high-contrast one. parts/base.css's `body { color: hsl(var(--foreground)) }`
-     is inherited by tool markup (most templates set no colour of their own and
-     several draw with `currentColor`), on the live canvas AND on the offscreen
-     stages an export is captured from. Following the THEME there is intended and
-     long-standing; following a comfort PREFERENCE is not - it would change
-     exported pixels and bake into cached session thumbnails. So each theme
-     declares its ink twice and the canvas boundary in parts/a11y.css restores
-     this one. Keep the two in step; brand-vars.ts emits the same pair for a
-     runtime-constructed brand theme. */
+     the high-contrast one and never a design pack's chrome ink.
+     parts/base.css's `body { color: hsl(var(--foreground)) }` is inherited by
+     tool markup (most templates set no colour of their own and several draw
+     with `currentColor`), on the live canvas AND on the offscreen stages an
+     export is captured from. Following the THEME there is intended and
+     long-standing; following a comfort PREFERENCE or a pack's room is not - it
+     would change exported pixels and bake into cached session thumbnails. So
+     each theme declares its ink twice and the canvas boundary in
+     parts/a11y.css always restores this one. Keep the two in step;
+     brand-vars.ts emits the same pair for a runtime-constructed brand theme,
+     and a pack's `color.chrome.*` group never sets this one. */
   --foreground-canvas:      224 71% 4%;
 
   --card:                   0 0% 99%;

@@ -139,8 +139,9 @@ The slots set the same properties Lolly's own `tokens.css` sets, so everything
 in the app that reads a surface follows the pack. Four things are never set from
 here:
 
-- the ink of the render canvas (`--foreground-canvas`), so a pack's chrome cannot
-  move a pixel of an export
+- the ink of the render canvas (`--foreground-canvas`): the canvas and the
+  export stages always take the theme's own ink back at their edge, whatever
+  `ink` the pack states, so a pack's chrome cannot move a pixel of an export
 - the accent (`--primary` and `--ring`), which the semantic primaries own
 - the destructive fills
 - the radius and spacing

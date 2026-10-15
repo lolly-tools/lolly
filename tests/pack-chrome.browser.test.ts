@@ -10,6 +10,11 @@
  *     dark blocks declare computes to tokens.css's own value, and so does the page: the
  *     pack's light and dark chrome steps aside and Lolly's measured room is what shows.
  *     The unsaved colour is not a surface and stays.
+ *  3. The render canvas and the export stages keep the theme's own ink, with lolly-start's
+ *     newsprint and with Opal, High contrast on or off. The page also loads the app's
+ *     layer order with parts/base.css (the body colour tool markup inherits) and
+ *     parts/a11y.css (the canvas boundary), because a pack's `ink` re-points
+ *     --foreground and only that boundary keeps it out of an export.
  *
  * A green run without Chromium means "not exercised": the file skips by name where
  * Playwright's Chromium is not installed (`pnpm exec playwright install chromium`).
@@ -27,7 +32,16 @@ import { apcaLcAbs, chromeBrandCss, hexToHslTriple, tokenValueToHex } from '../s
 import { resolvePackChrome } from '../shells/web/src/lib/brand-chrome.ts';
 
 const REPO = fileURLToPath(new URL('..', import.meta.url));
-const TOKENS_CSS = readFileSync(join(REPO, 'shells/web/src/styles/tokens.css'), 'utf8');
+const STYLES = join(REPO, 'shells/web/src/styles');
+const TOKENS_CSS = readFileSync(join(STYLES, 'tokens.css'), 'utf8');
+/** The app's layer order (styles/app.css), with parts/base.css and parts/a11y.css in the
+ *  layers app.css imports them into. */
+const LAYERED_CSS = (() => {
+  const order = /@layer [\w\s,-]+;/.exec(readFileSync(join(STYLES, 'app.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, ''));
+  assert.ok(order, 'styles/app.css declares its layer order');
+  const layer = (name: string, file: string): string => `@layer ${name} {\n${readFileSync(join(STYLES, file), 'utf8')}\n}`;
+  return [order[0], layer('base', 'parts/base.css'), layer('a11y', 'parts/a11y.css')].join('\n');
+})();
 
 async function chromiumOrSkip(): Promise<{ chromium: BrowserType } | string> {
   let chromium: BrowserType;
@@ -45,10 +59,11 @@ let browser: Browser | undefined;
 before(async () => { if (typeof browserOrReason !== 'string') browser = await browserOrReason.chromium.launch({ headless: true }); });
 after(async () => { await browser?.close(); });
 
-// ── The Opal fixture, resolved through the engine per theme ──────────────────
+// ── The packs, resolved through the engine per theme ─────────────────────────
 
-const OPAL = await (async () => {
-  const doc = JSON.parse(readFileSync(join(REPO, 'tests/fixtures/pack-chrome/opal.json'), 'utf8'));
+/** A token file's primaries and chrome, read as the web bridge reads them. */
+async function pack(file: string) {
+  const doc = JSON.parse(readFileSync(join(REPO, file), 'utf8'));
   const tokens = {
     resolve: async (ref: string, opts: { theme?: string } = {}) => createTokenSet(doc, { theme: opts.theme }).resolve(ref),
     themes: async () => createTokenSet(doc).themes(),
@@ -58,9 +73,13 @@ const OPAL = await (async () => {
     onPrimary: tokenValueToHex(await tokens.resolve('{color.semantic.on-primary}', { theme })),
   });
   return { light: await pair('light'), dark: await pair('dark'), chrome: await resolvePackChrome(tokens, { toHex: tokenValueToHex, lc: apcaLcAbs }) };
-})();
+}
+const OPAL = await pack('tests/fixtures/pack-chrome/opal.json');
 const FULL_SHEET = chromeBrandCss(OPAL.light, OPAL.dark, OPAL.chrome);
 const CHROME_ONLY_SHEET = chromeBrandCss({ primary: null, onPrimary: null }, { primary: null, onPrimary: null }, OPAL.chrome);
+/** lolly-start as the app boots it: its primaries and Lolly's newsprint room. */
+const NEWSPRINT = await pack('brands/lolly-start/catalog/assets/lolly/tokens/brand.json');
+const NEWSPRINT_SHEET = chromeBrandCss(NEWSPRINT.light, NEWSPRINT.dark, NEWSPRINT.chrome);
 
 // ── tokens.css's own values, read as text ────────────────────────────────────
 
@@ -150,6 +169,69 @@ test("with High contrast on, Lolly's High contrast room shows in light and dark,
       // The unsaved colour is not a surface: it stays under High contrast.
       assert.equal((await computed(p, 'html', ['--brand-warn']))['--brand-warn'], theme === 'light' ? '#b57c0a' : '#fac044');
       await p.close();
+    }
+  }
+});
+
+// ── The render canvas ────────────────────────────────────────────────────────
+
+/** A page with the app's layered base and a11y sheets, tokens.css, a chrome sheet and
+ *  one line of tool markup in each surface an export is captured from. */
+async function openCanvas(sheet: string, html: { theme: 'light' | 'dark' | 'brand'; high: boolean }): Promise<Page> {
+  const p = await browser!.newPage();
+  p.on('pageerror', (e) => { throw e; });
+  const attrs = `data-theme="${html.theme}"${html.high ? ' data-a11y-contrast="high"' : ''}`;
+  await p.setContent(`<!doctype html><html ${attrs}><head><style>${LAYERED_CSS}</style><style>${TOKENS_CSS}</style>`
+    + `<style id="brand-chrome-vars">${sheet}</style></head><body>`
+    + '<div class="tool-canvas" id="tool-canvas"><p class="ink" id="in-canvas">Ink</p></div>'
+    + '<div id="tool-content"><p class="ink" id="in-content">Ink</p></div>'
+    + '<div class="pro-export-canvas"><p class="ink" id="in-export-stage">Ink</p></div>'
+    + '<div class="me-scale"><div class="me-canvas"><p class="ink" id="in-multi-edit">Ink</p></div></div>'
+    + '</body></html>');
+  return p;
+}
+
+test("the render canvas keeps the theme's own ink with a pack's chrome, High contrast on or off", { skip }, async () => {
+  for (const [name, sheet, chrome] of [['newsprint', NEWSPRINT_SHEET, NEWSPRINT.chrome], ['Opal', FULL_SHEET, OPAL.chrome]] as const) {
+    for (const theme of ['light', 'dark', 'brand'] as const) {
+      for (const high of [false, true]) {
+        const label = `${name}, ${high ? 'High contrast ' : ''}${theme}`;
+        const p = await openCanvas(sheet, { theme, high });
+        const got = await p.evaluate(() => {
+          const page = getComputedStyle(document.documentElement);
+          const canvasInk = page.getPropertyValue('--foreground-canvas').trim();
+          const probe = document.createElement('i');
+          probe.style.color = `hsl(${canvasInk})`;
+          document.body.append(probe);
+          const want = getComputedStyle(probe).color;
+          probe.remove();
+          return {
+            canvasInk,
+            want,
+            pageInk: page.getPropertyValue('--foreground').trim(),
+            bodyColor: getComputedStyle(document.body).color,
+            inks: [...document.querySelectorAll('.ink')].map((el) => ({
+              id: el.id, color: getComputedStyle(el).color, foreground: getComputedStyle(el).getPropertyValue('--foreground').trim(),
+            })),
+          };
+        });
+        // The canvas ink is the theme's own: tokens.css's for light and dark, the
+        // constructed brand theme's for brand (neither pack states brand chrome).
+        if (theme !== 'brand') assert.equal(got.canvasInk, STATIC[theme].get('--foreground-canvas'), `${label}: the static canvas ink`);
+        assert.equal(got.inks.length, 4);
+        for (const ink of got.inks) {
+          assert.equal(ink.color, got.want, `${label}: tool markup in #${ink.id} takes the canvas ink`);
+          assert.equal(ink.foreground, got.canvasInk, `${label}: tool markup in #${ink.id} reads --foreground as the canvas ink`);
+        }
+        // Not vacuous: outside the canvas the page wears another ink, the pack's
+        // in light and dark and the High contrast one in dark and brand.
+        if (!high && theme !== 'brand') {
+          assert.equal(got.pageInk, triple(chrome[theme]!.ink!), `${label}: the pack's ink is on the page`);
+          assert.notEqual(got.bodyColor, got.want, `${label}: the body text wears the pack's ink`);
+        }
+        if (high && theme !== 'light') assert.notEqual(got.pageInk, got.canvasInk, `${label}: the High contrast ink is on the page`);
+        await p.close();
+      }
     }
   }
 });
