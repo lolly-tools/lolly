@@ -77,6 +77,8 @@ export interface ToolIndex {
 
 /** The asset catalog index as fetched from /catalog/assets/index.json. */
 interface AssetIndex {
+  pagedProviders?: Array<{ id: string; label: string; count: number }>;
+  pendingProviders?: string[];
   brandTokens?: string | null;
   assets: AssetMetaRecord[];
   /** Curated asset ids every user starts with favourited (seeded once, on first run -
@@ -147,7 +149,7 @@ interface SyncHost {
   log(level: string, msg: string, data?: Record<string, unknown>): void;
   assets: {
     _syncFromIndex(assets: AssetMetaRecord[], source?: { origin: string; tokensHead?: string | null }): Promise<unknown>;
-    _pruneStale(assets: AssetMetaRecord[], sessionRefs: Set<string>, keepIds?: Set<string>): Promise<{ blobs: number; meta: number }>;
+    _pruneStale(assets: AssetMetaRecord[], sessionRefs: Set<string>, keepIds?: Set<string>, deferredProviders?: readonly string[]): Promise<{ blobs: number; meta: number }>;
     _hasBlob(key: string): Promise<boolean>;
     _cacheBlob(key: string, blob: Blob): Promise<unknown>;
     /** Fetch-and-cache one format's bytes, sharing whatever download already in
@@ -254,7 +256,7 @@ export async function prepareAssetCatalogFetch(signInRequired?: () => Promise<bo
       return null;
     }
     origin = getInstanceBase() || window.location.origin;
-    return { origin, response: await conditionalFetch(instancePath(`${CATALOG_BASE}/assets/index.json`), 'assets-index', false) };
+    return { origin, response: await conditionalFetch(instancePath(`${CATALOG_BASE}/assets/index.json?paged=1`), 'assets-index', false) };
   } catch (error) { return { origin, error }; }
 }
 
@@ -330,8 +332,8 @@ async function syncVerifiedCatalog(host: SyncHost, onAssetsReady?: () => unknown
   if (!snapshot) return;
   // Legacy envelopes do not cover asset bytes; their transition path stays visibly unchecked.
   const assets = snapshot.assetText !== undefined ? new Response(snapshot.assetText, { headers: { 'Content-Type': 'application/json' } })
-    : await instanceFetch(instancePath(`${CATALOG_BASE}/assets/index.json`), { cache: 'no-cache' });
-  if (!assets.ok) throw notOk(assets, '/catalog/assets/index.json');
+    : await instanceFetch(instancePath(`${CATALOG_BASE}/assets/index.json?paged=1`), { cache: 'no-cache' });
+  if (!assets.ok) throw notOk(assets, '/catalog/assets/index.json?paged=1');
   await syncAssets(host, onAssetsReady, maintenanceGate, Promise.resolve({ origin: getInstanceBase() || window.location.origin, response: assets }));
   const index = JSON.parse(snapshot.toolText) as ToolIndex;
   if (!Array.isArray(index.tools)) throw new Error('The signed tool index has no tools list.');
@@ -404,7 +406,7 @@ async function conditionalFetch(url: string, etagKey: string, persistValidator =
   if (stored?.etag) headers['If-None-Match'] = stored.etag;
   else if (stored?.lastModified) headers['If-Modified-Since'] = stored.lastModified;
 
-  const assetPath = `${CATALOG_BASE}/assets/index.json`;
+  const assetPath = `${CATALOG_BASE}/assets/index.json?paged=1`;
   const boot = !stored && url === instancePath(assetPath) ? adoptBootFetch(assetPath) : null;
   const resp = await (boot ?? instanceFetch(url, { headers }));
   if (resp.status !== 304 && !resp.ok) throw notOk(resp, url);
@@ -616,7 +618,7 @@ async function syncAssets(host: SyncHost, onAssetsReady?: () => unknown, mainten
     resp = prepared.response;
     if (resp) storeCatalogValidator(resp, 'assets-index');
   } else {
-    resp = await conditionalFetch(instancePath(`${CATALOG_BASE}/assets/index.json`), 'assets-index');
+    resp = await conditionalFetch(instancePath(`${CATALOG_BASE}/assets/index.json?paged=1`), 'assets-index');
   }
   if (!resp) {
     host.log('info', 'Asset catalog unchanged (304)');
@@ -681,7 +683,8 @@ async function pruneStaleAssets(host: SyncHost, index: AssetIndex): Promise<void
       }
     }
   } catch { /* pins unreadable - prune with session refs only */ }
-  const pruned = await host.assets._pruneStale(index.assets, sessionRefs, keepIds);
+  const deferred = [...(index.pagedProviders?.map(provider => provider.id) ?? []), ...(index.pendingProviders ?? [])];
+  const pruned = await host.assets._pruneStale(index.assets, sessionRefs, keepIds, deferred);
   if (pruned.blobs || pruned.meta) {
     host.log('info', `Pruned stale assets: ${pruned.blobs} blobs, ${pruned.meta} metadata entries`);
   }
@@ -726,7 +729,7 @@ export async function syncCorePrefetch(host: SyncHost): Promise<void> {
     // network fetch if it ran a 304 (unchanged) and never stashed one.
     let index = cachedAssetIndex;
     if (!index) {
-      const resp = await instanceFetch(instancePath(`${CATALOG_BASE}/assets/index.json`));
+      const resp = await instanceFetch(instancePath(`${CATALOG_BASE}/assets/index.json?paged=1`));
       if (!resp.ok) return;
       index = absolutizeAssetUrls(await resp.json() as AssetIndex);
     }
@@ -767,7 +770,7 @@ export async function prefetchAssetsById(host: SyncHost, ids: readonly string[])
   if (!ids.length) return;
   let index = cachedAssetIndex;
   if (!index) {
-    const resp = await instanceFetch(instancePath(`${CATALOG_BASE}/assets/index.json`));
+    const resp = await instanceFetch(instancePath(`${CATALOG_BASE}/assets/index.json?paged=1`));
     if (!resp.ok) throw new Error(`HTTP ${resp.status} fetching asset index`);
     index = absolutizeAssetUrls(await resp.json() as AssetIndex);
     cachedAssetIndex = index;
@@ -794,7 +797,7 @@ export interface CatalogDownloadSummary {
 async function loadAssetIndex(fresh = false): Promise<AssetIndex | null> {
   if (cachedAssetIndex && !fresh) return cachedAssetIndex;
   try {
-    const resp = await instanceFetch(instancePath(`${CATALOG_BASE}/assets/index.json`));
+    const resp = await instanceFetch(instancePath(`${CATALOG_BASE}/assets/index.json?paged=1`));
     if (!resp.ok) return cachedAssetIndex;
     cachedAssetIndex = absolutizeAssetUrls(await resp.json() as AssetIndex);
     return cachedAssetIndex;

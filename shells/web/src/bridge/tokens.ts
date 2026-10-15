@@ -184,7 +184,7 @@ export interface WebTokensAPI extends TokensAPI {
   bust(opts?: { lock?: boolean }): void;
 }
 
-const ASSET_INDEX_URL = '/catalog/assets/index.json';
+const ASSET_INDEX_URL = '/catalog/assets/index.json?paged=1';
 
 /** The user-installed brand tokens' well-known asset id. Its presence flips
  *  discovery away from the catalog's tokens (e.g. `lolly/tokens/brand`) - the

@@ -17,7 +17,7 @@ export async function removalFallback(registry: DesignSystemRegistry, id: string
   if (active.id !== id || !owned || owned !== getInstanceBase()) return next;
   const origin = isTauriShell() ? '' : window.location.origin;
   try {
-    const response = await instanceFetch('/catalog/assets/index.json', { cache: 'no-store', signal: AbortSignal.timeout(5000) });
+    const response = await instanceFetch('/catalog/assets/index.json?paged=1', { cache: 'no-store', signal: AbortSignal.timeout(5000) });
     if (!response.ok) throw new Error('Catalogue unavailable');
     const index = await response.json() as { brandTokens?: string | null; assets?: Array<{
       id: string; type?: string; name?: string; version?: string; checksum?: string;

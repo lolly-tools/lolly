@@ -159,7 +159,7 @@
         if (window.__TAURI_INTERNALS__) return;
         if ('sbt-tool-index' in localStorage || 'sbt-catalog:assets-index' in localStorage) return;
         if ('lolly:catalog-refused:same-origin' in localStorage) return;
-        var u = '/catalog/assets/index.json';
+        var u = '/catalog/assets/index.json?paged=1';
         var p = fetch(u, { credentials: 'same-origin' });
         p.catch(function () { /* offline - catalog sync owns the fallback */ });
         (window.__lollyBootFetch = window.__lollyBootFetch || {})[u] = p;

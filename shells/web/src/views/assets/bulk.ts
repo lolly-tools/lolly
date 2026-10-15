@@ -66,7 +66,9 @@ export const allSelectedHidden = (cat: CatCtx): boolean =>
 // stays honest. Runs at the top of every render().
 export function pruneSelection(cat: CatCtx): void {
   const { selected } = cat;
-  pruneSelectionRule(selected, selectableIds(cat));
+  const allowed = selectableIds(cat);
+  if (cat.remote?.browser.supported) for (const id of selected) { const ref = cat.assetById.get(id); if (ref && cat.remote.shared(ref)) allowed.add(id); }
+  pruneSelectionRule(selected, allowed);
 }
 export function toggleSelect(cat: CatCtx, id: string): void {
   const { selected, viewEl } = cat;

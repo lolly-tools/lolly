@@ -979,3 +979,14 @@ html[data-a11y-motion="reduce"] .cat-crop-img { transition: none; }
 .asset-preview-status { position: absolute; left: 50%; bottom: var(--sp-6); transform: translateX(-50%); display: flex; align-items: center; gap: var(--sp-3); max-width: calc(100% - 48px); padding: var(--sp-3) var(--sp-4); border: 1px solid hsl(var(--border)); border-radius: var(--radius); background: hsl(var(--card)); color: hsl(var(--foreground)); font-size: var(--fs-sm); box-shadow: var(--ui-elevation-control); z-index: 2; }
 .asset-preview-status[hidden] { display: none; }
 .asset-preview-status button { font: inherit; color: inherit; background: hsl(var(--background)); border: 1px solid hsl(var(--border)); border-radius: var(--radius); min-height: 44px; padding: var(--sp-2) var(--sp-3); cursor: pointer; white-space: nowrap; }
+
+.cat-remote { padding: 1rem; border-block-end: 1px solid hsl(var(--border)); }
+.cat-remote-controls { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; margin-block: .75rem; }
+.cat-remote-controls select { max-width: min(24rem, 80vw); }
+.cat-remote-note { color: hsl(var(--muted-foreground)); font-size: .9em; }
+
+.cat-shared-field { display: grid; gap: .35rem; margin-block: .75rem; }
+.cat-shared-field input, .cat-shared-field select { width: 100%; }
+
+.cat-remote-controls label { display: inline-flex; align-items: center; gap: .5rem; }
+.cat-remote-controls .field-input { width: auto; min-height: 2.25rem; }

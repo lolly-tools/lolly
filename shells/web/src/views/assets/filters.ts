@@ -133,7 +133,7 @@ export function assetsSectionHtml(cat: CatCtx): string {
   // A delete can empty the active filter's bucket - its toolbar button would vanish
   // (shownFilters below only offers non-empty buckets) while the filter kept hiding
   // every asset with no visible control explaining why. Fall back to All instead.
-  if (cat.typeFilter !== 'all' && !cat.allAssets.some(a => matchesTypeRule(a, cat.typeFilter))) cat.typeFilter = 'all';
+  if ((!cat.remote || cat.remote.browser.supported === false) && cat.typeFilter !== 'all' && !cat.allAssets.some(a => matchesTypeRule(a, cat.typeFilter))) cat.typeFilter = 'all';
   // Filter by search first; the count + category buckets both read the matched set.
   const visible = visibleAssets(cat).filter(cat.filters.matchesQuery).filter(cat.filters.matchesType).filter(cat.filters.playableHere);
 
@@ -147,6 +147,7 @@ export function assetsSectionHtml(cat: CatCtx): string {
       </div>`;
   }
 
+  if (cat.allAssets.length === 0 && cat.remote?.browser.supported) return uploadsSectionHtml(cat, []);
   if (cat.allAssets.length === 0) {
     // A genuinely empty library still leads with the uploads section - its drop area
     // is exactly what a brand-new profile needs first.

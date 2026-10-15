@@ -2,6 +2,7 @@
 /** DAM file variations share a group while keeping distinct document identities. */
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 import { buildFileAssetId, parseFileAssetId, stripAssetModifiers } from '../../../../engine/src/asset-modifiers.ts';
+import { versionedTileUrl } from './asset-thumb-src.ts';
 import { instancePath } from './instance.ts';
 export interface AssetFile { id: string; format: string; url: string; name: string; size?: number; width?: number; height?: number; thumbnail?: string; role?: 'original' | 'rendition' }
 const number = (n: unknown): n is number => typeof n === 'number' && Number.isFinite(n) && n > 0;
@@ -38,7 +39,8 @@ export function selectAssetFile(ref: AssetRef, file: AssetFile): AssetRef {
   // The group's own thumb pictures the group's primary file, so it only stands in for
   // the selected file when that IS the primary; any other variation without a preview
   // of its own draws itself rather than a picture of a different file.
-  const url = instancePath(selected.url), samePrimary = url === ref.url || selected.url === ref.url;
+  const rawUrl = instancePath(selected.url), samePrimary = rawUrl === ref.url.split('?')[0] || selected.url === ref.url.split('?')[0];
+  const url = versionedTileUrl(rawUrl, ref);
   const thumb = selected.thumbnail ? instancePath(selected.thumbnail) : undefined;
   return { ...ref, id: buildFileAssetId(group, file.id), type: fileAssetType(selected.format), format: selected.format, url, width: selected.width, height: selected.height,
     meta: { ...ref.meta, name: selected.name, assetGroupName: ref.meta?.assetGroupName ?? ref.meta?.name, assetGroupId: group, selectedFile: selected.id,

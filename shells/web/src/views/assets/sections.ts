@@ -198,10 +198,11 @@ export const bodyHtml = (cat: CatCtx): string => {
   return bodyMarkup(cat);
 };
 const bodyMarkup = (cat: CatCtx): string =>
-  `${cat.filters.assetsSectionHtml()}${(cat.query || cat.typeFilter !== 'all' || !['all', 'catalog'].includes(cat.sourceSelection ?? 'all')) ? '' : swatchesSectionHtml(cat) + fontsSectionHtml(cat)}`;
+  `${cat.remote?.html() ?? ''}${cat.filters.assetsSectionHtml()}${(cat.query || cat.typeFilter !== 'all' || !['all', 'catalog'].includes(cat.sourceSelection ?? 'all')) ? '' : swatchesSectionHtml(cat) + fontsSectionHtml(cat)}`;
 export const bulkBarHtml = (cat: CatCtx): string => { const { bulkBarCfg } = cat; return buildBulkBar(bulkBarCfg); };
 export function render(cat: CatCtx): void {
   const { viewEl } = cat;
+  cat.remote?.sync(); cat.remote?.reconcile();
   cat.bulk.pruneSelection();
   viewEl.innerHTML = `
       <div class="catalog"${cardSizeAttr(cat.cardSize)}${layoutAttr(cat.catLayout)}${densityAttr(cat.catDensity)}>
@@ -321,6 +322,7 @@ export function renderBody(cat: CatCtx): void {
   const { viewEl } = cat;
   const body = viewEl.querySelector<HTMLElement>('.catalog-body');
   if (!body) { render(cat); return; }
+  cat.remote?.sync(); cat.remote?.reconcile();
   cat.bulk.pruneSelection();
   body.innerHTML = bodyHtml(cat);
   mountFavStrip(cat);

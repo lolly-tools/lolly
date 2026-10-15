@@ -80,7 +80,7 @@ async function load(): Promise<{ snapshot: CatalogSnapshot; integrity: ToolInteg
   const snapshot = await fetchSignedCatalogSnapshot({
     publicKey,
     fetch: async (path, init) => {
-      const resp = await instanceFetch(instancePath(path), init);
+      const resp = await instanceFetch(instancePath(path + (path.includes('?') ? '&' : '?') + 'paged=1'), init);
       if (isAccessRefused(resp.status)) {
         noteCatalogRefused();
         throw new CatalogRefusedError(resp.status, path);

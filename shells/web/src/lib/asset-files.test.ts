@@ -50,3 +50,10 @@ test('source file roles survive selection while older metadata stays compatible'
   assert.equal(selectAssetFile(selected, files[1]!).meta?.fileRole, undefined);
   assert.equal(assetFiles({ assetFiles: [{ ...files[0], role: 'invented' }] })[0]!.role, undefined);
 });
+
+test('a provider file selection carries its observed version to the protected byte route', () => {
+  const observed = { ...ref, meta: { ...ref.meta, provider: 'brand' } };
+  const selected = selectAssetFile(observed, files[1]!);
+  assert.equal(selected.url, `${files[1]!.url}?v=1`);
+  assert.equal(selected.id, buildFileAssetId(group, second));
+});

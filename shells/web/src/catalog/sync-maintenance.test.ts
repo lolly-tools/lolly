@@ -21,7 +21,7 @@ globalThis.location = dom.window.location as unknown as typeof globalThis.locati
 globalThis.localStorage = dom.window.localStorage;
 
 const TOOLS = { version: '1', generatedAt: 'g1', tools: [{ id: 'qr-code', name: 'QR Code' }] };
-const ASSETS = { assets: [{ id: 'lolly/logo/primary', version: '1', tier: 'core', formats: [{ format: 'svg', url: '/catalog/assets/logo.svg' }] }] };
+const ASSETS = { pendingProviders: ['cold'], pagedProviders: [{ id: 'large', label: 'Large', count: 10_000 }], assets: [{ id: 'lolly/logo/primary', version: '1', tier: 'core', formats: [{ format: 'svg', url: '/catalog/assets/logo.svg' }] }] };
 let assetStatus = 200;
 let toolRequests = 0;
 let assetRequests = 0;
@@ -30,7 +30,7 @@ let lastAssetHeaders = new Headers();
 globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) => {
   const url = String(input instanceof Request ? input.url : input);
   if (url.endsWith('/catalog/tools/index.json')) { toolRequests++; return Response.json(TOOLS); }
-  if (url.endsWith('/catalog/assets/index.json')) {
+  if (url.endsWith('/catalog/assets/index.json?paged=1')) {
     assetRequests++;
     lastAssetHeaders = new Headers(init?.headers);
     if (assetStatus === 304) return new Response(null, { status: 304 });
@@ -42,13 +42,13 @@ globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) =>
 const { prepareAssetCatalogFetch, syncCatalog } = await import('./sync.ts');
 const { _setBaseForTests } = await import('../lib/instance.ts');
 
-type Call = { name: string; assets?: unknown[] };
+type Call = { name: string; assets?: unknown[]; deferred?: readonly string[] };
 function mockHost(calls: Call[]) {
   return {
     log: () => {},
     assets: {
       _syncFromIndex: async (assets: unknown[]) => { calls.push({ name: 'meta-stored', assets }); },
-      _pruneStale: async (assets: unknown[]) => { calls.push({ name: 'prune', assets }); return { blobs: 0, meta: 0 }; },
+      _pruneStale: async (assets: unknown[], _refs: Set<string>, _keep?: Set<string>, deferred?: readonly string[]) => { calls.push({ name: 'prune', assets, deferred }); return { blobs: 0, meta: 0 }; },
       _hasBlob: async () => false,
       _cacheBlob: async () => {},
       _ensureBlob: async () => null,
@@ -133,6 +133,7 @@ test('the sync resolves while the gate is shut; the prune starts only after it o
   const prune = calls.find((c) => c.name === 'prune');
   assert.ok(prune, 'the prune runs once the gate opens');
   assert.deepEqual(prune.assets, ASSETS.assets);
+  assert.deepEqual(prune.deferred, ['large', 'cold']);
 });
 
 test('without a gate the prune runs before the sync resolves, as other callers expect', async () => {
@@ -195,7 +196,7 @@ test('a prepared 304 response keeps the cached metadata and opens the welcome de
 test('a fresh asset request begun by the document is adopted once', async () => {
   localStorage.clear();
   const before = assetRequests, calls: Call[] = [];
-  const path = '/catalog/assets/index.json';
+  const path = '/catalog/assets/index.json?paged=1';
   window.__lollyBootFetch = { [path]: fetch(path) };
   const prepared = prepareAssetCatalogFetch();
   await prepared;

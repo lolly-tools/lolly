@@ -55,6 +55,7 @@ import { DOWNLOAD_ICON, PENCIL_ICON, REPLACE_ICON, STAR_ICON, TAG_ICON, TRASH_IC
 import type { CatalogHost } from './assets/shared.ts';
 import { actionsOps } from './assets/actions.ts';
 import type { AssetPreviewOptions, CatCtx } from './assets/context.ts';
+import { remoteOps } from './assets/remote.ts';
 import { sourcesOps } from './assets/sources.ts';
 import { tilesOps } from './assets/tiles.ts';
 import { thumbsOps } from './assets/thumbs.ts';
@@ -478,6 +479,10 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
     cat.downloads.closeDownloadDialog();
     closeConfirmDialogs();
   };
+
+  cat.remote = remoteOps(cat);
+  const cleanupWithRemote = (viewEl as ViewElement)._cleanup;
+  (viewEl as ViewElement)._cleanup = () => { cat.remote?.dispose(); cleanupWithRemote?.(); };
 
   // Loading skeleton (plans/132 WP-M): a toolbar shell and one quiet grid row
   // paint immediately while reload() is in flight, replaced wholesale by the

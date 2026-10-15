@@ -55,7 +55,7 @@ test('synced metadata + cached blob resolve fully offline (no fetch at all)', as
 test('falls back to the catalog index, then the asset file, when nothing is synced', async () => {
   const fetchLog: string[] = [];
   stubFetch({
-    '/catalog/assets/index.json': { assets: [
+    '/catalog/assets/index.json?paged=1': { assets: [
       { id: 'acme/logo', type: 'vector', formats: [{ url: '/logo.svg' }] },
       { id: 'acme/tokens/brand', type: 'tokens', formats: [{ url: '/catalog/assets/acme/tokens/brand.json' }] },
     ] },
@@ -67,7 +67,7 @@ test('falls back to the catalog index, then the asset file, when nothing is sync
   } });
   assert.equal(await api.resolve('color.brand.jungle'), '#30ba78');
   // First tokens-type asset in index order wins, then its formats[0].url is fetched.
-  assert.deepEqual(fetchLog, ['/catalog/assets/index.json', '/catalog/assets/acme/tokens/brand.json']);
+  assert.deepEqual(fetchLog, ['/catalog/assets/index.json?paged=1', '/catalog/assets/acme/tokens/brand.json']);
 });
 
 test('fresh boot (IDB open, asset-meta empty → resolves NULL) still reaches the index fallback', async () => {
@@ -76,7 +76,7 @@ test('fresh boot (IDB open, asset-meta empty → resolves NULL) still reaches th
   // on throw would silently lose tokens on every online cold boot.
   const fetchLog: string[] = [];
   stubFetch({
-    '/catalog/assets/index.json': { assets: [
+    '/catalog/assets/index.json?paged=1': { assets: [
       { id: 'acme/tokens/brand', type: 'tokens', formats: [{ url: '/catalog/assets/acme/tokens/brand.json' }] },
     ] },
     '/catalog/assets/acme/tokens/brand.json': DOC,
@@ -86,7 +86,7 @@ test('fresh boot (IDB open, asset-meta empty → resolves NULL) still reaches th
     _getBlob: async () => null,
   } });
   assert.equal(await api.resolve('color.brand.jungle'), '#30ba78');
-  assert.deepEqual(fetchLog, ['/catalog/assets/index.json', '/catalog/assets/acme/tokens/brand.json']);
+  assert.deepEqual(fetchLog, ['/catalog/assets/index.json?paged=1', '/catalog/assets/acme/tokens/brand.json']);
 });
 
 test('total failure yields an empty set that is never cached - the next call retries', async () => {
@@ -137,10 +137,10 @@ test('failed and overlapping asset syncs settle so token fallback can retry', as
   await pendingAssetSync();
   assert.equal(pendingAssetSync(), null);
   const fetchLog: string[] = [];
-  stubFetch({ '/catalog/assets/index.json': { assets: [{ id: 'acme/tokens/brand', type: 'tokens', formats: [] }] } }, fetchLog);
+  stubFetch({ '/catalog/assets/index.json?paged=1': { assets: [{ id: 'acme/tokens/brand', type: 'tokens', formats: [] }] } }, fetchLog);
   const api = createTokensAPI({ assets: { _findMetaByType: async () => null, _getBlob: async () => docBlob(DOC) } });
   assert.equal(await api.resolve('color.brand.jungle'), '#30ba78');
-  assert.deepEqual(fetchLog, ['/catalog/assets/index.json']);
+  assert.deepEqual(fetchLog, ['/catalog/assets/index.json?paged=1']);
 });
 
 test('bust() drops the memoised document and per-theme sets', async () => {
@@ -524,7 +524,7 @@ test('the cold-load index fallback applies the descendant rule too (a version is
   const fetchLog: string[] = [];
   stubFetch({
     // Version-first, exactly as a generated pack index can order them.
-    '/catalog/assets/index.json': { assets: [
+    '/catalog/assets/index.json?paged=1': { assets: [
       { id: 'acme/tokens/brand/v1', type: 'tokens', brandLock: true, formats: [{ url: '/v1.json' }] },
       { id: 'acme/tokens/brand', type: 'tokens', formats: [{ url: '/head.json' }] },
     ] },

@@ -139,7 +139,7 @@ interface AssetSummary {
 // feed the read-only counts).
 async function fetchAssetSummary(): Promise<AssetSummary | null> {
   try {
-    const resp = await instanceFetch(instancePath('/catalog/assets/index.json'));
+    const resp = await instanceFetch(instancePath('/catalog/assets/index.json?paged=1'));
     if (!resp.ok) return null;
     // Response.json() is `any` in lib.dom; the parsed index is an array of
     // entries or an object wrapping one under `assets`.

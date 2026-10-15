@@ -532,6 +532,10 @@ export function buildSheet(dt: DetailsCtx): void {
   const fileSlot = document.createElement('div');
   dlg.querySelector('.cat-details-body')?.prepend(fileSlot);
   mountAssetFileList(fileSlot, ref, selected => cat.details.openDetails(selected, dt.initialTheme, dt.initialTreatment));
+  if (ref.meta?.provider || ref.id.startsWith('inst/')) {
+    const metadata = document.createElement('div'); fileSlot.append(metadata);
+    void import('./shared-metadata.ts').then(({ mountSharedMetadata }) => mountSharedMetadata(metadata, ref, () => { void cat.remote?.load(); }));
+  }
   dt.previewStatusDispose = mountAssetPreviewStatus(dlg.querySelector<HTMLElement>('.cat-details-preview')!, Number(ref.meta?.bytes ?? ref.meta?.size ?? 0));
   cat.detailsDialog = dlg; dlg.dataset.viewerProvider = String(ref.meta?.provider ?? '');
   cat.detailsModal = modal;
