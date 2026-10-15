@@ -40,6 +40,14 @@ draft shape
 
 This is a draft shape for review. Nothing is added to `packages/core` or to `schemas/` until the counterexamples in plan section 17 pass as contract fixtures (plan status line and section 18, first pull requests). The shape is drawn to meet `MotionCapabilitiesV1` and its still-image sibling, not to replace them (plan section 12, F2).
 
+## Resource and search capabilities
+
+The DAM review applies the same data-with-limits rule to sources and processing services (plan 313). A host should report original and preview readiness separately, whether restore or revision retrieval is supported, and the formats and limits that actually apply. Seeing a preview must never imply that an editable original is available. Missing original access blocks the operation that needs it while permitted metadata inspection remains possible (R10, R11).
+
+Search capabilities must distinguish supported filters/facets, semantic availability, result caps and completeness of counts. Permission checks apply before results, facets or counts are exposed. A capped candidate set must never be described as the whole library. These detailed source/search capabilities are proposed projections; Work's existing provider booleans do not implement them (`lolly-work/server/src/catalog/providers/types.ts`).
+
+A capability declaration never grants model processing, data egress or spend authority (R3). Source, outbound destination and processing service are distinct roles even when one vendor supplies all three. Their credentials and grants remain with the host or Work. A missing processing service must never prevent reuse of permitted stored result bytes.
+
 ## Requiredness is scoped to the operation
 
 A requirement is always a requirement for something. A host must scope requiredness to the affected operation and output target, never to the document as a whole (plan section 12, third compatibility gate of the review).

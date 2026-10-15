@@ -33,6 +33,29 @@ R4 fixes the mapping. A definition is the tool bundle, carried as a signed catal
 
 Each record keeps the identity rules it has today. A tool `id` and an asset `id` are permanent contracts and must never be renamed or reused to express a version (invariant 7, plan section 13, `docs/glossary.md`). Resource identity is a stable logical id plus an immutable revision or digest for one evaluation (invariant 7, plan section 13).
 
+## Source assets, observations and history
+
+The four records describe a document, not every entity in its library (R4). An imported photo is a resource; it needs no synthetic tool definition. Catalog collections, metadata assertions, source review decisions and processing jobs remain host or Work records referenced by the document. This separation is proposed by the DAM review, not implemented as a shared document contract (plan 313).
+
+A resource binding must distinguish the logical asset, selected file, source revision, representation role and observed byte digest (invariant 7; `packages/core/src/host-v1/asset-ref.ts`, `shells/web/src/lib/asset-files.ts`). A representation may be an original, a safe working copy, a preview or a produced derivative. Two SVG attachments are two selected files even when they share an asset and format. A preview must never satisfy a request for the original.
+
+`AssetRef.version` is the last resolved cache version; `pin` requests immutable bytes. A provider change token alone must never be interpreted as a content pin. Work currently hashes source timestamps and format metadata to produce its federated version (`lolly-work/server/src/catalog/federation.ts`); that hash does not observe the file bytes. Its general provider resolver has no historical-revision argument (`lolly-work/server/src/catalog/providers/types.ts`). Exact resolution therefore needs a qualified source revision or permitted retained bytes, plus digest verification. A missing pin returns an explicit unavailable result and never selects the latest file.
+
+The DAM records map onto existing responsibilities rather than adding a fifth document record (R4, R15):
+
+| Record or relationship | Owner and binding |
+|---|---|
+| Asset observation | The host asset store records source, selected file/revision, representation, observed digest and observation time. It describes what was read, separately from current availability. |
+| Metadata assertion | Source facts, local overlays and proposed enrichment keep their origins and review state. Accepting a proposal changes the appropriate metadata record; changing authored content requires an explicit revision or patch (R1). |
+| Generation recipe | Optional, separately authorised structured evidence, including input references and completeness. Recorded workflow, executable environment and replay support are independent facts. |
+| Derivation | Exact input/output versions linked to an observed operation. Imported or user-asserted ancestry is labelled as such and never becomes a fabricated Lolly evaluation. |
+| Usage | Saved dependency bindings and retained evaluations record known uses. A reverse index is rebuildable derived state, permission filtered by the host; it never claims complete tracking outside those records. |
+| Processing job | The host or Work owns admission, scheduling, cost reservation, cancellation and attempts. The evaluation records the operation and the effects actually observed (R3, R5, R15). |
+
+Rights evidence reuses `CreativeWorkRecordV1`, `RightsEvidenceV1`, `PermissionGrantV1`, `CreativeUseV1` and `UseContextV1` in `packages/core/src/rights-v1.ts`. General machine tags are metadata assertions, not rights evidence. A later source change creates new evidence; it must never silently rewrite the facts retained for an earlier evaluation (R15).
+
+The dependency graph emitted by an evaluation and a historical derivation record answer different questions. The first records what that evaluation used; the second may also carry external assertions. An index may combine them only while preserving their origins and completeness. No graph becomes a second source of authored rows (R1). Private recipes and hidden neighbours need their own access checks, including counts and traversal results ([policy](policy.html)).
+
 ## CompiledDocument stays transient
 
 `compileDocument` mounts a runtime, reads the input model and returns a `CompiledDocument` holding the manifest, the model, the values, the resolved token references where the model holds any, the hydrated markup and the scoped styles, which are null when the tool ships none (`engine/src/document-api.ts`).

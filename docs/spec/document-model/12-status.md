@@ -12,7 +12,25 @@ No shared type is frozen before the counterexample fixtures pass (plan section 1
 
 This draft makes no conformance claim and states no threshold (C8), and it sets no latency target because the current evidence justifies none (plan section 18, review gate 5). It adds no reproducibility promise beyond the ones `docs/determinism.md` already makes. The probe numbers appear in one chapter, [conformance](conformance.html), as evidence that a single whole-image number cannot separate a lost caption from a half-pixel shift (C8).
 
-The notice at the head of every chapter must stay until this chapter records that people have read the draft (`plans/276-execution.md` section 5). That review has not happened, so this chapter records no reading. The chapters that most need it are the constitution, the source rows and patches, the policy and the conformance chapters, because each fixes semantics the later contracts are built on (`plans/276-execution.md` section 5).
+The notice at the head of every chapter must stay until this chapter records the required review (`plans/276-execution.md` section 5). On 2026-10-15 a focused DAM review compared the draft with plan 312 and existing source, and Andy authorised the amendments and first wave in plan 313. That is a review of the resource, evidence and authority boundary; it does not complete the wider chapter review, answer Q1 to Q6 or freeze a type. The chapters that most need the wider review are the constitution, the source rows and patches, the policy and the conformance chapters, because each fixes semantics the later contracts are built on.
+
+## DAM amendment, 2026-10-15
+
+The amendment keeps the four records and the confirmed pilots. It adds requirements for selected-file/representation identity, byte observations, imported evidence, scoped review and current source/processing authority. Rights reuse `packages/core/src/rights-v1.ts`; processing jobs and private evidence remain host or Work records. [Records](records.html) maps them, and [proof cases](proof-cases.html) adds cases 30 to 38.
+
+These are draft requirements, not implemented shared contracts. Work's federated metadata version is a cache change token, not proof of immutable bytes. Its catalog admission and version curation are distinct from its implemented final-byte staged delivery approval. Adaptive publication and remote processing of finished variants require explicit new operation/delivery contracts before implementation. The [policy](policy.html), [conformance](conformance.html) and [packaging](packaging.html) chapters state those limits.
+
+Wave 1 amends prose and runs focused executable evidence against existing seams. It changes no shared type, schema, wire order, engine version, package part, provenance write or live permission policy. Full DAM fixtures, a general historical provider resolver, contextual territory/channel evaluation and private portable evidence enforcement remain required work.
+
+The index identifies this amendment as `draft-2026-10-15`; chapter notices retain the original draft date. Existing executable evidence covers only the following parts of the new cases:
+
+| Evidence | What it establishes | What remains unproved |
+|---|---|---|
+| `shells/web/src/lib/asset-files.test.ts` and `lolly-work/tests/provider-source-observation.test.ts` | Same-format file identities survive selection/reordering; previews stay separate; fresh byte observations distinguish an overwrite under unchanged metadata. | Durable exact provider pin retrieval and the full saved source-to-delivery case (30, 31). |
+| `tests/rights-evaluate.test.ts` | Existing rights decisions follow fingerprinted facts and do not automatically apply to a changed source or context. | General territory/channel eligibility and current upstream permission enforcement (32, 33). |
+| `lolly-work/tests/delivery-api.test.ts`, `lolly-work/tests/catalog-versions.test.ts` and `lolly-work/tests/catalog-availability.test.ts` | Existing staged approval/idempotent retry, version-curation boundaries and imported availability gates. | New source-proof review, remote processing reconciliation and adaptive publication (33, 36, 37). |
+
+Passing those focused tests is not admission of a conformance fixture. Cases 34, 35 and 38 still require their full privacy, imported-recipe and package round trips.
 
 ## Confirmed decisions
 
@@ -135,6 +153,7 @@ Two rules bind that order. No shared type may be frozen before the fixtures in s
 
 | Date | Change |
 |---|---|
+| 2026-10-15 | Focused DAM review and plan 313 wave 1. Four-record resource mapping, exact-byte pin requirements, source and processing authority, review subjects, imported generation evidence, fixed/adaptive delivery and private package disclosure are specified as draft requirements. Cases 30 to 38 are added. No shared type or conformance claim is introduced. |
 | 2026-09-24 | Draft for review. The twelve chapters were written from the plan 276 consolidation after its final review, with D1 to D13 confirmed, R1 to R15 adopted from evidence, C1 to C9 corrected and Q1 to Q6 recorded with their defaults. No type is frozen and no conformance claim is made. |
 | 2026-09-26 | Constitution. The thirteen invariants gain four reading groups with their numbers unchanged, and a table of where each one holds today, what is not met yet and which proof cases test it; the table finds no case that tests invariant 11 on its own and only case 7 behind invariant 5. The no-cloud limit now states R7 as a requirement and records that the web shell fails closed after 24 hours offline instead. The limits section says which two promises its first two items bound. Affects R7. |
 | 2026-09-26 | Proof cases. Cases 24 and 25 are added for the two gaps the constitution's table found: one chart's accessibility metadata checked in each of four outputs, and a local utility that keeps no record of its run. The table now maps both, and the count of cases is 25. Q4 stays open; case 25 tests its default for a utility. Affects R5 and R15. |

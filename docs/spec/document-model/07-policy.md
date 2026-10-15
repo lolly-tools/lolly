@@ -44,6 +44,16 @@ A rule must declare one of three classes (R6, C4). The class decides who, if any
 
 The review found the plan alternating between "the stronger rule wins" and "both rules conflict" without saying which case applied (C4). The class is what decides. A waivable creative rule may be deactivated by a recorded waiver. A structural rule may not, whatever the context (R6).
 
+## Source authority is separate from a creative waiver
+
+The three rule classes do not replace source access, use conditions, processing grants or destination authority (R3, R6; DAM review, plan 313). Those checks stay at the host boundary that can establish the facts. A local creative waiver must never grant upstream access, widen an organisation exposure policy, authorise cloud processing or create permission to redistribute source bytes. The authority in D12 accepts the creative/conformance result within the powers it holds; it does not acquire powers belonging to a source or another principal.
+
+Rights evidence and a selected grant follow `CreativeWorkRecordV1`, `PermissionGrantV1`, `CreativeUseV1` and `UseContextV1` in `packages/core/src/rights-v1.ts`. A contextual eligibility answer must identify its source evidence, intended operation/use, issuer, observation time and freshness or validity requirement. Allowed, denied and unknown remain distinct. The draft does not implement a territory/channel evaluator; those missing semantics extend the existing rights contract rather than create another licence engine.
+
+Work must distinguish an administrator exposing a subset through a shared service credential from a connection delegated by each member. The former does not automatically reproduce personal upstream permissions (`lolly-work/server/src/catalog/providers/types.ts`). The authorised projection applies to cards, facets, counts, snippets, originals, previews, history and processing. Hidden recipe fields and lineage neighbours must not be disclosed through identifiers, totals or redaction details.
+
+The engine evaluates pinned evidence and explicit context without making permission-service requests or reading a clock (`engine/src/rights-evaluate.ts`). Work or the shell supplies current authorisation and the evaluation date where required. An eligibility receipt records the earlier answer; it is never a new grant (R15).
+
 ## The three layers
 
 Rules reach an evaluation from three layers. Each layer must name the issuer of every rule it contributes (R6).
@@ -109,7 +119,7 @@ This is the case the class table does not cover, because neither rule is waivabl
 
 ## A governed client that loses its connection
 
-A governed client that loses its connection must keep enforcing the policy it holds, and nothing relaxes (R7). The review found the plan describing offline behaviour the design system code does not have, so the four facts below are stated as four separate answers rather than one status (C5).
+A governed client that loses its connection must keep enforcing the policy it holds, and nothing relaxes (R7). This preserves authorised held work; it does not renew source-access or processing leases. A restricted fetch, new processing job or delivery follows its own explicit freshness rule and is blocked when that rule requires authority the host cannot establish. Editing permitted cached content and performing those consequential actions must have separate answers (R3, R7; plan 313). The review found the plan describing offline behaviour the design system code does not have, so the four facts below are stated as four separate answers rather than one status (C5).
 
 | Fact | What it answers | Where the tree answers it today |
 |---|---|---|
@@ -124,7 +134,7 @@ Today the shell does not meet this rule. `shells/web/src/org/index.ts` serves a 
 
 A freshness deadline for a governed-claim export must be an explicit policy rule, with an issuer, a validity interval and a stated behaviour when freshness cannot be established (R7). With no such rule, the held policy must be enforced, and the receipt must say which policy version was evaluated and when it was last attested (R15 for the policy version, Q3's default for the attestation).
 
-Cached material must stay usable (R7). A hosted record keeps its core material on the device and records `lastSyncedAt` (`shells/web/src/lib/design-system/hosted.ts`). The device keeps working when the host has gone away, and the row reports how long ago it last synced. A receipt must never describe a held policy as current online approval (C5).
+Permitted cached material must stay usable under its held rules and explicit validity requirements (R7). A hosted record keeps its core material on the device and records `lastSyncedAt` (`shells/web/src/lib/design-system/hosted.ts`). The device keeps working when the host has gone away, and the row reports how long ago it last synced. A receipt must never describe a held policy as current online approval (C5). Source-access withdrawal, contractual expiry and a changed public licence declaration are separate facts. A source disappearance must never silently rewrite the evidence retained for a previous use (`packages/core/src/rights-v1.ts`, R15).
 
 ## Leave and Make an editable copy
 
@@ -132,7 +142,7 @@ Leave and "Make an editable copy" are two actions with different results, and th
 
 `leaveInstance` in `shells/web/src/lib/instance-leave.ts` removes what the organisation supplied: its cached configuration, its pack and the tools that pack installed, the install identity this device spoke while enrolled and the native shell session. For a hosted design system the same act is scoped to the record: plan 186 section 3.6 defines Leave there as "Remove this design system", running this sweep plus the namespace delete. What the person made stays: their sessions, images, preferences and any tool they sideloaded themselves. `countSessionsUsingInstanceTools` in the same module reports how many saved sessions belong to a tool the pack installed, so the exit dialog can say those sessions will not open until the device reconnects. Leave must never be turned into a copy operation (C5).
 
-"Make an editable copy" is a separate, explicit action. `createDesignSystem` in `shells/web/src/lib/design-system/manage.ts` writes a `local` record, and `shells/web/src/lib/design-system/registry.ts` defines that source union. Where the copy was made from a hosted or local system, the record points at it in `forkedFrom`, with a version where the source carried one. A copy of the shipped system records no source today, and this model requires one. A copy made this way must state its dependency set, and it must carry no inherited governance claim (R7). The copy is the person's material from that moment, and the organisation's rules no longer travel with it.
+"Make an editable copy" is a separate, explicit action. `createDesignSystem` in `shells/web/src/lib/design-system/manage.ts` writes a `local` record, and `shells/web/src/lib/design-system/registry.ts` defines that source union. Where the copy was made from a hosted or local system, the record points at it in `forkedFrom`, with a version where the source carried one. A copy of the shipped system records no source today, and this model requires one. A copy made this way must state its dependency set, and it must carry no inherited Lolly governance claim (R7). The copy removes that governance attachment. It must preserve applicable source terms and evidence, and it must never confer source access, redistribution permission or permission to disclose private recipes (R3; `packages/core/src/rights-v1.ts`).
 
 ## Repair
 
