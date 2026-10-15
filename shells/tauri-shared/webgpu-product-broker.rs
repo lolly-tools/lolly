@@ -454,6 +454,11 @@ pub fn setup(app: &tauri::App) -> tauri::Result<()> {
     });
     let handle = app.handle().clone();
     std::thread::spawn(move || {
+        // iOS apps never quit themselves, and tao 0.37.1 drops its iOS AppState on
+        // ControlFlow::Exit, so the next run-loop observer aborts the app. On iOS the
+        // reader reports why it stopped and leaves the app running instead of exiting.
+        #[cfg(target_os = "ios")]
+        let _ = &handle;
         let mut input = std::io::BufReader::new(std::io::stdin());
         loop {
             let mut bytes = Vec::new();
@@ -462,6 +467,9 @@ pub fn setup(app: &tauri::App) -> tauri::Result<()> {
                 .take((COMMAND_LIMIT + 1) as u64)
                 .read_until(b'\n', &mut bytes);
             if matches!(result, Ok(0)) {
+                #[cfg(target_os = "ios")]
+                emit(json!({ "event": "failure", "runId": run_id, "error": "Qualification input closed" }));
+                #[cfg(not(target_os = "ios"))]
                 handle.exit(0);
                 break;
             }
@@ -490,6 +498,7 @@ pub fn setup(app: &tauri::App) -> tauri::Result<()> {
                     state.failed = true;
                 }
                 emit(json!({ "event": "failure", "runId": run_id, "error": error }));
+                #[cfg(not(target_os = "ios"))]
                 handle.exit(1);
                 break;
             }

@@ -1069,3 +1069,18 @@ test('capability source observation refuses changed files and rechecks after the
     await assert.rejects(observeCapabilityProbe(args, { repo: root, target }, cwd), /canonical/);
   } finally { await rm(output, { recursive: true, force: true }); }
 });
+
+test('the qualification broker never asks iOS to exit', async () => {
+  // tao 0.37.1 loses its iOS AppState on ControlFlow::Exit and the next run-loop observer
+  // aborts the app, which is what closed stdin did to every iOS qualification run.
+  const source = await readFile(new URL('../shells/tauri-shared/webgpu-product-broker.rs', import.meta.url), 'utf8');
+  const reader = source.slice(source.indexOf('pub fn setup('));
+  const exits = [...reader.matchAll(/handle\.exit\((\d)\);/g)];
+  assert.equal(exits.length, 2);
+  for (const exit of exits) {
+    const before = reader.slice(0, exit.index).trimEnd();
+    assert.ok(before.endsWith('#[cfg(not(target_os = "ios"))]'), `handle.exit(${exit[1]}) must be compiled out on iOS`);
+  }
+  assert.match(reader, /#\[cfg\(target_os = "ios"\)\]\s*emit\(json!\(\{ "event": "failure", "runId": run_id, "error": "Qualification input closed" \}\)\);/);
+});
+
