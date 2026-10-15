@@ -16,7 +16,7 @@
        www.*, so Vercel preview URLs (*.vercel.app), localhost and a private
        instance on a sibling domain (lolly.ing serves this same shell through
        its own proxy) are never touched; brandChrome() (vite.config.js) rewrites
-       CANON per profile (lolly-start also canonicalises to lolly.tools) and
+       CANON per profile (lolly-start and lolly-demo also canonicalise to lolly.tools) and
        blanks it (guard off) for any brand with no canonical host. -->
   <script>
     (() => {
@@ -394,7 +394,7 @@
            The spiral is NEUTRAL here, not Lolly's #008657: this frame is shown
            before the active design system has been resolved, so a brand colour
            baked into it is a colour we do not yet know is right. On a neutral
-           brand (lolly.tools ships the blank `lolly-start` pack) it read as a
+           brand (the blank `lolly-start` pack lolly.tools used to ship) it read as a
            flash of green that the loaded app then contradicted. #6f6f6f is one
            of the mark's own greys, and --boot-mark lets a deployment that knows
            its accent before first paint put it back. Everything else in the

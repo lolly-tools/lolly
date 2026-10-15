@@ -207,8 +207,9 @@ Retired with the old view: `scripts/use-profile.ts`, `scripts/subrepo/` (the mul
 `lolly.tools` and `lolly.ing` use operator-managed UpCloud K3s releases after the
 2026-10-07 cutover. Read the instance's current deployment handoff and the
 [sovereign profile](../deploy/helm/profiles/sovereign/README.md) before choosing a
-target. `pnpm run gate` still validates `lolly-start` through the committed
-`k3s` target. `pnpm run ship`, including preview, production and `--no-gate`
+target. lolly.tools ships the `lolly-demo` profile (Lolly's own demo brand,
+wearing Opal), and `pnpm run gate` validates it through the committed `k3s`
+target; the packaged apps keep `lolly-start`. `pnpm run ship`, including preview, production and `--no-gate`
 modes, refuses that target before the gate, credential setup or upload.
 
 For the next application release, follow Work's maintained

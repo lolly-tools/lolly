@@ -299,7 +299,7 @@ test('web image packaging verifies a named artifact context and owns only its ac
       assert.ok(build.includes('LOLLY_RELEASE_SOURCE=' + archiveSource));
       assert.ok(build.includes('VITE_CATALOG_PUBLIC_KEY_JWK=synthetic-public-pin'));
       assert.ok(build.includes('VITE_CONNECTOR_ORIGINS=https://storage.example.com'));
-      assert.ok(build.includes('LOLLY_PROFILE=lolly-start'));
+      assert.ok(build.includes('LOLLY_PROFILE=lolly-demo'));
       for (const label of ['org.opencontainers.image.title=lolly-web', 'org.opencontainers.image.version=9.8.7', 'org.opencontainers.image.created=2026-01-02T03:04:05Z']) {
         assert.equal(build[build.indexOf(label) - 1], '--label', label);
       }
