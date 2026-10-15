@@ -577,23 +577,20 @@ button.cat-download { font: inherit; cursor: pointer; }
 /* ── Content Credentials (details) ── the checker for any inspectable asset, plus the
    "Made with Lolly" lockup revealed only once the verifier confirms it (openDetails). */
 
-/* Shared "Made with Lolly" badge (lib/lolly-badge.ts). Green = the same verified /
-   made-with-Lolly semantics as the Verify coin, a fixed accent independent of the
-   active brand (like the genai pill's fixed violet). Layout (inline-flex/gap)
+/* Shared "Made with Lolly" badge (lib/lolly-badge.ts). It wears Lolly's tone
+   (--lolly-tone in tokens.css, Opal: Spearmint on light, Green Apple on dark and
+   brand) and takes the guest brand's hue at that tone when one is active
+   (--lolly-mark, from brand-vars.ts's lollyMarkCss). Layout (inline-flex/gap)
    composes .chip (chips.css, the markup carries both classes) - but this is a
    plain icon+wordmark lockup, not a boxed pill, so the pill paint is zeroed
    back out explicitly rather than restyled. */
 .lolly-badge {
-  --lolly-accent: 145 58% 34%;
   gap: var(--sp-3); padding: 0; background: none; border-radius: 0;
-  /* Lolly's identity green by default; wears the guest brand's hue when one is
-     active (--lolly-mark, injected by brand-vars.ts / lollyMarkCss). */
-  color: var(--lolly-mark, hsl(var(--lolly-accent))); font-weight: 700;
+  color: var(--lolly-mark, var(--lolly-tone)); font-weight: 700;
 }
 .lolly-badge svg { flex: none; }
 .lolly-badge--sm { font-size: var(--fs-sm); }
 .lolly-badge--lg { font-size: calc(1.12rem * var(--a11y-fs)); letter-spacing: -.01em; }
-[data-theme="dark"] .lolly-badge { --lolly-accent: 145 52% 60%; }
 
 /* ── Download dialog (icon styler + SVG/PNG size) ── */
 .cat-dl {

@@ -977,15 +977,22 @@ ${v('background', t(0.29, 1))}${v('foreground', t(0.95, 0.35))}${v('foreground-c
 //    its own saturation/lightness, the white swirl stays white. One data URL
 //    drives the Verify hero (via --lolly-logo) AND the browser favicon.
 //  • GLYPH/TEXT - the badge glyph + wordmark + the medallion's outer glow wear
-//    --lolly-mark, Lolly's identity-green TONE hue-shifted to the brand.
-// Everything falls back to Lolly green (bitmap: the plain swirl) when no brand is
-// active, so an unbranded Lolly is unchanged. The green VERDICT signals (the
-// "Credential intact" pill, the scorecard pips) deliberately stay green.
+//    --lolly-mark, Lolly's tone (LOLLY_TONE_HEX, below) hue-shifted to the brand.
+// Everything falls back to Lolly's own tone (bitmap: the plain swirl) when no
+// brand is active, so an unbranded Lolly is unchanged. The green VERDICT signals
+// (the "Credential intact" pill, the scorecard pips) deliberately stay green.
 
-/** Lolly's identity-green tone in OKLCH, measured from the two `.lolly-badge`
- * greens (hsl 145 58% 34% / 145 52% 60%). The mark keeps this L/C and takes the
- * brand's hue. */
-const LOLLY_TONE = { light: { l: 0.5586, c: 0.1286 }, dark: { l: 0.772, c: 0.1338 } } as const;
+/** Lolly's tone in Opal: Spearmint on a light ground, Green Apple on a dark one
+ * (the brand theme included). styles/tokens.css declares the same two colours
+ * as --lolly-tone, the fallback when the guest brand has no hue. */
+export const LOLLY_TONE_HEX = { light: '#033633', dark: '#50c369' } as const;
+/** The tone's OKLCH lightness and chroma. The mark keeps these and takes the
+ * guest brand's hue. */
+const toneOf = (hex: string): { l: number; c: number } => {
+  const o = hexToOklch(hex)!;
+  return { l: o.l, c: o.c };
+};
+const LOLLY_TONE = { light: toneOf(LOLLY_TONE_HEX.light), dark: toneOf(LOLLY_TONE_HEX.dark) } as const;
 // Below this OKLCH chroma a "primary" has no hue worth adopting - a greyscale or
 // near-black ink (the blank starter's #1d1d1d measures chroma 0, and
 // engine/src/brand-derive.ts reports hue 0 for it) reads as no brand colour at
@@ -1023,9 +1030,9 @@ export function lollyMarkHex(hue: number, theme: 'light' | 'dark'): string {
  * The `--lolly-*` block for the GLYPH/TEXT surfaces: `--lolly-mark` (the badge
  * glyph + wordmark, theme-adaptive) and `--lolly-coin-glow` (the made-with-Lolly
  * medallion's outer glow, so it matches the recoloured logo swirl filling it).
- * '' when the brand has no real hue, so the green fallbacks in valid.css /
- * asset-shared.css stand. The bitmap recolour (`--lolly-logo`) is handled separately
- * by applyBrandLogo, since it needs a canvas at runtime.
+ * '' when the brand has no real hue, so the --lolly-tone fallback in
+ * styles/tokens.css stands. The bitmap recolour (`--lolly-logo`) is handled
+ * separately by applyBrandLogo, since it needs a canvas at runtime.
  */
 export function lollyMarkCss(lightHex: string | null, darkHex: string | null): string {
   const hue = brandMarkHue(lightHex, darkHex);

@@ -8,7 +8,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { hexToHslTriple, chromeBrandCss, brandThemeCss, brandFontStack, brandRadiusValue, brandSpaceValue, brandMarkHue, brandMarkPrimary, lollyMarkCss, highContrastAccent, apcaLcAbs, HC_TARGET_LC, uiTokenCssValue, contrastText,
+import { hexToHslTriple, chromeBrandCss, brandThemeCss, brandFontStack, brandRadiusValue, brandSpaceValue, brandMarkHue, brandMarkPrimary, lollyMarkCss, lollyMarkHex, LOLLY_TONE_HEX, highContrastAccent, apcaLcAbs, HC_TARGET_LC, uiTokenCssValue, contrastText,
   hslTripleToHex, THEME_SURFACES, THEME_DESTRUCTIVE, brandSurfaceHexes, FOCUS_RING_RATIO, dangerText, dangerTextSurfaces, dangerTextCss, DANGER_TEXT_RATIO, DANGER_TEXT_HC_LC } from './brand-vars.ts';
 import { apcaContrast } from '../../../engine/src/color-tools.ts';
 import { hexToOklch, contrastRatio, parseHex } from '../../../engine/src/brand-derive.ts';
@@ -603,4 +603,112 @@ test("dangerTextCss gives a design system's own red a text red per theme", () =>
   assert.ok(near(hslTripleToHex(blocks[0]![1])!, '#b00020'));
   assert.equal(dangerTextCss(null), '');
   assert.equal(dangerTextCss('not-a-colour'), '');
+});
+
+test("the blank brand's noir is byte-identical: the brand theme never reads Lolly's tone", () => {
+  // Captured from origin/main before the tone moved to Opal (the theme at 05f7a9eff,
+  // the chrome at 88ccf581c, which added #287's High contrast ring). The blank
+  // starter (#1d1d1d light, #ffffff dark, chroma 0) keeps its rose-grey noir.
+  const noirTheme = [
+    "[data-theme=\"brand\"] {\n",
+    "  color-scheme: dark;\n",
+    "  --background: 348 5.6% 17.5%;\n",
+    "  --foreground: 0 6.2% 93.7%;\n",
+    "  --foreground-canvas: 0 6.2% 93.7%;\n",
+    "  --card: 350 5% 23.5%;\n",
+    "  --card-foreground: 0 6.2% 93.7%;\n",
+    "  --popover: 350 5% 23.5%;\n",
+    "  --popover-foreground: 0 6.2% 93.7%;\n",
+    "  --primary: 0 0% 100%;\n",
+    "  --primary-foreground: 0 0% 0%;\n",
+    "  --secondary: 342.9 5% 27.6%;\n",
+    "  --secondary-foreground: 0 6.2% 93.7%;\n",
+    "  --muted: 342.9 5.2% 26.5%;\n",
+    "  --muted-foreground: 345 6.2% 87.5%;\n",
+    "  --accent: 345 5.5% 28.6%;\n",
+    "  --accent-foreground: 0 6.2% 93.7%;\n",
+    "  --border: 340 4.3% 40.6%;\n",
+    "  --input: 340 4.3% 40.6%;\n",
+    "  --ring: 0 0% 100%;\n",
+    "  --store-1: 345 1.8% 56.5%;\n",
+    "  --store-2: 348 2.6% 62.5%;\n",
+    "  --store-3: 348 3% 67.3%;\n",
+    "  --store-4: 348 3.7% 73.5%;\n",
+    "  --store-5: 348 4.9% 79.8%;\n",
+    "  --store-other: 340 1.2% 52.7%;\n",
+    "}",
+  ].join('');
+  const noirChrome = [
+    ":root, [data-theme=\"light\"] {\n",
+    "  --primary: 0 0% 11.4%;\n",
+    "  --ring: 0 0% 11.4%;\n",
+    "  --primary-foreground: 0 0% 100%;\n",
+    "}\n",
+    "[data-theme=\"dark\"] {\n",
+    "  --primary: 0 0% 100%;\n",
+    "  --ring: 0 0% 100%;\n",
+    "  --primary-foreground: 0 0% 0%;\n",
+    "}\n",
+    "[data-theme=\"brand\"] {\n",
+    "  color-scheme: dark;\n",
+    "  --background: 348 5.6% 17.5%;\n",
+    "  --foreground: 0 6.2% 93.7%;\n",
+    "  --foreground-canvas: 0 6.2% 93.7%;\n",
+    "  --card: 350 5% 23.5%;\n",
+    "  --card-foreground: 0 6.2% 93.7%;\n",
+    "  --popover: 350 5% 23.5%;\n",
+    "  --popover-foreground: 0 6.2% 93.7%;\n",
+    "  --primary: 0 0% 100%;\n",
+    "  --primary-foreground: 0 0% 0%;\n",
+    "  --secondary: 342.9 5% 27.6%;\n",
+    "  --secondary-foreground: 0 6.2% 93.7%;\n",
+    "  --muted: 342.9 5.2% 26.5%;\n",
+    "  --muted-foreground: 345 6.2% 87.5%;\n",
+    "  --accent: 345 5.5% 28.6%;\n",
+    "  --accent-foreground: 0 6.2% 93.7%;\n",
+    "  --border: 340 4.3% 40.6%;\n",
+    "  --input: 340 4.3% 40.6%;\n",
+    "  --ring: 0 0% 100%;\n",
+    "  --store-1: 345 1.8% 56.5%;\n",
+    "  --store-2: 348 2.6% 62.5%;\n",
+    "  --store-3: 348 3% 67.3%;\n",
+    "  --store-4: 348 3.7% 73.5%;\n",
+    "  --store-5: 348 4.9% 79.8%;\n",
+    "  --store-other: 340 1.2% 52.7%;\n",
+    "}\n",
+    "html[data-a11y-contrast=\"high\"]:not([data-theme=\"dark\"]):not([data-theme=\"brand\"]) {\n",
+    "  --ring: 0 0% 11.4%;\n",
+    "}\n",
+    "html[data-a11y-contrast=\"high\"][data-theme=\"dark\"] {\n",
+    "  --primary: 0 0% 100%;\n",
+    "  --primary-foreground: 0 0% 0%;\n",
+    "  --ring: 0 0% 100%;\n",
+    "}\n",
+    "html[data-a11y-contrast=\"high\"][data-theme=\"brand\"] {\n",
+    "  --primary: 0 0% 100%;\n",
+    "  --primary-foreground: 0 0% 0%;\n",
+    "  --ring: 0 0% 100%;\n",
+    "}",
+  ].join('');
+  assert.equal(brandThemeCss('#1d1d1d', '#ffffff'), noirTheme);
+  assert.equal(
+    chromeBrandCss({ primary: '#1d1d1d', onPrimary: '#ffffff' }, { primary: '#ffffff', onPrimary: '#1d1d1d' }),
+    noirChrome,
+  );
+});
+
+test("Lolly's tone is Opal: Spearmint on light, Green Apple on dark, and the mark reproduces both", () => {
+  assert.deepEqual({ ...LOLLY_TONE_HEX }, { light: '#033633', dark: '#50c369' });
+  assert.equal(lollyMarkHex(hexToOklch('#033633')!.h, 'light'), '#033633');
+  assert.equal(lollyMarkHex(hexToOklch('#50c369')!.h, 'dark'), '#50c369');
+});
+
+test("the brand-hued mark stays readable at every hue: 4.5:1 on light and dark grounds", () => {
+  for (let hue = 0; hue <= 330; hue += 30) {
+    const light = lollyMarkHex(hue, 'light');
+    for (const ground of ['#ffffff', '#f1f5f9'])
+      assert.ok(contrastRatio(light, ground) >= 4.5, `light mark ${light} (hue ${hue}) on ${ground}: ${contrastRatio(light, ground).toFixed(2)}`);
+    const dark = lollyMarkHex(hue, 'dark');
+    assert.ok(contrastRatio(dark, '#090e1a') >= 4.5, `dark mark ${dark} (hue ${hue}) on #090e1a: ${contrastRatio(dark, '#090e1a').toFixed(2)}`);
+  }
 });
