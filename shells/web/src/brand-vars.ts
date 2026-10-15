@@ -495,6 +495,12 @@ export function nearestWarmHex(swatches: ReadonlyArray<{ value: unknown }>): { h
 // the smaller move - so a brand's accent shifts as little as it can, and a
 // purple brand stays purple.
 //
+// In the brand theme the repair also holds the fill at 3:1 against that
+// theme's page, cards and popovers (CONTROL_RATIO), so the button can be seen
+// as well as read. That ground is mid-dark for every hue, so a fill that only
+// cleared the bar with a white label is lifted to a light tint of the same hue
+// with a dark label instead.
+//
 // The focus ring follows the brand too, but only when the brand's colour can
 // be found: the same fill the accent uses (repaired or restated) becomes
 // --ring when it reads at least 3:1 against the theme's page, cards and
@@ -517,6 +523,14 @@ export const HC_TARGET_LC = 80;
 /** Lightness resolution of the search - finer than the eye, and 24 bisection
  *  steps get there regardless, so this only guards the loop. */
 const HC_L_EPSILON = 0.001;
+/** A control has to read against what surrounds it: WCAG 2's 3:1 non-text
+ *  contrast, here the main button's fill against the page, cards and popovers. */
+export const CONTROL_RATIO = 3;
+
+/** `fill` reads CONTROL_RATIO against every one of `surfaces` ([] passes). */
+function readsAsControl(fill: string, surfaces: readonly string[]): boolean {
+  return surfaces.every(s => contrastRatio(fill, s) >= CONTROL_RATIO);
+}
 
 // APCA-W3 (APCA-1.0.98G), the minimum needed to SCORE a pair. Ported from the
 // engine's own apcaContrast (engine/src/color-tools.ts, itself ported from
@@ -563,17 +577,20 @@ export function apcaLcAbs(textHex: string, bgHex: string): number {
 }
 
 /** The primary/ink pair a theme would use at lightness `l`, if any ink clears
- *  the bar there. `dir` is the search direction (-1 darker, +1 lighter), which
- *  fixes the pure ink; the brand's OWN on-primary is preferred when it sits on
- *  the right side of the fill, so a brand keeps its authored ink where it can. */
+ *  the bar there and the fill reads CONTROL_RATIO on every one of `surfaces`.
+ *  `dir` is the search direction (-1 darker, +1 lighter), which fixes the pure
+ *  ink; the brand's OWN on-primary is preferred when it sits on the right side
+ *  of the fill, so the authored ink stays wherever that ink reads. */
 function hcPairAt(
   l: number,
   base: { l: number; c: number; h: number },
   dir: -1 | 1,
   onPrimary: string | null,
   onPrimaryL: number | null,
+  surfaces: readonly string[],
 ): { fill: string; ink: string } | null {
   const fill = oklchToHex({ l, c: base.c, h: base.h });
+  if (!readsAsControl(fill, surfaces)) return null;
   const inks: string[] = [];
   if (onPrimary && onPrimaryL != null && (dir < 0 ? onPrimaryL > l : onPrimaryL < l)) inks.push(onPrimary);
   inks.push(dir < 0 ? '#ffffff' : '#000000');
@@ -592,36 +609,62 @@ function hcPairAt(
  * this theme's accent - unknowable from here - so the search runs anyway and
  * the returned block always states its ink explicitly.
  *
+ * `surfaces` are what the button sits on. When given, the fill must also read
+ * CONTROL_RATIO against each of them: a pair whose label clears the bar but
+ * whose fill sinks into the page is repaired, not left alone. The default []
+ * judges the label alone.
+ *
  * Exported for tests.
  */
 export function highContrastAccent(
   primary: string | null,
   onPrimary: string | null,
+  surfaces: readonly string[] = [],
 ): { fill: string; ink: string } | null {
   const base = primary ? hexToOklch(primary) : null;
   if (!primary || !base) return null;
-  if (onPrimary && apcaLcAbs(onPrimary, primary) >= HC_TARGET_LC) return null;
+  if (onPrimary && apcaLcAbs(onPrimary, primary) >= HC_TARGET_LC && readsAsControl(primary, surfaces)) return null;
   const onPrimaryL = onPrimary ? (hexToOklch(onPrimary)?.l ?? null) : null;
+  const at = (l: number, dir: -1 | 1, against: readonly string[]) =>
+    hcPairAt(l, base, dir, onPrimary, onPrimaryL, against);
 
   const found: Array<{ fill: string; ink: string; move: number }> = [];
   for (const dir of [-1, 1] as const) {
-    // The authored lightness first: when only the INK was wrong, the fill must
-    // not move at all (move 0 beats every other candidate).
-    const here = hcPairAt(base.l, base, dir, onPrimary, onPrimaryL);
-    if (here) { found.push({ ...here, move: 0 }); continue; }
-    // |Lc| grows monotonically as the fill moves away from the ink's own
-    // luminance, and the max of the two candidate inks is monotone too, so the
-    // smallest clearing move is a boundary - bisect for it. If the extreme
-    // itself fails, no lightness in this direction can.
     const bound = dir < 0 ? 0 : 1;
-    if (!hcPairAt(bound, base, dir, onPrimary, onPrimaryL)) continue;
-    let fail = base.l, pass = bound;
-    for (let i = 0; i < 24 && Math.abs(pass - fail) > HC_L_EPSILON; i++) {
-      const mid = (fail + pass) / 2;
-      if (hcPairAt(mid, base, dir, onPrimary, onPrimaryL)) pass = mid; else fail = mid;
+    // Stage one, the label alone. The authored lightness first: when only the
+    // INK was wrong, the fill must not move at all (move 0 beats every other
+    // candidate). Then, since |Lc| grows monotonically as the fill moves away
+    // from the ink's own luminance, and the max of the two candidate inks is
+    // monotone too, the smallest clearing move is a boundary, found by
+    // bisection. If the extreme itself fails, no lightness in this direction can.
+    let inkL = base.l;
+    if (!at(inkL, dir, [])) {
+      if (!at(bound, dir, [])) continue;
+      let fail = base.l, pass: number = bound;
+      for (let i = 0; i < 24 && Math.abs(pass - fail) > HC_L_EPSILON; i++) {
+        const mid = (fail + pass) / 2;
+        if (at(mid, dir, [])) pass = mid; else fail = mid;
+      }
+      inkL = pass;
     }
-    const pair = hcPairAt(pass, base, dir, onPrimary, onPrimaryL);
-    if (pair) found.push({ ...pair, move: Math.abs(pass - base.l) });
+    // Stage two, the surfaces. Past inkL the label keeps clearing the bar, so
+    // only the fill against the surfaces is left to decide. Where it fails at
+    // inkL, test the extreme with both conditions, then bisect between the two
+    // for the smallest move that holds. Bisecting the combined condition from
+    // the authored lightness would be wrong: going darker against a near-black
+    // page it is a window, not a single edge.
+    let pair = at(inkL, dir, surfaces);
+    if (!pair) {
+      if (!at(bound, dir, surfaces)) continue;
+      let fail = inkL, pass: number = bound;
+      for (let i = 0; i < 24 && Math.abs(pass - fail) > HC_L_EPSILON; i++) {
+        const mid = (fail + pass) / 2;
+        if (at(mid, dir, surfaces)) pass = mid; else fail = mid;
+      }
+      inkL = pass;
+      pair = at(inkL, dir, surfaces);
+    }
+    if (pair) found.push({ ...pair, move: Math.abs(inkL - base.l) });
   }
   // Smallest lightness move wins; a tie keeps the darker direction (searched
   // first), so the emitted CSS is deterministic.
@@ -631,10 +674,15 @@ export function highContrastAccent(
 
 /** The pair a theme already shows when that pair clears the bar: the brand's
  *  fill with the ink the ungated block computes from the fill (contrastText),
- *  else the brand's authored ink. Null when neither ink clears the bar, or the
- *  fill doesn't parse. */
-function clearingPair(primary: string | null, onPrimary: string | null): { fill: string; ink: string } | null {
-  if (!primary) return null;
+ *  else the brand's authored ink. Null when neither ink clears the bar, the
+ *  fill doesn't parse or the fill reads under CONTROL_RATIO on any of
+ *  `surfaces` (a pair that sinks into the page is repaired, not restated). */
+function clearingPair(
+  primary: string | null,
+  onPrimary: string | null,
+  surfaces: readonly string[] = [],
+): { fill: string; ink: string } | null {
+  if (!primary || !readsAsControl(primary, surfaces)) return null;
   for (const ink of [contrastText(primary), onPrimary]) {
     if (ink && apcaLcAbs(ink, primary) >= HC_TARGET_LC) return { fill: primary, ink };
   }
@@ -878,6 +926,13 @@ export function dangerTextCss(red: string | null): string {
  * accent's fill, repaired or restated, becomes --ring when it reads
  * FOCUS_RING_RATIO on all of them; otherwise tokens.css's own ring stands.
  *
+ * `controlSurfaces` are what the main button itself has to read CONTROL_RATIO
+ * against (the brand theme passes its page, cards and popovers; light and dark
+ * pass none, so only the label is judged there). A fill that sinks into them
+ * is repaired rather than restated. When no lightness of the hue can meet both
+ * bars, the label-only repair stands instead, so the theme never falls back to
+ * tokens.css's static pair.
+ *
  * SPECIFICITY, and why the selectors are shaped like tokens.css's: this sheet
  * is generated at runtime and cannot know the attribute's future state, so it
  * emits BOTH blocks and lets the cascade choose. The gated block therefore has
@@ -898,9 +953,14 @@ function hcAccentBlock(
   onPrimary: string | null,
   restate = false,
   ringSurfaces: readonly string[] = [],
+  controlSurfaces: readonly string[] = [],
 ): string {
-  const repaired = highContrastAccent(primary, onPrimary);
-  const clearing = repaired ? null : clearingPair(primary, onPrimary);
+  const judge = (surfaces: readonly string[]) => {
+    const fixed = highContrastAccent(primary, onPrimary, surfaces);
+    return { repaired: fixed, clearing: fixed ? null : clearingPair(primary, onPrimary, surfaces) };
+  };
+  let { repaired, clearing } = judge(controlSurfaces);
+  if (!repaired && !clearing && controlSurfaces.length) ({ repaired, clearing } = judge([]));
   const pair = repaired ?? (restate ? clearing : null);
   const decls: string[] = [];
   const p = pair && hexToHslTriple(pair.fill);
@@ -1078,11 +1138,12 @@ export function chromeBrandCss(
     // it takes the same adjustment - but only when that constructed theme was
     // emitted at all. Without it the static tokens.css brand block is in
     // charge, and patching its accent from a brand that didn't produce it would
-    // pair a colour with an ink neither of them chose. Its ring is measured
-    // against the surfaces brandThemeCss built for this brand.
+    // pair a colour with an ink neither of them chose. Its ring, and the
+    // button's own fill, are measured against the surfaces brandThemeCss built
+    // for this brand.
     light.primary && dark.primary
       ? hcAccentBlock('html[data-a11y-contrast="high"][data-theme="brand"]', dark.primary, dark.onPrimary, true,
-        brandSurfaceHexes(light.primary))
+        brandSurfaceHexes(light.primary), brandSurfaceHexes(light.primary))
       : '',
   ].filter(Boolean).join('\n');
 }

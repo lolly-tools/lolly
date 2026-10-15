@@ -9,9 +9,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { hexToHslTriple, chromeBrandCss, brandThemeCss, brandFontStack, brandRadiusValue, brandSpaceValue, brandMarkHue, brandMarkPrimary, lollyMarkCss, lollyMarkHex, LOLLY_TONE_HEX, highContrastAccent, apcaLcAbs, HC_TARGET_LC, uiTokenCssValue, contrastText,
-  hslTripleToHex, THEME_SURFACES, THEME_DESTRUCTIVE, brandSurfaceHexes, FOCUS_RING_RATIO, dangerText, dangerTextSurfaces, dangerTextCss, DANGER_TEXT_RATIO, DANGER_TEXT_HC_LC } from './brand-vars.ts';
+  hslTripleToHex, THEME_SURFACES, THEME_DESTRUCTIVE, brandSurfaceHexes, FOCUS_RING_RATIO, CONTROL_RATIO, dangerText, dangerTextSurfaces, dangerTextCss, DANGER_TEXT_RATIO, DANGER_TEXT_HC_LC } from './brand-vars.ts';
 import { apcaContrast } from '../../../engine/src/color-tools.ts';
-import { hexToOklch, contrastRatio, parseHex } from '../../../engine/src/brand-derive.ts';
+import { hexToOklch, oklchToHex, contrastRatio, parseHex } from '../../../engine/src/brand-derive.ts';
 
 const SANS_TAIL = "'Outfit', ui-sans-serif, system-ui, sans-serif";
 
@@ -508,17 +508,142 @@ test('under High contrast the ring follows a brand that can be seen, in every th
   }
 });
 
-test("a brand colour too dim to find keeps Lolly's ring", () => {
-  // A violet whose repaired fill reads under 3:1 against its own brand theme.
+test("under High contrast a violet brand's repaired fill now carries the ring", () => {
+  // The violet #287 used to show Lolly's ring standing in: its label-only
+  // repair (#8252d6, white) read 2.8:1 on its own brand theme. The repair now
+  // holds the fill at 3:1 on that theme too, so the ring follows the brand.
+  // No case is left where Lolly's ring has to stand in the brand theme: the
+  // sweep below finds a fill that reads for every hue.
   const light = { primary: '#6d28d9', onPrimary: '#ffffff' };
   const blocks = hcBlocks(chromeBrandCss(light, { primary: '#a678ff', onPrimary: '#000000' }));
   const brand = declsOf(blocks.get('brand') ?? '');
   const fill = hslTripleToHex(brand.get('primary')!)!;
   const worst = Math.min(...ringSurfaces('brand', light.primary).map(s => contrastRatio(fill, s)));
-  assert.ok(worst < FOCUS_RING_RATIO, `the fixture is dim on its brand theme (${worst.toFixed(2)}:1)`);
-  assert.equal(brand.get('ring'), undefined, "no ring of its own: tokens.css keeps Lolly's");
-  // The same fill reads on the near-black page, so there it is the ring.
+  assert.ok(worst >= FOCUS_RING_RATIO, `the repaired fill reads on its brand theme (${worst.toFixed(2)}:1)`);
+  assert.equal(brand.get('ring'), brand.get('primary'), "the ring is the button's fill");
+  // The dark theme judges the label alone, as before, and its fill already
+  // reads on the near-black page, so there it is the ring too.
   assert.equal(declsOf(blocks.get('dark') ?? '').get('ring'), declsOf(blocks.get('dark') ?? '').get('primary'));
+});
+
+// ── High contrast: the brand theme's main button reads on its own page ──────
+
+/** The brand theme's High contrast pair for one brand, as hexes. */
+function brandHcPair(light: { primary: string; onPrimary: string | null }, dark: { primary: string; onPrimary: string | null }) {
+  const brand = declsOf(hcBlocks(chromeBrandCss(light, dark)).get('brand') ?? '');
+  return {
+    fill: hslTripleToHex(brand.get('primary') ?? '')!,
+    ink: hslTripleToHex(brand.get('primary-foreground') ?? '')!,
+    ring: brand.get('ring'),
+    primary: brand.get('primary'),
+  };
+}
+
+/** Every bar the brand theme's High contrast button has to meet: the fill at
+ *  `ratio` (CONTROL_RATIO) on the page, cards and popovers; the label at 4.5:1
+ *  and at HC_TARGET_LC; and only the lightness moved. Returns the failures, so
+ *  a sweep can list them all. */
+function controlFailures(name: string, lightPrimary: string, darkPrimary: string, fill: string, ink: string, ratio = CONTROL_RATIO): string[] {
+  const out: string[] = [];
+  if (!fill || !ink) return [`${name}: no pair stated`];
+  for (const s of brandSurfaceHexes(lightPrimary)) {
+    const r = contrastRatio(fill, s);
+    if (!(r >= ratio)) out.push(`${name}: fill ${fill} reads ${r.toFixed(2)}:1 on ${s}`);
+  }
+  const label = contrastRatio(ink, fill);
+  if (!(label >= 4.5)) out.push(`${name}: label ${ink} on ${fill} reads ${label.toFixed(2)}:1`);
+  const lc = apcaLcAbs(ink, fill);
+  if (!(lc >= HC_TARGET_LC)) out.push(`${name}: label ${ink} on ${fill} is Lc ${lc.toFixed(1)}`);
+  // Only the lightness moved: the fill is the brand's own OKLCH hue and chroma
+  // at some lightness, through the same sRGB mapping the search uses. (The
+  // mapping itself trims chroma, and on warm hues turns the hue a few degrees,
+  // where sRGB has no room near white, so the fill is looked for along that
+  // line rather than compared channel by channel.)
+  const before = hexToOklch(darkPrimary)!;
+  const approxL = hexToOklch(fill)!.l;
+  let onLine = false;
+  for (let l = Math.max(0, approxL - 0.03); l <= Math.min(1, approxL + 0.03) && !onLine; l += 0.0002) {
+    onLine = near(oklchToHex({ l, c: before.c, h: before.h }), fill);
+  }
+  if (!onLine) out.push(`${name}: ${fill} is not ${darkPrimary}'s hue and chroma at another lightness`);
+  return out;
+}
+
+test("under High contrast a violet brand's main button reads 3:1 on its own brand theme", () => {
+  const cases: Array<[string, { primary: string; onPrimary: string | null }, { primary: string; onPrimary: string | null }]> = [
+    ['violet', { primary: '#6d28d9', onPrimary: '#ffffff' }, { primary: '#8b5cf6', onPrimary: null }],
+    ['Jacaranda', { primary: '#8182d3', onPrimary: '#ffffff' }, { primary: '#8182d3', onPrimary: null }],
+    // #7c3aed with white clears the bar unrepaired (Lc 82.8), so today it was
+    // restated as it is, at 2.5:1 on its page: the restate path.
+    ['#7c3aed', { primary: '#7c3aed', onPrimary: '#ffffff' }, { primary: '#7c3aed', onPrimary: '#ffffff' }],
+  ];
+  assert.ok(apcaLcAbs('#ffffff', '#7c3aed') >= HC_TARGET_LC, '#7c3aed clears the label bar unrepaired');
+  assert.ok(contrastRatio('#7c3aed', brandSurfaceHexes('#7c3aed')[0]!) < CONTROL_RATIO, '#7c3aed sinks into its page');
+  for (const [name, light, dark] of cases) {
+    const pair = brandHcPair(light, dark);
+    assert.deepEqual(controlFailures(name, light.primary, dark.primary, pair.fill, pair.ink), []);
+    // The hue holds to 3 degrees, as in the "lifts any hue" test. The chroma
+    // cannot hold to 0.01 here: sRGB has far less room for a violet near white
+    // than at the brand's own lightness, so the tint keeps what fits and never
+    // gains any.
+    const before = hexToOklch(dark.primary)!, after = hexToOklch(pair.fill)!;
+    const d = Math.abs(after.h - before.h) % 360;
+    assert.ok(Math.min(d, 360 - d) < 3, `${name}: hue ${before.h.toFixed(1)} → ${after.h.toFixed(1)}`);
+    assert.ok(after.c <= before.c + 0.01, `${name}: chroma ${before.c.toFixed(3)} → ${after.c.toFixed(3)}`);
+    // On that mid-dark ground a fill that reads is a light tint: dark label.
+    assert.equal(pair.ink, '#000000', `${name}: a dark label on the light fill`);
+    assert.equal(pair.ring, pair.primary, `${name}: the ring follows the fill`);
+  }
+});
+
+test('under High contrast every hue gets a brand-theme button that reads on its page', () => {
+  // A light primary at OKLCH L .45 / C .15 for every 15 degrees of hue and the
+  // dark primary at L .62 on the same hue, plus one near-neutral. The dark ink
+  // is first unknown, then the ink the ungated block computes.
+  const failures: string[] = [];
+  const hues: Array<[number, number]> = [];
+  for (let h = 0; h < 360; h += 15) hues.push([h, 0.15]);
+  hues.push([250, 0.01]);
+  for (const [h, c] of hues) {
+    const lightPrimary = oklchToHex({ l: 0.45, c, h });
+    const darkPrimary = oklchToHex({ l: 0.62, c, h });
+    for (const onPrimary of [null, contrastText(darkPrimary)]) {
+      const name = `h ${h} c ${c} (${lightPrimary} / ${darkPrimary}, ink ${onPrimary ?? 'unknown'})`;
+      const pair = brandHcPair({ primary: lightPrimary, onPrimary: '#ffffff' }, { primary: darkPrimary, onPrimary });
+      // A twentieth of headroom on the fill for the HSL triple's rounding.
+      failures.push(...controlFailures(name, lightPrimary, darkPrimary, pair.fill, pair.ink, CONTROL_RATIO - 0.05));
+    }
+  }
+  assert.deepEqual(failures, [], `hues with no brand-theme solution:\n${failures.join('\n')}`);
+});
+
+test('highContrastAccent holds the fill to its surfaces only when given them', () => {
+  const page = brandSurfaceHexes('#7c3aed');
+  // A pair whose label clears the bar but whose fill sinks into the page: left
+  // alone without surfaces, moved with them.
+  assert.equal(highContrastAccent('#7c3aed', '#ffffff'), null);
+  const moved = highContrastAccent('#7c3aed', '#ffffff', page)!;
+  assert.ok(moved, 'the sinking fill is repaired');
+  assert.notEqual(moved.fill, '#7c3aed');
+  for (const s of page) assert.ok(contrastRatio(moved.fill, s) >= CONTROL_RATIO, `${moved.fill} on ${s}`);
+  assert.ok(apcaLcAbs(moved.ink, moved.fill) >= HC_TARGET_LC);
+  // A pair that already reads on the surfaces it is given is still left alone.
+  assert.equal(highContrastAccent('#0c322c', '#f7f7f5', ['#ffffff']), null);
+  // Without surfaces, the result is exactly the label-only repair it was
+  // before the surfaces existed (values from main before the change).
+  const pinned: Array<[string, string | null, { fill: string; ink: string } | null]> = [
+    ['#30ba78', '#08211d', { fill: '#69eaa4', ink: '#000000' }],
+    ['#a678ff', '#1c1c22', { fill: '#8252d6', ink: '#ffffff' }],
+    ['#808080', '#ffffff', { fill: '#6f6f6f', ink: '#ffffff' }],
+    ['#8b5cf6', null, { fill: '#7e4de6', ink: '#ffffff' }],
+    ['#7b3fe4', '#ffffff', null],
+  ];
+  for (const [primary, ink, want] of pinned) {
+    assert.deepEqual(highContrastAccent(primary, ink), want, `${primary} without surfaces`);
+    assert.deepEqual(highContrastAccent(primary, ink, []), want, `${primary} with []`);
+  }
+  // Surfaces the label-only repair already reads on change nothing.
+  assert.deepEqual(highContrastAccent('#30ba78', '#08211d', brandSurfaceHexes('#0c322c')), { fill: '#69eaa4', ink: '#000000' });
 });
 
 test('every ring emitted under High contrast reads 3:1 on the surfaces it sits on', () => {

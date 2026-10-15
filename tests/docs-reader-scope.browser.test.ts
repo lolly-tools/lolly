@@ -255,7 +255,7 @@ async function readFragment(p: Page, css: string, attrs: Record<string, string>)
 test("the reader's landing takes the dark theme and Reduce motion from <html>", { skip }, async () => {
   const p = await page();
   try {
-    await p.setContent(`<!doctype html><html><head><style>:root{--muted:210 10% 20%;--pale:#f5f5f5}</style>`
+    await p.setContent(`<!doctype html><html><head><style>:root{--pale:hsl(210 10% 20%)}</style>`
       + `<style id="sheet"></style></head><body>${FRAGMENT}</body></html>`);
     const reader = landingStyleText(SOURCE);
     const light = await readFragment(p, reader, {});

@@ -144,10 +144,10 @@ function injectStyleOnce(doc: Document): void {
 .capture-signin {
   margin: 12px 0 4px;
   padding: 12px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--ui-color-border-default);
   border-radius: var(--radius, 10px);
-  background: var(--card);
-  color: var(--card-foreground, var(--foreground));
+  background: var(--ui-color-surface-raised);
+  color: hsl(var(--card-foreground));
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -164,7 +164,7 @@ function injectStyleOnce(doc: Document): void {
   margin: 0;
   font-size: calc(12px * var(--a11y-fs, 1));
   line-height: 1.4;
-  color: var(--muted-foreground);
+  color: var(--ui-color-text-muted);
 }
 .capture-signin-btn {
   display: inline-flex;
@@ -173,19 +173,19 @@ function injectStyleOnce(doc: Document): void {
   gap: 7px;
   padding: 8px 10px;
   border-radius: calc(var(--radius, 10px) - 3px);
-  border: 1px solid var(--border);
+  border: 1px solid var(--ui-color-border-default);
   font-size: calc(12.5px * var(--a11y-fs, 1));
   font-weight: 550;
   cursor: pointer;
-  background: var(--secondary, transparent);
+  background: hsl(var(--secondary));
   color: inherit;
 }
 .capture-signin-btn svg { width: calc(15px * var(--a11y-fs, 1)); height: calc(15px * var(--a11y-fs, 1)); flex: none; }
-.capture-signin-btn:hover { border-color: var(--ring, var(--accent)); }
+.capture-signin-btn:hover { border-color: var(--ui-color-focus-ring); }
 .capture-signin-btn:disabled { opacity: .55; cursor: default; }
 .capture-signin-primary {
-  background: var(--primary);
-  color: var(--primary-foreground);
+  background: var(--ui-color-action-primary);
+  color: var(--ui-color-action-on-primary);
   border-color: transparent;
 }
 .capture-signin-status {
@@ -193,10 +193,10 @@ function injectStyleOnce(doc: Document): void {
   align-items: center;
   gap: 6px;
   font-size: calc(12px * var(--a11y-fs, 1));
-  color: var(--muted-foreground);
+  color: var(--ui-color-text-muted);
 }
 .capture-signin-status svg { width: calc(14px * var(--a11y-fs, 1)); height: calc(14px * var(--a11y-fs, 1)); flex: none; }
-.capture-signin-clear { color: var(--destructive, inherit); }
+.capture-signin-clear { color: var(--ui-color-status-danger); }
 `;
   (doc.head || doc.documentElement).appendChild(style);
 }

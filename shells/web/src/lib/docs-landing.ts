@@ -62,8 +62,8 @@ const ELEMENT_BASELINE = `
 svg{width:1em;height:1em;flex:none}
 a{color:var(--green);text-decoration:none}
 a:hover{text-decoration:underline}
-code{font-family:'SUSE Mono','SF Mono','Fira Code',monospace;font-size:.875em;background:hsl(var(--muted));padding:.15em .35em;border-radius:3px}
-pre{background:hsl(var(--muted));color:hsl(var(--foreground));padding:1.25rem 1.5rem;border-radius:8px;overflow-x:auto;white-space:pre-wrap;overflow-wrap:anywhere;font-size:.875rem;line-height:1.5;margin-bottom:1.25rem}
+code{font-family:'SUSE Mono','SF Mono','Fira Code',monospace;font-size:.875em;background:var(--pale);padding:.15em .35em;border-radius:3px}
+pre{background:var(--pale);color:hsl(var(--foreground));padding:1.25rem 1.5rem;border-radius:8px;overflow-x:auto;white-space:pre-wrap;overflow-wrap:anywhere;font-size:.875rem;line-height:1.5;margin-bottom:1.25rem}
 pre code{background:none;padding:0;color:inherit;font-size:1em}
 h1,h2,h3,h4{line-height:1.25;font-weight:700;margin:0}
 h2{font-size:2rem;letter-spacing:0;font-weight:900;text-transform:uppercase}

@@ -419,7 +419,7 @@
   "shells/web/src/boot-path-guard.test.ts": 1,
   "shells/web/src/brand-transfer.ts": 32,
   "shells/web/src/brand-vars.test.ts": 1,
-  "shells/web/src/brand-vars.ts": 7,
+  "shells/web/src/brand-vars.ts": 5,
   "shells/web/src/bridge/asset-ref-collector.ts": 2,
   "shells/web/src/bridge/assets-credential-capture.test.ts": 3,
   "shells/web/src/bridge/assets.ts": 12,
