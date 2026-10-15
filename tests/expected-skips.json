@@ -2082,6 +2082,13 @@
       "owner": "tests"
     },
     {
+      "file": "tests/og-brand-chrome.test.ts",
+      "fullName": "7. SUSE keeps its own colours and logo (read only)",
+      "reason": "brands/suse is not checked out",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
       "file": "tests/revision-snapshot-bench.test.ts",
       "fullName": "revisionSnapshot() stays within 10 ms per MiB of canonical JSON",
       "reason": "perf/timing guard - set BENCH=1 to run (wall-clock, flakes under load)",
