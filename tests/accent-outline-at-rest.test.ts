@@ -17,7 +17,7 @@
  * Three things clear a selector part without a list entry: a state in the part
  * (hover, focus, checked, an aria or data attribute, an is-* class and the like),
  * a filled control whose own rule paints its background in the same accent at
- * full strength, and membership of the primary button alias list in buttons.css.
+ * full strength and membership of the primary button alias list in buttons.css.
  * Everything else that is meant to keep its accent goes in ALLOWED with a reason.
  *
  * ALLOWED fails both ways, like RASTER_ALLOWED in docs-shots-vector.test.ts: a

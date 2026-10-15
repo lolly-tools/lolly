@@ -333,7 +333,7 @@
 @media (prefers-reduced-motion: reduce) { .dash-donut-arc { transition: none; } }
 
 /* ── This device - a full-width collapsible section. Six big readouts, the machine
-   leading with a green spine, then the full card grid below the "Full readout" rule. */
+   leading with a larger value on a tinted chip, then the full card grid below the "Full readout" rule. */
 .dash-dev-hero {
   display: grid; grid-template-columns: repeat(auto-fit, minmax(178px, 1fr));
   gap: .8rem; margin: 0 0 1.25rem;
