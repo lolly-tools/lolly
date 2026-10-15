@@ -2493,13 +2493,15 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
   padding: var(--sp-2) var(--sp-4);
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius-sm);
-  background: hsl(var(--muted) / 0.45);
-  color: hsl(var(--muted-foreground));
   cursor: pointer;
   white-space: nowrap;
   transition: background var(--dur-1), color var(--dur-1), border-color var(--dur-1);
 }
-.slot-act:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
+/* Neutral fill on every chip except a sound preview while it plays. That one takes the
+   accent fill from buttons.css's .btn--primary alias list (the `primitives` layer),
+   which a views-layer background on every chip would beat by layer rank. */
+.slot-act:not(.is-playing) { background: hsl(var(--muted) / 0.45); color: hsl(var(--muted-foreground)); }
+.slot-act:not(.is-playing):hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
 .slot-act:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 1px; }
 
 /* Live frame-source controls riding the source asset slot's actions row
@@ -2529,12 +2531,8 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
   .slot-act.slot-live.is-live .canvas-live-dot { animation: none; }
 }
 .slot-play.is-playing {
-  /* brand-var indirection (matches .dash-hero-cta) so this reuses the primary fill
-     rather than restating the pair verbatim - the single-source-of-truth guard
-     (primitive-guards R2) keeps the bare hsl(var(--primary)) pair to buttons.css. */
-  background: var(--brand-primary, hsl(var(--primary)));
-  color: var(--brand-on-primary, hsl(var(--primary-foreground)));
-  border-color: var(--brand-primary, hsl(var(--primary)));
+  /* Fill and ink come from buttons.css's .btn--primary alias list; the edge matches. */
+  border-color: var(--ui-color-action-primary);
 }
 
 /* Baked (frozen) provenance row - the inert sibling of the live ✦ badge: a
