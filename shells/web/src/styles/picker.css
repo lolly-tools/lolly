@@ -679,12 +679,12 @@
   font-weight: 600;
   color: hsl(var(--primary));
   background: hsl(var(--primary) / 0.08);
-  border: 1px solid hsl(var(--primary) / 0.35);
+  border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
   cursor: pointer;
   transition: background var(--dur-1), border-color var(--dur-1);
 }
-.asset-picker-toolquick:hover { background: hsl(var(--primary) / 0.16); }
+.asset-picker-toolquick:hover { background: hsl(var(--primary) / 0.16); border-color: hsl(var(--primary) / 0.35); }
 .asset-picker-toolquick:focus-visible { outline: 2px solid hsl(var(--primary) / 0.5); outline-offset: 1px; }
 
 /* Added-to-folder feedback: a ✓ overlay flashes on the picked tile (the dialog stays

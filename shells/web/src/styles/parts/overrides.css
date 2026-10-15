@@ -29,9 +29,9 @@ body > svg:not([style]) {
    The view FABs (.filter-fab / .history-fab - catalog's "View options" and the
    projects view-sort button both reuse the .filter-fab class), the language FAB,
    and the profile pill all wear the same soft glowing glass as the .tools-home
-   back pill: the primary bottom-glow gives the filled "contrast" look, and the
-   1px primary border each one declares in its own view/chrome file is dropped to
-   transparent (kept 1px wide so nothing reflows). Because this lives in the
+   back pill: the primary bottom-glow gives the filled "contrast" look. Each one
+   declares a transparent 1px border in its own view or chrome file (1px wide so
+   nothing reflows) and this rule keeps it transparent. Because this lives in the
    `overrides` layer it beats those borders and the lighter hover tints without
    depending on file load order. Since .lang-fab and .profile-link are shared
    chrome, it reaches every view the cluster appears in - Tools, Catalog,

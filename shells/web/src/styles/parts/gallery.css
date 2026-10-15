@@ -605,7 +605,7 @@ stroke-width:.81;
   width: var(--chrome-h);
   height: var(--chrome-h);
   padding: 0;
-  border: 1px solid hsl(var(--primary));
+  border: 1px solid transparent;
   border-radius: var(--radius);
   cursor: pointer;
 }

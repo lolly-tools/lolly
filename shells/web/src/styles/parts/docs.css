@@ -191,7 +191,7 @@
 .docs-content blockquote {
   border-left: 0; border-radius: 1.5em; padding: 1.5rem 2.25rem;
   background: var(--pale); margin: 2.5rem 0;
-  box-shadow: 0 0 0 1px hsl(var(--primary) / 0.14), inset 0 1px #fff3, 0 0.1rem 2.4rem hsl(var(--primary) / 0.18);
+  box-shadow: 0 0 0 1px var(--ui-color-border-default), inset 0 1px #fff3, 0 0.1rem 2.4rem hsl(var(--primary) / 0.18);
 }
 .docs-content blockquote p { margin: 0; }
 

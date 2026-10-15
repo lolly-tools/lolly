@@ -55,7 +55,7 @@
   width: var(--chrome-h);
   height: var(--chrome-h);
   padding: 0;
-  border: 1px solid hsl(var(--primary));
+  border: 1px solid transparent;
   border-radius: var(--radius);
   /* Paint (background/color/blur/transition) comes from buttons.css's .btn--glass
      alias list - it imports after this sheet, so its single declaration wins. */

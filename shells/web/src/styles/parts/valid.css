@@ -104,7 +104,7 @@
    image was re-encoded on import, so a captured credential no longer binds byte-for-byte. */
 .valid-handoff-note {
   margin: 0 0 var(--ui-space-panel); padding: var(--sp-6) var(--ui-space-panel);
-  border: 1px solid hsl(var(--vf-ai-1) / 0.5); border-radius: var(--ui-radius-panel);
+  border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-panel);
   background: hsl(var(--vf-ai-1) / 0.1); color: var(--ui-color-text-default);
   font-size: var(--ui-type-title); line-height: 1.45;
 }

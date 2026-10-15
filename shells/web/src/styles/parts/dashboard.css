@@ -352,8 +352,8 @@
 .dash-dev-stat-value { font-size: calc(1.15rem * var(--a11y-fs)); font-weight: 700; line-height: 1.15; word-break: break-word; padding-right: 1.4rem; }
 .dash-dev-stat-value.is-mono { letter-spacing: -.01em; }
 .dash-dev-stat-sub { font-size: var(--fs-xs); color: var(--ui-color-text-muted); }
-/* The machine is the star - green spine, bigger value, primary-tinted panel. */
-.dash-dev-hero .dash-dev-stat:first-child { background: color-mix(in srgb, var(--ui-color-selection-surface) 50%, transparent); border-color: color-mix(in srgb, var(--ui-color-selection-border) 35%, transparent); }
+/* The machine is the star - bigger value, primary-tinted panel. */
+.dash-dev-hero .dash-dev-stat:first-child { background: color-mix(in srgb, var(--ui-color-selection-surface) 50%, transparent); }
 .dash-dev-hero .dash-dev-stat:first-child .dash-dev-stat-value { font-size: calc(1.45rem * var(--a11y-fs)); }
 .dash-dev-hero .dash-dev-stat:first-child .dash-dev-stat-icon { color: color-mix(in srgb, var(--ui-color-action-primary) 60%, transparent); }
 
