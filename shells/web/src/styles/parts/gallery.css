@@ -899,7 +899,7 @@ html[data-a11y-previews="hidden"] .tool-masonry .gtile-hero:not(.gtile-hero--pre
   align-items: center;
   padding: var(--sp-4) var(--sp-6);
   aspect-ratio: auto;      /* drop the square - this is a slim Continue bar, not a preview */
-  background: none;        /* drop the checkerboard placeholder */
+  background: none;        /* no preview backing behind the slim bar */
   line-height: normal;     /* was 0 (for the image) - let the chip size the bar */
 }
 html[data-a11y-previews="hidden"] .tool-masonry .gtile-hero:not(.gtile-hero--preview) .gtile-hero-img,
@@ -1072,9 +1072,9 @@ html[data-a11y-previews="hidden"] .gtile .tile-check { top: auto; bottom: 6px; }
 /* ── Icon backdrop ────────────────────────────────────────────────────────────
    The tool's inlined icon, always rendered behind a preview image/carousel as an
    instant on-brand placeholder while lazy art decodes, and as the permanent backup
-   when a preview is missing or 404s (see gallery.ts iconBackdrop). z-index:-1 keeps
+   when a preview is missing or 404s (see gallery-tiles.ts iconBackdrop). z-index:-1 keeps
    it under the in-flow preview <img>/track and the positioned chips (Continue/badge),
-   above the tile's checkerboard background; the parent isolates so it can't escape the
+   above the card the cover sits on; the parent isolates so it can't escape the
    stacking context (the frosted-menus z-index:-1 gotcha). A loaded, aspect-matched
    preview covers it completely.
 
@@ -1112,8 +1112,8 @@ html[data-a11y-previews="hidden"] .gtile .tile-check { top: auto; bottom: 6px; }
 }
 .gtile-iconfill-base svg,
 .gtile-iconfill-trace svg { max-width: 512px; max-height: 512px; }
-/* A true 2px hairline regardless of icon scale (vector-effect isn't inherited, so it
-   must land on the drawn shapes, not just the <svg>). */
+/* A constant 3px line whatever the icon's scale (vector-effect isn't inherited, so it
+   must sit on the drawn shapes, not just the <svg>). */
 .gtile-iconfill-base svg :is(path, circle, rect, line, polyline, polygon, ellipse),
 .gtile-iconfill-trace svg :is(path, circle, rect, line, polyline, polygon, ellipse) {
   stroke-width: 3px;
@@ -1131,12 +1131,16 @@ html[data-a11y-previews="hidden"] .gtile .tile-check { top: auto; bottom: 6px; }
 .gtile-iconfill-trace {   color: hsl(var(--secondary) / 1); }
 .gtile-iconfill-trace svg :is(path, circle, rect, line, polyline, polygon, ellipse) {
   fill:transparent;
-  stroke-width: 3px;             /* thicker than the 2px base outline it walks over */
-  stroke-dasharray: 12 4;     /* equal dash + gap */
-  animation: gtile-icon-trace 60s linear infinite;
+  stroke-width: 3px;             /* the same 3px as the base outline it walks over */
+  stroke-dasharray: 12 4;     /* 12-unit dashes, 4-unit gaps: a 16-unit pattern */
+  animation: gtile-icon-trace 4.8s linear infinite;
 
 }
-@keyframes gtile-icon-trace { to { stroke-dashoffset: -200; } }   /* -(250 + 250) */
+/* Each loop moves the dashes exactly one 16-unit pattern, so the restart shows the
+   same frame the loop began on instead of jumping half a dash. 4.8s per pattern
+   keeps the earlier pace of 200 units a minute. Change the offset with the dash
+   pattern. */
+@keyframes gtile-icon-trace { to { stroke-dashoffset: -16; } }
 /* The trace is a WAITING affordance only - stop it once real art has loaded (carousel
    .has-art / hero .is-ready), on the permanent icon-only fallback (preview gone, not
    "loading"), and under reduced-motion - leaving just the muted base. */
@@ -1824,31 +1828,6 @@ a.gtile-name:focus-visible::after {
 .meta-dialog-facts dd { margin: 0; }
 .meta-dialog-actions { display: flex; justify-content: flex-end; gap: var(--sp-4); margin-top: 2px; }
 
-/* Info dialog: the tool preview - the same media the tile shows (img or the
-   sandboxed card.html iframe), framed like a card. aspect-ratio comes inline
-   from the tool's declared render size; the max-height guards tall/portrait
-   tools from swallowing the dialog. */
-.meta-dialog-preview {
-  border: 1px solid hsl(var(--border));
-  border-radius: calc(var(--radius) * 0.75);
-  background: var(--preview-checker), var(--preview-surface);   /* same shade as the tile */
-  overflow: hidden;
-  max-height: 220px;
-  display: grid;
-  place-items: center;
-}
-.meta-dialog-preview-img,
-.meta-dialog-preview img,
-.meta-dialog-preview iframe {
-  width: 100%;
-  height: 100%;
-  max-height: 220px;
-  object-fit: contain;
-  border: 0;
-  display: block;
-  pointer-events: none;   /* preview, not a surface - clicks stay in the dialog */
-}
-
 /* Info dialog: shared section heading (Templates / Presets / Defaults). */
 .meta-sec-title {
   margin: 0 0 6px;
@@ -1962,8 +1941,7 @@ a.gtile-name:focus-visible::after {
 }
 
 /* Hide colourful previews (a11y pref): the dialog's art collapses like the grid's -
-   the hero preview and the template/preset thumbs go; the labelled text tiles stay. */
-html[data-a11y-previews="hidden"] .tool-meta-dialog .meta-dialog-preview,
+   the template/preset thumbs go; the labelled text tiles stay. */
 html[data-a11y-previews="hidden"] .tool-meta-dialog .meta-look-thumb { display: none; }
 
 /* Info dialog: the defaults spec sheet - small, dense, professional. */

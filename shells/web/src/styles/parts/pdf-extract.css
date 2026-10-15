@@ -157,35 +157,39 @@
   display: inline-flex; align-items: center; gap: 0.4rem;
   padding: 0.5rem 0.8rem;
   border: 0; border-radius: var(--radius-md, 10px);
-  background: none; color: inherit; font: inherit; line-height: 1;
+  font: inherit; line-height: 1;
   cursor: pointer;
   transition: background 120ms ease, color 120ms ease;
 }
-.pdfx-tab:hover { background: color-mix(in oklab, currentColor 8%, transparent); }
+/* Neutral fill scoped to the tabs that are NOT chosen. The chosen tab's fill comes
+   from buttons.css's .btn--primary alias list (the `primitives` layer), which a
+   views-layer `background` on every .pdfx-tab would beat by layer rank. */
+.pdfx-tab:not(.is-active) { background: none; color: inherit; }
+.pdfx-tab:not(.is-active):hover { background: color-mix(in oklab, currentColor 8%, transparent); }
 .pdfx-tab-ico { display: inline-flex; opacity: 0.7; }
 .pdfx-tab-ico svg { width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); }
 .pdfx-tab-label { white-space: nowrap; }
 
-/* The count is the hook - a filled, brand-tinted badge, so an asset tab reads as
-   "there are 12 of these" at a glance rather than a parenthetical you skim past. */
+/* The count is the hook - a badge filled with the accent, so an asset tab reads as
+   "there are 12 of these" at a glance rather than a parenthetical you skim past.
+   The badge and the chosen tab take the accent fill and its ink from buttons.css's
+   .btn--primary alias list: --primary and --primary-foreground underneath, a pair
+   brand-vars.ts sets for each theme (and again under High contrast) with the ink
+   picked against the fill. Not --brand-primary, which is the brand's light-theme
+   colour in every theme: a dark ink there all but vanished on the dark strip. */
 .pdfx-tab-n {
   display: inline-flex; align-items: center; justify-content: center;
   min-width: 1.35em; height: 1.35em; padding: 0 0.4em;
   border-radius: var(--radius-pill);
   font-size: calc(0.78rem * var(--a11y-fs)); font-weight: 700; font-variant-numeric: tabular-nums;
-  background: color-mix(in oklab, var(--brand-primary, hsl(var(--primary))) 18%, transparent);
-  color: var(--brand-primary, hsl(var(--primary)));
 }
 
-.pdfx-tab.is-active {
-  background: var(--brand-primary, currentColor);
-  color: var(--brand-on-primary, #fff);
-  font-weight: 600;
-}
+.pdfx-tab.is-active { font-weight: 600; }
 .pdfx-tab.is-active .pdfx-tab-ico { opacity: 1; }
+/* The same pair the other way round, so the count still stands out on the filled tab. */
 .pdfx-tab.is-active .pdfx-tab-n {
-  background: color-mix(in oklab, var(--brand-on-primary, #fff) 24%, transparent);
-  color: var(--brand-on-primary, #fff);
+  background: var(--ui-color-action-on-primary);
+  color: var(--ui-color-action-primary);
 }
 
 /* One tab is not a choice. A text-only document therefore shows no strip at all

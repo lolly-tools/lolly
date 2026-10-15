@@ -139,6 +139,8 @@
 .upscale-run,                                     /* upscale.css - on-device AI upscale Run */
 .rt-actions .rt-run,                              /* retouch.css - content-aware fill/save primary */
 .fmt-chip[aria-pressed="true"],                   /* tool-chrome.css - export format picker chosen chip */
+.pdfx-tab.is-active,                              /* pdf-extract.css - Unpack's chosen tab */
+.pdfx-tab-n,                                      /* pdf-extract.css - Unpack's count badge */
 .be-cta {                                         /* brand-studio.css */
   background: var(--ui-color-action-primary);
   color: var(--ui-color-action-on-primary);
