@@ -177,11 +177,11 @@ export const renderPassport = (dt: DetailsCtx, cred: 'checking' | 'unchecked' | 
   const maker = ref.meta?.makerLikely as { vendor?: string; hint?: string } | undefined;
   const lamps: TrustLamp[] = [
     cred === 'unchecked'
-      ? { id: 'provenance', label: t('Provenance'), state: 'unlit', word: t('not checked'), detail: t('Use Check Content Credentials to inspect the original file.') }
+      ? { id: 'provenance', label: t('Provenance'), state: 'unlit', word: t('not checked'), detail: t('Use Inspect & verify for the file report.') }
       : cred === 'checking'
       ? { id: 'provenance', label: t('Provenance'), state: 'unlit', word: t('checking…') }
       : cred?.found && cred.state === 'invalid'
-        ? { id: 'provenance', label: t('Provenance'), state: 'warn', word: t('credential problem'), detail: t('Open Check credentials for the full report.') }
+        ? { id: 'provenance', label: t('Provenance'), state: 'warn', word: t('credential problem'), detail: t('Open Inspect & verify for the full report.') }
         : cred?.found && cred.trusted
           ? { id: 'provenance', label: t('Provenance'), state: 'fact', word: t('verified') }
           : cred?.found
