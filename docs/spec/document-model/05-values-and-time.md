@@ -226,9 +226,9 @@ The adapter supports scenes without introducing another saved timeline. Stored s
 
 ## Open points
 
-- **Q4. What "non-recordable" means for the first two cases, a local utility and a live-input tool.** Default from plan section 16: for a utility, capture off, retention none and replay semantic from pinned inputs. For a live-input tool, capture unsupported unless the person turns it on, retention for the session and no replay. It touches the `onFrame` and `onLevel` protocols above, which are the live-input path. Evidence that would change it: a regulated workflow that needs durable receipts for utilities.
+- **Q4. What "non-recordable" means for the first two cases, a local utility and a live-input tool.** Decided on 2026-10-16 by accepting the default from plan section 16: for a utility, capture off, retention none and replay semantic from pinned inputs. For a live-input tool, capture unsupported unless the person turns it on, retention for the session and no replay. It touches the `onFrame` and `onLevel` protocols above, which are the live-input path. Evidence that would reopen it: a regulated workflow that needs durable receipts for utilities.
 
-The other open questions are carried elsewhere, each on its recommended default and each still open. Q1 and Q5 are in [Conformance and fidelity](conformance.html), Q2 and Q3 in [Constraints, authority and local choice](policy.html), Q6 in [Status and open points](status.html).
+The other questions are carried elsewhere, each decided on 2026-10-16. Q1 and Q5 are in [Conformance and fidelity](conformance.html), Q2 and Q3 in [Constraints, authority and local choice](policy.html), Q6 in [Status and open points](status.html).
 
 ## Precedents
 
