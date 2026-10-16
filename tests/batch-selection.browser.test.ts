@@ -6,10 +6,10 @@ import { getBrowser, closeBrowser } from '../packages/node-shell/src/browsers.ts
 import { unzipSync, strFromU8 } from 'fflate';
 import { shellSettled } from './helpers/shell-settled.ts';
 
-const origin = process.env.LOLLY_BATCH_TEST_URL;
+const origin = process.env.LOLLY_BATCH_TEST_URL ?? process.env.LOLLY_EXPORT_TEST_URL;
 const command = process.platform === 'darwin' ? 'Meta' : 'Control';
 test('batch selection scopes edits and exports, survives paging, and recovers removed rows', {
-  skip: origin ? false : 'set LOLLY_BATCH_TEST_URL to a running web shell', timeout: 120_000,
+  skip: origin ? false : 'set LOLLY_BATCH_TEST_URL or LOLLY_EXPORT_TEST_URL to a running web shell', timeout: 120_000,
 }, async () => {
   const browser = await getBrowser({ graphics: 'auto' });
   const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
@@ -122,7 +122,7 @@ test('batch selection scopes edits and exports, survives paging, and recovers re
 });
 
 test('batch reuses the full format menu and copies and pastes rectangular cell ranges', {
-  skip: origin ? false : 'set LOLLY_BATCH_TEST_URL to a running web shell', timeout: 120_000,
+  skip: origin ? false : 'set LOLLY_BATCH_TEST_URL or LOLLY_EXPORT_TEST_URL to a running web shell', timeout: 120_000,
 }, async () => {
   const browser = await getBrowser({ graphics: 'auto' });
   const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, permissions: ['clipboard-read', 'clipboard-write'] });
