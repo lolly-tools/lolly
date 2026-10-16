@@ -409,3 +409,41 @@ test('a change sends one jelly-motion-change event, after the attribute is writt
   applyA11yPrefs({});
   assert.deepEqual(jellyEvents, ['reduce', null], 'still off, so no event');
 });
+
+// ── The address bar follows High contrast ────────────────────────────────────
+
+test('a change of High contrast moves the address bar to the page now in force, and only that change', () => {
+  reset();
+  const meta = document.createElement('meta');
+  meta.name = 'theme-color';
+  meta.content = 'hsl(40 50% 97.6%)';
+  document.head.appendChild(meta);
+  // The page the cascade gives each state, as a design pack with a newsprint room
+  // has it: the pack's page normally, Lolly's own white once High contrast sets the
+  // pack's light room aside. jsdom has no global getComputedStyle, so this stands in.
+  const g = globalThis as { getComputedStyle?: unknown };
+  const had = g.getComputedStyle;
+  let reads = 0;
+  g.getComputedStyle = () => ({
+    getPropertyValue: (name: string) => {
+      reads++;
+      if (name !== '--background') return '';
+      return document.documentElement.dataset.a11yContrast === 'high' ? '0 0% 100%' : '40 50% 97.6%';
+    },
+  });
+  try {
+    applyA11yPrefs({ highContrast: true });
+    assert.equal(meta.content, 'hsl(0 0% 100%)', 'High contrast on: Lolly\'s page');
+    applyA11yPrefs({ highContrast: false });
+    assert.equal(meta.content, 'hsl(40 50% 97.6%)', 'High contrast off: the pack\'s page again');
+    // Another pref, or High contrast restated, leaves the page as it was: no read at all.
+    reads = 0;
+    applyA11yPrefs({ largeText: true });
+    applyA11yPrefs({ largeText: true, reduceMotion: true });
+    assert.equal(reads, 0, 'no style is read when the contrast attribute did not change');
+  } finally {
+    g.getComputedStyle = had;
+    meta.remove();
+    reset();
+  }
+});

@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "presets": [
+    {
+      "id": "tidy",
+      "version": "1.0.0",
+      "name": "Tidy",
+      "description": "Removes decoration, page numbers and dates without asking, since the slide master puts its own back; keeps every photo and asks a person about each one; takes the content layout when two layouts score the same.",
+      "actions": {
+        "decoration": "remove",
+        "page-number": "remove",
+        "date": "remove",
+        "photo": "keep"
+      },
+      "review": {
+        "decoration": "accepted",
+        "page-number": "accepted",
+        "date": "accepted",
+        "photo": "needs-attention"
+      },
+      "layout": {
+        "fallback": "content"
+      }
+    }
+  ]
+}

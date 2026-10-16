@@ -253,9 +253,9 @@ export function swatchesFromColors(colors: Record<string, string>): BrandSwatchV
 
 // ─── the snapshot ────────────────────────────────────────────────────────────
 
-/** A colour record without the themed role tokens (`color.role.*`). */
+/** A colour record without the themed role tokens (`color.role.*`) and the app chrome a pack states (`color.chrome.*`). */
 function withoutRoleTokens(record: Record<string, string>): Record<string, string> {
-  return Object.fromEntries(Object.entries(record ?? {}).filter(([path]) => !path.startsWith('color.role.')));
+  return Object.fromEntries(Object.entries(record ?? {}).filter(([path]) => !path.startsWith('color.role.') && !path.startsWith('color.chrome.')));
 }
 
 /** A copy of a string record with its keys in code-unit order. */
@@ -309,9 +309,11 @@ export async function colorTokenHash(colors: Record<string, string>): Promise<st
 export async function resolveRebrandDesignSystem(raw: RebrandDesignSystemInputV1): Promise<RebrandDesignSystemV1> {
   const input: RebrandDesignSystemInputV1 = structuredClone(raw);
   // Themed role tokens (`color.role.*`, plan 291 W4) name a use on a Design slide and
-  // alias a ramp step the swatches already hold. A renovation reads colours, not uses,
-  // so they stay out: the swatches, the theme slots and the token hash a saved plan
-  // is checked against are what they were before the packs gained them.
+  // alias a ramp step the swatches already hold. The app chrome a pack states
+  // (`color.chrome.*`) describes a use in the app, not a colour of the brand. A
+  // renovation reads colours, not uses, so both stay out: the swatches, the theme slots
+  // and the token hash a saved plan is checked against are what they were before the
+  // packs gained them.
   input.colors = withoutRoleTokens(input.colors);
   if (input.darkColors) input.darkColors = withoutRoleTokens(input.darkColors);
   const colors = sortedRecord(input.colors);

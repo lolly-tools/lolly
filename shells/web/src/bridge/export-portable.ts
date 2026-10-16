@@ -44,7 +44,9 @@ export async function renderPortableHtml(node: Element, doc: NonNullable<ExportO
   const vars: string[] = [];
   for (let i = 0; i < cs.length; i++) {
     const name = cs.item(i);
-    if (/^--(?:font-|brand-)/.test(name)) vars.push(`${name}:${cs.getPropertyValue(name)}`);
+    // --brand-warn and --brand-warn-ink are the pack's unsaved colour, which follows the
+    // shell's theme, not the document, so they stay out of the exported file.
+    if (/^--(?:font-|brand-(?!warn))/.test(name)) vars.push(`${name}:${cs.getPropertyValue(name)}`);
   }
   const families = new Set<string>();
   for (const el of [root, ...root.querySelectorAll('*')].slice(0, 4096)) {
