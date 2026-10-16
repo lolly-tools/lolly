@@ -55,7 +55,6 @@
  */
 import '../styles/parts/welcome.css';
 import { currentLang, docsAppHref, langOptions, setActiveLang, t, LANG_ICON_SVG, flagEmoji } from '../i18n.ts';
-import { historySettled } from '../lib/overlay-back.ts';
 import { isTauriShell } from '../lib/instance-choice.ts';
 import type { Lang } from '../i18n.ts';
 import { escape, NAV_EVENTS } from '../utils.ts';
@@ -73,7 +72,7 @@ import { mountModal } from './modal.ts';
 export { WELCOME_DISMISSED_KEY, isWelcomeDismissed, markWelcomeDismissed } from '../lib/welcome-gate.ts';
 const TIPS_DISMISSED_KEY = 'lolly-tips-dismissed';
 
-export type WelcomeChoice = 'brand' | 'import' | 'workspace' | 'explore' | 'dismiss';
+export type WelcomeChoice = 'brand' | 'import' | 'explore' | 'dismiss';
 
 let openPromise: Promise<WelcomeChoice> | null = null;
 // The open dialog's settle fn - lets closeWelcomeDialog() tear down through the
@@ -113,7 +112,6 @@ function welcomeDoors(withImport: boolean): string {
         <span class="welcome-card-cta" aria-hidden="true">${t('Browse the gallery →')}</span>
       </button>
     </div>
-    ${withImport ? `<button type="button" class="welcome-privacy-link" data-choice="workspace">${t('Connect to your Lolly workspace')}</button>` : ''}
     <p class="welcome-privacy">
       ${t('Everything you make stays on this device.')}
       <button type="button" class="welcome-privacy-link" data-page="2">${t('Private by design')}</button>
@@ -209,7 +207,7 @@ export function showWelcomeDialog(profileApi?: WebProfileAPI, uploadHost?: Picke
         // dismiss also ack the privacy notice - a door-taker never saw page 2,
         // so the one-line privacy banner keeps its turn on a later visit.
         if (result === 'explore' || result === 'dismiss') { markWelcomeDismissed(); ackPrivacyNotice(); }
-        else if (result === 'brand' || result === 'import' || result === 'workspace') { markWelcomeDismissed(); }
+        else if (result === 'brand' || result === 'import') { markWelcomeDismissed(); }
         NAV_EVENTS.forEach(ev => window.removeEventListener(ev, onNav));
         settleOpen = null;
         openPromise = null;
@@ -290,12 +288,6 @@ export function showWelcomeDialog(profileApi?: WebProfileAPI, uploadHost?: Picke
         const choice = card.dataset.choice as WelcomeChoice;
         modal.close(choice);
         if (choice === 'brand') window.location.hash = '#/start';
-        if (choice === 'workspace' && uploadHost) {
-          void import('./instance-sheet.ts').then(async m => {
-            await historySettled();
-            await m.openInstanceSheet(uploadHost);
-          });
-        }
         // Both doors persist the dismissal in onClose above - a cancelled file
         // picker still counted as engaging with the fork (audit 167 F-A5).
         if (choice === 'import' && uploadHost) openDropFilePicker(uploadHost);
