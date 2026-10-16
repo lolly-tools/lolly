@@ -59,10 +59,11 @@ test('shared folders browse without originals, copy into nested destinations and
     await page.getByLabel('Shared project', { exact: true }).selectOption('p2');
     await page.getByLabel('Folder', { exact: true }).selectOption('nested');
     await page.getByRole('button', { name: 'Copy', exact: true }).click();
-    await page.getByText('1 of 1 copies saved in the destination folder.', { exact: true }).waitFor();
+    await page.getByRole('dialog', { name: 'Copy to shared project', exact: true }).getByText('1 of 1 copies saved in the destination folder.', { exact: true }).waitFor();
     assert.equal(uploads.length, 1); assert.equal(placed, true); assert.equal((copied as Record<string, unknown> | null)?.checksum, checksum);
     await page.getByRole('button', { name: 'Done', exact: true }).click();
     await page.locator('.cat-tile-open').click();
+    await page.locator('.cat-details [data-inspector-section="file-actions"] > summary').click();
     await page.locator('.cat-details [data-act="catalog-submit"]').click();
     await page.getByLabel('Library audience', { exact: true }).selectOption('design');
     await page.getByRole('button', { name: 'Submit', exact: true }).click();
@@ -72,6 +73,7 @@ test('shared folders browse without originals, copy into nested destinations and
     if (process.env.LOLLY_ASSETS_EVIDENCE) { await mkdir(process.env.LOLLY_ASSETS_EVIDENCE, { recursive: true }); await page.screenshot({ path: `${process.env.LOLLY_ASSETS_EVIDENCE}/shared-library-review.png` }); }
     await page.getByRole('button', { name: 'Done', exact: true }).click();
     await page.locator('.cat-tile-open').click();
+    await page.locator('.cat-details [data-inspector-section="export"] > summary').click();
     await page.locator('.cat-details [data-act="send"]').click();
     assert.equal(await page.getByRole('button', { name: 'Export-only fixture', exact: true }).count(), 0);
     await page.getByRole('button', { name: 'Writable fixture', exact: true }).click();

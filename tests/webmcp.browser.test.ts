@@ -97,8 +97,11 @@ test('Lolly site tools discover tools and edit the mounted document through visi
     await tile.locator('.cat-tile-open').click();
     const inspector = page.locator('dialog.cat-details');
     await inspector.locator('.cat-edit-toolbar').waitFor();
+    await inspector.locator('[data-inspector-section="credentials"] > summary').click();
+    assert.equal(await inspector.locator('.cat-inspector-scroll > details').last().getAttribute('data-inspector-section'), 'checks');
     const provenance = await inspector.locator('.cat-details-provenance').boundingBox(), sharing = await inspector.locator('.cat-details-actions').boundingBox();
-    assert.ok(provenance && sharing && provenance.y < sharing.y);
+    const checks = await inspector.locator('[data-inspector-section="checks"]').boundingBox();
+    assert.ok(provenance && sharing && checks && provenance.y < checks.y && sharing.y < checks.y);
     const theme = inspector.locator('.cat-inspect-theme'), initialTheme = await theme.getAttribute('data-theme');
     await theme.click(); assert.notEqual(await theme.getAttribute('data-theme'), initialTheme);
     await inspector.getByRole('button', { name: 'Claim authorship', exact: true }).click();

@@ -2,6 +2,7 @@
 import { assetViewerKind } from '../../lib/asset-viewer-source.ts';
 import { mountAssetFormatViewer } from '../../components/asset-format-viewer.ts';
 import { mountAssetViewerDetails } from '../../components/asset-viewer-details.ts';
+import { mountAssetInspectorDock } from '../../components/asset-inspector-dock.ts';
 import { openAssetInText } from '../../lib/text-handoff.ts';
 import { mountModelPreview } from '../../lib/model-preview.ts';
 import { mountSpecialPreview } from './special-preview.ts';
@@ -427,7 +428,7 @@ export function buildSheet(dt: DetailsCtx): void {
           <h3 class="cat-inspector-heading">${t('Content Credentials & origins')}</h3>
           <div class="cat-passport" data-passport></div>
           ${showVerify ? `<div class="cat-details-cred">
-            <button type="button" class="btn cat-act-verify" data-act="verify">${SHIELD_ICON}<span>${t('Check Content Credentials')}</span></button>
+            <button type="button" class="btn cat-act-verify" data-act="verify">${SHIELD_ICON}<span>${t('Inspect & verify')}</span></button>
             <div class="cat-cred-lolly" hidden>${lollyBadge('lg')}<span class="cat-cred-lolly-sub">${t('This file’s Content Credential records a Lolly export, intact.')}</span></div>
             <div class="cat-cred-panels" hidden></div>
           </div>` : ''}
@@ -484,6 +485,7 @@ export function buildSheet(dt: DetailsCtx): void {
   // mounted INSIDE this dialog so it paints above the ::backdrop.
   dt.dlAsPopover = null;
   let clearSiteInspection: (() => void) | undefined;
+  let disposeInspector: (() => void) | undefined;
   const modal = mountModal(content, {
     className: 'cat-details',
     backStack: !cat.preview,
@@ -491,6 +493,7 @@ export function buildSheet(dt: DetailsCtx): void {
     onEscape: () => dt.sheet.dismissLayer(),
     onClose: () => {
       clearSiteInspection?.();
+      disposeInspector?.();
       destroyModelPreview?.();
       destroySpecialPreview?.();
       dt.formatViewer?.destroy();
@@ -531,12 +534,14 @@ export function buildSheet(dt: DetailsCtx): void {
     if (preview) destroySpecialPreview = mountSpecialPreview(preview, ref, cat);
   }
   const fileSlot = document.createElement('div');
+  fileSlot.dataset.assetFiles = '';
   dlg.querySelector('.cat-details-body')?.prepend(fileSlot);
   mountAssetFileList(fileSlot, ref, selected => cat.details.openDetails(selected, dt.initialTheme, dt.initialTreatment));
   if (ref.meta?.provider || ref.id.startsWith('inst/')) {
-    const metadata = document.createElement('div'); fileSlot.append(metadata);
+    const metadata = document.createElement('div'); metadata.dataset.sharedMetadata = ''; fileSlot.after(metadata);
     void import('./shared-metadata.ts').then(({ mountSharedMetadata }) => mountSharedMetadata(metadata, ref, () => { void cat.remote?.load(); }, cat.sourceStatuses.find(source => source.id === ref.meta?.provider)));
   }
+  disposeInspector = mountAssetInspectorDock(dlg);
   dt.previewStatusDispose = mountAssetPreviewStatus(dlg.querySelector<HTMLElement>('.cat-details-preview')!, Number(ref.meta?.bytes ?? ref.meta?.size ?? 0));
   cat.detailsDialog = dlg; dlg.dataset.viewerProvider = String(ref.meta?.provider ?? '');
   cat.detailsModal = modal;

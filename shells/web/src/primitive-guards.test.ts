@@ -651,6 +651,8 @@ test('R9: lib/icons.ts glyph bodies are well-formed (balanced quotes and tags)',
 const RAW_HTML_SINK = /\.(?:inner|outer)HTML\s*\+?=(?!=)(?!\s*['"]\s*['"]\s*[;,)])|\binsertAdjacentHTML\s*\(/;
 
 const RAW_HTML_ALLOWED: Record<string, number> = {
+  // Fixed registry icons only; sidebar labels and metadata use textContent.
+  'components/asset-inspector-dock.ts': 3,
   // One fixed registry link icon; response URLs and labels are assigned as text/value.
   'components/invite-link-control.ts': 1,
   // Fixed registry icons only; button labels and comment content use textContent.
