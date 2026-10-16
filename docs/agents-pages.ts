@@ -21,7 +21,8 @@
 import { PENPOT_MIME } from '../engine/src/penpot-file.ts';
 import { readLiveRelay } from '../packages/core/src/live-invite-v1.ts';
 
-export type Pathway = 'quickstart' | 'creators' | 'builders' | 'operators' | 'trust';
+export type { Pathway } from './navigation.ts';
+import type { Pathway } from './navigation.ts';
 
 export interface AgentPage {
   slug: string;
@@ -213,6 +214,21 @@ and every page there has a markdown twin at the same path with \`.md\` in place 
 
 Fetch the catalog index once to learn the tool ids, then a manifest for the inputs.
 Do not guess parameter names.
+
+## Choose the right surface
+
+The canonical entrance for Lolly and Lolly Work is ${u}/info. The six sections cover
+getting started, creation, automation, organisation management, operations and trust.
+
+- Use the public render MCP and the \`lolly\` creative CLI to make files from tools.
+- A Work document invitation grants scoped access to a document on the inviter's instance:
+  ${twinUrl(o, 'work-document-agents')}. It does not grant infrastructure access.
+- The \`lw\` CLI administers a Work instance with its own authenticated permissions:
+  ${twinUrl(o, 'work-cli')}. Instance setup: ${twinUrl(o, 'work-install')}.
+- Content profiles and brand configuration: ${twinUrl(o, 'configuration')}.
+  Work server configuration: ${twinUrl(o, 'work-configuration')}.
+- Packaged Work help is pinned to that installation's selected documentation revision.
+  Check the installed server version before applying instructions from a newer guide.
 
 ## A URL is the API
 

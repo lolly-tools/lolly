@@ -461,10 +461,13 @@ export function discoverSealTargets(outDir: string): SealTarget[] {
   files.sort();
   const out: SealTarget[] = [];
   for (const file of files) {
-    const slug = file.slice(file.lastIndexOf('/') + 1, -'.html'.length);
+    const filenameSlug = file.slice(file.lastIndexOf('/') + 1, -'.html'.length);
     const path = resolve(outDir, file);
     let html: string;
     try { html = readFileSync(path, 'utf-8'); } catch { continue; }
+    // A public URL can change while the signed document keeps its identity.
+    // The article's page class carries that stable id; older pages use the filename.
+    const slug = /<main\b[^>]*class="[^"]*\bpage-([a-z0-9-]+)\b/.exec(html)?.[1] ?? filenameSlug;
     // The slug and the href have to AGREE. A page linking a sidecar that is not
     // its own is not a sealed page - signing it would write a store into a file
     // that page never points at.

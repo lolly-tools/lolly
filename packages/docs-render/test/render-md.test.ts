@@ -152,6 +152,16 @@ test('a diagram with a dark twin ships both files, each with its own size', () =
   assert.ok(!plain.includes('diagram-alt') && !plain.includes('docs-diagram--dual'), 'no twin, no second image');
 });
 
+test('a signed Work screenshot can pair its dark file without a capture recipe', () => {
+  const html = mdToHtml('![Setup](/info/shots/work/customer-setup-deployment.svg)', mockContext({
+    darkShot: file => file === 'work/customer-setup-deployment.svg' ? 'work/customer-setup-deployment.dark.svg' : null,
+    shotSize: () => ({ w: 1280, h: 800 }),
+  }));
+  assert.match(html, /shot--dual/);
+  assert.ok(html.includes('src="/info/shots/work/customer-setup-deployment.dark.svg"'));
+  assert.equal((html.match(/<img /g) ?? []).length, 2);
+});
+
 test('a diagram with no credential has no verify mark, even when it has a recipe', () => {
   const html = mdToHtml('![Diagram](/info/diagrams/example.svg)', mockContext({
     tryLink: () => ({ route: '/#/tool/diagram-builder' }),

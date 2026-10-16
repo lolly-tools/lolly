@@ -32,10 +32,10 @@ const CATALOG = join(REPO, 'docs/site/formats-catalog.json');
 // Door pages live under /info/<door>/<slug>.html (plans/177 P1) and the flat
 // /info/<slug>.html is a redirect stub, so a page is read from its door copy first,
 // behind a locale prefix too. The landing (index.html) has no door and stays flat.
-const DOORS = ['start', 'create', 'build', 'operate', 'trust'];
+const DOORS = ['start', 'create', 'build', 'manage', 'operate', 'trust'];
 const builtFile = (rel: string): string => {
   const m = /^(?:([a-z]{2}(?:-[a-z]+)?)\/)?([^/]+)$/.exec(rel);
-  if (m) for (const door of DOORS) {
+  if (m && m[2] !== 'index.html') for (const door of DOORS) {
     const path = join(BUILT, m[1] ?? '', door, m[2]!);
     if (existsSync(path)) return path;
   }

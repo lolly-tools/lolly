@@ -2,6 +2,8 @@
 
 Lolly turns your rules - colours, type, layouts, logic - into tools anyone can use to make finished files: images, PDFs, social cards, video, by filling in a few fields. There's little to learn and nothing to upload: making and exporting runs on your device, online or off.
 
+For the complete product introduction, read [What is Lolly?](/info/what-is-lolly.html). This quickstart covers local creation; [organisation use](/info/organisation.html) and [Work server installation](/info/work-install.html) have separate guides.
+
 This is the one page to read first. Two things get you productive: **make Lolly yours** and **bring in what you already have** (your design files and tokens). Everything else is a link away.
 
 > New to Lolly and just want to make something? [Make something in 60 seconds](/info/make-something.html) walks you through three, or [open the app](/#/), pick any tool from the gallery, fill in the blanks and hit **Export**. Come back here when you want it wearing *your* brand.

@@ -2082,7 +2082,7 @@ function parseRoute(): Route {
     // door directory (#/docs/create/using ↔ /info/create/using.html); door names and locale
     // codes never collide, so the first segment after 'docs' classifies the form.
     if (parts[0] === 'docs' && parts[1]) {
-      const DOORS = new Set(['start', 'create', 'build', 'operate', 'trust']);
+      const DOORS = new Set(['start', 'create', 'build', 'manage', 'operate', 'trust']);
       if (DOORS.has(parts[1]) && parts[2]) {
         return { name: 'docs', lang: null, slug: `${parts[1]}/${parts[2]}`, params: query || '' };
       }

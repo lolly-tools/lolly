@@ -73,7 +73,8 @@ export function inline(text: string, ctx: DocsRenderContext): string {
     const dims = size ? ` width="${size.w}" height="${size.h}"` : '';
     // The dark twin ships as a SECOND <img> (the site's dark mode is a class the reader
     // toggles, so a `prefers-color-scheme` source would ignore that toggle).
-    const darkSrc = darkFor.get(src);
+    const explicitDark = ctx.darkShot(file);
+    const darkSrc = darkFor.get(src) ?? (explicitDark ? `/info/shots/${explicitDark}` : undefined);
     let twin = '';
     if (darkSrc) {
       const dfile = darkSrc.slice('/info/shots/'.length);

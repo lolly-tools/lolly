@@ -1,4 +1,4 @@
-# Lolly for Builders
+# Build & automate
 
 Build a tool once and the request stops coming back to you: the job becomes a template other people fill in themselves, correctly, without you in the loop. Your work is plain HTML, CSS and JavaScript - version-controlled, diffable, reviewable and running on an open engine, so it stays yours with nothing to unwind later.
 
@@ -6,7 +6,14 @@ Lolly is a platform-agnostic engine that runs the same render path across severa
 
 You are the multiplier in the relay: a creative authors the rules and you scale them into a pipeline, a CLI batch or an MCP endpoint, so [The lifecycle of a campaign](/info/overview.html#the-lifecycle-of-a-campaign) follows one asset through all three pairs of hands.
 
-New here? The **[Quickstart](/info/quickstart.html)** gets a brand and your first render in place before you go deep. [About](/info/about.html) states the licence boundary and the repositories each piece lives in, and [Lolly for Operators](/info/operators.html) is the door for whoever will ask you about rollout and security.
+New here? The **[Quickstart](/info/quickstart.html)** gets a brand and your first render in place before you go deep. [About](/info/about.html) states the licence boundary and the repositories each piece lives in, and [Manage an organisation](/info/operators.html) is the door for whoever will ask you about rollout and security.
+
+## Choose an automation interface
+
+- Use [the creative `lolly` CLI](/info/cli.html), [URL mode](/info/url-mode.html) or [the public render MCP](/info/mcp.html) to make files from tools.
+- Use [document agent invitations](/info/work-document-agents.html) to give an agent scoped access to a shared document on your Work instance. An invitation does not grant infrastructure access.
+- Use [the `lw` administration CLI](/info/work-cli.html) or [Work API](/info/work-api.html) to manage an instance with its own authenticated permissions.
+- [Profiles and brand configuration](/info/configuration.html) control tools and content. [Work instance configuration](/info/work-configuration.html) controls the optional organisation service.
 
 ## Designers
 

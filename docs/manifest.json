@@ -1,0 +1,3428 @@
+{
+  "version": 1,
+  "canonical": "https://lolly.tools/info",
+  "sectionSubtitles": false,
+  "sections": [
+    {
+      "id": "start",
+      "key": "quickstart",
+      "title": "Start here",
+      "prefix": "start",
+      "hub": "quickstart"
+    },
+    {
+      "id": "create",
+      "key": "creators",
+      "title": "Create & use",
+      "prefix": "create",
+      "hub": "creators"
+    },
+    {
+      "id": "build",
+      "key": "builders",
+      "title": "Build & automate",
+      "prefix": "build",
+      "hub": "builders"
+    },
+    {
+      "id": "manage",
+      "key": "managers",
+      "title": "Manage an organisation",
+      "prefix": "manage",
+      "hub": "operators"
+    },
+    {
+      "id": "operate",
+      "key": "operators",
+      "title": "Deploy & operate",
+      "prefix": "operate",
+      "hub": "operate"
+    },
+    {
+      "id": "trust",
+      "key": "trust",
+      "title": "Trust & security",
+      "prefix": "trust",
+      "hub": "trust"
+    }
+  ],
+  "pages": [
+    {
+      "slug": "index",
+      "title": "Lolly: information and documentation",
+      "src": "site.md",
+      "isLanding": true,
+      "section": "start",
+      "path": "index",
+      "icon": "home",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Product, organisation and vocabulary"
+    },
+    {
+      "slug": "quickstart",
+      "title": "Quickstart",
+      "src": "quickstart.md",
+      "isHub": true,
+      "section": "start",
+      "path": "start/quickstart",
+      "icon": "star",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "First file and installation"
+    },
+    {
+      "slug": "make-something",
+      "title": "Make your first file",
+      "src": "make-something.md",
+      "description": "Make a QR code for a web address, download it, check that it scans, and save an editable copy you can reopen from Projects. No account needed.",
+      "section": "start",
+      "path": "start/make-something",
+      "icon": "pentool",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "renderer": "renderMakeSomethingPage",
+      "group": "First file and installation"
+    },
+    {
+      "slug": "faq",
+      "title": "Questions & answers",
+      "src": "faq.md",
+      "description": "The things people ask most: why it is free, what the catch is not, what happens to your files and where Lolly is going.",
+      "section": "start",
+      "path": "start/faq",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "renderer": "renderFaqPage",
+      "group": "Product, organisation and vocabulary"
+    },
+    {
+      "slug": "project-asset-transfers",
+      "title": "Shared project assets",
+      "src": "project-asset-transfers.md",
+      "description": "Browse shared project folders, copy assets, submit originals to a workspace library and send files to connected destinations.",
+      "section": "create",
+      "path": "create/project-asset-transfers",
+      "icon": "folder",
+      "aliases": [
+        "start/project-asset-transfers"
+      ],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Design and templates"
+    },
+    {
+      "slug": "organisation",
+      "title": "Use Lolly at your organisation",
+      "src": "organisation.md",
+      "description": "Use your organisation's Lolly, with optional lolly.work sign-in, shared projects, live collabs and managed settings. Learn what stays local and how to leave.",
+      "section": "start",
+      "path": "start/organisation",
+      "icon": "people",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Product, organisation and vocabulary",
+      "secondarySections": [
+        "manage"
+      ]
+    },
+    {
+      "slug": "install",
+      "title": "Install Lolly",
+      "src": "install.md",
+      "description": "Every packaged build in one list: the macOS disk image, the openSUSE Tumbleweed and Leap RPMs, the Flatpak, the Android APK, and how to check the file you downloaded is the one we made.",
+      "section": "start",
+      "path": "start/install",
+      "icon": "download",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "First file and installation"
+    },
+    {
+      "slug": "supported-environments",
+      "title": "Supported environments",
+      "src": "supported-environments.md",
+      "description": "Tested browser and app environments, the WebGPU startup requirement, and the separate web and native release scopes.",
+      "section": "start",
+      "path": "start/supported-environments",
+      "icon": "check",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "First file and installation"
+    },
+    {
+      "slug": "creators",
+      "title": "Create & use",
+      "src": "creators.md",
+      "isHub": true,
+      "section": "create",
+      "path": "create/creators",
+      "icon": "palette",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Design and templates",
+      "headingId": "lolly-for-creators"
+    },
+    {
+      "slug": "builders",
+      "title": "Build & automate",
+      "src": "builders.md",
+      "isHub": true,
+      "section": "build",
+      "path": "build/builders",
+      "icon": "wrench",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Architecture and contracts",
+      "headingId": "lolly-for-builders"
+    },
+    {
+      "slug": "operators",
+      "title": "Manage an organisation",
+      "src": "operators.md",
+      "isHub": true,
+      "description": "Roll Lolly out across an organisation: governance, deployment, configuration and the trust properties your security review will ask about.",
+      "section": "manage",
+      "path": "manage/organisation-management",
+      "icon": "checklist",
+      "aliases": [
+        "operate/operators"
+      ],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Administration, policy and approvals",
+      "headingId": "lolly-for-operators"
+    },
+    {
+      "slug": "trust",
+      "title": "Trust & security",
+      "src": "trust.md",
+      "isHub": true,
+      "description": "Where your content comes from, how to check it yourself, and what happens to your data. The claims on this site with the mechanism that enforces each one.",
+      "section": "trust",
+      "path": "trust/trust",
+      "icon": "shieldcheck",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Principles, rights and AI",
+      "headingId": "trust"
+    },
+    {
+      "slug": "status-quo",
+      "title": "The trade we never agreed to",
+      "src": "status-quo.md",
+      "register": "stage",
+      "description": "Uploading a logo to a stranger for a resize. Artwork locked behind a lapsed plan. The frictions we all learned to accept, and what replaces them.",
+      "section": "trust",
+      "path": "trust/status-quo",
+      "icon": "convert",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Principles, rights and AI"
+    },
+    {
+      "slug": "tenets",
+      "title": "Tenets",
+      "author": "Andy Fitzsimon",
+      "src": "tenets.md",
+      "register": "stage",
+      "description": "Our vision, values and mission: all potential to all mediums.",
+      "immersive": true,
+      "section": "trust",
+      "path": "trust/tenets",
+      "icon": "star",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "renderer": "renderTenetsPage",
+      "group": "Principles, rights and AI"
+    },
+    {
+      "slug": "input-not-impersonation",
+      "title": "Input, not impersonation",
+      "src": "input-not-impersonation.md",
+      "register": "stage",
+      "description": "An AI agent may fill in the inputs and may not claim to be you. Where the line sits, how it is enforced, and what a rogue agent still cannot do.",
+      "section": "trust",
+      "path": "trust/input-not-impersonation",
+      "icon": "usercheck",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Principles, rights and AI"
+    },
+    {
+      "slug": "creative-rights",
+      "title": "Creative rights and credits",
+      "src": "creative-rights.md",
+      "register": "stage",
+      "description": "How Lolly records a source licence, works out what it asks of the use you are making, writes the credit into the file, and tells you the part only you can do.",
+      "section": "trust",
+      "path": "trust/creative-rights",
+      "icon": "people",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Principles, rights and AI"
+    },
+    {
+      "slug": "create-a-tool",
+      "title": "Share a design with rules",
+      "src": "create-a-tool.md",
+      "description": "Turn a Design document into a portable tool with approved inputs, shared names, themes and fixed artwork.",
+      "section": "create",
+      "path": "create/create-a-tool",
+      "icon": "pentool",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Design and templates"
+    },
+    {
+      "slug": "design-tool-contract",
+      "title": "Design tool contract",
+      "src": "design-tool-contract.md",
+      "description": "Declarative rules, portable tool packages and immutable installed revisions.",
+      "section": "build",
+      "path": "build/design-tool-contract",
+      "icon": "convert",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Architecture and contracts"
+    },
+    {
+      "slug": "training-creators",
+      "title": "Training courses",
+      "src": "training-creators.md",
+      "description": "Assemble project content into courses, check their content and size, and export versions for a website or LMS.",
+      "section": "create",
+      "path": "create/training-creators",
+      "icon": "folder",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Design and templates"
+    },
+    {
+      "slug": "learning-integration",
+      "title": "Learning integration",
+      "src": "learning-integration.md",
+      "description": "Portable course delivery and the versioned browser progress event contract.",
+      "section": "build",
+      "path": "build/learning-integration",
+      "icon": "convert",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Agents, APIs and integrations"
+    },
+    {
+      "slug": "using",
+      "title": "Using Lolly",
+      "src": "using.md",
+      "section": "create",
+      "path": "create/using",
+      "icon": "pentool",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Design and templates"
+    },
+    {
+      "slug": "templates",
+      "title": "Templates",
+      "src": "templates.md",
+      "description": "Saved starting points for a tool: how to keep one, how to open a tool on it every time, and how yours sit beside the ones a tool ships with.",
+      "section": "create",
+      "path": "create/templates",
+      "icon": "folder",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Design and templates"
+    },
+    {
+      "slug": "brand-studio",
+      "title": "The Brand Studio",
+      "src": "brand-studio.md",
+      "section": "create",
+      "path": "create/brand-studio",
+      "icon": "palette",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Design and templates"
+    },
+    {
+      "slug": "3d-studio",
+      "title": "3D Studio",
+      "src": "3d-studio.md",
+      "description": "Stage SVG artwork and meshes with materials, lighting, depth of field and transparent shadows.",
+      "section": "create",
+      "path": "create/3d-studio",
+      "icon": "layers",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Design and templates"
+    },
+    {
+      "slug": "profile",
+      "title": "Profiles",
+      "src": "profile.md",
+      "description": "The working identity Lolly creates as - your name, role and contact details, filled into tools automatically and stored on your own device.",
+      "section": "create",
+      "path": "create/profile",
+      "icon": "usercheck",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Find and keep your work"
+    },
+    {
+      "slug": "find-your-work",
+      "title": "Find and recover your work",
+      "src": "find-your-work.md",
+      "description": "Where your saved work, downloads and earlier versions are, what a closed tab or cleared browser data takes with it, and how to move everything to another device.",
+      "section": "create",
+      "path": "create/find-your-work",
+      "icon": "folder",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Find and keep your work"
+    },
+    {
+      "slug": "sync",
+      "title": "Sync your devices",
+      "src": "sync.md",
+      "description": "Keep your work the same on every device through storage you choose - Dropbox, Google Drive, OneDrive, your own Nextcloud or S3 - with no Lolly server in between.",
+      "section": "create",
+      "path": "create/sync",
+      "icon": "convert",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Find and keep your work"
+    },
+    {
+      "slug": "design-import",
+      "title": "Import a design (Figma, Penpot, Illustrator, InDesign)",
+      "src": "design-import.md",
+      "description": "Bring a finished design out of Figma, Penpot, Illustrator or InDesign and into Lolly as an editable, re-renderable tool rather than a flat picture.",
+      "section": "create",
+      "path": "create/design-import",
+      "icon": "upload",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "renderer": "renderDesignImportPage",
+      "group": "Design and templates"
+    },
+    {
+      "slug": "rebrand",
+      "title": "Rebrand a deck",
+      "src": "rebrand.md",
+      "description": "Move a PowerPoint or PDF deck someone else made onto your design system, on your device: review what Rebrand suggests for each slide, decide, and open the result in Design.",
+      "section": "create",
+      "path": "create/rebrand",
+      "icon": "convert",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Design and templates"
+    },
+    {
+      "slug": "formats",
+      "title": "Every format Lolly can open and make",
+      "src": "formats.md",
+      "description": "Every file format Lolly reads, every format it writes, and the ones it does both ways - grouped by what each one is, with a plain-language card behind every chip.",
+      "section": "create",
+      "path": "create/formats",
+      "icon": "convert",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "renderer": "renderFormatsPage",
+      "group": "Collaborate and export"
+    },
+    {
+      "slug": "text-composition",
+      "title": "Text in Design",
+      "src": "text-composition.md",
+      "description": "Edit text on canvas, flow articles through frames, compose typography and retain editable source.",
+      "section": "create",
+      "path": "create/text-composition",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Design and templates"
+    },
+    {
+      "slug": "text-composition-engine",
+      "title": "Authored text composition",
+      "src": "../engine/text-composition.md",
+      "description": "Literal text, pinned fonts, shared shaping, frame and path geometry, native editing and export receipts.",
+      "section": "build",
+      "path": "build/text-composition-engine",
+      "icon": "code",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Architecture and contracts"
+    },
+    {
+      "slug": "hdr-editing",
+      "title": "Wide Colour and HDR",
+      "src": "hdr-editing.md",
+      "description": "Keep original image and video precision, use authored P3 brand swatches, and choose HDR or SDR output.",
+      "section": "create",
+      "path": "create/hdr-editing",
+      "icon": "sliders",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Motion and presenting"
+    },
+    {
+      "slug": "sequence-editor",
+      "title": "The sequence editor",
+      "src": "sequence-editor.md",
+      "section": "create",
+      "path": "create/sequence-editor",
+      "icon": "clock",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Motion and presenting"
+    },
+    {
+      "slug": "presenting",
+      "title": "Presenting with camera",
+      "src": "presenting.md",
+      "description": "Prepare camera framing, a logo and captions over slides or Countdown, with private controls, saved scenes and local recording.",
+      "section": "create",
+      "path": "create/presenting",
+      "icon": "monitor",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Motion and presenting"
+    },
+    {
+      "slug": "interactive-pages",
+      "title": "Live pages that take the clicker",
+      "src": "interactive-pages.md",
+      "description": "Give web pages a focus step, scroll stops and automatic movement while the presenter keeps control of the deck.",
+      "section": "create",
+      "path": "create/interactive-pages",
+      "icon": "globe",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Motion and presenting"
+    },
+    {
+      "slug": "agenda",
+      "title": "Agenda screens and programmes",
+      "src": "agenda.md",
+      "description": "Turn an event programme into branded screens, an interactive page, video, calendars and PowerPoint slides.",
+      "section": "create",
+      "path": "create/agenda",
+      "icon": "checklist",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Motion and presenting"
+    },
+    {
+      "slug": "animating",
+      "title": "Animating: keyframes, depth and a camera",
+      "src": "animating.md",
+      "description": "Pose a box at one moment, lift it off the page, and fly a camera over the result - keyframes, depth, the scene camera and Lift layers, all on your device.",
+      "section": "create",
+      "path": "create/animating",
+      "icon": "layers",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Motion and presenting"
+    },
+    {
+      "slug": "collaborate",
+      "title": "Working together",
+      "src": "collaborate.md",
+      "description": "Edit a tool session together in a private collab between two devices, or use optional work collabs through your organisation's lolly.work instance.",
+      "section": "create",
+      "path": "create/collaborate",
+      "icon": "people",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Collaborate and export"
+    },
+    {
+      "slug": "search",
+      "title": "Search",
+      "src": "search.md",
+      "section": "create",
+      "path": "create/search",
+      "icon": "search",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Find and keep your work"
+    },
+    {
+      "slug": "ask",
+      "title": "Ask Lolly",
+      "src": "ask.md",
+      "section": "create",
+      "path": "create/ask",
+      "icon": "sparkle",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Find and keep your work"
+    },
+    {
+      "slug": "dashboard",
+      "title": "The Dashboard",
+      "src": "dashboard.md",
+      "section": "create",
+      "path": "create/dashboard",
+      "icon": "monitor",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Find and keep your work"
+    },
+    {
+      "slug": "utilities",
+      "title": "Utility views",
+      "src": "utilities.md",
+      "description": "The five workbenches built into the app - spreadsheet, converter, Colour Lab, PDF extractor and Script audio - what each one does, and where it stops.",
+      "section": "create",
+      "path": "create/utilities",
+      "icon": "wrench",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Design and templates"
+    },
+    {
+      "slug": "favourites",
+      "title": "Your favourites",
+      "src": "favourites.md",
+      "section": "create",
+      "path": "create/favourites",
+      "icon": "star",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Find and keep your work"
+    },
+    {
+      "slug": "exporting",
+      "title": "Exporting & Formats",
+      "src": "exporting.md",
+      "section": "create",
+      "path": "create/exporting",
+      "icon": "download",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Collaborate and export"
+    },
+    {
+      "slug": "positioning",
+      "title": "How Lolly compares",
+      "src": "positioning.md",
+      "section": "create",
+      "path": "create/positioning",
+      "icon": "sliders",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Team playbooks and comparisons"
+    },
+    {
+      "slug": "compare",
+      "title": "Lolly compared, tool by tool",
+      "src": "compare.md",
+      "description": "Where Lolly overlaps with Canva, Adobe, Figma, rendering APIs and online converters, and what each of those does better. Dated, concession first, no superlatives.",
+      "section": "create",
+      "path": "create/compare",
+      "icon": "checklist",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Team playbooks and comparisons"
+    },
+    {
+      "slug": "compare-canva",
+      "title": "Lolly and Canva",
+      "src": "compare-canva.md",
+      "description": "Making an on-brand graphic without a subscription: where Lolly and Canva overlap, and what Canva does better today.",
+      "section": "create",
+      "path": "create/compare-canva",
+      "icon": "checklist",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Team playbooks and comparisons"
+    },
+    {
+      "slug": "compare-adobe",
+      "title": "Lolly and Adobe",
+      "src": "compare-adobe.md",
+      "description": "Converting, exporting and signing files without a Creative Cloud account: where Lolly and Adobe overlap.",
+      "section": "create",
+      "path": "create/compare-adobe",
+      "icon": "checklist",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Team playbooks and comparisons"
+    },
+    {
+      "slug": "compare-figma",
+      "title": "Lolly and Figma",
+      "src": "compare-figma.md",
+      "description": "Laying out a design and turning it into a reusable output: where Lolly and Figma overlap, and what Figma does better.",
+      "section": "create",
+      "path": "create/compare-figma",
+      "icon": "checklist",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Team playbooks and comparisons"
+    },
+    {
+      "slug": "compare-render-apis",
+      "title": "Lolly and rendering APIs",
+      "src": "compare-render-apis.md",
+      "description": "Generating many on-brand images from data: where Lolly and a hosted rendering API like Bannerbear or Placid overlap.",
+      "section": "create",
+      "path": "create/compare-render-apis",
+      "icon": "checklist",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Team playbooks and comparisons"
+    },
+    {
+      "slug": "compare-converters",
+      "title": "Lolly and online file converters",
+      "src": "compare-converters.md",
+      "description": "Turning one file format into another on your own device, without uploading it to a stranger's server.",
+      "section": "create",
+      "path": "create/compare-converters",
+      "icon": "checklist",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Team playbooks and comparisons"
+    },
+    {
+      "slug": "compare-penpot",
+      "title": "Lolly and Penpot",
+      "src": "compare-penpot.md",
+      "description": "Two open-source answers to design work: where Lolly and Penpot overlap, what Penpot does better today, and how the two projects work together.",
+      "section": "create",
+      "path": "create/compare-penpot",
+      "icon": "checklist",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Team playbooks and comparisons"
+    },
+    {
+      "slug": "compare-brand-portals",
+      "title": "Lolly and brand portals",
+      "src": "compare-brand-portals.md",
+      "description": "Locked templates without the portal: where Lolly overlaps with brand platforms like Bynder, Frontify and Marq, and what a portal still does better.",
+      "section": "create",
+      "path": "create/compare-brand-portals",
+      "icon": "checklist",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Team playbooks and comparisons"
+    },
+    {
+      "slug": "overview",
+      "title": "Lolly architecture",
+      "src": "overview.md",
+      "description": "How the Lolly platform is put together: the engine, the shells, the capability bridge, and why tools are data rather than bundled code.",
+      "section": "build",
+      "path": "build/overview",
+      "icon": "layers",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Architecture and contracts"
+    },
+    {
+      "slug": "design-tokens",
+      "title": "Design Tokens",
+      "src": "design-tokens.md",
+      "section": "build",
+      "path": "build/design-tokens",
+      "icon": "hash",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Author tools and design systems"
+    },
+    {
+      "slug": "token-workflows",
+      "title": "Token workflows",
+      "src": "token-workflows.md",
+      "section": "build",
+      "path": "build/token-workflows",
+      "icon": "hash",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Author tools and design systems"
+    },
+    {
+      "slug": "glossary",
+      "title": "Glossary",
+      "src": "glossary.md",
+      "description": "The words Lolly uses with exact meanings: engine, shell, bridge, tool, brand pack, profile, view, catalog, session, utility, collab, and what each is not.",
+      "section": "start",
+      "path": "start/glossary",
+      "icon": "document",
+      "aliases": [
+        "build/glossary"
+      ],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Product, organisation and vocabulary"
+    },
+    {
+      "slug": "document-model",
+      "title": "Document model draft",
+      "src": "document-model.md",
+      "description": "A draft specification of the Lolly document model: the records, operations, values, evaluation, policy, conformance and packaging rules that make a complete tool portable, and what is decided, open and not yet built.",
+      "section": "build",
+      "path": "build/document-model",
+      "icon": "layers",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Architecture and contracts"
+    },
+    {
+      "slug": "constraints",
+      "title": "Constraints",
+      "src": "constraints.md",
+      "description": "Why output comes out right by construction: inputs declared in the manifest, logic-less templates and brand values resolved from tokens, with the tests that enforce each.",
+      "section": "build",
+      "path": "build/constraints",
+      "icon": "lock",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Architecture and contracts"
+    },
+    {
+      "slug": "determinism",
+      "title": "Determinism",
+      "src": "determinism.md",
+      "description": "Same inputs, same file: one render path behind every shell, what is byte-reproducible and what is not, and the receipts for both.",
+      "section": "build",
+      "path": "build/determinism",
+      "icon": "check",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Architecture and contracts"
+    },
+    {
+      "slug": "reproducibility",
+      "title": "Reproducibility",
+      "src": "reproducibility.md",
+      "description": "The URL is the artifact: every input travels as parameters, so a link re-renders next year, and the limits of what a bare link can carry.",
+      "section": "build",
+      "path": "build/reproducibility",
+      "icon": "link",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Architecture and contracts"
+    },
+    {
+      "slug": "authoring-tools",
+      "title": "Authoring Tools",
+      "src": "authoring-tools.md",
+      "description": "Author a Lolly tool: the manifest, the template, the optional hooks, and the invariants that keep one tool running unchanged in the browser, on the desktop and in the terminal.",
+      "section": "build",
+      "path": "build/authoring-tools",
+      "icon": "wrench",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Author tools and design systems"
+    },
+    {
+      "slug": "tool-skills",
+      "title": "Tool Skills",
+      "src": "tool-skills.md",
+      "description": "Publish compatible tool guidance and supply the overall and current-tool skills through agent invitations.",
+      "section": "build",
+      "path": "build/tool-skills",
+      "icon": "wrench",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Author tools and design systems"
+    },
+    {
+      "slug": "tool-manifest",
+      "title": "Tool manifests",
+      "src": "tool-manifest.md",
+      "description": "Declare identity, rendering, examples and a short walkthrough.",
+      "section": "build",
+      "path": "build/tool-manifest",
+      "icon": "wrench",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Author tools and design systems"
+    },
+    {
+      "slug": "tool-inputs",
+      "title": "Tool inputs",
+      "src": "tool-inputs.md",
+      "description": "Choose input types, visibility, profile prefills and common meanings.",
+      "section": "build",
+      "path": "build/tool-inputs",
+      "icon": "wrench",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Author tools and design systems"
+    },
+    {
+      "slug": "tool-structured-inputs",
+      "title": "Structured inputs and canvas controls",
+      "src": "tool-structured-inputs.md",
+      "description": "Build repeating groups, editor canvases and bounded image framing.",
+      "section": "build",
+      "path": "build/tool-structured-inputs",
+      "icon": "wrench",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Author tools and design systems"
+    },
+    {
+      "slug": "tool-files",
+      "title": "Assets and file utilities",
+      "src": "tool-files.md",
+      "description": "Accept library assets or local files and return transformed output.",
+      "section": "build",
+      "path": "build/tool-files",
+      "icon": "wrench",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Author tools and design systems"
+    },
+    {
+      "slug": "tool-rendering",
+      "title": "Templates and rendering",
+      "src": "tool-rendering.md",
+      "description": "Write templates and styles that work across vector, canvas and data exports.",
+      "section": "build",
+      "path": "build/tool-rendering",
+      "icon": "wrench",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Author tools and design systems"
+    },
+    {
+      "slug": "tool-starters",
+      "title": "Tool templates and presets",
+      "src": "tool-starters.md",
+      "description": "Provide curated starting points, saved templates and Design motion.",
+      "section": "build",
+      "path": "build/tool-starters",
+      "icon": "wrench",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Author tools and design systems"
+    },
+    {
+      "slug": "tool-hooks",
+      "title": "Tool hooks and host capabilities",
+      "src": "tool-hooks.md",
+      "description": "Add portable behavior, live media, recording, speech and allowed network access.",
+      "section": "build",
+      "path": "build/tool-hooks",
+      "icon": "wrench",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Author tools and design systems"
+    },
+    {
+      "slug": "tool-composition",
+      "title": "Composition and brand overlays",
+      "src": "tool-composition.md",
+      "description": "Compose tools and resolve brand-specific logos and overlays.",
+      "section": "build",
+      "path": "build/tool-composition",
+      "icon": "wrench",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Author tools and design systems"
+    },
+    {
+      "slug": "tool-publishing",
+      "title": "Publish and localize a tool",
+      "src": "tool-publishing.md",
+      "description": "Validate, distribute, test and translate a reusable tool.",
+      "section": "build",
+      "path": "build/tool-publishing",
+      "icon": "wrench",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Author tools and design systems"
+    },
+    {
+      "slug": "authoring-assets",
+      "title": "Authoring Assets",
+      "src": "authoring-assets.md",
+      "section": "build",
+      "path": "build/authoring-assets",
+      "icon": "photos",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Author tools and design systems"
+    },
+    {
+      "slug": "host-api",
+      "title": "Host API",
+      "src": "host-api.md",
+      "section": "build",
+      "path": "build/host-api",
+      "icon": "code",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Architecture and contracts"
+    },
+    {
+      "slug": "url-mode",
+      "title": "URL Mode",
+      "src": "url-mode.md",
+      "description": "Every tool's state lives in the URL, so a link is a finished asset, a reproducible render, and the same input the CLI takes.",
+      "section": "build",
+      "path": "build/url-mode",
+      "icon": "link",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "URL and CLI automation"
+    },
+    {
+      "slug": "url-inputs",
+      "title": "Inputs in URLs",
+      "src": "url-inputs.md",
+      "description": "Encode each input type, keyframes and compact values.",
+      "section": "build",
+      "path": "build/url-inputs",
+      "icon": "link",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "URL and CLI automation"
+    },
+    {
+      "slug": "url-parameters",
+      "title": "Reserved URL parameters",
+      "src": "url-parameters.md",
+      "description": "Look up export settings, packed links, units, print marks and contact sheets.",
+      "section": "build",
+      "path": "build/url-parameters",
+      "icon": "link",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "URL and CLI automation"
+    },
+    {
+      "slug": "url-export",
+      "title": "Export and presentation URLs",
+      "src": "url-export.md",
+      "description": "Choose formats, download, copy, size, presentation and saved state.",
+      "section": "build",
+      "path": "build/url-export",
+      "icon": "link",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "URL and CLI automation"
+    },
+    {
+      "slug": "url-app-links",
+      "title": "App links and deep links",
+      "src": "url-app-links.md",
+      "description": "Open app views and use the lolly URL scheme.",
+      "section": "build",
+      "path": "build/url-app-links",
+      "icon": "link",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "URL and CLI automation"
+    },
+    {
+      "slug": "cli",
+      "title": "lolly CLI: create and process files",
+      "src": "cli.md",
+      "section": "build",
+      "path": "build/cli",
+      "icon": "code",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "URL and CLI automation"
+    },
+    {
+      "slug": "cli-rendering",
+      "title": "Render with the CLI",
+      "src": "cli-rendering.md",
+      "description": "Choose export options, troubleshoot the browser renderer and render timelines or links.",
+      "section": "build",
+      "path": "build/cli-rendering",
+      "icon": "code",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "URL and CLI automation"
+    },
+    {
+      "slug": "cli-files",
+      "title": "CLI file and media utilities",
+      "src": "cli-files.md",
+      "description": "Process local files, redactions, speech and on-device models.",
+      "section": "build",
+      "path": "build/cli-files",
+      "icon": "code",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "URL and CLI automation"
+    },
+    {
+      "slug": "production-checks",
+      "title": "Production checks",
+      "src": "production-checks.md",
+      "description": "Inspect final files against explicit requirements, compare references, and apply permitted repairs with retained evidence.",
+      "section": "build",
+      "path": "build/production-checks",
+      "icon": "check",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "URL and CLI automation"
+    },
+    {
+      "slug": "cli-automation",
+      "title": "CLI batch and automation",
+      "src": "cli-automation.md",
+      "description": "Run local batches and CI, or use optional lolly.work for persistent organisation render jobs, batches and governed delivery.",
+      "section": "build",
+      "path": "build/cli-automation",
+      "icon": "code",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "URL and CLI automation"
+    },
+    {
+      "slug": "cli-reference",
+      "title": "CLI verification and configuration",
+      "src": "cli-reference.md",
+      "description": "Verify files, inspect metadata, configure completion and find local state.",
+      "section": "build",
+      "path": "build/cli-reference",
+      "icon": "code",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "URL and CLI automation"
+    },
+    {
+      "slug": "cli-signing",
+      "title": "Signing from the terminal",
+      "src": "cli-signing.md",
+      "description": "Set up a real signing identity for the CLI, so files made from the terminal carry a verifiable name rather than an anonymous on-device key.",
+      "section": "build",
+      "path": "build/cli-signing",
+      "icon": "seal",
+      "aliases": [
+        "operate/cli-signing"
+      ],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "URL and CLI automation",
+      "secondarySections": [
+        "operate"
+      ]
+    },
+    {
+      "slug": "tui",
+      "title": "TUI",
+      "src": "tui.md",
+      "section": "build",
+      "path": "build/tui",
+      "icon": "monitor",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "URL and CLI automation"
+    },
+    {
+      "slug": "mcp",
+      "title": "MCP Server",
+      "src": "mcp.md",
+      "section": "build",
+      "path": "build/mcp",
+      "icon": "server",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Agents, APIs and integrations"
+    },
+    {
+      "slug": "ai-agents",
+      "title": "AI Agents",
+      "src": "ai-agents.md",
+      "section": "build",
+      "path": "build/ai-agents",
+      "icon": "sparkle",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Agents, APIs and integrations"
+    },
+    {
+      "slug": "extension",
+      "title": "Browser Extension",
+      "src": "extension.md",
+      "section": "create",
+      "path": "create/extension",
+      "icon": "globe",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Design and templates"
+    },
+    {
+      "slug": "contributing-setup",
+      "title": "Contributing Setup",
+      "src": "contributing-setup.md",
+      "description": "Get a development checkout sized to what you're here to do: slim clone personas for tool authors and engine developers, and how to upgrade to the full thing later.",
+      "section": "build",
+      "path": "build/contributing-setup",
+      "icon": "download",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Build and contribute to the apps"
+    },
+    {
+      "slug": "build-guide",
+      "title": "Build Guide",
+      "src": "build-guide.md",
+      "description": "Build Lolly for each target: the CLI binary, the desktop app, mobile, and the web PWA. Prerequisites, commands and what each build produces.",
+      "section": "build",
+      "path": "build/build-guide",
+      "icon": "box",
+      "aliases": [
+        "operate/build-guide"
+      ],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Build and contribute to the apps",
+      "secondarySections": [
+        "operate"
+      ]
+    },
+    {
+      "slug": "build-terminal",
+      "title": "Build the CLI and TUI",
+      "src": "build-terminal.md",
+      "description": "Run the terminal shells from source or package the CLI binary.",
+      "section": "build",
+      "path": "build/build-terminal",
+      "icon": "box",
+      "aliases": [
+        "operate/build-terminal"
+      ],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Build and contribute to the apps",
+      "secondarySections": [
+        "operate"
+      ]
+    },
+    {
+      "slug": "build-desktop",
+      "title": "Build the desktop app",
+      "src": "build-desktop.md",
+      "description": "Set up and package the Tauri desktop shell.",
+      "section": "build",
+      "path": "build/build-desktop",
+      "icon": "box",
+      "aliases": [
+        "operate/build-desktop"
+      ],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Build and contribute to the apps",
+      "secondarySections": [
+        "operate"
+      ]
+    },
+    {
+      "slug": "build-mobile",
+      "title": "Build the mobile apps",
+      "src": "build-mobile.md",
+      "description": "Set up, develop and package Android and iOS shells.",
+      "section": "build",
+      "path": "build/build-mobile",
+      "icon": "box",
+      "aliases": [
+        "operate/build-mobile"
+      ],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Build and contribute to the apps",
+      "secondarySections": [
+        "operate"
+      ]
+    },
+    {
+      "slug": "build-obs",
+      "title": "Build with Open Build Service",
+      "src": "build-obs.md",
+      "description": "Plan OBS recipes for Lolly artifacts and their dependencies.",
+      "section": "build",
+      "path": "build/build-obs",
+      "icon": "box",
+      "aliases": [
+        "operate/build-obs"
+      ],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Build and contribute to the apps",
+      "secondarySections": [
+        "operate"
+      ]
+    },
+    {
+      "slug": "build-kubernetes",
+      "title": "Build the web container and Helm chart",
+      "src": "build-kubernetes.md",
+      "description": "Build the web image and deploy the chart with optional services.",
+      "section": "build",
+      "path": "build/build-kubernetes",
+      "icon": "box",
+      "aliases": [
+        "operate/build-kubernetes"
+      ],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Build and contribute to the apps",
+      "secondarySections": [
+        "operate"
+      ]
+    },
+    {
+      "slug": "ios-build",
+      "title": "Building for iOS",
+      "src": "ios-build.md",
+      "section": "build",
+      "path": "build/ios-build",
+      "icon": "box",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Build and contribute to the apps"
+    },
+    {
+      "slug": "catalog-resource-reading",
+      "title": "Read verified catalog resources",
+      "src": "catalog-resource-reading.md",
+      "description": "Signed resource coverage, bounded reads and verified client resource delivery.",
+      "section": "build",
+      "path": "build/catalog-resource-reading",
+      "icon": "shield",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Author tools and design systems"
+    },
+    {
+      "slug": "connector-origins",
+      "title": "Configure connector origins",
+      "src": "connector-origins.md",
+      "description": "Exact HTTPS connector origins, deployment headers and native request policy.",
+      "section": "operate",
+      "path": "operate/connector-origins",
+      "icon": "globe",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Instance configuration, SSO and signing"
+    },
+    {
+      "slug": "deployment",
+      "title": "Choose a deployment",
+      "src": "deployment.md",
+      "section": "operate",
+      "path": "operate/deployment",
+      "icon": "upload",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Hosting and installation"
+    },
+    {
+      "slug": "ci-qualification",
+      "title": "CI qualification",
+      "src": "ci-qualification.md",
+      "description": "Qualify rapid UI updates and full releases with exact source and CI evidence.",
+      "section": "operate",
+      "path": "operate/ci-qualification",
+      "icon": "checklist",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Updates, qualification and release history"
+    },
+    {
+      "slug": "deploy-delivery",
+      "title": "Delivery deployment",
+      "src": "deploy-delivery.md",
+      "description": "Serve public files and private workspace responses safely: signed catalog updates, retained hashed files, model integrity, optional edges and release checks.",
+      "section": "operate",
+      "path": "operate/deploy-delivery",
+      "icon": "download",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Updates, qualification and release history"
+    },
+    {
+      "slug": "configuration",
+      "title": "Profiles, brands and tool configuration",
+      "src": "configuration.md",
+      "description": "Everything that shapes a Lolly instance: which brand it wears, which tools it exposes, and what each tool may do on the device it runs on.",
+      "section": "manage",
+      "path": "manage/profiles-and-brands",
+      "icon": "sliders",
+      "aliases": [
+        "operate/configuration"
+      ],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Administration, policy and approvals"
+    },
+    {
+      "slug": "content-credentials-identity",
+      "title": "Content Credentials Identity",
+      "src": "content-credentials-identity.md",
+      "section": "trust",
+      "path": "trust/content-credentials-identity",
+      "icon": "seal",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Credentials and verification"
+    },
+    {
+      "slug": "content-credentials-engineering",
+      "title": "Content Credentials - Engineering",
+      "src": "content-credentials-engineering.md",
+      "section": "trust",
+      "path": "trust/content-credentials-engineering",
+      "icon": "cpu",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Credentials and verification"
+    },
+    {
+      "slug": "data-transfer",
+      "title": "Data Transfer",
+      "src": "data-transfer.md",
+      "section": "build",
+      "path": "build/data-transfer",
+      "icon": "convert",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Architecture and contracts"
+    },
+    {
+      "slug": "about",
+      "title": "About",
+      "src": "../README.md",
+      "description": "What Lolly is, who builds it, and how the pieces fit together. The project's own README.",
+      "section": "start",
+      "path": "start/about",
+      "icon": "document",
+      "aliases": [
+        "build/about"
+      ],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Product, organisation and vocabulary"
+    },
+    {
+      "slug": "sales",
+      "title": "Lolly for sales teams",
+      "src": "sales.md",
+      "description": "Walk into every meeting with exactly the file you need: fix the deck you already have, rebuild it as a native deck file, and make the asset on the way there.",
+      "section": "create",
+      "path": "create/sales",
+      "icon": "people",
+      "aliases": [
+        "operate/sales"
+      ],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Team playbooks and comparisons"
+    },
+    {
+      "slug": "press",
+      "title": "Lolly for the newsroom",
+      "src": "press.md",
+      "description": "Build the info-editorial style once, then generate publication-quality charts, maps and tables from live data, in the house style, for print and screen.",
+      "section": "create",
+      "path": "create/press",
+      "icon": "document",
+      "aliases": [
+        "operate/press"
+      ],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Team playbooks and comparisons"
+    },
+    {
+      "slug": "marketing",
+      "title": "Lolly for marketing teams",
+      "src": "marketing.md",
+      "description": "Every size, every language, one source of truth: paste a spreadsheet and get one finished file per row, with no agency bottleneck for routine files.",
+      "section": "create",
+      "path": "create/marketing",
+      "icon": "photos",
+      "aliases": [
+        "operate/marketing"
+      ],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Team playbooks and comparisons"
+    },
+    {
+      "slug": "legal",
+      "title": "Lolly for legal teams",
+      "src": "legal.md",
+      "description": "Redact, anonymise, verify and compress on the device the file already lives on, so nothing leaves the building to be cleaned, with the licence and the EU AI Act position stated plainly.",
+      "section": "create",
+      "path": "create/legal",
+      "icon": "lock",
+      "aliases": [
+        "operate/legal"
+      ],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Team playbooks and comparisons"
+    },
+    {
+      "slug": "adoption-governance",
+      "title": "Adoption & Governance",
+      "src": "adoption-governance.md",
+      "description": "Adopting Lolly across a team: who approves tools, how brand rules become enforceable, and what changes in a creative workflow.",
+      "section": "manage",
+      "path": "manage/adoption-governance",
+      "icon": "people",
+      "aliases": [
+        "operate/adoption-governance"
+      ],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Administration, policy and approvals"
+    },
+    {
+      "slug": "sovereign-production",
+      "title": "Sovereign creative production",
+      "src": "sovereign-production.md",
+      "register": "stage",
+      "description": "Creative production with no server in the render path: air-gapped deployment, consent-gated networking, on-device signing and the tools as files you hold.",
+      "section": "operate",
+      "path": "operate/sovereign-production",
+      "icon": "server",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Hosting and installation"
+    },
+    {
+      "slug": "security",
+      "title": "Security & Verification",
+      "src": "security-verification.md",
+      "description": "The cryptography behind Lolly's Content Credentials, verification and encryption, summarised for a security reviewer with the limits stated as clearly as the guarantees.",
+      "section": "trust",
+      "path": "trust/security",
+      "icon": "shieldcheck",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Credentials and verification"
+    },
+    {
+      "slug": "threat-model",
+      "title": "Threat Model & Trust Boundaries",
+      "src": "threat-model.md",
+      "description": "What Lolly defends against, what it explicitly does not, and where each trust boundary sits. Written for reviewers who need the limits stated as plainly as the protections.",
+      "section": "trust",
+      "path": "trust/threat-model",
+      "icon": "lock",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Privacy, data and trust boundaries"
+    },
+    {
+      "slug": "parser-inventory",
+      "title": "Parser Inventory",
+      "src": "parser-inventory.md",
+      "section": "trust",
+      "path": "trust/parser-inventory",
+      "icon": "code",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Accessibility and input boundaries"
+    },
+    {
+      "slug": "server-surface",
+      "title": "Server Surface",
+      "src": "server-surface.md",
+      "description": "The complete inventory of what a Lolly server does and does not see, component by component, so you can audit the whole network surface in one sitting.",
+      "section": "trust",
+      "path": "trust/server-surface",
+      "icon": "server",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Privacy, data and trust boundaries"
+    },
+    {
+      "slug": "verify-yourself",
+      "title": "Verify It Yourself",
+      "src": "verify-yourself.md",
+      "description": "Check this site's claims against a real export, step by step. No account, no trust required, and nothing you cannot run yourself.",
+      "section": "trust",
+      "path": "trust/verify-yourself",
+      "icon": "check",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Credentials and verification"
+    },
+    {
+      "slug": "verify-ai-evidence",
+      "title": "AI evidence in Verify",
+      "src": "verify-ai-evidence.md",
+      "description": "Located text and visual clues, coverage, review notes and the limits of authorship probability.",
+      "section": "trust",
+      "path": "trust/verify-ai-evidence",
+      "icon": "check",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Credentials and verification"
+    },
+    {
+      "slug": "privacy",
+      "title": "Privacy Policy",
+      "src": "privacy.md",
+      "section": "trust",
+      "path": "trust/privacy",
+      "icon": "eyeoff",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Privacy, data and trust boundaries"
+    },
+    {
+      "slug": "inclusive-design",
+      "title": "Inclusive Design",
+      "src": "inclusive-design.md",
+      "description": "Accessibility, language coverage and the ethical commitments Lolly holds itself to, with the tests that fail the build when one is broken.",
+      "section": "trust",
+      "path": "trust/inclusive-design",
+      "icon": "people",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Accessibility and input boundaries"
+    },
+    {
+      "slug": "ai-stance",
+      "title": "Our AI Stance",
+      "src": "ai-stance.md",
+      "register": "stage",
+      "description": "AI is welcome as labour and refused as impersonation. Where Lolly stands on generated content, and the machinery that enforces each commitment.",
+      "section": "trust",
+      "path": "trust/ai-stance",
+      "icon": "sparkle",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Principles, rights and AI"
+    },
+    {
+      "slug": "ai-features",
+      "title": "Generated once, rendered the same",
+      "src": "ai-features.md",
+      "description": "Text-to-speech, upscaling and background removal: generated once under guard-rails, then rendered identically everywhere. Why inventing pixels is marked AI and removing them is not.",
+      "section": "trust",
+      "path": "trust/ai-features",
+      "icon": "sparkle",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Principles, rights and AI"
+    },
+    {
+      "slug": "eu-ai-act",
+      "title": "AI marking and the EU AI Act",
+      "src": "eu-ai-act.md",
+      "description": "Article 50 has applied since 2 August 2026, and its Code of Practice points at C2PA. Lolly's honest fit: it preserves arriving AI marks, declares its own AI operations and verifies files on-device.",
+      "section": "trust",
+      "path": "trust/eu-ai-act",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Principles, rights and AI"
+    },
+    {
+      "slug": "beatrice-warde",
+      "title": "Beatrice Warde",
+      "src": "beatrice-warde.md",
+      "register": "stage",
+      "description": "The typographer whose 1932 lines this project adapted, who proved that the types the whole trade called Garamond had been cut by somebody else entirely.",
+      "section": "trust",
+      "path": "trust/beatrice-warde",
+      "icon": "font",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Principles, rights and AI"
+    },
+    {
+      "slug": "shoulders-of-giants",
+      "title": "Shoulders of giants",
+      "src": "shoulders-of-giants.md",
+      "register": "stage",
+      "description": "The open source projects and people Lolly is built from, and the story of how shared work made it possible: SUSE and three decades of the free desktop, Penpot and Inkscape, WebAssembly, WebGPU and the open models beside them.",
+      "pdf": "shoulders-of-giants.pdf",
+      "section": "trust",
+      "path": "trust/shoulders-of-giants",
+      "icon": "people",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Principles, rights and AI"
+    },
+    {
+      "slug": "what-is-lolly",
+      "title": "What is Lolly?",
+      "src": "what-is-lolly.md",
+      "section": "start",
+      "group": "Product, organisation and vocabulary",
+      "path": "start/what-is-lolly",
+      "icon": "layers",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0"
+    },
+    {
+      "slug": "operate",
+      "title": "Deploy & operate",
+      "src": "operate.md",
+      "section": "operate",
+      "group": "Hosting and installation",
+      "path": "operate/index",
+      "icon": "server",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "isHub": true
+    },
+    {
+      "slug": "work-self-host",
+      "title": "Run your own server",
+      "src": "work/self-host.md",
+      "section": "operate",
+      "group": "Updates, qualification and release history",
+      "path": "operate/run-your-own-server",
+      "icon": "server",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Release downloads and installation paths for YunoHost, Linux, macOS, Windows and Kubernetes.",
+      "work": {
+        "slug": "self-host",
+        "path": "self-host.md",
+        "icon": "overview"
+      }
+    },
+    {
+      "slug": "work-release-1-1-1",
+      "title": "Release 1.1.1",
+      "src": "work/release-1-1-1.md",
+      "section": "operate",
+      "group": "Updates, qualification and release history",
+      "path": "operate/release-1-1-1",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Work 1.1.1 paired with Lolly 1.1.1: matched components, changes since 1.1.0, migrations and qualification.",
+      "work": {
+        "slug": "release-1-1-1",
+        "path": "release-1-1-1.md",
+        "icon": "overview"
+      }
+    },
+    {
+      "slug": "work-release-1-1-0",
+      "title": "Release 1.1.0 (historical record)",
+      "src": "work/release-1-1-0.md",
+      "section": "operate",
+      "group": "Updates, qualification and release history",
+      "path": "operate/release-1-1-0",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Shared Lolly and Work release candidate, matched component versions, qualification, migration and rollback.",
+      "work": {
+        "slug": "release-1-1-0",
+        "path": "release-1-1-0.md",
+        "icon": "overview"
+      }
+    },
+    {
+      "slug": "work-overview",
+      "title": "Lolly Work architecture",
+      "src": "work/overview.md",
+      "section": "operate",
+      "group": "Hosting and installation",
+      "path": "operate/work-architecture",
+      "icon": "server",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "The control plane in one page: what it serves, the two-repo shape, and the trust model.",
+      "work": {
+        "slug": "overview",
+        "path": "overview.md",
+        "icon": "overview"
+      }
+    },
+    {
+      "slug": "work-install",
+      "title": "Install Lolly Work",
+      "src": "work/install.md",
+      "section": "operate",
+      "group": "Hosting and installation",
+      "path": "operate/install-work",
+      "icon": "server",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Nothing → a running, configured, governed instance: local demo, first config, sign-in, Postgres, secrets, Compose, systemd, Helm.",
+      "work": {
+        "slug": "install",
+        "path": "install.md",
+        "icon": "overview"
+      }
+    },
+    {
+      "slug": "work-official-installations",
+      "title": "Official installation routes",
+      "src": "work/official-installations.md",
+      "section": "operate",
+      "group": "Updates, qualification and release history",
+      "path": "operate/official-installations",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Project-owned images, Helm/Rancher, European clouds, YunoHost and neutral VM/Dokploy packages, with publication and qualification status.",
+      "work": {
+        "slug": "official-installations",
+        "path": "official-installations.md",
+        "icon": "overview"
+      }
+    },
+    {
+      "slug": "work-enterprise-identity",
+      "title": "Set up enterprise identity",
+      "src": "work/enterprise-identity.md",
+      "section": "operate",
+      "group": "Instance configuration, SSO and signing",
+      "path": "operate/enterprise-identity",
+      "icon": "usercheck",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Managed SSO registration, admission, optional MFA, SCIM offboarding, logout, upgrades and credential rotation.",
+      "work": {
+        "slug": "enterprise-identity",
+        "path": "enterprise-identity.md",
+        "icon": "overview"
+      }
+    },
+    {
+      "slug": "work-customer-setup",
+      "title": "Configure your first Work instance",
+      "src": "work/customer-setup.md",
+      "section": "operate",
+      "group": "Instance configuration, SSO and signing",
+      "path": "operate/customer-setup",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "An illustrated six-step journey through deployment, owner identity, SCIM, assets and a checked sample, with configuration apply and recovery.",
+      "work": {
+        "slug": "customer-setup",
+        "path": "customer-setup.md",
+        "icon": "overview"
+      }
+    },
+    {
+      "slug": "work-deployment",
+      "title": "Lolly Work deployment options",
+      "src": "work/deployment.md",
+      "section": "operate",
+      "group": "Hosting and installation",
+      "path": "operate/work-deployment-options",
+      "icon": "server",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Helm/Rancher, Compose, Vercel, air-gap: what each path carries and what it doesn't.",
+      "work": {
+        "slug": "deployment",
+        "path": "deployment.md",
+        "icon": "overview"
+      }
+    },
+    {
+      "slug": "work-cloud-deployment",
+      "title": "UpCloud, Evroc and fewer hosting services",
+      "src": "work/cloud-deployment.md",
+      "section": "operate",
+      "group": "Hosting and installation",
+      "path": "operate/cloud-deployment",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Two cloud targets, OpenTofu/Terraform, private VM boundaries, database restore and public-host migration.",
+      "work": {
+        "slug": "cloud-deployment",
+        "path": "cloud-deployment.md",
+        "icon": "overview"
+      }
+    },
+    {
+      "slug": "work-platform-deployment",
+      "title": "Deploy with your platform team",
+      "src": "work/platform-deployment.md",
+      "section": "operate",
+      "group": "Hosting and installation",
+      "path": "operate/platform-deployment",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Reader, operator and developer paths for SUSE hosts, K3s/RKE2, Ansible/Salt, OCI builds and cloud or on-premises deployment.",
+      "work": {
+        "slug": "platform-deployment",
+        "path": "platform-deployment.md",
+        "icon": "overview"
+      }
+    },
+    {
+      "slug": "work-wasm-deployment",
+      "title": "WebAssembly and Kubewarden choices",
+      "src": "work/wasm-deployment.md",
+      "section": "operate",
+      "group": "Hosting and installation",
+      "path": "operate/wasm-deployment",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Optional policy and component hosting tracks, current WASI compatibility, runtime qualification and bounded worker canaries.",
+      "work": {
+        "slug": "wasm-deployment",
+        "path": "wasm-deployment.md",
+        "icon": "overview"
+      }
+    },
+    {
+      "slug": "work-security-platform",
+      "title": "Where work happens and what crosses the network",
+      "src": "work/security-platform.md",
+      "section": "trust",
+      "group": "Privacy, data and trust boundaries",
+      "path": "trust/security-platform",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Local work, connected services and the boundaries operators control.",
+      "work": {
+        "slug": "security-platform",
+        "path": "security-platform.md",
+        "icon": "instance"
+      }
+    },
+    {
+      "slug": "work-configuration",
+      "title": "Work instance configuration",
+      "src": "work/configuration.md",
+      "section": "operate",
+      "group": "Instance configuration, SSO and signing",
+      "path": "operate/instance-configuration",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Every instance.json key and every LW_* environment variable, with defaults.",
+      "work": {
+        "slug": "configuration",
+        "path": "configuration.md",
+        "icon": "instance"
+      }
+    },
+    {
+      "slug": "work-identity",
+      "title": "Identity and sessions",
+      "src": "work/identity.md",
+      "section": "manage",
+      "group": "People and access",
+      "path": "manage/identity-and-sessions",
+      "icon": "usercheck",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "OIDC SSO, group mapping, member and guest sessions, the dev provider.",
+      "work": {
+        "slug": "identity",
+        "path": "identity.md",
+        "icon": "instance"
+      },
+      "secondarySections": [
+        "operate"
+      ]
+    },
+    {
+      "slug": "work-account-lifecycle",
+      "title": "Account data controls",
+      "src": "work/account-lifecycle.md",
+      "section": "manage",
+      "group": "People and access",
+      "path": "manage/account-data-controls",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Owner metadata exports, scoped offboarding, documented limits and review of shared content.",
+      "work": {
+        "slug": "account-lifecycle",
+        "path": "account-lifecycle.md",
+        "icon": "instance"
+      },
+      "secondarySections": [
+        "trust"
+      ]
+    },
+    {
+      "slug": "work-document-agents",
+      "title": "Invite an agent to a document",
+      "src": "work/document-agents.md",
+      "section": "build",
+      "group": "Agents, APIs and integrations",
+      "path": "build/document-agents",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Invite MCP agents under your identity, with document access, expiry, live collaboration and revocation.",
+      "work": {
+        "slug": "document-agents",
+        "path": "document-agents.md",
+        "icon": "instance"
+      },
+      "secondarySections": [
+        "manage"
+      ]
+    },
+    {
+      "slug": "work-design-system-administration",
+      "title": "Design-system administration",
+      "src": "work/design-system-administration.md",
+      "section": "manage",
+      "group": "Shared assets and provider connections",
+      "path": "manage/design-system-administration",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Inspect sources, review replacements and retirement, and manage durable connect downloads.",
+      "work": {
+        "slug": "design-system-administration",
+        "path": "design-system-administration.md",
+        "icon": "instance"
+      }
+    },
+    {
+      "slug": "work-permissions",
+      "title": "Roles and grants",
+      "src": "work/permissions.md",
+      "section": "manage",
+      "group": "People and access",
+      "path": "manage/permissions",
+      "icon": "usercheck",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "The seven roles, every action they carry, and deny-wins fine-grained grants.",
+      "work": {
+        "slug": "permissions",
+        "path": "permissions.md",
+        "icon": "grants"
+      }
+    },
+    {
+      "slug": "work-governance",
+      "title": "Policy and governance",
+      "src": "work/governance.md",
+      "section": "manage",
+      "group": "Administration, policy and approvals",
+      "path": "manage/governance",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Tool overlays, input locking, profile policy, feature flags, policy-as-code.",
+      "work": {
+        "slug": "governance",
+        "path": "governance.md",
+        "icon": "grants"
+      }
+    },
+    {
+      "slug": "work-catalog",
+      "title": "Catalog and content",
+      "src": "work/catalog.md",
+      "section": "manage",
+      "group": "Shared assets and provider connections",
+      "path": "manage/catalog",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Brand packs, catalog providers, exposure slices, expiry and stop-sharing.",
+      "work": {
+        "slug": "catalog",
+        "path": "catalog.md",
+        "icon": "grants"
+      }
+    },
+    {
+      "slug": "work-file-preview",
+      "title": "Asset previews",
+      "src": "work/file-preview.md",
+      "section": "manage",
+      "group": "Shared assets and provider connections",
+      "path": "manage/asset-previews",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Supported formats, preview conversion and render-worker configuration.",
+      "work": {
+        "slug": "file-preview",
+        "path": "file-preview.md",
+        "icon": "grants"
+      }
+    },
+    {
+      "slug": "work-offboarding",
+      "title": "Off-boarding a DAM",
+      "src": "work/offboarding.md",
+      "section": "manage",
+      "group": "Shared assets and provider connections",
+      "path": "manage/offboarding",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Leaving a DAM: pin early, the Canto/Image Relay fork, and per-vendor exit readiness.",
+      "work": {
+        "slug": "offboarding",
+        "path": "offboarding.md",
+        "icon": "grants"
+      }
+    },
+    {
+      "slug": "work-approvals",
+      "title": "Approvals",
+      "src": "work/approvals.md",
+      "section": "manage",
+      "group": "Administration, policy and approvals",
+      "path": "manage/approvals",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Chains, separation of duties, and what an approval can gate.",
+      "work": {
+        "slug": "approvals",
+        "path": "approvals.md",
+        "icon": "grants"
+      }
+    },
+    {
+      "slug": "work-sharing",
+      "title": "Rendering and sharing",
+      "src": "work/sharing.md",
+      "section": "manage",
+      "group": "Jobs, sharing and delivery",
+      "path": "manage/sharing",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Server renders, signed links, guest sessions, watermarks, provenance.",
+      "work": {
+        "slug": "sharing",
+        "path": "sharing.md",
+        "icon": "grants"
+      }
+    },
+    {
+      "slug": "work-renders",
+      "title": "Recover and inspect render jobs",
+      "src": "work/renders.md",
+      "section": "manage",
+      "group": "Jobs, sharing and delivery",
+      "path": "manage/render-jobs",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Persistent renders and batches, individual row recovery, output manifests, partial execution evidence, and API/CLI access.",
+      "work": {
+        "slug": "renders",
+        "path": "renders.md",
+        "icon": "grants"
+      },
+      "secondarySections": [
+        "build"
+      ]
+    },
+    {
+      "slug": "work-delivery",
+      "title": "Organisation delivery destinations",
+      "src": "work/delivery.md",
+      "section": "manage",
+      "group": "Jobs, sharing and delivery",
+      "path": "manage/organisation-delivery",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Fixed organization destinations, durable receipts, S3/WebDAV/signed-HTTPS adapters, automation output references, retries, and the personal/organization boundary.",
+      "work": {
+        "slug": "delivery",
+        "path": "delivery.md",
+        "icon": "grants"
+      }
+    },
+    {
+      "slug": "work-c2pa",
+      "title": "Configure Work export signing",
+      "src": "work/c2pa.md",
+      "section": "operate",
+      "group": "Instance configuration, SSO and signing",
+      "path": "operate/work-export-signing",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Give this deploy a signing identity so exports carry a verifiable credential.",
+      "work": {
+        "slug": "c2pa",
+        "path": "c2pa.md",
+        "icon": "grants"
+      },
+      "secondarySections": [
+        "trust"
+      ]
+    },
+    {
+      "slug": "work-ai-policy",
+      "title": "Manage organisation AI policy",
+      "src": "work/ai-policy.md",
+      "section": "manage",
+      "group": "Administration, policy and approvals",
+      "path": "manage/managed-ai",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Approval ceiling, operator stop switch, execution enforcement and online policy leases.",
+      "work": {
+        "slug": "ai-policy",
+        "path": "ai-policy.md",
+        "icon": "grants"
+      },
+      "secondarySections": [
+        "trust"
+      ]
+    },
+    {
+      "slug": "work-data-lifecycle",
+      "title": "Work storage and data lifecycle",
+      "src": "work/data-lifecycle.md",
+      "section": "trust",
+      "group": "Privacy, data and trust boundaries",
+      "path": "trust/work-data-lifecycle",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Store inventory, account-erasure preview, atomic removal and rights-workflow limits.",
+      "work": {
+        "slug": "data-lifecycle",
+        "path": "data-lifecycle.md",
+        "icon": "grants"
+      },
+      "secondarySections": [
+        "manage",
+        "operate"
+      ]
+    },
+    {
+      "slug": "work-provider-guides",
+      "title": "Provider guides",
+      "src": "work/providers/README.md",
+      "section": "manage",
+      "group": "Shared assets and provider connections",
+      "path": "manage/provider-guides",
+      "icon": "globe",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "The shared skeleton every guide follows, the OAuth onboarding, and which drivers are fixture-verified only.",
+      "work": {
+        "slug": "provider-guides",
+        "path": "providers/README.md",
+        "icon": "providers"
+      }
+    },
+    {
+      "slug": "work-provider-webdav",
+      "title": "WebDAV / Nextcloud",
+      "src": "work/providers/webdav.md",
+      "section": "manage",
+      "group": "Shared assets and provider connections",
+      "path": "manage/provider-webdav",
+      "icon": "globe",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Guided Nextcloud or generic WebDAV setup: exact groups, an original checksum, credential sealing and sync before activation.",
+      "work": {
+        "slug": "provider-webdav",
+        "path": "providers/webdav.md",
+        "icon": "providers"
+      }
+    },
+    {
+      "slug": "work-provider-s3",
+      "title": "S3 / S3-compatible",
+      "src": "work/providers/s3.md",
+      "section": "manage",
+      "group": "Shared assets and provider connections",
+      "path": "manage/provider-s3",
+      "icon": "globe",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "AWS S3, MinIO, Ceph RGW: a private bucket federated read-only, zero-dependency SigV4.",
+      "work": {
+        "slug": "provider-s3",
+        "path": "providers/s3.md",
+        "icon": "providers"
+      }
+    },
+    {
+      "slug": "work-provider-git",
+      "title": "Git raw manifest",
+      "src": "work/providers/git.md",
+      "section": "manage",
+      "group": "Shared assets and provider connections",
+      "path": "manage/provider-git",
+      "icon": "globe",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "The GitOps-native source: a catalog manifest under version control, served over raw HTTP.",
+      "work": {
+        "slug": "provider-git",
+        "path": "providers/git.md",
+        "icon": "providers"
+      }
+    },
+    {
+      "slug": "work-provider-brandfolder",
+      "title": "Brandfolder",
+      "src": "work/providers/brandfolder.md",
+      "section": "manage",
+      "group": "Shared assets and provider connections",
+      "path": "manage/provider-brandfolder",
+      "icon": "globe",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Federate a Brandfolder read-only; Brandfolder stays the source of truth.",
+      "work": {
+        "slug": "provider-brandfolder",
+        "path": "providers/brandfolder.md",
+        "icon": "providers"
+      }
+    },
+    {
+      "slug": "work-provider-optimizely-cmp",
+      "title": "Optimizely CMP",
+      "src": "work/providers/optimizely-cmp.md",
+      "section": "manage",
+      "group": "Shared assets and provider connections",
+      "path": "manage/provider-optimizely-cmp",
+      "icon": "globe",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "The web DAM you keep, not one you exit: federate in, and optionally publish exports back out.",
+      "work": {
+        "slug": "provider-optimizely-cmp",
+        "path": "providers/optimizely-cmp.md",
+        "icon": "providers"
+      }
+    },
+    {
+      "slug": "work-provider-imagerelay",
+      "title": "Image Relay",
+      "src": "work/providers/imagerelay.md",
+      "section": "manage",
+      "group": "Shared assets and provider connections",
+      "path": "manage/provider-imagerelay",
+      "icon": "globe",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Read-only federation, plus the off-boarding path now that Canto owns the platform.",
+      "work": {
+        "slug": "provider-imagerelay",
+        "path": "providers/imagerelay.md",
+        "icon": "providers"
+      }
+    },
+    {
+      "slug": "work-provider-canto",
+      "title": "Canto",
+      "src": "work/providers/canto.md",
+      "section": "manage",
+      "group": "Shared assets and provider connections",
+      "path": "manage/provider-canto",
+      "icon": "globe",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Native Canto tenants and migrated Image Relay tenants, and how to tell which driver you exit through.",
+      "work": {
+        "slug": "provider-canto",
+        "path": "providers/canto.md",
+        "icon": "providers"
+      }
+    },
+    {
+      "slug": "work-provider-acquia-dam",
+      "title": "Acquia DAM / Widen",
+      "src": "work/providers/acquia-dam.md",
+      "section": "manage",
+      "group": "Shared assets and provider connections",
+      "path": "manage/provider-acquia-dam",
+      "icon": "globe",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Governance-rich enterprise DAM: native availability and approval, no custom-field mapping.",
+      "work": {
+        "slug": "provider-acquia-dam",
+        "path": "providers/acquia-dam.md",
+        "icon": "providers"
+      }
+    },
+    {
+      "slug": "work-provider-intelligencebank",
+      "title": "IntelligenceBank",
+      "src": "work/providers/intelligencebank.md",
+      "section": "manage",
+      "group": "Shared assets and provider connections",
+      "path": "manage/provider-intelligencebank",
+      "icon": "globe",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "The v3 Graph API only; native expiry, review dates and workflow states map straight across.",
+      "work": {
+        "slug": "provider-intelligencebank",
+        "path": "providers/intelligencebank.md",
+        "icon": "providers"
+      }
+    },
+    {
+      "slug": "work-provider-cloudinary",
+      "title": "Cloudinary",
+      "src": "work/providers/cloudinary.md",
+      "section": "manage",
+      "group": "Shared assets and provider connections",
+      "path": "manage/provider-cloudinary",
+      "icon": "globe",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Read-only shared media by immutable asset ID, with original downloads and explicit tenant qualification.",
+      "work": {
+        "slug": "provider-cloudinary",
+        "path": "providers/cloudinary.md",
+        "icon": "providers"
+      }
+    },
+    {
+      "slug": "work-provider-orange-logic",
+      "title": "Orange Logic",
+      "src": "work/providers/orange-logic.md",
+      "section": "manage",
+      "group": "Shared assets and provider connections",
+      "path": "manage/provider-orange-logic",
+      "icon": "globe",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Public Search v4 and permitted renditions, with protected originals explicitly unavailable.",
+      "work": {
+        "slug": "provider-orange-logic",
+        "path": "providers/orange-logic.md",
+        "icon": "providers"
+      }
+    },
+    {
+      "slug": "work-provider-cloudinary-live-verify",
+      "title": "Cloudinary tenant verification",
+      "src": "work/providers/cloudinary-live-verify.md",
+      "section": "operate",
+      "group": "Provider qualification runbooks",
+      "path": "operate/provider-cloudinary-live-verify",
+      "icon": "globe",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Qualify access, original fidelity, paging and costs on the organisation tenant.",
+      "work": {
+        "slug": "provider-cloudinary-live-verify",
+        "path": "providers/cloudinary-live-verify.md",
+        "icon": "providers"
+      }
+    },
+    {
+      "slug": "work-provider-orange-logic-live-verify",
+      "title": "Orange Logic tenant verification",
+      "src": "work/providers/orange-logic-live-verify.md",
+      "section": "operate",
+      "group": "Provider qualification runbooks",
+      "path": "operate/provider-orange-logic-live-verify",
+      "icon": "globe",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Qualify scoped discovery and permitted renditions without claiming original migration.",
+      "work": {
+        "slug": "provider-orange-logic-live-verify",
+        "path": "providers/orange-logic-live-verify.md",
+        "icon": "providers"
+      }
+    },
+    {
+      "slug": "work-provider-penpot",
+      "title": "Penpot",
+      "src": "work/providers/penpot.md",
+      "section": "manage",
+      "group": "Shared assets and provider connections",
+      "path": "manage/provider-penpot",
+      "icon": "globe",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "An open, self-hostable design-system source: token feed plus curated component export.",
+      "work": {
+        "slug": "provider-penpot",
+        "path": "providers/penpot.md",
+        "icon": "providers"
+      }
+    },
+    {
+      "slug": "work-provider-dropbox",
+      "title": "Dropbox",
+      "src": "work/providers/dropbox.md",
+      "section": "manage",
+      "group": "Shared assets and provider connections",
+      "path": "manage/provider-dropbox",
+      "icon": "globe",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "A Dropbox folder federated read-only over the registered PKCE consent flow.",
+      "work": {
+        "slug": "provider-dropbox",
+        "path": "providers/dropbox.md",
+        "icon": "providers"
+      }
+    },
+    {
+      "slug": "work-provider-gdrive",
+      "title": "Google Drive",
+      "src": "work/providers/gdrive.md",
+      "section": "manage",
+      "group": "Shared assets and provider connections",
+      "path": "manage/provider-gdrive",
+      "icon": "globe",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Guided folder/group configuration, registered browser consent, saved-file testing, activation and connection recovery.",
+      "work": {
+        "slug": "provider-gdrive",
+        "path": "providers/gdrive.md",
+        "icon": "providers"
+      }
+    },
+    {
+      "slug": "work-provider-o365",
+      "title": "Microsoft 365 / SharePoint",
+      "src": "work/providers/o365.md",
+      "section": "manage",
+      "group": "Shared assets and provider connections",
+      "path": "manage/provider-o365",
+      "icon": "globe",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "A SharePoint library or OneDrive federated read-only through Microsoft Graph.",
+      "work": {
+        "slug": "provider-o365",
+        "path": "providers/o365.md",
+        "icon": "providers"
+      }
+    },
+    {
+      "slug": "work-provider-webdav-live-verify",
+      "title": "WebDAV live-verify runbook",
+      "src": "work/providers/webdav-live-verify.md",
+      "section": "operate",
+      "group": "Provider qualification runbooks",
+      "path": "operate/provider-webdav-live-verify",
+      "icon": "globe",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "The server-day checklist for the WebDAV driver's unconfirmed URL templates and property names.",
+      "work": {
+        "slug": "provider-webdav-live-verify",
+        "path": "providers/webdav-live-verify.md",
+        "icon": "providers"
+      }
+    },
+    {
+      "slug": "work-provider-canto-live-verify",
+      "title": "Canto live-verify runbook",
+      "src": "work/providers/canto-live-verify.md",
+      "section": "operate",
+      "group": "Provider qualification runbooks",
+      "path": "operate/provider-canto-live-verify",
+      "icon": "globe",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "The tenant-day checklist that turns the fixture-verified Canto driver into a confirmed one.",
+      "work": {
+        "slug": "provider-canto-live-verify",
+        "path": "providers/canto-live-verify.md",
+        "icon": "providers"
+      }
+    },
+    {
+      "slug": "work-provider-imagerelay-live-verify",
+      "title": "Image Relay live-verify runbook",
+      "src": "work/providers/imagerelay-live-verify.md",
+      "section": "operate",
+      "group": "Provider qualification runbooks",
+      "path": "operate/provider-imagerelay-live-verify",
+      "icon": "globe",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "The tenant-day checklist for the Image Relay driver's unconfirmed endpoints and fields.",
+      "work": {
+        "slug": "provider-imagerelay-live-verify",
+        "path": "providers/imagerelay-live-verify.md",
+        "icon": "providers"
+      }
+    },
+    {
+      "slug": "work-provider-intelligencebank-live-verify",
+      "title": "IntelligenceBank live-verify runbook",
+      "src": "work/providers/intelligencebank-live-verify.md",
+      "section": "operate",
+      "group": "Provider qualification runbooks",
+      "path": "operate/provider-intelligencebank-live-verify",
+      "icon": "globe",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "The tenant-day checklist for the IntelligenceBank v3 driver's unconfirmed endpoints and fields.",
+      "work": {
+        "slug": "provider-intelligencebank-live-verify",
+        "path": "providers/intelligencebank-live-verify.md",
+        "icon": "providers"
+      }
+    },
+    {
+      "slug": "work-provider-acquia-dam-live-verify",
+      "title": "Acquia DAM live-verify runbook",
+      "src": "work/providers/acquia-dam-live-verify.md",
+      "section": "operate",
+      "group": "Provider qualification runbooks",
+      "path": "operate/provider-acquia-dam-live-verify",
+      "icon": "globe",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "The tenant-day checklist for the Widen v2 driver's unconfirmed endpoints and fields.",
+      "work": {
+        "slug": "provider-acquia-dam-live-verify",
+        "path": "providers/acquia-dam-live-verify.md",
+        "icon": "providers"
+      }
+    },
+    {
+      "slug": "work-operations",
+      "title": "Operations runbook",
+      "src": "work/operations.md",
+      "section": "operate",
+      "group": "Operations, monitoring and recovery",
+      "path": "operate/operations",
+      "icon": "server",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Migrations, collaboration drain, backup, rate limits, metrics, guarded upgrades and engine pin.",
+      "work": {
+        "slug": "operations",
+        "path": "operations.md",
+        "icon": "audit"
+      }
+    },
+    {
+      "slug": "work-frontend-updates",
+      "title": "Fast frontend updates",
+      "src": "work/frontend-updates.md",
+      "section": "operate",
+      "group": "Updates, qualification and release history",
+      "path": "operate/frontend-updates",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Qualified source updates with reused runtimes, private shell publication, public root and validator maps, and accepted baselines.",
+      "work": {
+        "slug": "frontend-updates",
+        "path": "frontend-updates.md",
+        "icon": "audit"
+      }
+    },
+    {
+      "slug": "work-public-model-proof-reuse",
+      "title": "Public model verification reuse",
+      "src": "work/public-model-proof-reuse.md",
+      "section": "operate",
+      "group": "Updates, qualification and release history",
+      "path": "operate/public-model-proof-reuse",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Bounded verification reuse for an unchanged serving process, invalidation rules, and measured release timings.",
+      "work": {
+        "slug": "public-model-proof-reuse",
+        "path": "public-model-proof-reuse.md",
+        "icon": "audit"
+      }
+    },
+    {
+      "slug": "work-instance-pack-production",
+      "title": "Build a verified instance pack",
+      "src": "work/instance-pack-production.md",
+      "section": "operate",
+      "group": "Updates, qualification and release history",
+      "path": "operate/instance-pack-production",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Derive raw Work packs from signed releases while preserving asset addresses, renditions and release custody.",
+      "work": {
+        "slug": "instance-pack-production",
+        "path": "instance-pack-production.md",
+        "icon": "audit"
+      }
+    },
+    {
+      "slug": "work-production-readiness",
+      "title": "Production evidence",
+      "src": "work/production-readiness.md",
+      "section": "operate",
+      "group": "Operations, monitoring and recovery",
+      "path": "operate/production-readiness",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Read-only configuration checks, staging probes and the evidence still needed before production.",
+      "work": {
+        "slug": "production-readiness",
+        "path": "production-readiness.md",
+        "icon": "audit"
+      }
+    },
+    {
+      "slug": "work-application-release-classification",
+      "title": "Application release classification",
+      "src": "work/application-release-classification.md",
+      "section": "operate",
+      "group": "Updates, qualification and release history",
+      "path": "operate/application-release-classification",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Advisory Git comparison for web-shell changes, conservative shared-source boundaries and required release qualification.",
+      "work": {
+        "slug": "application-release-classification",
+        "path": "application-release-classification.md",
+        "icon": "audit"
+      }
+    },
+    {
+      "slug": "work-shell-deployment-workflow",
+      "title": "Shell deployment workflow",
+      "src": "work/shell-deployment-workflow.md",
+      "section": "operate",
+      "group": "Updates, qualification and release history",
+      "path": "operate/shell-deployment-workflow",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Qualified main CI requests, reusable prepared artifacts and guarded publication with resumable successful phases.",
+      "work": {
+        "slug": "shell-deployment-workflow",
+        "path": "shell-deployment-workflow.md",
+        "icon": "audit"
+      }
+    },
+    {
+      "slug": "work-telemetry",
+      "title": "Telemetry and dashboards",
+      "src": "work/telemetry.md",
+      "section": "operate",
+      "group": "Operations, monitoring and recovery",
+      "path": "operate/telemetry",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "What is recorded, what never is, and how attribution consent works.",
+      "work": {
+        "slug": "telemetry",
+        "path": "telemetry.md",
+        "icon": "audit"
+      },
+      "secondarySections": [
+        "trust"
+      ]
+    },
+    {
+      "slug": "work-audit",
+      "title": "Audit log",
+      "src": "work/audit.md",
+      "section": "operate",
+      "group": "Operations, monitoring and recovery",
+      "path": "operate/audit",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "The hash-chained record, verification, and anchoring the head off-box.",
+      "work": {
+        "slug": "audit",
+        "path": "audit.md",
+        "icon": "audit"
+      },
+      "secondarySections": [
+        "trust",
+        "manage"
+      ]
+    },
+    {
+      "slug": "work-project-portability",
+      "title": "Preview a project transfer",
+      "src": "work/project-portability.md",
+      "section": "manage",
+      "group": "Jobs, sharing and delivery",
+      "path": "manage/project-transfer-preview",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Read-only project inventory, access mapping, file and history coverage, and preparation for moving work between instances.",
+      "work": {
+        "slug": "project-portability",
+        "path": "project-portability.md",
+        "icon": "audit"
+      }
+    },
+    {
+      "slug": "work-api",
+      "title": "Lolly Work API",
+      "src": "work/api.md",
+      "section": "build",
+      "group": "Agents, APIs and integrations",
+      "path": "build/work-api",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Every route the console and CLI use, with the action each one requires.",
+      "work": {
+        "slug": "api",
+        "path": "api.md",
+        "icon": "docs"
+      }
+    },
+    {
+      "slug": "work-cli",
+      "title": "lw CLI: administer an instance",
+      "src": "work/cli.md",
+      "section": "build",
+      "group": "URL and CLI automation",
+      "path": "build/lw-cli",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Command reference for the admin CLI.",
+      "work": {
+        "slug": "cli",
+        "path": "cli.md",
+        "icon": "docs"
+      }
+    },
+    {
+      "slug": "work-status",
+      "title": "Work status and roadmap",
+      "src": "work/status.md",
+      "section": "start",
+      "group": "Product, organisation and vocabulary",
+      "path": "start/status",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "What is built, what is pending, and the honest gaps before go-live.",
+      "work": {
+        "slug": "status",
+        "path": "status.md",
+        "icon": "docs"
+      }
+    }
+  ],
+  "workImport": {
+    "repository": "https://github.com/lolly-tools/lolly-work",
+    "commit": "702f718cf2fc33fa544f46d6eaa4848e8368d746",
+    "version": "1.1.1",
+    "files": {
+      "README.md": {
+        "source": "work/README.md",
+        "sha256": "bbe0e168f584194c51ba4431180ed4ae7ba7a3c77ff0faaada380133d45e4c2a",
+        "originalPath": "docs/README.md"
+      },
+      "account-lifecycle.md": {
+        "source": "work/account-lifecycle.md",
+        "sha256": "19bdf65c45608c077aec8e28417d2ae13db159e1dd5a76d7728eb88f170a2620",
+        "originalPath": "docs/account-lifecycle.md"
+      },
+      "ai-policy.md": {
+        "source": "work/ai-policy.md",
+        "sha256": "f41e4e46209673591cdb42a1bbed82342123d1f9cccb7ddb59752d9c0b9b754d",
+        "originalPath": "docs/ai-policy.md"
+      },
+      "api.md": {
+        "source": "work/api.md",
+        "sha256": "5303c36a5011534632d78232527a5b8640c87e07c8f863415f5c1d074b6ffb3b",
+        "originalPath": "docs/api.md"
+      },
+      "application-release-classification.md": {
+        "source": "work/application-release-classification.md",
+        "sha256": "38e3c308f1a471f350fd1c29fef84af457d83b793e9c61a47df931868011706f",
+        "originalPath": "docs/application-release-classification.md"
+      },
+      "approvals.md": {
+        "source": "work/approvals.md",
+        "sha256": "7b7d0e11470d1d20da28c08b9cdd670f116c3d0874d022c11894f1c40fac6dfb",
+        "originalPath": "docs/approvals.md"
+      },
+      "audit.md": {
+        "source": "work/audit.md",
+        "sha256": "05ed03164f8bdcbcbcf1eec5565363467c1e290060575dac833d8df866e69d9e",
+        "originalPath": "docs/audit.md"
+      },
+      "c2pa.md": {
+        "source": "work/c2pa.md",
+        "sha256": "d3c7ec08d14bd391b1c1639b81171d03bc4c7474a1b2aca5e7b8442a4394ef1c",
+        "originalPath": "docs/c2pa.md"
+      },
+      "catalog.md": {
+        "source": "work/catalog.md",
+        "sha256": "0a25492b2adfabf085e14797dde3db815af4a7e4679157ffa9119466d3712278",
+        "originalPath": "docs/catalog.md"
+      },
+      "cli.md": {
+        "source": "work/cli.md",
+        "sha256": "f3d66031179ba009427dd306ad1952c2ddf22304a318b2561e9d66f01226a8cc",
+        "originalPath": "docs/cli.md"
+      },
+      "cloud-deployment.md": {
+        "source": "work/cloud-deployment.md",
+        "sha256": "47a04d5cb65e97e5bb41ec8904765df9b1887f79314122a31b3ce4db7e1f4f1f",
+        "originalPath": "docs/cloud-deployment.md"
+      },
+      "configuration.md": {
+        "source": "work/configuration.md",
+        "sha256": "a13bdd0ab8dd42a8fafc154ec8ce2983bd92fe5d3edd30b0bf26690d3d3b7bc2",
+        "originalPath": "docs/configuration.md"
+      },
+      "customer-setup.md": {
+        "source": "work/customer-setup.md",
+        "sha256": "8b4c8b44bebf1e86b93ead8bdd7fb3d4215b9065d58afb514d5f336b3d85dfae",
+        "originalPath": "docs/customer-setup.md"
+      },
+      "data-lifecycle.md": {
+        "source": "work/data-lifecycle.md",
+        "sha256": "ceab5558f25b6147ab5951f34a743acf77d9ed81644e033256645c2cd6fb754a",
+        "originalPath": "docs/data-lifecycle.md"
+      },
+      "delivery.md": {
+        "source": "work/delivery.md",
+        "sha256": "b2115d25805f9ca3e0785e9108055cb88d7b75095622e02810492c2713eb6605",
+        "originalPath": "docs/delivery.md"
+      },
+      "deployment.md": {
+        "source": "work/deployment.md",
+        "sha256": "ee7a19136947c432197e709911bed7390d59226b30f5b2cd261eacfea480497a",
+        "originalPath": "docs/deployment.md"
+      },
+      "design-system-administration.md": {
+        "source": "work/design-system-administration.md",
+        "sha256": "889e69106dfa5e754b8e9ea33ce7b5b9a3e4ef0da0819dc2629b20438078e92f",
+        "originalPath": "docs/design-system-administration.md"
+      },
+      "document-agents.md": {
+        "source": "work/document-agents.md",
+        "sha256": "edc350fb7e5e20fe42ea95e221dbe50a4cf19d5976a47990198035c3c583a81f",
+        "originalPath": "docs/document-agents.md"
+      },
+      "enterprise-identity.md": {
+        "source": "work/enterprise-identity.md",
+        "sha256": "c859207aec332b4d866124c915b5c4d03376c4bb919d3540062519e6d8cbb6ec",
+        "originalPath": "docs/enterprise-identity.md"
+      },
+      "file-preview.md": {
+        "source": "work/file-preview.md",
+        "sha256": "74de415d593fc82db6eeee32be9330a347910f4899e0d94cbeba4d3bb8bd6ca6",
+        "originalPath": "docs/file-preview.md"
+      },
+      "frontend-updates.md": {
+        "source": "work/frontend-updates.md",
+        "sha256": "b40209a07941b69beb08c3fc6e221cadeb781dbd4b893488c3125ccad5724e3b",
+        "originalPath": "docs/frontend-updates.md"
+      },
+      "governance.md": {
+        "source": "work/governance.md",
+        "sha256": "ce43cfa4bc7ca94ce8fab58f6cca2a26c8b5b4075b3ef6848c9dd5578c346c34",
+        "originalPath": "docs/governance.md"
+      },
+      "identity.md": {
+        "source": "work/identity.md",
+        "sha256": "cda241240b0eb176ee211ad2d184f81d1ea3b648754ee6535c1ef2d6e995fbbe",
+        "originalPath": "docs/identity.md"
+      },
+      "img/README.md": {
+        "source": "work/img/README.md",
+        "sha256": "50a328cba244b3cf8a1bca69bd5f88f7265cd93b6e35b826a65094b9dd1f02d1",
+        "originalPath": "docs/img/README.md"
+      },
+      "img/helm-icon-color.svg": {
+        "source": "work/img/helm-icon-color.svg",
+        "sha256": "ad04fbc7841a55023ad7806aa133a86ebd0aab21c2179be97f9048617138e7b1",
+        "originalPath": "docs/img/helm-icon-color.svg"
+      },
+      "img/k3s-icon-color.svg": {
+        "source": "work/img/k3s-icon-color.svg",
+        "sha256": "c6231341ab65571c02701703e627875b6f426ed819aad5f263f1ea8c18b8af09",
+        "originalPath": "docs/img/k3s-icon-color.svg"
+      },
+      "img/rancher-icon.svg": {
+        "source": "work/img/rancher-icon.svg",
+        "sha256": "37262ee0e7652ba4090c8f96de8580f372e82eacf7543863d68d359ce454186e",
+        "originalPath": "docs/img/rancher-icon.svg"
+      },
+      "install.md": {
+        "source": "work/install.md",
+        "sha256": "8443b13e79263c4b40f7af7025a5d953c95a8ec6d4bfdae456025e9eebe9f4e4",
+        "originalPath": "docs/install.md"
+      },
+      "instance-pack-production.md": {
+        "source": "work/instance-pack-production.md",
+        "sha256": "674014c4afcabefaf6fa1519ed1c7e00b2866fceba187eb33193b1252d3279cd",
+        "originalPath": "docs/instance-pack-production.md"
+      },
+      "offboarding.md": {
+        "source": "work/offboarding.md",
+        "sha256": "268d1944f1020a7615a565651021b4ae6fa278670b3299c765e30c4d2953fbc8",
+        "originalPath": "docs/offboarding.md"
+      },
+      "official-installations.md": {
+        "source": "work/official-installations.md",
+        "sha256": "e7dbff8ede03ea981b2706bcae7a170c37ba845557623851e6fdc65fb6f9da10",
+        "originalPath": "docs/official-installations.md"
+      },
+      "operations.md": {
+        "source": "work/operations.md",
+        "sha256": "7742cd881d393d6ae8220b985a73879a869811b682f20ded61f1fc7963baf0e7",
+        "originalPath": "docs/operations.md"
+      },
+      "overview.md": {
+        "source": "work/overview.md",
+        "sha256": "31ba4dc6a952439100834b1111257a4007526c3dbca1475f7848cb6fd5fafccf",
+        "originalPath": "docs/overview.md"
+      },
+      "permissions.md": {
+        "source": "work/permissions.md",
+        "sha256": "645ae8519222592a74f84879feea139e41359b1f435e6a060c276014120a6e78",
+        "originalPath": "docs/permissions.md"
+      },
+      "platform-deployment.md": {
+        "source": "work/platform-deployment.md",
+        "sha256": "657b6f1b197b9bc6a64b1b84c30ebe5792f987ca80b05c21248c2aad148feef3",
+        "originalPath": "docs/platform-deployment.md"
+      },
+      "production-readiness.md": {
+        "source": "work/production-readiness.md",
+        "sha256": "f12bd376373a0c440080c325e7dd3d82d84f5c0f712db5a532f20af4ccb55f63",
+        "originalPath": "docs/production-readiness.md"
+      },
+      "project-portability.md": {
+        "source": "work/project-portability.md",
+        "sha256": "6a830d1c7ee0334f770f8b0c9185a5256ab7b7385422b9df5188e8a5701aa691",
+        "originalPath": "docs/project-portability.md"
+      },
+      "providers/README.md": {
+        "source": "work/providers/README.md",
+        "sha256": "37ce446c9a757a267b330db6b884d3b3a0d3c8f6c8691ab42164a0a2e6602a06",
+        "originalPath": "docs/providers/README.md"
+      },
+      "providers/acquia-dam-live-verify.md": {
+        "source": "work/providers/acquia-dam-live-verify.md",
+        "sha256": "68d6c2921fbcfdcc5bea5b9738b5171c059362cd3bd2f42634b8a0d8b6f3ffd9",
+        "originalPath": "docs/providers/acquia-dam-live-verify.md"
+      },
+      "providers/acquia-dam.md": {
+        "source": "work/providers/acquia-dam.md",
+        "sha256": "eda5242559259b0f0488c361f579fd04aecf9279bc91365c7a35a01828b8d5e3",
+        "originalPath": "docs/providers/acquia-dam.md"
+      },
+      "providers/brandfolder.md": {
+        "source": "work/providers/brandfolder.md",
+        "sha256": "42abeca57e9bf11d6607655275be8d3cc2aab6ae6f07f220ef5163edfab34097",
+        "originalPath": "docs/providers/brandfolder.md"
+      },
+      "providers/canto-live-verify.md": {
+        "source": "work/providers/canto-live-verify.md",
+        "sha256": "3d1d3cc84198bfc5b80b8e11136737028a8039e6d5e530f09131c6dceb0fa23e",
+        "originalPath": "docs/providers/canto-live-verify.md"
+      },
+      "providers/canto.md": {
+        "source": "work/providers/canto.md",
+        "sha256": "5b8faecc177df8aca574b94a13b6242010c6b767fefe2f1de2a40955916318ad",
+        "originalPath": "docs/providers/canto.md"
+      },
+      "providers/cloudinary-live-verify.md": {
+        "source": "work/providers/cloudinary-live-verify.md",
+        "sha256": "bdd17dc27815c596b55a57a526f58590125a3450d4a246262652c6060e7116ef",
+        "originalPath": "docs/providers/cloudinary-live-verify.md"
+      },
+      "providers/cloudinary.md": {
+        "source": "work/providers/cloudinary.md",
+        "sha256": "b73cd7d0a6ca5a824f15dab8b64d87a045e819d903988d21eef07e2cbeebf6f3",
+        "originalPath": "docs/providers/cloudinary.md"
+      },
+      "providers/dropbox.md": {
+        "source": "work/providers/dropbox.md",
+        "sha256": "0bad5b77e6ee1d320d39f05c8463641247069f8b57422c1db9db8693fd696dab",
+        "originalPath": "docs/providers/dropbox.md"
+      },
+      "providers/gdrive.md": {
+        "source": "work/providers/gdrive.md",
+        "sha256": "5bff1f31aac5dc54d93a56e44372a7fa7489c51070893d7439abd1a269628db4",
+        "originalPath": "docs/providers/gdrive.md"
+      },
+      "providers/git.md": {
+        "source": "work/providers/git.md",
+        "sha256": "432e9e4fe90ca9a03d5ee6e681285ffd13a9ff7841cf5009d90100d17d61f70d",
+        "originalPath": "docs/providers/git.md"
+      },
+      "providers/imagerelay-live-verify.md": {
+        "source": "work/providers/imagerelay-live-verify.md",
+        "sha256": "ded0ed96fdcd38578cd4a21ff357d55d5b19cdfecbab167158450c28f204ae4b",
+        "originalPath": "docs/providers/imagerelay-live-verify.md"
+      },
+      "providers/imagerelay.md": {
+        "source": "work/providers/imagerelay.md",
+        "sha256": "b0a94fe19246897dcca87c3e030dba925732e0b54f1c0d630d77b8bc718164cd",
+        "originalPath": "docs/providers/imagerelay.md"
+      },
+      "providers/intelligencebank-live-verify.md": {
+        "source": "work/providers/intelligencebank-live-verify.md",
+        "sha256": "69b9d1e04250e0afbbd5e5dfdb1e8b3946d1fd7cc874d6051069e4e0e287dc45",
+        "originalPath": "docs/providers/intelligencebank-live-verify.md"
+      },
+      "providers/intelligencebank.md": {
+        "source": "work/providers/intelligencebank.md",
+        "sha256": "5ef396d0c1bd31465f486ff09d3d0f6a0da391d94ae0af99abe5106fd393553b",
+        "originalPath": "docs/providers/intelligencebank.md"
+      },
+      "providers/o365.md": {
+        "source": "work/providers/o365.md",
+        "sha256": "1d599898e8c3be48c00213e36106ee3259e1139551a0cc34d9f8e75797fc7cbe",
+        "originalPath": "docs/providers/o365.md"
+      },
+      "providers/optimizely-cmp.md": {
+        "source": "work/providers/optimizely-cmp.md",
+        "sha256": "79fe39cc2d7a36a547702375d74a10e2a031ea8c0c4e4089e4da000d2feb7d65",
+        "originalPath": "docs/providers/optimizely-cmp.md"
+      },
+      "providers/orange-logic-live-verify.md": {
+        "source": "work/providers/orange-logic-live-verify.md",
+        "sha256": "0328d327ef8d5540fc38f791c88a8bda305c982f7256bf6ea51bae7807987767",
+        "originalPath": "docs/providers/orange-logic-live-verify.md"
+      },
+      "providers/orange-logic.md": {
+        "source": "work/providers/orange-logic.md",
+        "sha256": "ed7c90c8b0aa2d3529d48c3ee3f7d68953ae2718b2fef3562fd6bfcbd560d57a",
+        "originalPath": "docs/providers/orange-logic.md"
+      },
+      "providers/penpot.md": {
+        "source": "work/providers/penpot.md",
+        "sha256": "6e5fbd0f3b16b387ee8ebd305a8f81c3c79a90bcfc8fdfb6ec50df52a528612a",
+        "originalPath": "docs/providers/penpot.md"
+      },
+      "providers/s3.md": {
+        "source": "work/providers/s3.md",
+        "sha256": "25dd8bcd8b8cfdeddebbd86341aa9932d88465df561ae849778e6226ba8ca17e",
+        "originalPath": "docs/providers/s3.md"
+      },
+      "providers/webdav-live-verify.md": {
+        "source": "work/providers/webdav-live-verify.md",
+        "sha256": "1576186a34f028e9e74727394d09320eb8197cdd4cbbcb2474666d1f9cf3a037",
+        "originalPath": "docs/providers/webdav-live-verify.md"
+      },
+      "providers/webdav.md": {
+        "source": "work/providers/webdav.md",
+        "sha256": "811c374d8f27154d3cbf0602fb480f7e6d3b245442165b2d9572b86e2983548c",
+        "originalPath": "docs/providers/webdav.md"
+      },
+      "public-model-proof-reuse.md": {
+        "source": "work/public-model-proof-reuse.md",
+        "sha256": "fdf63a796d5dd701092a933c3efca6f8cfe3ff3a9b5423033d57a6fb62a45c6f",
+        "originalPath": "docs/public-model-proof-reuse.md"
+      },
+      "release-1-1-0.md": {
+        "source": "work/release-1-1-0.md",
+        "sha256": "46dc3709d765c7b1662c79f004068ccbe7a6eafa44538eee9d7a9991c2ebc927",
+        "originalPath": "docs/release-1-1-0.md"
+      },
+      "release-1-1-1.md": {
+        "source": "work/release-1-1-1.md",
+        "sha256": "595ce11fc401df20d7e7d45dc8844456df4fb35ed84468303a96e9012b7762cd",
+        "originalPath": "docs/release-1-1-1.md"
+      },
+      "renders.md": {
+        "source": "work/renders.md",
+        "sha256": "abb945051840c88851113c98302a7082cae6dfb68b185a2cfae709f018f99d10",
+        "originalPath": "docs/renders.md"
+      },
+      "security-platform.md": {
+        "source": "work/security-platform.md",
+        "sha256": "9affdc4dcf922cf20e7d13221b963b0b02520ec562f960e1c23370a0677613b8",
+        "originalPath": "docs/security-platform.md"
+      },
+      "self-host.md": {
+        "source": "work/self-host.md",
+        "sha256": "e44063f560747b2da0f6baf862f13808e15849d02edf4f32b601c472f84c1242",
+        "originalPath": "docs/self-host.md"
+      },
+      "sharing.md": {
+        "source": "work/sharing.md",
+        "sha256": "6afb77e73a68951a1e463ffab9296e71629e9614e368f3f43947186c0c54b05d",
+        "originalPath": "docs/sharing.md"
+      },
+      "shell-deployment-workflow.md": {
+        "source": "work/shell-deployment-workflow.md",
+        "sha256": "618124d7b3a3d3c0535ceacf16900ad5a0af75ae3839ebb3e63dabee1fc872d7",
+        "originalPath": "docs/shell-deployment-workflow.md"
+      },
+      "shots/README.md": {
+        "source": "shots/work/README.md",
+        "sha256": "5c8cdb66a50ad73d6ba074c670e78e18492192c9607592d9845a1fc3b25970b9",
+        "originalPath": "docs/shots/README.md"
+      },
+      "shots/activity-timeline.dark.svg": {
+        "source": "shots/work/activity-timeline.dark.svg",
+        "sha256": "c2ef0a31733b857691a9a2d8ca2f5fef25518d62846b281f4395ed8d3fda8217",
+        "originalPath": "docs/shots/activity-timeline.dark.svg"
+      },
+      "shots/activity-timeline.svg": {
+        "source": "shots/work/activity-timeline.svg",
+        "sha256": "89b6abb8ac1dafb0224e9ef0a2b3b1a3222714e47b9aa3409303bd43102920b6",
+        "originalPath": "docs/shots/activity-timeline.svg"
+      },
+      "shots/approvals-inbox.dark.svg": {
+        "source": "shots/work/approvals-inbox.dark.svg",
+        "sha256": "3103509c35a1837300163f966237067b4c71d6037cd42da5c0bde0539b9f483c",
+        "originalPath": "docs/shots/approvals-inbox.dark.svg"
+      },
+      "shots/approvals-inbox.svg": {
+        "source": "shots/work/approvals-inbox.svg",
+        "sha256": "8d91d464f2b08a7da381489fe7705dd53ce6c5d06c5d09ba689210b832b4eddb",
+        "originalPath": "docs/shots/approvals-inbox.svg"
+      },
+      "shots/audit-chain.dark.svg": {
+        "source": "shots/work/audit-chain.dark.svg",
+        "sha256": "3e1bf179cb4f9b7d2666d3b11550d715e31f414b2f264748dd6300c8b89fd696",
+        "originalPath": "docs/shots/audit-chain.dark.svg"
+      },
+      "shots/audit-chain.svg": {
+        "source": "shots/work/audit-chain.svg",
+        "sha256": "dd05a5c4a0669a129b3db78ff94f764900244e2024f581b481d6473d979e7b80",
+        "originalPath": "docs/shots/audit-chain.svg"
+      },
+      "shots/broadcast-messages.dark.svg": {
+        "source": "shots/work/broadcast-messages.dark.svg",
+        "sha256": "55baac4a3bbbcd66b52c5f7af9918a7c8ce9df8823dbfb3b2493d7fbd29d0623",
+        "originalPath": "docs/shots/broadcast-messages.dark.svg"
+      },
+      "shots/broadcast-messages.svg": {
+        "source": "shots/work/broadcast-messages.svg",
+        "sha256": "b145d17b0bf384ec4ba6e44c382d87864d6136a8be0054f1029211ee3c6f7ba2",
+        "originalPath": "docs/shots/broadcast-messages.svg"
+      },
+      "shots/catalog-assets.dark.svg": {
+        "source": "shots/work/catalog-assets.dark.svg",
+        "sha256": "d9c87366501ddd37dbbce6c3abc2f79fbbb54ab9887fc9b8871b2ddae39cdba1",
+        "originalPath": "docs/shots/catalog-assets.dark.svg"
+      },
+      "shots/catalog-assets.svg": {
+        "source": "shots/work/catalog-assets.svg",
+        "sha256": "edfa7c4d7d31e4dfc59b6ef4f84126fdd59fa88b14cc5a2cab7efe699a716cef",
+        "originalPath": "docs/shots/catalog-assets.svg"
+      },
+      "shots/catalog-providers.dark.svg": {
+        "source": "shots/work/catalog-providers.dark.svg",
+        "sha256": "79a0437c826041064d34352148d24203078d683c8dc3456f9ece17b2bd912244",
+        "originalPath": "docs/shots/catalog-providers.dark.svg"
+      },
+      "shots/catalog-providers.root.pem": {
+        "source": "shots/work/catalog-providers.root.pem",
+        "sha256": "0b0826b0c836cb82e06e21cb715825247ca829ff5c2cebc961742c17dfa55bef",
+        "originalPath": "docs/shots/catalog-providers.root.pem"
+      },
+      "shots/catalog-providers.svg": {
+        "source": "shots/work/catalog-providers.svg",
+        "sha256": "0ae4ad0b3a980a2282910995c2872448cee1e1cc2579886fddcb2545cf90dd9f",
+        "originalPath": "docs/shots/catalog-providers.svg"
+      },
+      "shots/client-fleet.dark.svg": {
+        "source": "shots/work/client-fleet.dark.svg",
+        "sha256": "71efe17d73b59c3f6e3bfe8f33ef08abc5f0c470a28ed205dbbb3cf5b87118c5",
+        "originalPath": "docs/shots/client-fleet.dark.svg"
+      },
+      "shots/client-fleet.svg": {
+        "source": "shots/work/client-fleet.svg",
+        "sha256": "d97c6b618d77eaf25c06dc99b68dcb3bf59887c07e96de0b5c4d8499d2786f1c",
+        "originalPath": "docs/shots/client-fleet.svg"
+      },
+      "shots/customer-setup-deployment.dark.svg": {
+        "source": "shots/work/customer-setup-deployment.dark.svg",
+        "sha256": "b68527a5fbf564f0c8574ed5dc6199d9666b17f9246adaeba3c139905a3a98db",
+        "originalPath": "docs/shots/customer-setup-deployment.dark.svg"
+      },
+      "shots/customer-setup-deployment.root.pem": {
+        "source": "shots/work/customer-setup-deployment.root.pem",
+        "sha256": "0b0826b0c836cb82e06e21cb715825247ca829ff5c2cebc961742c17dfa55bef",
+        "originalPath": "docs/shots/customer-setup-deployment.root.pem"
+      },
+      "shots/customer-setup-deployment.svg": {
+        "source": "shots/work/customer-setup-deployment.svg",
+        "sha256": "9114f098a82bd495fa8f7c9f99c2826a047eded61e6a7ad83e0ac6609f58aeee",
+        "originalPath": "docs/shots/customer-setup-deployment.svg"
+      },
+      "shots/customer-setup-identity.dark.svg": {
+        "source": "shots/work/customer-setup-identity.dark.svg",
+        "sha256": "8ffe0f9f130e6e240df916c8d55a2afada194f36297e99d64828eaa4e7e58301",
+        "originalPath": "docs/shots/customer-setup-identity.dark.svg"
+      },
+      "shots/customer-setup-identity.root.pem": {
+        "source": "shots/work/customer-setup-identity.root.pem",
+        "sha256": "3f7b518c292947a7c29dfc4e5aeed585c51d6307a9c243a4fdeec6cc34980523",
+        "originalPath": "docs/shots/customer-setup-identity.root.pem"
+      },
+      "shots/customer-setup-identity.svg": {
+        "source": "shots/work/customer-setup-identity.svg",
+        "sha256": "038daf664d95d25b027856ff5adac5c3c3fbed863b81961d226d202fe26e846a",
+        "originalPath": "docs/shots/customer-setup-identity.svg"
+      },
+      "shots/customer-setup-sample.dark.svg": {
+        "source": "shots/work/customer-setup-sample.dark.svg",
+        "sha256": "5b45858ed61b428ec23c2f9ba787eaf9eeb0c9a422f08fb9fcac0f0867e6db00",
+        "originalPath": "docs/shots/customer-setup-sample.dark.svg"
+      },
+      "shots/customer-setup-sample.root.pem": {
+        "source": "shots/work/customer-setup-sample.root.pem",
+        "sha256": "0b0826b0c836cb82e06e21cb715825247ca829ff5c2cebc961742c17dfa55bef",
+        "originalPath": "docs/shots/customer-setup-sample.root.pem"
+      },
+      "shots/customer-setup-sample.svg": {
+        "source": "shots/work/customer-setup-sample.svg",
+        "sha256": "7c2005dd769cf97a86eb4e49e2f34b5cf3e1315a1e62caf4c131bed321363cd7",
+        "originalPath": "docs/shots/customer-setup-sample.svg"
+      },
+      "shots/feature-flags.dark.svg": {
+        "source": "shots/work/feature-flags.dark.svg",
+        "sha256": "bfc80e7090b45c6f618bffd6ae8d06c1e27e3fc6dd0c94988b40227e29e98a49",
+        "originalPath": "docs/shots/feature-flags.dark.svg"
+      },
+      "shots/feature-flags.svg": {
+        "source": "shots/work/feature-flags.svg",
+        "sha256": "da9e8d491e0e7aae7172b75a83cc8500428775e1a027ea8388c4dec519a7db78",
+        "originalPath": "docs/shots/feature-flags.svg"
+      },
+      "shots/overview-dashboard.dark.svg": {
+        "source": "shots/work/overview-dashboard.dark.svg",
+        "sha256": "d18bcbc380c5976f1ec556ebe00e1cffaabf1e94d05a4bd5c2a45276c94fd911",
+        "originalPath": "docs/shots/overview-dashboard.dark.svg"
+      },
+      "shots/overview-dashboard.svg": {
+        "source": "shots/work/overview-dashboard.svg",
+        "sha256": "dcafcb768b2b6c77e793cf067ea88fb5ce132197cbf22cc3a09a924980e0f4a5",
+        "originalPath": "docs/shots/overview-dashboard.svg"
+      },
+      "shots/people-directory.dark.svg": {
+        "source": "shots/work/people-directory.dark.svg",
+        "sha256": "b0376ce2ceb24b683be41acc6e6ff4a3aaa24ca604400826cccb64489158b4b1",
+        "originalPath": "docs/shots/people-directory.dark.svg"
+      },
+      "shots/people-directory.svg": {
+        "source": "shots/work/people-directory.svg",
+        "sha256": "bbd3cddf584ccb1ebef1507e72780ddae1204a37a07e80cc2a228ea6acfa2e75",
+        "originalPath": "docs/shots/people-directory.svg"
+      },
+      "shots/permissions-grants.dark.svg": {
+        "source": "shots/work/permissions-grants.dark.svg",
+        "sha256": "d58cc90d8f74d3d12588f91bc1a809dda5454f96ae91a9b25c205fa641471497",
+        "originalPath": "docs/shots/permissions-grants.dark.svg"
+      },
+      "shots/permissions-grants.svg": {
+        "source": "shots/work/permissions-grants.svg",
+        "sha256": "cb3a18053529b5bd50d1a4dce9304e6f024e64055b16754d200b69574300baf6",
+        "originalPath": "docs/shots/permissions-grants.svg"
+      },
+      "shots/preview-as-group.dark.svg": {
+        "source": "shots/work/preview-as-group.dark.svg",
+        "sha256": "7003134f0f3ca8e5f370c75c6b9e3b087cacc214c8ca170091fcb006c9a8cc01",
+        "originalPath": "docs/shots/preview-as-group.dark.svg"
+      },
+      "shots/preview-as-group.svg": {
+        "source": "shots/work/preview-as-group.svg",
+        "sha256": "1237785a4e917ef3665d49e023e2809cda6ab4a482f0e7aff65c26e4e90f8399",
+        "originalPath": "docs/shots/preview-as-group.svg"
+      },
+      "shots/provider-gdrive-consent.dark.svg": {
+        "source": "shots/work/provider-gdrive-consent.dark.svg",
+        "sha256": "ba68b76bf3e9e4fd483898fe5e4b21240ad127e4564ab905524dc34915c6c33b",
+        "originalPath": "docs/shots/provider-gdrive-consent.dark.svg"
+      },
+      "shots/provider-gdrive-consent.root.pem": {
+        "source": "shots/work/provider-gdrive-consent.root.pem",
+        "sha256": "0b0826b0c836cb82e06e21cb715825247ca829ff5c2cebc961742c17dfa55bef",
+        "originalPath": "docs/shots/provider-gdrive-consent.root.pem"
+      },
+      "shots/provider-gdrive-consent.svg": {
+        "source": "shots/work/provider-gdrive-consent.svg",
+        "sha256": "28cace726c463ef4b35b16ef1553fa0032a393791d9a7ad107b531178bba158b",
+        "originalPath": "docs/shots/provider-gdrive-consent.svg"
+      },
+      "shots/provider-gdrive-setup.dark.svg": {
+        "source": "shots/work/provider-gdrive-setup.dark.svg",
+        "sha256": "0b446843f125cefd361e59c263c4ffd801956023f19dc26000029d73476784c7",
+        "originalPath": "docs/shots/provider-gdrive-setup.dark.svg"
+      },
+      "shots/provider-gdrive-setup.root.pem": {
+        "source": "shots/work/provider-gdrive-setup.root.pem",
+        "sha256": "0b0826b0c836cb82e06e21cb715825247ca829ff5c2cebc961742c17dfa55bef",
+        "originalPath": "docs/shots/provider-gdrive-setup.root.pem"
+      },
+      "shots/provider-gdrive-setup.svg": {
+        "source": "shots/work/provider-gdrive-setup.svg",
+        "sha256": "6c8c87e9d3ba7c8045683b2942aa4027d182831de39b99df749c07fbc79b4480",
+        "originalPath": "docs/shots/provider-gdrive-setup.svg"
+      },
+      "shots/provider-webdav-setup.dark.svg": {
+        "source": "shots/work/provider-webdav-setup.dark.svg",
+        "sha256": "c77e94e70baac86ad11772d1b214c8c5a0a2a18acf975bd526042c731e501b90",
+        "originalPath": "docs/shots/provider-webdav-setup.dark.svg"
+      },
+      "shots/provider-webdav-setup.root.pem": {
+        "source": "shots/work/provider-webdav-setup.root.pem",
+        "sha256": "0b0826b0c836cb82e06e21cb715825247ca829ff5c2cebc961742c17dfa55bef",
+        "originalPath": "docs/shots/provider-webdav-setup.root.pem"
+      },
+      "shots/provider-webdav-setup.svg": {
+        "source": "shots/work/provider-webdav-setup.svg",
+        "sha256": "5a48fa3afab5c2cac7ba8f2b319a17b96fd2c6a8bf9a8853a52c9854bc4ee8a2",
+        "originalPath": "docs/shots/provider-webdav-setup.svg"
+      },
+      "shots/share-links.dark.svg": {
+        "source": "shots/work/share-links.dark.svg",
+        "sha256": "621317b4cf48171948bb9ff3a595094db941e95a9f687352388b348eba985276",
+        "originalPath": "docs/shots/share-links.dark.svg"
+      },
+      "shots/share-links.svg": {
+        "source": "shots/work/share-links.svg",
+        "sha256": "461421df38c7bd10fd55fd8da68312b28a6be595474620a5276af26b8b9aa193",
+        "originalPath": "docs/shots/share-links.svg"
+      },
+      "shots/signing-root.pem": {
+        "source": "shots/work/signing-root.pem",
+        "sha256": "51d0c383deb072f3007804429e154983d571d2d5b4026ebe8deb7f7ba3f959b5",
+        "originalPath": "docs/shots/signing-root.pem"
+      },
+      "shots/tool-policy.dark.svg": {
+        "source": "shots/work/tool-policy.dark.svg",
+        "sha256": "873599ec135186a71c18e006661a3c3806848b86a785a464466a672376630592",
+        "originalPath": "docs/shots/tool-policy.dark.svg"
+      },
+      "shots/tool-policy.svg": {
+        "source": "shots/work/tool-policy.svg",
+        "sha256": "ad855705acb81deab45596037df38ca5e6dc3978137a7138f8fa3465ba262ed6",
+        "originalPath": "docs/shots/tool-policy.svg"
+      },
+      "status.md": {
+        "source": "work/status.md",
+        "sha256": "020ae8aa9ae14665149a605e61f07f4742578afc16ec4e653ba5f7105cb5ce01",
+        "originalPath": "docs/status.md"
+      },
+      "telemetry.md": {
+        "source": "work/telemetry.md",
+        "sha256": "93dfc8adfbf42c8c6ef55414cca24879a26e0927fd41429e55fd22b259f0f38b",
+        "originalPath": "docs/telemetry.md"
+      },
+      "wasm-deployment.md": {
+        "source": "work/wasm-deployment.md",
+        "sha256": "c3e9de4e7114622abac3895ef24a66f32f0299619aa90c2de7c645b8b7cb19d3",
+        "originalPath": "docs/wasm-deployment.md"
+      },
+      "LICENSE": {
+        "source": "work/LICENSE",
+        "sha256": "3f3d9e0024b1921b067d6f7f88deb4a60cbe7a78e76c64e3f1d7fc3b779b9d04",
+        "originalPath": "LICENSE"
+      }
+    }
+  }
+}
