@@ -2022,7 +2022,8 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // 442 → 426: the component library uses the semantic type hierarchy.
     // 426 to 425: project titles use the shared object title scale.
     // 425 to 424: Share headings use the shared section type role.
-    pin: 424,
+    // 424 to 423: the simple upload dropzone replaces the separate touch CTA.
+    pin: 423,
     count: (t) => (t.match(/font-size:\s*calc\(\s*[\d.]+(?:px|rem)\s*\*\s*var\(--a11y-fs\)\s*\)/g) ?? []).length,
     fix: 'use var(--fs-2xs..xl) - the multiplier is inside the token, so the largeText contract holds by construction',
   },

@@ -167,7 +167,6 @@
   }
   .forensic-summary {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    border-block: 1px solid var(--forensic-border);
     padding-block: 1.2rem;
     margin-block: 1.5rem 0;
   }

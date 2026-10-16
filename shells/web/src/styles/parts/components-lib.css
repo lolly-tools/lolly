@@ -85,7 +85,7 @@
 .cl-section-number { display: inline-block; margin-inline-end: 14px; color: var(--ui-color-text-muted); font: var(--ui-type-caption)/1 var(--font-mono); letter-spacing: 0; }
 .cl-section-kind { color: var(--ui-color-text-muted); font-size: var(--ui-type-caption); }
 .cl-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--ui-space-panel); align-items: stretch; }
-.cl-card { display: flex; flex-direction: column; min-width: 0; border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-panel); background: var(--ui-color-surface-raised); }
+.cl-card { display: flex; flex-direction: column; min-width: 0;  border-radius: var(--ui-radius-panel); background: var(--ui-color-surface-raised); }
 .cl-card--wide { grid-column: 1 / -1; }
 .cl-card-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--ui-space-control-inline); padding: var(--ui-space-panel); min-height: 88px; }
 .cl-card-top .cl-name { margin: 0; flex: 1 1 200px; }
@@ -170,8 +170,8 @@
 .cl-details summary { cursor: pointer; padding: 10px 0; color: var(--ui-color-text-default); }
 .cl-details code, .cl-details pre, .cl-src, .cl-code { font: var(--ui-type-caption)/1.6 var(--font-mono); overflow-wrap: anywhere; white-space: pre-wrap; }
 .cl-details pre { padding: 12px; border-radius: var(--ui-radius-control); background: var(--ui-color-surface-muted); }
-.cl-card-footer { padding: 14px 20px; border-top: 1px solid var(--ui-color-border-default); margin-top: auto; }
-.cl-download { display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: var(--ui-size-target); box-shadow: none; border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-control); background: var(--ui-color-surface-raised); font-size: var(--ui-type-body); font-weight: 550; }
+.cl-card-footer { padding: 14px 20px;  margin-top: auto; }
+.cl-download { display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: var(--ui-size-target);     box-shadow: var(--ui-elevation-control), var(--ui-effect-bevel); border-radius: var(--ui-radius-control); background: var(--ui-color-surface-raised); font-size: var(--ui-type-body); font-weight: 550; }
 .cl-download:hover { background: var(--ui-color-surface-muted); border-color: var(--ui-color-action-primary); }
 .cl-download-hint { display: block; text-align: center; margin-top: 8px; color: var(--ui-color-text-muted); font-size: var(--ui-type-caption); }
 .cl-download-status, .cl-export-status, .cl-token-status { font-size: var(--ui-type-caption); line-height: 1.6; overflow-wrap: anywhere; }

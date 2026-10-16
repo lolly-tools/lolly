@@ -287,6 +287,23 @@
   opacity: 0;
   transition: opacity var(--dur-1), box-shadow var(--dur-1);
 }
+.resize-grip::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  inset-block: 0;
+  margin-block: auto;
+  width: .5px;
+  top:0;
+  height: 100vh;
+  border-radius: var(--radius-pill);
+  background: hsl(var(--primary) / 0.55);
+  opacity: 0;
+  transition: opacity var(--dur-1), box-shadow var(--dur-1);  
+}
+
+.sidebar.is-dragging .resize-grip::after,
 .resize-grip:hover::before,
 .resize-grip:active::before,
 .sidebar.is-dragging .sidebar-drag-handle::before {
