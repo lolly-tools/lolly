@@ -23,6 +23,7 @@ import type { DesignSystemRecord } from './registry.ts';
 import { createDesignSystem, type ManageHost } from './manage.ts';
 import { prepareDesignSystemRemoval, removeAndSwitchDesignSystem } from './remove-coordinator.ts';
 import { switchDesignSystem, type SwitchHost } from './switch.ts';
+import { showUndoToast } from '../undo-toast.ts';
 import { catalogSourceHtml, catalogSourceLabel } from './catalog-source.ts';
 
 export type CardHost = ManageHost & SwitchHost;
@@ -204,7 +205,14 @@ export function mountDesignSystemsCard(body: HTMLElement, host: CardHost): void 
         return;
       }
       if (act === 'switch' && id) {
-        await switchDesignSystem(host, id, { route: 'profile' });
+        // Say what changed and offer the way back (plan 320 M5): the switch
+        // repaints every tool, so a silent one reads as nothing happening.
+        const previous = await host.designSystems.active();
+        const { record } = await switchDesignSystem(host, id, { route: 'profile', previous });
+        showUndoToast({
+          message: tRaw('Using {name}.', { name: record.label }),
+          undo: async () => { await switchDesignSystem(host, previous.id, { route: 'profile' }); },
+        });
         return; // the remount re-renders this card
       }
       if (act === 'studio' && id) {
