@@ -36,13 +36,14 @@ export const IOS_PRODUCT_SOURCES = [
   'shells/tauri-mobile/src-tauri/gen/apple/lolly-mobile_iOS/Info.plist',
   'shells/tauri-mobile/src-tauri/gen/apple/Sources/lolly-mobile/main.mm', 'shells/tauri-mobile/src-tauri/gen/apple/lolly-mobile_iOS/PrivacyInfo.xcprivacy',
   'shells/tauri-mobile/bridge-overrides/state.ts', 'shells/tauri-mobile/bridge-overrides/assets.ts',
-  'shells/web/src/main.ts', 'shells/web/src/lib/webgpu/device.ts', 'shells/web/src/lib/webgpu/lut.ts', 'shells/web/src/lib/webgpu/workspace.ts',
+  'shells/web/src/main.ts', 'shells/web/src/lib/stale-shell.ts', 'shells/web/src/lib/webgpu/device.ts', 'shells/web/src/lib/webgpu/lut.ts', 'shells/web/src/lib/webgpu/workspace.ts',
   'shells/web/src/bridge/photo-look-bake.ts', 'shells/web/src/bridge/photo-look.worker.ts', 'package.json', 'pnpm-lock.yaml',
 ] as const;
 
 export function iosProbeConfig(runId: string): Record<string, unknown> {
   return { identifier: productProbeIdentity(runId), productName: 'Lolly WebGPU Product Qualification',
     build: { beforeBuildCommand: 'node ../../scripts/build-onboarding-test-frontend.ts' },
+    app: { windows: [{ label: 'main', title: 'Lolly', devtools: true }] },
     bundle: { createUpdaterArtifacts: false, fileAssociations: [] } };
 }
 
