@@ -371,7 +371,8 @@ html[data-a11y-motion="reduce"] .fc-btn-lolly:focus-visible svg .lolly-mark__spi
 .fc-btn.fc-action-primary { background: var(--ui-color-action-primary); color: var(--ui-color-action-on-primary); }
 .fc-btn.fc-action-primary:hover:not(:disabled) { background: color-mix(in srgb, var(--ui-color-action-primary) 85%, transparent); }
 /* "Unsaved" cue mirrored from the render pill's Save button - --brand-warn, the
-   active brand's own colour closest in hue to red/yellow (brand-vars.ts
+   pack's declared unsaved colour (`color.chrome.unsaved`) or else the active
+   brand's own colour closest in hue to red/yellow (brand-vars.ts
    nearestWarmHex, recomputed on every brand change), falling back to the
    tokenless Amber #b28727. Shared by every free-canvas host - Design,
    Carousel Maker, Doc Studio - since they all build their toolbar via toolBtn(). */

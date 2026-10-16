@@ -312,33 +312,39 @@ html[data-a11y-contrast="high"] .color-input:focus {
   border-color: hsl(var(--ring));
 }
 
-/* ─── The render canvas keeps the theme's ink under high contrast (@layer a11y) ─
+/* ─── The render canvas keeps the theme's own ink (@layer a11y) ──────────────
    parts/base.css sets `body { color: hsl(var(--foreground)) }`, and that
-   declaration is INHERITED by tool markup: most templates set no colour of their
-   own, several draw with `currentColor` (e.g. design's undrawn-path
-   placeholder), and neither #tool-content nor the offscreen export stages
+   declaration is INHERITED by tool markup. Most templates set no colour of their
+   own and several draw with `currentColor` (e.g. design's undrawn-path
+   placeholder), while neither #tool-content nor the offscreen export stages
    .pro-export-canvas / .me-canvas declare a colour. So whatever --foreground
    resolves to is the ink of the live canvas AND of the stage every export is
    captured from.
 
-   Following the THEME there is intended and long-standing. Following a comfort
-   PREFERENCE is not: high contrast re-points --foreground in the dark and brand
-   themes (styles/tokens.css), which changed exported pixels and - worse - baked
+   Following the THEME there is intended and long-standing. Following anything
+   else that re-points --foreground is not, and two things do so without
+   changing the theme. High contrast is a comfort PREFERENCE: styles/tokens.css
+   re-points the ink in the dark and brand themes. A design pack's own chrome
+   states the pack's `ink` in light and dark (brand-vars.ts) with no preference
+   set at all. Each changed exported pixels. The high contrast ink also baked
    into the session thumbnails and featured-row/preview renders that are cached
-   under keys with no pref component, so the wrong ink survived turning the
-   preference back off. Restore the base ink at the canvas boundary: each theme
-   declares --foreground-canvas alongside --foreground (brand-vars.ts emits the
-   pair for a runtime-constructed brand too), and only --foreground is ever
-   re-pointed.
+   under keys with no pref component, so the wrong ink outlived turning the
+   preference back off. Restore the base ink at the canvas boundary:
+   each theme declares --foreground-canvas alongside --foreground (brand-vars.ts
+   emits the pair for a runtime-constructed brand too), and neither high
+   contrast nor a pack's chrome ever re-points the canvas token.
 
    Re-declaring the TOKEN as well as `color` matters: a tool that reads
    hsl(var(--foreground)) directly gets the base value too, and every chrome
-   token still inherits into the canvas unchanged for anything that deliberately
-   wants it. Gated on the attribute, so with the preference off this rule does
-   not exist and the cascade is untouched. Residual, documented in tokens.css: a
-   tool that reads another re-pointed chrome token (--border, --primary, …) is
-   outside the tool contract and is not covered here. */
-html[data-a11y-contrast="high"] :is(.tool-canvas, #tool-content, .pro-export-canvas, .me-canvas, .me-scale) {
+   token still inherits into the canvas unchanged for a tool that deliberately
+   reads one. Not gated on the attribute, because a pack's chrome needs no
+   preference. With neither in play every theme's --foreground-canvas equals its
+   --foreground, so this restates the ink the canvas inherits. A canvas inside a
+   subtree that carries its own theme (a document tool's stage is marked light)
+   takes that theme's ink. Residual, documented in tokens.css: a tool that reads
+   another re-pointed chrome token (--border, --primary, …) is outside the tool
+   contract and is not covered here. */
+:is(.tool-canvas, #tool-content, .pro-export-canvas, .me-canvas, .me-scale) {
   --foreground: var(--foreground-canvas);
   color: hsl(var(--foreground-canvas));
 }

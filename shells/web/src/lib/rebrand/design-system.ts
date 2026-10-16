@@ -208,7 +208,9 @@ export async function readTokenDocument(tokens: MasterTokensApi | undefined, ass
   return JSON.parse(new TextDecoder().decode(await assets.bytes(ref)));
 }
 
-/** One snapshot of the design system's colour tokens, path to hex. */
+/** One snapshot of the design system's colour tokens, path to hex. The themed role
+ *  tokens (`color.role.*`) and the app chrome a pack states (`color.chrome.*`) are
+ *  left out, as the node reader leaves them out: they describe a use, not a brand colour. */
 export async function readColors(tokens: MasterTokensApi | undefined): Promise<Map<string, string>> {
   const out = new Map<string, string>();
   if (!tokens?.get) return out;
@@ -216,7 +218,7 @@ export async function readColors(tokens: MasterTokensApi | undefined): Promise<M
   const entries = set?.query?.({ type: 'color' });
   if (!Array.isArray(entries)) return out;
   for (const entry of entries) {
-    if (typeof entry?.path === 'string' && typeof entry.value === 'string' && !entry.path.startsWith('color.role.')) out.set(entry.path, entry.value);
+    if (typeof entry?.path === 'string' && typeof entry.value === 'string' && !entry.path.startsWith('color.role.') && !entry.path.startsWith('color.chrome.')) out.set(entry.path, entry.value);
   }
   return out;
 }
@@ -228,7 +230,8 @@ const DARK_THEME_NAME = /(^|[\s/_-])dark$/i;
  * The pack's dark mode (plan 275 section 6.1): the colour tokens of the first theme
  * the token set names as dark, path to hex. Undefined when it names none. The node
  * reader (`darkColorsFromDtcg`) reads a token file the same way, so a themed plan
- * compiles the same bytes on the web and on the terminal.
+ * compiles the same bytes on the web and on the terminal. Roles and app chrome
+ * stay out, as in `readColors`.
  */
 export async function readDarkColors(tokens: MasterTokensApi | undefined): Promise<Record<string, string> | undefined> {
   if (!tokens?.themes || !tokens.get) return undefined;
@@ -238,7 +241,7 @@ export async function readDarkColors(tokens: MasterTokensApi | undefined): Promi
   const set = await tokens.get({ theme: dark.name });
   const out: Record<string, string> = {};
   for (const entry of set?.query?.({ type: 'color' }) ?? []) {
-    if (typeof entry?.path === 'string' && typeof entry.value === 'string' && !entry.path.startsWith('color.role.')) out[entry.path] = entry.value;
+    if (typeof entry?.path === 'string' && typeof entry.value === 'string' && !entry.path.startsWith('color.role.') && !entry.path.startsWith('color.chrome.')) out[entry.path] = entry.value;
   }
   return Object.keys(out).length > 0 ? out : undefined;
 }
