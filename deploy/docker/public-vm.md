@@ -18,7 +18,8 @@ moves. This document does not declare an untested candidate ready.
 | Route | Service and behavior |
 | --- | --- |
 | `/`, client routes, `/t/<id>`, `/design`, view aliases | Signed web shell and real generated pages |
-| `/docs`, translated and door-based `/docs/...`, `/info/...` | Generated documentation; missing files return 404 |
+| `/docs`, `/documentation` (with optional trailing slash) | Permanent redirects to `/info`, preserving query strings |
+| Translated and door-based `/docs/...`, `/info/...` | Generated documentation; missing files return 404 |
 | `/agents.md`, `/llms.txt`, `/llms-full.txt`, `/openapi.json`, `/.well-known/lolly.json` | Published discovery files with their proper MIME types |
 | `/robots.txt`, `/sitemap.xml`, `/t/layout-studio` | Robots file and permanent redirects preserving query strings |
 | `/tool/<id>.<format>` | Existing public render handler, limits and format refusals |
