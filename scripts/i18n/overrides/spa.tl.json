@@ -911,8 +911,6 @@
   "Your role on {workspace} lets you view only. Ask an admin of {workspace} to change your role.": "Pantingin lang ang pinapayagan ng role mo sa {workspace}. Hilingin sa admin ng {workspace} na baguhin ang role mo.",
   "This is view only. Make a copy to keep your changes.": "Pantingin lang ito. Gumawa ng kopya para mapanatili ang mga pagbabago mo.",
   "Save changes to {project}?": "I-save ang mga pagbabago sa {project}?",
-  "Leave without saving keeps your changes on this device.": "Kapag umalis nang hindi nagse-save, mananatili ang mga pagbabago mo sa device na ito.",
-  "Stay": "Manatili",
   "Save a copy on this device": "Mag-save ng kopya sa device na ito",
   "Copy saved on this device.": "Na-save ang kopya sa device na ito.",
   "Where should the copy go?": "Saan ilalagay ang kopya?",
@@ -1218,5 +1216,8 @@
   "WebGPU initialisation timed out. Reload Lolly to try again.": "Nag-time out ang pagsisimula ng WebGPU. I-reload ang Lolly para subukan ulit.",
   "WebGPU initialisation expired. Reload Lolly to try again.": "Nag-expire ang pagsisimula ng WebGPU. I-reload ang Lolly para subukan ulit.",
   "The graphics device was lost. Reload Lolly to reconnect.": "Nawala ang graphics device. I-reload ang Lolly para kumonekta ulit.",
-  "Reload": "I-reload"
+  "Reload": "I-reload",
+  "Unsaved edits": "Mga hindi na-save na edit",
+  "Save now or abandon your changes.": "Mag-save ngayon o itapon ang mga pagbabago mo.",
+  "Leave anyway": "Umalis pa rin"
 }

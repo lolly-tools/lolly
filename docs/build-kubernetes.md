@@ -12,7 +12,7 @@ The web shell is a **static site** - a build produces a `dist/` folder of HTML, 
 
 Nothing in the chart is specific to one cluster: it is plain Kubernetes, so it deploys on any conformant distribution - including SUSE's own RKE2 and <!--l:k3s-->k3s - and on any managed service.
 
-> **The chart is shipped, the images are yours to build.** `deploy/helm/` is a real chart with three components - `web` (the PWA, on by default), `mcp` and `ca` (both opt-in) - one `values.yaml` you edit and secure defaults on every pod. What it cannot do is invent an image: build and push the three `deploy/docker/` images to a registry your cluster can reach, then pin the tags you verified. There is no hosted Lolly chart repository, so you install from a checkout of this repo, and the SUSE Application Collection carries no Lolly chart of its own. Where a curated image or chart *does* exist there - the nginx runtime base, cert-manager - this section prefers it.
+> **The chart is shipped, and from Lolly 1.1.1 so are the neutral images.** `deploy/helm/` is a real chart with three components - `web` (the PWA, on by default), `mcp` and `ca` (both opt-in) - one `values.yaml` you edit and secure defaults on every pod. Its default repositories are the published `ghcr.io/lolly-tools/lolly-web`, `lolly-mcp` and `lolly-ca` images: the neutral `lolly-start` profile, `linux/amd64`, signed and attested, tagged with the release version. The [published images guide](https://github.com/lolly-tools/lolly/blob/main/deploy/docker/README.md#published-images) lists every repository and shows how to verify, mirror and pin a digest. Build your own images, as below, for another brand profile, your own signing key or another base image. There is no hosted Lolly chart repository, so you install from a checkout of this repo, and the SUSE Application Collection carries no Lolly chart of its own. Where a curated image or chart *does* exist there - the nginx runtime base, cert-manager - this section prefers it.
 
 ### Why the SUSE Application Collection
 
@@ -37,32 +37,28 @@ docker login        dp.apps.rancher.io -u <username-or-sa-username> -p <access-t
 
 ### 1. Build the image
 
-`deploy/docker/web.Dockerfile` does the static build *and* the packaging in one multi-stage build, so there is no separate "run npm, then copy `dist/`" step to perform by hand. The one thing it needs from you: the **build context must be the repo root**. A plain clone already has `community/` and `brands/lolly-start/` checked out, so a `LOLLY_PROFILE=lolly-start` build needs nothing further; building the `suse` profile needs `brands/suse` mounted first (`git submodule update --init --checkout brands/suse`).
+`deploy/docker/web.Dockerfile` packages a frontend that was already compiled and signed; it runs no compiler and receives no private key. The signed frontend comes from the reusable `release-frontend.yml` workflow (or your own equivalent): a protected job signs the source catalog, a separate job compiles with only the public pin, and a second protected job signs the output catalog and a receipt that binds the source commit, content profile, public key and every file. The [signed image guide](https://github.com/lolly-tools/lolly/blob/main/deploy/docker/README.md) describes key custody, the jobs and the release gate. Never put a private key in an image build argument, context or BuildKit mount.
 
-Provision the instance's existing P-256 catalog signing key and matching public
-verification key through your trusted build environment. Release builds require
-both keys and the published supported-environment table; an unsigned development
-build is not a release. The [signed image guide](https://github.com/lolly-tools/lolly/blob/main/deploy/docker/README.md)
-describes secret custody, verification and the release gate.
+Package an approved frontend directory with its reviewed source commit and public pin. The **build context must be the repo root**:
 
 ```bash
-docker buildx build --load --no-cache-filter build -f deploy/docker/web.Dockerfile \
+docker buildx build --load --no-cache-filter verify -f deploy/docker/web.Dockerfile \
+  --build-context "release-frontend=/approved/frontend" \
+  --build-arg "LOLLY_RELEASE_SOURCE=<reviewed-commit-sha>" \
   --build-arg LOLLY_PROFILE=lolly-start \
-  --secret id=LOLLY_CATALOG_SIGNING_KEY,env=LOLLY_CATALOG_SIGNING_KEY \
-  --secret id=VITE_CATALOG_PUBLIC_KEY_JWK,env=VITE_CATALOG_PUBLIC_KEY_JWK \
-  -t <your-registry>/lolly-web:0.1.0 .
-docker push <your-registry>/lolly-web:0.1.0
+  --build-arg "VITE_CATALOG_PUBLIC_KEY_JWK=$VITE_CATALOG_PUBLIC_KEY_JWK" \
+  -t <your-registry>/lolly-web:<release> .
+docker push <your-registry>/lolly-web:<release>
 ```
 
-What the three stages do:
+What the two stages do:
 
-- **deps** - `node:26-bookworm`, pinned by digest, fetches the locked dependencies from the package manifest, lockfile and workspace settings. This stage contains no profile content or signing material.
-- **build** - copies the full source, runs the normal bootstrap and frozen offline dependency install, then signs and compiles with `pnpm run build:web:release`. `--no-cache-filter build` keeps signing fresh while allowing the dependency stage to be reused. Native install scripts may still download their own inputs.
-- **runtime** - `nginxinc/nginx-unprivileged`, also digest-pinned, running as uid 101 on port **8080**. `dist/` is copied to `/usr/share/nginx/html`, `deploy/docker/nginx.conf` becomes `conf.d/default.conf` and `deploy/docker/security-headers.conf` is copied beside it.
+- **verify** - `node:26-bookworm`, pinned by digest, with no network. It checks the WebGPU release gate, then verifies the receipt, every artifact file, the signed catalog and the delivery configuration against the source commit, profile and public pin you supplied. A changed, extra, missing or symbolic-link file, or a different source, profile or key, fails the build. `--no-cache-filter verify` repeats these checks on every build.
+- **runtime** - `ghcr.io/nginx/nginx-unprivileged`, also digest-pinned, running as uid 101 on port **8080**. The verified frontend is copied to `/usr/share/nginx/html`, `deploy/docker/nginx.conf` becomes `conf.d/default.conf`, and `deploy/docker/security-headers.conf` and the delivery header files are copied into `/etc/nginx/`.
 
-`--build-arg LOLLY_PROFILE=suse|lolly-start` bakes one brand into the static output - theme colour, PWA chrome and the resolved tool and catalog content. Nothing is read at serve time, which is why the chart needs no pack, config or volume mounted for the web app; changing brand means rebuilding the image and rolling the deployment.
+The content profile (`lolly-start`, or `suse` with the private `brands/suse` pack mounted when the frontend is compiled) is fixed when the frontend is compiled and signed; `--build-arg LOLLY_PROFILE` must name the same profile, and the verify stage refuses another. Nothing is read at serve time, which is why the chart needs no pack, config or volume mounted for the web app; changing brand means a new signed frontend, a new image and a rolled deployment. Model files are the exception: the image ships none, and an optional read-only volume at `/usr/share/nginx/html/models` serves them (see the published images guide for its layout).
 
-`mcp.Dockerfile` and `ca.Dockerfile` follow the same pattern (repo-root context, digest-pinned `node:26-bookworm-slim`, non-root `node` user) and run their entry point on Node directly. Build them only if you enable those components.
+`mcp.Dockerfile`, `mcp-browser.Dockerfile` and `ca.Dockerfile` also build from the repo root and run their entry point on Node directly as the non-root `node` user: MCP and CA on a digest-pinned `node:26-alpine`, the browser MCP image on `node:26-bookworm-slim` with a lockfile-scoped Chromium. Build them only if you enable those components and do not use the published images.
 
 ### 2. Swapping in a SUSE nginx base (optional)
 
@@ -184,12 +180,11 @@ kubectl create secret docker-registry application-collection \
   -n lolly
 ```
 
-The minimum viable install is one flag - the image you built in step 1. Port-forward to try it before you publish a hostname:
+The minimum viable install pins the published web image by the digest listed in the release's `images.json`; for an image you built in step 1, also set `web.image.repository` to your registry. Port-forward to try it before you publish a hostname:
 
 ```bash
 helm upgrade --install lolly ./deploy/helm -n lolly \
-  --set web.image.repository=<your-registry>/lolly-web \
-  --set web.image.tag=0.1.0
+  --set web.image.digest=sha256:<digest>
 
 kubectl port-forward -n lolly svc/lolly-web 8080:80   # → http://localhost:8080/
 ```
@@ -199,7 +194,7 @@ To publish it on your own hostname with TLS from cert-manager (drop the `imagePu
 ```bash
 helm upgrade --install lolly ./deploy/helm -n lolly \
   --set web.image.repository=<your-registry>/lolly-web \
-  --set web.image.tag=0.1.0 \
+  --set web.image.digest=sha256:<digest> \
   --set imagePullSecrets[0].name=application-collection \
   --set web.ingress.enabled=true \
   --set web.ingress.hosts[0].host=lolly.example.com \
@@ -273,7 +268,7 @@ preflight rather than applying this install example to the live cluster.
 
 Both stay off until you ask for them, and both are stateless.
 
-**MCP** (`--set mcp.enabled=true`) exposes the tool catalog to AI agents over Streamable-HTTP on port 8790. Its brand content is baked in at build time exactly like the web image. Browser-tier render formats are disabled unless you point it at a renderer - `--set mcp.webBase=https://lolly.example.com` - and SVG/data plus resvg-PNG work without one, which is why the image ships no Chromium. Probes are TCP socket checks: there is no unauthenticated health route to poll.
+**MCP** (`--set mcp.enabled=true`) exposes the tool catalog to AI agents over Streamable-HTTP on port 8790. Its brand content is baked in at build time exactly like the web image. The default `lolly-mcp` image ships no Chromium: SVG/data plus resvg-PNG work without a browser, and browser-tier formats are refused. For PNG, JPEG, PDF and video through Chromium, set `mcp.image.repository=ghcr.io/lolly-tools/lolly-mcp-browser` and point it at your web shell with `--set mcp.webBase=https://lolly.example.com`. Liveness is a TCP socket check; readiness polls `/readyz`, which turns 503 while the server drains.
 
 **CA** (`--set ca.enabled=true`) issues short-lived certificates for on-device C2PA signing on port 8787, under `/api/ca`. It needs a root key and certificate, generated once with `node services/ca/scripts/gen-root.mjs`, plus a service secret (`openssl rand -hex 32`). Two ways to supply them: fill in `ca.secrets` and let the chart create the Secret, or - the production choice - set `ca.existingSecret` to one your platform's secret store manages and leave `ca.secrets` empty. The chart refuses to render rather than deploy a CA with a missing root. Set `ca.config.allowedOrigins` to your web host, or enrollment tokens are rejected.
 

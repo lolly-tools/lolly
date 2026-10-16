@@ -201,7 +201,7 @@ export function resolveExportFormat(tview: ToolViewCtx): void {
   tview.userHasMadeChanges = false;
   // A completed export/copy/save since the last edit. When true, the leave guards
   // stand down: the user finished - their latest state left as a file, a clipboard
-  // copy or a library save - and "Unsaved changes" at that moment reads as the app
+  // copy or a library save - and "Unsaved edits" at that moment reads as the app
   // disbelieving them (audit 167 F-A2). Editing again re-arms the guard. The amber
   // Save cue deliberately stays: the SESSION may still be worth keeping, the guard
   // just stops blocking the door over it.

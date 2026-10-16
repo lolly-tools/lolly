@@ -299,7 +299,7 @@ test('web image packaging verifies a named artifact context and owns only its ac
       assert.ok(build.includes('LOLLY_RELEASE_SOURCE=' + archiveSource));
       assert.ok(build.includes('VITE_CATALOG_PUBLIC_KEY_JWK=synthetic-public-pin'));
       assert.ok(build.includes('VITE_CONNECTOR_ORIGINS=https://storage.example.com'));
-      assert.ok(build.includes('LOLLY_PROFILE=lolly-start'));
+      assert.ok(build.includes('LOLLY_PROFILE=lolly-demo'));
       for (const label of ['org.opencontainers.image.title=lolly-web', 'org.opencontainers.image.version=9.8.7', 'org.opencontainers.image.created=2026-01-02T03:04:05Z']) {
         assert.equal(build[build.indexOf(label) - 1], '--label', label);
       }
@@ -449,7 +449,7 @@ test('the browser-free MCP image boots under chart bounds, renders without a bro
   assert.match(mcp, /needs: \[chart, public-vm, source-qualification\]\n/);
   assert.doesNotMatch(mcp, /probe-web-shell|lolly-probe-web|web-release-gate|seccomp=|LOLLY_WEB_BASE/);
   assert.match(mcp, /-f deploy\/docker\/mcp\.Dockerfile/);
-  assert.match(mcp, /--build-arg LOLLY_PROFILE=lolly-start/);
+  assert.match(mcp, /--build-arg LOLLY_PROFILE=lolly-demo /);
   assert.match(mcp, /test ! -e brands\/suse\/tools/);
   const boot = mcp.slice(mcp.indexOf('- name: Boot native MCP'), mcp.indexOf('- name: Render without a browser'));
   const render = mcp.slice(mcp.indexOf('- name: Render without a browser'), mcp.indexOf('- name: Publish only the qualified MCP image digest'));

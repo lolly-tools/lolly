@@ -3,9 +3,9 @@
  * manage.ts - creating, renaming and removing design systems (plans/186
  * sections 3.1, 3.2 and 5). DOM-free; the profile card and the studio call it.
  *
- * Creating a system mints a fresh namespace and seeds its head from the shipped
- * catalog document (or from another record's head, for "Make an editable copy"),
- * with the version index stripped and the new identity written in. It does NOT
+ * Creating a system mints a fresh namespace and seeds its head from the blank
+ * starter (starter.ts), or from another record's head for "Make an editable
+ * copy", with the version index stripped and the new identity written in. It does NOT
  * switch to it: the caller decides, because a copy made for later and a system
  * made to work in now are different gestures.
  *
@@ -24,6 +24,7 @@ import { stripVersionIndex } from '../../../../../engine/src/design-version.ts';
 import { installUserTokens } from '../../bridge/tokens.ts';
 import { ensureOwnLogos, idsNamedByOtherSystems, ownLogosOf } from './logo-ownership.ts';
 import type { DesignSystemRecord, DesignSystemRegistry, DesignSystemSource } from './registry.ts';
+import { starterSeed } from './starter.ts';
 
 export interface ManageHost {
   designSystems: DesignSystemRegistry;
@@ -66,8 +67,9 @@ export async function newDesignSystemRecord(registry: DesignSystemRegistry, opts
 
 /**
  * Create a design system. `seedFrom` names the record whose head document seeds
- * the new head (default: the shipped system, so a new system starts as the
- * starter). Returns the new record; the pointer is untouched.
+ * the new head, for a copy. Without it the head starts as the blank starter,
+ * whichever brand this build ships. Returns the new record; the pointer is
+ * untouched.
  */
 export async function createDesignSystem(
   host: ManageHost,
@@ -76,10 +78,11 @@ export async function createDesignSystem(
   const registry = host.designSystems;
   const label = opts.label.trim() || 'My design system';
   const id = await uniqueDesignSystemId(registry, label);
-  const seedId = opts.seedFrom ?? SHIPPED_DESIGN_SYSTEM_ID;
-  const seed = await registry.get(seedId);
-  if (!seed) throw new Error(`design systems: nothing to seed from (“${seedId}”)`);
-  const seedDoc = seed.headId ? await readJson(await host.assets._getBlob(seed.headId).catch(() => null)) : null;
+  const seed = opts.seedFrom ? await registry.get(opts.seedFrom) : null;
+  if (opts.seedFrom && !seed) throw new Error(`design systems: nothing to seed from (“${opts.seedFrom}”)`);
+  const seedDoc = seed
+    ? (seed.headId ? await readJson(await host.assets._getBlob(seed.headId).catch(() => null)) : null)
+    : await starterSeed(host);
   const doc = withDesignSystemIdentity(stripVersionIndex(seedDoc ?? {}), { id, label });
   const now = Date.now();
   const record: DesignSystemRecord = {
@@ -87,7 +90,7 @@ export async function createDesignSystem(
     label,
     ns: designSystemNamespace(id),
     headId: designSystemHeadId(id),
-    source: opts.source ?? (seed.source.kind === 'shipped' ? { kind: 'local' } : { kind: 'local', forkedFrom: { id: seed.id, ...(seed.source.kind === 'hosted' && seed.source.version ? { version: seed.source.version } : {}) } }),
+    source: opts.source ?? (!seed || seed.source.kind === 'shipped' ? { kind: 'local' } : { kind: 'local', forkedFrom: { id: seed.id, ...(seed.source.kind === 'hosted' && seed.source.version ? { version: seed.source.version } : {}) } }),
     locked: !!opts.locked,
     createdAt: now,
     lastUsedAt: now,
@@ -99,8 +102,8 @@ export async function createDesignSystem(
   // A copy of another system borrows that system's logo rows through the seed's
   // tokens. It gets rows of its own now, or the next upload to the same slot in
   // either system would redraw the other, and removing the original would also
-  // remove the copy's logos. A seed from the shipped catalog points at catalog
-  // logos, which are nobody's material, so a shipped seed copies nothing.
+  // remove the copy's logos. A seed from the shipped catalog or the starter
+  // points at catalog logos, which are nobody's material, so it copies nothing.
   await ownLogosOf(host, record).catch(() => 0);
   return record;
 }

@@ -19,6 +19,7 @@ import { startBatchExport } from '../../lib/batch-job.ts';
 import { escape as escapeText } from '../../utils.ts';
 import { announce } from '../../a11y.ts';
 import { storeUserUpload } from '../picker.ts';
+import { bindFileDropTiles, splitByAccept, withDroppedType } from '../../lib/file-drop-tile.ts';
 import { saveBlob } from '../../pro/zip.ts';
 import { exportBackup } from '../../data-transfer.ts';
 import { backupHistoryNote } from '../../lib/backup-summary.ts';
@@ -146,7 +147,7 @@ function trashSummary(trash: StorageModel['trash']): string {
 
 /** My images' trailing Add tile (the grid is rebuilt after a restore). */
 function userImgAddButton(): string {
-  return `<button type="button" class="userimg-add" id="userimg-add" aria-label="${escapeText(t('Add images'))}">
+  return `<button type="button" class="userimg-add" id="userimg-add" aria-label="${escapeText(t('Add images'))}" data-file-drop data-drop-label="${escapeText(t('Drop to add'))}">
                   <span class="userimg-add-icon" aria-hidden="true">+</span>
                   <span class="userimg-add-text">${t('Add')}</span>
                 </button>`;
@@ -660,14 +661,20 @@ export async function loadStorage(pv: ProfileViewCtx) {
   }
   const userimgFile = body.querySelector<HTMLInputElement>('#userimg-file');
   userimgAddBtn?.addEventListener('click', () => userimgFile?.click());
-  userimgFile?.addEventListener('change', async () => {
-    const files = [...(userimgFile!.files ?? [])];
-    userimgFile!.value = '';
-    if (!files.length) return;
-    if (userimgAddBtn) userimgAddBtn.disabled = true;
+  // One door for a picked or a dropped file: the same type check, the same
+  // store, the same error place (lib/file-drop-tile.ts).
+  async function addUserImageFiles(picked: File[]): Promise<void> {
     const imgErr = body.querySelector<HTMLElement>('#userimg-error');
     if (imgErr) imgErr.hidden = true;
-    for (const file of files) {
+    const { accepted, refused } = splitByAccept(picked.map(withDroppedType), userimgFile?.accept ?? '');
+    if (refused.length) {
+      const msg = t('That file is not an image or a video.');
+      if (imgErr) { imgErr.textContent = msg; imgErr.hidden = false; }
+      announce(msg, { assertive: true });
+    }
+    if (!accepted.length) return;
+    if (userimgAddBtn) userimgAddBtn.disabled = true;
+    for (const file of accepted) {
       try {
         // host carries the web-only bridge methods storeUserUpload needs; its
         // exact PickerHost type isn't exported from picker.
@@ -684,6 +691,20 @@ export async function loadStorage(pv: ProfileViewCtx) {
     }
     if (userimgAddBtn) userimgAddBtn.disabled = false;
     await syncUserImgMeta();
+  }
+  userimgFile?.addEventListener('change', () => {
+    const files = [...(userimgFile!.files ?? [])];
+    userimgFile!.value = '';
+    if (!files.length) return;
+    void addUserImageFiles(files);
+  });
+  // The Add tile is dashed, so it takes a dropped file too, through the same door.
+  const userimgGrid = body.querySelector<HTMLElement>('#userimg-grid');
+  if (userimgGrid) bindFileDropTiles(userimgGrid, {
+    inputOf: () => userimgFile,
+    onFiles: (_tile, files) => addUserImageFiles(files),
+    onRefuse: () => {}, // the input takes several files, so no count refusal
+    busy: () => !!userimgAddBtn?.disabled,
   });
   body.querySelector('#userimg-grid')?.addEventListener('click', async e => {
     const view = (e.target as Element).closest<HTMLElement>('[data-view-userimg]');

@@ -10,7 +10,7 @@ export async function previewContextSignature(host: Pick<HostV1, 'tokens' | 'pro
   const tokens = set?.query().map(({ path, type, value }) => [path, type, value])
     .sort((a, b) => String(a[0]).localeCompare(String(b[0]))) ?? [];
   return JSON.stringify({
-    version: 2,
+    version: 3, // Regenerate SVG previews that previously depended on installed fonts.
     brand: active?.id ?? null,
     tokens,
     colors: colors ?? [],

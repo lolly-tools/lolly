@@ -93,6 +93,130 @@ cannot bind natively remains an editable resolved value rather than a misleading
 claim of a live binding. Lolly does not export personal sessions or current
 content as an app surface unless that surface explicitly records consent.
 
+## App chrome from a design pack
+
+A design pack can set the app's own room as well: the page, the cards and side
+panels, the top bar, the menus and the text on them, one room per theme. Put a
+`color.chrome` group inside a theme set, beside the semantic slots. Every slot
+is an optional colour, and an alias into your own palette is the normal way to
+write one.
+
+| Slot | Sets | For | Left out |
+|---|---|---|---|
+| `page` | `--background` | the page | the theme keeps Lolly's room, because the other surfaces need a page |
+| `raised` | `--card` | cards, side panels and the top bar | worked out from `page` |
+| `overlay` | `--popover` | menus, dialogs and popovers | the `raised` colour |
+| `muted` | `--muted` and `--secondary` | wells, tracks and quiet fills | worked out from `page` |
+| `hover` | `--accent` | hover and active surfaces | worked out from `page` |
+| `edge` | `--border` and `--input` | hairlines and field edges | worked out from `page` |
+| `ink` | `--foreground` and the card, popover, secondary and accent inks | body text on the chrome | Lolly's ink for the theme |
+| `muted-ink` | `--muted-foreground` | secondary text | Lolly's muted ink for the theme |
+| `unsaved` | `--brand-warn` | the colour that marks unsaved work | see "Unsaved work" below |
+
+Opal's dark set is an example of the group in place:
+
+```json
+{
+  "dark": {
+    "color": {
+      "$type": "color",
+      "chrome": {
+        "page": { "$value": "{color.brand.liquorice}" },
+        "raised": { "$value": "{color.brand.liquorice-raised}" },
+        "overlay": { "$value": "{color.brand.liquorice-panel}" },
+        "muted": { "$value": "{color.brand.liquorice-panel}" },
+        "edge": { "$value": "{color.brand.basalt}" },
+        "ink": { "$value": "{color.brand.sugar}" },
+        "muted-ink": { "$value": "{color.brand.pebble}" },
+        "unsaved": { "$value": "{color.brand.honey}" }
+      }
+    }
+  }
+}
+```
+
+The slots set the same properties Lolly's own `tokens.css` sets, so everything
+in the app that reads a surface follows the pack. Four things are never set from
+here:
+
+- the ink of the render canvas (`--foreground-canvas`): the canvas and the
+  export stages always take the theme's own ink back at their edge, whatever
+  `ink` the pack states, so a pack's chrome cannot move a pixel of an export
+- the accent (`--primary` and `--ring`), which the semantic primaries own
+- the destructive fills
+- the radius and spacing
+
+**Slots you leave out.** State a `page` and Lolly works the other surfaces out
+from it, in the page's hue. The steps are lightness in OKLCH, measured from the
+page:
+
+| Slot | Light page | Dark and brand page |
+|---|---|---|
+| `raised` | 0.009 darker | 0.037 lighter |
+| `muted` | 0.032 darker | 0.117 lighter |
+| `hover` | 0.048 darker | 0.155 lighter |
+| `edge` | 0.131 darker | 0.155 lighter |
+
+An `edge` also carries more of the page's tint than the other surfaces: one and
+a half times the page's chroma, at least 0.01 and at most 0.04. Lightness stays
+between 0 and 1, and a colour that falls outside sRGB has its chroma reduced
+until it fits.
+
+**A theme that does not read keeps Lolly's room.** Each theme is checked whole.
+If any check fails, that theme keeps Lolly's own room and the browser console
+reports the first pair that failed. The other theme is judged on its own. A
+value that does not parse counts as left out. The checks are:
+
+1. Every surface keeps the theme's lightness band in OKLCH: 0.85 to 1 for light,
+   0 to 0.4 for dark and 0.2 to 0.42 for brand.
+2. The ink, yours or Lolly's, reads 4.5:1 or better on the page, `raised`,
+   `overlay`, `muted` and `hover`.
+3. The muted ink reads 4.5:1 or better on the page, `raised`, `overlay` and
+   `muted`.
+4. For the brand theme only, the inks and edge of Lolly's High contrast brand
+   room still clear their bars on your surfaces.
+
+Each applied theme also restates the error text colour, adjusted until it
+reads 4.5:1 on the pack's surfaces and on a danger wash over them.
+
+**High contrast.** The light and dark chrome steps aside while High contrast is
+on, and Lolly's own High contrast room shows for every pack. That room is
+measured against Lolly's own page, and keeping a pack's page under it would
+let cards sink into the page. The brand chrome stays in force, and the High
+contrast brand inks and edge win over the pack's own, which is why the fourth
+check exists. The unsaved colour is not a surface, so it applies under High
+contrast too.
+
+**The brand theme.** Brand chrome is read only when the document's `$themes`
+declares a theme named `brand`, and then from that theme's set. Asking the
+token engine for a theme a document does not declare answers with its default
+sets, which would hand the brand theme the light values. Without a `brand`
+theme, the brand theme stays as Lolly builds it from the pack's primaries.
+Two High contrast measurements still use the brand room Lolly builds rather
+than a pack's brand chrome: the repair of the accent and the error text red.
+The checks above do not measure the accent in any theme either, because the
+semantic primaries own the accent. No shipped pack states brand chrome, and a
+pack that does should check its accent and its error text in the brand theme
+with High contrast on.
+
+**Unsaved work.** When any theme states `unsaved`, the colour moves out of the
+app's automatic pick into a block for each theme. The brand theme takes the
+brand set's colour, else the dark set's, and a theme that states none takes the
+automatic pick. That pick is the colour in the pack nearest red to yellow, and
+when the pack has none Lolly's own amber stays. The label on it is black or
+white, whichever reads better.
+
+**When to use `lolly.ui.*` instead.** The `lolly.ui.color.*` roles hold one
+value in every theme and set the app's `--ui-color-*` properties directly on the
+page, so High contrast does not undo them. They suit one fixed colour, such as a
+single canvas or border colour. Use `color.chrome.*` when the pack has a light
+room and a dark room, since each theme reads its own set, and when High contrast
+should still bring Lolly's measured room back. Lolly's blank starter brand
+states a warm newsprint room this way in its light and dark sets. The slots are
+ordinary tokens in the pack's DTCG file, so editing the file or importing one
+changes the room, and a design system with no `color.chrome` group shows Lolly's
+own cool room.
+
 ## How tools consume tokens
 
 **Platform hydration (the common case).** Most tools never mention tokens. The platform feeds them:

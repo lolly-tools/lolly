@@ -189,6 +189,10 @@ interface Page {
   // A print edition of the page, laid out in Design: a PDF file in docs/editions/,
   // served from /info/editions/ and linked in the title row of the English page.
   pdf?: string;
+  // The gravitas register for a why page: sovereignty, creator rights, Lolly's stance on
+  // AI and the history behind the project. Opal's share cards put these pages on the
+  // stage (docs/og-opal.ts); every other page takes the house card.
+  register?: 'stage';
 }
 
 // Where docs/formats.md wants the composed three-zone table dropped in. An HTML
@@ -221,6 +225,7 @@ const pages: Page[] = [
   // architecture, which repository, what to trust - and a bare link cannot answer any
   // of it. Registered under Quickstart: a reader who wants the app installed is at the
   // very start of the path, not deep in Operators.
+  { slug: 'project-asset-transfers', title: 'Shared project assets', src: 'project-asset-transfers.md', pathway: 'quickstart', description: 'Browse shared project folders, copy assets, submit originals to a workspace library and send files to connected destinations.' },
   { slug: 'organisation',     title: 'Use Lolly at your organisation', src: 'organisation.md', pathway: 'quickstart', description: "Use your organisation's Lolly, with optional lolly.work sign-in, shared projects, live collabs and managed settings. Learn what stays local and how to leave." },
   { slug: 'install',          title: 'Install Lolly', src: 'install.md', pathway: 'quickstart', description: "Every packaged build in one list: the macOS disk image, the openSUSE Tumbleweed and Leap RPMs, the Flatpak, the Android APK, and how to check the file you downloaded is the one we made." },
   { slug: 'supported-environments', title: 'Supported environments', src: 'supported-environments.md', pathway: 'quickstart', description: 'Tested browser and app environments, the WebGPU startup requirement, and the separate web and native release scopes.' },
@@ -230,10 +235,10 @@ const pages: Page[] = [
   { slug: 'builders',         title: 'Lolly for Builders',  src: 'builders.md',  pathway: 'builders',  isHub: true },
   { slug: 'operators',        title: 'Lolly for Operators', src: 'operators.md', pathway: 'operators', isHub: true, description: "Roll Lolly out across an organisation: governance, deployment, configuration and the trust properties your security review will ask about." },
   { slug: 'trust',            title: 'Trust',               src: 'trust.md',     pathway: 'trust',     isHub: true, description: "Where your content comes from, how to check it yourself, and what happens to your data. The claims on this site with the mechanism that enforces each one." },
-  { slug: 'status-quo',       title: 'The trade we never agreed to', src: 'status-quo.md', pathway: 'trust', description: "Uploading a logo to a stranger to resize it. Artwork locked behind a lapsed plan. The frictions we all learned to accept, and what replaces them." },
-  { slug: 'tenets',           title: 'Tenets', author: 'Andy Fitzsimon', src: 'tenets.md', pathway: 'trust', description: "Our vision, values and mission: all potential to all mediums.", render: renderTenetsPage, immersive: true },
-  { slug: 'input-not-impersonation', title: 'Input, not impersonation', src: 'input-not-impersonation.md', pathway: 'trust', description: "An AI agent may fill in the inputs and may not claim to be you. Where the line sits, how it is enforced, and what a rogue agent still cannot do." },
-  { slug: 'creative-rights', title: 'Creative rights and credits', src: 'creative-rights.md', pathway: 'trust', description: "How Lolly records a source licence, works out what it asks of the use you are making, writes the credit into the file, and tells you the part only you can do." },
+  { slug: 'status-quo',       title: 'The trade we never agreed to', src: 'status-quo.md', pathway: 'trust', register: 'stage', description: "Uploading a logo to a stranger for a resize. Artwork locked behind a lapsed plan. The frictions we all learned to accept, and what replaces them." },
+  { slug: 'tenets',           title: 'Tenets', author: 'Andy Fitzsimon', src: 'tenets.md', pathway: 'trust', register: 'stage', description: "Our vision, values and mission: all potential to all mediums.", render: renderTenetsPage, immersive: true },
+  { slug: 'input-not-impersonation', title: 'Input, not impersonation', src: 'input-not-impersonation.md', pathway: 'trust', register: 'stage', description: "An AI agent may fill in the inputs and may not claim to be you. Where the line sits, how it is enforced, and what a rogue agent still cannot do." },
+  { slug: 'creative-rights', title: 'Creative rights and credits', src: 'creative-rights.md', pathway: 'trust', register: 'stage', description: "How Lolly records a source licence, works out what it asks of the use you are making, writes the credit into the file, and tells you the part only you can do." },
 
   // ── Creators pathway ─────────────────────────────────────────────────────
   { slug: 'create-a-tool', title: 'Share a design with rules', src: 'create-a-tool.md', pathway: 'creators', description: 'Turn a Design document into a portable tool with approved inputs, shared names, themes and fixed artwork.' },
@@ -356,7 +361,7 @@ const pages: Page[] = [
   { slug: 'marketing', title: 'Lolly for marketing teams', src: 'marketing.md', pathway: 'operators', description: "Every size, every language, one source of truth: paste a spreadsheet and get one finished file per row, with no agency bottleneck for routine files." },
   { slug: 'legal',     title: 'Lolly for legal teams', src: 'legal.md',     pathway: 'operators', description: "Redact, anonymise, verify and compress on the device the file already lives on, so nothing leaves the building to be cleaned, with the licence and the EU AI Act position stated plainly." },
   { slug: 'adoption-governance', title: 'Adoption & Governance', src: 'adoption-governance.md', pathway: 'operators', description: "Adopting Lolly across a team: who approves tools, how brand rules become enforceable, and what changes in a creative workflow." },
-  { slug: 'sovereign-production', title: 'Sovereign creative production', src: 'sovereign-production.md', pathway: 'operators', description: "Creative production with no server in the render path: air-gapped deployment, consent-gated networking, on-device signing and the tools as files you hold." },
+  { slug: 'sovereign-production', title: 'Sovereign creative production', src: 'sovereign-production.md', pathway: 'operators', register: 'stage', description: "Creative production with no server in the render path: air-gapped deployment, consent-gated networking, on-device signing and the tools as files you hold." },
   { slug: 'security',         title: 'Security & Verification', src: 'security-verification.md', pathway: 'trust', description: "The cryptography behind Lolly's Content Credentials, verification and encryption, summarised for a security reviewer with the limits stated as clearly as the guarantees." },
   { slug: 'threat-model',     title: 'Threat Model & Trust Boundaries', src: 'threat-model.md', pathway: 'trust', description: "What Lolly defends against, what it explicitly does not, and where each trust boundary sits. Written for reviewers who need the limits stated as plainly as the protections." },
   { slug: 'parser-inventory', title: 'Parser Inventory',  src: 'parser-inventory.md', pathway: 'trust' },
@@ -365,11 +370,11 @@ const pages: Page[] = [
   { slug: 'verify-ai-evidence', title: 'AI evidence in Verify', src: 'verify-ai-evidence.md', pathway: 'trust', description: 'Located text and visual clues, coverage, review notes and the limits of authorship probability.' },
   { slug: 'privacy',          title: 'Privacy Policy',    src: 'privacy.md',         pathway: 'trust' },
   { slug: 'inclusive-design', title: 'Inclusive Design',  src: 'inclusive-design.md', pathway: 'trust', description: "Accessibility, language coverage and the ethical commitments Lolly holds itself to, with the tests that fail the build when one is broken." },
-  { slug: 'ai-stance',        title: 'Our AI Stance',     src: 'ai-stance.md',       pathway: 'trust', description: "AI is welcome as labour and refused as impersonation. Where Lolly stands on generated content, and the machinery that enforces each commitment." },
+  { slug: 'ai-stance',        title: 'Our AI Stance',     src: 'ai-stance.md',       pathway: 'trust', register: 'stage', description: "AI is welcome as labour and refused as impersonation. Where Lolly stands on generated content, and the machinery that enforces each commitment." },
   { slug: 'ai-features',      title: 'Generated once, rendered the same', src: 'ai-features.md', pathway: 'trust', description: "Text-to-speech, upscaling and background removal: generated once under guard-rails, then rendered identically everywhere. Why inventing pixels is marked AI and removing them is not." },
   { slug: 'eu-ai-act',        title: 'AI marking and the EU AI Act', src: 'eu-ai-act.md', pathway: 'trust', description: "Article 50 has applied since 2 August 2026, and its Code of Practice points at C2PA. Lolly's honest fit: it preserves arriving AI marks, declares its own AI operations and verifies files on-device." },
-  { slug: 'beatrice-warde',   title: 'Beatrice Warde',    src: 'beatrice-warde.md',  pathway: 'trust', description: "The typographer whose 1932 lines this project adapted, who proved that the types the whole trade called Garamond had been cut by somebody else entirely." },
-  { slug: 'shoulders-of-giants', title: 'Shoulders of giants', src: 'shoulders-of-giants.md', pathway: 'trust', description: "The open source projects and people Lolly is built from, and the story of how shared work made it possible: SUSE and three decades of the free desktop, Penpot and Inkscape, WebAssembly, WebGPU and the open models beside them.", pdf: 'shoulders-of-giants.pdf' },
+  { slug: 'beatrice-warde',   title: 'Beatrice Warde',    src: 'beatrice-warde.md',  pathway: 'trust', register: 'stage', description: "The typographer whose 1932 lines this project adapted, who proved that the types the whole trade called Garamond had been cut by somebody else entirely." },
+  { slug: 'shoulders-of-giants', title: 'Shoulders of giants', src: 'shoulders-of-giants.md', pathway: 'trust', register: 'stage', description: "The open source projects and people Lolly is built from, and the story of how shared work made it possible: SUSE and three decades of the free desktop, Penpot and Inkscape, WebAssembly, WebGPU and the open models beside them.", pdf: 'shoulders-of-giants.pdf' },
 ];
 
 // ── Door-structured URLs (plans/177 P1) ──────────────────────────────────────
@@ -524,6 +529,7 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
         { slug: 'install',        label: 'Install Lolly' },
         { slug: 'supported-environments', label: 'Supported environments' },
         { slug: 'organisation',   label: 'At your organisation' },
+        { slug: 'project-asset-transfers', label: 'Shared project assets' },
         { slug: 'faq',            label: 'Questions & answers' } ] },
       { label: 'Then pick a path', items: [
         { slug: 'creators',  label: 'For Creators' },

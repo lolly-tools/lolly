@@ -2619,7 +2619,6 @@
   "Know before you enrol: your email address is written into every file you export while enrolled. It stays in every copy you share and cannot be removed later, even after the certificate expires.": "নথিভুক্ত হওয়ার আগে জেনে নিন: নথিভুক্ত থাকাকালীন এক্সপোর্ট করা প্রতিটি ফাইলে আপনার ইমেইল ঠিকানা লেখা থাকে। এটি শেয়ার করা প্রতিটি কপিতে থেকে যায় এবং সার্টিফিকেট মেয়াদ শেষ হওয়ার পরও পরে মুছে ফেলা যায় না।",
   "L × C": "L × C",
   "L × H": "L × H",
-  "Leave without saving keeps your changes on this device.": "সেভ না করে বেরিয়ে গেলে আপনার পরিবর্তন এই ডিভাইসে থেকে যাবে।",
   "LOCK": "লক",
   "LSB steganography likely": "সম্ভবত LSB স্টেগানোগ্রাফি আছে",
   "Lab axes": "Lab অক্ষ",
@@ -2666,7 +2665,6 @@
   "Leave this empty unless you do not trust the place you sync to. With a passphrase, your data is encrypted on this device before upload, and every device needs the same passphrase. If it is lost, the synced copies cannot be opened.": "Leave this empty unless you do not trust the place you sync to. With a passphrase, your data is encrypted on this device before upload, and every device needs the same passphrase. If it is lost, the synced copies cannot be opened.",
   "Leave this instance?": "এই ইনস্ট্যান্স ছেড়ে যাবেন?",
   "Leave this member out of the copy": "Leave this member out of the copy",
-  "Leave without saving": "সেভ না করে চলে যান",
   "Left inset": "বামের ভেতরের ফাঁক",
   "Left offset": "বাম অফসেট",
   "Left out because the source artwork was refused:": "Left out because the source artwork was refused:",
@@ -4212,7 +4210,6 @@
   "SEAL signature": "SEAL স্বাক্ষর",
   "SEAL signature did not verify": "SEAL স্বাক্ষর যাচাই হয়নি",
   "SEAL signature is internally consistent": "SEAL স্বাক্ষর অভ্যন্তরীণভাবে সামঞ্জস্যপূর্ণ",
-  "Stay": "থাকুন",
   "SUSE Photos": "SUSE ফটো",
   "SVG artwork": "SVG artwork",
   "Same style": "একই স্টাইল",
@@ -6006,7 +6003,6 @@
   "You can manage these any time from your Profile, under “Available offline”. Voice and other models download automatically the first time you use them.": "এগুলো যেকোনো সময় আপনার প্রোফাইল থেকে, “অফলাইনে উপলব্ধ”-এর অধীনে ম্যানেজ করতে পারবেন। ভয়েস আর অন্যান্য মডেল প্রথমবার ব্যবহারের সময় নিজে থেকেই ডাউনলোড হয়।",
   "You can only replace this with the same kind of file (for example, an image with an image).": "আপনি এটা শুধু একই ধরনের ফাইল দিয়ে বদলাতে পারবেন (যেমন, একটা ছবির বদলে একটা ছবি)।",
   "You can save up to eight scenes. Delete one to add another.": "You can save up to eight scenes. Delete one to add another.",
-  "You have unsaved changes. <br>Would you like to save before leaving?": "আপনার অসংরক্ষিত পরিবর্তন রয়েছে। <br>চলে যাওয়ার আগে কি সংরক্ষণ করতে চান?",
   "You hold rates for this job. Show costs?": "এই কাজের জন্য আপনার কাছে রেট আছে। খরচ দেখাবেন?",
   "Your LUT": "আপনার LUT",
   "Your LinkedIn session ended - connect again in Profile": "আপনার LinkedIn সেশন শেষ হয়ে গেছে - প্রোফাইলে আবার সংযুক্ত করুন",
@@ -7925,5 +7921,8 @@
   "No transition tokens in this context.": "No transition tokens in this context.",
   "Applies Enter duration and geometry easing. Opacity keeps the preset easing.": "Applies Enter duration and geometry easing. Opacity keeps the preset easing.",
   "This layer timing control cannot apply a delay. Choose a transition with zero delay.": "This layer timing control cannot apply a delay. Choose a transition with zero delay.",
-  "Reading transition tokens…": "Reading transition tokens…"
+  "Reading transition tokens…": "Reading transition tokens…",
+  "Unsaved edits": "অসংরক্ষিত সম্পাদনা",
+  "Save now or abandon your changes.": "এখনই সেভ করুন অথবা আপনার পরিবর্তনগুলো বাদ দিন।",
+  "Leave anyway": "তবুও চলে যান"
 }

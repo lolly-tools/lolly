@@ -2663,7 +2663,6 @@
   "Leave this empty unless you do not trust the place you sync to. With a passphrase, your data is encrypted on this device before upload, and every device needs the same passphrase. If it is lost, the synced copies cannot be opened.": "Leave this empty unless you do not trust the place you sync to. With a passphrase, your data is encrypted on this device before upload, and every device needs the same passphrase. If it is lost, the synced copies cannot be opened.",
   "Leave this instance?": "Rời khỏi phiên bản này?",
   "Leave this member out of the copy": "Leave this member out of the copy",
-  "Leave without saving": "Rời đi mà không lưu",
   "Left inset": "Khoảng cách trong bên trái",
   "Left offset": "Độ dịch chuyển bên trái",
   "Left out because the source artwork was refused:": "Left out because the source artwork was refused:",
@@ -5993,7 +5992,6 @@
   "You can manage these any time from your Profile, under “Available offline”. Voice and other models download automatically the first time you use them.": "Bạn có thể quản lý những mục này bất cứ lúc nào từ Hồ sơ, mục “Khả dụng ngoại tuyến”. Giọng nói và các mô hình khác tự động tải xuống lần đầu bạn dùng chúng.",
   "You can only replace this with the same kind of file (for example, an image with an image).": "Bạn chỉ có thể thay thế cái này bằng cùng loại tệp (ví dụ, ảnh với ảnh).",
   "You can save up to eight scenes. Delete one to add another.": "You can save up to eight scenes. Delete one to add another.",
-  "You have unsaved changes. <br>Would you like to save before leaving?": "Bạn có thay đổi chưa lưu. <br>Bạn có muốn lưu trước khi rời đi không?",
   "You hold rates for this job. Show costs?": "Bạn đang giữ mức giá cho công việc này. Hiển thị chi phí?",
   "Your LUT": "LUT của bạn",
   "Your LinkedIn session ended - connect again in Profile": "Phiên LinkedIn của bạn đã kết thúc - kết nối lại trong Hồ sơ",
@@ -7404,8 +7402,6 @@
   "Your role on {workspace} lets you view only. Ask an admin of {workspace} to change your role.": "Vai trò của bạn trong {workspace} chỉ cho phép xem. Hãy nhờ quản trị viên của {workspace} đổi vai trò cho bạn.",
   "This is view only. Make a copy to keep your changes.": "Đây là chế độ chỉ xem. Hãy tạo bản sao để giữ các thay đổi của bạn.",
   "Save changes to {project}?": "Lưu thay đổi vào {project}?",
-  "Leave without saving keeps your changes on this device.": "Rời đi mà không lưu sẽ giữ các thay đổi của bạn trên thiết bị này.",
-  "Stay": "Ở lại",
   "Save a copy on this device": "Lưu một bản sao trên thiết bị này",
   "Copy saved on this device.": "Đã lưu bản sao trên thiết bị này.",
   "Where should the copy go?": "Bản sao nên được đặt ở đâu?",
@@ -7925,5 +7921,8 @@
   "No transition tokens in this context.": "No transition tokens in this context.",
   "Applies Enter duration and geometry easing. Opacity keeps the preset easing.": "Applies Enter duration and geometry easing. Opacity keeps the preset easing.",
   "This layer timing control cannot apply a delay. Choose a transition with zero delay.": "This layer timing control cannot apply a delay. Choose a transition with zero delay.",
-  "Reading transition tokens…": "Reading transition tokens…"
+  "Reading transition tokens…": "Reading transition tokens…",
+  "Unsaved edits": "Chỉnh sửa chưa lưu",
+  "Save now or abandon your changes.": "Hãy lưu ngay hoặc bỏ các thay đổi của bạn.",
+  "Leave anyway": "Vẫn rời đi"
 }

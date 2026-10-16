@@ -147,13 +147,15 @@ To add the AI-agent (MCP) or verified-identity (CA) endpoints, deploy the two fu
 
 The container images and the Helm chart ship in this repo, so running Lolly on your own cluster is a supported delivery model rather than a recipe to reconstruct.
 
-`deploy/docker/` holds four Dockerfiles - `web.Dockerfile`, `mcp.Dockerfile`, `ca.Dockerfile` and `penpot.Dockerfile` - each built with the **repo root** as context. The web image is multi-stage: a Node stage runs the signed `pnpm run build:web:release`, then an `nginx-unprivileged` runtime stage (non-root, listening on 8080) serves the resulting `dist/` with the `nginx.conf` and `security-headers.conf` described above. One brand profile is baked in at build time (`--build-arg LOLLY_PROFILE=suse|lolly-start`), so the running container reads nothing at serve time - no pack to mount, no runtime config, no secret. The default is `lolly-start`, which ships no private SUSE pack. A SUSE-profile build requires its private pack in the build context; an unavailable profile fails the build. Release builds also require matching catalog-signing and public-pin BuildKit secrets, as described in the [Docker runbook](https://github.com/lolly-tools/lolly/blob/main/deploy/docker/README.md). MCP installs its runtime workspace; CA and the Penpot adapter carry their own service source and run directly on Node. A plain clone already carries `community/` and `brands/lolly-start/`, so nothing extra is needed for those; a `suse`-profile build needs the private pack mounted in the build context first, and the release checks refuse missing content.
+`deploy/docker/` holds five Dockerfiles - `web.Dockerfile`, `mcp.Dockerfile`, `mcp-browser.Dockerfile`, `ca.Dockerfile` and `penpot.Dockerfile` - each built with the **repo root** as context. From Lolly 1.1.1 the neutral (`lolly-start`) builds of all five are published at `ghcr.io/lolly-tools/lolly-web`, `lolly-mcp`, `lolly-mcp-browser`, `lolly-ca` and `lolly-penpot`, tagged with the release version, signed and attested; the [published images guide](https://github.com/lolly-tools/lolly/blob/main/deploy/docker/README.md#published-images) shows how to verify and mirror them. The web image packages a frontend that was compiled and signed beforehand: a Node stage, with no network, verifies the signed receipt, every file and the catalog against the reviewed source commit, profile and public pin, then an `nginx-unprivileged` runtime stage (non-root, listening on 8080) serves it with the `nginx.conf` and `security-headers.conf` described above. The image build runs no compiler and receives no private key. One brand profile is fixed when the frontend is compiled, so the running container reads nothing at serve time - no pack to mount, no runtime config, no secret. The default is `lolly-start`, which ships no private SUSE pack; a `suse` frontend needs the private pack when it is compiled, and the release checks refuse missing content. The [Docker runbook](https://github.com/lolly-tools/lolly/blob/main/deploy/docker/README.md) describes the signing jobs and key custody. MCP installs its runtime workspace; CA and the Penpot adapter carry their own service source and run directly on Node.
 
 `deploy/helm/` is the chart, and one values file covers all three components. `web` is on by default: 2 stateless replicas behind a ClusterIP service, a TLS-ready ingress you enable with a hostname and `/healthz` liveness/readiness probes. `mcp` and `ca` are opt-in and disabled by default. The defaults are the secure ones - every pod runs non-root under `RuntimeDefault` seccomp with all capabilities dropped, no privilege escalation and a read-only root filesystem (writable `emptyDir`s exactly where nginx needs them), soft pod anti-affinity to spread replicas, an optional NetworkPolicy and no ServiceAccount token mounted since none of the components talk to the Kubernetes API. The CA's root key, certificate and service secret come either from a chart-managed Secret or, for production, from one you manage yourself (`ca.existingSecret`). A minimal install is one flag:
 
 ```bash
-helm install lolly deploy/helm --set web.image.repository=<registry>/lolly-web
+helm install lolly deploy/helm --set web.image.digest=sha256:<digest>
 ```
+
+That pulls the published `ghcr.io/lolly-tools/lolly-web` image at the digest listed in the release's `images.json`; for an image you built, also set `web.image.repository`.
 
 The [Build Guide](/info/build-guide.html) covers building and pushing the images, the SUSE Application Collection base-image option and how to adapt the chart.
 
@@ -267,11 +269,35 @@ sandbox bypass.
 
 ### YunoHost
 
-For a self-hosting box rather than a cluster, Lolly ships as a [YunoHost](https://yunohost.org) app: `sudo yunohost app install https://github.com/lolly-tools/lolly_ynh`. The package is the `deploy/yunohost/` directory of this repo, mirrored to that app repository at each release, so the two never differ.
+**Install [Lolly Work for YunoHost](https://github.com/lolly-tools/lolly-work_ynh)
+for a home or team server.** It includes this same Lolly web app plus the Work
+server, PostgreSQL, shared projects, permissions and sign-in with your YunoHost
+accounts. Start with the [Work installation guide](https://lolly.work/admin#/docs/install)
+and use the exact package revision and qualification results linked from the
+[Work release](https://github.com/lolly-tools/lolly-work/releases).
 
-It is the static delivery model above, done for you: the package downloads a prebuilt web build from the release host, unpacks it into the app directory and serves it with the domain's nginx, with the same security headers as lolly.tools. There is no service and no database, nothing is stored on the server, and access is the ordinary YunoHost permission on the app - public by default, or limited to a group. Two things follow from the build it installs. It takes a **whole domain**, because the web build resolves its assets, service worker and clean routes from the domain root. And the on-device ML models are fetched on first use from `lolli.li`, the project's release host, rather than bundled, the same way the desktop app does it; without that the download would be over two gigabytes, and a YunoHost host is often a small machine.
+The two YunoHost packages serve different needs:
 
-The governed, multi-user deployment with YunoHost sign-in is the separate **[lolly.work](#organisation-services-with-lolly-work)** package, which serves this same web build behind its organisation service.
+| Package | Choose it when |
+|---|---|
+| **Lolly Work** (`lolly-work_ynh`) | You want server features, host-account sign-in and shared projects. Recommended for most self-hosters. |
+| **Static Lolly** (`lolly_ynh`) | You only want to serve the app; people work on their own devices without a Work service or database. |
+
+The static package lives in this repository at `deploy/yunohost/` and is mirrored
+to [lolly-tools/lolly_ynh](https://github.com/lolly-tools/lolly_ynh). It downloads
+a prebuilt web archive, serves it through nginx and uses the normal YunoHost app
+permission. It is public by default and takes a whole domain. On-device models
+load from `lolli.li` when first used. Install this option only if that static
+model is what you need:
+
+```bash
+sudo yunohost app install https://github.com/lolly-tools/lolly_ynh
+```
+
+These are separate apps, not interchangeable upgrade targets. To move from
+static Lolly to Work, install Work on another domain and verify sign-in and
+project transfer before retiring the static app. Do not upgrade `lolly_ynh`
+in place using a `lolly-work_ynh` package URL.
 
 ## Desktop & mobile apps
 

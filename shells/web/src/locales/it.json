@@ -2619,7 +2619,6 @@
   "Know before you enrol: your email address is written into every file you export while enrolled. It stays in every copy you share and cannot be removed later, even after the certificate expires.": "Da sapere prima di iscriverti: il tuo indirizzo email viene scritto in ogni file che esporti durante l'iscrizione. Resta in ogni copia che condividi e non può essere rimosso in seguito, nemmeno dopo la scadenza del certificato.",
   "L × C": "L × C",
   "L × H": "L × H",
-  "Leave without saving keeps your changes on this device.": "Se esci senza salvare, le tue modifiche restano su questo dispositivo.",
   "LOCK": "BLOCCA",
   "LSB steganography likely": "Probabile steganografia LSB",
   "Lab axes": "Assi Lab",
@@ -2666,7 +2665,6 @@
   "Leave this empty unless you do not trust the place you sync to. With a passphrase, your data is encrypted on this device before upload, and every device needs the same passphrase. If it is lost, the synced copies cannot be opened.": "Leave this empty unless you do not trust the place you sync to. With a passphrase, your data is encrypted on this device before upload, and every device needs the same passphrase. If it is lost, the synced copies cannot be opened.",
   "Leave this instance?": "Uscire da questa istanza?",
   "Leave this member out of the copy": "Leave this member out of the copy",
-  "Leave without saving": "Esci senza salvare",
   "Left inset": "Margine interno sinistro",
   "Left offset": "Spostamento a sinistra",
   "Left out because the source artwork was refused:": "Left out because the source artwork was refused:",
@@ -4212,7 +4210,6 @@
   "SEAL signature": "Firma SEAL",
   "SEAL signature did not verify": "La firma SEAL non è stata verificata",
   "SEAL signature is internally consistent": "La firma SEAL è internamente coerente",
-  "Stay": "Resta",
   "SUSE Photos": "SUSE Photos",
   "SVG artwork": "SVG artwork",
   "Same style": "Stesso stile",
@@ -6006,7 +6003,6 @@
   "You can manage these any time from your Profile, under “Available offline”. Voice and other models download automatically the first time you use them.": "Puoi gestirli in qualsiasi momento dal tuo Profilo, sotto “Disponibile offline”. I modelli vocali e altri modelli si scaricano automaticamente al primo utilizzo.",
   "You can only replace this with the same kind of file (for example, an image with an image).": "Puoi sostituire questo solo con lo stesso tipo di file (per esempio, un'immagine con un'immagine).",
   "You can save up to eight scenes. Delete one to add another.": "You can save up to eight scenes. Delete one to add another.",
-  "You have unsaved changes. <br>Would you like to save before leaving?": "Hai modifiche non salvate. <br>Vuoi salvarle prima di uscire?",
   "You hold rates for this job. Show costs?": "Hai le tariffe per questo lavoro. Mostrare i costi?",
   "Your LUT": "Il tuo LUT",
   "Your LinkedIn session ended - connect again in Profile": "La tua sessione LinkedIn è terminata - collegati di nuovo in Profilo",
@@ -7925,5 +7921,8 @@
   "No transition tokens in this context.": "No transition tokens in this context.",
   "Applies Enter duration and geometry easing. Opacity keeps the preset easing.": "Applies Enter duration and geometry easing. Opacity keeps the preset easing.",
   "This layer timing control cannot apply a delay. Choose a transition with zero delay.": "This layer timing control cannot apply a delay. Choose a transition with zero delay.",
-  "Reading transition tokens…": "Reading transition tokens…"
+  "Reading transition tokens…": "Reading transition tokens…",
+  "Unsaved edits": "Modifiche non salvate",
+  "Save now or abandon your changes.": "Salva ora o scarta le tue modifiche.",
+  "Leave anyway": "Esci comunque"
 }

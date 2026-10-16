@@ -14,9 +14,15 @@ import { createTokensAPI, USER_TOKENS_ID } from '../../bridge/tokens.ts';
 import { createDesignSystemRegistry, type RegistryDb } from './registry.ts';
 import { createDesignSystem, removeDesignSystem, renameDesignSystem, uniqueDesignSystemId } from './manage.ts';
 import { readDesignSystemIdentity } from '../../../../../engine/src/design-system.ts';
+import bundledStarter from '../../../../../brands/lolly-start/catalog/assets/lolly/tokens/brand.json' with { type: 'json' };
 
 const CATALOG_DOC = { color: { brand: { ink: { $type: 'color', $value: '#1d1d1d' } } } };
+/** A build that ships a full brand of its own (lolly-demo, SUSE). */
+const BRAND_CATALOG = { id: 'lolly/tokens/opal', name: 'Lolly Demo', doc: { color: { brand: { ink: { $type: 'color', $value: '#ff00aa' } } } } };
 const blobOf = (doc: unknown) => new Blob([JSON.stringify(doc)], { type: 'application/json' });
+const logoSlots = (doc: { base?: { asset?: { logo?: Record<string, unknown> } } }) =>
+  Object.entries(doc.base?.asset?.logo ?? {}).filter(([slot]) => !slot.startsWith('$'))
+    .map(([slot, token]) => [slot, (token as { $value: string }).$value]).sort();
 
 function memDb() {
   const stores = new Map<string, Map<IDBValidKey, unknown>>();
@@ -50,10 +56,14 @@ function memDb() {
   return db;
 }
 
-async function rig(opts: { legacy?: boolean } = {}) {
+async function rig(opts: { legacy?: boolean; catalog?: { id: string; name: string; doc: unknown }; logos?: string[] } = {}) {
   const db = memDb();
-  await db.put('asset-meta', { id: 'lolly/tokens/brand', type: 'tokens', name: 'Lolly Starter Tokens', version: '1.0.0', formats: [{ format: 'json', url: '/x.json' }] });
-  await db.put('asset-blob', blobOf(CATALOG_DOC), 'lolly/tokens/brand:json:1.0.0');
+  const catalog = opts.catalog ?? { id: 'lolly/tokens/brand', name: 'Lolly Starter Tokens', doc: CATALOG_DOC };
+  await db.put('asset-meta', { id: catalog.id, type: 'tokens', name: catalog.name, version: '1.0.0', formats: [{ format: 'json', url: '/x.json' }] });
+  await db.put('asset-blob', blobOf(catalog.doc), `${catalog.id}:json:1.0.0`);
+  for (const id of opts.logos ?? []) {
+    await db.put('asset-meta', { id, type: 'vector', name: id, version: '1.0.0', formats: [{ format: 'svg', url: '/logo.svg' }] });
+  }
   const assets = createAssetsAPI(db as unknown as Parameters<typeof createAssetsAPI>[0]);
   if (opts.legacy) {
     await assets._uploadUserAsset({ id: USER_TOKENS_ID, type: 'tokens', format: 'json', blob: blobOf({ a: 1 }), version: '1.0.0', meta: { name: 'Acme' } });
@@ -61,7 +71,7 @@ async function rig(opts: { legacy?: boolean } = {}) {
     await assets._uploadUserAsset({ id: 'user/raster/1700000000000-photo', type: 'raster', format: 'png', blob: new Blob(['p']), version: '1.0.0' });
   }
   const registry = createDesignSystemRegistry(db as unknown as RegistryDb, {
-    catalogTokens: async () => ({ id: 'lolly/tokens/brand', name: 'Lolly Starter Tokens' }),
+    catalogTokens: async () => ({ id: catalog.id, name: catalog.name }),
     legacyHead: async () => assets._getUserRecord?.(USER_TOKENS_ID) ?? null,
   });
   const host = { assets, designSystems: registry } as { assets: typeof assets; designSystems: typeof registry; tokens?: ReturnType<typeof createTokensAPI> };
@@ -77,7 +87,7 @@ test('uniqueDesignSystemId slugs the label and steps past taken ids, never landi
   assert.equal(await uniqueDesignSystemId(r.registry, 'Shipped'), 'shipped-2');
 });
 
-test('createDesignSystem mints a namespaced record seeded from the shipped doc, with its identity written in', async () => {
+test('createDesignSystem mints a namespaced record seeded from the catalog starter, with its identity written in', async () => {
   const r = await rig();
   const rec = await createDesignSystem(r.host as unknown as Parameters<typeof createDesignSystem>[0], { label: 'Acme' });
   assert.equal(rec.id, 'acme');
@@ -94,6 +104,33 @@ test('createDesignSystem mints a namespaced record seeded from the shipped doc, 
   // A second "Acme" gets its own id.
   const again = await createDesignSystem(r.host as unknown as Parameters<typeof createDesignSystem>[0], { label: 'Acme' });
   assert.equal(again.id, 'acme-2');
+});
+
+test('a build that ships a full brand starts a new system from the blank starter, not a copy of that brand', async () => {
+  const r = await rig({ catalog: BRAND_CATALOG });
+  const rec = await createDesignSystem(r.host as unknown as Parameters<typeof createDesignSystem>[0], { label: 'Acme' });
+  assert.deepEqual(rec.source, { kind: 'local' });
+  const doc = JSON.parse(await (await r.assets._getBlob(rec.headId))!.text());
+  assert.equal(doc.color, undefined, 'nothing of the shipped brand');
+  assert.deepEqual(doc.base.color, bundledStarter.base.color, "the starter's palette");
+  assert.deepEqual(readDesignSystemIdentity(doc), { id: 'acme', label: 'Acme' });
+  // This catalog has no lolly/logo/* marks, so no slot points at one.
+  assert.deepEqual(logoSlots(doc), []);
+});
+
+test('the bundled starter keeps exactly the logo slots the catalog can serve', async () => {
+  const r = await rig({ catalog: BRAND_CATALOG, logos: ['lolly/logo/primary'] });
+  const rec = await createDesignSystem(r.host as unknown as Parameters<typeof createDesignSystem>[0], { label: 'Acme' });
+  const doc = JSON.parse(await (await r.assets._getBlob(rec.headId))!.text());
+  assert.deepEqual(logoSlots(doc), [['horizontal-primary', 'lolly/logo/primary'], ['vertical-primary', 'lolly/logo/primary']]);
+});
+
+test('an editable copy of a shipped brand still copies that brand', async () => {
+  const r = await rig({ catalog: BRAND_CATALOG });
+  const copy = await createDesignSystem(r.host as unknown as Parameters<typeof createDesignSystem>[0], { label: 'Lolly Demo copy', seedFrom: 'shipped' });
+  assert.deepEqual(copy.source, { kind: 'local' });
+  const doc = JSON.parse(await (await r.assets._getBlob(copy.headId))!.text());
+  assert.equal(doc.color.brand.ink.$value, '#ff00aa');
 });
 
 test('a copy of another record records where it came from', async () => {

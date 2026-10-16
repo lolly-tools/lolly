@@ -5,12 +5,12 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { mkdir } from 'node:fs/promises';
 import { getBrowser, closeBrowser } from '../packages/node-shell/src/browsers.ts';
-const origin = process.env.LOLLY_ASSETS_TEST_URL;
+const origin = process.env.LOLLY_ASSETS_TEST_URL ?? process.env.LOLLY_IMPORT_TEST_URL;
 const png = Buffer.from('89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4890000000a49444154789c636000000200010005fe02fea7c1cd0e0000000049454e44ae426082', 'hex');
 const checksum = createHash('sha256').update(png).digest('hex');
 const originalId = 'fil_abcdefghijklmnopqrstuv', copiedId = 'fil_zyxwvutsrqponmlkjihgfe';
 
-test('shared folders browse without originals, copy into nested destinations and submit originals to review', { skip: origin ? false : 'set LOLLY_ASSETS_TEST_URL to a running shell', timeout: 120_000 }, async () => {
+test('shared folders browse without originals, copy into nested destinations and submit originals to review', { skip: origin ? false : 'set LOLLY_ASSETS_TEST_URL or LOLLY_IMPORT_TEST_URL to a running shell', timeout: 120_000 }, async () => {
   assert.ok(['localhost', '127.0.0.1'].includes(new URL(origin!).hostname));
   const browser = await getBrowser(), context = await browser.newContext({ viewport: { width: 1360, height: 1000 } }), page = await context.newPage();
   const errors: string[] = [], submissions: URL[] = [], uploads: unknown[] = [];
@@ -40,6 +40,7 @@ test('shared folders browse without originals, copy into nested destinations and
   });
   try {
     await page.goto(`${origin}/#/profile`, { waitUntil: 'domcontentloaded' });
+    await page.getByText('Settings loaded', { exact: true }).waitFor();
     await page.evaluate(async () => {
       const targets = '/src/lib/send-target.ts';
       (await import(targets)).registerSendTarget({ id: 'fixture-writer', kind: 'gdrive', label: 'Writable fixture', formats: ['png'], sources: ['asset'], available: () => true, async send(payload: { bytes: Uint8Array }) { (window as unknown as { sentProjectBytes: number[] }).sentProjectBytes = [...payload.bytes]; return { label: 'File delivered' }; } });

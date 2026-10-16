@@ -4,7 +4,7 @@
  * constants and pure helpers that used to sit above mountBrandEditor(). Moved here verbatim so
  * no feature module has to import the orchestrator file. The brand editor (colour, type and logo rooms of /start).
  */
-import { apcaContrast, colorFaces, colorToHex, colorToHexString, colorToSrgb, contrastRatio, convertColor, createTokenSet, deriveBrandTokens, gamutMapSrgb, hexToOklch, parseColor as parseCssColor, rampOklab } from '@lolly/engine';
+import { apcaContrast, colorFaces, colorToHex, colorToHexString, colorToSrgb, contrastRatio, convertColor, createTokenSet, deriveBrandTokens, gamutMapSrgb, parseColor as parseCssColor, rampOklab } from '@lolly/engine';
 import type { BrandDeriveOptions, SchemeKind, StoredFace } from '@lolly/engine';
 import { mountedSources, parseProfileLimit, profileFor } from '../color-profiles.ts';
 import { draftShades } from '../design-system/palette-draft.ts';
@@ -12,7 +12,7 @@ import type { FinishKind, HostV1, SpotColor, TokenSet } from '@lolly-tools/core/
 import { RAMP_IDS, prettify } from '../brand-doc.ts';
 import type { BrandSwatch, RampId } from '../brand-doc.ts';
 import type { SwatchExportFormat } from '../swatch-export.ts';
-import { contrastText } from '../../components/color-field.ts';
+import { swatchInk } from '../../components/color-field.ts';
 import { formatColor } from '../color-formats.ts';
 import { swatchTile } from '../swatches.ts';
 import type { FontRole } from '../../user-fonts.ts';
@@ -319,7 +319,7 @@ export function previewHtml(doc: Record<string, unknown>, sel: { neutral: number
     const label = RAMP_LABEL[ramp];
     return `<section class="be-draft-ramp"><div class="be-draft-head"><h3>${escape(label)}</h3><button type="button" class="be-btn be-btn--sm" data-be-add-ramp="${ramp}"${remaining ? '' : ' disabled'}>${remaining ? remaining === 1 ? t('Add 1 shade') : tRaw('Add {n} shades', { n: remaining }) : t('Already in palette')}</button></div><div class="be-draft-shades">${shades.map(shade => {
       const added = present.has(shade.hex.toLowerCase());
-      return `<button type="button" class="be-draft-shade" data-be-add-shade="${shade.key}" style="background:${escape(shade.hex)};color:${contrastText(shade.hex)}" aria-label="${escape(added ? tRaw('{label} shade {step} is in your palette', { label, step: shade.step }) : tRaw('Add {label} shade {step}, {hex}', { label, step: shade.step, hex: shade.hex }))}" title="${escape(shade.hex)}"${added ? ' disabled' : ''}>${added ? icon('check', { size: 14 }) : '<span aria-hidden="true">+</span>'}</button>`;
+      return `<button type="button" class="be-draft-shade" data-be-add-shade="${shade.key}" style="background:${escape(shade.hex)};color:${swatchInk(shade.hex) ?? 'inherit'}" aria-label="${escape(added ? tRaw('{label} shade {step} is in your palette', { label, step: shade.step }) : tRaw('Add {label} shade {step}, {hex}', { label, step: shade.step, hex: shade.hex }))}" title="${escape(shade.hex)}"${added ? ' disabled' : ''}>${added ? icon('check', { size: 14 }) : '<span aria-hidden="true">+</span>'}</button>`;
     }).join('')}</div></section>`;
   }).join('');
   return `${choices}
@@ -713,9 +713,7 @@ export function mountPrintLock(mount: HTMLElement, ctx: PrintLockCtx): { render:
 // recolour paths (syncTileMeta) all compose the same accessible-name string.
 
 export function tileHtml(s: BrandSwatch, idx: number, roleGlyph?: string): string {
-  return swatchTile({ label: s.name, hex: s.hex, locked: !!s.lock }, {
-    idx, roleGlyph, roleOnLight: roleGlyph ? (hexToOklch(s.hex)?.l ?? 0) > 0.68 : false,
-  });
+  return swatchTile({ label: s.name, hex: s.hex, locked: !!s.lock }, { idx, roleGlyph });
 }
 
 /**

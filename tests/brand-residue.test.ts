@@ -122,26 +122,24 @@ const TYPEFACE_EXEMPT = new Set([
   join(PACK, 'catalog', 'assets', 'lolly', 'tokens', 'brand.json'),
 ]);
 
-// THE STARTER-PALETTE EXEMPTION (2026-08-23, NARROWED 2026-09-03 by plan 182 M0b)
-// - Andy's call, made at ship time for the new starter tokens: the pack may
-// reuse a brand hex where the brand's own director chose to publish it here.
+// THE STARTER-PALETTE EXEMPTION (2026-08-23, NARROWED 2026-09-03 by plan 182 M0b
+// and 2026-10-15 by Andy's decision D3) - Andy's call, made at ship time for the
+// new starter tokens: the pack may reuse a brand hex where the brand's own
+// director chose to publish it here.
 //
 // The 2026-08-23 set covered a green starter ramp and the two derive-generated
 // palette docs beside it. Plan 182 section 12 cut the starter to ink-and-paper
 // scaffolding, so the green is gone: `photo-treatments.json` derives to
 // greyscale alone (no brand hex left), `icon-themes.json` derives to nothing at
-// all and the pack no longer ships it, and both left this set. What remains is
-// two reasons, one hex each:
-//   • the starter tokens still carry #efefef as neutral step 8 (Linen) - a plain
-//     light grey that happens to sit in the SUSE list;
-//   • the shipped Lolly swirl marks are still painted in Pine (#0c322c).
-// The hex ban stays live in every other pack file, and the suse/* asset-id check
-// still runs on these four unchanged. Do not widen this to a directory.
+// all and the pack no longer ships it, and both left this set. The reverse, mono
+// and mono-reverse Lolly marks left it on 2026-10-15, when D3 repainted their
+// Pine (#0c322c) in Opal's Spearmint (#033633). One reason and one hex remain:
+// the starter tokens still carry #efefef as neutral step 8 (Linen), a plain light
+// grey that happens to sit in the SUSE list. The hex ban stays live in every
+// other pack file, and the suse/* asset-id check still runs on this one
+// unchanged. Do not widen this to a directory.
 const STARTER_PALETTE_HEX_EXEMPT = new Set([
   join(PACK, 'catalog', 'assets', 'lolly', 'tokens', 'brand.json'),
-  join(PACK, 'catalog', 'assets', 'lolly', 'logo', 'mono.svg'),
-  join(PACK, 'catalog', 'assets', 'lolly', 'logo', 'mono-reverse.svg'),
-  join(PACK, 'catalog', 'assets', 'lolly', 'logo', 'reverse.svg'),
 ]);
 
 // The assets index names SUSE where a catalog entry genuinely credits it: the

@@ -3,7 +3,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
-import { mountSharedMetadata, sourceFactsHtml } from './shared-metadata.ts';
+import { mountSharedMetadata } from './shared-metadata.ts';
 import { prepareSharedTextReview } from './shared-text-index.ts';
 import { _setBaseForTests } from '../../lib/instance.ts';
 import type { AssetInspection } from '../../catalog/curation.ts';
@@ -25,10 +25,15 @@ function dom() {
 }
 const tick = () => new Promise(resolve => setTimeout(resolve, 20));
 
-test('source facts preserve unknown approval, show rendition limits and escape upstream labels', () => {
-  const html = sourceFactsHtml(value(), ref);
-  assert.match(html, /&lt;Source&gt;/); assert.match(html, /Unknown/); assert.match(html, /Rendition/); assert.match(html, /Unavailable through this connection/);
-  assert.doesNotMatch(html, />Approved in source</);
+test('source facts preserve unknown approval and render upstream values as literal text', async () => {
+  const { env, root } = dom(), original = globalThis.fetch;
+  globalThis.fetch = async () => Response.json(value());
+  try {
+    await mountSharedMetadata(root, ref, () => {});
+    assert.match(root.textContent!, /<Source>/); assert.match(root.textContent!, /Unknown/);
+    assert.match(root.textContent!, /Rendition/); assert.match(root.textContent!, /Unavailable through this connection/);
+    assert.equal(root.querySelector('source'), null); assert.doesNotMatch(root.textContent!, /Approved in source/);
+  } finally { globalThis.fetch = original; env.window.close(); }
 });
 
 test('a cached primary file is identifiable only when its format is unambiguous', () => {
@@ -111,5 +116,22 @@ test('a curator can explicitly remove indexed text without sending the words or 
     root.querySelector<HTMLButtonElement>('[data-clear-index]')!.click(); await tick();
     assert.deepEqual(writes, [{ sourceRevision: 'revision-one', text: null }]); assert.match(root.textContent!, /Shared text removed/);
     assert.equal(root.querySelector<HTMLInputElement>('[name="campaign"]')!.value, 'Launch');
+  } finally { globalThis.fetch = original; env.window.close(); }
+});
+
+
+test('metadata labels, values and select choices cannot create executable DOM', async () => {
+  const { env, root } = dom(), original = globalThis.fetch;
+  const payload = '<img src=x onerror=alert(1)>';
+  globalThis.fetch = async () => Response.json({ ...value(), fields: { campaign: payload, region: payload }, fieldDefs: [
+    { id: 'campaign', label: '<script>literal</script>', kind: 'text' },
+    { id: 'region', label: 'Region', kind: 'select', options: [payload] },
+  ] });
+  try {
+    await mountSharedMetadata(root, ref, () => {});
+    assert.equal(root.querySelector<HTMLInputElement>('[name="campaign"]')!.value, payload);
+    assert.equal(root.querySelector<HTMLSelectElement>('[name="region"]')!.value, payload);
+    assert.match(root.textContent!, /<script>literal<\/script>/);
+    assert.equal(root.querySelector('img, script'), null);
   } finally { globalThis.fetch = original; env.window.close(); }
 });

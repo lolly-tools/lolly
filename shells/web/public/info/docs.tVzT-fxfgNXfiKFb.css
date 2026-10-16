@@ -71,7 +71,8 @@
   --track-tier-2: 26%;
   --track-tier-3: 15%;
 }
-:root {
+:root,
+[data-theme="light"] {
   --lolly-tone: #033633;
 }
 [data-theme="dark"],

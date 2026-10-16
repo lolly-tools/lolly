@@ -1039,8 +1039,6 @@
   "Your role on {workspace} lets you view only. Ask an admin of {workspace} to change your role.": "Rollen din i {workspace} gir bare visningstilgang. Be en administrator i {workspace} om å endre rollen din.",
   "This is view only. Make a copy to keep your changes.": "Dette er kun visning. Lag en kopi for å beholde endringene dine.",
   "Save changes to {project}?": "Lagre endringer i {project}?",
-  "Leave without saving keeps your changes on this device.": "Hvis du forlater siden uten å lagre, beholdes endringene dine på denne enheten.",
-  "Stay": "Bli",
   "Save a copy on this device": "Lagre en kopi på denne enheten",
   "Copy saved on this device.": "Kopien er lagret på denne enheten.",
   "Where should the copy go?": "Hvor skal kopien havne?",
@@ -1347,5 +1345,8 @@
   "WebGPU initialisation timed out. Reload Lolly to try again.": "Oppstarten av WebGPU tok for lang tid. Last inn Lolly på nytt for å prøve igjen.",
   "WebGPU initialisation expired. Reload Lolly to try again.": "Oppstarten av WebGPU er utløpt. Last inn Lolly på nytt for å prøve igjen.",
   "The graphics device was lost. Reload Lolly to reconnect.": "Forbindelsen til grafikkenheten ble brutt. Last inn Lolly på nytt for å koble til igjen.",
-  "Reload": "Last inn på nytt"
+  "Reload": "Last inn på nytt",
+  "Unsaved edits": "Ulagrede redigeringer",
+  "Save now or abandon your changes.": "Lagre nå eller forkast endringene dine.",
+  "Leave anyway": "Forlat likevel"
 }

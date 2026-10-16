@@ -130,7 +130,7 @@
     },
     {
       "file": "shells/web/src/bridge/export-stroke-paint.test.ts",
-      "fullName": "strokeOf: a class-declared stroke on the real catalog artwork resolves (PDF outlines)",
+      "fullName": "a class-declared stroke on the real catalog artwork resolves (PDF outlines)",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
       "capability": "brand:suse",
       "owner": "shells/web"
@@ -3463,6 +3463,13 @@
     {
       "file": "tests/pose-geeko-alive.test.ts",
       "fullName": "only <animateTransform>: nothing the shell's SVG sanitiser would strip",
+      "reason": "brands/suse is not checked out, so the suse profile cannot be resolved here",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/pack-chrome.test.ts",
+      "fullName": "suse: every theme that states color.chrome.* passes the chrome checks",
       "reason": "brands/suse is not checked out, so the suse profile cannot be resolved here",
       "capability": "brand:suse",
       "owner": "tests"

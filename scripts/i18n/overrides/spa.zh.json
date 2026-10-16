@@ -909,8 +909,6 @@
   "Your role on {workspace} lets you view only. Ask an admin of {workspace} to change your role.": "你在 {workspace} 的角色只能查看。请联系 {workspace} 的管理员更改你的角色。",
   "This is view only. Make a copy to keep your changes.": "当前为仅查看。创建副本即可保留你的更改。",
   "Save changes to {project}?": "将更改保存到 {project}？",
-  "Leave without saving keeps your changes on this device.": "不保存直接离开，你的更改会保留在此设备上。",
-  "Stay": "留下",
   "Save a copy on this device": "在此设备上保存副本",
   "Copy saved on this device.": "副本已保存在此设备上。",
   "Where should the copy go?": "副本放到哪里？",
@@ -1216,5 +1214,8 @@
   "WebGPU initialisation timed out. Reload Lolly to try again.": "WebGPU 初始化超时。请重新加载 Lolly 后重试。",
   "WebGPU initialisation expired. Reload Lolly to try again.": "WebGPU 初始化已过期。请重新加载 Lolly 后重试。",
   "The graphics device was lost. Reload Lolly to reconnect.": "与图形设备的连接已中断。请重新加载 Lolly 以重新连接。",
-  "Reload": "重新加载"
+  "Reload": "重新加载",
+  "Unsaved edits": "未保存的编辑",
+  "Save now or abandon your changes.": "立即保存，或放弃你的更改。",
+  "Leave anyway": "仍要离开"
 }

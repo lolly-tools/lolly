@@ -153,8 +153,10 @@ export const colorIdentity = (key: string, value: string): string => `${key}␟$
  *  material of its own. The same test `walkSwatches` makes when it stamps
  *  `kind: 'semantic'`, spelled against the key so it also holds for a caller
  *  whose colours came from `createTokenSet` rather than the walker. A themed role
- *  token (`color.role.*`, plan 291 W4) is a role in the same sense. */
-export const isRoleKey = (key: string): boolean => /(^|\.)semantic(\.|$)/.test(key) || /^color\.role\./.test(key);
+ *  token (`color.role.*`, plan 291 W4) is a role in the same sense, and so is the app
+ *  chrome a pack states (`color.chrome.*`): it describes a use in the app, so it is
+ *  never the design system's own colour. */
+export const isRoleKey = (key: string): boolean => /(^|\.)semantic(\.|$)/.test(key) || /^color\.(?:role|chrome)\./.test(key);
 
 /**
  * A step of the NEUTRAL ramp - ink and paper (plan 182 section 12).
