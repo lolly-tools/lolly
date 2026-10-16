@@ -1,4 +1,4 @@
-# Trust
+# Trust & security
 
 Most software asks you to trust it. This section is the opposite: every claim Lolly makes about your content, your data and its own behaviour is written down here with the mechanism that enforces it, so you can check rather than believe.
 

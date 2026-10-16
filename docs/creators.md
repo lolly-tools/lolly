@@ -1,4 +1,4 @@
-# Lolly for Creators
+# Create & use
 
 You fill in a few fields and a finished file comes out, with the fonts, the colours and the layout already decided on your own device. You ship in minutes and it looks like you spent hours, and because the brand rules are baked into the tool, it is never your name on the off-brand file. Pick the lane below that matches what you are doing today.
 

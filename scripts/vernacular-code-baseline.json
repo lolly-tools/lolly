@@ -1,7 +1,7 @@
 {
   "community/timezone/src/renderer.ts": 1,
   "docs/agents-pages.ts": 2,
-  "docs/build.ts": 44,
+  "docs/build.ts": 42,
   "docs/page-seal.ts": 4,
   "docs/shot-anatomy.ts": 3,
   "docs/shot-provenance.ts": 1,

@@ -5,6 +5,9 @@
 //      node docs/build.ts --watch    rebuild on every change under docs/ (used by dev:web)
 // Output: shells/web/public/info/
 import { movedSectionLinks } from './section-moves.ts';
+import { readRegistry } from './navigation.ts';
+import { syncDocsNavigation } from '../scripts/sync-docs-navigation.ts';
+import { publicWorkMarkdown, workApplicability } from './work-pages.ts';
 import { createIconSprite } from './icon-sprite.ts';
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync, cpSync, existsSync, readdirSync, rmSync, statSync, watch } from 'node:fs';
 import { resolve, dirname, relative, sep } from 'node:path';
@@ -143,13 +146,18 @@ const TOOL_COUNT = JSON.parse(
   readFileSync(catalogFile('tools/index.json'), 'utf8')
 ).tools.length;
 
-type Pathway = 'quickstart' | 'builders' | 'creators' | 'operators' | 'trust';
+type Pathway = 'quickstart' | 'builders' | 'creators' | 'managers' | 'operators' | 'trust';
+const DOCS_REGISTRY = readRegistry();
+syncDocsNavigation(undefined, true);
 
 interface Page {
   slug: string;
   title: string;
   author?: string;
   src: string;
+  canonicalPath?: string;
+  headingId?: string;
+  contentLicense?: 'CC-BY-SA-4.0' | 'MPL-2.0';
   isLanding?: boolean;
   // Which pathway this page belongs under - drives the docs sidebar + which top-nav
   // link is highlighted. Omitted only for the landing page.
@@ -211,171 +219,206 @@ const stubs: Stub[] = [
   { slug: 'labour-not-impersonation', target: '/info/trust/input-not-impersonation.html' },
 ];
 
+// BEGIN GENERATED DOCS pages
 const pages: Page[] = [
-  { slug: 'index',            title: 'Lolly',     src: 'site.md',            isLanding: true },
-
-  // ── Primary article ──────────────────────────────────────────────────────
-  { slug: 'quickstart',       title: 'Quickstart', src: 'quickstart.md', pathway: 'quickstart', isHub: true },
-  { slug: 'make-something',   title: 'Make your first file', src: 'make-something.md', pathway: 'quickstart', description: "Make a QR code for a web address, download it, check that it scans, and save an editable copy you can reopen from Projects. No account needed.", render: renderMakeSomethingPage },
-  // The FAQ, previously an accordion inside the landing (plans/177 moved it out;
-  // the gallery's #faq-… deep links now land here).
-  { slug: 'faq',              title: 'Questions & answers', src: 'faq.md', pathway: 'quickstart', description: "The things people ask most: why it is free, what the catch is not, what happens to your files and where Lolly is going.", render: renderFaqPage },
-  // The destination of the hero's download rail (downloadsRail). Its own page rather
-  // than five direct file links, because picking a package is a decision - which
-  // architecture, which repository, what to trust - and a bare link cannot answer any
-  // of it. Registered under Quickstart: a reader who wants the app installed is at the
-  // very start of the path, not deep in Operators.
-  { slug: 'project-asset-transfers', title: 'Shared project assets', src: 'project-asset-transfers.md', pathway: 'quickstart', description: 'Browse shared project folders, copy assets, submit originals to a workspace library and send files to connected destinations.' },
-  { slug: 'organisation',     title: 'Use Lolly at your organisation', src: 'organisation.md', pathway: 'quickstart', description: "Use your organisation's Lolly, with optional lolly.work sign-in, shared projects, live collabs and managed settings. Learn what stays local and how to leave." },
-  { slug: 'install',          title: 'Install Lolly', src: 'install.md', pathway: 'quickstart', description: "Every packaged build in one list: the macOS disk image, the openSUSE Tumbleweed and Leap RPMs, the Flatpak, the Android APK, and how to check the file you downloaded is the one we made." },
-  { slug: 'supported-environments', title: 'Supported environments', src: 'supported-environments.md', pathway: 'quickstart', description: 'Tested browser and app environments, the WebGPU startup requirement, and the separate web and native release scopes.' },
-
-  // ── Pathway hubs ─────────────────────────────────────────────────────────
-  { slug: 'creators',         title: 'Lolly for Creators',  src: 'creators.md',  pathway: 'creators',  isHub: true },
-  { slug: 'builders',         title: 'Lolly for Builders',  src: 'builders.md',  pathway: 'builders',  isHub: true },
-  { slug: 'operators',        title: 'Lolly for Operators', src: 'operators.md', pathway: 'operators', isHub: true, description: "Roll Lolly out across an organisation: governance, deployment, configuration and the trust properties your security review will ask about." },
-  { slug: 'trust',            title: 'Trust',               src: 'trust.md',     pathway: 'trust',     isHub: true, description: "Where your content comes from, how to check it yourself, and what happens to your data. The claims on this site with the mechanism that enforces each one." },
-  { slug: 'status-quo',       title: 'The trade we never agreed to', src: 'status-quo.md', pathway: 'trust', register: 'stage', description: "Uploading a logo to a stranger for a resize. Artwork locked behind a lapsed plan. The frictions we all learned to accept, and what replaces them." },
-  { slug: 'tenets',           title: 'Tenets', author: 'Andy Fitzsimon', src: 'tenets.md', pathway: 'trust', register: 'stage', description: "Our vision, values and mission: all potential to all mediums.", render: renderTenetsPage, immersive: true },
-  { slug: 'input-not-impersonation', title: 'Input, not impersonation', src: 'input-not-impersonation.md', pathway: 'trust', register: 'stage', description: "An AI agent may fill in the inputs and may not claim to be you. Where the line sits, how it is enforced, and what a rogue agent still cannot do." },
-  { slug: 'creative-rights', title: 'Creative rights and credits', src: 'creative-rights.md', pathway: 'trust', register: 'stage', description: "How Lolly records a source licence, works out what it asks of the use you are making, writes the credit into the file, and tells you the part only you can do." },
-
-  // ── Creators pathway ─────────────────────────────────────────────────────
-  { slug: 'create-a-tool', title: 'Share a design with rules', src: 'create-a-tool.md', pathway: 'creators', description: 'Turn a Design document into a portable tool with approved inputs, shared names, themes and fixed artwork.' },
-  { slug: 'design-tool-contract', title: 'Design tool contract', src: 'design-tool-contract.md', pathway: 'builders', description: 'Declarative rules, portable tool packages and immutable installed revisions.' },
-  { slug: 'training-creators', title: 'Training courses', src: 'training-creators.md', pathway: 'creators', description: 'Assemble project content into courses, check their content and size, and export versions for a website or LMS.' },
-  { slug: 'learning-integration', title: 'Learning integration', src: 'learning-integration.md', pathway: 'builders', description: 'Portable course delivery and the versioned browser progress event contract.' },
-  { slug: 'using',            title: 'Using Lolly',       src: 'using.md',        pathway: 'creators' },
-  { slug: 'templates',        title: 'Templates',         src: 'templates.md',    pathway: 'creators', description: "Saved starting points for a tool: how to keep one, how to open a tool on it every time, and how yours sit beside the ones a tool ships with." },
-  { slug: 'brand-studio',     title: 'The Brand Studio',  src: 'brand-studio.md', pathway: 'creators' },
-  { slug: '3d-studio', title: '3D Studio', src: '3d-studio.md', pathway: 'creators', description: 'Stage SVG artwork and meshes with materials, lighting, depth of field and transparent shadows.' },
-  { slug: 'profile',          title: 'Profiles',          src: 'profile.md',      pathway: 'creators', description: "The working identity Lolly creates as - your name, role and contact details, filled into tools automatically and stored on your own device." },
-  { slug: 'find-your-work',   title: 'Find and recover your work', src: 'find-your-work.md', pathway: 'creators', description: "Where your saved work, downloads and earlier versions are, what a closed tab or cleared browser data takes with it, and how to move everything to another device." },
-  { slug: 'sync',             title: 'Sync your devices', src: 'sync.md',         pathway: 'creators', description: "Keep your work the same on every device through storage you choose - Dropbox, Google Drive, OneDrive, your own Nextcloud or S3 - with no Lolly server in between." },
-  // Both of these pages HOST a band that used to sit on the landing (plan 117 block
-  // 9). The band is the same function the landing called, so the layout that made
-  // the content readable moved with the content instead of being flattened to prose.
-  // Both renderers are NAMED functions rather than inline arrows on purpose:
-  // scripts/check-docs-nav.ts recovers each entry with a brace-free match, and an
-  // inline arrow body (or a template literal) puts braces inside the entry, which
-  // drops it from that guard's count.
-  { slug: 'design-import',    title: 'Import a design (Figma, Penpot, Illustrator, InDesign)', src: 'design-import.md', pathway: 'creators', description: "Bring a finished design out of Figma, Penpot, Illustrator or InDesign and into Lolly as an editable, re-renderable tool rather than a flat picture.", render: renderDesignImportPage },
-  { slug: 'rebrand',          title: 'Rebrand a deck', src: 'rebrand.md', pathway: 'creators', description: "Move a PowerPoint or PDF deck someone else made onto your design system, on your device: review what Rebrand suggests for each slide, decide, and open the result in Design." },
-  { slug: 'formats',          title: 'Every format Lolly can open and make', src: 'formats.md', pathway: 'creators', description: "Every file format Lolly reads, every format it writes, and the ones it does both ways - grouped by what each one is, with a plain-language card behind every chip.", render: renderFormatsPage },
-  { slug: 'text-composition', title: 'Text in Design', src: 'text-composition.md', pathway: 'creators', description: 'Edit text on canvas, flow articles through frames, compose typography and retain editable source.' },
-  { slug: 'text-composition-engine', title: 'Authored text composition', src: '../engine/text-composition.md', pathway: 'builders', description: 'Literal text, pinned fonts, shared shaping, frame and path geometry, native editing and export receipts.' },
-  { slug: 'hdr-editing', title: 'Wide Colour and HDR', src: 'hdr-editing.md', pathway: 'creators', description: 'Keep original image and video precision, use authored P3 brand swatches, and choose HDR or SDR output.' },
-  { slug: 'sequence-editor',  title: 'The sequence editor', src: 'sequence-editor.md', pathway: 'creators' },
-  { slug: 'presenting', title: 'Presenting with camera', src: 'presenting.md', pathway: 'creators', description: 'Prepare camera framing, a logo and captions over slides or Countdown, with private controls, saved scenes and local recording.' },
-  { slug: 'interactive-pages', title: 'Live pages that take the clicker', src: 'interactive-pages.md', pathway: 'creators', description: 'Give web pages a focus step, scroll stops and automatic movement while the presenter keeps control of the deck.' },
-  { slug: 'agenda', title: 'Agenda screens and programmes', src: 'agenda.md', pathway: 'creators', description: 'Turn an event programme into branded screens, an interactive page, video, calendars and PowerPoint slides.' },
-  { slug: 'animating',        title: 'Animating: keyframes, depth and a camera', src: 'animating.md', pathway: 'creators', description: "Pose a box at one moment, lift it off the page, and fly a camera over the result - keyframes, depth, the scene camera and Lift layers, all on your device." },
-  // Collab is a CREATORS page, not a Builders or Trust one: it is a thing two people
-  // do with a tool session, and the reader arrives at it from "I want to work on this
-  // with someone", not from an interest in WebRTC. The security property it turns on
-  // (the matching plates) is explained where the reader meets it, and Trust links here.
-  { slug: 'collaborate',      title: 'Working together',  src: 'collaborate.md',  pathway: 'creators', description: "Edit a tool session together in a private collab between two devices, or use optional work collabs through your organisation's lolly.work instance." },
-  // The first sentence of each of these reads well as a preview on its own, so both
-  // fall through to mdDescription rather than repeating themselves here.
-  { slug: 'search',           title: 'Search',            src: 'search.md',       pathway: 'creators' },
-  { slug: 'ask',              title: 'Ask Lolly',         src: 'ask.md',          pathway: 'creators' },
-  { slug: 'dashboard',        title: 'The Dashboard',     src: 'dashboard.md',    pathway: 'creators' },
-  { slug: 'utilities',        title: 'Utility views',     src: 'utilities.md',    pathway: 'creators', description: "The five workbenches built into the app - spreadsheet, converter, Colour Lab, PDF extractor and Script audio - what each one does, and where it stops." },
-  { slug: 'favourites',       title: 'Your favourites',   src: 'favourites.md',   pathway: 'creators' },
-  { slug: 'exporting',        title: 'Exporting & Formats', src: 'exporting.md',  pathway: 'creators' },
-  { slug: 'positioning',      title: 'How Lolly compares', src: 'positioning.md', pathway: 'creators' },
-  { slug: 'compare',            title: 'Lolly compared, tool by tool', src: 'compare.md', pathway: 'creators', description: "Where Lolly overlaps with Canva, Adobe, Figma, rendering APIs and online converters, and what each of those does better. Dated, concession first, no superlatives." },
-  { slug: 'compare-canva',      title: 'Lolly and Canva',   src: 'compare-canva.md',   pathway: 'creators', description: "Making an on-brand graphic without a subscription: where Lolly and Canva overlap, and what Canva does better today." },
-  { slug: 'compare-adobe',      title: 'Lolly and Adobe',   src: 'compare-adobe.md',   pathway: 'creators', description: "Converting, exporting and signing files without a Creative Cloud account: where Lolly and Adobe overlap." },
-  { slug: 'compare-figma',      title: 'Lolly and Figma',   src: 'compare-figma.md',   pathway: 'creators', description: "Laying out a design and turning it into a reusable output: where Lolly and Figma overlap, and what Figma does better." },
-  { slug: 'compare-render-apis', title: 'Lolly and rendering APIs', src: 'compare-render-apis.md', pathway: 'creators', description: "Generating many on-brand images from data: where Lolly and a hosted rendering API like Bannerbear or Placid overlap." },
-  { slug: 'compare-converters', title: 'Lolly and online file converters', src: 'compare-converters.md', pathway: 'creators', description: "Turning one file format into another on your own device, without uploading it to a stranger's server." },
-  { slug: 'compare-penpot',   title: 'Lolly and Penpot',  src: 'compare-penpot.md',  pathway: 'creators', description: "Two open-source answers to design work: where Lolly and Penpot overlap, what Penpot does better today, and how the two projects work together." },
-  { slug: 'compare-brand-portals', title: 'Lolly and brand portals', src: 'compare-brand-portals.md', pathway: 'creators', description: "Locked templates without the portal: where Lolly overlaps with brand platforms like Bynder, Frontify and Marq, and what a portal still does better." },
-
-  // ── Builders pathway ─────────────────────────────────────────────────────
-  { slug: 'overview',         title: 'Architecture',      src: 'overview.md',        pathway: 'builders', description: "How the Lolly platform is put together: the engine, the shells, the capability bridge, and why tools are data rather than bundled code." },
-  { slug: 'design-tokens',    title: 'Design Tokens',     src: 'design-tokens.md',   pathway: 'builders' },
-  { slug: 'token-workflows',  title: 'Token workflows',   src: 'token-workflows.md', pathway: 'builders' },
-  { slug: 'glossary',         title: 'Glossary',          src: 'glossary.md',        pathway: 'builders', description: "The words Lolly uses with exact meanings: engine, shell, bridge, tool, brand pack, profile, view, catalog, session, utility, collab, and what each is not." },
-  // The summary of the document model draft (plan 276). The draft itself is its own
-  // web document under /info/spec/document-model/ (docs/spec-pages.ts), browsed in
-  // the app at #/document-model; this page is its front door in the docs site.
-  { slug: 'document-model',   title: 'Document model draft', src: 'document-model.md', pathway: 'builders', description: "A draft specification of the Lolly document model: the records, operations, values, evaluation, policy, conformance and packaging rules that make a complete tool portable, and what is decided, open and not yet built." },
-  { slug: 'constraints',      title: 'Constraints',       src: 'constraints.md',     pathway: 'builders', description: "Why output comes out right by construction: inputs declared in the manifest, logic-less templates and brand values resolved from tokens, with the tests that enforce each." },
-  { slug: 'determinism',      title: 'Determinism',       src: 'determinism.md',     pathway: 'builders', description: "Same inputs, same file: one render path behind every shell, what is byte-reproducible and what is not, and the receipts for both." },
-  { slug: 'reproducibility',  title: 'Reproducibility',   src: 'reproducibility.md', pathway: 'builders', description: "The URL is the artifact: every input travels as parameters, so a link re-renders next year, and the limits of what a bare link can carry." },
-  { slug: 'authoring-tools',  title: 'Authoring Tools',   src: 'authoring-tools.md', pathway: 'builders', description: "Author a Lolly tool: the manifest, the template, the optional hooks, and the invariants that keep one tool running unchanged in the browser, on the desktop and in the terminal." },
-  { slug: 'tool-skills', title: 'Tool Skills', src: 'tool-skills.md', pathway: 'builders', description: 'Publish compatible tool guidance and supply the overall and current-tool skills through agent invitations.' },
-  { slug: 'tool-manifest', title: 'Tool manifests', src: 'tool-manifest.md', pathway: 'builders', description: "Declare identity, rendering, examples and a short walkthrough." },
-  { slug: 'tool-inputs', title: 'Tool inputs', src: 'tool-inputs.md', pathway: 'builders', description: "Choose input types, visibility, profile prefills and common meanings." },
-  { slug: 'tool-structured-inputs', title: 'Structured inputs and canvas controls', src: 'tool-structured-inputs.md', pathway: 'builders', description: "Build repeating groups, editor canvases and bounded image framing." },
-  { slug: 'tool-files', title: 'Assets and file utilities', src: 'tool-files.md', pathway: 'builders', description: "Accept library assets or local files and return transformed output." },
-  { slug: 'tool-rendering', title: 'Templates and rendering', src: 'tool-rendering.md', pathway: 'builders', description: "Write templates and styles that work across vector, canvas and data exports." },
-  { slug: 'tool-starters', title: 'Tool templates and presets', src: 'tool-starters.md', pathway: 'builders', description: "Provide curated starting points, saved templates and Design motion." },
-  { slug: 'tool-hooks', title: 'Tool hooks and host capabilities', src: 'tool-hooks.md', pathway: 'builders', description: "Add portable behavior, live media, recording, speech and allowed network access." },
-  { slug: 'tool-composition', title: 'Composition and brand overlays', src: 'tool-composition.md', pathway: 'builders', description: "Compose tools and resolve brand-specific logos and overlays." },
-  { slug: 'tool-publishing', title: 'Publish and localize a tool', src: 'tool-publishing.md', pathway: 'builders', description: "Validate, distribute, test and translate a reusable tool." },
-  { slug: 'authoring-assets', title: 'Authoring Assets',  src: 'authoring-assets.md', pathway: 'builders' },
-  { slug: 'host-api',         title: 'Host API',          src: 'host-api.md',        pathway: 'builders' },
-  { slug: 'url-mode',         title: 'URL Mode',          src: 'url-mode.md',        pathway: 'builders', description: "Every tool's state lives in the URL, so a link is a finished asset, a reproducible render, and the same input the CLI takes." },
-  { slug: 'url-inputs', title: 'Inputs in URLs', src: 'url-inputs.md', pathway: 'builders', description: "Encode each input type, keyframes and compact values." },
-  { slug: 'url-parameters', title: 'Reserved URL parameters', src: 'url-parameters.md', pathway: 'builders', description: "Look up export settings, packed links, units, print marks and contact sheets." },
-  { slug: 'url-export', title: 'Export and presentation URLs', src: 'url-export.md', pathway: 'builders', description: "Choose formats, download, copy, size, presentation and saved state." },
-  { slug: 'url-app-links', title: 'App links and deep links', src: 'url-app-links.md', pathway: 'builders', description: "Open app views and use the lolly URL scheme." },
-  { slug: 'cli',              title: 'CLI',               src: 'cli.md',             pathway: 'builders' },
-  { slug: 'cli-rendering', title: 'Render with the CLI', src: 'cli-rendering.md', pathway: 'builders', description: "Choose export options, troubleshoot the browser renderer and render timelines or links." },
-  { slug: 'cli-files', title: 'CLI file and media utilities', src: 'cli-files.md', pathway: 'builders', description: "Process local files, redactions, speech and on-device models." },
-  { slug: 'production-checks', title: 'Production checks', src: 'production-checks.md', pathway: 'builders', description: 'Inspect final files against explicit requirements, compare references, and apply permitted repairs with retained evidence.' },
-  { slug: 'cli-automation', title: 'CLI batch and automation', src: 'cli-automation.md', pathway: 'builders', description: "Run local batches and CI, or use optional lolly.work for persistent organisation render jobs, batches and governed delivery." },
-  { slug: 'cli-reference', title: 'CLI verification and configuration', src: 'cli-reference.md', pathway: 'builders', description: "Verify files, inspect metadata, configure completion and find local state." },
-  { slug: 'cli-signing',      title: 'Signing from the terminal', src: 'cli-signing.md', pathway: 'operators', description: "Set up a real signing identity for the CLI, so files made from the terminal carry a verifiable name rather than an anonymous on-device key." },
-  { slug: 'tui',              title: 'TUI',               src: 'tui.md',             pathway: 'builders' },
-  { slug: 'mcp',              title: 'MCP Server',        src: 'mcp.md',             pathway: 'builders' },
-  { slug: 'ai-agents',        title: 'AI Agents',         src: 'ai-agents.md',       pathway: 'builders' },
-  { slug: 'extension',        title: 'Browser Extension', src: 'extension.md',       pathway: 'creators' },
-  { slug: 'contributing-setup', title: 'Contributing Setup', src: 'contributing-setup.md', pathway: 'builders', description: "Get a development checkout sized to what you're here to do: slim clone personas for tool authors and engine developers, and how to upgrade to the full thing later." },
-  { slug: 'build-guide',      title: 'Build Guide',       src: 'build-guide.md',     pathway: 'operators', description: "Build Lolly for each target: the CLI binary, the desktop app, mobile, and the web PWA. Prerequisites, commands and what each build produces." },
-  { slug: 'build-terminal', title: 'Build the CLI and TUI', src: 'build-terminal.md', pathway: 'operators', description: "Run the terminal shells from source or package the CLI binary." },
-  { slug: 'build-desktop', title: 'Build the desktop app', src: 'build-desktop.md', pathway: 'operators', description: "Set up and package the Tauri desktop shell." },
-  { slug: 'build-mobile', title: 'Build the mobile apps', src: 'build-mobile.md', pathway: 'operators', description: "Set up, develop and package Android and iOS shells." },
-  { slug: 'build-obs', title: 'Build with Open Build Service', src: 'build-obs.md', pathway: 'operators', description: "Plan OBS recipes for Lolly artifacts and their dependencies." },
-  { slug: 'build-kubernetes', title: 'Build the web container and Helm chart', src: 'build-kubernetes.md', pathway: 'operators', description: "Build the web image and deploy the chart with optional services." },
-  { slug: 'ios-build',        title: 'Building for iOS',  src: 'ios-build.md',       pathway: 'builders' },
-  { slug: 'catalog-resource-reading', title: 'Read verified catalog resources', src: 'catalog-resource-reading.md', pathway: 'builders', description: 'Signed resource coverage, bounded reads and verified client resource delivery.' },
-  { slug: 'connector-origins', title: 'Configure connector origins', src: 'connector-origins.md', pathway: 'operators', description: 'Exact HTTPS connector origins, deployment headers and native request policy.' },
-  { slug: 'deployment',       title: 'Deployment',        src: 'deployment.md',      pathway: 'operators' },
-  { slug: 'ci-qualification', title: 'CI qualification', src: 'ci-qualification.md', pathway: 'operators', description: 'Qualify rapid UI updates and full releases with exact source and CI evidence.' },
-  { slug: 'deploy-delivery', title: 'Delivery deployment', src: 'deploy-delivery.md', pathway: 'operators', description: "Serve public files and private workspace responses safely: signed catalog updates, retained hashed files, model integrity, optional edges and release checks." },
-  { slug: 'configuration',    title: 'Configuration',     src: 'configuration.md',   pathway: 'operators', description: "Everything that shapes a Lolly instance: which brand it wears, which tools it exposes, and what each tool may do on the device it runs on." },
-  { slug: 'content-credentials-identity', title: 'Content Credentials Identity', src: 'content-credentials-identity.md', pathway: 'trust' },
-  { slug: 'content-credentials-engineering', title: 'Content Credentials - Engineering', src: 'content-credentials-engineering.md', pathway: 'trust' },
-  { slug: 'data-transfer',    title: 'Data Transfer',     src: 'data-transfer.md',   pathway: 'builders' },
-  { slug: 'about',            title: 'About',             src: '../README.md',       pathway: 'builders', description: "What Lolly is, who builds it, and how the pieces fit together. The project's own README." },
-
-  // ── Operators pathway ────────────────────────────────────────────────────
-  // The function playbooks (plans/177 section 5): job-first pages harvested from
-  // the retired landing audience tabs; the landing's persona device links them.
-  { slug: 'sales',     title: 'Lolly for sales teams', src: 'sales.md',     pathway: 'operators', description: "Walk into every meeting with exactly the file you need: fix the deck you already have, rebuild it as a native deck file, and make the asset on the way there." },
-  { slug: 'press',     title: 'Lolly for the newsroom', src: 'press.md',    pathway: 'operators', description: "Build the info-editorial style once, then generate publication-quality charts, maps and tables from live data, in the house style, for print and screen." },
-  { slug: 'marketing', title: 'Lolly for marketing teams', src: 'marketing.md', pathway: 'operators', description: "Every size, every language, one source of truth: paste a spreadsheet and get one finished file per row, with no agency bottleneck for routine files." },
-  { slug: 'legal',     title: 'Lolly for legal teams', src: 'legal.md',     pathway: 'operators', description: "Redact, anonymise, verify and compress on the device the file already lives on, so nothing leaves the building to be cleaned, with the licence and the EU AI Act position stated plainly." },
-  { slug: 'adoption-governance', title: 'Adoption & Governance', src: 'adoption-governance.md', pathway: 'operators', description: "Adopting Lolly across a team: who approves tools, how brand rules become enforceable, and what changes in a creative workflow." },
-  { slug: 'sovereign-production', title: 'Sovereign creative production', src: 'sovereign-production.md', pathway: 'operators', register: 'stage', description: "Creative production with no server in the render path: air-gapped deployment, consent-gated networking, on-device signing and the tools as files you hold." },
-  { slug: 'security',         title: 'Security & Verification', src: 'security-verification.md', pathway: 'trust', description: "The cryptography behind Lolly's Content Credentials, verification and encryption, summarised for a security reviewer with the limits stated as clearly as the guarantees." },
-  { slug: 'threat-model',     title: 'Threat Model & Trust Boundaries', src: 'threat-model.md', pathway: 'trust', description: "What Lolly defends against, what it explicitly does not, and where each trust boundary sits. Written for reviewers who need the limits stated as plainly as the protections." },
-  { slug: 'parser-inventory', title: 'Parser Inventory',  src: 'parser-inventory.md', pathway: 'trust' },
-  { slug: 'server-surface',   title: 'Server Surface',    src: 'server-surface.md',  pathway: 'trust', description: "The complete inventory of what a Lolly server does and does not see, component by component, so you can audit the whole network surface in one sitting." },
-  { slug: 'verify-yourself',  title: 'Verify It Yourself', src: 'verify-yourself.md', pathway: 'trust', description: "Check this site's claims against a real export, step by step. No account, no trust required, and nothing you cannot run yourself." },
-  { slug: 'verify-ai-evidence', title: 'AI evidence in Verify', src: 'verify-ai-evidence.md', pathway: 'trust', description: 'Located text and visual clues, coverage, review notes and the limits of authorship probability.' },
-  { slug: 'privacy',          title: 'Privacy Policy',    src: 'privacy.md',         pathway: 'trust' },
-  { slug: 'inclusive-design', title: 'Inclusive Design',  src: 'inclusive-design.md', pathway: 'trust', description: "Accessibility, language coverage and the ethical commitments Lolly holds itself to, with the tests that fail the build when one is broken." },
-  { slug: 'ai-stance',        title: 'Our AI Stance',     src: 'ai-stance.md',       pathway: 'trust', register: 'stage', description: "AI is welcome as labour and refused as impersonation. Where Lolly stands on generated content, and the machinery that enforces each commitment." },
-  { slug: 'ai-features',      title: 'Generated once, rendered the same', src: 'ai-features.md', pathway: 'trust', description: "Text-to-speech, upscaling and background removal: generated once under guard-rails, then rendered identically everywhere. Why inventing pixels is marked AI and removing them is not." },
-  { slug: 'eu-ai-act',        title: 'AI marking and the EU AI Act', src: 'eu-ai-act.md', pathway: 'trust', description: "Article 50 has applied since 2 August 2026, and its Code of Practice points at C2PA. Lolly's honest fit: it preserves arriving AI marks, declares its own AI operations and verifies files on-device." },
-  { slug: 'beatrice-warde',   title: 'Beatrice Warde',    src: 'beatrice-warde.md',  pathway: 'trust', register: 'stage', description: "The typographer whose 1932 lines this project adapted, who proved that the types the whole trade called Garamond had been cut by somebody else entirely." },
-  { slug: 'shoulders-of-giants', title: 'Shoulders of giants', src: 'shoulders-of-giants.md', pathway: 'trust', register: 'stage', description: "The open source projects and people Lolly is built from, and the story of how shared work made it possible: SUSE and three decades of the free desktop, Penpot and Inkscape, WebAssembly, WebGPU and the open models beside them.", pdf: 'shoulders-of-giants.pdf' },
+  { slug: 'index', title: 'Lolly: information and documentation', src: 'site.md', canonicalPath: 'index', contentLicense: 'CC-BY-SA-4.0', isLanding: true },
+  { slug: 'quickstart', title: 'Quickstart', src: 'quickstart.md', pathway: 'quickstart', canonicalPath: 'start/quickstart', contentLicense: 'CC-BY-SA-4.0', isHub: true },
+  { slug: 'make-something', title: 'Make your first file', src: 'make-something.md', pathway: 'quickstart', canonicalPath: 'start/make-something', contentLicense: 'CC-BY-SA-4.0', description: 'Make a QR code for a web address, download it, check that it scans, and save an editable copy you can reopen from Projects. No account needed.', render: renderMakeSomethingPage },
+  { slug: 'faq', title: 'Questions & answers', src: 'faq.md', pathway: 'quickstart', canonicalPath: 'start/faq', contentLicense: 'CC-BY-SA-4.0', description: 'The things people ask most: why it is free, what the catch is not, what happens to your files and where Lolly is going.', render: renderFaqPage },
+  { slug: 'project-asset-transfers', title: 'Shared project assets', src: 'project-asset-transfers.md', pathway: 'creators', canonicalPath: 'create/project-asset-transfers', contentLicense: 'CC-BY-SA-4.0', description: 'Browse shared project folders, copy assets, submit originals to a workspace library and send files to connected destinations.' },
+  { slug: 'organisation', title: 'Use Lolly at your organisation', src: 'organisation.md', pathway: 'quickstart', canonicalPath: 'start/organisation', contentLicense: 'CC-BY-SA-4.0', description: 'Use your organisation\'s Lolly, with optional lolly.work sign-in, shared projects, live collabs and managed settings. Learn what stays local and how to leave.' },
+  { slug: 'install', title: 'Install Lolly', src: 'install.md', pathway: 'quickstart', canonicalPath: 'start/install', contentLicense: 'CC-BY-SA-4.0', description: 'Every packaged build in one list: the macOS disk image, the openSUSE Tumbleweed and Leap RPMs, the Flatpak, the Android APK, and how to check the file you downloaded is the one we made.' },
+  { slug: 'supported-environments', title: 'Supported environments', src: 'supported-environments.md', pathway: 'quickstart', canonicalPath: 'start/supported-environments', contentLicense: 'CC-BY-SA-4.0', description: 'Tested browser and app environments, the WebGPU startup requirement, and the separate web and native release scopes.' },
+  { slug: 'creators', title: 'Create & use', src: 'creators.md', pathway: 'creators', canonicalPath: 'create/creators', contentLicense: 'CC-BY-SA-4.0', headingId: 'lolly-for-creators', isHub: true },
+  { slug: 'builders', title: 'Build & automate', src: 'builders.md', pathway: 'builders', canonicalPath: 'build/builders', contentLicense: 'CC-BY-SA-4.0', headingId: 'lolly-for-builders', isHub: true },
+  { slug: 'operators', title: 'Manage an organisation', src: 'operators.md', pathway: 'managers', canonicalPath: 'manage/organisation-management', contentLicense: 'CC-BY-SA-4.0', description: 'Roll Lolly out across an organisation: governance, deployment, configuration and the trust properties your security review will ask about.', headingId: 'lolly-for-operators', isHub: true },
+  { slug: 'trust', title: 'Trust & security', src: 'trust.md', pathway: 'trust', canonicalPath: 'trust/trust', contentLicense: 'CC-BY-SA-4.0', description: 'Where your content comes from, how to check it yourself, and what happens to your data. The claims on this site with the mechanism that enforces each one.', headingId: 'trust', isHub: true },
+  { slug: 'status-quo', title: 'The trade we never agreed to', src: 'status-quo.md', pathway: 'trust', canonicalPath: 'trust/status-quo', contentLicense: 'CC-BY-SA-4.0', description: 'Uploading a logo to a stranger for a resize. Artwork locked behind a lapsed plan. The frictions we all learned to accept, and what replaces them.', register: 'stage' },
+  { slug: 'tenets', title: 'Tenets', src: 'tenets.md', pathway: 'trust', canonicalPath: 'trust/tenets', contentLicense: 'CC-BY-SA-4.0', author: 'Andy Fitzsimon', description: 'Our vision, values and mission: all potential to all mediums.', register: 'stage', immersive: true, render: renderTenetsPage },
+  { slug: 'input-not-impersonation', title: 'Input, not impersonation', src: 'input-not-impersonation.md', pathway: 'trust', canonicalPath: 'trust/input-not-impersonation', contentLicense: 'CC-BY-SA-4.0', description: 'An AI agent may fill in the inputs and may not claim to be you. Where the line sits, how it is enforced, and what a rogue agent still cannot do.', register: 'stage' },
+  { slug: 'creative-rights', title: 'Creative rights and credits', src: 'creative-rights.md', pathway: 'trust', canonicalPath: 'trust/creative-rights', contentLicense: 'CC-BY-SA-4.0', description: 'How Lolly records a source licence, works out what it asks of the use you are making, writes the credit into the file, and tells you the part only you can do.', register: 'stage' },
+  { slug: 'create-a-tool', title: 'Share a design with rules', src: 'create-a-tool.md', pathway: 'creators', canonicalPath: 'create/create-a-tool', contentLicense: 'CC-BY-SA-4.0', description: 'Turn a Design document into a portable tool with approved inputs, shared names, themes and fixed artwork.' },
+  { slug: 'design-tool-contract', title: 'Design tool contract', src: 'design-tool-contract.md', pathway: 'builders', canonicalPath: 'build/design-tool-contract', contentLicense: 'CC-BY-SA-4.0', description: 'Declarative rules, portable tool packages and immutable installed revisions.' },
+  { slug: 'training-creators', title: 'Training courses', src: 'training-creators.md', pathway: 'creators', canonicalPath: 'create/training-creators', contentLicense: 'CC-BY-SA-4.0', description: 'Assemble project content into courses, check their content and size, and export versions for a website or LMS.' },
+  { slug: 'learning-integration', title: 'Learning integration', src: 'learning-integration.md', pathway: 'builders', canonicalPath: 'build/learning-integration', contentLicense: 'CC-BY-SA-4.0', description: 'Portable course delivery and the versioned browser progress event contract.' },
+  { slug: 'using', title: 'Using Lolly', src: 'using.md', pathway: 'creators', canonicalPath: 'create/using', contentLicense: 'CC-BY-SA-4.0' },
+  { slug: 'templates', title: 'Templates', src: 'templates.md', pathway: 'creators', canonicalPath: 'create/templates', contentLicense: 'CC-BY-SA-4.0', description: 'Saved starting points for a tool: how to keep one, how to open a tool on it every time, and how yours sit beside the ones a tool ships with.' },
+  { slug: 'brand-studio', title: 'The Brand Studio', src: 'brand-studio.md', pathway: 'creators', canonicalPath: 'create/brand-studio', contentLicense: 'CC-BY-SA-4.0' },
+  { slug: '3d-studio', title: '3D Studio', src: '3d-studio.md', pathway: 'creators', canonicalPath: 'create/3d-studio', contentLicense: 'CC-BY-SA-4.0', description: 'Stage SVG artwork and meshes with materials, lighting, depth of field and transparent shadows.' },
+  { slug: 'profile', title: 'Profiles', src: 'profile.md', pathway: 'creators', canonicalPath: 'create/profile', contentLicense: 'CC-BY-SA-4.0', description: 'The working identity Lolly creates as - your name, role and contact details, filled into tools automatically and stored on your own device.' },
+  { slug: 'find-your-work', title: 'Find and recover your work', src: 'find-your-work.md', pathway: 'creators', canonicalPath: 'create/find-your-work', contentLicense: 'CC-BY-SA-4.0', description: 'Where your saved work, downloads and earlier versions are, what a closed tab or cleared browser data takes with it, and how to move everything to another device.' },
+  { slug: 'sync', title: 'Sync your devices', src: 'sync.md', pathway: 'creators', canonicalPath: 'create/sync', contentLicense: 'CC-BY-SA-4.0', description: 'Keep your work the same on every device through storage you choose - Dropbox, Google Drive, OneDrive, your own Nextcloud or S3 - with no Lolly server in between.' },
+  { slug: 'design-import', title: 'Import a design (Figma, Penpot, Illustrator, InDesign)', src: 'design-import.md', pathway: 'creators', canonicalPath: 'create/design-import', contentLicense: 'CC-BY-SA-4.0', description: 'Bring a finished design out of Figma, Penpot, Illustrator or InDesign and into Lolly as an editable, re-renderable tool rather than a flat picture.', render: renderDesignImportPage },
+  { slug: 'rebrand', title: 'Rebrand a deck', src: 'rebrand.md', pathway: 'creators', canonicalPath: 'create/rebrand', contentLicense: 'CC-BY-SA-4.0', description: 'Move a PowerPoint or PDF deck someone else made onto your design system, on your device: review what Rebrand suggests for each slide, decide, and open the result in Design.' },
+  { slug: 'formats', title: 'Every format Lolly can open and make', src: 'formats.md', pathway: 'creators', canonicalPath: 'create/formats', contentLicense: 'CC-BY-SA-4.0', description: 'Every file format Lolly reads, every format it writes, and the ones it does both ways - grouped by what each one is, with a plain-language card behind every chip.', render: renderFormatsPage },
+  { slug: 'text-composition', title: 'Text in Design', src: 'text-composition.md', pathway: 'creators', canonicalPath: 'create/text-composition', contentLicense: 'CC-BY-SA-4.0', description: 'Edit text on canvas, flow articles through frames, compose typography and retain editable source.' },
+  { slug: 'text-composition-engine', title: 'Authored text composition', src: '../engine/text-composition.md', pathway: 'builders', canonicalPath: 'build/text-composition-engine', contentLicense: 'CC-BY-SA-4.0', description: 'Literal text, pinned fonts, shared shaping, frame and path geometry, native editing and export receipts.' },
+  { slug: 'hdr-editing', title: 'Wide Colour and HDR', src: 'hdr-editing.md', pathway: 'creators', canonicalPath: 'create/hdr-editing', contentLicense: 'CC-BY-SA-4.0', description: 'Keep original image and video precision, use authored P3 brand swatches, and choose HDR or SDR output.' },
+  { slug: 'sequence-editor', title: 'The sequence editor', src: 'sequence-editor.md', pathway: 'creators', canonicalPath: 'create/sequence-editor', contentLicense: 'CC-BY-SA-4.0' },
+  { slug: 'presenting', title: 'Presenting with camera', src: 'presenting.md', pathway: 'creators', canonicalPath: 'create/presenting', contentLicense: 'CC-BY-SA-4.0', description: 'Prepare camera framing, a logo and captions over slides or Countdown, with private controls, saved scenes and local recording.' },
+  { slug: 'interactive-pages', title: 'Live pages that take the clicker', src: 'interactive-pages.md', pathway: 'creators', canonicalPath: 'create/interactive-pages', contentLicense: 'CC-BY-SA-4.0', description: 'Give web pages a focus step, scroll stops and automatic movement while the presenter keeps control of the deck.' },
+  { slug: 'agenda', title: 'Agenda screens and programmes', src: 'agenda.md', pathway: 'creators', canonicalPath: 'create/agenda', contentLicense: 'CC-BY-SA-4.0', description: 'Turn an event programme into branded screens, an interactive page, video, calendars and PowerPoint slides.' },
+  { slug: 'animating', title: 'Animating: keyframes, depth and a camera', src: 'animating.md', pathway: 'creators', canonicalPath: 'create/animating', contentLicense: 'CC-BY-SA-4.0', description: 'Pose a box at one moment, lift it off the page, and fly a camera over the result - keyframes, depth, the scene camera and Lift layers, all on your device.' },
+  { slug: 'collaborate', title: 'Working together', src: 'collaborate.md', pathway: 'creators', canonicalPath: 'create/collaborate', contentLicense: 'CC-BY-SA-4.0', description: 'Edit a tool session together in a private collab between two devices, or use optional work collabs through your organisation\'s lolly.work instance.' },
+  { slug: 'search', title: 'Search', src: 'search.md', pathway: 'creators', canonicalPath: 'create/search', contentLicense: 'CC-BY-SA-4.0' },
+  { slug: 'ask', title: 'Ask Lolly', src: 'ask.md', pathway: 'creators', canonicalPath: 'create/ask', contentLicense: 'CC-BY-SA-4.0' },
+  { slug: 'dashboard', title: 'The Dashboard', src: 'dashboard.md', pathway: 'creators', canonicalPath: 'create/dashboard', contentLicense: 'CC-BY-SA-4.0' },
+  { slug: 'utilities', title: 'Utility views', src: 'utilities.md', pathway: 'creators', canonicalPath: 'create/utilities', contentLicense: 'CC-BY-SA-4.0', description: 'The five workbenches built into the app - spreadsheet, converter, Colour Lab, PDF extractor and Script audio - what each one does, and where it stops.' },
+  { slug: 'favourites', title: 'Your favourites', src: 'favourites.md', pathway: 'creators', canonicalPath: 'create/favourites', contentLicense: 'CC-BY-SA-4.0' },
+  { slug: 'exporting', title: 'Exporting & Formats', src: 'exporting.md', pathway: 'creators', canonicalPath: 'create/exporting', contentLicense: 'CC-BY-SA-4.0' },
+  { slug: 'positioning', title: 'How Lolly compares', src: 'positioning.md', pathway: 'creators', canonicalPath: 'create/positioning', contentLicense: 'CC-BY-SA-4.0' },
+  { slug: 'compare', title: 'Lolly compared, tool by tool', src: 'compare.md', pathway: 'creators', canonicalPath: 'create/compare', contentLicense: 'CC-BY-SA-4.0', description: 'Where Lolly overlaps with Canva, Adobe, Figma, rendering APIs and online converters, and what each of those does better. Dated, concession first, no superlatives.' },
+  { slug: 'compare-canva', title: 'Lolly and Canva', src: 'compare-canva.md', pathway: 'creators', canonicalPath: 'create/compare-canva', contentLicense: 'CC-BY-SA-4.0', description: 'Making an on-brand graphic without a subscription: where Lolly and Canva overlap, and what Canva does better today.' },
+  { slug: 'compare-adobe', title: 'Lolly and Adobe', src: 'compare-adobe.md', pathway: 'creators', canonicalPath: 'create/compare-adobe', contentLicense: 'CC-BY-SA-4.0', description: 'Converting, exporting and signing files without a Creative Cloud account: where Lolly and Adobe overlap.' },
+  { slug: 'compare-figma', title: 'Lolly and Figma', src: 'compare-figma.md', pathway: 'creators', canonicalPath: 'create/compare-figma', contentLicense: 'CC-BY-SA-4.0', description: 'Laying out a design and turning it into a reusable output: where Lolly and Figma overlap, and what Figma does better.' },
+  { slug: 'compare-render-apis', title: 'Lolly and rendering APIs', src: 'compare-render-apis.md', pathway: 'creators', canonicalPath: 'create/compare-render-apis', contentLicense: 'CC-BY-SA-4.0', description: 'Generating many on-brand images from data: where Lolly and a hosted rendering API like Bannerbear or Placid overlap.' },
+  { slug: 'compare-converters', title: 'Lolly and online file converters', src: 'compare-converters.md', pathway: 'creators', canonicalPath: 'create/compare-converters', contentLicense: 'CC-BY-SA-4.0', description: 'Turning one file format into another on your own device, without uploading it to a stranger\'s server.' },
+  { slug: 'compare-penpot', title: 'Lolly and Penpot', src: 'compare-penpot.md', pathway: 'creators', canonicalPath: 'create/compare-penpot', contentLicense: 'CC-BY-SA-4.0', description: 'Two open-source answers to design work: where Lolly and Penpot overlap, what Penpot does better today, and how the two projects work together.' },
+  { slug: 'compare-brand-portals', title: 'Lolly and brand portals', src: 'compare-brand-portals.md', pathway: 'creators', canonicalPath: 'create/compare-brand-portals', contentLicense: 'CC-BY-SA-4.0', description: 'Locked templates without the portal: where Lolly overlaps with brand platforms like Bynder, Frontify and Marq, and what a portal still does better.' },
+  { slug: 'overview', title: 'Lolly architecture', src: 'overview.md', pathway: 'builders', canonicalPath: 'build/overview', contentLicense: 'CC-BY-SA-4.0', description: 'How the Lolly platform is put together: the engine, the shells, the capability bridge, and why tools are data rather than bundled code.' },
+  { slug: 'design-tokens', title: 'Design Tokens', src: 'design-tokens.md', pathway: 'builders', canonicalPath: 'build/design-tokens', contentLicense: 'CC-BY-SA-4.0' },
+  { slug: 'token-workflows', title: 'Token workflows', src: 'token-workflows.md', pathway: 'builders', canonicalPath: 'build/token-workflows', contentLicense: 'CC-BY-SA-4.0' },
+  { slug: 'glossary', title: 'Glossary', src: 'glossary.md', pathway: 'quickstart', canonicalPath: 'start/glossary', contentLicense: 'CC-BY-SA-4.0', description: 'The words Lolly uses with exact meanings: engine, shell, bridge, tool, brand pack, profile, view, catalog, session, utility, collab, and what each is not.' },
+  { slug: 'document-model', title: 'Document model draft', src: 'document-model.md', pathway: 'builders', canonicalPath: 'build/document-model', contentLicense: 'CC-BY-SA-4.0', description: 'A draft specification of the Lolly document model: the records, operations, values, evaluation, policy, conformance and packaging rules that make a complete tool portable, and what is decided, open and not yet built.' },
+  { slug: 'constraints', title: 'Constraints', src: 'constraints.md', pathway: 'builders', canonicalPath: 'build/constraints', contentLicense: 'CC-BY-SA-4.0', description: 'Why output comes out right by construction: inputs declared in the manifest, logic-less templates and brand values resolved from tokens, with the tests that enforce each.' },
+  { slug: 'determinism', title: 'Determinism', src: 'determinism.md', pathway: 'builders', canonicalPath: 'build/determinism', contentLicense: 'CC-BY-SA-4.0', description: 'Same inputs, same file: one render path behind every shell, what is byte-reproducible and what is not, and the receipts for both.' },
+  { slug: 'reproducibility', title: 'Reproducibility', src: 'reproducibility.md', pathway: 'builders', canonicalPath: 'build/reproducibility', contentLicense: 'CC-BY-SA-4.0', description: 'The URL is the artifact: every input travels as parameters, so a link re-renders next year, and the limits of what a bare link can carry.' },
+  { slug: 'authoring-tools', title: 'Authoring Tools', src: 'authoring-tools.md', pathway: 'builders', canonicalPath: 'build/authoring-tools', contentLicense: 'CC-BY-SA-4.0', description: 'Author a Lolly tool: the manifest, the template, the optional hooks, and the invariants that keep one tool running unchanged in the browser, on the desktop and in the terminal.' },
+  { slug: 'tool-skills', title: 'Tool Skills', src: 'tool-skills.md', pathway: 'builders', canonicalPath: 'build/tool-skills', contentLicense: 'CC-BY-SA-4.0', description: 'Publish compatible tool guidance and supply the overall and current-tool skills through agent invitations.' },
+  { slug: 'tool-manifest', title: 'Tool manifests', src: 'tool-manifest.md', pathway: 'builders', canonicalPath: 'build/tool-manifest', contentLicense: 'CC-BY-SA-4.0', description: 'Declare identity, rendering, examples and a short walkthrough.' },
+  { slug: 'tool-inputs', title: 'Tool inputs', src: 'tool-inputs.md', pathway: 'builders', canonicalPath: 'build/tool-inputs', contentLicense: 'CC-BY-SA-4.0', description: 'Choose input types, visibility, profile prefills and common meanings.' },
+  { slug: 'tool-structured-inputs', title: 'Structured inputs and canvas controls', src: 'tool-structured-inputs.md', pathway: 'builders', canonicalPath: 'build/tool-structured-inputs', contentLicense: 'CC-BY-SA-4.0', description: 'Build repeating groups, editor canvases and bounded image framing.' },
+  { slug: 'tool-files', title: 'Assets and file utilities', src: 'tool-files.md', pathway: 'builders', canonicalPath: 'build/tool-files', contentLicense: 'CC-BY-SA-4.0', description: 'Accept library assets or local files and return transformed output.' },
+  { slug: 'tool-rendering', title: 'Templates and rendering', src: 'tool-rendering.md', pathway: 'builders', canonicalPath: 'build/tool-rendering', contentLicense: 'CC-BY-SA-4.0', description: 'Write templates and styles that work across vector, canvas and data exports.' },
+  { slug: 'tool-starters', title: 'Tool templates and presets', src: 'tool-starters.md', pathway: 'builders', canonicalPath: 'build/tool-starters', contentLicense: 'CC-BY-SA-4.0', description: 'Provide curated starting points, saved templates and Design motion.' },
+  { slug: 'tool-hooks', title: 'Tool hooks and host capabilities', src: 'tool-hooks.md', pathway: 'builders', canonicalPath: 'build/tool-hooks', contentLicense: 'CC-BY-SA-4.0', description: 'Add portable behavior, live media, recording, speech and allowed network access.' },
+  { slug: 'tool-composition', title: 'Composition and brand overlays', src: 'tool-composition.md', pathway: 'builders', canonicalPath: 'build/tool-composition', contentLicense: 'CC-BY-SA-4.0', description: 'Compose tools and resolve brand-specific logos and overlays.' },
+  { slug: 'tool-publishing', title: 'Publish and localize a tool', src: 'tool-publishing.md', pathway: 'builders', canonicalPath: 'build/tool-publishing', contentLicense: 'CC-BY-SA-4.0', description: 'Validate, distribute, test and translate a reusable tool.' },
+  { slug: 'authoring-assets', title: 'Authoring Assets', src: 'authoring-assets.md', pathway: 'builders', canonicalPath: 'build/authoring-assets', contentLicense: 'CC-BY-SA-4.0' },
+  { slug: 'host-api', title: 'Host API', src: 'host-api.md', pathway: 'builders', canonicalPath: 'build/host-api', contentLicense: 'CC-BY-SA-4.0' },
+  { slug: 'url-mode', title: 'URL Mode', src: 'url-mode.md', pathway: 'builders', canonicalPath: 'build/url-mode', contentLicense: 'CC-BY-SA-4.0', description: 'Every tool\'s state lives in the URL, so a link is a finished asset, a reproducible render, and the same input the CLI takes.' },
+  { slug: 'url-inputs', title: 'Inputs in URLs', src: 'url-inputs.md', pathway: 'builders', canonicalPath: 'build/url-inputs', contentLicense: 'CC-BY-SA-4.0', description: 'Encode each input type, keyframes and compact values.' },
+  { slug: 'url-parameters', title: 'Reserved URL parameters', src: 'url-parameters.md', pathway: 'builders', canonicalPath: 'build/url-parameters', contentLicense: 'CC-BY-SA-4.0', description: 'Look up export settings, packed links, units, print marks and contact sheets.' },
+  { slug: 'url-export', title: 'Export and presentation URLs', src: 'url-export.md', pathway: 'builders', canonicalPath: 'build/url-export', contentLicense: 'CC-BY-SA-4.0', description: 'Choose formats, download, copy, size, presentation and saved state.' },
+  { slug: 'url-app-links', title: 'App links and deep links', src: 'url-app-links.md', pathway: 'builders', canonicalPath: 'build/url-app-links', contentLicense: 'CC-BY-SA-4.0', description: 'Open app views and use the lolly URL scheme.' },
+  { slug: 'cli', title: 'lolly CLI: create and process files', src: 'cli.md', pathway: 'builders', canonicalPath: 'build/cli', contentLicense: 'CC-BY-SA-4.0' },
+  { slug: 'cli-rendering', title: 'Render with the CLI', src: 'cli-rendering.md', pathway: 'builders', canonicalPath: 'build/cli-rendering', contentLicense: 'CC-BY-SA-4.0', description: 'Choose export options, troubleshoot the browser renderer and render timelines or links.' },
+  { slug: 'cli-files', title: 'CLI file and media utilities', src: 'cli-files.md', pathway: 'builders', canonicalPath: 'build/cli-files', contentLicense: 'CC-BY-SA-4.0', description: 'Process local files, redactions, speech and on-device models.' },
+  { slug: 'production-checks', title: 'Production checks', src: 'production-checks.md', pathway: 'builders', canonicalPath: 'build/production-checks', contentLicense: 'CC-BY-SA-4.0', description: 'Inspect final files against explicit requirements, compare references, and apply permitted repairs with retained evidence.' },
+  { slug: 'cli-automation', title: 'CLI batch and automation', src: 'cli-automation.md', pathway: 'builders', canonicalPath: 'build/cli-automation', contentLicense: 'CC-BY-SA-4.0', description: 'Run local batches and CI, or use optional lolly.work for persistent organisation render jobs, batches and governed delivery.' },
+  { slug: 'cli-reference', title: 'CLI verification and configuration', src: 'cli-reference.md', pathway: 'builders', canonicalPath: 'build/cli-reference', contentLicense: 'CC-BY-SA-4.0', description: 'Verify files, inspect metadata, configure completion and find local state.' },
+  { slug: 'cli-signing', title: 'Signing from the terminal', src: 'cli-signing.md', pathway: 'builders', canonicalPath: 'build/cli-signing', contentLicense: 'CC-BY-SA-4.0', description: 'Set up a real signing identity for the CLI, so files made from the terminal carry a verifiable name rather than an anonymous on-device key.' },
+  { slug: 'tui', title: 'TUI', src: 'tui.md', pathway: 'builders', canonicalPath: 'build/tui', contentLicense: 'CC-BY-SA-4.0' },
+  { slug: 'mcp', title: 'MCP Server', src: 'mcp.md', pathway: 'builders', canonicalPath: 'build/mcp', contentLicense: 'CC-BY-SA-4.0' },
+  { slug: 'ai-agents', title: 'AI Agents', src: 'ai-agents.md', pathway: 'builders', canonicalPath: 'build/ai-agents', contentLicense: 'CC-BY-SA-4.0' },
+  { slug: 'extension', title: 'Browser Extension', src: 'extension.md', pathway: 'creators', canonicalPath: 'create/extension', contentLicense: 'CC-BY-SA-4.0' },
+  { slug: 'contributing-setup', title: 'Contributing Setup', src: 'contributing-setup.md', pathway: 'builders', canonicalPath: 'build/contributing-setup', contentLicense: 'CC-BY-SA-4.0', description: 'Get a development checkout sized to what you\'re here to do: slim clone personas for tool authors and engine developers, and how to upgrade to the full thing later.' },
+  { slug: 'build-guide', title: 'Build Guide', src: 'build-guide.md', pathway: 'builders', canonicalPath: 'build/build-guide', contentLicense: 'CC-BY-SA-4.0', description: 'Build Lolly for each target: the CLI binary, the desktop app, mobile, and the web PWA. Prerequisites, commands and what each build produces.' },
+  { slug: 'build-terminal', title: 'Build the CLI and TUI', src: 'build-terminal.md', pathway: 'builders', canonicalPath: 'build/build-terminal', contentLicense: 'CC-BY-SA-4.0', description: 'Run the terminal shells from source or package the CLI binary.' },
+  { slug: 'build-desktop', title: 'Build the desktop app', src: 'build-desktop.md', pathway: 'builders', canonicalPath: 'build/build-desktop', contentLicense: 'CC-BY-SA-4.0', description: 'Set up and package the Tauri desktop shell.' },
+  { slug: 'build-mobile', title: 'Build the mobile apps', src: 'build-mobile.md', pathway: 'builders', canonicalPath: 'build/build-mobile', contentLicense: 'CC-BY-SA-4.0', description: 'Set up, develop and package Android and iOS shells.' },
+  { slug: 'build-obs', title: 'Build with Open Build Service', src: 'build-obs.md', pathway: 'builders', canonicalPath: 'build/build-obs', contentLicense: 'CC-BY-SA-4.0', description: 'Plan OBS recipes for Lolly artifacts and their dependencies.' },
+  { slug: 'build-kubernetes', title: 'Build the web container and Helm chart', src: 'build-kubernetes.md', pathway: 'builders', canonicalPath: 'build/build-kubernetes', contentLicense: 'CC-BY-SA-4.0', description: 'Build the web image and deploy the chart with optional services.' },
+  { slug: 'ios-build', title: 'Building for iOS', src: 'ios-build.md', pathway: 'builders', canonicalPath: 'build/ios-build', contentLicense: 'CC-BY-SA-4.0' },
+  { slug: 'catalog-resource-reading', title: 'Read verified catalog resources', src: 'catalog-resource-reading.md', pathway: 'builders', canonicalPath: 'build/catalog-resource-reading', contentLicense: 'CC-BY-SA-4.0', description: 'Signed resource coverage, bounded reads and verified client resource delivery.' },
+  { slug: 'connector-origins', title: 'Configure connector origins', src: 'connector-origins.md', pathway: 'operators', canonicalPath: 'operate/connector-origins', contentLicense: 'CC-BY-SA-4.0', description: 'Exact HTTPS connector origins, deployment headers and native request policy.' },
+  { slug: 'deployment', title: 'Choose a deployment', src: 'deployment.md', pathway: 'operators', canonicalPath: 'operate/deployment', contentLicense: 'CC-BY-SA-4.0' },
+  { slug: 'ci-qualification', title: 'CI qualification', src: 'ci-qualification.md', pathway: 'operators', canonicalPath: 'operate/ci-qualification', contentLicense: 'CC-BY-SA-4.0', description: 'Qualify rapid UI updates and full releases with exact source and CI evidence.' },
+  { slug: 'deploy-delivery', title: 'Delivery deployment', src: 'deploy-delivery.md', pathway: 'operators', canonicalPath: 'operate/deploy-delivery', contentLicense: 'CC-BY-SA-4.0', description: 'Serve public files and private workspace responses safely: signed catalog updates, retained hashed files, model integrity, optional edges and release checks.' },
+  { slug: 'configuration', title: 'Profiles, brands and tool configuration', src: 'configuration.md', pathway: 'managers', canonicalPath: 'manage/profiles-and-brands', contentLicense: 'CC-BY-SA-4.0', description: 'Everything that shapes a Lolly instance: which brand it wears, which tools it exposes, and what each tool may do on the device it runs on.' },
+  { slug: 'content-credentials-identity', title: 'Content Credentials Identity', src: 'content-credentials-identity.md', pathway: 'trust', canonicalPath: 'trust/content-credentials-identity', contentLicense: 'CC-BY-SA-4.0' },
+  { slug: 'content-credentials-engineering', title: 'Content Credentials - Engineering', src: 'content-credentials-engineering.md', pathway: 'trust', canonicalPath: 'trust/content-credentials-engineering', contentLicense: 'CC-BY-SA-4.0' },
+  { slug: 'data-transfer', title: 'Data Transfer', src: 'data-transfer.md', pathway: 'builders', canonicalPath: 'build/data-transfer', contentLicense: 'CC-BY-SA-4.0' },
+  { slug: 'about', title: 'About', src: '../README.md', pathway: 'quickstart', canonicalPath: 'start/about', contentLicense: 'CC-BY-SA-4.0', description: 'What Lolly is, who builds it, and how the pieces fit together. The project\'s own README.' },
+  { slug: 'sales', title: 'Lolly for sales teams', src: 'sales.md', pathway: 'creators', canonicalPath: 'create/sales', contentLicense: 'CC-BY-SA-4.0', description: 'Walk into every meeting with exactly the file you need: fix the deck you already have, rebuild it as a native deck file, and make the asset on the way there.' },
+  { slug: 'press', title: 'Lolly for the newsroom', src: 'press.md', pathway: 'creators', canonicalPath: 'create/press', contentLicense: 'CC-BY-SA-4.0', description: 'Build the info-editorial style once, then generate publication-quality charts, maps and tables from live data, in the house style, for print and screen.' },
+  { slug: 'marketing', title: 'Lolly for marketing teams', src: 'marketing.md', pathway: 'creators', canonicalPath: 'create/marketing', contentLicense: 'CC-BY-SA-4.0', description: 'Every size, every language, one source of truth: paste a spreadsheet and get one finished file per row, with no agency bottleneck for routine files.' },
+  { slug: 'legal', title: 'Lolly for legal teams', src: 'legal.md', pathway: 'creators', canonicalPath: 'create/legal', contentLicense: 'CC-BY-SA-4.0', description: 'Redact, anonymise, verify and compress on the device the file already lives on, so nothing leaves the building to be cleaned, with the licence and the EU AI Act position stated plainly.' },
+  { slug: 'adoption-governance', title: 'Adoption & Governance', src: 'adoption-governance.md', pathway: 'managers', canonicalPath: 'manage/adoption-governance', contentLicense: 'CC-BY-SA-4.0', description: 'Adopting Lolly across a team: who approves tools, how brand rules become enforceable, and what changes in a creative workflow.' },
+  { slug: 'sovereign-production', title: 'Sovereign creative production', src: 'sovereign-production.md', pathway: 'operators', canonicalPath: 'operate/sovereign-production', contentLicense: 'CC-BY-SA-4.0', description: 'Creative production with no server in the render path: air-gapped deployment, consent-gated networking, on-device signing and the tools as files you hold.', register: 'stage' },
+  { slug: 'security', title: 'Security & Verification', src: 'security-verification.md', pathway: 'trust', canonicalPath: 'trust/security', contentLicense: 'CC-BY-SA-4.0', description: 'The cryptography behind Lolly\'s Content Credentials, verification and encryption, summarised for a security reviewer with the limits stated as clearly as the guarantees.' },
+  { slug: 'threat-model', title: 'Threat Model & Trust Boundaries', src: 'threat-model.md', pathway: 'trust', canonicalPath: 'trust/threat-model', contentLicense: 'CC-BY-SA-4.0', description: 'What Lolly defends against, what it explicitly does not, and where each trust boundary sits. Written for reviewers who need the limits stated as plainly as the protections.' },
+  { slug: 'parser-inventory', title: 'Parser Inventory', src: 'parser-inventory.md', pathway: 'trust', canonicalPath: 'trust/parser-inventory', contentLicense: 'CC-BY-SA-4.0' },
+  { slug: 'server-surface', title: 'Server Surface', src: 'server-surface.md', pathway: 'trust', canonicalPath: 'trust/server-surface', contentLicense: 'CC-BY-SA-4.0', description: 'The complete inventory of what a Lolly server does and does not see, component by component, so you can audit the whole network surface in one sitting.' },
+  { slug: 'verify-yourself', title: 'Verify It Yourself', src: 'verify-yourself.md', pathway: 'trust', canonicalPath: 'trust/verify-yourself', contentLicense: 'CC-BY-SA-4.0', description: 'Check this site\'s claims against a real export, step by step. No account, no trust required, and nothing you cannot run yourself.' },
+  { slug: 'verify-ai-evidence', title: 'AI evidence in Verify', src: 'verify-ai-evidence.md', pathway: 'trust', canonicalPath: 'trust/verify-ai-evidence', contentLicense: 'CC-BY-SA-4.0', description: 'Located text and visual clues, coverage, review notes and the limits of authorship probability.' },
+  { slug: 'privacy', title: 'Privacy Policy', src: 'privacy.md', pathway: 'trust', canonicalPath: 'trust/privacy', contentLicense: 'CC-BY-SA-4.0' },
+  { slug: 'inclusive-design', title: 'Inclusive Design', src: 'inclusive-design.md', pathway: 'trust', canonicalPath: 'trust/inclusive-design', contentLicense: 'CC-BY-SA-4.0', description: 'Accessibility, language coverage and the ethical commitments Lolly holds itself to, with the tests that fail the build when one is broken.' },
+  { slug: 'ai-stance', title: 'Our AI Stance', src: 'ai-stance.md', pathway: 'trust', canonicalPath: 'trust/ai-stance', contentLicense: 'CC-BY-SA-4.0', description: 'AI is welcome as labour and refused as impersonation. Where Lolly stands on generated content, and the machinery that enforces each commitment.', register: 'stage' },
+  { slug: 'ai-features', title: 'Generated once, rendered the same', src: 'ai-features.md', pathway: 'trust', canonicalPath: 'trust/ai-features', contentLicense: 'CC-BY-SA-4.0', description: 'Text-to-speech, upscaling and background removal: generated once under guard-rails, then rendered identically everywhere. Why inventing pixels is marked AI and removing them is not.' },
+  { slug: 'eu-ai-act', title: 'AI marking and the EU AI Act', src: 'eu-ai-act.md', pathway: 'trust', canonicalPath: 'trust/eu-ai-act', contentLicense: 'CC-BY-SA-4.0', description: 'Article 50 has applied since 2 August 2026, and its Code of Practice points at C2PA. Lolly\'s honest fit: it preserves arriving AI marks, declares its own AI operations and verifies files on-device.' },
+  { slug: 'beatrice-warde', title: 'Beatrice Warde', src: 'beatrice-warde.md', pathway: 'trust', canonicalPath: 'trust/beatrice-warde', contentLicense: 'CC-BY-SA-4.0', description: 'The typographer whose 1932 lines this project adapted, who proved that the types the whole trade called Garamond had been cut by somebody else entirely.', register: 'stage' },
+  { slug: 'shoulders-of-giants', title: 'Shoulders of giants', src: 'shoulders-of-giants.md', pathway: 'trust', canonicalPath: 'trust/shoulders-of-giants', contentLicense: 'CC-BY-SA-4.0', description: 'The open source projects and people Lolly is built from, and the story of how shared work made it possible: SUSE and three decades of the free desktop, Penpot and Inkscape, WebAssembly, WebGPU and the open models beside them.', pdf: 'shoulders-of-giants.pdf', register: 'stage' },
+  { slug: 'what-is-lolly', title: 'What is Lolly?', src: 'what-is-lolly.md', pathway: 'quickstart', canonicalPath: 'start/what-is-lolly', contentLicense: 'CC-BY-SA-4.0' },
+  { slug: 'operate', title: 'Deploy & operate', src: 'operate.md', pathway: 'operators', canonicalPath: 'operate/index', contentLicense: 'CC-BY-SA-4.0', isHub: true },
+  { slug: 'work-self-host', title: 'Run your own server', src: 'work/self-host.md', pathway: 'operators', canonicalPath: 'operate/run-your-own-server', contentLicense: 'MPL-2.0', description: 'Release downloads and installation paths for YunoHost, Linux, macOS, Windows and Kubernetes.' },
+  { slug: 'work-release-1-1-1', title: 'Release 1.1.1', src: 'work/release-1-1-1.md', pathway: 'operators', canonicalPath: 'operate/release-1-1-1', contentLicense: 'MPL-2.0', description: 'Work 1.1.1 paired with Lolly 1.1.1: matched components, changes since 1.1.0, migrations and qualification.' },
+  { slug: 'work-release-1-1-0', title: 'Release 1.1.0 (historical record)', src: 'work/release-1-1-0.md', pathway: 'operators', canonicalPath: 'operate/release-1-1-0', contentLicense: 'MPL-2.0', description: 'Shared Lolly and Work release candidate, matched component versions, qualification, migration and rollback.' },
+  { slug: 'work-overview', title: 'Lolly Work architecture', src: 'work/overview.md', pathway: 'operators', canonicalPath: 'operate/work-architecture', contentLicense: 'MPL-2.0', description: 'The control plane in one page: what it serves, the two-repo shape, and the trust model.' },
+  { slug: 'work-install', title: 'Install Lolly Work', src: 'work/install.md', pathway: 'operators', canonicalPath: 'operate/install-work', contentLicense: 'MPL-2.0', description: 'Nothing → a running, configured, governed instance: local demo, first config, sign-in, Postgres, secrets, Compose, systemd, Helm.' },
+  { slug: 'work-official-installations', title: 'Official installation routes', src: 'work/official-installations.md', pathway: 'operators', canonicalPath: 'operate/official-installations', contentLicense: 'MPL-2.0', description: 'Project-owned images, Helm/Rancher, European clouds, YunoHost and neutral VM/Dokploy packages, with publication and qualification status.' },
+  { slug: 'work-enterprise-identity', title: 'Set up enterprise identity', src: 'work/enterprise-identity.md', pathway: 'operators', canonicalPath: 'operate/enterprise-identity', contentLicense: 'MPL-2.0', description: 'Managed SSO registration, admission, optional MFA, SCIM offboarding, logout, upgrades and credential rotation.' },
+  { slug: 'work-customer-setup', title: 'Configure your first Work instance', src: 'work/customer-setup.md', pathway: 'operators', canonicalPath: 'operate/customer-setup', contentLicense: 'MPL-2.0', description: 'An illustrated six-step journey through deployment, owner identity, SCIM, assets and a checked sample, with configuration apply and recovery.' },
+  { slug: 'work-deployment', title: 'Lolly Work deployment options', src: 'work/deployment.md', pathway: 'operators', canonicalPath: 'operate/work-deployment-options', contentLicense: 'MPL-2.0', description: 'Helm/Rancher, Compose, Vercel, air-gap: what each path carries and what it doesn\'t.' },
+  { slug: 'work-cloud-deployment', title: 'UpCloud, Evroc and fewer hosting services', src: 'work/cloud-deployment.md', pathway: 'operators', canonicalPath: 'operate/cloud-deployment', contentLicense: 'MPL-2.0', description: 'Two cloud targets, OpenTofu/Terraform, private VM boundaries, database restore and public-host migration.' },
+  { slug: 'work-platform-deployment', title: 'Deploy with your platform team', src: 'work/platform-deployment.md', pathway: 'operators', canonicalPath: 'operate/platform-deployment', contentLicense: 'MPL-2.0', description: 'Reader, operator and developer paths for SUSE hosts, K3s/RKE2, Ansible/Salt, OCI builds and cloud or on-premises deployment.' },
+  { slug: 'work-wasm-deployment', title: 'WebAssembly and Kubewarden choices', src: 'work/wasm-deployment.md', pathway: 'operators', canonicalPath: 'operate/wasm-deployment', contentLicense: 'MPL-2.0', description: 'Optional policy and component hosting tracks, current WASI compatibility, runtime qualification and bounded worker canaries.' },
+  { slug: 'work-security-platform', title: 'Where work happens and what crosses the network', src: 'work/security-platform.md', pathway: 'trust', canonicalPath: 'trust/security-platform', contentLicense: 'MPL-2.0', description: 'Local work, connected services and the boundaries operators control.' },
+  { slug: 'work-configuration', title: 'Work instance configuration', src: 'work/configuration.md', pathway: 'operators', canonicalPath: 'operate/instance-configuration', contentLicense: 'MPL-2.0', description: 'Every instance.json key and every LW_* environment variable, with defaults.' },
+  { slug: 'work-identity', title: 'Identity and sessions', src: 'work/identity.md', pathway: 'managers', canonicalPath: 'manage/identity-and-sessions', contentLicense: 'MPL-2.0', description: 'OIDC SSO, group mapping, member and guest sessions, the dev provider.' },
+  { slug: 'work-account-lifecycle', title: 'Account data controls', src: 'work/account-lifecycle.md', pathway: 'managers', canonicalPath: 'manage/account-data-controls', contentLicense: 'MPL-2.0', description: 'Owner metadata exports, scoped offboarding, documented limits and review of shared content.' },
+  { slug: 'work-document-agents', title: 'Invite an agent to a document', src: 'work/document-agents.md', pathway: 'builders', canonicalPath: 'build/document-agents', contentLicense: 'MPL-2.0', description: 'Invite MCP agents under your identity, with document access, expiry, live collaboration and revocation.' },
+  { slug: 'work-design-system-administration', title: 'Design-system administration', src: 'work/design-system-administration.md', pathway: 'managers', canonicalPath: 'manage/design-system-administration', contentLicense: 'MPL-2.0', description: 'Inspect sources, review replacements and retirement, and manage durable connect downloads.' },
+  { slug: 'work-permissions', title: 'Roles and grants', src: 'work/permissions.md', pathway: 'managers', canonicalPath: 'manage/permissions', contentLicense: 'MPL-2.0', description: 'The seven roles, every action they carry, and deny-wins fine-grained grants.' },
+  { slug: 'work-governance', title: 'Policy and governance', src: 'work/governance.md', pathway: 'managers', canonicalPath: 'manage/governance', contentLicense: 'MPL-2.0', description: 'Tool overlays, input locking, profile policy, feature flags, policy-as-code.' },
+  { slug: 'work-catalog', title: 'Catalog and content', src: 'work/catalog.md', pathway: 'managers', canonicalPath: 'manage/catalog', contentLicense: 'MPL-2.0', description: 'Brand packs, catalog providers, exposure slices, expiry and stop-sharing.' },
+  { slug: 'work-file-preview', title: 'Asset previews', src: 'work/file-preview.md', pathway: 'managers', canonicalPath: 'manage/asset-previews', contentLicense: 'MPL-2.0', description: 'Supported formats, preview conversion and render-worker configuration.' },
+  { slug: 'work-offboarding', title: 'Off-boarding a DAM', src: 'work/offboarding.md', pathway: 'managers', canonicalPath: 'manage/offboarding', contentLicense: 'MPL-2.0', description: 'Leaving a DAM: pin early, the Canto/Image Relay fork, and per-vendor exit readiness.' },
+  { slug: 'work-approvals', title: 'Approvals', src: 'work/approvals.md', pathway: 'managers', canonicalPath: 'manage/approvals', contentLicense: 'MPL-2.0', description: 'Chains, separation of duties, and what an approval can gate.' },
+  { slug: 'work-sharing', title: 'Rendering and sharing', src: 'work/sharing.md', pathway: 'managers', canonicalPath: 'manage/sharing', contentLicense: 'MPL-2.0', description: 'Server renders, signed links, guest sessions, watermarks, provenance.' },
+  { slug: 'work-renders', title: 'Recover and inspect render jobs', src: 'work/renders.md', pathway: 'managers', canonicalPath: 'manage/render-jobs', contentLicense: 'MPL-2.0', description: 'Persistent renders and batches, individual row recovery, output manifests, partial execution evidence, and API/CLI access.' },
+  { slug: 'work-delivery', title: 'Organisation delivery destinations', src: 'work/delivery.md', pathway: 'managers', canonicalPath: 'manage/organisation-delivery', contentLicense: 'MPL-2.0', description: 'Fixed organization destinations, durable receipts, S3/WebDAV/signed-HTTPS adapters, automation output references, retries, and the personal/organization boundary.' },
+  { slug: 'work-c2pa', title: 'Configure Work export signing', src: 'work/c2pa.md', pathway: 'operators', canonicalPath: 'operate/work-export-signing', contentLicense: 'MPL-2.0', description: 'Give this deploy a signing identity so exports carry a verifiable credential.' },
+  { slug: 'work-ai-policy', title: 'Manage organisation AI policy', src: 'work/ai-policy.md', pathway: 'managers', canonicalPath: 'manage/managed-ai', contentLicense: 'MPL-2.0', description: 'Approval ceiling, operator stop switch, execution enforcement and online policy leases.' },
+  { slug: 'work-data-lifecycle', title: 'Work storage and data lifecycle', src: 'work/data-lifecycle.md', pathway: 'trust', canonicalPath: 'trust/work-data-lifecycle', contentLicense: 'MPL-2.0', description: 'Store inventory, account-erasure preview, atomic removal and rights-workflow limits.' },
+  { slug: 'work-provider-guides', title: 'Provider guides', src: 'work/providers/README.md', pathway: 'managers', canonicalPath: 'manage/provider-guides', contentLicense: 'MPL-2.0', description: 'The shared skeleton every guide follows, the OAuth onboarding, and which drivers are fixture-verified only.' },
+  { slug: 'work-provider-webdav', title: 'WebDAV / Nextcloud', src: 'work/providers/webdav.md', pathway: 'managers', canonicalPath: 'manage/provider-webdav', contentLicense: 'MPL-2.0', description: 'Guided Nextcloud or generic WebDAV setup: exact groups, an original checksum, credential sealing and sync before activation.' },
+  { slug: 'work-provider-s3', title: 'S3 / S3-compatible', src: 'work/providers/s3.md', pathway: 'managers', canonicalPath: 'manage/provider-s3', contentLicense: 'MPL-2.0', description: 'AWS S3, MinIO, Ceph RGW: a private bucket federated read-only, zero-dependency SigV4.' },
+  { slug: 'work-provider-git', title: 'Git raw manifest', src: 'work/providers/git.md', pathway: 'managers', canonicalPath: 'manage/provider-git', contentLicense: 'MPL-2.0', description: 'The GitOps-native source: a catalog manifest under version control, served over raw HTTP.' },
+  { slug: 'work-provider-brandfolder', title: 'Brandfolder', src: 'work/providers/brandfolder.md', pathway: 'managers', canonicalPath: 'manage/provider-brandfolder', contentLicense: 'MPL-2.0', description: 'Federate a Brandfolder read-only; Brandfolder stays the source of truth.' },
+  { slug: 'work-provider-optimizely-cmp', title: 'Optimizely CMP', src: 'work/providers/optimizely-cmp.md', pathway: 'managers', canonicalPath: 'manage/provider-optimizely-cmp', contentLicense: 'MPL-2.0', description: 'The web DAM you keep, not one you exit: federate in, and optionally publish exports back out.' },
+  { slug: 'work-provider-imagerelay', title: 'Image Relay', src: 'work/providers/imagerelay.md', pathway: 'managers', canonicalPath: 'manage/provider-imagerelay', contentLicense: 'MPL-2.0', description: 'Read-only federation, plus the off-boarding path now that Canto owns the platform.' },
+  { slug: 'work-provider-canto', title: 'Canto', src: 'work/providers/canto.md', pathway: 'managers', canonicalPath: 'manage/provider-canto', contentLicense: 'MPL-2.0', description: 'Native Canto tenants and migrated Image Relay tenants, and how to tell which driver you exit through.' },
+  { slug: 'work-provider-acquia-dam', title: 'Acquia DAM / Widen', src: 'work/providers/acquia-dam.md', pathway: 'managers', canonicalPath: 'manage/provider-acquia-dam', contentLicense: 'MPL-2.0', description: 'Governance-rich enterprise DAM: native availability and approval, no custom-field mapping.' },
+  { slug: 'work-provider-intelligencebank', title: 'IntelligenceBank', src: 'work/providers/intelligencebank.md', pathway: 'managers', canonicalPath: 'manage/provider-intelligencebank', contentLicense: 'MPL-2.0', description: 'The v3 Graph API only; native expiry, review dates and workflow states map straight across.' },
+  { slug: 'work-provider-cloudinary', title: 'Cloudinary', src: 'work/providers/cloudinary.md', pathway: 'managers', canonicalPath: 'manage/provider-cloudinary', contentLicense: 'MPL-2.0', description: 'Read-only shared media by immutable asset ID, with original downloads and explicit tenant qualification.' },
+  { slug: 'work-provider-orange-logic', title: 'Orange Logic', src: 'work/providers/orange-logic.md', pathway: 'managers', canonicalPath: 'manage/provider-orange-logic', contentLicense: 'MPL-2.0', description: 'Public Search v4 and permitted renditions, with protected originals explicitly unavailable.' },
+  { slug: 'work-provider-cloudinary-live-verify', title: 'Cloudinary tenant verification', src: 'work/providers/cloudinary-live-verify.md', pathway: 'operators', canonicalPath: 'operate/provider-cloudinary-live-verify', contentLicense: 'MPL-2.0', description: 'Qualify access, original fidelity, paging and costs on the organisation tenant.' },
+  { slug: 'work-provider-orange-logic-live-verify', title: 'Orange Logic tenant verification', src: 'work/providers/orange-logic-live-verify.md', pathway: 'operators', canonicalPath: 'operate/provider-orange-logic-live-verify', contentLicense: 'MPL-2.0', description: 'Qualify scoped discovery and permitted renditions without claiming original migration.' },
+  { slug: 'work-provider-penpot', title: 'Penpot', src: 'work/providers/penpot.md', pathway: 'managers', canonicalPath: 'manage/provider-penpot', contentLicense: 'MPL-2.0', description: 'An open, self-hostable design-system source: token feed plus curated component export.' },
+  { slug: 'work-provider-dropbox', title: 'Dropbox', src: 'work/providers/dropbox.md', pathway: 'managers', canonicalPath: 'manage/provider-dropbox', contentLicense: 'MPL-2.0', description: 'A Dropbox folder federated read-only over the registered PKCE consent flow.' },
+  { slug: 'work-provider-gdrive', title: 'Google Drive', src: 'work/providers/gdrive.md', pathway: 'managers', canonicalPath: 'manage/provider-gdrive', contentLicense: 'MPL-2.0', description: 'Guided folder/group configuration, registered browser consent, saved-file testing, activation and connection recovery.' },
+  { slug: 'work-provider-o365', title: 'Microsoft 365 / SharePoint', src: 'work/providers/o365.md', pathway: 'managers', canonicalPath: 'manage/provider-o365', contentLicense: 'MPL-2.0', description: 'A SharePoint library or OneDrive federated read-only through Microsoft Graph.' },
+  { slug: 'work-provider-webdav-live-verify', title: 'WebDAV live-verify runbook', src: 'work/providers/webdav-live-verify.md', pathway: 'operators', canonicalPath: 'operate/provider-webdav-live-verify', contentLicense: 'MPL-2.0', description: 'The server-day checklist for the WebDAV driver\'s unconfirmed URL templates and property names.' },
+  { slug: 'work-provider-canto-live-verify', title: 'Canto live-verify runbook', src: 'work/providers/canto-live-verify.md', pathway: 'operators', canonicalPath: 'operate/provider-canto-live-verify', contentLicense: 'MPL-2.0', description: 'The tenant-day checklist that turns the fixture-verified Canto driver into a confirmed one.' },
+  { slug: 'work-provider-imagerelay-live-verify', title: 'Image Relay live-verify runbook', src: 'work/providers/imagerelay-live-verify.md', pathway: 'operators', canonicalPath: 'operate/provider-imagerelay-live-verify', contentLicense: 'MPL-2.0', description: 'The tenant-day checklist for the Image Relay driver\'s unconfirmed endpoints and fields.' },
+  { slug: 'work-provider-intelligencebank-live-verify', title: 'IntelligenceBank live-verify runbook', src: 'work/providers/intelligencebank-live-verify.md', pathway: 'operators', canonicalPath: 'operate/provider-intelligencebank-live-verify', contentLicense: 'MPL-2.0', description: 'The tenant-day checklist for the IntelligenceBank v3 driver\'s unconfirmed endpoints and fields.' },
+  { slug: 'work-provider-acquia-dam-live-verify', title: 'Acquia DAM live-verify runbook', src: 'work/providers/acquia-dam-live-verify.md', pathway: 'operators', canonicalPath: 'operate/provider-acquia-dam-live-verify', contentLicense: 'MPL-2.0', description: 'The tenant-day checklist for the Widen v2 driver\'s unconfirmed endpoints and fields.' },
+  { slug: 'work-operations', title: 'Operations runbook', src: 'work/operations.md', pathway: 'operators', canonicalPath: 'operate/operations', contentLicense: 'MPL-2.0', description: 'Migrations, collaboration drain, backup, rate limits, metrics, guarded upgrades and engine pin.' },
+  { slug: 'work-frontend-updates', title: 'Fast frontend updates', src: 'work/frontend-updates.md', pathway: 'operators', canonicalPath: 'operate/frontend-updates', contentLicense: 'MPL-2.0', description: 'Qualified source updates with reused runtimes, private shell publication, public root and validator maps, and accepted baselines.' },
+  { slug: 'work-public-model-proof-reuse', title: 'Public model verification reuse', src: 'work/public-model-proof-reuse.md', pathway: 'operators', canonicalPath: 'operate/public-model-proof-reuse', contentLicense: 'MPL-2.0', description: 'Bounded verification reuse for an unchanged serving process, invalidation rules, and measured release timings.' },
+  { slug: 'work-instance-pack-production', title: 'Build a verified instance pack', src: 'work/instance-pack-production.md', pathway: 'operators', canonicalPath: 'operate/instance-pack-production', contentLicense: 'MPL-2.0', description: 'Derive raw Work packs from signed releases while preserving asset addresses, renditions and release custody.' },
+  { slug: 'work-production-readiness', title: 'Production evidence', src: 'work/production-readiness.md', pathway: 'operators', canonicalPath: 'operate/production-readiness', contentLicense: 'MPL-2.0', description: 'Read-only configuration checks, staging probes and the evidence still needed before production.' },
+  { slug: 'work-application-release-classification', title: 'Application release classification', src: 'work/application-release-classification.md', pathway: 'operators', canonicalPath: 'operate/application-release-classification', contentLicense: 'MPL-2.0', description: 'Advisory Git comparison for web-shell changes, conservative shared-source boundaries and required release qualification.' },
+  { slug: 'work-shell-deployment-workflow', title: 'Shell deployment workflow', src: 'work/shell-deployment-workflow.md', pathway: 'operators', canonicalPath: 'operate/shell-deployment-workflow', contentLicense: 'MPL-2.0', description: 'Qualified main CI requests, reusable prepared artifacts and guarded publication with resumable successful phases.' },
+  { slug: 'work-telemetry', title: 'Telemetry and dashboards', src: 'work/telemetry.md', pathway: 'operators', canonicalPath: 'operate/telemetry', contentLicense: 'MPL-2.0', description: 'What is recorded, what never is, and how attribution consent works.' },
+  { slug: 'work-audit', title: 'Audit log', src: 'work/audit.md', pathway: 'operators', canonicalPath: 'operate/audit', contentLicense: 'MPL-2.0', description: 'The hash-chained record, verification, and anchoring the head off-box.' },
+  { slug: 'work-project-portability', title: 'Preview a project transfer', src: 'work/project-portability.md', pathway: 'managers', canonicalPath: 'manage/project-transfer-preview', contentLicense: 'MPL-2.0', description: 'Read-only project inventory, access mapping, file and history coverage, and preparation for moving work between instances.' },
+  { slug: 'work-api', title: 'Lolly Work API', src: 'work/api.md', pathway: 'builders', canonicalPath: 'build/work-api', contentLicense: 'MPL-2.0', description: 'Every route the console and CLI use, with the action each one requires.' },
+  { slug: 'work-cli', title: 'lw CLI: administer an instance', src: 'work/cli.md', pathway: 'builders', canonicalPath: 'build/lw-cli', contentLicense: 'MPL-2.0', description: 'Command reference for the admin CLI.' },
+  { slug: 'work-status', title: 'Work status and roadmap', src: 'work/status.md', pathway: 'quickstart', canonicalPath: 'start/status', contentLicense: 'MPL-2.0', description: 'What is built, what is pending, and the honest gaps before go-live.' },
 ];
+// END GENERATED DOCS pages
 
 // ── Door-structured URLs (plans/177 P1) ──────────────────────────────────────
 // Every hand-authored page lives under its pathway's DOOR directory as a real
@@ -386,13 +429,16 @@ const pages: Page[] = [
 // and stubs cannot disagree about which door a page is behind. The old flat
 // URL of every doored page gets a meta-refresh stub for one release cycle
 // (appended to `stubs` below); delete that loop to end the grace period.
+// BEGIN GENERATED DOCS DOOR
 const DOOR: Record<Pathway, string> = {
   quickstart: 'start',
-  creators:   'create',
-  builders:   'build',
-  operators:  'operate',
-  trust:      'trust',
+  creators: 'create',
+  builders: 'build',
+  managers: 'manage',
+  operators: 'operate',
+  trust: 'trust',
 };
+// END GENERATED DOCS DOOR
 const DOOR_DIRS = new Set(Object.values(DOOR));
 // slug → door directory, from the registry.
 const PAGE_DOOR: Record<string, string> = Object.fromEntries(
@@ -400,10 +446,13 @@ const PAGE_DOOR: Record<string, string> = Object.fromEntries(
 );
 /** The path form of a page slug: 'create/using' for doored pages, bare otherwise. */
 function pathSlug(slug: string): string {
-  return PAGE_DOOR[slug] ? `${PAGE_DOOR[slug]}/${slug}` : slug;
+  return pages.find(page => page.slug === slug)?.canonicalPath ?? (PAGE_DOOR[slug] ? `${PAGE_DOOR[slug]}/${slug}` : slug);
 }
 for (const p of pages) {
   if (PAGE_DOOR[p.slug]) stubs.push({ slug: p.slug, target: `/info/${pathSlug(p.slug)}.html` });
+}
+for (const page of DOCS_REGISTRY.pages) for (const alias of page.aliases) {
+  stubs.push({ slug: alias, target: `/info/${page.path}.html` });
 }
 /**
  * Rewrite the flat internal links a page's rendered HTML carries (hand-authored
@@ -415,9 +464,10 @@ for (const p of pages) {
  */
 function doorizeLinks(html: string): string {
   const langAlt = LANGS.filter(l => l !== 'en').join('|');
-  const re = new RegExp(`/info/((?:${langAlt})/)?([\\w-]+)\\.html`, 'g');
-  return html.replace(re, (m, langPrefix: string | undefined, slug: string) =>
-    PAGE_DOOR[slug] ? `/info/${langPrefix ?? ''}${pathSlug(slug)}.html` : m);
+  const aliases = new Map(DOCS_REGISTRY.pages.flatMap(p => [[p.slug, p.path], ...p.aliases.map(alias => [alias, p.path])] as Array<[string, string]>));
+  const re = new RegExp(`/info/((?:${langAlt})/)?([\\w/-]+)\\.(html|md)`, 'g');
+  return html.replace(re, (original, langPrefix: string | undefined, path: string, extension: string) =>
+    aliases.has(path) ? `/info/${langPrefix ?? ''}${aliases.get(path)}.${extension}` : original);
 }
 
 /**
@@ -491,26 +541,27 @@ interface NavLink {
 // The one primary article + the pathways. Each link maps to a pathway (via
 // NAV_PATHWAY below) so the hub's tab highlights on any child page, not only on the
 // hub itself.
+// BEGIN GENERATED DOCS NAV
 const NAV: NavLink[][] = [
-  [ { label: 'Quickstart',    href: '/info/quickstart.html' } ],
-  [ { label: 'For Creators',  href: '/info/creators.html' },
-    { label: 'For Builders',  href: '/info/builders.html' },
-    { label: 'For Operators', href: '/info/operators.html' } ],
-  // Trust is its own top-level destination, not a subsection of an audience. The
-  // provenance/privacy/security docs are the ones a sceptical reader comes looking
-  // for FIRST, and they answer the same questions whoever is asking - buried under
-  // "For Operators" they were only findable by someone who already self-identified
-  // as one.
-  [ { label: 'Trust', href: '/info/trust.html' } ],
+  [ { label: 'Start here', href: '/info/quickstart.html' },
+    { label: 'Create & use', href: '/info/creators.html' },
+    { label: 'Build & automate', href: '/info/builders.html' },
+    { label: 'Manage an organisation', href: '/info/operators.html' },
+    { label: 'Deploy & operate', href: '/info/operate.html' },
+    { label: 'Trust & security', href: '/info/trust.html' } ],
 ];
+// END GENERATED DOCS NAV
 // href → pathway, so a child page (e.g. host-api) lights up its hub's nav link.
+// BEGIN GENERATED DOCS NAV_PATHWAY
 const NAV_PATHWAY: Record<string, Pathway> = {
   '/info/quickstart.html': 'quickstart',
-  '/info/creators.html':   'creators',
-  '/info/builders.html':   'builders',
-  '/info/operators.html':  'operators',
-  '/info/trust.html':      'trust',
+  '/info/creators.html': 'creators',
+  '/info/builders.html': 'builders',
+  '/info/operators.html': 'managers',
+  '/info/operate.html': 'operators',
+  '/info/trust.html': 'trust',
 };
+// END GENERATED DOCS NAV_PATHWAY
 
 // The docs sidebar, per pathway. Each group is a labelled cluster of links; the
 // first item of the first group is the pathway hub itself. Slugs must exist in
@@ -519,248 +570,312 @@ const NAV_PATHWAY: Record<string, Pathway> = {
 // which sidebar renders when you're viewing it.
 interface SideItem { slug: string; label: string; }
 interface SideGroup { label: string; items: SideItem[]; }
+// BEGIN GENERATED DOCS SIDEBARS
 const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
-  quickstart: {
-    title: 'Quickstart',
-    groups: [
-      { label: 'Start here', items: [
-        { slug: 'make-something', label: 'Make something' },
-        { slug: 'quickstart',     label: 'Quickstart' },
-        { slug: 'install',        label: 'Install Lolly' },
-        { slug: 'supported-environments', label: 'Supported environments' },
-        { slug: 'organisation',   label: 'At your organisation' },
-        { slug: 'project-asset-transfers', label: 'Shared project assets' },
-        { slug: 'faq',            label: 'Questions & answers' } ] },
-      { label: 'Then pick a path', items: [
-        { slug: 'creators',  label: 'For Creators' },
-        { slug: 'builders',  label: 'For Builders' },
-        { slug: 'operators', label: 'For Operators' },
-        { slug: 'trust',     label: 'Trust' } ] },
-    ],
-  },
-  // The creators rail used to be one six-item "Make things" group with everything in
-  // it, and adding collab/search/favourites would have taken it to nine - a flat list
-  // long enough that its shape stopped telling a reader anything. Split by what the
-  // reader is trying to DO, kindred pages together: the surfaces you make in, the ways
-  // back to your own things, and getting work out of the app to other people.
-  creators: {
-    title: 'For Creators',
-    groups: [
-      { label: 'Creators', items: [
-        { slug: 'creators',   label: 'Why Lolly' },
-        { slug: 'quickstart', label: 'Quickstart' } ] },
-      // The lane groups mirror the landing's persona side tabs (plans/177:
-      // Make / Animate / Collaborate / Post), so the door and this rail are one
-      // mental model. Record has no page of its own - Using Lolly carries it.
-      { label: 'Make', items: [
-        { slug: 'using',           label: 'Using Lolly' },
-        { slug: 'training-creators', label: 'Training courses' },
-        { slug: 'templates',       label: 'Templates' },
-        { slug: 'create-a-tool', label: 'Share a design with rules' },
-        { slug: 'brand-studio',    label: 'The Brand Studio' },
-        { slug: '3d-studio', label: '3D Studio' },
-        { slug: 'text-composition', label: 'Text in Design' },
-        { slug: 'design-import',   label: 'Import a design' },
-        { slug: 'rebrand',         label: 'Rebrand a deck' },
-        { slug: 'utilities',       label: 'Utility views' },
-        { slug: 'extension',       label: 'Browser Extension' } ] },
-      { label: 'Animate', items: [
-        { slug: 'sequence-editor', label: 'The sequence editor' },
-        { slug: 'hdr-editing', label: 'Wide colour and HDR' },
-        { slug: 'animating',       label: 'Animating' } ] },
-      // Search, favourites and the profile are the three pages about getting back to
-      // your own things - finding them, keeping them to hand, and the on-device record
-      // both of the other two are written onto.
-      { label: 'Find your way', items: [
-        { slug: 'search',      label: 'Search' },
-        { slug: 'ask',         label: 'Ask Lolly' },
-        { slug: 'dashboard',   label: 'The Dashboard' },
-        { slug: 'favourites',  label: 'Your favourites' },
-        { slug: 'profile',     label: 'Your profile' },
-        { slug: 'find-your-work', label: 'Find your work' },
-        { slug: 'sync',        label: 'Sync your devices' } ] },
-      { label: 'Present', items: [
-        { slug: 'agenda', label: 'Agenda screens and programmes' },
-        { slug: 'presenting', label: 'Presenting with camera' },
-        { slug: 'interactive-pages', label: 'Live pages that take the clicker' } ] },
-      { label: 'Collaborate', items: [
-        { slug: 'collaborate', label: 'Working together' } ] },
-      { label: 'Post', items: [
-        { slug: 'formats',     label: 'What Lolly opens and makes' },
-        { slug: 'exporting',   label: 'Exporting a file' } ] },
-      { label: 'Compare', items: [
-        { slug: 'positioning', label: 'How Lolly compares' },
-        { slug: 'compare',     label: 'Tool by tool' },
-        { slug: 'compare-canva',         label: 'and Canva' },
-        { slug: 'compare-adobe',         label: 'and Adobe' },
-        { slug: 'compare-figma',         label: 'and Figma' },
-        { slug: 'compare-penpot',        label: 'and Penpot' },
-        { slug: 'compare-render-apis',   label: 'and rendering APIs' },
-        { slug: 'compare-brand-portals', label: 'and brand portals' },
-        { slug: 'compare-converters',    label: 'and online converters' } ] },
-    ],
-  },
-  builders: {
-    title: 'For Builders',
-    groups: [
-      { label: 'Builders', items: [
-        { slug: 'builders',   label: 'Overview' },
-        { slug: 'quickstart', label: 'Quickstart' } ] },
-      { label: 'Architecture', items: [
-        { slug: 'overview',      label: 'Architecture' },
-        { slug: 'design-tokens', label: 'Design Tokens' },
-        { slug: 'token-workflows', label: 'Token workflows' },
-        { slug: 'glossary',      label: 'Glossary' },
-        { slug: 'document-model', label: 'Document model draft' } ] },
-      // The three concept pages: each takes one term the landing states in plain
-      // words and shows the mechanism, the receipts and the limits (plan 117 section 2).
-      { label: 'Concepts', items: [
-        { slug: 'constraints',     label: 'Constraints' },
-        { slug: 'determinism',     label: 'Determinism' },
-        { slug: 'reproducibility', label: 'Reproducibility' } ] },
-      { label: 'Author tools', items: [
-        { slug: 'authoring-tools', label: 'Overview' },
-        { slug: 'tool-skills', label: 'Agent guidance' },
-        { slug: 'tool-manifest', label: 'Manifest' },
-        { slug: 'tool-inputs', label: 'Inputs' },
-        { slug: 'tool-structured-inputs', label: 'Structured inputs' },
-        { slug: 'tool-files', label: 'Assets and files' } ] },
-      { label: 'Render and share tools', items: [
-        { slug: 'tool-rendering', label: 'Templates and rendering' },
-        { slug: 'tool-starters', label: 'Starting points' },
-        { slug: 'tool-hooks', label: 'Hooks and capabilities' },
-        { slug: 'tool-composition', label: 'Composition' },
-        { slug: 'tool-publishing', label: 'Publish and localize' },
-        { slug: 'catalog-resource-reading', label: 'Verified catalog resources' } ] },
-      { label: 'Reference', items: [
-        { slug: 'authoring-assets', label: 'Authoring Assets' },
-        { slug: 'text-composition-engine', label: 'Authored text composition' },
-        { slug: 'host-api', label: 'Host API' } ] },
-      { label: 'URL mode', items: [
-        { slug: 'url-mode', label: 'Overview' },
-        { slug: 'url-inputs', label: 'Inputs' },
-        { slug: 'url-parameters', label: 'Reserved parameters' },
-        { slug: 'url-export', label: 'Export and presentation' },
-        { slug: 'url-app-links', label: 'App links' } ] },
-      { label: 'CLI', items: [
-        { slug: 'cli',         label: 'CLI' },
-        { slug: 'cli-rendering', label: 'Render with the CLI' },
-        { slug: 'cli-files', label: 'CLI file and media utilities' },
-        { slug: 'cli-automation', label: 'CLI batch and automation' },
-        { slug: 'production-checks', label: 'Production checks' },
-        { slug: 'cli-reference', label: 'CLI verification and configuration' },
-        { slug: 'cli-signing', label: 'Signing from the terminal' } ] },
-      { label: 'Run & integrate', items: [
-        { slug: 'tui',       label: 'Terminal (TUI)' },
-        { slug: 'mcp',       label: 'MCP Server' },
-        { slug: 'ai-agents', label: 'AI Agents' },
-        { slug: 'learning-integration', label: 'Learning integration' },
-        { slug: 'design-tool-contract', label: 'Design tool contract' },
-        { slug: 'extension', label: 'Browser Extension' } ] },
-      { label: 'Build targets', items: [
-        { slug: 'build-guide',   label: 'Build Guide' },
-        { slug: 'build-terminal', label: 'Build the CLI and TUI' },
-        { slug: 'build-desktop', label: 'Build the desktop app' },
-        { slug: 'build-mobile', label: 'Build the mobile apps' },
-        { slug: 'build-obs', label: 'Build with Open Build Service' },
-        { slug: 'build-kubernetes', label: 'Build the web container and Helm chart' },
-        { slug: 'ios-build',     label: 'Building for iOS' } ] },
-      { label: 'Ship & operate', items: [
-        { slug: 'contributing-setup', label: 'Contributing setup' },
-        { slug: 'connector-origins', label: 'Connector origins' },
-        { slug: 'deployment',    label: 'Deployment' },
-        { slug: 'deploy-delivery', label: 'Delivery deployment' },
-        { slug: 'ci-qualification', label: 'CI qualification' },
-        { slug: 'configuration', label: 'Configuration' },
-        { slug: 'supported-environments', label: 'Supported environments' },
-        { slug: 'about',         label: 'About' } ] },
-      { label: 'Trust & data', items: [
-        { slug: 'content-credentials-identity', label: 'Content Credentials' },
-        { slug: 'security',      label: 'Security & Verification' },
-        { slug: 'threat-model',     label: 'Threat Model' },
-        { slug: 'parser-inventory', label: 'Every parser we run' },
-        { slug: 'data-transfer', label: 'Backup file format' } ] },
-    ],
-  },
-  operators: {
-    title: 'For Operators',
-    groups: [
-      { label: 'Operators', items: [
-        { slug: 'operators',  label: 'Overview' },
-        { slug: 'quickstart', label: 'Quickstart' } ] },
-      // The function playbooks (plans/177): the landing's Operators pane links
-      // straight into these.
-      { label: 'Playbooks', items: [
-        { slug: 'sales',     label: 'For sales teams' },
-        { slug: 'press',     label: 'For the newsroom' },
-        { slug: 'marketing', label: 'For marketing teams' },
-        { slug: 'legal',     label: 'For legal teams' } ] },
-      { label: 'Adopt & govern', items: [
-        { slug: 'adoption-governance', label: 'Adoption & Governance' },
-        { slug: 'sovereign-production', label: 'Sovereign production' },
-        { slug: 'deployment',    label: 'Deployment' },
-        { slug: 'deploy-delivery', label: 'Delivery deployment' },
-        { slug: 'ci-qualification', label: 'CI qualification' },
-        { slug: 'configuration', label: 'Configuration' },
-        { slug: 'build-guide',   label: 'Build Guide' } ] },
-      { label: 'Build targets', items: [
-        { slug: 'build-terminal', label: 'Build the CLI and TUI' },
-        { slug: 'build-desktop', label: 'Build the desktop app' },
-        { slug: 'build-mobile', label: 'Build the mobile apps' },
-        { slug: 'build-obs', label: 'Build with Open Build Service' },
-        { slug: 'build-kubernetes', label: 'Build the web container and Helm chart' },
-        { slug: 'ios-build', label: 'Building for iOS' } ] },
-      { label: 'Trust', items: [
-        { slug: 'trust',    label: 'Trust overview' },
-        { slug: 'security', label: 'Security & Verification' },
-        { slug: 'verify-yourself', label: 'Verify It Yourself' },
-        { slug: 'verify-ai-evidence', label: 'AI evidence in Verify' },
-        { slug: 'threat-model',    label: 'Threat Model' },
-        { slug: 'server-surface',  label: 'What a server sees' },
-        { slug: 'parser-inventory', label: 'Every parser we run' },
-        { slug: 'cli-signing', label: 'Signing from the terminal' },
-        { slug: 'privacy',  label: 'Privacy Policy' } ] },
-    ],
-  },
-  // The trust rail is tiered by reader (2026-08-16): the lay essays first, the
-  // hands-on check next, the reviewer references clearly labelled as such, and an
-  // exit group so a convinced reviewer has a next step instead of a cul-de-sac.
-  trust: {
-    title: 'Trust',
-    groups: [
-      { label: 'Trust', items: [
-        { slug: 'trust',            label: 'Overview' },
-        { slug: 'tenets',           label: 'Tenets' },
-        { slug: 'status-quo',       label: 'Why this differs' },
-        { slug: 'inclusive-design', label: 'Inclusive Design' } ] },
-      { label: 'Project perspective', items: [
-        { slug: 'input-not-impersonation',      label: 'Input, not impersonation' },
-        { slug: 'content-credentials-identity', label: 'Content Credentials' },
-        { slug: 'creative-rights',              label: 'Creative rights and credits' },
-        { slug: 'ai-stance',                    label: 'Our AI Stance' },
-        { slug: 'ai-features',                  label: 'AI features' },
-        { slug: 'eu-ai-act',                    label: 'The EU AI Act' },
-        { slug: 'beatrice-warde',               label: 'Beatrice Warde' },
-        { slug: 'shoulders-of-giants',          label: 'Shoulders of giants' } ] },
-      { label: 'Check it yourself', items: [
-        { slug: 'verify-yourself', label: 'Verify It Yourself' },
-        { slug: 'verify-ai-evidence', label: 'AI evidence in Verify' },
-        { slug: 'security',        label: 'Security & Verification' } ] },
-      { label: 'For reviewers', items: [
-        { slug: 'threat-model',     label: 'Threat Model' },
-        { slug: 'parser-inventory', label: 'Every parser we run' },
-        { slug: 'server-surface',   label: 'What a server sees' },
-        { slug: 'content-credentials-engineering', label: 'Content Credentials - Engineering' } ] },
-      { label: 'Your data', items: [
-        { slug: 'privacy',       label: 'Privacy Policy' },
-        { slug: 'data-transfer', label: 'Backup file format' } ] },
-      { label: 'Roll it out', items: [
-        { slug: 'adoption-governance',  label: 'Adoption & Governance' },
-        { slug: 'sovereign-production', label: 'Sovereign production' },
-        { slug: 'deployment',           label: 'Deployment' } ] },
-    ],
-  },
+  quickstart: { title: 'Start here', groups: [
+    { label: 'First file and installation', items: [
+      { slug: 'quickstart', label: 'Quickstart' },
+      { slug: 'make-something', label: 'Make your first file' },
+      { slug: 'install', label: 'Install Lolly' },
+      { slug: 'supported-environments', label: 'Supported environments' },
+    ] },
+    { label: 'Product, organisation and vocabulary', items: [
+      { slug: 'faq', label: 'Questions & answers' },
+      { slug: 'organisation', label: 'Use Lolly at your organisation' },
+      { slug: 'glossary', label: 'Glossary' },
+      { slug: 'about', label: 'About' },
+      { slug: 'what-is-lolly', label: 'What is Lolly?' },
+      { slug: 'work-status', label: 'Work status and roadmap' },
+    ] },
+  ] },
+  creators: { title: 'Create & use', groups: [
+    { label: 'Design and templates', items: [
+      { slug: 'project-asset-transfers', label: 'Shared project assets' },
+      { slug: 'creators', label: 'Create & use' },
+      { slug: 'create-a-tool', label: 'Share a design with rules' },
+      { slug: 'training-creators', label: 'Training courses' },
+      { slug: 'using', label: 'Using Lolly' },
+      { slug: 'templates', label: 'Templates' },
+      { slug: 'brand-studio', label: 'The Brand Studio' },
+      { slug: '3d-studio', label: '3D Studio' },
+      { slug: 'design-import', label: 'Import a design (Figma, Penpot, Illustrator, InDesign)' },
+      { slug: 'rebrand', label: 'Rebrand a deck' },
+      { slug: 'text-composition', label: 'Text in Design' },
+      { slug: 'utilities', label: 'Utility views' },
+      { slug: 'extension', label: 'Browser Extension' },
+    ] },
+    { label: 'Find and keep your work', items: [
+      { slug: 'profile', label: 'Profiles' },
+      { slug: 'find-your-work', label: 'Find and recover your work' },
+      { slug: 'sync', label: 'Sync your devices' },
+      { slug: 'search', label: 'Search' },
+      { slug: 'ask', label: 'Ask Lolly' },
+      { slug: 'dashboard', label: 'The Dashboard' },
+      { slug: 'favourites', label: 'Your favourites' },
+    ] },
+    { label: 'Collaborate and export', items: [
+      { slug: 'formats', label: 'Every format Lolly can open and make' },
+      { slug: 'collaborate', label: 'Working together' },
+      { slug: 'exporting', label: 'Exporting & Formats' },
+    ] },
+    { label: 'Motion and presenting', items: [
+      { slug: 'hdr-editing', label: 'Wide Colour and HDR' },
+      { slug: 'sequence-editor', label: 'The sequence editor' },
+      { slug: 'presenting', label: 'Presenting with camera' },
+      { slug: 'interactive-pages', label: 'Live pages that take the clicker' },
+      { slug: 'agenda', label: 'Agenda screens and programmes' },
+      { slug: 'animating', label: 'Animating: keyframes, depth and a camera' },
+    ] },
+    { label: 'Team playbooks and comparisons', items: [
+      { slug: 'positioning', label: 'How Lolly compares' },
+      { slug: 'compare', label: 'Lolly compared, tool by tool' },
+      { slug: 'compare-canva', label: 'Lolly and Canva' },
+      { slug: 'compare-adobe', label: 'Lolly and Adobe' },
+      { slug: 'compare-figma', label: 'Lolly and Figma' },
+      { slug: 'compare-render-apis', label: 'Lolly and rendering APIs' },
+      { slug: 'compare-converters', label: 'Lolly and online file converters' },
+      { slug: 'compare-penpot', label: 'Lolly and Penpot' },
+      { slug: 'compare-brand-portals', label: 'Lolly and brand portals' },
+      { slug: 'sales', label: 'Lolly for sales teams' },
+      { slug: 'press', label: 'Lolly for the newsroom' },
+      { slug: 'marketing', label: 'Lolly for marketing teams' },
+      { slug: 'legal', label: 'Lolly for legal teams' },
+    ] },
+  ] },
+  builders: { title: 'Build & automate', groups: [
+    { label: 'Architecture and contracts', items: [
+      { slug: 'builders', label: 'Build & automate' },
+      { slug: 'design-tool-contract', label: 'Design tool contract' },
+      { slug: 'text-composition-engine', label: 'Authored text composition' },
+      { slug: 'overview', label: 'Lolly architecture' },
+      { slug: 'document-model', label: 'Document model draft' },
+      { slug: 'constraints', label: 'Constraints' },
+      { slug: 'determinism', label: 'Determinism' },
+      { slug: 'reproducibility', label: 'Reproducibility' },
+      { slug: 'host-api', label: 'Host API' },
+      { slug: 'data-transfer', label: 'Data Transfer' },
+    ] },
+    { label: 'Agents, APIs and integrations', items: [
+      { slug: 'learning-integration', label: 'Learning integration' },
+      { slug: 'mcp', label: 'MCP Server' },
+      { slug: 'ai-agents', label: 'AI Agents' },
+      { slug: 'work-document-agents', label: 'Invite an agent to a document' },
+      { slug: 'work-api', label: 'Lolly Work API' },
+    ] },
+    { label: 'Author tools and design systems', items: [
+      { slug: 'design-tokens', label: 'Design Tokens' },
+      { slug: 'token-workflows', label: 'Token workflows' },
+      { slug: 'authoring-tools', label: 'Authoring Tools' },
+      { slug: 'tool-skills', label: 'Tool Skills' },
+      { slug: 'tool-manifest', label: 'Tool manifests' },
+      { slug: 'tool-inputs', label: 'Tool inputs' },
+      { slug: 'tool-structured-inputs', label: 'Structured inputs and canvas controls' },
+      { slug: 'tool-files', label: 'Assets and file utilities' },
+      { slug: 'tool-rendering', label: 'Templates and rendering' },
+      { slug: 'tool-starters', label: 'Tool templates and presets' },
+      { slug: 'tool-hooks', label: 'Tool hooks and host capabilities' },
+      { slug: 'tool-composition', label: 'Composition and brand overlays' },
+      { slug: 'tool-publishing', label: 'Publish and localize a tool' },
+      { slug: 'authoring-assets', label: 'Authoring Assets' },
+      { slug: 'catalog-resource-reading', label: 'Read verified catalog resources' },
+    ] },
+    { label: 'URL and CLI automation', items: [
+      { slug: 'url-mode', label: 'URL Mode' },
+      { slug: 'url-inputs', label: 'Inputs in URLs' },
+      { slug: 'url-parameters', label: 'Reserved URL parameters' },
+      { slug: 'url-export', label: 'Export and presentation URLs' },
+      { slug: 'url-app-links', label: 'App links and deep links' },
+      { slug: 'cli', label: 'lolly CLI: create and process files' },
+      { slug: 'cli-rendering', label: 'Render with the CLI' },
+      { slug: 'cli-files', label: 'CLI file and media utilities' },
+      { slug: 'production-checks', label: 'Production checks' },
+      { slug: 'cli-automation', label: 'CLI batch and automation' },
+      { slug: 'cli-reference', label: 'CLI verification and configuration' },
+      { slug: 'cli-signing', label: 'Signing from the terminal' },
+      { slug: 'tui', label: 'TUI' },
+      { slug: 'work-cli', label: 'lw CLI: administer an instance' },
+    ] },
+    { label: 'Build and contribute to the apps', items: [
+      { slug: 'contributing-setup', label: 'Contributing Setup' },
+      { slug: 'build-guide', label: 'Build Guide' },
+      { slug: 'build-terminal', label: 'Build the CLI and TUI' },
+      { slug: 'build-desktop', label: 'Build the desktop app' },
+      { slug: 'build-mobile', label: 'Build the mobile apps' },
+      { slug: 'build-obs', label: 'Build with Open Build Service' },
+      { slug: 'build-kubernetes', label: 'Build the web container and Helm chart' },
+      { slug: 'ios-build', label: 'Building for iOS' },
+    ] },
+    { label: 'Jobs, sharing and delivery', items: [
+      { slug: 'work-renders', label: 'Recover and inspect render jobs' },
+    ] },
+  ] },
+  managers: { title: 'Manage an organisation', groups: [
+    { label: 'Product, organisation and vocabulary', items: [
+      { slug: 'organisation', label: 'Use Lolly at your organisation' },
+    ] },
+    { label: 'Administration, policy and approvals', items: [
+      { slug: 'operators', label: 'Manage an organisation' },
+      { slug: 'configuration', label: 'Profiles, brands and tool configuration' },
+      { slug: 'adoption-governance', label: 'Adoption & Governance' },
+      { slug: 'work-governance', label: 'Policy and governance' },
+      { slug: 'work-approvals', label: 'Approvals' },
+      { slug: 'work-ai-policy', label: 'Manage organisation AI policy' },
+    ] },
+    { label: 'People and access', items: [
+      { slug: 'work-identity', label: 'Identity and sessions' },
+      { slug: 'work-account-lifecycle', label: 'Account data controls' },
+      { slug: 'work-permissions', label: 'Roles and grants' },
+    ] },
+    { label: 'Agents, APIs and integrations', items: [
+      { slug: 'work-document-agents', label: 'Invite an agent to a document' },
+    ] },
+    { label: 'Shared assets and provider connections', items: [
+      { slug: 'work-design-system-administration', label: 'Design-system administration' },
+      { slug: 'work-catalog', label: 'Catalog and content' },
+      { slug: 'work-file-preview', label: 'Asset previews' },
+      { slug: 'work-offboarding', label: 'Off-boarding a DAM' },
+      { slug: 'work-provider-guides', label: 'Provider guides' },
+      { slug: 'work-provider-webdav', label: 'WebDAV / Nextcloud' },
+      { slug: 'work-provider-s3', label: 'S3 / S3-compatible' },
+      { slug: 'work-provider-git', label: 'Git raw manifest' },
+      { slug: 'work-provider-brandfolder', label: 'Brandfolder' },
+      { slug: 'work-provider-optimizely-cmp', label: 'Optimizely CMP' },
+      { slug: 'work-provider-imagerelay', label: 'Image Relay' },
+      { slug: 'work-provider-canto', label: 'Canto' },
+      { slug: 'work-provider-acquia-dam', label: 'Acquia DAM / Widen' },
+      { slug: 'work-provider-intelligencebank', label: 'IntelligenceBank' },
+      { slug: 'work-provider-cloudinary', label: 'Cloudinary' },
+      { slug: 'work-provider-orange-logic', label: 'Orange Logic' },
+      { slug: 'work-provider-penpot', label: 'Penpot' },
+      { slug: 'work-provider-dropbox', label: 'Dropbox' },
+      { slug: 'work-provider-gdrive', label: 'Google Drive' },
+      { slug: 'work-provider-o365', label: 'Microsoft 365 / SharePoint' },
+    ] },
+    { label: 'Jobs, sharing and delivery', items: [
+      { slug: 'work-sharing', label: 'Rendering and sharing' },
+      { slug: 'work-renders', label: 'Recover and inspect render jobs' },
+      { slug: 'work-delivery', label: 'Organisation delivery destinations' },
+      { slug: 'work-project-portability', label: 'Preview a project transfer' },
+    ] },
+    { label: 'Privacy, data and trust boundaries', items: [
+      { slug: 'work-data-lifecycle', label: 'Work storage and data lifecycle' },
+    ] },
+    { label: 'Operations, monitoring and recovery', items: [
+      { slug: 'work-audit', label: 'Audit log' },
+    ] },
+  ] },
+  operators: { title: 'Deploy & operate', groups: [
+    { label: 'URL and CLI automation', items: [
+      { slug: 'cli-signing', label: 'Signing from the terminal' },
+    ] },
+    { label: 'Build and contribute to the apps', items: [
+      { slug: 'build-guide', label: 'Build Guide' },
+      { slug: 'build-terminal', label: 'Build the CLI and TUI' },
+      { slug: 'build-desktop', label: 'Build the desktop app' },
+      { slug: 'build-mobile', label: 'Build the mobile apps' },
+      { slug: 'build-obs', label: 'Build with Open Build Service' },
+      { slug: 'build-kubernetes', label: 'Build the web container and Helm chart' },
+    ] },
+    { label: 'Instance configuration, SSO and signing', items: [
+      { slug: 'connector-origins', label: 'Configure connector origins' },
+      { slug: 'work-enterprise-identity', label: 'Set up enterprise identity' },
+      { slug: 'work-customer-setup', label: 'Configure your first Work instance' },
+      { slug: 'work-configuration', label: 'Work instance configuration' },
+      { slug: 'work-c2pa', label: 'Configure Work export signing' },
+    ] },
+    { label: 'Hosting and installation', items: [
+      { slug: 'deployment', label: 'Choose a deployment' },
+      { slug: 'sovereign-production', label: 'Sovereign creative production' },
+      { slug: 'operate', label: 'Deploy & operate' },
+      { slug: 'work-overview', label: 'Lolly Work architecture' },
+      { slug: 'work-install', label: 'Install Lolly Work' },
+      { slug: 'work-deployment', label: 'Lolly Work deployment options' },
+      { slug: 'work-cloud-deployment', label: 'UpCloud, Evroc and fewer hosting services' },
+      { slug: 'work-platform-deployment', label: 'Deploy with your platform team' },
+      { slug: 'work-wasm-deployment', label: 'WebAssembly and Kubewarden choices' },
+    ] },
+    { label: 'Updates, qualification and release history', items: [
+      { slug: 'ci-qualification', label: 'CI qualification' },
+      { slug: 'deploy-delivery', label: 'Delivery deployment' },
+      { slug: 'work-self-host', label: 'Run your own server' },
+      { slug: 'work-release-1-1-1', label: 'Release 1.1.1' },
+      { slug: 'work-release-1-1-0', label: 'Release 1.1.0 (historical record)' },
+      { slug: 'work-official-installations', label: 'Official installation routes' },
+      { slug: 'work-frontend-updates', label: 'Fast frontend updates' },
+      { slug: 'work-public-model-proof-reuse', label: 'Public model verification reuse' },
+      { slug: 'work-instance-pack-production', label: 'Build a verified instance pack' },
+      { slug: 'work-application-release-classification', label: 'Application release classification' },
+      { slug: 'work-shell-deployment-workflow', label: 'Shell deployment workflow' },
+    ] },
+    { label: 'People and access', items: [
+      { slug: 'work-identity', label: 'Identity and sessions' },
+    ] },
+    { label: 'Privacy, data and trust boundaries', items: [
+      { slug: 'work-data-lifecycle', label: 'Work storage and data lifecycle' },
+    ] },
+    { label: 'Provider qualification runbooks', items: [
+      { slug: 'work-provider-cloudinary-live-verify', label: 'Cloudinary tenant verification' },
+      { slug: 'work-provider-orange-logic-live-verify', label: 'Orange Logic tenant verification' },
+      { slug: 'work-provider-webdav-live-verify', label: 'WebDAV live-verify runbook' },
+      { slug: 'work-provider-canto-live-verify', label: 'Canto live-verify runbook' },
+      { slug: 'work-provider-imagerelay-live-verify', label: 'Image Relay live-verify runbook' },
+      { slug: 'work-provider-intelligencebank-live-verify', label: 'IntelligenceBank live-verify runbook' },
+      { slug: 'work-provider-acquia-dam-live-verify', label: 'Acquia DAM live-verify runbook' },
+    ] },
+    { label: 'Operations, monitoring and recovery', items: [
+      { slug: 'work-operations', label: 'Operations runbook' },
+      { slug: 'work-production-readiness', label: 'Production evidence' },
+      { slug: 'work-telemetry', label: 'Telemetry and dashboards' },
+      { slug: 'work-audit', label: 'Audit log' },
+    ] },
+  ] },
+  trust: { title: 'Trust & security', groups: [
+    { label: 'Principles, rights and AI', items: [
+      { slug: 'trust', label: 'Trust & security' },
+      { slug: 'status-quo', label: 'The trade we never agreed to' },
+      { slug: 'tenets', label: 'Tenets' },
+      { slug: 'input-not-impersonation', label: 'Input, not impersonation' },
+      { slug: 'creative-rights', label: 'Creative rights and credits' },
+      { slug: 'ai-stance', label: 'Our AI Stance' },
+      { slug: 'ai-features', label: 'Generated once, rendered the same' },
+      { slug: 'eu-ai-act', label: 'AI marking and the EU AI Act' },
+      { slug: 'beatrice-warde', label: 'Beatrice Warde' },
+      { slug: 'shoulders-of-giants', label: 'Shoulders of giants' },
+    ] },
+    { label: 'Credentials and verification', items: [
+      { slug: 'content-credentials-identity', label: 'Content Credentials Identity' },
+      { slug: 'content-credentials-engineering', label: 'Content Credentials - Engineering' },
+      { slug: 'security', label: 'Security & Verification' },
+      { slug: 'verify-yourself', label: 'Verify It Yourself' },
+      { slug: 'verify-ai-evidence', label: 'AI evidence in Verify' },
+    ] },
+    { label: 'Privacy, data and trust boundaries', items: [
+      { slug: 'threat-model', label: 'Threat Model & Trust Boundaries' },
+      { slug: 'server-surface', label: 'Server Surface' },
+      { slug: 'privacy', label: 'Privacy Policy' },
+      { slug: 'work-security-platform', label: 'Where work happens and what crosses the network' },
+      { slug: 'work-data-lifecycle', label: 'Work storage and data lifecycle' },
+    ] },
+    { label: 'Accessibility and input boundaries', items: [
+      { slug: 'parser-inventory', label: 'Parser Inventory' },
+      { slug: 'inclusive-design', label: 'Inclusive Design' },
+    ] },
+    { label: 'People and access', items: [
+      { slug: 'work-account-lifecycle', label: 'Account data controls' },
+    ] },
+    { label: 'Instance configuration, SSO and signing', items: [
+      { slug: 'work-c2pa', label: 'Configure Work export signing' },
+    ] },
+    { label: 'Administration, policy and approvals', items: [
+      { slug: 'work-ai-policy', label: 'Manage organisation AI policy' },
+    ] },
+    { label: 'Operations, monitoring and recovery', items: [
+      { slug: 'work-telemetry', label: 'Telemetry and dashboards' },
+      { slug: 'work-audit', label: 'Audit log' },
+    ] },
+  ] },
 };
+// END GENERATED DOCS SIDEBARS
 
 const ICONS = {
   developers:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>`,
@@ -1159,7 +1274,7 @@ const SEARCH_SNIPPET_MAX = 200;
  *  character (Bengali, Hindi, Japanese, Chinese) would otherwise carry an index
  *  three times the size of the English one for the same reading, and the
  *  per-locale ceiling tests/docs-search-index.test.ts holds is in bytes. */
-const SEARCH_SNIPPET_MAX_BYTES = 180;
+const SEARCH_SNIPPET_MAX_BYTES = 76;
 const utf8 = new TextEncoder();
 
 /** A section body cut to the character budget, then to the byte budget on a
@@ -5351,11 +5466,16 @@ function buildNav(lang: Lang, slug: string, isLanding: boolean | undefined, shee
  * the `isHub` page of the same name - so the heading is always a real destination
  * and never decoration a reader tries to click.
  */
+// BEGIN GENERATED DOCS PATHWAY_HUB
 const PATHWAY_HUB: Record<Pathway, string> = {
-  quickstart: 'quickstart', creators: 'creators', builders: 'builders',
-  operators: 'operators', trust: 'trust',
+  quickstart: 'quickstart',
+  creators: 'creators',
+  builders: 'builders',
+  managers: 'operators',
+  operators: 'operate',
+  trust: 'trust',
 };
-
+// END GENERATED DOCS PATHWAY_HUB
 /**
  * The full site map has one column per pathway, with expandable topic groups.
  * Groups follow the sidebar labels and order. Shared pages have one owner here,
@@ -5363,39 +5483,35 @@ const PATHWAY_HUB: Record<Pathway, string> = {
  * Home and comparisons sit under Quickstart, before a reader chooses a pathway.
  */
 interface SitemapSection { hub: Pathway; label: string; slugs: string[] }
+// BEGIN GENERATED DOCS FOOTER_SECTIONS
 const FOOTER_SECTIONS: SitemapSection[] = [
-  { hub: 'quickstart', label: 'Start here', slugs: ['index', 'make-something', 'install', 'supported-environments', 'organisation', 'project-asset-transfers', 'faq'] },
-  { hub: 'quickstart', label: 'Compare', slugs: ['positioning', 'compare',
-    'compare-canva', 'compare-adobe', 'compare-figma', 'compare-penpot',
-    'compare-render-apis', 'compare-brand-portals', 'compare-converters'] },
-  { hub: 'creators', label: 'Make', slugs: [
-    'using', 'training-creators', 'templates', 'create-a-tool', 'brand-studio', '3d-studio',
-    'text-composition', 'design-import', 'rebrand', 'utilities', 'extension'] },
-  { hub: 'creators', label: 'Animate', slugs: ['sequence-editor', 'hdr-editing', 'animating'] },
-  { hub: 'creators', label: 'Find your way', slugs: ['search', 'ask', 'dashboard', 'favourites', 'profile', 'find-your-work', 'sync'] },
-  { hub: 'creators', label: 'Present', slugs: ['agenda', 'presenting', 'interactive-pages'] },
-  { hub: 'creators', label: 'Collaborate', slugs: ['collaborate'] },
-  { hub: 'creators', label: 'Post', slugs: ['formats', 'exporting'] },
-  { hub: 'builders', label: 'Architecture', slugs: ['overview', 'design-tokens', 'token-workflows', 'glossary', 'document-model'] },
-  { hub: 'builders', label: 'Concepts', slugs: ['constraints', 'determinism', 'reproducibility'] },
-  { hub: 'builders', label: 'Author tools', slugs: ['authoring-tools', 'tool-skills', 'tool-manifest', 'tool-inputs', 'tool-structured-inputs', 'tool-files'] },
-  { hub: 'builders', label: 'Render and share tools', slugs: ['tool-rendering', 'tool-starters', 'tool-hooks', 'tool-composition', 'tool-publishing', 'catalog-resource-reading'] },
-  { hub: 'builders', label: 'Reference', slugs: ['authoring-assets', 'text-composition-engine', 'host-api'] },
-  { hub: 'builders', label: 'URL mode', slugs: ['url-mode', 'url-inputs', 'url-parameters', 'url-export', 'url-app-links'] },
-  { hub: 'builders', label: 'CLI', slugs: ['cli', 'cli-rendering', 'cli-files', 'cli-automation', 'production-checks', 'cli-reference', 'cli-signing'] },
-  { hub: 'builders', label: 'Run & integrate', slugs: ['tui', 'mcp', 'ai-agents', 'learning-integration', 'design-tool-contract'] },
-  { hub: 'builders', label: 'Ship & operate', slugs: ['contributing-setup', 'about'] },
-  { hub: 'operators', label: 'Playbooks', slugs: ['sales', 'press', 'marketing', 'legal'] },
-  { hub: 'operators', label: 'Adopt & govern', slugs: ['adoption-governance', 'sovereign-production', 'deployment', 'deploy-delivery', 'ci-qualification', 'configuration', 'connector-origins', 'build-guide'] },
-  { hub: 'operators', label: 'Build targets', slugs: ['build-terminal', 'build-desktop', 'build-mobile', 'build-obs', 'build-kubernetes', 'ios-build'] },
-  { hub: 'trust', label: 'Tenets', slugs: ['tenets', 'status-quo', 'inclusive-design'] },
-  { hub: 'trust', label: 'Project perspective', slugs: ['input-not-impersonation', 'content-credentials-identity',
-    'creative-rights', 'ai-stance', 'ai-features', 'eu-ai-act', 'beatrice-warde', 'shoulders-of-giants'] },
-  { hub: 'trust', label: 'Check it yourself', slugs: ['verify-yourself', 'verify-ai-evidence', 'security'] },
-  { hub: 'trust', label: 'For reviewers', slugs: ['threat-model', 'parser-inventory', 'server-surface', 'content-credentials-engineering'] },
-  { hub: 'trust', label: 'Your data', slugs: ['privacy', 'data-transfer'] },
+  { hub: 'quickstart', label: 'Product, organisation and vocabulary', slugs: ['index', 'faq', 'organisation', 'glossary', 'about', 'what-is-lolly', 'work-status'] },
+  { hub: 'quickstart', label: 'First file and installation', slugs: ['make-something', 'install', 'supported-environments'] },
+  { hub: 'creators', label: 'Design and templates', slugs: ['project-asset-transfers', 'create-a-tool', 'training-creators', 'using', 'templates', 'brand-studio', '3d-studio', 'design-import', 'rebrand', 'text-composition', 'utilities', 'extension'] },
+  { hub: 'creators', label: 'Find and keep your work', slugs: ['profile', 'find-your-work', 'sync', 'search', 'ask', 'dashboard', 'favourites'] },
+  { hub: 'creators', label: 'Collaborate and export', slugs: ['formats', 'collaborate', 'exporting'] },
+  { hub: 'creators', label: 'Motion and presenting', slugs: ['hdr-editing', 'sequence-editor', 'presenting', 'interactive-pages', 'agenda', 'animating'] },
+  { hub: 'creators', label: 'Team playbooks and comparisons', slugs: ['positioning', 'compare', 'compare-canva', 'compare-adobe', 'compare-figma', 'compare-render-apis', 'compare-converters', 'compare-penpot', 'compare-brand-portals', 'sales', 'press', 'marketing', 'legal'] },
+  { hub: 'builders', label: 'Architecture and contracts', slugs: ['design-tool-contract', 'text-composition-engine', 'overview', 'document-model', 'constraints', 'determinism', 'reproducibility', 'host-api', 'data-transfer'] },
+  { hub: 'builders', label: 'Agents, APIs and integrations', slugs: ['learning-integration', 'mcp', 'ai-agents', 'work-document-agents', 'work-api'] },
+  { hub: 'builders', label: 'Author tools and design systems', slugs: ['design-tokens', 'token-workflows', 'authoring-tools', 'tool-skills', 'tool-manifest', 'tool-inputs', 'tool-structured-inputs', 'tool-files', 'tool-rendering', 'tool-starters', 'tool-hooks', 'tool-composition', 'tool-publishing', 'authoring-assets', 'catalog-resource-reading'] },
+  { hub: 'builders', label: 'URL and CLI automation', slugs: ['url-mode', 'url-inputs', 'url-parameters', 'url-export', 'url-app-links', 'cli', 'cli-rendering', 'cli-files', 'production-checks', 'cli-automation', 'cli-reference', 'cli-signing', 'tui', 'work-cli'] },
+  { hub: 'builders', label: 'Build and contribute to the apps', slugs: ['contributing-setup', 'build-guide', 'build-terminal', 'build-desktop', 'build-mobile', 'build-obs', 'build-kubernetes', 'ios-build'] },
+  { hub: 'managers', label: 'Administration, policy and approvals', slugs: ['configuration', 'adoption-governance', 'work-governance', 'work-approvals', 'work-ai-policy'] },
+  { hub: 'managers', label: 'People and access', slugs: ['work-identity', 'work-account-lifecycle', 'work-permissions'] },
+  { hub: 'managers', label: 'Shared assets and provider connections', slugs: ['work-design-system-administration', 'work-catalog', 'work-file-preview', 'work-offboarding', 'work-provider-guides', 'work-provider-webdav', 'work-provider-s3', 'work-provider-git', 'work-provider-brandfolder', 'work-provider-optimizely-cmp', 'work-provider-imagerelay', 'work-provider-canto', 'work-provider-acquia-dam', 'work-provider-intelligencebank', 'work-provider-cloudinary', 'work-provider-orange-logic', 'work-provider-penpot', 'work-provider-dropbox', 'work-provider-gdrive', 'work-provider-o365'] },
+  { hub: 'managers', label: 'Jobs, sharing and delivery', slugs: ['work-sharing', 'work-renders', 'work-delivery', 'work-project-portability'] },
+  { hub: 'operators', label: 'Instance configuration, SSO and signing', slugs: ['connector-origins', 'work-enterprise-identity', 'work-customer-setup', 'work-configuration', 'work-c2pa'] },
+  { hub: 'operators', label: 'Hosting and installation', slugs: ['deployment', 'sovereign-production', 'work-overview', 'work-install', 'work-deployment', 'work-cloud-deployment', 'work-platform-deployment', 'work-wasm-deployment'] },
+  { hub: 'operators', label: 'Updates, qualification and release history', slugs: ['ci-qualification', 'deploy-delivery', 'work-self-host', 'work-release-1-1-1', 'work-release-1-1-0', 'work-official-installations', 'work-frontend-updates', 'work-public-model-proof-reuse', 'work-instance-pack-production', 'work-application-release-classification', 'work-shell-deployment-workflow'] },
+  { hub: 'operators', label: 'Provider qualification runbooks', slugs: ['work-provider-cloudinary-live-verify', 'work-provider-orange-logic-live-verify', 'work-provider-webdav-live-verify', 'work-provider-canto-live-verify', 'work-provider-imagerelay-live-verify', 'work-provider-intelligencebank-live-verify', 'work-provider-acquia-dam-live-verify'] },
+  { hub: 'operators', label: 'Operations, monitoring and recovery', slugs: ['work-operations', 'work-production-readiness', 'work-telemetry', 'work-audit'] },
+  { hub: 'trust', label: 'Principles, rights and AI', slugs: ['status-quo', 'tenets', 'input-not-impersonation', 'creative-rights', 'ai-stance', 'ai-features', 'eu-ai-act', 'beatrice-warde', 'shoulders-of-giants'] },
+  { hub: 'trust', label: 'Credentials and verification', slugs: ['content-credentials-identity', 'content-credentials-engineering', 'security', 'verify-yourself', 'verify-ai-evidence'] },
+  { hub: 'trust', label: 'Privacy, data and trust boundaries', slugs: ['threat-model', 'server-surface', 'privacy', 'work-security-platform', 'work-data-lifecycle'] },
+  { hub: 'trust', label: 'Accessibility and input boundaries', slugs: ['parser-inventory', 'inclusive-design'] },
 ];
-
+// END GENERATED DOCS FOOTER_SECTIONS
 // The guard that makes "full site map" a property of the build rather than a claim in
 // a comment: every page is listed exactly once, every listed slug is a real page, and
 // every pathway hub heads at least one column. Adding a page to `pages` without giving
@@ -5470,7 +5586,7 @@ function footerSitemap(lang: Lang): string {
   return `<div role="navigation" class="footer-sitemap" aria-label="${label}">${body}</div>`;
 }
 
-const FOOTER = (lang: Lang) => `<footer>${footerSitemap(lang)}<p>Lolly - <a href="${REPO_URL}">${esc(t('Open Source'))}</a> · <a href="${localeHref(lang, 'privacy')}">${esc(t('Privacy Policy'))}</a> · <a href="${localeHref(lang, 'inclusive-design')}">${esc(t('Inclusive Design'))}</a> · <a href="${localeHref(lang, 'shoulders-of-giants')}">${esc(t('Provenance'))}</a> · <a href="${localeHref(lang, 'faq')}">${esc(t('FAQ'))}</a></p>${FOUNDED_BY}<p class="docs-license">${esc(t('Code'))} (<a href="${CODE_LICENSE_URL}">MPL 2.0</a>) · ${esc(t('Content'))} (<a rel="license" href="${CONTENT_LICENSE_URL}">CC BY-SA 4.0</a>) · <a href="${SITE_URL}">lolly.tools</a></p></footer>`;
+const FOOTER = (lang: Lang, page?: Page) => `<footer>${footerSitemap(lang)}<p>Lolly - <a href="${REPO_URL}">${esc(t('Open Source'))}</a> · <a href="${localeHref(lang, 'privacy')}">${esc(t('Privacy Policy'))}</a> · <a href="${localeHref(lang, 'inclusive-design')}">${esc(t('Inclusive Design'))}</a> · <a href="${localeHref(lang, 'shoulders-of-giants')}">${esc(t('Provenance'))}</a> · <a href="${localeHref(lang, 'faq')}">${esc(t('FAQ'))}</a></p>${FOUNDED_BY}<p class="docs-license">${esc(t('Code'))} (<a href="${CODE_LICENSE_URL}">MPL 2.0</a>) · ${esc(t('Content'))} (<a rel="license" href="${page?.contentLicense === 'MPL-2.0' ? CODE_LICENSE_URL : CONTENT_LICENSE_URL}">${page?.contentLicense === 'MPL-2.0' ? 'MPL 2.0' : 'CC BY-SA 4.0'}</a>) · <a href="${SITE_URL}">lolly.tools</a></p></footer>`;
 
 // Docs sidebar for a page, driven by its pathway. Falls back to the builders
 // sidebar for any non-landing page without an explicit pathway.
@@ -5486,52 +5602,206 @@ const FOOTER = (lang: Lang) => `<footer>${footerSitemap(lang)}<p>Lolly - <a href
 // (footerSitemap above), so a destination wears one landmark everywhere it is
 // listed - which is why `index` lives here despite no sidebar listing it: it is
 // the footer's Home row.
+// BEGIN GENERATED DOCS SIDEBAR_ICON
 const SIDEBAR_ICON: Record<string, string> = {
-  '3d-studio': 'layers', 'text-composition': 'document', 'text-composition-engine': 'code',
-  // Hubs & entry points (`index` is footer-only - the landing page has no rail)
-  index: 'home',
-  quickstart: 'star', creators: 'palette', builders: 'wrench', operators: 'checklist', trust: 'shieldcheck',
-  'status-quo': 'convert', 'input-not-impersonation': 'usercheck',
-  // Creators
-  'design-tool-contract': 'convert', 'create-a-tool': 'pentool', 'learning-integration': 'convert', 'training-creators': 'folder', using: 'pentool', templates: 'folder', 'brand-studio': 'palette', profile: 'usercheck', 'design-import': 'upload', rebrand: 'convert',
-  agenda: 'checklist', presenting: 'monitor', 'interactive-pages': 'globe', 'sequence-editor': 'clock', 'hdr-editing': 'sliders', animating: 'layers', exporting: 'download', formats: 'convert', positioning: 'sliders', compare: 'checklist',
-  'compare-canva': 'checklist', 'compare-adobe': 'checklist', 'compare-figma': 'checklist', 'compare-render-apis': 'checklist', 'compare-converters': 'checklist',
-  'compare-penpot': 'checklist', 'compare-brand-portals': 'checklist',
-  'make-something': 'pentool', install: 'download', 'supported-environments': 'check', organisation: 'people', 'project-asset-transfers': 'folder', faq: 'document',
-  // Operator playbooks (plans/177)
-  sales: 'people', press: 'document', marketing: 'photos', legal: 'lock',
-  // Concepts: the locked rule set, the same-every-time check, the link as the artifact.
-  constraints: 'lock', determinism: 'check', reproducibility: 'link',
-  'sovereign-production': 'server', 'ci-qualification': 'checklist',
-  ask: 'sparkle', dashboard: 'monitor', utilities: 'wrench',
-  collaborate: 'people', search: 'search', favourites: 'star', 'find-your-work': 'folder', sync: 'convert',
-  // Builders - architecture & authoring
-  overview: 'layers', 'design-tokens': 'hash', 'token-workflows': 'hash', glossary: 'document', 'document-model': 'layers', 'authoring-tools': 'wrench', 'authoring-assets': 'photos',
-  'host-api': 'code', 'url-mode': 'link',
-  'build-terminal': 'box', 'build-desktop': 'box', 'build-mobile': 'box', 'build-obs': 'box', 'build-kubernetes': 'box',
-  'production-checks': 'check', 'cli-rendering': 'code', 'cli-files': 'code', 'cli-automation': 'code', 'cli-reference': 'code',
-  'url-inputs': 'link', 'url-parameters': 'link', 'url-export': 'link', 'url-app-links': 'link',
-  'tool-skills': 'wrench', 'tool-manifest': 'wrench', 'tool-inputs': 'wrench', 'tool-structured-inputs': 'wrench', 'tool-files': 'wrench', 'tool-rendering': 'wrench', 'tool-starters': 'wrench', 'tool-hooks': 'wrench', 'tool-composition': 'wrench', 'tool-publishing': 'wrench',
-  // Builders - run & integrate
-  cli: 'code', 'cli-signing': 'seal', tui: 'monitor', mcp: 'server', 'ai-agents': 'sparkle', extension: 'globe',
-  // Builders - ship & operate
-  'contributing-setup': 'download', 'build-guide': 'box', 'ios-build': 'box', deployment: 'upload', 'connector-origins': 'globe', 'catalog-resource-reading': 'shield', 'deploy-delivery': 'download', configuration: 'sliders', about: 'document',
-  // Operators
-  'adoption-governance': 'people',
-  // Trust - Project perspective
-  tenets: 'star',
-  'content-credentials-identity': 'seal', 'content-credentials-engineering': 'cpu', 'ai-stance': 'sparkle',
+  'index': 'home',
+  'quickstart': 'star',
+  'make-something': 'pentool',
+  'faq': 'document',
+  'project-asset-transfers': 'folder',
+  'organisation': 'people',
+  'install': 'download',
+  'supported-environments': 'check',
+  'creators': 'palette',
+  'builders': 'wrench',
+  'operators': 'checklist',
+  'trust': 'shieldcheck',
+  'status-quo': 'convert',
+  'tenets': 'star',
+  'input-not-impersonation': 'usercheck',
   'creative-rights': 'people',
-  'ai-features': 'sparkle', 'eu-ai-act': 'document',
+  'create-a-tool': 'pentool',
+  'design-tool-contract': 'convert',
+  'training-creators': 'folder',
+  'learning-integration': 'convert',
+  'using': 'pentool',
+  'templates': 'folder',
+  'brand-studio': 'palette',
+  '3d-studio': 'layers',
+  'profile': 'usercheck',
+  'find-your-work': 'folder',
+  'sync': 'convert',
+  'design-import': 'upload',
+  'rebrand': 'convert',
+  'formats': 'convert',
+  'text-composition': 'document',
+  'text-composition-engine': 'code',
+  'hdr-editing': 'sliders',
+  'sequence-editor': 'clock',
+  'presenting': 'monitor',
+  'interactive-pages': 'globe',
+  'agenda': 'checklist',
+  'animating': 'layers',
+  'collaborate': 'people',
+  'search': 'search',
+  'ask': 'sparkle',
+  'dashboard': 'monitor',
+  'utilities': 'wrench',
+  'favourites': 'star',
+  'exporting': 'download',
+  'positioning': 'sliders',
+  'compare': 'checklist',
+  'compare-canva': 'checklist',
+  'compare-adobe': 'checklist',
+  'compare-figma': 'checklist',
+  'compare-render-apis': 'checklist',
+  'compare-converters': 'checklist',
+  'compare-penpot': 'checklist',
+  'compare-brand-portals': 'checklist',
+  'overview': 'layers',
+  'design-tokens': 'hash',
+  'token-workflows': 'hash',
+  'glossary': 'document',
+  'document-model': 'layers',
+  'constraints': 'lock',
+  'determinism': 'check',
+  'reproducibility': 'link',
+  'authoring-tools': 'wrench',
+  'tool-skills': 'wrench',
+  'tool-manifest': 'wrench',
+  'tool-inputs': 'wrench',
+  'tool-structured-inputs': 'wrench',
+  'tool-files': 'wrench',
+  'tool-rendering': 'wrench',
+  'tool-starters': 'wrench',
+  'tool-hooks': 'wrench',
+  'tool-composition': 'wrench',
+  'tool-publishing': 'wrench',
+  'authoring-assets': 'photos',
+  'host-api': 'code',
+  'url-mode': 'link',
+  'url-inputs': 'link',
+  'url-parameters': 'link',
+  'url-export': 'link',
+  'url-app-links': 'link',
+  'cli': 'code',
+  'cli-rendering': 'code',
+  'cli-files': 'code',
+  'production-checks': 'check',
+  'cli-automation': 'code',
+  'cli-reference': 'code',
+  'cli-signing': 'seal',
+  'tui': 'monitor',
+  'mcp': 'server',
+  'ai-agents': 'sparkle',
+  'extension': 'globe',
+  'contributing-setup': 'download',
+  'build-guide': 'box',
+  'build-terminal': 'box',
+  'build-desktop': 'box',
+  'build-mobile': 'box',
+  'build-obs': 'box',
+  'build-kubernetes': 'box',
+  'ios-build': 'box',
+  'catalog-resource-reading': 'shield',
+  'connector-origins': 'globe',
+  'deployment': 'upload',
+  'ci-qualification': 'checklist',
+  'deploy-delivery': 'download',
+  'configuration': 'sliders',
+  'content-credentials-identity': 'seal',
+  'content-credentials-engineering': 'cpu',
+  'data-transfer': 'convert',
+  'about': 'document',
+  'sales': 'people',
+  'press': 'document',
+  'marketing': 'photos',
+  'legal': 'lock',
+  'adoption-governance': 'people',
+  'sovereign-production': 'server',
+  'security': 'shieldcheck',
+  'threat-model': 'lock',
+  'parser-inventory': 'code',
+  'server-surface': 'server',
+  'verify-yourself': 'check',
+  'verify-ai-evidence': 'check',
+  'privacy': 'eyeoff',
+  'inclusive-design': 'people',
+  'ai-stance': 'sparkle',
+  'ai-features': 'sparkle',
+  'eu-ai-act': 'document',
   'beatrice-warde': 'font',
   'shoulders-of-giants': 'people',
-  // Trust - check it yourself
-  'verify-yourself': 'check', 'verify-ai-evidence': 'check', security: 'shieldcheck', 'threat-model': 'lock',
-  'parser-inventory': 'code', 'server-surface': 'server',
-  // Trust - your data
-  privacy: 'eyeoff', 'data-transfer': 'convert', 'inclusive-design': 'people',
+  'what-is-lolly': 'layers',
+  'operate': 'server',
+  'work-self-host': 'server',
+  'work-release-1-1-1': 'document',
+  'work-release-1-1-0': 'document',
+  'work-overview': 'server',
+  'work-install': 'server',
+  'work-official-installations': 'document',
+  'work-enterprise-identity': 'usercheck',
+  'work-customer-setup': 'document',
+  'work-deployment': 'server',
+  'work-cloud-deployment': 'document',
+  'work-platform-deployment': 'document',
+  'work-wasm-deployment': 'document',
+  'work-security-platform': 'document',
+  'work-configuration': 'document',
+  'work-identity': 'usercheck',
+  'work-account-lifecycle': 'document',
+  'work-document-agents': 'document',
+  'work-design-system-administration': 'document',
+  'work-permissions': 'usercheck',
+  'work-governance': 'document',
+  'work-catalog': 'document',
+  'work-file-preview': 'document',
+  'work-offboarding': 'document',
+  'work-approvals': 'document',
+  'work-sharing': 'document',
+  'work-renders': 'document',
+  'work-delivery': 'document',
+  'work-c2pa': 'document',
+  'work-ai-policy': 'document',
+  'work-data-lifecycle': 'document',
+  'work-provider-guides': 'globe',
+  'work-provider-webdav': 'globe',
+  'work-provider-s3': 'globe',
+  'work-provider-git': 'globe',
+  'work-provider-brandfolder': 'globe',
+  'work-provider-optimizely-cmp': 'globe',
+  'work-provider-imagerelay': 'globe',
+  'work-provider-canto': 'globe',
+  'work-provider-acquia-dam': 'globe',
+  'work-provider-intelligencebank': 'globe',
+  'work-provider-cloudinary': 'globe',
+  'work-provider-orange-logic': 'globe',
+  'work-provider-cloudinary-live-verify': 'globe',
+  'work-provider-orange-logic-live-verify': 'globe',
+  'work-provider-penpot': 'globe',
+  'work-provider-dropbox': 'globe',
+  'work-provider-gdrive': 'globe',
+  'work-provider-o365': 'globe',
+  'work-provider-webdav-live-verify': 'globe',
+  'work-provider-canto-live-verify': 'globe',
+  'work-provider-imagerelay-live-verify': 'globe',
+  'work-provider-intelligencebank-live-verify': 'globe',
+  'work-provider-acquia-dam-live-verify': 'globe',
+  'work-operations': 'server',
+  'work-frontend-updates': 'document',
+  'work-public-model-proof-reuse': 'document',
+  'work-instance-pack-production': 'document',
+  'work-production-readiness': 'document',
+  'work-application-release-classification': 'document',
+  'work-shell-deployment-workflow': 'document',
+  'work-telemetry': 'document',
+  'work-audit': 'document',
+  'work-project-portability': 'document',
+  'work-api': 'document',
+  'work-cli': 'document',
+  'work-status': 'document',
 };
-
+// END GENERATED DOCS SIDEBAR_ICON
 // The footer sitemap reuses the mapping above, so its completeness is enforced the
 // same way FOOTER_SECTIONS' own enumeration is - at build, loudly. Without this,
 // a footer slug with no entry degrades to docIcon()'s console.warn and an empty
@@ -5989,7 +6259,7 @@ ${NOSCRIPT_NAV}
 <a class="skip-link" href="#docs-main">${esc(t('Skip to content'))}</a>
 ${buildNav(lang, page.slug, isLanding, sheet)}
 ${body}
-${FOOTER(lang)}
+${FOOTER(lang, page)}
 ${jump}
 ${DOCS_JS_TAG}
 </body>
@@ -6008,17 +6278,16 @@ ${DOCS_JS_TAG}
 // in-app docs view needs too. Imported at the top of this file.
 
 // Section order + labels for llms.txt - mirrors the top nav (NAV/NAV_PATHWAY).
+// BEGIN GENERATED DOCS LLMS_SECTIONS
 const LLMS_SECTIONS: Array<{ pathway: Pathway; label: string }> = [
-  { pathway: 'quickstart', label: 'Quickstart' },
-  { pathway: 'creators',   label: 'For Creators' },
-  { pathway: 'builders',   label: 'For Builders' },
-  { pathway: 'operators',  label: 'For Operators' },
-  // The privacy and provenance story: Privacy, Threat Model, Verify It Yourself
-  // and the rest of the Trust rail. Omitting it meant every AI-mediated read of
-  // the docs missed exactly the pages the sceptical reader needs.
-  { pathway: 'trust',      label: 'Trust' },
+  { pathway: 'quickstart', label: 'Start here' },
+  { pathway: 'creators', label: 'Create & use' },
+  { pathway: 'builders', label: 'Build & automate' },
+  { pathway: 'managers', label: 'Manage an organisation' },
+  { pathway: 'operators', label: 'Deploy & operate' },
+  { pathway: 'trust', label: 'Trust & security' },
 ];
-
+// END GENERATED DOCS LLMS_SECTIONS
 // slug → English markdown source, collected on the en pass. Membership doubles as
 // "the twin actually exists on disk" for the llms.txt lines (a missing source is
 // skipped by the page loop, so it must be skipped here too).
@@ -6035,7 +6304,7 @@ function buildLlmsTxt(mdBySlug: Map<string, string>): string {
   const sections = LLMS_SECTIONS.map(({ pathway, label }) => {
     const lines = pages
       .filter((p) => p.pathway === pathway && mdBySlug.has(p.slug))
-      .map((p) => `- [${p.title}](${SITE_URL}/info/${pathSlug(p.slug)}.md): ${mdDescription(mdBySlug.get(p.slug)!)}`);
+      .map((p) => `- [${p.title}](${SITE_URL}/info/${pathSlug(p.slug)}.md): ${p.description ?? mdDescription(mdBySlug.get(p.slug)!)}`);
     return `## ${label}\n\n${lines.join('\n')}`;
   });
   return `# Lolly
@@ -6047,6 +6316,8 @@ the same slug under ${SITE_URL}/info/ - so fetch the .md URL directly. English
 only. Product landing copy: ${SITE_URL}/info/index.md
 
 ${DOCS_LICENSE_MD}
+
+Work guides retain MPL 2.0. Each Markdown twin states its content licence.
 
 The whole corpus in one file: ${SITE_URL}/llms-full.txt. The short guide for
 agents (entry points, URL grammar, how to get bytes): ${SITE_URL}/agents.md. The
@@ -6136,6 +6407,7 @@ async function build() {
     }
     // The landing's cover media (plans/177): stills AND the short animated loops
     // (webp/svg/webm/mp4), one subdirectory, mirrored like the shots above it.
+    cpSync(resolve(shotsSrc, 'work'), resolve(outDir, 'shots/work'), { recursive: true });
     const coversSrc = resolve(shotsSrc, 'covers');
     if (existsSync(coversSrc)) {
       mkdirSync(resolve(outDir, 'shots', 'covers'), { recursive: true });
@@ -6144,6 +6416,12 @@ async function build() {
       }
     }
   }
+
+  // The imported Work marks and licence retain their original bytes.
+  rmSync(resolve(outDir, 'work'), { recursive: true, force: true });
+  mkdirSync(resolve(outDir, 'work'), { recursive: true });
+  cpSync(resolve(__dirname, 'work/img'), resolve(outDir, 'work/img'), { recursive: true });
+  copyFileSync(resolve(__dirname, 'work/LICENSE'), resolve(outDir, 'work/LICENSE'));
 
   // The specification's diagrams (plan 276): vector pictures rendered from checked-in
   // Mermaid, DOT and Pikchr sources by scripts/build-spec-diagrams.ts, committed under
@@ -6278,14 +6556,17 @@ async function build() {
       let md: string;
       try {
         md = readFileSync(srcPath, 'utf-8');
+        const registered = DOCS_REGISTRY.pages.find(p => p.slug === page.slug);
+        if (registered) md = workApplicability(registered) + publicWorkMarkdown(md, registered, DOCS_REGISTRY);
       } catch {
         if (lang === 'en') console.warn(`⚠  Skipping ${page.slug}: ${srcPath} not found`);
         continue;
       }
 
-      const content = page.isLanding ? buildLandingContent(md, lang)
+      let content = page.isLanding ? buildLandingContent(md, lang)
         : page.render ? page.render(md, lang)
         : mdToHtml(md);
+      if (page.headingId && srcPath === resolvePageSrc(page, 'en')) content = content.replace(/(<h1\b[^>]*\bid=")[^"]+(")/, `$1${page.headingId}$2`);
       const moved = srcPath === resolvePageSrc(page, 'en') ? movedSectionLinks(page.slug, slug => localeHref(lang,slug)) : '';
       const html    = doorizeLinks(wrapPage(lang, page, content + moved, ogSlugs, md));
       const outFile = page.slug === 'index' ? 'index.html' : `${pathSlug(page.slug)}.html`;
@@ -6314,12 +6595,20 @@ async function build() {
         // The formats page's table is built at render time; its twin gets the same register as a list.
         const twinSrc = page.slug === 'formats' ? md.replace(FORMATS_TABLE_MARK, formatsMarkdown()) : md;
         const twinBody = stripLogoMarkers(unwrapComponentFences(unwrapFigureFences(unwrapProvenanceMarkers(commentStandaloneProvenanceLines(stripFrontMatter(twinSrc))))));
-        const twin = `${twinBody.trimEnd()}\n\n---\n\n${DOCS_LICENSE_MD}\n`;
+        const licence = page.contentLicense === 'MPL-2.0'
+          ? `Content ([MPL 2.0](${CODE_LICENSE_URL})) · [Lolly Work source](${DOCS_REGISTRY.workImport.repository}/tree/${DOCS_REGISTRY.workImport.commit}) · [lolly.tools](${SITE_URL})`
+          : DOCS_LICENSE_MD;
+        const twin = `${doorizeLinks(twinBody).trimEnd()}\n\n---\n\n${licence}\n`;
         // Written at the DOORED path beside its HTML (/info/<door>/<slug>.md):
         // the search index records carry the doored path and the in-app Ask
         // fetches `/info/<p>.md` from it (lib/ask/answer.ts), so a flat twin
         // was a 404 for every moved page and the answer fell back to the snippet.
         writeFileSync(resolve(outDir, `${pathSlug(page.slug)}.md`), twin, 'utf-8');
+        for (const alias of DOCS_REGISTRY.pages.find(p => p.slug === page.slug)?.aliases ?? []) {
+          const oldPath = resolve(outDir, `${alias}.md`);
+          mkdirSync(dirname(oldPath), { recursive: true });
+          writeFileSync(oldPath, twin, 'utf-8');
+        }
         mdBySlug.set(page.slug, twin);
       }
     }
@@ -6394,7 +6683,8 @@ async function build() {
 
   // Redirect stubs for retired slugs - keep inbound links + bookmarks resolving.
   // English-only: these are legacy URLs, never linked from the localized nav tree.
-  for (const s of stubs) {
+  for (const lang of LANGS) for (const original of stubs) {
+    const s = lang === 'en' ? original : { slug: `${lang}/${original.slug}`, target: original.target.replace('/info/', `/info/${lang}/`) };
     const dest = esc(s.target);
     const stub = `<!doctype html>
 <html lang="en">
@@ -6409,6 +6699,7 @@ async function build() {
 </head>
 <body>Redirecting to <a href="${dest}">${dest}</a>…</body>
 </html>`;
+    mkdirSync(dirname(resolve(outDir, `${s.slug}.html`)), { recursive: true });
     writeFileSync(resolve(outDir, `${s.slug}.html`), stub, 'utf-8');
     console.log(`↪  /info/${s.slug}.html → ${s.target}`);
   }
@@ -6535,7 +6826,8 @@ function writeDocsManifest(): void {
   const shots: string[] = [];
 
   // Every committed shot: its dimensions, credential facts and (opt-in) try-link route.
-  for (const file of readdirSync(shotsDir).filter((f) => /\.(svg|png|jpe?g)$/.test(f)).sort()) {
+  const shotFiles = [...readdirSync(shotsDir), ...readdirSync(resolve(shotsDir, 'work')).map(file => `work/${file}`)];
+  for (const file of shotFiles.filter((f) => /\.(svg|png|jpe?g)$/.test(f)).sort()) {
     shots.push(file);
     const src = `/info/shots/${file}`;
     const size = docCtx.shotSize(file);

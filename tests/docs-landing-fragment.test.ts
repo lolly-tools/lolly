@@ -36,7 +36,7 @@ const MARKER = '<main class="docs-landing page-index"';
 function landingPages(): string[] {
   const out = [join(INFO, 'index.html')];
   for (const name of readdirSync(INFO, { withFileTypes: true })) {
-    if (!name.isDirectory()) continue;
+    if (!name.isDirectory() || !/^[a-z]{2}(?:-[a-z]+)?$/.test(name.name)) continue;
     const p = join(INFO, name.name, 'index.html');
     if (existsSync(p)) out.push(p);
   }

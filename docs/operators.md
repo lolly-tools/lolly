@@ -1,71 +1,21 @@
-# Lolly for Operators
+# Manage an organisation
 
-You get to be the person who said yes to something both safe and popular. You close an exfiltration hole, gain capability and delete a request queue in one move, which is the rare security win that makes you more liked rather than less: no 3am call because embargoed files reached a random web tool, fewer vendors and contracts on your plate and a record you can point at when someone asks. Pick the lane below that matches the function you answer for.
+Lolly runs on a person's device. The optional Lolly Work service adds organisation sign-in, shared projects, governed assets, reviews and server jobs. Start with [Using Lolly at your organisation](/info/organisation.html) for the member experience, or [Work overview](/info/work-overview.html) for the service's responsibilities.
 
-You govern the whole relay: a creative authors the rules and a developer scales them, and it is the operator who makes that safe to run across an organisation, which [The lifecycle of a campaign](/info/overview.html#the-lifecycle-of-a-campaign) follows end to end.
+## Set access and policy
 
-New here? [Adoption & Governance](/info/adoption-governance.html) is the rollout in full. [Deployment](/info/deployment.html) covers deploy, serve and hybrid, and [Configuration](/info/configuration.html) is what shapes a single instance.
+- [Adoption and governance](/info/adoption-governance.html) covers the rollout and the role of brand rules.
+- [Identity and sessions](/info/work-identity.html) covers sign-in and group mapping. [Permissions](/info/work-permissions.html) explains roles, grants and the owner guard.
+- [Governance](/info/work-governance.html) covers tool overlays, locked inputs and policy. [Managed AI policy](/info/work-ai-policy.html) covers approvals and execution limits.
+- [Account lifecycle](/info/work-account-lifecycle.html) and [Data lifecycle](/info/work-data-lifecycle.html) cover exports, offboarding, retention and their limits.
 
-## Organisation services
+## Connect assets and review work
 
-**Lolly + lolly.work** combines on-device creation with an optional organisation service. Deploy lolly.work separately when you need SSO and SCIM, group permissions, shared projects and live work collabs, a governed asset library, approvals, server render jobs or delivery records. Its admin console also provides policy-controlled usage reporting and a separate audit log.
+- [Design-system administration](/info/work-design-system-administration.html) covers source inventory, reviewed changes and rollback.
+- [Catalog administration](/info/work-catalog.html) covers shared assets and exposure rules. [Provider guides](/info/work-provider-guides.html) gives each source platform's setup and verification requirements.
+- [Approvals](/info/work-approvals.html) covers review chains and separation of duties. [Sharing](/info/work-sharing.html) covers links and server output.
+- [Invite an agent to a document](/info/work-document-agents.html) covers scoped document access, expiry and revocation. An invitation does not grant deployment or infrastructure access.
 
-- **[Deploy lolly.work](/info/deployment.html#organisation-services-with-lolly-work)** - choose a hosting model and configure identity, persistent storage and backups.
-- **[Use Lolly at your organisation](/info/organisation.html)** - the guide for people signing in and finding their team work.
-- **[Organisation privacy](/info/privacy.html#organisation-services-with-lolly-work)** - which content and records reach the service, including telemetry attribution and audit retention.
-- **[lolly.work operator documentation](https://github.com/lolly-tools/lolly-work/blob/main/docs/README.md)** - the detailed installation, policy, catalog, review and operations guides.
+## Find the next task
 
-Standalone deployments remain useful without these services. Choose the enabled workflows first, then assess their data flows and access rules.
-
-## Sales
-
-Walk into the meeting with exactly the file you need, made on the way there. Drop the deck you already have in and rebuild it sharp as a native deck file, with no request queue between you and the asset.
-
-- **[Lolly for sales teams](/info/sales.html)** - the playbook: fixing the deck you have, rebuilding it natively and making the one-off asset yourself.
-- **[Exporting & Formats](/info/exporting.html)** - the deck, PDF and image side of the export panel, when the file has to open on someone else's laptop.
-
-## Press
-
-Live data into charts, maps and tables that already match the house style. Build the story format once and reuse it every time the story runs, for print and for screen.
-
-- **[Lolly for the newsroom](/info/press.html)** - the playbook: the info-editorial style, live data in and publication-quality output.
-- **[Utility views](/info/utilities.html)** - the spreadsheet and the converter, for the step before the chart.
-
-## Marketing
-
-Every size, every language, one source of truth. Paste a spreadsheet and get one finished file per row, with no agency in the middle of the routine files.
-
-- **[Lolly for marketing teams](/info/marketing.html)** - the playbook: variants at volume, localisation and what stops being a bottleneck.
-- **[Using Lolly](/info/using.html#batch-pro-mode)** - the batch run itself: a sheet in, a folder of assets out.
-
-## Security
-
-The usual way routine creative work gets done is a liability surface: files emailed to outside contractors, brand assets uploaded to a dozen web editors, customer data pasted into a stranger's site to make a quick graphic. Lolly is the immune response to that, because it replaces the work rather than adding a control on top of it: the quote card, the localised banner and the redacted screenshot are made on the employee's own device against your brand, so nothing uploads that you did not put there and every result is reproducible from its inputs. Exports can carry several layers of cryptographic record - a C2PA Content Credential signed by a key generated on the device and never readable off it, the invisible Lolly Imprint and an opt-in durable mark that outlives a re-save - each of which is tamper-evident and strippable: a credential flags a change rather than preventing one, and that is precisely what makes fully offline verification possible. The cryptography and the file parsers are going through SUSE's enterprise-grade hardening: the seals, on-device signing and encryption are real and defensible now, so where a contract calls for certified assurance, deploy them as defence-in-depth while that process completes.
-
-- **[Trust](/info/trust.html)** - every claim this site makes, with the mechanism that enforces it beside it.
-- **[Security & Verification](/info/security.html)** - the standards, primitives, trust model and testing, written for a reviewer.
-- **[Threat Model & Trust Boundaries](/info/threat-model.html)** - what Lolly defends against, what it explicitly does not and where each boundary falls.
-- **[Server Surface](/info/server-surface.html)** - the optional services, including lolly.work, and the data each handles alongside on-device work.
-- **[Parser Inventory](/info/parser-inventory.html)** - every parser that touches a file a user opens and what each one is hardened against.
-- **[Verify It Yourself](/info/verify-yourself.html)** - check the claims against a real export, step by step, with nothing you cannot run yourself.
-- **[Privacy Policy](/info/privacy.html)** - the formal statement of what is and is not collected, stored and sent.
-- **[Sovereign creative production](/info/sovereign-production.html)** - air-gapped deployment, consent-gated networking and on-device signing.
-- **[Adoption & Governance](/info/adoption-governance.html)** - how brand rules become enforceable, what a shared catalog adds and what the catalog-as-a-repository option buys you.
-
-## Legal
-
-MPL-2.0 with no contributor licence agreement, stated plainly, with what is not claimed stated as clearly as what is. Content Credentials are tamper-evident and strippable, so the pages below say what a signature actually asserts before anyone writes it into a contract.
-
-- **[AI marking and the EU AI Act](/info/eu-ai-act.html)** - Article 50, the Code of Practice that points at C2PA and Lolly's honest fit.
-- **[How Lolly compares](/info/positioning.html)** - the licence facts: MPL-2.0, no contributor licence agreement and what free forever actually rests on.
-- **[Content Credentials Identity](/info/content-credentials-identity.html)** - what a signed credential asserts, what it does not and who the certificate names.
-- **[Data Transfer](/info/data-transfer.html)** - the backup bundle a records request or a device handover is answered with.
-
-## AI
-
-Agents supply inputs, never a persona. AI helps when it is asked, what it made says so and your work carries your name rather than a model's.
-
-- **[Our AI Stance](/info/ai-stance.html)** - what Lolly does and does not do with generated content, and what enforces each commitment.
-- **[Generated once, rendered the same](/info/ai-features.html)** - the AI features that ship, and why inventing pixels is marked while removing them is not.
-- **[Input, not impersonation](/info/input-not-impersonation.html)** - why an agent supplies inputs and never a persona, how that is enforced and what a rogue agent still cannot do.
-- **[AI Agents](/info/ai-agents.html)** - what an agent can actually drive, if your teams are already pointing one at this.
+[Create & use](/info/creators.html) contains the creative workflows and team playbooks. [Deploy & operate](/info/operate.html) covers installing and maintaining a server; instance configuration is separate from a person's content profile. [Trust & security](/info/trust.html) explains data flows, signatures and security boundaries.

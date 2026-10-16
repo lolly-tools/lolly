@@ -65,7 +65,7 @@ import { webGpuLaunchArgs } from '../packages/node-shell/src/webgpu-launch.ts';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PUBLIC_INFO_DIR = path.join(ROOT, 'shells/web/public/info');
-const DOORS = ['start', 'create', 'build', 'operate', 'trust'] as const;
+const DOORS = ['start', 'create', 'build', 'manage', 'operate', 'trust'] as const;
 
 // Viewport heights paired with each width: iPhone SE (1st gen), iPhone 14, iPad landscape.
 const VIEWPORT_HEIGHT: Record<number, number> = { 320: 568, 390: 844, 1024: 768 };
