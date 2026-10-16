@@ -135,12 +135,13 @@ export function pathSubpaths(d: string): Subpath[] {
     if (up === 'C' || up === 'Q') ctrlKind = up;
     else if (up !== 'S' && up !== 'T') { ctrl = null; ctrlKind = ''; }
   }
-  return subs.filter(s => s.segments.length > 0);
+  // A lone moveto keeps its subpath: Chromium marks its one vertex.
+  return subs;
 }
 
-/** The subpaths of a line, polyline or polygon. */
+/** The subpaths of a line, polyline or polygon. One point is a vertex with no segment. */
 function pointSubpaths(pts: Vec[], closed: boolean): Subpath[] {
-  if (pts.length < 2) return [];
+  if (!pts.length) return [];
   const segments: Segment[] = [];
   for (let i = 1; i < pts.length; i++) { const dir = sub(pts[i]!, pts[i - 1]!); segments.push({ to: pts[i]!, out: dir, in: dir }); }
   if (closed) { const dir = sub(pts[0]!, pts[pts.length - 1]!); segments.push({ to: pts[0]!, out: dir, in: dir }); }
@@ -149,14 +150,17 @@ function pointSubpaths(pts: Vec[], closed: boolean): Subpath[] {
 
 const deg = (v: Vec): number => (Math.atan2(v[1], v[0]) * 180) / Math.PI;
 
-/** The bisecting angle by Chromium's rule: the two angles averaged once they are within 180 degrees. */
+/**
+ * The bisecting angle by Chromium's rule: the incoming angle turned by half the signed
+ * turn to the outgoing one, the turn taken between -180 and 180 degrees. Where a path
+ * doubles back on itself the turn is -180, which is the way Chromium faces the marker.
+ */
 function bisect(inDir: Vec, outDir: Vec): number {
   if (isZero(inDir)) return deg(outDir);
   if (isZero(outDir)) return deg(inDir);
-  let a = deg(inDir);
-  const b = deg(outDir);
-  if (Math.abs(a - b) > 180) a += 360;
-  return (a + b) / 2;
+  const a = deg(inDir), b = deg(outDir);
+  const turn = ((((b - a + 180) % 360) + 360) % 360) - 180;
+  return a + turn / 2;
 }
 
 /** Where a markable shape's markers go, or null when the element takes none. */
@@ -179,14 +183,27 @@ export function markerVertices(el: Element, vp: Viewport): MarkerVertex[] | null
   }
   const out: MarkerVertex[] = [];
   subs.forEach((s, si) => {
-    const segs = s.segments;
-    const inOf = (k: number): Vec => { for (let j = k; j >= 0; j--) if (!isZero(segs[j]!.in)) return segs[j]!.in; return ZERO; };
-    const outOf = (k: number): Vec => { for (let j = k; j < segs.length; j++) if (!isZero(segs[j]!.out)) return segs[j]!.out; return ZERO; };
+    const segs = s.segments, n = segs.length;
     const first = si === 0, last = si === subs.length - 1;
-    out.push({ x: s.start[0], y: s.start[1], angle: s.closed ? bisect(inOf(segs.length - 1), outOf(0)) : deg(outOf(0)), kind: first ? 'start' : 'mid' });
+    if (!n) {
+      // One vertex: the start and the end of a path that draws nothing else, as Chromium marks the vertex.
+      if (first) out.push({ x: s.start[0], y: s.start[1], angle: 0, kind: 'start' });
+      if (last) out.push({ x: s.start[0], y: s.start[1], angle: 0, kind: 'end' });
+      if (!first && !last) out.push({ x: s.start[0], y: s.start[1], angle: 0, kind: 'mid' });
+      return;
+    }
+    // The nearest direction with a length that arrives at or before each segment's end,
+    // and the nearest that leaves at or after each segment's start. Two passes, so a long
+    // run of zero-length segments costs no more than its length.
+    const into: Vec[] = new Array(n), from: Vec[] = new Array(n);
+    let dir = ZERO;
+    for (let j = 0; j < n; j++) { if (!isZero(segs[j]!.in)) dir = segs[j]!.in; into[j] = dir; }
+    dir = ZERO;
+    for (let j = n - 1; j >= 0; j--) { if (!isZero(segs[j]!.out)) dir = segs[j]!.out; from[j] = dir; }
+    out.push({ x: s.start[0], y: s.start[1], angle: s.closed ? bisect(into[n - 1]!, from[0]!) : deg(from[0]!), kind: first ? 'start' : 'mid' });
     segs.forEach((g, k) => {
-      const end = k === segs.length - 1;
-      const angle = !end ? bisect(inOf(k), outOf(k + 1)) : s.closed ? bisect(inOf(k), outOf(0)) : deg(inOf(k));
+      const end = k === n - 1;
+      const angle = !end ? bisect(into[k]!, from[k + 1]!) : s.closed ? bisect(into[k]!, from[0]!) : deg(into[k]!);
       out.push({ x: g.to[0], y: g.to[1], angle, kind: end && last ? 'end' : 'mid' });
     });
   });
@@ -215,14 +232,6 @@ function fixedAngle(raw: string): number {
   return unit === 'rad' ? (v * 180) / Math.PI : unit === 'grad' ? v * 0.9 : unit === 'turn' ? v * 360 : v;
 }
 
-/** refX or refY: a length, a percentage of the viewBox or one of the SVG 2 keywords. */
-function refCoord(raw: string | null, origin: number, size: number, keywords: [string, string, string]): number {
-  const v = (raw ?? '').trim();
-  if (v === keywords[0]) return origin;
-  if (v === keywords[1]) return origin + size / 2;
-  if (v === keywords[2]) return origin + size;
-  return len(v || '0', size);
-}
 
 /**
  * Lay a marker out at a vertex: SVG 2's translate to the vertex, rotate to the
@@ -236,9 +245,10 @@ export function markerLayout(marker: Element, v: MarkerVertex, strokeWidth: numb
   if (!(mw > 0) || !(mh > 0) || !(scale > 0)) return null;
   const vb = viewBoxOf(marker);
   const vbm = vb ? viewBoxMatrix(vb, { x: 0, y: 0, w: mw, h: mh }, marker.getAttribute('preserveAspectRatio')) : IDENT;
-  const ref = point(vbm,
-    refCoord(marker.getAttribute('refX'), vb?.x ?? 0, vb?.w ?? mw, ['left', 'center', 'right']),
-    refCoord(marker.getAttribute('refY'), vb?.y ?? 0, vb?.h ?? mh, ['top', 'center', 'bottom']));
+  // refX and refY as Chromium reads them: a length or a percentage of the shape's own
+  // viewport. Chromium does not read SVG 2's left, center and right keywords, which
+  // count as 0 there, so they count as 0 here too.
+  const ref = point(vbm, len(marker.getAttribute('refX'), vp.w), len(marker.getAttribute('refY'), vp.h));
   const orient = (marker.getAttribute('orient') ?? '0').trim();
   const angle = orient === 'auto' ? v.angle
     : orient === 'auto-start-reverse' ? (v.kind === 'start' ? v.angle + 180 : v.angle)

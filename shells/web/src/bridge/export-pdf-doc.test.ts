@@ -452,3 +452,34 @@ test('live text with stop opacities fades through a soft mask of the same glyphs
   assert.match(body, /BT\n[^\n]+ Tf\n7 Tr\n[^\n]+ Tm\n<[^>]*> Tj\nET\n[^\n]+ cm\n\/Sh2 sh/, 'the mask clips to the glyphs and paints the grey shading');
   assert.ok(form.dict.lookup(lib.PDFName.of('Resources'), lib.PDFDict).get(lib.PDFName.of('Font')), 'the mask carries the font it sets');
 });
+
+test('a soft mask\'s form Matrix keeps its precision at a large scale', async () => {
+  // 300 points to the user unit: the Matrix back to user space is a third of a hundredth,
+  // which four decimal places would write as 0.0033 and so move a mask edge by pixels.
+  const doc = await createPdfDoc({ format: [400, 300] });
+  doc.setCurrentTransformationMatrix(new doc.Matrix(300, 0, 0, 300, 0, 0));
+  doc.addShadingPattern('c', new doc.ShadingPattern('axial', [0, 0, 1, 0], [{ offset: 0, color: [255, 0, 0] }, { offset: 1, color: [0, 0, 255] }]));
+  doc.addShadingPattern('a', new doc.ShadingPattern('axial', [0, 0, 1, 0], [{ offset: 0, color: [255] }, { offset: 1, color: [0] }], 'DeviceGray'));
+  doc.rect(0, 0, 1, 0.8, null);
+  doc.fill({ key: 'c', alpha: 'a' });
+  const { pdf, lib } = await readBack(doc);
+  const smask = pdf.context.lookup(pdf.getPage(0).node.Resources().lookup(lib.PDFName.of('ExtGState'), lib.PDFDict).get(lib.PDFName.of('GM1')))
+    .lookup(lib.PDFName.of('SMask'), lib.PDFDict);
+  const form = pdf.context.lookup(smask.get(lib.PDFName.of('G')));
+  const m = form.dict.get(lib.PDFName.of('Matrix')).asArray().map((n: any) => Number(n.toString()));
+  assert.ok(Math.abs(m[0] - 1 / 300) < 1e-9, `the scale is written in full: ${m[0]}`);
+});
+
+test('text can be set invisible to stay searchable, or as a clip for what is painted next', async () => {
+  const doc = await createPdfDoc({ format: [200, 100] });
+  doc.setFont('helvetica', 'normal');
+  doc.text('hidden', 10, 30, { render: 'invisible' });
+  doc.saveGraphicsState();
+  doc.text('clipped', 10, 70, { render: 'clip' });
+  doc.rect(0, 40, 200, 40, 'F');
+  doc.restoreGraphicsState();
+  doc.text('after', 10, 95);
+  const { content } = await readBack(doc);
+  assert.match(content, /q\nBT\n[^\n]+ Tf\n3 Tr\n[^\n]+ Tm\n<[^>]*> Tj\nET\nQ/, 'invisible text is render mode 3, undone by its own Q');
+  assert.match(content, /q\nBT\n[^\n]+ Tf\n7 Tr\n[^\n]+ Tm\n<[^>]*> Tj\nET\n0 Tr\n[^\n]+ re\nf\nQ/, 'a clip is render mode 7 with no Q of its own, so the rect after it is clipped');
+});

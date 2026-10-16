@@ -650,9 +650,13 @@ test('SVG text with a gradient fill stays live text filled through a shading pat
 const CLIPPED_TEXT = `<p style="${at(0, 0)};margin:0;font:bold 64px Helvetica,Arial,sans-serif;line-height:100px;width:300px;`
   + `background:linear-gradient(90deg,#ff0000,#0000ff);-webkit-background-clip:text;background-clip:text;color:transparent">WIDE</p>`;
 
+/** How many text-showing operators the PDF's streams hold: each is a word copy and search can find. */
+const showOps = (pic: Picture): number => pic.streams.reduce((n, st) => n + (st.match(/\bTj\b/g) ?? []).length, 0);
+
 test('HTML text with background-clip: text is live text filled with its background', { skip: SKIP, timeout: 120_000 }, async () => {
   const pic = await paint(CLIPPED_TEXT, 300, 120, { exportOpts: { convertPaths: false } });
-  assert.ok(pic.streams.some(st => /\/Pattern\s+cs\s+\/P\d+\s+scn/.test(st) && /\bTj\b/.test(st)), 'the text is set with Tj in the Pattern colour space');
+  assert.ok(pic.streams.some(st => /7 Tr[\s\S]*\bTj\b[\s\S]*ET[\s\S]*\bsh\b/.test(st)), 'the glyphs are a clip (render mode 7) that a shading paints through');
+  assert.equal(showOps(pic), 1, 'the word is set once, so copy and search find it once');
   assert.match(pic.text, /WIDE/, 'pdftotext reads the word');
   near(pic.at(290, 50), BLACK, 8, 'the box behind the text is not filled with the gradient');
   near(pic.at(150, 110), BLACK, 8, 'nor below the text');
@@ -689,4 +693,208 @@ test('a print export turns gradient shadings to CMYK, so the PDF/X colour checks
   const doc = await lib.PDFDocument.load(pic.bytes, { updateMetadata: false });
   assert.ok(shadingCsOk(doc, lib.PDFName), 'no shading paints in unmanaged RGB');
   assert.ok(groupCsOk(doc, lib.PDFName), 'no transparency group blends in RGB');
+});
+
+// ── Text the PDF sets wider than the browser ────────────────────────────────────
+
+/** The first and last columns with ink between two rows, read through `px`, or null when the band is empty. */
+function inkSpan(px: (x: number, y: number) => [number, number, number], width: number, y0: number, y1: number, ink = (c: [number, number, number]) => c.some(v => v > 60)): [number, number] | null {
+  let first = -1, last = -1;
+  for (let x = 0; x < width; x++) {
+    for (let y = y0; y <= y1; y++) {
+      if (ink(px(x, y))) { if (first < 0) first = x; last = x; break; }
+    }
+  }
+  return first < 0 ? null : [first, last];
+}
+
+/** The four fixtures the second review found cut short, each in a group and then alone. */
+const GROUPED_TEXT = [
+  ['a condensed face', 'x="10" font-family="Avenir Next Condensed, Arial Narrow, sans-serif" font-size="44"', 'Condensed headline'],
+  ['text-anchor end', 'x="510" text-anchor="end" font-family="Avenir Next Condensed, Arial Narrow, sans-serif" font-size="44"', 'Right aligned label'],
+  ['letter-spacing -6', 'x="10" font-family="Helvetica, Arial, sans-serif" font-weight="bold" font-size="48" letter-spacing="-6"', 'Tight tracking'],
+  ['textLength', 'x="10" font-family="Helvetica, Arial, sans-serif" font-weight="bold" font-size="40" textLength="150" lengthAdjust="spacingAndGlyphs"', 'Squeezed words'],
+] as const;
+
+/** Each fixture in a translucent group with a mark of its own, then alone at the same opacity 60 px lower. */
+function groupedText(family?: string): string {
+  return GROUPED_TEXT.map(([, attrs, words], i) => {
+    const y = 120 * i;
+    const a = family ? attrs.replace(/font-family="[^"]*"/, `font-family="${family}"`) : attrs;
+    return `<g opacity="0.7"><rect x="255" y="${y + 2}" width="10" height="4" fill="#ff0000"/><text y="${y + 48}" ${a} fill="#ffffff">${words}</text></g>`
+      + `<text y="${y + 108}" ${a} fill="#ffffff" fill-opacity="0.7">${words}</text>`;
+  }).join('');
+}
+
+test('text in a translucent group is drawn in full, however much wider the PDF sets it than the browser', { skip: SKIP, timeout: 120_000 }, async () => {
+  // The group's box used to be the browser's box for the text, and the PDF sets text in
+  // its own font, with no letter-spacing or textLength, so what ran past the box was cut.
+  for (const outline of [false, true]) {
+    const pic = await paint(`<svg style="${at(0, 0)}" width="520" height="480" viewBox="0 0 520 480">${groupedText(outline ? 'Outfit' : undefined)}</svg>`,
+      520, 480, outline ? { outline: true } : { exportOpts: { convertPaths: false } });
+    assert.ok(formBoxes(pic).length >= 4, 'each grouped fixture is a transparency group');
+    GROUPED_TEXT.forEach(([what], i) => {
+      const grouped = inkSpan(pic.at, pic.width, 120 * i + 10, 120 * i + 60), alone = inkSpan(pic.at, pic.width, 120 * i + 70, 120 * i + 119);
+      assert.ok(grouped && alone, `${what}: both rows are drawn`);
+      assert.ok(Math.abs(grouped![0] - alone![0]) <= 2 && Math.abs(grouped![1] - alone![1]) <= 2,
+        `${what}, ${outline ? 'outlined' : 'live'}: the grouped text spans ${grouped!.join(' to ')}, as the text alone spans ${alone!.join(' to ')}`);
+    });
+  }
+});
+
+test('a bare text node between tspans moves the pen by its own width', { skip: SKIP, timeout: 120_000 }, async () => {
+  // It used to move by the whole <text>'s length, which sent "beta" 360 px along.
+  const pic = await paint(`<svg style="${at(0, 0)}" width="400" height="100" viewBox="0 0 400 100"><text x="10" y="60" font-family="Helvetica, Arial, sans-serif" font-size="32" fill="#ffffff">Alpha <tspan fill="#00ff00">beta</tspan> gamma</text></svg>`,
+    400, 100, { exportOpts: { convertPaths: false } });
+  assert.match(pic.text.replace(/\s+/g, ' '), /Alpha beta gamma/, 'the words read in order, a space apart');
+  const pdf = inkSpan(pic.at, pic.width, 20, 80), screen = inkSpan(pic.screen, pic.width, 20, 80);
+  assert.ok(pdf && screen && Math.abs(pdf[1] - screen[1]) <= 8, `the line ends where the browser ends the line: ${pdf?.[1]} against ${screen?.[1]}`);
+  const green = inkSpan(pic.at, pic.width, 20, 80, c => c[1] > 150 && c[0] < 100), greenOnScreen = inkSpan(pic.screen, pic.width, 20, 80, c => c[1] > 150 && c[0] < 100);
+  assert.ok(green && greenOnScreen && Math.abs(green[0] - greenOnScreen[0]) <= 6, `"beta" starts at the browser's x: ${green?.[0]} against ${greenOnScreen?.[0]}`);
+});
+
+test('dominant-baseline and keyword weights are drawn as the browser draws them', { skip: SKIP, timeout: 120_000 }, async () => {
+  const pic = await paint(`
+    <svg style="${at(0, 0)}" width="400" height="140" viewBox="0 0 400 140">
+      <defs><linearGradient id="g"><stop offset="0" stop-color="#223"/><stop offset="1" stop-color="#335"/></linearGradient></defs>
+      <rect width="400" height="140" fill="url(#g)"/>
+      <text x="10" y="40" dominant-baseline="middle" font-family="Outfit" font-size="28" fill="#ffffff">middle</text>
+      <text x="140" y="40" dominant-baseline="hanging" font-family="Outfit" font-size="28" fill="#ffffff">hanging</text>
+      <text x="280" y="40" dominant-baseline="central" font-family="Outfit" font-size="28" fill="#ffffff">central</text>
+      <text x="10" y="120" font-family="Outfit" font-size="28" font-weight="bold" fill="#ffffff">bold keyword</text>
+    </svg>`, 400, 140, { outline: true });
+  assert.ok(!pic.objects.some(o => /\/Subtype\s*\/Image/.test(o)), 'the SVG stays vector');
+  // Each word's box against the screen: about 2 to 3% here, 13 to 20% with every word on
+  // the alphabetic baseline and the bold one regular.
+  for (const [x, y, w, what] of [[10, 10, 110, 'middle'], [140, 30, 120, 'hanging'], [280, 15, 110, 'central'], [10, 90, 190, 'bold keyword']] as const) {
+    const err = pic.diff({ x, y, w, h: 45 });
+    assert.ok(err < 0.05, `${what} sits where the browser sets the word: mean error ${(err * 100).toFixed(2)}%`);
+  }
+});
+
+test('a baseline shift, vertical text or a per-glyph rotate makes the SVG a picture', { skip: SKIP, timeout: 120_000 }, async () => {
+  const one = (left: number, body: string) => `<svg style="${at(left, 0)}" width="120" height="120" viewBox="0 0 120 120"><rect width="120" height="120" fill="#223"/>${body}</svg>`;
+  const pic = await paint(
+    one(0, '<text x="10" y="70" font-family="Outfit" font-size="28" fill="#fff">E=mc<tspan baseline-shift="super" font-size="16">2</tspan></text>')
+    + one(140, '<text x="60" y="10" font-family="Outfit" font-size="22" fill="#fff" writing-mode="vertical-rl">縦書き</text>')
+    + one(280, '<text x="20" y="70" font-family="Outfit" font-size="28" fill="#fff" rotate="20">tilt</text>'),
+    400, 120, { outline: true });
+  assert.ok(pic.objects.filter(o => /\/Subtype\s*\/Image/.test(o)).length >= 3, 'each of the three is a picture');
+  for (const [x, what] of [[0, 'the superscript'], [140, 'the vertical text'], [280, 'the rotated letters']] as const) {
+    const err = pic.diff({ x, y: 0, w: 120, h: 120 });
+    assert.ok(err < 0.03, `${what} matches the screen: mean error ${(err * 100).toFixed(2)}%`);
+  }
+});
+
+// ── background-clip: text that is not one gradient ─────────────────────────────
+
+const CLIP_TEXT = '-webkit-background-clip:text;background-clip:text';
+const para = (top: number, style: string, words: string) => `<p style="${at(0, top)};margin:0;font:bold 56px Helvetica,Arial,sans-serif;line-height:80px;width:400px;${style}">${words}</p>`;
+const STRIPES = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><rect width="10" height="20" fill="#ff00ff"/><rect x="10" width="10" height="20" fill="#00ffff"/></svg>')}`;
+/** How many pixels in a band match `test`. */
+const countIn = (pic: Picture, y0: number, y1: number, test: (c: [number, number, number]) => boolean): number => {
+  let n = 0;
+  for (let y = y0; y <= y1; y++) for (let x = 0; x < pic.width; x++) if (test(pic.at(x, y))) n++;
+  return n;
+};
+
+test('text clipped to an image or a repeating gradient shows that background through its glyphs and stays searchable', { skip: SKIP, timeout: 120_000 }, async () => {
+  // Neither background is one gradient, so the glyphs used to vanish.
+  const pic = await paint(
+    para(0, `background:url('${STRIPES}');${CLIP_TEXT};color:transparent`, 'Image fill')
+    + para(80, `background:repeating-linear-gradient(90deg,#ff0000 0 20px,#00ff00 20px 40px);${CLIP_TEXT};color:transparent`, 'Stripes'),
+    400, 160, { exportOpts: { convertPaths: false } });
+  assert.match(pic.text, /Image fill/, 'pdftotext reads the first run');
+  assert.match(pic.text, /Stripes/, 'and the second');
+  assert.equal(showOps(pic), 2, 'each run is set once, as the clip its background shows through');
+  assert.ok(pic.objects.some(o => /\/Subtype\s*\/Image/.test(o)), 'the backgrounds are pictures');
+  const magenta = countIn(pic, 0, 79, c => c[0] > 180 && c[2] > 180 && c[1] < 90), cyan = countIn(pic, 0, 79, c => c[1] > 180 && c[2] > 180 && c[0] < 90);
+  const red = countIn(pic, 80, 159, c => c[0] > 180 && c[1] < 90), green = countIn(pic, 80, 159, c => c[1] > 180 && c[0] < 90);
+  assert.ok(magenta > 300 && cyan > 300, `the image's stripes show through the glyphs: ${magenta} magenta and ${cyan} cyan pixels`);
+  assert.ok(red > 300 && green > 300, `so do the gradient's: ${red} red and ${green} green pixels`);
+  assert.equal(countIn(pic, 0, 159, c => c.every(v => v > 200)), 0, 'and no glyph is drawn in white');
+});
+
+test('transparent text stays searchable and a translucent colour is painted once at its alpha', { skip: SKIP, timeout: 120_000 }, async () => {
+  const pic = await paint(
+    `<div style="${at(0, 0)};width:400px;height:60px;background:#ccddee"></div><p style="${at(10, 10)};margin:0;font:32px Helvetica,Arial,sans-serif;color:transparent">Searchable overlay</p>`
+    + para(60, `background:linear-gradient(90deg,#ff0000,#0000ff);${CLIP_TEXT};color:rgba(255,255,255,0.3)`, 'Visible ink'),
+    400, 140, { exportOpts: { convertPaths: false } });
+  assert.match(pic.text, /Searchable overlay/, 'the transparent overlay is read');
+  assert.ok(pic.streams.some(st => /3 Tr/.test(st)), 'as invisible text, render mode 3');
+  assert.equal(showOps(pic), 2, 'each run is set once, so copy and search find it once');
+  // White at 30% over the gradient on a black page: never the opaque white the run used to print in.
+  const white = countIn(pic, 60, 139, c => c.every(v => v > 235));
+  const tinted = countIn(pic, 60, 139, c => c[0] > 200 && c[1] > 60 && c[1] < 140);
+  assert.ok(white < 50 && tinted > 200, `the run is the gradient lightened by its own colour: ${tinted} tinted and ${white} white pixels`);
+});
+
+test('a transparent stop under background-clip: text fades to the page, not to black', { skip: SKIP, timeout: 120_000 }, async () => {
+  const pic = await paint(para(0, `background:linear-gradient(90deg,#ff0000,transparent);${CLIP_TEXT};color:transparent`, 'Fade out'),
+    400, 80, { background: '#ffffff', exportOpts: { convertPaths: false } });
+  assert.match(pic.text, /Fade out/, 'pdftotext reads the run');
+  // The fade runs to the white page, so the end of the word is pale; a fade to black is dark red there.
+  const end = inkSpan(pic.at, pic.width, 10, 70, c => c.some(v => v < 230))!;
+  let darkest = 255;
+  for (let y = 10; y <= 70; y++) for (let x = end[1] - 25; x <= end[1]; x++) darkest = Math.min(darkest, pic.at(x, y)[1]);
+  assert.ok(darkest > 90, `the faded end of the word is pale: its darkest green channel is ${darkest}`);
+});
+
+// ── An SVG in an <img> ───────────────────────────────────────────────────────────
+
+test('an SVG in an <img> keeps its blend modes inside the picture, as Chromium composites an image', { skip: SKIP, timeout: 120_000 }, async () => {
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 100"><rect width="200" height="100" fill="#0055ff"/><rect x="100" width="260" height="100" fill="#ff0066" style="mix-blend-mode:multiply"/></svg>';
+  const pic = await paint(`<div style="${at(0, 0)};width:400px;height:120px;background:#ffcc00"></div><img style="${at(20, 10)}" width="360" height="100" src="data:image/svg+xml,${encodeURIComponent(svg)}">`, 400, 120);
+  near(pic.at(330, 60), [255, 0, 102], 12, 'beyond the blue the multiplied rect blends with nothing in the image, not with the yellow page');
+  near(pic.at(170, 60), pic.screen(170, 60), 12, 'over the blue it multiplies as on screen');
+  assert.ok(pic.diff() < 0.01, `the whole picture matches the screen: mean error ${(pic.diff() * 100).toFixed(2)}%`);
+});
+
+// ── More markers and mirrors ─────────────────────────────────────────────────────
+
+test('markers scale with a non-scaling stroke, take the context shape\'s gradient, clip only for hidden overflow and mark a lone vertex', { skip: SKIP, timeout: 120_000 }, async () => {
+  const pic = await paint(`
+    <svg style="${at(0, 0)}" width="320" height="200" viewBox="0 0 320 200">
+      <defs>
+        <marker id="a" viewBox="0 0 20 10" refX="10" refY="5" markerWidth="12" markerHeight="6" orient="auto"><path d="M0 2H14V0L20 5L14 10V8H0Z" fill="#ffff00"/><path d="M14 0L20 5L14 10Z" fill="#ff0000"/></marker>
+        <linearGradient id="g"><stop offset="0" stop-color="#ff0000"/><stop offset="1" stop-color="#0000ff"/></linearGradient>
+        <marker id="cf" markerUnits="userSpaceOnUse" markerWidth="30" markerHeight="30" refX="15" refY="15"><circle cx="15" cy="15" r="14" fill="context-fill"/></marker>
+        <marker id="cs" markerUnits="userSpaceOnUse" markerWidth="30" markerHeight="30" refX="15" refY="15"><circle cx="15" cy="15" r="14" fill="context-stroke"/></marker>
+        <marker id="auto" markerUnits="userSpaceOnUse" markerWidth="20" markerHeight="20" viewBox="0 0 10 10" refX="5" refY="5" overflow="auto"><circle cx="10" cy="10" r="8" fill="#00ffff"/></marker>
+        <marker id="s" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4"><circle cx="5" cy="5" r="5" fill="#ff00ff"/></marker>
+        <marker id="e" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4"><circle cx="5" cy="5" r="5" fill="#00ff00"/></marker>
+      </defs>
+      <g transform="scale(4)"><path d="M5 8 L30 8" fill="none" stroke="#ffffff" stroke-width="1" vector-effect="non-scaling-stroke" marker-end="url(#a)"/></g>
+      <polygon points="160,20 300,20 300,50 160,50" fill="url(#g)" marker-start="url(#cf)" marker-mid="url(#cf)"/>
+      <path d="M30 90 H140" stroke="url(#g)" stroke-width="6" fill="none" marker-start="url(#cs)" marker-end="url(#cs)"/>
+      <path d="M20 150 h40" stroke="#ffffff" marker-end="url(#auto)"/>
+      <path d="M130 150" stroke="#ffffff" stroke-width="3" marker-start="url(#s)" marker-end="url(#e)"/>
+      <path d="M200 150 h60 h-60" stroke="#ffffff" stroke-width="2" fill="none" marker-mid="url(#a)"/>
+    </svg>`, 320, 200);
+  for (const [x, y, what] of [
+    [120, 32, 'a non-scaling stroke\'s arrow, a quarter of its unscaled size'],
+    [160, 20, 'context-fill sampled from the polygon\'s gradient at the polygon\'s corner'],
+    [300, 50, 'and at the far corner'],
+    [85, 90, 'nothing where a zero-height path lends its gradient'],
+    [74, 164, 'overflow auto does not clip the circle'],
+    [130, 150, 'a lone moveto takes its start and end markers'],
+    [260, 140, 'where the path doubles back the mid arrow points up'],
+  ] as const) {
+    const err = around(pic, x, y);
+    assert.ok(err < 0.05, `${what}: mean error ${(err * 100).toFixed(2)}%`);
+  }
+  near(pic.at(130, 150), [0, 255, 0], 40, 'the end marker on top of the start, as Chromium draws a lone vertex');
+  near(pic.at(260, 141), pic.screen(260, 141), 60, 'the doubled-back arrow has its red tip above the vertex, as on screen');
+  assert.ok(pic.diff() < 0.01, `the whole picture matches the screen: mean error ${(pic.diff() * 100).toFixed(2)}%`);
+});
+
+test('an inline <svg> is mirrored or turned however the mirror arrives: rotateY, rotateX, scaleY or the scale property', { skip: SKIP, timeout: 120_000 }, async () => {
+  const quads = '<rect width="50" height="25" fill="#ff0000"/><rect x="50" width="50" height="25" fill="#0000ff"/><rect y="25" width="50" height="25" fill="#00ff00"/><rect x="50" y="25" width="50" height="25" fill="#ffff00"/>';
+  const ways = ['transform:rotateY(180deg)', 'transform:rotateX(180deg)', 'transform:scaleY(-1)', 'scale:-1', 'scale:1 -1', 'transform:rotate(180deg)', 'transform:scaleX(-1)', 'scale:-1 1'];
+  const pic = await paint(ways.map((w, i) => `<svg style="${at((i % 4) * 110, Math.floor(i / 4) * 60)};${w}" width="100" height="50" viewBox="0 0 100 50">${quads}</svg>`).join(''), 440, 120);
+  ways.forEach((w, i) => {
+    const l = (i % 4) * 110, t = Math.floor(i / 4) * 60;
+    near(pic.at(l + 20, t + 10), pic.screen(l + 20, t + 10), 24, `${w}: the top left as on screen`);
+    near(pic.at(l + 80, t + 40), pic.screen(l + 80, t + 40), 24, `${w}: the bottom right as on screen`);
+  });
 });

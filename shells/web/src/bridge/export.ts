@@ -68,8 +68,8 @@ import type { LabelsRecord, PdfFinishSettings } from '@lolly-tools/node-shell/pd
 export { encryptPdfStrong } from '@lolly-tools/node-shell/pdf-finishing';
 import { createPdfDoc } from './export-pdf-doc.ts';
 import { embedSuseFont, pdfFontEmbed, suseFontName } from './export-pdf-fonts.ts';
-import { paintSvgToPdf, svgMirroredX } from './export-pdf-svg.ts';
-import { clipsBackgroundToText, paintLiveRun, paintOutlinedRun, runPaint } from './export-pdf-text-paint.ts';
+import { paintSvgToPdf, svgFlips, type SvgFlips } from './export-pdf-svg.ts';
+import { backgroundPicture, clipsBackgroundToText, paintLiveRun, paintOutlinedRun, runPaint } from './export-pdf-text-paint.ts';
 import { isOwnProfile, resolveEmbeddedProfile } from '../lib/press-profile-embed.ts';
 import type { EmbedResolution } from '../lib/press-profile-embed.ts';
 import { _host, canvasToBlob, imprintCanvas, exportDims, getDomToImage, swapBlobUrls, fontMetricsPx, blobToDataUrl, MAX_RASTER_PX, makeRoundedFill, setExportHost, foldIngredientSinks } from './export-shared.ts';
@@ -2429,13 +2429,17 @@ async function finishPdfX(blobOrBytes: Blob | Uint8Array, opts: ExportOpts, sett
 // region's top-left offsets and regionW/regionH its size, in points. Used by the
 // full-page SVG canvas path, by drawHtmlVectors for an inline <svg> and an SVG <img>,
 // and recursively for a nested <image>. The painter is export-pdf-svg.ts; this lends
-// it the picture capture and image decoding that live in this module.
-async function drawSvgVectorsInRegion(pdf: any, svgEl: Element, ox: number, oy: number, regionW: number, regionH: number, registeredFonts: Set<unknown> | null = null, imprint?: ImprintState, convertPaths = true, flipX = false): Promise<void> {
+// it the picture capture and image decoding that live in this module. `flips` are the
+// mirrors the walker left to the box (svgFlips). `isolated` is for an SVG that is a
+// document of its own, the source of an <img>: its blend modes mix only with what the
+// SVG draws, as Chromium composites an image.
+async function drawSvgVectorsInRegion(pdf: any, svgEl: Element, ox: number, oy: number, regionW: number, regionH: number, registeredFonts: Set<unknown> | null = null, imprint?: ImprintState, convertPaths = true, flips: SvgFlips = { x: false, y: false }, isolated = false): Promise<void> {
   await paintSvgToPdf(pdf, svgEl, { x: ox, y: oy, w: regionW, h: regionH }, {
-    registeredFonts, convertPaths, flipX, imageForPdf,
-    rasterize: (el, pxW, pxH) => rasterizeSvgElement(el, pxW, pxH, flipX, imprint),
+    registeredFonts, convertPaths, flipX: flips.x, flipY: flips.y, imageForPdf, isolated,
+    rasterize: (el, pxW, pxH) => rasterizeSvgElement(el, pxW, pxH, flips.x, imprint, flips.y),
   });
 }
+
 
 // Rasterise a CSS linear- or radial-gradient fill to a PNG data URL at pxW×pxH. The PDF
 // compat-mode API has no vector shading (patterns need advancedAPI, which flips the
@@ -2673,7 +2677,7 @@ export function stripRasterLayoutStyle(el: Element): void {
   if (s) for (const p of RASTER_STRIP_STYLE_PROPS) s.removeProperty(p);
 }
 
-async function rasterizeSvgElement(svgEl: Element, pxW: number, pxH: number, flipX = false, imprint?: ImprintState): Promise<string> {
+async function rasterizeSvgElement(svgEl: Element, pxW: number, pxH: number, flipX = false, imprint?: ImprintState, flipY = false): Promise<string> {
   const clone = svgEl.cloneNode(true) as Element;
   clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
   stripRasterLayoutStyle(clone);
@@ -2692,7 +2696,7 @@ async function rasterizeSvgElement(svgEl: Element, pxW: number, pxH: number, fli
   canvas.width  = pxW;
   canvas.height = pxH;
   const ctx = canvas.getContext('2d')!;
-  if (flipX) { ctx.translate(pxW, 0); ctx.scale(-1, 1); }
+  if (flipX || flipY) { ctx.translate(flipX ? pxW : 0, flipY ? pxH : 0); ctx.scale(flipX ? -1 : 1, flipY ? -1 : 1); }
   ctx.drawImage(img, 0, 0, pxW, pxH);
   // Lolly-rendered gradient/filter/pattern subtree → carry the pixel imprint into
   // the PDF/PPTX raster it becomes (opts.imprint gated, size-floored).
@@ -3194,9 +3198,9 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
     // ── SVG subtree → vector region ──────────────────────────────────────────
     // The painter draws gradients, clips and transparency itself, and draws the SVG
     // as a picture at 150 dpi only for what it cannot (svgRasterReason). A mirror the
-    // walker left to the box (svgMirroredX) is drawn by the painter either way.
+    // walker left to the box (svgFlips) is drawn by the painter either way.
     if (tag === 'svg') {
-      await drawSvgVectorsInRegion(pdf, el, x, y, w, h, registeredFonts, imprint, convertPaths, svgMirroredX(style));
+      await drawSvgVectorsInRegion(pdf, el, x, y, w, h, registeredFonts, imprint, convertPaths, svgFlips(style));
       return;
     }
 
@@ -3229,11 +3233,11 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
             const dx = x + (w - fw) * px, dy = y + (h - fh) * py;
             // This SVG came from a user <img src> (a logo/photo asset), not from
             // Lolly's own render - never imprint it (KEY PRINCIPLE). imprint omitted,
-            // so its gradient-rasterisation fallback keeps the user's pixels intact.
+            // so its gradient-rasterisation fallback keeps the user's pixels intact. As a document of its own it is drawn isolated.
             if (cover) {
-              await withPdfClipRect(pdf, x, y, w, h, () => drawSvgVectorsInRegion(pdf, svgEl, dx, dy, fw, fh, registeredFonts, undefined, convertPaths));
+              await withPdfClipRect(pdf, x, y, w, h, () => drawSvgVectorsInRegion(pdf, svgEl, dx, dy, fw, fh, registeredFonts, undefined, convertPaths, undefined, true));
             } else {
-              await drawSvgVectorsInRegion(pdf, svgEl, dx, dy, fw, fh, registeredFonts, undefined, convertPaths);
+              await drawSvgVectorsInRegion(pdf, svgEl, dx, dy, fw, fh, registeredFonts, undefined, convertPaths, undefined, true);
             }
           }
         } catch { /* fall through to the raster path */ }
@@ -3382,7 +3386,7 @@ async function renderInlineContent(
       const letterSpacing = letterSpacingPx(nodeStyle.letterSpacing);
       const features = featureSettingsToHb(nodeStyle.fontFeatureSettings);
       // The run's own fill, and a background-clip: text background under the run.
-      const paint = runPaint(pdf, node.parentElement, nodeStyle, rootRect, scaleX, scaleY, cssToPt);
+      const paint = await runPaint(pdf, node.parentElement, nodeStyle, rootRect, scaleX, scaleY, cssToPt, (box, w, h) => backgroundPicture(box, w, h, RASTER_DPI, imprint));
       const textRgb = paint.rgb;
       const { ascent, descent } = fontMetricsPx(nodeStyle, fontSizePx);
 

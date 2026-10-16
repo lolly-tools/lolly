@@ -215,11 +215,23 @@ interface PatternEntry { name: string; shading: string; matrix: number[] }
 
 /** Up to four decimals, never exponent notation (which PDF does not accept). */
 function num(v: number): string {
+  return fixed(v, 4);
+}
+
+function fixed(v: number, places: number): string {
   if (!Number.isFinite(v)) return '0';
-  const s = v.toFixed(4);
+  const s = v.toFixed(places);
   const trimmed = s.includes('.') ? s.replace(/\.?0+$/, '') : s;
   return trimmed === '' || trimmed === '-' || trimmed === '-0' ? '0' : trimmed;
 }
+
+/**
+ * A matrix entry with the precision a change of space needs. A soft mask is restated
+ * in page points through a form Matrix that is the inverse of the page transform, so at
+ * 300 points per user unit an entry is about 0.00333; four places would write 0.0033
+ * and move a mask edge by several pixels.
+ */
+const fine = (v: number): string => fixed(v, 10);
 
 /** Two decimals with trailing zeros dropped, the colour-operator form. */
 function f2(v: number): string {
@@ -376,7 +388,7 @@ export class PdfDoc {
     if (!inverse) return { sink, bbox };
     const [x0, y0, x1, y1] = clipBox(boxThrough(toPage, bbox), [-1, -1, this.current.w + 1, this.current.h + 1]);
     return {
-      sink: { ...sink, ops: [`${matMul([1, 0, 0, 1, -x0!, -y0!], toPage).map(num).join(' ')} cm`, ...sink.ops] },
+      sink: { ...sink, ops: [`${matMul([1, 0, 0, 1, -x0!, -y0!], toPage).map(fine).join(' ')} cm`, ...sink.ops] },
       bbox: [0, 0, x1! - x0!, y1! - y0!],
       matrix: matMul(inverse, [1, 0, 0, 1, x0!, y0!]),
     };
@@ -792,7 +804,14 @@ export class PdfDoc {
     catch { return std.widthOfTextAtSize(toWinAnsi(text), size); }
   }
 
-  text(text: string, x: number, y: number, opts: { align?: string; baseline?: string } = {}): this {
+  /**
+   * Set a string at x, y (the baseline). `render` picks the text render mode: 'fill' (the
+   * default) paints the glyphs; 'invisible' (mode 3) paints nothing and keeps the words
+   * searchable and copyable; 'clip' (mode 7) adds the glyphs to the clip for what is
+   * painted next. A clip outlives the call, so the caller brackets it with
+   * saveGraphicsState and restoreGraphicsState.
+   */
+  text(text: string, x: number, y: number, opts: { align?: string; baseline?: string; render?: 'fill' | 'invisible' | 'clip' } = {}): this {
     if (text == null) return this;
     const font = this.activeFont;
     const lines = String(text).split('\n');
@@ -813,6 +832,18 @@ export class PdfDoc {
       show.push(`1 0 0 -1 ${num(lx)} ${num(y + i * lead)} Tm`, `${this.encodeText(line, font)} Tj`);
     });
     const size = `/${font.name} ${num(this.fontSize)} Tf`;
+    if (opts.render === 'clip' || opts.render === 'invisible') {
+      // No q around a clip, which has to last until the caller's own Q.
+      if (opts.render === 'invisible') this.out('q');
+      this.out('BT');
+      this.out(size);
+      this.out(opts.render === 'clip' ? '7 Tr' : '3 Tr');
+      for (const op of show) this.out(op);
+      this.out('ET');
+      // The render mode is graphics state: back to filling for text drawn before the Q.
+      this.out(opts.render === 'clip' ? '0 Tr' : 'Q');
+      return this;
+    }
     const fill = this.textFill;
     this.out('q');
     if (fill) {
@@ -957,7 +988,7 @@ export class PdfDoc {
         ? { S: 'Transparency', CS: 'DeviceGray' }
         : { S: 'Transparency', I: true };
       ctx.assign(formRefs.get(key)!, ctx.flateStream(form.sink.ops.join('\n'), {
-        Type: 'XObject', Subtype: 'Form', BBox: form.bbox, ...(form.matrix ? { Matrix: form.matrix.map(v => Number(num(v))) } : {}), Group: group,
+        Type: 'XObject', Subtype: 'Form', BBox: form.bbox, ...(form.matrix ? { Matrix: form.matrix.map(v => Number(fine(v))) } : {}), Group: group,
         Resources: resourcesOf(form.sink, true),
       }));
     }

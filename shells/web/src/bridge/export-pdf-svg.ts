@@ -12,8 +12,8 @@
  * - clip paths on any element, with `<use>` outlines, `clip-rule` and both
  *   `clipPathUnits`: one outline as a PDF clip, several as a soft mask of their union;
  * - paint carried on `<use>`, which the drawn instance inherits (StyleScope);
- * - the edge of every viewport, root and nested `<svg>`, unless its overflow is
- *   visible, as a clip;
+ * - the edge of every viewport, root and nested `<svg>`, as a clip; a nested one's
+ *   overflow visible or auto, as in Chromium, leaves it unclipped;
  * - fill, stroke and element opacity as alpha in the graphics state, and the opacity
  *   of a group or of a shape with both fill and stroke as a transparency group, so
  *   overlapping parts are faded as one picture;
@@ -23,12 +23,16 @@
  *   the shading seen through a soft mask of the stroke and outlined text takes the
  *   shading as a shape does. Live text keeps its font and fills through a shading
  *   pattern;
- * - markers on paths, lines, polylines and polygons (export-pdf-svg-markers.ts).
+ * - markers on paths, lines, polylines and polygons (export-pdf-svg-markers.ts);
+ * - text runs on dominant-baseline as the browser places them, with the computed
+ *   weight, so a keyword such as bold counts. A group's bounds take in the text the
+ *   PDF actually sets, which its own font can make wider than the browser's box.
  *
  * What stays a picture (scanSvg): an SVG holding a filter, a mask, a pattern, a
  * textPath, a foreignObject, text in a clip path or a gradient that spreads by reflect
  * or repeat. An element with a CSS filter, a CSS mask, a basic-shape clip-path, a
- * perspective transform or a plus-lighter or plus-darker blend does the same. The
+ * perspective transform or a plus-lighter or plus-darker blend does the same, as does
+ * text with a baseline shift, a vertical writing mode or a per-glyph rotate. The
  * painter does not draw those, so the whole SVG is rasterised at 150 dpi instead.
  */
 import { _host, blobToDataUrl } from './export-shared.ts';
@@ -51,6 +55,8 @@ export interface SvgPaintOptions {
   convertPaths?: boolean;
   /** Mirror the picture horizontally inside its region. */
   flipX?: boolean;
+  /** Mirror the picture vertically inside its region; with flipX, a half turn. */
+  flipY?: boolean;
   /**
    * The SVG is a document of its own, the source of an `<img>` or `<image>`, so its
    * blend modes mix only with what the SVG itself draws, never with the page beneath.
@@ -108,8 +114,27 @@ export function scanSvg(svgEl: Element): SvgScan {
       if (!PDF_BLEND_MODES[blend]) return { reason: `mix-blend-mode ${blend}`, blends };
       if (el !== svgEl) blends = true;
     }
+    if (el.localName === 'text' || el.localName === 'tspan') {
+      const reason = textLayoutReason(el, s);
+      if (reason) return { reason, blends };
+    }
   }
   return { reason: null, blends };
+}
+
+/**
+ * Text layout drawText does not reproduce: a baseline shift (super, sub or a length),
+ * a vertical writing mode and a per-glyph rotate. The painter sets each run on one
+ * horizontal baseline, so such text would print in the wrong place or the wrong
+ * direction; the SVG is drawn as a picture instead.
+ */
+function textLayoutReason(el: Element, s: CSSStyleDeclaration): string | null {
+  const shift = (s.getPropertyValue('baseline-shift') || '0px').trim();
+  if (shift !== '0px' && shift !== '0' && shift !== 'baseline' && parseFloat(shift) !== 0) return `text with baseline-shift ${shift}`;
+  const mode = (s.writingMode || 'horizontal-tb').trim();
+  if (mode !== 'horizontal-tb' && !/^(lr|lr-tb|rl|rl-tb)$/.test(mode)) return `text in writing-mode ${mode}`;
+  if (el.getAttribute('rotate')?.split(/[\s,]+/).some(v => v && parseFloat(v) !== 0)) return 'text with a per-glyph rotate';
+  return null;
 }
 
 /** Why this SVG has to be drawn as a picture, or null when the painter can draw every part. */
@@ -117,21 +142,26 @@ export function svgRasterReason(svgEl: Element): string | null {
   return scanSvg(svgEl).reason;
 }
 
+/** The mirrors an `<svg>` box carries: horizontal, vertical or both for a half turn. */
+export interface SvgFlips { x: boolean; y: boolean }
+
 /**
- * Whether an `<svg>` box carries a horizontal mirror that the walker left for the
- * painter. The walker draws an axis-aligned transform as the element's box, and a
- * scaleX(-1) does not change the box, so the mirror is read from the computed
- * transform and the computed scale property. A rotation or skew reads as none here,
- * because the walker neutralises that transform and draws the element under the full
- * matrix itself; a class name says nothing about either.
+ * The mirrors an `<svg>` box carries that the walker left for the painter. The walker
+ * draws an axis-aligned transform as the element's box, and a mirror does not change
+ * the box, so the mirrors are read from the computed transform (a matrix3d without
+ * perspective included, so rotateY(180deg) counts) and the computed scale property,
+ * which the walker does not read at all. A transform that scales both axes by a
+ * negative amount is a half turn the walker draws itself, as it does a rotation or a
+ * skew, which it neutralises and draws under the full matrix; the scale property's
+ * half turn is the painter's. A class name says nothing about any of this.
  */
-export function svgMirroredX(style: Pick<CSSStyleDeclaration, 'transform' | 'scale'>): boolean {
-  const m = /^matrix\(\s*([^,]+),\s*([^,]+),\s*([^,]+),\s*([^,]+),/.exec(style.transform || '');
-  const byTransform = m ? Number(m[1]) < 0 && Number(m[4]) > 0 : false;
+export function svgFlips(style: Pick<CSSStyleDeclaration, 'transform' | 'scale'>): SvgFlips {
+  const m = parseCssTransform(style.transform || 'none');
+  const t = m && m !== 'perspective' ? m : null;
   const scale = (style.scale || 'none').trim().split(/\s+/).map(Number);
-  // One value scales both axes, which is a half turn when negative, not a mirror.
-  const byScale = scale.length >= 2 && scale[0]! < 0 && scale[1]! > 0;
-  return byTransform !== byScale;
+  // One value scales both axes.
+  const sx = Number.isFinite(scale[0]) ? scale[0]! : 1, sy = Number.isFinite(scale[1]) ? scale[1]! : sx;
+  return { x: (t ? t.a < 0 && t.d > 0 : false) !== sx < 0, y: (t ? t.a > 0 && t.d < 0 : false) !== sy < 0 };
 }
 
 /** Per export: shadings by their content, and pictures of emoji artwork by glyph and size. */
@@ -156,6 +186,15 @@ interface Ctx {
   markers: Set<Element>;
   /** The shape whose markers are being drawn: what context-fill and context-stroke paint with. */
   context: Element | null;
+  /** That shape's user space to page points and its viewport, for a gradient it lends. */
+  contextCtm: Mat | null;
+  contextVp: Viewport | null;
+  /**
+   * One record per open group, of what drawText drew inside the group, in page points.
+   * Text is laid out by the PDF's own font, which can run wider than the browser's box
+   * for the same text, so a group's bounds take in what was drawn.
+   */
+  drawn: { box: Box | null }[];
 }
 
 /** Nesting deeper than this is not drawn, which bounds a hostile or runaway tree. */
@@ -184,11 +223,14 @@ export async function paintSvgToPdf(pdf: PdfDoc, svgEl: Element, region: Box, op
   const own = { w: (svgEl as SVGSVGElement).clientWidth || svgEl.getBoundingClientRect().width || region.w, h: (svgEl as SVGSVGElement).clientHeight || svgEl.getBoundingClientRect().height || region.h };
   const vb = viewBoxOf(svgEl) ?? { x: 0, y: 0, w: own.w, h: own.h };
   let m = viewBoxMatrix(vb, region, svgEl.getAttribute('preserveAspectRatio'));
-  if (opts.flipX) m = mul({ a: -1, b: 0, c: 0, d: 1, e: 2 * region.x + region.w, f: 0 }, m);
+  if (opts.flipX || opts.flipY) {
+    m = mul({ a: opts.flipX ? -1 : 1, b: 0, c: 0, d: opts.flipY ? -1 : 1, e: opts.flipX ? 2 * region.x + region.w : 0, f: opts.flipY ? 2 * region.y + region.h : 0 }, m);
+  }
   const ctx: Ctx = {
     pdf, root: svgEl, scope, opts, vp: { w: vb.w, h: vb.h }, ctm: mul(parentCtm, m),
     hostScale: lengthScale(parentCtm) * (region.w / own.w),
     groups: typeof pdf.beginGroup === 'function', walked: 0, depth: 0, markers: new Set(), context: null,
+    contextCtm: null, contextVp: null, drawn: [],
   };
   // The walker fades an <img>, or an <svg> of a few shapes, by setting an alpha around
   // the picture. PDF sets alpha rather than multiplying it, so the picture is drawn as
@@ -213,7 +255,7 @@ export async function paintSvgToPdf(pdf: PdfDoc, svgEl: Element, region: Box, op
   finally { pdf.paintGroup(pdf.endGroup(boundsOf(parentCtm, region)), outer, undefined, rootBlend); }
 }
 
-/** The SVG as a picture at 150 dpi; emoji artwork is captured once per glyph, size, mirroring and colour. */
+/** The SVG as a picture at 150 dpi; emoji artwork is captured once per glyph, size, mirrors and colour. */
 async function paintPicture(pdf: PdfDoc, svgEl: Element, region: Box, opts: SvgPaintOptions, parentCtm: Mat, reason: string): Promise<void> {
   const dpr = (150 / 72) * lengthScale(parentCtm);
   const pxW = Math.max(2, Math.min(2000, Math.round(region.w * dpr)));
@@ -223,7 +265,7 @@ async function paintPicture(pdf: PdfDoc, svgEl: Element, region: Box, opts: SvgP
   if (!cache) { cache = new Map(); glyphPictures.set(pdf, cache); }
   // Artwork painted in currentColor follows the text colour, and a mirrored placement
   // is captured mirrored, so both belong in the key.
-  const key = sum ? `${sum}:${pxW}x${pxH}:${opts.flipX ? 'mirrored' : ''}:${getComputedStyle(svgEl).color}` : '';
+  const key = sum ? `${sum}:${pxW}x${pxH}:${opts.flipX ? 'x' : ''}${opts.flipY ? 'y' : ''}:${getComputedStyle(svgEl).color}` : '';
   let png = key ? cache.get(key) : undefined;
   if (!png) {
     png = opts.rasterize!(svgEl, pxW, pxH);
@@ -250,6 +292,49 @@ function paintValue(el: Element, prop: 'fill' | 'stroke', ctx: Ctx): string {
   const v = ctx.scope.get(el, prop);
   if ((v === 'context-fill' || v === 'context-stroke') && ctx.context) return ctx.scope.get(ctx.context, v === 'context-fill' ? 'fill' : 'stroke');
   return v;
+}
+
+/**
+ * The paint an element fills or strokes with. Context paint that is a gradient stays
+ * the context shape's own gradient, as Chromium draws context paint: spanning that shape's box,
+ * placed in that shape's user space and seen through the marker content. A shape whose
+ * box has no width or height lends no objectBoundingBox gradient, so nothing is drawn.
+ */
+function paintFor(el: Element, prop: 'fill' | 'stroke', subs: SubPath[] | null, ctx: Ctx, boxEl: Element = el): Solid | ShadingSpec | null {
+  const v = ctx.scope.get(el, prop);
+  const src = ctx.context;
+  if ((v === 'context-fill' || v === 'context-stroke') && src && ctx.contextCtm && ctx.contextVp) {
+    const paint = parsePaint(ctx.scope.get(src, v === 'context-fill' ? 'fill' : 'stroke'));
+    if (paint.kind !== 'url') return paintOf(paint, boxEl, subs, ctx);
+    const vp = ctx.vp;
+    ctx.vp = ctx.contextVp;
+    let box: Box | null;
+    try { box = boxOf(src, ctx); } finally { ctx.vp = vp; }
+    const resolved = resolvedPaint(paint, resolveGradient(ctx.root, paint.id, box, ctx.contextVp, ctx.scope), ctx);
+    if (!resolved || 'rgb' in resolved) return resolved;
+    const inv = invert(ctx.ctm);
+    return inv ? { ...resolved, matrix: mul(inv, mul(ctx.contextCtm, resolved.matrix)) } : null;
+  }
+  return paintOf(parsePaint(v), boxEl, subs, ctx);
+}
+
+/** Whether a viewport clips what falls outside: hidden, scroll and clip do; visible and auto do not. */
+function clipsOverflow(el: Element, ctx: Ctx): boolean {
+  const overflow = ctx.scope.raw(el, 'overflow');
+  return overflow !== 'visible' && overflow !== 'auto';
+}
+
+/** A stroke's width in the shape's user space. A non-scaling stroke is measured in the outermost SVG's own pixels. */
+function effectiveStrokeWidth(el: Element, ctx: Ctx): number {
+  const w = ctx.scope.num(el, 'stroke-width', 1);
+  return ctx.scope.get(el, 'vector-effect') === 'non-scaling-stroke' ? (w * ctx.hostScale) / (lengthScale(ctx.ctm) || 1) : w;
+}
+
+/** Record a box drawn in the current user space with every open group. */
+function noteDrawn(ctx: Ctx, box: Box | null): void {
+  if (!box || !ctx.drawn.length || !Number.isFinite(box.x + box.y + box.w + box.h)) return;
+  const onPage = mapBox(box, ctx.ctm);
+  for (const record of ctx.drawn) record.box = unionBox(record.box, onPage);
 }
 
 /** Whether a shape takes markers it can draw. */
@@ -335,10 +420,16 @@ async function visit(el: Element, ctx: Ctx, fold: number): Promise<void> {
     if (group || union) {
       // Composited as one picture, then faded by the opacity, blended by its blend
       // mode and shown through the union of the clip's outlines.
+      const record: { box: Box | null } = { box: null };
+      ctx.drawn.push(record);
       ctx.pdf.beginGroup();
       try { await drawElement(el, ctx, 1); }
       finally {
-        const content = ctx.pdf.endGroup(groupBounds(ctx, paintBox(el, ctx)));
+        ctx.drawn.pop();
+        let box = paintBox(el, ctx);
+        const inv = record.box ? invert(ctx.ctm) : null;
+        if (box && record.box) box = inv ? unionBox(box, mapBox(record.box, inv)) : null;
+        const content = ctx.pdf.endGroup(groupBounds(ctx, box));
         ctx.pdf.paintGroup(content, fold * opacity, union ? clipMask(union, ctx) : undefined, blend);
       }
     } else await drawElement(el, ctx, fold * opacity);
@@ -376,9 +467,8 @@ const grow = (b: Box, r: number): Box => ({ x: b.x - r, y: b.y - r, w: b.w + 2 *
 function strokeReach(el: Element, ctx: Ctx): number {
   const s = ctx.scope;
   if (parsePaint(paintValue(el, 'stroke', ctx)).kind === 'none') return 0;
-  let w = s.num(el, 'stroke-width', 1);
+  const w = effectiveStrokeWidth(el, ctx);
   if (!(w > 0)) return 0;
-  if (s.get(el, 'vector-effect') === 'non-scaling-stroke') w = (w * ctx.hostScale) / (lengthScale(ctx.ctm) || 1);
   const join = s.get(el, 'stroke-linejoin') || 'miter';
   const miter = join.startsWith('miter') ? Math.max(1, s.num(el, 'stroke-miterlimit', 4)) : 1;
   return (w / 2) * Math.max(miter, Math.SQRT2);
@@ -401,18 +491,19 @@ function paintBox(el: Element, ctx: Ctx, depth = 0): Box | null {
       for (const p of ['marker-start', 'marker-mid', 'marker-end']) {
         const marker = markerRef(ctx.scope.get(el, p), id => findById(ctx.root, id));
         if (!marker) continue;
-        if (ctx.scope.raw(marker, 'overflow') === 'visible') return null;
-        reach = Math.max(reach, markerReach(marker, ctx.scope.num(el, 'stroke-width', 1), ctx.vp));
+        if (!clipsOverflow(marker, ctx)) return null;
+        reach = Math.max(reach, markerReach(marker, effectiveStrokeWidth(el, ctx), ctx.vp));
       }
     }
     return grow(b, reach);
   }
   if (name === 'text') {
+    // The browser's box; the group adds what drawText actually drew (Ctx.drawn).
     try { const b = (el as SVGGraphicsElement).getBBox(); return grow({ x: b.x, y: b.y, w: b.width, h: b.height }, (parseFloat(ctx.scope.raw(el, 'font-size')) || 16) / 2); } catch { return null; }
   }
   if (name === 'image') return boxOf(el, ctx);
   if (name === 'svg') {
-    if (ctx.scope.raw(el, 'overflow') === 'visible') return null;
+    if (!clipsOverflow(el, ctx)) return null;
     return { x: len(el.getAttribute('x'), ctx.vp.w), y: len(el.getAttribute('y'), ctx.vp.h), w: len(el.getAttribute('width') ?? '100%', ctx.vp.w), h: len(el.getAttribute('height') ?? '100%', ctx.vp.h) };
   }
   if (name === 'use') {
@@ -421,7 +512,7 @@ function paintBox(el: Element, ctx: Ctx, depth = 0): Box | null {
     if (!target) return null;
     const at = translate(len(el.getAttribute('x'), ctx.vp.w), len(el.getAttribute('y'), ctx.vp.h));
     if (target.localName === 'symbol' || target.localName === 'svg') {
-      if (ctx.scope.raw(target, 'overflow') === 'visible') return null;
+      if (!clipsOverflow(target, ctx)) return null;
       const w = len(el.getAttribute('width') ?? target.getAttribute('width') ?? '100%', ctx.vp.w);
       const h = len(el.getAttribute('height') ?? target.getAttribute('height') ?? '100%', ctx.vp.h);
       return mapBox({ x: 0, y: 0, w, h }, at);
@@ -466,7 +557,7 @@ async function drawElement(el: Element, ctx: Ctx, alpha: number): Promise<void> 
   }
 }
 
-/** A nested viewport: its box, its own viewBox and a clip at its edge unless overflow is visible. */
+/** A nested viewport: its box, its own viewBox and a clip at its edge unless overflow is visible or auto. */
 async function drawNestedSvg(el: Element, ctx: Ctx, alpha: number, size?: { w: number; h: number }): Promise<void> {
   const box: Box = {
     x: size ? 0 : len(el.getAttribute('x'), ctx.vp.w), y: size ? 0 : len(el.getAttribute('y'), ctx.vp.h),
@@ -478,7 +569,7 @@ async function drawNestedSvg(el: Element, ctx: Ctx, alpha: number, size?: { w: n
   const { vp, ctm } = ctx;
   ctx.pdf.saveGraphicsState();
   try {
-    if (ctx.scope.raw(el, 'overflow') !== 'visible') { ctx.pdf.rect(box.x, box.y, box.w, box.h, null); ctx.pdf.clip(); ctx.pdf.discardPath(); }
+    if (clipsOverflow(el, ctx)) { ctx.pdf.rect(box.x, box.y, box.w, box.h, null); ctx.pdf.clip(); ctx.pdf.discardPath(); }
     setMatrix(ctx.pdf, m);
     ctx.ctm = mul(ctm, m);
     ctx.vp = vb ? { w: vb.w, h: vb.h } : { w: box.w, h: box.h };
@@ -647,7 +738,11 @@ type Solid = { rgb: [number, number, number]; alpha: number };
 function paintOf(paint: Paint, el: Element, subs: SubPath[] | null, ctx: Ctx): Solid | ShadingSpec | null {
   if (paint.kind === 'none') return null;
   if (paint.kind === 'color') return paint;
-  const g = resolveGradient(ctx.root, paint.id, subs ? subpathsBox(subs) : boxOf(el, ctx), ctx.vp, ctx.scope);
+  return resolvedPaint(paint, resolveGradient(ctx.root, paint.id, subs ? subpathsBox(subs) : boxOf(el, ctx), ctx.vp, ctx.scope), ctx);
+}
+
+/** A resolved gradient reference as the colour or shading it draws in, or its fallback paint where the painter has no shading for the gradient. */
+function resolvedPaint(paint: Paint & { kind: 'url' }, g: ReturnType<typeof resolveGradient>, ctx: Ctx): Solid | ShadingSpec | null {
   if (g.kind === 'none') return null;
   if (g.kind === 'color') return g;
   if (g.kind === 'unsupported') {
@@ -690,7 +785,7 @@ async function drawShape(el: Element, subs: SubPath[], ctx: Ctx, alpha: number):
 function fillShape(el: Element, subs: SubPath[], ctx: Ctx, alpha: number): void {
   if (el.localName === 'line') return;
   const s = ctx.scope;
-  const paint = paintOf(parsePaint(paintValue(el, 'fill', ctx)), el, subs, ctx);
+  const paint = paintFor(el, 'fill', subs, ctx);
   if (!paint) return;
   const evenOdd = s.get(el, 'fill-rule') === 'evenodd';
   const base = clamp01(s.num(el, 'fill-opacity', 1)) * alpha;
@@ -705,12 +800,10 @@ function fillShape(el: Element, subs: SubPath[], ctx: Ctx, alpha: number): void 
 
 function strokeShape(el: Element, subs: SubPath[], ctx: Ctx, alpha: number): void {
   const s = ctx.scope;
-  let paint = paintOf(parsePaint(paintValue(el, 'stroke', ctx)), el, subs, ctx);
+  let paint = paintFor(el, 'stroke', subs, ctx);
   if (!paint) return;
-  let width = s.num(el, 'stroke-width', 1);
+  const width = effectiveStrokeWidth(el, ctx);
   if (!(width > 0)) return;
-  // A non-scaling stroke is measured in the outermost SVG's own pixels.
-  if (s.get(el, 'vector-effect') === 'non-scaling-stroke') width = (width * ctx.hostScale) / (lengthScale(ctx.ctm) || 1);
   const a = clamp01(s.num(el, 'stroke-opacity', 1)) * alpha * paint.alpha;
   if (a <= 0) return;
   const { pdf } = ctx;
@@ -764,15 +857,18 @@ async function drawMarkers(el: Element, ctx: Ctx, alpha: number): Promise<void> 
   const markers = { start: markerRef(s.get(el, 'marker-start'), find), mid: markerRef(s.get(el, 'marker-mid'), find), end: markerRef(s.get(el, 'marker-end'), find) };
   if (!markers.start && !markers.mid && !markers.end) return;
   const vertices = markerVertices(el, ctx.vp) ?? [];
-  const strokeWidth = s.num(el, 'stroke-width', 1);
+  // markerUnits strokeWidth scales by the width the stroke is drawn at, a non-scaling one included.
+  const strokeWidth = effectiveStrokeWidth(el, ctx);
   for (const v of vertices) {
     const marker = markers[v.kind];
     if (!marker || ctx.markers.has(marker)) continue;
-    const lay = markerLayout(marker, v, strokeWidth, ctx.vp, s.raw(marker, 'overflow') !== 'visible');
+    const lay = markerLayout(marker, v, strokeWidth, ctx.vp, clipsOverflow(marker, ctx));
     if (!lay) continue;
-    const { ctm, vp, context } = ctx;
+    const { ctm, vp, context, contextCtm, contextVp } = ctx;
     ctx.markers.add(marker);
     ctx.context = el;
+    ctx.contextCtm = ctm;
+    ctx.contextVp = vp;
     ctx.pdf.saveGraphicsState();
     try {
       setMatrix(ctx.pdf, lay.matrix);
@@ -785,32 +881,120 @@ async function drawMarkers(el: Element, ctx: Ctx, alpha: number): Promise<void> 
       ctx.pdf.restoreGraphicsState();
       ctx.markers.delete(marker);
       ctx.context = context;
+      ctx.contextCtm = contextCtm;
+      ctx.contextVp = contextVp;
       ctx.ctm = ctm;
       ctx.vp = vp;
     }
   }
 }
 
+/** The browser's measure for a CSS font, through one canvas the painter keeps. */
+let measurer: CanvasRenderingContext2D | null | undefined;
+function measureWith(font: string): CanvasRenderingContext2D | null {
+  if (measurer === undefined) {
+    try { measurer = document.createElement('canvas').getContext('2d'); } catch { measurer = null; }
+  }
+  if (measurer) measurer.font = font;
+  return measurer ?? null;
+}
+
 /**
- * `<text>`, one run per text node or `<tspan>`, in user units. Runs are outlined
- * through host.text when the export converts paths or the face cannot travel as live
- * text, and set as live text otherwise. A `<tspan>` can reset or offset the pen.
+ * How far below a run's y its alphabetic baseline sits, for dominant-baseline. The
+ * offsets are the ones Chromium uses, from the font's metrics. middle is half the
+ * x-height. central is halfway between the ascent and the descent. hanging is the
+ * font's hanging baseline. mathematical is half the ascent. text-before-edge is the
+ * ascent. ideographic and text-after-edge sit the descent above the baseline.
+ */
+function baselineOffset(baseline: string, font: string): number {
+  if (!baseline || baseline === 'auto' || baseline === 'alphabetic') return 0;
+  const m = measureWith(font)?.measureText('x');
+  if (!m) return 0;
+  const ascent = m.fontBoundingBoxAscent, descent = m.fontBoundingBoxDescent;
+  switch (baseline) {
+    case 'middle': return m.actualBoundingBoxAscent / 2;
+    case 'central': return (ascent - descent) / 2;
+    case 'hanging': return (m as TextMetrics & { hangingBaseline?: number }).hangingBaseline ?? ascent * 0.8;
+    case 'mathematical': return ascent / 2;
+    case 'text-before-edge': return ascent;
+    case 'ideographic':
+    case 'text-after-edge': return -descent;
+    default: return 0;
+  }
+}
+
+/**
+ * A `<text>`'s runs in order: its own text nodes and its `<tspan>` and `<a>` children.
+ * White space is collapsed across the runs as the browser lays the text out: none at
+ * the start or the end of the whole text, and one space for each stretch of spaces,
+ * tabs and line breaks. A pre white-space keeps every space.
+ */
+function textRuns(el: Element, s: StyleScope): { el: Element; text: string }[] {
+  const runs: { el: Element; text: string }[] = [];
+  for (const node of el.childNodes) {
+    if (node.nodeType === 3) runs.push({ el, text: node.textContent ?? '' });
+    else if (node.nodeType === 1 && /^(tspan|a)$/.test((node as Element).localName)) runs.push({ el: node as Element, text: node.textContent ?? '' });
+  }
+  if (/^(pre|pre-wrap|break-spaces)$/.test(s.raw(el, 'white-space'))) return runs;
+  let afterSpace = true;
+  for (const run of runs) {
+    let out = '';
+    for (const ch of run.text.replace(/[\t\n\r]/g, ' ')) {
+      if (ch === ' ' && afterSpace) continue;
+      afterSpace = ch === ' ';
+      out += ch;
+    }
+    run.text = out;
+  }
+  for (let i = runs.length - 1; i >= 0; i--) {
+    if (!runs[i]!.text) continue;
+    runs[i]!.text = runs[i]!.text.replace(/ $/, '');
+    break;
+  }
+  return runs;
+}
+
+/** The box a path's points span, control points included, through `tx` and `ty`. */
+function pathPointsBox(d: string, tx: (v: number) => number, ty: (v: number) => number): Box | null {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  const add = (x: number, y: number): void => { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); };
+  drawSvgPathToPdf({
+    moveTo: add, lineTo: add, close: () => {},
+    curveTo: (a: number, b: number, c: number, e: number, f: number, g: number) => { add(a, b); add(c, e); add(f, g); },
+  }, d, tx, ty);
+  return x0 <= x1 ? { x: x0, y: y0, w: x1 - x0, h: y1 - y0 } : null;
+}
+
+/**
+ * `<text>`, one run per text node, `<tspan>` or `<a>`, in user units. Runs are
+ * outlined through host.text when the export converts paths or the face cannot travel
+ * as live text, and set as live text otherwise. A `<tspan>` can reset or offset the
+ * pen. dominant-baseline moves each run's baseline as the browser does; a baseline
+ * shift, a vertical writing mode and a per-glyph rotate make the SVG a picture instead
+ * (scanSvg).
  */
 async function drawText(el: Element, ctx: Ctx, alpha: number): Promise<void> {
   const { pdf, scope: s } = ctx;
   const convertPaths = ctx.opts.convertPaths !== false;
-  const drawRun = async (styleEl: Element, runText: string, x: number, y: number, anchor: string): Promise<number> => {
-    const t = (runText ?? '').trim();
-    if (!t) return 0;
+  /**
+   * Draw one run and return how far it moves the pen: the browser's length for a
+   * `<tspan>` (`browserLength`), else the width of what was drawn, spaces included.
+   */
+  const drawRun = async (styleEl: Element, t: string, x: number, y: number, anchor: string, browserLength: number | null): Promise<number> => {
+    // Computed values, so a keyword weight reads as its number and a size in em as pixels.
+    const size = parseFloat(s.get(styleEl, 'font-size')) || 16;
+    const weight = parseInt(s.get(styleEl, 'font-weight'), 10) || 400;
+    const fontStyle = s.get(styleEl, 'font-style');
+    const italic = fontStyle === 'italic' || fontStyle.startsWith('oblique');
+    const familyRaw = s.get(styleEl, 'font-family') || styleEl.getAttribute('font-family') || '';
+    const cssFont = `${italic ? 'italic ' : ''}${weight} ${size}px ${familyRaw || 'sans-serif'}`;
+    // White space between runs moves the pen by the browser's width of that space.
+    if (!t.trim()) return browserLength ?? (t ? measureWith(cssFont)?.measureText(t).width ?? size / 4 : 0);
+    const by = y + baselineOffset(s.raw(styleEl, 'dominant-baseline'), cssFont);
     // A gradient on a run spans the whole <text>, so its box is the <text>'s.
-    const paint = paintOf(parsePaint(paintValue(styleEl, 'fill', ctx)), el, null, ctx);
+    const paint = paintFor(styleEl, 'fill', null, ctx, el);
     const a = paint ? clamp01(s.num(styleEl, 'fill-opacity', 1)) * alpha * paint.alpha : 0;
-    const size = parseFloat(styleEl.getAttribute('font-size') ?? s.raw(styleEl, 'font-size')) || 16;
-    const weight = parseInt(styleEl.getAttribute('font-weight') ?? s.raw(styleEl, 'font-weight'), 10) || 400;
-    const fontStyle = styleEl.getAttribute('font-style') ?? s.raw(styleEl, 'font-style');
-    const italic = fontStyle === 'italic' || fontStyle === 'oblique';
-    const familyRaw = s.raw(styleEl, 'font-family') || styleEl.getAttribute('font-family') || '';
-    const vf = _host?.text ? await resolveVectorFont({ fontFamily: familyRaw, fontWeight: String(weight), fontStyle: italic ? 'italic' : 'normal' }, t) : null;
+    const vf = _host?.text ? await resolveVectorFont({ fontFamily: familyRaw, fontWeight: String(weight), fontStyle: italic ? 'italic' : 'normal' }, t.trim()) : null;
     const embedUrl = convertPaths ? null : await pdfFontEmbed(vf);
     if ((convertPaths || (vf && !embedUrl)) && _host?.text && vf) {
       try {
@@ -818,18 +1002,20 @@ async function drawText(el: Element, ctx: Ctx, alpha: number): Promise<void> {
         if (shaped?.d && !shaped.notdef) {
           const adv = shaped.advanceWidth || 0;
           const left = anchor === 'middle' ? x - adv / 2 : anchor === 'end' ? x - adv : x;
+          const tx = (gx: number): number => left + gx, ty = (gy: number): number => by + gy;
           if (paint && a > 0) {
             withAlpha(ctx, a, () => {
               const fill = 'rgb' in paint ? undefined : shadingFill(ctx, paint);
               if ('rgb' in paint) pdf.setFillColor(paint.rgb[0], paint.rgb[1], paint.rgb[2]);
-              drawSvgPathToPdf(pdf, shaped.d, (gx: number) => left + gx, (gy: number) => y + gy);
+              drawSvgPathToPdf(pdf, shaped.d, tx, ty);
               pdf.fill(fill);
             });
+            noteDrawn(ctx, pathPointsBox(shaped.d, tx, ty));
           }
           return adv;
         }
       } catch (e) {
-        _host?.log?.('warn', `pdf: svg text outline failed for "${t.slice(0, 24)}" - ${(e as Error).message}`);
+        _host?.log?.('warn', `pdf: svg text outline failed for "${t.trim().slice(0, 24)}" - ${(e as Error).message}`);
       }
     }
     pdf.setFontSize(Math.max(0.01, size));
@@ -846,6 +1032,7 @@ async function drawText(el: Element, ctx: Ctx, alpha: number): Promise<void> {
       if (suseStyle) { pdf.setFont(suseFontName(mono), suseStyle); fontSet = true; }
     }
     if (!fontSet) pdf.setFont('helvetica', weight >= 600 ? (italic ? 'bolditalic' : 'bold') : (italic ? 'italic' : 'normal'));
+    const width = pdf.getTextWidth(t);
     if (paint && a > 0) {
       // Live text keeps its font and takes a gradient through a shading pattern.
       const gradient = !('rgb' in paint) && typeof pdf.setTextFill === 'function' ? shadingFill(ctx, paint) : null;
@@ -853,13 +1040,14 @@ async function drawText(el: Element, ctx: Ctx, alpha: number): Promise<void> {
       withAlpha(ctx, a, () => {
         pdf.setTextColor(color.rgb[0], color.rgb[1], color.rgb[2]);
         if (gradient) pdf.setTextFill(gradient);
-        try { pdf.text(t, x, y, { align: anchor === 'middle' ? 'center' : anchor === 'end' ? 'right' : 'left' }); }
+        try { pdf.text(t, x, by, { align: anchor === 'middle' ? 'center' : anchor === 'end' ? 'right' : 'left' }); }
         finally { if (gradient) pdf.setTextFill(null); }
       });
+      // The glyphs' extent, with room for accents, descenders and an italic overhang.
+      const left = anchor === 'middle' ? x - width / 2 : anchor === 'end' ? x - width : x;
+      noteDrawn(ctx, { x: left - size * 0.3, y: by - size * 1.3, w: width + size * 0.6, h: size * 1.9 });
     }
-    let w = 0;
-    try { w = typeof (styleEl as SVGTextContentElement).getComputedTextLength === 'function' ? (styleEl as SVGTextContentElement).getComputedTextLength() : 0; } catch { w = 0; }
-    return w || pdf.getTextWidth(t);
+    return browserLength ?? width;
   };
 
   const vis = s.get(el, 'visibility');
@@ -867,24 +1055,27 @@ async function drawText(el: Element, ctx: Ctx, alpha: number): Promise<void> {
   const anchorOf = (node: Element, fallback: string): string => node.getAttribute('text-anchor') ?? (s.get(node, 'text-anchor') || fallback);
   // A list of positions places each character; only the first is used, for the run.
   let penX = firstLen(el.getAttribute('x'), ctx.vp.w), penY = firstLen(el.getAttribute('y'), ctx.vp.h);
-  const nodes = [...el.childNodes];
-  if (!nodes.some(n => n.nodeType === 1 && (n as Element).localName === 'tspan')) {
-    await drawRun(el, el.textContent ?? '', penX, penY, anchorOf(el, 'start'));
+  const runs = textRuns(el, s);
+  if (runs.every(r => r.el === el)) {
+    await drawRun(el, runs.map(r => r.text).join(''), penX, penY, anchorOf(el, 'start'), null);
     return;
   }
-  for (const node of nodes) {
-    if (node.nodeType === 3) {
-      if ((node.textContent ?? '').trim()) penX += await drawRun(el, node.textContent ?? '', penX, penY, 'start');
-    } else if (node.nodeType === 1 && (node as Element).localName === 'tspan') {
-      const ts = node as Element;
-      const em = parseFloat(s.raw(ts, 'font-size')) || 16;
-      const rel = (v: string | null): number => { if (!v) return 0; const t = v.trim().split(/[\s,]+/)[0]!; return t.endsWith('em') ? parseFloat(t) * em : (parseFloat(t) || 0); };
-      if (ts.hasAttribute('x')) penX = firstLen(ts.getAttribute('x'), ctx.vp.w);
-      if (ts.hasAttribute('y')) penY = firstLen(ts.getAttribute('y'), ctx.vp.h);
-      penX += rel(ts.getAttribute('dx'));
-      penY += rel(ts.getAttribute('dy'));
-      penX += await drawRun(ts, ts.textContent ?? '', penX, penY, anchorOf(ts, anchorOf(el, 'start')));
+  for (const run of runs) {
+    if (run.el === el) {
+      // A bare text node advances by its own width, not the whole <text>'s.
+      if (run.text) penX += await drawRun(el, run.text, penX, penY, 'start', null);
+      continue;
     }
+    const ts = run.el;
+    const em = parseFloat(s.raw(ts, 'font-size')) || 16;
+    const rel = (v: string | null): number => { if (!v) return 0; const t = v.trim().split(/[\s,]+/)[0]!; return t.endsWith('em') ? parseFloat(t) * em : (parseFloat(t) || 0); };
+    if (ts.hasAttribute('x')) penX = firstLen(ts.getAttribute('x'), ctx.vp.w);
+    if (ts.hasAttribute('y')) penY = firstLen(ts.getAttribute('y'), ctx.vp.h);
+    penX += rel(ts.getAttribute('dx'));
+    penY += rel(ts.getAttribute('dy'));
+    let length: number | null = null;
+    try { length = typeof (ts as SVGTextContentElement).getComputedTextLength === 'function' ? (ts as SVGTextContentElement).getComputedTextLength() || null : null; } catch { length = null; }
+    penX += await drawRun(ts, run.text, penX, penY, anchorOf(ts, anchorOf(el, 'start')), length);
   }
 }
 
@@ -908,7 +1099,7 @@ async function drawImage(el: Element, ctx: Ctx, alpha: number): Promise<void> {
         const ivb = viewBoxOf(inner) ?? { x: 0, y: 0, w: box.w, h: box.h };
         const fit = viewBoxMatrix(ivb, box, el.getAttribute('preserveAspectRatio'));
         const fitted = mapBox(ivb, fit);
-        await paintSvgToPdf(pdf, inner, fitted, { ...ctx.opts, flipX: false, isolated: true }, ctx.ctm);
+        await paintSvgToPdf(pdf, inner, fitted, { ...ctx.opts, flipX: false, flipY: false, isolated: true }, ctx.ctm);
         return;
       }
     } catch { /* fall through to the picture */ }
