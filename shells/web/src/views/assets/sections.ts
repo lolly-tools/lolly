@@ -298,25 +298,43 @@ export function mountEmojiSpecimenGrid(cat: CatCtx): void {
     ? mountEmojiSpecimens(body, host, (id) => { const meta = emojiPackMeta(cat.assetById.get(id)); return meta ? emojiPackSource(meta) : null; }, () => cat.mounted)
     : null;
 }
-// (Re)mount the shared upload dropzone into the uploads section's placeholder. Called
-// after every body (re)render - the innerHTML rebuild orphans the previous instance, so
-// tear it down first (a mid-ingest re-mount is safe: the component's single-flight
-// ingest guard is module-level, and an in-flight ingest still delivers its onAdded).
-// Files ingest through the SAME storeUserUpload path as the asset picker (downscale/
-// sanitise/credential-preserve/animated-sniff); onAdded reloads so the new tiles land
-// in "Your uploads".
+// Mount the shared upload dropzone into the uploads section's placeholder once per view,
+// then put that same element back in place of the placeholder every later paint emits.
+// A body re-render (a search keystroke, a shared-library page arriving, a finished
+// upload) rebuilds the markup around the zone, but its file input has to stay the one
+// a person is choosing files for: the native picker delivers its files to the input
+// that opened the picker, and a replaced input has no listener left, so those files
+// would be dropped without a word. Only the placeholder's attributes (data-empty) are
+// copied over. Files ingest through the SAME storeUserUpload path as the asset picker
+// (downscale/sanitise/credential-preserve/animated-sniff); onAdded reloads so the new
+// tiles appear in "Your uploads".
 export function mountDropzone(cat: CatCtx): void {
   const { host, viewEl } = cat;
-  cat.dropzoneDispose?.();
-  cat.dropzoneDispose = null;
-  const mount = viewEl.querySelector<HTMLElement>('[data-dropzone-mount]');
-  if (!mount) return;   // no uploads section this paint (a total sync failure)
-  cat.dropzoneDispose = mountUploadDropzone(mount, host as unknown as PickerHost, {
-    allowUrl: true,
-    onAdded: async () => { if (!cat.mounted) return; await cat.tiles.reload(); if (cat.mounted) rerender(cat); },
-  });
+  const placeholder = viewEl.querySelector<HTMLElement>('[data-dropzone-mount]');
+  if (!placeholder) { disposeDropzone(cat); return; }   // no uploads section this paint (a total sync failure)
+  let mount = cat.dropzoneMount;
+  if (mount && cat.dropzoneDispose) {
+    if (placeholder !== mount) {
+      for (const name of mount.getAttributeNames()) if (!placeholder.hasAttribute(name)) mount.removeAttribute(name);
+      for (const { name, value } of Array.from(placeholder.attributes)) mount.setAttribute(name, value);
+      placeholder.replaceWith(mount);
+    }
+  } else {
+    mount = cat.dropzoneMount = placeholder;
+    cat.dropzoneDispose = mountUploadDropzone(mount, host as unknown as PickerHost, {
+      allowUrl: true,
+      onAdded: async () => { if (!cat.mounted) return; await cat.tiles.reload(); if (cat.mounted) rerender(cat); },
+    });
+  }
   // The roomier "this IS the section" layout when there are no uploads yet.
   mount.querySelector('.updz')?.classList.toggle('updz--empty', mount.hasAttribute('data-empty'));
+}
+/** End the dropzone: the view is leaving, or this paint has no uploads section. An
+ *  ingest still running finishes without asking anything more (lib/upload-dropzone.ts). */
+export function disposeDropzone(cat: CatCtx): void {
+  cat.dropzoneDispose?.();
+  cat.dropzoneDispose = null;
+  cat.dropzoneMount = null;
 }
 export function renderBody(cat: CatCtx): void {
   const { viewEl } = cat;
@@ -532,6 +550,7 @@ export function sectionsOps(cat: CatCtx) {
     mountPdfThumbGrid: bindOp(cat, mountPdfThumbGrid),
     mountEmojiSpecimenGrid: bindOp(cat, mountEmojiSpecimenGrid),
     mountDropzone: bindOp(cat, mountDropzone),
+    disposeDropzone: bindOp(cat, disposeDropzone),
     renderBody: bindOp(cat, renderBody),
     fillStorageChip: bindOp(cat, fillStorageChip),
     rerender: bindOp(cat, rerender),

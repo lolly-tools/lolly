@@ -363,8 +363,9 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
     ],
   }; cat.bulkBarCfg = bulkBarCfg;
 
-  // The mounted upload dropzone's teardown, if any (lib/upload-dropzone.ts).
+  // The mounted upload dropzone's teardown and element, if any (lib/upload-dropzone.ts).
   cat.dropzoneDispose = null;
+  cat.dropzoneMount = null;
 
   // ── asset details modal ─────────────────────────────────────────────────────────
   // Opened by clicking a tile OR by a share deep link (/#/a?asset=<id>). Holds the big
@@ -479,6 +480,10 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
     cat.sections.closeDetails();
     cat.downloads.closeDownloadDialog();
     closeConfirmDialogs();
+    // The dropzone outlives each repaint, so the view's own exit ends the zone: a trim
+    // question still open is answered with the original file instead of holding the
+    // app-wide upload lane on a card nobody can reach once the view is gone.
+    cat.sections.disposeDropzone();
   };
 
   cat.projects = projectsOps(cat);

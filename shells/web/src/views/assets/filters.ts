@@ -95,10 +95,10 @@ export function uploadsSectionHtml(cat: CatCtx, items: AssetRef[]): string {
     : '';
   // Drag files in or click to browse - the shared upload dropzone component
   // (lib/upload-dropzone.ts, extracted from this view so #/start can mount it too)
-  // renders into this placeholder after every body paint: the innerHTML rebuilds
-  // destroy the previous instance, so mountDropzone() re-mounts it (called from
-  // render()/renderBody()). data-empty grows the zone into the roomier column
-  // layout when it IS the section (no uploads yet).
+  // mounts into this placeholder on the first paint; every later paint's placeholder
+  // is replaced by that same mounted element, so its file input is never swapped out
+  // (mountDropzone(), called from render()/renderBody()). data-empty grows the zone
+  // into the roomier column layout when the zone is the whole section (no uploads yet).
   const dropzone = `<div data-dropzone-mount${items.length ? '' : ' data-empty'}></div>`;
   // The authoring row beside the drop area. "Script audio" (type a script,
   // generate speech on-device via the optional host.speech bridge, v1.96) is

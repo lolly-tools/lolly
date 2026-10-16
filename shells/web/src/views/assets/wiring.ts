@@ -308,8 +308,8 @@ export function wire(cat: CatCtx): void {
 
   // ── Uploads drop area ────────────────────────────────────────────────────────
   // The dropzone + its ingest loop live in the shared lib/upload-dropzone.ts component,
-  // mounted per body paint by mountDropzone() (its listeners sit on the zone itself,
-  // not delegated here - the mount is re-established after every innerHTML rebuild).
+  // mounted once per view by mountDropzone() and put back after every innerHTML rebuild
+  // (its listeners sit on the zone itself, not delegated here).
 
   // Capture-phase broken-image fallback: a grid thumbnail whose bytes fail to load (a
   // stale/missing derivative) is swapped for the same cat-thumb-stub the placeholder path

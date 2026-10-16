@@ -121,6 +121,8 @@ export interface CatCtx {
   SWATCH_DOWNLOADS: { fmt: SwatchExportFormat; label: string }[];
   bulkBarCfg: BulkBarConfig;
   dropzoneDispose: (() => void) | null;
+  /** The element the dropzone is mounted in, carried into each later paint. */
+  dropzoneMount: HTMLElement | null;
   detailsMeterDispose: import('../../lib/audio-meter.ts').MeterHandle | null;
   detailsTransport: import('../../lib/audio-transport.ts').AudioTransport | null;
   vizTeardown: (() => void) | null;
