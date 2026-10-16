@@ -14,7 +14,7 @@ function failedAppResource(target: EventTarget | null, pageHref: string): boolea
   if (!moduleScript && !appLink) return false;
   try {
     const page = new URL(pageHref), source = new URL(element.src || element.href || '', page);
-    return source.origin === page.origin && /^\/assets\/[^/]+\.(?:m?js|css)$/.test(source.pathname);
+    return source.origin === page.origin && /^\/_app\/[^/]+\.(?:m?js|css)$/.test(source.pathname);
   } catch { return false; }
 }
 
