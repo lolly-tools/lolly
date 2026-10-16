@@ -412,6 +412,8 @@ jobs:
             if curl --silent --fail http://127.0.0.1:4187/src/bridge/index.ts > /dev/null && curl --silent --fail http://127.0.0.1:4188/ > /dev/null; then
               echo 'LOLLY_IMPORT_TEST_URL=http://127.0.0.1:4187' >> "$GITHUB_ENV"
               echo 'LOLLY_EXPORT_TEST_URL=http://127.0.0.1:4187' >> "$GITHUB_ENV"
+              # Deep-link journeys import source modules, so they need the dev server.
+              echo 'LOLLY_DEEP_LINK_TEST_URL=http://127.0.0.1:4187' >> "$GITHUB_ENV"
               echo 'LOLLY_WEB_BASE=http://127.0.0.1:4188' >> "$GITHUB_ENV"
               exit 0
             fi
