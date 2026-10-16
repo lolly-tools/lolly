@@ -18,12 +18,12 @@ export interface LollyAssetsSlice {
 }
 
 export { redistribution, type Redistribution } from '../lib/redistribution.ts';
-import { redistribution } from '../lib/redistribution.ts';
+import { packRights } from '../lib/redistribution.ts';
 
 /**
  * Build the `.lolly` download vehicle for the Share dialog, or undefined when the tool
  * has no saveable session (a pure render-only utility). Reuses the catalog + user-asset
- * bridge to resolve the session's closure, gates proprietary/brand-locked catalog bytes,
+ * bridge to resolve the session's closure, holds back catalog bytes `redistribution()` does not let travel,
  * and assembles the creator block from the profile (identity gated on `useDetails`).
  */
 // Tool files fetched as TEXT (the loader-critical set + svg); everything else as bytes.
@@ -54,18 +54,13 @@ export function lollyLibraryResolver(assets: LollyAssetsSlice): (id: string) => 
       if (!blob) return null;
       const ref = await assets.get(dep.id, dep.pin).catch(() => null);
       const meta = (ref?.meta ?? {}) as Record<string, unknown>;
-      const permission = redistribution(meta);
       return {
         bytes: new Uint8Array(await blob.arrayBuffer()),
         mime: blob.type || '',
         type: ref?.type ?? 'raster',
         format: ref?.format ?? '',
         label: typeof meta.name === 'string' ? meta.name : id,
-        licensed: !permission.travels,
-        ...(permission.reason ? { holdReason: permission.reason, holdKind: permission.kind } : {}),
-        ...(permission.licence ? { licence: permission.licence } : {}),
-        ...(permission.notices.length ? { notices: permission.notices } : {}),
-        ...(typeof meta.attribution === 'string' && meta.attribution.trim() ? { credit: meta.attribution.trim() } : {}),
+        ...packRights(meta),
       };
     } catch {
       return null;
