@@ -611,3 +611,31 @@ test('the rail restates [hidden] - the views layer would otherwise beat base.css
   assert.match(css, /\.fc-btn\[hidden\]\s*\{[^}]*display:\s*none/,
     'editor.css must declare .fc-btn[hidden] { display: none }');
 });
+
+test('a parked rail taller than its band scrolls inside it, with full-size buttons, and leaves the other homes alone', () => {
+  // A window under about 550px tall (844x390) centred a 499px rail in a 335px band, so it
+  // overflowed both ends with nothing to scroll: the Lolly menu rode over the top bar and
+  // Invite and the swatch fell off the foot. jsdom applies no stylesheet and the painted
+  // result is checked in tests/design-transform-zones.browser.test.ts, so this pins the
+  // rules that make it scroll.
+  const css = readFileSync(new URL('../styles/parts/editor.css', import.meta.url), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+  const rules = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].map((m) => ({ sel: m[1]!.trim(), body: m[2]! }));
+  const parked = ':where(.tool-stage:not(.has-tl-reserve) .fc-toolbar-dock:not(.is-detached))';
+  const rail = rules.find((r) => r.sel === `${parked} > .fc-toolbar`);
+  assert.ok(rail, 'one rule caps the parked rail');
+  assert.match(rail!.body, /max-height:\s*100%/, 'the rail is capped at its band');
+  assert.match(rail!.body, /overflow-y:\s*auto/, 'and scrolls when it is longer');
+  assert.match(rail!.body, /box-sizing:\s*border-box/, 'its padding counts inside the cap');
+  const items = rules.find((r) => r.sel === `${parked} > .fc-toolbar :is(.fc-btn, .fc-grip, .fc-sep)`);
+  assert.ok(items && /flex-shrink:\s*0/.test(items.body), 'capping never squashes a button, the grip or a divider');
+  const dock = rules.find((r) => r.sel === ':where(.tool-stage:not(.has-tl-reserve)) .fc-toolbar-dock:not(.is-detached)');
+  assert.ok(dock && /padding-block:\s*8px/.test(dock.body), 'an even gap at both ends keeps a rail that fits where it was');
+  // The parked dock is pointer-transparent, so it must never become the scroller: its
+  // scrollbar could not be dragged, and it would clip the rail's shadow.
+  const parkedDock = rules.filter((r) => /^\.fc-toolbar-dock\s*$|:not\(\.is-detached\)\)?\s*$/.test(r.sel) && !/has-tl-reserve \.fc-toolbar-dock/.test(r.sel));
+  assert.ok(parkedDock.length > 0);
+  for (const r of parkedDock) assert.doesNotMatch(r.body, /overflow/, `${r.sel} does not scroll the parked dock`);
+  // The docked timeline column keeps scrolling its dock, as before.
+  const column = rules.find((r) => r.sel === '.tool-stage.has-tl-reserve .fc-toolbar-dock');
+  assert.ok(column && /overflow-y:\s*auto/.test(column.body), 'the timeline column still scrolls');
+});

@@ -122,6 +122,28 @@ html:has(.tool-view.is-chrome-hidden) .edge-dock-drop { display: none !important
   align-items: flex-start;
   padding-left: 0;
 }
+/* A parked rail taller than its band scrolls INSIDE the band. The dock centres the rail,
+   and a centred rail longer than the band overflowed both ends with nothing to scroll:
+   in a desktop window under about 550px tall (844x390, the 680x425 docs-shot frame) the
+   Lolly menu rode up over the top bar while Invite and the paint swatch fell off the
+   foot. The rail is capped at the band and scrolls (wheel, touch, or Tab, which scrolls a
+   focused button into view); the symmetric padding keeps an 8px gap at each end and
+   leaves a rail that fits exactly where it was. The rail scrolls, not the dock: the dock
+   is pointer-transparent, so its scrollbar could not be dragged, and a scrolling dock
+   would clip the rail's own shadow. Tooltips are portalled (lib/tooltips.ts) and the
+   colour popover is fixed, so the clip reaches neither. Every item keeps its size, or
+   the capped column squashes the 40px buttons to fit. `:where` keeps the selectors weak,
+   so the compact palette below still wins on touch, and it leaves out the timeline
+   column, which scrolls the dock itself (below), and a dragged rail. */
+:where(.tool-stage:not(.has-tl-reserve)) .fc-toolbar-dock:not(.is-detached) { padding-block: 8px; }
+:where(.tool-stage:not(.has-tl-reserve) .fc-toolbar-dock:not(.is-detached)) > .fc-toolbar {
+  box-sizing: border-box;
+  max-height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+:where(.tool-stage:not(.has-tl-reserve) .fc-toolbar-dock:not(.is-detached)) > .fc-toolbar :is(.fc-btn, .fc-grip, .fc-sep) { flex-shrink: 0; }
 /* Timeline open AND no navigator column (free-canvas toggles .has-tl-reserve only in
    that case - with the navigator open the rail is a grid inside it instead, see
    parts/design-navigator.css; syncStageReserves writes both --ldock-rail-w, this
