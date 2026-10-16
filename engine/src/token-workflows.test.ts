@@ -269,7 +269,8 @@ fixtureTest(['S4', 'S5'], 'legacy theme names apply in every group with that nam
   assert.deepEqual(shared.choices, { appearance: LARK.day, density: LARK.standardDensity, campaign: LARK.standardCampaign });
   assert.deepEqual(shared.defaults, ['appearance']);
   assert.deepEqual(resolveTokenSelection(doc, { theme: 'campaign/Standard' }).defaults, ['appearance', 'density']);
-  assert.equal(resolveTokenSelection(doc, { selection: { density: LARK.standardDensity } }).choices.campaign, LARK.standardCampaign);
+  const partial = resolveTokenSelection(doc, { selection: { density: LARK.standardDensity } });
+  assert.deepEqual({ choices: partial.choices, defaults: partial.defaults }, { choices: { appearance: LARK.night, density: LARK.standardDensity, campaign: LARK.standardCampaign }, defaults: ['campaign'] });
   const night = resolveTokenSelection(doc, { theme: 'Night' });
   assert.deepEqual(night.choices, { appearance: LARK.night, density: LARK.standardDensity, campaign: LARK.standardCampaign });
   assert.deepEqual(createTokenSet(doc, { theme: 'Night' }).resolve('space.unit'), { value: 4, unit: 'px' });
@@ -299,8 +300,10 @@ fixtureTest(['R6', 'R7', 'R8'], 'missing and cyclic references are diagnosed whi
   assert.deepEqual(issue(day, 'text.muted'), ['missing']);
   assert.deepEqual(issue(fennReport, 'verweis.fehlt'), ['missing']);
   assert.equal(createTokenSet(lark, dayLaunch).resolve('text.muted'), '{palette.mist}');
-  assert.ok(issue(day, 'focus.ring').includes('cycle'));
-  assert.ok(issue(fennReport, 'zyklus.eins').includes('cycle'));
+  // Only the first member reached carries the cycle code; D3 covers the walk order.
+  assert.deepEqual(['focus.ring', 'focus.halo'].map(path => issue(day, path)), [['cycle'], []]);
+  assert.deepEqual(['zyklus.eins', 'zyklus.zwei', 'zyklus.drei'].map(path => issue(fennReport, path)), [['cycle'], [], []]);
+  for (const path of ['focus.ring', 'focus.halo']) assert.match(String(createTokenSet(lark, dayLaunch).resolve(path)), /^\{focus\./);
   for (const path of ['zyklus.eins', 'zyklus.zwei', 'zyklus.drei']) assert.match(String(createTokenSet(fenn).resolve(path)), /^\{zyklus\./);
   assert.deepEqual(createTokenSet(lark).get('palette.larkspur')?.extensions, { 'org.example.larkspur': { swatchId: 'LK-001', reviewed: false } });
   const moos = fennReport.tokens.find(t => t.path === 'farbe.moos')!;
@@ -432,6 +435,29 @@ fixtureTest(['T5'], 'a legacy value/type sync folder assembles sets and themes b
   assert.deepEqual(report.diagnostics, []);
   assert.deepEqual(compat.diagnostics, []);
   assert.deepEqual(compat.extensionNamespaces, ['studio.tokens']);
+});
+
+// Test data only: rename a token's value, type and description keys to their DTCG form.
+const dtcgKeys = (v: unknown): unknown => !v || typeof v !== 'object' || Array.isArray(v) ? v
+  : 'value' in v && 'type' in v ? Object.fromEntries(Object.entries(v).map(([k, x]) => [['value', 'type', 'description'].includes(k) ? `$${k}` : k, x]))
+  : Object.fromEntries(Object.entries(v).map(([k, x]) => [k, k.startsWith('$') ? x : dtcgKeys(x)]));
+
+fixtureTest(['T6'], 'the published single-file layout yields no tokens until its keys are renamed', () => {
+  const published = fixture('tokens-studio/token-examples/radix.json'), original = structuredClone(published);
+  const sets = ['radix-colors-v2', 'shadows', 'Notes on file'];
+  assert.equal(coerceTokensDoc(published).source, 'tokens-studio');
+  assert.deepEqual(summarizeTokensDoc(published), { sets, themes: [], tokenCount: 0, colorCount: 0 });
+  assert.deepEqual(resolveTokenSelection(published).sets, sets);
+  const report = inspectTokenDocument(published);
+  assert.equal(report.tokens.length, 0);
+  assert.deepEqual(report.diagnostics, []);
+  assert.deepEqual(tokenCompatibility(published).diagnostics, []);
+  const renamed = dtcgKeys(published) as Doc, set = createTokenSet(renamed);
+  assert.equal(summarizeTokensDoc(renamed).tokenCount, 1531);
+  assert.equal(set.resolve('colors.gray.light-alpha.5'), '#0000001f');
+  assert.equal(set.get('shadows.light.1')?.type, 'boxShadow');
+  assert.equal((set.resolve('shadows.light.1') as { color: string }[])[0]?.color, '{colors.gray.light-alpha.5}');
+  assert.deepEqual(published, original);
 });
 
 test('fixture coverage table, case ids and upstream file identities agree', () => {
