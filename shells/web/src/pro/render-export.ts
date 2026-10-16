@@ -47,7 +47,7 @@ async function preferCompactQuery(query: string): Promise<string> {
   return packed && packed.length < query.length ? packed : query;
 }
 import { designSelection } from '@lolly-tools/core/design-tool-v1';
-import { getTool, chooseFormat, isExportable } from '../bridge/tool-loader.ts';
+import { getTool, chooseFormat as chooseToolFormat, isExportable } from '../bridge/tool-loader.ts';
 import { neutralizeEmbeds, hydrateEmbeds } from '../bridge/embed.ts';
 import { createNetAPI } from '../bridge/net.ts';
 import { applyBrandVars } from '../brand-vars.ts';
@@ -56,6 +56,7 @@ import { scopeCss, scopeTemplateStyles } from '../lib/scope-css.ts';
 import { runTemplateScripts, waitForQuiescence } from '../lib/render-lifecycle.ts';
 import { c2paDefaultOn } from '../lib/c2pa-policy.ts';
 import { MOTION_EXPORT_FORMATS } from './folder-rows.ts';
+import { batchCanRender } from './batch-render-format.ts';
 import { exportTargetNode } from '../lib/export-target.ts';
 
 async function applySavedEmoji(runtime: Awaited<ReturnType<typeof createRuntime>>, host: HostV1, values: Record<string, InputValue> | undefined): Promise<void> {
@@ -72,7 +73,18 @@ async function applySavedEmoji(runtime: Awaited<ReturnType<typeof createRuntime>
 // Re-exported for existing importers (pro/batch, pro/index, pro/sessions) that
 // historically pulled these from here. The definitions now live in tool-loader.js
 // so bridge/embed.js can share them without a circular import.
-export { getTool, chooseFormat, isExportable };
+export { getTool, isExportable };
+
+/**
+ * The tool-loader's format choice, limited to formats a batch run can render. A saved
+ * session, batch snapshot or CSV can still name `scorm` (Design's Download saves the
+ * picked format with the session). The render and the preflight then both fall back
+ * to the tool's first declared format that Batch can render.
+ */
+export function chooseFormat(manifest: ToolManifest, preferred?: string | null): string {
+  const formats = (manifest.render?.formats ?? []).filter(batchCanRender);
+  return chooseToolFormat({ ...manifest, render: { ...manifest.render, formats } }, preferred);
+}
 
 const CANVAS_CLASS = 'pro-export-canvas';
 

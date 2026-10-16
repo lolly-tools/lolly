@@ -13,7 +13,7 @@
  */
 import { cellInput, isCellEditable } from './model.ts';
 import { controlHtml } from './controls.ts';
-import { batchCanRender } from './formats.ts';
+import { batchCanRender } from './batch-render-format.ts';
 import { colorFieldHtml } from '../components/color-field.ts';
 import { escapeHtml } from '../lib/util/escape.ts';
 import { t, tRaw } from '../i18n.ts';

@@ -4,16 +4,10 @@ import type { ToolManifest } from '../../../../engine/src/loader.ts';
 import { fmtLabel, keepFormat } from '../lib/export-format-info.ts';
 import { wireFormatPicker } from '../components/export-format-picker.ts';
 import { getExportPolicy } from '../lib/export-policy.ts';
+import { batchCanRender } from './batch-render-format.ts';
 
 interface FormatSource { id: string; formats?: readonly string[] }
 interface FormatState { format: string; rows: { manifest: ToolManifest | null }[] }
-
-/**
- * Whether a batch run can produce this format. A SCORM course is not one render per
- * row: Export course in Projects builds the package from reviewed, ordered lessons,
- * and the export bridge has no `scorm` renderer, so neither batch menu offers SCORM.
- */
-export const batchCanRender = (format: string): boolean => format !== 'scorm';
 
 /** The catalog supplies the full menu; loaded manifests add tool-owned producers. */
 export function batchFormats(tools: readonly FormatSource[], state: FormatState, codec: boolean): string[] {

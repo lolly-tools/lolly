@@ -1384,7 +1384,6 @@
   "shells/web/src/views/tool-actions/rights-row.test.ts": 2,
   "shells/web/src/views/tool-actions/rights-row.ts": 4,
   "shells/web/src/views/tool-actions/sequence.ts": 1,
-  "shells/web/src/views/tool-actions/shared.ts": 1,
   "shells/web/src/views/tool-actions/video.ts": 2,
   "shells/web/src/views/tool-actions/wiring.ts": 8,
   "shells/web/src/views/tool-canvas-drop.ts": 2,
