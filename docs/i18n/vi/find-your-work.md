@@ -73,7 +73,7 @@ Những gì quay lại phụ thuộc vào cách bạn rời đi và công cụ b
 
 - **Bạn đã đóng tab, hoặc quay lại vào lúc khác.** Công việc chưa lưu sẽ mất, trừ ở [những công cụ tự lưu khi bạn làm việc](#which-tools-save-as-you-work): hãy mở công việc đó từ **Dự án**.
 - **Bạn đã tải lại trang trong cùng một tab.** Các thiết lập của bạn quay lại từ địa chỉ trang. Ở các công cụ không tự lưu khi bạn làm việc, ảnh và tệp bạn đã thêm từ thiết bị, cùng văn bản một dòng dài hơn 150 ký tự, sẽ không quay lại, vì địa chỉ không chứa chúng.
-- **Bạn đã nhấn Trang chủ, hoặc nút quay lại ở góc trên bên trái.** Nếu bạn đã thay đổi gì đó kể từ lần lưu, tải xuống hoặc sao chép gần nhất, một hộp thoại **Thay đổi chưa lưu** sẽ hỏi có lưu trước không. **Lưu & rời đi** lưu công việc và đưa bạn đến **Dự án**, hoặc quay lại thư mục dự án mà bạn đã mở công việc từ đó. **Rời đi mà không lưu** hủy bỏ các thay đổi của bạn: một mục đã lưu quay về đúng như lần lưu gần nhất, còn một tác phẩm bạn chưa từng lưu sẽ rời khỏi **Dự án**. **Hủy bỏ** giữ bạn ở lại công cụ.
+- **Bạn đã nhấn Trang chủ, hoặc nút quay lại ở góc trên bên trái.** Nếu bạn đã thay đổi gì đó kể từ lần lưu, tải xuống hoặc sao chép gần nhất, một hộp thoại **Chỉnh sửa chưa lưu** sẽ hỏi có lưu trước không. **Lưu & rời đi** lưu công việc và đưa bạn đến **Dự án**, hoặc quay lại thư mục dự án mà bạn đã mở công việc từ đó. **Vẫn rời đi** hủy bỏ các thay đổi của bạn: một mục đã lưu quay về đúng như lần lưu gần nhất, còn một tác phẩm bạn chưa từng lưu sẽ rời khỏi **Dự án**. **Hủy bỏ** giữ bạn ở lại công cụ.
 
 Lolly chỉ hỏi khi bạn nhấn **Trang chủ** hoặc nút quay lại trong một công cụ. Đóng tab, tải lại trang và nút Back của chính trình duyệt không bao giờ hỏi. Để chắc chắn, hãy nhấn **Lưu thành**, hoặc **Lưu** trong bảng xuất, trước khi bạn rời khỏi một công cụ.
 
@@ -89,7 +89,7 @@ Trong ứng dụng web, mọi công cụ tạo ra một tài liệu đều tự 
 - 3D và Darkroom, vốn nhận một tệp riêng của chúng;
 - một công cụ không có gì để thay đổi, chẳng hạn Countdown.
 
-Ở các công cụ khác, thay đổi đầu tiên của bạn đã lưu công việc vào **Dự án** như thể bạn đã lưu, và các thay đổi sau đó được giữ lại trong khi bạn làm việc, ngay khi công cụ vẽ xong. Vì vậy một tác phẩm chưa lưu vẫn còn trong Dự án sau khi bạn đóng tab và mở lại với các thay đổi được đánh dấu là chưa lưu. **Rời đi mà không lưu** vẫn hủy bỏ chúng, và History giữ lại một bản sao của các chỉnh sửa đã bị hủy trong 30 ngày. Mở lại công cụ từ màn hình chính sẽ bắt đầu một tác phẩm mới; hãy mở tác phẩm trước đó từ Dự án.
+Ở các công cụ khác, thay đổi đầu tiên của bạn đã lưu công việc vào **Dự án** như thể bạn đã lưu, và các thay đổi sau đó được giữ lại trong khi bạn làm việc, ngay khi công cụ vẽ xong. Vì vậy một tác phẩm chưa lưu vẫn còn trong Dự án sau khi bạn đóng tab và mở lại với các thay đổi được đánh dấu là chưa lưu. Dù vậy, **Vẫn rời đi** sẽ hủy bỏ chúng, và History giữ lại một bản sao của các chỉnh sửa đã bị hủy trong 30 ngày. Mở lại công cụ từ màn hình chính sẽ bắt đầu một tác phẩm mới; hãy mở tác phẩm trước đó từ Dự án.
 
 Khi bật [Sync](/info/sync.html), một tác phẩm được lưu theo cách này cũng chuyển sang các thiết bị khác của bạn như mọi thứ khác trong Dự án. Các phiên bản của nó vẫn ở lại trên thiết bị nơi chúng được tạo ra.
 

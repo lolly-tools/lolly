@@ -597,7 +597,7 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
   // it does everywhere else: names and returns to the view you actually came from
   // (the gallery, the catalog, a search…), falling back to "Tools" only on a direct
   // visit. Either way the editing session stays a round-trip instead of dumping the
-  // user in the gallery. "Leave without saving" follows this target; "Save & leave"
+  // user in the gallery. "Leave anyway" follows this target; "Save & leave"
   // returns to the launch folder when present and otherwise opens Projects.
   const fromFolder = tview.returnTo !== '/'; tview.fromFolder = fromFolder;
   const backPillOpts = fromFolder ? { href: tview.returnTo } : {}; tview.backPillOpts = backPillOpts;

@@ -2663,7 +2663,6 @@
   "Leave this empty unless you do not trust the place you sync to. With a passphrase, your data is encrypted on this device before upload, and every device needs the same passphrase. If it is lost, the synced copies cannot be opened.": "Leave this empty unless you do not trust the place you sync to. With a passphrase, your data is encrypted on this device before upload, and every device needs the same passphrase. If it is lost, the synced copies cannot be opened.",
   "Leave this instance?": "Sair desta instância?",
   "Leave this member out of the copy": "Leave this member out of the copy",
-  "Leave without saving": "Sair sem salvar",
   "Left inset": "Margem interna esquerda",
   "Left offset": "Deslocamento à esquerda",
   "Left out because the source artwork was refused:": "Left out because the source artwork was refused:",
@@ -5993,7 +5992,6 @@
   "You can manage these any time from your Profile, under “Available offline”. Voice and other models download automatically the first time you use them.": "Você pode gerenciar isso a qualquer momento no seu Perfil, em \"Disponível offline\". Voz e outros modelos são baixados automaticamente na primeira vez que você os usa.",
   "You can only replace this with the same kind of file (for example, an image with an image).": "Você só pode substituir isto pelo mesmo tipo de arquivo (por exemplo, uma imagem por uma imagem).",
   "You can save up to eight scenes. Delete one to add another.": "You can save up to eight scenes. Delete one to add another.",
-  "You have unsaved changes. <br>Would you like to save before leaving?": "Você tem alterações não salvas. <br>Gostaria de salvar antes de sair?",
   "You hold rates for this job. Show costs?": "Você tem tarifas para este trabalho. Mostrar os custos?",
   "Your LUT": "Seu LUT",
   "Your LinkedIn session ended - connect again in Profile": "Sua sessão do LinkedIn terminou - conecte-se de novo no Perfil",
@@ -7404,8 +7402,6 @@
   "Your role on {workspace} lets you view only. Ask an admin of {workspace} to change your role.": "Sua função em {workspace} permite apenas visualizar. Peça a um administrador de {workspace} para mudar sua função.",
   "This is view only. Make a copy to keep your changes.": "Esta é uma visualização somente leitura. Faça uma cópia para manter suas alterações.",
   "Save changes to {project}?": "Salvar alterações em {project}?",
-  "Leave without saving keeps your changes on this device.": "Sair sem salvar mantém suas alterações neste dispositivo.",
-  "Stay": "Ficar",
   "Save a copy on this device": "Salvar uma cópia neste dispositivo",
   "Copy saved on this device.": "Cópia salva neste dispositivo.",
   "Where should the copy go?": "Onde a cópia deve ficar?",
@@ -7925,5 +7921,8 @@
   "No transition tokens in this context.": "No transition tokens in this context.",
   "Applies Enter duration and geometry easing. Opacity keeps the preset easing.": "Applies Enter duration and geometry easing. Opacity keeps the preset easing.",
   "This layer timing control cannot apply a delay. Choose a transition with zero delay.": "This layer timing control cannot apply a delay. Choose a transition with zero delay.",
-  "Reading transition tokens…": "Reading transition tokens…"
+  "Reading transition tokens…": "Reading transition tokens…",
+  "Unsaved edits": "Edições não salvas",
+  "Save now or abandon your changes.": "Salve agora ou descarte suas alterações.",
+  "Leave anyway": "Sair mesmo assim"
 }

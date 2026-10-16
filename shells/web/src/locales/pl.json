@@ -2663,7 +2663,6 @@
   "Leave this empty unless you do not trust the place you sync to. With a passphrase, your data is encrypted on this device before upload, and every device needs the same passphrase. If it is lost, the synced copies cannot be opened.": "Leave this empty unless you do not trust the place you sync to. With a passphrase, your data is encrypted on this device before upload, and every device needs the same passphrase. If it is lost, the synced copies cannot be opened.",
   "Leave this instance?": "Opuścić tę instancję?",
   "Leave this member out of the copy": "Leave this member out of the copy",
-  "Leave without saving": "Wyjdź bez zapisywania",
   "Left inset": "Lewy margines wewnętrzny",
   "Left offset": "Lewe przesunięcie",
   "Left out because the source artwork was refused:": "Left out because the source artwork was refused:",
@@ -5993,7 +5992,6 @@
   "You can manage these any time from your Profile, under “Available offline”. Voice and other models download automatically the first time you use them.": "Możesz nimi zarządzać w dowolnym momencie w Profilu, w sekcji „Dostępne offline”. Modele głosu i inne pobierają się automatycznie przy pierwszym użyciu.",
   "You can only replace this with the same kind of file (for example, an image with an image).": "Możesz zastąpić to tylko plikiem tego samego rodzaju (na przykład obraz obrazem).",
   "You can save up to eight scenes. Delete one to add another.": "You can save up to eight scenes. Delete one to add another.",
-  "You have unsaved changes. <br>Would you like to save before leaving?": "Masz niezapisane zmiany. <br>Czy chcesz zapisać przed wyjściem?",
   "You hold rates for this job. Show costs?": "Masz stawki dla tego zlecenia. Pokazać koszty?",
   "Your LUT": "Twój LUT",
   "Your LinkedIn session ended - connect again in Profile": "Twoja sesja LinkedIn zakończyła się - połącz się ponownie w Profilu",
@@ -7404,8 +7402,6 @@
   "Your role on {workspace} lets you view only. Ask an admin of {workspace} to change your role.": "Twoja rola w {workspace} pozwala tylko na podgląd. Poproś administratora {workspace}, aby zmienił Twoją rolę.",
   "This is view only. Make a copy to keep your changes.": "To jest tylko podgląd. Utwórz kopię, aby zachować zmiany.",
   "Save changes to {project}?": "Zapisać zmiany w projekcie {project}?",
-  "Leave without saving keeps your changes on this device.": "Wyjście bez zapisywania zachowuje Twoje zmiany na tym urządzeniu.",
-  "Stay": "Zostań",
   "Save a copy on this device": "Zapisz kopię na tym urządzeniu",
   "Copy saved on this device.": "Kopia zapisana na tym urządzeniu.",
   "Where should the copy go?": "Gdzie umieścić kopię?",
@@ -7925,5 +7921,8 @@
   "No transition tokens in this context.": "No transition tokens in this context.",
   "Applies Enter duration and geometry easing. Opacity keeps the preset easing.": "Applies Enter duration and geometry easing. Opacity keeps the preset easing.",
   "This layer timing control cannot apply a delay. Choose a transition with zero delay.": "This layer timing control cannot apply a delay. Choose a transition with zero delay.",
-  "Reading transition tokens…": "Reading transition tokens…"
+  "Reading transition tokens…": "Reading transition tokens…",
+  "Unsaved edits": "Niezapisane edycje",
+  "Save now or abandon your changes.": "Zapisz teraz lub odrzuć swoje zmiany.",
+  "Leave anyway": "Wyjdź mimo to"
 }

@@ -2663,7 +2663,6 @@
   "Leave this empty unless you do not trust the place you sync to. With a passphrase, your data is encrypted on this device before upload, and every device needs the same passphrase. If it is lost, the synced copies cannot be opened.": "Leave this empty unless you do not trust the place you sync to. With a passphrase, your data is encrypted on this device before upload, and every device needs the same passphrase. If it is lost, the synced copies cannot be opened.",
   "Leave this instance?": "Вийти з цього інстансу?",
   "Leave this member out of the copy": "Leave this member out of the copy",
-  "Leave without saving": "Вийти без збереження",
   "Left inset": "Лівий внутрішній відступ",
   "Left offset": "Лівий зсув",
   "Left out because the source artwork was refused:": "Left out because the source artwork was refused:",
@@ -5993,7 +5992,6 @@
   "You can manage these any time from your Profile, under “Available offline”. Voice and other models download automatically the first time you use them.": "Ви можете керувати ними будь-коли у своєму профілі, у розділі «Доступно офлайн». Голос та інші моделі завантажуються автоматично під час першого використання.",
   "You can only replace this with the same kind of file (for example, an image with an image).": "Це можна замінити лише файлом того самого типу (наприклад, зображення на зображення).",
   "You can save up to eight scenes. Delete one to add another.": "You can save up to eight scenes. Delete one to add another.",
-  "You have unsaved changes. <br>Would you like to save before leaving?": "У вас є незбережені зміни. <br>Зберегти перед виходом?",
   "You hold rates for this job. Show costs?": "У вас є розцінки для цього завдання. Показати вартість?",
   "Your LUT": "Ваш LUT",
   "Your LinkedIn session ended - connect again in Profile": "Ваш сеанс LinkedIn завершився — підключіться знову у Профілі",
@@ -7404,8 +7402,6 @@
   "Your role on {workspace} lets you view only. Ask an admin of {workspace} to change your role.": "Ваша роль у {workspace} дає лише перегляд. Попросіть адміністратора {workspace} змінити вашу роль.",
   "This is view only. Make a copy to keep your changes.": "Це лише перегляд. Створіть копію, щоб зберегти свої зміни.",
   "Save changes to {project}?": "Зберегти зміни в {project}?",
-  "Leave without saving keeps your changes on this device.": "Якщо вийти без збереження, ваші зміни залишаться на цьому пристрої.",
-  "Stay": "Залишитися",
   "Save a copy on this device": "Зберегти копію на цьому пристрої",
   "Copy saved on this device.": "Копію збережено на цьому пристрої.",
   "Where should the copy go?": "Куди помістити копію?",
@@ -7925,5 +7921,8 @@
   "No transition tokens in this context.": "No transition tokens in this context.",
   "Applies Enter duration and geometry easing. Opacity keeps the preset easing.": "Applies Enter duration and geometry easing. Opacity keeps the preset easing.",
   "This layer timing control cannot apply a delay. Choose a transition with zero delay.": "This layer timing control cannot apply a delay. Choose a transition with zero delay.",
-  "Reading transition tokens…": "Reading transition tokens…"
+  "Reading transition tokens…": "Reading transition tokens…",
+  "Unsaved edits": "Незбережені правки",
+  "Save now or abandon your changes.": "Збережіть зараз або відмовтеся від змін.",
+  "Leave anyway": "Все одно вийти"
 }

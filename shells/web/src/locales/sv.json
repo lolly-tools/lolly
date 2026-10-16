@@ -2663,7 +2663,6 @@
   "Leave this empty unless you do not trust the place you sync to. With a passphrase, your data is encrypted on this device before upload, and every device needs the same passphrase. If it is lost, the synced copies cannot be opened.": "Leave this empty unless you do not trust the place you sync to. With a passphrase, your data is encrypted on this device before upload, and every device needs the same passphrase. If it is lost, the synced copies cannot be opened.",
   "Leave this instance?": "Lämna den här instansen?",
   "Leave this member out of the copy": "Leave this member out of the copy",
-  "Leave without saving": "Lämna utan att spara",
   "Left inset": "Inre marginal till vänster",
   "Left offset": "Avstånd till vänster",
   "Left out because the source artwork was refused:": "Left out because the source artwork was refused:",
@@ -5993,7 +5992,6 @@
   "You can manage these any time from your Profile, under “Available offline”. Voice and other models download automatically the first time you use them.": "Du kan hantera dessa när som helst från din Profil, under ”Tillgängligt offline”. Röst och andra modeller laddas ner automatiskt första gången du använder dem.",
   "You can only replace this with the same kind of file (for example, an image with an image).": "Du kan bara ersätta den här med samma typ av fil (till exempel en bild med en bild).",
   "You can save up to eight scenes. Delete one to add another.": "You can save up to eight scenes. Delete one to add another.",
-  "You have unsaved changes. <br>Would you like to save before leaving?": "Du har osparade ändringar. <br>Vill du spara innan du lämnar?",
   "You hold rates for this job. Show costs?": "Du har priser för det här jobbet. Visa kostnader?",
   "Your LUT": "Din LUT",
   "Your LinkedIn session ended - connect again in Profile": "Din LinkedIn-session avslutades - anslut igen i Profil",
@@ -7404,8 +7402,6 @@
   "Your role on {workspace} lets you view only. Ask an admin of {workspace} to change your role.": "Din roll i {workspace} ger bara visningsbehörighet. Be en administratör för {workspace} att ändra din roll.",
   "This is view only. Make a copy to keep your changes.": "Det här är endast visning. Gör en kopia för att behålla dina ändringar.",
   "Save changes to {project}?": "Spara ändringar i {project}?",
-  "Leave without saving keeps your changes on this device.": "Om du lämnar utan att spara ligger ändringarna kvar på den här enheten.",
-  "Stay": "Stanna",
   "Save a copy on this device": "Spara en kopia på den här enheten",
   "Copy saved on this device.": "Kopian sparades på den här enheten.",
   "Where should the copy go?": "Var ska kopian hamna?",
@@ -7925,5 +7921,8 @@
   "No transition tokens in this context.": "No transition tokens in this context.",
   "Applies Enter duration and geometry easing. Opacity keeps the preset easing.": "Applies Enter duration and geometry easing. Opacity keeps the preset easing.",
   "This layer timing control cannot apply a delay. Choose a transition with zero delay.": "This layer timing control cannot apply a delay. Choose a transition with zero delay.",
-  "Reading transition tokens…": "Reading transition tokens…"
+  "Reading transition tokens…": "Reading transition tokens…",
+  "Unsaved edits": "Osparade redigeringar",
+  "Save now or abandon your changes.": "Spara nu eller förkasta dina ändringar.",
+  "Leave anyway": "Lämna ändå"
 }
