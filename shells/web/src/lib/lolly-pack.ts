@@ -411,8 +411,14 @@ export interface LollyLibraryAsset {
   type: string;
   format: string;
   label?: string;
-  /** Held back unless `includeLicensed` - see redistribution() in tool-lolly-vehicle.ts. */
+  /** Held back unless `includeLicensed` or `chosen` - see lib/redistribution.ts. */
   licensed?: boolean;
+  /**
+   * The sender picked this one item to carry (a brand pack's checklist), so it
+   * travels even when held back by default, and CREDITS.txt records that as
+   * their choice. The per-item form of `includeLicensed`.
+   */
+  chosen?: boolean;
   /** Why it is held back, in plain words. */
   holdReason?: string;
   /** Whether a deployment rule or a licence condition held it back. */
@@ -689,7 +695,7 @@ export async function buildLollyFile(input: LollyBuildInput): Promise<LollyBuild
   for (const id of refs.library) {
     const lib = input.resolveLibrary ? await input.resolveLibrary(id) : null;
     if (lib?.licensed) hasLicensed = true;
-    if (!lib || (lib.licensed && !input.includeLicensed)) {
+    if (!lib || (lib.licensed && !input.includeLicensed && !lib.chosen)) {
       if (lib?.licensed) {
         licensedExcluded++;
         heldBack.push({ label: lib.label ?? id, id, reason: lib.holdReason ?? 'held back', ...(lib.holdKind ? { kind: lib.holdKind } : {}), ...(lib.licence ? { licence: lib.licence } : {}) });
