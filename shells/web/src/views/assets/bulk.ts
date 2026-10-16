@@ -7,6 +7,8 @@
  * a value (an event listener), goes through `cat.<module>.<fn>`. Extracted verbatim
  * from mountCatalog() by scripts/split-closure.ts.
  */
+import { getInstanceBase } from '../../lib/instance.ts';
+import { getSessionSource } from '../../lib/session-source.ts';
 import { isHiddenSlot } from '../../lib/batch-slots.ts';
 import { pruneSelection as pruneSelectionRule, selectableIds as selectableIdsRule } from '../assets-filter.ts';
 import { t, tRaw } from '../../i18n.ts';
@@ -68,6 +70,7 @@ export function pruneSelection(cat: CatCtx): void {
   const { selected } = cat;
   const allowed = selectableIds(cat);
   if (cat.remote?.browser.supported) for (const id of selected) { const ref = cat.assetById.get(id); if (ref && cat.remote.shared(ref)) allowed.add(id); }
+  for (const id of selected) if (cat.projects?.shared(cat.assetById.get(id))) allowed.add(id);
   pruneSelectionRule(selected, allowed);
 }
 export function toggleSelect(cat: CatCtx, id: string): void {
@@ -135,27 +138,34 @@ export async function usedInSessions(cat: CatCtx, ref: AssetRef): Promise<Array<
   const needle = `"${assetBaseId(ref.id)}`;
   return (cat.sessionTexts ?? []).filter(s2 => s2.text.includes(needle)).map(({ slot, label }) => ({ slot, label }));
 }
-/**
- * "Add to project…" (plans/132 WP-D): reference the assets into a folder via
- * the SAME store Projects uses - no byte copies (folder image items are refs;
- * the projects reconciler already keeps catalog refs alive). Offers every
- * folder path-labelled, plus creating a new one on the spot.
- */
-export async function addToProject(cat: CatCtx, ids: string[]): Promise<void> {
+/** Device folders keep references; shared folders receive explicit file copies. */
+export async function addToProject(cat: CatCtx, ids: string[], refs?: readonly AssetRef[]): Promise<void> {
   const { host } = cat;
+  const openedSource = getSessionSource(), openedBase = getInstanceBase();
   if (!ids.length) return;
   const store = createFolderStore(host as unknown as FolderHost);
-  const folders = await store.list();
+  const projectOnly = (refs ?? ids.map(id => cat.assetById.get(id))).some(ref => !!ref?.meta?.projectFileId);
+  const folders = projectOnly ? [] : await store.list();
+  const writer = getSessionSource()?.write;
+  const shared = !!writer && writer.projectOptions().canSave !== false && writer.projectOptions().canShareFiles !== false;
   const pathLabel = (id: string): string => folderPath(folders, id).map(f => f.name).join(' / ');
   const chosen = await choiceDialog({
     title: ids.length === 1 ? t('Add to project') : tRaw('Add {n} assets to project', { n: ids.length }),
-    message: t('Nothing is copied. The project holds a reference, and the files stay in Assets.'),
+    message: shared ? t('Device folders hold references. Shared project folders receive file copies visible to everyone with project access.') : t('Nothing is copied. The project holds a reference, and the files stay in Assets.'),
     choices: [
+      ...(shared ? [{ id: '__shared__', label: t('Copy to a shared project…') }] : []),
       ...folders.map(f => ({ id: f.id, label: pathLabel(f.id) })),
-      { id: '__new__', label: t('New project…'), primary: folders.length === 0 },
+      ...(!projectOnly ? [{ id: '__new__', label: t('New project…'), primary: folders.length === 0 }] : []),
     ],
   });
   if (!chosen || !cat.mounted) return;
+  if (chosen === '__shared__') {
+    const selected = refs ?? ids.flatMap(id => { const ref = cat.assetById.get(id); return ref ? [ref] : []; });
+    if (selected.length !== ids.length) { announce(t('Some selected assets are unavailable. Select them again.')); return; }
+    const { openAssetProjectCopy } = await import('../../org/asset-project-transfer.ts');
+    if (openedSource !== getSessionSource() || openedBase !== getInstanceBase()) { announce(t('The connected workspace changed. Choose the assets again.')); return; }
+    await openAssetProjectCopy(host, selected); return;
+  }
   let target = chosen;
   if (chosen === '__new__') {
     const name = await promptDialog({ title: t('New project'), message: t('Name the project folder.'), placeholder: t('Project name'), confirmLabel: t('Create') });
@@ -163,8 +173,9 @@ export async function addToProject(cat: CatCtx, ids: string[]): Promise<void> {
     try { target = (await store.create(name)).id; }
     catch (err) { announce(String((err as Error).message ?? err), { assertive: true }); return; }
   }
-  for (const id of ids) await store.addItem(target, { type: 'image', ref: id }).catch(() => {});
-  announce(ids.length === 1 ? t('Added to the project') : tRaw('Added {n} assets to the project', { n: ids.length }));
+  let added = 0;
+  for (const id of ids) { try { await store.addItem(target, { type: 'image', ref: id }); added++; } catch { /* Report the acknowledged count below. */ } }
+  announce(tRaw('Added {done} of {total} assets to the project.', { done: added, total: ids.length }));
 }
 export function handleBulk(cat: CatCtx, action: string): void {
   const { selected, tileSelect, viewEl } = cat;

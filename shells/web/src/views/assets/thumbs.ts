@@ -531,7 +531,7 @@ export function assetTile(cat: CatCtx, ref: AssetRef): string {
   const name = String(ref.meta?.name ?? ref.id);
   const fmt = ref.type === 'lottie' ? 'LOTTIE' : (ref.format ? String(ref.format).toUpperCase() : '');
   const isUser = ref.source === 'user';
-  const sourceLabel = isUser ? t('Yours') : t('Catalogue');
+  const sourceLabel = ref.meta?.projectFileId ? t('Shared project') : isUser ? t('Yours') : t('Catalogue');
   // Generative-AI disclosure - authored on a catalog entry OR auto-detected from an
   // upload's C2PA credential. Shows a violet GEN AI pill in the caption; collapses to a
   // sparkle circle on narrow tiles (see styles/parts/asset-shared.css).

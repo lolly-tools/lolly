@@ -7,6 +7,7 @@
  * a value (an event listener), goes through `cat.<module>.<fn>`. Extracted verbatim
  * from mountCatalog() by scripts/split-closure.ts.
  */
+import { announce } from '../../a11y.ts';
 import { recordFeaturedActivity } from '../../lib/featured-activity.ts';
 import { assetBaseId } from '../../lib/asset-favourites.ts';
 import { derivePeaks, memoPeaks } from '../../lib/audio-peaks.ts';
@@ -25,6 +26,10 @@ export { wireAudioViz, audioCardArt, audioElOf, meterElOf, setAudioCover } from 
 
 
 export function openDetails(cat: CatCtx, ref: AssetRef, initialTheme?: string | null, initialTreatment?: string | null): void {
+  if (cat.projects?.shared(ref) && !ref.meta?.projectPrepared) {
+    void cat.projects.prepare(ref).then(prepared => { if (cat.mounted) cat.details.openDetails(prepared, initialTheme, initialTreatment); }).catch(error => announce(String(error.message), { assertive: true }));
+    return;
+  }
   recordFeaturedActivity('assets', assetBaseId(ref.id));
   const dt = {} as DetailsCtx;
   dt.panels = panelsOps(dt);

@@ -5,22 +5,22 @@ This file exists so you can find the code for a feature without reading all of i
 The counts below are GENERATED - `pnpm run build:web-src-readme`, checked in CI by `pnpm run check:web-src-readme`, so they cannot rot the way the hand-measured ones did. They convey proportion; don't cite them as an API.
 
 <!-- web-src-dirs:start -->
-Roughly 764,000 lines of TypeScript, tests included, and 60,000 lines of CSS.
+Roughly 765,000 lines of TypeScript, tests included, and 60,000 lines of CSS.
 
 | Directory | Source | Tests | CSS |
 |---|---|---|---|
-| `views/` | 540 files, 204,831 lines | 265 files, 84,406 lines | 7 files, 1,441 lines |
-| `lib/` | 797 files, 163,203 lines | 460 files, 89,161 lines | 13 files, 1,820 lines |
+| `views/` | 541 files, 204,919 lines | 266 files, 84,469 lines | 7 files, 1,441 lines |
+| `lib/` | 797 files, 163,207 lines | 460 files, 89,166 lines | 13 files, 1,820 lines |
 | `bridge/` | 223 files, 54,794 lines | 133 files, 27,833 lines | none |
-| `components/` | 124 files, 28,032 lines | 54 files, 14,039 lines | 22 files, 1,345 lines |
-| `org/` | 77 files, 19,940 lines | 55 files, 16,480 lines | none |
+| `components/` | 124 files, 28,035 lines | 54 files, 14,039 lines | 22 files, 1,345 lines |
+| `org/` | 80 files, 20,184 lines | 56 files, 16,607 lines | none |
 | `collab/` | 20 files, 13,532 lines | 22 files, 14,132 lines | none |
 | `pro/` | 22 files, 8,572 lines | 11 files, 1,738 lines | 3 files, 1,226 lines |
 | `catalog/` | 11 files, 1,796 lines | 9 files, 969 lines | none |
 | `ext/` | 2 files, 136 lines | 1 file, 86 lines | none |
 | `styles/` | none | 10 files, 1,977 lines | 130 files, 54,519 lines |
 
-Plus 52 `.ts`/`.js` files at the top level of `src/`, 18,496 lines all told, of which 26 are tests and 3 are ambient declarations. `main.ts` is 2,329 of that.
+Plus 52 `.ts`/`.js` files at the top level of `src/`, 18,494 lines all told, of which 26 are tests and 3 are ambient declarations. `main.ts` is 2,329 of that.
 <!-- web-src-dirs:end -->
 
 ## How do I find a feature

@@ -225,6 +225,7 @@ const pages: Page[] = [
   // architecture, which repository, what to trust - and a bare link cannot answer any
   // of it. Registered under Quickstart: a reader who wants the app installed is at the
   // very start of the path, not deep in Operators.
+  { slug: 'project-asset-transfers', title: 'Shared project assets', src: 'project-asset-transfers.md', pathway: 'quickstart', description: 'Browse shared project folders, copy assets, submit originals to a workspace library and send files to connected destinations.' },
   { slug: 'organisation',     title: 'Use Lolly at your organisation', src: 'organisation.md', pathway: 'quickstart', description: "Use your organisation's Lolly, with optional lolly.work sign-in, shared projects, live collabs and managed settings. Learn what stays local and how to leave." },
   { slug: 'install',          title: 'Install Lolly', src: 'install.md', pathway: 'quickstart', description: "Every packaged build in one list: the macOS disk image, the openSUSE Tumbleweed and Leap RPMs, the Flatpak, the Android APK, and how to check the file you downloaded is the one we made." },
   { slug: 'supported-environments', title: 'Supported environments', src: 'supported-environments.md', pathway: 'quickstart', description: 'Tested browser and app environments, the WebGPU startup requirement, and the separate web and native release scopes.' },
@@ -528,6 +529,7 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
         { slug: 'install',        label: 'Install Lolly' },
         { slug: 'supported-environments', label: 'Supported environments' },
         { slug: 'organisation',   label: 'At your organisation' },
+        { slug: 'project-asset-transfers', label: 'Shared project assets' },
         { slug: 'faq',            label: 'Questions & answers' } ] },
       { label: 'Then pick a path', items: [
         { slug: 'creators',  label: 'For Creators' },
@@ -5362,7 +5364,7 @@ const PATHWAY_HUB: Record<Pathway, string> = {
  */
 interface SitemapSection { hub: Pathway; label: string; slugs: string[] }
 const FOOTER_SECTIONS: SitemapSection[] = [
-  { hub: 'quickstart', label: 'Start here', slugs: ['index', 'make-something', 'install', 'supported-environments', 'organisation', 'faq'] },
+  { hub: 'quickstart', label: 'Start here', slugs: ['index', 'make-something', 'install', 'supported-environments', 'organisation', 'project-asset-transfers', 'faq'] },
   { hub: 'quickstart', label: 'Compare', slugs: ['positioning', 'compare',
     'compare-canva', 'compare-adobe', 'compare-figma', 'compare-penpot',
     'compare-render-apis', 'compare-brand-portals', 'compare-converters'] },
@@ -5495,7 +5497,7 @@ const SIDEBAR_ICON: Record<string, string> = {
   agenda: 'checklist', presenting: 'monitor', 'interactive-pages': 'globe', 'sequence-editor': 'clock', 'hdr-editing': 'sliders', animating: 'layers', exporting: 'download', formats: 'convert', positioning: 'sliders', compare: 'checklist',
   'compare-canva': 'checklist', 'compare-adobe': 'checklist', 'compare-figma': 'checklist', 'compare-render-apis': 'checklist', 'compare-converters': 'checklist',
   'compare-penpot': 'checklist', 'compare-brand-portals': 'checklist',
-  'make-something': 'pentool', install: 'download', 'supported-environments': 'check', organisation: 'people', faq: 'document',
+  'make-something': 'pentool', install: 'download', 'supported-environments': 'check', organisation: 'people', 'project-asset-transfers': 'folder', faq: 'document',
   // Operator playbooks (plans/177)
   sales: 'people', press: 'document', marketing: 'photos', legal: 'lock',
   // Concepts: the locked rule set, the same-every-time check, the link as the artifact.

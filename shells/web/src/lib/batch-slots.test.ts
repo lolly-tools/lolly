@@ -23,3 +23,8 @@ test('a creation discarded by Leave without saving is hidden from every session 
   assert.equal(discardedAt('qr-code:1b2c'), null);
   assert.equal(discardedAt(`${DISCARDED_SLOT_PREFIX}not-a-time:x`), null);
 });
+
+test('project-copy receipts stay out of saved-work lists', () => {
+  assert.equal(isHiddenSlot('__projectcopy__:workspace:person:digest'), true);
+  assert.equal(isHiddenSlot('project-copy:my-document'), false);
+});

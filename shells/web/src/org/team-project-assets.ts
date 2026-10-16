@@ -10,6 +10,8 @@ import type { AssetRef } from '@lolly-tools/core/host-v1';
 import { defaultSanitizeSvg, safeMeta, sniffBeamAsset } from '../lib/beam-pack.ts';
 import { fmtBytes } from '../lib/format.ts';
 import { tRaw } from '../i18n.ts';
+import { catalogSubmitter, openCatalogSubmit } from '../lib/catalog-submit.ts';
+import { projectFileSubject } from './project-catalog-submit.ts';
 import { downloadTeamFile, teamFileMessage, type TeamFile } from './team-files.ts';
 
 export function projectFileUrl(projectId: string, fileId: string): string {
@@ -39,6 +41,7 @@ export function buildProjectAsset(projectId: string, file: TeamFile, folderId?: 
     backHref: `#/p?team=${encodeURIComponent(projectId)}${folderId ? `&folder=${encodeURIComponent(folderId)}` : ''}`, metadata: [fmtBytes(file.size), file.createdByName].filter(Boolean).join(' · '),
     downloadError: error => teamFileMessage(error, 'read'),
     preview,
+    actions: catalogSubmitter('upload') ? [{ label: catalogSubmitter('upload')!.label(), run() { openCatalogSubmit(projectFileSubject(projectId, file)); } }] : [],
     async download() {
       const blob = await downloadTeamFile(projectId, file);
       const host = getHostRef();
@@ -64,6 +67,6 @@ export async function prepareProjectAsset(projectId: string, file: TeamFile): Pr
   return { ref: { source: 'remote', id: file.id, type: kind.type as AssetRef['type'], format: kind.format, url,
     ...(kind.markup ? { original: { url: originalUrl, format: kind.format } } : {}),
     width: dimension('width'), height: dimension('height'), version: file.checksum, checksum: file.checksum,
-    meta: { ...meta, name: file.name, tags, bytes: file.size },
+    meta: { ...meta, name: file.name, tags, bytes: file.size, projectId, projectFileId: file.id, projectChecksum: file.checksum, projectPrepared: true },
   }, dispose() { URL.revokeObjectURL(url); if (originalUrl !== url) URL.revokeObjectURL(originalUrl); } };
 }

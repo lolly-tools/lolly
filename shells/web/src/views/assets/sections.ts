@@ -198,11 +198,11 @@ export const bodyHtml = (cat: CatCtx): string => {
   return bodyMarkup(cat);
 };
 const bodyMarkup = (cat: CatCtx): string =>
-  `${cat.remote?.html() ?? ''}${cat.filters.assetsSectionHtml()}${(cat.query || cat.typeFilter !== 'all' || !['all', 'catalog'].includes(cat.sourceSelection ?? 'all')) ? '' : swatchesSectionHtml(cat) + fontsSectionHtml(cat)}`;
+  cat.projects?.active() ? cat.projects.html() : `${cat.remote?.html() ?? ''}${cat.filters.assetsSectionHtml()}${(cat.query || cat.typeFilter !== 'all' || !['all', 'catalog'].includes(cat.sourceSelection ?? 'all')) ? '' : swatchesSectionHtml(cat) + fontsSectionHtml(cat)}`;
 export const bulkBarHtml = (cat: CatCtx): string => { const { bulkBarCfg } = cat; return buildBulkBar(bulkBarCfg); };
 export function render(cat: CatCtx): void {
   const { viewEl } = cat;
-  cat.remote?.sync(); cat.remote?.reconcile();
+  cat.projects?.sync(); cat.remote?.sync(); cat.remote?.reconcile(); cat.projects?.reconcile();
   cat.bulk.pruneSelection();
   viewEl.innerHTML = `
       <div class="catalog"${cardSizeAttr(cat.cardSize)}${layoutAttr(cat.catLayout)}${densityAttr(cat.catDensity)}>
@@ -322,7 +322,7 @@ export function renderBody(cat: CatCtx): void {
   const { viewEl } = cat;
   const body = viewEl.querySelector<HTMLElement>('.catalog-body');
   if (!body) { render(cat); return; }
-  cat.remote?.sync(); cat.remote?.reconcile();
+  cat.projects?.sync(); cat.remote?.sync(); cat.remote?.reconcile(); cat.projects?.reconcile();
   cat.bulk.pruneSelection();
   body.innerHTML = bodyHtml(cat);
   mountFavStrip(cat);
@@ -446,6 +446,7 @@ export async function maybeHealTtsClip(cat: CatCtx, ref: AssetRef): Promise<void
 }
 // The canonical shareable link that reopens this modal from the catalog view.
 export const assetLink = (cat: CatCtx, ref: AssetRef): string =>
+  ref.meta?.projectFileId ? `${location.origin}${appPathname()}#/p?team=${encodeURIComponent(String(ref.meta.projectId))}&asset=${encodeURIComponent(String(ref.meta.projectFileId))}` :
   `${location.origin}${appPathname()}${cat.preview?.link?.(ref) ?? `#/a?asset=${encodeURIComponent(ref.id)}`}`;
 // The previous/next asset for the details modal's lightbox paging - in on-screen grid
 // order, skipping tiles inside a collapsed group so paging matches what's visible.
