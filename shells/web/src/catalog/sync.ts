@@ -173,11 +173,21 @@ const LS_PREFIX = 'sbt-catalog:';
  * network data (offline or a failed fetch). Exported as a live, mutable object so
  * views can read `networkStatus.offline` without importing a getter.
  */
-export const networkStatus = { offline: false };
+export const networkStatus: { offline: boolean; cause: 'network' | 'server' | null } = { offline: false, cause: null };
 
-function setOffline(value: boolean): void {
+/** A catalog fetch the server answered with an error status other than a refusal:
+ *  the device is online and the server is the problem. */
+class CatalogHttpError extends Error {
+  readonly status: number;
+  constructor(status: number, url: string) { super(`HTTP ${status} fetching ${url}`); this.status = status; }
+}
+
+/** `error` is what made the sync fall back. A server that answered with an error is
+ *  not "Offline" (plan 320 J8): saying so sends people to check their connection. */
+function setOffline(value: boolean, error?: unknown): void {
   networkStatus.offline = value;
-  renderOfflineChip(value);
+  networkStatus.cause = value ? (error instanceof CatalogHttpError ? 'server' : 'network') : null;
+  renderOfflineChip(value, networkStatus.cause);
 }
 
 /**
@@ -185,19 +195,21 @@ function setOffline(value: boolean): void {
  * it can never steal focus or intercept clicks - a richer indicator belongs in a
  * view, which can read networkStatus.offline directly.
  */
-function renderOfflineChip(offline: boolean): void {
+function renderOfflineChip(offline: boolean, cause: 'network' | 'server' | null = 'network'): void {
   if (typeof document === 'undefined' || !document.body) return;
   let chip = document.getElementById('sbt-offline-chip');
   if (!offline) {
     if (chip) chip.hidden = true;
     return;
   }
+  const text = cause === 'server' ? t('The server could not send the latest tools - showing saved content') : t('Offline - showing saved content');
+  if (chip) chip.textContent = text;
   if (!chip) {
     chip = document.createElement('div');
     chip.id = 'sbt-offline-chip';
     chip.setAttribute('role', 'status');
     chip.setAttribute('aria-live', 'polite');
-    chip.textContent = t('Offline - showing saved content');
+    chip.textContent = text;
     chip.style.cssText = [
       'position:fixed', 'left:12px', 'bottom:12px', 'z-index:2147483647',
       'pointer-events:none', 'padding:6px 10px', 'border-radius:999px',
@@ -321,7 +333,7 @@ export async function syncCatalog(
       host.log('warn', 'Catalog verification failed', { error: String(e) });
       return;
     }
-    setOffline(true);
+    setOffline(true, e);
     host.log('warn', 'Catalog sync failed; using cached', { error: String(e) });
   }
 }
@@ -348,7 +360,7 @@ async function syncVerifiedCatalog(host: SyncHost, onAssetsReady?: () => unknown
  *  recorded as "signed out" and comes back as a CatalogRefusedError, which no
  *  caller retries or reports as offline. */
 function notOk(resp: Response, url: string): Error {
-  if (!isAccessRefused(resp.status)) return new Error(`HTTP ${resp.status} fetching ${url}`);
+  if (!isAccessRefused(resp.status)) return new CatalogHttpError(resp.status, url);
   noteCatalogRefused();
   return new CatalogRefusedError(resp.status, url);
 }
@@ -545,7 +557,7 @@ async function syncTools(host: SyncHost): Promise<void> {
         continue;
       }
       // Every attempt failed - restore from localStorage cache if available.
-      setOffline(true);
+      setOffline(true, e);
       const cached = localStorage.getItem('sbt-tool-index');
       if (cached) {
         const offlineIndex = JSON.parse(cached) as ToolIndex;

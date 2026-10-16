@@ -11,7 +11,8 @@
  *   - a remembered refusal makes the next boot ask `signInRequired` before any
  *     catalog request, and sends none while the visitor is still signed out.
  * And the control: with no refusal on record, `signInRequired` is never asked and
- * a 5xx still reports offline exactly as before.
+ * a 5xx still falls back to the cached copy, with a chip that blames the server
+ * rather than the connection.
  *
  * jsdom supplies window/location/localStorage; fetch and the host bridge are mocks.
  * Node has no IndexedDB, so the instance base reads as same-origin.
@@ -69,6 +70,7 @@ beforeEach(() => {
   resetCatalogAccessForTests();
   localStorage.clear();
   networkStatus.offline = false;
+  networkStatus.cause = null;
   document.getElementById('sbt-offline-chip')?.remove();
   requests = [];
   status = 200;
@@ -175,13 +177,27 @@ test('no refusal on record: the sign-in answer is never waited for', async () =>
   assert.equal(localStorage.getItem(REFUSED_KEY), null, 'nothing is written');
 });
 
-test('a server error is still offline: the cached copy and the chip, as before', async () => {
+// Plan 320 J8: a server error falls back to the cached copy, as before, but the chip
+// does not say Offline - the device is online and the server is the problem.
+test('a server error falls back to the cached copy and says the server is the problem', async () => {
   status = 503;
   await syncCatalog(mockHost());
   assert.equal(networkStatus.offline, true);
+  assert.equal(networkStatus.cause, 'server');
   assert.equal(chipShown(), true);
+  assert.equal(document.getElementById('sbt-offline-chip')?.textContent, 'The server could not send the latest tools - showing saved content');
   assert.equal(catalogRefused(), false);
   assert.equal(catalogRefusedBefore(), false);
+});
+
+test('a request that gets no answer at all is Offline', async () => {
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = (async () => { throw new TypeError('Failed to fetch'); }) as typeof fetch;
+  try {
+    await syncCatalog(mockHost());
+  } finally { globalThis.fetch = realFetch; }
+  assert.equal(networkStatus.cause, 'network');
+  assert.equal(document.getElementById('sbt-offline-chip')?.textContent, 'Offline - showing saved content');
 });
 
 
