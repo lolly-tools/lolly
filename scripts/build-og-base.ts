@@ -9,31 +9,44 @@
  * long after the app icon and the OG cards had moved to the current pine swirl.
  *
  * This regenerates it from the SINGLE source of truth, icon.svg (via chrome.mark, which
- * embeds the signed source SVG), through the same Chromium card path as every other card - 
+ * embeds the signed source SVG), through the same Chromium card path as every other card -
  * so the default card can never drift from the app icon again.
  *
  *   pnpm run og:base
+ *
+ * A pack whose tokens select Opal's own designs (docs/og-opal.ts) gets Opal's house card
+ * instead, written into that pack's own catalog at og/og.png rather than over the
+ * og.png every other profile shares. A build of that profile serves it as /og.png
+ * (shells/web/vite.config.js), so `LOLLY_PROFILE=lolly-demo pnpm run og:base` leaves the
+ * shared card alone.
  *
  * Best-effort, exactly like the other OG scripts: on Vercel (no render browser) or when
  * Playwright/fonts are unavailable, it keeps the committed og.png rather than failing the
  * build. Locally, build:web refreshes it; commit the bytes like the other cards.
  */
 
-import { writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { catalogFile } from '@lolly-tools/node-shell/content-roots';
 import { createLandingCardRenderer, loadBrandChrome } from '../docs/og-image.ts';
+import { applyProfileArg } from './lib/profile-arg.ts';
 import { createSvgRasterizer } from './lib/rasterize-svg-browser.ts';
 import { stampBitmap } from './lib/stamp-media.ts';
 
+// `--profile=<name>` pins the content profile for this process, like the card scripts.
+applyProfileArg();
+
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const OUT = resolve(ROOT, 'shells/web/public/og.png');
+const SHARED = resolve(ROOT, 'shells/web/public/og.png');
 
 async function main(): Promise<void> {
   if (process.env.VERCEL) {
     console.log('og:base - on Vercel, keeping the committed og.png (no render browser).');
     return;
   }
+  const chrome = loadBrandChrome(ROOT);
+  const out = chrome.cards ? catalogFile('og/og.png') : SHARED;
   let rasterizer: Awaited<ReturnType<typeof createSvgRasterizer>>;
   try {
     rasterizer = await createSvgRasterizer(ROOT);
@@ -42,13 +55,14 @@ async function main(): Promise<void> {
     return;
   }
   try {
-    const renderer = createLandingCardRenderer(rasterizer.rasterize, loadBrandChrome(ROOT));
+    const renderer = createLandingCardRenderer(rasterizer.rasterize, chrome);
     const png = await renderer.render();
     // Walk the talk: stamp the default card with the Lolly Imprint + a "made with Lolly"
     // C2PA credential before committing it (see scripts/lib/stamp-media.ts).
     const stamped = await stampBitmap(new Uint8Array(png), 'png', { id: 'og', name: 'Lolly' });
-    writeFileSync(OUT, Buffer.from(stamped));
-    console.log('✓ og:base - shells/web/public/og.png regenerated from icon.svg');
+    mkdirSync(dirname(out), { recursive: true });
+    writeFileSync(out, Buffer.from(stamped));
+    console.log(`✓ og:base - ${out.slice(ROOT.length + 1)} regenerated from icon.svg`);
   } finally {
     await rasterizer.close();
   }
