@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import { installToolByteVerification } from './catalog/tool-bytes.ts';
 import { installVerifiedPreviews } from './lib/preview-media.ts';
+import { installStaleShellRecovery, looksLikeChunkError } from './lib/stale-shell.ts';
 /**
  * Web shell entry.
  *
@@ -2270,19 +2271,10 @@ if ('serviceWorker' in navigator) {
 // A cached shell one deploy behind points its lazy chunks (the router's
 // `await import('./views/…')`) at content-hashes the new deploy removed, so the
 // import 404s ("Failed to fetch dynamically imported module"). A reload boots on
-// the fresh, network-first shell. This must be bullet-proof from EVERY angle a
-// failure surfaces - Vite's preloadError, an unhandled rejection, a failed
-// <script>/<link>, or a router mount that throws - and must NEVER strand the user
-// on a blank page: when a reload can't help (just retried, or offline) show a
-// visible Reload card and auto-recover the moment connectivity returns.
+// the fresh, network-first shell. Only unhandled app-chunk failures reach global
+// recovery; handled preview imports and tool resources belong to their caller.
+// When a reload cannot help, show a visible Reload card.
 const CHUNK_RELOAD_KEY = 'lolly-chunk-reload-at';
-const CHUNK_ERR_RE = /(dynamically imported module|module script failed|error loading dynamically|loading chunk|chunkloaderror|failed to fetch)/i;
-
-function looksLikeChunkError(v: unknown): boolean {
-  const e = v as { message?: unknown; reason?: { message?: unknown } | string } | null;
-  const msg = String(e?.message ?? (typeof e?.reason === 'string' ? e.reason : e?.reason?.message) ?? v ?? '');
-  return CHUNK_ERR_RE.test(msg);
-}
 
 // A visible, always-actionable fallback - the last-resort alternative to a blank
 // container. Mirrors boot()'s error card (className 'error', a .btn Reload).
@@ -2302,16 +2294,16 @@ function showReloadCard(message?: string): void {
   btn.addEventListener('click', () => window.location.reload());
   wrap.append(p, btn);
   view.append(wrap);
-  if (navigator.onLine === false) window.addEventListener('online', () => window.location.reload(), { once: true });
+  if (!isTauriShell() && navigator.onLine === false) window.addEventListener('online', () => window.location.reload(), { once: true });
 }
 
 let chunkRecovering = false;
 function recoverFromStaleShell(): void {
-  if (chunkRecovering) return;              // one attempt per episode (preloadError + rejection can co-fire)
+  if (chunkRecovering) return; // A resource error and an unhandled rejection can co-fire.
   chunkRecovering = true;
   const last = Number(sessionStorage.getItem(CHUNK_RELOAD_KEY) || 0);
   // Online and haven't just reloaded → one silent reload fixes the stale shell.
-  if (navigator.onLine !== false && Date.now() - last > 15_000) {
+  if (!isTauriShell() && navigator.onLine !== false && Date.now() - last > 15_000) {
     sessionStorage.setItem(CHUNK_RELOAD_KEY, String(Date.now()));
     window.location.reload();               // page unloads; the flag stays set until it does
     return;
@@ -2323,19 +2315,7 @@ function recoverFromStaleShell(): void {
 }
 
 if (import.meta.env.PROD) {
-  window.addEventListener('vite:preloadError', (event) => { event.preventDefault(); recoverFromStaleShell(); });
-  window.addEventListener('unhandledrejection', (event) => {
-    if (looksLikeChunkError(event)) { event.preventDefault(); recoverFromStaleShell(); }
-  });
-  // Resource-load failures (a removed hashed <script>/<link>) don't bubble - catch
-  // them in the capture phase, scoped to our own same-origin JS/CSS so an unrelated
-  // asset error never triggers a reload.
-  window.addEventListener('error', (event) => {
-    const el = event.target as (HTMLScriptElement & HTMLLinkElement) | null;
-    const src = (el && (el.src || el.href)) || '';
-    const isAppChunk = typeof src === 'string' && src.startsWith(location.origin) && /\.(m?js|css)(\?|$)/.test(src);
-    if (isAppChunk || looksLikeChunkError(event)) recoverFromStaleShell();
-  }, true);
+  installStaleShellRecovery(window, isTauriShell(), recoverFromStaleShell);
 }
 
 boot().catch(err => {
