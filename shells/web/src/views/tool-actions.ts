@@ -33,6 +33,7 @@ import { markupOps } from './tool-actions/markup.ts';
 import { learningOps } from './tool-actions/learning.ts';
 import { rightsOps } from './tool-actions/rights-row.ts';
 import { wiringOps } from './tool-actions/wiring.ts';
+import { startingFormat } from '../lib/touch-export-format.ts';
 
 
 export { captureThumbnail, exportTargetNode, flatExportNode } from './tool-action-helpers.ts';
@@ -163,11 +164,12 @@ function renderActions(
 
   ta.formatRules.readDeepExport();
   // A ?format= link or a saved session (exportDefaults.format) is an explicit choice
-  // and wins; otherwise follow the upload's format, falling back to the first format.
+  // and wins; otherwise follow the upload's format, falling back to the first format
+  // (PNG before SVG on a touch-only device, lib/touch-export-format.ts).
   const initialFmt =
     exportDefaults.format && ta.formats.includes(exportDefaults.format)
       ? exportDefaults.format
-      : ta.formatRules.assetExportFormat() || ta.formats[0]; ta.initialFmt = initialFmt;
+      : ta.formatRules.assetExportFormat() || startingFormat(ta.formats); ta.initialFmt = initialFmt;
   const videoDefaults = (manifest.render.video ?? {}) as { wait?: number; duration?: number }; ta.videoDefaults = videoDefaults;
   // A link's ?wait= / ?seconds= (exportDefaults.video) seed the fields the way ?format= seeds the picker.
   const defaultWait = exportDefaults.video?.wait ?? videoDefaults.wait ?? 1; ta.defaultWait = defaultWait;
