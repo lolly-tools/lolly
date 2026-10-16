@@ -16,11 +16,11 @@ import { rgbToCmyk } from '@lolly/engine';
 import type { CornerRadii } from '../../../../engine/src/css-box.ts';
 import {
   pureRotationDeg, sampleGradientMidpoint, gradStopToRgb, brandSwatchPalette,
-  blendSvgWithWhite, parseSvgPathArgs, pdfRoundedRect, withPdfAlpha,
+  parseSvgPathArgs, pdfRoundedRect, withPdfAlpha,
   withPdfClipRect, withPdfRoundedClip, pdfApplyClip, withPdfRotation,
   drawSvgPathToPdf, svgArcToBeziers, applyTextTransform,
   buildCmykPaletteMap, assignSpotResourceNames, cmykKey, paletteHitKey,
-  pdfColorHit, cmykN, substitutePdfRgb, svgLen, preserveAspectRatioAlign,
+  pdfColorHit, cmykN, substitutePdfRgb, preserveAspectRatioAlign,
   parseSvgColor, FINISH_MASK_CMYK,
 } from './export-pdf-vector.ts';
 import { readFileSync } from 'node:fs';
@@ -306,12 +306,6 @@ test('parseSvgColor: hex, rgb(), named colours; none/transparent/url → null', 
   assert.equal(parseSvgColor(null), null);
 });
 
-test('blendSvgWithWhite: opacity blend toward white', () => {
-  assert.deepEqual(blendSvgWithWhite([0, 0, 0], 0.5), [128, 128, 128]);
-  assert.deepEqual(blendSvgWithWhite([10, 20, 30], 1), [10, 20, 30]);
-  assert.deepEqual(blendSvgWithWhite([10, 20, 30], 0), [255, 255, 255]);
-});
-
 test('sampleGradientMidpoint: averages first/last stops, skips the direction token', () => {
   assert.deepEqual(sampleGradientMidpoint('linear-gradient(to right, #000000, #ffffff)'), [128, 128, 128]);
   assert.deepEqual(sampleGradientMidpoint('linear-gradient(90deg, rgb(0,0,0), rgb(100,100,100))'), [50, 50, 50]);
@@ -324,14 +318,6 @@ test('gradStopToRgb: hex shorthand, rgb() and unparseable stops', () => {
   assert.deepEqual(gradStopToRgb('#0f0 50%', 0, 2), [0, 255, 0]);
   assert.deepEqual(gradStopToRgb('rgba(9, 8, 7, 0.5) 10%', 0, 2), [9, 8, 7]);
   assert.equal(gradStopToRgb('var(--unknown)', 0, 2), null);
-});
-
-test('svgLen: percentages resolve against the total, plain numbers pass through', () => {
-  assert.equal(svgLen('50%', 200), 100);
-  assert.equal(svgLen('12', 999), 12);
-  assert.equal(svgLen(25, 999), 25);
-  assert.equal(svgLen(null, 999), 0);
-  assert.equal(svgLen('garbage', 999), 0);
 });
 
 test('preserveAspectRatioAlign: object-position ↔ SVG alignment for the nine anchors', () => {
@@ -654,7 +640,8 @@ test('pdfFillCssBackground: a translucent background fills under a GState with i
 test('the PDF walker paints box backgrounds through pdfFillCssBackground, never the alpha-dropping parse', () => {
   const src = readFileSync(new URL('./export.ts', import.meta.url), 'utf8');
   assert.ok(!src.includes('parseCssColor(style.backgroundColor)'), 'a background read with parseCssColor loses its alpha');
-  assert.ok((src.match(/pdfFillCssBackground\(pdf, style\.backgroundColor/g) || []).length >= 2);
+  // A background clipped to the text is left to the inline pass, which paints it through the glyphs.
+  assert.ok((src.match(/pdfFillCssBackground\(pdf, (?:clipsBackgroundToText\(style\) \? '' : )?style\.backgroundColor/g) || []).length >= 2);
 });
 
 // Plan 291 M4 integrate: once a translucent background really prints translucent

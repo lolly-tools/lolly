@@ -19,7 +19,7 @@ import { wantsDeepExport, hdrTune } from './export-deep-choice.ts';
 import { embedResolvedFont } from './export-font-data.ts';
 import { LOSSLESS_STRENGTH, C2PA_FORMATS, embedWavInfo, writeDocx, writeOdt, hdrBoostToPQ, pqBt2020IccProfile, iccProfileBytes, HDR_PQ_CICP, packTiff, CSS_DPI, encodeBmp, rgbToCmyk, cmykCondition, toPixels, parseDimension, toCssLength, gzip, emitEmf, emitWmf, emitEps, emitDxf, toPoints, exportActionSteps, embedC2pa, ENGINE_VERSION, buildExportMeta, SCREEN_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, extractC2paStore, roundedRectPath, splitCssArgs, insetCorners, uniformRadius, parseCssMatrix, isAxisAlignedMat, isNonAffineTransform, parseClipShape, parseBoxShadow, gaussianShadowBands, parseTextShadow, videoProvenanceTags, embedMp4Meta, embedWebmMeta, hdrViewTransform, fromU8Srgb, pqToI420P10, pqEncodeFrame, packApng, packWebpAnim } from '@lolly/engine';
 import type { Mat2D } from '@lolly/engine';
-import { letterSpacingPx, featureSettingsToHb, canVectoriseText, textBaselineY, textStrokeAttrs } from './text-svg.ts';
+import { letterSpacingPx, featureSettingsToHb, canVectoriseText, textBaselineY } from './text-svg.ts';
 import { resolveVectorFont } from './font-registry.ts';
 import { bakeWebKitBoxShadows } from './webkit-shadow-bake.ts';
 import { newNeutraliseGuard, neutraliseTransform } from './transform-neutralise.ts';
@@ -59,7 +59,7 @@ import { n2, parseCssColorFull, resolveRadii, parseCssColor, objectPositionFract
 import { renderPptx, sourceAuthorOf } from './export-pptx.ts';
 import { domToRichDoc, domToDocBlocks } from './doc-blocks.ts';
 import { insertWebpMeta, insertAvifExif, iccWanted, insertPngPhys, insertPngMeta, insertPngXmp, insertPngCicp, insertPngIcc, patchJpegDpi, insertJpegExif, insertJpegXmp, insertJpegIcc, setAvifCicp, injectSvgMeta, inflateBytes, deflateBytes, withGifComment } from './export-image-meta.ts';
-import { pureRotationDeg, buildCmykPaletteMap, cmykKey, applyTextTransform, drawSvgPathToPdf, withPdfRotation, withPdfMatrix, pdfApplyClip, withPdfAlpha, pdfFillCssBackground, clipOuterShadowsOfTranslucentBox, pdfRoundedRect, pdfGradientSpec, fillPdfShading, withPdfRoundedClip, sampleGradientMidpoint, borderDashArray, withPdfClipRect, assignSpotResourceNames, substitutePdfRgb, OVERPRINT_GS_DEFS, paletteHitKey } from './export-pdf-vector.ts';
+import { pureRotationDeg, buildCmykPaletteMap, cmykKey, applyTextTransform, drawSvgPathToPdf, withPdfRotation, withPdfMatrix, pdfApplyClip, withPdfAlpha, pdfFillCssBackground, clipOuterShadowsOfTranslucentBox, pdfRoundedRect, pdfGradientSpec, fillPdfShading, withPdfRoundedClip, sampleGradientMidpoint, borderDashArray, withPdfClipRect, assignSpotResourceNames, substitutePdfRgb, convertShadingsToCmyk, OVERPRINT_GS_DEFS, paletteHitKey } from './export-pdf-vector.ts';
 import { paintDesignGroupPage } from './export-group-compositing.ts';
 import type { PaletteHit, BrandPaletteEntry } from './export-pdf-vector.ts';
 import { applyPdfX } from './export-pdfx.ts';
@@ -68,8 +68,8 @@ import type { LabelsRecord, PdfFinishSettings } from '@lolly-tools/node-shell/pd
 export { encryptPdfStrong } from '@lolly-tools/node-shell/pdf-finishing';
 import { createPdfDoc } from './export-pdf-doc.ts';
 import { embedSuseFont, pdfFontEmbed, suseFontName } from './export-pdf-fonts.ts';
-import { paintSvgToPdf } from './export-pdf-svg.ts';
-export { strokeOf, strokeWidthOf } from './export-pdf-svg-style.ts';
+import { paintSvgToPdf, svgMirroredX } from './export-pdf-svg.ts';
+import { clipsBackgroundToText, paintLiveRun, paintOutlinedRun, runPaint } from './export-pdf-text-paint.ts';
 import { isOwnProfile, resolveEmbeddedProfile } from '../lib/press-profile-embed.ts';
 import type { EmbedResolution } from '../lib/press-profile-embed.ts';
 import { _host, canvasToBlob, imprintCanvas, exportDims, getDomToImage, swapBlobUrls, fontMetricsPx, blobToDataUrl, MAX_RASTER_PX, makeRoundedFill, setExportHost, foldIngredientSinks } from './export-shared.ts';
@@ -3007,7 +3007,8 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
     const radii = scaleRadii(radiiCss);
     const uniform: CornerPair | null = uniformCss ? [uniformCss[0] * scaleX, uniformCss[1] * scaleY] : null;
     const hasRadius = uniform ? (uniform[0] > 0 || uniform[1] > 0) : true;
-    const bgImg = style.backgroundImage;
+    // A background clipped to the text is painted by the inline pass, through the glyphs.
+    const bgImg = clipsBackgroundToText(style) ? 'none' : style.backgroundImage;
     if (bgImg && (/^radial-gradient\(/.test(bgImg) || /^linear-gradient\(/.test(bgImg))) {
       // linear/radial gradient: rasterise the fill (faithful multi-stop + angle,
       // alpha-correct) and place it as the box background, clipped to the rounded box - 
@@ -3045,7 +3046,7 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
       }
     } else {
       // Solid background-color first (bottom layer), alpha kept (plan 291 M4).
-      const solid = pdfFillCssBackground(pdf, style.backgroundColor, x, y, w, h, radii, uniform);
+      const solid = pdfFillCssBackground(pdf, clipsBackgroundToText(style) ? '' : style.backgroundColor, x, y, w, h, radii, uniform);
       // background-image: url() → a real embedded image (vector-first for the box: its
       // text/children stay vector instead of the whole node being rasterised). cover/contain
       // fitted from the image's natural size, clipped to the box.
@@ -3192,12 +3193,10 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
 
     // ── SVG subtree → vector region ──────────────────────────────────────────
     // The painter draws gradients, clips and transparency itself, and draws the SVG
-    // as a picture at 150 dpi only for what it cannot (svgRasterReason). A scaleX(-1)
-    // flip (a negative computed matrix a, or the .flip class) mirrors either way.
+    // as a picture at 150 dpi only for what it cannot (svgRasterReason). A mirror the
+    // walker left to the box (svgMirroredX) is drawn by the painter either way.
     if (tag === 'svg') {
-      const tm = String(style.transform || '').match(/matrix\(\s*(-?[\d.]+)/);
-      const flipX = tm ? parseFloat(tm[1]!) < 0 : el.classList.contains('flip');
-      await drawSvgVectorsInRegion(pdf, el, x, y, w, h, registeredFonts, imprint, convertPaths, flipX);
+      await drawSvgVectorsInRegion(pdf, el, x, y, w, h, registeredFonts, imprint, convertPaths, svgMirroredX(style));
       return;
     }
 
@@ -3382,7 +3381,9 @@ async function renderInlineContent(
       await applyPdfTextStyle(pdf, nodeStyle, cssToPt, registeredFonts, embedUrl);
       const letterSpacing = letterSpacingPx(nodeStyle.letterSpacing);
       const features = featureSettingsToHb(nodeStyle.fontFeatureSettings);
-      const textRgb = parseCssColor(nodeStyle.color) || ([0, 0, 0] as Rgb);
+      // The run's own fill, and a background-clip: text background under the run.
+      const paint = runPaint(pdf, node.parentElement, nodeStyle, rootRect, scaleX, scaleY, cssToPt);
+      const textRgb = paint.rgb;
       const { ascent, descent } = fontMetricsPx(nodeStyle, fontSizePx);
 
       // Use the browser's actual line breaks + per-line positions (exact match to
@@ -3470,35 +3471,18 @@ async function renderInlineContent(
                 // to pdf.text, which at least renders through an embedded/base font.
                 const { d, notdef } = await _host!.text!.toPath({ text: shown, fontUrl: fontUrl!, fontSize: fontSizePx, features: features as string[], letterSpacing, variations: vf!.variations, fallbackFonts: vf!.fallbacks });
                 if (d && !notdef) {
-                  const mapX = (sx: number) => x + sx * cssToPt;
-                  const mapY = (sy: number) => baselinePt + sy * cssToPt;
-                  // -webkit-text-stroke / SVG stroke on the outlined run: a centred stroke,
-                  // width CSS px -> pt. `paint-order: stroke` wants the stroke UNDER the fill,
-                  // which PDF's B operator (fill then stroke) cannot express, so the path is
-                  // issued twice in that one case. ponytail: stroke-opacity is not applied
-                  // here (fill and stroke would need separate alpha states); add withPdfAlpha
-                  // around the stroke pass if a translucent text stroke shows up in a fixture.
-                  const ts = textStrokeAttrs(nodeStyle, parseCssColorFull);
-                  const tsCol = ts.length ? parseCssColorFull(ts[0]![1]) : null;
-                  const under = ts.some(([k, v]) => k === 'paint-order' && v.indexOf('stroke') === 0);
-                  const lj = ts.find(([k]) => k === 'stroke-linejoin')?.[1];
-                  pdf.setFillColor(textRgb[0], textRgb[1], textRgb[2]);
-                  if (tsCol) {
-                    pdf.setDrawColor(tsCol[0], tsCol[1], tsCol[2]);
-                    pdf.setLineWidth(Math.max(0.1, parseFloat(ts.find(([k]) => k === 'stroke-width')?.[1] ?? '1') * cssToPt));
-                    if (lj) pdf.setLineJoin(lj);
-                  }
-                  if (tsCol && under) { drawSvgPathToPdf(pdf, d, mapX, mapY); pdf.stroke(); }
-                  drawSvgPathToPdf(pdf, d, mapX, mapY);
-                  if (tsCol && !under) pdf.fillStroke(); else pdf.fill();
-                  if (lj) pdf.setLineJoin('miter');
+                  // Fill, text stroke and any background-clip: text background (export-pdf-text-paint.ts).
+                  // ponytail: stroke-opacity is not applied there (fill and stroke would need
+                  // separate alpha states); add withPdfAlpha around the stroke pass if a
+                  // translucent text stroke shows up in a fixture.
+                  paintOutlinedRun(pdf, d, (sx: number) => x + sx * cssToPt, (sy: number) => baselinePt + sy * cssToPt, nodeStyle, cssToPt, paint);
                   drawn = true;
                 }
               } catch (e) {
                 _host?.log?.('warn', `pdf: text-to-path failed, using embedded text - ${(e as Error).message}`);
               }
             }
-            if (!drawn) pdf.text(shown, x, baselinePt, { baseline: 'alphabetic' });
+            if (!drawn) paintLiveRun(pdf, shown, x, baselinePt, paint);
 
             // Underline / strikethrough bars in the run's colour (text-decoration is
             // otherwise dropped by the vector walk). Positioned relative to the baseline;
@@ -3707,6 +3691,8 @@ async function renderCmykPdf(node: Element, opts: ExportOpts): Promise<Blob> {
     if (!filter) dict.set(PDFName.of('Filter'), PDFName.of('FlateDecode'));
     if (sub && String(sub).includes('Form')) changedForms.push(dict);
   }
+  // Gradients keep their colours in function dictionaries, which the swap above never reads.
+  await convertShadingsToCmyk(pdfDoc, paletteMap, usedKeys);
 
   // Materialise a /Separation colourspace for every spot a content stream actually
   // referenced above: one Type-2 exponential tint-transform function per spot (a

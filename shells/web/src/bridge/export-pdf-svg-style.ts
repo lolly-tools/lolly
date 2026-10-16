@@ -10,7 +10,7 @@
  * fill="#78a3ad">` of a path that sets no fill of its own draws in that colour.
  *
  * Gradients become what the PDF writer can paint: a shading in gradient space, the
- * matrix to user space, and the stop opacities as a grey ramp for a soft mask when
+ * matrix to user space and the stop opacities as a grey ramp for a soft mask when
  * they vary.
  */
 import { parseColorToSrgb8 } from '@lolly/engine';
@@ -21,6 +21,7 @@ const INHERITED = new Set([
   'fill', 'stroke', 'fill-opacity', 'stroke-opacity', 'stroke-width', 'stroke-linecap', 'stroke-linejoin',
   'stroke-miterlimit', 'stroke-dasharray', 'stroke-dashoffset', 'fill-rule', 'clip-rule', 'color', 'paint-order',
   'visibility', 'font-family', 'font-size', 'font-weight', 'font-style', 'text-anchor',
+  'marker-start', 'marker-mid', 'marker-end',
 ]);
 
 /** Reads an element's style property from its style attribute only. */
@@ -28,30 +29,6 @@ export function resolveStyleProp(el: Element, prop: string): string | null {
   const styleAttr = el.getAttribute('style') ?? '';
   const m = styleAttr.match(new RegExp(`(?:^|;)\\s*${prop}\\s*:\\s*([^;]+)`));
   return m ? m[1]!.trim() : null;
-}
-
-/** The computed value of a CSS property on a connected element, '' when there is none. */
-export function computedPaint(el: Element, prop: string): string {
-  try {
-    return (typeof window !== 'undefined' && el.isConnected) ? (window.getComputedStyle(el).getPropertyValue(prop) || '') : '';
-  } catch { return ''; }
-}
-
-/**
- * An element's stroke paint the way the browser resolves it: attribute, inline style,
- * then the computed value, which is how a stylesheet class arrives (every Illustrator
- * export carries its strokes as `.cls-7{stroke:#003e37}`). 'none' when nothing paints.
- */
-export function strokeOf(el: Element): string {
-  const s = el.getAttribute('stroke') ?? resolveStyleProp(el, 'stroke') ?? '';
-  return (!s || s === 'currentColor') ? (computedPaint(el, 'stroke') || 'none') : s;
-}
-
-/** Stroke width in user units under the same resolution; 1 (the SVG initial value) when unreadable. */
-export function strokeWidthOf(el: Element): number {
-  const raw = el.getAttribute('stroke-width') ?? resolveStyleProp(el, 'stroke-width') ?? computedPaint(el, 'stroke-width');
-  const v = parseFloat(raw || '');
-  return Number.isFinite(v) && v >= 0 ? v : 1;
 }
 
 /** A `<use>` whose instance is being drawn, and the element its href points at. */
@@ -85,6 +62,8 @@ export class StyleScope {
     const own = this.raw(el, prop);
     if (!depth || !INHERITED.has(prop)) return own;
     const frame = this.uses[depth - 1]!;
+    // Marker content drawn for a shape inside an instance is not part of that instance.
+    if (!frame.root.contains(el)) return own;
     for (let node: Element | null = el; node; node = node.parentElement) {
       if (this.declares(node, prop)) return own;
       if (node === frame.root) break;
@@ -105,7 +84,7 @@ export type Paint =
 
 const NONE: Paint = { kind: 'none' };
 
-/** A computed fill or stroke: none, a colour with its alpha, or a reference with its fallback. */
+/** A computed fill or stroke: none, a colour with its alpha or a reference with its fallback. */
 export function parsePaint(value: string): Paint {
   const v = value.trim();
   if (!v || v === 'none') return NONE;

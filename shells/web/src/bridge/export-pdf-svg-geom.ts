@@ -52,6 +52,22 @@ export function parseTransform(raw: string | null | undefined): Mat | null {
 /** An element's own `transform` attribute (see parseTransform). */
 export const transformOf = (el: Element): Mat | null => parseTransform(el.getAttribute('transform'));
 
+/**
+ * A computed CSS transform: null for none; a matrix for matrix() or for a matrix3d()
+ * that has no perspective (its x and y are affine in x and y, as an SVG element is
+ * drawn); 'perspective' for one that does.
+ */
+export function parseCssTransform(raw: string): Mat | null | 'perspective' {
+  const m = /^\s*matrix(3d)?\(([^)]*)\)\s*$/.exec(raw);
+  if (!m) return null;
+  const v = m[2]!.split(',').map(Number);
+  if (!v.every(Number.isFinite)) return null;
+  if (!m[1]) return v.length === 6 ? { a: v[0]!, b: v[1]!, c: v[2]!, d: v[3]!, e: v[4]!, f: v[5]! } : null;
+  if (v.length !== 16) return null;
+  if (v[3] !== 0 || v[7] !== 0 || v[11] !== 0 || v[15] !== 1) return 'perspective';
+  return { a: v[0]!, b: v[1]!, c: v[4]!, d: v[5]!, e: v[12]!, f: v[13]! };
+}
+
 const UNIT_PX: Record<string, number> = { px: 1, pt: 4 / 3, pc: 16, mm: 96 / 25.4, cm: 96 / 2.54, in: 96 };
 
 /** An SVG length in user units. A percentage is of `ref`; an absolute unit converts at 96 per inch. */
@@ -63,6 +79,15 @@ export function len(raw: string | null | undefined, ref: number, fallback = 0): 
   const unit = (m[2] ?? '').toLowerCase();
   if (unit === '%') return (v / 100) * ref;
   return v * (UNIT_PX[unit] ?? 1);
+}
+
+/**
+ * The first length of a list such as a `<text>` element's x="10 30 50", the value
+ * that places the first character. One value is a list of one.
+ */
+export function firstLen(raw: string | null | undefined, ref: number, fallback = 0): number {
+  if (raw == null) return fallback;
+  return len(raw.trim().split(/[\s,]+/)[0], ref, fallback);
 }
 
 /** The viewport's reference lengths: width, height and the normalised diagonal. */
