@@ -30,7 +30,7 @@
  * imports lib modules.
  */
 
-import { hexToOklch, contrastRatio, deriveBrandTokens, createTokenSet, typographyFamilies, tokenSetNames } from '@lolly/engine';
+import { hexToOklch, contrastRatio, deriveBrandTokens, createTokenSet, typographyFamilies, tokenSetNames, resolveTokenSelection } from '@lolly/engine';
 import type { PenpotUsage, PenpotAppliedToken } from '@lolly/engine';
 import { addSwatch } from './brand-doc.ts';
 import { addStudioToken } from './token-studio.ts';
@@ -184,10 +184,16 @@ export function proposeFonts(usage: PenpotUsage): BrandUsageFonts {
 // they attached to which kind of attribute. Ranking declared tokens by that
 // census beats every hex heuristic, because it is not a guess.
 //
-// Three sources of weight, in order: the applied census; failing that (an older
-// export, or a wire shape we didn't recognise) the raw usage census bridged by
-// hex; failing that the declared swatches on their own, ordered by the same
-// chroma/hue guard rails the usage path uses.
+// Names come before any weight. A token called `primary` or `surface` is the
+// designer saying what the colour is for, and in a themed file it is usually the
+// token each theme overrides: aliasing the role to it keeps every product or mode
+// switching, where aliasing to the most colourful core token pins all of them to
+// one colour (plan 320 P1, S2).
+//
+// Three sources of weight, in order, for the roles no name settles: the applied
+// census; failing that (an older export, or a wire shape we didn't recognise) the
+// raw usage census bridged by hex; failing that the declared swatches on their
+// own, ordered by the same chroma/hue guard rails the usage path uses.
 
 /** A role proposal that can name the token each role came from. */
 export interface TokenRoleProposal extends BrandRoleProposal {
@@ -212,9 +218,75 @@ interface Candidate {
   total: number;
 }
 
+type RoleVar = 'primary' | 'secondary' | 'surface' | 'text';
+
 /**
- * Propose brand roles from a file's DECLARED tokens, ranked by how the designer
- * applied them. Null when the document resolves no usable colour tokens at all
+ * Words a designer uses for each role's token, best first, matched on the last
+ * path segment (or the one before a trailing `default` or `base`). Lolly's own
+ * `color.semantic.<role>` outranks all of them. No `ink`: a dark design paints its
+ * background in ink, so that name says nothing about the role.
+ */
+const ROLE_NAMES: Record<RoleVar, readonly string[]> = {
+  primary: ['primary', 'brand', 'brand-primary', 'primary-color', 'main'],
+  secondary: ['secondary', 'brand-secondary', 'secondary-color'],
+  surface: ['surface', 'background', 'bg', 'canvas'],
+  text: ['text', 'foreground', 'fg', 'on-surface', 'on-background'],
+};
+
+/** The role word a token path ends in, or null. */
+function roleWord(path: string): string | null {
+  const segs = path.toLowerCase().split('.');
+  let last = segs[segs.length - 1] ?? '';
+  if ((last === 'default' || last === 'base') && segs.length > 1) last = segs[segs.length - 2]!;
+  return last || null;
+}
+
+/**
+ * Does `path` resolve to a colour under every option of every theme group? A
+ * themeless doc has one resolution, which the candidate already came from. A named
+ * token that some option leaves undefined would install a role that resolves to
+ * nothing there, so it does not get to win by name.
+ */
+function resolvesInEveryOption(doc: unknown, path: string, cache: Map<string, ReturnType<typeof createTokenSet>>): boolean {
+  const { groups } = resolveTokenSelection(doc);
+  for (const group of groups) {
+    for (const option of group.options) {
+      const key = `${group.id}\u0000${option.id}`;
+      let ts = cache.get(key);
+      if (!ts) { ts = createTokenSet(doc, { selection: { [group.id]: option.id } }); cache.set(key, ts); }
+      const value = ts.resolve(path);
+      if (typeof value !== 'string' || !hex6(value)) return false;
+    }
+  }
+  return true;
+}
+
+/** Each role the file names outright, by the ranking ROLE_NAMES describes. */
+function namedRoles(doc: unknown, cands: readonly Candidate[]): Partial<Record<RoleVar, Candidate>> {
+  const out: Partial<Record<RoleVar, Candidate>> = {};
+  const cache = new Map<string, ReturnType<typeof createTokenSet>>();
+  for (const role of ['primary', 'secondary', 'surface', 'text'] as const) {
+    const names = ROLE_NAMES[role];
+    let best: { c: Candidate; rank: number; depth: number } | null = null;
+    for (const c of cands) {
+      const own = c.path === `color.semantic.${role}`;
+      const word = roleWord(c.path);
+      const at = word ? names.indexOf(word) : -1;
+      if (!own && at < 0) continue;
+      const rank = own ? -1 : at;
+      const depth = c.path.split('.').length;
+      if (best && (best.rank < rank || (best.rank === rank && best.depth <= depth))) continue;
+      if (!resolvesInEveryOption(doc, c.path, cache)) continue;
+      best = { c, rank, depth };
+    }
+    if (best) out[role] = best.c;
+  }
+  return out;
+}
+
+/**
+ * Propose brand roles from a file's DECLARED tokens: by name first, then ranked
+ * by how the designer applied them. Null when the document resolves no usable colour tokens at all
  * - the caller then falls back to `proposeBrandRoles` over the usage census,
  * which is what every token-less file gets today.
  *
@@ -260,13 +332,21 @@ export function proposeRolesFromTokens(
     }
   }
 
+  // Roles the file names outright. A heuristic pick below never takes a token a
+  // name already claimed for another role.
+  const named = namedRoles(doc, cands);
+  const claimed = new Set(Object.values(named).map(c => c.path));
+  const free = cands.filter(c => !claimed.has(c.path));
+
   // Surface: the most-filled token. With no weights at all, the least colourful
   // declared colour is the honest guess - a brand's surface is its neutral.
-  let surfaceC = cands[0]!;
-  if (weighted) {
-    for (const c of cands) if (c.fills > surfaceC.fills) surfaceC = c;
-  } else {
-    for (const c of cands) if (c.chroma < surfaceC.chroma) surfaceC = c;
+  let surfaceC = named.surface ?? free[0] ?? cands[0]!;
+  if (!named.surface) {
+    if (weighted) {
+      for (const c of free) if (c.fills > surfaceC.fills) surfaceC = c;
+    } else {
+      for (const c of free) if (c.chroma < surfaceC.chroma) surfaceC = c;
+    }
   }
   const surface = surfaceC.hex;
   const surfaceLook: 'light' | 'dark' = (hexToOklch(surface)?.l ?? 1) < 0.5 ? 'dark' : 'light';
@@ -284,12 +364,14 @@ export function proposeRolesFromTokens(
     .map(c => ({ c, score: (weighted ? c.total : 1) * c.chroma }))
     .sort((a, b) => b.score - a.score)   // stable: equal scores keep declaration order
     .map(e => e.c);
+  const freeAccents = accents.filter(c => !claimed.has(c.path));
 
-  const primaryC = accents[0] ?? cands.find(c => c.hex !== surface) ?? surfaceC;
-  let secondaryC: Candidate | null = null;
+  const primaryC = named.primary ?? freeAccents[0] ?? free.find(c => c.hex !== surface) ?? cands.find(c => c.hex !== surface) ?? surfaceC;
+  let secondaryC: Candidate | null = named.secondary ?? null;
   const extras: string[] = [];
   for (const a of accents) {
-    if (a === primaryC) continue;
+    if (a === primaryC || a === secondaryC) continue;
+    if (claimed.has(a.path)) continue;
     if (!secondaryC && hueArc(a.hue, primaryC.hue) >= SECONDARY_HUE_ARC_MIN) secondaryC = a;
     else extras.push(a.hex);
   }
@@ -308,10 +390,12 @@ export function proposeRolesFromTokens(
 
   // Text: the token applied to the most text fills that actually reads on the
   // surface; plain white/black when nothing declared clears the floor.
-  let textC: Candidate | null = null;
-  for (const c of cands) {
-    if (c.text <= (textC?.text ?? 0)) continue;
-    if (contrastRatio(c.hex, surface) >= TEXT_CONTRAST_MIN) textC = c;
+  let textC: Candidate | null = named.text ?? null;
+  if (!textC) {
+    for (const c of free) {
+      if (c.text <= (textC?.text ?? 0)) continue;
+      if (contrastRatio(c.hex, surface) >= TEXT_CONTRAST_MIN) textC = c;
+    }
   }
   const text = textC?.hex ?? (surfaceLook === 'dark' ? '#FFFFFF' : '#000000');
 
@@ -368,7 +452,7 @@ export function proposeFontsFromTokens(
 /** The set a token-first install writes its semantic roles into. */
 export const ROLE_SET_NAME = 'Lolly roles';
 
-const ROLE_VARS = ['primary', 'secondary', 'surface', 'text'] as const;
+const ROLE_VARS: readonly RoleVar[] = ['primary', 'secondary', 'surface', 'text'];
 
 /**
  * Return a copy of `doc` whose `color.semantic.*` roles ALIAS the declared
@@ -388,7 +472,9 @@ export function withRoleAliases(
   const semantic: Record<string, unknown> = {};
   for (const role of ROLE_VARS) {
     const path = refs[role];
-    if (path) semantic[role] = { $value: `{${path}}`, $type: 'color' };
+    // A file that already declares the role keeps its own definition: an alias
+    // from a path to itself never resolves.
+    if (path && path !== `color.semantic.${role}`) semantic[role] = { $value: `{${path}}`, $type: 'color' };
   }
   if (!Object.keys(semantic).length) return doc;
 
