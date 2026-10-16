@@ -1772,14 +1772,13 @@ export async function openDropChooser(
       case 'unpack': {
         // Explode the archive to its members, then feed them through the SAME library
         // ingest as any multi-file drop. readArchiveMembers refuses an office/OCF
-        // package (never shreds a .xlsx) and enforces the member/byte caps.
+        // package (never shreds a .xlsx) and enforces the member/byte caps. Members
+        // carry the drop's budget, so an archive inside spends what this one left.
         try {
-          const { readArchiveMembers } = await import('./archive-ingest.ts');
-          const bytes = new Uint8Array(await first.arrayBuffer());
-          const members = readArchiveMembers(bytes, first.name);
-          const memberFiles = members.map(
-            (m) => new File([m.bytes as BlobPart], m.name.split('/').pop() || m.name),
-          );
+          const { archiveBudgetFor, archiveMemberFile, readArchiveMembers, readUploadArchiveBytes } = await import('./archive-ingest.ts');
+          const budget = archiveBudgetFor(first);
+          const members = readArchiveMembers(await readUploadArchiveBytes(first), first.name, budget);
+          const memberFiles = members.map((m) => archiveMemberFile(m.bytes, m.name, budget));
           await ingestToLibrary(memberFiles, host, picker, opts.onStored, opts.source);
         } catch (err) {
           announce(tRaw('Upload failed: {message}', { message: (err as Error).message }), { assertive: true });
@@ -2004,6 +2003,29 @@ export function attachDropRouter(rootEl: HTMLElement, host: PickerHost, hooks: D
   ATTACHED.set(rootEl, teardown);
   rootEl.dataset.dropReady = '';
   return teardown;
+}
+
+// ── installed PWA "Open with" (File Handling API launch queue) ────────────────
+
+/** What the launch queue hands its consumer: one handle per file the OS opened. */
+export interface LaunchParams {
+  files?: ReadonlyArray<{ getFile(): Promise<File> }>;
+}
+
+/**
+ * The installed PWA's "Open with" door: read each launched file and open the SAME
+ * chooser a dropped file gets. main.ts installs this as the launchQueue consumer;
+ * it lives here so the launch path can be driven without booting the shell.
+ */
+export async function openLaunchedFiles(params: LaunchParams | null | undefined, host: PickerHost): Promise<void> {
+  const handles = params?.files ?? [];
+  if (!handles.length) return;
+  try {
+    const files = await Promise.all(handles.map((handle) => handle.getFile()));
+    await openDropChooser(files.filter(Boolean), host);
+  } catch (err) {
+    console.warn('[launch] could not read the opened file', err);
+  }
 }
 
 // ── Android share-target ingest (ACTION_SEND → the same chooser) ──────────────

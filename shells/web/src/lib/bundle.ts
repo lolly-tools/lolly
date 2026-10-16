@@ -105,7 +105,8 @@ export async function verifyIntegrity(
 
 /**
  * Unzip bundle bytes with declared-size bomb caps checked BEFORE each entry
- * inflates, turning any failure into one plain `invalid` message. `maxEntryBytes`
+ * inflates. An oversized part is refused with the `tooLarge` message; any other
+ * failure becomes one plain `invalid` message. `maxEntryBytes`
  * / `maxTotalBytes` default to lib/zip.ts's (brand-pack-sized) caps; a backup of
  * uploaded images needs far larger ones and passes them explicitly.
  */
@@ -121,13 +122,15 @@ export async function unzipBundle(
   },
 ): Promise<Unzipped> {
   const { tooLarge, invalid, maxEntryBytes, maxTotalBytes } = opts;
+  // A refused oversized part keeps its own message; any other failure reads as `invalid`.
+  let refused: string | null = null;
   try {
     return await unzipAsync(bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes), {
-      tooLarge,
+      tooLarge: (name) => (refused = tooLarge(name)),
       ...(maxEntryBytes != null ? { maxEntryBytes } : {}),
       ...(maxTotalBytes != null ? { maxTotalBytes } : {}),
     });
   } catch {
-    throw new Error(invalid);
+    throw new Error(refused ?? invalid);
   }
 }

@@ -44,7 +44,9 @@ export function archiveBudgetFor(file: File): ArchiveBudget {
   return inheritedBudgets.get(file) ?? { bytes: MAX_ARCHIVE_TOTAL_BYTES, entries: MAX_ARCHIVE_ZIP_ENTRIES };
 }
 export function archiveMemberFile(bytes: Uint8Array, name: string, budget: ArchiveBudget): File {
-  const file = new File([bytes as BlobPart], name.split('/').pop() || name);
+  // The base name only: no member path picks a folder here, whichever separator the
+  // archiving tool wrote (old Windows tools wrote backslashes).
+  const file = new File([bytes as BlobPart], name.split(/[\\/]/).pop() || name);
   inheritedBudgets.set(file, budget);
   return file;
 }

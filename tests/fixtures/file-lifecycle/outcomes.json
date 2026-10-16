@@ -1,0 +1,2504 @@
+{
+  "phone-photo-exif": {
+    "gallery-drop": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ],
+      "chose": "library",
+      "stored": {
+        "raster/jpg": 1
+      },
+      "said": [
+        "Added 1 file to your library."
+      ]
+    },
+    "picker": {
+      "stored": {
+        "raster/jpg": 1
+      }
+    },
+    "utility-input": {
+      "read": 311
+    },
+    "utility-convert": {
+      "kind": "raster"
+    },
+    "pwa-launch": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "desktop-verb": {
+      "read": 311
+    },
+    "ios-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    }
+  },
+  "phone-clip-hevc": {
+    "gallery-drop": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ],
+      "chose": "library",
+      "stored": {
+        "video/mp4": 1
+      },
+      "said": [
+        "Added 1 file to your library."
+      ]
+    },
+    "picker": {
+      "stored": {
+        "video/mp4": 1
+      }
+    },
+    "utility-input": {
+      "read": 7113
+    },
+    "utility-convert": {
+      "kind": "video"
+    },
+    "pwa-launch": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "desktop-verb": {
+      "read": 7113
+    },
+    "ios-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    }
+  },
+  "photoshop-type-layer": {
+    "gallery-drop": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | layers,design,flatten,rebrand,verify"
+      ]
+    },
+    "picker": {
+      "stored": {
+        "raster/png": 1
+      }
+    },
+    "utility-input": {
+      "read": 43944
+    },
+    "utility-convert": {
+      "kind": "raster"
+    },
+    "pwa-launch": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | layers,design,flatten,rebrand,verify"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | layers,design,flatten,rebrand,verify"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | layers,design,flatten,rebrand,verify"
+      ]
+    },
+    "desktop-verb": {
+      "read": 43944
+    },
+    "ios-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | layers,design,flatten,rebrand,verify"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | layers,design,flatten,rebrand,verify"
+      ]
+    }
+  },
+  "c2patool-signed": {
+    "gallery-drop": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ],
+      "chose": "library",
+      "stored": {
+        "raster/png": 1
+      },
+      "said": [
+        "Added 1 file to your library."
+      ]
+    },
+    "picker": {
+      "stored": {
+        "raster/png": 1
+      }
+    },
+    "utility-input": {
+      "read": 14994
+    },
+    "utility-convert": {
+      "kind": "raster"
+    },
+    "pwa-launch": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "desktop-verb": {
+      "read": 14994
+    },
+    "ios-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    }
+  },
+  "libreoffice-docx": {
+    "gallery-drop": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | extract,verify"
+      ]
+    },
+    "picker": {
+      "stored": {
+        "raster/bin": 1
+      }
+    },
+    "utility-input": {
+      "read": 5842
+    },
+    "utility-convert": {
+      "kind": "docx"
+    },
+    "pwa-launch": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | extract,verify"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | extract,verify"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | extract,verify"
+      ]
+    },
+    "desktop-verb": {
+      "read": 5842
+    },
+    "ios-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | extract,verify"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | extract,verify"
+      ]
+    }
+  },
+  "libjxl-pq-gradient": {
+    "gallery-drop": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ],
+      "chose": "library",
+      "said": [
+        "Upload failed: Worker is not defined"
+      ]
+    },
+    "picker": {
+      "refused": "Worker is not defined"
+    },
+    "utility-input": {
+      "read": 137
+    },
+    "utility-convert": {
+      "kind": "raster"
+    },
+    "pwa-launch": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "desktop-verb": {
+      "read": 137
+    },
+    "ios-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    }
+  },
+  "icc-srgb-png": {
+    "gallery-drop": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ],
+      "chose": "library",
+      "stored": {
+        "raster/png": 1
+      },
+      "said": [
+        "Added 1 file to your library."
+      ]
+    },
+    "picker": {
+      "stored": {
+        "raster/png": 1
+      }
+    },
+    "utility-input": {
+      "read": 2440
+    },
+    "utility-convert": {
+      "kind": "raster"
+    },
+    "pwa-launch": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "desktop-verb": {
+      "read": 2440
+    },
+    "ios-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    }
+  },
+  "hdr-pq-png": {
+    "gallery-drop": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ],
+      "chose": "library",
+      "stored": {
+        "raster/png": 1
+      },
+      "said": [
+        "16-bit source. Lolly currently edits at 8 bits per channel; deep editing is planned.",
+        "Added 1 file to your library."
+      ]
+    },
+    "picker": {
+      "stored": {
+        "raster/png": 1
+      },
+      "said": [
+        "16-bit source. Lolly currently edits at 8 bits per channel; deep editing is planned."
+      ]
+    },
+    "utility-input": {
+      "read": 148
+    },
+    "utility-convert": {
+      "kind": "raster"
+    },
+    "pwa-launch": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "desktop-verb": {
+      "read": 148
+    },
+    "ios-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    }
+  },
+  "apng-two-frames": {
+    "gallery-drop": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ],
+      "chose": "library",
+      "stored": {
+        "raster/apng": 1
+      },
+      "said": [
+        "Added 1 file to your library."
+      ]
+    },
+    "picker": {
+      "stored": {
+        "raster/apng": 1
+      }
+    },
+    "utility-input": {
+      "read": 200
+    },
+    "utility-convert": {
+      "kind": "raster"
+    },
+    "pwa-launch": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "desktop-verb": {
+      "read": 200
+    },
+    "ios-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    }
+  },
+  "workbook-three-sheets": {
+    "gallery-drop": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | spreadsheet,chart"
+      ]
+    },
+    "picker": {
+      "stored": {
+        "data/xlsx": 1
+      }
+    },
+    "utility-input": {
+      "read": 2661
+    },
+    "utility-convert": {
+      "kind": "xlsx"
+    },
+    "pwa-launch": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | spreadsheet,chart"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | spreadsheet,chart"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | spreadsheet,chart"
+      ]
+    },
+    "desktop-verb": {
+      "read": 2661
+    },
+    "ios-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | spreadsheet,chart"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | spreadsheet,chart"
+      ]
+    }
+  },
+  "csv-bom-nonlatin": {
+    "gallery-drop": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | spreadsheet,chart,library,verify"
+      ],
+      "chose": "library",
+      "stored": {
+        "data/csv": 1
+      },
+      "said": [
+        "Added 1 file to your library."
+      ]
+    },
+    "picker": {
+      "stored": {
+        "data/csv": 1
+      }
+    },
+    "utility-input": {
+      "read": 67
+    },
+    "utility-convert": {
+      "kind": "csv"
+    },
+    "pwa-launch": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | spreadsheet,chart,library,verify"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | spreadsheet,chart,library,verify"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | spreadsheet,chart"
+      ]
+    },
+    "desktop-verb": {
+      "read": 67
+    },
+    "ios-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | spreadsheet,chart,library,verify"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | spreadsheet,chart,library,verify"
+      ]
+    }
+  },
+  "cjk-name-png": {
+    "gallery-drop": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ],
+      "chose": "library",
+      "stored": {
+        "raster/png": 1
+      },
+      "said": [
+        "Added 1 file to your library."
+      ]
+    },
+    "picker": {
+      "stored": {
+        "raster/png": 1
+      }
+    },
+    "utility-input": {
+      "read": 69
+    },
+    "utility-convert": {
+      "kind": "raster"
+    },
+    "pwa-launch": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "desktop-verb": {
+      "read": 69
+    },
+    "ios-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    }
+  },
+  "cyrillic-name-pdf": {
+    "gallery-drop": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | design,design-rules,sequence,rebrand,library,design-system,compress"
+      ]
+    },
+    "picker": {
+      "chose": "pdf-pages"
+    },
+    "utility-input": {
+      "read": 580
+    },
+    "utility-convert": {
+      "kind": "pdf"
+    },
+    "pwa-launch": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | design,design-rules,sequence,rebrand,library,design-system,compress"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | design,design-rules,sequence,rebrand,library,design-system,compress"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | design,design-rules,sequence,rebrand,library,design-system,compress"
+      ]
+    },
+    "desktop-verb": {
+      "read": 580
+    },
+    "ios-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | design,design-rules,sequence,rebrand,library,design-system,compress"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | design,design-rules,sequence,rebrand,library,design-system,compress"
+      ]
+    }
+  },
+  "arabic-rlm-name-txt": {
+    "gallery-drop": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ],
+      "chose": "library",
+      "stored": {
+        "text/txt": 1
+      },
+      "said": [
+        "Added 1 file to your library."
+      ]
+    },
+    "picker": {
+      "stored": {
+        "text/txt": 1
+      }
+    },
+    "utility-input": {
+      "read": 26
+    },
+    "utility-convert": {
+      "kind": "text"
+    },
+    "pwa-launch": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "desktop-verb": {
+      "read": 26
+    },
+    "ios-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    }
+  },
+  "nfd-name-svg": {
+    "gallery-drop": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | design,design-rules,sequence,exports,library,verify"
+      ],
+      "chose": "library",
+      "stored": {
+        "vector/svg": 1
+      },
+      "said": [
+        "Added 1 file to your library."
+      ]
+    },
+    "picker": {
+      "stored": {
+        "vector/svg": 1
+      }
+    },
+    "utility-input": {
+      "read": 107
+    },
+    "utility-convert": {
+      "kind": "svg"
+    },
+    "pwa-launch": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | design,design-rules,sequence,exports,library,verify"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | design,design-rules,sequence,exports,library,verify"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | design,design-rules,sequence,exports,library,verify"
+      ]
+    },
+    "desktop-verb": {
+      "read": 107
+    },
+    "ios-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | design,design-rules,sequence,exports,library,verify"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | design,design-rules,sequence,exports,library,verify"
+      ]
+    }
+  },
+  "long-emoji-name": {
+    "gallery-drop": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ],
+      "chose": "library",
+      "stored": {
+        "text/txt": 1
+      },
+      "said": [
+        "Added 1 file to your library."
+      ]
+    },
+    "picker": {
+      "stored": {
+        "text/txt": 1
+      }
+    },
+    "utility-input": {
+      "read": 13
+    },
+    "utility-convert": {
+      "kind": "text"
+    },
+    "pwa-launch": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "desktop-verb": {
+      "read": 13
+    },
+    "ios-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    }
+  },
+  "rtl-override-name": {
+    "gallery-drop": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | verify"
+      ]
+    },
+    "picker": {
+      "stored": {
+        "raster/bin": 1
+      }
+    },
+    "utility-input": {
+      "read": 23
+    },
+    "utility-convert": {
+      "kind": "unknown"
+    },
+    "pwa-launch": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | verify"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | verify"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | verify"
+      ]
+    },
+    "desktop-verb": {
+      "read": 23
+    },
+    "ios-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | verify"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | verify"
+      ]
+    }
+  },
+  "svg-script": {
+    "gallery-drop": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | design,design-rules,sequence,exports,library,verify"
+      ],
+      "chose": "library",
+      "stored": {
+        "vector/svg": 1
+      },
+      "said": [
+        "Added 1 file to your library."
+      ]
+    },
+    "picker": {
+      "stored": {
+        "vector/svg": 1
+      }
+    },
+    "utility-input": {
+      "read": 154
+    },
+    "utility-convert": {
+      "kind": "svg"
+    },
+    "pwa-launch": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | design,design-rules,sequence,exports,library,verify"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | design,design-rules,sequence,exports,library,verify"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | design,design-rules,sequence,exports,library,verify"
+      ]
+    },
+    "desktop-verb": {
+      "read": 154
+    },
+    "ios-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | design,design-rules,sequence,exports,library,verify"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | design,design-rules,sequence,exports,library,verify"
+      ]
+    }
+  },
+  "png-as-jpg": {
+    "gallery-drop": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ],
+      "chose": "library",
+      "stored": {
+        "raster/jpg": 1
+      },
+      "said": [
+        "Added 1 file to your library."
+      ]
+    },
+    "picker": {
+      "stored": {
+        "raster/jpg": 1
+      }
+    },
+    "utility-input": {
+      "read": 69
+    },
+    "utility-convert": {
+      "kind": "raster"
+    },
+    "pwa-launch": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "desktop-verb": {
+      "read": 69
+    },
+    "ios-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    }
+  },
+  "zip-as-png": {
+    "gallery-drop": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports,library,verify"
+      ],
+      "chose": "unpack",
+      "stored": {
+        "text/txt": 1,
+        "text/md": 1
+      },
+      "said": [
+        "Added 2 files to your library."
+      ]
+    },
+    "picker": {
+      "stored": {
+        "raster/png": 1
+      }
+    },
+    "utility-input": {
+      "read": 269
+    },
+    "utility-convert": {
+      "kind": "raster"
+    },
+    "pwa-launch": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports,library,verify"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports,library,verify"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports,library,verify"
+      ]
+    },
+    "desktop-verb": {
+      "read": 269
+    },
+    "ios-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports,library,verify"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports,library,verify"
+      ]
+    }
+  },
+  "svg-script-as-png": {
+    "gallery-drop": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | design,design-rules,sequence,exports,library,verify"
+      ],
+      "chose": "library",
+      "stored": {
+        "raster/png": 1
+      },
+      "said": [
+        "Added 1 file to your library."
+      ]
+    },
+    "picker": {
+      "stored": {
+        "raster/png": 1
+      }
+    },
+    "utility-input": {
+      "read": 154
+    },
+    "utility-convert": {
+      "kind": "svg"
+    },
+    "pwa-launch": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | design,design-rules,sequence,exports,library,verify"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | design,design-rules,sequence,exports,library,verify"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | design,design-rules,sequence,exports,library,verify"
+      ]
+    },
+    "desktop-verb": {
+      "read": 154
+    },
+    "ios-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | design,design-rules,sequence,exports,library,verify"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | design,design-rules,sequence,exports,library,verify"
+      ]
+    }
+  },
+  "html-as-svg": {
+    "gallery-drop": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | design,design-rules,sequence,exports,library,verify"
+      ],
+      "chose": "library",
+      "stored": {
+        "vector/svg": 1
+      },
+      "said": [
+        "Added 1 file to your library."
+      ]
+    },
+    "picker": {
+      "stored": {
+        "vector/svg": 1
+      }
+    },
+    "utility-input": {
+      "read": 83
+    },
+    "utility-convert": {
+      "kind": "svg"
+    },
+    "pwa-launch": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | design,design-rules,sequence,exports,library,verify"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | design,design-rules,sequence,exports,library,verify"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | design,design-rules,sequence,exports,library,verify"
+      ]
+    },
+    "desktop-verb": {
+      "read": 83
+    },
+    "ios-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | design,design-rules,sequence,exports,library,verify"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | design,design-rules,sequence,exports,library,verify"
+      ]
+    }
+  },
+  "xlsx-as-zip": {
+    "gallery-drop": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ],
+      "chose": "unpack",
+      "said": [
+        "Upload failed: That looks like a XLSX file, not a plain archive - open it with its own importer."
+      ]
+    },
+    "picker": {
+      "refused": "That looks like a XLSX file, not a plain archive - open it with its own importer."
+    },
+    "utility-input": {
+      "read": 2661
+    },
+    "utility-convert": {
+      "kind": "unknown"
+    },
+    "pwa-launch": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    },
+    "desktop-verb": {
+      "read": 2661
+    },
+    "ios-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    }
+  },
+  "pdf-as-txt": {
+    "gallery-drop": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | design,design-rules,sequence,rebrand,library,design-system,compress"
+      ]
+    },
+    "picker": {
+      "stored": {
+        "text/txt": 1
+      }
+    },
+    "utility-input": {
+      "read": 580
+    },
+    "utility-convert": {
+      "kind": "pdf"
+    },
+    "pwa-launch": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | design,design-rules,sequence,rebrand,library,design-system,compress"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | design,design-rules,sequence,rebrand,library,design-system,compress"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | design,design-rules,sequence,rebrand,library,design-system,compress"
+      ]
+    },
+    "desktop-verb": {
+      "read": 580
+    },
+    "ios-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | design,design-rules,sequence,rebrand,library,design-system,compress"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | design,design-rules,sequence,rebrand,library,design-system,compress"
+      ]
+    }
+  },
+  "dotlottie-no-name": {
+    "gallery-drop": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | animation,verify"
+      ]
+    },
+    "picker": {
+      "stored": {
+        "raster/bin": 1
+      }
+    },
+    "utility-input": {
+      "read": 347
+    },
+    "utility-convert": {
+      "kind": "unknown"
+    },
+    "pwa-launch": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | animation,verify"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | animation,verify"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | animation,verify"
+      ]
+    },
+    "desktop-verb": {
+      "read": 347
+    },
+    "ios-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | animation,verify"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | animation,verify"
+      ]
+    }
+  },
+  "plain-zip-as-lolly": {
+    "gallery-drop": {
+      "said": [
+        "Inspecting handoff.lolly…",
+        "Could not open this .lolly file: This does not look like a .lolly file (manifest.json is missing)."
+      ]
+    },
+    "picker": {
+      "stored": {
+        "raster/bin": 1
+      }
+    },
+    "utility-input": {
+      "read": 269
+    },
+    "utility-convert": {
+      "kind": "unknown"
+    },
+    "pwa-launch": {
+      "said": [
+        "Inspecting handoff.lolly…",
+        "Could not open this .lolly file: This does not look like a .lolly file (manifest.json is missing)."
+      ]
+    },
+    "pwa-share": {
+      "said": [
+        "Inspecting handoff.lolly…",
+        "Could not open this .lolly file: This does not look like a .lolly file (manifest.json is missing)."
+      ]
+    },
+    "desktop-open": {
+      "said": [
+        "Inspecting handoff.lolly…",
+        "Could not open this .lolly file: This does not look like a .lolly file (manifest.json is missing)."
+      ]
+    },
+    "desktop-verb": {
+      "read": 269
+    },
+    "ios-open": {
+      "said": [
+        "Inspecting handoff.lolly…",
+        "Could not open this .lolly file: This does not look like a .lolly file (manifest.json is missing)."
+      ]
+    },
+    "android-share": {
+      "said": [
+        "Inspecting handoff.lolly…",
+        "Could not open this .lolly file: This does not look like a .lolly file (manifest.json is missing)."
+      ]
+    },
+    "lolly-import": {
+      "said": [
+        "Inspecting handoff.lolly…",
+        "Could not open this .lolly file: This does not look like a .lolly file (manifest.json is missing)."
+      ]
+    }
+  },
+  "zip-truncated": {
+    "gallery-drop": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ],
+      "chose": "unpack",
+      "said": [
+        "Upload failed: That ZIP could not be read (it may be encrypted or use an unsupported format)."
+      ]
+    },
+    "picker": {
+      "refused": "That ZIP could not be read (it may be encrypted or use an unsupported format)."
+    },
+    "utility-input": {
+      "read": 161
+    },
+    "utility-convert": {
+      "kind": "unknown"
+    },
+    "pwa-launch": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    },
+    "desktop-verb": {
+      "read": 161
+    },
+    "ios-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    }
+  },
+  "zip-crc-mismatch": {
+    "gallery-drop": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ],
+      "chose": "unpack",
+      "said": [
+        "Upload failed: That ZIP could not be read (it may be encrypted or use an unsupported format)."
+      ]
+    },
+    "picker": {
+      "refused": "That ZIP could not be read (it may be encrypted or use an unsupported format)."
+    },
+    "utility-input": {
+      "read": 125
+    },
+    "utility-convert": {
+      "kind": "unknown"
+    },
+    "pwa-launch": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    },
+    "desktop-verb": {
+      "read": 125
+    },
+    "ios-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    }
+  },
+  "zip-encrypted-flag": {
+    "gallery-drop": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ],
+      "chose": "unpack",
+      "said": [
+        "Upload failed: That ZIP could not be read (it may be encrypted or use an unsupported format)."
+      ]
+    },
+    "picker": {
+      "refused": "That ZIP could not be read (it may be encrypted or use an unsupported format)."
+    },
+    "utility-input": {
+      "read": 129
+    },
+    "utility-convert": {
+      "kind": "unknown"
+    },
+    "pwa-launch": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    },
+    "desktop-verb": {
+      "read": 129
+    },
+    "ios-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    }
+  },
+  "zip64-sentinel": {
+    "gallery-drop": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ],
+      "chose": "unpack",
+      "said": [
+        "Upload failed: That ZIP could not be read (it may be encrypted or use an unsupported format)."
+      ]
+    },
+    "picker": {
+      "refused": "That ZIP could not be read (it may be encrypted or use an unsupported format)."
+    },
+    "utility-input": {
+      "read": 109
+    },
+    "utility-convert": {
+      "kind": "unknown"
+    },
+    "pwa-launch": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    },
+    "desktop-verb": {
+      "read": 109
+    },
+    "ios-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    }
+  },
+  "zip-traversal": {
+    "gallery-drop": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ],
+      "chose": "unpack",
+      "stored": {
+        "text/txt": 4
+      },
+      "said": [
+        "Added 4 files to your library."
+      ]
+    },
+    "picker": {
+      "stored": {
+        "text/txt": 4
+      },
+      "said": [
+        "4 files imported from the zip."
+      ]
+    },
+    "utility-input": {
+      "read": 448
+    },
+    "utility-convert": {
+      "kind": "unknown"
+    },
+    "pwa-launch": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    },
+    "desktop-verb": {
+      "read": 448
+    },
+    "ios-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    }
+  },
+  "zip-duplicate-names": {
+    "gallery-drop": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ],
+      "chose": "unpack",
+      "stored": {
+        "text/txt": 2
+      },
+      "said": [
+        "Added 2 files to your library."
+      ]
+    },
+    "picker": {
+      "stored": {
+        "text/txt": 2
+      },
+      "said": [
+        "2 files imported from the zip."
+      ]
+    },
+    "utility-input": {
+      "read": 217
+    },
+    "utility-convert": {
+      "kind": "unknown"
+    },
+    "pwa-launch": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    },
+    "desktop-verb": {
+      "read": 217
+    },
+    "ios-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    }
+  },
+  "targz-truncated": {
+    "gallery-drop": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,verify"
+      ],
+      "chose": "unpack",
+      "said": [
+        "Upload failed: gunzip: declared output 3148980272 exceeds 268538880 byte limit"
+      ]
+    },
+    "picker": {
+      "refused": "gunzip: declared output 3148980272 exceeds 335544320 byte limit"
+    },
+    "utility-input": {
+      "read": 46
+    },
+    "utility-convert": {
+      "kind": "svgz"
+    },
+    "pwa-launch": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,verify"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,verify"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,verify"
+      ]
+    },
+    "desktop-verb": {
+      "read": 46
+    },
+    "ios-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,verify"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,verify"
+      ]
+    }
+  },
+  "tar-bad-checksum": {
+    "gallery-drop": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,verify"
+      ],
+      "chose": "unpack",
+      "said": [
+        "Upload failed: readTar: header checksum mismatch at offset 0"
+      ]
+    },
+    "picker": {
+      "stored": {
+        "raster/bin": 1
+      }
+    },
+    "utility-input": {
+      "read": 2048
+    },
+    "utility-convert": {
+      "kind": "unknown"
+    },
+    "pwa-launch": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,verify"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,verify"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,verify"
+      ]
+    },
+    "desktop-verb": {
+      "read": 2048
+    },
+    "ios-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,verify"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,verify"
+      ]
+    }
+  },
+  "lolly-truncated": {
+    "gallery-drop": {
+      "asked": [
+        "lolly-intake | Shared design | open-session"
+      ],
+      "said": [
+        "Inspecting shared design (cut).lolly…"
+      ]
+    },
+    "picker": {
+      "stored": {
+        "raster/bin": 1
+      }
+    },
+    "utility-input": {
+      "read": 1430
+    },
+    "utility-convert": {
+      "kind": "unknown"
+    },
+    "pwa-launch": {
+      "asked": [
+        "lolly-intake | Shared design | open-session"
+      ],
+      "said": [
+        "Inspecting shared design (cut).lolly…"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "lolly-intake | Shared design | open-session"
+      ],
+      "said": [
+        "Inspecting shared design (cut).lolly…"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "lolly-intake | Shared design | open-session"
+      ],
+      "said": [
+        "Inspecting shared design (cut).lolly…"
+      ]
+    },
+    "desktop-verb": {
+      "read": 1430
+    },
+    "ios-open": {
+      "asked": [
+        "lolly-intake | Shared design | open-session"
+      ],
+      "said": [
+        "Inspecting shared design (cut).lolly…"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "lolly-intake | Shared design | open-session"
+      ],
+      "said": [
+        "Inspecting shared design (cut).lolly…"
+      ]
+    },
+    "lolly-import": {
+      "asked": [
+        "lolly-intake | Shared design | open-session"
+      ],
+      "chose": "open-session",
+      "said": [
+        "Inspecting shared design (cut).lolly…",
+        "Verifying shared design (cut).lolly…",
+        "Could not open this .lolly file: This does not look like a .lolly file."
+      ]
+    }
+  },
+  "bomb-flat-zip": {
+    "gallery-drop": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ],
+      "chose": "unpack",
+      "said": [
+        "Upload failed: That archive exceeds the 200-file or 256 MB import limit - unpack it on your device first."
+      ]
+    },
+    "picker": {
+      "refused": "That archive exceeds the 200-file or 256 MB import limit - unpack it on your device first."
+    },
+    "utility-input": {
+      "read": 414998
+    },
+    "utility-convert": {
+      "kind": "unknown"
+    },
+    "pwa-launch": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    },
+    "desktop-verb": {
+      "read": 414998
+    },
+    "ios-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    }
+  },
+  "bomb-lying-size": {
+    "gallery-drop": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ],
+      "chose": "unpack",
+      "said": [
+        "Upload failed: That ZIP could not be read (it may be encrypted or use an unsupported format)."
+      ]
+    },
+    "picker": {
+      "refused": "That ZIP could not be read (it may be encrypted or use an unsupported format)."
+    },
+    "utility-input": {
+      "read": 66486
+    },
+    "utility-convert": {
+      "kind": "unknown"
+    },
+    "pwa-launch": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    },
+    "desktop-verb": {
+      "read": 66486
+    },
+    "ios-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    }
+  },
+  "bomb-svgz": {
+    "gallery-drop": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ],
+      "chose": "library",
+      "said": [
+        "Upload failed: gunzip: declared output 419430400 exceeds 335544320 byte limit"
+      ]
+    },
+    "picker": {
+      "refused": "gunzip: declared output 419430400 exceeds 335544320 byte limit"
+    },
+    "utility-input": {
+      "read": 414820
+    },
+    "utility-convert": {
+      "kind": "svgz"
+    },
+    "pwa-launch": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "desktop-verb": {
+      "read": 414820
+    },
+    "ios-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    }
+  },
+  "bomb-targz": {
+    "gallery-drop": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,verify"
+      ],
+      "chose": "unpack",
+      "said": [
+        "Upload failed: gunzip: declared output 419430400 exceeds 268538880 byte limit"
+      ]
+    },
+    "picker": {
+      "refused": "gunzip: declared output 419430400 exceeds 335544320 byte limit"
+    },
+    "utility-input": {
+      "read": 414820
+    },
+    "utility-convert": {
+      "kind": "svgz"
+    },
+    "pwa-launch": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,verify"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,verify"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,verify"
+      ]
+    },
+    "desktop-verb": {
+      "read": 414820
+    },
+    "ios-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,verify"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,verify"
+      ]
+    }
+  },
+  "bomb-dotlottie": {
+    "gallery-drop": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | animation,library,verify"
+      ],
+      "chose": "library",
+      "said": [
+        "Upload failed: readZip: entry \"animations/a.json\" expands to 209715200 bytes; maximum is 33554432"
+      ]
+    },
+    "picker": {
+      "refused": "readZip: entry \"animations/a.json\" expands to 209715200 bytes; maximum is 33554432"
+    },
+    "utility-input": {
+      "read": 207676
+    },
+    "utility-convert": {
+      "kind": "unknown"
+    },
+    "pwa-launch": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | animation,library,verify"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | animation,library,verify"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | animation,library,verify"
+      ]
+    },
+    "desktop-verb": {
+      "read": 207676
+    },
+    "ios-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | animation,library,verify"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | animation,library,verify"
+      ]
+    }
+  },
+  "bomb-lolly": {
+    "gallery-drop": {
+      "asked": [
+        "lolly-intake | Shared design | open-session"
+      ],
+      "said": [
+        "Inspecting big handoff.lolly…"
+      ]
+    },
+    "picker": {
+      "stored": {
+        "raster/bin": 1
+      }
+    },
+    "utility-input": {
+      "read": 622558
+    },
+    "utility-convert": {
+      "kind": "unknown"
+    },
+    "pwa-launch": {
+      "asked": [
+        "lolly-intake | Shared design | open-session"
+      ],
+      "said": [
+        "Inspecting big handoff.lolly…"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "lolly-intake | Shared design | open-session"
+      ],
+      "said": [
+        "Inspecting big handoff.lolly…"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "lolly-intake | Shared design | open-session"
+      ],
+      "said": [
+        "Inspecting big handoff.lolly…"
+      ]
+    },
+    "desktop-verb": {
+      "read": 622558
+    },
+    "ios-open": {
+      "asked": [
+        "lolly-intake | Shared design | open-session"
+      ],
+      "said": [
+        "Inspecting big handoff.lolly…"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "lolly-intake | Shared design | open-session"
+      ],
+      "said": [
+        "Inspecting big handoff.lolly…"
+      ]
+    },
+    "lolly-import": {
+      "asked": [
+        "lolly-intake | Shared design | open-session"
+      ],
+      "chose": "open-session",
+      "said": [
+        "Inspecting big handoff.lolly…",
+        "Verifying big handoff.lolly…",
+        "Could not open this .lolly file: This .lolly file has an oversized part (\"assets/uploads/zeros.png\") and was not opened."
+      ]
+    }
+  },
+  "bomb-nested-count": {
+    "gallery-drop": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports",
+        "- | 20+ images saved to this device | ",
+        "- | 100+ images saved to this device | ",
+        "- | 500+ images saved to this device | "
+      ],
+      "chose": "unpack",
+      "stored": {
+        "text/txt": 750
+      },
+      "said": [
+        "150 files imported from the zip.",
+        "Upload failed: That archive exceeds the 200-file or 256 MB import limit - unpack it on your device first.",
+        "Added 5 files to your library."
+      ]
+    },
+    "picker": {
+      "refused": "Nothing usable found in that zip."
+    },
+    "utility-input": {
+      "read": 100510
+    },
+    "utility-convert": {
+      "kind": "unknown"
+    },
+    "pwa-launch": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    },
+    "desktop-verb": {
+      "read": 100510
+    },
+    "ios-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    }
+  },
+  "bomb-nested-bytes": {
+    "gallery-drop": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ],
+      "chose": "unpack",
+      "said": [
+        "Upload failed: Nothing usable found in that zip.",
+        "Upload failed: That archive exceeds the 200-file or 256 MB import limit - unpack it on your device first."
+      ]
+    },
+    "picker": {
+      "refused": "Nothing usable found in that zip."
+    },
+    "utility-input": {
+      "read": 332932
+    },
+    "utility-convert": {
+      "kind": "unknown"
+    },
+    "pwa-launch": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    },
+    "desktop-verb": {
+      "read": 332932
+    },
+    "ios-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | unpack,design,design-rules,sequence,exports"
+      ]
+    }
+  },
+  "oversize-clip": {
+    "gallery-drop": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ],
+      "chose": "library",
+      "said": [
+        "This video is 62.9 MB - over the 16 MB limit. Trim or compress it and try again."
+      ]
+    },
+    "picker": {
+      "refused": "This video is 62.9 MB - over the 16 MB limit. Trim or compress it and try again."
+    },
+    "utility-input": {
+      "refused": "over the input limit"
+    },
+    "utility-convert": {
+      "kind": "video"
+    },
+    "pwa-launch": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "drop-chooser | What should Lolly do with this file? | library,verify"
+      ]
+    },
+    "desktop-verb": {
+      "refused": "over the input limit"
+    },
+    "ios-open": {
+      "native": "refused over 48 MiB",
+      "said": [
+        "Could not read “holiday-4k.mp4”, or it exceeds the 48 MB mobile document-open limit. Try Open inside Lolly for a larger file."
+      ]
+    },
+    "android-share": {
+      "native": "refused over 48 MiB"
+    }
+  },
+  "lolly-shared-design": {
+    "gallery-drop": {
+      "asked": [
+        "lolly-intake | Shared design | open-session"
+      ],
+      "said": [
+        "Inspecting Café menu 写真.lolly…"
+      ]
+    },
+    "picker": {
+      "stored": {
+        "raster/bin": 1
+      }
+    },
+    "utility-input": {
+      "read": 1494
+    },
+    "utility-convert": {
+      "kind": "unknown"
+    },
+    "pwa-launch": {
+      "asked": [
+        "lolly-intake | Shared design | open-session"
+      ],
+      "said": [
+        "Inspecting Café menu 写真.lolly…"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "lolly-intake | Shared design | open-session"
+      ],
+      "said": [
+        "Inspecting Café menu 写真.lolly…"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "lolly-intake | Shared design | open-session"
+      ],
+      "said": [
+        "Inspecting Café menu 写真.lolly…"
+      ]
+    },
+    "desktop-verb": {
+      "read": 1494
+    },
+    "ios-open": {
+      "asked": [
+        "lolly-intake | Shared design | open-session"
+      ],
+      "said": [
+        "Inspecting Café menu 写真.lolly…"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "lolly-intake | Shared design | open-session"
+      ],
+      "said": [
+        "Inspecting Café menu 写真.lolly…"
+      ]
+    },
+    "lolly-import": {
+      "asked": [
+        "lolly-intake | Shared design | open-session"
+      ],
+      "chose": "open-session",
+      "stored": {
+        "raster/png": 1
+      },
+      "sessions": 1,
+      "said": [
+        "Inspecting Café menu 写真.lolly…",
+        "Verifying Café menu 写真.lolly…",
+        "Importing 1 files…",
+        "Importing file 1 of 1…",
+        "Saving the shared design…",
+        "Opened Café menu 写真.lolly"
+      ]
+    }
+  },
+  "lolly-missing-dependency": {
+    "gallery-drop": {
+      "asked": [
+        "lolly-intake | Shared design | open-session"
+      ],
+      "said": [
+        "Inspecting menu without logo.lolly…"
+      ]
+    },
+    "picker": {
+      "stored": {
+        "raster/bin": 1
+      }
+    },
+    "utility-input": {
+      "read": 1068
+    },
+    "utility-convert": {
+      "kind": "unknown"
+    },
+    "pwa-launch": {
+      "asked": [
+        "lolly-intake | Shared design | open-session"
+      ],
+      "said": [
+        "Inspecting menu without logo.lolly…"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "lolly-intake | Shared design | open-session"
+      ],
+      "said": [
+        "Inspecting menu without logo.lolly…"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "lolly-intake | Shared design | open-session"
+      ],
+      "said": [
+        "Inspecting menu without logo.lolly…"
+      ]
+    },
+    "desktop-verb": {
+      "read": 1068
+    },
+    "ios-open": {
+      "asked": [
+        "lolly-intake | Shared design | open-session"
+      ],
+      "said": [
+        "Inspecting menu without logo.lolly…"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "lolly-intake | Shared design | open-session"
+      ],
+      "said": [
+        "Inspecting menu without logo.lolly…"
+      ]
+    },
+    "lolly-import": {
+      "asked": [
+        "lolly-intake | Shared design | open-session"
+      ],
+      "chose": "open-session",
+      "sessions": 1,
+      "said": [
+        "Inspecting menu without logo.lolly…",
+        "Verifying menu without logo.lolly…",
+        "Saving the shared design…",
+        "Opened menu without logo.lolly"
+      ]
+    }
+  },
+  "lolly-encrypted-sync-copy": {
+    "gallery-drop": {
+      "asked": [
+        "- | Import this sync copy? | scope:import,scope:cancel"
+      ],
+      "said": [
+        "Inspecting snapshot.lolly…"
+      ]
+    },
+    "picker": {
+      "stored": {
+        "raster/bin": 1
+      }
+    },
+    "utility-input": {
+      "read": 256
+    },
+    "utility-convert": {
+      "kind": "unknown"
+    },
+    "pwa-launch": {
+      "asked": [
+        "- | Import this sync copy? | scope:import,scope:cancel"
+      ],
+      "said": [
+        "Inspecting snapshot.lolly…"
+      ]
+    },
+    "pwa-share": {
+      "asked": [
+        "- | Import this sync copy? | scope:import,scope:cancel"
+      ],
+      "said": [
+        "Inspecting snapshot.lolly…"
+      ]
+    },
+    "desktop-open": {
+      "asked": [
+        "- | Import this sync copy? | scope:import,scope:cancel"
+      ],
+      "said": [
+        "Inspecting snapshot.lolly…"
+      ]
+    },
+    "desktop-verb": {
+      "read": 256
+    },
+    "ios-open": {
+      "asked": [
+        "- | Import this sync copy? | scope:import,scope:cancel"
+      ],
+      "said": [
+        "Inspecting snapshot.lolly…"
+      ]
+    },
+    "android-share": {
+      "asked": [
+        "- | Import this sync copy? | scope:import,scope:cancel"
+      ],
+      "said": [
+        "Inspecting snapshot.lolly…"
+      ]
+    },
+    "lolly-import": {
+      "asked": [
+        "- | Import this sync copy? | scope:import,scope:cancel"
+      ],
+      "said": [
+        "Inspecting snapshot.lolly…"
+      ]
+    }
+  }
+}

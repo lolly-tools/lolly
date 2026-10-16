@@ -142,6 +142,15 @@ export async function sniffOfficeZip(bytes: Uint8Array): Promise<string> {
   return 'unknown';
 }
 
+/** How the Convert view classifies a picked file: a 256 KB head, and the whole file
+ *  only when an unnamed zip's part map has to decide. `bytes` is the head. */
+export async function convertSourceKind(file: File): Promise<{ bytes: Uint8Array; kind: string }> {
+  const bytes = new Uint8Array(await file.slice(0, 256 * 1024).arrayBuffer());
+  let kind = detectKind(bytes, file);
+  if (kind === 'unknown' && sniffContainer(bytes) === 'zip') kind = await sniffOfficeZip(new Uint8Array(await file.arrayBuffer()));
+  return { bytes, kind };
+}
+
 export async function convert(bytes: Uint8Array, kind: string, target: Target, file: File, options = DEFAULT_IMAGE_OPTIONS, signal?: AbortSignal): Promise<Blob> {
   signal?.throwIfAborted();
   if (['jxl-recompress', 'jpeg-original'].includes(target.id)) {

@@ -1810,14 +1810,7 @@ async function boot(): Promise<void> {
     const launchQueue = (window as Window & { launchQueue?: LaunchQueue }).launchQueue;
     if (typeof launchQueue?.setConsumer === 'function') {
       launchQueue.setConsumer((params) => {
-        const handles = params?.files ?? [];
-        if (!handles.length) return;
-        void Promise.all(handles.map((handle) => handle.getFile()))
-          .then((files) => m.openDropChooser(
-            files.filter(Boolean),
-            host as unknown as Parameters<typeof m.openDropChooser>[1],
-          ))
-          .catch((err: unknown) => console.warn('[launch] could not read the opened file', err));
+        void m.openLaunchedFiles(params, host as unknown as Parameters<typeof m.openLaunchedFiles>[1]);
       });
     }
     // Desktop integration poll loop (plans/174): drains the native event queue -
